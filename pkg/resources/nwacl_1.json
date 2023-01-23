@@ -1,5 +1,5 @@
 {
-  "created_at": "2022-04-10T11:20:38Z",
+  "created_at": "2022-04-10T11:20:38.000Z",
   "crn": "crn:v1:bluemix:public:is:us-south:a/e97a8c01ac694e308ef3ad7795e2f769::network-acl:r006-3e783502-0200-4c83-afd2-ac33ee2fb190",
   "href": "https://us-south.iaas.cloud.ibm.com/v1/network_acls/r006-3e783502-0200-4c83-afd2-ac33ee2fb190",
   "id": "r006-3e783502-0200-4c83-afd2-ac33ee2fb190",
@@ -9,7 +9,37 @@
     "id": "da8c13fff6ae4ab08888f88e2b6d6bcb",
     "name": "temp_ky"
   },
-  "rules": [],
+  "rules": [
+    {
+      "action": "allow",
+      "before": {
+        "href": "https://us-south.iaas.cloud.ibm.com/v1/network_acls/r006-3e783502-0200-4c83-afd2-ac33ee2fb190/rules/r006-f2387032-6c7b-479d-9cef-862fb9c7d30f",
+        "id": "r006-f2387032-6c7b-479d-9cef-862fb9c7d30f",
+        "name": "allow-outbound"
+      },
+      "created_at": "2022-04-10T11:20:38.000Z",
+      "destination": "0.0.0.0/0",
+      "direction": "inbound",
+      "href": "https://us-south.iaas.cloud.ibm.com/v1/network_acls/r006-3e783502-0200-4c83-afd2-ac33ee2fb190/rules/r006-0bc6a10c-5f35-4277-b81f-79acb324d10f",
+      "id": "r006-0bc6a10c-5f35-4277-b81f-79acb324d10f",
+      "ip_version": "ipv4",
+      "name": "allow-inbound",
+      "source": "0.0.0.0/0",
+      "protocol": "all"
+    },
+    {
+      "action": "allow",
+      "created_at": "2022-04-10T11:20:38.000Z",
+      "destination": "0.0.0.0/0",
+      "direction": "outbound",
+      "href": "https://us-south.iaas.cloud.ibm.com/v1/network_acls/r006-3e783502-0200-4c83-afd2-ac33ee2fb190/rules/r006-f2387032-6c7b-479d-9cef-862fb9c7d30f",
+      "id": "r006-f2387032-6c7b-479d-9cef-862fb9c7d30f",
+      "ip_version": "ipv4",
+      "name": "allow-outbound",
+      "source": "0.0.0.0/0",
+      "protocol": "all"
+    }
+  ],
   "subnets": [],
   "vpc": {
     "crn": "crn:v1:bluemix:public:is:us-south:a/e97a8c01ac694e308ef3ad7795e2f769::vpc:r006-82b02cdd-e74b-43e3-a3bb-5d6128eac3c4",

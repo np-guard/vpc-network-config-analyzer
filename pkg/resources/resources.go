@@ -1,38 +1,33 @@
 package resources
 
 import (
-	"fmt"
-
-	_ "embed"
-
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
 
 	"encoding/json"
 )
 
-//go:embed nwacl_1.json
-var b []byte
+// convert json string of nacl to vpc1.NetworkACL object
+func JsonNaclToObject(nwacl []byte) *vpc1.NetworkACL {
+	naclMap := jsonToMap(nwacl)
+	naclObj := &vpc1.NetworkACL{}
+	vpc1.UnmarshalNetworkACL(naclMap, &naclObj)
+	return naclObj
+}
+
+// convert vpc1.NetworkACL to json string
+func ObjectNaclToJson(naclObj *vpc1.NetworkACL) ([]byte, error) {
+	// return json.Marshal(*naclObj)
+	return json.MarshalIndent(*naclObj, "", "    ")
+}
+
+// convert json string to map object
+func jsonToMap(jsonStr []byte) map[string]json.RawMessage {
+	var result map[string]json.RawMessage
+	json.Unmarshal(jsonStr, &result)
+	return result
+}
 
 func Test() {
-	v := vpc1.VpcV1{}
-	fmt.Printf("%+v", v)
-
-	print(string(b))
-
-	n := vpc1.NetworkACL{}
-
-	/*
-			--- FAIL: TestBasic (0.00s)
-				panic: json: cannot unmarshal object into Go struct field NetworkACL.rules of type vpcv1.NetworkACLRuleItemIntf [recovered]
-		        panic: json: cannot unmarshal object into Go struct field NetworkACL.rules of type vpcv1.NetworkACLRuleItemIntf
-
-	*/
-
-	if err := json.Unmarshal(b, &n); err != nil {
-		panic(err)
-	}
-	//fmt.Println(n)
-	fmt.Printf("%+v", n)
 
 }
 
