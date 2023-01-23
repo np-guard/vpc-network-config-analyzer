@@ -1,10 +1,12 @@
 mode: set
-github.com/np-guard/vpc-network-config-analyzer/pkg/resources/resources.go:17.59,21.2 3 1
-github.com/np-guard/vpc-network-config-analyzer/pkg/resources/resources.go:24.54,29.2 4 1
-github.com/np-guard/vpc-network-config-analyzer/pkg/resources/resources.go:32.65,35.2 1 1
-github.com/np-guard/vpc-network-config-analyzer/pkg/resources/resources.go:37.13,45.16 6 1
-github.com/np-guard/vpc-network-config-analyzer/pkg/resources/resources.go:48.2,50.24 3 1
-github.com/np-guard/vpc-network-config-analyzer/pkg/resources/resources.go:55.2,55.48 1 1
-github.com/np-guard/vpc-network-config-analyzer/pkg/resources/resources.go:45.16,47.3 1 0
-github.com/np-guard/vpc-network-config-analyzer/pkg/resources/resources.go:50.24,52.3 1 1
-github.com/np-guard/vpc-network-config-analyzer/pkg/resources/resources.go:52.8,54.3 1 0
+github.com/np-guard/vpc-network-config-analyzer/pkg/resources/resources.go:12.54,17.2 4 1
+github.com/np-guard/vpc-network-config-analyzer/pkg/resources/resources.go:20.65,23.2 1 1
+github.com/np-guard/vpc-network-config-analyzer/pkg/resources/resources.go:26.59,30.2 3 1
+github.com/np-guard/vpc-network-config-analyzer/pkg/resources/resources.go:32.59,33.81 1 1
+github.com/np-guard/vpc-network-config-analyzer/pkg/resources/resources.go:47.2,47.11 1 0
+github.com/np-guard/vpc-network-config-analyzer/pkg/resources/resources.go:33.81,36.3 2 1
+github.com/np-guard/vpc-network-config-analyzer/pkg/resources/resources.go:36.8,36.91 1 1
+github.com/np-guard/vpc-network-config-analyzer/pkg/resources/resources.go:36.91,42.3 5 1
+github.com/np-guard/vpc-network-config-analyzer/pkg/resources/resources.go:42.8,42.89 1 1
+github.com/np-guard/vpc-network-config-analyzer/pkg/resources/resources.go:42.89,46.3 3 1
+github.com/np-guard/vpc-network-config-analyzer/pkg/resources/resources.go:50.14,52.2 0 0

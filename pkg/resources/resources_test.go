@@ -2,6 +2,7 @@ package resources
 
 import (
 	_ "embed"
+	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -16,7 +17,7 @@ var nwacl2 []byte
 //go:embed nwacl_3.json
 var nwacl3 []byte
 
-func TestBasic(t *testing.T) {
+func TestNaclJsonUnmarshal(t *testing.T) {
 	naclExamples := [][]byte{nwacl1, nwacl2, nwacl3}
 	for index, nwacl := range naclExamples {
 		naclObj := JsonNaclToObject(nwacl)
@@ -36,4 +37,17 @@ func getJsonStr(b []byte) string {
 	res = strings.ReplaceAll(res, " ", "")
 	res = strings.ReplaceAll(res, "\n", "")
 	return res
+}
+
+func TestGetNACLrule(t *testing.T) {
+	naclExamples := [][]byte{nwacl1, nwacl2, nwacl3}
+	for index, nwacl := range naclExamples {
+		fmt.Printf("nacl rules for example %d:\n", index+1)
+		naclObj := JsonNaclToObject(nwacl)
+		for index := range naclObj.Rules {
+			rule := naclObj.Rules[index]
+			ruleStr := getNACLRule(rule)
+			fmt.Printf("%s", ruleStr)
+		}
+	}
 }
