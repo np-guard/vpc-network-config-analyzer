@@ -1,0 +1,4 @@
+mode: set
+github.com/np-guard/vpc-network-config-analyzer/pkg/resources/resources.go:16.13,31.46 5 1
+github.com/np-guard/vpc-network-config-analyzer/pkg/resources/resources.go:35.2,35.22 1 1
+github.com/np-guard/vpc-network-config-analyzer/pkg/resources/resources.go:31.46,32.13 1 0

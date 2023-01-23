@@ -1,0 +1,51 @@
+{
+  "created_at": "2022-04-10T11:20:38Z",
+  "crn": "crn:v1:bluemix:public:is:us-south:a/e97a8c01ac694e308ef3ad7795e2f769::network-acl:r006-3e783502-0200-4c83-afd2-ac33ee2fb190",
+  "href": "https://us-south.iaas.cloud.ibm.com/v1/network_acls/r006-3e783502-0200-4c83-afd2-ac33ee2fb190",
+  "id": "r006-3e783502-0200-4c83-afd2-ac33ee2fb190",
+  "name": "undaunting-untamed-reopen-had",
+  "resource_group": {
+    "href": "https://resource-controller.cloud.ibm.com/v2/resource_groups/da8c13fff6ae4ab08888f88e2b6d6bcb",
+    "id": "da8c13fff6ae4ab08888f88e2b6d6bcb",
+    "name": "temp_ky"
+  },
+  "rules": [
+    {
+      "action": "allow",     
+	  "direction": "inbound",
+	  "ip_version": "ipv4",
+	  "protocol": "all",
+	  "source": "0.0.0.0/0",
+	  "destination": "0.0.0.0/0",
+      "created_at": "2022-04-10T11:20:38Z",           
+      "href": "https://us-south.iaas.cloud.ibm.com/v1/network_acls/r006-3e783502-0200-4c83-afd2-ac33ee2fb190/rules/r006-0bc6a10c-5f35-4277-b81f-79acb324d10f",
+      "id": "r006-0bc6a10c-5f35-4277-b81f-79acb324d10f",      
+      "name": "allow-inbound",
+	  "before": {
+        "href": "https://us-south.iaas.cloud.ibm.com/v1/network_acls/r006-3e783502-0200-4c83-afd2-ac33ee2fb190/rules/r006-f2387032-6c7b-479d-9cef-862fb9c7d30f",
+        "id": "r006-f2387032-6c7b-479d-9cef-862fb9c7d30f",
+        "name": "allow-outbound"
+      }
+    },
+    {
+      "action": "allow",
+	  "direction": "outbound",
+	  "ip_version": "ipv4",
+      "protocol": "all",
+	  "source": "0.0.0.0/0",
+	  "destination": "0.0.0.0/0",
+	  "created_at": "2022-04-10T11:20:38Z",           
+      "href": "https://us-south.iaas.cloud.ibm.com/v1/network_acls/r006-3e783502-0200-4c83-afd2-ac33ee2fb190/rules/r006-f2387032-6c7b-479d-9cef-862fb9c7d30f",
+      "id": "r006-f2387032-6c7b-479d-9cef-862fb9c7d30f",      
+      "name": "allow-outbound"           
+    }
+  ],
+  "subnets": [],
+  "vpc": {
+    "crn": "crn:v1:bluemix:public:is:us-south:a/e97a8c01ac694e308ef3ad7795e2f769::vpc:r006-82b02cdd-e74b-43e3-a3bb-5d6128eac3c4",
+    "href": "https://us-south.iaas.cloud.ibm.com/v1/vpcs/r006-82b02cdd-e74b-43e3-a3bb-5d6128eac3c4",
+    "id": "r006-82b02cdd-e74b-43e3-a3bb-5d6128eac3c4",
+    "name": "temp-vpc-ky",
+    "resource_type": "vpc"
+  }
+}
