@@ -52,6 +52,16 @@ func Test() {
 }
 
 /*
+
+relevant unmarshal functions:
+UnmarshalNetworkACL
+UnmarshalSecurityGroup
+UnmarshalSubnet
+UnmarshalVPC
+
+
+
+
 // NetworkACLRuleItem : NetworkACLRuleItem struct
 // Models which "extend" this model:
 // - NetworkACLRuleItemNetworkACLRuleProtocolTcpudp
