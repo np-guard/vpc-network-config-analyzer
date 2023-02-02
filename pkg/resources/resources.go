@@ -29,22 +29,147 @@ func jsonToMap(jsonStr []byte) map[string]json.RawMessage {
 	return result
 }
 
-func getNACLRule(rule vpc1.NetworkACLRuleItemIntf) string {
+func getNACLRule(rule vpc1.NetworkACLRuleItemIntf) (string, *Rule, bool) {
+	ruleRes := Rule{}
+	var isIngress bool
+
 	if ruleObj, ok := rule.(*vpc1.NetworkACLRuleItemNetworkACLRuleProtocolAll); ok {
 		res := fmt.Sprintf("direction: %s , src: %s , dst: %s, conn: %s, action: %s\n", *ruleObj.Direction, *ruleObj.Source, *ruleObj.Destination, *ruleObj.Protocol, *ruleObj.Action)
-		return res
+		srcIP, _ := NewIPBlock(*ruleObj.Source, []string{})
+		dstIP, _ := NewIPBlock(*ruleObj.Destination, []string{})
+		conns := MakeConnectionSet(true)
+		ruleRes = Rule{src: srcIP, dst: dstIP, connections: &conns, action: *ruleObj.Action}
+		if *ruleObj.Direction == "inbound" {
+			isIngress = true
+		} else if *ruleObj.Direction == "outbound" {
+			isIngress = false
+		}
+		return res, &ruleRes, isIngress
 	} else if ruleObj, ok := rule.(*vpc1.NetworkACLRuleItemNetworkACLRuleProtocolTcpudp); ok {
 		srcPorts := fmt.Sprintf("%d-%d", *ruleObj.SourcePortMin, *ruleObj.SourcePortMax)
 		dstPorts := fmt.Sprintf("%d-%d", *ruleObj.DestinationPortMin, *ruleObj.DestinationPortMax)
 		connStr := fmt.Sprintf("protocol: %s, srcPorts: %s, dstPorts: %s", *ruleObj.Protocol, srcPorts, dstPorts)
 		res := fmt.Sprintf("direction: %s , src: %s , dst: %s, conn: %s, action: %s\n", *ruleObj.Direction, *ruleObj.Source, *ruleObj.Destination, connStr, *ruleObj.Action)
-		return res
+		return res, nil, false
 	} else if ruleObj, ok := rule.(*vpc1.NetworkACLRuleItemNetworkACLRuleProtocolIcmp); ok {
 		connStr := fmt.Sprintf("protocol: %s, type: %d, code: %d", *ruleObj.Protocol, *ruleObj.Type, *ruleObj.Code)
 		res := fmt.Sprintf("direction: %s , src: %s , dst: %s, conn: %s, action: %s\n", *ruleObj.Direction, *ruleObj.Source, *ruleObj.Destination, connStr, *ruleObj.Action)
-		return res
+		return res, nil, false
 	}
-	return ""
+	return "", nil, false
+}
+
+type Rule struct {
+	src         *IPBlock
+	dst         *IPBlock
+	connections *ConnectionSet
+	action      string
+}
+
+type Subnet struct {
+	name    string
+	address *IPBlock
+}
+
+func getEmptyConnSet() *ConnectionSet {
+	res := MakeConnectionSet(false)
+	return &res
+}
+
+func getAllConnSet() *ConnectionSet {
+	res := MakeConnectionSet(true)
+	return &res
+}
+
+func getAllowedIngressConnections(ingressRules []*Rule, src *IPBlock, subnetCidr *IPBlock, disjointPeers []*IPBlock) map[string]*ConnectionSet {
+	allowedIngress := map[string]*ConnectionSet{}
+	deniedIngress := map[string]*ConnectionSet{}
+	for _, cidr := range disjointPeers {
+		if cidr.ContainedIn(subnetCidr) {
+			allowedIngress[cidr.ToIPRanges()] = getEmptyConnSet()
+			deniedIngress[cidr.ToIPRanges()] = getEmptyConnSet()
+		}
+	}
+
+	if src.ContainedIn(subnetCidr) {
+		//no need to check nacl rules for in-subnet connections
+		//allowedIngress[subnetCidr.ToIPRanges()] = &ConnectionSet{AllowAll: true}
+		for _, cidr := range disjointPeers {
+			if cidr.ContainedIn(subnetCidr) {
+				allowedIngress[cidr.ToIPRanges()] = getAllConnSet()
+			}
+		}
+		return allowedIngress
+	}
+
+	for _, ingressRule := range ingressRules {
+		if !src.ContainedIn(ingressRule.src) {
+			continue
+		}
+		destCidr := ingressRule.dst.Intersection(subnetCidr)
+		// split destCidr to disjoint ip-blocks
+		destCidrList := []*IPBlock{}
+		for _, cidr := range disjointPeers {
+			if cidr.ContainedIn(destCidr) {
+				destCidrList = append(destCidrList, cidr)
+			}
+		}
+		for _, disjointDestCidr := range destCidrList {
+			if ingressRule.action == "allow" {
+				addedAllowedConns := *ingressRule.connections.Copy()
+				addedAllowedConns.Subtract(*deniedIngress[disjointDestCidr.ToIPRanges()])
+				allowedIngress[disjointDestCidr.ToIPRanges()].Union(addedAllowedConns)
+				//allowedIngress[disjointDestCidr.ToIPRanges()].Union(*ingressRule.connections)
+			} else if ingressRule.action == "deny" {
+				deniedIngress[disjointDestCidr.ToIPRanges()].Union(*ingressRule.connections)
+			}
+		}
+	}
+	return allowedIngress
+}
+
+// get allowed and denied connections (ingress and egress) for a certain subnet to which this nacl is applied
+func AnalyzeNACL(naclObj *vpc1.NetworkACL, subnetCidr *IPBlock) {
+	fmt.Println("=========================================")
+	// get NACL rules from NACL object
+	peers := []*IPBlock{subnetCidr}
+	ingressRules := []*Rule{}
+	egressRules := []*Rule{}
+	for index := range naclObj.Rules {
+		rule := naclObj.Rules[index]
+		ruleStr, ruleObj, isIngress := getNACLRule(rule)
+		if rule == nil {
+			continue
+		}
+		peers = append(peers, ruleObj.src)
+		peers = append(peers, ruleObj.dst)
+		fmt.Printf("%s", ruleStr)
+		if isIngress {
+			ingressRules = append(ingressRules, ruleObj)
+		} else {
+			egressRules = append(egressRules, ruleObj)
+		}
+	}
+
+	disjointPeers := DisjointIPBlocks(peers, []*IPBlock{subnetCidr})
+	fmt.Println("disjoint peers info:")
+	for _, p := range disjointPeers {
+		if p.ContainedIn(subnetCidr) {
+			fmt.Printf("%s (within subnet)\n", p.ToIPRanges())
+		} else {
+			fmt.Printf("%s (outside subnet)\n", p.ToIPRanges())
+		}
+	}
+	fmt.Println("------------------------")
+
+	fmt.Println("get ingress allowed connections:")
+	for _, src := range disjointPeers {
+		// get map from dest cidrs (contained in the subnet cidr) to allowed connections
+		allowedIngressConns := getAllowedIngressConnections(ingressRules, src, subnetCidr, disjointPeers)
+		for dst, conn := range allowedIngressConns {
+			fmt.Printf("%s => %s : %s\n", src.ToIPRanges(), dst, conn.String())
+		}
+	}
 }
 
 func Test() {
