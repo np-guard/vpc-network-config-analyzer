@@ -58,13 +58,17 @@ func TestAnalyzeNACL(t *testing.T) {
 	AnalyzeNACL(naclObj, subnet)
 }
 
-func getDisjointPeers(rules []*Rule, subnet *IPBlock) []*IPBlock {
+func getDisjointPeers(rules []*Rule, subnet *IPBlock) ([]*IPBlock, []*IPBlock) {
+	srcPeers := []*IPBlock{(NewIPBlockFromCidr("0.0.0.0/0"))}
+	dstPeers := []*IPBlock{subnet}
 	peers := []*IPBlock{subnet}
 	for _, rule := range rules {
 		peers = append(peers, rule.src)
 		peers = append(peers, rule.dst)
+		srcPeers = append(srcPeers, rule.src)
+		dstPeers = append(dstPeers, rule.dst)
 	}
-	return DisjointIPBlocks(peers, []*IPBlock{subnet})
+	return DisjointIPBlocks(srcPeers, []*IPBlock{(NewIPBlockFromCidr("0.0.0.0/0"))}), DisjointIPBlocks(dstPeers, []*IPBlock{subnet})
 }
 
 func TestGetAllowedIngressConnections(t *testing.T) {
@@ -85,11 +89,12 @@ func TestGetAllowedIngressConnections(t *testing.T) {
 	}
 
 	subnet := NewIPBlockFromCidr("10.0.0.0/24")
-	disjointPeers := getDisjointPeers(rulesTest1, subnet)
+	//disjointPeers := getDisjointPeers(rulesTest1, subnet)
+	disjointSrcPeers, disjointDstPeers := getDisjointPeers(rulesTest1, subnet)
 
 	res := []string{}
-	for _, src := range disjointPeers {
-		allowedIngressConns := getAllowedIngressConnections(rulesTest1, src, subnet, disjointPeers)
+	for _, src := range disjointSrcPeers {
+		allowedIngressConns := getAllowedIngressConnections(rulesTest1, src, subnet, disjointDstPeers)
 		for dst, conn := range allowedIngressConns {
 			res = append(res, fmt.Sprintf("%s => %s : %s\n", src.ToIPRanges(), dst, conn.String()))
 		}

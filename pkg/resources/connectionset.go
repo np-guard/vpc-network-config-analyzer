@@ -146,11 +146,11 @@ func (conn *ConnectionSet) Subtract(other ConnectionSet) {
 
 	if conn.AllowAll {
 		conn.AllowAll = false
-		conn.AllowedProtocols[v1.ProtocolTCP] = &PortSet{Ports: CanonicalIntervalSet{IntervalSet: []Interval{Interval{Start: 1, End: 65535}}}}
-		conn.AllowedProtocols[v1.ProtocolUDP] = &PortSet{Ports: CanonicalIntervalSet{IntervalSet: []Interval{Interval{Start: 1, End: 65535}}}}
-		conn.AllowedProtocols[v1.ProtocolSCTP] = &PortSet{Ports: CanonicalIntervalSet{IntervalSet: []Interval{Interval{Start: 1, End: 65535}}}}
+		conn.AllowedProtocols[v1.ProtocolTCP] = &PortSet{Ports: CanonicalIntervalSet{IntervalSet: []Interval{{Start: 1, End: 65535}}}}
+		conn.AllowedProtocols[v1.ProtocolUDP] = &PortSet{Ports: CanonicalIntervalSet{IntervalSet: []Interval{{Start: 1, End: 65535}}}}
+		conn.AllowedProtocols[v1.ProtocolSCTP] = &PortSet{Ports: CanonicalIntervalSet{IntervalSet: []Interval{{Start: 1, End: 65535}}}}
 	}
-	for protocol, _ := range conn.AllowedProtocols {
+	for protocol := range conn.AllowedProtocols {
 		if otherPorts, ok := other.AllowedProtocols[protocol]; ok {
 			conn.AllowedProtocols[protocol].Ports.Subtraction(otherPorts.Ports)
 		}

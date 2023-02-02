@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
+	v1 "k8s.io/api/core/v1"
 
 	"encoding/json"
 )
@@ -35,6 +36,7 @@ func getNACLRule(rule vpc1.NetworkACLRuleItemIntf) (string, *Rule, bool) {
 
 	if ruleObj, ok := rule.(*vpc1.NetworkACLRuleItemNetworkACLRuleProtocolAll); ok {
 		res := fmt.Sprintf("direction: %s , src: %s , dst: %s, conn: %s, action: %s\n", *ruleObj.Direction, *ruleObj.Source, *ruleObj.Destination, *ruleObj.Protocol, *ruleObj.Action)
+		// convert to rule object
 		srcIP, _ := NewIPBlock(*ruleObj.Source, []string{})
 		dstIP, _ := NewIPBlock(*ruleObj.Destination, []string{})
 		conns := MakeConnectionSet(true)
@@ -50,10 +52,33 @@ func getNACLRule(rule vpc1.NetworkACLRuleItemIntf) (string, *Rule, bool) {
 		dstPorts := fmt.Sprintf("%d-%d", *ruleObj.DestinationPortMin, *ruleObj.DestinationPortMax)
 		connStr := fmt.Sprintf("protocol: %s, srcPorts: %s, dstPorts: %s", *ruleObj.Protocol, srcPorts, dstPorts)
 		res := fmt.Sprintf("direction: %s , src: %s , dst: %s, conn: %s, action: %s\n", *ruleObj.Direction, *ruleObj.Source, *ruleObj.Destination, connStr, *ruleObj.Action)
-		return res, nil, false
+
+		// convert to rule object
+		// TODO: currently ignoring src ports in the conversion
+		srcIP, _ := NewIPBlock(*ruleObj.Source, []string{})
+		dstIP, _ := NewIPBlock(*ruleObj.Destination, []string{})
+		conns := MakeConnectionSet(false)
+		ports := PortSet{Ports: CanonicalIntervalSet{IntervalSet: []Interval{{Start: *ruleObj.DestinationPortMin, End: *ruleObj.DestinationPortMax}}}}
+		if *ruleObj.Protocol == "tcp" {
+			conns.AllowedProtocols[v1.ProtocolTCP] = &ports
+		} else if *ruleObj.Protocol == "udp" {
+			conns.AllowedProtocols[v1.ProtocolUDP] = &ports
+		}
+
+		ruleRes = Rule{src: srcIP, dst: dstIP, connections: &conns, action: *ruleObj.Action}
+		if *ruleObj.Direction == "inbound" {
+			isIngress = true
+		} else if *ruleObj.Direction == "outbound" {
+			isIngress = false
+		}
+		return res, &ruleRes, isIngress
+		//return res, nil, false
 	} else if ruleObj, ok := rule.(*vpc1.NetworkACLRuleItemNetworkACLRuleProtocolIcmp); ok {
 		connStr := fmt.Sprintf("protocol: %s, type: %d, code: %d", *ruleObj.Protocol, *ruleObj.Type, *ruleObj.Code)
 		res := fmt.Sprintf("direction: %s , src: %s , dst: %s, conn: %s, action: %s\n", *ruleObj.Direction, *ruleObj.Source, *ruleObj.Destination, connStr, *ruleObj.Action)
+
+		// TODO: currently ignoring icmp rules and not converting to rule object
+
 		return res, nil, false
 	}
 	return "", nil, false
@@ -121,7 +146,11 @@ func getAllowedIngressConnections(ingressRules []*Rule, src *IPBlock, subnetCidr
 				allowedIngress[disjointDestCidr.ToIPRanges()].Union(addedAllowedConns)
 				//allowedIngress[disjointDestCidr.ToIPRanges()].Union(*ingressRule.connections)
 			} else if ingressRule.action == "deny" {
-				deniedIngress[disjointDestCidr.ToIPRanges()].Union(*ingressRule.connections)
+				// TODO : should subtract the allowed connections so far from the new denied connections?
+				addedDeniedConns := *ingressRule.connections.Copy()
+				addedDeniedConns.Subtract(*allowedIngress[disjointDestCidr.ToIPRanges()])
+				deniedIngress[disjointDestCidr.ToIPRanges()].Union(addedDeniedConns)
+				//deniedIngress[disjointDestCidr.ToIPRanges()].Union(*ingressRule.connections)
 			}
 		}
 	}
@@ -151,6 +180,7 @@ func AnalyzeNACL(naclObj *vpc1.NetworkACL, subnetCidr *IPBlock) {
 		}
 	}
 
+	// TODO: adjust with src disjoint peers and dst disjoint peers
 	disjointPeers := DisjointIPBlocks(peers, []*IPBlock{subnetCidr})
 	fmt.Println("disjoint peers info:")
 	for _, p := range disjointPeers {
