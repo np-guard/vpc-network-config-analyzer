@@ -133,9 +133,6 @@ func getAllowedXgressConnections(rules []*Rule, src *IPBlock, subnetCidr *IPBloc
 			s = ingressRule.dst
 			d = ingressRule.src
 		}
-		if isIngress {
-
-		}
 		if !src.ContainedIn(s) {
 			continue
 		}
