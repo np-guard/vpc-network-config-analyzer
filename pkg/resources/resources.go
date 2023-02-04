@@ -2,6 +2,7 @@ package resources
 
 import (
 	"fmt"
+	"strings"
 
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
 	v1 "k8s.io/api/core/v1"
@@ -91,11 +92,6 @@ type Rule struct {
 	action      string
 }
 
-type Subnet struct {
-	name    string
-	address *IPBlock
-}
-
 func getEmptyConnSet() *ConnectionSet {
 	res := MakeConnectionSet(false)
 	return &res
@@ -106,7 +102,8 @@ func getAllConnSet() *ConnectionSet {
 	return &res
 }
 
-func getAllowedIngressConnections(ingressRules []*Rule, src *IPBlock, subnetCidr *IPBlock, disjointPeers []*IPBlock) map[string]*ConnectionSet {
+// given ingress rules from NACL , specific src, subnet cidr and disjoint peers of dest ip-blocks -- get the allowed connections
+func getAllowedXgressConnections(rules []*Rule, src *IPBlock, subnetCidr *IPBlock, disjointPeers []*IPBlock, isIngress bool) map[string]*ConnectionSet {
 	allowedIngress := map[string]*ConnectionSet{}
 	deniedIngress := map[string]*ConnectionSet{}
 	for _, cidr := range disjointPeers {
@@ -117,8 +114,7 @@ func getAllowedIngressConnections(ingressRules []*Rule, src *IPBlock, subnetCidr
 	}
 
 	if src.ContainedIn(subnetCidr) {
-		//no need to check nacl rules for in-subnet connections
-		//allowedIngress[subnetCidr.ToIPRanges()] = &ConnectionSet{AllowAll: true}
+		//no need to check nacl rules for connections within the subnet
 		for _, cidr := range disjointPeers {
 			if cidr.ContainedIn(subnetCidr) {
 				allowedIngress[cidr.ToIPRanges()] = getAllConnSet()
@@ -127,11 +123,23 @@ func getAllowedIngressConnections(ingressRules []*Rule, src *IPBlock, subnetCidr
 		return allowedIngress
 	}
 
-	for _, ingressRule := range ingressRules {
-		if !src.ContainedIn(ingressRule.src) {
+	for _, ingressRule := range rules {
+		var s *IPBlock
+		var d *IPBlock
+		if isIngress {
+			s = ingressRule.src
+			d = ingressRule.dst
+		} else {
+			s = ingressRule.dst
+			d = ingressRule.src
+		}
+		if isIngress {
+
+		}
+		if !src.ContainedIn(s) {
 			continue
 		}
-		destCidr := ingressRule.dst.Intersection(subnetCidr)
+		destCidr := d.Intersection(subnetCidr)
 		// split destCidr to disjoint ip-blocks
 		destCidrList := []*IPBlock{}
 		for _, cidr := range disjointPeers {
@@ -144,19 +152,96 @@ func getAllowedIngressConnections(ingressRules []*Rule, src *IPBlock, subnetCidr
 				addedAllowedConns := *ingressRule.connections.Copy()
 				addedAllowedConns.Subtract(*deniedIngress[disjointDestCidr.ToIPRanges()])
 				allowedIngress[disjointDestCidr.ToIPRanges()].Union(addedAllowedConns)
-				//allowedIngress[disjointDestCidr.ToIPRanges()].Union(*ingressRule.connections)
 			} else if ingressRule.action == "deny" {
-				// TODO : should subtract the allowed connections so far from the new denied connections?
 				addedDeniedConns := *ingressRule.connections.Copy()
 				addedDeniedConns.Subtract(*allowedIngress[disjointDestCidr.ToIPRanges()])
 				deniedIngress[disjointDestCidr.ToIPRanges()].Union(addedDeniedConns)
-				//deniedIngress[disjointDestCidr.ToIPRanges()].Union(*ingressRule.connections)
 			}
 		}
 	}
 	return allowedIngress
 }
 
+func getDisjointPeers(rules []*Rule, subnet *IPBlock) ([]*IPBlock, []*IPBlock) {
+	srcPeers := []*IPBlock{(NewIPBlockFromCidr("0.0.0.0/0"))}
+	dstPeers := []*IPBlock{subnet}
+	peers := []*IPBlock{subnet}
+	for _, rule := range rules {
+		peers = append(peers, rule.src)
+		peers = append(peers, rule.dst)
+		srcPeers = append(srcPeers, rule.src)
+		dstPeers = append(dstPeers, rule.dst)
+	}
+	return DisjointIPBlocks(srcPeers, []*IPBlock{(NewIPBlockFromCidr("0.0.0.0/0"))}), DisjointIPBlocks(dstPeers, []*IPBlock{subnet})
+}
+
+func getDisjointPeersNew(rules []*Rule, subnet *IPBlock) ([]*IPBlock, []*IPBlock) {
+	dstPeers := []*IPBlock{(NewIPBlockFromCidr("0.0.0.0/0"))}
+	srcPeers := []*IPBlock{subnet}
+	peers := []*IPBlock{subnet}
+	for _, rule := range rules {
+		peers = append(peers, rule.src)
+		peers = append(peers, rule.dst)
+		srcPeers = append(srcPeers, rule.src)
+		dstPeers = append(dstPeers, rule.dst)
+	}
+	return DisjointIPBlocks(srcPeers, []*IPBlock{subnet}), DisjointIPBlocks(dstPeers, []*IPBlock{(NewIPBlockFromCidr("0.0.0.0/0"))})
+}
+
+//get ingress and egress rules from NACL obj
+func getNACLRules(naclObj *vpc1.NetworkACL) ([]*Rule, []*Rule) {
+	ingressRules := []*Rule{}
+	egressRules := []*Rule{}
+	for index := range naclObj.Rules {
+		rule := naclObj.Rules[index]
+		_, ruleObj, isIngress := getNACLRule(rule)
+		if rule == nil {
+			continue
+		}
+		if isIngress {
+			ingressRules = append(ingressRules, ruleObj)
+		} else {
+			egressRules = append(egressRules, ruleObj)
+		}
+	}
+	return ingressRules, egressRules
+}
+
+// get allowed and denied connections (ingress and egress) for a certain subnet to which this nacl is applied
+func AnalyzeNACL(naclObj *vpc1.NetworkACL, subnet *IPBlock) (string, string) {
+	ingressRules, egressRules := getNACLRules(naclObj)
+	ingressRes := AnalyzeNACLRules(ingressRules, subnet, true)
+	egressRes := AnalyzeNACLRules(egressRules, subnet, false)
+	return ingressRes, egressRes
+}
+
+func AnalyzeNACLRules(rules []*Rule, subnet *IPBlock, isIngress bool) string {
+
+	res := []string{}
+	if isIngress {
+		disjointSrcPeers, disjointDstPeers := getDisjointPeers(rules, subnet)
+		// ingress
+		for _, src := range disjointSrcPeers {
+			allowedIngressConns := getAllowedXgressConnections(rules, src, subnet, disjointDstPeers, true)
+			for dst, conn := range allowedIngressConns {
+				res = append(res, fmt.Sprintf("%s => %s : %s\n", src.ToIPRanges(), dst, conn.String()))
+			}
+		}
+		return strings.Join(res, "")
+	}
+	// egress
+	disjointSrcPeers, disjointDstPeers := getDisjointPeersNew(rules, subnet)
+	for _, dst := range disjointDstPeers {
+		allowedEgressConns := getAllowedXgressConnections(rules, dst, subnet, disjointSrcPeers, false)
+		for src, conn := range allowedEgressConns {
+			res = append(res, fmt.Sprintf("%s => %s : %s\n", src, dst.ToIPRanges(), conn.String()))
+		}
+	}
+	return strings.Join(res, "")
+
+}
+
+/*
 // get allowed and denied connections (ingress and egress) for a certain subnet to which this nacl is applied
 func AnalyzeNACL(naclObj *vpc1.NetworkACL, subnetCidr *IPBlock) {
 	fmt.Println("=========================================")
@@ -201,6 +286,7 @@ func AnalyzeNACL(naclObj *vpc1.NetworkACL, subnetCidr *IPBlock) {
 		}
 	}
 }
+*/
 
 func Test() {
 

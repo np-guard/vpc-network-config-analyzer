@@ -6,6 +6,8 @@ import (
 	"os"
 	"strings"
 	"testing"
+
+	v1 "k8s.io/api/core/v1"
 )
 
 //go:embed nwacl_1.json
@@ -58,17 +60,11 @@ func TestAnalyzeNACL(t *testing.T) {
 	AnalyzeNACL(naclObj, subnet)
 }
 
-func getDisjointPeers(rules []*Rule, subnet *IPBlock) ([]*IPBlock, []*IPBlock) {
-	srcPeers := []*IPBlock{(NewIPBlockFromCidr("0.0.0.0/0"))}
-	dstPeers := []*IPBlock{subnet}
-	peers := []*IPBlock{subnet}
-	for _, rule := range rules {
-		peers = append(peers, rule.src)
-		peers = append(peers, rule.dst)
-		srcPeers = append(srcPeers, rule.src)
-		dstPeers = append(dstPeers, rule.dst)
-	}
-	return DisjointIPBlocks(srcPeers, []*IPBlock{(NewIPBlockFromCidr("0.0.0.0/0"))}), DisjointIPBlocks(dstPeers, []*IPBlock{subnet})
+func getTCPconn(startPort int64, endPort int64) *ConnectionSet {
+	res := MakeConnectionSet(false)
+	ports := PortSet{Ports: CanonicalIntervalSet{IntervalSet: []Interval{{Start: startPort, End: endPort}}}}
+	res.AddConnection(v1.ProtocolTCP, ports)
+	return &res
 }
 
 func TestGetAllowedIngressConnections(t *testing.T) {
@@ -88,16 +84,52 @@ func TestGetAllowedIngressConnections(t *testing.T) {
 		},
 	}
 
-	subnet := NewIPBlockFromCidr("10.0.0.0/24")
-	//disjointPeers := getDisjointPeers(rulesTest1, subnet)
-	disjointSrcPeers, disjointDstPeers := getDisjointPeers(rulesTest1, subnet)
-
-	res := []string{}
-	for _, src := range disjointSrcPeers {
-		allowedIngressConns := getAllowedIngressConnections(rulesTest1, src, subnet, disjointDstPeers)
-		for dst, conn := range allowedIngressConns {
-			res = append(res, fmt.Sprintf("%s => %s : %s\n", src.ToIPRanges(), dst, conn.String()))
-		}
+	rulesTest2 := []*Rule{
+		{
+			src:         NewIPBlockFromCidr("1.2.3.4/32"),
+			dst:         NewIPBlockFromCidr("10.0.0.1/32"),
+			connections: getTCPconn(80, 80),
+			action:      "allow",
+		},
+		{
+			src:         NewIPBlockFromCidr("1.2.3.4/32"),
+			dst:         NewIPBlockFromCidr("10.0.0.1/32"),
+			connections: getTCPconn(1, 100),
+			action:      "deny",
+		},
+		{
+			src:         NewIPBlockFromCidr("0.0.0.0/0"),
+			dst:         NewIPBlockFromCidr("0.0.0.0/0"),
+			connections: getAllConnSet(),
+			action:      "allow",
+		},
 	}
-	fmt.Printf("%s", strings.Join(res, "\n"))
+
+	rulesTest3 := []*Rule{
+		{
+			dst:         NewIPBlockFromCidr("1.2.3.4/32"),
+			src:         NewIPBlockFromCidr("10.0.0.1/32"),
+			connections: getAllConnSet(),
+			action:      "deny",
+		},
+		{
+			dst:         NewIPBlockFromCidr("0.0.0.0/0"),
+			src:         NewIPBlockFromCidr("0.0.0.0/0"),
+			connections: getAllConnSet(),
+			action:      "allow",
+		},
+	}
+
+	subnet := NewIPBlockFromCidr("10.0.0.0/24")
+
+	//res1 := ingressConnResFromInput(rulesTest1, subnet)
+	res1 := AnalyzeNACLRules(rulesTest1, subnet, true)
+	fmt.Printf("res for test %s:\n%s\n", "rulesTest1", res1)
+
+	//res2 := ingressConnResFromInput(rulesTest2, subnet)
+	res2 := AnalyzeNACLRules(rulesTest2, subnet, true)
+	fmt.Printf("res for test %s:\n%s\n", "rulesTest2", res2)
+
+	res3 := AnalyzeNACLRules(rulesTest3, subnet, false)
+	fmt.Printf("res for test %s:\n%s\n", "rulesTest3", res3)
 }
