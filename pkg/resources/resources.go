@@ -10,6 +10,22 @@ import (
 	"encoding/json"
 )
 
+// UnmarshalSecurityGroup unmarshals an instance of SecurityGroup from the specified map of raw messages.
+//func UnmarshalSecurityGroup(m map[string]json.RawMessage, result interface{}) (err error) {
+
+func JsonSgToObject(sg []byte) *vpc1.SecurityGroup {
+	sgMap := jsonToMap(sg)
+	sgObj := &vpc1.SecurityGroup{}
+	vpc1.UnmarshalSecurityGroup(sgMap, &sgObj)
+	return sgObj
+}
+
+// convert vpc1.SecurityGroup to json string
+func ObjectSgToJson(sgObj *vpc1.SecurityGroup) ([]byte, error) {
+	// return json.Marshal(*naclObj)
+	return json.MarshalIndent(*sgObj, "", "    ")
+}
+
 // convert json string of nacl to vpc1.NetworkACL object
 func JsonNaclToObject(nwacl []byte) *vpc1.NetworkACL {
 	naclMap := jsonToMap(nwacl)

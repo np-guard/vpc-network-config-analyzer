@@ -19,6 +19,25 @@ var nwacl2 []byte
 //go:embed nwacl_3.json
 var nwacl3 []byte
 
+//go:embed sg_1.json
+var sg1 []byte
+
+func TestSgJsonUnmarshal(t *testing.T) {
+	sgExamples := [][]byte{sg1}
+	for index, sg := range sgExamples {
+		sgObj := JsonSgToObject(sg)
+		sgJson, err := ObjectSgToJson(sgObj)
+		if err != nil {
+			t.Errorf("error ObjectNaclToJson: %v", err)
+		}
+		if getJsonStr(sgJson) != getJsonStr(sg) {
+			os.WriteFile("actual.json", sgJson, 0600)
+			t.Errorf("test index %d: error sgJson not equal to original json string", index)
+			fmt.Printf("expected:\n%s\n actual:\n%s\n", getJsonStr(sg), getJsonStr(sgJson))
+		}
+	}
+}
+
 func TestNaclJsonUnmarshal(t *testing.T) {
 	naclExamples := [][]byte{nwacl1, nwacl2, nwacl3}
 	for index, nwacl := range naclExamples {
