@@ -60,6 +60,11 @@ func getJsonStr(b []byte) string {
 	return res
 }
 
+func TestGetSGrule(t *testing.T) {
+	sg := JsonSgToObject(sg1)
+	getSGrules(sg)
+}
+
 func TestGetNACLrule(t *testing.T) {
 	naclExamples := [][]byte{nwacl1, nwacl2, nwacl3}
 	for index, nwacl := range naclExamples {

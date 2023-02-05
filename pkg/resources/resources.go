@@ -10,21 +10,7 @@ import (
 	"encoding/json"
 )
 
-// UnmarshalSecurityGroup unmarshals an instance of SecurityGroup from the specified map of raw messages.
-//func UnmarshalSecurityGroup(m map[string]json.RawMessage, result interface{}) (err error) {
-
-func JsonSgToObject(sg []byte) *vpc1.SecurityGroup {
-	sgMap := jsonToMap(sg)
-	sgObj := &vpc1.SecurityGroup{}
-	vpc1.UnmarshalSecurityGroup(sgMap, &sgObj)
-	return sgObj
-}
-
-// convert vpc1.SecurityGroup to json string
-func ObjectSgToJson(sgObj *vpc1.SecurityGroup) ([]byte, error) {
-	// return json.Marshal(*naclObj)
-	return json.MarshalIndent(*sgObj, "", "    ")
-}
+///////////////////////////////////////////////////////////////////////////////////////////////
 
 // convert json string of nacl to vpc1.NetworkACL object
 func JsonNaclToObject(nwacl []byte) *vpc1.NetworkACL {
@@ -253,53 +239,6 @@ func AnalyzeNACLRules(rules []*Rule, subnet *IPBlock, isIngress bool) string {
 	return strings.Join(res, "")
 
 }
-
-/*
-// get allowed and denied connections (ingress and egress) for a certain subnet to which this nacl is applied
-func AnalyzeNACL(naclObj *vpc1.NetworkACL, subnetCidr *IPBlock) {
-	fmt.Println("=========================================")
-	// get NACL rules from NACL object
-	peers := []*IPBlock{subnetCidr}
-	ingressRules := []*Rule{}
-	egressRules := []*Rule{}
-	for index := range naclObj.Rules {
-		rule := naclObj.Rules[index]
-		ruleStr, ruleObj, isIngress := getNACLRule(rule)
-		if rule == nil {
-			continue
-		}
-		peers = append(peers, ruleObj.src)
-		peers = append(peers, ruleObj.dst)
-		fmt.Printf("%s", ruleStr)
-		if isIngress {
-			ingressRules = append(ingressRules, ruleObj)
-		} else {
-			egressRules = append(egressRules, ruleObj)
-		}
-	}
-
-	// TODO: adjust with src disjoint peers and dst disjoint peers
-	disjointPeers := DisjointIPBlocks(peers, []*IPBlock{subnetCidr})
-	fmt.Println("disjoint peers info:")
-	for _, p := range disjointPeers {
-		if p.ContainedIn(subnetCidr) {
-			fmt.Printf("%s (within subnet)\n", p.ToIPRanges())
-		} else {
-			fmt.Printf("%s (outside subnet)\n", p.ToIPRanges())
-		}
-	}
-	fmt.Println("------------------------")
-
-	fmt.Println("get ingress allowed connections:")
-	for _, src := range disjointPeers {
-		// get map from dest cidrs (contained in the subnet cidr) to allowed connections
-		allowedIngressConns := getAllowedIngressConnections(ingressRules, src, subnetCidr, disjointPeers)
-		for dst, conn := range allowedIngressConns {
-			fmt.Printf("%s => %s : %s\n", src.ToIPRanges(), dst, conn.String())
-		}
-	}
-}
-*/
 
 func Test() {
 
