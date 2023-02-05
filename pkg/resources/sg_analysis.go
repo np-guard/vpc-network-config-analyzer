@@ -46,9 +46,9 @@ func getSGRule(rule vpc1.SecurityGroupRuleIntf) (string, *Rule, bool) {
 			cidr = *remoteObj.CIDRBlock
 		}
 		// how can infer type of remote from this object?
+		// can also be Address or CRN or ...
 		if remoteObj, ok := remote.(*vpc1.SecurityGroupRuleRemote); ok {
 			cidr = *remoteObj.CIDRBlock
-			// can also be Address or CRN or ...
 		}
 		ruleStr := fmt.Sprintf("direction: %s, protocol: %s, cidr: %s", direction, protocol, cidr)
 		fmt.Printf("SG rule: %s\n", ruleStr)
@@ -60,9 +60,6 @@ func getSGRule(rule vpc1.SecurityGroupRuleIntf) (string, *Rule, bool) {
 
 }
 
-//github.com/IBM/vpc-go-sdk/vpcv1.SecurityGroupRuleIntf(*github.com/IBM/vpc-go-sdk/vpcv1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudp) *{Direction: *"inbound", Href: *"https://us-south.iaas.cloud.ibm.com/v1/security_groups/2d364f0a-a870-42c3-a554-000001099037/rules/b597cff2-38e8-4e6e-999d-000002172691", ID: *"b597cff2-38e8-4e6e-999d-000002172691", IPVersion: *"ipv4", Remote: github.com/IBM/vpc-go-sdk/vpcv1.SecurityGroupRuleRemoteIntf(*github.com/IBM/vpc-go-sdk/vpcv1.SecurityGroupRuleRemote) *{Address: *string nil, CIDRBlock: *"0.0.0.0/0", CRN: *string nil, Deleted: *github.com/IBM/vpc-go-sdk/vpcv1.SecurityGroupReferenceDeleted nil, Href: *string nil, ID: *string nil, Name: *string nil}, PortMax: *22, PortMin: *22, Protocol: *"tcp"}
-//github.com/IBM/vpc-go-sdk/vpcv1.SecurityGroupRuleRemoteIntf(*github.com/IBM/vpc-go-sdk/vpcv1.SecurityGroupRuleRemote) *{Address: *string nil, CIDRBlock: *"0.0.0.0/0", CRN: *string nil, Deleted: *github.com/IBM/vpc-go-sdk/vpcv1.SecurityGroupReferenceDeleted nil, Href: *string nil, ID: *string nil, Name: *string nil}
-
 func getSGrules(sgObj *vpc1.SecurityGroup) {
 	for index := range sgObj.Rules {
 		rule := sgObj.Rules[index]
@@ -70,6 +67,10 @@ func getSGrules(sgObj *vpc1.SecurityGroup) {
 		getSGRule(rule)
 	}
 }
+
+//sg1 fields objects:
+//github.com/IBM/vpc-go-sdk/vpcv1.SecurityGroupRuleIntf(*github.com/IBM/vpc-go-sdk/vpcv1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudp) *{Direction: *"inbound", Href: *"https://us-south.iaas.cloud.ibm.com/v1/security_groups/2d364f0a-a870-42c3-a554-000001099037/rules/b597cff2-38e8-4e6e-999d-000002172691", ID: *"b597cff2-38e8-4e6e-999d-000002172691", IPVersion: *"ipv4", Remote: github.com/IBM/vpc-go-sdk/vpcv1.SecurityGroupRuleRemoteIntf(*github.com/IBM/vpc-go-sdk/vpcv1.SecurityGroupRuleRemote) *{Address: *string nil, CIDRBlock: *"0.0.0.0/0", CRN: *string nil, Deleted: *github.com/IBM/vpc-go-sdk/vpcv1.SecurityGroupReferenceDeleted nil, Href: *string nil, ID: *string nil, Name: *string nil}, PortMax: *22, PortMin: *22, Protocol: *"tcp"}
+//github.com/IBM/vpc-go-sdk/vpcv1.SecurityGroupRuleRemoteIntf(*github.com/IBM/vpc-go-sdk/vpcv1.SecurityGroupRuleRemote) *{Address: *string nil, CIDRBlock: *"0.0.0.0/0", CRN: *string nil, Deleted: *github.com/IBM/vpc-go-sdk/vpcv1.SecurityGroupReferenceDeleted nil, Href: *string nil, ID: *string nil, Name: *string nil}
 
 /*
 // SecurityGroupRuleRemote : The IP addresses or security groups from which this rule allows traffic (or to which, for outbound rules). Can be
