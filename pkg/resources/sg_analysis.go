@@ -1,72 +1,174 @@
 package resources
 
 import (
-	"encoding/json"
 	"fmt"
 
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
 )
 
-func JsonSgToObject(sg []byte) *vpc1.SecurityGroup {
-	sgMap := jsonToMap(sg)
-	sgObj := &vpc1.SecurityGroup{}
-	vpc1.UnmarshalSecurityGroup(sgMap, &sgObj)
-	return sgObj
-}
-
-// convert vpc1.SecurityGroup to json string
-func ObjectSgToJson(sgObj *vpc1.SecurityGroup) ([]byte, error) {
-	// return json.Marshal(*naclObj)
-	return json.MarshalIndent(*sgObj, "", "    ")
-}
-
-func getSGRule(rule vpc1.SecurityGroupRuleIntf) (string, *Rule, bool) {
-	//ruleRes := Rule{}
-	//var isIngress bool
+func getSGRule(rule vpc1.SecurityGroupRuleIntf) (string, *SGRule, bool) {
+	ruleRes := &SGRule{}
+	var isIngress bool
 
 	if ruleObj, ok := rule.(*vpc1.SecurityGroupRuleSecurityGroupRuleProtocolAll); ok {
 		direction := *ruleObj.Direction
+		isIngress = isIngressRule(ruleObj.Direction)
 		protocol := *ruleObj.Protocol
 		remote := ruleObj.Remote
 		cidr := ""
+		var target *IPBlock
+		//SecurityGroupRuleRemoteCIDR
 		if remoteObj, ok := remote.(*vpc1.SecurityGroupRuleRemoteCIDR); ok {
 			cidr = *remoteObj.CIDRBlock
+			target = NewIPBlockFromCidr(cidr)
 		}
+		//TODO: handle other remote types:
+		//SecurityGroupRuleRemoteIP
+		//SecurityGroupRuleRemoteSecurityGroupReference
 		ruleStr := fmt.Sprintf("direction: %s, protocol: %s, cidr: %s", direction, protocol, cidr)
 		fmt.Printf("SG rule: %s\n", ruleStr)
-		ruleRes := &Rule{}
-		return ruleStr, ruleRes, true
+		ruleRes.target = target
+		ruleRes.connections = getAllConnSet()
+		return ruleStr, ruleRes, isIngress
 	}
 	if ruleObj, ok := rule.(*vpc1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudp); ok {
 		direction := *ruleObj.Direction
+		isIngress = isIngressRule(ruleObj.Direction)
 		protocol := *ruleObj.Protocol
 		remote := ruleObj.Remote
 		cidr := ""
+		var target *IPBlock
+		//TODO: handle other remote types:
+		//SecurityGroupRuleRemoteIP
+		//SecurityGroupRuleRemoteSecurityGroupReference
 		if remoteObj, ok := remote.(*vpc1.SecurityGroupRuleRemoteCIDR); ok {
 			cidr = *remoteObj.CIDRBlock
+			target = NewIPBlockFromCidr(cidr)
 		}
 		// how can infer type of remote from this object?
 		// can also be Address or CRN or ...
 		if remoteObj, ok := remote.(*vpc1.SecurityGroupRuleRemote); ok {
 			cidr = *remoteObj.CIDRBlock
+			target = NewIPBlockFromCidr(cidr)
 		}
 		ruleStr := fmt.Sprintf("direction: %s, protocol: %s, cidr: %s", direction, protocol, cidr)
 		fmt.Printf("SG rule: %s\n", ruleStr)
-		ruleRes := &Rule{}
-		return ruleStr, ruleRes, true
+		ruleRes := &SGRule{}
+		ruleRes.connections = getProtocolConn(ruleObj.Protocol, ruleObj.PortMax, ruleObj.PortMin)
+		ruleRes.target = target
+		return ruleStr, ruleRes, isIngress
 	}
 
 	return "", nil, false
 
 }
 
-func getSGrules(sgObj *vpc1.SecurityGroup) {
+func getSGrules(sgObj *vpc1.SecurityGroup) ([]*SGRule, []*SGRule) {
+	ingressRules := []*SGRule{}
+	egressRules := []*SGRule{}
 	for index := range sgObj.Rules {
 		rule := sgObj.Rules[index]
-		//_, ruleObj, isIngress := getSGRule(rule)
-		getSGRule(rule)
+		_, ruleObj, isIngress := getSGRule(rule)
+		if isIngress {
+			ingressRules = append(ingressRules, ruleObj)
+		} else {
+			egressRules = append(egressRules, ruleObj)
+		}
 	}
+	return ingressRules, egressRules
 }
+
+type SGRule struct {
+	target      *IPBlock
+	connections *ConnectionSet
+}
+
+//ConnecitivytResult should be built on disjoint ip-blocks for targets of all relevant sg results
+type ConnecitivytResult struct {
+	isIngress    bool
+	allowedconns map[*IPBlock]*ConnectionSet // allowed target and its allowed connections
+}
+
+func (cr *ConnecitivytResult) union(cr2 *ConnecitivytResult) *ConnecitivytResult {
+	//union based on disjoint ip-blocks of targets
+	crTargets := cr.getTatgets()
+	cr2Targets := cr2.getTatgets()
+	disjointTargets := DisjointIPBlocks(crTargets, cr2Targets)
+	res := &ConnecitivytResult{isIngress: cr.isIngress, allowedconns: map[*IPBlock]*ConnectionSet{}}
+	for i := range disjointTargets {
+		res.allowedconns[disjointTargets[i]] = getEmptyConnSet()
+		for t, conn := range cr.allowedconns {
+			if disjointTargets[i].ContainedIn(t) {
+				res.allowedconns[disjointTargets[i]].Union(*conn)
+			}
+		}
+		for t, conn := range cr2.allowedconns {
+			if disjointTargets[i].ContainedIn(t) {
+				res.allowedconns[disjointTargets[i]].Union(*conn)
+			}
+		}
+	}
+
+	return res
+}
+
+func (cr *ConnecitivytResult) string() string {
+	res := ""
+	for t, conn := range cr.allowedconns {
+		res += fmt.Sprintf("target: %s, conn: %s", t.ToIPRanges(), conn.String())
+	}
+	return res
+}
+
+func (cr *ConnecitivytResult) getTatgets() []*IPBlock {
+	res := []*IPBlock{}
+	for t := range cr.allowedconns {
+		res = append(res, t)
+	}
+	return res
+}
+
+func AnalyzeSGRules(rules []*SGRule, isIngress bool) *ConnecitivytResult {
+	targets := []*IPBlock{}
+	for i := range rules {
+		targets = append(targets, rules[i].target)
+	}
+	disjointTargets := DisjointIPBlocks(targets, []*IPBlock{(NewIPBlockFromCidr("0.0.0.0/0"))})
+	res := &ConnecitivytResult{isIngress: isIngress, allowedconns: map[*IPBlock]*ConnectionSet{}}
+	for i := range disjointTargets {
+		res.allowedconns[disjointTargets[i]] = getEmptyConnSet()
+	}
+	for i := range rules {
+		rule := rules[i]
+		target := rule.target
+		conn := rule.connections
+		for disjointTarget := range res.allowedconns {
+			if disjointTarget.ContainedIn(target) {
+				res.allowedconns[disjointTarget].Union(*conn)
+			}
+
+		}
+	}
+
+	return res
+
+}
+
+// get allowed connections (ingress and egress) based on the list of SG that are applied to it
+func AnalyzeSGListPerInstance(vsiIP *IPBlock, sgList []*vpc1.SecurityGroup) (string, string) {
+	var accumulatedIngressRes *ConnecitivytResult
+	var accumulatedEgressRes *ConnecitivytResult
+	for _, sg := range sgList {
+		ingressRules, egressRules := getSGrules(sg)
+		ingressRes := AnalyzeSGRules(ingressRules, true)
+		egressRes := AnalyzeSGRules(egressRules, false)
+		accumulatedIngressRes = accumulatedIngressRes.union(ingressRes)
+		accumulatedEgressRes = accumulatedEgressRes.union(egressRes)
+	}
+	return accumulatedIngressRes.string(), accumulatedEgressRes.string()
+}
+
+// next: get allowed connectivity per vsi interface considering both nacl and sg (intersection of allowed connectivity from both layers)
 
 //sg1 fields objects:
 //github.com/IBM/vpc-go-sdk/vpcv1.SecurityGroupRuleIntf(*github.com/IBM/vpc-go-sdk/vpcv1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudp) *{Direction: *"inbound", Href: *"https://us-south.iaas.cloud.ibm.com/v1/security_groups/2d364f0a-a870-42c3-a554-000001099037/rules/b597cff2-38e8-4e6e-999d-000002172691", ID: *"b597cff2-38e8-4e6e-999d-000002172691", IPVersion: *"ipv4", Remote: github.com/IBM/vpc-go-sdk/vpcv1.SecurityGroupRuleRemoteIntf(*github.com/IBM/vpc-go-sdk/vpcv1.SecurityGroupRuleRemote) *{Address: *string nil, CIDRBlock: *"0.0.0.0/0", CRN: *string nil, Deleted: *github.com/IBM/vpc-go-sdk/vpcv1.SecurityGroupReferenceDeleted nil, Href: *string nil, ID: *string nil, Name: *string nil}, PortMax: *22, PortMin: *22, Protocol: *"tcp"}

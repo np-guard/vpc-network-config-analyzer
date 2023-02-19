@@ -65,6 +65,10 @@ func (b *IPBlock) Union(c *IPBlock) *IPBlock {
 	return res
 }
 
+func (b *IPBlock) Empty() bool {
+	return b.ipRange.IsEmpty()
+}
+
 func rangeIPstr(start, end string) string {
 	return fmt.Sprintf("%v-%v", start, end)
 }

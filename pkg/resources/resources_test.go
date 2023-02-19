@@ -22,7 +22,7 @@ var nwacl3 []byte
 //go:embed sg_1.json
 var sg1 []byte
 
-func TestSgJsonUnmarshal(t *testing.T) {
+/*func TestSgJsonUnmarshal(t *testing.T) {
 	sgExamples := [][]byte{sg1}
 	for index, sg := range sgExamples {
 		sgObj := JsonSgToObject(sg)
@@ -36,7 +36,7 @@ func TestSgJsonUnmarshal(t *testing.T) {
 			fmt.Printf("expected:\n%s\n actual:\n%s\n", getJsonStr(sg), getJsonStr(sgJson))
 		}
 	}
-}
+}*/
 
 func TestNaclJsonUnmarshal(t *testing.T) {
 	naclExamples := [][]byte{nwacl1, nwacl2, nwacl3}
@@ -93,7 +93,7 @@ func getTCPconn(startPort int64, endPort int64) *ConnectionSet {
 
 func TestGetAllowedIngressConnections(t *testing.T) {
 	// sets of ingress rules to test with
-	rulesTest1 := []*Rule{
+	rulesTest1 := []*NACLRule{
 		{
 			src:         NewIPBlockFromCidr("1.2.3.4/32"),
 			dst:         NewIPBlockFromCidr("10.0.0.1/32"),
@@ -108,7 +108,7 @@ func TestGetAllowedIngressConnections(t *testing.T) {
 		},
 	}
 
-	rulesTest2 := []*Rule{
+	rulesTest2 := []*NACLRule{
 		{
 			src:         NewIPBlockFromCidr("1.2.3.4/32"),
 			dst:         NewIPBlockFromCidr("10.0.0.1/32"),
@@ -129,7 +129,7 @@ func TestGetAllowedIngressConnections(t *testing.T) {
 		},
 	}
 
-	rulesTest3 := []*Rule{
+	rulesTest3 := []*NACLRule{
 		{
 			dst:         NewIPBlockFromCidr("1.2.3.4/32"),
 			src:         NewIPBlockFromCidr("10.0.0.1/32"),
@@ -157,3 +157,24 @@ func TestGetAllowedIngressConnections(t *testing.T) {
 	res3 := AnalyzeNACLRules(rulesTest3, subnet, false)
 	fmt.Printf("res for test %s:\n%s\n", "rulesTest3", res3)
 }
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+func TestGetSGLrule(t *testing.T) {
+	sgObj := JsonSgToObject(sg1)
+	for index := range sgObj.Rules {
+		rule := sgObj.Rules[index]
+		ruleStr, _, _ := getSGRule(rule)
+		fmt.Printf("%s", ruleStr)
+	}
+}
+
+func TestAnalyzeSG(t *testing.T) {
+	sgObj := JsonSgToObject(sg1)
+	ingressRules, _ := getSGrules(sgObj)
+	res := AnalyzeSGRules(ingressRules, true)
+	resStr := res.string()
+	fmt.Printf("%s", resStr)
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////
