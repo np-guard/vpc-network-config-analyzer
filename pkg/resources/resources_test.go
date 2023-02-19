@@ -22,6 +22,9 @@ var nwacl3 []byte
 //go:embed sg_1.json
 var sg1 []byte
 
+//go:embed sg_2.json
+var sg2 []byte
+
 /*func TestSgJsonUnmarshal(t *testing.T) {
 	sgExamples := [][]byte{sg1}
 	for index, sg := range sgExamples {
@@ -170,7 +173,7 @@ func TestGetSGLrule(t *testing.T) {
 }
 
 func TestAnalyzeSG(t *testing.T) {
-	sgObj := JsonSgToObject(sg1)
+	sgObj := JsonSgToObject(sg2)
 	ingressRules, _ := getSGrules(sgObj)
 	res := AnalyzeSGRules(ingressRules, true)
 	resStr := res.string()

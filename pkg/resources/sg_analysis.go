@@ -6,6 +6,27 @@ import (
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
 )
 
+func getRemoteCidr(remote vpc1.SecurityGroupRuleRemoteIntf) (*IPBlock, string) {
+	// TODO: on actual run from SG example, the type of remoteObj is SecurityGroupRuleRemote and not SecurityGroupRuleRemoteCIDR,
+	// even if cidr is defined
+	var target *IPBlock
+	var cidr string
+	//TODO: handle other remote types:
+	//SecurityGroupRuleRemoteIP
+	//SecurityGroupRuleRemoteSecurityGroupReference
+	if remoteObj, ok := remote.(*vpc1.SecurityGroupRuleRemoteCIDR); ok {
+		cidr = *remoteObj.CIDRBlock
+		target = NewIPBlockFromCidr(cidr)
+	}
+	// how can infer type of remote from this object?
+	// can also be Address or CRN or ...
+	if remoteObj, ok := remote.(*vpc1.SecurityGroupRuleRemote); ok {
+		cidr = *remoteObj.CIDRBlock
+		target = NewIPBlockFromCidr(cidr)
+	}
+	return target, cidr
+}
+
 func getSGRule(rule vpc1.SecurityGroupRuleIntf) (string, *SGRule, bool) {
 	ruleRes := &SGRule{}
 	var isIngress bool
@@ -18,13 +39,7 @@ func getSGRule(rule vpc1.SecurityGroupRuleIntf) (string, *SGRule, bool) {
 		cidr := ""
 		var target *IPBlock
 		//SecurityGroupRuleRemoteCIDR
-		if remoteObj, ok := remote.(*vpc1.SecurityGroupRuleRemoteCIDR); ok {
-			cidr = *remoteObj.CIDRBlock
-			target = NewIPBlockFromCidr(cidr)
-		}
-		//TODO: handle other remote types:
-		//SecurityGroupRuleRemoteIP
-		//SecurityGroupRuleRemoteSecurityGroupReference
+		target, cidr = getRemoteCidr(remote)
 		ruleStr := fmt.Sprintf("direction: %s, protocol: %s, cidr: %s", direction, protocol, cidr)
 		fmt.Printf("SG rule: %s\n", ruleStr)
 		ruleRes.target = target
@@ -38,19 +53,7 @@ func getSGRule(rule vpc1.SecurityGroupRuleIntf) (string, *SGRule, bool) {
 		remote := ruleObj.Remote
 		cidr := ""
 		var target *IPBlock
-		//TODO: handle other remote types:
-		//SecurityGroupRuleRemoteIP
-		//SecurityGroupRuleRemoteSecurityGroupReference
-		if remoteObj, ok := remote.(*vpc1.SecurityGroupRuleRemoteCIDR); ok {
-			cidr = *remoteObj.CIDRBlock
-			target = NewIPBlockFromCidr(cidr)
-		}
-		// how can infer type of remote from this object?
-		// can also be Address or CRN or ...
-		if remoteObj, ok := remote.(*vpc1.SecurityGroupRuleRemote); ok {
-			cidr = *remoteObj.CIDRBlock
-			target = NewIPBlockFromCidr(cidr)
-		}
+		target, cidr = getRemoteCidr(remote)
 		ruleStr := fmt.Sprintf("direction: %s, protocol: %s, cidr: %s", direction, protocol, cidr)
 		fmt.Printf("SG rule: %s\n", ruleStr)
 		ruleRes := &SGRule{}
@@ -115,7 +118,7 @@ func (cr *ConnecitivytResult) union(cr2 *ConnecitivytResult) *ConnecitivytResult
 func (cr *ConnecitivytResult) string() string {
 	res := ""
 	for t, conn := range cr.allowedconns {
-		res += fmt.Sprintf("target: %s, conn: %s", t.ToIPRanges(), conn.String())
+		res += fmt.Sprintf("target: %s, conn: %s\n", t.ToIPRanges(), conn.String())
 	}
 	return res
 }
@@ -131,7 +134,9 @@ func (cr *ConnecitivytResult) getTatgets() []*IPBlock {
 func AnalyzeSGRules(rules []*SGRule, isIngress bool) *ConnecitivytResult {
 	targets := []*IPBlock{}
 	for i := range rules {
-		targets = append(targets, rules[i].target)
+		if rules[i].target != nil {
+			targets = append(targets, rules[i].target)
+		}
 	}
 	disjointTargets := DisjointIPBlocks(targets, []*IPBlock{(NewIPBlockFromCidr("0.0.0.0/0"))})
 	res := &ConnecitivytResult{isIngress: isIngress, allowedconns: map[*IPBlock]*ConnectionSet{}}
