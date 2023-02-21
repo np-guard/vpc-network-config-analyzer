@@ -67,6 +67,8 @@ type NACLRule struct {
 	dst         *IPBlock
 	connections *ConnectionSet
 	action      string
+	// TODO: add pointer to the original rule
+	// add ingress/egress ?
 }
 
 func getEmptyConnSet() *ConnectionSet {

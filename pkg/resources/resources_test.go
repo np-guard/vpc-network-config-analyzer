@@ -185,8 +185,8 @@ func TestAnalyzeSG(t *testing.T) {
 
 //topology analysis example
 
-func getExampleTopology() *vpcTopology {
-	res := &vpcTopology{}
+func getExampleTopology() *vpcConfig {
+	res := &vpcConfig{}
 	res.vsiMap = map[string]*IPBlock{"b": NewIPBlockFromCidr("10.0.0.4/32")}
 	res.subnetsMap = map[string]*IPBlock{"a": NewIPBlockFromCidr("10.0.0.0/24")}
 	res.vsiToSubnet = map[string]string{"b": "a"}

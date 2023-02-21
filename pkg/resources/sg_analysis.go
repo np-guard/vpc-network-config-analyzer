@@ -87,6 +87,7 @@ func getSGrules(sgObj *vpc1.SecurityGroup) ([]*SGRule, []*SGRule) {
 type SGRule struct {
 	target      *IPBlock
 	connections *ConnectionSet
+	// add pointer to original rule
 }
 
 // ConnectivityResult should be built on disjoint ip-blocks for targets of all relevant sg results

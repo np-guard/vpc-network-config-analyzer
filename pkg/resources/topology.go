@@ -6,7 +6,7 @@ import (
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
 )
 
-type vpcTopology struct {
+type vpcConfig struct {
 	vsiMap       map[string]*IPBlock            // map from vsi name to its network interface address
 	subnetsMap   map[string]*IPBlock            // map from subnet name to its cidr range
 	nacl         map[string]*vpc1.NetworkACL    // map from nacl name to its object
@@ -17,7 +17,7 @@ type vpcTopology struct {
 }
 
 // connectivity analysis per VSI (network interface): connectivity based on SG and based on NCAL of its subnet
-func analyzeConnectivity(t *vpcTopology) {
+func analyzeConnectivity(t *vpcConfig) {
 	for vsi, vsiIP := range t.vsiMap {
 		subnet := t.vsiToSubnet[vsi]
 		nacl := t.subnetToNacl[subnet]
