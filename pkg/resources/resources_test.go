@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -181,3 +182,23 @@ func TestAnalyzeSG(t *testing.T) {
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
+
+//topology analysis example
+
+func getExampleTopology() *vpcTopology {
+	res := &vpcTopology{}
+	res.vsiMap = map[string]*IPBlock{"b": NewIPBlockFromCidr("10.0.0.4/32")}
+	res.subnetsMap = map[string]*IPBlock{"a": NewIPBlockFromCidr("10.0.0.0/24")}
+	res.vsiToSubnet = map[string]string{"b": "a"}
+	res.nacl = map[string]*vpc1.NetworkACL{"n1": JsonNaclToObject(nwacl1)}
+	res.sg = map[string]*vpc1.SecurityGroup{"s1": JsonSgToObject(sg1)}
+	res.subnetToNacl = map[string]string{"a": "n1"}
+	res.vsiToSg = map[string][]string{"b": {"s1"}}
+	return res
+
+}
+
+func TestTopologyAnalysis(t *testing.T) {
+	topology := getExampleTopology()
+	analyzeConnectivity(topology)
+}

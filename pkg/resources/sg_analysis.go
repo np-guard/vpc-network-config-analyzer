@@ -72,6 +72,9 @@ func getSGrules(sgObj *vpc1.SecurityGroup) ([]*SGRule, []*SGRule) {
 	for index := range sgObj.Rules {
 		rule := sgObj.Rules[index]
 		_, ruleObj, isIngress := getSGRule(rule)
+		if ruleObj == nil {
+			continue
+		}
 		if isIngress {
 			ingressRules = append(ingressRules, ruleObj)
 		} else {
@@ -94,8 +97,8 @@ type ConnecitivytResult struct {
 
 func (cr *ConnecitivytResult) union(cr2 *ConnecitivytResult) *ConnecitivytResult {
 	//union based on disjoint ip-blocks of targets
-	crTargets := cr.getTatgets()
-	cr2Targets := cr2.getTatgets()
+	crTargets := cr.getTargets()
+	cr2Targets := cr2.getTargets()
 	disjointTargets := DisjointIPBlocks(crTargets, cr2Targets)
 	res := &ConnecitivytResult{isIngress: cr.isIngress, allowedconns: map[*IPBlock]*ConnectionSet{}}
 	for i := range disjointTargets {
@@ -123,7 +126,7 @@ func (cr *ConnecitivytResult) string() string {
 	return res
 }
 
-func (cr *ConnecitivytResult) getTatgets() []*IPBlock {
+func (cr *ConnecitivytResult) getTargets() []*IPBlock {
 	res := []*IPBlock{}
 	for t := range cr.allowedconns {
 		res = append(res, t)
@@ -161,8 +164,11 @@ func AnalyzeSGRules(rules []*SGRule, isIngress bool) *ConnecitivytResult {
 
 // get allowed connections (ingress and egress) based on the list of SG that are applied to it
 func AnalyzeSGListPerInstance(vsiIP *IPBlock, sgList []*vpc1.SecurityGroup) (string, string) {
-	var accumulatedIngressRes *ConnecitivytResult
-	var accumulatedEgressRes *ConnecitivytResult
+	//var accumulatedIngressRes *ConnecitivytResult
+	//var accumulatedEgressRes *ConnecitivytResult
+	accumulatedIngressRes := &ConnecitivytResult{allowedconns: map[*IPBlock]*ConnectionSet{}}
+	accumulatedEgressRes := &ConnecitivytResult{allowedconns: map[*IPBlock]*ConnectionSet{}}
+
 	for _, sg := range sgList {
 		ingressRules, egressRules := getSGrules(sg)
 		ingressRes := AnalyzeSGRules(ingressRules, true)
