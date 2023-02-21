@@ -39,5 +39,3 @@ func analyzeConnectivity(t *vpcTopology) {
 		fmt.Printf("%v\n", egressNACLCon)
 	}
 }
-
-// TODO: per pair of disjoint ip-blocks - show allowed connectivity ingress/egress combined

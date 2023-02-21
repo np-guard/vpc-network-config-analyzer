@@ -11,19 +11,19 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
-//go:embed nwacl_1.json
+//go:embed examples/nwacl_1.json
 var nwacl1 []byte
 
-//go:embed nwacl_2.json
+//go:embed examples/nwacl_2.json
 var nwacl2 []byte
 
-//go:embed nwacl_3.json
+//go:embed examples/nwacl_3.json
 var nwacl3 []byte
 
-//go:embed sg_1.json
+//go:embed examples/sg_1.json
 var sg1 []byte
 
-//go:embed sg_2.json
+//go:embed examples/sg_2.json
 var sg2 []byte
 
 /*func TestSgJsonUnmarshal(t *testing.T) {
