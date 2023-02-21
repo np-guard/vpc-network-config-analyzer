@@ -89,18 +89,18 @@ type SGRule struct {
 	connections *ConnectionSet
 }
 
-//ConnecitivytResult should be built on disjoint ip-blocks for targets of all relevant sg results
-type ConnecitivytResult struct {
+// ConnectivityResult should be built on disjoint ip-blocks for targets of all relevant sg results
+type ConnectivityResult struct {
 	isIngress    bool
 	allowedconns map[*IPBlock]*ConnectionSet // allowed target and its allowed connections
 }
 
-func (cr *ConnecitivytResult) union(cr2 *ConnecitivytResult) *ConnecitivytResult {
-	//union based on disjoint ip-blocks of targets
+func (cr *ConnectivityResult) union(cr2 *ConnectivityResult) *ConnectivityResult {
+	// union based on disjoint ip-blocks of targets
 	crTargets := cr.getTargets()
 	cr2Targets := cr2.getTargets()
 	disjointTargets := DisjointIPBlocks(crTargets, cr2Targets)
-	res := &ConnecitivytResult{isIngress: cr.isIngress, allowedconns: map[*IPBlock]*ConnectionSet{}}
+	res := &ConnectivityResult{isIngress: cr.isIngress, allowedconns: map[*IPBlock]*ConnectionSet{}}
 	for i := range disjointTargets {
 		res.allowedconns[disjointTargets[i]] = getEmptyConnSet()
 		for t, conn := range cr.allowedconns {
@@ -118,7 +118,7 @@ func (cr *ConnecitivytResult) union(cr2 *ConnecitivytResult) *ConnecitivytResult
 	return res
 }
 
-func (cr *ConnecitivytResult) string() string {
+func (cr *ConnectivityResult) string() string {
 	res := ""
 	for t, conn := range cr.allowedconns {
 		res += fmt.Sprintf("target: %s, conn: %s\n", t.ToIPRanges(), conn.String())
@@ -126,7 +126,7 @@ func (cr *ConnecitivytResult) string() string {
 	return res
 }
 
-func (cr *ConnecitivytResult) getTargets() []*IPBlock {
+func (cr *ConnectivityResult) getTargets() []*IPBlock {
 	res := []*IPBlock{}
 	for t := range cr.allowedconns {
 		res = append(res, t)
@@ -134,7 +134,7 @@ func (cr *ConnecitivytResult) getTargets() []*IPBlock {
 	return res
 }
 
-func AnalyzeSGRules(rules []*SGRule, isIngress bool) *ConnecitivytResult {
+func AnalyzeSGRules(rules []*SGRule, isIngress bool) *ConnectivityResult {
 	targets := []*IPBlock{}
 	for i := range rules {
 		if rules[i].target != nil {
@@ -142,7 +142,7 @@ func AnalyzeSGRules(rules []*SGRule, isIngress bool) *ConnecitivytResult {
 		}
 	}
 	disjointTargets := DisjointIPBlocks(targets, []*IPBlock{(NewIPBlockFromCidr("0.0.0.0/0"))})
-	res := &ConnecitivytResult{isIngress: isIngress, allowedconns: map[*IPBlock]*ConnectionSet{}}
+	res := &ConnectivityResult{isIngress: isIngress, allowedconns: map[*IPBlock]*ConnectionSet{}}
 	for i := range disjointTargets {
 		res.allowedconns[disjointTargets[i]] = getEmptyConnSet()
 	}
@@ -163,11 +163,9 @@ func AnalyzeSGRules(rules []*SGRule, isIngress bool) *ConnecitivytResult {
 }
 
 // get allowed connections (ingress and egress) based on the list of SG that are applied to it
-func AnalyzeSGListPerInstance(vsiIP *IPBlock, sgList []*vpc1.SecurityGroup) (string, string) {
-	//var accumulatedIngressRes *ConnecitivytResult
-	//var accumulatedEgressRes *ConnecitivytResult
-	accumulatedIngressRes := &ConnecitivytResult{allowedconns: map[*IPBlock]*ConnectionSet{}}
-	accumulatedEgressRes := &ConnecitivytResult{allowedconns: map[*IPBlock]*ConnectionSet{}}
+func AnalyzeSGListPerInstance(vsiIP *IPBlock, sgList []*vpc1.SecurityGroup) (string, string, *ConnectivityResult, *ConnectivityResult) {
+	accumulatedIngressRes := &ConnectivityResult{allowedconns: map[*IPBlock]*ConnectionSet{}}
+	accumulatedEgressRes := &ConnectivityResult{allowedconns: map[*IPBlock]*ConnectionSet{}}
 
 	for _, sg := range sgList {
 		ingressRules, egressRules := getSGrules(sg)
@@ -176,7 +174,7 @@ func AnalyzeSGListPerInstance(vsiIP *IPBlock, sgList []*vpc1.SecurityGroup) (str
 		accumulatedIngressRes = accumulatedIngressRes.union(ingressRes)
 		accumulatedEgressRes = accumulatedEgressRes.union(egressRes)
 	}
-	return accumulatedIngressRes.string(), accumulatedEgressRes.string()
+	return accumulatedIngressRes.string(), accumulatedEgressRes.string(), accumulatedIngressRes, accumulatedEgressRes
 }
 
 // next: get allowed connectivity per vsi interface considering both nacl and sg (intersection of allowed connectivity from both layers)

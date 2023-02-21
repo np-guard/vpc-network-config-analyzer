@@ -136,26 +136,26 @@ func getAllowedXgressConnections(rules []*NACLRule, src *IPBlock, subnetCidr *IP
 	return allowedIngress
 }
 
-func getDisjointPeers(rules []*NACLRule, subnet *IPBlock) ([]*IPBlock, []*IPBlock) {
+func getDisjointPeersForIngressAnalysis(rules []*NACLRule, subnet *IPBlock) ([]*IPBlock, []*IPBlock) {
 	srcPeers := []*IPBlock{(NewIPBlockFromCidr("0.0.0.0/0"))}
 	dstPeers := []*IPBlock{subnet}
-	peers := []*IPBlock{subnet}
+	//peers := []*IPBlock{subnet}
 	for _, rule := range rules {
-		peers = append(peers, rule.src)
-		peers = append(peers, rule.dst)
+		//peers = append(peers, rule.src)
+		//peers = append(peers, rule.dst)
 		srcPeers = append(srcPeers, rule.src)
 		dstPeers = append(dstPeers, rule.dst)
 	}
 	return DisjointIPBlocks(srcPeers, []*IPBlock{(NewIPBlockFromCidr("0.0.0.0/0"))}), DisjointIPBlocks(dstPeers, []*IPBlock{subnet})
 }
 
-func getDisjointPeersNew(rules []*NACLRule, subnet *IPBlock) ([]*IPBlock, []*IPBlock) {
+func getDisjointPeersForEgressAnalysis(rules []*NACLRule, subnet *IPBlock) ([]*IPBlock, []*IPBlock) {
 	dstPeers := []*IPBlock{(NewIPBlockFromCidr("0.0.0.0/0"))}
 	srcPeers := []*IPBlock{subnet}
-	peers := []*IPBlock{subnet}
+	//peers := []*IPBlock{subnet}
 	for _, rule := range rules {
-		peers = append(peers, rule.src)
-		peers = append(peers, rule.dst)
+		//peers = append(peers, rule.src)
+		//peers = append(peers, rule.dst)
 		srcPeers = append(srcPeers, rule.src)
 		dstPeers = append(dstPeers, rule.dst)
 	}
@@ -185,7 +185,7 @@ func AnalyzeNACLRules(rules []*NACLRule, subnet *IPBlock, isIngress bool) string
 
 	res := []string{}
 	if isIngress {
-		disjointSrcPeers, disjointDstPeers := getDisjointPeers(rules, subnet)
+		disjointSrcPeers, disjointDstPeers := getDisjointPeersForIngressAnalysis(rules, subnet)
 		// ingress
 		for _, src := range disjointSrcPeers {
 			allowedIngressConns := getAllowedXgressConnections(rules, src, subnet, disjointDstPeers, true)
@@ -196,7 +196,7 @@ func AnalyzeNACLRules(rules []*NACLRule, subnet *IPBlock, isIngress bool) string
 		return strings.Join(res, "")
 	}
 	// egress
-	disjointSrcPeers, disjointDstPeers := getDisjointPeersNew(rules, subnet)
+	disjointSrcPeers, disjointDstPeers := getDisjointPeersForEgressAnalysis(rules, subnet)
 	for _, dst := range disjointDstPeers {
 		allowedEgressConns := getAllowedXgressConnections(rules, dst, subnet, disjointSrcPeers, false)
 		for src, conn := range allowedEgressConns {
