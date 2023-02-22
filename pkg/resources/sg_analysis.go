@@ -91,6 +91,7 @@ type SGRule struct {
 }
 
 // ConnectivityResult should be built on disjoint ip-blocks for targets of all relevant sg results
+// ConnectivityResult is per VSI network interface: contains allowed connectivity (with connection attributes) per target
 type ConnectivityResult struct {
 	isIngress    bool
 	allowedconns map[*IPBlock]*ConnectionSet // allowed target and its allowed connections
@@ -112,6 +113,28 @@ func (cr *ConnectivityResult) union(cr2 *ConnectivityResult) *ConnectivityResult
 		for t, conn := range cr2.allowedconns {
 			if disjointTargets[i].ContainedIn(t) {
 				res.allowedconns[disjointTargets[i]].Union(*conn)
+			}
+		}
+	}
+
+	return res
+}
+
+func (cr *ConnectivityResult) intersection(cr2 *ConnectivityResult) *ConnectivityResult {
+	crTargets := cr.getTargets()
+	cr2Targets := cr2.getTargets()
+	disjointTargets := DisjointIPBlocks(crTargets, cr2Targets)
+	res := &ConnectivityResult{isIngress: cr.isIngress, allowedconns: map[*IPBlock]*ConnectionSet{}}
+	for i := range disjointTargets {
+		res.allowedconns[disjointTargets[i]] = getEmptyConnSet()
+		for t, conn := range cr.allowedconns {
+			if disjointTargets[i].ContainedIn(t) {
+				res.allowedconns[disjointTargets[i]].Union(*conn)
+			}
+		}
+		for t, conn := range cr2.allowedconns {
+			if disjointTargets[i].ContainedIn(t) {
+				res.allowedconns[disjointTargets[i]].Intersection(*conn)
 			}
 		}
 	}

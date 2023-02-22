@@ -28,15 +28,27 @@ func analyzeConnectivity(t *vpcConfig) {
 		for _, sg := range sgList {
 			sgObjList = append(sgObjList, t.sg[sg])
 		}
-		//ingressSgConn, egressSgConn, ingressConnectivityRes, egressConnectivityRes := AnalyzeSGListPerInstance(vsiIP, sgObjList)
-		ingressSgConn, egressSgConn, _, _ := AnalyzeSGListPerInstance(vsiIP, sgObjList)
-		ingressNACLConn, egressNACLCon := AnalyzeNACL(naclObj, t.subnetsMap[subnet])
+		//ingressSgConnStr, egressSgConnStr, ingressConnectivityRes, egressConnectivityRes := AnalyzeSGListPerInstance(vsiIP, sgObjList)
+		ingressSgConnStr, egressSgConnStr, ingressSgConn, egressSgConn := AnalyzeSGListPerInstance(vsiIP, sgObjList)
+		ingressNACLConnStr, egressNACLConStr, ingressNACLConn, egressNACLCon := AnalyzeNACL(naclObj, t.subnetsMap[subnet], vsiIP) //ingressNACLConn, egressNACLCon
 		fmt.Println("sg analysis:")
-		fmt.Printf("%v\n", ingressSgConn)
-		fmt.Printf("%v\n", egressSgConn)
+		fmt.Printf("%v\n", ingressSgConnStr)
+		fmt.Printf("%v\n", egressSgConnStr)
 
 		fmt.Println("nacl analysis:")
-		fmt.Printf("%v\n", ingressNACLConn)
-		fmt.Printf("%v\n", egressNACLCon)
+		fmt.Printf("%v\n", ingressNACLConnStr)
+		fmt.Printf("%v\n", egressNACLConStr)
+
+		//fmt.Printf("%v %v %v %v", ingressSgConn, egressSgConn, ingressNACLConn, egressNACLCon)
+
+		// combined analysis -- intersection of sg and nacl results
+		ingressConnectivityRes := ingressSgConn.intersection(ingressNACLConn)
+		egressConnectivityRes := egressSgConn.intersection(egressNACLCon)
+
+		fmt.Printf("ingress connectivity result for vsi %s , considering sg + nacl:\n", vsiIP.ToIPRanges())
+		fmt.Printf("%s\n", ingressConnectivityRes.string())
+		fmt.Printf("egress connectivity result for vsi %s , considering sg + nacl:\n", vsiIP.ToIPRanges())
+		fmt.Printf("%s\n", egressConnectivityRes.string())
+
 	}
 }
