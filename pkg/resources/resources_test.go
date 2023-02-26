@@ -241,6 +241,6 @@ func TestNewVpcConfig(t *testing.T) {
 	if err != nil {
 		fmt.Printf("error: %v", err)
 	}
-	//fmt.Printf("%v", err)
-	//fmt.Printf("%v", vpcConfig)
+	analyzeConnectivity(vpcConfig)
+
 }

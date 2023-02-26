@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
+	v1 "k8s.io/api/core/v1"
 )
 
 func getRemoteCidr(remote vpc1.SecurityGroupRuleRemoteIntf) (*IPBlock, string) {
@@ -11,6 +12,7 @@ func getRemoteCidr(remote vpc1.SecurityGroupRuleRemoteIntf) (*IPBlock, string) {
 	// even if cidr is defined
 	var target *IPBlock
 	var cidr string
+	var cidrRes string
 	//TODO: handle other remote types:
 	//SecurityGroupRuleRemoteIP
 	//SecurityGroupRuleRemoteSecurityGroupReference
@@ -26,8 +28,9 @@ func getRemoteCidr(remote vpc1.SecurityGroupRuleRemoteIntf) (*IPBlock, string) {
 		}
 		cidr = *remoteObj.CIDRBlock
 		target = NewIPBlockFromCidr(cidr)
+		cidrRes = target.ToCidrList()[0]
 	}
-	return target, cidr
+	return target, cidrRes
 }
 
 func getSGRule(rule vpc1.SecurityGroupRuleIntf) (string, *SGRule, bool) {
@@ -54,12 +57,22 @@ func getSGRule(rule vpc1.SecurityGroupRuleIntf) (string, *SGRule, bool) {
 	if ruleObj, ok := rule.(*vpc1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudp); ok {
 		direction := *ruleObj.Direction
 		isIngress = isIngressRule(ruleObj.Direction)
-		protocol := *ruleObj.Protocol
+		//protocol := *ruleObj.Protocol
 		remote := ruleObj.Remote
 		cidr := ""
 		var target *IPBlock
 		target, cidr = getRemoteCidr(remote)
-		ruleStr := fmt.Sprintf("direction: %s, protocol: %s, cidr: %s\n", direction, protocol, cidr)
+		conns := MakeConnectionSet(false)
+		ports := PortSet{Ports: CanonicalIntervalSet{IntervalSet: []Interval{{Start: *ruleObj.PortMin, End: *ruleObj.PortMax}}}}
+		if *ruleObj.Protocol == "tcp" {
+			conns.AllowedProtocols[v1.ProtocolTCP] = &ports
+		} else if *ruleObj.Protocol == "udp" {
+			conns.AllowedProtocols[v1.ProtocolUDP] = &ports
+		}
+
+		dstPorts := fmt.Sprintf("%d-%d", *ruleObj.PortMin, *ruleObj.PortMax)
+		connStr := fmt.Sprintf("protocol: %s,  dstPorts: %s", *ruleObj.Protocol, dstPorts)
+		ruleStr := fmt.Sprintf("direction: %s,  conns: %s, cidr: %s\n", direction, connStr, cidr)
 		//fmt.Printf("SG rule: %s\n", ruleStr)
 		ruleRes := &SGRule{}
 		ruleRes.connections = getProtocolConn(ruleObj.Protocol, ruleObj.PortMax, ruleObj.PortMin)
