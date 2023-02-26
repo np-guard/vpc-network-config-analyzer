@@ -226,3 +226,21 @@ func TestIPRangeToCidrList(t *testing.T) {
 		fmt.Printf("%s", ipStr)
 	}
 }
+
+//go:embed other_examples/resources.json
+var r1 []byte
+
+func TestParseResources(t *testing.T) {
+	ParseResources(r1)
+}
+
+func TestNewVpcConfig(t *testing.T) {
+	resources := ParseResources(r1)
+	vpcConfig, err := NewVpcConfig(resources)
+	fmt.Printf("%s", vpcConfig.details())
+	if err != nil {
+		fmt.Printf("error: %v", err)
+	}
+	//fmt.Printf("%v", err)
+	//fmt.Printf("%v", vpcConfig)
+}

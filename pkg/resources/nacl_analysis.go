@@ -164,6 +164,17 @@ func getDisjointPeersForEgressAnalysis(rules []*NACLRule, subnet *IPBlock) ([]*I
 	return DisjointIPBlocks(srcPeers, []*IPBlock{subnet}), DisjointIPBlocks(dstPeers, []*IPBlock{(NewIPBlockFromCidr("0.0.0.0/0"))})
 }
 
+func getNACLDetails(naclObj *vpc1.NetworkACL) string {
+	res := ""
+	for index := range naclObj.Rules {
+		rule := naclObj.Rules[index]
+		ruleStr, _, _ := getNACLRule(rule)
+		res += ruleStr
+	}
+
+	return res
+}
+
 //get ingress and egress rules from NACL obj
 func getNACLRules(naclObj *vpc1.NetworkACL) ([]*NACLRule, []*NACLRule) {
 	ingressRules := []*NACLRule{}

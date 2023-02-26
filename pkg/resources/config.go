@@ -2,18 +2,56 @@ package resources
 
 import (
 	"fmt"
+	"strings"
 
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
 )
 
 type vpcConfig struct {
-	vsiMap       map[string]*IPBlock            // map from vsi name to its network interface address
-	subnetsMap   map[string]*IPBlock            // map from subnet name to its cidr range
-	nacl         map[string]*vpc1.NetworkACL    // map from nacl name to its object
-	sg           map[string]*vpc1.SecurityGroup // map from sg name to its object
-	vsiToSubnet  map[string]string              // map from vsi name to its subnet
-	subnetToNacl map[string]string              // map from subnet name to its nacl
-	vsiToSg      map[string][]string            // map from vsi to its list of sg
+	vsiMap                map[string]*IPBlock            // map from vsi name to its network interface address
+	subnetsMap            map[string]*IPBlock            // map from subnet name to its cidr range
+	nacl                  map[string]*vpc1.NetworkACL    // map from nacl name to its object
+	sg                    map[string]*vpc1.SecurityGroup // map from sg name to its object
+	vsiToSubnet           map[string]string              // map from vsi name to its subnet
+	subnetToNacl          map[string]string              // map from subnet name to its nacl
+	vsiToSg               map[string][]string            // map from vsi to its list of sg
+	netInterfaceNameToVsi map[string]string              // map from network interface name to its vsi
+}
+
+func (v *vpcConfig) details() string {
+	res := ""
+	res += "vsi details:\n"
+	for vsi, ip := range v.vsiMap {
+		ipCidr := ip.ToCidrList()
+		ipCidrStr := strings.Join(ipCidr, ",")
+		interfaceName := ""
+		for netInterface, vsiName := range v.netInterfaceNameToVsi {
+			if vsiName == vsi {
+				interfaceName = netInterface
+			}
+		}
+		subnetName := v.vsiToSubnet[vsi]
+		sgNames := strings.Join(v.vsiToSg[vsi], ",")
+		naclName := v.subnetToNacl[subnetName]
+		res += fmt.Sprintf("vsi name: %s\tip: %s\tinterface name: %s\tsubnetName: %s\tsg names: %s\t nacl name: %s\n", vsi, ipCidrStr, interfaceName, subnetName, sgNames, naclName)
+	}
+	for subnet, ip := range v.subnetsMap {
+		ipCidr := ip.ToCidrList()
+		ipCidrStr := strings.Join(ipCidr, ",")
+		res += fmt.Sprintf("subnet name: %s\tip cidr: %s\n", subnet, ipCidrStr)
+	}
+	for naclName, naclObj := range v.nacl {
+		res += fmt.Sprintf("nacl %s rules:\n", naclName)
+		res += getNACLDetails(naclObj)
+	}
+	for sgName, sgObj := range v.sg {
+		res += fmt.Sprintf("sg %s rules:\n", sgName)
+		res += getSGDetails(sgObj)
+	}
+
+	//getSGDetails
+
+	return res
 }
 
 // connectivity analysis per VSI (network interface): connectivity based on SG and based on NCAL of its subnet

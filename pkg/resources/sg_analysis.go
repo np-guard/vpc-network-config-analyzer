@@ -21,6 +21,9 @@ func getRemoteCidr(remote vpc1.SecurityGroupRuleRemoteIntf) (*IPBlock, string) {
 	// how can infer type of remote from this object?
 	// can also be Address or CRN or ...
 	if remoteObj, ok := remote.(*vpc1.SecurityGroupRuleRemote); ok {
+		if remoteObj.CIDRBlock == nil {
+			return nil, ""
+		}
 		cidr = *remoteObj.CIDRBlock
 		target = NewIPBlockFromCidr(cidr)
 	}
@@ -39,12 +42,14 @@ func getSGRule(rule vpc1.SecurityGroupRuleIntf) (string, *SGRule, bool) {
 		cidr := ""
 		var target *IPBlock
 		//SecurityGroupRuleRemoteCIDR
-		target, cidr = getRemoteCidr(remote)
-		ruleStr := fmt.Sprintf("direction: %s, protocol: %s, cidr: %s", direction, protocol, cidr)
-		fmt.Printf("SG rule: %s\n", ruleStr)
-		ruleRes.target = target
-		ruleRes.connections = getAllConnSet()
-		return ruleStr, ruleRes, isIngress
+		if target, cidr = getRemoteCidr(remote); target != nil {
+			ruleStr := fmt.Sprintf("direction: %s, protocol: %s, cidr: %s\n", direction, protocol, cidr)
+			//fmt.Printf("SG rule: %s\n", ruleStr)
+			ruleRes.target = target
+			ruleRes.connections = getAllConnSet()
+			return ruleStr, ruleRes, isIngress
+		}
+
 	}
 	if ruleObj, ok := rule.(*vpc1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudp); ok {
 		direction := *ruleObj.Direction
@@ -54,8 +59,8 @@ func getSGRule(rule vpc1.SecurityGroupRuleIntf) (string, *SGRule, bool) {
 		cidr := ""
 		var target *IPBlock
 		target, cidr = getRemoteCidr(remote)
-		ruleStr := fmt.Sprintf("direction: %s, protocol: %s, cidr: %s", direction, protocol, cidr)
-		fmt.Printf("SG rule: %s\n", ruleStr)
+		ruleStr := fmt.Sprintf("direction: %s, protocol: %s, cidr: %s\n", direction, protocol, cidr)
+		//fmt.Printf("SG rule: %s\n", ruleStr)
 		ruleRes := &SGRule{}
 		ruleRes.connections = getProtocolConn(ruleObj.Protocol, ruleObj.PortMax, ruleObj.PortMin)
 		ruleRes.target = target
@@ -64,6 +69,16 @@ func getSGRule(rule vpc1.SecurityGroupRuleIntf) (string, *SGRule, bool) {
 
 	return "", nil, false
 
+}
+
+func getSGDetails(sgObj *vpc1.SecurityGroup) string {
+	res := ""
+	for index := range sgObj.Rules {
+		rule := sgObj.Rules[index]
+		ruleStr, _, _ := getSGRule(rule)
+		res += ruleStr
+	}
+	return res
 }
 
 func getSGrules(sgObj *vpc1.SecurityGroup) ([]*SGRule, []*SGRule) {

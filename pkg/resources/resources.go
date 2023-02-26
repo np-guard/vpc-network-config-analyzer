@@ -29,6 +29,27 @@ func JsonNaclToObject(nwacl []byte) *vpc1.NetworkACL {
 	return naclObj
 }
 
+func JsonInstanceToObject(instance []byte) *vpc1.Instance {
+	instanceMap := jsonToMap(instance)
+	instanceObj := &vpc1.Instance{}
+	vpc1.UnmarshalInstance(instanceMap, &instanceObj)
+	return instanceObj
+}
+
+func JsonSubnetToObject(subnet []byte) *vpc1.Subnet {
+	subnetMap := jsonToMap(subnet)
+	subnetObj := &vpc1.Subnet{}
+	vpc1.UnmarshalSubnet(subnetMap, &subnetObj)
+	return subnetObj
+}
+
+func JsonVpcToObject(vpc []byte) *vpc1.VPC {
+	vpcMap := jsonToMap(vpc)
+	vpcObj := &vpc1.VPC{}
+	vpc1.UnmarshalVPC(vpcMap, &vpcObj)
+	return vpcObj
+}
+
 // convert vpc1.NetworkACL to json string
 func ObjectNaclToJson(naclObj *vpc1.NetworkACL) ([]byte, error) {
 	// return json.Marshal(*naclObj)
@@ -38,6 +59,12 @@ func ObjectNaclToJson(naclObj *vpc1.NetworkACL) ([]byte, error) {
 // convert json string to map object
 func jsonToMap(jsonStr []byte) map[string]json.RawMessage {
 	var result map[string]json.RawMessage
+	json.Unmarshal(jsonStr, &result)
+	return result
+}
+
+func jsonToList(jsonStr []byte) []json.RawMessage {
+	var result []json.RawMessage
 	json.Unmarshal(jsonStr, &result)
 	return result
 }
