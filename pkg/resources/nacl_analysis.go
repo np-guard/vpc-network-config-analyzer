@@ -194,19 +194,6 @@ func getNACLRules(naclObj *vpc1.NetworkACL) ([]*NACLRule, []*NACLRule) {
 	return ingressRules, egressRules
 }
 
-func allowedConnsMapToConnectivityResult(allowedConns map[string]*ConnectionSet, isIngress bool) (*ConnectivityResult, error) {
-	res := &ConnectivityResult{isIngress: isIngress}
-	res.allowedconns = map[*IPBlock]*ConnectionSet{}
-	for ipRangeStr, conns := range allowedConns {
-		ipb, err := IPBlockFromIPRangeStr(ipRangeStr)
-		if err != nil {
-			return nil, err
-		}
-		res.allowedconns[ipb] = conns
-	}
-	return res, nil
-}
-
 func AnalyzeNACLRules(rules []*NACLRule, subnet *IPBlock, isIngress bool, subnetDisjointTarget *IPBlock) (string, *ConnectivityResult) {
 	res := []string{}
 	connResult := &ConnectivityResult{isIngress: isIngress}

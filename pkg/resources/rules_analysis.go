@@ -12,7 +12,7 @@ func isIngressRule(direction *string) bool {
 	return false
 }
 
-func isEgressRule(direction *string) bool {
+/*func isEgressRule(direction *string) bool {
 	if direction == nil {
 		return false
 	}
@@ -20,7 +20,7 @@ func isEgressRule(direction *string) bool {
 		return true
 	}
 	return false
-}
+}*/
 
 func getProtocolConn(Protocol *string, PortMax, PortMin *int64) *ConnectionSet {
 	res := getEmptyConnSet()
