@@ -2,7 +2,9 @@ package resources
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
+	"math"
 	"net"
 	"sort"
 	"strconv"
@@ -213,4 +215,60 @@ func cidrToInterval(cidr string) (*Interval, error) {
 		return nil, err
 	}
 	return &Interval{Start: start, End: end}, nil
+}
+
+func (b *IPBlock) ToCidrList() []string {
+	cidrList := []string{}
+	for _, interval := range b.ipRange.IntervalSet {
+		cidrList = append(cidrList, intervalToCidrList(interval.Start, interval.End)...)
+	}
+	return cidrList
+}
+
+func intervalToCidrList(ipStart, ipEnd int64) []string {
+	start := ipStart
+	end := ipEnd
+	res := []string{}
+	for end >= start {
+		maxSize := 32
+		for maxSize > 0 {
+			s := maxSize - 1
+			mask := int64(math.Round(math.Pow(2, 32) - math.Pow(2, float64(32)-float64(s))))
+			maskBase := start & mask
+			if maskBase != start {
+				break
+			}
+			maxSize--
+		}
+		x := math.Log(float64(end)-float64(start)+1) / math.Log(2)
+		maxDiff := byte(32 - math.Floor(x))
+		if maxSize < int(maxDiff) {
+			maxSize = int(maxDiff)
+		}
+		ip := InttoIP4(start)
+		res = append(res, fmt.Sprintf("%s/%d", ip, maxSize))
+		start += int64(math.Pow(2, 32-float64(maxSize)))
+	}
+	return res
+}
+
+func IPBlockFromIPRangeStr(ipRagneStr string) (*IPBlock, error) {
+	ipAddresses := strings.Split(ipRagneStr, "-")
+	if len(ipAddresses) != 2 {
+		return nil, errors.New("unexpected ipRange str")
+	}
+	var startIP, endIP *IPBlock
+	var err error
+	if startIP, err = NewIPBlockFromIPAddress(ipAddresses[0]); err != nil {
+		return nil, err
+	}
+	if endIP, err = NewIPBlockFromIPAddress(ipAddresses[1]); err != nil {
+		return nil, err
+	}
+	res := &IPBlock{}
+	res.ipRange = CanonicalIntervalSet{IntervalSet: []Interval{}}
+	startIPNum := startIP.ipRange.IntervalSet[0].Start
+	endIPNum := endIP.ipRange.IntervalSet[0].Start
+	res.ipRange.IntervalSet = append(res.ipRange.IntervalSet, Interval{Start: startIPNum, End: endIPNum})
+	return res, nil
 }

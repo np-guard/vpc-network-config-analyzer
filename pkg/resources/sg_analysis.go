@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
+	v1 "k8s.io/api/core/v1"
 )
 
 func getRemoteCidr(remote vpc1.SecurityGroupRuleRemoteIntf) (*IPBlock, string) {
@@ -11,6 +12,7 @@ func getRemoteCidr(remote vpc1.SecurityGroupRuleRemoteIntf) (*IPBlock, string) {
 	// even if cidr is defined
 	var target *IPBlock
 	var cidr string
+	var cidrRes string
 	//TODO: handle other remote types:
 	//SecurityGroupRuleRemoteIP
 	//SecurityGroupRuleRemoteSecurityGroupReference
@@ -21,10 +23,14 @@ func getRemoteCidr(remote vpc1.SecurityGroupRuleRemoteIntf) (*IPBlock, string) {
 	// how can infer type of remote from this object?
 	// can also be Address or CRN or ...
 	if remoteObj, ok := remote.(*vpc1.SecurityGroupRuleRemote); ok {
+		if remoteObj.CIDRBlock == nil {
+			return nil, ""
+		}
 		cidr = *remoteObj.CIDRBlock
 		target = NewIPBlockFromCidr(cidr)
+		cidrRes = target.ToCidrList()[0]
 	}
-	return target, cidr
+	return target, cidrRes
 }
 
 func getSGRule(rule vpc1.SecurityGroupRuleIntf) (string, *SGRule, bool) {
@@ -39,23 +45,35 @@ func getSGRule(rule vpc1.SecurityGroupRuleIntf) (string, *SGRule, bool) {
 		cidr := ""
 		var target *IPBlock
 		//SecurityGroupRuleRemoteCIDR
-		target, cidr = getRemoteCidr(remote)
-		ruleStr := fmt.Sprintf("direction: %s, protocol: %s, cidr: %s", direction, protocol, cidr)
-		fmt.Printf("SG rule: %s\n", ruleStr)
-		ruleRes.target = target
-		ruleRes.connections = getAllConnSet()
-		return ruleStr, ruleRes, isIngress
+		if target, cidr = getRemoteCidr(remote); target != nil {
+			ruleStr := fmt.Sprintf("direction: %s, protocol: %s, cidr: %s\n", direction, protocol, cidr)
+			//fmt.Printf("SG rule: %s\n", ruleStr)
+			ruleRes.target = target
+			ruleRes.connections = getAllConnSet()
+			return ruleStr, ruleRes, isIngress
+		}
+
 	}
 	if ruleObj, ok := rule.(*vpc1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudp); ok {
 		direction := *ruleObj.Direction
 		isIngress = isIngressRule(ruleObj.Direction)
-		protocol := *ruleObj.Protocol
+		//protocol := *ruleObj.Protocol
 		remote := ruleObj.Remote
 		cidr := ""
 		var target *IPBlock
 		target, cidr = getRemoteCidr(remote)
-		ruleStr := fmt.Sprintf("direction: %s, protocol: %s, cidr: %s", direction, protocol, cidr)
-		fmt.Printf("SG rule: %s\n", ruleStr)
+		conns := MakeConnectionSet(false)
+		ports := PortSet{Ports: CanonicalIntervalSet{IntervalSet: []Interval{{Start: *ruleObj.PortMin, End: *ruleObj.PortMax}}}}
+		if *ruleObj.Protocol == "tcp" {
+			conns.AllowedProtocols[v1.ProtocolTCP] = &ports
+		} else if *ruleObj.Protocol == "udp" {
+			conns.AllowedProtocols[v1.ProtocolUDP] = &ports
+		}
+
+		dstPorts := fmt.Sprintf("%d-%d", *ruleObj.PortMin, *ruleObj.PortMax)
+		connStr := fmt.Sprintf("protocol: %s,  dstPorts: %s", *ruleObj.Protocol, dstPorts)
+		ruleStr := fmt.Sprintf("direction: %s,  conns: %s, cidr: %s\n", direction, connStr, cidr)
+		//fmt.Printf("SG rule: %s\n", ruleStr)
 		ruleRes := &SGRule{}
 		ruleRes.connections = getProtocolConn(ruleObj.Protocol, ruleObj.PortMax, ruleObj.PortMin)
 		ruleRes.target = target
@@ -64,6 +82,16 @@ func getSGRule(rule vpc1.SecurityGroupRuleIntf) (string, *SGRule, bool) {
 
 	return "", nil, false
 
+}
+
+func getSGDetails(sgObj *vpc1.SecurityGroup) string {
+	res := ""
+	for index := range sgObj.Rules {
+		rule := sgObj.Rules[index]
+		ruleStr, _, _ := getSGRule(rule)
+		res += ruleStr
+	}
+	return res
 }
 
 func getSGrules(sgObj *vpc1.SecurityGroup) ([]*SGRule, []*SGRule) {
@@ -91,6 +119,7 @@ type SGRule struct {
 }
 
 // ConnectivityResult should be built on disjoint ip-blocks for targets of all relevant sg results
+// ConnectivityResult is per VSI network interface: contains allowed connectivity (with connection attributes) per target
 type ConnectivityResult struct {
 	isIngress    bool
 	allowedconns map[*IPBlock]*ConnectionSet // allowed target and its allowed connections
@@ -112,6 +141,28 @@ func (cr *ConnectivityResult) union(cr2 *ConnectivityResult) *ConnectivityResult
 		for t, conn := range cr2.allowedconns {
 			if disjointTargets[i].ContainedIn(t) {
 				res.allowedconns[disjointTargets[i]].Union(*conn)
+			}
+		}
+	}
+
+	return res
+}
+
+func (cr *ConnectivityResult) intersection(cr2 *ConnectivityResult) *ConnectivityResult {
+	crTargets := cr.getTargets()
+	cr2Targets := cr2.getTargets()
+	disjointTargets := DisjointIPBlocks(crTargets, cr2Targets)
+	res := &ConnectivityResult{isIngress: cr.isIngress, allowedconns: map[*IPBlock]*ConnectionSet{}}
+	for i := range disjointTargets {
+		res.allowedconns[disjointTargets[i]] = getEmptyConnSet()
+		for t, conn := range cr.allowedconns {
+			if disjointTargets[i].ContainedIn(t) {
+				res.allowedconns[disjointTargets[i]].Union(*conn)
+			}
+		}
+		for t, conn := range cr2.allowedconns {
+			if disjointTargets[i].ContainedIn(t) {
+				res.allowedconns[disjointTargets[i]].Intersection(*conn)
 			}
 		}
 	}

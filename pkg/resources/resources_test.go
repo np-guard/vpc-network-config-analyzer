@@ -11,19 +11,19 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
-//go:embed examples/nwacl_1.json
+//go:embed other_examples/nwacl_1.json
 var nwacl1 []byte
 
-//go:embed examples/nwacl_2.json
+//go:embed other_examples/nwacl_2.json
 var nwacl2 []byte
 
-//go:embed examples/nwacl_3.json
+//go:embed other_examples/nwacl_3.json
 var nwacl3 []byte
 
-//go:embed examples/sg_1.json
+//go:embed other_examples/sg_1.json
 var sg1 []byte
 
-//go:embed examples/sg_2.json
+//go:embed other_examples/sg_2.json
 var sg2 []byte
 
 /*func TestSgJsonUnmarshal(t *testing.T) {
@@ -85,7 +85,7 @@ func TestGetNACLrule(t *testing.T) {
 func TestAnalyzeNACL(t *testing.T) {
 	naclObj := JsonNaclToObject(nwacl1)
 	subnet, _ := NewIPBlock("10.0.0.0/24", []string{})
-	AnalyzeNACL(naclObj, subnet)
+	AnalyzeNACL(naclObj, subnet, nil)
 }
 
 func getTCPconn(startPort int64, endPort int64) *ConnectionSet {
@@ -151,14 +151,14 @@ func TestGetAllowedIngressConnections(t *testing.T) {
 	subnet := NewIPBlockFromCidr("10.0.0.0/24")
 
 	//res1 := ingressConnResFromInput(rulesTest1, subnet)
-	res1 := AnalyzeNACLRules(rulesTest1, subnet, true)
+	res1, _ := AnalyzeNACLRules(rulesTest1, subnet, true, nil)
 	fmt.Printf("res for test %s:\n%s\n", "rulesTest1", res1)
 
 	//res2 := ingressConnResFromInput(rulesTest2, subnet)
-	res2 := AnalyzeNACLRules(rulesTest2, subnet, true)
+	res2, _ := AnalyzeNACLRules(rulesTest2, subnet, true, nil)
 	fmt.Printf("res for test %s:\n%s\n", "rulesTest2", res2)
 
-	res3 := AnalyzeNACLRules(rulesTest3, subnet, false)
+	res3, _ := AnalyzeNACLRules(rulesTest3, subnet, false, nil)
 	fmt.Printf("res for test %s:\n%s\n", "rulesTest3", res3)
 }
 
@@ -201,4 +201,46 @@ func getExampleTopology() *vpcConfig {
 func TestTopologyAnalysis(t *testing.T) {
 	topology := getExampleTopology()
 	analyzeConnectivity(topology)
+}
+
+func TestIntervalToCidrList(t *testing.T) {
+	ipb1 := NewIPBlockFromCidr("192.168.1.0/32")
+	ipb2 := NewIPBlockFromCidr("192.168.1.9/32")
+	ipStart := ipb1.ipRange.IntervalSet[0].Start
+	ipEnd := ipb2.ipRange.IntervalSet[0].Start
+
+	res := intervalToCidrList(ipStart, ipEnd)
+	for _, ipStr := range res {
+		fmt.Printf("%s", ipStr)
+	}
+}
+
+func TestIPRangeToCidrList(t *testing.T) {
+	ipb, err := IPBlockFromIPRangeStr("192.168.1.0-192.168.1.9")
+	//ipb, err := IPBlockFromIPRangeStr("0.0.0.0-255.255.255.255")
+	if err != nil {
+		t.Fatalf("err: %v", err)
+	}
+	cidrList := ipb.ToCidrList()
+	for _, ipStr := range cidrList {
+		fmt.Printf("%s", ipStr)
+	}
+}
+
+//go:embed other_examples/resources.json
+var r1 []byte
+
+func TestParseResources(t *testing.T) {
+	ParseResources(r1)
+}
+
+func TestNewVpcConfig(t *testing.T) {
+	resources := ParseResources(r1)
+	vpcConfig, err := NewVpcConfig(resources)
+	fmt.Printf("%s", vpcConfig.details())
+	if err != nil {
+		fmt.Printf("error: %v", err)
+	}
+	analyzeConnectivity(vpcConfig)
+
 }
