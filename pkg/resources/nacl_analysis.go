@@ -194,6 +194,44 @@ func getNACLRules(naclObj *vpc1.NetworkACL) ([]*NACLRule, []*NACLRule) {
 	return ingressRules, egressRules
 }
 
+// get connectivity result for each disjoint target in the subnet
+func AnalyzeNACLRulesPerDisjointTargets(rules []*NACLRule, subnet *IPBlock, isIngress bool) map[*IPBlock]*ConnectivityResult {
+	res := map[*IPBlock]*ConnectivityResult{}
+	if isIngress {
+		disjointSrcPeers, disjointDstPeers := getDisjointPeersForIngressAnalysis(rules, subnet)
+		for _, src := range disjointSrcPeers {
+			allowedIngressConns := getAllowedXgressConnections(rules, src, subnet, disjointDstPeers, true)
+			for dst, conn := range allowedIngressConns {
+				if dstIP, err := IPBlockFromIPRangeStr(dst); err == nil {
+					if connRes, ok := res[dstIP]; ok {
+						connRes.allowedconns[src] = conn
+					} else {
+						res[dstIP] = &ConnectivityResult{isIngress: true, allowedconns: map[*IPBlock]*ConnectionSet{}}
+						res[dstIP].allowedconns[src] = conn
+					}
+				}
+			}
+		}
+		return res
+	}
+	disjointSrcPeers, disjointDstPeers := getDisjointPeersForEgressAnalysis(rules, subnet)
+	for _, dst := range disjointDstPeers {
+		allowedEgressConns := getAllowedXgressConnections(rules, dst, subnet, disjointSrcPeers, false)
+		for src, conn := range allowedEgressConns {
+			if srcIP, err := IPBlockFromIPRangeStr(src); err == nil {
+				if connRes, ok := res[srcIP]; ok {
+					connRes.allowedconns[dst] = conn
+				} else {
+					res[srcIP] = &ConnectivityResult{isIngress: true, allowedconns: map[*IPBlock]*ConnectionSet{}}
+					res[srcIP].allowedconns[dst] = conn
+				}
+			}
+		}
+	}
+
+	return res
+}
+
 func AnalyzeNACLRules(rules []*NACLRule, subnet *IPBlock, isIngress bool, subnetDisjointTarget *IPBlock) (string, *ConnectivityResult) {
 	res := []string{}
 	connResult := &ConnectivityResult{isIngress: isIngress}
@@ -239,6 +277,15 @@ func AnalyzeNACL(naclObj *vpc1.NetworkACL, subnet *IPBlock, subnetDisjointTarget
 	ingressRes, ingressResConnectivity := AnalyzeNACLRules(ingressRules, subnet, true, subnetDisjointTarget)
 	egressRes, egressResConnectivity := AnalyzeNACLRules(egressRules, subnet, false, subnetDisjointTarget)
 	return ingressRes, egressRes, ingressResConnectivity, egressResConnectivity
+}
+
+/*func AnalyzeNACLPerDisjointTargets(naclObj *vpc1.NetworkACL, subnet *IPBlock) (*AnalysisConnectivityResults){
+
+}*/
+
+type AnalysisConnectivityResults struct {
+	ingressRes map[*IPBlock]*ConnectivityResult
+	egressRes  map[*IPBlock]*ConnectivityResult
 }
 
 func Test() {

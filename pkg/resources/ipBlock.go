@@ -225,6 +225,13 @@ func (b *IPBlock) ToCidrList() []string {
 	return cidrList
 }
 
+func (b *IPBlock) ToIPAdress() string {
+	if b.ipRange.isSingleNumber() {
+		return InttoIP4(b.ipRange.IntervalSet[0].Start)
+	}
+	return ""
+}
+
 func intervalToCidrList(ipStart, ipEnd int64) []string {
 	start := ipStart
 	end := ipEnd

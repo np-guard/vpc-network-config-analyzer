@@ -29,6 +29,7 @@ func JsonNaclToObject(nwacl []byte) *vpc1.NetworkACL {
 	return naclObj
 }
 
+// vsi conversion
 func JsonInstanceToObject(instance []byte) *vpc1.Instance {
 	instanceMap := jsonToMap(instance)
 	instanceObj := &vpc1.Instance{}
@@ -36,6 +37,7 @@ func JsonInstanceToObject(instance []byte) *vpc1.Instance {
 	return instanceObj
 }
 
+// subnet conversion
 func JsonSubnetToObject(subnet []byte) *vpc1.Subnet {
 	subnetMap := jsonToMap(subnet)
 	subnetObj := &vpc1.Subnet{}
@@ -43,6 +45,7 @@ func JsonSubnetToObject(subnet []byte) *vpc1.Subnet {
 	return subnetObj
 }
 
+// vpc conversion
 func JsonVpcToObject(vpc []byte) *vpc1.VPC {
 	vpcMap := jsonToMap(vpc)
 	vpcObj := &vpc1.VPC{}

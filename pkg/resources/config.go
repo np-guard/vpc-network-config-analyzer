@@ -56,6 +56,8 @@ func (v *vpcConfig) details() string {
 
 // connectivity analysis per VSI (network interface): connectivity based on SG and based on NCAL of its subnet
 func analyzeConnectivity(t *vpcConfig) {
+	/*analyzedsgResourcesMap := map[string]*ConnectivityResult{}
+	analyzedNaclResourcesMap := map[string]map[*IPBlock]*ConnectivityResult{}*/
 	for vsi, vsiIP := range t.vsiMap {
 		subnet := t.vsiToSubnet[vsi]
 		nacl := t.subnetToNacl[subnet]
@@ -85,9 +87,9 @@ func analyzeConnectivity(t *vpcConfig) {
 		ingressConnectivityRes := ingressSgConn.intersection(ingressNACLConn)
 		egressConnectivityRes := egressSgConn.intersection(egressNACLCon)
 
-		fmt.Printf("ingress connectivity result for vsi %s , considering sg + nacl:\n", vsiIP.ToCidrList()[0])
+		fmt.Printf("ingress connectivity result for vsi %s , considering sg + nacl:\n", vsiIP.ToIPAdress())
 		fmt.Printf("%s\n", ingressConnectivityRes.string())
-		fmt.Printf("egress connectivity result for vsi %s , considering sg + nacl:\n", vsiIP.ToCidrList()[0])
+		fmt.Printf("egress connectivity result for vsi %s , considering sg + nacl:\n", vsiIP.ToIPAdress())
 		fmt.Printf("%s\n", egressConnectivityRes.string())
 
 	}

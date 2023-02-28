@@ -315,3 +315,10 @@ func (c *CanonicalIntervalSet) Subtraction(other CanonicalIntervalSet) {
 		c.AddHole(i)
 	}
 }
+
+func (c *CanonicalIntervalSet) isSingleNumber() bool {
+	if len(c.IntervalSet) == 1 && c.IntervalSet[0].Start == c.IntervalSet[0].End {
+		return true
+	}
+	return false
+}
