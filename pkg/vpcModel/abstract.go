@@ -6,25 +6,35 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
-///////////////////////////vpc resources////////////////////////////////////////////////////////////////////////////
 //define DS as input level resources + their semantics
 
 //define DS for connectivity map
 
 //define output - as processing of connectivity map
 
-// network interface , reserved ip, external cidrs
+///////////////////////////vpc resources////////////////////////////////////////////////////////////////////////////
+
+// Node is the basic endpoint element in the connectivity graph [ network interface , reserved ip, external cidrs]
 type Node interface {
 	Name() string
 	Cidr() string
 	IsInternal() bool
 }
 
-//vpc ,subnet, vsi, service network
+// NodeSet is an element that may capture several nodes [vpc ,subnet, vsi, (service network?)]
 type NodeSet interface {
 	Name() string
 	Nodes() []Node
 	Connectivity() *ConnectivityResult
+}
+
+// FilterTraffic capture allowed traffic between 2 endpoints
+type FilterTraffic interface {
+	InboundRules() []FilterTrafficRule
+	OutboundRules() []FilterTrafficRule
+	// get the connectivity result when the filterTraffic resource is applied to the given NodeSet element
+	Connectivity(nodes NodeSet) *ConnectivityResult
+	//AllowedConnectivity(src, dst Node) *common.ConnectionSet
 }
 
 type FilterTrafficRule interface {
@@ -32,15 +42,6 @@ type FilterTrafficRule interface {
 	Dst() string
 	Action() string
 	Connections() string
-}
-
-//capture allowed traffic between 2 endpoints
-type FilterTraffic interface {
-	InboundRules() []FilterTrafficRule
-	OutboundRules() []FilterTrafficRule
-	// get the connectivity result when the filterTraffic resource is applied to the given NodeSet element
-	Connectivity(nodes NodeSet) *ConnectivityResult
-	//AllowedConnectivity(src, dst Node) *common.ConnectionSet
 }
 
 // given a filterTraffic resource, check if the input traffic is allowed and by which connections
@@ -66,9 +67,10 @@ type ConnectivityResult struct {
 }
 
 type VPCConfig struct {
-	Nodes           []Node
-	NodeSets        []NodeSet
-	FilterResources []FilterTraffic
+	Nodes            []Node
+	NodeSets         []NodeSet
+	FilterResources  []FilterTraffic
+	RoutingResources []RoutingResource
 }
 
 //detailed representation of allowed connectivity considering all resources in a vpc config instance
@@ -117,6 +119,20 @@ func allConns() *common.ConnectionSet {
 	return &res
 }
 
+func noConns() *common.ConnectionSet {
+	res := common.MakeConnectionSet(false)
+	return &res
+}
+
+func hasNode(listNodes []Node, node Node) bool {
+	for _, n := range listNodes {
+		if n.Cidr() == node.Cidr() {
+			return true
+		}
+	}
+	return false
+}
+
 func (v *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Node) map[Node]*common.ConnectionSet {
 	res := map[Node]*common.ConnectionSet{}
 	var src, dst Node
@@ -139,10 +155,25 @@ func (v *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 					break
 				}
 			}
-			// else : external node -> consider attached routing resources
-			//...
+			res[peerNode] = allowedConnsBetweenCapturedAndPeerNode
+		} else { // else : external node -> consider attached routing resources
+			allowedConnsBetweenCapturedAndPeerNode := noConns()
+			for _, router := range v.RoutingResources {
+				//if peerNode captured by router.Destinations and router has capturedNode in src - consider this connection
+				if hasNode(router.Src(), capturedNode) && hasNode(router.Destinations(), peerNode) {
+					allowedConnsBetweenCapturedAndPeerNode = allConns()
+				}
+			}
+			for _, filter := range v.FilterResources {
+				filteredConns := AllowedConnectivity(filter, src, dst, isIngress)
+				allowedConnsBetweenCapturedAndPeerNode.Intersection(*filteredConns)
+				if allowedConnsBetweenCapturedAndPeerNode.IsEmpty() {
+					break
+				}
+			}
 			res[peerNode] = allowedConnsBetweenCapturedAndPeerNode
 		}
+
 	}
 	return res
 }

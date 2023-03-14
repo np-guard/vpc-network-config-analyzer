@@ -24,6 +24,7 @@ func NewResourcesContainer() *ResourcesContainer {
 		instanceList: []*vpc1.Instance{},
 		subnetsList:  []*vpc1.Subnet{},
 		vpcsList:     []*vpc1.VPC{},
+		fipList:      []*vpc1.FloatingIP{},
 	}
 	return res
 }
@@ -46,6 +47,10 @@ func (rc *ResourcesContainer) addSubnet(n *vpc1.Subnet) {
 
 func (rc *ResourcesContainer) addVpc(n *vpc1.VPC) {
 	rc.vpcsList = append(rc.vpcsList, n)
+}
+
+func (rc *ResourcesContainer) addFloatingIP(n *vpc1.FloatingIP) {
+	rc.fipList = append(rc.fipList, n)
 }
 
 func (rc *ResourcesContainer) printDetails() {
@@ -88,6 +93,11 @@ func ParseResources(resourcesJsonFile []byte) *ResourcesContainer {
 				obj := JsonVpcToObject(vList[i])
 				res.addVpc(obj)
 			}
+		case "floating_ips":
+			for i := range vList {
+				obj := JsonFipToObject(vList[i])
+				res.addFloatingIP(obj)
+			}
 		default:
 			fmt.Printf("%s resource type is not yet supported\n", k)
 		}
@@ -97,12 +107,24 @@ func ParseResources(resourcesJsonFile []byte) *ResourcesContainer {
 	return res
 }
 
+func getCertainNodes(allNodes []vpcmodel.Node, shouldTakeNode func(vpcmodel.Node) bool) (ret []vpcmodel.Node) {
+	for _, s := range allNodes {
+		if shouldTakeNode(s) {
+			ret = append(ret, s)
+		}
+	}
+	return
+}
+
 func NewVPCFromConfig(rc *ResourcesContainer) *vpcmodel.VPCConfig {
 	res := &vpcmodel.VPCConfig{
-		Nodes:           []vpcmodel.Node{},
-		NodeSets:        []vpcmodel.NodeSet{},
-		FilterResources: []vpcmodel.FilterTraffic{},
+		Nodes:            []vpcmodel.Node{},
+		NodeSets:         []vpcmodel.NodeSet{},
+		FilterResources:  []vpcmodel.FilterTraffic{},
+		RoutingResources: []vpcmodel.RoutingResource{},
 	}
+	addExternalNodes(res)
+
 	for i := range rc.instanceList {
 		instance := rc.instanceList[i]
 		vsiNode := &Vsi{name: *instance.Name, nodes: []vpcmodel.Node{}}
@@ -114,13 +136,33 @@ func NewVPCFromConfig(rc *ResourcesContainer) *vpcmodel.VPCConfig {
 			vsiNode.nodes = append(vsiNode.nodes, intfNode)
 		}
 	}
+	for i := range rc.fipList {
+		fip := rc.fipList[i]
+		targetIntf := fip.Target
+		var targetAddress string
+		if target, ok := targetIntf.(*vpc1.FloatingIPTargetNetworkInterfaceReference); ok {
+			targetAddress = *target.PrimaryIP.Address
+		} else if target, ok := targetIntf.(*vpc1.FloatingIPTarget); ok {
+			if *target.ResourceType != "network_interface" {
+				continue
+			}
+			targetAddress = *target.PrimaryIP.Address
+		}
+		if targetAddress != "" {
+			srcNodes := getCertainNodes(res.Nodes, func(n vpcmodel.Node) bool { return n.Cidr() == targetAddress })
+			dstNodes := getCertainNodes(res.Nodes, func(n vpcmodel.Node) bool { return !n.IsInternal() })
+			routerFip := &FloatingIP{name: *fip.Name, cidr: *fip.Address, src: srcNodes, destinations: dstNodes}
+			res.RoutingResources = append(res.RoutingResources, routerFip)
+		}
+
+	}
 	for i := range rc.vpcsList {
 		vpc := rc.vpcsList[i]
 		vpcNodeSet := &VPC{name: *vpc.Name, nodes: []vpcmodel.Node{}}
 		res.NodeSets = append(res.NodeSets, vpcNodeSet)
 
 	}
-	addExternalNodes(res)
+
 	return res
 }
 
@@ -293,5 +335,77 @@ type SecurityGroupTargetReferenceNetworkInterfaceReferenceTargetContext struct {
 // This model "extends" SecurityGroupTargetReference
 type SecurityGroupTargetReferenceVPNServerReference struct {
 
+
+
+	type FloatingIPTargetNetworkInterfaceReference struct {
+	// If present, this property indicates the referenced resource has been deleted, and provides
+	// some supplementary information.
+	Deleted *NetworkInterfaceReferenceDeleted `json:"deleted,omitempty"`
+
+	// The URL for this network interface.
+	Href *string `json:"href" validate:"required"`
+
+	// The unique identifier for this network interface.
+	ID *string `json:"id" validate:"required"`
+
+	// The name for this network interface.
+	Name *string `json:"name" validate:"required"`
+
+	PrimaryIP *ReservedIPReference `json:"primary_ip" validate:"required"`
+
+	// The resource type.
+	ResourceType *string `json:"resource_type" validate:"required"`
+}
+
+
+// This model "extends" FloatingIPTarget
+type FloatingIPTargetPublicGatewayReference struct {
+	// The CRN for this public gateway.
+	CRN *string `json:"crn" validate:"required"`
+
+	// If present, this property indicates the referenced resource has been deleted, and provides
+	// some supplementary information.
+	Deleted *PublicGatewayReferenceDeleted `json:"deleted,omitempty"`
+
+	// The URL for this public gateway.
+	Href *string `json:"href" validate:"required"`
+
+	// The unique identifier for this public gateway.
+	ID *string `json:"id" validate:"required"`
+
+	// The name for this public gateway. The name is unique across all public gateways in the VPC.
+	Name *string `json:"name" validate:"required"`
+
+	// The resource type.
+	ResourceType *string `json:"resource_type" validate:"required"`
+}
+
+
+// FloatingIPTarget : The target of this floating IP.
+// Models which "extend" this model:
+// - FloatingIPTargetNetworkInterfaceReference
+// - FloatingIPTargetPublicGatewayReference
+type FloatingIPTarget struct {
+	// If present, this property indicates the referenced resource has been deleted, and provides
+	// some supplementary information.
+	Deleted *NetworkInterfaceReferenceDeleted `json:"deleted,omitempty"`
+
+	// The URL for this network interface.
+	Href *string `json:"href,omitempty"`
+
+	// The unique identifier for this network interface.
+	ID *string `json:"id,omitempty"`
+
+	// The name for this network interface.
+	Name *string `json:"name,omitempty"`
+
+	PrimaryIP *ReservedIPReference `json:"primary_ip,omitempty"`
+
+	// The resource type.
+	ResourceType *string `json:"resource_type,omitempty"`
+
+	// The CRN for this public gateway.
+	CRN *string `json:"crn,omitempty"`
+}
 
 */

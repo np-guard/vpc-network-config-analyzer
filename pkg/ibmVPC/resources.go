@@ -53,6 +53,13 @@ func JsonVpcToObject(vpc []byte) *vpc1.VPC {
 	return vpcObj
 }
 
+func JsonFipToObject(fip []byte) *vpc1.FloatingIP {
+	jsonMap := jsonToMap(fip)
+	fipObj := &vpc1.FloatingIP{}
+	vpc1.UnmarshalFloatingIP(jsonMap, &fipObj)
+	return fipObj
+}
+
 // convert vpc1.NetworkACL to json string
 func ObjectNaclToJson(naclObj *vpc1.NetworkACL) ([]byte, error) {
 	// return json.Marshal(*naclObj)
