@@ -1,10 +1,10 @@
-package resources
+package ibmvpc
 
 import (
 	"fmt"
 
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+	vpcmodel "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcModel"
 )
 
 type ResourcesContainer struct {
@@ -13,6 +13,8 @@ type ResourcesContainer struct {
 	instanceList []*vpc1.Instance
 	subnetsList  []*vpc1.Subnet
 	vpcsList     []*vpc1.VPC
+	fipList      []*vpc1.FloatingIP
+	pgwList      []*vpc1.PublicGateway
 }
 
 func NewResourcesContainer() *ResourcesContainer {
@@ -95,7 +97,69 @@ func ParseResources(resourcesJsonFile []byte) *ResourcesContainer {
 	return res
 }
 
-func NewVpcConfig(rc *ResourcesContainer) (*vpcConfig, error) {
+func NewVPCFromConfig(rc *ResourcesContainer) *vpcmodel.VPCConfig {
+	res := &vpcmodel.VPCConfig{
+		Nodes:           []vpcmodel.Node{},
+		NodeSets:        []vpcmodel.NodeSet{},
+		FilterResources: []vpcmodel.FilterTraffic{},
+	}
+	for i := range rc.instanceList {
+		instance := rc.instanceList[i]
+		vsiNode := &Vsi{name: *instance.Name, nodes: []vpcmodel.Node{}}
+		res.NodeSets = append(res.NodeSets, vsiNode)
+		for j := range instance.NetworkInterfaces {
+			netintf := instance.NetworkInterfaces[j]
+			intfNode := &NetworkInterface{name: *netintf.Name, cidr: *netintf.PrimaryIP.Address, vsi: *instance.Name}
+			res.Nodes = append(res.Nodes, intfNode)
+			vsiNode.nodes = append(vsiNode.nodes, intfNode)
+		}
+	}
+	for i := range rc.vpcsList {
+		vpc := rc.vpcsList[i]
+		vpcNodeSet := &VPC{name: *vpc.Name, nodes: []vpcmodel.Node{}}
+		res.NodeSets = append(res.NodeSets, vpcNodeSet)
+
+	}
+	addExternalNodes(res)
+	return res
+}
+
+/*
+Public IP Ranges
+https://phoenixnap.com/kb/public-vs-private-ip-address
+The number of public IP addresses is far greater than the number of private ones because every network on the Internet must have a unique public IP.
+
+All public IP addresses belong to one of the following public IP address ranges:
+
+    1.0.0.0-9.255.255.255
+    11.0.0.0-100.63.255.255
+    100.128.0.0-126.255.255.255
+    128.0.0.0-169.253.255.255
+    169.255.0.0-172.15.255.255
+    172.32.0.0-191.255.255.255
+    192.0.1.0/24
+    192.0.3.0-192.88.98.255
+    192.88.100.0-192.167.255.255
+    192.169.0.0-198.17.255.255
+    198.20.0.0-198.51.99.255
+    198.51.101.0-203.0.112.255
+    203.0.114.0-223.255.255.255
+
+Your private IP address exists within specific private IP address ranges reserved by the Internet Assigned Numbers Authority (IANA) and should never appear on the internet. There are millions of private networks across the globe, all of which include devices assigned private IP addresses within these ranges:
+
+    Class A: 10.0.0.0 — 10.255.255.255
+
+    Class B: 172.16.0.0 — 172.31.255.255
+
+    Class C: 192.168.0.0 — 192.168.255.255
+
+*/
+func addExternalNodes(config *vpcmodel.VPCConfig) {
+	config.Nodes = append(config.Nodes, &ExternalNetwork{name: "public-internet", cidr: "192.0.1.0/24"})
+
+}
+
+/*func NewVpcConfig(rc *ResourcesContainer) (*vpcConfig, error) {
 	config := &vpcConfig{
 		vsiMap:                map[string]*common.IPBlock{},
 		subnetsMap:            map[string]*common.IPBlock{},
@@ -178,6 +242,7 @@ func NewVpcConfig(rc *ResourcesContainer) (*vpcConfig, error) {
 
 	return config, nil
 }
+*/
 
 /*
 

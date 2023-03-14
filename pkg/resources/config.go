@@ -5,11 +5,12 @@ import (
 	"strings"
 
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 type vpcConfig struct {
-	vsiMap                map[string]*IPBlock            // map from vsi name to its network interface address
-	subnetsMap            map[string]*IPBlock            // map from subnet name to its cidr range
+	vsiMap                map[string]*common.IPBlock     // map from vsi name to its network interface address
+	subnetsMap            map[string]*common.IPBlock     // map from subnet name to its cidr range
 	nacl                  map[string]*vpc1.NetworkACL    // map from nacl name to its object
 	sg                    map[string]*vpc1.SecurityGroup // map from sg name to its object
 	vsiToSubnet           map[string]string              // map from vsi name to its subnet

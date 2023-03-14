@@ -1,9 +1,8 @@
-package resources
+package common
 
 import (
 	"reflect"
 
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
@@ -14,7 +13,7 @@ const (
 
 // PortSet: represents set of allowed ports in a connection
 type PortSet struct {
-	Ports              common.CanonicalIntervalSet
+	Ports              CanonicalIntervalSet
 	NamedPorts         map[string]bool
 	ExcludedNamedPorts map[string]bool
 }
@@ -22,8 +21,8 @@ type PortSet struct {
 // MakePortSet: return a new PortSet object, with all ports or no ports allowed
 func MakePortSet(all bool) PortSet {
 	if all {
-		portsInterval := common.Interval{Start: minPort, End: maxPort}
-		return PortSet{Ports: common.CanonicalIntervalSet{IntervalSet: []common.Interval{portsInterval}}}
+		portsInterval := Interval{Start: minPort, End: maxPort}
+		return PortSet{Ports: CanonicalIntervalSet{IntervalSet: []Interval{portsInterval}}}
 	}
 	return PortSet{}
 }
@@ -58,7 +57,7 @@ func (p *PortSet) AddPort(port intstr.IntOrString) {
 		p.NamedPorts[port.StrVal] = true
 		delete(p.ExcludedNamedPorts, port.StrVal)
 	} else {
-		p.Ports.AddInterval(common.Interval{Start: int64(port.IntVal), End: int64(port.IntVal)})
+		p.Ports.AddInterval(Interval{Start: int64(port.IntVal), End: int64(port.IntVal)})
 	}
 }
 
@@ -68,13 +67,13 @@ func (p *PortSet) RemovePort(port intstr.IntOrString) {
 		delete(p.NamedPorts, port.StrVal)
 		p.ExcludedNamedPorts[port.StrVal] = true
 	} else {
-		p.Ports.AddHole(common.Interval{Start: int64(port.IntVal), End: int64(port.IntVal)})
+		p.Ports.AddHole(Interval{Start: int64(port.IntVal), End: int64(port.IntVal)})
 	}
 }
 
 // AddPortRange: update current PortSet object with new added port range as allowed
 func (p *PortSet) AddPortRange(minPort, maxPort int64) {
-	p.Ports.AddInterval(common.Interval{Start: minPort, End: maxPort})
+	p.Ports.AddInterval(Interval{Start: minPort, End: maxPort})
 }
 
 // Union: update current PortSet object with union of input PortSet object

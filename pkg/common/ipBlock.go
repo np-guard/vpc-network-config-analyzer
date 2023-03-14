@@ -1,4 +1,4 @@
-package resources
+package common
 
 import (
 	"encoding/binary"
@@ -88,6 +88,10 @@ func (b *IPBlock) ipCount() int {
 		res += int(r.End) - int(r.Start) + 1
 	}
 	return res
+}
+
+func (b *IPBlock) StartIPNum() int64 {
+	return b.ipRange.IntervalSet[0].Start
 }
 
 // split returns a set of IpBlock objects, each with a single range of ips
@@ -220,7 +224,7 @@ func cidrToInterval(cidr string) (*Interval, error) {
 func (b *IPBlock) ToCidrList() []string {
 	cidrList := []string{}
 	for _, interval := range b.ipRange.IntervalSet {
-		cidrList = append(cidrList, intervalToCidrList(interval.Start, interval.End)...)
+		cidrList = append(cidrList, IntervalToCidrList(interval.Start, interval.End)...)
 	}
 	return cidrList
 }
@@ -232,7 +236,7 @@ func (b *IPBlock) ToIPAdress() string {
 	return ""
 }
 
-func intervalToCidrList(ipStart, ipEnd int64) []string {
+func IntervalToCidrList(ipStart, ipEnd int64) []string {
 	start := ipStart
 	end := ipEnd
 	res := []string{}

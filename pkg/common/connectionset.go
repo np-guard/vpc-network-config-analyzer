@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package resources
+package common
 
 import (
 	"fmt"
@@ -19,7 +19,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -147,9 +146,9 @@ func (conn *ConnectionSet) Subtract(other ConnectionSet) {
 
 	if conn.AllowAll {
 		conn.AllowAll = false
-		conn.AllowedProtocols[v1.ProtocolTCP] = &PortSet{Ports: common.CanonicalIntervalSet{IntervalSet: []common.Interval{{Start: 1, End: 65535}}}}
-		conn.AllowedProtocols[v1.ProtocolUDP] = &PortSet{Ports: common.CanonicalIntervalSet{IntervalSet: []common.Interval{{Start: 1, End: 65535}}}}
-		conn.AllowedProtocols[v1.ProtocolSCTP] = &PortSet{Ports: common.CanonicalIntervalSet{IntervalSet: []common.Interval{{Start: 1, End: 65535}}}}
+		conn.AllowedProtocols[v1.ProtocolTCP] = &PortSet{Ports: CanonicalIntervalSet{IntervalSet: []Interval{{Start: 1, End: 65535}}}}
+		conn.AllowedProtocols[v1.ProtocolUDP] = &PortSet{Ports: CanonicalIntervalSet{IntervalSet: []Interval{{Start: 1, End: 65535}}}}
+		conn.AllowedProtocols[v1.ProtocolSCTP] = &PortSet{Ports: CanonicalIntervalSet{IntervalSet: []Interval{{Start: 1, End: 65535}}}}
 	}
 	for protocol := range conn.AllowedProtocols {
 		if otherPorts, ok := other.AllowedProtocols[protocol]; ok {
