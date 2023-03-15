@@ -15,21 +15,27 @@ import (
 ///////////////////////////vpc resources////////////////////////////////////////////////////////////////////////////
 
 // Node is the basic endpoint element in the connectivity graph [ network interface , reserved ip, external cidrs]
-type Node interface {
+type NamedResource interface {
 	Name() string
+}
+
+type Node interface {
+	NamedResource
 	Cidr() string
 	IsInternal() bool
 }
 
 // NodeSet is an element that may capture several nodes [vpc ,subnet, vsi, (service network?)]
 type NodeSet interface {
-	Name() string
+	NamedResource
 	Nodes() []Node
 	Connectivity() *ConnectivityResult
 }
 
+// rename to FilterTrafficResource
 // FilterTraffic capture allowed traffic between 2 endpoints
 type FilterTraffic interface {
+	NamedResource
 	InboundRules() []FilterTrafficRule
 	OutboundRules() []FilterTrafficRule
 	// get the connectivity result when the filterTraffic resource is applied to the given NodeSet element
@@ -47,15 +53,16 @@ type FilterTrafficRule interface {
 // given a filterTraffic resource, check if the input traffic is allowed and by which connections
 func AllowedConnectivity(f FilterTraffic, src, dst Node, isIngress bool) *common.ConnectionSet {
 	// TODO: implement
-	return allConns()
+	return AllConns()
 }
 
 //routing resource enables connectivity from src to destination via that resource
 //fip, pgw, vpe
 type RoutingResource interface {
-	Name() string
+	NamedResource
 	Src() []Node
 	Destinations() []Node
+	AllowedConnectivity(src, dst Node) *common.ConnectionSet
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -78,15 +85,17 @@ type VPCConnectivity struct {
 	// computed for each node, by iterating its ConnectivityResult for all relevant VPC resources that capture it
 	AllowedConns map[Node]*ConnectivityResult
 	// combined connectivity - considering both ingress and egress per connection
-	AllowedConnsCombined map[Node]map[Node]*ConnectivityResult
+	AllowedConnsCombined map[Node]map[Node]*common.ConnectionSet
 }
 
 // a processing of VPCConnectivity produces ConnectivityOutput, at various formats
 type ConnectivityOutput struct {
 }
 
+//add interface to output formatter
+
 func (v *VPCConnectivity) String() string {
-	res := ""
+	res := "=================================== distributed inbound/outbound connections:\n"
 	for node, connectivity := range v.AllowedConns {
 		// ingress
 		for peerNode, conn := range connectivity.IngressAllowedConns {
@@ -97,6 +106,13 @@ func (v *VPCConnectivity) String() string {
 			res += fmt.Sprintf("%s => %s : %s [outbound]\n", node.Cidr(), peerNode.Cidr(), conn.String())
 		}
 	}
+	res += "=================================== combined connections:\n"
+	for src, nodeConns := range v.AllowedConnsCombined {
+		for dst, conns := range nodeConns {
+			res += fmt.Sprintf("%s => %s : %s\n", src.Cidr(), dst.Cidr(), conns.String())
+		}
+	}
+
 	return res
 }
 
@@ -111,20 +127,54 @@ func (v *VPCConfig) GetVPCNetworkConnectivity() *VPCConnectivity {
 			}
 		}
 	}
+	res.computeAllowedConnsCombined()
 	return res
 }
 
-func allConns() *common.ConnectionSet {
+func (v *VPCConnectivity) computeAllowedConnsCombined() {
+	v.AllowedConnsCombined = map[Node]map[Node]*common.ConnectionSet{}
+
+	for node, connectivityRes := range v.AllowedConns {
+		for peerNode, conns := range connectivityRes.IngressAllowedConns {
+			src := peerNode
+			dst := node
+			combinedConns := conns
+			if peerNode.IsInternal() {
+				egressConns := v.AllowedConns[peerNode].EgressAllowedConns[node]
+				combinedConns.Intersection(*egressConns)
+			}
+			if _, ok := v.AllowedConnsCombined[src]; !ok {
+				v.AllowedConnsCombined[src] = map[Node]*common.ConnectionSet{}
+			}
+			v.AllowedConnsCombined[src][dst] = combinedConns
+		}
+		for peerNode, conns := range connectivityRes.EgressAllowedConns {
+			src := node
+			dst := peerNode
+			combinedConns := conns
+			if peerNode.IsInternal() {
+				ingressConss := v.AllowedConns[peerNode].IngressAllowedConns[node]
+				combinedConns.Intersection(*ingressConss)
+			}
+			if _, ok := v.AllowedConnsCombined[src]; !ok {
+				v.AllowedConnsCombined[src] = map[Node]*common.ConnectionSet{}
+			}
+			v.AllowedConnsCombined[src][dst] = combinedConns
+		}
+	}
+}
+
+func AllConns() *common.ConnectionSet {
 	res := common.MakeConnectionSet(true)
 	return &res
 }
 
-func noConns() *common.ConnectionSet {
+func NoConns() *common.ConnectionSet {
 	res := common.MakeConnectionSet(false)
 	return &res
 }
 
-func hasNode(listNodes []Node, node Node) bool {
+func HasNode(listNodes []Node, node Node) bool {
 	for _, n := range listNodes {
 		if n.Cidr() == node.Cidr() {
 			return true
@@ -147,7 +197,7 @@ func (v *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 		if peerNode.IsInternal() {
 			// no need for router node, connectivity is from within VPC
 			// only check filtering resources
-			allowedConnsBetweenCapturedAndPeerNode := allConns()
+			allowedConnsBetweenCapturedAndPeerNode := AllConns()
 			for _, filter := range v.FilterResources {
 				filteredConns := AllowedConnectivity(filter, src, dst, isIngress)
 				allowedConnsBetweenCapturedAndPeerNode.Intersection(*filteredConns)
@@ -157,11 +207,11 @@ func (v *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 			}
 			res[peerNode] = allowedConnsBetweenCapturedAndPeerNode
 		} else { // else : external node -> consider attached routing resources
-			allowedConnsBetweenCapturedAndPeerNode := noConns()
+			allowedConnsBetweenCapturedAndPeerNode := NoConns()
 			for _, router := range v.RoutingResources {
-				//if peerNode captured by router.Destinations and router has capturedNode in src - consider this connection
-				if hasNode(router.Src(), capturedNode) && hasNode(router.Destinations(), peerNode) {
-					allowedConnsBetweenCapturedAndPeerNode = allConns()
+				routerConnRes := router.AllowedConnectivity(src, dst)
+				if !routerConnRes.IsEmpty() { // connection is allowed through router resource
+					allowedConnsBetweenCapturedAndPeerNode = routerConnRes
 				}
 			}
 			for _, filter := range v.FilterResources {

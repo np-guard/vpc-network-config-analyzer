@@ -3,6 +3,7 @@ package ibmvpc
 import (
 	"fmt"
 
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	vpcmodel "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcModel"
 )
 
@@ -10,9 +11,10 @@ import (
 // nodes elements - implement vpcmodel.Node interface
 
 type NetworkInterface struct {
-	name string
-	cidr string
-	vsi  string
+	name   string
+	cidr   string
+	vsi    string
+	subnet string
 }
 
 /*type ReservedIP struct {
@@ -136,6 +138,10 @@ type SecurityGroup struct {
 	connectivityRules *vpcmodel.ConnectivityResult
 }
 
+func (n *NACL) Name() string {
+	return n.name
+}
+
 func (n *NACL) InboundRules() []vpcmodel.FilterTrafficRule {
 	return n.inboundRules
 }
@@ -146,6 +152,10 @@ func (n *NACL) OutboundRules() []vpcmodel.FilterTrafficRule {
 
 func (n *NACL) Connectivity(nodes vpcmodel.NodeSet) *vpcmodel.ConnectivityResult {
 	return n.connectivityRules[nodes]
+}
+
+func (sg *SecurityGroup) Name() string {
+	return sg.name
 }
 
 func (sg *SecurityGroup) InboundRules() []vpcmodel.FilterTrafficRule {
@@ -188,6 +198,17 @@ func (fip *FloatingIP) Destinations() []vpcmodel.Node {
 	return fip.destinations
 }
 
+func (fip *FloatingIP) AllowedConnectivity(src, dst vpcmodel.Node) *common.ConnectionSet {
+	if vpcmodel.HasNode(fip.Src(), src) && vpcmodel.HasNode(fip.Destinations(), dst) {
+		return vpcmodel.AllConns()
+	}
+	if vpcmodel.HasNode(fip.Src(), dst) && vpcmodel.HasNode(fip.Destinations(), src) {
+		return vpcmodel.AllConns()
+	}
+	return vpcmodel.NoConns()
+
+}
+
 func (pgw *PublicGateway) Name() string {
 	return pgw.name
 }
@@ -196,6 +217,14 @@ func (pgw *PublicGateway) Src() []vpcmodel.Node {
 }
 func (pgw *PublicGateway) Destinations() []vpcmodel.Node {
 	return pgw.destinations
+}
+
+func (pgw *PublicGateway) AllowedConnectivity(src, dst vpcmodel.Node) *common.ConnectionSet {
+	if vpcmodel.HasNode(pgw.Src(), src) && vpcmodel.HasNode(pgw.Destinations(), dst) {
+		return vpcmodel.AllConns()
+	}
+	return vpcmodel.NoConns()
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

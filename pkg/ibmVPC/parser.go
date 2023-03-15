@@ -25,6 +25,7 @@ func NewResourcesContainer() *ResourcesContainer {
 		subnetsList:  []*vpc1.Subnet{},
 		vpcsList:     []*vpc1.VPC{},
 		fipList:      []*vpc1.FloatingIP{},
+		pgwList:      []*vpc1.PublicGateway{},
 	}
 	return res
 }
@@ -51,6 +52,10 @@ func (rc *ResourcesContainer) addVpc(n *vpc1.VPC) {
 
 func (rc *ResourcesContainer) addFloatingIP(n *vpc1.FloatingIP) {
 	rc.fipList = append(rc.fipList, n)
+}
+
+func (rc *ResourcesContainer) addPublicGateway(n *vpc1.PublicGateway) {
+	rc.pgwList = append(rc.pgwList, n)
 }
 
 func (rc *ResourcesContainer) printDetails() {
@@ -98,6 +103,11 @@ func ParseResources(resourcesJsonFile []byte) *ResourcesContainer {
 				obj := JsonFipToObject(vList[i])
 				res.addFloatingIP(obj)
 			}
+		case "public_gateways":
+			for i := range vList {
+				obj := JsonPgwTpObject(vList[i])
+				res.addPublicGateway(obj)
+			}
 		default:
 			fmt.Printf("%s resource type is not yet supported\n", k)
 		}
@@ -131,11 +141,37 @@ func NewVPCFromConfig(rc *ResourcesContainer) *vpcmodel.VPCConfig {
 		res.NodeSets = append(res.NodeSets, vsiNode)
 		for j := range instance.NetworkInterfaces {
 			netintf := instance.NetworkInterfaces[j]
-			intfNode := &NetworkInterface{name: *netintf.Name, cidr: *netintf.PrimaryIP.Address, vsi: *instance.Name}
+			intfNode := &NetworkInterface{name: *netintf.Name, cidr: *netintf.PrimaryIP.Address, vsi: *instance.Name, subnet: *netintf.Subnet.Name}
 			res.Nodes = append(res.Nodes, intfNode)
 			vsiNode.nodes = append(vsiNode.nodes, intfNode)
 		}
 	}
+	pgwToSubnet := map[string]*Subnet{} // map from pgw name to its attached subnet
+	for i := range rc.subnetsList {
+		subnet := rc.subnetsList[i]
+		subnetNodes := getCertainNodes(res.Nodes, func(n vpcmodel.Node) bool {
+			if intfNode, ok := n.(*NetworkInterface); ok {
+				if intfNode.subnet == *subnet.Name {
+					return true
+				}
+			}
+			return false
+		})
+		subnetNode := &Subnet{name: *subnet.Name, cidr: *subnet.Ipv4CIDRBlock, nodes: subnetNodes}
+		res.NodeSets = append(res.NodeSets, subnetNode)
+		if subnet.PublicGateway != nil {
+			pgwToSubnet[*subnet.PublicGateway.Name] = subnetNode
+		}
+	}
+
+	for i := range rc.pgwList {
+		pgw := rc.pgwList[i]
+		srcNodes := pgwToSubnet[*pgw.Name].Nodes()
+		dstNodes := getCertainNodes(res.Nodes, func(n vpcmodel.Node) bool { return !n.IsInternal() })
+		routerPgw := &PublicGateway{name: *pgw.Name, cidr: "", src: srcNodes, destinations: dstNodes} // TODO: get cidr from fip of the pgw
+		res.RoutingResources = append(res.RoutingResources, routerPgw)
+	}
+
 	for i := range rc.fipList {
 		fip := rc.fipList[i]
 		targetIntf := fip.Target
@@ -153,6 +189,18 @@ func NewVPCFromConfig(rc *ResourcesContainer) *vpcmodel.VPCConfig {
 			dstNodes := getCertainNodes(res.Nodes, func(n vpcmodel.Node) bool { return !n.IsInternal() })
 			routerFip := &FloatingIP{name: *fip.Name, cidr: *fip.Address, src: srcNodes, destinations: dstNodes}
 			res.RoutingResources = append(res.RoutingResources, routerFip)
+
+			// node with fip should not have pgw
+			for _, r := range res.RoutingResources {
+				if pgw, ok := r.(*PublicGateway); ok {
+					// a node captured by a fip should not be captured by a pgw
+					for _, nodeWithFip := range srcNodes {
+						if vpcmodel.HasNode(pgw.Src(), nodeWithFip) {
+							pgw.src = getCertainNodes(pgw.Src(), func(n vpcmodel.Node) bool { return n.Cidr() != nodeWithFip.Cidr() })
+						}
+					}
+				}
+			}
 		}
 
 	}

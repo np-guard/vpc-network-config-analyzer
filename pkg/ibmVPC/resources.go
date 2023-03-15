@@ -60,6 +60,13 @@ func JsonFipToObject(fip []byte) *vpc1.FloatingIP {
 	return fipObj
 }
 
+func JsonPgwTpObject(pgw []byte) *vpc1.PublicGateway {
+	jsonMap := jsonToMap(pgw)
+	pgwObj := &vpc1.PublicGateway{}
+	vpc1.UnmarshalPublicGateway(jsonMap, &pgwObj)
+	return pgwObj
+}
+
 // convert vpc1.NetworkACL to json string
 func ObjectNaclToJson(naclObj *vpc1.NetworkACL) ([]byte, error) {
 	// return json.Marshal(*naclObj)
