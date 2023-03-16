@@ -211,6 +211,7 @@ func (v *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 			for _, router := range v.RoutingResources {
 				routerConnRes := router.AllowedConnectivity(src, dst)
 				if !routerConnRes.IsEmpty() { // connection is allowed through router resource
+					// TODO: consider adding connection attribute with details of routing through this router resource
 					allowedConnsBetweenCapturedAndPeerNode = routerConnRes
 				}
 			}

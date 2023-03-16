@@ -210,6 +210,11 @@ func NewVPCFromConfig(rc *ResourcesContainer) *vpcmodel.VPCConfig {
 		res.NodeSets = append(res.NodeSets, vpcNodeSet)
 
 	}
+	for i := range rc.sgList {
+		sg := rc.sgList[i]
+		sgResource := &SecurityGroup{name: *sg.Name}
+		res.FilterResources = append(res.FilterResources, sgResource)
+	}
 
 	return res
 }

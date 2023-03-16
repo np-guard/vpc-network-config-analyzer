@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-//go:embed sg_testing1.json
+//go:embed examples/sg_testing1.json
 var inputResources []byte
 
 func TestWithParsing(t *testing.T) {
