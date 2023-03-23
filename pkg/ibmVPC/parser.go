@@ -135,32 +135,52 @@ func NewVPCFromConfig(rc *ResourcesContainer) *vpcmodel.VPCConfig {
 	}
 	addExternalNodes(res)
 
+	subnetNameToNetIntf := map[string][]*NetworkInterface{}
+	intfNameToIntf := map[string]*NetworkInterface{}
 	for i := range rc.instanceList {
 		instance := rc.instanceList[i]
 		vsiNode := &Vsi{name: *instance.Name, nodes: []vpcmodel.Node{}}
 		res.NodeSets = append(res.NodeSets, vsiNode)
 		for j := range instance.NetworkInterfaces {
 			netintf := instance.NetworkInterfaces[j]
-			intfNode := &NetworkInterface{name: *netintf.Name, cidr: *netintf.PrimaryIP.Address, vsi: *instance.Name, subnet: *netintf.Subnet.Name}
+			intfNode := &NetworkInterface{name: *netintf.Name, cidr: *netintf.PrimaryIP.Address, vsi: *instance.Name}
 			res.Nodes = append(res.Nodes, intfNode)
 			vsiNode.nodes = append(vsiNode.nodes, intfNode)
+			intfNameToIntf[*netintf.Name] = intfNode
+			subnetName := *netintf.Subnet.Name
+			if _, ok := subnetNameToNetIntf[subnetName]; !ok {
+				subnetNameToNetIntf[subnetName] = []*NetworkInterface{}
+			}
+			subnetNameToNetIntf[subnetName] = append(subnetNameToNetIntf[subnetName], intfNode)
+
 		}
 	}
 	pgwToSubnet := map[string]*Subnet{} // map from pgw name to its attached subnet
+	subnetNameToSubnet := map[string]*Subnet{}
 	for i := range rc.subnetsList {
 		subnet := rc.subnetsList[i]
-		subnetNodes := getCertainNodes(res.Nodes, func(n vpcmodel.Node) bool {
+		/*subnetNodes := getCertainNodes(res.Nodes, func(n vpcmodel.Node) bool {
 			if intfNode, ok := n.(*NetworkInterface); ok {
-				if intfNode.subnet == *subnet.Name {
+				if intfNode.subnet.name == *subnet.Name {
 					return true
 				}
 			}
 			return false
-		})
-		subnetNode := &Subnet{name: *subnet.Name, cidr: *subnet.Ipv4CIDRBlock, nodes: subnetNodes}
+		})*/
+		subnetNodes := []vpcmodel.Node{}
+		subnetNode := &Subnet{name: *subnet.Name, cidr: *subnet.Ipv4CIDRBlock}
 		res.NodeSets = append(res.NodeSets, subnetNode)
+		subnetNameToSubnet[*subnet.Name] = subnetNode
 		if subnet.PublicGateway != nil {
 			pgwToSubnet[*subnet.PublicGateway.Name] = subnetNode
+		}
+		// add pointers from networkInterface to its subnet, given the current subnet created
+		if subnetInterfaces, ok := subnetNameToNetIntf[*subnet.Name]; ok {
+			for _, netIntf := range subnetInterfaces {
+				netIntf.subnet = subnetNode
+				subnetNodes = append(subnetNodes, netIntf)
+			}
+			subnetNode.nodes = subnetNodes
 		}
 	}
 
@@ -212,8 +232,36 @@ func NewVPCFromConfig(rc *ResourcesContainer) *vpcmodel.VPCConfig {
 	}
 	for i := range rc.sgList {
 		sg := rc.sgList[i]
-		sgResource := &SecurityGroup{name: *sg.Name}
+		sgResource := &SecurityGroup{name: *sg.Name, analyzer: NewSGAnalyzer(sg), members: map[string]struct{}{}}
+		targets := sg.Targets //*SecurityGroupTargetReference
+		//type SecurityGroupTargetReference struct
+		//fmt.Printf("%v", targets)
+		for _, target := range targets {
+			if targetIntfRef, ok := target.(*vpc1.SecurityGroupTargetReference); ok {
+				fmt.Printf("%v", targetIntfRef)
+				// get from target name + resource type -> find the address of the target
+				targetType := *targetIntfRef.ResourceType
+				targetName := *targetIntfRef.Name
+				if targetType == "network_interface" {
+					if intfNode, ok := intfNameToIntf[targetName]; ok {
+						sgResource.members[intfNode.cidr] = struct{}{}
+					}
+				}
+			}
+		}
 		res.FilterResources = append(res.FilterResources, sgResource)
+	}
+
+	for i := range rc.naclList {
+		nacl := rc.naclList[i]
+		naclResource := &NACL{name: *nacl.Name, analyzer: NewNACLAnalyzer(nacl), subnets: map[string]struct{}{}}
+		res.FilterResources = append(res.FilterResources, naclResource)
+		for _, subnetRef := range nacl.Subnets {
+			subnetName := *subnetRef.Name
+			if subnet, ok := subnetNameToSubnet[subnetName]; ok {
+				naclResource.subnets[subnet.cidr] = struct{}{}
+			}
+		}
 	}
 
 	return res

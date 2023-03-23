@@ -40,7 +40,7 @@ type FilterTraffic interface {
 	OutboundRules() []FilterTrafficRule
 	// get the connectivity result when the filterTraffic resource is applied to the given NodeSet element
 	Connectivity(nodes NodeSet) *ConnectivityResult
-	//AllowedConnectivity(src, dst Node) *common.ConnectionSet
+	AllowedConnectivity(src, dst Node, isIngress bool) *common.ConnectionSet
 }
 
 type FilterTrafficRule interface {
@@ -48,12 +48,6 @@ type FilterTrafficRule interface {
 	Dst() string
 	Action() string
 	Connections() string
-}
-
-// given a filterTraffic resource, check if the input traffic is allowed and by which connections
-func AllowedConnectivity(f FilterTraffic, src, dst Node, isIngress bool) *common.ConnectionSet {
-	// TODO: implement
-	return AllConns()
 }
 
 //routing resource enables connectivity from src to destination via that resource
@@ -199,7 +193,7 @@ func (v *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 			// only check filtering resources
 			allowedConnsBetweenCapturedAndPeerNode := AllConns()
 			for _, filter := range v.FilterResources {
-				filteredConns := AllowedConnectivity(filter, src, dst, isIngress)
+				filteredConns := filter.AllowedConnectivity(src, dst, isIngress)
 				allowedConnsBetweenCapturedAndPeerNode.Intersection(*filteredConns)
 				if allowedConnsBetweenCapturedAndPeerNode.IsEmpty() {
 					break
@@ -216,7 +210,7 @@ func (v *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 				}
 			}
 			for _, filter := range v.FilterResources {
-				filteredConns := AllowedConnectivity(filter, src, dst, isIngress)
+				filteredConns := filter.AllowedConnectivity(src, dst, isIngress)
 				allowedConnsBetweenCapturedAndPeerNode.Intersection(*filteredConns)
 				if allowedConnsBetweenCapturedAndPeerNode.IsEmpty() {
 					break
