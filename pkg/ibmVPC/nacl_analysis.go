@@ -285,10 +285,10 @@ func AnalyzeNACL(naclObj *vpc1.NetworkACL, subnet *common.IPBlock, subnetDisjoin
 
 }*/
 
-type AnalysisConnectivityResults struct {
+/*type AnalysisConnectivityResults struct {
 	ingressRes map[*common.IPBlock]*ConnectivityResult
 	egressRes  map[*common.IPBlock]*ConnectivityResult
-}
+}*/
 
 type NACLAnalyzer struct {
 	naclResource *vpc1.NetworkACL
@@ -307,7 +307,11 @@ func NewNACLAnalyzer(nacl *vpc1.NetworkACL) *NACLAnalyzer {
 }
 
 func (na *NACLAnalyzer) addAnalysisPerSubnet(subnetCidr string) {
-
+	subnetCidrIPBlock := common.NewIPBlockFromCidr(subnetCidr)
+	//TODO: handle subnet disjoint target
+	_, _, ingressRes, egressRes := AnalyzeNACL(na.naclResource, subnetCidrIPBlock, subnetCidrIPBlock)
+	na.ingressRes[subnetCidr] = ingressRes
+	na.egressRes[subnetCidr] = egressRes
 }
 
 func (na *NACLAnalyzer) AllowedConnectivity(subnetCidr, inSubentCidr, target string, isIngress bool) *common.ConnectionSet {
