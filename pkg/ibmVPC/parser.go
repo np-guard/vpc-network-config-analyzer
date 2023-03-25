@@ -130,7 +130,7 @@ func NewVPCFromConfig(rc *ResourcesContainer) (*vpcmodel.VPCConfig, error) {
 	res := &vpcmodel.VPCConfig{
 		Nodes:            []vpcmodel.Node{},
 		NodeSets:         []vpcmodel.NodeSet{},
-		FilterResources:  []vpcmodel.FilterTraffic{},
+		FilterResources:  []vpcmodel.FilterTrafficResource{},
 		RoutingResources: []vpcmodel.RoutingResource{},
 	}
 	addExternalNodes(res)
@@ -230,7 +230,10 @@ func NewVPCFromConfig(rc *ResourcesContainer) (*vpcmodel.VPCConfig, error) {
 		res.NodeSets = append(res.NodeSets, vpcNodeSet)
 
 	}
+
+	// security group
 	sgMap := map[string]*SecurityGroup{}
+	sgList := []*SecurityGroup{}
 	for i := range rc.sgList {
 		sg := rc.sgList[i]
 		sgResource := &SecurityGroup{name: *sg.Name, analyzer: NewSGAnalyzer(sg), members: map[string]struct{}{}}
@@ -251,8 +254,11 @@ func NewVPCFromConfig(rc *ResourcesContainer) (*vpcmodel.VPCConfig, error) {
 				}
 			}
 		}
-		res.FilterResources = append(res.FilterResources, sgResource)
+		//res.FilterResources = append(res.FilterResources, sgResource)
+		sgList = append(sgList, sgResource)
 	}
+	sgLayer := &SecurityGroupLayer{sgList: sgList}
+	res.FilterResources = append(res.FilterResources, sgLayer)
 	for _, sg := range sgMap {
 		err := sg.analyzer.prepareAnalyzer(sgMap, sg)
 		if err != nil {
@@ -260,10 +266,13 @@ func NewVPCFromConfig(rc *ResourcesContainer) (*vpcmodel.VPCConfig, error) {
 		}
 	}
 
+	// nacl
+	naclList := []*NACL{}
 	for i := range rc.naclList {
 		nacl := rc.naclList[i]
 		naclResource := &NACL{name: *nacl.Name, analyzer: NewNACLAnalyzer(nacl), subnets: map[string]struct{}{}}
-		res.FilterResources = append(res.FilterResources, naclResource)
+		//res.FilterResources = append(res.FilterResources, naclResource)
+		naclList = append(naclList, naclResource)
 		for _, subnetRef := range nacl.Subnets {
 			subnetName := *subnetRef.Name
 			if subnet, ok := subnetNameToSubnet[subnetName]; ok {
@@ -271,6 +280,8 @@ func NewVPCFromConfig(rc *ResourcesContainer) (*vpcmodel.VPCConfig, error) {
 			}
 		}
 	}
+	naclLayer := &NaclLayer{naclList: naclList}
+	res.FilterResources = append(res.FilterResources, naclLayer)
 
 	return res, nil
 }

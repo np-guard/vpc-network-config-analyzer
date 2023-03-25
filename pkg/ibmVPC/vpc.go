@@ -122,29 +122,39 @@ func (v *Vsi) Connectivity() *vpcmodel.ConnectivityResult {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // FilterTraffic elements
 
+type NaclLayer struct {
+	naclList []*NACL
+}
+
+func (nl *NaclLayer) Name() string {
+	return ""
+}
+
+func (nl *NaclLayer) Kind() string {
+	return "SecurityGroupLayer"
+}
+
+func (nl *NaclLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *common.ConnectionSet {
+	res := vpcmodel.NoConns()
+	for _, nacl := range nl.naclList {
+		naclConn := nacl.AllowedConnectivity(src, dst, isIngress)
+		res.Union(*naclConn)
+	}
+	return res
+}
+
 type NACL struct {
-	name              string
-	inboundRules      []vpcmodel.FilterTrafficRule
-	outboundRules     []vpcmodel.FilterTrafficRule
-	subnets           map[string]struct{} // map of subnet cidr strings for which this nacl is applied to
-	connectivityRules map[vpcmodel.NodeSet]*vpcmodel.ConnectivityResult
-	analyzer          *NACLAnalyzer
+	name     string
+	subnets  map[string]struct{} // map of subnet cidr strings for which this nacl is applied to
+	analyzer *NACLAnalyzer
 }
 
 func (n *NACL) Name() string {
 	return n.name
 }
 
-func (n *NACL) InboundRules() []vpcmodel.FilterTrafficRule {
-	return n.inboundRules
-}
-
-func (n *NACL) OutboundRules() []vpcmodel.FilterTrafficRule {
-	return n.outboundRules
-}
-
-func (n *NACL) Connectivity(nodes vpcmodel.NodeSet) *vpcmodel.ConnectivityResult {
-	return n.connectivityRules[nodes]
+func (n *NACL) Kind() string {
+	return "NACL"
 }
 
 func (n *NACL) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *common.ConnectionSet {
@@ -166,7 +176,8 @@ func (n *NACL) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *comm
 	}
 	// check if the subnet of the given node is affected by this nacl
 	if _, ok := n.subnets[subnetCidr]; !ok {
-		return vpcmodel.AllConns() // not affected by current nacl
+		//return vpcmodel.AllConns() // not affected by current nacl
+		return vpcmodel.NoConns() // not affected by current nacl
 	}
 
 	return n.analyzer.AllowedConnectivity(subnetCidr, inSubnetCidr, targetNode.Cidr(), isIngress)
@@ -174,30 +185,40 @@ func (n *NACL) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *comm
 	//return vpcmodel.AllConns()
 }
 
+// SecurityGroupLayer captures all SG in the vpc config, analyzes connectivity considering all SG resources
+type SecurityGroupLayer struct {
+	sgList []*SecurityGroup
+}
+
+func (sgl *SecurityGroupLayer) Name() string {
+	return ""
+}
+
+func (sgl *SecurityGroupLayer) Kind() string {
+	return "SecurityGroupLayer"
+}
+
+func (sgl *SecurityGroupLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *common.ConnectionSet {
+	res := vpcmodel.NoConns()
+	for _, sg := range sgl.sgList {
+		sgConn := sg.AllowedConnectivity(src, dst, isIngress)
+		res.Union(*sgConn)
+	}
+	return res
+}
+
 type SecurityGroup struct {
-	name          string
-	inboundRules  []vpcmodel.FilterTrafficRule
-	outboundRules []vpcmodel.FilterTrafficRule
-	//netInterfaces     []NetworkInterface
-	connectivityRules *vpcmodel.ConnectivityResult
-	analyzer          *SGAnalyzer
-	members           map[string]struct{} //map of members as their address string values
+	name     string
+	analyzer *SGAnalyzer
+	members  map[string]struct{} //map of members as their address string values
 }
 
 func (sg *SecurityGroup) Name() string {
 	return sg.name
 }
 
-func (sg *SecurityGroup) InboundRules() []vpcmodel.FilterTrafficRule {
-	return sg.inboundRules
-}
-
-func (sg *SecurityGroup) OutboundRules() []vpcmodel.FilterTrafficRule {
-	return sg.outboundRules
-}
-
-func (sg *SecurityGroup) Connectivity(nodes vpcmodel.NodeSet) *vpcmodel.ConnectivityResult {
-	return sg.connectivityRules
+func (sg *SecurityGroup) Kind() string {
+	return "SG"
 }
 
 func (sg *SecurityGroup) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *common.ConnectionSet {
@@ -211,7 +232,8 @@ func (sg *SecurityGroup) AllowedConnectivity(src, dst vpcmodel.Node, isIngress b
 	}
 	memberStrAddress := member.Cidr()
 	if _, ok := sg.members[memberStrAddress]; !ok {
-		return vpcmodel.AllConns() // connectivity not affected by this SG resource - input node is not its member
+		//return vpcmodel.AllConns() // connectivity not affected by this SG resource - input node is not its member
+		return vpcmodel.NoConns() // connectivity not affected by this SG resource - input node is not its member
 	}
 	targetStrAddress := target.Cidr()
 	return sg.analyzer.AllowedConnectivity(targetStrAddress, isIngress)

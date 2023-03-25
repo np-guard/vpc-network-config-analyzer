@@ -32,22 +32,12 @@ type NodeSet interface {
 	Connectivity() *ConnectivityResult
 }
 
-// rename to FilterTrafficResource
-// FilterTraffic capture allowed traffic between 2 endpoints
-type FilterTraffic interface {
+// FilterTrafficResource capture allowed traffic between 2 endpoints
+type FilterTrafficResource interface {
 	NamedResource
-	InboundRules() []FilterTrafficRule
-	OutboundRules() []FilterTrafficRule
 	// get the connectivity result when the filterTraffic resource is applied to the given NodeSet element
-	Connectivity(nodes NodeSet) *ConnectivityResult
 	AllowedConnectivity(src, dst Node, isIngress bool) *common.ConnectionSet
-}
-
-type FilterTrafficRule interface {
-	Src() string
-	Dst() string
-	Action() string
-	Connections() string
+	Kind() string
 }
 
 //routing resource enables connectivity from src to destination via that resource
@@ -70,13 +60,9 @@ type ConnectivityResult struct {
 type VPCConfig struct {
 	Nodes            []Node
 	NodeSets         []NodeSet
-	FilterResources  []FilterTraffic
+	FilterResources  []FilterTrafficResource
 	RoutingResources []RoutingResource
 }
-
-/*func (v *VPCConfig) AllowedConnectivityByFilterResources(src, dst Node) *common.ConnectionSet{
-
-}*/
 
 //detailed representation of allowed connectivity considering all resources in a vpc config instance
 type VPCConnectivity struct {
