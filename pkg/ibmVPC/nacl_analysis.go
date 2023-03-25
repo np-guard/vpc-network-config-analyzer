@@ -7,7 +7,6 @@ import (
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	vpcmodel "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcModel"
-	v1 "k8s.io/api/core/v1"
 )
 
 func getNACLRule(rule vpc1.NetworkACLRuleItemIntf) (string, *NACLRule, bool) {
@@ -40,9 +39,9 @@ func getNACLRule(rule vpc1.NetworkACLRuleItemIntf) (string, *NACLRule, bool) {
 		conns := common.MakeConnectionSet(false)
 		ports := common.PortSet{Ports: common.CanonicalIntervalSet{IntervalSet: []common.Interval{{Start: *ruleObj.DestinationPortMin, End: *ruleObj.DestinationPortMax}}}}
 		if *ruleObj.Protocol == "tcp" {
-			conns.AllowedProtocols[v1.ProtocolTCP] = &ports
+			conns.AllowedProtocols[common.ProtocolTCP] = &ports
 		} else if *ruleObj.Protocol == "udp" {
-			conns.AllowedProtocols[v1.ProtocolUDP] = &ports
+			conns.AllowedProtocols[common.ProtocolUDP] = &ports
 		}
 
 		ruleRes = NACLRule{src: srcIP, dst: dstIP, connections: &conns, action: *ruleObj.Action}
@@ -301,7 +300,7 @@ type NACLAnalyzer struct {
 }
 
 func NewNACLAnalyzer(nacl *vpc1.NetworkACL) *NACLAnalyzer {
-	res := &NACLAnalyzer{naclResource: nacl}
+	res := &NACLAnalyzer{naclResource: nacl, ingressRes: map[string]*ConnectivityResult{}, egressRes: map[string]*ConnectivityResult{}}
 	res.ingressRules, res.egressRules = getNACLRules(nacl)
 	return res
 }
@@ -323,7 +322,8 @@ func (na *NACLAnalyzer) AllowedConnectivity(subnetCidr, inSubentCidr, target str
 	} else {
 		analyzedConns = na.egressRes
 	}
-	targetIPblock := common.NewIPBlockFromCidr(target)
+	targetIPblock := common.NewIPBlockFromCidrOrAddress(target)
+
 	if analyzedConnsPerSubnet, ok := analyzedConns[subnetCidr]; ok {
 		for resTarget, conn := range analyzedConnsPerSubnet.allowedconns {
 			if targetIPblock.ContainedIn(resTarget) {

@@ -74,6 +74,10 @@ type VPCConfig struct {
 	RoutingResources []RoutingResource
 }
 
+/*func (v *VPCConfig) AllowedConnectivityByFilterResources(src, dst Node) *common.ConnectionSet{
+
+}*/
+
 //detailed representation of allowed connectivity considering all resources in a vpc config instance
 type VPCConnectivity struct {
 	// computed for each node, by iterating its ConnectivityResult for all relevant VPC resources that capture it
@@ -193,6 +197,10 @@ func (v *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 			// only check filtering resources
 			allowedConnsBetweenCapturedAndPeerNode := AllConns()
 			for _, filter := range v.FilterResources {
+				// TODO: cannot do intersection per all sg resources - connectivity is additive in sg layer .
+				// only intersection between layers - sg vs nacl
+				// each layer of filter resources should have its own logic
+				// consider accumulate all filter resources of the same type, and send to a function that returns combined result.
 				filteredConns := filter.AllowedConnectivity(src, dst, isIngress)
 				allowedConnsBetweenCapturedAndPeerNode.Intersection(*filteredConns)
 				if allowedConnsBetweenCapturedAndPeerNode.IsEmpty() {

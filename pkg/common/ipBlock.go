@@ -173,6 +173,16 @@ func NewIPBlockFromCidr(cidr string) *IPBlock {
 	return res
 }
 
+func NewIPBlockFromCidrOrAddress(s string) *IPBlock {
+	var res *IPBlock
+	if strings.Contains(s, "/") {
+		res = NewIPBlockFromCidr(s)
+	} else {
+		res, _ = NewIPBlockFromIPAddress(s)
+	}
+	return res
+}
+
 // NewIPBlock returns an IPBlock object from input cidr str an exceptions cidr str
 func NewIPBlock(cidr string, exceptions []string) (*IPBlock, error) {
 	res := IPBlock{ipRange: CanonicalIntervalSet{}}

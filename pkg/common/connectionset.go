@@ -18,28 +18,40 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+)
 
-	v1 "k8s.io/api/core/v1"
+type Protocol string
+
+const (
+	// ProtocolTCP is the TCP protocol.
+	ProtocolTCP Protocol = "TCP"
+	// ProtocolUDP is the UDP protocol.
+	ProtocolUDP Protocol = "UDP"
+	// ProtocolSCTP is the SCTP protocol.
+	ProtocolSCTP Protocol = "SCTP"
+	// ProtocolSCTP is the SCTP protocol.
+	ProtocolICMP Protocol = "ICMP"
 )
 
 // ConnectionSet represents a set of allowed connections between two peers on a k8s env
 type ConnectionSet struct {
-	AllowAll         bool
-	AllowedProtocols map[v1.Protocol]*PortSet // map from protocol name to set of allowed ports
+	AllowAll bool
+	//TODO: handle ICMP type & code. currently using PortSet to represent ICMP type interval only
+	AllowedProtocols map[Protocol]*PortSet // map from protocol name to set of allowed ports
 }
 
 // MakeConnectionSet returns a ConnectionSet object with all connections or no connections
 func MakeConnectionSet(all bool) ConnectionSet {
 	if all {
-		return ConnectionSet{AllowAll: true, AllowedProtocols: map[v1.Protocol]*PortSet{}}
+		return ConnectionSet{AllowAll: true, AllowedProtocols: map[Protocol]*PortSet{}}
 	}
-	return ConnectionSet{AllowedProtocols: map[v1.Protocol]*PortSet{}}
+	return ConnectionSet{AllowedProtocols: map[Protocol]*PortSet{}}
 }
 
 func (conn *ConnectionSet) Copy() *ConnectionSet {
 	res := &ConnectionSet{}
 	res.AllowAll = conn.AllowAll
-	res.AllowedProtocols = make(map[v1.Protocol]*PortSet, len(conn.AllowedProtocols))
+	res.AllowedProtocols = make(map[Protocol]*PortSet, len(conn.AllowedProtocols))
 	for procotol, ports := range conn.AllowedProtocols {
 		portsCopy := ports.Copy()
 		res.AllowedProtocols[procotol] = &portsCopy
@@ -82,7 +94,7 @@ func (conn *ConnectionSet) isAllConnectionsWithoutAllowAll() bool {
 	if conn.AllowAll {
 		return false
 	}
-	allProtocols := []v1.Protocol{v1.ProtocolTCP, v1.ProtocolUDP, v1.ProtocolSCTP}
+	allProtocols := []Protocol{ProtocolTCP, ProtocolUDP, ProtocolSCTP}
 	for _, protocol := range allProtocols {
 		ports, ok := conn.AllowedProtocols[protocol]
 		if !ok {
@@ -98,7 +110,7 @@ func (conn *ConnectionSet) isAllConnectionsWithoutAllowAll() bool {
 func (conn *ConnectionSet) checkIfAllConnections() {
 	if conn.isAllConnectionsWithoutAllowAll() {
 		conn.AllowAll = true
-		conn.AllowedProtocols = map[v1.Protocol]*PortSet{}
+		conn.AllowedProtocols = map[Protocol]*PortSet{}
 	}
 }
 
@@ -109,7 +121,7 @@ func (conn *ConnectionSet) Union(other ConnectionSet) {
 	}
 	if other.AllowAll {
 		conn.AllowAll = true
-		conn.AllowedProtocols = map[v1.Protocol]*PortSet{}
+		conn.AllowedProtocols = map[Protocol]*PortSet{}
 		return
 	}
 	for protocol := range conn.AllowedProtocols {
@@ -126,29 +138,21 @@ func (conn *ConnectionSet) Union(other ConnectionSet) {
 	conn.checkIfAllConnections()
 }
 
-/*
-// ProtocolTCP is the TCP protocol.
-	ProtocolTCP Protocol = "TCP"
-	// ProtocolUDP is the UDP protocol.
-	ProtocolUDP Protocol = "UDP"
-	// ProtocolSCTP is the SCTP protocol.
-	ProtocolSCTP Protocol = "SCTP"
-*/
 func (conn *ConnectionSet) Subtract(other ConnectionSet) {
 	if conn.IsEmpty() || other.IsEmpty() {
 		return
 	}
 	if other.AllowAll {
 		conn.AllowAll = false
-		conn.AllowedProtocols = make(map[v1.Protocol]*PortSet, 0)
+		conn.AllowedProtocols = make(map[Protocol]*PortSet, 0)
 		return
 	}
 
 	if conn.AllowAll {
 		conn.AllowAll = false
-		conn.AllowedProtocols[v1.ProtocolTCP] = &PortSet{Ports: CanonicalIntervalSet{IntervalSet: []Interval{{Start: 1, End: 65535}}}}
-		conn.AllowedProtocols[v1.ProtocolUDP] = &PortSet{Ports: CanonicalIntervalSet{IntervalSet: []Interval{{Start: 1, End: 65535}}}}
-		conn.AllowedProtocols[v1.ProtocolSCTP] = &PortSet{Ports: CanonicalIntervalSet{IntervalSet: []Interval{{Start: 1, End: 65535}}}}
+		conn.AllowedProtocols[ProtocolTCP] = &PortSet{Ports: CanonicalIntervalSet{IntervalSet: []Interval{{Start: 1, End: 65535}}}}
+		conn.AllowedProtocols[ProtocolUDP] = &PortSet{Ports: CanonicalIntervalSet{IntervalSet: []Interval{{Start: 1, End: 65535}}}}
+		conn.AllowedProtocols[ProtocolSCTP] = &PortSet{Ports: CanonicalIntervalSet{IntervalSet: []Interval{{Start: 1, End: 65535}}}}
 	}
 	for protocol := range conn.AllowedProtocols {
 		if otherPorts, ok := other.AllowedProtocols[protocol]; ok {
@@ -195,7 +199,7 @@ func (conn *ConnectionSet) ContainedIn(other ConnectionSet) bool {
 }
 
 // AddConnection updates current ConnectionSet object with new allowed connection
-func (conn *ConnectionSet) AddConnection(protocol v1.Protocol, ports PortSet) {
+func (conn *ConnectionSet) AddConnection(protocol Protocol, ports PortSet) {
 	if ports.IsEmpty() {
 		return
 	}
@@ -264,8 +268,8 @@ func (p *portRange) String() string {
 }
 
 // ProtocolsAndPortsMap() returns a map from allowed protocol to list of allowed ports ranges.
-func (conn *ConnectionSet) ProtocolsAndPortsMap() map[v1.Protocol][]*portRange {
-	res := map[v1.Protocol][]*portRange{}
+func (conn *ConnectionSet) ProtocolsAndPortsMap() map[Protocol][]*portRange {
+	res := map[Protocol][]*portRange{}
 	for protocol, portSet := range conn.AllowedProtocols {
 		res[protocol] = []*portRange{}
 		// TODO: consider leave the slice of ports empty if portSet covers the full range

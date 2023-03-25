@@ -126,7 +126,7 @@ func getCertainNodes(allNodes []vpcmodel.Node, shouldTakeNode func(vpcmodel.Node
 	return
 }
 
-func NewVPCFromConfig(rc *ResourcesContainer) *vpcmodel.VPCConfig {
+func NewVPCFromConfig(rc *ResourcesContainer) (*vpcmodel.VPCConfig, error) {
 	res := &vpcmodel.VPCConfig{
 		Nodes:            []vpcmodel.Node{},
 		NodeSets:         []vpcmodel.NodeSet{},
@@ -230,9 +230,11 @@ func NewVPCFromConfig(rc *ResourcesContainer) *vpcmodel.VPCConfig {
 		res.NodeSets = append(res.NodeSets, vpcNodeSet)
 
 	}
+	sgMap := map[string]*SecurityGroup{}
 	for i := range rc.sgList {
 		sg := rc.sgList[i]
 		sgResource := &SecurityGroup{name: *sg.Name, analyzer: NewSGAnalyzer(sg), members: map[string]struct{}{}}
+		sgMap[*sg.Name] = sgResource
 		targets := sg.Targets //*SecurityGroupTargetReference
 		//type SecurityGroupTargetReference struct
 		//fmt.Printf("%v", targets)
@@ -251,6 +253,12 @@ func NewVPCFromConfig(rc *ResourcesContainer) *vpcmodel.VPCConfig {
 		}
 		res.FilterResources = append(res.FilterResources, sgResource)
 	}
+	for _, sg := range sgMap {
+		err := sg.analyzer.prepareAnalyzer(sgMap, sg)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	for i := range rc.naclList {
 		nacl := rc.naclList[i]
@@ -264,7 +272,7 @@ func NewVPCFromConfig(rc *ResourcesContainer) *vpcmodel.VPCConfig {
 		}
 	}
 
-	return res
+	return res, nil
 }
 
 /*
