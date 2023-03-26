@@ -31,7 +31,7 @@ type ExternalNetwork struct {
 }
 
 func (ni *NetworkInterface) Name() string {
-	return fmt.Sprintf("%s[%s]", ni.vsi, ni.name) //ni.name
+	return fmt.Sprintf("%s[%s]", ni.vsi, ni.cidr)
 }
 func (ni *NetworkInterface) Cidr() string {
 	return ni.cidr
@@ -143,6 +143,14 @@ func (nl *NaclLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool)
 	return res
 }
 
+func (nl *NaclLayer) ReferencedIPblocks() []*common.IPBlock {
+	res := []*common.IPBlock{}
+	for _, n := range nl.naclList {
+		res = append(res, n.analyzer.referencedIPblocks...)
+	}
+	return res
+}
+
 type NACL struct {
 	name     string
 	subnets  map[string]struct{} // map of subnet cidr strings for which this nacl is applied to
@@ -198,6 +206,7 @@ func (sgl *SecurityGroupLayer) Kind() string {
 	return "SecurityGroupLayer"
 }
 
+// TODO: fix: is it possible that no sg applies  to the input peer? if so, should not return "no conns" when none applies
 func (sgl *SecurityGroupLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *common.ConnectionSet {
 	res := vpcmodel.NoConns()
 	for _, sg := range sgl.sgList {
@@ -207,10 +216,19 @@ func (sgl *SecurityGroupLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIng
 	return res
 }
 
+func (sgl *SecurityGroupLayer) ReferencedIPblocks() []*common.IPBlock {
+	res := []*common.IPBlock{}
+	for _, sg := range sgl.sgList {
+		res = append(res, sg.analyzer.referencedIPblocks...)
+	}
+	return res
+}
+
 type SecurityGroup struct {
 	name     string
 	analyzer *SGAnalyzer
 	members  map[string]struct{} //map of members as their address string values
+
 }
 
 func (sg *SecurityGroup) Name() string {

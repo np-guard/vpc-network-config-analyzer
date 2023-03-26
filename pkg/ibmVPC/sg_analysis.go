@@ -98,6 +98,7 @@ func (sga *SGAnalyzer) getRemoteCidr(remote vpc1.SecurityGroupRuleRemoteIntf) (*
 		return target, cidrRes, fmt.Errorf("sg error: getRemoteCidr returns empty result. could not convert remoteObj to expected type ")
 	}
 
+	sga.referencedIPblocks = append(sga.referencedIPblocks, target.Split()...)
 	return target, cidrRes, nil
 }
 
@@ -350,6 +351,7 @@ type SGAnalyzer struct {
 	ingressConnectivity *ConnectivityResult
 	egressConnectivity  *ConnectivityResult
 	sgMap               map[string]*SecurityGroup
+	referencedIPblocks  []*common.IPBlock
 }
 
 func NewSGAnalyzer(sg *vpc1.SecurityGroup) *SGAnalyzer {

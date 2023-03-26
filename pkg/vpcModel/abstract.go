@@ -38,6 +38,7 @@ type FilterTrafficResource interface {
 	// get the connectivity result when the filterTraffic resource is applied to the given NodeSet element
 	AllowedConnectivity(src, dst Node, isIngress bool) *common.ConnectionSet
 	Kind() string
+	ReferencedIPblocks() []*common.IPBlock
 }
 
 //routing resource enables connectivity from src to destination via that resource
@@ -96,7 +97,23 @@ func (v *VPCConnectivity) String() string {
 			res += fmt.Sprintf("%s => %s : %s\n", src.Cidr(), dst.Cidr(), conns.String())
 		}
 	}
-
+	res += "=================================== combined connections - short version:\n"
+	for src, nodeConns := range v.AllowedConnsCombined {
+		for dst, conns := range nodeConns {
+			if conns.IsEmpty() {
+				continue
+			}
+			srcName := src.Cidr()
+			if src.IsInternal() {
+				srcName = src.Name()
+			}
+			dstName := dst.Cidr()
+			if dst.IsInternal() {
+				dstName = dst.Name()
+			}
+			res += fmt.Sprintf("%s => %s : %s\n", srcName, dstName, conns.String())
+		}
+	}
 	return res
 }
 
@@ -171,6 +188,9 @@ func (v *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 	res := map[Node]*common.ConnectionSet{}
 	var src, dst Node
 	for _, peerNode := range v.Nodes {
+		if peerNode.Cidr() == capturedNode.Cidr() {
+			continue
+		}
 		if isIngress {
 			src = peerNode
 			dst = capturedNode

@@ -94,8 +94,8 @@ func (b *IPBlock) StartIPNum() int64 {
 	return b.ipRange.IntervalSet[0].Start
 }
 
-// split returns a set of IpBlock objects, each with a single range of ips
-func (b *IPBlock) split() []*IPBlock {
+// Split returns a set of IpBlock objects, each with a single range of ips
+func (b *IPBlock) Split() []*IPBlock {
 	res := make([]*IPBlock, len(b.ipRange.IntervalSet))
 	for index, ipr := range b.ipRange.IntervalSet {
 		newBlock := IPBlock{}
@@ -160,7 +160,7 @@ func addIntervalToList(ipbNew *IPBlock, ipbList []*IPBlock) []*IPBlock {
 			break
 		}
 	}
-	ipbList = append(ipbList, ipbNew.split()...)
+	ipbList = append(ipbList, ipbNew.Split()...)
 	ipbList = append(ipbList, toAdd...)
 	return ipbList
 }

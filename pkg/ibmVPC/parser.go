@@ -2,8 +2,10 @@ package ibmvpc
 
 import (
 	"fmt"
+	"strings"
 
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	vpcmodel "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcModel"
 )
 
@@ -133,7 +135,7 @@ func NewVPCFromConfig(rc *ResourcesContainer) (*vpcmodel.VPCConfig, error) {
 		FilterResources:  []vpcmodel.FilterTrafficResource{},
 		RoutingResources: []vpcmodel.RoutingResource{},
 	}
-	addExternalNodes(res)
+	var vpcInternalAddressRange *common.IPBlock
 
 	subnetNameToNetIntf := map[string][]*NetworkInterface{}
 	intfNameToIntf := map[string]*NetworkInterface{}
@@ -169,6 +171,12 @@ func NewVPCFromConfig(rc *ResourcesContainer) (*vpcmodel.VPCConfig, error) {
 		})*/
 		subnetNodes := []vpcmodel.Node{}
 		subnetNode := &Subnet{name: *subnet.Name, cidr: *subnet.Ipv4CIDRBlock}
+		cidrIpBlock := common.NewIPBlockFromCidr(subnetNode.cidr)
+		if vpcInternalAddressRange == nil {
+			vpcInternalAddressRange = cidrIpBlock
+		} else {
+			vpcInternalAddressRange = vpcInternalAddressRange.Union(cidrIpBlock)
+		}
 		res.NodeSets = append(res.NodeSets, subnetNode)
 		subnetNameToSubnet[*subnet.Name] = subnetNode
 		if subnet.PublicGateway != nil {
@@ -187,8 +195,8 @@ func NewVPCFromConfig(rc *ResourcesContainer) (*vpcmodel.VPCConfig, error) {
 	for i := range rc.pgwList {
 		pgw := rc.pgwList[i]
 		srcNodes := pgwToSubnet[*pgw.Name].Nodes()
-		dstNodes := getCertainNodes(res.Nodes, func(n vpcmodel.Node) bool { return !n.IsInternal() })
-		routerPgw := &PublicGateway{name: *pgw.Name, cidr: "", src: srcNodes, destinations: dstNodes} // TODO: get cidr from fip of the pgw
+		//dstNodes := getCertainNodes(res.Nodes, func(n vpcmodel.Node) bool { return !n.IsInternal() })
+		routerPgw := &PublicGateway{name: *pgw.Name, cidr: "", src: srcNodes} // TODO: get cidr from fip of the pgw
 		res.RoutingResources = append(res.RoutingResources, routerPgw)
 	}
 
@@ -206,8 +214,8 @@ func NewVPCFromConfig(rc *ResourcesContainer) (*vpcmodel.VPCConfig, error) {
 		}
 		if targetAddress != "" {
 			srcNodes := getCertainNodes(res.Nodes, func(n vpcmodel.Node) bool { return n.Cidr() == targetAddress })
-			dstNodes := getCertainNodes(res.Nodes, func(n vpcmodel.Node) bool { return !n.IsInternal() })
-			routerFip := &FloatingIP{name: *fip.Name, cidr: *fip.Address, src: srcNodes, destinations: dstNodes}
+			//dstNodes := getCertainNodes(res.Nodes, func(n vpcmodel.Node) bool { return !n.IsInternal() })
+			routerFip := &FloatingIP{name: *fip.Name, cidr: *fip.Address, src: srcNodes}
 			res.RoutingResources = append(res.RoutingResources, routerFip)
 
 			// node with fip should not have pgw
@@ -283,7 +291,20 @@ func NewVPCFromConfig(rc *ResourcesContainer) (*vpcmodel.VPCConfig, error) {
 	naclLayer := &NaclLayer{naclList: naclList}
 	res.FilterResources = append(res.FilterResources, naclLayer)
 
+	externalNodes := addExternalNodes(res, vpcInternalAddressRange)
+
+	// update destination of routing resources
+	for _, r := range res.RoutingResources {
+		if rFip, ok := r.(*FloatingIP); ok {
+			rFip.destinations = externalNodes
+		}
+		if rPgw, ok := r.(*PublicGateway); ok {
+			rPgw.destinations = externalNodes
+		}
+	}
+
 	return res, nil
+
 }
 
 /*
@@ -316,8 +337,44 @@ Your private IP address exists within specific private IP address ranges reserve
     Class C: 192.168.0.0 — 192.168.255.255
 
 */
-func addExternalNodes(config *vpcmodel.VPCConfig) {
-	config.Nodes = append(config.Nodes, &ExternalNetwork{name: "public-internet", cidr: "192.0.1.0/24"})
+func addExternalNodes(config *vpcmodel.VPCConfig, vpcInternalAddressRange *common.IPBlock) []vpcmodel.Node {
+	externalNodes := []vpcmodel.Node{}
+	ipBlocks := []*common.IPBlock{}
+	for _, f := range config.FilterResources {
+		ipBlocks = append(ipBlocks, f.ReferencedIPblocks()...)
+	}
+
+	externalRefIpBlocks := []*common.IPBlock{}
+	fmt.Println("referenced external ip blocks:")
+	for _, ipBlock := range ipBlocks {
+		intersection := ipBlock.Intersection(vpcInternalAddressRange)
+		if !intersection.Empty() {
+			continue
+		}
+		cidrList := strings.Join(ipBlock.ToCidrList(), ", ")
+		fmt.Printf("%s\n", cidrList)
+		externalRefIpBlocks = append(externalRefIpBlocks, ipBlock)
+	}
+	fmt.Println("---------------------")
+	fmt.Println("referenced external disjoint ip blocks:")
+	// disjoint external ref ip blocks
+	disjointRefExternalIpBlocks := common.DisjointIPBlocks(externalRefIpBlocks, []*common.IPBlock{})
+	for index, ipBlock := range disjointRefExternalIpBlocks {
+		cidrList := strings.Join(ipBlock.ToCidrList(), ", ")
+		fmt.Printf("%s\n", cidrList)
+		nodeName := fmt.Sprintf("ref-address-%d", index)
+		node := &ExternalNetwork{name: nodeName, cidr: cidrList}
+		config.Nodes = append(config.Nodes, node)
+		externalNodes = append(externalNodes, node)
+	}
+	//TODO: add cidrs of external network outside the given above cidrs already added
+	node := &ExternalNetwork{name: "public-internet", cidr: "192.0.1.0/24"}
+	config.Nodes = append(config.Nodes, node)
+	externalNodes = append(externalNodes, node)
+
+	fmt.Println("---------------------")
+	return externalNodes
+	// goal: define connectivity between elements in the set {vsi address / referenced address in nacl or sg / rest of external range}
 
 }
 
