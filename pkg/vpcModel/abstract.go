@@ -15,27 +15,27 @@ import (
 ///////////////////////////vpc resources////////////////////////////////////////////////////////////////////////////
 
 // Node is the basic endpoint element in the connectivity graph [ network interface , reserved ip, external cidrs]
-type NamedResource interface {
+type NamedResourceIntf interface {
 	UID() string
 	Name() string
 }
 
 type Node interface {
-	NamedResource
+	NamedResourceIntf
 	Cidr() string
 	IsInternal() bool
 }
 
 // NodeSet is an element that may capture several nodes [vpc ,subnet, vsi, (service network?)]
 type NodeSet interface {
-	NamedResource
+	NamedResourceIntf
 	Nodes() []Node
 	Connectivity() *ConnectivityResult
 }
 
 // FilterTrafficResource capture allowed traffic between 2 endpoints
 type FilterTrafficResource interface {
-	NamedResource
+	NamedResourceIntf
 	// get the connectivity result when the filterTraffic resource is applied to the given NodeSet element
 	AllowedConnectivity(src, dst Node, isIngress bool) *common.ConnectionSet
 	Kind() string
@@ -45,13 +45,43 @@ type FilterTrafficResource interface {
 //routing resource enables connectivity from src to destination via that resource
 //fip, pgw, vpe
 type RoutingResource interface {
-	NamedResource
+	NamedResourceIntf
 	Src() []Node
 	Destinations() []Node
 	AllowedConnectivity(src, dst Node) *common.ConnectionSet
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
+
+type NamedResource struct {
+	ResourceName string
+	Uid          string
+}
+
+func (n *NamedResource) Name() string {
+	return n.ResourceName
+}
+
+func (n *NamedResource) UID() string {
+	return n.Uid
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+type ExternalNetwork struct {
+	NamedResource
+	CidrStr string
+}
+
+func (exn *ExternalNetwork) Cidr() string {
+	return exn.CidrStr
+}
+func (exn *ExternalNetwork) IsInternal() bool {
+	return false
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+
 // connectivity model aspects
 
 type ConnectivityResult struct {

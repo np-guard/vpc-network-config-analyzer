@@ -374,7 +374,7 @@ func (sga *SGAnalyzer) prepareAnalyzer(sgMap map[string]*SecurityGroup, currentS
 	sga.ingressConnectivity = AnalyzeSGRules(sga.ingressRules, true)
 	sga.egressConnectivity = AnalyzeSGRules(sga.egressRules, false)
 	fmt.Printf("\nprepareAnalyzer results:\n")
-	fmt.Printf("sg: %s\n", currentSg.name)
+	fmt.Printf("sg: %s\n", currentSg.Name())
 	fmt.Println("ingressConnectivity:")
 	fmt.Printf("%s", sga.ingressConnectivity.string())
 	fmt.Println("egressConnectivity:")
