@@ -10,13 +10,13 @@ import (
 
 type NetworkInterface struct {
 	vpcmodel.NamedResource
-	cidr   string
-	vsi    string
-	subnet *Subnet
+	address string
+	vsi     string
+	subnet  *Subnet
 }
 
 func (ni *NetworkInterface) Cidr() string {
-	return ni.cidr
+	return common.IPv4AddressToCidr(ni.address)
 }
 func (ni *NetworkInterface) IsInternal() bool {
 	return true
