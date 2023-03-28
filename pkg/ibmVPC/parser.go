@@ -145,7 +145,7 @@ func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
 		res.NodeSets = append(res.NodeSets, vsiNode)
 		for j := range instance.NetworkInterfaces {
 			netintf := instance.NetworkInterfaces[j]
-			intfNode := &NetworkInterface{NamedResource: vpcmodel.NamedResource{ResourceName: *netintf.Name}, cidr: *netintf.PrimaryIP.Address, vsi: *instance.Name}
+			intfNode := &NetworkInterface{NamedResource: vpcmodel.NamedResource{ResourceName: *netintf.Name}, address: *netintf.PrimaryIP.Address, vsi: *instance.Name}
 			res.Nodes = append(res.Nodes, intfNode)
 			vsiNode.nodes = append(vsiNode.nodes, intfNode)
 			intfNameToIntf[*netintf.Name] = intfNode
@@ -257,7 +257,7 @@ func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
 				targetName := *targetIntfRef.Name
 				if targetType == "network_interface" {
 					if intfNode, ok := intfNameToIntf[targetName]; ok {
-						sgResource.members[intfNode.cidr] = struct{}{}
+						sgResource.members[intfNode.address] = struct{}{}
 					}
 				}
 			}

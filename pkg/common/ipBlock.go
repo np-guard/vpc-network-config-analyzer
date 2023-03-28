@@ -201,9 +201,13 @@ func NewIPBlock(cidr string, exceptions []string) (*IPBlock, error) {
 	return &res, nil
 }
 
+func IPv4AddressToCidr(ipAddress string) string {
+	return ipAddress + "/32"
+}
+
 // NewIPBlockFromIPAddress returns an IPBlock object from input ip address str
 func NewIPBlockFromIPAddress(ipAddress string) (*IPBlock, error) {
-	return NewIPBlock(ipAddress+"/32", []string{})
+	return NewIPBlock(IPv4AddressToCidr(ipAddress), []string{})
 }
 
 func cidrToIPRange(cidr string) (int64, int64, error) {
