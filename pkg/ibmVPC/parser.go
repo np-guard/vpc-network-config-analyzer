@@ -128,8 +128,8 @@ func getCertainNodes(allNodes []vpcmodel.Node, shouldTakeNode func(vpcmodel.Node
 	return
 }
 
-func NewVPCFromConfig(rc *ResourcesContainer) (*vpcmodel.VPCConfig, error) {
-	res := &vpcmodel.VPCConfig{
+func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
+	res := &vpcmodel.CloudConfig{
 		Nodes:            []vpcmodel.Node{},
 		NodeSets:         []vpcmodel.NodeSet{},
 		FilterResources:  []vpcmodel.FilterTrafficResource{},
@@ -337,7 +337,7 @@ Your private IP address exists within specific private IP address ranges reserve
     Class C: 192.168.0.0 — 192.168.255.255
 
 */
-func addExternalNodes(config *vpcmodel.VPCConfig, vpcInternalAddressRange *common.IPBlock) []vpcmodel.Node {
+func addExternalNodes(config *vpcmodel.CloudConfig, vpcInternalAddressRange *common.IPBlock) []vpcmodel.Node {
 	externalNodes := []vpcmodel.Node{}
 	ipBlocks := []*common.IPBlock{}
 	for _, f := range config.FilterResources {
