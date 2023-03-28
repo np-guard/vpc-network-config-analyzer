@@ -1,6 +1,8 @@
 package ibmvpc
 
 import (
+	"fmt"
+
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	vpcmodel "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcModel"
 )
@@ -16,13 +18,19 @@ type NetworkInterface struct {
 }
 
 func (ni *NetworkInterface) Cidr() string {
-	return common.IPv4AddressToCidr(ni.address)
+	return ni.address
+	// TODO: fix so that it works with cidr instead of address returned
+	// return common.IPv4AddressToCidr(ni.address)
 }
 func (ni *NetworkInterface) IsInternal() bool {
 	return true
 }
 func (ni *NetworkInterface) VsiName() string {
 	return ni.vsi
+}
+
+func (ni *NetworkInterface) Name() string {
+	return fmt.Sprintf("%s[%s]", ni.vsi, ni.address)
 }
 
 /*type ReservedIP struct {
