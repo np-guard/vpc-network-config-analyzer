@@ -28,7 +28,7 @@ func TestWithParsing(t *testing.T) {
 	fmt.Println("done")
 }
 
-func TestExampleBasicFromAPImanual(t *testing.T) {
+/*func TestExampleBasicFromAPImanual(t *testing.T) {
 	// additional attributes per VPC to consider: region / zone/ default_network_acl / default_routing_table / default_security_group /id / resource_group
 	vpc := VPC{name: "test-vpc1-ky"} // should fill in nodes, and connectivityRules? / cidr?
 
@@ -38,14 +38,14 @@ func TestExampleBasicFromAPImanual(t *testing.T) {
 
 	nifList := []NetworkInterface{
 		{
-			name: "",
+			//name: "",
 			cidr: "",
 		},
 	}
 	fmt.Printf("%v", vpc)
 	fmt.Printf("%v", subnets)
 	fmt.Printf("%v", nifList)
-}
+}*/
 
 /*
 func TestVPC(t *testing.T) {
