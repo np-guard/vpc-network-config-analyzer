@@ -14,16 +14,16 @@ var inputResources1 []byte
 
 func TestWithParsing(t *testing.T) {
 	rc := ParseResources(inputResources1)
-	vpcConfig, err := NewVPCFromConfig(rc)
+	cloudConfig, err := NewCloudConfig(rc)
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
 	//fmt.Printf("%v", vpcConfig)
 	fmt.Println("nodes in the vpc config:")
-	for _, n := range vpcConfig.Nodes {
+	for _, n := range cloudConfig.Nodes {
 		fmt.Printf("%s %s\n", n.Name(), n.Cidr())
 	}
-	vpcConn := vpcConfig.GetVPCNetworkConnectivity()
+	vpcConn := cloudConfig.GetVPCNetworkConnectivity()
 	fmt.Printf("%s", vpcConn.String())
 	fmt.Println("done")
 }

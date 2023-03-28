@@ -59,7 +59,7 @@ type ConnectivityResult struct {
 	EgressAllowedConns  map[Node]*common.ConnectionSet
 }
 
-type VPCConfig struct {
+type CloudConfig struct {
 	Nodes            []Node
 	NodeSets         []NodeSet
 	FilterResources  []FilterTrafficResource
@@ -118,7 +118,7 @@ func (v *VPCConnectivity) String() string {
 	return res
 }
 
-func (v *VPCConfig) GetVPCNetworkConnectivity() *VPCConnectivity {
+func (v *CloudConfig) GetVPCNetworkConnectivity() *VPCConnectivity {
 	res := &VPCConnectivity{AllowedConns: map[Node]*ConnectivityResult{}}
 	// get connectivity in level of nodes elements
 	for _, node := range v.Nodes {
@@ -185,7 +185,7 @@ func HasNode(listNodes []Node, node Node) bool {
 	return false
 }
 
-func (v *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Node) map[Node]*common.ConnectionSet {
+func (v *CloudConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Node) map[Node]*common.ConnectionSet {
 	res := map[Node]*common.ConnectionSet{}
 	var src, dst Node
 	for _, peerNode := range v.Nodes {
