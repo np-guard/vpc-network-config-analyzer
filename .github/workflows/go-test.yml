@@ -1,0 +1,45 @@
+name: push-tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3
+
+    - name: Set up Go
+      uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9
+      with:
+        go-version: 1.18
+
+    - name: Build
+      env:
+        CGO_ENABLED: 0
+        GOOS: linux      
+      run: go build --tags static_all -v -o ./bin/net-top ./cmd/nettop
+
+    - name: Test
+      run: go test -v ./...
+  
+  test-docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3
+      - name: Build Docker image
+        uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
+        id: build_docker
+        with:
+          context: .
+          push: false
+      - name: Check Docker image - help
+        run: docker run ${{ steps.build_docker.outputs.digest }} -h
+      - name: Check Docker image - scan
+        run: docker run ${{ steps.build_docker.outputs.digest }} -dirpath /
