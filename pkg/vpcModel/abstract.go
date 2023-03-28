@@ -16,6 +16,7 @@ import (
 
 // Node is the basic endpoint element in the connectivity graph [ network interface , reserved ip, external cidrs]
 type NamedResource interface {
+	UID() string
 	Name() string
 }
 
