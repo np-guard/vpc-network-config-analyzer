@@ -9,8 +9,11 @@ import (
 //go:embed examples/sg_testing1.json
 var inputResources []byte
 
+//go:embed examples/sg_testing1_new.json
+var inputResources1 []byte
+
 func TestWithParsing(t *testing.T) {
-	rc := ParseResources(inputResources)
+	rc := ParseResources(inputResources1)
 	vpcConfig, err := NewVPCFromConfig(rc)
 	if err != nil {
 		t.Fatalf("err: %s", err)
