@@ -141,11 +141,11 @@ func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
 	intfNameToIntf := map[string]*NetworkInterface{}
 	for i := range rc.instanceList {
 		instance := rc.instanceList[i]
-		vsiNode := &Vsi{namedResource: namedResource{name: *instance.Name}, nodes: []vpcmodel.Node{}}
+		vsiNode := &Vsi{NamedResource: vpcmodel.NamedResource{ResourceName: *instance.Name}, nodes: []vpcmodel.Node{}}
 		res.NodeSets = append(res.NodeSets, vsiNode)
 		for j := range instance.NetworkInterfaces {
 			netintf := instance.NetworkInterfaces[j]
-			intfNode := &NetworkInterface{namedResource: namedResource{name: *netintf.Name}, cidr: *netintf.PrimaryIP.Address, vsi: *instance.Name}
+			intfNode := &NetworkInterface{NamedResource: vpcmodel.NamedResource{ResourceName: *netintf.Name}, cidr: *netintf.PrimaryIP.Address, vsi: *instance.Name}
 			res.Nodes = append(res.Nodes, intfNode)
 			vsiNode.nodes = append(vsiNode.nodes, intfNode)
 			intfNameToIntf[*netintf.Name] = intfNode
@@ -170,7 +170,7 @@ func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
 			return false
 		})*/
 		subnetNodes := []vpcmodel.Node{}
-		subnetNode := &Subnet{namedResource: namedResource{name: *subnet.Name}, cidr: *subnet.Ipv4CIDRBlock}
+		subnetNode := &Subnet{NamedResource: vpcmodel.NamedResource{ResourceName: *subnet.Name}, cidr: *subnet.Ipv4CIDRBlock}
 		cidrIpBlock := common.NewIPBlockFromCidr(subnetNode.cidr)
 		if vpcInternalAddressRange == nil {
 			vpcInternalAddressRange = cidrIpBlock
@@ -196,7 +196,7 @@ func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
 		pgw := rc.pgwList[i]
 		srcNodes := pgwToSubnet[*pgw.Name].Nodes()
 		//dstNodes := getCertainNodes(res.Nodes, func(n vpcmodel.Node) bool { return !n.IsInternal() })
-		routerPgw := &PublicGateway{namedResource: namedResource{name: *pgw.Name}, cidr: "", src: srcNodes} // TODO: get cidr from fip of the pgw
+		routerPgw := &PublicGateway{NamedResource: vpcmodel.NamedResource{ResourceName: *pgw.Name}, cidr: "", src: srcNodes} // TODO: get cidr from fip of the pgw
 		res.RoutingResources = append(res.RoutingResources, routerPgw)
 	}
 
@@ -215,7 +215,7 @@ func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
 		if targetAddress != "" {
 			srcNodes := getCertainNodes(res.Nodes, func(n vpcmodel.Node) bool { return n.Cidr() == targetAddress })
 			//dstNodes := getCertainNodes(res.Nodes, func(n vpcmodel.Node) bool { return !n.IsInternal() })
-			routerFip := &FloatingIP{namedResource: namedResource{name: *fip.Name}, cidr: *fip.Address, src: srcNodes}
+			routerFip := &FloatingIP{NamedResource: vpcmodel.NamedResource{ResourceName: *fip.Name}, cidr: *fip.Address, src: srcNodes}
 			res.RoutingResources = append(res.RoutingResources, routerFip)
 
 			// node with fip should not have pgw
@@ -234,7 +234,7 @@ func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
 	}
 	for i := range rc.vpcsList {
 		vpc := rc.vpcsList[i]
-		vpcNodeSet := &VPC{namedResource: namedResource{name: *vpc.Name}, nodes: []vpcmodel.Node{}}
+		vpcNodeSet := &VPC{NamedResource: vpcmodel.NamedResource{ResourceName: *vpc.Name}, nodes: []vpcmodel.Node{}}
 		res.NodeSets = append(res.NodeSets, vpcNodeSet)
 
 	}
@@ -244,7 +244,7 @@ func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
 	sgList := []*SecurityGroup{}
 	for i := range rc.sgList {
 		sg := rc.sgList[i]
-		sgResource := &SecurityGroup{namedResource: namedResource{name: *sg.Name}, analyzer: NewSGAnalyzer(sg), members: map[string]struct{}{}}
+		sgResource := &SecurityGroup{NamedResource: vpcmodel.NamedResource{ResourceName: *sg.Name}, analyzer: NewSGAnalyzer(sg), members: map[string]struct{}{}}
 		sgMap[*sg.Name] = sgResource
 		targets := sg.Targets //*SecurityGroupTargetReference
 		//type SecurityGroupTargetReference struct
@@ -278,7 +278,7 @@ func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
 	naclList := []*NACL{}
 	for i := range rc.naclList {
 		nacl := rc.naclList[i]
-		naclResource := &NACL{namedResource: namedResource{name: *nacl.Name}, analyzer: NewNACLAnalyzer(nacl), subnets: map[string]struct{}{}}
+		naclResource := &NACL{NamedResource: vpcmodel.NamedResource{ResourceName: *nacl.Name}, analyzer: NewNACLAnalyzer(nacl), subnets: map[string]struct{}{}}
 		//res.FilterResources = append(res.FilterResources, naclResource)
 		naclList = append(naclList, naclResource)
 		for _, subnetRef := range nacl.Subnets {
@@ -363,12 +363,12 @@ func addExternalNodes(config *vpcmodel.CloudConfig, vpcInternalAddressRange *com
 		cidrList := strings.Join(ipBlock.ToCidrList(), ", ")
 		fmt.Printf("%s\n", cidrList)
 		nodeName := fmt.Sprintf("ref-address-%d", index)
-		node := &ExternalNetwork{namedResource: namedResource{name: nodeName}, cidr: cidrList}
+		node := &vpcmodel.ExternalNetwork{NamedResource: vpcmodel.NamedResource{ResourceName: nodeName}, CidrStr: cidrList}
 		config.Nodes = append(config.Nodes, node)
 		externalNodes = append(externalNodes, node)
 	}
 	//TODO: add cidrs of external network outside the given above cidrs already added
-	node := &ExternalNetwork{namedResource: namedResource{name: "public-internet"}, cidr: "192.0.1.0/24"}
+	node := &vpcmodel.ExternalNetwork{NamedResource: vpcmodel.NamedResource{ResourceName: "public-internet"}, CidrStr: "192.0.1.0/24"}
 	config.Nodes = append(config.Nodes, node)
 	externalNodes = append(externalNodes, node)
 

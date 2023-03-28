@@ -5,24 +5,11 @@ import (
 	vpcmodel "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcModel"
 )
 
-type namedResource struct {
-	name string
-	uid  string
-}
-
-func (n *namedResource) Name() string {
-	return n.name
-}
-
-func (n *namedResource) UID() string {
-	return n.uid
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // nodes elements - implement vpcmodel.Node interface
 
 type NetworkInterface struct {
-	namedResource
+	vpcmodel.NamedResource
 	cidr   string
 	vsi    string
 	subnet *Subnet
@@ -46,23 +33,11 @@ func (ni *NetworkInterface) VsiName() string {
 
 */
 
-type ExternalNetwork struct {
-	namedResource
-	cidr string
-}
-
-func (exn *ExternalNetwork) Cidr() string {
-	return exn.cidr
-}
-func (exn *ExternalNetwork) IsInternal() bool {
-	return false
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // nodesets elements - implement vpcmodel.NodeSet interface
 
 type VPC struct {
-	namedResource
+	vpcmodel.NamedResource
 	nodes             []vpcmodel.Node
 	connectivityRules *vpcmodel.ConnectivityResult //allowed connectivity between elements within the vpc
 }
@@ -75,7 +50,7 @@ func (v *VPC) Connectivity() *vpcmodel.ConnectivityResult {
 }
 
 type Subnet struct {
-	namedResource
+	vpcmodel.NamedResource
 	nodes             []vpcmodel.Node
 	connectivityRules *vpcmodel.ConnectivityResult //allowed connectivity between elements within the subnet
 	cidr              string
@@ -89,7 +64,7 @@ func (s *Subnet) Connectivity() *vpcmodel.ConnectivityResult {
 }
 
 type Vsi struct {
-	namedResource
+	vpcmodel.NamedResource
 	nodes             []vpcmodel.Node
 	connectivityRules *vpcmodel.ConnectivityResult // possible rule: if has floating ip -> create connectivity to FIP, deny connectivity to PGW
 }
@@ -105,7 +80,7 @@ func (v *Vsi) Connectivity() *vpcmodel.ConnectivityResult {
 // FilterTraffic elements
 
 type NaclLayer struct {
-	namedResource
+	vpcmodel.NamedResource
 	naclList []*NACL
 }
 
@@ -131,7 +106,7 @@ func (nl *NaclLayer) ReferencedIPblocks() []*common.IPBlock {
 }
 
 type NACL struct {
-	namedResource
+	vpcmodel.NamedResource
 	subnets  map[string]struct{} // map of subnet cidr strings for which this nacl is applied to
 	analyzer *NACLAnalyzer
 }
@@ -170,7 +145,7 @@ func (n *NACL) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *comm
 
 // SecurityGroupLayer captures all SG in the vpc config, analyzes connectivity considering all SG resources
 type SecurityGroupLayer struct {
-	namedResource
+	vpcmodel.NamedResource
 	sgList []*SecurityGroup
 }
 
@@ -201,7 +176,7 @@ func (sgl *SecurityGroupLayer) ReferencedIPblocks() []*common.IPBlock {
 }
 
 type SecurityGroup struct {
-	namedResource
+	vpcmodel.NamedResource
 	analyzer *SGAnalyzer
 	members  map[string]struct{} //map of members as their address string values
 
@@ -236,14 +211,14 @@ func (sg *SecurityGroup) AllowedConnectivity(src, dst vpcmodel.Node, isIngress b
 // routing resource elements
 
 type FloatingIP struct {
-	namedResource
+	vpcmodel.NamedResource
 	cidr         string
 	src          []vpcmodel.Node
 	destinations []vpcmodel.Node
 }
 
 type PublicGateway struct {
-	namedResource
+	vpcmodel.NamedResource
 	cidr         string
 	src          []vpcmodel.Node
 	destinations []vpcmodel.Node
