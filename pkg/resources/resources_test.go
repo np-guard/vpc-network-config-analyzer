@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -84,13 +85,13 @@ func TestGetNACLrule(t *testing.T) {
 
 func TestAnalyzeNACL(t *testing.T) {
 	naclObj := JsonNaclToObject(nwacl1)
-	subnet, _ := NewIPBlock("10.0.0.0/24", []string{})
+	subnet, _ := common.NewIPBlock("10.0.0.0/24", []string{})
 	AnalyzeNACL(naclObj, subnet, nil)
 }
 
 func getTCPconn(startPort int64, endPort int64) *ConnectionSet {
 	res := MakeConnectionSet(false)
-	ports := PortSet{Ports: CanonicalIntervalSet{IntervalSet: []Interval{{Start: startPort, End: endPort}}}}
+	ports := PortSet{Ports: common.CanonicalIntervalSet{IntervalSet: []common.Interval{{Start: startPort, End: endPort}}}}
 	res.AddConnection(v1.ProtocolTCP, ports)
 	return &res
 }
@@ -99,14 +100,14 @@ func TestGetAllowedIngressConnections(t *testing.T) {
 	// sets of ingress rules to test with
 	rulesTest1 := []*NACLRule{
 		{
-			src:         NewIPBlockFromCidr("1.2.3.4/32"),
-			dst:         NewIPBlockFromCidr("10.0.0.1/32"),
+			src:         common.NewIPBlockFromCidr("1.2.3.4/32"),
+			dst:         common.NewIPBlockFromCidr("10.0.0.1/32"),
 			connections: getAllConnSet(),
 			action:      "deny",
 		},
 		{
-			src:         NewIPBlockFromCidr("0.0.0.0/0"),
-			dst:         NewIPBlockFromCidr("0.0.0.0/0"),
+			src:         common.NewIPBlockFromCidr("0.0.0.0/0"),
+			dst:         common.NewIPBlockFromCidr("0.0.0.0/0"),
 			connections: getAllConnSet(),
 			action:      "allow",
 		},
@@ -114,20 +115,20 @@ func TestGetAllowedIngressConnections(t *testing.T) {
 
 	rulesTest2 := []*NACLRule{
 		{
-			src:         NewIPBlockFromCidr("1.2.3.4/32"),
-			dst:         NewIPBlockFromCidr("10.0.0.1/32"),
+			src:         common.NewIPBlockFromCidr("1.2.3.4/32"),
+			dst:         common.NewIPBlockFromCidr("10.0.0.1/32"),
 			connections: getTCPconn(80, 80),
 			action:      "allow",
 		},
 		{
-			src:         NewIPBlockFromCidr("1.2.3.4/32"),
-			dst:         NewIPBlockFromCidr("10.0.0.1/32"),
+			src:         common.NewIPBlockFromCidr("1.2.3.4/32"),
+			dst:         common.NewIPBlockFromCidr("10.0.0.1/32"),
 			connections: getTCPconn(1, 100),
 			action:      "deny",
 		},
 		{
-			src:         NewIPBlockFromCidr("0.0.0.0/0"),
-			dst:         NewIPBlockFromCidr("0.0.0.0/0"),
+			src:         common.NewIPBlockFromCidr("0.0.0.0/0"),
+			dst:         common.NewIPBlockFromCidr("0.0.0.0/0"),
 			connections: getAllConnSet(),
 			action:      "allow",
 		},
@@ -135,20 +136,20 @@ func TestGetAllowedIngressConnections(t *testing.T) {
 
 	rulesTest3 := []*NACLRule{
 		{
-			dst:         NewIPBlockFromCidr("1.2.3.4/32"),
-			src:         NewIPBlockFromCidr("10.0.0.1/32"),
+			dst:         common.NewIPBlockFromCidr("1.2.3.4/32"),
+			src:         common.NewIPBlockFromCidr("10.0.0.1/32"),
 			connections: getAllConnSet(),
 			action:      "deny",
 		},
 		{
-			dst:         NewIPBlockFromCidr("0.0.0.0/0"),
-			src:         NewIPBlockFromCidr("0.0.0.0/0"),
+			dst:         common.NewIPBlockFromCidr("0.0.0.0/0"),
+			src:         common.NewIPBlockFromCidr("0.0.0.0/0"),
 			connections: getAllConnSet(),
 			action:      "allow",
 		},
 	}
 
-	subnet := NewIPBlockFromCidr("10.0.0.0/24")
+	subnet := common.NewIPBlockFromCidr("10.0.0.0/24")
 
 	//res1 := ingressConnResFromInput(rulesTest1, subnet)
 	res1, _ := AnalyzeNACLRules(rulesTest1, subnet, true, nil)
@@ -187,8 +188,8 @@ func TestAnalyzeSG(t *testing.T) {
 
 func getExampleTopology() *vpcConfig {
 	res := &vpcConfig{}
-	res.vsiMap = map[string]*IPBlock{"b": NewIPBlockFromCidr("10.0.0.4/32")}
-	res.subnetsMap = map[string]*IPBlock{"a": NewIPBlockFromCidr("10.0.0.0/24")}
+	res.vsiMap = map[string]*common.IPBlock{"b": common.NewIPBlockFromCidr("10.0.0.4/32")}
+	res.subnetsMap = map[string]*common.IPBlock{"a": common.NewIPBlockFromCidr("10.0.0.0/24")}
 	res.vsiToSubnet = map[string]string{"b": "a"}
 	res.nacl = map[string]*vpc1.NetworkACL{"n1": JsonNaclToObject(nwacl1)}
 	res.sg = map[string]*vpc1.SecurityGroup{"s1": JsonSgToObject(sg1)}
@@ -204,19 +205,19 @@ func TestTopologyAnalysis(t *testing.T) {
 }
 
 func TestIntervalToCidrList(t *testing.T) {
-	ipb1 := NewIPBlockFromCidr("192.168.1.0/32")
-	ipb2 := NewIPBlockFromCidr("192.168.1.9/32")
-	ipStart := ipb1.ipRange.IntervalSet[0].Start
-	ipEnd := ipb2.ipRange.IntervalSet[0].Start
+	ipb1 := common.NewIPBlockFromCidr("192.168.1.0/32")
+	ipb2 := common.NewIPBlockFromCidr("192.168.1.9/32")
+	ipStart := ipb1.StartIPNum()
+	ipEnd := ipb2.StartIPNum()
 
-	res := intervalToCidrList(ipStart, ipEnd)
+	res := common.IntervalToCidrList(ipStart, ipEnd)
 	for _, ipStr := range res {
 		fmt.Printf("%s", ipStr)
 	}
 }
 
 func TestIPRangeToCidrList(t *testing.T) {
-	ipb, err := IPBlockFromIPRangeStr("192.168.1.0-192.168.1.9")
+	ipb, err := common.IPBlockFromIPRangeStr("192.168.1.0-192.168.1.9")
 	//ipb, err := IPBlockFromIPRangeStr("0.0.0.0-255.255.255.255")
 	if err != nil {
 		t.Fatalf("err: %v", err)

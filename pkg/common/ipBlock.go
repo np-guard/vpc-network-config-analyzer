@@ -1,4 +1,4 @@
-package resources
+package common
 
 import (
 	"encoding/binary"
@@ -90,8 +90,12 @@ func (b *IPBlock) ipCount() int {
 	return res
 }
 
-// split returns a set of IpBlock objects, each with a single range of ips
-func (b *IPBlock) split() []*IPBlock {
+func (b *IPBlock) StartIPNum() int64 {
+	return b.ipRange.IntervalSet[0].Start
+}
+
+// Split returns a set of IpBlock objects, each with a single range of ips
+func (b *IPBlock) Split() []*IPBlock {
 	res := make([]*IPBlock, len(b.ipRange.IntervalSet))
 	for index, ipr := range b.ipRange.IntervalSet {
 		newBlock := IPBlock{}
@@ -156,7 +160,7 @@ func addIntervalToList(ipbNew *IPBlock, ipbList []*IPBlock) []*IPBlock {
 			break
 		}
 	}
-	ipbList = append(ipbList, ipbNew.split()...)
+	ipbList = append(ipbList, ipbNew.Split()...)
 	ipbList = append(ipbList, toAdd...)
 	return ipbList
 }
@@ -165,6 +169,16 @@ func NewIPBlockFromCidr(cidr string) *IPBlock {
 	res, err := NewIPBlock(cidr, []string{})
 	if err != nil {
 		return nil
+	}
+	return res
+}
+
+func NewIPBlockFromCidrOrAddress(s string) *IPBlock {
+	var res *IPBlock
+	if strings.Contains(s, "/") {
+		res = NewIPBlockFromCidr(s)
+	} else {
+		res, _ = NewIPBlockFromIPAddress(s)
 	}
 	return res
 }
@@ -220,12 +234,19 @@ func cidrToInterval(cidr string) (*Interval, error) {
 func (b *IPBlock) ToCidrList() []string {
 	cidrList := []string{}
 	for _, interval := range b.ipRange.IntervalSet {
-		cidrList = append(cidrList, intervalToCidrList(interval.Start, interval.End)...)
+		cidrList = append(cidrList, IntervalToCidrList(interval.Start, interval.End)...)
 	}
 	return cidrList
 }
 
-func intervalToCidrList(ipStart, ipEnd int64) []string {
+func (b *IPBlock) ToIPAdress() string {
+	if b.ipRange.isSingleNumber() {
+		return InttoIP4(b.ipRange.IntervalSet[0].Start)
+	}
+	return ""
+}
+
+func IntervalToCidrList(ipStart, ipEnd int64) []string {
 	start := ipStart
 	end := ipEnd
 	res := []string{}

@@ -1,4 +1,4 @@
-package resources
+package ibmvpc
 
 import (
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
@@ -51,6 +51,20 @@ func JsonVpcToObject(vpc []byte) *vpc1.VPC {
 	vpcObj := &vpc1.VPC{}
 	vpc1.UnmarshalVPC(vpcMap, &vpcObj)
 	return vpcObj
+}
+
+func JsonFipToObject(fip []byte) *vpc1.FloatingIP {
+	jsonMap := jsonToMap(fip)
+	fipObj := &vpc1.FloatingIP{}
+	vpc1.UnmarshalFloatingIP(jsonMap, &fipObj)
+	return fipObj
+}
+
+func JsonPgwTpObject(pgw []byte) *vpc1.PublicGateway {
+	jsonMap := jsonToMap(pgw)
+	pgwObj := &vpc1.PublicGateway{}
+	vpc1.UnmarshalPublicGateway(jsonMap, &pgwObj)
+	return pgwObj
 }
 
 // convert vpc1.NetworkACL to json string

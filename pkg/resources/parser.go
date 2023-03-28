@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 type ResourcesContainer struct {
@@ -96,8 +97,8 @@ func ParseResources(resourcesJsonFile []byte) *ResourcesContainer {
 
 func NewVpcConfig(rc *ResourcesContainer) (*vpcConfig, error) {
 	config := &vpcConfig{
-		vsiMap:                map[string]*IPBlock{},
-		subnetsMap:            map[string]*IPBlock{},
+		vsiMap:                map[string]*common.IPBlock{},
+		subnetsMap:            map[string]*common.IPBlock{},
 		nacl:                  map[string]*vpc1.NetworkACL{},
 		sg:                    map[string]*vpc1.SecurityGroup{},
 		vsiToSubnet:           map[string]string{},
@@ -115,7 +116,7 @@ func NewVpcConfig(rc *ResourcesContainer) (*vpcConfig, error) {
 	}
 	for i := range rc.subnetsList {
 		subnet := rc.subnetsList[i]
-		subnetCIDR := NewIPBlockFromCidr(*subnet.Ipv4CIDRBlock)
+		subnetCIDR := common.NewIPBlockFromCidr(*subnet.Ipv4CIDRBlock)
 		config.subnetsMap[*subnet.Name] = subnetCIDR
 		naclName := *subnet.NetworkACL.Name
 		if _, ok := config.nacl[naclName]; !ok {
@@ -140,7 +141,7 @@ func NewVpcConfig(rc *ResourcesContainer) (*vpcConfig, error) {
 			return nil, fmt.Errorf("for instance %s the IP address has not yet been selected", *instance.Name)
 		}
 		config.netInterfaceNameToVsi[*netInterface.Name] = *instance.Name
-		ipBlock, err := NewIPBlockFromIPAddress(ipv4Address)
+		ipBlock, err := common.NewIPBlockFromIPAddress(ipv4Address)
 		if err != nil {
 			return nil, err
 		}

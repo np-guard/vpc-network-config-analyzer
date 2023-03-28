@@ -5,11 +5,12 @@ import (
 	"strings"
 
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 type vpcConfig struct {
-	vsiMap                map[string]*IPBlock            // map from vsi name to its network interface address
-	subnetsMap            map[string]*IPBlock            // map from subnet name to its cidr range
+	vsiMap                map[string]*common.IPBlock     // map from vsi name to its network interface address
+	subnetsMap            map[string]*common.IPBlock     // map from subnet name to its cidr range
 	nacl                  map[string]*vpc1.NetworkACL    // map from nacl name to its object
 	sg                    map[string]*vpc1.SecurityGroup // map from sg name to its object
 	vsiToSubnet           map[string]string              // map from vsi name to its subnet
@@ -56,6 +57,8 @@ func (v *vpcConfig) details() string {
 
 // connectivity analysis per VSI (network interface): connectivity based on SG and based on NCAL of its subnet
 func analyzeConnectivity(t *vpcConfig) {
+	/*analyzedsgResourcesMap := map[string]*ConnectivityResult{}
+	analyzedNaclResourcesMap := map[string]map[*IPBlock]*ConnectivityResult{}*/
 	for vsi, vsiIP := range t.vsiMap {
 		subnet := t.vsiToSubnet[vsi]
 		nacl := t.subnetToNacl[subnet]
@@ -85,9 +88,9 @@ func analyzeConnectivity(t *vpcConfig) {
 		ingressConnectivityRes := ingressSgConn.intersection(ingressNACLConn)
 		egressConnectivityRes := egressSgConn.intersection(egressNACLCon)
 
-		fmt.Printf("ingress connectivity result for vsi %s , considering sg + nacl:\n", vsiIP.ToCidrList()[0])
+		fmt.Printf("ingress connectivity result for vsi %s , considering sg + nacl:\n", vsiIP.ToIPAdress())
 		fmt.Printf("%s\n", ingressConnectivityRes.string())
-		fmt.Printf("egress connectivity result for vsi %s , considering sg + nacl:\n", vsiIP.ToCidrList()[0])
+		fmt.Printf("egress connectivity result for vsi %s , considering sg + nacl:\n", vsiIP.ToIPAdress())
 		fmt.Printf("%s\n", egressConnectivityRes.string())
 
 	}
