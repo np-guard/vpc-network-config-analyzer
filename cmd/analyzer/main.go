@@ -1,9 +1,7 @@
 package main
 
-import (
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/resources"
-)
+import "fmt"
 
 func main() {
-	resources.Test()
+	fmt.Println("test")
 }
