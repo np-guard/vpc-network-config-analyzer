@@ -114,6 +114,10 @@ func (p *PortSet) Contains(port int64) bool {
 	return portObj.ContainedIn(*p)
 }
 
+func NewPortSetAllPorts() *PortSet {
+	return &PortSet{Ports: CanonicalIntervalSet{IntervalSet: []Interval{{Start: minPort, End: maxPort}}}}
+}
+
 /*
 func (p *PortSet) Subtract(other PortSet){
 
