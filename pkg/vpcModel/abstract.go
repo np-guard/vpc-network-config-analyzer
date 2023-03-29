@@ -2,6 +2,8 @@ package vpcmodel
 
 import (
 	"fmt"
+	"sort"
+	"strings"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
@@ -112,23 +114,33 @@ type ConnectivityOutput struct {
 
 func (v *VPCConnectivity) String() string {
 	res := "=================================== distributed inbound/outbound connections:\n"
+	strList := []string{}
 	for node, connectivity := range v.AllowedConns {
 		// ingress
 		for peerNode, conn := range connectivity.IngressAllowedConns {
-			res += fmt.Sprintf("%s => %s : %s [inbound]\n", peerNode.Cidr(), node.Cidr(), conn.String())
+			//res += fmt.Sprintf("%s => %s : %s [inbound]\n", peerNode.Cidr(), node.Cidr(), conn.String())
+			strList = append(strList, fmt.Sprintf("%s => %s : %s [inbound]\n", peerNode.Cidr(), node.Cidr(), conn.String()))
 		}
 		// egress
 		for peerNode, conn := range connectivity.EgressAllowedConns {
-			res += fmt.Sprintf("%s => %s : %s [outbound]\n", node.Cidr(), peerNode.Cidr(), conn.String())
+			//res += fmt.Sprintf("%s => %s : %s [outbound]\n", node.Cidr(), peerNode.Cidr(), conn.String())
+			strList = append(strList, fmt.Sprintf("%s => %s : %s [outbound]\n", node.Cidr(), peerNode.Cidr(), conn.String()))
 		}
 	}
+	sort.Strings(strList)
+	res += strings.Join(strList, "")
 	res += "=================================== combined connections:\n"
+	strList = []string{}
 	for src, nodeConns := range v.AllowedConnsCombined {
 		for dst, conns := range nodeConns {
-			res += fmt.Sprintf("%s => %s : %s\n", src.Cidr(), dst.Cidr(), conns.String())
+			//res += fmt.Sprintf("%s => %s : %s\n", src.Cidr(), dst.Cidr(), conns.String())
+			strList = append(strList, fmt.Sprintf("%s => %s : %s\n", src.Cidr(), dst.Cidr(), conns.String()))
 		}
 	}
+	sort.Strings(strList)
+	res += strings.Join(strList, "")
 	res += "=================================== combined connections - short version:\n"
+	strList = []string{}
 	for src, nodeConns := range v.AllowedConnsCombined {
 		for dst, conns := range nodeConns {
 			if conns.IsEmpty() {
@@ -142,9 +154,12 @@ func (v *VPCConnectivity) String() string {
 			if dst.IsInternal() {
 				dstName = dst.Name()
 			}
-			res += fmt.Sprintf("%s => %s : %s\n", srcName, dstName, conns.String())
+			//res += fmt.Sprintf("%s => %s : %s\n", srcName, dstName, conns.String())
+			strList = append(strList, fmt.Sprintf("%s => %s : %s\n", srcName, dstName, conns.String()))
 		}
 	}
+	sort.Strings(strList)
+	res += strings.Join(strList, "")
 	return res
 }
 
