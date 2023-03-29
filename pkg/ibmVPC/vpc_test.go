@@ -3,6 +3,8 @@ package ibmvpc
 import (
 	_ "embed"
 	"fmt"
+	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -24,8 +26,32 @@ func TestWithParsing(t *testing.T) {
 		fmt.Printf("%s %s\n", n.Name(), n.Cidr())
 	}
 	vpcConn := cloudConfig.GetVPCNetworkConnectivity()
-	fmt.Printf("%s", vpcConn.String())
+	actualOutput := vpcConn.String()
+	fmt.Printf("%s", actualOutput)
 	fmt.Println("done")
+
+	// check output
+	generateActualOutput := false
+	currentDir, _ := os.Getwd()
+	expectedOutputFile := filepath.Join(currentDir, "examples", "TestWithParsing.txt")
+	//res := filepath.Join(currentDir, dirLevelUp, dirLevelUp, dirLevelUp, "tests")
+	//expectedOutputFile := "TestWithParsing.txt"
+	if generateActualOutput {
+		// update expected output: override expected output with actual output
+		if err = os.WriteFile(expectedOutputFile, []byte(actualOutput), 0600); err != nil {
+			t.Fatalf("TestWithParsing WriteFile err: %v", err)
+		}
+	} else {
+		// compare actual output to expected output
+		expectedStr, err := os.ReadFile(expectedOutputFile)
+		if err != nil {
+			t.Fatalf("TestWithParsing:  ReadFile err: %v", err)
+		}
+		if string(expectedStr) != actualOutput {
+			fmt.Printf("%s", actualOutput)
+			t.Fatalf("TestWithParsing unexpected output result ")
+		}
+	}
 }
 
 /*func TestExampleBasicFromAPImanual(t *testing.T) {
