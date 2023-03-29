@@ -5,9 +5,29 @@ import (
 	"strings"
 
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
+
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	vpcmodel "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcModel"
 )
+
+const (
+	maxICMPtype = 255
+)
+
+type SGAnalyzer struct {
+	sgResource          *vpc1.SecurityGroup
+	ingressRules        []*SGRule
+	egressRules         []*SGRule
+	ingressConnectivity *ConnectivityResult
+	egressConnectivity  *ConnectivityResult
+	sgMap               map[string]*SecurityGroup
+	referencedIPblocks  []*common.IPBlock
+}
+
+func NewSGAnalyzer(sg *vpc1.SecurityGroup) *SGAnalyzer {
+	res := &SGAnalyzer{sgResource: sg}
+	return res
+}
 
 func isIngressRule(direction *string) bool {
 	if direction == nil {
@@ -29,11 +49,11 @@ func getAllConnSet() *common.ConnectionSet {
 	return &res
 }
 
-func getProtocolConn(Protocol *string, PortMax, PortMin *int64) (*common.ConnectionSet, error) {
+func getProtocolConn(protocol *string, portMax, portMin *int64) (*common.ConnectionSet, error) {
 	res := getEmptyConnSet()
-	ports := common.PortSet{Ports: common.CanonicalIntervalSet{IntervalSet: []common.Interval{{Start: *PortMin, End: *PortMax}}}}
+	ports := common.PortSet{Ports: common.CanonicalIntervalSet{IntervalSet: []common.Interval{{Start: *portMin, End: *portMax}}}}
 	var err error
-	switch *Protocol {
+	switch *protocol {
 	case "tcp":
 		res.AddConnection(common.ProtocolTCP, ports)
 	case "udp":
@@ -41,7 +61,7 @@ func getProtocolConn(Protocol *string, PortMax, PortMin *int64) (*common.Connect
 	case "icmp":
 		res.AddConnection(common.ProtocolICMP, ports)
 	default:
-		err = fmt.Errorf("getProtocolConn: unknown protocol %s .", *Protocol)
+		err = fmt.Errorf("getProtocolConn: unknown protocol %s", *protocol)
 	}
 
 	return res, err
@@ -54,42 +74,38 @@ func (sga *SGAnalyzer) getRemoteCidr(remote vpc1.SecurityGroupRuleRemoteIntf) (*
 	var cidr string
 	var cidrRes string
 	//TODO: handle other remote types:
-	//SecurityGroupRuleRemoteIP
-	//SecurityGroupRuleRemoteSecurityGroupReference
-	/*if remoteObj, ok := remote.(*vpc1.SecurityGroupRuleRemoteCIDR); ok {
-		cidr = *remoteObj.CIDRBlock
-		target = common.NewIPBlockFromCidr(cidr)
-		return nil, "", fmt.Errorf("sg error getRemoteCidr: unexpected type for remoteObj: SecurityGroupRuleRemoteCIDR ")
-	}*/
+	// SecurityGroupRuleRemoteIP
+	// SecurityGroupRuleRemoteSecurityGroupReference
+
 	// how can infer type of remote from this object?
 	// can also be Address or CRN or ...
 	if remoteObj, ok := remote.(*vpc1.SecurityGroupRuleRemote); ok {
-		/*if remoteObj.CIDRBlock == nil {
-			return nil, ""
-		}*/
-		if remoteObj.CIDRBlock != nil {
+		switch {
+		case remoteObj.CIDRBlock != nil:
 			cidr = *remoteObj.CIDRBlock
 			target = common.NewIPBlockFromCidr(cidr)
 			cidrRes = target.ToCidrList()[0]
-		} else if remoteObj.Address != nil {
+		case remoteObj.Address != nil:
 			address := *remoteObj.Address
 			target, _ = common.NewIPBlockFromIPAddress(address)
 			cidrRes = target.ToCidrList()[0]
-		} else if remoteObj.Name != nil {
+		case remoteObj.Name != nil:
 			if remoteSg, ok := sga.sgMap[*remoteObj.Name]; ok {
-				resIpBlock := &common.IPBlock{}
+				resIPBlock := &common.IPBlock{}
 				for member := range remoteSg.members {
-					memberIpBlock, err := common.NewIPBlockFromIPAddress(member)
+					memberIPBlock, err := common.NewIPBlockFromIPAddress(member)
 					if err != nil {
 						return nil, "", err
 					}
-					resIpBlock = resIpBlock.Union(memberIpBlock)
+					resIPBlock = resIPBlock.Union(memberIPBlock)
 				}
-				target = resIpBlock
+				target = resIPBlock
 				cidrRes = strings.Join(target.ToCidrList(), ",")
 			}
-
+		default:
+			return nil, "", fmt.Errorf("sg error: getRemoteCidr - SecurityGroupRuleRemote is empty: %+v", remoteObj)
 		}
+
 		if target == nil || cidrRes == "" {
 			return target, cidrRes, fmt.Errorf("sg error: getRemoteCidr returns empty result. remoteObj: %+v", remoteObj)
 		}
@@ -102,115 +118,122 @@ func (sga *SGAnalyzer) getRemoteCidr(remote vpc1.SecurityGroupRuleRemoteIntf) (*
 	return target, cidrRes, nil
 }
 
-func (sga *SGAnalyzer) getSGRule(rule vpc1.SecurityGroupRuleIntf) (string, *SGRule, bool, error) {
-	ruleRes := &SGRule{}
-	var isIngress bool
-
-	if ruleObj, ok := rule.(*vpc1.SecurityGroupRuleSecurityGroupRuleProtocolAll); ok {
-		direction := *ruleObj.Direction
-		isIngress = isIngressRule(ruleObj.Direction)
-		protocol := *ruleObj.Protocol
-		remote := ruleObj.Remote
-		cidr := ""
-		var target *common.IPBlock
-		//SecurityGroupRuleRemoteCIDR
-		target, cidr, err := sga.getRemoteCidr(remote)
-		if err == nil {
-			if target == nil {
-				return "", nil, false, fmt.Errorf("getSGRule error: empty target in rule %+v", rule)
-			}
-			ruleStr := fmt.Sprintf("direction: %s, protocol: %s, cidr: %s\n", direction, protocol, cidr)
-			//fmt.Printf("SG rule: %s\n", ruleStr)
-			ruleRes.target = target
-			ruleRes.connections = getAllConnSet()
-			return ruleStr, ruleRes, isIngress, nil
+func (sga *SGAnalyzer) getProtocolAllRule(ruleObj *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolAll) (
+	ruleStr string, ruleRes *SGRule, isIngress bool, err error) {
+	ruleRes = &SGRule{}
+	direction := *ruleObj.Direction
+	isIngress = isIngressRule(ruleObj.Direction)
+	protocol := *ruleObj.Protocol
+	remote := ruleObj.Remote
+	cidr := ""
+	var target *common.IPBlock
+	// SecurityGroupRuleRemoteCIDR
+	target, cidr, err = sga.getRemoteCidr(remote)
+	if err == nil {
+		if target == nil {
+			return "", nil, false, fmt.Errorf("getSGRule error: empty target in rule %+v", ruleObj)
 		}
+		ruleStr := fmt.Sprintf("direction: %s, protocol: %s, cidr: %s\n", direction, protocol, cidr)
+		ruleRes.target = target
+		ruleRes.connections = getAllConnSet()
+		return ruleStr, ruleRes, isIngress, nil
+	}
+	return "", nil, false, err
+}
+
+func (sga *SGAnalyzer) getProtocolTcpudpRule(ruleObj *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudp) (
+	ruleStr string, ruleRes *SGRule, isIngress bool, err error) {
+	direction := *ruleObj.Direction
+	isIngress = isIngressRule(ruleObj.Direction)
+	remote := ruleObj.Remote
+	cidr := ""
+	var target *common.IPBlock
+	target, cidr, err = sga.getRemoteCidr(remote)
+	if err != nil {
 		return "", nil, false, err
 	}
-	if ruleObj, ok := rule.(*vpc1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudp); ok {
-		direction := *ruleObj.Direction
-		isIngress = isIngressRule(ruleObj.Direction)
-		//protocol := *ruleObj.Protocol
-		remote := ruleObj.Remote
-		cidr := ""
-		var target *common.IPBlock
-		target, cidr, err := sga.getRemoteCidr(remote)
-		if err != nil {
-			return "", nil, false, err
-		}
-		conns := common.MakeConnectionSet(false)
-		ports := common.PortSet{Ports: common.CanonicalIntervalSet{IntervalSet: []common.Interval{{Start: *ruleObj.PortMin, End: *ruleObj.PortMax}}}}
-		if *ruleObj.Protocol == "tcp" {
-			conns.AllowedProtocols[common.ProtocolTCP] = &ports
-		} else if *ruleObj.Protocol == "udp" {
-			conns.AllowedProtocols[common.ProtocolUDP] = &ports
-		}
-
-		dstPorts := fmt.Sprintf("%d-%d", *ruleObj.PortMin, *ruleObj.PortMax)
-		connStr := fmt.Sprintf("protocol: %s,  dstPorts: %s", *ruleObj.Protocol, dstPorts)
-		ruleStr := fmt.Sprintf("direction: %s,  conns: %s, cidr: %s\n", direction, connStr, cidr)
-		//fmt.Printf("SG rule: %s\n", ruleStr)
-		ruleRes := &SGRule{}
-		ruleRes.connections, err = getProtocolConn(ruleObj.Protocol, ruleObj.PortMax, ruleObj.PortMin)
-		if err != nil {
-			return ruleStr, ruleRes, isIngress, err
-		}
-		ruleRes.target = target
-		return ruleStr, ruleRes, isIngress, nil
+	conns := common.MakeConnectionSet(false)
+	ports := common.PortSet{Ports: common.CanonicalIntervalSet{
+		IntervalSet: []common.Interval{{Start: *ruleObj.PortMin, End: *ruleObj.PortMax}}},
 	}
-	//SecurityGroupRuleSecurityGroupRuleProtocolIcmp
+	if *ruleObj.Protocol == protocolTCP {
+		conns.AllowedProtocols[common.ProtocolTCP] = &ports
+	} else if *ruleObj.Protocol == protocolUDP {
+		conns.AllowedProtocols[common.ProtocolUDP] = &ports
+	}
+
+	dstPorts := fmt.Sprintf("%d-%d", *ruleObj.PortMin, *ruleObj.PortMax)
+	connStr := fmt.Sprintf("protocol: %s,  dstPorts: %s", *ruleObj.Protocol, dstPorts)
+	ruleStr = getRuleStr(direction, connStr, cidr)
+	ruleRes = &SGRule{}
+	ruleRes.connections, err = getProtocolConn(ruleObj.Protocol, ruleObj.PortMax, ruleObj.PortMin)
+	if err != nil {
+		return ruleStr, ruleRes, isIngress, err
+	}
+	ruleRes.target = target
+	return ruleStr, ruleRes, isIngress, nil
+}
+
+func getRuleStr(direction, connStr, cidr string) string {
+	return fmt.Sprintf("direction: %s,  conns: %s, cidr: %s\n", direction, connStr, cidr)
+}
+
+func (sga *SGAnalyzer) getProtocolIcmpRule(ruleObj *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolIcmp) (
+	ruleStr string, ruleRes *SGRule, isIngress bool, err error) {
+	direction := *ruleObj.Direction
+	isIngress = isIngressRule(ruleObj.Direction)
+	cidr := ""
+	remote := ruleObj.Remote
+	var target *common.IPBlock
+	target, cidr, err = sga.getRemoteCidr(remote)
+	if err != nil {
+		return "", nil, false, err
+	}
+	conns := common.MakeConnectionSet(false)
+	icmpType := ruleObj.Type
+	// TODO: handle also icmp code
+	var icmpTypeProperties common.PortSet
+	if icmpType == nil {
+		icmpTypeProperties = common.PortSet{Ports: common.CanonicalIntervalSet{IntervalSet: []common.Interval{{Start: 0, End: maxICMPtype}}}}
+	} else {
+		icmpTypeProperties = common.PortSet{Ports: common.CanonicalIntervalSet{
+			IntervalSet: []common.Interval{{Start: *icmpType, End: *icmpType}}},
+		}
+	}
+	conns.AllowedProtocols[common.ProtocolICMP] = &icmpTypeProperties
+
+	icmpTypeStr := icmpTypeProperties.String()
+	connStr := fmt.Sprintf("protocol: %s,  icmpType: %s", *ruleObj.Protocol, icmpTypeStr)
+	ruleStr = getRuleStr(direction, connStr, cidr)
+	ruleRes = &SGRule{}
+	ruleRes.connections, err = getProtocolConn(ruleObj.Protocol, &icmpTypeProperties.Ports.IntervalSet[0].End,
+		&icmpTypeProperties.Ports.IntervalSet[0].Start)
+	if err != nil {
+		return ruleStr, ruleRes, isIngress, err
+	}
+	ruleRes.target = target
+	return ruleStr, ruleRes, isIngress, nil
+}
+
+func (sga *SGAnalyzer) getSGRule(rule vpc1.SecurityGroupRuleIntf) (
+	ruleStr string, ruleRes *SGRule, isIngress bool, err error) {
+	if ruleObj, ok := rule.(*vpc1.SecurityGroupRuleSecurityGroupRuleProtocolAll); ok {
+		return sga.getProtocolAllRule(ruleObj)
+	}
+	if ruleObj, ok := rule.(*vpc1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudp); ok {
+		return sga.getProtocolTcpudpRule(ruleObj)
+	}
+	// SecurityGroupRuleSecurityGroupRuleProtocolIcmp
 	if ruleObj, ok := rule.(*vpc1.SecurityGroupRuleSecurityGroupRuleProtocolIcmp); ok {
-		direction := *ruleObj.Direction
-		isIngress = isIngressRule(ruleObj.Direction)
-		cidr := ""
-		remote := ruleObj.Remote
-		var target *common.IPBlock
-		target, cidr, err := sga.getRemoteCidr(remote)
-		if err != nil {
-			return "", nil, false, err
-		}
-		conns := common.MakeConnectionSet(false)
-		icmpType := ruleObj.Type
-		// TODO: handle also icmp code
-		var icmpTypeProperties common.PortSet
-		if icmpType == nil {
-			icmpTypeProperties = common.PortSet{Ports: common.CanonicalIntervalSet{IntervalSet: []common.Interval{{Start: 0, End: 255}}}}
-		} else {
-			icmpTypeProperties = common.PortSet{Ports: common.CanonicalIntervalSet{IntervalSet: []common.Interval{{Start: *icmpType, End: *icmpType}}}}
-		}
-		conns.AllowedProtocols[common.ProtocolICMP] = &icmpTypeProperties
-
-		icmpTypeStr := icmpTypeProperties.String()
-		connStr := fmt.Sprintf("protocol: %s,  icmpType: %s", *ruleObj.Protocol, icmpTypeStr)
-		ruleStr := fmt.Sprintf("direction: %s,  conns: %s, cidr: %s\n", direction, connStr, cidr)
-		//fmt.Printf("SG rule: %s\n", ruleStr)
-		ruleRes := &SGRule{}
-		ruleRes.connections, err = getProtocolConn(ruleObj.Protocol, &icmpTypeProperties.Ports.IntervalSet[0].End, &icmpTypeProperties.Ports.IntervalSet[0].Start)
-		if err != nil {
-			return ruleStr, ruleRes, isIngress, err
-		}
-		ruleRes.target = target
-		return ruleStr, ruleRes, isIngress, nil
-
+		return sga.getProtocolIcmpRule(ruleObj)
 	}
 
 	return "", nil, false, fmt.Errorf("getSGRule error: unsupported type")
-
 }
 
-/*func getSGDetails(sgObj *vpc1.SecurityGroup) string {
-	res := ""
-	for index := range sgObj.Rules {
-		rule := sgObj.Rules[index]
-		ruleStr, _, _ := getSGRule(rule)
-		res += ruleStr
-	}
-	return res
-}*/
-
-func (sga *SGAnalyzer) getSGrules(sgObj *vpc1.SecurityGroup) ([]*SGRule, []*SGRule, error) {
-	ingressRules := []*SGRule{}
-	egressRules := []*SGRule{}
+func (sga *SGAnalyzer) getSGrules(sgObj *vpc1.SecurityGroup) (ingressRules, egressRules []*SGRule, err error) {
+	ingressRules = []*SGRule{}
+	egressRules = []*SGRule{}
 	for index := range sgObj.Rules {
 		rule := sgObj.Rules[index]
 		_, ruleObj, isIngress, err := sga.getSGRule(rule)
@@ -242,7 +265,7 @@ type ConnectivityResult struct {
 	allowedconns map[*common.IPBlock]*common.ConnectionSet // allowed target and its allowed connections
 }
 
-func (cr *ConnectivityResult) union(cr2 *ConnectivityResult) *ConnectivityResult {
+/*func (cr *ConnectivityResult) unionOrIntersection(cr2 *ConnectivityResult, isUnion bool) *ConnectivityResult {
 	// union based on disjoint ip-blocks of targets
 	crTargets := cr.getTargets()
 	cr2Targets := cr2.getTargets()
@@ -257,48 +280,40 @@ func (cr *ConnectivityResult) union(cr2 *ConnectivityResult) *ConnectivityResult
 		}
 		for t, conn := range cr2.allowedconns {
 			if disjointTargets[i].ContainedIn(t) {
-				res.allowedconns[disjointTargets[i]].Union(*conn)
+				if isUnion {
+					res.allowedconns[disjointTargets[i]].Union(*conn)
+				} else {
+					res.allowedconns[disjointTargets[i]].Intersection(*conn)
+				}
 			}
 		}
 	}
 
 	return res
+}
+
+func (cr *ConnectivityResult) union(cr2 *ConnectivityResult) *ConnectivityResult {
+	return cr.unionOrIntersection(cr2, true)
 }
 
 func (cr *ConnectivityResult) intersection(cr2 *ConnectivityResult) *ConnectivityResult {
-	crTargets := cr.getTargets()
-	cr2Targets := cr2.getTargets()
-	disjointTargets := common.DisjointIPBlocks(crTargets, cr2Targets)
-	res := &ConnectivityResult{isIngress: cr.isIngress, allowedconns: map[*common.IPBlock]*common.ConnectionSet{}}
-	for i := range disjointTargets {
-		res.allowedconns[disjointTargets[i]] = getEmptyConnSet()
-		for t, conn := range cr.allowedconns {
-			if disjointTargets[i].ContainedIn(t) {
-				res.allowedconns[disjointTargets[i]].Union(*conn)
-			}
-		}
-		for t, conn := range cr2.allowedconns {
-			if disjointTargets[i].ContainedIn(t) {
-				res.allowedconns[disjointTargets[i]].Intersection(*conn)
-			}
-		}
-	}
-
-	return res
-}
-
-func (cr *ConnectivityResult) string() string {
-	res := ""
-	for t, conn := range cr.allowedconns {
-		res += fmt.Sprintf("target: %s, conn: %s\n", t.ToIPRanges(), conn.String())
-	}
-	return res
+	return cr.unionOrIntersection(cr2, false)
 }
 
 func (cr *ConnectivityResult) getTargets() []*common.IPBlock {
 	res := []*common.IPBlock{}
 	for t := range cr.allowedconns {
 		res = append(res, t)
+	}
+	return res
+}
+
+*/
+
+func (cr *ConnectivityResult) string() string {
+	res := ""
+	for t, conn := range cr.allowedconns {
+		res += fmt.Sprintf("target: %s, conn: %s\n", t.ToIPRanges(), conn.String())
 	}
 	return res
 }
@@ -310,7 +325,7 @@ func AnalyzeSGRules(rules []*SGRule, isIngress bool) *ConnectivityResult {
 			targets = append(targets, rules[i].target)
 		}
 	}
-	disjointTargets := common.DisjointIPBlocks(targets, []*common.IPBlock{(common.NewIPBlockFromCidr("0.0.0.0/0"))})
+	disjointTargets := common.DisjointIPBlocks(targets, []*common.IPBlock{common.GetCidrAll()})
 	res := &ConnectivityResult{isIngress: isIngress, allowedconns: map[*common.IPBlock]*common.ConnectionSet{}}
 	for i := range disjointTargets {
 		res.allowedconns[disjointTargets[i]] = getEmptyConnSet()
@@ -323,12 +338,10 @@ func AnalyzeSGRules(rules []*SGRule, isIngress bool) *ConnectivityResult {
 			if disjointTarget.ContainedIn(target) {
 				res.allowedconns[disjointTarget].Union(*conn)
 			}
-
 		}
 	}
 
 	return res
-
 }
 
 /*func AnalyzeSG(vsiIP *common.IPBlock, sg *vpc1.SecurityGroup) (*ConnectivityResult, *ConnectivityResult) {
@@ -344,24 +357,6 @@ AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *common.ConnectionSe
 
 */
 
-type SGAnalyzer struct {
-	sgResource          *vpc1.SecurityGroup
-	ingressRules        []*SGRule
-	egressRules         []*SGRule
-	ingressConnectivity *ConnectivityResult
-	egressConnectivity  *ConnectivityResult
-	sgMap               map[string]*SecurityGroup
-	referencedIPblocks  []*common.IPBlock
-}
-
-func NewSGAnalyzer(sg *vpc1.SecurityGroup) *SGAnalyzer {
-	res := &SGAnalyzer{sgResource: sg}
-	/*res.ingressRules, res.egressRules = getSGrules(sg)
-	res.ingressConnectivity = AnalyzeSGRules(res.ingressRules, true)
-	res.egressConnectivity = AnalyzeSGRules(res.egressRules, true)*/
-	return res
-}
-
 func (sga *SGAnalyzer) prepareAnalyzer(sgMap map[string]*SecurityGroup, currentSg *SecurityGroup) error {
 	if len(currentSg.members) == 0 {
 		return nil // avoid analysis sg which is not applied to any members
@@ -376,9 +371,9 @@ func (sga *SGAnalyzer) prepareAnalyzer(sgMap map[string]*SecurityGroup, currentS
 	fmt.Printf("\nprepareAnalyzer results:\n")
 	fmt.Printf("sg: %s\n", currentSg.Name())
 	fmt.Println("ingressConnectivity:")
-	fmt.Printf("%s", sga.ingressConnectivity.string())
+	fmt.Println(sga.ingressConnectivity.string())
 	fmt.Println("egressConnectivity:")
-	fmt.Printf("%s", sga.egressConnectivity.string())
+	fmt.Println(sga.egressConnectivity.string())
 	fmt.Println("-----")
 
 	return nil

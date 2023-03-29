@@ -12,12 +12,14 @@ import (
 )
 
 const (
-	ipByte   = 0xff
-	ipShift0 = 24
-	ipShift1 = 16
-	ipShift2 = 8
-	ipBase   = 10
-	ipMask   = 0xffffffff
+	ipByte      = 0xff
+	ipShift0    = 24
+	ipShift1    = 16
+	ipShift2    = 8
+	ipBase      = 10
+	ipMask      = 0xffffffff
+	maxIPv4Bits = 32
+	cidrAll     = "0.0.0.0/0"
 )
 
 // IPBlock captures a set of ip ranges
@@ -210,21 +212,22 @@ func NewIPBlockFromIPAddress(ipAddress string) (*IPBlock, error) {
 	return NewIPBlock(IPv4AddressToCidr(ipAddress), []string{})
 }
 
-func cidrToIPRange(cidr string) (int64, int64, error) {
+func cidrToIPRange(cidr string) (start, end int64, err error) {
 	// convert string to IPNet struct
 	_, ipv4Net, err := net.ParseCIDR(cidr)
 	if err != nil {
-		return 0, 0, err
+		return
 	}
 
 	// convert IPNet struct mask and address to uint32
 	// network is BigEndian
 	mask := binary.BigEndian.Uint32(ipv4Net.Mask)
-	start := binary.BigEndian.Uint32(ipv4Net.IP)
-
+	startNum := binary.BigEndian.Uint32(ipv4Net.IP)
 	// find the final address
-	finish := (start & mask) | (mask ^ ipMask)
-	return int64(start), int64(finish), nil
+	endNum := (startNum & mask) | (mask ^ ipMask)
+	start = int64(startNum)
+	end = int64(endNum)
+	return
 }
 
 func cidrToInterval(cidr string) (*Interval, error) {
@@ -255,10 +258,10 @@ func IntervalToCidrList(ipStart, ipEnd int64) []string {
 	end := ipEnd
 	res := []string{}
 	for end >= start {
-		maxSize := 32
+		maxSize := maxIPv4Bits
 		for maxSize > 0 {
 			s := maxSize - 1
-			mask := int64(math.Round(math.Pow(2, 32) - math.Pow(2, float64(32)-float64(s))))
+			mask := int64(math.Round(math.Pow(2, maxIPv4Bits) - math.Pow(2, float64(maxIPv4Bits)-float64(s))))
 			maskBase := start & mask
 			if maskBase != start {
 				break
@@ -266,13 +269,13 @@ func IntervalToCidrList(ipStart, ipEnd int64) []string {
 			maxSize--
 		}
 		x := math.Log(float64(end)-float64(start)+1) / math.Log(2)
-		maxDiff := byte(32 - math.Floor(x))
+		maxDiff := byte(maxIPv4Bits - math.Floor(x))
 		if maxSize < int(maxDiff) {
 			maxSize = int(maxDiff)
 		}
 		ip := InttoIP4(start)
 		res = append(res, fmt.Sprintf("%s/%d", ip, maxSize))
-		start += int64(math.Pow(2, 32-float64(maxSize)))
+		start += int64(math.Pow(2, maxIPv4Bits-float64(maxSize)))
 	}
 	return res
 }
@@ -296,4 +299,8 @@ func IPBlockFromIPRangeStr(ipRagneStr string) (*IPBlock, error) {
 	endIPNum := endIP.ipRange.IntervalSet[0].Start
 	res.ipRange.IntervalSet = append(res.ipRange.IntervalSet, Interval{Start: startIPNum, End: endIPNum})
 	return res, nil
+}
+
+func GetCidrAll() *IPBlock {
+	return NewIPBlockFromCidr(cidrAll)
 }

@@ -52,9 +52,9 @@ func (conn *ConnectionSet) Copy() *ConnectionSet {
 	res := &ConnectionSet{}
 	res.AllowAll = conn.AllowAll
 	res.AllowedProtocols = make(map[Protocol]*PortSet, len(conn.AllowedProtocols))
-	for procotol, ports := range conn.AllowedProtocols {
+	for protocol, ports := range conn.AllowedProtocols {
 		portsCopy := ports.Copy()
-		res.AllowedProtocols[procotol] = &portsCopy
+		res.AllowedProtocols[protocol] = &portsCopy
 	}
 	return res
 }
@@ -150,9 +150,9 @@ func (conn *ConnectionSet) Subtract(other ConnectionSet) {
 
 	if conn.AllowAll {
 		conn.AllowAll = false
-		conn.AllowedProtocols[ProtocolTCP] = &PortSet{Ports: CanonicalIntervalSet{IntervalSet: []Interval{{Start: 1, End: 65535}}}}
-		conn.AllowedProtocols[ProtocolUDP] = &PortSet{Ports: CanonicalIntervalSet{IntervalSet: []Interval{{Start: 1, End: 65535}}}}
-		conn.AllowedProtocols[ProtocolSCTP] = &PortSet{Ports: CanonicalIntervalSet{IntervalSet: []Interval{{Start: 1, End: 65535}}}}
+		conn.AllowedProtocols[ProtocolTCP] = NewPortSetAllPorts()
+		conn.AllowedProtocols[ProtocolUDP] = NewPortSetAllPorts()
+		conn.AllowedProtocols[ProtocolSCTP] = NewPortSetAllPorts()
 	}
 	for protocol := range conn.AllowedProtocols {
 		if otherPorts, ok := other.AllowedProtocols[protocol]; ok {

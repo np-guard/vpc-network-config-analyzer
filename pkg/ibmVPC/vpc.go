@@ -47,7 +47,7 @@ func (ni *NetworkInterface) Name() string {
 type VPC struct {
 	vpcmodel.NamedResource
 	nodes             []vpcmodel.Node
-	connectivityRules *vpcmodel.ConnectivityResult //allowed connectivity between elements within the vpc
+	connectivityRules *vpcmodel.ConnectivityResult // allowed connectivity between elements within the vpc
 }
 
 func (v *VPC) Nodes() []vpcmodel.Node {
@@ -60,7 +60,7 @@ func (v *VPC) Connectivity() *vpcmodel.ConnectivityResult {
 type Subnet struct {
 	vpcmodel.NamedResource
 	nodes             []vpcmodel.Node
-	connectivityRules *vpcmodel.ConnectivityResult //allowed connectivity between elements within the subnet
+	connectivityRules *vpcmodel.ConnectivityResult // allowed connectivity between elements within the subnet
 	cidr              string
 }
 
@@ -93,7 +93,7 @@ type NaclLayer struct {
 }
 
 func (nl *NaclLayer) Kind() string {
-	return "SecurityGroupLayer"
+	return "NaclLayer"
 }
 
 func (nl *NaclLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *common.ConnectionSet {
@@ -142,13 +142,9 @@ func (n *NACL) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *comm
 	}
 	// check if the subnet of the given node is affected by this nacl
 	if _, ok := n.subnets[subnetCidr]; !ok {
-		//return vpcmodel.AllConns() // not affected by current nacl
 		return vpcmodel.NoConns() // not affected by current nacl
 	}
-
 	return n.analyzer.AllowedConnectivity(subnetCidr, inSubnetCidr, targetNode.Cidr(), isIngress)
-
-	//return vpcmodel.AllConns()
 }
 
 // SecurityGroupLayer captures all SG in the vpc config, analyzes connectivity considering all SG resources
@@ -186,7 +182,7 @@ func (sgl *SecurityGroupLayer) ReferencedIPblocks() []*common.IPBlock {
 type SecurityGroup struct {
 	vpcmodel.NamedResource
 	analyzer *SGAnalyzer
-	members  map[string]struct{} //map of members as their address string values
+	members  map[string]struct{} // map of members as their address string values
 
 }
 
@@ -205,13 +201,10 @@ func (sg *SecurityGroup) AllowedConnectivity(src, dst vpcmodel.Node, isIngress b
 	}
 	memberStrAddress := member.Cidr()
 	if _, ok := sg.members[memberStrAddress]; !ok {
-		//return vpcmodel.AllConns() // connectivity not affected by this SG resource - input node is not its member
 		return vpcmodel.NoConns() // connectivity not affected by this SG resource - input node is not its member
 	}
 	targetStrAddress := target.Cidr()
 	return sg.analyzer.AllowedConnectivity(targetStrAddress, isIngress)
-
-	//return vpcmodel.AllConns()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -247,7 +240,6 @@ func (fip *FloatingIP) AllowedConnectivity(src, dst vpcmodel.Node) *common.Conne
 		return vpcmodel.AllConns()
 	}
 	return vpcmodel.NoConns()
-
 }
 
 func (pgw *PublicGateway) Src() []vpcmodel.Node {
@@ -262,7 +254,6 @@ func (pgw *PublicGateway) AllowedConnectivity(src, dst vpcmodel.Node) *common.Co
 		return vpcmodel.AllConns()
 	}
 	return vpcmodel.NoConns()
-
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

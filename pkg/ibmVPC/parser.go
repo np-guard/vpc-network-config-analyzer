@@ -1,12 +1,25 @@
 package ibmvpc
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
+
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	vpcmodel "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcModel"
+)
+
+const (
+	protocolTCP                  = "tcp"
+	protocolUDP                  = "udp"
+	inbound                      = "inbound"
+	outbound                     = "outbound"
+	networkInterfaceResourceType = "network_interface"
+	cidrSeparator                = ", "
+	linesSeparator               = "---------------------"
 )
 
 type ResourcesContainer struct {
@@ -66,57 +79,133 @@ func (rc *ResourcesContainer) printDetails() {
 	fmt.Printf("Has %d instance objects\n", len(rc.instanceList))
 }
 
-func ParseResources(resourcesJsonFile []byte) *ResourcesContainer {
-	res := NewResourcesContainer()
-	resourcesMap := jsonToMap(resourcesJsonFile)
-	for k, v := range resourcesMap {
-		vList := jsonToList(v)
-		vListLen := len(vList)
-		fmt.Printf("%s\n", k)
-		fmt.Printf("%d\n", vListLen)
-		switch k {
-		case "network_acls":
-			for i := range vList {
-				obj := JsonNaclToObject(vList[i])
-				res.addNACL(obj)
-			}
-		case "security_groups":
-			for i := range vList {
-				obj := JsonSgToObject(vList[i])
-				res.addSG(obj)
-			}
-		case "instances":
-			for i := range vList {
-				obj := JsonInstanceToObject(vList[i])
-				res.addInstance(obj)
-			}
-		case "subnets":
-			for i := range vList {
-				obj := JsonSubnetToObject(vList[i])
-				res.addSubnet(obj)
-			}
-		case "vpcs":
-			for i := range vList {
-				obj := JsonVpcToObject(vList[i])
-				res.addVpc(obj)
-			}
-		case "floating_ips":
-			for i := range vList {
-				obj := JsonFipToObject(vList[i])
-				res.addFloatingIP(obj)
-			}
-		case "public_gateways":
-			for i := range vList {
-				obj := JsonPgwTpObject(vList[i])
-				res.addPublicGateway(obj)
-			}
-		default:
-			fmt.Printf("%s resource type is not yet supported\n", k)
+func addParsedNACL(vList []json.RawMessage, res *ResourcesContainer) error {
+	for i := range vList {
+		obj, err := JSONNaclToObject(vList[i])
+		if err != nil {
+			return err
 		}
+		res.addNACL(obj)
+	}
+	return nil
+}
 
+func addParsedSG(vList []json.RawMessage, res *ResourcesContainer) error {
+	for i := range vList {
+		obj, err := JSONSgToObject(vList[i])
+		if err != nil {
+			return err
+		}
+		res.addSG(obj)
+	}
+	return nil
+}
+
+func addParsedInstances(vList []json.RawMessage, res *ResourcesContainer) error {
+	for i := range vList {
+		obj, err := JSONInstanceToObject(vList[i])
+		if err != nil {
+			return err
+		}
+		res.addInstance(obj)
+	}
+	return nil
+}
+
+func addParsedSubnets(vList []json.RawMessage, res *ResourcesContainer) error {
+	for i := range vList {
+		obj, err := JSONSubnetToObject(vList[i])
+		if err != nil {
+			return err
+		}
+		res.addSubnet(obj)
+	}
+	return nil
+}
+
+func addParsedVPCs(vList []json.RawMessage, res *ResourcesContainer) error {
+	for i := range vList {
+		obj, err := JSONVpcToObject(vList[i])
+		if err != nil {
+			return err
+		}
+		res.addVpc(obj)
+	}
+	return nil
+}
+
+func addParsedFips(vList []json.RawMessage, res *ResourcesContainer) error {
+	for i := range vList {
+		obj, err := JSONFipToObject(vList[i])
+		if err != nil {
+			return err
+		}
+		res.addFloatingIP(obj)
+	}
+	return nil
+}
+
+func addParsedPgw(vList []json.RawMessage, res *ResourcesContainer) error {
+	for i := range vList {
+		obj, err := JSONPgwTpObject(vList[i])
+		if err != nil {
+			return err
+		}
+		res.addPublicGateway(obj)
+	}
+	return nil
+}
+
+func parseSingleResourceList(key string, vList []json.RawMessage, res *ResourcesContainer) error {
+	switch key {
+	case "network_acls":
+		return addParsedNACL(vList, res)
+	case "security_groups":
+		return addParsedSG(vList, res)
+	case "instances":
+		return addParsedInstances(vList, res)
+	case "subnets":
+		return addParsedSubnets(vList, res)
+	case "vpcs":
+		return addParsedVPCs(vList, res)
+	case "floating_ips":
+		return addParsedFips(vList, res)
+	case "public_gateways":
+		return addParsedPgw(vList, res)
+	case "endpoint_gateways":
+		fmt.Println("warning: ignoring endpoint_gateways, TODO: add support")
+	default:
+		fmt.Printf("%s resource type is not yet supported\n", key)
+		return errors.New("unsupported resource type: " + key)
+	}
+	return nil
+}
+
+func printLineStr(s string) {
+	fmt.Printf("%s\n", s)
+}
+
+func ParseResources(resourcesJSONFile []byte) (*ResourcesContainer, error) {
+	var err error
+	res := NewResourcesContainer()
+	resourcesMap, err := JSONToMap(resourcesJSONFile)
+	if err != nil {
+		return nil, err
+	}
+	for k, v := range resourcesMap {
+		vList, err := JSONToList(v)
+		if err != nil {
+			return nil, err
+		}
+		vListLen := len(vList)
+		printLineStr(k)
+		fmt.Printf("%d\n", vListLen)
+		if err := parseSingleResourceList(k, vList, res); err != nil {
+			return nil, err
+		}
 	}
 	res.printDetails()
-	return res
+	return res, nil
 }
 
 func getCertainNodes(allNodes []vpcmodel.Node, shouldTakeNode func(vpcmodel.Node) bool) (ret []vpcmodel.Node) {
@@ -128,24 +217,19 @@ func getCertainNodes(allNodes []vpcmodel.Node, shouldTakeNode func(vpcmodel.Node
 	return
 }
 
-func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
-	res := &vpcmodel.CloudConfig{
-		Nodes:            []vpcmodel.Node{},
-		NodeSets:         []vpcmodel.NodeSet{},
-		FilterResources:  []vpcmodel.FilterTrafficResource{},
-		RoutingResources: []vpcmodel.RoutingResource{},
-	}
-	var vpcInternalAddressRange *common.IPBlock
-
-	subnetNameToNetIntf := map[string][]*NetworkInterface{}
-	intfNameToIntf := map[string]*NetworkInterface{}
-	for i := range rc.instanceList {
-		instance := rc.instanceList[i]
+func getInstancesConfig(
+	instanceList []*vpc1.Instance,
+	subnetNameToNetIntf map[string][]*NetworkInterface,
+	intfNameToIntf map[string]*NetworkInterface,
+	res *vpcmodel.CloudConfig) {
+	for i := range instanceList {
+		instance := instanceList[i]
 		vsiNode := &Vsi{NamedResource: vpcmodel.NamedResource{ResourceName: *instance.Name}, nodes: []vpcmodel.Node{}}
 		res.NodeSets = append(res.NodeSets, vsiNode)
 		for j := range instance.NetworkInterfaces {
 			netintf := instance.NetworkInterfaces[j]
-			intfNode := &NetworkInterface{NamedResource: vpcmodel.NamedResource{ResourceName: *netintf.Name}, address: *netintf.PrimaryIP.Address, vsi: *instance.Name}
+			intfNode := &NetworkInterface{NamedResource: vpcmodel.NamedResource{ResourceName: *netintf.Name},
+				address: *netintf.PrimaryIP.Address, vsi: *instance.Name}
 			res.Nodes = append(res.Nodes, intfNode)
 			vsiNode.nodes = append(vsiNode.nodes, intfNode)
 			intfNameToIntf[*netintf.Name] = intfNode
@@ -154,28 +238,25 @@ func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
 				subnetNameToNetIntf[subnetName] = []*NetworkInterface{}
 			}
 			subnetNameToNetIntf[subnetName] = append(subnetNameToNetIntf[subnetName], intfNode)
-
 		}
 	}
-	pgwToSubnet := map[string]*Subnet{} // map from pgw name to its attached subnet
-	subnetNameToSubnet := map[string]*Subnet{}
+}
+
+func getSubnetsConfig(
+	res *vpcmodel.CloudConfig,
+	pgwToSubnet map[string]*Subnet,
+	subnetNameToSubnet map[string]*Subnet,
+	subnetNameToNetIntf map[string][]*NetworkInterface,
+	rc *ResourcesContainer) (vpcInternalAddressRange *common.IPBlock) {
 	for i := range rc.subnetsList {
 		subnet := rc.subnetsList[i]
-		/*subnetNodes := getCertainNodes(res.Nodes, func(n vpcmodel.Node) bool {
-			if intfNode, ok := n.(*NetworkInterface); ok {
-				if intfNode.subnet.name == *subnet.Name {
-					return true
-				}
-			}
-			return false
-		})*/
 		subnetNodes := []vpcmodel.Node{}
 		subnetNode := &Subnet{NamedResource: vpcmodel.NamedResource{ResourceName: *subnet.Name}, cidr: *subnet.Ipv4CIDRBlock}
-		cidrIpBlock := common.NewIPBlockFromCidr(subnetNode.cidr)
+		cidrIPBlock := common.NewIPBlockFromCidr(subnetNode.cidr)
 		if vpcInternalAddressRange == nil {
-			vpcInternalAddressRange = cidrIpBlock
+			vpcInternalAddressRange = cidrIPBlock
 		} else {
-			vpcInternalAddressRange = vpcInternalAddressRange.Union(cidrIpBlock)
+			vpcInternalAddressRange = vpcInternalAddressRange.Union(cidrIPBlock)
 		}
 		res.NodeSets = append(res.NodeSets, subnetNode)
 		subnetNameToSubnet[*subnet.Name] = subnetNode
@@ -191,30 +272,43 @@ func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
 			subnetNode.nodes = subnetNodes
 		}
 	}
+	return vpcInternalAddressRange
+}
 
+func getPgwConfig(
+	res *vpcmodel.CloudConfig,
+	rc *ResourcesContainer,
+	pgwToSubnet map[string]*Subnet) {
 	for i := range rc.pgwList {
 		pgw := rc.pgwList[i]
 		srcNodes := pgwToSubnet[*pgw.Name].Nodes()
-		//dstNodes := getCertainNodes(res.Nodes, func(n vpcmodel.Node) bool { return !n.IsInternal() })
-		routerPgw := &PublicGateway{NamedResource: vpcmodel.NamedResource{ResourceName: *pgw.Name}, cidr: "", src: srcNodes} // TODO: get cidr from fip of the pgw
+		routerPgw := &PublicGateway{NamedResource: vpcmodel.NamedResource{ResourceName: *pgw.Name},
+			cidr: "", src: srcNodes} // TODO: get cidr from fip of the pgw
 		res.RoutingResources = append(res.RoutingResources, routerPgw)
 	}
+}
 
+func getFipConfig(
+	rc *ResourcesContainer,
+	res *vpcmodel.CloudConfig,
+) error {
 	for i := range rc.fipList {
 		fip := rc.fipList[i]
 		targetIntf := fip.Target
 		var targetAddress string
-		if target, ok := targetIntf.(*vpc1.FloatingIPTargetNetworkInterfaceReference); ok {
+		switch target := targetIntf.(type) {
+		case *vpc1.FloatingIPTargetNetworkInterfaceReference:
 			targetAddress = *target.PrimaryIP.Address
-		} else if target, ok := targetIntf.(*vpc1.FloatingIPTarget); ok {
-			if *target.ResourceType != "network_interface" {
+		case *vpc1.FloatingIPTarget:
+			if *target.ResourceType != networkInterfaceResourceType {
 				continue
 			}
 			targetAddress = *target.PrimaryIP.Address
+		default:
+			return fmt.Errorf("unsupported fip target : %s", target)
 		}
 		if targetAddress != "" {
 			srcNodes := getCertainNodes(res.Nodes, func(n vpcmodel.Node) bool { return n.Cidr() == targetAddress })
-			//dstNodes := getCertainNodes(res.Nodes, func(n vpcmodel.Node) bool { return !n.IsInternal() })
 			routerFip := &FloatingIP{NamedResource: vpcmodel.NamedResource{ResourceName: *fip.Name}, cidr: *fip.Address, src: srcNodes}
 			res.RoutingResources = append(res.RoutingResources, routerFip)
 
@@ -230,39 +324,41 @@ func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
 				}
 			}
 		}
-
 	}
+	return nil
+}
+
+func getVPCconfig(rc *ResourcesContainer, res *vpcmodel.CloudConfig) {
 	for i := range rc.vpcsList {
 		vpc := rc.vpcsList[i]
 		vpcNodeSet := &VPC{NamedResource: vpcmodel.NamedResource{ResourceName: *vpc.Name}, nodes: []vpcmodel.Node{}}
 		res.NodeSets = append(res.NodeSets, vpcNodeSet)
-
 	}
+}
 
-	// security group
+func getSGconfig(rc *ResourcesContainer, res *vpcmodel.CloudConfig, intfNameToIntf map[string]*NetworkInterface) error {
 	sgMap := map[string]*SecurityGroup{}
 	sgList := []*SecurityGroup{}
 	for i := range rc.sgList {
 		sg := rc.sgList[i]
-		sgResource := &SecurityGroup{NamedResource: vpcmodel.NamedResource{ResourceName: *sg.Name}, analyzer: NewSGAnalyzer(sg), members: map[string]struct{}{}}
+		sgResource := &SecurityGroup{NamedResource: vpcmodel.NamedResource{ResourceName: *sg.Name},
+			analyzer: NewSGAnalyzer(sg), members: map[string]struct{}{}}
 		sgMap[*sg.Name] = sgResource
-		targets := sg.Targets //*SecurityGroupTargetReference
-		//type SecurityGroupTargetReference struct
-		//fmt.Printf("%v", targets)
+		targets := sg.Targets // *SecurityGroupTargetReference
+		// type SecurityGroupTargetReference struct
 		for _, target := range targets {
 			if targetIntfRef, ok := target.(*vpc1.SecurityGroupTargetReference); ok {
 				fmt.Printf("%v", targetIntfRef)
 				// get from target name + resource type -> find the address of the target
 				targetType := *targetIntfRef.ResourceType
 				targetName := *targetIntfRef.Name
-				if targetType == "network_interface" {
+				if targetType == networkInterfaceResourceType {
 					if intfNode, ok := intfNameToIntf[targetName]; ok {
 						sgResource.members[intfNode.address] = struct{}{}
 					}
 				}
 			}
 		}
-		//res.FilterResources = append(res.FilterResources, sgResource)
 		sgList = append(sgList, sgResource)
 	}
 	sgLayer := &SecurityGroupLayer{sgList: sgList}
@@ -270,16 +366,19 @@ func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
 	for _, sg := range sgMap {
 		err := sg.analyzer.prepareAnalyzer(sgMap, sg)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
+	return nil
+}
 
+func getNACLconfig(rc *ResourcesContainer, res *vpcmodel.CloudConfig, subnetNameToSubnet map[string]*Subnet) {
 	// nacl
 	naclList := []*NACL{}
 	for i := range rc.naclList {
 		nacl := rc.naclList[i]
-		naclResource := &NACL{NamedResource: vpcmodel.NamedResource{ResourceName: *nacl.Name}, analyzer: NewNACLAnalyzer(nacl), subnets: map[string]struct{}{}}
-		//res.FilterResources = append(res.FilterResources, naclResource)
+		naclResource := &NACL{NamedResource: vpcmodel.NamedResource{ResourceName: *nacl.Name},
+			analyzer: NewNACLAnalyzer(nacl), subnets: map[string]struct{}{}}
 		naclList = append(naclList, naclResource)
 		for _, subnetRef := range nacl.Subnets {
 			subnetName := *subnetRef.Name
@@ -290,6 +389,38 @@ func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
 	}
 	naclLayer := &NaclLayer{naclList: naclList}
 	res.FilterResources = append(res.FilterResources, naclLayer)
+}
+
+func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
+	res := &vpcmodel.CloudConfig{
+		Nodes:            []vpcmodel.Node{},
+		NodeSets:         []vpcmodel.NodeSet{},
+		FilterResources:  []vpcmodel.FilterTrafficResource{},
+		RoutingResources: []vpcmodel.RoutingResource{},
+	}
+	var vpcInternalAddressRange *common.IPBlock
+
+	subnetNameToNetIntf := map[string][]*NetworkInterface{}
+	intfNameToIntf := map[string]*NetworkInterface{}
+	getInstancesConfig(rc.instanceList, subnetNameToNetIntf, intfNameToIntf, res)
+
+	pgwToSubnet := map[string]*Subnet{} // map from pgw name to its attached subnet
+	subnetNameToSubnet := map[string]*Subnet{}
+	vpcInternalAddressRange = getSubnetsConfig(res, pgwToSubnet, subnetNameToSubnet, subnetNameToNetIntf, rc)
+
+	getPgwConfig(res, rc, pgwToSubnet)
+
+	if err := getFipConfig(rc, res); err != nil {
+		return nil, err
+	}
+
+	getVPCconfig(rc, res)
+
+	if err := getSGconfig(rc, res, intfNameToIntf); err != nil {
+		return nil, err
+	}
+
+	getNACLconfig(rc, res, subnetNameToSubnet)
 
 	externalNodes := addExternalNodes(res, vpcInternalAddressRange)
 
@@ -302,40 +433,41 @@ func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
 			rPgw.destinations = externalNodes
 		}
 	}
-
 	return res, nil
-
 }
 
 /*
 Public IP Ranges
 https://phoenixnap.com/kb/public-vs-private-ip-address
-The number of public IP addresses is far greater than the number of private ones because every network on the Internet must have a unique public IP.
+The number of public IP addresses is far greater than the number of private ones because every
+network on the Internet must have a unique public IP.
 
 All public IP addresses belong to one of the following public IP address ranges:
 
-    1.0.0.0-9.255.255.255
-    11.0.0.0-100.63.255.255
-    100.128.0.0-126.255.255.255
-    128.0.0.0-169.253.255.255
-    169.255.0.0-172.15.255.255
-    172.32.0.0-191.255.255.255
-    192.0.1.0/24
-    192.0.3.0-192.88.98.255
-    192.88.100.0-192.167.255.255
-    192.169.0.0-198.17.255.255
-    198.20.0.0-198.51.99.255
-    198.51.101.0-203.0.112.255
-    203.0.114.0-223.255.255.255
+	1.0.0.0-9.255.255.255
+	11.0.0.0-100.63.255.255
+	100.128.0.0-126.255.255.255
+	128.0.0.0-169.253.255.255
+	169.255.0.0-172.15.255.255
+	172.32.0.0-191.255.255.255
+	192.0.1.0/24
+	192.0.3.0-192.88.98.255
+	192.88.100.0-192.167.255.255
+	192.169.0.0-198.17.255.255
+	198.20.0.0-198.51.99.255
+	198.51.101.0-203.0.112.255
+	203.0.114.0-223.255.255.255
 
-Your private IP address exists within specific private IP address ranges reserved by the Internet Assigned Numbers Authority (IANA) and should never appear on the internet. There are millions of private networks across the globe, all of which include devices assigned private IP addresses within these ranges:
+Your private IP address exists within specific private IP address ranges reserved by the Internet Assigned
+Numbers Authority (IANA) and should never appear on the internet. There are millions of private networks across the globe,
 
-    Class A: 10.0.0.0 — 10.255.255.255
+	 all of which include devices assigned private IP addresses within these ranges:
 
-    Class B: 172.16.0.0 — 172.31.255.255
+		Class A: 10.0.0.0 — 10.255.255.255
 
-    Class C: 192.168.0.0 — 192.168.255.255
+		Class B: 172.16.0.0 — 172.31.255.255
 
+		Class C: 192.168.0.0 — 192.168.255.255
 */
 func addExternalNodes(config *vpcmodel.CloudConfig, vpcInternalAddressRange *common.IPBlock) []vpcmodel.Node {
 	externalNodes := []vpcmodel.Node{}
@@ -344,24 +476,24 @@ func addExternalNodes(config *vpcmodel.CloudConfig, vpcInternalAddressRange *com
 		ipBlocks = append(ipBlocks, f.ReferencedIPblocks()...)
 	}
 
-	externalRefIpBlocks := []*common.IPBlock{}
+	externalRefIPBlocks := []*common.IPBlock{}
 	fmt.Println("referenced external ip blocks:")
 	for _, ipBlock := range ipBlocks {
 		intersection := ipBlock.Intersection(vpcInternalAddressRange)
 		if !intersection.Empty() {
 			continue
 		}
-		cidrList := strings.Join(ipBlock.ToCidrList(), ", ")
-		fmt.Printf("%s\n", cidrList)
-		externalRefIpBlocks = append(externalRefIpBlocks, ipBlock)
+		cidrList := strings.Join(ipBlock.ToCidrList(), cidrSeparator)
+		printLineStr(cidrList)
+		externalRefIPBlocks = append(externalRefIPBlocks, ipBlock)
 	}
-	fmt.Println("---------------------")
+	fmt.Println(linesSeparator)
 	fmt.Println("referenced external disjoint ip blocks:")
 	// disjoint external ref ip blocks
-	disjointRefExternalIpBlocks := common.DisjointIPBlocks(externalRefIpBlocks, []*common.IPBlock{})
-	for index, ipBlock := range disjointRefExternalIpBlocks {
-		cidrList := strings.Join(ipBlock.ToCidrList(), ", ")
-		fmt.Printf("%s\n", cidrList)
+	disjointRefExternalIPBlocks := common.DisjointIPBlocks(externalRefIPBlocks, []*common.IPBlock{})
+	for index, ipBlock := range disjointRefExternalIPBlocks {
+		cidrList := strings.Join(ipBlock.ToCidrList(), cidrSeparator)
+		printLineStr(cidrList)
 		nodeName := fmt.Sprintf("ref-address-%d", index)
 		node := &vpcmodel.ExternalNetwork{NamedResource: vpcmodel.NamedResource{ResourceName: nodeName}, CidrStr: cidrList}
 		config.Nodes = append(config.Nodes, node)
@@ -372,10 +504,9 @@ func addExternalNodes(config *vpcmodel.CloudConfig, vpcInternalAddressRange *com
 	config.Nodes = append(config.Nodes, node)
 	externalNodes = append(externalNodes, node)
 
-	fmt.Println("---------------------")
+	fmt.Println(linesSeparator)
 	return externalNodes
 	// goal: define connectivity between elements in the set {vsi address / referenced address in nacl or sg / rest of external range}
-
 }
 
 /*func NewVpcConfig(rc *ResourcesContainer) (*vpcConfig, error) {
@@ -466,7 +597,8 @@ func addExternalNodes(config *vpcmodel.CloudConfig, vpcInternalAddressRange *com
 /*
 
 
-// SecurityGroupTargetReference : The resource types that can be security group targets are expected to expand in the future. When iterating over
+// SecurityGroupTargetReference : The resource types that can be security group targets are
+// expected to expand in the future. When iterating over
 // security group targets, do not assume that every target resource will be from a known set of resource types.
 // Optionally halt processing and surface an error, or bypass resources of unrecognized types.
 // Models which "extend" this model:
@@ -503,7 +635,8 @@ type SecurityGroupTargetReferenceEndpointGatewayReference struct {
 // This model "extends" SecurityGroupTargetReference
 type SecurityGroupTargetReferenceLoadBalancerReference struct {
 
-// SecurityGroupTargetReferenceNetworkInterfaceReferenceTargetContext : SecurityGroupTargetReferenceNetworkInterfaceReferenceTargetContext struct
+// SecurityGroupTargetReferenceNetworkInterfaceReferenceTargetContext :
+ SecurityGroupTargetReferenceNetworkInterfaceReferenceTargetContext struct
 // This model "extends" SecurityGroupTargetReference
 type SecurityGroupTargetReferenceNetworkInterfaceReferenceTargetContext struct {
 
