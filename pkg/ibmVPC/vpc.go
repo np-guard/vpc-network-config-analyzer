@@ -142,13 +142,9 @@ func (n *NACL) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *comm
 	}
 	// check if the subnet of the given node is affected by this nacl
 	if _, ok := n.subnets[subnetCidr]; !ok {
-		// return vpcmodel.AllConns() // not affected by current nacl
 		return vpcmodel.NoConns() // not affected by current nacl
 	}
-
 	return n.analyzer.AllowedConnectivity(subnetCidr, inSubnetCidr, targetNode.Cidr(), isIngress)
-
-	// return vpcmodel.AllConns()
 }
 
 // SecurityGroupLayer captures all SG in the vpc config, analyzes connectivity considering all SG resources
@@ -205,13 +201,10 @@ func (sg *SecurityGroup) AllowedConnectivity(src, dst vpcmodel.Node, isIngress b
 	}
 	memberStrAddress := member.Cidr()
 	if _, ok := sg.members[memberStrAddress]; !ok {
-		// return vpcmodel.AllConns() // connectivity not affected by this SG resource - input node is not its member
 		return vpcmodel.NoConns() // connectivity not affected by this SG resource - input node is not its member
 	}
 	targetStrAddress := target.Cidr()
 	return sg.analyzer.AllowedConnectivity(targetStrAddress, isIngress)
-
-	// return vpcmodel.AllConns()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

@@ -8,6 +8,10 @@ import (
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+const (
+	indent = "    "
+)
+
 func JSONSgToObject(sg []byte) (*vpc1.SecurityGroup, error) {
 	sgMap, err := JSONToMap(sg)
 	if err != nil {
@@ -20,7 +24,7 @@ func JSONSgToObject(sg []byte) (*vpc1.SecurityGroup, error) {
 
 // convert vpc1.SecurityGroup to json string
 func ObjectSgToJSON(sgObj *vpc1.SecurityGroup) ([]byte, error) {
-	return json.MarshalIndent(*sgObj, "", "    ")
+	return json.MarshalIndent(*sgObj, "", indent)
 }
 
 // convert json string of nacl to vpc1.NetworkACL object
@@ -89,7 +93,7 @@ func JSONPgwTpObject(pgw []byte) (*vpc1.PublicGateway, error) {
 
 // convert vpc1.NetworkACL to json string
 func ObjectNaclToJSON(naclObj *vpc1.NetworkACL) ([]byte, error) {
-	return json.MarshalIndent(*naclObj, "", "    ")
+	return json.MarshalIndent(*naclObj, "", indent)
 }
 
 // convert json string to map object

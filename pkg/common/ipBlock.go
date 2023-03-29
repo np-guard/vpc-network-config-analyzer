@@ -19,6 +19,7 @@ const (
 	ipBase      = 10
 	ipMask      = 0xffffffff
 	maxIPv4Bits = 32
+	cidrAll     = "0.0.0.0/0"
 )
 
 // IPBlock captures a set of ip ranges
@@ -298,4 +299,8 @@ func IPBlockFromIPRangeStr(ipRagneStr string) (*IPBlock, error) {
 	endIPNum := endIP.ipRange.IntervalSet[0].Start
 	res.ipRange.IntervalSet = append(res.ipRange.IntervalSet, Interval{Start: startIPNum, End: endIPNum})
 	return res, nil
+}
+
+func GetCidrAll() *IPBlock {
+	return NewIPBlockFromCidr(cidrAll)
 }

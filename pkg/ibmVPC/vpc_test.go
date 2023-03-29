@@ -26,7 +26,6 @@ func TestWithParsing(t *testing.T) {
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
-	// fmt.Printf("%v", vpcConfig)
 	fmt.Println("nodes in the vpc config:")
 	for _, n := range cloudConfig.Nodes {
 		fmt.Printf("%s %s\n", n.Name(), n.Cidr())
@@ -40,8 +39,6 @@ func TestWithParsing(t *testing.T) {
 	generateActualOutput := false
 	currentDir, _ := os.Getwd()
 	expectedOutputFile := filepath.Join(currentDir, "examples", "TestWithParsing.txt")
-	// res := filepath.Join(currentDir, dirLevelUp, dirLevelUp, dirLevelUp, "tests")
-	// expectedOutputFile := "TestWithParsing.txt"
 	if generateActualOutput {
 		// update expected output: override expected output with actual output
 		if err = os.WriteFile(expectedOutputFile, []byte(actualOutput), 0o600); err != nil {
@@ -61,7 +58,8 @@ func TestWithParsing(t *testing.T) {
 }
 
 /*func TestExampleBasicFromAPImanual(t *testing.T) {
-	// additional attributes per VPC to consider: region / zone/ default_network_acl / default_routing_table / default_security_group /id / resource_group
+	// additional attributes per VPC to consider: region / zone/ default_network_acl /
+	default_routing_table / default_security_group /id / resource_group
 	vpc := VPC{name: "test-vpc1-ky"} // should fill in nodes, and connectivityRules? / cidr?
 
 	subnets := []Subnet{ // should fill in nodes, and connectivityRules?
