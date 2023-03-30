@@ -7,8 +7,9 @@ import (
 )
 
 const (
-	minPort int64 = 1
-	maxPort int64 = 65535
+	minPort     int64 = 1
+	maxPort     int64 = 65535
+	maxICMPtype int64 = 255
 )
 
 // PortSet: represents set of allowed ports in a connection
@@ -116,6 +117,10 @@ func (p *PortSet) Contains(port int64) bool {
 
 func NewPortSetAllPorts() *PortSet {
 	return &PortSet{Ports: CanonicalIntervalSet{IntervalSet: []Interval{{Start: minPort, End: maxPort}}}}
+}
+
+func NewICMPAllTypesTemp() *PortSet {
+	return &PortSet{Ports: CanonicalIntervalSet{IntervalSet: []Interval{{Start: 0, End: maxICMPtype}}}}
 }
 
 /*

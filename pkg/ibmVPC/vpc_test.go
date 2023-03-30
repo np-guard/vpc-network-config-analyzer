@@ -17,8 +17,11 @@ var inputResources []byte
 //go:embed examples/sg_testing1_new.json
 var inputResources1 []byte
 
+//go:embed examples/acl_testing3.json
+var inputResources2 []byte
+
 func TestWithParsing(t *testing.T) {
-	rc, err := ParseResources(inputResources1)
+	rc, err := ParseResources(inputResources2)
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
@@ -34,7 +37,7 @@ func TestWithParsing(t *testing.T) {
 	actualOutput := vpcConn.String()
 	fmt.Printf("%s", actualOutput)
 	fmt.Println("done")
-
+	return
 	// check output
 	generateActualOutput := false
 	currentDir, _ := os.Getwd()

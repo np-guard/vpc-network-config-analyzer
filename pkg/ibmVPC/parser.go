@@ -372,13 +372,17 @@ func getSGconfig(rc *ResourcesContainer, res *vpcmodel.CloudConfig, intfNameToIn
 	return nil
 }
 
-func getNACLconfig(rc *ResourcesContainer, res *vpcmodel.CloudConfig, subnetNameToSubnet map[string]*Subnet) {
+func getNACLconfig(rc *ResourcesContainer, res *vpcmodel.CloudConfig, subnetNameToSubnet map[string]*Subnet) error {
 	// nacl
 	naclList := []*NACL{}
 	for i := range rc.naclList {
 		nacl := rc.naclList[i]
+		naclAnalyzer, err := NewNACLAnalyzer(nacl)
+		if err != nil {
+			return err
+		}
 		naclResource := &NACL{NamedResource: vpcmodel.NamedResource{ResourceName: *nacl.Name},
-			analyzer: NewNACLAnalyzer(nacl), subnets: map[string]struct{}{}}
+			analyzer: naclAnalyzer, subnets: map[string]struct{}{}}
 		naclList = append(naclList, naclResource)
 		for _, subnetRef := range nacl.Subnets {
 			subnetName := *subnetRef.Name
@@ -389,6 +393,7 @@ func getNACLconfig(rc *ResourcesContainer, res *vpcmodel.CloudConfig, subnetName
 	}
 	naclLayer := &NaclLayer{naclList: naclList}
 	res.FilterResources = append(res.FilterResources, naclLayer)
+	return nil
 }
 
 func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
@@ -420,7 +425,9 @@ func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
 		return nil, err
 	}
 
-	getNACLconfig(rc, res, subnetNameToSubnet)
+	if err := getNACLconfig(rc, res, subnetNameToSubnet); err != nil {
+		return nil, err
+	}
 
 	externalNodes := addExternalNodes(res, vpcInternalAddressRange)
 

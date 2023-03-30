@@ -178,6 +178,22 @@ func getRuleStr(direction, connStr, cidr string) string {
 	return fmt.Sprintf("direction: %s,  conns: %s, cidr: %s\n", direction, connStr, cidr)
 }
 
+func getICMPconn(icmpType *int64) (*common.ConnectionSet, string) {
+	conns := common.MakeConnectionSet(false)
+	// TODO: handle also icmp code
+	var icmpTypeProperties common.PortSet
+	if icmpType == nil {
+		icmpTypeProperties = common.PortSet{Ports: common.CanonicalIntervalSet{IntervalSet: []common.Interval{{Start: 0, End: maxICMPtype}}}}
+	} else {
+		icmpTypeProperties = common.PortSet{Ports: common.CanonicalIntervalSet{
+			IntervalSet: []common.Interval{{Start: *icmpType, End: *icmpType}}},
+		}
+	}
+	conns.AllowedProtocols[common.ProtocolICMP] = &icmpTypeProperties
+	icmpTypeStr := icmpTypeProperties.String()
+	return &conns, icmpTypeStr
+}
+
 func (sga *SGAnalyzer) getProtocolIcmpRule(ruleObj *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolIcmp) (
 	ruleStr string, ruleRes *SGRule, isIngress bool, err error) {
 	direction := *ruleObj.Direction
@@ -189,8 +205,8 @@ func (sga *SGAnalyzer) getProtocolIcmpRule(ruleObj *vpc1.SecurityGroupRuleSecuri
 	if err != nil {
 		return "", nil, false, err
 	}
-	conns := common.MakeConnectionSet(false)
-	icmpType := ruleObj.Type
+	conns, icmpTypeStr := getICMPconn(ruleObj.Type)
+	/*icmpType := ruleObj.Type
 	// TODO: handle also icmp code
 	var icmpTypeProperties common.PortSet
 	if icmpType == nil {
@@ -202,15 +218,16 @@ func (sga *SGAnalyzer) getProtocolIcmpRule(ruleObj *vpc1.SecurityGroupRuleSecuri
 	}
 	conns.AllowedProtocols[common.ProtocolICMP] = &icmpTypeProperties
 
-	icmpTypeStr := icmpTypeProperties.String()
+	icmpTypeStr := icmpTypeProperties.String()*/
 	connStr := fmt.Sprintf("protocol: %s,  icmpType: %s", *ruleObj.Protocol, icmpTypeStr)
 	ruleStr = getRuleStr(direction, connStr, cidr)
 	ruleRes = &SGRule{}
-	ruleRes.connections, err = getProtocolConn(ruleObj.Protocol, &icmpTypeProperties.Ports.IntervalSet[0].End,
+	ruleRes.connections = conns
+	/*ruleRes.connections, err = getProtocolConn(ruleObj.Protocol, &icmpTypeProperties.Ports.IntervalSet[0].End,
 		&icmpTypeProperties.Ports.IntervalSet[0].Start)
 	if err != nil {
 		return ruleStr, ruleRes, isIngress, err
-	}
+	}*/
 	ruleRes.target = target
 	return ruleStr, ruleRes, isIngress, nil
 }
