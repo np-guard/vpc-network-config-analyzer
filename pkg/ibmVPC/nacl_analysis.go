@@ -7,7 +7,6 @@ import (
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
-	vpcmodel "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcModel"
 )
 
 func getPortsStr(minPort, maxPort int64) string {
@@ -417,7 +416,6 @@ func (na *NACLAnalyzer) AllowedConnectivity(subnetCidr, inSubentCidr, target str
 				}
 			}
 		}
-		return vpcmodel.NoConns(), nil
 	}
 
 	/*if analyzedConnsPerSubnet, ok := analyzedConns[subnetCidr]; ok {

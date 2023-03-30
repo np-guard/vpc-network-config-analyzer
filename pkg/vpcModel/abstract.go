@@ -244,6 +244,12 @@ func (v *CloudConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode N
 			src = capturedNode
 			dst = peerNode
 		}
+		srcCidr := src.Cidr()
+		dstCidr := dst.Cidr()
+		if isIngress && dstCidr == "10.240.30.5" && srcCidr == "10.240.10.4" {
+			fmt.Printf("debug")
+		}
+		//fmt.Printf("%s %s", srcCidr, dstCidr)
 		if peerNode.IsInternal() {
 			// no need for router node, connectivity is from within VPC
 			// only check filtering resources
@@ -260,6 +266,12 @@ func (v *CloudConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode N
 				}
 			}
 			res[peerNode] = allowedConnsBetweenCapturedAndPeerNode
+			//getAllowedConnsPerDirection
+			direction := "inbound"
+			if !isIngress {
+				direction = "outbound"
+			}
+			fmt.Printf("getAllowedConnsPerDirection: src: %s, dst %s, conn: %s, direction: %s\n", src.Cidr(), dst.Cidr(), allowedConnsBetweenCapturedAndPeerNode.String(), direction)
 		} else { // else : external node -> consider attached routing resources
 			allowedConnsBetweenCapturedAndPeerNode := NoConns()
 			for _, router := range v.RoutingResources {
