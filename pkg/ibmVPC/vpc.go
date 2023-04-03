@@ -123,6 +123,10 @@ func (n *NACL) Kind() string {
 	return "NACL"
 }
 
+func (n *NACL) GeneralConnectivityPerSubnet(subnetCidr string) string {
+	return n.analyzer.GeneralConnectivityPerSubnet(subnetCidr)
+}
+
 func (n *NACL) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *common.ConnectionSet {
 	var subnetCidr string
 	var inSubnetCidr string
@@ -143,6 +147,10 @@ func (n *NACL) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *comm
 	// check if the subnet of the given node is affected by this nacl
 	if _, ok := n.subnets[subnetCidr]; !ok {
 		return vpcmodel.NoConns() // not affected by current nacl
+	}
+	// TODO: differentiate between "has no effect" vs "affects with allow-all / allow-none "
+	if allInSubnet, err := common.IsAddressInSubnet(targetNode.Cidr(), subnetCidr); err == nil && allInSubnet {
+		return vpcmodel.AllConns() // nacl has no control on traffic between two instances in its subnet
 	}
 	// TODO: consider err
 	res, _ := n.analyzer.AllowedConnectivity(subnetCidr, inSubnetCidr, targetNode.Cidr(), isIngress)
