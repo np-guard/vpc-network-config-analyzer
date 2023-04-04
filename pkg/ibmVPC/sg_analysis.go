@@ -178,7 +178,7 @@ func getRuleStr(direction, connStr, cidr string) string {
 	return fmt.Sprintf("direction: %s,  conns: %s, cidr: %s\n", direction, connStr, cidr)
 }
 
-func getICMPconn(icmpType *int64) (*common.ConnectionSet, string) {
+func getICMPconn(icmpType *int64) (connsRes *common.ConnectionSet, icmpTypeStr string) {
 	conns := common.MakeConnectionSet(false)
 	// TODO: handle also icmp code
 	var icmpTypeProperties common.PortSet
@@ -190,7 +190,7 @@ func getICMPconn(icmpType *int64) (*common.ConnectionSet, string) {
 		}
 	}
 	conns.AllowedProtocols[common.ProtocolICMP] = &icmpTypeProperties
-	icmpTypeStr := icmpTypeProperties.String()
+	icmpTypeStr = icmpTypeProperties.String()
 	return &conns, icmpTypeStr
 }
 
@@ -223,11 +223,6 @@ func (sga *SGAnalyzer) getProtocolIcmpRule(ruleObj *vpc1.SecurityGroupRuleSecuri
 	ruleStr = getRuleStr(direction, connStr, cidr)
 	ruleRes = &SGRule{}
 	ruleRes.connections = conns
-	/*ruleRes.connections, err = getProtocolConn(ruleObj.Protocol, &icmpTypeProperties.Ports.IntervalSet[0].End,
-		&icmpTypeProperties.Ports.IntervalSet[0].Start)
-	if err != nil {
-		return ruleStr, ruleRes, isIngress, err
-	}*/
 	ruleRes.target = target
 	return ruleStr, ruleRes, isIngress, nil
 }
