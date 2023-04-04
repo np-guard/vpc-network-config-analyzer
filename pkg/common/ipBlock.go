@@ -304,3 +304,13 @@ func IPBlockFromIPRangeStr(ipRagneStr string) (*IPBlock, error) {
 func GetCidrAll() *IPBlock {
 	return NewIPBlockFromCidr(cidrAll)
 }
+
+func IsAddressInSubnet(address, subnetCidr string) (bool, error) {
+	var addressIPblock, subnetIPBlock *IPBlock
+	var err error
+	if addressIPblock, err = NewIPBlockFromIPAddress(address); err != nil {
+		return false, err
+	}
+	subnetIPBlock = NewIPBlockFromCidr(subnetCidr)
+	return addressIPblock.ContainedIn(subnetIPBlock), nil
+}

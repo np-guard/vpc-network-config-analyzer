@@ -7,8 +7,35 @@ import (
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
-	vpcmodel "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcModel"
 )
+
+type NACLAnalyzer struct {
+	naclResource *vpc1.NetworkACL
+	ingressRules []*NACLRule
+	egressRules  []*NACLRule
+	// analysis results
+	analyzedSubnets    map[string]*AnalysisResultPerSubnet
+	referencedIPblocks []*common.IPBlock
+}
+
+type AnalysisResultPerSubnet struct {
+	subnet     string
+	ingressRes map[string]*ConnectivityResult // map from disjoint-subnet-cidr to its analysis res (ingress)
+	egressRes  map[string]*ConnectivityResult // map from disjoint-subnet-cidr  its analysis res (egress)
+}
+
+func NewAnalysisResultPerSubnet(subnet string, ingressRes, egressRes map[string]*ConnectivityResult) (res *AnalysisResultPerSubnet) {
+	return &AnalysisResultPerSubnet{subnet: subnet, ingressRes: ingressRes, egressRes: egressRes}
+}
+
+func NewNACLAnalyzer(nacl *vpc1.NetworkACL) (res *NACLAnalyzer, err error) {
+	res = &NACLAnalyzer{
+		naclResource:    nacl,
+		analyzedSubnets: map[string]*AnalysisResultPerSubnet{},
+	}
+	res.ingressRules, res.egressRules, err = res.getNACLRules(nacl)
+	return res, err
+}
 
 func getPortsStr(minPort, maxPort int64) string {
 	return fmt.Sprintf("%d-%d", minPort, maxPort)
@@ -19,7 +46,7 @@ func getNACLRuleStr(direction, src, dst, conn, action string) string {
 		direction, src, dst, conn, action)
 }
 
-func getNACLRule(rule vpc1.NetworkACLRuleItemIntf) (string, *NACLRule, bool) {
+func getNACLRule(rule vpc1.NetworkACLRuleItemIntf) (ruleStr string, ruleObjRes *NACLRule, isIngressRes bool, err error) {
 	ruleRes := NACLRule{}
 	var isIngress bool
 
@@ -36,7 +63,7 @@ func getNACLRule(rule vpc1.NetworkACLRuleItemIntf) (string, *NACLRule, bool) {
 		} else if *ruleObj.Direction == outbound {
 			isIngress = false
 		}
-		return res, &ruleRes, isIngress
+		return res, &ruleRes, isIngress, nil
 	case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolTcpudp:
 		srcPorts := getPortsStr(*ruleObj.SourcePortMin, *ruleObj.SourcePortMax)
 		dstPorts := getPortsStr(*ruleObj.DestinationPortMin, *ruleObj.DestinationPortMax)
@@ -62,16 +89,24 @@ func getNACLRule(rule vpc1.NetworkACLRuleItemIntf) (string, *NACLRule, bool) {
 		} else if *ruleObj.Direction == outbound {
 			isIngress = false
 		}
-		return res, &ruleRes, isIngress
+		return res, &ruleRes, isIngress, nil
 	case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolIcmp:
-		connStr := fmt.Sprintf("protocol: %s, type: %d, code: %d", *ruleObj.Protocol, *ruleObj.Type, *ruleObj.Code)
+
+		connStr := fmt.Sprintf("protocol: %s", *ruleObj.Protocol)
 		res := getNACLRuleStr(*ruleObj.Direction, *ruleObj.Source, *ruleObj.Destination, connStr, *ruleObj.Action)
-
+		conns, _ := getICMPconn(ruleObj.Type)
+		srcIP, _ := common.NewIPBlock(*ruleObj.Source, []string{})
+		dstIP, _ := common.NewIPBlock(*ruleObj.Destination, []string{})
+		ruleRes = NACLRule{src: srcIP, dst: dstIP, connections: conns, action: *ruleObj.Action}
+		if *ruleObj.Direction == inbound {
+			isIngress = true
+		} else if *ruleObj.Direction == outbound {
+			isIngress = false
+		}
+		return res, &ruleRes, isIngress, nil
 		// TODO: currently ignoring icmp rules and not converting to rule object
-
-		return res, nil, false
 	default:
-		return "", nil, false
+		return "", nil, false, fmt.Errorf("getNACLRule unsupported type for rule: %s ", rule)
 	}
 }
 
@@ -83,16 +118,6 @@ type NACLRule struct {
 	// TODO: add pointer to the original rule
 	// add ingress/egress ?
 }
-
-/*func getEmptyConnSet() *common.ConnectionSet {
-	res := common.MakeConnectionSet(false)
-	return &res
-}
-
-func getAllConnSet() *common.ConnectionSet {
-	res := common.MakeConnectionSet(true)
-	return &res
-}*/
 
 // given ingress rules from NACL , specific src, subnet cidr and disjoint peers of dest ip-blocks -- get the allowed connections
 func getAllowedXgressConnections(rules []*NACLRule, src, subnetCidr *common.IPBlock,
@@ -190,31 +215,21 @@ func getDisjointPeersForEgressAnalysis(rules []*NACLRule, subnet *common.IPBlock
 	return getDisjointPeersForIngressOrEgressAnalysis(rules, subnet, false)
 }
 
-/*func getNACLDetails(naclObj *vpc1.NetworkACL) string {
-	res := ""
-	for index := range naclObj.Rules {
-		rule := naclObj.Rules[index]
-		ruleStr, _, _ := getNACLRule(rule)
-		res += ruleStr
-	}
-
-	return res
-}*/
-
 // get connectivity result for each disjoint target in the subnet
-func AnalyzeNACLRulesPerDisjointTargets(rules []*NACLRule, subnet *common.IPBlock, isIngress bool) map[*common.IPBlock]*ConnectivityResult {
-	res := map[*common.IPBlock]*ConnectivityResult{}
+func (na *NACLAnalyzer) AnalyzeNACLRulesPerDisjointTargets(
+	rules []*NACLRule, subnet *common.IPBlock, isIngress bool) map[string]*ConnectivityResult {
+	res := map[string]*ConnectivityResult{}
 	if isIngress {
 		disjointSrcPeers, disjointDstPeers := getDisjointPeersForIngressAnalysis(rules, subnet)
 		for _, src := range disjointSrcPeers {
 			allowedIngressConns := getAllowedXgressConnections(rules, src, subnet, disjointDstPeers, true)
 			for dst, conn := range allowedIngressConns {
 				if dstIP, err := common.IPBlockFromIPRangeStr(dst); err == nil {
-					if connRes, ok := res[dstIP]; ok {
+					if connRes, ok := res[dstIP.ToIPRanges()]; ok {
 						connRes.allowedconns[src] = conn
 					} else {
-						res[dstIP] = &ConnectivityResult{isIngress: true, allowedconns: map[*common.IPBlock]*common.ConnectionSet{}}
-						res[dstIP].allowedconns[src] = conn
+						res[dstIP.ToIPRanges()] = &ConnectivityResult{isIngress: true, allowedconns: map[*common.IPBlock]*common.ConnectionSet{}}
+						res[dstIP.ToIPRanges()].allowedconns[src] = conn
 					}
 				}
 			}
@@ -226,11 +241,11 @@ func AnalyzeNACLRulesPerDisjointTargets(rules []*NACLRule, subnet *common.IPBloc
 		allowedEgressConns := getAllowedXgressConnections(rules, dst, subnet, disjointSrcPeers, false)
 		for src, conn := range allowedEgressConns {
 			if srcIP, err := common.IPBlockFromIPRangeStr(src); err == nil {
-				if connRes, ok := res[srcIP]; ok {
+				if connRes, ok := res[srcIP.ToIPRanges()]; ok {
 					connRes.allowedconns[dst] = conn
 				} else {
-					res[srcIP] = &ConnectivityResult{isIngress: true, allowedconns: map[*common.IPBlock]*common.ConnectionSet{}}
-					res[srcIP].allowedconns[dst] = conn
+					res[srcIP.ToIPRanges()] = &ConnectivityResult{isIngress: true, allowedconns: map[*common.IPBlock]*common.ConnectionSet{}}
+					res[srcIP.ToIPRanges()].allowedconns[dst] = conn
 				}
 			}
 		}
@@ -239,22 +254,15 @@ func AnalyzeNACLRulesPerDisjointTargets(rules []*NACLRule, subnet *common.IPBloc
 	return res
 }
 
-type NACLAnalyzer struct {
-	naclResource *vpc1.NetworkACL
-	ingressRules []*NACLRule
-	egressRules  []*NACLRule
-	// analysis results
-	ingressRes         map[string]*ConnectivityResult // map from cidr of subnet to its analysis res (ingress)
-	egressRes          map[string]*ConnectivityResult // map from cidr of subnet to its analysis res (egress)
-	referencedIPblocks []*common.IPBlock
-}
-
-func (na *NACLAnalyzer) getNACLRules(naclObj *vpc1.NetworkACL) (ingressRules, egressRules []*NACLRule) {
+func (na *NACLAnalyzer) getNACLRules(naclObj *vpc1.NetworkACL) (ingressRules, egressRules []*NACLRule, err error) {
 	ingressRules = []*NACLRule{}
 	egressRules = []*NACLRule{}
 	for index := range naclObj.Rules {
 		rule := naclObj.Rules[index]
-		_, ruleObj, isIngress := getNACLRule(rule)
+		_, ruleObj, isIngress, err := getNACLRule(rule)
+		if err != nil {
+			return nil, nil, err
+		}
 		if rule == nil {
 			continue
 		}
@@ -266,7 +274,7 @@ func (na *NACLAnalyzer) getNACLRules(naclObj *vpc1.NetworkACL) (ingressRules, eg
 			egressRules = append(egressRules, ruleObj)
 		}
 	}
-	return
+	return ingressRules, egressRules, nil
 }
 
 func getConnStr(src, dst, conn string) string {
@@ -300,6 +308,8 @@ func (na *NACLAnalyzer) AnalyzeNACLRules(rules []*NACLRule, subnet *common.IPBlo
 	// egress
 	disjointSrcPeers, disjointDstPeers := getDisjointPeersForEgressAnalysis(rules, subnet)
 	for _, dst := range disjointDstPeers {
+		dstStr := strings.Join(dst.ToCidrList(), ",")
+		fmt.Println(dstStr)
 		allowedEgressConns := getAllowedXgressConnections(rules, dst, subnet, disjointSrcPeers, false)
 		for src, conn := range allowedEgressConns {
 			res = append(res, getConnStr(src, dst.ToIPRanges(), conn.String()))
@@ -314,55 +324,74 @@ func (na *NACLAnalyzer) AnalyzeNACLRules(rules []*NACLRule, subnet *common.IPBlo
 
 // TODO: return a map from each possible subnetDisjointTarget to its ConnectivityResult, instead of a specific ConnectivityResult
 // get allowed and denied connections (ingress and egress) for a certain subnet to which this nacl is applied
-func (na *NACLAnalyzer) AnalyzeNACL(naclObj *vpc1.NetworkACL, subnet, subnetDisjointTarget *common.IPBlock) (
-	ingressRes, egressRes string,
-	ingressResConnectivity, egressResConnectivity *ConnectivityResult) {
-	ingressRes, ingressResConnectivity = na.AnalyzeNACLRules(na.ingressRules, subnet, true, subnetDisjointTarget)
-	egressRes, egressResConnectivity = na.AnalyzeNACLRules(na.egressRules, subnet, false, subnetDisjointTarget)
-	return ingressRes, egressRes, ingressResConnectivity, egressResConnectivity
-}
-
-/*func AnalyzeNACLPerDisjointTargets(naclObj *vpc1.NetworkACL, subnet *IPBlock) (*AnalysisConnectivityResults){
-
-}*/
-
-/*type AnalysisConnectivityResults struct {
-	ingressRes map[*common.IPBlock]*ConnectivityResult
-	egressRes  map[*common.IPBlock]*ConnectivityResult
-}*/
-
-func NewNACLAnalyzer(nacl *vpc1.NetworkACL) *NACLAnalyzer {
-	res := &NACLAnalyzer{naclResource: nacl, ingressRes: map[string]*ConnectivityResult{}, egressRes: map[string]*ConnectivityResult{}}
-	res.ingressRules, res.egressRules = res.getNACLRules(nacl)
-	return res
+func (na *NACLAnalyzer) AnalyzeNACL(naclObj *vpc1.NetworkACL, subnet *common.IPBlock) (
+	ingressResConnectivity, egressResConnectivity map[string]*ConnectivityResult) {
+	ingressResConnectivity = na.AnalyzeNACLRulesPerDisjointTargets(na.ingressRules, subnet, true)
+	egressResConnectivity = na.AnalyzeNACLRulesPerDisjointTargets(na.egressRules, subnet, false)
+	return ingressResConnectivity, egressResConnectivity
 }
 
 func (na *NACLAnalyzer) addAnalysisPerSubnet(subnetCidr string) {
+	if _, ok := na.analyzedSubnets[subnetCidr]; ok {
+		return
+	}
 	subnetCidrIPBlock := common.NewIPBlockFromCidr(subnetCidr)
-	//TODO: handle subnet disjoint target
-	_, _, ingressRes, egressRes := na.AnalyzeNACL(na.naclResource, subnetCidrIPBlock, subnetCidrIPBlock)
-	na.ingressRes[subnetCidr] = ingressRes
-	na.egressRes[subnetCidr] = egressRes
+	ingressRes, egressRes := na.AnalyzeNACL(na.naclResource, subnetCidrIPBlock)
+
+	na.analyzedSubnets[subnetCidr] = NewAnalysisResultPerSubnet(subnetCidr, ingressRes, egressRes)
+
+	fmt.Printf("\naddAnalysisPerSubnet results:\n")
+	fmt.Printf("subnetCidr: %s\n", subnetCidr)
+	fmt.Printf("%s", na.GeneralConnectivityPerSubnet(subnetCidr))
+
+	fmt.Println("-----")
 }
 
-func (na *NACLAnalyzer) AllowedConnectivity(subnetCidr, inSubentCidr, target string, isIngress bool) *common.ConnectionSet {
+func getDisjointSubnetCidrStr(disjointSubnetCidr string) string {
+	return fmt.Sprintf("disjointSubnetCidr: %s\n", disjointSubnetCidr)
+}
+
+func (na *NACLAnalyzer) GeneralConnectivityPerSubnet(subnetCidr string) string {
+	na.addAnalysisPerSubnet(subnetCidr)
+	ingressRes := na.analyzedSubnets[subnetCidr].ingressRes
+	egressRes := na.analyzedSubnets[subnetCidr].egressRes
+	res := "ingressConnectivity:\n"
+	for disjointSubnetCidr, connectivityRes := range ingressRes {
+		res += getDisjointSubnetCidrStr(disjointSubnetCidr)
+		res += connectivityRes.string()
+	}
+	res += "egressConnectivity:\n"
+	for disjointSubnetCidr, connectivityRes := range egressRes {
+		res += getDisjointSubnetCidrStr(disjointSubnetCidr)
+		res += connectivityRes.string()
+	}
+	return res
+}
+
+func (na *NACLAnalyzer) AllowedConnectivity(subnetCidr, inSubentCidr, target string, isIngress bool) (*common.ConnectionSet, error) {
 	var analyzedConns map[string]*ConnectivityResult
 	//TODO: analyze per subnet disjoint cidrs and not necessarily entire subnet cidr
 	na.addAnalysisPerSubnet(subnetCidr)
 	if isIngress {
-		analyzedConns = na.ingressRes
+		analyzedConns = na.analyzedSubnets[subnetCidr].ingressRes
 	} else {
-		analyzedConns = na.egressRes
+		analyzedConns = na.analyzedSubnets[subnetCidr].egressRes
 	}
 	targetIPblock := common.NewIPBlockFromCidrOrAddress(target)
+	inSubnetIPblock := common.NewIPBlockFromCidrOrAddress(inSubentCidr)
 
-	if analyzedConnsPerSubnet, ok := analyzedConns[subnetCidr]; ok {
-		for resTarget, conn := range analyzedConnsPerSubnet.allowedconns {
-			if targetIPblock.ContainedIn(resTarget) {
-				return conn
+	for disjointSubnetCidr, analyzedConnsPerCidr := range analyzedConns {
+		disjointSubnetCidrIPblock, err := common.IPBlockFromIPRangeStr(disjointSubnetCidr)
+		if err != nil {
+			return nil, err
+		}
+		if inSubnetIPblock.ContainedIn(disjointSubnetCidrIPblock) {
+			for resTarget, conn := range analyzedConnsPerCidr.allowedconns {
+				if targetIPblock.ContainedIn(resTarget) {
+					return conn, nil
+				}
 			}
 		}
-		return vpcmodel.NoConns()
 	}
-	return nil
+	return nil, nil //TODO: add err here?
 }

@@ -260,6 +260,12 @@ func (v *CloudConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode N
 				}
 			}
 			res[peerNode] = allowedConnsBetweenCapturedAndPeerNode
+			direction := "inbound"
+			if !isIngress {
+				direction = "outbound"
+			}
+			fmt.Printf("getAllowedConnsPerDirection: src: %s, dst %s, conn: %s, direction: %s\n", src.Cidr(), dst.Cidr(),
+				allowedConnsBetweenCapturedAndPeerNode.String(), direction)
 		} else { // else : external node -> consider attached routing resources
 			allowedConnsBetweenCapturedAndPeerNode := NoConns()
 			for _, router := range v.RoutingResources {

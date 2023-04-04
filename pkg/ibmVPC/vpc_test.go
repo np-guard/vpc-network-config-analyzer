@@ -8,51 +8,69 @@ import (
 	"testing"
 )
 
-/*
-old test:
-//go:embed examples/sg_testing1.json
-var inputResources []byte
-*/
-
 //go:embed examples/sg_testing1_new.json
-var inputResources1 []byte
+var sg1Input []byte
+
+//go:embed examples/sg_testing1.txt
+var sg1Output []byte
+
+//go:embed examples/acl_testing3.json
+var acl3Input []byte
+
+//go:embed examples/acl_testing3.txt
+var acl3Output []byte
+
+type vpcTest struct {
+	name               string
+	inputResourcesJSON []byte
+	expectedOutputText []byte
+}
 
 func TestWithParsing(t *testing.T) {
-	rc, err := ParseResources(inputResources1)
-	if err != nil {
-		t.Fatalf("err: %s", err)
+	tests := []vpcTest{
+		{
+			name:               "acl_testing3",
+			inputResourcesJSON: acl3Input,
+			expectedOutputText: acl3Output,
+		},
+		{
+			name:               "sg_testing1",
+			inputResourcesJSON: sg1Input,
+			expectedOutputText: sg1Output,
+		},
 	}
-	cloudConfig, err := NewCloudConfig(rc)
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
-	fmt.Println("nodes in the vpc config:")
-	for _, n := range cloudConfig.Nodes {
-		fmt.Printf("%s %s\n", n.Name(), n.Cidr())
-	}
-	vpcConn := cloudConfig.GetVPCNetworkConnectivity()
-	actualOutput := vpcConn.String()
-	fmt.Printf("%s", actualOutput)
-	fmt.Println("done")
-
-	// check output
-	generateActualOutput := false
-	currentDir, _ := os.Getwd()
-	expectedOutputFile := filepath.Join(currentDir, "examples", "TestWithParsing.txt")
-	if generateActualOutput {
-		// update expected output: override expected output with actual output
-		if err = os.WriteFile(expectedOutputFile, []byte(actualOutput), 0o600); err != nil {
-			t.Fatalf("TestWithParsing WriteFile err: %v", err)
-		}
-	} else {
-		// compare actual output to expected output
-		expectedStr, err := os.ReadFile(expectedOutputFile)
+	for _, test := range tests {
+		rc, err := ParseResources(test.inputResourcesJSON)
 		if err != nil {
-			t.Fatalf("TestWithParsing:  ReadFile err: %v", err)
+			t.Fatalf("err: %s", err)
 		}
-		if string(expectedStr) != actualOutput {
-			fmt.Printf("%s", actualOutput)
-			t.Fatalf("TestWithParsing unexpected output result ")
+		cloudConfig, err := NewCloudConfig(rc)
+		if err != nil {
+			t.Fatalf("err: %s", err)
+		}
+		fmt.Println("nodes in the vpc config:")
+		for _, n := range cloudConfig.Nodes {
+			fmt.Printf("%s %s\n", n.Name(), n.Cidr())
+		}
+		vpcConn := cloudConfig.GetVPCNetworkConnectivity()
+		actualOutput := vpcConn.String()
+		fmt.Printf("%s", actualOutput)
+		fmt.Println("done")
+		generateActualOutput := false
+		currentDir, _ := os.Getwd()
+		expectedOutputFile := filepath.Join(currentDir, "examples", "TestWithParsing.txt")
+		if generateActualOutput {
+			// update expected output: override expected output with actual output
+			if err = os.WriteFile(expectedOutputFile, []byte(actualOutput), 0o600); err != nil {
+				t.Fatalf("TestWithParsing WriteFile err: %v", err)
+			}
+		} else {
+			// compare actual output to expected output
+			expectedStr := string(test.expectedOutputText)
+			if expectedStr != actualOutput {
+				fmt.Printf("%s", actualOutput)
+				t.Fatalf("TestWithParsing unexpected output result ")
+			}
 		}
 	}
 }

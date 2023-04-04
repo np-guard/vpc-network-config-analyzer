@@ -94,7 +94,7 @@ func (conn *ConnectionSet) isAllConnectionsWithoutAllowAll() bool {
 	if conn.AllowAll {
 		return false
 	}
-	allProtocols := []Protocol{ProtocolTCP, ProtocolUDP, ProtocolSCTP}
+	allProtocols := []Protocol{ProtocolTCP, ProtocolUDP, ProtocolSCTP, ProtocolICMP}
 	for _, protocol := range allProtocols {
 		ports, ok := conn.AllowedProtocols[protocol]
 		if !ok {
@@ -153,10 +153,14 @@ func (conn *ConnectionSet) Subtract(other ConnectionSet) {
 		conn.AllowedProtocols[ProtocolTCP] = NewPortSetAllPorts()
 		conn.AllowedProtocols[ProtocolUDP] = NewPortSetAllPorts()
 		conn.AllowedProtocols[ProtocolSCTP] = NewPortSetAllPorts()
+		conn.AllowedProtocols[ProtocolICMP] = NewICMPAllTypesTemp()
 	}
 	for protocol := range conn.AllowedProtocols {
 		if otherPorts, ok := other.AllowedProtocols[protocol]; ok {
 			conn.AllowedProtocols[protocol].Ports.Subtraction(otherPorts.Ports)
+			if conn.AllowedProtocols[protocol].Ports.IsEmpty() {
+				delete(conn.AllowedProtocols, protocol)
+			}
 		}
 	}
 }
