@@ -9,7 +9,7 @@ import (
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
-	vpcmodel "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcModel"
+	vpcmodel "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
 const (
