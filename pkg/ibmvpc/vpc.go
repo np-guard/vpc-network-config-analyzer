@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
-	vpcmodel "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcModel"
+	vpcmodel "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
