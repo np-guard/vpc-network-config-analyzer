@@ -348,7 +348,7 @@ func (na *NACLAnalyzer) addAnalysisPerSubnet(subnetCidr string) {
 }
 
 func getDisjointSubnetCidrStr(disjointSubnetCidr string) string {
-	return fmt.Sprintf("disjointSubnetCidr: %s\n", disjointSubnetCidr)
+	return fmt.Sprintf("local ip-block: %s\n", disjointSubnetCidr)
 }
 
 func (na *NACLAnalyzer) GeneralConnectivityPerSubnet(subnetCidr string) string {
