@@ -32,6 +32,9 @@ func (ni *NetworkInterface) VsiName() string {
 func (ni *NetworkInterface) Name() string {
 	return fmt.Sprintf("%s[%s]", ni.vsi, ni.address)
 }
+func (ni *NetworkInterface) Details() string {
+	return "NetworkInterface " + ni.address + " " + ni.Name() + " subnet: " + ni.subnet.cidr
+}
 
 /*type ReservedIP struct {
 	name string
@@ -57,6 +60,10 @@ func (v *VPC) Connectivity() *vpcmodel.ConnectivityResult {
 	return v.connectivityRules
 }
 
+func (v *VPC) Details() string {
+	return v.ResourceName
+}
+
 type Subnet struct {
 	vpcmodel.NamedResource
 	nodes             []vpcmodel.Node
@@ -69,6 +76,9 @@ func (s *Subnet) Nodes() []vpcmodel.Node {
 }
 func (s *Subnet) Connectivity() *vpcmodel.ConnectivityResult {
 	return s.connectivityRules
+}
+func (s *Subnet) Details() string {
+	return s.ResourceName + " " + s.cidr
 }
 
 type Vsi struct {
@@ -83,6 +93,9 @@ func (v *Vsi) Nodes() []vpcmodel.Node {
 func (v *Vsi) Connectivity() *vpcmodel.ConnectivityResult {
 	return v.connectivityRules
 }
+func (v *Vsi) Details() string {
+	return ""
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // FilterTraffic elements
@@ -94,6 +107,14 @@ type NaclLayer struct {
 
 func (nl *NaclLayer) Kind() string {
 	return "NaclLayer"
+}
+
+func (nl *NaclLayer) Details() []string {
+	res := []string{}
+	for _, nacl := range nl.naclList {
+		res = append(res, nacl.Details())
+	}
+	return res
 }
 
 func (nl *NaclLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *common.ConnectionSet {
@@ -121,6 +142,14 @@ type NACL struct {
 
 func (n *NACL) Kind() string {
 	return "NACL"
+}
+
+func (n *NACL) Details() string {
+	subnets := ""
+	for subent := range n.subnets {
+		subnets += subent + ","
+	}
+	return "NACL " + n.ResourceName + "subnets: " + subnets
 }
 
 func (n *NACL) GeneralConnectivityPerSubnet(subnetCidr string) string {
@@ -171,6 +200,14 @@ func (sgl *SecurityGroupLayer) Kind() string {
 	return "SecurityGroupLayer"
 }
 
+func (sgl *SecurityGroupLayer) Details() []string {
+	res := []string{}
+	for _, sg := range sgl.sgList {
+		res = append(res, sg.Details())
+	}
+	return res
+}
+
 // TODO: fix: is it possible that no sg applies  to the input peer? if so, should not return "no conns" when none applies
 func (sgl *SecurityGroupLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *common.ConnectionSet {
 	res := vpcmodel.NoConns()
@@ -198,6 +235,14 @@ type SecurityGroup struct {
 
 func (sg *SecurityGroup) Kind() string {
 	return "SG"
+}
+
+func (sg *SecurityGroup) Details() string {
+	members := ""
+	for member := range sg.members {
+		members += member + ","
+	}
+	return "SG " + sg.ResourceName + " members: " + members
 }
 
 func (sg *SecurityGroup) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *common.ConnectionSet {
@@ -228,11 +273,12 @@ type FloatingIP struct {
 	destinations []vpcmodel.Node
 }
 
-type PublicGateway struct {
-	vpcmodel.NamedResource
-	cidr         string
-	src          []vpcmodel.Node
-	destinations []vpcmodel.Node
+func (fip *FloatingIP) Details() string {
+	attachedDetails := ""
+	for _, n := range fip.src {
+		attachedDetails += n.Name() + ","
+	}
+	return "FloatingIP " + fip.ResourceName + " attached to: " + attachedDetails
 }
 
 func (fip *FloatingIP) Src() []vpcmodel.Node {
@@ -250,6 +296,21 @@ func (fip *FloatingIP) AllowedConnectivity(src, dst vpcmodel.Node) *common.Conne
 		return vpcmodel.AllConns()
 	}
 	return vpcmodel.NoConns()
+}
+
+type PublicGateway struct {
+	vpcmodel.NamedResource
+	cidr         string
+	src          []vpcmodel.Node
+	destinations []vpcmodel.Node
+}
+
+func (pgw *PublicGateway) Details() string {
+	attachedDetails := ""
+	for _, n := range pgw.src {
+		attachedDetails += n.Name() + ","
+	}
+	return "PublicGateway " + pgw.ResourceName + " attached to: " + attachedDetails
 }
 
 func (pgw *PublicGateway) Src() []vpcmodel.Node {

@@ -26,6 +26,7 @@ type Node interface {
 	NamedResourceIntf
 	Cidr() string
 	IsInternal() bool
+	Details() string
 }
 
 // NodeSet is an element that may capture several nodes [vpc ,subnet, vsi, (service network?)]
@@ -33,6 +34,7 @@ type NodeSet interface {
 	NamedResourceIntf
 	Nodes() []Node
 	Connectivity() *ConnectivityResult
+	Details() string
 }
 
 // FilterTrafficResource capture allowed traffic between 2 endpoints
@@ -42,6 +44,7 @@ type FilterTrafficResource interface {
 	AllowedConnectivity(src, dst Node, isIngress bool) *common.ConnectionSet
 	Kind() string
 	ReferencedIPblocks() []*common.IPBlock
+	Details() []string
 }
 
 // routing resource enables connectivity from src to destination via that resource
@@ -51,6 +54,7 @@ type RoutingResource interface {
 	Src() []Node
 	Destinations() []Node
 	AllowedConnectivity(src, dst Node) *common.ConnectionSet
+	Details() string
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -82,6 +86,10 @@ func (exn *ExternalNetwork) IsInternal() bool {
 	return false
 }
 
+func (exn *ExternalNetwork) Details() string {
+	return "ExternalNetwork " + exn.Cidr()
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 // connectivity model aspects
@@ -96,6 +104,32 @@ type CloudConfig struct {
 	NodeSets         []NodeSet
 	FilterResources  []FilterTrafficResource
 	RoutingResources []RoutingResource
+}
+
+func addDetailsLine(lines []string, details string) []string {
+	if details != "" {
+		lines = append(lines, details)
+	}
+	return lines
+}
+
+func (c *CloudConfig) String() string {
+	res := "cloud config details:\n"
+	lines := []string{}
+	for _, node := range c.Nodes {
+		lines = addDetailsLine(lines, node.Details())
+	}
+	for _, nodeSet := range c.NodeSets {
+		lines = addDetailsLine(lines, nodeSet.Details())
+	}
+	for _, filters := range c.FilterResources {
+		lines = append(lines, filters.Details()...)
+	}
+	for _, r := range c.RoutingResources {
+		lines = addDetailsLine(lines, r.Details())
+	}
+	res += strings.Join(lines, "\n")
+	return res
 }
 
 // detailed representation of allowed connectivity considering all resources in a vpc config instance
