@@ -7,7 +7,12 @@ import (
 	vpcmodel "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////////////////////////////////////
+const (
+	space          = " "
+	commaSeparator = ","
+)
+
 // nodes elements - implement vpcmodel.Node interface
 
 type NetworkInterface struct {
@@ -33,7 +38,7 @@ func (ni *NetworkInterface) Name() string {
 	return fmt.Sprintf("%s[%s]", ni.vsi, ni.address)
 }
 func (ni *NetworkInterface) Details() string {
-	return "NetworkInterface " + ni.address + " " + ni.Name() + " subnet: " + ni.subnet.cidr
+	return "NetworkInterface " + ni.address + space + ni.Name() + " subnet: " + ni.subnet.cidr
 }
 
 /*type ReservedIP struct {
@@ -78,7 +83,7 @@ func (s *Subnet) Connectivity() *vpcmodel.ConnectivityResult {
 	return s.connectivityRules
 }
 func (s *Subnet) Details() string {
-	return s.ResourceName + " " + s.cidr
+	return s.ResourceName + space + s.cidr
 }
 
 type Vsi struct {
@@ -147,7 +152,7 @@ func (n *NACL) Kind() string {
 func (n *NACL) Details() string {
 	subnets := ""
 	for subent := range n.subnets {
-		subnets += subent + ","
+		subnets += subent + commaSeparator
 	}
 	return "NACL " + n.ResourceName + "subnets: " + subnets
 }
@@ -240,7 +245,7 @@ func (sg *SecurityGroup) Kind() string {
 func (sg *SecurityGroup) Details() string {
 	members := ""
 	for member := range sg.members {
-		members += member + ","
+		members += member + commaSeparator
 	}
 	return "SG " + sg.ResourceName + " members: " + members
 }
@@ -264,6 +269,10 @@ func (sg *SecurityGroup) AllowedConnectivity(src, dst vpcmodel.Node, isIngress b
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+func getRouterAttachedToStr(attachedDetails string) string {
+	return " attached to: " + attachedDetails
+}
+
 // routing resource elements
 
 type FloatingIP struct {
@@ -276,9 +285,9 @@ type FloatingIP struct {
 func (fip *FloatingIP) Details() string {
 	attachedDetails := ""
 	for _, n := range fip.src {
-		attachedDetails += n.Name() + ","
+		attachedDetails += n.Name() + commaSeparator
 	}
-	return "FloatingIP " + fip.ResourceName + " attached to: " + attachedDetails
+	return "FloatingIP " + fip.ResourceName + getRouterAttachedToStr(attachedDetails)
 }
 
 func (fip *FloatingIP) Src() []vpcmodel.Node {
@@ -308,9 +317,9 @@ type PublicGateway struct {
 func (pgw *PublicGateway) Details() string {
 	attachedDetails := ""
 	for _, n := range pgw.src {
-		attachedDetails += n.Name() + ","
+		attachedDetails += n.Name() + commaSeparator
 	}
-	return "PublicGateway " + pgw.ResourceName + " attached to: " + attachedDetails
+	return "PublicGateway " + pgw.ResourceName + getRouterAttachedToStr(attachedDetails)
 }
 
 func (pgw *PublicGateway) Src() []vpcmodel.Node {

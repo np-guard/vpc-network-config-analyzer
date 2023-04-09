@@ -113,19 +113,19 @@ func addDetailsLine(lines []string, details string) []string {
 	return lines
 }
 
-func (c *CloudConfig) String() string {
+func (v *CloudConfig) String() string {
 	res := "cloud config details:\n"
 	lines := []string{}
-	for _, node := range c.Nodes {
+	for _, node := range v.Nodes {
 		lines = addDetailsLine(lines, node.Details())
 	}
-	for _, nodeSet := range c.NodeSets {
+	for _, nodeSet := range v.NodeSets {
 		lines = addDetailsLine(lines, nodeSet.Details())
 	}
-	for _, filters := range c.FilterResources {
+	for _, filters := range v.FilterResources {
 		lines = append(lines, filters.Details()...)
 	}
-	for _, r := range c.RoutingResources {
+	for _, r := range v.RoutingResources {
 		lines = addDetailsLine(lines, r.Details())
 	}
 	res += strings.Join(lines, "\n")
