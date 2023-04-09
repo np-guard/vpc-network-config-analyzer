@@ -507,9 +507,9 @@ func addExternalNodes(config *vpcmodel.CloudConfig, vpcInternalAddressRange *com
 		externalNodes = append(externalNodes, node)
 	}
 	//TODO: add cidrs of external network outside the given above cidrs already added
-	/*node := &vpcmodel.ExternalNetwork{NamedResource: vpcmodel.NamedResource{ResourceName: "public-internet"}, CidrStr: "192.0.1.0/24"}
+	node := &vpcmodel.ExternalNetwork{NamedResource: vpcmodel.NamedResource{ResourceName: "public-internet"}, CidrStr: "192.0.1.0/24"}
 	config.Nodes = append(config.Nodes, node)
-	externalNodes = append(externalNodes, node)*/
+	externalNodes = append(externalNodes, node)
 
 	fmt.Println(linesSeparator)
 	return externalNodes

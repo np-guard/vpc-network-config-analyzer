@@ -325,7 +325,7 @@ func (cr *ConnectivityResult) getTargets() []*common.IPBlock {
 func (cr *ConnectivityResult) string() string {
 	res := ""
 	for t, conn := range cr.allowedconns {
-		res += fmt.Sprintf("target: %s, conn: %s\n", t.ToIPRanges(), conn.String())
+		res += fmt.Sprintf("remote: %s, conn: %s\n", t.ToIPRanges(), conn.String())
 	}
 	return res
 }
