@@ -97,3 +97,42 @@ func getTestsDir() string {
 	currentDir, _ := os.Getwd()
 	return filepath.Join(currentDir, "examples")
 }
+
+/*
+//go:embed examples/demo/demo1.json
+var demoInput []byte
+
+//go:embed examples/demo/demo2.json
+var demo2Input []byte
+
+func TestDemo(t *testing.T) {
+	rc, err := ParseResources(demoInput)
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	cloudConfig, err := NewCloudConfig(rc)
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	vpcConn := cloudConfig.GetVPCNetworkConnectivity()
+	actualOutput := vpcConn.String()
+	fmt.Printf("%s", actualOutput)
+	for _, r := range cloudConfig.FilterResources {
+		if naclLayer, ok := r.(*NaclLayer); ok {
+			for _, nacl := range naclLayer.naclList {
+				for subnet := range nacl.subnets {
+					//fmt.Println(nacl.GeneralConnectivityPerSubnet(subnet))
+					nacl.GeneralConnectivityPerSubnet(subnet)
+				}
+			}
+		}
+	}
+	fmt.Println("===============================================")
+	test := &vpcTest{name: "demo2", inputResourcesJSON: demo2Input}
+	cloudConfig2, vpcConn2 := runTest(t, test)
+	// generate output
+	o := vpcmodel.NewOutputGenerator(cloudConfig2, vpcConn2)
+	setTestOutputFiles(o, test)
+	getTestOutput(test, t, o)
+}
+*/

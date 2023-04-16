@@ -78,6 +78,12 @@ func (n *NamedResource) UID() string {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
+const (
+	DetailsAttributeKind = "kind"
+	DetailsAttributeName = "name"
+	DetailsAttributeCIDR = "cidr"
+)
+
 type ExternalNetwork struct {
 	NamedResource
 	CidrStr string
@@ -94,11 +100,15 @@ func (exn *ExternalNetwork) Details() string {
 	return "ExternalNetwork " + exn.Cidr()
 }
 
+func (exn *ExternalNetwork) Kind() string {
+	return "ExternalNetwork"
+}
+
 func (exn *ExternalNetwork) DetailsMap() map[string]string {
 	res := map[string]string{}
-	res["kind"] = "ExternalNetwork"
-	res["name"] = exn.ResourceName
-	res["cidr"] = exn.CidrStr
+	res[DetailsAttributeKind] = exn.Kind()
+	res[DetailsAttributeName] = exn.ResourceName
+	res[DetailsAttributeCIDR] = exn.CidrStr
 	return res
 }
 

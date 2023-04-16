@@ -12,12 +12,9 @@ import (
 const (
 	space                      = " "
 	commaSeparator             = ","
-	detailsAttributeKind       = "kind"
-	detailsAttributeName       = "name"
 	detailsAttributeUID        = "uid"
 	detailsAttributeNodes      = "nodes"
 	detailsAttributeAttachedTo = "attached_to"
-	detailsAttributeCIDR       = "cidr"
 	detailsAttributeSubnets    = "subnets"
 	detailsAttributeMembers    = "members"
 	detailsAttributeVSIname    = "vsiName"
@@ -58,8 +55,8 @@ func (ni *NetworkInterface) Details() string {
 }
 func (ni *NetworkInterface) DetailsMap() map[string]string {
 	res := map[string]string{}
-	res[detailsAttributeKind] = ni.Kind()
-	res[detailsAttributeName] = ni.ResourceName
+	res[vpcmodel.DetailsAttributeKind] = ni.Kind()
+	res[vpcmodel.DetailsAttributeName] = ni.ResourceName
 	res[detailsAttributeUID] = ni.ResourceUID
 	res[detailsAttributeVSIname] = ni.vsi
 	res[detailsAttributeAddress] = ni.address
@@ -106,8 +103,8 @@ func (v *VPC) DetailsMap() map[string]string {
 		nodesUIDs = append(nodesUIDs, node.UID())
 	}
 	res := map[string]string{}
-	res[detailsAttributeKind] = v.Kind()
-	res[detailsAttributeName] = v.ResourceName
+	res[vpcmodel.DetailsAttributeKind] = v.Kind()
+	res[vpcmodel.DetailsAttributeName] = v.ResourceName
 	res[detailsAttributeUID] = v.ResourceUID
 	res[detailsAttributeNodes] = strings.Join(nodesUIDs, commaSeparator)
 	return res
@@ -140,8 +137,8 @@ func (s *Subnet) DetailsMap() map[string]string {
 		nodesUIDs = append(nodesUIDs, node.UID())
 	}
 	res := map[string]string{}
-	res[detailsAttributeKind] = s.Kind()
-	res[detailsAttributeName] = s.ResourceName
+	res[vpcmodel.DetailsAttributeKind] = s.Kind()
+	res[vpcmodel.DetailsAttributeName] = s.ResourceName
 	res[detailsAttributeUID] = s.ResourceUID
 	res[detailsAttributeNodes] = strings.Join(nodesUIDs, commaSeparator)
 	return res
@@ -173,8 +170,8 @@ func (v *Vsi) DetailsMap() map[string]string {
 		nodesUIDs = append(nodesUIDs, node.UID())
 	}
 	res := map[string]string{}
-	res[detailsAttributeKind] = v.Kind()
-	res[detailsAttributeName] = v.ResourceName
+	res[vpcmodel.DetailsAttributeKind] = v.Kind()
+	res[vpcmodel.DetailsAttributeName] = v.ResourceName
 	res[detailsAttributeUID] = v.ResourceUID
 	res[detailsAttributeNodes] = strings.Join(nodesUIDs, commaSeparator)
 	return res
@@ -251,10 +248,10 @@ func (n *NACL) DetailsMap() map[string]string {
 		i++
 	}
 	return map[string]string{
-		detailsAttributeKind:    n.Kind(),
-		detailsAttributeName:    n.ResourceName,
-		detailsAttributeUID:     n.ResourceUID,
-		detailsAttributeSubnets: strings.Join(subnetList, commaSeparator),
+		vpcmodel.DetailsAttributeKind: n.Kind(),
+		vpcmodel.DetailsAttributeName: n.ResourceName,
+		detailsAttributeUID:           n.ResourceUID,
+		detailsAttributeSubnets:       strings.Join(subnetList, commaSeparator),
 	}
 }
 
@@ -367,10 +364,10 @@ func (sg *SecurityGroup) DetailsMap() map[string]string {
 		i++
 	}
 	return map[string]string{
-		detailsAttributeKind:    sg.Kind(),
-		detailsAttributeName:    sg.ResourceName,
-		detailsAttributeUID:     sg.ResourceUID,
-		detailsAttributeMembers: strings.Join(membersList, commaSeparator),
+		vpcmodel.DetailsAttributeKind: sg.Kind(),
+		vpcmodel.DetailsAttributeName: sg.ResourceName,
+		detailsAttributeUID:           sg.ResourceUID,
+		detailsAttributeMembers:       strings.Join(membersList, commaSeparator),
 	}
 }
 
@@ -424,11 +421,11 @@ func (fip *FloatingIP) DetailsMap() map[string]string {
 		attachedDetails += n.UID() + commaSeparator
 	}
 	return map[string]string{
-		detailsAttributeName:       fip.ResourceName,
-		detailsAttributeUID:        fip.ResourceUID,
-		detailsAttributeKind:       fip.Kind(),
-		detailsAttributeAttachedTo: attachedDetails,
-		detailsAttributeCIDR:       fip.cidr,
+		vpcmodel.DetailsAttributeName: fip.ResourceName,
+		detailsAttributeUID:           fip.ResourceUID,
+		vpcmodel.DetailsAttributeKind: fip.Kind(),
+		detailsAttributeAttachedTo:    attachedDetails,
+		vpcmodel.DetailsAttributeCIDR: fip.cidr,
 	}
 }
 
@@ -474,11 +471,11 @@ func (pgw *PublicGateway) DetailsMap() map[string]string {
 		attachedDetails += n.UID() + commaSeparator
 	}
 	return map[string]string{
-		detailsAttributeName:       pgw.ResourceName,
-		detailsAttributeUID:        pgw.ResourceUID,
-		detailsAttributeKind:       pgw.Kind(),
-		detailsAttributeAttachedTo: attachedDetails,
-		detailsAttributeCIDR:       pgw.cidr,
+		vpcmodel.DetailsAttributeName: pgw.ResourceName,
+		detailsAttributeUID:           pgw.ResourceUID,
+		vpcmodel.DetailsAttributeKind: pgw.Kind(),
+		detailsAttributeAttachedTo:    attachedDetails,
+		vpcmodel.DetailsAttributeCIDR: pgw.cidr,
 	}
 }
 
