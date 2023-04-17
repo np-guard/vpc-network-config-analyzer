@@ -27,6 +27,7 @@ type Node interface {
 	Cidr() string
 	IsInternal() bool
 	Details() string
+	DetailsMap() map[string]string
 }
 
 // NodeSet is an element that may capture several nodes [vpc ,subnet, vsi, (service network?)]
@@ -35,6 +36,7 @@ type NodeSet interface {
 	Nodes() []Node
 	Connectivity() *ConnectivityResult
 	Details() string
+	DetailsMap() map[string]string
 }
 
 // FilterTrafficResource capture allowed traffic between 2 endpoints
@@ -45,6 +47,7 @@ type FilterTrafficResource interface {
 	Kind() string
 	ReferencedIPblocks() []*common.IPBlock
 	Details() []string
+	DetailsMap() []map[string]string
 }
 
 // routing resource enables connectivity from src to destination via that resource
@@ -55,6 +58,7 @@ type RoutingResource interface {
 	Destinations() []Node
 	AllowedConnectivity(src, dst Node) *common.ConnectionSet
 	Details() string
+	DetailsMap() map[string]string
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -74,6 +78,12 @@ func (n *NamedResource) UID() string {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
+const (
+	DetailsAttributeKind = "kind"
+	DetailsAttributeName = "name"
+	DetailsAttributeCIDR = "cidr"
+)
+
 type ExternalNetwork struct {
 	NamedResource
 	CidrStr string
@@ -88,6 +98,18 @@ func (exn *ExternalNetwork) IsInternal() bool {
 
 func (exn *ExternalNetwork) Details() string {
 	return "ExternalNetwork " + exn.Cidr()
+}
+
+func (exn *ExternalNetwork) Kind() string {
+	return "ExternalNetwork"
+}
+
+func (exn *ExternalNetwork) DetailsMap() map[string]string {
+	res := map[string]string{}
+	res[DetailsAttributeKind] = exn.Kind()
+	res[DetailsAttributeName] = exn.ResourceName
+	res[DetailsAttributeCIDR] = exn.CidrStr
+	return res
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////

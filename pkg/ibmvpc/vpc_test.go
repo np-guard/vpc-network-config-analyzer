@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
 //go:embed examples/sg_testing1_new.json
@@ -23,11 +25,12 @@ var acl3Output []byte
 type vpcTest struct {
 	name               string
 	inputResourcesJSON []byte
-	expectedOutputText []byte
+	expectedOutputText []byte // expected text output
+	actualOutput       string // actual text output
 }
 
 func TestWithParsing(t *testing.T) {
-	tests := []vpcTest{
+	tests := []*vpcTest{
 		{
 			name:               "acl_testing3",
 			inputResourcesJSON: acl3Input,
@@ -40,83 +43,96 @@ func TestWithParsing(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		rc, err := ParseResources(test.inputResourcesJSON)
-		if err != nil {
-			t.Fatalf("err: %s", err)
-		}
-		cloudConfig, err := NewCloudConfig(rc)
-		if err != nil {
-			t.Fatalf("err: %s", err)
-		}
-		fmt.Println("nodes in the vpc config:")
-		for _, n := range cloudConfig.Nodes {
-			fmt.Printf("%s %s\n", n.Name(), n.Cidr())
-		}
-		vpcConn := cloudConfig.GetVPCNetworkConnectivity()
-		actualOutput := vpcConn.String()
-		fmt.Printf("%s", actualOutput)
-		fmt.Println("done")
-		generateActualOutput := false
-		currentDir, _ := os.Getwd()
-		expectedOutputFile := filepath.Join(currentDir, "examples", "TestWithParsing.txt")
-		if generateActualOutput {
-			// update expected output: override expected output with actual output
-			if err = os.WriteFile(expectedOutputFile, []byte(actualOutput), 0o600); err != nil {
-				t.Fatalf("TestWithParsing WriteFile err: %v", err)
-			}
-		} else {
-			// compare actual output to expected output
-			expectedStr := string(test.expectedOutputText)
-			if expectedStr != actualOutput {
-				fmt.Printf("%s", actualOutput)
-				t.Fatalf("TestWithParsing unexpected output result ")
-			}
-		}
+		cloudConfig, vpcConn := runTest(t, test)
+		// generate output
+		o := vpcmodel.NewOutputGenerator(cloudConfig, vpcConn)
+		setTestOutputFiles(o, test)
+		getTestOutput(test, t, o)
+		// compare output to expected
+		checkTestOutput(test, t)
 	}
 }
 
-/*func TestExampleBasicFromAPImanual(t *testing.T) {
-	// additional attributes per VPC to consider: region / zone/ default_network_acl /
-	default_routing_table / default_security_group /id / resource_group
-	vpc := VPC{name: "test-vpc1-ky"} // should fill in nodes, and connectivityRules? / cidr?
-
-	subnets := []Subnet{ // should fill in nodes, and connectivityRules?
-		{name: "pub-subnet-ky", cidr: "10.240.10.0/24"},
+func runTest(t *testing.T, test *vpcTest) (*vpcmodel.CloudConfig, *vpcmodel.VPCConnectivity) {
+	rc, err := ParseResources(test.inputResourcesJSON)
+	if err != nil {
+		t.Fatalf("err: %s", err)
 	}
-
-	nifList := []NetworkInterface{
-		{
-			//name: "",
-			cidr: "",
-		},
+	cloudConfig, err := NewCloudConfig(rc)
+	if err != nil {
+		t.Fatalf("err: %s", err)
 	}
-	fmt.Printf("%v", vpc)
-	fmt.Printf("%v", subnets)
-	fmt.Printf("%v", nifList)
-}*/
+	vpcConn := cloudConfig.GetVPCNetworkConnectivity()
+	return cloudConfig, vpcConn
+}
+
+func setTestOutputFiles(o *vpcmodel.OutputGenerator, t *vpcTest) {
+	filePrfix := filepath.Join(getTestsDir(), "out_"+t.name)
+	txtFile := filePrfix + ".txt"
+	jsonFile := filePrfix + ".json"
+	o.SetOutputFile(txtFile, vpcmodel.Text)
+	o.SetOutputFile(jsonFile, vpcmodel.JSON)
+}
+
+func getTestOutput(test *vpcTest, t *testing.T, o *vpcmodel.OutputGenerator) {
+	var textOutput string
+	var err error
+	if textOutput, err = o.Generate(vpcmodel.Text); err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	if _, err := o.Generate(vpcmodel.JSON); err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	test.actualOutput = textOutput
+}
+
+func checkTestOutput(test *vpcTest, t *testing.T) {
+	if test.actualOutput != string(test.expectedOutputText) {
+		fmt.Printf("%s", test.actualOutput)
+		t.Fatalf("TestWithParsing unexpected output result : %s", test.name)
+	}
+}
+
+func getTestsDir() string {
+	currentDir, _ := os.Getwd()
+	return filepath.Join(currentDir, "examples")
+}
 
 /*
-func TestVPC(t *testing.T) {
-	vpc1 := NewVPC("VPC1", "", "Region A")
-	fmt.Printf("%v", vpc1)
-	zone1 := NewZone("zone1", "10.10.0.0/18", vpc1)
-	zone2 := NewZone("zone2", "10.20.0.0/18", vpc1)
-	subnet1 := NewSubnet("subnet1", "10.10.10.0/24", zone1.(*zone))
-	subnet2 := NewSubnet("subnet2", "10.10.20.0/24", zone1.(*zone))
-	subnet3 := NewSubnet("subnet3", "10.20.30.0/24", zone2.(*zone))
-	subnet4 := NewSubnet("subnet4", "10.20.40.0/24", zone2.(*zone))
+//go:embed examples/demo/demo1.json
+var demoInput []byte
 
-	fmt.Printf("%v", zone1)
-	fmt.Printf("%v", zone2)
-	fmt.Printf("%v", subnet1)
-	fmt.Printf("%v", subnet2)
-	fmt.Printf("%v", subnet3)
-	fmt.Printf("%v", subnet4)
-	nwintf1 := NewNwInterface("intf1", "10.10.10.5", subnet1)
-	nwintf2 := NewNwInterface("intf2", "10.10.10.6", subnet1)
-	vsi1 := NewVSI("vsi1", []*NWInterface{nwintf1.(*NWInterface)}, zone1.(*zone))
-	vsi2 := NewVSI("vsi2", []*NWInterface{nwintf2.(*NWInterface)}, zone1.(*zone))
-	fmt.Printf("%v", vsi1)
-	fmt.Printf("%v", vsi2)
+//go:embed examples/demo/demo2.json
+var demo2Input []byte
+
+func TestDemo(t *testing.T) {
+	rc, err := ParseResources(demoInput)
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	cloudConfig, err := NewCloudConfig(rc)
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	vpcConn := cloudConfig.GetVPCNetworkConnectivity()
+	actualOutput := vpcConn.String()
+	fmt.Printf("%s", actualOutput)
+	for _, r := range cloudConfig.FilterResources {
+		if naclLayer, ok := r.(*NaclLayer); ok {
+			for _, nacl := range naclLayer.naclList {
+				for subnet := range nacl.subnets {
+					//fmt.Println(nacl.GeneralConnectivityPerSubnet(subnet))
+					nacl.GeneralConnectivityPerSubnet(subnet)
+				}
+			}
+		}
+	}
+	fmt.Println("===============================================")
+	test := &vpcTest{name: "demo2", inputResourcesJSON: demo2Input}
+	cloudConfig2, vpcConn2 := runTest(t, test)
+	// generate output
+	o := vpcmodel.NewOutputGenerator(cloudConfig2, vpcConn2)
+	setTestOutputFiles(o, test)
+	getTestOutput(test, t, o)
 }
 */
