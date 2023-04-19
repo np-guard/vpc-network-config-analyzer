@@ -24,8 +24,8 @@ const (
 	detailsAttributeZone       = "zone"
 )
 
-// namedResource specific to ibm -- include zone name
-type namedResource struct {
+// zonalNamedResource specific to ibm -- include zone name
+type zonalNamedResource struct {
 	vpcmodel.NamedResource
 	zone string
 }
@@ -117,7 +117,7 @@ func (v *VPC) DetailsMap() map[string]string {
 }
 
 type Subnet struct {
-	namedResource
+	zonalNamedResource
 	nodes             []vpcmodel.Node
 	connectivityRules *vpcmodel.ConnectivityResult // allowed connectivity between elements within the subnet
 	cidr              string
@@ -153,7 +153,7 @@ func (s *Subnet) DetailsMap() map[string]string {
 }
 
 type Vsi struct {
-	namedResource
+	zonalNamedResource
 	nodes             []vpcmodel.Node
 	connectivityRules *vpcmodel.ConnectivityResult // possible rule: if has floating ip -> create connectivity to FIP, deny connectivity to PGW
 }
@@ -406,7 +406,7 @@ func getRouterAttachedToStr(attachedDetails string) string {
 // routing resource elements
 
 type FloatingIP struct {
-	vpcmodel.NamedResource
+	zonalNamedResource
 	cidr         string
 	src          []vpcmodel.Node
 	destinations []vpcmodel.Node
@@ -435,6 +435,7 @@ func (fip *FloatingIP) DetailsMap() map[string]string {
 		vpcmodel.DetailsAttributeKind: fip.Kind(),
 		detailsAttributeAttachedTo:    attachedDetails,
 		vpcmodel.DetailsAttributeCIDR: fip.cidr,
+		detailsAttributeZone:          fip.zone,
 	}
 }
 
@@ -456,7 +457,7 @@ func (fip *FloatingIP) AllowedConnectivity(src, dst vpcmodel.Node) *common.Conne
 }
 
 type PublicGateway struct {
-	vpcmodel.NamedResource
+	zonalNamedResource
 	cidr         string
 	src          []vpcmodel.Node
 	destinations []vpcmodel.Node
@@ -485,6 +486,7 @@ func (pgw *PublicGateway) DetailsMap() map[string]string {
 		vpcmodel.DetailsAttributeKind: pgw.Kind(),
 		detailsAttributeAttachedTo:    attachedDetails,
 		vpcmodel.DetailsAttributeCIDR: pgw.cidr,
+		detailsAttributeZone:          pgw.zone,
 	}
 }
 
