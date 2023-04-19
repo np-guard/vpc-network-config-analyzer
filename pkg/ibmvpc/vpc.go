@@ -21,10 +21,16 @@ const (
 	detailsAttributeAddress    = "address"
 	detailsAttributeSubnetCIDR = "subnetCidr"
 	detailsAttributeSubnetUID  = "subnetUID"
+	detailsAttributeZone       = "zone"
 )
 
-// nodes elements - implement vpcmodel.Node interface
+// namedResource specific to ibm -- include zone name
+type namedResource struct {
+	vpcmodel.NamedResource
+	zone string
+}
 
+// nodes elements - implement vpcmodel.Node interface
 type NetworkInterface struct {
 	vpcmodel.NamedResource
 	address string
@@ -111,7 +117,7 @@ func (v *VPC) DetailsMap() map[string]string {
 }
 
 type Subnet struct {
-	vpcmodel.NamedResource
+	namedResource
 	nodes             []vpcmodel.Node
 	connectivityRules *vpcmodel.ConnectivityResult // allowed connectivity between elements within the subnet
 	cidr              string
@@ -141,11 +147,13 @@ func (s *Subnet) DetailsMap() map[string]string {
 	res[vpcmodel.DetailsAttributeName] = s.ResourceName
 	res[detailsAttributeUID] = s.ResourceUID
 	res[detailsAttributeNodes] = strings.Join(nodesUIDs, commaSeparator)
+	res[vpcmodel.DetailsAttributeCIDR] = s.cidr
+	res[detailsAttributeZone] = s.zone
 	return res
 }
 
 type Vsi struct {
-	vpcmodel.NamedResource
+	namedResource
 	nodes             []vpcmodel.Node
 	connectivityRules *vpcmodel.ConnectivityResult // possible rule: if has floating ip -> create connectivity to FIP, deny connectivity to PGW
 }
@@ -174,6 +182,7 @@ func (v *Vsi) DetailsMap() map[string]string {
 	res[vpcmodel.DetailsAttributeName] = v.ResourceName
 	res[detailsAttributeUID] = v.ResourceUID
 	res[detailsAttributeNodes] = strings.Join(nodesUIDs, commaSeparator)
+	res[detailsAttributeZone] = v.zone
 	return res
 }
 

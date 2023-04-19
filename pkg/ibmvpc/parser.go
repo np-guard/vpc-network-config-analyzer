@@ -224,13 +224,17 @@ func getInstancesConfig(
 	res *vpcmodel.CloudConfig) {
 	for i := range instanceList {
 		instance := instanceList[i]
-		vsiNode := &Vsi{NamedResource: vpcmodel.NamedResource{ResourceName: *instance.Name, ResourceUID: *instance.CRN}, nodes: []vpcmodel.Node{}}
+		vsiNode := &Vsi{
+			namedResource: namedResource{vpcmodel.NamedResource{ResourceName: *instance.Name, ResourceUID: *instance.CRN}, *instance.Zone.Name},
+			nodes:         []vpcmodel.Node{},
+		}
 		res.NodeSets = append(res.NodeSets, vsiNode)
 		for j := range instance.NetworkInterfaces {
 			netintf := instance.NetworkInterfaces[j]
 			// TODO: ResourceUID as CRN or ID ???
-			intfNode := &NetworkInterface{NamedResource: vpcmodel.NamedResource{ResourceName: *netintf.Name, ResourceUID: *netintf.ID},
-				address: *netintf.PrimaryIP.Address, vsi: *instance.Name}
+			intfNode := &NetworkInterface{
+				NamedResource: vpcmodel.NamedResource{ResourceName: *netintf.Name, ResourceUID: *netintf.ID},
+				address:       *netintf.PrimaryIP.Address, vsi: *instance.Name}
 			res.Nodes = append(res.Nodes, intfNode)
 			vsiNode.nodes = append(vsiNode.nodes, intfNode)
 			intfNameToIntf[*netintf.Name] = intfNode
@@ -253,7 +257,7 @@ func getSubnetsConfig(
 		subnet := rc.subnetsList[i]
 		subnetNodes := []vpcmodel.Node{}
 		subnetNode := &Subnet{
-			NamedResource: vpcmodel.NamedResource{ResourceName: *subnet.Name, ResourceUID: *subnet.CRN},
+			namedResource: namedResource{vpcmodel.NamedResource{ResourceName: *subnet.Name, ResourceUID: *subnet.CRN}, *subnet.Zone.Name},
 			cidr:          *subnet.Ipv4CIDRBlock}
 		cidrIPBlock := common.NewIPBlockFromCidr(subnetNode.cidr)
 		if vpcInternalAddressRange == nil {
@@ -386,8 +390,9 @@ func getNACLconfig(rc *ResourcesContainer, res *vpcmodel.CloudConfig, subnetName
 		if err != nil {
 			return err
 		}
-		naclResource := &NACL{NamedResource: vpcmodel.NamedResource{ResourceName: *nacl.Name, ResourceUID: *nacl.CRN},
-			analyzer: naclAnalyzer, subnets: map[string]struct{}{}}
+		naclResource := &NACL{
+			NamedResource: vpcmodel.NamedResource{ResourceName: *nacl.Name, ResourceUID: *nacl.CRN},
+			analyzer:      naclAnalyzer, subnets: map[string]struct{}{}}
 		naclList = append(naclList, naclResource)
 		for _, subnetRef := range nacl.Subnets {
 			subnetName := *subnetRef.Name
