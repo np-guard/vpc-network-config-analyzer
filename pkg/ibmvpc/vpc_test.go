@@ -50,6 +50,10 @@ func TestWithParsing(t *testing.T) {
 		getTestOutput(test, t, o)
 		// compare output to expected
 		checkTestOutput(test, t)
+		override := false
+		if override {
+			overrideExpectedOutput(test, t, o)
+		}
 	}
 }
 
@@ -89,6 +93,13 @@ func getTestOutput(test *vpcTest, t *testing.T, o *vpcmodel.OutputGenerator) {
 		t.Fatalf("err: %s", err)
 	}
 	test.actualOutput = textOutput
+}
+
+func overrideExpectedOutput(test *vpcTest, t *testing.T, o *vpcmodel.OutputGenerator) {
+	o.SetOutputFile(filepath.Join(getTestsDir(), test.name+".txt"), vpcmodel.Text)
+	if _, err := o.Generate(vpcmodel.Text); err != nil {
+		t.Fatalf("err: %s", err)
+	}
 }
 
 func checkTestOutput(test *vpcTest, t *testing.T) {
