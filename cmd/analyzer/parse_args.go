@@ -30,7 +30,7 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 
 	if args.InputConfigFile == nil || *args.InputConfigFile == "" {
 		flagset.PrintDefaults()
-		return nil, fmt.Errorf("missing parameter: InputConfigFile")
+		return nil, fmt.Errorf("missing parameter: vpc-config")
 	}
 
 	if *args.OutputFormat != JSONFormat && *args.OutputFormat != TEXTFormat && *args.OutputFormat != MDFormat {

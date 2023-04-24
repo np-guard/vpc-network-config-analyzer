@@ -9,6 +9,18 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
+func getOutputFormat(inArgs *InArgs) vpcmodel.OutFormat {
+	switch *inArgs.OutputFormat {
+	case TEXTFormat:
+		return vpcmodel.Text
+	case MDFormat:
+		return vpcmodel.MD
+	case JSONFormat:
+		return vpcmodel.JSON
+	}
+	return vpcmodel.Text
+}
+
 // The actual main function
 // Takes command-line flags and returns an error rather than exiting, so it can be more easily used in testing
 func _main(cmdlineArgs []string) error {
@@ -32,11 +44,20 @@ func _main(cmdlineArgs []string) error {
 
 	vpcConn := cloudConfig.GetVPCNetworkConnectivity()
 	o := vpcmodel.NewOutputGenerator(cloudConfig, vpcConn)
-	textOutput, err := o.Generate(vpcmodel.Text)
+	outFile := ""
+	if inArgs.OutputFile != nil {
+		outFile = *inArgs.OutputFile
+	}
+	outFormat := getOutputFormat(inArgs)
+	o.SetOutputFile(outFile, outFormat)
+
+	output, err := o.Generate(outFormat)
 	if err != nil {
 		return fmt.Errorf("output generation error: %w", err)
 	}
-	fmt.Println(textOutput)
+
+	// print to stdout as well
+	fmt.Println(output)
 
 	return nil
 }
