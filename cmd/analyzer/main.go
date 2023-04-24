@@ -68,5 +68,4 @@ func main() {
 		fmt.Fprintf(os.Stderr, "%v. exiting...", err)
 		os.Exit(1)
 	}
-
 }
