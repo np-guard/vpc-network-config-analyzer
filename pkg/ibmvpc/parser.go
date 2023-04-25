@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
@@ -183,6 +184,14 @@ func parseSingleResourceList(key string, vList []json.RawMessage, res *Resources
 
 func printLineStr(s string) {
 	fmt.Printf("%s\n", s)
+}
+
+func ParseResourrcesFromFile(fileName string) (*ResourcesContainer, error) {
+	jsonContent, err := os.ReadFile(fileName)
+	if err != nil {
+		return nil, err
+	}
+	return ParseResources(jsonContent)
 }
 
 func ParseResources(resourcesJSONFile []byte) (*ResourcesContainer, error) {
