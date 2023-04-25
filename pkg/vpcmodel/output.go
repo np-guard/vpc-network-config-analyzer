@@ -47,6 +47,8 @@ func (o *OutputGenerator) Generate(f OutFormat) (string, error) {
 		formatter = &JSONoutputFormatter{}
 	case Text:
 		formatter = &TextoutputFormatter{}
+	case MD:
+		formatter = &MDoutputFormatter{}
 	default:
 		return "", errors.New("unsupported output format")
 	}

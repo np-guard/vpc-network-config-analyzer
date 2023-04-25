@@ -70,8 +70,10 @@ func setTestOutputFiles(o *vpcmodel.OutputGenerator, t *vpcTest) {
 	filePrfix := filepath.Join(getTestsDir(), "out_"+t.name)
 	txtFile := filePrfix + ".txt"
 	jsonFile := filePrfix + ".json"
+	mdFile := filePrfix + ".md"
 	o.SetOutputFile(txtFile, vpcmodel.Text)
 	o.SetOutputFile(jsonFile, vpcmodel.JSON)
+	o.SetOutputFile(mdFile, vpcmodel.MD)
 }
 
 func getTestOutput(test *vpcTest, t *testing.T, o *vpcmodel.OutputGenerator) {
@@ -81,6 +83,9 @@ func getTestOutput(test *vpcTest, t *testing.T, o *vpcmodel.OutputGenerator) {
 		t.Fatalf("err: %s", err)
 	}
 	if _, err := o.Generate(vpcmodel.JSON); err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	if _, err := o.Generate(vpcmodel.MD); err != nil {
 		t.Fatalf("err: %s", err)
 	}
 	test.actualOutput = textOutput

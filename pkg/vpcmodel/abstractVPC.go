@@ -92,6 +92,11 @@ type ExternalNetwork struct {
 func (exn *ExternalNetwork) Cidr() string {
 	return exn.CidrStr
 }
+
+func (exn *ExternalNetwork) Name() string {
+	return exn.CidrStr
+}
+
 func (exn *ExternalNetwork) IsInternal() bool {
 	return false
 }
