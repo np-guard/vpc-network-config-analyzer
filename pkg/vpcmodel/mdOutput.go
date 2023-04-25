@@ -8,7 +8,10 @@ import (
 type MDoutputFormatter struct {
 }
 
-const mdHeader = "| src | dst | conn |\n|-----|-----|------|"
+const (
+	mdTitle  = "## Endpoint connectivity report"
+	mdHeader = "| src | dst | conn |\n|-----|-----|------|"
+)
 
 // formats a connection line for md output
 func getMDLine(c connLine) string {
@@ -16,7 +19,7 @@ func getMDLine(c connLine) string {
 }
 
 func (m *MDoutputFormatter) WriteOutput(c *CloudConfig, conn *VPCConnectivity, outFile string) (string, error) {
-	lines := []string{mdHeader}
+	lines := []string{mdTitle, mdHeader}
 
 	for src, srcMap := range conn.AllowedConnsCombined {
 		for dst, conn := range srcMap {
