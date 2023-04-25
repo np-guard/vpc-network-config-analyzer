@@ -2,7 +2,6 @@ package ibmvpc
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -177,7 +176,6 @@ func parseSingleResourceList(key string, vList []json.RawMessage, res *Resources
 		fmt.Println("warning: ignoring endpoint_gateways, TODO: add support")
 	default:
 		fmt.Printf("%s resource type is not yet supported\n", key)
-		return errors.New("unsupported resource type: " + key)
 	}
 	return nil
 }
