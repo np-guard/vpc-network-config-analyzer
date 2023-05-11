@@ -218,7 +218,7 @@ func (nl *NaclLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool)
 	res := vpcmodel.NoConns()
 	for _, nacl := range nl.naclList {
 		naclConn := nacl.AllowedConnectivity(src, dst, isIngress)
-		res.Union(*naclConn)
+		res = res.Union(naclConn)
 	}
 	return res
 }
@@ -333,7 +333,7 @@ func (sgl *SecurityGroupLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIng
 	res := vpcmodel.NoConns()
 	for _, sg := range sgl.sgList {
 		sgConn := sg.AllowedConnectivity(src, dst, isIngress)
-		res.Union(*sgConn)
+		res = res.Union(sgConn)
 	}
 	return res
 }

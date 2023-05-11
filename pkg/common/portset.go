@@ -7,9 +7,12 @@ import (
 )
 
 const (
-	minPort     int64 = 1
-	maxPort     int64 = 65535
-	maxICMPtype int64 = 255
+	MinPort     int64 = 1
+	MaxPort     int64 = 65535
+	MaxICMPtype int64 = 255
+	MinICMPtype int64 = 0
+	MaxICMPCode int64 = 254
+	MinICMPCode int64 = 0
 )
 
 // PortSet: represents set of allowed ports in a connection
@@ -22,7 +25,7 @@ type PortSet struct {
 // MakePortSet: return a new PortSet object, with all ports or no ports allowed
 func MakePortSet(all bool) PortSet {
 	if all {
-		portsInterval := Interval{Start: minPort, End: maxPort}
+		portsInterval := Interval{Start: MinPort, End: MaxPort}
 		return PortSet{Ports: CanonicalIntervalSet{IntervalSet: []Interval{portsInterval}}}
 	}
 	return PortSet{}
@@ -116,11 +119,15 @@ func (p *PortSet) Contains(port int64) bool {
 }
 
 func NewPortSetAllPorts() *PortSet {
-	return &PortSet{Ports: CanonicalIntervalSet{IntervalSet: []Interval{{Start: minPort, End: maxPort}}}}
+	return &PortSet{Ports: CanonicalIntervalSet{IntervalSet: []Interval{{Start: MinPort, End: MaxPort}}}}
 }
 
 func NewICMPAllTypesTemp() *PortSet {
-	return &PortSet{Ports: CanonicalIntervalSet{IntervalSet: []Interval{{Start: 0, End: maxICMPtype}}}}
+	return &PortSet{Ports: CanonicalIntervalSet{IntervalSet: []Interval{{Start: minICMPtype, End: MaxICMPtype}}}}
+}
+
+func NewICMPAllCodesTemp() *PortSet {
+	return &PortSet{Ports: CanonicalIntervalSet{IntervalSet: []Interval{{Start: minICMPcode, End: maxICMPcode}}}}
 }
 
 /*

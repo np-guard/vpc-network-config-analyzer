@@ -40,32 +40,30 @@ func isIngressRule(direction *string) bool {
 }
 
 func getEmptyConnSet() *common.ConnectionSet {
-	res := common.MakeConnectionSet(false)
-	return &res
+	return common.NewConnectionSet(false)
 }
 
 func getAllConnSet() *common.ConnectionSet {
-	res := common.MakeConnectionSet(true)
-	return &res
+	return common.NewConnectionSet(true)
 }
 
-func getProtocolConn(protocol *string, portMax, portMin *int64) (*common.ConnectionSet, error) {
+/*func getProtocolConn(protocol *string, portMax, portMin *int64) (*common.ConnectionSet, error) {
 	res := getEmptyConnSet()
-	ports := common.PortSet{Ports: common.CanonicalIntervalSet{IntervalSet: []common.Interval{{Start: *portMin, End: *portMax}}}}
+	//ports := common.PortSet{Ports: common.CanonicalIntervalSet{IntervalSet: []common.Interval{{Start: *portMin, End: *portMax}}}}
 	var err error
 	switch *protocol {
 	case "tcp":
-		res.AddConnection(common.ProtocolTCP, ports)
+		res.AddConnection(common.ProtocolTCP, *portMin, *portMax)
 	case "udp":
-		res.AddConnection(common.ProtocolUDP, ports)
+		res.AddConnection(common.ProtocolUDP, *portMin, *portMax)
 	case "icmp":
-		res.AddConnection(common.ProtocolICMP, ports)
+		res.AddConnection(common.ProtocolICMP, *portMin, *portMax)
 	default:
 		err = fmt.Errorf("getProtocolConn: unknown protocol %s", *protocol)
 	}
 
 	return res, err
-}
+}*/
 
 func (sga *SGAnalyzer) getRemoteCidr(remote vpc1.SecurityGroupRuleRemoteIntf) (*common.IPBlock, string, error) {
 	// TODO: on actual run from SG example, the type of remoteObj is SecurityGroupRuleRemote and not SecurityGroupRuleRemoteCIDR,
@@ -152,24 +150,36 @@ func (sga *SGAnalyzer) getProtocolTcpudpRule(ruleObj *vpc1.SecurityGroupRuleSecu
 	if err != nil {
 		return "", nil, false, err
 	}
-	conns := common.MakeConnectionSet(false)
-	ports := common.PortSet{Ports: common.CanonicalIntervalSet{
+	//conns := common.NewConnectionSet(false)
+	/*ports := common.PortSet{Ports: common.CanonicalIntervalSet{
 		IntervalSet: []common.Interval{{Start: *ruleObj.PortMin, End: *ruleObj.PortMax}}},
-	}
-	if *ruleObj.Protocol == protocolTCP {
+	}*/
+	/*if *ruleObj.Protocol == protocolTCP {
 		conns.AllowedProtocols[common.ProtocolTCP] = &ports
 	} else if *ruleObj.Protocol == protocolUDP {
 		conns.AllowedProtocols[common.ProtocolUDP] = &ports
-	}
+	}*/
 
 	dstPorts := fmt.Sprintf("%d-%d", *ruleObj.PortMin, *ruleObj.PortMax)
 	connStr := fmt.Sprintf("protocol: %s,  dstPorts: %s", *ruleObj.Protocol, dstPorts)
 	ruleStr = getRuleStr(direction, connStr, cidr)
 	ruleRes = &SGRule{}
-	ruleRes.connections, err = getProtocolConn(ruleObj.Protocol, ruleObj.PortMax, ruleObj.PortMin)
+	/*ruleRes.connections, err = getProtocolConn(ruleObj.Protocol, ruleObj.PortMax, ruleObj.PortMin)
 	if err != nil {
 		return ruleStr, ruleRes, isIngress, err
+	}*/
+	conns := common.NewConnectionSet(false)
+	// TODO: src ports can be considered here?
+	dstPortMin := getProperty(ruleObj.PortMin, common.MinPort)
+	dstPortMax := getProperty(ruleObj.PortMax, common.MaxPort)
+
+	protocol := common.ProtocolUDP
+	if *ruleObj.Protocol == protocolTCP {
+		protocol = common.ProtocolTCP
 	}
+	conns.AddTCPorUDPConn(protocol, common.MinPort, common.MaxPort, dstPortMin, dstPortMax)
+	ruleRes.connections = conns
+
 	ruleRes.target = target
 	return ruleStr, ruleRes, isIngress, nil
 }
@@ -178,20 +188,32 @@ func getRuleStr(direction, connStr, cidr string) string {
 	return fmt.Sprintf("direction: %s,  conns: %s, cidr: %s\n", direction, connStr, cidr)
 }
 
-func getICMPconn(icmpType *int64) (connsRes *common.ConnectionSet, icmpTypeStr string) {
-	conns := common.MakeConnectionSet(false)
-	// TODO: handle also icmp code
+func getICMPconn(icmpType *int64, icmpCode *int64) (connsRes *common.ConnectionSet, icmpTypeStr string) {
+	conns := common.NewConnectionSet(false)
+	typeMin := getProperty(icmpType, common.MinICMPtype)
+	typeMax := getProperty(icmpType, common.MaxICMPtype)
+	codeMin := getProperty(icmpCode, common.MinICMPCode)
+	codeMax := getProperty(icmpCode, common.MaxICMPCode)
+
 	var icmpTypeProperties common.PortSet
+	//var tmin, tmax int64
 	if icmpType == nil {
 		icmpTypeProperties = common.PortSet{Ports: common.CanonicalIntervalSet{IntervalSet: []common.Interval{{Start: 0, End: maxICMPtype}}}}
+		//tmin = 0
+		//tmax = maxICMPtype
 	} else {
 		icmpTypeProperties = common.PortSet{Ports: common.CanonicalIntervalSet{
 			IntervalSet: []common.Interval{{Start: *icmpType, End: *icmpType}}},
 		}
+		//tmin = *icmpType
+		//tmax = *icmpType
 	}
-	conns.AllowedProtocols[common.ProtocolICMP] = &icmpTypeProperties
+	//conns.AddConnection(common.ProtocolICMP, tmin, tmax)
+
+	conns.AddICMPConnection(typeMin, typeMax, codeMin, codeMax)
+	//conns.AllowedProtocols[common.ProtocolICMP] = &icmpTypeProperties
 	icmpTypeStr = icmpTypeProperties.String()
-	return &conns, icmpTypeStr
+	return conns, icmpTypeStr
 }
 
 func (sga *SGAnalyzer) getProtocolIcmpRule(ruleObj *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolIcmp) (
@@ -205,7 +227,7 @@ func (sga *SGAnalyzer) getProtocolIcmpRule(ruleObj *vpc1.SecurityGroupRuleSecuri
 	if err != nil {
 		return "", nil, false, err
 	}
-	conns, icmpTypeStr := getICMPconn(ruleObj.Type)
+	conns, icmpTypeStr := getICMPconn(ruleObj.Type, ruleObj.Code)
 	/*icmpType := ruleObj.Type
 	// TODO: handle also icmp code
 	var icmpTypeProperties common.PortSet
@@ -348,7 +370,7 @@ func AnalyzeSGRules(rules []*SGRule, isIngress bool) *ConnectivityResult {
 		conn := rule.connections
 		for disjointTarget := range res.allowedconns {
 			if disjointTarget.ContainedIn(target) {
-				res.allowedconns[disjointTarget].Union(*conn)
+				res.allowedconns[disjointTarget] = res.allowedconns[disjointTarget].Union(conn)
 			}
 		}
 	}
