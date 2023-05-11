@@ -53,7 +53,7 @@ const (
 // dst port
 // icmp type
 // icmp code
-// consider: stateful/stateless , route
+
 type ConnectionSet struct {
 	AllowAll             bool
 	connectionProperties *CanonicalHypercubeSet
