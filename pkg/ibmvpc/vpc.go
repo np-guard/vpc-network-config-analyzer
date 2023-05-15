@@ -46,6 +46,11 @@ func (ni *NetworkInterface) Cidr() string {
 func (ni *NetworkInterface) IsInternal() bool {
 	return true
 }
+
+func (ni *NetworkInterface) IsPublicInternet() bool {
+	return false
+}
+
 func (ni *NetworkInterface) VsiName() string {
 	return ni.vsi
 }
