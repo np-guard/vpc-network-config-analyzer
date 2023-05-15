@@ -10,6 +10,21 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
+type outputUseCase int
+
+const (
+	uc1 outputUseCase = iota
+	uc2
+	uc3
+)
+
+type vpcGeneralTest struct {
+	name           string                   // test name
+	inputConfig    string                   // name (relative path) of input config file (json)
+	expectedOutput map[outputUseCase]string // expected output file path
+	actualOutput   map[outputUseCase]string // actual output file path
+}
+
 //go:embed examples/sg_testing1_new.json
 var sg1Input []byte
 
@@ -27,6 +42,71 @@ type vpcTest struct {
 	inputResourcesJSON []byte
 	expectedOutputText []byte // expected text output
 	actualOutput       string // actual text output
+}
+
+func TestGenOutput(t *testing.T) {
+	generateOutput(t, demoWithInstances, "demoWithInstances")
+}
+
+// genetate output for usecase #1
+//not a testing function, only to run and generate output
+func generateOutput(t *testing.T, inputConfig []byte, inputName string) {
+	tt := &vpcTest{name: inputName, inputResourcesJSON: inputConfig}
+	cloudConfig, vpcConn := runTest(t, tt)
+	o := vpcmodel.NewOutputGenerator(cloudConfig, vpcConn)
+	setTestOutputFiles(o, tt)
+	getTestOutput(tt, t, o)
+}
+
+func TestGenOutputUC3(t *testing.T) {
+	generateOutputSubnetsBased(t, demoWithInstances, "demoWithInstances", true)
+}
+
+func TestGenOutputUC2(t *testing.T) {
+	generateOutputPerSingleSubnet(t, demoWithInstances, "demoWithInstances")
+}
+
+func generateOutputPerSingleSubnet(t *testing.T, inputConfig []byte, inputName string) {
+	rc, err := ParseResources(inputConfig)
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	cloudConfig, err := NewCloudConfig(rc)
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	res := ""
+	for _, r := range cloudConfig.FilterResources {
+		if naclLayer, ok := r.(*NaclLayer); ok {
+			for _, nacl := range naclLayer.naclList {
+				for subnet := range nacl.subnets {
+					res += nacl.GeneralConnectivityPerSubnet(subnet)
+				}
+			}
+		}
+	}
+	outName := "out_" + inputName + "_analysisPerSubnetSeparately.txt"
+	vpcmodel.WriteToFile(res, filepath.Join(getTestsDir(), outName))
+}
+
+func generateOutputSubnetsBased(t *testing.T, inputConfig []byte, inputName string, includePGW bool) {
+	rc, err := ParseResources(inputConfig)
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	cloudConfig, err := NewCloudConfig(rc)
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	vpcConn, err := cloudConfig.GetSubnetsConnectivity(includePGW)
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	actualOutput := vpcConn.String()
+	fmt.Println(actualOutput)
+	outName := "out_" + inputName + "subnetsBased.txt"
+	vpcmodel.WriteToFile(actualOutput, filepath.Join(getTestsDir(), outName))
+
 }
 
 func TestWithParsing(t *testing.T) {
@@ -114,12 +194,14 @@ func getTestsDir() string {
 	return filepath.Join(currentDir, "examples")
 }
 
-/*
 //go:embed examples/demo/demo1.json
 var demoInput []byte
 
 //go:embed examples/demo/demo2.json
 var demo2Input []byte
+
+//go:embed examples/demo/demo_with_instances.json
+var demoWithInstances []byte
 
 func TestDemo(t *testing.T) {
 	rc, err := ParseResources(demoInput)
@@ -151,4 +233,41 @@ func TestDemo(t *testing.T) {
 	setTestOutputFiles(o, test)
 	getTestOutput(test, t, o)
 }
-*/
+
+func TestVPCsubnetConnectivityWithPGW(t *testing.T) {
+	rc, err := ParseResources(demo2Input)
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	cloudConfig, err := NewCloudConfig(rc)
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	vpcConn, err := cloudConfig.GetSubnetsConnectivity(true)
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	actualOutput := vpcConn.String()
+	fmt.Println(actualOutput)
+	vpcmodel.WriteToFile(actualOutput, filepath.Join(getTestsDir(), "out_demo_subnets_connectivity_with_pgw.txt"))
+	fmt.Println("done")
+}
+
+func TestVPCsubnetConnectivityWithoutPGW(t *testing.T) {
+	rc, err := ParseResources(demo2Input)
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	cloudConfig, err := NewCloudConfig(rc)
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	vpcConn, err := cloudConfig.GetSubnetsConnectivity(false)
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	actualOutput := vpcConn.String()
+	fmt.Println(actualOutput)
+	vpcmodel.WriteToFile(actualOutput, filepath.Join(getTestsDir(), "out_demo_subnets_connectivity_without_pgw.txt"))
+	fmt.Println("done")
+}

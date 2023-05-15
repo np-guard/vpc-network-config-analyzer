@@ -7,6 +7,7 @@ import (
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
 type NACLAnalyzer struct {
@@ -342,7 +343,8 @@ func (na *NACLAnalyzer) addAnalysisPerSubnet(subnetCidr string) {
 
 	fmt.Printf("\naddAnalysisPerSubnet results:\n")
 	fmt.Printf("subnetCidr: %s\n", subnetCidr)
-	fmt.Printf("%s", na.GeneralConnectivityPerSubnet(subnetCidr))
+	subnetConnectivityResStr, _ := na.GeneralConnectivityPerSubnet(subnetCidr)
+	fmt.Printf("%s", subnetConnectivityResStr)
 
 	fmt.Println("-----")
 }
@@ -351,21 +353,32 @@ func getDisjointSubnetCidrStr(disjointSubnetCidr string) string {
 	return fmt.Sprintf("local ip-block: %s\n", disjointSubnetCidr)
 }
 
-func (na *NACLAnalyzer) GeneralConnectivityPerSubnet(subnetCidr string) string {
+// currently assuming only subnet-level connectivity result is required
+// TODO: support refinement to partial subnet level when required
+/*type SubnetConnectivityResult struct {
+	allowedIngressConns map[*common.IPBlock]*common.ConnectionSet
+	allowedEgressConns  map[*common.IPBlock]*common.ConnectionSet
+}*/
+
+func (na *NACLAnalyzer) GeneralConnectivityPerSubnet(subnetCidr string) (string, *vpcmodel.IPbasedConnectivityResult) {
 	na.addAnalysisPerSubnet(subnetCidr)
 	ingressRes := na.analyzedSubnets[subnetCidr].ingressRes
 	egressRes := na.analyzedSubnets[subnetCidr].egressRes
-	res := "ingressConnectivity:\n"
+	connectivityObjResult := &vpcmodel.IPbasedConnectivityResult{}
+	strResult := "ingressConnectivity:\n"
 	for disjointSubnetCidr, connectivityRes := range ingressRes {
-		res += getDisjointSubnetCidrStr(disjointSubnetCidr)
-		res += connectivityRes.string()
+		strResult += getDisjointSubnetCidrStr(disjointSubnetCidr)
+		strResult += connectivityRes.string()
+		//assuming assignment here only once due to single subnet connectivity result (no partial subnet res)
+		connectivityObjResult.IngressAllowedConns = connectivityRes.allowedconns
 	}
-	res += "egressConnectivity:\n"
+	strResult += "egressConnectivity:\n"
 	for disjointSubnetCidr, connectivityRes := range egressRes {
-		res += getDisjointSubnetCidrStr(disjointSubnetCidr)
-		res += connectivityRes.string()
+		strResult += getDisjointSubnetCidrStr(disjointSubnetCidr)
+		strResult += connectivityRes.string()
+		connectivityObjResult.EgressAllowedConns = connectivityRes.allowedconns
 	}
-	return res
+	return strResult, connectivityObjResult
 }
 
 func (na *NACLAnalyzer) AllowedConnectivity(subnetCidr, inSubentCidr, target string, isIngress bool) (*common.ConnectionSet, error) {

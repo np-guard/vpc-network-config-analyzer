@@ -219,6 +219,19 @@ func (nl *NaclLayer) DetailsMap() []map[string]string {
 	return res
 }
 
+// per-layer connectivity analysis
+// compute allowed connectivity based on the NACL resources for all relevant endpoints (subnets)
+func (nl *NaclLayer) ConnectivityMap() map[string]*vpcmodel.IPbasedConnectivityResult {
+	res := map[string]*vpcmodel.IPbasedConnectivityResult{} // map from subnet cidr to its connectivity result
+	for _, nacl := range nl.naclList {
+		for subnetCidr := range nacl.subnets {
+			_, resConnectivity := nacl.analyzer.GeneralConnectivityPerSubnet(subnetCidr)
+			res[subnetCidr] = resConnectivity
+		}
+	}
+	return res
+}
+
 func (nl *NaclLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *common.ConnectionSet {
 	res := vpcmodel.NoConns()
 	for _, nacl := range nl.naclList {
@@ -270,7 +283,8 @@ func (n *NACL) DetailsMap() map[string]string {
 }
 
 func (n *NACL) GeneralConnectivityPerSubnet(subnetCidr string) string {
-	return n.analyzer.GeneralConnectivityPerSubnet(subnetCidr)
+	res, _ := n.analyzer.GeneralConnectivityPerSubnet(subnetCidr)
+	return res
 }
 
 func (n *NACL) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *common.ConnectionSet {
@@ -331,6 +345,10 @@ func (sgl *SecurityGroupLayer) DetailsMap() []map[string]string {
 		res = append(res, sg.DetailsMap())
 	}
 	return res
+}
+
+func (sgl *SecurityGroupLayer) ConnectivityMap() map[string]*vpcmodel.IPbasedConnectivityResult {
+	return nil
 }
 
 // TODO: fix: is it possible that no sg applies  to the input peer? if so, should not return "no conns" when none applies
@@ -461,11 +479,16 @@ func (fip *FloatingIP) AllowedConnectivity(src, dst vpcmodel.Node) *common.Conne
 	return vpcmodel.NoConns()
 }
 
+func (fip *FloatingIP) ConnectivityMap() map[string]vpcmodel.ConfigBasedConnectivityResults {
+	return nil
+}
+
 type PublicGateway struct {
 	zonalNamedResource
 	cidr         string
 	src          []vpcmodel.Node
 	destinations []vpcmodel.Node
+	subnetCidr   string
 }
 
 func (pgw *PublicGateway) Details() string {
@@ -493,6 +516,20 @@ func (pgw *PublicGateway) DetailsMap() map[string]string {
 		vpcmodel.DetailsAttributeCIDR: pgw.cidr,
 		detailsAttributeZone:          pgw.zone,
 	}
+}
+
+func (pgw *PublicGateway) ConnectivityMap() map[string]vpcmodel.ConfigBasedConnectivityResults {
+	res := map[string]vpcmodel.ConfigBasedConnectivityResults{}
+	res[pgw.subnetCidr] = vpcmodel.ConfigBasedConnectivityResults{
+		IngressAllowedConns: map[string]*common.ConnectionSet{},
+		EgressAllowedConns:  map[string]*common.ConnectionSet{},
+	}
+	for _, dst := range pgw.destinations {
+		// TODO: should not be both directions?
+		res[pgw.subnetCidr].IngressAllowedConns[dst.Name()] = vpcmodel.AllConns()
+		res[pgw.subnetCidr].EgressAllowedConns[dst.Name()] = vpcmodel.AllConns()
+	}
+	return res
 }
 
 func (pgw *PublicGateway) Src() []vpcmodel.Node {
