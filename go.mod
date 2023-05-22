@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/IBM/vpc-go-sdk v0.36.0
-	k8s.io/apimachinery v0.27.1
+	k8s.io/apimachinery v0.27.2
 )
 
 require (
