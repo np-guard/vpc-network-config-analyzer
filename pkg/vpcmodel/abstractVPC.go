@@ -205,7 +205,7 @@ func (v *VPCConnectivity) computeAllowedConnsCombined() {
 			combinedConns := conns
 			if peerNode.IsInternal() {
 				egressConns := v.AllowedConns[peerNode].EgressAllowedConns[node]
-				combinedConns.Intersection(*egressConns)
+				combinedConns = combinedConns.Intersection(egressConns)
 			}
 			if _, ok := v.AllowedConnsCombined[src]; !ok {
 				v.AllowedConnsCombined[src] = map[Node]*common.ConnectionSet{}
@@ -218,7 +218,7 @@ func (v *VPCConnectivity) computeAllowedConnsCombined() {
 			combinedConns := conns
 			if peerNode.IsInternal() {
 				ingressConss := v.AllowedConns[peerNode].IngressAllowedConns[node]
-				combinedConns.Intersection(*ingressConss)
+				combinedConns = combinedConns.Intersection(ingressConss)
 			}
 			if _, ok := v.AllowedConnsCombined[src]; !ok {
 				v.AllowedConnsCombined[src] = map[Node]*common.ConnectionSet{}
@@ -229,13 +229,11 @@ func (v *VPCConnectivity) computeAllowedConnsCombined() {
 }
 
 func AllConns() *common.ConnectionSet {
-	res := common.MakeConnectionSet(true)
-	return &res
+	return common.NewConnectionSet(true)
 }
 
 func NoConns() *common.ConnectionSet {
-	res := common.MakeConnectionSet(false)
-	return &res
+	return common.NewConnectionSet(false)
 }
 
 func HasNode(listNodes []Node, node Node) bool {
@@ -271,7 +269,7 @@ func (v *CloudConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode N
 				// each layer of filter resources should have its own logic
 				// consider accumulate all filter resources of the same type, and send to a function that returns combined result.
 				filteredConns := filter.AllowedConnectivity(src, dst, isIngress)
-				allowedConnsBetweenCapturedAndPeerNode.Intersection(*filteredConns)
+				allowedConnsBetweenCapturedAndPeerNode = allowedConnsBetweenCapturedAndPeerNode.Intersection(filteredConns)
 				if allowedConnsBetweenCapturedAndPeerNode.IsEmpty() {
 					break
 				}
@@ -294,7 +292,7 @@ func (v *CloudConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode N
 			}
 			for _, filter := range v.FilterResources {
 				filteredConns := filter.AllowedConnectivity(src, dst, isIngress)
-				allowedConnsBetweenCapturedAndPeerNode.Intersection(*filteredConns)
+				allowedConnsBetweenCapturedAndPeerNode = allowedConnsBetweenCapturedAndPeerNode.Intersection(filteredConns)
 				if allowedConnsBetweenCapturedAndPeerNode.IsEmpty() {
 					break
 				}

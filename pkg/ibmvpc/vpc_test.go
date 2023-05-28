@@ -29,6 +29,23 @@ type vpcTest struct {
 	actualOutput       string // actual text output
 }
 
+func TestNew(t *testing.T) {
+	inputResourcesJSON := acl3Input
+	rc, err := ParseResources(inputResourcesJSON)
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	cloudConfig, err := NewCloudConfig(rc)
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	fmt.Println(cloudConfig.String())
+	vpcConn := cloudConfig.GetVPCNetworkConnectivity()
+	actualOutput := vpcConn.String()
+	fmt.Printf("%s", actualOutput)
+	fmt.Println("done")
+}
+
 func TestWithParsing(t *testing.T) {
 	tests := []*vpcTest{
 		{
@@ -116,10 +133,13 @@ func getTestsDir() string {
 
 /*
 //go:embed examples/demo/demo1.json
-var demoInput []byte
+var demoInput []byte // without instances
 
-//go:embed examples/demo/demo2.json
-var demo2Input []byte
+// go:embed examples/demo/demo2.json
+// var demo2Input []byte // with instances (orig)
+
+//go:embed examples/demo/demo_with_instances.json
+var demoWithInstances []byte // with instances (modified - to have refined connectivity rather than All allowed vsi-to-vsi)
 
 func TestDemo(t *testing.T) {
 	rc, err := ParseResources(demoInput)
@@ -137,18 +157,19 @@ func TestDemo(t *testing.T) {
 		if naclLayer, ok := r.(*NaclLayer); ok {
 			for _, nacl := range naclLayer.naclList {
 				for subnet := range nacl.subnets {
-					//fmt.Println(nacl.GeneralConnectivityPerSubnet(subnet))
 					nacl.GeneralConnectivityPerSubnet(subnet)
 				}
 			}
 		}
 	}
 	fmt.Println("===============================================")
-	test := &vpcTest{name: "demo2", inputResourcesJSON: demo2Input}
+	// TODO: consider demo2 as well?
+	test := &vpcTest{name: "demoWithInstances", inputResourcesJSON: demoWithInstances}
 	cloudConfig2, vpcConn2 := runTest(t, test)
 	// generate output
 	o := vpcmodel.NewOutputGenerator(cloudConfig2, vpcConn2)
 	setTestOutputFiles(o, test)
 	getTestOutput(test, t, o)
+	fmt.Printf("done")
 }
 */
