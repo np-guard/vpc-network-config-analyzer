@@ -1,6 +1,6 @@
 =================================== distributed inbound/outbound connections:
 10.240.10.4 => 10.240.20.4 : All Connections [inbound]
-10.240.10.4 => 10.240.20.4 : TCP,UDP [outbound]
+10.240.10.4 => 10.240.20.4 : protocol: TCP,UDP   [outbound]
 10.240.10.4 => 10.240.30.4 : All Connections [inbound]
 10.240.10.4 => 10.240.30.4 : No Connections [outbound]
 10.240.10.4 => 10.240.30.5 : All Connections [inbound]
@@ -10,17 +10,17 @@
 10.240.10.4 => 142.0.0.0/8 : No Connections [outbound]
 10.240.10.4 => 147.235.219.206/32 : No Connections [outbound]
 10.240.10.4 => 147.235.219.207/32 : No Connections [outbound]
-10.240.10.4 => 161.26.0.0/16 : UDP [outbound]
+10.240.10.4 => 161.26.0.0/16 : protocol: UDP   [outbound]
 10.240.10.4 => 192.0.1.0/24 : No Connections [outbound]
 10.240.20.4 => 10.240.10.4 : All Connections [inbound]
 10.240.20.4 => 10.240.10.4 : All Connections [outbound]
-10.240.20.4 => 10.240.30.4 : ICMP [outbound]
 10.240.20.4 => 10.240.30.4 : No Connections [inbound]
-10.240.20.4 => 10.240.30.5 : ICMP [outbound]
+10.240.20.4 => 10.240.30.4 : protocol: ICMP   [outbound]
 10.240.20.4 => 10.240.30.5 : No Connections [inbound]
-10.240.20.4 => 10.240.30.6 : ICMP [outbound]
+10.240.20.4 => 10.240.30.5 : protocol: ICMP   [outbound]
 10.240.20.4 => 10.240.30.6 : No Connections [inbound]
-10.240.20.4 => 142.0.0.0/8 : ICMP [outbound]
+10.240.20.4 => 10.240.30.6 : protocol: ICMP   [outbound]
+10.240.20.4 => 142.0.0.0/8 : protocol: ICMP   [outbound]
 10.240.20.4 => 147.235.219.206/32 : No Connections [outbound]
 10.240.20.4 => 147.235.219.207/32 : No Connections [outbound]
 10.240.20.4 => 161.26.0.0/16 : No Connections [outbound]
@@ -28,7 +28,7 @@
 10.240.30.4 => 10.240.10.4 : All Connections [inbound]
 10.240.30.4 => 10.240.10.4 : All Connections [outbound]
 10.240.30.4 => 10.240.20.4 : No Connections [outbound]
-10.240.30.4 => 10.240.20.4 : TCP dst-ports: 22 [inbound]
+10.240.30.4 => 10.240.20.4 : protocol: TCP  dst-ports: 22 [inbound]
 10.240.30.4 => 10.240.30.5 : All Connections [inbound]
 10.240.30.4 => 10.240.30.5 : All Connections [outbound]
 10.240.30.4 => 10.240.30.6 : All Connections [inbound]
@@ -41,7 +41,7 @@
 10.240.30.5 => 10.240.10.4 : All Connections [inbound]
 10.240.30.5 => 10.240.10.4 : All Connections [outbound]
 10.240.30.5 => 10.240.20.4 : No Connections [outbound]
-10.240.30.5 => 10.240.20.4 : TCP dst-ports: 22 [inbound]
+10.240.30.5 => 10.240.20.4 : protocol: TCP  dst-ports: 22 [inbound]
 10.240.30.5 => 10.240.30.4 : All Connections [inbound]
 10.240.30.5 => 10.240.30.4 : All Connections [outbound]
 10.240.30.5 => 10.240.30.6 : All Connections [inbound]
@@ -54,7 +54,7 @@
 10.240.30.6 => 10.240.10.4 : All Connections [inbound]
 10.240.30.6 => 10.240.10.4 : All Connections [outbound]
 10.240.30.6 => 10.240.20.4 : No Connections [outbound]
-10.240.30.6 => 10.240.20.4 : TCP dst-ports: 22 [inbound]
+10.240.30.6 => 10.240.20.4 : protocol: TCP  dst-ports: 22 [inbound]
 10.240.30.6 => 10.240.30.4 : All Connections [inbound]
 10.240.30.6 => 10.240.30.4 : All Connections [outbound]
 10.240.30.6 => 10.240.30.5 : All Connections [inbound]
@@ -90,20 +90,20 @@
 192.0.1.0/24 => 10.240.30.5 : No Connections [inbound]
 192.0.1.0/24 => 10.240.30.6 : No Connections [inbound]
 =================================== combined connections:
-10.240.10.4 => 10.240.20.4 : TCP,UDP
+10.240.10.4 => 10.240.20.4 : protocol: TCP,UDP  
 10.240.10.4 => 10.240.30.4 : No Connections
 10.240.10.4 => 10.240.30.5 : No Connections
 10.240.10.4 => 10.240.30.6 : No Connections
 10.240.10.4 => 142.0.0.0/8 : No Connections
 10.240.10.4 => 147.235.219.206/32 : No Connections
 10.240.10.4 => 147.235.219.207/32 : No Connections
-10.240.10.4 => 161.26.0.0/16 : UDP
+10.240.10.4 => 161.26.0.0/16 : protocol: UDP  
 10.240.10.4 => 192.0.1.0/24 : No Connections
 10.240.20.4 => 10.240.10.4 : All Connections
 10.240.20.4 => 10.240.30.4 : No Connections
 10.240.20.4 => 10.240.30.5 : No Connections
 10.240.20.4 => 10.240.30.6 : No Connections
-10.240.20.4 => 142.0.0.0/8 : ICMP
+10.240.20.4 => 142.0.0.0/8 : protocol: ICMP  
 10.240.20.4 => 147.235.219.206/32 : No Connections
 10.240.20.4 => 147.235.219.207/32 : No Connections
 10.240.20.4 => 161.26.0.0/16 : No Connections
@@ -161,9 +161,9 @@
 192.0.1.0/24 => 10.240.30.5 : No Connections
 192.0.1.0/24 => 10.240.30.6 : No Connections
 =================================== combined connections - short version:
-vsi1-ky[10.240.10.4] => 161.26.0.0/16 : UDP
-vsi1-ky[10.240.10.4] => vsi2-ky[10.240.20.4] : TCP,UDP
-vsi2-ky[10.240.20.4] => 142.0.0.0/8 : ICMP
+vsi1-ky[10.240.10.4] => 161.26.0.0/16 : protocol: UDP  
+vsi1-ky[10.240.10.4] => vsi2-ky[10.240.20.4] : protocol: TCP,UDP  
+vsi2-ky[10.240.20.4] => 142.0.0.0/8 : protocol: ICMP  
 vsi2-ky[10.240.20.4] => vsi1-ky[10.240.10.4] : All Connections
 vsi3a-ky[10.240.30.5] => vsi1-ky[10.240.10.4] : All Connections
 vsi3a-ky[10.240.30.5] => vsi3b-ky[10.240.30.6] : All Connections
