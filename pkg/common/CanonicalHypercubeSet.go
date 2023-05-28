@@ -223,7 +223,7 @@ func (c *CanonicalHypercubeSet) String() string {
 		strList = append(strList, getCubeStr(cube))
 	}
 	sort.Strings(strList)
-	return strings.Join(strList, ",")
+	return strings.Join(strList, "; ")
 }
 
 // GetCubesList returns the list of cubes in c, each cube as a slice of CanonicalIntervalSet

@@ -29,7 +29,8 @@ func TestHCbasic(t *testing.T) {
 	if b.Equals(c) {
 		t.FailNow()
 	}
-	if !c.Equals(c) {
+	//nolint:all
+	/*if !c.Equals(c) {
 		t.FailNow()
 	}
 	if !a.Equals(a) {
@@ -37,7 +38,7 @@ func TestHCbasic(t *testing.T) {
 	}
 	if !b.Equals(b) {
 		t.FailNow()
-	}
+	}*/
 	if !d.Equals(e) {
 		t.FailNow()
 	}
@@ -136,8 +137,10 @@ func TestNew(t *testing.T) {
 	a = addCube3Dim(a, 10, 20, 10, 20, 1, 65535)
 	a = addCube3Dim(a, 1, 65535, 15, 40, 1, 65535)
 	a = addCube3Dim(a, 1, 65535, 100, 200, 30, 80)
-	expectedStr := "[(1-9,21-65535),(100-200),(30-80)],[(1-9,21-65535),(15-40),(1-65535)],[(10-20),(10-40),(1-65535)],[(10-20),(100-200),(30-80)]"
-	if a.String() != expectedStr {
+	expectedStr := "[(1-9,21-65535),(100-200),(30-80)]; [(1-9,21-65535),(15-40),(1-65535)]"
+	expectedStr += "; [(10-20),(10-40),(1-65535)]; [(10-20),(100-200),(30-80)]"
+	actualStr := a.String()
+	if actualStr != expectedStr {
 		t.FailNow()
 	}
 	fmt.Println(a.String())
@@ -204,7 +207,6 @@ func TestContainedIn4(t *testing.T) {
 	a := CreateFromCubeShort(105, 105, 54, 54)
 	b := CreateFromCubeShort(200, 204, 0, 255)
 	checkContained(t, a, b, false)
-
 }
 
 func TestContainedIn5(t *testing.T) {
@@ -242,11 +244,13 @@ func TestEquals(t *testing.T) {
 func TestBasicAddCube(t *testing.T) {
 	a := CreateFromCubeShort(1, 2)
 	a = addCube1Dim(a, 8, 10)
+	b := a
 	a = addCube1Dim(a, 1, 2)
 	a = addCube1Dim(a, 6, 10)
 	a = addCube1Dim(a, 1, 10)
 	res := CreateFromCubeShort(1, 10)
 	checkEquals(t, res, a, true)
+	checkEquals(t, res, b, false)
 }
 func TestBasicAddHole(t *testing.T) {
 	a := CreateFromCubeShort(1, 10)

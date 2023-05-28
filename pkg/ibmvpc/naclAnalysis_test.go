@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"github.com/stretchr/testify/require"
+
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 func TestGetRules(t *testing.T) {
@@ -17,19 +18,19 @@ func TestGetRules(t *testing.T) {
 	for _, f := range cloudConfig.FilterResources {
 		if naclLayer, ok := f.(*NaclLayer); ok {
 			for _, nacl := range naclLayer.naclList {
-				testSingleNACL(t, nacl)
+				testSingleNACL(nacl)
 			}
 		}
 	}
 }
 
-func testSingleNACL(t *testing.T, nacl *NACL) {
+func testSingleNACL(nacl *NACL) {
 	// test addAnalysisPerSubnet
 	for subnet := range nacl.subnets {
 		nacl.analyzer.addAnalysisPerSubnet(subnet)
-		//functions to test
-		//AnalyzeNACLRulesPerDisjointTargets
-		//getAllowedXgressConnections
+		// functions to test
+		// AnalyzeNACLRulesPerDisjointTargets
+		// getAllowedXgressConnections
 	}
 }
 
@@ -48,55 +49,56 @@ func TestGetAllowedXgressConnections(t *testing.T) {
 			action:      "allow",
 		},
 	}
-	/*
-		rulesTest2 := []*NACLRule{
-			{
-				src:         common.NewIPBlockFromCidr("1.2.3.4/32"),
-				dst:         common.NewIPBlockFromCidr("10.0.0.1/32"),
-				connections: getTCPconn(80, 80),
-				action:      "allow",
-			},
-			{
-				src:         common.NewIPBlockFromCidr("1.2.3.4/32"),
-				dst:         common.NewIPBlockFromCidr("10.0.0.1/32"),
-				connections: getTCPconn(1, 100),
-				action:      "deny",
-			},
-			{
-				src:         common.NewIPBlockFromCidr("0.0.0.0/0"),
-				dst:         common.NewIPBlockFromCidr("0.0.0.0/0"),
-				connections: getAllConnSet(),
-				action:      "allow",
-			},
-		}
+	//nolint:all
+	/*nolint
+	rulesTest2 := []*NACLRule{
+		{
+			src:         common.NewIPBlockFromCidr("1.2.3.4/32"),
+			dst:         common.NewIPBlockFromCidr("10.0.0.1/32"),
+			connections: getTCPconn(80, 80),
+			action:      "allow",
+		},
+		{
+			src:         common.NewIPBlockFromCidr("1.2.3.4/32"),
+			dst:         common.NewIPBlockFromCidr("10.0.0.1/32"),
+			connections: getTCPconn(1, 100),
+			action:      "deny",
+		},
+		{
+			src:         common.NewIPBlockFromCidr("0.0.0.0/0"),
+			dst:         common.NewIPBlockFromCidr("0.0.0.0/0"),
+			connections: getAllConnSet(),
+			action:      "allow",
+		},
+	}
 
-		rulesTest3 := []*NACLRule{
-			{
-				dst:         common.NewIPBlockFromCidr("1.2.3.4/32"),
-				src:         common.NewIPBlockFromCidr("10.0.0.1/32"),
-				connections: getAllConnSet(),
-				action:      "deny",
-			},
-			{
-				dst:         common.NewIPBlockFromCidr("0.0.0.0/0"),
-				src:         common.NewIPBlockFromCidr("0.0.0.0/0"),
-				connections: getAllConnSet(),
-				action:      "allow",
-			},
-		}
+	rulesTest3 := []*NACLRule{
+		{
+			dst:         common.NewIPBlockFromCidr("1.2.3.4/32"),
+			src:         common.NewIPBlockFromCidr("10.0.0.1/32"),
+			connections: getAllConnSet(),
+			action:      "deny",
+		},
+		{
+			dst:         common.NewIPBlockFromCidr("0.0.0.0/0"),
+			src:         common.NewIPBlockFromCidr("0.0.0.0/0"),
+			connections: getAllConnSet(),
+			action:      "allow",
+		},
+	}
 
-		subnet := common.NewIPBlockFromCidr("10.0.0.0/24")
+	subnet := common.NewIPBlockFromCidr("10.0.0.0/24")
 
-		//res1 := ingressConnResFromInput(rulesTest1, subnet)
-		res1, _ := AnalyzeNACLRules(rulesTest1, subnet, true, nil)
-		fmt.Printf("res for test %s:\n%s\n", "rulesTest1", res1)
+	//res1 := ingressConnResFromInput(rulesTest1, subnet)
+	res1, _ := AnalyzeNACLRules(rulesTest1, subnet, true, nil)
+	fmt.Printf("res for test %s:\n%s\n", "rulesTest1", res1)
 
-		//res2 := ingressConnResFromInput(rulesTest2, subnet)
-		res2, _ := AnalyzeNACLRules(rulesTest2, subnet, true, nil)
-		fmt.Printf("res for test %s:\n%s\n", "rulesTest2", res2)
+	//res2 := ingressConnResFromInput(rulesTest2, subnet)
+	res2, _ := AnalyzeNACLRules(rulesTest2, subnet, true, nil)
+	fmt.Printf("res for test %s:\n%s\n", "rulesTest2", res2)
 
-		res3, _ := AnalyzeNACLRules(rulesTest3, subnet, false, nil)
-		fmt.Printf("res for test %s:\n%s\n", "rulesTest3", res3)
+	res3, _ := AnalyzeNACLRules(rulesTest3, subnet, false, nil)
+	fmt.Printf("res for test %s:\n%s\n", "rulesTest3", res3)
 	*/
 
 	tests := []struct {
@@ -130,6 +132,7 @@ func TestGetAllowedXgressConnections(t *testing.T) {
 		}
 	}
 
+	//nolint:all
 	/*src := common.NewIPBlockFromCidr("1.1.1.1/32")
 	dst := common.NewIPBlockFromCidr("10.0.0.0/24")
 	disjointPeers := []*common.IPBlock{dst}
@@ -140,5 +143,4 @@ func TestGetAllowedXgressConnections(t *testing.T) {
 	}*/
 
 	fmt.Printf("done\n")
-
 }

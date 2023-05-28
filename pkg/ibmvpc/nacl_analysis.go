@@ -80,25 +80,17 @@ func getNACLRule(rule vpc1.NetworkACLRuleItemIntf) (ruleStr string, ruleObjRes *
 		res := getNACLRuleStr(*ruleObj.Direction, *ruleObj.Source, *ruleObj.Destination, connStr, *ruleObj.Action)
 
 		// convert to rule object
-		// TODO: currently ignoring src ports in the conversion
 		srcIP, _ := common.NewIPBlock(*ruleObj.Source, []string{})
 		dstIP, _ := common.NewIPBlock(*ruleObj.Destination, []string{})
 		conns := common.NewConnectionSet(false)
-		/*ports := common.PortSet{Ports: common.CanonicalIntervalSet{
-			IntervalSet: []common.Interval{{Start: *ruleObj.DestinationPortMin, End: *ruleObj.DestinationPortMax}}},
-		}*/
 		srcPortMin := getProperty(ruleObj.SourcePortMin, common.MinPort)
 		srcPortMax := getProperty(ruleObj.SourcePortMax, common.MaxPort)
 		dstPortMin := getProperty(ruleObj.DestinationPortMin, common.MinPort)
 		dstPortMax := getProperty(ruleObj.DestinationPortMax, common.MaxPort)
 
 		if *ruleObj.Protocol == protocolTCP {
-			//conns.AllowedProtocols[common.ProtocolTCP] = &ports
-			//conns.AddConnection(common.ProtocolTCP, *ruleObj.DestinationPortMin, *ruleObj.DestinationPortMax)
 			conns.AddTCPorUDPConn(common.ProtocolTCP, srcPortMin, srcPortMax, dstPortMin, dstPortMax)
 		} else if *ruleObj.Protocol == protocolUDP {
-			//conns.AllowedProtocols[common.ProtocolUDP] = &ports
-			//conns.AddConnection(common.ProtocolUDP, *ruleObj.DestinationPortMin, *ruleObj.DestinationPortMax)
 			conns.AddTCPorUDPConn(common.ProtocolUDP, srcPortMin, srcPortMax, dstPortMin, dstPortMax)
 		}
 		ruleRes = NACLRule{src: srcIP, dst: dstIP, connections: conns, action: *ruleObj.Action}
@@ -121,8 +113,6 @@ func getNACLRule(rule vpc1.NetworkACLRuleItemIntf) (ruleStr string, ruleObjRes *
 		} else if *ruleObj.Direction == outbound {
 			isIngress = false
 		}
-
-		//conns := common.NewConnectionSet(false)
 
 		return res, &ruleRes, isIngress, nil
 
@@ -154,8 +144,6 @@ func (na *NACLAnalyzer) dumpNACLrules() string {
 	for _, r := range na.egressRules {
 		egressList = append(egressList, r.dumpRule())
 	}
-	//sort.Strings(ingressList)
-	//sort.Strings(egressList)
 	res += strings.Join(ingressList, "\n")
 	res += "\negress rules:\n"
 	res += strings.Join(egressList, "\n")
@@ -298,7 +286,7 @@ func (na *NACLAnalyzer) AnalyzeNACLRulesPerDisjointTargets(
 	return res
 }
 
-//func (na *NACLAnalyzer) dumpNACLRules()
+// func (na *NACLAnalyzer) dumpNACLRules()
 
 func (na *NACLAnalyzer) getNACLRules(naclObj *vpc1.NetworkACL) (ingressRules, egressRules []*NACLRule, err error) {
 	ingressRules = []*NACLRule{}

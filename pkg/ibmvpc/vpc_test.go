@@ -121,10 +121,10 @@ func getTestsDir() string {
 }
 
 //go:embed examples/demo/demo1.json
-var demoInput []byte //without instances
+var demoInput []byte // without instances
 
-//go:embed examples/demo/demo2.json
-var demo2Input []byte //with instances (orig)
+// go:embed examples/demo/demo2.json
+// var demo2Input []byte // with instances (orig)
 
 //go:embed examples/demo/demo_with_instances.json
 var demoWithInstances []byte // with instances (modified - to have refined connectivity rather than All allowed vsi-to-vsi)
@@ -145,14 +145,13 @@ func TestDemo(t *testing.T) {
 		if naclLayer, ok := r.(*NaclLayer); ok {
 			for _, nacl := range naclLayer.naclList {
 				for subnet := range nacl.subnets {
-					//fmt.Println(nacl.GeneralConnectivityPerSubnet(subnet))
 					nacl.GeneralConnectivityPerSubnet(subnet)
 				}
 			}
 		}
 	}
 	fmt.Println("===============================================")
-	//test := &vpcTest{name: "demo2", inputResourcesJSON: demo2Input}
+	// TODO: consider demo2 as well?
 	test := &vpcTest{name: "demoWithInstances", inputResourcesJSON: demoWithInstances}
 	cloudConfig2, vpcConn2 := runTest(t, test)
 	// generate output
