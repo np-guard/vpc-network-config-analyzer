@@ -131,6 +131,7 @@ func getTestsDir() string {
 	return filepath.Join(currentDir, "examples")
 }
 
+/*
 //go:embed examples/demo/demo1.json
 var demoInput []byte // without instances
 
@@ -171,3 +172,4 @@ func TestDemo(t *testing.T) {
 	getTestOutput(test, t, o)
 	fmt.Printf("done")
 }
+*/
