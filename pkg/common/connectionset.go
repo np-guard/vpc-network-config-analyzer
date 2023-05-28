@@ -32,14 +32,14 @@ const (
 )
 
 const (
-	minICMPtype int64 = 0
-	maxICMPtype int64 = 255
-	minICMPcode int64 = 0
-	maxICMPcode int64 = 254
+	MinICMPtype int64 = 0
+	MaxICMPtype int64 = 255
+	MinICMPcode int64 = 0
+	MaxICMPcode int64 = 254
 	minProtocol int64 = TCP
 	maxProtocol int64 = ICMP
-	minPort     int64 = 1
-	maxPort     int64 = 65535
+	MinPort     int64 = 1
+	MaxPort     int64 = 65535
 )
 
 const (
@@ -75,13 +75,13 @@ func getDimensionDomain(dim Dimension) *CanonicalIntervalSet {
 	case protocol:
 		return CreateFromInterval(minProtocol, maxProtocol)
 	case srcPort:
-		return CreateFromInterval(minPort, maxPort)
+		return CreateFromInterval(MinPort, MaxPort)
 	case dstPort:
-		return CreateFromInterval(minPort, maxPort)
+		return CreateFromInterval(MinPort, MaxPort)
 	case icmpType:
-		return CreateFromInterval(minICMPtype, maxICMPtype)
+		return CreateFromInterval(MinICMPtype, MaxICMPtype)
 	case icmpCode:
-		return CreateFromInterval(minICMPcode, maxICMPcode)
+		return CreateFromInterval(MinICMPcode, MaxICMPcode)
 	}
 	return nil
 }
@@ -206,9 +206,9 @@ func (conn *ConnectionSet) AddTCPorUDPConn(protocol Protocol, srcMinP, srcMaxP, 
 	var cube *CanonicalHypercubeSet
 	switch protocol {
 	case ProtocolTCP:
-		cube = CreateFromCubeShort(TCP, TCP, srcMinP, srcMaxP, dstMinP, dstMaxP, minICMPtype, MaxICMPtype, minICMPcode, maxICMPcode)
+		cube = CreateFromCubeShort(TCP, TCP, srcMinP, srcMaxP, dstMinP, dstMaxP, MinICMPtype, MaxICMPtype, MinICMPcode, MaxICMPcode)
 	case ProtocolUDP:
-		cube = CreateFromCubeShort(UDP, UDP, srcMinP, srcMaxP, dstMinP, dstMaxP, minICMPtype, MaxICMPtype, minICMPcode, maxICMPcode)
+		cube = CreateFromCubeShort(UDP, UDP, srcMinP, srcMaxP, dstMinP, dstMaxP, MinICMPtype, MaxICMPtype, MinICMPcode, MaxICMPcode)
 	}
 	conn.connectionProperties = conn.connectionProperties.Union(cube)
 	// check if all connections allowed after this union

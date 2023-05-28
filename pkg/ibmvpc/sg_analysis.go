@@ -10,10 +10,6 @@ import (
 	vpcmodel "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
-const (
-	maxICMPtype = 255
-)
-
 type SGAnalyzer struct {
 	sgResource          *vpc1.SecurityGroup
 	ingressRules        []*SGRule
@@ -192,10 +188,10 @@ func getICMPconn(icmpType *int64, icmpCode *int64) (connsRes *common.ConnectionS
 	conns := common.NewConnectionSet(false)
 	typeMin := getProperty(icmpType, common.MinICMPtype)
 	typeMax := getProperty(icmpType, common.MaxICMPtype)
-	codeMin := getProperty(icmpCode, common.MinICMPCode)
-	codeMax := getProperty(icmpCode, common.MaxICMPCode)
+	codeMin := getProperty(icmpCode, common.MinICMPcode)
+	codeMax := getProperty(icmpCode, common.MaxICMPcode)
 
-	var icmpTypeProperties common.PortSet
+	/*var icmpTypeProperties common.PortSet
 	//var tmin, tmax int64
 	if icmpType == nil {
 		icmpTypeProperties = common.PortSet{Ports: common.CanonicalIntervalSet{IntervalSet: []common.Interval{{Start: 0, End: maxICMPtype}}}}
@@ -207,13 +203,13 @@ func getICMPconn(icmpType *int64, icmpCode *int64) (connsRes *common.ConnectionS
 		}
 		//tmin = *icmpType
 		//tmax = *icmpType
-	}
+	}*/
 	//conns.AddConnection(common.ProtocolICMP, tmin, tmax)
 
 	conns.AddICMPConnection(typeMin, typeMax, codeMin, codeMax)
 	//conns.AllowedProtocols[common.ProtocolICMP] = &icmpTypeProperties
-	icmpTypeStr = icmpTypeProperties.String()
-	return conns, icmpTypeStr
+	//icmpTypeStr = icmpTypeProperties.String()
+	return conns, conns.String()
 }
 
 func (sga *SGAnalyzer) getProtocolIcmpRule(ruleObj *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolIcmp) (
