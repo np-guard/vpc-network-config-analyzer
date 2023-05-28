@@ -26,6 +26,7 @@ type Node interface {
 	NamedResourceIntf
 	Cidr() string
 	IsInternal() bool
+	IsPublicInternet() bool
 	Details() string
 	DetailsMap() map[string]string
 }
@@ -75,51 +76,6 @@ func (n *NamedResource) Name() string {
 func (n *NamedResource) UID() string {
 	return n.ResourceUID
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-const (
-	DetailsAttributeKind = "kind"
-	DetailsAttributeName = "name"
-	DetailsAttributeCIDR = "cidr"
-)
-
-type ExternalNetwork struct {
-	NamedResource
-	CidrStr string
-}
-
-func (exn *ExternalNetwork) Cidr() string {
-	return exn.CidrStr
-}
-
-func (exn *ExternalNetwork) Name() string {
-	return exn.CidrStr
-}
-
-func (exn *ExternalNetwork) IsInternal() bool {
-	return false
-}
-
-func (exn *ExternalNetwork) Details() string {
-	return "ExternalNetwork " + exn.Cidr()
-}
-
-func (exn *ExternalNetwork) Kind() string {
-	return "ExternalNetwork"
-}
-
-func (exn *ExternalNetwork) DetailsMap() map[string]string {
-	res := map[string]string{}
-	res[DetailsAttributeKind] = exn.Kind()
-	res[DetailsAttributeName] = exn.ResourceName
-	res[DetailsAttributeCIDR] = exn.CidrStr
-	return res
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-// connectivity model aspects
 
 type ConnectivityResult struct {
 	IngressAllowedConns map[Node]*common.ConnectionSet

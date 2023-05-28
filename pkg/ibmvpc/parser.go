@@ -455,15 +455,24 @@ func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
 		return nil, err
 	}
 
-	externalNodes := addExternalNodes(res, vpcInternalAddressRange)
+	externalNodes, err := addExternalNodes(res, vpcInternalAddressRange)
+	if err != nil {
+		return nil, err
+	}
+	publicInternetNodes := []vpcmodel.Node{}
+	for _, node := range externalNodes {
+		if node.IsPublicInternet() {
+			publicInternetNodes = append(publicInternetNodes, node)
+		}
+	}
 
 	// update destination of routing resources
 	for _, r := range res.RoutingResources {
 		if rFip, ok := r.(*FloatingIP); ok {
-			rFip.destinations = externalNodes
+			rFip.destinations = publicInternetNodes
 		}
 		if rPgw, ok := r.(*PublicGateway); ok {
-			rPgw.destinations = externalNodes
+			rPgw.destinations = publicInternetNodes
 		}
 	}
 	return res, nil
@@ -502,8 +511,7 @@ Numbers Authority (IANA) and should never appear on the internet. There are mill
 
 		Class C: 192.168.0.0 — 192.168.255.255
 */
-func addExternalNodes(config *vpcmodel.CloudConfig, vpcInternalAddressRange *common.IPBlock) []vpcmodel.Node {
-	externalNodes := []vpcmodel.Node{}
+func addExternalNodes(config *vpcmodel.CloudConfig, vpcInternalAddressRange *common.IPBlock) ([]vpcmodel.Node, error) {
 	ipBlocks := []*common.IPBlock{}
 	for _, f := range config.FilterResources {
 		ipBlocks = append(ipBlocks, f.ReferencedIPblocks()...)
@@ -520,11 +528,14 @@ func addExternalNodes(config *vpcmodel.CloudConfig, vpcInternalAddressRange *com
 		printLineStr(cidrList)
 		externalRefIPBlocks = append(externalRefIPBlocks, ipBlock)
 	}
-	fmt.Println(linesSeparator)
-	fmt.Println("referenced external disjoint ip blocks:")
-	// disjoint external ref ip blocks
+
 	disjointRefExternalIPBlocks := common.DisjointIPBlocks(externalRefIPBlocks, []*common.IPBlock{})
-	for index, ipBlock := range disjointRefExternalIPBlocks {
+	externalNodes, err := vpcmodel.GetExternalNetworkNodes(disjointRefExternalIPBlocks)
+	if err != nil {
+		return nil, err
+	}
+	config.Nodes = append(config.Nodes, externalNodes...)
+	/*for index, ipBlock := range disjointRefExternalIPBlocks {
 		cidrList := strings.Join(ipBlock.ToCidrList(), cidrSeparator)
 		printLineStr(cidrList)
 		nodeName := fmt.Sprintf("ref-address-%d", index)
@@ -535,220 +546,8 @@ func addExternalNodes(config *vpcmodel.CloudConfig, vpcInternalAddressRange *com
 	//TODO: add cidrs of external network outside the given above cidrs already added
 	node := &vpcmodel.ExternalNetwork{NamedResource: vpcmodel.NamedResource{ResourceName: "public-internet"}, CidrStr: "192.0.1.0/24"}
 	config.Nodes = append(config.Nodes, node)
-	externalNodes = append(externalNodes, node)
+	externalNodes = append(externalNodes, node)*/
 
-	fmt.Println(linesSeparator)
-	return externalNodes
+	return externalNodes, nil
 	// goal: define connectivity between elements in the set {vsi address / referenced address in nacl or sg / rest of external range}
 }
-
-/*func NewVpcConfig(rc *ResourcesContainer) (*vpcConfig, error) {
-	config := &vpcConfig{
-		vsiMap:                map[string]*common.IPBlock{},
-		subnetsMap:            map[string]*common.IPBlock{},
-		nacl:                  map[string]*vpc1.NetworkACL{},
-		sg:                    map[string]*vpc1.SecurityGroup{},
-		vsiToSubnet:           map[string]string{},
-		subnetToNacl:          map[string]string{},
-		vsiToSg:               map[string][]string{},
-		netInterfaceNameToVsi: map[string]string{},
-	}
-	for i := range rc.naclList {
-		nacl := rc.naclList[i]
-		config.nacl[*nacl.Name] = nacl
-	}
-	for i := range rc.sgList {
-		sg := rc.sgList[i]
-		config.sg[*sg.Name] = sg
-	}
-	for i := range rc.subnetsList {
-		subnet := rc.subnetsList[i]
-		subnetCIDR := common.NewIPBlockFromCidr(*subnet.Ipv4CIDRBlock)
-		config.subnetsMap[*subnet.Name] = subnetCIDR
-		naclName := *subnet.NetworkACL.Name
-		if _, ok := config.nacl[naclName]; !ok {
-			return nil, fmt.Errorf("subnet %s has nacl %s which is not defined", *subnet.Name, naclName)
-		}
-		config.subnetToNacl[*subnet.Name] = naclName
-	}
-	for i := range rc.instanceList {
-		instance := rc.instanceList[i]
-		if len(instance.NetworkInterfaces) != 1 {
-			fmt.Printf("warning: ignoring multiple network interfaces for instance %s, considering only first one", *instance.Name)
-		}
-		if len(instance.NetworkInterfaces) == 0 {
-			return nil, fmt.Errorf("instance %s has no network interfaces", *instance.Name)
-		}
-		netInterface := instance.NetworkInterfaces[0]
-		if netInterface.PrimaryIP == nil {
-			return nil, fmt.Errorf("PrimaryIP for net-interface of instance %s is empty", *instance.Name)
-		}
-		ipv4Address := *netInterface.PrimaryIP.Address
-		if ipv4Address == "0.0.0.0" {
-			return nil, fmt.Errorf("for instance %s the IP address has not yet been selected", *instance.Name)
-		}
-		config.netInterfaceNameToVsi[*netInterface.Name] = *instance.Name
-		ipBlock, err := common.NewIPBlockFromIPAddress(ipv4Address)
-		if err != nil {
-			return nil, err
-		}
-		config.vsiMap[*instance.Name] = ipBlock
-		subnetName := netInterface.Subnet.Name
-		if _, ok := config.subnetsMap[*subnetName]; !ok {
-			return nil, fmt.Errorf("instance %s has subnet %s which is not defined", *instance.Name, *subnetName)
-		}
-		config.vsiToSubnet[*instance.Name] = *subnetName
-		config.vsiToSg[*instance.Name] = []string{}
-
-	}
-	// update map from vsi to sg
-	for sgName, sgObj := range config.sg {
-		for i := range sgObj.Targets {
-			if target, ok := sgObj.Targets[i].(*vpc1.SecurityGroupTargetReference); ok {
-				targetType := *target.ResourceType
-				targetName := *target.Name // the network interface name
-				if targetType == "network_interface" {
-					var vsiName string
-					if vsiName, ok = config.netInterfaceNameToVsi[targetName]; !ok {
-						return nil, fmt.Errorf("sg %s has target interface %s which is not defined", sgName, targetName)
-					}
-					config.vsiToSg[vsiName] = append(config.vsiToSg[vsiName], sgName)
-				} else {
-					//return nil, fmt.Errorf("sg %s has target %s type not supported", sgName, targetType)
-					fmt.Printf("sg %s has target %s type not supported - ignoring this target", sgName, targetType)
-				}
-			} else {
-				return nil, fmt.Errorf("sg %s has target at index %d which is not SecurityGroupTargetReference", sgName, i)
-			}
-		}
-	}
-
-	return config, nil
-}
-*/
-
-/*
-
-
-// SecurityGroupTargetReference : The resource types that can be security group targets are
-// expected to expand in the future. When iterating over
-// security group targets, do not assume that every target resource will be from a known set of resource types.
-// Optionally halt processing and surface an error, or bypass resources of unrecognized types.
-// Models which "extend" this model:
-// - SecurityGroupTargetReferenceNetworkInterfaceReferenceTargetContext
-// - SecurityGroupTargetReferenceLoadBalancerReference
-// - SecurityGroupTargetReferenceEndpointGatewayReference
-// - SecurityGroupTargetReferenceVPNServerReference
-type SecurityGroupTargetReference struct {
-	// If present, this property indicates the referenced resource has been deleted, and provides
-	// some supplementary information.
-	Deleted *NetworkInterfaceReferenceTargetContextDeleted `json:"deleted,omitempty"`
-
-	// The URL for this network interface.
-	Href *string `json:"href,omitempty"`
-
-	// The unique identifier for this network interface.
-	ID *string `json:"id,omitempty"`
-
-	// The name for this network interface.
-	Name *string `json:"name,omitempty"`
-
-	// The resource type.
-	ResourceType *string `json:"resource_type,omitempty"`
-
-	// The load balancer's CRN.
-	CRN *string `json:"crn,omitempty"`
-}
-
-// SecurityGroupTargetReferenceEndpointGatewayReference : SecurityGroupTargetReferenceEndpointGatewayReference struct
-// This model "extends" SecurityGroupTargetReference
-type SecurityGroupTargetReferenceEndpointGatewayReference struct {
-
-// SecurityGroupTargetReferenceLoadBalancerReference : SecurityGroupTargetReferenceLoadBalancerReference struct
-// This model "extends" SecurityGroupTargetReference
-type SecurityGroupTargetReferenceLoadBalancerReference struct {
-
-// SecurityGroupTargetReferenceNetworkInterfaceReferenceTargetContext :
- SecurityGroupTargetReferenceNetworkInterfaceReferenceTargetContext struct
-// This model "extends" SecurityGroupTargetReference
-type SecurityGroupTargetReferenceNetworkInterfaceReferenceTargetContext struct {
-
-
-// SecurityGroupTargetReferenceVPNServerReference : SecurityGroupTargetReferenceVPNServerReference struct
-// This model "extends" SecurityGroupTargetReference
-type SecurityGroupTargetReferenceVPNServerReference struct {
-
-
-
-	type FloatingIPTargetNetworkInterfaceReference struct {
-	// If present, this property indicates the referenced resource has been deleted, and provides
-	// some supplementary information.
-	Deleted *NetworkInterfaceReferenceDeleted `json:"deleted,omitempty"`
-
-	// The URL for this network interface.
-	Href *string `json:"href" validate:"required"`
-
-	// The unique identifier for this network interface.
-	ID *string `json:"id" validate:"required"`
-
-	// The name for this network interface.
-	Name *string `json:"name" validate:"required"`
-
-	PrimaryIP *ReservedIPReference `json:"primary_ip" validate:"required"`
-
-	// The resource type.
-	ResourceType *string `json:"resource_type" validate:"required"`
-}
-
-
-// This model "extends" FloatingIPTarget
-type FloatingIPTargetPublicGatewayReference struct {
-	// The CRN for this public gateway.
-	CRN *string `json:"crn" validate:"required"`
-
-	// If present, this property indicates the referenced resource has been deleted, and provides
-	// some supplementary information.
-	Deleted *PublicGatewayReferenceDeleted `json:"deleted,omitempty"`
-
-	// The URL for this public gateway.
-	Href *string `json:"href" validate:"required"`
-
-	// The unique identifier for this public gateway.
-	ID *string `json:"id" validate:"required"`
-
-	// The name for this public gateway. The name is unique across all public gateways in the VPC.
-	Name *string `json:"name" validate:"required"`
-
-	// The resource type.
-	ResourceType *string `json:"resource_type" validate:"required"`
-}
-
-
-// FloatingIPTarget : The target of this floating IP.
-// Models which "extend" this model:
-// - FloatingIPTargetNetworkInterfaceReference
-// - FloatingIPTargetPublicGatewayReference
-type FloatingIPTarget struct {
-	// If present, this property indicates the referenced resource has been deleted, and provides
-	// some supplementary information.
-	Deleted *NetworkInterfaceReferenceDeleted `json:"deleted,omitempty"`
-
-	// The URL for this network interface.
-	Href *string `json:"href,omitempty"`
-
-	// The unique identifier for this network interface.
-	ID *string `json:"id,omitempty"`
-
-	// The name for this network interface.
-	Name *string `json:"name,omitempty"`
-
-	PrimaryIP *ReservedIPReference `json:"primary_ip,omitempty"`
-
-	// The resource type.
-	ResourceType *string `json:"resource_type,omitempty"`
-
-	// The CRN for this public gateway.
-	CRN *string `json:"crn,omitempty"`
-}
-
-*/
