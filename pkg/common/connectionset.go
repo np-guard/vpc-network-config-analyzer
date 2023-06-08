@@ -326,6 +326,12 @@ func (conn *ConnectionSet) String() string {
 	return strings.Join(resStrings, "; ")
 }
 
+func NewTcpConnectionSet() *ConnectionSet {
+	res := NewConnectionSet(false)
+	res.AddTCPorUDPConn(ProtocolTCP, MinPort, MaxPort, MinPort, MaxPort)
+	return res
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*

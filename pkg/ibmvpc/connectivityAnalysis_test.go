@@ -6,6 +6,7 @@ import (
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	vpcmodel "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
+	"github.com/stretchr/testify/require"
 )
 
 /* basic unit-tests  for vpc connectivity analysis
@@ -17,11 +18,11 @@ computing
 - combined ad stateful
 */
 
-type testConfig struct {
-	subnets        map[string]string        // subnet name to its cidr
-	netInterfaces  map[string][]string      // subnet cidr to a list of interface address within it (names according to index and subnetname )
-	nacls          map[string]*NACLAnalyzer // nacl name to its analyzer( with nacl rules)
-	naclsToSubnets map[string][]string      //nacl name to its subnets
+type testNodesConfig struct {
+	subnets       map[string]string   // subnet name to its cidr
+	netInterfaces map[string][]string // subnet cidr to a list of interface address within it (names according to index and subnetname )
+	//nacls          map[string]*NACLAnalyzer // nacl name to its analyzer( with nacl rules)
+	//naclsToSubnets map[string][]string      //nacl name to its subnets
 }
 
 type naclConfig struct {
@@ -31,7 +32,7 @@ type naclConfig struct {
 	subnets      []string //subnet names
 }
 
-var tc = &testConfig{
+var tc1 = &testNodesConfig{
 	subnets: map[string]string{
 		"subnet-1": "10.240.10.0/24",
 		"subnet-2": "10.240.20.0/24",
@@ -42,14 +43,49 @@ var tc = &testConfig{
 	},
 }
 
-var nc = &naclConfig{
+var nc1 = &naclConfig{
 	name:         "nacl-1",
 	ingressRules: getAllowAllRules(),
 	egressRules:  getAllowAllRules(),
 	subnets:      []string{"10.240.10.0/24", "10.240.20.0/24"},
 }
 
-func createConfigFromTestConfig(tc *testConfig, ncList []*naclConfig) *vpcmodel.CloudConfig {
+var nc2 = &naclConfig{
+	name:         "nacl-1",
+	ingressRules: getAllowAllRules(),
+	egressRules:  getAllowAllRules(),
+	subnets:      []string{"10.240.10.0/24"},
+}
+
+var nc3 = &naclConfig{
+	name:         "nacl-2",
+	ingressRules: getAllowAllRules(),
+	egressRules: []*NACLRule{
+		{
+			src:         common.NewIPBlockFromCidr("0.0.0.0/0"),
+			dst:         common.NewIPBlockFromCidr("10.240.20.0/24"),
+			connections: getAllConnSet(),
+			action:      "allow",
+		},
+	},
+	subnets: []string{"10.240.20.0/24"},
+}
+
+var nc4 = &naclConfig{
+	name:         "nacl-2",
+	ingressRules: getAllowAllRules(),
+	egressRules: []*NACLRule{
+		{
+			src:         common.NewIPBlockFromCidr("0.0.0.0/0"),
+			dst:         common.NewIPBlockFromCidr("0.0.0.0/0"),
+			connections: common.NewTcpConnectionSet(),
+			action:      "allow",
+		},
+	},
+	subnets: []string{"10.240.20.0/24"},
+}
+
+func createConfigFromTestConfig(tc *testNodesConfig, ncList []*naclConfig) *vpcmodel.CloudConfig {
 	config := &vpcmodel.CloudConfig{
 		Nodes:            []vpcmodel.Node{},
 		NodeSets:         []vpcmodel.NodeSet{},
@@ -186,18 +222,95 @@ subnet-2 10.240.20.0/24
 NACL nacl-1subnets: 10.240.10.0/24,10.240.20.0/24,
 */
 func TestBasicCloudConfig1(t *testing.T) {
-	c := createConfigFromTestConfig(tc, []*naclConfig{nc})
+	c := createConfigFromTestConfig(tc1, []*naclConfig{nc1})
 	strC := c.String()
 	fmt.Println(strC)
 	fmt.Println("done")
 }
 
+var expectedConnStrTest1 = `=================================== distributed inbound/outbound connections:
+10.240.10.4 => 10.240.20.4 : All Connections [inbound]
+10.240.10.4 => 10.240.20.4 : All Connections [outbound]
+10.240.20.4 => 10.240.10.4 : All Connections [inbound]
+10.240.20.4 => 10.240.10.4 : All Connections [outbound]
+=================================== combined connections:
+10.240.10.4 => 10.240.20.4 : All Connections
+10.240.20.4 => 10.240.10.4 : All Connections
+=================================== combined connections - short version:
+vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections
+vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : All Connections
+=================================== stateful combined connections - short version:
+vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections
+vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : All Connections
+`
+
 func TestAnalyzeConnectivity1(t *testing.T) {
-	c := createConfigFromTestConfig(tc, []*naclConfig{nc})
+	c := createConfigFromTestConfig(tc1, []*naclConfig{nc1})
 	connectivity := c.GetVPCNetworkConnectivity()
 	connectivityStr := connectivity.String()
 	fmt.Println(connectivityStr)
 	fmt.Println("done")
+	require.Equal(t, expectedConnStrTest1, connectivityStr, "TestAnalyzeConnectivity1 compare expected vs actual connectivity Str")
+}
+
+/*
+=================================== distributed inbound/outbound connections:
+10.240.10.4 => 10.240.20.4 : All Connections [inbound]
+10.240.10.4 => 10.240.20.4 : All Connections [outbound]
+10.240.20.4 => 10.240.10.4 : All Connections [inbound]
+10.240.20.4 => 10.240.10.4 : No Connections [outbound]
+=================================== combined connections:
+10.240.10.4 => 10.240.20.4 : All Connections
+10.240.20.4 => 10.240.10.4 : No Connections
+=================================== combined connections - short version:
+vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections
+=================================== stateful combined connections - short version:
+*/
+var expectedConnStrTest2 = `=================================== distributed inbound/outbound connections:
+10.240.10.4 => 10.240.20.4 : All Connections [inbound]
+10.240.10.4 => 10.240.20.4 : All Connections [outbound]
+10.240.20.4 => 10.240.10.4 : All Connections [inbound]
+10.240.20.4 => 10.240.10.4 : No Connections [outbound]
+=================================== combined connections:
+10.240.10.4 => 10.240.20.4 : All Connections
+10.240.20.4 => 10.240.10.4 : No Connections
+=================================== combined connections - short version:
+vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections
+=================================== stateful combined connections - short version:
+`
+
+func TestAnalyzeConnectivity2(t *testing.T) {
+	c := createConfigFromTestConfig(tc1, []*naclConfig{nc2, nc3})
+	connectivity := c.GetVPCNetworkConnectivity()
+	connectivityStr := connectivity.String()
+	fmt.Println(connectivityStr)
+	fmt.Println("done")
+	require.Equal(t, expectedConnStrTest2, connectivityStr, "TestAnalyzeConnectivity2 compare expected vs actual connectivity Str")
+}
+
+var expectedConnStrTest3 = `=================================== distributed inbound/outbound connections:
+10.240.10.4 => 10.240.20.4 : All Connections [inbound]
+10.240.10.4 => 10.240.20.4 : All Connections [outbound]
+10.240.20.4 => 10.240.10.4 : All Connections [inbound]
+10.240.20.4 => 10.240.10.4 : protocol: TCP   [outbound]
+=================================== combined connections:
+10.240.10.4 => 10.240.20.4 : All Connections
+10.240.20.4 => 10.240.10.4 : protocol: TCP  
+=================================== combined connections - short version:
+vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections
+vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : protocol: TCP  
+=================================== stateful combined connections - short version:
+vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : protocol: TCP  
+vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : protocol: TCP  
+`
+
+func TestAnalyzeConnectivity3(t *testing.T) {
+	c := createConfigFromTestConfig(tc1, []*naclConfig{nc2, nc4})
+	connectivity := c.GetVPCNetworkConnectivity()
+	connectivityStr := connectivity.String()
+	fmt.Println(connectivityStr)
+	fmt.Println("done")
+	require.Equal(t, expectedConnStrTest3, connectivityStr, "TestAnalyzeConnectivity3 compare expected vs actual connectivity Str")
 }
 
 /*
