@@ -129,11 +129,28 @@ type VPCConnectivity struct {
 	AllowedConnsCombinedStateful map[Node]map[Node]*common.ConnectionSet
 }
 
-// a processing of VPCConnectivity produces ConnectivityOutput, at various formats
-type ConnectivityOutput struct {
-}
+func getCombinedConnsStr(combinedConns map[Node]map[Node]*common.ConnectionSet) string {
+	strList := []string{}
+	for src, nodeConns := range combinedConns {
+		for dst, conns := range nodeConns {
+			if conns.IsEmpty() {
+				continue
+			}
+			srcName := src.Cidr()
+			if src.IsInternal() {
+				srcName = src.Name()
+			}
+			dstName := dst.Cidr()
+			if dst.IsInternal() {
+				dstName = dst.Name()
+			}
+			strList = append(strList, getConnectionStr(srcName, dstName, conns.String(), ""))
+		}
+	}
+	sort.Strings(strList)
+	return strings.Join(strList, "")
 
-// add interface to output formatter
+}
 
 func getConnectionStr(src, dst, conn, suffix string) string {
 	return fmt.Sprintf("%s => %s : %s%s\n", src, dst, conn, suffix)
@@ -164,7 +181,7 @@ func (v *VPCConnectivity) String() string {
 	sort.Strings(strList)
 	res += strings.Join(strList, "")
 	res += "=================================== combined connections - short version:\n"
-	strList = []string{}
+	/*strList = []string{}
 	for src, nodeConns := range v.AllowedConnsCombined {
 		for dst, conns := range nodeConns {
 			if conns.IsEmpty() {
@@ -182,7 +199,11 @@ func (v *VPCConnectivity) String() string {
 		}
 	}
 	sort.Strings(strList)
-	res += strings.Join(strList, "")
+	res += strings.Join(strList, "")*/
+	res += getCombinedConnsStr(v.AllowedConnsCombined)
+
+	res += "=================================== stateful combined connections - short version:\n"
+	res += getCombinedConnsStr(v.AllowedConnsCombinedStateful)
 	return res
 }
 

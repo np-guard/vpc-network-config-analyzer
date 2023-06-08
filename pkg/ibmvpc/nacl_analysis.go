@@ -358,19 +358,21 @@ func (na *NACLAnalyzer) AnalyzeNACLRules(rules []*NACLRule, subnet *common.IPBlo
 
 // TODO: return a map from each possible subnetDisjointTarget to its ConnectivityResult, instead of a specific ConnectivityResult
 // get allowed and denied connections (ingress and egress) for a certain subnet to which this nacl is applied
-func (na *NACLAnalyzer) AnalyzeNACL(naclObj *vpc1.NetworkACL, subnet *common.IPBlock) (
+func (na *NACLAnalyzer) AnalyzeNACL(subnet *common.IPBlock) (
 	ingressResConnectivity, egressResConnectivity map[string]*ConnectivityResult) {
 	ingressResConnectivity = na.AnalyzeNACLRulesPerDisjointTargets(na.ingressRules, subnet, true)
 	egressResConnectivity = na.AnalyzeNACLRulesPerDisjointTargets(na.egressRules, subnet, false)
 	return ingressResConnectivity, egressResConnectivity
 }
 
+// this function adds the analysis of certain subnet connectivity based on the the NACL
+// it saves the analysis results in na.analyzedSubnets
 func (na *NACLAnalyzer) addAnalysisPerSubnet(subnetCidr string) {
 	if _, ok := na.analyzedSubnets[subnetCidr]; ok {
 		return
 	}
 	subnetCidrIPBlock := common.NewIPBlockFromCidr(subnetCidr)
-	ingressRes, egressRes := na.AnalyzeNACL(na.naclResource, subnetCidrIPBlock)
+	ingressRes, egressRes := na.AnalyzeNACL(subnetCidrIPBlock)
 
 	na.analyzedSubnets[subnetCidr] = NewAnalysisResultPerSubnet(subnetCidr, ingressRes, egressRes)
 
@@ -385,6 +387,7 @@ func getDisjointSubnetCidrStr(disjointSubnetCidr string) string {
 	return fmt.Sprintf("local ip-block: %s\n", disjointSubnetCidr)
 }
 
+// GeneralConnectivityPerSubnet returns the str of the connectivity for analyzed subnet input
 func (na *NACLAnalyzer) GeneralConnectivityPerSubnet(subnetCidr string) string {
 	na.addAnalysisPerSubnet(subnetCidr)
 	ingressRes := na.analyzedSubnets[subnetCidr].ingressRes
@@ -402,9 +405,12 @@ func (na *NACLAnalyzer) GeneralConnectivityPerSubnet(subnetCidr string) string {
 	return res
 }
 
+// AllowedConnectivity returns set of allowed connections given src/dst and direction
+// if the input subnet was not yet analyzed, it first adds its analysis to saved results
 func (na *NACLAnalyzer) AllowedConnectivity(subnetCidr, inSubentCidr, target string, isIngress bool) (*common.ConnectionSet, error) {
 	var analyzedConns map[string]*ConnectivityResult
-	//TODO: analyze per subnet disjoint cidrs and not necessarily entire subnet cidr
+	// add analysis of the given subnet
+	// analyzes per subnet disjoint cidrs (it is not necessarily entire subnet cidr)
 	na.addAnalysisPerSubnet(subnetCidr)
 	if isIngress {
 		analyzedConns = na.analyzedSubnets[subnetCidr].ingressRes
