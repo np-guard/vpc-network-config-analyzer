@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	vpcmodel "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
-	"github.com/stretchr/testify/require"
 )
 
 /* basic unit-tests  for vpc connectivity analysis
@@ -21,15 +22,13 @@ computing
 type testNodesConfig struct {
 	subnets       map[string]string   // subnet name to its cidr
 	netInterfaces map[string][]string // subnet cidr to a list of interface address within it (names according to index and subnet name )
-	//nacls          map[string]*NACLAnalyzer // nacl name to its analyzer( with nacl rules)
-	//naclsToSubnets map[string][]string      //nacl name to its subnets
 }
 
 type naclConfig struct {
 	name         string
 	ingressRules []*NACLRule
 	egressRules  []*NACLRule
-	subnets      []string //subnet names
+	subnets      []string // subnet names
 }
 
 // tc1 : simple config, 2 subnets, one instance per subnet
@@ -83,7 +82,7 @@ var nc4 = &naclConfig{
 		{
 			src:         common.NewIPBlockFromCidr("0.0.0.0/0"),
 			dst:         common.NewIPBlockFromCidr("0.0.0.0/0"),
-			connections: common.NewTcpConnectionSet(),
+			connections: common.NewTCPConnectionSet(),
 			action:      "allow",
 		},
 	},
@@ -192,7 +191,6 @@ func addInterfaceNode(config *vpcmodel.CloudConfig, name, address, vsiName, subn
 	}
 
 	config.Nodes = append(config.Nodes, intfNode)
-
 }
 
 func addSubnet(config *vpcmodel.CloudConfig, name, cidr, zone string) {
@@ -228,7 +226,6 @@ func addNACL(config *vpcmodel.CloudConfig, name string, subnets map[string]struc
 
 	// add the nacl to the layer
 	layer.naclList = append(layer.naclList, naclResource)
-
 }
 
 func newSimpleNACLAnalyzer() *NACLAnalyzer {

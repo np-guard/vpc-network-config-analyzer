@@ -326,7 +326,7 @@ func (conn *ConnectionSet) String() string {
 	return strings.Join(resStrings, "; ")
 }
 
-func NewTcpConnectionSet() *ConnectionSet {
+func NewTCPConnectionSet() *ConnectionSet {
 	res := NewConnectionSet(false)
 	res.AddTCPorUDPConn(ProtocolTCP, MinPort, MaxPort, MinPort, MaxPort)
 	return res
@@ -355,9 +355,7 @@ func (conn *ConnectionSet) SwitchSrcDstPorts() *ConnectionSet {
 			dstPorts := cube[dstPort]
 			if !srcPorts.Equal(*getDimensionDomain(srcPort)) || !dstPorts.Equal(*getDimensionDomain(dstPort)) {
 				newCube := copyCube(cube)
-				temp := newCube[srcPort]
-				newCube[srcPort] = newCube[dstPort]
-				newCube[dstPort] = temp
+				newCube[srcPort], newCube[dstPort] = newCube[dstPort], newCube[srcPort]
 				res.connectionProperties = res.connectionProperties.Union(CreateFromCube(newCube))
 			} else {
 				res.connectionProperties = res.connectionProperties.Union(CreateFromCube(cube))
