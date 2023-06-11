@@ -149,7 +149,6 @@ func getCombinedConnsStr(combinedConns map[Node]map[Node]*common.ConnectionSet) 
 	}
 	sort.Strings(strList)
 	return strings.Join(strList, "")
-
 }
 
 func getConnectionStr(src, dst, conn, suffix string) string {
@@ -244,6 +243,10 @@ func (v *CloudConfig) GetVPCNetworkConnectivity() *VPCConnectivity {
 // "NaclLayer"
 func (v *VPCConnectivity) getPerLayerConnectivity(layer string, src, dst Node, isIngress bool) *common.ConnectionSet {
 	// TODO : what if one of the input nodes is not internal?
+	if (isIngress && !dst.IsInternal()) || (!isIngress && !src.IsInternal()) {
+		return common.NewConnectionSet(true)
+	}
+
 	var connMap map[string]*ConnectivityResult
 	if isIngress {
 		connMap = v.AllowedConnsPerLayer[dst]
@@ -271,9 +274,9 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections() {
 			// get the allowed *stateful* conn result
 			// check allowed conns per NACL-layer from dst to src (dst->src)
 			var DstAllowedEgressToSrc, SrcAllowedIngressFromDst *common.ConnectionSet
-			//can dst egress to src?
+			// can dst egress to src?
 			DstAllowedEgressToSrc = v.getPerLayerConnectivity("NaclLayer", dst, src, false)
-			//can src ingress from dst?
+			// can src ingress from dst?
 			SrcAllowedIngressFromDst = v.getPerLayerConnectivity("NaclLayer", dst, src, true)
 			combinedDstToSrc := DstAllowedEgressToSrc.Intersection(SrcAllowedIngressFromDst)
 
@@ -341,8 +344,8 @@ func HasNode(listNodes []Node, node Node) bool {
 }
 
 func (v *CloudConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Node) (
-	map[Node]*common.ConnectionSet, //result considering all layers
-	map[string]map[Node]*common.ConnectionSet, //result separated per layer
+	map[Node]*common.ConnectionSet, // result considering all layers
+	map[string]map[Node]*common.ConnectionSet, // result separated per layer
 ) {
 	perLayerRes := map[string]map[Node]*common.ConnectionSet{}
 	allRes := map[Node]*common.ConnectionSet{}

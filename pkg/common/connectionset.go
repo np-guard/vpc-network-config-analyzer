@@ -363,7 +363,6 @@ func (conn *ConnectionSet) SwitchSrcDstPorts() *ConnectionSet {
 				res.connectionProperties = res.connectionProperties.Union(CreateFromCube(cube))
 			}
 		}
-
 	}
 	return res
 }
