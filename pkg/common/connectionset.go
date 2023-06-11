@@ -332,6 +332,42 @@ func NewTcpConnectionSet() *ConnectionSet {
 	return res
 }
 
+func copyCube(cube []*CanonicalIntervalSet) []*CanonicalIntervalSet {
+	newCube := make([]*CanonicalIntervalSet, len(cube))
+	for i, interval := range cube {
+		newInterval := interval.Copy()
+		newCube[i] = &newInterval
+	}
+	return newCube
+}
+
+func (conn *ConnectionSet) SwitchSrcDstPorts() *ConnectionSet {
+	if conn.AllowAll || conn.IsEmpty() {
+		return conn
+	}
+	res := NewConnectionSet(false)
+	cubes := conn.connectionProperties.GetCubesList()
+
+	for _, cube := range cubes {
+		protocols := cube[protocol]
+		if protocols.Contains(TCP) || protocols.Contains(UDP) {
+			srcPorts := cube[srcPort]
+			dstPorts := cube[dstPort]
+			if !srcPorts.Equal(*getDimensionDomain(srcPort)) || !dstPorts.Equal(*getDimensionDomain(dstPort)) {
+				newCube := copyCube(cube)
+				temp := newCube[srcPort]
+				newCube[srcPort] = newCube[dstPort]
+				newCube[dstPort] = temp
+				res.connectionProperties = res.connectionProperties.Union(CreateFromCube(newCube))
+			} else {
+				res.connectionProperties = res.connectionProperties.Union(CreateFromCube(cube))
+			}
+		}
+
+	}
+	return res
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*

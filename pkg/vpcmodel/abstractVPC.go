@@ -261,7 +261,7 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections() {
 	// assuming v.AllowedConnsCombined was already computed
 
 	// allowed connection: src->dst , requires NACL layer to allow dst->src (both ingress and egress)
-	// on overlapping/matching connection-set, (src-dst ports should be switched??),
+	// on overlapping/matching connection-set, (src-dst ports should be switched),
 	// for it to be considered as stateful
 
 	v.AllowedConnsCombinedStateful = map[Node]map[Node]*common.ConnectionSet{}
@@ -280,8 +280,9 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections() {
 			if _, ok := v.AllowedConnsCombinedStateful[src]; !ok {
 				v.AllowedConnsCombinedStateful[src] = map[Node]*common.ConnectionSet{}
 			}
-			// TODO: flip src/dst ports before intersection?
-			v.AllowedConnsCombinedStateful[src][dst] = conn.Intersection(combinedDstToSrc)
+			// flip src/dst ports before intersection
+			combinedDstToSrcSwitchPortsDirection := combinedDstToSrc.SwitchSrcDstPorts()
+			v.AllowedConnsCombinedStateful[src][dst] = conn.Intersection(combinedDstToSrcSwitchPortsDirection)
 		}
 	}
 }
