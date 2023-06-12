@@ -12,24 +12,27 @@ import (
 
 /* basic unit-tests  for vpc connectivity analysis
 GetVPCNetworkConnectivity() of CloudConfig
-computing
-- connectivity between nodes (network interfaces and external addresses)
-- ingress/egress
+computing connectivity between nodes (network interfaces and external addresses):
+- ingress/egress (separately)
 - combined (stateless)
 - combined ad stateful
 */
 
+// testNodesConfig contains basic config details: subnets and interfaces
 type testNodesConfig struct {
 	subnets       map[string]string   // subnet name to its cidr
 	netInterfaces map[string][]string // subnet cidr to a list of interface address within it (names according to index and subnet name )
 }
 
+// naclConfig contains basic nacl config details, should refer to subnets in testNodesConfig object
 type naclConfig struct {
 	name         string
 	ingressRules []*NACLRule
 	egressRules  []*NACLRule
-	subnets      []string // subnet names
+	subnets      []string // subnet cidrs
 }
+
+// test objects below
 
 // tc1 : simple config, 2 subnets, one instance per subnet
 var tc1 = &testNodesConfig{
@@ -129,6 +132,98 @@ var nc6 = &naclConfig{
 	},
 	subnets: []string{"10.240.20.0/24"},
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// tests below
+
+var expectedConnStrTest1 = `=================================== distributed inbound/outbound connections:
+10.240.10.4 => 10.240.20.4 : All Connections [inbound]
+10.240.10.4 => 10.240.20.4 : All Connections [outbound]
+10.240.20.4 => 10.240.10.4 : All Connections [inbound]
+10.240.20.4 => 10.240.10.4 : All Connections [outbound]
+=================================== combined connections:
+10.240.10.4 => 10.240.20.4 : All Connections
+10.240.20.4 => 10.240.10.4 : All Connections
+=================================== combined connections - short version:
+vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections
+vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : All Connections
+=================================== stateful combined connections - short version:
+vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections
+vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : All Connections
+`
+
+func TestAnalyzeConnectivity1(t *testing.T) {
+	runConnectivityTest(t, tc1, []*naclConfig{nc1}, expectedConnStrTest1)
+}
+
+var expectedConnStrTest2 = `=================================== distributed inbound/outbound connections:
+10.240.10.4 => 10.240.20.4 : All Connections [inbound]
+10.240.10.4 => 10.240.20.4 : All Connections [outbound]
+10.240.20.4 => 10.240.10.4 : All Connections [inbound]
+10.240.20.4 => 10.240.10.4 : No Connections [outbound]
+=================================== combined connections:
+10.240.10.4 => 10.240.20.4 : All Connections
+10.240.20.4 => 10.240.10.4 : No Connections
+=================================== combined connections - short version:
+vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections
+=================================== stateful combined connections - short version:
+`
+
+func TestAnalyzeConnectivity2(t *testing.T) {
+	runConnectivityTest(t, tc1, []*naclConfig{nc2, nc3}, expectedConnStrTest2)
+}
+
+var expectedConnStrTest3 = `=================================== distributed inbound/outbound connections:
+10.240.10.4 => 10.240.20.4 : All Connections [inbound]
+10.240.10.4 => 10.240.20.4 : All Connections [outbound]
+10.240.20.4 => 10.240.10.4 : All Connections [inbound]
+10.240.20.4 => 10.240.10.4 : protocol: TCP   [outbound]
+=================================== combined connections:
+10.240.10.4 => 10.240.20.4 : All Connections
+10.240.20.4 => 10.240.10.4 : protocol: TCP  
+=================================== combined connections - short version:
+vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections
+vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : protocol: TCP  
+=================================== stateful combined connections - short version:
+vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : protocol: TCP  
+vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : protocol: TCP  
+`
+
+func TestAnalyzeConnectivity3(t *testing.T) {
+	runConnectivityTest(t, tc1, []*naclConfig{nc2, nc4}, expectedConnStrTest3)
+}
+
+var expectedConnStrTest4 = `=================================== distributed inbound/outbound connections:
+10.240.10.4 => 10.240.20.4 : All Connections [inbound]
+10.240.10.4 => 10.240.20.4 : protocol: TCP src-ports: 10-100 dst-ports: 443 [outbound]
+10.240.20.4 => 10.240.10.4 : All Connections [inbound]
+10.240.20.4 => 10.240.10.4 : protocol: TCP src-ports: 443 dst-ports: 10-100 [outbound]
+=================================== combined connections:
+10.240.10.4 => 10.240.20.4 : protocol: TCP src-ports: 10-100 dst-ports: 443
+10.240.20.4 => 10.240.10.4 : protocol: TCP src-ports: 443 dst-ports: 10-100
+=================================== combined connections - short version:
+vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : protocol: TCP src-ports: 10-100 dst-ports: 443
+vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : protocol: TCP src-ports: 443 dst-ports: 10-100
+=================================== stateful combined connections - short version:
+vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : protocol: TCP src-ports: 10-100 dst-ports: 443
+vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : protocol: TCP src-ports: 443 dst-ports: 10-100
+`
+
+func TestAnalyzeConnectivity4(t *testing.T) {
+	runConnectivityTest(t, tc1, []*naclConfig{nc5, nc6}, expectedConnStrTest4)
+}
+
+func runConnectivityTest(t *testing.T, tc *testNodesConfig, ncList []*naclConfig, expectedStrResult string) {
+	c := createConfigFromTestConfig(tc, ncList)
+	connectivity := c.GetVPCNetworkConnectivity()
+	connectivityStr := connectivity.String()
+	fmt.Println(connectivityStr)
+	fmt.Println("done")
+	require.Equal(t, expectedStrResult, connectivityStr)
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
 
 func createConfigFromTestConfig(tc *testNodesConfig, ncList []*naclConfig) *vpcmodel.CloudConfig {
 	config := &vpcmodel.CloudConfig{
@@ -269,103 +364,6 @@ func TestBasicCloudConfig1(t *testing.T) {
 	strC := c.String()
 	fmt.Println(strC)
 	fmt.Println("done")
-}
-
-var expectedConnStrTest1 = `=================================== distributed inbound/outbound connections:
-10.240.10.4 => 10.240.20.4 : All Connections [inbound]
-10.240.10.4 => 10.240.20.4 : All Connections [outbound]
-10.240.20.4 => 10.240.10.4 : All Connections [inbound]
-10.240.20.4 => 10.240.10.4 : All Connections [outbound]
-=================================== combined connections:
-10.240.10.4 => 10.240.20.4 : All Connections
-10.240.20.4 => 10.240.10.4 : All Connections
-=================================== combined connections - short version:
-vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections
-vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : All Connections
-=================================== stateful combined connections - short version:
-vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections
-vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : All Connections
-`
-
-func TestAnalyzeConnectivity1(t *testing.T) {
-	c := createConfigFromTestConfig(tc1, []*naclConfig{nc1})
-	connectivity := c.GetVPCNetworkConnectivity()
-	connectivityStr := connectivity.String()
-	fmt.Println(connectivityStr)
-	fmt.Println("done")
-	require.Equal(t, expectedConnStrTest1, connectivityStr)
-}
-
-var expectedConnStrTest2 = `=================================== distributed inbound/outbound connections:
-10.240.10.4 => 10.240.20.4 : All Connections [inbound]
-10.240.10.4 => 10.240.20.4 : All Connections [outbound]
-10.240.20.4 => 10.240.10.4 : All Connections [inbound]
-10.240.20.4 => 10.240.10.4 : No Connections [outbound]
-=================================== combined connections:
-10.240.10.4 => 10.240.20.4 : All Connections
-10.240.20.4 => 10.240.10.4 : No Connections
-=================================== combined connections - short version:
-vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections
-=================================== stateful combined connections - short version:
-`
-
-func TestAnalyzeConnectivity2(t *testing.T) {
-	c := createConfigFromTestConfig(tc1, []*naclConfig{nc2, nc3})
-	connectivity := c.GetVPCNetworkConnectivity()
-	connectivityStr := connectivity.String()
-	fmt.Println(connectivityStr)
-	fmt.Println("done")
-	require.Equal(t, expectedConnStrTest2, connectivityStr)
-}
-
-var expectedConnStrTest3 = `=================================== distributed inbound/outbound connections:
-10.240.10.4 => 10.240.20.4 : All Connections [inbound]
-10.240.10.4 => 10.240.20.4 : All Connections [outbound]
-10.240.20.4 => 10.240.10.4 : All Connections [inbound]
-10.240.20.4 => 10.240.10.4 : protocol: TCP   [outbound]
-=================================== combined connections:
-10.240.10.4 => 10.240.20.4 : All Connections
-10.240.20.4 => 10.240.10.4 : protocol: TCP  
-=================================== combined connections - short version:
-vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections
-vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : protocol: TCP  
-=================================== stateful combined connections - short version:
-vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : protocol: TCP  
-vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : protocol: TCP  
-`
-
-func TestAnalyzeConnectivity3(t *testing.T) {
-	c := createConfigFromTestConfig(tc1, []*naclConfig{nc2, nc4})
-	connectivity := c.GetVPCNetworkConnectivity()
-	connectivityStr := connectivity.String()
-	fmt.Println(connectivityStr)
-	fmt.Println("done")
-	require.Equal(t, expectedConnStrTest3, connectivityStr)
-}
-
-var expectedConnStrTest4 = `=================================== distributed inbound/outbound connections:
-10.240.10.4 => 10.240.20.4 : All Connections [inbound]
-10.240.10.4 => 10.240.20.4 : protocol: TCP src-ports: 10-100 dst-ports: 443 [outbound]
-10.240.20.4 => 10.240.10.4 : All Connections [inbound]
-10.240.20.4 => 10.240.10.4 : protocol: TCP src-ports: 443 dst-ports: 10-100 [outbound]
-=================================== combined connections:
-10.240.10.4 => 10.240.20.4 : protocol: TCP src-ports: 10-100 dst-ports: 443
-10.240.20.4 => 10.240.10.4 : protocol: TCP src-ports: 443 dst-ports: 10-100
-=================================== combined connections - short version:
-vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : protocol: TCP src-ports: 10-100 dst-ports: 443
-vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : protocol: TCP src-ports: 443 dst-ports: 10-100
-=================================== stateful combined connections - short version:
-vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : protocol: TCP src-ports: 10-100 dst-ports: 443
-vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : protocol: TCP src-ports: 443 dst-ports: 10-100
-`
-
-func TestAnalyzeConnectivity4(t *testing.T) {
-	c := createConfigFromTestConfig(tc1, []*naclConfig{nc5, nc6})
-	connectivity := c.GetVPCNetworkConnectivity()
-	connectivityStr := connectivity.String()
-	fmt.Println(connectivityStr)
-	fmt.Println("done")
-	require.Equal(t, expectedConnStrTest4, connectivityStr)
 }
 
 /*

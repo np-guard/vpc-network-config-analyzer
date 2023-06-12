@@ -229,9 +229,9 @@ func (v *CloudConfig) GetVPCNetworkConnectivity() *VPCConnectivity {
 	return res
 }
 
-// "NaclLayer"
+// getPerLayerConnectivity currently used for "NaclLayer" - to compute stateful allowed conns
 func (v *VPCConnectivity) getPerLayerConnectivity(layer string, src, dst Node, isIngress bool) *common.ConnectionSet {
-	// TODO : what if one of the input nodes is not internal?
+	// if the analyzed input node is not internal- assume all conns allowed
 	if (isIngress && !dst.IsInternal()) || (!isIngress && !src.IsInternal()) {
 		return common.NewConnectionSet(true)
 	}
@@ -338,11 +338,11 @@ func HasNode(listNodes []Node, node Node) bool {
 }
 
 func (v *CloudConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Node) (
-	allRes map[Node]*common.ConnectionSet, // result considering all layers
+	allLayersRes map[Node]*common.ConnectionSet, // result considering all layers
 	perLayerRes map[string]map[Node]*common.ConnectionSet, // result separated per layer
 ) {
 	perLayerRes = map[string]map[Node]*common.ConnectionSet{}
-	allRes = map[Node]*common.ConnectionSet{}
+	allLayersRes = map[Node]*common.ConnectionSet{}
 	var src, dst Node
 	for _, peerNode := range v.Nodes {
 		if peerNode.Cidr() == capturedNode.Cidr() {
@@ -369,7 +369,7 @@ func (v *CloudConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode N
 				allowedConnsBetweenCapturedAndPeerNode = allowedConnsBetweenCapturedAndPeerNode.Intersection(filteredConns)
 				// do not break if empty, to enable computation for all layers
 			}
-			allRes[peerNode] = allowedConnsBetweenCapturedAndPeerNode
+			allLayersRes[peerNode] = allowedConnsBetweenCapturedAndPeerNode
 			direction := "inbound"
 			if !isIngress {
 				direction = "outbound"
@@ -395,10 +395,10 @@ func (v *CloudConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode N
 				allowedConnsBetweenCapturedAndPeerNode = allowedConnsBetweenCapturedAndPeerNode.Intersection(filteredConns)
 				// do not break if empty, to enable computation for all layers
 			}
-			allRes[peerNode] = allowedConnsBetweenCapturedAndPeerNode
+			allLayersRes[peerNode] = allowedConnsBetweenCapturedAndPeerNode
 		}
 	}
-	return allRes, perLayerRes
+	return allLayersRes, perLayerRes
 }
 
 /////////////////////////////////////////////////////////////////////////////////

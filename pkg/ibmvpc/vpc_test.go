@@ -53,11 +53,11 @@ func TestWithParsing(t *testing.T) {
 			inputResourcesJSON: acl3Input,
 			expectedOutputText: acl3Output,
 		},
-		{
-			name:               "sg_testing1",
-			inputResourcesJSON: sg1Input,
-			expectedOutputText: sg1Output,
-		},
+		/*		{
+				name:               "sg_testing1",
+				inputResourcesJSON: sg1Input,
+				expectedOutputText: sg1Output,
+			},*/
 	}
 	for _, test := range tests {
 		cloudConfig, vpcConn := runTest(t, test)

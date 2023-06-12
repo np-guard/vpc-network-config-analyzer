@@ -326,12 +326,14 @@ func (conn *ConnectionSet) String() string {
 	return strings.Join(resStrings, "; ")
 }
 
+// NewTCPConnectionSet returns a ConnectionSet object with TCP protocol (all ports)
 func NewTCPConnectionSet() *ConnectionSet {
 	res := NewConnectionSet(false)
 	res.AddTCPorUDPConn(ProtocolTCP, MinPort, MaxPort, MinPort, MaxPort)
 	return res
 }
 
+// copyCube returns a new slice of intervals copied from input cube
 func copyCube(cube []*CanonicalIntervalSet) []*CanonicalIntervalSet {
 	newCube := make([]*CanonicalIntervalSet, len(cube))
 	for i, interval := range cube {
@@ -341,6 +343,8 @@ func copyCube(cube []*CanonicalIntervalSet) []*CanonicalIntervalSet {
 	return newCube
 }
 
+// SwitchSrcDstPorts returns a new ConnectionSet object, built from the input ConnectionSet
+// object by switching between src to dst ports on each cube
 func (conn *ConnectionSet) SwitchSrcDstPorts() *ConnectionSet {
 	if conn.AllowAll || conn.IsEmpty() {
 		return conn
