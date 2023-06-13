@@ -200,7 +200,7 @@ type NaclLayer struct {
 }
 
 func (nl *NaclLayer) Kind() string {
-	return "NaclLayer"
+	return vpcmodel.NaclLayer
 }
 
 func (nl *NaclLayer) Details() []string {
@@ -314,7 +314,7 @@ func (sgl *SecurityGroupLayer) Name() string {
 }
 
 func (sgl *SecurityGroupLayer) Kind() string {
-	return "SecurityGroupLayer"
+	return vpcmodel.NaclLayer
 }
 
 func (sgl *SecurityGroupLayer) Details() []string {

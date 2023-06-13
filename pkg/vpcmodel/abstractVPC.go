@@ -77,6 +77,12 @@ func (n *NamedResource) UID() string {
 	return n.ResourceUID
 }
 
+const (
+	// filter resources layer names
+	NaclLayer          = "NaclLayer"
+	SecurityGroupLayer = "SecurityGroupLayer"
+)
+
 type ConnectivityResult struct {
 	IngressAllowedConns map[Node]*common.ConnectionSet
 	EgressAllowedConns  map[Node]*common.ConnectionSet
@@ -117,17 +123,39 @@ func (v *CloudConfig) String() string {
 
 // detailed representation of allowed connectivity considering all resources in a vpc config instance
 type VPCConnectivity struct {
+	// computed for each layer separately its allowed connections (ingress and egress separately)
+	AllowedConnsPerLayer map[Node]map[string]*ConnectivityResult
 	// computed for each node, by iterating its ConnectivityResult for all relevant VPC resources that capture it
 	AllowedConns map[Node]*ConnectivityResult
+
 	// combined connectivity - considering both ingress and egress per connection
 	AllowedConnsCombined map[Node]map[Node]*common.ConnectionSet
+
+	// allowed connectivity combined and stateful
+	AllowedConnsCombinedStateful map[Node]map[Node]*common.ConnectionSet
 }
 
-// a processing of VPCConnectivity produces ConnectivityOutput, at various formats
-type ConnectivityOutput struct {
+func getCombinedConnsStr(combinedConns map[Node]map[Node]*common.ConnectionSet) string {
+	strList := []string{}
+	for src, nodeConns := range combinedConns {
+		for dst, conns := range nodeConns {
+			if conns.IsEmpty() {
+				continue
+			}
+			srcName := src.Cidr()
+			if src.IsInternal() {
+				srcName = src.Name()
+			}
+			dstName := dst.Cidr()
+			if dst.IsInternal() {
+				dstName = dst.Name()
+			}
+			strList = append(strList, getConnectionStr(srcName, dstName, conns.String(), ""))
+		}
+	}
+	sort.Strings(strList)
+	return strings.Join(strList, "")
 }
-
-// add interface to output formatter
 
 func getConnectionStr(src, dst, conn, suffix string) string {
 	return fmt.Sprintf("%s => %s : %s%s\n", src, dst, conn, suffix)
@@ -158,43 +186,107 @@ func (v *VPCConnectivity) String() string {
 	sort.Strings(strList)
 	res += strings.Join(strList, "")
 	res += "=================================== combined connections - short version:\n"
-	strList = []string{}
-	for src, nodeConns := range v.AllowedConnsCombined {
-		for dst, conns := range nodeConns {
-			if conns.IsEmpty() {
-				continue
-			}
-			srcName := src.Cidr()
-			if src.IsInternal() {
-				srcName = src.Name()
-			}
-			dstName := dst.Cidr()
-			if dst.IsInternal() {
-				dstName = dst.Name()
-			}
-			strList = append(strList, getConnectionStr(srcName, dstName, conns.String(), ""))
-		}
-	}
-	sort.Strings(strList)
-	res += strings.Join(strList, "")
+	res += getCombinedConnsStr(v.AllowedConnsCombined)
+
+	res += "=================================== stateful combined connections - short version:\n"
+	res += getCombinedConnsStr(v.AllowedConnsCombinedStateful)
 	return res
 }
 
+// GetVPCNetworkConnectivity computes VPCConnectivity in few steps
+// (1) compute AllowedConns (map[Node]*ConnectivityResult) : ingress or egress allowed conns separately
+// (2) compute AllowedConnsCombined (map[Node]map[Node]*common.ConnectionSet) : allowed conns considering both ingress and egress directions
+// (3) compute AllowedConnsCombinedStateful : stateful allowed connections, for which connection in reverse direction is also allowed
 func (v *CloudConfig) GetVPCNetworkConnectivity() *VPCConnectivity {
-	res := &VPCConnectivity{AllowedConns: map[Node]*ConnectivityResult{}}
+	res := &VPCConnectivity{
+		AllowedConns:         map[Node]*ConnectivityResult{},
+		AllowedConnsPerLayer: map[Node]map[string]*ConnectivityResult{},
+	}
 	// get connectivity in level of nodes elements
 	for _, node := range v.Nodes {
-		if node.IsInternal() {
-			res.AllowedConns[node] = &ConnectivityResult{
-				IngressAllowedConns: v.getAllowedConnsPerDirection(true, node),
-				EgressAllowedConns:  v.getAllowedConnsPerDirection(false, node),
+		if !node.IsInternal() {
+			continue
+		}
+		allIngressAllowedConns, ingressAllowedConnsPerLayer := v.getAllowedConnsPerDirection(true, node)
+		allEgressAllowedConns, egressAllowedConnsPerLayer := v.getAllowedConnsPerDirection(false, node)
+
+		res.AllowedConns[node] = &ConnectivityResult{
+			IngressAllowedConns: allIngressAllowedConns,
+			EgressAllowedConns:  allEgressAllowedConns,
+		}
+		res.AllowedConnsPerLayer[node] = map[string]*ConnectivityResult{}
+		for layer := range ingressAllowedConnsPerLayer {
+			res.AllowedConnsPerLayer[node][layer] = &ConnectivityResult{
+				IngressAllowedConns: ingressAllowedConnsPerLayer[layer],
 			}
+		}
+		for layer := range egressAllowedConnsPerLayer {
+			res.AllowedConnsPerLayer[node][layer].EgressAllowedConns = egressAllowedConnsPerLayer[layer]
 		}
 	}
 	res.computeAllowedConnsCombined()
+	res.computeAllowedStatefulConnections()
 	return res
 }
 
+// getPerLayerConnectivity currently used for "NaclLayer" - to compute stateful allowed conns
+func (v *VPCConnectivity) getPerLayerConnectivity(layer string, src, dst Node, isIngress bool) *common.ConnectionSet {
+	// if the analyzed input node is not internal- assume all conns allowed
+	if (isIngress && !dst.IsInternal()) || (!isIngress && !src.IsInternal()) {
+		return common.NewConnectionSet(true)
+	}
+
+	var connMap map[string]*ConnectivityResult
+	if isIngress {
+		connMap = v.AllowedConnsPerLayer[dst]
+	} else {
+		connMap = v.AllowedConnsPerLayer[src]
+	}
+	connResult := connMap[layer]
+	if isIngress {
+		return connResult.IngressAllowedConns[src]
+	}
+	return connResult.EgressAllowedConns[dst]
+}
+
+const (
+	// this layer is stateless, thus required in both directions for stateful connectivity computation
+	statefulRequiredLayerName = NaclLayer
+)
+
+func (v *VPCConnectivity) computeAllowedStatefulConnections() {
+	// assuming v.AllowedConnsCombined was already computed
+
+	// allowed connection: src->dst , requires NACL layer to allow dst->src (both ingress and egress)
+	// on overlapping/matching connection-set, (src-dst ports should be switched),
+	// for it to be considered as stateful
+
+	v.AllowedConnsCombinedStateful = map[Node]map[Node]*common.ConnectionSet{}
+
+	for src, connsMap := range v.AllowedConnsCombined {
+		for dst, conn := range connsMap {
+			// get the allowed *stateful* conn result
+			// check allowed conns per NACL-layer from dst to src (dst->src)
+			var DstAllowedEgressToSrc, SrcAllowedIngressFromDst *common.ConnectionSet
+			// can dst egress to src?
+			DstAllowedEgressToSrc = v.getPerLayerConnectivity(statefulRequiredLayerName, dst, src, false)
+			// can src ingress from dst?
+			SrcAllowedIngressFromDst = v.getPerLayerConnectivity(statefulRequiredLayerName, dst, src, true)
+			combinedDstToSrc := DstAllowedEgressToSrc.Intersection(SrcAllowedIngressFromDst)
+
+			if _, ok := v.AllowedConnsCombinedStateful[src]; !ok {
+				v.AllowedConnsCombinedStateful[src] = map[Node]*common.ConnectionSet{}
+			}
+			// flip src/dst ports before intersection
+			combinedDstToSrcSwitchPortsDirection := combinedDstToSrc.SwitchSrcDstPorts()
+			v.AllowedConnsCombinedStateful[src][dst] = conn.Intersection(combinedDstToSrcSwitchPortsDirection)
+		}
+	}
+}
+
+// computeAllowedConnsCombined computes combination of ingress&egress directions per connection allowed
+// the result for this computation is stateless connections
+// (could be that some of them or a subset of them are stateful,but this is not computed here)
 func (v *VPCConnectivity) computeAllowedConnsCombined() {
 	v.AllowedConnsCombined = map[Node]map[Node]*common.ConnectionSet{}
 
@@ -245,8 +337,12 @@ func HasNode(listNodes []Node, node Node) bool {
 	return false
 }
 
-func (v *CloudConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Node) map[Node]*common.ConnectionSet {
-	res := map[Node]*common.ConnectionSet{}
+func (v *CloudConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Node) (
+	allLayersRes map[Node]*common.ConnectionSet, // result considering all layers
+	perLayerRes map[string]map[Node]*common.ConnectionSet, // result separated per layer
+) {
+	perLayerRes = map[string]map[Node]*common.ConnectionSet{}
+	allLayersRes = map[Node]*common.ConnectionSet{}
 	var src, dst Node
 	for _, peerNode := range v.Nodes {
 		if peerNode.Cidr() == capturedNode.Cidr() {
@@ -264,17 +360,16 @@ func (v *CloudConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode N
 			// only check filtering resources
 			allowedConnsBetweenCapturedAndPeerNode := AllConns()
 			for _, filter := range v.FilterResources {
-				// TODO: cannot do intersection per all sg resources - connectivity is additive in sg layer .
-				// only intersection between layers - sg vs nacl
-				// each layer of filter resources should have its own logic
-				// consider accumulate all filter resources of the same type, and send to a function that returns combined result.
+				layerName := filter.Kind()
 				filteredConns := filter.AllowedConnectivity(src, dst, isIngress)
-				allowedConnsBetweenCapturedAndPeerNode = allowedConnsBetweenCapturedAndPeerNode.Intersection(filteredConns)
-				if allowedConnsBetweenCapturedAndPeerNode.IsEmpty() {
-					break
+				if _, ok := perLayerRes[layerName]; !ok {
+					perLayerRes[layerName] = map[Node]*common.ConnectionSet{}
 				}
+				perLayerRes[layerName][peerNode] = filteredConns
+				allowedConnsBetweenCapturedAndPeerNode = allowedConnsBetweenCapturedAndPeerNode.Intersection(filteredConns)
+				// do not break if empty, to enable computation for all layers
 			}
-			res[peerNode] = allowedConnsBetweenCapturedAndPeerNode
+			allLayersRes[peerNode] = allowedConnsBetweenCapturedAndPeerNode
 			direction := "inbound"
 			if !isIngress {
 				direction = "outbound"
@@ -291,16 +386,19 @@ func (v *CloudConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode N
 				}
 			}
 			for _, filter := range v.FilterResources {
+				layerName := filter.Kind()
 				filteredConns := filter.AllowedConnectivity(src, dst, isIngress)
-				allowedConnsBetweenCapturedAndPeerNode = allowedConnsBetweenCapturedAndPeerNode.Intersection(filteredConns)
-				if allowedConnsBetweenCapturedAndPeerNode.IsEmpty() {
-					break
+				if _, ok := perLayerRes[layerName]; !ok {
+					perLayerRes[layerName] = map[Node]*common.ConnectionSet{}
 				}
+				perLayerRes[layerName][peerNode] = filteredConns
+				allowedConnsBetweenCapturedAndPeerNode = allowedConnsBetweenCapturedAndPeerNode.Intersection(filteredConns)
+				// do not break if empty, to enable computation for all layers
 			}
-			res[peerNode] = allowedConnsBetweenCapturedAndPeerNode
+			allLayersRes[peerNode] = allowedConnsBetweenCapturedAndPeerNode
 		}
 	}
-	return res
+	return allLayersRes, perLayerRes
 }
 
 /////////////////////////////////////////////////////////////////////////////////
