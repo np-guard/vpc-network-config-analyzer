@@ -89,6 +89,12 @@ type CanonicalIntervalSet struct {
 	IntervalSet []Interval // sorted list of non-overlapping intervals
 }
 
+func NewCanonicalIntervalSet() *CanonicalIntervalSet {
+	return &CanonicalIntervalSet{
+		IntervalSet: []Interval{},
+	}
+}
+
 // IsEmpty returns true if the  CanonicalIntervalSet is empty
 func (c *CanonicalIntervalSet) IsEmpty() bool {
 	return len(c.IntervalSet) == 0
@@ -235,7 +241,7 @@ func getNumAsStr(num int64) string {
 	return fmt.Sprintf("%v", num)
 }
 
-// String returns a string represetnation of the current CanonicalIntervalSet object
+// String returns a string representation of the current CanonicalIntervalSet object
 func (c *CanonicalIntervalSet) String() string {
 	if c.IsEmpty() {
 		return "Empty"
@@ -268,6 +274,11 @@ func (c *CanonicalIntervalSet) Copy() CanonicalIntervalSet {
 	res.Union(b)
 	return res
 }*/
+
+func (c *CanonicalIntervalSet) Contains(n int64) bool {
+	i := CreateFromInterval(n, n)
+	return i.ContainedIn(*c)
+}
 
 // ContainedIn returns true of the current CanonicalIntervalSet is contained in the input CanonicalIntervalSet
 func (c *CanonicalIntervalSet) ContainedIn(other CanonicalIntervalSet) bool {
@@ -321,4 +332,8 @@ func (c *CanonicalIntervalSet) isSingleNumber() bool {
 		return true
 	}
 	return false
+}
+
+func CreateFromInterval(start, end int64) *CanonicalIntervalSet {
+	return &CanonicalIntervalSet{IntervalSet: []Interval{{Start: start, End: end}}}
 }

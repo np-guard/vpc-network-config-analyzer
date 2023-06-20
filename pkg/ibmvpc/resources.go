@@ -1,4 +1,4 @@
-package resources
+package ibmvpc
 
 import (
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
@@ -8,68 +8,105 @@ import (
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-func JsonSgToObject(sg []byte) *vpc1.SecurityGroup {
-	sgMap := jsonToMap(sg)
+const (
+	indent = "    "
+)
+
+func JSONSgToObject(sg []byte) (*vpc1.SecurityGroup, error) {
+	sgMap, err := JSONToMap(sg)
+	if err != nil {
+		return nil, err
+	}
 	sgObj := &vpc1.SecurityGroup{}
-	vpc1.UnmarshalSecurityGroup(sgMap, &sgObj)
-	return sgObj
+	err = vpc1.UnmarshalSecurityGroup(sgMap, &sgObj)
+	return sgObj, err
 }
 
 // convert vpc1.SecurityGroup to json string
-func ObjectSgToJson(sgObj *vpc1.SecurityGroup) ([]byte, error) {
-	// return json.Marshal(*naclObj)
-	return json.MarshalIndent(*sgObj, "", "    ")
+func ObjectSgToJSON(sgObj *vpc1.SecurityGroup) ([]byte, error) {
+	return json.MarshalIndent(*sgObj, "", indent)
 }
 
 // convert json string of nacl to vpc1.NetworkACL object
-func JsonNaclToObject(nwacl []byte) *vpc1.NetworkACL {
-	naclMap := jsonToMap(nwacl)
+func JSONNaclToObject(nwacl []byte) (*vpc1.NetworkACL, error) {
+	naclMap, err := JSONToMap(nwacl)
+	if err != nil {
+		return nil, err
+	}
 	naclObj := &vpc1.NetworkACL{}
-	vpc1.UnmarshalNetworkACL(naclMap, &naclObj)
-	return naclObj
+	err = vpc1.UnmarshalNetworkACL(naclMap, &naclObj)
+	return naclObj, err
 }
 
 // vsi conversion
-func JsonInstanceToObject(instance []byte) *vpc1.Instance {
-	instanceMap := jsonToMap(instance)
+func JSONInstanceToObject(instance []byte) (*vpc1.Instance, error) {
+	instanceMap, err := JSONToMap(instance)
+	if err != nil {
+		return nil, err
+	}
 	instanceObj := &vpc1.Instance{}
-	vpc1.UnmarshalInstance(instanceMap, &instanceObj)
-	return instanceObj
+	err = vpc1.UnmarshalInstance(instanceMap, &instanceObj)
+	return instanceObj, err
 }
 
 // subnet conversion
-func JsonSubnetToObject(subnet []byte) *vpc1.Subnet {
-	subnetMap := jsonToMap(subnet)
+func JSONSubnetToObject(subnet []byte) (*vpc1.Subnet, error) {
+	subnetMap, err := JSONToMap(subnet)
+	if err != nil {
+		return nil, err
+	}
 	subnetObj := &vpc1.Subnet{}
-	vpc1.UnmarshalSubnet(subnetMap, &subnetObj)
-	return subnetObj
+	err = vpc1.UnmarshalSubnet(subnetMap, &subnetObj)
+	return subnetObj, err
 }
 
 // vpc conversion
-func JsonVpcToObject(vpc []byte) *vpc1.VPC {
-	vpcMap := jsonToMap(vpc)
+func JSONVpcToObject(vpc []byte) (*vpc1.VPC, error) {
+	vpcMap, err := JSONToMap(vpc)
+	if err != nil {
+		return nil, err
+	}
 	vpcObj := &vpc1.VPC{}
-	vpc1.UnmarshalVPC(vpcMap, &vpcObj)
-	return vpcObj
+	err = vpc1.UnmarshalVPC(vpcMap, &vpcObj)
+	return vpcObj, err
+}
+
+func JSONFipToObject(fip []byte) (*vpc1.FloatingIP, error) {
+	jsonMap, err := JSONToMap(fip)
+	if err != nil {
+		return nil, err
+	}
+	fipObj := &vpc1.FloatingIP{}
+	err = vpc1.UnmarshalFloatingIP(jsonMap, &fipObj)
+	return fipObj, err
+}
+
+func JSONPgwTpObject(pgw []byte) (*vpc1.PublicGateway, error) {
+	jsonMap, err := JSONToMap(pgw)
+	if err != nil {
+		return nil, err
+	}
+	pgwObj := &vpc1.PublicGateway{}
+	err = vpc1.UnmarshalPublicGateway(jsonMap, &pgwObj)
+	return pgwObj, err
 }
 
 // convert vpc1.NetworkACL to json string
-func ObjectNaclToJson(naclObj *vpc1.NetworkACL) ([]byte, error) {
-	// return json.Marshal(*naclObj)
-	return json.MarshalIndent(*naclObj, "", "    ")
+func ObjectNaclToJSON(naclObj *vpc1.NetworkACL) ([]byte, error) {
+	return json.MarshalIndent(*naclObj, "", indent)
 }
 
 // convert json string to map object
-func jsonToMap(jsonStr []byte) map[string]json.RawMessage {
+func JSONToMap(jsonStr []byte) (map[string]json.RawMessage, error) {
 	var result map[string]json.RawMessage
-	json.Unmarshal(jsonStr, &result)
-	return result
+	err := json.Unmarshal(jsonStr, &result)
+	return result, err
 }
 
-func jsonToList(jsonStr []byte) []json.RawMessage {
+func JSONToList(jsonStr []byte) ([]json.RawMessage, error) {
 	var result []json.RawMessage
-	json.Unmarshal(jsonStr, &result)
-	return result
+	err := json.Unmarshal(jsonStr, &result)
+	return result, err
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
