@@ -2,6 +2,7 @@ package drawio
 
 import (
 	_ "embed"
+	"fmt"
 	"os"
 	"text/template"
 )
@@ -112,7 +113,7 @@ func (data *drawioData) DecoreID(tn TreeNodeInterface) uint {
 	return tn.ID() + 5
 }
 
-func CreateDrawioConnectivityMapFile(network SquareTreeNodeInterface, outputFile string) {
+func CreateDrawioConnectivityMapFile(network SquareTreeNodeInterface, outputFile string) error {
 	newLayout(network).layout()
 	data := &drawioData{
 		iconSize,
@@ -123,7 +124,7 @@ func CreateDrawioConnectivityMapFile(network SquareTreeNodeInterface, outputFile
 		vsiIconSize,
 		hasVsiIcon(network),
 		getAllNodes(network)}
-	writeDrawioFile(data, outputFile)
+	return writeDrawioFile(data, outputFile)
 }
 
 func writeDrawioFile(data *drawioData, outputFile string) error {
@@ -136,11 +137,10 @@ func writeDrawioFile(data *drawioData, outputFile string) error {
 		return err
 	}
 	// close fo on exit and check for its returned error
-	defer func() error {
-		if err = fo.Close(); err != nil {
-			return err
+	defer func() {
+		if closeErr := fo.Close(); closeErr != nil {
+			fmt.Println("Error when closing:", closeErr)
 		}
-		return nil
 	}()
 	err = tmpl.Execute(fo, data)
 	if err != nil {

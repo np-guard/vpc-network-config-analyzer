@@ -2,14 +2,21 @@ package drawio
 
 import (
 	_ "embed"
+	"fmt"
 	"testing"
 )
 
 func TestWithParsing(t *testing.T) {
 	n := createNetwork()
-	CreateDrawioConnectivityMapFile(n, "fake.drawio")
+	err := CreateDrawioConnectivityMapFile(n, "fake.drawio")
+	if err != nil {
+		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
+	}
 	n2 := createNetwork2()
-	CreateDrawioConnectivityMapFile(n2, "fake2.drawio")
+	err = CreateDrawioConnectivityMapFile(n2, "fake2.drawio")
+	if err != nil {
+		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
+	}
 }
 
 func createNetwork() SquareTreeNodeInterface {
