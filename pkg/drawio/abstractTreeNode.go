@@ -23,6 +23,7 @@ type abstractTreeNode struct {
 func (tn *abstractTreeNode) Name() string         { return tn.name }
 func (tn *abstractTreeNode) ID() uint             { return tn.id }
 func (tn *abstractTreeNode) DrawioParentID() uint { return tn.Parent().ID() }
+func (tn *abstractTreeNode) TextID() uint         { return tn.id + textID }
 func (tn *abstractTreeNode) X() int               { return tn.x }
 func (tn *abstractTreeNode) Y() int               { return tn.y }
 func (tn *abstractTreeNode) Height() int          { return tn.height }

@@ -65,7 +65,6 @@ func (tn *NITreeNode) setSG(sg *SGTreeNode) {
 }
 func (tn *NITreeNode) VsiID() uint       { return tn.id + niVsiID }
 func (tn *NITreeNode) FipID() uint       { return tn.id + niFipID }
-func (tn *NITreeNode) TextID() uint      { return tn.id + textID }
 func (tn *NITreeNode) SetVsi(vsi string) { tn.vsi = vsi }
 func (tn *NITreeNode) Vsi() string       { return tn.vsi }
 func (tn *NITreeNode) HasVsi() bool      { return tn.Vsi() != "" }

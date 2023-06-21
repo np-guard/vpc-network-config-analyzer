@@ -9,7 +9,7 @@
         {{  if $node.IsSG }}
         {{ else if $node.IsSquare }}
             <mxCell id="FXCXVvDxTQtwc45PbP1s-{{$node.ID}}" value="" style="{{$data.Style $node}}" parent="FXCXVvDxTQtwc45PbP1s-{{$node.DrawioParentID}}" vertex="1">
-            <mxGeometry width="{{$node.Width}}" height="{{$node.Hight}}" x="{{$node.X}}" y="{{$node.Y}}" as="geometry"/>
+            <mxGeometry width="{{$node.Width}}" height="{{$node.Height}}" x="{{$node.X}}" y="{{$node.Y}}" as="geometry"/>
             </mxCell>
             <mxCell id="FXCXVvDxTQtwc45PbP1s-{{$node.TagID}}" value="" style="{{$data.TagStyle $node}}" parent="FXCXVvDxTQtwc45PbP1s-{{$node.ID}}" vertex="1">
             <mxGeometry x="19" y="6.5" width="22" height="19.73" as="geometry" />
@@ -17,7 +17,7 @@
             <mxCell id="FXCXVvDxTQtwc45PbP1s-{{$data.DecoreID $node}}" value="" style="{{$data.DecoreStyle $node}}" parent="FXCXVvDxTQtwc45PbP1s-{{$node.ID}}" vertex="1">
             <mxGeometry width="7" height="37" as="geometry" />
             </mxCell>
-            <mxCell id="FXCXVvDxTQtwc45PbP1s-{{$data.TextID $node}}" value="{{$node.Name}}" style="{{$data.TextStyle $node}}" parent="FXCXVvDxTQtwc45PbP1s-{{$node.ID}}" vertex="1">
+            <mxCell id="FXCXVvDxTQtwc45PbP1s-{{$node.TextID}}" value="{{$node.Name}}" style="{{$data.TextStyle $node}}" parent="FXCXVvDxTQtwc45PbP1s-{{$node.ID}}" vertex="1">
             <mxGeometry x="51" y="8" width="163" height="20" as="geometry" />
             </mxCell>
         {{ else if $node.IsNI }}

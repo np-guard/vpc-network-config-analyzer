@@ -108,11 +108,8 @@ func (data *drawioData) DecoreStyle(tn TreeNodeInterface) string {
 	return ""
 }
 
-func (data *drawioData) TextID(tn TreeNodeInterface) uint {
-	return tn.ID() + 3
-}
 func (data *drawioData) DecoreID(tn TreeNodeInterface) uint {
-	return tn.ID() + 4
+	return tn.ID() + 5
 }
 
 func CreateDrawioConnectivityMapFile(network SquareTreeNodeInterface, outputFile string) {

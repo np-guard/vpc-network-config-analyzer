@@ -37,6 +37,7 @@ type TreeNodeInterface interface {
 	Name() string
 	ID() uint
 	DrawioParentID() uint
+	TextID() uint
 	X() int
 	Y() int
 	Height() int
