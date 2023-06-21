@@ -93,7 +93,7 @@ func (tn *ZoneTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInt
 }
 func (tn *ZoneTreeNode) IsZone() bool { return true }
 
-///////////////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////////
 // SGTreeNode is not shown in the drawio file.
 // since NIs sharing the same SG will not always be next to each other, one SG will be split to more than one squares.
 // there squares are represented by PartialSGTreeNode. their parent in the tree is the SGTreeNode, but the parent in the drawio is the zone.
