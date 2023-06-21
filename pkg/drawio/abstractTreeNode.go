@@ -5,7 +5,8 @@ const (
 	nextIDStep = 10
 	niVsiID    = 1
 	niFipID    = 2
-	niTextID   = 3
+	textID     = 3
+	tagID      = 4
 )
 
 type abstractTreeNode struct {
@@ -14,7 +15,7 @@ type abstractTreeNode struct {
 	y        int
 	name     string
 	width    int
-	hight    int
+	height   int
 	parent   TreeNodeInterface
 	location *Location
 }
@@ -24,7 +25,7 @@ func (tn *abstractTreeNode) ID() uint             { return tn.id }
 func (tn *abstractTreeNode) DrawioParentID() uint { return tn.Parent().ID() }
 func (tn *abstractTreeNode) X() int               { return tn.x }
 func (tn *abstractTreeNode) Y() int               { return tn.y }
-func (tn *abstractTreeNode) Hight() int           { return tn.hight }
+func (tn *abstractTreeNode) Height() int          { return tn.height }
 func (tn *abstractTreeNode) Width() int           { return tn.width }
 
 func (tn *abstractTreeNode) Location() *Location       { return tn.location }
@@ -32,6 +33,7 @@ func (tn *abstractTreeNode) Parent() TreeNodeInterface { return tn.parent }
 
 func (tn *abstractTreeNode) setLocation(location *Location) { tn.location = location }
 func (tn *abstractTreeNode) setParent(p TreeNodeInterface)  { tn.parent = p }
+func (tn *abstractTreeNode) NotShownInDrawio() bool         { return false }
 
 var idCounter uint = minID
 
@@ -66,4 +68,7 @@ func newAbstractTreeNode(parent TreeNodeInterface, name string) abstractTreeNode
 	tn := abstractTreeNode{parent: parent, name: name}
 	tn.setID()
 	return tn
+}
+func (tn *abstractTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
+	return nil, nil, nil
 }

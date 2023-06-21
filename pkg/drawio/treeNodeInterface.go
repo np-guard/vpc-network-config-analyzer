@@ -26,7 +26,7 @@ package drawio
 // abstractTreeNode is the basic struct implementing a TreeNode.
 // the structs abstractSquareTreeNode, abstractIconTreeNode, abstractLineTreeNode contains abstractTreeNode
 // All structs representing a Square (VpcTreeNode, ZoneTreeNode, SubnetTreeNode...) contains abstractIconTreeNode
-// All structs representing an icons (NITreeNode, GetWayTreeNode, UserTreeNode...) contains abstractIconTreeNode
+// All structs representing an icons (NITreeNode, GatewayTreeNode, UserTreeNode...) contains abstractIconTreeNode
 // All structs representing a line (VsiLineTreeNode, ConnectivityTreeNode) contains abstractIconTreeNode
 
 // TreeNode main information that a TreeNode holds is:
@@ -39,7 +39,7 @@ type TreeNodeInterface interface {
 	DrawioParentID() uint
 	X() int
 	Y() int
-	Hight() int
+	Height() int
 	Width() int
 
 	Parent() TreeNodeInterface
@@ -47,6 +47,7 @@ type TreeNodeInterface interface {
 
 	setParent(TreeNodeInterface)
 	setLocation(location *Location)
+	NotShownInDrawio() bool
 	setID()
 
 	/////////////////////////////

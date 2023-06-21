@@ -29,7 +29,7 @@ func (tn *abstractSquareTreeNode) IconTreeNodes() []IconTreeNodeInterface {
 	return tn.elements
 }
 func (tn *abstractSquareTreeNode) IsSquare() bool { return true }
-func (tn *abstractSquareTreeNode) TagID() uint    { return tn.id + 1 }
+func (tn *abstractSquareTreeNode) TagID() uint    { return tn.id + tagID }
 
 func (tn *abstractSquareTreeNode) setGeometry() {
 	location := tn.Location()
@@ -38,7 +38,7 @@ func (tn *abstractSquareTreeNode) setGeometry() {
 		parentLocation = tn.Parent().Location()
 	}
 	tn.width = location.lastCol.width() + location.lastCol.x() - location.firstCol.x()
-	tn.hight = location.lastRow.hight() + location.lastRow.y() - location.firstRow.y()
+	tn.height = location.lastRow.height() + location.lastRow.y() - location.firstRow.y()
 	tn.x = location.firstCol.x() - parentLocation.firstCol.x()
 	tn.y = location.firstRow.y() - parentLocation.firstRow.y()
 }
@@ -94,7 +94,9 @@ func (tn *ZoneTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInt
 func (tn *ZoneTreeNode) IsZone() bool { return true }
 
 ///////////////////////////////////////////////////////////////////////
-
+// SGTreeNode is not shown in the drawio file.
+// since NIs sharing the same SG will not always be next to each other, one SG will be split to more than one squares.
+// there squares are represented by PartialSGTreeNode. their parent in the tree is the SGTreeNode, but the parent in the drawio is the zone.
 type SGTreeNode struct {
 	abstractSquareTreeNode
 	partialSgs []SquareTreeNodeInterface
@@ -110,7 +112,8 @@ func (tn *SGTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInter
 }
 func (tn *SGTreeNode) setGeometry() {}
 
-func (tn *SGTreeNode) IsSG() bool { return true }
+func (tn *SGTreeNode) IsSG() bool             { return true }
+func (tn *SGTreeNode) NotShownInDrawio() bool { return true }
 
 ///////////////////////////////////////////////////////////////////////
 
@@ -119,20 +122,22 @@ type PartialSGTreeNode struct {
 }
 
 func newPartialSGTreeNode(parent *SGTreeNode) *PartialSGTreeNode {
-	// the parent of the partialSg is the zone, not the sg:
-	psg := PartialSGTreeNode{newAbstractSquareTreeNode(parent.Parent(), parent.Name())}
+	psg := PartialSGTreeNode{newAbstractSquareTreeNode(parent, parent.Name())}
 	parent.partialSgs = append(parent.partialSgs, &psg)
 	return &psg
 }
 func (tn *PartialSGTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
 	return nil, tn.elements, tn.connections
 }
+func (tn *PartialSGTreeNode) DrawioParentID() uint {
+	return tn.Parent().Parent().ID()
+}
 
 func (tn *PartialSGTreeNode) setGeometry() {
 	location := tn.Location()
-	parentLocation := tn.Parent().Location()
+	parentLocation := tn.Parent().Parent().Location()
 	tn.width = location.lastCol.width() + location.lastCol.x() - location.firstCol.x() - 2*borderWidth
-	tn.hight = location.lastRow.hight() + location.lastRow.y() - location.firstRow.y() - 2*borderWidth
+	tn.height = location.lastRow.height() + location.lastRow.y() - location.firstRow.y() - 2*borderWidth
 	tn.x = location.firstCol.x() - parentLocation.firstCol.x() + borderWidth
 	tn.y = location.firstRow.y() - parentLocation.firstRow.y() + borderWidth
 }

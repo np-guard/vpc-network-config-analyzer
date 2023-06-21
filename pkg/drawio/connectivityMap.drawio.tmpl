@@ -6,37 +6,38 @@
 <mxCell id="1" parent="0"/>
     {{ $data := .}}
     {{range $node := $data.Nodes}}
-        {{ if $node.IsNetwork }}
+        {{ if $node.NotShownInDrawio }}
+        {{ else if $node.IsNetwork }}
             <mxCell id="FXCXVvDxTQtwc45PbP1s-{{$node.ID}}" value="" style="swimlane;fontStyle=0;horizontal=1;collapsible=0;startSize=28;swimlaneLine=0;swimlaneFillColor=none;fillColor=none;rounded=0;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=0;strokeColor=#4376BB;verticalAlign=top;align=left;spacingLeft=5;dashed=0;strokeWidth=1;container=1;" parent="1" vertex="1">
-            <mxGeometry width="{{$node.Width}}" height="{{$node.Hight}}" x="{{$node.X}}" y="{{$node.Y}}" as="geometry"/>
+            <mxGeometry width="{{$node.Width}}" height="{{$node.Height}}" x="{{$node.X}}" y="{{$node.Y}}" as="geometry"/>
             </mxCell>
             <mxCell id="FXCXVvDxTQtwc45PbP1s-{{$node.TagID}}" value="Public&lt;br&gt;Network" style="aspect=fixed;perimeter=ellipsePerimeter;html=1;align=left;shadow=0;dashed=0;labelBackgroundColor=none;fontSize=12;spacingTop=0;image;image=img/lib/ibm/vpc/PublicTag.svg;part=1;labelPosition=right;verticalLabelPosition=middle;verticalAlign=middle;" parent="FXCXVvDxTQtwc45PbP1s-{{$node.ID}}" vertex="1">
             <mxGeometry width="30" height="30" as="geometry"/>
             </mxCell>
         {{ else if $node.IsVPC }}
             <mxCell id="FXCXVvDxTQtwc45PbP1s-{{$node.ID}}" value="VPC" style="swimlane;fontStyle=0;horizontal=1;collapsible=0;startSize=28;swimlaneLine=0;swimlaneFillColor=none;fillColor=none;rounded=0;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=12;strokeColor=#417CB9;verticalAlign=top;align=left;spacingLeft=30;spacingTop=1;dashed=0;strokeWidth=1;" parent="FXCXVvDxTQtwc45PbP1s-{{$node.DrawioParentID}}" vertex="1">
-            <mxGeometry width="{{$node.Width}}" height="{{$node.Hight}}" x="{{$node.X}}" y="{{$node.Y}}" as="geometry"/>
+            <mxGeometry width="{{$node.Width}}" height="{{$node.Height}}" x="{{$node.X}}" y="{{$node.Y}}" as="geometry"/>
             </mxCell>
             <mxCell id="FXCXVvDxTQtwc45PbP1s-{{$node.TagID}}" value="" style="aspect=fixed;perimeter=ellipsePerimeter;html=1;align=center;shadow=0;dashed=0;fontColor=#4277BB;labelBackgroundColor=#ffffff;fontSize=12;spacingTop=3;image;image=img/lib/ibm/vpc/VPCTag.svg;part=1;" parent="FXCXVvDxTQtwc45PbP1s-{{$node.ID}}" vertex="1">
             <mxGeometry width="30" height="30" as="geometry"/>
             </mxCell>
         {{ else if $node.IsZone }}
             <mxCell id="FXCXVvDxTQtwc45PbP1s-{{$node.ID}}" value="{{$node.Name}}" style="swimlane;fontStyle=0;horizontal=1;collapsible=0;startSize=28;swimlaneLine=0;swimlaneFillColor=none;fillColor=none;rounded=0;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=0;strokeColor=#00882B;verticalAlign=top;align=left;spacingLeft=30;dashed=1;strokeWidth=1;container=1;" parent="FXCXVvDxTQtwc45PbP1s-{{$node.DrawioParentID}}" vertex="1">
-            <mxGeometry width="{{$node.Width}}" height="{{$node.Hight}}" x="{{$node.X}}" y="{{$node.Y}}" as="geometry"/>
+            <mxGeometry width="{{$node.Width}}" height="{{$node.Height}}" x="{{$node.X}}" y="{{$node.Y}}" as="geometry"/>
             </mxCell>
             <mxCell id="FXCXVvDxTQtwc45PbP1s-{{$node.TagID}}" value="" style="aspect=fixed;perimeter=ellipsePerimeter;html=1;align=center;shadow=0;dashed=0;fontColor=#4277BB;labelBackgroundColor=#ffffff;fontSize=12;spacingTop=3;image;image=img/lib/ibm/vpc/ZoneTag.svg;part=1;" parent="FXCXVvDxTQtwc45PbP1s-{{$node.ID}}" vertex="1">
             <mxGeometry width="30" height="30" as="geometry"/>
             </mxCell>
         {{ else if $node.IsSubnet }}
             <mxCell id="FXCXVvDxTQtwc45PbP1s-{{$node.ID}}" value="{{$node.CIDR}}: {{$node.Name}}" style="swimlane;fontStyle=0;horizontal=1;collapsible=0;startSize=28;swimlaneLine=0;swimlaneFillColor=none;fillColor=none;rounded=0;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=12;strokeColor=#2A8838;verticalAlign=top;align=left;spacingLeft=30;spacingTop=1;dashed=0;strokeWidth=1;" parent="FXCXVvDxTQtwc45PbP1s-{{$node.DrawioParentID}}" vertex="1">
-            <mxGeometry width="{{$node.Width}}" height="{{$node.Hight}}" x="{{$node.X}}" y="{{$node.Y}}" as="geometry"/>
+            <mxGeometry width="{{$node.Width}}" height="{{$node.Height}}" x="{{$node.X}}" y="{{$node.Y}}" as="geometry"/>
             </mxCell>
             <mxCell id="FXCXVvDxTQtwc45PbP1s-{{$node.TagID}}" value="{{$node.ACL}}" style="aspect=fixed;perimeter=ellipsePerimeter;html=1;align=center;shadow=0;dashed=0;fontColor=#4277BB;labelBackgroundColor=#ffffff;fontSize=12;spacingTop=3;image;image=img/lib/ibm/vpc/SubnetTag.svg;part=1;" parent="FXCXVvDxTQtwc45PbP1s-{{$node.ID}}" vertex="1">
             <mxGeometry width="30" height="40" as="geometry"/>
             </mxCell>
         {{ else if $node.IsPartialSG }}
             <mxCell id="FXCXVvDxTQtwc45PbP1s-{{$node.ID}}" value="{{$node.Name}}" style="rounded=0;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=0;strokeColor=#FD0000;fillColor=none;verticalAlign=top;align=center;spacingLeft=5;dashed=1;dashPattern=5 2;labelPosition=center;verticalLabelPosition=middle;strokeWidth=2;" parent="FXCXVvDxTQtwc45PbP1s-{{$node.DrawioParentID}}" vertex="1">
-            <mxGeometry width="{{$node.Width}}" height="{{$node.Hight}}" x="{{$node.X}}" y="{{$node.Y}}" as="geometry"/>
+            <mxGeometry width="{{$node.Width}}" height="{{$node.Height}}" x="{{$node.X}}" y="{{$node.Y}}" as="geometry"/>
             </mxCell>
         {{ else if $node.IsVSI }}
             <mxCell id="FXCXVvDxTQtwc45PbP1s-{{$node.ID}}" value="{{$node.Name}}" style="aspect=fixed;perimeter=ellipsePerimeter;html=1;align=center;shadow=0;dashed=0;fontColor=#4277BB;labelBackgroundColor=#ffffff;fontSize=12;spacingTop=3;image;image=img/lib/ibm/vpc/Instance.svg;" parent="FXCXVvDxTQtwc45PbP1s-{{$node.DrawioParentID}}" vertex="1">
@@ -52,7 +53,7 @@
                     <mxGeometry width="{{$data.IconSize}}" height="{{$data.IconSize}}" x="{{$node.X}}" y="{{$node.Y}}" as="geometry"/>
                 </mxCell>
                 {{ end }}
-            {{ if ne $node.Vsi "" }}
+            {{ if $node.HasVsi }}
                 {{ if $data.ShowNIIcon }}
                     <mxCell id="FXCXVvDxTQtwc45PbP1s-{{$node.TextID}}" value="{{$node.Vsi}}" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;labelBorderColor=none;horizontal=1;resizable=0;rotatable=0;expand=0;fillColor=none;strokeColor=none;fontColor=#4277BB;fontSize=12;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;" parent="FXCXVvDxTQtwc45PbP1s-{{$node.ID}}" vertex="1">  
                         <mxGeometry width="{{$data.IconSize}}" height="{{$data.IconSize}}" x="0" y="0" as="geometry"/>
@@ -62,7 +63,7 @@
                     </mxCell>
                     {{ end }}
                 {{ end }}
-            {{ if ne $node.Fip  "" }}
+            {{ if $node.HasFip }}
                 <mxCell id="FXCXVvDxTQtwc45PbP1s-{{$node.FipID}}" value="{{$node.Fip}}" style="aspect=fixed;perimeter=ellipsePerimeter;html=1;align=center;shadow=0;dashed=0;fontColor=#4277BB;labelBackgroundColor=#ffffff;fontSize=12;spacingTop=3;image;image=img/lib/ibm/vpc/FloatingIP.svg;flipH=1;" parent="FXCXVvDxTQtwc45PbP1s-{{$node.ID}}" vertex="1">
                 <mxGeometry x="{{$data.FipXOffset}}" y="{{$data.FipYOffset}}" width="{{$data.IconSize}}" height="{{$data.IconSize}}" as="geometry"/>
                 </mxCell>

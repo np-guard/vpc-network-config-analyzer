@@ -33,9 +33,7 @@ type abstractLineTreeNode struct {
 func (tn *abstractLineTreeNode) IsLine() bool {
 	return true
 }
-func (tn *abstractLineTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
-	return []SquareTreeNodeInterface{}, nil, nil
-}
+
 func (tn *abstractLineTreeNode) SrcID() uint                { return tn.src.ID() }
 func (tn *abstractLineTreeNode) DstID() uint                { return tn.dst.ID() }
 func (tn *abstractLineTreeNode) Src() IconTreeNodeInterface { return tn.src }
@@ -75,7 +73,7 @@ type VsiLineTreeNode struct {
 	abstractLineTreeNode
 }
 
-func NewVsiLineTreeNode(network SquareTreeNodeInterface, vsi, ni IconTreeNodeInterface) *VsiLineTreeNode {
+func newVsiLineTreeNode(network SquareTreeNodeInterface, vsi, ni IconTreeNodeInterface) *VsiLineTreeNode {
 	conn := VsiLineTreeNode{abstractLineTreeNode{abstractTreeNode: newAbstractTreeNode(network, ""), src: vsi, dst: ni}}
 	network.addLineTreeNode(&conn)
 	return &conn
