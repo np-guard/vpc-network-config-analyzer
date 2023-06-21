@@ -17,10 +17,6 @@ func newAbstractIconTreeNode(parent SquareTreeNodeInterface, name string) abstra
 	return abstractIconTreeNode{abstractTreeNode: newAbstractTreeNode(parent, name)}
 }
 
-func (tn *abstractIconTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
-	return []SquareTreeNodeInterface{}, nil, nil
-}
-
 func (tn *abstractIconTreeNode) RouterID() uint              { return tn.ID() }
 func (tn *abstractIconTreeNode) SG() SquareTreeNodeInterface { return tn.sg }
 func (tn *abstractIconTreeNode) IsIcon() bool                { return true }
@@ -45,7 +41,7 @@ func (tn *abstractIconTreeNode) setGeometry() {
 	location := tn.Location()
 	parentLocation := tn.Parent().Location()
 	tn.x = location.firstCol.x() - parentLocation.firstCol.x() + location.firstCol.width()/2 - iconSize/2 + location.xOffset
-	tn.y = location.firstRow.y() - parentLocation.firstRow.y() + location.firstRow.hight()/2 - iconSize/2 + location.yOffset
+	tn.y = location.firstRow.y() - parentLocation.firstRow.y() + location.firstRow.height()/2 - iconSize/2 + location.yOffset
 }
 
 // ///////////////////////////////////////////
@@ -69,25 +65,27 @@ func (tn *NITreeNode) setSG(sg *SGTreeNode) {
 }
 func (tn *NITreeNode) VsiID() uint       { return tn.id + niVsiID }
 func (tn *NITreeNode) FipID() uint       { return tn.id + niFipID }
-func (tn *NITreeNode) TextID() uint      { return tn.id + niTextID }
+func (tn *NITreeNode) TextID() uint      { return tn.id + textID }
 func (tn *NITreeNode) SetVsi(vsi string) { tn.vsi = vsi }
 func (tn *NITreeNode) Vsi() string       { return tn.vsi }
+func (tn *NITreeNode) HasVsi() bool      { return tn.Vsi() != "" }
 func (tn *NITreeNode) SetFIP(fip string) { tn.floatingIP = fip }
 func (tn *NITreeNode) Fip() string       { return tn.floatingIP }
+func (tn *NITreeNode) HasFip() bool      { return tn.Fip() != "" }
 func (tn *NITreeNode) RouterID() uint    { return tn.FipID() }
 func (tn *NITreeNode) IsNI() bool        { return true }
 
 // ///////////////////////////////////////////
-type GetWayTreeNode struct {
+type GatewayTreeNode struct {
 	abstractIconTreeNode
 }
 
-func NewGetWayTreeNode(parent SquareTreeNodeInterface, name string) *GetWayTreeNode {
-	gw := GetWayTreeNode{newAbstractIconTreeNode(parent, name)}
+func NewGatewayTreeNode(parent SquareTreeNodeInterface, name string) *GatewayTreeNode {
+	gw := GatewayTreeNode{newAbstractIconTreeNode(parent, name)}
 	parent.addIconTreeNode(&gw)
 	return &gw
 }
-func (tn *GetWayTreeNode) IsGateway() bool { return true }
+func (tn *GatewayTreeNode) IsGateway() bool { return true }
 
 // ///////////////////////////////////////////
 type UserTreeNode struct {
@@ -107,15 +105,20 @@ type VsiTreeNode struct {
 	nis []TreeNodeInterface
 }
 
-func NewVsiTreeNode(parent SquareTreeNodeInterface, name string, nis []TreeNodeInterface) *VsiTreeNode {
-	if len(nis) == 1 {
+func GroupNIsWithVSI(parent SquareTreeNodeInterface, name string, nis []TreeNodeInterface) {
+	switch {
+	case len(nis) == 1:
 		nis[0].(*NITreeNode).SetVsi(name)
-		return nil
+	case len(nis) > 1:
+		vsi := newVsiTreeNode(parent, name, nis)
+		for _, ni := range nis {
+			newVsiLineTreeNode(parent, vsi, ni.(*NITreeNode))
+		}
 	}
+}
+
+func newVsiTreeNode(parent SquareTreeNodeInterface, name string, nis []TreeNodeInterface) *VsiTreeNode {
 	vsi := &VsiTreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, name), nis: nis}
-	for _, ni := range nis {
-		NewVsiLineTreeNode(parent, vsi, ni.(*NITreeNode))
-	}
 	parent.addIconTreeNode(vsi)
 	return vsi
 }

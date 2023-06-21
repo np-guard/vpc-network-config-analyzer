@@ -129,23 +129,25 @@ func CreateDrawioConnectivityMapFile(network SquareTreeNodeInterface, outputFile
 	writeDrawioFile(data, outputFile)
 }
 
-func writeDrawioFile(data *drawioData, outputFile string) {
+func writeDrawioFile(data *drawioData, outputFile string) error {
 	tmpl, err := template.New("connectivityMap.drawio.tmpl").Parse(drawioTemplate)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	fo, err := os.Create(outputFile)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	// close fo on exit and check for its returned error
-	defer func() {
+	defer func() error {
 		if err = fo.Close(); err != nil {
-			panic(err)
+			return err
 		}
+		return nil
 	}()
 	err = tmpl.Execute(fo, data)
 	if err != nil {
-		panic(err)
+		return err
 	}
+	return nil
 }

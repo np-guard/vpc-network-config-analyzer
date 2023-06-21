@@ -11,25 +11,17 @@ type layer struct {
 	index     int
 }
 
-func newLayer(matrix *layoutMatrix, index int) layer {
-	return layer{matrix: matrix, index: index}
-}
+type row layer
 
-type row struct {
-	layer
-}
-
-func newRow(matrix *layoutMatrix, index int) *row { return &row{newLayer(matrix, index)} }
-func (r *row) setHight(hight int)                 { r.thickness = hight }
+func newRow(matrix *layoutMatrix, index int) *row { return &row{matrix: matrix, index: index} }
+func (r *row) setHeight(height int)               { r.thickness = height }
 func (r *row) setY(y int)                         { r.distance = y }
-func (r *row) hight() int                         { return r.thickness }
+func (r *row) height() int                        { return r.thickness }
 func (r *row) y() int                             { return r.distance }
 
-type col struct {
-	layer
-}
+type col layer
 
-func newCol(matrix *layoutMatrix, index int) *col { return &col{newLayer(matrix, index)} }
+func newCol(matrix *layoutMatrix, index int) *col { return &col{matrix: matrix, index: index} }
 func (c *col) setWidth(width int)                 { c.thickness = width }
 func (c *col) setX(y int)                         { c.distance = y }
 func (c *col) width() int                         { return c.thickness }
@@ -117,7 +109,7 @@ func (matrix *layoutMatrix) removeUnusedLayers() {
 	newRows := []*row{}
 	newCols := []*col{}
 	for _, row := range matrix.rows {
-		if row.hight() > 0 {
+		if row.height() > 0 {
 			row.index = len(newRows)
 			newRows = append(newRows, row)
 		}
@@ -165,7 +157,7 @@ func (matrix *layoutMatrix) setLayersDistance() {
 	y := 0
 	for _, row := range matrix.rows {
 		row.setY(y)
-		y += row.hight()
+		y += row.height()
 	}
 	x := 0
 	for _, col := range matrix.cols {

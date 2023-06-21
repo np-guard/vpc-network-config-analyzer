@@ -3,7 +3,7 @@ package drawio
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // layoutS is the main struct for layouting the tree nodes
 // overview to the layout algorithm:
-// the input to the layout algorithm is the tree itself. the output is the geometry for each node in the drawio (x, y, hight, wight)
+// the input to the layout algorithm is the tree itself. the output is the geometry for each node in the drawio (x, y, height, wight)
 // the steps:
 // 1. create a 2D matrix  - for each subnet icon, it set the location in the matrix
 // 2. set the locations of the SG in the matrix, according to the locations of the icons
@@ -20,11 +20,11 @@ package drawio
 // that alow to add/remove rows/column without updating the treeNodes.
 
 const (
-	borderWidth = 40
-	subnetWidth = 8 * 40
-	subnetHight = 6 * 40
-	iconSize    = 48
-	iconSpace   = 4 * 40
+	borderWidth  = 40
+	subnetWidth  = 8 * 40
+	subnetHeight = 6 * 40
+	iconSize     = 60
+	iconSpace    = 4 * 40
 
 	fipXOffset = -60
 	fipYOffset = 30
@@ -89,7 +89,7 @@ func (ly *layoutS) layoutSubnetsIcons() {
 					}
 					if iconInCurrentCell == nil {
 						l := ly.matrix.allocateCellLocation(rowIndex, colIndex)
-						l.firstRow.setHight(subnetHight)
+						l.firstRow.setHeight(subnetHeight)
 						l.firstCol.setWidth(subnetWidth)
 						icon.setLocation(l)
 						iconInCurrentCell = icon
@@ -161,13 +161,13 @@ func (*layoutS) resolveSquareLocation(tn SquareTreeNodeInterface) {
 	nl := mergeLocations(locations(getAllNodes(tn)))
 	if !tn.IsSubnet() {
 		nl = newLocation(nl.prevRow(), nl.nextRow(), nl.prevCol(), nl.nextCol())
-		nl.firstRow.setHight(borderWidth)
-		nl.lastRow.setHight(borderWidth)
+		nl.firstRow.setHeight(borderWidth)
+		nl.lastRow.setHeight(borderWidth)
 		nl.firstCol.setWidth(borderWidth)
 		nl.lastCol.setWidth(borderWidth)
 	}
 	if !tn.IsNetwork() {
-		nl.prevRow().setHight(borderWidth)
+		nl.prevRow().setHeight(borderWidth)
 		nl.prevCol().setWidth(borderWidth)
 	}
 	tn.setLocation(nl)
@@ -188,7 +188,7 @@ func (ly *layoutS) setSquaresLocations() {
 
 // ////////////////////////////////////////////////////////////////////////////////////////
 // setNetworkIconsLocations() sets all the icons in the first col.
-// choose the rows with hights >= iconSpace, and the rows next to them
+// choose the rows with heights >= iconSpace, and the rows next to them
 func (ly *layoutS) setNetworkIconsLocations() {
 	icons := ly.network.IconTreeNodes()
 	if len(icons) == 0 {
@@ -196,9 +196,9 @@ func (ly *layoutS) setNetworkIconsLocations() {
 	}
 	rows := []*row{}
 	for ri, row := range ly.matrix.rows {
-		if row.hight() >= iconSpace {
+		if row.height() >= iconSpace {
 			rows = append(rows, row)
-			if nextRow := ly.matrix.rows[ri+1]; nextRow.hight() < iconSpace {
+			if nextRow := ly.matrix.rows[ri+1]; nextRow.height() < iconSpace {
 				rows = append(rows, nextRow)
 			}
 		}
@@ -233,8 +233,8 @@ func (ly *layoutS) setVpcIconsLocations(vpc SquareTreeNodeInterface) {
 		}
 	}
 	iconsPerCol := (len(icons)-1)/len(cols) + 1
-	if vpc.Location().firstRow.hight() < iconSpace*iconsPerCol {
-		vpc.Location().firstRow.setHight(iconSpace * iconsPerCol)
+	if vpc.Location().firstRow.height() < iconSpace*iconsPerCol {
+		vpc.Location().firstRow.setHeight(iconSpace * iconsPerCol)
 	}
 	for iconIndex, icon := range icons {
 		icon.setLocation(newCellLocation(vpc.Location().firstRow, cols[iconIndex/iconsPerCol]))
@@ -245,7 +245,7 @@ func (ly *layoutS) setVpcIconsLocations(vpc SquareTreeNodeInterface) {
 // ////////////////////////////////////////////////////////////////////////////////////////
 // if vsi icon shares by several subnet - we put it below one of the subnets
 // else we put it inside the subnet
-// getway we put at the top
+// gateway we put at the top
 
 func (ly *layoutS) setZoneIconsLocations(zone SquareTreeNodeInterface) {
 	icons := zone.IconTreeNodes()
@@ -260,7 +260,7 @@ func (ly *layoutS) setZoneIconsLocations(zone SquareTreeNodeInterface) {
 				if nisCombinedLocation.firstRow == nisCombinedLocation.lastRow {
 					vsiIcon.Location().yOffset = iconSize
 				} else {
-					vsiIcon.Location().yOffset = subnetHight / 2
+					vsiIcon.Location().yOffset = subnetHeight / 2
 				}
 			} else {
 				vpcLocation := icon.(*VsiTreeNode).nis[0].Parent().Location()
@@ -271,7 +271,7 @@ func (ly *layoutS) setZoneIconsLocations(zone SquareTreeNodeInterface) {
 		} else if icon.IsGateway() {
 			col := zone.(*ZoneTreeNode).subnets[0].Location().firstCol
 			row := zone.Location().firstRow
-			zone.Location().firstRow.setHight(iconSpace)
+			zone.Location().firstRow.setHeight(iconSpace)
 			icon.setLocation(newCellLocation(row, col))
 			icon.Location().xOffset -= subnetWidth/2 - iconSize/2
 		}

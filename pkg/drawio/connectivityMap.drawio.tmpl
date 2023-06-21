@@ -30,7 +30,7 @@
                     <mxGeometry width="{{$data.IconSize}}" height="{{$data.IconSize}}" x="{{$node.X}}" y="{{$node.Y}}" as="geometry"/>
                     </mxCell>
                 {{ end }}
-            {{ if ne $node.Vsi "" }}
+            {{ if $node.HasVsi }}
                 {{ if $data.ShowNIIcon }}
                     <mxCell id="FXCXVvDxTQtwc45PbP1s-{{$node.TextID}}" value="{{$node.Vsi}}" style="{{$data.NITextStyle}}" parent="FXCXVvDxTQtwc45PbP1s-{{$node.ID}}" vertex="1">  
                     <mxGeometry width="{{$data.IconSize}}" height="{{$data.IconSize}}" x="0" y="0" as="geometry"/>
