@@ -7,6 +7,7 @@ type SquareTreeNodeInterface interface {
 	addLineTreeNode(line LineTreeNodeInterface)
 	IconTreeNodes() []IconTreeNodeInterface
 	TagID() uint
+	DecoreID() uint
 }
 
 type abstractSquareTreeNode struct {
@@ -30,6 +31,7 @@ func (tn *abstractSquareTreeNode) IconTreeNodes() []IconTreeNodeInterface {
 }
 func (tn *abstractSquareTreeNode) IsSquare() bool { return true }
 func (tn *abstractSquareTreeNode) TagID() uint    { return tn.id + tagID }
+func (tn *abstractSquareTreeNode) DecoreID() uint { return tn.id + decoreID }
 
 func (tn *abstractSquareTreeNode) setGeometry() {
 	location := tn.Location()

@@ -7,6 +7,7 @@ const (
 	niFipID    = 2
 	textID     = 3
 	tagID      = 4
+	decoreID   = 5
 )
 
 type abstractTreeNode struct {
