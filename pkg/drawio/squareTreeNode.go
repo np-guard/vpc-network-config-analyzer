@@ -51,7 +51,13 @@ type NetworkTreeNode struct {
 }
 
 func NewNetworkTreeNode() *NetworkTreeNode {
-	return &NetworkTreeNode{}
+	return &NetworkTreeNode{abstractSquareTreeNode: newAbstractSquareTreeNode(nil, "Public Network")}
+}
+func (tn *NetworkTreeNode) DrawioParentID() uint {
+	if tn.Parent() != nil {
+		tn.Parent().ID()
+	}
+	return 1
 }
 
 func (tn *NetworkTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {

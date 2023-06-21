@@ -23,7 +23,7 @@ const (
 	borderWidth = 40
 	subnetWidth = 8 * 40
 	subnetHight = 6 * 40
-	iconSize    = 60
+	iconSize    = 48
 	iconSpace   = 4 * 40
 
 	fipXOffset = -60
