@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 	"testing"
 
@@ -169,7 +168,7 @@ func runTestPerUseCase(t *testing.T, tt *vpcGeneralTest, c *vpcmodel.CloudConfig
 
 	// connectivity per each subnet separately with its attached nacl
 	case uc2:
-		actualOutput = getConnectivityOutputPerEachSubnetSeparately(c)
+		actualOutput = c.GetConnectivityOutputPerEachSubnetSeparately()
 
 	// connectivity between subnets (consider nacl + pgw)
 	case uc3a:
@@ -214,23 +213,6 @@ func runTestPerUseCase(t *testing.T, tt *vpcGeneralTest, c *vpcmodel.CloudConfig
 	}
 
 	return nil
-}
-
-// getConnectivityOutputPerEachSubnetSeparately returns the output of connectivity per single subnet - on all subnets in config
-func getConnectivityOutputPerEachSubnetSeparately(c *vpcmodel.CloudConfig) string {
-	res := []string{}
-	// iterate over all subnets, collect all outputs per subnet connectivity
-	for _, r := range c.FilterResources {
-		if naclLayer, ok := r.(*NaclLayer); ok {
-			for _, nacl := range naclLayer.naclList {
-				for subnet := range nacl.subnets {
-					res = append(res, nacl.GeneralConnectivityPerSubnet(subnet))
-				}
-			}
-		}
-	}
-	sort.Strings(res)
-	return strings.Join(res, "\n")
 }
 
 // getTestFileName returns expected file name and actual file name, for the relevant use case

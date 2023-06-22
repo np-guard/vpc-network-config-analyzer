@@ -31,6 +31,9 @@ func (c *CloudConfig) String() string {
 	return res
 }
 
+// GetConnectivityOutputPerEachSubnetSeparately returns string results of connectivity analysis per
+// single subnet with its attached nacl, separately per subnet - useful to get understanding of the
+// connectivity implied from nacl configuration applied on a certain subnet in the vpc
 func (c *CloudConfig) GetConnectivityOutputPerEachSubnetSeparately() string {
 	// iterate over all subnets, collect all outputs per subnet connectivity
 	for _, r := range c.FilterResources {
