@@ -71,11 +71,17 @@ func (tn *VsiLineTreeNode) Style() string {
 	return "html=1;verticalAlign=middle;startArrow=oval;startFill=1;endArrow=oval;startSize=6;strokeColor=#000000;align=center;dashed=1;strokeWidth=2;horizontal=1;labelPosition=center;verticalLabelPosition=middle;endFill=1;rounded=0;"
 }
 func (tn *ConnectivityTreeNode) Style() string {
-	if tn.directed {
+	switch {
+	case tn.directed && tn.router == nil:
 		return "endArrow=block;html=1;fontSize=16;fontColor=#4376BB;strokeWidth=2;endFill=1;rounded=0;startArrow=oval;startFill=1;"
-	} else {
+	case !tn.directed && tn.router == nil:
 		return "endArrow=oval;html=1;fontSize=16;fontColor=#4376BB;strokeWidth=2;endFill=1;rounded=0;startArrow=oval;startFill=1;"
+	case tn.directed && tn.router != nil:
+		return "endArrow=block;html=1;fontSize=16;fontColor=#4376BB;strokeWidth=2;endFill=1;strokeColor=#007FFF;startArrow=oval;startFill=1;rounded=0;"
+	case !tn.directed && tn.router != nil:
+		return "endArrow=oval;html=1;fontSize=16;fontColor=#4376BB;strokeWidth=2;endFill=1;strokeColor=#007FFF;startArrow=oval;startFill=1;rounded=0;"
 	}
+	return ""
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
