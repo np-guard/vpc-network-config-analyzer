@@ -9,6 +9,15 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
+// VPCsubnetConnectivity captures allowed connectivity for subnets, considering nacl and pgw resources
+type VPCsubnetConnectivity struct {
+	// computed for each node (subnet), by iterating its ConnectivityResult for all relevant VPC resources that capture it
+	AllowedConns map[string]*ConfigBasedConnectivityResults
+	// combined connectivity - considering both ingress and egress per connection
+	AllowedConnsCombined map[string]map[string]*common.ConnectionSet
+	cloudConfig          *CloudConfig
+}
+
 type IPbasedConnectivityResult struct {
 	IngressAllowedConns map[*common.IPBlock]*common.ConnectionSet
 	EgressAllowedConns  map[*common.IPBlock]*common.ConnectionSet
@@ -39,17 +48,6 @@ func (c *ConfigBasedConnectivityResults) String() string {
 	}
 
 	return res
-}
-
-// detailed representation of allowed connectivity considering subnet resources and their relevant affecting resources
-type VPCsubnetConnectivity struct {
-	// computed for each node, by iterating its ConnectivityResult for all relevant VPC resources that capture it
-	AllowedConns map[string]*ConfigBasedConnectivityResults
-	// combined connectivity - considering both ingress and egress per connection
-	AllowedConnsCombined map[string]map[string]*common.ConnectionSet
-	// nameToNamedResourceIntf map[string]NamedResourceIntf
-	// nameToNodeSet           map[string]NodeSet
-	cloudConfig *CloudConfig
 }
 
 // print AllowedConns (not combined)

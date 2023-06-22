@@ -59,53 +59,6 @@ func (v *VPCConnectivity) String() string {
 	return res
 }
 
-/*func (v *VPCConnectivity) String() string {
-	res := "=================================== distributed inbound/outbound connections:\n"
-	strList := []string{}
-	for node, connectivity := range v.AllowedConns {
-		// ingress
-		for peerNode, conn := range connectivity.IngressAllowedConns {
-			strList = append(strList, getConnectionStr(peerNode.Cidr(), node.Cidr(), conn.String(), " [inbound]"))
-		}
-		// egress
-		for peerNode, conn := range connectivity.EgressAllowedConns {
-			strList = append(strList, getConnectionStr(node.Cidr(), peerNode.Cidr(), conn.String(), " [outbound]"))
-		}
-	}
-	sort.Strings(strList)
-	res += strings.Join(strList, "")
-	res += "=================================== combined connections:\n"
-	strList = []string{}
-	for src, nodeConns := range v.AllowedConnsCombined {
-		for dst, conns := range nodeConns {
-			strList = append(strList, getConnectionStr(src.Cidr(), dst.Cidr(), conns.String(), ""))
-		}
-	}
-	sort.Strings(strList)
-	res += strings.Join(strList, "")
-	res += "=================================== combined connections - short version:\n"
-	strList = []string{}
-	for src, nodeConns := range v.AllowedConnsCombined {
-		for dst, conns := range nodeConns {
-			if conns.IsEmpty() {
-				continue
-			}
-			srcName := src.Cidr()
-			if src.IsInternal() {
-				srcName = src.Name()
-			}
-			dstName := dst.Cidr()
-			if dst.IsInternal() {
-				dstName = dst.Name()
-			}
-			strList = append(strList, getConnectionStr(srcName, dstName, conns.String(), ""))
-		}
-	}
-	sort.Strings(strList)
-	res += strings.Join(strList, "")
-	return res
-}*/
-
 // computeAllowedConnsCombined computes combination of ingress&egress directions per connection allowed
 // the result for this computation is stateless connections
 // (could be that some of them or a subset of them are stateful,but this is not computed here)
@@ -141,41 +94,6 @@ func (v *VPCConnectivity) computeAllowedConnsCombined() {
 		}
 	}
 }
-
-/*
-func (v *VPCConnectivity) computeAllowedConnsCombined() {
-	v.AllowedConnsCombined = map[Node]map[Node]*common.ConnectionSet{}
-
-	for node, connectivityRes := range v.AllowedConns {
-		for peerNode, conns := range connectivityRes.IngressAllowedConns {
-			src := peerNode
-			dst := node
-			combinedConns := conns
-			if peerNode.IsInternal() {
-				egressConns := v.AllowedConns[peerNode].EgressAllowedConns[node]
-				combinedConns = combinedConns.Intersection(egressConns)
-			}
-			if _, ok := v.AllowedConnsCombined[src]; !ok {
-				v.AllowedConnsCombined[src] = map[Node]*common.ConnectionSet{}
-			}
-			v.AllowedConnsCombined[src][dst] = combinedConns
-		}
-		for peerNode, conns := range connectivityRes.EgressAllowedConns {
-			src := node
-			dst := peerNode
-			combinedConns := conns
-			if peerNode.IsInternal() {
-				ingressConss := v.AllowedConns[peerNode].IngressAllowedConns[node]
-				combinedConns = combinedConns.Intersection(ingressConss)
-			}
-			if _, ok := v.AllowedConnsCombined[src]; !ok {
-				v.AllowedConnsCombined[src] = map[Node]*common.ConnectionSet{}
-			}
-			v.AllowedConnsCombined[src][dst] = combinedConns
-		}
-	}
-}
-*/
 
 func addDetailsLine(lines []string, details string) []string {
 	if details != "" {
