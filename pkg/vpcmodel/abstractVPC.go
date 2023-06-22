@@ -21,6 +21,9 @@ type NamedResourceIntf interface {
 	UID() string
 	Name() string
 }
+type ZonalNamedResourceIntf interface {
+	ZoneName() string
+}
 
 type Node interface {
 	NamedResourceIntf

@@ -30,6 +30,10 @@ type zonalNamedResource struct {
 	zone string
 }
 
+func (zn *zonalNamedResource) ZoneName() string {
+	return zn.zone
+}
+
 // nodes elements - implement vpcmodel.Node interface
 type NetworkInterface struct {
 	vpcmodel.NamedResource
@@ -314,7 +318,7 @@ func (sgl *SecurityGroupLayer) Name() string {
 }
 
 func (sgl *SecurityGroupLayer) Kind() string {
-	return vpcmodel.NaclLayer
+	return vpcmodel.SecurityGroupLayer
 }
 
 func (sgl *SecurityGroupLayer) Details() []string {

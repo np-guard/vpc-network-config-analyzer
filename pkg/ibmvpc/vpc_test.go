@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
@@ -92,9 +93,11 @@ func setTestOutputFiles(o *vpcmodel.OutputGenerator, t *vpcTest) {
 	txtFile := filePrfix + ".txt"
 	jsonFile := filePrfix + ".json"
 	mdFile := filePrfix + ".md"
+	drawioFile := filePrfix + ".drawio"
 	o.SetOutputFile(txtFile, vpcmodel.Text)
 	o.SetOutputFile(jsonFile, vpcmodel.JSON)
 	o.SetOutputFile(mdFile, vpcmodel.MD)
+	o.SetOutputFile(drawioFile, vpcmodel.DRAWIO)
 }
 
 func getTestOutput(test *vpcTest, t *testing.T, o *vpcmodel.OutputGenerator) {
@@ -109,6 +112,9 @@ func getTestOutput(test *vpcTest, t *testing.T, o *vpcmodel.OutputGenerator) {
 	if _, err := o.Generate(vpcmodel.MD); err != nil {
 		t.Fatalf("err: %s", err)
 	}
+	if _, err := o.Generate(vpcmodel.DRAWIO); err != nil {
+		t.Fatalf("err: %s", err)
+	}
 	test.actualOutput = textOutput
 }
 
@@ -120,7 +126,7 @@ func overrideExpectedOutput(test *vpcTest, t *testing.T, o *vpcmodel.OutputGener
 }
 
 func checkTestOutput(test *vpcTest, t *testing.T) {
-	if test.actualOutput != string(test.expectedOutputText) {
+	if test.actualOutput != strings.ReplaceAll(string(test.expectedOutputText), "\r", "") {
 		fmt.Printf("%s", test.actualOutput)
 		t.Fatalf("TestWithParsing unexpected output result : %s", test.name)
 	}
