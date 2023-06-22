@@ -31,9 +31,9 @@
                     "name": "sg1-ky"
                 }
             ],
-            "service_endpoint": "9e9fa8dd-8b5e-4e8e-89f0-d76c6012fd3e.c5km1ted03t0e8geevf0.private.databases.appdomain.cloud",
+            "service_endpoint": "ttt",
             "service_endpoints": [
-                "9e9fa8dd-8b5e-4e8e-89f0-d76c6012fd3e.c5km1ted03t0e8geevf0.private.databases.appdomain.cloud"
+                "ttt"
             ],
             "tags": [],
             "target": {

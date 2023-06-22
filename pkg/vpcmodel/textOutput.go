@@ -5,6 +5,6 @@ type TextoutputFormatter struct {
 
 func (t *TextoutputFormatter) WriteOutput(c *CloudConfig, conn *VPCConnectivity, outFile string) (string, error) {
 	out := conn.String()
-	err := writeToFile(out, outFile)
+	err := WriteToFile(out, outFile)
 	return out, err
 }

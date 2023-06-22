@@ -1,7 +1,9 @@
 package ibmvpc
 
 import (
+	"errors"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
@@ -219,6 +221,39 @@ func (nl *NaclLayer) DetailsMap() []map[string]string {
 	return res
 }
 
+// per-layer connectivity analysis
+// compute allowed connectivity based on the NACL resources for all relevant endpoints (subnets)
+func (nl *NaclLayer) ConnectivityMap() (map[string]*vpcmodel.IPbasedConnectivityResult, error) {
+	res := map[string]*vpcmodel.IPbasedConnectivityResult{} // map from subnet cidr to its connectivity result
+	for _, nacl := range nl.naclList {
+		for subnetCidr := range nacl.subnets {
+			_, resConnectivity := nacl.analyzer.GeneralConnectivityPerSubnet(subnetCidr)
+			// TODO: currently supporting only handling full-range of subnet connectivity-map, not partial range of subnet
+			if len(resConnectivity) != 1 {
+				return nil, errors.New("unsupported connectivity map with partial subnet ranges per connectivity result")
+			}
+			subnetKey := common.CIDRtoIPrange(subnetCidr)
+			if _, ok := resConnectivity[subnetKey]; !ok {
+				return nil, errors.New("unexpected subnet connectivity result - key is different from subnet cidr")
+			}
+			res[subnetCidr] = resConnectivity[subnetKey]
+		}
+	}
+	return res, nil
+}
+
+func (nl *NaclLayer) GetConnectivityOutputPerEachElemSeparately() string {
+	res := []string{}
+	// iterate over all subnets, collect all outputs per subnet connectivity
+	for _, nacl := range nl.naclList {
+		for subnet := range nacl.subnets {
+			res = append(res, nacl.GeneralConnectivityPerSubnet(subnet))
+		}
+	}
+	sort.Strings(res)
+	return strings.Join(res, "\n")
+}
+
 func (nl *NaclLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *common.ConnectionSet {
 	res := vpcmodel.NoConns()
 	for _, nacl := range nl.naclList {
@@ -270,7 +305,8 @@ func (n *NACL) DetailsMap() map[string]string {
 }
 
 func (n *NACL) GeneralConnectivityPerSubnet(subnetCidr string) string {
-	return n.analyzer.GeneralConnectivityPerSubnet(subnetCidr)
+	res, _ := n.analyzer.GeneralConnectivityPerSubnet(subnetCidr)
+	return res
 }
 
 func (n *NACL) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *common.ConnectionSet {
@@ -314,7 +350,7 @@ func (sgl *SecurityGroupLayer) Name() string {
 }
 
 func (sgl *SecurityGroupLayer) Kind() string {
-	return vpcmodel.NaclLayer
+	return vpcmodel.SecurityGroupLayer
 }
 
 func (sgl *SecurityGroupLayer) Details() []string {
@@ -331,6 +367,14 @@ func (sgl *SecurityGroupLayer) DetailsMap() []map[string]string {
 		res = append(res, sg.DetailsMap())
 	}
 	return res
+}
+
+func (sgl *SecurityGroupLayer) ConnectivityMap() (map[string]*vpcmodel.IPbasedConnectivityResult, error) {
+	return nil, nil
+}
+
+func (sgl *SecurityGroupLayer) GetConnectivityOutputPerEachElemSeparately() string {
+	return ""
 }
 
 // TODO: fix: is it possible that no sg applies  to the input peer? if so, should not return "no conns" when none applies
@@ -461,11 +505,16 @@ func (fip *FloatingIP) AllowedConnectivity(src, dst vpcmodel.Node) *common.Conne
 	return vpcmodel.NoConns()
 }
 
+func (fip *FloatingIP) ConnectivityMap() map[string]vpcmodel.ConfigBasedConnectivityResults {
+	return nil
+}
+
 type PublicGateway struct {
 	zonalNamedResource
 	cidr         string
 	src          []vpcmodel.Node
 	destinations []vpcmodel.Node
+	subnetCidr   string
 }
 
 func (pgw *PublicGateway) Details() string {
@@ -493,6 +542,20 @@ func (pgw *PublicGateway) DetailsMap() map[string]string {
 		vpcmodel.DetailsAttributeCIDR: pgw.cidr,
 		detailsAttributeZone:          pgw.zone,
 	}
+}
+
+func (pgw *PublicGateway) ConnectivityMap() map[string]vpcmodel.ConfigBasedConnectivityResults {
+	res := map[string]vpcmodel.ConfigBasedConnectivityResults{}
+	res[pgw.subnetCidr] = vpcmodel.ConfigBasedConnectivityResults{
+		IngressAllowedConns: map[string]*common.ConnectionSet{},
+		EgressAllowedConns:  map[string]*common.ConnectionSet{},
+	}
+	for _, dst := range pgw.destinations {
+		// TODO: should not be both directions?
+		res[pgw.subnetCidr].IngressAllowedConns[dst.Name()] = vpcmodel.AllConns()
+		res[pgw.subnetCidr].EgressAllowedConns[dst.Name()] = vpcmodel.AllConns()
+	}
+	return res
 }
 
 func (pgw *PublicGateway) Src() []vpcmodel.Node {

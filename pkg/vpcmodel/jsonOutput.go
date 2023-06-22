@@ -26,7 +26,7 @@ type allInfo struct {
 	Connectivity []connLine   `json:"connectivity"`
 }
 
-func writeToFile(content, fileName string) error {
+func WriteToFile(content, fileName string) error {
 	if fileName != "" {
 		return os.WriteFile(fileName, []byte(content), writeFileMde)
 	}
@@ -71,6 +71,6 @@ func (j *JSONoutputFormatter) WriteOutput(c *CloudConfig, conn *VPCConnectivity,
 		return "", err
 	}
 	resStr := string(res)
-	err = writeToFile(resStr, outFile)
+	err = WriteToFile(resStr, outFile)
 	return resStr, err
 }
