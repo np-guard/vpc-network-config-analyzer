@@ -17,6 +17,8 @@ func getOutputFormat(inArgs *InArgs) vpcmodel.OutFormat {
 		return vpcmodel.MD
 	case JSONFormat:
 		return vpcmodel.JSON
+	case DRAWIOFormat:
+		return vpcmodel.DRAWIO
 	}
 	return vpcmodel.Text
 }
