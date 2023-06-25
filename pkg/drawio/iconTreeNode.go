@@ -17,7 +17,6 @@ func newAbstractIconTreeNode(parent SquareTreeNodeInterface, name string) abstra
 	return abstractIconTreeNode{abstractTreeNode: newAbstractTreeNode(parent, name)}
 }
 
-func (tn *abstractIconTreeNode) RouterID() uint              { return tn.ID() }
 func (tn *abstractIconTreeNode) SG() SquareTreeNodeInterface { return tn.sg }
 func (tn *abstractIconTreeNode) IsIcon() bool                { return true }
 
