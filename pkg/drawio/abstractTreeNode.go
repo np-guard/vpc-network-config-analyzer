@@ -21,17 +21,18 @@ type abstractTreeNode struct {
 	location *Location
 }
 
-func (tn *abstractTreeNode) Name() string         { return tn.name }
-func (tn *abstractTreeNode) ID() uint             { return tn.id }
-func (tn *abstractTreeNode) DrawioParentID() uint { return tn.Parent().ID() }
-func (tn *abstractTreeNode) TextID() uint         { return tn.id + textID }
-func (tn *abstractTreeNode) X() int               { return tn.x }
-func (tn *abstractTreeNode) Y() int               { return tn.y }
-func (tn *abstractTreeNode) Height() int          { return tn.height }
-func (tn *abstractTreeNode) Width() int           { return tn.width }
+func (tn *abstractTreeNode) Name() string   { return tn.name }
+func (tn *abstractTreeNode) ID() uint       { return tn.id }
+func (tn *abstractTreeNode) TextID() uint   { return tn.id + textID }
+func (tn *abstractTreeNode) X() int         { return tn.x }
+func (tn *abstractTreeNode) Y() int         { return tn.y }
+func (tn *abstractTreeNode) Height() int    { return tn.height }
+func (tn *abstractTreeNode) Width() int     { return tn.width }
+func (tn *abstractTreeNode) RouterID() uint { return tn.ID() }
 
-func (tn *abstractTreeNode) Location() *Location       { return tn.location }
-func (tn *abstractTreeNode) Parent() TreeNodeInterface { return tn.parent }
+func (tn *abstractTreeNode) Location() *Location             { return tn.location }
+func (tn *abstractTreeNode) Parent() TreeNodeInterface       { return tn.parent }
+func (tn *abstractTreeNode) DrawioParent() TreeNodeInterface { return tn.parent }
 
 func (tn *abstractTreeNode) setLocation(location *Location) { tn.location = location }
 func (tn *abstractTreeNode) setParent(p TreeNodeInterface)  { tn.parent = p }

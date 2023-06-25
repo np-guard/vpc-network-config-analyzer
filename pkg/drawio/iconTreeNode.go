@@ -17,7 +17,6 @@ func newAbstractIconTreeNode(parent SquareTreeNodeInterface, name string) abstra
 	return abstractIconTreeNode{abstractTreeNode: newAbstractTreeNode(parent, name)}
 }
 
-func (tn *abstractIconTreeNode) RouterID() uint              { return tn.ID() }
 func (tn *abstractIconTreeNode) SG() SquareTreeNodeInterface { return tn.sg }
 func (tn *abstractIconTreeNode) IsIcon() bool                { return true }
 
@@ -38,10 +37,15 @@ func (tn *abstractIconTreeNode) allocateNewRouteOffset() int {
 	return offsets[n]
 }
 func (tn *abstractIconTreeNode) setGeometry() {
+	tn.x, tn.y = calculateIconGeometry(tn, tn.DrawioParent())
+}
+
+func calculateIconGeometry(tn IconTreeNodeInterface, drawioParent TreeNodeInterface) (x, y int) {
 	location := tn.Location()
-	parentLocation := tn.Parent().Location()
-	tn.x = location.firstCol.x() - parentLocation.firstCol.x() + location.firstCol.width()/2 - iconSize/2 + location.xOffset
-	tn.y = location.firstRow.y() - parentLocation.firstRow.y() + location.firstRow.height()/2 - iconSize/2 + location.yOffset
+	parentLocation := drawioParent.Location()
+	x = location.firstCol.x() - parentLocation.firstCol.x() + location.firstCol.width()/2 - iconSize/2 + location.xOffset
+	y = location.firstRow.y() - parentLocation.firstRow.y() + location.firstRow.height()/2 - iconSize/2 + location.yOffset
+	return x, y
 }
 
 // ///////////////////////////////////////////
@@ -122,12 +126,29 @@ func newVsiTreeNode(parent SquareTreeNodeInterface, name string, nis []TreeNodeI
 	return vsi
 }
 
-func (tn *VsiTreeNode) GetVsiSubnets() map[TreeNodeInterface]bool {
+func (tn *VsiTreeNode) GetVsiNIsSubnets() map[TreeNodeInterface]bool {
 	vsiSubnets := map[TreeNodeInterface]bool{}
 	for _, ni := range tn.nis {
 		vsiSubnets[ni.Parent()] = true
 	}
 	return vsiSubnets
+}
+func (tn *VsiTreeNode) DrawioParentID() uint {
+	if len(tn.GetVsiNIsSubnets()) == 1 {
+		return tn.nis[0].Parent().ID()
+	}
+	return tn.Parent().ID()
+}
+
+func (tn *VsiTreeNode) setGeometry() {
+	tn.x, tn.y = calculateIconGeometry(tn, tn.DrawioParent())
+}
+
+func (tn *VsiTreeNode) DrawioParent() TreeNodeInterface {
+	if len(tn.GetVsiNIsSubnets()) == 1 {
+		return tn.nis[0].Parent()
+	}
+	return tn.Parent()
 }
 
 func (tn *VsiTreeNode) IsVSI() bool { return true }

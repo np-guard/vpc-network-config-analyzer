@@ -41,11 +41,11 @@ func (tn *abstractLineTreeNode) Dst() IconTreeNodeInterface { return tn.dst }
 
 func (tn *abstractLineTreeNode) setGeometry() {}
 
-func (tn *abstractLineTreeNode) DrawioParentID() uint {
+func (tn *abstractLineTreeNode) DrawioParent() TreeNodeInterface {
 	if tn.router != nil {
-		return tn.router.RouterID()
+		return tn.router
 	}
-	return tn.Parent().ID()
+	return tn.Parent()
 }
 
 func (tn *abstractLineTreeNode) Points() []point               { return tn.points }

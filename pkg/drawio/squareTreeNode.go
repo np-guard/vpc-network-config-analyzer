@@ -137,13 +137,13 @@ func newPartialSGTreeNode(parent *SGTreeNode) *PartialSGTreeNode {
 func (tn *PartialSGTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
 	return nil, tn.elements, tn.connections
 }
-func (tn *PartialSGTreeNode) DrawioParentID() uint {
-	return tn.Parent().Parent().ID()
+func (tn *PartialSGTreeNode) DrawioParent() TreeNodeInterface {
+	return tn.Parent().Parent()
 }
 
 func (tn *PartialSGTreeNode) setGeometry() {
 	location := tn.Location()
-	parentLocation := tn.Parent().Parent().Location()
+	parentLocation := tn.DrawioParent().Location()
 	tn.width = location.lastCol.width() + location.lastCol.x() - location.firstCol.x() - 2*borderWidth
 	tn.height = location.lastRow.height() + location.lastRow.y() - location.firstRow.y() - 2*borderWidth
 	tn.x = location.firstCol.x() - parentLocation.firstCol.x() + borderWidth

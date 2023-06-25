@@ -36,13 +36,14 @@ package drawio
 type TreeNodeInterface interface {
 	Name() string
 	ID() uint
-	DrawioParentID() uint
 	TextID() uint
+	RouterID() uint
 	X() int
 	Y() int
 	Height() int
 	Width() int
 
+	DrawioParent() TreeNodeInterface
 	Parent() TreeNodeInterface
 	Location() *Location
 

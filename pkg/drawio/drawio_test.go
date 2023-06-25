@@ -13,9 +13,9 @@ func TestWithParsing(t *testing.T) {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
 	}
 	n2 := createNetwork2()
-	err = CreateDrawioConnectivityMapFile(n2, "fake2.drawio")
-	if err != nil {
-		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
+	err2 := CreateDrawioConnectivityMapFile(n2, "fake2.drawio")
+	if err2 != nil {
+		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err2)
 	}
 }
 
