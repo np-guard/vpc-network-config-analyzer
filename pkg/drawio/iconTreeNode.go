@@ -123,12 +123,18 @@ func newVsiTreeNode(parent SquareTreeNodeInterface, name string, nis []TreeNodeI
 	return vsi
 }
 
-func (tn *VsiTreeNode) GetVsiSubnets() map[TreeNodeInterface]bool {
+func (tn *VsiTreeNode) GetVsiNIsSubnets() map[TreeNodeInterface]bool {
 	vsiSubnets := map[TreeNodeInterface]bool{}
 	for _, ni := range tn.nis {
 		vsiSubnets[ni.Parent()] = true
 	}
 	return vsiSubnets
+}
+func (tn *VsiTreeNode) DrawioParentID() uint {
+	if len(tn.GetVsiNIsSubnets()) == 1 {
+		return tn.nis[0].Parent().ID()
+	}
+	return tn.Parent().ID()
 }
 
 func (tn *VsiTreeNode) IsVSI() bool { return true }

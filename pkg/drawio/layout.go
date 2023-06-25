@@ -3,7 +3,7 @@ package drawio
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // layoutS is the main struct for layouting the tree nodes
 // overview to the layout algorithm:
-// the input to the layout algorithm is the tree itself. the output is the geometry for each node in the drawio (x, y, height, wight)
+// the input to the layout algorithm is the tree itself. the output is the geometry for each node in the drawio (x, y, height, width)
 // the steps:
 // 1. create a 2D matrix  - for each subnet icon, it set the location in the matrix
 // 2. set the locations of the SG in the matrix, according to the locations of the icons
@@ -43,8 +43,7 @@ type layoutS struct {
 }
 
 func newLayout(network SquareTreeNodeInterface) *layoutS {
-	ly := &layoutS{network: network, matrix: newLayoutMatrix()}
-	return ly
+	return &layoutS{network: network, matrix: newLayoutMatrix()}
 }
 
 func (ly *layoutS) layout() {
@@ -73,7 +72,6 @@ func (ly *layoutS) layout() {
 // 3. subnets a above/below each other
 // 4. cell can hold at most two icons
 // 5. only icons with the same sg can share a cell
-
 func (ly *layoutS) layoutSubnetsIcons() {
 	colIndex := 0
 	for _, vpc := range ly.network.(*NetworkTreeNode).vpcs {
@@ -111,7 +109,6 @@ func (ly *layoutS) layoutSubnetsIcons() {
 ////////////////////////////////////////////////////////////////////////////////////////////
 // SG can have more than one squares. so setSGLocations() will add treeNodes of the kind PartialSGTreeNode
 // PartialSGTreeNode can not have more than one row. and can have only cell that contains icons that belong to the SG
-
 func (ly *layoutS) setSGLocations() {
 	for _, vpc := range ly.network.(*NetworkTreeNode).vpcs {
 		for _, sg := range vpc.(*VpcTreeNode).sgs {
@@ -154,8 +151,6 @@ func (ly *layoutS) addAllBorderLayers() {
 	newIndexFunction := func(index int) int { return networkToSubnetDepth + networkToSubnetDepth*2*index }
 	ly.matrix.resize(newIndexFunction)
 }
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func (*layoutS) resolveSquareLocation(tn SquareTreeNodeInterface) {
 	nl := mergeLocations(locations(getAllNodes(tn)))
@@ -213,7 +208,7 @@ func (ly *layoutS) setNetworkIconsLocations() {
 
 // ////////////////////////////////////////////////////////////////////////////////////////
 // setVpcIconsLocations() sets all the icons in the first vpc row.
-// choose the cols with wight >= iconSpace, and the cols below them
+// choose the cols with width >= iconSpace, and the cols below them
 func (ly *layoutS) setVpcIconsLocations(vpc SquareTreeNodeInterface) {
 	icons := vpc.IconTreeNodes()
 	if len(icons) == 0 {
@@ -246,15 +241,17 @@ func (ly *layoutS) setVpcIconsLocations(vpc SquareTreeNodeInterface) {
 // if vsi icon shares by several subnet - we put it below one of the subnets
 // else we put it inside the subnet
 // gateway we put at the top
-
 func (ly *layoutS) setZoneIconsLocations(zone SquareTreeNodeInterface) {
-	icons := zone.IconTreeNodes()
-	for _, icon := range icons {
+	for _, icon := range zone.IconTreeNodes() {
 		if icon.IsVSI() {
 			vsiIcon := icon.(*VsiTreeNode)
-			vsiSubnets := vsiIcon.GetVsiSubnets()
+			vsiSubnets := vsiIcon.GetVsiNIsSubnets()
 			if len(vsiSubnets) == 1 {
-				icon.setParent(vsiIcon.nis[0].Parent())
+				// all the NIs of the vsi are at the same subnet. in this case:
+				// 1. we calculate the location of all NIs (its the minimal square contains all NIs)
+				// 2. we set the icon location to be the top left cell of this square
+				// 3. we give the vsi yOffset to put it belows the NIs.
+				// (in case that the NIs square has more than one row, the yOffset is bigger
 				nisCombinedLocation := mergeLocations(locations(vsiIcon.nis))
 				icon.setLocation(newCellLocation(nisCombinedLocation.firstRow, nisCombinedLocation.firstCol))
 				if nisCombinedLocation.firstRow == nisCombinedLocation.lastRow {
@@ -263,6 +260,8 @@ func (ly *layoutS) setZoneIconsLocations(zone SquareTreeNodeInterface) {
 					vsiIcon.Location().yOffset = subnetHeight / 2
 				}
 			} else {
+				// the NIs are on different subnets. in this case:
+				// we take the first subnet, and put the vis icon below it, and also give it an xOffset
 				vpcLocation := icon.(*VsiTreeNode).nis[0].Parent().Location()
 				location := newCellLocation(vpcLocation.nextRow(), vpcLocation.firstCol)
 				location.xOffset = subnetWidth/2 - iconSize/2
@@ -278,7 +277,6 @@ func (ly *layoutS) setZoneIconsLocations(zone SquareTreeNodeInterface) {
 	}
 }
 
-// /////////////////////////////////////////////////////////////////////////////////////////////////////////
 func (ly *layoutS) setIconsLocations() {
 	for _, vpc := range ly.network.(*NetworkTreeNode).vpcs {
 		for _, zone := range vpc.(*VpcTreeNode).zones {
@@ -288,8 +286,6 @@ func (ly *layoutS) setIconsLocations() {
 	}
 	ly.setNetworkIconsLocations()
 }
-
-/////////////////////////////////////////////////////////////////////////////////
 
 func (ly *layoutS) setGeometries() {
 	for _, tn := range getAllNodes(ly.network) {

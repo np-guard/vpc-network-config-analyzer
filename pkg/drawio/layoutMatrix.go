@@ -56,9 +56,17 @@ func (l *Location) prevRow() *row {
 func (l *Location) prevCol() *col {
 	return l.firstCol.matrix.cols[l.firstCol.index-1]
 }
+
+// copy() is not a deep copy, we only copy the pointers
 func (l *Location) copy() *Location {
-	nl := *l
-	return &nl
+	return &Location{
+		firstRow: l.firstRow,
+		lastRow:  l.lastRow,
+		firstCol: l.firstCol,
+		lastCol:  l.lastCol,
+		xOffset:  l.xOffset,
+		yOffset:  l.yOffset,
+	}
 }
 
 func mergeLocations(locations []*Location) *Location {
