@@ -40,11 +40,11 @@ func (tn *abstractIconTreeNode) setGeometry() {
 	tn.x, tn.y = calculateIconGeometry(tn, tn.DrawioParent())
 }
 
-func calculateIconGeometry(tn IconTreeNodeInterface, drawioParent TreeNodeInterface) (int, int) {
+func calculateIconGeometry(tn IconTreeNodeInterface, drawioParent TreeNodeInterface) (x, y int) {
 	location := tn.Location()
 	parentLocation := drawioParent.Location()
-	x := location.firstCol.x() - parentLocation.firstCol.x() + location.firstCol.width()/2 - iconSize/2 + location.xOffset
-	y := location.firstRow.y() - parentLocation.firstRow.y() + location.firstRow.height()/2 - iconSize/2 + location.yOffset
+	x = location.firstCol.x() - parentLocation.firstCol.x() + location.firstCol.width()/2 - iconSize/2 + location.xOffset
+	y = location.firstRow.y() - parentLocation.firstRow.y() + location.firstRow.height()/2 - iconSize/2 + location.yOffset
 	return x, y
 }
 

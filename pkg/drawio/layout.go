@@ -106,7 +106,7 @@ func (ly *layoutS) layoutSubnetsIcons() {
 	}
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////////////////////////////
 // SG can have more than one squares. so setSGLocations() will add treeNodes of the kind PartialSGTreeNode
 // PartialSGTreeNode can not have more than one row. and can have only cell that contains icons that belong to the SG
 func (ly *layoutS) setSGLocations() {
