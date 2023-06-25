@@ -42,6 +42,7 @@ type TreeNodeInterface interface {
 	Height() int
 	Width() int
 
+	DrawioParent() TreeNodeInterface
 	Parent() TreeNodeInterface
 	Location() *Location
 

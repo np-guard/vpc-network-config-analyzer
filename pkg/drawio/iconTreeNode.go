@@ -38,10 +38,15 @@ func (tn *abstractIconTreeNode) allocateNewRouteOffset() int {
 	return offsets[n]
 }
 func (tn *abstractIconTreeNode) setGeometry() {
+	tn.x, tn.y = calculateIconGeometry(tn, tn.DrawioParent())
+}
+
+func calculateIconGeometry(tn IconTreeNodeInterface, drawioParent TreeNodeInterface) (int, int) {
 	location := tn.Location()
-	parentLocation := tn.Parent().Location()
-	tn.x = location.firstCol.x() - parentLocation.firstCol.x() + location.firstCol.width()/2 - iconSize/2 + location.xOffset
-	tn.y = location.firstRow.y() - parentLocation.firstRow.y() + location.firstRow.height()/2 - iconSize/2 + location.yOffset
+	parentLocation := drawioParent.Location()
+	x := location.firstCol.x() - parentLocation.firstCol.x() + location.firstCol.width()/2 - iconSize/2 + location.xOffset
+	y := location.firstRow.y() - parentLocation.firstRow.y() + location.firstRow.height()/2 - iconSize/2 + location.yOffset
+	return x, y
 }
 
 // ///////////////////////////////////////////
@@ -135,6 +140,17 @@ func (tn *VsiTreeNode) DrawioParentID() uint {
 		return tn.nis[0].Parent().ID()
 	}
 	return tn.Parent().ID()
+}
+
+func (tn *VsiTreeNode) setGeometry() {
+	tn.x, tn.y = calculateIconGeometry(tn, tn.DrawioParent())
+}
+
+func (tn *VsiTreeNode) DrawioParent() TreeNodeInterface {
+	if len(tn.GetVsiNIsSubnets()) == 1 {
+		return tn.nis[0].Parent()
+	}
+	return tn.Parent()
 }
 
 func (tn *VsiTreeNode) IsVSI() bool { return true }

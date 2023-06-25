@@ -28,8 +28,9 @@ func (tn *abstractTreeNode) Y() int               { return tn.y }
 func (tn *abstractTreeNode) Height() int          { return tn.height }
 func (tn *abstractTreeNode) Width() int           { return tn.width }
 
-func (tn *abstractTreeNode) Location() *Location       { return tn.location }
-func (tn *abstractTreeNode) Parent() TreeNodeInterface { return tn.parent }
+func (tn *abstractTreeNode) Location() *Location             { return tn.location }
+func (tn *abstractTreeNode) Parent() TreeNodeInterface       { return tn.parent }
+func (tn *abstractTreeNode) DrawioParent() TreeNodeInterface { return tn.parent }
 
 func (tn *abstractTreeNode) setLocation(location *Location) { tn.location = location }
 func (tn *abstractTreeNode) setParent(p TreeNodeInterface)  { tn.parent = p }
