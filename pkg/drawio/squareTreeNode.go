@@ -52,7 +52,7 @@ type NetworkTreeNode struct {
 	vpcs []SquareTreeNodeInterface
 }
 
-var networkParent = &RootTreeNode{}
+var networkParent = &rootTreeNode{}
 
 func NewNetworkTreeNode() *NetworkTreeNode {
 	return &NetworkTreeNode{abstractSquareTreeNode: newAbstractSquareTreeNode(networkParent, "Public Network")}
