@@ -5,6 +5,9 @@ type IconTreeNodeInterface interface {
 	RouterID() uint
 	SG() SquareTreeNodeInterface
 	allocateNewRouteOffset() int
+	IsVSI() bool
+	IsNI() bool
+	IsGateway() bool
 }
 
 type abstractIconTreeNode struct {
@@ -19,6 +22,9 @@ func newAbstractIconTreeNode(parent SquareTreeNodeInterface, name string) abstra
 
 func (tn *abstractIconTreeNode) SG() SquareTreeNodeInterface { return tn.sg }
 func (tn *abstractIconTreeNode) IsIcon() bool                { return true }
+func (tn *abstractIconTreeNode) IsVSI() bool                 { return false }
+func (tn *abstractIconTreeNode) IsGateway() bool             { return false }
+func (tn *abstractIconTreeNode) IsNI() bool                  { return false }
 
 var offsets = []int{
 	0,
@@ -100,7 +106,6 @@ func NewUserTreeNode(parent SquareTreeNodeInterface, name string) *UserTreeNode 
 	parent.addIconTreeNode(&user)
 	return &user
 }
-func (tn *UserTreeNode) IsUser() bool { return true }
 
 // ///////////////////////////////////////////
 type VsiTreeNode struct {
@@ -114,6 +119,7 @@ func GroupNIsWithVSI(parent SquareTreeNodeInterface, name string, nis []TreeNode
 		nis[0].(*NITreeNode).SetVsi(name)
 	case len(nis) > 1:
 		vsi := newVsiTreeNode(parent, name, nis)
+		hasVsiIcon = true
 		for _, ni := range nis {
 			newVsiLineTreeNode(parent, vsi, ni.(*NITreeNode))
 		}
@@ -163,7 +169,6 @@ func NewInternetTreeNode(parent SquareTreeNodeInterface, name string) *InternetT
 	parent.addIconTreeNode(&inter)
 	return &inter
 }
-func (tn *InternetTreeNode) IsInternet() bool { return true }
 
 // ////////////////////////////////////////////////////////////////
 type InternetServiceTreeNode struct {
@@ -175,4 +180,3 @@ func NewInternetServiceTreeNode(parent SquareTreeNodeInterface, name string) *In
 	parent.addIconTreeNode(&inter)
 	return &inter
 }
-func (tn *InternetServiceTreeNode) IsInternetService() bool { return true }

@@ -8,6 +8,8 @@ const (
 	textID     = 3
 	tagID      = 4
 	decoreID   = 5
+
+	rootID = 1
 )
 
 type abstractTreeNode struct {
@@ -47,25 +49,9 @@ func (tn *abstractTreeNode) setID() {
 	}
 }
 
-func (tn *abstractTreeNode) IsLine() bool            { return false }
-func (tn *abstractTreeNode) IsIcon() bool            { return false }
-func (tn *abstractTreeNode) IsSquare() bool          { return false }
-func (tn *abstractTreeNode) IsNetwork() bool         { return false }
-func (tn *abstractTreeNode) IsVPC() bool             { return false }
-func (tn *abstractTreeNode) IsZone() bool            { return false }
-func (tn *abstractTreeNode) IsSubnet() bool          { return false }
-func (tn *abstractTreeNode) IsSG() bool              { return false }
-func (tn *abstractTreeNode) IsPartialSG() bool       { return false }
-func (tn *abstractTreeNode) IsVSI() bool             { return false }
-func (tn *abstractTreeNode) IsNI() bool              { return false }
-func (tn *abstractTreeNode) IsGateway() bool         { return false }
-func (tn *abstractTreeNode) IsEndpoint() bool        { return false }
-func (tn *abstractTreeNode) IsInternet() bool        { return false }
-func (tn *abstractTreeNode) IsInternetService() bool { return false }
-func (tn *abstractTreeNode) IsUser() bool            { return false }
-func (tn *abstractTreeNode) IsVsiConnector() bool    { return false }
-func (tn *abstractTreeNode) IsDirectedEdge() bool    { return false }
-func (tn *abstractTreeNode) IsUnDirectedEdge() bool  { return false }
+func (tn *abstractTreeNode) IsLine() bool   { return false }
+func (tn *abstractTreeNode) IsIcon() bool   { return false }
+func (tn *abstractTreeNode) IsSquare() bool { return false }
 
 func newAbstractTreeNode(parent TreeNodeInterface, name string) abstractTreeNode {
 	tn := abstractTreeNode{parent: parent, name: name}
@@ -75,3 +61,11 @@ func newAbstractTreeNode(parent TreeNodeInterface, name string) abstractTreeNode
 func (tn *abstractTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
 	return nil, nil, nil
 }
+func (tn *abstractTreeNode) setGeometry() {}
+
+type RootTreeNode struct {
+	abstractTreeNode
+}
+
+func (tn *RootTreeNode) ID() uint               { return rootID }
+func (tn *RootTreeNode) NotShownInDrawio() bool { return true }

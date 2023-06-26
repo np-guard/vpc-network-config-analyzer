@@ -152,16 +152,16 @@ func (ly *layoutS) addAllBorderLayers() {
 	ly.matrix.resize(newIndexFunction)
 }
 
-func (*layoutS) resolveSquareLocation(tn SquareTreeNodeInterface) {
+func (*layoutS) resolveSquareLocation(tn SquareTreeNodeInterface, addInternalBorders, addExternalBorders bool) {
 	nl := mergeLocations(locations(getAllNodes(tn)))
-	if !tn.IsSubnet() {
+	if addInternalBorders {
 		nl = newLocation(nl.prevRow(), nl.nextRow(), nl.prevCol(), nl.nextCol())
 		nl.firstRow.setHeight(borderWidth)
 		nl.lastRow.setHeight(borderWidth)
 		nl.firstCol.setWidth(borderWidth)
 		nl.lastCol.setWidth(borderWidth)
 	}
-	if !tn.IsNetwork() {
+	if addExternalBorders {
 		nl.prevRow().setHeight(borderWidth)
 		nl.prevCol().setWidth(borderWidth)
 	}
@@ -172,13 +172,13 @@ func (ly *layoutS) setSquaresLocations() {
 	for _, vpc := range ly.network.(*NetworkTreeNode).vpcs {
 		for _, zone := range vpc.(*VpcTreeNode).zones {
 			for _, subnet := range zone.(*ZoneTreeNode).subnets {
-				ly.resolveSquareLocation(subnet)
+				ly.resolveSquareLocation(subnet, false, true)
 			}
-			ly.resolveSquareLocation(zone)
+			ly.resolveSquareLocation(zone, true, true)
 		}
-		ly.resolveSquareLocation(vpc)
+		ly.resolveSquareLocation(vpc, true, true)
 	}
-	ly.resolveSquareLocation(ly.network)
+	ly.resolveSquareLocation(ly.network, true, false)
 }
 
 // ////////////////////////////////////////////////////////////////////////////////////////
