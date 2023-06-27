@@ -33,7 +33,7 @@ func CreateDrawioConnectivityMapFile(network SquareTreeNodeInterface, outputFile
 		vsiYOffset,
 		vsiIconSize,
 		rootID,
-		"FXCXVvDxTQtwc45PbP1s",
+		idsPrefix,
 		network.HasVSIs(),
 		getAllNodes(network)}
 	return writeDrawioFile(data, outputFile)
