@@ -21,6 +21,18 @@ func getOutputFormat(inArgs *InArgs) vpcmodel.OutFormat {
 	return vpcmodel.Text
 }
 
+func analysisTypeToUseCase(inArgs *InArgs) vpcmodel.OutputUseCase {
+	switch *inArgs.AnalysisType {
+	case VsiLevel:
+		return vpcmodel.VsiLevel
+	case DebugSubnet:
+		return vpcmodel.DebugSubnet
+	case SubnetsLevel:
+		return vpcmodel.SubnetsLevel
+	}
+	return vpcmodel.VsiLevel
+}
+
 // The actual main function
 // Takes command-line flags and returns an error rather than exiting, so it can be more easily used in testing
 func _main(cmdlineArgs []string) error {
@@ -42,39 +54,21 @@ func _main(cmdlineArgs []string) error {
 		return fmt.Errorf("error generating cloud config from input vpc resources file: %w", err)
 	}
 
-	var output string
-	switch *inArgs.AnalysisType {
-	case VsiLevel:
-		vpcConn := cloudConfig.GetVPCNetworkConnectivity()
-		// TODO: extend output generator to support other analysis types
-		o := vpcmodel.NewOutputGenerator(cloudConfig, vpcConn)
-		outFile := ""
-		if inArgs.OutputFile != nil {
-			outFile = *inArgs.OutputFile
-		}
-		outFormat := getOutputFormat(inArgs)
-		o.SetOutputFile(outFile, outFormat)
-
-		output, err = o.Generate(outFormat)
-		if err != nil {
-			return fmt.Errorf("output generation error: %w", err)
-		}
-
-	case SubnetsLevel:
-		vpcConn, err := cloudConfig.GetSubnetsConnectivity(true)
-		if err != nil {
-			return fmt.Errorf("analysis error: %w", err)
-		}
-		output = vpcConn.String()
-		// TODO: save to file if required
-
-	case DebugSubnet:
-		output = cloudConfig.GetConnectivityOutputPerEachSubnetSeparately()
-		// TODO: save to file if required
-
-	default:
-		return fmt.Errorf("unexpected analysis type: %s", *inArgs.AnalysisType)
+	og, err := vpcmodel.NewOutputGenerator(cloudConfig, *inArgs.Grouping, analysisTypeToUseCase(inArgs))
+	if err != nil {
+		return err
 	}
+	outFile := ""
+	if inArgs.OutputFile != nil {
+		outFile = *inArgs.OutputFile
+	}
+	outFormat := getOutputFormat(inArgs)
+
+	output, err := og.Generate(outFormat, outFile)
+	if err != nil {
+		return fmt.Errorf("output generation error: %w", err)
+	}
+
 	// print to stdout as well
 	fmt.Println(output)
 

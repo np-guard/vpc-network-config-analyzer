@@ -1,0 +1,11 @@
+
+grouped output:
+147.235.219.206/32 => subnet2-ky : protocol: TCP  dst-ports: 22
+subnet1-ky => 142.0.0.0/8,143.0.0.0/8 : protocol: ICMP  
+subnet1-ky => 161.26.0.0/16 : protocol: UDP  
+subnet2-ky => 142.0.0.0/8 : protocol: ICMP  
+subnet2-ky => subnet1-ky : All Connections
+subnet2-ky => vsi3b-ky[10.240.30.4] : protocol: TCP  
+subnet3-ky => subnet1-ky : All Connections
+vsi3b-ky[10.240.30.4] => subnet2-ky : protocol: TCP  
+vsi3b-ky[10.240.30.4] => vsi3a-ky[10.240.30.5] : All Connections

@@ -21,16 +21,7 @@ tests for the entire flow:
 	- currently comparing only txt output formats
 */
 
-type outputUseCase int
-
 type testMode int
-
-const (
-	uc1  outputUseCase = iota // connectivity between network interfaces and external ip-blocks
-	uc2                       // connectivity per single subnet with nacl
-	uc3a                      // connectivity between subnets (consider nacl + pgw)
-	uc3b                      // connectivity between subnets (consider nacl only)
-)
 
 const (
 	outputComparison testMode = iota // compare actual output to expected output
@@ -38,29 +29,76 @@ const (
 )
 
 type vpcGeneralTest struct {
-	name           string                   // test name
-	inputConfig    string                   // name (relative path) of input config file (json)
-	expectedOutput map[outputUseCase]string // expected output file path
-	actualOutput   map[outputUseCase]string // actual output file path
-	useCases       []outputUseCase          // the list of output use cases to test
-	errPerUseCase  map[outputUseCase]error
+	name           string                            // test name
+	inputConfig    string                            // name (relative path) of input config file (json)
+	expectedOutput map[vpcmodel.OutputUseCase]string // expected output file path
+	actualOutput   map[vpcmodel.OutputUseCase]string // actual output file path
+	useCases       []vpcmodel.OutputUseCase          // the list of output use cases to test
+	errPerUseCase  map[vpcmodel.OutputUseCase]error
+	mode           testMode
+	grouping       bool
+	format         vpcmodel.OutFormat
 }
 
 const (
-	actualOutFilePrefix = "out_"
-	inputFilePrefix     = "input_"
+	actualOutFilePrefix            = "out_"
+	inputFilePrefix                = "input_"
+	suffixOutFileWithGrouping      = "_with_grouping"
+	suffixOutFileDebugSubnet       = "_analysisPerSubnetSeparately"
+	suffixOutFileSubnetsLevel      = "subnetsBased_withPGW"
+	suffixOutFileSubnetsLevelNoPGW = "subnetsBased_withoutPGW"
+	txtOutSuffix                   = ".txt"
+	debugOutSuffix                 = "_debug.txt"
+	mdOutSuffix                    = ".md"
+	jsonOutSuffix                  = ".json"
 )
+
+// getTestFileName returns expected file name and actual file name, for the relevant use case
+func getTestFileName(testName string, uc vpcmodel.OutputUseCase, grouping bool, format vpcmodel.OutFormat) (
+	expectedFileName, actualFileName string,
+	err error) {
+	var res string
+	switch uc {
+	case vpcmodel.VsiLevel:
+		res = testName
+		if grouping {
+			res += suffixOutFileWithGrouping
+		}
+	case vpcmodel.DebugSubnet:
+		res = testName + suffixOutFileDebugSubnet
+	case vpcmodel.SubnetsLevel:
+		res = testName + suffixOutFileSubnetsLevel
+	case vpcmodel.SubnetsLevelNoPGW:
+		res = testName + suffixOutFileSubnetsLevelNoPGW
+	}
+	switch format {
+	case vpcmodel.Text:
+		res += txtOutSuffix
+	case vpcmodel.DEBUG:
+		res += debugOutSuffix
+	case vpcmodel.MD:
+		res += mdOutSuffix
+	case vpcmodel.JSON:
+		res += jsonOutSuffix
+	default:
+		return "", "", errors.New("unexpected out format")
+	}
+
+	expectedFileName = res
+	actualFileName = actualOutFilePrefix + res
+	return expectedFileName, actualFileName, nil
+}
 
 // initTest: based on the test name, set the input config file name, and the output
 // files names (actual and expected), per use case
 func (tt *vpcGeneralTest) initTest() {
 	tt.inputConfig = inputFilePrefix + tt.name + ".json"
-	tt.expectedOutput = map[outputUseCase]string{}
-	tt.actualOutput = map[outputUseCase]string{}
+	tt.expectedOutput = map[vpcmodel.OutputUseCase]string{}
+	tt.actualOutput = map[vpcmodel.OutputUseCase]string{}
 
 	// init field of expected errs
 	if tt.errPerUseCase == nil {
-		tt.errPerUseCase = map[outputUseCase]error{}
+		tt.errPerUseCase = map[vpcmodel.OutputUseCase]error{}
 	}
 	for _, uc := range tt.useCases {
 		if _, ok := tt.errPerUseCase[uc]; !ok {
@@ -69,53 +107,120 @@ func (tt *vpcGeneralTest) initTest() {
 	}
 }
 
+var tests = []*vpcGeneralTest{
+	// batch1: cover all use-cases, with text output format , no grouping
+	{
+		name: "acl_testing3",
+		// TODO: currently skipping uc3 since it is not supported with partial subnet connectivity
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.VsiLevel, vpcmodel.DebugSubnet},
+		format:   vpcmodel.Text,
+	},
+	{
+		name:     "sg_testing1_new",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.VsiLevel, vpcmodel.DebugSubnet, vpcmodel.SubnetsLevel},
+		format:   vpcmodel.Text,
+	},
+	{
+		name:     "demo_with_instances",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.VsiLevel, vpcmodel.DebugSubnet, vpcmodel.SubnetsLevel},
+		format:   vpcmodel.Text,
+	},
+
+	// batch2: only vsi-level use-case, with grouping , text format
+	{
+		name:     "acl_testing3",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.VsiLevel},
+		grouping: true,
+		format:   vpcmodel.Text,
+	},
+	{
+		name:     "sg_testing1_new",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.VsiLevel},
+		grouping: true,
+		format:   vpcmodel.Text,
+	},
+	{
+		name:     "demo_with_instances",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.VsiLevel},
+		grouping: true,
+		format:   vpcmodel.Text,
+	},
+
+	//batch3: only vsi-level use-case, no grouping, with debug & md output formats
+	{
+		name:     "acl_testing3",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.VsiLevel},
+		format:   vpcmodel.MD,
+	},
+	{
+		name:     "sg_testing1_new",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.VsiLevel},
+		format:   vpcmodel.MD,
+	},
+	{
+		name:     "demo_with_instances",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.VsiLevel},
+		format:   vpcmodel.MD,
+	},
+	{
+		name:     "acl_testing3",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.VsiLevel},
+		format:   vpcmodel.DEBUG,
+	},
+	{
+		name:     "sg_testing1_new",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.VsiLevel},
+		format:   vpcmodel.DEBUG,
+	},
+	{
+		name:     "demo_with_instances",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.VsiLevel},
+		format:   vpcmodel.DEBUG,
+	},
+}
+
 // uncomment the function below to run for updating the expected output
-/*func TestAllUpdateExpectedOutput(t *testing.T) {
-	testAll(t, outputGeneration)
+/*func TestAllWithGeneration(t *testing.T) {
+	// tests is the list of tests to run
+	for testIdx := range tests {
+		tt := tests[testIdx]
+		tt.mode = outputGeneration
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			tt.runTest(t)
+		})
+	}
+	fmt.Println("done")
 }*/
 
-// TestAllCompareToExpectedOutput runs all output comparison tests (all specified use-cases, txt formats compared)
-func TestAllCompareToExpectedOutput(t *testing.T) {
-	testAll(t, outputComparison)
+func TestAllWithComparison(t *testing.T) {
+	// tests is the list of tests to run
+	for testIdx := range tests {
+		tt := tests[testIdx]
+		tt.mode = outputComparison
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			tt.runTest(t)
+		})
+	}
+	fmt.Println("done")
 }
 
 // TODO: this test function should be removed after supporting this analysis
 func TestUnsupportedAnalysis(t *testing.T) {
 	test := &vpcGeneralTest{
 		name:     "acl_testing3",
-		useCases: []outputUseCase{uc3a},
-		errPerUseCase: map[outputUseCase]error{
-			uc3a: errors.New("unsupported connectivity map with partial subnet ranges per connectivity result"),
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.SubnetsLevel},
+		format:   vpcmodel.Text,
+		errPerUseCase: map[vpcmodel.OutputUseCase]error{
+			vpcmodel.SubnetsLevel: errors.New("unsupported connectivity map with partial subnet ranges per connectivity result"),
 		},
 	}
-	runTest(t, test, outputGeneration)
+	test.mode = outputGeneration
+	test.runTest(t)
 }
 
-func testAll(t *testing.T, mode testMode) {
-	// tests is the list of tests to run
-	tests := []*vpcGeneralTest{
-		{
-			name: "acl_testing3",
-			// TODO: currently skipping uc3 since it is not supported with partial subnet connectivity
-			useCases: []outputUseCase{uc1, uc2},
-		},
-		{
-			name:     "sg_testing1_new",
-			useCases: []outputUseCase{uc1, uc2, uc3a},
-		},
-		{
-			name:     "demo_with_instances",
-			useCases: []outputUseCase{uc1, uc2, uc3a},
-		},
-	}
-
-	for _, tt := range tests {
-		runTest(t, tt, mode)
-	}
-	fmt.Println("done")
-}
-
-func runTest(t *testing.T, tt *vpcGeneralTest, mode testMode) {
+func (tt *vpcGeneralTest) runTest(t *testing.T) {
 	// init test - set the input/output file names according to test name
 	tt.initTest()
 
@@ -124,7 +229,7 @@ func runTest(t *testing.T, tt *vpcGeneralTest, mode testMode) {
 
 	// generate actual output for all use cases specified for this test
 	for _, uc := range tt.useCases {
-		err := runTestPerUseCase(t, tt, cloudConfig, uc, mode)
+		err := runTestPerUseCase(t, tt, cloudConfig, uc, tt.mode)
 		require.Equal(t, tt.errPerUseCase[uc], err, "comparing actual err to expected err")
 	}
 	for uc, outFile := range tt.actualOutput {
@@ -151,46 +256,22 @@ func getCloudConfig(t *testing.T, tt *vpcGeneralTest) *vpcmodel.CloudConfig {
 }
 
 // runTestPerUseCase runs the connectivity analysis for the required use case and compares/generates the output
-func runTestPerUseCase(t *testing.T, tt *vpcGeneralTest, c *vpcmodel.CloudConfig, uc outputUseCase, mode testMode) error {
-	expectedFileName, actualFileName := getTestFileName(tt.name, uc)
+func runTestPerUseCase(t *testing.T, tt *vpcGeneralTest, c *vpcmodel.CloudConfig, uc vpcmodel.OutputUseCase, mode testMode) error {
+	expectedFileName, actualFileName, err := getTestFileName(tt.name, uc, tt.grouping, tt.format)
+	if err != nil {
+		return err
+	}
 	tt.actualOutput[uc] = filepath.Join(getTestsDir(), actualFileName)
 	tt.expectedOutput[uc] = filepath.Join(getTestsDir(), expectedFileName)
 	var actualOutput string
 
-	switch uc {
-	// connectivity between network interfaces and external ip-blocks
-	case uc1:
-		vpcConn := c.GetVPCNetworkConnectivity()
-		// generate output
-		o := vpcmodel.NewOutputGenerator(c, vpcConn)
-		setTestOutputFiles(o, tt.name)
-		actualOutput = getTestOutput(t, o)
-
-	// connectivity per each subnet separately with its attached nacl
-	case uc2:
-		actualOutput = c.GetConnectivityOutputPerEachSubnetSeparately()
-
-	// connectivity between subnets (consider nacl + pgw)
-	case uc3a:
-		vpcConn, err := c.GetSubnetsConnectivity(true)
-		if err != nil {
-			return err
-		}
-		actualOutput = vpcConn.String()
-
-	// connectivity between subnets (consider nacl only)
-	case uc3b:
-		vpcConn, err := c.GetSubnetsConnectivity(false)
-		if err != nil {
-			return err
-		}
-		actualOutput = vpcConn.String()
+	og, err := vpcmodel.NewOutputGenerator(c, tt.grouping, uc)
+	if err != nil {
+		return err
 	}
-
-	if uc != uc1 { // for uc1 func getTestOutput() already writes output to file
-		if err := vpcmodel.WriteToFile(actualOutput, tt.actualOutput[uc]); err != nil {
-			return err
-		}
+	actualOutput, err = og.Generate(tt.format, tt.actualOutput[uc])
+	if err != nil {
+		return err
 	}
 
 	if mode == outputComparison {
@@ -213,25 +294,6 @@ func runTestPerUseCase(t *testing.T, tt *vpcGeneralTest, c *vpcmodel.CloudConfig
 	}
 
 	return nil
-}
-
-// getTestFileName returns expected file name and actual file name, for the relevant use case
-func getTestFileName(testName string, uc outputUseCase) (expectedFileName, actualFileName string) {
-	var res string
-	switch uc {
-	case uc1:
-		res = testName
-	case uc2:
-		res = testName + "_analysisPerSubnetSeparately"
-	case uc3a:
-		res = testName + "subnetsBased_withPGW"
-	case uc3b:
-		res = testName + "subnetsBased_withoutPGW"
-	}
-	res += ".txt"
-	expectedFileName = res
-	actualFileName = actualOutFilePrefix + res
-	return expectedFileName, actualFileName
 }
 
 // compareTextualResult is called in case of output mismatch, to provide more details on the difference
@@ -263,30 +325,4 @@ func compareTextualResult(expected, actual string) {
 func getTestsDir() string {
 	currentDir, _ := os.Getwd()
 	return filepath.Join(currentDir, "examples")
-}
-
-func setTestOutputFiles(o *vpcmodel.OutputGenerator, testName string) {
-	filePrefix := filepath.Join(getTestsDir(), actualOutFilePrefix+testName)
-	txtFile := filePrefix + ".txt"
-	jsonFile := filePrefix + ".json"
-	mdFile := filePrefix + ".md"
-	o.SetOutputFile(txtFile, vpcmodel.Text)
-	o.SetOutputFile(jsonFile, vpcmodel.JSON)
-	o.SetOutputFile(mdFile, vpcmodel.MD)
-}
-
-// getTestOutput generates test output with md,txt,json formats and returns the txt output string
-func getTestOutput(t *testing.T, o *vpcmodel.OutputGenerator) string {
-	var textOutput string
-	var err error
-	if textOutput, err = o.Generate(vpcmodel.Text); err != nil {
-		t.Fatalf("err: %s", err)
-	}
-	if _, err := o.Generate(vpcmodel.JSON); err != nil {
-		t.Fatalf("err: %s", err)
-	}
-	if _, err := o.Generate(vpcmodel.MD); err != nil {
-		t.Fatalf("err: %s", err)
-	}
-	return textOutput
 }

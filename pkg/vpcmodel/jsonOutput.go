@@ -2,6 +2,7 @@ package vpcmodel
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 )
 
@@ -9,9 +10,9 @@ type JSONoutputFormatter struct {
 }
 
 type connLine struct {
-	Src  Node   `json:"src"`
-	Dst  Node   `json:"dst"`
-	Conn string `json:"conn"`
+	Src  EndpointElem `json:"src"`
+	Dst  EndpointElem `json:"dst"`
+	Conn string       `json:"conn"`
 }
 
 type architecture struct {
@@ -33,9 +34,7 @@ func WriteToFile(content, fileName string) error {
 	return nil
 }
 
-func (j *JSONoutputFormatter) WriteOutput(c *CloudConfig, conn *VPCConnectivity, outFile string) (string, error) {
-	all := allInfo{}
-
+func getConnLines(conn *VPCConnectivity) []connLine {
 	connLines := []connLine{}
 
 	for src, srcMap := range conn.AllowedConnsCombined {
@@ -46,7 +45,28 @@ func (j *JSONoutputFormatter) WriteOutput(c *CloudConfig, conn *VPCConnectivity,
 			connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: conn.String()})
 		}
 	}
+	return connLines
+}
+
+func getGroupedConnLines(conn *VPCConnectivity) []connLine {
+	connLines := make([]connLine, len(conn.GroupedConnectivity.GroupedLines))
+	for i, line := range conn.GroupedConnectivity.GroupedLines {
+		connLines[i] = connLine{line.Src, line.Dst, string(line.Conn)}
+	}
+	return connLines
+}
+
+func (j *JSONoutputFormatter) WriteOutputVsiLevel(c *CloudConfig, conn *VPCConnectivity, outFile string, grouping bool) (string, error) {
+	all := allInfo{}
+	var connLines []connLine
+	if grouping {
+		connLines = getGroupedConnLines(conn)
+	} else {
+		connLines = getConnLines(conn)
+	}
+
 	all.Connectivity = connLines
+
 	all.Arch = architecture{
 		Nodes:    []map[string]string{},
 		NodeSets: []map[string]string{},
@@ -73,4 +93,12 @@ func (j *JSONoutputFormatter) WriteOutput(c *CloudConfig, conn *VPCConnectivity,
 	resStr := string(res)
 	err = WriteToFile(resStr, outFile)
 	return resStr, err
+}
+
+func (j *JSONoutputFormatter) WriteOutputSubnetLevel(subnetsConn *VPCsubnetConnectivity, outFile string) (string, error) {
+	return "", errors.New("SubnetLevel use case not supported for md format currently ")
+}
+
+func (j *JSONoutputFormatter) WriteOutputDebugSubnet(c *CloudConfig, outFile string) (string, error) {
+	return "", errors.New("DebugSubnet use case not supported for md format currently ")
 }

@@ -20,6 +20,9 @@ type VPCConnectivity struct {
 
 	// allowed connectivity combined and stateful
 	AllowedConnsCombinedStateful map[Node]map[Node]*common.ConnectionSet
+
+	// grouped connectivity result
+	GroupedConnectivity *GroupConnLines
 }
 
 type ConnectivityResult struct {
@@ -27,7 +30,15 @@ type ConnectivityResult struct {
 	EgressAllowedConns  map[Node]*common.ConnectionSet
 }
 
+func (v *VPCConnectivity) GroupedConnectivityString() string {
+	return "\ngrouped output:\n" + v.GroupedConnectivity.String()
+}
+
 func (v *VPCConnectivity) String() string {
+	return getCombinedConnsStr(v.AllowedConnsCombined)
+}
+
+func (v *VPCConnectivity) DetailedString() string {
 	res := "=================================== distributed inbound/outbound connections:\n"
 	strList := []string{}
 	for node, connectivity := range v.AllowedConns {

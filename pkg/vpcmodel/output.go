@@ -11,40 +11,52 @@ const (
 	Text
 	MD
 	CSV
+	DEBUG // extended txt format with more details
 )
 
 const (
 	writeFileMde = 0o600
 )
 
+type OutputUseCase int
+
+const (
+	VsiLevel          OutputUseCase = iota // connectivity between network interfaces and external ip-blocks
+	DebugSubnet                            // connectivity per single subnet with nacl
+	SubnetsLevel                           // connectivity between subnets (consider nacl + pgw)
+	SubnetsLevelNoPGW                      // connectivity between subnets (consider nacl only)
+)
+
 type OutputGenerator struct {
-	config      *CloudConfig
-	conn        *VPCConnectivity
-	outputFiles map[OutFormat]string
+	config         *CloudConfig
+	outputGrouping bool
+	useCase        OutputUseCase
+	nodesConn      *VPCConnectivity
+	subnetsConn    *VPCsubnetConnectivity
 }
 
-func NewOutputGenerator(c *CloudConfig, conn *VPCConnectivity) *OutputGenerator {
-	return &OutputGenerator{
-		config: c,
-		conn:   conn,
-		outputFiles: map[OutFormat]string{
-			JSON: "",
-			Text: "",
-			MD:   "",
-			CSV:  "",
-		},
+func NewOutputGenerator(c *CloudConfig, grouping bool, uc OutputUseCase) (*OutputGenerator, error) {
+	res := &OutputGenerator{
+		config:         c,
+		outputGrouping: grouping,
+		useCase:        uc,
 	}
+
+	if uc == VsiLevel {
+		res.nodesConn = c.GetVPCNetworkConnectivity()
+	}
+	if uc == SubnetsLevel {
+		subnetsConn, err := c.GetSubnetsConnectivity(true)
+		if err != nil {
+			return nil, err
+		}
+		res.subnetsConn = subnetsConn
+	}
+
+	return res, nil
 }
 
-func (o *OutputGenerator) SetOutputFile(outFileName string, f OutFormat) {
-	o.outputFiles[f] = outFileName
-}
-
-func (o *OutputGenerator) GetOutputFile(f OutFormat) string {
-	return o.outputFiles[f]
-}
-
-func (o *OutputGenerator) Generate(f OutFormat) (string, error) {
+func (o *OutputGenerator) Generate(f OutFormat, outFile string) (string, error) {
 	var formatter OutputFormatter
 	switch f {
 	case JSON:
@@ -53,12 +65,26 @@ func (o *OutputGenerator) Generate(f OutFormat) (string, error) {
 		formatter = &TextoutputFormatter{}
 	case MD:
 		formatter = &MDoutputFormatter{}
+	case DEBUG:
+		formatter = &DebugoutputFormatter{}
 	default:
 		return "", errors.New("unsupported output format")
 	}
-	return formatter.WriteOutput(o.config, o.conn, o.outputFiles[f])
+
+	switch o.useCase {
+	case VsiLevel:
+		return formatter.WriteOutputVsiLevel(o.config, o.nodesConn, outFile, o.outputGrouping)
+	case DebugSubnet:
+		return formatter.WriteOutputDebugSubnet(o.config, outFile)
+	case SubnetsLevel:
+		return formatter.WriteOutputSubnetLevel(o.subnetsConn, outFile)
+	}
+	return "", errors.New("unsupported useCase argument")
 }
 
+// OutputFormatter has several write functions per each use-case
 type OutputFormatter interface {
-	WriteOutput(c *CloudConfig, conn *VPCConnectivity, outFile string) (string, error)
+	WriteOutputVsiLevel(c *CloudConfig, conn *VPCConnectivity, outFile string, grouping bool) (string, error)
+	WriteOutputSubnetLevel(subnetsConn *VPCsubnetConnectivity, outFile string) (string, error)
+	WriteOutputDebugSubnet(c *CloudConfig, outFile string) (string, error)
 }
