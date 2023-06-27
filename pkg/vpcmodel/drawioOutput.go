@@ -1,6 +1,7 @@
 package vpcmodel
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
@@ -58,7 +59,7 @@ func (d *DrawioOutputFormatter) init(cConfig *CloudConfig, conn *VPCConnectivity
 	d.isEdgeDirected = map[Edge]bool{}
 }
 
-func (d *DrawioOutputFormatter) WriteOutput(cConfig *CloudConfig, conn *VPCConnectivity, outFile string) (string, error) {
+func (d *DrawioOutputFormatter) WriteOutputVsiLevel(cConfig *CloudConfig, conn *VPCConnectivity, outFile string, grouping bool) (string, error) {
 	d.init(cConfig, conn)
 	d.createDrawioTree()
 	err := drawio.CreateDrawioConnectivityMapFile(d.network, outFile)
@@ -210,4 +211,12 @@ func (d *DrawioOutputFormatter) createEdges() {
 			cn.SetRouter(d.routers[dstTn], true)
 		}
 	}
+}
+
+func (d *DrawioOutputFormatter) WriteOutputSubnetLevel(subnetsConn *VPCsubnetConnectivity, outFile string) (string, error) {
+	return "", errors.New("SubnetLevel use case not supported for md format currently ")
+}
+
+func (d *DrawioOutputFormatter) WriteOutputDebugSubnet(c *CloudConfig, outFile string) (string, error) {
+	return "", errors.New("DebugSubnet use case not supported for md format currently ")
 }

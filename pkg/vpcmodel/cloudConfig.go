@@ -12,6 +12,19 @@ type CloudConfig struct {
 	NameToResource   map[string]NamedResourceIntf
 }
 
+// TODO: consider add this mapping to CloudConfig
+func (c *CloudConfig) getSubnetOfNode(n Node) NodeSet {
+	for _, nodeSet := range c.NodeSets {
+		if nodeSet.Kind() == subnetKind {
+			subnetNodes := nodeSet.Nodes()
+			if HasNode(subnetNodes, n) {
+				return nodeSet
+			}
+		}
+	}
+	return nil
+}
+
 func (c *CloudConfig) String() string {
 	res := "cloud config details:\n"
 	lines := []string{}
