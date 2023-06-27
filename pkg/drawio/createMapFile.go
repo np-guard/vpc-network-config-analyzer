@@ -18,11 +18,10 @@ type drawioData struct {
 	VSIYOffset int
 	VSISize    int
 	RootID     int
+	IDsPrefix  string
 	ShowNIIcon bool
 	Nodes      []TreeNodeInterface
 }
-
-var hasVsiIcon bool = false
 
 func CreateDrawioConnectivityMapFile(network SquareTreeNodeInterface, outputFile string) error {
 	newLayout(network).layout()
@@ -34,7 +33,8 @@ func CreateDrawioConnectivityMapFile(network SquareTreeNodeInterface, outputFile
 		vsiYOffset,
 		vsiIconSize,
 		rootID,
-		hasVsiIcon,
+		"FXCXVvDxTQtwc45PbP1s",
+		network.HasVSIs(),
 		getAllNodes(network)}
 	return writeDrawioFile(data, outputFile)
 }
