@@ -19,6 +19,8 @@ type drawioData struct {
 	VSISize    int
 	RootID     int
 	IDsPrefix  string
+	// ShowNIIcon says if to display the NI as an NI image, or a VSI image
+	// the rule is that if we have a vsi icon, then we display the NI icon as an NI image
 	ShowNIIcon bool
 	Nodes      []TreeNodeInterface
 }
