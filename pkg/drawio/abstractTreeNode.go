@@ -23,7 +23,7 @@ type abstractTreeNode struct {
 	location *Location
 }
 
-func (tn *abstractTreeNode) Name() string   { return tn.name }
+func (tn *abstractTreeNode) Label() string  { return tn.name }
 func (tn *abstractTreeNode) ID() uint       { return tn.id }
 func (tn *abstractTreeNode) TextID() uint   { return tn.id + textID }
 func (tn *abstractTreeNode) X() int         { return tn.x }

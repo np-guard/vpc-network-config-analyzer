@@ -12,54 +12,65 @@ type Edge struct {
 	label string
 }
 
+// DrawioOutputFormatter create the drawio connectivity map.
+// It build the drawio tree out of the CloudConfig and VPCConnectivity, and output it to a drawio file
 type DrawioOutputFormatter struct {
-	network             *drawio.NetworkTreeNode
-	vpc                 *drawio.VpcTreeNode
-	allZonesTreeNodes   map[string]*drawio.ZoneTreeNode
-	allSubnetsTreeNodes map[string]*drawio.SubnetTreeNode
-	allIconsTreeNodes   map[interface{}]drawio.IconTreeNodeInterface
-	ConnectedNodes      map[interface{}]bool
-	routers             map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface
-	sgMembers           map[string]*drawio.SGTreeNode
-	isEdgeDirected      map[Edge]bool
+	cConfig                *CloudConfig
+	conn                   *VPCConnectivity
+	network                *drawio.NetworkTreeNode
+	vpc                    *drawio.VpcTreeNode
+	allZonesTreeNodes      map[string]*drawio.ZoneTreeNode
+	uidToSubnetsTreeNodes  map[string]*drawio.SubnetTreeNode
+	cidrToSubnetsTreeNodes map[string]*drawio.SubnetTreeNode
+	allIconsTreeNodes      map[NamedResourceIntf]drawio.IconTreeNodeInterface
+	isExternalIcon         map[drawio.IconTreeNodeInterface]bool
+	connectedNodes         map[NamedResourceIntf]bool
+	routers                map[drawio.IconTreeNodeInterface]drawio.IconTreeNodeInterface
+	sgMembers              map[string]*drawio.SGTreeNode
+	isEdgeDirected         map[Edge]bool
 }
 
-func (d *DrawioOutputFormatter) init() {
+func (d *DrawioOutputFormatter) init(cConfig *CloudConfig, conn *VPCConnectivity) {
+	d.cConfig = cConfig
+	d.conn = conn
 	d.allZonesTreeNodes = map[string]*drawio.ZoneTreeNode{}
-	d.allSubnetsTreeNodes = map[string]*drawio.SubnetTreeNode{}
-	d.allIconsTreeNodes = map[interface{}]drawio.IconTreeNodeInterface{}
-	d.ConnectedNodes = map[interface{}]bool{}
-	d.routers = map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface{}
+	d.uidToSubnetsTreeNodes = map[string]*drawio.SubnetTreeNode{}
+	d.cidrToSubnetsTreeNodes = map[string]*drawio.SubnetTreeNode{}
+	d.allIconsTreeNodes = map[NamedResourceIntf]drawio.IconTreeNodeInterface{}
+	d.isExternalIcon = map[drawio.IconTreeNodeInterface]bool{}
+	d.connectedNodes = map[NamedResourceIntf]bool{}
+	d.routers = map[drawio.IconTreeNodeInterface]drawio.IconTreeNodeInterface{}
 	d.sgMembers = map[string]*drawio.SGTreeNode{}
 	d.isEdgeDirected = map[Edge]bool{}
 }
 
-func (d *DrawioOutputFormatter) WriteOutput(c *CloudConfig, conn *VPCConnectivity, outFile string) (string, error) {
-	d.init()
-	network := d.createNetwork(c, conn)
-	drawio.CreateDrawioConnectivityMapFile(network, outFile)
+func (d *DrawioOutputFormatter) WriteOutput(cConfig *CloudConfig, conn *VPCConnectivity, outFile string) (string, error) {
+	d.init(cConfig, conn)
+	d.createDrawioTree()
+	drawio.CreateDrawioConnectivityMapFile(d.network, outFile)
 	return "", nil
 }
 
-func (d *DrawioOutputFormatter) createNetwork(c *CloudConfig, conn *VPCConnectivity) drawio.SquareTreeNodeInterface {
-	d.createEdgesMap(conn)
-	d.createNodeSets(c)
-	d.createFilters(c)
-	d.createNodes(c)
-	d.createRouters(c)
+func (d *DrawioOutputFormatter) createDrawioTree() {
+	d.createEdgesMap()
+	d.createNodeSets()
+	d.createFilters()
+	d.createNodes()
+	d.createVSIs()
+	d.createRouters()
 	d.createEdges()
-	return d.network
 }
 
-func (d *DrawioOutputFormatter) getZoneTN(a NamedResourceIntf) *drawio.ZoneTreeNode {
-	zoneName := a.(ZonalNamedResourceIntf).ZoneName()
+func (d *DrawioOutputFormatter) getZoneTreeNode(resource NamedResourceIntf) *drawio.ZoneTreeNode {
+	zoneName := resource.(ZonalNamedResourceIntf).ZoneName()
 	if _, ok := d.allZonesTreeNodes[zoneName]; !ok {
 		d.allZonesTreeNodes[zoneName] = drawio.NewZoneTreeNode(d.vpc, zoneName)
 	}
 	return d.allZonesTreeNodes[zoneName]
 }
-func (d *DrawioOutputFormatter) createEdgesMap(conn *VPCConnectivity) {
-	for src, srcMap := range conn.AllowedConnsCombined {
+
+func (d *DrawioOutputFormatter) createEdgesMap() {
+	for src, srcMap := range d.conn.AllowedConnsCombined {
 		for dst, conn := range srcMap {
 			if conn.IsEmpty() {
 				continue
@@ -76,24 +87,108 @@ func (d *DrawioOutputFormatter) createEdgesMap(conn *VPCConnectivity) {
 			} else {
 				d.isEdgeDirected[edge] = true
 			}
-			d.ConnectedNodes[src] = true
-			d.ConnectedNodes[dst] = true
+			d.connectedNodes[src] = true
+			d.connectedNodes[dst] = true
 		}
 	}
 }
 
-func (d *DrawioOutputFormatter) createRouters(c *CloudConfig) {
-	for _, r := range c.RoutingResources {
+func (d *DrawioOutputFormatter) createNodeSets() {
+	d.network = drawio.NewNetworkTreeNode()
+	// todo: support multi vnc
+	for _, ns := range d.cConfig.NodeSets {
+		details := ns.DetailsMap()
+		if details[DetailsAttributeKind] == "VPC" {
+			d.vpc = drawio.NewVpcTreeNode(d.network, details[DetailsAttributeName])
+		}
+	}
+	for _, ns := range d.cConfig.NodeSets {
+		details := ns.DetailsMap()
+		if details[DetailsAttributeKind] == "Subnet" {
+			subnet := drawio.NewSubnetTreeNode(d.getZoneTreeNode(ns), details[DetailsAttributeName], details["cidr"], "")
+			d.uidToSubnetsTreeNodes[details["uid"]] = subnet
+			d.cidrToSubnetsTreeNodes[details["cidr"]] = subnet
+		}
+	}
+}
+
+func (d *DrawioOutputFormatter) createFilters() {
+	for _, fl := range d.cConfig.FilterResources {
+		for _, details := range fl.DetailsMap() {
+			if details[DetailsAttributeKind] == "SG" {
+				sgTn := drawio.NewSGTreeNode(d.vpc, details["name"])
+				for _, member := range strings.Split(details["members"], ",") {
+					d.sgMembers[member] = sgTn
+				}
+			} else if details[DetailsAttributeKind] == "NACL" {
+				for _, subnetCidr := range strings.Split(details["subnets"], ",") {
+					if subnetCidr != "" {
+						d.cidrToSubnetsTreeNodes[subnetCidr].SetACL(details["name"])
+					}
+				}
+			}
+		}
+	}
+}
+
+func (d *DrawioOutputFormatter) createNodes() {
+	for _, n := range d.cConfig.Nodes {
+		details := n.DetailsMap()
+		if details[DetailsAttributeKind] == "NetworkInterface" {
+			// todo: what is the name of NI
+			d.allIconsTreeNodes[n] = drawio.NewNITreeNode(d.uidToSubnetsTreeNodes[details["subnetUID"]], d.sgMembers[details["address"]], details["name"])
+		} else if details[DetailsAttributeKind] == "ExternalNetwork" {
+			if d.connectedNodes[n] {
+				d.allIconsTreeNodes[n] = drawio.NewInternetTreeNode(d.network, details[DetailsAttributeCIDR])
+				d.isExternalIcon[d.allIconsTreeNodes[n]] = true
+			}
+		}
+	}
+	for _, ns := range d.cConfig.NodeSets {
+		details := ns.DetailsMap()
+		if details[DetailsAttributeKind] == "VSI" {
+			if len(ns.Nodes()) == 0 {
+				continue
+			} else {
+				vsiNIs := []drawio.TreeNodeInterface{}
+				for _, ni := range ns.Nodes() {
+					vsiNIs = append(vsiNIs, d.allIconsTreeNodes[ni])
+				}
+				drawio.GroupNIsWithVSI(d.getZoneTreeNode(ns), ns.Name(), vsiNIs)
+			}
+		}
+	}
+}
+
+func (d *DrawioOutputFormatter) createVSIs() {
+	for _, ns := range d.cConfig.NodeSets {
+		details := ns.DetailsMap()
+		if details[DetailsAttributeKind] == "VSI" {
+			if len(ns.Nodes()) == 0 {
+				continue
+			} else {
+				vsiNIs := []drawio.TreeNodeInterface{}
+				for _, ni := range ns.Nodes() {
+					vsiNIs = append(vsiNIs, d.allIconsTreeNodes[ni])
+				}
+				drawio.GroupNIsWithVSI(d.getZoneTreeNode(ns), ns.Name(), vsiNIs)
+			}
+		}
+	}
+}
+
+func (d *DrawioOutputFormatter) createRouters() {
+	for _, r := range d.cConfig.RoutingResources {
 		dm := r.DetailsMap()
 		if dm[DetailsAttributeKind] == "PublicGateway" {
-			pgwTn := drawio.NewGatewayTreeNode(d.getZoneTN(r), dm[DetailsAttributeName])
+			pgwTn := drawio.NewGatewayTreeNode(d.getZoneTreeNode(r), dm[DetailsAttributeName])
 			d.allIconsTreeNodes[r] = pgwTn
 			for _, ni := range r.Src() {
-				nitn := d.allIconsTreeNodes[ni].(*drawio.NITreeNode)
-				d.routers[nitn] = pgwTn
+				d.routers[d.allIconsTreeNodes[ni]] = pgwTn
 			}
 		}
 		if dm[DetailsAttributeKind] == "FloatingIP" {
+			// todo - what if r.Src() is not at size of one?
 			nitn := d.allIconsTreeNodes[r.Src()[0]].(*drawio.NITreeNode)
 			nitn.SetFIP(r.Name())
 			d.routers[nitn] = nitn
@@ -102,76 +197,15 @@ func (d *DrawioOutputFormatter) createRouters(c *CloudConfig) {
 }
 
 func (d *DrawioOutputFormatter) createEdges() {
-	for e, directed := range d.isEdgeDirected {
-		srcTn := d.allIconsTreeNodes[e.src]
-		dstTn := d.allIconsTreeNodes[e.dst]
-		cn := drawio.NewConnectivityLineTreeNode(d.network, srcTn, dstTn, directed, e.label)
-		// todo - can we get this info from the VPCConnectivity:
-		if d.routers[srcTn] != nil && dstTn.IsInternet() {
+	for edge, directed := range d.isEdgeDirected {
+		srcTn := d.allIconsTreeNodes[edge.src]
+		dstTn := d.allIconsTreeNodes[edge.dst]
+		cn := drawio.NewConnectivityLineTreeNode(d.network, srcTn, dstTn, directed, edge.label)
+		if d.routers[srcTn] != nil && d.isExternalIcon[dstTn] {
 			cn.SetRouter(d.routers[srcTn], false)
 		}
-		if d.routers[dstTn] != nil && srcTn.IsInternet() {
+		if d.routers[dstTn] != nil && d.isExternalIcon[srcTn] {
 			cn.SetRouter(d.routers[dstTn], true)
 		}
 	}
-}
-
-func (d *DrawioOutputFormatter) createFilters(c *CloudConfig) {
-	for _, fl := range c.FilterResources {
-		dms := fl.DetailsMap()
-		if fl.Kind() == "SecurityGroupLayer" {
-			for _, dm := range dms {
-				if dm[DetailsAttributeKind] == "SG" {
-					sgTn := drawio.NewSGTreeNode(d.vpc, dm["name"])
-					for _, member := range strings.Split(dm["members"], ",") {
-						d.sgMembers[member] = sgTn
-					}
-				}
-			}
-		}
-	}
-}
-func (d *DrawioOutputFormatter) createNodes(c *CloudConfig) {
-	for _, n := range c.Nodes {
-		dm := n.DetailsMap()
-		if dm[DetailsAttributeKind] == "NetworkInterface" {
-			d.allIconsTreeNodes[n] = drawio.NewNITreeNode(d.allSubnetsTreeNodes[dm["subnetUID"]], d.sgMembers[dm["address"]], "")
-		} else if dm[DetailsAttributeKind] == "ExternalNetwork" {
-			if d.ConnectedNodes[n] {
-				d.allIconsTreeNodes[n] = drawio.NewInternetTreeNode(d.network, dm[DetailsAttributeCIDR])
-			}
-		}
-	}
-	for _, ns := range c.NodeSets {
-		dm := ns.DetailsMap()
-		if dm[DetailsAttributeKind] == "VSI" {
-			if len(ns.Nodes()) == 0 {
-				continue
-			} else {
-				vsiNIs := []drawio.TreeNodeInterface{}
-				for _, ni := range ns.Nodes() {
-					vsiNIs = append(vsiNIs, d.allIconsTreeNodes[ni])
-				}
-				drawio.GroupNIsWithVSI(d.getZoneTN(ns), ns.Name(), vsiNIs)
-			}
-		}
-	}
-}
-
-func (d *DrawioOutputFormatter) createNodeSets(c *CloudConfig) {
-	d.network = drawio.NewNetworkTreeNode()
-	// todo: support multi vnc
-	for _, ns := range c.NodeSets {
-		dm := ns.DetailsMap()
-		if dm[DetailsAttributeKind] == "VPC" {
-			d.vpc = drawio.NewVpcTreeNode(d.network, dm[DetailsAttributeName])
-		}
-	}
-	for _, ns := range c.NodeSets {
-		dm := ns.DetailsMap()
-		if dm[DetailsAttributeKind] == "Subnet" {
-			d.allSubnetsTreeNodes[dm["uid"]] = drawio.NewSubnetTreeNode(d.getZoneTN(ns), dm[DetailsAttributeName], "ip", "key")
-		}
-	}
-
 }

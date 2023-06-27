@@ -1,5 +1,7 @@
 package drawio
 
+import "strings"
+
 // /////////////////////////////////////////////////////////////////////
 type SquareTreeNodeInterface interface {
 	TreeNodeInterface
@@ -128,7 +130,7 @@ type PartialSGTreeNode struct {
 }
 
 func newPartialSGTreeNode(parent *SGTreeNode) *PartialSGTreeNode {
-	psg := PartialSGTreeNode{newAbstractSquareTreeNode(parent, parent.Name())}
+	psg := PartialSGTreeNode{newAbstractSquareTreeNode(parent, parent.name)}
 	parent.partialSgs = append(parent.partialSgs, &psg)
 	return &psg
 }
@@ -165,7 +167,11 @@ func NewSubnetTreeNode(parent *ZoneTreeNode, name, cidr, acl string) *SubnetTree
 func (tn *SubnetTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
 	return []SquareTreeNodeInterface{}, tn.elements, tn.connections
 }
-func (tn *SubnetTreeNode) CIDR() string { return tn.cidr }
-func (tn *SubnetTreeNode) ACL() string  { return tn.acl }
+func (tn *SubnetTreeNode) Label() string {
+	return strings.Join([]string{tn.name, tn.cidr, tn.acl}, "&lt;br&gt;")
+}
+func (tn *SubnetTreeNode) SetACL(acl string) {
+	tn.acl = acl
+}
 
 ////////////////////////////////////////////////////////////////////////
