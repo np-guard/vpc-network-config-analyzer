@@ -10,12 +10,15 @@ type SquareTreeNodeInterface interface {
 	IconTreeNodes() []IconTreeNodeInterface
 	TagID() uint
 	DecoreID() uint
+	HasVSIs() bool
+	setHasVSIs()
 }
 
 type abstractSquareTreeNode struct {
 	abstractTreeNode
 	elements    []IconTreeNodeInterface
 	connections []LineTreeNodeInterface
+	hasVSIs     bool
 }
 
 func newAbstractSquareTreeNode(parent TreeNodeInterface, name string) abstractSquareTreeNode {
@@ -35,6 +38,14 @@ func (tn *abstractSquareTreeNode) IsSquare() bool { return true }
 
 func (tn *abstractSquareTreeNode) TagID() uint    { return tn.id + tagID }
 func (tn *abstractSquareTreeNode) DecoreID() uint { return tn.id + decoreID }
+
+func (tn *abstractSquareTreeNode) HasVSIs() bool { return tn.hasVSIs }
+func (tn *abstractSquareTreeNode) setHasVSIs() {
+	tn.hasVSIs = true
+	if tn.Parent().IsSquare() {
+		tn.Parent().(SquareTreeNodeInterface).setHasVSIs()
+	}
+}
 
 func (tn *abstractSquareTreeNode) setGeometry() {
 	location := tn.Location()
@@ -59,13 +70,6 @@ var networkParent = &rootTreeNode{}
 func NewNetworkTreeNode() *NetworkTreeNode {
 	return &NetworkTreeNode{abstractSquareTreeNode: newAbstractSquareTreeNode(networkParent, "Public Network")}
 }
-func (tn *NetworkTreeNode) DrawioParentID() uint {
-	if tn.Parent() != nil {
-		tn.Parent().ID()
-	}
-	return 1
-}
-
 func (tn *NetworkTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
 	return tn.vpcs, tn.elements, tn.connections
 }

@@ -4,55 +4,55 @@
 <root>
 {{ $data := .}}
 <mxCell id="0"/>
-<mxCell id="FXCXVvDxTQtwc45PbP1s-{{$data.RootID}}" parent="0"/>
+<mxCell id="{{$data.IDsPrefix}}-{{$data.RootID}}" parent="0"/>
     {{range $node := $data.Nodes}}
         {{  if $node.NotShownInDrawio }}
         {{ else if $node.IsSquare }}
-            <mxCell id="FXCXVvDxTQtwc45PbP1s-{{$node.ID}}" value="" style="{{$data.Style $node}}" parent="FXCXVvDxTQtwc45PbP1s-{{$node.DrawioParent.ID}}" vertex="1">
+            <mxCell id="{{$data.IDsPrefix}}-{{$node.ID}}" value="" style="{{$data.Style $node}}" parent="{{$data.IDsPrefix}}-{{$node.DrawioParent.ID}}" vertex="1">
             <mxGeometry width="{{$node.Width}}" height="{{$node.Height}}" x="{{$node.X}}" y="{{$node.Y}}" as="geometry"/>
             </mxCell>
-            <mxCell id="FXCXVvDxTQtwc45PbP1s-{{$node.TagID}}" value="" style="{{$data.TagStyle $node}}" parent="FXCXVvDxTQtwc45PbP1s-{{$node.ID}}" vertex="1">
+            <mxCell id="{{$data.IDsPrefix}}-{{$node.TagID}}" value="" style="{{$data.TagStyle $node}}" parent="{{$data.IDsPrefix}}-{{$node.ID}}" vertex="1">
             <mxGeometry x="19" y="6.5" width="22" height="19.73" as="geometry" />
             </mxCell>
-            <mxCell id="FXCXVvDxTQtwc45PbP1s-{{$node.DecoreID}}" value="" style="{{$data.DecoreStyle $node}}" parent="FXCXVvDxTQtwc45PbP1s-{{$node.ID}}" vertex="1">
+            <mxCell id="{{$data.IDsPrefix}}-{{$node.DecoreID}}" value="" style="{{$data.DecoreStyle $node}}" parent="{{$data.IDsPrefix}}-{{$node.ID}}" vertex="1">
             <mxGeometry width="7" height="37" as="geometry" />
             </mxCell>
-            <mxCell id="FXCXVvDxTQtwc45PbP1s-{{$node.TextID}}" value="{{$node.Label}}" style="{{$data.TextStyle $node}}" parent="FXCXVvDxTQtwc45PbP1s-{{$node.ID}}" vertex="1">
+            <mxCell id="{{$data.IDsPrefix}}-{{$node.TextID}}" value="{{$node.Label}}" style="{{$data.TextStyle $node}}" parent="{{$data.IDsPrefix}}-{{$node.ID}}" vertex="1">
             <mxGeometry x="51" y="8" width="163" height="20" as="geometry" />
             </mxCell>
         {{ else if $node.IsIcon }}
             {{ if $node.IsNI }}
                 {{ if $data.ShowNIIcon }}
-                    <mxCell id="FXCXVvDxTQtwc45PbP1s-{{$node.ID}}" value="NI" style="{{$data.Style $node}}" parent="FXCXVvDxTQtwc45PbP1s-{{$node.DrawioParent.ID}}" vertex="1">
+                    <mxCell id="{{$data.IDsPrefix}}-{{$node.ID}}" value="NI" style="{{$data.Style $node}}" parent="{{$data.IDsPrefix}}-{{$node.DrawioParent.ID}}" vertex="1">
                     <mxGeometry width="{{$data.IconSize}}" height="{{$data.IconSize}}" x="{{$node.X}}" y="{{$node.Y}}" as="geometry"/>
                     </mxCell>
                 {{ else }}
-                    <mxCell id="FXCXVvDxTQtwc45PbP1s-{{$node.ID}}" value="{{$node.Vsi}}" style="{{$data.VsiStyle}}" parent="FXCXVvDxTQtwc45PbP1s-{{$node.DrawioParent.ID}}" vertex="1">
+                    <mxCell id="{{$data.IDsPrefix}}-{{$node.ID}}" value="{{$node.Vsi}}" style="{{$data.VsiStyle}}" parent="{{$data.IDsPrefix}}-{{$node.DrawioParent.ID}}" vertex="1">
                     <mxGeometry width="{{$data.IconSize}}" height="{{$data.IconSize}}" x="{{$node.X}}" y="{{$node.Y}}" as="geometry"/>
                     </mxCell>
                 {{ end }}
                 {{ if $node.HasVsi }}
                     {{ if $data.ShowNIIcon }}
-                        <mxCell id="FXCXVvDxTQtwc45PbP1s-{{$node.TextID}}" value="{{$node.Vsi}}" style="{{$data.TextStyle $node}}" parent="FXCXVvDxTQtwc45PbP1s-{{$node.ID}}" vertex="1">  
+                        <mxCell id="{{$data.IDsPrefix}}-{{$node.TextID}}" value="{{$node.Vsi}}" style="{{$data.TextStyle $node}}" parent="{{$data.IDsPrefix}}-{{$node.ID}}" vertex="1">  
                         <mxGeometry width="{{$data.IconSize}}" height="{{$data.IconSize}}" x="0" y="0" as="geometry"/>
                         </mxCell>
-                        <mxCell id="FXCXVvDxTQtwc45PbP1s-{{$node.VsiID}}" value="" style="{{$data.VsiStyle}}" parent="FXCXVvDxTQtwc45PbP1s-{{$node.ID}}" vertex="1">
+                        <mxCell id="{{$data.IDsPrefix}}-{{$node.VsiID}}" value="" style="{{$data.VsiStyle}}" parent="{{$data.IDsPrefix}}-{{$node.ID}}" vertex="1">
                         <mxGeometry x="{{$data.VSIXOffset}}" y="{{$data.VSIYOffset}}" width="{{$data.VSISize}}" height="{{$data.VSISize}}" as="geometry"/>
                         </mxCell>
                     {{ end }}
                 {{ end }}
                 {{ if ne $node.Fip  "" }}
-                    <mxCell id="FXCXVvDxTQtwc45PbP1s-{{$node.FipID}}" value="{{$node.Fip}}" style="{{$data.FIPStyle}}" parent="FXCXVvDxTQtwc45PbP1s-{{$node.ID}}" vertex="1">
+                    <mxCell id="{{$data.IDsPrefix}}-{{$node.FipID}}" value="{{$node.Fip}}" style="{{$data.FIPStyle}}" parent="{{$data.IDsPrefix}}-{{$node.ID}}" vertex="1">
                     <mxGeometry x="{{$data.FipXOffset}}" y="{{$data.FipYOffset}}" width="{{$data.IconSize}}" height="{{$data.IconSize}}" as="geometry"/>
                     </mxCell>
                 {{ end }}
             {{ else }}
-                <mxCell id="FXCXVvDxTQtwc45PbP1s-{{$node.ID}}" value="{{$node.Label}}" style="{{$data.Style $node}}" vertex="1" parent="FXCXVvDxTQtwc45PbP1s-{{$node.DrawioParent.ID}}">
+                <mxCell id="{{$data.IDsPrefix}}-{{$node.ID}}" value="{{$node.Label}}" style="{{$data.Style $node}}" vertex="1" parent="{{$data.IDsPrefix}}-{{$node.DrawioParent.ID}}">
                 <mxGeometry width="{{$data.IconSize}}" height="{{$data.IconSize}}" x="{{$node.X}}" y="{{$node.Y}}" as="geometry"/>
                 </mxCell>
             {{ end }}
         {{ else if $node.IsLine }}
-            <mxCell id="FXCXVvDxTQtwc45PbP1s-{{$node.ID}}" style="{{$data.Style $node}}" edge="1" parent="FXCXVvDxTQtwc45PbP1s-{{$node.DrawioParent.RouterID}}" source="FXCXVvDxTQtwc45PbP1s-{{ $node.SrcID}}" target="FXCXVvDxTQtwc45PbP1s-{{ $node.DstID}}">        
+            <mxCell id="{{$data.IDsPrefix}}-{{$node.ID}}" style="{{$data.Style $node}}" edge="1" parent="{{$data.IDsPrefix}}-{{$node.DrawioParent.RouterID}}" source="{{$data.IDsPrefix}}-{{ $node.SrcID}}" target="{{$data.IDsPrefix}}-{{ $node.DstID}}">        
             <mxGeometry relative="1" as="geometry">
             <Array as="points">
             {{range $point := $node.Points}}
@@ -61,7 +61,7 @@
             </Array>
             </mxGeometry>
             </mxCell>
-            <mxCell id="FXCXVvDxTQtwc45PbP1s-{{$node.TextID}}" value="{{$node.Label}}" style="{{$data.TextStyle $node}}" vertex="1" connectable="0" parent="FXCXVvDxTQtwc45PbP1s-{{$node.ID}}">
+            <mxCell id="{{$data.IDsPrefix}}-{{$node.TextID}}" value="{{$node.Label}}" style="{{$data.TextStyle $node}}" vertex="1" connectable="0" parent="{{$data.IDsPrefix}}-{{$node.ID}}">
                 <mxGeometry x="-0.07" y="2" relative="1" as="geometry">
                 <mxPoint x="-3" y="12" as="offset" />
                 </mxGeometry>

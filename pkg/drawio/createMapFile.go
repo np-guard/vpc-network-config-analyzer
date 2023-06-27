@@ -18,11 +18,12 @@ type drawioData struct {
 	VSIYOffset int
 	VSISize    int
 	RootID     int
+	IDsPrefix  string
+	// ShowNIIcon says if to display the NI as an NI image, or a VSI image
+	// the rule is that if we have a vsi icon, then we display the NI icon as an NI image
 	ShowNIIcon bool
 	Nodes      []TreeNodeInterface
 }
-
-var hasVsiIcon bool = false
 
 func CreateDrawioConnectivityMapFile(network SquareTreeNodeInterface, outputFile string) error {
 	newLayout(network).layout()
@@ -34,7 +35,8 @@ func CreateDrawioConnectivityMapFile(network SquareTreeNodeInterface, outputFile
 		vsiYOffset,
 		vsiIconSize,
 		rootID,
-		hasVsiIcon,
+		idsPrefix,
+		network.HasVSIs(),
 		getAllNodes(network)}
 	return writeDrawioFile(data, outputFile)
 }

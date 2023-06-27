@@ -119,7 +119,6 @@ func GroupNIsWithVSI(parent SquareTreeNodeInterface, name string, nis []TreeNode
 		nis[0].(*NITreeNode).SetVsi(name)
 	case len(nis) > 1:
 		vsi := newVsiTreeNode(parent, name, nis)
-		hasVsiIcon = true
 		for _, ni := range nis {
 			newVsiLineTreeNode(parent, vsi, ni.(*NITreeNode))
 		}
@@ -129,6 +128,7 @@ func GroupNIsWithVSI(parent SquareTreeNodeInterface, name string, nis []TreeNode
 func newVsiTreeNode(parent SquareTreeNodeInterface, name string, nis []TreeNodeInterface) *VsiTreeNode {
 	vsi := &VsiTreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, name), nis: nis}
 	parent.addIconTreeNode(vsi)
+	parent.setHasVSIs()
 	return vsi
 }
 
