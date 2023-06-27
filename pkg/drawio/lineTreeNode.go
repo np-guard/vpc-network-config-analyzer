@@ -39,8 +39,6 @@ func (tn *abstractLineTreeNode) DstID() uint                { return tn.dst.ID()
 func (tn *abstractLineTreeNode) Src() IconTreeNodeInterface { return tn.src }
 func (tn *abstractLineTreeNode) Dst() IconTreeNodeInterface { return tn.dst }
 
-func (tn *abstractLineTreeNode) setGeometry() {}
-
 func (tn *abstractLineTreeNode) DrawioParent() TreeNodeInterface {
 	if tn.router != nil {
 		return tn.router
@@ -78,7 +76,6 @@ func newVsiLineTreeNode(network SquareTreeNodeInterface, vsi, ni IconTreeNodeInt
 	network.addLineTreeNode(&conn)
 	return &conn
 }
-func (tn *VsiLineTreeNode) IsVsiConnector() bool { return true }
 
 // ////////////////////////////////////////////////////////////////
 type ConnectivityTreeNode struct {
@@ -96,6 +93,3 @@ func NewConnectivityLineTreeNode(network SquareTreeNodeInterface,
 	network.addLineTreeNode(&conn)
 	return &conn
 }
-
-func (tn *ConnectivityTreeNode) IsDirectedEdge() bool   { return tn.directed }
-func (tn *ConnectivityTreeNode) IsUnDirectedEdge() bool { return !tn.directed }

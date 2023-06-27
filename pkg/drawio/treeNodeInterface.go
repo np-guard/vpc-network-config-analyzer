@@ -36,6 +36,7 @@ package drawio
 type TreeNodeInterface interface {
 	Name() string
 	ID() uint
+	TextID() uint
 	RouterID() uint
 	X() int
 	Y() int
@@ -55,23 +56,6 @@ type TreeNodeInterface interface {
 	IsLine() bool
 	IsIcon() bool
 	IsSquare() bool
-	IsNetwork() bool
-	IsVPC() bool
-	IsZone() bool
-	IsSubnet() bool
-	IsSG() bool
-	IsPartialSG() bool
-	IsVSI() bool
-	IsNI() bool
-	IsGateway() bool
-	IsEndpoint() bool
-	IsInternet() bool
-	IsInternetService() bool
-	IsUser() bool
-	IsVsiConnector() bool
-	IsDirectedEdge() bool
-	IsUnDirectedEdge() bool
-	////////////////////////////////////
 
 	setGeometry()
 	children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface)
@@ -111,13 +95,4 @@ func locations(tns []TreeNodeInterface) []*Location {
 		locations = append(locations, c.Location())
 	}
 	return locations
-}
-
-func hasVsiIcon(tn TreeNodeInterface) bool {
-	for _, c := range getAllNodes(tn) {
-		if c.IsVSI() {
-			return true
-		}
-	}
-	return false
 }

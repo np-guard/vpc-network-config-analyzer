@@ -7,6 +7,10 @@ const (
 	niFipID    = 2
 	textID     = 3
 	tagID      = 4
+	decoreID   = 5
+
+	rootID    = 1
+	idsPrefix = "FXCXVvDxTQtwc45PbP1s"
 )
 
 type abstractTreeNode struct {
@@ -22,11 +26,12 @@ type abstractTreeNode struct {
 
 func (tn *abstractTreeNode) Name() string   { return tn.name }
 func (tn *abstractTreeNode) ID() uint       { return tn.id }
-func (tn *abstractTreeNode) RouterID() uint { return tn.ID() }
+func (tn *abstractTreeNode) TextID() uint   { return tn.id + textID }
 func (tn *abstractTreeNode) X() int         { return tn.x }
 func (tn *abstractTreeNode) Y() int         { return tn.y }
 func (tn *abstractTreeNode) Height() int    { return tn.height }
 func (tn *abstractTreeNode) Width() int     { return tn.width }
+func (tn *abstractTreeNode) RouterID() uint { return tn.ID() }
 
 func (tn *abstractTreeNode) Location() *Location             { return tn.location }
 func (tn *abstractTreeNode) Parent() TreeNodeInterface       { return tn.parent }
@@ -45,25 +50,9 @@ func (tn *abstractTreeNode) setID() {
 	}
 }
 
-func (tn *abstractTreeNode) IsLine() bool            { return false }
-func (tn *abstractTreeNode) IsIcon() bool            { return false }
-func (tn *abstractTreeNode) IsSquare() bool          { return false }
-func (tn *abstractTreeNode) IsNetwork() bool         { return false }
-func (tn *abstractTreeNode) IsVPC() bool             { return false }
-func (tn *abstractTreeNode) IsZone() bool            { return false }
-func (tn *abstractTreeNode) IsSubnet() bool          { return false }
-func (tn *abstractTreeNode) IsSG() bool              { return false }
-func (tn *abstractTreeNode) IsPartialSG() bool       { return false }
-func (tn *abstractTreeNode) IsVSI() bool             { return false }
-func (tn *abstractTreeNode) IsNI() bool              { return false }
-func (tn *abstractTreeNode) IsGateway() bool         { return false }
-func (tn *abstractTreeNode) IsEndpoint() bool        { return false }
-func (tn *abstractTreeNode) IsInternet() bool        { return false }
-func (tn *abstractTreeNode) IsInternetService() bool { return false }
-func (tn *abstractTreeNode) IsUser() bool            { return false }
-func (tn *abstractTreeNode) IsVsiConnector() bool    { return false }
-func (tn *abstractTreeNode) IsDirectedEdge() bool    { return false }
-func (tn *abstractTreeNode) IsUnDirectedEdge() bool  { return false }
+func (tn *abstractTreeNode) IsLine() bool   { return false }
+func (tn *abstractTreeNode) IsIcon() bool   { return false }
+func (tn *abstractTreeNode) IsSquare() bool { return false }
 
 func newAbstractTreeNode(parent TreeNodeInterface, name string) abstractTreeNode {
 	tn := abstractTreeNode{parent: parent, name: name}
@@ -73,3 +62,13 @@ func newAbstractTreeNode(parent TreeNodeInterface, name string) abstractTreeNode
 func (tn *abstractTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
 	return nil, nil, nil
 }
+func (tn *abstractTreeNode) setGeometry() {}
+
+// /////////////////////////////////////////////////////////////
+// rootTreeNode is the parent of the network. we have only one instance of it, with constant id
+type rootTreeNode struct {
+	abstractTreeNode
+}
+
+func (tn *rootTreeNode) ID() uint               { return rootID }
+func (tn *rootTreeNode) NotShownInDrawio() bool { return true }

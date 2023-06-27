@@ -7,12 +7,16 @@ type SquareTreeNodeInterface interface {
 	addLineTreeNode(line LineTreeNodeInterface)
 	IconTreeNodes() []IconTreeNodeInterface
 	TagID() uint
+	DecoreID() uint
+	HasVSIs() bool
+	setHasVSIs()
 }
 
 type abstractSquareTreeNode struct {
 	abstractTreeNode
 	elements    []IconTreeNodeInterface
 	connections []LineTreeNodeInterface
+	hasVSIs     bool
 }
 
 func newAbstractSquareTreeNode(parent TreeNodeInterface, name string) abstractSquareTreeNode {
@@ -29,35 +33,44 @@ func (tn *abstractSquareTreeNode) IconTreeNodes() []IconTreeNodeInterface {
 	return tn.elements
 }
 func (tn *abstractSquareTreeNode) IsSquare() bool { return true }
+
 func (tn *abstractSquareTreeNode) TagID() uint    { return tn.id + tagID }
+func (tn *abstractSquareTreeNode) DecoreID() uint { return tn.id + decoreID }
+
+func (tn *abstractSquareTreeNode) HasVSIs() bool { return tn.hasVSIs }
+func (tn *abstractSquareTreeNode) setHasVSIs() {
+	tn.hasVSIs = true
+	if tn.Parent().IsSquare() {
+		tn.Parent().(SquareTreeNodeInterface).setHasVSIs()
+	}
+}
 
 func (tn *abstractSquareTreeNode) setGeometry() {
 	location := tn.Location()
-	parentLocation := location
-	if tn.Parent() != nil {
-		parentLocation = tn.Parent().Location()
-	}
 	tn.width = location.lastCol.width() + location.lastCol.x() - location.firstCol.x()
 	tn.height = location.lastRow.height() + location.lastRow.y() - location.firstRow.y()
-	tn.x = location.firstCol.x() - parentLocation.firstCol.x()
-	tn.y = location.firstRow.y() - parentLocation.firstRow.y()
+	tn.x = location.firstCol.x()
+	tn.y = location.firstRow.y()
+	if tn.DrawioParent().Location() != nil {
+		tn.x -= tn.DrawioParent().Location().firstCol.x()
+		tn.y -= tn.DrawioParent().Location().firstRow.y()
+	}
 }
 
-//////////////////////////////////////////////////////////////////////////////
-
+// ////////////////////////////////////////////////////////////////
 type NetworkTreeNode struct {
 	abstractSquareTreeNode
 	vpcs []SquareTreeNodeInterface
 }
 
-func NewNetworkTreeNode() *NetworkTreeNode {
-	return &NetworkTreeNode{}
-}
+var networkParent = &rootTreeNode{}
 
+func NewNetworkTreeNode() *NetworkTreeNode {
+	return &NetworkTreeNode{abstractSquareTreeNode: newAbstractSquareTreeNode(networkParent, "Public Network")}
+}
 func (tn *NetworkTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
 	return tn.vpcs, tn.elements, tn.connections
 }
-func (tn *NetworkTreeNode) IsNetwork() bool { return true }
 
 // ////////////////////////////////////////////////////////////////////////////////////////
 type VpcTreeNode struct {
@@ -74,7 +87,6 @@ func NewVpcTreeNode(parent *NetworkTreeNode, name string) *VpcTreeNode {
 func (tn *VpcTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
 	return append(tn.zones, tn.sgs...), tn.elements, tn.connections
 }
-func (tn *VpcTreeNode) IsVPC() bool { return true }
 
 ///////////////////////////////////////////////////////////////////////
 
@@ -91,7 +103,6 @@ func NewZoneTreeNode(parent *VpcTreeNode, name string) *ZoneTreeNode {
 func (tn *ZoneTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
 	return tn.subnets, tn.elements, tn.connections
 }
-func (tn *ZoneTreeNode) IsZone() bool { return true }
 
 // /////////////////////////////////////////////////////////////////////
 // SGTreeNode is not shown in the drawio file.
@@ -112,7 +123,6 @@ func (tn *SGTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInter
 }
 func (tn *SGTreeNode) setGeometry() {}
 
-func (tn *SGTreeNode) IsSG() bool             { return true }
 func (tn *SGTreeNode) NotShownInDrawio() bool { return true }
 
 ///////////////////////////////////////////////////////////////////////
@@ -141,7 +151,6 @@ func (tn *PartialSGTreeNode) setGeometry() {
 	tn.x = location.firstCol.x() - parentLocation.firstCol.x() + borderWidth
 	tn.y = location.firstRow.y() - parentLocation.firstRow.y() + borderWidth
 }
-func (tn *PartialSGTreeNode) IsPartialSG() bool { return true }
 
 /////////////////////////////////////////////////////////////////////////
 
@@ -160,8 +169,7 @@ func NewSubnetTreeNode(parent *ZoneTreeNode, name, cidr, acl string) *SubnetTree
 func (tn *SubnetTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
 	return []SquareTreeNodeInterface{}, tn.elements, tn.connections
 }
-func (tn *SubnetTreeNode) IsSubnet() bool { return true }
-func (tn *SubnetTreeNode) CIDR() string   { return tn.cidr }
-func (tn *SubnetTreeNode) ACL() string    { return tn.acl }
+func (tn *SubnetTreeNode) CIDR() string { return tn.cidr }
+func (tn *SubnetTreeNode) ACL() string  { return tn.acl }
 
 ////////////////////////////////////////////////////////////////////////
