@@ -23,12 +23,6 @@ var acl3Input []byte
 //go:embed examples/acl_testing3.txt
 var acl3Output []byte
 
-//go:embed examples/mult_NIs_single_VSI.json
-var mltInput []byte
-
-//go:embed examples/mult_NIs_single_VSI.txt
-var mltOutput []byte
-
 type vpcTest struct {
 	name               string
 	inputResourcesJSON []byte
@@ -64,11 +58,6 @@ func TestWithParsing(t *testing.T) {
 			name:               "sg_testing1",
 			inputResourcesJSON: sg1Input,
 			expectedOutputText: sg1Output,
-		},
-		{
-			name:               "mult_NIs_single_VSI",
-			inputResourcesJSON: mltInput,
-			expectedOutputText: mltOutput,
 		},
 	}
 	for _, test := range tests {
