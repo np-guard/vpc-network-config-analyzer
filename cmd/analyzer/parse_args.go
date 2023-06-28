@@ -12,10 +12,11 @@ type InArgs struct {
 }
 
 const (
-	JSONFormat   = "json"
-	TEXTFormat   = "txt"
-	MDFormat     = "md"
-	DRAWIOFormat = "drawio"
+	JSONFormat       = "json"
+	TEXTFormat       = "txt"
+	MDFormat         = "md"
+	DRAWIOFormat     = "drawio"
+	ARCHDRAWIOFormat = "archDrawio"
 )
 
 func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
@@ -23,7 +24,7 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	flagset := flag.NewFlagSet("vpc-network-config-analyzer", flag.ContinueOnError)
 	args.InputConfigFile = flagset.String("vpc-config", "", "file path to input config")
 	args.OutputFile = flagset.String("outputfile", "", "file path to store results")
-	args.OutputFormat = flagset.String("format", TEXTFormat, "output format; must be one of \"json\"/\"txt\"/\"md\"\"drawio\"")
+	args.OutputFormat = flagset.String("format", TEXTFormat, "output format; must be one of \"json\"/\"txt\"/\"md\"/\"drawio\"/\"archDrawio\"")
 	err := flagset.Parse(cmdlineArgs)
 	if err != nil {
 		return nil, err
@@ -37,9 +38,10 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	if *args.OutputFormat != JSONFormat &&
 		*args.OutputFormat != TEXTFormat &&
 		*args.OutputFormat != MDFormat &&
-		*args.OutputFormat != DRAWIOFormat {
+		*args.OutputFormat != DRAWIOFormat &&
+		*args.OutputFormat != ARCHDRAWIOFormat {
 		flagset.PrintDefaults()
-		return nil, fmt.Errorf("wrong output format %s; must be either json/txt/md/drawio", *args.OutputFormat)
+		return nil, fmt.Errorf("wrong output format %s; must be either json/txt/md/drawio/archDrawio", *args.OutputFormat)
 	}
 
 	return &args, nil

@@ -66,7 +66,9 @@ func (d *DrawioOutputFormatter) WriteOutput(cConfig *CloudConfig, conn *VPCConne
 }
 
 func (d *DrawioOutputFormatter) createDrawioTree() {
-	d.createEdgesMap()
+	if d.conn != nil {
+		d.createEdgesMap()
+	}
 	d.createNodeSets()
 	d.createFilters()
 	d.createNodes()
@@ -210,4 +212,14 @@ func (d *DrawioOutputFormatter) createEdges() {
 			cn.SetRouter(d.routers[dstTn], true)
 		}
 	}
+}
+
+///////////////////////////////////////////////////////////////////
+
+type ArchDrawioOutputFormatter struct {
+	DrawioOutputFormatter
+}
+
+func (d *ArchDrawioOutputFormatter) WriteOutput(cConfig *CloudConfig, conn *VPCConnectivity, outFile string) (string, error) {
+	return d.DrawioOutputFormatter.WriteOutput(cConfig, nil, outFile)
 }

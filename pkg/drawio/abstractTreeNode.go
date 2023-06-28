@@ -34,7 +34,7 @@ func labels2Table(labels []string) string {
 			labels2 = append(labels2, l)
 		}
 	}
-	return strings.Join(labels2, "&lt;br&gt;")
+	return strings.Join(labels2, "&#xa;")
 }
 func (tn *abstractTreeNode) ID() uint       { return tn.id }
 func (tn *abstractTreeNode) TextID() uint   { return tn.id + textID }

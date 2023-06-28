@@ -19,6 +19,8 @@ func getOutputFormat(inArgs *InArgs) vpcmodel.OutFormat {
 		return vpcmodel.JSON
 	case DRAWIOFormat:
 		return vpcmodel.DRAWIO
+	case ARCHDRAWIOFormat:
+		return vpcmodel.ARCHDRAWIO
 	}
 	return vpcmodel.Text
 }
@@ -43,8 +45,10 @@ func _main(cmdlineArgs []string) error {
 	if err != nil {
 		return fmt.Errorf("error generating cloud config from input vpc resources file: %w", err)
 	}
-
-	vpcConn := cloudConfig.GetVPCNetworkConnectivity()
+	var vpcConn *vpcmodel.VPCConnectivity = nil
+	if inArgs.OutputFormat != nil && *inArgs.OutputFormat != ARCHDRAWIOFormat {
+		vpcConn = cloudConfig.GetVPCNetworkConnectivity()
+	}
 	o := vpcmodel.NewOutputGenerator(cloudConfig, vpcConn)
 	outFile := ""
 	if inArgs.OutputFile != nil {

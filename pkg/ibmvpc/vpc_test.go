@@ -94,10 +94,12 @@ func setTestOutputFiles(o *vpcmodel.OutputGenerator, t *vpcTest) {
 	jsonFile := filePrfix + ".json"
 	mdFile := filePrfix + ".md"
 	drawioFile := filePrfix + ".drawio"
+	archDrawioFile := filePrfix + "_arch.drawio"
 	o.SetOutputFile(txtFile, vpcmodel.Text)
 	o.SetOutputFile(jsonFile, vpcmodel.JSON)
 	o.SetOutputFile(mdFile, vpcmodel.MD)
 	o.SetOutputFile(drawioFile, vpcmodel.DRAWIO)
+	o.SetOutputFile(archDrawioFile, vpcmodel.ARCHDRAWIO)
 }
 
 func getTestOutput(test *vpcTest, t *testing.T, o *vpcmodel.OutputGenerator) {
@@ -113,6 +115,9 @@ func getTestOutput(test *vpcTest, t *testing.T, o *vpcmodel.OutputGenerator) {
 		t.Fatalf("err: %s", err)
 	}
 	if _, err := o.Generate(vpcmodel.DRAWIO); err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	if _, err := o.Generate(vpcmodel.ARCHDRAWIO); err != nil {
 		t.Fatalf("err: %s", err)
 	}
 	test.actualOutput = textOutput
