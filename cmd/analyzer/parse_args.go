@@ -25,16 +25,15 @@ const (
 	DebugSubnet  = "debugSubnet" // single subnet connectivity analysis
 )
 
-var supportedOutputFormats = map[string]struct{}{
-	JSONFormat: {},
-	TEXTFormat: {},
-	MDFormat:   {},
+var supportedOutputFormats = map[string]bool{
+	JSONFormat: true,
+	TEXTFormat: true,
+	MDFormat:   true,
 }
-
-var supportedAnalysisTypes = map[string]struct{}{
-	VsiLevel:     {},
-	SubnetsLevel: {},
-	DebugSubnet:  {},
+var supportedAnalysisTypes = map[string]bool{
+	VsiLevel:     true,
+	SubnetsLevel: true,
+	DebugSubnet:  true,
 }
 
 func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
@@ -55,12 +54,12 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 		return nil, fmt.Errorf("missing parameter: vpc-config")
 	}
 
-	if _, ok := supportedOutputFormats[*args.OutputFormat]; !ok {
+	if !supportedOutputFormats[*args.OutputFormat] {
 		flagset.PrintDefaults()
 		return nil, fmt.Errorf("wrong output format %s; must be either json/txt/md", *args.OutputFormat)
 	}
 
-	if _, ok := supportedAnalysisTypes[*args.AnalysisType]; !ok {
+	if !supportedAnalysisTypes[*args.AnalysisType] {
 		flagset.PrintDefaults()
 		return nil, fmt.Errorf("wrong analysis type %s; must be either vsiLevel / subnetLevel / debugSubnet", *args.AnalysisType)
 	}
