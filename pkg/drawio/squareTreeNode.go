@@ -1,7 +1,5 @@
 package drawio
 
-import "strings"
-
 // /////////////////////////////////////////////////////////////////////
 type SquareTreeNodeInterface interface {
 	TreeNodeInterface
@@ -172,10 +170,8 @@ func (tn *SubnetTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeI
 	return []SquareTreeNodeInterface{}, tn.elements, tn.connections
 }
 func (tn *SubnetTreeNode) Label() string {
-	return strings.Join([]string{tn.name, tn.cidr, tn.acl}, "&lt;br&gt;")
+	return labels2Table([]string{tn.name, tn.cidr, tn.acl})
 }
 func (tn *SubnetTreeNode) SetACL(acl string) {
 	tn.acl = acl
 }
-
-////////////////////////////////////////////////////////////////////////

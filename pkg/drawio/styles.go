@@ -76,5 +76,8 @@ func (data *drawioData) TagStyle(tn TreeNodeInterface) string {
 func (data *drawioData) DecoreStyle(tn TreeNodeInterface) string {
 	return decoreStyles[reflect.TypeOf(tn).Elem()]
 }
+func (data *drawioData) ElementComment(tn TreeNodeInterface) string {
+	return reflect.TypeOf(tn).Elem().Name() + " " + tn.Label()
+}
 func (data *drawioData) FIPStyle() string { return fipStyle }
 func (data *drawioData) VsiStyle() string { return vsiStyle }
