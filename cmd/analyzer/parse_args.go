@@ -34,7 +34,10 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 		return nil, fmt.Errorf("missing parameter: vpc-config")
 	}
 
-	if *args.OutputFormat != JSONFormat && *args.OutputFormat != TEXTFormat && *args.OutputFormat != MDFormat && *args.OutputFormat != DRAWIOFormat {
+	if *args.OutputFormat != JSONFormat &&
+		*args.OutputFormat != TEXTFormat &&
+		*args.OutputFormat != MDFormat &&
+		*args.OutputFormat != DRAWIOFormat {
 		flagset.PrintDefaults()
 		return nil, fmt.Errorf("wrong output format %s; must be either json/txt/md/drawio", *args.OutputFormat)
 	}
