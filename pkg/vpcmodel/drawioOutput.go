@@ -6,6 +6,10 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
 )
 
+const (
+	commaSeparator = ","
+)
+
 type Edge struct {
 	src   Node
 	dst   Node
@@ -57,8 +61,8 @@ func (d *DrawioOutputFormatter) init(cConfig *CloudConfig, conn *VPCConnectivity
 func (d *DrawioOutputFormatter) WriteOutput(cConfig *CloudConfig, conn *VPCConnectivity, outFile string) (string, error) {
 	d.init(cConfig, conn)
 	d.createDrawioTree()
-	drawio.CreateDrawioConnectivityMapFile(d.network, outFile)
-	return "", nil
+	err := drawio.CreateDrawioConnectivityMapFile(d.network, outFile)
+	return "", err
 }
 
 func (d *DrawioOutputFormatter) createDrawioTree() {
@@ -127,11 +131,11 @@ func (d *DrawioOutputFormatter) createFilters() {
 		for _, details := range fl.DetailsMap() {
 			if details[DetailsAttributeKind] == "SG" {
 				sgTn := drawio.NewSGTreeNode(d.vpc, details["name"])
-				for _, member := range strings.Split(details["members"], ",") {
+				for _, member := range strings.Split(details["members"], commaSeparator) {
 					d.sgMembers[member] = sgTn
 				}
 			} else if details[DetailsAttributeKind] == "NACL" {
-				for _, subnetCidr := range strings.Split(details["subnets"], ",") {
+				for _, subnetCidr := range strings.Split(details["subnets"], commaSeparator) {
 					if subnetCidr != "" {
 						d.cidrToSubnetsTreeNodes[subnetCidr].SetACL(details["name"])
 					}
@@ -146,8 +150,10 @@ func (d *DrawioOutputFormatter) createNodes() {
 		details := n.DetailsMap()
 		if details[DetailsAttributeKind] == "NetworkInterface" {
 			// todo: what is the name of NI
-			d.allIconsTreeNodes[n] = drawio.NewNITreeNode(d.uidToSubnetsTreeNodes[details["subnetUID"]], d.sgMembers[details["address"]], details["name"])
-		} else if details[DetailsAttributeKind] == "ExternalNetwork" {
+			d.allIconsTreeNodes[n] = drawio.NewNITreeNode(
+				d.uidToSubnetsTreeNodes[details["subnetUID"]],
+				d.sgMembers[details["address"]], details["name"])
+		} else if details[DetailsAttributeKind] == externalNetworkNodeKind {
 			if d.connectedNodes[n] {
 				d.allIconsTreeNodes[n] = drawio.NewInternetTreeNode(d.network, details[DetailsAttributeCIDR])
 				d.isExternalIcon[d.allIconsTreeNodes[n]] = true
