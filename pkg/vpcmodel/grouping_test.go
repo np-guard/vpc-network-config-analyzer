@@ -31,7 +31,7 @@ func (m *mockNetIntf) DetailsMap() map[string]string {
 	return nil
 }
 func (m *mockNetIntf) Kind() string {
-	return "NetworkInterface"
+	return nwInterface
 }
 func (m *mockNetIntf) UID() string {
 	return ""
