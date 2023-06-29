@@ -290,8 +290,8 @@ func addInterfaceNode(config *vpcmodel.CloudConfig, name, address, vsiName, subn
 
 func addSubnet(config *vpcmodel.CloudConfig, name, cidr, zone string) {
 	subnetNode := &Subnet{
-		zonalNamedResource: zonalNamedResource{vpcmodel.NamedResource{ResourceName: name, ResourceUID: name}, zone},
-		cidr:               cidr,
+		NamedResource: vpcmodel.NamedResource{ResourceName: name, ResourceUID: name, Zone: zone},
+		cidr:          cidr,
 	}
 	config.NodeSets = append(config.NodeSets, subnetNode)
 }
