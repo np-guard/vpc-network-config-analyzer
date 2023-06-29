@@ -30,6 +30,7 @@ type ConfigBasedConnectivityResults struct {
 
 const (
 	subnetKind                = "Subnet"
+	pgwKind                   = "PublicGateway"
 	errUnexpectedTypePeerNode = "unexpected type for peerNode in computeAllowedConnsCombined"
 )
 
@@ -37,7 +38,7 @@ func subnetConnLine(subnet string, conn *common.ConnectionSet) string {
 	return fmt.Sprintf("%s : %s\n", subnet, conn.String())
 }
 
-func (c *ConfigBasedConnectivityResults) String() string {
+func (c *ConfigBasedConnectivityResults) string() string {
 	res := "Ingress: \n"
 	for n, conn := range c.IngressAllowedConns {
 		res += subnetConnLine(n, conn)
@@ -51,15 +52,15 @@ func (c *ConfigBasedConnectivityResults) String() string {
 }
 
 // print AllowedConns (not combined)
-func (v VPCsubnetConnectivity) printAllowedConns() {
+func (v *VPCsubnetConnectivity) printAllowedConns() {
 	for n, connMap := range v.AllowedConns {
 		fmt.Println(n)
-		fmt.Println(connMap.String())
+		fmt.Println(connMap.string())
 		fmt.Println("-----------------")
 	}
 }
 
-func (c *CloudConfig) IPblockToNamedResourcesInConfig(ipb *common.IPBlock, excludeExternalNodes bool) ([]NamedResourceIntf, error) {
+func (c *CloudConfig) ipblockToNamedResourcesInConfig(ipb *common.IPBlock, excludeExternalNodes bool) ([]NamedResourceIntf, error) {
 	res := []NamedResourceIntf{}
 
 	// consider subnets
@@ -97,7 +98,7 @@ func (c *CloudConfig) IPblockToNamedResourcesInConfig(ipb *common.IPBlock, exclu
 	return res, nil
 }
 
-func (c *CloudConfig) ConvertIPbasedToSubnetBasedResult(ipconn *IPbasedConnectivityResult, hasPGW bool) (
+func (c *CloudConfig) convertIPbasedToSubnetBasedResult(ipconn *IPbasedConnectivityResult, hasPGW bool) (
 	*ConfigBasedConnectivityResults,
 	error,
 ) {
@@ -108,7 +109,7 @@ func (c *CloudConfig) ConvertIPbasedToSubnetBasedResult(ipconn *IPbasedConnectiv
 
 	for ipb, conn := range ipconn.IngressAllowedConns {
 		// PGW does not allow ingress traffic
-		if namedResources, err := c.IPblockToNamedResourcesInConfig(ipb, true); err == nil {
+		if namedResources, err := c.ipblockToNamedResourcesInConfig(ipb, true); err == nil {
 			for _, n := range namedResources {
 				res.IngressAllowedConns[n.Name()] = conn
 			}
@@ -119,7 +120,7 @@ func (c *CloudConfig) ConvertIPbasedToSubnetBasedResult(ipconn *IPbasedConnectiv
 
 	// egress traffic to external nodes may be enabled by a public gateway
 	for ipb, conn := range ipconn.EgressAllowedConns {
-		if namedResources, err := c.IPblockToNamedResourcesInConfig(ipb, !hasPGW); err == nil {
+		if namedResources, err := c.ipblockToNamedResourcesInConfig(ipb, !hasPGW); err == nil {
 			for _, n := range namedResources {
 				res.EgressAllowedConns[n.Name()] = conn
 			}
@@ -132,7 +133,7 @@ func (c *CloudConfig) ConvertIPbasedToSubnetBasedResult(ipconn *IPbasedConnectiv
 
 func (c *CloudConfig) subnetCidrToSubnetElem(cidr string) (NodeSet, error) {
 	cidrIPBlock := common.NewIPBlockFromCidr(cidr)
-	elems, err := c.IPblockToNamedResourcesInConfig(cidrIPBlock, true)
+	elems, err := c.ipblockToNamedResourcesInConfig(cidrIPBlock, true)
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +168,7 @@ func (c *CloudConfig) GetSubnetsConnectivity(includePGW bool) (*VPCsubnetConnect
 
 	subnetsWithPGW := map[string]bool{}
 	for _, r := range c.RoutingResources {
-		if r.Kind() == "PublicGateway" {
+		if r.Kind() == pgwKind {
 			conns := r.ConnectivityMap()
 			for subnetCidr := range conns {
 				subnetsWithPGW[subnetCidr] = true
@@ -191,7 +192,7 @@ func (c *CloudConfig) GetSubnetsConnectivity(includePGW bool) (*VPCsubnetConnect
 		if !includePGW {
 			subnetHasPGW = true // do not limit connectivity to external nodes only if has actual PGW
 		}
-		configBasedConns, err := c.ConvertIPbasedToSubnetBasedResult(ipBasedConnectivity, subnetHasPGW)
+		configBasedConns, err := c.convertIPbasedToSubnetBasedResult(ipBasedConnectivity, subnetHasPGW)
 		if err != nil {
 			return nil, err
 		}
@@ -241,10 +242,9 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() error {
 
 			// peerNode kind is expected to be Subnet or External
 			peerNodeObj := v.cloudConfig.NameToResource[peerNode]
-			switch concPeerNode := peerNodeObj.(type) {
+			switch peerNodeObj.(type) {
 			case NodeSet:
-				ingressConns := v.AllowedConns[concPeerNode.Name()].IngressAllowedConns[subnetNodeSet]
-				combinedConns = combinedConns.Intersection(ingressConns)
+				continue
 			case *ExternalNetwork:
 				// do nothing
 			default:

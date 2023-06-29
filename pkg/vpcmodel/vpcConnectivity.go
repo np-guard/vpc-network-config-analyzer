@@ -73,11 +73,14 @@ func switchSrcDstNodes(switchOrder bool, src, dst Node) (srcRes, dstRes Node) {
 	return src, dst
 }
 
-func (v *VPCConnectivity) compteCombinedConnectionsPerDirection(isIngressDirection bool, node Node, connectivityRes *ConnectivityResult) {
+func (v *VPCConnectivity) computeCombinedConnectionsPerDirection(isIngressDirection bool, node Node, connectivityRes *ConnectivityResult) {
 	for peerNode, conns := range connectivityRes.ingressOrEgressAllowedConns(isIngressDirection) {
 		src, dst := switchSrcDstNodes(!isIngressDirection, peerNode, node)
 		combinedConns := conns
 		if peerNode.IsInternal() {
+			if !isIngressDirection {
+				continue
+			}
 			otherDirectionConns := v.AllowedConns[peerNode].ingressOrEgressAllowedConns(!isIngressDirection)[node]
 			combinedConns = combinedConns.Intersection(otherDirectionConns)
 		}
@@ -94,8 +97,8 @@ func (v *VPCConnectivity) compteCombinedConnectionsPerDirection(isIngressDirecti
 func (v *VPCConnectivity) computeAllowedConnsCombined() {
 	v.AllowedConnsCombined = map[Node]map[Node]*common.ConnectionSet{}
 	for node, connectivityRes := range v.AllowedConns {
-		v.compteCombinedConnectionsPerDirection(true, node, connectivityRes)
-		v.compteCombinedConnectionsPerDirection(false, node, connectivityRes)
+		v.computeCombinedConnectionsPerDirection(true, node, connectivityRes)
+		v.computeCombinedConnectionsPerDirection(false, node, connectivityRes)
 	}
 }
 
@@ -125,9 +128,9 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections() {
 			// check allowed conns per NACL-layer from dst to src (dst->src)
 			var DstAllowedEgressToSrc, SrcAllowedIngressFromDst *common.ConnectionSet
 			// can dst egress to src?
-			DstAllowedEgressToSrc = v.getPerLayerConnectivity(statefulRequiredLayerName, dst, src, false)
+			DstAllowedEgressToSrc = v.getPerLayerConnectivity(statelessLayerName, dst, src, false)
 			// can src ingress from dst?
-			SrcAllowedIngressFromDst = v.getPerLayerConnectivity(statefulRequiredLayerName, dst, src, true)
+			SrcAllowedIngressFromDst = v.getPerLayerConnectivity(statelessLayerName, dst, src, true)
 			combinedDstToSrc := DstAllowedEgressToSrc.Intersection(SrcAllowedIngressFromDst)
 
 			if _, ok := v.AllowedConnsCombinedStateful[src]; !ok {
@@ -162,7 +165,7 @@ func (v *VPCConnectivity) getPerLayerConnectivity(layer string, src, dst Node, i
 
 const (
 	// this layer is stateless, thus required in both directions for stateful connectivity computation
-	statefulRequiredLayerName = NaclLayer
+	statelessLayerName = NaclLayer
 )
 
 func getCombinedConnsStr(combinedConns map[Node]map[Node]*common.ConnectionSet) string {
