@@ -27,6 +27,13 @@ type ConnectivityResult struct {
 	EgressAllowedConns  map[Node]*common.ConnectionSet
 }
 
+func (cr *ConnectivityResult) ingressOrEgressAllowedConns(isIngress bool) map[Node]*common.ConnectionSet {
+	if isIngress {
+		return cr.IngressAllowedConns
+	}
+	return cr.EgressAllowedConns
+}
+
 func (v *VPCConnectivity) String() string {
 	res := "=================================== distributed inbound/outbound connections:\n"
 	strList := []string{}
@@ -59,39 +66,36 @@ func (v *VPCConnectivity) String() string {
 	return res
 }
 
+func switchSrcDstNodes(switchOrder bool, src, dst Node) (srcRes, dstRes Node) {
+	if switchOrder {
+		return dst, src
+	}
+	return src, dst
+}
+
+func (v *VPCConnectivity) compteCombinedConnectionsPerDirection(isIngressDirection bool, node Node, connectivityRes *ConnectivityResult) {
+	for peerNode, conns := range connectivityRes.ingressOrEgressAllowedConns(isIngressDirection) {
+		src, dst := switchSrcDstNodes(!isIngressDirection, peerNode, node)
+		combinedConns := conns
+		if peerNode.IsInternal() {
+			otherDirectionConns := v.AllowedConns[peerNode].ingressOrEgressAllowedConns(!isIngressDirection)[node]
+			combinedConns = combinedConns.Intersection(otherDirectionConns)
+		}
+		if _, ok := v.AllowedConnsCombined[src]; !ok {
+			v.AllowedConnsCombined[src] = map[Node]*common.ConnectionSet{}
+		}
+		v.AllowedConnsCombined[src][dst] = combinedConns
+	}
+}
+
 // computeAllowedConnsCombined computes combination of ingress&egress directions per connection allowed
 // the result for this computation is stateless connections
 // (could be that some of them or a subset of them are stateful,but this is not computed here)
 func (v *VPCConnectivity) computeAllowedConnsCombined() {
 	v.AllowedConnsCombined = map[Node]map[Node]*common.ConnectionSet{}
-
 	for node, connectivityRes := range v.AllowedConns {
-		for peerNode, conns := range connectivityRes.IngressAllowedConns {
-			src := peerNode
-			dst := node
-			combinedConns := conns
-			if peerNode.IsInternal() {
-				egressConns := v.AllowedConns[peerNode].EgressAllowedConns[node]
-				combinedConns = combinedConns.Intersection(egressConns)
-			}
-			if _, ok := v.AllowedConnsCombined[src]; !ok {
-				v.AllowedConnsCombined[src] = map[Node]*common.ConnectionSet{}
-			}
-			v.AllowedConnsCombined[src][dst] = combinedConns
-		}
-		for peerNode, conns := range connectivityRes.EgressAllowedConns {
-			src := node
-			dst := peerNode
-			combinedConns := conns
-			if peerNode.IsInternal() {
-				ingressConss := v.AllowedConns[peerNode].IngressAllowedConns[node]
-				combinedConns = combinedConns.Intersection(ingressConss)
-			}
-			if _, ok := v.AllowedConnsCombined[src]; !ok {
-				v.AllowedConnsCombined[src] = map[Node]*common.ConnectionSet{}
-			}
-			v.AllowedConnsCombined[src][dst] = combinedConns
-		}
+		v.compteCombinedConnectionsPerDirection(true, node, connectivityRes)
+		v.compteCombinedConnectionsPerDirection(false, node, connectivityRes)
 	}
 }
 
@@ -101,8 +105,6 @@ func addDetailsLine(lines []string, details string) []string {
 	}
 	return lines
 }
-
-// add interface to output formatter
 
 func getConnectionStr(src, dst, conn, suffix string) string {
 	return fmt.Sprintf("%s => %s : %s%s\n", src, dst, conn, suffix)
