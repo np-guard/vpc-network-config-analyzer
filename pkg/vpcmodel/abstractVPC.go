@@ -78,8 +78,8 @@ func (n *NamedResource) Name() string {
 func (n *NamedResource) UID() string {
 	return n.ResourceUID
 }
-func (zn *NamedResource) ZoneName() string {
-	return zn.Zone
+func (n *NamedResource) ZoneName() string {
+	return n.Zone
 }
 
 const (
