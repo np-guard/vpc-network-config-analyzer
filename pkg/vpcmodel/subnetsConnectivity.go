@@ -18,16 +18,6 @@ type VPCsubnetConnectivity struct {
 	cloudConfig          *CloudConfig
 }
 
-type IPbasedConnectivityResult struct {
-	IngressAllowedConns map[*common.IPBlock]*common.ConnectionSet
-	EgressAllowedConns  map[*common.IPBlock]*common.ConnectionSet
-}
-
-type ConfigBasedConnectivityResults struct {
-	IngressAllowedConns map[string]*common.ConnectionSet
-	EgressAllowedConns  map[string]*common.ConnectionSet
-}
-
 const (
 	subnetKind                = "Subnet"
 	pgwKind                   = "PublicGateway"
@@ -102,10 +92,7 @@ func (c *CloudConfig) convertIPbasedToSubnetBasedResult(ipconn *IPbasedConnectiv
 	*ConfigBasedConnectivityResults,
 	error,
 ) {
-	res := &ConfigBasedConnectivityResults{
-		IngressAllowedConns: map[string]*common.ConnectionSet{},
-		EgressAllowedConns:  map[string]*common.ConnectionSet{},
-	}
+	res := NewConfigBasedConnectivityResults()
 
 	for ipb, conn := range ipconn.IngressAllowedConns {
 		// PGW does not allow ingress traffic
