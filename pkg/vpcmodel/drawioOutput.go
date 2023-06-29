@@ -214,8 +214,11 @@ func (d *DrawioOutputFormatter) createEdges() {
 	}
 }
 
-///////////////////////////////////////////////////////////////////
-
+// /////////////////////////////////////////////////////////////////
+// ArchDrawioOutputFormatter display only the architecture
+// So we omit the connectivity, so we send nil to write output.
+// (In archDrawio format we do not call GetVPCNetworkConnectivity, and conn should be nil,
+// However, in Testing GetVPCNetworkConnectivity is called for all formats)
 type ArchDrawioOutputFormatter struct {
 	DrawioOutputFormatter
 }
