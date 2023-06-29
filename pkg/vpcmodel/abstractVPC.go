@@ -20,8 +20,6 @@ import (
 type NamedResourceIntf interface {
 	UID() string
 	Name() string
-}
-type ZonalNamedResourceIntf interface {
 	ZoneName() string
 }
 
@@ -70,6 +68,7 @@ type RoutingResource interface {
 type NamedResource struct {
 	ResourceName string
 	ResourceUID  string
+	Zone         string
 }
 
 func (n *NamedResource) Name() string {
@@ -78,6 +77,9 @@ func (n *NamedResource) Name() string {
 
 func (n *NamedResource) UID() string {
 	return n.ResourceUID
+}
+func (zn *NamedResource) ZoneName() string {
+	return zn.Zone
 }
 
 const (

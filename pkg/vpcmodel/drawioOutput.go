@@ -76,7 +76,7 @@ func (d *DrawioOutputFormatter) createDrawioTree() {
 }
 
 func (d *DrawioOutputFormatter) getZoneTreeNode(resource NamedResourceIntf) *drawio.ZoneTreeNode {
-	zoneName := resource.(ZonalNamedResourceIntf).ZoneName()
+	zoneName := resource.ZoneName()
 	if _, ok := d.zoneNameToZonesTreeNodes[zoneName]; !ok {
 		d.zoneNameToZonesTreeNodes[zoneName] = drawio.NewZoneTreeNode(d.vpc, zoneName)
 	}
