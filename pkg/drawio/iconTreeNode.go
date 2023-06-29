@@ -83,6 +83,7 @@ func (tn *NITreeNode) Fip() string       { return tn.floatingIP }
 func (tn *NITreeNode) HasFip() bool      { return tn.Fip() != "" }
 func (tn *NITreeNode) RouterID() uint    { return tn.FipID() }
 func (tn *NITreeNode) IsNI() bool        { return true }
+func (tn *NITreeNode) Label() string     { return labels2Table([]string{tn.name, tn.vsi}) }
 
 // ///////////////////////////////////////////
 type GatewayTreeNode struct {

@@ -57,8 +57,5 @@ func writeDrawioFile(data *drawioData, outputFile string) error {
 		}
 	}()
 	err = tmpl.Execute(fo, data)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }

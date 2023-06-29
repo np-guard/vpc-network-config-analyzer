@@ -11,6 +11,7 @@ const (
 	Text
 	MD
 	CSV
+	DRAWIO
 )
 
 const (
@@ -28,10 +29,11 @@ func NewOutputGenerator(c *CloudConfig, conn *VPCConnectivity) *OutputGenerator 
 		config: c,
 		conn:   conn,
 		outputFiles: map[OutFormat]string{
-			JSON: "",
-			Text: "",
-			MD:   "",
-			CSV:  "",
+			JSON:   "",
+			Text:   "",
+			MD:     "",
+			CSV:    "",
+			DRAWIO: "",
 		},
 	}
 }
@@ -49,6 +51,8 @@ func (o *OutputGenerator) Generate(f OutFormat) (string, error) {
 		formatter = &TextoutputFormatter{}
 	case MD:
 		formatter = &MDoutputFormatter{}
+	case DRAWIO:
+		formatter = &DrawioOutputFormatter{}
 	default:
 		return "", errors.New("unsupported output format")
 	}

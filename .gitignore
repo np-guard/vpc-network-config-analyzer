@@ -21,3 +21,4 @@ bin/
 # IDE settings
 .vscode/
 pkg/drawio/*.drawio
+pkg/*/examples/*.drawio

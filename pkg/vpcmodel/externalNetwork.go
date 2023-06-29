@@ -11,7 +11,8 @@ const (
 	DetailsAttributeName = "name"
 	DetailsAttributeCIDR = "cidr"
 
-	publicInternetNodeName = "PublicInternet"
+	publicInternetNodeName  = "PublicInternet"
+	externalNetworkNodeKind = "ExternalNetwork"
 )
 
 // All public IP addresses belong to one of the following public IP address ranges:
@@ -57,11 +58,11 @@ func (exn *ExternalNetwork) IsPublicInternet() bool {
 }
 
 func (exn *ExternalNetwork) Details() string {
-	return "ExternalNetwork " + exn.Cidr()
+	return externalNetworkNodeKind + " " + exn.Cidr()
 }
 
 func (exn *ExternalNetwork) Kind() string {
-	return "ExternalNetwork"
+	return externalNetworkNodeKind
 }
 
 func (exn *ExternalNetwork) DetailsMap() map[string]string {

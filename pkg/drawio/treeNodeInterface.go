@@ -34,7 +34,6 @@ package drawio
 // 2. information to be used in the drawio template
 
 type TreeNodeInterface interface {
-	Name() string
 	ID() uint
 	TextID() uint
 	RouterID() uint
@@ -42,6 +41,7 @@ type TreeNodeInterface interface {
 	Y() int
 	Height() int
 	Width() int
+	Label() string
 
 	DrawioParent() TreeNodeInterface
 	Parent() TreeNodeInterface

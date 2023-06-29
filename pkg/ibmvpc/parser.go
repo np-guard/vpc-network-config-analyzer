@@ -232,9 +232,8 @@ func getInstancesConfig(
 	for i := range instanceList {
 		instance := instanceList[i]
 		vsiNode := &Vsi{
-			zonalNamedResource: zonalNamedResource{
-				vpcmodel.NamedResource{ResourceName: *instance.Name, ResourceUID: *instance.CRN}, *instance.Zone.Name},
-			nodes: []vpcmodel.Node{},
+			NamedResource: vpcmodel.NamedResource{ResourceName: *instance.Name, ResourceUID: *instance.CRN, Zone: *instance.Zone.Name},
+			nodes:         []vpcmodel.Node{},
 		}
 		res.NodeSets = append(res.NodeSets, vsiNode)
 		for j := range instance.NetworkInterfaces {
@@ -265,8 +264,8 @@ func getSubnetsConfig(
 		subnet := rc.subnetsList[i]
 		subnetNodes := []vpcmodel.Node{}
 		subnetNode := &Subnet{
-			zonalNamedResource: zonalNamedResource{vpcmodel.NamedResource{ResourceName: *subnet.Name, ResourceUID: *subnet.CRN}, *subnet.Zone.Name},
-			cidr:               *subnet.Ipv4CIDRBlock}
+			NamedResource: vpcmodel.NamedResource{ResourceName: *subnet.Name, ResourceUID: *subnet.CRN, Zone: *subnet.Zone.Name},
+			cidr:          *subnet.Ipv4CIDRBlock}
 		cidrIPBlock := common.NewIPBlockFromCidr(subnetNode.cidr)
 		if vpcInternalAddressRange == nil {
 			vpcInternalAddressRange = cidrIPBlock
@@ -298,11 +297,10 @@ func getPgwConfig(
 		pgw := rc.pgwList[i]
 		srcNodes := pgwToSubnet[*pgw.Name].Nodes()
 		routerPgw := &PublicGateway{
-			zonalNamedResource: zonalNamedResource{
-				vpcmodel.NamedResource{
-					ResourceName: *pgw.Name,
-					ResourceUID:  *pgw.CRN,
-				}, *pgw.Zone.Name,
+			NamedResource: vpcmodel.NamedResource{
+				ResourceName: *pgw.Name,
+				ResourceUID:  *pgw.CRN,
+				Zone:         *pgw.Zone.Name,
 			},
 			cidr: "",
 			src:  srcNodes,
@@ -333,8 +331,8 @@ func getFipConfig(
 		if targetAddress != "" {
 			srcNodes := getCertainNodes(res.Nodes, func(n vpcmodel.Node) bool { return n.Cidr() == targetAddress })
 			routerFip := &FloatingIP{
-				zonalNamedResource: zonalNamedResource{vpcmodel.NamedResource{ResourceName: *fip.Name, ResourceUID: *fip.CRN}, *fip.Zone.Name},
-				cidr:               *fip.Address, src: srcNodes}
+				NamedResource: vpcmodel.NamedResource{ResourceName: *fip.Name, ResourceUID: *fip.CRN, Zone: *fip.Zone.Name},
+				cidr:          *fip.Address, src: srcNodes}
 			res.RoutingResources = append(res.RoutingResources, routerFip)
 
 			// node with fip should not have pgw
