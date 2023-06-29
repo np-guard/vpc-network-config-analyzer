@@ -15,9 +15,10 @@ type InArgs struct {
 
 const (
 	// output formats supported
-	JSONFormat = "json"
-	TEXTFormat = "txt"
-	MDFormat   = "md"
+	JSONFormat   = "json"
+	TEXTFormat   = "txt"
+	MDFormat     = "md"
+	DRAWIOFormat = "drawio"
 
 	// connectivity analysis types supported
 	VsiLevel     = "vsiLevel"    // vsi to vsi connectivity analysis
@@ -26,9 +27,10 @@ const (
 )
 
 var supportedOutputFormats = map[string]bool{
-	JSONFormat: true,
-	TEXTFormat: true,
-	MDFormat:   true,
+	JSONFormat:   true,
+	TEXTFormat:   true,
+	MDFormat:     true,
+	DRAWIOFormat: true,
 }
 var supportedAnalysisTypes = map[string]bool{
 	VsiLevel:     true,
@@ -41,9 +43,8 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	flagset := flag.NewFlagSet("vpc-network-config-analyzer", flag.ContinueOnError)
 	args.InputConfigFile = flagset.String("vpc-config", "", "file path to input config")
 	args.OutputFile = flagset.String("output-file", "", "file path to store results")
-	args.OutputFormat = flagset.String("format", TEXTFormat, "output format; must be one of \"json\"/\"txt\"/\"md\"")
+	args.OutputFormat = flagset.String("format", TEXTFormat, "output format; must be one of \"json\"/\"txt\"/\"md\"\"drawio\"")
 	args.AnalysisType = flagset.String("analysis-type", VsiLevel, "supported analysis types: vsiLevel / subnetLevel / debugSubnet")
-
 	err := flagset.Parse(cmdlineArgs)
 	if err != nil {
 		return nil, err
@@ -56,7 +57,7 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 
 	if !supportedOutputFormats[*args.OutputFormat] {
 		flagset.PrintDefaults()
-		return nil, fmt.Errorf("wrong output format %s; must be either json/txt/md", *args.OutputFormat)
+		return nil, fmt.Errorf("wrong output format %s; must be either json/txt/md/drawio", *args.OutputFormat)
 	}
 
 	if !supportedAnalysisTypes[*args.AnalysisType] {

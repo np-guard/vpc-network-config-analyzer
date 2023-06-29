@@ -7,11 +7,13 @@ import (
 type NamedResourceIntf interface {
 	UID() string
 	Name() string
+	ZoneName() string
 }
 
 type NamedResource struct {
 	ResourceName string
 	ResourceUID  string
+	Zone         string
 }
 
 func (n *NamedResource) Name() string {
@@ -20,6 +22,9 @@ func (n *NamedResource) Name() string {
 
 func (n *NamedResource) UID() string {
 	return n.ResourceUID
+}
+func (n *NamedResource) ZoneName() string {
+	return n.Zone
 }
 
 const (
