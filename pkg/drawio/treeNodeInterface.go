@@ -58,6 +58,7 @@ type TreeNodeInterface interface {
 	IsSquare() bool
 
 	setGeometry()
+	absoluteGeometry() (int, int)
 	children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface)
 }
 

@@ -69,6 +69,32 @@
             </mxCell>
         {{ end }}
     {{end}}
+    {{range $line := $data.Mesh}}
+        <mxCell id="FXCXVvDxTQtwc45PbP1s-{{$line.Id}}" value="" style="endArrow=none;dashed=1;html=1;dashPattern=1 3;strokeWidth=2;fillColor=#d80073;strokeColor=#FF6666;" edge="1" parent="1">
+        <mxGeometry relative="1" as="geometry">
+        <mxPoint x="{{$line.X1}}" y="{{$line.Y1}}" as="sourcePoint"/>
+        <mxPoint x="{{$line.X2}}" y="{{$line.Y2}}" as="targetPoint"/>
+        </mxGeometry>
+        </mxCell>
+    {{end}}
+
+<object label="allstars" id="star-100">
+<mxCell style="" parent="0"/>
+</object>
+    {{range $star := $data.Stars}}
+        {{if $star.Red}}
+            <mxCell id="FXCXVvDxTQtwc45PbP1s-{{$star.Id}}" value="" style="verticalLabelPosition=bottom;verticalAlign=top;html=1;shape=mxgraph.basic.6_point_star;fillColor=#e51400;strokeColor=#B20000;fontColor=#ffffff;" vertex="1" parent="star-100">
+        {{else if $star.Purple }}
+            <mxCell id="FXCXVvDxTQtwc45PbP1s-{{$star.Id}}" value="" style="verticalLabelPosition=bottom;verticalAlign=top;html=1;shape=mxgraph.basic.6_point_star;fillColor=#76608a;strokeColor=#432D57;fontColor=#ffffff;" vertex="1" parent="star-100">
+        {{else}}
+            <mxCell id="FXCXVvDxTQtwc45PbP1s-{{$star.Id}}" value="" style="verticalLabelPosition=bottom;verticalAlign=top;html=1;shape=mxgraph.basic.6_point_star;fillColor=#e3c800;strokeColor=#B09500;fontColor=#ffffff;" vertex="1" parent="star-100">
+        {{end}}
+        <mxGeometry x="{{$star.X}}" y="{{$star.Y}}" width="3" height="3" as="geometry"/>
+        </mxCell>
+    {{end}}
+
+
+
 </root>
 </mxGraphModel>
 </diagram>

@@ -20,6 +20,7 @@ package drawio
 // that alow to add/remove rows/column without updating the treeNodes.
 
 const (
+	minSize      = 10
 	borderWidth  = 40
 	subnetWidth  = 8 * 40
 	subnetHeight = 6 * 40
@@ -40,10 +41,11 @@ const (
 type layoutS struct {
 	network SquareTreeNodeInterface
 	matrix  *layoutMatrix
+	lyO     *layoutOverlap
 }
 
 func newLayout(network SquareTreeNodeInterface) *layoutS {
-	return &layoutS{network: network, matrix: newLayoutMatrix()}
+	return &layoutS{network: network, matrix: newLayoutMatrix(), lyO: newLayoutOverlap()}
 }
 
 func (ly *layoutS) layout() {
@@ -63,6 +65,7 @@ func (ly *layoutS) layout() {
 	// 6. set the geometry for each node in the drawio
 	ly.matrix.setLayersDistance()
 	ly.setGeometries()
+	ly.lyO.fixOverlapping(ly.network)
 }
 
 // ///////////////////////////////////////////////////////////////
