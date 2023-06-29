@@ -551,8 +551,6 @@ func (pgw *PublicGateway) ConnectivityMap() map[string]vpcmodel.ConfigBasedConne
 		EgressAllowedConns:  map[string]*common.ConnectionSet{},
 	}
 	for _, dst := range pgw.destinations {
-		// TODO: should not be both directions?
-		res[pgw.subnetCidr].IngressAllowedConns[dst.Name()] = vpcmodel.AllConns()
 		res[pgw.subnetCidr].EgressAllowedConns[dst.Name()] = vpcmodel.AllConns()
 	}
 	return res

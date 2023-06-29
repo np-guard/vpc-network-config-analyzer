@@ -107,7 +107,8 @@ func (c *CloudConfig) ConvertIPbasedToSubnetBasedResult(ipconn *IPbasedConnectiv
 	}
 
 	for ipb, conn := range ipconn.IngressAllowedConns {
-		if namedResources, err := c.IPblockToNamedResourcesInConfig(ipb, !hasPGW); err == nil {
+		// PGW does not allow ingress traffic
+		if namedResources, err := c.IPblockToNamedResourcesInConfig(ipb, true); err == nil {
 			for _, n := range namedResources {
 				res.IngressAllowedConns[n.Name()] = conn
 			}
@@ -116,6 +117,7 @@ func (c *CloudConfig) ConvertIPbasedToSubnetBasedResult(ipconn *IPbasedConnectiv
 		}
 	}
 
+	// egress traffic to external nodes may be enabled by a public gateway
 	for ipb, conn := range ipconn.EgressAllowedConns {
 		if namedResources, err := c.IPblockToNamedResourcesInConfig(ipb, !hasPGW); err == nil {
 			for _, n := range namedResources {
@@ -125,7 +127,6 @@ func (c *CloudConfig) ConvertIPbasedToSubnetBasedResult(ipconn *IPbasedConnectiv
 			return nil, err
 		}
 	}
-
 	return res, nil
 }
 
@@ -148,7 +149,7 @@ func (c *CloudConfig) subnetCidrToSubnetElem(cidr string) (NodeSet, error) {
 	return nil, err
 }
 
-// connectivity per subnet based on resources that capture subnets, such as nacl, pgw, routing-tables
+// the main function to compute connectivity per subnet based on resources that capture subnets, such as nacl, pgw, routing-tables
 func (c *CloudConfig) GetSubnetsConnectivity(includePGW bool) (*VPCsubnetConnectivity, error) {
 	var subnetsConnectivityFromACLresources map[string]*IPbasedConnectivityResult
 	var err error
@@ -164,12 +165,12 @@ func (c *CloudConfig) GetSubnetsConnectivity(includePGW bool) (*VPCsubnetConnect
 		return nil, errors.New("missing connectivity results from NACL resources")
 	}
 
-	pgwConns := map[string]ConfigBasedConnectivityResults{}
+	subnetsWithPGW := map[string]bool{}
 	for _, r := range c.RoutingResources {
 		if r.Kind() == "PublicGateway" {
 			conns := r.ConnectivityMap()
-			for subnetCidr, pgwConnsPerCidr := range conns {
-				pgwConns[subnetCidr] = pgwConnsPerCidr
+			for subnetCidr := range conns {
+				subnetsWithPGW[subnetCidr] = true
 			}
 		}
 	}
@@ -184,7 +185,7 @@ func (c *CloudConfig) GetSubnetsConnectivity(includePGW bool) (*VPCsubnetConnect
 
 		// create and update configBasedConns according to relevant router (pgw) resources
 		subnetHasPGW := false
-		if _, ok := pgwConns[subnetCidrStr]; ok {
+		if subnetsWithPGW[subnetCidrStr] {
 			subnetHasPGW = true
 		}
 		if !includePGW {

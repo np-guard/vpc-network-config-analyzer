@@ -1,24 +1,4 @@
 combined connections between subnets:
-PublicInternet [1.0.0.0/8] => subnet1-ky : All Connections
-PublicInternet [100.128.0.0/9] => subnet1-ky : All Connections
-PublicInternet [11.0.0.0/8] => subnet1-ky : All Connections
-PublicInternet [128.0.0.0/5] => subnet1-ky : All Connections
-PublicInternet [142.0.0.0/8] => subnet1-ky : All Connections
-PublicInternet [143.0.0.0/8] => subnet1-ky : All Connections
-PublicInternet [144.0.0.0/7] => subnet1-ky : All Connections
-PublicInternet [147.235.219.206/32] => subnet1-ky : All Connections
-PublicInternet [147.235.219.207/32] => subnet1-ky : All Connections
-PublicInternet [161.26.0.0/16] => subnet1-ky : All Connections
-PublicInternet [161.27.0.0/16] => subnet1-ky : All Connections
-PublicInternet [169.255.0.0/16] => subnet1-ky : All Connections
-PublicInternet [172.32.0.0/11] => subnet1-ky : All Connections
-PublicInternet [192.0.1.0/24] => subnet1-ky : All Connections
-PublicInternet [192.0.3.0/24] => subnet1-ky : All Connections
-PublicInternet [192.169.0.0/16] => subnet1-ky : All Connections
-PublicInternet [192.88.100.0/22] => subnet1-ky : All Connections
-PublicInternet [198.20.0.0/14] => subnet1-ky : All Connections
-PublicInternet [198.51.101.0/24] => subnet1-ky : All Connections
-PublicInternet [203.0.114.0/23] => subnet1-ky : All Connections
 subnet1-ky => PublicInternet [1.0.0.0/8] : All Connections
 subnet1-ky => PublicInternet [100.128.0.0/9] : All Connections
 subnet1-ky => PublicInternet [11.0.0.0/8] : All Connections
