@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"strings"
 )
 
 // InArgs contains the input arguments for the analyzer
@@ -22,9 +23,9 @@ const (
 	DRAWIOFormat = "drawio"
 
 	// connectivity analysis types supported
-	VsiLevel     = "vsiLevel"    // vsi to vsi connectivity analysis
-	SubnetsLevel = "subnetLevel" // subnet to subnet connectivity analysis
-	DebugSubnet  = "debugSubnet" // single subnet connectivity analysis
+	allEndpoints = "all_endpoints" // vsi to vsi connectivity analysis
+	allSubnets   = "all_subnets"   // subnet to subnet connectivity analysis
+	singleSubnet = "single_subnet" // single subnet connectivity analysis
 )
 
 var supportedOutputFormats = map[string]bool{
@@ -34,9 +35,19 @@ var supportedOutputFormats = map[string]bool{
 	DRAWIOFormat: true,
 }
 var supportedAnalysisTypes = map[string]bool{
-	VsiLevel:     true,
-	SubnetsLevel: true,
-	DebugSubnet:  true,
+	allEndpoints: true,
+	allSubnets:   true,
+	singleSubnet: true,
+}
+
+func getSupportedValuesString(supportedValues map[string]bool) string {
+	valuesList := make([]string, len(supportedValues))
+	i := 0
+	for value := range supportedValues {
+		valuesList[i] = value
+		i += 1
+	}
+	return strings.Join(valuesList, ",")
 }
 
 func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
@@ -44,8 +55,9 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	flagset := flag.NewFlagSet("vpc-network-config-analyzer", flag.ContinueOnError)
 	args.InputConfigFile = flagset.String("vpc-config", "", "file path to input config")
 	args.OutputFile = flagset.String("output-file", "", "file path to store results")
-	args.OutputFormat = flagset.String("format", TEXTFormat, "output format; must be one of \"json\"/\"txt\"/\"md\"\"drawio\"")
-	args.AnalysisType = flagset.String("analysis-type", VsiLevel, "supported analysis types: vsiLevel / subnetLevel / debugSubnet")
+	args.OutputFormat = flagset.String("format", TEXTFormat, "output format; must be one of "+getSupportedValuesString(supportedOutputFormats))
+	args.AnalysisType = flagset.String("analysis-type", allEndpoints,
+		"supported analysis types: "+getSupportedValuesString(supportedAnalysisTypes))
 	args.Grouping = flagset.Bool("grouping", false, "whether to group together src/dst entries with identical connectivity")
 
 	err := flagset.Parse(cmdlineArgs)
@@ -60,20 +72,20 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 
 	if !supportedOutputFormats[*args.OutputFormat] {
 		flagset.PrintDefaults()
-		return nil, fmt.Errorf("wrong output format %s; must be either json/txt/md/drawio", *args.OutputFormat)
+		return nil, fmt.Errorf("wrong output format %s; must be one of %s", *args.OutputFormat, getSupportedValuesString(supportedOutputFormats))
 	}
 
 	if !supportedAnalysisTypes[*args.AnalysisType] {
 		flagset.PrintDefaults()
-		return nil, fmt.Errorf("wrong analysis type %s; must be either vsiLevel / subnetLevel / debugSubnet", *args.AnalysisType)
+		return nil, fmt.Errorf("wrong analysis type %s; must be one of: %s", *args.AnalysisType, getSupportedValuesString(supportedAnalysisTypes))
 	}
 
-	if *args.AnalysisType != VsiLevel && *args.OutputFormat != TEXTFormat {
+	if *args.AnalysisType != allEndpoints && *args.OutputFormat != TEXTFormat {
 		return nil, fmt.Errorf("currently only txt output format supported with %s analysis type", *args.AnalysisType)
 	}
 
-	if *args.AnalysisType != VsiLevel && *args.Grouping {
-		return nil, fmt.Errorf("currently only VsiLevel analysis type supports grouping")
+	if *args.AnalysisType != allEndpoints && *args.Grouping {
+		return nil, fmt.Errorf("currently only allEndpoints analysis type supports grouping")
 	}
 
 	return &args, nil

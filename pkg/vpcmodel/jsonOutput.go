@@ -48,7 +48,10 @@ func getGroupedConnLines(conn *VPCConnectivity) []connLine {
 	return connLines
 }
 
-func (j *JSONoutputFormatter) WriteOutputVsiLevel(c *CloudConfig, conn *VPCConnectivity, outFile string, grouping bool) (string, error) {
+func (j *JSONoutputFormatter) WriteOutputAllEndpoints(c *CloudConfig, conn *VPCConnectivity, outFile string, grouping bool) (
+	string,
+	error,
+) {
 	all := allInfo{}
 	var connLines []connLine
 	if grouping {
@@ -87,10 +90,10 @@ func (j *JSONoutputFormatter) WriteOutputVsiLevel(c *CloudConfig, conn *VPCConne
 	return resStr, err
 }
 
-func (j *JSONoutputFormatter) WriteOutputSubnetLevel(subnetsConn *VPCsubnetConnectivity, outFile string) (string, error) {
+func (j *JSONoutputFormatter) WriteOutputAllSubnets(subnetsConn *VPCsubnetConnectivity, outFile string) (string, error) {
 	return "", errors.New("SubnetLevel use case not supported for md format currently ")
 }
 
-func (j *JSONoutputFormatter) WriteOutputDebugSubnet(c *CloudConfig, outFile string) (string, error) {
+func (j *JSONoutputFormatter) WriteOutputSingleSubnet(c *CloudConfig, outFile string) (string, error) {
 	return "", errors.New("DebugSubnet use case not supported for md format currently ")
 }

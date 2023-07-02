@@ -23,10 +23,10 @@ const (
 type OutputUseCase int
 
 const (
-	VsiLevel          OutputUseCase = iota // connectivity between network interfaces and external ip-blocks
-	DebugSubnet                            // connectivity per single subnet with nacl
-	SubnetsLevel                           // connectivity between subnets (consider nacl + pgw)
-	SubnetsLevelNoPGW                      // connectivity between subnets (consider nacl only)
+	AllEndpoints    OutputUseCase = iota // connectivity between network interfaces and external ip-blocks
+	SingleSubnet                         // connectivity per single subnet with nacl
+	AllSubnets                           // connectivity between subnets (consider nacl + pgw)
+	AllSubnetsNoPGW                      // connectivity between subnets (consider nacl only)
 )
 
 type OutputGenerator struct {
@@ -44,10 +44,10 @@ func NewOutputGenerator(c *CloudConfig, grouping bool, uc OutputUseCase) (*Outpu
 		useCase:        uc,
 	}
 
-	if uc == VsiLevel {
+	if uc == AllEndpoints {
 		res.nodesConn = c.GetVPCNetworkConnectivity(grouping)
 	}
-	if uc == SubnetsLevel {
+	if uc == AllSubnets {
 		subnetsConn, err := c.GetSubnetsConnectivity(true)
 		if err != nil {
 			return nil, err
@@ -76,21 +76,21 @@ func (o *OutputGenerator) Generate(f OutFormat, outFile string) (string, error) 
 	}
 
 	switch o.useCase {
-	case VsiLevel:
-		return formatter.WriteOutputVsiLevel(o.config, o.nodesConn, outFile, o.outputGrouping)
-	case DebugSubnet:
-		return formatter.WriteOutputDebugSubnet(o.config, outFile)
-	case SubnetsLevel:
-		return formatter.WriteOutputSubnetLevel(o.subnetsConn, outFile)
+	case AllEndpoints:
+		return formatter.WriteOutputAllEndpoints(o.config, o.nodesConn, outFile, o.outputGrouping)
+	case SingleSubnet:
+		return formatter.WriteOutputSingleSubnet(o.config, outFile)
+	case AllSubnets:
+		return formatter.WriteOutputAllSubnets(o.subnetsConn, outFile)
 	}
 	return "", errors.New("unsupported useCase argument")
 }
 
 // OutputFormatter has several write functions per each use-case
 type OutputFormatter interface {
-	WriteOutputVsiLevel(c *CloudConfig, conn *VPCConnectivity, outFile string, grouping bool) (string, error)
-	WriteOutputSubnetLevel(subnetsConn *VPCsubnetConnectivity, outFile string) (string, error)
-	WriteOutputDebugSubnet(c *CloudConfig, outFile string) (string, error)
+	WriteOutputAllEndpoints(c *CloudConfig, conn *VPCConnectivity, outFile string, grouping bool) (string, error)
+	WriteOutputAllSubnets(subnetsConn *VPCsubnetConnectivity, outFile string) (string, error)
+	WriteOutputSingleSubnet(c *CloudConfig, outFile string) (string, error)
 }
 
 func writeOutput(out, file string) (string, error) {
