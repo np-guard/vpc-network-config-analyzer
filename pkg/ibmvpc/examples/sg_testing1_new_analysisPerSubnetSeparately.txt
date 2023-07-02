@@ -1,26 +1,17 @@
+subnet: 10.240.10.0/24
 ingressConnectivity:
-
-local ip-block: 10.240.10.0-10.240.10.255
 remote: 0.0.0.0-255.255.255.255, conn: All Connections
 egressConnectivity:
-
-local ip-block: 10.240.10.0-10.240.10.255
 remote: 0.0.0.0-255.255.255.255, conn: All Connections
 
+subnet: 10.240.20.0/24
 ingressConnectivity:
-
-local ip-block: 10.240.20.0-10.240.20.255
 remote: 0.0.0.0-255.255.255.255, conn: All Connections
 egressConnectivity:
-
-local ip-block: 10.240.20.0-10.240.20.255
 remote: 0.0.0.0-255.255.255.255, conn: All Connections
 
+subnet: 10.240.30.0/24
 ingressConnectivity:
-
-local ip-block: 10.240.30.0-10.240.30.255
 remote: 0.0.0.0-255.255.255.255, conn: All Connections
 egressConnectivity:
-
-local ip-block: 10.240.30.0-10.240.30.255
 remote: 0.0.0.0-255.255.255.255, conn: All Connections

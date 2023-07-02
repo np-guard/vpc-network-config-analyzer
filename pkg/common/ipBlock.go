@@ -55,6 +55,10 @@ func (b *IPBlock) Intersection(c *IPBlock) *IPBlock {
 	return res
 }
 
+func (b *IPBlock) Equal(c *IPBlock) bool {
+	return b.ipRange.Equal(c.ipRange)
+}
+
 func (b *IPBlock) Subtract(c *IPBlock) *IPBlock {
 	res := &IPBlock{}
 	res.ipRange = b.ipRange.Copy()

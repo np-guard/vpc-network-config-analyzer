@@ -43,6 +43,7 @@ func (c *CloudConfig) GetVPCNetworkConnectivity() *VPCConnectivity {
 	}
 	res.computeAllowedConnsCombined()
 	res.computeAllowedStatefulConnections()
+	res.GroupedConnectivity = newGroupConnLines(c, res)
 	return res
 }
 
@@ -233,8 +234,15 @@ func getCombinedConnsStr(combinedConns map[Node]map[Node]*common.ConnectionSet) 
 	sort.Strings(strList)
 	return strings.Join(strList, "")
 }
+func (v *VPCConnectivity) GroupedConnectivityString() string {
+	return "\ngrouped output:\n" + v.GroupedConnectivity.String()
+}
 
 func (v *VPCConnectivity) String() string {
+	return getCombinedConnsStr(v.AllowedConnsCombined)
+}
+
+func (v *VPCConnectivity) DetailedString() string {
 	res := "=================================== distributed inbound/outbound connections:\n"
 	strList := []string{}
 	for node, connectivity := range v.AllowedConns {

@@ -16,6 +16,9 @@ type VPCConnectivity struct {
 
 	// allowed connectivity combined and stateful
 	AllowedConnsCombinedStateful map[Node]map[Node]*common.ConnectionSet
+
+	// grouped connectivity result
+	GroupedConnectivity *GroupConnLines
 }
 
 // ConnectivityResult is used to capture allowed connectivity between Node elements

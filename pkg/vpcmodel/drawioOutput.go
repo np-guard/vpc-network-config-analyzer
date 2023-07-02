@@ -1,6 +1,7 @@
 package vpcmodel
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
@@ -8,6 +9,9 @@ import (
 
 const (
 	commaSeparator = ","
+	cidrAttr       = "cidr"
+	nameAttr       = "name"
+	nwInterface    = "NetworkInterface"
 )
 
 type Edge struct {
@@ -58,7 +62,8 @@ func (d *DrawioOutputFormatter) init(cConfig *CloudConfig, conn *VPCConnectivity
 	d.isEdgeDirected = map[Edge]bool{}
 }
 
-func (d *DrawioOutputFormatter) WriteOutput(cConfig *CloudConfig, conn *VPCConnectivity, outFile string) (string, error) {
+func (d *DrawioOutputFormatter) WriteOutputVsiLevel(cConfig *CloudConfig, conn *VPCConnectivity, outFile string, grouping bool) (
+	string, error) {
 	d.init(cConfig, conn)
 	d.createDrawioTree()
 	err := drawio.CreateDrawioConnectivityMapFile(d.network, outFile)
@@ -118,10 +123,10 @@ func (d *DrawioOutputFormatter) createNodeSets() {
 	}
 	for _, ns := range d.cConfig.NodeSets {
 		details := ns.DetailsMap()
-		if details[DetailsAttributeKind] == "Subnet" {
-			subnet := drawio.NewSubnetTreeNode(d.getZoneTreeNode(ns), details[DetailsAttributeName], details["cidr"], "")
+		if details[DetailsAttributeKind] == subnetKind {
+			subnet := drawio.NewSubnetTreeNode(d.getZoneTreeNode(ns), details[DetailsAttributeName], details[cidrAttr], "")
 			d.uidToSubnetsTreeNodes[details["uid"]] = subnet
-			d.cidrToSubnetsTreeNodes[details["cidr"]] = subnet
+			d.cidrToSubnetsTreeNodes[details[cidrAttr]] = subnet
 		}
 	}
 }
@@ -130,14 +135,14 @@ func (d *DrawioOutputFormatter) createFilters() {
 	for _, fl := range d.cConfig.FilterResources {
 		for _, details := range fl.DetailsMap() {
 			if details[DetailsAttributeKind] == "SG" {
-				sgTn := drawio.NewSGTreeNode(d.vpc, details["name"])
+				sgTn := drawio.NewSGTreeNode(d.vpc, details[nameAttr])
 				for _, member := range strings.Split(details["members"], commaSeparator) {
 					d.sgMembers[member] = sgTn
 				}
 			} else if details[DetailsAttributeKind] == "NACL" {
 				for _, subnetCidr := range strings.Split(details["subnets"], commaSeparator) {
 					if subnetCidr != "" {
-						d.cidrToSubnetsTreeNodes[subnetCidr].SetACL(details["name"])
+						d.cidrToSubnetsTreeNodes[subnetCidr].SetACL(details[nameAttr])
 					}
 				}
 			}
@@ -148,11 +153,11 @@ func (d *DrawioOutputFormatter) createFilters() {
 func (d *DrawioOutputFormatter) createNodes() {
 	for _, n := range d.cConfig.Nodes {
 		details := n.DetailsMap()
-		if details[DetailsAttributeKind] == "NetworkInterface" {
+		if details[DetailsAttributeKind] == nwInterface {
 			// todo: what is the name of NI
 			d.allIconsTreeNodes[n] = drawio.NewNITreeNode(
 				d.uidToSubnetsTreeNodes[details["subnetUID"]],
-				d.sgMembers[details["address"]], details["name"])
+				d.sgMembers[details["address"]], details[nameAttr])
 		} else if details[DetailsAttributeKind] == externalNetworkNodeKind {
 			if d.connectedNodes[n] {
 				d.allIconsTreeNodes[n] = drawio.NewInternetTreeNode(d.network, details[DetailsAttributeCIDR])
@@ -210,4 +215,12 @@ func (d *DrawioOutputFormatter) createEdges() {
 			cn.SetRouter(d.routers[dstTn], true)
 		}
 	}
+}
+
+func (d *DrawioOutputFormatter) WriteOutputSubnetLevel(subnetsConn *VPCsubnetConnectivity, outFile string) (string, error) {
+	return "", errors.New("SubnetLevel use case not supported for md format currently ")
+}
+
+func (d *DrawioOutputFormatter) WriteOutputDebugSubnet(c *CloudConfig, outFile string) (string, error) {
+	return "", errors.New("DebugSubnet use case not supported for md format currently ")
 }

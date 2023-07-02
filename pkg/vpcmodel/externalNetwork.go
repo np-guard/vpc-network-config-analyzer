@@ -73,23 +73,26 @@ func (exn *ExternalNetwork) DetailsMap() map[string]string {
 	return res
 }
 
-func getPublicInternetIPblocksList() (internetIPblocksList []*common.IPBlock, allInternetRagnes *common.IPBlock, err error) {
-	res := []*common.IPBlock{}
-	allInternetRagnes = &common.IPBlock{}
-	publicInternetAdrressList := getPublicInternetAdressList()
-	for _, ipAddressRange := range publicInternetAdrressList {
+func ipStringsToIPblocks(ipList []string) (ipbList []*common.IPBlock, unionIPblock *common.IPBlock, err error) {
+	ipbList = []*common.IPBlock{}
+	unionIPblock = &common.IPBlock{}
+	for _, ipAddressRange := range ipList {
 		var ipb *common.IPBlock
-		var err error
 		if ipb, err = common.IPBlockFromIPRangeStr(ipAddressRange); err != nil {
 			ipb, err = common.NewIPBlock(ipAddressRange, []string{})
 		}
 		if err != nil {
 			return nil, nil, err
 		}
-		res = append(res, ipb)
-		allInternetRagnes = allInternetRagnes.Union(ipb)
+		ipbList = append(ipbList, ipb)
+		unionIPblock = unionIPblock.Union(ipb)
 	}
-	return res, allInternetRagnes, nil
+	return ipbList, unionIPblock, nil
+}
+
+func getPublicInternetIPblocksList() (internetIPblocksList []*common.IPBlock, allInternetRagnes *common.IPBlock, err error) {
+	publicInternetAdrressList := getPublicInternetAdressList()
+	return ipStringsToIPblocks(publicInternetAdrressList)
 }
 
 func newExternalNode(isPublicInternet bool, ipb *common.IPBlock, index int) Node {
@@ -120,4 +123,24 @@ func GetExternalNetworkNodes(disjointRefExternalIPBlocks []*common.IPBlock) ([]N
 		res = append(res, newExternalNode(isPublicInternet, ipb, index))
 	}
 	return res, nil
+}
+
+func isEntirePublicInternetRange(nodes []Node) (bool, error) {
+	ipList := make([]string, len(nodes))
+	for i, n := range nodes {
+		ipList[i] = n.Cidr()
+	}
+
+	_, nodesRanges, err := ipStringsToIPblocks(ipList)
+	if err != nil {
+		return false, err
+	}
+	_, allInternetRagnes, err := getPublicInternetIPblocksList()
+	if err != nil {
+		return false, err
+	}
+	diff1 := (nodesRanges.Subtract(allInternetRagnes)).ToIPRanges()
+	diff2 := (allInternetRagnes.Subtract(nodesRanges)).ToIPRanges()
+	fmt.Printf("%s %s", diff1, diff2)
+	return nodesRanges.Equal(allInternetRagnes), nil
 }
