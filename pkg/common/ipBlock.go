@@ -314,3 +314,8 @@ func IsAddressInSubnet(address, subnetCidr string) (bool, error) {
 	subnetIPBlock = NewIPBlockFromCidr(subnetCidr)
 	return addressIPblock.ContainedIn(subnetIPBlock), nil
 }
+
+func CIDRtoIPrange(cidr string) string {
+	ipb := NewIPBlockFromCidr(cidr)
+	return ipb.ToIPRanges()
+}

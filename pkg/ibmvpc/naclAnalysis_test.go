@@ -1,6 +1,7 @@
 package ibmvpc
 
 import (
+	_ "embed"
 	"fmt"
 	"testing"
 
@@ -8,6 +9,9 @@ import (
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
+
+//go:embed examples/input_acl_testing3.json
+var acl3Input []byte
 
 func TestGetRules(t *testing.T) {
 	inputResourcesJSON := acl3Input

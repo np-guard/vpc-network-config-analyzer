@@ -32,6 +32,6 @@ func (m *MDoutputFormatter) WriteOutput(c *CloudConfig, conn *VPCConnectivity, o
 	}
 
 	out := strings.Join(lines, "\n")
-	err := writeToFile(out, outFile)
+	err := WriteToFile(out, outFile)
 	return out, err
 }

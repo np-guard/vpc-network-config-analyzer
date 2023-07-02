@@ -42,6 +42,10 @@ func (o *OutputGenerator) SetOutputFile(outFileName string, f OutFormat) {
 	o.outputFiles[f] = outFileName
 }
 
+func (o *OutputGenerator) GetOutputFile(f OutFormat) string {
+	return o.outputFiles[f]
+}
+
 func (o *OutputGenerator) Generate(f OutFormat) (string, error) {
 	var formatter OutputFormatter
 	switch f {

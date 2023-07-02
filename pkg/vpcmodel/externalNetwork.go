@@ -46,7 +46,7 @@ func (exn *ExternalNetwork) Cidr() string {
 }
 
 func (exn *ExternalNetwork) Name() string {
-	return exn.CidrStr
+	return exn.ResourceName + " [" + exn.CidrStr + "]"
 }
 
 func (exn *ExternalNetwork) IsInternal() bool {

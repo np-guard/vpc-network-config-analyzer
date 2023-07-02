@@ -31,9 +31,9 @@
                     "name": "sg3-ky"
                 }
             ],
-            "service_endpoint": "00c6bbd7-3cea-412c-bd76-bf043a57cb1c.blijtlfd05jdimoomdig.private.databases.appdomain.cloud",
+            "service_endpoint": "ttt",
             "service_endpoints": [
-                "00c6bbd7-3cea-412c-bd76-bf043a57cb1c.blijtlfd05jdimoomdig.private.databases.appdomain.cloud"
+                "ttt"
             ],
             "tags": [],
             "target": {
