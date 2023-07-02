@@ -66,16 +66,16 @@ func (j *JSONoutputFormatter) WriteOutputVsiLevel(c *CloudConfig, conn *VPCConne
 		Routers:  []map[string]string{},
 	}
 	for _, n := range c.Nodes {
-		all.Arch.Nodes = append(all.Arch.Nodes, n.DetailsMap())
+		all.Arch.Nodes = append(all.Arch.Nodes, n.DetailsMap()...)
 	}
 	for _, n := range c.NodeSets {
-		all.Arch.NodeSets = append(all.Arch.NodeSets, n.DetailsMap())
+		all.Arch.NodeSets = append(all.Arch.NodeSets, n.DetailsMap()...)
 	}
 	for _, fl := range c.FilterResources {
 		all.Arch.Filters = append(all.Arch.Filters, fl.DetailsMap()...)
 	}
 	for _, r := range c.RoutingResources {
-		all.Arch.Routers = append(all.Arch.Routers, r.DetailsMap())
+		all.Arch.Routers = append(all.Arch.Routers, r.DetailsMap()...)
 	}
 
 	res, err := json.MarshalIndent(all, "", "    ")

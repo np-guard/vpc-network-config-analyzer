@@ -40,9 +40,9 @@ type DrawioOutputFormatter struct {
 	zoneNameToZonesTreeNodes map[string]*drawio.ZoneTreeNode
 	uidToSubnetsTreeNodes    map[string]*drawio.SubnetTreeNode
 	cidrToSubnetsTreeNodes   map[string]*drawio.SubnetTreeNode
-	allIconsTreeNodes        map[NamedResourceIntf]drawio.IconTreeNodeInterface
+	allIconsTreeNodes        map[VPCResourceIntf]drawio.IconTreeNodeInterface
 	isExternalIcon           map[drawio.IconTreeNodeInterface]bool
-	connectedNodes           map[NamedResourceIntf]bool
+	connectedNodes           map[VPCResourceIntf]bool
 	routers                  map[drawio.IconTreeNodeInterface]drawio.IconTreeNodeInterface
 	sgMembers                map[string]*drawio.SGTreeNode
 	isEdgeDirected           map[Edge]bool
@@ -54,9 +54,9 @@ func (d *DrawioOutputFormatter) init(cConfig *CloudConfig, conn *VPCConnectivity
 	d.zoneNameToZonesTreeNodes = map[string]*drawio.ZoneTreeNode{}
 	d.uidToSubnetsTreeNodes = map[string]*drawio.SubnetTreeNode{}
 	d.cidrToSubnetsTreeNodes = map[string]*drawio.SubnetTreeNode{}
-	d.allIconsTreeNodes = map[NamedResourceIntf]drawio.IconTreeNodeInterface{}
+	d.allIconsTreeNodes = map[VPCResourceIntf]drawio.IconTreeNodeInterface{}
 	d.isExternalIcon = map[drawio.IconTreeNodeInterface]bool{}
-	d.connectedNodes = map[NamedResourceIntf]bool{}
+	d.connectedNodes = map[VPCResourceIntf]bool{}
 	d.routers = map[drawio.IconTreeNodeInterface]drawio.IconTreeNodeInterface{}
 	d.sgMembers = map[string]*drawio.SGTreeNode{}
 	d.isEdgeDirected = map[Edge]bool{}
@@ -80,7 +80,7 @@ func (d *DrawioOutputFormatter) createDrawioTree() {
 	d.createEdges()
 }
 
-func (d *DrawioOutputFormatter) getZoneTreeNode(resource NamedResourceIntf) *drawio.ZoneTreeNode {
+func (d *DrawioOutputFormatter) getZoneTreeNode(resource VPCResourceIntf) *drawio.ZoneTreeNode {
 	zoneName := resource.ZoneName()
 	if _, ok := d.zoneNameToZonesTreeNodes[zoneName]; !ok {
 		d.zoneNameToZonesTreeNodes[zoneName] = drawio.NewZoneTreeNode(d.vpc, zoneName)
@@ -116,13 +116,13 @@ func (d *DrawioOutputFormatter) createNodeSets() {
 	d.network = drawio.NewNetworkTreeNode()
 	// todo: support multi vnc
 	for _, ns := range d.cConfig.NodeSets {
-		details := ns.DetailsMap()
+		details := ns.DetailsMap()[0]
 		if details[DetailsAttributeKind] == "VPC" {
 			d.vpc = drawio.NewVpcTreeNode(d.network, details[DetailsAttributeName])
 		}
 	}
 	for _, ns := range d.cConfig.NodeSets {
-		details := ns.DetailsMap()
+		details := ns.DetailsMap()[0]
 		if details[DetailsAttributeKind] == subnetKind {
 			subnet := drawio.NewSubnetTreeNode(d.getZoneTreeNode(ns), details[DetailsAttributeName], details[cidrAttr], "")
 			d.uidToSubnetsTreeNodes[details["uid"]] = subnet
@@ -152,7 +152,7 @@ func (d *DrawioOutputFormatter) createFilters() {
 
 func (d *DrawioOutputFormatter) createNodes() {
 	for _, n := range d.cConfig.Nodes {
-		details := n.DetailsMap()
+		details := n.DetailsMap()[0]
 		if details[DetailsAttributeKind] == nwInterface {
 			// todo: what is the name of NI
 			d.allIconsTreeNodes[n] = drawio.NewNITreeNode(
@@ -169,7 +169,7 @@ func (d *DrawioOutputFormatter) createNodes() {
 
 func (d *DrawioOutputFormatter) createVSIs() {
 	for _, ns := range d.cConfig.NodeSets {
-		details := ns.DetailsMap()
+		details := ns.DetailsMap()[0]
 		if details[DetailsAttributeKind] == "VSI" {
 			if len(ns.Nodes()) == 0 {
 				continue
@@ -186,7 +186,7 @@ func (d *DrawioOutputFormatter) createVSIs() {
 
 func (d *DrawioOutputFormatter) createRouters() {
 	for _, r := range d.cConfig.RoutingResources {
-		dm := r.DetailsMap()
+		dm := r.DetailsMap()[0]
 		if dm[DetailsAttributeKind] == "PublicGateway" {
 			pgwTn := drawio.NewGatewayTreeNode(d.getZoneTreeNode(r), dm[DetailsAttributeName])
 			d.allIconsTreeNodes[r] = pgwTn

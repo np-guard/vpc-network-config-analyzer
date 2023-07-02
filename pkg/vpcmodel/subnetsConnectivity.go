@@ -50,15 +50,15 @@ func (v *VPCsubnetConnectivity) printAllowedConns() {
 	}
 }
 
-func (c *CloudConfig) ipblockToNamedResourcesInConfig(ipb *common.IPBlock, excludeExternalNodes bool) ([]NamedResourceIntf, error) {
-	res := []NamedResourceIntf{}
+func (c *CloudConfig) ipblockToNamedResourcesInConfig(ipb *common.IPBlock, excludeExternalNodes bool) ([]VPCResourceIntf, error) {
+	res := []VPCResourceIntf{}
 
 	// consider subnets
 	for _, nodeset := range c.NodeSets {
 		if nodeset.Kind() != subnetKind {
 			continue
 		}
-		subnetDetails := nodeset.DetailsMap()
+		subnetDetails := nodeset.DetailsMap()[0]
 		if subnetCidr, ok := subnetDetails[DetailsAttributeCIDR]; ok {
 			subnetCidrIPB := common.NewIPBlockFromCidr(subnetCidr)
 			// TODO: consider also connectivity to part of the subnet
