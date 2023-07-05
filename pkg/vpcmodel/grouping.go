@@ -5,9 +5,9 @@ import (
 	"strings"
 )
 
-type GroupingConnections map[Node]map[string][]Node // for each line here can group list of external nodes to cidrs list as of one element
+type groupingConnections map[Node]map[string][]Node // for each line here can group list of external nodes to cidrs list as of one element
 
-func (g *GroupingConnections) getGroupedConnLines(isSrcToDst bool) []*GroupedConnLine {
+func (g *groupingConnections) getGroupedConnLines(isSrcToDst bool) []*GroupedConnLine {
 	res := []*GroupedConnLine{}
 	for a, aMap := range *g {
 		for conn, b := range aMap {
@@ -24,8 +24,8 @@ func (g *GroupingConnections) getGroupedConnLines(isSrcToDst bool) []*GroupedCon
 	return res
 }
 
-func newGroupingConnections() *GroupingConnections {
-	res := GroupingConnections(map[Node]map[string][]Node{})
+func newGroupingConnections() *groupingConnections {
+	res := groupingConnections(map[Node]map[string][]Node{})
 	return &res
 }
 
@@ -38,8 +38,8 @@ func newGroupConnLines(c *CloudConfig, v *VPCConnectivity) *GroupConnLines {
 type GroupConnLines struct {
 	c            *CloudConfig
 	v            *VPCConnectivity
-	srcToDst     *GroupingConnections
-	dstToSrc     *GroupingConnections
+	srcToDst     *groupingConnections
+	dstToSrc     *groupingConnections
 	GroupedLines []*GroupedConnLine
 }
 
@@ -81,7 +81,7 @@ func (g *groupedExternalNodes) Name() string {
 	return strings.Join(nodesStrings, ",")
 }
 
-func (g *GroupingConnections) addPublicConnectivity(n Node, conn string, target Node) {
+func (g *groupingConnections) addPublicConnectivity(n Node, conn string, target Node) {
 	if _, ok := (*g)[n]; !ok {
 		(*g)[n] = map[string][]Node{}
 	}
