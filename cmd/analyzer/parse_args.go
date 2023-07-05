@@ -46,7 +46,7 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args.OutputFile = flagset.String("output-file", "", "file path to store results")
 	args.OutputFormat = flagset.String("format", TEXTFormat, "output format; must be one of \"json\"/\"txt\"/\"md\"\"drawio\"")
 	args.AnalysisType = flagset.String("analysis-type", VsiLevel, "supported analysis types: vsiLevel / subnetLevel / debugSubnet")
-	args.Grouping = flagset.Bool("grouping", false, "grouping: whether to apply grouping of connectivity lines")
+	args.Grouping = flagset.Bool("grouping", false, "whether to group together src/dst entries with identical connectivity")
 
 	err := flagset.Parse(cmdlineArgs)
 	if err != nil {

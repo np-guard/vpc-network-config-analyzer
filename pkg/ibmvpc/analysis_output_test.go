@@ -74,7 +74,7 @@ func getTestFileName(testName string, uc vpcmodel.OutputUseCase, grouping bool, 
 	switch format {
 	case vpcmodel.Text:
 		res += txtOutSuffix
-	case vpcmodel.DEBUG:
+	case vpcmodel.Debug:
 		res += debugOutSuffix
 	case vpcmodel.MD:
 		res += mdOutSuffix
@@ -165,17 +165,17 @@ var tests = []*vpcGeneralTest{
 	{
 		name:     "acl_testing3",
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.VsiLevel},
-		format:   vpcmodel.DEBUG,
+		format:   vpcmodel.Debug,
 	},
 	{
 		name:     "sg_testing1_new",
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.VsiLevel},
-		format:   vpcmodel.DEBUG,
+		format:   vpcmodel.Debug,
 	},
 	{
 		name:     "demo_with_instances",
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.VsiLevel},
-		format:   vpcmodel.DEBUG,
+		format:   vpcmodel.Debug,
 	},
 }
 

@@ -218,9 +218,9 @@ func (d *DrawioOutputFormatter) createEdges() {
 }
 
 func (d *DrawioOutputFormatter) WriteOutputSubnetLevel(subnetsConn *VPCsubnetConnectivity, outFile string) (string, error) {
-	return "", errors.New("SubnetLevel use case not supported for md format currently ")
+	return "", errors.New("SubnetLevel use case not supported for draw.io format currently ")
 }
 
 func (d *DrawioOutputFormatter) WriteOutputDebugSubnet(c *CloudConfig, outFile string) (string, error) {
-	return "", errors.New("DebugSubnet use case not supported for md format currently ")
+	return "", errors.New("DebugSubnet use case not supported for draw.io format currently ")
 }

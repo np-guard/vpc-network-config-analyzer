@@ -11,12 +11,12 @@ const (
 	DetailsAttributeName = "name"
 	DetailsAttributeCIDR = "cidr"
 
-	publicInternetNodeName  = "PublicInternet"
+	publicInternetNodeName  = "Public Internet"
 	externalNetworkNodeKind = "ExternalNetwork"
 )
 
 // All public IP addresses belong to one of the following public IP address ranges:
-func getPublicInternetAdressList() []string {
+func getPublicInternetAddressList() []string {
 	return []string{
 		"1.0.0.0-9.255.255.255",
 		"11.0.0.0-100.63.255.255",
@@ -91,8 +91,8 @@ func ipStringsToIPblocks(ipList []string) (ipbList []*common.IPBlock, unionIPblo
 }
 
 func getPublicInternetIPblocksList() (internetIPblocksList []*common.IPBlock, allInternetRagnes *common.IPBlock, err error) {
-	publicInternetAdrressList := getPublicInternetAdressList()
-	return ipStringsToIPblocks(publicInternetAdrressList)
+	publicInternetAddressList := getPublicInternetAddressList()
+	return ipStringsToIPblocks(publicInternetAddressList)
 }
 
 func newExternalNode(isPublicInternet bool, ipb *common.IPBlock, index int) Node {

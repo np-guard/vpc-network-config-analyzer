@@ -3,7 +3,6 @@ package vpcmodel
 import (
 	"encoding/json"
 	"errors"
-	"os"
 )
 
 type JSONoutputFormatter struct {
@@ -27,13 +26,6 @@ type allInfo struct {
 	Connectivity []connLine   `json:"connectivity"`
 }
 
-func WriteToFile(content, fileName string) error {
-	if fileName != "" {
-		return os.WriteFile(fileName, []byte(content), writeFileMde)
-	}
-	return nil
-}
-
 func getConnLines(conn *VPCConnectivity) []connLine {
 	connLines := []connLine{}
 
@@ -51,7 +43,7 @@ func getConnLines(conn *VPCConnectivity) []connLine {
 func getGroupedConnLines(conn *VPCConnectivity) []connLine {
 	connLines := make([]connLine, len(conn.GroupedConnectivity.GroupedLines))
 	for i, line := range conn.GroupedConnectivity.GroupedLines {
-		connLines[i] = connLine{line.Src, line.Dst, string(line.Conn)}
+		connLines[i] = connLine{line.Src, line.Dst, line.Conn}
 	}
 	return connLines
 }

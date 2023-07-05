@@ -15,24 +15,10 @@ const (
 	mdHeader = "| src | dst | conn |\n|-----|-----|------|"
 )
 
-// formats a connection line for md output
-func connectivityLineMD(src, dst, conn string) string {
-	return fmt.Sprintf("| %s | %s | %s |", src, dst, conn)
-}
-
-func getMDLine(line connLine) string {
-	return connectivityLineMD(line.Src.Name(), line.Dst.Name(), line.Conn)
-}
-
-func getGroupedMDLine(line *GroupedConnLine) string {
-	return connectivityLineMD(line.Src.Name(), line.Dst.Name(), string(line.Conn))
-}
-
 func (m *MDoutputFormatter) WriteOutputVsiLevel(c *CloudConfig, conn *VPCConnectivity, outFile string, grouping bool) (string, error) {
 	lines := []string{mdTitle, mdHeader}
 
 	var connLines []string
-	// TODO: grouping flag should be input arg
 	if grouping {
 		connLines = m.getGroupedOutput(conn)
 	} else {
@@ -73,4 +59,17 @@ func (m *MDoutputFormatter) getGroupedOutput(conn *VPCConnectivity) []string {
 		lines[i] = getGroupedMDLine(line)
 	}
 	return lines
+}
+
+// formats a connection line for md output
+func connectivityLineMD(src, dst, conn string) string {
+	return fmt.Sprintf("| %s | %s | %s |", src, dst, conn)
+}
+
+func getMDLine(line connLine) string {
+	return connectivityLineMD(line.Src.Name(), line.Dst.Name(), line.Conn)
+}
+
+func getGroupedMDLine(line *GroupedConnLine) string {
+	return connectivityLineMD(line.Src.Name(), line.Dst.Name(), line.Conn)
 }

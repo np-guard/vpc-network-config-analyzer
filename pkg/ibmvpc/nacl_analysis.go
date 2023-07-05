@@ -400,7 +400,7 @@ func (na *NACLAnalyzer) GeneralConnectivityPerSubnet(subnetCidr string) (
 ) {
 	na.addAnalysisPerSubnet(subnetCidr)
 
-	strResult = "subnet: " + subnetCidr + "\n"
+	strResult = "Subnet: " + subnetCidr + "\n"
 	ingressRes := na.analyzedSubnets[subnetCidr].ingressRes
 	egressRes := na.analyzedSubnets[subnetCidr].egressRes
 	connectivityObjResult = map[string]*vpcmodel.IPbasedConnectivityResult{}
@@ -415,7 +415,7 @@ func (na *NACLAnalyzer) GeneralConnectivityPerSubnet(subnetCidr string) (
 			connectivityObjResult[disjointSubnetCidr] = &vpcmodel.IPbasedConnectivityResult{}
 		}
 		connectivityObjResult[disjointSubnetCidr].IngressAllowedConns = connectivityRes.allowedconns
-		strResPerSubnetSection[disjointSubnetCidr] = "ingressConnectivity:\n" + connectivityRes.string()
+		strResPerSubnetSection[disjointSubnetCidr] = "Ingress Connectivity:\n" + connectivityRes.string()
 	}
 
 	for disjointSubnetCidr, connectivityRes := range egressRes {
@@ -423,7 +423,7 @@ func (na *NACLAnalyzer) GeneralConnectivityPerSubnet(subnetCidr string) (
 			connectivityObjResult[disjointSubnetCidr] = &vpcmodel.IPbasedConnectivityResult{}
 		}
 		connectivityObjResult[disjointSubnetCidr].EgressAllowedConns = connectivityRes.allowedconns
-		strResPerSubnetSection[disjointSubnetCidr] += "\negressConnectivity:\n" + connectivityRes.string()
+		strResPerSubnetSection[disjointSubnetCidr] += "\nEgress Connectivity:\n" + connectivityRes.string()
 	}
 	keys := make([]string, len(strResPerSubnetSection))
 	i := 0

@@ -114,7 +114,7 @@ func newCloudConfigTest2() (*CloudConfig, *VPCConnectivity) {
 // thus, expecting to be merged to one line with dest element of both ranges together
 func TestGroupingPhase1(t *testing.T) {
 	c, v := newCloudConfigTest1()
-	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), DstToSrc: newGroupingConnections()}
+	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections()}
 	res.groupExternalAddresses()
 
 	groupingStr := res.String()
@@ -126,7 +126,7 @@ func TestGroupingPhase1(t *testing.T) {
 // Test simple grouping of 1 conn line with netInterface, grouped into subnet element.
 func TestGroupingPhase2(t *testing.T) {
 	c, v := newCloudConfigTest2()
-	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), DstToSrc: newGroupingConnections()}
+	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections()}
 	// phase 1
 	res.groupExternalAddresses()
 	groupingStr := res.String()

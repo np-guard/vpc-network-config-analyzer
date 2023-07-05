@@ -2,6 +2,7 @@ package vpcmodel
 
 import (
 	"errors"
+	"os"
 )
 
 type OutFormat int64
@@ -12,7 +13,7 @@ const (
 	MD
 	CSV
 	DRAWIO
-	DEBUG // extended txt format with more details
+	Debug // extended txt format with more details
 )
 
 const (
@@ -44,7 +45,7 @@ func NewOutputGenerator(c *CloudConfig, grouping bool, uc OutputUseCase) (*Outpu
 	}
 
 	if uc == VsiLevel {
-		res.nodesConn = c.GetVPCNetworkConnectivity()
+		res.nodesConn = c.GetVPCNetworkConnectivity(grouping)
 	}
 	if uc == SubnetsLevel {
 		subnetsConn, err := c.GetSubnetsConnectivity(true)
@@ -63,13 +64,13 @@ func (o *OutputGenerator) Generate(f OutFormat, outFile string) (string, error) 
 	case JSON:
 		formatter = &JSONoutputFormatter{}
 	case Text:
-		formatter = &TextoutputFormatter{}
+		formatter = &TextOutputFormatter{}
 	case MD:
 		formatter = &MDoutputFormatter{}
 	case DRAWIO:
 		formatter = &DrawioOutputFormatter{}
-	case DEBUG:
-		formatter = &DebugoutputFormatter{}
+	case Debug:
+		formatter = &DebugOutputFormatter{}
 	default:
 		return "", errors.New("unsupported output format")
 	}
@@ -90,4 +91,16 @@ type OutputFormatter interface {
 	WriteOutputVsiLevel(c *CloudConfig, conn *VPCConnectivity, outFile string, grouping bool) (string, error)
 	WriteOutputSubnetLevel(subnetsConn *VPCsubnetConnectivity, outFile string) (string, error)
 	WriteOutputDebugSubnet(c *CloudConfig, outFile string) (string, error)
+}
+
+func writeOutput(out, file string) (string, error) {
+	err := WriteToFile(out, file)
+	return out, err
+}
+
+func WriteToFile(content, fileName string) error {
+	if fileName != "" {
+		return os.WriteFile(fileName, []byte(content), writeFileMde)
+	}
+	return nil
 }

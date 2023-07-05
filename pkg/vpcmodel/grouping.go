@@ -5,21 +5,18 @@ import (
 	"strings"
 )
 
-type ConnStr string
-
-type GroupingConnections struct {
-	publicConnectivity map[Node]map[ConnStr][]Node // for each line here can group list of external nodes to cidrs list as of one element
-}
+type GroupingConnections map[Node]map[string][]Node // for each line here can group list of external nodes to cidrs list as of one element
 
 func (g *GroupingConnections) getGroupedConnLines(isSrcToDst bool) []*GroupedConnLine {
 	res := []*GroupedConnLine{}
-	for a, aMap := range g.publicConnectivity {
+	for a, aMap := range *g {
 		for conn, b := range aMap {
 			var resElem *GroupedConnLine
+			bGrouped := groupedExternalNodes(b)
 			if isSrcToDst {
-				resElem = &GroupedConnLine{a, &GroupedExternalNodes{b}, conn}
+				resElem = &GroupedConnLine{a, &bGrouped, conn}
 			} else {
-				resElem = &GroupedConnLine{&GroupedExternalNodes{b}, a, conn}
+				resElem = &GroupedConnLine{&bGrouped, a, conn}
 			}
 			res = append(res, resElem)
 		}
@@ -28,13 +25,12 @@ func (g *GroupingConnections) getGroupedConnLines(isSrcToDst bool) []*GroupedCon
 }
 
 func newGroupingConnections() *GroupingConnections {
-	return &GroupingConnections{
-		publicConnectivity: map[Node]map[ConnStr][]Node{},
-	}
+	res := GroupingConnections(map[Node]map[string][]Node{})
+	return &res
 }
 
 func newGroupConnLines(c *CloudConfig, v *VPCConnectivity) *GroupConnLines {
-	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), DstToSrc: newGroupingConnections()}
+	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections()}
 	res.computeGrouping()
 	return res
 }
@@ -43,7 +39,7 @@ type GroupConnLines struct {
 	c            *CloudConfig
 	v            *VPCConnectivity
 	srcToDst     *GroupingConnections
-	DstToSrc     *GroupingConnections
+	dstToSrc     *GroupingConnections
 	GroupedLines []*GroupedConnLine
 }
 
@@ -55,11 +51,11 @@ type EndpointElem interface {
 type GroupedConnLine struct {
 	Src  EndpointElem
 	Dst  EndpointElem
-	Conn ConnStr
+	Conn string
 }
 
 func (g *GroupedConnLine) String() string {
-	return g.Src.Name() + " => " + g.Dst.Name() + " : " + string(g.Conn)
+	return g.Src.Name() + " => " + g.Dst.Name() + " : " + g.Conn
 }
 
 func (g *GroupedConnLine) getSrcOrDst(isSrc bool) EndpointElem {
@@ -70,33 +66,34 @@ func (g *GroupedConnLine) getSrcOrDst(isSrc bool) EndpointElem {
 }
 
 // implements endpointElem interface
-type GroupedExternalNodes struct {
-	nodes []Node
-}
+type groupedExternalNodes []Node
 
-func (g *GroupedExternalNodes) Name() string {
-	isAllIntenetRange, err := isEntirePublicInternetRange(g.nodes)
-	if err == nil && isAllIntenetRange {
+func (g *groupedExternalNodes) Name() string {
+	isAllInternetRange, err := isEntirePublicInternetRange(*g)
+	if err == nil && isAllInternetRange {
 		return "Public Internet (all ranges)"
 	}
-	nodesStrings := make([]string, len(g.nodes))
-	for i, n := range g.nodes {
+	nodesStrings := make([]string, len(*g))
+	for i, n := range *g {
 		nodesStrings[i] = n.Cidr()
 	}
 	sort.Strings(nodesStrings)
 	return strings.Join(nodesStrings, ",")
 }
 
-func (g *GroupingConnections) addPublicConnectivity(n Node, conn ConnStr, target Node) {
-	if _, ok := g.publicConnectivity[n]; !ok {
-		g.publicConnectivity[n] = map[ConnStr][]Node{}
+func (g *GroupingConnections) addPublicConnectivity(n Node, conn string, target Node) {
+	if _, ok := (*g)[n]; !ok {
+		(*g)[n] = map[string][]Node{}
 	}
-	if _, ok := g.publicConnectivity[n][conn]; !ok {
-		g.publicConnectivity[n][conn] = []Node{}
+	if _, ok := (*g)[n][conn]; !ok {
+		(*g)[n][conn] = []Node{}
 	}
-	g.publicConnectivity[n][conn] = append(g.publicConnectivity[n][conn], target)
+	(*g)[n][conn] = append((*g)[n][conn], target)
 }
 
+// subnetGrouping returns a slice of EndpointElem objects produced from an input slice, by grouping
+// set of elements that represent network interface nodes into a single subnet node, if all the
+// subnet's interfaces are in the input slice
 func subnetGrouping(elemsList []EndpointElem, c *CloudConfig) []EndpointElem {
 	res := []EndpointElem{}
 	subnetNameToNodes := map[string][]Node{} // map from subnet name to its nodes from the input
@@ -104,20 +101,23 @@ func subnetGrouping(elemsList []EndpointElem, c *CloudConfig) []EndpointElem {
 	for _, elem := range elemsList {
 		n, ok := elem.(Node)
 		if !ok {
-			continue
+			res = append(res, n) // elements which are not interface nodes remain in the result as in the original input
+			continue             // skip input elements which are not a network interface node
 		}
-		subnet := c.getSubnetOfNode(n)
+		subnet := c.getSubnetOfNode(n) // get the subnet to which n belongs
 		subnetName := subnet.Name()
 		if _, ok := subnetNameToNodes[subnetName]; !ok {
 			subnetNameToNodes[subnetName] = []Node{}
 			groupedSubnets[subnetName] = false
 		}
 		subnetNameToNodes[subnetName] = append(subnetNameToNodes[subnetName], n)
+		// if all interfaces on the current node's subnet were in the input elemsList, mark the subnet as grouped
 		if len(subnetNameToNodes[subnetName]) == len(subnet.Nodes()) {
-			res = append(res, subnet)
+			res = append(res, subnet) // add to the result the grouped subnet (which will replace all its interfaces from the input)
 			groupedSubnets[subnetName] = true
 		}
 	}
+	// for each subnet that was not grouped, add its interface nodes from the input to the result
 	for subnetStr, isGrouped := range groupedSubnets {
 		if !isGrouped {
 			for _, node := range subnetNameToNodes[subnetStr] {
@@ -136,12 +136,12 @@ func (g *GroupConnLines) groupExternalAddresses() {
 			if conns.IsEmpty() {
 				continue
 			}
-			connString := ConnStr(conns.String())
+			connString := conns.String()
 			switch {
 			case dst.IsPublicInternet():
 				g.srcToDst.addPublicConnectivity(src, connString, dst)
 			case src.IsPublicInternet():
-				g.DstToSrc.addPublicConnectivity(dst, connString, src)
+				g.dstToSrc.addPublicConnectivity(dst, connString, src)
 			default:
 				res = append(res, &GroupedConnLine{src, dst, connString})
 			}
@@ -149,7 +149,7 @@ func (g *GroupConnLines) groupExternalAddresses() {
 	}
 	// add to res lines from  srcToDst and DstToSrc groupings
 	res = append(res, g.srcToDst.getGroupedConnLines(true)...)
-	res = append(res, g.DstToSrc.getGroupedConnLines(false)...)
+	res = append(res, g.dstToSrc.getGroupedConnLines(false)...)
 	g.GroupedLines = res
 }
 
@@ -166,7 +166,7 @@ func (g *GroupConnLines) groupSubnetsSrcOrDst(srcGrouping bool) {
 			res = append(res, line)
 			continue
 		}
-		key := dstOrSrc.Name() + ";" + string(line.Conn)
+		key := dstOrSrc.Name() + ";" + line.Conn
 		if _, ok := groupingSrcOrDst[key]; !ok {
 			groupingSrcOrDst[key] = []*GroupedConnLine{}
 		}
@@ -182,16 +182,12 @@ func (g *GroupConnLines) groupSubnetsSrcOrDst(srcGrouping bool) {
 			srcOrDstGroup[i] = line.getSrcOrDst(srcGrouping)
 		}
 		groupedSrcOrDst := subnetGrouping(srcOrDstGroup, g.c)
-		if groupedSrcOrDst != nil {
-			for _, groupedSrcOrDstElem := range groupedSrcOrDst {
-				if srcGrouping {
-					res = append(res, &GroupedConnLine{groupedSrcOrDstElem, linesGroup[0].Dst, linesGroup[0].Conn})
-				} else {
-					res = append(res, &GroupedConnLine{linesGroup[0].Src, groupedSrcOrDstElem, linesGroup[0].Conn})
-				}
+		for _, groupedSrcOrDstElem := range groupedSrcOrDst {
+			if srcGrouping {
+				res = append(res, &GroupedConnLine{groupedSrcOrDstElem, linesGroup[0].Dst, linesGroup[0].Conn})
+			} else {
+				res = append(res, &GroupedConnLine{linesGroup[0].Src, groupedSrcOrDstElem, linesGroup[0].Conn})
 			}
-		} else {
-			res = append(res, linesGroup...)
 		}
 	}
 
