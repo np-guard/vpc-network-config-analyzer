@@ -150,13 +150,6 @@ func (v *VPCConnectivity) computeAllowedConnsCombined() {
 	}
 }
 
-func addDetailsLine(lines []string, details string) []string {
-	if details != "" {
-		lines = append(lines, details)
-	}
-	return lines
-}
-
 func getConnectionStr(src, dst, conn, suffix string) string {
 	return fmt.Sprintf("%s => %s : %s%s\n", src, dst, conn, suffix)
 }

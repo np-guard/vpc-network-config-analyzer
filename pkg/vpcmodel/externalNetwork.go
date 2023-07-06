@@ -36,7 +36,7 @@ func getPublicInternetAddressList() []string {
 
 // ExternalNetwork implements Node interface
 type ExternalNetwork struct {
-	NamedResource
+	VPCResource
 	CidrStr          string
 	isPublicInternet bool
 }
@@ -57,20 +57,20 @@ func (exn *ExternalNetwork) IsPublicInternet() bool {
 	return exn.isPublicInternet
 }
 
-func (exn *ExternalNetwork) Details() string {
-	return externalNetworkNodeKind + " " + exn.Cidr()
+func (exn *ExternalNetwork) Details() []string {
+	return []string{externalNetworkNodeKind + " " + exn.Cidr()}
 }
 
 func (exn *ExternalNetwork) Kind() string {
 	return externalNetworkNodeKind
 }
 
-func (exn *ExternalNetwork) DetailsMap() map[string]string {
+func (exn *ExternalNetwork) DetailsMap() []map[string]string {
 	res := map[string]string{}
 	res[DetailsAttributeKind] = exn.Kind()
 	res[DetailsAttributeName] = exn.ResourceName
 	res[DetailsAttributeCIDR] = exn.CidrStr
-	return res
+	return []map[string]string{res}
 }
 
 func ipStringsToIPblocks(ipList []string) (ipbList []*common.IPBlock, unionIPblock *common.IPBlock, err error) {
@@ -99,12 +99,12 @@ func newExternalNode(isPublicInternet bool, ipb *common.IPBlock, index int) Node
 	cidr := ipb.ToCidrList()[0]
 	if isPublicInternet {
 		return &ExternalNetwork{
-			NamedResource: NamedResource{ResourceName: publicInternetNodeName},
-			CidrStr:       cidr, isPublicInternet: true,
+			VPCResource: VPCResource{ResourceName: publicInternetNodeName},
+			CidrStr:     cidr, isPublicInternet: true,
 		}
 	}
 	nodeName := fmt.Sprintf("ref-address-%d", index)
-	return &ExternalNetwork{NamedResource: NamedResource{ResourceName: nodeName}, CidrStr: cidr}
+	return &ExternalNetwork{VPCResource: VPCResource{ResourceName: nodeName}, CidrStr: cidr}
 }
 
 func GetExternalNetworkNodes(disjointRefExternalIPBlocks []*common.IPBlock) ([]Node, error) {
