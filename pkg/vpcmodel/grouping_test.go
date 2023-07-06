@@ -134,7 +134,7 @@ func TestGroupingPhase2(t *testing.T) {
 	// phase 2
 	res.groupSubnetsSrcOrDst(true)
 	groupingStr = res.String()
-	require.Equal(t, "subnet1 => 1.2.3.4/22,8.8.8.8/32 : All Connections", groupingStr)
+	require.Equal(t, "vsi1,vsi2 => 1.2.3.4/22,8.8.8.8/32 : All Connections", groupingStr)
 	fmt.Println(groupingStr)
 	fmt.Println("done")
 }

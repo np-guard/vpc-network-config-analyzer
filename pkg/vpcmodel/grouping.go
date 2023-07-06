@@ -43,7 +43,7 @@ type GroupConnLines struct {
 	GroupedLines []*GroupedConnLine
 }
 
-// EndpointElem can be Node(networkInterface) / NodeSet(subnet) / groupedExternalNodes
+// EndpointElem can be Node(networkInterface) / groupedExternalNodes / groupedNetworkInterfaces
 type EndpointElem interface {
 	Name() string
 }
@@ -65,6 +65,12 @@ func (g *GroupedConnLine) getSrcOrDst(isSrc bool) EndpointElem {
 	return g.Dst
 }
 
+type groupedNetworkInterfaces []Node
+
+func (g *groupedNetworkInterfaces) Name() string {
+	return listNodesStr(*g, Node.Name)
+}
+
 // implements endpointElem interface
 type groupedExternalNodes []Node
 
@@ -73,12 +79,7 @@ func (g *groupedExternalNodes) Name() string {
 	if err == nil && isAllInternetRange {
 		return "Public Internet (all ranges)"
 	}
-	nodesStrings := make([]string, len(*g))
-	for i, n := range *g {
-		nodesStrings[i] = n.Cidr()
-	}
-	sort.Strings(nodesStrings)
-	return strings.Join(nodesStrings, ",")
+	return listNodesStr(*g, Node.Cidr)
 }
 
 func (g *groupingConnections) addPublicConnectivity(n Node, conn string, target Node) {
@@ -92,12 +93,10 @@ func (g *groupingConnections) addPublicConnectivity(n Node, conn string, target 
 }
 
 // subnetGrouping returns a slice of EndpointElem objects produced from an input slice, by grouping
-// set of elements that represent network interface nodes into a single subnet node, if all the
-// subnet's interfaces are in the input slice
+// set of elements that represent network interface nodes from the same subnet into a single groupedNetworkInterfaces object
 func subnetGrouping(elemsList []EndpointElem, c *CloudConfig) []EndpointElem {
 	res := []EndpointElem{}
 	subnetNameToNodes := map[string][]Node{} // map from subnet name to its nodes from the input
-	groupedSubnets := map[string]bool{}      // map from subnet name to bool indicating if it was grouped
 	for _, elem := range elemsList {
 		n, ok := elem.(Node)
 		if !ok {
@@ -108,21 +107,15 @@ func subnetGrouping(elemsList []EndpointElem, c *CloudConfig) []EndpointElem {
 		subnetName := subnet.Name()
 		if _, ok := subnetNameToNodes[subnetName]; !ok {
 			subnetNameToNodes[subnetName] = []Node{}
-			groupedSubnets[subnetName] = false
 		}
 		subnetNameToNodes[subnetName] = append(subnetNameToNodes[subnetName], n)
-		// if all interfaces on the current node's subnet were in the input elemsList, mark the subnet as grouped
-		if len(subnetNameToNodes[subnetName]) == len(subnet.Nodes()) {
-			res = append(res, subnet) // add to the result the grouped subnet (which will replace all its interfaces from the input)
-			groupedSubnets[subnetName] = true
-		}
 	}
-	// for each subnet that was not grouped, add its interface nodes from the input to the result
-	for subnetStr, isGrouped := range groupedSubnets {
-		if !isGrouped {
-			for _, node := range subnetNameToNodes[subnetStr] {
-				res = append(res, node)
-			}
+	for _, nodesList := range subnetNameToNodes {
+		if len(nodesList) == 1 { // a single network interface on subnet is just added to the result (no grouping)
+			res = append(res, nodesList[0])
+		} else { // a set of network interfaces from the same subnet is grouped by groupedNetworkInterfaces object
+			groupedNodes := groupedNetworkInterfaces(nodesList)
+			res = append(res, &groupedNodes)
 		}
 	}
 	return res
@@ -208,4 +201,13 @@ func (g *GroupConnLines) String() string {
 	}
 	sort.Strings(linesStr)
 	return strings.Join(linesStr, "\n")
+}
+
+func listNodesStr(nodes []Node, fn func(Node) string) string {
+	nodesStrings := make([]string, len(nodes))
+	for i, n := range nodes {
+		nodesStrings[i] = fn(n)
+	}
+	sort.Strings(nodesStrings)
+	return strings.Join(nodesStrings, ",")
 }
