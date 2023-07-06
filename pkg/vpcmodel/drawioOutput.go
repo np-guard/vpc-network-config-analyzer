@@ -62,7 +62,7 @@ func (d *DrawioOutputFormatter) init(cConfig *CloudConfig, conn *VPCConnectivity
 	d.isEdgeDirected = map[Edge]bool{}
 }
 
-func (d *DrawioOutputFormatter) WriteOutputVsiLevel(cConfig *CloudConfig, conn *VPCConnectivity, outFile string, grouping bool) (
+func (d *DrawioOutputFormatter) WriteOutputAllEndpoints(cConfig *CloudConfig, conn *VPCConnectivity, outFile string, grouping bool) (
 	string, error) {
 	d.init(cConfig, conn)
 	d.createDrawioTree()
@@ -217,10 +217,10 @@ func (d *DrawioOutputFormatter) createEdges() {
 	}
 }
 
-func (d *DrawioOutputFormatter) WriteOutputSubnetLevel(subnetsConn *VPCsubnetConnectivity, outFile string) (string, error) {
+func (d *DrawioOutputFormatter) WriteOutputAllSubnets(subnetsConn *VPCsubnetConnectivity, outFile string) (string, error) {
 	return "", errors.New("SubnetLevel use case not supported for draw.io format currently ")
 }
 
-func (d *DrawioOutputFormatter) WriteOutputDebugSubnet(c *CloudConfig, outFile string) (string, error) {
+func (d *DrawioOutputFormatter) WriteOutputSingleSubnet(c *CloudConfig, outFile string) (string, error) {
 	return "", errors.New("DebugSubnet use case not supported for draw.io format currently ")
 }

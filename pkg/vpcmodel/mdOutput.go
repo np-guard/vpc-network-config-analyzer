@@ -15,7 +15,7 @@ const (
 	mdHeader = "| src | dst | conn |\n|-----|-----|------|"
 )
 
-func (m *MDoutputFormatter) WriteOutputVsiLevel(c *CloudConfig, conn *VPCConnectivity, outFile string, grouping bool) (string, error) {
+func (m *MDoutputFormatter) WriteOutputAllEndpoints(c *CloudConfig, conn *VPCConnectivity, outFile string, grouping bool) (string, error) {
 	lines := []string{mdTitle, mdHeader}
 
 	var connLines []string
@@ -31,11 +31,11 @@ func (m *MDoutputFormatter) WriteOutputVsiLevel(c *CloudConfig, conn *VPCConnect
 	return out, err
 }
 
-func (m *MDoutputFormatter) WriteOutputSubnetLevel(subnetsConn *VPCsubnetConnectivity, outFile string) (string, error) {
+func (m *MDoutputFormatter) WriteOutputAllSubnets(subnetsConn *VPCsubnetConnectivity, outFile string) (string, error) {
 	return "", errors.New("SubnetLevel use case not supported for md format currently ")
 }
 
-func (m *MDoutputFormatter) WriteOutputDebugSubnet(c *CloudConfig, outFile string) (string, error) {
+func (m *MDoutputFormatter) WriteOutputSingleSubnet(c *CloudConfig, outFile string) (string, error) {
 	return "", errors.New("DebugSubnet use case not supported for md format currently ")
 }
 

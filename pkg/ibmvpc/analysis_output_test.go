@@ -59,16 +59,16 @@ func getTestFileName(testName string, uc vpcmodel.OutputUseCase, grouping bool, 
 	err error) {
 	var res string
 	switch uc {
-	case vpcmodel.VsiLevel:
+	case vpcmodel.AllEndpoints:
 		res = testName
 		if grouping {
 			res += suffixOutFileWithGrouping
 		}
-	case vpcmodel.DebugSubnet:
+	case vpcmodel.SingleSubnet:
 		res = testName + suffixOutFileDebugSubnet
-	case vpcmodel.SubnetsLevel:
+	case vpcmodel.AllSubnets:
 		res = testName + suffixOutFileSubnetsLevel
-	case vpcmodel.SubnetsLevelNoPGW:
+	case vpcmodel.AllSubnetsNoPGW:
 		res = testName + suffixOutFileSubnetsLevelNoPGW
 	}
 	switch format {
@@ -112,36 +112,36 @@ var tests = []*vpcGeneralTest{
 	{
 		name: "acl_testing3",
 		// TODO: currently skipping uc3 since it is not supported with partial subnet connectivity
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.VsiLevel, vpcmodel.DebugSubnet},
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.SingleSubnet},
 		format:   vpcmodel.Text,
 	},
 	{
 		name:     "sg_testing1_new",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.VsiLevel, vpcmodel.DebugSubnet, vpcmodel.SubnetsLevel},
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.SingleSubnet, vpcmodel.AllSubnets},
 		format:   vpcmodel.Text,
 	},
 	{
 		name:     "demo_with_instances",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.VsiLevel, vpcmodel.DebugSubnet, vpcmodel.SubnetsLevel},
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.SingleSubnet, vpcmodel.AllSubnets},
 		format:   vpcmodel.Text,
 	},
 
 	// batch2: only vsi-level use-case, with grouping , text format
 	{
 		name:     "acl_testing3",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.VsiLevel},
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		grouping: true,
 		format:   vpcmodel.Text,
 	},
 	{
 		name:     "sg_testing1_new",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.VsiLevel},
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		grouping: true,
 		format:   vpcmodel.Text,
 	},
 	{
 		name:     "demo_with_instances",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.VsiLevel},
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		grouping: true,
 		format:   vpcmodel.Text,
 	},
@@ -149,32 +149,32 @@ var tests = []*vpcGeneralTest{
 	//batch3: only vsi-level use-case, no grouping, with debug & md output formats
 	{
 		name:     "acl_testing3",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.VsiLevel},
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		format:   vpcmodel.MD,
 	},
 	{
 		name:     "sg_testing1_new",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.VsiLevel},
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		format:   vpcmodel.MD,
 	},
 	{
 		name:     "demo_with_instances",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.VsiLevel},
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		format:   vpcmodel.MD,
 	},
 	{
 		name:     "acl_testing3",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.VsiLevel},
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		format:   vpcmodel.Debug,
 	},
 	{
 		name:     "sg_testing1_new",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.VsiLevel},
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		format:   vpcmodel.Debug,
 	},
 	{
 		name:     "demo_with_instances",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.VsiLevel},
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		format:   vpcmodel.Debug,
 	},
 }
@@ -210,10 +210,10 @@ func TestAllWithComparison(t *testing.T) {
 func TestUnsupportedAnalysis(t *testing.T) {
 	test := &vpcGeneralTest{
 		name:     "acl_testing3",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.SubnetsLevel},
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
 		format:   vpcmodel.Text,
 		errPerUseCase: map[vpcmodel.OutputUseCase]error{
-			vpcmodel.SubnetsLevel: errors.New("unsupported connectivity map with partial subnet ranges per connectivity result"),
+			vpcmodel.AllSubnets: errors.New("unsupported connectivity map with partial subnet ranges per connectivity result"),
 		},
 	}
 	test.mode = outputGeneration

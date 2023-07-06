@@ -25,14 +25,14 @@ func getOutputFormat(inArgs *InArgs) vpcmodel.OutFormat {
 
 func analysisTypeToUseCase(inArgs *InArgs) vpcmodel.OutputUseCase {
 	switch *inArgs.AnalysisType {
-	case VsiLevel:
-		return vpcmodel.VsiLevel
-	case DebugSubnet:
-		return vpcmodel.DebugSubnet
-	case SubnetsLevel:
-		return vpcmodel.SubnetsLevel
+	case allEndpoints:
+		return vpcmodel.AllEndpoints
+	case singleSubnet:
+		return vpcmodel.SingleSubnet
+	case allSubnets:
+		return vpcmodel.AllSubnets
 	}
-	return vpcmodel.VsiLevel
+	return vpcmodel.AllEndpoints
 }
 
 // The actual main function
