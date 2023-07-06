@@ -36,8 +36,6 @@ func NewNACLAnalyzer(nacl *vpc1.NetworkACL) (res *NACLAnalyzer, err error) {
 		analyzedSubnets: map[string]*AnalysisResultPerSubnet{},
 	}
 	res.ingressRules, res.egressRules, err = res.getNACLRules(nacl)
-	fmt.Println("rules for " + *nacl.Name)
-	fmt.Println(res.dumpNACLrules())
 	return res, err
 }
 
@@ -136,7 +134,7 @@ func (r *NACLRule) dumpRule() string {
 	return fmt.Sprintf("src: %s, dst: %s, conn: %s, action: %s", r.src.ToIPRanges(), r.dst.ToIPRanges(), r.connections.String(), r.action)
 }
 
-func (na *NACLAnalyzer) dumpNACLrules() string {
+func (na *NACLAnalyzer) DumpNACLrules() string {
 	res := "ingress rules:\n"
 	ingressList := []string{}
 	for _, r := range na.ingressRules {
@@ -344,8 +342,6 @@ func (na *NACLAnalyzer) AnalyzeNACLRules(rules []*NACLRule, subnet *common.IPBlo
 	// egress
 	disjointSrcPeers, disjointDstPeers := getDisjointPeersForEgressAnalysis(rules, subnet)
 	for _, dst := range disjointDstPeers {
-		dstStr := strings.Join(dst.ToCidrList(), ",")
-		fmt.Println(dstStr)
 		allowedEgressConns := getAllowedXgressConnections(rules, dst, subnet, disjointSrcPeers, false)
 		for src, conn := range allowedEgressConns {
 			res = append(res, getConnStr(src, dst.ToIPRanges(), conn.String()))
@@ -375,23 +371,8 @@ func (na *NACLAnalyzer) addAnalysisPerSubnet(subnetCidr string) {
 	}
 	subnetCidrIPBlock := common.NewIPBlockFromCidr(subnetCidr)
 	ingressRes, egressRes := na.AnalyzeNACL(subnetCidrIPBlock)
-
 	na.analyzedSubnets[subnetCidr] = NewAnalysisResultPerSubnet(subnetCidr, ingressRes, egressRes)
-
-	fmt.Printf("\naddAnalysisPerSubnet results:\n")
-	fmt.Printf("subnetCidr: %s\n", subnetCidr)
-	subnetConnectivityResStr, _ := na.GeneralConnectivityPerSubnet(subnetCidr)
-	fmt.Printf("%s", subnetConnectivityResStr)
-
-	fmt.Println("-----")
 }
-
-// currently assuming only subnet-level connectivity result is required
-// TODO: support refinement to partial subnet level when required
-/*type SubnetConnectivityResult struct {
-	allowedIngressConns map[*common.IPBlock]*common.ConnectionSet
-	allowedEgressConns  map[*common.IPBlock]*common.ConnectionSet
-}*/
 
 // GeneralConnectivityPerSubnet returns the str of the connectivity for analyzed subnet input
 func (na *NACLAnalyzer) GeneralConnectivityPerSubnet(subnetCidr string) (

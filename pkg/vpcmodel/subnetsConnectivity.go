@@ -42,7 +42,7 @@ func (c *ConfigBasedConnectivityResults) string() string {
 }
 
 // print AllowedConns (not combined)
-func (v *VPCsubnetConnectivity) printAllowedConns() {
+func (v *VPCsubnetConnectivity) PrintAllowedConns() {
 	for n, connMap := range v.AllowedConns {
 		fmt.Println(n)
 		fmt.Println(connMap.string())
@@ -189,7 +189,6 @@ func (c *CloudConfig) GetSubnetsConnectivity(includePGW bool) (*VPCsubnetConnect
 
 	res := &VPCsubnetConnectivity{AllowedConns: subnetsConnectivity, cloudConfig: c}
 
-	res.printAllowedConns()
 	// get combined connections from subnetsConnectivity
 	if err := res.computeAllowedConnsCombined(); err != nil {
 		return nil, err

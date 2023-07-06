@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"strings"
 
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
 
@@ -73,7 +72,7 @@ func (rc *ResourcesContainer) addPublicGateway(n *vpc1.PublicGateway) {
 	rc.pgwList = append(rc.pgwList, n)
 }
 
-func (rc *ResourcesContainer) printDetails() {
+func (rc *ResourcesContainer) PrintDetails() {
 	fmt.Printf("Has %d nacl objects\n", len(rc.naclList))
 	fmt.Printf("Has %d sg objects\n", len(rc.sgList))
 	fmt.Printf("Has %d instance objects\n", len(rc.instanceList))
@@ -180,10 +179,6 @@ func parseSingleResourceList(key string, vList []json.RawMessage, res *Resources
 	return nil
 }
 
-func printLineStr(s string) {
-	fmt.Printf("%s\n", s)
-}
-
 func ParseResourrcesFromFile(fileName string) (*ResourcesContainer, error) {
 	jsonContent, err := os.ReadFile(fileName)
 	if err != nil {
@@ -204,14 +199,10 @@ func ParseResources(resourcesJSONFile []byte) (*ResourcesContainer, error) {
 		if err != nil {
 			return nil, err
 		}
-		vListLen := len(vList)
-		printLineStr(k)
-		fmt.Printf("%d\n", vListLen)
 		if err := parseSingleResourceList(k, vList, res); err != nil {
 			return nil, err
 		}
 	}
-	res.printDetails()
 	return res, nil
 }
 
@@ -378,7 +369,6 @@ func getSGconfig(rc *ResourcesContainer, res *vpcmodel.CloudConfig, intfNameToIn
 		// type SecurityGroupTargetReference struct
 		for _, target := range targets {
 			if targetIntfRef, ok := target.(*vpc1.SecurityGroupTargetReference); ok {
-				fmt.Printf("%v", targetIntfRef)
 				// get from target name + resource type -> find the address of the target
 				targetType := *targetIntfRef.ResourceType
 				targetName := *targetIntfRef.Name
@@ -484,39 +474,6 @@ func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
 	return res, nil
 }
 
-/*
-Public IP Ranges
-https://phoenixnap.com/kb/public-vs-private-ip-address
-The number of public IP addresses is far greater than the number of private ones because every
-network on the Internet must have a unique public IP.
-
-All public IP addresses belong to one of the following public IP address ranges:
-
-	1.0.0.0-9.255.255.255
-	11.0.0.0-100.63.255.255
-	100.128.0.0-126.255.255.255
-	128.0.0.0-169.253.255.255
-	169.255.0.0-172.15.255.255
-	172.32.0.0-191.255.255.255
-	192.0.1.0/24
-	192.0.3.0-192.88.98.255
-	192.88.100.0-192.167.255.255
-	192.169.0.0-198.17.255.255
-	198.20.0.0-198.51.99.255
-	198.51.101.0-203.0.112.255
-	203.0.114.0-223.255.255.255
-
-Your private IP address exists within specific private IP address ranges reserved by the Internet Assigned
-Numbers Authority (IANA) and should never appear on the internet. There are millions of private networks across the globe,
-
-	 all of which include devices assigned private IP addresses within these ranges:
-
-		Class A: 10.0.0.0 — 10.255.255.255
-
-		Class B: 172.16.0.0 — 172.31.255.255
-
-		Class C: 192.168.0.0 — 192.168.255.255
-*/
 func addExternalNodes(config *vpcmodel.CloudConfig, vpcInternalAddressRange *common.IPBlock) ([]vpcmodel.Node, error) {
 	ipBlocks := []*common.IPBlock{}
 	for _, f := range config.FilterResources {
@@ -524,14 +481,11 @@ func addExternalNodes(config *vpcmodel.CloudConfig, vpcInternalAddressRange *com
 	}
 
 	externalRefIPBlocks := []*common.IPBlock{}
-	fmt.Println("referenced external ip blocks:")
 	for _, ipBlock := range ipBlocks {
 		intersection := ipBlock.Intersection(vpcInternalAddressRange)
 		if !intersection.Empty() {
 			continue
 		}
-		cidrList := strings.Join(ipBlock.ToCidrList(), cidrSeparator)
-		printLineStr(cidrList)
 		externalRefIPBlocks = append(externalRefIPBlocks, ipBlock)
 	}
 
@@ -544,19 +498,5 @@ func addExternalNodes(config *vpcmodel.CloudConfig, vpcInternalAddressRange *com
 	for _, n := range externalNodes {
 		config.NameToResource[n.Name()] = n
 	}
-	/*for index, ipBlock := range disjointRefExternalIPBlocks {
-		cidrList := strings.Join(ipBlock.ToCidrList(), cidrSeparator)
-		printLineStr(cidrList)
-		nodeName := fmt.Sprintf("ref-address-%d", index)
-		node := &vpcmodel.ExternalNetwork{NamedResource: vpcmodel.NamedResource{ResourceName: nodeName}, CidrStr: cidrList}
-		config.Nodes = append(config.Nodes, node)
-		externalNodes = append(externalNodes, node)
-	}
-	//TODO: add cidrs of external network outside the given above cidrs already added
-	node := &vpcmodel.ExternalNetwork{NamedResource: vpcmodel.NamedResource{ResourceName: "public-internet"}, CidrStr: "192.0.1.0/24"}
-	config.Nodes = append(config.Nodes, node)
-	externalNodes = append(externalNodes, node)*/
-
 	return externalNodes, nil
-	// goal: define connectivity between elements in the set {vsi address / referenced address in nacl or sg / rest of external range}
 }
