@@ -1,0 +1,14 @@
+## Endpoint connectivity report
+| src | dst | conn |
+|-----|-----|------|
+| Public Internet [147.235.219.206/32] | vsi2-ky[10.240.20.4] | protocol: TCP  dst-ports: 22 |
+| vsi1-ky[10.240.10.4] | Public Internet [142.0.0.0/8] | protocol: ICMP   |
+| vsi1-ky[10.240.10.4] | Public Internet [143.0.0.0/8] | protocol: ICMP   |
+| vsi1-ky[10.240.10.4] | Public Internet [161.26.0.0/16] | protocol: UDP   |
+| vsi2-ky[10.240.20.4] | Public Internet [142.0.0.0/8] | protocol: ICMP   |
+| vsi2-ky[10.240.20.4] | vsi1-ky[10.240.10.4] | All Connections |
+| vsi2-ky[10.240.20.4] | vsi3b-ky[10.240.30.4] | protocol: TCP   |
+| vsi3a-ky[10.240.30.5] | vsi1-ky[10.240.10.4] | All Connections |
+| vsi3b-ky[10.240.30.4] | vsi1-ky[10.240.10.4] | All Connections |
+| vsi3b-ky[10.240.30.4] | vsi2-ky[10.240.20.4] | protocol: TCP   |
+| vsi3b-ky[10.240.30.4] | vsi3a-ky[10.240.30.5] | All Connections |

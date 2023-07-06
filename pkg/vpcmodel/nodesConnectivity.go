@@ -14,7 +14,8 @@ import (
 // (1) compute AllowedConns (map[Node]*ConnectivityResult) : ingress or egress allowed conns separately
 // (2) compute AllowedConnsCombined (map[Node]map[Node]*common.ConnectionSet) : allowed conns considering both ingress and egress directions
 // (3) compute AllowedConnsCombinedStateful : stateful allowed connections, for which connection in reverse direction is also allowed
-func (c *CloudConfig) GetVPCNetworkConnectivity() *VPCConnectivity {
+// (4) if grouping required - compute grouping of connectivity results
+func (c *CloudConfig) GetVPCNetworkConnectivity(grouping bool) *VPCConnectivity {
 	res := &VPCConnectivity{
 		AllowedConns:         map[Node]*ConnectivityResult{},
 		AllowedConnsPerLayer: map[Node]map[string]*ConnectivityResult{},
@@ -43,6 +44,9 @@ func (c *CloudConfig) GetVPCNetworkConnectivity() *VPCConnectivity {
 	}
 	res.computeAllowedConnsCombined()
 	res.computeAllowedStatefulConnections()
+	if grouping {
+		res.GroupedConnectivity = newGroupConnLines(c, res)
+	}
 	return res
 }
 
@@ -235,6 +239,10 @@ func getCombinedConnsStr(combinedConns map[Node]map[Node]*common.ConnectionSet) 
 }
 
 func (v *VPCConnectivity) String() string {
+	return getCombinedConnsStr(v.AllowedConnsCombined)
+}
+
+func (v *VPCConnectivity) DetailedString() string {
 	res := "=================================== distributed inbound/outbound connections:\n"
 	strList := []string{}
 	for node, connectivity := range v.AllowedConns {

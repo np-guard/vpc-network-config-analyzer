@@ -11,6 +11,7 @@ type InArgs struct {
 	OutputFile      *string
 	OutputFormat    *string
 	AnalysisType    *string
+	Grouping        *bool
 }
 
 const (
@@ -45,6 +46,8 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args.OutputFile = flagset.String("output-file", "", "file path to store results")
 	args.OutputFormat = flagset.String("format", TEXTFormat, "output format; must be one of \"json\"/\"txt\"/\"md\"\"drawio\"")
 	args.AnalysisType = flagset.String("analysis-type", VsiLevel, "supported analysis types: vsiLevel / subnetLevel / debugSubnet")
+	args.Grouping = flagset.Bool("grouping", false, "whether to group together src/dst entries with identical connectivity")
+
 	err := flagset.Parse(cmdlineArgs)
 	if err != nil {
 		return nil, err
@@ -67,6 +70,10 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 
 	if *args.AnalysisType != VsiLevel && *args.OutputFormat != TEXTFormat {
 		return nil, fmt.Errorf("currently only txt output format supported with %s analysis type", *args.AnalysisType)
+	}
+
+	if *args.AnalysisType != VsiLevel && *args.Grouping {
+		return nil, fmt.Errorf("currently only VsiLevel analysis type supports grouping")
 	}
 
 	return &args, nil

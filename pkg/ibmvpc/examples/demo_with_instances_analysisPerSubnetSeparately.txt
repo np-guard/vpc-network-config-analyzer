@@ -1,102 +1,75 @@
-ingressConnectivity:
-
-local ip-block: 192.168.0.0-192.168.3.255
+Subnet: 192.168.0.0/22
+Ingress Connectivity:
 remote: 0.0.0.0-161.25.255.255, conn: protocol: TCP src-ports: 443 
 remote: 161.26.0.0-161.26.255.255, conn: All Connections
 remote: 161.27.0.0-166.7.255.255, conn: protocol: TCP src-ports: 443 
 remote: 166.12.0.0-255.255.255.255, conn: protocol: TCP src-ports: 443 
 remote: 166.8.0.0-166.11.255.255, conn: All Connections
-egressConnectivity:
-
-local ip-block: 192.168.0.0-192.168.3.255
+Egress Connectivity:
 remote: 0.0.0.0-161.25.255.255, conn: protocol: TCP  dst-ports: 443
 remote: 161.26.0.0-161.26.255.255, conn: All Connections
 remote: 161.27.0.0-166.7.255.255, conn: protocol: TCP  dst-ports: 443
 remote: 166.12.0.0-255.255.255.255, conn: protocol: TCP  dst-ports: 443
 remote: 166.8.0.0-166.11.255.255, conn: All Connections
 
-ingressConnectivity:
-
-local ip-block: 192.168.16.0-192.168.19.255
+Subnet: 192.168.16.0/22
+Ingress Connectivity:
 remote: 0.0.0.0-255.255.255.255, conn: All Connections
-egressConnectivity:
-
-local ip-block: 192.168.16.0-192.168.19.255
+Egress Connectivity:
 remote: 0.0.0.0-255.255.255.255, conn: All Connections
 
-ingressConnectivity:
-
-local ip-block: 192.168.20.0-192.168.23.255
+Subnet: 192.168.20.0/22
+Ingress Connectivity:
 remote: 0.0.0.0-255.255.255.255, conn: All Connections
-egressConnectivity:
-
-local ip-block: 192.168.20.0-192.168.23.255
+Egress Connectivity:
 remote: 0.0.0.0-255.255.255.255, conn: All Connections
 
-ingressConnectivity:
-
-local ip-block: 192.168.24.0-192.168.27.255
+Subnet: 192.168.24.0/22
+Ingress Connectivity:
 remote: 0.0.0.0-255.255.255.255, conn: All Connections
-egressConnectivity:
-
-local ip-block: 192.168.24.0-192.168.27.255
+Egress Connectivity:
 remote: 0.0.0.0-255.255.255.255, conn: All Connections
 
-ingressConnectivity:
-
-local ip-block: 192.168.32.0-192.168.35.255
+Subnet: 192.168.32.0/22
+Ingress Connectivity:
 remote: 0.0.0.0-255.255.255.255, conn: All Connections
-egressConnectivity:
-
-local ip-block: 192.168.32.0-192.168.35.255
+Egress Connectivity:
 remote: 0.0.0.0-255.255.255.255, conn: All Connections
 
-ingressConnectivity:
-
-local ip-block: 192.168.36.0-192.168.39.255
+Subnet: 192.168.36.0/22
+Ingress Connectivity:
 remote: 0.0.0.0-255.255.255.255, conn: All Connections
-egressConnectivity:
-
-local ip-block: 192.168.36.0-192.168.39.255
+Egress Connectivity:
 remote: 0.0.0.0-255.255.255.255, conn: All Connections
 
-ingressConnectivity:
-
-local ip-block: 192.168.4.0-192.168.7.255
+Subnet: 192.168.4.0/22
+Ingress Connectivity:
 remote: 0.0.0.0-161.25.255.255, conn: protocol: TCP src-ports: 443 
 remote: 161.26.0.0-161.26.255.255, conn: All Connections
 remote: 161.27.0.0-166.7.255.255, conn: protocol: TCP src-ports: 443 
 remote: 166.12.0.0-255.255.255.255, conn: protocol: TCP src-ports: 443 
 remote: 166.8.0.0-166.11.255.255, conn: All Connections
-egressConnectivity:
-
-local ip-block: 192.168.4.0-192.168.7.255
+Egress Connectivity:
 remote: 0.0.0.0-161.25.255.255, conn: protocol: TCP  dst-ports: 443
 remote: 161.26.0.0-161.26.255.255, conn: All Connections
 remote: 161.27.0.0-166.7.255.255, conn: protocol: TCP  dst-ports: 443
 remote: 166.12.0.0-255.255.255.255, conn: protocol: TCP  dst-ports: 443
 remote: 166.8.0.0-166.11.255.255, conn: All Connections
 
-ingressConnectivity:
-
-local ip-block: 192.168.40.0-192.168.43.255
+Subnet: 192.168.40.0/22
+Ingress Connectivity:
 remote: 0.0.0.0-255.255.255.255, conn: All Connections
-egressConnectivity:
-
-local ip-block: 192.168.40.0-192.168.43.255
+Egress Connectivity:
 remote: 0.0.0.0-255.255.255.255, conn: All Connections
 
-ingressConnectivity:
-
-local ip-block: 192.168.8.0-192.168.11.255
+Subnet: 192.168.8.0/22
+Ingress Connectivity:
 remote: 0.0.0.0-161.25.255.255, conn: protocol: TCP src-ports: 443 
 remote: 161.26.0.0-161.26.255.255, conn: All Connections
 remote: 161.27.0.0-166.7.255.255, conn: protocol: TCP src-ports: 443 
 remote: 166.12.0.0-255.255.255.255, conn: protocol: TCP src-ports: 443 
 remote: 166.8.0.0-166.11.255.255, conn: All Connections
-egressConnectivity:
-
-local ip-block: 192.168.8.0-192.168.11.255
+Egress Connectivity:
 remote: 0.0.0.0-161.25.255.255, conn: protocol: TCP  dst-ports: 443
 remote: 161.26.0.0-161.26.255.255, conn: All Connections
 remote: 161.27.0.0-166.7.255.255, conn: protocol: TCP  dst-ports: 443

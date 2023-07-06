@@ -216,8 +216,8 @@ func TestAnalyzeConnectivity4(t *testing.T) {
 
 func runConnectivityTest(t *testing.T, tc *testNodesConfig, ncList []*naclConfig, expectedStrResult string) {
 	c := createConfigFromTestConfig(tc, ncList)
-	connectivity := c.GetVPCNetworkConnectivity()
-	connectivityStr := connectivity.String()
+	connectivity := c.GetVPCNetworkConnectivity(false)
+	connectivityStr := connectivity.DetailedString()
 	fmt.Println(connectivityStr)
 	fmt.Println("done")
 	require.Equal(t, expectedStrResult, connectivityStr)
@@ -399,8 +399,8 @@ vsi-2[10.240.20.4] => vsi-1[10.240.10.4] : All Connections
 */
 func TestAnalyzeConnectivity(t *testing.T) {
 	c := NewSimpleCloudConfig()
-	connectivity := c.GetVPCNetworkConnectivity()
-	connectivityStr := connectivity.String()
+	connectivity := c.GetVPCNetworkConnectivity(false)
+	connectivityStr := connectivity.DetailedString()
 	fmt.Println(connectivityStr)
 	fmt.Println("done")
 }
