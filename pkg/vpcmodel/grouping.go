@@ -103,8 +103,7 @@ func subnetGrouping(elemsList []EndpointElem, c *CloudConfig) []EndpointElem {
 			res = append(res, n) // elements which are not interface nodes remain in the result as in the original input
 			continue             // skip input elements which are not a network interface node
 		}
-		subnet := c.getSubnetOfNode(n) // get the subnet to which n belongs
-		subnetName := subnet.Name()
+		subnetName := c.getSubnetOfNode(n).Name() // get the subnet to which n belongs
 		if _, ok := subnetNameToNodes[subnetName]; !ok {
 			subnetNameToNodes[subnetName] = []Node{}
 		}
@@ -168,7 +167,7 @@ func (g *GroupConnLines) groupSubnetsSrcOrDst(srcGrouping bool) {
 
 	// update g.groupedLines based on groupingSrcOrDst
 	for _, linesGroup := range groupingSrcOrDst {
-		// if linesGroup.Src contains an entire subnet => group to one line with subnet
+		// if linesGroup.Src contains set of interfaces from the same subnet => group to one line with those interfaces
 		// else, keep separated lines
 		srcOrDstGroup := make([]EndpointElem, len(linesGroup))
 		for i, line := range linesGroup {
