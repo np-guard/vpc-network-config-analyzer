@@ -74,4 +74,5 @@ type RoutingResource interface {
 	Destinations() []Node
 	AllowedConnectivity(src, dst Node) *common.ConnectionSet
 	ConnectivityMap() map[string]ConfigBasedConnectivityResults
+	AppliedFiltersKinds() map[string]bool
 }

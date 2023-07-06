@@ -39,6 +39,9 @@ func (c *CloudConfig) GetVPCNetworkConnectivity(grouping bool) *VPCConnectivity 
 			}
 		}
 		for layer := range egressAllowedConnsPerLayer {
+			if res.AllowedConnsPerLayer[node][layer] == nil {
+				res.AllowedConnsPerLayer[node][layer] = &ConnectivityResult{}
+			}
 			res.AllowedConnsPerLayer[node][layer].EgressAllowedConns = egressAllowedConnsPerLayer[layer]
 		}
 	}
@@ -50,63 +53,90 @@ func (c *CloudConfig) GetVPCNetworkConnectivity(grouping bool) *VPCConnectivity 
 	return res
 }
 
+func (c *CloudConfig) getFilterTrafficResourceOfKind(kind string) FilterTrafficResource {
+	for _, filter := range c.FilterResources {
+		if filter.Kind() == kind {
+			return filter
+		}
+	}
+	return nil
+}
+
+func (c *CloudConfig) getFiltersAllowedConnsBetweenNodesPerDirectionAndLayer(
+	src, dst Node,
+	isIngress bool,
+	layer string) *common.ConnectionSet {
+	filter := c.getFilterTrafficResourceOfKind(layer)
+	if filter == nil {
+		return AllConns()
+	}
+	filteredConns := filter.AllowedConnectivity(src, dst, isIngress)
+	return filteredConns
+}
+
+func updatePerLayerRes(res map[string]map[Node]*common.ConnectionSet, layer string, node Node, conn *common.ConnectionSet) {
+	if _, ok := res[layer]; !ok {
+		res[layer] = map[Node]*common.ConnectionSet{}
+	}
+	res[layer][node] = conn
+}
+
+// getAllowedConnsPerDirection returns: (1) map of allowed (ingress or egress) connectivity for capturedNode, considering
+// all relevant resources (nacl/sg/fip/pgw) , and (2) similar map per separated layers only (nacl/sg)
 func (c *CloudConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Node) (
 	allLayersRes map[Node]*common.ConnectionSet, // result considering all layers
 	perLayerRes map[string]map[Node]*common.ConnectionSet, // result separated per layer
 ) {
 	perLayerRes = map[string]map[Node]*common.ConnectionSet{}
 	allLayersRes = map[Node]*common.ConnectionSet{}
-	var src, dst Node
+
+	// iterate pairs (capturedNode, peerNode) to analyze their allowed ingress/egress conns
 	for _, peerNode := range c.Nodes {
+		// skip analysis between node to itself
 		if peerNode.Cidr() == capturedNode.Cidr() {
 			continue
 		}
-		if isIngress {
-			src = peerNode
-			dst = capturedNode
-		} else {
-			src = capturedNode
-			dst = peerNode
+		src, dst := switchSrcDstNodes(!isIngress, peerNode, capturedNode)
+
+		// first compute connectivity per layer of filters resources
+		filterLayers := []string{NaclLayer, SecurityGroupLayer}
+		for _, layer := range filterLayers {
+			conns := c.getFiltersAllowedConnsBetweenNodesPerDirectionAndLayer(src, dst, isIngress, layer)
+			updatePerLayerRes(perLayerRes, layer, peerNode, conns)
 		}
+
 		if peerNode.IsInternal() {
 			// no need for router node, connectivity is from within VPC
 			// only check filtering resources
 			allowedConnsBetweenCapturedAndPeerNode := AllConns()
-			for _, filter := range c.FilterResources {
-				layerName := filter.Kind()
-				filteredConns := filter.AllowedConnectivity(src, dst, isIngress)
-				if _, ok := perLayerRes[layerName]; !ok {
-					perLayerRes[layerName] = map[Node]*common.ConnectionSet{}
-				}
-				perLayerRes[layerName][peerNode] = filteredConns
-				allowedConnsBetweenCapturedAndPeerNode = allowedConnsBetweenCapturedAndPeerNode.Intersection(filteredConns)
-				// do not break if empty, to enable computation for all layers
+			for _, resMap := range perLayerRes {
+				allowedConnsBetweenCapturedAndPeerNode = allowedConnsBetweenCapturedAndPeerNode.Intersection(resMap[peerNode])
 			}
 			allLayersRes[peerNode] = allowedConnsBetweenCapturedAndPeerNode
-			direction := "inbound"
-			if !isIngress {
-				direction = "outbound"
-			}
-			fmt.Printf("getAllowedConnsPerDirection: src: %s, dst %s, conn: %s, direction: %s\n", src.Cidr(), dst.Cidr(),
-				allowedConnsBetweenCapturedAndPeerNode.String(), direction)
-		} else { // else : external node -> consider attached routing resources
+		} else {
+			// else : external node -> consider attached routing resources
+
 			allowedConnsBetweenCapturedAndPeerNode := NoConns()
+			// node is associated with either a pgw or a fip
+			var appliedRouter RoutingResource
 			for _, router := range c.RoutingResources {
 				routerConnRes := router.AllowedConnectivity(src, dst)
 				if !routerConnRes.IsEmpty() { // connection is allowed through router resource
 					// TODO: consider adding connection attribute with details of routing through this router resource
 					allowedConnsBetweenCapturedAndPeerNode = routerConnRes
+					appliedRouter = router
+					updatePerLayerRes(perLayerRes, router.Kind(), peerNode, routerConnRes)
 				}
 			}
-			for _, filter := range c.FilterResources {
-				layerName := filter.Kind()
-				filteredConns := filter.AllowedConnectivity(src, dst, isIngress)
-				if _, ok := perLayerRes[layerName]; !ok {
-					perLayerRes[layerName] = map[Node]*common.ConnectionSet{}
-				}
-				perLayerRes[layerName][peerNode] = filteredConns
-				allowedConnsBetweenCapturedAndPeerNode = allowedConnsBetweenCapturedAndPeerNode.Intersection(filteredConns)
-				// do not break if empty, to enable computation for all layers
+			if appliedRouter == nil {
+				// without fip/pgw there is no external connectivity
+				allLayersRes[peerNode] = NoConns()
+				continue
+			}
+			// appliedFilters are either both nacl and sg (for pgw) or only sg (for fip)
+			appliedFilters := appliedRouter.AppliedFiltersKinds()
+			for layer := range appliedFilters {
+				allowedConnsBetweenCapturedAndPeerNode = allowedConnsBetweenCapturedAndPeerNode.Intersection(perLayerRes[layer][peerNode])
 			}
 			allLayersRes[peerNode] = allowedConnsBetweenCapturedAndPeerNode
 		}
@@ -154,6 +184,41 @@ func getConnectionStr(src, dst, conn, suffix string) string {
 	return fmt.Sprintf("%s => %s : %s%s\n", src, dst, conn, suffix)
 }
 
+// given allowed conn from v.AllowedConnsCombined, check if it is external through FIP
+func (v *VPCConnectivity) isConnExternalThroughFIP(src, dst Node) bool {
+	var connRes *ConnectivityResult
+	var isSrcPublic bool
+	switch {
+	case dst.IsPublicInternet():
+		connRes = v.AllowedConnsPerLayer[src][fipRouter]
+	case src.IsPublicInternet():
+		connRes = v.AllowedConnsPerLayer[dst][fipRouter]
+		isSrcPublic = true
+	default:
+		return false
+	}
+	if connRes == nil {
+		return false
+	}
+	var conns *common.ConnectionSet
+	if !isSrcPublic {
+		conns = connRes.EgressAllowedConns[dst]
+	} else {
+		conns = connRes.IngressAllowedConns[src]
+	}
+	if conns != nil && !conns.IsEmpty() {
+		return true
+	}
+	return false
+}
+
+func updateAllowedConnsMap(m map[Node]map[Node]*common.ConnectionSet, src, dst Node, conn *common.ConnectionSet) {
+	if _, ok := m[src]; !ok {
+		m[src] = map[Node]*common.ConnectionSet{}
+	}
+	m[src][dst] = conn
+}
+
 func (v *VPCConnectivity) computeAllowedStatefulConnections() {
 	// assuming v.AllowedConnsCombined was already computed
 
@@ -165,6 +230,12 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections() {
 
 	for src, connsMap := range v.AllowedConnsCombined {
 		for dst, conn := range connsMap {
+			// iterate pairs (src,dst) with conn as allowed connectivity, to check stateful aspect
+			if v.isConnExternalThroughFIP(src, dst) {
+				updateAllowedConnsMap(v.AllowedConnsCombinedStateful, src, dst, conn)
+				continue
+			}
+
 			// get the allowed *stateful* conn result
 			// check allowed conns per NACL-layer from dst to src (dst->src)
 			var DstAllowedEgressToSrc, SrcAllowedIngressFromDst *common.ConnectionSet
@@ -173,13 +244,9 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections() {
 			// can src ingress from dst?
 			SrcAllowedIngressFromDst = v.getPerLayerConnectivity(statelessLayerName, dst, src, true)
 			combinedDstToSrc := DstAllowedEgressToSrc.Intersection(SrcAllowedIngressFromDst)
-
-			if _, ok := v.AllowedConnsCombinedStateful[src]; !ok {
-				v.AllowedConnsCombinedStateful[src] = map[Node]*common.ConnectionSet{}
-			}
 			// flip src/dst ports before intersection
 			combinedDstToSrcSwitchPortsDirection := combinedDstToSrc.SwitchSrcDstPorts()
-			v.AllowedConnsCombinedStateful[src][dst] = conn.Intersection(combinedDstToSrcSwitchPortsDirection)
+			updateAllowedConnsMap(v.AllowedConnsCombinedStateful, src, dst, conn.Intersection(combinedDstToSrcSwitchPortsDirection))
 		}
 	}
 }
@@ -190,7 +257,7 @@ func (v *VPCConnectivity) getPerLayerConnectivity(layer string, src, dst Node, i
 	if (isIngress && !dst.IsInternal()) || (!isIngress && !src.IsInternal()) {
 		return common.NewConnectionSet(true)
 	}
-
+	var result *common.ConnectionSet
 	var connMap map[string]*ConnectivityResult
 	if isIngress {
 		connMap = v.AllowedConnsPerLayer[dst]
@@ -199,14 +266,20 @@ func (v *VPCConnectivity) getPerLayerConnectivity(layer string, src, dst Node, i
 	}
 	connResult := connMap[layer]
 	if isIngress {
-		return connResult.IngressAllowedConns[src]
+		result = connResult.IngressAllowedConns[src]
+	} else {
+		result = connResult.EgressAllowedConns[dst]
 	}
-	return connResult.EgressAllowedConns[dst]
+	if result == nil {
+		return NoConns()
+	}
+	return result
 }
 
 const (
 	// this layer is stateless, thus required in both directions for stateful connectivity computation
 	statelessLayerName = NaclLayer
+	fipRouter          = "FloatingIP"
 )
 
 func getCombinedConnsStr(combinedConns map[Node]map[Node]*common.ConnectionSet) string {
