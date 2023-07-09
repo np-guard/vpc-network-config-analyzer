@@ -51,6 +51,8 @@ const (
 	debugOutSuffix                 = "_debug.txt"
 	mdOutSuffix                    = ".md"
 	jsonOutSuffix                  = ".json"
+	drawioOutSuffix                = ".drawio"
+	archDrawioOutSuffix            = "_arch.drawio"
 )
 
 // getTestFileName returns expected file name and actual file name, for the relevant use case
@@ -80,6 +82,10 @@ func getTestFileName(testName string, uc vpcmodel.OutputUseCase, grouping bool, 
 		res += mdOutSuffix
 	case vpcmodel.JSON:
 		res += jsonOutSuffix
+	case vpcmodel.DRAWIO:
+		res += drawioOutSuffix
+	case vpcmodel.ARCHDRAWIO:
+		res += archDrawioOutSuffix
 	default:
 		return "", "", errors.New("unexpected out format")
 	}
@@ -177,6 +183,37 @@ var tests = []*vpcGeneralTest{
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		format:   vpcmodel.Debug,
 	},
+	{
+		name:     "acl_testing3",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:   vpcmodel.DRAWIO,
+	},
+	{
+		name:     "sg_testing1_new",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:   vpcmodel.DRAWIO,
+	},
+	{
+		name:     "demo_with_instances",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:   vpcmodel.DRAWIO,
+	},
+
+	{
+		name:     "acl_testing3",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:   vpcmodel.ARCHDRAWIO,
+	},
+	{
+		name:     "sg_testing1_new",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:   vpcmodel.ARCHDRAWIO,
+	},
+	{
+		name:     "demo_with_instances",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:   vpcmodel.ARCHDRAWIO,
+	},
 }
 
 // uncomment the function below to run for updating the expected output
@@ -265,7 +302,7 @@ func runTestPerUseCase(t *testing.T, tt *vpcGeneralTest, c *vpcmodel.CloudConfig
 	tt.expectedOutput[uc] = filepath.Join(getTestsDir(), expectedFileName)
 	var actualOutput string
 
-	og, err := vpcmodel.NewOutputGenerator(c, tt.grouping, uc)
+	og, err := vpcmodel.NewOutputGenerator(c, tt.grouping, uc, false)
 	if err != nil {
 		return err
 	}
