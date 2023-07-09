@@ -302,7 +302,7 @@ func runTestPerUseCase(t *testing.T, tt *vpcGeneralTest, c *vpcmodel.CloudConfig
 	tt.expectedOutput[uc] = filepath.Join(getTestsDir(), expectedFileName)
 	var actualOutput string
 
-	og, err := vpcmodel.NewOutputGenerator(c, tt.grouping, uc, false)
+	og, err := vpcmodel.NewOutputGenerator(c, tt.grouping, uc, tt.format == vpcmodel.ARCHDRAWIO)
 	if err != nil {
 		return err
 	}
