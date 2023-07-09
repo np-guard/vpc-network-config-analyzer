@@ -26,6 +26,7 @@ type testMode int
 const (
 	outputComparison testMode = iota // compare actual output to expected output
 	outputGeneration                 // generate expected output
+	outputIgnore                     // ignore expected output
 )
 
 type vpcGeneralTest struct {
@@ -51,6 +52,8 @@ const (
 	debugOutSuffix                 = "_debug.txt"
 	mdOutSuffix                    = ".md"
 	jsonOutSuffix                  = ".json"
+	drawioOutSuffix                = ".drawio"
+	archDrawioOutSuffix            = "_arch.drawio"
 )
 
 // getTestFileName returns expected file name and actual file name, for the relevant use case
@@ -80,6 +83,10 @@ func getTestFileName(testName string, uc vpcmodel.OutputUseCase, grouping bool, 
 		res += mdOutSuffix
 	case vpcmodel.JSON:
 		res += jsonOutSuffix
+	case vpcmodel.DRAWIO:
+		res += drawioOutSuffix
+	case vpcmodel.ARCHDRAWIO:
+		res += archDrawioOutSuffix
 	default:
 		return "", "", errors.New("unexpected out format")
 	}
@@ -177,6 +184,37 @@ var tests = []*vpcGeneralTest{
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		format:   vpcmodel.Debug,
 	},
+	{
+		name:     "acl_testing3",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:   vpcmodel.DRAWIO,
+	},
+	{
+		name:     "sg_testing1_new",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:   vpcmodel.DRAWIO,
+	},
+	{
+		name:     "demo_with_instances",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:   vpcmodel.DRAWIO,
+	},
+
+	{
+		name:     "acl_testing3",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:   vpcmodel.ARCHDRAWIO,
+	},
+	{
+		name:     "sg_testing1_new",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:   vpcmodel.ARCHDRAWIO,
+	},
+	{
+		name:     "demo_with_instances",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:   vpcmodel.ARCHDRAWIO,
+	},
 }
 
 // uncomment the function below to run for updating the expected output
@@ -184,7 +222,12 @@ var tests = []*vpcGeneralTest{
 	// tests is the list of tests to run
 	for testIdx := range tests {
 		tt := tests[testIdx]
-		tt.mode = outputGeneration
+		// todo - remove the following if when drawio is stable
+		if tt.format == vpcmodel.DRAWIO || tt.format == vpcmodel.ARCHDRAWIO {
+			tt.mode = outputIgnore
+		} else {
+			tt.mode = outputGeneration
+		}
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			tt.runTest(t)
@@ -197,7 +240,12 @@ func TestAllWithComparison(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range tests {
 		tt := tests[testIdx]
-		tt.mode = outputComparison
+		// todo - remove the following if when drawio is stable
+		if tt.format == vpcmodel.DRAWIO || tt.format == vpcmodel.ARCHDRAWIO {
+			tt.mode = outputIgnore
+		} else {
+			tt.mode = outputComparison
+		}
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			tt.runTest(t)
@@ -265,7 +313,7 @@ func runTestPerUseCase(t *testing.T, tt *vpcGeneralTest, c *vpcmodel.CloudConfig
 	tt.expectedOutput[uc] = filepath.Join(getTestsDir(), expectedFileName)
 	var actualOutput string
 
-	og, err := vpcmodel.NewOutputGenerator(c, tt.grouping, uc)
+	og, err := vpcmodel.NewOutputGenerator(c, tt.grouping, uc, tt.format == vpcmodel.ARCHDRAWIO)
 	if err != nil {
 		return err
 	}

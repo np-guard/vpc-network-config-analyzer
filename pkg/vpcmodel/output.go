@@ -13,6 +13,7 @@ const (
 	MD
 	CSV
 	DRAWIO
+	ARCHDRAWIO
 	Debug // extended txt format with more details
 )
 
@@ -37,24 +38,24 @@ type OutputGenerator struct {
 	subnetsConn    *VPCsubnetConnectivity
 }
 
-func NewOutputGenerator(c *CloudConfig, grouping bool, uc OutputUseCase) (*OutputGenerator, error) {
+func NewOutputGenerator(c *CloudConfig, grouping bool, uc OutputUseCase, archOnly bool) (*OutputGenerator, error) {
 	res := &OutputGenerator{
 		config:         c,
 		outputGrouping: grouping,
 		useCase:        uc,
 	}
-
-	if uc == AllEndpoints {
-		res.nodesConn = c.GetVPCNetworkConnectivity(grouping)
-	}
-	if uc == AllSubnets {
-		subnetsConn, err := c.GetSubnetsConnectivity(true)
-		if err != nil {
-			return nil, err
+	if !archOnly {
+		if uc == AllEndpoints {
+			res.nodesConn = c.GetVPCNetworkConnectivity(grouping)
 		}
-		res.subnetsConn = subnetsConn
+		if uc == AllSubnets {
+			subnetsConn, err := c.GetSubnetsConnectivity(true)
+			if err != nil {
+				return nil, err
+			}
+			res.subnetsConn = subnetsConn
+		}
 	}
-
 	return res, nil
 }
 
@@ -69,6 +70,8 @@ func (o *OutputGenerator) Generate(f OutFormat, outFile string) (string, error) 
 		formatter = &MDoutputFormatter{}
 	case DRAWIO:
 		formatter = &DrawioOutputFormatter{}
+	case ARCHDRAWIO:
+		formatter = &ArchDrawioOutputFormatter{}
 	case Debug:
 		formatter = &DebugOutputFormatter{}
 	default:

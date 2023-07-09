@@ -17,10 +17,11 @@ type InArgs struct {
 
 const (
 	// output formats supported
-	JSONFormat   = "json"
-	TEXTFormat   = "txt"
-	MDFormat     = "md"
-	DRAWIOFormat = "drawio"
+	JSONFormat       = "json"
+	TEXTFormat       = "txt"
+	MDFormat         = "md"
+	DRAWIOFormat     = "drawio"
+	ARCHDRAWIOFormat = "archDrawio"
 
 	// connectivity analysis types supported
 	allEndpoints = "all_endpoints" // vsi to vsi connectivity analysis
@@ -29,10 +30,11 @@ const (
 )
 
 var supportedOutputFormats = map[string]bool{
-	JSONFormat:   true,
-	TEXTFormat:   true,
-	MDFormat:     true,
-	DRAWIOFormat: true,
+	JSONFormat:       true,
+	TEXTFormat:       true,
+	MDFormat:         true,
+	DRAWIOFormat:     true,
+	ARCHDRAWIOFormat: true,
 }
 var supportedAnalysisTypes = map[string]bool{
 	allEndpoints: true,

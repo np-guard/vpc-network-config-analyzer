@@ -71,7 +71,9 @@ func (d *DrawioOutputFormatter) WriteOutputAllEndpoints(cConfig *CloudConfig, co
 }
 
 func (d *DrawioOutputFormatter) createDrawioTree() {
-	d.createEdgesMap()
+	if d.conn != nil {
+		d.createEdgesMap()
+	}
 	d.createNodeSets()
 	d.createFilters()
 	d.createNodes()
@@ -223,4 +225,29 @@ func (d *DrawioOutputFormatter) WriteOutputAllSubnets(subnetsConn *VPCsubnetConn
 
 func (d *DrawioOutputFormatter) WriteOutputSingleSubnet(c *CloudConfig, outFile string) (string, error) {
 	return "", errors.New("DebugSubnet use case not supported for draw.io format currently ")
+}
+
+// /////////////////////////////////////////////////////////////////
+// ArchDrawioOutputFormatter display only the architecture
+// So we omit the connectivity, so we send nil to write output.
+// (In archDrawio format we do not call GetVPCNetworkConnectivity, and conn should be nil,
+// However, in Testing GetVPCNetworkConnectivity is called for all formats)
+type ArchDrawioOutputFormatter struct {
+	DrawioOutputFormatter
+}
+
+func (d *ArchDrawioOutputFormatter) WriteOutputAllEndpoints(
+	cConfig *CloudConfig,
+	conn *VPCConnectivity,
+	outFile string,
+	grouping bool) (string, error) {
+	return d.DrawioOutputFormatter.WriteOutputAllEndpoints(cConfig, nil, outFile, grouping)
+}
+
+func (d *ArchDrawioOutputFormatter) WriteOutputAllSubnets(subnetsConn *VPCsubnetConnectivity, outFile string) (string, error) {
+	return d.DrawioOutputFormatter.WriteOutputAllSubnets(nil, outFile)
+}
+
+func (d *ArchDrawioOutputFormatter) WriteOutputSingleSubnet(c *CloudConfig, outFile string) (string, error) {
+	return d.DrawioOutputFormatter.WriteOutputSingleSubnet(nil, outFile)
 }
