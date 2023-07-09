@@ -222,7 +222,12 @@ var tests = []*vpcGeneralTest{
 	// tests is the list of tests to run
 	for testIdx := range tests {
 		tt := tests[testIdx]
-		tt.mode = outputGeneration
+		// todo - remove the following if when drawio is stable
+		if tt.format == vpcmodel.DRAWIO || tt.format == vpcmodel.ARCHDRAWIO {
+			tt.mode = outputIgnore
+		} else {
+			tt.mode = outputGeneration
+		}
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			tt.runTest(t)
@@ -235,7 +240,7 @@ func TestAllWithComparison(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range tests {
 		tt := tests[testIdx]
-		// todo - remove this if when drawio is stable
+		// todo - remove the following if when drawio is stable
 		if tt.format == vpcmodel.DRAWIO || tt.format == vpcmodel.ARCHDRAWIO {
 			tt.mode = outputIgnore
 		} else {
