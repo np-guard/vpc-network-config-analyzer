@@ -43,3 +43,12 @@ func (c *CloudConfig) String() string {
 	res += strings.Join(lines, "\n")
 	return res
 }
+
+func (c *CloudConfig) getFilterTrafficResourceOfKind(kind string) FilterTrafficResource {
+	for _, filter := range c.FilterResources {
+		if filter.Kind() == kind {
+			return filter
+		}
+	}
+	return nil
+}

@@ -53,15 +53,6 @@ func (c *CloudConfig) GetVPCNetworkConnectivity(grouping bool) *VPCConnectivity 
 	return res
 }
 
-func (c *CloudConfig) getFilterTrafficResourceOfKind(kind string) FilterTrafficResource {
-	for _, filter := range c.FilterResources {
-		if filter.Kind() == kind {
-			return filter
-		}
-	}
-	return nil
-}
-
 func (c *CloudConfig) getFiltersAllowedConnsBetweenNodesPerDirectionAndLayer(
 	src, dst Node,
 	isIngress bool,
@@ -70,8 +61,7 @@ func (c *CloudConfig) getFiltersAllowedConnsBetweenNodesPerDirectionAndLayer(
 	if filter == nil {
 		return AllConns()
 	}
-	filteredConns := filter.AllowedConnectivity(src, dst, isIngress)
-	return filteredConns
+	return filter.AllowedConnectivity(src, dst, isIngress)
 }
 
 func updatePerLayerRes(res map[string]map[Node]*common.ConnectionSet, layer string, node Node, conn *common.ConnectionSet) {
@@ -133,7 +123,8 @@ func (c *CloudConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode N
 				allLayersRes[peerNode] = NoConns()
 				continue
 			}
-			// appliedFilters are either both nacl and sg (for pgw) or only sg (for fip)
+			// ibm-config: appliedFilters are either both nacl and sg (for pgw) or only sg (for fip)
+			// TODO: consider moving to pkg ibm-vpc
 			appliedFilters := appliedRouter.AppliedFiltersKinds()
 			for layer := range appliedFilters {
 				allowedConnsBetweenCapturedAndPeerNode = allowedConnsBetweenCapturedAndPeerNode.Intersection(perLayerRes[layer][peerNode])
@@ -232,6 +223,7 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections() {
 		for dst, conn := range connsMap {
 			// iterate pairs (src,dst) with conn as allowed connectivity, to check stateful aspect
 			if v.isConnExternalThroughFIP(src, dst) {
+				// TODO: this may be ibm-specific. consider moving to ibmvpc
 				updateAllowedConnsMap(v.AllowedConnsCombinedStateful, src, dst, conn)
 				continue
 			}
