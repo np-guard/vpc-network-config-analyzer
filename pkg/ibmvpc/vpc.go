@@ -500,6 +500,10 @@ func (fip *FloatingIP) AllowedConnectivity(src, dst vpcmodel.Node) *common.Conne
 	return vpcmodel.NoConns()
 }
 
+func (fip *FloatingIP) AppliedFiltersKinds() map[string]bool {
+	return map[string]bool{vpcmodel.SecurityGroupLayer: true}
+}
+
 func (fip *FloatingIP) ConnectivityMap() map[string]vpcmodel.ConfigBasedConnectivityResults {
 	return nil
 }
@@ -566,153 +570,6 @@ func (pgw *PublicGateway) AllowedConnectivity(src, dst vpcmodel.Node) *common.Co
 	return vpcmodel.NoConns()
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-/*func GetVPCNetworkConnectivity(vpcConfig *vpcmodel.VPCConfig) *vpcmodel.VPCConnectivity {
-	res := &vpcmodel.VPCConnectivity{AllowedConns: map[vpcmodel.Node]*vpcmodel.ConnectivityResult{}}
-	// get connectivity in level of nodes elements
-	for _, node := range vpcConfig.Nodes {
-		if node.IsInternal() { //if _, ok := node.(*NetworkInterface); ok {
-			res.AllowedConns[node] = &vpcmodel.ConnectivityResult{
-				IngressAllowedConns: map[vpcmodel.Node]*common.ConnectionSet{},
-				EgressAllowedConns:  map[vpcmodel.Node]*common.ConnectionSet{},
-			}
-		}
-	}
-	return res
+func (pgw *PublicGateway) AppliedFiltersKinds() map[string]bool {
+	return map[string]bool{vpcmodel.NaclLayer: true, vpcmodel.SecurityGroupLayer: true}
 }
-
-func getAllowedConnsPerDirection(isIngress bool, capturedNode vpcmodel.Node, vpcConfig *vpcmodel.VPCConfig) {
-	for _, peerNode := range vpcConfig.Nodes {
-		if peerNode.IsInternal() {
-			// no need for router node, connectivity is from within VPC
-			// only check filtering resources
-		}
-	}
-}*/
-
-/*
-// implement interface vpcmodel.Vpc
-type vpc struct {
-	name   string
-	cidr   string
-	region string
-}
-
-func (v *vpc) Name() string {
-	return v.name
-}
-func (v *vpc) Cidr() string {
-	return v.cidr
-}
-func (v *vpc) Region() string {
-	return v.region
-}
-
-func NewVPC(name, cidr, region string) vpcmodel.Vpc {
-	vpc := &vpc{name: name, cidr: cidr, region: region}
-	return vpc
-}
-
-//implement interface vpcmodel.Zone
-type zone struct {
-	name string
-	cidr string
-	vpc  vpcmodel.Vpc
-}
-
-func (z *zone) Name() string {
-	return z.name
-}
-func (z *zone) Cidr() string {
-	return z.cidr
-}
-func (z *zone) VPC() vpcmodel.Vpc {
-	return z.vpc
-}
-
-func NewZone(name, cidr string, vpc vpcmodel.Vpc) vpcmodel.Zone {
-	return &zone{name: name, cidr: cidr, vpc: vpc}
-}
-
-// implement interface vpcmodel.NetworkInterface
-type NWInterface struct {
-	name    string
-	address string
-	subnet  *subnet
-}
-
-func (i *NWInterface) Name() string {
-	return i.name
-}
-func (i *NWInterface) Address() string {
-	return i.address
-}
-
-func (i *NWInterface) Subnet() vpcmodel.Subnet {
-	return i.subnet
-}
-
-func NewNwInterface(name, address string, subnet *subnet) vpcmodel.NetworkInterface {
-	return &NWInterface{name: name, address: address, subnet: subnet}
-}
-
-// implement interface vpcmodel.Instance
-type vsi struct {
-	name         string
-	nwInterfaces []*NWInterface
-	zone         *zone
-}
-
-func (v *vsi) Name() string {
-	return v.name
-}
-
-func (v *vsi) Zone() vpcmodel.Zone {
-	return v.zone
-}
-
-func (v *vsi) NetworkInterfaces() []vpcmodel.NetworkInterface {
-	res := make([]vpcmodel.NetworkInterface, len(v.nwInterfaces))
-	for i := range v.nwInterfaces {
-		res[i] = v.nwInterfaces[i]
-	}
-	return res
-}
-
-func NewVSI(name string, nwInterfaces []*NWInterface, zone *zone) vpcmodel.Instance {
-	return &vsi{name: name, nwInterfaces: nwInterfaces, zone: zone}
-}
-*/
-
-/*
-type Subnet interface {
-	Name() string
-	Cidr() string
-	Zone() Zone
-}
-*/
-/*
-// implement interface vpcmodel.subnet
-type subnet struct {
-	name string
-	cidr string
-	zone *zone
-}
-
-func (s *subnet) Name() string {
-	return s.name
-}
-
-func (s *subnet) Cidr() string {
-	return s.cidr
-}
-
-func (s *subnet) Zone() vpcmodel.Zone {
-	return s.zone
-}
-
-func NewSubnet(name, cidr string, zone *zone) *subnet {
-	return &subnet{name: name, cidr: cidr, zone: zone}
-}
-*/
