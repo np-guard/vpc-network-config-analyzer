@@ -58,7 +58,6 @@ type TreeNodeInterface interface {
 	IsSquare() bool
 
 	setGeometry()
-	absoluteGeometry() (int, int)
 	children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface)
 }
 
@@ -96,4 +95,12 @@ func locations(tns []TreeNodeInterface) []*Location {
 		locations = append(locations, c.Location())
 	}
 	return locations
+}
+
+
+func absoluteGeometry(tn TreeNodeInterface) (int, int) {
+	if tn.DrawioParent().Location() == nil {
+		return tn.X(), tn.Y()
+	}
+	return tn.X() + tn.DrawioParent().Location().firstCol.x(), tn.Y() + tn.DrawioParent().Location().firstRow.y()
 }
