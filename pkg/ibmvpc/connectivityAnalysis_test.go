@@ -166,7 +166,7 @@ var expectedConnStrTest2 = `=================================== distributed inbo
 10.240.10.4 => 10.240.20.4 : All Connections
 10.240.20.4 => 10.240.10.4 : No Connections
 =================================== combined connections - short version:
-vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections
+vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections *
 =================================== stateful combined connections - short version:
 `
 
@@ -183,7 +183,7 @@ var expectedConnStrTest3 = `=================================== distributed inbo
 10.240.10.4 => 10.240.20.4 : All Connections
 10.240.20.4 => 10.240.10.4 : protocol: TCP  
 =================================== combined connections - short version:
-vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections
+vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections *
 vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : protocol: TCP  
 =================================== stateful combined connections - short version:
 vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : protocol: TCP  

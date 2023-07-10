@@ -21,7 +21,7 @@
 | Public Internet [198.20.0.0/14] | vsi2-ky[10.240.20.4] | All Connections |
 | Public Internet [198.51.101.0/24] | vsi2-ky[10.240.20.4] | All Connections |
 | Public Internet [203.0.114.0/23] | vsi2-ky[10.240.20.4] | All Connections |
-| vsi1-ky[10.240.10.4] | Public Internet [161.26.0.0/16] | protocol: UDP   |
+| vsi1-ky[10.240.10.4] | Public Internet [161.26.0.0/16] | protocol: UDP   * |
 | vsi1-ky[10.240.10.4] | vsi2-ky[10.240.20.4] | protocol: TCP,UDP   |
 | vsi2-ky[10.240.20.4] | Public Internet [1.0.0.0/8] | All Connections |
 | vsi2-ky[10.240.20.4] | Public Internet [100.128.0.0/9] | All Connections |
@@ -43,13 +43,15 @@
 | vsi2-ky[10.240.20.4] | Public Internet [198.20.0.0/14] | All Connections |
 | vsi2-ky[10.240.20.4] | Public Internet [198.51.101.0/24] | All Connections |
 | vsi2-ky[10.240.20.4] | Public Internet [203.0.114.0/23] | All Connections |
-| vsi2-ky[10.240.20.4] | vsi1-ky[10.240.10.4] | All Connections |
-| vsi3a-ky[10.240.30.5] | vsi1-ky[10.240.10.4] | All Connections |
+| vsi2-ky[10.240.20.4] | vsi1-ky[10.240.10.4] | All Connections * |
+| vsi3a-ky[10.240.30.5] | vsi1-ky[10.240.10.4] | All Connections * |
 | vsi3a-ky[10.240.30.5] | vsi3b-ky[10.240.30.6] | All Connections |
 | vsi3a-ky[10.240.30.5] | vsi3c-ky[10.240.30.4] | All Connections |
-| vsi3b-ky[10.240.30.6] | vsi1-ky[10.240.10.4] | All Connections |
+| vsi3b-ky[10.240.30.6] | vsi1-ky[10.240.10.4] | All Connections * |
 | vsi3b-ky[10.240.30.6] | vsi3a-ky[10.240.30.5] | All Connections |
 | vsi3b-ky[10.240.30.6] | vsi3c-ky[10.240.30.4] | All Connections |
-| vsi3c-ky[10.240.30.4] | vsi1-ky[10.240.10.4] | All Connections |
+| vsi3c-ky[10.240.30.4] | vsi1-ky[10.240.10.4] | All Connections * |
 | vsi3c-ky[10.240.30.4] | vsi3a-ky[10.240.30.5] | All Connections |
 | vsi3c-ky[10.240.30.4] | vsi3b-ky[10.240.30.6] | All Connections |
+
+* connections that are limited to unidirectional flow only

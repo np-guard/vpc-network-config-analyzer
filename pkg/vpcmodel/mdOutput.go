@@ -27,6 +27,7 @@ func (m *MDoutputFormatter) WriteOutputAllEndpoints(c *CloudConfig, conn *VPCCon
 	sort.Strings(connLines)
 	lines = append(lines, connLines...)
 	out := strings.Join(lines, "\n")
+	out += asteriskDetails
 	err := WriteToFile(out, outFile)
 	return out, err
 }
@@ -41,12 +42,12 @@ func (m *MDoutputFormatter) WriteOutputSingleSubnet(c *CloudConfig, outFile stri
 
 func (m *MDoutputFormatter) getNonGroupedOutput(conn *VPCConnectivity) []string {
 	lines := []string{}
-	for src, srcMap := range conn.AllowedConnsCombined {
+	for src, srcMap := range *conn.AllowedConnsCombined {
 		for dst, conn := range srcMap {
 			if conn.IsEmpty() {
 				continue
 			}
-			connLineObj := connLine{Src: src, Dst: dst, Conn: conn.String()}
+			connLineObj := connLine{Src: src, Dst: dst, Conn: conn.EnhancedString()}
 			lines = append(lines, getMDLine(connLineObj))
 		}
 	}

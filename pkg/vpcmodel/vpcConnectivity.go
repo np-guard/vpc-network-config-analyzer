@@ -12,13 +12,20 @@ type VPCConnectivity struct {
 	AllowedConns map[Node]*ConnectivityResult
 
 	// combined connectivity - considering both ingress and egress per connection
-	AllowedConnsCombined map[Node]map[Node]*common.ConnectionSet
+	AllowedConnsCombined *NodesConnectionsMap
 
 	// allowed connectivity combined and stateful
-	AllowedConnsCombinedStateful map[Node]map[Node]*common.ConnectionSet
+	AllowedConnsCombinedStateful *NodesConnectionsMap
 
 	// grouped connectivity result
 	GroupedConnectivity *GroupConnLines
+}
+
+type NodesConnectionsMap map[Node]map[Node]*common.ConnectionSet
+
+func NewNodesConnectionsMap() *NodesConnectionsMap {
+	res := NodesConnectionsMap(map[Node]map[Node]*common.ConnectionSet{})
+	return &res
 }
 
 // ConnectivityResult is used to capture allowed connectivity between Node elements

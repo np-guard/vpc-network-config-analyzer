@@ -123,7 +123,7 @@ func subnetGrouping(elemsList []EndpointElem, c *CloudConfig) []EndpointElem {
 func (g *GroupConnLines) groupExternalAddresses() {
 	// phase1: group public internet ranges
 	res := []*GroupedConnLine{}
-	for src, nodeConns := range g.v.AllowedConnsCombined {
+	for src, nodeConns := range *g.v.AllowedConnsCombined {
 		for dst, conns := range nodeConns {
 			if conns.IsEmpty() {
 				continue

@@ -91,7 +91,7 @@ func (d *DrawioOutputFormatter) getZoneTreeNode(resource VPCResourceIntf) *drawi
 }
 
 func (d *DrawioOutputFormatter) createEdgesMap() {
-	for src, srcMap := range d.conn.AllowedConnsCombined {
+	for src, srcMap := range *d.conn.AllowedConnsCombined {
 		for dst, conn := range srcMap {
 			if conn.IsEmpty() {
 				continue

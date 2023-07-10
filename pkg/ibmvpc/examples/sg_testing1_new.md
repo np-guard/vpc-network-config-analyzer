@@ -12,3 +12,5 @@
 | vsi3b-ky[10.240.30.4] | vsi1-ky[10.240.10.4] | All Connections |
 | vsi3b-ky[10.240.30.4] | vsi2-ky[10.240.20.4] | protocol: TCP   |
 | vsi3b-ky[10.240.30.4] | vsi3a-ky[10.240.30.5] | All Connections |
+
+* connections that are limited to unidirectional flow only

@@ -3,6 +3,8 @@ package vpcmodel
 type TextOutputFormatter struct {
 }
 
+const asteriskDetails = "\n\n* connections that are limited to unidirectional flow only\n"
+
 func (t *TextOutputFormatter) WriteOutputAllEndpoints(c *CloudConfig, conn *VPCConnectivity, outFile string, grouping bool) (
 	string,
 	error,
@@ -14,6 +16,7 @@ func (t *TextOutputFormatter) WriteOutputAllEndpoints(c *CloudConfig, conn *VPCC
 		out = groupedConnectivityString(conn)
 	} else {
 		out = conn.String()
+		out += asteriskDetails
 	}
 	return writeOutput(out, outFile)
 }

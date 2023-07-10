@@ -105,9 +105,16 @@ func getDimensionDomainsList() []*CanonicalIntervalSet {
 // icmp type
 // icmp code
 
+const (
+	StatefulUnknown int = iota
+	StatefulTrue
+	StatefulFalse
+)
+
 type ConnectionSet struct {
 	AllowAll             bool
 	connectionProperties *CanonicalHypercubeSet
+	IsStateful           int // default is StatefulUnknown
 }
 
 func NewConnectionSet(all bool) *ConnectionSet {
@@ -324,6 +331,13 @@ func (conn *ConnectionSet) String() string {
 
 	sort.Strings(resStrings)
 	return strings.Join(resStrings, "; ")
+}
+
+func (conn *ConnectionSet) EnhancedString() string {
+	if conn.IsStateful == StatefulFalse {
+		return conn.String() + " *" // to add info about conn-result that is not stateful
+	}
+	return conn.String()
 }
 
 // NewTCPConnectionSet returns a ConnectionSet object with TCP protocol (all ports)
