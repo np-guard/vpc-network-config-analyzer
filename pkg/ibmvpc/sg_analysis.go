@@ -2,6 +2,7 @@ package ibmvpc
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
@@ -237,11 +238,12 @@ type ConnectivityResult struct {
 }
 
 func (cr *ConnectivityResult) string() string {
-	res := ""
+	res := []string{}
 	for t, conn := range cr.allowedconns {
-		res += fmt.Sprintf("remote: %s, conn: %s\n", t.ToIPRanges(), conn.String())
+		res = append(res, fmt.Sprintf("remote: %s, conn: %s", t.ToIPRanges(), conn.String()))
 	}
-	return res
+	sort.Strings(res)
+	return strings.Join(res, "\n")
 }
 
 func AnalyzeSGRules(rules []*SGRule, isIngress bool) *ConnectivityResult {

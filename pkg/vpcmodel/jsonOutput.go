@@ -2,16 +2,16 @@ package vpcmodel
 
 import (
 	"encoding/json"
-	"os"
+	"errors"
 )
 
 type JSONoutputFormatter struct {
 }
 
 type connLine struct {
-	Src  Node   `json:"src"`
-	Dst  Node   `json:"dst"`
-	Conn string `json:"conn"`
+	Src  EndpointElem `json:"src"`
+	Dst  EndpointElem `json:"dst"`
+	Conn string       `json:"conn"`
 }
 
 type architecture struct {
@@ -26,16 +26,7 @@ type allInfo struct {
 	Connectivity []connLine   `json:"connectivity"`
 }
 
-func writeToFile(content, fileName string) error {
-	if fileName != "" {
-		return os.WriteFile(fileName, []byte(content), writeFileMde)
-	}
-	return nil
-}
-
-func (j *JSONoutputFormatter) WriteOutput(c *CloudConfig, conn *VPCConnectivity, outFile string) (string, error) {
-	all := allInfo{}
-
+func getConnLines(conn *VPCConnectivity) []connLine {
 	connLines := []connLine{}
 
 	for src, srcMap := range conn.AllowedConnsCombined {
@@ -46,7 +37,31 @@ func (j *JSONoutputFormatter) WriteOutput(c *CloudConfig, conn *VPCConnectivity,
 			connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: conn.String()})
 		}
 	}
+	return connLines
+}
+
+func getGroupedConnLines(conn *VPCConnectivity) []connLine {
+	connLines := make([]connLine, len(conn.GroupedConnectivity.GroupedLines))
+	for i, line := range conn.GroupedConnectivity.GroupedLines {
+		connLines[i] = connLine{line.Src, line.Dst, line.Conn}
+	}
+	return connLines
+}
+
+func (j *JSONoutputFormatter) WriteOutputAllEndpoints(c *CloudConfig, conn *VPCConnectivity, outFile string, grouping bool) (
+	string,
+	error,
+) {
+	all := allInfo{}
+	var connLines []connLine
+	if grouping {
+		connLines = getGroupedConnLines(conn)
+	} else {
+		connLines = getConnLines(conn)
+	}
+
 	all.Connectivity = connLines
+
 	all.Arch = architecture{
 		Nodes:    []map[string]string{},
 		NodeSets: []map[string]string{},
@@ -54,16 +69,16 @@ func (j *JSONoutputFormatter) WriteOutput(c *CloudConfig, conn *VPCConnectivity,
 		Routers:  []map[string]string{},
 	}
 	for _, n := range c.Nodes {
-		all.Arch.Nodes = append(all.Arch.Nodes, n.DetailsMap())
+		all.Arch.Nodes = append(all.Arch.Nodes, n.DetailsMap()...)
 	}
 	for _, n := range c.NodeSets {
-		all.Arch.NodeSets = append(all.Arch.NodeSets, n.DetailsMap())
+		all.Arch.NodeSets = append(all.Arch.NodeSets, n.DetailsMap()...)
 	}
 	for _, fl := range c.FilterResources {
 		all.Arch.Filters = append(all.Arch.Filters, fl.DetailsMap()...)
 	}
 	for _, r := range c.RoutingResources {
-		all.Arch.Routers = append(all.Arch.Routers, r.DetailsMap())
+		all.Arch.Routers = append(all.Arch.Routers, r.DetailsMap()...)
 	}
 
 	res, err := json.MarshalIndent(all, "", "    ")
@@ -71,6 +86,14 @@ func (j *JSONoutputFormatter) WriteOutput(c *CloudConfig, conn *VPCConnectivity,
 		return "", err
 	}
 	resStr := string(res)
-	err = writeToFile(resStr, outFile)
+	err = WriteToFile(resStr, outFile)
 	return resStr, err
+}
+
+func (j *JSONoutputFormatter) WriteOutputAllSubnets(subnetsConn *VPCsubnetConnectivity, outFile string) (string, error) {
+	return "", errors.New("SubnetLevel use case not supported for md format currently ")
+}
+
+func (j *JSONoutputFormatter) WriteOutputSingleSubnet(c *CloudConfig, outFile string) (string, error) {
+	return "", errors.New("DebugSubnet use case not supported for md format currently ")
 }

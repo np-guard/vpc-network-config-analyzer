@@ -1,10 +1,33 @@
 package vpcmodel
 
-type TextoutputFormatter struct {
+type TextOutputFormatter struct {
 }
 
-func (t *TextoutputFormatter) WriteOutput(c *CloudConfig, conn *VPCConnectivity, outFile string) (string, error) {
-	out := conn.String()
-	err := writeToFile(out, outFile)
-	return out, err
+func (t *TextOutputFormatter) WriteOutputAllEndpoints(c *CloudConfig, conn *VPCConnectivity, outFile string, grouping bool) (
+	string,
+	error,
+) {
+	// TODO: add a flag of whether to include grouped output or not
+	// TODO: add another 'debug' format that includes all detailed output
+	var out string
+	if grouping {
+		out = groupedConnectivityString(conn)
+	} else {
+		out = conn.String()
+	}
+	return writeOutput(out, outFile)
+}
+
+func (t *TextOutputFormatter) WriteOutputAllSubnets(subnetsConn *VPCsubnetConnectivity, outFile string) (string, error) {
+	out := subnetsConn.String()
+	return writeOutput(out, outFile)
+}
+
+func (t *TextOutputFormatter) WriteOutputSingleSubnet(c *CloudConfig, outFile string) (string, error) {
+	out := c.GetConnectivityOutputPerEachSubnetSeparately()
+	return writeOutput(out, outFile)
+}
+
+func groupedConnectivityString(conn *VPCConnectivity) string {
+	return "\ngrouped output:\n" + conn.GroupedConnectivity.String()
 }

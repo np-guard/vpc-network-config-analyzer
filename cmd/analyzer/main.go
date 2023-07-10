@@ -25,6 +25,18 @@ func getOutputFormat(inArgs *InArgs) vpcmodel.OutFormat {
 	return vpcmodel.Text
 }
 
+func analysisTypeToUseCase(inArgs *InArgs) vpcmodel.OutputUseCase {
+	switch *inArgs.AnalysisType {
+	case allEndpoints:
+		return vpcmodel.AllEndpoints
+	case singleSubnet:
+		return vpcmodel.SingleSubnet
+	case allSubnets:
+		return vpcmodel.AllSubnets
+	}
+	return vpcmodel.AllEndpoints
+}
+
 // The actual main function
 // Takes command-line flags and returns an error rather than exiting, so it can be more easily used in testing
 func _main(cmdlineArgs []string) error {
@@ -45,19 +57,19 @@ func _main(cmdlineArgs []string) error {
 	if err != nil {
 		return fmt.Errorf("error generating cloud config from input vpc resources file: %w", err)
 	}
-	var vpcConn *vpcmodel.VPCConnectivity = nil
-	if inArgs.OutputFormat != nil && *inArgs.OutputFormat != ARCHDRAWIOFormat {
-		vpcConn = cloudConfig.GetVPCNetworkConnectivity()
+	og, err := vpcmodel.NewOutputGenerator(cloudConfig,
+		*inArgs.Grouping,
+		analysisTypeToUseCase(inArgs),
+		*inArgs.OutputFormat == ARCHDRAWIOFormat)
+	if err != nil {
+		return err
 	}
-	o := vpcmodel.NewOutputGenerator(cloudConfig, vpcConn)
 	outFile := ""
 	if inArgs.OutputFile != nil {
 		outFile = *inArgs.OutputFile
 	}
 	outFormat := getOutputFormat(inArgs)
-	o.SetOutputFile(outFile, outFormat)
-
-	output, err := o.Generate(outFormat)
+	output, err := og.Generate(outFormat, outFile)
 	if err != nil {
 		return fmt.Errorf("output generation error: %w", err)
 	}
