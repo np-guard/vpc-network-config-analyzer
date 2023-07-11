@@ -34,6 +34,9 @@ func (s *star) Purple() bool {
 func (s *star) Yellow() bool {
 	return s.color == "yellow"
 }
+func (s *star) Break() bool {
+	return s.color == "break"
+}
 
 type debugData struct {
 	Mesh  []line
@@ -61,11 +64,13 @@ func updateDebugData(d *debugData, network TreeNodeInterface, matrix *layoutMatr
 	if showOverlap {
 		for y := 0; y < 5000; y++ {
 			for x := 0; x < 5000; x++ {
-				if lyO.overlapMap[y][x].hasOverlap() || lyO.overlapMap[y][x].pointAdded > 0 {
+				if lyO.overlapMap[y][x].hasOverlap {
 					d.Stars = append(d.Stars, star{id, x * minSize, y * minSize, "red"})
-				} else if lyO.overlapMap[y][x].hasLine() {
+				} else if lyO.overlapMap[y][x].pointAdded > 0 {
+					d.Stars = append(d.Stars, star{id, x * minSize, y * minSize, "break"})
+				} else if lyO.overlapMap[y][x].hasLine {
 					d.Stars = append(d.Stars, star{id, x * minSize, y * minSize, "yellow"})
-				} else if lyO.overlapMap[y][x].hasIcon() {
+				} else if lyO.overlapMap[y][x].icon != nil {
 					d.Stars = append(d.Stars, star{id, x * minSize, y * minSize, "purple"})
 				}
 				id = id + 10
@@ -109,7 +114,7 @@ func CreateDrawioConnectivityMapFile(network SquareTreeNodeInterface, outputFile
 		network.HasVSIs(),
 		getAllNodes(network),
 		debugData{}}
-	updateDebugData(&data.debugData, ly.network, ly.matrix, ly.lyO)
+	updateDebugData(&data.debugData, ly.network, ly.matrix, &ly.lyO)
 	return writeDrawioFile(data, outputFile)
 }
 

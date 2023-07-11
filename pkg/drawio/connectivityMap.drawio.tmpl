@@ -84,12 +84,17 @@
     {{range $star := $data.Stars}}
         {{if $star.Red}}
             <mxCell id="FXCXVvDxTQtwc45PbP1s-{{$star.Id}}" value="" style="verticalLabelPosition=bottom;verticalAlign=top;html=1;shape=mxgraph.basic.6_point_star;fillColor=#e51400;strokeColor=#B20000;fontColor=#ffffff;" vertex="1" parent="star-100">
+                <mxGeometry x="{{$star.X}}" y="{{$star.Y}}" width="3" height="3" as="geometry"/>
+        {{else if $star.Break }}
+            <mxCell id="FXCXVvDxTQtwc45PbP1s-{{$star.Id}}" value="" style="verticalLabelPosition=bottom;verticalAlign=top;html=1;shape=mxgraph.basic.6_point_star;fillColor=#e51400;strokeColor=#B20000;fontColor=#ffffff;" vertex="1" parent="star-100">
+            <mxGeometry x="{{$star.X}}" y="{{$star.Y}}" width="10" height="10" as="geometry"/>
         {{else if $star.Purple }}
             <mxCell id="FXCXVvDxTQtwc45PbP1s-{{$star.Id}}" value="" style="verticalLabelPosition=bottom;verticalAlign=top;html=1;shape=mxgraph.basic.6_point_star;fillColor=#76608a;strokeColor=#432D57;fontColor=#ffffff;" vertex="1" parent="star-100">
+            <mxGeometry x="{{$star.X}}" y="{{$star.Y}}" width="3" height="3" as="geometry"/>
         {{else}}
             <mxCell id="FXCXVvDxTQtwc45PbP1s-{{$star.Id}}" value="" style="verticalLabelPosition=bottom;verticalAlign=top;html=1;shape=mxgraph.basic.6_point_star;fillColor=#e3c800;strokeColor=#B09500;fontColor=#ffffff;" vertex="1" parent="star-100">
+            <mxGeometry x="{{$star.X}}" y="{{$star.Y}}" width="3" height="3" as="geometry"/>
         {{end}}
-        <mxGeometry x="{{$star.X}}" y="{{$star.Y}}" width="3" height="3" as="geometry"/>
         </mxCell>
     {{end}}
 

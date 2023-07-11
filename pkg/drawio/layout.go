@@ -41,11 +41,11 @@ const (
 type layoutS struct {
 	network SquareTreeNodeInterface
 	matrix  *layoutMatrix
-	lyO     *layoutOverlap
+	lyO     layoutOverlap
 }
 
 func newLayout(network SquareTreeNodeInterface) *layoutS {
-	return &layoutS{network: network, matrix: newLayoutMatrix(), lyO: newLayoutOverlap()}
+	return &layoutS{network: network, matrix: newLayoutMatrix()}
 }
 
 func (ly *layoutS) layout() {
