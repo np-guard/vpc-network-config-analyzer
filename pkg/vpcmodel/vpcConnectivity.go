@@ -12,13 +12,19 @@ type VPCConnectivity struct {
 	AllowedConns map[Node]*ConnectivityResult
 
 	// combined connectivity - considering both ingress and egress per connection
-	AllowedConnsCombined map[Node]map[Node]*common.ConnectionSet
+	AllowedConnsCombined NodesConnectionsMap
 
 	// allowed connectivity combined and stateful
-	AllowedConnsCombinedStateful map[Node]map[Node]*common.ConnectionSet
+	AllowedConnsCombinedStateful NodesConnectionsMap
 
 	// grouped connectivity result
 	GroupedConnectivity *GroupConnLines
+}
+
+type NodesConnectionsMap map[Node]map[Node]*common.ConnectionSet
+
+func NewNodesConnectionsMap() NodesConnectionsMap {
+	return NodesConnectionsMap{}
 }
 
 // ConnectivityResult is used to capture allowed connectivity between Node elements
@@ -72,4 +78,44 @@ func NewConfigBasedConnectivityResults() *ConfigBasedConnectivityResults {
 		IngressAllowedConns: map[string]*common.ConnectionSet{},
 		EgressAllowedConns:  map[string]*common.ConnectionSet{},
 	}
+}
+
+func (v *VPCConnectivity) SplitAllowedConnsToUnidirectionalAndBidirectional() (
+	bidirectional, unidirectional NodesConnectionsMap) {
+	unidirectional = NewNodesConnectionsMap()
+	bidirectional = NewNodesConnectionsMap()
+	for src, connsMap := range v.AllowedConnsCombined {
+		for dst, conn := range connsMap {
+			if conn.IsEmpty() {
+				continue
+			}
+			statefulConn := v.AllowedConnsCombinedStateful.getAllowedConnForPair(src, dst)
+			switch {
+			case conn.Equal(statefulConn):
+				bidirectional.updateAllowedConnsMap(src, dst, conn)
+			case statefulConn.IsEmpty():
+				unidirectional.updateAllowedConnsMap(src, dst, conn)
+			default:
+				bidirectional.updateAllowedConnsMap(src, dst, statefulConn)
+				unidirectional.updateAllowedConnsMap(src, dst, conn.Subtract(statefulConn))
+			}
+		}
+	}
+	return bidirectional, unidirectional
+}
+
+func (nodesConnMap NodesConnectionsMap) updateAllowedConnsMap(src, dst Node, conn *common.ConnectionSet) {
+	if _, ok := nodesConnMap[src]; !ok {
+		nodesConnMap[src] = map[Node]*common.ConnectionSet{}
+	}
+	nodesConnMap[src][dst] = conn
+}
+
+func (nodesConnMap NodesConnectionsMap) getAllowedConnForPair(src, dst Node) *common.ConnectionSet {
+	if connsMap, ok := nodesConnMap[src]; ok {
+		if conn, ok := connsMap[dst]; ok {
+			return conn
+		}
+	}
+	return NoConns()
 }
