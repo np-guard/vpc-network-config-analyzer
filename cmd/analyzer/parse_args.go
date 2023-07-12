@@ -21,7 +21,7 @@ const (
 	TEXTFormat       = "txt"
 	MDFormat         = "md"
 	DRAWIOFormat     = "drawio"
-	ARCHDRAWIOFormat = "archDrawio"
+	ARCHDRAWIOFormat = "arch_drawio"
 
 	// connectivity analysis types supported
 	allEndpoints = "all_endpoints" // vsi to vsi connectivity analysis

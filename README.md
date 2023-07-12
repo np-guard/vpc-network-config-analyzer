@@ -11,9 +11,9 @@ Usage of vpc-network-config-analyzer:
   -analysis-type string
         supported analysis types: all_endpoints,all_subnets,single_subnet (default "all_endpoints")
   -format string
-        output format; must be one of json,txt,md,drawio (default "txt")
+        output format; must be one of txt,md,drawio,arch_drawio,json (default "txt")
   -grouping
-        grouping: whether to apply grouping of connectivity lines
+        whether to group together src/dst entries with identical connectivity
   -output-file string
         file path to store results
   -vpc-config string
