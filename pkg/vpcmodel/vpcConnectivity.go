@@ -104,15 +104,15 @@ func (v *VPCConnectivity) SplitAllowedConnsToUnidirectionalAndBidirectional() (
 	return bidirectional, unidirectional
 }
 
-func (nodesConnMap *NodesConnectionsMap) updateAllowedConnsMap(src, dst Node, conn *common.ConnectionSet) {
-	if _, ok := (*nodesConnMap)[src]; !ok {
-		(*nodesConnMap)[src] = map[Node]*common.ConnectionSet{}
+func (nodesConnMap NodesConnectionsMap) updateAllowedConnsMap(src, dst Node, conn *common.ConnectionSet) {
+	if _, ok := nodesConnMap[src]; !ok {
+		nodesConnMap[src] = map[Node]*common.ConnectionSet{}
 	}
-	(*nodesConnMap)[src][dst] = conn
+	nodesConnMap[src][dst] = conn
 }
 
-func (nodesConnMap *NodesConnectionsMap) getAllowedConnForPair(src, dst Node) *common.ConnectionSet {
-	if connsMap, ok := (*nodesConnMap)[src]; ok {
+func (nodesConnMap NodesConnectionsMap) getAllowedConnForPair(src, dst Node) *common.ConnectionSet {
+	if connsMap, ok := nodesConnMap[src]; ok {
 		if conn, ok := connsMap[dst]; ok {
 			return conn
 		}

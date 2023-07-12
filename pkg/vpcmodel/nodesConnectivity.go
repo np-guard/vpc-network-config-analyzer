@@ -271,10 +271,10 @@ const (
 	fipRouter          = "FloatingIP"
 )
 
-func (nodesConnMap *NodesConnectionsMap) getCombinedConnsStr() string {
+func (nodesConnMap NodesConnectionsMap) getCombinedConnsStr() string {
 	strList := []string{}
 	var addAsteriskDetails bool
-	for src, nodeConns := range *nodesConnMap {
+	for src, nodeConns := range nodesConnMap {
 		for dst, conns := range nodeConns {
 			if conns.IsEmpty() {
 				continue
