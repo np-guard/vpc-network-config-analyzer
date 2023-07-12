@@ -21,7 +21,7 @@ Usage of vpc-network-config-analyzer:
 ```
 
 ### Input config file
-The input config file should be the `json` file produced by the [`cloud-resource-collector`](https://github.com/np-guard/cloud-resource-collector)
+The input config file should be a `JSON` file produced by the [`cloud-resource-collector`](https://github.com/np-guard/cloud-resource-collector)
 
 ## Understanding the output
 
