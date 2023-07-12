@@ -281,13 +281,23 @@ func getDimensionStr(dimValue *CanonicalIntervalSet, dim Dimension) string {
 	return ""
 }
 
+func filterEmptyPropertiesStr(inputList []string) []string {
+	res := []string{}
+	for _, propertyStr := range inputList {
+		if propertyStr != "" {
+			res = append(res, propertyStr)
+		}
+	}
+	return res
+}
+
 func getICMPbasedCubeStr(protocolsValues, icmpTypeValues, icmpCodeValues *CanonicalIntervalSet) string {
 	strList := []string{
 		getDimensionStr(protocolsValues, protocol),
 		getDimensionStr(icmpTypeValues, icmpType),
 		getDimensionStr(icmpCodeValues, icmpCode),
 	}
-	return strings.Join(strList, propertySeparator)
+	return strings.Join(filterEmptyPropertiesStr(strList), propertySeparator)
 }
 
 func getPortBasedCubeStr(protocolsValues, srcPortsValues, dstPortsValues *CanonicalIntervalSet) string {
@@ -296,7 +306,7 @@ func getPortBasedCubeStr(protocolsValues, srcPortsValues, dstPortsValues *Canoni
 		getDimensionStr(srcPortsValues, srcPort),
 		getDimensionStr(dstPortsValues, dstPort),
 	}
-	return strings.Join(strList, propertySeparator)
+	return strings.Join(filterEmptyPropertiesStr(strList), propertySeparator)
 }
 
 func getMixedProtocolsCubeStr(protocols *CanonicalIntervalSet) string {
