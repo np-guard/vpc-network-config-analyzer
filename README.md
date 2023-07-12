@@ -18,7 +18,6 @@ Usage of vpc-network-config-analyzer:
         file path to store results
   -vpc-config string
         file path to input config
-
 ```
 
 ### Input config file
