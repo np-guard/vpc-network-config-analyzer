@@ -41,8 +41,10 @@ func (c *ConfigBasedConnectivityResults) string() string {
 	return res
 }
 
+var _ = (*VPCsubnetConnectivity).printAllowedConns // avoiding "unused" warning
+
 // print AllowedConns (not combined)
-func (v *VPCsubnetConnectivity) PrintAllowedConns() {
+func (v *VPCsubnetConnectivity) printAllowedConns() {
 	for n, connMap := range v.AllowedConns {
 		fmt.Println(n)
 		fmt.Println(connMap.string())

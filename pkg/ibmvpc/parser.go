@@ -72,7 +72,9 @@ func (rc *ResourcesContainer) addPublicGateway(n *vpc1.PublicGateway) {
 	rc.pgwList = append(rc.pgwList, n)
 }
 
-func (rc *ResourcesContainer) PrintDetails() {
+var _ = (*ResourcesContainer).printDetails // avoiding "unused" warning
+
+func (rc *ResourcesContainer) printDetails() {
 	fmt.Printf("Has %d nacl objects\n", len(rc.naclList))
 	fmt.Printf("Has %d sg objects\n", len(rc.sgList))
 	fmt.Printf("Has %d instance objects\n", len(rc.instanceList))

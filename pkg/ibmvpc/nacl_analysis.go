@@ -134,7 +134,9 @@ func (r *NACLRule) dumpRule() string {
 	return fmt.Sprintf("src: %s, dst: %s, conn: %s, action: %s", r.src.ToIPRanges(), r.dst.ToIPRanges(), r.connections.String(), r.action)
 }
 
-func (na *NACLAnalyzer) DumpNACLrules() string {
+var _ = (*NACLAnalyzer).dumpNACLrules // avoiding "unused" warning
+
+func (na *NACLAnalyzer) dumpNACLrules() string {
 	res := "ingress rules:\n"
 	ingressList := []string{}
 	for _, r := range na.ingressRules {
