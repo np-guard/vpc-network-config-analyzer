@@ -32,7 +32,7 @@ Each output line is of the form: `src => dst : connection` , where each of `src`
 Each output line is of the form: `src => dst : connection` , where each of `src` and `dst` is either a VPC subnet or an external CIDR, and `connection` is as explained for `all_endpoints`.
 
 ### single_subnet analysis type 
-The output consists of sections per each subnet (section header is the subnet CIDR block). Each section consists of two sub-sections: ingressConnectivity and egressConnectivity. These sections detail the allowed connectivity to/from the subnet, as configured by the subnet's NACL resource.
+The output consists of sections; one section per subnet (section header is the subnet's CIDR block). Each section consists of two sub-sections: `ingressConnectivity` and `egressConnectivity`. These sections detail the allowed connectivity to/from the subnet, as configured by the subnet's NACL resource.
 
 ## Build the project
 
