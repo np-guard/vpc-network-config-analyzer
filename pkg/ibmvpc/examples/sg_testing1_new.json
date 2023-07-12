@@ -40,102 +40,102 @@
             {
                 "cidr": "147.235.219.206/32",
                 "kind": "ExternalNetwork",
-                "name": "PublicInternet"
+                "name": "Public Internet"
             },
             {
                 "cidr": "192.0.1.0/24",
                 "kind": "ExternalNetwork",
-                "name": "PublicInternet"
+                "name": "Public Internet"
             },
             {
                 "cidr": "161.26.0.0/16",
                 "kind": "ExternalNetwork",
-                "name": "PublicInternet"
+                "name": "Public Internet"
             },
             {
                 "cidr": "198.20.0.0/14",
                 "kind": "ExternalNetwork",
-                "name": "PublicInternet"
+                "name": "Public Internet"
             },
             {
                 "cidr": "192.88.100.0/22",
                 "kind": "ExternalNetwork",
-                "name": "PublicInternet"
+                "name": "Public Internet"
             },
             {
                 "cidr": "192.0.3.0/24",
                 "kind": "ExternalNetwork",
-                "name": "PublicInternet"
+                "name": "Public Internet"
             },
             {
                 "cidr": "143.0.0.0/8",
                 "kind": "ExternalNetwork",
-                "name": "PublicInternet"
+                "name": "Public Internet"
             },
             {
                 "cidr": "142.0.0.0/8",
                 "kind": "ExternalNetwork",
-                "name": "PublicInternet"
+                "name": "Public Internet"
             },
             {
                 "cidr": "169.255.0.0/16",
                 "kind": "ExternalNetwork",
-                "name": "PublicInternet"
+                "name": "Public Internet"
             },
             {
                 "cidr": "198.51.101.0/24",
                 "kind": "ExternalNetwork",
-                "name": "PublicInternet"
+                "name": "Public Internet"
             },
             {
                 "cidr": "192.169.0.0/16",
                 "kind": "ExternalNetwork",
-                "name": "PublicInternet"
+                "name": "Public Internet"
             },
             {
                 "cidr": "1.0.0.0/8",
                 "kind": "ExternalNetwork",
-                "name": "PublicInternet"
+                "name": "Public Internet"
             },
             {
                 "cidr": "172.32.0.0/11",
                 "kind": "ExternalNetwork",
-                "name": "PublicInternet"
+                "name": "Public Internet"
             },
             {
                 "cidr": "203.0.114.0/23",
                 "kind": "ExternalNetwork",
-                "name": "PublicInternet"
+                "name": "Public Internet"
             },
             {
                 "cidr": "100.128.0.0/9",
                 "kind": "ExternalNetwork",
-                "name": "PublicInternet"
+                "name": "Public Internet"
             },
             {
                 "cidr": "128.0.0.0/5",
                 "kind": "ExternalNetwork",
-                "name": "PublicInternet"
+                "name": "Public Internet"
             },
             {
                 "cidr": "144.0.0.0/7",
                 "kind": "ExternalNetwork",
-                "name": "PublicInternet"
+                "name": "Public Internet"
             },
             {
                 "cidr": "147.235.219.207/32",
                 "kind": "ExternalNetwork",
-                "name": "PublicInternet"
+                "name": "Public Internet"
             },
             {
                 "cidr": "161.27.0.0/16",
                 "kind": "ExternalNetwork",
-                "name": "PublicInternet"
+                "name": "Public Internet"
             },
             {
                 "cidr": "11.0.0.0/8",
                 "kind": "ExternalNetwork",
-                "name": "PublicInternet"
+                "name": "Public Internet"
             }
         ],
         "NodeSets": [
@@ -270,36 +270,23 @@
     "connectivity": [
         {
             "src": {
-                "ResourceName": "brunt-legacy-confound-sedate",
-                "ResourceUID": "id:93",
-                "Zone": ""
-            },
-            "dst": {
-                "ResourceName": "pony-repressed-utility-wanting",
-                "ResourceUID": "id:77",
-                "Zone": ""
-            },
-            "conn": "All Connections"
-        },
-        {
-            "src": {
-                "ResourceName": "brunt-legacy-confound-sedate",
-                "ResourceUID": "id:93",
-                "Zone": ""
-            },
-            "dst": {
                 "ResourceName": "silencer-ointment-chafe-outlet",
                 "ResourceUID": "id:19",
                 "Zone": ""
             },
-            "conn": "protocol: TCP  "
-        },
-        {
-            "src": {
+            "dst": {
                 "ResourceName": "brunt-legacy-confound-sedate",
                 "ResourceUID": "id:93",
                 "Zone": ""
             },
+            "conn": "protocol: TCP"
+        },
+        {
+            "src": {
+                "ResourceName": "silencer-ointment-chafe-outlet",
+                "ResourceUID": "id:19",
+                "Zone": ""
+            },
             "dst": {
                 "ResourceName": "virtuous-familiar-oboe-hurdle",
                 "ResourceUID": "id:42",
@@ -309,62 +296,21 @@
         },
         {
             "src": {
-                "ResourceName": "virtuous-familiar-oboe-hurdle",
-                "ResourceUID": "id:42",
+                "ResourceName": "silencer-ointment-chafe-outlet",
+                "ResourceUID": "id:19",
                 "Zone": ""
             },
             "dst": {
-                "ResourceName": "PublicInternet",
+                "ResourceName": "Public Internet",
                 "ResourceUID": "",
                 "Zone": "",
                 "CidrStr": "142.0.0.0/8"
             },
-            "conn": "protocol: ICMP  "
+            "conn": "protocol: ICMP"
         },
         {
             "src": {
-                "ResourceName": "virtuous-familiar-oboe-hurdle",
-                "ResourceUID": "id:42",
-                "Zone": ""
-            },
-            "dst": {
-                "ResourceName": "PublicInternet",
-                "ResourceUID": "",
-                "Zone": "",
-                "CidrStr": "161.26.0.0/16"
-            },
-            "conn": "protocol: UDP  "
-        },
-        {
-            "src": {
-                "ResourceName": "virtuous-familiar-oboe-hurdle",
-                "ResourceUID": "id:42",
-                "Zone": ""
-            },
-            "dst": {
-                "ResourceName": "PublicInternet",
-                "ResourceUID": "",
-                "Zone": "",
-                "CidrStr": "143.0.0.0/8"
-            },
-            "conn": "protocol: ICMP  "
-        },
-        {
-            "src": {
-                "ResourceName": "pony-repressed-utility-wanting",
-                "ResourceUID": "id:77",
-                "Zone": ""
-            },
-            "dst": {
-                "ResourceName": "virtuous-familiar-oboe-hurdle",
-                "ResourceUID": "id:42",
-                "Zone": ""
-            },
-            "conn": "All Connections"
-        },
-        {
-            "src": {
-                "ResourceName": "PublicInternet",
+                "ResourceName": "Public Internet",
                 "ResourceUID": "",
                 "Zone": "",
                 "CidrStr": "147.235.219.206/32"
@@ -374,25 +320,80 @@
                 "ResourceUID": "id:19",
                 "Zone": ""
             },
-            "conn": "protocol: TCP  dst-ports: 22"
+            "conn": "protocol: TCP dst-ports: 22"
         },
         {
             "src": {
-                "ResourceName": "silencer-ointment-chafe-outlet",
-                "ResourceUID": "id:19",
+                "ResourceName": "virtuous-familiar-oboe-hurdle",
+                "ResourceUID": "id:42",
                 "Zone": ""
             },
             "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "161.26.0.0/16"
+            },
+            "conn": "protocol: UDP"
+        },
+        {
+            "src": {
+                "ResourceName": "virtuous-familiar-oboe-hurdle",
+                "ResourceUID": "id:42",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "142.0.0.0/8"
+            },
+            "conn": "protocol: ICMP"
+        },
+        {
+            "src": {
+                "ResourceName": "virtuous-familiar-oboe-hurdle",
+                "ResourceUID": "id:42",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "143.0.0.0/8"
+            },
+            "conn": "protocol: ICMP"
+        },
+        {
+            "src": {
                 "ResourceName": "brunt-legacy-confound-sedate",
                 "ResourceUID": "id:93",
                 "Zone": ""
             },
-            "conn": "protocol: TCP  "
+            "dst": {
+                "ResourceName": "pony-repressed-utility-wanting",
+                "ResourceUID": "id:77",
+                "Zone": ""
+            },
+            "conn": "All Connections"
         },
         {
             "src": {
+                "ResourceName": "brunt-legacy-confound-sedate",
+                "ResourceUID": "id:93",
+                "Zone": ""
+            },
+            "dst": {
                 "ResourceName": "silencer-ointment-chafe-outlet",
                 "ResourceUID": "id:19",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP"
+        },
+        {
+            "src": {
+                "ResourceName": "brunt-legacy-confound-sedate",
+                "ResourceUID": "id:93",
                 "Zone": ""
             },
             "dst": {
@@ -404,17 +405,16 @@
         },
         {
             "src": {
-                "ResourceName": "silencer-ointment-chafe-outlet",
-                "ResourceUID": "id:19",
+                "ResourceName": "pony-repressed-utility-wanting",
+                "ResourceUID": "id:77",
                 "Zone": ""
             },
             "dst": {
-                "ResourceName": "PublicInternet",
-                "ResourceUID": "",
-                "Zone": "",
-                "CidrStr": "142.0.0.0/8"
+                "ResourceName": "virtuous-familiar-oboe-hurdle",
+                "ResourceUID": "id:42",
+                "Zone": ""
             },
-            "conn": "protocol: ICMP  "
+            "conn": "All Connections"
         }
     ]
 }
