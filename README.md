@@ -26,7 +26,7 @@ The input config file should be a `JSON` file produced by the [`cloud-resource-c
 ## Understanding the output
 
 ### all_endpoints analysis type
-Each output line is of the form: `src => dst : connection` , where `src`,`dst` are either VPC endpoints (instance network interface) or external CIDR, and `connection` is the set of allowed protocols and their relevant connection attributes (e.g. source ports or destination ports for TCP/UDP).
+Each output line is of the form: `src => dst : connection` , where each of `src` and `dst` is either a VPC endpoint (instance network interface) or an external CIDR, and `connection` is the set of allowed protocols and their relevant connection attributes (e.g., allowed source ports and/or destination ports for TCP/UDP).
 
 ### all_subnets analysis type 
 Each output line is of the form: `src => dst : connection` , where `src`,`dst` are either VPC subnets or external CIDR, and `connection` is as explained above.
