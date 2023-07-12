@@ -153,7 +153,7 @@ var tests = []*vpcGeneralTest{
 		format:   vpcmodel.Text,
 	},
 
-	//batch3: only vsi-level use-case, no grouping, with debug & md output formats
+	//batch3: only vsi-level use-case, no grouping, with debug / md  output formats
 	{
 		name:     "acl_testing3",
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
