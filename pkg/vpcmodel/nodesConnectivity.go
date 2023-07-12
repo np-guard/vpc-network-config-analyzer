@@ -153,10 +153,7 @@ func (v *VPCConnectivity) computeCombinedConnectionsPerDirection(isIngressDirect
 			otherDirectionConns := v.AllowedConns[peerNode].ingressOrEgressAllowedConns(!isIngressDirection)[node]
 			combinedConns = combinedConns.Intersection(otherDirectionConns)
 		}
-		if _, ok := v.AllowedConnsCombined[src]; !ok {
-			v.AllowedConnsCombined[src] = map[Node]*common.ConnectionSet{}
-		}
-		v.AllowedConnsCombined[src][dst] = combinedConns
+		v.AllowedConnsCombined.updateAllowedConnsMap(src, dst, combinedConns)
 	}
 }
 
@@ -164,7 +161,7 @@ func (v *VPCConnectivity) computeCombinedConnectionsPerDirection(isIngressDirect
 // the result for this computation is stateless connections
 // (could be that some of them or a subset of them are stateful,but this is not computed here)
 func (v *VPCConnectivity) computeAllowedConnsCombined() {
-	v.AllowedConnsCombined = map[Node]map[Node]*common.ConnectionSet{}
+	v.AllowedConnsCombined = NewNodesConnectionsMap()
 	for node, connectivityRes := range v.AllowedConns {
 		v.computeCombinedConnectionsPerDirection(true, node, connectivityRes)
 		v.computeCombinedConnectionsPerDirection(false, node, connectivityRes)
@@ -203,13 +200,6 @@ func (v *VPCConnectivity) isConnExternalThroughFIP(src, dst Node) bool {
 	return false
 }
 
-func updateAllowedConnsMap(m map[Node]map[Node]*common.ConnectionSet, src, dst Node, conn *common.ConnectionSet) {
-	if _, ok := m[src]; !ok {
-		m[src] = map[Node]*common.ConnectionSet{}
-	}
-	m[src][dst] = conn
-}
-
 func (v *VPCConnectivity) computeAllowedStatefulConnections() {
 	// assuming v.AllowedConnsCombined was already computed
 
@@ -217,14 +207,15 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections() {
 	// on overlapping/matching connection-set, (src-dst ports should be switched),
 	// for it to be considered as stateful
 
-	v.AllowedConnsCombinedStateful = map[Node]map[Node]*common.ConnectionSet{}
+	v.AllowedConnsCombinedStateful = NewNodesConnectionsMap()
 
 	for src, connsMap := range v.AllowedConnsCombined {
 		for dst, conn := range connsMap {
 			// iterate pairs (src,dst) with conn as allowed connectivity, to check stateful aspect
 			if v.isConnExternalThroughFIP(src, dst) {
 				// TODO: this may be ibm-specific. consider moving to ibmvpc
-				updateAllowedConnsMap(v.AllowedConnsCombinedStateful, src, dst, conn)
+				v.AllowedConnsCombinedStateful.updateAllowedConnsMap(src, dst, conn)
+				conn.IsStateful = common.StatefulTrue
 				continue
 			}
 
@@ -238,7 +229,13 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections() {
 			combinedDstToSrc := DstAllowedEgressToSrc.Intersection(SrcAllowedIngressFromDst)
 			// flip src/dst ports before intersection
 			combinedDstToSrcSwitchPortsDirection := combinedDstToSrc.SwitchSrcDstPorts()
-			updateAllowedConnsMap(v.AllowedConnsCombinedStateful, src, dst, conn.Intersection(combinedDstToSrcSwitchPortsDirection))
+			statefulCombinedConn := conn.Intersection(combinedDstToSrcSwitchPortsDirection)
+			v.AllowedConnsCombinedStateful.updateAllowedConnsMap(src, dst, statefulCombinedConn)
+			if !conn.Equal(statefulCombinedConn) {
+				conn.IsStateful = common.StatefulFalse
+			} else {
+				conn.IsStateful = common.StatefulTrue
+			}
 		}
 	}
 }
@@ -274,9 +271,10 @@ const (
 	fipRouter          = "FloatingIP"
 )
 
-func getCombinedConnsStr(combinedConns map[Node]map[Node]*common.ConnectionSet) string {
+func (nodesConnMap NodesConnectionsMap) getCombinedConnsStr() string {
 	strList := []string{}
-	for src, nodeConns := range combinedConns {
+	var addAsteriskDetails bool
+	for src, nodeConns := range nodesConnMap {
 		for dst, conns := range nodeConns {
 			if conns.IsEmpty() {
 				continue
@@ -289,15 +287,23 @@ func getCombinedConnsStr(combinedConns map[Node]map[Node]*common.ConnectionSet) 
 			if dst.IsInternal() {
 				dstName = dst.Name()
 			}
-			strList = append(strList, getConnectionStr(srcName, dstName, conns.String(), ""))
+			connsStr, notStateful := conns.EnhancedString()
+			strList = append(strList, getConnectionStr(srcName, dstName, connsStr, ""))
+			if notStateful {
+				addAsteriskDetails = true
+			}
 		}
 	}
 	sort.Strings(strList)
-	return strings.Join(strList, "")
+	res := strings.Join(strList, "")
+	if addAsteriskDetails {
+		res += asteriskDetails
+	}
+	return res
 }
 
 func (v *VPCConnectivity) String() string {
-	return getCombinedConnsStr(v.AllowedConnsCombined)
+	return v.AllowedConnsCombined.getCombinedConnsStr()
 }
 
 func (v *VPCConnectivity) DetailedString() string {
@@ -325,9 +331,9 @@ func (v *VPCConnectivity) DetailedString() string {
 	sort.Strings(strList)
 	res += strings.Join(strList, "")
 	res += "=================================== combined connections - short version:\n"
-	res += getCombinedConnsStr(v.AllowedConnsCombined)
+	res += v.AllowedConnsCombined.getCombinedConnsStr()
 
 	res += "=================================== stateful combined connections - short version:\n"
-	res += getCombinedConnsStr(v.AllowedConnsCombinedStateful)
+	res += v.AllowedConnsCombinedStateful.getCombinedConnsStr()
 	return res
 }

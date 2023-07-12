@@ -83,10 +83,9 @@ func newCloudConfigTest1() (*CloudConfig, *VPCConnectivity) {
 
 	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0]}})
 
-	res1 := &VPCConnectivity{AllowedConnsCombined: map[Node]map[Node]*common.ConnectionSet{}}
-	res1.AllowedConnsCombined[res.Nodes[0]] = map[Node]*common.ConnectionSet{}
-	res1.AllowedConnsCombined[res.Nodes[0]][res.Nodes[1]] = common.NewConnectionSet(true)
-	res1.AllowedConnsCombined[res.Nodes[0]][res.Nodes[2]] = common.NewConnectionSet(true)
+	res1 := &VPCConnectivity{AllowedConnsCombined: NewNodesConnectionsMap()}
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], common.NewConnectionSet(true))
 	return res, res1
 }
 
@@ -100,13 +99,12 @@ func newCloudConfigTest2() (*CloudConfig, *VPCConnectivity) {
 
 	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0], res.Nodes[3]}})
 
-	res1 := &VPCConnectivity{AllowedConnsCombined: map[Node]map[Node]*common.ConnectionSet{}}
-	res1.AllowedConnsCombined[res.Nodes[0]] = map[Node]*common.ConnectionSet{}
-	res1.AllowedConnsCombined[res.Nodes[0]][res.Nodes[1]] = common.NewConnectionSet(true)
-	res1.AllowedConnsCombined[res.Nodes[0]][res.Nodes[2]] = common.NewConnectionSet(true)
-	res1.AllowedConnsCombined[res.Nodes[3]] = map[Node]*common.ConnectionSet{}
-	res1.AllowedConnsCombined[res.Nodes[3]][res.Nodes[1]] = common.NewConnectionSet(true)
-	res1.AllowedConnsCombined[res.Nodes[3]][res.Nodes[2]] = common.NewConnectionSet(true)
+	res1 := &VPCConnectivity{AllowedConnsCombined: NewNodesConnectionsMap()}
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[3], res.Nodes[1], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[3], res.Nodes[2], common.NewConnectionSet(true))
+
 	return res, res1
 }
 

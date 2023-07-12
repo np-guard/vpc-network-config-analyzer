@@ -105,9 +105,16 @@ func getDimensionDomainsList() []*CanonicalIntervalSet {
 // icmp type
 // icmp code
 
+const (
+	StatefulUnknown int = iota
+	StatefulTrue
+	StatefulFalse
+)
+
 type ConnectionSet struct {
 	AllowAll             bool
 	connectionProperties *CanonicalHypercubeSet
+	IsStateful           int // default is StatefulUnknown
 }
 
 func NewConnectionSet(all bool) *ConnectionSet {
@@ -274,13 +281,23 @@ func getDimensionStr(dimValue *CanonicalIntervalSet, dim Dimension) string {
 	return ""
 }
 
+func filterEmptyPropertiesStr(inputList []string) []string {
+	res := []string{}
+	for _, propertyStr := range inputList {
+		if propertyStr != "" {
+			res = append(res, propertyStr)
+		}
+	}
+	return res
+}
+
 func getICMPbasedCubeStr(protocolsValues, icmpTypeValues, icmpCodeValues *CanonicalIntervalSet) string {
 	strList := []string{
 		getDimensionStr(protocolsValues, protocol),
 		getDimensionStr(icmpTypeValues, icmpType),
 		getDimensionStr(icmpCodeValues, icmpCode),
 	}
-	return strings.Join(strList, propertySeparator)
+	return strings.Join(filterEmptyPropertiesStr(strList), propertySeparator)
 }
 
 func getPortBasedCubeStr(protocolsValues, srcPortsValues, dstPortsValues *CanonicalIntervalSet) string {
@@ -289,7 +306,7 @@ func getPortBasedCubeStr(protocolsValues, srcPortsValues, dstPortsValues *Canoni
 		getDimensionStr(srcPortsValues, srcPort),
 		getDimensionStr(dstPortsValues, dstPort),
 	}
-	return strings.Join(strList, propertySeparator)
+	return strings.Join(filterEmptyPropertiesStr(strList), propertySeparator)
 }
 
 func getMixedProtocolsCubeStr(protocols *CanonicalIntervalSet) string {
@@ -324,6 +341,15 @@ func (conn *ConnectionSet) String() string {
 
 	sort.Strings(resStrings)
 	return strings.Join(resStrings, "; ")
+}
+
+// EnhancedString returns a connection string with possibly added asterisk for unidirectional connection,
+// and bool result indicating if such asterisk was added
+func (conn *ConnectionSet) EnhancedString() (string, bool) {
+	if conn.IsStateful == StatefulFalse {
+		return conn.String() + " *", true // to add info about conn-result that is not stateful
+	}
+	return conn.String(), false
 }
 
 // NewTCPConnectionSet returns a ConnectionSet object with TCP protocol (all ports)
