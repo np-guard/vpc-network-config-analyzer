@@ -333,6 +333,8 @@ func (conn *ConnectionSet) String() string {
 	return strings.Join(resStrings, "; ")
 }
 
+// EnhancedString returns a connection string with possibly added asterisk for unidirectional connection,
+// and bool result indicating if such asterisk was added
 func (conn *ConnectionSet) EnhancedString() (string, bool) {
 	if conn.IsStateful == StatefulFalse {
 		return conn.String() + " *", true // to add info about conn-result that is not stateful
