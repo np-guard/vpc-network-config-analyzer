@@ -29,7 +29,7 @@ The input config file should be a `JSON` file produced by the [`cloud-resource-c
 Each output line is of the form: `src => dst : connection` , where each of `src` and `dst` is either a VPC endpoint (instance network interface) or an external CIDR, and `connection` is the set of allowed protocols and their relevant connection attributes (e.g., allowed source ports and/or destination ports for TCP/UDP).
 
 ### all_subnets analysis type 
-Each output line is of the form: `src => dst : connection` , where `src`,`dst` are either VPC subnets or external CIDR, and `connection` is as explained above.
+Each output line is of the form: `src => dst : connection` , where each of `src` and `dst` is either a VPC subnet or an external CIDR, and `connection` is as explained for `all_endpoints`.
 
 ### single_subnet analysis type 
 The output consists of sections per each subnet (section header is the subnet CIDR block). Each section consists of two sub-sections: ingressConnectivity and egressConnectivity. These sections detail the allowed connectivity to/from the subnet, as configured by the subnet's NACL resource.
