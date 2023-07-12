@@ -1,13 +1,13 @@
 package drawio
 
 import (
-	"fmt"
 	"math"
 )
 
 type overlapCell struct {
 	hasLine    bool
 	hasOverlap bool
+	hasBP bool
 	icon       IconTreeNodeInterface
 	pointAdded int
 }
@@ -20,19 +20,15 @@ func (lyO *layoutOverlap) cell(x, y int) *overlapCell {
 	return &(lyO.overlapMap[y/minSize][x/minSize])
 }
 
-var totalBP = 0
-var totalBP2 = 0
-
 func (lyO *layoutOverlap) fixOverlapping(network TreeNodeInterface) {
 	lyO.setIconsMap(network)
 	lyO.setOverlappingLinesPoints(network)
-	fmt.Printf("totalBP %d/%d\n", totalBP2, totalBP)
 }
 
 var xConst = []int{1, -1, 2, -2, 3, -3}
 var yConst = []int{-1, 1, -2, 2, -3, 3}
 
-func calcBypassPoints(icon IconTreeNodeInterface, p1 point, p2 point) []point {
+func (lyO *layoutOverlap)calcBypassPoints(icon IconTreeNodeInterface, p1 point, p2 point) []point {
 	dx, dy := (p1.X - p2.X), (p1.Y - p2.Y)
 	dis := int(math.Sqrt(float64(dx)*float64(dx) + float64(dy)*float64(dy)))
 	ix, iy := absoluteGeometry(icon)
@@ -41,25 +37,27 @@ func calcBypassPoints(icon IconTreeNodeInterface, p1 point, p2 point) []point {
 	for try := range xConst {
 		bp := point{int(math.Max(0, float64(ix+xConst[try]*iconSize*dy/dis))),
 			int(math.Max(0, float64(iy+yConst[try]*iconSize*dx/dis)))}
+		
+		for lyO.cell(bp.X, bp.Y).hasBP {
+			bp = point{bp.X+minSize, bp.Y+minSize}
+		}
+
 		BPs = append(BPs, bp)
 	}
 	return BPs
 }
 
 func (lyO *layoutOverlap) getBypassPoint(p1, p2 point, line LineTreeNodeInterface, icon IconTreeNodeInterface) point {
-	BPs := calcBypassPoints(icon, p1, p2)
+	BPs := lyO.calcBypassPoints(icon, p1, p2)
 	for _, BP := range BPs {
 		lyO.cell(BP.X, BP.Y).pointAdded += 1
-		totalBP++
 		if lyO.getOverlappedIcon(p1, BP, line) == nil && lyO.getOverlappedIcon(BP, p2, line) == nil {
-			totalBP2++
 			return BP
 		}
 	}
 	for _, BP := range BPs {
 		lyO.cell(BP.X, BP.Y).pointAdded += 1
 		if lyO.getOverlappedIcon(p1, BP, line) == nil {
-			totalBP2++
 			return BP
 		}
 	}
@@ -138,6 +136,7 @@ func (lyO *layoutOverlap) setOverlappingLinesPoints(network TreeNodeInterface) {
 					}
 					BP := lyO.getBypassPoint(srcP, desP, line, icon)
 					newLinePoint = append(newLinePoint, getRelativePoint(line, BP))
+					lyO.cell(BP.X, BP.Y).hasBP = true
 					srcP = BP
 				}
 
