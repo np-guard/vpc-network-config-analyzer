@@ -31,7 +31,7 @@ func getConnLines(conn *VPCConnectivity) []connLine {
 	connLines := []connLine{}
 
 	bidirectional, unidirectional := conn.SplitAllowedConnsToUnidirectionalAndBidirectional()
-	for src, srcMap := range *conn.AllowedConnsCombined {
+	for src, srcMap := range conn.AllowedConnsCombined {
 		for dst, conn := range srcMap {
 			if conn.IsEmpty() {
 				continue

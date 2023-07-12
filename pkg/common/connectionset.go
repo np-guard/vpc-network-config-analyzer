@@ -333,11 +333,11 @@ func (conn *ConnectionSet) String() string {
 	return strings.Join(resStrings, "; ")
 }
 
-func (conn *ConnectionSet) EnhancedString() string {
+func (conn *ConnectionSet) EnhancedString() (string, bool) {
 	if conn.IsStateful == StatefulFalse {
-		return conn.String() + " *" // to add info about conn-result that is not stateful
+		return conn.String() + " *", true // to add info about conn-result that is not stateful
 	}
-	return conn.String()
+	return conn.String(), false
 }
 
 // NewTCPConnectionSet returns a ConnectionSet object with TCP protocol (all ports)

@@ -209,7 +209,7 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections() {
 
 	v.AllowedConnsCombinedStateful = NewNodesConnectionsMap()
 
-	for src, connsMap := range *v.AllowedConnsCombined {
+	for src, connsMap := range v.AllowedConnsCombined {
 		for dst, conn := range connsMap {
 			// iterate pairs (src,dst) with conn as allowed connectivity, to check stateful aspect
 			if v.isConnExternalThroughFIP(src, dst) {
@@ -273,6 +273,7 @@ const (
 
 func (nodesConnMap *NodesConnectionsMap) getCombinedConnsStr() string {
 	strList := []string{}
+	var addAsteriskDetails bool
 	for src, nodeConns := range *nodesConnMap {
 		for dst, conns := range nodeConns {
 			if conns.IsEmpty() {
@@ -286,11 +287,19 @@ func (nodesConnMap *NodesConnectionsMap) getCombinedConnsStr() string {
 			if dst.IsInternal() {
 				dstName = dst.Name()
 			}
-			strList = append(strList, getConnectionStr(srcName, dstName, conns.EnhancedString(), ""))
+			connsStr, notStateful := conns.EnhancedString()
+			strList = append(strList, getConnectionStr(srcName, dstName, connsStr, ""))
+			if notStateful {
+				addAsteriskDetails = true
+			}
 		}
 	}
 	sort.Strings(strList)
-	return strings.Join(strList, "")
+	res := strings.Join(strList, "")
+	if addAsteriskDetails {
+		res += asteriskDetails
+	}
+	return res
 }
 
 func (v *VPCConnectivity) String() string {
@@ -314,7 +323,7 @@ func (v *VPCConnectivity) DetailedString() string {
 	res += strings.Join(strList, "")
 	res += "=================================== combined connections:\n"
 	strList = []string{}
-	for src, nodeConns := range *v.AllowedConnsCombined {
+	for src, nodeConns := range v.AllowedConnsCombined {
 		for dst, conns := range nodeConns {
 			strList = append(strList, getConnectionStr(src.Cidr(), dst.Cidr(), conns.String(), ""))
 		}
@@ -327,44 +336,4 @@ func (v *VPCConnectivity) DetailedString() string {
 	res += "=================================== stateful combined connections - short version:\n"
 	res += v.AllowedConnsCombinedStateful.getCombinedConnsStr()
 	return res
-}
-
-func (v *VPCConnectivity) SplitAllowedConnsToUnidirectionalAndBidirectional() (
-	bidirectional, unidirectional *NodesConnectionsMap) {
-	unidirectional = NewNodesConnectionsMap()
-	bidirectional = NewNodesConnectionsMap()
-	for src, connsMap := range *v.AllowedConnsCombined {
-		for dst, conn := range connsMap {
-			if conn.IsEmpty() {
-				continue
-			}
-			statefulConn := v.AllowedConnsCombinedStateful.getAllowedConnForPair(src, dst)
-			switch {
-			case conn.Equal(statefulConn):
-				bidirectional.updateAllowedConnsMap(src, dst, conn)
-			case statefulConn.IsEmpty():
-				unidirectional.updateAllowedConnsMap(src, dst, conn)
-			default:
-				bidirectional.updateAllowedConnsMap(src, dst, statefulConn)
-				unidirectional.updateAllowedConnsMap(src, dst, conn.Subtract(statefulConn))
-			}
-		}
-	}
-	return bidirectional, unidirectional
-}
-
-func (nodesConnMap *NodesConnectionsMap) updateAllowedConnsMap(src, dst Node, conn *common.ConnectionSet) {
-	if _, ok := (*nodesConnMap)[src]; !ok {
-		(*nodesConnMap)[src] = map[Node]*common.ConnectionSet{}
-	}
-	(*nodesConnMap)[src][dst] = conn
-}
-
-func (nodesConnMap *NodesConnectionsMap) getAllowedConnForPair(src, dst Node) *common.ConnectionSet {
-	if connsMap := (*nodesConnMap)[src]; connsMap != nil {
-		if conn := connsMap[dst]; conn != nil {
-			return conn
-		}
-	}
-	return NoConns()
 }

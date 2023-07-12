@@ -21,6 +21,11 @@ func TestBasicConnectionSet(t *testing.T) {
 	d = d.Union(e)
 	fmt.Println(d.String())
 
+	h := NewConnectionSet(false)
+	h.AddTCPorUDPConn(ProtocolTCP, 1, 65535, 1, 65535)
+	h.AddTCPorUDPConn(ProtocolUDP, 1, 65535, 1, 65535)
+	fmt.Printf("%s", h.String())
+
 	fmt.Println("done")
 }
 
