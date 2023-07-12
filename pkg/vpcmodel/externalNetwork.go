@@ -139,8 +139,5 @@ func isEntirePublicInternetRange(nodes []Node) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	diff1 := (nodesRanges.Subtract(allInternetRagnes)).ToIPRanges()
-	diff2 := (allInternetRagnes.Subtract(nodesRanges)).ToIPRanges()
-	fmt.Printf("%s %s", diff1, diff2)
 	return nodesRanges.Equal(allInternetRagnes), nil
 }
