@@ -2,11 +2,13 @@ package ibmvpc
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
 type NACLAnalyzer struct {
@@ -34,8 +36,6 @@ func NewNACLAnalyzer(nacl *vpc1.NetworkACL) (res *NACLAnalyzer, err error) {
 		analyzedSubnets: map[string]*AnalysisResultPerSubnet{},
 	}
 	res.ingressRules, res.egressRules, err = res.getNACLRules(nacl)
-	fmt.Println("rules for " + *nacl.Name)
-	fmt.Println(res.dumpNACLrules())
 	return res, err
 }
 
@@ -133,6 +133,8 @@ type NACLRule struct {
 func (r *NACLRule) dumpRule() string {
 	return fmt.Sprintf("src: %s, dst: %s, conn: %s, action: %s", r.src.ToIPRanges(), r.dst.ToIPRanges(), r.connections.String(), r.action)
 }
+
+var _ = (*NACLAnalyzer).dumpNACLrules // avoiding "unused" warning
 
 func (na *NACLAnalyzer) dumpNACLrules() string {
 	res := "ingress rules:\n"
@@ -342,8 +344,6 @@ func (na *NACLAnalyzer) AnalyzeNACLRules(rules []*NACLRule, subnet *common.IPBlo
 	// egress
 	disjointSrcPeers, disjointDstPeers := getDisjointPeersForEgressAnalysis(rules, subnet)
 	for _, dst := range disjointDstPeers {
-		dstStr := strings.Join(dst.ToCidrList(), ",")
-		fmt.Println(dstStr)
 		allowedEgressConns := getAllowedXgressConnections(rules, dst, subnet, disjointSrcPeers, false)
 		for src, conn := range allowedEgressConns {
 			res = append(res, getConnStr(src, dst.ToIPRanges(), conn.String()))
@@ -373,36 +373,55 @@ func (na *NACLAnalyzer) addAnalysisPerSubnet(subnetCidr string) {
 	}
 	subnetCidrIPBlock := common.NewIPBlockFromCidr(subnetCidr)
 	ingressRes, egressRes := na.AnalyzeNACL(subnetCidrIPBlock)
-
 	na.analyzedSubnets[subnetCidr] = NewAnalysisResultPerSubnet(subnetCidr, ingressRes, egressRes)
-
-	fmt.Printf("\naddAnalysisPerSubnet results:\n")
-	fmt.Printf("subnetCidr: %s\n", subnetCidr)
-	fmt.Printf("%s", na.GeneralConnectivityPerSubnet(subnetCidr))
-
-	fmt.Println("-----")
-}
-
-func getDisjointSubnetCidrStr(disjointSubnetCidr string) string {
-	return fmt.Sprintf("local ip-block: %s\n", disjointSubnetCidr)
 }
 
 // GeneralConnectivityPerSubnet returns the str of the connectivity for analyzed subnet input
-func (na *NACLAnalyzer) GeneralConnectivityPerSubnet(subnetCidr string) string {
+func (na *NACLAnalyzer) GeneralConnectivityPerSubnet(subnetCidr string) (
+	strResult string,
+	connectivityObjResult map[string]*vpcmodel.IPbasedConnectivityResult,
+) {
 	na.addAnalysisPerSubnet(subnetCidr)
+
+	strResult = "Subnet: " + subnetCidr + "\n"
 	ingressRes := na.analyzedSubnets[subnetCidr].ingressRes
 	egressRes := na.analyzedSubnets[subnetCidr].egressRes
-	res := "ingressConnectivity:\n"
+	connectivityObjResult = map[string]*vpcmodel.IPbasedConnectivityResult{}
+
+	// map from disjointSubnetCidr to its connectivity str
+	strResPerSubnetSection := map[string]string{}
+
 	for disjointSubnetCidr, connectivityRes := range ingressRes {
-		res += getDisjointSubnetCidrStr(disjointSubnetCidr)
-		res += connectivityRes.string()
+		// assuming assignment here only once due to single subnet connectivity result (no partial subnet res)
+		// TODO: currently assuming assignment here only once due to single subnet connectivity result (no partial subnet res)
+		if _, ok := connectivityObjResult[disjointSubnetCidr]; !ok {
+			connectivityObjResult[disjointSubnetCidr] = &vpcmodel.IPbasedConnectivityResult{}
+		}
+		connectivityObjResult[disjointSubnetCidr].IngressAllowedConns = connectivityRes.allowedconns
+		strResPerSubnetSection[disjointSubnetCidr] = "Ingress Connectivity:\n" + connectivityRes.string()
 	}
-	res += "egressConnectivity:\n"
+
 	for disjointSubnetCidr, connectivityRes := range egressRes {
-		res += getDisjointSubnetCidrStr(disjointSubnetCidr)
-		res += connectivityRes.string()
+		if _, ok := connectivityObjResult[disjointSubnetCidr]; !ok {
+			connectivityObjResult[disjointSubnetCidr] = &vpcmodel.IPbasedConnectivityResult{}
+		}
+		connectivityObjResult[disjointSubnetCidr].EgressAllowedConns = connectivityRes.allowedconns
+		strResPerSubnetSection[disjointSubnetCidr] += "\nEgress Connectivity:\n" + connectivityRes.string()
 	}
-	return res
+	keys := make([]string, len(strResPerSubnetSection))
+	i := 0
+	for key := range strResPerSubnetSection {
+		keys[i] = key
+		i += 1
+	}
+	sort.Strings(keys)
+	for _, key := range keys {
+		if len(keys) > 1 {
+			strResult += "\nlocal range within subnet: " + key + "\n"
+		}
+		strResult += strResPerSubnetSection[key] + "\n"
+	}
+	return strResult, connectivityObjResult
 }
 
 // AllowedConnectivity returns set of allowed connections given src/dst and direction
@@ -411,6 +430,7 @@ func (na *NACLAnalyzer) AllowedConnectivity(subnetCidr, inSubentCidr, target str
 	var analyzedConns map[string]*ConnectivityResult
 	// add analysis of the given subnet
 	// analyzes per subnet disjoint cidrs (it is not necessarily entire subnet cidr)
+
 	na.addAnalysisPerSubnet(subnetCidr)
 	if isIngress {
 		analyzedConns = na.analyzedSubnets[subnetCidr].ingressRes

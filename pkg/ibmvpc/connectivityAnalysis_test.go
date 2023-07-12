@@ -166,7 +166,10 @@ var expectedConnStrTest2 = `=================================== distributed inbo
 10.240.10.4 => 10.240.20.4 : All Connections
 10.240.20.4 => 10.240.10.4 : No Connections
 =================================== combined connections - short version:
-vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections
+vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections *
+
+
+* Unidirectional connection
 =================================== stateful combined connections - short version:
 `
 
@@ -178,16 +181,19 @@ var expectedConnStrTest3 = `=================================== distributed inbo
 10.240.10.4 => 10.240.20.4 : All Connections [inbound]
 10.240.10.4 => 10.240.20.4 : All Connections [outbound]
 10.240.20.4 => 10.240.10.4 : All Connections [inbound]
-10.240.20.4 => 10.240.10.4 : protocol: TCP   [outbound]
+10.240.20.4 => 10.240.10.4 : protocol: TCP [outbound]
 =================================== combined connections:
 10.240.10.4 => 10.240.20.4 : All Connections
-10.240.20.4 => 10.240.10.4 : protocol: TCP  
+10.240.20.4 => 10.240.10.4 : protocol: TCP
 =================================== combined connections - short version:
-vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections
-vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : protocol: TCP  
+vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections *
+vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : protocol: TCP
+
+
+* Unidirectional connection
 =================================== stateful combined connections - short version:
-vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : protocol: TCP  
-vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : protocol: TCP  
+vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : protocol: TCP
+vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : protocol: TCP
 `
 
 func TestAnalyzeConnectivity3(t *testing.T) {
@@ -216,8 +222,8 @@ func TestAnalyzeConnectivity4(t *testing.T) {
 
 func runConnectivityTest(t *testing.T, tc *testNodesConfig, ncList []*naclConfig, expectedStrResult string) {
 	c := createConfigFromTestConfig(tc, ncList)
-	connectivity := c.GetVPCNetworkConnectivity()
-	connectivityStr := connectivity.String()
+	connectivity := c.GetVPCNetworkConnectivity(false)
+	connectivityStr := connectivity.DetailedString()
 	fmt.Println(connectivityStr)
 	fmt.Println("done")
 	require.Equal(t, expectedStrResult, connectivityStr)
@@ -272,9 +278,9 @@ func getAllowAllRules() []*NACLRule {
 
 func addInterfaceNode(config *vpcmodel.CloudConfig, name, address, vsiName, subnetName string) {
 	intfNode := &NetworkInterface{
-		NamedResource: vpcmodel.NamedResource{ResourceName: name, ResourceUID: name},
-		address:       address,
-		vsi:           vsiName,
+		VPCResource: vpcmodel.VPCResource{ResourceName: name, ResourceUID: name},
+		address:     address,
+		vsi:         vsiName,
 	}
 	// add references between subnet to interface (both directions)
 	for _, subnet := range config.NodeSets {
@@ -290,8 +296,8 @@ func addInterfaceNode(config *vpcmodel.CloudConfig, name, address, vsiName, subn
 
 func addSubnet(config *vpcmodel.CloudConfig, name, cidr, zone string) {
 	subnetNode := &Subnet{
-		NamedResource: vpcmodel.NamedResource{ResourceName: name, ResourceUID: name, Zone: zone},
-		cidr:          cidr,
+		VPCResource: vpcmodel.VPCResource{ResourceName: name, ResourceUID: name, Zone: zone},
+		cidr:        cidr,
 	}
 	config.NodeSets = append(config.NodeSets, subnetNode)
 }
@@ -311,8 +317,8 @@ func addNACL(config *vpcmodel.CloudConfig, name string, subnets map[string]struc
 
 	// create the new nacl
 	naclResource := &NACL{
-		NamedResource: vpcmodel.NamedResource{ResourceName: name, ResourceUID: name},
-		analyzer:      analyzer, /*&NACLAnalyzer{
+		VPCResource: vpcmodel.VPCResource{ResourceName: name, ResourceUID: name},
+		analyzer:    analyzer, /*&NACLAnalyzer{
 			//naclResource:    nacl,
 			analyzedSubnets: map[string]*AnalysisResultPerSubnet{},
 		},*/
@@ -399,8 +405,8 @@ vsi-2[10.240.20.4] => vsi-1[10.240.10.4] : All Connections
 */
 func TestAnalyzeConnectivity(t *testing.T) {
 	c := NewSimpleCloudConfig()
-	connectivity := c.GetVPCNetworkConnectivity()
-	connectivityStr := connectivity.String()
+	connectivity := c.GetVPCNetworkConnectivity(false)
+	connectivityStr := connectivity.DetailedString()
 	fmt.Println(connectivityStr)
 	fmt.Println("done")
 }

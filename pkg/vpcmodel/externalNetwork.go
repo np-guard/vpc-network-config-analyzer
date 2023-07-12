@@ -11,12 +11,12 @@ const (
 	DetailsAttributeName = "name"
 	DetailsAttributeCIDR = "cidr"
 
-	publicInternetNodeName  = "PublicInternet"
+	publicInternetNodeName  = "Public Internet"
 	externalNetworkNodeKind = "ExternalNetwork"
 )
 
 // All public IP addresses belong to one of the following public IP address ranges:
-func getPublicInternetAdressList() []string {
+func getPublicInternetAddressList() []string {
 	return []string{
 		"1.0.0.0-9.255.255.255",
 		"11.0.0.0-100.63.255.255",
@@ -36,7 +36,7 @@ func getPublicInternetAdressList() []string {
 
 // ExternalNetwork implements Node interface
 type ExternalNetwork struct {
-	NamedResource
+	VPCResource
 	CidrStr          string
 	isPublicInternet bool
 }
@@ -46,7 +46,7 @@ func (exn *ExternalNetwork) Cidr() string {
 }
 
 func (exn *ExternalNetwork) Name() string {
-	return exn.CidrStr
+	return exn.ResourceName + " [" + exn.CidrStr + "]"
 }
 
 func (exn *ExternalNetwork) IsInternal() bool {
@@ -57,51 +57,54 @@ func (exn *ExternalNetwork) IsPublicInternet() bool {
 	return exn.isPublicInternet
 }
 
-func (exn *ExternalNetwork) Details() string {
-	return externalNetworkNodeKind + " " + exn.Cidr()
+func (exn *ExternalNetwork) Details() []string {
+	return []string{externalNetworkNodeKind + " " + exn.Cidr()}
 }
 
 func (exn *ExternalNetwork) Kind() string {
 	return externalNetworkNodeKind
 }
 
-func (exn *ExternalNetwork) DetailsMap() map[string]string {
+func (exn *ExternalNetwork) DetailsMap() []map[string]string {
 	res := map[string]string{}
 	res[DetailsAttributeKind] = exn.Kind()
 	res[DetailsAttributeName] = exn.ResourceName
 	res[DetailsAttributeCIDR] = exn.CidrStr
-	return res
+	return []map[string]string{res}
 }
 
-func getPublicInternetIPblocksList() (internetIPblocksList []*common.IPBlock, allInternetRagnes *common.IPBlock, err error) {
-	res := []*common.IPBlock{}
-	allInternetRagnes = &common.IPBlock{}
-	publicInternetAdrressList := getPublicInternetAdressList()
-	for _, ipAddressRange := range publicInternetAdrressList {
+func ipStringsToIPblocks(ipList []string) (ipbList []*common.IPBlock, unionIPblock *common.IPBlock, err error) {
+	ipbList = []*common.IPBlock{}
+	unionIPblock = &common.IPBlock{}
+	for _, ipAddressRange := range ipList {
 		var ipb *common.IPBlock
-		var err error
 		if ipb, err = common.IPBlockFromIPRangeStr(ipAddressRange); err != nil {
 			ipb, err = common.NewIPBlock(ipAddressRange, []string{})
 		}
 		if err != nil {
 			return nil, nil, err
 		}
-		res = append(res, ipb)
-		allInternetRagnes = allInternetRagnes.Union(ipb)
+		ipbList = append(ipbList, ipb)
+		unionIPblock = unionIPblock.Union(ipb)
 	}
-	return res, allInternetRagnes, nil
+	return ipbList, unionIPblock, nil
+}
+
+func getPublicInternetIPblocksList() (internetIPblocksList []*common.IPBlock, allInternetRagnes *common.IPBlock, err error) {
+	publicInternetAddressList := getPublicInternetAddressList()
+	return ipStringsToIPblocks(publicInternetAddressList)
 }
 
 func newExternalNode(isPublicInternet bool, ipb *common.IPBlock, index int) Node {
 	cidr := ipb.ToCidrList()[0]
 	if isPublicInternet {
 		return &ExternalNetwork{
-			NamedResource: NamedResource{ResourceName: publicInternetNodeName},
-			CidrStr:       cidr, isPublicInternet: true,
+			VPCResource: VPCResource{ResourceName: publicInternetNodeName},
+			CidrStr:     cidr, isPublicInternet: true,
 		}
 	}
 	nodeName := fmt.Sprintf("ref-address-%d", index)
-	return &ExternalNetwork{NamedResource: NamedResource{ResourceName: nodeName}, CidrStr: cidr}
+	return &ExternalNetwork{VPCResource: VPCResource{ResourceName: nodeName}, CidrStr: cidr}
 }
 
 func GetExternalNetworkNodes(disjointRefExternalIPBlocks []*common.IPBlock) ([]Node, error) {
@@ -120,4 +123,21 @@ func GetExternalNetworkNodes(disjointRefExternalIPBlocks []*common.IPBlock) ([]N
 		res = append(res, newExternalNode(isPublicInternet, ipb, index))
 	}
 	return res, nil
+}
+
+func isEntirePublicInternetRange(nodes []Node) (bool, error) {
+	ipList := make([]string, len(nodes))
+	for i, n := range nodes {
+		ipList[i] = n.Cidr()
+	}
+
+	_, nodesRanges, err := ipStringsToIPblocks(ipList)
+	if err != nil {
+		return false, err
+	}
+	_, allInternetRagnes, err := getPublicInternetIPblocksList()
+	if err != nil {
+		return false, err
+	}
+	return nodesRanges.Equal(allInternetRagnes), nil
 }

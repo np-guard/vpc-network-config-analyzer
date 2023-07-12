@@ -19,8 +19,22 @@ func getOutputFormat(inArgs *InArgs) vpcmodel.OutFormat {
 		return vpcmodel.JSON
 	case DRAWIOFormat:
 		return vpcmodel.DRAWIO
+	case ARCHDRAWIOFormat:
+		return vpcmodel.ARCHDRAWIO
 	}
 	return vpcmodel.Text
+}
+
+func analysisTypeToUseCase(inArgs *InArgs) vpcmodel.OutputUseCase {
+	switch *inArgs.AnalysisType {
+	case allEndpoints:
+		return vpcmodel.AllEndpoints
+	case singleSubnet:
+		return vpcmodel.SingleSubnet
+	case allSubnets:
+		return vpcmodel.AllSubnets
+	}
+	return vpcmodel.AllEndpoints
 }
 
 // The actual main function
@@ -43,17 +57,19 @@ func _main(cmdlineArgs []string) error {
 	if err != nil {
 		return fmt.Errorf("error generating cloud config from input vpc resources file: %w", err)
 	}
-
-	vpcConn := cloudConfig.GetVPCNetworkConnectivity()
-	o := vpcmodel.NewOutputGenerator(cloudConfig, vpcConn)
+	og, err := vpcmodel.NewOutputGenerator(cloudConfig,
+		*inArgs.Grouping,
+		analysisTypeToUseCase(inArgs),
+		*inArgs.OutputFormat == ARCHDRAWIOFormat)
+	if err != nil {
+		return err
+	}
 	outFile := ""
 	if inArgs.OutputFile != nil {
 		outFile = *inArgs.OutputFile
 	}
 	outFormat := getOutputFormat(inArgs)
-	o.SetOutputFile(outFile, outFormat)
-
-	output, err := o.Generate(outFormat)
+	output, err := og.Generate(outFormat, outFile)
 	if err != nil {
 		return fmt.Errorf("output generation error: %w", err)
 	}
