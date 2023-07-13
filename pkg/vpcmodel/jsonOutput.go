@@ -9,9 +9,10 @@ type JSONoutputFormatter struct {
 }
 
 type connLine struct {
-	Src  EndpointElem `json:"src"`
-	Dst  EndpointElem `json:"dst"`
-	Conn string       `json:"conn"`
+	Src                EndpointElem `json:"src"`
+	Dst                EndpointElem `json:"dst"`
+	Conn               string       `json:"conn"`
+	UnidirectionalConn string       `json:"unidirectional_conn,omitempty"`
 }
 
 type architecture struct {
@@ -29,12 +30,20 @@ type allInfo struct {
 func getConnLines(conn *VPCConnectivity) []connLine {
 	connLines := []connLine{}
 
+	bidirectional, unidirectional := conn.SplitAllowedConnsToUnidirectionalAndBidirectional()
 	for src, srcMap := range conn.AllowedConnsCombined {
 		for dst, conn := range srcMap {
 			if conn.IsEmpty() {
 				continue
 			}
-			connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: conn.String()})
+			unidirectionalConn := unidirectional.getAllowedConnForPair(src, dst)
+			bidirectionalConn := bidirectional.getAllowedConnForPair(src, dst)
+			if !unidirectionalConn.IsEmpty() {
+				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: bidirectionalConn.String(),
+					UnidirectionalConn: unidirectionalConn.String()})
+			} else {
+				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: conn.String()})
+			}
 		}
 	}
 	return connLines
@@ -43,7 +52,7 @@ func getConnLines(conn *VPCConnectivity) []connLine {
 func getGroupedConnLines(conn *VPCConnectivity) []connLine {
 	connLines := make([]connLine, len(conn.GroupedConnectivity.GroupedLines))
 	for i, line := range conn.GroupedConnectivity.GroupedLines {
-		connLines[i] = connLine{line.Src, line.Dst, line.Conn}
+		connLines[i] = connLine{Src: line.Src, Dst: line.Dst, Conn: line.Conn}
 	}
 	return connLines
 }

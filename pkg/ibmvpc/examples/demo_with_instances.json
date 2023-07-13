@@ -1,0 +1,2013 @@
+{
+    "architecture": {
+        "Nodes": [
+            {
+                "address": "192.168.16.4",
+                "kind": "NetworkInterface",
+                "name": "bullish-sprinkled-paradox-gravity",
+                "subnetCidr": "192.168.16.0/22",
+                "subnetUID": "crn:77",
+                "uid": "id:91",
+                "vsiName": "transit-0-instance-ky"
+            },
+            {
+                "address": "192.168.32.4",
+                "kind": "NetworkInterface",
+                "name": "unfairly-errant-reliably-geography",
+                "subnetCidr": "192.168.32.0/22",
+                "subnetUID": "crn:128",
+                "uid": "id:145",
+                "vsiName": "edge-0-instance-ky"
+            },
+            {
+                "address": "192.168.0.4",
+                "kind": "NetworkInterface",
+                "name": "dexterity-reneged-giggly-choice",
+                "subnetCidr": "192.168.0.0/22",
+                "subnetUID": "crn:37",
+                "uid": "id:54",
+                "vsiName": "private-0-instance-ky"
+            },
+            {
+                "address": "192.168.4.4",
+                "kind": "NetworkInterface",
+                "name": "underdog-breeches-porcupine-stainable",
+                "subnetCidr": "192.168.4.0/22",
+                "subnetUID": "crn:94",
+                "uid": "id:108",
+                "vsiName": "private-1-instance-ky"
+            },
+            {
+                "address": "192.168.20.4",
+                "kind": "NetworkInterface",
+                "name": "wool-daisy-energize-repeated",
+                "subnetCidr": "192.168.20.0/22",
+                "subnetUID": "crn:148",
+                "uid": "id:162",
+                "vsiName": "transit-1-instance-ky"
+            },
+            {
+                "address": "192.168.36.4",
+                "kind": "NetworkInterface",
+                "name": "evoke-reprocess-detergent-unarmored",
+                "subnetCidr": "192.168.36.0/22",
+                "subnetUID": "crn:57",
+                "uid": "id:74",
+                "vsiName": "edge-1-instance-ky"
+            },
+            {
+                "address": "192.168.24.4",
+                "kind": "NetworkInterface",
+                "name": "keep-borough-prankster-racings",
+                "subnetCidr": "192.168.24.0/22",
+                "subnetUID": "crn:111",
+                "uid": "id:125",
+                "vsiName": "transit-2-instance-ky"
+            },
+            {
+                "address": "192.168.40.4",
+                "kind": "NetworkInterface",
+                "name": "viewless-sprig-wreaths-immunize",
+                "subnetCidr": "192.168.40.0/22",
+                "subnetUID": "crn:17",
+                "uid": "id:34",
+                "vsiName": "edge-2-instance-ky"
+            },
+            {
+                "address": "192.168.8.4",
+                "kind": "NetworkInterface",
+                "name": "entreaty-evolution-baking-vista",
+                "subnetCidr": "192.168.8.0/22",
+                "subnetUID": "crn:165",
+                "uid": "id:179",
+                "vsiName": "private-2-instance-ky"
+            },
+            {
+                "cidr": "192.0.1.0/24",
+                "kind": "ExternalNetwork",
+                "name": "Public Internet"
+            },
+            {
+                "cidr": "161.26.0.0/16",
+                "kind": "ExternalNetwork",
+                "name": "Public Internet"
+            },
+            {
+                "cidr": "166.8.0.0/14",
+                "kind": "ExternalNetwork",
+                "name": "Public Internet"
+            },
+            {
+                "cidr": "198.20.0.0/14",
+                "kind": "ExternalNetwork",
+                "name": "Public Internet"
+            },
+            {
+                "cidr": "192.88.100.0/22",
+                "kind": "ExternalNetwork",
+                "name": "Public Internet"
+            },
+            {
+                "cidr": "192.0.3.0/24",
+                "kind": "ExternalNetwork",
+                "name": "Public Internet"
+            },
+            {
+                "cidr": "169.255.0.0/16",
+                "kind": "ExternalNetwork",
+                "name": "Public Internet"
+            },
+            {
+                "cidr": "198.51.101.0/24",
+                "kind": "ExternalNetwork",
+                "name": "Public Internet"
+            },
+            {
+                "cidr": "192.169.0.0/16",
+                "kind": "ExternalNetwork",
+                "name": "Public Internet"
+            },
+            {
+                "cidr": "1.0.0.0/8",
+                "kind": "ExternalNetwork",
+                "name": "Public Internet"
+            },
+            {
+                "cidr": "172.32.0.0/11",
+                "kind": "ExternalNetwork",
+                "name": "Public Internet"
+            },
+            {
+                "cidr": "203.0.114.0/23",
+                "kind": "ExternalNetwork",
+                "name": "Public Internet"
+            },
+            {
+                "cidr": "100.128.0.0/9",
+                "kind": "ExternalNetwork",
+                "name": "Public Internet"
+            },
+            {
+                "cidr": "128.0.0.0/3",
+                "kind": "ExternalNetwork",
+                "name": "Public Internet"
+            },
+            {
+                "cidr": "161.27.0.0/16",
+                "kind": "ExternalNetwork",
+                "name": "Public Internet"
+            },
+            {
+                "cidr": "166.12.0.0/14",
+                "kind": "ExternalNetwork",
+                "name": "Public Internet"
+            },
+            {
+                "cidr": "11.0.0.0/8",
+                "kind": "ExternalNetwork",
+                "name": "Public Internet"
+            }
+        ],
+        "NodeSets": [
+            {
+                "kind": "VSI",
+                "name": "transit-0-instance-ky",
+                "nodes": "id:91",
+                "uid": "crn:217",
+                "zone": "us-south-1"
+            },
+            {
+                "kind": "VSI",
+                "name": "edge-0-instance-ky",
+                "nodes": "id:145",
+                "uid": "crn:230",
+                "zone": "us-south-1"
+            },
+            {
+                "kind": "VSI",
+                "name": "private-0-instance-ky",
+                "nodes": "id:54",
+                "uid": "crn:239",
+                "zone": "us-south-1"
+            },
+            {
+                "kind": "VSI",
+                "name": "private-1-instance-ky",
+                "nodes": "id:108",
+                "uid": "crn:248",
+                "zone": "us-south-2"
+            },
+            {
+                "kind": "VSI",
+                "name": "transit-1-instance-ky",
+                "nodes": "id:162",
+                "uid": "crn:257",
+                "zone": "us-south-2"
+            },
+            {
+                "kind": "VSI",
+                "name": "edge-1-instance-ky",
+                "nodes": "id:74",
+                "uid": "crn:266",
+                "zone": "us-south-2"
+            },
+            {
+                "kind": "VSI",
+                "name": "transit-2-instance-ky",
+                "nodes": "id:125",
+                "uid": "crn:275",
+                "zone": "us-south-3"
+            },
+            {
+                "kind": "VSI",
+                "name": "edge-2-instance-ky",
+                "nodes": "id:34",
+                "uid": "crn:284",
+                "zone": "us-south-3"
+            },
+            {
+                "kind": "VSI",
+                "name": "private-2-instance-ky",
+                "nodes": "id:179",
+                "uid": "crn:293",
+                "zone": "us-south-3"
+            },
+            {
+                "cidr": "192.168.40.0/22",
+                "kind": "Subnet",
+                "name": "ky-testenv-edge-subnet-3",
+                "nodes": "id:34",
+                "uid": "crn:17",
+                "zone": "us-south-3"
+            },
+            {
+                "cidr": "192.168.0.0/22",
+                "kind": "Subnet",
+                "name": "ky-testenv-private-subnet-1",
+                "nodes": "id:54",
+                "uid": "crn:37",
+                "zone": "us-south-1"
+            },
+            {
+                "cidr": "192.168.36.0/22",
+                "kind": "Subnet",
+                "name": "ky-testenv-edge-subnet-2",
+                "nodes": "id:74",
+                "uid": "crn:57",
+                "zone": "us-south-2"
+            },
+            {
+                "cidr": "192.168.16.0/22",
+                "kind": "Subnet",
+                "name": "ky-testenv-transit-subnet-1",
+                "nodes": "id:91",
+                "uid": "crn:77",
+                "zone": "us-south-1"
+            },
+            {
+                "cidr": "192.168.4.0/22",
+                "kind": "Subnet",
+                "name": "ky-testenv-private-subnet-2",
+                "nodes": "id:108",
+                "uid": "crn:94",
+                "zone": "us-south-2"
+            },
+            {
+                "cidr": "192.168.24.0/22",
+                "kind": "Subnet",
+                "name": "ky-testenv-transit-subnet-3",
+                "nodes": "id:125",
+                "uid": "crn:111",
+                "zone": "us-south-3"
+            },
+            {
+                "cidr": "192.168.32.0/22",
+                "kind": "Subnet",
+                "name": "ky-testenv-edge-subnet-1",
+                "nodes": "id:145",
+                "uid": "crn:128",
+                "zone": "us-south-1"
+            },
+            {
+                "cidr": "192.168.20.0/22",
+                "kind": "Subnet",
+                "name": "ky-testenv-transit-subnet-2",
+                "nodes": "id:162",
+                "uid": "crn:148",
+                "zone": "us-south-2"
+            },
+            {
+                "cidr": "192.168.8.0/22",
+                "kind": "Subnet",
+                "name": "ky-testenv-private-subnet-3",
+                "nodes": "id:179",
+                "uid": "crn:165",
+                "zone": "us-south-3"
+            },
+            {
+                "kind": "VPC",
+                "name": "ky-testenv-vpc",
+                "nodes": "",
+                "uid": "crn:1"
+            }
+        ],
+        "Filters": [
+            {
+                "kind": "SG",
+                "members": "192.168.4.4,192.168.8.4,192.168.16.4,192.168.0.4,192.168.36.4,192.168.20.4,192.168.40.4,192.168.24.4,192.168.32.4",
+                "name": "ky-testenv-default-sg",
+                "uid": "crn:12"
+            },
+            {
+                "kind": "NACL",
+                "name": "ky-testenv-private-2-others-acl",
+                "subnets": "192.168.0.0/22,192.168.4.0/22,192.168.8.0/22",
+                "uid": "crn:40"
+            },
+            {
+                "kind": "NACL",
+                "name": "ky-testenv-edge-acl",
+                "subnets": "192.168.36.0/22,192.168.16.0/22,192.168.24.0/22,192.168.32.0/22,192.168.20.0/22,192.168.40.0/22",
+                "uid": "crn:7"
+            }
+        ],
+        "Routers": [
+            {
+                "attached_to": "id:145,",
+                "cidr": "",
+                "kind": "PublicGateway",
+                "name": "ky-testenv-gateway-1",
+                "uid": "crn:131",
+                "zone": "us-south-1"
+            },
+            {
+                "attached_to": "id:74,",
+                "cidr": "",
+                "kind": "PublicGateway",
+                "name": "ky-testenv-gateway-2",
+                "uid": "crn:60",
+                "zone": "us-south-2"
+            },
+            {
+                "attached_to": "id:34,",
+                "cidr": "",
+                "kind": "PublicGateway",
+                "name": "ky-testenv-gateway-3",
+                "uid": "crn:20",
+                "zone": "us-south-3"
+            }
+        ]
+    },
+    "connectivity": [
+        {
+            "src": {
+                "ResourceName": "dexterity-reneged-giggly-choice",
+                "ResourceUID": "id:54",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "wool-daisy-energize-repeated",
+                "ResourceUID": "id:162",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP dst-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "dexterity-reneged-giggly-choice",
+                "ResourceUID": "id:54",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "keep-borough-prankster-racings",
+                "ResourceUID": "id:125",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP dst-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "dexterity-reneged-giggly-choice",
+                "ResourceUID": "id:54",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "bullish-sprinkled-paradox-gravity",
+                "ResourceUID": "id:91",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP dst-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "dexterity-reneged-giggly-choice",
+                "ResourceUID": "id:54",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "unfairly-errant-reliably-geography",
+                "ResourceUID": "id:145",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP dst-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "dexterity-reneged-giggly-choice",
+                "ResourceUID": "id:54",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "underdog-breeches-porcupine-stainable",
+                "ResourceUID": "id:108",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP src-ports: 443 dst-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "dexterity-reneged-giggly-choice",
+                "ResourceUID": "id:54",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "entreaty-evolution-baking-vista",
+                "ResourceUID": "id:179",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP src-ports: 443 dst-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "dexterity-reneged-giggly-choice",
+                "ResourceUID": "id:54",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "viewless-sprig-wreaths-immunize",
+                "ResourceUID": "id:34",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP dst-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "dexterity-reneged-giggly-choice",
+                "ResourceUID": "id:54",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "evoke-reprocess-detergent-unarmored",
+                "ResourceUID": "id:74",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP dst-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "viewless-sprig-wreaths-immunize",
+                "ResourceUID": "id:34",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "161.26.0.0/16"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "viewless-sprig-wreaths-immunize",
+                "ResourceUID": "id:34",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "entreaty-evolution-baking-vista",
+                "ResourceUID": "id:179",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP src-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "viewless-sprig-wreaths-immunize",
+                "ResourceUID": "id:34",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "192.169.0.0/16"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "viewless-sprig-wreaths-immunize",
+                "ResourceUID": "id:34",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "128.0.0.0/3"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "viewless-sprig-wreaths-immunize",
+                "ResourceUID": "id:34",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "203.0.114.0/23"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "viewless-sprig-wreaths-immunize",
+                "ResourceUID": "id:34",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "166.8.0.0/14"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "viewless-sprig-wreaths-immunize",
+                "ResourceUID": "id:34",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "bullish-sprinkled-paradox-gravity",
+                "ResourceUID": "id:91",
+                "Zone": ""
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "viewless-sprig-wreaths-immunize",
+                "ResourceUID": "id:34",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "dexterity-reneged-giggly-choice",
+                "ResourceUID": "id:54",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP src-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "viewless-sprig-wreaths-immunize",
+                "ResourceUID": "id:34",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "100.128.0.0/9"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "viewless-sprig-wreaths-immunize",
+                "ResourceUID": "id:34",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "169.255.0.0/16"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "viewless-sprig-wreaths-immunize",
+                "ResourceUID": "id:34",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "11.0.0.0/8"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "viewless-sprig-wreaths-immunize",
+                "ResourceUID": "id:34",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "198.20.0.0/14"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "viewless-sprig-wreaths-immunize",
+                "ResourceUID": "id:34",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "192.88.100.0/22"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "viewless-sprig-wreaths-immunize",
+                "ResourceUID": "id:34",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "1.0.0.0/8"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "viewless-sprig-wreaths-immunize",
+                "ResourceUID": "id:34",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "192.0.1.0/24"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "viewless-sprig-wreaths-immunize",
+                "ResourceUID": "id:34",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "underdog-breeches-porcupine-stainable",
+                "ResourceUID": "id:108",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP src-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "viewless-sprig-wreaths-immunize",
+                "ResourceUID": "id:34",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "166.12.0.0/14"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "viewless-sprig-wreaths-immunize",
+                "ResourceUID": "id:34",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "keep-borough-prankster-racings",
+                "ResourceUID": "id:125",
+                "Zone": ""
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "viewless-sprig-wreaths-immunize",
+                "ResourceUID": "id:34",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "evoke-reprocess-detergent-unarmored",
+                "ResourceUID": "id:74",
+                "Zone": ""
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "viewless-sprig-wreaths-immunize",
+                "ResourceUID": "id:34",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "198.51.101.0/24"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "viewless-sprig-wreaths-immunize",
+                "ResourceUID": "id:34",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "172.32.0.0/11"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "viewless-sprig-wreaths-immunize",
+                "ResourceUID": "id:34",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "161.27.0.0/16"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "viewless-sprig-wreaths-immunize",
+                "ResourceUID": "id:34",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "unfairly-errant-reliably-geography",
+                "ResourceUID": "id:145",
+                "Zone": ""
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "viewless-sprig-wreaths-immunize",
+                "ResourceUID": "id:34",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "wool-daisy-energize-repeated",
+                "ResourceUID": "id:162",
+                "Zone": ""
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "viewless-sprig-wreaths-immunize",
+                "ResourceUID": "id:34",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "192.0.3.0/24"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "unfairly-errant-reliably-geography",
+                "ResourceUID": "id:145",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "1.0.0.0/8"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "unfairly-errant-reliably-geography",
+                "ResourceUID": "id:145",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "161.26.0.0/16"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "unfairly-errant-reliably-geography",
+                "ResourceUID": "id:145",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "192.88.100.0/22"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "unfairly-errant-reliably-geography",
+                "ResourceUID": "id:145",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "166.8.0.0/14"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "unfairly-errant-reliably-geography",
+                "ResourceUID": "id:145",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "keep-borough-prankster-racings",
+                "ResourceUID": "id:125",
+                "Zone": ""
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "unfairly-errant-reliably-geography",
+                "ResourceUID": "id:145",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "192.0.1.0/24"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "unfairly-errant-reliably-geography",
+                "ResourceUID": "id:145",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "192.0.3.0/24"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "unfairly-errant-reliably-geography",
+                "ResourceUID": "id:145",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "100.128.0.0/9"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "unfairly-errant-reliably-geography",
+                "ResourceUID": "id:145",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "198.20.0.0/14"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "unfairly-errant-reliably-geography",
+                "ResourceUID": "id:145",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "166.12.0.0/14"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "unfairly-errant-reliably-geography",
+                "ResourceUID": "id:145",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "dexterity-reneged-giggly-choice",
+                "ResourceUID": "id:54",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP src-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "unfairly-errant-reliably-geography",
+                "ResourceUID": "id:145",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "wool-daisy-energize-repeated",
+                "ResourceUID": "id:162",
+                "Zone": ""
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "unfairly-errant-reliably-geography",
+                "ResourceUID": "id:145",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "entreaty-evolution-baking-vista",
+                "ResourceUID": "id:179",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP src-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "unfairly-errant-reliably-geography",
+                "ResourceUID": "id:145",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "viewless-sprig-wreaths-immunize",
+                "ResourceUID": "id:34",
+                "Zone": ""
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "unfairly-errant-reliably-geography",
+                "ResourceUID": "id:145",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "198.51.101.0/24"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "unfairly-errant-reliably-geography",
+                "ResourceUID": "id:145",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "128.0.0.0/3"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "unfairly-errant-reliably-geography",
+                "ResourceUID": "id:145",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "203.0.114.0/23"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "unfairly-errant-reliably-geography",
+                "ResourceUID": "id:145",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "169.255.0.0/16"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "unfairly-errant-reliably-geography",
+                "ResourceUID": "id:145",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "172.32.0.0/11"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "unfairly-errant-reliably-geography",
+                "ResourceUID": "id:145",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "underdog-breeches-porcupine-stainable",
+                "ResourceUID": "id:108",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP src-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "unfairly-errant-reliably-geography",
+                "ResourceUID": "id:145",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "evoke-reprocess-detergent-unarmored",
+                "ResourceUID": "id:74",
+                "Zone": ""
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "unfairly-errant-reliably-geography",
+                "ResourceUID": "id:145",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "bullish-sprinkled-paradox-gravity",
+                "ResourceUID": "id:91",
+                "Zone": ""
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "unfairly-errant-reliably-geography",
+                "ResourceUID": "id:145",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "192.169.0.0/16"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "unfairly-errant-reliably-geography",
+                "ResourceUID": "id:145",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "161.27.0.0/16"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "unfairly-errant-reliably-geography",
+                "ResourceUID": "id:145",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "11.0.0.0/8"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "underdog-breeches-porcupine-stainable",
+                "ResourceUID": "id:108",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "evoke-reprocess-detergent-unarmored",
+                "ResourceUID": "id:74",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP dst-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "underdog-breeches-porcupine-stainable",
+                "ResourceUID": "id:108",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "unfairly-errant-reliably-geography",
+                "ResourceUID": "id:145",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP dst-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "underdog-breeches-porcupine-stainable",
+                "ResourceUID": "id:108",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "dexterity-reneged-giggly-choice",
+                "ResourceUID": "id:54",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP src-ports: 443 dst-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "underdog-breeches-porcupine-stainable",
+                "ResourceUID": "id:108",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "viewless-sprig-wreaths-immunize",
+                "ResourceUID": "id:34",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP dst-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "underdog-breeches-porcupine-stainable",
+                "ResourceUID": "id:108",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "bullish-sprinkled-paradox-gravity",
+                "ResourceUID": "id:91",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP dst-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "underdog-breeches-porcupine-stainable",
+                "ResourceUID": "id:108",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "keep-borough-prankster-racings",
+                "ResourceUID": "id:125",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP dst-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "underdog-breeches-porcupine-stainable",
+                "ResourceUID": "id:108",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "entreaty-evolution-baking-vista",
+                "ResourceUID": "id:179",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP src-ports: 443 dst-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "underdog-breeches-porcupine-stainable",
+                "ResourceUID": "id:108",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "wool-daisy-energize-repeated",
+                "ResourceUID": "id:162",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP dst-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "keep-borough-prankster-racings",
+                "ResourceUID": "id:125",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "dexterity-reneged-giggly-choice",
+                "ResourceUID": "id:54",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP src-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "keep-borough-prankster-racings",
+                "ResourceUID": "id:125",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "entreaty-evolution-baking-vista",
+                "ResourceUID": "id:179",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP src-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "keep-borough-prankster-racings",
+                "ResourceUID": "id:125",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "underdog-breeches-porcupine-stainable",
+                "ResourceUID": "id:108",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP src-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "keep-borough-prankster-racings",
+                "ResourceUID": "id:125",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "wool-daisy-energize-repeated",
+                "ResourceUID": "id:162",
+                "Zone": ""
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "keep-borough-prankster-racings",
+                "ResourceUID": "id:125",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "viewless-sprig-wreaths-immunize",
+                "ResourceUID": "id:34",
+                "Zone": ""
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "keep-borough-prankster-racings",
+                "ResourceUID": "id:125",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "bullish-sprinkled-paradox-gravity",
+                "ResourceUID": "id:91",
+                "Zone": ""
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "keep-borough-prankster-racings",
+                "ResourceUID": "id:125",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "unfairly-errant-reliably-geography",
+                "ResourceUID": "id:145",
+                "Zone": ""
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "keep-borough-prankster-racings",
+                "ResourceUID": "id:125",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "evoke-reprocess-detergent-unarmored",
+                "ResourceUID": "id:74",
+                "Zone": ""
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "evoke-reprocess-detergent-unarmored",
+                "ResourceUID": "id:74",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "wool-daisy-energize-repeated",
+                "ResourceUID": "id:162",
+                "Zone": ""
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "evoke-reprocess-detergent-unarmored",
+                "ResourceUID": "id:74",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "198.51.101.0/24"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "evoke-reprocess-detergent-unarmored",
+                "ResourceUID": "id:74",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "172.32.0.0/11"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "evoke-reprocess-detergent-unarmored",
+                "ResourceUID": "id:74",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "166.8.0.0/14"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "evoke-reprocess-detergent-unarmored",
+                "ResourceUID": "id:74",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "192.88.100.0/22"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "evoke-reprocess-detergent-unarmored",
+                "ResourceUID": "id:74",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "192.0.3.0/24"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "evoke-reprocess-detergent-unarmored",
+                "ResourceUID": "id:74",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "unfairly-errant-reliably-geography",
+                "ResourceUID": "id:145",
+                "Zone": ""
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "evoke-reprocess-detergent-unarmored",
+                "ResourceUID": "id:74",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "100.128.0.0/9"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "evoke-reprocess-detergent-unarmored",
+                "ResourceUID": "id:74",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "203.0.114.0/23"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "evoke-reprocess-detergent-unarmored",
+                "ResourceUID": "id:74",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "169.255.0.0/16"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "evoke-reprocess-detergent-unarmored",
+                "ResourceUID": "id:74",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "11.0.0.0/8"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "evoke-reprocess-detergent-unarmored",
+                "ResourceUID": "id:74",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "entreaty-evolution-baking-vista",
+                "ResourceUID": "id:179",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP src-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "evoke-reprocess-detergent-unarmored",
+                "ResourceUID": "id:74",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "viewless-sprig-wreaths-immunize",
+                "ResourceUID": "id:34",
+                "Zone": ""
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "evoke-reprocess-detergent-unarmored",
+                "ResourceUID": "id:74",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "198.20.0.0/14"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "evoke-reprocess-detergent-unarmored",
+                "ResourceUID": "id:74",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "1.0.0.0/8"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "evoke-reprocess-detergent-unarmored",
+                "ResourceUID": "id:74",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "bullish-sprinkled-paradox-gravity",
+                "ResourceUID": "id:91",
+                "Zone": ""
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "evoke-reprocess-detergent-unarmored",
+                "ResourceUID": "id:74",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "dexterity-reneged-giggly-choice",
+                "ResourceUID": "id:54",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP src-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "evoke-reprocess-detergent-unarmored",
+                "ResourceUID": "id:74",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "underdog-breeches-porcupine-stainable",
+                "ResourceUID": "id:108",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP src-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "evoke-reprocess-detergent-unarmored",
+                "ResourceUID": "id:74",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "128.0.0.0/3"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "evoke-reprocess-detergent-unarmored",
+                "ResourceUID": "id:74",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "166.12.0.0/14"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "evoke-reprocess-detergent-unarmored",
+                "ResourceUID": "id:74",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "192.0.1.0/24"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "evoke-reprocess-detergent-unarmored",
+                "ResourceUID": "id:74",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "161.27.0.0/16"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "evoke-reprocess-detergent-unarmored",
+                "ResourceUID": "id:74",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "161.26.0.0/16"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "evoke-reprocess-detergent-unarmored",
+                "ResourceUID": "id:74",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "Public Internet",
+                "ResourceUID": "",
+                "Zone": "",
+                "CidrStr": "192.169.0.0/16"
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "evoke-reprocess-detergent-unarmored",
+                "ResourceUID": "id:74",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "keep-borough-prankster-racings",
+                "ResourceUID": "id:125",
+                "Zone": ""
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "entreaty-evolution-baking-vista",
+                "ResourceUID": "id:179",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "bullish-sprinkled-paradox-gravity",
+                "ResourceUID": "id:91",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP dst-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "entreaty-evolution-baking-vista",
+                "ResourceUID": "id:179",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "viewless-sprig-wreaths-immunize",
+                "ResourceUID": "id:34",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP dst-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "entreaty-evolution-baking-vista",
+                "ResourceUID": "id:179",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "unfairly-errant-reliably-geography",
+                "ResourceUID": "id:145",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP dst-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "entreaty-evolution-baking-vista",
+                "ResourceUID": "id:179",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "dexterity-reneged-giggly-choice",
+                "ResourceUID": "id:54",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP src-ports: 443 dst-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "entreaty-evolution-baking-vista",
+                "ResourceUID": "id:179",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "evoke-reprocess-detergent-unarmored",
+                "ResourceUID": "id:74",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP dst-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "entreaty-evolution-baking-vista",
+                "ResourceUID": "id:179",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "underdog-breeches-porcupine-stainable",
+                "ResourceUID": "id:108",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP src-ports: 443 dst-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "entreaty-evolution-baking-vista",
+                "ResourceUID": "id:179",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "wool-daisy-energize-repeated",
+                "ResourceUID": "id:162",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP dst-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "entreaty-evolution-baking-vista",
+                "ResourceUID": "id:179",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "keep-borough-prankster-racings",
+                "ResourceUID": "id:125",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP dst-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "bullish-sprinkled-paradox-gravity",
+                "ResourceUID": "id:91",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "dexterity-reneged-giggly-choice",
+                "ResourceUID": "id:54",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP src-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "bullish-sprinkled-paradox-gravity",
+                "ResourceUID": "id:91",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "evoke-reprocess-detergent-unarmored",
+                "ResourceUID": "id:74",
+                "Zone": ""
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "bullish-sprinkled-paradox-gravity",
+                "ResourceUID": "id:91",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "entreaty-evolution-baking-vista",
+                "ResourceUID": "id:179",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP src-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "bullish-sprinkled-paradox-gravity",
+                "ResourceUID": "id:91",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "viewless-sprig-wreaths-immunize",
+                "ResourceUID": "id:34",
+                "Zone": ""
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "bullish-sprinkled-paradox-gravity",
+                "ResourceUID": "id:91",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "wool-daisy-energize-repeated",
+                "ResourceUID": "id:162",
+                "Zone": ""
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "bullish-sprinkled-paradox-gravity",
+                "ResourceUID": "id:91",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "unfairly-errant-reliably-geography",
+                "ResourceUID": "id:145",
+                "Zone": ""
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "bullish-sprinkled-paradox-gravity",
+                "ResourceUID": "id:91",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "underdog-breeches-porcupine-stainable",
+                "ResourceUID": "id:108",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP src-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "bullish-sprinkled-paradox-gravity",
+                "ResourceUID": "id:91",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "keep-borough-prankster-racings",
+                "ResourceUID": "id:125",
+                "Zone": ""
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "wool-daisy-energize-repeated",
+                "ResourceUID": "id:162",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "viewless-sprig-wreaths-immunize",
+                "ResourceUID": "id:34",
+                "Zone": ""
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "wool-daisy-energize-repeated",
+                "ResourceUID": "id:162",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "bullish-sprinkled-paradox-gravity",
+                "ResourceUID": "id:91",
+                "Zone": ""
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "wool-daisy-energize-repeated",
+                "ResourceUID": "id:162",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "dexterity-reneged-giggly-choice",
+                "ResourceUID": "id:54",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP src-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "wool-daisy-energize-repeated",
+                "ResourceUID": "id:162",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "evoke-reprocess-detergent-unarmored",
+                "ResourceUID": "id:74",
+                "Zone": ""
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "wool-daisy-energize-repeated",
+                "ResourceUID": "id:162",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "keep-borough-prankster-racings",
+                "ResourceUID": "id:125",
+                "Zone": ""
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "wool-daisy-energize-repeated",
+                "ResourceUID": "id:162",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "unfairly-errant-reliably-geography",
+                "ResourceUID": "id:145",
+                "Zone": ""
+            },
+            "conn": "All Connections"
+        },
+        {
+            "src": {
+                "ResourceName": "wool-daisy-energize-repeated",
+                "ResourceUID": "id:162",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "entreaty-evolution-baking-vista",
+                "ResourceUID": "id:179",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP src-ports: 443"
+        },
+        {
+            "src": {
+                "ResourceName": "wool-daisy-energize-repeated",
+                "ResourceUID": "id:162",
+                "Zone": ""
+            },
+            "dst": {
+                "ResourceName": "underdog-breeches-porcupine-stainable",
+                "ResourceUID": "id:108",
+                "Zone": ""
+            },
+            "conn": "protocol: TCP src-ports: 443"
+        }
+    ]
+}

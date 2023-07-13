@@ -41,6 +41,8 @@ func (c *ConfigBasedConnectivityResults) string() string {
 	return res
 }
 
+var _ = (*VPCsubnetConnectivity).printAllowedConns // avoiding "unused" warning
+
 // print AllowedConns (not combined)
 func (v *VPCsubnetConnectivity) printAllowedConns() {
 	for n, connMap := range v.AllowedConns {
@@ -189,7 +191,6 @@ func (c *CloudConfig) GetSubnetsConnectivity(includePGW bool) (*VPCsubnetConnect
 
 	res := &VPCsubnetConnectivity{AllowedConns: subnetsConnectivity, cloudConfig: c}
 
-	res.printAllowedConns()
 	// get combined connections from subnetsConnectivity
 	if err := res.computeAllowedConnsCombined(); err != nil {
 		return nil, err
