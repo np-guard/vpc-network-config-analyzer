@@ -5,11 +5,8 @@ import (
 )
 
 type overlapCell struct {
-	hasLine    bool
-	hasOverlap bool
 	hasBP bool
 	icon       IconTreeNodeInterface
-	pointAdded int
 }
 
 type layoutOverlap struct {
@@ -50,13 +47,11 @@ func (lyO *layoutOverlap)calcBypassPoints(icon IconTreeNodeInterface, p1 point, 
 func (lyO *layoutOverlap) getBypassPoint(p1, p2 point, line LineTreeNodeInterface, icon IconTreeNodeInterface) point {
 	BPs := lyO.calcBypassPoints(icon, p1, p2)
 	for _, BP := range BPs {
-		lyO.cell(BP.X, BP.Y).pointAdded += 1
 		if lyO.getOverlappedIcon(p1, BP, line) == nil && lyO.getOverlappedIcon(BP, p2, line) == nil {
 			return BP
 		}
 	}
 	for _, BP := range BPs {
-		lyO.cell(BP.X, BP.Y).pointAdded += 1
 		if lyO.getOverlappedIcon(p1, BP, line) == nil {
 			return BP
 		}
@@ -93,10 +88,8 @@ func (lyO *layoutOverlap) getOverlappedIcon(p1, p2 point, line LineTreeNodeInter
 	for s := 0; s <= nSteps; s++ {
 		x := x1 + (x2-x1)*s/nSteps
 		y := y1 + (y2-y1)*s/nSteps
-		lyO.cell(x, y).hasLine = true
 		icon := lyO.cell(x, y).icon
 		if icon != nil && icon != line.Src() && icon != line.Dst() && icon != line.Router() {
-			lyO.cell(x, y).hasOverlap = true
 			return icon
 		}
 	}
