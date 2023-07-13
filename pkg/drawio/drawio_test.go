@@ -136,6 +136,7 @@ func createNetwork() SquareTreeNodeInterface {
 
 	NewConnectivityLineTreeNode(network, ni20, ni22, true, "c13")
 	NewConnectivityLineTreeNode(network, ni21, ni24, true, "c14")
+	NewConnectivityLineTreeNode(network, ni24, ni21, true, "c14op")
 	NewConnectivityLineTreeNode(network, ni23, ni27, true, "c15")
 	NewConnectivityLineTreeNode(network, ni25, ni29, true, "c16")
 	NewConnectivityLineTreeNode(network, ni26, ni27, true, "c17")
@@ -176,6 +177,7 @@ func createNetwork2() SquareTreeNodeInterface {
 	GroupNIsWithVSI(zone1, "vsi2", []TreeNodeInterface{ni2})
 
 	NewConnectivityLineTreeNode(network, ni1, i4, false, "conn1")
+	NewConnectivityLineTreeNode(network, i4, ni1, false, "conn1_opp")
 	NewConnectivityLineTreeNode(network, ni1, i2, false, "conn2")
 	con := NewConnectivityLineTreeNode(network, ni2, is1, false, "conn3")
 	con.SetRouter(ni2, false)
