@@ -3,6 +3,7 @@ package drawio
 import (
 	"math"
 )
+var NOPOINT = point{-1,-1}
 
 type overlapCell struct {
 	hasBP bool
@@ -34,7 +35,9 @@ func (lyO *layoutOverlap)calcBypassPoints(icon IconTreeNodeInterface, p1 point, 
 	for try := range xConst {
 		bp := point{int(math.Max(0, float64(ix+xConst[try]*iconSize*dy/dis))),
 			int(math.Max(0, float64(iy+yConst[try]*iconSize*dx/dis)))}
-		
+		if lyO.cell(bp.X, bp.Y).icon != nil{
+			continue
+		}
 		for lyO.cell(bp.X, bp.Y).hasBP {
 			bp = point{bp.X+minSize, bp.Y+minSize}
 		}
@@ -56,7 +59,7 @@ func (lyO *layoutOverlap) getBypassPoint(p1, p2 point, line LineTreeNodeInterfac
 			return BP
 		}
 	}
-	return BPs[0]
+	return NOPOINT
 }
 
 func getAbsolutePoints(line LineTreeNodeInterface) []point {
@@ -128,6 +131,9 @@ func (lyO *layoutOverlap) setOverlappingLinesPoints(network TreeNodeInterface) {
 						break
 					}
 					BP := lyO.getBypassPoint(srcP, desP, line, icon)
+					if BP == NOPOINT{
+						break
+					}
 					newLinePoint = append(newLinePoint, getRelativePoint(line, BP))
 					lyO.cell(BP.X, BP.Y).hasBP = true
 					srcP = BP
@@ -136,7 +142,6 @@ func (lyO *layoutOverlap) setOverlappingLinesPoints(network TreeNodeInterface) {
 				if pointIndex < len(oldLinePoints) {
 					newLinePoint = append(newLinePoint, oldLinePoints[pointIndex])
 				}
-
 			}
 			line.setPoints(newLinePoint)
 		}
