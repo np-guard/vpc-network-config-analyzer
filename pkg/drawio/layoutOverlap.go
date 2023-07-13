@@ -74,34 +74,33 @@ func (lyO *layoutOverlap) handleLinesOverLines() {
 
 func (lyO *layoutOverlap) handleLinesOverIcons() {
 	for _, tn := range getAllNodes(lyO.network) {
-		if tn.IsLine() {
-			line := tn.(LineTreeNodeInterface)
-			newLinePoint := []point{}
-			oldLinePoints := line.Points()
-			absPoints := getLineAbsolutePoints(line)
-
-			for pointIndex := range absPoints[0 : len(absPoints)-1] {
-
-				srcP := absPoints[pointIndex]
-				desP := absPoints[pointIndex+1]
-				for {
-					icon := lyO.getOverlappedIcon(srcP, desP, line)
-					if icon == nil {
-						break
-					}
-					BP := lyO.getBypassPoint(srcP, desP, iconCenterPoint(icon), line)
-					if BP == NOPOINT {
-						break
-					}
-					newLinePoint = append(newLinePoint, getRelativePoint(line, BP))
-					srcP = BP
-				}
-				if pointIndex < len(oldLinePoints) {
-					newLinePoint = append(newLinePoint, oldLinePoints[pointIndex])
-				}
-			}
-			line.setPoints(newLinePoint)
+		if !tn.IsLine() {
+			continue
 		}
+		line := tn.(LineTreeNodeInterface)
+		newLinePoint := []point{}
+		oldLinePoints := line.Points()
+		absPoints := getLineAbsolutePoints(line)
+		for pointIndex := range absPoints[0 : len(absPoints)-1] {
+			srcP := absPoints[pointIndex]
+			desP := absPoints[pointIndex+1]
+			for {
+				icon := lyO.getOverlappedIcon(srcP, desP, line)
+				if icon == nil {
+					break
+				}
+				BP := lyO.getBypassPoint(srcP, desP, iconCenterPoint(icon), line)
+				if BP == NOPOINT {
+					break
+				}
+				newLinePoint = append(newLinePoint, getRelativePoint(line, BP))
+				srcP = BP
+			}
+			if pointIndex < len(oldLinePoints) {
+				newLinePoint = append(newLinePoint, oldLinePoints[pointIndex])
+			}
+		}
+		line.setPoints(newLinePoint)
 	}
 }
 
@@ -115,7 +114,7 @@ func (lyO *layoutOverlap) potentialBypassPoints(srcPoint, dstPoint, middlePoint 
 		verticalVectorSize := coefficients[try] * iconSize
 		verticalVectorX := verticalVectorSize * deltaY / disXY
 		verticalVectorY := verticalVectorSize * deltaX / disXY
-		bp := point{max(0,middlePoint.X + verticalVectorX), max(0,middlePoint.Y - verticalVectorY)}
+		bp := point{max(0, middlePoint.X+verticalVectorX), max(0, middlePoint.Y-verticalVectorY)}
 		if lyO.cell(bp.X, bp.Y).icon != nil {
 			continue
 		}
@@ -153,7 +152,7 @@ func (lyO *layoutOverlap) getBypassPoint(srcPoint, dstPoint, middlePoint point, 
 func (lyO *layoutOverlap) getOverlappedIcon(p1, p2 point, line LineTreeNodeInterface) IconTreeNodeInterface {
 	x1, y1 := p1.X, p1.Y
 	x2, y2 := p2.X, p2.Y
-	nSteps := (abs(x2-x1)+abs(y2-y1))/(minSize)
+	nSteps := (abs(x2-x1) + abs(y2-y1)) / (minSize)
 	for s := 0; s <= nSteps; s++ {
 		x := x1 + (x2-x1)*s/nSteps
 		y := y1 + (y2-y1)*s/nSteps
@@ -195,8 +194,8 @@ func getRelativePoint(line LineTreeNodeInterface, absPoint point) point {
 	x := absPoint.X - px
 	y := absPoint.Y - py
 	return point{x, y}
-
 }
+
 func max(a, b int) int {
 	if a > b {
 		return a
@@ -210,4 +209,3 @@ func abs(a int) int {
 	}
 	return -a
 }
-

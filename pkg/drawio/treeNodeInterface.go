@@ -97,8 +97,7 @@ func locations(tns []TreeNodeInterface) []*Location {
 	return locations
 }
 
-
-func absoluteGeometry(tn TreeNodeInterface) (int, int) {
+func absoluteGeometry(tn TreeNodeInterface) (x, y int) {
 	if tn.DrawioParent().Location() == nil {
 		return tn.X(), tn.Y()
 	}

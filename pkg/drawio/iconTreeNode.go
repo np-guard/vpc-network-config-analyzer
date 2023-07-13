@@ -54,7 +54,7 @@ func calculateIconGeometry(tn IconTreeNodeInterface, drawioParent TreeNodeInterf
 	y = location.firstRow.y() - parentLocation.firstRow.y() + location.firstRow.height()/2 - iconSize/2 + location.yOffset
 	return x, y
 }
-func (tn *abstractIconTreeNode) absoluteRouterGeometry() (int, int) {
+func (tn *abstractIconTreeNode) absoluteRouterGeometry() (x, y int) {
 	return absoluteGeometry(tn)
 }
 
@@ -89,8 +89,8 @@ func (tn *NITreeNode) RouterID() uint    { return tn.FipID() }
 func (tn *NITreeNode) IsNI() bool        { return true }
 func (tn *NITreeNode) Label() string     { return labels2Table([]string{tn.name, tn.vsi}) }
 
-func (tn *NITreeNode) absoluteRouterGeometry() (int, int) {
-	x, y := absoluteGeometry(tn)
+func (tn *NITreeNode) absoluteRouterGeometry() (x, y int) {
+	x, y = absoluteGeometry(tn)
 	return x + fipXOffset, y + fipYOffset
 }
 
