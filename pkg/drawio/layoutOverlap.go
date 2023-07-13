@@ -5,6 +5,7 @@ import (
 )
 
 var NOPOINT = point{-1, -1}
+const NpotentiaBP =6
 
 type overlapCell struct {
 	hasBP bool
@@ -104,24 +105,22 @@ func (lyO *layoutOverlap) handleLinesOverIcons() {
 	}
 }
 
-var coefficients = []int{1, -1, 2, -2, 3, -3}
-
 func (lyO *layoutOverlap) potentialBypassPoints(srcPoint, dstPoint, middlePoint point) []point {
 	deltaX, deltaY := (srcPoint.X - dstPoint.X), (srcPoint.Y - dstPoint.Y)
 	disXY := int(math.Sqrt(float64(deltaX)*float64(deltaX) + float64(deltaY)*float64(deltaY)))
 	BPs := []point{}
-	for try := range coefficients {
-		verticalVectorSize := coefficients[try] * iconSize
+	for i := 0; i< NpotentiaBP; i++ {
+		verticalVectorSize := pow(-1,i)*(1 + i/2)  * iconSize
 		verticalVectorX := verticalVectorSize * deltaY / disXY
 		verticalVectorY := verticalVectorSize * deltaX / disXY
-		bp := point{max(0, middlePoint.X+verticalVectorX), max(0, middlePoint.Y-verticalVectorY)}
-		if lyO.cell(bp.X, bp.Y).icon != nil {
+		BP := point{max(0, middlePoint.X+verticalVectorX), max(0, middlePoint.Y-verticalVectorY)}
+		if lyO.cell(BP.X, BP.Y).icon != nil {
 			continue
 		}
-		for lyO.cell(bp.X, bp.Y).hasBP {
-			bp = point{bp.X + minSize, bp.Y + minSize}
+		for lyO.cell(BP.X, BP.Y).hasBP {
+			BP = point{BP.X + minSize, BP.Y + minSize}
 		}
-		BPs = append(BPs, bp)
+		BPs = append(BPs, BP)
 	}
 	return BPs
 }
@@ -208,4 +207,10 @@ func abs(a int) int {
 		return a
 	}
 	return -a
+}
+func pow(a, b int) int {
+	if b ==0  {
+		return 1
+	}
+	return pow (a, b-1)*a
 }
