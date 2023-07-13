@@ -10,8 +10,6 @@ import (
 //go:embed connectivityMap.drawio.tmpl
 var drawioTemplate string
 
-
-
 type drawioData struct {
 	IconSize   int
 	FipXOffset int
@@ -28,8 +26,7 @@ type drawioData struct {
 }
 
 func CreateDrawioConnectivityMapFile(network SquareTreeNodeInterface, outputFile string) error {
-	ly := newLayout(network)
-	ly.layout()
+	newLayout(network).layout()
 	data := &drawioData{
 		iconSize,
 		fipXOffset,

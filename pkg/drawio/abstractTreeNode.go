@@ -75,7 +75,6 @@ func (tn *abstractTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNod
 }
 func (tn *abstractTreeNode) setGeometry() {}
 
-
 // /////////////////////////////////////////////////////////////
 // rootTreeNode is the parent of the network. we have only one instance of it, with constant id
 type rootTreeNode struct {

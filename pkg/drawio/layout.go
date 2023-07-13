@@ -41,7 +41,6 @@ const (
 type layoutS struct {
 	network SquareTreeNodeInterface
 	matrix  *layoutMatrix
-	lyO     layoutOverlap
 }
 
 func newLayout(network SquareTreeNodeInterface) *layoutS {
@@ -65,7 +64,7 @@ func (ly *layoutS) layout() {
 	// 6. set the geometry for each node in the drawio
 	ly.matrix.setLayersDistance()
 	ly.setGeometries()
-	ly.lyO.fixOverlapping(ly.network)
+	newLayoutOverlap(ly.network).fixOverlapping()
 }
 
 // ///////////////////////////////////////////////////////////////
