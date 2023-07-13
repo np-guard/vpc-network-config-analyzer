@@ -4,8 +4,28 @@ import (
 	"math"
 )
 
+// layoutOverlap is a struct that handle overlapping between lines, and overlapping lines on icons.
+// We have two kind of overlapping:
+//    1. Lines overlapping - two lines are at the same path (lines that has the same set of (src,dst) )
+//    2. Lines that overlap icons
+// The way to handle the overlap is to add points to the lines (aka bypass points).
+// The detection overlapping is done by holding a 2D matrix, that represents the drawio picture.
+// a cell in the matrix represent square of minSize*minSize in the picture.
+// The cell hold the information whether:
+//    1. there is an icon in the square.
+//    2. there is a bypass point in the square
+// Handling overlapping is done in three steps:
+//    1. update the matrix with the icons locations
+//    2. handling pairs of lines sharing the same path -
+//       this is done by adding a bypass point to one of the lines, at the middle of the line
+//    3. handling lines overlapping  icons - this is done by adding a bypass points to the line, next to the icons
+// in both steps 2,3. choosing the bypass point is done in two steps:
+//    1. calculate a list of potential bypass points, around the icon, (or around the middle of the line)
+//    2. choose the best point, and add it to the line.
+
 var NOPOINT = point{-1, -1}
-const NpotentiaBP =6
+
+const nPotentialBP = 6
 
 type overlapCell struct {
 	hasBP bool
@@ -27,16 +47,20 @@ func newLayoutOverlap(network TreeNodeInterface) *layoutOverlap {
 	}
 	return lyO
 }
+
 func (lyO *layoutOverlap) cell(x, y int) *overlapCell {
 	return &(lyO.overlapMatrix[y/minSize][x/minSize])
 }
 
+// fixOverlapping() is the entry method.
 func (lyO *layoutOverlap) fixOverlapping() {
+	// The three steps of handling overlapping:
 	lyO.setIconsMap()
 	lyO.handleLinesOverLines()
 	lyO.handleLinesOverIcons()
 }
 
+// setIconsMap() update the cells of the matrix with icons positions:
 func (lyO *layoutOverlap) setIconsMap() {
 	for _, tn := range getAllNodes(lyO.network) {
 		if tn.IsIcon() {
@@ -50,29 +74,40 @@ func (lyO *layoutOverlap) setIconsMap() {
 	}
 }
 
+// handleLinesOverLines() - find pairs of overlapping lines, and add point to one of them
 func (lyO *layoutOverlap) handleLinesOverLines() {
 	nodes := getAllNodes(lyO.network)
 	for i1 := range nodes {
 		for i2 := i1 + 1; i2 < len(nodes); i2++ {
-			if nodes[i1].IsLine() && nodes[i2].IsLine() {
-				line1 := nodes[i1].(LineTreeNodeInterface)
-				line2 := nodes[i2].(LineTreeNodeInterface)
-				if line1.Src() == line2.Dst() && line1.Dst() == line2.Src() {
-					if len(line1.Points()) == 0 && len(line2.Points()) == 0 {
-						srcPoint := iconCenterPoint(line1.Src())
-						dstPoint := iconCenterPoint(line1.Dst())
-						middlePoint := point{(srcPoint.X + dstPoint.X) / 2, (srcPoint.Y + dstPoint.Y) / 2}
-						BP := lyO.getBypassPoint(srcPoint, dstPoint, middlePoint, line1)
-						if BP != NOPOINT {
-							line1.setPoints([]point{getRelativePoint(line1, BP)})
-						}
-					}
-				}
+			if !nodes[i1].IsLine() || !nodes[i2].IsLine() {
+				continue
+			}
+			line1 := nodes[i1].(LineTreeNodeInterface)
+			line2 := nodes[i2].(LineTreeNodeInterface)
+			if line1.Src() != line2.Dst() || line1.Dst() != line2.Src() {
+				continue
+			}
+			if len(line1.Points()) != 0 || len(line2.Points()) != 0 {
+				continue
+			}
+			srcPoint := iconCenterPoint(line1.Src())
+			dstPoint := iconCenterPoint(line1.Dst())
+			middlePoint := point{(srcPoint.X + dstPoint.X) / 2, (srcPoint.Y + dstPoint.Y) / 2}
+			BP := lyO.getBypassPoint(srcPoint, dstPoint, middlePoint, line1)
+			if BP != NOPOINT {
+				line1.setPoints([]point{getRelativePoint(line1, BP)})
 			}
 		}
 	}
 }
 
+// handleLinesOverIcons() - handle lines that overlap icons:
+//  1. we basically create a new list of points, a mix of the line old points, and the new bypass points.
+//  2. each line is being split to intervals - the intervals are basically a list of the points of the line,
+//     plus the src and the dst of the line.
+//     an interval is the basically a two sequential points.
+//  3. for each interval, if there is an icon that is overlapped by the interval, than we add a bypass point between those points.
+//  4. the new bypass point might create new overlapping, in that case, we will add a new bypass point, and so on...
 func (lyO *layoutOverlap) handleLinesOverIcons() {
 	for _, tn := range getAllNodes(lyO.network) {
 		if !tn.IsLine() {
@@ -88,15 +123,20 @@ func (lyO *layoutOverlap) handleLinesOverIcons() {
 			for {
 				icon := lyO.getOverlappedIcon(srcP, desP, line)
 				if icon == nil {
+					// there is no overlap
 					break
 				}
 				BP := lyO.getBypassPoint(srcP, desP, iconCenterPoint(icon), line)
 				if BP == NOPOINT {
+					// we could not find a suitable bypass point
 					break
 				}
+				// adding the new bypass point
 				newLinePoint = append(newLinePoint, getRelativePoint(line, BP))
+				// making the BP point to be the src, and repeat the loop, looking for new overlapping
 				srcP = BP
 			}
+			// unless is the last point ( last point is line destination) we also add the old point to the new point list
 			if pointIndex < len(oldLinePoints) {
 				newLinePoint = append(newLinePoint, oldLinePoints[pointIndex])
 			}
@@ -105,12 +145,16 @@ func (lyO *layoutOverlap) handleLinesOverIcons() {
 	}
 }
 
+// potentialBypassPoints() calculate a list of potential bypass points.
+// for the interval srcPoint<->dstPoint.
+// we collect the points from the line that cross the interval in the middlePoint, at 90 deg.
+// The distances of the potential bypass points from the middlePoint are iconSize, -iconSize, 2*iconSize ...
 func (lyO *layoutOverlap) potentialBypassPoints(srcPoint, dstPoint, middlePoint point) []point {
 	deltaX, deltaY := (srcPoint.X - dstPoint.X), (srcPoint.Y - dstPoint.Y)
 	disXY := int(math.Sqrt(float64(deltaX)*float64(deltaX) + float64(deltaY)*float64(deltaY)))
 	BPs := []point{}
-	for i := 0; i< NpotentiaBP; i++ {
-		verticalVectorSize := pow(-1,i)*(1 + i/2)  * iconSize
+	for i := 0; i < nPotentialBP; i++ {
+		verticalVectorSize := pow(-1, i) * (1 + i/2) * iconSize
 		verticalVectorX := verticalVectorSize * deltaY / disXY
 		verticalVectorY := verticalVectorSize * deltaX / disXY
 		BP := point{max(0, middlePoint.X+verticalVectorX), max(0, middlePoint.Y-verticalVectorY)}
@@ -125,6 +169,7 @@ func (lyO *layoutOverlap) potentialBypassPoints(srcPoint, dstPoint, middlePoint 
 	return BPs
 }
 
+// getBypassPoint() select the best BS, the closest the has minimal overlapping
 func (lyO *layoutOverlap) getBypassPoint(srcPoint, dstPoint, middlePoint point, line LineTreeNodeInterface) point {
 	BPs := lyO.potentialBypassPoints(srcPoint, dstPoint, middlePoint)
 	for _, BP := range BPs {
@@ -148,6 +193,7 @@ func (lyO *layoutOverlap) getBypassPoint(srcPoint, dstPoint, middlePoint point, 
 	return NOPOINT
 }
 
+// getOverlappedIcon() checks if there is an icon overlap on the interval
 func (lyO *layoutOverlap) getOverlappedIcon(p1, p2 point, line LineTreeNodeInterface) IconTreeNodeInterface {
 	x1, y1 := p1.X, p1.Y
 	x2, y2 := p2.X, p2.Y
@@ -163,6 +209,7 @@ func (lyO *layoutOverlap) getOverlappedIcon(p1, p2 point, line LineTreeNodeInter
 	return nil
 }
 
+// some methods to convert absolute point to relative, and vis versa:
 func getLineAbsolutePoints(line LineTreeNodeInterface) []point {
 	absPoints := []point{}
 	absPoints = append(absPoints, iconCenterPoint(line.Src()))
@@ -177,6 +224,7 @@ func iconCenterPoint(icon IconTreeNodeInterface) point {
 	ix, iy := absoluteGeometry(icon)
 	return point{ix + iconSize/2, iy + iconSize/2}
 }
+
 func getAbsolutePoint(line LineTreeNodeInterface, p point) point {
 	if line.Router() != nil {
 		x, y := line.Router().absoluteRouterGeometry()
@@ -195,6 +243,8 @@ func getRelativePoint(line LineTreeNodeInterface, absPoint point) point {
 	return point{x, y}
 }
 
+// the most common line in stackoverflow:
+// "There is no built-in function for  <....> in golang, but it’s simple to write your own"
 func max(a, b int) int {
 	if a > b {
 		return a
@@ -208,9 +258,10 @@ func abs(a int) int {
 	}
 	return -a
 }
+
 func pow(a, b int) int {
-	if b ==0  {
+	if b <= 0 {
 		return 1
 	}
-	return pow (a, b-1)*a
+	return pow(a, b-1) * a
 }
