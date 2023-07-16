@@ -288,7 +288,7 @@ func getSubnetsConfig(
 func getPgwConfig(
 	res *vpcmodel.CloudConfig,
 	rc *ResourcesContainer,
-	pgwToSubnet map[string]*Subnet) error {
+	pgwToSubnet map[string]*Subnet) {
 	for i := range rc.pgwList {
 		pgw := rc.pgwList[i]
 		pgwName := *pgw.Name
@@ -310,7 +310,6 @@ func getPgwConfig(
 		res.RoutingResources = append(res.RoutingResources, routerPgw)
 		res.NameToResource[routerPgw.Name()] = routerPgw
 	}
-	return nil
 }
 
 func getFipConfig(
@@ -443,9 +442,7 @@ func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
 	subnetNameToSubnet := map[string]*Subnet{}
 	vpcInternalAddressRange = getSubnetsConfig(res, pgwToSubnet, subnetNameToSubnet, subnetNameToNetIntf, rc)
 
-	if err := getPgwConfig(res, rc, pgwToSubnet); err != nil {
-		return nil, err
-	}
+	getPgwConfig(res, rc, pgwToSubnet)
 
 	if err := getFipConfig(rc, res); err != nil {
 		return nil, err
