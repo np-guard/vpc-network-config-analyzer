@@ -288,10 +288,15 @@ func getSubnetsConfig(
 func getPgwConfig(
 	res *vpcmodel.CloudConfig,
 	rc *ResourcesContainer,
-	pgwToSubnet map[string]*Subnet) {
+	pgwToSubnet map[string]*Subnet) error {
 	for i := range rc.pgwList {
 		pgw := rc.pgwList[i]
-		srcNodes := pgwToSubnet[*pgw.Name].Nodes()
+		pgwName := *pgw.Name
+		if _, ok := pgwToSubnet[pgwName]; !ok {
+			fmt.Printf("warning: public gateway %s does not have any attached subnet, ignoring this pgw\n", pgwName)
+			continue
+		}
+		srcNodes := pgwToSubnet[pgwName].Nodes()
 		routerPgw := &PublicGateway{
 			VPCResource: vpcmodel.VPCResource{
 				ResourceName: *pgw.Name,
@@ -300,11 +305,12 @@ func getPgwConfig(
 			},
 			cidr:       "",
 			src:        srcNodes,
-			subnetCidr: pgwToSubnet[*pgw.Name].cidr,
+			subnetCidr: pgwToSubnet[pgwName].cidr,
 		} // TODO: get cidr from fip of the pgw
 		res.RoutingResources = append(res.RoutingResources, routerPgw)
 		res.NameToResource[routerPgw.Name()] = routerPgw
 	}
+	return nil
 }
 
 func getFipConfig(
@@ -437,7 +443,9 @@ func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
 	subnetNameToSubnet := map[string]*Subnet{}
 	vpcInternalAddressRange = getSubnetsConfig(res, pgwToSubnet, subnetNameToSubnet, subnetNameToNetIntf, rc)
 
-	getPgwConfig(res, rc, pgwToSubnet)
+	if err := getPgwConfig(res, rc, pgwToSubnet); err != nil {
+		return nil, err
+	}
 
 	if err := getFipConfig(rc, res); err != nil {
 		return nil, err
