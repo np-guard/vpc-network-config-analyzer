@@ -23,13 +23,13 @@ import (
 //    1. calculate a list of potential bypass points, around the icon, (or around the middle of the line)
 //    2. choose the best point, and add it to the line.
 
-var NOPOINT = point{-1, -1}
+var noPoint = point{-1, -1}
 
 const nPotentialBP = 6
 
 type overlapCell struct {
-	hasBP bool
-	icon  IconTreeNodeInterface
+	hasBypassPoint bool
+	icon           IconTreeNodeInterface
 }
 
 type layoutOverlap struct {
@@ -49,6 +49,9 @@ func newLayoutOverlap(network TreeNodeInterface) *layoutOverlap {
 }
 
 func (lyO *layoutOverlap) cell(x, y int) *overlapCell {
+	if x < 0 || y < 0 || y/minSize >= len(lyO.overlapMatrix) || x/minSize >= len(lyO.overlapMatrix[0]) {
+		return nil
+	}
 	return &(lyO.overlapMatrix[y/minSize][x/minSize])
 }
 
@@ -94,7 +97,7 @@ func (lyO *layoutOverlap) handleLinesOverLines() {
 			dstPoint := iconCenterPoint(line1.Dst())
 			middlePoint := point{(srcPoint.X + dstPoint.X) / 2, (srcPoint.Y + dstPoint.Y) / 2}
 			BP := lyO.getBypassPoint(srcPoint, dstPoint, middlePoint, line1)
-			if BP != NOPOINT {
+			if BP != noPoint {
 				line1.setPoints([]point{getRelativePoint(line1, BP)})
 			}
 		}
@@ -120,6 +123,7 @@ func (lyO *layoutOverlap) handleLinesOverIcons() {
 		for pointIndex := range absPoints[0 : len(absPoints)-1] {
 			srcP := absPoints[pointIndex]
 			desP := absPoints[pointIndex+1]
+			// add bypass points until there is no overlap with icons (or until no bypass can be found)
 			for {
 				icon := lyO.getOverlappedIcon(srcP, desP, line)
 				if icon == nil {
@@ -127,7 +131,7 @@ func (lyO *layoutOverlap) handleLinesOverIcons() {
 					break
 				}
 				BP := lyO.getBypassPoint(srcP, desP, iconCenterPoint(icon), line)
-				if BP == NOPOINT {
+				if BP == noPoint {
 					// we could not find a suitable bypass point
 					break
 				}
@@ -161,43 +165,48 @@ func (lyO *layoutOverlap) potentialBypassPoints(srcPoint, dstPoint, middlePoint 
 		if lyO.cell(BP.X, BP.Y).icon != nil {
 			continue
 		}
-		for lyO.cell(BP.X, BP.Y).hasBP {
+		// in case we already have a a bypassPoint in the cell, we will try to search a free cell around it:
+		// todo: look for a free cell not so close to the point
+		for lyO.cell(BP.X, BP.Y) != nil {
+			if !lyO.cell(BP.X, BP.Y).hasBypassPoint {
+				BPs = append(BPs, BP)
+				break
+			}
 			BP = point{BP.X + minSize, BP.Y + minSize}
 		}
-		BPs = append(BPs, BP)
 	}
 	return BPs
 }
 
-// getBypassPoint() select the best BS, the closest the has minimal overlapping
+// getBypassPoint() select the best BS, the closest that creates minimum new overlapping
 func (lyO *layoutOverlap) getBypassPoint(srcPoint, dstPoint, middlePoint point, line LineTreeNodeInterface) point {
 	BPs := lyO.potentialBypassPoints(srcPoint, dstPoint, middlePoint)
 	for _, BP := range BPs {
 		if lyO.getOverlappedIcon(srcPoint, BP, line) == nil && lyO.getOverlappedIcon(BP, dstPoint, line) == nil {
-			lyO.cell(BP.X, BP.Y).hasBP = true
+			lyO.cell(BP.X, BP.Y).hasBypassPoint = true
 			return BP
 		}
 	}
 	for _, BP := range BPs {
 		if lyO.getOverlappedIcon(srcPoint, BP, line) == nil {
-			lyO.cell(BP.X, BP.Y).hasBP = true
+			lyO.cell(BP.X, BP.Y).hasBypassPoint = true
 			return BP
 		}
 	}
 	for _, BP := range BPs {
 		if lyO.getOverlappedIcon(BP, dstPoint, line) == nil {
-			lyO.cell(BP.X, BP.Y).hasBP = true
+			lyO.cell(BP.X, BP.Y).hasBypassPoint = true
 			return BP
 		}
 	}
-	return NOPOINT
+	return noPoint
 }
 
 // getOverlappedIcon() checks if there is an icon overlap on the interval
 func (lyO *layoutOverlap) getOverlappedIcon(p1, p2 point, line LineTreeNodeInterface) IconTreeNodeInterface {
 	x1, y1 := p1.X, p1.Y
 	x2, y2 := p2.X, p2.Y
-	nSteps := (abs(x2-x1) + abs(y2-y1)) / (minSize)
+	nSteps := max(abs(x2-x1), abs(y2-y1)) / (minSize)
 	for s := 0; s <= nSteps; s++ {
 		x := x1 + (x2-x1)*s/nSteps
 		y := y1 + (y2-y1)*s/nSteps
@@ -211,8 +220,7 @@ func (lyO *layoutOverlap) getOverlappedIcon(p1, p2 point, line LineTreeNodeInter
 
 // some methods to convert absolute point to relative, and vis versa:
 func getLineAbsolutePoints(line LineTreeNodeInterface) []point {
-	absPoints := []point{}
-	absPoints = append(absPoints, iconCenterPoint(line.Src()))
+	absPoints := []point{iconCenterPoint(line.Src())}
 	for _, p := range line.Points() {
 		absPoints = append(absPoints, getAbsolutePoint(line, p))
 	}
@@ -260,8 +268,5 @@ func abs(a int) int {
 }
 
 func pow(a, b int) int {
-	if b <= 0 {
-		return 1
-	}
-	return pow(a, b-1) * a
+	return int(math.Pow(float64(a), float64(b)))
 }
