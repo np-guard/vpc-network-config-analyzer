@@ -1,6 +1,7 @@
 package vpcmodel
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
@@ -95,16 +96,20 @@ func getPublicInternetIPblocksList() (internetIPblocksList []*common.IPBlock, al
 	return ipStringsToIPblocks(publicInternetAddressList)
 }
 
-func newExternalNode(isPublicInternet bool, ipb *common.IPBlock, index int) Node {
+func newExternalNode(isPublicInternet bool, ipb *common.IPBlock, index int) (Node, error) {
+	cidrsList := ipb.ToCidrList()
+	if len(cidrsList) > 1 {
+		return nil, errors.New("newExternalNode: input ip-block should be of a single cidr")
+	}
 	cidr := ipb.ToCidrList()[0]
 	if isPublicInternet {
 		return &ExternalNetwork{
 			VPCResource: VPCResource{ResourceName: publicInternetNodeName},
 			CidrStr:     cidr, isPublicInternet: true,
-		}
+		}, nil
 	}
 	nodeName := fmt.Sprintf("ref-address-%d", index)
-	return &ExternalNetwork{VPCResource: VPCResource{ResourceName: nodeName}, CidrStr: cidr}
+	return &ExternalNetwork{VPCResource: VPCResource{ResourceName: nodeName}, CidrStr: cidr}, nil
 }
 
 func GetExternalNetworkNodes(disjointRefExternalIPBlocks []*common.IPBlock) ([]Node, error) {
@@ -120,7 +125,14 @@ func GetExternalNetworkNodes(disjointRefExternalIPBlocks []*common.IPBlock) ([]N
 		if ipb.ContainedIn(allInternetRagnes) {
 			isPublicInternet = true
 		}
-		res = append(res, newExternalNode(isPublicInternet, ipb, index))
+		cidrs := ipb.ToCidrList()
+		for _, cidr := range cidrs {
+			newNode, err := newExternalNode(isPublicInternet, common.NewIPBlockFromCidr(cidr), index)
+			if err != nil {
+				return nil, err
+			}
+			res = append(res, newNode)
+		}
 	}
 	return res, nil
 }
