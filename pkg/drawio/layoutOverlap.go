@@ -165,7 +165,7 @@ func (lyO *layoutOverlap) potentialBypassPoints(srcPoint, dstPoint, middlePoint 
 		verticalVectorX := verticalVectorSize * deltaY / disXY
 		verticalVectorY := verticalVectorSize * deltaX / disXY
 		BP := point{max(0, middlePoint.X+verticalVectorX), max(0, middlePoint.Y-verticalVectorY)}
-		if lyO.cell(BP.X, BP.Y).icon != nil {
+		if lyO.cell(BP.X, BP.Y) == nil || lyO.cell(BP.X, BP.Y).icon != nil {
 			continue
 		}
 		// in case we already have a a bypassPoint in the cell, we will try to search a free cell around it:
@@ -209,7 +209,7 @@ func (lyO *layoutOverlap) getBypassPoint(srcPoint, dstPoint, middlePoint point, 
 func (lyO *layoutOverlap) getOverlappedIcon(p1, p2 point, line LineTreeNodeInterface) IconTreeNodeInterface {
 	x1, y1 := p1.X, p1.Y
 	x2, y2 := p2.X, p2.Y
-	nSteps := max(abs(x2-x1), abs(y2-y1)) / (minSize)
+	nSteps := max(1,max(abs(x2-x1), abs(y2-y1)) / (minSize))
 	for s := 0; s <= nSteps; s++ {
 		x := x1 + (x2-x1)*s/nSteps
 		y := y1 + (y2-y1)*s/nSteps
