@@ -81,8 +81,11 @@ func (lyO *layoutOverlap) setIconsMap() {
 func (lyO *layoutOverlap) handleLinesOverLines() {
 	nodes := getAllNodes(lyO.network)
 	for i1 := range nodes {
+		if !nodes[i1].IsLine() {
+			continue
+		}
 		for i2 := i1 + 1; i2 < len(nodes); i2++ {
-			if !nodes[i1].IsLine() || !nodes[i2].IsLine() {
+			if !nodes[i2].IsLine() {
 				continue
 			}
 			line1 := nodes[i1].(LineTreeNodeInterface)
