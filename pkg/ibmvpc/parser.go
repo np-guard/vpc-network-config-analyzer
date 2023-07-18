@@ -291,7 +291,12 @@ func getPgwConfig(
 	pgwToSubnet map[string]*Subnet) {
 	for i := range rc.pgwList {
 		pgw := rc.pgwList[i]
-		srcNodes := pgwToSubnet[*pgw.Name].Nodes()
+		pgwName := *pgw.Name
+		if _, ok := pgwToSubnet[pgwName]; !ok {
+			fmt.Printf("warning: public gateway %s does not have any attached subnet, ignoring this pgw\n", pgwName)
+			continue
+		}
+		srcNodes := pgwToSubnet[pgwName].Nodes()
 		routerPgw := &PublicGateway{
 			VPCResource: vpcmodel.VPCResource{
 				ResourceName: *pgw.Name,
@@ -300,7 +305,7 @@ func getPgwConfig(
 			},
 			cidr:       "",
 			src:        srcNodes,
-			subnetCidr: pgwToSubnet[*pgw.Name].cidr,
+			subnetCidr: pgwToSubnet[pgwName].cidr,
 		} // TODO: get cidr from fip of the pgw
 		res.RoutingResources = append(res.RoutingResources, routerPgw)
 		res.NameToResource[routerPgw.Name()] = routerPgw
