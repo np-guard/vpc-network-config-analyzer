@@ -20,6 +20,7 @@ package drawio
 // that alow to add/remove rows/column without updating the treeNodes.
 
 const (
+	minSize      = 10
 	borderWidth  = 40
 	subnetWidth  = 8 * 40
 	subnetHeight = 6 * 40
@@ -63,6 +64,7 @@ func (ly *layoutS) layout() {
 	// 6. set the geometry for each node in the drawio
 	ly.matrix.setLayersDistance()
 	ly.setGeometries()
+	newLayoutOverlap(ly.network).fixOverlapping()
 }
 
 // ///////////////////////////////////////////////////////////////

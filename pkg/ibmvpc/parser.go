@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
 
@@ -251,7 +252,7 @@ func getInstancesConfig(
 
 func getSubnetsConfig(
 	res *vpcmodel.CloudConfig,
-	pgwToSubnet map[string]*Subnet,
+	pgwToSubnet map[string][]*Subnet,
 	subnetNameToSubnet map[string]*Subnet,
 	subnetNameToNetIntf map[string][]*NetworkInterface,
 	rc *ResourcesContainer) (vpcInternalAddressRange *common.IPBlock) {
@@ -271,7 +272,10 @@ func getSubnetsConfig(
 		res.NameToResource[subnetNode.Name()] = subnetNode
 		subnetNameToSubnet[*subnet.Name] = subnetNode
 		if subnet.PublicGateway != nil {
-			pgwToSubnet[*subnet.PublicGateway.Name] = subnetNode
+			if _, ok := pgwToSubnet[*subnet.PublicGateway.Name]; !ok {
+				pgwToSubnet[*subnet.PublicGateway.Name] = []*Subnet{}
+			}
+			pgwToSubnet[*subnet.PublicGateway.Name] = append(pgwToSubnet[*subnet.PublicGateway.Name], subnetNode)
 		}
 		// add pointers from networkInterface to its subnet, given the current subnet created
 		if subnetInterfaces, ok := subnetNameToNetIntf[*subnet.Name]; ok {
@@ -285,10 +289,26 @@ func getSubnetsConfig(
 	return vpcInternalAddressRange
 }
 
+func getSubnetsNodes(subnets []*Subnet) []vpcmodel.Node {
+	res := []vpcmodel.Node{}
+	for _, s := range subnets {
+		res = append(res, s.Nodes()...)
+	}
+	return res
+}
+
+func getSubnetsCidrs(subnets []*Subnet) string {
+	res := []string{}
+	for _, s := range subnets {
+		res = append(res, s.cidr)
+	}
+	return strings.Join(res, ",")
+}
+
 func getPgwConfig(
 	res *vpcmodel.CloudConfig,
 	rc *ResourcesContainer,
-	pgwToSubnet map[string]*Subnet) {
+	pgwToSubnet map[string][]*Subnet) {
 	for i := range rc.pgwList {
 		pgw := rc.pgwList[i]
 		pgwName := *pgw.Name
@@ -296,7 +316,7 @@ func getPgwConfig(
 			fmt.Printf("warning: public gateway %s does not have any attached subnet, ignoring this pgw\n", pgwName)
 			continue
 		}
-		srcNodes := pgwToSubnet[pgwName].Nodes()
+		srcNodes := getSubnetsNodes(pgwToSubnet[pgwName])
 		routerPgw := &PublicGateway{
 			VPCResource: vpcmodel.VPCResource{
 				ResourceName: *pgw.Name,
@@ -305,7 +325,7 @@ func getPgwConfig(
 			},
 			cidr:       "",
 			src:        srcNodes,
-			subnetCidr: pgwToSubnet[pgwName].cidr,
+			subnetCidr: getSubnetsCidrs(pgwToSubnet[pgwName]),
 		} // TODO: get cidr from fip of the pgw
 		res.RoutingResources = append(res.RoutingResources, routerPgw)
 		res.NameToResource[routerPgw.Name()] = routerPgw
@@ -438,7 +458,8 @@ func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
 	intfNameToIntf := map[string]*NetworkInterface{}
 	getInstancesConfig(rc.instanceList, subnetNameToNetIntf, intfNameToIntf, res)
 
-	pgwToSubnet := map[string]*Subnet{} // map from pgw name to its attached subnet
+	// pgw can be attached to multiple subnets in the zone
+	pgwToSubnet := map[string][]*Subnet{} // map from pgw name to its attached subnet(s)
 	subnetNameToSubnet := map[string]*Subnet{}
 	vpcInternalAddressRange = getSubnetsConfig(res, pgwToSubnet, subnetNameToSubnet, subnetNameToNetIntf, rc)
 
