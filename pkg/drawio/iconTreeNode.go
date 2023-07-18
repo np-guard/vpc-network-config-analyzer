@@ -8,6 +8,7 @@ type IconTreeNodeInterface interface {
 	IsVSI() bool
 	IsNI() bool
 	IsGateway() bool
+	absoluteRouterGeometry() (int, int)
 }
 
 type abstractIconTreeNode struct {
@@ -53,6 +54,9 @@ func calculateIconGeometry(tn IconTreeNodeInterface, drawioParent TreeNodeInterf
 	y = location.firstRow.y() - parentLocation.firstRow.y() + location.firstRow.height()/2 - iconSize/2 + location.yOffset
 	return x, y
 }
+func (tn *abstractIconTreeNode) absoluteRouterGeometry() (x, y int) {
+	return absoluteGeometry(tn)
+}
 
 // ///////////////////////////////////////////
 type NITreeNode struct {
@@ -84,6 +88,11 @@ func (tn *NITreeNode) HasFip() bool      { return tn.Fip() != "" }
 func (tn *NITreeNode) RouterID() uint    { return tn.FipID() }
 func (tn *NITreeNode) IsNI() bool        { return true }
 func (tn *NITreeNode) Label() string     { return labels2Table([]string{tn.name, tn.vsi}) }
+
+func (tn *NITreeNode) absoluteRouterGeometry() (x, y int) {
+	x, y = absoluteGeometry(tn)
+	return x + fipXOffset, y + fipYOffset
+}
 
 // ///////////////////////////////////////////
 type GatewayTreeNode struct {
@@ -139,12 +148,6 @@ func (tn *VsiTreeNode) GetVsiNIsSubnets() map[TreeNodeInterface]bool {
 		vsiSubnets[ni.Parent()] = true
 	}
 	return vsiSubnets
-}
-func (tn *VsiTreeNode) DrawioParentID() uint {
-	if len(tn.GetVsiNIsSubnets()) == 1 {
-		return tn.nis[0].Parent().ID()
-	}
-	return tn.Parent().ID()
 }
 
 func (tn *VsiTreeNode) setGeometry() {
