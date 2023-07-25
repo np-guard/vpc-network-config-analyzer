@@ -17,6 +17,11 @@ func TestWithParsing(t *testing.T) {
 	if err2 != nil {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err2)
 	}
+	n3 := NewNetworkTreeNode()
+	err3 := CreateDrawioConnectivityMapFile(n3, "fake3.drawio")
+	if err3 != nil {
+		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err3)
+	}
 }
 
 func createNetwork() SquareTreeNodeInterface {
@@ -59,6 +64,7 @@ func createNetwork() SquareTreeNodeInterface {
 	ni5b.SetVsi("svi3")
 	ni5b.SetFIP("fip2")
 
+	NewVpcTreeNode(network, "empty vpc")
 	vpc2 := NewVpcTreeNode(network, "vpc2")
 	zone21 := NewZoneTreeNode(vpc2, "zone21")
 	sg21 := NewSGTreeNode(vpc2, "sg21")
@@ -71,8 +77,10 @@ func createNetwork() SquareTreeNodeInterface {
 	GroupNIsWithVSI(zone21, "vsi2", []TreeNodeInterface{ni6, ni7, ni8})
 
 	zone22 := NewZoneTreeNode(vpc2, "zone22")
+	NewZoneTreeNode(vpc2, "empty zone")
 	zone23 := NewZoneTreeNode(vpc2, "zone23")
 	subnet221 := NewSubnetTreeNode(zone22, "subnet221", "ip", "key")
+	NewSubnetTreeNode(zone22, "empty subnet", "ip", "key")
 	subnet222 := NewSubnetTreeNode(zone22, "subnet222", "ip", "key")
 	subnet231 := NewSubnetTreeNode(zone23, "subnet231", "ip", "key")
 	sg22 := NewSGTreeNode(vpc2, "sg22")
