@@ -36,6 +36,8 @@ const (
 
 	// network -> vpc -> zone -> subnets
 	networkToSubnetDepth = 3
+	vpcToSubnetDepth     = 2
+	zoneToSubnetDepth    = 1
 )
 
 type layoutS struct {
@@ -67,15 +69,13 @@ func (ly *layoutS) layout() {
 	newLayoutOverlap(ly.network).fixOverlapping()
 }
 
-
 // setDefaultLocation() set locations to squares
-// these locations are relevant only in cases the square has no elements 
+// these locations are relevant only in cases the square has no elements
 func (ly *layoutS) setDefaultLocation(tn SquareTreeNodeInterface, rowIndex, colIndex int) {
 	l := ly.matrix.allocateCellLocation(rowIndex, colIndex)
 	l.firstRow.setHeight(subnetHeight)
 	l.firstCol.setWidth(subnetWidth)
 	tn.setLocation(l)
-
 }
 
 // ///////////////////////////////////////////////////////////////
@@ -120,7 +120,7 @@ func (ly *layoutS) layoutSubnetsIcons() {
 			}
 			colIndex++
 		}
-		if vpc.(*VpcTreeNode).zones == nil{
+		if vpc.(*VpcTreeNode).zones == nil {
 			colIndex++
 		}
 	}
@@ -191,11 +191,11 @@ func (*layoutS) resolveSquareLocation(tn SquareTreeNodeInterface, internalBorder
 }
 
 func (ly *layoutS) setSquaresLocations() {
-	ly.resolveSquareLocation(ly.network, 3, false)
+	ly.resolveSquareLocation(ly.network, networkToSubnetDepth, false)
 	for _, vpc := range ly.network.(*NetworkTreeNode).vpcs {
-		ly.resolveSquareLocation(vpc, 2, true)
+		ly.resolveSquareLocation(vpc, vpcToSubnetDepth, true)
 		for _, zone := range vpc.(*VpcTreeNode).zones {
-			ly.resolveSquareLocation(zone, 1, true)
+			ly.resolveSquareLocation(zone, zoneToSubnetDepth, true)
 			for _, subnet := range zone.(*ZoneTreeNode).subnets {
 				ly.resolveSquareLocation(subnet, 0, true)
 			}
