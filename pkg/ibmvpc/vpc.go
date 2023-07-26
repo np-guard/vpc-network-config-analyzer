@@ -513,7 +513,7 @@ type PublicGateway struct {
 	cidr         string
 	src          []vpcmodel.Node
 	destinations []vpcmodel.Node
-	subnetCidr   string
+	subnetCidr   []string
 }
 
 func (pgw *PublicGateway) Details() []string {
@@ -521,7 +521,8 @@ func (pgw *PublicGateway) Details() []string {
 	for _, n := range pgw.src {
 		attachedDetails += n.Name() + commaSeparator
 	}
-	return []string{"PublicGateway " + pgw.ResourceName + getRouterAttachedToStr(attachedDetails)}
+	subnets := strings.Join(pgw.subnetCidr, ",")
+	return []string{"PublicGateway " + pgw.ResourceName + " nodes " + getRouterAttachedToStr(attachedDetails) + " subnets: " + subnets}
 }
 
 func (pgw *PublicGateway) Kind() string {
@@ -546,13 +547,16 @@ func (pgw *PublicGateway) DetailsMap() []map[string]string {
 
 func (pgw *PublicGateway) ConnectivityMap() map[string]vpcmodel.ConfigBasedConnectivityResults {
 	res := map[string]vpcmodel.ConfigBasedConnectivityResults{}
-	res[pgw.subnetCidr] = vpcmodel.ConfigBasedConnectivityResults{
-		IngressAllowedConns: map[string]*common.ConnectionSet{},
-		EgressAllowedConns:  map[string]*common.ConnectionSet{},
+	for _, subnetCidr := range pgw.subnetCidr {
+		res[subnetCidr] = vpcmodel.ConfigBasedConnectivityResults{
+			IngressAllowedConns: map[string]*common.ConnectionSet{},
+			EgressAllowedConns:  map[string]*common.ConnectionSet{},
+		}
+		for _, dst := range pgw.destinations {
+			res[subnetCidr].EgressAllowedConns[dst.Name()] = vpcmodel.AllConns()
+		}
 	}
-	for _, dst := range pgw.destinations {
-		res[pgw.subnetCidr].EgressAllowedConns[dst.Name()] = vpcmodel.AllConns()
-	}
+
 	return res
 }
 
