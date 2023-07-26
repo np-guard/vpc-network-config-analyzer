@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"strings"
 
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
 
@@ -297,12 +296,12 @@ func getSubnetsNodes(subnets []*Subnet) []vpcmodel.Node {
 	return res
 }
 
-func getSubnetsCidrs(subnets []*Subnet) string {
+func getSubnetsCidrs(subnets []*Subnet) []string {
 	res := []string{}
 	for _, s := range subnets {
 		res = append(res, s.cidr)
 	}
-	return strings.Join(res, ",")
+	return res
 }
 
 func getPgwConfig(

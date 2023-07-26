@@ -115,6 +115,18 @@ func (tt *vpcGeneralTest) initTest() {
 }
 
 var tests = []*vpcGeneralTest{
+	{
+		name: "acl_testing5",
+		// TODO: currently skipping uc3 since it is not supported with partial subnet connectivity
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		format:   vpcmodel.Text,
+	},
+	{
+		name: "acl_testing5_old",
+		// TODO: currently skipping uc3 since it is not supported with partial subnet connectivity
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		format:   vpcmodel.Text,
+	},
 	// batch1: cover all use-cases, with text output format , no grouping
 	{
 		name: "acl_testing3",
