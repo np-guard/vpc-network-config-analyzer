@@ -115,6 +115,16 @@ func (tt *vpcGeneralTest) initTest() {
 }
 
 var tests = []*vpcGeneralTest{
+	{
+		name:     "acl_testing5",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		format:   vpcmodel.Text,
+	},
+	{
+		name:     "acl_testing5_old",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		format:   vpcmodel.Text,
+	},
 	// batch1: cover all use-cases, with text output format , no grouping
 	{
 		name: "acl_testing3",

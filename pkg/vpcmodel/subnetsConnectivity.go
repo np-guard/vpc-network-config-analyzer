@@ -205,6 +205,9 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() error {
 		for peerNode, conns := range connsRes.IngressAllowedConns {
 			src := peerNode
 			dst := subnetNodeSet
+			if src == dst {
+				continue
+			}
 			combinedConns := conns.Copy()
 
 			// peerNode kind is expected to be Subnet or External
@@ -226,6 +229,9 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() error {
 		for peerNode, conns := range connsRes.EgressAllowedConns {
 			src := subnetNodeSet
 			dst := peerNode
+			if src == dst {
+				continue
+			}
 			combinedConns := conns
 
 			// peerNode kind is expected to be Subnet or External
