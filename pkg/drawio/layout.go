@@ -36,6 +36,8 @@ const (
 
 	// network -> vpc -> zone -> subnets
 	networkToSubnetDepth = 3
+	vpcToSubnetDepth     = 2
+	zoneToSubnetDepth    = 1
 )
 
 type layoutS struct {
@@ -67,6 +69,15 @@ func (ly *layoutS) layout() {
 	newLayoutOverlap(ly.network).fixOverlapping()
 }
 
+// setDefaultLocation() set locations to squares
+// these locations are relevant only in cases the square has no elements
+func (ly *layoutS) setDefaultLocation(tn SquareTreeNodeInterface, rowIndex, colIndex int) {
+	l := ly.matrix.allocateCellLocation(rowIndex, colIndex)
+	l.firstRow.setHeight(subnetHeight)
+	l.firstCol.setWidth(subnetWidth)
+	tn.setLocation(l)
+}
+
 // ///////////////////////////////////////////////////////////////
 // layoutSubnetsIcons() implements a simple north-south east-west layouting:
 // 1. vpcs are next to each others
@@ -75,13 +86,17 @@ func (ly *layoutS) layout() {
 // 4. cell can hold at most two icons
 // 5. only icons with the same sg can share a cell
 func (ly *layoutS) layoutSubnetsIcons() {
+	ly.setDefaultLocation(ly.network, 0, 0)
 	colIndex := 0
 	for _, vpc := range ly.network.(*NetworkTreeNode).vpcs {
+		ly.setDefaultLocation(vpc, 0, colIndex)
 		for _, zone := range vpc.(*VpcTreeNode).zones {
 			rowIndex := 0
+			ly.setDefaultLocation(zone, rowIndex, colIndex)
 			for _, subnet := range zone.(*ZoneTreeNode).subnets {
 				var iconInCurrentCell IconTreeNodeInterface = nil
 				icons := subnet.IconTreeNodes()
+				ly.setDefaultLocation(subnet, rowIndex, colIndex)
 				for _, icon := range icons {
 					if iconInCurrentCell != nil && iconInCurrentCell.SG() != icon.SG() {
 						rowIndex++
@@ -103,6 +118,9 @@ func (ly *layoutS) layoutSubnetsIcons() {
 				}
 				rowIndex++
 			}
+			colIndex++
+		}
+		if vpc.(*VpcTreeNode).zones == nil {
 			colIndex++
 		}
 	}
@@ -154,10 +172,12 @@ func (ly *layoutS) addAllBorderLayers() {
 	ly.matrix.resize(newIndexFunction)
 }
 
-func (*layoutS) resolveSquareLocation(tn SquareTreeNodeInterface, addInternalBorders, addExternalBorders bool) {
+func (*layoutS) resolveSquareLocation(tn SquareTreeNodeInterface, internalBorders int, addExternalBorders bool) {
 	nl := mergeLocations(locations(getAllNodes(tn)))
-	if addInternalBorders {
+	for i := 0; i < internalBorders; i++ {
 		nl = newLocation(nl.prevRow(), nl.nextRow(), nl.prevCol(), nl.nextCol())
+	}
+	if internalBorders > 0 {
 		nl.firstRow.setHeight(borderWidth)
 		nl.lastRow.setHeight(borderWidth)
 		nl.firstCol.setWidth(borderWidth)
@@ -171,16 +191,16 @@ func (*layoutS) resolveSquareLocation(tn SquareTreeNodeInterface, addInternalBor
 }
 
 func (ly *layoutS) setSquaresLocations() {
+	ly.resolveSquareLocation(ly.network, networkToSubnetDepth, false)
 	for _, vpc := range ly.network.(*NetworkTreeNode).vpcs {
+		ly.resolveSquareLocation(vpc, vpcToSubnetDepth, true)
 		for _, zone := range vpc.(*VpcTreeNode).zones {
+			ly.resolveSquareLocation(zone, zoneToSubnetDepth, true)
 			for _, subnet := range zone.(*ZoneTreeNode).subnets {
-				ly.resolveSquareLocation(subnet, false, true)
+				ly.resolveSquareLocation(subnet, 0, true)
 			}
-			ly.resolveSquareLocation(zone, true, true)
 		}
-		ly.resolveSquareLocation(vpc, true, true)
 	}
-	ly.resolveSquareLocation(ly.network, true, false)
 }
 
 // ////////////////////////////////////////////////////////////////////////////////////////
