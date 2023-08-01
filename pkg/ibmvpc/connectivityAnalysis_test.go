@@ -222,7 +222,8 @@ func TestAnalyzeConnectivity4(t *testing.T) {
 
 func runConnectivityTest(t *testing.T, tc *testNodesConfig, ncList []*naclConfig, expectedStrResult string) {
 	c := createConfigFromTestConfig(tc, ncList)
-	connectivity, _ := c.GetVPCNetworkConnectivity(false)
+	connectivity, err := c.GetVPCNetworkConnectivity(false)
+	require.Nil(t, err)
 	connectivityStr := connectivity.DetailedString()
 	fmt.Println(connectivityStr)
 	fmt.Println("done")
@@ -405,7 +406,8 @@ vsi-2[10.240.20.4] => vsi-1[10.240.10.4] : All Connections
 */
 func TestAnalyzeConnectivity(t *testing.T) {
 	c := NewSimpleCloudConfig()
-	connectivity, _ := c.GetVPCNetworkConnectivity(false)
+	connectivity, err := c.GetVPCNetworkConnectivity(false)
+	require.Nil(t, err)
 	connectivityStr := connectivity.DetailedString()
 	fmt.Println(connectivityStr)
 	fmt.Println("done")

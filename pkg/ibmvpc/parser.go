@@ -130,12 +130,26 @@ type iksNode struct {
 const iksParsingIssue = "issue parsing iks node"
 const networkInterfaces = "networkInterfaces"
 
+/*
+assuming the following components are within input to parseIKSNode:
+"networkInterfaces": [
+                {
+                    "cidr": "cidr-str",
+                    "ipAddress": "ip-str",
+                    "subnetID": "id-str"
+                }
+            ],
+"id": "id-str",
+
+*/
+
 func parseIKSNode(m map[string]json.RawMessage) (*iksNode, error) {
 	res := &iksNode{}
+
+	// parse the "networkInterfaces" section
 	if _, ok := m[networkInterfaces]; !ok {
 		return nil, errors.New(iksParsingIssue)
 	}
-
 	netInterfaces, err := JSONToList(m[networkInterfaces])
 	if err != nil {
 		return nil, err
@@ -152,6 +166,7 @@ func parseIKSNode(m map[string]json.RawMessage) (*iksNode, error) {
 		return nil, err
 	}
 
+	// parse the "id" section
 	id, ok := m["id"]
 	if !ok {
 		return nil, errors.New(iksParsingIssue)
@@ -164,6 +179,7 @@ func parseIKSNode(m map[string]json.RawMessage) (*iksNode, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return res, nil
 }
 
