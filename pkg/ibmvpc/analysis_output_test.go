@@ -225,6 +225,13 @@ var tests = []*vpcGeneralTest{
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		format:   vpcmodel.ARCHDRAWIO,
 	},
+	// iks-nodes example
+	{
+		name:     "iks_config_object",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping: true,
+		format:   vpcmodel.Text,
+	},
 }
 
 // uncomment the function below to run for updating the expected output
@@ -284,6 +291,8 @@ func (tt *vpcGeneralTest) runTest(t *testing.T) {
 
 	// get CloudConfig obj from parsing + analyzing input config file
 	cloudConfig := getCloudConfig(t, tt)
+
+	fmt.Println(cloudConfig.String())
 
 	// generate actual output for all use cases specified for this test
 	for _, uc := range tt.useCases {

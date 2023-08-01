@@ -24,7 +24,17 @@ const (
 	detailsAttributeSubnetCIDR = "subnetCidr"
 	detailsAttributeSubnetUID  = "subnetUID"
 	detailsAttributeZone       = "zone"
+	iksNodeKind                = "IKSNodeNetworkInterface"
 )
+
+func getNodeName(name, addr string) string {
+	return fmt.Sprintf("%s[%s]", name, addr)
+}
+
+// ni.Kind() + space + ni.address + space + ni.Name() + " subnet: " + ni.subnet.cidr
+func getNodeDetails(kind, addr, name, subnetCidr string) string {
+	return kind + space + addr + space + name + " subnet: " + subnetCidr
+}
 
 // nodes elements - implement vpcmodel.Node interface
 type NetworkInterface struct {
@@ -55,10 +65,10 @@ func (ni *NetworkInterface) Kind() string {
 	return "NetworkInterface"
 }
 func (ni *NetworkInterface) Name() string {
-	return fmt.Sprintf("%s[%s]", ni.vsi, ni.address)
+	return getNodeName(ni.vsi, ni.address)
 }
 func (ni *NetworkInterface) Details() []string {
-	return []string{ni.Kind() + " " + ni.address + space + ni.Name() + " subnet: " + ni.subnet.cidr}
+	return []string{getNodeDetails(ni.Kind(), ni.address, ni.Name(), ni.subnet.cidr)}
 }
 func (ni *NetworkInterface) DetailsMap() []map[string]string {
 	res := map[string]string{}
@@ -69,6 +79,49 @@ func (ni *NetworkInterface) DetailsMap() []map[string]string {
 	res[detailsAttributeAddress] = ni.address
 	res[detailsAttributeSubnetCIDR] = ni.subnet.cidr
 	res[detailsAttributeSubnetUID] = ni.subnet.ResourceUID
+	return []map[string]string{res}
+}
+
+type IKSNode struct {
+	vpcmodel.VPCResource
+	address string
+	subnet  *Subnet
+}
+
+func (n *IKSNode) Cidr() string {
+	return n.address
+}
+func (n *IKSNode) IsInternal() bool {
+	return true
+}
+
+func (n *IKSNode) IsPublicInternet() bool {
+	return false
+}
+
+func (n *IKSNode) VsiName() string {
+	return ""
+}
+
+func (n *IKSNode) Kind() string {
+	return iksNodeKind
+}
+func (n *IKSNode) Name() string {
+	return getNodeName(n.ResourceName, n.address)
+}
+
+func (n *IKSNode) Details() []string {
+	return []string{getNodeDetails(n.Kind(), n.address, n.Name(), n.subnet.cidr)}
+}
+
+func (n *IKSNode) DetailsMap() []map[string]string {
+	res := map[string]string{}
+	res[vpcmodel.DetailsAttributeKind] = n.Kind()
+	res[vpcmodel.DetailsAttributeName] = n.ResourceName
+	res[detailsAttributeUID] = n.ResourceUID
+	res[detailsAttributeAddress] = n.address
+	res[detailsAttributeSubnetCIDR] = n.subnet.cidr
+	res[detailsAttributeSubnetUID] = n.subnet.ResourceUID
 	return []map[string]string{res}
 }
 
@@ -248,13 +301,16 @@ func (nl *NaclLayer) GetConnectivityOutputPerEachElemSeparately() string {
 	return strings.Join(res, "\n")
 }
 
-func (nl *NaclLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *common.ConnectionSet {
+func (nl *NaclLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*common.ConnectionSet, error) {
 	res := vpcmodel.NoConns()
 	for _, nacl := range nl.naclList {
-		naclConn := nacl.AllowedConnectivity(src, dst, isIngress)
+		naclConn, err := nacl.AllowedConnectivity(src, dst, isIngress)
+		if err != nil {
+			return nil, err
+		}
 		res = res.Union(naclConn)
 	}
-	return res
+	return res, nil
 }
 
 func (nl *NaclLayer) ReferencedIPblocks() []*common.IPBlock {
@@ -303,34 +359,43 @@ func (n *NACL) GeneralConnectivityPerSubnet(subnetCidr string) string {
 	return res
 }
 
-func (n *NACL) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *common.ConnectionSet {
+func getNodeCidrs(n vpcmodel.Node) (subnetCidr, nodeCidr string, err error) {
+	switch t := n.(type) {
+	case *NetworkInterface:
+		return t.subnet.cidr, t.Cidr(), nil
+	case *IKSNode:
+		return t.subnet.cidr, t.Cidr(), nil
+	default:
+		return "", "", fmt.Errorf("cannot get cidr for node: %s", n)
+	}
+}
+
+func (n *NACL) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*common.ConnectionSet, error) {
 	var subnetCidr string
 	var inSubnetCidr string
 	var targetNode vpcmodel.Node
+	var err error
 	if isIngress {
 		targetNode = src
-		if dstInstance, ok := dst.(*NetworkInterface); ok {
-			subnetCidr = dstInstance.subnet.cidr
-			inSubnetCidr = dst.Cidr()
-		}
+		subnetCidr, inSubnetCidr, err = getNodeCidrs(dst)
 	} else {
 		targetNode = dst
-		if srcInstance, ok := src.(*NetworkInterface); ok {
-			subnetCidr = srcInstance.subnet.cidr
-			inSubnetCidr = src.Cidr()
-		}
+		subnetCidr, inSubnetCidr, err = getNodeCidrs(src)
+	}
+	if err != nil {
+		return nil, err
 	}
 	// check if the subnet of the given node is affected by this nacl
 	if _, ok := n.subnets[subnetCidr]; !ok {
-		return vpcmodel.NoConns() // not affected by current nacl
+		return vpcmodel.NoConns(), nil // not affected by current nacl
 	}
 	// TODO: differentiate between "has no effect" vs "affects with allow-all / allow-none "
 	if allInSubnet, err := common.IsAddressInSubnet(targetNode.Cidr(), subnetCidr); err == nil && allInSubnet {
-		return vpcmodel.AllConns() // nacl has no control on traffic between two instances in its subnet
+		return vpcmodel.AllConns(), nil // nacl has no control on traffic between two instances in its subnet
 	}
 	// TODO: consider err
 	res, _ := n.analyzer.AllowedConnectivity(subnetCidr, inSubnetCidr, targetNode.Cidr(), isIngress)
-	return res
+	return res, nil
 }
 
 // SecurityGroupLayer captures all SG in the vpc config, analyzes connectivity considering all SG resources
@@ -372,13 +437,16 @@ func (sgl *SecurityGroupLayer) GetConnectivityOutputPerEachElemSeparately() stri
 }
 
 // TODO: fix: is it possible that no sg applies  to the input peer? if so, should not return "no conns" when none applies
-func (sgl *SecurityGroupLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *common.ConnectionSet {
+func (sgl *SecurityGroupLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*common.ConnectionSet, error) {
+	if (isIngress && dst.Kind() == iksNodeKind) || (!isIngress && src.Kind() == iksNodeKind) {
+		return vpcmodel.AllConns(), nil
+	}
 	res := vpcmodel.NoConns()
 	for _, sg := range sgl.sgList {
 		sgConn := sg.AllowedConnectivity(src, dst, isIngress)
 		res = res.Union(sgConn)
 	}
-	return res
+	return res, nil
 }
 
 func (sgl *SecurityGroupLayer) ReferencedIPblocks() []*common.IPBlock {

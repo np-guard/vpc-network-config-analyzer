@@ -2,6 +2,7 @@ package ibmvpc
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 
@@ -29,6 +30,7 @@ type ResourcesContainer struct {
 	vpcsList     []*vpc1.VPC
 	fipList      []*vpc1.FloatingIP
 	pgwList      []*vpc1.PublicGateway
+	iksNodes     []*iksNode
 }
 
 func NewResourcesContainer() *ResourcesContainer {
@@ -40,6 +42,7 @@ func NewResourcesContainer() *ResourcesContainer {
 		vpcsList:     []*vpc1.VPC{},
 		fipList:      []*vpc1.FloatingIP{},
 		pgwList:      []*vpc1.PublicGateway{},
+		iksNodes:     []*iksNode{},
 	}
 	return res
 }
@@ -70,6 +73,10 @@ func (rc *ResourcesContainer) addFloatingIP(n *vpc1.FloatingIP) {
 
 func (rc *ResourcesContainer) addPublicGateway(n *vpc1.PublicGateway) {
 	rc.pgwList = append(rc.pgwList, n)
+}
+
+func (rc *ResourcesContainer) addIKSNode(n *iksNode) {
+	rc.iksNodes = append(rc.iksNodes, n)
 }
 
 var _ = (*ResourcesContainer).printDetails // avoiding "unused" warning
@@ -110,6 +117,69 @@ func addParsedInstances(vList []json.RawMessage, res *ResourcesContainer) error 
 		}
 		res.addInstance(obj)
 	}
+	return nil
+}
+
+type iksNode struct {
+	Cidr      string
+	IPAddress string
+	SubnetID  string
+	ID        string
+}
+
+const iksParsingIssue = "issue parsing iks node"
+const networkInterfaces = "networkInterfaces"
+
+func parseIKSNode(m map[string]json.RawMessage) (*iksNode, error) {
+	res := &iksNode{}
+	if _, ok := m[networkInterfaces]; !ok {
+		return nil, errors.New(iksParsingIssue)
+	}
+
+	netInterfaces, err := JSONToList(m[networkInterfaces])
+	if err != nil {
+		return nil, err
+	}
+	if len(netInterfaces) != 1 {
+		return nil, errors.New(iksParsingIssue)
+	}
+	netInterfaceStr, err := json.Marshal(netInterfaces[0])
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(netInterfaceStr, res)
+	if err != nil {
+		return nil, err
+	}
+
+	id, ok := m["id"]
+	if !ok {
+		return nil, errors.New(iksParsingIssue)
+	}
+	idStr, err := json.Marshal(id)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(idStr, &res.ID)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func addParsedWorkerNodes(vList []json.RawMessage, res *ResourcesContainer) error {
+	for i := range vList {
+		nodesMap, err := JSONToMap(vList[i])
+		if err != nil {
+			return err
+		}
+		obj, err := parseIKSNode(nodesMap)
+		if err != nil {
+			return err
+		}
+		res.addIKSNode(obj)
+	}
+
 	return nil
 }
 
@@ -175,6 +245,8 @@ func parseSingleResourceList(key string, vList []json.RawMessage, res *Resources
 		return addParsedPgw(vList, res)
 	case "endpoint_gateways":
 		fmt.Println("warning: ignoring endpoint_gateways, TODO: add support")
+	case "iks_worker_nodes":
+		return addParsedWorkerNodes(vList, res)
 	default:
 		fmt.Printf("%s resource type is not yet supported\n", key)
 	}
@@ -443,6 +515,35 @@ func getNACLconfig(rc *ResourcesContainer, res *vpcmodel.CloudConfig, subnetName
 	return nil
 }
 
+func getSubnetByCidr(m map[string]*Subnet, cidr string) (*Subnet, error) {
+	for _, subnet := range m {
+		if subnet.cidr == cidr {
+			return subnet, nil
+		}
+	}
+	return nil, fmt.Errorf("could not find subnet with cidr: %s", cidr)
+}
+
+func getIKSnodesConfig(res *vpcmodel.CloudConfig, subnetNameToSubnet map[string]*Subnet, rc *ResourcesContainer) error {
+	for i := range rc.iksNodes {
+		iksNode := rc.iksNodes[i]
+		subnet, err := getSubnetByCidr(subnetNameToSubnet, iksNode.Cidr)
+		if err != nil {
+			return err
+		}
+
+		nodeObject := &IKSNode{
+			VPCResource: vpcmodel.VPCResource{ResourceName: "iks-node", ResourceUID: iksNode.ID},
+			address:     iksNode.IPAddress,
+			subnet:      subnet,
+		}
+		res.Nodes = append(res.Nodes, nodeObject)
+		// attach the node to the subnet
+		subnet.nodes = append(subnet.nodes, nodeObject)
+	}
+	return nil
+}
+
 func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
 	res := &vpcmodel.CloudConfig{
 		Nodes:            []vpcmodel.Node{},
@@ -461,6 +562,10 @@ func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
 	pgwToSubnet := map[string][]*Subnet{} // map from pgw name to its attached subnet(s)
 	subnetNameToSubnet := map[string]*Subnet{}
 	vpcInternalAddressRange = getSubnetsConfig(res, pgwToSubnet, subnetNameToSubnet, subnetNameToNetIntf, rc)
+
+	if err := getIKSnodesConfig(res, subnetNameToSubnet, rc); err != nil {
+		return nil, err
+	}
 
 	getPgwConfig(res, rc, pgwToSubnet)
 
