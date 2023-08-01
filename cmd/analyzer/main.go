@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/ibmvpc"
@@ -83,7 +84,6 @@ func _main(cmdlineArgs []string) error {
 func main() {
 	err := _main(os.Args[1:])
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v. exiting...", err)
-		os.Exit(1)
+		log.Fatalf("%v. exiting...", err)
 	}
 }

@@ -115,6 +115,16 @@ func (tt *vpcGeneralTest) initTest() {
 }
 
 var tests = []*vpcGeneralTest{
+	{
+		name:     "acl_testing5",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		format:   vpcmodel.Text,
+	},
+	{
+		name:     "acl_testing5_old",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		format:   vpcmodel.Text,
+	},
 	// batch1: cover all use-cases, with text output format , no grouping
 	{
 		name: "acl_testing3",
@@ -218,7 +228,7 @@ var tests = []*vpcGeneralTest{
 }
 
 // uncomment the function below to run for updating the expected output
-/*func TestAllWithGeneration(t *testing.T) {
+func TestAllWithGeneration(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range tests {
 		tt := tests[testIdx]
@@ -234,7 +244,7 @@ var tests = []*vpcGeneralTest{
 		})
 	}
 	fmt.Println("done")
-}*/
+}
 
 func TestAllWithComparison(t *testing.T) {
 	// tests is the list of tests to run
