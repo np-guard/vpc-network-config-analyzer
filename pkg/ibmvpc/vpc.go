@@ -31,7 +31,6 @@ func getNodeName(name, addr string) string {
 	return fmt.Sprintf("%s[%s]", name, addr)
 }
 
-// ni.Kind() + space + ni.address + space + ni.Name() + " subnet: " + ni.subnet.cidr
 func getNodeDetails(kind, addr, name, subnetCidr string) string {
 	return kind + space + addr + space + name + " subnet: " + subnetCidr
 }
@@ -124,14 +123,6 @@ func (n *IKSNode) DetailsMap() []map[string]string {
 	res[detailsAttributeSubnetUID] = n.subnet.ResourceUID
 	return []map[string]string{res}
 }
-
-/*type ReservedIP struct {
-	name string
-	cidr string
-}
-
-
-*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // nodesets elements - implement vpcmodel.NodeSet interface

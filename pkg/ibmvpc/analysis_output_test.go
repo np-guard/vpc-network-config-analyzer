@@ -292,8 +292,6 @@ func (tt *vpcGeneralTest) runTest(t *testing.T) {
 	// get CloudConfig obj from parsing + analyzing input config file
 	cloudConfig := getCloudConfig(t, tt)
 
-	fmt.Println(cloudConfig.String())
-
 	// generate actual output for all use cases specified for this test
 	for _, uc := range tt.useCases {
 		err := runTestPerUseCase(t, tt, cloudConfig, uc, tt.mode)
