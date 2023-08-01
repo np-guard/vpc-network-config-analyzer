@@ -29,9 +29,9 @@ func newGroupingConnections() *groupingConnections {
 	return &res
 }
 
-func newGroupConnLines(c *CloudConfig, v *VPCConnectivity) *GroupConnLines {
+func newGroupConnLines(c *CloudConfig, v *VPCConnectivity, grouping bool) *GroupConnLines {
 	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections()}
-	res.computeGrouping()
+	res.computeGrouping(grouping)
 	return res
 }
 
@@ -186,10 +186,12 @@ func (g *GroupConnLines) groupSubnetsSrcOrDst(srcGrouping bool) {
 	g.GroupedLines = res
 }
 
-func (g *GroupConnLines) computeGrouping() {
+func (g *GroupConnLines) computeGrouping(grouping bool) {
 	g.groupExternalAddresses()
-	g.groupSubnetsSrcOrDst(true)
-	g.groupSubnetsSrcOrDst(false)
+	if grouping {
+		g.groupSubnetsSrcOrDst(true)
+		g.groupSubnetsSrcOrDst(false)
+	}
 }
 
 // get the grouped connectivity output
