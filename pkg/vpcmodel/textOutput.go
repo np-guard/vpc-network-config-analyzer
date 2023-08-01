@@ -11,10 +11,9 @@ func (t *TextOutputFormatter) WriteOutputAllEndpoints(c *CloudConfig, conn *VPCC
 ) {
 	var out string
 	if grouping {
-		out = groupedConnectivityString(conn)
-	} else {
-		out = conn.String()
+		out = "\ngrouped output:\n"
 	}
+	out += groupedConnectivityString(conn)
 	return writeOutput(out, outFile)
 }
 
@@ -29,5 +28,5 @@ func (t *TextOutputFormatter) WriteOutputSingleSubnet(c *CloudConfig, outFile st
 }
 
 func groupedConnectivityString(conn *VPCConnectivity) string {
-	return "\ngrouped output:\n" + conn.GroupedConnectivity.String()
+	return conn.GroupedConnectivity.String()
 }

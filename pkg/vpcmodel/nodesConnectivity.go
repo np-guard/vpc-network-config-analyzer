@@ -47,9 +47,7 @@ func (c *CloudConfig) GetVPCNetworkConnectivity(grouping bool) *VPCConnectivity 
 	}
 	res.computeAllowedConnsCombined()
 	res.computeAllowedStatefulConnections()
-	if grouping {
-		res.GroupedConnectivity = newGroupConnLines(c, res)
-	}
+	res.GroupedConnectivity = newGroupConnLines(c, res, grouping)
 	return res
 }
 
