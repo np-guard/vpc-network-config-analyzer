@@ -127,8 +127,7 @@ type iksNode struct {
 	ID        string
 }
 
-const iksParsingIssue = "issue parsing iks node"
-const networkInterfaces = "networkInterfaces"
+var errIksParsing = errors.New("issue parsing IKS node")
 
 /*
 assuming the following components are within input to parseIKSNode:
@@ -144,38 +143,36 @@ assuming the following components are within input to parseIKSNode:
 */
 
 func parseIKSNode(m map[string]json.RawMessage) (*iksNode, error) {
-	res := &iksNode{}
-
 	// parse the "networkInterfaces" section
-	if _, ok := m[networkInterfaces]; !ok {
-		return nil, errors.New(iksParsingIssue)
+	nis, ok := m["networkInterfaces"]
+	if !ok {
+		return nil, errIksParsing
 	}
-	netInterfaces, err := JSONToList(m[networkInterfaces])
+	netInterfaces, err := JSONToList(nis)
 	if err != nil {
 		return nil, err
 	}
 	if len(netInterfaces) != 1 {
-		return nil, errors.New(iksParsingIssue)
+		return nil, errIksParsing
 	}
-	netInterfaceStr, err := json.Marshal(netInterfaces[0])
-	if err != nil {
-		return nil, err
-	}
-	err = json.Unmarshal(netInterfaceStr, res)
+
+	var iksNodes []iksNode
+	err = json.Unmarshal(nis, &iksNodes)
 	if err != nil {
 		return nil, err
 	}
 
+	if len(iksNodes) != 1 {
+		return nil, errIksParsing
+	}
+	res := &iksNodes[0]
+
 	// parse the "id" section
 	id, ok := m["id"]
 	if !ok {
-		return nil, errors.New(iksParsingIssue)
+		return nil, errIksParsing
 	}
-	idStr, err := json.Marshal(id)
-	if err != nil {
-		return nil, err
-	}
-	err = json.Unmarshal(idStr, &res.ID)
+	err = json.Unmarshal(id, &res.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -541,8 +538,7 @@ func getSubnetByCidr(m map[string]*Subnet, cidr string) (*Subnet, error) {
 }
 
 func getIKSnodesConfig(res *vpcmodel.CloudConfig, subnetNameToSubnet map[string]*Subnet, rc *ResourcesContainer) error {
-	for i := range rc.iksNodes {
-		iksNode := rc.iksNodes[i]
+	for _, iksNode := range rc.iksNodes {
 		subnet, err := getSubnetByCidr(subnetNameToSubnet, iksNode.Cidr)
 		if err != nil {
 			return err

@@ -357,7 +357,7 @@ func getNodeCidrs(n vpcmodel.Node) (subnetCidr, nodeCidr string, err error) {
 	case *IKSNode:
 		return t.subnet.cidr, t.Cidr(), nil
 	default:
-		return "", "", fmt.Errorf("cannot get cidr for node: %s", n)
+		return "", "", fmt.Errorf("cannot get cidr for node: %+v", n)
 	}
 }
 
