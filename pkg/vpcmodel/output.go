@@ -46,7 +46,11 @@ func NewOutputGenerator(c *CloudConfig, grouping bool, uc OutputUseCase, archOnl
 	}
 	if !archOnly {
 		if uc == AllEndpoints {
-			res.nodesConn = c.GetVPCNetworkConnectivity(grouping)
+			nodesConn, err := c.GetVPCNetworkConnectivity(grouping)
+			if err != nil {
+				return nil, err
+			}
+			res.nodesConn = nodesConn
 		}
 		if uc == AllSubnets {
 			subnetsConn, err := c.GetSubnetsConnectivity(true)
