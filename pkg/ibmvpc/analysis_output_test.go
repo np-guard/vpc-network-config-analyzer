@@ -356,7 +356,7 @@ func runTestPerUseCase(t *testing.T, tt *vpcGeneralTest, c *vpcmodel.CloudConfig
 
 // comparison should be insensitive to line comparators; cleaning strings from line comparators
 func cleanStr(str string) string {
-	return strings.Replace(strings.Replace(str, "/n", "", -1), "\r", "", -1)
+	return strings.ReplaceAll(strings.ReplaceAll(str, "/n", ""), "\r", "")
 }
 
 // compareTextualResult is called in case of output mismatch, to provide more details on the difference
