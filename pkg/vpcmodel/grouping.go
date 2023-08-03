@@ -4,21 +4,30 @@ import (
 	"fmt"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"sort"
+	"strconv"
 	"strings"
 )
 
+// map betweeen node to a map between a string containing connection;;IsStateful and the nodes connected through this connection
 type groupingConnections map[Node]map[string][]Node // for each line here can group list of external nodes to cidrs list as of one element
 
 func (g *groupingConnections) getGroupedConnLines(isSrcToDst bool) []*GroupedConnLine {
 	res := []*GroupedConnLine{}
 	for a, aMap := range *g {
-		for conn, b := range aMap {
+		for connIsStateful, b := range aMap {
+			connIsStatefulSlice := strings.Split(connIsStateful, ";;")
+			if len(connIsStatefulSlice) != 2 {
+				err := fmt.Sprintf("something wrong connIsStatefulSlice %+v is not in the right format; ", connIsStateful)
+				panic(err)
+			}
+			conn := connIsStatefulSlice[0]
+			isStateful, _ := strconv.Atoi(connIsStatefulSlice[1])
 			var resElem *GroupedConnLine
 			bGrouped := groupedExternalNodes(b)
 			if isSrcToDst {
-				resElem = &GroupedConnLine{a, &bGrouped, conn, 0} //todo: tmp
+				resElem = &GroupedConnLine{a, &bGrouped, conn, isStateful}
 			} else {
-				resElem = &GroupedConnLine{&bGrouped, a, conn, 0} //todo: tmp
+				resElem = &GroupedConnLine{&bGrouped, a, conn, isStateful}
 			}
 			res = append(res, resElem)
 		}
@@ -89,14 +98,14 @@ func (g *groupedExternalNodes) Name() string {
 	return listNodesStr(*g, Node.Cidr)
 }
 
-func (g *groupingConnections) addPublicConnectivity(n Node, conn string, target Node) {
+func (g *groupingConnections) addPublicConnectivity(n Node, connIsStateful string, target Node) {
 	if _, ok := (*g)[n]; !ok {
 		(*g)[n] = map[string][]Node{}
 	}
-	if _, ok := (*g)[n][conn]; !ok {
-		(*g)[n][conn] = []Node{}
+	if _, ok := (*g)[n][connIsStateful]; !ok {
+		(*g)[n][connIsStateful] = []Node{}
 	}
-	(*g)[n][conn] = append((*g)[n][conn], target)
+	(*g)[n][connIsStateful] = append((*g)[n][connIsStateful], target)
 }
 
 // subnetGrouping returns a slice of EndpointElem objects produced from an input slice, by grouping
@@ -136,11 +145,12 @@ func (g *GroupConnLines) groupExternalAddresses() {
 				continue
 			}
 			connString := conns.String()
+			connIsStateful := fmt.Sprintf("%s;;%d", connString, conns.IsStateful)
 			switch {
 			case dst.IsPublicInternet():
-				g.srcToDst.addPublicConnectivity(src, connString, dst)
+				g.srcToDst.addPublicConnectivity(src, connIsStateful, dst)
 			case src.IsPublicInternet():
-				g.dstToSrc.addPublicConnectivity(dst, connString, src)
+				g.dstToSrc.addPublicConnectivity(dst, connIsStateful, src)
 			default:
 				res = append(res, &GroupedConnLine{src, dst, connString, conns.IsStateful})
 			}
