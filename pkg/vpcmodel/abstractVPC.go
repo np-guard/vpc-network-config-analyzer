@@ -60,7 +60,7 @@ type NodeSet interface {
 type FilterTrafficResource interface {
 	VPCResourceIntf
 	// get the connectivity result when the filterTraffic resource is applied to the given NodeSet element
-	AllowedConnectivity(src, dst Node, isIngress bool) *common.ConnectionSet
+	AllowedConnectivity(src, dst Node, isIngress bool) (*common.ConnectionSet, error)
 	ReferencedIPblocks() []*common.IPBlock
 	ConnectivityMap() (map[string]*IPbasedConnectivityResult, error)
 	GetConnectivityOutputPerEachElemSeparately() string

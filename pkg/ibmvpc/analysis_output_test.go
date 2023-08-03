@@ -225,6 +225,13 @@ var tests = []*vpcGeneralTest{
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		format:   vpcmodel.ARCHDRAWIO,
 	},
+	// iks-nodes example
+	{
+		name:     "iks_config_object",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping: true,
+		format:   vpcmodel.Text,
+	},
 }
 
 // uncomment the function below to run for updating the expected output
