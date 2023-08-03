@@ -53,10 +53,11 @@ func (c *CloudConfig) GetVPCNetworkConnectivity(grouping bool) (*VPCConnectivity
 	}
 	res.computeAllowedConnsCombined()
 	res.computeAllowedStatefulConnections()
+	var err error = nil
 	if grouping {
-		res.GroupedConnectivity = newGroupConnLines(c, res)
+		res.GroupedConnectivity, err = newGroupConnLines(c, res)
 	}
-	return res, nil
+	return res, err
 }
 
 func (c *CloudConfig) getFiltersAllowedConnsBetweenNodesPerDirectionAndLayer(

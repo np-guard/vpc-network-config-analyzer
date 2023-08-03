@@ -113,7 +113,10 @@ func newCloudConfigTest2() (*CloudConfig, *VPCConnectivity) {
 func TestGroupingPhase1(t *testing.T) {
 	c, v := newCloudConfigTest1()
 	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections()}
-	res.groupExternalAddresses()
+	err := res.groupExternalAddresses()
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
 
 	groupingStr := res.String()
 	require.Equal(t, "vsi1 => 1.2.3.4/22,8.8.8.8/32 : All Connections", groupingStr)
@@ -126,7 +129,10 @@ func TestGroupingPhase2(t *testing.T) {
 	c, v := newCloudConfigTest2()
 	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections()}
 	// phase 1
-	res.groupExternalAddresses()
+	err := res.groupExternalAddresses()
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
 	groupingStr := res.String()
 	require.Equal(t, "vsi1 => 1.2.3.4/22,8.8.8.8/32 : All Connections\nvsi2 => 1.2.3.4/22,8.8.8.8/32 : All Connections", groupingStr)
 	// phase 2

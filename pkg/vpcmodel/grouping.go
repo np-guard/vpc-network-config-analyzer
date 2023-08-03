@@ -12,14 +12,13 @@ import (
 // map betweeen node to a map between a string containing connection;;IsStateful and the nodes connected through this connection
 type groupingConnections map[Node]map[string][]Node // for each line here can group list of external nodes to cidrs list as of one element
 
-func (g *groupingConnections) getGroupedConnLines(isSrcToDst bool) []*GroupedConnLine {
+func (g *groupingConnections) getGroupedConnLines(isSrcToDst bool) ([]*GroupedConnLine, error) {
 	res := []*GroupedConnLine{}
 	for a, aMap := range *g {
 		for connWithStatefulness, b := range aMap {
 			connWithStatefulnessSlice := strings.Split(connWithStatefulness, ";;")
 			if len(connWithStatefulnessSlice) != 2 {
-				err := fmt.Sprintf("something wrong connWithStatefulnessSlice %+v is not in the right format; ", connWithStatefulness)
-				panic(err)
+				return nil, fmt.Errorf("something wrong connWithStatefulnessSlice %+v is not in the right format; ", connWithStatefulness)
 			}
 			conn := connWithStatefulnessSlice[0]
 			isStateful, _ := strconv.Atoi(connWithStatefulnessSlice[1])
@@ -33,7 +32,7 @@ func (g *groupingConnections) getGroupedConnLines(isSrcToDst bool) []*GroupedCon
 			res = append(res, resElem)
 		}
 	}
-	return res
+	return res, nil
 }
 
 func newGroupingConnections() *groupingConnections {
@@ -41,10 +40,10 @@ func newGroupingConnections() *groupingConnections {
 	return &res
 }
 
-func newGroupConnLines(c *CloudConfig, v *VPCConnectivity) *GroupConnLines {
+func newGroupConnLines(c *CloudConfig, v *VPCConnectivity) (*GroupConnLines, error) {
 	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections()}
-	res.computeGrouping()
-	return res
+	err := res.computeGrouping()
+	return res, err
 }
 
 type GroupConnLines struct {
@@ -137,7 +136,7 @@ func subnetGrouping(elemsList []EndpointElem, c *CloudConfig) []EndpointElem {
 	return res
 }
 
-func (g *GroupConnLines) groupExternalAddresses() {
+func (g *GroupConnLines) groupExternalAddresses() error {
 	// phase1: group public internet ranges
 	res := []*GroupedConnLine{}
 	for src, nodeConns := range g.v.AllowedConnsCombined {
@@ -158,9 +157,18 @@ func (g *GroupConnLines) groupExternalAddresses() {
 		}
 	}
 	// add to res lines from  srcToDst and DstToSrc groupings
-	res = append(res, g.srcToDst.getGroupedConnLines(true)...)
-	res = append(res, g.dstToSrc.getGroupedConnLines(false)...)
+	resSrcToDst, err := g.srcToDst.getGroupedConnLines(true)
+	if err != nil {
+		return err
+	}
+	res = append(res, resSrcToDst...)
+	resDstToSrc, err := g.dstToSrc.getGroupedConnLines(false)
+	if err != nil {
+		return err
+	}
+	res = append(res, resDstToSrc...)
 	g.GroupedLines = res
+	return nil
 }
 
 // assuming the  g.groupedLines was already initialized by previous step groupExternalAddresses()
@@ -204,10 +212,14 @@ func (g *GroupConnLines) groupSubnetsSrcOrDst(srcGrouping bool) {
 	g.GroupedLines = res
 }
 
-func (g *GroupConnLines) computeGrouping() {
-	g.groupExternalAddresses()
+func (g *GroupConnLines) computeGrouping() error {
+	err := g.groupExternalAddresses()
+	if err != nil {
+		return err
+	}
 	g.groupSubnetsSrcOrDst(true)
 	g.groupSubnetsSrcOrDst(false)
+	return nil
 }
 
 // get the grouped connectivity output
