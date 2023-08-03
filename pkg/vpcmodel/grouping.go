@@ -1,6 +1,8 @@
 package vpcmodel
 
 import (
+	"fmt"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"sort"
 	"strings"
 )
@@ -14,9 +16,9 @@ func (g *groupingConnections) getGroupedConnLines(isSrcToDst bool) []*GroupedCon
 			var resElem *GroupedConnLine
 			bGrouped := groupedExternalNodes(b)
 			if isSrcToDst {
-				resElem = &GroupedConnLine{a, &bGrouped, conn}
+				resElem = &GroupedConnLine{a, &bGrouped, conn, 0} //todo: tmp
 			} else {
-				resElem = &GroupedConnLine{&bGrouped, a, conn}
+				resElem = &GroupedConnLine{&bGrouped, a, conn, 0} //todo: tmp
 			}
 			res = append(res, resElem)
 		}
@@ -49,13 +51,18 @@ type EndpointElem interface {
 }
 
 type GroupedConnLine struct {
-	Src  EndpointElem
-	Dst  EndpointElem
-	Conn string
+	Src        EndpointElem
+	Dst        EndpointElem
+	Conn       string
+	IsStateful int
 }
 
 func (g *GroupedConnLine) String() string {
-	return g.Src.Name() + " => " + g.Dst.Name() + " : " + g.Conn
+	line := g.Src.Name() + " => " + g.Dst.Name() + " : " + g.Conn
+	if g.IsStateful == common.StatefulFalse {
+		line += " *"
+	}
+	return line
 }
 
 func (g *GroupedConnLine) getSrcOrDst(isSrc bool) EndpointElem {
@@ -135,7 +142,7 @@ func (g *GroupConnLines) groupExternalAddresses() {
 			case src.IsPublicInternet():
 				g.dstToSrc.addPublicConnectivity(dst, connString, src)
 			default:
-				res = append(res, &GroupedConnLine{src, dst, connString})
+				res = append(res, &GroupedConnLine{src, dst, connString, conns.IsStateful})
 			}
 		}
 	}
@@ -158,7 +165,7 @@ func (g *GroupConnLines) groupSubnetsSrcOrDst(srcGrouping bool) {
 			res = append(res, line)
 			continue
 		}
-		key := dstOrSrc.Name() + ";" + line.Conn
+		key := fmt.Sprintf("%s;%s;%d", dstOrSrc.Name(), line.Conn, line.IsStateful)
 		if _, ok := groupingSrcOrDst[key]; !ok {
 			groupingSrcOrDst[key] = []*GroupedConnLine{}
 		}
@@ -176,9 +183,9 @@ func (g *GroupConnLines) groupSubnetsSrcOrDst(srcGrouping bool) {
 		groupedSrcOrDst := subnetGrouping(srcOrDstGroup, g.c)
 		for _, groupedSrcOrDstElem := range groupedSrcOrDst {
 			if srcGrouping {
-				res = append(res, &GroupedConnLine{groupedSrcOrDstElem, linesGroup[0].Dst, linesGroup[0].Conn})
+				res = append(res, &GroupedConnLine{groupedSrcOrDstElem, linesGroup[0].Dst, linesGroup[0].Conn, linesGroup[0].IsStateful})
 			} else {
-				res = append(res, &GroupedConnLine{linesGroup[0].Src, groupedSrcOrDstElem, linesGroup[0].Conn})
+				res = append(res, &GroupedConnLine{linesGroup[0].Src, groupedSrcOrDstElem, linesGroup[0].Conn, linesGroup[0].IsStateful})
 			}
 		}
 	}
@@ -195,11 +202,19 @@ func (g *GroupConnLines) computeGrouping() {
 // get the grouped connectivity output
 func (g *GroupConnLines) String() string {
 	linesStr := make([]string, len(g.GroupedLines))
+	addAsteriskDetails := false
 	for i, line := range g.GroupedLines {
 		linesStr[i] = line.String()
+		if line.IsStateful == common.StatefulFalse {
+			addAsteriskDetails = true
+		}
 	}
 	sort.Strings(linesStr)
-	return strings.Join(linesStr, "\n")
+	toPrint := strings.Join(linesStr, "\n")
+	if addAsteriskDetails {
+		toPrint += asteriskDetails
+	}
+	return toPrint
 }
 
 func listNodesStr(nodes []Node, fn func(Node) string) string {
