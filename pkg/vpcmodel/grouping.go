@@ -2,10 +2,11 @@ package vpcmodel
 
 import (
 	"fmt"
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 // map betweeen node to a map between a string containing connection;;IsStateful and the nodes connected through this connection
