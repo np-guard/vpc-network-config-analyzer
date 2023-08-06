@@ -27,28 +27,6 @@ type allInfo struct {
 	Connectivity []connLine   `json:"connectivity"`
 }
 
-func getConnLines(conn *VPCConnectivity) []connLine {
-	connLines := []connLine{}
-
-	bidirectional, unidirectional := conn.SplitAllowedConnsToUnidirectionalAndBidirectional()
-	for src, srcMap := range conn.AllowedConnsCombined {
-		for dst, conn := range srcMap {
-			if conn.IsEmpty() {
-				continue
-			}
-			unidirectionalConn := unidirectional.getAllowedConnForPair(src, dst)
-			bidirectionalConn := bidirectional.getAllowedConnForPair(src, dst)
-			if !unidirectionalConn.IsEmpty() {
-				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: bidirectionalConn.String(),
-					UnidirectionalConn: unidirectionalConn.String()})
-			} else {
-				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: conn.String()})
-			}
-		}
-	}
-	return connLines
-}
-
 func getGroupedConnLines(conn *VPCConnectivity) []connLine {
 	connLines := make([]connLine, len(conn.GroupedConnectivity.GroupedLines))
 	for i, line := range conn.GroupedConnectivity.GroupedLines {
