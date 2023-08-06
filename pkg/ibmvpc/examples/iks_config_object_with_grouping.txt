@@ -75,3 +75,5 @@ iks-node[192.168.8.4] => iks-node[192.168.32.4] : All Connections
 iks-node[192.168.8.4] => iks-node[192.168.36.4] : All Connections
 iks-node[192.168.8.4] => iks-node[192.168.4.4] : All Connections
 iks-node[192.168.8.4] => iks-node[192.168.40.4] : All Connections
+
+connections are stateful unless marked with *

@@ -17,19 +17,16 @@ const (
 
 func (m *MDoutputFormatter) WriteOutputAllEndpoints(c *CloudConfig, conn *VPCConnectivity, outFile string, grouping bool) (string, error) {
 	lines := []string{mdTitle, mdHeader}
-	var addAsteriskDetails bool
 	var connLines []string
 	if grouping {
 		connLines = m.getGroupedOutput(conn)
 	} else {
-		connLines, addAsteriskDetails = m.getNonGroupedOutput(conn)
+		connLines = m.getNonGroupedOutput(conn)
 	}
 	sort.Strings(connLines)
 	lines = append(lines, connLines...)
 	out := strings.Join(lines, "\n")
-	if addAsteriskDetails {
-		out += asteriskDetails
-	}
+	out += asteriskDetails
 	err := WriteToFile(out, outFile)
 	return out, err
 }
@@ -42,23 +39,19 @@ func (m *MDoutputFormatter) WriteOutputSingleSubnet(c *CloudConfig, outFile stri
 	return "", errors.New("DebugSubnet use case not supported for md format currently ")
 }
 
-func (m *MDoutputFormatter) getNonGroupedOutput(conn *VPCConnectivity) ([]string, bool) {
-	var addAsteriskDetails bool
+func (m *MDoutputFormatter) getNonGroupedOutput(conn *VPCConnectivity) []string {
 	lines := []string{}
 	for src, srcMap := range conn.AllowedConnsCombined {
 		for dst, conn := range srcMap {
 			if conn.IsEmpty() {
 				continue
 			}
-			connsStr, notStateful := conn.EnhancedString()
+			connsStr := conn.EnhancedString()
 			connLineObj := connLine{Src: src, Dst: dst, Conn: connsStr}
 			lines = append(lines, getMDLine(connLineObj))
-			if notStateful {
-				addAsteriskDetails = true
-			}
 		}
 	}
-	return lines, addAsteriskDetails
+	return lines
 }
 
 func (m *MDoutputFormatter) getGroupedOutput(conn *VPCConnectivity) []string {

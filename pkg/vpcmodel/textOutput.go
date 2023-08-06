@@ -3,7 +3,7 @@ package vpcmodel
 type TextOutputFormatter struct {
 }
 
-const asteriskDetails = "\n\n* Unidirectional connection\n"
+const asteriskDetails = "\n\nconnections are stateful unless marked with *\n"
 
 func (t *TextOutputFormatter) WriteOutputAllEndpoints(c *CloudConfig, conn *VPCConnectivity, outFile string, grouping bool) (
 	string,

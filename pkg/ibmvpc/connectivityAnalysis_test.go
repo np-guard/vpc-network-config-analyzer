@@ -148,9 +148,15 @@ var expectedConnStrTest1 = `=================================== distributed inbo
 =================================== combined connections - short version:
 vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections
 vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : All Connections
+
+
+connections are stateful unless marked with *
 =================================== stateful combined connections - short version:
 vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections
 vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : All Connections
+
+
+connections are stateful unless marked with *
 `
 
 func TestAnalyzeConnectivity1(t *testing.T) {
@@ -169,8 +175,11 @@ var expectedConnStrTest2 = `=================================== distributed inbo
 vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections *
 
 
-* Unidirectional connection
+connections are stateful unless marked with *
 =================================== stateful combined connections - short version:
+
+
+connections are stateful unless marked with *
 `
 
 func TestAnalyzeConnectivity2(t *testing.T) {
@@ -190,10 +199,13 @@ vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections *
 vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : protocol: TCP
 
 
-* Unidirectional connection
+connections are stateful unless marked with *
 =================================== stateful combined connections - short version:
 vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : protocol: TCP
 vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : protocol: TCP
+
+
+connections are stateful unless marked with *
 `
 
 func TestAnalyzeConnectivity3(t *testing.T) {
@@ -211,9 +223,15 @@ var expectedConnStrTest4 = `=================================== distributed inbo
 =================================== combined connections - short version:
 vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : protocol: TCP src-ports: 10-100 dst-ports: 443
 vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : protocol: TCP src-ports: 443 dst-ports: 10-100
+
+
+connections are stateful unless marked with *
 =================================== stateful combined connections - short version:
 vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : protocol: TCP src-ports: 10-100 dst-ports: 443
 vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : protocol: TCP src-ports: 443 dst-ports: 10-100
+
+
+connections are stateful unless marked with *
 `
 
 func TestAnalyzeConnectivity4(t *testing.T) {

@@ -10,4 +10,4 @@ vsi3a-ky[10.240.30.5],vsi3b-ky[10.240.30.6],vsi3c-ky[10.240.30.4] => vsi1-ky[10.
 vsi3a-ky[10.240.30.5],vsi3c-ky[10.240.30.4] => vsi3b-ky[10.240.30.6] : All Connections
 vsi3b-ky[10.240.30.6],vsi3c-ky[10.240.30.4] => vsi3a-ky[10.240.30.5] : All Connections
 
-* Unidirectional connection
+connections are stateful unless marked with *
