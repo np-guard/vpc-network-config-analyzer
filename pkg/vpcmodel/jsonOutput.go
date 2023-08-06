@@ -40,8 +40,7 @@ func (j *JSONoutputFormatter) WriteOutputAllEndpoints(c *CloudConfig, conn *VPCC
 	error,
 ) {
 	all := allInfo{}
-	var connLines []connLine
-	connLines = getGroupedConnLines(conn)
+	connLines := getGroupedConnLines(conn)
 
 	all.Connectivity = connLines
 

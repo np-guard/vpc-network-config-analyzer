@@ -17,8 +17,7 @@ const (
 
 func (m *MDoutputFormatter) WriteOutputAllEndpoints(c *CloudConfig, conn *VPCConnectivity, outFile string, grouping bool) (string, error) {
 	lines := []string{mdTitle, mdHeader}
-	var connLines []string
-	connLines = m.getGroupedOutput(conn)
+	connLines := m.getGroupedOutput(conn)
 
 	sort.Strings(connLines)
 	lines = append(lines, connLines...)
