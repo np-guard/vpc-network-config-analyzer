@@ -63,11 +63,7 @@ func (j *JSONoutputFormatter) WriteOutputAllEndpoints(c *CloudConfig, conn *VPCC
 ) {
 	all := allInfo{}
 	var connLines []connLine
-	if grouping {
-		connLines = getGroupedConnLines(conn)
-	} else {
-		connLines = getConnLines(conn)
-	}
+	connLines = getGroupedConnLines(conn)
 
 	all.Connectivity = connLines
 
