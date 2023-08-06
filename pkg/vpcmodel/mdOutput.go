@@ -3,6 +3,7 @@ package vpcmodel
 import (
 	"errors"
 	"fmt"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"sort"
 	"strings"
 )
@@ -20,7 +21,7 @@ func (m *MDoutputFormatter) WriteOutputAllEndpoints(c *CloudConfig, conn *VPCCon
 	var addAsteriskDetails bool
 	var connLines []string
 	if grouping {
-		connLines = m.getGroupedOutput(conn)
+		connLines, addAsteriskDetails = m.getGroupedOutput(conn)
 	} else {
 		connLines, addAsteriskDetails = m.getNonGroupedOutput(conn)
 	}
@@ -61,12 +62,17 @@ func (m *MDoutputFormatter) getNonGroupedOutput(conn *VPCConnectivity) ([]string
 	return lines, addAsteriskDetails
 }
 
-func (m *MDoutputFormatter) getGroupedOutput(conn *VPCConnectivity) []string {
+func (m *MDoutputFormatter) getGroupedOutput(conn *VPCConnectivity) ([]string, bool) {
+	var addAsteriskDetails bool
 	lines := make([]string, len(conn.GroupedConnectivity.GroupedLines))
 	for i, line := range conn.GroupedConnectivity.GroupedLines {
-		lines[i] = getGroupedMDLine(line)
+		var notStateful bool
+		lines[i], notStateful = getGroupedMDLine(line)
+		if notStateful {
+			addAsteriskDetails = true
+		}
 	}
-	return lines
+	return lines, addAsteriskDetails
 }
 
 // formats a connection line for md output
@@ -78,6 +84,9 @@ func getMDLine(line connLine) string {
 	return connectivityLineMD(line.Src.Name(), line.Dst.Name(), line.Conn)
 }
 
-func getGroupedMDLine(line *GroupedConnLine) string {
-	return connectivityLineMD(line.Src.Name(), line.Dst.Name(), line.Conn)
+func getGroupedMDLine(line *GroupedConnLine) (string, bool) {
+	if line.IsStateful == common.StatefulFalse {
+		return connectivityLineMD(line.Src.Name(), line.Dst.Name(), line.Conn+" *"), true
+	}
+	return connectivityLineMD(line.Src.Name(), line.Dst.Name(), line.Conn), false
 }
