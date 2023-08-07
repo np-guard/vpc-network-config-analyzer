@@ -283,7 +283,6 @@ const (
 
 func (nodesConnMap NodesConnectionsMap) getCombinedConnsStr() string {
 	strList := []string{}
-	var addAsteriskDetails bool
 	for src, nodeConns := range nodesConnMap {
 		for dst, conns := range nodeConns {
 			if conns.IsEmpty() {
@@ -297,18 +296,13 @@ func (nodesConnMap NodesConnectionsMap) getCombinedConnsStr() string {
 			if dst.IsInternal() {
 				dstName = dst.Name()
 			}
-			connsStr, notStateful := conns.EnhancedString()
+			connsStr := conns.EnhancedString()
 			strList = append(strList, getConnectionStr(srcName, dstName, connsStr, ""))
-			if notStateful {
-				addAsteriskDetails = true
-			}
 		}
 	}
 	sort.Strings(strList)
 	res := strings.Join(strList, "")
-	if addAsteriskDetails {
-		res += asteriskDetails
-	}
+	res += asteriskDetails
 	return res
 }
 

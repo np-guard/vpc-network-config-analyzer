@@ -128,7 +128,7 @@ func (g *GroupConnLines) groupExternalAddresses() {
 			if conns.IsEmpty() {
 				continue
 			}
-			connString := conns.String()
+			connString := conns.EnhancedString()
 			switch {
 			case dst.IsPublicInternet():
 				g.srcToDst.addPublicConnectivity(src, connString, dst)
@@ -199,7 +199,7 @@ func (g *GroupConnLines) String() string {
 		linesStr[i] = line.String()
 	}
 	sort.Strings(linesStr)
-	return strings.Join(linesStr, "\n")
+	return strings.Join(linesStr, "\n") + asteriskDetails
 }
 
 func listNodesStr(nodes []Node, fn func(Node) string) string {

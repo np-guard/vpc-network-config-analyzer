@@ -345,11 +345,11 @@ func (conn *ConnectionSet) String() string {
 
 // EnhancedString returns a connection string with possibly added asterisk for unidirectional connection,
 // and bool result indicating if such asterisk was added
-func (conn *ConnectionSet) EnhancedString() (string, bool) {
+func (conn *ConnectionSet) EnhancedString() string {
 	if conn.IsStateful == StatefulFalse {
-		return conn.String() + " *", true // to add info about conn-result that is not stateful
+		return conn.String() + " *"
 	}
-	return conn.String(), false
+	return conn.String()
 }
 
 // NewTCPConnectionSet returns a ConnectionSet object with TCP protocol (all ports)
