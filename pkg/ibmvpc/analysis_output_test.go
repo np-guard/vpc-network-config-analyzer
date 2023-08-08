@@ -225,6 +225,13 @@ var tests = []*vpcGeneralTest{
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		format:   vpcmodel.ARCHDRAWIO,
 	},
+	// iks-nodes example
+	{
+		name:     "iks_config_object",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping: true,
+		format:   vpcmodel.Text,
+	},
 }
 
 // uncomment the function below to run for updating the expected output
@@ -338,7 +345,7 @@ func runTestPerUseCase(t *testing.T, tt *vpcGeneralTest, c *vpcmodel.CloudConfig
 			t.Fatalf("err: %s", err)
 		}
 		expectedOutputStr := string(expectedOutput)
-		if expectedOutputStr != actualOutput {
+		if cleanStr(expectedOutputStr) != cleanStr(actualOutput) {
 			compareTextualResult(expectedOutputStr, actualOutput)
 			t.Fatalf("output mismatch expected-vs-actual on test name: %s, use case: %d", tt.name, uc)
 		}
@@ -352,6 +359,11 @@ func runTestPerUseCase(t *testing.T, tt *vpcGeneralTest, c *vpcmodel.CloudConfig
 	}
 
 	return nil
+}
+
+// comparison should be insensitive to line comparators; cleaning strings from line comparators
+func cleanStr(str string) string {
+	return strings.ReplaceAll(strings.ReplaceAll(str, "/n", ""), "\r", "")
 }
 
 // compareTextualResult is called in case of output mismatch, to provide more details on the difference

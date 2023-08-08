@@ -15,7 +15,7 @@ import (
 // (2) compute AllowedConnsCombined (map[Node]map[Node]*common.ConnectionSet) : allowed conns considering both ingress and egress directions
 // (3) compute AllowedConnsCombinedStateful : stateful allowed connections, for which connection in reverse direction is also allowed
 // (4) if grouping required - compute grouping of connectivity results
-func (c *CloudConfig) GetVPCNetworkConnectivity(grouping bool) *VPCConnectivity {
+func (c *CloudConfig) GetVPCNetworkConnectivity(grouping bool) (*VPCConnectivity, error) {
 	res := &VPCConnectivity{
 		AllowedConns:         map[Node]*ConnectivityResult{},
 		AllowedConnsPerLayer: map[Node]map[string]*ConnectivityResult{},
@@ -25,8 +25,14 @@ func (c *CloudConfig) GetVPCNetworkConnectivity(grouping bool) *VPCConnectivity 
 		if !node.IsInternal() {
 			continue
 		}
-		allIngressAllowedConns, ingressAllowedConnsPerLayer := c.getAllowedConnsPerDirection(true, node)
-		allEgressAllowedConns, egressAllowedConnsPerLayer := c.getAllowedConnsPerDirection(false, node)
+		allIngressAllowedConns, ingressAllowedConnsPerLayer, err := c.getAllowedConnsPerDirection(true, node)
+		if err != nil {
+			return nil, err
+		}
+		allEgressAllowedConns, egressAllowedConnsPerLayer, err := c.getAllowedConnsPerDirection(false, node)
+		if err != nil {
+			return nil, err
+		}
 
 		res.AllowedConns[node] = &ConnectivityResult{
 			IngressAllowedConns: allIngressAllowedConns,
@@ -47,19 +53,17 @@ func (c *CloudConfig) GetVPCNetworkConnectivity(grouping bool) *VPCConnectivity 
 	}
 	res.computeAllowedConnsCombined()
 	res.computeAllowedStatefulConnections()
-	if grouping {
-		res.GroupedConnectivity = newGroupConnLines(c, res)
-	}
-	return res
+	res.GroupedConnectivity = newGroupConnLines(c, res, grouping)
+	return res, nil
 }
 
 func (c *CloudConfig) getFiltersAllowedConnsBetweenNodesPerDirectionAndLayer(
 	src, dst Node,
 	isIngress bool,
-	layer string) *common.ConnectionSet {
+	layer string) (*common.ConnectionSet, error) {
 	filter := c.getFilterTrafficResourceOfKind(layer)
 	if filter == nil {
-		return AllConns()
+		return AllConns(), nil
 	}
 	return filter.AllowedConnectivity(src, dst, isIngress)
 }
@@ -76,6 +80,7 @@ func updatePerLayerRes(res map[string]map[Node]*common.ConnectionSet, layer stri
 func (c *CloudConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Node) (
 	allLayersRes map[Node]*common.ConnectionSet, // result considering all layers
 	perLayerRes map[string]map[Node]*common.ConnectionSet, // result separated per layer
+	err error,
 ) {
 	perLayerRes = map[string]map[Node]*common.ConnectionSet{}
 	allLayersRes = map[Node]*common.ConnectionSet{}
@@ -91,7 +96,10 @@ func (c *CloudConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode N
 		// first compute connectivity per layer of filters resources
 		filterLayers := []string{NaclLayer, SecurityGroupLayer}
 		for _, layer := range filterLayers {
-			conns := c.getFiltersAllowedConnsBetweenNodesPerDirectionAndLayer(src, dst, isIngress, layer)
+			conns, err := c.getFiltersAllowedConnsBetweenNodesPerDirectionAndLayer(src, dst, isIngress, layer)
+			if err != nil {
+				return nil, nil, err
+			}
 			updatePerLayerRes(perLayerRes, layer, peerNode, conns)
 		}
 
@@ -132,7 +140,7 @@ func (c *CloudConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode N
 			allLayersRes[peerNode] = allowedConnsBetweenCapturedAndPeerNode
 		}
 	}
-	return allLayersRes, perLayerRes
+	return allLayersRes, perLayerRes, nil
 }
 
 func switchSrcDstNodes(switchOrder bool, src, dst Node) (srcRes, dstRes Node) {
@@ -273,7 +281,6 @@ const (
 
 func (nodesConnMap NodesConnectionsMap) getCombinedConnsStr() string {
 	strList := []string{}
-	var addAsteriskDetails bool
 	for src, nodeConns := range nodesConnMap {
 		for dst, conns := range nodeConns {
 			if conns.IsEmpty() {
@@ -287,18 +294,13 @@ func (nodesConnMap NodesConnectionsMap) getCombinedConnsStr() string {
 			if dst.IsInternal() {
 				dstName = dst.Name()
 			}
-			connsStr, notStateful := conns.EnhancedString()
+			connsStr := conns.EnhancedString()
 			strList = append(strList, getConnectionStr(srcName, dstName, connsStr, ""))
-			if notStateful {
-				addAsteriskDetails = true
-			}
 		}
 	}
 	sort.Strings(strList)
 	res := strings.Join(strList, "")
-	if addAsteriskDetails {
-		res += asteriskDetails
-	}
+	res += asteriskDetails
 	return res
 }
 
