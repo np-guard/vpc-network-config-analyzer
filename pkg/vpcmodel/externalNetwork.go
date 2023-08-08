@@ -153,3 +153,28 @@ func isEntirePublicInternetRange(nodes []Node) (bool, error) {
 	}
 	return nodesRanges.Equal(allInternetRagnes), nil
 }
+
+func (g *groupedExternalNodes) mergePublicInternetRange() ([]string, error) {
+
+	// 1. Created a list of IPBlocks
+	cidrList := make([]string, len(*g))
+	for i, n := range *g {
+		cidrList[i] = n.Cidr()
+	}
+	ipbList, _, err := ipStringsToIPblocks(cidrList)
+	if err != nil {
+		return nil, err
+	}
+	// 2. Union all IPBlocks in a single one; its intervals will be the cidr blocks or ranges that should be printed, after all possible merges
+	for _, v := range ipbList {
+		fmt.Printf("\t v is %+v\n", v)
+	}
+	unionBlock := &common.IPBlock{}
+	for _, ipBlock := range ipbList {
+		unionBlock = unionBlock.Union(ipBlock)
+	}
+	fmt.Printf("ipbList contains %d items and unionBlock is %v\n", len(ipbList), unionBlock)
+	// Prints intervals: if an interval is a single cidr prints it, otherwise prints range
+	//IPRanges := unionBlock.ToIPRanges()
+	return nil, nil
+}

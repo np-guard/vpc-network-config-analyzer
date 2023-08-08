@@ -75,6 +75,7 @@ func (g *groupedNetworkInterfaces) Name() string {
 type groupedExternalNodes []Node
 
 func (g *groupedExternalNodes) Name() string {
+	g.mergePublicInternetRange()
 	isAllInternetRange, err := isEntirePublicInternetRange(*g)
 	if err == nil && isAllInternetRange {
 		return "Public Internet (all ranges)"

@@ -84,6 +84,13 @@ func (i *Interval) intersection(other Interval) []Interval {
 	return []Interval{{Start: maxStart, End: minEnd}}
 }
 
+// ToIPRange returns a string of the ip range of a single interval
+func (i *Interval) toIPRange() string {
+	startIP := InttoIP4(i.Start)
+	endIP := InttoIP4(i.End)
+	return rangeIPstr(startIP, endIP)
+}
+
 // CanonicalIntervalSet is a canonical representation of a set of Interval objects
 type CanonicalIntervalSet struct {
 	IntervalSet []Interval // sorted list of non-overlapping intervals

@@ -29,13 +29,15 @@ type IPBlock struct {
 
 // ToIPRanges returns a string of the ip ranges in the current IPBlock object
 func (b *IPBlock) ToIPRanges() string {
+	return strings.Join(b.ToIPRangesList(), ",")
+}
+
+func (b *IPBlock) ToIPRangesList() []string {
 	IPRanges := make([]string, len(b.ipRange.IntervalSet))
 	for index := range b.ipRange.IntervalSet {
-		startIP := InttoIP4(b.ipRange.IntervalSet[index].Start)
-		endIP := InttoIP4(b.ipRange.IntervalSet[index].End)
-		IPRanges[index] = rangeIPstr(startIP, endIP)
+		IPRanges[index] = b.ipRange.IntervalSet[index].toIPRange()
 	}
-	return strings.Join(IPRanges, ",")
+	return IPRanges
 }
 
 // IsIPAddress returns true if IPBlock object is a range of exactly one ip address from input
