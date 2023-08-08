@@ -17,12 +17,8 @@ const (
 
 func (m *MDoutputFormatter) WriteOutputAllEndpoints(c *CloudConfig, conn *VPCConnectivity, outFile string, grouping bool) (string, error) {
 	lines := []string{mdTitle, mdHeader}
-	var connLines []string
-	if grouping {
-		connLines = m.getGroupedOutput(conn)
-	} else {
-		connLines = m.getNonGroupedOutput(conn)
-	}
+	connLines := m.getGroupedOutput(conn)
+
 	sort.Strings(connLines)
 	lines = append(lines, connLines...)
 	out := strings.Join(lines, "\n")
@@ -39,21 +35,6 @@ func (m *MDoutputFormatter) WriteOutputSingleSubnet(c *CloudConfig, outFile stri
 	return "", errors.New("DebugSubnet use case not supported for md format currently ")
 }
 
-func (m *MDoutputFormatter) getNonGroupedOutput(conn *VPCConnectivity) []string {
-	lines := []string{}
-	for src, srcMap := range conn.AllowedConnsCombined {
-		for dst, conn := range srcMap {
-			if conn.IsEmpty() {
-				continue
-			}
-			connsStr := conn.EnhancedString()
-			connLineObj := connLine{Src: src, Dst: dst, Conn: connsStr}
-			lines = append(lines, getMDLine(connLineObj))
-		}
-	}
-	return lines
-}
-
 func (m *MDoutputFormatter) getGroupedOutput(conn *VPCConnectivity) []string {
 	lines := make([]string, len(conn.GroupedConnectivity.GroupedLines))
 	for i, line := range conn.GroupedConnectivity.GroupedLines {
@@ -65,10 +46,6 @@ func (m *MDoutputFormatter) getGroupedOutput(conn *VPCConnectivity) []string {
 // formats a connection line for md output
 func connectivityLineMD(src, dst, conn string) string {
 	return fmt.Sprintf("| %s | %s | %s |", src, dst, conn)
-}
-
-func getMDLine(line connLine) string {
-	return connectivityLineMD(line.Src.Name(), line.Dst.Name(), line.Conn)
 }
 
 func getGroupedMDLine(line *GroupedConnLine) string {
