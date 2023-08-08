@@ -17,6 +17,8 @@ const (
 	externalNetworkNodeKind = "ExternalNetwork"
 )
 
+const commaSepartor = ","
+
 // All public IP addresses belong to one of the following public IP address ranges:
 func getPublicInternetAddressList() []string {
 	return []string{
@@ -156,7 +158,6 @@ func isEntirePublicInternetRange(nodes []Node) (bool, error) {
 }
 
 func (g *groupedExternalNodes) mergePublicInternetRange() (string, error) {
-
 	// 1. Created a list of IPBlocks
 	cidrList := make([]string, len(*g))
 	for i, n := range *g {
@@ -180,11 +181,11 @@ func (g *groupedExternalNodes) mergePublicInternetRange() (string, error) {
 	}
 	combinedCidrRangesList := []string{}
 	for i, cidrs := range cidrListAfterUnion {
-		if len(strings.Split(cidrs, ",")) > 1 {
+		if len(strings.Split(cidrs, commaSepartor)) > 1 {
 			combinedCidrRangesList = append(combinedCidrRangesList, ipRangesList[i])
 		} else {
 			combinedCidrRangesList = append(combinedCidrRangesList, cidrs)
 		}
 	}
-	return strings.Join(combinedCidrRangesList, ","), nil
+	return strings.Join(combinedCidrRangesList, commaSepartor), nil
 }
