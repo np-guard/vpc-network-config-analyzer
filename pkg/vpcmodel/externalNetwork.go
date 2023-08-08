@@ -3,6 +3,7 @@ package vpcmodel
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
@@ -154,7 +155,7 @@ func isEntirePublicInternetRange(nodes []Node) (bool, error) {
 	return nodesRanges.Equal(allInternetRagnes), nil
 }
 
-func (g *groupedExternalNodes) mergePublicInternetRange() ([]string, error) {
+func (g *groupedExternalNodes) mergePublicInternetRange() (string, error) {
 
 	// 1. Created a list of IPBlocks
 	cidrList := make([]string, len(*g))
@@ -163,18 +164,27 @@ func (g *groupedExternalNodes) mergePublicInternetRange() ([]string, error) {
 	}
 	ipbList, _, err := ipStringsToIPblocks(cidrList)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	// 2. Union all IPBlocks in a single one; its intervals will be the cidr blocks or ranges that should be printed, after all possible merges
-	for _, v := range ipbList {
-		fmt.Printf("\t v is %+v\n", v)
-	}
 	unionBlock := &common.IPBlock{}
 	for _, ipBlock := range ipbList {
 		unionBlock = unionBlock.Union(ipBlock)
 	}
-	fmt.Printf("ipbList contains %d items and unionBlock is %v\n", len(ipbList), unionBlock)
 	// Prints intervals: if an interval is a single cidr prints it, otherwise prints range
-	//IPRanges := unionBlock.ToIPRanges()
-	return nil, nil
+	// gets a list of ip blocks and of cidrs; if single cidr then prints the cidr, otherwise prints the ipBlock range
+	ipRangesList := unionBlock.ToIPRangesList()
+	cidrListAfterUnion := unionBlock.ToCidrList()
+	if len(ipRangesList) != len(cidrListAfterUnion) {
+		return "", errors.New("something went very wrong: length of ipRangesList is different than cidrList")
+	}
+	combinedCidrRangesList := []string{}
+	for i, cidrs := range cidrListAfterUnion {
+		if len(strings.Split(cidrs, ",")) > 1 {
+			combinedCidrRangesList = append(combinedCidrRangesList, ipRangesList[i])
+		} else {
+			combinedCidrRangesList = append(combinedCidrRangesList, cidrs)
+		}
+	}
+	return strings.Join(combinedCidrRangesList, ","), nil
 }
