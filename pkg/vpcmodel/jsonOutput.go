@@ -3,16 +3,19 @@ package vpcmodel
 import (
 	"encoding/json"
 	"errors"
+
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 type JSONoutputFormatter struct {
 }
 
 type connLine struct {
-	Src                EndpointElem `json:"src"`
-	Dst                EndpointElem `json:"dst"`
-	Conn               string       `json:"conn"`
-	UnidirectionalConn string       `json:"unidirectional_conn,omitempty"`
+	Src  EndpointElem       `json:"src"`
+	Dst  EndpointElem       `json:"dst"`
+	Conn common.ConnDetails `json:"conn"`
+	//Conn               string       `json:"conn"`
+	UnidirectionalConn common.ConnDetails `json:"unidirectional_conn,omitempty"`
 }
 
 type architecture struct {
@@ -39,23 +42,23 @@ func getConnLines(conn *VPCConnectivity) []connLine {
 			unidirectionalConn := unidirectional.getAllowedConnForPair(src, dst)
 			bidirectionalConn := bidirectional.getAllowedConnForPair(src, dst)
 			if !unidirectionalConn.IsEmpty() {
-				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: bidirectionalConn.String(),
-					UnidirectionalConn: unidirectionalConn.String()})
+				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: common.ConnToJSONRep(bidirectionalConn),
+					UnidirectionalConn: common.ConnToJSONRep(unidirectionalConn)})
 			} else {
-				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: conn.String()})
+				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: common.ConnToJSONRep(conn)})
 			}
 		}
 	}
 	return connLines
 }
 
-func getGroupedConnLines(conn *VPCConnectivity) []connLine {
+/*func getGroupedConnLines(conn *VPCConnectivity) []connLine {
 	connLines := make([]connLine, len(conn.GroupedConnectivity.GroupedLines))
 	for i, line := range conn.GroupedConnectivity.GroupedLines {
 		connLines[i] = connLine{Src: line.Src, Dst: line.Dst, Conn: line.Conn}
 	}
 	return connLines
-}
+}*/
 
 func (j *JSONoutputFormatter) WriteOutputAllEndpoints(c *CloudConfig, conn *VPCConnectivity, outFile string, grouping bool) (
 	string,
@@ -63,11 +66,12 @@ func (j *JSONoutputFormatter) WriteOutputAllEndpoints(c *CloudConfig, conn *VPCC
 ) {
 	all := allInfo{}
 	var connLines []connLine
-	if grouping {
+	connLines = getConnLines(conn)
+	/*if grouping {
 		connLines = getGroupedConnLines(conn)
 	} else {
 		connLines = getConnLines(conn)
-	}
+	}*/
 
 	all.Connectivity = connLines
 
@@ -110,9 +114,9 @@ func (j *JSONoutputFormatter) WriteOutputAllSubnets(subnetsConn *VPCsubnetConnec
 }
 
 type subnetsConnectivityConnLine struct {
-	Src  string `json:"src"`
-	Dst  string `json:"dst"`
-	Conn string `json:"conn"`
+	Src  string             `json:"src"`
+	Dst  string             `json:"dst"`
+	Conn common.ConnDetails `json:"conn"`
 }
 
 type allSubnetsConnectivity struct {
@@ -126,7 +130,7 @@ func getConnLinesForSubnetsConnectivity(conn *VPCsubnetConnectivity) []subnetsCo
 			if conns.IsEmpty() {
 				continue
 			}
-			connLines = append(connLines, subnetsConnectivityConnLine{src, dst, conns.String()})
+			connLines = append(connLines, subnetsConnectivityConnLine{src, dst, common.ConnToJSONRep(conns)})
 		}
 	}
 	return connLines
