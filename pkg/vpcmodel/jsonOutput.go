@@ -90,7 +90,11 @@ func (j *JSONoutputFormatter) WriteOutputAllEndpoints(c *CloudConfig, conn *VPCC
 		all.Arch.Routers = append(all.Arch.Routers, r.DetailsMap()...)
 	}
 
-	res, err := json.MarshalIndent(all, "", "    ")
+	return writeJSON(all, outFile)
+}
+
+func writeJSON(s interface{}, outFile string) (string, error) {
+	res, err := json.MarshalIndent(s, "", "    ")
 	if err != nil {
 		return "", err
 	}
@@ -100,7 +104,32 @@ func (j *JSONoutputFormatter) WriteOutputAllEndpoints(c *CloudConfig, conn *VPCC
 }
 
 func (j *JSONoutputFormatter) WriteOutputAllSubnets(subnetsConn *VPCsubnetConnectivity, outFile string) (string, error) {
-	return "", errors.New("SubnetLevel use case not supported for md format currently ")
+	all := allSubnetsConnectivity{}
+	all.Connectivity = getConnLinesForSubnetsConnectivity(subnetsConn)
+	return writeJSON(all, outFile)
+}
+
+type subnetsConnectivityConnLine struct {
+	Src  string `json:"src"`
+	Dst  string `json:"dst"`
+	Conn string `json:"conn"`
+}
+
+type allSubnetsConnectivity struct {
+	Connectivity []subnetsConnectivityConnLine `json:"subnets_connectivity"`
+}
+
+func getConnLinesForSubnetsConnectivity(conn *VPCsubnetConnectivity) []subnetsConnectivityConnLine {
+	connLines := []subnetsConnectivityConnLine{}
+	for src, nodeConns := range conn.AllowedConnsCombined {
+		for dst, conns := range nodeConns {
+			if conns.IsEmpty() {
+				continue
+			}
+			connLines = append(connLines, subnetsConnectivityConnLine{src, dst, conns.String()})
+		}
+	}
+	return connLines
 }
 
 func (j *JSONoutputFormatter) WriteOutputSingleSubnet(c *CloudConfig, outFile string) (string, error) {
