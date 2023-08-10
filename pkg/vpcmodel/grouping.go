@@ -84,7 +84,7 @@ func (g *groupedExternalNodes) Name() string {
 	if err != nil {
 		return ""
 	}
-	return toPrint
+	return "Public Internet " + toPrint
 }
 
 func (g *groupingConnections) addPublicConnectivity(n Node, conn string, target Node) {
