@@ -116,7 +116,8 @@ func TestGroupingPhase1(t *testing.T) {
 	res.groupExternalAddresses()
 
 	groupingStr := res.String()
-	require.Equal(t, "vsi1 => 1.2.0.0/22,8.8.8.8/32 : All Connections\n\nconnections are stateful unless marked with *\n", groupingStr)
+	require.Equal(t, "vsi1 => Public Internet 1.2.0.0/22,8.8.8.8/32 : All Connections\n\n"+
+		"connections are stateful unless marked with *\n", groupingStr)
 	fmt.Println(groupingStr)
 	fmt.Println("done")
 }
@@ -128,12 +129,14 @@ func TestGroupingPhase2(t *testing.T) {
 	// phase 1
 	res.groupExternalAddresses()
 	groupingStr := res.String()
-	require.Equal(t, "vsi1 => 1.2.0.0/22,8.8.8.8/32 : All Connections\nvsi2 => 1.2.0.0/22,8.8.8.8/32 : All Connections"+
+	require.Equal(t, "vsi1 => Public Internet 1.2.0.0/22,8.8.8.8/32 : All Connections\n"+
+		"vsi2 => Public Internet 1.2.0.0/22,8.8.8.8/32 : All Connections"+
 		"\n\nconnections are stateful unless marked with *\n", groupingStr)
 	// phase 2
 	res.groupSubnetsSrcOrDst(true)
 	groupingStr = res.String()
-	require.Equal(t, "vsi1,vsi2 => 1.2.0.0/22,8.8.8.8/32 : All Connections\n\nconnections are stateful unless marked with *\n", groupingStr)
+	require.Equal(t, "vsi1,vsi2 => Public Internet 1.2.0.0/22,8.8.8.8/32 : All Connections\n\n"+
+		"connections are stateful unless marked with *\n", groupingStr)
 	fmt.Println(groupingStr)
 	fmt.Println("done")
 }
