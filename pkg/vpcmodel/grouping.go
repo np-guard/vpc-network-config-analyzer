@@ -78,13 +78,13 @@ type groupedExternalNodes []Node
 func (g *groupedExternalNodes) Name() string {
 	isAllInternetRange, err := isEntirePublicInternetRange(*g)
 	if err == nil && isAllInternetRange {
-		return "Public Internet (all ranges)"
+		return publicInternetNodeName + " (all ranges)"
 	}
 	toPrint, err := g.mergePublicInternetRange()
 	if err != nil {
 		return ""
 	}
-	return "Public Internet " + toPrint
+	return publicInternetNodeName + " " + toPrint
 }
 
 func (g *groupingConnections) addPublicConnectivity(n Node, conn string, target Node) {
