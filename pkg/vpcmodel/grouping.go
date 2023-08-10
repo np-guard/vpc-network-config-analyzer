@@ -74,17 +74,13 @@ func (g *groupedNetworkInterfaces) Name() string {
 // implements endpointElem interface
 type groupedExternalNodes []Node
 
-// todo: handle errors?
 func (g *groupedExternalNodes) Name() string {
 	isAllInternetRange, err := isEntirePublicInternetRange(*g)
+	prefix := publicInternetNodeName + " "
 	if err == nil && isAllInternetRange {
-		return publicInternetNodeName + " (all ranges)"
+		return prefix + "(all ranges)"
 	}
-	toPrint, err := g.mergePublicInternetRange()
-	if err != nil {
-		return ""
-	}
-	return publicInternetNodeName + " " + toPrint
+	return prefix + g.String()
 }
 
 func (g *groupingConnections) addPublicConnectivity(n Node, conn string, target Node) {

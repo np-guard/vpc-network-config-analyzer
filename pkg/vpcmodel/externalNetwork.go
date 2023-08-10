@@ -157,7 +157,7 @@ func isEntirePublicInternetRange(nodes []Node) (bool, error) {
 	return nodesRanges.Equal(allInternetRagnes), nil
 }
 
-func (g *groupedExternalNodes) mergePublicInternetRange() (string, error) {
+func (g *groupedExternalNodes) String() string {
 	// 1. Created a list of IPBlocks
 	cidrList := make([]string, len(*g))
 	for i, n := range *g {
@@ -165,27 +165,13 @@ func (g *groupedExternalNodes) mergePublicInternetRange() (string, error) {
 	}
 	ipbList, _, err := ipStringsToIPblocks(cidrList)
 	if err != nil {
-		return "", err
+		return ""
 	}
 	// 2. Union all IPBlocks in a single one; its intervals will be the cidr blocks or ranges that should be printed, after all possible merges
 	unionBlock := &common.IPBlock{}
 	for _, ipBlock := range ipbList {
 		unionBlock = unionBlock.Union(ipBlock)
 	}
-	// Prints intervals: if an interval is a single cidr prints it, otherwise prints range
-	// gets a list of ip blocks and of cidrs; if single cidr then prints the cidr, otherwise prints the ipBlock range
-	ipRangesList := unionBlock.ToIPRangesList()
-	cidrListAfterUnion := unionBlock.ToCidrList()
-	if len(ipRangesList) != len(cidrListAfterUnion) {
-		return "", errors.New("something went very wrong: length of ipRangesList is different than cidrList")
-	}
-	combinedCidrRangesList := []string{}
-	for i, cidrs := range cidrListAfterUnion {
-		if len(strings.Split(cidrs, commaSepartor)) > 1 {
-			combinedCidrRangesList = append(combinedCidrRangesList, ipRangesList[i])
-		} else {
-			combinedCidrRangesList = append(combinedCidrRangesList, cidrs)
-		}
-	}
-	return strings.Join(combinedCidrRangesList, commaSepartor), nil
+	// 3. print a list s.t. each element contains either a single cidr or an ip range
+	return strings.Join(unionBlock.ListToPrint(), commaSepartor)
 }
