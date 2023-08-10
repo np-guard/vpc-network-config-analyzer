@@ -254,16 +254,16 @@ func (b *IPBlock) ToCidrList() []string {
 
 // ListToPrint: returns a uniform to print list s.t. each element contains either a single cidr or an ip range
 func (b *IPBlock) ListToPrint() []string {
-	cidrsIpRangesList := []string{}
+	cidrsIPRangesList := []string{}
 	for _, interval := range b.ipRange.IntervalSet {
 		cidr := IntervalToCidrList(interval.Start, interval.End)
 		if len(cidr) == 1 {
-			cidrsIpRangesList = append(cidrsIpRangesList, cidr[0])
+			cidrsIPRangesList = append(cidrsIPRangesList, cidr[0])
 		} else {
-			cidrsIpRangesList = append(cidrsIpRangesList, interval.toIPRange())
+			cidrsIPRangesList = append(cidrsIPRangesList, interval.toIPRange())
 		}
 	}
-	return cidrsIpRangesList
+	return cidrsIPRangesList
 }
 
 func (b *IPBlock) ToIPAdress() string {
