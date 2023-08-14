@@ -9,7 +9,8 @@ import (
 
 const commaSepartor = ","
 
-type groupingConnections map[EndpointElem]map[string][]Node // for each line here can group list of external nodes to cidrs list as of one element
+// for each line here can group list of external nodes to cidrs list as of one element
+type groupingConnections map[EndpointElem]map[string][]Node
 
 func (g *groupingConnections) getGroupedConnLines(isSrcToDst bool) []*GroupedConnLine {
 	res := []*GroupedConnLine{}
