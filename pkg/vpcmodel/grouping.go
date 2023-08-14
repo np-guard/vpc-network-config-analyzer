@@ -1,6 +1,7 @@
 package vpcmodel
 
 import (
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"sort"
 	"strings"
 )
@@ -212,4 +213,23 @@ func listNodesStr(nodes []Node, fn func(Node) string) string {
 	}
 	sort.Strings(nodesStrings)
 	return strings.Join(nodesStrings, ",")
+}
+
+func (g *groupedExternalNodes) String() string {
+	// 1. Created a list of IPBlocks
+	cidrList := make([]string, len(*g))
+	for i, n := range *g {
+		cidrList[i] = n.Cidr()
+	}
+	ipbList, _, err := ipStringsToIPblocks(cidrList)
+	if err != nil {
+		return ""
+	}
+	// 2. Union all IPBlocks in a single one; its intervals will be the cidr blocks or ranges that should be printed, after all possible merges
+	unionBlock := &common.IPBlock{}
+	for _, ipBlock := range ipbList {
+		unionBlock = unionBlock.Union(ipBlock)
+	}
+	// 3. print a list s.t. each element contains either a single cidr or an ip range
+	return strings.Join(unionBlock.ListToPrint(), commaSepartor)
 }
