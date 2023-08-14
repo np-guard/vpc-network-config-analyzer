@@ -343,9 +343,9 @@ func (conn *ConnectionSet) String() string {
 	return strings.Join(resStrings, "; ")
 }
 
-type ConnDetails struct {
+type ConnDetails ProtocolList /*struct {
 	AllowedConns ProtocolList
-}
+}*/
 
 func getCubeAsTCPItems(cube []*CanonicalIntervalSet, protocol TcpUdpProtocol) []TcpUdp {
 	tcpItemsTemp := []TcpUdp{}
@@ -361,7 +361,7 @@ func getCubeAsTCPItems(cube []*CanonicalIntervalSet, protocol TcpUdpProtocol) []
 	} else {
 		tcpItemsTemp = append(tcpItemsTemp, TcpUdp{Protocol: protocol})
 	}
-	//consider dst ports
+	// consider dst ports
 	dstPorts := cube[dstPort]
 	if !dstPorts.Equal(*getDimensionDomain(dstPort)) {
 		// iterate the intervals in the interval-set
@@ -402,36 +402,34 @@ func getCubeAsICMPItems(cube []*CanonicalIntervalSet) []Icmp {
 	res := []Icmp{}
 	if icmpTypes.Equal(*getDimensionDomain(icmpType)) {
 		codeNumbers := getIntervalNumbers(icmpCodes)
-		for _, code := range codeNumbers {
-			res = append(res, Icmp{Protocol: IcmpProtocolICMP, Code: &code})
+		for i := range codeNumbers {
+			res = append(res, Icmp{Protocol: IcmpProtocolICMP, Code: &codeNumbers[i]})
 		}
 		return res
 	}
 	if icmpCodes.Equal(*getDimensionDomain(icmpCode)) {
 		typeNumbers := getIntervalNumbers(icmpTypes)
-		for _, t := range typeNumbers {
-			res = append(res, Icmp{Protocol: IcmpProtocolICMP, Type: &t})
+		for i := range typeNumbers {
+			res = append(res, Icmp{Protocol: IcmpProtocolICMP, Type: &typeNumbers[i]})
 		}
 		return res
 	}
 	// iterate both codes and types
 	typeNumbers := getIntervalNumbers(icmpTypes)
 	codeNumbers := getIntervalNumbers(icmpCodes)
-	for _, t := range typeNumbers {
-		for _, c := range codeNumbers {
-			res = append(res, Icmp{Protocol: IcmpProtocolICMP, Type: &t, Code: &c})
+	for i := range typeNumbers {
+		for j := range codeNumbers {
+			res = append(res, Icmp{Protocol: IcmpProtocolICMP, Type: &typeNumbers[i], Code: &codeNumbers[j]})
 		}
 	}
 	return res
 }
 
 func ConnToJSONRep(c *ConnectionSet) ConnDetails {
-	res := ConnDetails{AllowedConns: ProtocolList{}}
+	res := ProtocolList{}
 	if c.AllowAll {
-		res.AllowedConns = append(res.AllowedConns, Icmp{Protocol: IcmpProtocolICMP})
-		res.AllowedConns = append(res.AllowedConns, TcpUdp{Protocol: TcpUdpProtocolTCP})
-		res.AllowedConns = append(res.AllowedConns, TcpUdp{Protocol: TcpUdpProtocolUDP})
-		return res
+		res = append(res, AnyProtocol{Protocol: AnyProtocolProtocolANY})
+		return ConnDetails(res)
 	}
 
 	cubes := c.connectionProperties.GetCubesList()
@@ -440,24 +438,24 @@ func ConnToJSONRep(c *ConnectionSet) ConnDetails {
 		if protocols.Contains(TCP) {
 			tcpItems := getCubeAsTCPItems(cube, TcpUdpProtocolTCP)
 			for _, item := range tcpItems {
-				res.AllowedConns = append(res.AllowedConns, item)
+				res = append(res, item)
 			}
 		}
 		if protocols.Contains(UDP) {
 			udpItems := getCubeAsTCPItems(cube, TcpUdpProtocolUDP)
 			for _, item := range udpItems {
-				res.AllowedConns = append(res.AllowedConns, item)
+				res = append(res, item)
 			}
 		}
 		if protocols.Contains(ICMP) {
 			icmpItems := getCubeAsICMPItems(cube)
 			for _, item := range icmpItems {
-				res.AllowedConns = append(res.AllowedConns, item)
+				res = append(res, item)
 			}
 		}
 	}
 
-	return res
+	return ConnDetails(res)
 }
 
 // EnhancedString returns a connection string with possibly added asterisk for unidirectional connection,

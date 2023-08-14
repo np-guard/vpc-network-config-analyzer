@@ -11,10 +11,9 @@ type JSONoutputFormatter struct {
 }
 
 type connLine struct {
-	Src  EndpointElem       `json:"src"`
-	Dst  EndpointElem       `json:"dst"`
-	Conn common.ConnDetails `json:"conn"`
-	//Conn               string       `json:"conn"`
+	Src                EndpointElem       `json:"src"`
+	Dst                EndpointElem       `json:"dst"`
+	Conn               common.ConnDetails `json:"conn"`
 	UnidirectionalConn common.ConnDetails `json:"unidirectional_conn,omitempty"`
 }
 
@@ -26,8 +25,8 @@ type architecture struct {
 }
 
 type allInfo struct {
-	Arch         architecture `json:"architecture"`
-	Connectivity []connLine   `json:"connectivity"`
+	Arch                  architecture `json:"architecture"`
+	EndpointsConnectivity []connLine   `json:"endpoints_connectivity"`
 }
 
 func getConnLines(conn *VPCConnectivity) []connLine {
@@ -52,28 +51,14 @@ func getConnLines(conn *VPCConnectivity) []connLine {
 	return connLines
 }
 
-/*func getGroupedConnLines(conn *VPCConnectivity) []connLine {
-	connLines := make([]connLine, len(conn.GroupedConnectivity.GroupedLines))
-	for i, line := range conn.GroupedConnectivity.GroupedLines {
-		connLines[i] = connLine{Src: line.Src, Dst: line.Dst, Conn: line.Conn}
-	}
-	return connLines
-}*/
-
 func (j *JSONoutputFormatter) WriteOutputAllEndpoints(c *CloudConfig, conn *VPCConnectivity, outFile string, grouping bool) (
 	string,
 	error,
 ) {
 	all := allInfo{}
-	var connLines []connLine
-	connLines = getConnLines(conn)
-	/*if grouping {
-		connLines = getGroupedConnLines(conn)
-	} else {
-		connLines = getConnLines(conn)
-	}*/
+	connLines := getConnLines(conn)
 
-	all.Connectivity = connLines
+	all.EndpointsConnectivity = connLines
 
 	all.Arch = architecture{
 		Nodes:    []map[string]string{},

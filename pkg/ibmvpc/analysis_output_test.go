@@ -235,20 +235,21 @@ var tests = []*vpcGeneralTest{
 	// json example
 	{
 		name:     "demo_with_instances",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
 		format:   vpcmodel.JSON,
 	},
 }
 
 var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true, vpcmodel.JSON: true}
+var formatsAvoidOutputGeneration = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
 
 // uncomment the function below to run for updating the expected output
-/*func TestAllWithGeneration(t *testing.T) {
+func TestAllWithGeneration(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range tests {
 		tt := tests[testIdx]
 		// todo - remove the following if when drawio is stable
-		if formatsAvoidComparison[tt.format] {
+		if formatsAvoidOutputGeneration[tt.format] {
 			tt.mode = outputIgnore
 		} else {
 			tt.mode = outputGeneration
@@ -259,7 +260,7 @@ var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: tr
 		})
 	}
 	fmt.Println("done")
-}*/
+}
 
 func TestAllWithComparison(t *testing.T) {
 	// tests is the list of tests to run
