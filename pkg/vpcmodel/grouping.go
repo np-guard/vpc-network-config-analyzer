@@ -9,7 +9,7 @@ import (
 
 const commaSepartor = ","
 
-type groupingConnections map[Node]map[string][]Node // for each line here can group list of external nodes to cidrs list as of one element
+type groupingConnections map[EndpointElem]map[string][]Node // for each line here can group list of external nodes to cidrs list as of one element
 
 func (g *groupingConnections) getGroupedConnLines(isSrcToDst bool) []*GroupedConnLine {
 	res := []*GroupedConnLine{}
@@ -29,7 +29,7 @@ func (g *groupingConnections) getGroupedConnLines(isSrcToDst bool) []*GroupedCon
 }
 
 func newGroupingConnections() *groupingConnections {
-	res := groupingConnections(map[Node]map[string][]Node{})
+	res := groupingConnections(map[EndpointElem]map[string][]Node{})
 	return &res
 }
 
@@ -87,7 +87,7 @@ func (g *groupedExternalNodes) Name() string {
 	return prefix + g.String()
 }
 
-func (g *groupingConnections) addPublicConnectivity(n Node, conn string, target Node) {
+func (g *groupingConnections) addPublicConnectivity(n EndpointElem, conn string, target Node) {
 	if _, ok := (*g)[n]; !ok {
 		(*g)[n] = map[string][]Node{}
 	}
