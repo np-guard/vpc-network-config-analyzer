@@ -29,13 +29,23 @@ type IPBlock struct {
 
 // ToIPRanges returns a string of the ip ranges in the current IPBlock object
 func (b *IPBlock) ToIPRanges() string {
+	return strings.Join(b.ToIPRangesList(), ",")
+}
+
+// ToIPRange returns a string of the ip range of a single interval
+func toIPRange(i Interval) string {
+	startIP := InttoIP4(i.Start)
+	endIP := InttoIP4(i.End)
+	return rangeIPstr(startIP, endIP)
+}
+
+// ToIPRangesList: returns a list of the ip-ranges strings in the current IPBlock object
+func (b *IPBlock) ToIPRangesList() []string {
 	IPRanges := make([]string, len(b.ipRange.IntervalSet))
 	for index := range b.ipRange.IntervalSet {
-		startIP := InttoIP4(b.ipRange.IntervalSet[index].Start)
-		endIP := InttoIP4(b.ipRange.IntervalSet[index].End)
-		IPRanges[index] = rangeIPstr(startIP, endIP)
+		IPRanges[index] = toIPRange(b.ipRange.IntervalSet[index])
 	}
-	return strings.Join(IPRanges, ",")
+	return IPRanges
 }
 
 // IsIPAddress returns true if IPBlock object is a range of exactly one ip address from input
@@ -248,6 +258,20 @@ func (b *IPBlock) ToCidrList() []string {
 		cidrList = append(cidrList, IntervalToCidrList(interval.Start, interval.End)...)
 	}
 	return cidrList
+}
+
+// ListToPrint: returns a uniform to print list s.t. each element contains either a single cidr or an ip range
+func (b *IPBlock) ListToPrint() []string {
+	cidrsIPRangesList := []string{}
+	for _, interval := range b.ipRange.IntervalSet {
+		cidr := IntervalToCidrList(interval.Start, interval.End)
+		if len(cidr) == 1 {
+			cidrsIPRangesList = append(cidrsIPRangesList, cidr[0])
+		} else {
+			cidrsIPRangesList = append(cidrsIPRangesList, toIPRange(interval))
+		}
+	}
+	return cidrsIPRangesList
 }
 
 func (b *IPBlock) ToIPAdress() string {

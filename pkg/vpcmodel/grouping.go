@@ -3,7 +3,11 @@ package vpcmodel
 import (
 	"sort"
 	"strings"
+
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
+
+const commaSepartor = ","
 
 type groupingConnections map[Node]map[string][]Node // for each line here can group list of external nodes to cidrs list as of one element
 
@@ -76,10 +80,11 @@ type groupedExternalNodes []Node
 
 func (g *groupedExternalNodes) Name() string {
 	isAllInternetRange, err := isEntirePublicInternetRange(*g)
+	prefix := publicInternetNodeName + " "
 	if err == nil && isAllInternetRange {
-		return "Public Internet (all ranges)"
+		return prefix + "(all ranges)"
 	}
-	return listNodesStr(*g, Node.Cidr)
+	return prefix + g.String()
 }
 
 func (g *groupingConnections) addPublicConnectivity(n Node, conn string, target Node) {
@@ -211,4 +216,23 @@ func listNodesStr(nodes []Node, fn func(Node) string) string {
 	}
 	sort.Strings(nodesStrings)
 	return strings.Join(nodesStrings, ",")
+}
+
+func (g *groupedExternalNodes) String() string {
+	// 1. Created a list of IPBlocks
+	cidrList := make([]string, len(*g))
+	for i, n := range *g {
+		cidrList[i] = n.Cidr()
+	}
+	ipbList, _, err := ipStringsToIPblocks(cidrList)
+	if err != nil {
+		return ""
+	}
+	// 2. Union all IPBlocks in a single one; its intervals will be the cidr blocks or ranges that should be printed, after all possible merges
+	unionBlock := &common.IPBlock{}
+	for _, ipBlock := range ipbList {
+		unionBlock = unionBlock.Union(ipBlock)
+	}
+	// 3. print a list s.t. each element contains either a single cidr or an ip range
+	return strings.Join(unionBlock.ListToPrint(), commaSepartor)
 }
