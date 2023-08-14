@@ -16,8 +16,6 @@ const (
 	externalNetworkNodeKind = "ExternalNetwork"
 )
 
-const commaSepartor = ","
-
 // All public IP addresses belong to one of the following public IP address ranges:
 func getPublicInternetAddressList() []string {
 	return []string{

@@ -1,10 +1,13 @@
 package vpcmodel
 
 import (
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"sort"
 	"strings"
+
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
+
+const commaSepartor = ","
 
 type groupingConnections map[Node]map[string][]Node // for each line here can group list of external nodes to cidrs list as of one element
 
