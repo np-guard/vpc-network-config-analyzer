@@ -3,6 +3,7 @@ package vpcmodel
 import (
 	"errors"
 	"fmt"
+
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
