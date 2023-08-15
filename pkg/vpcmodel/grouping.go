@@ -40,9 +40,18 @@ func newGroupConnLines(c *CloudConfig, v *VPCConnectivity, grouping bool) *Group
 	return res
 }
 
+func newGroupConnLinesSubnetConnectivity(c *CloudConfig, s *VPCsubnetConnectivity) *GroupConnLines {
+	res := &GroupConnLines{c: c, s: s, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections()}
+	res.groupExternalAddressesForSubnets()
+	return res
+}
+
+// GroupConnLines used both for VPCConnectivity and for VPCsubnetConnectivity, one at a time. The other must be nil
+// todo: define abstraction above both?
 type GroupConnLines struct {
 	c            *CloudConfig
 	v            *VPCConnectivity
+	s            *VPCsubnetConnectivity
 	srcToDst     *groupingConnections
 	dstToSrc     *groupingConnections
 	GroupedLines []*GroupedConnLine
@@ -88,14 +97,14 @@ func (g *groupedExternalNodes) Name() string {
 	return prefix + g.String()
 }
 
-func (g *groupingConnections) addPublicConnectivity(n EndpointElem, conn string, target Node) {
-	if _, ok := (*g)[n]; !ok {
-		(*g)[n] = map[string][]Node{}
+func (g *groupingConnections) addPublicConnectivity(ep EndpointElem, conn string, targetNode Node) {
+	if _, ok := (*g)[ep]; !ok {
+		(*g)[ep] = map[string][]Node{}
 	}
-	if _, ok := (*g)[n][conn]; !ok {
-		(*g)[n][conn] = []Node{}
+	if _, ok := (*g)[ep][conn]; !ok {
+		(*g)[ep][conn] = []Node{}
 	}
-	(*g)[n][conn] = append((*g)[n][conn], target)
+	(*g)[ep][conn] = append((*g)[ep][conn], targetNode)
 }
 
 // subnetGrouping returns a slice of EndpointElem objects produced from an input slice, by grouping
@@ -141,6 +150,36 @@ func (g *GroupConnLines) groupExternalAddresses() {
 			case src.IsPublicInternet():
 				g.dstToSrc.addPublicConnectivity(dst, connString, src)
 			default:
+				res = append(res, &GroupedConnLine{src, dst, connString})
+			}
+		}
+	}
+	// add to res lines from  srcToDst and DstToSrc groupings
+	res = append(res, g.srcToDst.getGroupedConnLines(true)...)
+	res = append(res, g.dstToSrc.getGroupedConnLines(false)...)
+	g.GroupedLines = res
+}
+
+func (g *GroupConnLines) groupExternalAddressesForSubnets() {
+	// groups public internet ranges in dst when dst is public internet
+	res := []*GroupedConnLine{}
+	for src, endpointConns := range g.s.AllowedConnsCombined {
+		for dst, conns := range endpointConns {
+			if conns.IsEmpty() {
+				continue
+			}
+			connString := conns.EnhancedString()
+			hasExternal := false
+			switch dst.(type) {
+			case Node:
+				if dst.(Node).IsPublicInternet() {
+					hasExternal = true
+					g.srcToDst.addPublicConnectivity(src, connString, dst.(Node))
+				}
+			}
+			// since pgw enable only egress src can not be public internet
+			// not an external connection in source or destination - nothing to group, just append
+			if !hasExternal {
 				res = append(res, &GroupedConnLine{src, dst, connString})
 			}
 		}
