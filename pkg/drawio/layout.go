@@ -89,7 +89,7 @@ func (ly *layoutS) setDefaultLocation(tn SquareTreeNodeInterface, rowIndex, colI
 func (ly *layoutS) layoutSubnetsIcons() {
 	ly.setDefaultLocation(ly.network, 0, 0)
 	colIndex := 0
-	for _, cloud := range ly.network.(*NetworkTreeNode).ibmClouds {
+	for _, cloud := range ly.network.(*NetworkTreeNode).clouds {
 		ly.setDefaultLocation(cloud, 0, colIndex)
 		for _, vpc := range cloud.(*IBMCloudTreeNode).vpcs {
 			ly.setDefaultLocation(vpc, 0, colIndex)
@@ -137,7 +137,7 @@ func (ly *layoutS) layoutSubnetsIcons() {
 // SG can have more than one squares. so setSGLocations() will add treeNodes of the kind PartialSGTreeNode
 // PartialSGTreeNode can not have more than one row. and can have only cell that contains icons that belong to the SG
 func (ly *layoutS) setSGLocations() {
-	for _, cloud := range ly.network.(*NetworkTreeNode).ibmClouds {
+	for _, cloud := range ly.network.(*NetworkTreeNode).clouds {
 		for _, vpc := range cloud.(*IBMCloudTreeNode).vpcs {
 			for _, sg := range vpc.(*VpcTreeNode).sgs {
 				if len(sg.IconTreeNodes()) == 0 {
@@ -211,7 +211,7 @@ func (*layoutS) resolveSquareLocation(tn SquareTreeNodeInterface, internalBorder
 }
 
 func (ly *layoutS) setSquaresLocations() {
-	for _, cloud := range ly.network.(*NetworkTreeNode).ibmClouds {
+	for _, cloud := range ly.network.(*NetworkTreeNode).clouds {
 		ly.resolveSquareLocation(cloud, cloudToSubnetDepth, true)
 		for _, vpc := range cloud.(*IBMCloudTreeNode).vpcs {
 			ly.resolveSquareLocation(vpc, vpcToSubnetDepth, true)
@@ -328,7 +328,7 @@ func (ly *layoutS) setZoneIconsLocations(zone SquareTreeNodeInterface) {
 }
 
 func (ly *layoutS) setIconsLocations() {
-	for _, cloud := range ly.network.(*NetworkTreeNode).ibmClouds {
+	for _, cloud := range ly.network.(*NetworkTreeNode).clouds {
 		for _, vpc := range cloud.(*IBMCloudTreeNode).vpcs {
 			for _, zone := range vpc.(*VpcTreeNode).zones {
 				ly.setZoneIconsLocations(zone)
