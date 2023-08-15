@@ -74,5 +74,3 @@ ky-testenv-transit-subnet-3 => ky-testenv-private-subnet-2 : protocol: TCP src-p
 ky-testenv-transit-subnet-3 => ky-testenv-private-subnet-3 : protocol: TCP src-ports: 443
 ky-testenv-transit-subnet-3 => ky-testenv-transit-subnet-1 : All Connections
 ky-testenv-transit-subnet-3 => ky-testenv-transit-subnet-2 : All Connections
-
-connections are stateful unless marked with *

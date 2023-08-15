@@ -6,5 +6,3 @@ subnet2-ky => subnet1-ky : All Connections
 subnet2-ky => subnet3-ky : All Connections
 subnet3-ky => subnet1-ky : All Connections
 subnet3-ky => subnet2-ky : All Connections
-
-connections are stateful unless marked with *

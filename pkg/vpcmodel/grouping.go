@@ -243,6 +243,18 @@ func (g *GroupConnLines) String() string {
 	return strings.Join(linesStr, "\n") + asteriskDetails
 }
 
+// StringTmpWA ToDo: tmp WA until https://github.com/np-guard/vpc-network-config-analyzer/issues/138.
+//
+//	Once the issue is solved this code can be deleted
+func (g *GroupConnLines) StringTmpWA() string {
+	linesStr := make([]string, len(g.GroupedLines))
+	for i, line := range g.GroupedLines {
+		linesStr[i] = line.String()
+	}
+	sort.Strings(linesStr)
+	return strings.Join(linesStr, "\n")
+}
+
 func listNodesStr(nodes []Node, fn func(Node) string) string {
 	nodesStrings := make([]string, len(nodes))
 	for i, n := range nodes {
