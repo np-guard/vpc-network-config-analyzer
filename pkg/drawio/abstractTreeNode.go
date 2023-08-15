@@ -11,7 +11,6 @@ const (
 	tagID      = 4
 	decoreID   = 5
 
-	rootID    = 1
 	idsPrefix = "FXCXVvDxTQtwc45PbP1s"
 )
 

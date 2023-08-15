@@ -69,9 +69,7 @@ type NetworkTreeNode struct {
 }
 
 func NewNetworkTreeNode() *NetworkTreeNode {
-	tn := NetworkTreeNode{}
-	tn.id = rootID
-	return &tn
+	return &NetworkTreeNode{abstractSquareTreeNode: newAbstractSquareTreeNode(nil , "network")}
 }
 
 func (tn *NetworkTreeNode) NotShownInDrawio() bool { return true }
