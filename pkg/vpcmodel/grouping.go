@@ -169,17 +169,11 @@ func (g *GroupConnLines) groupExternalAddressesForSubnets() {
 				continue
 			}
 			connString := conns.EnhancedString()
-			hasExternal := false
-			switch dst.(type) {
-			case Node:
-				if dst.(Node).IsPublicInternet() {
-					hasExternal = true
-					g.srcToDst.addPublicConnectivity(src, connString, dst.(Node))
-				}
-			}
-			// since pgw enable only egress src can not be public internet
-			// not an external connection in source or destination - nothing to group, just append
-			if !hasExternal {
+			if dstNode, ok := dst.(Node); ok && dstNode.IsPublicInternet() {
+				g.srcToDst.addPublicConnectivity(src, connString, dstNode)
+			} else {
+				// since pgw enable only egress src can not be public internet
+				// not an external connection in source or destination - nothing to group, just append
 				res = append(res, &GroupedConnLine{src, dst, connString})
 			}
 		}

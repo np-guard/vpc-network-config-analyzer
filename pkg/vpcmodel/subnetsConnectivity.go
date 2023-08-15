@@ -1,9 +1,10 @@
 package vpcmodel
 
 import (
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+
 	"errors"
 	"fmt"
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 // VPCsubnetConnectivity captures allowed connectivity for subnets, considering nacl and pgw resources
