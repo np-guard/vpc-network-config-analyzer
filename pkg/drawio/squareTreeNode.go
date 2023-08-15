@@ -47,6 +47,9 @@ func (tn *abstractSquareTreeNode) setHasVSIs() {
 
 func (tn *abstractSquareTreeNode) setGeometry() {
 	location := tn.Location()
+	if location == nil{
+		return
+	}
 	tn.width = location.lastCol.width() + location.lastCol.x() - location.firstCol.x()
 	tn.height = location.lastRow.height() + location.lastRow.y() - location.firstRow.y()
 	tn.x = location.firstCol.x()
@@ -61,20 +64,21 @@ func (tn *abstractSquareTreeNode) setGeometry() {
 // NetworkTreeNode is the top of the tree. we have only one instance of it, with constant id
 type NetworkTreeNode struct {
 	abstractSquareTreeNode
-	ibmClouds []SquareTreeNodeInterface
+	ibmClouds     []SquareTreeNodeInterface
 	publicNetwork SquareTreeNodeInterface
 }
-func NewNetworkTreeNode() *NetworkTreeNode { 
+
+func NewNetworkTreeNode() *NetworkTreeNode {
 	tn := NetworkTreeNode{}
 	tn.id = rootID
 	return &tn
 }
-// func (tn *NetworkTreeNode) ID() uint               { return rootID }
+
 func (tn *NetworkTreeNode) NotShownInDrawio() bool { return true }
 
 func (tn *NetworkTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
 	sqs := tn.ibmClouds
-	if tn.publicNetwork != nil{
+	if tn.publicNetwork != nil {
 		sqs = append(sqs, tn.publicNetwork)
 	}
 	return sqs, tn.elements, tn.connections
@@ -85,7 +89,6 @@ type PublicNetworkTreeNode struct {
 	abstractSquareTreeNode
 }
 
-
 func NewPublicNetworkTreeNode(parent *NetworkTreeNode) *PublicNetworkTreeNode {
 	pn := &PublicNetworkTreeNode{abstractSquareTreeNode: newAbstractSquareTreeNode(parent, "Public\nNetwork")}
 	parent.publicNetwork = pn
@@ -95,7 +98,7 @@ func NewPublicNetworkTreeNode(parent *NetworkTreeNode) *PublicNetworkTreeNode {
 func (tn *PublicNetworkTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
 	return []SquareTreeNodeInterface{}, tn.elements, tn.connections
 }
-
+func (tn *PublicNetworkTreeNode) NotShownInDrawio() bool { return len(tn.IconTreeNodes()) == 0 }
 
 // ////////////////////////////////////////////////////////////////
 type IBMCloudTreeNode struct {
@@ -103,11 +106,10 @@ type IBMCloudTreeNode struct {
 	vpcs []SquareTreeNodeInterface
 }
 
-
 func NewIBMCloudTreeNode(parent *NetworkTreeNode) *IBMCloudTreeNode {
-	 cloud := IBMCloudTreeNode{abstractSquareTreeNode: newAbstractSquareTreeNode(parent, "IBM Cloud")}
-	 parent.ibmClouds = append(parent.ibmClouds, &cloud)
-	 return &cloud
+	cloud := IBMCloudTreeNode{abstractSquareTreeNode: newAbstractSquareTreeNode(parent, "IBM Cloud")}
+	parent.ibmClouds = append(parent.ibmClouds, &cloud)
+	return &cloud
 }
 func (tn *IBMCloudTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
 	return tn.vpcs, tn.elements, tn.connections

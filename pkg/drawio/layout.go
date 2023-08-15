@@ -183,7 +183,7 @@ func (ly *layoutS) addAllBorderLayers() {
 
 func (ly *layoutS) resolvePublicNetworkLocations() {
 	pn := ly.network.(*NetworkTreeNode).publicNetwork
-	if pn == nil {
+	if pn == nil || len(pn.IconTreeNodes()) == 0 {
 		return
 	}
 	allCloudsLocation := mergeLocations(locations(getAllNodes(ly.network)))
