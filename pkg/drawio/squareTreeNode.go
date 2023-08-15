@@ -47,7 +47,7 @@ func (tn *abstractSquareTreeNode) setHasVSIs() {
 
 func (tn *abstractSquareTreeNode) setGeometry() {
 	location := tn.Location()
-	if location == nil{
+	if location == nil {
 		return
 	}
 	tn.width = location.lastCol.width() + location.lastCol.x() - location.firstCol.x()
@@ -69,9 +69,8 @@ type NetworkTreeNode struct {
 }
 
 func NewNetworkTreeNode() *NetworkTreeNode {
-	return &NetworkTreeNode{abstractSquareTreeNode: newAbstractSquareTreeNode(nil , "network")}
+	return &NetworkTreeNode{abstractSquareTreeNode: newAbstractSquareTreeNode(nil, "network")}
 }
-
 func (tn *NetworkTreeNode) NotShownInDrawio() bool { return true }
 
 func (tn *NetworkTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
@@ -91,7 +90,6 @@ func NewPublicNetworkTreeNode(parent *NetworkTreeNode) *PublicNetworkTreeNode {
 	pn := &PublicNetworkTreeNode{abstractSquareTreeNode: newAbstractSquareTreeNode(parent, "Public\nNetwork")}
 	parent.publicNetwork = pn
 	return pn
-
 }
 func (tn *PublicNetworkTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
 	return []SquareTreeNodeInterface{}, tn.elements, tn.connections

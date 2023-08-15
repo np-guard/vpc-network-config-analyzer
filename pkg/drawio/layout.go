@@ -187,8 +187,7 @@ func (ly *layoutS) resolvePublicNetworkLocations() {
 		return
 	}
 	allCloudsLocation := mergeLocations(locations(getAllNodes(ly.network)))
-	pnl := ly.matrix.allocateCellLocation(3, 1)
-	pnl.lastRow = allCloudsLocation.lastRow
+	pnl := newLocation(allCloudsLocation.firstRow, allCloudsLocation.lastRow, ly.matrix.cols[1], ly.matrix.cols[1])
 	pnl.firstCol.setWidth(iconSpace)
 	ly.network.(*NetworkTreeNode).publicNetwork.setLocation(pnl)
 }

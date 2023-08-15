@@ -73,4 +73,3 @@ func (tn *abstractTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNod
 	return nil, nil, nil
 }
 func (tn *abstractTreeNode) setGeometry() {}
-
