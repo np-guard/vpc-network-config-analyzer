@@ -258,7 +258,7 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() error {
 
 func (v *VPCsubnetConnectivity) String() string {
 	res := "combined connections between subnets:\n"
-	//res += v.GroupedConnectivity.String() ToDo: uncomment once https://github.com/np-guard/vpc-network-config-analyzer/issues/138 is solved
+	// res += v.GroupedConnectivity.String() ToDo: uncomment once https://github.com/np-guard/vpc-network-config-analyzer/issues/138 is solved
 	res += v.GroupedConnectivity.StringTmpWA()
 	return res
 }
