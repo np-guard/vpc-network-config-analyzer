@@ -34,8 +34,9 @@ const (
 	vsiYOffset  = -10
 	vsiIconSize = 40
 
-	// network -> vpc -> zone -> subnets
-	networkToSubnetDepth = 3
+	// network -> cloud -> vpc -> zone -> subnets
+	networkToSubnetDepth = 4
+	cloudToSubnetDepth   = 3
 	vpcToSubnetDepth     = 2
 	zoneToSubnetDepth    = 1
 )
@@ -88,39 +89,45 @@ func (ly *layoutS) setDefaultLocation(tn SquareTreeNodeInterface, rowIndex, colI
 func (ly *layoutS) layoutSubnetsIcons() {
 	ly.setDefaultLocation(ly.network, 0, 0)
 	colIndex := 0
-	for _, vpc := range ly.network.(*NetworkTreeNode).vpcs {
-		ly.setDefaultLocation(vpc, 0, colIndex)
-		for _, zone := range vpc.(*VpcTreeNode).zones {
-			rowIndex := 0
-			ly.setDefaultLocation(zone, rowIndex, colIndex)
-			for _, subnet := range zone.(*ZoneTreeNode).subnets {
-				var iconInCurrentCell IconTreeNodeInterface = nil
-				icons := subnet.IconTreeNodes()
-				ly.setDefaultLocation(subnet, rowIndex, colIndex)
-				for _, icon := range icons {
-					if iconInCurrentCell != nil && iconInCurrentCell.SG() != icon.SG() {
-						rowIndex++
-						iconInCurrentCell = nil
+	for _, cloud := range ly.network.(*NetworkTreeNode).ibmClouds {
+		ly.setDefaultLocation(cloud, 0, colIndex)
+		for _, vpc := range cloud.(*IBMCloudTreeNode).vpcs {
+			ly.setDefaultLocation(vpc, 0, colIndex)
+			for _, zone := range vpc.(*VpcTreeNode).zones {
+				rowIndex := 0
+				ly.setDefaultLocation(zone, rowIndex, colIndex)
+				for _, subnet := range zone.(*ZoneTreeNode).subnets {
+					var iconInCurrentCell IconTreeNodeInterface = nil
+					icons := subnet.IconTreeNodes()
+					ly.setDefaultLocation(subnet, rowIndex, colIndex)
+					for _, icon := range icons {
+						if iconInCurrentCell != nil && iconInCurrentCell.SG() != icon.SG() {
+							rowIndex++
+							iconInCurrentCell = nil
+						}
+						if iconInCurrentCell == nil {
+							l := ly.matrix.allocateCellLocation(rowIndex, colIndex)
+							l.firstRow.setHeight(subnetHeight)
+							l.firstCol.setWidth(subnetWidth)
+							icon.setLocation(l)
+							iconInCurrentCell = icon
+						} else {
+							icon.setLocation(iconInCurrentCell.Location().copy())
+							iconInCurrentCell.Location().xOffset = iconSize
+							icon.Location().xOffset = -iconSize
+							rowIndex++
+							iconInCurrentCell = nil
+						}
 					}
-					if iconInCurrentCell == nil {
-						l := ly.matrix.allocateCellLocation(rowIndex, colIndex)
-						l.firstRow.setHeight(subnetHeight)
-						l.firstCol.setWidth(subnetWidth)
-						icon.setLocation(l)
-						iconInCurrentCell = icon
-					} else {
-						icon.setLocation(iconInCurrentCell.Location().copy())
-						iconInCurrentCell.Location().xOffset = iconSize
-						icon.Location().xOffset = -iconSize
-						rowIndex++
-						iconInCurrentCell = nil
-					}
+					rowIndex++
 				}
-				rowIndex++
+				colIndex++
 			}
-			colIndex++
+			if vpc.(*VpcTreeNode).zones == nil {
+				colIndex++
+			}
 		}
-		if vpc.(*VpcTreeNode).zones == nil {
+		if cloud.(*IBMCloudTreeNode).vpcs == nil {
 			colIndex++
 		}
 	}
@@ -130,30 +137,32 @@ func (ly *layoutS) layoutSubnetsIcons() {
 // SG can have more than one squares. so setSGLocations() will add treeNodes of the kind PartialSGTreeNode
 // PartialSGTreeNode can not have more than one row. and can have only cell that contains icons that belong to the SG
 func (ly *layoutS) setSGLocations() {
-	for _, vpc := range ly.network.(*NetworkTreeNode).vpcs {
-		for _, sg := range vpc.(*VpcTreeNode).sgs {
-			if len(sg.IconTreeNodes()) == 0 {
-				continue
-			}
-			sgLocation := mergeLocations(locations(getAllNodes(sg)))
-			sgIconsIndexes := map[[2]int]bool{}
-			for _, icon := range sg.IconTreeNodes() {
-				sgIconsIndexes[[2]int{icon.Location().firstRow.index, icon.Location().firstCol.index}] = true
-			}
-			for ri := sgLocation.firstRow.index; ri <= sgLocation.lastRow.index; ri++ {
-				var currentLocation *Location = nil
-				// we run also on the next column index, to create the last PartialSGTreeNode
-				for ci := sgLocation.firstCol.index; ci <= sgLocation.lastCol.index+1; ci++ {
-					isSGCell := sgIconsIndexes[[2]int{ri, ci}]
-					switch {
-					case currentLocation == nil && isSGCell:
-						currentLocation = newCellLocation(ly.matrix.rows[ri], ly.matrix.cols[ci])
-					case currentLocation != nil && isSGCell:
-						currentLocation.lastCol = ly.matrix.cols[ci]
-					case currentLocation != nil && !isSGCell:
-						psg := newPartialSGTreeNode(sg.(*SGTreeNode))
-						psg.setLocation(currentLocation)
-						currentLocation = nil
+	for _, cloud := range ly.network.(*NetworkTreeNode).ibmClouds {
+		for _, vpc := range cloud.(*IBMCloudTreeNode).vpcs {
+			for _, sg := range vpc.(*VpcTreeNode).sgs {
+				if len(sg.IconTreeNodes()) == 0 {
+					continue
+				}
+				sgLocation := mergeLocations(locations(getAllNodes(sg)))
+				sgIconsIndexes := map[[2]int]bool{}
+				for _, icon := range sg.IconTreeNodes() {
+					sgIconsIndexes[[2]int{icon.Location().firstRow.index, icon.Location().firstCol.index}] = true
+				}
+				for ri := sgLocation.firstRow.index; ri <= sgLocation.lastRow.index; ri++ {
+					var currentLocation *Location = nil
+					// we run also on the next column index, to create the last PartialSGTreeNode
+					for ci := sgLocation.firstCol.index; ci <= sgLocation.lastCol.index+1; ci++ {
+						isSGCell := sgIconsIndexes[[2]int{ri, ci}]
+						switch {
+						case currentLocation == nil && isSGCell:
+							currentLocation = newCellLocation(ly.matrix.rows[ri], ly.matrix.cols[ci])
+						case currentLocation != nil && isSGCell:
+							currentLocation.lastCol = ly.matrix.cols[ci]
+						case currentLocation != nil && !isSGCell:
+							psg := newPartialSGTreeNode(sg.(*SGTreeNode))
+							psg.setLocation(currentLocation)
+							currentLocation = nil
+						}
 					}
 				}
 			}
@@ -162,14 +171,33 @@ func (ly *layoutS) setSGLocations() {
 }
 
 // ///////////////////////////////////////////////////////////
-// Till this stage, we had only subnets in the matrix. now we want add vpcs/zones.
-// Between two subnets, there can be one layer one case, and five in another (subnet<->zone<->vpc<->vpc<->zone<->subnet)
-// First we add layers to all possible borders.
+// Till this stage, we had only subnets in the matrix. now we want add vpcs/zones/clouds, and the public network.
+// Between two subnets, there can be one layer one case, and seven in another (subnet<->zone<->vpc<->cloud<->cloud<->vpc<->zone<->subnet)
+// First we add layers to all possible borders + 2 cols for public network.
 // then we mark all the layers that has are needed.
 // then we remove the layers that we do not need
 func (ly *layoutS) addAllBorderLayers() {
-	newIndexFunction := func(index int) int { return networkToSubnetDepth + networkToSubnetDepth*2*index }
+	newIndexFunction := func(index int) int { return 2 + networkToSubnetDepth + networkToSubnetDepth*2*index }
 	ly.matrix.resize(newIndexFunction)
+}
+
+func (ly *layoutS) resolveNetworkLocations() {
+
+	allCloudsLocation := mergeLocations(locations(getAllNodes(ly.network)))
+	nl := newLocation(allCloudsLocation.prevRow(), allCloudsLocation.nextRow(), allCloudsLocation.prevCol(), allCloudsLocation.nextCol())
+	if ly.network.(*NetworkTreeNode).publicNetwork != nil {
+		pnl := ly.matrix.allocateCellLocation(3, 1)
+		pnl.lastRow = allCloudsLocation.lastRow
+		pnl.firstCol.setWidth(borderWidth)
+		ly.network.(*NetworkTreeNode).publicNetwork.setLocation(pnl)
+		nl.firstCol = pnl.prevCol()
+	}
+	nl.firstRow.setHeight(borderWidth)
+	nl.lastRow.setHeight(borderWidth)
+	nl.firstCol.setWidth(borderWidth)
+	nl.lastCol.setWidth(borderWidth)
+	ly.network.setLocation(nl)
+
 }
 
 func (*layoutS) resolveSquareLocation(tn SquareTreeNodeInterface, internalBorders int, addExternalBorders bool) {
@@ -191,23 +219,30 @@ func (*layoutS) resolveSquareLocation(tn SquareTreeNodeInterface, internalBorder
 }
 
 func (ly *layoutS) setSquaresLocations() {
-	ly.resolveSquareLocation(ly.network, networkToSubnetDepth, false)
-	for _, vpc := range ly.network.(*NetworkTreeNode).vpcs {
-		ly.resolveSquareLocation(vpc, vpcToSubnetDepth, true)
-		for _, zone := range vpc.(*VpcTreeNode).zones {
-			ly.resolveSquareLocation(zone, zoneToSubnetDepth, true)
-			for _, subnet := range zone.(*ZoneTreeNode).subnets {
-				ly.resolveSquareLocation(subnet, 0, true)
+	for _, cloud := range ly.network.(*NetworkTreeNode).ibmClouds {
+		ly.resolveSquareLocation(cloud, cloudToSubnetDepth, true)
+		for _, vpc := range cloud.(*IBMCloudTreeNode).vpcs {
+			ly.resolveSquareLocation(vpc, vpcToSubnetDepth, true)
+			for _, zone := range vpc.(*VpcTreeNode).zones {
+				ly.resolveSquareLocation(zone, zoneToSubnetDepth, true)
+				for _, subnet := range zone.(*ZoneTreeNode).subnets {
+					ly.resolveSquareLocation(subnet, 0, true)
+				}
 			}
 		}
 	}
+	ly.resolveNetworkLocations()
 }
 
 // ////////////////////////////////////////////////////////////////////////////////////////
-// setNetworkIconsLocations() sets all the icons in the first col.
+// setPublicNetworkIconsLocations() sets all the icons in the first col.
 // choose the rows with heights >= iconSpace, and the rows next to them
-func (ly *layoutS) setNetworkIconsLocations() {
-	icons := ly.network.IconTreeNodes()
+func (ly *layoutS) setPublicNetworkIconsLocations() {
+	pn := ly.network.(*NetworkTreeNode).publicNetwork
+	if pn == nil {
+		return
+	}
+	icons := pn.IconTreeNodes()
 	if len(icons) == 0 {
 		return
 	}
@@ -221,9 +256,9 @@ func (ly *layoutS) setNetworkIconsLocations() {
 		}
 	}
 	iconsPerRow := (len(icons)-1)/len(rows) + 1
-	ly.network.Location().firstCol.setWidth(iconSpace * iconsPerRow)
+	pn.Location().firstCol.setWidth(iconSpace * iconsPerRow)
 	for iconIndex, icon := range icons {
-		icon.setLocation(newCellLocation(rows[iconIndex/iconsPerRow], ly.matrix.cols[0]))
+		icon.setLocation(newCellLocation(rows[iconIndex/iconsPerRow], pn.Location().firstCol))
 		icon.Location().xOffset = iconSpace*(iconIndex%iconsPerRow) - (iconSpace*(iconsPerRow-1))/2
 	}
 }
@@ -300,13 +335,15 @@ func (ly *layoutS) setZoneIconsLocations(zone SquareTreeNodeInterface) {
 }
 
 func (ly *layoutS) setIconsLocations() {
-	for _, vpc := range ly.network.(*NetworkTreeNode).vpcs {
-		for _, zone := range vpc.(*VpcTreeNode).zones {
-			ly.setZoneIconsLocations(zone)
+	for _, cloud := range ly.network.(*NetworkTreeNode).ibmClouds {
+		for _, vpc := range cloud.(*IBMCloudTreeNode).vpcs {
+			for _, zone := range vpc.(*VpcTreeNode).zones {
+				ly.setZoneIconsLocations(zone)
+			}
+			ly.setVpcIconsLocations(vpc)
 		}
-		ly.setVpcIconsLocations(vpc)
 	}
-	ly.setNetworkIconsLocations()
+	ly.setPublicNetworkIconsLocations()
 }
 
 func (ly *layoutS) setGeometries() {
