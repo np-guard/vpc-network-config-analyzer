@@ -181,23 +181,16 @@ func (ly *layoutS) addAllBorderLayers() {
 	ly.matrix.resize(newIndexFunction)
 }
 
-func (ly *layoutS) resolveNetworkLocations() {
-
-	allCloudsLocation := mergeLocations(locations(getAllNodes(ly.network)))
-	nl := newLocation(allCloudsLocation.prevRow(), allCloudsLocation.nextRow(), allCloudsLocation.prevCol(), allCloudsLocation.nextCol())
-	if ly.network.(*NetworkTreeNode).publicNetwork != nil {
-		pnl := ly.matrix.allocateCellLocation(3, 1)
-		pnl.lastRow = allCloudsLocation.lastRow
-		pnl.firstCol.setWidth(borderWidth)
-		ly.network.(*NetworkTreeNode).publicNetwork.setLocation(pnl)
-		nl.firstCol = pnl.prevCol()
+func (ly *layoutS) resolvePublicNetworkLocations() {
+	pn := ly.network.(*NetworkTreeNode).publicNetwork
+	if pn == nil {
+		return
 	}
-	nl.firstRow.setHeight(borderWidth)
-	nl.lastRow.setHeight(borderWidth)
-	nl.firstCol.setWidth(borderWidth)
-	nl.lastCol.setWidth(borderWidth)
-	ly.network.setLocation(nl)
-
+	allCloudsLocation := mergeLocations(locations(getAllNodes(ly.network)))
+	pnl := ly.matrix.allocateCellLocation(3, 1)
+	pnl.lastRow = allCloudsLocation.lastRow
+	pnl.firstCol.setWidth(iconSpace)
+	ly.network.(*NetworkTreeNode).publicNetwork.setLocation(pnl)
 }
 
 func (*layoutS) resolveSquareLocation(tn SquareTreeNodeInterface, internalBorders int, addExternalBorders bool) {
@@ -231,7 +224,8 @@ func (ly *layoutS) setSquaresLocations() {
 			}
 		}
 	}
-	ly.resolveNetworkLocations()
+	ly.resolvePublicNetworkLocations()
+	ly.resolveSquareLocation(ly.network, 1, false)
 }
 
 // ////////////////////////////////////////////////////////////////////////////////////////

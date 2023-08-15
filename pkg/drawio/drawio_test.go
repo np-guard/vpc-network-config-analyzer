@@ -18,7 +18,9 @@ func TestWithParsing(t *testing.T) {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err2)
 	}
 	n3 := NewNetworkTreeNode()
-NewIBMCloudTreeNode(n3)
+	NewIBMCloudTreeNode(n3)
+	NewPublicNetworkTreeNode(n3)
+	NewIBMCloudTreeNode(n3)
 	err3 := CreateDrawioConnectivityMapFile(n3, "fake3.drawio")
 	if err3 != nil {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err3)
@@ -160,7 +162,7 @@ func createNetwork() SquareTreeNodeInterface {
 func createNetwork2() SquareTreeNodeInterface {
 	network := NewNetworkTreeNode()
 	publicNetwork := NewPublicNetworkTreeNode(network)
-	 NewIBMCloudTreeNode(network)
+	NewIBMCloudTreeNode(network)
 	cloud1 := NewIBMCloudTreeNode(network)
 	cloud2 := NewIBMCloudTreeNode(network)
 	i2 := NewInternetTreeNode(publicNetwork, "Internet2")
@@ -174,7 +176,6 @@ func createNetwork2() SquareTreeNodeInterface {
 	NewVpcTreeNode(cloud2, "vpc3")
 	ni20 := NewNITreeNode(subnet2, nil, "ni1")
 	NewConnectivityLineTreeNode(network, ni20, i4, false, "conn20")
-
 
 	NewGatewayTreeNode(zone1, "gw1")
 	is1 := NewInternetServiceTreeNode(vpc1, "is1")
