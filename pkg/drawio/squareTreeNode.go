@@ -64,7 +64,7 @@ func (tn *abstractSquareTreeNode) setGeometry() {
 // NetworkTreeNode is the top of the tree. we have only one instance of it, with constant id
 type NetworkTreeNode struct {
 	abstractSquareTreeNode
-	clouds        []SquareTreeNodeInterface
+	ibmClouds     []SquareTreeNodeInterface
 	publicNetwork SquareTreeNodeInterface
 }
 
@@ -74,7 +74,7 @@ func NewNetworkTreeNode() *NetworkTreeNode {
 func (tn *NetworkTreeNode) NotShownInDrawio() bool { return true }
 
 func (tn *NetworkTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
-	sqs := tn.clouds
+	sqs := tn.ibmClouds
 	if tn.publicNetwork != nil {
 		sqs = append(sqs, tn.publicNetwork)
 	}
@@ -104,7 +104,7 @@ type IBMCloudTreeNode struct {
 
 func NewIBMCloudTreeNode(parent *NetworkTreeNode) *IBMCloudTreeNode {
 	cloud := IBMCloudTreeNode{abstractSquareTreeNode: newAbstractSquareTreeNode(parent, "IBM Cloud")}
-	parent.clouds = append(parent.clouds, &cloud)
+	parent.ibmClouds = append(parent.ibmClouds, &cloud)
 	return &cloud
 }
 func (tn *IBMCloudTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
