@@ -91,7 +91,7 @@ func (ly *layoutS) layoutSubnetsIcons() {
 	colIndex := 0
 	for _, cloud := range ly.network.(*NetworkTreeNode).clouds {
 		ly.setDefaultLocation(cloud, 0, colIndex)
-		for _, vpc := range cloud.(*IBMCloudTreeNode).vpcs {
+		for _, vpc := range cloud.(*CloudTreeNode).vpcs {
 			ly.setDefaultLocation(vpc, 0, colIndex)
 			for _, zone := range vpc.(*VpcTreeNode).zones {
 				rowIndex := 0
@@ -127,7 +127,7 @@ func (ly *layoutS) layoutSubnetsIcons() {
 				colIndex++
 			}
 		}
-		if cloud.(*IBMCloudTreeNode).vpcs == nil {
+		if cloud.(*CloudTreeNode).vpcs == nil {
 			colIndex++
 		}
 	}
@@ -138,7 +138,7 @@ func (ly *layoutS) layoutSubnetsIcons() {
 // PartialSGTreeNode can not have more than one row. and can have only cell that contains icons that belong to the SG
 func (ly *layoutS) setSGLocations() {
 	for _, cloud := range ly.network.(*NetworkTreeNode).clouds {
-		for _, vpc := range cloud.(*IBMCloudTreeNode).vpcs {
+		for _, vpc := range cloud.(*CloudTreeNode).vpcs {
 			for _, sg := range vpc.(*VpcTreeNode).sgs {
 				if len(sg.IconTreeNodes()) == 0 {
 					continue
@@ -213,7 +213,7 @@ func (*layoutS) resolveSquareLocation(tn SquareTreeNodeInterface, internalBorder
 func (ly *layoutS) setSquaresLocations() {
 	for _, cloud := range ly.network.(*NetworkTreeNode).clouds {
 		ly.resolveSquareLocation(cloud, cloudToSubnetDepth, true)
-		for _, vpc := range cloud.(*IBMCloudTreeNode).vpcs {
+		for _, vpc := range cloud.(*CloudTreeNode).vpcs {
 			ly.resolveSquareLocation(vpc, vpcToSubnetDepth, true)
 			for _, zone := range vpc.(*VpcTreeNode).zones {
 				ly.resolveSquareLocation(zone, zoneToSubnetDepth, true)
@@ -329,7 +329,7 @@ func (ly *layoutS) setZoneIconsLocations(zone SquareTreeNodeInterface) {
 
 func (ly *layoutS) setIconsLocations() {
 	for _, cloud := range ly.network.(*NetworkTreeNode).clouds {
-		for _, vpc := range cloud.(*IBMCloudTreeNode).vpcs {
+		for _, vpc := range cloud.(*CloudTreeNode).vpcs {
 			for _, zone := range vpc.(*VpcTreeNode).zones {
 				ly.setZoneIconsLocations(zone)
 			}

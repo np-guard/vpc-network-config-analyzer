@@ -97,17 +97,17 @@ func (tn *PublicNetworkTreeNode) children() ([]SquareTreeNodeInterface, []IconTr
 func (tn *PublicNetworkTreeNode) NotShownInDrawio() bool { return len(tn.IconTreeNodes()) == 0 }
 
 // ////////////////////////////////////////////////////////////////
-type IBMCloudTreeNode struct {
+type CloudTreeNode struct {
 	abstractSquareTreeNode
 	vpcs []SquareTreeNodeInterface
 }
 
-func NewIBMCloudTreeNode(parent *NetworkTreeNode) *IBMCloudTreeNode {
-	cloud := IBMCloudTreeNode{abstractSquareTreeNode: newAbstractSquareTreeNode(parent, "IBM Cloud")}
+func NewCloudTreeNode(parent *NetworkTreeNode, name string) *CloudTreeNode {
+	cloud := CloudTreeNode{abstractSquareTreeNode: newAbstractSquareTreeNode(parent, name)}
 	parent.clouds = append(parent.clouds, &cloud)
 	return &cloud
 }
-func (tn *IBMCloudTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
+func (tn *CloudTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
 	return tn.vpcs, tn.elements, tn.connections
 }
 
@@ -118,7 +118,7 @@ type VpcTreeNode struct {
 	sgs   []SquareTreeNodeInterface
 }
 
-func NewVpcTreeNode(parent *IBMCloudTreeNode, name string) *VpcTreeNode {
+func NewVpcTreeNode(parent *CloudTreeNode, name string) *VpcTreeNode {
 	vpc := VpcTreeNode{abstractSquareTreeNode: newAbstractSquareTreeNode(parent, name)}
 	parent.vpcs = append(parent.vpcs, &vpc)
 	return &vpc
