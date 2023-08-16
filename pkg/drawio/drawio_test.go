@@ -162,9 +162,9 @@ func createNetwork() SquareTreeNodeInterface {
 func createNetwork2() SquareTreeNodeInterface {
 	network := NewNetworkTreeNode()
 	publicNetwork := NewPublicNetworkTreeNode(network)
-	NewCloudTreeNode(network,"empty Cloud")
-	cloud1 := NewCloudTreeNode(network,"IBM Cloud")
-	cloud2 := NewCloudTreeNode(network,"IBM Cloud2")
+	NewCloudTreeNode(network, "empty Cloud")
+	cloud1 := NewCloudTreeNode(network, "IBM Cloud")
+	cloud2 := NewCloudTreeNode(network, "IBM Cloud2")
 	i2 := NewInternetTreeNode(publicNetwork, "Internet2")
 	i4 := NewUserTreeNode(publicNetwork, "User4")
 	vpc1 := NewVpcTreeNode(cloud1, "vpc1")

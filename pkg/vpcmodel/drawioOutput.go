@@ -117,7 +117,7 @@ func (d *DrawioOutputFormatter) createEdgesMap() {
 
 func (d *DrawioOutputFormatter) createNodeSets() {
 	d.network = drawio.NewNetworkTreeNode()
-	ibmCloud := drawio.NewCloudTreeNode(d.network,"IBM Cloud")
+	ibmCloud := drawio.NewCloudTreeNode(d.network, "IBM Cloud")
 	d.publicNetwork = drawio.NewPublicNetworkTreeNode(d.network)
 	// todo: support multi vnc
 	for _, ns := range d.cConfig.NodeSets {
