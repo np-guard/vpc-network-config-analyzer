@@ -11,7 +11,6 @@ const (
 	tagID      = 4
 	decoreID   = 5
 
-	rootID    = 1
 	idsPrefix = "FXCXVvDxTQtwc45PbP1s"
 )
 
@@ -74,12 +73,3 @@ func (tn *abstractTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNod
 	return nil, nil, nil
 }
 func (tn *abstractTreeNode) setGeometry() {}
-
-// /////////////////////////////////////////////////////////////
-// rootTreeNode is the parent of the network. we have only one instance of it, with constant id
-type rootTreeNode struct {
-	abstractTreeNode
-}
-
-func (tn *rootTreeNode) ID() uint               { return rootID }
-func (tn *rootTreeNode) NotShownInDrawio() bool { return true }
