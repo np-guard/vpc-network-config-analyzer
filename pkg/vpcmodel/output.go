@@ -53,7 +53,7 @@ func NewOutputGenerator(c *CloudConfig, grouping bool, uc OutputUseCase, archOnl
 			res.nodesConn = nodesConn
 		}
 		if uc == AllSubnets {
-			subnetsConn, err := c.GetSubnetsConnectivity(true)
+			subnetsConn, err := c.GetSubnetsConnectivity(true, grouping)
 			if err != nil {
 				return nil, err
 			}
