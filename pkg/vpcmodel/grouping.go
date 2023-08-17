@@ -205,10 +205,6 @@ func (g *GroupConnLines) groupExternalAddressesForSubnets() {
 	g.GroupedLines = res
 }
 
-//func (g *GroupConnLines) groupSubnetsSrcOrDst(srcGrouping bool) {
-//
-//	}
-
 // groups src/targets for either Vsis or Subnets
 func (g *GroupConnLines) groupLinesByKey(srcGrouping bool, groupVsi bool) ([]*GroupedConnLine, map[string][]*GroupedConnLine) {
 	res := []*GroupedConnLine{}
