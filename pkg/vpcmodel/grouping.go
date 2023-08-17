@@ -206,7 +206,7 @@ func (g *GroupConnLines) groupExternalAddressesForSubnets() {
 }
 
 // groups src/targets for either Vsis or Subnets
-func (g *GroupConnLines) groupLinesByKey(srcGrouping bool, groupVsi bool) ([]*GroupedConnLine, map[string][]*GroupedConnLine) {
+func (g *GroupConnLines) groupLinesByKey(srcGrouping, groupVsi bool) ([]*GroupedConnLine, map[string][]*GroupedConnLine) {
 	res := []*GroupedConnLine{}
 	// build map from str(dst+conn) to []src => create lines accordingly
 	groupingSrcOrDst := map[string][]*GroupedConnLine{}
@@ -234,7 +234,7 @@ func (g *GroupConnLines) groupLinesByKey(srcGrouping bool, groupVsi bool) ([]*Gr
 }
 
 // assuming the  g.groupedLines was already initialized by previous step groupExternalAddresses()
-func (g *GroupConnLines) groupInternalSrcOrDst(srcGrouping bool, groupVsi bool) {
+func (g *GroupConnLines) groupInternalSrcOrDst(srcGrouping, groupVsi bool) {
 	res, groupingSrcOrDst := g.groupLinesByKey(srcGrouping, groupVsi)
 
 	// update g.groupedLines based on groupingSrcOrDst

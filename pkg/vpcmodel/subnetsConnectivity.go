@@ -140,7 +140,7 @@ func (c *CloudConfig) subnetCidrToSubnetElem(cidr string) (NodeSet, error) {
 }
 
 // the main function to compute connectivity per subnet based on resources that capture subnets, such as nacl, pgw, routing-tables
-func (c *CloudConfig) GetSubnetsConnectivity(includePGW bool, grouping bool) (*VPCsubnetConnectivity, error) {
+func (c *CloudConfig) GetSubnetsConnectivity(includePGW, grouping bool) (*VPCsubnetConnectivity, error) {
 	var subnetsConnectivityFromACLresources map[string]*IPbasedConnectivityResult
 	var err error
 	for _, fl := range c.FilterResources {
