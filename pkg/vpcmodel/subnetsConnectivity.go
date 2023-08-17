@@ -1,12 +1,10 @@
 package vpcmodel
 
 import (
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+
 	"errors"
 	"fmt"
-	"sort"
-	"strings"
-
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 // VPCsubnetConnectivity captures allowed connectivity for subnets, considering nacl and pgw resources
@@ -16,6 +14,8 @@ type VPCsubnetConnectivity struct {
 	// combined connectivity - considering both ingress and egress per connection
 	AllowedConnsCombined map[EndpointElem]map[EndpointElem]*common.ConnectionSet
 	cloudConfig          *CloudConfig
+	// grouped connectivity result
+	GroupedConnectivity *GroupConnLines
 }
 
 const (
@@ -196,6 +196,8 @@ func (c *CloudConfig) GetSubnetsConnectivity(includePGW bool) (*VPCsubnetConnect
 		return nil, err
 	}
 
+	res.GroupedConnectivity = newGroupConnLinesSubnetConnectivity(c, res)
+
 	return res, nil
 }
 
@@ -256,17 +258,8 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() error {
 
 func (v *VPCsubnetConnectivity) String() string {
 	res := "combined connections between subnets:\n"
-	strList := []string{}
-	for src, nodeConns := range v.AllowedConnsCombined {
-		for dst, conns := range nodeConns {
-			if conns.IsEmpty() {
-				continue
-			}
-			strList = append(strList, getConnectionStr(src.Name(), dst.Name(), conns.String(), ""))
-		}
-	}
-	sort.Strings(strList)
-	res += strings.Join(strList, "")
+	// res += v.GroupedConnectivity.String() ToDo: uncomment once https://github.com/np-guard/vpc-network-config-analyzer/issues/138 is solved
+	res += v.GroupedConnectivity.StringTmpWA()
 	return res
 }
 

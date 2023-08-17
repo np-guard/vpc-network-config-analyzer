@@ -36,6 +36,7 @@ type DrawioOutputFormatter struct {
 	cConfig                  *CloudConfig
 	conn                     *VPCConnectivity
 	network                  *drawio.NetworkTreeNode
+	publicNetwork            *drawio.PublicNetworkTreeNode
 	vpc                      *drawio.VpcTreeNode
 	zoneNameToZonesTreeNodes map[string]*drawio.ZoneTreeNode
 	uidToSubnetsTreeNodes    map[string]*drawio.SubnetTreeNode
@@ -116,11 +117,13 @@ func (d *DrawioOutputFormatter) createEdgesMap() {
 
 func (d *DrawioOutputFormatter) createNodeSets() {
 	d.network = drawio.NewNetworkTreeNode()
+	ibmCloud := drawio.NewCloudTreeNode(d.network, "IBM Cloud")
+	d.publicNetwork = drawio.NewPublicNetworkTreeNode(d.network)
 	// todo: support multi vnc
 	for _, ns := range d.cConfig.NodeSets {
 		details := ns.DetailsMap()[0]
 		if details[DetailsAttributeKind] == "VPC" {
-			d.vpc = drawio.NewVpcTreeNode(d.network, details[DetailsAttributeName])
+			d.vpc = drawio.NewVpcTreeNode(ibmCloud, details[DetailsAttributeName])
 		}
 	}
 	for _, ns := range d.cConfig.NodeSets {
@@ -162,7 +165,8 @@ func (d *DrawioOutputFormatter) createNodes() {
 				d.sgMembers[details["address"]], details[nameAttr])
 		} else if details[DetailsAttributeKind] == externalNetworkNodeKind {
 			if d.connectedNodes[n] {
-				d.allIconsTreeNodes[n] = drawio.NewInternetTreeNode(d.network, details[DetailsAttributeCIDR])
+				// todo - should we show it anyway?
+				d.allIconsTreeNodes[n] = drawio.NewInternetTreeNode(d.publicNetwork, details[DetailsAttributeCIDR])
 				d.isExternalIcon[d.allIconsTreeNodes[n]] = true
 			}
 		}
