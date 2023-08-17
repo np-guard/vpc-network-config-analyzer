@@ -209,16 +209,24 @@ func (g *GroupConnLines) groupExternalAddressesForSubnets() {
 //
 //	}
 
-func (g *GroupConnLines) groupLinesByKey(srcGrouping bool) ([]*GroupedConnLine, map[string][]*GroupedConnLine) {
+// groups src/targets for either Vsis or Subnets
+func (g *GroupConnLines) groupLinesByKey(srcGrouping bool, groupVsi bool) ([]*GroupedConnLine, map[string][]*GroupedConnLine) {
 	res := []*GroupedConnLine{}
 	// build map from str(dst+conn) to []src => create lines accordingly
 	groupingSrcOrDst := map[string][]*GroupedConnLine{}
 	// populate map groupingSrcOrDst
 	for _, line := range g.GroupedLines {
 		srcOrDst, dstOrSrc := line.getSrcOrDst(srcGrouping), line.getSrcOrDst(!srcGrouping)
-		if _, ok := srcOrDst.(Node); !ok {
-			res = append(res, line)
-			continue
+		if groupVsi { // groups vsis Nodes
+			if _, ok := srcOrDst.(Node); !ok {
+				res = append(res, line)
+				continue
+			}
+		} else { // groups subnets NodeSets
+			if _, ok := srcOrDst.(NodeSet); !ok {
+				res = append(res, line)
+				continue
+			}
 		}
 		key := dstOrSrc.Name() + ";" + line.Conn
 		if _, ok := groupingSrcOrDst[key]; !ok {
@@ -230,8 +238,8 @@ func (g *GroupConnLines) groupLinesByKey(srcGrouping bool) ([]*GroupedConnLine, 
 }
 
 // assuming the  g.groupedLines was already initialized by previous step groupExternalAddresses()
-func (g *GroupConnLines) groupVsisSrcOrDst(srcGrouping bool) {
-	res, groupingSrcOrDst := g.groupLinesByKey(srcGrouping)
+func (g *GroupConnLines) groupInternalSrcOrDst(srcGrouping bool, groupVsi bool) {
+	res, groupingSrcOrDst := g.groupLinesByKey(srcGrouping, groupVsi)
 
 	// update g.groupedLines based on groupingSrcOrDst
 	for _, linesGroup := range groupingSrcOrDst {
@@ -241,7 +249,12 @@ func (g *GroupConnLines) groupVsisSrcOrDst(srcGrouping bool) {
 		for i, line := range linesGroup {
 			srcOrDstGroup[i] = line.getSrcOrDst(srcGrouping)
 		}
-		groupedSrcOrDst := vsiGroupingBySubnets(srcOrDstGroup, g.c)
+		var groupedSrcOrDst []EndpointElem
+		if groupVsi {
+			groupedSrcOrDst = vsiGroupingBySubnets(srcOrDstGroup, g.c)
+		} else {
+			groupedSrcOrDst = subnetGrouping(srcOrDstGroup)
+		}
 		for _, groupedSrcOrDstElem := range groupedSrcOrDst {
 			if srcGrouping {
 				res = append(res, &GroupedConnLine{groupedSrcOrDstElem, linesGroup[0].Dst, linesGroup[0].Conn})
@@ -250,24 +263,23 @@ func (g *GroupConnLines) groupVsisSrcOrDst(srcGrouping bool) {
 			}
 		}
 	}
-
 	g.GroupedLines = res
 }
 
 func (g *GroupConnLines) computeGrouping(grouping bool) {
 	g.groupExternalAddresses()
 	if grouping {
-		g.groupVsisSrcOrDst(true)
-		g.groupVsisSrcOrDst(false)
+		g.groupInternalSrcOrDst(true, true)
+		g.groupInternalSrcOrDst(false, true)
 	}
 }
 
 func (g *GroupConnLines) computeGroupingForSubnets(grouping bool) {
 	g.groupExternalAddressesForSubnets()
-	//if grouping {
-	//	g.groupVsisSrcOrDst(true)
-	//	g.groupVsisSrcOrDst(false)
-	//}
+	if grouping {
+		g.groupInternalSrcOrDst(false, false)
+		g.groupInternalSrcOrDst(true, false)
+	}
 }
 
 // get the grouped connectivity output
