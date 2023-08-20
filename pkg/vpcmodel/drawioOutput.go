@@ -30,7 +30,7 @@ type Edge struct {
 // 4. create the icons Tree nodes out of the cConfig.Nodes
 // 5. create the VSIs tree nodes from cConfig.NodeSets
 // 6. create the routers from cConfig.routers
-// 7. create the edges from the map we created in stage (1). also also set the routers to the edges
+// 7. create the edges from the map we created in stage (1). also set the routers to the edges
 
 type DrawioOutputFormatter struct {
 	cConfig                  *CloudConfig
@@ -117,7 +117,7 @@ func (d *DrawioOutputFormatter) createEdgesMap() {
 
 func (d *DrawioOutputFormatter) createNodeSets() {
 	d.network = drawio.NewNetworkTreeNode()
-	ibmCloud := drawio.NewIBMCloudTreeNode(d.network)
+	ibmCloud := drawio.NewCloudTreeNode(d.network, "IBM Cloud")
 	d.publicNetwork = drawio.NewPublicNetworkTreeNode(d.network)
 	// todo: support multi vnc
 	for _, ns := range d.cConfig.NodeSets {
