@@ -97,8 +97,14 @@ func (d *DrawioOutputFormatter) createEdgesMap() {
 		dst := line.Dst
 		label := line.Conn
 		for _, ep := range []EndpointElem{src, dst} {
-			if reflect.TypeOf(ep).Elem() == reflect.TypeOf(groupedExternalNodes{}) {
+			switch reflect.TypeOf(ep).Elem() {
+			case reflect.TypeOf(groupedExternalNodes{}):
 				d.publicNodesGroups[ep] = true
+			case reflect.TypeOf(groupedNetworkInterfaces{}):
+				// todo: how to support this?
+			default:
+				// todo: what do we support? , how?
+
 			}
 		}
 		//todo - simplify label
