@@ -43,7 +43,6 @@ type DrawioOutputFormatter struct {
 	uidToSubnetsTreeNodes    map[string]*drawio.SubnetTreeNode
 	cidrToSubnetsTreeNodes   map[string]*drawio.SubnetTreeNode
 	allIconsTreeNodes        map[interface{}]drawio.IconTreeNodeInterface
-	isPublicIcon             map[drawio.IconTreeNodeInterface]bool
 	routers                  map[drawio.IconTreeNodeInterface]drawio.IconTreeNodeInterface
 	sgMembers                map[string]*drawio.SGTreeNode
 	isEdgeDirected           map[edgeInfo]bool
@@ -57,7 +56,6 @@ func (d *DrawioOutputFormatter) init(cConfig *CloudConfig, conn *VPCConnectivity
 	d.uidToSubnetsTreeNodes = map[string]*drawio.SubnetTreeNode{}
 	d.cidrToSubnetsTreeNodes = map[string]*drawio.SubnetTreeNode{}
 	d.allIconsTreeNodes = map[interface{}]drawio.IconTreeNodeInterface{}
-	d.isPublicIcon = map[drawio.IconTreeNodeInterface]bool{}
 	d.routers = map[drawio.IconTreeNodeInterface]drawio.IconTreeNodeInterface{}
 	d.sgMembers = map[string]*drawio.SGTreeNode{}
 	d.isEdgeDirected = map[edgeInfo]bool{}
@@ -168,7 +166,6 @@ func (d *DrawioOutputFormatter) createNodes() {
 	for pg := range d.publicNodesGroups {
 		// todo -  simplify name:
 		d.allIconsTreeNodes[pg] = drawio.NewInternetTreeNode(d.publicNetwork, pg.Name())
-		d.isPublicIcon[d.allIconsTreeNodes[pg]] = true
 	}
 }
 
@@ -213,10 +210,10 @@ func (d *DrawioOutputFormatter) createEdges() {
 		srcTn := d.allIconsTreeNodes[edge.src]
 		dstTn := d.allIconsTreeNodes[edge.dst]
 		cn := drawio.NewConnectivityLineTreeNode(d.network, srcTn, dstTn, directed, edge.label)
-		if d.routers[srcTn] != nil && d.isPublicIcon[dstTn] {
+		if d.routers[srcTn] != nil && d.publicNodesGroups[edge.dst] {
 			cn.SetRouter(d.routers[srcTn], false)
 		}
-		if d.routers[dstTn] != nil && d.isPublicIcon[srcTn] {
+		if d.routers[dstTn] != nil && d.publicNodesGroups[edge.src] {
 			cn.SetRouter(d.routers[dstTn], true)
 		}
 	}
