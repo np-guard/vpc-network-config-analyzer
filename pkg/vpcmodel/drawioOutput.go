@@ -15,7 +15,7 @@ const (
 	nwInterface    = "NetworkInterface"
 )
 
-type Edge struct {
+type edgeInfo struct {
 	src   EndpointElem
 	dst   EndpointElem
 	label string
@@ -44,10 +44,9 @@ type DrawioOutputFormatter struct {
 	cidrToSubnetsTreeNodes   map[string]*drawio.SubnetTreeNode
 	allIconsTreeNodes        map[interface{}]drawio.IconTreeNodeInterface
 	isPublicIcon             map[drawio.IconTreeNodeInterface]bool
-	connectedNodes           map[VPCResourceIntf]bool
 	routers                  map[drawio.IconTreeNodeInterface]drawio.IconTreeNodeInterface
 	sgMembers                map[string]*drawio.SGTreeNode
-	isEdgeDirected           map[Edge]bool
+	isEdgeDirected           map[edgeInfo]bool
 	publicNodesGroups        map[EndpointElem]bool
 }
 
@@ -59,10 +58,9 @@ func (d *DrawioOutputFormatter) init(cConfig *CloudConfig, conn *VPCConnectivity
 	d.cidrToSubnetsTreeNodes = map[string]*drawio.SubnetTreeNode{}
 	d.allIconsTreeNodes = map[interface{}]drawio.IconTreeNodeInterface{}
 	d.isPublicIcon = map[drawio.IconTreeNodeInterface]bool{}
-	d.connectedNodes = map[VPCResourceIntf]bool{}
 	d.routers = map[drawio.IconTreeNodeInterface]drawio.IconTreeNodeInterface{}
 	d.sgMembers = map[string]*drawio.SGTreeNode{}
-	d.isEdgeDirected = map[Edge]bool{}
+	d.isEdgeDirected = map[edgeInfo]bool{}
 	d.publicNodesGroups = map[EndpointElem]bool{}
 
 }
@@ -106,8 +104,8 @@ func (d *DrawioOutputFormatter) createEdgesMap() {
 			}
 		}
 		//todo - simplify label
-		edge := Edge{src, dst, label}
-		revEdge := Edge{dst, src, label}
+		edge := edgeInfo{src, dst, label}
+		revEdge := edgeInfo{dst, src, label}
 		_, revExist := d.isEdgeDirected[revEdge]
 		if revExist {
 			d.isEdgeDirected[revEdge] = false
@@ -165,11 +163,6 @@ func (d *DrawioOutputFormatter) createNodes() {
 			d.allIconsTreeNodes[n] = drawio.NewNITreeNode(
 				d.uidToSubnetsTreeNodes[details["subnetUID"]],
 				d.sgMembers[details["address"]], details[nameAttr])
-		} else if details[DetailsAttributeKind] == externalNetworkNodeKind {
-			if d.connectedNodes[n] {
-				d.allIconsTreeNodes[n] = drawio.NewInternetTreeNode(d.publicNetwork, details[DetailsAttributeCIDR])
-				d.isPublicIcon[d.allIconsTreeNodes[n]] = true
-			}
 		}
 	}
 	for pg := range d.publicNodesGroups {
