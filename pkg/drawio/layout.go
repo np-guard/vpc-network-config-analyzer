@@ -99,7 +99,7 @@ func canShareCell(i1, i2 IconTreeNodeInterface) bool {
 // 2. zones are next to each others
 // 3. subnets a above/below each other
 // 4. cell can hold at most two icons
-// 5. only icons with the same sg can share a cell
+// 5. only icons with the same sg and no fip can share a cell
 func (ly *layoutS) layoutSubnetsIcons() {
 	ly.setDefaultLocation(ly.network, 0, 0)
 	colIndex := 0
@@ -319,7 +319,7 @@ func (ly *layoutS) setZoneIconsLocations(zone SquareTreeNodeInterface) {
 				nisCombinedLocation := mergeLocations(locations(vsiIcon.nis))
 				icon.setLocation(newCellLocation(nisCombinedLocation.firstRow, nisCombinedLocation.firstCol))
 				if nisCombinedLocation.firstRow == nisCombinedLocation.lastRow {
-					vsiIcon.Location().yOffset = iconSize
+					vsiIcon.Location().yOffset = iconSize*1.5
 				} else {
 					vsiIcon.Location().yOffset = subnetHeight / 2
 				}
