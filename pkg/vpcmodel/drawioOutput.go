@@ -174,13 +174,13 @@ func (d *DrawioOutputFormatter) createNodes() {
 		}
 	}
 	for pg := range d.publicNodesGroups {
-		// todo -  simplify name:
+		// todo -  simplify name, if it is long:
 		d.allIconsTreeNodes[pg] = drawio.NewInternetTreeNode(d.publicNetwork, pg.Name())
 		nodes := pg.(*groupedExternalNodes)
 		if len(*nodes) > 1{
 			tooltip := []string{}
 			for _, n :=	range *nodes{
-				tooltip = append(tooltip, n.Name())
+				tooltip = append(tooltip, n.Cidr())
 			}
 			d.allIconsTreeNodes[pg].SetTooltip(tooltip)
 		}
