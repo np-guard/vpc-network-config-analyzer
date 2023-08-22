@@ -96,6 +96,10 @@ func (d *DrawioOutputFormatter) createEdgesMap() {
 		src := line.Src
 		dst := line.Dst
 		label := line.Conn
+		//todo - fix:
+		if label == "All Connection"{
+			label = ""
+		}
 		for _, ep := range []EndpointElem{src, dst} {
 			switch reflect.TypeOf(ep).Elem() {
 			case reflect.TypeOf(groupedExternalNodes{}):
@@ -172,6 +176,14 @@ func (d *DrawioOutputFormatter) createNodes() {
 	for pg := range d.publicNodesGroups {
 		// todo -  simplify name:
 		d.allIconsTreeNodes[pg] = drawio.NewInternetTreeNode(d.publicNetwork, pg.Name())
+		nodes := pg.(*groupedExternalNodes)
+		if len(*nodes) > 1{
+			tooltip := []string{}
+			for _, n :=	range *nodes{
+				tooltip = append(tooltip, n.Name())
+			}
+			d.allIconsTreeNodes[pg].SetTooltip(tooltip)
+		}
 	}
 }
 

@@ -7,7 +7,7 @@ type IconTreeNodeInterface interface {
 	allocateNewRouteOffset() int
 	IsVSI() bool
 	IsNI() bool
-	setTooltip(tooltip []string)
+	SetTooltip(tooltip []string)
 	HasTooltip() bool
 	Tooltip() string
 	TooltipID() uint
@@ -31,10 +31,11 @@ func (tn *abstractIconTreeNode) IsIcon() bool                { return true }
 func (tn *abstractIconTreeNode) IsVSI() bool                 { return false }
 func (tn *abstractIconTreeNode) IsGateway() bool             { return false }
 func (tn *abstractIconTreeNode) IsNI() bool                  { return false }
-func (tn *abstractIconTreeNode) setTooltip(tooltip []string) {tn.tooltip = tooltip}
+func (tn *abstractIconTreeNode) SetTooltip(tooltip []string) { tn.tooltip = tooltip }
 func (tn *abstractIconTreeNode) HasTooltip() bool            { return len(tn.tooltip) > 0 }
-func (tn *abstractIconTreeNode) Tooltip() string     { return labels2Table(tn.tooltip) }
-func (tn *abstractIconTreeNode) TooltipID() uint { return tn.id + tooltipID }
+func (tn *abstractIconTreeNode) Tooltip() string             { return labels2Table(tn.tooltip) }
+func (tn *abstractIconTreeNode) TooltipID() uint             { return tn.id + tooltipID }
+
 var offsets = []int{
 	0,
 	8, -8, 16, -16, 24, -24,

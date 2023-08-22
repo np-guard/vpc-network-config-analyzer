@@ -167,8 +167,8 @@ func createNetwork2() SquareTreeNodeInterface {
 	cloud2 := NewCloudTreeNode(network, "IBM Cloud2")
 	i2 := NewInternetTreeNode(publicNetwork, "Internet2")
 	i4 := NewUserTreeNode(publicNetwork, "User4")
-	i2.setTooltip([]string{"this is Internet2 tool tip","with lines"})
-	i4.setTooltip([]string{"this is User4 tool tip","with lines"})
+	i2.SetTooltip([]string{"this is Internet2 tool tip", "with lines"})
+	i4.SetTooltip([]string{"this is User4 tool tip", "with lines"})
 	vpc1 := NewVpcTreeNode(cloud1, "vpc1")
 	zone1 := NewZoneTreeNode(vpc1, "zone1")
 
@@ -177,19 +177,19 @@ func createNetwork2() SquareTreeNodeInterface {
 	subnet2 := NewSubnetTreeNode(zone2, "subnet2", "cidr1", "acl1")
 	NewVpcTreeNode(cloud2, "vpc3")
 	ni20 := NewNITreeNode(subnet2, nil, "ni20")
-	ni20.setTooltip([]string{"this is ni20 tool tip","with lines"})
+	ni20.SetTooltip([]string{"this is ni20 tool tip", "with lines"})
 	NewConnectivityLineTreeNode(network, ni20, i4, false, "conn20")
 
-	NewGatewayTreeNode(zone1, "gw1").setTooltip([]string{"this is gw1 tool tip","with lines"})
+	NewGatewayTreeNode(zone1, "gw1").SetTooltip([]string{"this is gw1 tool tip", "with lines"})
 	is1 := NewInternetServiceTreeNode(vpc1, "is1")
-	is1.setTooltip([]string{"this is is1 tool tip","with lines"})
+	is1.SetTooltip([]string{"this is is1 tool tip", "with lines"})
 
 	subnet1 := NewSubnetTreeNode(zone1, "subnet1", "cidr1", "acl1")
 
 	sg1 := NewSGTreeNode(vpc1, "sg1")
 	ni1 := NewNITreeNode(subnet1, sg1, "ni1")
 	ni1b := NewNITreeNode(subnet1, sg1, "ni1")
-	ni1.setTooltip([]string{"this is ni1 tool tip one line"})
+	ni1.SetTooltip([]string{"this is ni1 tool tip one line"})
 	GroupNIsWithVSI(zone1, "vsi1", []TreeNodeInterface{ni1, ni1b})
 
 	sg2 := NewSGTreeNode(vpc1, "sg2")
