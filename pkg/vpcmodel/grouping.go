@@ -1,6 +1,7 @@
 package vpcmodel
 
 import (
+	"fmt"
 	"sort"
 	"strings"
 
@@ -238,7 +239,70 @@ func (g *GroupConnLines) groupLinesByKey(srcGrouping, groupVsi bool) (res []*Gro
 		}
 		groupingSrcOrDst[key] = append(groupingSrcOrDst[key], line)
 	}
+	extendGroupingSelfLoops(groupingSrcOrDst, srcGrouping)
 	return res, groupingSrcOrDst
+}
+
+// extends grouping by considering self loops https://github.com/np-guard/vpc-network-config-analyzer/issues/98
+func extendGroupingSelfLoops(groupingSrcOrDst map[string][]*GroupedConnLine, srcGrouping bool) {
+	// todo: make sure ordering of iterating on a map is preserved
+	fmt.Println("in extendGroupingSelfLoops, groupingSrcOrDst, srcGrouping is", srcGrouping)
+	for outerKey, outerLines := range groupingSrcOrDst {
+		// 1. relevant only if both source and destination refers to vsis/subnets
+		//    src/dst of lines grouped together are either all external or all internal. So it suffice to check for the first line in a group
+		if outerLines[0].isSrcOrDstExternalNodes() {
+			continue
+		}
+		fmt.Printf("outerKey: %v\n", outerKey)
+		for _, line := range outerLines {
+			fmt.Println("\tline is", line)
+			groupingItem := line.getSrcOrDst(srcGrouping)
+			fmt.Printf("\tgroupingItem is:%+v outerLines of type %T\n", groupingItem.Name(), groupingItem)
+		}
+		// 2. is there a different line s.t. the outerLines were not merged only due to self loops?
+		// 	  going over all couples of items: merging them if they differ only in self loop element
+		// need to go over all couples of lines grouping no ordering; need only one half of the matrix
+		preceedingEps := true
+		for innerKey, innerLines := range groupingSrcOrDst {
+			// 2.1 not the same line
+			if innerKey == outerKey {
+				preceedingEps = false
+				continue
+			}
+			if preceedingEps {
+				continue // first half of the matrix
+			}
+			// 2.2 again, both src and dst of grouped lines must refer to subnets/vsis
+			if innerLines[0].isSrcOrDstExternalNodes() {
+				continue
+			}
+			// 2.3 both lines must be with the same connection
+			if outerLines[0].Conn != innerLines[0].Conn { // note that all connections are identical in each of the outerLines and innerLines
+				continue
+			}
+			fmt.Printf("\t\tinnerKey: %v\n", innerKey)
+			for _, line := range innerLines {
+				fmt.Println("\t\t\tline is", line)
+				groupingItem := line.getSrcOrDst(srcGrouping)
+				fmt.Printf("\t\t\tgroupingItem is:%+v of type %T\n", groupingItem.Name(), groupingItem)
+			}
+			//innerKeyEndPointElements := innerLines[0].getSrcOrDst(!srcGrouping)
+			//fmt.Printf("innerKeyEndPointElements is %v of type %T\n", innerKeyEndPointElements.Name(), innerKeyEndPointElements)
+			// 2.4 delta between outerKeyEndPointElements to innerKeyEndPointElements must be 0
+			// 2.5 delta between the outerLines is 0 - merge outerLines
+		}
+	}
+}
+
+func (g *GroupedConnLine) isSrcOrDstExternalNodes() bool {
+	// todo: verify - is this the only possibility of external? can we have here an external node?
+	if _, ok := g.Src.(*groupedExternalNodes); ok {
+		return true
+	}
+	if _, ok := g.Dst.(*groupedExternalNodes); ok {
+		return true
+	}
+	return false
 }
 
 // assuming the  g.groupedLines was already initialized by previous step groupExternalAddresses()
