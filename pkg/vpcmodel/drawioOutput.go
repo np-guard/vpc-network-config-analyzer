@@ -97,7 +97,7 @@ func (d *DrawioOutputFormatter) createEdgesMap() {
 		dst := line.Dst
 		label := line.Conn
 		//todo - fix:
-		if label == "All Connection"{
+		if strings.Index(label, "All Connections") >= 0{
 			label = ""
 		}
 		for _, ep := range []EndpointElem{src, dst} {
