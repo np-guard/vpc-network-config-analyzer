@@ -205,6 +205,20 @@ func (g *GroupConnLines) groupExternalAddressesForSubnets() {
 	g.GroupedLines = res
 }
 
+// aux func, returns true iff the EndpointElem is Node if grouping vsis or NodeSet if grouping subnets
+func isInetrnalOfRequiredType(ep EndpointElem, groupVsi bool) bool {
+	if groupVsi { // groups vsis Nodes
+		if _, ok := ep.(Node); !ok {
+			return false
+		}
+	} else { // groups subnets NodeSets
+		if _, ok := ep.(NodeSet); !ok {
+			return false
+		}
+	}
+	return true
+}
+
 // groups src/targets for either Vsis or Subnets
 func (g *GroupConnLines) groupLinesByKey(srcGrouping, groupVsi bool) (res []*GroupedConnLine,
 	groupingSrcOrDst map[string][]*GroupedConnLine) {
@@ -214,16 +228,9 @@ func (g *GroupConnLines) groupLinesByKey(srcGrouping, groupVsi bool) (res []*Gro
 	// populate map groupingSrcOrDst
 	for _, line := range g.GroupedLines {
 		srcOrDst, dstOrSrc := line.getSrcOrDst(srcGrouping), line.getSrcOrDst(!srcGrouping)
-		if groupVsi { // groups vsis Nodes
-			if _, ok := srcOrDst.(Node); !ok {
-				res = append(res, line)
-				continue
-			}
-		} else { // groups subnets NodeSets
-			if _, ok := srcOrDst.(NodeSet); !ok {
-				res = append(res, line)
-				continue
-			}
+		if !isInetrnalOfRequiredType(srcOrDst, groupVsi) {
+			res = append(res, line)
+			continue
 		}
 		key := dstOrSrc.Name() + ";" + line.Conn
 		if _, ok := groupingSrcOrDst[key]; !ok {
