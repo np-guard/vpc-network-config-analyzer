@@ -27,8 +27,8 @@ const (
 	iconSize     = 60
 	iconSpace    = 4 * 40
 
-	fipXOffset = -60
-	fipYOffset = 30
+	fipXOffset = -70
+	fipYOffset = 40
 
 	vsiXOffset  = 30
 	vsiYOffset  = -10
@@ -79,6 +79,20 @@ func (ly *layoutS) setDefaultLocation(tn SquareTreeNodeInterface, rowIndex, colI
 	tn.setLocation(l)
 }
 
+func canShareCell(i1, i2 IconTreeNodeInterface) bool {
+	switch {
+	case i1 == nil || i2 == nil:
+		return true
+	case i1.SG() != i2.SG():
+		return false
+	case !i1.IsNI() || !i2.IsNI():
+		return true
+	case i1.(*NITreeNode).HasFip() || i2.(*NITreeNode).HasFip():
+		return false
+	}
+	return true
+}
+
 // ///////////////////////////////////////////////////////////////
 // layoutSubnetsIcons() implements a simple north-south east-west layouting:
 // 1. vpcs are next to each others
@@ -101,7 +115,7 @@ func (ly *layoutS) layoutSubnetsIcons() {
 					icons := subnet.IconTreeNodes()
 					ly.setDefaultLocation(subnet, rowIndex, colIndex)
 					for _, icon := range icons {
-						if iconInCurrentCell != nil && iconInCurrentCell.SG() != icon.SG() {
+						if !canShareCell(iconInCurrentCell, icon) {
 							rowIndex++
 							iconInCurrentCell = nil
 						}
