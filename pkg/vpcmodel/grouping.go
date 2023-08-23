@@ -18,10 +18,11 @@ func (g *groupingConnections) getGroupedConnLines(isSrcToDst bool) []*GroupedCon
 		for conn, b := range aMap {
 			var resElem *GroupedConnLine
 			bGrouped := groupedExternalNodes(b)
+			allConns := strings.Contains(strings.ToLower(conn), "all connections")
 			if isSrcToDst {
-				resElem = &GroupedConnLine{a, &bGrouped, conn}
+				resElem = &GroupedConnLine{a, &bGrouped, conn, allConns}
 			} else {
-				resElem = &GroupedConnLine{&bGrouped, a, conn}
+				resElem = &GroupedConnLine{&bGrouped, a, conn, allConns}
 			}
 			res = append(res, resElem)
 		}
@@ -65,9 +66,10 @@ type EndpointElem interface {
 }
 
 type GroupedConnLine struct {
-	Src  EndpointElem
-	Dst  EndpointElem
-	Conn string
+	Src          EndpointElem
+	Dst          EndpointElem
+	Conn         string
+	AllowAllConn bool
 }
 
 func (g *GroupedConnLine) String() string {
@@ -199,7 +201,7 @@ func (g *GroupConnLines) groupExternalAddresses() {
 			case src.IsPublicInternet():
 				g.dstToSrc.addPublicConnectivity(dst, connString, src)
 			default:
-				res = append(res, &GroupedConnLine{src, dst, connString})
+				res = append(res, &GroupedConnLine{src, dst, connString, conns.AllowAll})
 			}
 		}
 	}
@@ -222,7 +224,7 @@ func (g *GroupConnLines) groupExternalAddressesForSubnets() {
 				g.srcToDst.addPublicConnectivity(src, connString, dstNode)
 			} else { // since pgw enable only egress src can not be public internet, the above is the only option of public internet
 				// not an external connection in source or destination - nothing to group, just append
-				res = append(res, &GroupedConnLine{src, dst, connString})
+				res = append(res, &GroupedConnLine{src, dst, connString, conns.AllowAll})
 			}
 		}
 	}
@@ -281,9 +283,9 @@ func (g *GroupConnLines) groupInternalSrcOrDst(srcGrouping, groupVsi bool) {
 		}
 		for _, groupedSrcOrDstElem := range groupedSrcOrDst {
 			if srcGrouping {
-				res = append(res, &GroupedConnLine{groupedSrcOrDstElem, linesGroup[0].Dst, linesGroup[0].Conn})
+				res = append(res, &GroupedConnLine{groupedSrcOrDstElem, linesGroup[0].Dst, linesGroup[0].Conn, linesGroup[0].AllowAllConn})
 			} else {
-				res = append(res, &GroupedConnLine{linesGroup[0].Src, groupedSrcOrDstElem, linesGroup[0].Conn})
+				res = append(res, &GroupedConnLine{linesGroup[0].Src, groupedSrcOrDstElem, linesGroup[0].Conn, linesGroup[0].AllowAllConn})
 			}
 		}
 	}
