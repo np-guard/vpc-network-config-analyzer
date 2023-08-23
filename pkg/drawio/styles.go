@@ -67,6 +67,8 @@ func (data *drawioData) Style(tn TreeNodeInterface) string {
 	if reflect.TypeOf(tn).Elem() == reflect.TypeOf(ConnectivityTreeNode{}) {
 		ctn := tn.(*ConnectivityTreeNode)
 		return connectivityStyles[connParams{ctn.directed, ctn.router != nil}]
+	} else if reflect.TypeOf(tn).Elem() == reflect.TypeOf(NITreeNode{}) && !data.ShowNIIcon{
+		return styles[reflect.TypeOf(VsiTreeNode{})]
 	}
 	return styles[reflect.TypeOf(tn).Elem()]
 }

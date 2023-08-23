@@ -159,6 +159,18 @@ func createNetwork() SquareTreeNodeInterface {
 	return network
 }
 
+// func createNetwork2() SquareTreeNodeInterface {
+// 	network := NewNetworkTreeNode()
+// 	cloud1 := NewCloudTreeNode(network, "IBM Cloud")
+// 	vpc1 := NewVpcTreeNode(cloud1, "vpc1")
+// 	zone1 := NewZoneTreeNode(vpc1, "zone1")
+// 	subnet1 := NewSubnetTreeNode(zone1, "subnet1", "cidr1", "acl1")
+// 	ni1 := NewNITreeNode(subnet1, nil, "ni1")
+// 	ni1.SetTooltip([]string{"this is ni1 tool tip one line"})
+// 	GroupNIsWithVSI(zone1, "vsi1", []TreeNodeInterface{ni1})
+// 	return network
+// }
+
 func createNetwork2() SquareTreeNodeInterface {
 	network := NewNetworkTreeNode()
 	publicNetwork := NewPublicNetworkTreeNode(network)
