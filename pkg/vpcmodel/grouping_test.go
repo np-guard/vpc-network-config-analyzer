@@ -133,7 +133,7 @@ func TestGroupingPhase2(t *testing.T) {
 		"vsi2 => Public Internet 1.2.0.0/22,8.8.8.8/32 : All Connections"+
 		"\n\nconnections are stateful unless marked with *\n", groupingStr)
 	// phase 2
-	res.groupSubnetsSrcOrDst(true)
+	res.groupInternalSrcOrDst(true, true)
 	groupingStr = res.String()
 	require.Equal(t, "vsi1,vsi2 => Public Internet 1.2.0.0/22,8.8.8.8/32 : All Connections\n\n"+
 		"connections are stateful unless marked with *\n", groupingStr)
