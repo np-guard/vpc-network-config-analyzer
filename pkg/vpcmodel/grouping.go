@@ -60,6 +60,7 @@ type GroupConnLines struct {
 // EndpointElem can be Node(networkInterface) / groupedExternalNodes / groupedNetworkInterfaces
 type EndpointElem interface {
 	Name() string
+	Names() (string, []string)
 }
 
 type GroupedConnLine struct {
@@ -85,6 +86,11 @@ func (g *groupedEndpointsElems) Name() string {
 	return listEndpointElemStr(*g, EndpointElem.Name)
 }
 
+// todo Names()
+func (g *groupedEndpointsElems) Names() (string, []string) {
+	return "", nil
+}
+
 // implements endpointElem interface
 type groupedExternalNodes []Node
 
@@ -95,6 +101,11 @@ func (g *groupedExternalNodes) Name() string {
 		return prefix + "(all ranges)"
 	}
 	return prefix + g.String()
+}
+
+// todo Names()
+func (g *groupedExternalNodes) Names() (string, []string) {
+	return "", nil
 }
 
 func (g *groupingConnections) addPublicConnectivity(ep EndpointElem, conn string, targetNode Node) {

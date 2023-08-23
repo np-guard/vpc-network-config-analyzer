@@ -8,6 +8,7 @@ import (
 type VPCResourceIntf interface {
 	UID() string
 	Name() string
+	Names() (string, []string)
 	ZoneName() string
 	Kind() string
 	Details() []string
@@ -23,6 +24,10 @@ type VPCResource struct {
 
 func (n *VPCResource) Name() string {
 	return n.ResourceName
+}
+
+func (n *VPCResource) Names() (string, []string) {
+	return n.Name(), []string{n.Name()}
 }
 
 func (n *VPCResource) UID() string {

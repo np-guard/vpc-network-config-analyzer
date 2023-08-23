@@ -39,6 +39,9 @@ func (m *mockNetIntf) UID() string {
 func (m *mockNetIntf) Name() string {
 	return m.name
 }
+func (m *mockNetIntf) Names() (string, []string) {
+	return m.name, []string{m.name}
+}
 func (m *mockNetIntf) ZoneName() string {
 	return ""
 }
@@ -54,6 +57,9 @@ func (m *mockSubnet) UID() string {
 }
 func (m *mockSubnet) Name() string {
 	return m.name
+}
+func (m *mockSubnet) Names() (string, []string) {
+	return m.Name(), []string{m.Name()}
 }
 func (m *mockSubnet) Nodes() []Node {
 	return m.nodes

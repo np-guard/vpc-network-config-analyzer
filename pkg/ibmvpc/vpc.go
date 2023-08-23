@@ -66,6 +66,9 @@ func (ni *NetworkInterface) Kind() string {
 func (ni *NetworkInterface) Name() string {
 	return getNodeName(ni.vsi, ni.address)
 }
+func (ni *NetworkInterface) Names() (string, []string) {
+	return ni.Name(), []string{ni.Name()}
+}
 func (ni *NetworkInterface) Details() []string {
 	return []string{getNodeDetails(ni.Kind(), ni.address, ni.Name(), ni.subnet.cidr)}
 }
@@ -108,7 +111,9 @@ func (n *IKSNode) Kind() string {
 func (n *IKSNode) Name() string {
 	return getNodeName(n.ResourceName, n.address)
 }
-
+func (n *IKSNode) Names() (string, []string) {
+	return n.Name(), []string{n.Name()}
+}
 func (n *IKSNode) Details() []string {
 	return []string{getNodeDetails(n.Kind(), n.address, n.Name(), n.subnet.cidr)}
 }
@@ -397,6 +402,9 @@ type SecurityGroupLayer struct {
 
 func (sgl *SecurityGroupLayer) Name() string {
 	return ""
+}
+func (sgl *SecurityGroupLayer) Names() (string, []string) {
+	return sgl.Name(), []string{sgl.Name()}
 }
 
 func (sgl *SecurityGroupLayer) Kind() string {
