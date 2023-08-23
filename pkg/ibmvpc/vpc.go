@@ -69,6 +69,9 @@ func (ni *NetworkInterface) Name() string {
 func (ni *NetworkInterface) Names() (string, []string) {
 	return ni.Name(), []string{ni.Name()}
 }
+func (ni *NetworkInterface) Type() string {
+	return "NetworkInterface"
+}
 func (ni *NetworkInterface) Details() []string {
 	return []string{getNodeDetails(ni.Kind(), ni.address, ni.Name(), ni.subnet.cidr)}
 }
@@ -113,6 +116,9 @@ func (n *IKSNode) Name() string {
 }
 func (n *IKSNode) Names() (string, []string) {
 	return n.Name(), []string{n.Name()}
+}
+func (n *IKSNode) Type() string {
+	return "IKSNode"
 }
 func (n *IKSNode) Details() []string {
 	return []string{getNodeDetails(n.Kind(), n.address, n.Name(), n.subnet.cidr)}

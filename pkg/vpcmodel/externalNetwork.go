@@ -56,6 +56,10 @@ func (exn *ExternalNetwork) Names() (string, []string) {
 	return exn.Name(), []string{exn.Name()}
 }
 
+func (exn *ExternalNetwork) Type() string {
+	return "ExternalNetwork"
+}
+
 func (exn *ExternalNetwork) IsInternal() bool {
 	return false
 }

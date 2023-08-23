@@ -45,6 +45,9 @@ func (m *mockNetIntf) Names() (string, []string) {
 func (m *mockNetIntf) ZoneName() string {
 	return ""
 }
+func (m *mockNetIntf) Type() string {
+	return "mockNetIntf"
+}
 
 type mockSubnet struct {
 	cidr  string
@@ -79,7 +82,9 @@ func (m *mockSubnet) Kind() string {
 func (m *mockSubnet) ZoneName() string {
 	return ""
 }
-
+func (m *mockSubnet) Type() string {
+	return "mockSubnet"
+}
 func newCloudConfigTest1() (*CloudConfig, *VPCConnectivity) {
 	res := &CloudConfig{Nodes: []Node{}}
 	res.Nodes = append(res.Nodes,

@@ -61,6 +61,7 @@ type GroupConnLines struct {
 type EndpointElem interface {
 	Name() string
 	Names() (string, []string)
+	Type() string
 }
 
 type GroupedConnLine struct {
@@ -95,6 +96,10 @@ func (g *groupedEndpointsElems) Names() (string, []string) {
 	return strings.Join(namesToPrint, commaSepartor), namesToPrint // todo Haim: let me know if you want something shorter at the first index
 }
 
+func (g *groupedEndpointsElems) Type() string {
+	return "groupedEndpointsElems"
+}
+
 // implements endpointElem interface
 type groupedExternalNodes []Node
 
@@ -114,6 +119,10 @@ func (g *groupedExternalNodes) Names() (string, []string) {
 	}
 	externalNodesToPrint := g.groupedExternalNodesToPrint()
 	return someRanges, externalNodesToPrint
+}
+
+func (g *groupedExternalNodes) Type() string {
+	return "groupedExternalNodes"
 }
 
 func (g *groupingConnections) addPublicConnectivity(ep EndpointElem, conn string, targetNode Node) {

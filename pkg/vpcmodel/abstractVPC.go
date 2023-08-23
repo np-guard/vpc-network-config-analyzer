@@ -9,6 +9,7 @@ type VPCResourceIntf interface {
 	UID() string
 	Name() string
 	Names() (string, []string)
+	Type() string
 	ZoneName() string
 	Kind() string
 	Details() []string
@@ -28,6 +29,10 @@ func (n *VPCResource) Name() string {
 
 func (n *VPCResource) Names() (string, []string) {
 	return n.Name(), []string{n.Name()}
+}
+
+func (n *VPCResource) Type() string {
+	return "VPCResource"
 }
 
 func (n *VPCResource) UID() string {
