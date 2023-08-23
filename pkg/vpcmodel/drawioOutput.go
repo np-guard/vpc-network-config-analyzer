@@ -104,8 +104,8 @@ func (d *DrawioOutputFormatter) createEdgesMap() {
 			switch reflect.TypeOf(ep).Elem() {
 			case reflect.TypeOf(groupedExternalNodes{}):
 				d.publicNodesGroups[ep] = true
-			case reflect.TypeOf(groupedNetworkInterfaces{}):
-				// todo: how to support this?
+			// case reflect.TypeOf(groupedNetworkInterfaces{}):
+			// 	// todo: how to support this?
 			default:
 				// todo: what do we support? , how?
 
