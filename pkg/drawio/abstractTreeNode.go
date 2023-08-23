@@ -10,7 +10,6 @@ const (
 	textID     = 3
 	tagID      = 4
 	decoreID   = 5
-	tooltipID   = 6
 
 	idsPrefix = "FXCXVvDxTQtwc45PbP1s"
 )
