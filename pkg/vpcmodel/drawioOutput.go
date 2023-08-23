@@ -2,7 +2,6 @@ package vpcmodel
 
 import (
 	"errors"
-	"reflect"
 	"strings"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
@@ -15,9 +14,9 @@ const (
 	nwInterface    = "NetworkInterface"
 )
 
-type edgeInfo struct {
-	src   EndpointElem
-	dst   EndpointElem
+type Edge struct {
+	src   Node
+	dst   Node
 	label string
 }
 
@@ -42,11 +41,12 @@ type DrawioOutputFormatter struct {
 	zoneNameToZonesTreeNodes map[string]*drawio.ZoneTreeNode
 	uidToSubnetsTreeNodes    map[string]*drawio.SubnetTreeNode
 	cidrToSubnetsTreeNodes   map[string]*drawio.SubnetTreeNode
-	allIconsTreeNodes        map[interface{}]drawio.IconTreeNodeInterface
+	allIconsTreeNodes        map[VPCResourceIntf]drawio.IconTreeNodeInterface
+	isExternalIcon           map[drawio.IconTreeNodeInterface]bool
+	connectedNodes           map[VPCResourceIntf]bool
 	routers                  map[drawio.IconTreeNodeInterface]drawio.IconTreeNodeInterface
 	sgMembers                map[string]*drawio.SGTreeNode
-	isEdgeDirected           map[edgeInfo]bool
-	publicNodesGroups        map[EndpointElem]bool
+	isEdgeDirected           map[Edge]bool
 }
 
 func (d *DrawioOutputFormatter) init(cConfig *CloudConfig, conn *VPCConnectivity) {
@@ -55,12 +55,12 @@ func (d *DrawioOutputFormatter) init(cConfig *CloudConfig, conn *VPCConnectivity
 	d.zoneNameToZonesTreeNodes = map[string]*drawio.ZoneTreeNode{}
 	d.uidToSubnetsTreeNodes = map[string]*drawio.SubnetTreeNode{}
 	d.cidrToSubnetsTreeNodes = map[string]*drawio.SubnetTreeNode{}
-	d.allIconsTreeNodes = map[interface{}]drawio.IconTreeNodeInterface{}
+	d.allIconsTreeNodes = map[VPCResourceIntf]drawio.IconTreeNodeInterface{}
+	d.isExternalIcon = map[drawio.IconTreeNodeInterface]bool{}
+	d.connectedNodes = map[VPCResourceIntf]bool{}
 	d.routers = map[drawio.IconTreeNodeInterface]drawio.IconTreeNodeInterface{}
 	d.sgMembers = map[string]*drawio.SGTreeNode{}
-	d.isEdgeDirected = map[edgeInfo]bool{}
-	d.publicNodesGroups = map[EndpointElem]bool{}
-
+	d.isEdgeDirected = map[Edge]bool{}
 }
 
 func (d *DrawioOutputFormatter) WriteOutputAllEndpoints(cConfig *CloudConfig, conn *VPCConnectivity, outFile string, grouping bool) (
@@ -92,33 +92,25 @@ func (d *DrawioOutputFormatter) getZoneTreeNode(resource VPCResourceIntf) *drawi
 }
 
 func (d *DrawioOutputFormatter) createEdgesMap() {
-	for _, line := range d.conn.GroupedConnectivity.GroupedLines {
-		src := line.Src
-		dst := line.Dst
-		label := line.Conn
-		//todo - fix:
-		if strings.Contains(label, "All Connections"){
-			label = ""
-		}
-		for _, ep := range []EndpointElem{src, dst} {
-			switch reflect.TypeOf(ep).Elem() {
-			case reflect.TypeOf(groupedExternalNodes{}):
-				d.publicNodesGroups[ep] = true
-			// case reflect.TypeOf(groupedNetworkInterfaces{}):
-			// 	// todo: how to support this?
-			default:
-				// todo: what do we support? , how?
-
+	for src, srcMap := range d.conn.AllowedConnsCombined {
+		for dst, conn := range srcMap {
+			if conn.IsEmpty() {
+				continue
 			}
-		}
-		//todo - simplify label
-		edge := edgeInfo{src, dst, label}
-		revEdge := edgeInfo{dst, src, label}
-		_, revExist := d.isEdgeDirected[revEdge]
-		if revExist {
-			d.isEdgeDirected[revEdge] = false
-		} else {
-			d.isEdgeDirected[edge] = true
+			label := conn.String()
+			if conn.AllowAll {
+				label = ""
+			}
+			edge := Edge{src, dst, label}
+			revEdge := Edge{dst, src, label}
+			_, revExist := d.isEdgeDirected[revEdge]
+			if revExist {
+				d.isEdgeDirected[revEdge] = false
+			} else {
+				d.isEdgeDirected[edge] = true
+			}
+			d.connectedNodes[src] = true
+			d.connectedNodes[dst] = true
 		}
 	}
 }
@@ -171,18 +163,12 @@ func (d *DrawioOutputFormatter) createNodes() {
 			d.allIconsTreeNodes[n] = drawio.NewNITreeNode(
 				d.uidToSubnetsTreeNodes[details["subnetUID"]],
 				d.sgMembers[details["address"]], details[nameAttr])
-		}
-	}
-	for pg := range d.publicNodesGroups {
-		// todo -  simplify name, if it is long:
-		d.allIconsTreeNodes[pg] = drawio.NewInternetTreeNode(d.publicNetwork, pg.Name())
-		nodes := pg.(*groupedExternalNodes)
-		if len(*nodes) > 1{
-			tooltip := []string{}
-			for _, n :=	range *nodes{
-				tooltip = append(tooltip, n.Cidr())
+		} else if details[DetailsAttributeKind] == externalNetworkNodeKind {
+			if d.connectedNodes[n] {
+				// todo - should we show it anyway?
+				d.allIconsTreeNodes[n] = drawio.NewInternetTreeNode(d.publicNetwork, details[DetailsAttributeCIDR])
+				d.isExternalIcon[d.allIconsTreeNodes[n]] = true
 			}
-			d.allIconsTreeNodes[pg].SetTooltip(tooltip)
 		}
 	}
 }
@@ -228,10 +214,10 @@ func (d *DrawioOutputFormatter) createEdges() {
 		srcTn := d.allIconsTreeNodes[edge.src]
 		dstTn := d.allIconsTreeNodes[edge.dst]
 		cn := drawio.NewConnectivityLineTreeNode(d.network, srcTn, dstTn, directed, edge.label)
-		if d.routers[srcTn] != nil && d.publicNodesGroups[edge.dst] {
+		if d.routers[srcTn] != nil && d.isExternalIcon[dstTn] {
 			cn.SetRouter(d.routers[srcTn], false)
 		}
-		if d.routers[dstTn] != nil && d.publicNodesGroups[edge.src] {
+		if d.routers[dstTn] != nil && d.isExternalIcon[srcTn] {
 			cn.SetRouter(d.routers[dstTn], true)
 		}
 	}
