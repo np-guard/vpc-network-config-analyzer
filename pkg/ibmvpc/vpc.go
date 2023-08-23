@@ -25,6 +25,7 @@ const (
 	detailsAttributeSubnetUID  = "subnetUID"
 	detailsAttributeZone       = "zone"
 	iksNodeKind                = "IKSNodeNetworkInterface"
+	networkInterface           = "NetworkInterface"
 )
 
 func getNodeName(name, addr string) string {
@@ -61,7 +62,7 @@ func (ni *NetworkInterface) VsiName() string {
 }
 
 func (ni *NetworkInterface) Kind() string {
-	return "NetworkInterface"
+	return networkInterface
 }
 func (ni *NetworkInterface) Name() string {
 	return getNodeName(ni.vsi, ni.address)
@@ -70,7 +71,7 @@ func (ni *NetworkInterface) Names() (string, []string) {
 	return ni.Name(), []string{ni.Name()}
 }
 func (ni *NetworkInterface) Type() string {
-	return "NetworkInterface"
+	return networkInterface
 }
 func (ni *NetworkInterface) Details() []string {
 	return []string{getNodeDetails(ni.Kind(), ni.address, ni.Name(), ni.subnet.cidr)}

@@ -327,7 +327,6 @@ func (g *GroupConnLines) StringForDrawio() string {
 		} else {
 			linesStr[i] = line.String()
 		}
-
 	}
 	sort.Strings(linesStr)
 	return strings.Join(linesStr, "\n")
