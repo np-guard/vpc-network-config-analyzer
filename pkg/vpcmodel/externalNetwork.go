@@ -14,6 +14,7 @@ const (
 
 	publicInternetNodeName  = "Public Internet"
 	externalNetworkNodeKind = "ExternalNetwork"
+	allRanges               = "all ranges"
 )
 
 // All public IP addresses belong to one of the following public IP address ranges:

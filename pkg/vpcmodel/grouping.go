@@ -98,14 +98,18 @@ func (g *groupedExternalNodes) Name() string {
 	isAllInternetRange, err := isEntirePublicInternetRange(*g)
 	prefix := publicInternetNodeName + " "
 	if err == nil && isAllInternetRange {
-		return prefix + "(all ranges)"
+		return prefix + "(" + allRanges + ")"
 	}
 	return prefix + g.String()
 }
 
-// todo Names()
 func (g *groupedExternalNodes) Names() (string, []string) {
-	return "", nil
+	isAllInternetRange, err := isEntirePublicInternetRange(*g)
+	if err == nil && isAllInternetRange {
+		return allRanges, []string{allRanges}
+	}
+	externalNodesToPrint := g.groupedExternalNodesToPrint()
+	return strings.Join(externalNodesToPrint, commaSepartor), externalNodesToPrint
 }
 
 func (g *groupingConnections) addPublicConnectivity(ep EndpointElem, conn string, targetNode Node) {
@@ -321,6 +325,12 @@ func listEndpointElemStr(eps []EndpointElem, fn func(ep EndpointElem) string) st
 }
 
 func (g *groupedExternalNodes) String() string {
+	externalNodesToPrint := g.groupedExternalNodesToPrint()
+	return strings.Join(externalNodesToPrint, commaSepartor)
+}
+
+// groupedExternalNodesToPrint externalNodes to []string in printing format - each element contains either a single cidr or an ip range
+func (g *groupedExternalNodes) groupedExternalNodesToPrint() []string {
 	// 1. Created a list of IPBlocks
 	cidrList := make([]string, len(*g))
 	for i, n := range *g {
@@ -328,13 +338,12 @@ func (g *groupedExternalNodes) String() string {
 	}
 	ipbList, _, err := ipStringsToIPblocks(cidrList)
 	if err != nil {
-		return ""
+		return nil
 	}
 	// 2. Union all IPBlocks in a single one; its intervals will be the cidr blocks or ranges that should be printed, after all possible merges
 	unionBlock := &common.IPBlock{}
 	for _, ipBlock := range ipbList {
 		unionBlock = unionBlock.Union(ipBlock)
 	}
-	// 3. print a list s.t. each element contains either a single cidr or an ip range
-	return strings.Join(unionBlock.ListToPrint(), commaSepartor)
+	return unionBlock.ListToPrint()
 }
