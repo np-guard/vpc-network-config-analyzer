@@ -34,6 +34,9 @@ const (
 	vsiYOffset  = -10
 	vsiIconSize = 40
 
+	vsiOneRowYOffset = 90
+	vsiMultiRowYOffset = subnetHeight/2
+
 	// network -> cloud -> vpc -> zone -> subnets
 	networkToSubnetDepth = 4
 	cloudToSubnetDepth   = 3
@@ -319,9 +322,9 @@ func (ly *layoutS) setZoneIconsLocations(zone SquareTreeNodeInterface) {
 				nisCombinedLocation := mergeLocations(locations(vsiIcon.nis))
 				icon.setLocation(newCellLocation(nisCombinedLocation.firstRow, nisCombinedLocation.firstCol))
 				if nisCombinedLocation.firstRow == nisCombinedLocation.lastRow {
-					vsiIcon.Location().yOffset = iconSize*1.5
+					vsiIcon.Location().yOffset = vsiOneRowYOffset
 				} else {
-					vsiIcon.Location().yOffset = subnetHeight / 2
+					vsiIcon.Location().yOffset = vsiMultiRowYOffset 
 				}
 			} else {
 				// the NIs are on different subnets. in this case:
