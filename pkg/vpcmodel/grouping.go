@@ -92,7 +92,7 @@ func (g *groupedEndpointsElems) Names() (string, []string) {
 		return myName
 	}
 	namesToPrint := endpointElemToPrint(*g, names)
-	return strings.Join(namesToPrint, commaSepartor), namesToPrint
+	return strings.Join(namesToPrint, commaSepartor), namesToPrint // todo Haim: let me know if you want something shorter at the first index
 }
 
 // implements endpointElem interface
@@ -113,7 +113,7 @@ func (g *groupedExternalNodes) Names() (string, []string) {
 		return allRanges, []string{allRanges}
 	}
 	externalNodesToPrint := g.groupedExternalNodesToPrint()
-	return strings.Join(externalNodesToPrint, commaSepartor), externalNodesToPrint
+	return someRanges, externalNodesToPrint
 }
 
 func (g *groupingConnections) addPublicConnectivity(ep EndpointElem, conn string, targetNode Node) {
