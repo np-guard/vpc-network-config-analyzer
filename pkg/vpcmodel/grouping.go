@@ -86,9 +86,13 @@ func (g *groupedEndpointsElems) Name() string {
 	return listEndpointElemStr(*g, EndpointElem.Name)
 }
 
-// todo Names()
 func (g *groupedEndpointsElems) Names() (string, []string) {
-	return "", nil
+	names := func(ep EndpointElem) string {
+		myName, _ := ep.Names()
+		return myName
+	}
+	namesToPrint := endpointElemToPrint(*g, names)
+	return strings.Join(namesToPrint, commaSepartor), namesToPrint
 }
 
 // implements endpointElem interface
@@ -316,12 +320,17 @@ func (g *GroupConnLines) StringTmpWA() string {
 }
 
 func listEndpointElemStr(eps []EndpointElem, fn func(ep EndpointElem) string) string {
+	endpointsStrings := endpointElemToPrint(eps, fn)
+	return strings.Join(endpointsStrings, ",")
+}
+
+func endpointElemToPrint(eps []EndpointElem, fn func(ep EndpointElem) string) []string {
 	endpointsStrings := make([]string, len(eps))
 	for i, ep := range eps {
 		endpointsStrings[i] = fn(ep)
 	}
 	sort.Strings(endpointsStrings)
-	return strings.Join(endpointsStrings, ",")
+	return endpointsStrings
 }
 
 func (g *groupedExternalNodes) String() string {
