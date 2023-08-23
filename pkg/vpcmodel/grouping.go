@@ -294,6 +294,15 @@ func extendGroupingSelfLoops(groupingSrcOrDst map[string][]*GroupedConnLine, src
 	}
 }
 
+// computes delta between group connection lines https://github.com/np-guard/vpc-network-config-analyzer/issues/98
+func deltaBetweenGroupedConnLines(groupedConnLine1, groupedConnLine2 []*GroupedConnLine, srcGrouping bool) bool {
+	if len(groupedConnLine1) > 1 && len(groupedConnLine2) > 1 {
+		return false
+	}
+	// delta between grouping item minus non-grouping item if singleton
+	return false
+}
+
 func (g *GroupedConnLine) isSrcOrDstExternalNodes() bool {
 	// todo: verify - is this the only possibility of external? can we have here an external node?
 	if _, ok := g.Src.(*groupedExternalNodes); ok {
