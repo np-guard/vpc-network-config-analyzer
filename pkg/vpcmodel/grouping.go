@@ -318,6 +318,21 @@ func (g *GroupConnLines) String() string {
 	return strings.Join(linesStr, "\n") + asteriskDetails
 }
 
+// get the grouped connectivity output
+func (g *GroupConnLines) StringForDrawio() string {
+	linesStr := make([]string, len(g.GroupedLines))
+	for i, line := range g.GroupedLines {
+		if line.AllowAllConn {
+			linesStr[i] = line.Src.Name() + " => " + line.Dst.Name() // do not print connection string
+		} else {
+			linesStr[i] = line.String()
+		}
+
+	}
+	sort.Strings(linesStr)
+	return strings.Join(linesStr, "\n")
+}
+
 // StringTmpWA ToDo: tmp WA until https://github.com/np-guard/vpc-network-config-analyzer/issues/138.
 //
 //	Once the issue is solved this code can be deleted
