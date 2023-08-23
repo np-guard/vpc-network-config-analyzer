@@ -30,7 +30,7 @@ type drawioData struct {
 // the order in the drawio canvas are set by the order in the drawio file 
 // (the last in the file will be on top in the canvas)
 // 1. we put the lines at the top so they will overlap the icons
-// 2. we put the icons above the squares so wi can mouse over it for tooltips
+// 2. we put the icons above the squares so we can mouse over it for tooltips
 // 3. we put the sgs in the bottom. if a sg is above a square, it will block the the tooltip of the children of the square. 
 func orderNodesForDrawio(nodes []TreeNodeInterface)  []TreeNodeInterface{
 	var sg, sq, ln, ic, orderedNodes []TreeNodeInterface
