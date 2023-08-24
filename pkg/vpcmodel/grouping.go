@@ -8,6 +8,7 @@ import (
 )
 
 const commaSepartor = ","
+const implies = " => "
 
 // for each line here can group list of external nodes to cidrs list as of one element
 type groupingConnections map[EndpointElem]map[string][]Node
@@ -73,7 +74,7 @@ type GroupedConnLine struct {
 }
 
 func (g *GroupedConnLine) String() string {
-	return g.Src.Name() + " => " + g.Dst.Name() + " : " + g.Conn
+	return g.Src.Name() + implies + g.Dst.Name() + " : " + g.Conn
 }
 
 func (g *GroupedConnLine) getSrcOrDst(isSrc bool) EndpointElem {
@@ -323,7 +324,7 @@ func (g *GroupConnLines) StringForDrawio() string {
 	linesStr := make([]string, len(g.GroupedLines))
 	for i, line := range g.GroupedLines {
 		if line.AllowAllConn {
-			linesStr[i] = line.Src.Name() + " => " + line.Dst.Name() // do not print connection string
+			linesStr[i] = line.Src.Name() + implies + line.Dst.Name() // do not print connection string
 		} else {
 			linesStr[i] = line.String()
 		}
