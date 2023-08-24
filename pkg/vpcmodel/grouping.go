@@ -247,6 +247,8 @@ func (g *GroupConnLines) groupLinesByKey(srcGrouping, groupVsi bool) (res []*Gro
 func extendGroupingSelfLoops(groupingSrcOrDst map[string][]*GroupedConnLine, srcGrouping bool) {
 	// todo: make sure ordering of iterating on a map is preserved
 	fmt.Println("in extendGroupingSelfLoops, groupingSrcOrDst, srcGrouping is", srcGrouping)
+	// the to be grouped src/dst in set representation, will be needed to compute the deltas
+	setsToGroup := createGroupingSets(groupingSrcOrDst, srcGrouping)
 	for outerKey, outerLines := range groupingSrcOrDst {
 		// 1. relevant only if both source and destination refers to vsis/subnets
 		//    src/dst of lines grouped together are either all external or all internal. So it suffice to check for the first line in a group
@@ -286,21 +288,53 @@ func extendGroupingSelfLoops(groupingSrcOrDst map[string][]*GroupedConnLine, src
 				groupingItem := line.getSrcOrDst(srcGrouping)
 				fmt.Printf("\t\t\tgroupingItem is:%+v of type %T\n", groupingItem.Name(), groupingItem)
 			}
-			//innerKeyEndPointElements := innerLines[0].getSrcOrDst(!srcGrouping)
-			//fmt.Printf("innerKeyEndPointElements is %v of type %T\n", innerKeyEndPointElements.Name(), innerKeyEndPointElements)
 			// 2.4 delta between outerKeyEndPointElements to innerKeyEndPointElements must be 0
+			deltaBetweenGroupedConnLines(srcGrouping, outerLines, innerLines, setsToGroup[outerKey], setsToGroup[innerKey])
 			// 2.5 delta between the outerLines is 0 - merge outerLines
 		}
 	}
 }
 
+// creates an aux database in which all the grouped endpoints are stored in a set
+func createGroupingSets(groupingSrcOrDst map[string][]*GroupedConnLine, srcGrouping bool) map[string]map[string]struct{} {
+	keyToGroupedSets := make(map[string](map[string]struct{}))
+	for key, groupedConnLine := range groupingSrcOrDst {
+		mySet := make(map[string]struct{})
+		for _, line := range groupedConnLine {
+			srcOrDst := line.getSrcOrDst(srcGrouping)
+			mySet[srcOrDst.Name()] = struct{}{}
+		}
+		keyToGroupedSets[key] = mySet
+	}
+	return keyToGroupedSets
+}
+
 // computes delta between group connection lines https://github.com/np-guard/vpc-network-config-analyzer/issues/98
-func deltaBetweenGroupedConnLines(groupedConnLine1, groupedConnLine2 []*GroupedConnLine, srcGrouping bool) bool {
+func deltaBetweenGroupedConnLines(srcGrouping bool, groupedConnLine1, groupedConnLine2 []*GroupedConnLine, setToGroup1, setToGroup2 map[string]struct{}) bool {
 	if len(groupedConnLine1) > 1 && len(groupedConnLine2) > 1 {
 		return false
 	}
-	// delta between grouping item minus non-grouping item if singleton
+	set1MinusSet2 := setMinusSet(srcGrouping, groupedConnLine2, setToGroup1, setToGroup2)
+	set2MinusSet1 := setMinusSet(srcGrouping, groupedConnLine1, setToGroup2, setToGroup1)
+	if len(set1MinusSet2) == 0 && len(set2MinusSet1) == 0 {
+		return true
+	}
 	return false
+}
+
+func setMinusSet(srcGrouping bool, groupedConnLine []*GroupedConnLine, set1, set2 map[string]struct{}) map[string]struct{} {
+	minusResult := make(map[string]struct{})
+	for k := range set1 {
+		if _, ok := set2[k]; !ok {
+			minusResult[k] = struct{}{}
+		}
+	}
+	// if set2's source groupedConnLine key has a single item, then this single item is not relevant to the delta since any EndpointElement is connected to itself
+	if len(groupedConnLine) == 1 {
+		keyOfGrouped2 := groupedConnLine[0].getSrcOrDst(!srcGrouping) // all non-grouping items are the same in a groupedConnLine
+		delete(minusResult, keyOfGrouped2.Name())                     // if keyOfGrouped2.Name() does not exist in minusResult then this is no-op
+	}
+	return minusResult
 }
 
 func (g *GroupedConnLine) isSrcOrDstExternalNodes() bool {
