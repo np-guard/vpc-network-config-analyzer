@@ -67,11 +67,8 @@ func (ni *NetworkInterface) Kind() string {
 func (ni *NetworkInterface) Name() string {
 	return getNodeName(ni.vsi, ni.address)
 }
-func (ni *NetworkInterface) Names() (string, []string) {
+func (ni *NetworkInterface) DisplayNames() (string, []string) {
 	return ni.Name(), []string{ni.Name()}
-}
-func (ni *NetworkInterface) Type() string {
-	return networkInterface
 }
 func (ni *NetworkInterface) Details() []string {
 	return []string{getNodeDetails(ni.Kind(), ni.address, ni.Name(), ni.subnet.cidr)}
@@ -115,11 +112,8 @@ func (n *IKSNode) Kind() string {
 func (n *IKSNode) Name() string {
 	return getNodeName(n.ResourceName, n.address)
 }
-func (n *IKSNode) Names() (string, []string) {
+func (n *IKSNode) DisplayNames() (string, []string) {
 	return n.Name(), []string{n.Name()}
-}
-func (n *IKSNode) Type() string {
-	return "IKSNode"
 }
 func (n *IKSNode) Details() []string {
 	return []string{getNodeDetails(n.Kind(), n.address, n.Name(), n.subnet.cidr)}
@@ -410,7 +404,7 @@ type SecurityGroupLayer struct {
 func (sgl *SecurityGroupLayer) Name() string {
 	return ""
 }
-func (sgl *SecurityGroupLayer) Names() (string, []string) {
+func (sgl *SecurityGroupLayer) DisplayNames() (string, []string) {
 	return sgl.Name(), []string{sgl.Name()}
 }
 

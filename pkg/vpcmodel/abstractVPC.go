@@ -9,8 +9,7 @@ type VPCResourceIntf interface {
 	UID() string
 	Name() string
 	// Names for the usage of drawio: needs a short name and a detailed list (the latter when the interface represents more than one element)
-	Names() (string, []string)
-	Type() string // for the usage of drawio - which can not read the actual type directly from ibmvpc package
+	DisplayNames() (string, []string)
 	ZoneName() string
 	Kind() string
 	Details() []string
@@ -28,12 +27,8 @@ func (n *VPCResource) Name() string {
 	return n.ResourceName
 }
 
-func (n *VPCResource) Names() (string, []string) {
+func (n *VPCResource) DisplayNames() (string, []string) {
 	return n.Name(), []string{n.Name()}
-}
-
-func (n *VPCResource) Type() string {
-	return "VPCResource"
 }
 
 func (n *VPCResource) UID() string {

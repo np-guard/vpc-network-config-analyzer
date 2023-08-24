@@ -9,6 +9,8 @@ import (
 
 const commaSepartor = ","
 const connectsTo = " => "
+const GroupedEndpointsElems = "GroupedEndpointsElems"
+const GroupedExternalNodes = "GroupedExternalNodes"
 
 // for each line here can group list of external nodes to cidrs list as of one element
 type groupingConnections map[EndpointElem]map[string][]Node
@@ -63,8 +65,8 @@ type GroupConnLines struct {
 type EndpointElem interface {
 	Name() string
 	// Names for the usage of drawio: needs a short name and a detailed list (the latter when the interface represents more than one element)
-	Names() (string, []string)
-	Type() string // for the usage of drawio - which can not read the actual type directly from ibmvpc package
+	DisplayNames() (string, []string)
+	Kind() string
 }
 
 type GroupedConnLine struct {
@@ -91,17 +93,17 @@ func (g *groupedEndpointsElems) Name() string {
 	return listEndpointElemStr(*g, EndpointElem.Name)
 }
 
-func (g *groupedEndpointsElems) Names() (string, []string) {
+func (g *groupedEndpointsElems) DisplayNames() (string, []string) {
 	names := func(ep EndpointElem) string {
-		myName, _ := ep.Names()
+		myName, _ := ep.DisplayNames()
 		return myName
 	}
 	namesToPrint := endpointElemToPrint(*g, names)
 	return strings.Join(namesToPrint, commaSepartor), namesToPrint // todo Haim: let me know if you want something shorter at the first index
 }
 
-func (g *groupedEndpointsElems) Type() string {
-	return "groupedEndpointsElems"
+func (g *groupedEndpointsElems) Kind() string {
+	return GroupedEndpointsElems
 }
 
 // implements endpointElem interface
@@ -116,7 +118,7 @@ func (g *groupedExternalNodes) Name() string {
 	return prefix + g.String()
 }
 
-func (g *groupedExternalNodes) Names() (string, []string) {
+func (g *groupedExternalNodes) DisplayNames() (string, []string) {
 	isAllInternetRange, err := isEntirePublicInternetRange(*g)
 	if err == nil && isAllInternetRange {
 		return allRanges, []string{allRanges}
@@ -125,8 +127,8 @@ func (g *groupedExternalNodes) Names() (string, []string) {
 	return someRanges, externalNodesToPrint
 }
 
-func (g *groupedExternalNodes) Type() string {
-	return "groupedExternalNodes"
+func (g *groupedExternalNodes) Kind() string {
+	return GroupedExternalNodes
 }
 
 func (g *groupingConnections) addPublicConnectivity(ep EndpointElem, conn string, targetNode Node) {

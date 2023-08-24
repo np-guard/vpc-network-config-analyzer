@@ -39,14 +39,11 @@ func (m *mockNetIntf) UID() string {
 func (m *mockNetIntf) Name() string {
 	return m.name
 }
-func (m *mockNetIntf) Names() (string, []string) {
+func (m *mockNetIntf) DisplayNames() (string, []string) {
 	return m.name, []string{m.name}
 }
 func (m *mockNetIntf) ZoneName() string {
 	return ""
-}
-func (m *mockNetIntf) Type() string {
-	return "mockNetIntf"
 }
 
 type mockSubnet struct {
@@ -61,7 +58,7 @@ func (m *mockSubnet) UID() string {
 func (m *mockSubnet) Name() string {
 	return m.name
 }
-func (m *mockSubnet) Names() (string, []string) {
+func (m *mockSubnet) DisplayNames() (string, []string) {
 	return m.Name(), []string{m.Name()}
 }
 func (m *mockSubnet) Nodes() []Node {
@@ -81,9 +78,6 @@ func (m *mockSubnet) Kind() string {
 }
 func (m *mockSubnet) ZoneName() string {
 	return ""
-}
-func (m *mockSubnet) Type() string {
-	return "mockSubnet"
 }
 func newCloudConfigTest1() (*CloudConfig, *VPCConnectivity) {
 	res := &CloudConfig{Nodes: []Node{}}

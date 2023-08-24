@@ -52,12 +52,8 @@ func (exn *ExternalNetwork) Name() string {
 	return exn.ResourceName + " [" + exn.CidrStr + "]"
 }
 
-func (exn *ExternalNetwork) Names() (string, []string) {
+func (exn *ExternalNetwork) DisplayNames() (string, []string) {
 	return exn.Name(), []string{exn.Name()}
-}
-
-func (exn *ExternalNetwork) Type() string {
-	return "ExternalNetwork"
 }
 
 func (exn *ExternalNetwork) IsInternal() bool {
