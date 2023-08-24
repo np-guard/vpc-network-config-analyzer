@@ -140,7 +140,7 @@ func vsiGroupingBySubnets(elemsList []EndpointElem, c *CloudConfig) []EndpointEl
 // set of elements that represent subnets into a single groupedNetworkInterfaces object
 func subnetGrouping(elemsList []EndpointElem) []EndpointElem {
 	res := []EndpointElem{}
-	subnetsToGroup := make([]EndpointElem, 0) // subnets to be grouped
+	subnetsToGroup := []EndpointElem{} // subnets to be grouped
 	for _, elem := range elemsList {
 		n, ok := elem.(NodeSet)
 		if !ok {
