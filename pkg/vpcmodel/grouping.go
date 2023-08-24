@@ -62,8 +62,9 @@ type GroupConnLines struct {
 // EndpointElem can be Node(networkInterface) / groupedExternalNodes / groupedNetworkInterfaces
 type EndpointElem interface {
 	Name() string
-	Names() (string, []string) // for the usage of drawio: needs a short name and a detailed list (the latter when the interface represents more than one element)
-	Type() string              // for the usage of drawio - which can not read the actual type directly from ibmvpc package
+	// Names for the usage of drawio: needs a short name and a detailed list (the latter when the interface represents more than one element)
+	Names() (string, []string)
+	Type() string // for the usage of drawio - which can not read the actual type directly from ibmvpc package
 }
 
 type GroupedConnLine struct {
