@@ -27,12 +27,15 @@ const (
 	iconSize     = 60
 	iconSpace    = 4 * 40
 
-	fipXOffset = -60
-	fipYOffset = 30
+	fipXOffset = -70
+	fipYOffset = 40
 
 	vsiXOffset  = 30
 	vsiYOffset  = -10
 	vsiIconSize = 40
+
+	vsiOneRowYOffset   = 90
+	vsiMultiRowYOffset = subnetHeight / 2
 
 	// network -> cloud -> vpc -> zone -> subnets
 	networkToSubnetDepth = 4
@@ -79,13 +82,27 @@ func (ly *layoutS) setDefaultLocation(tn SquareTreeNodeInterface, rowIndex, colI
 	tn.setLocation(l)
 }
 
+func canShareCell(i1, i2 IconTreeNodeInterface) bool {
+	switch {
+	case i1 == nil || i2 == nil:
+		return true
+	case i1.SG() != i2.SG():
+		return false
+	case !i1.IsNI() || !i2.IsNI():
+		return true
+	case i1.(*NITreeNode).HasFip() || i2.(*NITreeNode).HasFip():
+		return false
+	}
+	return true
+}
+
 // ///////////////////////////////////////////////////////////////
 // layoutSubnetsIcons() implements a simple north-south east-west layouting:
 // 1. vpcs are next to each others
 // 2. zones are next to each others
 // 3. subnets a above/below each other
 // 4. cell can hold at most two icons
-// 5. only icons with the same sg can share a cell
+// 5. only icons with the same sg and no fip can share a cell
 func (ly *layoutS) layoutSubnetsIcons() {
 	ly.setDefaultLocation(ly.network, 0, 0)
 	colIndex := 0
@@ -101,7 +118,7 @@ func (ly *layoutS) layoutSubnetsIcons() {
 					icons := subnet.IconTreeNodes()
 					ly.setDefaultLocation(subnet, rowIndex, colIndex)
 					for _, icon := range icons {
-						if iconInCurrentCell != nil && iconInCurrentCell.SG() != icon.SG() {
+						if !canShareCell(iconInCurrentCell, icon) {
 							rowIndex++
 							iconInCurrentCell = nil
 						}
@@ -305,9 +322,9 @@ func (ly *layoutS) setZoneIconsLocations(zone SquareTreeNodeInterface) {
 				nisCombinedLocation := mergeLocations(locations(vsiIcon.nis))
 				icon.setLocation(newCellLocation(nisCombinedLocation.firstRow, nisCombinedLocation.firstCol))
 				if nisCombinedLocation.firstRow == nisCombinedLocation.lastRow {
-					vsiIcon.Location().yOffset = iconSize
+					vsiIcon.Location().yOffset = vsiOneRowYOffset
 				} else {
-					vsiIcon.Location().yOffset = subnetHeight / 2
+					vsiIcon.Location().yOffset = vsiMultiRowYOffset
 				}
 			} else {
 				// the NIs are on different subnets. in this case:
