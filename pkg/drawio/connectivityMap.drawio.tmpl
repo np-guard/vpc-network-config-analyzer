@@ -22,19 +22,18 @@
             <mxGeometry x="51" y="8" width="163" height="20" as="geometry" />
             </mxCell>
         {{ else if $node.IsIcon }}
+            {{ if $node.HasTooltip }}
+                <UserObject label="{{$node.Label}}" tooltip="{{$node.Tooltip}}" id="{{$data.IDsPrefix}}-{{$node.ID}}">
+                    <mxCell style="{{$data.Style $node}}" parent="{{$data.IDsPrefix}}-{{$node.DrawioParent.ID}}" vertex="1">
+                    <mxGeometry width="{{$data.IconSize}}" height="{{$data.IconSize}}" x="{{$node.X}}" y="{{$node.Y}}" as="geometry"/>
+                    </mxCell>
+                </UserObject>
+            {{else}}
+                <mxCell id="{{$data.IDsPrefix}}-{{$node.ID}}" value="{{$node.Label}}" style="{{$data.Style $node}}" parent="{{$data.IDsPrefix}}-{{$node.DrawioParent.ID}}" vertex="1">
+                <mxGeometry width="{{$data.IconSize}}" height="{{$data.IconSize}}" x="{{$node.X}}" y="{{$node.Y}}" as="geometry"/>
+                </mxCell>
+            {{ end }}
             {{ if $node.IsNI }}
-                {{ if $data.ShowNIIcon }}
-                    <mxCell id="{{$data.IDsPrefix}}-{{$node.ID}}" value="NI" style="{{$data.Style $node}}" parent="{{$data.IDsPrefix}}-{{$node.DrawioParent.ID}}" vertex="1">
-                    <mxGeometry width="{{$data.IconSize}}" height="{{$data.IconSize}}" x="{{$node.X}}" y="{{$node.Y}}" as="geometry"/>
-                    </mxCell>
-                    <mxCell id="{{$data.IDsPrefix}}-{{$node.TextID}}" value="{{$node.Label}}" style="{{$data.TextStyle $node}}" parent="{{$data.IDsPrefix}}-{{$node.ID}}" vertex="1">  
-                    <mxGeometry width="{{$data.IconSize}}" height="{{$data.IconSize}}" x="0" y="0" as="geometry"/>
-                    </mxCell>
-                {{ else }}
-                    <mxCell id="{{$data.IDsPrefix}}-{{$node.ID}}" value="{{$node.Label}}" style="{{$data.VsiStyle}}" parent="{{$data.IDsPrefix}}-{{$node.DrawioParent.ID}}" vertex="1">
-                    <mxGeometry width="{{$data.IconSize}}" height="{{$data.IconSize}}" x="{{$node.X}}" y="{{$node.Y}}" as="geometry"/>
-                    </mxCell>
-                {{ end }}
                 {{ if $node.HasVsi }}
                     {{ if $data.ShowNIIcon }}
                         <mxCell id="{{$data.IDsPrefix}}-{{$node.VsiID}}" value="" style="{{$data.VsiStyle}}" parent="{{$data.IDsPrefix}}-{{$node.ID}}" vertex="1">
@@ -42,15 +41,11 @@
                         </mxCell>
                     {{ end }}
                 {{ end }}
-                {{ if ne $node.Fip  "" }}
+                {{ if $node.HasFip  }}
                     <mxCell id="{{$data.IDsPrefix}}-{{$node.FipID}}" value="{{$node.Fip}}" style="{{$data.FIPStyle}}" parent="{{$data.IDsPrefix}}-{{$node.ID}}" vertex="1">
                     <mxGeometry x="{{$data.FipXOffset}}" y="{{$data.FipYOffset}}" width="{{$data.IconSize}}" height="{{$data.IconSize}}" as="geometry"/>
                     </mxCell>
                 {{ end }}
-            {{ else }}
-                <mxCell id="{{$data.IDsPrefix}}-{{$node.ID}}" value="{{$node.Label}}" style="{{$data.Style $node}}" vertex="1" parent="{{$data.IDsPrefix}}-{{$node.DrawioParent.ID}}">
-                <mxGeometry width="{{$data.IconSize}}" height="{{$data.IconSize}}" x="{{$node.X}}" y="{{$node.Y}}" as="geometry"/>
-                </mxCell>
             {{ end }}
         {{ else if $node.IsLine }}
             <mxCell id="{{$data.IDsPrefix}}-{{$node.ID}}" style="{{$data.Style $node}}" edge="1" parent="{{$data.IDsPrefix}}-{{$node.DrawioParent.RouterID}}" source="{{$data.IDsPrefix}}-{{ $node.SrcID}}" target="{{$data.IDsPrefix}}-{{ $node.DstID}}">        

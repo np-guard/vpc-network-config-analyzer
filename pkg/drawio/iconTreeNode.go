@@ -7,6 +7,9 @@ type IconTreeNodeInterface interface {
 	allocateNewRouteOffset() int
 	IsVSI() bool
 	IsNI() bool
+	SetTooltip(tooltip []string)
+	HasTooltip() bool
+	Tooltip() string
 	IsGateway() bool
 	absoluteRouterGeometry() (int, int)
 }
@@ -15,6 +18,7 @@ type abstractIconTreeNode struct {
 	abstractTreeNode
 	nRouterOffset int
 	sg            SquareTreeNodeInterface
+	tooltip       []string
 }
 
 func newAbstractIconTreeNode(parent SquareTreeNodeInterface, name string) abstractIconTreeNode {
@@ -26,6 +30,9 @@ func (tn *abstractIconTreeNode) IsIcon() bool                { return true }
 func (tn *abstractIconTreeNode) IsVSI() bool                 { return false }
 func (tn *abstractIconTreeNode) IsGateway() bool             { return false }
 func (tn *abstractIconTreeNode) IsNI() bool                  { return false }
+func (tn *abstractIconTreeNode) SetTooltip(tooltip []string) { tn.tooltip = tooltip }
+func (tn *abstractIconTreeNode) HasTooltip() bool            { return len(tn.tooltip) > 0 }
+func (tn *abstractIconTreeNode) Tooltip() string             { return labels2Table(tn.tooltip) }
 
 var offsets = []int{
 	0,
