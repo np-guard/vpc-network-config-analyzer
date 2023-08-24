@@ -8,7 +8,7 @@ import (
 )
 
 const commaSepartor = ","
-const implies = " => "
+const connectsTo = " => "
 
 // for each line here can group list of external nodes to cidrs list as of one element
 type groupingConnections map[EndpointElem]map[string][]Node
@@ -62,8 +62,8 @@ type GroupConnLines struct {
 // EndpointElem can be Node(networkInterface) / groupedExternalNodes / groupedNetworkInterfaces
 type EndpointElem interface {
 	Name() string
-	Names() (string, []string)
-	Type() string
+	Names() (string, []string) // for the usage of drawio: needs a short name and a detailed list (the latter when the interface represents more than one element)
+	Type() string              // for the usage of drawio - which can not read the actual type directly from ibmvpc package
 }
 
 type GroupedConnLine struct {
@@ -74,7 +74,7 @@ type GroupedConnLine struct {
 }
 
 func (g *GroupedConnLine) String() string {
-	return g.Src.Name() + implies + g.Dst.Name() + " : " + g.Conn
+	return g.Src.Name() + connectsTo + g.Dst.Name() + " : " + g.Conn
 }
 
 func (g *GroupedConnLine) getSrcOrDst(isSrc bool) EndpointElem {
@@ -324,7 +324,7 @@ func (g *GroupConnLines) StringForDrawio() string {
 	linesStr := make([]string, len(g.GroupedLines))
 	for i, line := range g.GroupedLines {
 		if line.AllowAllConn {
-			linesStr[i] = line.Src.Name() + implies + line.Dst.Name() // do not print connection string
+			linesStr[i] = line.Src.Name() + connectsTo + line.Dst.Name() // do not print connection string
 		} else {
 			linesStr[i] = line.String()
 		}
