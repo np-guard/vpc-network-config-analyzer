@@ -99,7 +99,7 @@ func (g *groupedEndpointsElems) DisplayNames() (string, []string) {
 		return myName
 	}
 	namesToPrint := endpointElemToPrint(*g, names)
-	return strings.Join(namesToPrint, commaSepartor), namesToPrint // todo Haim: let me know if you want something shorter at the first index
+	return "several endpoints", namesToPrint // todo Haim: what should the first index be?
 }
 
 func (g *groupedEndpointsElems) Kind() string {
