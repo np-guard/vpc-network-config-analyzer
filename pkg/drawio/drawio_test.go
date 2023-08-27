@@ -159,19 +159,64 @@ func createNetwork() SquareTreeNodeInterface {
 	return network
 }
 
-// func createNetwork2() SquareTreeNodeInterface {
-// 	network := NewNetworkTreeNode()
-// 	cloud1 := NewCloudTreeNode(network, "IBM Cloud")
-// 	vpc1 := NewVpcTreeNode(cloud1, "vpc1")
-// 	zone1 := NewZoneTreeNode(vpc1, "zone1")
-// 	subnet1 := NewSubnetTreeNode(zone1, "subnet1", "cidr1", "acl1")
-// 	ni1 := NewNITreeNode(subnet1, nil, "ni1")
-// 	ni1.SetTooltip([]string{"this is ni1 tool tip one line"})
-// 	GroupNIsWithVSI(zone1, "vsi1", []TreeNodeInterface{ni1})
-// 	return network
-// }
-
 func createNetwork2() SquareTreeNodeInterface {
+	network := NewNetworkTreeNode()
+	cloud1 := NewCloudTreeNode(network, "IBM Cloud")
+	vpc1 := NewVpcTreeNode(cloud1, "vpc1")
+	zone1 := NewZoneTreeNode(vpc1, "zone1")
+	subnet1 := NewSubnetTreeNode(zone1, "subnet1", "cidr1", "acl1")
+	NewNITreeNode(subnet1, nil, "ni1")
+	NewNITreeNode(subnet1, nil, "ni1")
+	subnet2 := NewSubnetTreeNode(zone1, "subnet2", "cidr2", "acl2")
+	NewNITreeNode(subnet2, nil, "ni1")
+	subnet3 := NewSubnetTreeNode(zone1, "subnet2", "cidr2", "acl2")
+	NewNITreeNode(subnet3, nil, "ni1")
+	NewNITreeNode(subnet3, nil, "ni1")
+	NewNITreeNode(subnet3, nil, "ni1")
+
+	zone2 := NewZoneTreeNode(vpc1, "zone1")
+	subnet21 := NewSubnetTreeNode(zone2, "subnet1", "cidr1", "acl1")
+	NewNITreeNode(subnet21, nil, "ni1")
+	NewNITreeNode(subnet21, nil, "ni1")
+	NewNITreeNode(subnet21, nil, "ni1")
+	subnet22 := NewSubnetTreeNode(zone2, "subnet2", "cidr2", "acl2")
+	NewNITreeNode(subnet22, nil, "ni1")
+	subnet23 := NewSubnetTreeNode(zone2, "subnet2", "cidr2", "acl2")
+	NewNITreeNode(subnet23, nil, "ni1")
+	NewNITreeNode(subnet23, nil, "ni1")
+	NewNITreeNode(subnet23, nil, "ni1")
+
+	zone3 := NewZoneTreeNode(vpc1, "zone1")
+	subnet31 := NewSubnetTreeNode(zone3, "subnet1", "cidr1", "acl1")
+	NewNITreeNode(subnet31, nil, "ni1")
+	subnet32 := NewSubnetTreeNode(zone3, "subnet2", "cidr2", "acl2")
+	NewNITreeNode(subnet32, nil, "ni1")
+	NewNITreeNode(subnet32, nil, "ni1")
+	NewNITreeNode(subnet32, nil, "ni1")
+	NewNITreeNode(subnet32, nil, "ni1")
+	NewNITreeNode(subnet32, nil, "ni1")
+	subnet33 := NewSubnetTreeNode(zone3, "subnet2", "cidr2", "acl2")
+	NewNITreeNode(subnet33, nil, "ni1")
+	NewNITreeNode(subnet33, nil, "ni1")
+	NewNITreeNode(subnet33, nil, "ni1")
+	NewNITreeNode(subnet33, nil, "ni1")
+
+	allSubnets := []SquareTreeNodeInterface{
+		subnet1, subnet2, subnet3,
+		subnet21, subnet22, subnet23,
+		subnet31, subnet32, subnet33,
+	}
+	for _, s1 := range allSubnets {
+		for _, s2 := range allSubnets {
+			if s2 != s1 {
+				NewConnectivityLineTreeNode(network, s1, s2, false, "conn5")
+			}
+		}
+	}
+	return network
+}
+
+func createNetwork2b() SquareTreeNodeInterface {
 	network := NewNetworkTreeNode()
 	publicNetwork := NewPublicNetworkTreeNode(network)
 	NewCloudTreeNode(network, "empty Cloud")

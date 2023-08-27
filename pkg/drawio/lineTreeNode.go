@@ -11,8 +11,8 @@ type point struct {
 // //////////////////////////////////////////////////////////////////////////////
 type LineTreeNodeInterface interface {
 	TreeNodeInterface
-	Src() IconTreeNodeInterface
-	Dst() IconTreeNodeInterface
+	Src() TreeNodeInterface
+	Dst() TreeNodeInterface
 	SrcID() uint
 	DstID() uint
 	Points() []point
@@ -24,8 +24,8 @@ type LineTreeNodeInterface interface {
 
 type abstractLineTreeNode struct {
 	abstractTreeNode
-	src    IconTreeNodeInterface
-	dst    IconTreeNodeInterface
+	src    TreeNodeInterface
+	dst    TreeNodeInterface
 	router IconTreeNodeInterface
 	points []point
 }
@@ -36,8 +36,8 @@ func (tn *abstractLineTreeNode) IsLine() bool {
 
 func (tn *abstractLineTreeNode) SrcID() uint                { return tn.src.ID() }
 func (tn *abstractLineTreeNode) DstID() uint                { return tn.dst.ID() }
-func (tn *abstractLineTreeNode) Src() IconTreeNodeInterface { return tn.src }
-func (tn *abstractLineTreeNode) Dst() IconTreeNodeInterface { return tn.dst }
+func (tn *abstractLineTreeNode) Src() TreeNodeInterface { return tn.src }
+func (tn *abstractLineTreeNode) Dst() TreeNodeInterface { return tn.dst }
 
 func (tn *abstractLineTreeNode) DrawioParent() TreeNodeInterface {
 	if tn.router != nil {
@@ -84,7 +84,7 @@ type ConnectivityTreeNode struct {
 }
 
 func NewConnectivityLineTreeNode(network SquareTreeNodeInterface,
-	src, dst IconTreeNodeInterface,
+	src, dst TreeNodeInterface,
 	directed bool,
 	name string) *ConnectivityTreeNode {
 	conn := ConnectivityTreeNode{
