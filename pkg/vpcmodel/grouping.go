@@ -243,111 +243,6 @@ func (g *GroupConnLines) groupLinesByKey(srcGrouping, groupVsi bool) (res []*Gro
 	return res, groupingSrcOrDst
 }
 
-// extends grouping by considering self loops https://github.com/np-guard/vpc-network-config-analyzer/issues/98
-func extendGroupingSelfLoops(groupingSrcOrDst map[string][]*GroupedConnLine, srcGrouping bool) {
-	// todo: make sure ordering of iterating on a map is preserved
-	fmt.Println("in extendGroupingSelfLoops, groupingSrcOrDst, srcGrouping is", srcGrouping)
-	// the to be grouped src/dst in set representation, will be needed to compute the deltas
-	setsToGroup := createGroupingSets(groupingSrcOrDst, srcGrouping)
-	for outerKey, outerLines := range groupingSrcOrDst {
-		// 1. relevant only if both source and destination refers to vsis/subnets
-		//    src/dst of lines grouped together are either all external or all internal. So it suffice to check for the first line in a group
-		if outerLines[0].isSrcOrDstExternalNodes() {
-			continue
-		}
-		fmt.Printf("outerKey: %v\n", outerKey)
-		for _, line := range outerLines {
-			fmt.Println("\tline is", line)
-			groupingItem := line.getSrcOrDst(srcGrouping)
-			fmt.Printf("\tgroupingItem is:%+v outerLines of type %T\n", groupingItem.Name(), groupingItem)
-		}
-		// 2. is there a different line s.t. the outerLines were not merged only due to self loops?
-		// 	  going over all couples of items: merging them if they differ only in self loop element
-		// need to go over all couples of lines grouping no ordering; need only one half of the matrix
-		preceedingEps := true
-		for innerKey, innerLines := range groupingSrcOrDst {
-			// 2.1 not the same line
-			if innerKey == outerKey {
-				preceedingEps = false
-				continue
-			}
-			if preceedingEps {
-				continue // first half of the matrix
-			}
-			// 2.2 again, both src and dst of grouped lines must refer to subnets/vsis
-			if innerLines[0].isSrcOrDstExternalNodes() {
-				continue
-			}
-			// 2.3 both lines must be with the same connection
-			if outerLines[0].Conn != innerLines[0].Conn { // note that all connections are identical in each of the outerLines and innerLines
-				continue
-			}
-			fmt.Printf("\t\tinnerKey: %v\n", innerKey)
-			for _, line := range innerLines {
-				fmt.Println("\t\t\tline is", line)
-				groupingItem := line.getSrcOrDst(srcGrouping)
-				fmt.Printf("\t\t\tgroupingItem is:%+v of type %T\n", groupingItem.Name(), groupingItem)
-			}
-			// 2.4 delta between outerKeyEndPointElements to innerKeyEndPointElements must be 0
-			deltaBetweenGroupedConnLines(srcGrouping, outerLines, innerLines, setsToGroup[outerKey], setsToGroup[innerKey])
-			// 2.5 delta between the outerLines is 0 - merge outerLines
-		}
-	}
-}
-
-// creates an aux database in which all the grouped endpoints are stored in a set
-func createGroupingSets(groupingSrcOrDst map[string][]*GroupedConnLine, srcGrouping bool) map[string]map[string]struct{} {
-	keyToGroupedSets := make(map[string](map[string]struct{}))
-	for key, groupedConnLine := range groupingSrcOrDst {
-		mySet := make(map[string]struct{})
-		for _, line := range groupedConnLine {
-			srcOrDst := line.getSrcOrDst(srcGrouping)
-			mySet[srcOrDst.Name()] = struct{}{}
-		}
-		keyToGroupedSets[key] = mySet
-	}
-	return keyToGroupedSets
-}
-
-// computes delta between group connection lines https://github.com/np-guard/vpc-network-config-analyzer/issues/98
-func deltaBetweenGroupedConnLines(srcGrouping bool, groupedConnLine1, groupedConnLine2 []*GroupedConnLine, setToGroup1, setToGroup2 map[string]struct{}) bool {
-	if len(groupedConnLine1) > 1 && len(groupedConnLine2) > 1 {
-		return false
-	}
-	set1MinusSet2 := setMinusSet(srcGrouping, groupedConnLine2, setToGroup1, setToGroup2)
-	set2MinusSet1 := setMinusSet(srcGrouping, groupedConnLine1, setToGroup2, setToGroup1)
-	if len(set1MinusSet2) == 0 && len(set2MinusSet1) == 0 {
-		return true
-	}
-	return false
-}
-
-func setMinusSet(srcGrouping bool, groupedConnLine []*GroupedConnLine, set1, set2 map[string]struct{}) map[string]struct{} {
-	minusResult := make(map[string]struct{})
-	for k := range set1 {
-		if _, ok := set2[k]; !ok {
-			minusResult[k] = struct{}{}
-		}
-	}
-	// if set2's source groupedConnLine key has a single item, then this single item is not relevant to the delta since any EndpointElement is connected to itself
-	if len(groupedConnLine) == 1 {
-		keyOfGrouped2 := groupedConnLine[0].getSrcOrDst(!srcGrouping) // all non-grouping items are the same in a groupedConnLine
-		delete(minusResult, keyOfGrouped2.Name())                     // if keyOfGrouped2.Name() does not exist in minusResult then this is no-op
-	}
-	return minusResult
-}
-
-func (g *GroupedConnLine) isSrcOrDstExternalNodes() bool {
-	// todo: verify - is this the only possibility of external? can we have here an external node?
-	if _, ok := g.Src.(*groupedExternalNodes); ok {
-		return true
-	}
-	if _, ok := g.Dst.(*groupedExternalNodes); ok {
-		return true
-	}
-	return false
-}
-
 // assuming the  g.groupedLines was already initialized by previous step groupExternalAddresses()
 func (g *GroupConnLines) groupInternalSrcOrDst(srcGrouping, groupVsi bool) {
 	res, groupingSrcOrDst := g.groupLinesByKey(srcGrouping, groupVsi)
@@ -441,4 +336,119 @@ func (g *groupedExternalNodes) String() string {
 	}
 	// 3. print a list s.t. each element contains either a single cidr or an ip range
 	return strings.Join(unionBlock.ListToPrint(), commaSepartor)
+}
+
+// add explanation
+
+// extends grouping by considering self loops https://github.com/np-guard/vpc-network-config-analyzer/issues/98
+func extendGroupingSelfLoops(groupingSrcOrDst map[string][]*GroupedConnLine, srcGrouping bool) {
+	groupsToBeMerged(groupingSrcOrDst, srcGrouping)
+	// todo: actual merge. Careful: do not merge groups if key comes from different subnets
+}
+func groupsToBeMerged(groupingSrcOrDst map[string][]*GroupedConnLine, srcGrouping bool) {
+	fmt.Println("in extendGroupingSelfLoops, groupingSrcOrDst, srcGrouping is", srcGrouping)
+	// the to be grouped src/dst in set representation, will be needed to compute the deltas
+	setsToGroup := createGroupingSets(groupingSrcOrDst, srcGrouping)
+	for outerKey, outerLines := range groupingSrcOrDst {
+		// 1. relevant only if both source and destination refers to vsis/subnets
+		//    src/dst of lines grouped together are either all external or all internal. So it suffice to check for the first line in a group
+		if outerLines[0].isSrcOrDstExternalNodes() {
+			continue
+		}
+		// 2. is there a different line s.t. the outerLines were not merged only due to self loops?
+		// 	  going over all couples of items: merging them if they differ only in self loop element
+		//    need to go over all couples of lines grouping no ordering; need only one half of the matrix
+		halfMatrix := true
+		for innerKey, innerLines := range groupingSrcOrDst {
+			// 2.1 not the same line
+			if innerKey == outerKey {
+				halfMatrix = false
+				continue
+			}
+			if !halfMatrix { // delta is symmetric, no need to calculate twice
+				//fmt.Println("skipping since not lower half matrix")
+				continue
+			}
+			// 2.2 again, both src and dst of grouped lines must refer to subnets/vsis
+			if innerLines[0].isSrcOrDstExternalNodes() {
+				//fmt.Println("skipping since external nodes")
+				continue
+			}
+			// 2.3 both lines must be with the same connection
+			if outerLines[0].Conn != innerLines[0].Conn { // note that all connections are identical in each of the outerLines and innerLines
+				continue
+			}
+			fmt.Println("outerKey is", outerKey)
+			for _, line := range outerLines {
+				fmt.Println("\touterline is", line)
+			}
+			fmt.Println("\t\tinnerKey is", innerKey)
+			for _, line := range innerLines {
+				fmt.Println("\t\t\tinnerLine is", line)
+			}
+			// 2.4 delta between outerKeyEndPointElements to innerKeyEndPointElements must be 0
+			mergeGroups := deltaBetweenGroupedConnLines(srcGrouping, outerLines, innerLines, setsToGroup[outerKey], setsToGroup[innerKey])
+			fmt.Printf("\t\tmergeGroups is %v\n", mergeGroups)
+			// 2.5 delta between the outerLines is 0 - merge outerLines
+		}
+	}
+}
+
+// creates an aux database in which all the grouped endpoints are stored in a set
+func createGroupingSets(groupingSrcOrDst map[string][]*GroupedConnLine, srcGrouping bool) map[string]map[string]struct{} {
+	keyToGroupedSets := make(map[string](map[string]struct{}))
+	for key, groupedConnLine := range groupingSrcOrDst {
+		mySet := make(map[string]struct{})
+		for _, line := range groupedConnLine {
+			srcOrDst := line.getSrcOrDst(srcGrouping)
+			mySet[srcOrDst.Name()] = struct{}{}
+		}
+		keyToGroupedSets[key] = mySet
+	}
+	return keyToGroupedSets
+}
+
+// computes delta between group connection lines https://github.com/np-guard/vpc-network-config-analyzer/issues/98
+func deltaBetweenGroupedConnLines(srcGrouping bool, groupedConnLine1, groupedConnLine2 []*GroupedConnLine, setToGroup1, setToGroup2 map[string]struct{}) bool {
+	// at least one of the keys must be a single vsi/subnet for the self loop check to be meaningful
+	if elemInKeys(srcGrouping, *groupedConnLine1[0]) > 1 && elemInKeys(srcGrouping, *groupedConnLine2[0]) > 1 {
+		return false
+	}
+	// is there is a real delta between sets and not only due to self loop
+	set1MinusSet2 := setMinusSet(srcGrouping, *groupedConnLine2[0], setToGroup1, setToGroup2)
+	set2MinusSet1 := setMinusSet(srcGrouping, *groupedConnLine1[0], setToGroup2, setToGroup1)
+	if len(set1MinusSet2) == 0 && len(set2MinusSet1) == 0 {
+		return true
+	}
+	return false
+}
+
+func elemInKeys(srcGrouping bool, groupedConnLine GroupedConnLine) int {
+	srcOrDst := groupedConnLine.getSrcOrDst(srcGrouping)
+	return len(strings.Split(srcOrDst.Name(), ","))
+}
+
+func setMinusSet(srcGrouping bool, groupedConnLine GroupedConnLine, set1, set2 map[string]struct{}) map[string]struct{} {
+	minusResult := make(map[string]struct{})
+	for k := range set1 {
+		if _, ok := set2[k]; !ok {
+			minusResult[k] = struct{}{}
+		}
+	}
+	// if set2's source groupedConnLine key has a single item, then this single item is not relevant to the delta since any EndpointElement is connected to itself
+	if elemInKeys(srcGrouping, groupedConnLine) == 1 {
+		keyOfGrouped2 := groupedConnLine.getSrcOrDst(!srcGrouping) // all non-grouping items are the same in a groupedConnLine
+		delete(minusResult, keyOfGrouped2.Name())                  // if keyOfGrouped2.Name() does not exist in minusResult then this is no-op
+	}
+	return minusResult
+}
+
+func (g *GroupedConnLine) isSrcOrDstExternalNodes() bool {
+	if _, ok := g.Src.(*groupedExternalNodes); ok {
+		return true
+	}
+	if _, ok := g.Dst.(*groupedExternalNodes); ok {
+		return true
+	}
+	return false
 }
