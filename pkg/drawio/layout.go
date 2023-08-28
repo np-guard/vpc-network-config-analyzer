@@ -119,6 +119,9 @@ func (ly *layoutS) layoutSubnetsIcons() {
 					icons := subnet.IconTreeNodes()
 					ly.setDefaultLocation(subnet, rowIndex, colIndex)
 					for _, icon := range icons {
+						if !icon.IsNI() {
+							continue
+						}
 						if !canShareCell(iconInCurrentCell, icon) {
 							rowIndex++
 							iconInCurrentCell = nil
@@ -305,6 +308,31 @@ func (ly *layoutS) setVpcIconsLocations(vpc SquareTreeNodeInterface) {
 	}
 }
 
+func (ly *layoutS) setSquareGroupingIconsLocations(square SquareTreeNodeInterface) {
+	icons := square.IconTreeNodes()
+	i := 0
+	for _, icon := range icons {
+		if !icon.IsGroupingPoint(){continue}
+		icon.setLocation(newCellLocation(square.Location().firstRow, square.Location().prevCol()))
+		icon.Location().yOffset = iconSpace * i
+		i++
+	}
+}
+func (ly *layoutS) setGroupingIconsLocations() {
+	for _, cloud := range ly.network.(*NetworkTreeNode).clouds {
+		for _, vpc := range cloud.(*CloudTreeNode).vpcs {
+			for _, zone := range vpc.(*VpcTreeNode).zones {
+				for _, subnet := range zone.(*ZoneTreeNode).subnets {
+					ly.setSquareGroupingIconsLocations(subnet)
+				}
+				ly.setSquareGroupingIconsLocations(zone)
+			}
+			ly.setSquareGroupingIconsLocations(vpc)
+		}
+		ly.setSquareGroupingIconsLocations(cloud)
+	}
+}
+
 // ////////////////////////////////////////////////////////////////////////////////////////
 // if vsi icon shares by several subnet - we put it below one of the subnets
 // else we put it inside the subnet
@@ -355,6 +383,7 @@ func (ly *layoutS) setIconsLocations() {
 		}
 	}
 	ly.setPublicNetworkIconsLocations()
+	ly.setGroupingIconsLocations()
 }
 
 func (ly *layoutS) setGeometries() {

@@ -7,11 +7,13 @@ type IconTreeNodeInterface interface {
 	allocateNewRouteOffset() int
 	IsVSI() bool
 	IsNI() bool
+	IsGroupingPoint() bool
 	SetTooltip(tooltip []string)
 	HasTooltip() bool
 	Tooltip() string
 	IsGateway() bool
 	absoluteRouterGeometry() (int, int)
+	IconSize() int
 }
 
 type abstractIconTreeNode struct {
@@ -30,6 +32,7 @@ func (tn *abstractIconTreeNode) IsIcon() bool                { return true }
 func (tn *abstractIconTreeNode) IsVSI() bool                 { return false }
 func (tn *abstractIconTreeNode) IsGateway() bool             { return false }
 func (tn *abstractIconTreeNode) IsNI() bool                  { return false }
+func (tn *abstractIconTreeNode) IsGroupingPoint() bool       { return false }
 func (tn *abstractIconTreeNode) SetTooltip(tooltip []string) { tn.tooltip = tooltip }
 func (tn *abstractIconTreeNode) HasTooltip() bool            { return len(tn.tooltip) > 0 }
 func (tn *abstractIconTreeNode) Tooltip() string             { return labels2Table(tn.tooltip) }
@@ -58,8 +61,8 @@ func (tn *abstractIconTreeNode) setGeometry() {
 func calculateIconGeometry(tn IconTreeNodeInterface, drawioParent TreeNodeInterface) (x, y int) {
 	location := tn.Location()
 	parentLocation := drawioParent.Location()
-	x = location.firstCol.x() - parentLocation.firstCol.x() + location.firstCol.width()/2 - iconSize/2 + location.xOffset
-	y = location.firstRow.y() - parentLocation.firstRow.y() + location.firstRow.height()/2 - iconSize/2 + location.yOffset
+	x = location.firstCol.x() - parentLocation.firstCol.x() + location.firstCol.width()/2 - tn.IconSize()/2 + location.xOffset
+	y = location.firstRow.y() - parentLocation.firstRow.y() + location.firstRow.height()/2 - tn.IconSize()/2 + location.yOffset
 	return x, y
 }
 func (tn *abstractIconTreeNode) absoluteRouterGeometry() (x, y int) {
@@ -176,8 +179,9 @@ type GroupPointTreeNode struct {
 	abstractIconTreeNode
 	groupies []TreeNodeInterface
 }
-func (tn *GroupPointTreeNode) IconSize() int               { return groupedIconSize }
 
+func (tn *GroupPointTreeNode) IconSize() int         { return groupedIconSize }
+func (tn *GroupPointTreeNode) IsGroupingPoint() bool { return true }
 func NewGroupPointTreeNode(parent SquareTreeNodeInterface,
 	groupies []TreeNodeInterface,
 	directed bool,
@@ -193,6 +197,9 @@ func NewGroupPointTreeNode(parent SquareTreeNodeInterface,
 		}
 	}
 	return groupPoint
+}
+func (tn *GroupPointTreeNode) setGeometry() {
+	tn.x, tn.y = calculateIconGeometry(tn, tn.DrawioParent())
 }
 
 // ///////////////////////////////////////////

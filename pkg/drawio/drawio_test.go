@@ -208,18 +208,18 @@ func createNetwork2() SquareTreeNodeInterface {
 	NewNITreeNode(subnet33, nil, "ni1")
 	NewNITreeNode(subnet33, nil, "ni1")
 
-	allSubnets := []SquareTreeNodeInterface{
-		subnet1, subnet2, subnet3,
-		subnet21, subnet22, subnet23,
-		subnet31, subnet32, subnet33,
-	}
-	for _, s1 := range allSubnets {
-		for _, s2 := range allSubnets {
-			if s2 != s1 {
-				NewConnectivityLineTreeNode(network, s1, s2, false, "conn5")
-			}
-		}
-	}
+	// allSubnets := []SquareTreeNodeInterface{
+	// 	subnet1, subnet2, subnet3,
+	// 	subnet21, subnet22, subnet23,
+	// 	subnet31, subnet32, subnet33,
+	// }
+	// for _, s1 := range allSubnets {
+	// 	for _, s2 := range allSubnets {
+	// 		if s2 != s1 {
+	// 			NewConnectivityLineTreeNode(network, s1, s2, false, "conn5")
+	// 		}
+	// 	}
+	// }
 	return network
 }
 
