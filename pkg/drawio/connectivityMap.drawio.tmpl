@@ -25,12 +25,12 @@
             {{ if $node.HasTooltip }}
                 <UserObject label="{{$node.Label}}" tooltip="{{$node.Tooltip}}" id="{{$data.IDsPrefix}}-{{$node.ID}}">
                     <mxCell style="{{$data.Style $node}}" parent="{{$data.IDsPrefix}}-{{$node.DrawioParent.ID}}" vertex="1">
-                    <mxGeometry width="{{$data.IconSize}}" height="{{$data.IconSize}}" x="{{$node.X}}" y="{{$node.Y}}" as="geometry"/>
+                    <mxGeometry width="{{$node.IconSize}}" height="{{$node.IconSize}}" x="{{$node.X}}" y="{{$node.Y}}" as="geometry"/>
                     </mxCell>
                 </UserObject>
             {{else}}
                 <mxCell id="{{$data.IDsPrefix}}-{{$node.ID}}" value="{{$node.Label}}" style="{{$data.Style $node}}" parent="{{$data.IDsPrefix}}-{{$node.DrawioParent.ID}}" vertex="1">
-                <mxGeometry width="{{$data.IconSize}}" height="{{$data.IconSize}}" x="{{$node.X}}" y="{{$node.Y}}" as="geometry"/>
+                <mxGeometry width="{{$node.IconSize}}" height="{{$node.IconSize}}" x="{{$node.X}}" y="{{$node.Y}}" as="geometry"/>
                 </mxCell>
             {{ end }}
             {{ if $node.IsNI }}
@@ -43,7 +43,7 @@
                 {{ end }}
                 {{ if $node.HasFip  }}
                     <mxCell id="{{$data.IDsPrefix}}-{{$node.FipID}}" value="{{$node.Fip}}" style="{{$data.FIPStyle}}" parent="{{$data.IDsPrefix}}-{{$node.ID}}" vertex="1">
-                    <mxGeometry x="{{$data.FipXOffset}}" y="{{$data.FipYOffset}}" width="{{$data.IconSize}}" height="{{$data.IconSize}}" as="geometry"/>
+                    <mxGeometry x="{{$data.FipXOffset}}" y="{{$data.FipYOffset}}" width="{{$node.IconSize}}" height="{{$node.IconSize}}" as="geometry"/>
                     </mxCell>
                 {{ end }}
             {{ end }}

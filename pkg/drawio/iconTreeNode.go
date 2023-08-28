@@ -33,6 +33,7 @@ func (tn *abstractIconTreeNode) IsNI() bool                  { return false }
 func (tn *abstractIconTreeNode) SetTooltip(tooltip []string) { tn.tooltip = tooltip }
 func (tn *abstractIconTreeNode) HasTooltip() bool            { return len(tn.tooltip) > 0 }
 func (tn *abstractIconTreeNode) Tooltip() string             { return labels2Table(tn.tooltip) }
+func (tn *abstractIconTreeNode) IconSize() int               { return iconSize }
 
 var offsets = []int{
 	0,
@@ -169,6 +170,30 @@ func (tn *VsiTreeNode) DrawioParent() TreeNodeInterface {
 }
 
 func (tn *VsiTreeNode) IsVSI() bool { return true }
+
+// ///////////////////////////////////////////
+type GroupPointTreeNode struct {
+	abstractIconTreeNode
+	groupies []TreeNodeInterface
+}
+func (tn *GroupPointTreeNode) IconSize() int               { return groupedIconSize }
+
+func NewGroupPointTreeNode(parent SquareTreeNodeInterface,
+	groupies []TreeNodeInterface,
+	directed bool,
+	direction bool,
+	connName string) *GroupPointTreeNode {
+	groupPoint := &GroupPointTreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, ""), groupies: groupies}
+	parent.addIconTreeNode(groupPoint)
+	for _, groupe := range groupies {
+		if direction {
+			NewConnectivityLineTreeNode(parent, groupPoint, groupe, directed, connName)
+		} else {
+			NewConnectivityLineTreeNode(parent, groupe, groupPoint, directed, connName)
+		}
+	}
+	return groupPoint
+}
 
 // ///////////////////////////////////////////
 type InternetTreeNode struct {

@@ -12,7 +12,6 @@ import (
 var drawioTemplate string
 
 type drawioData struct {
-	IconSize   int
 	FipXOffset int
 	FipYOffset int
 	VSIXOffset int
@@ -57,7 +56,6 @@ func CreateDrawioConnectivityMapFile(network SquareTreeNodeInterface, outputFile
 	newLayout(network).layout()
 	allNodes := getAllNodes(network)
 	data := &drawioData{
-		iconSize,
 		fipXOffset,
 		fipYOffset,
 		vsiXOffset,

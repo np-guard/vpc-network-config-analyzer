@@ -20,12 +20,13 @@ package drawio
 // that alow to add/remove rows/column without updating the treeNodes.
 
 const (
-	minSize      = 10
-	borderWidth  = 40
-	subnetWidth  = 8 * 40
-	subnetHeight = 6 * 40
-	iconSize     = 60
-	iconSpace    = 4 * 40
+	minSize         = 10
+	borderWidth     = 40
+	subnetWidth     = 8 * 40
+	subnetHeight    = 6 * 40
+	iconSize        = 60
+	groupedIconSize = 20
+	iconSpace       = 4 * 40
 
 	fipXOffset = -70
 	fipYOffset = 40

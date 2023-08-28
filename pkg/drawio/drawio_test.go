@@ -170,9 +170,10 @@ func createNetwork2() SquareTreeNodeInterface {
 	subnet2 := NewSubnetTreeNode(zone1, "subnet2", "cidr2", "acl2")
 	NewNITreeNode(subnet2, nil, "ni1")
 	subnet3 := NewSubnetTreeNode(zone1, "subnet2", "cidr2", "acl2")
-	NewNITreeNode(subnet3, nil, "ni1")
-	NewNITreeNode(subnet3, nil, "ni1")
-	NewNITreeNode(subnet3, nil, "ni1")
+	groupedNis := []TreeNodeInterface{}
+	groupedNis = append(groupedNis, NewNITreeNode(subnet3, nil, "ni1"))
+	groupedNis = append(groupedNis, NewNITreeNode(subnet3, nil, "ni1"))
+	groupedNis = append(groupedNis, NewNITreeNode(subnet3, nil, "ni1"))
 
 	zone2 := NewZoneTreeNode(vpc1, "zone1")
 	subnet21 := NewSubnetTreeNode(zone2, "subnet1", "cidr1", "acl1")
@@ -190,11 +191,17 @@ func createNetwork2() SquareTreeNodeInterface {
 	subnet31 := NewSubnetTreeNode(zone3, "subnet1", "cidr1", "acl1")
 	NewNITreeNode(subnet31, nil, "ni1")
 	subnet32 := NewSubnetTreeNode(zone3, "subnet2", "cidr2", "acl2")
-	NewNITreeNode(subnet32, nil, "ni1")
-	NewNITreeNode(subnet32, nil, "ni1")
-	NewNITreeNode(subnet32, nil, "ni1")
-	NewNITreeNode(subnet32, nil, "ni1")
-	NewNITreeNode(subnet32, nil, "ni1")
+	groupedNis2 := []TreeNodeInterface{}
+	groupedNis2 = append(groupedNis2, NewNITreeNode(subnet32, nil, "ni1"))
+	groupedNis2 = append(groupedNis2, NewNITreeNode(subnet32, nil, "ni1"))
+	groupedNis2 = append(groupedNis2, NewNITreeNode(subnet32, nil, "ni1"))
+	groupedNis2 = append(groupedNis2, NewNITreeNode(subnet32, nil, "ni1"))
+	groupedNis2 = append(groupedNis2, NewNITreeNode(subnet32, nil, "ni1"))
+
+	groupPoint := NewGroupPointTreeNode(subnet3,groupedNis,true,true,"conn5")
+	groupPoint2 := NewGroupPointTreeNode(subnet32,groupedNis2,true,false,"conn5")
+	NewConnectivityLineTreeNode(network, groupPoint2, groupPoint, true, "conn5")
+
 	subnet33 := NewSubnetTreeNode(zone3, "subnet2", "cidr2", "acl2")
 	NewNITreeNode(subnet33, nil, "ni1")
 	NewNITreeNode(subnet33, nil, "ni1")
