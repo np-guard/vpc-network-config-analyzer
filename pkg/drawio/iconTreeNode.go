@@ -177,11 +177,14 @@ func (tn *VsiTreeNode) IsVSI() bool { return true }
 // ///////////////////////////////////////////
 type GroupPointTreeNode struct {
 	abstractIconTreeNode
-	groupies []TreeNodeInterface
+	groupies  []TreeNodeInterface
+	colleague IconTreeNodeInterface
 }
 
-func (tn *GroupPointTreeNode) IconSize() int         { return groupedIconSize }
-func (tn *GroupPointTreeNode) IsGroupingPoint() bool { return true }
+func (tn *GroupPointTreeNode) setColleague(colleague IconTreeNodeInterface) { tn.colleague = colleague }
+func (tn *GroupPointTreeNode) getColleague() IconTreeNodeInterface          { return tn.colleague }
+func (tn *GroupPointTreeNode) IconSize() int                                { return groupedIconSize }
+func (tn *GroupPointTreeNode) IsGroupingPoint() bool                        { return true }
 func NewGroupPointTreeNode(parent SquareTreeNodeInterface,
 	groupies []TreeNodeInterface,
 	directed bool,

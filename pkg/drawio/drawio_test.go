@@ -200,6 +200,8 @@ func createNetwork2() SquareTreeNodeInterface {
 
 	groupPoint := NewGroupPointTreeNode(subnet3,groupedNis,true,true,"conn5")
 	groupPoint2 := NewGroupPointTreeNode(subnet32,groupedNis2,true,false,"conn5")
+	groupPoint.setColleague(groupPoint2)
+	groupPoint2.setColleague(groupPoint)
 	NewConnectivityLineTreeNode(network, groupPoint2, groupPoint, true, "conn5")
 
 	subnet33 := NewSubnetTreeNode(zone3, "subnet2", "cidr2", "acl2")
