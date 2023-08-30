@@ -344,7 +344,7 @@ func (ly *layoutS) setSquareGroupingIconsLocations(square SquareTreeNodeInterfac
 		r,c := ly.getGroupingIconLocation(parentLocation, colleagueParentLocation)
 
 		icon.setLocation(newCellLocation(r,c))
-		icon.Location().yOffset = iconSpace * i
+		icon.Location().yOffset = iconSize * i
 		i++
 	}
 }

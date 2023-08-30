@@ -34,8 +34,8 @@ func (tn *abstractLineTreeNode) IsLine() bool {
 	return true
 }
 
-func (tn *abstractLineTreeNode) SrcID() uint                { return tn.src.ID() }
-func (tn *abstractLineTreeNode) DstID() uint                { return tn.dst.ID() }
+func (tn *abstractLineTreeNode) SrcID() uint            { return tn.src.ID() }
+func (tn *abstractLineTreeNode) DstID() uint            { return tn.dst.ID() }
 func (tn *abstractLineTreeNode) Src() TreeNodeInterface { return tn.src }
 func (tn *abstractLineTreeNode) Dst() TreeNodeInterface { return tn.dst }
 
@@ -92,4 +92,20 @@ func NewConnectivityLineTreeNode(network SquareTreeNodeInterface,
 		directed:             directed}
 	network.addLineTreeNode(&conn)
 	return &conn
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+
+func NewGroupedConnection(
+	network SquareTreeNodeInterface,
+	srcParent, dstParent SquareTreeNodeInterface,
+	srcGroupies, dstGroupies []TreeNodeInterface,
+	directed bool,
+	name string) {
+	srcGroupPoint := newGroupPointTreeNode(srcParent, srcGroupies, directed, true, name)
+	dstGroupPoint := newGroupPointTreeNode(dstParent, dstGroupies, directed, false, name)
+	srcGroupPoint.setColleague(dstGroupPoint)
+	dstGroupPoint.setColleague(srcGroupPoint)
+	NewConnectivityLineTreeNode(network, srcGroupPoint, dstGroupPoint, true, name)
+
 }

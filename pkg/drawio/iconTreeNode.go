@@ -185,15 +185,15 @@ func (tn *GroupPointTreeNode) setColleague(colleague IconTreeNodeInterface) { tn
 func (tn *GroupPointTreeNode) getColleague() IconTreeNodeInterface          { return tn.colleague }
 func (tn *GroupPointTreeNode) IconSize() int                                { return groupedIconSize }
 func (tn *GroupPointTreeNode) IsGroupingPoint() bool                        { return true }
-func NewGroupPointTreeNode(parent SquareTreeNodeInterface,
+func newGroupPointTreeNode(parent SquareTreeNodeInterface,
 	groupies []TreeNodeInterface,
 	directed bool,
-	direction bool,
+	isSrc bool,
 	connName string) *GroupPointTreeNode {
 	groupPoint := &GroupPointTreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, ""), groupies: groupies}
 	parent.addIconTreeNode(groupPoint)
 	for _, groupe := range groupies {
-		if direction {
+		if isSrc {
 			NewConnectivityLineTreeNode(parent, groupPoint, groupe, directed, connName)
 		} else {
 			NewConnectivityLineTreeNode(parent, groupe, groupPoint, directed, connName)
