@@ -106,15 +106,20 @@ func NewGroupedConnection(
 	srcGroupies, dstGroupies []TreeNodeInterface,
 	directed bool,
 	name string) *GroupingConnection {
-	groupingConnection := GroupingConnection{}
-	groupingConnection.srcGroupPoint = newGroupPointTreeNode(srcParent, srcGroupies, directed, false, name)
-	groupingConnection.dstGroupPoint = newGroupPointTreeNode(dstParent, dstGroupies, directed, true, name)
-	groupingConnection.srcGroupPoint.setColleague(groupingConnection.dstGroupPoint)
-	groupingConnection.dstGroupPoint.setColleague(groupingConnection.srcGroupPoint)
-	groupingConnection.conn = NewConnectivityLineTreeNode(network, groupingConnection.srcGroupPoint, groupingConnection.dstGroupPoint, directed, name)
-	return &groupingConnection
+	gc := GroupingConnection{}
+	gc.srcGroupPoint = newGroupPointTreeNode(srcParent, srcGroupies, directed, false, name)
+	gc.dstGroupPoint = newGroupPointTreeNode(dstParent, dstGroupies, directed, true, name)
+	gc.srcGroupPoint.setColleague(gc.dstGroupPoint)
+	gc.dstGroupPoint.setColleague(gc.srcGroupPoint)
+	gc.conn = NewConnectivityLineTreeNode(network, gc.srcGroupPoint, gc.dstGroupPoint, directed, name)
+	return &gc
 }
+func (gc *GroupingConnection) setGwRouter(gw IconTreeNodeInterface, reverse bool) {
+	gc.conn.SetRouter(gw,reverse)
+	gc.srcGroupPoint.setColleague(gw)
+	gc.dstGroupPoint.setColleague(gw)
 
+}
 func (gc *GroupingConnection) setFipRouter(isDst bool) {
 	gp := gc.srcGroupPoint
 	if isDst {
