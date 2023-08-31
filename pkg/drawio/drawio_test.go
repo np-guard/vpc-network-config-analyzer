@@ -210,10 +210,24 @@ func createNetwork2() SquareTreeNodeInterface {
 		NewNITreeNode(subnet33, nil, "ni1"),
 		NewNITreeNode(subnet33, nil, "ni1"),
 	}
-
-	NewGroupedConnection(network, subnet3, subnet32, groupedNis3, groupedNis32, true, "gconn")
-	NewGroupedConnection(network, subnet33, subnet32, groupedNis33, groupedNis32, false, "gconn")
-	NewGroupedConnection(network, subnet23, subnet1, groupedNis23, groupedNis1, true, "gconn")
+	fipGroups := [][]TreeNodeInterface{
+		groupedNis1,
+		groupedNis3,
+		// groupedNis23,
+		// groupedNis32,
+		groupedNis33,
+	}
+	for _, g := range fipGroups {
+		for _, ni := range g {
+			ni.(*NITreeNode).SetFIP("fip")
+		}
+	}
+	gc1 := NewGroupedConnection(network, subnet3, subnet32, groupedNis3, groupedNis32, true, "gconn1")
+	gc2 := NewGroupedConnection(network, subnet33, subnet32, groupedNis33, groupedNis32, false, "gconn2")
+	gc3 := NewGroupedConnection(network, subnet23, subnet1, groupedNis23, groupedNis1, true, "gconn3")
+	gc1.setFipRouter(false)
+	gc2.setFipRouter(false)
+	gc3.setFipRouter(true)
 
 	// allSubnets := []SquareTreeNodeInterface{
 	// 	subnet1, subnet2, subnet3,

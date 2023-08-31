@@ -179,12 +179,14 @@ type GroupPointTreeNode struct {
 	abstractIconTreeNode
 	groupies  []TreeNodeInterface
 	colleague IconTreeNodeInterface
+	groupiesConn []LineTreeNodeInterface
 }
 
 func (tn *GroupPointTreeNode) setColleague(colleague IconTreeNodeInterface) { tn.colleague = colleague }
 func (tn *GroupPointTreeNode) getColleague() IconTreeNodeInterface          { return tn.colleague }
 func (tn *GroupPointTreeNode) IconSize() int                                { return groupedIconSize }
 func (tn *GroupPointTreeNode) IsGroupingPoint() bool                        { return true }
+
 func newGroupPointTreeNode(parent SquareTreeNodeInterface,
 	groupies []TreeNodeInterface,
 	directed bool,
@@ -194,10 +196,10 @@ func newGroupPointTreeNode(parent SquareTreeNodeInterface,
 	parent.addIconTreeNode(groupPoint)
 	for _, groupe := range groupies {
 		if isSrc {
-			NewConnectivityLineTreeNode(parent, groupPoint, groupe, directed, connName)
+			groupPoint.groupiesConn = append(groupPoint.groupiesConn, NewConnectivityLineTreeNode(parent, groupPoint, groupe, directed, connName))
 		} else {
-			NewConnectivityLineTreeNode(parent, groupe, groupPoint, directed, connName)
-		}
+			groupPoint.groupiesConn = append(groupPoint.groupiesConn, NewConnectivityLineTreeNode(parent, groupe, groupPoint, directed, connName))
+		}		
 	}
 	return groupPoint
 }
