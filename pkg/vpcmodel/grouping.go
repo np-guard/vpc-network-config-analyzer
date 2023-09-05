@@ -107,8 +107,8 @@ func (g *groupingConnections) addPublicConnectivity(ep EndpointElem, conn string
 	(*g)[ep][conn] = append((*g)[ep][conn], targetNode)
 }
 
-// vsiGroupingBySubnets returns a slice of EndpointElem objects produced from an input slice, by grouping
-// set of elements that represent network interface nodes from the same subnet into a single groupedNetworkInterfaces object
+// vsiGroupingBySubnets returns a slice of EndpointElem objects, by grouping set of elements that
+// represent network interface nodes from the same subnet into a single groupedNetworkInterfaces object
 func vsiGroupingBySubnets(elemsList []EndpointElem, c *CloudConfig) []EndpointElem {
 	res := []EndpointElem{}
 	subnetNameToNodes := map[string][]EndpointElem{} // map from subnet name to its nodes from the input
@@ -315,7 +315,7 @@ func listEndpointElemStr(eps []EndpointElem, fn func(ep EndpointElem) string) st
 		endpointsStrings[i] = fn(ep)
 	}
 	sort.Strings(endpointsStrings)
-	return strings.Join(endpointsStrings, ",")
+	return strings.Join(endpointsStrings, commaSepartor)
 }
 
 func (g *groupedExternalNodes) String() string {
@@ -398,7 +398,7 @@ func (g *GroupConnLines) groupsToBeMerged(groupingSrcOrDst map[string][]*Grouped
 			}
 		}
 	}
-	return
+	return toMergeCouples
 }
 
 // if the two endpoints are vsis and do not belong to the same subnet returns true, otherwise false
@@ -421,9 +421,8 @@ func isEpVsi(ep EndpointElem) (bool, Node) {
 			if _, ok := ep.(Node); ok {
 				if ep.(Node).IsInternal() {
 					return true, ep.(Node)
-				} else {
-					return false, nil
 				}
+				return false, nil
 			} else { // is NodeSet
 				return false, nil
 			}
@@ -469,7 +468,7 @@ func deltaBetweenGroupedConnLines(srcGrouping bool, groupedConnLine1, groupedCon
 
 func elemInKeys(srcGrouping bool, groupedConnLine GroupedConnLine) int {
 	srcOrDst := groupedConnLine.getSrcOrDst(srcGrouping)
-	return len(strings.Split(srcOrDst.Name(), ","))
+	return len(strings.Split(srcOrDst.Name(), commaSepartor))
 }
 
 func setMinusSet(srcGrouping bool, groupedConnLine GroupedConnLine, set1, set2 map[string]struct{}) map[string]struct{} {
@@ -502,7 +501,7 @@ func mergeSelfLoops(toMergeCouples [][2]string, oldGroupingSrcOrDst map[string][
 	srcGrouping bool) map[string][]*GroupedConnLine {
 	// 1. Create dedicated data structure: a slice of slices of string toMergeList s.t. each slice contains a list of keys to be merged
 	//    and a map toMergeExistingIndexes between key to its index in the slice
-	toMergeList := make([][]string, 0, 0)
+	toMergeList := make([][]string, 0)
 	toMergeExistingIndexes := make(map[string]int)
 	for _, coupleKeys := range toMergeCouples {
 		existingIndx1, ok1 := toMergeExistingIndexes[coupleKeys[0]]
@@ -518,7 +517,8 @@ func mergeSelfLoops(toMergeCouples [][2]string, oldGroupingSrcOrDst map[string][
 				toMergeExistingIndexes[coupleKeys[0]] = existingIndx2
 				toMergeList[existingIndx2] = append(toMergeList[existingIndx2], coupleKeys[0])
 			} else {
-				// if both []*GroupedConnLine already exist in toMergeExistingIndexes then existingIndx1 equals existingIndx2 and nothing to be done here
+				// if both []*GroupedConnLine already exist in toMergeExistingIndexes then
+				//    existingIndx1 equals existingIndx2 and nothing to be done here
 				nextIndx := len(toMergeList)
 				toMergeExistingIndexes[coupleKeys[0]], toMergeExistingIndexes[coupleKeys[1]] = nextIndx, nextIndx
 				newList := []string{coupleKeys[0], coupleKeys[1]}
@@ -550,7 +550,7 @@ func mergeSelfLoops(toMergeCouples [][2]string, oldGroupingSrcOrDst map[string][
 func listOfUniqueEndpoints(oldGroupingSrcOrDst map[string][]*GroupedConnLine, srcGrouping bool,
 	toMergeKeys []string) (listOfEndpoints groupedEndpointsElems, setOfNames map[string]struct{}, conn string) {
 	setOfNames = make(map[string]struct{})
-	listOfEndpoints = make(groupedEndpointsElems, 0, 0)
+	listOfEndpoints = make(groupedEndpointsElems, 0)
 	for _, oldKeyToMerge := range toMergeKeys {
 		for _, line := range oldGroupingSrcOrDst[oldKeyToMerge] {
 			endPointInKey := line.getSrcOrDst(!srcGrouping)
@@ -586,10 +586,10 @@ func mergeGivenList(oldGroupingSrcOrDst map[string][]*GroupedConnLine, srcGroupi
 			newGroupedConnLine = append(newGroupedConnLine, &GroupedConnLine{&epsInNewKey, epInLineValue, conn})
 		}
 	}
-	srcsOrDstsInNewKeySlice := make([]string, 0, 0)
+	srcsOrDstsInNewKeySlice := make([]string, 0)
 	for item := range namesInNewKey {
 		srcsOrDstsInNewKeySlice = append(srcsOrDstsInNewKeySlice, item)
 	}
-	newKey = strings.Join(srcsOrDstsInNewKeySlice, ",") + conn
+	newKey = strings.Join(srcsOrDstsInNewKeySlice, commaSepartor) + conn
 	return
 }
