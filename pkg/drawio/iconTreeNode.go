@@ -177,8 +177,8 @@ func (tn *VsiTreeNode) IsVSI() bool { return true }
 // ///////////////////////////////////////////
 type GroupPointTreeNode struct {
 	abstractIconTreeNode
-	groupies  []TreeNodeInterface
-	colleague IconTreeNodeInterface
+	groupies     []TreeNodeInterface
+	colleague    IconTreeNodeInterface
 	groupiesConn []LineTreeNodeInterface
 }
 
@@ -195,11 +195,11 @@ func newGroupPointTreeNode(parent SquareTreeNodeInterface,
 	groupPoint := &GroupPointTreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, ""), groupies: groupies}
 	parent.addIconTreeNode(groupPoint)
 	for _, groupe := range groupies {
-		if isSrc {
-			groupPoint.groupiesConn = append(groupPoint.groupiesConn, NewConnectivityLineTreeNode(parent, groupPoint, groupe, directed, connName))
-		} else {
-			groupPoint.groupiesConn = append(groupPoint.groupiesConn, NewConnectivityLineTreeNode(parent, groupe, groupPoint, directed, connName))
-		}		
+		var s, d TreeNodeInterface = groupPoint, groupe
+		if !isSrc {
+			s, d = groupe, groupPoint
+		}
+		groupPoint.groupiesConn = append(groupPoint.groupiesConn, NewConnectivityLineTreeNode(parent, s, d, directed, connName))
 	}
 	return groupPoint
 }

@@ -161,6 +161,8 @@ func createNetwork() SquareTreeNodeInterface {
 
 func createNetwork2() SquareTreeNodeInterface {
 	network := NewNetworkTreeNode()
+	publicNetwork := NewPublicNetworkTreeNode(network)
+
 	cloud1 := NewCloudTreeNode(network, "IBM Cloud")
 	vpc1 := NewVpcTreeNode(cloud1, "vpc1")
 	zone1 := NewZoneTreeNode(vpc1, "zone1")
@@ -213,37 +215,25 @@ func createNetwork2() SquareTreeNodeInterface {
 	fipGroups := [][]TreeNodeInterface{
 		groupedNis1,
 		groupedNis3,
-		// groupedNis23,
-		// groupedNis32,
 		groupedNis33,
 	}
+
 	for _, g := range fipGroups {
 		for _, ni := range g {
 			ni.(*NITreeNode).SetFIP("fip")
 		}
 	}
 	gw11 := NewGatewayTreeNode(zone1, "gw11")
+	i2 := NewInternetTreeNode(publicNetwork, "Internet2")
+	//i4 := NewUserTreeNode(publicNetwork, "User4")
 
 	gc1 := NewGroupedConnection(network, subnet3, subnet32, groupedNis3, groupedNis32, true, "gconn1")
-	gc2 := NewGroupedConnection(network, subnet33, subnet32, groupedNis33, groupedNis32, false, "gconn2")
+	gc2 := NewGroupedConnection(network, subnet33, nil, groupedNis33, []TreeNodeInterface{i2}, false, "gconn2")
 	gc3 := NewGroupedConnection(network, subnet23, subnet1, groupedNis23, groupedNis1, true, "gconn3")
-	gc1.setFipRouter(false)
-	gc2.setFipRouter(false)
-//	gc3.setFipRouter(true)
-	gc3.setGwRouter(gw11, true)
+	gc1.SetFipRouter(false)
+	gc2.SetFipRouter(false)
+	gc3.SetGwRouter(gw11, true)
 
-	// allSubnets := []SquareTreeNodeInterface{
-	// 	subnet1, subnet2, subnet3,
-	// 	subnet21, subnet22, subnet23,
-	// 	subnet31, subnet32, subnet33,
-	// }
-	// for _, s1 := range allSubnets {
-	// 	for _, s2 := range allSubnets {
-	// 		if s2 != s1 {
-	// 			NewConnectivityLineTreeNode(network, s1, s2, false, "conn5")
-	// 		}
-	// 	}
-	// }
 	return network
 }
 
