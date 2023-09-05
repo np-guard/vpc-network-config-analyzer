@@ -504,18 +504,23 @@ func mergeSelfLoops(toMergeCouples [][2]string, oldGroupingSrcOrDst map[string][
 	for _, coupleKeys := range toMergeCouples {
 		existingIndx1, ok1 := toMergeExistingIndexes[coupleKeys[0]]
 		existingIndx2, ok2 := toMergeExistingIndexes[coupleKeys[1]]
-		if ok1 && !ok2 {
-			toMergeExistingIndexes[coupleKeys[1]] = existingIndx1
-			toMergeList[existingIndx1] = append(toMergeList[existingIndx1], coupleKeys[1])
-		} else if ok2 && !ok1 {
-			toMergeExistingIndexes[coupleKeys[0]] = existingIndx2
-			toMergeList[existingIndx2] = append(toMergeList[existingIndx2], coupleKeys[0])
-		} else if !ok1 && !ok2 {
-			nextIndx := len(toMergeList)
-			toMergeExistingIndexes[coupleKeys[0]], toMergeExistingIndexes[coupleKeys[1]] = nextIndx, nextIndx
-			newList := []string{coupleKeys[0], coupleKeys[1]}
-			toMergeList = append(toMergeList, newList)
-		} // if both []*GroupedConnLine already exist in toMergeExistingIndexes then existingIndx1 equals existingIndx2 and nothing to be done here
+		switch ok1 {
+		case true:
+			if !ok2 {
+				toMergeExistingIndexes[coupleKeys[1]] = existingIndx1
+				toMergeList[existingIndx1] = append(toMergeList[existingIndx1], coupleKeys[1])
+			}
+		case false:
+			if ok2 {
+				toMergeExistingIndexes[coupleKeys[0]] = existingIndx2
+				toMergeList[existingIndx2] = append(toMergeList[existingIndx2], coupleKeys[0])
+			} else { // if both []*GroupedConnLine already exist in toMergeExistingIndexes then existingIndx1 equals existingIndx2 and nothing to be done here
+				nextIndx := len(toMergeList)
+				toMergeExistingIndexes[coupleKeys[0]], toMergeExistingIndexes[coupleKeys[1]] = nextIndx, nextIndx
+				newList := []string{coupleKeys[0], coupleKeys[1]}
+				toMergeList = append(toMergeList, newList)
+			}
+		}
 	}
 	// 2. Performs the actual merge
 	//    Build New map[string][]*GroupedConnLine :
