@@ -1,7 +1,6 @@
 package vpcmodel
 
 import (
-	"fmt"
 	"sort"
 	"strings"
 
@@ -239,8 +238,8 @@ func (g *GroupConnLines) groupLinesByKey(srcGrouping, groupVsi bool) (res []*Gro
 		}
 		groupingSrcOrDst[key] = append(groupingSrcOrDst[key], line)
 	}
-	extendGroupingSelfLoops(groupingSrcOrDst, srcGrouping)
-	return res, groupingSrcOrDst
+	newGroupingSrcOrDst := extendGroupingSelfLoops(groupingSrcOrDst, srcGrouping)
+	return res, newGroupingSrcOrDst
 }
 
 // assuming the  g.groupedLines was already initialized by previous step groupExternalAddresses()
@@ -341,15 +340,25 @@ func (g *groupedExternalNodes) String() string {
 // add explanation
 
 // extends grouping by considering self loops https://github.com/np-guard/vpc-network-config-analyzer/issues/98
-func extendGroupingSelfLoops(groupingSrcOrDst map[string][]*GroupedConnLine, srcGrouping bool) {
-	groupsToBeMerged(groupingSrcOrDst, srcGrouping)
-	// todo: actual merge. Careful: do not merge groups if key comes from different subnets
+func extendGroupingSelfLoops(groupingSrcOrDst map[string][]*GroupedConnLine, srcGrouping bool) map[string][]*GroupedConnLine {
+	toMergeCouples := groupsToBeMerged(groupingSrcOrDst, srcGrouping)
+	return mergeSelfLoops(toMergeCouples, groupingSrcOrDst, srcGrouping)
 }
-func groupsToBeMerged(groupingSrcOrDst map[string][]*GroupedConnLine, srcGrouping bool) {
-	fmt.Println("in extendGroupingSelfLoops, groupingSrcOrDst, srcGrouping is", srcGrouping)
+
+func groupsToBeMerged(groupingSrcOrDst map[string][]*GroupedConnLine, srcGrouping bool) (toMergeCouples [][2]string) {
+	toMergeCouples = make([][2]string, 0)
 	// the to be grouped src/dst in set representation, will be needed to compute the deltas
 	setsToGroup := createGroupingSets(groupingSrcOrDst, srcGrouping)
-	for outerKey, outerLines := range groupingSrcOrDst {
+	// in order to compare each couple only once, compare only couples in one half of the matrix.
+	// To that end we must define an order and travers it - sorted sortedKeys
+	sortedKeys := make([]string, 0, len(groupingSrcOrDst))
+
+	for k := range groupingSrcOrDst {
+		sortedKeys = append(sortedKeys, k)
+	}
+	sort.Strings(sortedKeys)
+	for _, outerKey := range sortedKeys {
+		outerLines := groupingSrcOrDst[outerKey]
 		// 1. relevant only if both source and destination refers to vsis/subnets
 		//    src/dst of lines grouped together are either all external or all internal. So it suffice to check for the first line in a group
 		if outerLines[0].isSrcOrDstExternalNodes() {
@@ -359,39 +368,34 @@ func groupsToBeMerged(groupingSrcOrDst map[string][]*GroupedConnLine, srcGroupin
 		// 	  going over all couples of items: merging them if they differ only in self loop element
 		//    need to go over all couples of lines grouping no ordering; need only one half of the matrix
 		halfMatrix := true
-		for innerKey, innerLines := range groupingSrcOrDst {
+		for _, innerKey := range sortedKeys {
+			innerLines := groupingSrcOrDst[innerKey]
 			// 2.1 not the same line
 			if innerKey == outerKey {
 				halfMatrix = false
 				continue
 			}
 			if !halfMatrix { // delta is symmetric, no need to calculate twice
-				//fmt.Println("skipping since not lower half matrix")
 				continue
 			}
 			// 2.2 again, both src and dst of grouped lines must refer to subnets/vsis
 			if innerLines[0].isSrcOrDstExternalNodes() {
-				//fmt.Println("skipping since external nodes")
 				continue
 			}
 			// 2.3 both lines must be with the same connection
 			if outerLines[0].Conn != innerLines[0].Conn { // note that all connections are identical in each of the outerLines and innerLines
 				continue
 			}
-			fmt.Println("outerKey is", outerKey)
-			for _, line := range outerLines {
-				fmt.Println("\touterline is", line)
-			}
-			fmt.Println("\t\tinnerKey is", innerKey)
-			for _, line := range innerLines {
-				fmt.Println("\t\t\tinnerLine is", line)
-			}
 			// 2.4 delta between outerKeyEndPointElements to innerKeyEndPointElements must be 0
 			mergeGroups := deltaBetweenGroupedConnLines(srcGrouping, outerLines, innerLines, setsToGroup[outerKey], setsToGroup[innerKey])
-			fmt.Printf("\t\tmergeGroups is %v\n", mergeGroups)
 			// 2.5 delta between the outerLines is 0 - merge outerLines
+			if mergeGroups {
+				var toMerge = [2]string{outerKey, innerKey}
+				toMergeCouples = append(toMergeCouples, toMerge)
+			}
 		}
 	}
+	return
 }
 
 // creates an aux database in which all the grouped endpoints are stored in a set
@@ -451,4 +455,94 @@ func (g *GroupedConnLine) isSrcOrDstExternalNodes() bool {
 		return true
 	}
 	return false
+}
+
+func mergeSelfLoops(toMergeCouples [][2]string, oldGroupingSrcOrDst map[string][]*GroupedConnLine,
+	srcGrouping bool) map[string][]*GroupedConnLine {
+	// 1. Create dedicated data structure: a slice of slices of string toMergeList s.t. each slice contains a list of keys to be merged
+	//    and a map toMergeExistingIndexes between key to its index in the slice
+	toMergeList := make([][]string, 0, 0)
+	toMergeExistingIndexes := make(map[string]int)
+	for _, coupleKeys := range toMergeCouples {
+		existingIndx1, ok1 := toMergeExistingIndexes[coupleKeys[0]]
+		existingIndx2, ok2 := toMergeExistingIndexes[coupleKeys[1]]
+		if ok1 && !ok2 {
+			toMergeExistingIndexes[coupleKeys[1]] = existingIndx1
+			toMergeList[existingIndx1] = append(toMergeList[existingIndx1], coupleKeys[1])
+		} else if ok2 && !ok1 {
+			toMergeExistingIndexes[coupleKeys[0]] = existingIndx2
+			toMergeList[existingIndx2] = append(toMergeList[existingIndx2], coupleKeys[0])
+		} else if !ok1 && !ok2 {
+			nextIndx := len(toMergeList)
+			toMergeExistingIndexes[coupleKeys[0]], toMergeExistingIndexes[coupleKeys[1]] = nextIndx, nextIndx
+			newList := []string{coupleKeys[0], coupleKeys[1]}
+			toMergeList = append(toMergeList, newList)
+		} // if both []*GroupedConnLine already exist in toMergeExistingIndexes then existingIndx1 equals existingIndx2 and nothing to be done here
+	}
+	// 2. Performs the actual merge
+	//    Build New map[string][]*GroupedConnLine :
+	mergedGroupedConnLine := make(map[string][]*GroupedConnLine)
+	//    2.1 go over the new data structure, merge groups to be merged and add to New
+	//    2.2 go over old map[string][]*GroupedConnLine and for each element whose key not in toMergeKeys then just add it as is
+	for _, toBeMergedKeys := range toMergeList {
+		newKey, newGroupedConnLines := mergeGivenList(oldGroupingSrcOrDst, srcGrouping, toBeMergedKeys)
+		mergedGroupedConnLine[newKey] = newGroupedConnLines
+	}
+	for oldKey, oldLines := range oldGroupingSrcOrDst {
+		// not merged with other groups, add as is
+		if _, ok := toMergeExistingIndexes[oldKey]; !ok {
+			mergedGroupedConnLine[oldKey] = oldLines
+		}
+	}
+	return mergedGroupedConnLine
+}
+
+// given a list of keys to be merged from of oldGroupingSrcOrDst, computes unique list of endpoints
+// of either sources or destination as by srcGrouping
+// returns the unique list of endpoints, their names and the connection
+func listOfUniqueEndpoints(oldGroupingSrcOrDst map[string][]*GroupedConnLine, srcGrouping bool,
+	toMergeKeys []string) (listOfEndpoints groupedEndpointsElems, setOfNames map[string]struct{}, conn string) {
+	setOfNames = make(map[string]struct{})
+	listOfEndpoints = make(groupedEndpointsElems, 0, 0)
+	for _, oldKeyToMerge := range toMergeKeys {
+		for _, line := range oldGroupingSrcOrDst[oldKeyToMerge] {
+			endPointInKey := line.getSrcOrDst(!srcGrouping)
+			if conn == "" {
+				conn = line.Conn // connection is the same for all lines to be merged
+			}
+			if _, isSliceEndpoints := endPointInKey.(*groupedEndpointsElems); isSliceEndpoints {
+				for _, endpoint := range *endPointInKey.(*groupedEndpointsElems) {
+					if _, ok := setOfNames[endpoint.Name()]; !ok { // was endpoint added already?
+						listOfEndpoints = append(listOfEndpoints, endpoint)
+						setOfNames[endpoint.Name()] = struct{}{}
+					}
+				}
+			} else { // endpoint is Node or NodeSet
+				if _, ok := setOfNames[endPointInKey.Name()]; !ok { // was endpoint added already?
+					listOfEndpoints = append(listOfEndpoints, endPointInKey)
+					setOfNames[endPointInKey.Name()] = struct{}{}
+				}
+			}
+		}
+	}
+	return
+}
+
+func mergeGivenList(oldGroupingSrcOrDst map[string][]*GroupedConnLine, srcGrouping bool,
+	toMergeKeys []string) (newKey string, newGroupedConnLine []*GroupedConnLine) {
+	epsInNewKey, namesInNewKey, _ := listOfUniqueEndpoints(oldGroupingSrcOrDst, srcGrouping, toMergeKeys)
+	epsInNewLines, _, conn := listOfUniqueEndpoints(oldGroupingSrcOrDst, !srcGrouping, toMergeKeys)
+	for _, epInLineValue := range epsInNewLines {
+		if srcGrouping {
+			newGroupedConnLine = append(newGroupedConnLine, &GroupedConnLine{epInLineValue, &epsInNewKey, conn})
+		} else {
+			newGroupedConnLine = append(newGroupedConnLine, &GroupedConnLine{&epsInNewKey, epInLineValue, conn})
+		}
+	}
+	srcsOrDstsInNewKeySlice := make([]string, 0, 0)
+	for item := range namesInNewKey {
+		srcsOrDstsInNewKeySlice = append(srcsOrDstsInNewKeySlice, item)
+	}
+	newKey = strings.Join(srcsOrDstsInNewKeySlice, ",") + conn
+	return
 }
