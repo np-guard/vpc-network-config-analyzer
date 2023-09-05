@@ -417,20 +417,16 @@ func (g *GroupConnLines) vsisNotSameSameSubnet(ep1, ep2 EndpointElem) bool {
 func isEpVsi(ep EndpointElem) (bool, Node) {
 	if _, ok := ep.(*groupedEndpointsElems); ok {
 		ep1GroupedEps := ep.(*groupedEndpointsElems)
-		for _, ep := range *ep1GroupedEps {
-			if _, ok := ep.(Node); ok {
-				if ep.(Node).IsInternal() {
-					return true, ep.(Node)
-				}
-				return false, nil
-			} else { // is NodeSet
-				return false, nil
+		if node, ok := (*ep1GroupedEps)[0].(Node); ok {
+			if node.IsInternal() {
+				return true, node
 			}
 		}
+		return false, nil
 	}
-	if _, ok := ep.(Node); ok {
-		if ep.(Node).IsInternal() {
-			return true, ep.(Node)
+	if node, ok := ep.(Node); ok {
+		if node.IsInternal() {
+			return true, node
 		}
 	}
 	return false, nil
