@@ -338,7 +338,8 @@ func (g *groupedExternalNodes) String() string {
 }
 
 // extends grouping by considering self loops https://github.com/np-guard/vpc-network-config-analyzer/issues/98
-func (g *GroupConnLines) extendGroupingSelfLoops(groupingSrcOrDst map[string][]*GroupedConnLine, srcGrouping bool) map[string][]*GroupedConnLine {
+func (g *GroupConnLines) extendGroupingSelfLoops(groupingSrcOrDst map[string][]*GroupedConnLine,
+	srcGrouping bool) map[string][]*GroupedConnLine {
 	toMergeCouples := g.groupsToBeMerged(groupingSrcOrDst, srcGrouping)
 	return mergeSelfLoops(toMergeCouples, groupingSrcOrDst, srcGrouping)
 }
@@ -438,7 +439,7 @@ func isEpVsi(ep EndpointElem) (bool, Node) {
 
 // creates an aux database in which all the grouped endpoints are stored in a set
 func createGroupingSets(groupingSrcOrDst map[string][]*GroupedConnLine, srcGrouping bool) map[string]map[string]struct{} {
-	keyToGroupedSets := make(map[string](map[string]struct{}))
+	keyToGroupedSets := make(map[string]map[string]struct{})
 	for key, groupedConnLine := range groupingSrcOrDst {
 		mySet := make(map[string]struct{})
 		for _, line := range groupedConnLine {
@@ -451,7 +452,8 @@ func createGroupingSets(groupingSrcOrDst map[string][]*GroupedConnLine, srcGroup
 }
 
 // computes delta between group connection lines https://github.com/np-guard/vpc-network-config-analyzer/issues/98
-func deltaBetweenGroupedConnLines(srcGrouping bool, groupedConnLine1, groupedConnLine2 []*GroupedConnLine, setToGroup1, setToGroup2 map[string]struct{}) bool {
+func deltaBetweenGroupedConnLines(srcGrouping bool, groupedConnLine1, groupedConnLine2 []*GroupedConnLine,
+	setToGroup1, setToGroup2 map[string]struct{}) bool {
 	// at least one of the keys must be a single vsi/subnet for the self loop check to be meaningful
 	if elemInKeys(srcGrouping, *groupedConnLine1[0]) > 1 && elemInKeys(srcGrouping, *groupedConnLine2[0]) > 1 {
 		return false
@@ -477,7 +479,8 @@ func setMinusSet(srcGrouping bool, groupedConnLine GroupedConnLine, set1, set2 m
 			minusResult[k] = struct{}{}
 		}
 	}
-	// if set2's groupedConnLine key has a single item, then this single item is not relevant to the delta since any EndpointElement is connected to itself
+	// if set2's groupedConnLine key has a single item, then this single item is not relevant to the delta
+	// since any EndpointElement is connected to itself
 	if elemInKeys(srcGrouping, groupedConnLine) == 1 {
 		keyOfGrouped2 := groupedConnLine.getSrcOrDst(!srcGrouping) // all non-grouping items are the same in a groupedConnLine
 		delete(minusResult, keyOfGrouped2.Name())                  // if keyOfGrouped2.Name() does not exist in minusResult then this is no-op
@@ -514,7 +517,8 @@ func mergeSelfLoops(toMergeCouples [][2]string, oldGroupingSrcOrDst map[string][
 			if ok2 {
 				toMergeExistingIndexes[coupleKeys[0]] = existingIndx2
 				toMergeList[existingIndx2] = append(toMergeList[existingIndx2], coupleKeys[0])
-			} else { // if both []*GroupedConnLine already exist in toMergeExistingIndexes then existingIndx1 equals existingIndx2 and nothing to be done here
+			} else {
+				// if both []*GroupedConnLine already exist in toMergeExistingIndexes then existingIndx1 equals existingIndx2 and nothing to be done here
 				nextIndx := len(toMergeList)
 				toMergeExistingIndexes[coupleKeys[0]], toMergeExistingIndexes[coupleKeys[1]] = nextIndx, nextIndx
 				newList := []string{coupleKeys[0], coupleKeys[1]}
