@@ -238,7 +238,7 @@ func (g *GroupConnLines) groupLinesByKey(srcGrouping, groupVsi bool) (res []*Gro
 		}
 		groupingSrcOrDst[key] = append(groupingSrcOrDst[key], line)
 	}
-	newGroupingSrcOrDst := extendGroupingSelfLoops(groupingSrcOrDst, srcGrouping)
+	newGroupingSrcOrDst := g.extendGroupingSelfLoops(groupingSrcOrDst, srcGrouping)
 	return res, newGroupingSrcOrDst
 }
 
@@ -337,15 +337,13 @@ func (g *groupedExternalNodes) String() string {
 	return strings.Join(unionBlock.ListToPrint(), commaSepartor)
 }
 
-// add explanation
-
 // extends grouping by considering self loops https://github.com/np-guard/vpc-network-config-analyzer/issues/98
-func extendGroupingSelfLoops(groupingSrcOrDst map[string][]*GroupedConnLine, srcGrouping bool) map[string][]*GroupedConnLine {
-	toMergeCouples := groupsToBeMerged(groupingSrcOrDst, srcGrouping)
+func (g *GroupConnLines) extendGroupingSelfLoops(groupingSrcOrDst map[string][]*GroupedConnLine, srcGrouping bool) map[string][]*GroupedConnLine {
+	toMergeCouples := g.groupsToBeMerged(groupingSrcOrDst, srcGrouping)
 	return mergeSelfLoops(toMergeCouples, groupingSrcOrDst, srcGrouping)
 }
 
-func groupsToBeMerged(groupingSrcOrDst map[string][]*GroupedConnLine, srcGrouping bool) (toMergeCouples [][2]string) {
+func (g *GroupConnLines) groupsToBeMerged(groupingSrcOrDst map[string][]*GroupedConnLine, srcGrouping bool) (toMergeCouples [][2]string) {
 	toMergeCouples = make([][2]string, 0)
 	// the to be grouped src/dst in set representation, will be needed to compute the deltas
 	setsToGroup := createGroupingSets(groupingSrcOrDst, srcGrouping)
@@ -386,6 +384,10 @@ func groupsToBeMerged(groupingSrcOrDst map[string][]*GroupedConnLine, srcGroupin
 			if outerLines[0].Conn != innerLines[0].Conn { // note that all connections are identical in each of the outerLines and innerLines
 				continue
 			}
+			// 2.4 if grouping vsis then src of compared groups and destinations of compared groups must be same subnet
+			if g.vsisNotSameSameSubnet(outerLines[0].Src, innerLines[0].Src) || g.vsisNotSameSameSubnet(outerLines[0].Dst, innerLines[0].Dst) {
+				continue
+			}
 			// 2.4 delta between outerKeyEndPointElements to innerKeyEndPointElements must be 0
 			mergeGroups := deltaBetweenGroupedConnLines(srcGrouping, outerLines, innerLines, setsToGroup[outerKey], setsToGroup[innerKey])
 			// 2.5 delta between the outerLines is 0 - merge outerLines
@@ -396,6 +398,42 @@ func groupsToBeMerged(groupingSrcOrDst map[string][]*GroupedConnLine, srcGroupin
 		}
 	}
 	return
+}
+
+// if the two endpoints are vsis and do not belong to the same subnet returns true, otherwise false
+// an endpoint can also be a slice of vsis, in which case the invariant is that they belong to the same subnet
+func (g *GroupConnLines) vsisNotSameSameSubnet(ep1, ep2 EndpointElem) bool {
+	isVsi1, node1 := isEpVsi(ep1)
+	isVsi2, node2 := isEpVsi(ep2)
+	if !isVsi1 || !isVsi2 {
+		return false
+	}
+	return g.c.getSubnetOfNode(node1).Name() != g.c.getSubnetOfNode(node2).Name()
+}
+
+// returns true, vsi if the endpoint element represents a vsi or is a slice of elements the first of which represents vsi
+// otherwise returns false, nil
+func isEpVsi(ep EndpointElem) (bool, Node) {
+	if _, ok := ep.(*groupedEndpointsElems); ok {
+		ep1GroupedEps := ep.(*groupedEndpointsElems)
+		for _, ep := range *ep1GroupedEps {
+			if _, ok := ep.(Node); ok {
+				if ep.(Node).IsInternal() {
+					return true, ep.(Node)
+				} else {
+					return false, nil
+				}
+			} else { // is NodeSet
+				return false, nil
+			}
+		}
+	}
+	if _, ok := ep.(Node); ok {
+		if ep.(Node).IsInternal() {
+			return true, ep.(Node)
+		}
+	}
+	return false, nil
 }
 
 // creates an aux database in which all the grouped endpoints are stored in a set
