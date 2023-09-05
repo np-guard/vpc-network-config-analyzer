@@ -477,7 +477,7 @@ func setMinusSet(srcGrouping bool, groupedConnLine GroupedConnLine, set1, set2 m
 			minusResult[k] = struct{}{}
 		}
 	}
-	// if set2's source groupedConnLine key has a single item, then this single item is not relevant to the delta since any EndpointElement is connected to itself
+	// if set2's groupedConnLine key has a single item, then this single item is not relevant to the delta since any EndpointElement is connected to itself
 	if elemInKeys(srcGrouping, groupedConnLine) == 1 {
 		keyOfGrouped2 := groupedConnLine.getSrcOrDst(!srcGrouping) // all non-grouping items are the same in a groupedConnLine
 		delete(minusResult, keyOfGrouped2.Name())                  // if keyOfGrouped2.Name() does not exist in minusResult then this is no-op
