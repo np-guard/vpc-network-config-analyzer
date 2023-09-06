@@ -197,19 +197,12 @@ func newGroupPointTreeNode(parent SquareTreeNodeInterface,
 	parent.addIconTreeNode(groupPoint)
 	if len(groupies) > 0 {
 		for _, groupe := range groupies {
-			var s, d TreeNodeInterface = groupPoint, groupe
+			var s, d IconTreeNodeInterface = groupPoint, groupe
 			if !isSrc {
 				s, d = groupe, groupPoint
 			}
 			groupPoint.groupiesConn = append(groupPoint.groupiesConn, NewConnectivityLineTreeNode(parent, s, d, directed, connName))
 		}
-	} else {
-		var s, d TreeNodeInterface = groupPoint, parent
-		if !isSrc {
-			s, d = parent, groupPoint
-		}
-		groupPoint.conn = NewConnectivityLineTreeNode(parent, s, d, directed, connName)
-
 	}
 	return groupPoint
 }

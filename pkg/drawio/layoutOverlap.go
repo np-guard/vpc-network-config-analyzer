@@ -90,18 +90,14 @@ func (lyO *layoutOverlap) handleLinesOverLines() {
 			}
 			line1 := nodes[i1].(LineTreeNodeInterface)
 			line2 := nodes[i2].(LineTreeNodeInterface)
-			if !line1.Src().IsIcon() || !line2.Dst().IsIcon() || !line1.Dst().IsIcon() || !line2.Src().IsIcon() {
-				//todo
-				continue
-			}
-			if line1.Src() != line2.Dst() || line1.Dst() != line2.Src() {
+						if line1.Src() != line2.Dst() || line1.Dst() != line2.Src() {
 				continue
 			}
 			if len(line1.Points()) != 0 || len(line2.Points()) != 0 {
 				continue
 			}
-			srcPoint := iconCenterPoint(line1.Src().(IconTreeNodeInterface))
-			dstPoint := iconCenterPoint(line1.Dst().(IconTreeNodeInterface))
+			srcPoint := iconCenterPoint(line1.Src())
+			dstPoint := iconCenterPoint(line1.Dst())
 			middlePoint := point{(srcPoint.X + dstPoint.X) / 2, (srcPoint.Y + dstPoint.Y) / 2}
 			BP := lyO.getBypassPoint(srcPoint, dstPoint, middlePoint, line1)
 			if BP != noPoint {
@@ -124,11 +120,7 @@ func (lyO *layoutOverlap) handleLinesOverIcons() {
 			continue
 		}
 		line := tn.(LineTreeNodeInterface)
-		if !line.Src().IsIcon() || !line.Dst().IsIcon() {
-			//todo - handle
-			continue
-		}
-		newLinePoint := []point{}
+				newLinePoint := []point{}
 		oldLinePoints := line.Points()
 		absPoints := getLineAbsolutePoints(line)
 		for pointIndex := range absPoints[0 : len(absPoints)-1] {
@@ -231,11 +223,11 @@ func (lyO *layoutOverlap) getOverlappedIcon(p1, p2 point, line LineTreeNodeInter
 
 // some methods to convert absolute point to relative, and vis versa:
 func getLineAbsolutePoints(line LineTreeNodeInterface) []point {
-	absPoints := []point{iconCenterPoint(line.Src().(IconTreeNodeInterface))}
+	absPoints := []point{iconCenterPoint(line.Src())}
 	for _, p := range line.Points() {
 		absPoints = append(absPoints, getAbsolutePoint(line, p))
 	}
-	absPoints = append(absPoints, iconCenterPoint(line.Dst().(IconTreeNodeInterface)))
+	absPoints = append(absPoints, iconCenterPoint(line.Dst()))
 	return absPoints
 }
 
