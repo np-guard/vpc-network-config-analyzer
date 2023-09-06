@@ -100,22 +100,31 @@ type GroupingConnection struct {
 	conn                         LineTreeNodeInterface
 }
 
+
+type groupT struct {
+	icon IconTreeNodeInterface
+	subnet SquareTreeNodeInterface
+	icons []IconTreeNodeInterface
+}
+
+
+
+
 func NewGroupedConnection(
 	network SquareTreeNodeInterface,
-	srcParent, dstParent SquareTreeNodeInterface,
-	srcGroupies, dstGroupies []TreeNodeInterface,
+	src, dst *groupT,
 	directed bool,
 	name string) *GroupingConnection {
 	gc := GroupingConnection{}
-	if srcParent != nil {
-		gc.srcGroupPoint = newGroupPointTreeNode(srcParent, srcGroupies, directed, false, name)
+	if src.subnet != nil {
+		gc.srcGroupPoint = newGroupPointTreeNode(src.subnet, src.icons, directed, false, name)
 	} else {
-		gc.srcGroupPoint = srcGroupies[0].(IconTreeNodeInterface)
+		gc.srcGroupPoint = src.icon
 	}
-	if dstParent != nil {
-		gc.dstGroupPoint = newGroupPointTreeNode(dstParent, dstGroupies, directed, true, name)
+	if dst.subnet != nil {
+		gc.dstGroupPoint = newGroupPointTreeNode(dst.subnet, dst.icons, directed, true, name)
 	} else {
-		gc.dstGroupPoint = dstGroupies[0].(IconTreeNodeInterface)
+		gc.dstGroupPoint = dst.icon
 	}
 	if gc.srcGroupPoint.IsGroupingPoint() {
 		gc.srcGroupPoint.(*GroupPointTreeNode).setColleague(gc.dstGroupPoint)
