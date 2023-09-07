@@ -94,15 +94,12 @@ func (vsi *Vsi) DrawioTreeNode(network drawio.TreeNodeInterface) drawio.TreeNode
 func (pgw *PublicGateway) DrawioTreeNode(network drawio.TreeNodeInterface) drawio.TreeNodeInterface {
 	if _, ok := allTreeNodes[pgw]; !ok {
 		allTreeNodes[pgw] = drawio.NewGatewayTreeNode(zoneDrawioTreeNode(network, pgw.ZoneName()), pgw.Name())
-		for _, ni := range pgw.Src() {
-			nisToPG[allTreeNodes[ni]] = allTreeNodes[pgw]
-		}
 	}
 	return allTreeNodes[pgw]
 }
 func (fip *FloatingIP) DrawioTreeNode(network drawio.TreeNodeInterface) drawio.TreeNodeInterface {
 	// todo - what if r.Src() is not at size of one?
-	nitn := allTreeNodes[fip.Src()[0]].(*drawio.NITreeNode)
+	nitn := fip.Src()[0].DrawioTreeNode(network).(*drawio.NITreeNode)
 	nitn.SetFIP(fip.Name())
-	return nil
+	return nitn
 }

@@ -49,7 +49,7 @@ type DrawioOutputFormatter struct {
 	allIconsTreeNodes        map[VPCResourceIntf]drawio.IconTreeNodeInterface
 	isExternalIcon           map[drawio.IconTreeNodeInterface]bool
 	connectedNodes           map[VPCResourceIntf]bool
-	routers                  map[drawio.IconTreeNodeInterface]drawio.IconTreeNodeInterface
+	routers                  map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface
 	sgMembers                map[string]*drawio.SGTreeNode
 	isEdgeDirected           map[Edge]bool
 }
@@ -63,7 +63,7 @@ func (d *DrawioOutputFormatter) init(cConfig *CloudConfig, conn *VPCConnectivity
 	d.allIconsTreeNodes = map[VPCResourceIntf]drawio.IconTreeNodeInterface{}
 	d.isExternalIcon = map[drawio.IconTreeNodeInterface]bool{}
 	d.connectedNodes = map[VPCResourceIntf]bool{}
-	d.routers = map[drawio.IconTreeNodeInterface]drawio.IconTreeNodeInterface{}
+	d.routers = map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface{}
 	d.sgMembers = map[string]*drawio.SGTreeNode{}
 	d.isEdgeDirected = map[Edge]bool{}
 }
@@ -174,24 +174,17 @@ func (d *DrawioOutputFormatter) createVSIs() {
 
 func (d *DrawioOutputFormatter) createRouters() {
 	for _, r := range d.cConfig.RoutingResources {
-		dm := r.DetailsMap()[0]
-		if dm[DetailsAttributeKind] == "PublicGateway" {
-			pgwTn := drawio.NewGatewayTreeNode(d.getZoneTreeNode(r), dm[DetailsAttributeName])
-			d.allIconsTreeNodes[r] = pgwTn
-			for _, ni := range r.Src() {
-				d.routers[d.allIconsTreeNodes[ni]] = pgwTn
-			}
-		}
-		if dm[DetailsAttributeKind] == "FloatingIP" {
-			r.DrawioTreeNode(d.network)
+		rTn := r.DrawioTreeNode(d.network)
+		for _, ni := range r.Src() {
+			d.routers[ni.DrawioTreeNode(d.network)] = rTn.(drawio.IconTreeNodeInterface)
 		}
 	}
 }
 
 func (d *DrawioOutputFormatter) createEdges() {
 	for edge, directed := range d.isEdgeDirected {
-		srcTn := d.allIconsTreeNodes[edge.src]
-		dstTn := d.allIconsTreeNodes[edge.dst]
+		srcTn := edge.src.DrawioTreeNode(d.network).(drawio.IconTreeNodeInterface)
+		dstTn := edge.dst.DrawioTreeNode(d.network).(drawio.IconTreeNodeInterface)
 		cn := drawio.NewConnectivityLineTreeNode(d.network, srcTn, dstTn, directed, edge.label)
 		if d.routers[srcTn] != nil && d.isExternalIcon[dstTn] {
 			cn.SetRouter(d.routers[srcTn], false)

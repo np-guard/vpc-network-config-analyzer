@@ -118,7 +118,8 @@ var tests = []*vpcGeneralTest{
 	{
 		name:     "acl_testing3",
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:   vpcmodel.ARCHDRAWIO,
+		// format:   vpcmodel.ARCHDRAWIO,
+		format:   vpcmodel.DRAWIO,
 	},
 }
 
