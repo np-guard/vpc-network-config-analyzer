@@ -2,6 +2,7 @@ package vpcmodel
 
 import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
 )
 
 // VPCResourceIntf captures common properties for VPC resources
@@ -12,6 +13,7 @@ type VPCResourceIntf interface {
 	Kind() string
 	Details() []string
 	DetailsMap() []map[string]string
+	DrawioTreeNode(network drawio.TreeNodeInterface) drawio.TreeNodeInterface
 }
 
 // VPCResource implements VPCResourceIntf

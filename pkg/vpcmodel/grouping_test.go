@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
 )
 
 type mockNetIntf struct {
@@ -73,6 +74,8 @@ func (m *mockSubnet) Kind() string {
 func (m *mockSubnet) ZoneName() string {
 	return ""
 }
+func (m *mockSubnet) DrawioTreeNode(network drawio.TreeNodeInterface) drawio.TreeNodeInterface {return nil}
+func (m *mockNetIntf) DrawioTreeNode(network drawio.TreeNodeInterface) drawio.TreeNodeInterface {return nil}
 
 func newCloudConfigTest1() (*CloudConfig, *VPCConnectivity) {
 	res := &CloudConfig{Nodes: []Node{}}
