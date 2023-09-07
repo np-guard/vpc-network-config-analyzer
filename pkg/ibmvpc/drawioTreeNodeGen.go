@@ -10,12 +10,10 @@ var ibmCloudTn *drawio.CloudTreeNode = nil
 var vpcTn *drawio.VpcTreeNode = nil
 var zoneNameToZonesTreeNodes = map[string]*drawio.ZoneTreeNode{}
 var nisToGs = map[vpcmodel.VPCResourceIntf]*drawio.SGTreeNode{}
-var nisToPG = map[drawio.TreeNodeInterface]drawio.TreeNodeInterface{}
 
 func theOneVpc(network drawio.TreeNodeInterface, vpcName string) *drawio.VpcTreeNode {
 	if ibmCloudTn == nil {
 		ibmCloudTn = drawio.NewCloudTreeNode(network.(*drawio.NetworkTreeNode), "IBM Cloud")
-
 	}
 	if vpcTn == nil {
 		vpcTn = drawio.NewVpcTreeNode(ibmCloudTn, vpcName)

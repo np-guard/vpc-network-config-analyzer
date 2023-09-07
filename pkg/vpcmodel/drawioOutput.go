@@ -51,26 +51,16 @@ type DrawioOutputFormatter struct {
 	network                  *drawio.NetworkTreeNode
 	publicNetwork            *drawio.PublicNetworkTreeNode
 	vpc                      *drawio.VpcTreeNode
-	zoneNameToZonesTreeNodes map[string]*drawio.ZoneTreeNode
-	uidToSubnetsTreeNodes    map[string]*drawio.SubnetTreeNode
-	cidrToSubnetsTreeNodes   map[string]*drawio.SubnetTreeNode
-	allIconsTreeNodes        map[VPCResourceIntf]drawio.IconTreeNodeInterface
 	connectedNodes           map[VPCResourceIntf]bool
 	routers                  map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface
-	sgMembers                map[string]*drawio.SGTreeNode
 	isEdgeDirected           map[Edge]bool
 }
 
 func (d *DrawioOutputFormatter) init(cConfig *CloudConfig, conn *VPCConnectivity) {
 	d.cConfig = cConfig
 	d.conn = conn
-	d.zoneNameToZonesTreeNodes = map[string]*drawio.ZoneTreeNode{}
-	d.uidToSubnetsTreeNodes = map[string]*drawio.SubnetTreeNode{}
-	d.cidrToSubnetsTreeNodes = map[string]*drawio.SubnetTreeNode{}
-	d.allIconsTreeNodes = map[VPCResourceIntf]drawio.IconTreeNodeInterface{}
 	d.connectedNodes = map[VPCResourceIntf]bool{}
 	d.routers = map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface{}
-	d.sgMembers = map[string]*drawio.SGTreeNode{}
 	d.isEdgeDirected = map[Edge]bool{}
 }
 
@@ -86,6 +76,10 @@ func (d *DrawioOutputFormatter) createDrawioTree() {
 	if d.conn != nil {
 		d.createEdgesMap()
 	}
+	d.network = drawio.NewNetworkTreeNode()
+	d.publicNetwork = drawio.NewPublicNetworkTreeNode(d.network)
+	publicNetwork = d.publicNetwork
+
 	d.createNodeSets()
 	d.createFilters()
 	d.createNodes()
@@ -119,24 +113,16 @@ func (d *DrawioOutputFormatter) createEdgesMap() {
 }
 
 func (d *DrawioOutputFormatter) createNodeSets() {
-	d.network = drawio.NewNetworkTreeNode()
-	// ibmCloud := drawio.NewCloudTreeNode(d.network, "IBM Cloud")
-	d.publicNetwork = drawio.NewPublicNetworkTreeNode(d.network)
-	publicNetwork = d.publicNetwork
-	// todo: support multi vnc
 	for _, ns := range d.cConfig.NodeSets {
 		details := ns.DetailsMap()[0]
 		if details[DetailsAttributeKind] == "VPC" {
 			d.vpc = ns.DrawioTreeNode(d.network).(*drawio.VpcTreeNode)
-			// d.vpc = drawio.NewVpcTreeNode(ibmCloud, details[DetailsAttributeName])
 		}
 	}
 	for _, ns := range d.cConfig.NodeSets {
 		details := ns.DetailsMap()[0]
 		if details[DetailsAttributeKind] == subnetKind {
-			subnet := ns.DrawioTreeNode(d.network).(*drawio.SubnetTreeNode)
-			d.uidToSubnetsTreeNodes[details["uid"]] = subnet
-			d.cidrToSubnetsTreeNodes[details[cidrAttr]] = subnet
+			ns.DrawioTreeNode(d.network)
 		}
 	}
 }
@@ -154,8 +140,7 @@ func (d *DrawioOutputFormatter) createNodes() {
 			n.DrawioTreeNode(d.network)
 		} else if details[DetailsAttributeKind] == externalNetworkNodeKind {
 			if d.connectedNodes[n] {
-				// todo - should we show it anyway?
-				n.DrawioTreeNode(d.publicNetwork)
+				n.DrawioTreeNode(d.network)
 			}
 		}
 	}
@@ -184,11 +169,9 @@ func (d *DrawioOutputFormatter) createEdges() {
 		srcTn := edge.src.DrawioTreeNode(d.network).(drawio.IconTreeNodeInterface)
 		dstTn := edge.dst.DrawioTreeNode(d.network).(drawio.IconTreeNodeInterface)
 		cn := drawio.NewConnectivityLineTreeNode(d.network, srcTn, dstTn, directed, edge.label)
-		// if d.routers[srcTn] != nil && d.isExternalIcon[dstTn] {
 		if d.routers[srcTn] != nil && isExternal(edge.dst) {
 			cn.SetRouter(d.routers[srcTn], false)
 		}
-		// if d.routers[dstTn] != nil && d.isExternalIcon[srcTn] {
 		if d.routers[dstTn] != nil && isExternal(edge.src){
 			cn.SetRouter(d.routers[dstTn], true)
 		}
