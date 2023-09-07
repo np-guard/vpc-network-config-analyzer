@@ -31,7 +31,6 @@ func zoneDrawioTreeNode(network drawio.TreeNodeInterface, zoneName string) *draw
 	if _, ok := zoneNameToZonesTreeNodes[zoneName]; !ok {
 		zoneNameToZonesTreeNodes[zoneName] = drawio.NewZoneTreeNode(theOneVpc(network, "VPC todo"), zoneName)
 	}
-	vpcmodel.SetZ(zoneNameToZonesTreeNodes[zoneName])
 	return zoneNameToZonesTreeNodes[zoneName]
 }
 
