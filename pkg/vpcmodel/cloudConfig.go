@@ -4,12 +4,17 @@ import (
 	"strings"
 )
 
+type DrawioGeneratorInt interface {
+	Init()
+}
+
 type CloudConfig struct {
 	Nodes            []Node
 	NodeSets         []NodeSet
 	FilterResources  []FilterTrafficResource
 	RoutingResources []RoutingResource
 	NameToResource   map[string]VPCResourceIntf
+	DrawioGenerator  DrawioGeneratorInt
 }
 
 // TODO: consider add this mapping to CloudConfig

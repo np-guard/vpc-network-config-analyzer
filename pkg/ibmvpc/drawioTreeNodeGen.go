@@ -5,33 +5,46 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
+type DrawioGenerator struct {
+}
+
+func (gen *DrawioGenerator) Init() {
+
+}
+
 var allTreeNodes = map[vpcmodel.VPCResourceIntf]drawio.TreeNodeInterface{}
-var ibmCloudTn *drawio.CloudTreeNode = nil
-var vpcTn *drawio.VpcTreeNode = nil
-var zoneNameToZonesTreeNodes = map[string]*drawio.ZoneTreeNode{}
+
 var addressToNi = map[string]vpcmodel.VPCResourceIntf{}
 var cidrToSubnet = map[string]vpcmodel.VPCResourceIntf{}
 
-func (sg *SecurityGroup) getNi(address string) vpcmodel.VPCResourceIntf {return addressToNi[address]}
-func (acl *NACL) getSubnet(cidr string) vpcmodel.VPCResourceIntf {return cidrToSubnet[cidr]}
+func (sg *SecurityGroup) getNi(address string) vpcmodel.VPCResourceIntf { return addressToNi[address] }
+func (acl *NACL) getSubnet(cidr string) vpcmodel.VPCResourceIntf        { return cidrToSubnet[cidr] }
 
-func theOneVpc(network drawio.TreeNodeInterface, vpcName string) *drawio.VpcTreeNode {
+var ibmCloudTn *drawio.CloudTreeNode = nil
+var vpcTn *drawio.VpcTreeNode = nil
+
+func getVpc(network drawio.TreeNodeInterface, vpcName string) *drawio.VpcTreeNode {
 	if ibmCloudTn == nil {
 		ibmCloudTn = drawio.NewCloudTreeNode(network.(*drawio.NetworkTreeNode), "IBM Cloud")
 	}
 	if vpcTn == nil {
 		vpcTn = drawio.NewVpcTreeNode(ibmCloudTn, vpcName)
 	}
+	if vpcName != "" {
+		vpcTn.SetName(vpcName)
+	}
 	return vpcTn
 }
 
 func (vpc *VPC) DrawioTreeNode(network drawio.TreeNodeInterface) drawio.TreeNodeInterface {
-	return theOneVpc(network, vpc.Name())
+	return getVpc(network, vpc.Name())
 }
+
+var zoneNameToZonesTreeNodes = map[string]*drawio.ZoneTreeNode{}
 
 func zoneDrawioTreeNode(network drawio.TreeNodeInterface, zoneName string) *drawio.ZoneTreeNode {
 	if _, ok := zoneNameToZonesTreeNodes[zoneName]; !ok {
-		zoneNameToZonesTreeNodes[zoneName] = drawio.NewZoneTreeNode(theOneVpc(network, "VPC todo"), zoneName)
+		zoneNameToZonesTreeNodes[zoneName] = drawio.NewZoneTreeNode(getVpc(network, ""), zoneName)
 	}
 	return zoneNameToZonesTreeNodes[zoneName]
 }
@@ -48,7 +61,7 @@ func (s *Subnet) DrawioTreeNode(network drawio.TreeNodeInterface) drawio.TreeNod
 
 func (sgl *SecurityGroupLayer) DrawioTreeNode(network drawio.TreeNodeInterface) drawio.TreeNodeInterface {
 	if _, ok := allTreeNodes[sgl]; !ok {
-		allTreeNodes[sgl] = drawio.NewSGTreeNode(theOneVpc(network, "VPC todo2"), sgl.Name())
+		allTreeNodes[sgl] = drawio.NewSGTreeNode(getVpc(network, ""), sgl.Name())
 		for _, sg := range sgl.sgList {
 			for niAddress := range sg.members {
 				// todo:

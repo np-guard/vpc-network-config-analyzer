@@ -80,6 +80,7 @@ func (d *DrawioOutputFormatter) createDrawioTree() {
 	d.createNodes()
 	d.createFilters()
 	d.createRouters()
+	
 	d.createEdges()
 }
 
