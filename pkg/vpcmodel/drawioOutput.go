@@ -6,12 +6,22 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
 )
 
-const (
-	commaSeparator = ","
-	cidrAttr       = "cidr"
-	nameAttr       = "name"
-	nwInterface    = "NetworkInterface"
-)
+var publicNetwork *drawio.PublicNetworkTreeNode = nil
+var externalTreeNodes = map[VPCResourceIntf]drawio.TreeNodeInterface{}
+
+func (exn *ExternalNetwork) DrawioTreeNode(network drawio.TreeNodeInterface) drawio.TreeNodeInterface {
+	if _, ok := externalTreeNodes[exn]; !ok {
+		externalTreeNodes[exn] = drawio.NewInternetTreeNode(publicNetwork, exn.CidrStr)
+	}
+	return externalTreeNodes[exn]
+}
+func isExternal(i VPCResourceIntf) bool {
+	_, ok := externalTreeNodes[i]
+	return ok
+}
+
+
+
 
 type Edge struct {
 	src   Node
@@ -31,29 +41,15 @@ type Edge struct {
 // 6. create the routers from cConfig.routers
 // 7. create the edges from the map we created in stage (1). also also set the routers to the edges
 
-var publicNetwork *drawio.PublicNetworkTreeNode = nil
-var externalTreeNodes = map[VPCResourceIntf]drawio.TreeNodeInterface{}
-func (exn *ExternalNetwork) DrawioTreeNode(network drawio.TreeNodeInterface) drawio.TreeNodeInterface {
-	if _, ok := externalTreeNodes[exn]; !ok {
-		externalTreeNodes[exn] = drawio.NewInternetTreeNode(publicNetwork, exn.CidrStr)
-	}
-	return externalTreeNodes[exn]
-}
-func isExternal( i VPCResourceIntf) bool{
-	_, ok := externalTreeNodes[i];
-	return ok
-}
-
 
 type DrawioOutputFormatter struct {
-	cConfig                  *CloudConfig
-	conn                     *VPCConnectivity
-	network                  *drawio.NetworkTreeNode
-	publicNetwork            *drawio.PublicNetworkTreeNode
-	vpc                      *drawio.VpcTreeNode
-	connectedNodes           map[VPCResourceIntf]bool
-	routers                  map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface
-	isEdgeDirected           map[Edge]bool
+	cConfig        *CloudConfig
+	conn           *VPCConnectivity
+	network        *drawio.NetworkTreeNode
+	publicNetwork  *drawio.PublicNetworkTreeNode
+	connectedNodes map[VPCResourceIntf]bool
+	routers        map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface
+	isEdgeDirected map[Edge]bool
 }
 
 func (d *DrawioOutputFormatter) init(cConfig *CloudConfig, conn *VPCConnectivity) {
@@ -83,7 +79,6 @@ func (d *DrawioOutputFormatter) createDrawioTree() {
 	d.createNodeSets()
 	d.createNodes()
 	d.createFilters()
-	d.createVSIs()
 	d.createRouters()
 	d.createEdges()
 }
@@ -114,16 +109,7 @@ func (d *DrawioOutputFormatter) createEdgesMap() {
 
 func (d *DrawioOutputFormatter) createNodeSets() {
 	for _, ns := range d.cConfig.NodeSets {
-		details := ns.DetailsMap()[0]
-		if details[DetailsAttributeKind] == "VPC" {
-			d.vpc = ns.DrawioTreeNode(d.network).(*drawio.VpcTreeNode)
-		}
-	}
-	for _, ns := range d.cConfig.NodeSets {
-		details := ns.DetailsMap()[0]
-		if details[DetailsAttributeKind] == subnetKind {
-			ns.DrawioTreeNode(d.network)
-		}
+		ns.DrawioTreeNode(d.network)
 	}
 }
 
@@ -135,23 +121,7 @@ func (d *DrawioOutputFormatter) createFilters() {
 
 func (d *DrawioOutputFormatter) createNodes() {
 	for _, n := range d.cConfig.Nodes {
-		details := n.DetailsMap()[0]
-		if details[DetailsAttributeKind] == nwInterface {
-			n.DrawioTreeNode(d.network)
-		} else if details[DetailsAttributeKind] == externalNetworkNodeKind {
-			if d.connectedNodes[n] {
-				n.DrawioTreeNode(d.network)
-			}
-		}
-	}
-}
-
-func (d *DrawioOutputFormatter) createVSIs() {
-	for _, ns := range d.cConfig.NodeSets {
-		details := ns.DetailsMap()[0]
-		if details[DetailsAttributeKind] == "VSI" {
-			ns.DrawioTreeNode(d.network)
-		}
+		n.DrawioTreeNode(d.network)
 	}
 }
 
@@ -172,7 +142,7 @@ func (d *DrawioOutputFormatter) createEdges() {
 		if d.routers[srcTn] != nil && isExternal(edge.dst) {
 			cn.SetRouter(d.routers[srcTn], false)
 		}
-		if d.routers[dstTn] != nil && isExternal(edge.src){
+		if d.routers[dstTn] != nil && isExternal(edge.src) {
 			cn.SetRouter(d.routers[dstTn], true)
 		}
 	}
