@@ -7,6 +7,7 @@ import (
 
 type DrawioResourceIntf interface {
 	DrawioTreeNode(gen DrawioGeneratorInt) drawio.TreeNodeInterface
+	
 }
 // VPCResourceIntf captures common properties for VPC resources
 type VPCResourceIntf interface {
@@ -24,6 +25,7 @@ type VPCResource struct {
 	ResourceName string
 	ResourceUID  string
 	Zone         string
+	DrawioTN 	drawio.TreeNodeInterface
 }
 
 func (n *VPCResource) Name() string {

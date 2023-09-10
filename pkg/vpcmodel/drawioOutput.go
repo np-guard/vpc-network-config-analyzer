@@ -6,17 +6,16 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
 )
 
-var externalTreeNodes = map[VPCResourceIntf]drawio.TreeNodeInterface{}
-
 func (exn *ExternalNetwork) DrawioTreeNode(gen DrawioGeneratorInt) drawio.TreeNodeInterface {
-	if _, ok := externalTreeNodes[exn]; !ok {
-		externalTreeNodes[exn] = drawio.NewInternetTreeNode(gen.PublicNetwork(), exn.CidrStr)
+	if exn.DrawioTN == nil {
+		exn.DrawioTN = drawio.NewInternetTreeNode(gen.PublicNetwork(), exn.CidrStr)
 	}
-	return externalTreeNodes[exn]
+	return exn.DrawioTN
 }
+
+// will be rewrite when implementing grouping
 func isExternal(i VPCResourceIntf) bool {
-	_, ok := externalTreeNodes[i]
-	return ok
+	return i.Kind() == externalNetworkNodeKind
 }
 
 
@@ -56,6 +55,7 @@ func (d *DrawioOutputFormatter) init(cConfig *CloudConfig, conn *VPCConnectivity
 	d.routers = map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface{}
 	d.isEdgeDirected = map[Edge]bool{}
 	d.cConfig.DrawioGenerator.Init()
+	// to remove:
 	d.cConfig.DrawioGenerator.SetOneVpc(cConfig)
 }
 

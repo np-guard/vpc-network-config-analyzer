@@ -8,10 +8,13 @@ import (
 
 type DrawioGeneratorInt interface {
 	Init()
-	SetOneVpc(config *CloudConfig)
 	Network() *drawio.NetworkTreeNode
 	PublicNetwork() *drawio.PublicNetworkTreeNode
 	Cloud() *drawio.CloudTreeNode
+
+	//to remove:
+	SetOneVpc(config *CloudConfig)
+	
 }
 
 type CloudConfig struct {
