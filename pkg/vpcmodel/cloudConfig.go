@@ -2,10 +2,16 @@ package vpcmodel
 
 import (
 	"strings"
+
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
 )
 
 type DrawioGeneratorInt interface {
 	Init()
+	SetOneVpc(config *CloudConfig)
+	Network() *drawio.NetworkTreeNode
+	PublicNetwork() *drawio.PublicNetworkTreeNode
+	Cloud() *drawio.CloudTreeNode
 }
 
 type CloudConfig struct {

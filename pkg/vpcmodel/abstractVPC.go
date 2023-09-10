@@ -5,15 +5,18 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
 )
 
+type DrawioResourceIntf interface {
+	DrawioTreeNode(gen DrawioGeneratorInt) drawio.TreeNodeInterface
+}
 // VPCResourceIntf captures common properties for VPC resources
 type VPCResourceIntf interface {
+	DrawioResourceIntf
 	UID() string
 	Name() string
 	ZoneName() string
 	Kind() string
 	Details() []string
 	DetailsMap() []map[string]string
-	DrawioTreeNode(network drawio.TreeNodeInterface) drawio.TreeNodeInterface
 }
 
 // VPCResource implements VPCResourceIntf
