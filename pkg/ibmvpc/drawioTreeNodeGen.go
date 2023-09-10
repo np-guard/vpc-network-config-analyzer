@@ -19,6 +19,17 @@ func (gen *DrawioGenerator) Init() {
 	gen.network = drawio.NewNetworkTreeNode()
 	gen.publicNetwork = drawio.NewPublicNetworkTreeNode(gen.network)
 	gen.cloud = drawio.NewCloudTreeNode(gen.network, "IBM Cloud")
+	//to remove:
+	for k := range addressToNi {
+		delete(addressToNi, k)
+	}
+	for k := range cidrToSubnet {
+		delete(cidrToSubnet, k)
+	}
+	for k := range zoneNameToZones {
+		delete(zoneNameToZones, k)
+	}
+	
 }
 
 

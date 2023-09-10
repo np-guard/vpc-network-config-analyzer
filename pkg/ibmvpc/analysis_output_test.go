@@ -115,11 +115,16 @@ func (tt *vpcGeneralTest) initTest() {
 }
 
 var tests = []*vpcGeneralTest{
+	// {
+	// 	name:     "acl_testing3",
+	// 	useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	// 	// format:   vpcmodel.ARCHDRAWIO,
+	// 	format:   vpcmodel.DRAWIO,
+	// },
 	{
 		name:     "acl_testing3",
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		// format:   vpcmodel.ARCHDRAWIO,
-		format:   vpcmodel.DRAWIO,
+		format:   vpcmodel.ARCHDRAWIO,
 	},
 }
 
