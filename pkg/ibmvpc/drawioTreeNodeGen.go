@@ -10,10 +10,10 @@ var ibmCloudTn *drawio.CloudTreeNode = nil
 var vpcTn *drawio.VpcTreeNode = nil
 var zoneNameToZonesTreeNodes = map[string]*drawio.ZoneTreeNode{}
 var addressToNi = map[string]vpcmodel.VPCResourceIntf{}
+var cidrToSubnet = map[string]vpcmodel.VPCResourceIntf{}
 
-func (sg *SecurityGroup) getNi(address string) vpcmodel.VPCResourceIntf {
-	return addressToNi[address]
-}
+func (sg *SecurityGroup) getNi(address string) vpcmodel.VPCResourceIntf {return addressToNi[address]}
+func (acl *NACL) getSubnet(cidr string) vpcmodel.VPCResourceIntf {return cidrToSubnet[cidr]}
 
 func theOneVpc(network drawio.TreeNodeInterface, vpcName string) *drawio.VpcTreeNode {
 	if ibmCloudTn == nil {
@@ -39,8 +39,9 @@ func zoneDrawioTreeNode(network drawio.TreeNodeInterface, zoneName string) *draw
 func (s *Subnet) DrawioTreeNode(network drawio.TreeNodeInterface) drawio.TreeNodeInterface {
 	if _, ok := allTreeNodes[s]; !ok {
 		zone := zoneDrawioTreeNode(network, s.ZoneName())
-		acl := "acl todo"
-		allTreeNodes[s] = drawio.NewSubnetTreeNode(zone, s.Name(), s.cidr, acl)
+		allTreeNodes[s] = drawio.NewSubnetTreeNode(zone, s.Name(), s.cidr, "")
+		// todo
+		cidrToSubnet[s.cidr] = s
 	}
 	return allTreeNodes[s]
 }
@@ -57,14 +58,13 @@ func (sgl *SecurityGroupLayer) DrawioTreeNode(network drawio.TreeNodeInterface) 
 	}
 	return allTreeNodes[sgl]
 }
-func (acl *NaclLayer) DrawioTreeNode(network drawio.TreeNodeInterface) drawio.TreeNodeInterface {
-	//todo:
-	// for _, acll := range acl.naclList{
-	// 	for _, s := range acll.subnets{
-	// subnet := s
-	// allTreeNodes[subnet].(*drawio.SubnetTreeNode).SetACL(acl.Name())
-	// 	}
-	// }
+func (acll *NaclLayer) DrawioTreeNode(network drawio.TreeNodeInterface) drawio.TreeNodeInterface {
+	for _, acl := range acll.naclList {
+		for cidr := range acl.subnets {
+			// todo
+			acl.getSubnet(cidr).DrawioTreeNode(network).(*drawio.SubnetTreeNode).SetACL(acl.Name())
+		}
+	}
 	return nil
 }
 
@@ -73,8 +73,8 @@ func (ni *NetworkInterface) DrawioTreeNode(network drawio.TreeNodeInterface) dra
 		allTreeNodes[ni] = drawio.NewNITreeNode(
 			ni.subnet.DrawioTreeNode(network).(drawio.SquareTreeNodeInterface),
 			nil, ni.Name())
-			//todo:
-			addressToNi[ni.address] = ni
+		//todo:
+		addressToNi[ni.address] = ni
 	}
 	return allTreeNodes[ni]
 }
