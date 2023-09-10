@@ -81,8 +81,8 @@ func (d *DrawioOutputFormatter) createDrawioTree() {
 	publicNetwork = d.publicNetwork
 
 	d.createNodeSets()
-	d.createFilters()
 	d.createNodes()
+	d.createFilters()
 	d.createVSIs()
 	d.createRouters()
 	d.createEdges()

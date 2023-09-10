@@ -76,11 +76,11 @@ func NewNITreeNode(parent SquareTreeNodeInterface, sg *SGTreeNode, name string) 
 	ni := NITreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, name)}
 	parent.addIconTreeNode(&ni)
 	if sg != nil {
-		ni.setSG(sg)
+		ni.SetSG(sg)
 	}
 	return &ni
 }
-func (tn *NITreeNode) setSG(sg *SGTreeNode) {
+func (tn *NITreeNode) SetSG(sg *SGTreeNode) {
 	sg.addIconTreeNode(tn)
 	tn.sg = sg
 }
