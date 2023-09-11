@@ -11,10 +11,12 @@ type DrawioGeneratorInt interface {
 	Network() *drawio.NetworkTreeNode
 	PublicNetwork() *drawio.PublicNetworkTreeNode
 	Cloud() *drawio.CloudTreeNode
-
+	TN(res DrawioResourceIntf) drawio.TreeNodeInterface
 	//to remove:
 	SetOneVpc(config *CloudConfig)
-	
+}
+type DrawioResourceIntf interface {
+	DrawioTreeNode(gen DrawioGeneratorInt) drawio.TreeNodeInterface
 }
 
 type CloudConfig struct {

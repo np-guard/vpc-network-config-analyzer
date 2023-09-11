@@ -2,22 +2,17 @@ package vpcmodel
 
 import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
 )
 
-type DrawioResourceIntf interface {
-	DrawioTreeNode(gen DrawioGeneratorInt) drawio.TreeNodeInterface
-	
-}
 // VPCResourceIntf captures common properties for VPC resources
 type VPCResourceIntf interface {
-	DrawioResourceIntf
 	UID() string
 	Name() string
 	ZoneName() string
 	Kind() string
 	Details() []string
 	DetailsMap() []map[string]string
+	DrawioResourceIntf
 }
 
 // VPCResource implements VPCResourceIntf
@@ -25,7 +20,6 @@ type VPCResource struct {
 	ResourceName string
 	ResourceUID  string
 	Zone         string
-	DrawioTN 	drawio.TreeNodeInterface
 }
 
 func (n *VPCResource) Name() string {

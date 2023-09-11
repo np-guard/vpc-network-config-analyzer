@@ -7,16 +7,9 @@ import (
 )
 
 func (exn *ExternalNetwork) DrawioTreeNode(gen DrawioGeneratorInt) drawio.TreeNodeInterface {
-	if exn.DrawioTN == nil {
-		exn.DrawioTN = drawio.NewInternetTreeNode(gen.PublicNetwork(), exn.CidrStr)
-	}
-	return exn.DrawioTN
+		return drawio.NewInternetTreeNode(gen.PublicNetwork(), exn.CidrStr)
 }
 
-// will be rewrite when implementing grouping
-func isExternal(i VPCResourceIntf) bool {
-	return i.Kind() == externalNetworkNodeKind
-}
 
 type Edge struct {
 	src   Node
@@ -28,13 +21,8 @@ type Edge struct {
 // It build the drawio tree out of the CloudConfig and VPCConnectivity, and output it to a drawio file
 // the steps of creating the drawio tree:
 // 1. collect all the connectivity edges to a map of (src,dst,label) -> isDirected. also mark the nodes that has connections
-// 2. create the treeNodes of the squares out of the cConfig.NodeSets -  network, VPCs zones and subnets
-// (also zones are created on demand from the zone names in the nodeSet details)
-// 3. from the cConfig.filters,  create treeNodes of SGs, and give ACL to subnets
-// 4. create the icons Tree nodes out of the cConfig.Nodes
-// 5. create the VSIs tree nodes from cConfig.NodeSets
-// 6. create the routers from cConfig.routers
-// 7. create the edges from the map we created in stage (1). also also set the routers to the edges
+// 2. create the treeNodes of the NodeSets, filters. routers and nodes
+// 3. create the edges from the map we created in stage (1). also also set the routers to the edges
 
 type DrawioOutputFormatter struct {
 	cConfig        *CloudConfig
@@ -61,6 +49,11 @@ func (d *DrawioOutputFormatter) WriteOutputAllEndpoints(cConfig *CloudConfig, co
 	d.createDrawioTree()
 	err := drawio.CreateDrawioConnectivityMapFile(d.cConfig.DrawioGenerator.Network(), outFile)
 	return "", err
+}
+
+// will be rewrite when implementing grouping
+func (d *DrawioOutputFormatter)isExternal(i VPCResourceIntf) bool {
+	return i.Kind() == externalNetworkNodeKind
 }
 
 func (d *DrawioOutputFormatter) createDrawioTree() {
@@ -102,42 +95,43 @@ func (d *DrawioOutputFormatter) createEdgesMap() {
 
 func (d *DrawioOutputFormatter) createNodeSets() {
 	for _, ns := range d.cConfig.NodeSets {
-		ns.DrawioTreeNode(d.cConfig.DrawioGenerator)
-	}
-}
-
-func (d *DrawioOutputFormatter) createFilters() {
-	for _, fl := range d.cConfig.FilterResources {
-		fl.DrawioTreeNode(d.cConfig.DrawioGenerator)
+		d.cConfig.DrawioGenerator.TN(ns)
 	}
 }
 
 func (d *DrawioOutputFormatter) createNodes() {
 	for _, n := range d.cConfig.Nodes {
-		if d.connectedNodes[n] || !isExternal(n) {
-			n.DrawioTreeNode(d.cConfig.DrawioGenerator)
+		if d.connectedNodes[n] || !d.isExternal(n) {
+			d.cConfig.DrawioGenerator.TN(n)
 		}
+	}
+}
+
+func (d *DrawioOutputFormatter) createFilters() {
+	for _, fl := range d.cConfig.FilterResources {
+		d.cConfig.DrawioGenerator.TN(fl)
 	}
 }
 
 func (d *DrawioOutputFormatter) createRouters() {
 	for _, r := range d.cConfig.RoutingResources {
-		rTn := r.DrawioTreeNode(d.cConfig.DrawioGenerator)
+		rTn := 		d.cConfig.DrawioGenerator.TN(r)
+
 		for _, ni := range r.Src() {
-			d.routers[ni.DrawioTreeNode(d.cConfig.DrawioGenerator)] = rTn.(drawio.IconTreeNodeInterface)
+			d.routers[d.cConfig.DrawioGenerator.TN(ni)] = rTn.(drawio.IconTreeNodeInterface)
 		}
 	}
 }
 
 func (d *DrawioOutputFormatter) createEdges() {
 	for edge, directed := range d.isEdgeDirected {
-		srcTn := edge.src.DrawioTreeNode(d.cConfig.DrawioGenerator).(drawio.IconTreeNodeInterface)
-		dstTn := edge.dst.DrawioTreeNode(d.cConfig.DrawioGenerator).(drawio.IconTreeNodeInterface)
+		srcTn := d.cConfig.DrawioGenerator.TN(edge.src).(drawio.IconTreeNodeInterface)
+		dstTn := d.cConfig.DrawioGenerator.TN(edge.dst).(drawio.IconTreeNodeInterface)
 		cn := drawio.NewConnectivityLineTreeNode(d.cConfig.DrawioGenerator.Network(), srcTn, dstTn, directed, edge.label)
-		if d.routers[srcTn] != nil && isExternal(edge.dst) {
+		if d.routers[srcTn] != nil && d.isExternal(edge.dst) {
 			cn.SetRouter(d.routers[srcTn], false)
 		}
-		if d.routers[dstTn] != nil && isExternal(edge.src) {
+		if d.routers[dstTn] != nil && d.isExternal(edge.src) {
 			cn.SetRouter(d.routers[dstTn], true)
 		}
 	}
