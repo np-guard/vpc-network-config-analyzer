@@ -18,9 +18,6 @@ func isExternal(i VPCResourceIntf) bool {
 	return i.Kind() == externalNetworkNodeKind
 }
 
-
-
-
 type Edge struct {
 	src   Node
 	dst   Node
@@ -38,7 +35,6 @@ type Edge struct {
 // 5. create the VSIs tree nodes from cConfig.NodeSets
 // 6. create the routers from cConfig.routers
 // 7. create the edges from the map we created in stage (1). also also set the routers to the edges
-
 
 type DrawioOutputFormatter struct {
 	cConfig        *CloudConfig
@@ -118,7 +114,9 @@ func (d *DrawioOutputFormatter) createFilters() {
 
 func (d *DrawioOutputFormatter) createNodes() {
 	for _, n := range d.cConfig.Nodes {
-		n.DrawioTreeNode(d.cConfig.DrawioGenerator)
+		if d.connectedNodes[n] || !isExternal(n) {
+			n.DrawioTreeNode(d.cConfig.DrawioGenerator)
+		}
 	}
 }
 
