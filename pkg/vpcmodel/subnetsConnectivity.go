@@ -255,6 +255,8 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() error {
 			v.AllowedConnsCombined[src][dst] = combinedConns
 		}
 	}
+	return nil
+}
 
 func (v *VPCsubnetConnectivity) computeStatefulConnections() error {
 	for src, endpointConns := range v.AllowedConnsCombined {
@@ -267,10 +269,12 @@ func (v *VPCsubnetConnectivity) computeStatefulConnections() error {
 			switch dstObj.(type) {
 			case NodeSet:
 				otherDirectionConn = v.AllowedConnsCombined[dst][src]
-			case *ExternalNetwork: // todo: for stateful this direction is required, but it is not an actual connection
-				// look for the other direction in the dedicated datastructure
+			case *ExternalNetwork:
+				// subnet to external node is stateful if the subnet's nacl allows egress from that node
+				otherDirectionConn = v.AllowedConns[src].EgressAllowedConns[dst]
 			default:
 			}
+			conns.IsStateful = common.StatefulFalse
 			if otherDirectionConn == nil {
 				continue
 			}
@@ -289,7 +293,7 @@ func (v *VPCsubnetConnectivity) computeStatefulConnections() error {
 func (v *VPCsubnetConnectivity) String() string {
 	res := "combined connections between subnets:\n"
 	// res += v.GroupedConnectivity.String() ToDo: uncomment once https://github.com/np-guard/vpc-network-config-analyzer/issues/138 is solved
-	res += v.GroupedConnectivity.StringTmpWA()
+	res += v.GroupedConnectivity.String()
 	return res
 }
 
