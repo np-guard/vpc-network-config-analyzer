@@ -195,6 +195,9 @@ func (c *CloudConfig) GetSubnetsConnectivity(includePGW, grouping bool) (*VPCsub
 	if err := res.computeAllowedConnsCombined(); err != nil {
 		return nil, err
 	}
+	if err := res.computeStatefulConnections(); err != nil {
+		return nil, err
+	}
 
 	res.GroupedConnectivity = newGroupConnLinesSubnetConnectivity(c, res, grouping)
 
@@ -218,7 +221,7 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() error {
 			case NodeSet:
 				egressConns := v.AllowedConns[concPeerNode].EgressAllowedConns[subnetNodeSet]
 				combinedConns = combinedConns.Intersection(egressConns)
-			case *ExternalNetwork:
+			case *ExternalNetwork: // todo: for stateful this direction is required, but it is not an actual connection
 				// do nothing
 			default:
 				return errors.New(errUnexpectedTypePeerNode)
@@ -253,6 +256,33 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() error {
 		}
 	}
 
+func (v *VPCsubnetConnectivity) computeStatefulConnections() error {
+	for src, endpointConns := range v.AllowedConnsCombined {
+		for dst, conns := range endpointConns {
+			if conns.IsEmpty() {
+				continue
+			}
+			dstObj := v.cloudConfig.NameToResource[dst.Name()]
+			var otherDirectionConn *common.ConnectionSet = nil
+			switch dstObj.(type) {
+			case NodeSet:
+				otherDirectionConn = v.AllowedConnsCombined[dst][src]
+			case *ExternalNetwork: // todo: for stateful this direction is required, but it is not an actual connection
+				// look for the other direction in the dedicated datastructure
+			default:
+			}
+			if otherDirectionConn == nil {
+				continue
+			}
+			stateful, err := conns.ContainedIn(otherDirectionConn)
+			if err != nil {
+				return err
+			}
+			if stateful {
+				conns.IsStateful = common.StatefulTrue
+			}
+		}
+	}
 	return nil
 }
 
