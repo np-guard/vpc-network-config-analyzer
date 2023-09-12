@@ -46,7 +46,7 @@ func (gen *DrawioGenerator) TreeNode(res DrawioResourceIntf) drawio.TreeNodeInte
 	return gen.treeNodes[res]
 }
 
-///////////////////////////////////////////////////
+// /////////////////////////////////////////////////
 func (exn *ExternalNetwork) GenerateDrawioTreeNode(gen DrawioGeneratorInt) drawio.TreeNodeInterface {
 	return drawio.NewInternetTreeNode(gen.PublicNetwork(), exn.CidrStr)
 }

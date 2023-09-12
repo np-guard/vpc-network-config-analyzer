@@ -7,7 +7,6 @@ import (
 
 // to remove:
 func SetGlobals(config *vpcmodel.CloudConfig) {
-
 	for k := range addressToNi {
 		delete(addressToNi, k)
 	}
@@ -22,7 +21,6 @@ func SetGlobals(config *vpcmodel.CloudConfig) {
 			oneVpc = ns.(*VPC)
 		}
 	}
-
 }
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -38,9 +36,9 @@ type Zone struct {
 }
 
 // to rewrite:
-func (r *Subnet) ZoneS() *Zone        { return resourceZone(r) }
-func (r *PublicGateway) ZoneS() *Zone { return resourceZone(r) }
-func (r *Vsi) ZoneS() *Zone           { return resourceZone(r) }
+func (s *Subnet) ZoneS() *Zone          { return resourceZone(s) }
+func (pgw *PublicGateway) ZoneS() *Zone { return resourceZone(pgw) }
+func (v *Vsi) ZoneS() *Zone             { return resourceZone(v) }
 
 // to remove
 var zoneNameToZones = map[string]*Zone{}
@@ -63,11 +61,11 @@ var addressToNi = map[string]vpcmodel.VPCResourceIntf{}
 var cidrToSubnet = map[string]vpcmodel.VPCResourceIntf{}
 
 func (sg *SecurityGroup) getNi(address string) vpcmodel.VPCResourceIntf { return addressToNi[address] }
-func (acl *NACL) getSubnet(cidr string) vpcmodel.VPCResourceIntf        { return cidrToSubnet[cidr] }
+func (n *NACL) getSubnet(cidr string) vpcmodel.VPCResourceIntf          { return cidrToSubnet[cidr] }
 
 // GenerateDrawioTreeNode() implementations:
-func (vpc *VPC) GenerateDrawioTreeNode(gen vpcmodel.DrawioGeneratorInt) drawio.TreeNodeInterface {
-	return drawio.NewVpcTreeNode(gen.Cloud(), vpc.Name())
+func (v *VPC) GenerateDrawioTreeNode(gen vpcmodel.DrawioGeneratorInt) drawio.TreeNodeInterface {
+	return drawio.NewVpcTreeNode(gen.Cloud(), v.Name())
 }
 
 func (z *Zone) GenerateDrawioTreeNode(gen vpcmodel.DrawioGeneratorInt) drawio.TreeNodeInterface {
@@ -97,8 +95,8 @@ func (sgl *SecurityGroupLayer) GenerateDrawioTreeNode(gen vpcmodel.DrawioGenerat
 	return tn
 }
 
-func (acll *NaclLayer) GenerateDrawioTreeNode(gen vpcmodel.DrawioGeneratorInt) drawio.TreeNodeInterface {
-	for _, acl := range acll.naclList {
+func (nl *NaclLayer) GenerateDrawioTreeNode(gen vpcmodel.DrawioGeneratorInt) drawio.TreeNodeInterface {
+	for _, acl := range nl.naclList {
 		// the following loop:
 		for cidr := range acl.subnets {
 			gen.TreeNode(acl.getSubnet(cidr)).(*drawio.SubnetTreeNode).SetACL(acl.Name())
@@ -112,27 +110,27 @@ func (acll *NaclLayer) GenerateDrawioTreeNode(gen vpcmodel.DrawioGeneratorInt) d
 }
 
 func (ni *NetworkInterface) GenerateDrawioTreeNode(gen vpcmodel.DrawioGeneratorInt) drawio.TreeNodeInterface {
-	//to remove:
+	// to remove:
 	addressToNi[ni.address] = ni
 
 	return drawio.NewNITreeNode(
 		gen.TreeNode(ni.subnet).(drawio.SquareTreeNodeInterface),
 		nil, ni.Name())
 }
-func (iksn *IKSNode) GenerateDrawioTreeNode(gen vpcmodel.DrawioGeneratorInt) drawio.TreeNodeInterface {
+func (n *IKSNode) GenerateDrawioTreeNode(gen vpcmodel.DrawioGeneratorInt) drawio.TreeNodeInterface {
 	return nil
 }
 
-func (vsi *Vsi) GenerateDrawioTreeNode(gen vpcmodel.DrawioGeneratorInt) drawio.TreeNodeInterface {
-	if len(vsi.Nodes()) == 0 {
+func (v *Vsi) GenerateDrawioTreeNode(gen vpcmodel.DrawioGeneratorInt) drawio.TreeNodeInterface {
+	if len(v.Nodes()) == 0 {
 		return nil
 	}
 	vsiNIs := []drawio.TreeNodeInterface{}
-	for _, ni := range vsi.Nodes() {
+	for _, ni := range v.Nodes() {
 		vsiNIs = append(vsiNIs, gen.TreeNode(ni))
 	}
-	zoneTn := gen.TreeNode(vsi.ZoneS()).(*drawio.ZoneTreeNode)
-	drawio.GroupNIsWithVSI(zoneTn, vsi.Name(), vsiNIs)
+	zoneTn := gen.TreeNode(v.ZoneS()).(*drawio.ZoneTreeNode)
+	drawio.GroupNIsWithVSI(zoneTn, v.Name(), vsiNIs)
 	return nil
 }
 
