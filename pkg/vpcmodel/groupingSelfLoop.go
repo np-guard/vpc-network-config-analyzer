@@ -18,26 +18,17 @@ func (g *GroupConnLines) groupsToBeMerged(groupingSrcOrDst map[string][]*Grouped
 	setsToGroup := createGroupingSets(groupingSrcOrDst, srcGrouping)
 	// in order to compare each couple only once, compare only couples in one half of the matrix.
 	// To that end we must define an order and travers it - sorted sortedKeys
-	sortedKeys := make([]string, 0, len(groupingSrcOrDst))
+	sortedKeys := sortedKeysToCompared(groupingSrcOrDst)
 
-	for k := range groupingSrcOrDst {
-		sortedKeys = append(sortedKeys, k)
-	}
-	sort.Strings(sortedKeys)
 	for _, outerKey := range sortedKeys {
 		outerLines := groupingSrcOrDst[outerKey]
-		// 1. relevant only if both source and destination refers to vsis/subnets
-		//    src/dst of lines grouped together are either all external or all internal. So it suffice to check for the first line in a group
-		if outerLines[0].isSrcOrDstExternalNodes() {
-			continue
-		}
-		// 2. is there a different line s.t. the outerLines were not merged only due to self loops?
-		// 	  going over all couples of items: merging them if they differ only in self loop element
-		//    need to go over all couples of lines grouping no ordering; need only one half of the matrix
+		//  is there a different line s.t. the outerLines were not merged only due to self loops?
+		// 	going over all couples of items: merging them if they differ only in self loop element
+		//  need to go over all couples of lines grouping no ordering; need only one half of the matrix
 		halfMatrix := true
 		for _, innerKey := range sortedKeys {
 			innerLines := groupingSrcOrDst[innerKey]
-			// 2.1 not the same line
+			// 1. not the same line
 			if innerKey == outerKey {
 				halfMatrix = false
 				continue
@@ -45,21 +36,13 @@ func (g *GroupConnLines) groupsToBeMerged(groupingSrcOrDst map[string][]*Grouped
 			if !halfMatrix { // delta is symmetric, no need to calculate twice
 				continue
 			}
-			// 2.2 again, both src and dst of grouped lines must refer to subnets/vsis
-			if innerLines[0].isSrcOrDstExternalNodes() {
-				continue
-			}
-			// 2.3 both lines must be with the same connection
-			if outerLines[0].Conn != innerLines[0].Conn { // note that all connections are identical in each of the outerLines and innerLines
-				continue
-			}
-			// 2.4 if grouping vsis then src of compared groups and destinations of compared groups must be same subnet
+			// 2. if grouping vsis then src of compared groups and destinations of compared groups must be same subnet
 			if g.vsisNotSameSameSubnet(outerLines[0].Src, innerLines[0].Src) || g.vsisNotSameSameSubnet(outerLines[0].Dst, innerLines[0].Dst) {
 				continue
 			}
-			// 2.4 delta between outerKeyEndPointElements to innerKeyEndPointElements must be 0
+			// 3. delta between outerKeyEndPointElements to innerKeyEndPointElements must be 0
 			mergeGroups := deltaBetweenGroupedConnLines(srcGrouping, outerLines, innerLines, setsToGroup[outerKey], setsToGroup[innerKey])
-			// 2.5 delta between the outerLines is 0 - merge outerLines
+			// 4. delta between the outerLines is 0 - merge outerLines
 			if mergeGroups {
 				var toMerge = [2]string{outerKey, innerKey}
 				toMergeCouples = append(toMergeCouples, toMerge)
@@ -69,14 +52,27 @@ func (g *GroupConnLines) groupsToBeMerged(groupingSrcOrDst map[string][]*Grouped
 	return toMergeCouples
 }
 
+// a group is candidate to be merged only if it has only internal nodes; sorting keys so that the iteration order will be preserved
+func sortedKeysToCompared(groupingSrcOrDst map[string][]*GroupedConnLine) (sortedKeys []string) {
+	sortedKeys = make([]string, 0, len(groupingSrcOrDst))
+	for key, lines := range groupingSrcOrDst {
+		if lines[0].isSrcOrDstExternalNodes() {
+			continue
+		}
+		sortedKeys = append(sortedKeys, key)
+	}
+	sort.Strings(sortedKeys)
+	return
+}
+
 // optimization that reduces the worst case time of groupsToBeMerged from (nxn)^2 to (nxn)*n where n is the number
 // of vsis or of subnets
 // assume w.l.o.g that src are grouped. There is a point in comparing group s1 => d1 to group s2 => d2
 // only if both have the same connection and are VSIs/subnets and
 // s1 is a singleton and is contained in d2 or vice versa
-func (g *GroupConnLines) keysToCompareMap(groupingSrcOrDst map[string][]*GroupedConnLine, srcGrouping bool) {
-
-}
+// func (g *GroupConnLines) keysToCompareMap(groupingSrcOrDst map[string][]*GroupedConnLine, srcGrouping bool) {
+//
+// }
 
 // if the two endpoints are vsis and do not belong to the same subnet returns true, otherwise false
 // an endpoint can also be a slice of vsis, in which case the invariant is that they belong to the same subnet
