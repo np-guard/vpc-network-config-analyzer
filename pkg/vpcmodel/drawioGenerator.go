@@ -13,33 +13,36 @@ type DrawioGeneratorInt interface {
 	Network() *drawio.NetworkTreeNode
 	PublicNetwork() *drawio.PublicNetworkTreeNode
 	Cloud() *drawio.CloudTreeNode
-	TN(res DrawioResourceIntf) drawio.TreeNodeInterface
+	TreeNode(res DrawioResourceIntf) drawio.TreeNodeInterface
 }
 
 type DrawioGenerator struct {
 	network       *drawio.NetworkTreeNode
 	publicNetwork *drawio.PublicNetworkTreeNode
-	Tcloud        *drawio.CloudTreeNode
-	TNs           map[DrawioResourceIntf]drawio.TreeNodeInterface
+	cloud        *drawio.CloudTreeNode
+	treeNodes     map[DrawioResourceIntf]drawio.TreeNodeInterface
+	cloudName     string
 }
-
+func NewDrawioGenerator(cloudName string) *DrawioGenerator {return &DrawioGenerator{cloudName:cloudName}}
 func (gen *DrawioGenerator) Network() *drawio.NetworkTreeNode { return gen.network }
 func (gen *DrawioGenerator) PublicNetwork() *drawio.PublicNetworkTreeNode {
 	return gen.publicNetwork
 }
-func (gen *DrawioGenerator) Cloud() *drawio.CloudTreeNode { return gen.Tcloud }
+func (gen *DrawioGenerator) Cloud() *drawio.CloudTreeNode { return gen.cloud }
 
 func (gen *DrawioGenerator) Init(config *CloudConfig) {
 	gen.network = drawio.NewNetworkTreeNode()
 	gen.publicNetwork = drawio.NewPublicNetworkTreeNode(gen.network)
-	gen.TNs = map[DrawioResourceIntf]drawio.TreeNodeInterface{}
+	gen.cloud = drawio.NewCloudTreeNode(gen.network, gen.cloudName)
+	gen.treeNodes = map[DrawioResourceIntf]drawio.TreeNodeInterface{}
 }
-func (gen *DrawioGenerator) TN(res DrawioResourceIntf) drawio.TreeNodeInterface {
-	if gen.TNs[res] == nil {
-		gen.TNs[res] = res.GenerateDrawioTreeNode(gen)
+func (gen *DrawioGenerator) TreeNode(res DrawioResourceIntf) drawio.TreeNodeInterface {
+	if gen.treeNodes[res] == nil {
+		gen.treeNodes[res] = res.GenerateDrawioTreeNode(gen)
 	}
-	return gen.TNs[res]
+	return gen.treeNodes[res]
 }
+///////////////////////////////////////////////////
 func (exn *ExternalNetwork) GenerateDrawioTreeNode(gen DrawioGeneratorInt) drawio.TreeNodeInterface {
 	return drawio.NewInternetTreeNode(gen.PublicNetwork(), exn.CidrStr)
 }

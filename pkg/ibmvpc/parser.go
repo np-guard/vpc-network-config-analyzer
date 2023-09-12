@@ -563,8 +563,9 @@ func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
 		FilterResources:  []vpcmodel.FilterTrafficResource{},
 		RoutingResources: []vpcmodel.RoutingResource{},
 		NameToResource:   map[string]vpcmodel.VPCResourceIntf{},
-		DrawioGenerator:  &IBMDrawioGenerator{},
+		DrawioGenerator:  vpcmodel.NewDrawioGenerator("IBM Cloud"),
 	}
+
 	var vpcInternalAddressRange *common.IPBlock
 
 	subnetNameToNetIntf := map[string][]*NetworkInterface{}
@@ -616,6 +617,7 @@ func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
 			rPgw.destinations = publicInternetNodes
 		}
 	}
+	SetGlobals(res)
 	return res, nil
 }
 

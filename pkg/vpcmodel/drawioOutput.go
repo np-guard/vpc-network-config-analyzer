@@ -6,7 +6,6 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
 )
 
-
 type Edge struct {
 	src   Node
 	dst   Node
@@ -91,38 +90,38 @@ func (d *DrawioOutputFormatter) createEdgesMap() {
 
 func (d *DrawioOutputFormatter) createNodeSets() {
 	for _, ns := range d.cConfig.NodeSets {
-		d.gen.TN(ns)
+		d.gen.TreeNode(ns)
 	}
 }
 
 func (d *DrawioOutputFormatter) createNodes() {
 	for _, n := range d.cConfig.Nodes {
 		if d.connectedNodes[n] || !d.isExternal(n) {
-			d.gen.TN(n)
+			d.gen.TreeNode(n)
 		}
 	}
 }
 
 func (d *DrawioOutputFormatter) createFilters() {
 	for _, fl := range d.cConfig.FilterResources {
-		d.gen.TN(fl)
+		d.gen.TreeNode(fl)
 	}
 }
 
 func (d *DrawioOutputFormatter) createRouters() {
 	for _, r := range d.cConfig.RoutingResources {
-		rTn := d.gen.TN(r)
+		rTn := d.gen.TreeNode(r)
 
 		for _, ni := range r.Src() {
-			d.routers[d.gen.TN(ni)] = rTn.(drawio.IconTreeNodeInterface)
+			d.routers[d.gen.TreeNode(ni)] = rTn.(drawio.IconTreeNodeInterface)
 		}
 	}
 }
 
 func (d *DrawioOutputFormatter) createEdges() {
 	for edge, directed := range d.isEdgeDirected {
-		srcTn := d.gen.TN(edge.src).(drawio.IconTreeNodeInterface)
-		dstTn := d.gen.TN(edge.dst).(drawio.IconTreeNodeInterface)
+		srcTn := d.gen.TreeNode(edge.src).(drawio.IconTreeNodeInterface)
+		dstTn := d.gen.TreeNode(edge.dst).(drawio.IconTreeNodeInterface)
 		cn := drawio.NewConnectivityLineTreeNode(d.gen.Network(), srcTn, dstTn, directed, edge.label)
 		if d.routers[srcTn] != nil && d.isExternal(edge.dst) {
 			cn.SetRouter(d.routers[srcTn], false)
