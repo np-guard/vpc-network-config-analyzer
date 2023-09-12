@@ -74,8 +74,8 @@ func (m *mockSubnet) Kind() string {
 func (m *mockSubnet) ZoneName() string {
 	return ""
 }
-func (m *mockSubnet) DrawioTreeNode(gen DrawioGeneratorInt) drawio.TreeNodeInterface {return nil}
-func (m *mockNetIntf) DrawioTreeNode(gen DrawioGeneratorInt) drawio.TreeNodeInterface {return nil}
+func (m *mockSubnet) GenerateDrawioTreeNode(gen DrawioGeneratorInt) drawio.TreeNodeInterface {return nil}
+func (m *mockNetIntf) GenerateDrawioTreeNode(gen DrawioGeneratorInt) drawio.TreeNodeInterface {return nil}
 
 func newCloudConfigTest1() (*CloudConfig, *VPCConnectivity) {
 	res := &CloudConfig{Nodes: []Node{}}
