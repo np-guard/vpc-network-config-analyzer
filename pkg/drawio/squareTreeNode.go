@@ -126,12 +126,8 @@ func NewVpcTreeNode(parent *CloudTreeNode, name string) *VpcTreeNode {
 func (tn *VpcTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
 	return append(tn.zones, tn.sgs...), tn.elements, tn.connections
 }
-func (tn *VpcTreeNode) SetName(name string) {
-	tn.name = name
-}
 
-///////////////////////////////////////////////////////////////////////
-
+// /////////////////////////////////////////////////////////////////////
 type ZoneTreeNode struct {
 	abstractSquareTreeNode
 	subnets []SquareTreeNodeInterface

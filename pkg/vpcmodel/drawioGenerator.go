@@ -19,11 +19,14 @@ type DrawioGeneratorInt interface {
 type DrawioGenerator struct {
 	network       *drawio.NetworkTreeNode
 	publicNetwork *drawio.PublicNetworkTreeNode
-	cloud        *drawio.CloudTreeNode
+	cloud         *drawio.CloudTreeNode
 	treeNodes     map[DrawioResourceIntf]drawio.TreeNodeInterface
 	cloudName     string
 }
-func NewDrawioGenerator(cloudName string) *DrawioGenerator {return &DrawioGenerator{cloudName:cloudName}}
+
+func NewDrawioGenerator(cloudName string) *DrawioGenerator {
+	return &DrawioGenerator{cloudName: cloudName}
+}
 func (gen *DrawioGenerator) Network() *drawio.NetworkTreeNode { return gen.network }
 func (gen *DrawioGenerator) PublicNetwork() *drawio.PublicNetworkTreeNode {
 	return gen.publicNetwork
@@ -42,6 +45,7 @@ func (gen *DrawioGenerator) TreeNode(res DrawioResourceIntf) drawio.TreeNodeInte
 	}
 	return gen.treeNodes[res]
 }
+
 ///////////////////////////////////////////////////
 func (exn *ExternalNetwork) GenerateDrawioTreeNode(gen DrawioGeneratorInt) drawio.TreeNodeInterface {
 	return drawio.NewInternetTreeNode(gen.PublicNetwork(), exn.CidrStr)

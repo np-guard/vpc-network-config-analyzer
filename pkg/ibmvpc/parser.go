@@ -565,7 +565,6 @@ func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
 		NameToResource:   map[string]vpcmodel.VPCResourceIntf{},
 		DrawioGenerator:  vpcmodel.NewDrawioGenerator("IBM Cloud"),
 	}
-
 	var vpcInternalAddressRange *common.IPBlock
 
 	subnetNameToNetIntf := map[string][]*NetworkInterface{}
