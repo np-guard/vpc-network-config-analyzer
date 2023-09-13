@@ -75,9 +75,39 @@ func sortedKeysToCompared(groupingSrcOrDst map[string][]*GroupedConnLine) (sorte
 // assume w.l.o.g that src are grouped. There is a point in comparing group s1 => d1 to group s2 => d2
 // only if both have the same connection and are VSIs/subnets and
 // s1 is a singleton and is contained in d2 or vice versa
-// func (g *GroupConnLines) keysToCompareMap(groupingSrcOrDst map[string][]*GroupedConnLine, srcGrouping bool) {
-//
-// }
+// optimization: a couple of []*GroupedConnLine is candidate to be merged only if:
+//  1. They are of the same connection
+//  2. If vsis, of the same subnet
+//  3. The src/dst is a singelton contained in the dst/src
+//     in one path on groupingSrcOrDst we prepare a map between each key to the keys that are candidate to be merged with it
+func (g *GroupConnLines) couplesToCompareMap(groupingSrcOrDst map[string][]*GroupedConnLine, srcGrouping bool, sortedKeys []string) map[string]map[string]struct{} {
+	// create buckets of connections or of connections plus subnet if vsi (linear).
+	// for each bucket: go over all items in it and for each key add to the keys it has potential of being merged with - linear
+	// to that end, for each key with a singleton (src or dest the non-grouped index) have a map from the key to the vsi/subnet
+	//              and from the key to all keys that has that vsi/subnet (linear)
+	// finally, have another pass to have all the candidates in the first half
+
+	// 1. Create buckets for each connection + vsi's subnet if vsi
+	bucketToKeys := make(map[string]map[string]struct{})
+	for _, key := range sortedKeys {
+		lines := groupingSrcOrDst[key]
+		bucket := lines[0].Conn
+		bucket = g.addVsiSubnetToBucket(lines[0].Src, bucket)
+		bucket = g.addVsiSubnetToBucket(lines[0].Dst, bucket)
+		if _, ok := bucketToKeys[bucket]; !ok {
+			bucketToKeys[bucket] = make(map[string]struct{})
+		}
+		bucketToKeys[bucket][key] = struct{}{}
+	}
+	return bucketToKeys
+}
+
+func (g *GroupConnLines) addVsiSubnetToBucket(ep EndpointElem, bucket string) string {
+	if isVsi, node := isEpVsi(ep); isVsi {
+		return bucket + ";" + g.c.getSubnetOfNode(node).Name()
+	}
+	return bucket
+}
 
 // if the two endpoints are vsis and do not belong to the same subnet returns true, otherwise false
 // an endpoint can also be a slice of vsis, in which case the invariant is that they belong to the same subnet
