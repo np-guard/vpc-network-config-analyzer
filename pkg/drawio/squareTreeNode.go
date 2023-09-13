@@ -127,7 +127,8 @@ func (tn *VpcTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInte
 	return append(tn.zones, tn.sgs...), tn.elements, tn.connections
 }
 
-// /////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+
 type ZoneTreeNode struct {
 	abstractSquareTreeNode
 	subnets []SquareTreeNodeInterface

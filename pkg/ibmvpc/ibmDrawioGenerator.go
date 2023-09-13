@@ -63,16 +63,18 @@ var cidrToSubnet = map[string]vpcmodel.VPCResourceIntf{}
 func (sg *SecurityGroup) getNi(address string) vpcmodel.VPCResourceIntf { return addressToNi[address] }
 func (n *NACL) getSubnet(cidr string) vpcmodel.VPCResourceIntf          { return cidrToSubnet[cidr] }
 
-// GenerateDrawioTreeNode() implementations:
-func (v *VPC) GenerateDrawioTreeNode(gen vpcmodel.DrawioGeneratorInt) drawio.TreeNodeInterface {
+////////////////////////////////////////////////////////////////////////////////////////////
+
+// implementations of the GenerateDrawioTreeNode() for resource defined in ibmvpc:
+func (v *VPC) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	return drawio.NewVpcTreeNode(gen.Cloud(), v.Name())
 }
 
-func (z *Zone) GenerateDrawioTreeNode(gen vpcmodel.DrawioGeneratorInt) drawio.TreeNodeInterface {
+func (z *Zone) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	return drawio.NewZoneTreeNode(gen.TreeNode(z.Vpc()).(*drawio.VpcTreeNode), z.name)
 }
 
-func (s *Subnet) GenerateDrawioTreeNode(gen vpcmodel.DrawioGeneratorInt) drawio.TreeNodeInterface {
+func (s *Subnet) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	// to remove:
 	cidrToSubnet[s.cidr] = s
 
@@ -80,7 +82,7 @@ func (s *Subnet) GenerateDrawioTreeNode(gen vpcmodel.DrawioGeneratorInt) drawio.
 	return drawio.NewSubnetTreeNode(zoneTn, s.Name(), s.cidr, "")
 }
 
-func (sgl *SecurityGroupLayer) GenerateDrawioTreeNode(gen vpcmodel.DrawioGeneratorInt) drawio.TreeNodeInterface {
+func (sgl *SecurityGroupLayer) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	tn := drawio.NewSGTreeNode(gen.TreeNode(sgl.Vpc()).(*drawio.VpcTreeNode), sgl.Name())
 	for _, sg := range sgl.sgList {
 		// the following loop:
@@ -95,7 +97,7 @@ func (sgl *SecurityGroupLayer) GenerateDrawioTreeNode(gen vpcmodel.DrawioGenerat
 	return tn
 }
 
-func (nl *NaclLayer) GenerateDrawioTreeNode(gen vpcmodel.DrawioGeneratorInt) drawio.TreeNodeInterface {
+func (nl *NaclLayer) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	for _, acl := range nl.naclList {
 		// the following loop:
 		for cidr := range acl.subnets {
@@ -109,7 +111,7 @@ func (nl *NaclLayer) GenerateDrawioTreeNode(gen vpcmodel.DrawioGeneratorInt) dra
 	return nil
 }
 
-func (ni *NetworkInterface) GenerateDrawioTreeNode(gen vpcmodel.DrawioGeneratorInt) drawio.TreeNodeInterface {
+func (ni *NetworkInterface) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	// to remove:
 	addressToNi[ni.address] = ni
 
@@ -117,11 +119,11 @@ func (ni *NetworkInterface) GenerateDrawioTreeNode(gen vpcmodel.DrawioGeneratorI
 		gen.TreeNode(ni.subnet).(drawio.SquareTreeNodeInterface),
 		nil, ni.Name())
 }
-func (n *IKSNode) GenerateDrawioTreeNode(gen vpcmodel.DrawioGeneratorInt) drawio.TreeNodeInterface {
+func (n *IKSNode) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	return nil
 }
 
-func (v *Vsi) GenerateDrawioTreeNode(gen vpcmodel.DrawioGeneratorInt) drawio.TreeNodeInterface {
+func (v *Vsi) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	if len(v.Nodes()) == 0 {
 		return nil
 	}
@@ -134,12 +136,12 @@ func (v *Vsi) GenerateDrawioTreeNode(gen vpcmodel.DrawioGeneratorInt) drawio.Tre
 	return nil
 }
 
-func (pgw *PublicGateway) GenerateDrawioTreeNode(gen vpcmodel.DrawioGeneratorInt) drawio.TreeNodeInterface {
+func (pgw *PublicGateway) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	zoneTn := gen.TreeNode(pgw.ZoneS()).(*drawio.ZoneTreeNode)
 	return drawio.NewGatewayTreeNode(zoneTn, pgw.Name())
 }
 
-func (fip *FloatingIP) GenerateDrawioTreeNode(gen vpcmodel.DrawioGeneratorInt) drawio.TreeNodeInterface {
+func (fip *FloatingIP) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	// todo - what if r.Src() is not at size of one?
 	nitn := gen.TreeNode(fip.Src()[0]).(*drawio.NITreeNode)
 	nitn.SetFIP(fip.Name())

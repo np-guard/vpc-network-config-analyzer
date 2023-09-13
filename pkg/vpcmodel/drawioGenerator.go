@@ -4,18 +4,18 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
 )
 
+// DrawioResourceIntf is the interface of all the resources that are converted to a drawio treeNodes
 type DrawioResourceIntf interface {
-	GenerateDrawioTreeNode(gen DrawioGeneratorInt) drawio.TreeNodeInterface
+	GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface
 }
 
-type DrawioGeneratorInt interface {
-	Init(config *CloudConfig)
-	Network() *drawio.NetworkTreeNode
-	PublicNetwork() *drawio.PublicNetworkTreeNode
-	Cloud() *drawio.CloudTreeNode
-	TreeNode(res DrawioResourceIntf) drawio.TreeNodeInterface
-}
-
+// DrawioGenerator is the struct that generate the drawio tree.
+// its main interface is TreeNode(res DrawioResourceIntf)
+// at constructor, it creates and publicNetwork tree node, and the Cloud TreeNode
+// please notice:
+// creating the cloud treeNode is vendor specific (IBM, aws...), therefore, the creation of the DrawioGenerator.
+// currently, the input that distinguish between the vendors is the cloudName, which is provided to NewDrawioGenerator() as parameter.
+// we might later give as parameters more information to create the cloud (or maybe support a cloudGenerator struct as an input).
 type DrawioGenerator struct {
 	network       *drawio.NetworkTreeNode
 	publicNetwork *drawio.PublicNetworkTreeNode
@@ -25,19 +25,19 @@ type DrawioGenerator struct {
 }
 
 func NewDrawioGenerator(cloudName string) *DrawioGenerator {
-	return &DrawioGenerator{cloudName: cloudName}
-}
-func (gen *DrawioGenerator) Network() *drawio.NetworkTreeNode { return gen.network }
-func (gen *DrawioGenerator) PublicNetwork() *drawio.PublicNetworkTreeNode {
-	return gen.publicNetwork
-}
-func (gen *DrawioGenerator) Cloud() *drawio.CloudTreeNode { return gen.cloud }
-
-func (gen *DrawioGenerator) Init(config *CloudConfig) {
+	// creates the top of the tree node - treeNodes that does not represent a specific resource.
+	gen := &DrawioGenerator{cloudName: cloudName}
 	gen.network = drawio.NewNetworkTreeNode()
 	gen.publicNetwork = drawio.NewPublicNetworkTreeNode(gen.network)
 	gen.cloud = drawio.NewCloudTreeNode(gen.network, gen.cloudName)
 	gen.treeNodes = map[DrawioResourceIntf]drawio.TreeNodeInterface{}
+	return gen
+}
+func (gen *DrawioGenerator) Network() *drawio.NetworkTreeNode             { return gen.network }
+func (gen *DrawioGenerator) PublicNetwork() *drawio.PublicNetworkTreeNode { return gen.publicNetwork }
+func (gen *DrawioGenerator) Cloud() *drawio.CloudTreeNode                 { return gen.cloud }
+
+func (gen *DrawioGenerator) Init() {
 }
 func (gen *DrawioGenerator) TreeNode(res DrawioResourceIntf) drawio.TreeNodeInterface {
 	if gen.treeNodes[res] == nil {
@@ -46,7 +46,8 @@ func (gen *DrawioGenerator) TreeNode(res DrawioResourceIntf) drawio.TreeNodeInte
 	return gen.treeNodes[res]
 }
 
-// /////////////////////////////////////////////////
-func (exn *ExternalNetwork) GenerateDrawioTreeNode(gen DrawioGeneratorInt) drawio.TreeNodeInterface {
+// implementations of the GenerateDrawioTreeNode() for resource defined in vpcmodel:
+// (currently only ExternalNetwork, will add the grouping resource later)
+func (exn *ExternalNetwork) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
 	return drawio.NewInternetTreeNode(gen.PublicNetwork(), exn.CidrStr)
 }

@@ -22,7 +22,7 @@ type Edge struct {
 type DrawioOutputFormatter struct {
 	cConfig        *CloudConfig
 	conn           *VPCConnectivity
-	gen            DrawioGeneratorInt
+	gen            *DrawioGenerator
 	connectedNodes map[VPCResourceIntf]bool
 	routers        map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface
 	isEdgeDirected map[Edge]bool
@@ -31,11 +31,10 @@ type DrawioOutputFormatter struct {
 func (d *DrawioOutputFormatter) init(cConfig *CloudConfig, conn *VPCConnectivity) {
 	d.cConfig = cConfig
 	d.conn = conn
-	d.gen = cConfig.DrawioGenerator
+	d.gen = NewDrawioGenerator(cConfig.CloudName)
 	d.connectedNodes = map[VPCResourceIntf]bool{}
 	d.routers = map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface{}
 	d.isEdgeDirected = map[Edge]bool{}
-	d.gen.Init(cConfig)
 }
 
 func (d *DrawioOutputFormatter) WriteOutputAllEndpoints(cConfig *CloudConfig, conn *VPCConnectivity, outFile string, grouping bool) (
