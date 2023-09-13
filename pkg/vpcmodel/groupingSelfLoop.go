@@ -19,6 +19,7 @@ func (g *GroupConnLines) groupsToBeMerged(groupingSrcOrDst map[string][]*Grouped
 	// in order to compare each couple only once, compare only couples in one half of the matrix.
 	// To that end we must define an order and travers it - sorted sortedKeys
 	sortedKeys := sortedKeysToCompared(groupingSrcOrDst)
+	g.couplesToCompareMap(groupingSrcOrDst, srcGrouping, sortedKeys)
 
 	for _, outerKey := range sortedKeys {
 		outerLines := groupingSrcOrDst[outerKey]
@@ -36,13 +37,17 @@ func (g *GroupConnLines) groupsToBeMerged(groupingSrcOrDst map[string][]*Grouped
 			if !halfMatrix { // delta is symmetric, no need to calculate twice
 				continue
 			}
-			// 2. if grouping vsis then src of compared groups and destinations of compared groups must be same subnet
+			// 2 both lines must be with the same connection
+			if outerLines[0].Conn != innerLines[0].Conn { // note that all connections are identical in each of the outerLines and innerLines
+				continue
+			}
+			// 3. if grouping vsis then src of compared groups and destinations of compared groups must be same subnet
 			if g.vsisNotSameSameSubnet(outerLines[0].Src, innerLines[0].Src) || g.vsisNotSameSameSubnet(outerLines[0].Dst, innerLines[0].Dst) {
 				continue
 			}
-			// 3. delta between outerKeyEndPointElements to innerKeyEndPointElements must be 0
+			// 4. delta between outerKeyEndPointElements to innerKeyEndPointElements must be 0
 			mergeGroups := deltaBetweenGroupedConnLines(srcGrouping, outerLines, innerLines, setsToGroup[outerKey], setsToGroup[innerKey])
-			// 4. delta between the outerLines is 0 - merge outerLines
+			// 5. delta between the outerLines is 0 - merge outerLines
 			if mergeGroups {
 				var toMerge = [2]string{outerKey, innerKey}
 				toMergeCouples = append(toMergeCouples, toMerge)
