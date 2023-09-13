@@ -20,37 +20,23 @@ func (g *GroupConnLines) groupsToBeMerged(groupingSrcOrDst map[string][]*Grouped
 	// in order to compare each couple only once, compare only couples in one half of the matrix.
 	// To that end we must define an order and travers it - sorted sortedKeys
 	sortedKeys := sortedKeysToCompared(groupingSrcOrDst)
-	g.mergeCandidates(groupingSrcOrDst, srcGrouping, setsToGroup, sortedKeys)
+	keyToMergeCandidates := g.mergeCandidates(groupingSrcOrDst, srcGrouping, setsToGroup, sortedKeys)
 
-	for _, outerKey := range sortedKeys {
-		outerLines := groupingSrcOrDst[outerKey]
-		//  is there a different line s.t. the outerLines were not merged only due to self loops?
+	for _, key := range sortedKeys {
+		keyLines := groupingSrcOrDst[key]
+		//  is there a different line s.t. the keyLines were not merged only due to self loops?
 		// 	going over all couples of items: merging them if they differ only in self loop element
-		//  need to go over all couples of lines grouping no ordering; need only one half of the matrix
-		halfMatrix := true
-		for _, innerKey := range sortedKeys {
-			innerLines := groupingSrcOrDst[innerKey]
-			// 1. not the same line
-			if innerKey == outerKey {
-				halfMatrix = false
-				continue
-			}
-			if !halfMatrix { // delta is symmetric, no need to calculate twice
-				continue
-			}
-			// 2 both lines must be with the same connection
-			if outerLines[0].Conn != innerLines[0].Conn { // note that all connections are identical in each of the outerLines and innerLines
-				continue
-			}
-			// 3. if grouping vsis then src of compared groups and destinations of compared groups must be same subnet
-			if g.vsisNotSameSameSubnet(outerLines[0].Src, innerLines[0].Src) || g.vsisNotSameSameSubnet(outerLines[0].Dst, innerLines[0].Dst) {
-				continue
-			}
-			// 4. delta between outerKeyEndPointElements to innerKeyEndPointElements must be 0
-			mergeGroups := deltaBetweenGroupedConnLines(srcGrouping, outerLines, innerLines, setsToGroup[outerKey], setsToGroup[innerKey])
-			// 5. delta between the outerLines is 0 - merge outerLines
+		mergeCandidates, ok := keyToMergeCandidates[key]
+		if !ok {
+			continue
+		}
+		for candidate := range mergeCandidates {
+			candidateLines := groupingSrcOrDst[candidate]
+			// delta between outerKeyEndPointElements to innerKeyEndPointElements must be 0
+			mergeGroups := deltaBetweenGroupedConnLines(srcGrouping, keyLines, candidateLines, setsToGroup[key], setsToGroup[candidate])
+			// delta between the keyLines is 0 - merge keyLines
 			if mergeGroups {
-				var toMerge = [2]string{outerKey, innerKey}
+				var toMerge = [2]string{key}
 				toMergeCouples = append(toMergeCouples, toMerge)
 			}
 		}
@@ -129,7 +115,6 @@ func (g *GroupConnLines) mergeCandidates(groupingSrcOrDst map[string][]*GroupedC
 							keyToMergeCandidates[key] = make(map[string]struct{})
 						}
 						keyToMergeCandidates[mergeCandidateKey][key] = struct{}{}
-						keyToMergeCandidates[key][mergeCandidateKey] = struct{}{}
 					}
 				}
 			}
