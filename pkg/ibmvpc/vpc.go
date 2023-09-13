@@ -60,9 +60,6 @@ func (ni *NetworkInterface) VsiName() string {
 	return ni.vsi
 }
 
-func (ni *NetworkInterface) Kind() string {
-	return "NetworkInterface"
-}
 func (ni *NetworkInterface) Name() string {
 	return getNodeName(ni.vsi, ni.address)
 }
@@ -102,9 +99,6 @@ func (n *IKSNode) VsiName() string {
 	return ""
 }
 
-func (n *IKSNode) Kind() string {
-	return iksNodeKind
-}
 func (n *IKSNode) Name() string {
 	return getNodeName(n.ResourceName, n.address)
 }
@@ -144,10 +138,6 @@ func (v *VPC) Details() []string {
 	return []string{v.ResourceName}
 }
 
-func (v *VPC) Kind() string {
-	return "VPC"
-}
-
 func (v *VPC) DetailsMap() []map[string]string {
 	nodesUIDs := []string{}
 	for _, node := range v.nodes {
@@ -176,10 +166,6 @@ func (s *Subnet) Connectivity() *vpcmodel.ConnectivityResult {
 }
 func (s *Subnet) Details() []string {
 	return []string{s.ResourceName + space + s.cidr}
-}
-
-func (s *Subnet) Kind() string {
-	return "Subnet"
 }
 
 func (s *Subnet) DetailsMap() []map[string]string {
@@ -213,10 +199,6 @@ func (v *Vsi) Details() []string {
 	return []string{v.ResourceName}
 }
 
-func (v *Vsi) Kind() string {
-	return "VSI"
-}
-
 func (v *Vsi) DetailsMap() []map[string]string {
 	nodesUIDs := []string{}
 	for _, node := range v.nodes {
@@ -237,10 +219,6 @@ func (v *Vsi) DetailsMap() []map[string]string {
 type NaclLayer struct {
 	vpcmodel.VPCResource
 	naclList []*NACL
-}
-
-func (nl *NaclLayer) Kind() string {
-	return vpcmodel.NaclLayer
 }
 
 func (nl *NaclLayer) Details() []string {
@@ -316,10 +294,6 @@ type NACL struct {
 	vpcmodel.VPCResource
 	subnets  map[string]struct{} // map of subnet cidr strings for which this nacl is applied to
 	analyzer *NACLAnalyzer
-}
-
-func (n *NACL) Kind() string {
-	return "NACL"
 }
 
 func (n *NACL) Details() string {
@@ -399,10 +373,6 @@ func (sgl *SecurityGroupLayer) Name() string {
 	return ""
 }
 
-func (sgl *SecurityGroupLayer) Kind() string {
-	return vpcmodel.SecurityGroupLayer
-}
-
 func (sgl *SecurityGroupLayer) Details() []string {
 	res := []string{}
 	for _, sg := range sgl.sgList {
@@ -453,10 +423,6 @@ type SecurityGroup struct {
 	analyzer *SGAnalyzer
 	members  map[string]struct{} // map of members as their address string values
 
-}
-
-func (sg *SecurityGroup) Kind() string {
-	return "SG"
 }
 
 func (sg *SecurityGroup) Details() string {
@@ -522,10 +488,6 @@ func (fip *FloatingIP) Details() []string {
 	return []string{"FloatingIP " + fip.ResourceName + getRouterAttachedToStr(attachedDetails)}
 }
 
-func (fip *FloatingIP) Kind() string {
-	return "FloatingIP"
-}
-
 func (fip *FloatingIP) DetailsMap() []map[string]string {
 	attachedDetails := ""
 	for _, n := range fip.src {
@@ -582,10 +544,6 @@ func (pgw *PublicGateway) Details() []string {
 	}
 	subnets := strings.Join(pgw.subnetCidr, ",")
 	return []string{"PublicGateway " + pgw.ResourceName + " nodes " + getRouterAttachedToStr(attachedDetails) + " subnets: " + subnets}
-}
-
-func (pgw *PublicGateway) Kind() string {
-	return "PublicGateway"
 }
 
 func (pgw *PublicGateway) DetailsMap() []map[string]string {
