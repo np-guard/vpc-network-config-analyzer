@@ -35,6 +35,15 @@ func getNodeDetails(kind, addr, name, subnetCidr string) string {
 	return kind + space + addr + space + name + " subnet: " + subnetCidr
 }
 
+type Zone struct {
+	name string
+	vpc  *VPC
+}
+
+func (z *Zone) VPC() *VPC {
+	return z.vpc
+}
+
 // nodes elements - implement vpcmodel.Node interface
 type NetworkInterface struct {
 	vpcmodel.VPCResource
@@ -131,6 +140,14 @@ type VPC struct {
 	vpcmodel.VPCResource
 	nodes             []vpcmodel.Node
 	connectivityRules *vpcmodel.ConnectivityResult // allowed connectivity between elements within the vpc
+	zones             map[string]*Zone
+}
+
+func (v *VPC) getZoneByName(name string) (*Zone, error) {
+	if z, ok := v.zones[name]; ok {
+		return z, nil
+	}
+	return nil, errors.New("zone not found")
 }
 
 func (v *VPC) Nodes() []vpcmodel.Node {
@@ -166,6 +183,11 @@ type Subnet struct {
 	nodes             []vpcmodel.Node
 	connectivityRules *vpcmodel.ConnectivityResult // allowed connectivity between elements within the subnet
 	cidr              string
+	vpc               *VPC
+}
+
+func (s *Subnet) Zone() (*Zone, error) {
+	return s.vpc.getZoneByName(s.ZoneName())
 }
 
 func (s *Subnet) Nodes() []vpcmodel.Node {
@@ -193,7 +215,7 @@ func (s *Subnet) DetailsMap() []map[string]string {
 	res[detailsAttributeUID] = s.ResourceUID
 	res[detailsAttributeNodes] = strings.Join(nodesUIDs, commaSeparator)
 	res[vpcmodel.DetailsAttributeCIDR] = s.cidr
-	res[detailsAttributeZone] = s.Zone
+	res[detailsAttributeZone] = s.ZoneName()
 	return []map[string]string{res}
 }
 
@@ -201,6 +223,11 @@ type Vsi struct {
 	vpcmodel.VPCResource
 	nodes             []vpcmodel.Node
 	connectivityRules *vpcmodel.ConnectivityResult // possible rule: if has floating ip -> create connectivity to FIP, deny connectivity to PGW
+	vpc               *VPC
+}
+
+func (v *Vsi) Zone() (*Zone, error) {
+	return v.vpc.getZoneByName(v.ZoneName())
 }
 
 func (v *Vsi) Nodes() []vpcmodel.Node {
@@ -227,7 +254,7 @@ func (v *Vsi) DetailsMap() []map[string]string {
 	res[vpcmodel.DetailsAttributeName] = v.ResourceName
 	res[detailsAttributeUID] = v.ResourceUID
 	res[detailsAttributeNodes] = strings.Join(nodesUIDs, commaSeparator)
-	res[detailsAttributeZone] = v.Zone
+	res[detailsAttributeZone] = v.ZoneName()
 	return []map[string]string{res}
 }
 
@@ -237,6 +264,7 @@ func (v *Vsi) DetailsMap() []map[string]string {
 type NaclLayer struct {
 	vpcmodel.VPCResource
 	naclList []*NACL
+	vpc      *VPC
 }
 
 func (nl *NaclLayer) Kind() string {
@@ -249,6 +277,10 @@ func (nl *NaclLayer) Details() []string {
 		res = append(res, nacl.Details())
 	}
 	return res
+}
+
+func (nl *NaclLayer) VPC() *VPC {
+	return nl.vpc
 }
 
 func (nl *NaclLayer) DetailsMap() []map[string]string {
@@ -314,8 +346,13 @@ func (nl *NaclLayer) ReferencedIPblocks() []*common.IPBlock {
 
 type NACL struct {
 	vpcmodel.VPCResource
-	subnets  map[string]struct{} // map of subnet cidr strings for which this nacl is applied to
+	subnets  map[string]*Subnet // map of subnets (pair of cidr strings and subnet obj) for which this nacl is applied to
 	analyzer *NACLAnalyzer
+	vpc      *VPC
+}
+
+func (n *NACL) VPC() *VPC {
+	return n.vpc
 }
 
 func (n *NACL) Kind() string {
@@ -393,10 +430,15 @@ func (n *NACL) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*com
 type SecurityGroupLayer struct {
 	vpcmodel.VPCResource
 	sgList []*SecurityGroup
+	vpc    *VPC
 }
 
 func (sgl *SecurityGroupLayer) Name() string {
 	return ""
+}
+
+func (sgl *SecurityGroupLayer) VPC() *VPC {
+	return sgl.vpc
 }
 
 func (sgl *SecurityGroupLayer) Kind() string {
@@ -451,12 +493,16 @@ func (sgl *SecurityGroupLayer) ReferencedIPblocks() []*common.IPBlock {
 type SecurityGroup struct {
 	vpcmodel.VPCResource
 	analyzer *SGAnalyzer
-	members  map[string]struct{} // map of members as their address string values
-
+	members  map[string]*NetworkInterface // map of members: pairs(address[string], object[NetworkInterface])
+	vpc      *VPC
 }
 
 func (sg *SecurityGroup) Kind() string {
 	return "SG"
+}
+
+func (sg *SecurityGroup) VPC() *VPC {
+	return sg.vpc
 }
 
 func (sg *SecurityGroup) Details() string {
@@ -573,6 +619,11 @@ type PublicGateway struct {
 	src          []vpcmodel.Node
 	destinations []vpcmodel.Node
 	subnetCidr   []string
+	vpc          *VPC
+}
+
+func (pgw *PublicGateway) Zone() (*Zone, error) {
+	return pgw.vpc.getZoneByName(pgw.ZoneName())
 }
 
 func (pgw *PublicGateway) Details() []string {
@@ -599,7 +650,7 @@ func (pgw *PublicGateway) DetailsMap() []map[string]string {
 		vpcmodel.DetailsAttributeKind: pgw.Kind(),
 		detailsAttributeAttachedTo:    attachedDetails,
 		vpcmodel.DetailsAttributeCIDR: pgw.cidr,
-		detailsAttributeZone:          pgw.Zone,
+		detailsAttributeZone:          pgw.ZoneName(),
 	}
 	return []map[string]string{res}
 }
