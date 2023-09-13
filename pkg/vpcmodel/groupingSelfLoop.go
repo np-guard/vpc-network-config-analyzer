@@ -14,12 +14,13 @@ func (g *GroupConnLines) extendGroupingSelfLoops(groupingSrcOrDst map[string][]*
 
 func (g *GroupConnLines) groupsToBeMerged(groupingSrcOrDst map[string][]*GroupedConnLine, srcGrouping bool) (toMergeCouples [][2]string) {
 	toMergeCouples = make([][2]string, 0)
-	// the to be grouped src/dst in set representation, will be needed to compute the deltas
+	// the to be grouped src/dst in set representation, will be needed to compute potential groups to be merged
+	// and to compute the deltas
 	setsToGroup := createGroupingSets(groupingSrcOrDst, srcGrouping)
 	// in order to compare each couple only once, compare only couples in one half of the matrix.
 	// To that end we must define an order and travers it - sorted sortedKeys
 	sortedKeys := sortedKeysToCompared(groupingSrcOrDst)
-	g.couplesToCompareMap(groupingSrcOrDst, srcGrouping, sortedKeys)
+	g.mergeCandidates(groupingSrcOrDst, srcGrouping, setsToGroup, sortedKeys)
 
 	for _, outerKey := range sortedKeys {
 		outerLines := groupingSrcOrDst[outerKey]
@@ -75,19 +76,17 @@ func sortedKeysToCompared(groupingSrcOrDst map[string][]*GroupedConnLine) (sorte
 // assume w.l.o.g that src are grouped. There is a point in comparing group s1 => d1 to group s2 => d2
 // only if both have the same connection and are VSIs/subnets and
 // s1 is a singleton and is contained in d2 or vice versa
-// optimization: a couple of []*GroupedConnLine is candidate to be merged only if:
+// optimization to reduce the worst case of finding couples to merge from O(n^4) to O(n^2)
+// a couple of []*GroupedConnLine is candidate to be merged only if:
 //  1. They are of the same connection
 //  2. If vsis, of the same subnet
 //  3. The src/dst is a singelton contained in the dst/src
 //     in one path on groupingSrcOrDst we prepare a map between each key to the keys that are candidate to be merged with it
-func (g *GroupConnLines) couplesToCompareMap(groupingSrcOrDst map[string][]*GroupedConnLine, srcGrouping bool, sortedKeys []string) map[string]map[string]struct{} {
-	// create buckets of connections or of connections plus subnet if vsi (linear).
-	// for each bucket: go over all items in it and for each key add to the keys it has potential of being merged with - linear
-	// to that end, for each key with a singleton (src or dest the non-grouped index) have a map from the key to the vsi/subnet
-	//              and from the key to all keys that has that vsi/subnet (linear)
-	// finally, have another pass to have all the candidates in the first half
-
-	// 1. Create buckets for each connection + vsi's subnet if vsi
+//     the last condition implies that each original src -> dst (where src and dst are a single endpoint) can induce a single
+//     candidate (at most), and each singelton key have at most n candidates. Hence the O(n^3) of  groupsToBeMerged above
+func (g *GroupConnLines) mergeCandidates(groupingSrcOrDst map[string][]*GroupedConnLine, srcGrouping bool,
+	keyToGroupedSets map[string]map[string]struct{}, sortedKeys []string) map[string]map[string]struct{} {
+	// 1. Create buckets for each connection + vsi's subnet if vsi; merge candidates are within each bucket
 	bucketToKeys := make(map[string]map[string]struct{})
 	for _, key := range sortedKeys {
 		lines := groupingSrcOrDst[key]
@@ -99,7 +98,44 @@ func (g *GroupConnLines) couplesToCompareMap(groupingSrcOrDst map[string][]*Grou
 		}
 		bucketToKeys[bucket][key] = struct{}{}
 	}
-	return bucketToKeys
+
+	keyToMergeCandidates := make(map[string]map[string]struct{})
+	// 2. in each bucket finds for each key the candidates to be merged, in two stages
+	singeltonToBucket := make(map[string]string)
+	for _, keysInBucket := range bucketToKeys {
+		//    2.1 for a group g_1 s.t. the non-grouped src/dst is a singelton,
+		//        all groups in which the grouped dst/src contains the singelton
+		//        2.1.1 finds for each bucket all singeltons
+		for key := range keysInBucket {
+			lines := groupingSrcOrDst[key]
+			elemsInkey := elemInKeys(!srcGrouping, *lines[0])
+			if len(elemsInkey) > 1 { // not a singelton
+				continue
+			}
+			singelton := elemsInkey[0]
+			singeltonToBucket[singelton] = key
+		}
+		//   2.1.2 finds for each singelton candidates: groups with that singelton
+		//    stores the candidates in keyToMergeCandidates
+		for key := range keysInBucket {
+			itemsInGroup := keyToGroupedSets[key]
+			for item := range itemsInGroup {
+				if mergeCandidateKey, ok := singeltonToBucket[item]; ok {
+					if mergeCandidateKey != key {
+						if _, ok := keyToMergeCandidates[mergeCandidateKey]; !ok {
+							keyToMergeCandidates[mergeCandidateKey] = make(map[string]struct{})
+						}
+						if _, ok := keyToMergeCandidates[key]; !ok {
+							keyToMergeCandidates[key] = make(map[string]struct{})
+						}
+						keyToMergeCandidates[mergeCandidateKey][key] = struct{}{}
+						keyToMergeCandidates[key][mergeCandidateKey] = struct{}{}
+					}
+				}
+			}
+		}
+	}
+	return keyToMergeCandidates
 }
 
 func (g *GroupConnLines) addVsiSubnetToBucket(ep EndpointElem, bucket string) string {
@@ -158,7 +194,7 @@ func createGroupingSets(groupingSrcOrDst map[string][]*GroupedConnLine, srcGroup
 func deltaBetweenGroupedConnLines(srcGrouping bool, groupedConnLine1, groupedConnLine2 []*GroupedConnLine,
 	setToGroup1, setToGroup2 map[string]struct{}) bool {
 	// at least one of the keys must be a single vsi/subnet for the self loop check to be meaningful
-	if elemInKeys(srcGrouping, *groupedConnLine1[0]) > 1 && elemInKeys(srcGrouping, *groupedConnLine2[0]) > 1 {
+	if len(elemInKeys(srcGrouping, *groupedConnLine1[0])) > 1 && len(elemInKeys(srcGrouping, *groupedConnLine2[0])) > 1 {
 		return false
 	}
 	// is there is a real delta between sets and not only due to self loop
@@ -170,9 +206,9 @@ func deltaBetweenGroupedConnLines(srcGrouping bool, groupedConnLine1, groupedCon
 	return false
 }
 
-func elemInKeys(srcGrouping bool, groupedConnLine GroupedConnLine) int {
+func elemInKeys(srcGrouping bool, groupedConnLine GroupedConnLine) []string {
 	srcOrDst := groupedConnLine.getSrcOrDst(srcGrouping)
-	return len(strings.Split(srcOrDst.Name(), commaSepartor))
+	return strings.Split(srcOrDst.Name(), commaSepartor)
 }
 
 func setMinusSet(srcGrouping bool, groupedConnLine GroupedConnLine, set1, set2 map[string]struct{}) map[string]struct{} {
@@ -184,7 +220,7 @@ func setMinusSet(srcGrouping bool, groupedConnLine GroupedConnLine, set1, set2 m
 	}
 	// if set2's groupedConnLine key has a single item, then this single item is not relevant to the delta
 	// since any EndpointElement is connected to itself
-	if elemInKeys(srcGrouping, groupedConnLine) == 1 {
+	if len(elemInKeys(srcGrouping, groupedConnLine)) == 1 {
 		keyOfGrouped2 := groupedConnLine.getSrcOrDst(!srcGrouping) // all non-grouping items are the same in a groupedConnLine
 		delete(minusResult, keyOfGrouped2.Name())                  // if keyOfGrouped2.Name() does not exist in minusResult then this is no-op
 	}
