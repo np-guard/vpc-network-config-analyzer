@@ -86,8 +86,8 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 		return nil, fmt.Errorf("currently only txt/json output format supported with %s analysis type", *args.AnalysisType)
 	}
 
-	if *args.AnalysisType != allEndpoints && *args.Grouping {
-		return nil, fmt.Errorf("currently only allEndpoints analysis type supports grouping")
+	if *args.AnalysisType == singleSubnet && *args.Grouping {
+		return nil, fmt.Errorf("currently singleSubnet analysis type does not support grouping")
 	}
 
 	return &args, nil

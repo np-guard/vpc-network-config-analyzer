@@ -225,6 +225,12 @@ var tests = []*vpcGeneralTest{
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		format:   vpcmodel.ARCHDRAWIO,
 	},
+	{
+		name:     "sg_testing1_new_grouping",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		grouping: true,
+		format:   vpcmodel.Text,
+	},
 	// iks-nodes example
 	{
 		name:     "iks_config_object",

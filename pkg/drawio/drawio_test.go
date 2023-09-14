@@ -18,6 +18,9 @@ func TestWithParsing(t *testing.T) {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err2)
 	}
 	n3 := NewNetworkTreeNode()
+	NewCloudTreeNode(n3, "empty Cloud")
+	NewPublicNetworkTreeNode(n3)
+	NewCloudTreeNode(n3, "empty cloud2")
 	err3 := CreateDrawioConnectivityMapFile(n3, "fake3.drawio")
 	if err3 != nil {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err3)
@@ -26,12 +29,14 @@ func TestWithParsing(t *testing.T) {
 
 func createNetwork() SquareTreeNodeInterface {
 	network := NewNetworkTreeNode()
-	i1 := NewInternetTreeNode(network, "i1")
-	i2 := NewInternetTreeNode(network, "i2")
-	i3 := NewInternetTreeNode(network, "i3")
-	i4 := NewUserTreeNode(network, "i4")
+	cloud := NewCloudTreeNode(network, "IBM Cloud")
+	publicNetwork := NewPublicNetworkTreeNode(network)
+	i1 := NewInternetTreeNode(publicNetwork, "i1")
+	i2 := NewInternetTreeNode(publicNetwork, "i2")
+	i3 := NewInternetTreeNode(publicNetwork, "i3")
+	i4 := NewUserTreeNode(publicNetwork, "i4")
 
-	vpc1 := NewVpcTreeNode(network, "vpc1")
+	vpc1 := NewVpcTreeNode(cloud, "vpc1")
 	zone11 := NewZoneTreeNode(vpc1, "zone1")
 
 	gw11 := NewGatewayTreeNode(zone11, "gw11")
@@ -64,8 +69,8 @@ func createNetwork() SquareTreeNodeInterface {
 	ni5b.SetVsi("svi3")
 	ni5b.SetFIP("fip2")
 
-	NewVpcTreeNode(network, "empty vpc")
-	vpc2 := NewVpcTreeNode(network, "vpc2")
+	NewVpcTreeNode(cloud, "empty vpc")
+	vpc2 := NewVpcTreeNode(cloud, "vpc2")
 	zone21 := NewZoneTreeNode(vpc2, "zone21")
 	sg21 := NewSGTreeNode(vpc2, "sg21")
 
@@ -154,21 +159,49 @@ func createNetwork() SquareTreeNodeInterface {
 	return network
 }
 
+// func createNetwork2() SquareTreeNodeInterface {
+// 	network := NewNetworkTreeNode()
+// 	cloud1 := NewCloudTreeNode(network, "IBM Cloud")
+// 	vpc1 := NewVpcTreeNode(cloud1, "vpc1")
+// 	zone1 := NewZoneTreeNode(vpc1, "zone1")
+// 	subnet1 := NewSubnetTreeNode(zone1, "subnet1", "cidr1", "acl1")
+// 	ni1 := NewNITreeNode(subnet1, nil, "ni1")
+// 	ni1.SetTooltip([]string{"this is ni1 tool tip one line"})
+// 	GroupNIsWithVSI(zone1, "vsi1", []TreeNodeInterface{ni1})
+// 	return network
+// }
+
 func createNetwork2() SquareTreeNodeInterface {
 	network := NewNetworkTreeNode()
-	i2 := NewInternetTreeNode(network, "Internet2")
-	i4 := NewUserTreeNode(network, "User4")
-	vpc1 := NewVpcTreeNode(network, "vpc1")
+	publicNetwork := NewPublicNetworkTreeNode(network)
+	NewCloudTreeNode(network, "empty Cloud")
+	cloud1 := NewCloudTreeNode(network, "IBM Cloud")
+	cloud2 := NewCloudTreeNode(network, "IBM Cloud2")
+	i2 := NewInternetTreeNode(publicNetwork, "Internet2")
+	i4 := NewUserTreeNode(publicNetwork, "User4")
+	i2.SetTooltip([]string{"this is Internet2 tool tip", "with lines"})
+	i4.SetTooltip([]string{"this is User4 tool tip", "with lines"})
+	vpc1 := NewVpcTreeNode(cloud1, "vpc1")
 	zone1 := NewZoneTreeNode(vpc1, "zone1")
 
-	NewGatewayTreeNode(zone1, "gw1")
+	vpc2 := NewVpcTreeNode(cloud2, "vpc1")
+	zone2 := NewZoneTreeNode(vpc2, "zone1")
+	subnet2 := NewSubnetTreeNode(zone2, "subnet2", "cidr1", "acl1")
+	NewVpcTreeNode(cloud2, "vpc3")
+	ni20 := NewNITreeNode(subnet2, nil, "ni20")
+	ni20.SetTooltip([]string{"this is ni20 tool tip", "with lines"})
+	NewConnectivityLineTreeNode(network, ni20, i4, false, "conn20")
+
+	NewGatewayTreeNode(zone1, "gw1").SetTooltip([]string{"this is gw1 tool tip", "with lines"})
 	is1 := NewInternetServiceTreeNode(vpc1, "is1")
+	is1.SetTooltip([]string{"this is is1 tool tip", "with lines"})
 
 	subnet1 := NewSubnetTreeNode(zone1, "subnet1", "cidr1", "acl1")
 
 	sg1 := NewSGTreeNode(vpc1, "sg1")
 	ni1 := NewNITreeNode(subnet1, sg1, "ni1")
 	ni1b := NewNITreeNode(subnet1, sg1, "ni1")
+	ni1.SetTooltip([]string{"this is ni1 tool tip one line"})
 	GroupNIsWithVSI(zone1, "vsi1", []TreeNodeInterface{ni1, ni1b})
 
 	sg2 := NewSGTreeNode(vpc1, "sg2")

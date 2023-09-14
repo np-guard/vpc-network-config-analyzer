@@ -1,22 +1,21 @@
 package vpcmodel
 
 import (
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+
 	"errors"
 	"fmt"
-	"sort"
-	"strings"
-
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 // VPCsubnetConnectivity captures allowed connectivity for subnets, considering nacl and pgw resources
 type VPCsubnetConnectivity struct {
 	// computed for each node (subnet), by iterating its ConnectivityResult for all relevant VPC resources that capture it
-	AllowedConns map[string]*ConfigBasedConnectivityResults
+	AllowedConns map[EndpointElem]*ConfigBasedConnectivityResults
 	// combined connectivity - considering both ingress and egress per connection
-	AllowedConnsCombined map[string]map[string]*common.ConnectionSet
-	// The CloudConfig Object
-	CloudConfig *CloudConfig
+	AllowedConnsCombined map[EndpointElem]map[EndpointElem]*common.ConnectionSet
+	CloudConfig          *CloudConfig
+	// grouped connectivity result
+	GroupedConnectivity *GroupConnLines
 }
 
 const (
@@ -32,11 +31,11 @@ func subnetConnLine(subnet string, conn *common.ConnectionSet) string {
 func (c *ConfigBasedConnectivityResults) string() string {
 	res := "Ingress: \n"
 	for n, conn := range c.IngressAllowedConns {
-		res += subnetConnLine(n, conn)
+		res += subnetConnLine(n.Name(), conn)
 	}
 	res += "Egress: \n"
 	for n, conn := range c.EgressAllowedConns {
-		res += subnetConnLine(n, conn)
+		res += subnetConnLine(n.Name(), conn)
 	}
 
 	return res
@@ -47,7 +46,7 @@ var _ = (*VPCsubnetConnectivity).printAllowedConns // avoiding "unused" warning
 // print AllowedConns (not combined)
 func (v *VPCsubnetConnectivity) printAllowedConns() {
 	for n, connMap := range v.AllowedConns {
-		fmt.Println(n)
+		fmt.Println(n.Name())
 		fmt.Println(connMap.string())
 		fmt.Println("-----------------")
 	}
@@ -101,7 +100,7 @@ func (c *CloudConfig) convertIPbasedToSubnetBasedResult(ipconn *IPbasedConnectiv
 		// PGW does not allow ingress traffic
 		if namedResources, err := c.ipblockToNamedResourcesInConfig(ipb, true); err == nil {
 			for _, n := range namedResources {
-				res.IngressAllowedConns[n.Name()] = conn
+				res.IngressAllowedConns[n] = conn
 			}
 		} else {
 			return nil, err
@@ -112,7 +111,7 @@ func (c *CloudConfig) convertIPbasedToSubnetBasedResult(ipconn *IPbasedConnectiv
 	for ipb, conn := range ipconn.EgressAllowedConns {
 		if namedResources, err := c.ipblockToNamedResourcesInConfig(ipb, !hasPGW); err == nil {
 			for _, n := range namedResources {
-				res.EgressAllowedConns[n.Name()] = conn
+				res.EgressAllowedConns[n] = conn
 			}
 		} else {
 			return nil, err
@@ -141,7 +140,7 @@ func (c *CloudConfig) subnetCidrToSubnetElem(cidr string) (NodeSet, error) {
 }
 
 // the main function to compute connectivity per subnet based on resources that capture subnets, such as nacl, pgw, routing-tables
-func (c *CloudConfig) GetSubnetsConnectivity(includePGW bool) (*VPCsubnetConnectivity, error) {
+func (c *CloudConfig) GetSubnetsConnectivity(includePGW, grouping bool) (*VPCsubnetConnectivity, error) {
 	var subnetsConnectivityFromACLresources map[string]*IPbasedConnectivityResult
 	var err error
 	for _, fl := range c.FilterResources {
@@ -167,7 +166,7 @@ func (c *CloudConfig) GetSubnetsConnectivity(includePGW bool) (*VPCsubnetConnect
 	}
 
 	// convert to subnet-based connectivity result
-	subnetsConnectivity := map[string]*ConfigBasedConnectivityResults{}
+	subnetsConnectivity := map[EndpointElem]*ConfigBasedConnectivityResults{}
 	for subnetCidrStr, ipBasedConnectivity := range subnetsConnectivityFromACLresources {
 		subnetNodeSet, err := c.subnetCidrToSubnetElem(subnetCidrStr)
 		if err != nil {
@@ -187,7 +186,7 @@ func (c *CloudConfig) GetSubnetsConnectivity(includePGW bool) (*VPCsubnetConnect
 			return nil, err
 		}
 
-		subnetsConnectivity[subnetNodeSet.Name()] = configBasedConns
+		subnetsConnectivity[subnetNodeSet] = configBasedConns
 	}
 
 	res := &VPCsubnetConnectivity{AllowedConns: subnetsConnectivity, CloudConfig: c}
@@ -197,25 +196,27 @@ func (c *CloudConfig) GetSubnetsConnectivity(includePGW bool) (*VPCsubnetConnect
 		return nil, err
 	}
 
+	res.GroupedConnectivity = newGroupConnLinesSubnetConnectivity(c, res, grouping)
+
 	return res, nil
 }
 
 func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() error {
-	v.AllowedConnsCombined = map[string]map[string]*common.ConnectionSet{}
+	v.AllowedConnsCombined = map[EndpointElem]map[EndpointElem]*common.ConnectionSet{}
 	for subnetNodeSet, connsRes := range v.AllowedConns {
 		for peerNode, conns := range connsRes.IngressAllowedConns {
 			src := peerNode
 			dst := subnetNodeSet
-			if src == dst {
+			if src.Name() == dst.Name() {
 				continue
 			}
 			combinedConns := conns.Copy()
 
 			// peerNode kind is expected to be Subnet or External
-			peerNodeObj := v.CloudConfig.NameToResource[peerNode]
+			peerNodeObj := v.CloudConfig.NameToResource[peerNode.Name()]
 			switch concPeerNode := peerNodeObj.(type) {
 			case NodeSet:
-				egressConns := v.AllowedConns[concPeerNode.Name()].EgressAllowedConns[subnetNodeSet]
+				egressConns := v.AllowedConns[concPeerNode].EgressAllowedConns[subnetNodeSet]
 				combinedConns = combinedConns.Intersection(egressConns)
 			case *ExternalNetwork:
 				// do nothing
@@ -223,20 +224,20 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() error {
 				return errors.New(errUnexpectedTypePeerNode)
 			}
 			if _, ok := v.AllowedConnsCombined[src]; !ok {
-				v.AllowedConnsCombined[src] = map[string]*common.ConnectionSet{}
+				v.AllowedConnsCombined[src] = map[EndpointElem]*common.ConnectionSet{}
 			}
 			v.AllowedConnsCombined[src][dst] = combinedConns
 		}
 		for peerNode, conns := range connsRes.EgressAllowedConns {
 			src := subnetNodeSet
 			dst := peerNode
-			if src == dst {
+			if src.Name() == dst.Name() {
 				continue
 			}
 			combinedConns := conns
 
 			// peerNode kind is expected to be Subnet or External
-			peerNodeObj := v.CloudConfig.NameToResource[peerNode]
+			peerNodeObj := v.CloudConfig.NameToResource[peerNode.Name()]
 			switch peerNodeObj.(type) {
 			case NodeSet:
 				continue
@@ -246,7 +247,7 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() error {
 				return errors.New(errUnexpectedTypePeerNode)
 			}
 			if _, ok := v.AllowedConnsCombined[src]; !ok {
-				v.AllowedConnsCombined[src] = map[string]*common.ConnectionSet{}
+				v.AllowedConnsCombined[src] = map[EndpointElem]*common.ConnectionSet{}
 			}
 			v.AllowedConnsCombined[src][dst] = combinedConns
 		}
@@ -257,17 +258,8 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() error {
 
 func (v *VPCsubnetConnectivity) String() string {
 	res := "combined connections between subnets:\n"
-	strList := []string{}
-	for src, nodeConns := range v.AllowedConnsCombined {
-		for dst, conns := range nodeConns {
-			if conns.IsEmpty() {
-				continue
-			}
-			strList = append(strList, getConnectionStr(src, dst, conns.String(), ""))
-		}
-	}
-	sort.Strings(strList)
-	res += strings.Join(strList, "")
+	// res += v.GroupedConnectivity.String() ToDo: uncomment once https://github.com/np-guard/vpc-network-config-analyzer/issues/138 is solved
+	res += v.GroupedConnectivity.StringTmpWA()
 	return res
 }
 
