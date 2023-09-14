@@ -140,3 +140,108 @@ func TestGroupingPhase2(t *testing.T) {
 	fmt.Println(groupingStr)
 	fmt.Println("done")
 }
+
+// Simple test of self loop (don't care): clique of the same subnet. Should end in a single line
+func newCloudConfigTest3() (*CloudConfig, *VPCConnectivity) {
+	res := &CloudConfig{Nodes: []Node{}}
+	res.Nodes = append(res.Nodes,
+		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1"},
+		&mockNetIntf{cidr: "10.0.20.6/32", name: "vsi2"},
+		&mockNetIntf{cidr: "10.0.20.7/32", name: "vsi3"})
+
+	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0], res.Nodes[1], res.Nodes[2]}})
+
+	res1 := &VPCConnectivity{AllowedConnsCombined: NewNodesConnectionsMap()}
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[1], res.Nodes[0], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[1], res.Nodes[2], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[2], res.Nodes[1], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[2], res.Nodes[0], common.NewConnectionSet(true))
+
+	return res, res1
+}
+
+func TestGroupingPhase3(t *testing.T) {
+	c, v := newCloudConfigTest3()
+	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections()}
+	res.groupExternalAddresses()
+	res.groupInternalSrcOrDst(true, true)
+	groupingStr := res.String()
+	require.Equal(t, "vsi1,vsi2,vsi3 => vsi1,vsi2,vsi3 : All Connections\n\n"+
+		"connections are stateful unless marked with *\n", groupingStr)
+	fmt.Println(groupingStr)
+	fmt.Println("done")
+}
+
+// Simple test of self loop (don't care): clique in which the vsis belongs to two subnets.
+// Should end in three lines
+func newCloudConfigTest4() (*CloudConfig, *VPCConnectivity) {
+	res := &CloudConfig{Nodes: []Node{}}
+	res.Nodes = append(res.Nodes,
+		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1-1"},
+		&mockNetIntf{cidr: "10.0.20.6/32", name: "vsi1-2"},
+		&mockNetIntf{cidr: "10.240.10.7/32", name: "vsi2-1"})
+
+	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0], res.Nodes[1]}},
+		&mockSubnet{"10.240.10.0/22", "subnet2", []Node{res.Nodes[2]}})
+
+	res1 := &VPCConnectivity{AllowedConnsCombined: NewNodesConnectionsMap()}
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[1], res.Nodes[0], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[1], res.Nodes[2], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[2], res.Nodes[1], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[2], res.Nodes[0], common.NewConnectionSet(true))
+
+	return res, res1
+}
+
+func TestGroupingPhase4(t *testing.T) {
+	c, v := newCloudConfigTest4()
+	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections()}
+	res.groupExternalAddresses()
+	res.groupInternalSrcOrDst(true, true)
+	groupingStr := res.String()
+	require.Equal(t, "vsi1-1,vsi1-2 => vsi1-1,vsi1-2 : All Connections\n"+
+		"vsi1-1,vsi1-2 => vsi2-1 : All Connections\n"+
+		"vsi2-1 => vsi1-1,vsi1-2 : All Connections\n\n"+
+		"connections are stateful unless marked with *\n", groupingStr)
+	fmt.Println(groupingStr)
+	fmt.Println("done")
+}
+
+// Simple test of self loop: two lines with 3 vsis of the same subnet and same connection.
+//
+//	should end in a single line, where one of the vsis being added a self loop
+func newCloudConfigTest5() (*CloudConfig, *VPCConnectivity) {
+	res := &CloudConfig{Nodes: []Node{}}
+	res.Nodes = append(res.Nodes,
+		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1"},
+		&mockNetIntf{cidr: "10.0.20.6/32", name: "vsi2"},
+		&mockNetIntf{cidr: "10.0.20.7/32", name: "vsi3"})
+
+	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0], res.Nodes[1], res.Nodes[2]}})
+
+	res1 := &VPCConnectivity{AllowedConnsCombined: NewNodesConnectionsMap()}
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[1], res.Nodes[2], common.NewConnectionSet(true))
+
+	return res, res1
+}
+
+func TestGroupingPhase5(t *testing.T) {
+	c, v := newCloudConfigTest5()
+	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections()}
+	res.groupExternalAddresses()
+	res.groupInternalSrcOrDst(false, true)
+	res.groupInternalSrcOrDst(true, true)
+	groupingStr := res.String()
+	//require.Equal(t, "vsi1-1,vsi1-2 => vsi1-1,vsi1-2 : All Connections\n"+
+	//	"vsi1-1,vsi1-2 => vsi2-1 : All Connections\n"+
+	//	"vsi2-1 => vsi1-1,vsi1-2 : All Connections\n\n"+
+	//	"connections are stateful unless marked with *\n", groupingStr)
+	fmt.Println(groupingStr)
+	fmt.Println("done")
+}
