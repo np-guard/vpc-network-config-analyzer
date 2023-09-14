@@ -214,3 +214,12 @@ func (tn *SubnetTreeNode) Label() string {
 func (tn *SubnetTreeNode) SetACL(acl string) {
 	tn.acl = acl
 }
+func (tn *SubnetTreeNode) NIs() []IconTreeNodeInterface{
+	nis := []IconTreeNodeInterface{}
+	for _, icon := range tn.elements {
+		if icon.IsNI() {
+			nis = append(nis, icon)
+		}
+	}
+	return nis
+}

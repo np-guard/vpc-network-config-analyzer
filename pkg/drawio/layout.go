@@ -71,7 +71,7 @@ func (ly *layoutS) layout() {
 	// 6. set the geometry for each node in the drawio
 	ly.matrix.setLayersDistance()
 	ly.setGeometries()
-	newLayoutOverlap(ly.network).fixOverlapping()
+	// newLayoutOverlap(ly.network).fixOverlapping()
 }
 
 // setDefaultLocation() set locations to squares
@@ -307,8 +307,8 @@ func (ly *layoutS) setVpcIconsLocations(vpc SquareTreeNodeInterface) {
 		icon.Location().yOffset = iconSpace*(iconIndex%iconsPerCol) - (iconSpace*(iconsPerCol-1))/2
 	}
 }
-func (ly *layoutS) getGroupingIconLocation(location, collLocation *Location) (r *row, c *col) {
-	
+func (ly *layoutS) getGroupingIconLocation(location, collLocation *Location) (r *row, c *col, left bool) {
+
 	switch {
 	case location.lastRow.index < collLocation.firstRow.index:
 		r = location.lastRow
@@ -328,7 +328,7 @@ func (ly *layoutS) getGroupingIconLocation(location, collLocation *Location) (r 
 	default:
 		c = location.prevCol()
 	}
-	return r,c 
+	return r, c, c == location.prevCol()
 }
 
 func (ly *layoutS) setSquareGroupingIconsLocations(square SquareTreeNodeInterface) {
@@ -339,13 +339,23 @@ func (ly *layoutS) setSquareGroupingIconsLocations(square SquareTreeNodeInterfac
 			continue
 		}
 		gIcon := icon.(*GroupPointTreeNode)
+
 		parentLocation := gIcon.DrawioParent().Location()
 		colleagueParentLocation := gIcon.getColleague().DrawioParent().Location()
-		r,c := ly.getGroupingIconLocation(parentLocation, colleagueParentLocation)
+		r, c, isLeft := ly.getGroupingIconLocation(parentLocation, colleagueParentLocation)
 
-		icon.setLocation(newCellLocation(r,c))
+		icon.setLocation(newCellLocation(r, c))
 		icon.Location().yOffset = iconSize * i
 		i++
+		if len(gIcon.groupies) == len(gIcon.Parent().(*SubnetTreeNode).NIs()) {
+			xOffset := -borderWidth / 2
+			if isLeft {
+				xOffset = borderWidth / 2
+			}
+			icon.Location().xOffset = xOffset
+		} else {
+			gIcon.connectGroupies()
+		}
 	}
 }
 func (ly *layoutS) setGroupingIconsLocations() {
