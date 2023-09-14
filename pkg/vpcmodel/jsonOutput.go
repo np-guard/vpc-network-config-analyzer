@@ -115,8 +115,9 @@ func getConnLinesForSubnetsConnectivity(conn *VPCsubnetConnectivity) []subnetsCo
 			if conns.IsEmpty() {
 				continue
 			}
-			srcNode := conn.CloudConfig.NameToResource[src]
-			dstNode := conn.CloudConfig.NameToResource[dst]
+			// currently not supported with grouping
+			srcNode := conn.CloudConfig.NameToResource[src.Name()]
+			dstNode := conn.CloudConfig.NameToResource[dst.Name()]
 			connLines = append(connLines, subnetsConnectivityConnLine{srcNode, dstNode, common.ConnToJSONRep(conns)})
 		}
 	}
