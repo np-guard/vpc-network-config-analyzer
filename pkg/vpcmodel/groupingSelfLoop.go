@@ -5,7 +5,31 @@ import (
 	"strings"
 )
 
-// extends grouping by considering self loops https://github.com/np-guard/vpc-network-config-analyzer/issues/98
+// extends grouping by considering self loops as don't care https://github.com/np-guard/vpc-network-config-analyzer/issues/98
+// e.g. a => b,c   b => a, c   and   c => a,b   is actually a clique a,b,c => a,b,c
+// a => b,c, d => b,c can be presented in one line as  a, d => b,c
+
+// After the basic grouping, which is of worst time complexity O(n^2), we optimize grouping treating self loops as don't care.
+// Intuitively, we check if two GroupedConnLine can be merged treating self loops as don't care
+// 1. groupsToBeMerged find couples of GroupedConnLine that should be merged using the alg below
+// mergeSelfLoops merges the groupsToBeMerged:
+// 2. It creates sets of GroupedConnLine s.t. each set should be merged
+// 3. It merges them
+
+// alg: GroupedConnLine to be merged:
+// GroupedConnLine whose distance is an empty set should be merged;
+// the claim below guarantees that the result is coherent
+//
+// The distance between two GroupedConnLine is defined as following:
+// Let l_1 be a line with source s_1 and dest d_1 and let l_2 be a line with source s_2 and dest d_2.
+// l_1 / l_2 is the subnets in d_1 that are not in d_2 minus the single subnet in s_1 if |s_1| = 1
+//
+// The distance between lines l_1 and l_2 is l_1 / l_2 union l_2 / l_2
+//
+// claim: if the distance between line l_1 and l_2 is empty and
+//		 the distance between lines l_2 and l_3 is zero
+//		 then so is the distance between l_1 and l_3
+
 func (g *GroupConnLines) extendGroupingSelfLoops(groupingSrcOrDst map[string][]*GroupedConnLine,
 	srcGrouping bool) map[string][]*GroupedConnLine {
 	toMergeCouples := g.groupsToBeMerged(groupingSrcOrDst, srcGrouping)
@@ -17,8 +41,6 @@ func (g *GroupConnLines) groupsToBeMerged(groupingSrcOrDst map[string][]*Grouped
 	// the to be grouped src/dst in set representation, will be needed to compute potential groups to be merged
 	// and to compute the deltas
 	setsToGroup := createGroupingSets(groupingSrcOrDst, srcGrouping)
-	// in order to compare each couple only once, compare only couples in one half of the matrix.
-	// To that end we must define an order and travers it - sorted sortedKeys
 	sortedKeys := sortedKeysToCompared(groupingSrcOrDst)
 	keyToMergeCandidates := g.mergeCandidates(groupingSrcOrDst, srcGrouping, setsToGroup, sortedKeys)
 
@@ -57,18 +79,13 @@ func sortedKeysToCompared(groupingSrcOrDst map[string][]*GroupedConnLine) (sorte
 	return
 }
 
-// optimization that reduces the worst case time of groupsToBeMerged from (nxn)^2 to (nxn)*n where n is the number
-// of vsis or of subnets
-// assume w.l.o.g that src are grouped. There is a point in comparing group s1 => d1 to group s2 => d2
-// only if both have the same connection and are VSIs/subnets and
-// s1 is a singleton and is contained in d2 or vice versa
 // optimization to reduce the worst case of finding couples to merge from O(n^4) to O(n^2)
 // a couple of []*GroupedConnLine is candidate to be merged only if:
 //  1. They are of the same connection
 //  2. If vsis, of the same subnet
 //  3. The src/dst is a singelton contained in the dst/src
-//     in one path on groupingSrcOrDst we prepare a map between each key to the keys that are candidate to be merged with it
-//     the last condition implies that each original src -> dst (where src and dst are a single endpoint) can induce a single
+//     in one path on groupingSrcOrDst we prepare a map between each key to the keys that are candidate to be merged with it.
+//     The last condition implies that each original src -> dst (where src and dst are a single endpoint) can induce a single
 //     candidate (at most), and each singelton key have at most n candidates. Hence the O(n^3) of  groupsToBeMerged above
 func (g *GroupConnLines) mergeCandidates(groupingSrcOrDst map[string][]*GroupedConnLine, srcGrouping bool,
 	keyToGroupedSets map[string]map[string]struct{}, sortedKeys []string) map[string]map[string]struct{} {
@@ -164,7 +181,8 @@ func createGroupingSets(groupingSrcOrDst map[string][]*GroupedConnLine, srcGroup
 	return keyToGroupedSets
 }
 
-// computes delta between group connection lines https://github.com/np-guard/vpc-network-config-analyzer/issues/98
+// computes delta between group connection lines as defined in https://github.com/np-guard/vpc-network-config-analyzer/issues/98
+// and in the beginning of this file
 func deltaBetweenGroupedConnLines(srcGrouping bool, groupedConnLine1, groupedConnLine2 []*GroupedConnLine,
 	setToGroup1, setToGroup2 map[string]struct{}) bool {
 	// at least one of the keys must be a single vsi/subnet for the self loop check to be meaningful
