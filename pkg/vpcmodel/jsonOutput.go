@@ -99,8 +99,8 @@ func (j *JSONoutputFormatter) WriteOutputAllSubnets(subnetsConn *VPCsubnetConnec
 }
 
 type subnetsConnectivityConnLine struct {
-	Src  string             `json:"src"`
-	Dst  string             `json:"dst"`
+	Src  VPCResourceIntf    `json:"src"`
+	Dst  VPCResourceIntf    `json:"dst"`
 	Conn common.ConnDetails `json:"conn"`
 }
 
@@ -115,7 +115,9 @@ func getConnLinesForSubnetsConnectivity(conn *VPCsubnetConnectivity) []subnetsCo
 			if conns.IsEmpty() {
 				continue
 			}
-			connLines = append(connLines, subnetsConnectivityConnLine{src, dst, common.ConnToJSONRep(conns)})
+			srcNode := conn.CloudConfig.NameToResource[src]
+			dstNode := conn.CloudConfig.NameToResource[dst]
+			connLines = append(connLines, subnetsConnectivityConnLine{srcNode, dstNode, common.ConnToJSONRep(conns)})
 		}
 	}
 	return connLines
