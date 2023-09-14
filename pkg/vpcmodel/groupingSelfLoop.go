@@ -130,17 +130,6 @@ func (g *GroupConnLines) addVsiSubnetToBucket(ep EndpointElem, bucket string) st
 	return bucket
 }
 
-// if the two endpoints are vsis and do not belong to the same subnet returns true, otherwise false
-// an endpoint can also be a slice of vsis, in which case the invariant is that they belong to the same subnet
-func (g *GroupConnLines) vsisNotSameSameSubnet(ep1, ep2 EndpointElem) bool {
-	isVsi1, node1 := isEpVsi(ep1)
-	isVsi2, node2 := isEpVsi(ep2)
-	if !isVsi1 || !isVsi2 {
-		return false
-	}
-	return g.c.getSubnetOfNode(node1).Name() != g.c.getSubnetOfNode(node2).Name()
-}
-
 // returns true, vsi if the endpoint element represents a vsi or is a slice of elements the first of which represents vsi
 // otherwise returns false, nil
 func isEpVsi(ep EndpointElem) (bool, Node) {
