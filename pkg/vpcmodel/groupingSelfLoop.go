@@ -87,8 +87,8 @@ func (g *GroupConnLines) mergeCandidates(groupingSrcOrDst map[string][]*GroupedC
 
 	keyToMergeCandidates := make(map[string]map[string]struct{})
 	// 2. in each bucket finds for each key the candidates to be merged, in two stages
-	singeltonToBucket := make(map[string]string)
 	for _, keysInBucket := range bucketToKeys {
+		singeltonsInBucket := make(map[string]string)
 		//    2.1 for a group g_1 s.t. the non-grouped src/dst is a singelton,
 		//        all groups in which the grouped dst/src contains the singelton
 		//        2.1.1 finds for each bucket all singeltons
