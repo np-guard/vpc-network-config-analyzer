@@ -101,30 +101,22 @@ type GroupingConnection struct {
 }
 
 
-type groupT struct {
-	icon IconTreeNodeInterface
-	subnet SquareTreeNodeInterface
-	icons []IconTreeNodeInterface
-}
-
-
-
 
 func NewGroupedConnection(
 	network SquareTreeNodeInterface,
-	src, dst *groupT,
+	src, dst []IconTreeNodeInterface,
 	directed bool,
 	name string) *GroupingConnection {
 	gc := GroupingConnection{}
-	if src.subnet != nil {
-		gc.srcGroupPoint = newGroupPointTreeNode(src.subnet, src.icons, directed, false, name)
+	if len(src) > 1 {
+		gc.srcGroupPoint = newGroupPointTreeNode(src[0].Parent().(SquareTreeNodeInterface), src, directed, false, name)
 	} else {
-		gc.srcGroupPoint = src.icon
+		gc.srcGroupPoint = src[0]
 	}
-	if dst.subnet != nil {
-		gc.dstGroupPoint = newGroupPointTreeNode(dst.subnet, dst.icons, directed, true, name)
+	if len(dst) > 1 {
+		gc.dstGroupPoint = newGroupPointTreeNode(dst[0].Parent().(SquareTreeNodeInterface), dst, directed, true, name)
 	} else {
-		gc.dstGroupPoint = dst.icon
+		gc.dstGroupPoint = dst[0]
 	}
 	if gc.srcGroupPoint.IsGroupingPoint() {
 		gc.srcGroupPoint.(*GroupPointTreeNode).setColleague(gc.dstGroupPoint)
@@ -135,6 +127,7 @@ func NewGroupedConnection(
 	gc.conn = NewConnectivityLineTreeNode(network, gc.srcGroupPoint, gc.dstGroupPoint, directed, name)
 	return &gc
 }
+
 func (gc *GroupingConnection) SetGwRouter(gw IconTreeNodeInterface, reverse bool) {
 	gc.conn.SetRouter(gw, reverse)
 	if gc.srcGroupPoint.IsGroupingPoint() {
@@ -152,7 +145,7 @@ func (gc *GroupingConnection) SetFipRouter(isDst bool) {
 	}
 	if gp.IsGroupingPoint() {
 		gp2 := gp.(*GroupPointTreeNode)
-		for i, _ := range gp2.groupies {
+		for i, _ := range gp2.groupiesConn {
 			gp2.groupiesConn[i].SetRouter(gp2.groupies[i].(IconTreeNodeInterface), isDst)
 		}
 	}

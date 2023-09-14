@@ -180,7 +180,8 @@ type GroupPointTreeNode struct {
 	groupies     []IconTreeNodeInterface
 	colleague    IconTreeNodeInterface
 	groupiesConn []LineTreeNodeInterface
-	conn         LineTreeNodeInterface
+	directed     bool
+	isSrc        bool
 }
 
 func (tn *GroupPointTreeNode) setColleague(colleague IconTreeNodeInterface) { tn.colleague = colleague }
@@ -193,18 +194,26 @@ func newGroupPointTreeNode(parent SquareTreeNodeInterface,
 	directed bool,
 	isSrc bool,
 	connName string) *GroupPointTreeNode {
-	groupPoint := &GroupPointTreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, ""), groupies: groupies}
+	groupPoint := &GroupPointTreeNode{
+		abstractIconTreeNode: newAbstractIconTreeNode(parent, ""),
+		groupies:             groupies,
+		directed:             directed,
+		isSrc:                isSrc,
+	}
 	parent.addIconTreeNode(groupPoint)
-	if len(groupies) > 0 {
-		for _, groupe := range groupies {
-			var s, d IconTreeNodeInterface = groupPoint, groupe
-			if !isSrc {
-				s, d = groupe, groupPoint
+	return groupPoint
+}
+func (tn *GroupPointTreeNode) connectGroupies() {
+	if len(tn.groupies) > 0 {
+		for _, groupe := range tn.groupies {
+			var s, d IconTreeNodeInterface = tn, groupe
+			if !tn.isSrc {
+				s, d = groupe, tn
 			}
-			groupPoint.groupiesConn = append(groupPoint.groupiesConn, NewConnectivityLineTreeNode(parent, s, d, directed, connName))
+			tn.groupiesConn = append(tn.groupiesConn, NewConnectivityLineTreeNode(tn.Parent().(SquareTreeNodeInterface), s, d, tn.directed, ""))
 		}
 	}
-	return groupPoint
+
 }
 func (tn *GroupPointTreeNode) setGeometry() {
 	tn.x, tn.y = calculateIconGeometry(tn, tn.DrawioParent())
