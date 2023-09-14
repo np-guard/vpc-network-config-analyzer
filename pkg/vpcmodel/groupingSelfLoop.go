@@ -99,14 +99,14 @@ func (g *GroupConnLines) mergeCandidates(groupingSrcOrDst map[string][]*GroupedC
 				continue
 			}
 			singelton := elemsInkey[0]
-			singeltonToBucket[singelton] = key
+			singeltonsInBucket[singelton] = key
 		}
 		//   2.1.2 finds for each singelton candidates: groups with that singelton
 		//    stores the candidates in keyToMergeCandidates
 		for key := range keysInBucket {
 			itemsInGroup := keyToGroupedSets[key]
 			for item := range itemsInGroup {
-				if mergeCandidateKey, ok := singeltonToBucket[item]; ok {
+				if mergeCandidateKey, ok := singeltonsInBucket[item]; ok {
 					if mergeCandidateKey != key {
 						if _, ok := keyToMergeCandidates[mergeCandidateKey]; !ok {
 							keyToMergeCandidates[mergeCandidateKey] = make(map[string]struct{})
