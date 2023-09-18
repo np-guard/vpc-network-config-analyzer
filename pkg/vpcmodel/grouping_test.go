@@ -238,10 +238,8 @@ func TestGroupingPhase5(t *testing.T) {
 	res.groupInternalSrcOrDst(false, true)
 	res.groupInternalSrcOrDst(true, true)
 	groupingStr := res.String()
-	//require.Equal(t, "vsi1-1,vsi1-2 => vsi1-1,vsi1-2 : All Connections\n"+
-	//	"vsi1-1,vsi1-2 => vsi2-1 : All Connections\n"+
-	//	"vsi2-1 => vsi1-1,vsi1-2 : All Connections\n\n"+
-	//	"connections are stateful unless marked with *\n", groupingStr)
+	require.Equal(t, "vsi1,vsi2 => vsi2,vsi3 : All Connections\n\n"+
+		"connections are stateful unless marked with *\n", groupingStr)
 	fmt.Println(groupingStr)
 	fmt.Println("done")
 }
