@@ -347,13 +347,14 @@ func (ly *layoutS) setSquareGroupingIconsLocations(square SquareTreeNodeInterfac
 		icon.setLocation(newCellLocation(r, c))
 		icon.Location().yOffset = iconSize * i
 		i++
+		xOffsetSign := -1
+		if isLeft {
+			xOffsetSign = 1
+		}
 		if len(gIcon.groupies) == len(gIcon.Parent().(*SubnetTreeNode).NIs()) {
-			xOffset := -borderWidth / 2
-			if isLeft {
-				xOffset = borderWidth / 2
-			}
-			icon.Location().xOffset = xOffset
+			icon.Location().xOffset = borderWidth / 2 * xOffsetSign
 		} else {
+			icon.Location().xOffset = borderWidth * xOffsetSign
 			gIcon.connectGroupies()
 		}
 	}

@@ -95,12 +95,12 @@ func (lyO *layoutOverlap) handleGroupingLinesOverBorders() {
 		if len(line.Points()) != 0 {
 			continue
 		}
-		xOffset := borderWidth / 2 + linesOnCol[line.Src().Location().firstCol]*5 
+		linesOffset := linesOnCol[line.Src().Location().firstCol]*5
 		p1 := iconCenterPoint(line.Src())
-		p1.X -= xOffset 
+		p1.X -= line.Src().Location().xOffset + linesOffset
 		line.addPoint(p1.X, p1.Y)
 		p2 := iconCenterPoint(line.Dst())
-		p2.X -= xOffset
+		p2.X -= line.Dst().Location().xOffset + linesOffset
 		line.addPoint(p2.X, p2.Y)
 		linesOnCol[line.Src().Location().firstCol] +=1
 	}

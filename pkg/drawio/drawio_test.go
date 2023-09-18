@@ -200,6 +200,7 @@ func createNetwork2() SquareTreeNodeInterface {
 		NewNITreeNode(subnet31, nil, "ni1"),
 		NewNITreeNode(subnet31, nil, "ni1"),
 	}
+	NewNITreeNode(subnet31, nil, "ni1")
 	subnet32 := NewSubnetTreeNode(zone3, "subnet2", "cidr2", "acl2")
 	groupedNis32 := []IconTreeNodeInterface{
 		NewNITreeNode(subnet32, nil, "ni1"),
