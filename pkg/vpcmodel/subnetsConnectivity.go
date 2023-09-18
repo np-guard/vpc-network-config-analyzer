@@ -63,7 +63,6 @@ func (c *CloudConfig) ipblockToNamedResourcesInConfig(ipb *common.IPBlock, exclu
 		subnetDetails := nodeset.DetailsMap()[0]
 		if subnetCidr, ok := subnetDetails[DetailsAttributeCIDR]; ok {
 			subnetCidrIPB := common.NewIPBlockFromCidr(subnetCidr)
-			// TODO: consider also connectivity to part of the subnet
 			if subnetCidrIPB.ContainedIn(ipb) {
 				res = append(res, nodeset)
 			}
@@ -97,8 +96,8 @@ func (c *CloudConfig) convertIPbasedToSubnetBasedResult(ipconn *IPbasedConnectiv
 	res := NewConfigBasedConnectivityResults()
 
 	for ipb, conn := range ipconn.IngressAllowedConns {
-		// PGW does not allow ingress traffic
-		if namedResources, err := c.ipblockToNamedResourcesInConfig(ipb, true); err == nil {
+		// PGW does not allow ingress traffic but the ingress is required for the stateful computation
+		if namedResources, err := c.ipblockToNamedResourcesInConfig(ipb, !hasPGW); err == nil {
 			for _, n := range namedResources {
 				res.IngressAllowedConns[n] = conn
 			}
@@ -213,18 +212,21 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() error {
 			if src.Name() == dst.Name() {
 				continue
 			}
-			combinedConns := conns.Copy()
 
+			var combinedConns *common.ConnectionSet
 			// peerNode kind is expected to be Subnet or External
 			peerNodeObj := v.cloudConfig.NameToResource[peerNode.Name()]
 			switch concPeerNode := peerNodeObj.(type) {
 			case NodeSet:
 				egressConns := v.AllowedConns[concPeerNode].EgressAllowedConns[subnetNodeSet]
-				combinedConns = combinedConns.Intersection(egressConns)
-			case *ExternalNetwork: // todo: for stateful this direction is required, but it is not an actual connection
-				// do nothing
+				combinedConns = conns.Intersection(egressConns)
+			case *ExternalNetwork:
+				// PGW does not allow ingress traffic
 			default:
 				return errors.New(errUnexpectedTypePeerNode)
+			}
+			if combinedConns == nil {
+				continue
 			}
 			if _, ok := v.AllowedConnsCombined[src]; !ok {
 				v.AllowedConnsCombined[src] = map[EndpointElem]*common.ConnectionSet{}
@@ -265,16 +267,18 @@ func (v *VPCsubnetConnectivity) computeStatefulConnections() error {
 				continue
 			}
 			dstObj := v.cloudConfig.NameToResource[dst.Name()]
-			var otherDirectionConn *common.ConnectionSet = nil
+			var otherDirectionConn *common.ConnectionSet
 			switch dstObj.(type) {
 			case NodeSet:
 				otherDirectionConn = v.AllowedConnsCombined[dst][src]
 			case *ExternalNetwork:
-				// subnet to external node is stateful if the subnet's nacl allows egress from that node
-				otherDirectionConn = v.AllowedConns[src].EgressAllowedConns[dst]
+				// subnet to external node is stateful if the subnet's nacl allows ingress from that node.
+				// This connection will *not* be considered by AllowedConnsCombined since ingress connection
+				// from external nodes can not be initiated for nacl + pgw
+				otherDirectionConn = v.AllowedConns[src].IngressAllowedConns[dst]
 			default:
 			}
-			conns.IsStateful = common.StatefulFalse
+			conns.IsStateful = common.StatefulFalse // todo: use SwitchSrcDstPorts if there is a way back for the response, then the connection is considered stateful
 			if otherDirectionConn == nil {
 				continue
 			}
