@@ -332,7 +332,6 @@ func getInstancesConfig(
 		}
 		if err := addZone(res, *instance.Zone.Name, *instance.VPC.Name); err != nil {
 			return err
-
 		}
 		res.NodeSets = append(res.NodeSets, vsiNode)
 		res.NameToResource[vsiNode.Name()] = vsiNode
