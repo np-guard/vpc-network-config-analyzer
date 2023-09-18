@@ -96,6 +96,13 @@ func locations(tns []TreeNodeInterface) []*Location {
 	}
 	return locations
 }
+func iconsLocations(tns []IconTreeNodeInterface) []*Location {
+	locations := []*Location{}
+	for _, c := range tns {
+		locations = append(locations, c.Location())
+	}
+	return locations
+}
 
 func absoluteGeometry(tn TreeNodeInterface) (x, y int) {
 	if tn.DrawioParent() == nil {

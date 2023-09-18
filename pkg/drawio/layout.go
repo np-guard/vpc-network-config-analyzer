@@ -330,47 +330,38 @@ func (ly *layoutS) getGroupingIconLocation(location, collLocation *Location) (r 
 	}
 	return r, c, c == location.prevCol()
 }
+type cell struct {
+	r *row 
+	c *col
+}
+func (ly *layoutS) setGroupingIconsLocations() {
+	iconsInCell := map[cell]int{}
 
-func (ly *layoutS) setSquareGroupingIconsLocations(square SquareTreeNodeInterface) {
-	icons := square.IconTreeNodes()
-	i := 0
-	for _, icon := range icons {
-		if !icon.IsGroupingPoint() {
+	for _, tn := range getAllNodes(ly.network) {
+		if !tn.IsIcon() || !tn.(IconTreeNodeInterface).IsGroupingPoint() {
 			continue
 		}
-		gIcon := icon.(*GroupPointTreeNode)
+		gIcon := tn.(*GroupPointTreeNode)
 
-		parentLocation := gIcon.DrawioParent().Location()
+		parent := gIcon.Parent().(*SubnetTreeNode)
+		parentLocation := parent.Location()
 		colleagueParentLocation := gIcon.getColleague().DrawioParent().Location()
 		r, c, isLeft := ly.getGroupingIconLocation(parentLocation, colleagueParentLocation)
 
-		icon.setLocation(newCellLocation(r, c))
-		icon.Location().yOffset = iconSize * i
-		i++
+		gIcon.setLocation(newCellLocation(r, c))
+		gIcon.Location().yOffset = iconSize * iconsInCell[cell{r,c}]
+		iconsInCell[cell{r,c}]++
 		xOffsetSign := -1
 		if isLeft {
 			xOffsetSign = 1
 		}
-		if len(gIcon.groupies) == len(gIcon.Parent().(*SubnetTreeNode).NIs()) {
-			icon.Location().xOffset = borderWidth / 2 * xOffsetSign
+		if len(gIcon.groupies) == len(parent.NIs()) {
+			gIcon.Location().xOffset = borderWidth / 2 * xOffsetSign
 		} else {
-			icon.Location().xOffset = borderWidth * xOffsetSign
+			newGroupSquareTreeNode(parent).setLocation(mergeLocations(iconsLocations(gIcon.groupies)))
+			gIcon.Location().xOffset = borderWidth * xOffsetSign
 			gIcon.connectGroupies()
 		}
-	}
-}
-func (ly *layoutS) setGroupingIconsLocations() {
-	for _, cloud := range ly.network.(*NetworkTreeNode).clouds {
-		for _, vpc := range cloud.(*CloudTreeNode).vpcs {
-			for _, zone := range vpc.(*VpcTreeNode).zones {
-				for _, subnet := range zone.(*ZoneTreeNode).subnets {
-					ly.setSquareGroupingIconsLocations(subnet)
-				}
-				ly.setSquareGroupingIconsLocations(zone)
-			}
-			ly.setSquareGroupingIconsLocations(vpc)
-		}
-		ly.setSquareGroupingIconsLocations(cloud)
 	}
 }
 

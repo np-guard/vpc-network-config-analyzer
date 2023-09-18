@@ -26,6 +26,7 @@ var styles = map[reflect.Type]string{
 	reflect.TypeOf(ZoneTreeNode{}):            "rounded=0;whiteSpace=wrap;html=1;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;spacingBottom=-28;spacingTop=0;labelPosition=-100;verticalLabelPosition=top;align=center;verticalAlign=bottom;spacingLeft=9;spacing=0;expand=0;recursiveResize=0;spacingRight=0;container=1;collapsible=0;strokeColor=#878d96;fillColor=none;",
 	reflect.TypeOf(PartialSGTreeNode{}):       "rounded=0;whiteSpace=wrap;html=1;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;fillColor=none;spacingBottom=-28;spacingTop=0;labelPosition=-100;verticalLabelPosition=top;align=center;verticalAlign=bottom;spacingLeft=9;spacing=0;expand=0;recursiveResize=0;spacingRight=0;container=1;collapsible=0;strokeColor=#FA4D56;strokeWidth=1;",
 	reflect.TypeOf(SubnetTreeNode{}):          "rounded=0;whiteSpace=wrap;html=1;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;spacingBottom=-28;spacingTop=0;labelPosition=-100;verticalLabelPosition=top;align=center;verticalAlign=bottom;spacingLeft=9;spacing=0;expand=0;recursiveResize=0;spacingRight=0;container=1;collapsible=0;strokeColor=#1192E8;fillColor=none;",
+	reflect.TypeOf(GroupSquareTreeNode{}):     "rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#006633;strokeWidth=1;perimeterSpacing=0;arcSize=31;",
 	reflect.TypeOf(NITreeNode{}):              "shape=image;aspect=fixed;image=data:image/svg+xml,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+CjxkZWZzPgo8c3R5bGU+LmNscy0xe2ZpbGw6I2VlNTM5Njt9LmNscy0ye2ZpbGw6bm9uZTt9LmNscy0ze2ZpbGw6I2ZmZjt9PC9zdHlsZT4KPC9kZWZzPg0KPHJlY3QgY2xhc3M9ImNscy0xIiB4PSIwLjUiIHk9IjAuNSIgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4Ii8+CjxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMTQuNSIgeT0iMTQuNSIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIi8+DQo8dGV4dCBmb250LXNpemU9IjMwIiBmaWxsPSJ3aGl0ZSIgeD0iOCIgeT0iMzUiPk5JPC90ZXh0Pgo8L3N2Zz4=;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;spacingTop=-7;",
 	reflect.TypeOf(VsiTreeNode{}):             vsiStyle,
 	reflect.TypeOf(GroupPointTreeNode{}):      "ellipse;whiteSpace=wrap;html=1;aspect=fixed;",
@@ -78,6 +79,10 @@ func (data *drawioData) TextStyle(tn TreeNodeInterface) string {
 }
 func (data *drawioData) TagStyle(tn TreeNodeInterface) string {
 	return tagStyles[reflect.TypeOf(tn).Elem()]
+}
+func (data *drawioData) HasTag(tn TreeNodeInterface) bool {
+	_, ok := tagStyles[reflect.TypeOf(tn).Elem()]
+	return ok
 }
 func (data *drawioData) DecoreStyle(tn TreeNodeInterface) string {
 	return decoreStyles[reflect.TypeOf(tn).Elem()]
