@@ -264,7 +264,7 @@ func (v *VPCsubnetConnectivity) computeStatefulConnections() {
 			if conns.IsEmpty() {
 				continue
 			}
-			dstObj := v.cloudConfig.NameToResource[dst.Name()]
+			dstObj := v.CloudConfig.NameToResource[dst.Name()]
 			var otherDirectionConn *common.ConnectionSet
 			switch dstObj.(type) {
 			case NodeSet:
