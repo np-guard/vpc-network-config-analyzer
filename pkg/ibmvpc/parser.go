@@ -359,8 +359,12 @@ func getSubnetsConfig(
 		subnet := rc.subnetsList[i]
 		subnetNodes := []vpcmodel.Node{}
 		subnetNode := &Subnet{
-			VPCResource: vpcmodel.VPCResource{ResourceName: *subnet.Name, ResourceUID: *subnet.CRN, Zone: *subnet.Zone.Name, ResourceType: ResourceTypeSubnet},
-			cidr:        *subnet.Ipv4CIDRBlock}
+			VPCResource: vpcmodel.VPCResource{
+				ResourceName: *subnet.Name,
+				ResourceUID:  *subnet.CRN,
+				Zone:         *subnet.Zone.Name,
+				ResourceType: ResourceTypeSubnet},
+			cidr: *subnet.Ipv4CIDRBlock}
 		cidrIPBlock := common.NewIPBlockFromCidr(subnetNode.cidr)
 		if vpcInternalAddressRange == nil {
 			vpcInternalAddressRange = cidrIPBlock
@@ -454,8 +458,12 @@ func getFipConfig(
 		if targetAddress != "" {
 			srcNodes := getCertainNodes(res.Nodes, func(n vpcmodel.Node) bool { return n.Cidr() == targetAddress })
 			routerFip := &FloatingIP{
-				VPCResource: vpcmodel.VPCResource{ResourceName: *fip.Name, ResourceUID: *fip.CRN, Zone: *fip.Zone.Name, ResourceType: ResourceTypeFloatingIP},
-				cidr:        *fip.Address, src: srcNodes}
+				VPCResource: vpcmodel.VPCResource{
+					ResourceName: *fip.Name,
+					ResourceUID:  *fip.CRN,
+					Zone:         *fip.Zone.Name,
+					ResourceType: ResourceTypeFloatingIP},
+				cidr: *fip.Address, src: srcNodes}
 			res.RoutingResources = append(res.RoutingResources, routerFip)
 			res.NameToResource[routerFip.Name()] = routerFip
 
@@ -490,7 +498,8 @@ func getSGconfig(rc *ResourcesContainer, res *vpcmodel.CloudConfig, intfNameToIn
 	sgList := []*SecurityGroup{}
 	for i := range rc.sgList {
 		sg := rc.sgList[i]
-		sgResource := &SecurityGroup{VPCResource: vpcmodel.VPCResource{ResourceName: *sg.Name, ResourceUID: *sg.CRN, ResourceType: ResourceTypeSG},
+		sgResource := &SecurityGroup{VPCResource: vpcmodel.VPCResource{
+			ResourceName: *sg.Name, ResourceUID: *sg.CRN, ResourceType: ResourceTypeSG},
 			analyzer: NewSGAnalyzer(sg), members: map[string]struct{}{}}
 		sgMap[*sg.Name] = sgResource
 		targets := sg.Targets // *SecurityGroupTargetReference
