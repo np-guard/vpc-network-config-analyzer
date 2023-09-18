@@ -24,7 +24,6 @@ const (
 	detailsAttributeSubnetCIDR = "subnetCidr"
 	detailsAttributeSubnetUID  = "subnetUID"
 	detailsAttributeZone       = "zone"
-	iksNodeKind                = "IKSNodeNetworkInterface"
 )
 
 func getNodeName(name, addr string) string {
@@ -399,7 +398,7 @@ func (sgl *SecurityGroupLayer) GetConnectivityOutputPerEachElemSeparately() stri
 
 // TODO: fix: is it possible that no sg applies  to the input peer? if so, should not return "no conns" when none applies
 func (sgl *SecurityGroupLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*common.ConnectionSet, error) {
-	if (isIngress && dst.Kind() == iksNodeKind) || (!isIngress && src.Kind() == iksNodeKind) {
+	if (isIngress && dst.Kind() == ResourceTypeIKSNode) || (!isIngress && src.Kind() == ResourceTypeIKSNode) {
 		return vpcmodel.AllConns(), nil
 	}
 	res := vpcmodel.NoConns()

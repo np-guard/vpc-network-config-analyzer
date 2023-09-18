@@ -343,9 +343,7 @@ func (conn *ConnectionSet) String() string {
 	return strings.Join(resStrings, "; ")
 }
 
-type ConnDetails ProtocolList /*struct {
-	AllowedConns ProtocolList
-}*/
+type ConnDetails ProtocolList
 
 func getCubeAsTCPItems(cube []*CanonicalIntervalSet, protocol TcpUdpProtocol) []TcpUdp {
 	tcpItemsTemp := []TcpUdp{}
@@ -426,11 +424,10 @@ func getCubeAsICMPItems(cube []*CanonicalIntervalSet) []Icmp {
 }
 
 func ConnToJSONRep(c *ConnectionSet) ConnDetails {
-	res := ProtocolList{}
 	if c.AllowAll {
-		res = append(res, AnyProtocol{Protocol: AnyProtocolProtocolANY})
-		return ConnDetails(res)
+		return ConnDetails(ProtocolList{AnyProtocol{Protocol: AnyProtocolProtocolANY}})
 	}
+	res := ProtocolList{}
 
 	cubes := c.connectionProperties.GetCubesList()
 	for _, cube := range cubes {
