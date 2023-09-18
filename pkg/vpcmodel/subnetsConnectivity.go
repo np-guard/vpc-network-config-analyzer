@@ -272,7 +272,7 @@ func (v *VPCsubnetConnectivity) computeStatefulConnections() {
 			case *ExternalNetwork:
 				// subnet to external node is stateful if the subnet's nacl allows ingress from that node.
 				// This connection will *not* be considered by AllowedConnsCombined since ingress connection
-				// from external nodes can not be initiated for nacl + pgw
+				// from external nodes can not be initiated for pgw
 				otherDirectionConn = v.AllowedConns[src].IngressAllowedConns[dst]
 			default:
 			}
