@@ -194,9 +194,7 @@ func (c *CloudConfig) GetSubnetsConnectivity(includePGW, grouping bool) (*VPCsub
 	if err := res.computeAllowedConnsCombined(); err != nil {
 		return nil, err
 	}
-	if err := res.computeStatefulConnections(); err != nil {
-		return nil, err
-	}
+	res.computeStatefulConnections()
 
 	res.GroupedConnectivity = newGroupConnLinesSubnetConnectivity(c, res, grouping)
 
@@ -260,7 +258,7 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() error {
 	return nil
 }
 
-func (v *VPCsubnetConnectivity) computeStatefulConnections() error {
+func (v *VPCsubnetConnectivity) computeStatefulConnections() {
 	for src, endpointConns := range v.AllowedConnsCombined {
 		for dst, conns := range endpointConns {
 			if conns.IsEmpty() {
@@ -278,20 +276,17 @@ func (v *VPCsubnetConnectivity) computeStatefulConnections() error {
 				otherDirectionConn = v.AllowedConns[src].IngressAllowedConns[dst]
 			default:
 			}
-			conns.IsStateful = common.StatefulFalse // todo: use SwitchSrcDstPorts if there is a way back for the response, then the connection is considered stateful
+			conns.IsStateful = common.StatefulFalse
 			if otherDirectionConn == nil {
 				continue
 			}
-			stateful, err := conns.ContainedIn(otherDirectionConn)
-			if err != nil {
-				return err
-			}
-			if stateful {
+			stateful := conns.Intersection(otherDirectionConn)
+			// if there is a way back for the response, then the connection is considered stateful
+			if !stateful.IsEmpty() {
 				conns.IsStateful = common.StatefulTrue
 			}
 		}
 	}
-	return nil
 }
 
 func (v *VPCsubnetConnectivity) String() string {
