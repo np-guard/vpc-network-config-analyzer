@@ -25,7 +25,7 @@ const (
 	subnetWidth     = 8 * 40
 	subnetHeight    = 6 * 40
 	iconSize        = 60
-	groupedIconSize = 20
+	groupedIconSize = 10
 	iconSpace       = 4 * 40
 
 	fipXOffset = -70
@@ -71,7 +71,7 @@ func (ly *layoutS) layout() {
 	// 6. set the geometry for each node in the drawio
 	ly.matrix.setLayersDistance()
 	ly.setGeometries()
-	// newLayoutOverlap(ly.network).fixOverlapping()
+	newLayoutOverlap(ly.network).fixOverlapping()
 }
 
 // setDefaultLocation() set locations to squares

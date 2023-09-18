@@ -196,7 +196,10 @@ func createNetwork2() SquareTreeNodeInterface {
 
 	zone3 := NewZoneTreeNode(vpc1, "zone1")
 	subnet31 := NewSubnetTreeNode(zone3, "subnet1", "cidr1", "acl1")
-	NewNITreeNode(subnet31, nil, "ni1")
+	groupedNis31 := []IconTreeNodeInterface{
+		NewNITreeNode(subnet31, nil, "ni1"),
+		NewNITreeNode(subnet31, nil, "ni1"),
+	}
 	subnet32 := NewSubnetTreeNode(zone3, "subnet2", "cidr2", "acl2")
 	groupedNis32 := []IconTreeNodeInterface{
 		NewNITreeNode(subnet32, nil, "ni1"),
@@ -234,6 +237,7 @@ func createNetwork2() SquareTreeNodeInterface {
 	gc3 := NewGroupedConnection(network, groupedNis23, groupedNis1, true, "gconn3")
 	NewGroupedConnection(network, groupedNis23, groupedNis23, true, "gconn3")
 	NewGroupedConnection(network, groupedNis32, groupedNis33, true, "gconn4")
+	NewGroupedConnection(network, groupedNis31, groupedNis33, true, "gconn4")
 	gc1.SetFipRouter(false)
 	gc2.SetFipRouter(false)
 	gc3.SetGwRouter(gw11, true)

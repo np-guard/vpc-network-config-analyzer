@@ -57,7 +57,8 @@ func (lyO *layoutOverlap) cell(x, y int) *overlapCell {
 
 // fixOverlapping() is the entry method.
 func (lyO *layoutOverlap) fixOverlapping() {
-	// The three steps of handling overlapping:
+	// The steps of handling overlapping:
+	lyO.handleGroupingLinesOverBorders()
 	lyO.setIconsMap()
 	lyO.handleLinesOverLines()
 	lyO.handleLinesOverIcons()
@@ -76,6 +77,35 @@ func (lyO *layoutOverlap) setIconsMap() {
 		}
 	}
 }
+//handleGroupingLinesOverBorders() add points to grouping line if it is on the square border
+func (lyO *layoutOverlap) handleGroupingLinesOverBorders() {
+	nodes := getAllNodes(lyO.network)
+	linesOnCol := map[*col]int{}
+	for _, n := range nodes {
+		if !n.IsLine() {
+			continue
+		}
+		line := n.(LineTreeNodeInterface)
+		if !line.Src().IsGroupingPoint() || !line.Dst().IsGroupingPoint() {
+			continue
+		}
+		if line.Src().Location().firstCol != line.Dst().Location().firstCol {
+			continue
+		}
+		if len(line.Points()) != 0 {
+			continue
+		}
+		xOffset := borderWidth / 2 + linesOnCol[line.Src().Location().firstCol]*5 
+		p1 := iconCenterPoint(line.Src())
+		p1.X -= xOffset 
+		line.addPoint(p1.X, p1.Y)
+		p2 := iconCenterPoint(line.Dst())
+		p2.X -= xOffset
+		line.addPoint(p2.X, p2.Y)
+		linesOnCol[line.Src().Location().firstCol] +=1
+	}
+
+}
 
 // handleLinesOverLines() - find pairs of overlapping lines, and add point to one of them
 func (lyO *layoutOverlap) handleLinesOverLines() {
@@ -90,7 +120,7 @@ func (lyO *layoutOverlap) handleLinesOverLines() {
 			}
 			line1 := nodes[i1].(LineTreeNodeInterface)
 			line2 := nodes[i2].(LineTreeNodeInterface)
-						if line1.Src() != line2.Dst() || line1.Dst() != line2.Src() {
+			if line1.Src() != line2.Dst() || line1.Dst() != line2.Src() {
 				continue
 			}
 			if len(line1.Points()) != 0 || len(line2.Points()) != 0 {
@@ -120,7 +150,7 @@ func (lyO *layoutOverlap) handleLinesOverIcons() {
 			continue
 		}
 		line := tn.(LineTreeNodeInterface)
-				newLinePoint := []point{}
+		newLinePoint := []point{}
 		oldLinePoints := line.Points()
 		absPoints := getLineAbsolutePoints(line)
 		for pointIndex := range absPoints[0 : len(absPoints)-1] {
@@ -233,7 +263,7 @@ func getLineAbsolutePoints(line LineTreeNodeInterface) []point {
 
 func iconCenterPoint(icon IconTreeNodeInterface) point {
 	ix, iy := absoluteGeometry(icon)
-	return point{ix + iconSize/2, iy + iconSize/2}
+	return point{ix + icon.IconSize()/2, iy + icon.IconSize()/2}
 }
 
 func getAbsolutePoint(line LineTreeNodeInterface, p point) point {
