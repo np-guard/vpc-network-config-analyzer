@@ -3,16 +3,18 @@ package vpcmodel
 import (
 	"encoding/json"
 	"errors"
+
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 type JSONoutputFormatter struct {
 }
 
 type connLine struct {
-	Src                EndpointElem `json:"src"`
-	Dst                EndpointElem `json:"dst"`
-	Conn               string       `json:"conn"`
-	UnidirectionalConn string       `json:"unidirectional_conn,omitempty"`
+	Src                EndpointElem       `json:"src"`
+	Dst                EndpointElem       `json:"dst"`
+	Conn               common.ConnDetails `json:"conn"`
+	UnidirectionalConn common.ConnDetails `json:"unidirectional_conn,omitempty"`
 }
 
 type architecture struct {
@@ -23,8 +25,8 @@ type architecture struct {
 }
 
 type allInfo struct {
-	Arch         architecture `json:"architecture"`
-	Connectivity []connLine   `json:"connectivity"`
+	Arch                  architecture `json:"architecture"`
+	EndpointsConnectivity []connLine   `json:"endpoints_connectivity"`
 }
 
 func getConnLines(conn *VPCConnectivity) []connLine {
@@ -39,20 +41,12 @@ func getConnLines(conn *VPCConnectivity) []connLine {
 			unidirectionalConn := unidirectional.getAllowedConnForPair(src, dst)
 			bidirectionalConn := bidirectional.getAllowedConnForPair(src, dst)
 			if !unidirectionalConn.IsEmpty() {
-				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: bidirectionalConn.String(),
-					UnidirectionalConn: unidirectionalConn.String()})
+				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: common.ConnToJSONRep(bidirectionalConn),
+					UnidirectionalConn: common.ConnToJSONRep(unidirectionalConn)})
 			} else {
-				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: conn.String()})
+				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: common.ConnToJSONRep(conn)})
 			}
 		}
-	}
-	return connLines
-}
-
-func getGroupedConnLines(conn *VPCConnectivity) []connLine {
-	connLines := make([]connLine, len(conn.GroupedConnectivity.GroupedLines))
-	for i, line := range conn.GroupedConnectivity.GroupedLines {
-		connLines[i] = connLine{Src: line.Src, Dst: line.Dst, Conn: line.Conn}
 	}
 	return connLines
 }
@@ -62,14 +56,9 @@ func (j *JSONoutputFormatter) WriteOutputAllEndpoints(c *CloudConfig, conn *VPCC
 	error,
 ) {
 	all := allInfo{}
-	var connLines []connLine
-	if grouping {
-		connLines = getGroupedConnLines(conn)
-	} else {
-		connLines = getConnLines(conn)
-	}
+	connLines := getConnLines(conn)
 
-	all.Connectivity = connLines
+	all.EndpointsConnectivity = connLines
 
 	all.Arch = architecture{
 		Nodes:    []map[string]string{},
@@ -90,7 +79,11 @@ func (j *JSONoutputFormatter) WriteOutputAllEndpoints(c *CloudConfig, conn *VPCC
 		all.Arch.Routers = append(all.Arch.Routers, r.DetailsMap()...)
 	}
 
-	res, err := json.MarshalIndent(all, "", "    ")
+	return writeJSON(all, outFile)
+}
+
+func writeJSON(s interface{}, outFile string) (string, error) {
+	res, err := json.MarshalIndent(s, "", "    ")
 	if err != nil {
 		return "", err
 	}
@@ -100,7 +93,35 @@ func (j *JSONoutputFormatter) WriteOutputAllEndpoints(c *CloudConfig, conn *VPCC
 }
 
 func (j *JSONoutputFormatter) WriteOutputAllSubnets(subnetsConn *VPCsubnetConnectivity, outFile string) (string, error) {
-	return "", errors.New("SubnetLevel use case not supported for md format currently ")
+	all := allSubnetsConnectivity{}
+	all.Connectivity = getConnLinesForSubnetsConnectivity(subnetsConn)
+	return writeJSON(all, outFile)
+}
+
+type subnetsConnectivityConnLine struct {
+	Src  VPCResourceIntf    `json:"src"`
+	Dst  VPCResourceIntf    `json:"dst"`
+	Conn common.ConnDetails `json:"conn"`
+}
+
+type allSubnetsConnectivity struct {
+	Connectivity []subnetsConnectivityConnLine `json:"subnets_connectivity"`
+}
+
+func getConnLinesForSubnetsConnectivity(conn *VPCsubnetConnectivity) []subnetsConnectivityConnLine {
+	connLines := []subnetsConnectivityConnLine{}
+	for src, nodeConns := range conn.AllowedConnsCombined {
+		for dst, conns := range nodeConns {
+			if conns.IsEmpty() {
+				continue
+			}
+			// currently not supported with grouping
+			srcNode := conn.CloudConfig.NameToResource[src.Name()]
+			dstNode := conn.CloudConfig.NameToResource[dst.Name()]
+			connLines = append(connLines, subnetsConnectivityConnLine{srcNode, dstNode, common.ConnToJSONRep(conns)})
+		}
+	}
+	return connLines
 }
 
 func (j *JSONoutputFormatter) WriteOutputSingleSubnet(c *CloudConfig, outFile string) (string, error) {

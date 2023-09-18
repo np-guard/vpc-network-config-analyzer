@@ -69,9 +69,6 @@ func (ni *NetworkInterface) VsiName() string {
 	return ni.vsi
 }
 
-func (ni *NetworkInterface) Kind() string {
-	return "NetworkInterface"
-}
 func (ni *NetworkInterface) Name() string {
 	return getNodeName(ni.vsi, ni.address)
 }
@@ -111,9 +108,6 @@ func (n *IKSNode) VsiName() string {
 	return ""
 }
 
-func (n *IKSNode) Kind() string {
-	return iksNodeKind
-}
 func (n *IKSNode) Name() string {
 	return getNodeName(n.ResourceName, n.address)
 }
@@ -161,10 +155,6 @@ func (v *VPC) Details() []string {
 	return []string{v.ResourceName}
 }
 
-func (v *VPC) Kind() string {
-	return "VPC"
-}
-
 func (v *VPC) DetailsMap() []map[string]string {
 	nodesUIDs := []string{}
 	for _, node := range v.nodes {
@@ -198,10 +188,6 @@ func (s *Subnet) Connectivity() *vpcmodel.ConnectivityResult {
 }
 func (s *Subnet) Details() []string {
 	return []string{s.ResourceName + space + s.cidr}
-}
-
-func (s *Subnet) Kind() string {
-	return "Subnet"
 }
 
 func (s *Subnet) DetailsMap() []map[string]string {
@@ -240,10 +226,6 @@ func (v *Vsi) Details() []string {
 	return []string{v.ResourceName}
 }
 
-func (v *Vsi) Kind() string {
-	return "VSI"
-}
-
 func (v *Vsi) DetailsMap() []map[string]string {
 	nodesUIDs := []string{}
 	for _, node := range v.nodes {
@@ -265,10 +247,6 @@ type NaclLayer struct {
 	vpcmodel.VPCResource
 	naclList []*NACL
 	vpc      *VPC
-}
-
-func (nl *NaclLayer) Kind() string {
-	return vpcmodel.NaclLayer
 }
 
 func (nl *NaclLayer) Details() []string {
@@ -355,10 +333,6 @@ func (n *NACL) VPC() *VPC {
 	return n.vpc
 }
 
-func (n *NACL) Kind() string {
-	return "NACL"
-}
-
 func (n *NACL) Details() string {
 	subnets := ""
 	for subent := range n.subnets {
@@ -441,9 +415,9 @@ func (sgl *SecurityGroupLayer) VPC() *VPC {
 	return sgl.vpc
 }
 
-func (sgl *SecurityGroupLayer) Kind() string {
+/*func (sgl *SecurityGroupLayer) Kind() string {
 	return vpcmodel.SecurityGroupLayer
-}
+}*/
 
 func (sgl *SecurityGroupLayer) Details() []string {
 	res := []string{}
@@ -497,9 +471,11 @@ type SecurityGroup struct {
 	vpc      *VPC
 }
 
+/*
 func (sg *SecurityGroup) Kind() string {
 	return "SG"
 }
+*/
 
 func (sg *SecurityGroup) VPC() *VPC {
 	return sg.vpc
@@ -568,10 +544,6 @@ func (fip *FloatingIP) Details() []string {
 	return []string{"FloatingIP " + fip.ResourceName + getRouterAttachedToStr(attachedDetails)}
 }
 
-func (fip *FloatingIP) Kind() string {
-	return "FloatingIP"
-}
-
 func (fip *FloatingIP) DetailsMap() []map[string]string {
 	attachedDetails := ""
 	for _, n := range fip.src {
@@ -633,10 +605,6 @@ func (pgw *PublicGateway) Details() []string {
 	}
 	subnets := strings.Join(pgw.subnetCidr, ",")
 	return []string{"PublicGateway " + pgw.ResourceName + " nodes " + getRouterAttachedToStr(attachedDetails) + " subnets: " + subnets}
-}
-
-func (pgw *PublicGateway) Kind() string {
-	return "PublicGateway"
 }
 
 func (pgw *PublicGateway) DetailsMap() []map[string]string {
