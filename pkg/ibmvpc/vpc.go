@@ -415,10 +415,6 @@ func (sgl *SecurityGroupLayer) VPC() *VPC {
 	return sgl.vpc
 }
 
-/*func (sgl *SecurityGroupLayer) Kind() string {
-	return vpcmodel.SecurityGroupLayer
-}*/
-
 func (sgl *SecurityGroupLayer) Details() []string {
 	res := []string{}
 	for _, sg := range sgl.sgList {
@@ -470,12 +466,6 @@ type SecurityGroup struct {
 	members  map[string]*NetworkInterface // map of members: pairs(address[string], object[NetworkInterface])
 	vpc      *VPC
 }
-
-/*
-func (sg *SecurityGroup) Kind() string {
-	return "SG"
-}
-*/
 
 func (sg *SecurityGroup) VPC() *VPC {
 	return sg.vpc
