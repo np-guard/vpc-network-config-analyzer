@@ -63,6 +63,7 @@ func (c *CloudConfig) ipblockToNamedResourcesInConfig(ipb *common.IPBlock, exclu
 		subnetDetails := nodeset.DetailsMap()[0]
 		if subnetCidr, ok := subnetDetails[DetailsAttributeCIDR]; ok {
 			subnetCidrIPB := common.NewIPBlockFromCidr(subnetCidr)
+			// TODO: consider also connectivity to part of the subnet
 			if subnetCidrIPB.ContainedIn(ipb) {
 				res = append(res, nodeset)
 			}
