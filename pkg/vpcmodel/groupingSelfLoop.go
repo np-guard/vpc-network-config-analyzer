@@ -58,7 +58,7 @@ func (g *GroupConnLines) groupsToBeMerged(groupingSrcOrDst map[string][]*Grouped
 			mergeGroups := deltaBetweenGroupedConnLines(srcGrouping, keyLines, candidateLines, setsToGroup[key], setsToGroup[candidate])
 			// delta between the keyLines is 0 - merge keyLines
 			if mergeGroups {
-				var toMerge = [2]string{key}
+				var toMerge = [2]string{key, candidate}
 				toMergeCouples = append(toMergeCouples, toMerge)
 			}
 		}
