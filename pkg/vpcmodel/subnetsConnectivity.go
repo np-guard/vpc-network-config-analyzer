@@ -13,7 +13,7 @@ type VPCsubnetConnectivity struct {
 	AllowedConns map[EndpointElem]*ConfigBasedConnectivityResults
 	// combined connectivity - considering both ingress and egress per connection
 	AllowedConnsCombined map[EndpointElem]map[EndpointElem]*common.ConnectionSet
-	cloudConfig          *CloudConfig
+	CloudConfig          *CloudConfig
 	// grouped connectivity result
 	GroupedConnectivity *GroupConnLines
 }
@@ -188,7 +188,7 @@ func (c *CloudConfig) GetSubnetsConnectivity(includePGW, grouping bool) (*VPCsub
 		subnetsConnectivity[subnetNodeSet] = configBasedConns
 	}
 
-	res := &VPCsubnetConnectivity{AllowedConns: subnetsConnectivity, cloudConfig: c}
+	res := &VPCsubnetConnectivity{AllowedConns: subnetsConnectivity, CloudConfig: c}
 
 	// get combined connections from subnetsConnectivity
 	if err := res.computeAllowedConnsCombined(); err != nil {
@@ -213,7 +213,7 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() error {
 
 			var combinedConns *common.ConnectionSet
 			// peerNode kind is expected to be Subnet or External
-			peerNodeObj := v.cloudConfig.NameToResource[peerNode.Name()]
+			peerNodeObj := v.CloudConfig.NameToResource[peerNode.Name()]
 			switch concPeerNode := peerNodeObj.(type) {
 			case NodeSet:
 				egressConns := v.AllowedConns[concPeerNode].EgressAllowedConns[subnetNodeSet]
@@ -240,7 +240,7 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() error {
 			combinedConns := conns
 
 			// peerNode kind is expected to be Subnet or External
-			peerNodeObj := v.cloudConfig.NameToResource[peerNode.Name()]
+			peerNodeObj := v.CloudConfig.NameToResource[peerNode.Name()]
 			switch peerNodeObj.(type) {
 			case NodeSet:
 				continue
