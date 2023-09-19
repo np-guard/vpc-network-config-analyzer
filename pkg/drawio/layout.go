@@ -330,35 +330,61 @@ func (ly *layoutS) getGroupingIconLocation(location, collLocation *Location) (r 
 	}
 	return r, c, c == location.prevCol()
 }
-type cell struct {
-	r *row 
-	c *col
+
+
+func (ly *layoutS) createGroupingSquares() {
+	for _, tn := range getAllNodes(ly.network) {
+		if !tn.IsIcon() || !tn.(IconTreeNodeInterface).IsGroupingPoint() {
+			continue
+		}
+		gIcon := tn.(*GroupPointTreeNode)
+		parent := gIcon.Parent().(*SubnetTreeNode)
+		isAllSubnet := len(gIcon.groupies) == len(parent.NIs())
+		if !isAllSubnet && len(gIcon.groupies) == 2 {
+			gIcon.groupSquare = newGroupSquareTreeNode(parent, gIcon.groupies)
+			gIcon.groupSquare.setLocation(mergeLocations(iconsLocations(gIcon.groupSquare.groupies)))
+		}
+	}
 }
 func (ly *layoutS) setGroupingIconsLocations() {
-	iconsInCell := map[cell]int{}
+	type cell struct {
+		r *row
+		c *col
+	}
+		iconsInCell := map[cell]int{}
 
 	for _, tn := range getAllNodes(ly.network) {
 		if !tn.IsIcon() || !tn.(IconTreeNodeInterface).IsGroupingPoint() {
 			continue
 		}
 		gIcon := tn.(*GroupPointTreeNode)
-
 		parent := gIcon.Parent().(*SubnetTreeNode)
+		colleague := gIcon.getColleague()
+		isAllSubnet := len(gIcon.groupies) == len(parent.NIs())
+		hasGroupSquare := gIcon.groupSquare != nil
+		colleagueHasGroupSquare := colleague.IsGroupingPoint() && colleague.(*GroupPointTreeNode).groupSquare != nil
 		parentLocation := parent.Location()
-		colleagueParentLocation := gIcon.getColleague().DrawioParent().Location()
+		if hasGroupSquare {
+			parentLocation = gIcon.groupSquare.Location()
+		}
+		colleagueParentLocation := colleague.Parent().Location()
+		if colleagueHasGroupSquare {
+			colleagueParentLocation = colleague.(*GroupPointTreeNode).groupSquare.Location()
+		}
 		r, c, isLeft := ly.getGroupingIconLocation(parentLocation, colleagueParentLocation)
 
 		gIcon.setLocation(newCellLocation(r, c))
-		gIcon.Location().yOffset = iconSize * iconsInCell[cell{r,c}]
-		iconsInCell[cell{r,c}]++
+		gIcon.Location().yOffset = iconSize * iconsInCell[cell{r, c}]
+		iconsInCell[cell{r, c}]++
 		xOffsetSign := -1
 		if isLeft {
 			xOffsetSign = 1
 		}
-		if len(gIcon.groupies) == len(parent.NIs()) {
+		if isAllSubnet {
 			gIcon.Location().xOffset = borderWidth / 2 * xOffsetSign
+		} else if hasGroupSquare {
+			gIcon.Location().xOffset = borderWidth * xOffsetSign
 		} else {
-			newGroupSquareTreeNode(parent).setLocation(mergeLocations(iconsLocations(gIcon.groupies)))
 			gIcon.Location().xOffset = borderWidth * xOffsetSign
 			gIcon.connectGroupies()
 		}
@@ -415,6 +441,7 @@ func (ly *layoutS) setIconsLocations() {
 		}
 	}
 	ly.setPublicNetworkIconsLocations()
+	ly.createGroupingSquares()
 	ly.setGroupingIconsLocations()
 }
 

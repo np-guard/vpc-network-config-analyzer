@@ -181,6 +181,7 @@ type GroupPointTreeNode struct {
 	colleague     IconTreeNodeInterface
 	groupiesConns []LineTreeNodeInterface
 	groupingConn  *GroupingConnection
+	groupSquare   *GroupSquareTreeNode
 	directed      bool
 	isSrc         bool
 }
