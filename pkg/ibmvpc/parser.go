@@ -556,7 +556,9 @@ func getSGconfig(rc *ResourcesContainer, res *vpcmodel.CloudConfig, intfNameToIn
 			return singleVPCErr(vpc.Name(), layerVPC.Name())
 		}
 
-		sgResource := &SecurityGroup{VPCResource: vpcmodel.VPCResource{ResourceName: *sg.Name, ResourceUID: *sg.CRN, ResourceType: ResourceTypeSG},
+		sgResource := &SecurityGroup{
+			VPCResource: vpcmodel.VPCResource{
+				ResourceName: *sg.Name, ResourceUID: *sg.CRN, ResourceType: ResourceTypeSG},
 			analyzer: NewSGAnalyzer(sg), members: map[string]*NetworkInterface{}, vpc: vpc,
 		}
 		sgMap[*sg.Name] = sgResource
