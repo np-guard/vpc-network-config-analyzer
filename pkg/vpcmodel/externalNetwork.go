@@ -101,13 +101,10 @@ func newExternalNode(isPublicInternet bool, ipb *common.IPBlock) (Node, error) {
 		return nil, errors.New("newExternalNode: input ip-block should be of a single cidr")
 	}
 	cidr := ipb.ToCidrList()[0]
-	if isPublicInternet {
-		return &ExternalNetwork{
-			VPCResource: VPCResource{ResourceType: publicInternetNodeName},
-			CidrStr:     cidr, isPublicInternet: true,
-		}, nil
-	}
-	return &ExternalNetwork{VPCResource: VPCResource{ResourceType: publicInternetNodeName}, CidrStr: cidr}, nil
+	return &ExternalNetwork{
+		VPCResource:      VPCResource{ResourceType: publicInternetNodeName},
+		CidrStr:          cidr,
+		isPublicInternet: isPublicInternet}, nil
 }
 
 func GetExternalNetworkNodes(disjointRefExternalIPBlocks []*common.IPBlock) ([]Node, error) {

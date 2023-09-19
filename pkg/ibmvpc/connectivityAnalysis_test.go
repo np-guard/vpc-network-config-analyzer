@@ -297,7 +297,7 @@ func getAllowAllRules() []*NACLRule {
 
 func addInterfaceNode(config *vpcmodel.CloudConfig, name, address, vsiName, subnetName string) {
 	intfNode := &NetworkInterface{
-		VPCResource: vpcmodel.VPCResource{ResourceName: name, ResourceUID: name, ResourceType: "NetworkInterface"},
+		VPCResource: vpcmodel.VPCResource{ResourceName: name, ResourceUID: name, ResourceType: ResourceTypeNetworkInterface},
 		address:     address,
 		vsi:         vsiName,
 	}
@@ -315,7 +315,7 @@ func addInterfaceNode(config *vpcmodel.CloudConfig, name, address, vsiName, subn
 
 func addSubnet(config *vpcmodel.CloudConfig, name, cidr, zone string) *Subnet {
 	subnetNode := &Subnet{
-		VPCResource: vpcmodel.VPCResource{ResourceName: name, ResourceUID: name, Zone: zone, ResourceType: "Subnet"},
+		VPCResource: vpcmodel.VPCResource{ResourceName: name, ResourceUID: name, Zone: zone, ResourceType: ResourceTypeSubnet},
 		cidr:        cidr,
 	}
 	config.NodeSets = append(config.NodeSets, subnetNode)
@@ -339,7 +339,7 @@ func addNACL(config *vpcmodel.CloudConfig, name string, subnets map[string]*Subn
 
 	// create the new nacl
 	naclResource := &NACL{
-		VPCResource: vpcmodel.VPCResource{ResourceName: name, ResourceUID: name, ResourceType: "NACL"},
+		VPCResource: vpcmodel.VPCResource{ResourceName: name, ResourceUID: name, ResourceType: ResourceTypeNACL},
 		analyzer:    analyzer, /*&NACLAnalyzer{
 			//naclResource:    nacl,
 			analyzedSubnets: map[string]*AnalysisResultPerSubnet{},

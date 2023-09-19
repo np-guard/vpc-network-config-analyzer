@@ -22,6 +22,19 @@ const (
 	linesSeparator               = "---------------------"
 )
 
+// Resource types const strings, used in the generated resources of this pkg
+const (
+	ResourceTypeVSI              = "VSI"
+	ResourceTypeNetworkInterface = "NetworkInterface"
+	ResourceTypeSubnet           = "Subnet"
+	ResourceTypePublicGateway    = "PublicGateway"
+	ResourceTypeFloatingIP       = "FloatingIP"
+	ResourceTypeVPC              = "VPC"
+	ResourceTypeSG               = "SG"
+	ResourceTypeNACL             = "NACL"
+	ResourceTypeIKSNode          = "IKSNodeNetworkInterface"
+)
+
 type ResourcesContainer struct {
 	naclList     []*vpc1.NetworkACL
 	sgList       []*vpc1.SecurityGroup
@@ -326,7 +339,7 @@ func getInstancesConfig(
 		}
 		vsiNode := &Vsi{
 			VPCResource: vpcmodel.VPCResource{ResourceName: *instance.Name, ResourceUID: *instance.CRN, Zone: *instance.Zone.Name,
-				ResourceType: "VSI"},
+				ResourceType: ResourceTypeVSI},
 			nodes: []vpcmodel.Node{},
 			vpc:   vpc,
 		}
@@ -340,7 +353,7 @@ func getInstancesConfig(
 			// netintf has no CRN, thus using its ID for ResourceUID
 			intfNode := &NetworkInterface{
 				VPCResource: vpcmodel.VPCResource{ResourceName: *netintf.Name, ResourceUID: *netintf.ID,
-					ResourceType: "NetworkInterface", Zone: *instance.Zone.Name},
+					ResourceType: ResourceTypeNetworkInterface, Zone: *instance.Zone.Name},
 				address: *netintf.PrimaryIP.Address, vsi: *instance.Name}
 			res.Nodes = append(res.Nodes, intfNode)
 			res.NameToResource[intfNode.Name()] = intfNode
@@ -370,8 +383,15 @@ func getSubnetsConfig(
 			return nil, err
 		}
 		subnetNode := &Subnet{
-			VPCResource: vpcmodel.VPCResource{ResourceName: *subnet.Name, ResourceUID: *subnet.CRN, Zone: *subnet.Zone.Name, ResourceType: "Subnet"},
-			cidr:        *subnet.Ipv4CIDRBlock, vpc: vpc}
+			VPCResource: vpcmodel.VPCResource{
+				ResourceName: *subnet.Name,
+				ResourceUID:  *subnet.CRN,
+				Zone:         *subnet.Zone.Name,
+				ResourceType: ResourceTypeSubnet},
+			cidr: *subnet.Ipv4CIDRBlock,
+			vpc:  vpc,
+		}
+
 		cidrIPBlock := common.NewIPBlockFromCidr(subnetNode.cidr)
 		if vpcInternalAddressRange == nil {
 			vpcInternalAddressRange = cidrIPBlock
@@ -439,7 +459,7 @@ func getPgwConfig(
 				ResourceName: *pgw.Name,
 				ResourceUID:  *pgw.CRN,
 				Zone:         *pgw.Zone.Name,
-				ResourceType: "PublicGateway",
+				ResourceType: ResourceTypePublicGateway,
 			},
 			cidr:       "",
 			src:        srcNodes,
@@ -478,8 +498,12 @@ func getFipConfig(
 		if targetAddress != "" {
 			srcNodes := getCertainNodes(res.Nodes, func(n vpcmodel.Node) bool { return n.Cidr() == targetAddress })
 			routerFip := &FloatingIP{
-				VPCResource: vpcmodel.VPCResource{ResourceName: *fip.Name, ResourceUID: *fip.CRN, Zone: *fip.Zone.Name, ResourceType: "FloatingIP"},
-				cidr:        *fip.Address, src: srcNodes}
+				VPCResource: vpcmodel.VPCResource{
+					ResourceName: *fip.Name,
+					ResourceUID:  *fip.CRN,
+					Zone:         *fip.Zone.Name,
+					ResourceType: ResourceTypeFloatingIP},
+				cidr: *fip.Address, src: srcNodes}
 			res.RoutingResources = append(res.RoutingResources, routerFip)
 			res.NameToResource[routerFip.Name()] = routerFip
 
@@ -503,7 +527,7 @@ func getVPCconfig(rc *ResourcesContainer, res *vpcmodel.CloudConfig) {
 	for i := range rc.vpcsList {
 		vpc := rc.vpcsList[i]
 		vpcNodeSet := &VPC{
-			VPCResource: vpcmodel.VPCResource{ResourceName: *vpc.Name, ResourceUID: *vpc.CRN, ResourceType: "VPC"},
+			VPCResource: vpcmodel.VPCResource{ResourceName: *vpc.Name, ResourceUID: *vpc.CRN, ResourceType: ResourceTypeVPC},
 			nodes:       []vpcmodel.Node{},
 			zones:       map[string]*Zone{},
 		}
@@ -522,7 +546,6 @@ func getSGconfig(rc *ResourcesContainer, res *vpcmodel.CloudConfig, intfNameToIn
 	var layerVPC *VPC
 	for i := range rc.sgList {
 		sg := rc.sgList[i]
-
 		vpc, err := getVPCObjectByName(res, *sg.VPC.Name)
 		if err != nil {
 			return err
@@ -533,10 +556,11 @@ func getSGconfig(rc *ResourcesContainer, res *vpcmodel.CloudConfig, intfNameToIn
 			return singleVPCErr(vpc.Name(), layerVPC.Name())
 		}
 
-		sgResource := &SecurityGroup{VPCResource: vpcmodel.VPCResource{ResourceName: *sg.Name, ResourceUID: *sg.CRN, ResourceType: "SG"},
+		sgResource := &SecurityGroup{
+			VPCResource: vpcmodel.VPCResource{
+				ResourceName: *sg.Name, ResourceUID: *sg.CRN, ResourceType: ResourceTypeSG},
 			analyzer: NewSGAnalyzer(sg), members: map[string]*NetworkInterface{}, vpc: vpc,
 		}
-
 		sgMap[*sg.Name] = sgResource
 		targets := sg.Targets // *SecurityGroupTargetReference
 		// type SecurityGroupTargetReference struct
@@ -585,7 +609,7 @@ func getNACLconfig(rc *ResourcesContainer, res *vpcmodel.CloudConfig, subnetName
 			return singleVPCErr(vpc.Name(), layerVPC.Name())
 		}
 		naclResource := &NACL{
-			VPCResource: vpcmodel.VPCResource{ResourceName: *nacl.Name, ResourceUID: *nacl.CRN, ResourceType: "NACL"},
+			VPCResource: vpcmodel.VPCResource{ResourceName: *nacl.Name, ResourceUID: *nacl.CRN, ResourceType: ResourceTypeNACL},
 			analyzer:    naclAnalyzer, subnets: map[string]*Subnet{}, vpc: vpc}
 		naclList = append(naclList, naclResource)
 		for _, subnetRef := range nacl.Subnets {
@@ -619,7 +643,7 @@ func getIKSnodesConfig(res *vpcmodel.CloudConfig, subnetNameToSubnet map[string]
 		}
 
 		nodeObject := &IKSNode{
-			VPCResource: vpcmodel.VPCResource{ResourceName: "iks-node", ResourceUID: iksNode.ID, ResourceType: iksNodeKind},
+			VPCResource: vpcmodel.VPCResource{ResourceName: "iks-node", ResourceUID: iksNode.ID, ResourceType: ResourceTypeIKSNode},
 			address:     iksNode.IPAddress,
 			subnet:      subnet,
 		}
