@@ -10,26 +10,25 @@ type DrawioResourceIntf interface {
 }
 
 // DrawioGenerator is the struct that generate the drawio tree.
-// its main interface is TreeNode(res DrawioResourceIntf)
-// at constructor, it creates and publicNetwork tree node, and the Cloud TreeNode
+// its main interface is TreeNode() - return the drawio tree node of the a resource
+// at constructor, it creates the publicNetwork tree node, and the Cloud TreeNode
 // please notice:
-// creating the cloud treeNode is vendor specific (IBM, aws...), therefore, the creation of the DrawioGenerator.
+// creating the cloud treeNode is vendor specific (IBM, aws...).
 // currently, the input that distinguish between the vendors is the cloudName, which is provided to NewDrawioGenerator() as parameter.
-// we might later give as parameters more information to create the cloud (or maybe support a cloudGenerator struct as an input).
+// we might later give as parameters more information to create the cloud, or create the cloud at the specific pkg.
 type DrawioGenerator struct {
 	network       *drawio.NetworkTreeNode
 	publicNetwork *drawio.PublicNetworkTreeNode
 	cloud         *drawio.CloudTreeNode
 	treeNodes     map[DrawioResourceIntf]drawio.TreeNodeInterface
-	cloudName     string
 }
 
 func NewDrawioGenerator(cloudName string) *DrawioGenerator {
 	// creates the top of the tree node - treeNodes that does not represent a specific resource.
-	gen := &DrawioGenerator{cloudName: cloudName}
+	gen := &DrawioGenerator{}
 	gen.network = drawio.NewNetworkTreeNode()
 	gen.publicNetwork = drawio.NewPublicNetworkTreeNode(gen.network)
-	gen.cloud = drawio.NewCloudTreeNode(gen.network, gen.cloudName)
+	gen.cloud = drawio.NewCloudTreeNode(gen.network, cloudName)
 	gen.treeNodes = map[DrawioResourceIntf]drawio.TreeNodeInterface{}
 	return gen
 }
@@ -46,6 +45,7 @@ func (gen *DrawioGenerator) TreeNode(res DrawioResourceIntf) drawio.TreeNodeInte
 	return gen.treeNodes[res]
 }
 
+// ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // implementations of the GenerateDrawioTreeNode() for resource defined in vpcmodel:
 // (currently only ExternalNetwork, will add the grouping resource later)
 func (exn *ExternalNetwork) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {

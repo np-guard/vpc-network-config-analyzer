@@ -15,7 +15,7 @@ func (z *Zone) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.Tree
 }
 
 func (s *Subnet) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
-	// todo - handle error
+	// todo - how to handle this error:
 	zone, _ := s.Zone()
 	zoneTn := gen.TreeNode(zone).(*drawio.ZoneTreeNode)
 	return drawio.NewSubnetTreeNode(zoneTn, s.Name(), s.cidr, "")
@@ -57,7 +57,7 @@ func (v *Vsi) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeN
 	for _, ni := range v.Nodes() {
 		vsiNIs = append(vsiNIs, gen.TreeNode(ni))
 	}
-	//todo:
+	// todo - how to handle this error:
 	zone, _ := v.Zone()
 	zoneTn := gen.TreeNode(zone).(*drawio.ZoneTreeNode)
 	drawio.GroupNIsWithVSI(zoneTn, v.Name(), vsiNIs)
@@ -65,7 +65,7 @@ func (v *Vsi) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeN
 }
 
 func (pgw *PublicGateway) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
-	//todo:
+	// todo - how to handle this error:
 	zone, _ := pgw.Zone()
 	zoneTn := gen.TreeNode(zone).(*drawio.ZoneTreeNode)
 	return drawio.NewGatewayTreeNode(zoneTn, pgw.Name())

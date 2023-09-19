@@ -114,8 +114,6 @@ func (tt *vpcGeneralTest) initTest() {
 	}
 }
 
-
-
 var tests = []*vpcGeneralTest{
 	{
 		name:     "acl_testing5",
