@@ -66,7 +66,11 @@ func (g *groupedExternalNodes) GenerateDrawioTreeNode(gen *DrawioGenerator) draw
 	for _, n := range *g {
 		tooltip = append(tooltip, n.(*ExternalNetwork).Cidr())
 	}
-	tn := drawio.NewInternetTreeNode(gen.PublicNetwork(), "lots of cidr")
+	name := "multi cidr"
+	if all ,_ := isEntirePublicInternetRange(*g) ; all{
+		name = "all ranges"
+	}
+	tn := drawio.NewInternetTreeNode(gen.PublicNetwork(), name)
 	tn.SetTooltip(tooltip)
 	return tn
 }
