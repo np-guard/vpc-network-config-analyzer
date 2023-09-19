@@ -512,8 +512,8 @@ func getVPCconfig(rc *ResourcesContainer, res *vpcmodel.CloudConfig) {
 	}
 }
 
-func singleVPCErr() error {
-	return errors.New("expecting single vpc")
+func singleVPCErr(vpcName, layerVPCName string) error {
+	return fmt.Errorf("NACL/SG VPC (%s) is different from its layer's VPC (%s)", vpcName, layerVPCName)
 }
 
 func getSGconfig(rc *ResourcesContainer, res *vpcmodel.CloudConfig, intfNameToIntf map[string]*NetworkInterface) error {
@@ -530,7 +530,7 @@ func getSGconfig(rc *ResourcesContainer, res *vpcmodel.CloudConfig, intfNameToIn
 		if layerVPC == nil {
 			layerVPC = vpc
 		} else if layerVPC.Name() != vpc.Name() {
-			return singleVPCErr()
+			return singleVPCErr(vpc.Name(), layerVPC.Name())
 		}
 
 		sgResource := &SecurityGroup{VPCResource: vpcmodel.VPCResource{ResourceName: *sg.Name, ResourceUID: *sg.CRN, ResourceType: "SG"},
@@ -582,7 +582,7 @@ func getNACLconfig(rc *ResourcesContainer, res *vpcmodel.CloudConfig, subnetName
 		if layerVPC == nil {
 			layerVPC = vpc
 		} else if layerVPC.Name() != vpc.Name() {
-			return singleVPCErr()
+			return singleVPCErr(vpc.Name(), layerVPC.Name())
 		}
 		naclResource := &NACL{
 			VPCResource: vpcmodel.VPCResource{ResourceName: *nacl.Name, ResourceUID: *nacl.CRN, ResourceType: "NACL"},

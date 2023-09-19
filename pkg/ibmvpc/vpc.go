@@ -141,7 +141,7 @@ func (v *VPC) getZoneByName(name string) (*Zone, error) {
 	if z, ok := v.zones[name]; ok {
 		return z, nil
 	}
-	return nil, errors.New("zone not found")
+	return nil, fmt.Errorf("zone %s not found in vpc %s", name, v.ResourceName)
 }
 
 func (v *VPC) Nodes() []vpcmodel.Node {
