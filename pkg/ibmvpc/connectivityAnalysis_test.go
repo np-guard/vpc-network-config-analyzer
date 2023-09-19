@@ -274,9 +274,9 @@ func createConfigFromTestConfig(tc *testNodesConfig, ncList []*naclConfig) *vpcm
 			ingressRules:    nc.ingressRules,
 			egressRules:     nc.egressRules,
 		}
-		subnets := map[string]struct{}{}
+		subnets := map[string]*Subnet{}
 		for _, s := range nc.subnets {
-			subnets[s] = struct{}{}
+			subnets[s] = nil // not required for the test
 		}
 		addNACL(config, nc.name, subnets, analyzer)
 	}
@@ -313,15 +313,16 @@ func addInterfaceNode(config *vpcmodel.CloudConfig, name, address, vsiName, subn
 	config.Nodes = append(config.Nodes, intfNode)
 }
 
-func addSubnet(config *vpcmodel.CloudConfig, name, cidr, zone string) {
+func addSubnet(config *vpcmodel.CloudConfig, name, cidr, zone string) *Subnet {
 	subnetNode := &Subnet{
 		VPCResource: vpcmodel.VPCResource{ResourceName: name, ResourceUID: name, Zone: zone, ResourceType: ResourceTypeSubnet},
 		cidr:        cidr,
 	}
 	config.NodeSets = append(config.NodeSets, subnetNode)
+	return subnetNode
 }
 
-func addNACL(config *vpcmodel.CloudConfig, name string, subnets map[string]struct{}, analyzer *NACLAnalyzer) {
+func addNACL(config *vpcmodel.CloudConfig, name string, subnets map[string]*Subnet, analyzer *NACLAnalyzer) {
 	var layer *NaclLayer
 	for _, fr := range config.FilterResources {
 		if fr.Kind() == "NaclLayer" {
@@ -370,11 +371,11 @@ func NewSimpleCloudConfig() *vpcmodel.CloudConfig {
 		FilterResources:  []vpcmodel.FilterTrafficResource{},
 		RoutingResources: []vpcmodel.RoutingResource{},
 	}
-	addSubnet(config, "subnet-1", "10.240.10.0/24", "z1")
-	addSubnet(config, "subnet-2", "10.240.20.0/24", "z1")
+	s1 := addSubnet(config, "subnet-1", "10.240.10.0/24", "z1")
+	s2 := addSubnet(config, "subnet-2", "10.240.20.0/24", "z1")
 	addInterfaceNode(config, "intf-1", "10.240.10.4", "vsi-1", "subnet-1")
 	addInterfaceNode(config, "intf-1", "10.240.20.4", "vsi-2", "subnet-2")
-	addNACL(config, "nacl-1", map[string]struct{}{"10.240.10.0/24": {}, "10.240.20.0/24": {}}, newSimpleNACLAnalyzer())
+	addNACL(config, "nacl-1", map[string]*Subnet{"10.240.10.0/24": s1, "10.240.20.0/24": s2}, newSimpleNACLAnalyzer())
 	return config
 }
 
