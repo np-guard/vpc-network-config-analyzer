@@ -7,6 +7,7 @@ import (
 // DrawioResourceIntf is the interface of all the resources that are converted to a drawio treeNodes
 type DrawioResourceIntf interface {
 	GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface
+	IsExternal() bool
 }
 
 // DrawioGenerator is the struct that generate the drawio tree.
@@ -51,3 +52,25 @@ func (gen *DrawioGenerator) TreeNode(res DrawioResourceIntf) drawio.TreeNodeInte
 func (exn *ExternalNetwork) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
 	return drawio.NewInternetTreeNode(gen.PublicNetwork(), exn.CidrStr)
 }
+
+func (g *groupedEndpointsElems) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
+	//todo: 
+	return (*g)[0].GenerateDrawioTreeNode(gen)
+}
+
+func (g *groupedExternalNodes) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
+	if len(*g) == 1 {
+		return (*g)[0].GenerateDrawioTreeNode(gen)
+	}
+	tooltip := []string{}
+	for _, n := range *g {
+		tooltip = append(tooltip, n.(*ExternalNetwork).Cidr())
+	}
+	tn := drawio.NewInternetTreeNode(gen.PublicNetwork(), "lots of cidr")
+	tn.SetTooltip(tooltip)
+	return tn
+}
+
+func (exn *ExternalNetwork) IsExternal() bool       { return true }
+func (exn *groupedEndpointsElems) IsExternal() bool { return false }
+func (exn *groupedExternalNodes) IsExternal() bool  { return true }

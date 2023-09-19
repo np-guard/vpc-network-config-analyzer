@@ -60,6 +60,7 @@ type GroupConnLines struct {
 // EndpointElem can be Node(networkInterface) / groupedExternalNodes / groupedNetworkInterfaces
 type EndpointElem interface {
 	Name() string
+	DrawioResourceIntf
 }
 
 type GroupedConnLine struct {
