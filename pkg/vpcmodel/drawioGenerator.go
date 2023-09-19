@@ -10,8 +10,10 @@ type DrawioResourceIntf interface {
 }
 
 // DrawioGenerator is the struct that generate the drawio tree.
-// its main interface is TreeNode() - return the drawio tree node of the a resource
-// at constructor, it creates the publicNetwork tree node, and the Cloud TreeNode
+// its main interface is:
+// 1. TreeNode() - generate and returns the drawio tree node of a resource
+// 2. the constructor - generate the treeNodes that does not represent a specific resource
+// (the constructor creates the publicNetwork tree node, and the Cloud TreeNode)
 // please notice:
 // creating the cloud treeNode is vendor specific (IBM, aws...).
 // currently, the input that distinguish between the vendors is the cloudName, which is provided to NewDrawioGenerator() as parameter.
@@ -36,8 +38,6 @@ func (gen *DrawioGenerator) Network() *drawio.NetworkTreeNode             { retu
 func (gen *DrawioGenerator) PublicNetwork() *drawio.PublicNetworkTreeNode { return gen.publicNetwork }
 func (gen *DrawioGenerator) Cloud() *drawio.CloudTreeNode                 { return gen.cloud }
 
-func (gen *DrawioGenerator) Init() {
-}
 func (gen *DrawioGenerator) TreeNode(res DrawioResourceIntf) drawio.TreeNodeInterface {
 	if gen.treeNodes[res] == nil {
 		gen.treeNodes[res] = res.GenerateDrawioTreeNode(gen)
