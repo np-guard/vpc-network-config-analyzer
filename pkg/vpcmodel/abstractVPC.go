@@ -10,6 +10,8 @@ type VPCResourceIntf interface {
 	Name() string
 	ZoneName() string
 	Kind() string
+
+	// TODO: remove Details and DetailsMap from this interface
 	Details() []string
 	DetailsMap() []map[string]string
 	DrawioResourceIntf
@@ -19,6 +21,7 @@ type VPCResourceIntf interface {
 type VPCResource struct {
 	ResourceName string
 	ResourceUID  string
+	ResourceType string
 	Zone         string
 }
 
@@ -31,6 +34,10 @@ func (n *VPCResource) UID() string {
 }
 func (n *VPCResource) ZoneName() string {
 	return n.Zone
+}
+
+func (n *VPCResource) Kind() string {
+	return n.ResourceType
 }
 
 const (
