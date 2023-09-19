@@ -729,7 +729,6 @@ func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
 			rPgw.destinations = publicInternetNodes
 		}
 	}
-	SetGlobals(res)
 	return res, nil
 }
 
