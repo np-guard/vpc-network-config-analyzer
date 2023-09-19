@@ -2,7 +2,6 @@ package vpcmodel
 
 import (
 	"errors"
-	"strings"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
 )
@@ -61,13 +60,8 @@ func (d *DrawioOutputFormatter) createEdgesMap() {
 	for _, line := range d.conn.GroupedConnectivity.GroupedLines {
 		src := line.Src
 		dst := line.Dst
-		label := line.Conn
-		//todo - fix:
-		if strings.Contains(label, "All Connections") {
-			label = ""
-		}
-		edge := Edge{src, dst, label}
-		revEdge := Edge{dst, src, label}
+		edge := Edge{src, dst, line.ConnLabel()}
+		revEdge := Edge{dst, src, line.ConnLabel()}
 		_, revExist := d.isEdgeDirected[revEdge]
 		if revExist {
 			d.isEdgeDirected[revEdge] = false

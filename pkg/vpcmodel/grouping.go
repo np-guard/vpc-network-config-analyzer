@@ -72,6 +72,12 @@ type GroupedConnLine struct {
 func (g *GroupedConnLine) String() string {
 	return g.Src.Name() + " => " + g.Dst.Name() + " : " + g.Conn
 }
+func (g *GroupedConnLine) ConnLabel() string {
+	if strings.Contains(g.Conn, "All Connections") {
+		return ""
+	}
+	return g.Conn
+}
 
 func (g *GroupedConnLine) getSrcOrDst(isSrc bool) EndpointElem {
 	if isSrc {
