@@ -20,12 +20,13 @@ package drawio
 // that alow to add/remove rows/column without updating the treeNodes.
 
 const (
-	minSize      = 10
-	borderWidth  = 40
-	subnetWidth  = 8 * 40
-	subnetHeight = 6 * 40
-	iconSize     = 60
-	iconSpace    = 4 * 40
+	minSize         = 10
+	borderWidth     = 40
+	subnetWidth     = 8 * 40
+	subnetHeight    = 6 * 40
+	iconSize        = 60
+	groupedIconSize = 10
+	iconSpace       = 4 * 40
 
 	fipXOffset = -70
 	fipYOffset = 40
@@ -118,6 +119,9 @@ func (ly *layoutS) layoutSubnetsIcons() {
 					icons := subnet.IconTreeNodes()
 					ly.setDefaultLocation(subnet, rowIndex, colIndex)
 					for _, icon := range icons {
+						if !icon.IsNI() {
+							continue
+						}
 						if !canShareCell(iconInCurrentCell, icon) {
 							rowIndex++
 							iconInCurrentCell = nil
@@ -303,6 +307,89 @@ func (ly *layoutS) setVpcIconsLocations(vpc SquareTreeNodeInterface) {
 		icon.Location().yOffset = iconSpace*(iconIndex%iconsPerCol) - (iconSpace*(iconsPerCol-1))/2
 	}
 }
+func (ly *layoutS) getGroupingIconLocation(location, collLocation *Location) (r *row, c *col, left bool) {
+
+	switch {
+	case location.lastRow.index < collLocation.firstRow.index:
+		r = location.lastRow
+	case location.firstRow.index > collLocation.lastRow.index:
+		r = location.firstRow
+	case location.firstRow.index > collLocation.firstRow.index:
+		r = location.firstRow
+	default:
+		r = collLocation.firstRow
+	}
+
+	switch {
+	case location.lastCol.index < collLocation.firstCol.index:
+		c = location.nextCol()
+	case location.firstCol.index > collLocation.lastCol.index:
+		c = location.prevCol()
+	default:
+		c = location.prevCol()
+	}
+	return r, c, c == location.prevCol()
+}
+
+
+func (ly *layoutS) createGroupingSquares() {
+	for _, tn := range getAllNodes(ly.network) {
+		if !tn.IsIcon() || !tn.(IconTreeNodeInterface).IsGroupingPoint() {
+			continue
+		}
+		gIcon := tn.(*GroupPointTreeNode)
+		parent := gIcon.Parent().(*SubnetTreeNode)
+		isAllSubnet := len(gIcon.groupies) == len(parent.NIs())
+		if !isAllSubnet && len(gIcon.groupies) == 2 {
+			gIcon.groupSquare = newGroupSquareTreeNode(parent, gIcon.groupies)
+			gIcon.groupSquare.setLocation(mergeLocations(iconsLocations(gIcon.groupSquare.groupies)))
+		}
+	}
+}
+func (ly *layoutS) setGroupingIconsLocations() {
+	type cell struct {
+		r *row
+		c *col
+	}
+		iconsInCell := map[cell]int{}
+
+	for _, tn := range getAllNodes(ly.network) {
+		if !tn.IsIcon() || !tn.(IconTreeNodeInterface).IsGroupingPoint() {
+			continue
+		}
+		gIcon := tn.(*GroupPointTreeNode)
+		parent := gIcon.Parent().(*SubnetTreeNode)
+		colleague := gIcon.getColleague()
+		isAllSubnet := len(gIcon.groupies) == len(parent.NIs())
+		hasGroupSquare := gIcon.groupSquare != nil
+		colleagueHasGroupSquare := colleague.IsGroupingPoint() && colleague.(*GroupPointTreeNode).groupSquare != nil
+		parentLocation := parent.Location()
+		if hasGroupSquare {
+			parentLocation = gIcon.groupSquare.Location()
+		}
+		colleagueParentLocation := colleague.Parent().Location()
+		if colleagueHasGroupSquare {
+			colleagueParentLocation = colleague.(*GroupPointTreeNode).groupSquare.Location()
+		}
+		r, c, isLeft := ly.getGroupingIconLocation(parentLocation, colleagueParentLocation)
+
+		gIcon.setLocation(newCellLocation(r, c))
+		gIcon.Location().yOffset = iconSize * iconsInCell[cell{r, c}]
+		iconsInCell[cell{r, c}]++
+		xOffsetSign := -1
+		if isLeft {
+			xOffsetSign = 1
+		}
+		if isAllSubnet {
+			gIcon.Location().xOffset = borderWidth / 2 * xOffsetSign
+		} else if hasGroupSquare {
+			gIcon.Location().xOffset = borderWidth * xOffsetSign
+		} else {
+			gIcon.Location().xOffset = borderWidth * xOffsetSign
+			gIcon.connectGroupies()
+		}
+	}
+}
 
 // ////////////////////////////////////////////////////////////////////////////////////////
 // if vsi icon shares by several subnet - we put it below one of the subnets
@@ -354,6 +441,8 @@ func (ly *layoutS) setIconsLocations() {
 		}
 	}
 	ly.setPublicNetworkIconsLocations()
+	ly.createGroupingSquares()
+	ly.setGroupingIconsLocations()
 }
 
 func (ly *layoutS) setGeometries() {

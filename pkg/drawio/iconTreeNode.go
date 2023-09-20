@@ -7,11 +7,13 @@ type IconTreeNodeInterface interface {
 	allocateNewRouteOffset() int
 	IsVSI() bool
 	IsNI() bool
+	IsGroupingPoint() bool
 	SetTooltip(tooltip []string)
 	HasTooltip() bool
 	Tooltip() string
 	IsGateway() bool
 	absoluteRouterGeometry() (int, int)
+	IconSize() int
 }
 
 type abstractIconTreeNode struct {
@@ -30,9 +32,11 @@ func (tn *abstractIconTreeNode) IsIcon() bool                { return true }
 func (tn *abstractIconTreeNode) IsVSI() bool                 { return false }
 func (tn *abstractIconTreeNode) IsGateway() bool             { return false }
 func (tn *abstractIconTreeNode) IsNI() bool                  { return false }
+func (tn *abstractIconTreeNode) IsGroupingPoint() bool       { return false }
 func (tn *abstractIconTreeNode) SetTooltip(tooltip []string) { tn.tooltip = tooltip }
 func (tn *abstractIconTreeNode) HasTooltip() bool            { return len(tn.tooltip) > 0 }
 func (tn *abstractIconTreeNode) Tooltip() string             { return labels2Table(tn.tooltip) }
+func (tn *abstractIconTreeNode) IconSize() int               { return iconSize }
 
 var offsets = []int{
 	0,
@@ -57,8 +61,8 @@ func (tn *abstractIconTreeNode) setGeometry() {
 func calculateIconGeometry(tn IconTreeNodeInterface, drawioParent TreeNodeInterface) (x, y int) {
 	location := tn.Location()
 	parentLocation := drawioParent.Location()
-	x = location.firstCol.x() - parentLocation.firstCol.x() + location.firstCol.width()/2 - iconSize/2 + location.xOffset
-	y = location.firstRow.y() - parentLocation.firstRow.y() + location.firstRow.height()/2 - iconSize/2 + location.yOffset
+	x = location.firstCol.x() - parentLocation.firstCol.x() + location.firstCol.width()/2 - tn.IconSize()/2 + location.xOffset
+	y = location.firstRow.y() - parentLocation.firstRow.y() + location.firstRow.height()/2 - tn.IconSize()/2 + location.yOffset
 	return x, y
 }
 func (tn *abstractIconTreeNode) absoluteRouterGeometry() (x, y int) {
@@ -169,6 +173,56 @@ func (tn *VsiTreeNode) DrawioParent() TreeNodeInterface {
 }
 
 func (tn *VsiTreeNode) IsVSI() bool { return true }
+
+// ///////////////////////////////////////////
+type GroupPointTreeNode struct {
+	abstractIconTreeNode
+	groupies      []IconTreeNodeInterface
+	colleague     IconTreeNodeInterface
+	groupiesConns []LineTreeNodeInterface
+	groupingConn  *GroupingConnection
+	groupSquare   *GroupSquareTreeNode
+	directed      bool
+	isSrc         bool
+}
+
+func (tn *GroupPointTreeNode) setColleague(colleague IconTreeNodeInterface) { tn.colleague = colleague }
+func (tn *GroupPointTreeNode) getColleague() IconTreeNodeInterface          { return tn.colleague }
+func (tn *GroupPointTreeNode) IconSize() int                                { return groupedIconSize }
+func (tn *GroupPointTreeNode) IsGroupingPoint() bool                        { return true }
+
+func newGroupPointTreeNode(parent SquareTreeNodeInterface,
+	groupies []IconTreeNodeInterface,
+	groupingConn *GroupingConnection,
+	directed bool,
+	isSrc bool,
+	connName string) *GroupPointTreeNode {
+	groupPoint := &GroupPointTreeNode{
+		abstractIconTreeNode: newAbstractIconTreeNode(parent, ""),
+		groupies:             groupies,
+		groupingConn:         groupingConn,
+		directed:             directed,
+		isSrc:                isSrc,
+	}
+	parent.addIconTreeNode(groupPoint)
+	return groupPoint
+}
+func (tn *GroupPointTreeNode) connectGroupies() {
+	if len(tn.groupies) > 0 {
+		for _, groupe := range tn.groupies {
+			var s, d IconTreeNodeInterface = tn, groupe
+			if !tn.isSrc {
+				s, d = groupe, tn
+			}
+			tn.groupiesConns = append(tn.groupiesConns, NewConnectivityLineTreeNode(tn.Parent().(SquareTreeNodeInterface), s, d, tn.directed, ""))
+		}
+	}
+
+}
+
+func (tn *GroupPointTreeNode) setGeometry() {
+	tn.x, tn.y = calculateIconGeometry(tn, tn.DrawioParent())
+}
 
 // ///////////////////////////////////////////
 type InternetTreeNode struct {

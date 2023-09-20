@@ -195,8 +195,9 @@ func (tn *PartialSGTreeNode) setGeometry() {
 
 type SubnetTreeNode struct {
 	abstractSquareTreeNode
-	cidr string
-	acl  string
+	groupSquares []SquareTreeNodeInterface
+	cidr         string
+	acl          string
 }
 
 func NewSubnetTreeNode(parent *ZoneTreeNode, name, cidr, acl string) *SubnetTreeNode {
@@ -206,11 +207,40 @@ func NewSubnetTreeNode(parent *ZoneTreeNode, name, cidr, acl string) *SubnetTree
 }
 
 func (tn *SubnetTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
-	return []SquareTreeNodeInterface{}, tn.elements, tn.connections
+	return tn.groupSquares, tn.elements, tn.connections
 }
 func (tn *SubnetTreeNode) Label() string {
 	return labels2Table([]string{tn.name, tn.cidr, tn.acl})
 }
 func (tn *SubnetTreeNode) SetACL(acl string) {
 	tn.acl = acl
+}
+func (tn *SubnetTreeNode) NIs() []IconTreeNodeInterface {
+	nis := []IconTreeNodeInterface{}
+	for _, icon := range tn.elements {
+		if icon.IsNI() {
+			nis = append(nis, icon)
+		}
+	}
+	return nis
+}
+///////////////////////////////////////////////////////////////////////////////////////
+type GroupSquareTreeNode struct {
+	abstractSquareTreeNode
+	groupies []IconTreeNodeInterface
+}
+
+func newGroupSquareTreeNode(parent *SubnetTreeNode, groupies []IconTreeNodeInterface) *GroupSquareTreeNode {
+	gs := GroupSquareTreeNode{newAbstractSquareTreeNode(parent, ""),groupies}
+	parent.groupSquares = append(parent.groupSquares, &gs)
+	return &gs
+}
+
+func (tn *GroupSquareTreeNode) setGeometry() {
+	location := tn.Location()
+	parentLocation := tn.DrawioParent().Location()
+	tn.width = location.lastCol.width() + location.lastCol.x() - location.firstCol.x() - borderWidth
+	tn.height = location.lastRow.height() + location.lastRow.y() - location.firstRow.y() - borderWidth*2
+	tn.x = location.firstCol.x() - parentLocation.firstCol.x() + borderWidth/2
+	tn.y = location.firstRow.y() - parentLocation.firstRow.y() + borderWidth*1.5
 }
