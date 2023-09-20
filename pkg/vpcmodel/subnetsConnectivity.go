@@ -97,8 +97,8 @@ func (c *CloudConfig) convertIPbasedToSubnetBasedResult(ipconn *IPbasedConnectiv
 	res := NewConfigBasedConnectivityResults()
 
 	for ipb, conn := range ipconn.IngressAllowedConns {
-		// PGW does not allow ingress traffic
-		if namedResources, err := c.ipblockToNamedResourcesInConfig(ipb, true); err == nil {
+		// PGW does not allow ingress traffic but the ingress is required for the stateful computation
+		if namedResources, err := c.ipblockToNamedResourcesInConfig(ipb, !hasPGW); err == nil {
 			for _, n := range namedResources {
 				res.IngressAllowedConns[n] = conn
 			}
@@ -195,6 +195,7 @@ func (c *CloudConfig) GetSubnetsConnectivity(includePGW, grouping bool) (*VPCsub
 	if err := res.computeAllowedConnsCombined(); err != nil {
 		return nil, err
 	}
+	res.computeStatefulConnections()
 
 	res.GroupedConnectivity = newGroupConnLinesSubnetConnectivity(c, res, grouping)
 
@@ -210,18 +211,21 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() error {
 			if src.Name() == dst.Name() {
 				continue
 			}
-			combinedConns := conns.Copy()
 
+			var combinedConns *common.ConnectionSet
 			// peerNode kind is expected to be Subnet or External
 			peerNodeObj := v.CloudConfig.NameToResource[peerNode.Name()]
 			switch concPeerNode := peerNodeObj.(type) {
 			case NodeSet:
 				egressConns := v.AllowedConns[concPeerNode].EgressAllowedConns[subnetNodeSet]
-				combinedConns = combinedConns.Intersection(egressConns)
+				combinedConns = conns.Intersection(egressConns)
 			case *ExternalNetwork:
-				// do nothing
+				// PGW does not allow ingress traffic
 			default:
 				return errors.New(errUnexpectedTypePeerNode)
+			}
+			if combinedConns == nil {
+				continue
 			}
 			if _, ok := v.AllowedConnsCombined[src]; !ok {
 				v.AllowedConnsCombined[src] = map[EndpointElem]*common.ConnectionSet{}
@@ -252,14 +256,45 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() error {
 			v.AllowedConnsCombined[src][dst] = combinedConns
 		}
 	}
-
 	return nil
+}
+
+func (v *VPCsubnetConnectivity) computeStatefulConnections() {
+	for src, endpointConns := range v.AllowedConnsCombined {
+		for dst, conns := range endpointConns {
+			if conns.IsEmpty() {
+				continue
+			}
+			dstObj := v.CloudConfig.NameToResource[dst.Name()]
+			var otherDirectionConn *common.ConnectionSet
+			switch dstObj.(type) {
+			case NodeSet:
+				otherDirectionConn = v.AllowedConnsCombined[dst][src]
+			case *ExternalNetwork:
+				// subnet to external node is stateful if the subnet's nacl allows ingress from that node.
+				// This connection will *not* be considered by AllowedConnsCombined since ingress connection
+				// from external nodes can not be initiated for pgw
+				otherDirectionConn = v.AllowedConns[src].IngressAllowedConns[dst]
+			default:
+			}
+			conns.IsStateful = common.StatefulFalse
+			if otherDirectionConn == nil {
+				continue
+			}
+			connsSwitchPortsDirection := conns.SwitchSrcDstPorts()
+			stateful := connsSwitchPortsDirection.Intersection(otherDirectionConn)
+			// if there is a way back for the response, then the connection is considered stateful
+			if !stateful.IsEmpty() {
+				conns.IsStateful = common.StatefulTrue
+			}
+		}
+	}
 }
 
 func (v *VPCsubnetConnectivity) String() string {
 	res := "combined connections between subnets:\n"
 	// res += v.GroupedConnectivity.String() ToDo: uncomment once https://github.com/np-guard/vpc-network-config-analyzer/issues/138 is solved
-	res += v.GroupedConnectivity.StringTmpWA()
+	res += v.GroupedConnectivity.String()
 	return res
 }
 
