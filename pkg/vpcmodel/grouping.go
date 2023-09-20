@@ -73,6 +73,7 @@ func (g *GroupedConnLine) String() string {
 	return g.Src.Name() + " => " + g.Dst.Name() + " : " + g.Conn
 }
 func (g *GroupedConnLine) ConnLabel() string {
+	// todo - this info can be found in the conn struct.
 	if strings.Contains(g.Conn, "All Connections") {
 		return ""
 	}
