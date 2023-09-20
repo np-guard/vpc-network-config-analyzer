@@ -1,7 +1,6 @@
 package vpcmodel
 
 import (
-	"sort"
 	"strings"
 )
 
@@ -41,13 +40,15 @@ func (g *GroupConnLines) groupsToBeMerged(groupingSrcOrDst map[string][]*Grouped
 	// the to be grouped src/dst in set representation, will be needed to compute potential groups to be merged
 	// and to compute the deltas
 	setsToGroup := createGroupingSets(groupingSrcOrDst, srcGrouping)
-	sortedKeys := sortedKeysToCompared(groupingSrcOrDst)
-	keyToMergeCandidates := g.mergeCandidates(groupingSrcOrDst, srcGrouping, setsToGroup, sortedKeys)
+	relevantKeys := relevantKeysToCompare(groupingSrcOrDst)
+	keyToMergeCandidates := g.mergeCandidates(groupingSrcOrDst, srcGrouping, setsToGroup, relevantKeys)
 
-	for _, key := range sortedKeys {
+	for _, key := range relevantKeys {
 		keyLines := groupingSrcOrDst[key]
 		//  is there a different line s.t. the keyLines were not merged only due to self loops?
 		// 	going over all couples of items: merging them if they differ only in self loop element
+		// mergeCandidates of a singleton 'key' are all lines in which the group contains 'key'
+		//  if key is not a singleton then mergeCandidates will be empty
 		mergeCandidates, ok := keyToMergeCandidates[key]
 		if !ok {
 			continue
@@ -66,8 +67,8 @@ func (g *GroupConnLines) groupsToBeMerged(groupingSrcOrDst map[string][]*Grouped
 	return toMergeCouples
 }
 
-// a group is candidate to be merged only if it has only internal nodes; sorting keys so that the iteration order will be preserved
-func sortedKeysToCompared(groupingSrcOrDst map[string][]*GroupedConnLine) (sortedKeys []string) {
+// a group is candidate to be merged only if it has only internal nodes
+func relevantKeysToCompare(groupingSrcOrDst map[string][]*GroupedConnLine) (sortedKeys []string) {
 	sortedKeys = make([]string, 0, len(groupingSrcOrDst))
 	for key, lines := range groupingSrcOrDst {
 		if lines[0].isSrcOrDstExternalNodes() {
@@ -75,18 +76,20 @@ func sortedKeysToCompared(groupingSrcOrDst map[string][]*GroupedConnLine) (sorte
 		}
 		sortedKeys = append(sortedKeys, key)
 	}
-	sort.Strings(sortedKeys)
 	return
 }
 
 // optimization to reduce the worst case of finding couples to merge from O(n^4) to O(n^2)
+// where n is the number of nodes.
 // a couple of []*GroupedConnLine is candidate to be merged only if:
 //  1. They are of the same connection
 //  2. If vsis, of the same subnet
 //  3. The src/dst is a singelton contained in the dst/src
 //     in one path on groupingSrcOrDst we prepare a map between each key to the keys that are candidate to be merged with it.
+//     Before the grouping there are at most O(n^20) lines of src -> dst
 //     The last condition implies that each original src -> dst (where src and dst are a single endpoint) can induce a single
-//     candidate (at most), and each singelton key have at most n candidates. Hence the O(n^3) of  groupsToBeMerged above
+//     candidate (at most), and each singelton key have at most n candidates. Hence there are at most
+//     O(n^3) merge candidate, which implies O(n^3) time complexity of groupsToBeMerged
 func (g *GroupConnLines) mergeCandidates(groupingSrcOrDst map[string][]*GroupedConnLine, srcGrouping bool,
 	keyToGroupedSets map[string]map[string]struct{}, sortedKeys []string) map[string]map[string]struct{} {
 	// 1. Create buckets for each connection + vsi's subnet if vsi; merge candidates are within each bucket
