@@ -140,3 +140,41 @@ func TestGroupingPhase2(t *testing.T) {
 	fmt.Println(groupingStr)
 	fmt.Println("done")
 }
+
+// todo: newCloudConfigTest7 since there are more tests in PR #152
+//		delete comment after merges
+
+// connections from vsi1 should be grouped since both stateful
+// connections from vsi2 should not be grouped since one stateful and one not
+func newCloudConfigTest7() (*CloudConfig, *VPCConnectivity) {
+	res := &CloudConfig{Nodes: []Node{}}
+	res.Nodes = append(res.Nodes,
+		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1"},
+		&mockNetIntf{cidr: "1.2.3.4/22", name: "public1", isPublic: true},
+		&mockNetIntf{cidr: "8.8.8.8/32", name: "public2", isPublic: true},
+		&mockNetIntf{cidr: "10.0.20.6/32", name: "vsi2"})
+
+	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0], res.Nodes[3]}})
+
+	res1 := &VPCConnectivity{AllowedConnsCombined: NewNodesConnectionsMap()}
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], common.NewConnectionSetWithStateful(true, common.StatefulTrue))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], common.NewConnectionSetWithStateful(true, common.StatefulTrue))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[3], res.Nodes[1], common.NewConnectionSetWithStateful(true, common.StatefulTrue))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[3], res.Nodes[2], common.NewConnectionSetWithStateful(true, common.StatefulFalse))
+
+	return res, res1
+}
+
+func TestGroupingPhase7(t *testing.T) {
+	c, v := newCloudConfigTest7()
+	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections()}
+	res.groupExternalAddresses()
+	res.groupInternalSrcOrDst(true, true)
+	groupingStr := res.String()
+	require.Equal(t, "vsi1 => Public Internet 1.2.0.0/22,8.8.8.8/32 : All Connections\n"+
+		"vsi2 => Public Internet 1.2.0.0/22 : All Connections\n"+
+		"vsi2 => Public Internet 8.8.8.8/32 : All Connections *\n\n"+
+		"connections are stateful unless marked with *\n", groupingStr)
+	fmt.Println(groupingStr)
+	fmt.Println("done")
+}
