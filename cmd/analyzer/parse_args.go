@@ -90,5 +90,9 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 		return nil, fmt.Errorf("currently singleSubnet analysis type does not support grouping")
 	}
 
+	if *args.OutputFormat == JSONFormat && *args.Grouping {
+		return nil, fmt.Errorf("json output format is not supported with grouping")
+	}
+
 	return &args, nil
 }
