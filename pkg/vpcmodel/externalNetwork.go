@@ -2,7 +2,6 @@ package vpcmodel
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
@@ -47,7 +46,7 @@ func (exn *ExternalNetwork) Cidr() string {
 }
 
 func (exn *ExternalNetwork) Name() string {
-	return exn.ResourceName + " [" + exn.CidrStr + "]"
+	return exn.ResourceType + " [" + exn.CidrStr + "]"
 }
 
 func (exn *ExternalNetwork) IsInternal() bool {
@@ -96,20 +95,16 @@ func getPublicInternetIPblocksList() (internetIPblocksList []*common.IPBlock, al
 	return ipStringsToIPblocks(publicInternetAddressList)
 }
 
-func newExternalNode(isPublicInternet bool, ipb *common.IPBlock, index int) (Node, error) {
+func newExternalNode(isPublicInternet bool, ipb *common.IPBlock) (Node, error) {
 	cidrsList := ipb.ToCidrList()
 	if len(cidrsList) > 1 {
 		return nil, errors.New("newExternalNode: input ip-block should be of a single cidr")
 	}
 	cidr := ipb.ToCidrList()[0]
-	if isPublicInternet {
-		return &ExternalNetwork{
-			VPCResource: VPCResource{ResourceName: publicInternetNodeName},
-			CidrStr:     cidr, isPublicInternet: true,
-		}, nil
-	}
-	nodeName := fmt.Sprintf("ref-address-%d", index)
-	return &ExternalNetwork{VPCResource: VPCResource{ResourceName: nodeName}, CidrStr: cidr}, nil
+	return &ExternalNetwork{
+		VPCResource:      VPCResource{ResourceType: publicInternetNodeName},
+		CidrStr:          cidr,
+		isPublicInternet: isPublicInternet}, nil
 }
 
 func GetExternalNetworkNodes(disjointRefExternalIPBlocks []*common.IPBlock) ([]Node, error) {
@@ -120,14 +115,14 @@ func GetExternalNetworkNodes(disjointRefExternalIPBlocks []*common.IPBlock) ([]N
 	}
 	disjointRefExternalIPBlocksAll := common.DisjointIPBlocks(internetIPblocks, disjointRefExternalIPBlocks)
 
-	for index, ipb := range disjointRefExternalIPBlocksAll {
+	for _, ipb := range disjointRefExternalIPBlocksAll {
 		var isPublicInternet bool
 		if ipb.ContainedIn(allInternetRagnes) {
 			isPublicInternet = true
 		}
 		cidrs := ipb.ToCidrList()
 		for _, cidr := range cidrs {
-			newNode, err := newExternalNode(isPublicInternet, common.NewIPBlockFromCidr(cidr), index)
+			newNode, err := newExternalNode(isPublicInternet, common.NewIPBlockFromCidr(cidr))
 			if err != nil {
 				return nil, err
 			}

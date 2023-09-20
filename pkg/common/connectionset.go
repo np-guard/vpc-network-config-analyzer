@@ -18,17 +18,17 @@ import (
 	"strings"
 )
 
-type Protocol string
+type ProtocolStr string
 
 const numDimensions = 5
 
 const (
 	// ProtocolTCP is the TCP protocol.
-	ProtocolTCP Protocol = "TCP"
+	ProtocolTCP ProtocolStr = "TCP"
 	// ProtocolUDP is the UDP protocol.
-	ProtocolUDP Protocol = "UDP"
+	ProtocolUDP ProtocolStr = "UDP"
 	// ProtocolICMP is the ICMP protocol.
-	ProtocolICMP Protocol = "ICMP"
+	ProtocolICMP ProtocolStr = "ICMP"
 )
 
 const (
@@ -206,7 +206,7 @@ func (conn *ConnectionSet) ContainedIn(other *ConnectionSet) (bool, error) {
 	return res, err
 }
 
-func (conn *ConnectionSet) AddTCPorUDPConn(protocol Protocol, srcMinP, srcMaxP, dstMinP, dstMaxP int64) {
+func (conn *ConnectionSet) AddTCPorUDPConn(protocol ProtocolStr, srcMinP, srcMaxP, dstMinP, dstMaxP int64) {
 	var cube *CanonicalHypercubeSet
 	switch protocol {
 	case ProtocolTCP:
@@ -341,6 +341,118 @@ func (conn *ConnectionSet) String() string {
 
 	sort.Strings(resStrings)
 	return strings.Join(resStrings, "; ")
+}
+
+type ConnDetails ProtocolList
+
+func getCubeAsTCPItems(cube []*CanonicalIntervalSet, protocol TcpUdpProtocol) []TcpUdp {
+	tcpItemsTemp := []TcpUdp{}
+	tcpItemsFinal := []TcpUdp{}
+	// consider src ports
+	srcPorts := cube[srcPort]
+	if !srcPorts.Equal(*getDimensionDomain(srcPort)) {
+		// iterate the intervals in the interval-set
+		for _, interval := range srcPorts.IntervalSet {
+			tcpRes := TcpUdp{Protocol: protocol, MinSourcePort: int(interval.Start), MaxSourcePort: int(interval.End)}
+			tcpItemsTemp = append(tcpItemsTemp, tcpRes)
+		}
+	} else {
+		tcpItemsTemp = append(tcpItemsTemp, TcpUdp{Protocol: protocol})
+	}
+	// consider dst ports
+	dstPorts := cube[dstPort]
+	if !dstPorts.Equal(*getDimensionDomain(dstPort)) {
+		// iterate the intervals in the interval-set
+		for _, interval := range dstPorts.IntervalSet {
+			for _, tcpItemTemp := range tcpItemsTemp {
+				tcpRes := TcpUdp{
+					Protocol:           protocol,
+					MinSourcePort:      tcpItemTemp.MinSourcePort,
+					MaxSourcePort:      tcpItemTemp.MaxSourcePort,
+					MinDestinationPort: int(interval.Start),
+					MaxDestinationPort: int(interval.End),
+				}
+				tcpItemsFinal = append(tcpItemsFinal, tcpRes)
+			}
+		}
+	} else {
+		tcpItemsFinal = tcpItemsTemp
+	}
+	return tcpItemsFinal
+}
+
+func getIntervalNumbers(c *CanonicalIntervalSet) []int {
+	res := []int{}
+	for _, interval := range c.IntervalSet {
+		for i := interval.Start; i <= interval.End; i++ {
+			res = append(res, int(i))
+		}
+	}
+	return res
+}
+
+func getCubeAsICMPItems(cube []*CanonicalIntervalSet) []Icmp {
+	icmpTypes := cube[icmpType]
+	icmpCodes := cube[icmpCode]
+	if icmpTypes.Equal(*getDimensionDomain(icmpType)) && icmpCodes.Equal(*getDimensionDomain(icmpCode)) {
+		return []Icmp{{Protocol: IcmpProtocolICMP}}
+	}
+	res := []Icmp{}
+	if icmpTypes.Equal(*getDimensionDomain(icmpType)) {
+		codeNumbers := getIntervalNumbers(icmpCodes)
+		for i := range codeNumbers {
+			res = append(res, Icmp{Protocol: IcmpProtocolICMP, Code: &codeNumbers[i]})
+		}
+		return res
+	}
+	if icmpCodes.Equal(*getDimensionDomain(icmpCode)) {
+		typeNumbers := getIntervalNumbers(icmpTypes)
+		for i := range typeNumbers {
+			res = append(res, Icmp{Protocol: IcmpProtocolICMP, Type: &typeNumbers[i]})
+		}
+		return res
+	}
+	// iterate both codes and types
+	typeNumbers := getIntervalNumbers(icmpTypes)
+	codeNumbers := getIntervalNumbers(icmpCodes)
+	for i := range typeNumbers {
+		for j := range codeNumbers {
+			res = append(res, Icmp{Protocol: IcmpProtocolICMP, Type: &typeNumbers[i], Code: &codeNumbers[j]})
+		}
+	}
+	return res
+}
+
+func ConnToJSONRep(c *ConnectionSet) ConnDetails {
+	if c.AllowAll {
+		return ConnDetails(ProtocolList{AnyProtocol{Protocol: AnyProtocolProtocolANY}})
+	}
+	res := ProtocolList{}
+
+	cubes := c.connectionProperties.GetCubesList()
+	for _, cube := range cubes {
+		protocols := cube[protocol]
+		if protocols.Contains(TCP) {
+			tcpItems := getCubeAsTCPItems(cube, TcpUdpProtocolTCP)
+			for _, item := range tcpItems {
+				res = append(res, item)
+			}
+		}
+		if protocols.Contains(UDP) {
+			udpItems := getCubeAsTCPItems(cube, TcpUdpProtocolUDP)
+			for _, item := range udpItems {
+				res = append(res, item)
+			}
+		}
+		if protocols.Contains(ICMP) {
+			icmpItems := getCubeAsICMPItems(cube)
+			for _, item := range icmpItems {
+				res = append(res, item)
+			}
+		}
+	}
+
+	return ConnDetails(res)
 }
 
 // EnhancedString returns a connection string with possibly added asterisk for unidirectional connection,
