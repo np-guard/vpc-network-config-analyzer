@@ -107,12 +107,12 @@ func NewGroupedConnection(
 	name string) *GroupingConnection {
 	gc := GroupingConnection{}
 	if len(src) > 1 {
-		gc.srcGroupPoint = newGroupPointTreeNode(src[0].Parent().(SquareTreeNodeInterface), src, &gc, directed, false, name)
+		gc.srcGroupPoint = NewGroupPointTreeNode(src[0].Parent().(SquareTreeNodeInterface), src, &gc, directed, false, name)
 	} else {
 		gc.srcGroupPoint = src[0]
 	}
 	if len(dst) > 1 {
-		gc.dstGroupPoint = newGroupPointTreeNode(dst[0].Parent().(SquareTreeNodeInterface), dst, &gc, directed, true, name)
+		gc.dstGroupPoint = NewGroupPointTreeNode(dst[0].Parent().(SquareTreeNodeInterface), dst, &gc, directed, true, name)
 	} else {
 		gc.dstGroupPoint = dst[0]
 	}

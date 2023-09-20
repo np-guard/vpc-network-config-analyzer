@@ -191,7 +191,7 @@ func (tn *GroupPointTreeNode) getColleague() IconTreeNodeInterface          { re
 func (tn *GroupPointTreeNode) IconSize() int                                { return groupedIconSize }
 func (tn *GroupPointTreeNode) IsGroupingPoint() bool                        { return true }
 
-func newGroupPointTreeNode(parent SquareTreeNodeInterface,
+func NewGroupPointTreeNode(parent SquareTreeNodeInterface,
 	groupies []IconTreeNodeInterface,
 	groupingConn *GroupingConnection,
 	directed bool,

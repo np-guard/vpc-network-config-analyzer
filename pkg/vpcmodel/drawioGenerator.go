@@ -54,13 +54,22 @@ func (exn *ExternalNetwork) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.
 }
 
 func (g *groupedEndpointsElems) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
-	//todo: 
-	return (*g)[0].GenerateDrawioTreeNode(gen)
+	if len(*g) == 1 {
+		return gen.TreeNode((*g)[0])
+	}
+	subnetTn := gen.TreeNode((*g)[0]).Parent().(*drawio.SubnetTreeNode)
+	groupiesTNs := make([]drawio.IconTreeNodeInterface, len(*g))
+	for i, ni := range *g {
+		groupiesTNs[i] = gen.TreeNode(ni).(drawio.IconTreeNodeInterface)
+	}
+	sq := drawio.NewGroupSquareTreeNode(subnetTn,groupiesTNs)
+	gp := drawio.NewGroupPointTreeNode(sq, nil, nil, false, false, "")
+	return gp
 }
 
 func (g *groupedExternalNodes) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
 	if len(*g) == 1 {
-		return (*g)[0].GenerateDrawioTreeNode(gen)
+		return gen.TreeNode((*g)[0])
 	}
 	tooltip := []string{}
 	for _, n := range *g {
