@@ -11,6 +11,7 @@ type VPCResourceIntf interface {
 	ZoneName() string
 	Kind() string
 
+	// TODO: remove Details and DetailsMap from this interface
 	Details() []string
 	DetailsMap() []map[string]string
 }
