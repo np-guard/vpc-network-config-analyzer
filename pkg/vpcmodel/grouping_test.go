@@ -142,7 +142,7 @@ func TestGroupingPhase2(t *testing.T) {
 }
 
 // Simple test of self loop (don't care): clique of the same subnet. Should end in a single line
-func newCloudConfigTest3() (*CloudConfig, *VPCConnectivity) {
+func configSelfLoopClique() (*CloudConfig, *VPCConnectivity) {
 	res := &CloudConfig{Nodes: []Node{}}
 	res.Nodes = append(res.Nodes,
 		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1"},
@@ -162,8 +162,8 @@ func newCloudConfigTest3() (*CloudConfig, *VPCConnectivity) {
 	return res, res1
 }
 
-func TestGroupingPhase3(t *testing.T) {
-	c, v := newCloudConfigTest3()
+func TestSelfLoopClique(t *testing.T) {
+	c, v := configSelfLoopClique()
 	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections()}
 	res.groupExternalAddresses()
 	res.groupInternalSrcOrDst(true, true)
@@ -176,7 +176,7 @@ func TestGroupingPhase3(t *testing.T) {
 
 // Simple test of self loop (don't care): clique in which the vsis belongs to two subnets.
 // Should end in three lines
-func newCloudConfigTest4() (*CloudConfig, *VPCConnectivity) {
+func configSelfLoopCliqueDiffSubnets() (*CloudConfig, *VPCConnectivity) {
 	res := &CloudConfig{Nodes: []Node{}}
 	res.Nodes = append(res.Nodes,
 		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1-1"},
@@ -197,8 +197,8 @@ func newCloudConfigTest4() (*CloudConfig, *VPCConnectivity) {
 	return res, res1
 }
 
-func TestGroupingPhase4(t *testing.T) {
-	c, v := newCloudConfigTest4()
+func TestSelfLoopCliqueDiffSubnets(t *testing.T) {
+	c, v := configSelfLoopCliqueDiffSubnets()
 	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections()}
 	res.groupExternalAddresses()
 	res.groupInternalSrcOrDst(true, true)
@@ -214,7 +214,7 @@ func TestGroupingPhase4(t *testing.T) {
 // Simple test of self loop: two lines with 3 vsis of the same subnet and same connection.
 //
 //	should end in a single line, where one of the vsis being added a self loop
-func newCloudConfigTest5() (*CloudConfig, *VPCConnectivity) {
+func configSimpleSelfLoop() (*CloudConfig, *VPCConnectivity) {
 	res := &CloudConfig{Nodes: []Node{}}
 	res.Nodes = append(res.Nodes,
 		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1"},
@@ -231,8 +231,8 @@ func newCloudConfigTest5() (*CloudConfig, *VPCConnectivity) {
 	return res, res1
 }
 
-func TestGroupingPhase5(t *testing.T) {
-	c, v := newCloudConfigTest5()
+func TestSimpleSelfLoop(t *testing.T) {
+	c, v := configSimpleSelfLoop()
 	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections()}
 	res.groupExternalAddresses()
 	res.groupInternalSrcOrDst(false, true)
@@ -250,7 +250,7 @@ func TestGroupingPhase5(t *testing.T) {
 //	but ends in another local minimal grouping. Do we want to optimize?
 //	try source and then dest and vice versa and choose the one
 //	with less lines?
-func newCloudConfigTest6() (*CloudConfig, *VPCConnectivity) {
+func configSelfLoopCliqueLace() (*CloudConfig, *VPCConnectivity) {
 	res := &CloudConfig{Nodes: []Node{}}
 	res.Nodes = append(res.Nodes,
 		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1"},
@@ -275,8 +275,8 @@ func newCloudConfigTest6() (*CloudConfig, *VPCConnectivity) {
 	return res, res1
 }
 
-func TestGroupingPhase6(t *testing.T) {
-	c, v := newCloudConfigTest6()
+func TestConfigSelfLoopCliqueLace(t *testing.T) {
+	c, v := configSelfLoopCliqueLace()
 	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections()}
 	res.groupExternalAddresses()
 	res.groupInternalSrcOrDst(false, true)

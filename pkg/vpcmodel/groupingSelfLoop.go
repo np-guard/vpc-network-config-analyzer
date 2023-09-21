@@ -6,13 +6,14 @@ import (
 
 // extends grouping by considering self loops as don't care https://github.com/np-guard/vpc-network-config-analyzer/issues/98
 // e.g. a => b,c   b => a, c   and   c => a,b   is actually a clique a,b,c => a,b,c
-// a => b,c, d => b,c can be presented in one line as  a, d => b,c
+// a => b,c, b => c can be presented in one line as  a,b => b,c
 
 // After the basic grouping, which is of worst time complexity O(n^2), we optimize grouping treating self loops as don't care.
 // Intuitively, we check if two GroupedConnLine can be merged treating self loops as don't care
 // 1. groupsToBeMerged find couples of GroupedConnLine that should be merged using the alg below
 // mergeSelfLoops merges the groupsToBeMerged:
 // 2. It creates sets of GroupedConnLine s.t. each set should be merged
+//			note that the "should be merged" is an equivalence relation
 // 3. It merges them
 
 // alg: GroupedConnLine to be merged:
@@ -68,13 +69,13 @@ func (g *GroupConnLines) groupsToBeMerged(groupingSrcOrDst map[string][]*Grouped
 }
 
 // a group is candidate to be merged only if it has only internal nodes
-func relevantKeysToCompare(groupingSrcOrDst map[string][]*GroupedConnLine) (sortedKeys []string) {
-	sortedKeys = make([]string, 0, len(groupingSrcOrDst))
+func relevantKeysToCompare(groupingSrcOrDst map[string][]*GroupedConnLine) (relevantKeys []string) {
+	relevantKeys = make([]string, 0, len(groupingSrcOrDst))
 	for key, lines := range groupingSrcOrDst {
 		if lines[0].isSrcOrDstExternalNodes() {
 			continue
 		}
-		sortedKeys = append(sortedKeys, key)
+		relevantKeys = append(relevantKeys, key)
 	}
 	return
 }
@@ -84,17 +85,17 @@ func relevantKeysToCompare(groupingSrcOrDst map[string][]*GroupedConnLine) (sort
 // a couple of []*GroupedConnLine is candidate to be merged only if:
 //  1. They are of the same connection
 //  2. If vsis, of the same subnet
-//  3. The src/dst is a singelton contained in the dst/src
+//  3. The src/dst is a singleton contained in the dst/src
 //     in one path on groupingSrcOrDst we prepare a map between each key to the keys that are candidate to be merged with it.
 //     Before the grouping there are at most O(n^20) lines of src -> dst
 //     The last condition implies that each original src -> dst (where src and dst are a single endpoint) can induce a single
-//     candidate (at most), and each singelton key have at most n candidates. Hence there are at most
+//     candidate (at most), and each singleton key have at most n candidates. Hence, there are at most
 //     O(n^3) merge candidate, which implies O(n^3) time complexity of groupsToBeMerged
 func (g *GroupConnLines) mergeCandidates(groupingSrcOrDst map[string][]*GroupedConnLine, srcGrouping bool,
-	keyToGroupedSets map[string]map[string]struct{}, sortedKeys []string) map[string]map[string]struct{} {
+	keyToGroupedSets map[string]map[string]struct{}, relevantKeys []string) map[string]map[string]struct{} {
 	// 1. Create buckets for each connection + vsi's subnet if vsi; merge candidates are within each bucket
 	bucketToKeys := make(map[string]map[string]struct{})
-	for _, key := range sortedKeys {
+	for _, key := range relevantKeys {
 		lines := groupingSrcOrDst[key]
 		bucket := lines[0].Conn
 		bucket = g.addVsiSubnetToBucket(lines[0].Src, bucket)
@@ -108,25 +109,25 @@ func (g *GroupConnLines) mergeCandidates(groupingSrcOrDst map[string][]*GroupedC
 	keyToMergeCandidates := make(map[string]map[string]struct{})
 	// 2. in each bucket finds for each key the candidates to be merged, in two stages
 	for _, keysInBucket := range bucketToKeys {
-		singeltonsInBucket := make(map[string]string)
-		//    2.1 for a group g_1 s.t. the non-grouped src/dst is a singelton,
-		//        all groups in which the grouped dst/src contains the singelton
-		//        2.1.1 finds for each bucket all singeltons
+		singletonsInBucket := make(map[string]string)
+		//    2.1 for a group g_1 s.t. the non-grouped src/dst is a singleton,
+		//        all groups in which the grouped dst/src contains the singleton
+		//        2.1.1 finds for each bucket all singletons
 		for key := range keysInBucket {
 			lines := groupingSrcOrDst[key]
 			elemsInkey := elemInKeys(!srcGrouping, *lines[0])
-			if len(elemsInkey) > 1 { // not a singelton
+			if len(elemsInkey) > 1 { // not a singleton
 				continue
 			}
-			singelton := elemsInkey[0]
-			singeltonsInBucket[singelton] = key
+			singleton := elemsInkey[0]
+			singletonsInBucket[singleton] = key
 		}
-		//   2.1.2 finds for each singelton candidates: groups with that singelton
+		//   2.1.2 finds for each singleton candidates: groups with that singleton
 		//    stores the candidates in keyToMergeCandidates
 		for key := range keysInBucket {
 			itemsInGroup := keyToGroupedSets[key]
 			for item := range itemsInGroup {
-				if mergeCandidateKey, ok := singeltonsInBucket[item]; ok {
+				if mergeCandidateKey, ok := singletonsInBucket[item]; ok {
 					if mergeCandidateKey != key {
 						if _, ok := keyToMergeCandidates[mergeCandidateKey]; !ok {
 							keyToMergeCandidates[mergeCandidateKey] = make(map[string]struct{})
@@ -145,13 +146,18 @@ func (g *GroupConnLines) mergeCandidates(groupingSrcOrDst map[string][]*GroupedC
 
 func (g *GroupConnLines) addVsiSubnetToBucket(ep EndpointElem, bucket string) string {
 	if isVsi, node := isEpVsi(ep); isVsi {
+		// if ep is groupedEndpointsElems of vsis then all belong to the same subnet
 		return bucket + ";" + g.c.getSubnetOfNode(node).Name()
 	}
 	return bucket
 }
 
-// returns true, vsi if the endpoint element represents a vsi or is a slice of elements the first of which represents vsi
-// otherwise returns false, nil
+// returns a pair <bool, node>:
+// if the endpoint element represents a vsi or is a slice of elements the first of which represents vsi
+//
+//	then it returns true, the vsi or the first vsi
+//
+// otherwise it returns false, nil
 func isEpVsi(ep EndpointElem) (bool, Node) {
 	if _, ok := ep.(*groupedEndpointsElems); ok {
 		ep1GroupedEps := ep.(*groupedEndpointsElems)
@@ -203,7 +209,7 @@ func deltaBetweenGroupedConnLines(srcGrouping bool, groupedConnLine1, groupedCon
 
 func elemInKeys(srcGrouping bool, groupedConnLine GroupedConnLine) []string {
 	srcOrDst := groupedConnLine.getSrcOrDst(srcGrouping)
-	return strings.Split(srcOrDst.Name(), commaSepartor)
+	return strings.Split(srcOrDst.Name(), commaSeparator)
 }
 
 func setMinusSet(srcGrouping bool, groupedConnLine GroupedConnLine, set1, set2 map[string]struct{}) map[string]struct{} {
@@ -325,6 +331,6 @@ func mergeGivenList(oldGroupingSrcOrDst map[string][]*GroupedConnLine, srcGroupi
 	for item := range namesInNewKey {
 		srcsOrDstsInNewKeySlice = append(srcsOrDstsInNewKeySlice, item)
 	}
-	newKey = strings.Join(srcsOrDstsInNewKeySlice, commaSepartor) + conn
+	newKey = strings.Join(srcsOrDstsInNewKeySlice, commaSeparator) + conn
 	return
 }

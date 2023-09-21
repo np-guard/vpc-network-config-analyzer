@@ -7,8 +7,6 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
-const commaSepartor = ","
-
 // for each line here can group list of external nodes to cidrs list as of one element
 type groupingConnections map[EndpointElem]map[string][]Node
 
@@ -206,7 +204,7 @@ func (g *GroupConnLines) groupExternalAddressesForSubnets() {
 }
 
 // aux func, returns true iff the EndpointElem is Node if grouping vsis or NodeSet if grouping subnets
-func isInetrnalOfRequiredType(ep EndpointElem, groupVsi bool) bool {
+func isInternalOfRequiredType(ep EndpointElem, groupVsi bool) bool {
 	if groupVsi { // groups vsis Nodes
 		if _, ok := ep.(Node); !ok {
 			return false
@@ -228,7 +226,7 @@ func (g *GroupConnLines) groupLinesByKey(srcGrouping, groupVsi bool) (res []*Gro
 	// populate map groupingSrcOrDst
 	for _, line := range g.GroupedLines {
 		srcOrDst, dstOrSrc := line.getSrcOrDst(srcGrouping), line.getSrcOrDst(!srcGrouping)
-		if !isInetrnalOfRequiredType(srcOrDst, groupVsi) {
+		if !isInternalOfRequiredType(srcOrDst, groupVsi) {
 			res = append(res, line)
 			continue
 		}
@@ -303,7 +301,7 @@ func listEndpointElemStr(eps []EndpointElem, fn func(ep EndpointElem) string) st
 		endpointsStrings[i] = fn(ep)
 	}
 	sort.Strings(endpointsStrings)
-	return strings.Join(endpointsStrings, commaSepartor)
+	return strings.Join(endpointsStrings, commaSeparator)
 }
 
 func (g *groupedExternalNodes) String() string {
@@ -322,5 +320,5 @@ func (g *groupedExternalNodes) String() string {
 		unionBlock = unionBlock.Union(ipBlock)
 	}
 	// 3. print a list s.t. each element contains either a single cidr or an ip range
-	return strings.Join(unionBlock.ListToPrint(), commaSepartor)
+	return strings.Join(unionBlock.ListToPrint(), commaSeparator)
 }
