@@ -11,7 +11,6 @@ type SquareTreeNodeInterface interface {
 	HasVSIs() bool
 	setHasVSIs()
 	IsGroupingSquare() bool
-
 }
 
 type abstractSquareTreeNode struct {
@@ -46,7 +45,7 @@ func (tn *abstractSquareTreeNode) setHasVSIs() {
 		tn.Parent().(SquareTreeNodeInterface).setHasVSIs()
 	}
 }
-func (tn *abstractSquareTreeNode) IsGroupingSquare() bool       { return false }
+func (tn *abstractSquareTreeNode) IsGroupingSquare() bool { return false }
 
 func (tn *abstractSquareTreeNode) setGeometry() {
 	location := tn.Location()
@@ -233,7 +232,9 @@ type GroupSquareTreeNode struct {
 	abstractSquareTreeNode
 	groupies []IconTreeNodeInterface
 }
-func (tn *GroupSquareTreeNode) IsGroupingSquare() bool       { return true }
+
+func (tn *GroupSquareTreeNode) IsGroupingSquare() bool { return true }
+func (tn *GroupSquareTreeNode) NotShownInDrawio() bool { return tn.location.firstRow != tn.location.lastRow }
 
 func NewGroupSquareTreeNode(parent *SubnetTreeNode, groupies []IconTreeNodeInterface) *GroupSquareTreeNode {
 	gs := GroupSquareTreeNode{newAbstractSquareTreeNode(parent, ""), groupies}

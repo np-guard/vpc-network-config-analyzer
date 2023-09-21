@@ -219,6 +219,12 @@ func (tn *GroupPointTreeNode) connectGroupies() {
 	}
 
 }
+func (tn *GroupPointTreeNode) DrawioParent() TreeNodeInterface {
+	if tn.parent.NotShownInDrawio() {
+		return tn.Parent().Parent()
+	}
+	return tn.Parent()
+}
 
 func (tn *GroupPointTreeNode) setGeometry() {
 	tn.x, tn.y = calculateIconGeometry(tn, tn.DrawioParent())
