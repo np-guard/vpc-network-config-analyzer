@@ -170,7 +170,7 @@ func configStatefulGrouping() (*CloudConfig, *VPCConnectivity) {
 	return res, res1
 }
 
-func TestGroupingPhase7(t *testing.T) {
+func TestStatefulGrouping(t *testing.T) {
 	c, v := configStatefulGrouping()
 	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
 		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
@@ -204,8 +204,7 @@ func configIPRange() (*CloudConfig, *VPCConnectivity) {
 
 func TestIPRange(t *testing.T) {
 	c, v := configIPRange()
-	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections()
-		,
+	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
 		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
 		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
 	res.groupExternalAddresses()
