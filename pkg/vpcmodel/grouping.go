@@ -17,7 +17,7 @@ func (g *groupingConnections) getGroupedConnLines(isSrcToDst bool) []*GroupedCon
 	for a, aMap := range *g {
 		for conn, b := range aMap {
 			var resElem *GroupedConnLine
-			bGrouped := groupedExternalNodes(b)
+			bGrouped := groupedExternalNodes(b) // todo: here should take from g.groupedEndpointsElemsMap if needed add there
 			if isSrcToDst {
 				resElem = &GroupedConnLine{a, &bGrouped, conn}
 			} else {
@@ -49,12 +49,18 @@ func newGroupConnLinesSubnetConnectivity(c *CloudConfig, s *VPCsubnetConnectivit
 // GroupConnLines used both for VPCConnectivity and for VPCsubnetConnectivity, one at a time. The other must be nil
 // todo: define abstraction above both?
 type GroupConnLines struct {
-	c            *CloudConfig
-	v            *VPCConnectivity
-	s            *VPCsubnetConnectivity
-	srcToDst     *groupingConnections
-	dstToSrc     *groupingConnections
-	GroupedLines []*GroupedConnLine
+	c        *CloudConfig
+	v        *VPCConnectivity
+	s        *VPCsubnetConnectivity
+	srcToDst *groupingConnections
+	dstToSrc *groupingConnections
+	// a map to groupedEndpointsElems used by GroupedConnLine from a unified key of such elements
+	// representing grouped vsis or grouped subnets
+	// this is to avoid duplication of identical groupedEndpointsElems
+	groupedEndpointsElemsMap map[string]groupedEndpointsElems
+	// similarly to the above, such map to groupedExternalNodes
+	groupedExternalNodesMap map[string]groupedExternalNodes
+	GroupedLines            []*GroupedConnLine
 }
 
 // EndpointElem can be Node(networkInterface) / groupedExternalNodes / groupedNetworkInterfaces
@@ -128,7 +134,7 @@ func vsiGroupingBySubnets(elemsList []EndpointElem, c *CloudConfig) []EndpointEl
 		if len(nodesList) == 1 { // a single network interface on subnet is just added to the result (no grouping)
 			res = append(res, nodesList[0])
 		} else { // a set of network interfaces from the same subnet is grouped by groupedNetworkInterfaces object
-			groupedNodes := groupedEndpointsElems(nodesList)
+			groupedNodes := groupedEndpointsElems(nodesList) // todo: here should take from g.groupedEndpointsElemsMap if needed add there
 			res = append(res, &groupedNodes)
 		}
 	}
@@ -150,7 +156,7 @@ func subnetGrouping(elemsList []EndpointElem) []EndpointElem {
 	if len(subnetsToGroup) == 1 {
 		res = append(res, subnetsToGroup[0])
 	} else {
-		groupedNodes := groupedEndpointsElems(subnetsToGroup)
+		groupedNodes := groupedEndpointsElems(subnetsToGroup) // todo: here should take from g.groupedEndpointsElemsMap if needed add there
 		res = append(res, &groupedNodes)
 	}
 	return res
