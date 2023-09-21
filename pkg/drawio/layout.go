@@ -363,7 +363,7 @@ func (ly *layoutS) setGroupingIconsLocations() {
 		r, c, isLeft := ly.getGroupingIconLocation(parentLocation, colleagueParentLocation)
 
 		gIcon.setLocation(newCellLocation(r, c))
-		gIcon.Location().yOffset = 20 * iconsInCell[cell{r, c}]
+		gIcon.Location().yOffset = 40 * iconsInCell[cell{r, c}]
 		iconsInCell[cell{r, c}]++
 		xOffsetSign := -1
 		if isLeft {

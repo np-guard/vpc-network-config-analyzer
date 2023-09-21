@@ -217,7 +217,7 @@ func createNetwork2() SquareTreeNodeInterface {
 		NewNITreeNode(subnet33, nil, "ni1"),
 		NewNITreeNode(subnet33, nil, "ni1"),
 		NewNITreeNode(subnet33, nil, "ni1"),
-		}
+	}
 
 	fipGroups := [][]IconTreeNodeInterface{
 		groupedNis1,
@@ -230,19 +230,46 @@ func createNetwork2() SquareTreeNodeInterface {
 			ni.(*NITreeNode).SetFIP("fip")
 		}
 	}
-	gw11 := NewGatewayTreeNode(zone1, "gw11")
+	// gw11 := NewGatewayTreeNode(zone1, "gw11")
 	i2 := NewInternetTreeNode(publicNetwork, "Internet2")
+	if i2 != nil {
+	}
 	//i4 := NewUserTreeNode(publicNetwork, "User4")
 
-	gc1 := NewGroupedConnection(network, groupedNis3, groupedNis32, true, "gconn1")
-	gc2 := NewGroupedConnection(network, groupedNis33, []IconTreeNodeInterface{i2}, false, "gconn2")
-	gc3 := NewGroupedConnection(network, groupedNis23, groupedNis1, true, "gconn3")
-	NewGroupedConnection(network, groupedNis23, groupedNis23, true, "gconn3")
-	NewGroupedConnection(network, groupedNis32, groupedNis33, true, "gconn4")
-	NewGroupedConnection(network, groupedNis31, groupedNis33, true, "gconn4")
-	gc1.SetFipRouter(false)
-	gc2.SetFipRouter(false)
-	gc3.SetGwRouter(gw11, true)
+	gs3 := NewGroupSquareTreeNode(subnet3, groupedNis3)
+	if gs3 != nil {
+	}
+	gs32 := NewGroupSquareTreeNode(subnet3, groupedNis32)
+	if gs32 != nil {
+	}
+	gs33 := NewGroupSquareTreeNode(subnet3, groupedNis33)
+	if gs33 != nil {
+	}
+	gs23 := NewGroupSquareTreeNode(subnet3, groupedNis23)
+	if gs23 != nil {
+	}
+	gs31 := NewGroupSquareTreeNode(subnet3, groupedNis31)
+	if gs31 != nil {
+	}
+	gs1 := NewGroupSquareTreeNode(subnet3, groupedNis1)
+	if gs1 != nil {
+	}
+
+	gc1 := NewConnectivityLineTreeNode(network, gs3, gs32, true, "gconn1")
+	if gc1 != nil {
+	}
+	gc2 := NewConnectivityLineTreeNode(network, gs33, i2, false, "gconn2")
+	if gc2 != nil {
+	}
+	gc3 := NewConnectivityLineTreeNode(network, gs23, gs1, true, "gconn3")
+	if gc3 != nil {
+	}
+	NewConnectivityLineTreeNode(network, gs23, gs23, true, "gconn3")
+	NewConnectivityLineTreeNode(network, gs32, gs33, true, "gconn4")
+	NewConnectivityLineTreeNode(network, gs31, gs33, true, "gconn4")
+	// gc1.SetFipRouter(false)
+	// gc2.SetFipRouter(false)
+	// gc3.SetGwRouter(gw11, true)
 
 	return network
 }

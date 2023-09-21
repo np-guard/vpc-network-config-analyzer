@@ -88,17 +88,17 @@ func NewConnectivityLineTreeNode(network SquareTreeNodeInterface,
 	directed bool,
 	name string) *ConnectivityTreeNode {
 	if src.IsSquare() {
-		src = NewGroupPointTreeNode(src.(SquareTreeNodeInterface), nil, nil, false, false, "")
+		src = NewGroupPointTreeNode(src.(SquareTreeNodeInterface), directed, true, "")
 	}
 	if dst.IsSquare() {
-		dst = NewGroupPointTreeNode(dst.(SquareTreeNodeInterface), nil, nil, false, false, "")
+		dst = NewGroupPointTreeNode(dst.(SquareTreeNodeInterface), directed, false, "")
 	}
 	iconSrc := src.(IconTreeNodeInterface)
 	iconDst := dst.(IconTreeNodeInterface)
-	if iconSrc.IsGroupingPoint(){
+	if iconSrc.IsGroupingPoint() {
 		iconSrc.(*GroupPointTreeNode).setColleague(iconDst)
 	}
-	if iconDst.IsGroupingPoint(){
+	if iconDst.IsGroupingPoint() {
 		iconDst.(*GroupPointTreeNode).setColleague(iconSrc)
 	}
 
@@ -112,57 +112,57 @@ func NewConnectivityLineTreeNode(network SquareTreeNodeInterface,
 	return &conn
 }
 
-// ////////////////////////////////////////////////////////////////////////////////////////
-type GroupingConnection struct {
-	srcGroupPoint, dstGroupPoint IconTreeNodeInterface
-	conn                         LineTreeNodeInterface
-}
+// // ////////////////////////////////////////////////////////////////////////////////////////
+// type GroupingConnection struct {
+// 	srcGroupPoint, dstGroupPoint IconTreeNodeInterface
+// 	conn                         LineTreeNodeInterface
+// }
 
-func NewGroupedConnection(
-	network SquareTreeNodeInterface,
-	src, dst []IconTreeNodeInterface,
-	directed bool,
-	name string) *GroupingConnection {
-	gc := GroupingConnection{}
-	if len(src) > 1 {
-		gc.srcGroupPoint = NewGroupPointTreeNode(src[0].Parent().(SquareTreeNodeInterface), src, &gc, directed, false, name)
-	} else {
-		gc.srcGroupPoint = src[0]
-	}
-	if len(dst) > 1 {
-		gc.dstGroupPoint = NewGroupPointTreeNode(dst[0].Parent().(SquareTreeNodeInterface), dst, &gc, directed, true, name)
-	} else {
-		gc.dstGroupPoint = dst[0]
-	}
-	if gc.srcGroupPoint.IsGroupingPoint() {
-		gc.srcGroupPoint.(*GroupPointTreeNode).setColleague(gc.dstGroupPoint)
-	}
-	if gc.dstGroupPoint.IsGroupingPoint() {
-		gc.dstGroupPoint.(*GroupPointTreeNode).setColleague(gc.srcGroupPoint)
-	}
-	gc.conn = NewConnectivityLineTreeNode(network, gc.srcGroupPoint, gc.dstGroupPoint, directed, name)
-	return &gc
-}
+// func NewGroupedConnection(
+// 	network SquareTreeNodeInterface,
+// 	src, dst []IconTreeNodeInterface,
+// 	directed bool,
+// 	name string) *GroupingConnection {
+// 	gc := GroupingConnection{}
+// 	if len(src) > 1 {
+// 		gc.srcGroupPoint = NewGroupPointTreeNode(src[0].Parent().(SquareTreeNodeInterface), src, &gc, directed, false, name)
+// 	} else {
+// 		gc.srcGroupPoint = src[0]
+// 	}
+// 	if len(dst) > 1 {
+// 		gc.dstGroupPoint = NewGroupPointTreeNode(dst[0].Parent().(SquareTreeNodeInterface), dst, &gc, directed, true, name)
+// 	} else {
+// 		gc.dstGroupPoint = dst[0]
+// 	}
+// 	if gc.srcGroupPoint.IsGroupingPoint() {
+// 		gc.srcGroupPoint.(*GroupPointTreeNode).setColleague(gc.dstGroupPoint)
+// 	}
+// 	if gc.dstGroupPoint.IsGroupingPoint() {
+// 		gc.dstGroupPoint.(*GroupPointTreeNode).setColleague(gc.srcGroupPoint)
+// 	}
+// 	gc.conn = NewConnectivityLineTreeNode(network, gc.srcGroupPoint, gc.dstGroupPoint, directed, name)
+// 	return &gc
+// }
 
-func (gc *GroupingConnection) SetGwRouter(gw IconTreeNodeInterface, reverse bool) {
-	gc.conn.SetRouter(gw, reverse)
-	if gc.srcGroupPoint.IsGroupingPoint() {
-		gc.srcGroupPoint.(*GroupPointTreeNode).setColleague(gw)
-	}
-	if gc.dstGroupPoint.IsGroupingPoint() {
-		gc.dstGroupPoint.(*GroupPointTreeNode).setColleague(gw)
-	}
+// func (gc *GroupingConnection) SetGwRouter(gw IconTreeNodeInterface, reverse bool) {
+// 	gc.conn.SetRouter(gw, reverse)
+// 	if gc.srcGroupPoint.IsGroupingPoint() {
+// 		gc.srcGroupPoint.(*GroupPointTreeNode).setColleague(gw)
+// 	}
+// 	if gc.dstGroupPoint.IsGroupingPoint() {
+// 		gc.dstGroupPoint.(*GroupPointTreeNode).setColleague(gw)
+// 	}
 
-}
-func (gc *GroupingConnection) SetFipRouter(isDst bool) {
-	gp := gc.srcGroupPoint
-	if isDst {
-		gp = gc.dstGroupPoint
-	}
-	if gp.IsGroupingPoint() {
-		gp2 := gp.(*GroupPointTreeNode)
-		for i, _ := range gp2.groupiesConns {
-			gp2.groupiesConns[i].SetRouter(gp2.groupies[i].(IconTreeNodeInterface), isDst)
-		}
-	}
-}
+// }
+// func (gc *GroupingConnection) SetFipRouter(isDst bool) {
+// 	gp := gc.srcGroupPoint
+// 	if isDst {
+// 		gp = gc.dstGroupPoint
+// 	}
+// 	if gp.IsGroupingPoint() {
+// 		gp2 := gp.(*GroupPointTreeNode)
+// 		for i, _ := range gp2.groupiesConns {
+// 			gp2.groupiesConns[i].SetRouter(gp2.groupies[i].(IconTreeNodeInterface), isDst)
+// 		}
+// 	}
+// }

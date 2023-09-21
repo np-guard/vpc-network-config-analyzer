@@ -234,6 +234,7 @@ type GroupSquareTreeNode struct {
 }
 
 func (tn *GroupSquareTreeNode) IsGroupingSquare() bool { return true }
+//todo:
 func (tn *GroupSquareTreeNode) NotShownInDrawio() bool { return tn.location.firstRow != tn.location.lastRow }
 
 func NewGroupSquareTreeNode(parent *SubnetTreeNode, groupies []IconTreeNodeInterface) *GroupSquareTreeNode {
