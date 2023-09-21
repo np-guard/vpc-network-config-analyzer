@@ -150,7 +150,7 @@ func TestGroupingPhase2(t *testing.T) {
 
 // connections from vsi1 should be grouped since both stateful
 // connections from vsi2 should not be grouped since one stateful and one not
-func newCloudConfigTest7() (*CloudConfig, *VPCConnectivity) {
+func configStatefulGrouping() (*CloudConfig, *VPCConnectivity) {
 	res := &CloudConfig{Nodes: []Node{}}
 	res.Nodes = append(res.Nodes,
 		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1"},
@@ -171,7 +171,7 @@ func newCloudConfigTest7() (*CloudConfig, *VPCConnectivity) {
 }
 
 func TestGroupingPhase7(t *testing.T) {
-	c, v := newCloudConfigTest7()
+	c, v := configStatefulGrouping()
 	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
 		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
 		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
@@ -187,7 +187,7 @@ func TestGroupingPhase7(t *testing.T) {
 }
 
 // grouping that results in cidrs presented as range and not as cidr
-func newCloudConfigTest8() (*CloudConfig, *VPCConnectivity) {
+func configIPRange() (*CloudConfig, *VPCConnectivity) {
 	res := &CloudConfig{Nodes: []Node{}}
 	res.Nodes = append(res.Nodes,
 		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1"},
@@ -202,9 +202,10 @@ func newCloudConfigTest8() (*CloudConfig, *VPCConnectivity) {
 	return res, res1
 }
 
-func TestGroupingPhase8(t *testing.T) {
-	c, v := newCloudConfigTest8()
-	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
+func TestIPRange(t *testing.T) {
+	c, v := configIPRange()
+	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections()
+		,
 		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
 		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
 	res.groupExternalAddresses()
