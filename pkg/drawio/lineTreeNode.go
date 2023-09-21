@@ -84,12 +84,22 @@ type ConnectivityTreeNode struct {
 }
 
 func NewConnectivityLineTreeNode(network SquareTreeNodeInterface,
-	src, dst IconTreeNodeInterface,
+	src, dst TreeNodeInterface,
 	directed bool,
 	name string) *ConnectivityTreeNode {
+	if src.IsSquare() {
+		src = NewGroupPointTreeNode(src.(SquareTreeNodeInterface), nil, nil, false, false, "")
+	}
+	if dst.IsSquare() {
+		dst = NewGroupPointTreeNode(dst.(SquareTreeNodeInterface), nil, nil, false, false, "")
+	}
+
 	conn := ConnectivityTreeNode{
-		abstractLineTreeNode: abstractLineTreeNode{abstractTreeNode: newAbstractTreeNode(network, name), src: src, dst: dst},
-		directed:             directed}
+		abstractLineTreeNode: abstractLineTreeNode{
+			abstractTreeNode: newAbstractTreeNode(network, name),
+			src:              src.(IconTreeNodeInterface),
+			dst:              dst.(IconTreeNodeInterface)},
+		directed: directed}
 	network.addLineTreeNode(&conn)
 	return &conn
 }

@@ -14,8 +14,8 @@ type edge struct {
 }
 
 func (e *edge) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
-	srcTn := gen.TreeNode(e.src).(drawio.IconTreeNodeInterface)
-	dstTn := gen.TreeNode(e.dst).(drawio.IconTreeNodeInterface)
+	srcTn := gen.TreeNode(e.src)
+	dstTn := gen.TreeNode(e.dst)
 	return drawio.NewConnectivityLineTreeNode(gen.Network(), srcTn, dstTn, e.directed, e.label)
 
 }
@@ -31,11 +31,11 @@ func (e *edge) IsExternal() bool {
 // 3. create the edges from the map we created in stage (1). also also set the routers to the edges
 
 type DrawioOutputFormatter struct {
-	cConfig        *CloudConfig
-	conn           *VPCConnectivity
-	gen            *DrawioGenerator
-	routers        map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface
-	edges          []*edge
+	cConfig *CloudConfig
+	conn    *VPCConnectivity
+	gen     *DrawioGenerator
+	routers map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface
+	edges   []*edge
 }
 
 func (d *DrawioOutputFormatter) init(cConfig *CloudConfig, conn *VPCConnectivity) {
@@ -82,7 +82,7 @@ func (d *DrawioOutputFormatter) createEdgesMap() {
 		}
 	}
 	for e, directed := range isEdgeDirected {
-		d.edges= append(d.edges, &edge{e.src,e.dst,e.label,directed})
+		d.edges = append(d.edges, &edge{e.src, e.dst, e.label, directed})
 	}
 }
 
