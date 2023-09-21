@@ -55,7 +55,7 @@ func (g *GroupConnLines) groupsToBeMerged(groupingSrcOrDst map[string][]*Grouped
 		}
 		for candidate := range mergeCandidates {
 			candidateLines := groupingSrcOrDst[candidate]
-			// delta between outerKeyEndPointElements to innerKeyEndPointElements must be 0
+			// delta between keyLines to candidateLines must be 0
 			mergeGroups := deltaBetweenGroupedConnLines(srcGrouping, keyLines, candidateLines, setsToGroup[key], setsToGroup[candidate])
 			// delta between the keyLines is 0 - merge keyLines
 			if mergeGroups {
