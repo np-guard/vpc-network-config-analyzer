@@ -203,7 +203,7 @@ func NewGroupPointTreeNode(parent SquareTreeNodeInterface,
 func (tn *GroupPointTreeNode) connectGroupies() {
 	for _, groupe := range tn.Parent().(*GroupSquareTreeNode).groupies {
 		var s, d IconTreeNodeInterface = tn, groupe
-		if !tn.isSrc {
+		if tn.isSrc {
 			s, d = groupe, tn
 		}
 		tn.groupiesConns = append(tn.groupiesConns, NewConnectivityLineTreeNode(tn.DrawioParent().(SquareTreeNodeInterface), s, d, tn.directed, ""))
