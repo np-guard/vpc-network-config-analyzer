@@ -68,10 +68,11 @@ func (lyO *layoutOverlap) fixOverlapping() {
 func (lyO *layoutOverlap) setIconsMap() {
 	for _, tn := range getAllNodes(lyO.network) {
 		if tn.IsIcon() {
+			itn := tn.(IconTreeNodeInterface)
 			x, y := absoluteGeometry(tn)
-			for ox := x; ox < x+iconSize; ox += minSize {
-				for oy := y; oy < y+iconSize; oy += minSize {
-					lyO.cell(ox, oy).icon = tn.(IconTreeNodeInterface)
+			for ox := x; ox < x+itn.IconSize(); ox += minSize {
+				for oy := y; oy < y+itn.IconSize(); oy += minSize {
+					lyO.cell(ox, oy).icon = itn
 				}
 			}
 		}
