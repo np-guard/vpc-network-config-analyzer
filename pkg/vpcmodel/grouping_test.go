@@ -112,7 +112,9 @@ func newCloudConfigTest2() (*CloudConfig, *VPCConnectivity) {
 // thus, expecting to be merged to one line with dest element of both ranges together
 func TestGroupingPhase1(t *testing.T) {
 	c, v := newCloudConfigTest1()
-	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections()}
+	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
+		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
+		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
 	res.groupExternalAddresses()
 
 	groupingStr := res.String()
@@ -125,7 +127,9 @@ func TestGroupingPhase1(t *testing.T) {
 // Test simple grouping of 1 conn line with netInterface, grouped into subnet element.
 func TestGroupingPhase2(t *testing.T) {
 	c, v := newCloudConfigTest2()
-	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections()}
+	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
+		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
+		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
 	// phase 1
 	res.groupExternalAddresses()
 	groupingStr := res.String()
@@ -165,7 +169,9 @@ func configStatefulGrouping() (*CloudConfig, *VPCConnectivity) {
 
 func TestStatefulGrouping(t *testing.T) {
 	c, v := configStatefulGrouping()
-	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections()}
+	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
+		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
+		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
 	res.groupExternalAddresses()
 	res.groupInternalSrcOrDst(true, true)
 	groupingStr := res.String()
@@ -195,7 +201,9 @@ func configIPRange() (*CloudConfig, *VPCConnectivity) {
 
 func TestIPRange(t *testing.T) {
 	c, v := configIPRange()
-	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections()}
+	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
+		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
+		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
 	res.groupExternalAddresses()
 	res.groupInternalSrcOrDst(true, true)
 	groupingStr := res.String()
