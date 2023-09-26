@@ -141,9 +141,6 @@ func TestGroupingPhase2(t *testing.T) {
 	fmt.Println("done")
 }
 
-// todo: newCloudConfigTest7 since there are more tests in PR #152
-//		delete comment after merges
-
 // connections from vsi1 should be grouped since both stateful
 // connections from vsi2 should not be grouped since one stateful and one not
 func configStatefulGrouping() (*CloudConfig, *VPCConnectivity) {
