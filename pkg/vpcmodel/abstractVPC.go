@@ -11,13 +11,11 @@ type VPCResourceIntf interface {
 	ZoneName() string
 	Kind() string
 
-	// TODO: remove Details and DetailsMap from this interface
-	Details() []string
-	DetailsMap() []map[string]string
 	DrawioResourceIntf
 }
 
-// VPCResource implements VPCResourceIntf
+// VPCResource implements part of the VPCResourceIntf
+// every concrete resource type should contain VPCResource and also implement the DrawioResourceIntf
 type VPCResource struct {
 	ResourceName string
 	ResourceUID  string
@@ -62,6 +60,7 @@ type NodeSet interface {
 	VPCResourceIntf
 	Nodes() []Node
 	Connectivity() *ConnectivityResult
+	AddressRange() *common.IPBlock
 }
 
 // FilterTrafficResource capture allowed traffic between 2 endpoints

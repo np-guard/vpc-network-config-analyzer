@@ -1,9 +1,5 @@
 package vpcmodel
 
-import (
-	"strings"
-)
-
 type CloudConfig struct {
 	Nodes            []Node
 	NodeSets         []NodeSet
@@ -26,7 +22,7 @@ func (c *CloudConfig) getSubnetOfNode(n Node) NodeSet {
 	return nil
 }
 
-func (c *CloudConfig) String() string {
+/*func (c *CloudConfig) String() string {
 	res := "cloud config details:\n"
 	lines := []string{}
 	for _, node := range c.Nodes {
@@ -43,7 +39,7 @@ func (c *CloudConfig) String() string {
 	}
 	res += strings.Join(lines, "\n")
 	return res
-}
+}*/
 
 func (c *CloudConfig) getFilterTrafficResourceOfKind(kind string) FilterTrafficResource {
 	for _, filter := range c.FilterResources {

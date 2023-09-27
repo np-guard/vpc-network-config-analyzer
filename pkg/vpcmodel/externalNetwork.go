@@ -57,20 +57,8 @@ func (exn *ExternalNetwork) IsPublicInternet() bool {
 	return exn.isPublicInternet
 }
 
-func (exn *ExternalNetwork) Details() []string {
-	return []string{externalNetworkNodeKind + " " + exn.Cidr()}
-}
-
 func (exn *ExternalNetwork) Kind() string {
 	return externalNetworkNodeKind
-}
-
-func (exn *ExternalNetwork) DetailsMap() []map[string]string {
-	res := map[string]string{}
-	res[DetailsAttributeKind] = exn.Kind()
-	res[DetailsAttributeName] = exn.ResourceName
-	res[DetailsAttributeCIDR] = exn.CidrStr
-	return []map[string]string{res}
 }
 
 func ipStringsToIPblocks(ipList []string) (ipbList []*common.IPBlock, unionIPblock *common.IPBlock, err error) {

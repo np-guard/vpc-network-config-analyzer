@@ -17,16 +17,16 @@ type connLine struct {
 	UnidirectionalConn common.ConnDetails `json:"unidirectional_conn,omitempty"`
 }
 
-type architecture struct {
+/*type architecture struct {
 	Nodes    []map[string]string
 	NodeSets []map[string]string
 	Filters  []map[string]string
 	Routers  []map[string]string
-}
+}*/
 
 type allInfo struct {
-	Arch                  architecture `json:"architecture"`
-	EndpointsConnectivity []connLine   `json:"endpoints_connectivity"`
+	//Arch                  architecture `json:"architecture"`
+	EndpointsConnectivity []connLine `json:"endpoints_connectivity"`
 }
 
 func getConnLines(conn *VPCConnectivity) []connLine {
@@ -60,7 +60,7 @@ func (j *JSONoutputFormatter) WriteOutputAllEndpoints(c *CloudConfig, conn *VPCC
 
 	all.EndpointsConnectivity = connLines
 
-	all.Arch = architecture{
+	/*all.Arch = architecture{
 		Nodes:    []map[string]string{},
 		NodeSets: []map[string]string{},
 		Filters:  []map[string]string{},
@@ -77,7 +77,7 @@ func (j *JSONoutputFormatter) WriteOutputAllEndpoints(c *CloudConfig, conn *VPCC
 	}
 	for _, r := range c.RoutingResources {
 		all.Arch.Routers = append(all.Arch.Routers, r.DetailsMap()...)
-	}
+	}*/
 
 	return writeJSON(all, outFile)
 }
