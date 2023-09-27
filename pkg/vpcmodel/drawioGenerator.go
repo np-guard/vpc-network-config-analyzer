@@ -57,13 +57,13 @@ func (exn *ExternalNetwork) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.
 }
 
 func (g *groupedEndpointsElems) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
-	//todo: 
-	return (*g)[0].GenerateDrawioTreeNode(gen)
+	//todo - need to implement, currently blocked in parse_args.go: 
+	return gen.TreeNode((*g)[0])
 }
 
 func (g *groupedExternalNodes) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
 	if len(*g) == 1 {
-		return (*g)[0].GenerateDrawioTreeNode(gen)
+		return gen.TreeNode((*g)[0])
 	}
 	tooltip := []string{}
 	for _, n := range *g {
