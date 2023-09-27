@@ -24,7 +24,7 @@ import (
 // Let l_1 be a line with source s_1 and dest d_1 and let l_2 be a line with source s_2 and dest d_2.
 // l_1 / l_2 is the subnets in d_1 that are not in d_2 minus the single subnet in s_1 if |s_1| = 1
 //
-// The distance between lines l_1 and l_2 is l_1 / l_2 union l_2 / l_2
+// The distance between lines l_1 and l_2 is l_1 / l_2 union l_2 / l_1
 //
 // claim: if the distance between line l_1 and l_2 is empty and
 //		 the distance between lines l_2 and l_3 is zero
