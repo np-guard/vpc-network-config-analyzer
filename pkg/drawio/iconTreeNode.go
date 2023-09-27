@@ -187,6 +187,9 @@ func (tn *GroupPointTreeNode) setColleague(colleague IconTreeNodeInterface) { tn
 func (tn *GroupPointTreeNode) getColleague() IconTreeNodeInterface          { return tn.colleague }
 func (tn *GroupPointTreeNode) IconSize() int                                { return groupedIconSize }
 func (tn *GroupPointTreeNode) IsGroupingPoint() bool                        { return true }
+func (tn *GroupPointTreeNode) hasShownSquare() bool {
+	return tn.Parent().(*GroupSquareTreeNode).IsAllSubnet() || !tn.Parent().(*GroupSquareTreeNode).NotShownInDrawio()
+}
 
 func NewGroupPointTreeNode(parent SquareTreeNodeInterface,
 	directed bool,

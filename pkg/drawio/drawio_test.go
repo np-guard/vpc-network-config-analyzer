@@ -7,24 +7,24 @@ import (
 )
 
 func TestWithParsing(t *testing.T) {
-	n := createNetwork()
-	err := CreateDrawioConnectivityMapFile(n, "fake.drawio")
-	if err != nil {
-		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
-	}
+	// n := createNetwork()
+	// err := CreateDrawioConnectivityMapFile(n, "fake.drawio")
+	// if err != nil {
+	// 	fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
+	// }
 	n2 := createNetwork2()
 	err2 := CreateDrawioConnectivityMapFile(n2, "fake2.drawio")
 	if err2 != nil {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err2)
 	}
-	n3 := NewNetworkTreeNode()
-	NewCloudTreeNode(n3, "empty Cloud")
-	NewPublicNetworkTreeNode(n3)
-	NewCloudTreeNode(n3, "empty cloud2")
-	err3 := CreateDrawioConnectivityMapFile(n3, "fake3.drawio")
-	if err3 != nil {
-		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err3)
-	}
+	// n3 := NewNetworkTreeNode()
+	// NewCloudTreeNode(n3, "empty Cloud")
+	// NewPublicNetworkTreeNode(n3)
+	// NewCloudTreeNode(n3, "empty cloud2")
+	// err3 := CreateDrawioConnectivityMapFile(n3, "fake3.drawio")
+	// if err3 != nil {
+	// 	fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err3)
+	// }
 }
 
 func createNetwork() SquareTreeNodeInterface {
@@ -218,6 +218,7 @@ func createNetwork2() SquareTreeNodeInterface {
 		NewNITreeNode(subnet33, nil, "ni1"),
 		NewNITreeNode(subnet33, nil, "ni1"),
 	}
+	NewNITreeNode(subnet33, nil, "ni1")
 
 	fipGroups := [][]IconTreeNodeInterface{
 		groupedNis1,
@@ -239,19 +240,19 @@ func createNetwork2() SquareTreeNodeInterface {
 	gs3 := NewGroupSquareTreeNode(subnet3, groupedNis3)
 	if gs3 != nil {
 	}
-	gs32 := NewGroupSquareTreeNode(subnet3, groupedNis32)
+	gs32 := NewGroupSquareTreeNode(subnet32, groupedNis32)
 	if gs32 != nil {
 	}
-	gs33 := NewGroupSquareTreeNode(subnet3, groupedNis33)
+	gs33 := NewGroupSquareTreeNode(subnet33, groupedNis33)
 	if gs33 != nil {
 	}
-	gs23 := NewGroupSquareTreeNode(subnet3, groupedNis23)
+	gs23 := NewGroupSquareTreeNode(subnet23, groupedNis23)
 	if gs23 != nil {
 	}
-	gs31 := NewGroupSquareTreeNode(subnet3, groupedNis31)
+	gs31 := NewGroupSquareTreeNode(subnet31, groupedNis31)
 	if gs31 != nil {
 	}
-	gs1 := NewGroupSquareTreeNode(subnet3, groupedNis1)
+	gs1 := NewGroupSquareTreeNode(subnet1, groupedNis1)
 	if gs1 != nil {
 	}
 

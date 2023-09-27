@@ -357,7 +357,6 @@ func (ly *layoutS) setGroupingIconsLocations() {
 		gIcon := tn.(*GroupPointTreeNode)
 		parent := gIcon.Parent().(*GroupSquareTreeNode)
 		colleague := gIcon.getColleague()
-		isAllSubnet := len(parent.groupies) == len(parent.parent.(*SubnetTreeNode).NIs())
 		parentLocation := parent.Location()
 		colleagueParentLocation := colleague.Parent().Location()
 		r, c, isLeft := ly.getGroupingIconLocation(parentLocation, colleagueParentLocation)
@@ -369,7 +368,7 @@ func (ly *layoutS) setGroupingIconsLocations() {
 		if isLeft {
 			xOffsetSign = 1
 		}
-		if isAllSubnet {
+		if parent.IsAllSubnet() {
 			gIcon.Location().xOffset = borderWidth / 2 * xOffsetSign
 		} else if parent.NotShownInDrawio() {
 			gIcon.Location().xOffset = 0

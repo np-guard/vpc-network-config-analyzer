@@ -78,7 +78,8 @@ func (lyO *layoutOverlap) setIconsMap() {
 		}
 	}
 }
-//handleGroupingLinesOverBorders() add points to grouping line if it is on the square border
+
+// handleGroupingLinesOverBorders() add points to grouping line if it is on the square border
 func (lyO *layoutOverlap) handleGroupingLinesOverBorders() {
 	nodes := getAllNodes(lyO.network)
 	linesOnCol := map[*col]int{}
@@ -96,14 +97,18 @@ func (lyO *layoutOverlap) handleGroupingLinesOverBorders() {
 		if len(line.Points()) != 0 {
 			continue
 		}
-		linesOffset := linesOnCol[line.Src().Location().firstCol]*5
-		p1 := iconCenterPoint(line.Src())
-		p1.X -= line.Src().Location().xOffset + linesOffset
-		line.addPoint(p1.X, p1.Y)
-		p2 := iconCenterPoint(line.Dst())
-		p2.X -= line.Dst().Location().xOffset + linesOffset
-		line.addPoint(p2.X, p2.Y)
-		linesOnCol[line.Src().Location().firstCol] +=1
+		linesOffset := linesOnCol[line.Src().Location().firstCol] * 5
+		if line.Src().(*GroupPointTreeNode).hasShownSquare() {
+			p1 := iconCenterPoint(line.Src())
+			p1.X -= line.Src().Location().xOffset + linesOffset
+			line.addPoint(p1.X, p1.Y)
+		}
+		if line.Dst().(*GroupPointTreeNode).hasShownSquare() {
+			p2 := iconCenterPoint(line.Dst())
+			p2.X -= line.Dst().Location().xOffset + linesOffset
+			line.addPoint(p2.X, p2.Y)
+		}
+		linesOnCol[line.Src().Location().firstCol] += 1
 	}
 
 }
