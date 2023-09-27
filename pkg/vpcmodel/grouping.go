@@ -272,7 +272,7 @@ func (g *GroupConnLines) groupLinesByKey(srcGrouping, groupVsi bool) (res []*Gro
 			res = append(res, line)
 			continue
 		}
-		key := dstOrSrc.Name() + ";" + line.Conn
+		key := getKeyOfGroupConnLines(dstOrSrc, line.Conn)
 		if _, ok := groupingSrcOrDst[key]; !ok {
 			groupingSrcOrDst[key] = []*GroupedConnLine{}
 		}
@@ -280,6 +280,10 @@ func (g *GroupConnLines) groupLinesByKey(srcGrouping, groupVsi bool) (res []*Gro
 	}
 	newGroupingSrcOrDst := g.extendGroupingSelfLoops(groupingSrcOrDst, srcGrouping)
 	return res, newGroupingSrcOrDst
+}
+
+func getKeyOfGroupConnLines(ep EndpointElem, connection string) string {
+	return ep.Name() + commaSeparator + connection
 }
 
 // assuming the  g.groupedLines was already initialized by previous step groupExternalAddresses()

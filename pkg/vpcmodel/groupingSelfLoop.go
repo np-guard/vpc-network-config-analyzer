@@ -292,10 +292,10 @@ func mergeSelfLoops(toMergeCouples [][2]string, oldGroupingSrcOrDst map[string][
 
 // given a list of keys to be merged from of oldGroupingSrcOrDst, computes unique list of endpoints
 // of either sources or destination as by srcGrouping
-// returns the unique list of endpoints, their names and the connection
+// returns the unique list of endpoints and the connection
 func listOfUniqueEndpoints(oldGroupingSrcOrDst map[string][]*GroupedConnLine, srcGrouping bool,
-	toMergeKeys []string) (listOfEndpoints groupedEndpointsElems, setOfNames map[string]struct{}, conn string) {
-	setOfNames = make(map[string]struct{})
+	toMergeKeys []string) (listOfEndpoints groupedEndpointsElems, conn string) {
+	setOfNames := make(map[string]struct{})
 	listOfEndpoints = make(groupedEndpointsElems, 0)
 	for _, oldKeyToMerge := range toMergeKeys {
 		for _, line := range oldGroupingSrcOrDst[oldKeyToMerge] {
@@ -323,8 +323,8 @@ func listOfUniqueEndpoints(oldGroupingSrcOrDst map[string][]*GroupedConnLine, sr
 
 func mergeGivenList(oldGroupingSrcOrDst map[string][]*GroupedConnLine, srcGrouping bool,
 	toMergeKeys []string) (newKey string, newGroupedConnLine []*GroupedConnLine) {
-	epsInNewKey, namesInNewKey, _ := listOfUniqueEndpoints(oldGroupingSrcOrDst, srcGrouping, toMergeKeys)
-	epsInNewLines, _, conn := listOfUniqueEndpoints(oldGroupingSrcOrDst, !srcGrouping, toMergeKeys)
+	epsInNewKey, _ := listOfUniqueEndpoints(oldGroupingSrcOrDst, srcGrouping, toMergeKeys)
+	epsInNewLines, conn := listOfUniqueEndpoints(oldGroupingSrcOrDst, !srcGrouping, toMergeKeys)
 	for _, epInLineValue := range epsInNewLines {
 		if srcGrouping {
 			newGroupedConnLine = append(newGroupedConnLine, &GroupedConnLine{epInLineValue, &epsInNewKey, conn})
@@ -332,10 +332,6 @@ func mergeGivenList(oldGroupingSrcOrDst map[string][]*GroupedConnLine, srcGroupi
 			newGroupedConnLine = append(newGroupedConnLine, &GroupedConnLine{&epsInNewKey, epInLineValue, conn})
 		}
 	}
-	srcsOrDstsInNewKeySlice := make([]string, 0)
-	for item := range namesInNewKey {
-		srcsOrDstsInNewKeySlice = append(srcsOrDstsInNewKeySlice, item)
-	}
-	newKey = strings.Join(srcsOrDstsInNewKeySlice, commaSeparator) + conn
+	newKey = getKeyOfGroupConnLines(&epsInNewKey, conn)
 	return
 }
