@@ -22,12 +22,12 @@ import (
 //
 // The distance between two GroupedConnLine is defined as following:
 // Let l_1 be a line with source s_1 and dest d_1 and let l_2 be a line with source s_2 and dest d_2.
-// l_1 / l_2 is the subnets in d_1 that are not in d_2 minus the single subnet in s_1 if |s_1| = 1
+// l_1 / l_2 is the vsis/subnets in d_1 that are not in d_2 minus the single vsi/subnet in s_1 if |s_1| = 1
 //
 // The distance between lines l_1 and l_2 is l_1 / l_2 union l_2 / l_2
 //
-// claim: if the distance between line l_1 and l_2 is empty and
-//		 the distance between lines l_2 and l_3 is zero
+// claim: if the distance between line l_1 and l_2 is an empty set and
+//		 the distance between lines l_2 and l_3 is an empty set
 //		 then so is the distance between l_1 and l_3
 
 func (g *GroupConnLines) extendGroupingSelfLoops(groupingSrcOrDst map[string][]*GroupedConnLine,
@@ -42,14 +42,14 @@ func (g *GroupConnLines) groupsToBeMerged(groupingSrcOrDst map[string][]*Grouped
 	// and to compute the deltas
 	setsToGroup := createGroupingSets(groupingSrcOrDst, srcGrouping)
 	relevantKeys := relevantKeysToCompare(groupingSrcOrDst)
-	keyToMergeCandidates := g.mergeCandidates(groupingSrcOrDst, srcGrouping, setsToGroup, relevantKeys)
+	keyToMergeCandidates := g.findMergeCandidates(groupingSrcOrDst, srcGrouping, setsToGroup, relevantKeys)
 
 	for _, key := range relevantKeys {
 		keyLines := groupingSrcOrDst[key]
 		//  is there a different line s.t. the keyLines were not merged only due to self loops?
 		// 	going over all couples of items: merging them if they differ only in self loop element
-		// mergeCandidates of a singleton 'key' are all lines in which the group contains 'key'
-		//  if key is not a singleton then mergeCandidates will be empty
+		// findMergeCandidates of a singleton 'key' are all lines in which the group contains 'key'
+		//  if key is not a singleton then findMergeCandidates will be empty
 		mergeCandidates, ok := keyToMergeCandidates[key]
 		if !ok {
 			continue
@@ -90,7 +90,7 @@ func relevantKeysToCompare(groupingSrcOrDst map[string][]*GroupedConnLine) (rele
 //     The last condition implies that each original src -> dst (where src and dst are a single endpoint) can induce a single
 //     candidate (at most), and each singleton key have at most n candidates. Hence, there are at most
 //     O(n^3) merge candidate, which implies O(n^3) time complexity of groupsToBeMerged
-func (g *GroupConnLines) mergeCandidates(groupingSrcOrDst map[string][]*GroupedConnLine, srcGrouping bool,
+func (g *GroupConnLines) findMergeCandidates(groupingSrcOrDst map[string][]*GroupedConnLine, srcGrouping bool,
 	keyToGroupedSets map[string]map[string]struct{}, relevantKeys []string) map[string]map[string]struct{} {
 	// 1. Create buckets for each connection + vsi's subnet if vsi; merge candidates are within each bucket
 	bucketToKeys := make(map[string]map[string]struct{})
@@ -114,11 +114,11 @@ func (g *GroupConnLines) mergeCandidates(groupingSrcOrDst map[string][]*GroupedC
 		//        2.1.1 finds for each bucket all singletons
 		for key := range keysInBucket {
 			lines := groupingSrcOrDst[key]
-			elemsInkey := elemInKeys(!srcGrouping, *lines[0])
-			if len(elemsInkey) > 1 { // not a singleton
+			elemsInKey := elemInKeys(!srcGrouping, *lines[0])
+			if len(elemsInKey) > 1 { // not a singleton
 				continue
 			}
-			singleton := elemsInkey[0]
+			singleton := elemsInKey[0]
 			singletonsInBucket[singleton] = key
 		}
 		//   2.1.2 finds for each singleton candidates: groups with that singleton
