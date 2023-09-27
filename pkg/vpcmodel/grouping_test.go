@@ -285,6 +285,7 @@ func TestSelfLoopCliqueDiffSubnets(t *testing.T) {
 		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
 	res.groupExternalAddresses()
 	res.groupInternalSrcOrDst(true, true)
+	res.groupInternalSrcOrDst(false, true)
 	groupingStr := res.String()
 	require.Equal(t, "vsi1-1,vsi1-2 => vsi1-1,vsi1-2 : All Connections\n"+
 		"vsi1-1,vsi1-2 => vsi2-1 : All Connections\n"+

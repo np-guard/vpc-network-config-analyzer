@@ -41,7 +41,7 @@ func (g *GroupConnLines) groupsToBeMerged(groupingSrcOrDst map[string][]*Grouped
 	// the to be grouped src/dst in set representation, will be needed to compute potential groups to be merged
 	// and to compute the deltas
 	setsToGroup := createGroupingSets(groupingSrcOrDst, srcGrouping)
-	relevantKeys := relevantKeysToCompare(groupingSrcOrDst)
+	relevantKeys := g.relevantKeysToCompare(groupingSrcOrDst)
 	keyToMergeCandidates := g.findMergeCandidates(groupingSrcOrDst, srcGrouping, setsToGroup, relevantKeys)
 
 	for _, key := range relevantKeys {
@@ -68,10 +68,16 @@ func (g *GroupConnLines) groupsToBeMerged(groupingSrcOrDst map[string][]*Grouped
 }
 
 // a group is candidate to be merged only if it has only internal nodes
-func relevantKeysToCompare(groupingSrcOrDst map[string][]*GroupedConnLine) (relevantKeys []string) {
+// and if vsis then of the same subnet
+// the latter follows from the 3rd condition described in findMergeCandidates
+func (g *GroupConnLines) relevantKeysToCompare(groupingSrcOrDst map[string][]*GroupedConnLine) (relevantKeys []string) {
 	relevantKeys = make([]string, 0, len(groupingSrcOrDst))
 	for key, lines := range groupingSrcOrDst {
 		if lines[0].isSrcOrDstExternalNodes() {
+			continue
+		}
+		// if vsi's then the subnets must be equal; if not vsis then empty string equals empty string
+		if g.getSubnetIfVsi(lines[0].Src) != g.getSubnetIfVsi(lines[0].Dst) {
 			continue
 		}
 		relevantKeys = append(relevantKeys, key)
@@ -84,7 +90,7 @@ func relevantKeysToCompare(groupingSrcOrDst map[string][]*GroupedConnLine) (rele
 // a couple of []*GroupedConnLine is candidate to be merged only if:
 //  1. They are of the same connection
 //  2. If vsis, of the same subnet
-//  3. The src/dst is a singleton contained in the dst/src
+//  3. The src (dst) in one group is a singleton contained in the dst (src) in the other
 //     in one pass on groupingSrcOrDst we prepare a map between each key to the keys that are candidates to be merged with it.
 //     Before the grouping there are at most O(n^2) lines of src -> dst
 //     The last condition implies that each original src -> dst (where src and dst are a single endpoint) can induce a single
@@ -97,8 +103,10 @@ func (g *GroupConnLines) findMergeCandidates(groupingSrcOrDst map[string][]*Grou
 	for _, key := range relevantKeys {
 		lines := groupingSrcOrDst[key]
 		bucket := lines[0].Conn
-		bucket = g.addVsiSubnetToBucket(lines[0].Src, bucket)
-		bucket = g.addVsiSubnetToBucket(lines[0].Dst, bucket)
+		subnetIfVsi := g.getSubnetIfVsi(lines[0].Src)
+		if subnetIfVsi != "" {
+			bucket += ";" + subnetIfVsi
+		}
 		if _, ok := bucketToKeys[bucket]; !ok {
 			bucketToKeys[bucket] = make(map[string]struct{})
 		}
@@ -143,12 +151,12 @@ func (g *GroupConnLines) findMergeCandidates(groupingSrcOrDst map[string][]*Grou
 	return keyToMergeCandidates
 }
 
-func (g *GroupConnLines) addVsiSubnetToBucket(ep EndpointElem, bucket string) string {
+func (g *GroupConnLines) getSubnetIfVsi(ep EndpointElem) string {
 	if isVsi, node := isEpVsi(ep); isVsi {
 		// if ep is groupedEndpointsElems of vsis then all belong to the same subnet
-		return bucket + ";" + g.c.getSubnetOfNode(node).Name()
+		return g.c.getSubnetOfNode(node).Name()
 	}
-	return bucket
+	return ""
 }
 
 // returns a pair <bool, node>:
