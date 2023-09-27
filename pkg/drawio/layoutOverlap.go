@@ -70,8 +70,8 @@ func (lyO *layoutOverlap) setIconsMap() {
 		if tn.IsIcon() {
 			itn := tn.(IconTreeNodeInterface)
 			x, y := absoluteGeometry(tn)
-			for ox := x; ox < x+itn.IconSize(); ox += minSize {
-				for oy := y; oy < y+itn.IconSize(); oy += minSize {
+			for ox := x - minSize; ox < x+itn.IconSize() + minSize; ox += minSize {
+				for oy := y - minSize; oy < y+itn.IconSize() + minSize; oy += minSize {
 					lyO.cell(ox, oy).icon = itn
 				}
 			}

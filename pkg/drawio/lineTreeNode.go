@@ -111,14 +111,7 @@ func NewConnectivityLineTreeNode(network SquareTreeNodeInterface,
 			src:              iconSrc,
 			dst:              iconDst},
 		directed: directed}
-	if src.IsSquare() && dst.IsSquare() {
-		sz := src.Parent().Parent()
-		dz := dst.Parent().Parent()
-		if sz == dz {
-			network.addLineTreeNode(&conn)
-		}
-	}
-	// network.addLineTreeNode(&conn)
+	network.addLineTreeNode(&conn)
 	return &conn
 }
 
