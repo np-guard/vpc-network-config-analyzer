@@ -30,12 +30,18 @@ import (
 //		 the distance between lines l_2 and l_3 is an empty set
 //		 then so is the distance between l_1 and l_3
 
+// main function. Input: <current grouping, grouping src or dst>
+// output: grouping after treating self loops as don't care
 func (g *GroupConnLines) extendGroupingSelfLoops(groupingSrcOrDst map[string][]*GroupedConnLine,
 	srcGrouping bool) map[string][]*GroupedConnLine {
 	toMergeCouples := g.groupsToBeMerged(groupingSrcOrDst, srcGrouping)
 	return mergeSelfLoops(toMergeCouples, groupingSrcOrDst, srcGrouping)
 }
 
+// detects couples of groups that can be merged when self loops are treated as don't cares
+// Input: <current grouping, grouping src or dst>
+// Output: couples of groups that can be merged. Each couple is presented as a couple of strings where each string is the
+// key of the group from the map of the current grouping
 func (g *GroupConnLines) groupsToBeMerged(groupingSrcOrDst map[string][]*GroupedConnLine, srcGrouping bool) (toMergeCouples [][2]string) {
 	toMergeCouples = make([][2]string, 0)
 	// the to be grouped src/dst in set representation, will be needed to compute potential groups to be merged
@@ -57,7 +63,7 @@ func (g *GroupConnLines) groupsToBeMerged(groupingSrcOrDst map[string][]*Grouped
 		for candidate := range mergeCandidates {
 			candidateLines := groupingSrcOrDst[candidate]
 			// delta between keyLines to candidateLines must be 0
-			mergeGroups := deltaBetweenGroupedConnLines(srcGrouping, keyLines, candidateLines, setsToGroup[key], setsToGroup[candidate])
+			mergeGroups := isDeltaOfGroupedLinesZero(srcGrouping, keyLines, candidateLines, setsToGroup[key], setsToGroup[candidate])
 			// delta between the keyLines is 0 - merge keyLines
 			if mergeGroups {
 				toMergeCouples = append(toMergeCouples, [2]string{key, candidate})
@@ -67,9 +73,13 @@ func (g *GroupConnLines) groupsToBeMerged(groupingSrcOrDst map[string][]*Grouped
 	return toMergeCouples
 }
 
+// gets a list of keys of groups that have the potential of being merged with the
+// self loop don't care optimization
 // a group is candidate to be merged only if it has only internal nodes
 // and if vsis then of the same subnet
 // the latter follows from the 3rd condition described in findMergeCandidates
+// Input: <current grouping, grouping src or dst>
+// Output: <list of keys>
 func (g *GroupConnLines) relevantKeysToCompare(groupingSrcOrDst map[string][]*GroupedConnLine) (relevantKeys []string) {
 	relevantKeys = make([]string, 0, len(groupingSrcOrDst))
 	for key, lines := range groupingSrcOrDst {
@@ -96,6 +106,9 @@ func (g *GroupConnLines) relevantKeysToCompare(groupingSrcOrDst map[string][]*Gr
 //     The last condition implies that each original src -> dst (where src and dst are a single endpoint) can induce a single
 //     candidate (at most), and each singleton key have at most n candidates. Hence, there are at most
 //     O(n^3) merge candidate, which implies O(n^3) time complexity of groupsToBeMerged
+//
+// Input: <current grouping, grouping src or dst, set representation of groups, list of relevant keys>
+// Output: <couples to be merged>
 func (g *GroupConnLines) findMergeCandidates(groupingSrcOrDst map[string][]*GroupedConnLine, srcGrouping bool,
 	keyToGroupedSets map[string]map[string]struct{}, relevantKeys []string) map[string]map[string]struct{} {
 	// 1. Create buckets for each connection + vsi's subnet if vsi; merge candidates are within each bucket
@@ -159,7 +172,8 @@ func (g *GroupConnLines) getSubnetIfVsi(ep EndpointElem) string {
 	return ""
 }
 
-// returns a pair <bool, node>:
+// input: Endpoint
+// output: <bool, node>:
 // if the endpoint element represents a vsi or is a slice of elements the first of which represents vsi
 // then it returns <true, the vsi or the first vsi>
 // otherwise it returns <false, nil>
@@ -182,6 +196,8 @@ func isEpVsi(ep EndpointElem) (bool, Node) {
 }
 
 // creates an aux database in which all the grouped endpoints are stored in a set
+// Input: <current grouping, grouping src or dst>
+// Output: <for each group a set of its endpoints names>
 func createGroupingSets(groupingSrcOrDst map[string][]*GroupedConnLine, srcGrouping bool) map[string]map[string]struct{} {
 	keyToGroupedSets := make(map[string]map[string]struct{})
 	for key, groupedConnLine := range groupingSrcOrDst {
@@ -195,9 +211,10 @@ func createGroupingSets(groupingSrcOrDst map[string][]*GroupedConnLine, srcGroup
 	return keyToGroupedSets
 }
 
-// computes delta between group connection lines as defined in https://github.com/np-guard/vpc-network-config-analyzer/issues/98
-// and in the beginning of this file
-func deltaBetweenGroupedConnLines(srcGrouping bool, groupedConnLine1, groupedConnLine2 []*GroupedConnLine,
+// computes delta between group connection lines as defined in the beginning of the file
+// Input: <grouping src or dst, groupedConnLine to compute delta between, sets representation of the groups>
+// Output: true if the delta is zero, false otherwise
+func isDeltaOfGroupedLinesZero(srcGrouping bool, groupedConnLine1, groupedConnLine2 []*GroupedConnLine,
 	setToGroup1, setToGroup2 map[string]struct{}) bool {
 	// at least one of the keys must be a single vsi/subnet for the self loop check to be meaningful
 	if len(elemInKeys(srcGrouping, *groupedConnLine1[0])) > 1 && len(elemInKeys(srcGrouping, *groupedConnLine2[0])) > 1 {
@@ -212,11 +229,16 @@ func deltaBetweenGroupedConnLines(srcGrouping bool, groupedConnLine1, groupedCon
 	return false
 }
 
+// given a GroupedConnLine returns a list of the names of the endpoint elements
+// in its key
 func elemInKeys(srcGrouping bool, groupedConnLine GroupedConnLine) []string {
 	srcOrDst := groupedConnLine.getSrcOrDst(srcGrouping)
 	return strings.Split(srcOrDst.Name(), commaSeparator)
 }
 
+// computes the distance  between two GroupedConnLine as defined in the beginning of the file
+// Input: <grouping src or dst, groupedConnLine to compute delta between, sets representation of the groups>
+// Output: the distance between the groups
 func setMinusSet(srcGrouping bool, groupedConnLine GroupedConnLine, set1, set2 map[string]struct{}) map[string]struct{} {
 	minusResult := make(map[string]struct{})
 	for k := range set1 {
@@ -243,6 +265,9 @@ func (g *GroupedConnLine) isSrcOrDstExternalNodes() bool {
 	return false
 }
 
+// actual merge of groupedConnLine that should be merged
+// input: <list of groupedConnLine to be merged, current grouping, grouping src or dst>
+// output: <new grouping>
 func mergeSelfLoops(toMergeCouples [][2]string, oldGroupingSrcOrDst map[string][]*GroupedConnLine,
 	srcGrouping bool) map[string][]*GroupedConnLine {
 	// 1. Create dedicated data structure: a slice of slices of string toMergeList s.t. each slice contains a list of keys to be merged
@@ -290,9 +315,11 @@ func mergeSelfLoops(toMergeCouples [][2]string, oldGroupingSrcOrDst map[string][
 	return mergedGroupedConnLine
 }
 
-// given a list of keys to be merged from of oldGroupingSrcOrDst, computes unique list of endpoints
+// given a list of keys to be merged from the old grouping, computes unique list of endpoints
 // of either sources or destination as by srcGrouping
 // returns the unique list of endpoints and the connection
+// input: <old grouping, grouping src or dst, list of key to be merged>
+// output: <list of endpoints, their connection>
 func listOfUniqueEndpoints(oldGroupingSrcOrDst map[string][]*GroupedConnLine, srcGrouping bool,
 	toMergeKeys []string) (listOfEndpoints groupedEndpointsElems, conn string) {
 	setOfNames := make(map[string]struct{})
@@ -321,6 +348,9 @@ func listOfUniqueEndpoints(oldGroupingSrcOrDst map[string][]*GroupedConnLine, sr
 	return
 }
 
+// merges a list of GroupedConnLine to be merged
+// input: <old grouping, grouping src or dst, list of key to be merged>
+// output: new key, new []*GroupedConnLine
 func mergeGivenList(oldGroupingSrcOrDst map[string][]*GroupedConnLine, srcGrouping bool,
 	toMergeKeys []string) (newKey string, newGroupedConnLine []*GroupedConnLine) {
 	epsInNewKey, _ := listOfUniqueEndpoints(oldGroupingSrcOrDst, srcGrouping, toMergeKeys)
