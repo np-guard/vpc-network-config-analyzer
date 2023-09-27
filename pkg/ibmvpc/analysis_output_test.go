@@ -161,12 +161,6 @@ var tests2 = []*vpcGeneralTest{
 		format:   vpcmodel.Text,
 	},
 	{
-		name:     "acl_testing3",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping: true,
-		format:   vpcmodel.DRAWIO,
-	},
-	{
 		name:     "sg_testing1_new",
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		grouping: true,

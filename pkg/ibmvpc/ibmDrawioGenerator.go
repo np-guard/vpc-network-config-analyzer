@@ -56,7 +56,9 @@ func (ni *NetworkInterface) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator
 		gen.TreeNode(ni.subnet).(drawio.SquareTreeNodeInterface),
 		nil, ni.Name())
 }
+
 func (n *IKSNode) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
+	// todo - what is this? should we handle it? can we ignore it?
 	return nil
 }
 

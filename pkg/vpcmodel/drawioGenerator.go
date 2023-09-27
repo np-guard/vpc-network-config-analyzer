@@ -15,6 +15,9 @@ type DrawioResourceIntf interface {
 // 1. TreeNode() - generate and returns the drawio tree node of a resource
 // 2. the constructor - generate the treeNodes that does not represent a specific resource
 // (the constructor creates the publicNetwork tree node, and the Cloud TreeNode)
+// the rest of the interface i getters:
+// Network(), PublicNetwork(), Cloud()
+// returns the tree nodes which are created at the constructor
 // please notice:
 // creating the cloud treeNode is vendor specific (IBM, aws...).
 // currently, the input that distinguish between the vendors is the cloudName, which is provided to NewDrawioGenerator() as parameter.
@@ -75,7 +78,7 @@ func (g *groupedExternalNodes) GenerateDrawioTreeNode(gen *DrawioGenerator) draw
 		tooltip = append(tooltip, n.(*ExternalNetwork).Cidr())
 	}
 	name := "multi cidr"
-	if all ,_ := isEntirePublicInternetRange(*g) ; all{
+	if all, _ := isEntirePublicInternetRange(*g); all {
 		name = "all ranges"
 	}
 	tn := drawio.NewInternetTreeNode(gen.PublicNetwork(), name)
@@ -83,6 +86,6 @@ func (g *groupedExternalNodes) GenerateDrawioTreeNode(gen *DrawioGenerator) draw
 	return tn
 }
 
-func (exn *ExternalNetwork) IsExternal() bool       { return true }
-func (exn *groupedEndpointsElems) IsExternal() bool { return false }
-func (exn *groupedExternalNodes) IsExternal() bool  { return true }
+func (exn *ExternalNetwork) IsExternal() bool     { return true }
+func (g *groupedEndpointsElems) IsExternal() bool { return false }
+func (g *groupedExternalNodes) IsExternal() bool  { return true }
