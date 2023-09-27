@@ -57,7 +57,7 @@ func (exn *ExternalNetwork) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.
 }
 
 func (g *groupedEndpointsElems) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
-	//todo - need to implement, currently blocked in parse_args.go: 
+	// todo - need to implement, currently blocked in parse_args.go:
 	return gen.TreeNode((*g)[0])
 }
 
@@ -70,7 +70,7 @@ func (g *groupedExternalNodes) GenerateDrawioTreeNode(gen *DrawioGenerator) draw
 		tooltip = append(tooltip, n.(*ExternalNetwork).Cidr())
 	}
 	name := "multi cidr"
-	if all ,_ := isEntirePublicInternetRange(*g) ; all{
+	if all, _ := isEntirePublicInternetRange(*g); all {
 		name = "all ranges"
 	}
 	tn := drawio.NewInternetTreeNode(gen.PublicNetwork(), name)
@@ -78,6 +78,6 @@ func (g *groupedExternalNodes) GenerateDrawioTreeNode(gen *DrawioGenerator) draw
 	return tn
 }
 
-func (exn *ExternalNetwork) IsExternal() bool       { return true }
-func (exn *groupedEndpointsElems) IsExternal() bool { return false }
-func (exn *groupedExternalNodes) IsExternal() bool  { return true }
+func (exn *ExternalNetwork) IsExternal() bool     { return true }
+func (g *groupedEndpointsElems) IsExternal() bool { return false }
+func (g *groupedExternalNodes) IsExternal() bool  { return true }
