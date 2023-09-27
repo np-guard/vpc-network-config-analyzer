@@ -119,7 +119,9 @@ func newCloudConfigTest2() (*CloudConfig, *VPCConnectivity) {
 // thus, expecting to be merged to one line with dest element of both ranges together
 func TestGroupingPhase1(t *testing.T) {
 	c, v := newCloudConfigTest1()
-	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections()}
+	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
+		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
+		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
 	res.groupExternalAddresses()
 
 	groupingStr := res.String()
@@ -132,7 +134,9 @@ func TestGroupingPhase1(t *testing.T) {
 // Test simple grouping of 1 conn line with netInterface, grouped into subnet element.
 func TestGroupingPhase2(t *testing.T) {
 	c, v := newCloudConfigTest2()
-	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections()}
+	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
+		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
+		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
 	// phase 1
 	res.groupExternalAddresses()
 	groupingStr := res.String()
@@ -143,6 +147,74 @@ func TestGroupingPhase2(t *testing.T) {
 	res.groupInternalSrcOrDst(true, true)
 	groupingStr = res.String()
 	require.Equal(t, "vsi1,vsi2 => Public Internet 1.2.0.0/22,8.8.8.8/32 : All Connections\n\n"+
+		"connections are stateful unless marked with *\n", groupingStr)
+	fmt.Println(groupingStr)
+	fmt.Println("done")
+}
+
+// connections from vsi1 should be grouped since both stateful
+// connections from vsi2 should not be grouped since one stateful and one not
+func configStatefulGrouping() (*CloudConfig, *VPCConnectivity) {
+	res := &CloudConfig{Nodes: []Node{}}
+	res.Nodes = append(res.Nodes,
+		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1"},
+		&mockNetIntf{cidr: "1.2.3.4/22", name: "public1", isPublic: true},
+		&mockNetIntf{cidr: "8.8.8.8/32", name: "public2", isPublic: true},
+		&mockNetIntf{cidr: "10.0.20.6/32", name: "vsi2"})
+
+	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0], res.Nodes[3]}})
+
+	res1 := &VPCConnectivity{AllowedConnsCombined: NewNodesConnectionsMap()}
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], common.NewConnectionSetWithStateful(true, common.StatefulTrue))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], common.NewConnectionSetWithStateful(true, common.StatefulTrue))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[3], res.Nodes[1], common.NewConnectionSetWithStateful(true, common.StatefulTrue))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[3], res.Nodes[2],
+		common.NewConnectionSetWithStateful(true, common.StatefulFalse))
+
+	return res, res1
+}
+
+func TestStatefulGrouping(t *testing.T) {
+	c, v := configStatefulGrouping()
+	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
+		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
+		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
+	res.groupExternalAddresses()
+	res.groupInternalSrcOrDst(true, true)
+	groupingStr := res.String()
+	require.Equal(t, "vsi1 => Public Internet 1.2.0.0/22,8.8.8.8/32 : All Connections\n"+
+		"vsi2 => Public Internet 1.2.0.0/22 : All Connections\n"+
+		"vsi2 => Public Internet 8.8.8.8/32 : All Connections *\n\n"+
+		"connections are stateful unless marked with *\n", groupingStr)
+	fmt.Println(groupingStr)
+	fmt.Println("done")
+}
+
+// grouping that results in cidrs presented as range and not as cidr
+func configIPRange() (*CloudConfig, *VPCConnectivity) {
+	res := &CloudConfig{Nodes: []Node{}}
+	res.Nodes = append(res.Nodes,
+		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1"},
+		&mockNetIntf{cidr: "1.2.3.0/24", name: "public1", isPublic: true},
+		&mockNetIntf{cidr: "1.2.4.0/24", name: "public2", isPublic: true})
+
+	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0]}})
+
+	res1 := &VPCConnectivity{AllowedConnsCombined: NewNodesConnectionsMap()}
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], common.NewConnectionSet(true))
+	return res, res1
+}
+
+func TestIPRange(t *testing.T) {
+	c, v := configIPRange()
+	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
+		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
+		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
+	res.groupExternalAddresses()
+	res.groupInternalSrcOrDst(true, true)
+	groupingStr := res.String()
+	require.Equal(t, "vsi1 => Public Internet 1.2.3.0-1.2.4.255 : All Connections\n\n"+
 		"connections are stateful unless marked with *\n", groupingStr)
 	fmt.Println(groupingStr)
 	fmt.Println("done")
