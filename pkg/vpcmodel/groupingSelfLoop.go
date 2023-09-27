@@ -86,7 +86,7 @@ func relevantKeysToCompare(groupingSrcOrDst map[string][]*GroupedConnLine) (rele
 //  2. If vsis, of the same subnet
 //  3. The src/dst is a singleton contained in the dst/src
 //     in one pass on groupingSrcOrDst we prepare a map between each key to the keys that are candidates to be merged with it.
-//     Before the grouping there are at most O(n^20) lines of src -> dst
+//     Before the grouping there are at most O(n^2) lines of src -> dst
 //     The last condition implies that each original src -> dst (where src and dst are a single endpoint) can induce a single
 //     candidate (at most), and each singleton key have at most n candidates. Hence, there are at most
 //     O(n^3) merge candidate, which implies O(n^3) time complexity of groupsToBeMerged
