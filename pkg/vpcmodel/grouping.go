@@ -7,6 +7,8 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
+const commaSeparator = ","
+
 // for each line here can group list of external nodes to cidrs list as of one element
 type groupingConnections map[EndpointElem]map[string][]Node
 
@@ -332,7 +334,7 @@ func listEndpointElemStr(eps []EndpointElem, fn func(ep EndpointElem) string) st
 		endpointsStrings[i] = fn(ep)
 	}
 	sort.Strings(endpointsStrings)
-	return strings.Join(endpointsStrings, ",")
+	return strings.Join(endpointsStrings, commaSeparator)
 }
 
 func (g *groupedExternalNodes) String() string {
