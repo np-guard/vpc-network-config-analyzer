@@ -121,6 +121,10 @@ func NewConnectionSet(all bool) *ConnectionSet {
 	return &ConnectionSet{AllowAll: all, connectionProperties: NewCanonicalHypercubeSet(numDimensions)}
 }
 
+func NewConnectionSetWithStateful(all bool, isStateful int) *ConnectionSet {
+	return &ConnectionSet{AllowAll: all, connectionProperties: NewCanonicalHypercubeSet(numDimensions), IsStateful: isStateful}
+}
+
 func NewConnectionSetWithCube(cube *CanonicalHypercubeSet) *ConnectionSet {
 	res := NewConnectionSet(false)
 	res.connectionProperties.Union(cube)
