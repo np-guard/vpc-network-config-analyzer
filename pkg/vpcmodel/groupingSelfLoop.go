@@ -153,10 +153,8 @@ func (g *GroupConnLines) addVsiSubnetToBucket(ep EndpointElem, bucket string) st
 
 // returns a pair <bool, node>:
 // if the endpoint element represents a vsi or is a slice of elements the first of which represents vsi
-//
-//	then it returns true, the vsi or the first vsi
-//
-// otherwise it returns false, nil
+// then it returns <true, the vsi or the first vsi>
+// otherwise it returns <false, nil>
 func isEpVsi(ep EndpointElem) (bool, Node) {
 	if _, ok := ep.(*groupedEndpointsElems); ok {
 		ep1GroupedEps := ep.(*groupedEndpointsElems)

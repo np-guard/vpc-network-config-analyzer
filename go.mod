@@ -3,7 +3,7 @@ module github.com/np-guard/vpc-network-config-analyzer
 go 1.18
 
 require (
-	github.com/IBM/vpc-go-sdk v0.41.0
+	github.com/IBM/vpc-go-sdk v0.42.0
 	github.com/stretchr/testify v1.8.4
 )
 

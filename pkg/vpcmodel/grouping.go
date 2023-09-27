@@ -10,16 +10,17 @@ import (
 // for each line here can group list of external nodes to cidrs list as of one element
 type groupingConnections map[EndpointElem]map[string][]Node
 
-func (g *groupingConnections) getGroupedConnLines(isSrcToDst bool) []*GroupedConnLine {
+func (g *groupingConnections) getGroupedConnLines(groupedConnLines *GroupConnLines,
+	isSrcToDst bool) []*GroupedConnLine {
 	res := []*GroupedConnLine{}
 	for a, aMap := range *g {
 		for conn, b := range aMap {
 			var resElem *GroupedConnLine
-			bGrouped := groupedExternalNodes(b)
+			bGrouped := groupedConnLines.getGroupedExternalNodes(b)
 			if isSrcToDst {
-				resElem = &GroupedConnLine{a, &bGrouped, conn}
+				resElem = &GroupedConnLine{a, bGrouped, conn}
 			} else {
-				resElem = &GroupedConnLine{&bGrouped, a, conn}
+				resElem = &GroupedConnLine{bGrouped, a, conn}
 			}
 			res = append(res, resElem)
 		}
@@ -33,13 +34,21 @@ func newGroupingConnections() *groupingConnections {
 }
 
 func newGroupConnLines(c *CloudConfig, v *VPCConnectivity, grouping bool) *GroupConnLines {
-	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections()}
+	res := &GroupConnLines{c: c, v: v,
+		srcToDst:                 newGroupingConnections(),
+		dstToSrc:                 newGroupingConnections(),
+		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
+		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
 	res.computeGrouping(grouping)
 	return res
 }
 
 func newGroupConnLinesSubnetConnectivity(c *CloudConfig, s *VPCsubnetConnectivity, grouping bool) *GroupConnLines {
-	res := &GroupConnLines{c: c, s: s, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections()}
+	res := &GroupConnLines{c: c, s: s,
+		srcToDst:                 newGroupingConnections(),
+		dstToSrc:                 newGroupingConnections(),
+		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
+		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
 	res.computeGroupingForSubnets(grouping)
 	return res
 }
@@ -47,12 +56,18 @@ func newGroupConnLinesSubnetConnectivity(c *CloudConfig, s *VPCsubnetConnectivit
 // GroupConnLines used both for VPCConnectivity and for VPCsubnetConnectivity, one at a time. The other must be nil
 // todo: define abstraction above both?
 type GroupConnLines struct {
-	c            *CloudConfig
-	v            *VPCConnectivity
-	s            *VPCsubnetConnectivity
-	srcToDst     *groupingConnections
-	dstToSrc     *groupingConnections
-	GroupedLines []*GroupedConnLine
+	c        *CloudConfig
+	v        *VPCConnectivity
+	s        *VPCsubnetConnectivity
+	srcToDst *groupingConnections
+	dstToSrc *groupingConnections
+	// a map to groupedEndpointsElems used by GroupedConnLine from a unified key of such elements
+	// representing grouped vsis or grouped subnets
+	// this is to avoid duplication of identical groupedEndpointsElems
+	groupedEndpointsElemsMap map[string]*groupedEndpointsElems
+	// similarly to the above, such map to groupedExternalNodes
+	groupedExternalNodesMap map[string]*groupedExternalNodes
+	GroupedLines            []*GroupedConnLine
 }
 
 // EndpointElem can be Node(networkInterface) / groupedExternalNodes / groupedNetworkInterfaces
@@ -95,6 +110,29 @@ func (g *groupedExternalNodes) Name() string {
 	return prefix + g.String()
 }
 
+// given a groupedEndpointsElems returns an equiv item from groupedEndpointsElemsMap if exists,
+// or adds it to groupedEndpointsElemsMap if such an item does not exist
+func (g *GroupConnLines) getGroupedEndpointsElems(grouped groupedEndpointsElems) *groupedEndpointsElems {
+	// since the endpoints (vsis/subnets) are sorted before printed, grouped.Name() will be identical
+	// to equiv groupedEndpointsElems
+	if existingGrouped, ok := g.groupedEndpointsElemsMap[grouped.Name()]; ok {
+		return existingGrouped
+	}
+	g.groupedEndpointsElemsMap[grouped.Name()] = &grouped
+	return &grouped
+}
+
+// same as the previous function, for groupedExternalNodesMap
+func (g *GroupConnLines) getGroupedExternalNodes(grouped groupedExternalNodes) *groupedExternalNodes {
+	// Due to the canonical representation, grouped.String() and thus grouped.Name() will be identical
+	//  to equiv groupedExternalNodes
+	if existingGrouped, ok := g.groupedExternalNodesMap[grouped.Name()]; ok {
+		return existingGrouped
+	}
+	g.groupedExternalNodesMap[grouped.Name()] = &grouped
+	return &grouped
+}
+
 func (g *groupingConnections) addPublicConnectivity(ep EndpointElem, conn string, targetNode Node) {
 	if _, ok := (*g)[ep]; !ok {
 		(*g)[ep] = map[string][]Node{}
@@ -107,7 +145,8 @@ func (g *groupingConnections) addPublicConnectivity(ep EndpointElem, conn string
 
 // vsiGroupingBySubnets returns a slice of EndpointElem objects, by grouping set of elements that
 // represent network interface nodes from the same subnet into a single groupedNetworkInterfaces object
-func vsiGroupingBySubnets(elemsList []EndpointElem, c *CloudConfig) []EndpointElem {
+func vsiGroupingBySubnets(groupedConnLines *GroupConnLines,
+	elemsList []EndpointElem, c *CloudConfig) []EndpointElem {
 	res := []EndpointElem{}
 	subnetNameToNodes := map[string][]EndpointElem{} // map from subnet name to its nodes from the input
 	for _, elem := range elemsList {
@@ -126,8 +165,8 @@ func vsiGroupingBySubnets(elemsList []EndpointElem, c *CloudConfig) []EndpointEl
 		if len(nodesList) == 1 { // a single network interface on subnet is just added to the result (no grouping)
 			res = append(res, nodesList[0])
 		} else { // a set of network interfaces from the same subnet is grouped by groupedNetworkInterfaces object
-			groupedNodes := groupedEndpointsElems(nodesList)
-			res = append(res, &groupedNodes)
+			groupedNodes := groupedConnLines.getGroupedEndpointsElems(nodesList)
+			res = append(res, groupedNodes)
 		}
 	}
 	return res
@@ -135,7 +174,8 @@ func vsiGroupingBySubnets(elemsList []EndpointElem, c *CloudConfig) []EndpointEl
 
 // subnetGrouping returns a slice of EndpointElem objects produced from an input slice, by grouping
 // set of elements that represent subnets into a single groupedNetworkInterfaces object
-func subnetGrouping(elemsList []EndpointElem) []EndpointElem {
+func subnetGrouping(groupedConnLines *GroupConnLines,
+	elemsList []EndpointElem) []EndpointElem {
 	res := []EndpointElem{}
 	subnetsToGroup := []EndpointElem{} // subnets to be grouped
 	for _, elem := range elemsList {
@@ -149,8 +189,8 @@ func subnetGrouping(elemsList []EndpointElem) []EndpointElem {
 	if len(subnetsToGroup) == 1 {
 		res = append(res, subnetsToGroup[0])
 	} else {
-		groupedNodes := groupedEndpointsElems(subnetsToGroup)
-		res = append(res, &groupedNodes)
+		groupedNodes := groupedConnLines.getGroupedEndpointsElems(subnetsToGroup)
+		res = append(res, groupedNodes)
 	}
 	return res
 }
@@ -175,8 +215,8 @@ func (g *GroupConnLines) groupExternalAddresses() {
 		}
 	}
 	// add to res lines from  srcToDst and DstToSrc groupings
-	res = append(res, g.srcToDst.getGroupedConnLines(true)...)
-	res = append(res, g.dstToSrc.getGroupedConnLines(false)...)
+	res = append(res, g.srcToDst.getGroupedConnLines(g, true)...)
+	res = append(res, g.dstToSrc.getGroupedConnLines(g, false)...)
 	g.GroupedLines = res
 }
 
@@ -198,8 +238,8 @@ func (g *GroupConnLines) groupExternalAddressesForSubnets() {
 		}
 	}
 	// add to res lines from  srcToDst and DstToSrc groupings
-	res = append(res, g.srcToDst.getGroupedConnLines(true)...)
-	res = append(res, g.dstToSrc.getGroupedConnLines(false)...)
+	res = append(res, g.srcToDst.getGroupedConnLines(g, true)...)
+	res = append(res, g.dstToSrc.getGroupedConnLines(g, false)...)
 	g.GroupedLines = res
 }
 
@@ -254,9 +294,9 @@ func (g *GroupConnLines) groupInternalSrcOrDst(srcGrouping, groupVsi bool) {
 		}
 		var groupedSrcOrDst []EndpointElem
 		if groupVsi {
-			groupedSrcOrDst = vsiGroupingBySubnets(srcOrDstGroup, g.c)
+			groupedSrcOrDst = vsiGroupingBySubnets(g, srcOrDstGroup, g.c)
 		} else {
-			groupedSrcOrDst = subnetGrouping(srcOrDstGroup)
+			groupedSrcOrDst = subnetGrouping(g, srcOrDstGroup)
 		}
 		for _, groupedSrcOrDstElem := range groupedSrcOrDst {
 			if srcGrouping {
