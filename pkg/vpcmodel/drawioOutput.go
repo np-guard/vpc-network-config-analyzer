@@ -43,6 +43,11 @@ func (d *DrawioOutputFormatter) WriteOutputAllEndpoints(cConfig *CloudConfig, co
 	return "", err
 }
 
+// will be rewrite when implementing grouping
+func (d *DrawioOutputFormatter) isExternal(i VPCResourceIntf) bool {
+	return i.Kind() == externalNetworkNodeKind
+}
+
 func (d *DrawioOutputFormatter) createDrawioTree() {
 	if d.conn != nil {
 		d.createEdgesMap()
