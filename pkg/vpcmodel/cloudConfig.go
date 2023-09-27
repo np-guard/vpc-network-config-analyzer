@@ -10,6 +10,7 @@ type CloudConfig struct {
 	FilterResources  []FilterTrafficResource
 	RoutingResources []RoutingResource
 	NameToResource   map[string]VPCResourceIntf
+	CloudName        string
 }
 
 // TODO: consider add this mapping to CloudConfig
