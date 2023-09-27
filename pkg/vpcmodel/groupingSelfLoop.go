@@ -85,7 +85,7 @@ func relevantKeysToCompare(groupingSrcOrDst map[string][]*GroupedConnLine) (rele
 //  1. They are of the same connection
 //  2. If vsis, of the same subnet
 //  3. The src/dst is a singleton contained in the dst/src
-//     in one path on groupingSrcOrDst we prepare a map between each key to the keys that are candidate to be merged with it.
+//     in one pass on groupingSrcOrDst we prepare a map between each key to the keys that are candidates to be merged with it.
 //     Before the grouping there are at most O(n^20) lines of src -> dst
 //     The last condition implies that each original src -> dst (where src and dst are a single endpoint) can induce a single
 //     candidate (at most), and each singleton key have at most n candidates. Hence, there are at most
