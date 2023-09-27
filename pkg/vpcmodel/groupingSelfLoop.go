@@ -24,7 +24,7 @@ import (
 // Let l_1 be a line with source s_1 and dest d_1 and let l_2 be a line with source s_2 and dest d_2.
 // l_1 / l_2 is the vsis/subnets in d_1 that are not in d_2 minus the single vsi/subnet in s_1 if |s_1| = 1
 //
-// The distance between lines l_1 and l_2 is l_1 / l_2 union l_2 / l_2
+// The distance between lines l_1 and l_2 is l_1 / l_2 union l_2 / l_1
 //
 // claim: if the distance between line l_1 and l_2 is an empty set and
 //		 the distance between lines l_2 and l_3 is an empty set
@@ -85,8 +85,8 @@ func relevantKeysToCompare(groupingSrcOrDst map[string][]*GroupedConnLine) (rele
 //  1. They are of the same connection
 //  2. If vsis, of the same subnet
 //  3. The src/dst is a singleton contained in the dst/src
-//     in one path on groupingSrcOrDst we prepare a map between each key to the keys that are candidate to be merged with it.
-//     Before the grouping there are at most O(n^20) lines of src -> dst
+//     in one pass on groupingSrcOrDst we prepare a map between each key to the keys that are candidates to be merged with it.
+//     Before the grouping there are at most O(n^2) lines of src -> dst
 //     The last condition implies that each original src -> dst (where src and dst are a single endpoint) can induce a single
 //     candidate (at most), and each singleton key have at most n candidates. Hence, there are at most
 //     O(n^3) merge candidate, which implies O(n^3) time complexity of groupsToBeMerged
