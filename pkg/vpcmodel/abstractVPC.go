@@ -14,6 +14,7 @@ type VPCResourceIntf interface {
 	// TODO: remove Details and DetailsMap from this interface
 	Details() []string
 	DetailsMap() []map[string]string
+	DrawioResourceIntf
 }
 
 // VPCResource implements VPCResourceIntf
