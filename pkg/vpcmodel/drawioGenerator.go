@@ -77,15 +77,16 @@ func (g *groupedExternalNodes) GenerateDrawioTreeNode(gen *DrawioGenerator) draw
 	for _, n := range *g {
 		tooltip = append(tooltip, n.(*ExternalNetwork).Cidr())
 	}
-	name := "multi cidr"
+	name := "Various IP ranges"
 	if all, _ := isEntirePublicInternetRange(*g); all {
-		name = "all ranges"
+		name = publicInternetNodeName
 	}
 	tn := drawio.NewInternetTreeNode(gen.PublicNetwork(), name)
 	tn.SetTooltip(tooltip)
 	return tn
 }
 
+func (n *VPCResource) IsExternal() bool           { return false }
 func (exn *ExternalNetwork) IsExternal() bool     { return true }
 func (g *groupedEndpointsElems) IsExternal() bool { return false }
 func (g *groupedExternalNodes) IsExternal() bool  { return true }

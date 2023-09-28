@@ -1,7 +1,5 @@
 combined connections between subnets:
 subnet1-ky => Public Internet (all ranges) : All Connections
-subnet1-ky => subnet2-ky,subnet3-ky : All Connections
-subnet2-ky => subnet1-ky,subnet3-ky : All Connections
-subnet3-ky => subnet1-ky,subnet2-ky : All Connections
+subnet1-ky,subnet2-ky,subnet3-ky => subnet1-ky,subnet2-ky,subnet3-ky : All Connections
 
 connections are stateful unless marked with *

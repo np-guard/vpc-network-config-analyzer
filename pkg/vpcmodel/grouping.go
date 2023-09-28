@@ -72,7 +72,7 @@ type GroupConnLines struct {
 	GroupedLines            []*GroupedConnLine
 }
 
-// EndpointElem can be Node(networkInterface) / groupedExternalNodes / groupedNetworkInterfaces
+// EndpointElem can be Node(networkInterface) / groupedExternalNodes / groupedNetworkInterfaces / NodeSet(subnet)
 type EndpointElem interface {
 	Name() string
 	DrawioResourceIntf
@@ -87,9 +87,10 @@ type GroupedConnLine struct {
 func (g *GroupedConnLine) String() string {
 	return g.Src.Name() + " => " + g.Dst.Name() + " : " + g.Conn
 }
+
 func (g *GroupedConnLine) ConnLabel() string {
-	// todo - this info can be found in the conn struct.
-	if strings.Contains(g.Conn, "All Connections") {
+	// todo - this info can be found in the conn struct, GroupedConnLine should keep the struct instead of just a string
+	if common.IsAllConnections(g.Conn) {
 		return ""
 	}
 	return g.Conn
@@ -153,8 +154,8 @@ func (g *groupingConnections) addPublicConnectivity(ep EndpointElem, conn string
 	(*g)[ep][conn] = append((*g)[ep][conn], targetNode)
 }
 
-// vsiGroupingBySubnets returns a slice of EndpointElem objects produced from an input slice, by grouping
-// set of elements that represent network interface nodes from the same subnet into a single groupedNetworkInterfaces object
+// vsiGroupingBySubnets returns a slice of EndpointElem objects, by grouping set of elements that
+// represent network interface nodes from the same subnet into a single groupedNetworkInterfaces object
 func vsiGroupingBySubnets(groupedConnLines *GroupConnLines,
 	elemsList []EndpointElem, c *CloudConfig) []EndpointElem {
 	res := []EndpointElem{}
@@ -182,7 +183,8 @@ func vsiGroupingBySubnets(groupedConnLines *GroupConnLines,
 	return res
 }
 
-// subnetGrouping returns a slice of EndpointElem objects produced from an input slice, by grouping EndpointElem that represents a subnet
+// subnetGrouping returns a slice of EndpointElem objects produced from an input slice, by grouping
+// set of elements that represent subnets into a single groupedNetworkInterfaces object
 func subnetGrouping(groupedConnLines *GroupConnLines,
 	elemsList []EndpointElem) []EndpointElem {
 	res := []EndpointElem{}
@@ -252,6 +254,20 @@ func (g *GroupConnLines) groupExternalAddressesForSubnets() {
 	g.GroupedLines = res
 }
 
+// aux func, returns true iff the EndpointElem is Node if grouping vsis or NodeSet if grouping subnets
+func isInternalOfRequiredType(ep EndpointElem, groupVsi bool) bool {
+	if groupVsi { // groups vsis Nodes
+		if _, ok := ep.(Node); !ok {
+			return false
+		}
+	} else { // groups subnets NodeSets
+		if _, ok := ep.(NodeSet); !ok {
+			return false
+		}
+	}
+	return true
+}
+
 // groups src/targets for either Vsis or Subnets
 func (g *GroupConnLines) groupLinesByKey(srcGrouping, groupVsi bool) (res []*GroupedConnLine,
 	groupingSrcOrDst map[string][]*GroupedConnLine) {
@@ -261,24 +277,22 @@ func (g *GroupConnLines) groupLinesByKey(srcGrouping, groupVsi bool) (res []*Gro
 	// populate map groupingSrcOrDst
 	for _, line := range g.GroupedLines {
 		srcOrDst, dstOrSrc := line.getSrcOrDst(srcGrouping), line.getSrcOrDst(!srcGrouping)
-		if groupVsi { // groups vsis Nodes
-			if _, ok := srcOrDst.(Node); !ok {
-				res = append(res, line)
-				continue
-			}
-		} else { // groups subnets NodeSets
-			if _, ok := srcOrDst.(NodeSet); !ok {
-				res = append(res, line)
-				continue
-			}
+		if !isInternalOfRequiredType(srcOrDst, groupVsi) {
+			res = append(res, line)
+			continue
 		}
-		key := dstOrSrc.Name() + ";" + line.Conn
+		key := getKeyOfGroupConnLines(dstOrSrc, line.Conn)
 		if _, ok := groupingSrcOrDst[key]; !ok {
 			groupingSrcOrDst[key] = []*GroupedConnLine{}
 		}
 		groupingSrcOrDst[key] = append(groupingSrcOrDst[key], line)
 	}
-	return res, groupingSrcOrDst
+	newGroupingSrcOrDst := g.extendGroupingSelfLoops(groupingSrcOrDst, srcGrouping)
+	return res, newGroupingSrcOrDst
+}
+
+func getKeyOfGroupConnLines(ep EndpointElem, connection string) string {
+	return ep.Name() + commaSeparator + connection
 }
 
 // assuming the  g.groupedLines was already initialized by previous step groupExternalAddresses()
