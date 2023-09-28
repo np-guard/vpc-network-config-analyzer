@@ -68,6 +68,7 @@ func (ly *layoutS) layout() {
 	ly.matrix.removeUnusedLayers()
 	// 5. set the locations of all the non-subnet icons
 	ly.setIconsLocations()
+	ly.setGroupingLocations()
 	// 6. set the geometry for each node in the drawio
 	ly.matrix.setLayersDistance()
 	ly.setGeometries()
@@ -331,25 +332,17 @@ func (ly *layoutS) getGroupingIconLocation(location, collLocation *Location) (r 
 	return r, c, c == location.prevCol()
 }
 
-func (ly *layoutS) setGroupingSquaresLocations() {
-	for _, tn := range getAllNodes(ly.network) {
-		if !tn.IsSquare() || !tn.(SquareTreeNodeInterface).IsGroupingSquare() {
-			continue
-		}
-		tn.setLocation(mergeLocations(iconsLocations(tn.(*GroupSquareTreeNode).groupies)))
-		for _, gp := range tn.(*GroupSquareTreeNode).IconTreeNodes() {
-			gp.setLocation(newCellLocation(tn.Location().firstRow, tn.Location().firstCol))
-		}
-	}
-}
-
-func (ly *layoutS) setGroupingIconsLocations() {
+func (ly *layoutS) setGroupingLocations() {
 	type cell struct {
 		r *row
 		c *col
 	}
 	iconsInCell := map[cell]int{}
-
+	for _, tn := range getAllNodes(ly.network) {
+		if tn.IsSquare() && tn.(SquareTreeNodeInterface).IsGroupingSquare() {
+			tn.setLocation(mergeLocations(iconsLocations(tn.(*GroupSquareTreeNode).groupies)))
+		}
+	}
 	for _, tn := range getAllNodes(ly.network) {
 		if !tn.IsIcon() || !tn.(IconTreeNodeInterface).IsGroupingPoint() {
 			continue
@@ -374,8 +367,8 @@ func (ly *layoutS) setGroupingIconsLocations() {
 			gIcon.Location().xOffset = 0
 			gIcon.connectGroupies()
 		} else {
-			gIcon.Location().yOffset -= borderWidth*1.5
-			gIcon.Location().xOffset = borderWidth / 2 * xOffsetSign
+			gIcon.Location().yOffset -= borderWidth * 1.5
+			gIcon.Location().xOffset = borderWidth * xOffsetSign - borderWidth / 2
 		}
 	}
 }
@@ -430,8 +423,6 @@ func (ly *layoutS) setIconsLocations() {
 		}
 	}
 	ly.setPublicNetworkIconsLocations()
-	ly.setGroupingSquaresLocations()
-	ly.setGroupingIconsLocations()
 }
 
 func (ly *layoutS) setGeometries() {
