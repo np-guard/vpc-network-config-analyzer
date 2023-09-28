@@ -85,8 +85,3 @@ func (g *groupedExternalNodes) GenerateDrawioTreeNode(gen *DrawioGenerator) draw
 	tn.SetTooltip(tooltip)
 	return tn
 }
-
-func (n *VPCResource) IsExternal() bool           { return false }
-func (exn *ExternalNetwork) IsExternal() bool     { return true }
-func (g *groupedEndpointsElems) IsExternal() bool { return false }
-func (g *groupedExternalNodes) IsExternal() bool  { return true }

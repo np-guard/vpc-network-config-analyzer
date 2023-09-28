@@ -109,8 +109,16 @@ func (g *groupedEndpointsElems) Name() string {
 	return listEndpointElemStr(*g, EndpointElem.Name)
 }
 
+func (g *groupedEndpointsElems) IsExternal() bool {
+	return false
+}
+
 // implements endpointElem interface
 type groupedExternalNodes []Node
+
+func (g *groupedExternalNodes) IsExternal() bool {
+	return true
+}
 
 func (g *groupedExternalNodes) Name() string {
 	isAllInternetRange, err := isEntirePublicInternetRange(*g)
