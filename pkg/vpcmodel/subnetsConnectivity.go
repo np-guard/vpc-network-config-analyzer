@@ -60,11 +60,15 @@ func (c *CloudConfig) ipblockToNamedResourcesInConfig(ipb *common.IPBlock, exclu
 		if nodeset.Kind() != subnetKind {
 			continue
 		}
-		subnetCidrIPB := nodeset.AddressRange()
+		var subnetCidrIPB *common.IPBlock
+		if subnetCidrIPB = nodeset.AddressRange(); subnetCidrIPB == nil {
+			return nil, errors.New("missing AddressRange for subnet")
+		}
 		if subnetCidrIPB.ContainedIn(ipb) {
 			res = append(res, nodeset)
 		}
 	}
+
 	if excludeExternalNodes {
 		return res, nil
 	}
