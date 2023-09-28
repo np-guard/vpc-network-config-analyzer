@@ -222,7 +222,7 @@ func createNetwork2() SquareTreeNodeInterface {
 
 	fipGroups := [][]IconTreeNodeInterface{
 		groupedNis1,
-		groupedNis3,
+		// groupedNis3,
 		groupedNis33,
 	}
 
