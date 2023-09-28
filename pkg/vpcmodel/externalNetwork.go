@@ -43,6 +43,7 @@ type ExternalNetwork struct {
 
 func (exn *ExternalNetwork) UID() string      { return "" }
 func (exn *ExternalNetwork) ZoneName() string { return "" }
+func (exn *ExternalNetwork) IsExternal() bool { return true }
 
 func (exn *ExternalNetwork) Cidr() string {
 	return exn.CidrStr
