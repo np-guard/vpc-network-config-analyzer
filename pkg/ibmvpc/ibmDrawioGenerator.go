@@ -5,22 +5,12 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
-func (v *VPC) IsExternal() bool                  { return false }
-func (z *Zone) IsExternal() bool                 { return false }
-func (s *Subnet) IsExternal() bool               { return false }
-func (sgl *SecurityGroupLayer) IsExternal() bool { return false }
-func (nl *NaclLayer) IsExternal() bool           { return false }
-func (n *IKSNode) IsExternal() bool              { return false }
-func (ni *NetworkInterface) IsExternal() bool    { return false }
-func (v *Vsi) IsExternal() bool                  { return false }
-func (pgw *PublicGateway) IsExternal() bool      { return false }
-func (fip *FloatingIP) IsExternal() bool         { return false }
-
 // implementations of the GenerateDrawioTreeNode() for resource defined in ibmvpc:
 func (v *VPC) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	return drawio.NewVpcTreeNode(gen.Cloud(), v.Name())
 }
 
+func (z *Zone) IsExternal() bool { return false }
 func (z *Zone) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	return drawio.NewZoneTreeNode(gen.TreeNode(z.VPC()).(*drawio.VpcTreeNode), z.name)
 }
@@ -58,8 +48,9 @@ func (ni *NetworkInterface) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator
 }
 
 func (n *IKSNode) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
-	// todo - what is this? should we handle it? can we ignore it?
-	return nil
+	return drawio.NewNITreeNode(
+		gen.TreeNode(n.subnet).(drawio.SquareTreeNodeInterface),
+		nil, n.Name())
 }
 
 func (v *Vsi) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {

@@ -72,7 +72,7 @@ type GroupConnLines struct {
 	GroupedLines            []*GroupedConnLine
 }
 
-// EndpointElem can be Node(networkInterface) / groupedExternalNodes / groupedNetworkInterfaces
+// EndpointElem can be Node(networkInterface) / groupedExternalNodes / groupedNetworkInterfaces / NodeSet(subnet)
 type EndpointElem interface {
 	Name() string
 	DrawioResourceIntf
@@ -87,9 +87,10 @@ type GroupedConnLine struct {
 func (g *GroupedConnLine) String() string {
 	return g.Src.Name() + " => " + g.Dst.Name() + " : " + g.Conn
 }
+
 func (g *GroupedConnLine) ConnLabel() string {
-	// todo - this info can be found in the conn struct.
-	if strings.Contains(g.Conn, "All Connections") {
+	// todo - this info can be found in the conn struct, GroupedConnLine should keep the struct instead of just a string
+	if common.IsAllConnections(g.Conn) {
 		return ""
 	}
 	return g.Conn
