@@ -36,6 +36,7 @@ func getPublicInternetAddressList() []string {
 
 // ExternalNetwork implements Node interface
 type ExternalNetwork struct {
+	ResourceType     string
 	CidrStr          string
 	isPublicInternet bool
 }
@@ -48,7 +49,7 @@ func (exn *ExternalNetwork) Cidr() string {
 }
 
 func (exn *ExternalNetwork) Name() string {
-	return publicInternetNodeName + " [" + exn.CidrStr + "]"
+	return exn.ResourceType + " [" + exn.CidrStr + "]"
 }
 
 func (exn *ExternalNetwork) IsInternal() bool {
@@ -104,6 +105,7 @@ func newExternalNode(isPublicInternet bool, ipb *common.IPBlock) (Node, error) {
 	}
 	cidr := ipb.ToCidrList()[0]
 	return &ExternalNetwork{
+		ResourceType:     publicInternetNodeName,
 		CidrStr:          cidr,
 		isPublicInternet: isPublicInternet}, nil
 }
