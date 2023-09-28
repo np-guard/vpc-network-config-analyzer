@@ -52,9 +52,10 @@ const (
 
 const (
 	AllConnections = "All Connections"
-	NoConnections = "No Connections"
+	NoConnections  = "No Connections"
 )
-func IsAllConnections(conn string) bool { return strings.Contains(conn, AllConnections)}
+
+func IsAllConnections(conn string) bool { return strings.Contains(conn, AllConnections) }
 
 type Dimension int
 
