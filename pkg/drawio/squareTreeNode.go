@@ -48,19 +48,21 @@ func (tn *abstractSquareTreeNode) setHasVSIs() {
 func (tn *abstractSquareTreeNode) IsGroupingSquare() bool { return false }
 
 
-func (tn *abstractSquareTreeNode) setGeometry() {
+func calculateSquareGeometry(tn SquareTreeNodeInterface) {
 	location := tn.Location()
 	if location == nil {
 		return
 	}
-	tn.width = location.lastCol.width() + location.lastCol.x() - location.firstCol.x() - location.xOffset - location.xEndOffset
-	tn.height = location.lastRow.height() + location.lastRow.y() - location.firstRow.y() - location.yOffset - location.yEndOffset
-	tn.x = location.firstCol.x() + location.xOffset
-	tn.y = location.firstRow.y() + location.yOffset
+	width := location.lastCol.width() + location.lastCol.x() - location.firstCol.x() - location.xOffset - location.xEndOffset
+	height := location.lastRow.height() + location.lastRow.y() - location.firstRow.y() - location.yOffset - location.yEndOffset
+	x := location.firstCol.x() + location.xOffset
+	y := location.firstRow.y() + location.yOffset
 	if tn.DrawioParent() != nil {
-		tn.x -= tn.DrawioParent().Location().firstCol.x()
-		tn.y -= tn.DrawioParent().Location().firstRow.y()
+		x -= tn.DrawioParent().Location().firstCol.x()
+		y -= tn.DrawioParent().Location().firstRow.y()
 	}
+	tn.setXY(x,y)
+	tn.setWH(width,height)
 }
 
 // /////////////////////////////////////////////////////////////
@@ -163,8 +165,6 @@ func NewSGTreeNode(parent *VpcTreeNode, name string) *SGTreeNode {
 func (tn *SGTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
 	return tn.partialSgs, tn.elements, tn.connections
 }
-func (tn *SGTreeNode) setGeometry() {}
-
 func (tn *SGTreeNode) NotShownInDrawio() bool { return true }
 
 ///////////////////////////////////////////////////////////////////////

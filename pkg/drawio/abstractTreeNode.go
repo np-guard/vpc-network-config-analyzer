@@ -41,6 +41,8 @@ func (tn *abstractTreeNode) X() int         { return tn.x }
 func (tn *abstractTreeNode) Y() int         { return tn.y }
 func (tn *abstractTreeNode) Height() int    { return tn.height }
 func (tn *abstractTreeNode) Width() int     { return tn.width }
+func (tn *abstractTreeNode) setXY(x, y int) { tn.x, tn.y = x, y }
+func (tn *abstractTreeNode) setWH(w, h int) { tn.width, tn.height = w, h }
 func (tn *abstractTreeNode) RouterID() uint { return tn.ID() }
 
 func (tn *abstractTreeNode) Location() *Location             { return tn.location }

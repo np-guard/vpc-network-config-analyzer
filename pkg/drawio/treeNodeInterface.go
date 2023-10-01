@@ -41,6 +41,8 @@ type TreeNodeInterface interface {
 	Y() int
 	Height() int
 	Width() int
+	setXY(x, y int)
+	setWH(w, h int)
 	Label() string
 
 	DrawioParent() TreeNodeInterface
@@ -57,8 +59,16 @@ type TreeNodeInterface interface {
 	IsIcon() bool
 	IsSquare() bool
 
-	setGeometry()
 	children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface)
+}
+
+////////////////////////////////////////////////
+func setGeometry(tn TreeNodeInterface) {
+	if tn.IsIcon() {
+		calculateIconGeometry(tn.(IconTreeNodeInterface))
+	} else if tn.IsSquare() {
+		calculateSquareGeometry(tn.(SquareTreeNodeInterface))
+	}
 }
 
 // /////////////////////////////////////////////////////////////////////

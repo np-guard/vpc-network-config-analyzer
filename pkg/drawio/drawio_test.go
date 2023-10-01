@@ -10,7 +10,7 @@ func TestWithParsing(t *testing.T) {
 	// n := createNetwork()
 	// err := CreateDrawioConnectivityMapFile(n, "fake.drawio")
 	// if err != nil {
-	// 	fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
+		// 	fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
 	// }
 	n2 := createNetwork2()
 	err2 := CreateDrawioConnectivityMapFile(n2, "fake2.drawio")
@@ -23,7 +23,7 @@ func TestWithParsing(t *testing.T) {
 	// NewCloudTreeNode(n3, "empty cloud2")
 	// err3 := CreateDrawioConnectivityMapFile(n3, "fake3.drawio")
 	// if err3 != nil {
-	// 	fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err3)
+		// 	fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err3)
 	// }
 }
 
@@ -158,6 +158,31 @@ func createNetwork() SquareTreeNodeInterface {
 
 	return network
 }
+
+
+func createNetwork2d() SquareTreeNodeInterface {
+	network := NewNetworkTreeNode()
+
+	cloud1 := NewCloudTreeNode(network, "IBM Cloud")
+	vpc1 := NewVpcTreeNode(cloud1, "vpc1")
+	zone1 := NewZoneTreeNode(vpc1, "zone1")
+	subnet1 := NewSubnetTreeNode(zone1, "subnet1", "cidr1", "acl1")
+	groupedNis1 := []IconTreeNodeInterface{
+		NewNITreeNode(subnet1, nil, "ni1"),
+		NewNITreeNode(subnet1, nil, "ni1"),
+	}
+	subnet3 := NewSubnetTreeNode(zone1, "subnet2", "cidr2", "acl2")
+	groupedNis3 := []IconTreeNodeInterface{
+		NewNITreeNode(subnet3, nil, "ni1"),
+		NewNITreeNode(subnet3, nil, "ni1"),
+	}
+	NewNITreeNode(subnet3, nil, "ni1")
+	gs3 := NewGroupSquareTreeNode(subnet3, groupedNis3)
+	gs1 := NewGroupSquareTreeNode(subnet1, groupedNis1)
+	NewConnectivityLineTreeNode(network, gs3, gs1, true, "gconn3")
+	return network
+}
+
 
 
 func createNetwork2() SquareTreeNodeInterface {

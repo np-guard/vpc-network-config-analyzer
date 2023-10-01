@@ -186,7 +186,7 @@ func (ly *layoutS) setSGLocations() {
 							currentLocation.yOffset = borderWidth
 							currentLocation.xEndOffset = borderWidth
 							currentLocation.yEndOffset = borderWidth
-				
+
 							psg.setLocation(currentLocation)
 							currentLocation = nil
 						}
@@ -346,10 +346,10 @@ func (ly *layoutS) setGroupingLocations() {
 	for _, tn := range getAllNodes(ly.network) {
 		if tn.IsSquare() && tn.(SquareTreeNodeInterface).IsGroupingSquare() {
 			tn.setLocation(mergeLocations(iconsLocations(tn.(*GroupSquareTreeNode).groupies)))
-			tn.Location().xOffset = 0.5*borderWidth
-			tn.Location().yOffset = 1.5*borderWidth
-			tn.Location().xEndOffset = 0.5*borderWidth
-			tn.Location().yEndOffset = 0.5*borderWidth
+			tn.Location().xOffset = 0.5 * borderWidth
+			tn.Location().yOffset = 1.5 * borderWidth
+			tn.Location().xEndOffset = 0.5 * borderWidth
+			tn.Location().yEndOffset = 0.5 * borderWidth
 		}
 	}
 	for _, tn := range getAllNodes(ly.network) {
@@ -377,7 +377,7 @@ func (ly *layoutS) setGroupingLocations() {
 			gIcon.connectGroupies()
 		} else {
 			gIcon.Location().yOffset -= borderWidth * 1.5
-			gIcon.Location().xOffset = borderWidth * xOffsetSign - borderWidth / 2
+			gIcon.Location().xOffset = borderWidth*xOffsetSign - borderWidth/2
 		}
 	}
 }
@@ -436,6 +436,6 @@ func (ly *layoutS) setIconsLocations() {
 
 func (ly *layoutS) setGeometries() {
 	for _, tn := range getAllNodes(ly.network) {
-		tn.setGeometry()
+		setGeometry(tn)
 	}
 }
