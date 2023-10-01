@@ -47,15 +47,16 @@ func (tn *abstractSquareTreeNode) setHasVSIs() {
 }
 func (tn *abstractSquareTreeNode) IsGroupingSquare() bool { return false }
 
+
 func (tn *abstractSquareTreeNode) setGeometry() {
 	location := tn.Location()
 	if location == nil {
 		return
 	}
-	tn.width = location.lastCol.width() + location.lastCol.x() - location.firstCol.x()
-	tn.height = location.lastRow.height() + location.lastRow.y() - location.firstRow.y()
-	tn.x = location.firstCol.x()
-	tn.y = location.firstRow.y()
+	tn.width = location.lastCol.width() + location.lastCol.x() - location.firstCol.x() - location.xOffset - location.xEndOffset
+	tn.height = location.lastRow.height() + location.lastRow.y() - location.firstRow.y() - location.yOffset - location.yEndOffset
+	tn.x = location.firstCol.x() + location.xOffset
+	tn.y = location.firstRow.y() + location.yOffset
 	if tn.DrawioParent() != nil {
 		tn.x -= tn.DrawioParent().Location().firstCol.x()
 		tn.y -= tn.DrawioParent().Location().firstRow.y()
@@ -184,15 +185,6 @@ func (tn *PartialSGTreeNode) DrawioParent() TreeNodeInterface {
 	return tn.Parent().Parent()
 }
 
-func (tn *PartialSGTreeNode) setGeometry() {
-	location := tn.Location()
-	parentLocation := tn.DrawioParent().Location()
-	tn.width = location.lastCol.width() + location.lastCol.x() - location.firstCol.x() - 2*borderWidth
-	tn.height = location.lastRow.height() + location.lastRow.y() - location.firstRow.y() - 2*borderWidth
-	tn.x = location.firstCol.x() - parentLocation.firstCol.x() + borderWidth
-	tn.y = location.firstRow.y() - parentLocation.firstRow.y() + borderWidth
-}
-
 /////////////////////////////////////////////////////////////////////////
 
 type SubnetTreeNode struct {
@@ -247,11 +239,3 @@ func (tn *GroupSquareTreeNode) children() ([]SquareTreeNodeInterface, []IconTree
 	return nil, tn.elements, tn.connections
 }
 
-func (tn *GroupSquareTreeNode) setGeometry() {
-	location := tn.Location()
-	parentLocation := tn.DrawioParent().Location()
-	tn.width = location.lastCol.width() + location.lastCol.x() - location.firstCol.x() - borderWidth
-	tn.height = location.lastRow.height() + location.lastRow.y() - location.firstRow.y() - borderWidth*2
-	tn.x = location.firstCol.x() - parentLocation.firstCol.x() + borderWidth/2
-	tn.y = location.firstRow.y() - parentLocation.firstRow.y() + borderWidth*1.5
-}

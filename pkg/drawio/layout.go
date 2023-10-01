@@ -182,6 +182,11 @@ func (ly *layoutS) setSGLocations() {
 							currentLocation.lastCol = ly.matrix.cols[ci]
 						case currentLocation != nil && !isSGCell:
 							psg := newPartialSGTreeNode(sg.(*SGTreeNode))
+							currentLocation.xOffset = borderWidth
+							currentLocation.yOffset = borderWidth
+							currentLocation.xEndOffset = borderWidth
+							currentLocation.yEndOffset = borderWidth
+				
 							psg.setLocation(currentLocation)
 							currentLocation = nil
 						}
@@ -343,6 +348,8 @@ func (ly *layoutS) setGroupingLocations() {
 			tn.setLocation(mergeLocations(iconsLocations(tn.(*GroupSquareTreeNode).groupies)))
 			tn.Location().xOffset = 0.5*borderWidth
 			tn.Location().yOffset = 1.5*borderWidth
+			tn.Location().xEndOffset = 0.5*borderWidth
+			tn.Location().yEndOffset = 0.5*borderWidth
 		}
 	}
 	for _, tn := range getAllNodes(ly.network) {
