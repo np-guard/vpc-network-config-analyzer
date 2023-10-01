@@ -101,11 +101,17 @@ func (lyO *layoutOverlap) handleGroupingLinesOverBorders() {
 		if line.Src().(*GroupPointTreeNode).hasShownSquare() {
 			p1 := iconCenterPoint(line.Src())
 			p1.X -= line.Src().Location().xOffset + linesOffset
+			if !line.Src().(*GroupPointTreeNode).IsAllSubnet() {
+				p1.X -= borderWidth / 2
+			}
 			line.addPoint(p1.X, p1.Y)
 		}
 		if line.Dst().(*GroupPointTreeNode).hasShownSquare() {
 			p2 := iconCenterPoint(line.Dst())
 			p2.X -= line.Dst().Location().xOffset + linesOffset
+			if !line.Dst().(*GroupPointTreeNode).IsAllSubnet() {
+				p2.X -= borderWidth / 2
+			}
 			line.addPoint(p2.X, p2.Y)
 		}
 		linesOnCol[line.Src().Location().firstCol] += 1

@@ -108,5 +108,6 @@ func absoluteGeometry(tn TreeNodeInterface) (x, y int) {
 	if tn.DrawioParent() == nil {
 		return tn.X(), tn.Y()
 	}
-	return tn.X() + tn.DrawioParent().Location().firstCol.x(), tn.Y() + tn.DrawioParent().Location().firstRow.y()
+	return tn.X() + tn.DrawioParent().Location().firstCol.x() + tn.DrawioParent().Location().xOffset,
+		tn.Y() + tn.DrawioParent().Location().firstRow.y() + tn.DrawioParent().Location().yOffset
 }

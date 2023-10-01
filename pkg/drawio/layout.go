@@ -308,7 +308,7 @@ func (ly *layoutS) setVpcIconsLocations(vpc SquareTreeNodeInterface) {
 		icon.Location().yOffset = iconSpace*(iconIndex%iconsPerCol) - (iconSpace*(iconsPerCol-1))/2
 	}
 }
-func (ly *layoutS) getGroupingIconLocation(location, collLocation *Location) (r *row, c *col, left bool) {
+func (ly *layoutS) calcGroupingIconLocation(location, collLocation *Location) (r *row, c *col, left bool) {
 
 	switch {
 	case location.lastRow.index < collLocation.firstRow.index:
@@ -341,6 +341,8 @@ func (ly *layoutS) setGroupingLocations() {
 	for _, tn := range getAllNodes(ly.network) {
 		if tn.IsSquare() && tn.(SquareTreeNodeInterface).IsGroupingSquare() {
 			tn.setLocation(mergeLocations(iconsLocations(tn.(*GroupSquareTreeNode).groupies)))
+			tn.Location().xOffset = 0.5*borderWidth
+			tn.Location().yOffset = 1.5*borderWidth
 		}
 	}
 	for _, tn := range getAllNodes(ly.network) {
@@ -352,7 +354,7 @@ func (ly *layoutS) setGroupingLocations() {
 		colleague := gIcon.getColleague()
 		parentLocation := parent.Location()
 		colleagueParentLocation := colleague.Parent().Location()
-		r, c, isLeft := ly.getGroupingIconLocation(parentLocation, colleagueParentLocation)
+		r, c, isLeft := ly.calcGroupingIconLocation(parentLocation, colleagueParentLocation)
 
 		gIcon.setLocation(newCellLocation(r, c))
 		gIcon.Location().yOffset = 40 * iconsInCell[cell{r, c}]

@@ -159,6 +159,7 @@ func createNetwork() SquareTreeNodeInterface {
 	return network
 }
 
+
 func createNetwork2() SquareTreeNodeInterface {
 	network := NewNetworkTreeNode()
 	publicNetwork := NewPublicNetworkTreeNode(network)
@@ -268,6 +269,7 @@ func createNetwork2() SquareTreeNodeInterface {
 	NewConnectivityLineTreeNode(network, gs23, gs23, true, "gconn3")
 	NewConnectivityLineTreeNode(network, gs32, gs33, true, "gconn4")
 	NewConnectivityLineTreeNode(network, gs31, gs33, true, "gconn4")
+	NewConnectivityLineTreeNode(network, gs31, gs31, true, "gconn4")
 	// gc1.SetFipRouter(false)
 	// gc2.SetFipRouter(false)
 	// gc3.SetGwRouter(gw11, true)
