@@ -38,6 +38,10 @@ func (n *VPCResource) Kind() string {
 	return n.ResourceType
 }
 
+func (n *VPCResource) IsExternal() bool {
+	return false
+}
+
 const (
 	// filter-resources layer names (grouping all vpc resources of that kind)
 	NaclLayer          = "NaclLayer"

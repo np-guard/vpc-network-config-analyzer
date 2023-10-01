@@ -279,7 +279,7 @@ func (v *VPCsubnetConnectivity) computeStatefulConnections() {
 			if otherDirectionConn == nil {
 				continue
 			}
-			connsSwitchPortsDirection := conns.SwitchSrcDstPorts()
+			connsSwitchPortsDirection := conns.ResponseConnection()
 			stateful := connsSwitchPortsDirection.Intersection(otherDirectionConn)
 			// if there is a way back for the response, then the connection is considered stateful
 			if !stateful.IsEmpty() {
