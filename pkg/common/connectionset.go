@@ -493,9 +493,11 @@ func copyCube(cube []*CanonicalIntervalSet) []*CanonicalIntervalSet {
 	return newCube
 }
 
-// SwitchSrcDstPorts returns a new ConnectionSet object, built from the input ConnectionSet
-// object by switching between src to dst ports on each cube
-func (conn *ConnectionSet) SwitchSrcDstPorts() *ConnectionSet {
+// ResponseConnection returns a new ConnectionSet object, built from the input ConnectionSet object,
+// which is the response's should be connection.
+// For TCP and UDP the src and dst ports on relevant cubes are being switched,
+// and for ICMP (which does not have src or dst ports) the connection is copied on relevant cubes
+func (conn *ConnectionSet) ResponseConnection() *ConnectionSet {
 	if conn.AllowAll || conn.IsEmpty() {
 		return conn
 	}
@@ -507,6 +509,7 @@ func (conn *ConnectionSet) SwitchSrcDstPorts() *ConnectionSet {
 		if protocols.Contains(TCP) || protocols.Contains(UDP) {
 			srcPorts := cube[srcPort]
 			dstPorts := cube[dstPort]
+			// if the entire domain is enabled by both src and dst no need to switch
 			if !srcPorts.Equal(*getDimensionDomain(srcPort)) || !dstPorts.Equal(*getDimensionDomain(dstPort)) {
 				newCube := copyCube(cube)
 				newCube[srcPort], newCube[dstPort] = newCube[dstPort], newCube[srcPort]
@@ -514,6 +517,8 @@ func (conn *ConnectionSet) SwitchSrcDstPorts() *ConnectionSet {
 			} else {
 				res.connectionProperties = res.connectionProperties.Union(CreateFromCube(cube))
 			}
+		} else if protocols.Contains(ICMP) {
+			res.connectionProperties = res.connectionProperties.Union(CreateFromCube(cube))
 		}
 	}
 	return res
