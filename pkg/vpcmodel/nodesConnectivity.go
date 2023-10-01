@@ -236,7 +236,7 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections() {
 			SrcAllowedIngressFromDst = v.getPerLayerConnectivity(statelessLayerName, dst, src, true)
 			combinedDstToSrc := DstAllowedEgressToSrc.Intersection(SrcAllowedIngressFromDst)
 			// flip src/dst ports before intersection
-			combinedDstToSrcSwitchPortsDirection := combinedDstToSrc.SwitchSrcDstPorts()
+			combinedDstToSrcSwitchPortsDirection := combinedDstToSrc.ResponseConnection()
 			statefulCombinedConn := conn.Intersection(combinedDstToSrcSwitchPortsDirection)
 			v.AllowedConnsCombinedStateful.updateAllowedConnsMap(src, dst, statefulCombinedConn)
 			if !conn.Equal(statefulCombinedConn) {
