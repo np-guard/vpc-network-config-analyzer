@@ -309,7 +309,11 @@ func mergeSelfLoops(toMergeCouples [][2]string, oldGroupingSrcOrDst map[string][
 	for oldKey, oldLines := range oldGroupingSrcOrDst {
 		// not merged with other groups, add as is
 		if _, ok := toMergeExistingIndexes[oldKey]; !ok {
-			mergedGroupedConnLine[oldKey] = oldLines
+			if _, existInNewKeys := mergedGroupedConnLine[oldKey]; existInNewKeys {
+				mergedGroupedConnLine[oldKey] = append(mergedGroupedConnLine[oldKey], oldLines...)
+			} else {
+				mergedGroupedConnLine[oldKey] = oldLines
+			}
 		}
 	}
 	return mergedGroupedConnLine
