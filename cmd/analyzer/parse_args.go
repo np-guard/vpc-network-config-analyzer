@@ -93,6 +93,9 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	if *args.OutputFormat == JSONFormat && *args.Grouping {
 		return nil, fmt.Errorf("json output format is not supported with grouping")
 	}
+	if *args.OutputFormat == DRAWIOFormat && *args.Grouping {
+		return nil, fmt.Errorf("drawio output format is not supported with grouping")
+	}
 
 	return &args, nil
 }

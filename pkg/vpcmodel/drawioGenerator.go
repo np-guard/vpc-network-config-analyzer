@@ -7,6 +7,7 @@ import (
 // DrawioResourceIntf is the interface of all the resources that are converted to a drawio treeNodes
 type DrawioResourceIntf interface {
 	GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface
+	IsExternal() bool
 }
 
 // DrawioGenerator is the struct that generate the drawio tree.
@@ -53,4 +54,26 @@ func (gen *DrawioGenerator) TreeNode(res DrawioResourceIntf) drawio.TreeNodeInte
 // (currently only ExternalNetwork, will add the grouping resource later)
 func (exn *ExternalNetwork) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
 	return drawio.NewInternetTreeNode(gen.PublicNetwork(), exn.CidrStr)
+}
+
+func (g *groupedEndpointsElems) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
+	// todo - need to implement, currently blocked in parse_args.go:
+	return gen.TreeNode((*g)[0])
+}
+
+func (g *groupedExternalNodes) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
+	if len(*g) == 1 {
+		return gen.TreeNode((*g)[0])
+	}
+	tooltip := []string{}
+	for _, n := range *g {
+		tooltip = append(tooltip, n.(*ExternalNetwork).Cidr())
+	}
+	name := "Various IP ranges"
+	if all, _ := isEntirePublicInternetRange(*g); all {
+		name = publicInternetNodeName
+	}
+	tn := drawio.NewInternetTreeNode(gen.PublicNetwork(), name)
+	tn.SetTooltip(tooltip)
+	return tn
 }

@@ -72,9 +72,10 @@ type GroupConnLines struct {
 	GroupedLines            []*GroupedConnLine
 }
 
-// EndpointElem can be Node(networkInterface) / groupedExternalNodes / groupedNetworkInterfaces
+// EndpointElem can be Node(networkInterface) / groupedExternalNodes / groupedNetworkInterfaces / NodeSet(subnet)
 type EndpointElem interface {
 	Name() string
+	DrawioResourceIntf
 }
 
 type GroupedConnLine struct {
@@ -85,6 +86,14 @@ type GroupedConnLine struct {
 
 func (g *GroupedConnLine) String() string {
 	return g.Src.Name() + " => " + g.Dst.Name() + " : " + g.Conn
+}
+
+func (g *GroupedConnLine) ConnLabel() string {
+	// todo - this info can be found in the conn struct, GroupedConnLine should keep the struct instead of just a string
+	if common.IsAllConnections(g.Conn) {
+		return ""
+	}
+	return g.Conn
 }
 
 func (g *GroupedConnLine) getSrcOrDst(isSrc bool) EndpointElem {
@@ -100,8 +109,16 @@ func (g *groupedEndpointsElems) Name() string {
 	return listEndpointElemStr(*g, EndpointElem.Name)
 }
 
+func (g *groupedEndpointsElems) IsExternal() bool {
+	return false
+}
+
 // implements endpointElem interface
 type groupedExternalNodes []Node
+
+func (g *groupedExternalNodes) IsExternal() bool {
+	return true
+}
 
 func (g *groupedExternalNodes) Name() string {
 	isAllInternetRange, err := isEntirePublicInternetRange(*g)

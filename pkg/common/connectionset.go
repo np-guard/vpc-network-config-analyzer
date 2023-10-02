@@ -50,6 +50,14 @@ const (
 	ICMP
 )
 
+const (
+	AllConnections = "All Connections"
+	NoConnections  = "No Connections"
+)
+
+// IsAllConnections returns whether the input connection string represents all connection (true) or not (false)
+func IsAllConnections(conn string) bool { return strings.Contains(conn, AllConnections) }
+
 type Dimension int
 
 const (
@@ -332,9 +340,9 @@ func getConnsCubeStr(cube []*CanonicalIntervalSet) string {
 // String returns a string representation of a ConnectionSet object
 func (conn *ConnectionSet) String() string {
 	if conn.AllowAll {
-		return "All Connections"
+		return AllConnections
 	} else if conn.IsEmpty() {
-		return "No Connections"
+		return NoConnections
 	}
 	resStrings := []string{}
 	// get cubes and cube str per each cube
@@ -704,9 +712,9 @@ func (conn *ConnectionSet) AddConnection(protocol Protocol, ports PortSet) {
 // String returns a string representation of the ConnectionSet object
 func (conn *ConnectionSet) String() string {
 	if conn.AllowAll {
-		return "All Connections"
+		return AllConnections
 	} else if conn.IsEmpty() {
-		return "No Connections"
+		return NoConnections
 	}
 	resStrings := []string{}
 	for protocol, ports := range conn.AllowedProtocols {
