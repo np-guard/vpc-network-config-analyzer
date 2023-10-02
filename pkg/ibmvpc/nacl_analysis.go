@@ -63,8 +63,14 @@ func getNACLRule(rule vpc1.NetworkACLRuleItemIntf) (ruleStr string, ruleObjRes *
 	case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolAll:
 		res := getNACLRuleStr(*ruleObj.Direction, *ruleObj.Source, *ruleObj.Destination, *ruleObj.Protocol, *ruleObj.Action)
 		// convert to rule object
-		srcIP, _ := common.NewIPBlock(*ruleObj.Source, []string{})
-		dstIP, _ := common.NewIPBlock(*ruleObj.Destination, []string{})
+		srcIP, err := common.NewIPBlock(*ruleObj.Source, []string{})
+		if err != nil {
+			return "", nil, false, err
+		}
+		dstIP, err := common.NewIPBlock(*ruleObj.Destination, []string{})
+		if err != nil {
+			return "", nil, false, err
+		}
 		conns := common.NewConnectionSet(true)
 		ruleRes = NACLRule{src: srcIP, dst: dstIP, connections: conns, action: *ruleObj.Action}
 		if *ruleObj.Direction == inbound {
@@ -80,8 +86,14 @@ func getNACLRule(rule vpc1.NetworkACLRuleItemIntf) (ruleStr string, ruleObjRes *
 		res := getNACLRuleStr(*ruleObj.Direction, *ruleObj.Source, *ruleObj.Destination, connStr, *ruleObj.Action)
 
 		// convert to rule object
-		srcIP, _ := common.NewIPBlock(*ruleObj.Source, []string{})
-		dstIP, _ := common.NewIPBlock(*ruleObj.Destination, []string{})
+		srcIP, err := common.NewIPBlock(*ruleObj.Source, []string{})
+		if err != nil {
+			return "", nil, false, err
+		}
+		dstIP, err := common.NewIPBlock(*ruleObj.Destination, []string{})
+		if err != nil {
+			return "", nil, false, err
+		}
 		conns := common.NewConnectionSet(false)
 		srcPortMin := getProperty(ruleObj.SourcePortMin, common.MinPort)
 		srcPortMax := getProperty(ruleObj.SourcePortMax, common.MaxPort)
@@ -105,8 +117,14 @@ func getNACLRule(rule vpc1.NetworkACLRuleItemIntf) (ruleStr string, ruleObjRes *
 		connStr := fmt.Sprintf("protocol: %s", *ruleObj.Protocol)
 		res := getNACLRuleStr(*ruleObj.Direction, *ruleObj.Source, *ruleObj.Destination, connStr, *ruleObj.Action)
 		conns, _ := getICMPconn(ruleObj.Type, ruleObj.Code)
-		srcIP, _ := common.NewIPBlock(*ruleObj.Source, []string{})
-		dstIP, _ := common.NewIPBlock(*ruleObj.Destination, []string{})
+		srcIP, err := common.NewIPBlock(*ruleObj.Source, []string{})
+		if err != nil {
+			return "", nil, false, err
+		}
+		dstIP, err := common.NewIPBlock(*ruleObj.Destination, []string{})
+		if err != nil {
+			return "", nil, false, err
+		}
 		ruleRes = NACLRule{src: srcIP, dst: dstIP, connections: conns, action: *ruleObj.Action}
 		if *ruleObj.Direction == inbound {
 			isIngress = true
