@@ -58,8 +58,8 @@ func (tn *abstractIconTreeNode) allocateNewRouteOffset() int {
 func calculateIconGeometry(tn IconTreeNodeInterface) {
 	location := tn.Location()
 	parentLocation := tn.DrawioParent().Location()
-	x := location.firstCol.x() - parentLocation.firstCol.x() + location.firstCol.width()/2 - tn.IconSize()/2 + location.xOffset
-	y := location.firstRow.y() - parentLocation.firstRow.y() + location.firstRow.height()/2 - tn.IconSize()/2 + location.yOffset
+	x := location.firstCol.x() - parentLocation.firstCol.x() + location.firstCol.width()/2 - tn.IconSize()/2 + location.xOffset - parentLocation.xOffset
+	y := location.firstRow.y() - parentLocation.firstRow.y() + location.firstRow.height()/2 - tn.IconSize()/2 + location.yOffset - parentLocation.yOffset
 	tn.setXY(x,y)
 }
 func (tn *abstractIconTreeNode) absoluteRouterGeometry() (x, y int) {

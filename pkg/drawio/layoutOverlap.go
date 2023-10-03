@@ -26,6 +26,7 @@ import (
 var noPoint = point{-1, -1}
 
 const nPotentialBP = 6
+const widthBetweenLines = 3
 
 type overlapCell struct {
 	hasBypassPoint bool
@@ -94,19 +95,21 @@ func (lyO *layoutOverlap) handleGroupingLinesOverBorders() {
 		if line.Src().Location().firstCol != line.Dst().Location().firstCol {
 			continue
 		}
+		if !line.Src().(*GroupPointTreeNode).hasShownSquare() && !line.Dst().(*GroupPointTreeNode).hasShownSquare() {
+			continue
+		}
 		if len(line.Points()) != 0 {
 			continue
 		}
-		linesOffset := linesOnCol[line.Src().Location().firstCol] * 5
+		col := line.Src().Location().firstCol
+		lineX := col.x() + col.thickness/2 - linesOnCol[col] * widthBetweenLines
 		if line.Src().(*GroupPointTreeNode).hasShownSquare() {
 			p := iconCenterPoint(line.Src())
-			p.X = line.Src().Location().firstCol.x() + borderWidth/2 - linesOffset
-			line.addPoint(p.X, p.Y)
+			line.addPoint(lineX, p.Y)
 		}
 		if line.Dst().(*GroupPointTreeNode).hasShownSquare() {
 			p := iconCenterPoint(line.Dst())
-			p.X = line.Src().Location().firstCol.x() + borderWidth/2 - linesOffset
-			line.addPoint(p.X, p.Y)
+			line.addPoint(lineX, p.Y)
 		}
 		linesOnCol[line.Src().Location().firstCol] += 1
 	}

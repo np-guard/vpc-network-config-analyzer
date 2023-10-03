@@ -27,6 +27,10 @@ const (
 	iconSize        = 60
 	groupedIconSize = 10
 	iconSpace       = 4 * 40
+	
+	groupBorderWidth = 20
+	groupTopBorderWidth = 20
+	groupedIconsDistance = 30
 
 	fipXOffset = -70
 	fipYOffset = 40
@@ -346,10 +350,10 @@ func (ly *layoutS) setGroupingLocations() {
 	for _, tn := range getAllNodes(ly.network) {
 		if tn.IsSquare() && tn.(SquareTreeNodeInterface).IsGroupingSquare() {
 			tn.setLocation(mergeLocations(iconsLocations(tn.(*GroupSquareTreeNode).groupies)))
-			tn.Location().xOffset = 0.5 * borderWidth
-			tn.Location().yOffset = 1.5 * borderWidth
-			tn.Location().xEndOffset = 0.5 * borderWidth
-			tn.Location().yEndOffset = 0.5 * borderWidth
+			tn.Location().xOffset = groupBorderWidth
+			tn.Location().yOffset = groupTopBorderWidth
+			tn.Location().xEndOffset = groupBorderWidth
+			tn.Location().yEndOffset = groupBorderWidth
 		}
 	}
 	for _, tn := range getAllNodes(ly.network) {
@@ -364,20 +368,18 @@ func (ly *layoutS) setGroupingLocations() {
 		r, c, isLeft := ly.calcGroupingIconLocation(parentLocation, colleagueParentLocation)
 
 		gIcon.setLocation(newCellLocation(r, c))
-		gIcon.Location().yOffset = 40 * iconsInCell[cell{r, c}]
+		gIcon.Location().yOffset = groupedIconsDistance * iconsInCell[cell{r, c}]
 		iconsInCell[cell{r, c}]++
 		xOffsetSign := -1
 		if isLeft {
 			xOffsetSign = 1
 		}
 		if parent.IsAllSubnet() {
-			gIcon.Location().xOffset = borderWidth / 2 * xOffsetSign
+			gIcon.Location().xOffset = gIcon.Location().firstCol.width()/2 * xOffsetSign
 		} else if parent.NotShownInDrawio() {
-			gIcon.Location().xOffset = 0
 			gIcon.connectGroupies()
 		} else {
-			gIcon.Location().yOffset -= borderWidth * 1.5
-			gIcon.Location().xOffset = borderWidth*xOffsetSign - borderWidth/2
+			gIcon.Location().xOffset = (gIcon.Location().firstCol.width()/2 + groupBorderWidth) * xOffsetSign
 		}
 	}
 }
