@@ -51,7 +51,7 @@ func (gen *DrawioGenerator) TreeNode(res DrawioResourceIntf) drawio.TreeNodeInte
 
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // implementations of the GenerateDrawioTreeNode() for resource defined in vpcmodel:
-// (currently only ExternalNetwork, will add the grouping resource later)
+
 func (exn *ExternalNetwork) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
 	return drawio.NewInternetTreeNode(gen.PublicNetwork(), exn.CidrStr)
 }
@@ -84,4 +84,11 @@ func (g *groupedExternalNodes) GenerateDrawioTreeNode(gen *DrawioGenerator) draw
 	tn := drawio.NewInternetTreeNode(gen.PublicNetwork(), name)
 	tn.SetTooltip(tooltip)
 	return tn
+}
+
+func (e *edgeInfo) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
+	srcTn := gen.TreeNode(e.src)
+	dstTn := gen.TreeNode(e.dst)
+	return drawio.NewConnectivityLineTreeNode(gen.Network(), srcTn, dstTn, e.directed, e.label)
+
 }
