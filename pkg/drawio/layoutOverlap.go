@@ -92,26 +92,25 @@ func (lyO *layoutOverlap) handleGroupingLinesOverBorders() {
 		if !line.Src().IsGroupingPoint() || !line.Dst().IsGroupingPoint() {
 			continue
 		}
-		if line.Src().Location().firstCol != line.Dst().Location().firstCol {
-			continue
-		}
-		if !line.Src().(*GroupPointTreeNode).hasShownSquare() && !line.Dst().(*GroupPointTreeNode).hasShownSquare() {
+		src, dst := line.Src().(*GroupPointTreeNode), line.Dst().(*GroupPointTreeNode)
+		if src.Location().firstCol != dst.Location().firstCol {
 			continue
 		}
 		if len(line.Points()) != 0 {
 			continue
 		}
-		col := line.Src().Location().firstCol
-		lineX := col.x() + col.thickness/2 - linesOnCol[col] * widthBetweenLines
-		if line.Src().(*GroupPointTreeNode).hasShownSquare() {
-			p := iconCenterPoint(line.Src())
-			line.addPoint(lineX, p.Y)
+		col := src.Location().firstCol
+		lineX := col.x() + col.thickness/2 - linesOnCol[col]*widthBetweenLines
+		for _, gi := range [](*GroupPointTreeNode){src, dst} {
+			if gi.hasShownSquare() {
+				p := iconCenterPoint(gi)
+				line.addPoint(lineX, p.Y)
+			} else {
+				x, y := gi.X()-linesOnCol[col]*widthBetweenLines, gi.Y()
+				gi.setXY(x, y)
+			}
 		}
-		if line.Dst().(*GroupPointTreeNode).hasShownSquare() {
-			p := iconCenterPoint(line.Dst())
-			line.addPoint(lineX, p.Y)
-		}
-		linesOnCol[line.Src().Location().firstCol] += 1
+		linesOnCol[col] += 1
 	}
 
 }

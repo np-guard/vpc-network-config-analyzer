@@ -10,7 +10,7 @@ func TestWithParsing(t *testing.T) {
 	// n := createNetwork()
 	// err := CreateDrawioConnectivityMapFile(n, "fake.drawio")
 	// if err != nil {
-		// 	fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
+	// 	fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
 	// }
 	n2 := createNetwork2()
 	err2 := CreateDrawioConnectivityMapFile(n2, "fake2.drawio")
@@ -23,7 +23,7 @@ func TestWithParsing(t *testing.T) {
 	// NewCloudTreeNode(n3, "empty cloud2")
 	// err3 := CreateDrawioConnectivityMapFile(n3, "fake3.drawio")
 	// if err3 != nil {
-		// 	fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err3)
+	// 	fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err3)
 	// }
 }
 
@@ -159,7 +159,6 @@ func createNetwork() SquareTreeNodeInterface {
 	return network
 }
 
-
 func createNetwork2d() SquareTreeNodeInterface {
 	network := NewNetworkTreeNode()
 
@@ -182,8 +181,6 @@ func createNetwork2d() SquareTreeNodeInterface {
 	NewConnectivityLineTreeNode(network, gs3, gs1, true, "gconn3")
 	return network
 }
-
-
 
 func createNetwork2() SquareTreeNodeInterface {
 	network := NewNetworkTreeNode()
@@ -237,19 +234,23 @@ func createNetwork2() SquareTreeNodeInterface {
 		NewNITreeNode(subnet32, nil, "ni1"),
 	}
 
+
 	subnet33 := NewSubnetTreeNode(zone3, "subnet2", "cidr2", "acl2")
-	groupedNis33 := []IconTreeNodeInterface{
-		NewNITreeNode(subnet33, nil, "ni1"),
-		NewNITreeNode(subnet33, nil, "ni1"),
-		NewNITreeNode(subnet33, nil, "ni1"),
-		NewNITreeNode(subnet33, nil, "ni1"),
-	}
+	sg33 := NewSGTreeNode(vpc1, "sg33")
+	ni33a := NewNITreeNode(subnet33, sg33, "ni1")
+	ni33b := NewNITreeNode(subnet33, sg33, "ni1")
+	ni33c := NewNITreeNode(subnet33, sg33, "ni1")
+	ni33d := NewNITreeNode(subnet33, sg33, "ni1")
+	NewNITreeNode(subnet33, sg33, "ni1")
+	groupedNis33a := []IconTreeNodeInterface{ni33a, ni33b, ni33c, ni33d} 
+	groupedNis33b := []IconTreeNodeInterface{ni33a, ni33b} 
+	groupedNis33c := []IconTreeNodeInterface{ni33b, ni33d} 
 	NewNITreeNode(subnet33, nil, "ni1")
 
 	fipGroups := [][]IconTreeNodeInterface{
 		groupedNis1,
 		// groupedNis3,
-		groupedNis33,
+		groupedNis33a,
 	}
 
 	for _, g := range fipGroups {
@@ -267,8 +268,12 @@ func createNetwork2() SquareTreeNodeInterface {
 	gs3.setVisibility(square)
 	gs32 := NewGroupSquareTreeNode(subnet32, groupedNis32)
 	gs32.setVisibility(allSubnet)
-	gs33 := NewGroupSquareTreeNode(subnet33, groupedNis33)
-	gs33.setVisibility(connectedPoint)
+	gs33a := NewGroupSquareTreeNode(subnet33, groupedNis33a)
+	gs33a.setVisibility(square)
+	gs33b := NewGroupSquareTreeNode(subnet33, groupedNis33b)
+	gs33b.setVisibility(innerSquare)
+	gs33c := NewGroupSquareTreeNode(subnet33, groupedNis33c)
+	gs33c.setVisibility(connectedPoint)
 	gs23 := NewGroupSquareTreeNode(subnet23, groupedNis23)
 	gs23.setVisibility(allSubnet)
 	gs31 := NewGroupSquareTreeNode(subnet31, groupedNis31)
@@ -279,15 +284,15 @@ func createNetwork2() SquareTreeNodeInterface {
 	gc1 := NewConnectivityLineTreeNode(network, gs3, gs32, true, "gconn1")
 	if gc1 != nil {
 	}
-	gc2 := NewConnectivityLineTreeNode(network, gs33, i2, false, "gconn2")
+	gc2 := NewConnectivityLineTreeNode(network, gs33a, i2, false, "gconn2")
 	if gc2 != nil {
 	}
 	gc3 := NewConnectivityLineTreeNode(network, gs23, gs1, true, "gconn3")
 	if gc3 != nil {
 	}
 	NewConnectivityLineTreeNode(network, gs23, gs23, true, "gconn3")
-	NewConnectivityLineTreeNode(network, gs32, gs33, true, "gconn4")
-	NewConnectivityLineTreeNode(network, gs31, gs33, true, "gconn4")
+	NewConnectivityLineTreeNode(network, gs32, gs33b, true, "gconn4")
+	NewConnectivityLineTreeNode(network, gs31, gs33c, true, "gconn4")
 	NewConnectivityLineTreeNode(network, gs31, gs31, true, "gconn4")
 	// gc1.SetFipRouter(false)
 	// gc2.SetFipRouter(false)

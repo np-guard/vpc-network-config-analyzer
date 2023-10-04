@@ -28,9 +28,10 @@ const (
 	groupedIconSize = 10
 	iconSpace       = 4 * 40
 
-	groupBorderWidth     = 20
-	groupTopBorderWidth  = 20
-	groupedIconsDistance = 30
+	groupBorderWidth      = 20
+	groupTopBorderWidth   = 60
+	groupedIconsDistance  = 30
+	groupInnerBorderWidth = 10
 
 	fipXOffset = -70
 	fipYOffset = 40
@@ -355,10 +356,10 @@ func (ly *layoutS) setGroupingLocations() {
 			tn.Location().xEndOffset = groupBorderWidth
 			tn.Location().yEndOffset = groupBorderWidth
 			if tn.(*GroupSquareTreeNode).visibility == innerSquare {
-				tn.Location().xOffset += 3
-				tn.Location().yOffset += 3
-				tn.Location().xEndOffset += 3
-				tn.Location().yEndOffset += 3
+				tn.Location().xOffset += groupInnerBorderWidth
+				tn.Location().yOffset += groupInnerBorderWidth
+				tn.Location().xEndOffset += groupInnerBorderWidth
+				tn.Location().yEndOffset += groupInnerBorderWidth
 
 			}
 		}
@@ -387,7 +388,7 @@ func (ly *layoutS) setGroupingLocations() {
 		case square:
 			gIcon.Location().xOffset = (gIcon.Location().firstCol.width()/2 + groupBorderWidth) * xOffsetSign
 		case innerSquare:
-			gIcon.Location().xOffset = (gIcon.Location().firstCol.width()/2 + groupBorderWidth + 3) * xOffsetSign
+			gIcon.Location().xOffset = (gIcon.Location().firstCol.width()/2 + groupBorderWidth + groupInnerBorderWidth) * xOffsetSign
 		case connectedPoint:
 			gIcon.connectGroupies()
 
