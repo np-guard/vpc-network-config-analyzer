@@ -47,7 +47,6 @@ func (tn *abstractSquareTreeNode) setHasVSIs() {
 }
 func (tn *abstractSquareTreeNode) IsGroupingSquare() bool { return false }
 
-
 func calculateSquareGeometry(tn SquareTreeNodeInterface) {
 	location := tn.Location()
 	if location == nil {
@@ -61,8 +60,8 @@ func calculateSquareGeometry(tn SquareTreeNodeInterface) {
 		x -= tn.DrawioParent().Location().firstCol.x()
 		y -= tn.DrawioParent().Location().firstRow.y()
 	}
-	tn.setXY(x,y)
-	tn.setWH(width,height)
+	tn.setXY(x, y)
+	tn.setWH(width, height)
 }
 
 // /////////////////////////////////////////////////////////////
@@ -219,23 +218,39 @@ func (tn *SubnetTreeNode) NIs() []IconTreeNodeInterface {
 	return nis
 }
 
+type groupSquareVisibility int
+
+const (
+	allSubnet groupSquareVisibility = iota
+	square
+	innerSquare
+	connectedPoint
+)
+
 ///////////////////////////////////////////////////////////////////////////////////////
 type GroupSquareTreeNode struct {
 	abstractSquareTreeNode
-	groupies []IconTreeNodeInterface
+	groupies   []IconTreeNodeInterface
+	visibility groupSquareVisibility
 }
 
 func (tn *GroupSquareTreeNode) IsGroupingSquare() bool { return true }
-//todo:
-func (tn *GroupSquareTreeNode) NotShownInDrawio() bool { return tn.location.firstRow != tn.location.lastRow || tn.IsAllSubnet() }
-func (tn *GroupSquareTreeNode) IsAllSubnet() bool { return len(tn.groupies) == len(tn.parent.(*SubnetTreeNode).NIs()) }
+
+func (tn *GroupSquareTreeNode) NotShownInDrawio() bool {
+	return tn.visibility == allSubnet || tn.visibility == connectedPoint
+}
+func (tn *GroupSquareTreeNode) IsAllSubnet() bool {
+	return len(tn.groupies) == len(tn.parent.(*SubnetTreeNode).NIs())
+}
 
 func NewGroupSquareTreeNode(parent *SubnetTreeNode, groupies []IconTreeNodeInterface) *GroupSquareTreeNode {
-	gs := GroupSquareTreeNode{newAbstractSquareTreeNode(parent, ""), groupies}
+	gs := GroupSquareTreeNode{newAbstractSquareTreeNode(parent, ""), groupies, connectedPoint}
 	parent.groupSquares = append(parent.groupSquares, &gs)
 	return &gs
+}
+func (tn *GroupSquareTreeNode) setVisibility(visibility groupSquareVisibility) {
+	tn.visibility = visibility
 }
 func (tn *GroupSquareTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
 	return nil, tn.elements, tn.connections
 }
-

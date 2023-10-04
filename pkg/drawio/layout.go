@@ -27,9 +27,9 @@ const (
 	iconSize        = 60
 	groupedIconSize = 10
 	iconSpace       = 4 * 40
-	
-	groupBorderWidth = 20
-	groupTopBorderWidth = 20
+
+	groupBorderWidth     = 20
+	groupTopBorderWidth  = 20
 	groupedIconsDistance = 30
 
 	fipXOffset = -70
@@ -354,6 +354,13 @@ func (ly *layoutS) setGroupingLocations() {
 			tn.Location().yOffset = groupTopBorderWidth
 			tn.Location().xEndOffset = groupBorderWidth
 			tn.Location().yEndOffset = groupBorderWidth
+			if tn.(*GroupSquareTreeNode).visibility == innerSquare {
+				tn.Location().xOffset += 3
+				tn.Location().yOffset += 3
+				tn.Location().xEndOffset += 3
+				tn.Location().yEndOffset += 3
+
+			}
 		}
 	}
 	for _, tn := range getAllNodes(ly.network) {
@@ -374,12 +381,16 @@ func (ly *layoutS) setGroupingLocations() {
 		if isLeft {
 			xOffsetSign = 1
 		}
-		if parent.IsAllSubnet() {
-			gIcon.Location().xOffset = gIcon.Location().firstCol.width()/2 * xOffsetSign
-		} else if parent.NotShownInDrawio() {
-			gIcon.connectGroupies()
-		} else {
+		switch parent.visibility {
+		case allSubnet:
+			gIcon.Location().xOffset = gIcon.Location().firstCol.width() / 2 * xOffsetSign
+		case square:
 			gIcon.Location().xOffset = (gIcon.Location().firstCol.width()/2 + groupBorderWidth) * xOffsetSign
+		case innerSquare:
+			gIcon.Location().xOffset = (gIcon.Location().firstCol.width()/2 + groupBorderWidth + 3) * xOffsetSign
+		case connectedPoint:
+			gIcon.connectGroupies()
+
 		}
 	}
 }

@@ -264,23 +264,17 @@ func createNetwork2() SquareTreeNodeInterface {
 	//i4 := NewUserTreeNode(publicNetwork, "User4")
 
 	gs3 := NewGroupSquareTreeNode(subnet3, groupedNis3)
-	if gs3 != nil {
-	}
+	gs3.setVisibility(square)
 	gs32 := NewGroupSquareTreeNode(subnet32, groupedNis32)
-	if gs32 != nil {
-	}
+	gs32.setVisibility(allSubnet)
 	gs33 := NewGroupSquareTreeNode(subnet33, groupedNis33)
-	if gs33 != nil {
-	}
+	gs33.setVisibility(connectedPoint)
 	gs23 := NewGroupSquareTreeNode(subnet23, groupedNis23)
-	if gs23 != nil {
-	}
+	gs23.setVisibility(allSubnet)
 	gs31 := NewGroupSquareTreeNode(subnet31, groupedNis31)
-	if gs31 != nil {
-	}
+	gs31.setVisibility(square)
 	gs1 := NewGroupSquareTreeNode(subnet1, groupedNis1)
-	if gs1 != nil {
-	}
+	gs1.setVisibility(allSubnet)
 
 	gc1 := NewConnectivityLineTreeNode(network, gs3, gs32, true, "gconn1")
 	if gc1 != nil {
