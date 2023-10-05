@@ -1,10 +1,11 @@
 package vpcmodel
 
 import (
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
-
 	"errors"
 	"fmt"
+
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+	ipblock "github.com/np-guard/vpc-network-config-analyzer/pkg/ipblock"
 )
 
 // VPCsubnetConnectivity captures allowed connectivity for subnets, considering nacl and pgw resources
@@ -52,7 +53,7 @@ func (v *VPCsubnetConnectivity) printAllowedConns() {
 	}
 }
 
-func (c *CloudConfig) ipblockToNamedResourcesInConfig(ipb *common.IPBlock, excludeExternalNodes bool) ([]VPCResourceIntf, error) {
+func (c *CloudConfig) ipblockToNamedResourcesInConfig(ipb *ipblock.IPBlock, excludeExternalNodes bool) ([]VPCResourceIntf, error) {
 	res := []VPCResourceIntf{}
 
 	// consider subnets
@@ -62,7 +63,7 @@ func (c *CloudConfig) ipblockToNamedResourcesInConfig(ipb *common.IPBlock, exclu
 		}
 		subnetDetails := nodeset.DetailsMap()[0]
 		if subnetCidr, ok := subnetDetails[DetailsAttributeCIDR]; ok {
-			subnetCidrIPB := common.NewIPBlockFromCidr(subnetCidr)
+			subnetCidrIPB := ipblock.NewIPBlockFromCidr(subnetCidr)
 			// TODO: consider also connectivity to part of the subnet
 			if subnetCidrIPB.ContainedIn(ipb) {
 				res = append(res, nodeset)
@@ -81,7 +82,7 @@ func (c *CloudConfig) ipblockToNamedResourcesInConfig(ipb *common.IPBlock, exclu
 			continue
 		}
 		nodeCidr := exn.Cidr()
-		nodeCidrIPB := common.NewIPBlockFromCidr(nodeCidr)
+		nodeCidrIPB := ipblock.NewIPBlockFromCidr(nodeCidr)
 		if nodeCidrIPB.ContainedIn(ipb) {
 			res = append(res, exn)
 		}
@@ -121,7 +122,7 @@ func (c *CloudConfig) convertIPbasedToSubnetBasedResult(ipconn *IPbasedConnectiv
 }
 
 func (c *CloudConfig) subnetCidrToSubnetElem(cidr string) (NodeSet, error) {
-	cidrIPBlock := common.NewIPBlockFromCidr(cidr)
+	cidrIPBlock := ipblock.NewIPBlockFromCidr(cidr)
 	elems, err := c.ipblockToNamedResourcesInConfig(cidrIPBlock, true)
 	if err != nil {
 		return nil, err

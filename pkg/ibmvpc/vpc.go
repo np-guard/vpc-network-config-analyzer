@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+	ipblock "github.com/np-guard/vpc-network-config-analyzer/pkg/ipblock"
 	vpcmodel "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -279,7 +280,7 @@ func (nl *NaclLayer) ConnectivityMap() (map[string]*vpcmodel.IPbasedConnectivity
 			if len(resConnectivity) != 1 {
 				return nil, errors.New("unsupported connectivity map with partial subnet ranges per connectivity result")
 			}
-			subnetKey := common.CIDRtoIPrange(subnetCidr)
+			subnetKey := ipblock.CIDRtoIPrange(subnetCidr)
 			if _, ok := resConnectivity[subnetKey]; !ok {
 				return nil, errors.New("unexpected subnet connectivity result - key is different from subnet cidr")
 			}
@@ -313,8 +314,8 @@ func (nl *NaclLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool)
 	return res, nil
 }
 
-func (nl *NaclLayer) ReferencedIPblocks() []*common.IPBlock {
-	res := []*common.IPBlock{}
+func (nl *NaclLayer) ReferencedIPblocks() []*ipblock.IPBlock {
+	res := []*ipblock.IPBlock{}
 	for _, n := range nl.naclList {
 		res = append(res, n.analyzer.referencedIPblocks...)
 	}
@@ -391,7 +392,7 @@ func (n *NACL) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*com
 		return vpcmodel.NoConns(), nil // not affected by current nacl
 	}
 	// TODO: differentiate between "has no effect" vs "affects with allow-all / allow-none "
-	if allInSubnet, err := common.IsAddressInSubnet(targetNode.Cidr(), subnetCidr); err == nil && allInSubnet {
+	if allInSubnet, err := ipblock.IsAddressInSubnet(targetNode.Cidr(), subnetCidr); err == nil && allInSubnet {
 		return vpcmodel.AllConns(), nil // nacl has no control on traffic between two instances in its subnet
 	}
 	// TODO: consider err
@@ -451,8 +452,8 @@ func (sgl *SecurityGroupLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIng
 	return res, nil
 }
 
-func (sgl *SecurityGroupLayer) ReferencedIPblocks() []*common.IPBlock {
-	res := []*common.IPBlock{}
+func (sgl *SecurityGroupLayer) ReferencedIPblocks() []*ipblock.IPBlock {
+	res := []*ipblock.IPBlock{}
 	for _, sg := range sgl.sgList {
 		res = append(res, sg.analyzer.referencedIPblocks...)
 	}

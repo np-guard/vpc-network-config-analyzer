@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+	ipblock "github.com/np-guard/vpc-network-config-analyzer/pkg/ipblock"
 )
 
 const commaSeparator = ","
@@ -378,7 +379,7 @@ func (g *groupedExternalNodes) String() string {
 		return ""
 	}
 	// 2. Union all IPBlocks in a single one; its intervals will be the cidr blocks or ranges that should be printed, after all possible merges
-	unionBlock := &common.IPBlock{}
+	unionBlock := &ipblock.IPBlock{}
 	for _, ipBlock := range ipbList {
 		unionBlock = unionBlock.Union(ipBlock)
 	}

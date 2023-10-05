@@ -8,7 +8,7 @@ import (
 
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
 
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+	ipblock "github.com/np-guard/vpc-network-config-analyzer/pkg/ipblock"
 	vpcmodel "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -374,7 +374,7 @@ func getSubnetsConfig(
 	pgwToSubnet map[string][]*Subnet,
 	subnetNameToSubnet map[string]*Subnet,
 	subnetNameToNetIntf map[string][]*NetworkInterface,
-	rc *ResourcesContainer) (vpcInternalAddressRange *common.IPBlock, err error) {
+	rc *ResourcesContainer) (vpcInternalAddressRange *ipblock.IPBlock, err error) {
 	for i := range rc.subnetsList {
 		subnet := rc.subnetsList[i]
 		subnetNodes := []vpcmodel.Node{}
@@ -392,7 +392,7 @@ func getSubnetsConfig(
 			vpc:  vpc,
 		}
 
-		cidrIPBlock := common.NewIPBlockFromCidr(subnetNode.cidr)
+		cidrIPBlock := ipblock.NewIPBlockFromCidr(subnetNode.cidr)
 		if vpcInternalAddressRange == nil {
 			vpcInternalAddressRange = cidrIPBlock
 		} else {
@@ -668,7 +668,7 @@ func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
 
 	getVPCconfig(rc, res)
 
-	var vpcInternalAddressRange *common.IPBlock
+	var vpcInternalAddressRange *ipblock.IPBlock
 
 	subnetNameToNetIntf := map[string][]*NetworkInterface{}
 	intfNameToIntf := map[string]*NetworkInterface{}
@@ -732,13 +732,13 @@ func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
 	return res, nil
 }
 
-func addExternalNodes(config *vpcmodel.CloudConfig, vpcInternalAddressRange *common.IPBlock) ([]vpcmodel.Node, error) {
-	ipBlocks := []*common.IPBlock{}
+func addExternalNodes(config *vpcmodel.CloudConfig, vpcInternalAddressRange *ipblock.IPBlock) ([]vpcmodel.Node, error) {
+	ipBlocks := []*ipblock.IPBlock{}
 	for _, f := range config.FilterResources {
 		ipBlocks = append(ipBlocks, f.ReferencedIPblocks()...)
 	}
 
-	externalRefIPBlocks := []*common.IPBlock{}
+	externalRefIPBlocks := []*ipblock.IPBlock{}
 	for _, ipBlock := range ipBlocks {
 		intersection := ipBlock.Intersection(vpcInternalAddressRange)
 		if !intersection.Empty() {
@@ -747,7 +747,7 @@ func addExternalNodes(config *vpcmodel.CloudConfig, vpcInternalAddressRange *com
 		externalRefIPBlocks = append(externalRefIPBlocks, ipBlock)
 	}
 
-	disjointRefExternalIPBlocks := common.DisjointIPBlocks(externalRefIPBlocks, []*common.IPBlock{})
+	disjointRefExternalIPBlocks := ipblock.DisjointIPBlocks(externalRefIPBlocks, []*ipblock.IPBlock{})
 	externalNodes, err := vpcmodel.GetExternalNetworkNodes(disjointRefExternalIPBlocks)
 	if err != nil {
 		return nil, err

@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+	ipblock "github.com/np-guard/vpc-network-config-analyzer/pkg/ipblock"
 )
 
 //go:embed examples/input_acl_testing3.json
@@ -41,14 +42,14 @@ func testSingleNACL(nacl *NACL) {
 func TestGetAllowedXgressConnections(t *testing.T) {
 	rulesTest1 := []*NACLRule{
 		{
-			src:         common.NewIPBlockFromCidr("1.2.3.4/32"),
-			dst:         common.NewIPBlockFromCidr("10.0.0.1/32"),
+			src:         ipblock.NewIPBlockFromCidr("1.2.3.4/32"),
+			dst:         ipblock.NewIPBlockFromCidr("10.0.0.1/32"),
 			connections: getAllConnSet(),
 			action:      "deny",
 		},
 		{
-			src:         common.NewIPBlockFromCidr("0.0.0.0/0"),
-			dst:         common.NewIPBlockFromCidr("0.0.0.0/0"),
+			src:         ipblock.NewIPBlockFromCidr("0.0.0.0/0"),
+			dst:         ipblock.NewIPBlockFromCidr("0.0.0.0/0"),
 			connections: getAllConnSet(),
 			action:      "allow",
 		},
@@ -57,20 +58,20 @@ func TestGetAllowedXgressConnections(t *testing.T) {
 	/*nolint
 	rulesTest2 := []*NACLRule{
 		{
-			src:         common.NewIPBlockFromCidr("1.2.3.4/32"),
-			dst:         common.NewIPBlockFromCidr("10.0.0.1/32"),
+			src:         ipblock.NewIPBlockFromCidr("1.2.3.4/32"),
+			dst:         ipblock.NewIPBlockFromCidr("10.0.0.1/32"),
 			connections: getTCPconn(80, 80),
 			action:      "allow",
 		},
 		{
-			src:         common.NewIPBlockFromCidr("1.2.3.4/32"),
-			dst:         common.NewIPBlockFromCidr("10.0.0.1/32"),
+			src:         ipblock.NewIPBlockFromCidr("1.2.3.4/32"),
+			dst:         ipblock.NewIPBlockFromCidr("10.0.0.1/32"),
 			connections: getTCPconn(1, 100),
 			action:      "deny",
 		},
 		{
-			src:         common.NewIPBlockFromCidr("0.0.0.0/0"),
-			dst:         common.NewIPBlockFromCidr("0.0.0.0/0"),
+			src:         ipblock.NewIPBlockFromCidr("0.0.0.0/0"),
+			dst:         ipblock.NewIPBlockFromCidr("0.0.0.0/0"),
 			connections: getAllConnSet(),
 			action:      "allow",
 		},
@@ -78,20 +79,20 @@ func TestGetAllowedXgressConnections(t *testing.T) {
 
 	rulesTest3 := []*NACLRule{
 		{
-			dst:         common.NewIPBlockFromCidr("1.2.3.4/32"),
-			src:         common.NewIPBlockFromCidr("10.0.0.1/32"),
+			dst:         ipblock.NewIPBlockFromCidr("1.2.3.4/32"),
+			src:         ipblock.NewIPBlockFromCidr("10.0.0.1/32"),
 			connections: getAllConnSet(),
 			action:      "deny",
 		},
 		{
-			dst:         common.NewIPBlockFromCidr("0.0.0.0/0"),
-			src:         common.NewIPBlockFromCidr("0.0.0.0/0"),
+			dst:         ipblock.NewIPBlockFromCidr("0.0.0.0/0"),
+			src:         ipblock.NewIPBlockFromCidr("0.0.0.0/0"),
 			connections: getAllConnSet(),
 			action:      "allow",
 		},
 	}
 
-	subnet := common.NewIPBlockFromCidr("10.0.0.0/24")
+	subnet := ipblock.NewIPBlockFromCidr("10.0.0.0/24")
 
 	//res1 := ingressConnResFromInput(rulesTest1, subnet)
 	res1, _ := AnalyzeNACLRules(rulesTest1, subnet, true, nil)
@@ -125,9 +126,9 @@ func TestGetAllowedXgressConnections(t *testing.T) {
 		require.Equal(t, len(tt.src), len(tt.dst))
 		require.Equal(t, len(tt.src), len(tt.expectedConns))
 		for i := range tt.src {
-			src := common.NewIPBlockFromCidr(tt.src[i])
-			dst := common.NewIPBlockFromCidr(tt.dst[i])
-			disjointPeers := []*common.IPBlock{dst}
+			src := ipblock.NewIPBlockFromCidr(tt.src[i])
+			dst := ipblock.NewIPBlockFromCidr(tt.dst[i])
+			disjointPeers := []*ipblock.IPBlock{dst}
 			expectedConn := tt.expectedConns[i]
 			res := getAllowedXgressConnections(tt.naclRules, src, dst, disjointPeers, true)
 			dstStr := dst.ToIPRanges()
@@ -137,9 +138,9 @@ func TestGetAllowedXgressConnections(t *testing.T) {
 	}
 
 	//nolint:all
-	/*src := common.NewIPBlockFromCidr("1.1.1.1/32")
-	dst := common.NewIPBlockFromCidr("10.0.0.0/24")
-	disjointPeers := []*common.IPBlock{dst}
+	/*src := ipblock.NewIPBlockFromCidr("1.1.1.1/32")
+	dst := ipblock.NewIPBlockFromCidr("10.0.0.0/24")
+	disjointPeers := []*ipblock.IPBlock{dst}
 	res := getAllowedXgressConnections(rulesTest1, src, dst, disjointPeers, true)
 	for d, c := range res {
 		fmt.Printf("%s => %s : %s\n", src.ToIPAdress(), d, c.String())

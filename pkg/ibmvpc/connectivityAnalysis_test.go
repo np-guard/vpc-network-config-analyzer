@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+	ipblock "github.com/np-guard/vpc-network-config-analyzer/pkg/ipblock"
 	vpcmodel "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -68,8 +69,8 @@ var nc3 = &naclConfig{
 	ingressRules: getAllowAllRules(),
 	egressRules: []*NACLRule{
 		{
-			src:         common.NewIPBlockFromCidr("0.0.0.0/0"),
-			dst:         common.NewIPBlockFromCidr("10.240.20.0/24"),
+			src:         ipblock.NewIPBlockFromCidr("0.0.0.0/0"),
+			dst:         ipblock.NewIPBlockFromCidr("10.240.20.0/24"),
 			connections: getAllConnSet(),
 			action:      "allow",
 		},
@@ -83,8 +84,8 @@ var nc4 = &naclConfig{
 	ingressRules: getAllowAllRules(),
 	egressRules: []*NACLRule{
 		{
-			src:         common.NewIPBlockFromCidr("0.0.0.0/0"),
-			dst:         common.NewIPBlockFromCidr("0.0.0.0/0"),
+			src:         ipblock.NewIPBlockFromCidr("0.0.0.0/0"),
+			dst:         ipblock.NewIPBlockFromCidr("0.0.0.0/0"),
 			connections: common.NewTCPConnectionSet(),
 			action:      "allow",
 		},
@@ -104,8 +105,8 @@ var nc5 = &naclConfig{
 	ingressRules: getAllowAllRules(),
 	egressRules: []*NACLRule{
 		{
-			src:         common.NewIPBlockFromCidr("0.0.0.0/0"),
-			dst:         common.NewIPBlockFromCidr("0.0.0.0/0"),
+			src:         ipblock.NewIPBlockFromCidr("0.0.0.0/0"),
+			dst:         ipblock.NewIPBlockFromCidr("0.0.0.0/0"),
 			connections: nc5Conn(),
 			action:      "allow",
 		},
@@ -124,8 +125,8 @@ var nc6 = &naclConfig{
 	ingressRules: getAllowAllRules(),
 	egressRules: []*NACLRule{
 		{
-			src:         common.NewIPBlockFromCidr("0.0.0.0/0"),
-			dst:         common.NewIPBlockFromCidr("0.0.0.0/0"),
+			src:         ipblock.NewIPBlockFromCidr("0.0.0.0/0"),
+			dst:         ipblock.NewIPBlockFromCidr("0.0.0.0/0"),
 			connections: nc6Conn(),
 			action:      "allow",
 		},
@@ -287,8 +288,8 @@ func createConfigFromTestConfig(tc *testNodesConfig, ncList []*naclConfig) *vpcm
 func getAllowAllRules() []*NACLRule {
 	return []*NACLRule{
 		{
-			src:         common.NewIPBlockFromCidr("0.0.0.0/0"),
-			dst:         common.NewIPBlockFromCidr("0.0.0.0/0"),
+			src:         ipblock.NewIPBlockFromCidr("0.0.0.0/0"),
+			dst:         ipblock.NewIPBlockFromCidr("0.0.0.0/0"),
 			connections: getAllConnSet(),
 			action:      "allow",
 		},

@@ -2,6 +2,7 @@ package vpcmodel
 
 import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+	ipblock "github.com/np-guard/vpc-network-config-analyzer/pkg/ipblock"
 )
 
 // VPCResourceIntf captures common properties for VPC resources
@@ -73,7 +74,7 @@ type FilterTrafficResource interface {
 	VPCResourceIntf
 	// get the connectivity result when the filterTraffic resource is applied to the given NodeSet element
 	AllowedConnectivity(src, dst Node, isIngress bool) (*common.ConnectionSet, error)
-	ReferencedIPblocks() []*common.IPBlock
+	ReferencedIPblocks() []*ipblock.IPBlock
 	ConnectivityMap() (map[string]*IPbasedConnectivityResult, error)
 	GetConnectivityOutputPerEachElemSeparately() string
 }
