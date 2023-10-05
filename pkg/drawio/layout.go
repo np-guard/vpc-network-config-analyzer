@@ -1,5 +1,7 @@
 package drawio
 
+import "sort"
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // layoutS is the main struct for layouting the tree nodes
 // overview to the layout algorithm:
@@ -103,6 +105,43 @@ func canShareCell(i1, i2 IconTreeNodeInterface) bool {
 	return true
 }
 
+func calcGroupsOrderAndVisibility(subnet SquareTreeNodeInterface) {
+	subnetGroups := subnet.(*SubnetTreeNode).groupSquares
+	sortedBySizeGroups := make([]SquareTreeNodeInterface, len(subnetGroups))
+	copy(sortedBySizeGroups, subnetGroups)
+	sort.Slice(sortedBySizeGroups, func(i, j int) bool {
+		return len(sortedBySizeGroups[i].(*GroupSquareTreeNode).groupies) > len(sortedBySizeGroups[j].(*GroupSquareTreeNode).groupies)
+	})
+	iconVisualizedGroup := map[IconTreeNodeInterface]SquareTreeNodeInterface{}
+	for _, groupS := range sortedBySizeGroups {
+		group := groupS.(*GroupSquareTreeNode)
+		if group.IsAllSubnet() {
+			group.setVisibility(allSubnet)
+		} else {
+			formerGroups := map[SquareTreeNodeInterface]bool{}
+			for _, icon := range group.groupies {
+				formerGroups[iconVisualizedGroup[icon]] = true
+			}
+			formerGroupsList := []SquareTreeNodeInterface{}
+			for k, _ := range formerGroups {
+				formerGroupsList = append(formerGroupsList, k)
+			}
+			if len(formerGroupsList) == 0  || (len(formerGroupsList) == 1  && formerGroupsList[0] == nil){
+				group.setVisibility(square)
+			} else if len(formerGroupsList) == 1 {
+				group.setVisibility(innerSquare)
+			} else {
+				group.setVisibility(connectedPoint)
+			}
+		}
+		if !group.NotShownInDrawio() {
+			for _, icon := range group.groupies {
+				iconVisualizedGroup[icon] = group
+			}
+		}
+	}
+}
+
 // ///////////////////////////////////////////////////////////////
 // layoutSubnetsIcons() implements a simple north-south east-west layouting:
 // 1. vpcs are next to each others
@@ -121,6 +160,7 @@ func (ly *layoutS) layoutSubnetsIcons() {
 				rowIndex := 0
 				ly.setDefaultLocation(zone, rowIndex, colIndex)
 				for _, subnet := range zone.(*ZoneTreeNode).subnets {
+					calcGroupsOrderAndVisibility(subnet)
 					var iconInCurrentCell IconTreeNodeInterface = nil
 					icons := subnet.IconTreeNodes()
 					ly.setDefaultLocation(subnet, rowIndex, colIndex)

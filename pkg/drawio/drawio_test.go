@@ -241,11 +241,11 @@ func createNetwork2() SquareTreeNodeInterface {
 	ni33b := NewNITreeNode(subnet33, sg33, "ni1")
 	ni33c := NewNITreeNode(subnet33, sg33, "ni1")
 	ni33d := NewNITreeNode(subnet33, sg33, "ni1")
-	NewNITreeNode(subnet33, sg33, "ni1")
+	ni33e := NewNITreeNode(subnet33, sg33, "ni1")
 	groupedNis33a := []IconTreeNodeInterface{ni33a, ni33b, ni33c, ni33d} 
 	groupedNis33b := []IconTreeNodeInterface{ni33a, ni33b} 
-	groupedNis33c := []IconTreeNodeInterface{ni33b, ni33d} 
-	NewNITreeNode(subnet33, nil, "ni1")
+	groupedNis33c := []IconTreeNodeInterface{ni33c, ni33d} 
+	groupedNis33d := []IconTreeNodeInterface{ni33c, ni33e} 
 
 	fipGroups := [][]IconTreeNodeInterface{
 		groupedNis1,
@@ -265,21 +265,14 @@ func createNetwork2() SquareTreeNodeInterface {
 	//i4 := NewUserTreeNode(publicNetwork, "User4")
 
 	gs3 := NewGroupSquareTreeNode(subnet3, groupedNis3)
-	gs3.setVisibility(square)
 	gs32 := NewGroupSquareTreeNode(subnet32, groupedNis32)
-	gs32.setVisibility(allSubnet)
 	gs33a := NewGroupSquareTreeNode(subnet33, groupedNis33a)
-	gs33a.setVisibility(square)
 	gs33b := NewGroupSquareTreeNode(subnet33, groupedNis33b)
-	gs33b.setVisibility(innerSquare)
 	gs33c := NewGroupSquareTreeNode(subnet33, groupedNis33c)
-	gs33c.setVisibility(connectedPoint)
+	gs33d := NewGroupSquareTreeNode(subnet33, groupedNis33d)
 	gs23 := NewGroupSquareTreeNode(subnet23, groupedNis23)
-	gs23.setVisibility(allSubnet)
 	gs31 := NewGroupSquareTreeNode(subnet31, groupedNis31)
-	gs31.setVisibility(square)
 	gs1 := NewGroupSquareTreeNode(subnet1, groupedNis1)
-	gs1.setVisibility(allSubnet)
 
 	gc1 := NewConnectivityLineTreeNode(network, gs3, gs32, true, "gconn1")
 	if gc1 != nil {
@@ -293,6 +286,7 @@ func createNetwork2() SquareTreeNodeInterface {
 	NewConnectivityLineTreeNode(network, gs23, gs23, true, "gconn3")
 	NewConnectivityLineTreeNode(network, gs32, gs33b, true, "gconn4")
 	NewConnectivityLineTreeNode(network, gs31, gs33c, true, "gconn4")
+	NewConnectivityLineTreeNode(network, gs31, gs33d, true, "gconn4")
 	NewConnectivityLineTreeNode(network, gs31, gs31, true, "gconn4")
 	// gc1.SetFipRouter(false)
 	// gc2.SetFipRouter(false)
