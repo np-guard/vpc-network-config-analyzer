@@ -117,7 +117,7 @@ func sortGroupsBySize(subnet SquareTreeNodeInterface) []SquareTreeNodeInterface 
 	return sortedBySizeGroups
 }
 
-func calcGroupsOrder(subnet SquareTreeNodeInterface) []SquareTreeNodeInterface {
+func calcGroupsOrder(subnet SquareTreeNodeInterface) [][]IconTreeNodeInterface {
 	sortedBySizeGroups := sortGroupsBySize(subnet)
 	iconOuterGroup := map[IconTreeNodeInterface]SquareTreeNodeInterface{}
 	outerGroup := map[SquareTreeNodeInterface]bool{}
@@ -130,25 +130,40 @@ func calcGroupsOrder(subnet SquareTreeNodeInterface) []SquareTreeNodeInterface {
 			}
 		}
 	}
+	innerIcons := map[IconTreeNodeInterface]bool{}
 	innerOuterGroup := map[SquareTreeNodeInterface]SquareTreeNodeInterface{}
 	for _, groupS := range sortedBySizeGroups {
 		group := groupS.(*GroupSquareTreeNode)
 		if group.visibility == innerSquare {
 			for _, icon := range group.groupies {
 				innerOuterGroup[group] = iconOuterGroup[icon]
+				innerIcons[icon] = true
 			}
 		}
 	}
-	groupOrder := []SquareTreeNodeInterface{}
+	groupOrder := [][]IconTreeNodeInterface{}
 	for groupS := range outerGroup {
 		outerGroup := groupS.(*GroupSquareTreeNode)
 		for inner, outer := range innerOuterGroup {
 			if outer == outerGroup {
-				groupOrder = append(groupOrder, inner)
+				groupOrder = append(groupOrder, inner.(*GroupSquareTreeNode).groupies)
 			}
 		}
-		groupOrder = append(groupOrder, outerGroup)
+		noInneIcons := []IconTreeNodeInterface{}
+		for _, icon := range outerGroup.groupies {
+			if !innerIcons[icon] {
+				noInneIcons = append(noInneIcons, icon)
+			}
+		}
+		groupOrder = append(groupOrder, noInneIcons)
 	}
+	nonGroupedIcons := []IconTreeNodeInterface{}
+	for _, icon := range subnet.IconTreeNodes() {
+		if _, ok := iconOuterGroup[icon]; !ok {
+			nonGroupedIcons = append(nonGroupedIcons, icon)
+		}
+	}
+	groupOrder = append(groupOrder, nonGroupedIcons)
 	return groupOrder
 }
 
@@ -198,34 +213,35 @@ func (ly *layoutS) layoutSubnetsIcons() {
 				rowIndex := 0
 				ly.setDefaultLocation(zone, rowIndex, colIndex)
 				for _, subnet := range zone.(*ZoneTreeNode).subnets {
-					calcGroupsVisibility(subnet)
-					calcGroupsOrder(subnet)
-					var iconInCurrentCell IconTreeNodeInterface = nil
-					icons := subnet.IconTreeNodes()
 					ly.setDefaultLocation(subnet, rowIndex, colIndex)
-					for _, icon := range icons {
-						if !icon.IsNI() {
-							continue
+					calcGroupsVisibility(subnet)
+					groups := calcGroupsOrder(subnet)
+					for _, group := range groups {
+						var iconInCurrentCell IconTreeNodeInterface = nil
+						for _, icon := range group {
+							if !icon.IsNI() {
+								continue
+							}
+							if !canShareCell(iconInCurrentCell, icon) {
+								rowIndex++
+								iconInCurrentCell = nil
+							}
+							if iconInCurrentCell == nil {
+								l := ly.matrix.allocateCellLocation(rowIndex, colIndex)
+								l.firstRow.setHeight(subnetHeight)
+								l.firstCol.setWidth(subnetWidth)
+								icon.setLocation(l)
+								iconInCurrentCell = icon
+							} else {
+								icon.setLocation(iconInCurrentCell.Location().copy())
+								iconInCurrentCell.Location().xOffset = iconSize
+								icon.Location().xOffset = -iconSize
+								rowIndex++
+								iconInCurrentCell = nil
+							}
 						}
-						if !canShareCell(iconInCurrentCell, icon) {
-							rowIndex++
-							iconInCurrentCell = nil
-						}
-						if iconInCurrentCell == nil {
-							l := ly.matrix.allocateCellLocation(rowIndex, colIndex)
-							l.firstRow.setHeight(subnetHeight)
-							l.firstCol.setWidth(subnetWidth)
-							icon.setLocation(l)
-							iconInCurrentCell = icon
-						} else {
-							icon.setLocation(iconInCurrentCell.Location().copy())
-							iconInCurrentCell.Location().xOffset = iconSize
-							icon.Location().xOffset = -iconSize
-							rowIndex++
-							iconInCurrentCell = nil
-						}
+						rowIndex++
 					}
-					rowIndex++
 				}
 				colIndex++
 			}
