@@ -99,13 +99,20 @@ func addCube1Dim(o *CanonicalHypercubeSet, start, end int64) *CanonicalHypercube
 }
 
 func addCube2Dim(o *CanonicalHypercubeSet, start1, end1, start2, end2 int64) *CanonicalHypercubeSet {
-	cube := []*interval.CanonicalIntervalSet{interval.CreateFromInterval(start1, end1), interval.CreateFromInterval(start2, end2)}
+	cube := []*interval.CanonicalIntervalSet{
+		interval.CreateFromInterval(start1, end1),
+		interval.CreateFromInterval(start2, end2),
+	}
 	a := CreateFromCube(cube)
 	return o.Union(a)
 }
 
 func addCube3Dim(o *CanonicalHypercubeSet, s1, e1, s2, e2, s3, e3 int64) *CanonicalHypercubeSet {
-	cube := []*interval.CanonicalIntervalSet{interval.CreateFromInterval(s1, e1), interval.CreateFromInterval(s2, e2), interval.CreateFromInterval(s3, e3)}
+	cube := []*interval.CanonicalIntervalSet{
+		interval.CreateFromInterval(s1, e1),
+		interval.CreateFromInterval(s2, e2),
+		interval.CreateFromInterval(s3, e3),
+	}
 	a := CreateFromCube(cube)
 	return o.Union(a)
 }

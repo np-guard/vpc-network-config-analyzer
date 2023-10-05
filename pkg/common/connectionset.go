@@ -367,8 +367,8 @@ func getCubeAsTCPItems(cube []*interval.CanonicalIntervalSet, protocol TcpUdpPro
 	srcPorts := cube[srcPort]
 	if !srcPorts.Equal(*getDimensionDomain(srcPort)) {
 		// iterate the intervals in the interval-set
-		for _, interval := range srcPorts.IntervalSet {
-			tcpRes := TcpUdp{Protocol: protocol, MinSourcePort: int(interval.Start), MaxSourcePort: int(interval.End)}
+		for _, ipInterval := range srcPorts.IntervalSet {
+			tcpRes := TcpUdp{Protocol: protocol, MinSourcePort: int(ipInterval.Start), MaxSourcePort: int(ipInterval.End)}
 			tcpItemsTemp = append(tcpItemsTemp, tcpRes)
 		}
 	} else {
@@ -378,14 +378,14 @@ func getCubeAsTCPItems(cube []*interval.CanonicalIntervalSet, protocol TcpUdpPro
 	dstPorts := cube[dstPort]
 	if !dstPorts.Equal(*getDimensionDomain(dstPort)) {
 		// iterate the intervals in the interval-set
-		for _, interval := range dstPorts.IntervalSet {
+		for _, ipInterval := range dstPorts.IntervalSet {
 			for _, tcpItemTemp := range tcpItemsTemp {
 				tcpRes := TcpUdp{
 					Protocol:           protocol,
 					MinSourcePort:      tcpItemTemp.MinSourcePort,
 					MaxSourcePort:      tcpItemTemp.MaxSourcePort,
-					MinDestinationPort: int(interval.Start),
-					MaxDestinationPort: int(interval.End),
+					MinDestinationPort: int(ipInterval.Start),
+					MaxDestinationPort: int(ipInterval.End),
 				}
 				tcpItemsFinal = append(tcpItemsFinal, tcpRes)
 			}
@@ -398,8 +398,8 @@ func getCubeAsTCPItems(cube []*interval.CanonicalIntervalSet, protocol TcpUdpPro
 
 func getIntervalNumbers(c *interval.CanonicalIntervalSet) []int {
 	res := []int{}
-	for _, interval := range c.IntervalSet {
-		for i := interval.Start; i <= interval.End; i++ {
+	for _, ipInterval := range c.IntervalSet {
+		for i := ipInterval.Start; i <= ipInterval.End; i++ {
 			res = append(res, int(i))
 		}
 	}
@@ -489,8 +489,8 @@ func NewTCPConnectionSet() *ConnectionSet {
 // copyCube returns a new slice of intervals copied from input cube
 func copyCube(cube []*interval.CanonicalIntervalSet) []*interval.CanonicalIntervalSet {
 	newCube := make([]*interval.CanonicalIntervalSet, len(cube))
-	for i, interval := range cube {
-		newInterval := interval.Copy()
+	for i, ipInterval := range cube {
+		newInterval := ipInterval.Copy()
 		newCube[i] = &newInterval
 	}
 	return newCube

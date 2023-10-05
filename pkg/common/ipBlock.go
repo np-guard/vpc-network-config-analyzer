@@ -204,11 +204,11 @@ func NewIPBlockFromCidrOrAddress(s string) *IPBlock {
 // NewIPBlock returns an IPBlock object from input cidr str an exceptions cidr str
 func NewIPBlock(cidr string, exceptions []string) (*IPBlock, error) {
 	res := IPBlock{ipRange: interval.CanonicalIntervalSet{}}
-	interval, err := cidrToInterval(cidr)
+	ipInterval, err := cidrToInterval(cidr)
 	if err != nil {
 		return nil, err
 	}
-	res.ipRange.AddInterval(*interval)
+	res.ipRange.AddInterval(*ipInterval)
 	for i := range exceptions {
 		intervalHole, err := cidrToInterval(exceptions[i])
 		if err != nil {
@@ -256,8 +256,8 @@ func cidrToInterval(cidr string) (*interval.Interval, error) {
 
 func (b *IPBlock) ToCidrList() []string {
 	cidrList := []string{}
-	for _, interval := range b.ipRange.IntervalSet {
-		cidrList = append(cidrList, IntervalToCidrList(interval.Start, interval.End)...)
+	for _, ipInterval := range b.ipRange.IntervalSet {
+		cidrList = append(cidrList, intervalToCidrList(ipInterval)...)
 	}
 	return cidrList
 }
@@ -265,12 +265,12 @@ func (b *IPBlock) ToCidrList() []string {
 // ListToPrint: returns a uniform to print list s.t. each element contains either a single cidr or an ip range
 func (b *IPBlock) ListToPrint() []string {
 	cidrsIPRangesList := []string{}
-	for _, interval := range b.ipRange.IntervalSet {
-		cidr := IntervalToCidrList(interval.Start, interval.End)
+	for _, ipInterval := range b.ipRange.IntervalSet {
+		cidr := intervalToCidrList(ipInterval)
 		if len(cidr) == 1 {
 			cidrsIPRangesList = append(cidrsIPRangesList, cidr[0])
 		} else {
-			cidrsIPRangesList = append(cidrsIPRangesList, toIPRange(interval))
+			cidrsIPRangesList = append(cidrsIPRangesList, toIPRange(ipInterval))
 		}
 	}
 	return cidrsIPRangesList
@@ -283,9 +283,9 @@ func (b *IPBlock) ToIPAdress() string {
 	return ""
 }
 
-func IntervalToCidrList(ipStart, ipEnd int64) []string {
-	start := ipStart
-	end := ipEnd
+func intervalToCidrList(ipInterval interval.Interval) []string {
+	start := ipInterval.Start
+	end := ipInterval.End
 	res := []string{}
 	for end >= start {
 		maxSize := maxIPv4Bits

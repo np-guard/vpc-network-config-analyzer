@@ -231,8 +231,8 @@ func (c *CanonicalIntervalSet) AddInterval(intervalToAdd Interval) {
 // AddHole updates the current CanonicalIntervalSet object by removing the input Interval from the set
 func (c *CanonicalIntervalSet) AddHole(hole Interval) {
 	newIntervalSet := []Interval{}
-	for _, interval := range c.IntervalSet {
-		newIntervalSet = append(newIntervalSet, interval.subtract(hole)...)
+	for _, span := range c.IntervalSet {
+		newIntervalSet = append(newIntervalSet, span.subtract(hole)...)
 	}
 	c.IntervalSet = newIntervalSet
 }
@@ -247,10 +247,10 @@ func (c *CanonicalIntervalSet) String() string {
 		return "Empty"
 	}
 	res := ""
-	for _, interval := range c.IntervalSet {
-		res += getNumAsStr(interval.Start)
-		if interval.Start != interval.End {
-			res += "-" + getNumAsStr(interval.End)
+	for _, span := range c.IntervalSet {
+		res += getNumAsStr(span.Start)
+		if span.Start != span.End {
+			res += "-" + getNumAsStr(span.End)
 		}
 		res += ","
 	}
@@ -259,8 +259,8 @@ func (c *CanonicalIntervalSet) String() string {
 
 // Union updates the CanonicalIntervalSet object with the union result of the input CanonicalIntervalSet
 func (c *CanonicalIntervalSet) Union(other CanonicalIntervalSet) {
-	for _, interval := range other.IntervalSet {
-		c.AddInterval(interval)
+	for _, span := range other.IntervalSet {
+		c.AddInterval(span)
 	}
 }
 
@@ -285,12 +285,12 @@ func (c *CanonicalIntervalSet) ContainedIn(other CanonicalIntervalSet) bool {
 	if len(c.IntervalSet) == 1 && len(other.IntervalSet) == 1 {
 		return c.IntervalSet[0].isSubset(other.IntervalSet[0])
 	}
-	for _, interval := range c.IntervalSet {
-		left := other.findIntervalLeft(interval)
+	for _, span := range c.IntervalSet {
+		left := other.findIntervalLeft(span)
 		if left == len(other.IntervalSet)-1 {
 			return false
 		}
-		if !interval.isSubset(other.IntervalSet[left+1]) {
+		if !span.isSubset(other.IntervalSet[left+1]) {
 			return false
 		}
 	}
@@ -300,9 +300,9 @@ func (c *CanonicalIntervalSet) ContainedIn(other CanonicalIntervalSet) bool {
 // Intersection updates current CanonicalIntervalSet with intersection result of input CanonicalIntervalSet
 func (c *CanonicalIntervalSet) Intersection(other CanonicalIntervalSet) {
 	newIntervalSet := []Interval{}
-	for _, interval := range c.IntervalSet {
+	for _, span := range c.IntervalSet {
 		for _, otherInterval := range other.IntervalSet {
-			newIntervalSet = append(newIntervalSet, interval.intersection(otherInterval)...)
+			newIntervalSet = append(newIntervalSet, span.intersection(otherInterval)...)
 		}
 	}
 	c.IntervalSet = newIntervalSet
