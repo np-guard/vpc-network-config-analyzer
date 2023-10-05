@@ -1,4 +1,4 @@
-package common
+package interval
 
 import (
 	"fmt"
@@ -327,7 +327,7 @@ func (c *CanonicalIntervalSet) Subtraction(other CanonicalIntervalSet) {
 	}
 }
 
-func (c *CanonicalIntervalSet) isSingleNumber() bool {
+func (c *CanonicalIntervalSet) IsSingleNumber() bool {
 	if len(c.IntervalSet) == 1 && c.IntervalSet[0].Start == c.IntervalSet[0].End {
 		return true
 	}

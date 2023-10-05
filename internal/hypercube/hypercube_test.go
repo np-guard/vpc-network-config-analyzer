@@ -1,17 +1,19 @@
-package common
+package hypercube
 
 import (
 	"fmt"
 	"testing"
+
+	interval "github.com/np-guard/vpc-network-config-analyzer/internal/interval"
 )
 
 func TestHCbasic(t *testing.T) {
-	cube1 := []*CanonicalIntervalSet{CreateFromInterval(1, 100)}
-	cube2 := []*CanonicalIntervalSet{CreateFromInterval(1, 100)}
-	cube3 := []*CanonicalIntervalSet{CreateFromInterval(1, 200)}
-	cube4 := []*CanonicalIntervalSet{CreateFromInterval(1, 100), CreateFromInterval(1, 100)}
-	cube5 := []*CanonicalIntervalSet{CreateFromInterval(1, 100), CreateFromInterval(1, 100)}
-	cube6 := []*CanonicalIntervalSet{CreateFromInterval(1, 100), CreateFromInterval(1, 200)}
+	cube1 := []*interval.CanonicalIntervalSet{interval.CreateFromInterval(1, 100)}
+	cube2 := []*interval.CanonicalIntervalSet{interval.CreateFromInterval(1, 100)}
+	cube3 := []*interval.CanonicalIntervalSet{interval.CreateFromInterval(1, 200)}
+	cube4 := []*interval.CanonicalIntervalSet{interval.CreateFromInterval(1, 100), interval.CreateFromInterval(1, 100)}
+	cube5 := []*interval.CanonicalIntervalSet{interval.CreateFromInterval(1, 100), interval.CreateFromInterval(1, 100)}
+	cube6 := []*interval.CanonicalIntervalSet{interval.CreateFromInterval(1, 100), interval.CreateFromInterval(1, 200)}
 
 	a := CreateFromCube(cube1)
 	b := CreateFromCube(cube2)
@@ -54,7 +56,7 @@ func TestHCbasic(t *testing.T) {
 }
 
 func TestCopy(t *testing.T) {
-	cube1 := []*CanonicalIntervalSet{CreateFromInterval(1, 100)}
+	cube1 := []*interval.CanonicalIntervalSet{interval.CreateFromInterval(1, 100)}
 	a := CreateFromCube(cube1)
 	b := a.Copy()
 	if !a.Equals(b) {
@@ -69,8 +71,8 @@ func TestCopy(t *testing.T) {
 }
 
 func TestString(t *testing.T) {
-	cube1 := []*CanonicalIntervalSet{CreateFromInterval(1, 100)}
-	cube2 := []*CanonicalIntervalSet{CreateFromInterval(1, 100), CreateFromInterval(1, 100)}
+	cube1 := []*interval.CanonicalIntervalSet{interval.CreateFromInterval(1, 100)}
+	cube2 := []*interval.CanonicalIntervalSet{interval.CreateFromInterval(1, 100), interval.CreateFromInterval(1, 100)}
 	a := CreateFromCube(cube1)
 	b := CreateFromCube(cube2)
 	fmt.Println(a.String())
@@ -79,8 +81,8 @@ func TestString(t *testing.T) {
 }
 
 func TestOr(t *testing.T) {
-	cube1 := []*CanonicalIntervalSet{CreateFromInterval(1, 100), CreateFromInterval(1, 100)}
-	cube2 := []*CanonicalIntervalSet{CreateFromInterval(1, 90), CreateFromInterval(1, 200)}
+	cube1 := []*interval.CanonicalIntervalSet{interval.CreateFromInterval(1, 100), interval.CreateFromInterval(1, 100)}
+	cube2 := []*interval.CanonicalIntervalSet{interval.CreateFromInterval(1, 90), interval.CreateFromInterval(1, 200)}
 	a := CreateFromCube(cube1)
 	b := CreateFromCube(cube2)
 	c := a.Union(b)
@@ -91,19 +93,19 @@ func TestOr(t *testing.T) {
 }
 
 func addCube1Dim(o *CanonicalHypercubeSet, start, end int64) *CanonicalHypercubeSet {
-	cube := []*CanonicalIntervalSet{CreateFromInterval(start, end)}
+	cube := []*interval.CanonicalIntervalSet{interval.CreateFromInterval(start, end)}
 	a := CreateFromCube(cube)
 	return o.Union(a)
 }
 
 func addCube2Dim(o *CanonicalHypercubeSet, start1, end1, start2, end2 int64) *CanonicalHypercubeSet {
-	cube := []*CanonicalIntervalSet{CreateFromInterval(start1, end1), CreateFromInterval(start2, end2)}
+	cube := []*interval.CanonicalIntervalSet{interval.CreateFromInterval(start1, end1), interval.CreateFromInterval(start2, end2)}
 	a := CreateFromCube(cube)
 	return o.Union(a)
 }
 
 func addCube3Dim(o *CanonicalHypercubeSet, s1, e1, s2, e2, s3, e3 int64) *CanonicalHypercubeSet {
-	cube := []*CanonicalIntervalSet{CreateFromInterval(s1, e1), CreateFromInterval(s2, e2), CreateFromInterval(s3, e3)}
+	cube := []*interval.CanonicalIntervalSet{interval.CreateFromInterval(s1, e1), interval.CreateFromInterval(s2, e2), interval.CreateFromInterval(s3, e3)}
 	a := CreateFromCube(cube)
 	return o.Union(a)
 }

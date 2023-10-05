@@ -16,6 +16,9 @@ package common
 import (
 	"sort"
 	"strings"
+
+	hypercube "github.com/np-guard/vpc-network-config-analyzer/internal/hypercube"
+	interval "github.com/np-guard/vpc-network-config-analyzer/internal/interval"
 )
 
 type ProtocolStr string
@@ -80,24 +83,24 @@ var dimensionsList = []Dimension{
 	icmpCode,
 }
 
-func getDimensionDomain(dim Dimension) *CanonicalIntervalSet {
+func getDimensionDomain(dim Dimension) *interval.CanonicalIntervalSet {
 	switch dim {
 	case protocol:
-		return CreateFromInterval(minProtocol, maxProtocol)
+		return interval.CreateFromInterval(minProtocol, maxProtocol)
 	case srcPort:
-		return CreateFromInterval(MinPort, MaxPort)
+		return interval.CreateFromInterval(MinPort, MaxPort)
 	case dstPort:
-		return CreateFromInterval(MinPort, MaxPort)
+		return interval.CreateFromInterval(MinPort, MaxPort)
 	case icmpType:
-		return CreateFromInterval(MinICMPtype, MaxICMPtype)
+		return interval.CreateFromInterval(MinICMPtype, MaxICMPtype)
 	case icmpCode:
-		return CreateFromInterval(MinICMPcode, MaxICMPcode)
+		return interval.CreateFromInterval(MinICMPcode, MaxICMPcode)
 	}
 	return nil
 }
 
-func getDimensionDomainsList() []*CanonicalIntervalSet {
-	res := make([]*CanonicalIntervalSet, len(dimensionsList))
+func getDimensionDomainsList() []*interval.CanonicalIntervalSet {
+	res := make([]*interval.CanonicalIntervalSet, len(dimensionsList))
 	for i := range dimensionsList {
 		res[i] = getDimensionDomain(dimensionsList[i])
 	}
@@ -121,19 +124,19 @@ const (
 
 type ConnectionSet struct {
 	AllowAll             bool
-	connectionProperties *CanonicalHypercubeSet
+	connectionProperties *hypercube.CanonicalHypercubeSet
 	IsStateful           int // default is StatefulUnknown
 }
 
 func NewConnectionSet(all bool) *ConnectionSet {
-	return &ConnectionSet{AllowAll: all, connectionProperties: NewCanonicalHypercubeSet(numDimensions)}
+	return &ConnectionSet{AllowAll: all, connectionProperties: hypercube.NewCanonicalHypercubeSet(numDimensions)}
 }
 
 func NewConnectionSetWithStateful(all bool, isStateful int) *ConnectionSet {
-	return &ConnectionSet{AllowAll: all, connectionProperties: NewCanonicalHypercubeSet(numDimensions), IsStateful: isStateful}
+	return &ConnectionSet{AllowAll: all, connectionProperties: hypercube.NewCanonicalHypercubeSet(numDimensions), IsStateful: isStateful}
 }
 
-func NewConnectionSetWithCube(cube *CanonicalHypercubeSet) *ConnectionSet {
+func NewConnectionSetWithCube(cube *hypercube.CanonicalHypercubeSet) *ConnectionSet {
 	res := NewConnectionSet(false)
 	res.connectionProperties.Union(cube)
 	if res.isAllConnectionsWithoutAllowAll() {
@@ -180,8 +183,8 @@ func (conn *ConnectionSet) Union(other *ConnectionSet) *ConnectionSet {
 	return res
 }
 
-func getAllPropertiesObject() *CanonicalHypercubeSet {
-	return CreateFromCube(getDimensionDomainsList())
+func getAllPropertiesObject() *hypercube.CanonicalHypercubeSet {
+	return hypercube.CreateFromCube(getDimensionDomainsList())
 }
 
 func (conn *ConnectionSet) isAllConnectionsWithoutAllowAll() bool {
@@ -198,7 +201,7 @@ func (conn *ConnectionSet) Subtract(other *ConnectionSet) *ConnectionSet {
 	if other.AllowAll {
 		return NewConnectionSet(false)
 	}
-	var connProperites *CanonicalHypercubeSet
+	var connProperites *hypercube.CanonicalHypercubeSet
 	if conn.AllowAll {
 		connProperites = getAllPropertiesObject()
 	} else {
@@ -219,28 +222,28 @@ func (conn *ConnectionSet) ContainedIn(other *ConnectionSet) (bool, error) {
 }
 
 func (conn *ConnectionSet) AddTCPorUDPConn(protocol ProtocolStr, srcMinP, srcMaxP, dstMinP, dstMaxP int64) {
-	var cube *CanonicalHypercubeSet
+	var cube *hypercube.CanonicalHypercubeSet
 	switch protocol {
 	case ProtocolTCP:
-		cube = CreateFromCubeShort(TCP, TCP, srcMinP, srcMaxP, dstMinP, dstMaxP, MinICMPtype, MaxICMPtype, MinICMPcode, MaxICMPcode)
+		cube = hypercube.CreateFromCubeShort(TCP, TCP, srcMinP, srcMaxP, dstMinP, dstMaxP, MinICMPtype, MaxICMPtype, MinICMPcode, MaxICMPcode)
 	case ProtocolUDP:
-		cube = CreateFromCubeShort(UDP, UDP, srcMinP, srcMaxP, dstMinP, dstMaxP, MinICMPtype, MaxICMPtype, MinICMPcode, MaxICMPcode)
+		cube = hypercube.CreateFromCubeShort(UDP, UDP, srcMinP, srcMaxP, dstMinP, dstMaxP, MinICMPtype, MaxICMPtype, MinICMPcode, MaxICMPcode)
 	}
 	conn.connectionProperties = conn.connectionProperties.Union(cube)
 	// check if all connections allowed after this union
 	if conn.isAllConnectionsWithoutAllowAll() {
 		conn.AllowAll = true
-		conn.connectionProperties = NewCanonicalHypercubeSet(numDimensions)
+		conn.connectionProperties = hypercube.NewCanonicalHypercubeSet(numDimensions)
 	}
 }
 
 func (conn *ConnectionSet) AddICMPConnection(icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax int64) {
-	cube := CreateFromCubeShort(ICMP, ICMP, MinPort, MaxPort, MinPort, MaxPort, icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax)
+	cube := hypercube.CreateFromCubeShort(ICMP, ICMP, MinPort, MaxPort, MinPort, MaxPort, icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax)
 	conn.connectionProperties = conn.connectionProperties.Union(cube)
 	// check if all connections allowed after this union
 	if conn.isAllConnectionsWithoutAllowAll() {
 		conn.AllowAll = true
-		conn.connectionProperties = NewCanonicalHypercubeSet(numDimensions)
+		conn.connectionProperties = hypercube.NewCanonicalHypercubeSet(numDimensions)
 	}
 }
 
@@ -266,7 +269,7 @@ func getProtocolStr(p int64) string {
 	return ""
 }
 
-func getDimensionStr(dimValue *CanonicalIntervalSet, dim Dimension) string {
+func getDimensionStr(dimValue *interval.CanonicalIntervalSet, dim Dimension) string {
 	domainValues := getDimensionDomain(dim)
 	if dimValue.Equal(*domainValues) {
 		// avoid adding dimension str on full dimension values
@@ -303,7 +306,7 @@ func filterEmptyPropertiesStr(inputList []string) []string {
 	return res
 }
 
-func getICMPbasedCubeStr(protocolsValues, icmpTypeValues, icmpCodeValues *CanonicalIntervalSet) string {
+func getICMPbasedCubeStr(protocolsValues, icmpTypeValues, icmpCodeValues *interval.CanonicalIntervalSet) string {
 	strList := []string{
 		getDimensionStr(protocolsValues, protocol),
 		getDimensionStr(icmpTypeValues, icmpType),
@@ -312,7 +315,7 @@ func getICMPbasedCubeStr(protocolsValues, icmpTypeValues, icmpCodeValues *Canoni
 	return strings.Join(filterEmptyPropertiesStr(strList), propertySeparator)
 }
 
-func getPortBasedCubeStr(protocolsValues, srcPortsValues, dstPortsValues *CanonicalIntervalSet) string {
+func getPortBasedCubeStr(protocolsValues, srcPortsValues, dstPortsValues *interval.CanonicalIntervalSet) string {
 	strList := []string{
 		getDimensionStr(protocolsValues, protocol),
 		getDimensionStr(srcPortsValues, srcPort),
@@ -321,12 +324,12 @@ func getPortBasedCubeStr(protocolsValues, srcPortsValues, dstPortsValues *Canoni
 	return strings.Join(filterEmptyPropertiesStr(strList), propertySeparator)
 }
 
-func getMixedProtocolsCubeStr(protocols *CanonicalIntervalSet) string {
+func getMixedProtocolsCubeStr(protocols *interval.CanonicalIntervalSet) string {
 	// TODO: make sure other dimension values are full
 	return getDimensionStr(protocols, protocol)
 }
 
-func getConnsCubeStr(cube []*CanonicalIntervalSet) string {
+func getConnsCubeStr(cube []*interval.CanonicalIntervalSet) string {
 	protocols := cube[protocol]
 	if (protocols.Contains(TCP) || protocols.Contains(UDP)) && !protocols.Contains(ICMP) {
 		return getPortBasedCubeStr(cube[protocol], cube[srcPort], cube[dstPort])
@@ -357,7 +360,7 @@ func (conn *ConnectionSet) String() string {
 
 type ConnDetails ProtocolList
 
-func getCubeAsTCPItems(cube []*CanonicalIntervalSet, protocol TcpUdpProtocol) []TcpUdp {
+func getCubeAsTCPItems(cube []*interval.CanonicalIntervalSet, protocol TcpUdpProtocol) []TcpUdp {
 	tcpItemsTemp := []TcpUdp{}
 	tcpItemsFinal := []TcpUdp{}
 	// consider src ports
@@ -393,7 +396,7 @@ func getCubeAsTCPItems(cube []*CanonicalIntervalSet, protocol TcpUdpProtocol) []
 	return tcpItemsFinal
 }
 
-func getIntervalNumbers(c *CanonicalIntervalSet) []int {
+func getIntervalNumbers(c *interval.CanonicalIntervalSet) []int {
 	res := []int{}
 	for _, interval := range c.IntervalSet {
 		for i := interval.Start; i <= interval.End; i++ {
@@ -403,7 +406,7 @@ func getIntervalNumbers(c *CanonicalIntervalSet) []int {
 	return res
 }
 
-func getCubeAsICMPItems(cube []*CanonicalIntervalSet) []Icmp {
+func getCubeAsICMPItems(cube []*interval.CanonicalIntervalSet) []Icmp {
 	icmpTypes := cube[icmpType]
 	icmpCodes := cube[icmpCode]
 	if icmpTypes.Equal(*getDimensionDomain(icmpType)) && icmpCodes.Equal(*getDimensionDomain(icmpCode)) {
@@ -484,8 +487,8 @@ func NewTCPConnectionSet() *ConnectionSet {
 }
 
 // copyCube returns a new slice of intervals copied from input cube
-func copyCube(cube []*CanonicalIntervalSet) []*CanonicalIntervalSet {
-	newCube := make([]*CanonicalIntervalSet, len(cube))
+func copyCube(cube []*interval.CanonicalIntervalSet) []*interval.CanonicalIntervalSet {
+	newCube := make([]*interval.CanonicalIntervalSet, len(cube))
 	for i, interval := range cube {
 		newInterval := interval.Copy()
 		newCube[i] = &newInterval
@@ -513,271 +516,13 @@ func (conn *ConnectionSet) ResponseConnection() *ConnectionSet {
 			if !srcPorts.Equal(*getDimensionDomain(srcPort)) || !dstPorts.Equal(*getDimensionDomain(dstPort)) {
 				newCube := copyCube(cube)
 				newCube[srcPort], newCube[dstPort] = newCube[dstPort], newCube[srcPort]
-				res.connectionProperties = res.connectionProperties.Union(CreateFromCube(newCube))
+				res.connectionProperties = res.connectionProperties.Union(hypercube.CreateFromCube(newCube))
 			} else {
-				res.connectionProperties = res.connectionProperties.Union(CreateFromCube(cube))
+				res.connectionProperties = res.connectionProperties.Union(hypercube.CreateFromCube(cube))
 			}
 		} else if protocols.Contains(ICMP) {
-			res.connectionProperties = res.connectionProperties.Union(CreateFromCube(cube))
+			res.connectionProperties = res.connectionProperties.Union(hypercube.CreateFromCube(cube))
 		}
 	}
 	return res
 }
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/*
-// ConnectionSet represents a set of allowed connections between two peers on a k8s env
-type ConnectionSet struct {
-	AllowAll bool
-	//TODO: handle ICMP type & code. currently using PortSet to represent ICMP type interval only
-	AllowedProtocols map[Protocol]*PortSet // map from protocol name to set of allowed ports
-}
-
-// MakeConnectionSet returns a ConnectionSet object with all connections or no connections
-func MakeConnectionSet(all bool) ConnectionSet {
-	if all {
-		return ConnectionSet{AllowAll: true, AllowedProtocols: map[Protocol]*PortSet{}}
-	}
-	return ConnectionSet{AllowedProtocols: map[Protocol]*PortSet{}}
-}
-
-func (conn *ConnectionSet) Copy() *ConnectionSet {
-	res := &ConnectionSet{}
-	res.AllowAll = conn.AllowAll
-	res.AllowedProtocols = make(map[Protocol]*PortSet, len(conn.AllowedProtocols))
-	for protocol, ports := range conn.AllowedProtocols {
-		portsCopy := ports.Copy()
-		res.AllowedProtocols[protocol] = &portsCopy
-	}
-	return res
-}
-
-// Intersection updates ConnectionSet object to be the intersection result with other ConnectionSet
-func (conn *ConnectionSet) Intersection(other ConnectionSet) {
-	if other.AllowAll {
-		return
-	}
-	if conn.AllowAll {
-		conn.AllowAll = false
-		for protocol, ports := range other.AllowedProtocols {
-			portsCopy := ports.Copy()
-			conn.AllowedProtocols[protocol] = &portsCopy
-		}
-		return
-	}
-	for protocol := range conn.AllowedProtocols {
-		otherPorts, ok := other.AllowedProtocols[protocol]
-		if !ok {
-			delete(conn.AllowedProtocols, protocol)
-		} else {
-			conn.AllowedProtocols[protocol].Intersection(*otherPorts)
-			if conn.AllowedProtocols[protocol].IsEmpty() {
-				delete(conn.AllowedProtocols, protocol)
-			}
-		}
-	}
-}
-
-// IsEmpty returns true if the ConnectionSet has no allowed connections
-func (conn *ConnectionSet) IsEmpty() bool {
-	return !conn.AllowAll && len(conn.AllowedProtocols) == 0
-}
-
-func (conn *ConnectionSet) isAllConnectionsWithoutAllowAll() bool {
-	if conn.AllowAll {
-		return false
-	}
-	allProtocols := []Protocol{ProtocolTCP, ProtocolUDP, ProtocolSCTP, ProtocolICMP}
-	for _, protocol := range allProtocols {
-		ports, ok := conn.AllowedProtocols[protocol]
-		if !ok {
-			return false
-		} else if !ports.IsAll() {
-			return false
-		}
-	}
-
-	return true
-}
-
-func (conn *ConnectionSet) checkIfAllConnections() {
-	if conn.isAllConnectionsWithoutAllowAll() {
-		conn.AllowAll = true
-		conn.AllowedProtocols = map[Protocol]*PortSet{}
-	}
-}
-
-// Union updates ConnectionSet object to be the union result with other ConnectionSet
-func (conn *ConnectionSet) Union(other ConnectionSet) {
-	if conn.AllowAll || other.IsEmpty() {
-		return
-	}
-	if other.AllowAll {
-		conn.AllowAll = true
-		conn.AllowedProtocols = map[Protocol]*PortSet{}
-		return
-	}
-	for protocol := range conn.AllowedProtocols {
-		if otherPorts, ok := other.AllowedProtocols[protocol]; ok {
-			conn.AllowedProtocols[protocol].Union(*otherPorts)
-		}
-	}
-	for protocol := range other.AllowedProtocols {
-		if _, ok := conn.AllowedProtocols[protocol]; !ok {
-			portsCopy := other.AllowedProtocols[protocol].Copy()
-			conn.AllowedProtocols[protocol] = &portsCopy
-		}
-	}
-	conn.checkIfAllConnections()
-}
-
-func (conn *ConnectionSet) Subtract(other ConnectionSet) {
-	if conn.IsEmpty() || other.IsEmpty() {
-		return
-	}
-	if other.AllowAll {
-		conn.AllowAll = false
-		conn.AllowedProtocols = make(map[Protocol]*PortSet, 0)
-		return
-	}
-
-	if conn.AllowAll {
-		conn.AllowAll = false
-		conn.AllowedProtocols[ProtocolTCP] = NewPortSetAllPorts()
-		conn.AllowedProtocols[ProtocolUDP] = NewPortSetAllPorts()
-		conn.AllowedProtocols[ProtocolSCTP] = NewPortSetAllPorts()
-		conn.AllowedProtocols[ProtocolICMP] = NewICMPAllTypesTemp()
-	}
-	for protocol := range conn.AllowedProtocols {
-		if otherPorts, ok := other.AllowedProtocols[protocol]; ok {
-			conn.AllowedProtocols[protocol].Ports.Subtraction(otherPorts.Ports)
-			if conn.AllowedProtocols[protocol].Ports.IsEmpty() {
-				delete(conn.AllowedProtocols, protocol)
-			}
-		}
-	}
-}
-
-// Contains returns true if the input port+protocol is an allowed connection
-func (conn *ConnectionSet) Contains(port, protocol string) bool {
-	intPort, err := strconv.Atoi(port)
-	if err != nil {
-		return false
-	}
-	if conn.AllowAll {
-		return true
-	}
-	for allowedProtocol, allowedPorts := range conn.AllowedProtocols {
-		if strings.EqualFold(protocol, string(allowedProtocol)) {
-			return allowedPorts.Contains(int64(intPort))
-		}
-	}
-	return false
-}
-
-// ContainedIn returns true if current ConnectionSet is conatained in the input ConnectionSet object
-func (conn *ConnectionSet) ContainedIn(other ConnectionSet) bool {
-	if other.AllowAll {
-		return true
-	}
-	if conn.AllowAll {
-		return false
-	}
-	for protocol, ports := range conn.AllowedProtocols {
-		otherPorts, ok := other.AllowedProtocols[protocol]
-		if !ok {
-			return false
-		}
-		if !ports.ContainedIn(*otherPorts) {
-			return false
-		}
-	}
-	return true
-}
-
-// AddConnection updates current ConnectionSet object with new allowed connection
-func (conn *ConnectionSet) AddConnection(protocol Protocol, ports PortSet) {
-	if ports.IsEmpty() {
-		return
-	}
-	connPorts, ok := conn.AllowedProtocols[protocol]
-	if ok {
-		connPorts.Union(ports)
-	} else {
-		conn.AllowedProtocols[protocol] = &ports
-	}
-}
-
-// String returns a string representation of the ConnectionSet object
-func (conn *ConnectionSet) String() string {
-	if conn.AllowAll {
-		return AllConnections
-	} else if conn.IsEmpty() {
-		return NoConnections
-	}
-	resStrings := []string{}
-	for protocol, ports := range conn.AllowedProtocols {
-		resStrings = append(resStrings, string(protocol)+" "+ports.String())
-	}
-	sort.Strings(resStrings)
-	return strings.Join(resStrings, ",")
-}
-
-// Equal returns true if the current ConnectionSet object is equal to the input object
-func (conn *ConnectionSet) Equal(other ConnectionSet) bool {
-	if conn.AllowAll != other.AllowAll {
-		return false
-	}
-	if len(conn.AllowedProtocols) != len(other.AllowedProtocols) {
-		return false
-	}
-	for protocol, ports := range conn.AllowedProtocols {
-		otherPorts, ok := other.AllowedProtocols[protocol]
-		if !ok {
-			return false
-		}
-		if !ports.Equal(*otherPorts) {
-			return false
-		}
-	}
-	return true
-}
-
-// portRange implements the eval.PortRange interface
-type portRange struct {
-	start int64
-	end   int64
-}
-
-func (p *portRange) Start() int64 {
-	return p.start
-}
-
-func (p *portRange) End() int64 {
-	return p.end
-}
-
-func (p *portRange) String() string {
-	if p.End() != p.Start() {
-		return fmt.Sprintf("%d-%d", p.Start(), p.End())
-	}
-	return fmt.Sprintf("%d", p.Start())
-}
-
-// ProtocolsAndPortsMap() returns a map from allowed protocol to list of allowed ports ranges.
-func (conn *ConnectionSet) ProtocolsAndPortsMap() map[Protocol][]*portRange {
-	res := map[Protocol][]*portRange{}
-	for protocol, portSet := range conn.AllowedProtocols {
-		res[protocol] = []*portRange{}
-		// TODO: consider leave the slice of ports empty if portSet covers the full range
-		for i := range portSet.Ports.IntervalSet {
-			startPort := portSet.Ports.IntervalSet[i].Start
-			endPort := portSet.Ports.IntervalSet[i].End
-			portRange := &portRange{start: startPort, end: endPort}
-			res[protocol] = append(res[protocol], portRange)
-		}
-	}
-	return res
-}
-*/

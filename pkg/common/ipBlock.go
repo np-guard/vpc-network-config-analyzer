@@ -9,6 +9,8 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+
+	interval "github.com/np-guard/vpc-network-config-analyzer/internal/interval"
 )
 
 const (
@@ -24,7 +26,7 @@ const (
 
 // IPBlock captures a set of ip ranges
 type IPBlock struct {
-	ipRange CanonicalIntervalSet
+	ipRange interval.CanonicalIntervalSet
 }
 
 // ToIPRanges returns a string of the ip ranges in the current IPBlock object
@@ -33,7 +35,7 @@ func (b *IPBlock) ToIPRanges() string {
 }
 
 // ToIPRange returns a string of the ip range of a single interval
-func toIPRange(i Interval) string {
+func toIPRange(i interval.Interval) string {
 	startIP := InttoIP4(i.Start)
 	endIP := InttoIP4(i.End)
 	return rangeIPstr(startIP, endIP)
@@ -115,7 +117,7 @@ func (b *IPBlock) Split() []*IPBlock {
 	res := make([]*IPBlock, len(b.ipRange.IntervalSet))
 	for index, ipr := range b.ipRange.IntervalSet {
 		newBlock := IPBlock{}
-		newBlock.ipRange.IntervalSet = append(newBlock.ipRange.IntervalSet, Interval{Start: ipr.Start, End: ipr.End})
+		newBlock.ipRange.IntervalSet = append(newBlock.ipRange.IntervalSet, interval.Interval{Start: ipr.Start, End: ipr.End})
 		res[index] = &newBlock
 	}
 	return res
@@ -201,7 +203,7 @@ func NewIPBlockFromCidrOrAddress(s string) *IPBlock {
 
 // NewIPBlock returns an IPBlock object from input cidr str an exceptions cidr str
 func NewIPBlock(cidr string, exceptions []string) (*IPBlock, error) {
-	res := IPBlock{ipRange: CanonicalIntervalSet{}}
+	res := IPBlock{ipRange: interval.CanonicalIntervalSet{}}
 	interval, err := cidrToInterval(cidr)
 	if err != nil {
 		return nil, err
@@ -244,12 +246,12 @@ func cidrToIPRange(cidr string) (start, end int64, err error) {
 	return
 }
 
-func cidrToInterval(cidr string) (*Interval, error) {
+func cidrToInterval(cidr string) (*interval.Interval, error) {
 	start, end, err := cidrToIPRange(cidr)
 	if err != nil {
 		return nil, err
 	}
-	return &Interval{Start: start, End: end}, nil
+	return &interval.Interval{Start: start, End: end}, nil
 }
 
 func (b *IPBlock) ToCidrList() []string {
@@ -275,7 +277,7 @@ func (b *IPBlock) ListToPrint() []string {
 }
 
 func (b *IPBlock) ToIPAdress() string {
-	if b.ipRange.isSingleNumber() {
+	if b.ipRange.IsSingleNumber() {
 		return InttoIP4(b.ipRange.IntervalSet[0].Start)
 	}
 	return ""
@@ -322,10 +324,10 @@ func IPBlockFromIPRangeStr(ipRagneStr string) (*IPBlock, error) {
 		return nil, err
 	}
 	res := &IPBlock{}
-	res.ipRange = CanonicalIntervalSet{IntervalSet: []Interval{}}
+	res.ipRange = interval.CanonicalIntervalSet{IntervalSet: []interval.Interval{}}
 	startIPNum := startIP.ipRange.IntervalSet[0].Start
 	endIPNum := endIP.ipRange.IntervalSet[0].Start
-	res.ipRange.IntervalSet = append(res.ipRange.IntervalSet, Interval{Start: startIPNum, End: endIPNum})
+	res.ipRange.IntervalSet = append(res.ipRange.IntervalSet, interval.Interval{Start: startIPNum, End: endIPNum})
 	return res, nil
 }
 
