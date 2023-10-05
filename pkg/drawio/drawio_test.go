@@ -237,20 +237,27 @@ func createNetwork2() SquareTreeNodeInterface {
 
 	subnet33 := NewSubnetTreeNode(zone3, "subnet2", "cidr2", "acl2")
 	sg33 := NewSGTreeNode(vpc1, "sg33")
-	ni33a := NewNITreeNode(subnet33, sg33, "ni1")
-	ni33b := NewNITreeNode(subnet33, sg33, "ni1")
-	ni33c := NewNITreeNode(subnet33, sg33, "ni1")
-	ni33d := NewNITreeNode(subnet33, sg33, "ni1")
-	ni33e := NewNITreeNode(subnet33, sg33, "ni1")
-	groupedNis33a := []IconTreeNodeInterface{ni33a, ni33b, ni33c, ni33d} 
+	ni33b := NewNITreeNode(subnet33, sg33, "ni1b")
+	ni33c := NewNITreeNode(subnet33, sg33, "ni1c")
+	ni33g := NewNITreeNode(subnet33, sg33, "ni1g") 
+	ni33h := NewNITreeNode(subnet33, sg33, "ni1h")
+	ni33d := NewNITreeNode(subnet33, sg33, "ni1d")
+	ni33j := NewNITreeNode(subnet33, sg33, "ni1j")
+	ni33e := NewNITreeNode(subnet33, sg33, "ni1e")
+	ni33a := NewNITreeNode(subnet33, sg33, "ni1a")
+	ni33f := NewNITreeNode(subnet33, sg33, "ni1f")
+	ni33i := NewNITreeNode(subnet33, sg33, "ni1i")
+	groupedNis33f := []IconTreeNodeInterface{ni33h, ni33i} 
 	groupedNis33b := []IconTreeNodeInterface{ni33a, ni33b} 
-	groupedNis33c := []IconTreeNodeInterface{ni33c, ni33d} 
-	groupedNis33d := []IconTreeNodeInterface{ni33c, ni33e} 
+	groupedNis33a := []IconTreeNodeInterface{ni33a, ni33b, ni33c, ni33d, ni33e} 
+	groupedNis33d := []IconTreeNodeInterface{ni33a, ni33e, ni33f} 
+	groupedNis33c := []IconTreeNodeInterface{ni33c, ni33d, ni33e} 
+	groupedNis33e := []IconTreeNodeInterface{ni33g, ni33h, ni33i, ni33j} 
 
 	fipGroups := [][]IconTreeNodeInterface{
 		groupedNis1,
 		// groupedNis3,
-		groupedNis33a,
+		// groupedNis33a,
 	}
 
 	for _, g := range fipGroups {
@@ -270,6 +277,8 @@ func createNetwork2() SquareTreeNodeInterface {
 	gs33b := NewGroupSquareTreeNode(subnet33, groupedNis33b)
 	gs33c := NewGroupSquareTreeNode(subnet33, groupedNis33c)
 	gs33d := NewGroupSquareTreeNode(subnet33, groupedNis33d)
+	gs33e := NewGroupSquareTreeNode(subnet33, groupedNis33e)
+	gs33f := NewGroupSquareTreeNode(subnet33, groupedNis33f)
 	gs23 := NewGroupSquareTreeNode(subnet23, groupedNis23)
 	gs31 := NewGroupSquareTreeNode(subnet31, groupedNis31)
 	gs1 := NewGroupSquareTreeNode(subnet1, groupedNis1)
@@ -287,6 +296,7 @@ func createNetwork2() SquareTreeNodeInterface {
 	NewConnectivityLineTreeNode(network, gs32, gs33b, true, "gconn4")
 	NewConnectivityLineTreeNode(network, gs31, gs33c, true, "gconn4")
 	NewConnectivityLineTreeNode(network, gs31, gs33d, true, "gconn4")
+	NewConnectivityLineTreeNode(network, gs33f, gs33e, true, "gconn4")
 	NewConnectivityLineTreeNode(network, gs31, gs31, true, "gconn4")
 	// gc1.SetFipRouter(false)
 	// gc2.SetFipRouter(false)
