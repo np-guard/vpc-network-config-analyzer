@@ -6,7 +6,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+	connection "github.com/np-guard/connectionlib/pkg/connection"
+	ipblock "github.com/np-guard/connectionlib/pkg/ipblock"
 	vpcmodel "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -279,7 +280,11 @@ func (nl *NaclLayer) ConnectivityMap() (map[string]*vpcmodel.IPbasedConnectivity
 			if len(resConnectivity) != 1 {
 				return nil, errors.New("unsupported connectivity map with partial subnet ranges per connectivity result")
 			}
-			subnetKey := common.CIDRtoIPrange(subnetCidr)
+			x, err := ipblock.FromCIDR(subnetCidr)
+			if err != nil {
+				return nil, err
+			}
+			subnetKey := strings.Join(x.ToIPRanges(), ",")
 			if _, ok := resConnectivity[subnetKey]; !ok {
 				return nil, errors.New("unexpected subnet connectivity result - key is different from subnet cidr")
 			}
@@ -301,7 +306,7 @@ func (nl *NaclLayer) GetConnectivityOutputPerEachElemSeparately() string {
 	return strings.Join(res, "\n")
 }
 
-func (nl *NaclLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*common.ConnectionSet, error) {
+func (nl *NaclLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*connection.Set, error) {
 	res := vpcmodel.NoConns()
 	for _, nacl := range nl.naclList {
 		naclConn, err := nacl.AllowedConnectivity(src, dst, isIngress)
@@ -313,8 +318,8 @@ func (nl *NaclLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool)
 	return res, nil
 }
 
-func (nl *NaclLayer) ReferencedIPblocks() []*common.IPBlock {
-	res := []*common.IPBlock{}
+func (nl *NaclLayer) ReferencedIPblocks() []*ipblock.IPBlock {
+	res := []*ipblock.IPBlock{}
 	for _, n := range nl.naclList {
 		res = append(res, n.analyzer.referencedIPblocks...)
 	}
@@ -371,7 +376,7 @@ func getNodeCidrs(n vpcmodel.Node) (subnetCidr, nodeCidr string, err error) {
 	}
 }
 
-func (n *NACL) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*common.ConnectionSet, error) {
+func (n *NACL) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*connection.Set, error) {
 	var subnetCidr string
 	var inSubnetCidr string
 	var targetNode vpcmodel.Node
@@ -391,7 +396,7 @@ func (n *NACL) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*com
 		return vpcmodel.NoConns(), nil // not affected by current nacl
 	}
 	// TODO: differentiate between "has no effect" vs "affects with allow-all / allow-none "
-	if allInSubnet, err := common.IsAddressInSubnet(targetNode.Cidr(), subnetCidr); err == nil && allInSubnet {
+	if allInSubnet, err := ipblock.IsAddressInSubnet(targetNode.Cidr(), subnetCidr); err == nil && allInSubnet {
 		return vpcmodel.AllConns(), nil // nacl has no control on traffic between two instances in its subnet
 	}
 	// TODO: consider err
@@ -439,7 +444,7 @@ func (sgl *SecurityGroupLayer) GetConnectivityOutputPerEachElemSeparately() stri
 }
 
 // TODO: fix: is it possible that no sg applies  to the input peer? if so, should not return "no conns" when none applies
-func (sgl *SecurityGroupLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*common.ConnectionSet, error) {
+func (sgl *SecurityGroupLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*connection.Set, error) {
 	if (isIngress && dst.Kind() == ResourceTypeIKSNode) || (!isIngress && src.Kind() == ResourceTypeIKSNode) {
 		return vpcmodel.AllConns(), nil
 	}
@@ -451,8 +456,8 @@ func (sgl *SecurityGroupLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIng
 	return res, nil
 }
 
-func (sgl *SecurityGroupLayer) ReferencedIPblocks() []*common.IPBlock {
-	res := []*common.IPBlock{}
+func (sgl *SecurityGroupLayer) ReferencedIPblocks() []*ipblock.IPBlock {
+	res := []*ipblock.IPBlock{}
 	for _, sg := range sgl.sgList {
 		res = append(res, sg.analyzer.referencedIPblocks...)
 	}
@@ -493,7 +498,7 @@ func (sg *SecurityGroup) DetailsMap() map[string]string {
 	}
 }
 
-func (sg *SecurityGroup) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *common.ConnectionSet {
+func (sg *SecurityGroup) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *connection.Set {
 	var member, target vpcmodel.Node
 	if isIngress {
 		member = dst
@@ -556,7 +561,7 @@ func (fip *FloatingIP) Destinations() []vpcmodel.Node {
 	return fip.destinations
 }
 
-func (fip *FloatingIP) AllowedConnectivity(src, dst vpcmodel.Node) *common.ConnectionSet {
+func (fip *FloatingIP) AllowedConnectivity(src, dst vpcmodel.Node) *connection.Set {
 	if vpcmodel.HasNode(fip.Src(), src) && vpcmodel.HasNode(fip.Destinations(), dst) {
 		return vpcmodel.AllConns()
 	}
@@ -616,8 +621,8 @@ func (pgw *PublicGateway) ConnectivityMap() map[string]vpcmodel.ConfigBasedConne
 	res := map[string]vpcmodel.ConfigBasedConnectivityResults{}
 	for _, subnetCidr := range pgw.subnetCidr {
 		res[subnetCidr] = vpcmodel.ConfigBasedConnectivityResults{
-			IngressAllowedConns: map[vpcmodel.EndpointElem]*common.ConnectionSet{},
-			EgressAllowedConns:  map[vpcmodel.EndpointElem]*common.ConnectionSet{},
+			IngressAllowedConns: map[vpcmodel.EndpointElem]*connection.Set{},
+			EgressAllowedConns:  map[vpcmodel.EndpointElem]*connection.Set{},
 		}
 		for _, dst := range pgw.destinations {
 			res[subnetCidr].EgressAllowedConns[dst] = vpcmodel.AllConns()
@@ -634,7 +639,7 @@ func (pgw *PublicGateway) Destinations() []vpcmodel.Node {
 	return pgw.destinations
 }
 
-func (pgw *PublicGateway) AllowedConnectivity(src, dst vpcmodel.Node) *common.ConnectionSet {
+func (pgw *PublicGateway) AllowedConnectivity(src, dst vpcmodel.Node) *connection.Set {
 	if vpcmodel.HasNode(pgw.Src(), src) && vpcmodel.HasNode(pgw.Destinations(), dst) {
 		return vpcmodel.AllConns()
 	}

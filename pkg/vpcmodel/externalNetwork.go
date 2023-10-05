@@ -3,6 +3,7 @@ package vpcmodel
 import (
 	"errors"
 
+	"github.com/np-guard/connectionlib/pkg/ipblock"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
@@ -77,11 +78,11 @@ func (exn *ExternalNetwork) DetailsMap() []map[string]string {
 	return []map[string]string{res}
 }
 
-func ipStringsToIPblocks(ipList []string) (ipbList []*common.IPBlock, unionIPblock *common.IPBlock, err error) {
-	ipbList = []*common.IPBlock{}
-	unionIPblock = &common.IPBlock{}
+func ipStringsToIPblocks(ipList []string) (ipbList []*ipblock.IPBlock, unionIPblock *ipblock.IPBlock, err error) {
+	ipbList = []*ipblock.IPBlock{}
+	unionIPblock = &ipblock.IPBlock{}
 	for _, ipAddressRange := range ipList {
-		var ipb *common.IPBlock
+		var ipb *ipblock.IPBlock
 		if ipb, err = common.IPBlockFromIPRangeStr(ipAddressRange); err != nil {
 			ipb, err = common.NewIPBlock(ipAddressRange, []string{})
 		}
@@ -94,12 +95,12 @@ func ipStringsToIPblocks(ipList []string) (ipbList []*common.IPBlock, unionIPblo
 	return ipbList, unionIPblock, nil
 }
 
-func getPublicInternetIPblocksList() (internetIPblocksList []*common.IPBlock, allInternetRagnes *common.IPBlock, err error) {
+func getPublicInternetIPblocksList() (internetIPblocksList []*ipblock.IPBlock, allInternetRagnes *ipblock.IPBlock, err error) {
 	publicInternetAddressList := getPublicInternetAddressList()
 	return ipStringsToIPblocks(publicInternetAddressList)
 }
 
-func newExternalNode(isPublicInternet bool, ipb *common.IPBlock) (Node, error) {
+func newExternalNode(isPublicInternet bool, ipb *ipblock.IPBlock) (Node, error) {
 	cidrsList := ipb.ToCidrList()
 	if len(cidrsList) > 1 {
 		return nil, errors.New("newExternalNode: input ip-block should be of a single cidr")
@@ -111,7 +112,7 @@ func newExternalNode(isPublicInternet bool, ipb *common.IPBlock) (Node, error) {
 		isPublicInternet: isPublicInternet}, nil
 }
 
-func GetExternalNetworkNodes(disjointRefExternalIPBlocks []*common.IPBlock) ([]Node, error) {
+func GetExternalNetworkNodes(disjointRefExternalIPBlocks []*ipblock.IPBlock) ([]Node, error) {
 	res := []Node{}
 	internetIPblocks, allInternetRagnes, err := getPublicInternetIPblocksList()
 	if err != nil {

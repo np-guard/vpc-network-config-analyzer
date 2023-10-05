@@ -1,6 +1,7 @@
 package vpcmodel
 
 import (
+	"github.com/np-guard/connectionlib/pkg/ipblock"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 
 	"errors"
@@ -12,7 +13,7 @@ type VPCsubnetConnectivity struct {
 	// computed for each node (subnet), by iterating its ConnectivityResult for all relevant VPC resources that capture it
 	AllowedConns map[EndpointElem]*ConfigBasedConnectivityResults
 	// combined connectivity - considering both ingress and egress per connection
-	AllowedConnsCombined map[EndpointElem]map[EndpointElem]*common.ConnectionSet
+	AllowedConnsCombined map[EndpointElem]map[EndpointElem]*connection.Set
 	CloudConfig          *CloudConfig
 	// grouped connectivity result
 	GroupedConnectivity *GroupConnLines
@@ -24,7 +25,7 @@ const (
 	errUnexpectedTypePeerNode = "unexpected type for peerNode in computeAllowedConnsCombined"
 )
 
-func subnetConnLine(subnet string, conn *common.ConnectionSet) string {
+func subnetConnLine(subnet string, conn *connection.Set) string {
 	return fmt.Sprintf("%s : %s\n", subnet, conn.String())
 }
 
@@ -52,7 +53,7 @@ func (v *VPCsubnetConnectivity) printAllowedConns() {
 	}
 }
 
-func (c *CloudConfig) ipblockToNamedResourcesInConfig(ipb *common.IPBlock, excludeExternalNodes bool) ([]VPCResourceIntf, error) {
+func (c *CloudConfig) ipblockToNamedResourcesInConfig(ipb *ipblock.IPBlock, excludeExternalNodes bool) ([]VPCResourceIntf, error) {
 	res := []VPCResourceIntf{}
 
 	// consider subnets
@@ -203,7 +204,7 @@ func (c *CloudConfig) GetSubnetsConnectivity(includePGW, grouping bool) (*VPCsub
 }
 
 func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() error {
-	v.AllowedConnsCombined = map[EndpointElem]map[EndpointElem]*common.ConnectionSet{}
+	v.AllowedConnsCombined = map[EndpointElem]map[EndpointElem]*connection.Set{}
 	for subnetNodeSet, connsRes := range v.AllowedConns {
 		for peerNode, conns := range connsRes.IngressAllowedConns {
 			src := peerNode
@@ -212,7 +213,7 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() error {
 				continue
 			}
 
-			var combinedConns *common.ConnectionSet
+			var combinedConns *connection.Set
 			// peerNode kind is expected to be Subnet or External
 			peerNodeObj := v.CloudConfig.NameToResource[peerNode.Name()]
 			switch concPeerNode := peerNodeObj.(type) {
@@ -228,7 +229,7 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() error {
 				continue
 			}
 			if _, ok := v.AllowedConnsCombined[src]; !ok {
-				v.AllowedConnsCombined[src] = map[EndpointElem]*common.ConnectionSet{}
+				v.AllowedConnsCombined[src] = map[EndpointElem]*connection.Set{}
 			}
 			v.AllowedConnsCombined[src][dst] = combinedConns
 		}
@@ -251,7 +252,7 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() error {
 				return errors.New(errUnexpectedTypePeerNode)
 			}
 			if _, ok := v.AllowedConnsCombined[src]; !ok {
-				v.AllowedConnsCombined[src] = map[EndpointElem]*common.ConnectionSet{}
+				v.AllowedConnsCombined[src] = map[EndpointElem]*connection.Set{}
 			}
 			v.AllowedConnsCombined[src][dst] = combinedConns
 		}
@@ -266,7 +267,7 @@ func (v *VPCsubnetConnectivity) computeStatefulConnections() {
 				continue
 			}
 			dstObj := v.CloudConfig.NameToResource[dst.Name()]
-			var otherDirectionConn *common.ConnectionSet
+			var otherDirectionConn *connection.Set
 			switch dstObj.(type) {
 			case NodeSet:
 				otherDirectionConn = v.AllowedConnsCombined[dst][src]

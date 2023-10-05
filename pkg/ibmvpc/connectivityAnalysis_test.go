@@ -6,6 +6,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	connection "github.com/np-guard/connectionlib/pkg/connection"
+	ipblock "github.com/np-guard/connectionlib/pkg/ipblock"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	vpcmodel "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
@@ -68,8 +70,8 @@ var nc3 = &naclConfig{
 	ingressRules: getAllowAllRules(),
 	egressRules: []*NACLRule{
 		{
-			src:         common.NewIPBlockFromCidr("0.0.0.0/0"),
-			dst:         common.NewIPBlockFromCidr("10.240.20.0/24"),
+			src:         ipblock.FromCIDR("0.0.0.0/0"),
+			dst:         ipblock.FromCIDR("10.240.20.0/24"),
 			connections: getAllConnSet(),
 			action:      "allow",
 		},
@@ -83,18 +85,18 @@ var nc4 = &naclConfig{
 	ingressRules: getAllowAllRules(),
 	egressRules: []*NACLRule{
 		{
-			src:         common.NewIPBlockFromCidr("0.0.0.0/0"),
-			dst:         common.NewIPBlockFromCidr("0.0.0.0/0"),
-			connections: common.NewTCPConnectionSet(),
+			src:         ipblock.FromCIDR("0.0.0.0/0"),
+			dst:         ipblock.FromCIDR("0.0.0.0/0"),
+			connections: connection.NewTCP(),
 			action:      "allow",
 		},
 	},
 	subnets: []string{"10.240.20.0/24"},
 }
 
-func nc5Conn() *common.ConnectionSet {
-	res := common.NewConnectionSet(false)
-	res.AddTCPorUDPConn(common.ProtocolTCP, 10, 100, 443, 443)
+func nc5Conn() *connection.Set {
+	res := connection.New(false)
+	res.AddTCPorUDP(connection.ProtocolTCP, 10, 100, 443, 443)
 	return res
 }
 
@@ -104,8 +106,8 @@ var nc5 = &naclConfig{
 	ingressRules: getAllowAllRules(),
 	egressRules: []*NACLRule{
 		{
-			src:         common.NewIPBlockFromCidr("0.0.0.0/0"),
-			dst:         common.NewIPBlockFromCidr("0.0.0.0/0"),
+			src:         ipblock.FromCIDR("0.0.0.0/0"),
+			dst:         ipblock.FromCIDR("0.0.0.0/0"),
 			connections: nc5Conn(),
 			action:      "allow",
 		},
@@ -113,8 +115,8 @@ var nc5 = &naclConfig{
 	subnets: []string{"10.240.10.0/24"},
 }
 
-func nc6Conn() *common.ConnectionSet {
-	res := common.NewConnectionSet(false)
+func nc6Conn() *connection.Set {
+	res := connection.NewSet(false)
 	res.AddTCPorUDPConn(common.ProtocolTCP, 443, 443, 10, 100)
 	return res
 }
@@ -124,8 +126,8 @@ var nc6 = &naclConfig{
 	ingressRules: getAllowAllRules(),
 	egressRules: []*NACLRule{
 		{
-			src:         common.NewIPBlockFromCidr("0.0.0.0/0"),
-			dst:         common.NewIPBlockFromCidr("0.0.0.0/0"),
+			src:         ipblock.FromCIDR("0.0.0.0/0"),
+			dst:         ipblock.FromCIDR("0.0.0.0/0"),
 			connections: nc6Conn(),
 			action:      "allow",
 		},
@@ -287,8 +289,8 @@ func createConfigFromTestConfig(tc *testNodesConfig, ncList []*naclConfig) *vpcm
 func getAllowAllRules() []*NACLRule {
 	return []*NACLRule{
 		{
-			src:         common.NewIPBlockFromCidr("0.0.0.0/0"),
-			dst:         common.NewIPBlockFromCidr("0.0.0.0/0"),
+			src:         ipblock.FromCIDR("0.0.0.0/0"),
+			dst:         ipblock.FromCIDR("0.0.0.0/0"),
 			connections: getAllConnSet(),
 			action:      "allow",
 		},
