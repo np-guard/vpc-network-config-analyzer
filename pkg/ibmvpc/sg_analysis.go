@@ -130,7 +130,9 @@ func (sga *SGAnalyzer) getProtocolTcpudpRule(ruleObj *vpc1.SecurityGroupRuleSecu
 		return "", nil, false, err
 	}
 
-	dstPorts := fmt.Sprintf("%d-%d", *ruleObj.PortMin, *ruleObj.PortMax)
+	dstPortMin := getProperty(ruleObj.PortMin, common.MinPort)
+	dstPortMax := getProperty(ruleObj.PortMax, common.MaxPort)
+	dstPorts := fmt.Sprintf("%d-%d", dstPortMin, dstPortMax)
 	connStr := fmt.Sprintf("protocol: %s,  dstPorts: %s", *ruleObj.Protocol, dstPorts)
 	ruleStr = getRuleStr(direction, connStr, cidr)
 	ruleRes = &SGRule{
@@ -138,8 +140,8 @@ func (sga *SGAnalyzer) getProtocolTcpudpRule(ruleObj *vpc1.SecurityGroupRuleSecu
 		connections: getTCPUDPConns(*ruleObj.Protocol,
 			common.MinPort,
 			common.MaxPort,
-			getProperty(ruleObj.PortMin, common.MinPort),
-			getProperty(ruleObj.PortMax, common.MaxPort),
+			dstPortMin,
+			dstPortMax,
 		),
 		target: target,
 	}
