@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/connection"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
 )
 
@@ -93,8 +93,8 @@ func newCloudConfigTest1() (*CloudConfig, *VPCConnectivity) {
 	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0]}})
 
 	res1 := &VPCConnectivity{AllowedConnsCombined: NewNodesConnectionsMap()}
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], connection.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], connection.NewConnectionSet(true))
 	return res, res1
 }
 
@@ -109,10 +109,10 @@ func newCloudConfigTest2() (*CloudConfig, *VPCConnectivity) {
 	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0], res.Nodes[3]}})
 
 	res1 := &VPCConnectivity{AllowedConnsCombined: NewNodesConnectionsMap()}
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[3], res.Nodes[1], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[3], res.Nodes[2], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], connection.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], connection.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[3], res.Nodes[1], connection.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[3], res.Nodes[2], connection.NewConnectionSet(true))
 
 	return res, res1
 }
@@ -167,11 +167,14 @@ func configStatefulGrouping() (*CloudConfig, *VPCConnectivity) {
 	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0], res.Nodes[3]}})
 
 	res1 := &VPCConnectivity{AllowedConnsCombined: NewNodesConnectionsMap()}
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], common.NewConnectionSetWithStateful(true, common.StatefulTrue))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], common.NewConnectionSetWithStateful(true, common.StatefulTrue))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[3], res.Nodes[1], common.NewConnectionSetWithStateful(true, common.StatefulTrue))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1],
+		connection.NewConnectionSetWithStateful(true, connection.StatefulTrue))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2],
+		connection.NewConnectionSetWithStateful(true, connection.StatefulTrue))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[3], res.Nodes[1],
+		connection.NewConnectionSetWithStateful(true, connection.StatefulTrue))
 	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[3], res.Nodes[2],
-		common.NewConnectionSetWithStateful(true, common.StatefulFalse))
+		connection.NewConnectionSetWithStateful(true, connection.StatefulFalse))
 
 	return res, res1
 }
@@ -203,8 +206,8 @@ func configIPRange() (*CloudConfig, *VPCConnectivity) {
 	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0]}})
 
 	res1 := &VPCConnectivity{AllowedConnsCombined: NewNodesConnectionsMap()}
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], connection.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], connection.NewConnectionSet(true))
 	return res, res1
 }
 
@@ -233,12 +236,12 @@ func configSelfLoopClique() (*CloudConfig, *VPCConnectivity) {
 	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0], res.Nodes[1], res.Nodes[2]}})
 
 	res1 := &VPCConnectivity{AllowedConnsCombined: NewNodesConnectionsMap()}
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[1], res.Nodes[0], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[1], res.Nodes[2], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[2], res.Nodes[1], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[2], res.Nodes[0], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], connection.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], connection.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[1], res.Nodes[0], connection.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[1], res.Nodes[2], connection.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[2], res.Nodes[1], connection.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[2], res.Nodes[0], connection.NewConnectionSet(true))
 
 	return res, res1
 }
@@ -270,12 +273,12 @@ func configSelfLoopCliqueDiffSubnets() (*CloudConfig, *VPCConnectivity) {
 		&mockSubnet{"10.240.10.0/22", "subnet2", []Node{res.Nodes[2]}})
 
 	res1 := &VPCConnectivity{AllowedConnsCombined: NewNodesConnectionsMap()}
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[1], res.Nodes[0], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[1], res.Nodes[2], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[2], res.Nodes[1], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[2], res.Nodes[0], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], connection.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], connection.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[1], res.Nodes[0], connection.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[1], res.Nodes[2], connection.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[2], res.Nodes[1], connection.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[2], res.Nodes[0], connection.NewConnectionSet(true))
 
 	return res, res1
 }
@@ -310,9 +313,9 @@ func configSimpleSelfLoop() (*CloudConfig, *VPCConnectivity) {
 	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0], res.Nodes[1], res.Nodes[2]}})
 
 	res1 := &VPCConnectivity{AllowedConnsCombined: NewNodesConnectionsMap()}
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[1], res.Nodes[2], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], connection.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], connection.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[1], res.Nodes[2], connection.NewConnectionSet(true))
 
 	return res, res1
 }
@@ -351,14 +354,14 @@ func configSelfLoopCliqueLace() (*CloudConfig, *VPCConnectivity) {
 		[]Node{res.Nodes[0], res.Nodes[1], res.Nodes[2], res.Nodes[3], res.Nodes[4]}})
 
 	res1 := &VPCConnectivity{AllowedConnsCombined: NewNodesConnectionsMap()}
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[1], res.Nodes[0], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[1], res.Nodes[2], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[2], res.Nodes[1], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[2], res.Nodes[0], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[2], res.Nodes[3], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[3], res.Nodes[4], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], connection.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], connection.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[1], res.Nodes[0], connection.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[1], res.Nodes[2], connection.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[2], res.Nodes[1], connection.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[2], res.Nodes[0], connection.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[2], res.Nodes[3], connection.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[3], res.Nodes[4], connection.NewConnectionSet(true))
 
 	return res, res1
 }

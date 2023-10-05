@@ -5,14 +5,14 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/connection"
 )
 
 // Functions for the computation of VPC connectivity between nodes elements
 
 // GetVPCNetworkConnectivity computes VPCConnectivity in few steps
-// (1) compute AllowedConns (map[Node]*ConnectivityResult) : ingress or egress allowed conns separately
-// (2) compute AllowedConnsCombined (map[Node]map[Node]*common.ConnectionSet) : allowed conns considering both ingress and egress directions
+// (1) compute AllowedConns (map[Node]*ConnectivityResult): ingress or egress allowed conns separately
+// (2) compute AllowedConnsCombined (map[Node]map[Node]*ConnectionSet): allowed conns considering both ingress and egress directions
 // (3) compute AllowedConnsCombinedStateful : stateful allowed connections, for which connection in reverse direction is also allowed
 // (4) if grouping required - compute grouping of connectivity results
 func (c *CloudConfig) GetVPCNetworkConnectivity(grouping bool) (*VPCConnectivity, error) {
@@ -60,17 +60,17 @@ func (c *CloudConfig) GetVPCNetworkConnectivity(grouping bool) (*VPCConnectivity
 func (c *CloudConfig) getFiltersAllowedConnsBetweenNodesPerDirectionAndLayer(
 	src, dst Node,
 	isIngress bool,
-	layer string) (*common.ConnectionSet, error) {
+	layer string) (*connection.ConnectionSet, error) {
 	filter := c.getFilterTrafficResourceOfKind(layer)
 	if filter == nil {
-		return AllConns(), nil
+		return connection.AllConns(), nil
 	}
 	return filter.AllowedConnectivity(src, dst, isIngress)
 }
 
-func updatePerLayerRes(res map[string]map[Node]*common.ConnectionSet, layer string, node Node, conn *common.ConnectionSet) {
+func updatePerLayerRes(res map[string]map[Node]*connection.ConnectionSet, layer string, node Node, conn *connection.ConnectionSet) {
 	if _, ok := res[layer]; !ok {
-		res[layer] = map[Node]*common.ConnectionSet{}
+		res[layer] = map[Node]*connection.ConnectionSet{}
 	}
 	res[layer][node] = conn
 }
@@ -78,12 +78,12 @@ func updatePerLayerRes(res map[string]map[Node]*common.ConnectionSet, layer stri
 // getAllowedConnsPerDirection returns: (1) map of allowed (ingress or egress) connectivity for capturedNode, considering
 // all relevant resources (nacl/sg/fip/pgw) , and (2) similar map per separated layers only (nacl/sg)
 func (c *CloudConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Node) (
-	allLayersRes map[Node]*common.ConnectionSet, // result considering all layers
-	perLayerRes map[string]map[Node]*common.ConnectionSet, // result separated per layer
+	allLayersRes map[Node]*connection.ConnectionSet, // result considering all layers
+	perLayerRes map[string]map[Node]*connection.ConnectionSet, // result separated per layer
 	err error,
 ) {
-	perLayerRes = map[string]map[Node]*common.ConnectionSet{}
-	allLayersRes = map[Node]*common.ConnectionSet{}
+	perLayerRes = map[string]map[Node]*connection.ConnectionSet{}
+	allLayersRes = map[Node]*connection.ConnectionSet{}
 
 	// iterate pairs (capturedNode, peerNode) to analyze their allowed ingress/egress conns
 	for _, peerNode := range c.Nodes {
@@ -106,7 +106,7 @@ func (c *CloudConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode N
 		if peerNode.IsInternal() {
 			// no need for router node, connectivity is from within VPC
 			// only check filtering resources
-			allowedConnsBetweenCapturedAndPeerNode := AllConns()
+			allowedConnsBetweenCapturedAndPeerNode := connection.AllConns()
 			for _, resMap := range perLayerRes {
 				allowedConnsBetweenCapturedAndPeerNode = allowedConnsBetweenCapturedAndPeerNode.Intersection(resMap[peerNode])
 			}
@@ -114,7 +114,7 @@ func (c *CloudConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode N
 		} else {
 			// else : external node -> consider attached routing resources
 
-			allowedConnsBetweenCapturedAndPeerNode := NoConns()
+			allowedConnsBetweenCapturedAndPeerNode := connection.NoConns()
 			// node is associated with either a pgw or a fip
 			var appliedRouter RoutingResource
 			for _, router := range c.RoutingResources {
@@ -128,7 +128,7 @@ func (c *CloudConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode N
 			}
 			if appliedRouter == nil {
 				// without fip/pgw there is no external connectivity
-				allLayersRes[peerNode] = NoConns()
+				allLayersRes[peerNode] = connection.NoConns()
 				continue
 			}
 			// ibm-config: appliedFilters are either both nacl and sg (for pgw) or only sg (for fip)
@@ -196,7 +196,7 @@ func (v *VPCConnectivity) isConnExternalThroughFIP(src, dst Node) bool {
 	if connRes == nil {
 		return false
 	}
-	var conns *common.ConnectionSet
+	var conns *connection.ConnectionSet
 	if !isSrcPublic {
 		conns = connRes.EgressAllowedConns[dst]
 	} else {
@@ -223,13 +223,13 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections() {
 			if v.isConnExternalThroughFIP(src, dst) {
 				// TODO: this may be ibm-specific. consider moving to ibmvpc
 				v.AllowedConnsCombinedStateful.updateAllowedConnsMap(src, dst, conn)
-				conn.IsStateful = common.StatefulTrue
+				conn.IsStateful = connection.StatefulTrue
 				continue
 			}
 
 			// get the allowed *stateful* conn result
 			// check allowed conns per NACL-layer from dst to src (dst->src)
-			var DstAllowedEgressToSrc, SrcAllowedIngressFromDst *common.ConnectionSet
+			var DstAllowedEgressToSrc, SrcAllowedIngressFromDst *connection.ConnectionSet
 			// can dst egress to src?
 			DstAllowedEgressToSrc = v.getPerLayerConnectivity(statelessLayerName, dst, src, false)
 			// can src ingress from dst?
@@ -240,21 +240,21 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections() {
 			statefulCombinedConn := conn.Intersection(combinedDstToSrcSwitchPortsDirection)
 			v.AllowedConnsCombinedStateful.updateAllowedConnsMap(src, dst, statefulCombinedConn)
 			if !conn.Equal(statefulCombinedConn) {
-				conn.IsStateful = common.StatefulFalse
+				conn.IsStateful = connection.StatefulFalse
 			} else {
-				conn.IsStateful = common.StatefulTrue
+				conn.IsStateful = connection.StatefulTrue
 			}
 		}
 	}
 }
 
 // getPerLayerConnectivity currently used for "NaclLayer" - to compute stateful allowed conns
-func (v *VPCConnectivity) getPerLayerConnectivity(layer string, src, dst Node, isIngress bool) *common.ConnectionSet {
+func (v *VPCConnectivity) getPerLayerConnectivity(layer string, src, dst Node, isIngress bool) *connection.ConnectionSet {
 	// if the analyzed input node is not internal- assume all conns allowed
 	if (isIngress && !dst.IsInternal()) || (!isIngress && !src.IsInternal()) {
-		return common.NewConnectionSet(true)
+		return connection.NewConnectionSet(true)
 	}
-	var result *common.ConnectionSet
+	var result *connection.ConnectionSet
 	var connMap map[string]*ConnectivityResult
 	if isIngress {
 		connMap = v.AllowedConnsPerLayer[dst]
@@ -268,7 +268,7 @@ func (v *VPCConnectivity) getPerLayerConnectivity(layer string, src, dst Node, i
 		result = connResult.EgressAllowedConns[dst]
 	}
 	if result == nil {
-		return NoConns()
+		return connection.NoConns()
 	}
 	return result
 }

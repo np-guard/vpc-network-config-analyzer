@@ -1,7 +1,7 @@
 package vpcmodel
 
 import (
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/connection"
 	ipblock "github.com/np-guard/vpc-network-config-analyzer/pkg/ipblock"
 )
 
@@ -22,7 +22,7 @@ type VPCConnectivity struct {
 	GroupedConnectivity *GroupConnLines
 }
 
-type NodesConnectionsMap map[Node]map[Node]*common.ConnectionSet
+type NodesConnectionsMap map[Node]map[Node]*connection.ConnectionSet
 
 func NewNodesConnectionsMap() NodesConnectionsMap {
 	return NodesConnectionsMap{}
@@ -33,19 +33,19 @@ func NewNodesConnectionsMap() NodesConnectionsMap {
 // The ConnectivityResult holds the allowed ingress and egress connections (to/from the associated node)
 // with other Node objects and the connection attributes for each such node
 type ConnectivityResult struct {
-	IngressAllowedConns map[Node]*common.ConnectionSet
-	EgressAllowedConns  map[Node]*common.ConnectionSet
+	IngressAllowedConns map[Node]*connection.ConnectionSet
+	EgressAllowedConns  map[Node]*connection.ConnectionSet
 }
 
 // NewConnectivityResult returns a new (empty) ConnectivityResult object
 func NewConnectivityResult() *ConnectivityResult {
 	return &ConnectivityResult{
-		IngressAllowedConns: map[Node]*common.ConnectionSet{},
-		EgressAllowedConns:  map[Node]*common.ConnectionSet{},
+		IngressAllowedConns: map[Node]*connection.ConnectionSet{},
+		EgressAllowedConns:  map[Node]*connection.ConnectionSet{},
 	}
 }
 
-func (cr *ConnectivityResult) ingressOrEgressAllowedConns(isIngress bool) map[Node]*common.ConnectionSet {
+func (cr *ConnectivityResult) ingressOrEgressAllowedConns(isIngress bool) map[Node]*connection.ConnectionSet {
 	if isIngress {
 		return cr.IngressAllowedConns
 	}
@@ -56,28 +56,28 @@ func (cr *ConnectivityResult) ingressOrEgressAllowedConns(isIngress bool) map[No
 // It is associated with a subnet when analyzing connectivity of subnets based on NACL resources
 // (see func (nl *NaclLayer) ConnectivityMap() )
 type IPbasedConnectivityResult struct {
-	IngressAllowedConns map[*ipblock.IPBlock]*common.ConnectionSet
-	EgressAllowedConns  map[*ipblock.IPBlock]*common.ConnectionSet
+	IngressAllowedConns map[*ipblock.IPBlock]*connection.ConnectionSet
+	EgressAllowedConns  map[*ipblock.IPBlock]*connection.ConnectionSet
 }
 
 func NewIPbasedConnectivityResult() *IPbasedConnectivityResult {
 	return &IPbasedConnectivityResult{
-		IngressAllowedConns: map[*ipblock.IPBlock]*common.ConnectionSet{},
-		EgressAllowedConns:  map[*ipblock.IPBlock]*common.ConnectionSet{},
+		IngressAllowedConns: map[*ipblock.IPBlock]*connection.ConnectionSet{},
+		EgressAllowedConns:  map[*ipblock.IPBlock]*connection.ConnectionSet{},
 	}
 }
 
 // ConfigBasedConnectivityResults is used to capture allowed connectivity to/from elements in the vpc config (subnets / external ip-blocks)
 // It is associated with a subnet when analyzing connectivity of subnets based on NACL resources
 type ConfigBasedConnectivityResults struct {
-	IngressAllowedConns map[EndpointElem]*common.ConnectionSet
-	EgressAllowedConns  map[EndpointElem]*common.ConnectionSet
+	IngressAllowedConns map[EndpointElem]*connection.ConnectionSet
+	EgressAllowedConns  map[EndpointElem]*connection.ConnectionSet
 }
 
 func NewConfigBasedConnectivityResults() *ConfigBasedConnectivityResults {
 	return &ConfigBasedConnectivityResults{
-		IngressAllowedConns: map[EndpointElem]*common.ConnectionSet{},
-		EgressAllowedConns:  map[EndpointElem]*common.ConnectionSet{},
+		IngressAllowedConns: map[EndpointElem]*connection.ConnectionSet{},
+		EgressAllowedConns:  map[EndpointElem]*connection.ConnectionSet{},
 	}
 }
 
@@ -105,18 +105,18 @@ func (v *VPCConnectivity) SplitAllowedConnsToUnidirectionalAndBidirectional() (
 	return bidirectional, unidirectional
 }
 
-func (nodesConnMap NodesConnectionsMap) updateAllowedConnsMap(src, dst Node, conn *common.ConnectionSet) {
+func (nodesConnMap NodesConnectionsMap) updateAllowedConnsMap(src, dst Node, conn *connection.ConnectionSet) {
 	if _, ok := nodesConnMap[src]; !ok {
-		nodesConnMap[src] = map[Node]*common.ConnectionSet{}
+		nodesConnMap[src] = map[Node]*connection.ConnectionSet{}
 	}
 	nodesConnMap[src][dst] = conn
 }
 
-func (nodesConnMap NodesConnectionsMap) getAllowedConnForPair(src, dst Node) *common.ConnectionSet {
+func (nodesConnMap NodesConnectionsMap) getAllowedConnForPair(src, dst Node) *connection.ConnectionSet {
 	if connsMap, ok := nodesConnMap[src]; ok {
 		if conn, ok := connsMap[dst]; ok {
 			return conn
 		}
 	}
-	return NoConns()
+	return connection.NoConns()
 }

@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package common
+package connection
 
 import (
 	"sort"
@@ -19,6 +19,7 @@ import (
 
 	hypercube "github.com/np-guard/vpc-network-config-analyzer/internal/hypercube"
 	interval "github.com/np-guard/vpc-network-config-analyzer/internal/interval"
+	model "github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 type ProtocolStr string
@@ -143,6 +144,14 @@ func NewConnectionSetWithCube(cube *hypercube.CanonicalHypercubeSet) *Connection
 		return NewConnectionSet(true)
 	}
 	return res
+}
+
+func AllConns() *ConnectionSet {
+	return NewConnectionSet(true)
+}
+
+func NoConns() *ConnectionSet {
+	return NewConnectionSet(false)
 }
 
 func (conn *ConnectionSet) Copy() *ConnectionSet {
@@ -358,21 +367,21 @@ func (conn *ConnectionSet) String() string {
 	return strings.Join(resStrings, "; ")
 }
 
-type ConnDetails ProtocolList
+type ConnDetails model.ProtocolList
 
-func getCubeAsTCPItems(cube []*interval.CanonicalIntervalSet, protocol TcpUdpProtocol) []TcpUdp {
-	tcpItemsTemp := []TcpUdp{}
-	tcpItemsFinal := []TcpUdp{}
+func getCubeAsTCPItems(cube []*interval.CanonicalIntervalSet, protocol model.TcpUdpProtocol) []model.TcpUdp {
+	tcpItemsTemp := []model.TcpUdp{}
+	tcpItemsFinal := []model.TcpUdp{}
 	// consider src ports
 	srcPorts := cube[srcPort]
 	if !srcPorts.Equal(*getDimensionDomain(srcPort)) {
 		// iterate the intervals in the interval-set
 		for _, ipInterval := range srcPorts.IntervalSet {
-			tcpRes := TcpUdp{Protocol: protocol, MinSourcePort: int(ipInterval.Start), MaxSourcePort: int(ipInterval.End)}
+			tcpRes := model.TcpUdp{Protocol: protocol, MinSourcePort: int(ipInterval.Start), MaxSourcePort: int(ipInterval.End)}
 			tcpItemsTemp = append(tcpItemsTemp, tcpRes)
 		}
 	} else {
-		tcpItemsTemp = append(tcpItemsTemp, TcpUdp{Protocol: protocol})
+		tcpItemsTemp = append(tcpItemsTemp, model.TcpUdp{Protocol: protocol})
 	}
 	// consider dst ports
 	dstPorts := cube[dstPort]
@@ -380,7 +389,7 @@ func getCubeAsTCPItems(cube []*interval.CanonicalIntervalSet, protocol TcpUdpPro
 		// iterate the intervals in the interval-set
 		for _, ipInterval := range dstPorts.IntervalSet {
 			for _, tcpItemTemp := range tcpItemsTemp {
-				tcpRes := TcpUdp{
+				tcpRes := model.TcpUdp{
 					Protocol:           protocol,
 					MinSourcePort:      tcpItemTemp.MinSourcePort,
 					MaxSourcePort:      tcpItemTemp.MaxSourcePort,
@@ -406,24 +415,24 @@ func getIntervalNumbers(c *interval.CanonicalIntervalSet) []int {
 	return res
 }
 
-func getCubeAsICMPItems(cube []*interval.CanonicalIntervalSet) []Icmp {
+func getCubeAsICMPItems(cube []*interval.CanonicalIntervalSet) []model.Icmp {
 	icmpTypes := cube[icmpType]
 	icmpCodes := cube[icmpCode]
 	if icmpTypes.Equal(*getDimensionDomain(icmpType)) && icmpCodes.Equal(*getDimensionDomain(icmpCode)) {
-		return []Icmp{{Protocol: IcmpProtocolICMP}}
+		return []model.Icmp{{Protocol: model.IcmpProtocolICMP}}
 	}
-	res := []Icmp{}
+	res := []model.Icmp{}
 	if icmpTypes.Equal(*getDimensionDomain(icmpType)) {
 		codeNumbers := getIntervalNumbers(icmpCodes)
 		for i := range codeNumbers {
-			res = append(res, Icmp{Protocol: IcmpProtocolICMP, Code: &codeNumbers[i]})
+			res = append(res, model.Icmp{Protocol: model.IcmpProtocolICMP, Code: &codeNumbers[i]})
 		}
 		return res
 	}
 	if icmpCodes.Equal(*getDimensionDomain(icmpCode)) {
 		typeNumbers := getIntervalNumbers(icmpTypes)
 		for i := range typeNumbers {
-			res = append(res, Icmp{Protocol: IcmpProtocolICMP, Type: &typeNumbers[i]})
+			res = append(res, model.Icmp{Protocol: model.IcmpProtocolICMP, Type: &typeNumbers[i]})
 		}
 		return res
 	}
@@ -432,7 +441,7 @@ func getCubeAsICMPItems(cube []*interval.CanonicalIntervalSet) []Icmp {
 	codeNumbers := getIntervalNumbers(icmpCodes)
 	for i := range typeNumbers {
 		for j := range codeNumbers {
-			res = append(res, Icmp{Protocol: IcmpProtocolICMP, Type: &typeNumbers[i], Code: &codeNumbers[j]})
+			res = append(res, model.Icmp{Protocol: model.IcmpProtocolICMP, Type: &typeNumbers[i], Code: &codeNumbers[j]})
 		}
 	}
 	return res
@@ -440,21 +449,21 @@ func getCubeAsICMPItems(cube []*interval.CanonicalIntervalSet) []Icmp {
 
 func ConnToJSONRep(c *ConnectionSet) ConnDetails {
 	if c.AllowAll {
-		return ConnDetails(ProtocolList{AnyProtocol{Protocol: AnyProtocolProtocolANY}})
+		return ConnDetails(model.ProtocolList{model.AnyProtocol{Protocol: model.AnyProtocolProtocolANY}})
 	}
-	res := ProtocolList{}
+	res := model.ProtocolList{}
 
 	cubes := c.connectionProperties.GetCubesList()
 	for _, cube := range cubes {
 		protocols := cube[protocol]
 		if protocols.Contains(TCP) {
-			tcpItems := getCubeAsTCPItems(cube, TcpUdpProtocolTCP)
+			tcpItems := getCubeAsTCPItems(cube, model.TcpUdpProtocolTCP)
 			for _, item := range tcpItems {
 				res = append(res, item)
 			}
 		}
 		if protocols.Contains(UDP) {
-			udpItems := getCubeAsTCPItems(cube, TcpUdpProtocolUDP)
+			udpItems := getCubeAsTCPItems(cube, model.TcpUdpProtocolUDP)
 			for _, item := range udpItems {
 				res = append(res, item)
 			}

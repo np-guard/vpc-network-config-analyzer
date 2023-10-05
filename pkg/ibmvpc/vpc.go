@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+	connection "github.com/np-guard/vpc-network-config-analyzer/pkg/connection"
 	ipblock "github.com/np-guard/vpc-network-config-analyzer/pkg/ipblock"
 	vpcmodel "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
@@ -55,7 +55,7 @@ type NetworkInterface struct {
 func (ni *NetworkInterface) Cidr() string {
 	return ni.address
 	// TODO: fix so that it works with cidr instead of address returned
-	// return common.IPv4AddressToCidr(ni.address)
+	// return connection.IPv4AddressToCidr(ni.address)
 }
 func (ni *NetworkInterface) IsInternal() bool {
 	return true
@@ -302,8 +302,8 @@ func (nl *NaclLayer) GetConnectivityOutputPerEachElemSeparately() string {
 	return strings.Join(res, "\n")
 }
 
-func (nl *NaclLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*common.ConnectionSet, error) {
-	res := vpcmodel.NoConns()
+func (nl *NaclLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*connection.ConnectionSet, error) {
+	res := connection.NoConns()
 	for _, nacl := range nl.naclList {
 		naclConn, err := nacl.AllowedConnectivity(src, dst, isIngress)
 		if err != nil {
@@ -372,7 +372,7 @@ func getNodeCidrs(n vpcmodel.Node) (subnetCidr, nodeCidr string, err error) {
 	}
 }
 
-func (n *NACL) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*common.ConnectionSet, error) {
+func (n *NACL) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*connection.ConnectionSet, error) {
 	var subnetCidr string
 	var inSubnetCidr string
 	var targetNode vpcmodel.Node
@@ -389,11 +389,11 @@ func (n *NACL) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*com
 	}
 	// check if the subnet of the given node is affected by this nacl
 	if _, ok := n.subnets[subnetCidr]; !ok {
-		return vpcmodel.NoConns(), nil // not affected by current nacl
+		return connection.NoConns(), nil // not affected by current nacl
 	}
 	// TODO: differentiate between "has no effect" vs "affects with allow-all / allow-none "
 	if allInSubnet, err := ipblock.IsAddressInSubnet(targetNode.Cidr(), subnetCidr); err == nil && allInSubnet {
-		return vpcmodel.AllConns(), nil // nacl has no control on traffic between two instances in its subnet
+		return connection.AllConns(), nil // nacl has no control on traffic between two instances in its subnet
 	}
 	// TODO: consider err
 	res, _ := n.analyzer.AllowedConnectivity(subnetCidr, inSubnetCidr, targetNode.Cidr(), isIngress)
@@ -440,11 +440,11 @@ func (sgl *SecurityGroupLayer) GetConnectivityOutputPerEachElemSeparately() stri
 }
 
 // TODO: fix: is it possible that no sg applies  to the input peer? if so, should not return "no conns" when none applies
-func (sgl *SecurityGroupLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*common.ConnectionSet, error) {
+func (sgl *SecurityGroupLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*connection.ConnectionSet, error) {
 	if (isIngress && dst.Kind() == ResourceTypeIKSNode) || (!isIngress && src.Kind() == ResourceTypeIKSNode) {
-		return vpcmodel.AllConns(), nil
+		return connection.AllConns(), nil
 	}
-	res := vpcmodel.NoConns()
+	res := connection.NoConns()
 	for _, sg := range sgl.sgList {
 		sgConn := sg.AllowedConnectivity(src, dst, isIngress)
 		res = res.Union(sgConn)
@@ -494,7 +494,7 @@ func (sg *SecurityGroup) DetailsMap() map[string]string {
 	}
 }
 
-func (sg *SecurityGroup) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *common.ConnectionSet {
+func (sg *SecurityGroup) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *connection.ConnectionSet {
 	var member, target vpcmodel.Node
 	if isIngress {
 		member = dst
@@ -505,7 +505,7 @@ func (sg *SecurityGroup) AllowedConnectivity(src, dst vpcmodel.Node, isIngress b
 	}
 	memberStrAddress := member.Cidr()
 	if _, ok := sg.members[memberStrAddress]; !ok {
-		return vpcmodel.NoConns() // connectivity not affected by this SG resource - input node is not its member
+		return connection.NoConns() // connectivity not affected by this SG resource - input node is not its member
 	}
 	targetStrAddress := target.Cidr()
 	return sg.analyzer.AllowedConnectivity(targetStrAddress, isIngress)
@@ -557,14 +557,14 @@ func (fip *FloatingIP) Destinations() []vpcmodel.Node {
 	return fip.destinations
 }
 
-func (fip *FloatingIP) AllowedConnectivity(src, dst vpcmodel.Node) *common.ConnectionSet {
+func (fip *FloatingIP) AllowedConnectivity(src, dst vpcmodel.Node) *connection.ConnectionSet {
 	if vpcmodel.HasNode(fip.Src(), src) && vpcmodel.HasNode(fip.Destinations(), dst) {
-		return vpcmodel.AllConns()
+		return connection.AllConns()
 	}
 	if vpcmodel.HasNode(fip.Src(), dst) && vpcmodel.HasNode(fip.Destinations(), src) {
-		return vpcmodel.AllConns()
+		return connection.AllConns()
 	}
-	return vpcmodel.NoConns()
+	return connection.NoConns()
 }
 
 func (fip *FloatingIP) AppliedFiltersKinds() map[string]bool {
@@ -617,11 +617,11 @@ func (pgw *PublicGateway) ConnectivityMap() map[string]vpcmodel.ConfigBasedConne
 	res := map[string]vpcmodel.ConfigBasedConnectivityResults{}
 	for _, subnetCidr := range pgw.subnetCidr {
 		res[subnetCidr] = vpcmodel.ConfigBasedConnectivityResults{
-			IngressAllowedConns: map[vpcmodel.EndpointElem]*common.ConnectionSet{},
-			EgressAllowedConns:  map[vpcmodel.EndpointElem]*common.ConnectionSet{},
+			IngressAllowedConns: map[vpcmodel.EndpointElem]*connection.ConnectionSet{},
+			EgressAllowedConns:  map[vpcmodel.EndpointElem]*connection.ConnectionSet{},
 		}
 		for _, dst := range pgw.destinations {
-			res[subnetCidr].EgressAllowedConns[dst] = vpcmodel.AllConns()
+			res[subnetCidr].EgressAllowedConns[dst] = connection.AllConns()
 		}
 	}
 
@@ -635,11 +635,11 @@ func (pgw *PublicGateway) Destinations() []vpcmodel.Node {
 	return pgw.destinations
 }
 
-func (pgw *PublicGateway) AllowedConnectivity(src, dst vpcmodel.Node) *common.ConnectionSet {
+func (pgw *PublicGateway) AllowedConnectivity(src, dst vpcmodel.Node) *connection.ConnectionSet {
 	if vpcmodel.HasNode(pgw.Src(), src) && vpcmodel.HasNode(pgw.Destinations(), dst) {
-		return vpcmodel.AllConns()
+		return connection.AllConns()
 	}
-	return vpcmodel.NoConns()
+	return connection.NoConns()
 }
 
 func (pgw *PublicGateway) AppliedFiltersKinds() map[string]bool {

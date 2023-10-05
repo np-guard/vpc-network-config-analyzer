@@ -4,7 +4,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/connection"
 	ipblock "github.com/np-guard/vpc-network-config-analyzer/pkg/ipblock"
 )
 
@@ -91,7 +91,7 @@ func (g *GroupedConnLine) String() string {
 
 func (g *GroupedConnLine) ConnLabel() string {
 	// todo - this info can be found in the conn struct, GroupedConnLine should keep the struct instead of just a string
-	if common.IsAllConnections(g.Conn) {
+	if connection.IsAllConnections(g.Conn) {
 		return ""
 	}
 	return g.Conn
@@ -300,8 +300,8 @@ func (g *GroupConnLines) groupLinesByKey(srcGrouping, groupVsi bool) (res []*Gro
 	return res, newGroupingSrcOrDst
 }
 
-func getKeyOfGroupConnLines(ep EndpointElem, connection string) string {
-	return ep.Name() + commaSeparator + connection
+func getKeyOfGroupConnLines(ep EndpointElem, conn string) string {
+	return ep.Name() + commaSeparator + conn
 }
 
 // assuming the  g.groupedLines was already initialized by previous step groupExternalAddresses()

@@ -1,7 +1,7 @@
 package vpcmodel
 
 import (
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/connection"
 	ipblock "github.com/np-guard/vpc-network-config-analyzer/pkg/ipblock"
 )
 
@@ -73,7 +73,7 @@ type NodeSet interface {
 type FilterTrafficResource interface {
 	VPCResourceIntf
 	// get the connectivity result when the filterTraffic resource is applied to the given NodeSet element
-	AllowedConnectivity(src, dst Node, isIngress bool) (*common.ConnectionSet, error)
+	AllowedConnectivity(src, dst Node, isIngress bool) (*connection.ConnectionSet, error)
 	ReferencedIPblocks() []*ipblock.IPBlock
 	ConnectivityMap() (map[string]*IPbasedConnectivityResult, error)
 	GetConnectivityOutputPerEachElemSeparately() string
@@ -85,7 +85,7 @@ type RoutingResource interface {
 	VPCResourceIntf
 	Src() []Node
 	Destinations() []Node
-	AllowedConnectivity(src, dst Node) *common.ConnectionSet
+	AllowedConnectivity(src, dst Node) *connection.ConnectionSet
 	ConnectivityMap() map[string]ConfigBasedConnectivityResults
 	AppliedFiltersKinds() map[string]bool
 }

@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+	connection "github.com/np-guard/vpc-network-config-analyzer/pkg/connection"
 	ipblock "github.com/np-guard/vpc-network-config-analyzer/pkg/ipblock"
 	vpcmodel "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
@@ -86,16 +86,16 @@ var nc4 = &naclConfig{
 		{
 			src:         ipblock.NewIPBlockFromCidr("0.0.0.0/0"),
 			dst:         ipblock.NewIPBlockFromCidr("0.0.0.0/0"),
-			connections: common.NewTCPConnectionSet(),
+			connections: connection.NewTCPConnectionSet(),
 			action:      "allow",
 		},
 	},
 	subnets: []string{"10.240.20.0/24"},
 }
 
-func nc5Conn() *common.ConnectionSet {
-	res := common.NewConnectionSet(false)
-	res.AddTCPorUDPConn(common.ProtocolTCP, 10, 100, 443, 443)
+func nc5Conn() *connection.ConnectionSet {
+	res := connection.NewConnectionSet(false)
+	res.AddTCPorUDPConn(connection.ProtocolTCP, 10, 100, 443, 443)
 	return res
 }
 
@@ -114,9 +114,9 @@ var nc5 = &naclConfig{
 	subnets: []string{"10.240.10.0/24"},
 }
 
-func nc6Conn() *common.ConnectionSet {
-	res := common.NewConnectionSet(false)
-	res.AddTCPorUDPConn(common.ProtocolTCP, 443, 443, 10, 100)
+func nc6Conn() *connection.ConnectionSet {
+	res := connection.NewConnectionSet(false)
+	res.AddTCPorUDPConn(connection.ProtocolTCP, 443, 443, 10, 100)
 	return res
 }
 

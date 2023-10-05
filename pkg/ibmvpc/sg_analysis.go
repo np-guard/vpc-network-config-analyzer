@@ -7,9 +7,8 @@ import (
 
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
 
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+	connection "github.com/np-guard/vpc-network-config-analyzer/pkg/connection"
 	ipblock "github.com/np-guard/vpc-network-config-analyzer/pkg/ipblock"
-	vpcmodel "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
 type SGAnalyzer struct {
@@ -37,12 +36,12 @@ func isIngressRule(direction *string) bool {
 	return false
 }
 
-func getEmptyConnSet() *common.ConnectionSet {
-	return common.NewConnectionSet(false)
+func getEmptyConnSet() *connection.ConnectionSet {
+	return connection.NewConnectionSet(false)
 }
 
-func getAllConnSet() *common.ConnectionSet {
-	return common.NewConnectionSet(true)
+func getAllConnSet() *connection.ConnectionSet {
+	return connection.NewConnectionSet(true)
 }
 
 func (sga *SGAnalyzer) getRemoteCidr(remote vpc1.SecurityGroupRuleRemoteIntf) (*ipblock.IPBlock, string, error) {
@@ -137,10 +136,10 @@ func (sga *SGAnalyzer) getProtocolTcpudpRule(ruleObj *vpc1.SecurityGroupRuleSecu
 	ruleRes = &SGRule{
 		// TODO: src ports can be considered here?
 		connections: getTCPUDPConns(*ruleObj.Protocol,
-			common.MinPort,
-			common.MaxPort,
-			getProperty(ruleObj.PortMin, common.MinPort),
-			getProperty(ruleObj.PortMax, common.MaxPort),
+			connection.MinPort,
+			connection.MaxPort,
+			getProperty(ruleObj.PortMin, connection.MinPort),
+			getProperty(ruleObj.PortMax, connection.MaxPort),
 		),
 		target: target,
 	}
@@ -151,12 +150,12 @@ func getRuleStr(direction, connStr, cidr string) string {
 	return fmt.Sprintf("direction: %s,  conns: %s, cidr: %s\n", direction, connStr, cidr)
 }
 
-func getICMPconn(icmpType, icmpCode *int64) (connsRes *common.ConnectionSet, icmpConnStr string) {
-	conns := common.NewConnectionSet(false)
-	typeMin := getProperty(icmpType, common.MinICMPtype)
-	typeMax := getProperty(icmpType, common.MaxICMPtype)
-	codeMin := getProperty(icmpCode, common.MinICMPcode)
-	codeMax := getProperty(icmpCode, common.MaxICMPcode)
+func getICMPconn(icmpType, icmpCode *int64) (connsRes *connection.ConnectionSet, icmpConnStr string) {
+	conns := connection.NewConnectionSet(false)
+	typeMin := getProperty(icmpType, connection.MinICMPtype)
+	typeMax := getProperty(icmpType, connection.MaxICMPtype)
+	codeMin := getProperty(icmpCode, connection.MinICMPcode)
+	codeMax := getProperty(icmpCode, connection.MaxICMPcode)
 
 	conns.AddICMPConnection(typeMin, typeMax, codeMin, codeMax)
 	icmpConnStr = conns.String()
@@ -222,7 +221,7 @@ func (sga *SGAnalyzer) getSGrules(sgObj *vpc1.SecurityGroup) (ingressRules, egre
 
 type SGRule struct {
 	target      *ipblock.IPBlock
-	connections *common.ConnectionSet
+	connections *connection.ConnectionSet
 	// add pointer to original rule
 }
 
@@ -230,7 +229,7 @@ type SGRule struct {
 // ConnectivityResult is per VSI network interface: contains allowed connectivity (with connection attributes) per target
 type ConnectivityResult struct {
 	isIngress    bool
-	allowedconns map[*ipblock.IPBlock]*common.ConnectionSet // allowed target and its allowed connections
+	allowedconns map[*ipblock.IPBlock]*connection.ConnectionSet // allowed target and its allowed connections
 }
 
 func (cr *ConnectivityResult) string() string {
@@ -250,7 +249,7 @@ func AnalyzeSGRules(rules []*SGRule, isIngress bool) *ConnectivityResult {
 		}
 	}
 	disjointTargets := ipblock.DisjointIPBlocks(targets, []*ipblock.IPBlock{ipblock.GetCidrAll()})
-	res := &ConnectivityResult{isIngress: isIngress, allowedconns: map[*ipblock.IPBlock]*common.ConnectionSet{}}
+	res := &ConnectivityResult{isIngress: isIngress, allowedconns: map[*ipblock.IPBlock]*connection.ConnectionSet{}}
 	for i := range disjointTargets {
 		res.allowedconns[disjointTargets[i]] = getEmptyConnSet()
 	}
@@ -282,7 +281,7 @@ func (sga *SGAnalyzer) prepareAnalyzer(sgMap map[string]*SecurityGroup, currentS
 	return nil
 }
 
-func (sga *SGAnalyzer) AllowedConnectivity(target string, isIngress bool) *common.ConnectionSet {
+func (sga *SGAnalyzer) AllowedConnectivity(target string, isIngress bool) *connection.ConnectionSet {
 	ipb := ipblock.NewIPBlockFromCidrOrAddress(target)
 
 	var analyzedConns *ConnectivityResult
@@ -296,5 +295,5 @@ func (sga *SGAnalyzer) AllowedConnectivity(target string, isIngress bool) *commo
 			return conn
 		}
 	}
-	return vpcmodel.NoConns()
+	return connection.NoConns()
 }
