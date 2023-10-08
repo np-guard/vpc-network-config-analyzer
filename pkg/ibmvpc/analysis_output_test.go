@@ -117,15 +117,6 @@ func (tt *vpcGeneralTest) initTest() {
 
 var tests = []*vpcGeneralTest{
 	{
-	name:     "acl_testing3",
-	useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-	grouping: true,
-	format:   vpcmodel.DRAWIO,
-},
-}
-
-var tests2 = []*vpcGeneralTest{
-	{
 		name:     "acl_testing5",
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
 		format:   vpcmodel.Text,
@@ -171,6 +162,32 @@ var tests2 = []*vpcGeneralTest{
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		grouping: true,
 		format:   vpcmodel.Text,
+	},
+
+	// batch2.5: only vsi-level use-case, with grouping , drawio format
+	{
+		name:     "acl_testing3",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping: true,
+		format:   vpcmodel.DRAWIO,
+	},
+	{
+		name:     "sg_testing1_new",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping: true,
+		format:   vpcmodel.DRAWIO,
+	},
+	{
+		name:     "demo_with_instances",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping: true,
+		format:   vpcmodel.DRAWIO,
+	},
+	{
+		name:     "iks_config_object",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping: true,
+		format:   vpcmodel.DRAWIO,
 	},
 
 	//batch3: only vsi-level use-case, no grouping, with debug / md  output formats
