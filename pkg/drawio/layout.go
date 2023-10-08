@@ -240,7 +240,9 @@ func (ly *layoutS) layoutSubnetsIcons() {
 								iconInCurrentCell = nil
 							}
 						}
-						rowIndex++
+						if iconInCurrentCell != nil {
+							rowIndex++
+						}
 					}
 				}
 				colIndex++
