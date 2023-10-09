@@ -233,12 +233,11 @@ func createNetworkGrouping() SquareTreeNodeInterface {
 	groupedNis33d := []IconTreeNodeInterface{ni33a, ni33e, ni33f}
 	groupedNis33c := []IconTreeNodeInterface{ni33c, ni33d, ni33e}
 	groupedNis33e := []IconTreeNodeInterface{ni33g, ni33h, ni33i, ni33j}
+	groupedNis33g := []IconTreeNodeInterface{ni33c, ni33d}
 
 	for _, ni := range groupedNis11 {
 		ni.(*NITreeNode).SetFIP("fip")
 	}
-
-	// gw11 := NewGatewayTreeNode(zone1, "gw11")
 	i2 := NewInternetTreeNode(publicNetwork, "Internet2")
 
 	gs13 := NewGroupSquareTreeNode(subnet13, groupedNis13)
@@ -249,6 +248,7 @@ func createNetworkGrouping() SquareTreeNodeInterface {
 	gs33d := NewGroupSquareTreeNode(subnet33, groupedNis33d)
 	gs33e := NewGroupSquareTreeNode(subnet33, groupedNis33e)
 	gs33f := NewGroupSquareTreeNode(subnet33, groupedNis33f)
+	gs33g := NewGroupSquareTreeNode(subnet33, groupedNis33g)
 	gs23 := NewGroupSquareTreeNode(subnet23, groupedNis23)
 	gs31 := NewGroupSquareTreeNode(subnet31, groupedNis31)
 	gs11 := NewGroupSquareTreeNode(subnet11, groupedNis11)
@@ -262,6 +262,7 @@ func createNetworkGrouping() SquareTreeNodeInterface {
 	NewConnectivityLineTreeNode(network, gs31, gs33d, true, "gconn4")
 	NewConnectivityLineTreeNode(network, gs33f, gs33e, true, "gconn4")
 	NewConnectivityLineTreeNode(network, gs31, gs31, true, "gconn4")
+	NewConnectivityLineTreeNode(network, gs33g, i2, true, "gconn4")
 
 	return network
 }

@@ -9,7 +9,7 @@ import (
 // overview to the layout algorithm:
 // the input to the layout algorithm is the tree itself. the output is the geometry for each node in the drawio (x, y, height, width)
 // the steps:
-// 1. create a 2D matrix  - for each subnet icon, it set the location in the matrix
+// 1. create a 2D matrix  - for each subnet icon, it set the location in the matrix (see details about layouting a subnet)
 // 2. set the locations of the SG in the matrix, according to the locations of the icons
 // 3. add squares borders - resizing the matrix. adding rows and columns to the matrix, to be used as the borders of all squares
 // 4. set the locations of all the squares in the matrix
@@ -107,21 +107,63 @@ func canShareCell(i1, i2 IconTreeNodeInterface) bool {
 	return true
 }
 
-func sortGroupsBySize(subnet SquareTreeNodeInterface) []SquareTreeNodeInterface {
-	subnetGroups := subnet.(*SubnetTreeNode).groupSquares
-	sortedBySizeGroups := make([]SquareTreeNodeInterface, len(subnetGroups))
-	copy(sortedBySizeGroups, subnetGroups)
+func sortBySize(groups []SquareTreeNodeInterface) []SquareTreeNodeInterface {
+	sortedBySizeGroups := make([]SquareTreeNodeInterface, len(groups))
+	copy(sortedBySizeGroups, groups)
 	sort.Slice(sortedBySizeGroups, func(i, j int) bool {
 		return len(sortedBySizeGroups[i].(*GroupSquareTreeNode).groupies) > len(sortedBySizeGroups[j].(*GroupSquareTreeNode).groupies)
 	})
 	return sortedBySizeGroups
 }
 
-func calcGroupsOrder(subnet SquareTreeNodeInterface) [][]IconTreeNodeInterface {
-	sortedBySizeGroups := sortGroupsBySize(subnet)
+// layouting a subnet is done in the following steps:
+// 1. calcGroupsVisibility() - for each group set the visibility of the group:
+//  there are 4 kind of visibility:
+//    a. theSubnet - the group is all the NIs in the subnet
+//    b. square - the group is a subset of the NIs subnet, the group will be bordered with a square
+//    c. innerSquare - the group is a subset of a group of square , the group will be bordered with an inner square inside a square
+//    d. connectedPoint - the group can not be bordered, so it is connected with line to a grouping point
+// the algorithm:
+//   we sort the groups by their size, and start with the biggest:
+//		for each group:
+//			- if the group contains all the NIs of the subnet - its visibility is theSubnet
+//          - else if all the NIs in the group not in a bigger group - its visibility is square
+//          - else if all the NIs in the group are in one bigger group - its visibility is innerSquare
+//          - else its visibility is connectedPoint
+
+func (ly *layoutS) calcGroupsVisibility(subnet SquareTreeNodeInterface) {
+	sortedBySizeGroups := sortBySize(subnet.(*SubnetTreeNode).groupSquares)
+	iconFormerVisualizedGroup := map[IconTreeNodeInterface]SquareTreeNodeInterface{}
+	for _, groupS := range sortedBySizeGroups {
+		group := groupS.(*GroupSquareTreeNode)
+		if len(group.groupies) == len(subnet.(*SubnetTreeNode).NIs()) {
+			group.setVisibility(theSubnet)
+			continue
+		}
+		groupiesFormerGroups := map[SquareTreeNodeInterface]bool{}
+		for _, icon := range group.groupies {
+			groupiesFormerGroups[iconFormerVisualizedGroup[icon]] = true
+		}
+		if len(groupiesFormerGroups) >= 2 {
+			group.setVisibility(connectedPoint)
+			continue
+		}
+		if _, ok := groupiesFormerGroups[nil]; ok {
+			group.setVisibility(square)
+		} else {
+			group.setVisibility(innerSquare)
+		}
+		for _, icon := range group.groupies {
+			iconFormerVisualizedGroup[icon] = group
+		}
+	}
+}
+
+func (ly *layoutS) calcGroupsOrder(subnet SquareTreeNodeInterface) [][]IconTreeNodeInterface {
+	sortedBySizeGroups := sortBySize(subnet.(*SubnetTreeNode).groupSquares)
 	iconOuterGroup := map[IconTreeNodeInterface]SquareTreeNodeInterface{}
 	outerGroup := map[SquareTreeNodeInterface]bool{}
-	for _, groupS := range sortedBySizeGroups {
+	for _, groupS := range subnet.(*SubnetTreeNode).groupSquares {
 		group := groupS.(*GroupSquareTreeNode)
 		if group.visibility == square {
 			for _, icon := range group.groupies {
@@ -167,32 +209,34 @@ func calcGroupsOrder(subnet SquareTreeNodeInterface) [][]IconTreeNodeInterface {
 	return groupOrder
 }
 
-func calcGroupsVisibility(subnet SquareTreeNodeInterface) {
-	sortedBySizeGroups := sortGroupsBySize(subnet)
-	iconFormerVisualizedGroup := map[IconTreeNodeInterface]SquareTreeNodeInterface{}
-	for _, groupS := range sortedBySizeGroups {
-		group := groupS.(*GroupSquareTreeNode)
-		if group.IsAllSubnet() {
-			group.setVisibility(allSubnet)
+func (ly *layoutS) layoutGroupIcons(group []IconTreeNodeInterface, rowIndex, colIndex int) (int, int) {
+	var iconInCurrentCell IconTreeNodeInterface = nil
+	for _, icon := range group {
+		if !icon.IsNI() {
 			continue
 		}
-		groupiesFormerGroups := map[SquareTreeNodeInterface]bool{}
-		for _, icon := range group.groupies {
-			groupiesFormerGroups[iconFormerVisualizedGroup[icon]] = true
+		if !canShareCell(iconInCurrentCell, icon) {
+			rowIndex++
+			iconInCurrentCell = nil
 		}
-		if len(groupiesFormerGroups) >= 2 {
-			group.setVisibility(connectedPoint)
-			continue
-		}
-		if _, ok := groupiesFormerGroups[nil]; ok {
-			group.setVisibility(square)
+		if iconInCurrentCell == nil {
+			l := ly.matrix.allocateCellLocation(rowIndex, colIndex)
+			l.firstRow.setHeight(subnetHeight)
+			l.firstCol.setWidth(subnetWidth)
+			icon.setLocation(l)
+			iconInCurrentCell = icon
 		} else {
-			group.setVisibility(innerSquare)
-		}
-		for _, icon := range group.groupies {
-			iconFormerVisualizedGroup[icon] = group
+			icon.setLocation(iconInCurrentCell.Location().copy())
+			iconInCurrentCell.Location().xOffset = iconSize
+			icon.Location().xOffset = -iconSize
+			rowIndex++
+			iconInCurrentCell = nil
 		}
 	}
+	if iconInCurrentCell != nil {
+		rowIndex++
+	}
+	return rowIndex, colIndex
 }
 
 // ///////////////////////////////////////////////////////////////
@@ -201,7 +245,7 @@ func calcGroupsVisibility(subnet SquareTreeNodeInterface) {
 // 2. zones are next to each others
 // 3. subnets a above/below each other
 // 4. cell can hold at most two icons
-// 5. only icons with the same sg and no fip can share a cell
+// 5. only icons with the same sg and same group and no fip can share a cell
 func (ly *layoutS) layoutSubnetsIcons() {
 	ly.setDefaultLocation(ly.network, 0, 0)
 	colIndex := 0
@@ -214,35 +258,10 @@ func (ly *layoutS) layoutSubnetsIcons() {
 				ly.setDefaultLocation(zone, rowIndex, colIndex)
 				for _, subnet := range zone.(*ZoneTreeNode).subnets {
 					ly.setDefaultLocation(subnet, rowIndex, colIndex)
-					calcGroupsVisibility(subnet)
-					groups := calcGroupsOrder(subnet)
+					ly.calcGroupsVisibility(subnet)
+					groups := ly.calcGroupsOrder(subnet)
 					for _, group := range groups {
-						var iconInCurrentCell IconTreeNodeInterface = nil
-						for _, icon := range group {
-							if !icon.IsNI() {
-								continue
-							}
-							if !canShareCell(iconInCurrentCell, icon) {
-								rowIndex++
-								iconInCurrentCell = nil
-							}
-							if iconInCurrentCell == nil {
-								l := ly.matrix.allocateCellLocation(rowIndex, colIndex)
-								l.firstRow.setHeight(subnetHeight)
-								l.firstCol.setWidth(subnetWidth)
-								icon.setLocation(l)
-								iconInCurrentCell = icon
-							} else {
-								icon.setLocation(iconInCurrentCell.Location().copy())
-								iconInCurrentCell.Location().xOffset = iconSize
-								icon.Location().xOffset = -iconSize
-								rowIndex++
-								iconInCurrentCell = nil
-							}
-						}
-						if iconInCurrentCell != nil {
-							rowIndex++
-						}
+						rowIndex, colIndex = ly.layoutGroupIcons(group, rowIndex, colIndex)
 					}
 				}
 				colIndex++
@@ -480,7 +499,7 @@ func (ly *layoutS) setGroupingLocations() {
 			xOffsetSign = 1
 		}
 		switch parent.visibility {
-		case allSubnet:
+		case theSubnet:
 			gIcon.Location().xOffset = gIcon.Location().firstCol.width() / 2 * xOffsetSign
 		case square:
 			gIcon.Location().xOffset = (gIcon.Location().firstCol.width()/2 + groupBorderWidth) * xOffsetSign

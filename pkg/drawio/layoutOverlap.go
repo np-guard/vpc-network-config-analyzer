@@ -80,9 +80,11 @@ func (lyO *layoutOverlap) setIconsMap() {
 	}
 }
 
-// handleGroupingLinesOverBorders() add points to grouping line if it is on the square border
+// handleGroupingLinesOverBorders() add points to the connectivity line in cases the line is on the square border
+// (relevant for lines between two grouping point which share the same column)
 func (lyO *layoutOverlap) handleGroupingLinesOverBorders() {
 	nodes := getAllNodes(lyO.network)
+	// we count how many lines are already on the column, so they wont overlap each other:
 	linesOnCol := map[*col]int{}
 	for _, n := range nodes {
 		if !n.IsLine() {
@@ -103,9 +105,11 @@ func (lyO *layoutOverlap) handleGroupingLinesOverBorders() {
 		lineX := col.x() + col.thickness/2 - linesOnCol[col]*widthBetweenLines
 		for _, gi := range [](*GroupPointTreeNode){src, dst} {
 			if gi.hasShownSquare() {
+				// adding a point:
 				p := iconCenterPoint(gi)
 				line.addPoint(lineX, p.Y)
 			} else {
+				// the point is already on the middle of the column, just moving the point according to the number of previous lines:
 				x, y := gi.X()-linesOnCol[col]*widthBetweenLines, gi.Y()
 				gi.setXY(x, y)
 			}

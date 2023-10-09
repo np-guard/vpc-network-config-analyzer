@@ -221,7 +221,7 @@ func (tn *SubnetTreeNode) NIs() []IconTreeNodeInterface {
 type groupSquareVisibility int
 
 const (
-	allSubnet groupSquareVisibility = iota
+	theSubnet groupSquareVisibility = iota
 	square
 	innerSquare
 	connectedPoint
@@ -237,12 +237,8 @@ type GroupSquareTreeNode struct {
 func (tn *GroupSquareTreeNode) IsGroupingSquare() bool { return true }
 
 func (tn *GroupSquareTreeNode) NotShownInDrawio() bool {
-	return tn.visibility == allSubnet || tn.visibility == connectedPoint
+	return tn.visibility == theSubnet || tn.visibility == connectedPoint
 }
-func (tn *GroupSquareTreeNode) IsAllSubnet() bool {
-	return len(tn.groupies) == len(tn.parent.(*SubnetTreeNode).NIs())
-}
-
 func NewGroupSquareTreeNode(parent *SubnetTreeNode, groupies []IconTreeNodeInterface) *GroupSquareTreeNode {
 	gs := GroupSquareTreeNode{newAbstractSquareTreeNode(parent, ""), groupies, connectedPoint}
 	parent.groupSquares = append(parent.groupSquares, &gs)
