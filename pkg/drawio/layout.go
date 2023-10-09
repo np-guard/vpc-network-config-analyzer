@@ -133,7 +133,7 @@ func sortBySize(groups []SquareTreeNodeInterface) []SquareTreeNodeInterface {
 
 func (ly *layoutS) calcGroupsVisibility(subnet SquareTreeNodeInterface) {
 	sortedBySizeGroups := sortBySize(subnet.(*SubnetTreeNode).groupSquares)
-	iconFormerVisualizedGroup := map[IconTreeNodeInterface]SquareTreeNodeInterface{}
+	iconSquareGroups := map[IconTreeNodeInterface]map[SquareTreeNodeInterface]bool{}
 	for _, groupS := range sortedBySizeGroups {
 		group := groupS.(*GroupSquareTreeNode)
 		if len(group.groupies) == len(subnet.(*SubnetTreeNode).NIs()) {
@@ -142,19 +142,24 @@ func (ly *layoutS) calcGroupsVisibility(subnet SquareTreeNodeInterface) {
 		}
 		groupiesFormerGroups := map[SquareTreeNodeInterface]bool{}
 		for _, icon := range group.groupies {
-			groupiesFormerGroups[iconFormerVisualizedGroup[icon]] = true
+			for g := range iconSquareGroups[icon]{
+				groupiesFormerGroups[g] = true
+			}
 		}
 		if len(groupiesFormerGroups) >= 2 {
 			group.setVisibility(connectedPoint)
 			continue
 		}
-		if _, ok := groupiesFormerGroups[nil]; ok {
+		if len(groupiesFormerGroups) == 0 {
 			group.setVisibility(square)
 		} else {
 			group.setVisibility(innerSquare)
 		}
 		for _, icon := range group.groupies {
-			iconFormerVisualizedGroup[icon] = group
+			if _, ok := iconSquareGroups[icon]; !ok {
+				iconSquareGroups[icon] = map[SquareTreeNodeInterface]bool{}
+			}
+				iconSquareGroups[icon][group] = true
 		}
 	}
 }
