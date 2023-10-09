@@ -1,7 +1,10 @@
 //nolint:lll // styles are too long and can not be split
 package drawio
 
-import "reflect"
+import (
+	"fmt"
+	"reflect"
+)
 
 type connParams struct {
 	directed bool
@@ -13,11 +16,23 @@ const (
 	fipStyle = "shape=image;aspect=fixed;image=data:image/svg+xml,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiMxMTkyZTg7fS5jbHMtMntmaWxsOiNmZmY7fS5jbHMtM3tmaWxsOm5vbmU7fTwvc3R5bGU+PC9kZWZzPjxyZWN0IGNsYXNzPSJjbHMtMSIgeD0iMC41IiB5PSIwLjkyIiB3aWR0aD0iNDgiIGhlaWdodD0iNDcuMTYiIHJ4PSI4Ii8+PHBhdGggY2xhc3M9ImNscy0yIiBkPSJNMzAuMTIsMjEuNDNhMy4xMywzLjEzLDAsMCwwLTMuMDYsMi40NkgyMS45NGEzLjA3LDMuMDcsMCwxLDAsMCwxLjIyaDUuMTJhMy4xMiwzLjEyLDAsMSwwLDMuMDYtMy42OFptMCw0LjkxQTEuODQsMS44NCwwLDEsMSwzMiwyNC41LDEuODUsMS44NSwwLDAsMSwzMC4xMiwyNi4zNFoiLz48cmVjdCBjbGFzcz0iY2xzLTMiIHg9IjE0LjUiIHk9IjE0LjY3IiB3aWR0aD0iMjAiIGhlaWdodD0iMTkuNjUiLz48L3N2Zz4=;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;spacingTop=-7;"
 )
 
-var connectivityStyles = map[connParams]string{
-	{directed: false, external: false}: "endArrow=oval;html=1;fontSize=16;fontColor=#4376BB;strokeWidth=2;endFill=1;rounded=0;startArrow=oval;startFill=1;",
-	{directed: false, external: true}:  "endArrow=oval;html=1;fontSize=16;fontColor=#4376BB;strokeWidth=2;endFill=1;strokeColor=#007FFF;startArrow=oval;startFill=1;rounded=0;",
-	{directed: true, external: false}:  "endArrow=block;html=1;fontSize=16;fontColor=#4376BB;strokeWidth=2;endFill=1;rounded=0;startArrow=oval;startFill=1;",
-	{directed: true, external: true}:   "endArrow=block;html=1;fontSize=16;fontColor=#4376BB;strokeWidth=2;endFill=1;strokeColor=#007FFF;startArrow=oval;startFill=1;rounded=0;",
+func connectivityStyle( con *ConnectivityTreeNode) string{
+	startArrow, endArrow := "oval", "oval"
+	strokeColor:= ""
+	if con.directed{
+		endArrow = "block"
+	}
+	if con.Src().IsGroupingPoint() && !con.Src().(*GroupPointTreeNode).hasShownSquare(){
+		startArrow = "none"
+	}
+	if con.Dst().IsGroupingPoint() && !con.Dst().(*GroupPointTreeNode).hasShownSquare(){
+		endArrow = "none"
+	}
+	if con.router != nil{
+		strokeColor = "strokeColor=#007FFF;"
+	}
+	styleFormat := "endArrow=%s;html=1;fontSize=16;fontColor=#4376BB;strokeWidth=2;endFill=1;rounded=0;startArrow=%s;%sstartFill=1;"
+	return fmt.Sprintf(styleFormat, endArrow,startArrow,strokeColor)
 }
 var styles = map[reflect.Type]string{
 	reflect.TypeOf(PublicNetworkTreeNode{}):   "rounded=0;whiteSpace=wrap;html=1;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;spacingBottom=-28;spacingTop=0;labelPosition=-100;verticalLabelPosition=top;align=center;verticalAlign=bottom;spacingLeft=9;spacing=0;expand=0;recursiveResize=0;spacingRight=0;container=1;collapsible=0;strokeColor=#1192E8;fillColor=none;",
@@ -67,8 +82,7 @@ var decoreStyles = map[reflect.Type]string{
 
 func (data *drawioData) Style(tn TreeNodeInterface) string {
 	if reflect.TypeOf(tn).Elem() == reflect.TypeOf(ConnectivityTreeNode{}) {
-		ctn := tn.(*ConnectivityTreeNode)
-		return connectivityStyles[connParams{ctn.directed, ctn.router != nil}]
+		return connectivityStyle(tn.(*ConnectivityTreeNode))
 	} else if reflect.TypeOf(tn).Elem() == reflect.TypeOf(NITreeNode{}) && !data.ShowNIIcon {
 		return styles[reflect.TypeOf(VsiTreeNode{})]
 	}

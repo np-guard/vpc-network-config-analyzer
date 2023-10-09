@@ -60,7 +60,7 @@ func calculateIconGeometry(tn IconTreeNodeInterface) {
 	parentLocation := tn.DrawioParent().Location()
 	x := location.firstCol.x() - parentLocation.firstCol.x() + location.firstCol.width()/2 - tn.IconSize()/2 + location.xOffset - parentLocation.xOffset
 	y := location.firstRow.y() - parentLocation.firstRow.y() + location.firstRow.height()/2 - tn.IconSize()/2 + location.yOffset - parentLocation.yOffset
-	tn.setXY(x,y)
+	tn.setXY(x, y)
 }
 func (tn *abstractIconTreeNode) absoluteRouterGeometry() (x, y int) {
 	return absoluteGeometry(tn)
@@ -178,8 +178,13 @@ type GroupPointTreeNode struct {
 
 func (tn *GroupPointTreeNode) setColleague(colleague IconTreeNodeInterface) { tn.colleague = colleague }
 func (tn *GroupPointTreeNode) getColleague() IconTreeNodeInterface          { return tn.colleague }
-func (tn *GroupPointTreeNode) IconSize() int                                { return groupedIconSize }
-func (tn *GroupPointTreeNode) IsGroupingPoint() bool                        { return true }
+func (tn *GroupPointTreeNode) IconSize() int {
+	if tn.hasShownSquare() {
+		return groupedIconSize
+	}
+	return 1
+}
+func (tn *GroupPointTreeNode) IsGroupingPoint() bool { return true }
 func (tn *GroupPointTreeNode) hasShownSquare() bool {
 	return tn.Parent().(*GroupSquareTreeNode).visibility != connectedPoint
 }
