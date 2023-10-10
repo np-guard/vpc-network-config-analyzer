@@ -58,7 +58,6 @@ func (d *DrawioOutputFormatter) createDrawioTree() {
 	}
 }
 
-
 func (d *DrawioOutputFormatter) createNodeSets() {
 	for _, ns := range d.cConfig.NodeSets {
 		d.gen.TreeNode(ns)
@@ -91,10 +90,10 @@ func (d *DrawioOutputFormatter) createRouters() {
 
 func (d *DrawioOutputFormatter) createEdges() {
 	type edgeKey struct {
-		src      EndpointElem
-		dst      EndpointElem
-		label    string
-	}	
+		src   EndpointElem
+		dst   EndpointElem
+		label string
+	}
 	isEdgeDirected := map[edgeKey]bool{}
 	for _, line := range d.conn.GroupedConnectivity.GroupedLines {
 		src := line.Src

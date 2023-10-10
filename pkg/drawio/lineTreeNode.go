@@ -114,4 +114,3 @@ func NewConnectivityLineTreeNode(network SquareTreeNodeInterface,
 	network.addLineTreeNode(&conn)
 	return &conn
 }
-

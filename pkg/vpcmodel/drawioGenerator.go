@@ -65,8 +65,8 @@ func (g *groupedEndpointsElems) GenerateDrawioTreeNode(gen *DrawioGenerator) dra
 	for i, ni := range *g {
 		groupiesTNs[i] = gen.TreeNode(ni).(drawio.IconTreeNodeInterface)
 	}
-	return drawio.NewGroupSquareTreeNode(subnetTn,groupiesTNs)
-	
+	return drawio.NewGroupSquareTreeNode(subnetTn, groupiesTNs)
+
 }
 
 func (g *groupedExternalNodes) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
