@@ -218,16 +218,15 @@ func (tn *SubnetTreeNode) NIs() []IconTreeNodeInterface {
 	return nis
 }
 
-type groupSquareVisibility int
 
+///////////////////////////////////////////////////////////////////////////////////////
+type groupSquareVisibility int
 const (
 	theSubnet groupSquareVisibility = iota
 	square
 	innerSquare
 	connectedPoint
 )
-
-///////////////////////////////////////////////////////////////////////////////////////
 type GroupSquareTreeNode struct {
 	abstractSquareTreeNode
 	groupies   []IconTreeNodeInterface

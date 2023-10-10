@@ -114,7 +114,6 @@ func (tt *vpcGeneralTest) initTest() {
 	}
 }
 
-
 var tests = []*vpcGeneralTest{
 	{
 		name:     "acl_testing5",
@@ -163,6 +162,7 @@ var tests = []*vpcGeneralTest{
 		grouping: true,
 		format:   vpcmodel.Text,
 	},
+
 	// batch2.5: only vsi-level use-case, with grouping , drawio format
 	{
 		name:     "acl_testing3",
@@ -188,6 +188,7 @@ var tests = []*vpcGeneralTest{
 		grouping: true,
 		format:   vpcmodel.DRAWIO,
 	},
+
 	//batch3: only vsi-level use-case, no grouping, with debug / md  output formats
 	{
 		name:     "acl_testing3",
