@@ -47,12 +47,10 @@ func (d *DrawioOutputFormatter) WriteOutputAllEndpoints(cConfig *CloudConfig, co
 }
 
 func (d *DrawioOutputFormatter) createDrawioTree() {
-
 	d.createNodeSets()
 	d.createNodes()
 	d.createFilters()
 	d.createRouters()
-
 	if d.conn != nil {
 		d.createEdges()
 	}

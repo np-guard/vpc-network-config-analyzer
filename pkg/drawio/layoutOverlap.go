@@ -103,7 +103,7 @@ func (lyO *layoutOverlap) handleGroupingLinesOverBorders() {
 		}
 		col := src.Location().firstCol
 		lineX := col.x() + col.thickness/2 - linesOnCol[col]*widthBetweenLines
-		for _, gi := range [](*GroupPointTreeNode){src, dst} {
+		for _, gi := range []*GroupPointTreeNode{src, dst} {
 			if gi.hasShownSquare() {
 				// adding a point:
 				p := iconCenterPoint(gi)
@@ -116,7 +116,6 @@ func (lyO *layoutOverlap) handleGroupingLinesOverBorders() {
 		}
 		linesOnCol[col] += 1
 	}
-
 }
 
 // handleLinesOverLines() - find pairs of overlapping lines, and add point to one of them

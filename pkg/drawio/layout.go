@@ -188,7 +188,6 @@ func (ly *layoutS) getSubnetIconsOrder(subnet SquareTreeNodeInterface) [][]IconT
 			} else if group.visibility == innerSquare {
 				iconInnerGroup[icon] = group
 				outerToInnersGroup[iconOuterGroup[icon]][group] = true
-
 			}
 		}
 	}
@@ -224,7 +223,7 @@ func (ly *layoutS) getSubnetIconsOrder(subnet SquareTreeNodeInterface) [][]IconT
 // layoutGroupIcons() - set the location of the icons
 // cell can hold at most two icons
 // only icons with the same sg and same group and no fip can share a cell
-func (ly *layoutS) layoutGroupIcons(group []IconTreeNodeInterface, rowIndex, colIndex int) (int, int) {
+func (ly *layoutS) layoutGroupIcons(group []IconTreeNodeInterface, rowIndex, colIndex int) (nextRowIndex, nextColIndex int) {
 	var iconInCurrentCell IconTreeNodeInterface = nil
 	for _, icon := range group {
 		if !canShareCell(iconInCurrentCell, icon) {
@@ -248,7 +247,8 @@ func (ly *layoutS) layoutGroupIcons(group []IconTreeNodeInterface, rowIndex, col
 	if iconInCurrentCell != nil {
 		rowIndex++
 	}
-	return rowIndex, colIndex
+	nextRowIndex, nextColIndex = rowIndex, colIndex
+	return nextRowIndex, nextColIndex
 }
 
 // ///////////////////////////////////////////////////////////////
@@ -362,7 +362,6 @@ func (ly *layoutS) setGroupSquareOffsets(tn SquareTreeNodeInterface) {
 		tn.Location().yOffset = groupTopBorderWidth + groupInnerBorderWidth
 		tn.Location().xEndOffset = groupBorderWidth + groupInnerBorderWidth
 		tn.Location().yEndOffset = groupBorderWidth + groupInnerBorderWidth
-
 	}
 }
 
@@ -403,7 +402,6 @@ func (ly *layoutS) setSquaresLocations() {
 	}
 	ly.resolvePublicNetworkLocations()
 	ly.resolveSquareLocation(ly.network, 1, false)
-
 }
 
 // ////////////////////////////////////////////////////////////////////////////////////////
@@ -470,7 +468,6 @@ func (ly *layoutS) setVpcIconsLocations(vpc SquareTreeNodeInterface) {
 // calcGroupingIconLocation() calc the raw and column of a group point depend of the locations of the group, and the colleague group
 // the group points are located in the column outside the subnet. in the left or in the right. depend on the colleague location
 func (ly *layoutS) calcGroupingIconLocation(location, collLocation *Location) (r *row, c *col) {
-
 	switch {
 	case location.lastRow.index < collLocation.firstRow.index:
 		r = location.lastRow
@@ -524,13 +521,11 @@ func (ly *layoutS) setGroupingIconLocations() {
 			gIcon.Location().xOffset = (gIcon.Location().firstCol.width()/2 + groupBorderWidth + groupInnerBorderWidth)
 		case connectedPoint:
 			gIcon.connectGroupies()
-
 		}
 		if c == parentLocation.nextCol() {
 			// its in right to the groupSquare, so the offset is negative.
 			gIcon.Location().xOffset = -gIcon.Location().xOffset
 		}
-
 	}
 }
 

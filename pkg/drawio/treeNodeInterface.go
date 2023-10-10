@@ -62,7 +62,7 @@ type TreeNodeInterface interface {
 	children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface)
 }
 
-////////////////////////////////////////////////
+// //////////////////////////////////////////////
 func setGeometry(tn TreeNodeInterface) {
 	if tn.IsIcon() {
 		calculateIconGeometry(tn.(IconTreeNodeInterface))

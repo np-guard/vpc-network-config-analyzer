@@ -58,8 +58,10 @@ func (tn *abstractIconTreeNode) allocateNewRouteOffset() int {
 func calculateIconGeometry(tn IconTreeNodeInterface) {
 	location := tn.Location()
 	parentLocation := tn.DrawioParent().Location()
-	x := location.firstCol.x() - parentLocation.firstCol.x() + location.firstCol.width()/2 - tn.IconSize()/2 + location.xOffset - parentLocation.xOffset
-	y := location.firstRow.y() - parentLocation.firstRow.y() + location.firstRow.height()/2 - tn.IconSize()/2 + location.yOffset - parentLocation.yOffset
+	x := location.firstCol.x() - parentLocation.firstCol.x() + location.firstCol.width()/2 -
+		tn.IconSize()/2 + location.xOffset - parentLocation.xOffset
+	y := location.firstRow.y() - parentLocation.firstRow.y() + location.firstRow.height()/2 -
+		tn.IconSize()/2 + location.yOffset - parentLocation.yOffset
 	tn.setXY(x, y)
 }
 func (tn *abstractIconTreeNode) absoluteRouterGeometry() (x, y int) {
@@ -207,7 +209,8 @@ func (tn *GroupPointTreeNode) connectGroupies() {
 		if tn.isSrc {
 			s, d = groupe, tn
 		}
-		tn.groupiesConns = append(tn.groupiesConns, NewConnectivityLineTreeNode(tn.DrawioParent().(SquareTreeNodeInterface), s, d, tn.directed, ""))
+		gtn := NewConnectivityLineTreeNode(tn.DrawioParent().(SquareTreeNodeInterface), s, d, tn.directed, "")
+		tn.groupiesConns = append(tn.groupiesConns, gtn)
 	}
 }
 func (tn *GroupPointTreeNode) DrawioParent() TreeNodeInterface {

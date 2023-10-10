@@ -74,4 +74,3 @@ func newAbstractTreeNode(parent TreeNodeInterface, name string) abstractTreeNode
 func (tn *abstractTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
 	return nil, nil, nil
 }
-func (tn *abstractTreeNode) setGeometry() {}
