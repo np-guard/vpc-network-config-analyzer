@@ -248,5 +248,5 @@ func (tn *GroupSquareTreeNode) setVisibility(visibility groupSquareVisibility) {
 	tn.visibility = visibility
 }
 func (tn *GroupSquareTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
-	return nil, tn.elements, tn.connections
+	return nil, append(tn.elements, tn.groupies...), tn.connections
 }
