@@ -350,6 +350,22 @@ func (ly *layoutS) resolvePublicNetworkLocations() {
 	ly.network.(*NetworkTreeNode).publicNetwork.setLocation(pnl)
 }
 
+func (ly *layoutS) setGroupSquareOffsets(tn SquareTreeNodeInterface) {
+	if tn.(*GroupSquareTreeNode).visibility == square {
+		tn.Location().xOffset = groupBorderWidth
+		tn.Location().yOffset = groupTopBorderWidth
+		tn.Location().xEndOffset = groupBorderWidth
+		tn.Location().yEndOffset = groupBorderWidth
+	}
+	if tn.(*GroupSquareTreeNode).visibility == innerSquare {
+		tn.Location().xOffset = groupBorderWidth + groupInnerBorderWidth
+		tn.Location().yOffset = groupTopBorderWidth + groupInnerBorderWidth
+		tn.Location().xEndOffset = groupBorderWidth + groupInnerBorderWidth
+		tn.Location().yEndOffset = groupBorderWidth + groupInnerBorderWidth
+
+	}
+}
+
 func (*layoutS) resolveSquareLocation(tn SquareTreeNodeInterface, internalBorders int, addExternalBorders bool) {
 	nl := mergeLocations(locations(getAllNodes(tn)))
 	for i := 0; i < internalBorders; i++ {
@@ -450,8 +466,9 @@ func (ly *layoutS) setVpcIconsLocations(vpc SquareTreeNodeInterface) {
 	}
 }
 
-// each group has a grouping point
+// every connection to a group square is done via a grouping point
 // calcGroupingIconLocation() calc the raw and column of a group point depend of the locations of the group, and the colleague group
+// the group points are located in the column outside the subnet. in the left or in the right. depend on the colleague location
 func (ly *layoutS) calcGroupingIconLocation(location, collLocation *Location) (r *row, c *col) {
 
 	switch {
@@ -476,24 +493,8 @@ func (ly *layoutS) calcGroupingIconLocation(location, collLocation *Location) (r
 	return r, c
 }
 
-//
-
-func (ly *layoutS) setGroupSquareOffsets(tn SquareTreeNodeInterface) {
-	if tn.(*GroupSquareTreeNode).visibility == square {
-		tn.Location().xOffset = groupBorderWidth
-		tn.Location().yOffset = groupTopBorderWidth
-		tn.Location().xEndOffset = groupBorderWidth
-		tn.Location().yEndOffset = groupBorderWidth
-	}
-	if tn.(*GroupSquareTreeNode).visibility == innerSquare {
-		tn.Location().xOffset = groupBorderWidth + groupInnerBorderWidth
-		tn.Location().yOffset = groupTopBorderWidth + groupInnerBorderWidth
-		tn.Location().xEndOffset = groupBorderWidth + groupInnerBorderWidth
-		tn.Location().yEndOffset = groupBorderWidth + groupInnerBorderWidth
-
-	}
-}
-
+// setGroupingIconLocations() set each group point its location and offsets.
+// the offset is set according to the group visibility - we put the icon on the square border line
 func (ly *layoutS) setGroupingIconLocations() {
 	type cell struct {
 		r *row
@@ -510,26 +511,26 @@ func (ly *layoutS) setGroupingIconLocations() {
 		parentLocation := parent.Location()
 		colleagueParentLocation := colleague.Parent().Location()
 		r, c := ly.calcGroupingIconLocation(parentLocation, colleagueParentLocation)
-		isLeft := c == parentLocation.prevCol()
 
 		gIcon.setLocation(newCellLocation(r, c))
 		gIcon.Location().yOffset = groupedIconsDistance * iconsInCell[cell{r, c}]
 		iconsInCell[cell{r, c}]++
-		xOffsetSign := -1
-		if isLeft {
-			xOffsetSign = 1
-		}
 		switch parent.visibility {
 		case theSubnet:
-			gIcon.Location().xOffset = gIcon.Location().firstCol.width() / 2 * xOffsetSign
+			gIcon.Location().xOffset = gIcon.Location().firstCol.width() / 2
 		case square:
-			gIcon.Location().xOffset = (gIcon.Location().firstCol.width()/2 + groupBorderWidth) * xOffsetSign
+			gIcon.Location().xOffset = (gIcon.Location().firstCol.width()/2 + groupBorderWidth)
 		case innerSquare:
-			gIcon.Location().xOffset = (gIcon.Location().firstCol.width()/2 + groupBorderWidth + groupInnerBorderWidth) * xOffsetSign
+			gIcon.Location().xOffset = (gIcon.Location().firstCol.width()/2 + groupBorderWidth + groupInnerBorderWidth)
 		case connectedPoint:
 			gIcon.connectGroupies()
 
 		}
+		if c == parentLocation.nextCol() {
+			// its in right to the groupSquare, so the offset is negative.
+			gIcon.Location().xOffset = -gIcon.Location().xOffset
+		}
+
 	}
 }
 
