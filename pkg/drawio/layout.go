@@ -77,7 +77,6 @@ func (ly *layoutS) layout() {
 	ly.matrix.removeUnusedLayers()
 	// 5. set the locations of all the non-subnet icons
 	ly.setIconsLocations()
-	ly.setGroupingLocations2()
 	// 6. set the geometry for each node in the drawio
 	ly.matrix.setLayersDistance()
 	ly.setGeometries()
@@ -378,13 +377,16 @@ func (ly *layoutS) setSquaresLocations() {
 				ly.resolveSquareLocation(zone, zoneToSubnetDepth, true)
 				for _, subnet := range zone.(*ZoneTreeNode).subnets {
 					ly.resolveSquareLocation(subnet, 0, true)
+					for _, groupSquare := range subnet.(*SubnetTreeNode).groupSquares {
+						ly.resolveSquareLocation(groupSquare, 0, false)
+						ly.setGroupSquareOffsets(groupSquare)
+					}
 				}
 			}
 		}
 	}
 	ly.resolvePublicNetworkLocations()
 	ly.resolveSquareLocation(ly.network, 1, false)
-	ly.setGroupingLocations()
 
 }
 
@@ -476,27 +478,23 @@ func (ly *layoutS) calcGroupingIconLocation(location, collLocation *Location) (r
 
 //
 
-func (ly *layoutS) setGroupingLocations() {
-	for _, tn := range getAllNodes(ly.network) {
-		if tn.IsSquare() && tn.(SquareTreeNodeInterface).IsGroupingSquare() {
-			ly.resolveSquareLocation(tn.(SquareTreeNodeInterface), 0, false)
-			if tn.(*GroupSquareTreeNode).visibility == square {
-				tn.Location().xOffset = groupBorderWidth
-				tn.Location().yOffset = groupTopBorderWidth
-				tn.Location().xEndOffset = groupBorderWidth
-				tn.Location().yEndOffset = groupBorderWidth
-			}
-			if tn.(*GroupSquareTreeNode).visibility == innerSquare {
-				tn.Location().xOffset = groupBorderWidth + groupInnerBorderWidth
-				tn.Location().yOffset = groupTopBorderWidth + groupInnerBorderWidth
-				tn.Location().xEndOffset = groupBorderWidth + groupInnerBorderWidth
-				tn.Location().yEndOffset = groupBorderWidth + groupInnerBorderWidth
+func (ly *layoutS) setGroupSquareOffsets(tn SquareTreeNodeInterface) {
+	if tn.(*GroupSquareTreeNode).visibility == square {
+		tn.Location().xOffset = groupBorderWidth
+		tn.Location().yOffset = groupTopBorderWidth
+		tn.Location().xEndOffset = groupBorderWidth
+		tn.Location().yEndOffset = groupBorderWidth
+	}
+	if tn.(*GroupSquareTreeNode).visibility == innerSquare {
+		tn.Location().xOffset = groupBorderWidth + groupInnerBorderWidth
+		tn.Location().yOffset = groupTopBorderWidth + groupInnerBorderWidth
+		tn.Location().xEndOffset = groupBorderWidth + groupInnerBorderWidth
+		tn.Location().yEndOffset = groupBorderWidth + groupInnerBorderWidth
 
-			}
-		}
 	}
 }
-func (ly *layoutS) setGroupingLocations2() {
+
+func (ly *layoutS) setGroupingIconLocations() {
 	type cell struct {
 		r *row
 		c *col
@@ -585,6 +583,7 @@ func (ly *layoutS) setIconsLocations() {
 		}
 	}
 	ly.setPublicNetworkIconsLocations()
+	ly.setGroupingIconLocations()
 }
 
 func (ly *layoutS) setGeometries() {
