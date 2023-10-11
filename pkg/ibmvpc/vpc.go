@@ -11,27 +11,9 @@ import (
 )
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////
-const (
-	space                      = " "
-	commaSeparator             = ","
-	detailsAttributeUID        = "uid"
-	detailsAttributeNodes      = "nodes"
-	detailsAttributeAttachedTo = "attached_to"
-	detailsAttributeSubnets    = "subnets"
-	detailsAttributeMembers    = "members"
-	detailsAttributeVSIname    = "vsiName"
-	detailsAttributeAddress    = "address"
-	detailsAttributeSubnetCIDR = "subnetCidr"
-	detailsAttributeSubnetUID  = "subnetUID"
-	detailsAttributeZone       = "zone"
-)
 
 func getNodeName(name, addr string) string {
 	return fmt.Sprintf("%s[%s]", name, addr)
-}
-
-func getNodeDetails(kind, addr, name, subnetCidr string) string {
-	return kind + space + addr + space + name + " subnet: " + subnetCidr
 }
 
 type Zone struct {
@@ -71,20 +53,6 @@ func (ni *NetworkInterface) VsiName() string {
 func (ni *NetworkInterface) Name() string {
 	return getNodeName(ni.vsi, ni.address)
 }
-func (ni *NetworkInterface) Details() []string {
-	return []string{getNodeDetails(ni.Kind(), ni.address, ni.Name(), ni.subnet.cidr)}
-}
-func (ni *NetworkInterface) DetailsMap() []map[string]string {
-	res := map[string]string{}
-	res[vpcmodel.DetailsAttributeKind] = ni.Kind()
-	res[vpcmodel.DetailsAttributeName] = ni.ResourceName
-	res[detailsAttributeUID] = ni.ResourceUID
-	res[detailsAttributeVSIname] = ni.vsi
-	res[detailsAttributeAddress] = ni.address
-	res[detailsAttributeSubnetCIDR] = ni.subnet.cidr
-	res[detailsAttributeSubnetUID] = ni.subnet.ResourceUID
-	return []map[string]string{res}
-}
 
 type IKSNode struct {
 	vpcmodel.VPCResource
@@ -111,29 +79,15 @@ func (n *IKSNode) Name() string {
 	return getNodeName(n.ResourceName, n.address)
 }
 
-func (n *IKSNode) Details() []string {
-	return []string{getNodeDetails(n.Kind(), n.address, n.Name(), n.subnet.cidr)}
-}
-
-func (n *IKSNode) DetailsMap() []map[string]string {
-	res := map[string]string{}
-	res[vpcmodel.DetailsAttributeKind] = n.Kind()
-	res[vpcmodel.DetailsAttributeName] = n.ResourceName
-	res[detailsAttributeUID] = n.ResourceUID
-	res[detailsAttributeAddress] = n.address
-	res[detailsAttributeSubnetCIDR] = n.subnet.cidr
-	res[detailsAttributeSubnetUID] = n.subnet.ResourceUID
-	return []map[string]string{res}
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // nodesets elements - implement vpcmodel.NodeSet interface
 
 type VPC struct {
 	vpcmodel.VPCResource
-	nodes             []vpcmodel.Node
-	connectivityRules *vpcmodel.ConnectivityResult // allowed connectivity between elements within the vpc
-	zones             map[string]*Zone
+	nodes                []vpcmodel.Node
+	connectivityRules    *vpcmodel.ConnectivityResult // allowed connectivity between elements within the vpc
+	zones                map[string]*Zone
+	internalAddressRange *common.IPBlock
 }
 
 func (v *VPC) getZoneByName(name string) (*Zone, error) {
@@ -150,21 +104,8 @@ func (v *VPC) Connectivity() *vpcmodel.ConnectivityResult {
 	return v.connectivityRules
 }
 
-func (v *VPC) Details() []string {
-	return []string{v.ResourceName}
-}
-
-func (v *VPC) DetailsMap() []map[string]string {
-	nodesUIDs := []string{}
-	for _, node := range v.nodes {
-		nodesUIDs = append(nodesUIDs, node.UID())
-	}
-	res := map[string]string{}
-	res[vpcmodel.DetailsAttributeKind] = v.Kind()
-	res[vpcmodel.DetailsAttributeName] = v.ResourceName
-	res[detailsAttributeUID] = v.ResourceUID
-	res[detailsAttributeNodes] = strings.Join(nodesUIDs, commaSeparator)
-	return []map[string]string{res}
+func (v *VPC) AddressRange() *common.IPBlock {
+	return v.internalAddressRange
 }
 
 type Subnet struct {
@@ -182,26 +123,13 @@ func (s *Subnet) Zone() (*Zone, error) {
 func (s *Subnet) Nodes() []vpcmodel.Node {
 	return s.nodes
 }
-func (s *Subnet) Connectivity() *vpcmodel.ConnectivityResult {
-	return s.connectivityRules
-}
-func (s *Subnet) Details() []string {
-	return []string{s.ResourceName + space + s.cidr}
+
+func (s *Subnet) AddressRange() *common.IPBlock {
+	return common.NewIPBlockFromCidr(s.cidr)
 }
 
-func (s *Subnet) DetailsMap() []map[string]string {
-	nodesUIDs := []string{}
-	for _, node := range s.nodes {
-		nodesUIDs = append(nodesUIDs, node.UID())
-	}
-	res := map[string]string{}
-	res[vpcmodel.DetailsAttributeKind] = s.Kind()
-	res[vpcmodel.DetailsAttributeName] = s.ResourceName
-	res[detailsAttributeUID] = s.ResourceUID
-	res[detailsAttributeNodes] = strings.Join(nodesUIDs, commaSeparator)
-	res[vpcmodel.DetailsAttributeCIDR] = s.cidr
-	res[detailsAttributeZone] = s.ZoneName()
-	return []map[string]string{res}
+func (s *Subnet) Connectivity() *vpcmodel.ConnectivityResult {
+	return s.connectivityRules
 }
 
 type Vsi struct {
@@ -218,25 +146,21 @@ func (v *Vsi) Zone() (*Zone, error) {
 func (v *Vsi) Nodes() []vpcmodel.Node {
 	return v.nodes
 }
+
 func (v *Vsi) Connectivity() *vpcmodel.ConnectivityResult {
 	return v.connectivityRules
 }
-func (v *Vsi) Details() []string {
-	return []string{v.ResourceName}
-}
 
-func (v *Vsi) DetailsMap() []map[string]string {
-	nodesUIDs := []string{}
-	for _, node := range v.nodes {
-		nodesUIDs = append(nodesUIDs, node.UID())
+func (v *Vsi) AddressRange() *common.IPBlock {
+	var res *common.IPBlock
+	for _, n := range v.nodes {
+		if res == nil {
+			res = common.NewIPBlockFromCidr(n.Cidr())
+		} else {
+			res = res.Union(common.NewIPBlockFromCidr(n.Cidr()))
+		}
 	}
-	res := map[string]string{}
-	res[vpcmodel.DetailsAttributeKind] = v.Kind()
-	res[vpcmodel.DetailsAttributeName] = v.ResourceName
-	res[detailsAttributeUID] = v.ResourceUID
-	res[detailsAttributeNodes] = strings.Join(nodesUIDs, commaSeparator)
-	res[detailsAttributeZone] = v.ZoneName()
-	return []map[string]string{res}
+	return res
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -248,24 +172,8 @@ type NaclLayer struct {
 	vpc      *VPC
 }
 
-func (nl *NaclLayer) Details() []string {
-	res := []string{}
-	for _, nacl := range nl.naclList {
-		res = append(res, nacl.Details())
-	}
-	return res
-}
-
 func (nl *NaclLayer) VPC() *VPC {
 	return nl.vpc
-}
-
-func (nl *NaclLayer) DetailsMap() []map[string]string {
-	res := []map[string]string{}
-	for _, nacl := range nl.naclList {
-		res = append(res, nacl.DetailsMap())
-	}
-	return res
 }
 
 // per-layer connectivity analysis
@@ -332,29 +240,6 @@ func (n *NACL) VPC() *VPC {
 	return n.vpc
 }
 
-func (n *NACL) Details() string {
-	subnets := ""
-	for subent := range n.subnets {
-		subnets += subent + commaSeparator
-	}
-	return "NACL " + n.ResourceName + "subnets: " + subnets
-}
-
-func (n *NACL) DetailsMap() map[string]string {
-	subnetList := make([]string, len(n.subnets))
-	i := 0
-	for s := range n.subnets {
-		subnetList[i] = s
-		i++
-	}
-	return map[string]string{
-		vpcmodel.DetailsAttributeKind: n.Kind(),
-		vpcmodel.DetailsAttributeName: n.ResourceName,
-		detailsAttributeUID:           n.ResourceUID,
-		detailsAttributeSubnets:       strings.Join(subnetList, commaSeparator),
-	}
-}
-
 func (n *NACL) GeneralConnectivityPerSubnet(subnetCidr string) string {
 	res, _ := n.analyzer.GeneralConnectivityPerSubnet(subnetCidr)
 	return res
@@ -414,22 +299,6 @@ func (sgl *SecurityGroupLayer) VPC() *VPC {
 	return sgl.vpc
 }
 
-func (sgl *SecurityGroupLayer) Details() []string {
-	res := []string{}
-	for _, sg := range sgl.sgList {
-		res = append(res, sg.Details())
-	}
-	return res
-}
-
-func (sgl *SecurityGroupLayer) DetailsMap() []map[string]string {
-	res := []map[string]string{}
-	for _, sg := range sgl.sgList {
-		res = append(res, sg.DetailsMap())
-	}
-	return res
-}
-
 func (sgl *SecurityGroupLayer) ConnectivityMap() (map[string]*vpcmodel.IPbasedConnectivityResult, error) {
 	return nil, nil
 }
@@ -470,29 +339,6 @@ func (sg *SecurityGroup) VPC() *VPC {
 	return sg.vpc
 }
 
-func (sg *SecurityGroup) Details() string {
-	members := ""
-	for member := range sg.members {
-		members += member + commaSeparator
-	}
-	return "SG " + sg.ResourceName + " members: " + members
-}
-
-func (sg *SecurityGroup) DetailsMap() map[string]string {
-	membersList := make([]string, len(sg.members))
-	i := 0
-	for s := range sg.members {
-		membersList[i] = s
-		i++
-	}
-	return map[string]string{
-		vpcmodel.DetailsAttributeKind: sg.Kind(),
-		vpcmodel.DetailsAttributeName: sg.ResourceName,
-		detailsAttributeUID:           sg.ResourceUID,
-		detailsAttributeMembers:       strings.Join(membersList, commaSeparator),
-	}
-}
-
 func (sg *SecurityGroup) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *common.ConnectionSet {
 	var member, target vpcmodel.Node
 	if isIngress {
@@ -512,10 +358,6 @@ func (sg *SecurityGroup) AllowedConnectivity(src, dst vpcmodel.Node, isIngress b
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-func getRouterAttachedToStr(attachedDetails string) string {
-	return " attached to: " + attachedDetails
-}
-
 // routing resource elements
 
 type FloatingIP struct {
@@ -523,30 +365,6 @@ type FloatingIP struct {
 	cidr         string
 	src          []vpcmodel.Node
 	destinations []vpcmodel.Node
-}
-
-func (fip *FloatingIP) Details() []string {
-	attachedDetails := ""
-	for _, n := range fip.src {
-		attachedDetails += n.Name() + commaSeparator
-	}
-	return []string{"FloatingIP " + fip.ResourceName + getRouterAttachedToStr(attachedDetails)}
-}
-
-func (fip *FloatingIP) DetailsMap() []map[string]string {
-	attachedDetails := ""
-	for _, n := range fip.src {
-		attachedDetails += n.UID() + commaSeparator
-	}
-	res := map[string]string{
-		vpcmodel.DetailsAttributeName: fip.ResourceName,
-		detailsAttributeUID:           fip.ResourceUID,
-		vpcmodel.DetailsAttributeKind: fip.Kind(),
-		detailsAttributeAttachedTo:    attachedDetails,
-		vpcmodel.DetailsAttributeCIDR: fip.cidr,
-		detailsAttributeZone:          fip.Zone,
-	}
-	return []map[string]string{res}
 }
 
 func (fip *FloatingIP) Src() []vpcmodel.Node {
@@ -585,31 +403,6 @@ type PublicGateway struct {
 
 func (pgw *PublicGateway) Zone() (*Zone, error) {
 	return pgw.vpc.getZoneByName(pgw.ZoneName())
-}
-
-func (pgw *PublicGateway) Details() []string {
-	attachedDetails := ""
-	for _, n := range pgw.src {
-		attachedDetails += n.Name() + commaSeparator
-	}
-	subnets := strings.Join(pgw.subnetCidr, ",")
-	return []string{"PublicGateway " + pgw.ResourceName + " nodes " + getRouterAttachedToStr(attachedDetails) + " subnets: " + subnets}
-}
-
-func (pgw *PublicGateway) DetailsMap() []map[string]string {
-	attachedDetails := ""
-	for _, n := range pgw.src {
-		attachedDetails += n.UID() + commaSeparator
-	}
-	res := map[string]string{
-		vpcmodel.DetailsAttributeName: pgw.ResourceName,
-		detailsAttributeUID:           pgw.ResourceUID,
-		vpcmodel.DetailsAttributeKind: pgw.Kind(),
-		detailsAttributeAttachedTo:    attachedDetails,
-		vpcmodel.DetailsAttributeCIDR: pgw.cidr,
-		detailsAttributeZone:          pgw.ZoneName(),
-	}
-	return []map[string]string{res}
 }
 
 func (pgw *PublicGateway) ConnectivityMap() map[string]vpcmodel.ConfigBasedConnectivityResults {

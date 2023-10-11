@@ -523,7 +523,10 @@ func getFipConfig(
 	return nil
 }
 
-func getVPCconfig(rc *ResourcesContainer, res *vpcmodel.CloudConfig) {
+func getVPCconfig(rc *ResourcesContainer, res *vpcmodel.CloudConfig) (*VPC, error) {
+	if len(rc.vpcsList) > 1 {
+		return nil, fmt.Errorf("supporting currently only one vpc configuration")
+	}
 	for i := range rc.vpcsList {
 		vpc := rc.vpcsList[i]
 		vpcNodeSet := &VPC{
@@ -533,7 +536,10 @@ func getVPCconfig(rc *ResourcesContainer, res *vpcmodel.CloudConfig) {
 		}
 		res.NodeSets = append(res.NodeSets, vpcNodeSet)
 		res.NameToResource[vpcNodeSet.Name()] = vpcNodeSet
+		// assuming one vpc
+		return vpcNodeSet, nil
 	}
+	return nil, nil
 }
 
 func singleVPCErr(vpcName, layerVPCName string) error {
@@ -666,7 +672,10 @@ func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
 
 	var err error
 
-	getVPCconfig(rc, res)
+	vpc, err := getVPCconfig(rc, res)
+	if err != nil {
+		return nil, err
+	}
 
 	var vpcInternalAddressRange *common.IPBlock
 
@@ -683,6 +692,7 @@ func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
 	if err != nil {
 		return nil, err
 	}
+	vpc.internalAddressRange = vpcInternalAddressRange
 
 	err = getIKSnodesConfig(res, subnetNameToSubnet, rc)
 	if err != nil {
