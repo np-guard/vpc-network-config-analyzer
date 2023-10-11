@@ -17,7 +17,8 @@ const (
 	protocolUDP                  = "udp"
 	inbound                      = "inbound"
 	outbound                     = "outbound"
-	networkInterfaceResourceType = "network_interface"
+	networkInterfaceResourceType = "network_interface" // used as the type within api objects (e.g. SecurityGroup.Targets.ResourceType)
+	vpeResourceType              = "endpoint_gateway"  // used as the type within api objects (e.g. SecurityGroup.Targets.ResourceType)
 	cidrSeparator                = ", "
 	linesSeparator               = "---------------------"
 )
@@ -33,6 +34,8 @@ const (
 	ResourceTypeSG               = "SG"
 	ResourceTypeNACL             = "NACL"
 	ResourceTypeIKSNode          = "IKSNodeNetworkInterface"
+	ResourceTypeVPE              = "VPE"
+	ResourceTypeReservedIP       = "ReservedIP"
 )
 
 type ResourcesContainer struct {
@@ -43,6 +46,7 @@ type ResourcesContainer struct {
 	vpcsList     []*vpc1.VPC
 	fipList      []*vpc1.FloatingIP
 	pgwList      []*vpc1.PublicGateway
+	vpeList      []*vpc1.EndpointGateway
 	iksNodes     []*iksNode
 }
 
@@ -86,6 +90,10 @@ func (rc *ResourcesContainer) addFloatingIP(n *vpc1.FloatingIP) {
 
 func (rc *ResourcesContainer) addPublicGateway(n *vpc1.PublicGateway) {
 	rc.pgwList = append(rc.pgwList, n)
+}
+
+func (rc *ResourcesContainer) addVPE(n *vpc1.EndpointGateway) {
+	rc.vpeList = append(rc.vpeList, n)
 }
 
 func (rc *ResourcesContainer) addIKSNode(n *iksNode) {
@@ -253,6 +261,17 @@ func addParsedPgw(vList []json.RawMessage, res *ResourcesContainer) error {
 	return nil
 }
 
+func addParsedVPE(vList []json.RawMessage, res *ResourcesContainer) error {
+	for i := range vList {
+		obj, err := JSONVpeToObject(vList[i])
+		if err != nil {
+			return err
+		}
+		res.addVPE(obj)
+	}
+	return nil
+}
+
 func parseSingleResourceList(key string, vList []json.RawMessage, res *ResourcesContainer) error {
 	switch key {
 	case "network_acls":
@@ -270,7 +289,7 @@ func parseSingleResourceList(key string, vList []json.RawMessage, res *Resources
 	case "public_gateways":
 		return addParsedPgw(vList, res)
 	case "endpoint_gateways":
-		fmt.Println("warning: ignoring endpoint_gateways, TODO: add support")
+		return addParsedVPE(vList, res)
 	case "iks_worker_nodes":
 		return addParsedWorkerNodes(vList, res)
 	default:
@@ -565,7 +584,7 @@ func getSGconfig(rc *ResourcesContainer, res *vpcmodel.CloudConfig, intfNameToIn
 		sgResource := &SecurityGroup{
 			VPCResource: vpcmodel.VPCResource{
 				ResourceName: *sg.Name, ResourceUID: *sg.CRN, ResourceType: ResourceTypeSG},
-			analyzer: NewSGAnalyzer(sg), members: map[string]*NetworkInterface{}, vpc: vpc,
+			analyzer: NewSGAnalyzer(sg), members: map[string]vpcmodel.Node{}, vpc: vpc,
 		}
 		sgMap[*sg.Name] = sgResource
 		targets := sg.Targets // *SecurityGroupTargetReference
@@ -578,6 +597,14 @@ func getSGconfig(rc *ResourcesContainer, res *vpcmodel.CloudConfig, intfNameToIn
 				if targetType == networkInterfaceResourceType {
 					if intfNode, ok := intfNameToIntf[targetName]; ok {
 						sgResource.members[intfNode.address] = intfNode
+					}
+				} else if targetType == vpeResourceType {
+					if vpe, ok := res.NameToResource[targetName]; ok {
+						vpeObj := vpe.(*Vpe)
+						for _, n := range vpeObj.nodes {
+							nIP := n.(*ReservedIP)
+							sgResource.members[nIP.address] = n
+						}
 					}
 				}
 			}
@@ -629,6 +656,58 @@ func getNACLconfig(rc *ResourcesContainer, res *vpcmodel.CloudConfig, subnetName
 		VPCResource: vpcmodel.VPCResource{ResourceType: vpcmodel.NaclLayer},
 		naclList:    naclList}
 	res.FilterResources = append(res.FilterResources, naclLayer)
+	return nil
+}
+
+func getSubnetByIPAddress(address string, c *vpcmodel.CloudConfig) (subnet *Subnet, err error) {
+	addressIPblock := common.NewIPBlockFromCidrOrAddress(address)
+	for _, s := range c.NodeSets {
+		if s.Kind() == ResourceTypeSubnet {
+			subnetRange := s.AddressRange()
+			if addressIPblock.ContainedIn(subnetRange) {
+				return s.(*Subnet), nil
+			}
+		}
+	}
+	return nil, fmt.Errorf("could not find matching subnet for address %s", address)
+}
+
+func getVPEconfig(rc *ResourcesContainer, res *vpcmodel.CloudConfig) (err error) {
+	for i := range rc.vpeList {
+		vpe := rc.vpeList[i]
+		vpc, err := getVPCObjectByName(res, *vpe.VPC.Name)
+		if err != nil {
+			return err
+		}
+		vpeResource := &Vpe{
+			VPCResource: vpcmodel.VPCResource{ResourceName: *vpe.Name, ResourceUID: *vpe.CRN, ResourceType: ResourceTypeVPE},
+			vpc:         vpc,
+		}
+		res.NodeSets = append(res.NodeSets, vpeResource)
+		rIPList := vpe.Ips // reserved ips bound to this endpoint gateway
+		for _, rIP := range rIPList {
+			rIPNode := &ReservedIP{
+				VPCResource: vpcmodel.VPCResource{ResourceName: *rIP.Name, ResourceUID: *rIP.ID,
+					ResourceType: ResourceTypeReservedIP, Zone: ""}, // the zone gets updated later
+				vpe:     *vpe.Name,
+				address: *rIP.Address,
+			}
+			subnet, err := getSubnetByIPAddress(*rIP.Address, res)
+			if err != nil {
+				return err
+			}
+			rIPNode.subnet = subnet
+			rIPNode.Zone = subnet.ZoneName()
+			res.Nodes = append(res.Nodes, rIPNode)
+			// TODO: make sure the address is in the subnet's reserved ips list?
+			subnet.nodes = append(subnet.nodes, rIPNode)
+			res.NameToResource[rIPNode.Name()] = rIPNode
+			vpeResource.nodes = append(vpeResource.nodes, rIPNode)
+		}
+		res.NameToResource[vpeResource.ResourceName] = vpeResource
+		// TODO: verify that vpe.SecurityGroups contain the reserved-ips as members? (not at this stage)
+		// sgList := vpe.SecurityGroups
+	}
 	return nil
 }
 
@@ -709,6 +788,11 @@ func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
 		return nil, err
 	}
 
+	err = getVPEconfig(rc, res)
+	if err != nil {
+		return nil, err
+	}
+
 	err = getSGconfig(rc, res, intfNameToIntf)
 	if err != nil {
 		return nil, err
@@ -719,9 +803,17 @@ func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
 		return nil, err
 	}
 
-	externalNodes, err := addExternalNodes(res, vpcInternalAddressRange)
+	err = handlePublicInternetNodes(res, vpcInternalAddressRange)
 	if err != nil {
 		return nil, err
+	}
+	return res, nil
+}
+
+func handlePublicInternetNodes(res *vpcmodel.CloudConfig, vpcInternalAddressRange *common.IPBlock) error {
+	externalNodes, err := addExternalNodes(res, vpcInternalAddressRange)
+	if err != nil {
+		return err
 	}
 	publicInternetNodes := []vpcmodel.Node{}
 	for _, node := range externalNodes {
@@ -729,7 +821,6 @@ func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
 			publicInternetNodes = append(publicInternetNodes, node)
 		}
 	}
-
 	// update destination of routing resources
 	for _, r := range res.RoutingResources {
 		if rFip, ok := r.(*FloatingIP); ok {
@@ -739,7 +830,7 @@ func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
 			rPgw.destinations = publicInternetNodes
 		}
 	}
-	return res, nil
+	return nil
 }
 
 func addExternalNodes(config *vpcmodel.CloudConfig, vpcInternalAddressRange *common.IPBlock) ([]vpcmodel.Node, error) {
