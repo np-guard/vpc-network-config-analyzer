@@ -43,11 +43,6 @@ func getPortsStr(minPort, maxPort int64) string {
 	return fmt.Sprintf("%d-%d", minPort, maxPort)
 }
 
-func getNACLRuleStr(direction, src, dst, conn, action string) string {
-	return fmt.Sprintf("direction: %s , src: %s , dst: %s, conn: %s, action: %s\n",
-		direction, src, dst, conn, action)
-}
-
 func getProperty(p *int64, defaultP int64) int64 {
 	if p == nil {
 		return defaultP
@@ -55,70 +50,66 @@ func getProperty(p *int64, defaultP int64) int64 {
 	return *p
 }
 
-func getNACLRule(rule vpc1.NetworkACLRuleItemIntf) (ruleStr string, ruleObjRes *NACLRule, isIngressRes bool, err error) {
-	ruleRes := NACLRule{}
-	var isIngress bool
+func getTCPUDPConns(p string, srcPortMin, srcPortMax, dstPortMin, dstPortMax int64) *common.ConnectionSet {
+	conns := common.NewConnectionSet(false)
+	protocol := common.ProtocolUDP
+	if p == protocolTCP {
+		protocol = common.ProtocolTCP
+	}
+	conns.AddTCPorUDPConn(protocol, srcPortMin, srcPortMax, dstPortMin, dstPortMax)
+	return conns
+}
 
+func getNACLRule(rule vpc1.NetworkACLRuleItemIntf) (connStr string, ruleRes *NACLRule, isIngress bool, err error) {
+	var conns *common.ConnectionSet
+	var direction, src, dst, action string
 	switch ruleObj := rule.(type) {
 	case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolAll:
-		res := getNACLRuleStr(*ruleObj.Direction, *ruleObj.Source, *ruleObj.Destination, *ruleObj.Protocol, *ruleObj.Action)
-		// convert to rule object
-		srcIP, _ := common.NewIPBlock(*ruleObj.Source, []string{})
-		dstIP, _ := common.NewIPBlock(*ruleObj.Destination, []string{})
-		conns := common.NewConnectionSet(true)
-		ruleRes = NACLRule{src: srcIP, dst: dstIP, connections: conns, action: *ruleObj.Action}
-		if *ruleObj.Direction == inbound {
-			isIngress = true
-		} else if *ruleObj.Direction == outbound {
-			isIngress = false
-		}
-		return res, &ruleRes, isIngress, nil
+		conns = common.NewConnectionSet(true)
+		connStr = *ruleObj.Protocol
+		direction = *ruleObj.Direction
+		src = *ruleObj.Source
+		dst = *ruleObj.Destination
+		action = *ruleObj.Action
 	case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolTcpudp:
+		conns = getTCPUDPConns(*ruleObj.Protocol,
+			getProperty(ruleObj.SourcePortMin, common.MinPort),
+			getProperty(ruleObj.SourcePortMax, common.MaxPort),
+			getProperty(ruleObj.DestinationPortMin, common.MinPort),
+			getProperty(ruleObj.DestinationPortMax, common.MaxPort),
+		)
 		srcPorts := getPortsStr(*ruleObj.SourcePortMin, *ruleObj.SourcePortMax)
 		dstPorts := getPortsStr(*ruleObj.DestinationPortMin, *ruleObj.DestinationPortMax)
-		connStr := fmt.Sprintf("protocol: %s, srcPorts: %s, dstPorts: %s", *ruleObj.Protocol, srcPorts, dstPorts)
-		res := getNACLRuleStr(*ruleObj.Direction, *ruleObj.Source, *ruleObj.Destination, connStr, *ruleObj.Action)
-
-		// convert to rule object
-		srcIP, _ := common.NewIPBlock(*ruleObj.Source, []string{})
-		dstIP, _ := common.NewIPBlock(*ruleObj.Destination, []string{})
-		conns := common.NewConnectionSet(false)
-		srcPortMin := getProperty(ruleObj.SourcePortMin, common.MinPort)
-		srcPortMax := getProperty(ruleObj.SourcePortMax, common.MaxPort)
-		dstPortMin := getProperty(ruleObj.DestinationPortMin, common.MinPort)
-		dstPortMax := getProperty(ruleObj.DestinationPortMax, common.MaxPort)
-
-		if *ruleObj.Protocol == protocolTCP {
-			conns.AddTCPorUDPConn(common.ProtocolTCP, srcPortMin, srcPortMax, dstPortMin, dstPortMax)
-		} else if *ruleObj.Protocol == protocolUDP {
-			conns.AddTCPorUDPConn(common.ProtocolUDP, srcPortMin, srcPortMax, dstPortMin, dstPortMax)
-		}
-		ruleRes = NACLRule{src: srcIP, dst: dstIP, connections: conns, action: *ruleObj.Action}
-		if *ruleObj.Direction == inbound {
-			isIngress = true
-		} else if *ruleObj.Direction == outbound {
-			isIngress = false
-		}
-		return res, &ruleRes, isIngress, nil
+		connStr = fmt.Sprintf("protocol: %s, srcPorts: %s, dstPorts: %s", *ruleObj.Protocol, srcPorts, dstPorts)
+		direction = *ruleObj.Direction
+		src = *ruleObj.Source
+		dst = *ruleObj.Destination
+		action = *ruleObj.Action
 	case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolIcmp:
-
-		connStr := fmt.Sprintf("protocol: %s", *ruleObj.Protocol)
-		res := getNACLRuleStr(*ruleObj.Direction, *ruleObj.Source, *ruleObj.Destination, connStr, *ruleObj.Action)
-		conns, _ := getICMPconn(ruleObj.Type, ruleObj.Code)
-		srcIP, _ := common.NewIPBlock(*ruleObj.Source, []string{})
-		dstIP, _ := common.NewIPBlock(*ruleObj.Destination, []string{})
-		ruleRes = NACLRule{src: srcIP, dst: dstIP, connections: conns, action: *ruleObj.Action}
-		if *ruleObj.Direction == inbound {
-			isIngress = true
-		} else if *ruleObj.Direction == outbound {
-			isIngress = false
-		}
-
-		return res, &ruleRes, isIngress, nil
-
+		conns, _ = getICMPconn(ruleObj.Type, ruleObj.Code)
+		connStr = fmt.Sprintf("protocol: %s", *ruleObj.Protocol)
+		direction = *ruleObj.Direction
+		src = *ruleObj.Source
+		dst = *ruleObj.Destination
+		action = *ruleObj.Action
 	default:
-		return "", nil, false, fmt.Errorf("getNACLRule unsupported type for rule: %s ", rule)
+		err = fmt.Errorf("getNACLRule unsupported type for rule: %s ", rule)
+		return "", nil, false, err
 	}
+
+	srcIP, err := common.NewIPBlock(src, []string{})
+	if err != nil {
+		return "", nil, false, err
+	}
+	dstIP, err := common.NewIPBlock(dst, []string{})
+	if err != nil {
+		return "", nil, false, err
+	}
+	ruleRes = &NACLRule{src: srcIP, dst: dstIP, connections: conns, action: action}
+	isIngress = direction == inbound
+	connStr = fmt.Sprintf("direction: %s , src: %s , dst: %s, conn: %s, action: %s\n",
+		direction, src, dst, connStr, action)
+	return connStr, ruleRes, isIngress, nil
 }
 
 type NACLRule struct {
