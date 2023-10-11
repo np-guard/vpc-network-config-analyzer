@@ -22,14 +22,8 @@ func (m *mockNetIntf) Cidr() string {
 func (m *mockNetIntf) IsInternal() bool {
 	return !m.isPublic
 }
-func (m *mockNetIntf) Details() []string {
-	return []string{}
-}
 func (m *mockNetIntf) IsPublicInternet() bool {
 	return m.isPublic
-}
-func (m *mockNetIntf) DetailsMap() []map[string]string {
-	return nil
 }
 func (m *mockNetIntf) Kind() string {
 	return "NetworkInterface"
@@ -63,15 +57,13 @@ func (m *mockSubnet) Name() string {
 func (m *mockSubnet) Nodes() []Node {
 	return m.nodes
 }
+func (m *mockSubnet) AddressRange() *common.IPBlock {
+	return nil
+}
 func (m *mockSubnet) Connectivity() *ConnectivityResult {
 	return nil
 }
-func (m *mockSubnet) Details() []string {
-	return []string{}
-}
-func (m *mockSubnet) DetailsMap() []map[string]string {
-	return nil
-}
+
 func (m *mockSubnet) Kind() string {
 	return "Subnet"
 }
