@@ -673,8 +673,7 @@ func getSubnetByIPAddress(address string, c *vpcmodel.CloudConfig) (subnet *Subn
 }
 
 func getVPEconfig(rc *ResourcesContainer, res *vpcmodel.CloudConfig) (err error) {
-	for i := range rc.vpeList {
-		vpe := rc.vpeList[i]
+	for _, vpe := range rc.vpeList {
 		vpc, err := getVPCObjectByName(res, *vpe.VPC.Name)
 		if err != nil {
 			return err
