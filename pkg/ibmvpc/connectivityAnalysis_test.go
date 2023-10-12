@@ -380,36 +380,6 @@ func NewSimpleCloudConfig() *vpcmodel.CloudConfig {
 }
 
 /*
-cloud config details:
-NetworkInterface 10.240.10.4 vsi-0-subnet-1[10.240.10.4] subnet: 10.240.10.0/24
-NetworkInterface 10.240.20.4 vsi-0-subnet-2[10.240.20.4] subnet: 10.240.20.0/24
-subnet-1 10.240.10.0/24
-subnet-2 10.240.20.0/24
-NACL nacl-1subnets: 10.240.10.0/24,10.240.20.0/24,
-*/
-func TestBasicCloudConfig1(t *testing.T) {
-	c := createConfigFromTestConfig(tc1, []*naclConfig{nc1})
-	strC := c.String()
-	fmt.Println(strC)
-	fmt.Println("done")
-}
-
-/*
-cloud config details:
-NetworkInterface 10.240.10.4 vsi-1[10.240.10.4] subnet: 10.240.10.0/24
-NetworkInterface 10.240.20.4 vsi-2[10.240.20.4] subnet: 10.240.20.0/24
-subnet-1 10.240.10.0/24
-subnet-2 10.240.20.0/24
-NACL nacl-1subnets: 10.240.10.0/24,10.240.20.0/24,
-*/
-func TestBasicCloudConfig(t *testing.T) {
-	c := NewSimpleCloudConfig()
-	strC := c.String()
-	fmt.Println(strC)
-	fmt.Println("done")
-}
-
-/*
 =================================== distributed inbound/outbound connections:
 10.240.10.4 => 10.240.20.4 : All Connections [inbound]
 10.240.10.4 => 10.240.20.4 : All Connections [outbound]
