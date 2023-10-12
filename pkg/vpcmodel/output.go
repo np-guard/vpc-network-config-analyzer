@@ -60,6 +60,7 @@ func NewOutputGenerator(c *CloudConfig, grouping bool, uc OutputUseCase, archOnl
 			res.subnetsConn = subnetsConn
 		}
 	}
+	// todo: add for diff
 	return res, nil
 }
 

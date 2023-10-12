@@ -7,12 +7,14 @@ import (
 	"fmt"
 )
 
+type subnetConnectivity map[EndpointElem]map[EndpointElem]*common.ConnectionSet
+
 // VPCsubnetConnectivity captures allowed connectivity for subnets, considering nacl and pgw resources
 type VPCsubnetConnectivity struct {
 	// computed for each node (subnet), by iterating its ConnectivityResult for all relevant VPC resources that capture it
 	AllowedConns map[EndpointElem]*ConfigBasedConnectivityResults
 	// combined connectivity - considering both ingress and egress per connection
-	AllowedConnsCombined map[EndpointElem]map[EndpointElem]*common.ConnectionSet
+	AllowedConnsCombined subnetConnectivity
 	CloudConfig          *CloudConfig
 	// grouped connectivity result
 	GroupedConnectivity *GroupConnLines
