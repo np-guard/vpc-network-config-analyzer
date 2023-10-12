@@ -25,6 +25,30 @@ func (z *Zone) VPC() *VPC {
 	return z.vpc
 }
 
+type ReservedIP struct {
+	vpcmodel.VPCResource
+	address string
+	subnet  *Subnet
+	vpe     string
+}
+
+func (r *ReservedIP) Cidr() string {
+	return r.address
+	// TODO: fix so that it works with cidr instead of address returned
+	// return common.IPv4AddressToCidr(ni.address)
+}
+func (r *ReservedIP) IsInternal() bool {
+	return true
+}
+
+func (r *ReservedIP) IsPublicInternet() bool {
+	return false
+}
+
+func (r *ReservedIP) Name() string {
+	return getNodeName(r.vpe, r.address)
+}
+
 // nodes elements - implement vpcmodel.Node interface
 type NetworkInterface struct {
 	vpcmodel.VPCResource
@@ -152,8 +176,12 @@ func (v *Vsi) Connectivity() *vpcmodel.ConnectivityResult {
 }
 
 func (v *Vsi) AddressRange() *common.IPBlock {
+	return nodesAddressRange(v.nodes)
+}
+
+func nodesAddressRange(nodes []vpcmodel.Node) *common.IPBlock {
 	var res *common.IPBlock
-	for _, n := range v.nodes {
+	for _, n := range nodes {
 		if res == nil {
 			res = common.NewIPBlockFromCidr(n.Cidr())
 		} else {
@@ -161,6 +189,30 @@ func (v *Vsi) AddressRange() *common.IPBlock {
 		}
 	}
 	return res
+}
+
+// vpe can be in multiple zones - depending on the zones of its network interfaces..
+type Vpe struct {
+	vpcmodel.VPCResource
+	nodes []vpcmodel.Node
+	vpc   *VPC
+}
+
+func (v *Vpe) Nodes() []vpcmodel.Node {
+	return v.nodes
+}
+
+func (v *Vpe) Connectivity() *vpcmodel.ConnectivityResult {
+	return nil
+}
+
+func (v *Vpe) AddressRange() *common.IPBlock {
+	return nodesAddressRange(v.nodes)
+}
+
+// vpe is per vpc and not per zone...
+func (v *Vpe) Zone() (*Zone, error) {
+	return nil, nil
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -251,6 +303,8 @@ func getNodeCidrs(n vpcmodel.Node) (subnetCidr, nodeCidr string, err error) {
 		return t.subnet.cidr, t.Cidr(), nil
 	case *IKSNode:
 		return t.subnet.cidr, t.Cidr(), nil
+	case *ReservedIP:
+		return t.subnet.cidr, t.Cidr(), nil
 	default:
 		return "", "", fmt.Errorf("cannot get cidr for node: %+v", n)
 	}
@@ -331,7 +385,7 @@ func (sgl *SecurityGroupLayer) ReferencedIPblocks() []*common.IPBlock {
 type SecurityGroup struct {
 	vpcmodel.VPCResource
 	analyzer *SGAnalyzer
-	members  map[string]*NetworkInterface // map of members: pairs(address[string], object[NetworkInterface])
+	members  map[string]vpcmodel.Node // map of members: pairs(address[string], object[NetworkInterface/ReservedIP])
 	vpc      *VPC
 }
 

@@ -22,6 +22,8 @@ func getOutputFormat(inArgs *InArgs) vpcmodel.OutFormat {
 		return vpcmodel.DRAWIO
 	case ARCHDRAWIOFormat:
 		return vpcmodel.ARCHDRAWIO
+	case DEBUGFormat:
+		return vpcmodel.Debug
 	}
 	return vpcmodel.Text
 }

@@ -91,6 +91,16 @@ func JSONPgwTpObject(pgw []byte) (*vpc1.PublicGateway, error) {
 	return pgwObj, err
 }
 
+func JSONVpeToObject(vpe []byte) (*vpc1.EndpointGateway, error) {
+	jsonMap, err := JSONToMap(vpe)
+	if err != nil {
+		return nil, err
+	}
+	epgwObj := &vpc1.EndpointGateway{}
+	err = vpc1.UnmarshalEndpointGateway(jsonMap, &epgwObj)
+	return epgwObj, err
+}
+
 // convert vpc1.NetworkACL to json string
 func ObjectNaclToJSON(naclObj *vpc1.NetworkACL) ([]byte, error) {
 	return json.MarshalIndent(*naclObj, "", indent)
