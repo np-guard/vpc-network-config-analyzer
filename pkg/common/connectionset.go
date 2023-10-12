@@ -524,6 +524,23 @@ func (conn *ConnectionSet) ResponseConnection() *ConnectionSet {
 	return res
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///// Diff between ConnectionSet
+
+// Connection A minus Connection B
+type ConnectionSetDiff struct {
+	ConnectionSet
+	statefullDiff *ConnectionSet // connection element which is stateful only in A
+}
+
+func (conn *ConnectionSet) ConnectionSet1Minus2(other *ConnectionSet) *ConnectionSet {
+	// todo: use func (conn *ConnectionSet) Subtract(other *ConnectionSet) *ConnectionSet  and note the
+	//       special case in which the connection differs only one being stateful and the other not
+	return nil
+}
+
+// ToDo up to here in connectionSet
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*
