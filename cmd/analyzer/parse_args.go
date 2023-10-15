@@ -22,6 +22,7 @@ const (
 	MDFormat         = "md"
 	DRAWIOFormat     = "drawio"
 	ARCHDRAWIOFormat = "arch_drawio"
+	DEBUGFormat      = "debug"
 
 	// connectivity analysis types supported
 	allEndpoints = "all_endpoints" // vsi to vsi connectivity analysis
@@ -35,6 +36,7 @@ var supportedOutputFormats = map[string]bool{
 	MDFormat:         true,
 	DRAWIOFormat:     true,
 	ARCHDRAWIOFormat: true,
+	DEBUGFormat:      true,
 }
 var supportedAnalysisTypes = map[string]bool{
 	allEndpoints: true,
