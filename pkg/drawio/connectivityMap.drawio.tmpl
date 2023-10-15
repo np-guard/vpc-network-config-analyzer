@@ -35,14 +35,12 @@
                 <mxGeometry width="{{$node.IconSize}}" height="{{$node.IconSize}}" x="{{$node.X}}" y="{{$node.Y}}" as="geometry"/>
                 </mxCell>
             {{ end }}
+            {{ if $data.HasMiniIcon $node }}
+                <mxCell id="{{$data.IDsPrefix}}-{{$node.VsiID}}" value="" style="{{$data.NiStyle}}" parent="{{$data.IDsPrefix}}-{{$node.ID}}" vertex="1">
+                <mxGeometry x="{{$data.VSIXOffset}}" y="{{$data.VSIYOffset}}" width="{{$data.VSISize}}" height="{{$data.VSISize}}" as="geometry"/>
+                </mxCell>
+            {{ end }}
             {{ if $node.IsNI }}
-                {{ if $node.HasVsi }}
-                    {{ if $data.ShowNIIcon }}
-                        <mxCell id="{{$data.IDsPrefix}}-{{$node.VsiID}}" value="" style="{{$data.NiStyle}}" parent="{{$data.IDsPrefix}}-{{$node.ID}}" vertex="1">
-                        <mxGeometry x="{{$data.VSIXOffset}}" y="{{$data.VSIYOffset}}" width="{{$data.VSISize}}" height="{{$data.VSISize}}" as="geometry"/>
-                        </mxCell>
-                    {{ end }}
-                {{ end }}
                 {{ if $node.HasFip  }}
                     <mxCell id="{{$data.IDsPrefix}}-{{$node.FipID}}" value="{{$node.Fip}}" style="{{$data.FIPStyle}}" parent="{{$data.IDsPrefix}}-{{$node.ID}}" vertex="1">
                     <mxGeometry x="{{$data.FipXOffset}}" y="{{$data.FipYOffset}}" width="{{$node.IconSize}}" height="{{$node.IconSize}}" as="geometry"/>
