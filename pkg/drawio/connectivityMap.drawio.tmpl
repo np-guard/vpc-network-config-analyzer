@@ -36,8 +36,8 @@
                 </mxCell>
             {{ end }}
             {{ if $data.HasMiniIcon $node }}
-                <mxCell id="{{$data.IDsPrefix}}-{{$node.VsiID}}" value="" style="{{$data.NiStyle}}" parent="{{$data.IDsPrefix}}-{{$node.ID}}" vertex="1">
-                <mxGeometry x="{{$data.VSIXOffset}}" y="{{$data.VSIYOffset}}" width="{{$data.VSISize}}" height="{{$data.VSISize}}" as="geometry"/>
+                <mxCell id="{{$data.IDsPrefix}}-{{$node.MiniIconID}}" value="" style="{{$data.NiStyle}}" parent="{{$data.IDsPrefix}}-{{$node.ID}}" vertex="1">
+                <mxGeometry x="{{$data.MiniIconXOffset}}" y="{{$data.MiniIconYOffset}}" width="{{$data.MiniIconSize}}" height="{{$data.MiniIconSize}}" as="geometry"/>
                 </mxCell>
             {{ end }}
             {{ if $node.IsNI }}

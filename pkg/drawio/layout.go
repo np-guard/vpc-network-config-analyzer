@@ -40,9 +40,9 @@ const (
 	fipXOffset = -70
 	fipYOffset = 40
 
-	vsiXOffset  = 30
-	vsiYOffset  = -10
-	vsiIconSize = 40
+	miniIconXOffset = 30
+	miniIconYOffset = -10
+	miniIconSize    = 40
 
 	vsiOneRowYOffset   = 90
 	vsiMultiRowYOffset = subnetHeight / 2

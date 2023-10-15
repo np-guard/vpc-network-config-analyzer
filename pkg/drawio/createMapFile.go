@@ -14,9 +14,9 @@ var drawioTemplate string
 type drawioData struct {
 	FipXOffset int
 	FipYOffset int
-	VSIXOffset int
-	VSIYOffset int
-	VSISize    int
+	MiniIconXOffset int
+	MiniIconYOffset int
+	MiniIconSize    int
 	RootID     uint
 	IDsPrefix  string
 	// ShowNIIcon says if to display the NI as an NI image, or a VSI image
@@ -58,9 +58,9 @@ func CreateDrawioConnectivityMapFile(network SquareTreeNodeInterface, outputFile
 	data := &drawioData{
 		fipXOffset,
 		fipYOffset,
-		vsiXOffset,
-		vsiYOffset,
-		vsiIconSize,
+		miniIconXOffset,
+		miniIconYOffset,
+		miniIconSize,
 		network.ID(),
 		idsPrefix,
 		network.HasVSIs(),

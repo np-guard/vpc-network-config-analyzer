@@ -37,6 +37,7 @@ func (tn *abstractIconTreeNode) SetTooltip(tooltip []string) { tn.tooltip = tool
 func (tn *abstractIconTreeNode) HasTooltip() bool            { return len(tn.tooltip) > 0 }
 func (tn *abstractIconTreeNode) Tooltip() string             { return labels2Table(tn.tooltip) }
 func (tn *abstractIconTreeNode) IconSize() int               { return iconSize }
+func (tn *abstractIconTreeNode) MiniIconID() uint            { return tn.id + miniIconID }
 
 var offsets = []int{
 	0,
@@ -87,7 +88,6 @@ func (tn *NITreeNode) SetSG(sg *SGTreeNode) {
 	sg.addIconTreeNode(tn)
 	tn.sg = sg
 }
-func (tn *NITreeNode) VsiID() uint       { return tn.id + niVsiID }
 func (tn *NITreeNode) FipID() uint       { return tn.id + niFipID }
 func (tn *NITreeNode) SetVsi(vsi string) { tn.vsi = vsi }
 func (tn *NITreeNode) Vsi() string       { return tn.vsi }
