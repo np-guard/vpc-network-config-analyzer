@@ -95,7 +95,7 @@ func (e *edgeInfo) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeI
 	srcTn := gen.TreeNode(e.src)
 	dstTn := gen.TreeNode(e.dst)
 	// todo - remove this when supporting vpe
-	if srcTn == nil || dstTn == nil{
+	if srcTn == nil || dstTn == nil {
 		return nil
 	}
 	return drawio.NewConnectivityLineTreeNode(gen.Network(), srcTn, dstTn, e.directed, e.label)

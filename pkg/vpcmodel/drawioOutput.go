@@ -108,7 +108,7 @@ func (d *DrawioOutputFormatter) createEdges() {
 	for e, directed := range isEdgeDirected {
 		ei := &edgeInfo{e.src, e.dst, e.label, directed}
 		// todo - remove if when supporting vpe:
-		if d.gen.TreeNode(ei) == nil{
+		if d.gen.TreeNode(ei) == nil {
 			continue
 		}
 		cn := d.gen.TreeNode(ei).(*drawio.ConnectivityTreeNode)
