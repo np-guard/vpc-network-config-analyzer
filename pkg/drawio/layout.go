@@ -98,7 +98,7 @@ func canShareCell(i1, i2 IconTreeNodeInterface) bool {
 		return true
 	case i1.SG() != i2.SG():
 		return false
-	case !i1.IsNI() || !i2.IsNI():
+	case !i1.IsNIorRIP() || !i2.IsNIorRIP():
 		return true
 	case i1.(*NITreeNode).HasFip() || i2.(*NITreeNode).HasFip():
 		return false
@@ -140,7 +140,7 @@ func (ly *layoutS) calcGroupsVisibility(subnet SquareTreeNodeInterface) {
 	iconSquareGroups := map[IconTreeNodeInterface]map[SquareTreeNodeInterface]bool{}
 	for _, groupS := range sortedBySizeGroups {
 		group := groupS.(*GroupSquareTreeNode)
-		if len(group.groupies) == len(subnet.(*SubnetTreeNode).NIs()) {
+		if len(group.groupies) == len(subnet.(*SubnetTreeNode).NIorRIPs()) {
 			group.setVisibility(theSubnet)
 			continue
 		}
@@ -211,7 +211,7 @@ func (ly *layoutS) getSubnetIconsOrder(subnet SquareTreeNodeInterface) [][]IconT
 	nonGroupedIcons := []IconTreeNodeInterface{}
 	for _, icon := range subnet.IconTreeNodes() {
 		if _, ok := iconOuterGroup[icon]; !ok {
-			if icon.IsNI() {
+			if icon.IsNIorRIP() {
 				nonGroupedIcons = append(nonGroupedIcons, icon)
 			}
 		}

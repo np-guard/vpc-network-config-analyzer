@@ -4,9 +4,10 @@ type IconTreeNodeInterface interface {
 	TreeNodeInterface
 	RouterID() uint
 	SG() SquareTreeNodeInterface
+	setSG(SquareTreeNodeInterface)
 	allocateNewRouteOffset() int
 	IsVSI() bool
-	IsNI() bool
+	IsNIorRIP() bool
 	IsGroupingPoint() bool
 	SetTooltip(tooltip []string)
 	HasTooltip() bool
@@ -27,17 +28,19 @@ func newAbstractIconTreeNode(parent SquareTreeNodeInterface, name string) abstra
 	return abstractIconTreeNode{abstractTreeNode: newAbstractTreeNode(parent, name)}
 }
 
-func (tn *abstractIconTreeNode) SG() SquareTreeNodeInterface { return tn.sg }
-func (tn *abstractIconTreeNode) IsIcon() bool                { return true }
-func (tn *abstractIconTreeNode) IsVSI() bool                 { return false }
-func (tn *abstractIconTreeNode) IsGateway() bool             { return false }
-func (tn *abstractIconTreeNode) IsNI() bool                  { return false }
-func (tn *abstractIconTreeNode) IsGroupingPoint() bool       { return false }
-func (tn *abstractIconTreeNode) SetTooltip(tooltip []string) { tn.tooltip = tooltip }
-func (tn *abstractIconTreeNode) HasTooltip() bool            { return len(tn.tooltip) > 0 }
-func (tn *abstractIconTreeNode) Tooltip() string             { return labels2Table(tn.tooltip) }
-func (tn *abstractIconTreeNode) IconSize() int               { return iconSize }
-func (tn *abstractIconTreeNode) MiniIconID() uint            { return tn.id + miniIconID }
+func (tn *abstractIconTreeNode) SG() SquareTreeNodeInterface      { return tn.sg }
+func (tn *abstractIconTreeNode) setSG(sg SquareTreeNodeInterface) { tn.sg = sg }
+func (tn *abstractIconTreeNode) IsIcon() bool                     { return true }
+func (tn *abstractIconTreeNode) IsVSI() bool                      { return false }
+func (tn *abstractIconTreeNode) IsGateway() bool                  { return false }
+func (tn *abstractIconTreeNode) IsNIorRIP() bool                  { return false }
+func (tn *abstractIconTreeNode) IsNI() bool                       { return false }
+func (tn *abstractIconTreeNode) IsGroupingPoint() bool            { return false }
+func (tn *abstractIconTreeNode) SetTooltip(tooltip []string)      { tn.tooltip = tooltip }
+func (tn *abstractIconTreeNode) HasTooltip() bool                 { return len(tn.tooltip) > 0 }
+func (tn *abstractIconTreeNode) Tooltip() string                  { return labels2Table(tn.tooltip) }
+func (tn *abstractIconTreeNode) IconSize() int                    { return iconSize }
+func (tn *abstractIconTreeNode) MiniIconID() uint                 { return tn.id + miniIconID }
 
 var offsets = []int{
 	0,
@@ -69,24 +72,27 @@ func (tn *abstractIconTreeNode) absoluteRouterGeometry() (x, y int) {
 	return absoluteGeometry(tn)
 }
 
+// /////////////////////////////////////////////////////////////////////////////////////////////
+type NIorRIPTreeNode struct {
+	abstractIconTreeNode
+}
+
+func (tn *NIorRIPTreeNode) IsNIorRIP() bool { return true }
+
 // ///////////////////////////////////////////
 type NITreeNode struct {
-	abstractIconTreeNode
+	NIorRIPTreeNode
 	floatingIP string
 	vsi        string
 }
 
 func NewNITreeNode(parent SquareTreeNodeInterface, sg *SGTreeNode, name string) *NITreeNode {
-	ni := NITreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, name)}
+	ni := NITreeNode{NIorRIPTreeNode: NIorRIPTreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, name)}}
 	parent.addIconTreeNode(&ni)
 	if sg != nil {
-		ni.SetSG(sg)
+		sg.AddIcon(&ni)
 	}
 	return &ni
-}
-func (tn *NITreeNode) SetSG(sg *SGTreeNode) {
-	sg.addIconTreeNode(tn)
-	tn.sg = sg
 }
 func (tn *NITreeNode) FipID() uint       { return tn.id + niFipID }
 func (tn *NITreeNode) SetVsi(vsi string) { tn.vsi = vsi }
@@ -128,9 +134,14 @@ func NewUserTreeNode(parent SquareTreeNodeInterface, name string) *UserTreeNode 
 }
 
 // ///////////////////////////////////////////
-type VsiTreeNode struct {
+type VsiOrVpeTreeNode struct {
 	abstractIconTreeNode
 	nis []TreeNodeInterface
+}
+
+// ///////////////////////////////////////////
+type VsiTreeNode struct {
+	VsiOrVpeTreeNode
 }
 
 func GroupNIsWithVSI(parent SquareTreeNodeInterface, name string, nis []TreeNodeInterface) {
@@ -146,7 +157,7 @@ func GroupNIsWithVSI(parent SquareTreeNodeInterface, name string, nis []TreeNode
 }
 
 func newVsiTreeNode(parent SquareTreeNodeInterface, name string, nis []TreeNodeInterface) *VsiTreeNode {
-	vsi := &VsiTreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, name), nis: nis}
+	vsi := &VsiTreeNode{VsiOrVpeTreeNode: VsiOrVpeTreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, name), nis: nis}}
 	parent.addIconTreeNode(vsi)
 	parent.setHasVSIs()
 	return vsi

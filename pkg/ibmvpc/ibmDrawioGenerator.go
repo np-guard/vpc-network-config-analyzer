@@ -38,7 +38,7 @@ func (sgl *SecurityGroupLayer) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenera
 			if gen.TreeNode(ni) == nil {
 				continue
 			}
-			gen.TreeNode(ni).(*drawio.NITreeNode).SetSG(tn)
+			tn.AddIcon(gen.TreeNode(ni).(drawio.IconTreeNodeInterface))
 		}
 	}
 	return tn

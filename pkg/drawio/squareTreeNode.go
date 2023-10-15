@@ -164,6 +164,11 @@ func NewSGTreeNode(parent *VpcTreeNode, name string) *SGTreeNode {
 func (tn *SGTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
 	return tn.partialSgs, tn.elements, tn.connections
 }
+func (sg *SGTreeNode) AddIcon(tn IconTreeNodeInterface) {
+	sg.addIconTreeNode(tn)
+	tn.setSG(sg)
+}
+
 func (tn *SGTreeNode) NotShownInDrawio() bool { return true }
 
 ///////////////////////////////////////////////////////////////////////
@@ -208,10 +213,10 @@ func (tn *SubnetTreeNode) Label() string {
 func (tn *SubnetTreeNode) SetACL(acl string) {
 	tn.acl = acl
 }
-func (tn *SubnetTreeNode) NIs() []IconTreeNodeInterface {
+func (tn *SubnetTreeNode) NIorRIPs() []IconTreeNodeInterface {
 	nis := []IconTreeNodeInterface{}
 	for _, icon := range tn.elements {
-		if icon.IsNI() {
+		if icon.IsNIorRIP() {
 			nis = append(nis, icon)
 		}
 	}
