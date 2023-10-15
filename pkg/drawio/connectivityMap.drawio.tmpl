@@ -38,7 +38,7 @@
             {{ if $node.IsNI }}
                 {{ if $node.HasVsi }}
                     {{ if $data.ShowNIIcon }}
-                        <mxCell id="{{$data.IDsPrefix}}-{{$node.VsiID}}" value="" style="{{$data.VsiStyle}}" parent="{{$data.IDsPrefix}}-{{$node.ID}}" vertex="1">
+                        <mxCell id="{{$data.IDsPrefix}}-{{$node.VsiID}}" value="" style="{{$data.NiStyle}}" parent="{{$data.IDsPrefix}}-{{$node.ID}}" vertex="1">
                         <mxGeometry x="{{$data.VSIXOffset}}" y="{{$data.VSIYOffset}}" width="{{$data.VSISize}}" height="{{$data.VSISize}}" as="geometry"/>
                         </mxCell>
                     {{ end }}
