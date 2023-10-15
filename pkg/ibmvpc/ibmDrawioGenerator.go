@@ -34,6 +34,10 @@ func (sgl *SecurityGroupLayer) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenera
 	tn := drawio.NewSGTreeNode(gen.TreeNode(sgl.VPC()).(*drawio.VpcTreeNode), sgl.Name())
 	for _, sg := range sgl.sgList {
 		for _, ni := range sg.members {
+			// todo - remove this if after supporting vpe:
+			if gen.TreeNode(ni) == nil {
+				continue
+			}
 			gen.TreeNode(ni).(*drawio.NITreeNode).SetSG(tn)
 		}
 	}

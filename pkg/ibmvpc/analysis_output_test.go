@@ -221,7 +221,7 @@ var tests = []*vpcGeneralTest{
 		format:   vpcmodel.Debug,
 	},
 	// disable drawio tests until supported with VPE
-	/*{
+	{
 		name:     "acl_testing3",
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		format:   vpcmodel.DRAWIO,
@@ -251,7 +251,7 @@ var tests = []*vpcGeneralTest{
 		name:     "demo_with_instances",
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		format:   vpcmodel.ARCHDRAWIO,
-	},*/
+	},
 	{
 		name:     "sg_testing1_new_grouping",
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},

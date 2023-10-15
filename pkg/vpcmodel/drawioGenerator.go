@@ -57,14 +57,20 @@ func (exn *ExternalNetwork) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.
 }
 
 func (g *groupedEndpointsElems) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
-	if len(*g) == 1 {
-		return gen.TreeNode((*g)[0])
+	// todo - fix with supporting vpe
+	groupiesTNs := []drawio.IconTreeNodeInterface{}
+	for _, ni := range *g {
+		if gen.TreeNode(ni) != nil {
+			groupiesTNs = append(groupiesTNs, gen.TreeNode(ni).(drawio.IconTreeNodeInterface))
+		}
 	}
-	subnetTn := gen.TreeNode((*g)[0]).Parent().(*drawio.SubnetTreeNode)
-	groupiesTNs := make([]drawio.IconTreeNodeInterface, len(*g))
-	for i, ni := range *g {
-		groupiesTNs[i] = gen.TreeNode(ni).(drawio.IconTreeNodeInterface)
+	if len(groupiesTNs) == 0 {
+		return nil
 	}
+	if len(groupiesTNs) == 1 {
+		return groupiesTNs[0]
+	}
+	subnetTn := groupiesTNs[0].Parent().(*drawio.SubnetTreeNode)
 	return drawio.NewGroupSquareTreeNode(subnetTn, groupiesTNs)
 }
 
@@ -88,5 +94,9 @@ func (g *groupedExternalNodes) GenerateDrawioTreeNode(gen *DrawioGenerator) draw
 func (e *edgeInfo) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
 	srcTn := gen.TreeNode(e.src)
 	dstTn := gen.TreeNode(e.dst)
+	// todo - remove this when supporting vpe
+	if srcTn == nil || dstTn == nil{
+		return nil
+	}
 	return drawio.NewConnectivityLineTreeNode(gen.Network(), srcTn, dstTn, e.directed, e.label)
 }
