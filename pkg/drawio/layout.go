@@ -106,8 +106,7 @@ func canShareCell(i1, i2 IconTreeNodeInterface) bool {
 	return true
 }
 
-// sortGroupSquareBySize() sorting GroupSquareTreeNodes by the size of their groupedIcons.
-// assuming the input squares are sortedBySizeGroups
+// sortGroupSquareBySize() sorts a slice of GroupSquareTreeNodes by the size of their groupedIcons set.
 func sortGroupSquareBySize(groups []SquareTreeNodeInterface) []SquareTreeNodeInterface {
 	sortedBySizeGroups := make([]SquareTreeNodeInterface, len(groups))
 	copy(sortedBySizeGroups, groups)

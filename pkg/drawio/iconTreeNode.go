@@ -212,7 +212,7 @@ func (tn *GroupPointTreeNode) connectGroupedIcons() {
 	for _, groupedIcon := range tn.Parent().(*GroupSquareTreeNode).groupedIcons {
 		var s, d IconTreeNodeInterface = tn, groupedIcon
 		// in case the GroupPoint is the src, its means we have an arrow from the tn to  its colleague.
-		// so we want to add errors fro the groupIcon the the GroupPoint
+		// so we want to add arrows from the groupIcon to the GroupPoint
 		if tn.isSrc {
 			s, d = groupedIcon, tn
 		}
