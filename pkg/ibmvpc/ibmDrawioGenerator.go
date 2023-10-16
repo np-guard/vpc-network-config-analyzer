@@ -9,15 +9,6 @@ import (
 func (v *VPC) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	return drawio.NewVpcTreeNode(gen.Cloud(), v.Name())
 }
-
-func (v *Vpe) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
-	return nil
-}
-
-func (r *ReservedIP) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
-	return nil
-}
-
 func (z *Zone) IsExternal() bool { return false }
 func (z *Zone) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	return drawio.NewZoneTreeNode(gen.TreeNode(z.VPC()).(*drawio.VpcTreeNode), z.name)
@@ -34,10 +25,6 @@ func (sgl *SecurityGroupLayer) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenera
 	tn := drawio.NewSGTreeNode(gen.TreeNode(sgl.VPC()).(*drawio.VpcTreeNode), sgl.Name())
 	for _, sg := range sgl.sgList {
 		for _, ni := range sg.members {
-			// todo - remove this if after supporting vpe:
-			if gen.TreeNode(ni) == nil {
-				continue
-			}
 			tn.AddIcon(gen.TreeNode(ni).(drawio.IconTreeNodeInterface))
 		}
 	}
@@ -55,12 +42,16 @@ func (nl *NaclLayer) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawi
 
 func (ni *NetworkInterface) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	return drawio.NewNITreeNode(
-		gen.TreeNode(ni.subnet).(drawio.SquareTreeNodeInterface),ni.Name())
+		gen.TreeNode(ni.subnet).(drawio.SquareTreeNodeInterface), ni.Name())
 }
 
 func (n *IKSNode) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	return drawio.NewNITreeNode(
-		gen.TreeNode(n.subnet).(drawio.SquareTreeNodeInterface),n.Name())
+		gen.TreeNode(n.subnet).(drawio.SquareTreeNodeInterface), n.Name())
+}
+func (r *ReservedIP) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
+	return drawio.NewResIPTreeNode(
+		gen.TreeNode(r.subnet).(drawio.SquareTreeNodeInterface), r.Name())
 }
 
 func (v *Vsi) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
@@ -75,6 +66,19 @@ func (v *Vsi) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeN
 	zone, _ := v.Zone()
 	zoneTn := gen.TreeNode(zone).(*drawio.ZoneTreeNode)
 	drawio.GroupNIsWithVSI(zoneTn, v.Name(), vsiNIs)
+	return nil
+}
+
+func (v *Vpe) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
+	if len(v.Nodes()) == 0 {
+		return nil
+	}
+	resIPs := []drawio.TreeNodeInterface{}
+	for _, ni := range v.Nodes() {
+		resIPs = append(resIPs, gen.TreeNode(ni))
+	}
+	vpcTn := gen.TreeNode(v.vpc).(drawio.SquareTreeNodeInterface)
+	drawio.GroupResIPsWithVpe(vpcTn, v.Name(), resIPs)
 	return nil
 }
 

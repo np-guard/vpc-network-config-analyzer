@@ -197,7 +197,7 @@ type VpeTreeNode struct {
 	resIPs []TreeNodeInterface
 }
 
-func GroupResIPsWithVSI(parent SquareTreeNodeInterface, name string, resIPs []TreeNodeInterface) {
+func GroupResIPsWithVpe(parent SquareTreeNodeInterface, name string, resIPs []TreeNodeInterface) {
 	switch {
 	case len(resIPs) == 1:
 		resIPs[0].(*ResIPTreeNode).setVpe(name)

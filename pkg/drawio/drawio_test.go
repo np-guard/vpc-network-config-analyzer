@@ -117,7 +117,6 @@ func createNetwork() SquareTreeNodeInterface {
 	sg22.AddIcon(ni13)
 	sg22.AddIcon(ni14)
 
-
 	resip1 := NewResIPTreeNode(subnet211, "resip1")
 	resip2 := NewResIPTreeNode(subnet221, "resip2")
 	resip3 := NewResIPTreeNode(subnet231, "resip2")
@@ -126,9 +125,8 @@ func createNetwork() SquareTreeNodeInterface {
 	sg22.AddIcon(resip3)
 
 	NewConnectivityLineTreeNode(network, resip1, resip3, true, "c10")
-	GroupResIPsWithVSI(vpc2, "vpe1", []TreeNodeInterface{resip1,resip2})
-	GroupResIPsWithVSI(vpc2, "vpe2", []TreeNodeInterface{resip3})
-
+	GroupResIPsWithVpe(vpc2, "vpe1", []TreeNodeInterface{resip1, resip2})
+	GroupResIPsWithVpe(vpc2, "vpe2", []TreeNodeInterface{resip3})
 
 	GroupNIsWithVSI(zone22, "vsi3", []TreeNodeInterface{ni10, ni13, ni14})
 
