@@ -111,6 +111,24 @@ func (tn *NITreeNode) absoluteRouterGeometry() (x, y int) {
 }
 
 // ///////////////////////////////////////////
+type ResIPTreeNode struct {
+	NIorRIPTreeNode
+	vpe string
+}
+
+func NewResIPTreeNode(parent SquareTreeNodeInterface, name string) *ResIPTreeNode {
+	rip := ResIPTreeNode{NIorRIPTreeNode: NIorRIPTreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, name)}}
+	parent.addIconTreeNode(&rip)
+	return &rip
+}
+
+func (tn *ResIPTreeNode) SetVpe(vsi string) { tn.vpe = vsi }
+func (tn *ResIPTreeNode) Vpe() string       { return tn.vpe }
+func (tn *ResIPTreeNode) HasVpe() bool      { return tn.Vpe() != "" }
+func (tn *ResIPTreeNode) Label() string     { return labels2Table([]string{tn.name, tn.vpe}) }
+
+
+// ///////////////////////////////////////////
 type GatewayTreeNode struct {
 	abstractIconTreeNode
 }
@@ -134,14 +152,9 @@ func NewUserTreeNode(parent SquareTreeNodeInterface, name string) *UserTreeNode 
 }
 
 // ///////////////////////////////////////////
-type VsiOrVpeTreeNode struct {
+type VsiTreeNode struct {
 	abstractIconTreeNode
 	nis []TreeNodeInterface
-}
-
-// ///////////////////////////////////////////
-type VsiTreeNode struct {
-	VsiOrVpeTreeNode
 }
 
 func GroupNIsWithVSI(parent SquareTreeNodeInterface, name string, nis []TreeNodeInterface) {
@@ -151,13 +164,13 @@ func GroupNIsWithVSI(parent SquareTreeNodeInterface, name string, nis []TreeNode
 	case len(nis) > 1:
 		vsi := newVsiTreeNode(parent, name, nis)
 		for _, ni := range nis {
-			newVsiLineTreeNode(parent, vsi, ni.(*NITreeNode))
+			newVsiLineTreeNode(parent, vsi, ni.(IconTreeNodeInterface))
 		}
 	}
 }
 
 func newVsiTreeNode(parent SquareTreeNodeInterface, name string, nis []TreeNodeInterface) *VsiTreeNode {
-	vsi := &VsiTreeNode{VsiOrVpeTreeNode: VsiOrVpeTreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, name), nis: nis}}
+	vsi := &VsiTreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, name), nis: nis}
 	parent.addIconTreeNode(vsi)
 	parent.setHasVSIs()
 	return vsi
@@ -179,6 +192,32 @@ func (tn *VsiTreeNode) DrawioParent() TreeNodeInterface {
 }
 
 func (tn *VsiTreeNode) IsVSI() bool { return true }
+
+
+// ///////////////////////////////////////////
+type VpeTreeNode struct {
+	abstractIconTreeNode
+	resIPs []TreeNodeInterface
+}
+
+func GroupResIPsWithVSI(parent SquareTreeNodeInterface, name string, resIPs []TreeNodeInterface) {
+	switch {
+	case len(resIPs) == 1:
+		resIPs[0].(*ResIPTreeNode).SetVpe(name)
+	case len(resIPs) > 1:
+		vpe := newVpeTreeNode(parent, name, resIPs)
+		for _, resIP := range resIPs {
+			newVsiLineTreeNode(parent, vpe, resIP.(IconTreeNodeInterface))
+		}
+	}
+}
+
+func newVpeTreeNode(parent SquareTreeNodeInterface, name string, resIPs []TreeNodeInterface) *VpeTreeNode {
+	vpe := &VpeTreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, name), resIPs: resIPs}
+	parent.addIconTreeNode(vpe)
+	parent.setHasVSIs()
+	return vpe
+}
 
 // ///////////////////////////////////////////
 type GroupPointTreeNode struct {
