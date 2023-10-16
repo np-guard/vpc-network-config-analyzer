@@ -188,6 +188,12 @@ var tests = []*vpcGeneralTest{
 		grouping: true,
 		format:   vpcmodel.DRAWIO,
 	},
+	{
+		name:     "mult_NIs_single_VSI",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping: true,
+		format:   vpcmodel.DRAWIO,
+	},
 
 	//batch3: only vsi-level use-case, no grouping, with debug / md  output formats
 	{
