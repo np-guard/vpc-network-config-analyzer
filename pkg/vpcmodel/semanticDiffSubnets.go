@@ -1,6 +1,8 @@
 package vpcmodel
 
-import "github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+import (
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+)
 
 // ToDo: go over structs specifically * and lack of
 
@@ -53,9 +55,31 @@ func (configs configsForDiff) GetSubnetsDiff(grouping bool) (*diffBetweenSubnets
 
 	// 3. ToDo: grouping, see comment at the end of this file
 
-	res := &diffBetweenSubnets{subnet1Subtract2: subnet1Subtract2,
+	res := &diffBetweenSubnets{
+		subnet1Subtract2: subnet1Subtract2,
 		subnet2Subtract1: subnet2Subtract1}
 	return res, nil
+}
+
+// for a given EndpointElem (representing a subnet or an external ip) in config return the EndpointElem representing the
+// subnet/external address in otherConfig or nil if the subnet does not exist in the other config.
+func (config *CloudConfig) getEndpointElemInOtherConfig(other *CloudConfig, ep EndpointElem) *EndpointElem {
+	if ep.IsExternal() {
+		for _, node := range other.Nodes {
+			if node.Name() == ep.Name() {
+				res := EndpointElem(node)
+				return &res
+			}
+		}
+	} else {
+		for _, nodeSet := range other.NodeSets {
+			if nodeSet.Name() == ep.Name() {
+				res := EndpointElem(nodeSet)
+				return &res
+			}
+		}
+	}
+	return nil
 }
 
 // generates from subnet1Connectivity.AllowedConnsCombined and subnet2Connectivity.AllowedConnsCombined
@@ -63,6 +87,9 @@ func (configs configsForDiff) GetSubnetsDiff(grouping bool) (*diffBetweenSubnets
 // (src2, dst2) of subnet2Connectivity are either:
 //  1. src1 disjoint src2 or dst1 disjoint dst2
 //  2. src1 = src2 and dst1 = dst2
+//     What is done here is repartitioning the ipBlocks so that the above will hold
+//
+// todo: verify that the returns objects indeed have exactly the same ipBlocks
 func (connectivity subnetConnectivity) getConnectivesWithSameIpBlocks(other subnetConnectivity) (subnetConnectivity, subnetConnectivity) {
 	// todo: use DisjointIPBlocks(set1, set2 []*IPBlock) []*IPBlock  of ipBlock.go
 	return connectivity, other
@@ -76,32 +103,46 @@ func (configs configsForDiff) subnetConnectivitySubtract(connectivity subnetConn
 			if conns.IsEmpty() {
 				continue
 			}
-
 			if _, ok := connectivitySubtract[src]; !ok {
 				connectivitySubtract[src] = map[EndpointElem]*connectionDiff{}
 			}
-			if otherSrc, existSrc := other[src]; existSrc {
-				if otherSrcDst, existDst := otherSrc[dst]; existDst {
-					diffConnection := conns.Subtract(otherSrcDst)
-					if diffConnection.IsEmpty() {
-						continue // no diff
+			srcInOther := configs.config1.getEndpointElemInOtherConfig(configs.config2, src)
+			dstInOther := configs.config1.getEndpointElemInOtherConfig(configs.config2, dst)
+			if srcInOther != nil && dstInOther != nil {
+				if otherSrc, ok := other[*srcInOther]; ok {
+					if otherSrcDst, ok := otherSrc[*dstInOther]; ok {
+						subtractConn := conns.SubtractWithStateful(otherSrcDst)
+						if subtractConn.IsEmpty() {
+							continue // no diff
+						}
+						diffConnectionWithType := &connectionDiff{
+							subtractConn,
+							ChangedConnection,
+						}
+						connectivitySubtract[src][dst] = diffConnectionWithType
+						continue
 					}
-					connectionSetDiff := common.ConnectionSetDiff{
-						*diffConnection,
-						nil,
-					}
-					diffConnectionWithType := &connectionDiff{
-						connectionSetDiff,
-						ChangedConnection,
-					}
-					connectivitySubtract[src][dst] = diffConnectionWithType
 				}
-				// todo: if src, dst do not exist as node see if src missing in config, dst missing or both missing
-				// todo: if src and dst both present then call ConnectionSet1Minus2
 			}
+			var diff DiffType
+			if srcInOther == nil && dstInOther == nil {
+				diff = MissingSrcDstEP
+			} else if srcInOther == nil {
+				diff = MissingSrcEP
+			} else {
+				diff = MissingDstEP
+			}
+			emptyConnection := common.NewConnectionSet(false)
+			diffConnectionWithType := &connectionDiff{
+				common.ConnectionSetDiff{
+					*emptyConnection,
+					nil,
+				},
+				diff,
+			}
+			connectivitySubtract[src][dst] = diffConnectionWithType
 		}
 	}
-
 	return nil
 }
 

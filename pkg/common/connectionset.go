@@ -533,10 +533,16 @@ type ConnectionSetDiff struct {
 	StatefullDiff *ConnectionSet // connection element which is stateful only in A
 }
 
-func (conn *ConnectionSet) ConnectionSet1Minus2(other *ConnectionSet) *ConnectionSet {
+func (conn *ConnectionSet) SubtractWithStateful(other *ConnectionSet) ConnectionSetDiff {
 	// todo: use func (conn *ConnectionSet) Subtract(other *ConnectionSet) *ConnectionSet  and note the
 	//       special case in which the connection differs only one being stateful and the other not
-	return nil
+	diff := ConnectionSetDiff{ConnectionSet{},
+		nil}
+	return diff
+}
+
+func (connn *ConnectionSetDiff) isEmpty() bool {
+	return false
 }
 
 // ToDo up to here in connectionSet
