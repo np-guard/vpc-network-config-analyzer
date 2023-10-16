@@ -106,11 +106,13 @@ func canShareCell(i1, i2 IconTreeNodeInterface) bool {
 	return true
 }
 
-func sortBySize(groups []SquareTreeNodeInterface) []SquareTreeNodeInterface {
+// sortGroupSquareBySize() sorting GroupSquareTreeNodes by the size of their groupedIcons.
+// assuming the input squares are sortedBySizeGroups
+func sortGroupSquareBySize(groups []SquareTreeNodeInterface) []SquareTreeNodeInterface {
 	sortedBySizeGroups := make([]SquareTreeNodeInterface, len(groups))
 	copy(sortedBySizeGroups, groups)
 	sort.Slice(sortedBySizeGroups, func(i, j int) bool {
-		return len(sortedBySizeGroups[i].(*GroupSquareTreeNode).groupies) > len(sortedBySizeGroups[j].(*GroupSquareTreeNode).groupies)
+		return len(sortedBySizeGroups[i].(*GroupSquareTreeNode).groupedIcons) > len(sortedBySizeGroups[j].(*GroupSquareTreeNode).groupedIcons)
 	})
 	return sortedBySizeGroups
 }
@@ -131,35 +133,35 @@ func sortBySize(groups []SquareTreeNodeInterface) []SquareTreeNodeInterface {
 //
 //	  we sort the groups by their size, and start with the biggest:
 //			for each group:
-//				- if the group contains all the NIs of the subnet - its visibility is theSubnet
+//			 - if the group contains all the NIs of the subnet - its visibility is theSubnet
 //	         - else if all the NIs in the group not in a bigger group - its visibility is square
 //	         - else if all the NIs in the group are in one bigger group - its visibility is innerSquare
 //	         - else its visibility is connectedPoint
 func (ly *layoutS) calcGroupsVisibility(subnet SquareTreeNodeInterface) {
-	sortedBySizeGroups := sortBySize(subnet.(*SubnetTreeNode).groupSquares)
+	sortedBySizeGroups := sortGroupSquareBySize(subnet.(*SubnetTreeNode).groupSquares)
 	iconSquareGroups := map[IconTreeNodeInterface]map[SquareTreeNodeInterface]bool{}
 	for _, groupS := range sortedBySizeGroups {
 		group := groupS.(*GroupSquareTreeNode)
-		if len(group.groupies) == len(subnet.(*SubnetTreeNode).NIs()) {
+		if len(group.groupedIcons) == len(subnet.(*SubnetTreeNode).NIs()) {
 			group.setVisibility(theSubnet)
 			continue
 		}
-		groupiesFormerGroups := map[SquareTreeNodeInterface]bool{}
-		for _, icon := range group.groupies {
+		groupedIconsFormerGroups := map[SquareTreeNodeInterface]bool{}
+		for _, icon := range group.groupedIcons {
 			for g := range iconSquareGroups[icon] {
-				groupiesFormerGroups[g] = true
+				groupedIconsFormerGroups[g] = true
 			}
 		}
-		if len(groupiesFormerGroups) >= 2 {
+		if len(groupedIconsFormerGroups) >= 2 {
 			group.setVisibility(connectedPoint)
 			continue
 		}
-		if len(groupiesFormerGroups) == 0 {
+		if len(groupedIconsFormerGroups) == 0 {
 			group.setVisibility(square)
 		} else {
 			group.setVisibility(innerSquare)
 		}
-		for _, icon := range group.groupies {
+		for _, icon := range group.groupedIcons {
 			if _, ok := iconSquareGroups[icon]; !ok {
 				iconSquareGroups[icon] = map[SquareTreeNodeInterface]bool{}
 			}
@@ -172,7 +174,7 @@ func (ly *layoutS) calcGroupsVisibility(subnet SquareTreeNodeInterface) {
 //   returns [][]IconTreeNodeInterface - the order of the icons.
 
 func (ly *layoutS) getSubnetIconsOrder(subnet SquareTreeNodeInterface) [][]IconTreeNodeInterface {
-	sortedBySizeGroups := sortBySize(subnet.(*SubnetTreeNode).groupSquares)
+	sortedBySizeGroups := sortGroupSquareBySize(subnet.(*SubnetTreeNode).groupSquares)
 	iconOuterGroup := map[IconTreeNodeInterface]SquareTreeNodeInterface{}
 	iconInnerGroup := map[IconTreeNodeInterface]SquareTreeNodeInterface{}
 	outerToInnersGroup := map[SquareTreeNodeInterface]map[SquareTreeNodeInterface]bool{}
@@ -181,11 +183,11 @@ func (ly *layoutS) getSubnetIconsOrder(subnet SquareTreeNodeInterface) [][]IconT
 		group := groupS.(*GroupSquareTreeNode)
 		if group.visibility == square {
 			outerToInnersGroup[group] = map[SquareTreeNodeInterface]bool{}
-		}
-		for _, icon := range group.groupies {
-			if group.visibility == square {
+			for _, icon := range group.groupedIcons {
 				iconOuterGroup[icon] = group
-			} else if group.visibility == innerSquare {
+			}
+		} else if group.visibility == innerSquare {
+			for _, icon := range group.groupedIcons {
 				iconInnerGroup[icon] = group
 				outerToInnersGroup[iconOuterGroup[icon]][group] = true
 			}
@@ -196,11 +198,11 @@ func (ly *layoutS) getSubnetIconsOrder(subnet SquareTreeNodeInterface) [][]IconT
 		outerGroup := outerGroupS.(*GroupSquareTreeNode)
 		// for each outer group - add its inner group icons:
 		for innerGroup := range innerGroups {
-			iconsOrder = append(iconsOrder, innerGroup.(*GroupSquareTreeNode).groupies)
+			iconsOrder = append(iconsOrder, innerGroup.(*GroupSquareTreeNode).groupedIcons)
 		}
 		noInnerIcons := []IconTreeNodeInterface{}
 		// for each outer group - add the rest of the icons:
-		for _, icon := range outerGroup.groupies {
+		for _, icon := range outerGroup.groupedIcons {
 			if _, ok := iconInnerGroup[icon]; !ok {
 				noInnerIcons = append(noInnerIcons, icon)
 			}
@@ -520,7 +522,7 @@ func (ly *layoutS) setGroupingIconLocations() {
 		case innerSquare:
 			gIcon.Location().xOffset = (gIcon.Location().firstCol.width()/2 + groupBorderWidth + groupInnerBorderWidth)
 		case connectedPoint:
-			gIcon.connectGroupies()
+			gIcon.connectGroupedIcons()
 		}
 		if c == parentLocation.nextCol() {
 			// its in right to the groupSquare, so the offset is negative.

@@ -219,6 +219,25 @@ func (tn *SubnetTreeNode) NIs() []IconTreeNodeInterface {
 }
 
 // /////////////////////////////////////////////////////////////////////////////////////
+// GroupSquareTreeNode is a tree node that represents a group of icons that share the same connectivity
+// we are grouping all these icons with the group square.
+// the connection of the square to another icon is done via a groupingPoint.
+//
+// for example, if the connectivity is the following connections:
+//    1.     (i1,i2) -> (i3,i4)
+//    2.     (i1,i2) -> (i4,i5)
+//    3.     (i1,i2,i3) -> i6
+// than we will have 4 groupSquare, each for every group (i1,i2), (i3,i4), (i4,i5), (i1,i2,i3).
+// the group (i1,i2) will have two group point - one for each connectivity
+// other groups will have only one grouping point
+// the group square is not always shown on the drawio canvas. there are 4 kind of visibility for group square:
+//     a. theSubnet - the group is all the icons in the subnet
+//              - in this case, the square is not shown. the group point is on the border of the subnet
+//     b. square - the group is a subset of icons of the subnet, the group will be bordered with a square.
+//                the group point is on the border of the group square
+//     c. innerSquare - the group is a subset of a group of square , the group will be bordered with an inner square inside a square
+//     d. connectedPoint - the group can not be bordered, so it is connected with line to a grouping point
+
 type groupSquareVisibility int
 
 const (
@@ -230,8 +249,8 @@ const (
 
 type GroupSquareTreeNode struct {
 	abstractSquareTreeNode
-	groupies   []IconTreeNodeInterface
-	visibility groupSquareVisibility
+	groupedIcons []IconTreeNodeInterface
+	visibility   groupSquareVisibility
 }
 
 func (tn *GroupSquareTreeNode) IsGroupingSquare() bool { return true }
@@ -239,8 +258,8 @@ func (tn *GroupSquareTreeNode) IsGroupingSquare() bool { return true }
 func (tn *GroupSquareTreeNode) NotShownInDrawio() bool {
 	return tn.visibility == theSubnet || tn.visibility == connectedPoint
 }
-func NewGroupSquareTreeNode(parent *SubnetTreeNode, groupies []IconTreeNodeInterface) *GroupSquareTreeNode {
-	gs := GroupSquareTreeNode{newAbstractSquareTreeNode(parent, ""), groupies, connectedPoint}
+func NewGroupSquareTreeNode(parent *SubnetTreeNode, groupedIcons []IconTreeNodeInterface) *GroupSquareTreeNode {
+	gs := GroupSquareTreeNode{newAbstractSquareTreeNode(parent, ""), groupedIcons, connectedPoint}
 	parent.groupSquares = append(parent.groupSquares, &gs)
 	return &gs
 }
@@ -248,5 +267,5 @@ func (tn *GroupSquareTreeNode) setVisibility(visibility groupSquareVisibility) {
 	tn.visibility = visibility
 }
 func (tn *GroupSquareTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
-	return nil, append(tn.elements, tn.groupies...), tn.connections
+	return nil, append(tn.elements, tn.groupedIcons...), tn.connections
 }

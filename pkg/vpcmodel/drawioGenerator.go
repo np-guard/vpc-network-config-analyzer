@@ -58,20 +58,20 @@ func (exn *ExternalNetwork) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.
 
 func (g *groupedEndpointsElems) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
 	// todo - fix with supporting vpe
-	groupiesTNs := []drawio.IconTreeNodeInterface{}
+	groupedIconsTNs := []drawio.IconTreeNodeInterface{}
 	for _, ni := range *g {
 		if gen.TreeNode(ni) != nil {
-			groupiesTNs = append(groupiesTNs, gen.TreeNode(ni).(drawio.IconTreeNodeInterface))
+			groupedIconsTNs = append(groupedIconsTNs, gen.TreeNode(ni).(drawio.IconTreeNodeInterface))
 		}
 	}
-	if len(groupiesTNs) == 0 {
+	if len(groupedIconsTNs) == 0 {
 		return nil
 	}
-	if len(groupiesTNs) == 1 {
-		return groupiesTNs[0]
+	if len(groupedIconsTNs) == 1 {
+		return groupedIconsTNs[0]
 	}
-	subnetTn := groupiesTNs[0].Parent().(*drawio.SubnetTreeNode)
-	return drawio.NewGroupSquareTreeNode(subnetTn, groupiesTNs)
+	subnetTn := groupedIconsTNs[0].Parent().(*drawio.SubnetTreeNode)
+	return drawio.NewGroupSquareTreeNode(subnetTn, groupedIconsTNs)
 }
 
 func (g *groupedExternalNodes) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
