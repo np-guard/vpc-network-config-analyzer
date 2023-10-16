@@ -31,8 +31,28 @@ func TestWithParsing(t *testing.T) {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err3)
 	}
 }
-
 func createNetwork() SquareTreeNodeInterface {
+	network := NewNetworkTreeNode()
+	cloud := NewCloudTreeNode(network, "IBM Cloud")
+	vpc1 := NewVpcTreeNode(cloud, "vpc1")
+	zone11 := NewZoneTreeNode(vpc1, "zone1")
+
+	subnet111 := NewSubnetTreeNode(zone11, "subnet111", "ip", "key")
+
+	ni1 := NewNITreeNode(subnet111,"ni1")
+	ni2 := NewNITreeNode(subnet111, "ni2")
+	resip1 := NewResIPTreeNode(subnet111,"resip1")
+	resip2 := NewResIPTreeNode(subnet111,"resip2")
+	sg11 := NewSGTreeNode(vpc1, "sg11")
+	sg11.AddIcon(ni1)
+	sg11.AddIcon(ni2)
+	sg11.AddIcon(resip1)
+	sg11.AddIcon(resip2)
+	NewConnectivityLineTreeNode(network, ni1, ni2, true, "c10")
+	return network
+}
+
+func createNetworkaaa() SquareTreeNodeInterface {
 	network := NewNetworkTreeNode()
 	cloud := NewCloudTreeNode(network, "IBM Cloud")
 	publicNetwork := NewPublicNetworkTreeNode(network)
@@ -56,8 +76,10 @@ func createNetwork() SquareTreeNodeInterface {
 
 	subnet111 := NewSubnetTreeNode(zone11, "subnet111", "ip", "key")
 
-	ni1 := NewNITreeNode(subnet111, sg11, "ni1")
-	ni2 := NewNITreeNode(subnet111, sg12, "ni2")
+	ni1 := NewNITreeNode(subnet111,  "ni1")
+	ni2 := NewNITreeNode(subnet111,  "ni2")
+	sg11.AddIcon(ni1)
+	sg12.AddIcon(ni2)
 
 	GroupNIsWithVSI(zone11, "vsi1", []TreeNodeInterface{ni1, ni2})
 
@@ -65,12 +87,17 @@ func createNetwork() SquareTreeNodeInterface {
 	gw12 := NewGatewayTreeNode(zone12, "gw12")
 	subnet112 := NewSubnetTreeNode(zone11, "subnet112", "ip", "key")
 	subnet121 := NewSubnetTreeNode(zone12, "subnet121", "ip", "key")
-	ni4 := NewNITreeNode(subnet112, sg12, "ni4")
+	ni4 := NewNITreeNode(subnet112, "ni4")
+	sg12.AddIcon(ni4)
 	ni4.SetVsi("svi1")
-	ni5 := NewNITreeNode(subnet121, sg11, "ni5")
+	ni5 := NewNITreeNode(subnet121, "ni5")
+	sg11.AddIcon(ni5)
+
 	ni5.SetVsi("svi2")
 	ni5.SetFIP("fip")
-	ni5b := NewNITreeNode(subnet121, sg11, "ni5b")
+	ni5b := NewNITreeNode(subnet121, "ni5b")
+	sg11.AddIcon(ni5b)
+
 	ni5b.SetVsi("svi3")
 	ni5b.SetFIP("fip2")
 
@@ -81,9 +108,13 @@ func createNetwork() SquareTreeNodeInterface {
 
 	subnet211 := NewSubnetTreeNode(zone21, "subnet211", "ip", "key")
 
-	ni6 := NewNITreeNode(subnet211, sg21, "ni6")
-	ni7 := NewNITreeNode(subnet211, sg21, "ni7")
-	ni8 := NewNITreeNode(subnet211, sg21, "ni8")
+	ni6 := NewNITreeNode(subnet211, "ni6")
+	ni7 := NewNITreeNode(subnet211, "ni7")
+	ni8 := NewNITreeNode(subnet211, "ni8")
+	sg21.AddIcon(ni6)
+	sg21.AddIcon(ni7)
+	sg21.AddIcon(ni8)
+
 	GroupNIsWithVSI(zone21, "vsi2", []TreeNodeInterface{ni6, ni7, ni8})
 
 	zone22 := NewZoneTreeNode(vpc2, "zone22")
@@ -95,26 +126,39 @@ func createNetwork() SquareTreeNodeInterface {
 	subnet231 := NewSubnetTreeNode(zone23, "subnet231", "ip", "key")
 	sg22 := NewSGTreeNode(vpc2, "sg22")
 
-	ni10 := NewNITreeNode(subnet221, sg22, "ni10")
-	ni11 := NewNITreeNode(subnet222, sg22, "ni11")
-	ni12 := NewNITreeNode(subnet222, sg22, "ni12")
-	ni13 := NewNITreeNode(subnet222, sg22, "ni13")
-	ni14 := NewNITreeNode(subnet222, sg22, "ni14")
+	ni10 := NewNITreeNode(subnet221, "ni10")
+	ni11 := NewNITreeNode(subnet222, "ni11")
+	ni12 := NewNITreeNode(subnet222, "ni12")
+	ni13 := NewNITreeNode(subnet222, "ni13")
+	ni14 := NewNITreeNode(subnet222, "ni14")
+	sg22.AddIcon(ni10)
+	sg22.AddIcon(ni11)
+	sg22.AddIcon(ni12)
+	sg22.AddIcon(ni13)
+	sg22.AddIcon(ni14)
 
 	GroupNIsWithVSI(zone22, "vsi3", []TreeNodeInterface{ni10, ni13, ni14})
 
 	GroupNIsWithVSI(zone22, "vsi4", []TreeNodeInterface{ni11, ni12})
 
-	ni20 := NewNITreeNode(subnet231, sg22, "ni20")
-	ni21 := NewNITreeNode(subnet231, nil, "ni21")
-	ni22 := NewNITreeNode(subnet231, sg22, "ni22")
-	ni23 := NewNITreeNode(subnet231, sg22, "ni23")
-	ni24 := NewNITreeNode(subnet231, nil, "ni24")
-	ni25 := NewNITreeNode(subnet231, sg22, "ni25")
-	ni26 := NewNITreeNode(subnet231, nil, "ni26")
-	ni27 := NewNITreeNode(subnet231, nil, "ni27")
-	ni28 := NewNITreeNode(subnet231, sg22, "ni28")
-	ni29 := NewNITreeNode(subnet231, sg22, "ni29")
+	ni20 := NewNITreeNode(subnet231, "ni20")
+	ni21 := NewNITreeNode(subnet231, "ni21")
+	ni22 := NewNITreeNode(subnet231, "ni22")
+	ni23 := NewNITreeNode(subnet231, "ni23")
+	ni24 := NewNITreeNode(subnet231, "ni24")
+	ni25 := NewNITreeNode(subnet231, "ni25")
+	ni26 := NewNITreeNode(subnet231, "ni26")
+	ni27 := NewNITreeNode(subnet231, "ni27")
+	ni28 := NewNITreeNode(subnet231, "ni28")
+	ni29 := NewNITreeNode(subnet231, "ni29")
+
+	sg22.AddIcon(ni20)
+	sg22.AddIcon(ni22)
+	sg22.AddIcon(ni23)
+	sg22.AddIcon(ni25)
+	sg22.AddIcon(ni28)
+	sg22.AddIcon(ni29)
+
 
 	gw21 := NewGatewayTreeNode(zone21, "gw21")
 	gw22 := NewGatewayTreeNode(zone22, "gw22")
@@ -173,60 +217,71 @@ func createNetworkGrouping() SquareTreeNodeInterface {
 	zone1 := NewZoneTreeNode(vpc1, "zone1")
 	subnet11 := NewSubnetTreeNode(zone1, "subnet1", "cidr1", "acl1")
 	groupedNis11 := []IconTreeNodeInterface{
-		NewNITreeNode(subnet11, nil, "ni1"),
-		NewNITreeNode(subnet11, nil, "ni1"),
+		NewNITreeNode(subnet11, "ni1"),
+		NewNITreeNode(subnet11, "ni1"),
 	}
 	subnet12 := NewSubnetTreeNode(zone1, "subnet2", "cidr2", "acl2")
-	NewNITreeNode(subnet12, nil, "ni1")
+	NewNITreeNode(subnet12, "ni1")
 	subnet13 := NewSubnetTreeNode(zone1, "subnet2", "cidr2", "acl2")
 	groupedNis13 := []IconTreeNodeInterface{
-		NewNITreeNode(subnet13, nil, "ni1"),
-		NewNITreeNode(subnet13, nil, "ni1"),
+		NewNITreeNode(subnet13, "ni1"),
+		NewNITreeNode(subnet13, "ni1"),
 	}
-	NewNITreeNode(subnet13, nil, "ni1")
+	NewNITreeNode(subnet13, "ni1")
 
 	zone2 := NewZoneTreeNode(vpc1, "zone1")
 	subnet21 := NewSubnetTreeNode(zone2, "subnet1", "cidr1", "acl1")
-	NewNITreeNode(subnet21, nil, "ni1")
-	NewNITreeNode(subnet21, nil, "ni1")
-	NewNITreeNode(subnet21, nil, "ni1")
+	NewNITreeNode(subnet21, "ni1")
+	NewNITreeNode(subnet21, "ni1")
+	NewNITreeNode(subnet21, "ni1")
 	subnet22 := NewSubnetTreeNode(zone2, "subnet2", "cidr2", "acl2")
-	NewNITreeNode(subnet22, nil, "ni1")
+	NewNITreeNode(subnet22, "ni1")
 	subnet23 := NewSubnetTreeNode(zone2, "subnet2", "cidr2", "acl2")
 	groupedNis23 := []IconTreeNodeInterface{
-		NewNITreeNode(subnet23, nil, "ni1"),
-		NewNITreeNode(subnet23, nil, "ni1"),
-		NewNITreeNode(subnet23, nil, "ni1"),
+		NewNITreeNode(subnet23, "ni1"),
+		NewNITreeNode(subnet23, "ni1"),
+		NewNITreeNode(subnet23, "ni1"),
 	}
 
 	zone3 := NewZoneTreeNode(vpc1, "zone1")
 	subnet31 := NewSubnetTreeNode(zone3, "subnet1", "cidr1", "acl1")
 	groupedNis31 := []IconTreeNodeInterface{
-		NewNITreeNode(subnet31, nil, "ni1"),
-		NewNITreeNode(subnet31, nil, "ni1"),
+		NewNITreeNode(subnet31, "ni1"),
+		NewNITreeNode(subnet31, "ni1"),
 	}
-	NewNITreeNode(subnet31, nil, "ni1")
+	NewNITreeNode(subnet31, "ni1")
 	subnet32 := NewSubnetTreeNode(zone3, "subnet2", "cidr2", "acl2")
 	groupedNis32 := []IconTreeNodeInterface{
-		NewNITreeNode(subnet32, nil, "ni1"),
-		NewNITreeNode(subnet32, nil, "ni1"),
-		NewNITreeNode(subnet32, nil, "ni1"),
-		NewNITreeNode(subnet32, nil, "ni1"),
-		NewNITreeNode(subnet32, nil, "ni1"),
+		NewNITreeNode(subnet32, "ni1"),
+		NewNITreeNode(subnet32, "ni1"),
+		NewNITreeNode(subnet32, "ni1"),
+		NewNITreeNode(subnet32, "ni1"),
+		NewNITreeNode(subnet32, "ni1"),
 	}
 
 	subnet33 := NewSubnetTreeNode(zone3, "subnet2", "cidr2", "acl2")
 	sg33 := NewSGTreeNode(vpc1, "sg33")
-	ni33b := NewNITreeNode(subnet33, sg33, "ni1b")
-	ni33c := NewNITreeNode(subnet33, sg33, "ni1c")
-	ni33g := NewNITreeNode(subnet33, sg33, "ni1g")
-	ni33h := NewNITreeNode(subnet33, sg33, "ni1h")
-	ni33d := NewNITreeNode(subnet33, sg33, "ni1d")
-	ni33j := NewNITreeNode(subnet33, sg33, "ni1j")
-	ni33e := NewNITreeNode(subnet33, sg33, "ni1e")
-	ni33a := NewNITreeNode(subnet33, sg33, "ni1a")
-	ni33f := NewNITreeNode(subnet33, sg33, "ni1f")
-	ni33i := NewNITreeNode(subnet33, sg33, "ni1i")
+	ni33b := NewNITreeNode(subnet33, "ni1b")
+	ni33c := NewNITreeNode(subnet33, "ni1c")
+	ni33g := NewNITreeNode(subnet33, "ni1g")
+	ni33h := NewNITreeNode(subnet33, "ni1h")
+	ni33d := NewNITreeNode(subnet33, "ni1d")
+	ni33j := NewNITreeNode(subnet33, "ni1j")
+	ni33e := NewNITreeNode(subnet33, "ni1e")
+	ni33a := NewNITreeNode(subnet33, "ni1a")
+	ni33f := NewNITreeNode(subnet33, "ni1f")
+	ni33i := NewNITreeNode(subnet33, "ni1i")
+	sg33.AddIcon(ni33b)
+	sg33.AddIcon(ni33c)
+	sg33.AddIcon(ni33g)
+	sg33.AddIcon(ni33h)
+	sg33.AddIcon(ni33d)
+	sg33.AddIcon(ni33j)
+	sg33.AddIcon(ni33e)
+	sg33.AddIcon(ni33a)
+	sg33.AddIcon(ni33f)
+	sg33.AddIcon(ni33i)
+
 	groupedNis33f := []IconTreeNodeInterface{ni33h, ni33i}
 	groupedNis33b := []IconTreeNodeInterface{ni33a, ni33b}
 	groupedNis33a := []IconTreeNodeInterface{ni33a, ni33b, ni33c, ni33d, ni33e}
@@ -284,7 +339,7 @@ func createNetwork2() SquareTreeNodeInterface {
 	zone2 := NewZoneTreeNode(vpc2, "zone1")
 	subnet2 := NewSubnetTreeNode(zone2, "subnet2", "cidr1", "acl1")
 	NewVpcTreeNode(cloud2, "vpc3")
-	ni20 := NewNITreeNode(subnet2, nil, "ni20")
+	ni20 := NewNITreeNode(subnet2, "ni20")
 	ni20.SetTooltip([]string{"this is ni20 tool tip", "with lines"})
 	NewConnectivityLineTreeNode(network, ni20, i4, false, "conn20")
 
@@ -295,22 +350,28 @@ func createNetwork2() SquareTreeNodeInterface {
 	subnet1 := NewSubnetTreeNode(zone1, "subnet1", "cidr1", "acl1")
 
 	sg1 := NewSGTreeNode(vpc1, "sg1")
-	ni1 := NewNITreeNode(subnet1, sg1, "ni1")
-	ni1b := NewNITreeNode(subnet1, sg1, "ni1")
+	ni1 := NewNITreeNode(subnet1, "ni1")
+	ni1b := NewNITreeNode(subnet1, "ni1")
+	sg1.AddIcon(ni1)
+	sg1.AddIcon(ni1b)
+
 	ni1.SetTooltip([]string{"this is ni1 tool tip one line"})
 	GroupNIsWithVSI(zone1, "vsi1", []TreeNodeInterface{ni1, ni1b})
 
 	sg2 := NewSGTreeNode(vpc1, "sg2")
-	ni2 := NewNITreeNode(subnet1, sg2, "ni2")
+	ni2 := NewNITreeNode(subnet1, "ni2")
+	sg2.AddIcon(ni2)
 	GroupNIsWithVSI(zone1, "vsi2", []TreeNodeInterface{ni2})
 	ni2.SetFIP("fip")
 
 	sg3 := NewSGTreeNode(vpc1, "sg3")
-	ni3 := NewNITreeNode(subnet1, sg3, "ni3")
+	ni3 := NewNITreeNode(subnet1, "ni3")
+	sg3.AddIcon(ni3)
 	GroupNIsWithVSI(zone1, "vsi2", []TreeNodeInterface{ni2})
 
 	sg4 := NewSGTreeNode(vpc1, "sg4")
-	ni4 := NewNITreeNode(subnet1, sg4, "ni4")
+	ni4 := NewNITreeNode(subnet1, "ni4")
+	sg4.AddIcon(ni4)
 	GroupNIsWithVSI(zone1, "vsi2", []TreeNodeInterface{ni2})
 
 	NewConnectivityLineTreeNode(network, ni1, i4, false, "conn1")

@@ -100,7 +100,9 @@ func canShareCell(i1, i2 IconTreeNodeInterface) bool {
 		return false
 	case !i1.IsNIorRIP() || !i2.IsNIorRIP():
 		return true
-	case i1.(*NITreeNode).HasFip() || i2.(*NITreeNode).HasFip():
+	case i1.IsNI() && i1.(*NITreeNode).HasFip():
+		return false
+	case i2.IsNI() && i2.(*NITreeNode).HasFip():
 		return false
 	}
 	return true

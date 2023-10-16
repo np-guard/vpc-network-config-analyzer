@@ -55,14 +55,12 @@ func (nl *NaclLayer) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawi
 
 func (ni *NetworkInterface) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	return drawio.NewNITreeNode(
-		gen.TreeNode(ni.subnet).(drawio.SquareTreeNodeInterface),
-		nil, ni.Name())
+		gen.TreeNode(ni.subnet).(drawio.SquareTreeNodeInterface),ni.Name())
 }
 
 func (n *IKSNode) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	return drawio.NewNITreeNode(
-		gen.TreeNode(n.subnet).(drawio.SquareTreeNodeInterface),
-		nil, n.Name())
+		gen.TreeNode(n.subnet).(drawio.SquareTreeNodeInterface),n.Name())
 }
 
 func (v *Vsi) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {

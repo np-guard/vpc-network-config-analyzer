@@ -7,6 +7,7 @@ type IconTreeNodeInterface interface {
 	setSG(SquareTreeNodeInterface)
 	allocateNewRouteOffset() int
 	IsVSI() bool
+	IsNI() bool
 	IsNIorRIP() bool
 	IsGroupingPoint() bool
 	SetTooltip(tooltip []string)
@@ -86,14 +87,12 @@ type NITreeNode struct {
 	vsi        string
 }
 
-func NewNITreeNode(parent SquareTreeNodeInterface, sg *SGTreeNode, name string) *NITreeNode {
+func NewNITreeNode(parent SquareTreeNodeInterface, name string) *NITreeNode {
 	ni := NITreeNode{NIorRIPTreeNode: NIorRIPTreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, name)}}
 	parent.addIconTreeNode(&ni)
-	if sg != nil {
-		sg.AddIcon(&ni)
-	}
 	return &ni
 }
+
 func (tn *NITreeNode) FipID() uint       { return tn.id + niFipID }
 func (tn *NITreeNode) SetVsi(vsi string) { tn.vsi = vsi }
 func (tn *NITreeNode) Vsi() string       { return tn.vsi }
