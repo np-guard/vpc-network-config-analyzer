@@ -31,38 +31,8 @@ func TestWithParsing(t *testing.T) {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err3)
 	}
 }
+
 func createNetwork() SquareTreeNodeInterface {
-	network := NewNetworkTreeNode()
-	cloud := NewCloudTreeNode(network, "IBM Cloud")
-	vpc1 := NewVpcTreeNode(cloud, "vpc1")
-	zone11 := NewZoneTreeNode(vpc1, "zone1")
-
-	subnet111 := NewSubnetTreeNode(zone11, "subnet111", "ip", "key")
-
-	ni1 := NewNITreeNode(subnet111, "ni1")
-	ni2 := NewNITreeNode(subnet111, "ni2")
-	ni3 := NewNITreeNode(subnet111, "ni2")
-	resip1 := NewResIPTreeNode(subnet111, "resip1")
-	resip2 := NewResIPTreeNode(subnet111, "resip2")
-	resip3 := NewResIPTreeNode(subnet111, "resip2")
-	sg11 := NewSGTreeNode(vpc1, "sg11")
-	sg11.AddIcon(ni1)
-	sg11.AddIcon(ni2)
-	sg11.AddIcon(ni3)
-	sg11.AddIcon(resip1)
-	sg11.AddIcon(resip2)
-	sg11.AddIcon(resip3)
-
-	NewConnectivityLineTreeNode(network, ni1, ni2, true, "c10")
-	NewConnectivityLineTreeNode(network, resip1, resip3, true, "c10")
-	GroupNIsWithVSI(zone11, "vsi1", []TreeNodeInterface{ni1,ni2})
-	GroupResIPsWithVSI(vpc1, "vpe1", []TreeNodeInterface{resip1,resip2})
-	GroupNIsWithVSI(zone11, "vsi2", []TreeNodeInterface{ni3})
-	GroupResIPsWithVSI(vpc1, "vpe2", []TreeNodeInterface{resip3})
-	return network
-}
-
-func createNetworkaaa() SquareTreeNodeInterface {
 	network := NewNetworkTreeNode()
 	cloud := NewCloudTreeNode(network, "IBM Cloud")
 	publicNetwork := NewPublicNetworkTreeNode(network)
@@ -146,6 +116,19 @@ func createNetworkaaa() SquareTreeNodeInterface {
 	sg22.AddIcon(ni12)
 	sg22.AddIcon(ni13)
 	sg22.AddIcon(ni14)
+
+
+	resip1 := NewResIPTreeNode(subnet211, "resip1")
+	resip2 := NewResIPTreeNode(subnet221, "resip2")
+	resip3 := NewResIPTreeNode(subnet231, "resip2")
+	sg22.AddIcon(resip1)
+	sg22.AddIcon(resip2)
+	sg22.AddIcon(resip3)
+
+	NewConnectivityLineTreeNode(network, resip1, resip3, true, "c10")
+	GroupResIPsWithVSI(vpc2, "vpe1", []TreeNodeInterface{resip1,resip2})
+	GroupResIPsWithVSI(vpc2, "vpe2", []TreeNodeInterface{resip3})
+
 
 	GroupNIsWithVSI(zone22, "vsi3", []TreeNodeInterface{ni10, ni13, ni14})
 
