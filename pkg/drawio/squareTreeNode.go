@@ -10,6 +10,8 @@ type SquareTreeNodeInterface interface {
 	DecoreID() uint
 	HasVSIs() bool
 	setHasVSIs()
+	HasVpes() bool
+	setHasVpes()
 	IsGroupingSquare() bool
 }
 
@@ -18,6 +20,7 @@ type abstractSquareTreeNode struct {
 	elements    []IconTreeNodeInterface
 	connections []LineTreeNodeInterface
 	hasVSIs     bool
+	hasVpes     bool
 }
 
 func newAbstractSquareTreeNode(parent TreeNodeInterface, name string) abstractSquareTreeNode {
@@ -43,6 +46,13 @@ func (tn *abstractSquareTreeNode) setHasVSIs() {
 	tn.hasVSIs = true
 	if tn.Parent() != nil && tn.Parent().IsSquare() {
 		tn.Parent().(SquareTreeNodeInterface).setHasVSIs()
+	}
+}
+func (tn *abstractSquareTreeNode) HasVpes() bool { return tn.hasVpes }
+func (tn *abstractSquareTreeNode) setHasVpes() {
+	tn.hasVpes = true
+	if tn.Parent() != nil && tn.Parent().IsSquare() {
+		tn.Parent().(SquareTreeNodeInterface).setHasVpes()
 	}
 }
 func (tn *abstractSquareTreeNode) IsGroupingSquare() bool { return false }

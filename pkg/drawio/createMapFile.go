@@ -22,6 +22,7 @@ type drawioData struct {
 	// ShowNIIcon says if to display the NI as an NI image, or a VSI image
 	// the rule is that if we have a vsi icon, then we display the NI icon as an NI image
 	ShowNIIcon bool
+	ShowResIPIcon bool
 	Nodes      []TreeNodeInterface
 }
 
@@ -64,6 +65,7 @@ func CreateDrawioConnectivityMapFile(network SquareTreeNodeInterface, outputFile
 		network.ID(),
 		idsPrefix,
 		network.HasVSIs(),
+		network.HasVpes(),
 		orderNodesForDrawio(allNodes)}
 	return writeDrawioFile(data, outputFile)
 }

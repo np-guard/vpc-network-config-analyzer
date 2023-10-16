@@ -36,7 +36,7 @@
                 </mxCell>
             {{ end }}
             {{ if $data.HasMiniIcon $node }}
-                <mxCell id="{{$data.IDsPrefix}}-{{$node.MiniIconID}}" value="" style="{{$data.NiStyle}}" parent="{{$data.IDsPrefix}}-{{$node.ID}}" vertex="1">
+                <mxCell id="{{$data.IDsPrefix}}-{{$node.MiniIconID}}" value="" style="{{$data.MiniIconStyle $node}}" parent="{{$data.IDsPrefix}}-{{$node.ID}}" vertex="1">
                 <mxGeometry x="{{$data.MiniIconXOffset}}" y="{{$data.MiniIconYOffset}}" width="{{$data.MiniIconSize}}" height="{{$data.MiniIconSize}}" as="geometry"/>
                 </mxCell>
             {{ end }}

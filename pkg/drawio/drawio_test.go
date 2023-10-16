@@ -39,16 +39,26 @@ func createNetwork() SquareTreeNodeInterface {
 
 	subnet111 := NewSubnetTreeNode(zone11, "subnet111", "ip", "key")
 
-	ni1 := NewNITreeNode(subnet111,"ni1")
+	ni1 := NewNITreeNode(subnet111, "ni1")
 	ni2 := NewNITreeNode(subnet111, "ni2")
-	resip1 := NewResIPTreeNode(subnet111,"resip1")
-	resip2 := NewResIPTreeNode(subnet111,"resip2")
+	ni3 := NewNITreeNode(subnet111, "ni2")
+	resip1 := NewResIPTreeNode(subnet111, "resip1")
+	resip2 := NewResIPTreeNode(subnet111, "resip2")
+	resip3 := NewResIPTreeNode(subnet111, "resip2")
 	sg11 := NewSGTreeNode(vpc1, "sg11")
 	sg11.AddIcon(ni1)
 	sg11.AddIcon(ni2)
+	sg11.AddIcon(ni3)
 	sg11.AddIcon(resip1)
 	sg11.AddIcon(resip2)
+	sg11.AddIcon(resip3)
+
 	NewConnectivityLineTreeNode(network, ni1, ni2, true, "c10")
+	NewConnectivityLineTreeNode(network, resip1, resip3, true, "c10")
+	GroupNIsWithVSI(zone11, "vsi1", []TreeNodeInterface{ni1,ni2})
+	GroupResIPsWithVSI(vpc1, "vpe1", []TreeNodeInterface{resip1,resip2})
+	GroupNIsWithVSI(zone11, "vsi2", []TreeNodeInterface{ni3})
+	GroupResIPsWithVSI(vpc1, "vpe2", []TreeNodeInterface{resip3})
 	return network
 }
 
@@ -76,8 +86,8 @@ func createNetworkaaa() SquareTreeNodeInterface {
 
 	subnet111 := NewSubnetTreeNode(zone11, "subnet111", "ip", "key")
 
-	ni1 := NewNITreeNode(subnet111,  "ni1")
-	ni2 := NewNITreeNode(subnet111,  "ni2")
+	ni1 := NewNITreeNode(subnet111, "ni1")
+	ni2 := NewNITreeNode(subnet111, "ni2")
 	sg11.AddIcon(ni1)
 	sg12.AddIcon(ni2)
 
@@ -89,16 +99,16 @@ func createNetworkaaa() SquareTreeNodeInterface {
 	subnet121 := NewSubnetTreeNode(zone12, "subnet121", "ip", "key")
 	ni4 := NewNITreeNode(subnet112, "ni4")
 	sg12.AddIcon(ni4)
-	ni4.SetVsi("svi1")
+	ni4.setVsi("svi1")
 	ni5 := NewNITreeNode(subnet121, "ni5")
 	sg11.AddIcon(ni5)
 
-	ni5.SetVsi("svi2")
+	ni5.setVsi("svi2")
 	ni5.SetFIP("fip")
 	ni5b := NewNITreeNode(subnet121, "ni5b")
 	sg11.AddIcon(ni5b)
 
-	ni5b.SetVsi("svi3")
+	ni5b.setVsi("svi3")
 	ni5b.SetFIP("fip2")
 
 	NewVpcTreeNode(cloud, "empty vpc")
@@ -158,7 +168,6 @@ func createNetworkaaa() SquareTreeNodeInterface {
 	sg22.AddIcon(ni25)
 	sg22.AddIcon(ni28)
 	sg22.AddIcon(ni29)
-
 
 	gw21 := NewGatewayTreeNode(zone21, "gw21")
 	gw22 := NewGatewayTreeNode(zone22, "gw22")

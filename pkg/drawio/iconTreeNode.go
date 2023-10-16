@@ -94,7 +94,7 @@ func NewNITreeNode(parent SquareTreeNodeInterface, name string) *NITreeNode {
 }
 
 func (tn *NITreeNode) FipID() uint       { return tn.id + niFipID }
-func (tn *NITreeNode) SetVsi(vsi string) { tn.vsi = vsi }
+func (tn *NITreeNode) setVsi(vsi string) { tn.vsi = vsi }
 func (tn *NITreeNode) Vsi() string       { return tn.vsi }
 func (tn *NITreeNode) HasVsi() bool      { return tn.Vsi() != "" }
 func (tn *NITreeNode) SetFIP(fip string) { tn.floatingIP = fip }
@@ -121,11 +121,10 @@ func NewResIPTreeNode(parent SquareTreeNodeInterface, name string) *ResIPTreeNod
 	return &rip
 }
 
-func (tn *ResIPTreeNode) SetVpe(vsi string) { tn.vpe = vsi }
+func (tn *ResIPTreeNode) setVpe(vsi string) { tn.vpe = vsi }
 func (tn *ResIPTreeNode) Vpe() string       { return tn.vpe }
 func (tn *ResIPTreeNode) HasVpe() bool      { return tn.Vpe() != "" }
 func (tn *ResIPTreeNode) Label() string     { return labels2Table([]string{tn.name, tn.vpe}) }
-
 
 // ///////////////////////////////////////////
 type GatewayTreeNode struct {
@@ -159,7 +158,7 @@ type VsiTreeNode struct {
 func GroupNIsWithVSI(parent SquareTreeNodeInterface, name string, nis []TreeNodeInterface) {
 	switch {
 	case len(nis) == 1:
-		nis[0].(*NITreeNode).SetVsi(name)
+		nis[0].(*NITreeNode).setVsi(name)
 	case len(nis) > 1:
 		vsi := newVsiTreeNode(parent, name, nis)
 		for _, ni := range nis {
@@ -192,7 +191,6 @@ func (tn *VsiTreeNode) DrawioParent() TreeNodeInterface {
 
 func (tn *VsiTreeNode) IsVSI() bool { return true }
 
-
 // ///////////////////////////////////////////
 type VpeTreeNode struct {
 	abstractIconTreeNode
@@ -202,7 +200,7 @@ type VpeTreeNode struct {
 func GroupResIPsWithVSI(parent SquareTreeNodeInterface, name string, resIPs []TreeNodeInterface) {
 	switch {
 	case len(resIPs) == 1:
-		resIPs[0].(*ResIPTreeNode).SetVpe(name)
+		resIPs[0].(*ResIPTreeNode).setVpe(name)
 	case len(resIPs) > 1:
 		vpe := newVpeTreeNode(parent, name, resIPs)
 		for _, resIP := range resIPs {
@@ -214,7 +212,7 @@ func GroupResIPsWithVSI(parent SquareTreeNodeInterface, name string, resIPs []Tr
 func newVpeTreeNode(parent SquareTreeNodeInterface, name string, resIPs []TreeNodeInterface) *VpeTreeNode {
 	vpe := &VpeTreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, name), resIPs: resIPs}
 	parent.addIconTreeNode(vpe)
-	parent.setHasVSIs()
+	parent.setHasVpes()
 	return vpe
 }
 

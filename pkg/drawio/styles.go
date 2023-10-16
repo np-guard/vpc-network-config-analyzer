@@ -89,6 +89,9 @@ func (data *drawioData) HasMiniIcon(tn TreeNodeInterface) bool {
 	if reflect.TypeOf(tn).Elem() == reflect.TypeOf(NITreeNode{}) && data.ShowNIIcon && tn.(*NITreeNode).HasVsi() {
 		return true
 	}
+	if reflect.TypeOf(tn).Elem() == reflect.TypeOf(ResIPTreeNode{}) && data.ShowResIPIcon && tn.(*ResIPTreeNode).HasVpe() {
+		return true
+	}
 	return false
 }
 func (data *drawioData) Style(tn TreeNodeInterface) string {
@@ -100,9 +103,19 @@ func (data *drawioData) Style(tn TreeNodeInterface) string {
 		} else {
 			return vsiStyle
 		}
+	} else if reflect.TypeOf(tn).Elem() == reflect.TypeOf(ResIPTreeNode{}) {
+		if data.ShowResIPIcon && !tn.(*ResIPTreeNode).HasVpe() {
+			return resIPStyle
+		} else {
+			return vpeStyle
+		}
 	}
 	return styles[reflect.TypeOf(tn).Elem()]
 }
+func (data *drawioData) MiniIconStyle(tn TreeNodeInterface) string {
+	return styles[reflect.TypeOf(tn).Elem()]
+}
+
 func (data *drawioData) TextStyle(tn TreeNodeInterface) string {
 	return textStyles[reflect.TypeOf(tn).Elem()]
 }
