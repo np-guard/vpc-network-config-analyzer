@@ -56,7 +56,7 @@ func _main(cmdlineArgs []string) error {
 		return fmt.Errorf("error parsing input vpc resources file: %w", err)
 	}
 
-	cloudConfig, err := ibmvpc.NewCloudConfig(rc)
+	cloudConfig, err := ibmvpc.NewCloudConfig(rc, *inArgs.VPC)
 	if err != nil {
 		return fmt.Errorf("error generating cloud config from input vpc resources file: %w", err)
 	}

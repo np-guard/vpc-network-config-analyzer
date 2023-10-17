@@ -39,6 +39,7 @@ type vpcGeneralTest struct {
 	mode           testMode
 	grouping       bool
 	format         vpcmodel.OutFormat
+	vpc            string
 }
 
 const (
@@ -271,6 +272,13 @@ var tests = []*vpcGeneralTest{
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
 		format:   vpcmodel.JSON,
 	},
+	// multi-vpc config example
+	{
+		name:     "acl_testing3_with_two_vpcs",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:   vpcmodel.Text,
+		vpc:      "crn:12", // specify the vpc to analyze
+	},
 }
 
 var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true, vpcmodel.JSON: true}
@@ -355,7 +363,7 @@ func getCloudConfig(t *testing.T, tt *vpcGeneralTest) *vpcmodel.CloudConfig {
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
-	cloudConfig, err := NewCloudConfig(rc)
+	cloudConfig, err := NewCloudConfig(rc, tt.vpc)
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}

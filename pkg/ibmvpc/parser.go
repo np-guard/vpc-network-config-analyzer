@@ -163,6 +163,7 @@ assuming the following components are within input to parseIKSNode:
 
 */
 
+// TODO: map to a VPC by the subnet's VPC
 func parseIKSNode(m map[string]json.RawMessage) (*iksNode, error) {
 	// parse the "networkInterfaces" section
 	nis, ok := m["networkInterfaces"]
@@ -349,9 +350,13 @@ func getInstancesConfig(
 	instanceList []*vpc1.Instance,
 	subnetNameToNetIntf map[string][]*NetworkInterface,
 	intfNameToIntf map[string]*NetworkInterface,
-	res *vpcmodel.CloudConfig) error {
+	res *vpcmodel.CloudConfig,
+	skipByVPC func(string) bool) error {
 	for i := range instanceList {
 		instance := instanceList[i]
+		if skipByVPC(*instance.VPC.CRN) {
+			continue
+		}
 		vpc, err := getVPCObjectByName(res, *instance.VPC.Name)
 		if err != nil {
 			return err
@@ -393,9 +398,13 @@ func getSubnetsConfig(
 	pgwToSubnet map[string][]*Subnet,
 	subnetNameToSubnet map[string]*Subnet,
 	subnetNameToNetIntf map[string][]*NetworkInterface,
-	rc *ResourcesContainer) (vpcInternalAddressRange *common.IPBlock, err error) {
+	rc *ResourcesContainer,
+	skipByVPC func(string) bool) (vpcInternalAddressRange *common.IPBlock, err error) {
 	for i := range rc.subnetsList {
 		subnet := rc.subnetsList[i]
+		if skipByVPC(*subnet.VPC.CRN) {
+			continue
+		}
 		subnetNodes := []vpcmodel.Node{}
 		vpc, err := getVPCObjectByName(res, *subnet.VPC.Name)
 		if err != nil {
@@ -438,6 +447,9 @@ func getSubnetsConfig(
 			subnetNode.nodes = subnetNodes
 		}
 	}
+	if vpcInternalAddressRange == nil {
+		return nil, errors.New("empty vpcInternalAddressRange")
+	}
 	return vpcInternalAddressRange, nil
 }
 
@@ -460,9 +472,13 @@ func getSubnetsCidrs(subnets []*Subnet) []string {
 func getPgwConfig(
 	res *vpcmodel.CloudConfig,
 	rc *ResourcesContainer,
-	pgwToSubnet map[string][]*Subnet) error {
+	pgwToSubnet map[string][]*Subnet,
+	skipByVPC func(string) bool) error {
 	for i := range rc.pgwList {
 		pgw := rc.pgwList[i]
+		if skipByVPC(*pgw.VPC.CRN) {
+			continue
+		}
 		pgwName := *pgw.Name
 		if _, ok := pgwToSubnet[pgwName]; !ok {
 			fmt.Printf("warning: public gateway %s does not have any attached subnet, ignoring this pgw\n", pgwName)
@@ -542,12 +558,19 @@ func getFipConfig(
 	return nil
 }
 
-func getVPCconfig(rc *ResourcesContainer, res *vpcmodel.CloudConfig) (*VPC, error) {
-	if len(rc.vpcsList) > 1 {
+func isVPCToAnalyzeConfigured(vpcID string) bool {
+	return vpcID != ""
+}
+
+func getVPCconfig(rc *ResourcesContainer, res *vpcmodel.CloudConfig, vpcID string, skipByVPC func(string) bool) (*VPC, error) {
+	if len(rc.vpcsList) > 1 && !isVPCToAnalyzeConfigured(vpcID) {
 		return nil, fmt.Errorf("supporting currently only one vpc configuration")
 	}
 	for i := range rc.vpcsList {
 		vpc := rc.vpcsList[i]
+		if skipByVPC(*vpc.CRN) {
+			continue // skip vpc not specified to analyze
+		}
 		vpcNodeSet := &VPC{
 			VPCResource: vpcmodel.VPCResource{ResourceName: *vpc.Name, ResourceUID: *vpc.CRN, ResourceType: ResourceTypeVPC},
 			nodes:       []vpcmodel.Node{},
@@ -558,19 +581,25 @@ func getVPCconfig(rc *ResourcesContainer, res *vpcmodel.CloudConfig) (*VPC, erro
 		// assuming one vpc
 		return vpcNodeSet, nil
 	}
-	return nil, nil
+	return nil, errors.New("could not find a VPC config")
 }
 
 func singleVPCErr(vpcName, layerVPCName string) error {
 	return fmt.Errorf("NACL/SG VPC (%s) is different from its layer's VPC (%s)", vpcName, layerVPCName)
 }
 
-func getSGconfig(rc *ResourcesContainer, res *vpcmodel.CloudConfig, intfNameToIntf map[string]*NetworkInterface) error {
+func getSGconfig(rc *ResourcesContainer,
+	res *vpcmodel.CloudConfig,
+	intfNameToIntf map[string]*NetworkInterface,
+	skipByVPC func(string) bool) error {
 	sgMap := map[string]*SecurityGroup{}
 	sgList := []*SecurityGroup{}
 	var layerVPC *VPC
 	for i := range rc.sgList {
 		sg := rc.sgList[i]
+		if skipByVPC(*sg.VPC.CRN) {
+			continue
+		}
 		vpc, err := getVPCObjectByName(res, *sg.VPC.Name)
 		if err != nil {
 			return err
@@ -622,12 +651,18 @@ func getSGconfig(rc *ResourcesContainer, res *vpcmodel.CloudConfig, intfNameToIn
 	return nil
 }
 
-func getNACLconfig(rc *ResourcesContainer, res *vpcmodel.CloudConfig, subnetNameToSubnet map[string]*Subnet) error {
+func getNACLconfig(rc *ResourcesContainer,
+	res *vpcmodel.CloudConfig,
+	subnetNameToSubnet map[string]*Subnet,
+	skipByVPC func(string) bool) error {
 	// nacl
 	naclList := []*NACL{}
 	var layerVPC *VPC
 	for i := range rc.naclList {
 		nacl := rc.naclList[i]
+		if skipByVPC(*nacl.VPC.CRN) {
+			continue
+		}
 		naclAnalyzer, err := NewNACLAnalyzer(nacl)
 		if err != nil {
 			return err
@@ -672,8 +707,13 @@ func getSubnetByIPAddress(address string, c *vpcmodel.CloudConfig) (subnet *Subn
 	return nil, fmt.Errorf("could not find matching subnet for address %s", address)
 }
 
-func getVPEconfig(rc *ResourcesContainer, res *vpcmodel.CloudConfig) (err error) {
+func getVPEconfig(rc *ResourcesContainer,
+	res *vpcmodel.CloudConfig,
+	skipByVPC func(string) bool) (err error) {
 	for _, vpe := range rc.vpeList {
+		if skipByVPC(*vpe.VPC.CRN) {
+			continue
+		}
 		vpc, err := getVPCObjectByName(res, *vpe.VPC.Name)
 		if err != nil {
 			return err
@@ -719,11 +759,17 @@ func getSubnetByCidr(m map[string]*Subnet, cidr string) (*Subnet, error) {
 	return nil, fmt.Errorf("could not find subnet with cidr: %s", cidr)
 }
 
-func getIKSnodesConfig(res *vpcmodel.CloudConfig, subnetNameToSubnet map[string]*Subnet, rc *ResourcesContainer) error {
+func getIKSnodesConfig(res *vpcmodel.CloudConfig,
+	subnetNameToSubnet map[string]*Subnet,
+	rc *ResourcesContainer,
+	skipByVPC func(string) bool) error {
 	for _, iksNode := range rc.iksNodes {
 		subnet, err := getSubnetByCidr(subnetNameToSubnet, iksNode.Cidr)
 		if err != nil {
 			return err
+		}
+		if skipByVPC(subnet.vpc.ResourceUID) {
+			continue
 		}
 
 		nodeObject := &IKSNode{
@@ -738,7 +784,7 @@ func getIKSnodesConfig(res *vpcmodel.CloudConfig, subnetNameToSubnet map[string]
 	return nil
 }
 
-func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
+func NewCloudConfig(rc *ResourcesContainer, vpcID string) (*vpcmodel.CloudConfig, error) {
 	res := &vpcmodel.CloudConfig{
 		Nodes:            []vpcmodel.Node{},
 		NodeSets:         []vpcmodel.NodeSet{},
@@ -750,7 +796,12 @@ func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
 
 	var err error
 
-	vpc, err := getVPCconfig(rc, res)
+	// if certain VPC to analyze is specified, skip resources configured outside that VPC
+	var shouldSkipByVPC = func(crn string) bool {
+		return vpcID != "" && crn != vpcID
+	}
+
+	vpc, err := getVPCconfig(rc, res, vpcID, shouldSkipByVPC)
 	if err != nil {
 		return nil, err
 	}
@@ -759,25 +810,25 @@ func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
 
 	subnetNameToNetIntf := map[string][]*NetworkInterface{}
 	intfNameToIntf := map[string]*NetworkInterface{}
-	err = getInstancesConfig(rc.instanceList, subnetNameToNetIntf, intfNameToIntf, res)
+	err = getInstancesConfig(rc.instanceList, subnetNameToNetIntf, intfNameToIntf, res, shouldSkipByVPC)
 	if err != nil {
 		return nil, err
 	}
 	// pgw can be attached to multiple subnets in the zone
 	pgwToSubnet := map[string][]*Subnet{} // map from pgw name to its attached subnet(s)
 	subnetNameToSubnet := map[string]*Subnet{}
-	vpcInternalAddressRange, err = getSubnetsConfig(res, pgwToSubnet, subnetNameToSubnet, subnetNameToNetIntf, rc)
+	vpcInternalAddressRange, err = getSubnetsConfig(res, pgwToSubnet, subnetNameToSubnet, subnetNameToNetIntf, rc, shouldSkipByVPC)
 	if err != nil {
 		return nil, err
 	}
 	vpc.internalAddressRange = vpcInternalAddressRange
 
-	err = getIKSnodesConfig(res, subnetNameToSubnet, rc)
+	err = getIKSnodesConfig(res, subnetNameToSubnet, rc, shouldSkipByVPC)
 	if err != nil {
 		return nil, err
 	}
 
-	err = getPgwConfig(res, rc, pgwToSubnet)
+	err = getPgwConfig(res, rc, pgwToSubnet, shouldSkipByVPC)
 	if err != nil {
 		return nil, err
 	}
@@ -787,17 +838,17 @@ func NewCloudConfig(rc *ResourcesContainer) (*vpcmodel.CloudConfig, error) {
 		return nil, err
 	}
 
-	err = getVPEconfig(rc, res)
+	err = getVPEconfig(rc, res, shouldSkipByVPC)
 	if err != nil {
 		return nil, err
 	}
 
-	err = getSGconfig(rc, res, intfNameToIntf)
+	err = getSGconfig(rc, res, intfNameToIntf, shouldSkipByVPC)
 	if err != nil {
 		return nil, err
 	}
 
-	err = getNACLconfig(rc, res, subnetNameToSubnet)
+	err = getNACLconfig(rc, res, subnetNameToSubnet, shouldSkipByVPC)
 	if err != nil {
 		return nil, err
 	}
