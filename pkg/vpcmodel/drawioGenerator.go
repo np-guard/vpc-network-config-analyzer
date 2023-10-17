@@ -60,12 +60,12 @@ func (g *groupedEndpointsElems) GenerateDrawioTreeNode(gen *DrawioGenerator) dra
 	if len(*g) == 1 {
 		return gen.TreeNode((*g)[0])
 	}
-	groupiesTNs := make([]drawio.IconTreeNodeInterface, len(*g))
+	groupedIconsTNs := make([]drawio.IconTreeNodeInterface, len(*g))
 	for i, node := range *g {
-		groupiesTNs[i] = gen.TreeNode(node).(drawio.IconTreeNodeInterface)
+		groupedIconsTNs[i] = gen.TreeNode(node).(drawio.IconTreeNodeInterface)
 	}
-	subnetTn := groupiesTNs[0].Parent().(*drawio.SubnetTreeNode)
-	return drawio.NewGroupSquareTreeNode(subnetTn, groupiesTNs)
+	subnetTn := groupedIconsTNs[0].Parent().(*drawio.SubnetTreeNode)
+	return drawio.NewGroupSquareTreeNode(subnetTn, groupedIconsTNs)
 }
 
 func (g *groupedExternalNodes) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {

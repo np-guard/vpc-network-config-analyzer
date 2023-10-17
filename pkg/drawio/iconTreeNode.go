@@ -217,12 +217,17 @@ func newVpeTreeNode(parent SquareTreeNodeInterface, name string, resIPs []TreeNo
 }
 
 // ///////////////////////////////////////////
+// GroupPointTreeNode is an icon for grouping, see GroupSquareTreeNode for details
+// the connection to the group will be to the group point
+// a GroupPoint is holding:
+// 1. the colleague - the other icon that it is connected to
+// 2. the  groupedIconsConns - the connections between the groupPoint and the the groupedIcons
 type GroupPointTreeNode struct {
 	abstractIconTreeNode
-	colleague     IconTreeNodeInterface
-	groupiesConns []LineTreeNodeInterface
-	directed      bool
-	isSrc         bool
+	colleague         IconTreeNodeInterface
+	groupedIconsConns []LineTreeNodeInterface
+	directed          bool
+	isSrc             bool
 }
 
 func (tn *GroupPointTreeNode) setColleague(colleague IconTreeNodeInterface) { tn.colleague = colleague }
@@ -250,14 +255,16 @@ func NewGroupPointTreeNode(parent SquareTreeNodeInterface,
 	parent.addIconTreeNode(groupPoint)
 	return groupPoint
 }
-func (tn *GroupPointTreeNode) connectGroupies() {
-	for _, groupe := range tn.Parent().(*GroupSquareTreeNode).groupies {
-		var s, d IconTreeNodeInterface = tn, groupe
+func (tn *GroupPointTreeNode) connectGroupedIcons() {
+	for _, groupedIcon := range tn.Parent().(*GroupSquareTreeNode).groupedIcons {
+		var s, d IconTreeNodeInterface = tn, groupedIcon
+		// in case the GroupPoint is the src, its means we have an arrow from the tn to  its colleague.
+		// so we want to add arrows from the groupIcon to the GroupPoint
 		if tn.isSrc {
-			s, d = groupe, tn
+			s, d = groupedIcon, tn
 		}
 		gtn := NewConnectivityLineTreeNode(tn.DrawioParent().(SquareTreeNodeInterface), s, d, tn.directed, "")
-		tn.groupiesConns = append(tn.groupiesConns, gtn)
+		tn.groupedIconsConns = append(tn.groupedIconsConns, gtn)
 	}
 }
 func (tn *GroupPointTreeNode) DrawioParent() TreeNodeInterface {
