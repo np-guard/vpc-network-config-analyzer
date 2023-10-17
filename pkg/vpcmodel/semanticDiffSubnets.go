@@ -16,7 +16,7 @@ const (
 )
 
 type connectionDiff struct {
-	common.ConnectionSetDiff
+	*common.ConnectionSet
 	DiffType
 }
 
@@ -95,6 +95,7 @@ func (connectivity subnetConnectivity) getConnectivesWithSameIpBlocks(other subn
 	return connectivity, other
 }
 
+// Subtract one subnetConnectivity from the other
 // assumption: any connection from connectivity and "other" have src (dst) which are either disjoint or equal
 func (configs configsForDiff) subnetConnectivitySubtract(connectivity subnetConnectivity, other subnetConnectivity) SubnetsDiff {
 	connectivitySubtract := map[EndpointElem]map[EndpointElem]*connectionDiff{}
@@ -111,7 +112,13 @@ func (configs configsForDiff) subnetConnectivitySubtract(connectivity subnetConn
 			if srcInOther != nil && dstInOther != nil {
 				if otherSrc, ok := other[*srcInOther]; ok {
 					if otherSrcDst, ok := otherSrc[*dstInOther]; ok {
-						subtractConn := conns.SubtractWithStateful(otherSrcDst)
+						// ToDo: current missing stateful:
+						// todo 1. is the delta connection stateful
+						// todo 2. connectionProperties is identical but conn stateful while other is not
+						//     the 2nd item can be computed by conns.Subtract, with enhancement to relevant structure
+						//     the 1st can not since we do not know where exactly the statefullness came from
+						//     we might need to repeat the statefullness computation for the delta connection
+						subtractConn := conns.Subtract(otherSrcDst)
 						if subtractConn.IsEmpty() {
 							continue // no diff
 						}
@@ -132,12 +139,8 @@ func (configs configsForDiff) subnetConnectivitySubtract(connectivity subnetConn
 			} else {
 				diff = MissingDstEP
 			}
-			emptyConnection := common.NewConnectionSet(false)
 			diffConnectionWithType := &connectionDiff{
-				common.ConnectionSetDiff{
-					*emptyConnection,
-					nil,
-				},
+				nil,
 				diff,
 			}
 			connectivitySubtract[src][dst] = diffConnectionWithType
