@@ -121,7 +121,7 @@ func NewResIPTreeNode(parent SquareTreeNodeInterface, name string) *ResIPTreeNod
 	return &rip
 }
 
-func (tn *ResIPTreeNode) setVpe(vsi string) { tn.vpe = vsi }
+func (tn *ResIPTreeNode) setVpe(vpe string) { tn.vpe = vpe }
 func (tn *ResIPTreeNode) Vpe() string       { return tn.vpe }
 func (tn *ResIPTreeNode) HasVpe() bool      { return tn.Vpe() != "" }
 func (tn *ResIPTreeNode) Label() string     { return labels2Table([]string{tn.name, tn.vpe}) }
