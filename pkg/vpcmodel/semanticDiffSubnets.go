@@ -27,6 +27,11 @@ type configsForDiff struct {
 	config2 *CloudConfig
 }
 
+type subnetConfigConnectivity struct {
+	config             *CloudConfig
+	subnetConnectivity subnetConnectivity
+}
+
 type diffBetweenSubnets struct {
 	subnet1Subtract2 SubnetsDiff
 	subnet2Subtract1 SubnetsDiff
@@ -50,8 +55,10 @@ func (configs configsForDiff) GetSubnetsDiff(grouping bool) (*diffBetweenSubnets
 
 	// 2. Computes delta in both directions
 	subnet1Aligned, subnet2Aligned := subnetsConn1.AllowedConnsCombined.getConnectivesWithSameIpBlocks(subnetsConn2.AllowedConnsCombined)
-	subnet1Subtract2 := configs.subnetConnectivitySubtract(subnet1Aligned, subnet2Aligned)
-	subnet2Subtract1 := configs.subnetConnectivitySubtract(subnet2Aligned, subnet1Aligned)
+	subnetConfigConnectivity1 := subnetConfigConnectivity{configs.config1, subnet1Aligned}
+	subnetConfigConnectivity2 := subnetConfigConnectivity{configs.config2, subnet2Aligned}
+	subnet1Subtract2 := subnetConfigConnectivity1.subnetConnectivitySubtract(&subnetConfigConnectivity2)
+	subnet2Subtract1 := subnetConfigConnectivity2.subnetConnectivitySubtract(&subnetConfigConnectivity1)
 
 	// 3. ToDo: grouping, see comment at the end of this file
 
@@ -97,9 +104,9 @@ func (connectivity subnetConnectivity) getConnectivesWithSameIpBlocks(other subn
 
 // Subtract one subnetConnectivity from the other
 // assumption: any connection from connectivity and "other" have src (dst) which are either disjoint or equal
-func (configs configsForDiff) subnetConnectivitySubtract(connectivity subnetConnectivity, other subnetConnectivity) SubnetsDiff {
+func (subnetConfConnectivity *subnetConfigConnectivity) subnetConnectivitySubtract(other *subnetConfigConnectivity) SubnetsDiff {
 	connectivitySubtract := map[EndpointElem]map[EndpointElem]*connectionDiff{}
-	for src, endpointConns := range connectivity {
+	for src, endpointConns := range subnetConfConnectivity.subnetConnectivity {
 		for dst, conns := range endpointConns {
 			if conns.IsEmpty() {
 				continue
@@ -107,10 +114,10 @@ func (configs configsForDiff) subnetConnectivitySubtract(connectivity subnetConn
 			if _, ok := connectivitySubtract[src]; !ok {
 				connectivitySubtract[src] = map[EndpointElem]*connectionDiff{}
 			}
-			srcInOther := configs.config1.getEndpointElemInOtherConfig(configs.config2, src)
-			dstInOther := configs.config1.getEndpointElemInOtherConfig(configs.config2, dst)
+			srcInOther := subnetConfConnectivity.config.getEndpointElemInOtherConfig(other.config, src)
+			dstInOther := subnetConfConnectivity.config.getEndpointElemInOtherConfig(other.config, dst)
 			if srcInOther != nil && dstInOther != nil {
-				if otherSrc, ok := other[*srcInOther]; ok {
+				if otherSrc, ok := other.subnetConnectivity[*srcInOther]; ok {
 					if otherSrcDst, ok := otherSrc[*dstInOther]; ok {
 						// ToDo: current missing stateful:
 						// todo 1. is the delta connection stateful
