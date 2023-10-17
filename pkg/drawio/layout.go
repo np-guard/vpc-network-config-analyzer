@@ -139,6 +139,7 @@ func sortGroupSquareBySize(groups []SquareTreeNodeInterface) []SquareTreeNodeInt
 //	         - else if all the NIs in the group are in one bigger group - its visibility is innerSquare
 //	         - else its visibility is connectedPoint
 func (ly *layoutS) calcGroupsVisibility(subnet SquareTreeNodeInterface) {
+	// todo - can this code be more elegant?
 	sortedBySizeGroups := sortGroupSquareBySize(subnet.(*SubnetTreeNode).groupSquares)
 	iconSquareGroups := map[IconTreeNodeInterface]map[SquareTreeNodeInterface]bool{}
 	for _, groupS := range sortedBySizeGroups {
@@ -148,7 +149,11 @@ func (ly *layoutS) calcGroupsVisibility(subnet SquareTreeNodeInterface) {
 			continue
 		}
 		groupedIconsFormerGroups := map[SquareTreeNodeInterface]bool{}
+		hasIconOutsideGroup := false
 		for _, icon := range group.groupedIcons {
+			if len(iconSquareGroups[icon]) == 0 {
+				hasIconOutsideGroup = true
+			}
 			for g := range iconSquareGroups[icon] {
 				groupedIconsFormerGroups[g] = true
 			}
@@ -159,6 +164,9 @@ func (ly *layoutS) calcGroupsVisibility(subnet SquareTreeNodeInterface) {
 		}
 		if len(groupedIconsFormerGroups) == 0 {
 			group.setVisibility(square)
+		} else if hasIconOutsideGroup {
+			group.setVisibility(connectedPoint)
+			continue
 		} else {
 			group.setVisibility(innerSquare)
 		}
@@ -187,7 +195,7 @@ func (ly *layoutS) getSubnetIconsOrder(subnet SquareTreeNodeInterface) [][]IconT
 			for _, icon := range group.groupedIcons {
 				iconOuterGroup[icon] = group
 			}
-				} else if group.visibility == innerSquare {
+		} else if group.visibility == innerSquare {
 			for _, icon := range group.groupedIcons {
 				iconInnerGroup[icon] = group
 				outerToInnersGroup[iconOuterGroup[icon]][group] = true
@@ -241,8 +249,8 @@ func (ly *layoutS) layoutGroupIcons(group []IconTreeNodeInterface, rowIndex, col
 			iconInCurrentCell = icon
 		} else {
 			icon.setLocation(iconInCurrentCell.Location().copy())
-			iconInCurrentCell.Location().xOffset = iconSize
-			icon.Location().xOffset = -iconSize
+			iconInCurrentCell.Location().xOffset = -iconSize
+			icon.Location().xOffset = iconSize
 			rowIndex++
 			iconInCurrentCell = nil
 		}
