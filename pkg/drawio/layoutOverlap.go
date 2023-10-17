@@ -62,7 +62,7 @@ func (lyO *layoutOverlap) fixOverlapping() {
 	lyO.handleGroupingLinesOverBorders()
 	lyO.setIconsMap()
 	lyO.handleLinesOverLines()
-//	lyO.handleLinesOverIcons()
+	lyO.handleLinesOverIcons()
 }
 
 // setIconsMap() update the cells of the matrix with icons positions:

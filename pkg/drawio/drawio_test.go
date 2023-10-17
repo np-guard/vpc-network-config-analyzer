@@ -20,13 +20,13 @@ func TestWithParsing(t *testing.T) {
 	n = createNetworkGrouping()
 	err = CreateDrawioConnectivityMapFile(n, "grouping.drawio")
 	if err != nil {
-		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
+	fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
 	}
 	n2 := NewNetworkTreeNode()
 	NewCloudTreeNode(n2, "empty Cloud")
 	NewPublicNetworkTreeNode(n2)
 	NewCloudTreeNode(n2, "empty cloud2")
-	err = CreateDrawioConnectivityMapFile(n, "fake3.drawio")
+	err = CreateDrawioConnectivityMapFile(n2, "fake3.drawio")
 	if err != nil {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
 	}

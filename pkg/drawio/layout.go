@@ -187,7 +187,7 @@ func (ly *layoutS) getSubnetIconsOrder(subnet SquareTreeNodeInterface) [][]IconT
 			for _, icon := range group.groupedIcons {
 				iconOuterGroup[icon] = group
 			}
-		} else if group.visibility == innerSquare {
+				} else if group.visibility == innerSquare {
 			for _, icon := range group.groupedIcons {
 				iconInnerGroup[icon] = group
 				outerToInnersGroup[iconOuterGroup[icon]][group] = true
