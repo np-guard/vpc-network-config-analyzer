@@ -29,7 +29,7 @@ type configsForDiff struct {
 
 type subnetConfigConnectivity struct {
 	config             *CloudConfig
-	subnetConnectivity subnetConnectivity
+	subnetConnectivity SubnetConnectivityMap
 }
 
 type diffBetweenSubnets struct {
@@ -90,19 +90,19 @@ func (config *CloudConfig) getEndpointElemInOtherConfig(other *CloudConfig, ep E
 }
 
 // generates from subnet1Connectivity.AllowedConnsCombined and subnet2Connectivity.AllowedConnsCombined
-// Two equivalent subnetConnectivity objects s.t. any (src1, dst1) of subnet1Connectivity and
+// Two equivalent SubnetConnectivityMap objects s.t. any (src1, dst1) of subnet1Connectivity and
 // (src2, dst2) of subnet2Connectivity are either:
 //  1. src1 disjoint src2 or dst1 disjoint dst2
 //  2. src1 = src2 and dst1 = dst2
 //     What is done here is repartitioning the ipBlocks so that the above will hold
 //
 // todo: verify that the returns objects indeed have exactly the same ipBlocks
-func (connectivity subnetConnectivity) getConnectivesWithSameIpBlocks(other subnetConnectivity) (subnetConnectivity, subnetConnectivity) {
+func (connectivity SubnetConnectivityMap) getConnectivesWithSameIpBlocks(other SubnetConnectivityMap) (SubnetConnectivityMap, SubnetConnectivityMap) {
 	// todo: use DisjointIPBlocks(set1, set2 []*IPBlock) []*IPBlock  of ipBlock.go
 	return connectivity, other
 }
 
-// Subtract one subnetConnectivity from the other
+// Subtract one SubnetConnectivityMap from the other
 // assumption: any connection from connectivity and "other" have src (dst) which are either disjoint or equal
 func (subnetConfConnectivity *subnetConfigConnectivity) subnetConnectivitySubtract(other *subnetConfigConnectivity) SubnetsDiff {
 	connectivitySubtract := map[EndpointElem]map[EndpointElem]*connectionDiff{}
