@@ -279,6 +279,12 @@ var tests = []*vpcGeneralTest{
 		format:   vpcmodel.Text,
 		vpc:      "crn:12", // specify the vpc to analyze
 	},
+	// vpe example
+	{
+		name:     "demo_with_instances_vpes",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:   vpcmodel.Text,
+	},
 }
 
 var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true, vpcmodel.JSON: true}
