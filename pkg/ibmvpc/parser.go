@@ -163,7 +163,6 @@ assuming the following components are within input to parseIKSNode:
 
 */
 
-// TODO: map to a VPC by the subnet's VPC
 func parseIKSNode(m map[string]json.RawMessage) (*iksNode, error) {
 	// parse the "networkInterfaces" section
 	nis, ok := m["networkInterfaces"]
