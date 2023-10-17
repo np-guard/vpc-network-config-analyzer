@@ -78,17 +78,15 @@ type NIorRIPTreeNode struct {
 	abstractIconTreeNode
 }
 
-func (tn *NIorRIPTreeNode) IsNIorRIP() bool { return true }
-
 // ///////////////////////////////////////////
 type NITreeNode struct {
-	NIorRIPTreeNode
+	abstractIconTreeNode
 	floatingIP string
 	vsi        string
 }
 
 func NewNITreeNode(parent SquareTreeNodeInterface, name string) *NITreeNode {
-	ni := NITreeNode{NIorRIPTreeNode: NIorRIPTreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, name)}}
+	ni := NITreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, name)}
 	parent.addIconTreeNode(&ni)
 	return &ni
 }
@@ -111,12 +109,12 @@ func (tn *NITreeNode) absoluteRouterGeometry() (x, y int) {
 
 // ///////////////////////////////////////////
 type ResIPTreeNode struct {
-	NIorRIPTreeNode
+	abstractIconTreeNode
 	vpe string
 }
 
 func NewResIPTreeNode(parent SquareTreeNodeInterface, name string) *ResIPTreeNode {
-	rip := ResIPTreeNode{NIorRIPTreeNode: NIorRIPTreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, name)}}
+	rip := ResIPTreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, name)}
 	parent.addIconTreeNode(&rip)
 	return &rip
 }

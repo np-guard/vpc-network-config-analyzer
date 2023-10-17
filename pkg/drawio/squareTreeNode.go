@@ -223,10 +223,10 @@ func (tn *SubnetTreeNode) Label() string {
 func (tn *SubnetTreeNode) SetACL(acl string) {
 	tn.acl = acl
 }
-func (tn *SubnetTreeNode) NIorRIPs() []IconTreeNodeInterface {
+func (tn *SubnetTreeNode) nonGroupingIcons() []IconTreeNodeInterface {
 	nis := []IconTreeNodeInterface{}
 	for _, icon := range tn.elements {
-		if icon.IsNIorRIP() {
+		if !icon.IsGroupingPoint() {
 			nis = append(nis, icon)
 		}
 	}
