@@ -191,6 +191,12 @@ func (conn *ConnectionSet) isAllConnectionsWithoutAllowAll() bool {
 	return conn.connectionProperties.Equals(getAllPropertiesObject())
 }
 
+// Subtract
+// ToDo: Subtract seems to ignore IsStateful:
+//  1. is the delta connection stateful
+//  2. connectionProperties is identical but conn stateful while other is not
+//     the 2nd item can be computed here, with enhancement to relevant structure
+//     the 1st can not since we do not know where exactly the statefullness came from
 func (conn *ConnectionSet) Subtract(other *ConnectionSet) *ConnectionSet {
 	if conn.IsEmpty() || other.IsEmpty() {
 		return conn
@@ -523,29 +529,6 @@ func (conn *ConnectionSet) ResponseConnection() *ConnectionSet {
 	}
 	return res
 }
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///// Diff between ConnectionSet
-
-// Connection A minus Connection B
-type ConnectionSetDiff struct {
-	ConnectionSet
-	StatefullDiff *ConnectionSet // connection element which is stateful only in A
-}
-
-func (conn *ConnectionSet) SubtractWithStateful(other *ConnectionSet) ConnectionSetDiff {
-	// todo: use func (conn *ConnectionSet) Subtract(other *ConnectionSet) *ConnectionSet  and note the
-	//       special case in which the connection differs only one being stateful and the other not
-	diff := ConnectionSetDiff{ConnectionSet{},
-		nil}
-	return diff
-}
-
-func (connn *ConnectionSetDiff) isEmpty() bool {
-	return false
-}
-
-// ToDo up to here in connectionSet
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
