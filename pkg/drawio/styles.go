@@ -1,24 +1,38 @@
 //nolint:lll // styles are too long and can not be split
 package drawio
 
-import "reflect"
-
-type connParams struct {
-	directed bool
-	external bool
-}
-
-const (
-	vsiStyle = "shape=image;aspect=fixed;image=data:image/svg+xml,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiMxOTgwMzg7fS5jbHMtMntmaWxsOiNmZmY7fS5jbHMtM3tmaWxsOm5vbmU7fTwvc3R5bGU+PC9kZWZzPjxyZWN0IGNsYXNzPSJjbHMtMSIgeD0iMC41IiB5PSIwLjUiIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIvPjxjaXJjbGUgY2xhc3M9ImNscy0yIiBjeD0iMTguODgiIGN5PSIyOC44OCIgcj0iMC42MyIvPjxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMTUuNzUiIHk9IjE4LjI1IiB3aWR0aD0iMi41IiBoZWlnaHQ9IjEuMjUiLz48cmVjdCBjbGFzcz0iY2xzLTIiIHg9IjE5LjUiIHk9IjE4LjI1IiB3aWR0aD0iMi41IiBoZWlnaHQ9IjEuMjUiLz48cmVjdCBjbGFzcz0iY2xzLTIiIHg9IjIzLjI1IiB5PSIxOC4yNSIgd2lkdGg9IjIuNSIgaGVpZ2h0PSIxLjI1Ii8+PHJlY3QgY2xhc3M9ImNscy0yIiB4PSIyNyIgeT0iMTguMjUiIHdpZHRoPSIyLjUiIGhlaWdodD0iMS4yNSIvPjxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMzAuNzUiIHk9IjE4LjI1IiB3aWR0aD0iMi41IiBoZWlnaHQ9IjEuMjUiLz48cGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik0zMiwzMkgxN2ExLjI1LDEuMjUsMCwwLDEtMS4yNS0xLjI1VjI3QTEuMjUsMS4yNSwwLDAsMSwxNywyNS43NUgzMkExLjI1LDEuMjUsMCwwLDEsMzMuMjUsMjd2My43NUExLjI1LDEuMjUsMCwwLDEsMzIsMzJaTTE3LDI3djMuNzVIMzJWMjdaIi8+PHJlY3QgY2xhc3M9ImNscy0zIiB4PSIxNC41IiB5PSIxNC41IiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiLz48cmVjdCBjbGFzcz0iY2xzLTIiIHg9IjE1Ljc1IiB5PSIyMiIgd2lkdGg9IjE3LjUiIGhlaWdodD0iMS4yNSIvPjwvc3ZnPg==;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;spacingTop=-7;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;"
-	fipStyle = "shape=image;aspect=fixed;image=data:image/svg+xml,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiMxMTkyZTg7fS5jbHMtMntmaWxsOiNmZmY7fS5jbHMtM3tmaWxsOm5vbmU7fTwvc3R5bGU+PC9kZWZzPjxyZWN0IGNsYXNzPSJjbHMtMSIgeD0iMC41IiB5PSIwLjkyIiB3aWR0aD0iNDgiIGhlaWdodD0iNDcuMTYiIHJ4PSI4Ii8+PHBhdGggY2xhc3M9ImNscy0yIiBkPSJNMzAuMTIsMjEuNDNhMy4xMywzLjEzLDAsMCwwLTMuMDYsMi40NkgyMS45NGEzLjA3LDMuMDcsMCwxLDAsMCwxLjIyaDUuMTJhMy4xMiwzLjEyLDAsMSwwLDMuMDYtMy42OFptMCw0LjkxQTEuODQsMS44NCwwLDEsMSwzMiwyNC41LDEuODUsMS44NSwwLDAsMSwzMC4xMiwyNi4zNFoiLz48cmVjdCBjbGFzcz0iY2xzLTMiIHg9IjE0LjUiIHk9IjE0LjY3IiB3aWR0aD0iMjAiIGhlaWdodD0iMTkuNjUiLz48L3N2Zz4=;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;spacingTop=-7;"
+import (
+	"fmt"
+	"reflect"
 )
 
-var connectivityStyles = map[connParams]string{
-	{directed: false, external: false}: "endArrow=oval;html=1;fontSize=16;fontColor=#4376BB;strokeWidth=2;endFill=1;rounded=0;startArrow=oval;startFill=1;",
-	{directed: false, external: true}:  "endArrow=oval;html=1;fontSize=16;fontColor=#4376BB;strokeWidth=2;endFill=1;strokeColor=#007FFF;startArrow=oval;startFill=1;rounded=0;",
-	{directed: true, external: false}:  "endArrow=block;html=1;fontSize=16;fontColor=#4376BB;strokeWidth=2;endFill=1;rounded=0;startArrow=oval;startFill=1;",
-	{directed: true, external: true}:   "endArrow=block;html=1;fontSize=16;fontColor=#4376BB;strokeWidth=2;endFill=1;strokeColor=#007FFF;startArrow=oval;startFill=1;rounded=0;",
+const (
+	vsiStyle     = "shape=image;aspect=fixed;image=data:image/svg+xml,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiMxOTgwMzg7fS5jbHMtMntmaWxsOiNmZmY7fS5jbHMtM3tmaWxsOm5vbmU7fTwvc3R5bGU+PC9kZWZzPjxyZWN0IGNsYXNzPSJjbHMtMSIgeD0iMC41IiB5PSIwLjUiIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIvPjxjaXJjbGUgY2xhc3M9ImNscy0yIiBjeD0iMTguODgiIGN5PSIyOC44OCIgcj0iMC42MyIvPjxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMTUuNzUiIHk9IjE4LjI1IiB3aWR0aD0iMi41IiBoZWlnaHQ9IjEuMjUiLz48cmVjdCBjbGFzcz0iY2xzLTIiIHg9IjE5LjUiIHk9IjE4LjI1IiB3aWR0aD0iMi41IiBoZWlnaHQ9IjEuMjUiLz48cmVjdCBjbGFzcz0iY2xzLTIiIHg9IjIzLjI1IiB5PSIxOC4yNSIgd2lkdGg9IjIuNSIgaGVpZ2h0PSIxLjI1Ii8+PHJlY3QgY2xhc3M9ImNscy0yIiB4PSIyNyIgeT0iMTguMjUiIHdpZHRoPSIyLjUiIGhlaWdodD0iMS4yNSIvPjxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMzAuNzUiIHk9IjE4LjI1IiB3aWR0aD0iMi41IiBoZWlnaHQ9IjEuMjUiLz48cGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik0zMiwzMkgxN2ExLjI1LDEuMjUsMCwwLDEtMS4yNS0xLjI1VjI3QTEuMjUsMS4yNSwwLDAsMSwxNywyNS43NUgzMkExLjI1LDEuMjUsMCwwLDEsMzMuMjUsMjd2My43NUExLjI1LDEuMjUsMCwwLDEsMzIsMzJaTTE3LDI3djMuNzVIMzJWMjdaIi8+PHJlY3QgY2xhc3M9ImNscy0zIiB4PSIxNC41IiB5PSIxNC41IiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiLz48cmVjdCBjbGFzcz0iY2xzLTIiIHg9IjE1Ljc1IiB5PSIyMiIgd2lkdGg9IjE3LjUiIGhlaWdodD0iMS4yNSIvPjwvc3ZnPg==;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;spacingTop=-7;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;"
+	fipStyle     = "shape=image;aspect=fixed;image=data:image/svg+xml,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiMxMTkyZTg7fS5jbHMtMntmaWxsOiNmZmY7fS5jbHMtM3tmaWxsOm5vbmU7fTwvc3R5bGU+PC9kZWZzPjxyZWN0IGNsYXNzPSJjbHMtMSIgeD0iMC41IiB5PSIwLjkyIiB3aWR0aD0iNDgiIGhlaWdodD0iNDcuMTYiIHJ4PSI4Ii8+PHBhdGggY2xhc3M9ImNscy0yIiBkPSJNMzAuMTIsMjEuNDNhMy4xMywzLjEzLDAsMCwwLTMuMDYsMi40NkgyMS45NGEzLjA3LDMuMDcsMCwxLDAsMCwxLjIyaDUuMTJhMy4xMiwzLjEyLDAsMSwwLDMuMDYtMy42OFptMCw0LjkxQTEuODQsMS44NCwwLDEsMSwzMiwyNC41LDEuODUsMS44NSwwLDAsMSwzMC4xMiwyNi4zNFoiLz48cmVjdCBjbGFzcz0iY2xzLTMiIHg9IjE0LjUiIHk9IjE0LjY3IiB3aWR0aD0iMjAiIGhlaWdodD0iMTkuNjUiLz48L3N2Zz4=;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;spacingTop=-7;"
+	ovalEndEdge  = "oval"
+	errorEndEdge = "block"
+	noneEndEdge  = "none"
+)
+
+func connectivityStyle(con *ConnectivityTreeNode) string {
+	startArrow, endArrow := ovalEndEdge, ovalEndEdge
+	strokeColor := ""
+	if con.directed {
+		endArrow = errorEndEdge
+	}
+	if con.Src().IsGroupingPoint() && !con.Src().(*GroupPointTreeNode).hasShownSquare() {
+		startArrow = noneEndEdge
+	}
+	if con.Dst().IsGroupingPoint() && !con.Dst().(*GroupPointTreeNode).hasShownSquare() {
+		endArrow = noneEndEdge
+	}
+	if con.router != nil {
+		strokeColor = "strokeColor=#007FFF;"
+	}
+	styleFormat := "endArrow=%s;html=1;fontSize=16;fontColor=#4376BB;strokeWidth=2;endFill=1;rounded=0;startArrow=%s;%sstartFill=1;"
+	return fmt.Sprintf(styleFormat, endArrow, startArrow, strokeColor)
 }
+
 var styles = map[reflect.Type]string{
 	reflect.TypeOf(PublicNetworkTreeNode{}):   "rounded=0;whiteSpace=wrap;html=1;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;spacingBottom=-28;spacingTop=0;labelPosition=-100;verticalLabelPosition=top;align=center;verticalAlign=bottom;spacingLeft=9;spacing=0;expand=0;recursiveResize=0;spacingRight=0;container=1;collapsible=0;strokeColor=#1192E8;fillColor=none;",
 	reflect.TypeOf(CloudTreeNode{}):           "rounded=0;whiteSpace=wrap;html=1;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;spacingBottom=-28;spacingTop=0;labelPosition=-100;verticalLabelPosition=top;align=center;verticalAlign=bottom;spacingLeft=9;spacing=0;expand=0;recursiveResize=0;spacingRight=0;container=1;collapsible=0;strokeColor=#1192E8;fillColor=none;",
@@ -26,8 +40,10 @@ var styles = map[reflect.Type]string{
 	reflect.TypeOf(ZoneTreeNode{}):            "rounded=0;whiteSpace=wrap;html=1;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;spacingBottom=-28;spacingTop=0;labelPosition=-100;verticalLabelPosition=top;align=center;verticalAlign=bottom;spacingLeft=9;spacing=0;expand=0;recursiveResize=0;spacingRight=0;container=1;collapsible=0;strokeColor=#878d96;fillColor=none;",
 	reflect.TypeOf(PartialSGTreeNode{}):       "rounded=0;whiteSpace=wrap;html=1;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;fillColor=none;spacingBottom=-28;spacingTop=0;labelPosition=-100;verticalLabelPosition=top;align=center;verticalAlign=bottom;spacingLeft=9;spacing=0;expand=0;recursiveResize=0;spacingRight=0;container=1;collapsible=0;strokeColor=#FA4D56;strokeWidth=1;",
 	reflect.TypeOf(SubnetTreeNode{}):          "rounded=0;whiteSpace=wrap;html=1;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;spacingBottom=-28;spacingTop=0;labelPosition=-100;verticalLabelPosition=top;align=center;verticalAlign=bottom;spacingLeft=9;spacing=0;expand=0;recursiveResize=0;spacingRight=0;container=1;collapsible=0;strokeColor=#1192E8;fillColor=none;",
+	reflect.TypeOf(GroupSquareTreeNode{}):     "rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#006633;strokeWidth=1;perimeterSpacing=0;arcSize=12;",
 	reflect.TypeOf(NITreeNode{}):              "shape=image;aspect=fixed;image=data:image/svg+xml,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+CjxkZWZzPgo8c3R5bGU+LmNscy0xe2ZpbGw6I2VlNTM5Njt9LmNscy0ye2ZpbGw6bm9uZTt9LmNscy0ze2ZpbGw6I2ZmZjt9PC9zdHlsZT4KPC9kZWZzPg0KPHJlY3QgY2xhc3M9ImNscy0xIiB4PSIwLjUiIHk9IjAuNSIgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4Ii8+CjxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMTQuNSIgeT0iMTQuNSIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIi8+DQo8dGV4dCBmb250LXNpemU9IjMwIiBmaWxsPSJ3aGl0ZSIgeD0iOCIgeT0iMzUiPk5JPC90ZXh0Pgo8L3N2Zz4=;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;spacingTop=-7;",
 	reflect.TypeOf(VsiTreeNode{}):             vsiStyle,
+	reflect.TypeOf(GroupPointTreeNode{}):      "ellipse;whiteSpace=wrap;html=1;aspect=fixed;",
 	reflect.TypeOf(UserTreeNode{}):            "shape=image;aspect=fixed;image=data:image/svg+xml,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOm5vbmU7fS5jbHMtMntmaWxsOiNmZmY7ZmlsbC1ydWxlOmV2ZW5vZGQ7fTwvc3R5bGU+PC9kZWZzPjxyZWN0IHg9IjAuNSIgeT0iMC41IiB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHJ4PSIyNCIvPjxyZWN0IGNsYXNzPSJjbHMtMSIgeD0iMTQuNSIgeT0iMTQuNSIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIi8+PHBhdGggaWQ9IkZpbGwtMyIgY2xhc3M9ImNscy0yIiBkPSJNMzAuOCwzMy44N0gyOVYyOS41OUEyLjYzLDIuNjMsMCwwLDAsMjYuMywyN0gyMi43QTIuNjMsMi42MywwLDAsMCwyMCwyOS41OXY0LjI4SDE4LjJWMjkuNTlhNC40MSw0LjQxLDAsMCwxLDQuNS00LjI4aDMuNmE0LjQxLDQuNDEsMCwwLDEsNC41LDQuMjhaIi8+PHBhdGggaWQ9IkZpbGwtNSIgY2xhc3M9ImNscy0yIiBkPSJNMjQuNSwxNS4wNUE0LjM5LDQuMzksMCwwLDAsMjAsMTkuMzNhNC41MSw0LjUxLDAsMCwwLDksMCw0LjM5LDQuMzksMCwwLDAtNC41LTQuMjhtMCwxLjcxYTIuNTcsMi41NywwLDEsMS0yLjcsMi41NywyLjY0LDIuNjQsMCwwLDEsMi43LTIuNTciLz48L3N2Zz4=;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;spacingTop=-7;",
 	reflect.TypeOf(GatewayTreeNode{}):         "shape=image;aspect=fixed;image=data:image/svg+xml,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiMxMTkyZTg7fS5jbHMtMntmaWxsOiNmZmY7fS5jbHMtM3tmaWxsOm5vbmU7fTwvc3R5bGU+PC9kZWZzPjxyZWN0IGNsYXNzPSJjbHMtMSIgeD0iMC41IiB5PSIwLjUiIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgcng9IjgiLz48cGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik0zMy41MSwyNS4zOGExLjIzLDEuMjMsMCwwLDAsMC0xLjc2TDI5Ljg5LDIwbDEuODEtMS43OWExLjI1LDEuMjUsMCwxLDAtLjU4LTIuMDksMS4yMiwxLjIyLDAsMCwwLS4zMiwxLjIyTDI5LDE5LjEybC0zLjYzLTMuNjNhMS4yMywxLjIzLDAsMCwwLTEuNzYsMEwyMCwxOS4xMWwtMS43OS0xLjgyYTEuMjQsMS4yNCwwLDEsMC0yLjA5LjU5LDEuMjIsMS4yMiwwLDAsMCwxLjIyLjMyTDE5LjEyLDIwbC0zLjYzLDMuNjNhMS4yMywxLjIzLDAsMCwwLDAsMS43NkwxOS4xMiwyOSwxNy4zNCwzMC44YTEuMjIsMS4yMiwwLDAsMC0xLjIyLjMyLDEuMjQsMS4yNCwwLDEsMCwyLjA5LjU5TDIwLDI5Ljg5bDMuNjIsMy42MmExLjIzLDEuMjMsMCwwLDAsMS43NiwwTDI5LDI5Ljg4bDEuNzksMS43OGExLjIyLDEuMjIsMCwwLDAsLjMyLDEuMjIsMS4yNCwxLjI0LDAsMSwwLC41OC0yLjA5TDI5Ljg5LDI5Wm0tOSw3LjI0TDE2LjM4LDI0LjVsOC4xMi04LjEyLDguMTIsOC4xMloiLz48cmVjdCBjbGFzcz0iY2xzLTMiIHg9IjE0LjUiIHk9IjE0LjUiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIvPjxwYXRoIGNsYXNzPSJjbHMtMiIgZD0iTTI2LjM4LDIzLjI1SDIzLjI1VjIyYTEuMjUsMS4yNSwwLDAsMSwyLjUsMEgyN2EyLjUsMi41LDAsMCwwLTUsMHYxLjQyYTEuMjYsMS4yNiwwLDAsMC0uNjIsMS4wOHYzLjEyYTEuMjYsMS4yNiwwLDAsMCwxLjI0LDEuMjZoMy43NmExLjI2LDEuMjYsMCwwLDAsMS4yNC0xLjI2VjI0LjVBMS4yNSwxLjI1LDAsMCwwLDI2LjM4LDIzLjI1Wm0wLDQuMzdIMjIuNjJWMjQuNWgzLjc2WiIvPjwvc3ZnPg==;fontSize=14;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;spacingTop=-7;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;",
 	reflect.TypeOf(InternetTreeNode{}):        "shape=image;aspect=fixed;image=data:image/svg+xml,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiMxMTkyZTg7fS5jbHMtMntmaWxsOiNmZmY7fS5jbHMtM3tmaWxsOm5vbmU7fTwvc3R5bGU+PC9kZWZzPjxyZWN0IGNsYXNzPSJjbHMtMSIgeD0iMC41IiB5PSIwLjUiIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgcng9IjgiLz48cGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik0yNC41LDE1Ljc1YTguNzUsOC43NSwwLDEsMCw4Ljc1LDguNzVBOC43NSw4Ljc1LDAsMCwwLDI0LjUsMTUuNzVaTTMyLDIzLjg4SDI4LjI1YTE1LjE5LDE1LjE5LDAsMCwwLTEuNzQtNi42QTcuNSw3LjUsMCwwLDEsMzIsMjMuODhaTTI0LjUsMzJoLS40MkExMy43MiwxMy43MiwwLDAsMSwyMiwyNS4xMmg1QTEzLjYzLDEzLjYzLDAsMCwxLDI0Ljk0LDMyWk0yMiwyMy44OEExMy42MywxMy42MywwLDAsMSwyNC4wNiwxN2EzLjkzLDMuOTMsMCwwLDEsLjg0LDBBMTMuNjQsMTMuNjQsMCwwLDEsMjcsMjMuODhabS40OC02LjZhMTUuMTgsMTUuMTgsMCwwLDAtMS43Myw2LjZIMTdhNy41LDcuNSwwLDAsMSw1LjQ5LTYuNlpNMTcsMjUuMTJoMy43NWExNS4yLDE1LjIsMCwwLDAsMS43Miw2LjZBNy41Miw3LjUyLDAsMCwxLDE3LDI1LjEyWm05LjQ4LDYuNmExNS4xOSwxNS4xOSwwLDAsMCwxLjc0LTYuNkgzMkE3LjUsNy41LDAsMCwxLDI2LjUxLDMxLjcyWiIvPjxyZWN0IGlkPSJfVHJhbnNwYXJlbnRfUmVjdGFuZ2xlXyIgZGF0YS1uYW1lPSIgVHJhbnNwYXJlbnQgUmVjdGFuZ2xlICIgY2xhc3M9ImNscy0zIiB4PSIxNC41IiB5PSIxNC41IiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiLz48L3N2Zz4=;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;spacingTop=-7;",
@@ -65,8 +81,7 @@ var decoreStyles = map[reflect.Type]string{
 
 func (data *drawioData) Style(tn TreeNodeInterface) string {
 	if reflect.TypeOf(tn).Elem() == reflect.TypeOf(ConnectivityTreeNode{}) {
-		ctn := tn.(*ConnectivityTreeNode)
-		return connectivityStyles[connParams{ctn.directed, ctn.router != nil}]
+		return connectivityStyle(tn.(*ConnectivityTreeNode))
 	} else if reflect.TypeOf(tn).Elem() == reflect.TypeOf(NITreeNode{}) && !data.ShowNIIcon {
 		return styles[reflect.TypeOf(VsiTreeNode{})]
 	}
@@ -77,6 +92,10 @@ func (data *drawioData) TextStyle(tn TreeNodeInterface) string {
 }
 func (data *drawioData) TagStyle(tn TreeNodeInterface) string {
 	return tagStyles[reflect.TypeOf(tn).Elem()]
+}
+func (data *drawioData) HasTag(tn TreeNodeInterface) bool {
+	_, ok := tagStyles[reflect.TypeOf(tn).Elem()]
+	return ok
 }
 func (data *drawioData) DecoreStyle(tn TreeNodeInterface) string {
 	return decoreStyles[reflect.TypeOf(tn).Elem()]

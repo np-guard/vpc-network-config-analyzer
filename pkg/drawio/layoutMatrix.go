@@ -30,16 +30,18 @@ func (c *col) x() int                             { return c.distance }
 /////////////////////////////////////////////////////////////////////////////////
 
 type Location struct {
-	firstRow *row
-	lastRow  *row
-	firstCol *col
-	lastCol  *col
-	xOffset  int
-	yOffset  int
+	firstRow   *row
+	lastRow    *row
+	firstCol   *col
+	lastCol    *col
+	xOffset    int
+	yOffset    int
+	xEndOffset int
+	yEndOffset int
 }
 
 func newLocation(firstRow, lastRow *row, firstCol, lastCol *col) *Location {
-	return &Location{firstRow, lastRow, firstCol, lastCol, 0, 0}
+	return &Location{firstRow, lastRow, firstCol, lastCol, 0, 0, 0, 0}
 }
 func newCellLocation(firstRow *row, firstCol *col) *Location {
 	return newLocation(firstRow, firstRow, firstCol, firstCol)

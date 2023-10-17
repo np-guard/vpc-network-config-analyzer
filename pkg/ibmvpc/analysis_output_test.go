@@ -163,6 +163,32 @@ var tests = []*vpcGeneralTest{
 		format:   vpcmodel.Text,
 	},
 
+	// batch2.5: only vsi-level use-case, with grouping , drawio format
+	{
+		name:     "acl_testing3",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping: true,
+		format:   vpcmodel.DRAWIO,
+	},
+	{
+		name:     "sg_testing1_new",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping: true,
+		format:   vpcmodel.DRAWIO,
+	},
+	{
+		name:     "demo_with_instances",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping: true,
+		format:   vpcmodel.DRAWIO,
+	},
+	{
+		name:     "iks_config_object",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping: true,
+		format:   vpcmodel.DRAWIO,
+	},
+
 	//batch3: only vsi-level use-case, no grouping, with debug / md  output formats
 	{
 		name:     "acl_testing3",
@@ -195,7 +221,7 @@ var tests = []*vpcGeneralTest{
 		format:   vpcmodel.Debug,
 	},
 	// disable drawio tests until supported with VPE
-	/*{
+	{
 		name:     "acl_testing3",
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		format:   vpcmodel.DRAWIO,
@@ -225,7 +251,7 @@ var tests = []*vpcGeneralTest{
 		name:     "demo_with_instances",
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		format:   vpcmodel.ARCHDRAWIO,
-	},*/
+	},
 	{
 		name:     "sg_testing1_new_grouping",
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},

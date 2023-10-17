@@ -6,10 +6,15 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
 )
 
-type Edge struct {
-	src   EndpointElem
-	dst   EndpointElem
-	label string
+type edgeInfo struct {
+	src      EndpointElem
+	dst      EndpointElem
+	label    string
+	directed bool
+}
+
+func (e *edgeInfo) IsExternal() bool {
+	return e.src.IsExternal() || e.dst.IsExternal()
 }
 
 // DrawioOutputFormatter create the drawio connectivity map.
@@ -20,11 +25,10 @@ type Edge struct {
 // 3. create the edges from the map we created in stage (1). also also set the routers to the edges
 
 type DrawioOutputFormatter struct {
-	cConfig        *CloudConfig
-	conn           *VPCConnectivity
-	gen            *DrawioGenerator
-	routers        map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface
-	isEdgeDirected map[Edge]bool
+	cConfig *CloudConfig
+	conn    *VPCConnectivity
+	gen     *DrawioGenerator
+	routers map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface
 }
 
 func (d *DrawioOutputFormatter) init(cConfig *CloudConfig, conn *VPCConnectivity) {
@@ -32,7 +36,6 @@ func (d *DrawioOutputFormatter) init(cConfig *CloudConfig, conn *VPCConnectivity
 	d.conn = conn
 	d.gen = NewDrawioGenerator(cConfig.CloudName)
 	d.routers = map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface{}
-	d.isEdgeDirected = map[Edge]bool{}
 }
 
 func (d *DrawioOutputFormatter) WriteOutputAllEndpoints(cConfig *CloudConfig, conn *VPCConnectivity, outFile string, grouping bool) (
@@ -44,30 +47,12 @@ func (d *DrawioOutputFormatter) WriteOutputAllEndpoints(cConfig *CloudConfig, co
 }
 
 func (d *DrawioOutputFormatter) createDrawioTree() {
-	if d.conn != nil {
-		d.createEdgesMap()
-	}
-
 	d.createNodeSets()
 	d.createNodes()
 	d.createFilters()
 	d.createRouters()
-
-	d.createEdges()
-}
-
-func (d *DrawioOutputFormatter) createEdgesMap() {
-	for _, line := range d.conn.GroupedConnectivity.GroupedLines {
-		src := line.Src
-		dst := line.Dst
-		edge := Edge{src, dst, line.ConnLabel()}
-		revEdge := Edge{dst, src, line.ConnLabel()}
-		_, revExist := d.isEdgeDirected[revEdge]
-		if revExist {
-			d.isEdgeDirected[revEdge] = false
-		} else {
-			d.isEdgeDirected[edge] = true
-		}
+	if d.conn != nil {
+		d.createEdges()
 	}
 }
 
@@ -102,15 +87,36 @@ func (d *DrawioOutputFormatter) createRouters() {
 }
 
 func (d *DrawioOutputFormatter) createEdges() {
-	for edge, directed := range d.isEdgeDirected {
-		srcTn := d.gen.TreeNode(edge.src).(drawio.IconTreeNodeInterface)
-		dstTn := d.gen.TreeNode(edge.dst).(drawio.IconTreeNodeInterface)
-		cn := drawio.NewConnectivityLineTreeNode(d.gen.Network(), srcTn, dstTn, directed, edge.label)
-		if d.routers[srcTn] != nil && edge.dst.IsExternal() {
-			cn.SetRouter(d.routers[srcTn], false)
+	type edgeKey struct {
+		src   EndpointElem
+		dst   EndpointElem
+		label string
+	}
+	isEdgeDirected := map[edgeKey]bool{}
+	for _, line := range d.conn.GroupedConnectivity.GroupedLines {
+		src := line.Src
+		dst := line.Dst
+		e := edgeKey{src, dst, line.ConnLabel()}
+		revE := edgeKey{dst, src, line.ConnLabel()}
+		_, revExist := isEdgeDirected[revE]
+		if revExist {
+			isEdgeDirected[revE] = false
+		} else {
+			isEdgeDirected[e] = true
 		}
-		if d.routers[dstTn] != nil && edge.src.IsExternal() {
-			cn.SetRouter(d.routers[dstTn], true)
+	}
+	for e, directed := range isEdgeDirected {
+		ei := &edgeInfo{e.src, e.dst, e.label, directed}
+		// todo - remove if when supporting vpe:
+		if d.gen.TreeNode(ei) == nil {
+			continue
+		}
+		cn := d.gen.TreeNode(ei).(*drawio.ConnectivityTreeNode)
+		if d.routers[cn.Src()] != nil && e.dst.IsExternal() {
+			cn.SetRouter(d.routers[cn.Src()], false)
+		}
+		if d.routers[cn.Dst()] != nil && e.src.IsExternal() {
+			cn.SetRouter(d.routers[cn.Dst()], true)
 		}
 	}
 }

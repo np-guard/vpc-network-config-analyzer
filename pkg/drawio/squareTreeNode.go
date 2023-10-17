@@ -10,6 +10,7 @@ type SquareTreeNodeInterface interface {
 	DecoreID() uint
 	HasVSIs() bool
 	setHasVSIs()
+	IsGroupingSquare() bool
 }
 
 type abstractSquareTreeNode struct {
@@ -44,20 +45,23 @@ func (tn *abstractSquareTreeNode) setHasVSIs() {
 		tn.Parent().(SquareTreeNodeInterface).setHasVSIs()
 	}
 }
+func (tn *abstractSquareTreeNode) IsGroupingSquare() bool { return false }
 
-func (tn *abstractSquareTreeNode) setGeometry() {
+func calculateSquareGeometry(tn SquareTreeNodeInterface) {
 	location := tn.Location()
 	if location == nil {
 		return
 	}
-	tn.width = location.lastCol.width() + location.lastCol.x() - location.firstCol.x()
-	tn.height = location.lastRow.height() + location.lastRow.y() - location.firstRow.y()
-	tn.x = location.firstCol.x()
-	tn.y = location.firstRow.y()
+	width := location.lastCol.width() + location.lastCol.x() - location.firstCol.x() - location.xOffset - location.xEndOffset
+	height := location.lastRow.height() + location.lastRow.y() - location.firstRow.y() - location.yOffset - location.yEndOffset
+	x := location.firstCol.x() + location.xOffset
+	y := location.firstRow.y() + location.yOffset
 	if tn.DrawioParent() != nil {
-		tn.x -= tn.DrawioParent().Location().firstCol.x()
-		tn.y -= tn.DrawioParent().Location().firstRow.y()
+		x -= tn.DrawioParent().Location().firstCol.x()
+		y -= tn.DrawioParent().Location().firstRow.y()
 	}
+	tn.setXY(x, y)
+	tn.setWH(width, height)
 }
 
 // /////////////////////////////////////////////////////////////
@@ -160,8 +164,6 @@ func NewSGTreeNode(parent *VpcTreeNode, name string) *SGTreeNode {
 func (tn *SGTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
 	return tn.partialSgs, tn.elements, tn.connections
 }
-func (tn *SGTreeNode) setGeometry() {}
-
 func (tn *SGTreeNode) NotShownInDrawio() bool { return true }
 
 ///////////////////////////////////////////////////////////////////////
@@ -182,21 +184,13 @@ func (tn *PartialSGTreeNode) DrawioParent() TreeNodeInterface {
 	return tn.Parent().Parent()
 }
 
-func (tn *PartialSGTreeNode) setGeometry() {
-	location := tn.Location()
-	parentLocation := tn.DrawioParent().Location()
-	tn.width = location.lastCol.width() + location.lastCol.x() - location.firstCol.x() - 2*borderWidth
-	tn.height = location.lastRow.height() + location.lastRow.y() - location.firstRow.y() - 2*borderWidth
-	tn.x = location.firstCol.x() - parentLocation.firstCol.x() + borderWidth
-	tn.y = location.firstRow.y() - parentLocation.firstRow.y() + borderWidth
-}
-
 /////////////////////////////////////////////////////////////////////////
 
 type SubnetTreeNode struct {
 	abstractSquareTreeNode
-	cidr string
-	acl  string
+	groupSquares []SquareTreeNodeInterface
+	cidr         string
+	acl          string
 }
 
 func NewSubnetTreeNode(parent *ZoneTreeNode, name, cidr, acl string) *SubnetTreeNode {
@@ -206,11 +200,72 @@ func NewSubnetTreeNode(parent *ZoneTreeNode, name, cidr, acl string) *SubnetTree
 }
 
 func (tn *SubnetTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
-	return []SquareTreeNodeInterface{}, tn.elements, tn.connections
+	return tn.groupSquares, tn.elements, tn.connections
 }
 func (tn *SubnetTreeNode) Label() string {
 	return labels2Table([]string{tn.name, tn.cidr, tn.acl})
 }
 func (tn *SubnetTreeNode) SetACL(acl string) {
 	tn.acl = acl
+}
+func (tn *SubnetTreeNode) NIs() []IconTreeNodeInterface {
+	nis := []IconTreeNodeInterface{}
+	for _, icon := range tn.elements {
+		if icon.IsNI() {
+			nis = append(nis, icon)
+		}
+	}
+	return nis
+}
+
+// /////////////////////////////////////////////////////////////////////////////////////
+// GroupSquareTreeNode is a tree node that represents a group of icons that share the same connectivity
+// we are grouping all these icons with the group square.
+// the connection of the square to another icon is done via a groupingPoint.
+//
+// for example, if the connectivity is the following connections:
+//    1.     (i1,i2) -> (i3,i4)
+//    2.     (i1,i2) -> (i4,i5)
+//    3.     (i1,i2,i3) -> i6
+// than we will have 4 groupSquare, each for every group (i1,i2), (i3,i4), (i4,i5), (i1,i2,i3).
+// the group (i1,i2) will have two group point - one for each connectivity
+// other groups will have only one grouping point
+// the group square is not always shown on the drawio canvas. there are 4 kind of visibility for group square:
+//     a. theSubnet - the group is all the icons in the subnet
+//              - in this case, the square is not shown. the group point is on the border of the subnet
+//     b. square - the group is a subset of icons of the subnet, the group will be bordered with a square.
+//                the group point is on the border of the group square
+//     c. innerSquare - the group is a subset of a group of square , the group will be bordered with an inner square inside a square
+//     d. connectedPoint - the group can not be bordered, so it is connected with line to a grouping point
+
+type groupSquareVisibility int
+
+const (
+	theSubnet groupSquareVisibility = iota
+	square
+	innerSquare
+	connectedPoint
+)
+
+type GroupSquareTreeNode struct {
+	abstractSquareTreeNode
+	groupedIcons []IconTreeNodeInterface
+	visibility   groupSquareVisibility
+}
+
+func (tn *GroupSquareTreeNode) IsGroupingSquare() bool { return true }
+
+func (tn *GroupSquareTreeNode) NotShownInDrawio() bool {
+	return tn.visibility == theSubnet || tn.visibility == connectedPoint
+}
+func NewGroupSquareTreeNode(parent *SubnetTreeNode, groupedIcons []IconTreeNodeInterface) *GroupSquareTreeNode {
+	gs := GroupSquareTreeNode{newAbstractSquareTreeNode(parent, ""), groupedIcons, connectedPoint}
+	parent.groupSquares = append(parent.groupSquares, &gs)
+	return &gs
+}
+func (tn *GroupSquareTreeNode) setVisibility(visibility groupSquareVisibility) {
+	tn.visibility = visibility
+}
+func (tn *GroupSquareTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
+	return nil, append(tn.elements, tn.groupedIcons...), tn.connections
 }

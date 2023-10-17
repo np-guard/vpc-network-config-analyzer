@@ -84,12 +84,33 @@ type ConnectivityTreeNode struct {
 }
 
 func NewConnectivityLineTreeNode(network SquareTreeNodeInterface,
-	src, dst IconTreeNodeInterface,
+	src, dst TreeNodeInterface,
 	directed bool,
 	name string) *ConnectivityTreeNode {
+	var iconSrc, iconDst IconTreeNodeInterface
+	if src.IsSquare() {
+		iconSrc = NewGroupPointTreeNode(src.(SquareTreeNodeInterface), directed, true, "")
+	} else {
+		iconSrc = src.(IconTreeNodeInterface)
+	}
+	if dst.IsSquare() {
+		iconDst = NewGroupPointTreeNode(dst.(SquareTreeNodeInterface), directed, false, "")
+	} else {
+		iconDst = dst.(IconTreeNodeInterface)
+	}
+	if iconSrc.IsGroupingPoint() {
+		iconSrc.(*GroupPointTreeNode).setColleague(iconDst)
+	}
+	if iconDst.IsGroupingPoint() {
+		iconDst.(*GroupPointTreeNode).setColleague(iconSrc)
+	}
+
 	conn := ConnectivityTreeNode{
-		abstractLineTreeNode: abstractLineTreeNode{abstractTreeNode: newAbstractTreeNode(network, name), src: src, dst: dst},
-		directed:             directed}
+		abstractLineTreeNode: abstractLineTreeNode{
+			abstractTreeNode: newAbstractTreeNode(network, name),
+			src:              iconSrc,
+			dst:              iconDst},
+		directed: directed}
 	network.addLineTreeNode(&conn)
 	return &conn
 }
