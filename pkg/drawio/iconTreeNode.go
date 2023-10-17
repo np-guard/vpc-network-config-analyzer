@@ -8,7 +8,6 @@ type IconTreeNodeInterface interface {
 	allocateNewRouteOffset() int
 	IsVSI() bool
 	IsNI() bool
-	IsNIorRIP() bool
 	IsGroupingPoint() bool
 	SetTooltip(tooltip []string)
 	HasTooltip() bool
@@ -16,6 +15,7 @@ type IconTreeNodeInterface interface {
 	IsGateway() bool
 	absoluteRouterGeometry() (int, int)
 	IconSize() int
+	hasMiniIcon() bool
 }
 
 type abstractIconTreeNode struct {
@@ -34,13 +34,13 @@ func (tn *abstractIconTreeNode) setSG(sg SquareTreeNodeInterface) { tn.sg = sg }
 func (tn *abstractIconTreeNode) IsIcon() bool                     { return true }
 func (tn *abstractIconTreeNode) IsVSI() bool                      { return false }
 func (tn *abstractIconTreeNode) IsGateway() bool                  { return false }
-func (tn *abstractIconTreeNode) IsNIorRIP() bool                  { return false }
 func (tn *abstractIconTreeNode) IsNI() bool                       { return false }
 func (tn *abstractIconTreeNode) IsGroupingPoint() bool            { return false }
 func (tn *abstractIconTreeNode) SetTooltip(tooltip []string)      { tn.tooltip = tooltip }
 func (tn *abstractIconTreeNode) HasTooltip() bool                 { return len(tn.tooltip) > 0 }
 func (tn *abstractIconTreeNode) Tooltip() string                  { return labels2Table(tn.tooltip) }
 func (tn *abstractIconTreeNode) IconSize() int                    { return iconSize }
+func (tn *abstractIconTreeNode) hasMiniIcon() bool                { return false }
 func (tn *abstractIconTreeNode) MiniIconID() uint                 { return tn.id + miniIconID }
 
 var offsets = []int{
@@ -93,8 +93,7 @@ func NewNITreeNode(parent SquareTreeNodeInterface, name string) *NITreeNode {
 
 func (tn *NITreeNode) FipID() uint       { return tn.id + niFipID }
 func (tn *NITreeNode) setVsi(vsi string) { tn.vsi = vsi }
-func (tn *NITreeNode) Vsi() string       { return tn.vsi }
-func (tn *NITreeNode) HasVsi() bool      { return tn.Vsi() != "" }
+func (tn *NITreeNode) hasMiniIcon() bool { return tn.vsi != "" }
 func (tn *NITreeNode) SetFIP(fip string) { tn.floatingIP = fip }
 func (tn *NITreeNode) Fip() string       { return tn.floatingIP }
 func (tn *NITreeNode) HasFip() bool      { return tn.Fip() != "" }
@@ -120,8 +119,7 @@ func NewResIPTreeNode(parent SquareTreeNodeInterface, name string) *ResIPTreeNod
 }
 
 func (tn *ResIPTreeNode) setVpe(vpe string) { tn.vpe = vpe }
-func (tn *ResIPTreeNode) Vpe() string       { return tn.vpe }
-func (tn *ResIPTreeNode) HasVpe() bool      { return tn.Vpe() != "" }
+func (tn *ResIPTreeNode) hasMiniIcon() bool { return tn.vpe != "" }
 func (tn *ResIPTreeNode) Label() string     { return labels2Table([]string{tn.name, tn.vpe}) }
 
 // ///////////////////////////////////////////

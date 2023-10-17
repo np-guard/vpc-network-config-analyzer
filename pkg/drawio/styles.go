@@ -86,10 +86,10 @@ var decoreStyles = map[reflect.Type]string{
 }
 
 func (data *drawioData) HasMiniIcon(tn TreeNodeInterface) bool {
-	if reflect.TypeOf(tn).Elem() == reflect.TypeOf(NITreeNode{}) && data.ShowNIIcon && tn.(*NITreeNode).HasVsi() {
+	if reflect.TypeOf(tn).Elem() == reflect.TypeOf(NITreeNode{}) && data.ShowNIIcon && tn.(IconTreeNodeInterface).hasMiniIcon() {
 		return true
 	}
-	if reflect.TypeOf(tn).Elem() == reflect.TypeOf(ResIPTreeNode{}) && data.ShowResIPIcon && tn.(*ResIPTreeNode).HasVpe() {
+	if reflect.TypeOf(tn).Elem() == reflect.TypeOf(ResIPTreeNode{}) && data.ShowResIPIcon && tn.(IconTreeNodeInterface).hasMiniIcon() {
 		return true
 	}
 	return false
@@ -98,13 +98,13 @@ func (data *drawioData) Style(tn TreeNodeInterface) string {
 	if reflect.TypeOf(tn).Elem() == reflect.TypeOf(ConnectivityTreeNode{}) {
 		return connectivityStyle(tn.(*ConnectivityTreeNode))
 	} else if reflect.TypeOf(tn).Elem() == reflect.TypeOf(NITreeNode{}) {
-		if data.ShowNIIcon && !tn.(*NITreeNode).HasVsi() {
+		if data.ShowNIIcon && !tn.(IconTreeNodeInterface).hasMiniIcon() {
 			return niStyle
 		} else {
 			return vsiStyle
 		}
 	} else if reflect.TypeOf(tn).Elem() == reflect.TypeOf(ResIPTreeNode{}) {
-		if data.ShowResIPIcon && !tn.(*ResIPTreeNode).HasVpe() {
+		if data.ShowResIPIcon && !tn.(IconTreeNodeInterface).hasMiniIcon() {
 			return resIPStyle
 		} else {
 			return vpeStyle
