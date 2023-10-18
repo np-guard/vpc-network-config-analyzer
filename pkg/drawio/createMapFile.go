@@ -12,18 +12,15 @@ import (
 var drawioTemplate string
 
 type drawioData struct {
-	FipXOffset int
-	FipYOffset int
-	MiniIconXOffset int
-	MiniIconYOffset int
-	MiniIconSize    int
-	RootID     uint
-	IDsPrefix  string
-	// ShowNIIcon says if to display the NI as an NI image, or a VSI image
-	// the rule is that if we have a vsi icon, then we display the NI icon as an NI image
-	ShowNIIcon bool
-	ShowResIPIcon bool
-	Nodes      []TreeNodeInterface
+	FipXOffset           int
+	FipYOffset           int
+	MiniIconXOffset      int
+	MiniIconYOffset      int
+	MiniIconSize         int
+	RootID               uint
+	IDsPrefix            string
+	canTypeHavaAMiniIcon map[reflect.Type]bool
+	Nodes                []TreeNodeInterface
 }
 
 // orderNodesForDrawio() sort the nodes for the drawio canvas
@@ -53,6 +50,27 @@ func orderNodesForDrawio(nodes []TreeNodeInterface) []TreeNodeInterface {
 	return orderedNodes
 }
 
+// mini icons:
+// some icons might have mini icons (ni and resIp). the rule is:
+// if there are no vsi icon in the canvas, all the ni are displayed as vsi icon, and without mini icons
+// if there is a vsi icon in the canvas, than:
+// if the ni is connected to a vsi that has only one ni, than the ni displayed as vsi icon, with an ni mini icons
+// if the ni is connected to a vsi that has more than one ni, than the ni displayed as ni icon, and without mini icons
+// same with resIp and vpe
+
+func getTypeHasMiniIcon(nodes []TreeNodeInterface) map[reflect.Type]bool {
+	typeHasMiniIcon := map[reflect.Type]bool{}
+	for _, tn := range nodes {
+		if reflect.TypeOf(tn).Elem() == reflect.TypeOf(VsiTreeNode{}) {
+			typeHasMiniIcon[reflect.TypeOf(NITreeNode{})] = true
+		}
+		if reflect.TypeOf(tn).Elem() == reflect.TypeOf(VpeTreeNode{}) {
+			typeHasMiniIcon[reflect.TypeOf(ResIPTreeNode{})] = true
+		}
+	}
+	return typeHasMiniIcon
+}
+
 func CreateDrawioConnectivityMapFile(network SquareTreeNodeInterface, outputFile string) error {
 	newLayout(network).layout()
 	allNodes := getAllNodes(network)
@@ -64,9 +82,10 @@ func CreateDrawioConnectivityMapFile(network SquareTreeNodeInterface, outputFile
 		miniIconSize,
 		network.ID(),
 		idsPrefix,
-		network.HasVSIs(),
-		network.HasVpes(),
-		orderNodesForDrawio(allNodes)}
+		getTypeHasMiniIcon(allNodes),
+		orderNodesForDrawio(allNodes),
+	}
+
 	return writeDrawioFile(data, outputFile)
 }
 
