@@ -166,7 +166,6 @@ func GroupNIsWithVSI(parent SquareTreeNodeInterface, name string, nis []TreeNode
 func newVsiTreeNode(parent SquareTreeNodeInterface, name string, nis []TreeNodeInterface) *VsiTreeNode {
 	vsi := &VsiTreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, name), nis: nis}
 	parent.addIconTreeNode(vsi)
-	parent.setHasVSIs()
 	return vsi
 }
 
@@ -208,7 +207,6 @@ func GroupResIPsWithVpe(parent SquareTreeNodeInterface, name string, resIPs []Tr
 func newVpeTreeNode(parent SquareTreeNodeInterface, name string, resIPs []TreeNodeInterface) *VpeTreeNode {
 	vpe := &VpeTreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, name), resIPs: resIPs}
 	parent.addIconTreeNode(vpe)
-	parent.setHasVpes()
 	return vpe
 }
 

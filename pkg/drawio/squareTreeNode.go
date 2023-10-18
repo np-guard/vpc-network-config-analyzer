@@ -8,10 +8,6 @@ type SquareTreeNodeInterface interface {
 	IconTreeNodes() []IconTreeNodeInterface
 	TagID() uint
 	DecoreID() uint
-	HasVSIs() bool
-	setHasVSIs()
-	HasVpes() bool
-	setHasVpes()
 	IsGroupingSquare() bool
 }
 
@@ -19,8 +15,6 @@ type abstractSquareTreeNode struct {
 	abstractTreeNode
 	elements    []IconTreeNodeInterface
 	connections []LineTreeNodeInterface
-	hasVSIs     bool
-	hasVpes     bool
 }
 
 func newAbstractSquareTreeNode(parent TreeNodeInterface, name string) abstractSquareTreeNode {
@@ -41,20 +35,6 @@ func (tn *abstractSquareTreeNode) IsSquare() bool { return true }
 func (tn *abstractSquareTreeNode) TagID() uint    { return tn.id + tagID }
 func (tn *abstractSquareTreeNode) DecoreID() uint { return tn.id + decoreID }
 
-func (tn *abstractSquareTreeNode) HasVSIs() bool { return tn.hasVSIs }
-func (tn *abstractSquareTreeNode) setHasVSIs() {
-	tn.hasVSIs = true
-	if tn.Parent() != nil && tn.Parent().IsSquare() {
-		tn.Parent().(SquareTreeNodeInterface).setHasVSIs()
-	}
-}
-func (tn *abstractSquareTreeNode) HasVpes() bool { return tn.hasVpes }
-func (tn *abstractSquareTreeNode) setHasVpes() {
-	tn.hasVpes = true
-	if tn.Parent() != nil && tn.Parent().IsSquare() {
-		tn.Parent().(SquareTreeNodeInterface).setHasVpes()
-	}
-}
 func (tn *abstractSquareTreeNode) IsGroupingSquare() bool { return false }
 
 func calculateSquareGeometry(tn SquareTreeNodeInterface) {
