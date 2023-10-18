@@ -90,7 +90,7 @@ var decoreStyles = map[reflect.Type]string{
 }
 
 func (data *drawioData) HasMiniIcon(tn TreeNodeInterface) bool {
-	if data.canTypeHavaAMiniIcon[reflect.TypeOf(tn).Elem()] && tn.(IconTreeNodeInterface).hasMiniIcon() {
+	if data.canTypeHaveAMiniIcon[reflect.TypeOf(tn).Elem()] && tn.(IconTreeNodeInterface).hasMiniIcon() {
 		return true
 	}
 	return false
@@ -99,7 +99,7 @@ func (data *drawioData) Style(tn TreeNodeInterface) string {
 	tnType := reflect.TypeOf(tn).Elem()
 	if tnType == reflect.TypeOf(ConnectivityTreeNode{}) {
 		return connectivityStyle(tn.(*ConnectivityTreeNode))
-	} else if data.canTypeHavaAMiniIcon[tnType] && !tn.(IconTreeNodeInterface).hasMiniIcon() {
+	} else if data.canTypeHaveAMiniIcon[tnType] && !tn.(IconTreeNodeInterface).hasMiniIcon() {
 		return miniStyles[tnType]
 	}
 	return styles[tnType]

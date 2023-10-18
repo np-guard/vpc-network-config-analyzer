@@ -19,7 +19,7 @@ type drawioData struct {
 	MiniIconSize         int
 	RootID               uint
 	IDsPrefix            string
-	canTypeHavaAMiniIcon map[reflect.Type]bool
+	canTypeHaveAMiniIcon map[reflect.Type]bool
 	Nodes                []TreeNodeInterface
 }
 
@@ -58,7 +58,7 @@ func orderNodesForDrawio(nodes []TreeNodeInterface) []TreeNodeInterface {
 // if the ni is connected to a vsi that has more than one ni, than the ni displayed as ni icon, and without mini icons
 // same with resIp and vpe
 
-func getTypeHasMiniIcon(nodes []TreeNodeInterface) map[reflect.Type]bool {
+func getCanTypeHaveMiniIcon(nodes []TreeNodeInterface) map[reflect.Type]bool {
 	typeHasMiniIcon := map[reflect.Type]bool{}
 	for _, tn := range nodes {
 		if reflect.TypeOf(tn).Elem() == reflect.TypeOf(VsiTreeNode{}) {
@@ -82,7 +82,7 @@ func CreateDrawioConnectivityMapFile(network SquareTreeNodeInterface, outputFile
 		miniIconSize,
 		network.ID(),
 		idsPrefix,
-		getTypeHasMiniIcon(allNodes),
+		getCanTypeHaveMiniIcon(allNodes),
 		orderNodesForDrawio(allNodes),
 	}
 

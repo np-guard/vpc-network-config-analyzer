@@ -73,11 +73,6 @@ func (tn *abstractIconTreeNode) absoluteRouterGeometry() (x, y int) {
 	return absoluteGeometry(tn)
 }
 
-// /////////////////////////////////////////////////////////////////////////////////////////////
-type NIorRIPTreeNode struct {
-	abstractIconTreeNode
-}
-
 // ///////////////////////////////////////////
 type NITreeNode struct {
 	abstractIconTreeNode
