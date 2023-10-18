@@ -144,7 +144,7 @@ func (ly *layoutS) calcGroupsVisibility(subnet SquareTreeNodeInterface) {
 		groupedIconsFormerGroups := map[SquareTreeNodeInterface]bool{}
 		hasIconOutsideAGroup := false
 		for _, icon := range group.groupedIcons {
-			if len(iconShownSquareGroups[icon]) == 0{
+			if len(iconShownSquareGroups[icon]) == 0 {
 				hasIconOutsideAGroup = true
 			}
 			for g := range iconShownSquareGroups[icon] {

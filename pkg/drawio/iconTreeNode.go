@@ -153,7 +153,7 @@ func GroupNIsWithVSI(parent SquareTreeNodeInterface, name string, nis []TreeNode
 	case len(nis) > 1:
 		vsi := newVsiTreeNode(parent, name, nis)
 		for _, ni := range nis {
-			newVsiLineTreeNode(parent, vsi, ni.(IconTreeNodeInterface))
+			newLogicalLineTreeNode(parent, vsi, ni.(IconTreeNodeInterface))
 		}
 	}
 }
@@ -194,7 +194,7 @@ func GroupResIPsWithVpe(parent SquareTreeNodeInterface, name string, resIPs []Tr
 	case len(resIPs) > 1:
 		vpe := newVpeTreeNode(parent, name, resIPs)
 		for _, resIP := range resIPs {
-			newVsiLineTreeNode(parent, vpe, resIP.(IconTreeNodeInterface))
+			newLogicalLineTreeNode(parent, vpe, resIP.(IconTreeNodeInterface))
 		}
 	}
 }

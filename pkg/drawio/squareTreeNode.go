@@ -154,9 +154,9 @@ func NewSGTreeNode(parent *VpcTreeNode, name string) *SGTreeNode {
 func (tn *SGTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
 	return tn.partialSgs, tn.elements, tn.connections
 }
-func (sg *SGTreeNode) AddIcon(tn IconTreeNodeInterface) {
-	sg.addIconTreeNode(tn)
-	tn.setSG(sg)
+func (tn *SGTreeNode) AddIcon(icon IconTreeNodeInterface) {
+	tn.addIconTreeNode(icon)
+	icon.setSG(tn)
 }
 
 func (tn *SGTreeNode) NotShownInDrawio() bool { return true }

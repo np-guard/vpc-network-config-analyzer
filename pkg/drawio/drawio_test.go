@@ -36,7 +36,6 @@ func TestWithParsing(t *testing.T) {
 	if err != nil {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
 	}
-
 }
 
 func createNetwork() SquareTreeNodeInterface {
@@ -229,7 +228,7 @@ func createNetworkAllTypes() SquareTreeNodeInterface {
 	GroupNIsWithVSI(zone1, "vsi1", []TreeNodeInterface{nia, nid})
 	GroupNIsWithVSI(zone1, "vsi3", []TreeNodeInterface{nic})
 	GroupNIsWithVSI(zone1, "vsi4", []TreeNodeInterface{nie})
-	groupedNis11 := []IconTreeNodeInterface{nia,ripb	}
+	groupedNis11 := []IconTreeNodeInterface{nia, ripb}
 	groupedNis13 := []IconTreeNodeInterface{nic, nid}
 	nie.SetFIP("fip")
 	gs11 := NewGroupSquareTreeNode(subnet11, groupedNis11)
@@ -258,7 +257,6 @@ func createNetworkAllTypes() SquareTreeNodeInterface {
 	GroupNIsWithVSI(zone3, "vsi4", []TreeNodeInterface{ni33c})
 	GroupNIsWithVSI(zone3, "vsi4", []TreeNodeInterface{ni33e})
 
-
 	groupedNis33a := []IconTreeNodeInterface{ni33a, rip33b, ni33c, rip33d, ni33e}
 	groupedNis33b := []IconTreeNodeInterface{ni33a, rip33b}
 	groupedNis33c := []IconTreeNodeInterface{ni33a, rip33b, ni33c}
@@ -269,17 +267,15 @@ func createNetworkAllTypes() SquareTreeNodeInterface {
 	gs33d := NewGroupSquareTreeNode(subnet33, groupedNis33d)
 	gw1 := NewGatewayTreeNode(zone1, "gw21")
 
-	c1 :=NewConnectivityLineTreeNode(network, nie, i1, true, "gconn1")
+	c1 := NewConnectivityLineTreeNode(network, nie, i1, true, "gconn1")
 	c1.SetRouter(nie, false)
 	NewConnectivityLineTreeNode(network, gs13, i2, true, "gconn1")
 	NewConnectivityLineTreeNode(network, gs11, gs11, true, "gconn1")
 	c2 := NewConnectivityLineTreeNode(network, gs33a, u2, true, "gconn1")
-	c2.SetRouter(gw1,false)
+	c2.SetRouter(gw1, false)
 	NewConnectivityLineTreeNode(network, gs33d, gs11, true, "gconn1")
 	NewConnectivityLineTreeNode(network, gs33c, gs33b, true, "gconn1")
 	return network
-
-
 }
 
 func createNetworkGrouping() SquareTreeNodeInterface {
