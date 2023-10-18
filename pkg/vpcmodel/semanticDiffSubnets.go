@@ -22,12 +22,12 @@ type connectionDiff struct {
 
 type SubnetsDiff map[EndpointElem]map[EndpointElem]*connectionDiff
 
-type configsForDiff struct {
+type ConfigsForDiff struct {
 	config1 *CloudConfig
 	config2 *CloudConfig
 }
 
-type subnetConfigConnectivity struct {
+type SubnetConfigConnectivity struct {
 	config             *CloudConfig
 	subnetConnectivity SubnetConnectivityMap
 }
@@ -42,7 +42,7 @@ type diffBetweenSubnets struct {
 
 type DiffType = int
 
-func (configs configsForDiff) GetSubnetsDiff(grouping bool) (*diffBetweenSubnets, error) {
+func (configs ConfigsForDiff) GetSubnetsDiff(grouping bool) (*diffBetweenSubnets, error) {
 	// 1. compute connectivity for each of the subnets
 	subnetsConn1, err := configs.config1.GetSubnetsConnectivity(true, grouping)
 	if err != nil {
@@ -55,10 +55,10 @@ func (configs configsForDiff) GetSubnetsDiff(grouping bool) (*diffBetweenSubnets
 
 	// 2. Computes delta in both directions
 	subnet1Aligned, subnet2Aligned := subnetsConn1.AllowedConnsCombined.getConnectivesWithSameIpBlocks(subnetsConn2.AllowedConnsCombined)
-	subnetConfigConnectivity1 := subnetConfigConnectivity{configs.config1, subnet1Aligned}
-	subnetConfigConnectivity2 := subnetConfigConnectivity{configs.config2, subnet2Aligned}
-	subnet1Subtract2 := subnetConfigConnectivity1.subnetConnectivitySubtract(&subnetConfigConnectivity2)
-	subnet2Subtract1 := subnetConfigConnectivity2.subnetConnectivitySubtract(&subnetConfigConnectivity1)
+	subnetConfigConnectivity1 := SubnetConfigConnectivity{configs.config1, subnet1Aligned}
+	subnetConfigConnectivity2 := SubnetConfigConnectivity{configs.config2, subnet2Aligned}
+	subnet1Subtract2 := subnetConfigConnectivity1.SubnetConnectivitySubtract(&subnetConfigConnectivity2)
+	subnet2Subtract1 := subnetConfigConnectivity2.SubnetConnectivitySubtract(&subnetConfigConnectivity1)
 
 	// 3. ToDo: grouping, see comment at the end of this file
 
@@ -104,7 +104,7 @@ func (connectivity SubnetConnectivityMap) getConnectivesWithSameIpBlocks(other S
 
 // Subtract one SubnetConnectivityMap from the other
 // assumption: any connection from connectivity and "other" have src (dst) which are either disjoint or equal
-func (subnetConfConnectivity *subnetConfigConnectivity) subnetConnectivitySubtract(other *subnetConfigConnectivity) SubnetsDiff {
+func (subnetConfConnectivity *SubnetConfigConnectivity) SubnetConnectivitySubtract(other *SubnetConfigConnectivity) SubnetsDiff {
 	connectivitySubtract := map[EndpointElem]map[EndpointElem]*connectionDiff{}
 	for src, endpointConns := range subnetConfConnectivity.subnetConnectivity {
 		for dst, conns := range endpointConns {
@@ -153,7 +153,7 @@ func (subnetConfConnectivity *subnetConfigConnectivity) subnetConnectivitySubtra
 			connectivitySubtract[src][dst] = diffConnectionWithType
 		}
 	}
-	return nil
+	return connectivitySubtract
 }
 
 // todo: instead of adding functionality to grouping, I plan to have more generic connectivity items that will be grouped
