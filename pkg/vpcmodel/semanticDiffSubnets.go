@@ -70,6 +70,8 @@ func (configs ConfigsForDiff) GetSubnetsDiff(grouping bool) (*diffBetweenSubnets
 
 // for a given EndpointElem (representing a subnet or an external ip) in config return the EndpointElem representing the
 // subnet/external address in otherConfig or nil if the subnet does not exist in the other config.
+// ToDo: this is done based on names only at the moment. Perhaps take into account other factors such as cidr?
+// ToDo: instead of performing this search each time, use a map created once
 func (config *CloudConfig) getEndpointElemInOtherConfig(other *CloudConfig, ep EndpointElem) *EndpointElem {
 	if ep.IsExternal() {
 		for _, node := range other.Nodes {
@@ -114,6 +116,7 @@ func (subnetConfConnectivity *SubnetConfigConnectivity) SubnetConnectivitySubtra
 			if _, ok := connectivitySubtract[src]; !ok {
 				connectivitySubtract[src] = map[EndpointElem]*connectionDiff{}
 			}
+			diffConnectionWithType := &connectionDiff{nil, NoDiff}
 			srcInOther := subnetConfConnectivity.config.getEndpointElemInOtherConfig(other.config, src)
 			dstInOther := subnetConfConnectivity.config.getEndpointElemInOtherConfig(other.config, dst)
 			if srcInOther != nil && dstInOther != nil {
@@ -129,32 +132,32 @@ func (subnetConfConnectivity *SubnetConfigConnectivity) SubnetConnectivitySubtra
 						if subtractConn.IsEmpty() {
 							continue // no diff
 						}
-						diffConnectionWithType := &connectionDiff{
-							subtractConn,
-							ChangedConnection,
-						}
-						connectivitySubtract[src][dst] = diffConnectionWithType
-						continue
+						diffConnectionWithType.ConnectionSet = subtractConn
+						diffConnectionWithType.DiffType = ChangedConnection
 					}
 				}
-			}
-			var diff DiffType
-			if srcInOther == nil && dstInOther == nil {
-				diff = MissingSrcDstEP
-			} else if srcInOther == nil {
-				diff = MissingSrcEP
-			} else {
-				diff = MissingDstEP
-			}
-			diffConnectionWithType := &connectionDiff{
-				nil,
-				diff,
+				if diffConnectionWithType.DiffType != ChangedConnection {
+					diffConnectionWithType.DiffType = MissingConnection
+				}
+			} else { // srcInOther == nil || dstInOther == nil
+				if srcInOther == nil && dstInOther == nil {
+					diffConnectionWithType.DiffType = MissingSrcDstEP
+				} else if srcInOther == nil {
+					diffConnectionWithType.DiffType = MissingSrcEP
+				} else {
+					diffConnectionWithType.DiffType = MissingDstEP
+				}
 			}
 			connectivitySubtract[src][dst] = diffConnectionWithType
 		}
 	}
 	return connectivitySubtract
 }
+
+//
+//func (subnetDiff *SubnetsDiff) String() string {
+//
+//}
 
 // todo: instead of adding functionality to grouping, I plan to have more generic connectivity items that will be grouped
 //       encode the SubnetsDiff into this generic item as well as the other entities we are grouping
