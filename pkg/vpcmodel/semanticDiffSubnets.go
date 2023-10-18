@@ -1,10 +1,13 @@
 package vpcmodel
 
 import (
+	"fmt"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 // ToDo: go over structs specifically * and lack of
+
+type DiffType = int
 
 const (
 	NoDiff DiffType = iota
@@ -17,7 +20,7 @@ const (
 
 type connectionDiff struct {
 	*common.ConnectionSet
-	DiffType
+	diff DiffType
 }
 
 type SubnetsDiff map[EndpointElem]map[EndpointElem]*connectionDiff
@@ -39,8 +42,6 @@ type diffBetweenSubnets struct {
 	GroupedSubnet1Minus2 *GroupConnLines
 	GroupedSubnet1Minus1 *GroupConnLines
 }
-
-type DiffType = int
 
 func (configs ConfigsForDiff) GetSubnetsDiff(grouping bool) (*diffBetweenSubnets, error) {
 	// 1. compute connectivity for each of the subnets
@@ -133,19 +134,19 @@ func (subnetConfConnectivity *SubnetConfigConnectivity) SubnetConnectivitySubtra
 							continue // no diff
 						}
 						diffConnectionWithType.ConnectionSet = subtractConn
-						diffConnectionWithType.DiffType = ChangedConnection
+						diffConnectionWithType.diff = ChangedConnection
 					}
 				}
-				if diffConnectionWithType.DiffType != ChangedConnection {
-					diffConnectionWithType.DiffType = MissingConnection
+				if diffConnectionWithType.diff != ChangedConnection {
+					diffConnectionWithType.diff = MissingConnection
 				}
 			} else { // srcInOther == nil || dstInOther == nil
 				if srcInOther == nil && dstInOther == nil {
-					diffConnectionWithType.DiffType = MissingSrcDstEP
+					diffConnectionWithType.diff = MissingSrcDstEP
 				} else if srcInOther == nil {
-					diffConnectionWithType.DiffType = MissingSrcEP
+					diffConnectionWithType.diff = MissingSrcEP
 				} else {
-					diffConnectionWithType.DiffType = MissingDstEP
+					diffConnectionWithType.diff = MissingDstEP
 				}
 			}
 			connectivitySubtract[src][dst] = diffConnectionWithType
@@ -154,10 +155,43 @@ func (subnetConfConnectivity *SubnetConfigConnectivity) SubnetConnectivitySubtra
 	return connectivitySubtract
 }
 
-//
-//func (subnetDiff *SubnetsDiff) String() string {
-//
-//}
+// ToDo: likely the current printing functionality will no longer be needed once the grouping is added
+// anyways the diff print will be worked on before the final merge
+func (subnetDiff *SubnetsDiff) EnhancedString(thisMinusOther bool) string {
+	var diffDirection, printDiff string
+	if thisMinusOther {
+		diffDirection = "--"
+	} else {
+		diffDirection = "++"
+	}
+	for src, endpointConnDiff := range *subnetDiff {
+		for dst, connDiff := range endpointConnDiff {
+			var connectionSetDiff string
+			if connDiff.ConnectionSet != nil {
+				connectionSetDiff = connDiff.ConnectionSet.EnhancedString()
+			}
+			printDiff += fmt.Sprintf("%s %s => %s : %s %s\n", diffDirection, src.Name(), dst.Name(),
+				connectionSetDiff, diffDecription(connDiff.diff))
+		}
+	}
+	return printDiff
+}
+
+func diffDecription(diff DiffType) string {
+	switch diff {
+	case MissingSrcEP:
+		return "missing source"
+	case MissingDstEP:
+		return "missing destination"
+	case MissingSrcDstEP:
+		return "missing source and destination"
+	case MissingConnection:
+		return "missing connection"
+	case ChangedConnection:
+		return "changed connection"
+	}
+	return ""
+}
 
 // todo: instead of adding functionality to grouping, I plan to have more generic connectivity items that will be grouped
 //       encode the SubnetsDiff into this generic item as well as the other entities we are grouping
