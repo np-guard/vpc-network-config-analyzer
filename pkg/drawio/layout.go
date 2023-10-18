@@ -137,42 +137,37 @@ func sortGroupSquareBySize(groups []SquareTreeNodeInterface) []SquareTreeNodeInt
 //	         - else if all the NIs in the group are in one bigger group - its visibility is innerSquare
 //	         - else its visibility is connectedPoint
 func (ly *layoutS) calcGroupsVisibility(subnet SquareTreeNodeInterface) {
-	// todo - can this code be more elegant?
 	sortedBySizeGroups := sortGroupSquareBySize(subnet.(*SubnetTreeNode).groupSquares)
-	iconSquareGroups := map[IconTreeNodeInterface]map[SquareTreeNodeInterface]bool{}
+	iconShownSquareGroups := map[IconTreeNodeInterface]map[SquareTreeNodeInterface]bool{}
 	for _, groupS := range sortedBySizeGroups {
 		group := groupS.(*GroupSquareTreeNode)
-		if len(group.groupedIcons) == len(subnet.(*SubnetTreeNode).nonGroupingIcons()) {
-			group.setVisibility(theSubnet)
-			continue
-		}
 		groupedIconsFormerGroups := map[SquareTreeNodeInterface]bool{}
-		hasIconOutsideGroup := false
+		hasIconOutsideAGroup := false
 		for _, icon := range group.groupedIcons {
-			if len(iconSquareGroups[icon]) == 0 {
-				hasIconOutsideGroup = true
+			if len(iconShownSquareGroups[icon]) == 0{
+				hasIconOutsideAGroup = true
 			}
-			for g := range iconSquareGroups[icon] {
+			for g := range iconShownSquareGroups[icon] {
 				groupedIconsFormerGroups[g] = true
 			}
 		}
-		if len(groupedIconsFormerGroups) >= 2 {
-			group.setVisibility(connectedPoint)
-			continue
-		}
-		if len(groupedIconsFormerGroups) == 0 {
+		switch {
+		case len(group.groupedIcons) == len(subnet.(*SubnetTreeNode).nonGroupingIcons()):
+			group.setVisibility(theSubnet)
+		case len(groupedIconsFormerGroups) == 0:
 			group.setVisibility(square)
-		} else if hasIconOutsideGroup {
-			group.setVisibility(connectedPoint)
-			continue
-		} else {
+		case len(groupedIconsFormerGroups) == 1 && !hasIconOutsideAGroup:
 			group.setVisibility(innerSquare)
+		default:
+			group.setVisibility(connectedPoint)
 		}
-		for _, icon := range group.groupedIcons {
-			if _, ok := iconSquareGroups[icon]; !ok {
-				iconSquareGroups[icon] = map[SquareTreeNodeInterface]bool{}
+		if !group.NotShownInDrawio() {
+			for _, icon := range group.groupedIcons {
+				if _, ok := iconShownSquareGroups[icon]; !ok {
+					iconShownSquareGroups[icon] = map[SquareTreeNodeInterface]bool{}
+				}
+				iconShownSquareGroups[icon][group] = true
 			}
-			iconSquareGroups[icon][group] = true
 		}
 	}
 }
