@@ -275,6 +275,9 @@ func (ly *layoutS) layoutSubnetsIcons() {
 					for _, group := range groups {
 						rowIndex, colIndex = ly.layoutGroupIcons(group, rowIndex, colIndex)
 					}
+					if rowIndex == subnet.Location().firstRow.index{
+						rowIndex++
+					}
 				}
 				colIndex++
 			}
