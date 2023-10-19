@@ -2,6 +2,7 @@ package vpcmodel
 
 import (
 	"fmt"
+
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
@@ -73,19 +74,19 @@ func (configs ConfigsForDiff) GetSubnetsDiff(grouping bool) (*diffBetweenSubnets
 // subnet/external address in otherConfig or nil if the subnet does not exist in the other config.
 // ToDo: this is done based on names only at the moment. Perhaps take into account other factors such as cidr?
 // ToDo: instead of performing this search each time, use a map created once
-func (c *CloudConfig) getEndpointElemInOtherConfig(other *CloudConfig, ep EndpointElem) *EndpointElem {
+func (c *CloudConfig) getEndpointElemInOtherConfig(other *CloudConfig, ep EndpointElem) EndpointElem {
 	if ep.IsExternal() {
 		for _, node := range other.Nodes {
 			if node.Name() == ep.Name() {
 				res := EndpointElem(node)
-				return &res
+				return res
 			}
 		}
 	} else {
 		for _, nodeSet := range other.NodeSets {
 			if nodeSet.Name() == ep.Name() {
 				res := EndpointElem(nodeSet)
-				return &res
+				return res
 			}
 		}
 	}
@@ -124,8 +125,8 @@ func (subnetConfConnectivity *SubnetConfigConnectivity) SubnetConnectivitySubtra
 			srcInOther := subnetConfConnectivity.config.getEndpointElemInOtherConfig(other.config, src)
 			dstInOther := subnetConfConnectivity.config.getEndpointElemInOtherConfig(other.config, dst)
 			if srcInOther != nil && dstInOther != nil {
-				if otherSrc, ok := other.subnetConnectivity[*srcInOther]; ok {
-					if otherSrcDst, ok := otherSrc[*dstInOther]; ok {
+				if otherSrc, ok := other.subnetConnectivity[srcInOther]; ok {
+					if otherSrcDst, ok := otherSrc[dstInOther]; ok {
 						// ToDo: current missing stateful:
 						// todo 1. is the delta connection stateful
 						// todo 2. connectionProperties is identical but conn stateful while other is not
@@ -152,7 +153,7 @@ func (subnetConfConnectivity *SubnetConfigConnectivity) SubnetConnectivitySubtra
 	return connectivitySubtract
 }
 
-func getDiffType(srcInOther, dstInOther *EndpointElem) DiffType {
+func getDiffType(srcInOther, dstInOther EndpointElem) DiffType {
 	switch {
 	case srcInOther == nil && dstInOther == nil:
 		return MissingSrcDstEP

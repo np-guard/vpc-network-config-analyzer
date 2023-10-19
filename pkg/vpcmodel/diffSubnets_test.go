@@ -5,8 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"github.com/stretchr/testify/require"
+
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 // simple diff:
