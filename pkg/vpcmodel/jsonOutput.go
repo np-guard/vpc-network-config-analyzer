@@ -3,6 +3,7 @@ package vpcmodel
 import (
 	"encoding/json"
 	"errors"
+	"sort"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
@@ -15,6 +16,15 @@ type connLine struct {
 	Dst                EndpointElem       `json:"dst"`
 	Conn               common.ConnDetails `json:"conn"`
 	UnidirectionalConn common.ConnDetails `json:"unidirectional_conn,omitempty"`
+}
+
+func sortConnLines(connLines []connLine) {
+	sort.Slice(connLines, func(i, j int) bool {
+		if connLines[i].Src.Name() != connLines[j].Src.Name() {
+			return connLines[i].Src.Name() < connLines[j].Src.Name()
+		}
+		return connLines[i].Dst.Name() < connLines[j].Dst.Name()
+	})
 }
 
 type allInfo struct {
@@ -40,6 +50,8 @@ func getConnLines(conn *VPCConnectivity) []connLine {
 			}
 		}
 	}
+
+	sortConnLines(connLines)
 	return connLines
 }
 
@@ -71,32 +83,30 @@ func (j *JSONoutputFormatter) WriteOutputAllSubnets(subnetsConn *VPCsubnetConnec
 	return writeJSON(all, outFile)
 }
 
-type subnetsConnectivityConnLine struct {
-	Src  VPCResourceIntf    `json:"src"`
-	Dst  VPCResourceIntf    `json:"dst"`
-	Conn common.ConnDetails `json:"conn"`
-}
-
 type allSubnetsConnectivity struct {
-	Connectivity []subnetsConnectivityConnLine `json:"subnets_connectivity"`
+	Connectivity []connLine `json:"subnets_connectivity"`
 }
 
-func getConnLinesForSubnetsConnectivity(conn *VPCsubnetConnectivity) []subnetsConnectivityConnLine {
-	connLines := []subnetsConnectivityConnLine{}
+func getConnLinesForSubnetsConnectivity(conn *VPCsubnetConnectivity) []connLine {
+	connLines := []connLine{}
 	for src, nodeConns := range conn.AllowedConnsCombined {
 		for dst, conns := range nodeConns {
 			if conns.IsEmpty() {
 				continue
 			}
 			// currently not supported with grouping
-			srcNode := conn.CloudConfig.NameToResource[src.Name()]
-			dstNode := conn.CloudConfig.NameToResource[dst.Name()]
-			connLines = append(connLines, subnetsConnectivityConnLine{srcNode, dstNode, common.ConnToJSONRep(conns)})
+			connLines = append(connLines, connLine{
+				Src:  src,
+				Dst:  dst,
+				Conn: common.ConnToJSONRep(conns),
+			})
 		}
 	}
+
+	sortConnLines(connLines)
 	return connLines
 }
 
 func (j *JSONoutputFormatter) WriteOutputSingleSubnet(c *CloudConfig, outFile string) (string, error) {
-	return "", errors.New("DebugSubnet use case not supported for md format currently ")
+	return "", errors.New("DebugSubnet use case not supported for JSON format currently ")
 }
