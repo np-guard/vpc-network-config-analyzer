@@ -378,9 +378,9 @@ func configSubnetSelfLoop() (*CloudConfig, *VPCsubnetConnectivity) {
 		&mockNetIntf{cidr: "10.3.20.6/32", name: "vsi2"},
 		&mockNetIntf{cidr: "10.7.20.7/32", name: "vsi3"})
 
-	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0]}})
-	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.3.20.0/22", "subnet2", []Node{res.Nodes[1]}})
-	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.7.20.0/22", "subnet3", []Node{res.Nodes[2]}})
+	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0]}},
+		&mockSubnet{"10.3.20.0/22", "subnet2", []Node{res.Nodes[1]}},
+		&mockSubnet{"10.7.20.0/22", "subnet3", []Node{res.Nodes[2]}})
 
 	res1 := &VPCsubnetConnectivity{AllowedConnsCombined: NewSubnetConnectivityMap()}
 	res1.AllowedConnsCombined.updateAllowedSubnetConnsMap(res.NodeSets[0], res.NodeSets[1], common.NewConnectionSet(true))
