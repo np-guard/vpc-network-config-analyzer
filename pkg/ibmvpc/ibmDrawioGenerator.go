@@ -10,6 +10,14 @@ func (v *VPC) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeN
 	return drawio.NewVpcTreeNode(gen.Cloud(), v.Name())
 }
 
+func (v *Vpe) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
+	return nil
+}
+
+func (r *ReservedIP) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
+	return nil
+}
+
 func (z *Zone) IsExternal() bool { return false }
 func (z *Zone) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	return drawio.NewZoneTreeNode(gen.TreeNode(z.VPC()).(*drawio.VpcTreeNode), z.name)
@@ -26,6 +34,10 @@ func (sgl *SecurityGroupLayer) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenera
 	tn := drawio.NewSGTreeNode(gen.TreeNode(sgl.VPC()).(*drawio.VpcTreeNode), sgl.Name())
 	for _, sg := range sgl.sgList {
 		for _, ni := range sg.members {
+			// todo - remove this if after supporting vpe:
+			if gen.TreeNode(ni) == nil {
+				continue
+			}
 			gen.TreeNode(ni).(*drawio.NITreeNode).SetSG(tn)
 		}
 	}

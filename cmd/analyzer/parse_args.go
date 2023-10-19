@@ -13,6 +13,7 @@ type InArgs struct {
 	OutputFormat    *string
 	AnalysisType    *string
 	Grouping        *bool
+	VPC             *string
 }
 
 const (
@@ -22,6 +23,7 @@ const (
 	MDFormat         = "md"
 	DRAWIOFormat     = "drawio"
 	ARCHDRAWIOFormat = "arch_drawio"
+	DEBUGFormat      = "debug"
 
 	// connectivity analysis types supported
 	allEndpoints = "all_endpoints" // vsi to vsi connectivity analysis
@@ -35,6 +37,7 @@ var supportedOutputFormats = map[string]bool{
 	MDFormat:         true,
 	DRAWIOFormat:     true,
 	ARCHDRAWIOFormat: true,
+	DEBUGFormat:      true,
 }
 var supportedAnalysisTypes = map[string]bool{
 	allEndpoints: true,
@@ -61,6 +64,7 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args.AnalysisType = flagset.String("analysis-type", allEndpoints,
 		"supported analysis types: "+getSupportedValuesString(supportedAnalysisTypes))
 	args.Grouping = flagset.Bool("grouping", false, "whether to group together src/dst entries with identical connectivity")
+	args.VPC = flagset.String("vpc", "", "CRN of the VPC to analyze")
 
 	err := flagset.Parse(cmdlineArgs)
 	if err != nil {
@@ -93,9 +97,5 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	if *args.OutputFormat == JSONFormat && *args.Grouping {
 		return nil, fmt.Errorf("json output format is not supported with grouping")
 	}
-	if *args.OutputFormat == DRAWIOFormat && *args.Grouping {
-		return nil, fmt.Errorf("drawio output format is not supported with grouping")
-	}
-
 	return &args, nil
 }

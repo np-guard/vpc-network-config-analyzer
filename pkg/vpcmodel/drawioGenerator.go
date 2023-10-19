@@ -51,14 +51,27 @@ func (gen *DrawioGenerator) TreeNode(res DrawioResourceIntf) drawio.TreeNodeInte
 
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // implementations of the GenerateDrawioTreeNode() for resource defined in vpcmodel:
-// (currently only ExternalNetwork, will add the grouping resource later)
+
 func (exn *ExternalNetwork) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
 	return drawio.NewInternetTreeNode(gen.PublicNetwork(), exn.CidrStr)
 }
 
 func (g *groupedEndpointsElems) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
-	// todo - need to implement, currently blocked in parse_args.go:
-	return gen.TreeNode((*g)[0])
+	// todo - fix with supporting vpe
+	groupedIconsTNs := []drawio.IconTreeNodeInterface{}
+	for _, ni := range *g {
+		if gen.TreeNode(ni) != nil {
+			groupedIconsTNs = append(groupedIconsTNs, gen.TreeNode(ni).(drawio.IconTreeNodeInterface))
+		}
+	}
+	if len(groupedIconsTNs) == 0 {
+		return nil
+	}
+	if len(groupedIconsTNs) == 1 {
+		return groupedIconsTNs[0]
+	}
+	subnetTn := groupedIconsTNs[0].Parent().(*drawio.SubnetTreeNode)
+	return drawio.NewGroupSquareTreeNode(subnetTn, groupedIconsTNs)
 }
 
 func (g *groupedExternalNodes) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
@@ -76,4 +89,14 @@ func (g *groupedExternalNodes) GenerateDrawioTreeNode(gen *DrawioGenerator) draw
 	tn := drawio.NewInternetTreeNode(gen.PublicNetwork(), name)
 	tn.SetTooltip(tooltip)
 	return tn
+}
+
+func (e *edgeInfo) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
+	srcTn := gen.TreeNode(e.src)
+	dstTn := gen.TreeNode(e.dst)
+	// todo - remove this when supporting vpe
+	if srcTn == nil || dstTn == nil {
+		return nil
+	}
+	return drawio.NewConnectivityLineTreeNode(gen.Network(), srcTn, dstTn, e.directed, e.label)
 }

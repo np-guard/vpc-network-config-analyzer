@@ -39,6 +39,7 @@ type vpcGeneralTest struct {
 	mode           testMode
 	grouping       bool
 	format         vpcmodel.OutFormat
+	vpc            string
 }
 
 const (
@@ -163,6 +164,32 @@ var tests = []*vpcGeneralTest{
 		format:   vpcmodel.Text,
 	},
 
+	// batch2.5: only vsi-level use-case, with grouping , drawio format
+	{
+		name:     "acl_testing3",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping: true,
+		format:   vpcmodel.DRAWIO,
+	},
+	{
+		name:     "sg_testing1_new",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping: true,
+		format:   vpcmodel.DRAWIO,
+	},
+	{
+		name:     "demo_with_instances",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping: true,
+		format:   vpcmodel.DRAWIO,
+	},
+	{
+		name:     "iks_config_object",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping: true,
+		format:   vpcmodel.DRAWIO,
+	},
+
 	//batch3: only vsi-level use-case, no grouping, with debug / md  output formats
 	{
 		name:     "acl_testing3",
@@ -194,6 +221,7 @@ var tests = []*vpcGeneralTest{
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		format:   vpcmodel.Debug,
 	},
+	// disable drawio tests until supported with VPE
 	{
 		name:     "acl_testing3",
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
@@ -244,12 +272,25 @@ var tests = []*vpcGeneralTest{
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
 		format:   vpcmodel.JSON,
 	},
+	// multi-vpc config example
+	{
+		name:     "acl_testing3_with_two_vpcs",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:   vpcmodel.Text,
+		vpc:      "crn:12", // specify the vpc to analyze
+	},
+	// vpe example
+	{
+		name:     "demo_with_instances_vpes",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:   vpcmodel.Text,
+	},
 }
 
-var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true, vpcmodel.JSON: true}
+var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
 
 // uncomment the function below to run for updating the expected output
-/* var formatsAvoidOutputGeneration = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
+/*var formatsAvoidOutputGeneration = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
 func TestAllWithGeneration(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range tests {
@@ -328,7 +369,7 @@ func getCloudConfig(t *testing.T, tt *vpcGeneralTest) *vpcmodel.CloudConfig {
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
-	cloudConfig, err := NewCloudConfig(rc)
+	cloudConfig, err := NewCloudConfig(rc, tt.vpc)
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}

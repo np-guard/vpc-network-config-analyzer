@@ -26,6 +26,7 @@ import (
 var noPoint = point{-1, -1}
 
 const nPotentialBP = 6
+const widthBetweenLines = 3
 
 type overlapCell struct {
 	hasBypassPoint bool
@@ -57,7 +58,8 @@ func (lyO *layoutOverlap) cell(x, y int) *overlapCell {
 
 // fixOverlapping() is the entry method.
 func (lyO *layoutOverlap) fixOverlapping() {
-	// The three steps of handling overlapping:
+	// The steps of handling overlapping:
+	lyO.handleGroupingLinesOverBorders()
 	lyO.setIconsMap()
 	lyO.handleLinesOverLines()
 	lyO.handleLinesOverIcons()
@@ -67,13 +69,52 @@ func (lyO *layoutOverlap) fixOverlapping() {
 func (lyO *layoutOverlap) setIconsMap() {
 	for _, tn := range getAllNodes(lyO.network) {
 		if tn.IsIcon() {
+			itn := tn.(IconTreeNodeInterface)
 			x, y := absoluteGeometry(tn)
-			for ox := x; ox < x+iconSize; ox += minSize {
-				for oy := y; oy < y+iconSize; oy += minSize {
-					lyO.cell(ox, oy).icon = tn.(IconTreeNodeInterface)
+			for ox := x; ox <= x+itn.IconSize(); ox += minSize {
+				for oy := y; oy <= y+itn.IconSize(); oy += minSize {
+					lyO.cell(ox, oy).icon = itn
 				}
 			}
 		}
+	}
+}
+
+// handleGroupingLinesOverBorders() add points to the connectivity line in cases the line is on the square border
+// (relevant for lines between two grouping point which share the same column)
+func (lyO *layoutOverlap) handleGroupingLinesOverBorders() {
+	nodes := getAllNodes(lyO.network)
+	// we count how many lines are already on the column, so they wont overlap each other:
+	linesOnCol := map[*col]int{}
+	for _, n := range nodes {
+		if !n.IsLine() {
+			continue
+		}
+		line := n.(LineTreeNodeInterface)
+		if !line.Src().IsGroupingPoint() || !line.Dst().IsGroupingPoint() {
+			continue
+		}
+		src, dst := line.Src().(*GroupPointTreeNode), line.Dst().(*GroupPointTreeNode)
+		if src.Location().firstCol != dst.Location().firstCol {
+			continue
+		}
+		if len(line.Points()) != 0 {
+			continue
+		}
+		col := src.Location().firstCol
+		lineX := col.x() + col.thickness/2 - linesOnCol[col]*widthBetweenLines
+		for _, gi := range []*GroupPointTreeNode{src, dst} {
+			if gi.hasShownSquare() {
+				// adding a point:
+				p := iconCenterPoint(gi)
+				line.addPoint(lineX, p.Y)
+			} else {
+				// the point is already on the middle of the column, just moving the point according to the number of previous lines:
+				x, y := gi.X()-linesOnCol[col]*widthBetweenLines, gi.Y()
+				gi.setXY(x, y)
+			}
+		}
+		linesOnCol[col] += 1
 	}
 }
 
@@ -233,7 +274,7 @@ func getLineAbsolutePoints(line LineTreeNodeInterface) []point {
 
 func iconCenterPoint(icon IconTreeNodeInterface) point {
 	ix, iy := absoluteGeometry(icon)
-	return point{ix + iconSize/2, iy + iconSize/2}
+	return point{ix + icon.IconSize()/2, iy + icon.IconSize()/2}
 }
 
 func getAbsolutePoint(line LineTreeNodeInterface, p point) point {
