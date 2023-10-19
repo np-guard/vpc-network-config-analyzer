@@ -2,11 +2,11 @@ package vpcmodel
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/require"
 	"strings"
 	"testing"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+	"github.com/stretchr/testify/require"
 )
 
 // simple diff:
@@ -31,26 +31,26 @@ import (
 //     subnet1 subtract subnet2:
 //     subnet3 -> subnet4 missing dst
 
-func configSimpleSubnetSubtract() (*SubnetConfigConnectivity, *SubnetConfigConnectivity) {
+func configSimpleSubnetSubtract() (subnetConfigConn1, subnetConfigConn2 *SubnetConfigConnectivity) {
 	cfg1 := &CloudConfig{Nodes: []Node{}, NodeSets: []NodeSet{}}
 	cfg1.Nodes = append(cfg1.Nodes,
 		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1-1"},
 		&mockNetIntf{cidr: "10.3.20.6/32", name: "vsi1-2"},
 		&mockNetIntf{cidr: "10.7.20.7/32", name: "vsi1-3"})
 
-	cfg1.NodeSets = append(cfg1.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet0", []Node{cfg1.Nodes[0]}})
-	cfg1.NodeSets = append(cfg1.NodeSets, &mockSubnet{"10.1.20.0/22", "subnet1", []Node{cfg1.Nodes[0]}})
-	cfg1.NodeSets = append(cfg1.NodeSets, &mockSubnet{"10.2.20.0/22", "subnet2", []Node{cfg1.Nodes[1]}})
+	cfg1.NodeSets = append(cfg1.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet0", []Node{cfg1.Nodes[0]}},
+		&mockSubnet{"10.1.20.0/22", "subnet1", []Node{cfg1.Nodes[0]}},
+		&mockSubnet{"10.2.20.0/22", "subnet2", []Node{cfg1.Nodes[1]}})
 	cfg1.NodeSets = append(cfg1.NodeSets, &mockSubnet{"10.3.20.0/22", "subnet3", []Node{cfg1.Nodes[2]}})
 
 	cfg2 := &CloudConfig{Nodes: []Node{}, NodeSets: []NodeSet{}}
-	cfg2.Nodes = append(cfg1.Nodes,
+	cfg2.Nodes = append(cfg2.Nodes,
 		&mockNetIntf{cidr: "10.3.20.5/32", name: "vsi2-1"},
 		&mockNetIntf{cidr: "10.7.20.6/32", name: "vsi2-2"},
 		&mockNetIntf{cidr: "10.9.20.7/32", name: "vsi2-3"})
-	cfg2.NodeSets = append(cfg2.NodeSets, &mockSubnet{"10.2.20.0/22", "subnet2", []Node{cfg2.Nodes[0]}})
-	cfg2.NodeSets = append(cfg2.NodeSets, &mockSubnet{"10.3.20.0/22", "subnet3", []Node{cfg2.Nodes[1]}})
-	cfg2.NodeSets = append(cfg2.NodeSets, &mockSubnet{"10.4.20.0/22", "subnet4", []Node{cfg2.Nodes[2]}})
+	cfg2.NodeSets = append(cfg2.NodeSets, &mockSubnet{"10.2.20.0/22", "subnet2", []Node{cfg2.Nodes[0]}},
+		&mockSubnet{"10.3.20.0/22", "subnet3", []Node{cfg2.Nodes[1]}},
+		&mockSubnet{"10.4.20.0/22", "subnet4", []Node{cfg2.Nodes[2]}})
 
 	subnetConnMap1 := &VPCsubnetConnectivity{AllowedConnsCombined: NewSubnetConnectivityMap()}
 	subnetConnMap1.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg1.NodeSets[0], cfg1.NodeSets[1], common.NewConnectionSet(true))
@@ -63,8 +63,8 @@ func configSimpleSubnetSubtract() (*SubnetConfigConnectivity, *SubnetConfigConne
 	subnetConnMap2.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg2.NodeSets[1], cfg2.NodeSets[0], common.NewConnectionSet(true))
 	subnetConnMap2.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg2.NodeSets[1], cfg2.NodeSets[2], common.NewConnectionSet(true))
 
-	subnetConfigConn1 := &SubnetConfigConnectivity{cfg1, subnetConnMap1.AllowedConnsCombined}
-	subnetConfigConn2 := &SubnetConfigConnectivity{cfg2, subnetConnMap2.AllowedConnsCombined}
+	subnetConfigConn1 = &SubnetConfigConnectivity{cfg1, subnetConnMap1.AllowedConnsCombined}
+	subnetConfigConn2 = &SubnetConfigConnectivity{cfg2, subnetConnMap2.AllowedConnsCombined}
 
 	return subnetConfigConn1, subnetConfigConn2
 }

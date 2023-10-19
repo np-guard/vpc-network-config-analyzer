@@ -55,7 +55,7 @@ func (configs ConfigsForDiff) GetSubnetsDiff(grouping bool) (*diffBetweenSubnets
 	}
 
 	// 2. Computes delta in both directions
-	subnet1Aligned, subnet2Aligned := subnetsConn1.AllowedConnsCombined.getConnectivesWithSameIpBlocks(subnetsConn2.AllowedConnsCombined)
+	subnet1Aligned, subnet2Aligned := subnetsConn1.AllowedConnsCombined.getConnectivesWithSameIPBlocks(subnetsConn2.AllowedConnsCombined)
 	subnetConfigConnectivity1 := SubnetConfigConnectivity{configs.config1, subnet1Aligned}
 	subnetConfigConnectivity2 := SubnetConfigConnectivity{configs.config2, subnet2Aligned}
 	subnet1Subtract2 := subnetConfigConnectivity1.SubnetConnectivitySubtract(&subnetConfigConnectivity2)
@@ -73,7 +73,7 @@ func (configs ConfigsForDiff) GetSubnetsDiff(grouping bool) (*diffBetweenSubnets
 // subnet/external address in otherConfig or nil if the subnet does not exist in the other config.
 // ToDo: this is done based on names only at the moment. Perhaps take into account other factors such as cidr?
 // ToDo: instead of performing this search each time, use a map created once
-func (config *CloudConfig) getEndpointElemInOtherConfig(other *CloudConfig, ep EndpointElem) *EndpointElem {
+func (c *CloudConfig) getEndpointElemInOtherConfig(other *CloudConfig, ep EndpointElem) *EndpointElem {
 	if ep.IsExternal() {
 		for _, node := range other.Nodes {
 			if node.Name() == ep.Name() {
@@ -100,12 +100,15 @@ func (config *CloudConfig) getEndpointElemInOtherConfig(other *CloudConfig, ep E
 //     What is done here is repartitioning the ipBlocks so that the above will hold
 //
 // todo: verify that the returns objects indeed have exactly the same ipBlocks
-func (connectivity SubnetConnectivityMap) getConnectivesWithSameIpBlocks(other SubnetConnectivityMap) (SubnetConnectivityMap, SubnetConnectivityMap) {
+func (connectivity SubnetConnectivityMap) getConnectivesWithSameIPBlocks(other SubnetConnectivityMap) (
+	alignedConnectivity SubnetConnectivityMap, alignedOther SubnetConnectivityMap) {
 	// todo: use DisjointIPBlocks(set1, set2 []*IPBlock) []*IPBlock  of ipBlock.go
-	return connectivity, other
+	alignedConnectivity = connectivity
+	alignedOther = other
+	return
 }
 
-// Subtract one SubnetConnectivityMap from the other
+// SubnetConnectivitySubtract Subtract one SubnetConnectivityMap from the other
 // assumption: any connection from connectivity and "other" have src (dst) which are either disjoint or equal
 func (subnetConfConnectivity *SubnetConfigConnectivity) SubnetConnectivitySubtract(other *SubnetConfigConnectivity) SubnetsDiff {
 	connectivitySubtract := map[EndpointElem]map[EndpointElem]*connectionDiff{}
@@ -141,13 +144,7 @@ func (subnetConfConnectivity *SubnetConfigConnectivity) SubnetConnectivitySubtra
 					diffConnectionWithType.diff = MissingConnection
 				}
 			} else { // srcInOther == nil || dstInOther == nil
-				if srcInOther == nil && dstInOther == nil {
-					diffConnectionWithType.diff = MissingSrcDstEP
-				} else if srcInOther == nil {
-					diffConnectionWithType.diff = MissingSrcEP
-				} else {
-					diffConnectionWithType.diff = MissingDstEP
-				}
+				diffConnectionWithType.diff = getDiffType(srcInOther, dstInOther)
 			}
 			connectivitySubtract[src][dst] = diffConnectionWithType
 		}
@@ -155,7 +152,19 @@ func (subnetConfConnectivity *SubnetConfigConnectivity) SubnetConnectivitySubtra
 	return connectivitySubtract
 }
 
-// ToDo: likely the current printing functionality will no longer be needed once the grouping is added
+func getDiffType(srcInOther, dstInOther *EndpointElem) DiffType {
+	switch {
+	case srcInOther == nil && dstInOther == nil:
+		return MissingSrcDstEP
+	case srcInOther == nil && dstInOther != nil:
+		return MissingSrcEP
+	case srcInOther != nil && dstInOther == nil:
+		return MissingDstEP
+	}
+	return NoDiff
+}
+
+// EnhancedString ToDo: likely the current printing functionality will no longer be needed once the grouping is added
 // anyways the diff print will be worked on before the final merge
 func (subnetDiff *SubnetsDiff) EnhancedString(thisMinusOther bool) string {
 	var diffDirection, printDiff string
@@ -198,4 +207,5 @@ func diffDecription(diff DiffType) string {
 //       and then decode in the printing
 //       the idea is to use instead of *common.ConnectionSet in the grouped entity a string which will encode the connection
 //       and also the diff where relevant
-//       this will requires some rewriting in the existing grouping functionality and the way it provides service to subnetsConnectivity and nodesConnectivity
+//       this will requires some rewriting in the existing grouping functionality and the way it provides
+//       service to subnetsConnectivity and nodesConnectivity
