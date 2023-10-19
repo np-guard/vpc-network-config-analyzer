@@ -22,6 +22,12 @@ func TestWithParsing(t *testing.T) {
 	if err != nil {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
 	}
+	n = createNetworkSubnetGrouping()
+	err = CreateDrawioConnectivityMapFile(n, "subnetGrouping.drawio")
+	if err != nil {
+		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
+	}
+
 	n2 := NewNetworkTreeNode()
 	NewCloudTreeNode(n2, "empty Cloud")
 	NewPublicNetworkTreeNode(n2)
@@ -275,6 +281,41 @@ func createNetworkAllTypes() SquareTreeNodeInterface {
 	c2.SetRouter(gw1, false)
 	NewConnectivityLineTreeNode(network, gs33d, gs11, true, "gconn1")
 	NewConnectivityLineTreeNode(network, gs33c, gs33b, true, "gconn1")
+	return network
+}
+
+func createNetworkSubnetGrouping() SquareTreeNodeInterface {
+	network := NewNetworkTreeNode()
+	network.subnetMode = true
+	publicNetwork := NewPublicNetworkTreeNode(network)
+
+	cloud1 := NewCloudTreeNode(network, "IBM Cloud")
+	vpc1 := NewVpcTreeNode(cloud1, "vpc1")
+	zone1 := NewZoneTreeNode(vpc1, "zone1")
+	subnet11 := NewSubnetTreeNode(zone1, "subnet1", "cidr1", "acl1")
+	subnet12 := NewSubnetTreeNode(zone1, "subnet2", "cidr2", "acl2")
+	subnet13 := NewSubnetTreeNode(zone1, "subnet3", "cidr2", "acl2")
+	zone2 := NewZoneTreeNode(vpc1, "zone1")
+	subnet21 := NewSubnetTreeNode(zone2, "subnet1", "cidr1", "acl1")
+	subnet22 := NewSubnetTreeNode(zone2, "subnet2", "cidr2", "acl2")
+	subnet23 := NewSubnetTreeNode(zone2, "subnet2", "cidr2", "acl2")
+	zone3 := NewZoneTreeNode(vpc1, "zone1")
+	subnet31 := NewSubnetTreeNode(zone3, "subnet1", "cidr1", "acl1")
+	subnet32 := NewSubnetTreeNode(zone3, "subnet2", "cidr2", "acl2")
+	subnet33 := NewSubnetTreeNode(zone3, "subnet2", "cidr2", "acl2")
+	i2 := NewInternetTreeNode(publicNetwork, "Internet2")
+
+	NewConnectivityLineTreeNode(network, subnet11, subnet12, true, "gconn4")
+	NewConnectivityLineTreeNode(network, subnet13, subnet22, true, "gconn4")
+	NewConnectivityLineTreeNode(network, subnet31, subnet32, true, "gconn4")
+	NewConnectivityLineTreeNode(network, subnet33, subnet21, true, "gconn4")
+	NewConnectivityLineTreeNode(network, subnet23, i2, true, "gconn4")
+
+	NewConnectivityLineTreeNode(network, subnet31, zone1, true, "gconn4")
+	NewConnectivityLineTreeNode(network, subnet33, zone3, true, "gconn4")
+
+	NewConnectivityLineTreeNode(network, vpc1, subnet22, true, "gconn4")
+
 	return network
 }
 

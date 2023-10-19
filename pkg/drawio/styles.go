@@ -96,10 +96,10 @@ func connectivityStyle(con *ConnectivityTreeNode) string {
 	if con.directed {
 		endArrow = errorEndEdge
 	}
-	if con.Src().IsGroupingPoint() && !con.Src().(*GroupPointTreeNode).hasShownSquare() {
+	if con.Src().IsIcon() &&  con.Src().(IconTreeNodeInterface).IsGroupingPoint() && !con.Src().(*GroupPointTreeNode).hasShownSquare() {
 		startArrow = noneEndEdge
 	}
-	if con.Dst().IsGroupingPoint() && !con.Dst().(*GroupPointTreeNode).hasShownSquare() {
+	if con.IsIcon() &&  con.Dst().(IconTreeNodeInterface).IsGroupingPoint() && !con.Dst().(*GroupPointTreeNode).hasShownSquare() {
 		endArrow = noneEndEdge
 	}
 	if con.router != nil {

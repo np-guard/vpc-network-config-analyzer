@@ -80,7 +80,9 @@ func (ly *layoutS) layout() {
 	// 6. set the geometry for each node in the drawio
 	ly.matrix.setLayersDistance()
 	ly.setGeometries()
-	newLayoutOverlap(ly.network).fixOverlapping()
+	if !ly.network.(*NetworkTreeNode).subnetMode {
+		newLayoutOverlap(ly.network).fixOverlapping()
+	}
 }
 
 // setDefaultLocation() set locations to squares
@@ -275,7 +277,7 @@ func (ly *layoutS) layoutSubnetsIcons() {
 					for _, group := range groups {
 						rowIndex, colIndex = ly.layoutGroupIcons(group, rowIndex, colIndex)
 					}
-					if rowIndex == subnet.Location().firstRow.index{
+					if rowIndex == subnet.Location().firstRow.index {
 						rowIndex++
 					}
 				}
