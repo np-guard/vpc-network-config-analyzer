@@ -16,7 +16,6 @@ type connLine struct {
 	Dst                EndpointElem       `json:"dst"`
 	Conn               common.ConnDetails `json:"conn"`
 	UnidirectionalConn common.ConnDetails `json:"unidirectional_conn,omitempty"`
-	connStr            string             // connStr used for sorting
 }
 
 func sortConnLines(connLines []connLine) {
@@ -24,11 +23,7 @@ func sortConnLines(connLines []connLine) {
 		if connLines[i].Src.Name() != connLines[j].Src.Name() {
 			return connLines[i].Src.Name() < connLines[j].Src.Name()
 		}
-		if connLines[i].Dst.Name() != connLines[j].Dst.Name() {
-			return connLines[i].Dst.Name() < connLines[j].Dst.Name()
-		}
-
-		return connLines[i].connStr < connLines[j].connStr
+		return connLines[i].Dst.Name() < connLines[j].Dst.Name()
 	})
 }
 
@@ -49,9 +44,9 @@ func getConnLines(conn *VPCConnectivity) []connLine {
 			bidirectionalConn := bidirectional.getAllowedConnForPair(src, dst)
 			if !unidirectionalConn.IsEmpty() {
 				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: common.ConnToJSONRep(bidirectionalConn),
-					UnidirectionalConn: common.ConnToJSONRep(unidirectionalConn), connStr: bidirectionalConn.String()})
+					UnidirectionalConn: common.ConnToJSONRep(unidirectionalConn)})
 			} else {
-				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: common.ConnToJSONRep(conn), connStr: conn.String()})
+				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: common.ConnToJSONRep(conn)})
 			}
 		}
 	}
@@ -101,10 +96,9 @@ func getConnLinesForSubnetsConnectivity(conn *VPCsubnetConnectivity) []connLine 
 			}
 			// currently not supported with grouping
 			connLines = append(connLines, connLine{
-				Src:     src,
-				Dst:     dst,
-				Conn:    common.ConnToJSONRep(conns),
-				connStr: conns.String(),
+				Src:  src,
+				Dst:  dst,
+				Conn: common.ConnToJSONRep(conns),
 			})
 		}
 	}
@@ -114,5 +108,5 @@ func getConnLinesForSubnetsConnectivity(conn *VPCsubnetConnectivity) []connLine 
 }
 
 func (j *JSONoutputFormatter) WriteOutputSingleSubnet(c *CloudConfig, outFile string) (string, error) {
-	return "", errors.New("DebugSubnet use case not supported for md format currently ")
+	return "", errors.New("DebugSubnet use case not supported for JSON format currently ")
 }
