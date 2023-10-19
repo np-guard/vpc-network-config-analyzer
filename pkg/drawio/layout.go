@@ -66,7 +66,11 @@ func newLayout(network SquareTreeNodeInterface) *layoutS {
 func (ly *layoutS) layout() {
 	// main layout algorithm:
 	// 1. create a 2D matrix  - for each subnet icon, it set the location in the matrix
-	ly.layoutSubnetsIcons()
+	if !ly.network.(*NetworkTreeNode).subnetMode {
+		ly.layoutSubnetsIcons()
+	} else {
+		ly.layoutSubnets()
+	}
 	ly.matrix.removeUnusedLayers()
 	// 2. set the locations of the SG in the matrix, according to the locations of the icons
 	ly.setSGLocations()
@@ -293,6 +297,34 @@ func (ly *layoutS) layoutSubnetsIcons() {
 	}
 }
 
+/////////////////////////////////////////////////////////////////////////////////////
+
+func (ly *layoutS) layoutSubnets() {
+	ly.setDefaultLocation(ly.network, 0, 0)
+	colIndex := 0
+	for _, cloud := range ly.network.(*NetworkTreeNode).clouds {
+		ly.setDefaultLocation(cloud, 0, colIndex)
+		for _, vpc := range cloud.(*CloudTreeNode).vpcs {
+			ly.setDefaultLocation(vpc, 0, colIndex)
+			for _, zone := range vpc.(*VpcTreeNode).zones {
+				rowIndex := 0
+				ly.setDefaultLocation(zone, rowIndex, colIndex)
+				for _, subnet := range zone.(*ZoneTreeNode).subnets {
+					ly.setDefaultLocation(subnet, rowIndex, colIndex)
+					rowIndex++
+				}
+				colIndex++
+			}
+			if vpc.(*VpcTreeNode).zones == nil {
+				colIndex++
+			}
+		}
+		if cloud.(*CloudTreeNode).vpcs == nil {
+			colIndex++
+		}
+	}
+}
+
 // //////////////////////////////////////////////////////////////////////////////////////////
 // SG can have more than one squares. so setSGLocations() will add treeNodes of the kind PartialSGTreeNode
 // PartialSGTreeNode can not have more than one row. and can have only cell that contains icons that belong to the SG
@@ -372,6 +404,13 @@ func (ly *layoutS) setGroupSquareOffsets(tn SquareTreeNodeInterface) {
 	}
 }
 
+func (ly *layoutS) setGroupSubnetsSquareOffsets(tn SquareTreeNodeInterface) {
+	tn.Location().xOffset = -groupBorderWidth
+	tn.Location().yOffset = -groupTopBorderWidth
+	tn.Location().xEndOffset = -groupBorderWidth
+	tn.Location().yEndOffset = -groupBorderWidth
+}
+
 func (*layoutS) resolveSquareLocation(tn SquareTreeNodeInterface, internalBorders int, addExternalBorders bool) {
 	nl := mergeLocations(locations(getAllNodes(tn)))
 	for i := 0; i < internalBorders; i++ {
@@ -405,6 +444,11 @@ func (ly *layoutS) setSquaresLocations() {
 					}
 				}
 			}
+			for _, groupSubnetsSquare := range vpc.(*VpcTreeNode).groupSubnetsSquares {
+				ly.resolveSquareLocation(groupSubnetsSquare, 0, false)
+				ly.setGroupSubnetsSquareOffsets(groupSubnetsSquare)
+			}
+
 		}
 	}
 	ly.resolvePublicNetworkLocations()

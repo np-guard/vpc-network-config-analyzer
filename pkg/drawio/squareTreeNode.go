@@ -60,7 +60,7 @@ type NetworkTreeNode struct {
 	abstractSquareTreeNode
 	clouds        []SquareTreeNodeInterface
 	publicNetwork SquareTreeNodeInterface
-	subnetMode bool
+	subnetMode    bool
 }
 
 func NewNetworkTreeNode() *NetworkTreeNode {
@@ -109,8 +109,9 @@ func (tn *CloudTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeIn
 // ////////////////////////////////////////////////////////////////////////////////////////
 type VpcTreeNode struct {
 	abstractSquareTreeNode
-	zones []SquareTreeNodeInterface
-	sgs   []SquareTreeNodeInterface
+	zones               []SquareTreeNodeInterface
+	sgs                 []SquareTreeNodeInterface
+	groupSubnetsSquares []SquareTreeNodeInterface
 }
 
 func NewVpcTreeNode(parent *CloudTreeNode, name string) *VpcTreeNode {
@@ -119,7 +120,7 @@ func NewVpcTreeNode(parent *CloudTreeNode, name string) *VpcTreeNode {
 	return &vpc
 }
 func (tn *VpcTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
-	return append(tn.zones, tn.sgs...), tn.elements, tn.connections
+	return append(append(tn.zones, tn.sgs...), tn.groupSubnetsSquares...), tn.elements, tn.connections
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -264,4 +265,19 @@ func (tn *GroupSquareTreeNode) setVisibility(visibility groupSquareVisibility) {
 }
 func (tn *GroupSquareTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
 	return nil, append(tn.elements, tn.groupedIcons...), tn.connections
+}
+
+// ////////////////////////////////////////////////////////////////////////////
+type GroupSubnetsSquareTreeNode struct {
+	abstractSquareTreeNode
+	groupedSubnets []SquareTreeNodeInterface
+}
+
+func NewGroupSubnetsSquareTreeNode(parent *VpcTreeNode, groupedSubnets []SquareTreeNodeInterface) *GroupSubnetsSquareTreeNode {
+	gs := GroupSubnetsSquareTreeNode{newAbstractSquareTreeNode(parent, ""), groupedSubnets}
+	parent.groupSubnetsSquares = append(parent.groupSubnetsSquares, &gs)
+	return &gs
+}
+func (tn *GroupSubnetsSquareTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
+	return tn.groupedSubnets, tn.elements, tn.connections
 }
