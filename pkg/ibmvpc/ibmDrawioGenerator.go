@@ -24,8 +24,8 @@ func (s *Subnet) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.Tr
 func (sgl *SecurityGroupLayer) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	tn := drawio.NewSGTreeNode(gen.TreeNode(sgl.VPC()).(*drawio.VpcTreeNode), sgl.Name())
 	for _, sg := range sgl.sgList {
-		for _, ni := range sg.members {
-			tn.AddIcon(gen.TreeNode(ni).(drawio.IconTreeNodeInterface))
+		for _, member := range sg.members {
+			tn.AddIcon(gen.TreeNode(member).(drawio.IconTreeNodeInterface))
 		}
 	}
 	return tn
@@ -58,9 +58,9 @@ func (v *Vsi) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeN
 	if len(v.Nodes()) == 0 {
 		return nil
 	}
-	vsiNIs := []drawio.TreeNodeInterface{}
-	for _, ni := range v.Nodes() {
-		vsiNIs = append(vsiNIs, gen.TreeNode(ni))
+	vsiNIs := make([]drawio.TreeNodeInterface, len(v.Nodes()))
+	for i, ni := range v.Nodes() {
+		vsiNIs[i] = gen.TreeNode(ni)
 	}
 	// todo - how to handle this error:
 	zone, _ := v.Zone()
@@ -73,9 +73,9 @@ func (v *Vpe) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeN
 	if len(v.Nodes()) == 0 {
 		return nil
 	}
-	resIPs := []drawio.TreeNodeInterface{}
-	for _, ni := range v.Nodes() {
-		resIPs = append(resIPs, gen.TreeNode(ni))
+	resIPs := make([]drawio.TreeNodeInterface, len(v.Nodes()))
+	for i, resIP := range v.Nodes() {
+		resIPs[i] = gen.TreeNode(resIP)
 	}
 	vpcTn := gen.TreeNode(v.vpc).(drawio.SquareTreeNodeInterface)
 	drawio.GroupResIPsWithVpe(vpcTn, v.Name(), resIPs)

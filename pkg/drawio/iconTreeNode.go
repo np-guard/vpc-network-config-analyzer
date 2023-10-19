@@ -3,6 +3,7 @@ package drawio
 type IconTreeNodeInterface interface {
 	TreeNodeInterface
 	RouterID() uint
+	// TODO - support multi GSs
 	SG() SquareTreeNodeInterface
 	setSG(SquareTreeNodeInterface)
 	allocateNewRouteOffset() int

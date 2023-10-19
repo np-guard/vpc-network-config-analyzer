@@ -7,35 +7,18 @@ import (
 )
 
 const (
-	niStyle    = "shape=image;aspect=fixed;image=data:image/svg+xml,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+CjxkZWZzPgo8c3R5bGU+LmNscy0xe2ZpbGw6I2VlNTM5Njt9LmNscy0ye2ZpbGw6bm9uZTt9LmNscy0ze2ZpbGw6I2ZmZjt9PC9zdHlsZT4KPC9kZWZzPg0KPHJlY3QgY2xhc3M9ImNscy0xIiB4PSIwLjUiIHk9IjAuNSIgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4Ii8+CjxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMTQuNSIgeT0iMTQuNSIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIi8+DQo8dGV4dCBmb250LXNpemU9IjMwIiBmaWxsPSJ3aGl0ZSIgeD0iOCIgeT0iMzUiPk5JPC90ZXh0Pgo8L3N2Zz4=;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;spacingTop=-7;"
-	vsiStyle   = "shape=image;aspect=fixed;image=data:image/svg+xml,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiMxOTgwMzg7fS5jbHMtMntmaWxsOiNmZmY7fS5jbHMtM3tmaWxsOm5vbmU7fTwvc3R5bGU+PC9kZWZzPjxyZWN0IGNsYXNzPSJjbHMtMSIgeD0iMC41IiB5PSIwLjUiIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIvPjxjaXJjbGUgY2xhc3M9ImNscy0yIiBjeD0iMTguODgiIGN5PSIyOC44OCIgcj0iMC42MyIvPjxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMTUuNzUiIHk9IjE4LjI1IiB3aWR0aD0iMi41IiBoZWlnaHQ9IjEuMjUiLz48cmVjdCBjbGFzcz0iY2xzLTIiIHg9IjE5LjUiIHk9IjE4LjI1IiB3aWR0aD0iMi41IiBoZWlnaHQ9IjEuMjUiLz48cmVjdCBjbGFzcz0iY2xzLTIiIHg9IjIzLjI1IiB5PSIxOC4yNSIgd2lkdGg9IjIuNSIgaGVpZ2h0PSIxLjI1Ii8+PHJlY3QgY2xhc3M9ImNscy0yIiB4PSIyNyIgeT0iMTguMjUiIHdpZHRoPSIyLjUiIGhlaWdodD0iMS4yNSIvPjxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMzAuNzUiIHk9IjE4LjI1IiB3aWR0aD0iMi41IiBoZWlnaHQ9IjEuMjUiLz48cGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik0zMiwzMkgxN2ExLjI1LDEuMjUsMCwwLDEtMS4yNS0xLjI1VjI3QTEuMjUsMS4yNSwwLDAsMSwxNywyNS43NUgzMkExLjI1LDEuMjUsMCwwLDEsMzMuMjUsMjd2My43NUExLjI1LDEuMjUsMCwwLDEsMzIsMzJaTTE3LDI3djMuNzVIMzJWMjdaIi8+PHJlY3QgY2xhc3M9ImNscy0zIiB4PSIxNC41IiB5PSIxNC41IiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiLz48cmVjdCBjbGFzcz0iY2xzLTIiIHg9IjE1Ljc1IiB5PSIyMiIgd2lkdGg9IjE3LjUiIGhlaWdodD0iMS4yNSIvPjwvc3ZnPg==;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;spacingTop=-7;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;"
-	resIPStyle = "shape=image;aspect=fixed;image=data:image/svg+xml,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+CjxkZWZzPgo8c3R5bGU+LmNscy0xe2ZpbGw6I2VlNTM5Njt9LmNscy0ye2ZpbGw6bm9uZTt9LmNscy0ze2ZpbGw6I2ZmZjt9PC9zdHlsZT4KPC9kZWZzPg0KPHJlY3QgY2xhc3M9ImNscy0xIiB4PSIwLjUiIHk9IjAuNSIgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4Ii8+CjxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMTQuNSIgeT0iMTQuNSIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIi8+DQo8dGV4dCBmb250LXNpemU9IjIwIiBmaWxsPSJ3aGl0ZSIgeD0iNSIgeT0iMzIiPnJlc0lQPC90ZXh0Pgo8L3N2Zz4=;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;spacingTop=-7;"
-	vpeStyle   = "shape=image;aspect=fixed;image=data:image/svg+xml,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiMxMTkyZTg7fS5jbHMtMntmaWxsOiNmZmY7fS5jbHMtM3tmaWxsOm5vbmU7fTwvc3R5bGU+PC9kZWZzPjxyZWN0IGNsYXNzPSJjbHMtMSIgeD0iMC41IiB5PSIwLjUiIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIvPjxwYXRoIGlkPSJ2cGNfZ3JhZGllbnRfYm90dG9tIiBkYXRhLW5hbWU9InZwYyBncmFkaWVudCBib3R0b20iIGNsYXNzPSJjbHMtMiIgZD0iTTI3LDMxLjM4SDE4Ljg4YTEuMjcsMS4yNywwLDAsMS0xLjI2LTEuMjVWMjJoMS4yNnY4LjEzSDI3WiIvPjxwYXRoIGlkPSJ2cGNfZ3JhZGllbnRfdG9wIiBkYXRhLW5hbWU9InZwYyBncmFkaWVudCB0b3AiIGNsYXNzPSJjbHMtMiIgZD0iTTMwLjEyLDI3aDEuMjZWMTguODhhMS4yNiwxLjI2LDAsMCwwLTEuMjYtMS4yNUgyMnYxLjI1aDguMTJaIi8+PHBhdGggaWQ9ImVuZHBvaW50cyIgY2xhc3M9ImNscy0yIiBkPSJNMjkuMTIsMjguMjVsLTIuNS0yLjVBMi4yNiwyLjI2LDAsMCwwLDI3LDI0LjUsMi41MSwyLjUxLDAsMCwwLDI0LjUsMjJhMi4xOSwyLjE5LDAsMCwwLTEuMjUuMzhsLTIuNS0yLjVWMTUuNzVoLTV2NWg0LjEzbDIuNSwyLjVBMi4yNiwyLjI2LDAsMCwwLDIyLDI0LjUsMi41MSwyLjUxLDAsMCwwLDI0LjUsMjdhMi4yNiwyLjI2LDAsMCwwLDEuMjUtLjM4bDIuNSwyLjV2NC4xM2g1di01Wk0xOS41LDE5LjVIMTdWMTdoMi41Wm01LDYuMjVhMS4yNSwxLjI1LDAsMSwxLDEuMjUtMS4yNUExLjI1LDEuMjUsMCwwLDEsMjQuNSwyNS43NVpNMzIsMzJIMjkuNVYyOS41SDMyWiIvPjxyZWN0IGNsYXNzPSJjbHMtMyIgeD0iMTQuNSIgeT0iMTQuNSIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIi8+PC9zdmc+;fontSize=14;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;spacingTop=-7;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;"
-	fipStyle   = "shape=image;aspect=fixed;image=data:image/svg+xml,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiMxMTkyZTg7fS5jbHMtMntmaWxsOiNmZmY7fS5jbHMtM3tmaWxsOm5vbmU7fTwvc3R5bGU+PC9kZWZzPjxyZWN0IGNsYXNzPSJjbHMtMSIgeD0iMC41IiB5PSIwLjkyIiB3aWR0aD0iNDgiIGhlaWdodD0iNDcuMTYiIHJ4PSI4Ii8+PHBhdGggY2xhc3M9ImNscy0yIiBkPSJNMzAuMTIsMjEuNDNhMy4xMywzLjEzLDAsMCwwLTMuMDYsMi40NkgyMS45NGEzLjA3LDMuMDcsMCwxLDAsMCwxLjIyaDUuMTJhMy4xMiwzLjEyLDAsMSwwLDMuMDYtMy42OFptMCw0LjkxQTEuODQsMS44NCwwLDEsMSwzMiwyNC41LDEuODUsMS44NSwwLDAsMSwzMC4xMiwyNi4zNFoiLz48cmVjdCBjbGFzcz0iY2xzLTMiIHg9IjE0LjUiIHk9IjE0LjY3IiB3aWR0aD0iMjAiIGhlaWdodD0iMTkuNjUiLz48L3N2Zz4=;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;spacingTop=-7;"
+	niStyle            = "shape=image;aspect=fixed;image=data:image/svg+xml,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+CjxkZWZzPgo8c3R5bGU+LmNscy0xe2ZpbGw6I2VlNTM5Njt9LmNscy0ye2ZpbGw6bm9uZTt9LmNscy0ze2ZpbGw6I2ZmZjt9PC9zdHlsZT4KPC9kZWZzPg0KPHJlY3QgY2xhc3M9ImNscy0xIiB4PSIwLjUiIHk9IjAuNSIgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4Ii8+CjxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMTQuNSIgeT0iMTQuNSIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIi8+DQo8dGV4dCBmb250LXNpemU9IjMwIiBmaWxsPSJ3aGl0ZSIgeD0iOCIgeT0iMzUiPk5JPC90ZXh0Pgo8L3N2Zz4=;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;spacingTop=-7;"
+	vsiStyle           = "shape=image;aspect=fixed;image=data:image/svg+xml,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiMxOTgwMzg7fS5jbHMtMntmaWxsOiNmZmY7fS5jbHMtM3tmaWxsOm5vbmU7fTwvc3R5bGU+PC9kZWZzPjxyZWN0IGNsYXNzPSJjbHMtMSIgeD0iMC41IiB5PSIwLjUiIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIvPjxjaXJjbGUgY2xhc3M9ImNscy0yIiBjeD0iMTguODgiIGN5PSIyOC44OCIgcj0iMC42MyIvPjxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMTUuNzUiIHk9IjE4LjI1IiB3aWR0aD0iMi41IiBoZWlnaHQ9IjEuMjUiLz48cmVjdCBjbGFzcz0iY2xzLTIiIHg9IjE5LjUiIHk9IjE4LjI1IiB3aWR0aD0iMi41IiBoZWlnaHQ9IjEuMjUiLz48cmVjdCBjbGFzcz0iY2xzLTIiIHg9IjIzLjI1IiB5PSIxOC4yNSIgd2lkdGg9IjIuNSIgaGVpZ2h0PSIxLjI1Ii8+PHJlY3QgY2xhc3M9ImNscy0yIiB4PSIyNyIgeT0iMTguMjUiIHdpZHRoPSIyLjUiIGhlaWdodD0iMS4yNSIvPjxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMzAuNzUiIHk9IjE4LjI1IiB3aWR0aD0iMi41IiBoZWlnaHQ9IjEuMjUiLz48cGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik0zMiwzMkgxN2ExLjI1LDEuMjUsMCwwLDEtMS4yNS0xLjI1VjI3QTEuMjUsMS4yNSwwLDAsMSwxNywyNS43NUgzMkExLjI1LDEuMjUsMCwwLDEsMzMuMjUsMjd2My43NUExLjI1LDEuMjUsMCwwLDEsMzIsMzJaTTE3LDI3djMuNzVIMzJWMjdaIi8+PHJlY3QgY2xhc3M9ImNscy0zIiB4PSIxNC41IiB5PSIxNC41IiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiLz48cmVjdCBjbGFzcz0iY2xzLTIiIHg9IjE1Ljc1IiB5PSIyMiIgd2lkdGg9IjE3LjUiIGhlaWdodD0iMS4yNSIvPjwvc3ZnPg==;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;spacingTop=-7;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;"
+	resIPStyle         = "shape=image;aspect=fixed;image=data:image/svg+xml,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+CjxkZWZzPgo8c3R5bGU+LmNscy0xe2ZpbGw6I2VlNTM5Njt9LmNscy0ye2ZpbGw6bm9uZTt9LmNscy0ze2ZpbGw6I2ZmZjt9PC9zdHlsZT4KPC9kZWZzPg0KPHJlY3QgY2xhc3M9ImNscy0xIiB4PSIwLjUiIHk9IjAuNSIgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4Ii8+CjxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMTQuNSIgeT0iMTQuNSIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIi8+DQo8dGV4dCBmb250LXNpemU9IjIwIiBmaWxsPSJ3aGl0ZSIgeD0iNSIgeT0iMzIiPnJlc0lQPC90ZXh0Pgo8L3N2Zz4=;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;spacingTop=-7;"
+	vpeStyle           = "shape=image;aspect=fixed;image=data:image/svg+xml,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiMxMTkyZTg7fS5jbHMtMntmaWxsOiNmZmY7fS5jbHMtM3tmaWxsOm5vbmU7fTwvc3R5bGU+PC9kZWZzPjxyZWN0IGNsYXNzPSJjbHMtMSIgeD0iMC41IiB5PSIwLjUiIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIvPjxwYXRoIGlkPSJ2cGNfZ3JhZGllbnRfYm90dG9tIiBkYXRhLW5hbWU9InZwYyBncmFkaWVudCBib3R0b20iIGNsYXNzPSJjbHMtMiIgZD0iTTI3LDMxLjM4SDE4Ljg4YTEuMjcsMS4yNywwLDAsMS0xLjI2LTEuMjVWMjJoMS4yNnY4LjEzSDI3WiIvPjxwYXRoIGlkPSJ2cGNfZ3JhZGllbnRfdG9wIiBkYXRhLW5hbWU9InZwYyBncmFkaWVudCB0b3AiIGNsYXNzPSJjbHMtMiIgZD0iTTMwLjEyLDI3aDEuMjZWMTguODhhMS4yNiwxLjI2LDAsMCwwLTEuMjYtMS4yNUgyMnYxLjI1aDguMTJaIi8+PHBhdGggaWQ9ImVuZHBvaW50cyIgY2xhc3M9ImNscy0yIiBkPSJNMjkuMTIsMjguMjVsLTIuNS0yLjVBMi4yNiwyLjI2LDAsMCwwLDI3LDI0LjUsMi41MSwyLjUxLDAsMCwwLDI0LjUsMjJhMi4xOSwyLjE5LDAsMCwwLTEuMjUuMzhsLTIuNS0yLjVWMTUuNzVoLTV2NWg0LjEzbDIuNSwyLjVBMi4yNiwyLjI2LDAsMCwwLDIyLDI0LjUsMi41MSwyLjUxLDAsMCwwLDI0LjUsMjdhMi4yNiwyLjI2LDAsMCwwLDEuMjUtLjM4bDIuNSwyLjV2NC4xM2g1di01Wk0xOS41LDE5LjVIMTdWMTdoMi41Wm01LDYuMjVhMS4yNSwxLjI1LDAsMSwxLDEuMjUtMS4yNUExLjI1LDEuMjUsMCwwLDEsMjQuNSwyNS43NVpNMzIsMzJIMjkuNVYyOS41SDMyWiIvPjxyZWN0IGNsYXNzPSJjbHMtMyIgeD0iMTQuNSIgeT0iMTQuNSIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIi8+PC9zdmc+;fontSize=14;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;spacingTop=-7;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;"
+	fipStyle           = "shape=image;aspect=fixed;image=data:image/svg+xml,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiMxMTkyZTg7fS5jbHMtMntmaWxsOiNmZmY7fS5jbHMtM3tmaWxsOm5vbmU7fTwvc3R5bGU+PC9kZWZzPjxyZWN0IGNsYXNzPSJjbHMtMSIgeD0iMC41IiB5PSIwLjkyIiB3aWR0aD0iNDgiIGhlaWdodD0iNDcuMTYiIHJ4PSI4Ii8+PHBhdGggY2xhc3M9ImNscy0yIiBkPSJNMzAuMTIsMjEuNDNhMy4xMywzLjEzLDAsMCwwLTMuMDYsMi40NkgyMS45NGEzLjA3LDMuMDcsMCwxLDAsMCwxLjIyaDUuMTJhMy4xMiwzLjEyLDAsMSwwLDMuMDYtMy42OFptMCw0LjkxQTEuODQsMS44NCwwLDEsMSwzMiwyNC41LDEuODUsMS44NSwwLDAsMSwzMC4xMiwyNi4zNFoiLz48cmVjdCBjbGFzcz0iY2xzLTMiIHg9IjE0LjUiIHk9IjE0LjY3IiB3aWR0aD0iMjAiIGhlaWdodD0iMTkuNjUiLz48L3N2Zz4=;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;spacingTop=-7;"
+	connStyleFormat    = "endArrow=%s;html=1;fontSize=16;fontColor=#4376BB;strokeWidth=2;endFill=1;rounded=0;startArrow=%s;%sstartFill=1;"
+	connRouteredCollor = "strokeColor=#007FFF;"
 
 	ovalEndEdge  = "oval"
 	errorEndEdge = "block"
 	noneEndEdge  = "none"
 )
-
-func connectivityStyle(con *ConnectivityTreeNode) string {
-	startArrow, endArrow := ovalEndEdge, ovalEndEdge
-	strokeColor := ""
-	if con.directed {
-		endArrow = errorEndEdge
-	}
-	if con.Src().IsGroupingPoint() && !con.Src().(*GroupPointTreeNode).hasShownSquare() {
-		startArrow = noneEndEdge
-	}
-	if con.Dst().IsGroupingPoint() && !con.Dst().(*GroupPointTreeNode).hasShownSquare() {
-		endArrow = noneEndEdge
-	}
-	if con.router != nil {
-		strokeColor = "strokeColor=#007FFF;"
-	}
-	styleFormat := "endArrow=%s;html=1;fontSize=16;fontColor=#4376BB;strokeWidth=2;endFill=1;rounded=0;startArrow=%s;%sstartFill=1;"
-	return fmt.Sprintf(styleFormat, endArrow, startArrow, strokeColor)
-}
 
 var styles = map[reflect.Type]string{
 	reflect.TypeOf(PublicNetworkTreeNode{}):   "rounded=0;whiteSpace=wrap;html=1;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;spacingBottom=-28;spacingTop=0;labelPosition=-100;verticalLabelPosition=top;align=center;verticalAlign=bottom;spacingLeft=9;spacing=0;expand=0;recursiveResize=0;spacingRight=0;container=1;collapsible=0;strokeColor=#1192E8;fillColor=none;",
@@ -89,39 +72,79 @@ var decoreStyles = map[reflect.Type]string{
 	reflect.TypeOf(PartialSGTreeNode{}):     "rounded=0;whiteSpace=wrap;html=1;strokeColor=none;fillColor=#FA4D56;",
 }
 
-func (data *drawioData) HasMiniIcon(tn TreeNodeInterface) bool {
-	if data.canTypeHaveAMiniIcon[reflect.TypeOf(tn).Elem()] && tn.(IconTreeNodeInterface).hasMiniIcon() {
+type drawioStyles struct {
+	canTypeHaveAMiniIcon map[reflect.Type]bool
+}
+
+func newDrawioStyles(nodes []TreeNodeInterface) drawioStyles {
+	stl := drawioStyles{}
+	stl.canTypeHaveAMiniIcon = map[reflect.Type]bool{}
+	for _, tn := range nodes {
+		if reflect.TypeOf(tn).Elem() == reflect.TypeOf(VsiTreeNode{}) {
+			stl.canTypeHaveAMiniIcon[reflect.TypeOf(NITreeNode{})] = true
+		}
+		if reflect.TypeOf(tn).Elem() == reflect.TypeOf(VpeTreeNode{}) {
+			stl.canTypeHaveAMiniIcon[reflect.TypeOf(ResIPTreeNode{})] = true
+		}
+	}
+	return stl
+}
+
+func connectivityStyle(con *ConnectivityTreeNode) string {
+	startArrow, endArrow := ovalEndEdge, ovalEndEdge
+	strokeColor := ""
+	if con.directed {
+		endArrow = errorEndEdge
+	}
+	if con.Src().IsGroupingPoint() && !con.Src().(*GroupPointTreeNode).hasShownSquare() {
+		startArrow = noneEndEdge
+	}
+	if con.Dst().IsGroupingPoint() && !con.Dst().(*GroupPointTreeNode).hasShownSquare() {
+		endArrow = noneEndEdge
+	}
+	if con.router != nil {
+		strokeColor = connRouteredCollor
+	}
+	return fmt.Sprintf(connStyleFormat, endArrow, startArrow, strokeColor)
+}
+
+// mini icons:
+// some icons might have mini icons (ni and resIp). the rule is:
+// if there are no vsi icon in the canvas, all the ni are displayed as vsi icon, and without mini icons
+// if there is a vsi icon in the canvas, than:
+// if the ni is connected to a vsi that has only one ni, than the ni displayed as vsi icon, with an ni mini icons
+// if the ni is connected to a vsi that has more than one ni, than the ni displayed as ni icon, and without mini icons
+// same with resIp and vpe
+func (stl *drawioStyles) HasMiniIcon(tn TreeNodeInterface) bool {
+	if stl.canTypeHaveAMiniIcon[reflect.TypeOf(tn).Elem()] && tn.(IconTreeNodeInterface).hasMiniIcon() {
 		return true
 	}
 	return false
 }
-func (data *drawioData) Style(tn TreeNodeInterface) string {
+func (stl *drawioStyles) Style(tn TreeNodeInterface) string {
 	tnType := reflect.TypeOf(tn).Elem()
 	if tnType == reflect.TypeOf(ConnectivityTreeNode{}) {
 		return connectivityStyle(tn.(*ConnectivityTreeNode))
-	} else if data.canTypeHaveAMiniIcon[tnType] && !tn.(IconTreeNodeInterface).hasMiniIcon() {
+	} else if stl.canTypeHaveAMiniIcon[tnType] && !tn.(IconTreeNodeInterface).hasMiniIcon() {
 		return miniStyles[tnType]
 	}
 	return styles[tnType]
 }
-func (data *drawioData) MiniIconStyle(tn TreeNodeInterface) string {
+func (stl *drawioStyles) MiniIconStyle(tn TreeNodeInterface) string {
 	return miniStyles[reflect.TypeOf(tn).Elem()]
 }
 
-func (data *drawioData) TextStyle(tn TreeNodeInterface) string {
+func (stl *drawioStyles) TextStyle(tn TreeNodeInterface) string {
 	return textStyles[reflect.TypeOf(tn).Elem()]
 }
-func (data *drawioData) TagStyle(tn TreeNodeInterface) string {
+func (stl *drawioStyles) TagStyle(tn TreeNodeInterface) string {
 	return tagStyles[reflect.TypeOf(tn).Elem()]
 }
-func (data *drawioData) HasTag(tn TreeNodeInterface) bool {
+func (stl *drawioStyles) HasTag(tn TreeNodeInterface) bool {
 	_, ok := tagStyles[reflect.TypeOf(tn).Elem()]
 	return ok
 }
-func (data *drawioData) DecoreStyle(tn TreeNodeInterface) string {
+func (stl *drawioStyles) DecoreStyle(tn TreeNodeInterface) string {
 	return decoreStyles[reflect.TypeOf(tn).Elem()]
 }
-func (data *drawioData) ElementComment(tn TreeNodeInterface) string {
-	return reflect.TypeOf(tn).Elem().Name() + " " + tn.Label()
-}
-func (data *drawioData) FIPStyle() string { return fipStyle }
+func (stl *drawioStyles) FIPStyle() string { return fipStyle }

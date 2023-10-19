@@ -17,7 +17,7 @@ func TestGetRules(t *testing.T) {
 	inputResourcesJSON := acl3Input
 	rc, err := ParseResources(inputResourcesJSON)
 	require.Nilf(t, err, "err: %s", err)
-	cloudConfig, err := NewCloudConfig(rc)
+	cloudConfig, err := NewCloudConfig(rc, "")
 	require.Nilf(t, err, "err: %s", err)
 	for _, f := range cloudConfig.FilterResources {
 		if naclLayer, ok := f.(*NaclLayer); ok {
