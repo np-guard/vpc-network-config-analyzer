@@ -187,7 +187,7 @@ func (subnetDiff *SubnetsDiff) EnhancedString(thisMinusOther bool) string {
 	return printDiff
 }
 
-func diffDecription(diff DiffType) string {
+func diffDescription(diff DiffType) string {
 	switch diff {
 	case MissingSrcEP:
 		return "missing source"
