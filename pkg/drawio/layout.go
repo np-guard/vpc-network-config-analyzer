@@ -66,7 +66,7 @@ func newLayout(network SquareTreeNodeInterface) *layoutS {
 func (ly *layoutS) layout() {
 	// main layout algorithm:
 	// 1. create a 2D matrix  - for each subnet icon, it set the location in the matrix
-	if !ly.network.(*NetworkTreeNode).subnetMode {
+	if !ly.network.(*NetworkTreeNode).SubnetMode {
 		ly.layoutSubnetsIcons()
 	} else {
 		ly.layoutSubnets()
@@ -84,7 +84,7 @@ func (ly *layoutS) layout() {
 	// 6. set the geometry for each node in the drawio
 	ly.matrix.setLayersDistance()
 	ly.setGeometries()
-	if !ly.network.(*NetworkTreeNode).subnetMode {
+	if !ly.network.(*NetworkTreeNode).SubnetMode {
 		newLayoutOverlap(ly.network).fixOverlapping()
 	}
 }

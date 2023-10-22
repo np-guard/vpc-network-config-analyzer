@@ -41,6 +41,7 @@ func (m *mockNetIntf) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNo
 	return nil
 }
 func (m *mockNetIntf) IsExternal() bool { return false }
+func (m *mockNetIntf) ShowOnSubnetMode() bool { return false }
 
 type mockSubnet struct {
 	cidr  string
@@ -74,6 +75,7 @@ func (m *mockSubnet) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNod
 	return nil
 }
 func (m *mockSubnet) IsExternal() bool { return false }
+func (m *mockSubnet) ShowOnSubnetMode() bool { return true }
 
 func newCloudConfigTest1() (*CloudConfig, *VPCConnectivity) {
 	res := &CloudConfig{Nodes: []Node{}}

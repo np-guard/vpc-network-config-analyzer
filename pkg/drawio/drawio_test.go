@@ -286,7 +286,7 @@ func createNetworkAllTypes() SquareTreeNodeInterface {
 
 func createNetworkSubnetGrouping() SquareTreeNodeInterface {
 	network := NewNetworkTreeNode()
-	network.subnetMode = true
+	network.SubnetMode = true
 	publicNetwork := NewPublicNetworkTreeNode(network)
 
 	cloud1 := NewCloudTreeNode(network, "IBM Cloud")
@@ -308,10 +308,13 @@ func createNetworkSubnetGrouping() SquareTreeNodeInterface {
 	gr1 := []SquareTreeNodeInterface{subnet11, subnet12}
 	gsq1 := NewGroupSubnetsSquareTreeNode(vpc1, gr1)
 
+	gr2 := []SquareTreeNodeInterface{subnet11, subnet21}
+	gsq2 := NewGroupSubnetsSquareTreeNode(vpc1, gr2)
+
 	NewConnectivityLineTreeNode(network, gsq1, subnet12, true, "gconn4")
 	NewConnectivityLineTreeNode(network, subnet13, subnet22, true, "gconn4")
 	NewConnectivityLineTreeNode(network, subnet31, subnet32, true, "gconn4")
-	NewConnectivityLineTreeNode(network, subnet33, subnet21, true, "gconn4")
+	NewConnectivityLineTreeNode(network, subnet33, gsq2, true, "gconn4")
 	NewConnectivityLineTreeNode(network, subnet23, i2, true, "gconn4")
 
 	NewConnectivityLineTreeNode(network, subnet31, zone1, true, "gconn4")

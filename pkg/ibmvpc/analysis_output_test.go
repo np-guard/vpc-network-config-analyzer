@@ -115,7 +115,16 @@ func (tt *vpcGeneralTest) initTest() {
 	}
 }
 
-var tests = []*vpcGeneralTest{
+var tests2 = []*vpcGeneralTest{
+	{
+		name:     "demo_with_instances",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		grouping: true,
+		format:   vpcmodel.DRAWIO,
+	},
+}
+
+var tests3 = []*vpcGeneralTest{
 	{
 		name:     "acl_testing5",
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
@@ -124,7 +133,7 @@ var tests = []*vpcGeneralTest{
 	},
 	{
 		name:     "acl_testing5",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints,vpcmodel.AllSubnets},
 		grouping: true,
 		format:   vpcmodel.DRAWIO,
 	},
@@ -134,10 +143,16 @@ var tests = []*vpcGeneralTest{
 		grouping: true,
 		format:   vpcmodel.Text,
 	},
+	{
+		name:     "demo_with_instances",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		grouping: true,
+		format:   vpcmodel.DRAWIO,
+	},
 }
 
 
-var tests2 = []*vpcGeneralTest{
+var tests = []*vpcGeneralTest{
 	{
 		name:     "acl_testing5",
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
