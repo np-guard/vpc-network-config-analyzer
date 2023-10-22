@@ -46,11 +46,11 @@ type diffBetweenSubnets struct {
 
 func (configs ConfigsForDiff) GetSubnetsDiff(grouping bool) (*diffBetweenSubnets, error) {
 	// 1. compute connectivity for each of the subnets
-	subnetsConn1, err := configs.config1.GetSubnetsConnectivity(true, grouping)
+	subnetsConn1, err := configs.config1.GetSubnetsConnectivity(true, false)
 	if err != nil {
 		return nil, nil
 	}
-	subnetsConn2, err := configs.config2.GetSubnetsConnectivity(true, grouping)
+	subnetsConn2, err := configs.config2.GetSubnetsConnectivity(true, false)
 	if err != nil {
 		return nil, nil
 	}
@@ -76,12 +76,13 @@ func (configs ConfigsForDiff) GetSubnetsDiff(grouping bool) (*diffBetweenSubnets
 // ToDo: instead of performing this search each time, use a map created once
 func (c *CloudConfig) getEndpointElemInOtherConfig(other *CloudConfig, ep EndpointElem) EndpointElem {
 	if ep.IsExternal() {
-		for _, node := range other.Nodes {
-			if node.Name() == ep.Name() {
-				res := EndpointElem(node)
-				return res
-			}
-		}
+		// todo: external endpoints should be considered as part of the entire range and not as missing?
+		// for _, node := range other.Nodes {
+		//	if node.Name() == ep.Name() {
+		//		res := EndpointElem(node)
+		//		return res
+		//	}
+		//}
 	} else {
 		for _, nodeSet := range other.NodeSets {
 			if nodeSet.Name() == ep.Name() {
@@ -181,7 +182,7 @@ func (subnetDiff *SubnetsDiff) EnhancedString(thisMinusOther bool) string {
 				connectionSetDiff = connDiff.ConnectionSet.EnhancedString()
 			}
 			printDiff += fmt.Sprintf("%s %s => %s : %s %s\n", diffDirection, src.Name(), dst.Name(),
-				connectionSetDiff, diffDecription(connDiff.diff))
+				connectionSetDiff, diffDescription(connDiff.diff))
 		}
 	}
 	return printDiff
