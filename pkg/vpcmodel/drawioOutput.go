@@ -89,7 +89,6 @@ func (d *DrawioOutputFormatter) createRouters() {
 	for _, r := range d.cConfig.RoutingResources {
 		if !d.subnetMode || r.ShowOnSubnetMode() {
 			rTn := d.gen.TreeNode(r)
-
 			for _, ni := range r.Src() {
 				if !d.subnetMode || ni.ShowOnSubnetMode() {
 					d.routers[d.gen.TreeNode(ni)] = rTn.(drawio.IconTreeNodeInterface)

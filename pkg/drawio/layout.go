@@ -1,6 +1,7 @@
 package drawio
 
 import (
+	"reflect"
 	"sort"
 )
 
@@ -299,6 +300,56 @@ func (ly *layoutS) layoutSubnetsIcons() {
 
 /////////////////////////////////////////////////////////////////////////////////////
 
+func (ly *layoutS) setGroupedSubnetsOffset() {
+	sns := []TreeNodeInterface{}
+	grs := []*GroupSubnetsSquareTreeNode{}
+	for _, tn := range getAllNodes(ly.network) {
+		switch {
+		case reflect.TypeOf(tn).Elem() == reflect.TypeOf(SubnetTreeNode{}):
+			sns = append(sns, tn)
+		case reflect.TypeOf(tn).Elem() == reflect.TypeOf(GroupSubnetsSquareTreeNode{}):
+			grs = append(grs, tn.(*GroupSubnetsSquareTreeNode))
+		}
+	}
+	for _, tn := range sns {
+		tn.Location().xOffset = borderWidth
+		tn.Location().yOffset = borderWidth
+		tn.Location().xEndOffset = borderWidth
+		tn.Location().yEndOffset = borderWidth
+	}
+	for _, tn := range grs {
+		tn.Location().xOffset = -groupBorderWidth
+		tn.Location().yOffset = -groupBorderWidth
+		tn.Location().xEndOffset = -groupBorderWidth
+		tn.Location().yEndOffset = -groupBorderWidth
+	}
+
+	for foundOverlap := true; foundOverlap; foundOverlap = false {
+		for _, tn1 := range grs {
+			for _, tn2 := range grs {
+				l1 := tn1.Location()
+				l2 := tn2.Location()
+				if tn1 == tn2{continue}
+				if l1.firstRow == l2.firstRow || l1.firstCol == l2.firstCol || l1.lastRow == l2.lastRow || l1.lastCol == l2.lastCol{
+					if l1.xOffset == l2.xOffset{
+						toShrink := tn1
+						if len(tn2.groupedSubnets) < len(tn1.groupedSubnets){
+							toShrink = tn2
+						}
+						toShrink.Location().xOffset += groupInnerBorderWidth
+						toShrink.Location().yOffset += groupInnerBorderWidth
+						toShrink.Location().xEndOffset += groupInnerBorderWidth
+						toShrink.Location().yEndOffset += groupInnerBorderWidth
+						foundOverlap = true
+					}
+				} 
+				
+			}
+		}
+	}
+
+}
+
 func (ly *layoutS) layoutSubnets() {
 	ly.setDefaultLocation(ly.network, 0, 0)
 	colIndex := 0
@@ -404,13 +455,6 @@ func (ly *layoutS) setGroupSquareOffsets(tn SquareTreeNodeInterface) {
 	}
 }
 
-func (ly *layoutS) setGroupSubnetsSquareOffsets(tn SquareTreeNodeInterface) {
-	tn.Location().xOffset = -groupBorderWidth
-	tn.Location().yOffset = -groupTopBorderWidth
-	tn.Location().xEndOffset = -groupBorderWidth
-	tn.Location().yEndOffset = -groupBorderWidth
-}
-
 func (*layoutS) resolveSquareLocation(tn SquareTreeNodeInterface, internalBorders int, addExternalBorders bool) {
 	nl := mergeLocations(locations(getAllNodes(tn)))
 	for i := 0; i < internalBorders; i++ {
@@ -446,13 +490,16 @@ func (ly *layoutS) setSquaresLocations() {
 			}
 			for _, groupSubnetsSquare := range vpc.(*VpcTreeNode).groupSubnetsSquares {
 				ly.resolveSquareLocation(groupSubnetsSquare, 0, false)
-				ly.setGroupSubnetsSquareOffsets(groupSubnetsSquare)
 			}
 
 		}
 	}
 	ly.resolvePublicNetworkLocations()
 	ly.resolveSquareLocation(ly.network, 1, false)
+	if ly.network.(*NetworkTreeNode).SubnetMode {
+		ly.setGroupedSubnetsOffset()
+	}
+
 }
 
 // ////////////////////////////////////////////////////////////////////////////////////////
