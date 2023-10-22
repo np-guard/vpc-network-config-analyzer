@@ -76,13 +76,12 @@ func (configs ConfigsForDiff) GetSubnetsDiff(grouping bool) (*diffBetweenSubnets
 // ToDo: instead of performing this search each time, use a map created once
 func (c *CloudConfig) getEndpointElemInOtherConfig(other *CloudConfig, ep EndpointElem) EndpointElem {
 	if ep.IsExternal() {
-		// todo: external endpoints should be considered as part of the entire range and not as missing?
-		// for _, node := range other.Nodes {
-		//	if node.Name() == ep.Name() {
-		//		res := EndpointElem(node)
-		//		return res
-		//	}
-		//}
+		for _, node := range other.Nodes {
+			if node.Name() == ep.Name() {
+				res := EndpointElem(node)
+				return res
+			}
+		}
 	} else {
 		for _, nodeSet := range other.NodeSets {
 			if nodeSet.Name() == ep.Name() {
@@ -146,7 +145,7 @@ func (subnetConfConnectivity *SubnetConfigConnectivity) SubnetConnectivitySubtra
 					diffConnectionWithType.diff = MissingConnection
 				}
 			} else { // srcInOther == nil || dstInOther == nil
-				diffConnectionWithType.diff = getDiffType(srcInOther, dstInOther)
+				diffConnectionWithType.diff = getDiffType(src, srcInOther, dst, dstInOther)
 			}
 			connectivitySubtract[src][dst] = diffConnectionWithType
 		}
@@ -154,14 +153,23 @@ func (subnetConfConnectivity *SubnetConfigConnectivity) SubnetConnectivitySubtra
 	return connectivitySubtract
 }
 
-func getDiffType(srcInOther, dstInOther EndpointElem) DiffType {
+// lack of a subnet is marked as a missing endpoint
+// a lack of identical external endpoint is considered as a missing connection
+// and not as a missing endpoint
+func getDiffType(src, srcInOther, dst, dstInOther EndpointElem) DiffType {
+	_, srcIsSubnet := src.(NodeSet)
+	_, dstIsSubnet := dst.(NodeSet)
+	missingSrc := srcInOther == nil && srcIsSubnet
+	missingDst := dstInOther == nil && dstIsSubnet
 	switch {
-	case srcInOther == nil && dstInOther == nil:
+	case missingSrc && missingDst:
 		return MissingSrcDstEP
-	case srcInOther == nil && dstInOther != nil:
+	case missingSrc:
 		return MissingSrcEP
-	case srcInOther != nil && dstInOther == nil:
+	case missingDst:
 		return MissingDstEP
+	case srcInOther == nil || dstInOther == nil:
+		return MissingConnection
 	}
 	return NoDiff
 }
