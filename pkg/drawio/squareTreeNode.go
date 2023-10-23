@@ -273,6 +273,33 @@ type GroupSubnetsSquareTreeNode struct {
 	groupedSubnets []SquareTreeNodeInterface
 }
 
+func GroupedSubnetsSquare(parent *VpcTreeNode, groupedSubnets []SquareTreeNodeInterface) SquareTreeNodeInterface {
+	sameZone, sameVpc := true, true
+	zone :=groupedSubnets[0].Parent().(*ZoneTreeNode)
+	vpc :=groupedSubnets[0].Parent().Parent().(*VpcTreeNode)
+	for _, subnet := range groupedSubnets {
+		if zone != subnet.Parent() {
+			sameZone = false
+		}
+		if vpc != subnet.Parent().Parent() {
+			sameVpc = false
+		}
+	}
+	if sameVpc{
+		allVpcSubnets := []SquareTreeNodeInterface{}
+		for _,z := range vpc.zones{
+			allVpcSubnets = append(allVpcSubnets, z.(*ZoneTreeNode).subnets...)
+		}
+		if len(groupedSubnets) == len(allVpcSubnets) {
+			return vpc
+		}
+	}
+	if sameZone && len(groupedSubnets) == len(zone.subnets) {
+		return zone
+	}
+	return NewGroupSubnetsSquareTreeNode(parent, groupedSubnets)
+}
+
 func NewGroupSubnetsSquareTreeNode(parent *VpcTreeNode, groupedSubnets []SquareTreeNodeInterface) *GroupSubnetsSquareTreeNode {
 	gs := GroupSubnetsSquareTreeNode{newAbstractSquareTreeNode(parent, ""), groupedSubnets}
 	parent.groupSubnetsSquares = append(parent.groupSubnetsSquares, &gs)

@@ -306,10 +306,10 @@ func createNetworkSubnetGrouping() SquareTreeNodeInterface {
 	i2 := NewInternetTreeNode(publicNetwork, "Internet2")
 
 	gr1 := []SquareTreeNodeInterface{subnet11, subnet12, subnet13}
-	gsq1 := NewGroupSubnetsSquareTreeNode(vpc1, gr1)
+	gsq1 := GroupedSubnetsSquare(vpc1, gr1)
 
 	gr2 := []SquareTreeNodeInterface{subnet11, subnet21}
-	gsq2 := NewGroupSubnetsSquareTreeNode(vpc1, gr2)
+	gsq2 := GroupedSubnetsSquare(vpc1, gr2)
 
 	NewConnectivityLineTreeNode(network, gsq1, subnet12, true, "gconn4")
 	NewConnectivityLineTreeNode(network, subnet13, subnet22, true, "gconn4")

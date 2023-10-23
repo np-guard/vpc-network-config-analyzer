@@ -56,24 +56,24 @@ func (gen *DrawioGenerator) TreeNode(res DrawioResourceIntf) drawio.TreeNodeInte
 func (exn *ExternalNetwork) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
 	return drawio.NewInternetTreeNode(gen.PublicNetwork(), exn.CidrStr)
 }
-func (exn *ExternalNetwork) ShowOnSubnetMode() bool {return true}
-func (g *groupedEndpointsElems) ShowOnSubnetMode() bool {return true}
-func (g *groupedExternalNodes) ShowOnSubnetMode() bool {return true}
-func (e *edgeInfo) ShowOnSubnetMode() bool {return true}
+func (exn *ExternalNetwork) ShowOnSubnetMode() bool     { return true }
+func (g *groupedEndpointsElems) ShowOnSubnetMode() bool { return true }
+func (g *groupedExternalNodes) ShowOnSubnetMode() bool  { return true }
+func (e *edgeInfo) ShowOnSubnetMode() bool              { return true }
 
 func (g *groupedEndpointsElems) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
 	if len(*g) == 1 {
 		return gen.TreeNode((*g)[0])
 	}
-	if gen.TreeNode((*g)[0]).IsSquare(){
+	if gen.TreeNode((*g)[0]).IsSquare() {
 		// its a group of subnets
 		groupedSubnetsTNs := make([]drawio.SquareTreeNodeInterface, len(*g))
 		for i, node := range *g {
 			groupedSubnetsTNs[i] = gen.TreeNode(node).(drawio.SquareTreeNodeInterface)
 		}
 		vpcTn := groupedSubnetsTNs[0].Parent().Parent().(*drawio.VpcTreeNode)
-		return drawio.NewGroupSubnetsSquareTreeNode(vpcTn, groupedSubnetsTNs)
-	
+		return drawio.GroupedSubnetsSquare(vpcTn, groupedSubnetsTNs)
+
 	}
 	groupedIconsTNs := make([]drawio.IconTreeNodeInterface, len(*g))
 	for i, node := range *g {
