@@ -190,7 +190,7 @@ func (subnetDiff *SubnetsDiff) EnhancedString(thisMinusOther bool) string {
 				connectionSetDiff = connDiff.ConnectionSet.EnhancedString()
 			}
 			printDiff += fmt.Sprintf("%s %s => %s : %s %s\n", diffDirection, src.Name(), dst.Name(),
-				connectionSetDiff, diffDescription(connDiff.diff))
+				diffDescription(connDiff.diff), connectionSetDiff)
 		}
 	}
 	return printDiff
