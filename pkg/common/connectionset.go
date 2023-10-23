@@ -192,7 +192,7 @@ func (conn *ConnectionSet) isAllConnectionsWithoutAllowAll() bool {
 }
 
 // Subtract
-// ToDo: Subtract seems to ignore IsStateful:
+// ToDo: Subtract seems to ignore IsStateful (see issue #199):
 //  1. is the delta connection stateful
 //  2. connectionProperties is identical but conn stateful while other is not
 //     the 2nd item can be computed here, with enhancement to relevant structure

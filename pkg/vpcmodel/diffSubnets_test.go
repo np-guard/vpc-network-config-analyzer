@@ -11,12 +11,13 @@ import (
 )
 
 // simple diff:
-// cfg1 has subnet0, subnet1, subnet2, subnet3
+// cfg1 has subnet0, subnet1, subnet2, subnet3, subnet4
 //      subnet0 -> subnet1
 //      subnet1 -> subnet2
 //      subnet3 -> subnet1
 //      subnet2 -> subnet3
 //      subnet3 -> subnet2
+//      subnet3 -> subnet4 not all connections
 // cfg2 has subnet2, subnet3, subnet4
 //     subnet3 -> subnet2
 //     subnet3 -> subnet4
@@ -30,7 +31,7 @@ import (
 //
 //     cfg2 subtract cfg1
 //     subnet1 subtract subnet2:
-//     subnet3 -> subnet4 missing dst
+//     subnet3 -> subnet4 different connection
 
 func configSimpleSubnetSubtract() (subnetConfigConn1, subnetConfigConn2 *SubnetConfigConnectivity) {
 	cfg1 := &CloudConfig{Nodes: []Node{}, NodeSets: []NodeSet{}}
@@ -42,7 +43,8 @@ func configSimpleSubnetSubtract() (subnetConfigConn1, subnetConfigConn2 *SubnetC
 	cfg1.NodeSets = append(cfg1.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet0", []Node{cfg1.Nodes[0]}},
 		&mockSubnet{"10.1.20.0/22", "subnet1", []Node{cfg1.Nodes[0]}},
 		&mockSubnet{"10.2.20.0/22", "subnet2", []Node{cfg1.Nodes[1]}})
-	cfg1.NodeSets = append(cfg1.NodeSets, &mockSubnet{"10.3.20.0/22", "subnet3", []Node{cfg1.Nodes[2]}})
+	cfg1.NodeSets = append(cfg1.NodeSets, &mockSubnet{"10.3.20.0/22", "subnet3", []Node{cfg1.Nodes[2]}},
+		&mockSubnet{"10.4.20.0/22", "subnet4", []Node{cfg1.Nodes[2]}})
 
 	cfg2 := &CloudConfig{Nodes: []Node{}, NodeSets: []NodeSet{}}
 	cfg2.Nodes = append(cfg2.Nodes,
@@ -53,12 +55,15 @@ func configSimpleSubnetSubtract() (subnetConfigConn1, subnetConfigConn2 *SubnetC
 		&mockSubnet{"10.3.20.0/22", "subnet3", []Node{cfg2.Nodes[1]}},
 		&mockSubnet{"10.4.20.0/22", "subnet4", []Node{cfg2.Nodes[2]}})
 
+	connectionTCP := common.NewConnectionSet(false)
+	connectionTCP.AddTCPorUDPConn(common.ProtocolTCP, 10, 100, 443, 443)
 	subnetConnMap1 := &VPCsubnetConnectivity{AllowedConnsCombined: NewSubnetConnectivityMap()}
 	subnetConnMap1.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg1.NodeSets[0], cfg1.NodeSets[1], common.NewConnectionSet(true))
 	subnetConnMap1.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg1.NodeSets[1], cfg1.NodeSets[2], common.NewConnectionSet(true))
 	subnetConnMap1.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg1.NodeSets[3], cfg1.NodeSets[1], common.NewConnectionSet(true))
 	subnetConnMap1.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg1.NodeSets[2], cfg1.NodeSets[3], common.NewConnectionSet(true))
 	subnetConnMap1.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg1.NodeSets[3], cfg1.NodeSets[2], common.NewConnectionSet(true))
+	subnetConnMap1.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg1.NodeSets[3], cfg1.NodeSets[4], connectionTCP)
 
 	subnetConnMap2 := &VPCsubnetConnectivity{AllowedConnsCombined: NewSubnetConnectivityMap()}
 	subnetConnMap2.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg2.NodeSets[1], cfg2.NodeSets[0], common.NewConnectionSet(true))
@@ -78,13 +83,15 @@ func TestSimpleSubnetSubtract(t *testing.T) {
 	newLines := strings.Count(subnet1Subtract2Str, "\n")
 	// there should be 4 lines in subnet1Subtract2Str
 	require.Equal(t, 4, newLines)
-	require.Contains(t, subnet1Subtract2Str, "-- subnet3 => subnet1 :  missing destination")
-	require.Contains(t, subnet1Subtract2Str, "-- subnet2 => subnet3 :  missing connection")
-	require.Contains(t, subnet1Subtract2Str, "-- subnet0 => subnet1 :  missing source and destination")
-	require.Contains(t, subnet1Subtract2Str, "-- subnet1 => subnet2 :  missing source")
+	require.Contains(t, subnet1Subtract2Str, "-- subnet3 => subnet1 : missing destination")
+	require.Contains(t, subnet1Subtract2Str, "-- subnet2 => subnet3 : missing connection")
+	require.Contains(t, subnet1Subtract2Str, "-- subnet0 => subnet1 : missing source and destination")
+	require.Contains(t, subnet1Subtract2Str, "-- subnet1 => subnet2 : missing source")
 
 	subnet2Subtract1 := subnetConfigConn2.SubnetConnectivitySubtract(subnetConfigConn1)
 	subnet2Subtract1Str := subnet2Subtract1.EnhancedString(false)
 	fmt.Printf("subnet2Subtract1:\n%v\n", subnet2Subtract1Str)
-	require.Equal(t, "++ subnet3 => subnet4 :  missing destination\n", subnet2Subtract1Str)
+	require.Equal(t, "++ subnet3 => subnet4 : changed connection "+
+		"protocol: TCP src-ports: 1-9,101-65535; protocol: TCP src-ports: "+
+		"10-100 dst-ports: 1-442,444-65535; protocol: UDP,ICMP\n", subnet2Subtract1Str)
 }

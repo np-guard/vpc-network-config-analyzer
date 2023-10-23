@@ -5,7 +5,7 @@ import "strings"
 const (
 	minID      = 100
 	nextIDStep = 10
-	niVsiID    = 1
+	miniIconID = 1
 	niFipID    = 2
 	textID     = 3
 	tagID      = 4

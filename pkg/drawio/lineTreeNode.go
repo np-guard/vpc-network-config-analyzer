@@ -67,14 +67,13 @@ func (tn *abstractLineTreeNode) addPoint(x, y int) {
 }
 
 // ////////////////////////////////////////////////////////////////
-type VsiLineTreeNode struct {
+type LogicalLineTreeNode struct {
 	abstractLineTreeNode
 }
 
-func newVsiLineTreeNode(network SquareTreeNodeInterface, vsi, ni IconTreeNodeInterface) *VsiLineTreeNode {
-	conn := VsiLineTreeNode{abstractLineTreeNode{abstractTreeNode: newAbstractTreeNode(network, ""), src: vsi, dst: ni}}
+func newLogicalLineTreeNode(network SquareTreeNodeInterface, i1, i2 IconTreeNodeInterface) {
+	conn := LogicalLineTreeNode{abstractLineTreeNode{abstractTreeNode: newAbstractTreeNode(network, ""), src: i1, dst: i2}}
 	network.addLineTreeNode(&conn)
-	return &conn
 }
 
 // ////////////////////////////////////////////////////////////////

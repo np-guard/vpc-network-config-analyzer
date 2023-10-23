@@ -6,7 +6,8 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
-// ToDo: go over structs specifically * and lack of
+// ToDo: getConnectivesWithSameIPBlocks not yet implemented - namely, diff between connections that include external addresses
+//       is not yet supported
 
 type DiffType = int
 
@@ -46,11 +47,11 @@ type diffBetweenSubnets struct {
 
 func (configs ConfigsForDiff) GetSubnetsDiff(grouping bool) (*diffBetweenSubnets, error) {
 	// 1. compute connectivity for each of the subnets
-	subnetsConn1, err := configs.config1.GetSubnetsConnectivity(true, grouping)
+	subnetsConn1, err := configs.config1.GetSubnetsConnectivity(true, false)
 	if err != nil {
 		return nil, nil
 	}
-	subnetsConn2, err := configs.config2.GetSubnetsConnectivity(true, grouping)
+	subnetsConn2, err := configs.config2.GetSubnetsConnectivity(true, false)
 	if err != nil {
 		return nil, nil
 	}
@@ -145,7 +146,7 @@ func (subnetConfConnectivity *SubnetConfigConnectivity) SubnetConnectivitySubtra
 					diffConnectionWithType.diff = MissingConnection
 				}
 			} else { // srcInOther == nil || dstInOther == nil
-				diffConnectionWithType.diff = getDiffType(srcInOther, dstInOther)
+				diffConnectionWithType.diff = getDiffType(src, srcInOther, dst, dstInOther)
 			}
 			connectivitySubtract[src][dst] = diffConnectionWithType
 		}
@@ -153,14 +154,23 @@ func (subnetConfConnectivity *SubnetConfigConnectivity) SubnetConnectivitySubtra
 	return connectivitySubtract
 }
 
-func getDiffType(srcInOther, dstInOther EndpointElem) DiffType {
+// lack of a subnet is marked as a missing endpoint
+// a lack of identical external endpoint is considered as a missing connection
+// and not as a missing endpoint
+func getDiffType(src, srcInOther, dst, dstInOther EndpointElem) DiffType {
+	_, srcIsSubnet := src.(NodeSet)
+	_, dstIsSubnet := dst.(NodeSet)
+	missingSrc := srcInOther == nil && srcIsSubnet
+	missingDst := dstInOther == nil && dstIsSubnet
 	switch {
-	case srcInOther == nil && dstInOther == nil:
+	case missingSrc && missingDst:
 		return MissingSrcDstEP
-	case srcInOther == nil && dstInOther != nil:
+	case missingSrc:
 		return MissingSrcEP
-	case srcInOther != nil && dstInOther == nil:
+	case missingDst:
 		return MissingDstEP
+	case srcInOther == nil || dstInOther == nil:
+		return MissingConnection
 	}
 	return NoDiff
 }
@@ -181,13 +191,13 @@ func (subnetDiff *SubnetsDiff) EnhancedString(thisMinusOther bool) string {
 				connectionSetDiff = connDiff.ConnectionSet.EnhancedString()
 			}
 			printDiff += fmt.Sprintf("%s %s => %s : %s %s\n", diffDirection, src.Name(), dst.Name(),
-				connectionSetDiff, diffDecription(connDiff.diff))
+				diffDescription(connDiff.diff), connectionSetDiff)
 		}
 	}
 	return printDiff
 }
 
-func diffDecription(diff DiffType) string {
+func diffDescription(diff DiffType) string {
 	switch diff {
 	case MissingSrcEP:
 		return "missing source"
