@@ -12,17 +12,29 @@ import (
 var drawioTemplate string
 
 type drawioData struct {
-	FipXOffset int
-	FipYOffset int
-	VSIXOffset int
-	VSIYOffset int
-	VSISize    int
-	RootID     uint
-	IDsPrefix  string
-	// ShowNIIcon says if to display the NI as an NI image, or a VSI image
-	// the rule is that if we have a vsi icon, then we display the NI icon as an NI image
-	ShowNIIcon bool
-	Nodes      []TreeNodeInterface
+	drawioStyles
+	rootID uint
+	Nodes  []TreeNodeInterface
+}
+
+func NewDrawioData(network SquareTreeNodeInterface) *drawioData {
+	allNodes := getAllNodes(network)
+	orderedNodes := orderNodesForDrawio(allNodes)
+	return &drawioData{
+		newDrawioStyles(allNodes),
+		network.ID(),
+		orderedNodes,
+	}
+}
+func (data *drawioData) FipXOffset() int      { return fipXOffset }
+func (data *drawioData) FipYOffset() int      { return fipYOffset }
+func (data *drawioData) MiniIconXOffset() int { return miniIconXOffset }
+func (data *drawioData) MiniIconYOffset() int { return miniIconYOffset }
+func (data *drawioData) MiniIconSize() int    { return miniIconSize }
+func (data *drawioData) RootID() uint         { return data.rootID }
+func (data *drawioData) IDsPrefix() string    { return idsPrefix }
+func (data *drawioData) ElementComment(tn TreeNodeInterface) string {
+	return reflect.TypeOf(tn).Elem().Name() + " " + tn.Label()
 }
 
 // orderNodesForDrawio() sort the nodes for the drawio canvas
@@ -54,18 +66,8 @@ func orderNodesForDrawio(nodes []TreeNodeInterface) []TreeNodeInterface {
 
 func CreateDrawioConnectivityMapFile(network SquareTreeNodeInterface, outputFile string) error {
 	newLayout(network).layout()
-	allNodes := getAllNodes(network)
-	data := &drawioData{
-		fipXOffset,
-		fipYOffset,
-		vsiXOffset,
-		vsiYOffset,
-		vsiIconSize,
-		network.ID(),
-		idsPrefix,
-		network.HasVSIs(),
-		orderNodesForDrawio(allNodes)}
-	return writeDrawioFile(data, outputFile)
+
+	return writeDrawioFile(NewDrawioData(network), outputFile)
 }
 
 func writeDrawioFile(data *drawioData, outputFile string) error {

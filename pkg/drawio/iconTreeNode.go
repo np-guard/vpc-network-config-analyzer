@@ -3,7 +3,9 @@ package drawio
 type IconTreeNodeInterface interface {
 	TreeNodeInterface
 	RouterID() uint
+	// TODO - support multi GSs
 	SG() SquareTreeNodeInterface
+	setSG(SquareTreeNodeInterface)
 	allocateNewRouteOffset() int
 	IsVSI() bool
 	IsNI() bool
@@ -14,6 +16,7 @@ type IconTreeNodeInterface interface {
 	IsGateway() bool
 	absoluteRouterGeometry() (int, int)
 	IconSize() int
+	hasMiniIcon() bool
 }
 
 type abstractIconTreeNode struct {
@@ -27,16 +30,19 @@ func newAbstractIconTreeNode(parent SquareTreeNodeInterface, name string) abstra
 	return abstractIconTreeNode{abstractTreeNode: newAbstractTreeNode(parent, name)}
 }
 
-func (tn *abstractIconTreeNode) SG() SquareTreeNodeInterface { return tn.sg }
-func (tn *abstractIconTreeNode) IsIcon() bool                { return true }
-func (tn *abstractIconTreeNode) IsVSI() bool                 { return false }
-func (tn *abstractIconTreeNode) IsGateway() bool             { return false }
-func (tn *abstractIconTreeNode) IsNI() bool                  { return false }
-func (tn *abstractIconTreeNode) IsGroupingPoint() bool       { return false }
-func (tn *abstractIconTreeNode) SetTooltip(tooltip []string) { tn.tooltip = tooltip }
-func (tn *abstractIconTreeNode) HasTooltip() bool            { return len(tn.tooltip) > 0 }
-func (tn *abstractIconTreeNode) Tooltip() string             { return labels2Table(tn.tooltip) }
-func (tn *abstractIconTreeNode) IconSize() int               { return iconSize }
+func (tn *abstractIconTreeNode) SG() SquareTreeNodeInterface      { return tn.sg }
+func (tn *abstractIconTreeNode) setSG(sg SquareTreeNodeInterface) { tn.sg = sg }
+func (tn *abstractIconTreeNode) IsIcon() bool                     { return true }
+func (tn *abstractIconTreeNode) IsVSI() bool                      { return false }
+func (tn *abstractIconTreeNode) IsGateway() bool                  { return false }
+func (tn *abstractIconTreeNode) IsNI() bool                       { return false }
+func (tn *abstractIconTreeNode) IsGroupingPoint() bool            { return false }
+func (tn *abstractIconTreeNode) SetTooltip(tooltip []string)      { tn.tooltip = tooltip }
+func (tn *abstractIconTreeNode) HasTooltip() bool                 { return len(tn.tooltip) > 0 }
+func (tn *abstractIconTreeNode) Tooltip() string                  { return labels2Table(tn.tooltip) }
+func (tn *abstractIconTreeNode) IconSize() int                    { return iconSize }
+func (tn *abstractIconTreeNode) hasMiniIcon() bool                { return false }
+func (tn *abstractIconTreeNode) MiniIconID() uint                 { return tn.id + miniIconID }
 
 var offsets = []int{
 	0,
@@ -75,23 +81,15 @@ type NITreeNode struct {
 	vsi        string
 }
 
-func NewNITreeNode(parent SquareTreeNodeInterface, sg *SGTreeNode, name string) *NITreeNode {
+func NewNITreeNode(parent SquareTreeNodeInterface, name string) *NITreeNode {
 	ni := NITreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, name)}
 	parent.addIconTreeNode(&ni)
-	if sg != nil {
-		ni.SetSG(sg)
-	}
 	return &ni
 }
-func (tn *NITreeNode) SetSG(sg *SGTreeNode) {
-	sg.addIconTreeNode(tn)
-	tn.sg = sg
-}
-func (tn *NITreeNode) VsiID() uint       { return tn.id + niVsiID }
+
 func (tn *NITreeNode) FipID() uint       { return tn.id + niFipID }
-func (tn *NITreeNode) SetVsi(vsi string) { tn.vsi = vsi }
-func (tn *NITreeNode) Vsi() string       { return tn.vsi }
-func (tn *NITreeNode) HasVsi() bool      { return tn.Vsi() != "" }
+func (tn *NITreeNode) setVsi(vsi string) { tn.vsi = vsi }
+func (tn *NITreeNode) hasMiniIcon() bool { return tn.vsi != "" }
 func (tn *NITreeNode) SetFIP(fip string) { tn.floatingIP = fip }
 func (tn *NITreeNode) Fip() string       { return tn.floatingIP }
 func (tn *NITreeNode) HasFip() bool      { return tn.Fip() != "" }
@@ -103,6 +101,22 @@ func (tn *NITreeNode) absoluteRouterGeometry() (x, y int) {
 	x, y = absoluteGeometry(tn)
 	return x + fipXOffset, y + fipYOffset
 }
+
+// ///////////////////////////////////////////
+type ResIPTreeNode struct {
+	abstractIconTreeNode
+	vpe string
+}
+
+func NewResIPTreeNode(parent SquareTreeNodeInterface, name string) *ResIPTreeNode {
+	rip := ResIPTreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, name)}
+	parent.addIconTreeNode(&rip)
+	return &rip
+}
+
+func (tn *ResIPTreeNode) setVpe(vpe string) { tn.vpe = vpe }
+func (tn *ResIPTreeNode) hasMiniIcon() bool { return tn.vpe != "" }
+func (tn *ResIPTreeNode) Label() string     { return labels2Table([]string{tn.name, tn.vpe}) }
 
 // ///////////////////////////////////////////
 type GatewayTreeNode struct {
@@ -136,11 +150,11 @@ type VsiTreeNode struct {
 func GroupNIsWithVSI(parent SquareTreeNodeInterface, name string, nis []TreeNodeInterface) {
 	switch {
 	case len(nis) == 1:
-		nis[0].(*NITreeNode).SetVsi(name)
+		nis[0].(*NITreeNode).setVsi(name)
 	case len(nis) > 1:
 		vsi := newVsiTreeNode(parent, name, nis)
 		for _, ni := range nis {
-			newVsiLineTreeNode(parent, vsi, ni.(*NITreeNode))
+			newLogicalLineTreeNode(parent, vsi, ni.(IconTreeNodeInterface))
 		}
 	}
 }
@@ -148,7 +162,6 @@ func GroupNIsWithVSI(parent SquareTreeNodeInterface, name string, nis []TreeNode
 func newVsiTreeNode(parent SquareTreeNodeInterface, name string, nis []TreeNodeInterface) *VsiTreeNode {
 	vsi := &VsiTreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, name), nis: nis}
 	parent.addIconTreeNode(vsi)
-	parent.setHasVSIs()
 	return vsi
 }
 
@@ -168,6 +181,30 @@ func (tn *VsiTreeNode) DrawioParent() TreeNodeInterface {
 }
 
 func (tn *VsiTreeNode) IsVSI() bool { return true }
+
+// ///////////////////////////////////////////
+type VpeTreeNode struct {
+	abstractIconTreeNode
+	resIPs []TreeNodeInterface
+}
+
+func GroupResIPsWithVpe(parent SquareTreeNodeInterface, name string, resIPs []TreeNodeInterface) {
+	switch {
+	case len(resIPs) == 1:
+		resIPs[0].(*ResIPTreeNode).setVpe(name)
+	case len(resIPs) > 1:
+		vpe := newVpeTreeNode(parent, name, resIPs)
+		for _, resIP := range resIPs {
+			newLogicalLineTreeNode(parent, vpe, resIP.(IconTreeNodeInterface))
+		}
+	}
+}
+
+func newVpeTreeNode(parent SquareTreeNodeInterface, name string, resIPs []TreeNodeInterface) *VpeTreeNode {
+	vpe := &VpeTreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, name), resIPs: resIPs}
+	parent.addIconTreeNode(vpe)
+	return vpe
+}
 
 // ///////////////////////////////////////////
 // GroupPointTreeNode is an icon for grouping, see GroupSquareTreeNode for details
