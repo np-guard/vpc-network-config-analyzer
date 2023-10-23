@@ -6,7 +6,8 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
-// ToDo: go over structs specifically * and lack of
+// ToDo: getConnectivesWithSameIPBlocks not yet implemented - namely, diff between connections that include external addresses
+//       is not yet supported
 
 type DiffType = int
 
