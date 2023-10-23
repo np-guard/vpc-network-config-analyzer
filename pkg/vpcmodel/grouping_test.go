@@ -40,7 +40,7 @@ func (m *mockNetIntf) ZoneName() string {
 func (m *mockNetIntf) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
 	return nil
 }
-func (m *mockNetIntf) IsExternal() bool { return false }
+func (m *mockNetIntf) IsExternal() bool { return m.cidr != "" }
 
 type mockSubnet struct {
 	cidr  string

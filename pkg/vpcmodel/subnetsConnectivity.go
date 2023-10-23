@@ -315,7 +315,7 @@ func (c *CloudConfig) GetConnectivityOutputPerEachSubnetSeparately() string {
 	return ""
 }
 
-func (connectivity SubnetConnectivityMap) updateAllowedSubnetConnsMap(src, dst NodeSet, conn *common.ConnectionSet) {
+func (connectivity SubnetConnectivityMap) updateAllowedSubnetConnsMap(src, dst EndpointElem, conn *common.ConnectionSet) {
 	if _, ok := connectivity[src]; !ok {
 		connectivity[src] = map[EndpointElem]*common.ConnectionSet{}
 	}

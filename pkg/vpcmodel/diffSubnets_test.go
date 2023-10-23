@@ -95,3 +95,53 @@ func TestSimpleSubnetSubtract(t *testing.T) {
 		"protocol: TCP src-ports: 1-9,101-65535; protocol: TCP src-ports: "+
 		"10-100 dst-ports: 1-442,444-65535; protocol: UDP,ICMP\n", subnet2Subtract1Str)
 }
+
+func configSimpleIPAndSubnetSubtract() (subnetConfigConn1, subnetConfigConn2 *SubnetConfigConnectivity) {
+	cfg1 := &CloudConfig{Nodes: []Node{}, NodeSets: []NodeSet{}}
+	cfg1.NodeSets = append(cfg1.NodeSets, &mockSubnet{"10.1.20.0/22", "subnet1", nil},
+		&mockSubnet{"10.2.20.0/22", "subnet2", nil})
+	cfg1.Nodes = append(cfg1.Nodes,
+		&mockNetIntf{cidr: "1.2.3.0/30", name: "public1-1", isPublic: true},
+		&mockNetIntf{cidr: "250.2.4.0/24", name: "public1-2", isPublic: true})
+
+	cfg2 := &CloudConfig{Nodes: []Node{}, NodeSets: []NodeSet{}}
+	cfg2.NodeSets = append(cfg2.NodeSets, &mockSubnet{"10.1.20.0/22", "subnet1", nil},
+		&mockSubnet{"10.2.20.0/22", "subnet2", nil})
+	cfg2.Nodes = append(cfg2.Nodes,
+		&mockNetIntf{cidr: "1.2.3.0/26", name: "public2-1", isPublic: true},
+		&mockNetIntf{cidr: "250.2.4.0/30", name: "public2-2", isPublic: true})
+
+	//                             cfg1                     cfg2
+	// two comparable connections: <public1-1, subnet1> and <public2-1, subnet1>
+	//                             <subnet2, public1-1> and <subnet2, public2-1>
+	// other are non-comparable connections e.g. <public1-1, subnet2> and <subnet1, public2-2>
+	//                                           <subnet2, public1-2> and <subnet2, public2-2>
+	subnetConnMap1 := &VPCsubnetConnectivity{AllowedConnsCombined: NewSubnetConnectivityMap()}
+	subnetConnMap1.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg1.Nodes[0], cfg1.NodeSets[0], common.NewConnectionSet(true))
+	subnetConnMap1.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg1.NodeSets[1], cfg1.Nodes[0], common.NewConnectionSet(true))
+	subnetConnMap1.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg1.Nodes[0], cfg1.NodeSets[1], common.NewConnectionSet(true))
+	subnetConnMap1.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg1.Nodes[1], cfg1.NodeSets[1], common.NewConnectionSet(true))
+
+	subnetConnMap2 := &VPCsubnetConnectivity{AllowedConnsCombined: NewSubnetConnectivityMap()}
+	subnetConnMap2.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg2.Nodes[0], cfg2.NodeSets[0], common.NewConnectionSet(true))
+	subnetConnMap2.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg2.NodeSets[1], cfg2.Nodes[0], common.NewConnectionSet(true))
+	subnetConnMap2.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg2.Nodes[0], cfg2.NodeSets[1], common.NewConnectionSet(true))
+	subnetConnMap2.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg2.Nodes[1], cfg2.NodeSets[1], common.NewConnectionSet(true))
+
+	subnetConfigConn1 = &SubnetConfigConnectivity{cfg1, subnetConnMap1.AllowedConnsCombined}
+	subnetConfigConn2 = &SubnetConfigConnectivity{cfg2, subnetConnMap2.AllowedConnsCombined}
+
+	return subnetConfigConn1, subnetConfigConn2
+}
+
+func TestSimpleIPAndSubnetSubtract(t *testing.T) {
+	subnetConfigConn1, subnetConfigConn2 := configSimpleIPAndSubnetSubtract()
+	subnetConfigConn1.subnetConnectivity.getIntersectingConnections((subnetConfigConn2.subnetConnectivity))
+	//subnet1Subtract2 := subnetConfigConn1.SubnetConnectivitySubtract(subnetConfigConn2)
+	//subnet1Subtract2Str := subnet1Subtract2.EnhancedString(true)
+	//fmt.Printf("subnet1Subtract2:\n%v\n", subnet1Subtract2Str)
+	//
+	//subnet2Subtract1 := subnetConfigConn2.SubnetConnectivitySubtract(subnetConfigConn1)
+	//subnet2Subtract1Str := subnet2Subtract1.EnhancedString(false)
+	//fmt.Printf("subnet2Subtract1:\n%v\n", subnet2Subtract1Str)
+}

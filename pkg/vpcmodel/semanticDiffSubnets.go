@@ -6,9 +6,6 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
-// ToDo: getConnectivesWithSameIPBlocks not yet implemented - namely, diff between connections that include external addresses
-//       is not yet supported
-
 type DiffType = int
 
 const (
@@ -45,6 +42,11 @@ type diffBetweenSubnets struct {
 	GroupedSubnet1Minus1 *GroupConnLines
 }
 
+type ConnectionEnd struct {
+	src EndpointElem
+	dst EndpointElem
+}
+
 func (configs ConfigsForDiff) GetSubnetsDiff(grouping bool) (*diffBetweenSubnets, error) {
 	// 1. compute connectivity for each of the subnets
 	subnetsConn1, err := configs.config1.GetSubnetsConnectivity(true, false)
@@ -57,7 +59,11 @@ func (configs ConfigsForDiff) GetSubnetsDiff(grouping bool) (*diffBetweenSubnets
 	}
 
 	// 2. Computes delta in both directions
-	subnet1Aligned, subnet2Aligned := subnetsConn1.AllowedConnsCombined.getConnectivesWithSameIPBlocks(subnetsConn2.AllowedConnsCombined)
+	subnet1Aligned, subnet2Aligned, err :=
+		subnetsConn1.AllowedConnsCombined.getConnectivesWithSameIPBlocks(subnetsConn2.AllowedConnsCombined)
+	if err != nil {
+		return nil, err
+	}
 	subnetConfigConnectivity1 := SubnetConfigConnectivity{configs.config1, subnet1Aligned}
 	subnetConfigConnectivity2 := SubnetConfigConnectivity{configs.config2, subnet2Aligned}
 	subnet1Subtract2 := subnetConfigConnectivity1.SubnetConnectivitySubtract(&subnetConfigConnectivity2)
@@ -103,11 +109,114 @@ func (c *CloudConfig) getEndpointElemInOtherConfig(other *CloudConfig, ep Endpoi
 //
 // todo: verify that the returns objects indeed have exactly the same ipBlocks
 func (connectivity SubnetConnectivityMap) getConnectivesWithSameIPBlocks(other SubnetConnectivityMap) (
-	alignedConnectivity SubnetConnectivityMap, alignedOther SubnetConnectivityMap) {
+	alignedConnectivity SubnetConnectivityMap, alignedOther SubnetConnectivityMap, err error) {
+	// Until the above 1 and 2 are reached, repeat the following:
+	// For each connection in connectivity find all comparable connections in other (see below)
+	// 1. Get intersecting connections
+	connectivity.getIntersectingConnections(other)
+
+	// 2. Resize connectivity and other s.t. all detected connections are resized to meet 1 and 2 above; do not resize same connection twice
 	// todo: use DisjointIPBlocks(set1, set2 []*IPBlock) []*IPBlock  of ipBlock.go
 	alignedConnectivity = connectivity
 	alignedOther = other
 	return
+}
+
+// For each connection in connectivity finds all connections in other in which src (dst) intersect
+// src' (dst') but is not equal, and s.t. each connection is other is mapped to at most one connection
+// in connectivity (the first one).
+func (connectivity SubnetConnectivityMap) getIntersectingConnections(other SubnetConnectivityMap) (intersectingIndexes map[int][]int, err error) {
+	intersectingIndexes = make(map[int][]int)
+	err = nil
+	for src, endpointConns := range connectivity {
+		for dst, conns := range endpointConns {
+			if (!src.IsExternal() && !dst.IsExternal()) || conns.IsEmpty() {
+				continue // nothing to do here
+			}
+			for otherSrc, otherEndpointConns := range other {
+				for otherDst, otherConns := range otherEndpointConns {
+					if otherConns.IsEmpty() {
+						continue
+					}
+					bothSrcExt := src.IsExternal() && otherSrc.IsExternal()
+					bothDstExt := dst.IsExternal() && otherDst.IsExternal()
+					if (!bothSrcExt && !bothDstExt) ||
+						otherConns.IsEmpty() {
+						continue // nothing to compare to here
+					}
+					myEp := &ConnectionEnd{src, dst}
+					otherEp := &ConnectionEnd{otherSrc, otherDst}
+					intersecting, err := myEp.connectionsIntersecting(otherEp)
+					if err != nil {
+						return nil, err
+					}
+					if intersecting {
+						fmt.Printf("<%v, %v> and <%v, %v> are comparable\n", src.Name(), dst.Name(), otherSrc.Name(), otherDst.Name())
+						// ToDo: add to the database
+					}
+				}
+			}
+		}
+	}
+	return intersectingIndexes, err
+}
+
+// two connections s.t. each contains at least one external end are comparable if either:
+// both src and dst in both connections are external and they both intersect
+// one end (src/dst) are external in both and intersects and the other (dst/src) are the same subnet
+// two connections s.t. each contains at least one external end are comparable if either:
+// both src and dst in both connections are external and they both intersect but not equal
+// or end (src/dst) are external in both and intersects and the other (dst/src) are the same subnet
+func (myConnEnd *ConnectionEnd) connectionsIntersecting(otherConnEnd *ConnectionEnd) (bool, error) {
+	srcComparable, err := pairEpsComparable(myConnEnd.src, otherConnEnd.src)
+	if err != nil {
+		return false, err
+	}
+	if !srcComparable {
+		return false, nil
+	}
+	dstComparable, err := pairEpsComparable(myConnEnd.dst, otherConnEnd.dst)
+	if err != nil {
+		return false, err
+	}
+	if !dstComparable {
+		return false, err
+	}
+	return true, nil
+}
+
+// checks if two eps refers to the same subnet or
+// refers to intersecting external addresses
+func pairEpsComparable(myEp, otherEp EndpointElem) (bool, error) {
+	mySubnet, isMySubnet := myEp.(NodeSet)
+	otherSubnet, isOtherSubnet := otherEp.(NodeSet)
+	myExternal, isMyExternal := myEp.(Node)
+	otherExternal, isOtherExternal := otherEp.(Node)
+	if (isMySubnet != isOtherSubnet) || (isMyExternal != isOtherExternal) {
+		return false, nil
+	}
+	if isMySubnet { // implies that isOtherSubnet as well
+		if mySubnet.Name() == otherSubnet.Name() {
+			return true, nil
+		} else {
+			return false, nil
+		}
+	}
+	// if we got here then both eps refer to external IP
+	myIpBlock, err := common.NewIPBlock(myExternal.Cidr(), []string{})
+	if err != nil {
+		return false, err
+	}
+	otherIpBlock, err := common.NewIPBlock(otherExternal.Cidr(), []string{})
+	if err != nil {
+		return false, err
+	}
+	// we need to resize if the IpBlocks are intersecting but not equal
+	//fmt.Printf("\t<%v, %v>: cidrs: %v, %v\n", myEp.Name(), otherEp.Name(), myExternal.Cidr(), otherExternal.Cidr())
+	if !myIpBlock.Equal(otherIpBlock) && !myIpBlock.Intersection(otherIpBlock).Empty() {
+		return true, nil
+	}
+	return false, nil
 }
 
 // SubnetConnectivitySubtract Subtract one SubnetConnectivityMap from the other
@@ -116,6 +225,9 @@ func (subnetConfConnectivity *SubnetConfigConnectivity) SubnetConnectivitySubtra
 	connectivitySubtract := map[EndpointElem]map[EndpointElem]*connectionDiff{}
 	for src, endpointConns := range subnetConfConnectivity.subnetConnectivity {
 		for dst, conns := range endpointConns {
+			if src.IsExternal() || dst.IsExternal() { // todo: tmp
+				continue
+			}
 			if conns.IsEmpty() {
 				continue
 			}
