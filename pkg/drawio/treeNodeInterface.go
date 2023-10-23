@@ -25,9 +25,9 @@ package drawio
 //
 // abstractTreeNode is the basic struct implementing a TreeNode.
 // the structs abstractSquareTreeNode, abstractIconTreeNode, abstractLineTreeNode contain abstractTreeNode
-// All structs representing a Square (VpcTreeNode, ZoneTreeNode, SubnetTreeNode...) contain abstractIconTreeNode
+// All structs representing a Square (VpcTreeNode, ZoneTreeNode, SubnetTreeNode...) contain abstractSQuareTreeNode
 // All structs representing an icons (NITreeNode, GatewayTreeNode, UserTreeNode...) contain abstractIconTreeNode
-// All structs representing a line (LogicalLineTreeNode, ConnectivityTreeNode) contain abstractIconTreeNode
+// All structs representing a line (LogicalLineTreeNode, ConnectivityTreeNode) contain abstractLineTreeNode
 
 // TreeNode main information that a TreeNode holds is:
 // 1. information about the tree (its parents, its children)
