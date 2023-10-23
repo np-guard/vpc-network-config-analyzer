@@ -371,3 +371,40 @@ func TestConfigSelfLoopCliqueLace(t *testing.T) {
 	fmt.Println(groupingStr)
 	fmt.Println("done")
 }
+func configSubnetSelfLoop() (*CloudConfig, *VPCsubnetConnectivity) {
+	res := &CloudConfig{Nodes: []Node{}}
+	res.Nodes = append(res.Nodes,
+		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1"},
+		&mockNetIntf{cidr: "10.3.20.6/32", name: "vsi2"},
+		&mockNetIntf{cidr: "10.7.20.7/32", name: "vsi3"})
+
+	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0]}},
+		&mockSubnet{"10.3.20.0/22", "subnet2", []Node{res.Nodes[1]}},
+		&mockSubnet{"10.7.20.0/22", "subnet3", []Node{res.Nodes[2]}})
+
+	res1 := &VPCsubnetConnectivity{AllowedConnsCombined: NewSubnetConnectivityMap()}
+	res1.AllowedConnsCombined.updateAllowedSubnetConnsMap(res.NodeSets[0], res.NodeSets[1], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedSubnetConnsMap(res.NodeSets[0], res.NodeSets[2], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedSubnetConnsMap(res.NodeSets[1], res.NodeSets[0], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedSubnetConnsMap(res.NodeSets[1], res.NodeSets[2], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedSubnetConnsMap(res.NodeSets[2], res.NodeSets[0], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedSubnetConnsMap(res.NodeSets[2], res.NodeSets[1], common.NewConnectionSet(true))
+
+	return res, res1
+}
+
+func TestSubnetSelfLoop(t *testing.T) {
+	c, s := configSubnetSelfLoop()
+	res := &GroupConnLines{c: c, s: s,
+		srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
+		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
+		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
+	res.groupExternalAddressesForSubnets()
+	res.groupInternalSrcOrDst(false, false)
+	res.groupInternalSrcOrDst(true, false)
+	groupingStr := res.String()
+	require.Equal(t, "subnet1,subnet2,subnet3 => subnet1,subnet2,subnet3 : All Connections\n\n"+
+		"connections are stateful unless marked with *\n", groupingStr)
+	fmt.Println(groupingStr)
+	fmt.Println("done")
+}

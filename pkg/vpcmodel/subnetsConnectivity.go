@@ -7,12 +7,14 @@ import (
 	"fmt"
 )
 
+type SubnetConnectivityMap map[EndpointElem]map[EndpointElem]*common.ConnectionSet
+
 // VPCsubnetConnectivity captures allowed connectivity for subnets, considering nacl and pgw resources
 type VPCsubnetConnectivity struct {
 	// computed for each node (subnet), by iterating its ConnectivityResult for all relevant VPC resources that capture it
 	AllowedConns map[EndpointElem]*ConfigBasedConnectivityResults
 	// combined connectivity - considering both ingress and egress per connection
-	AllowedConnsCombined map[EndpointElem]map[EndpointElem]*common.ConnectionSet
+	AllowedConnsCombined SubnetConnectivityMap
 	CloudConfig          *CloudConfig
 	// grouped connectivity result
 	GroupedConnectivity *GroupConnLines
@@ -23,6 +25,10 @@ const (
 	pgwKind                   = "PublicGateway"
 	errUnexpectedTypePeerNode = "unexpected type for peerNode in computeAllowedConnsCombined"
 )
+
+func NewSubnetConnectivityMap() SubnetConnectivityMap {
+	return SubnetConnectivityMap{}
+}
 
 func subnetConnLine(subnet string, conn *common.ConnectionSet) string {
 	return fmt.Sprintf("%s : %s\n", subnet, conn.String())
@@ -307,4 +313,11 @@ func (c *CloudConfig) GetConnectivityOutputPerEachSubnetSeparately() string {
 		}
 	}
 	return ""
+}
+
+func (connectivity SubnetConnectivityMap) updateAllowedSubnetConnsMap(src, dst NodeSet, conn *common.ConnectionSet) {
+	if _, ok := connectivity[src]; !ok {
+		connectivity[src] = map[EndpointElem]*common.ConnectionSet{}
+	}
+	connectivity[src][dst] = conn
 }
