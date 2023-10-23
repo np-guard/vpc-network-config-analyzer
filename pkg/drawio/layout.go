@@ -136,7 +136,7 @@ func sortGroupSquareBySize(groups []SquareTreeNodeInterface) []SquareTreeNodeInt
 //	         - else if all the NIs in the group not in a bigger group - its visibility is square
 //	         - else if all the NIs in the group are in one bigger group - its visibility is innerSquare
 //	         - else its visibility is connectedPoint
-func (ly *layoutS) calcGroupsVisibility(subnet SquareTreeNodeInterface) {
+func calcGroupsVisibility(subnet SquareTreeNodeInterface) {
 	sortedBySizeGroups := sortGroupSquareBySize(subnet.(*SubnetTreeNode).groupSquares)
 	iconShownSquareGroups := map[IconTreeNodeInterface]map[SquareTreeNodeInterface]bool{}
 	for _, groupS := range sortedBySizeGroups {
@@ -175,7 +175,7 @@ func (ly *layoutS) calcGroupsVisibility(subnet SquareTreeNodeInterface) {
 // 2. getSubnetIconsOrder() - set the order of the icons to be displayed in the subnet
 //   returns [][]IconTreeNodeInterface - the order of the icons.
 
-func (ly *layoutS) getSubnetIconsOrder(subnet SquareTreeNodeInterface) [][]IconTreeNodeInterface {
+func getSubnetIconsOrder(subnet SquareTreeNodeInterface) [][]IconTreeNodeInterface {
 	sortedBySizeGroups := sortGroupSquareBySize(subnet.(*SubnetTreeNode).groupSquares)
 	iconOuterGroup := map[IconTreeNodeInterface]SquareTreeNodeInterface{}
 	iconInnerGroup := map[IconTreeNodeInterface]SquareTreeNodeInterface{}
@@ -270,8 +270,8 @@ func (ly *layoutS) layoutSubnetsIcons() {
 				ly.setDefaultLocation(zone, rowIndex, colIndex)
 				for _, subnet := range zone.(*ZoneTreeNode).subnets {
 					ly.setDefaultLocation(subnet, rowIndex, colIndex)
-					ly.calcGroupsVisibility(subnet)
-					groups := ly.getSubnetIconsOrder(subnet)
+					calcGroupsVisibility(subnet)
+					groups := getSubnetIconsOrder(subnet)
 					for _, group := range groups {
 						rowIndex, colIndex = ly.layoutGroupIcons(group, rowIndex, colIndex)
 					}
@@ -352,7 +352,7 @@ func (ly *layoutS) resolvePublicNetworkLocations() {
 	ly.network.(*NetworkTreeNode).publicNetwork.setLocation(pnl)
 }
 
-func (ly *layoutS) setGroupSquareOffsets(tn SquareTreeNodeInterface) {
+func setGroupSquareOffsets(tn SquareTreeNodeInterface) {
 	if tn.(*GroupSquareTreeNode).visibility == square {
 		tn.Location().xOffset = groupBorderWidth
 		tn.Location().yOffset = groupTopBorderWidth
@@ -367,7 +367,7 @@ func (ly *layoutS) setGroupSquareOffsets(tn SquareTreeNodeInterface) {
 	}
 }
 
-func (*layoutS) resolveSquareLocation(tn SquareTreeNodeInterface, internalBorders int, addExternalBorders bool) {
+func resolveSquareLocation(tn SquareTreeNodeInterface, internalBorders int, addExternalBorders bool) {
 	nl := mergeLocations(locations(getAllNodes(tn)))
 	for i := 0; i < internalBorders; i++ {
 		nl = newLocation(nl.prevRow(), nl.nextRow(), nl.prevCol(), nl.nextCol())
@@ -387,23 +387,23 @@ func (*layoutS) resolveSquareLocation(tn SquareTreeNodeInterface, internalBorder
 
 func (ly *layoutS) setSquaresLocations() {
 	for _, cloud := range ly.network.(*NetworkTreeNode).clouds {
-		ly.resolveSquareLocation(cloud, cloudToSubnetDepth, true)
+		resolveSquareLocation(cloud, cloudToSubnetDepth, true)
 		for _, vpc := range cloud.(*CloudTreeNode).vpcs {
-			ly.resolveSquareLocation(vpc, vpcToSubnetDepth, true)
+			resolveSquareLocation(vpc, vpcToSubnetDepth, true)
 			for _, zone := range vpc.(*VpcTreeNode).zones {
-				ly.resolveSquareLocation(zone, zoneToSubnetDepth, true)
+				resolveSquareLocation(zone, zoneToSubnetDepth, true)
 				for _, subnet := range zone.(*ZoneTreeNode).subnets {
-					ly.resolveSquareLocation(subnet, 0, true)
+					resolveSquareLocation(subnet, 0, true)
 					for _, groupSquare := range subnet.(*SubnetTreeNode).groupSquares {
-						ly.resolveSquareLocation(groupSquare, 0, false)
-						ly.setGroupSquareOffsets(groupSquare)
+						resolveSquareLocation(groupSquare, 0, false)
+						setGroupSquareOffsets(groupSquare)
 					}
 				}
 			}
 		}
 	}
 	ly.resolvePublicNetworkLocations()
-	ly.resolveSquareLocation(ly.network, 1, false)
+	resolveSquareLocation(ly.network, 1, false)
 }
 
 // ////////////////////////////////////////////////////////////////////////////////////////
@@ -469,7 +469,7 @@ func (ly *layoutS) setVpcIconsLocations(vpc SquareTreeNodeInterface) {
 // every connection to a group square is done via a grouping point
 // calcGroupingIconLocation() calc the raw and column of a group point depend of the locations of the group, and the colleague group
 // the group points are located in the column outside the subnet. in the left or in the right. depend on the colleague location
-func (ly *layoutS) calcGroupingIconLocation(location, collLocation *Location) (r *row, c *col) {
+func calcGroupingIconLocation(location, collLocation *Location) (r *row, c *col) {
 	switch {
 	case location.lastRow.index < collLocation.firstRow.index:
 		r = location.lastRow
@@ -509,7 +509,7 @@ func (ly *layoutS) setGroupingIconLocations() {
 		colleague := gIcon.getColleague()
 		parentLocation := parent.Location()
 		colleagueParentLocation := colleague.Parent().Location()
-		r, c := ly.calcGroupingIconLocation(parentLocation, colleagueParentLocation)
+		r, c := calcGroupingIconLocation(parentLocation, colleagueParentLocation)
 
 		gIcon.setLocation(newCellLocation(r, c))
 		gIcon.Location().yOffset = groupedIconsDistance * iconsInCell[cell{r, c}]
@@ -535,7 +535,7 @@ func (ly *layoutS) setGroupingIconLocations() {
 // if vsi icon shares by several subnet - we put it below one of the subnets
 // else we put it inside the subnet
 // gateway we put at the top
-func (ly *layoutS) setZoneIconsLocations(zone SquareTreeNodeInterface) {
+func setZoneIconsLocations(zone SquareTreeNodeInterface) {
 	for _, icon := range zone.IconTreeNodes() {
 		if icon.IsVSI() {
 			vsiIcon := icon.(*VsiTreeNode)
@@ -575,7 +575,7 @@ func (ly *layoutS) setIconsLocations() {
 	for _, cloud := range ly.network.(*NetworkTreeNode).clouds {
 		for _, vpc := range cloud.(*CloudTreeNode).vpcs {
 			for _, zone := range vpc.(*VpcTreeNode).zones {
-				ly.setZoneIconsLocations(zone)
+				setZoneIconsLocations(zone)
 			}
 			ly.setVpcIconsLocations(vpc)
 		}
