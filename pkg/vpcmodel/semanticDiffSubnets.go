@@ -110,114 +110,18 @@ func (c *CloudConfig) getEndpointElemInOtherConfig(other *CloudConfig, ep Endpoi
 // todo: verify that the returns objects indeed have exactly the same ipBlocks
 func (connectivity SubnetConnectivityMap) getConnectivesWithSameIPBlocks(other SubnetConnectivityMap) (
 	alignedConnectivity SubnetConnectivityMap, alignedOther SubnetConnectivityMap, err error) {
-	// Until the above 1 and 2 are reached, repeat the following:
-	// For each connection in connectivity find all comparable connections in other (see below)
-	// 1. Get intersecting connections
-	connectivity.getIntersectingConnections(other)
 
-	// 2. Resize connectivity and other s.t. all detected connections are resized to meet 1 and 2 above; do not resize same connection twice
+	// Resize connectivity and other s.t. all detected connections are resized to meet 1 and 2 above
+	// To that end we get a list of all disjoint src IPBlocks and dst IPBlocks
+	// and resize by the disjoint IPBlocks
 	// todo: use DisjointIPBlocks(set1, set2 []*IPBlock) []*IPBlock  of ipBlock.go
 	alignedConnectivity = connectivity
 	alignedOther = other
 	return
 }
 
-// For each connection in connectivity finds all connections in other in which src (dst) intersect
-// src' (dst') but is not equal, and s.t. each connection is other is mapped to at most one connection
-// in connectivity (the first one).
-func (connectivity SubnetConnectivityMap) getIntersectingConnections(other SubnetConnectivityMap) (intersectingIndexes map[int][]int, err error) {
-	intersectingIndexes = make(map[int][]int)
-	err = nil
-	for src, endpointConns := range connectivity {
-		for dst, conns := range endpointConns {
-			if (!src.IsExternal() && !dst.IsExternal()) || conns.IsEmpty() {
-				continue // nothing to do here
-			}
-			for otherSrc, otherEndpointConns := range other {
-				for otherDst, otherConns := range otherEndpointConns {
-					if otherConns.IsEmpty() {
-						continue
-					}
-					bothSrcExt := src.IsExternal() && otherSrc.IsExternal()
-					bothDstExt := dst.IsExternal() && otherDst.IsExternal()
-					if (!bothSrcExt && !bothDstExt) ||
-						otherConns.IsEmpty() {
-						continue // nothing to compare to here
-					}
-					myEp := &ConnectionEnd{src, dst}
-					otherEp := &ConnectionEnd{otherSrc, otherDst}
-					intersecting, err := myEp.connectionsIntersecting(otherEp)
-					if err != nil {
-						return nil, err
-					}
-					if intersecting {
-						fmt.Printf("<%v, %v> and <%v, %v> are comparable\n", src.Name(), dst.Name(), otherSrc.Name(), otherDst.Name())
-						// ToDo: add to the database
-					}
-				}
-			}
-		}
-	}
-	return intersectingIndexes, err
-}
-
-// two connections s.t. each contains at least one external end are comparable if either:
-// both src and dst in both connections are external and they both intersect
-// one end (src/dst) are external in both and intersects and the other (dst/src) are the same subnet
-// two connections s.t. each contains at least one external end are comparable if either:
-// both src and dst in both connections are external and they both intersect but not equal
-// or end (src/dst) are external in both and intersects and the other (dst/src) are the same subnet
-func (myConnEnd *ConnectionEnd) connectionsIntersecting(otherConnEnd *ConnectionEnd) (bool, error) {
-	srcComparable, err := pairEpsComparable(myConnEnd.src, otherConnEnd.src)
-	if err != nil {
-		return false, err
-	}
-	if !srcComparable {
-		return false, nil
-	}
-	dstComparable, err := pairEpsComparable(myConnEnd.dst, otherConnEnd.dst)
-	if err != nil {
-		return false, err
-	}
-	if !dstComparable {
-		return false, err
-	}
-	return true, nil
-}
-
-// checks if two eps refers to the same subnet or
-// refers to intersecting external addresses
-func pairEpsComparable(myEp, otherEp EndpointElem) (bool, error) {
-	mySubnet, isMySubnet := myEp.(NodeSet)
-	otherSubnet, isOtherSubnet := otherEp.(NodeSet)
-	myExternal, isMyExternal := myEp.(Node)
-	otherExternal, isOtherExternal := otherEp.(Node)
-	if (isMySubnet != isOtherSubnet) || (isMyExternal != isOtherExternal) {
-		return false, nil
-	}
-	if isMySubnet { // implies that isOtherSubnet as well
-		if mySubnet.Name() == otherSubnet.Name() {
-			return true, nil
-		} else {
-			return false, nil
-		}
-	}
-	// if we got here then both eps refer to external IP
-	myIpBlock, err := common.NewIPBlock(myExternal.Cidr(), []string{})
-	if err != nil {
-		return false, err
-	}
-	otherIpBlock, err := common.NewIPBlock(otherExternal.Cidr(), []string{})
-	if err != nil {
-		return false, err
-	}
-	// we need to resize if the IpBlocks are intersecting but not equal
-	//fmt.Printf("\t<%v, %v>: cidrs: %v, %v\n", myEp.Name(), otherEp.Name(), myExternal.Cidr(), otherExternal.Cidr())
-	if !myIpBlock.Equal(otherIpBlock) && !myIpBlock.Intersection(otherIpBlock).Empty() {
-		return true, nil
-	}
-	return false, nil
-}
+// todo: write a function that for SubnetConnectivityMap and a src/dst returns a list of *ipBlocks
+//func ()
 
 // SubnetConnectivitySubtract Subtract one SubnetConnectivityMap from the other
 // assumption: any connection from connectivity and "other" have src (dst) which are either disjoint or equal
@@ -323,6 +227,104 @@ func diffDescription(diff DiffType) string {
 		return "changed connection"
 	}
 	return ""
+}
+
+// todo: the following code finds all couples of connections that should be resized (it IPBlock)
+//
+//		it seems that the code is redundant; yet we keep it with its unit test in case we'll decide
+//		to use it in the future
+//	 it return a string describing the intersecting connections for the unit test
+func (connectivity SubnetConnectivityMap) getIntersectingConnections(other SubnetConnectivityMap) (areIntersecting string,
+	err error) {
+	err = nil
+	for src, endpointConns := range connectivity {
+		for dst, conns := range endpointConns {
+			if (!src.IsExternal() && !dst.IsExternal()) || conns.IsEmpty() {
+				continue // nothing to do here
+			}
+			for otherSrc, otherEndpointConns := range other {
+				for otherDst, otherConns := range otherEndpointConns {
+					if otherConns.IsEmpty() {
+						continue
+					}
+					bothSrcExt := src.IsExternal() && otherSrc.IsExternal()
+					bothDstExt := dst.IsExternal() && otherDst.IsExternal()
+					if (!bothSrcExt && !bothDstExt) ||
+						otherConns.IsEmpty() {
+						continue // nothing to compare to here
+					}
+					myEp := &ConnectionEnd{src, dst}
+					otherEp := &ConnectionEnd{otherSrc, otherDst}
+					intersecting, err := myEp.connectionsIntersecting(otherEp)
+					if err != nil {
+						return areIntersecting, err
+					}
+					if intersecting {
+						areIntersecting += fmt.Sprintf("<%v, %v> and <%v, %v> intersects\n", src.Name(), dst.Name(), otherSrc.Name(), otherDst.Name())
+					}
+				}
+			}
+		}
+	}
+	return areIntersecting, err
+}
+
+// two connections s.t. each contains at least one external end are comparable if either:
+// both src and dst in both connections are external and they both intersect
+// one end (src/dst) are external in both and intersects and the other (dst/src) are the same subnet
+// two connections s.t. each contains at least one external end are comparable if either:
+// both src and dst in both connections are external and they both intersect but not equal
+// or end (src/dst) are external in both and intersects and the other (dst/src) are the same subnet
+func (myConnEnd *ConnectionEnd) connectionsIntersecting(otherConnEnd *ConnectionEnd) (bool, error) {
+	srcComparable, err := pairEpsComparable(myConnEnd.src, otherConnEnd.src)
+	if err != nil {
+		return false, err
+	}
+	if !srcComparable {
+		return false, nil
+	}
+	dstComparable, err := pairEpsComparable(myConnEnd.dst, otherConnEnd.dst)
+	if err != nil {
+		return false, err
+	}
+	if !dstComparable {
+		return false, err
+	}
+	return true, nil
+}
+
+// checks if two eps refers to the same subnet or
+// refers to intersecting external addresses
+func pairEpsComparable(myEp, otherEp EndpointElem) (bool, error) {
+	mySubnet, isMySubnet := myEp.(NodeSet)
+	otherSubnet, isOtherSubnet := otherEp.(NodeSet)
+	myExternal, isMyExternal := myEp.(Node)
+	otherExternal, isOtherExternal := otherEp.(Node)
+	if (isMySubnet != isOtherSubnet) || (isMyExternal != isOtherExternal) {
+		return false, nil
+	}
+	if isMySubnet { // implies that isOtherSubnet as well
+		if mySubnet.Name() == otherSubnet.Name() {
+			return true, nil
+		} else {
+			return false, nil
+		}
+	}
+	// if we got here then both eps refer to external IP
+	myIpBlock, err := common.NewIPBlock(myExternal.Cidr(), []string{})
+	if err != nil {
+		return false, err
+	}
+	otherIpBlock, err := common.NewIPBlock(otherExternal.Cidr(), []string{})
+	if err != nil {
+		return false, err
+	}
+	// we need to resize if the IpBlocks are intersecting but not equal
+	//fmt.Printf("\t<%v, %v>: cidrs: %v, %v\n", myEp.Name(), otherEp.Name(), myExternal.Cidr(), otherExternal.Cidr())
+	if !myIpBlock.Equal(otherIpBlock) && !myIpBlock.Intersection(otherIpBlock).Empty() {
+		return true, nil
+	}
+	return false, nil
 }
 
 // todo: instead of adding functionality to grouping, I plan to have more generic connectivity items that will be grouped

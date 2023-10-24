@@ -111,11 +111,11 @@ func configSimpleIPAndSubnetSubtract() (subnetConfigConn1, subnetConfigConn2 *Su
 		&mockNetIntf{cidr: "1.2.3.0/26", name: "public2-1", isPublic: true},
 		&mockNetIntf{cidr: "250.2.4.0/30", name: "public2-2", isPublic: true})
 
-	//                             cfg1                     cfg2
-	// two comparable connections: <public1-1, subnet1> and <public2-1, subnet1>
-	//                             <subnet2, public1-1> and <subnet2, public2-1>
-	// other are non-comparable connections e.g. <public1-1, subnet2> and <subnet1, public2-2>
-	//                                           <subnet2, public1-2> and <subnet2, public2-2>
+	//      cfg1                                            cfg2
+	//<subnet2, public1-1>			 and		<subnet2, public2-1> are comparable
+	//<public1-2, subnet2> 			 and 		<public2-2, subnet2> are comparable
+	//<public1-1, subnet2> 			 and 		<public2-1, subnet2> are comparable
+	//<public1-1, subnet1> 			 and 		<public2-1, subnet1> are comparable
 	subnetConnMap1 := &VPCsubnetConnectivity{AllowedConnsCombined: NewSubnetConnectivityMap()}
 	subnetConnMap1.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg1.Nodes[0], cfg1.NodeSets[0], common.NewConnectionSet(true))
 	subnetConnMap1.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg1.NodeSets[1], cfg1.Nodes[0], common.NewConnectionSet(true))
@@ -136,7 +136,16 @@ func configSimpleIPAndSubnetSubtract() (subnetConfigConn1, subnetConfigConn2 *Su
 
 func TestSimpleIPAndSubnetSubtract(t *testing.T) {
 	subnetConfigConn1, subnetConfigConn2 := configSimpleIPAndSubnetSubtract()
-	subnetConfigConn1.subnetConnectivity.getIntersectingConnections((subnetConfigConn2.subnetConnectivity))
+	res, _ := subnetConfigConn1.subnetConnectivity.getIntersectingConnections(subnetConfigConn2.subnetConnectivity)
+	fmt.Printf(res)
+	newLines := strings.Count(res, "\n")
+	// there should be 4 lines in subnet1Subtract2Str
+	require.Equal(t, 4, newLines)
+	require.Contains(t, res, "<subnet2, public1-1> and <subnet2, public2-1> intersects")
+	require.Contains(t, res, "<public1-1, subnet2> and <public2-1, subnet2> intersects")
+	require.Contains(t, res, "<subnet2, public1-1> and <subnet2, public2-1> intersects")
+	require.Contains(t, res, "<public1-2, subnet2> and <public2-2, subnet2> intersects")
+
 	//subnet1Subtract2 := subnetConfigConn1.SubnetConnectivitySubtract(subnetConfigConn2)
 	//subnet1Subtract2Str := subnet1Subtract2.EnhancedString(true)
 	//fmt.Printf("subnet1Subtract2:\n%v\n", subnet1Subtract2Str)
