@@ -40,27 +40,8 @@ func analysisTypeToUseCase(inArgs *InArgs) vpcmodel.OutputUseCase {
 	return vpcmodel.AllEndpoints
 }
 
-// The actual main function
-// Takes command-line flags and returns an error rather than exiting, so it can be more easily used in testing
-func _main(cmdlineArgs []string) error {
-	inArgs, err := ParseInArgs(cmdlineArgs)
-	if err == flag.ErrHelp {
-		return nil
-	}
-	if err != nil {
-		return fmt.Errorf("error parsing arguments: %w", err)
-	}
-
-	rc, err := ibmvpc.ParseResourrcesFromFile(*inArgs.InputConfigFile)
-	if err != nil {
-		return fmt.Errorf("error parsing input vpc resources file: %w", err)
-	}
-
-	cloudConfig, err := ibmvpc.NewCloudConfig(rc, *inArgs.VPC)
-	if err != nil {
-		return fmt.Errorf("error generating cloud config from input vpc resources file: %w", err)
-	}
-	og, err := vpcmodel.NewOutputGenerator(cloudConfig,
+func analysisPerCloudConfig(c *vpcmodel.CloudConfig, configName string, inArgs *InArgs, numConfigs int) error {
+	og, err := vpcmodel.NewOutputGenerator(c,
 		*inArgs.Grouping,
 		analysisTypeToUseCase(inArgs),
 		*inArgs.OutputFormat == ARCHDRAWIOFormat)
@@ -72,13 +53,44 @@ func _main(cmdlineArgs []string) error {
 		outFile = *inArgs.OutputFile
 	}
 	outFormat := getOutputFormat(inArgs)
-	output, err := og.Generate(outFormat, outFile)
+	output, err := og.Generate(outFormat, outFile, numConfigs, configName)
 	if err != nil {
 		return fmt.Errorf("output generation error: %w", err)
 	}
 
 	// print to stdout as well
 	fmt.Println(output)
+
+	return nil
+}
+
+// The actual main function
+// Takes command-line flags and returns an error rather than exiting, so it can be more easily used in testing
+func _main(cmdlineArgs []string) error {
+	inArgs, err := ParseInArgs(cmdlineArgs)
+	if err == flag.ErrHelp {
+		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("error parsing arguments: %w", err)
+	}
+
+	rc, err := ibmvpc.ParseResourcesFromFile(*inArgs.InputConfigFile)
+	if err != nil {
+		return fmt.Errorf("error parsing input vpc resources file: %w", err)
+	}
+
+	cloudConfig, err := ibmvpc.CloudConfigsFromResources(rc, *inArgs.VPC, *inArgs.Debug)
+	if err != nil {
+		return fmt.Errorf("error generating cloud config from input vpc resources file: %w", err)
+	}
+	numConfigs := len(cloudConfig)
+	for configName, config := range cloudConfig {
+		err = analysisPerCloudConfig(config, configName, inArgs, numConfigs)
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
 }

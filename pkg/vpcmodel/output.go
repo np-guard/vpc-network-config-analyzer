@@ -2,6 +2,7 @@ package vpcmodel
 
 import (
 	"errors"
+	"fmt"
 	"os"
 )
 
@@ -64,7 +65,7 @@ func NewOutputGenerator(c *CloudConfig, grouping bool, uc OutputUseCase, archOnl
 	return res, nil
 }
 
-func (o *OutputGenerator) Generate(f OutFormat, outFile string) (string, error) {
+func (o *OutputGenerator) Generate(f OutFormat, outFile string, numVPCs int, vpcName string) (string, error) {
 	var formatter OutputFormatter
 	switch f {
 	case JSON:
@@ -83,15 +84,36 @@ func (o *OutputGenerator) Generate(f OutFormat, outFile string) (string, error) 
 		return "", errors.New("unsupported output format")
 	}
 
+	var res string
+	var err error
+
 	switch o.useCase {
 	case AllEndpoints:
-		return formatter.WriteOutputAllEndpoints(o.config, o.nodesConn, outFile, o.outputGrouping)
+		res, err = formatter.WriteOutputAllEndpoints(o.config, o.nodesConn, outFile, o.outputGrouping)
 	case SingleSubnet:
-		return formatter.WriteOutputSingleSubnet(o.config, outFile)
+		res, err = formatter.WriteOutputSingleSubnet(o.config, outFile)
 	case AllSubnets:
-		return formatter.WriteOutputAllSubnets(o.subnetsConn, outFile)
+		res, err = formatter.WriteOutputAllSubnets(o.subnetsConn, outFile)
+	default:
+		return "", errors.New("unsupported useCase argument")
 	}
-	return "", errors.New("unsupported useCase argument")
+
+	return finalizeOutput(res, numVPCs, vpcName, f), err
+}
+
+// finalizeOutput adds info line about the name of the VPC before its analysis output,
+// in case multiple VPCs are analyzed separately
+func finalizeOutput(output string, numVPCs int, vpcName string, f OutFormat) string {
+	if numVPCs == 1 {
+		return output
+	}
+	res := output
+	switch f {
+	case Text, MD, Debug:
+		res = fmt.Sprintf("Analysis for VPC %s:\n%s", vpcName, output)
+		// TODO: handle the other output formats
+	}
+	return res
 }
 
 // OutputFormatter has several write functions per each use-case
