@@ -259,8 +259,11 @@ func (connectivity SubnetConnectivityMap) actualAlignGivenIPBlists(disjointIPblo
 			if conns.IsEmpty() {
 				continue
 			}
+			if _, ok := alignedConnectivity[src]; !ok {
+				alignedConnectivity[src] = map[EndpointElem]*common.ConnectionSet{}
+			}
 			// the resizing element is not external - copy as is
-			if (resizeSrc && !src.IsExternal()) || (!resizeSrc || dst.IsExternal()) {
+			if (resizeSrc && !src.IsExternal()) || (!resizeSrc && !dst.IsExternal()) {
 				alignedConnectivity[src][dst] = conns
 				continue
 			}
@@ -299,9 +302,6 @@ func (connectivity SubnetConnectivityMap) actualAlignGivenIPBlists(disjointIPblo
 					}
 					alignedConnectivity[nodeOfCidr][dst] = conns
 				} else {
-					if _, ok := alignedConnectivity[src]; !ok {
-						alignedConnectivity[src] = map[EndpointElem]*common.ConnectionSet{}
-					}
 					alignedConnectivity[src][nodeOfCidr] = conns
 				}
 			}
