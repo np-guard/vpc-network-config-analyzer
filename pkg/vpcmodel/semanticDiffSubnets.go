@@ -51,11 +51,11 @@ func (configs ConfigsForDiff) GetSubnetsDiff(grouping bool) (*diffBetweenSubnets
 	// 1. compute connectivity for each of the subnets
 	subnetsConn1, err := configs.config1.GetSubnetsConnectivity(true, false)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 	subnetsConn2, err := configs.config2.GetSubnetsConnectivity(true, false)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	// 2. Computes delta in both directions
