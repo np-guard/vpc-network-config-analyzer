@@ -60,7 +60,7 @@ func (configs ConfigsForDiff) GetSubnetsDiff(grouping bool) (*diffBetweenSubnets
 
 	// 2. Computes delta in both directions
 	connectivity1Aligned, connectivity2Aligned, err :=
-		subnetsConn1.AllowedConnsCombined.getConnectivesWithSameIPBlocks(subnetsConn2.AllowedConnsCombined)
+		subnetsConn1.AllowedConnsCombined.GetConnectivesWithSameIPBlocks(subnetsConn2.AllowedConnsCombined)
 	if err != nil {
 		return nil, err
 	}
@@ -209,11 +209,11 @@ func diffDescription(diff DiffType) string {
 	return ""
 }
 
-// generates from subnet1Connectivity.AllowedConnsCombined and subnet2Connectivity.AllowedConnsCombined
+// GetConnectivesWithSameIPBlocks generates from subnet1Connectivity.AllowedConnsCombined and subnet2Connectivity.AllowedConnsCombined
 // Two equivalent SubnetConnectivityMap objects s.t. any (src1, dst1) of subnet1Connectivity and
 // (src2, dst2) of subnet2Connectivity s.t. if src1 and src2 (dst1 and dst2) are both external then
 // they are either equal or disjoint
-func (connectivity SubnetConnectivityMap) getConnectivesWithSameIPBlocks(other SubnetConnectivityMap) (
+func (connectivity SubnetConnectivityMap) GetConnectivesWithSameIPBlocks(other SubnetConnectivityMap) (
 	alignedConnectivity SubnetConnectivityMap, alignedOther SubnetConnectivityMap, err error) {
 	// Get a list of all disjoint src IPBlocks and dst IPBlocks and resize by the disjoint IPBlocks
 	srcAlignedConnectivity, srcAlignedOther, err := connectivity.alignSrcOrDstIPBlocks(other, true)               // resize src
@@ -243,7 +243,6 @@ func (connectivity SubnetConnectivityMap) alignSrcOrDstIPBlocks(other SubnetConn
 	if err != nil {
 		return nil, nil, err
 	}
-
 	return alignedConnectivity, alignedOther, err
 }
 
@@ -307,7 +306,6 @@ func (connectivity SubnetConnectivityMap) actualAlignGivenIPBlists(disjointIPblo
 			}
 		}
 	}
-	alignedConnectivity = connectivity // todo tmp, to remove
 	return alignedConnectivity, err
 }
 
