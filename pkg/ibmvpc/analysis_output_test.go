@@ -319,8 +319,8 @@ var tests = []*vpcGeneralTest{
 
 var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
 
-/*// uncomment the function below to run for updating the expected output
-var formatsAvoidOutputGeneration = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
+// uncomment the function below to run for updating the expected output
+/*var formatsAvoidOutputGeneration = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
 func TestAllWithGeneration(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range tests {
@@ -389,7 +389,7 @@ func (tt *vpcGeneralTest) runTest(t *testing.T) {
 }
 
 // getCloudConfig returns CloudConfig obj for the input test (config json file)
-func getCloudConfig(t *testing.T, tt *vpcGeneralTest) map[string]*vpcmodel.CloudConfig {
+func getCloudConfig(t *testing.T, tt *vpcGeneralTest) map[string]*vpcmodel.VPCConfig {
 	inputConfigFile := filepath.Join(getTestsDir(), tt.inputConfig)
 	inputConfigContent, err := os.ReadFile(inputConfigFile)
 	if err != nil {
@@ -399,7 +399,7 @@ func getCloudConfig(t *testing.T, tt *vpcGeneralTest) map[string]*vpcmodel.Cloud
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
-	cloudConfig, err := CloudConfigsFromResources(rc, tt.vpc, false)
+	cloudConfig, err := VPCConfigsFromResources(rc, tt.vpc, false)
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
@@ -409,12 +409,12 @@ func getCloudConfig(t *testing.T, tt *vpcGeneralTest) map[string]*vpcmodel.Cloud
 // runTestPerUseCase runs the connectivity analysis for the required use case and compares/generates the output
 func runTestPerUseCase(t *testing.T,
 	tt *vpcGeneralTest,
-	c map[string]*vpcmodel.CloudConfig,
+	c map[string]*vpcmodel.VPCConfig,
 	uc vpcmodel.OutputUseCase,
 	mode testMode) error {
 	numConfigs := len(c)
-	for configName, config := range c {
-		expectedFileName, actualFileName, err := getTestFileName(tt.name, uc, tt.grouping, tt.format, configName, numConfigs)
+	for _, vpcConfig := range c {
+		expectedFileName, actualFileName, err := getTestFileName(tt.name, uc, tt.grouping, tt.format, vpcConfig.VPCName, numConfigs)
 		if err != nil {
 			return err
 		}
@@ -422,11 +422,11 @@ func runTestPerUseCase(t *testing.T,
 		tt.expectedOutput[uc] = filepath.Join(getTestsDir(), expectedFileName)
 		var actualOutput string
 
-		og, err := vpcmodel.NewOutputGenerator(config, tt.grouping, uc, tt.format == vpcmodel.ARCHDRAWIO)
+		og, err := vpcmodel.NewOutputGenerator(vpcConfig, tt.grouping, uc, tt.format == vpcmodel.ARCHDRAWIO)
 		if err != nil {
 			return err
 		}
-		actualOutput, err = og.Generate(tt.format, tt.actualOutput[uc], numConfigs, configName)
+		actualOutput, err = og.Generate(tt.format, tt.actualOutput[uc])
 		if err != nil {
 			return err
 		}

@@ -35,7 +35,7 @@ func newGroupingConnections() *groupingConnections {
 	return &res
 }
 
-func newGroupConnLines(c *CloudConfig, v *VPCConnectivity, grouping bool) *GroupConnLines {
+func newGroupConnLines(c *VPCConfig, v *VPCConnectivity, grouping bool) *GroupConnLines {
 	res := &GroupConnLines{c: c, v: v,
 		srcToDst:                 newGroupingConnections(),
 		dstToSrc:                 newGroupingConnections(),
@@ -45,7 +45,7 @@ func newGroupConnLines(c *CloudConfig, v *VPCConnectivity, grouping bool) *Group
 	return res
 }
 
-func newGroupConnLinesSubnetConnectivity(c *CloudConfig, s *VPCsubnetConnectivity, grouping bool) *GroupConnLines {
+func newGroupConnLinesSubnetConnectivity(c *VPCConfig, s *VPCsubnetConnectivity, grouping bool) *GroupConnLines {
 	res := &GroupConnLines{c: c, s: s,
 		srcToDst:                 newGroupingConnections(),
 		dstToSrc:                 newGroupingConnections(),
@@ -58,7 +58,7 @@ func newGroupConnLinesSubnetConnectivity(c *CloudConfig, s *VPCsubnetConnectivit
 // GroupConnLines used both for VPCConnectivity and for VPCsubnetConnectivity, one at a time. The other must be nil
 // todo: define abstraction above both?
 type GroupConnLines struct {
-	c        *CloudConfig
+	c        *VPCConfig
 	v        *VPCConnectivity
 	s        *VPCsubnetConnectivity
 	srcToDst *groupingConnections
@@ -165,7 +165,7 @@ func (g *groupingConnections) addPublicConnectivity(ep EndpointElem, conn string
 // vsiGroupingBySubnets returns a slice of EndpointElem objects, by grouping set of elements that
 // represent network interface nodes from the same subnet into a single groupedNetworkInterfaces object
 func vsiGroupingBySubnets(groupedConnLines *GroupConnLines,
-	elemsList []EndpointElem, c *CloudConfig) []EndpointElem {
+	elemsList []EndpointElem, c *VPCConfig) []EndpointElem {
 	res := []EndpointElem{}
 	subnetNameToNodes := map[string][]EndpointElem{} // map from subnet name to its nodes from the input
 	for _, elem := range elemsList {

@@ -15,7 +15,7 @@ type VPCsubnetConnectivity struct {
 	AllowedConns map[EndpointElem]*ConfigBasedConnectivityResults
 	// combined connectivity - considering both ingress and egress per connection
 	AllowedConnsCombined SubnetConnectivityMap
-	CloudConfig          *CloudConfig
+	CloudConfig          *VPCConfig
 	// grouped connectivity result
 	GroupedConnectivity *GroupConnLines
 }
@@ -58,7 +58,7 @@ func (v *VPCsubnetConnectivity) printAllowedConns() {
 	}
 }
 
-func (c *CloudConfig) ipblockToNamedResourcesInConfig(ipb *common.IPBlock, excludeExternalNodes bool) ([]VPCResourceIntf, error) {
+func (c *VPCConfig) ipblockToNamedResourcesInConfig(ipb *common.IPBlock, excludeExternalNodes bool) ([]VPCResourceIntf, error) {
 	res := []VPCResourceIntf{}
 
 	// consider subnets
@@ -94,7 +94,7 @@ func (c *CloudConfig) ipblockToNamedResourcesInConfig(ipb *common.IPBlock, exclu
 	return res, nil
 }
 
-func (c *CloudConfig) convertIPbasedToSubnetBasedResult(ipconn *IPbasedConnectivityResult, hasPGW bool) (
+func (c *VPCConfig) convertIPbasedToSubnetBasedResult(ipconn *IPbasedConnectivityResult, hasPGW bool) (
 	*ConfigBasedConnectivityResults,
 	error,
 ) {
@@ -124,7 +124,7 @@ func (c *CloudConfig) convertIPbasedToSubnetBasedResult(ipconn *IPbasedConnectiv
 	return res, nil
 }
 
-func (c *CloudConfig) subnetCidrToSubnetElem(cidr string) (NodeSet, error) {
+func (c *VPCConfig) subnetCidrToSubnetElem(cidr string) (NodeSet, error) {
 	cidrIPBlock := common.NewIPBlockFromCidr(cidr)
 	elems, err := c.ipblockToNamedResourcesInConfig(cidrIPBlock, true)
 	if err != nil {
@@ -144,7 +144,7 @@ func (c *CloudConfig) subnetCidrToSubnetElem(cidr string) (NodeSet, error) {
 }
 
 // the main function to compute connectivity per subnet based on resources that capture subnets, such as nacl, pgw, routing-tables
-func (c *CloudConfig) GetSubnetsConnectivity(includePGW, grouping bool) (*VPCsubnetConnectivity, error) {
+func (c *VPCConfig) GetSubnetsConnectivity(includePGW, grouping bool) (*VPCsubnetConnectivity, error) {
 	var subnetsConnectivityFromACLresources map[string]*IPbasedConnectivityResult
 	var err error
 	for _, fl := range c.FilterResources {
@@ -305,7 +305,7 @@ func (v *VPCsubnetConnectivity) String() string {
 // GetConnectivityOutputPerEachSubnetSeparately returns string results of connectivity analysis per
 // single subnet with its attached nacl, separately per subnet - useful to get understanding of the
 // connectivity implied from nacl configuration applied on a certain subnet in the vpc
-func (c *CloudConfig) GetConnectivityOutputPerEachSubnetSeparately() string {
+func (c *VPCConfig) GetConnectivityOutputPerEachSubnetSeparately() string {
 	// iterate over all subnets, collect all outputs per subnet connectivity
 	for _, r := range c.FilterResources {
 		if r.Kind() == NaclLayer {

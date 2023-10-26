@@ -1,32 +1,33 @@
 package vpcmodel
 
+import "fmt"
+
 type TextOutputFormatter struct {
 }
 
 const asteriskDetails = "\n\nconnections are stateful unless marked with *\n"
 
-func (t *TextOutputFormatter) WriteOutputAllEndpoints(c *CloudConfig, conn *VPCConnectivity, outFile string, grouping bool) (
-	string,
-	error,
-) {
-	var out string
-	if grouping {
-		out = "\ngrouped output:\n"
+func headerOfAnalyzedVPC(vpcName string) string {
+	return fmt.Sprintf("Analysis for VPC %s:\n", vpcName)
+}
+
+func (t *TextOutputFormatter) WriteOutput(c *VPCConfig,
+	conn *VPCConnectivity,
+	subnetsConn *VPCsubnetConnectivity,
+	outFile string,
+	grouping bool,
+	uc OutputUseCase) (string, error) {
+	// header line - specify the VPC analyzed
+	out := headerOfAnalyzedVPC(c.VPCName)
+	// get output by analysis type
+	switch uc {
+	case AllEndpoints:
+		out += conn.GroupedConnectivity.String()
+	case AllSubnets:
+		out += subnetsConn.String()
+	case SingleSubnet:
+		out += c.GetConnectivityOutputPerEachSubnetSeparately()
 	}
-	out += groupedConnectivityString(conn)
+	// write output to file and return the output string
 	return writeOutput(out, outFile)
-}
-
-func (t *TextOutputFormatter) WriteOutputAllSubnets(subnetsConn *VPCsubnetConnectivity, outFile string) (string, error) {
-	out := subnetsConn.String()
-	return writeOutput(out, outFile)
-}
-
-func (t *TextOutputFormatter) WriteOutputSingleSubnet(c *CloudConfig, outFile string) (string, error) {
-	out := c.GetConnectivityOutputPerEachSubnetSeparately()
-	return writeOutput(out, outFile)
-}
-
-func groupedConnectivityString(conn *VPCConnectivity) string {
-	return conn.GroupedConnectivity.String()
 }

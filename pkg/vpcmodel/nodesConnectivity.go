@@ -15,7 +15,7 @@ import (
 // (2) compute AllowedConnsCombined (map[Node]map[Node]*common.ConnectionSet) : allowed conns considering both ingress and egress directions
 // (3) compute AllowedConnsCombinedStateful : stateful allowed connections, for which connection in reverse direction is also allowed
 // (4) if grouping required - compute grouping of connectivity results
-func (c *CloudConfig) GetVPCNetworkConnectivity(grouping bool) (*VPCConnectivity, error) {
+func (c *VPCConfig) GetVPCNetworkConnectivity(grouping bool) (*VPCConnectivity, error) {
 	res := &VPCConnectivity{
 		AllowedConns:         map[Node]*ConnectivityResult{},
 		AllowedConnsPerLayer: map[Node]map[string]*ConnectivityResult{},
@@ -57,7 +57,7 @@ func (c *CloudConfig) GetVPCNetworkConnectivity(grouping bool) (*VPCConnectivity
 	return res, nil
 }
 
-func (c *CloudConfig) getFiltersAllowedConnsBetweenNodesPerDirectionAndLayer(
+func (c *VPCConfig) getFiltersAllowedConnsBetweenNodesPerDirectionAndLayer(
 	src, dst Node,
 	isIngress bool,
 	layer string) (*common.ConnectionSet, error) {
@@ -77,7 +77,7 @@ func updatePerLayerRes(res map[string]map[Node]*common.ConnectionSet, layer stri
 
 // getAllowedConnsPerDirection returns: (1) map of allowed (ingress or egress) connectivity for capturedNode, considering
 // all relevant resources (nacl/sg/fip/pgw) , and (2) similar map per separated layers only (nacl/sg)
-func (c *CloudConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Node) (
+func (c *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Node) (
 	allLayersRes map[Node]*common.ConnectionSet, // result considering all layers
 	perLayerRes map[string]map[Node]*common.ConnectionSet, // result separated per layer
 	err error,

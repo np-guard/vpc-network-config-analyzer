@@ -40,7 +40,7 @@ func analysisTypeToUseCase(inArgs *InArgs) vpcmodel.OutputUseCase {
 	return vpcmodel.AllEndpoints
 }
 
-func analysisPerCloudConfig(c *vpcmodel.CloudConfig, configName string, inArgs *InArgs, numConfigs int) error {
+func analysisPerCloudConfig(c *vpcmodel.VPCConfig, inArgs *InArgs) error {
 	og, err := vpcmodel.NewOutputGenerator(c,
 		*inArgs.Grouping,
 		analysisTypeToUseCase(inArgs),
@@ -53,7 +53,7 @@ func analysisPerCloudConfig(c *vpcmodel.CloudConfig, configName string, inArgs *
 		outFile = *inArgs.OutputFile
 	}
 	outFormat := getOutputFormat(inArgs)
-	output, err := og.Generate(outFormat, outFile, numConfigs, configName)
+	output, err := og.Generate(outFormat, outFile)
 	if err != nil {
 		return fmt.Errorf("output generation error: %w", err)
 	}
@@ -80,13 +80,12 @@ func _main(cmdlineArgs []string) error {
 		return fmt.Errorf("error parsing input vpc resources file: %w", err)
 	}
 
-	cloudConfig, err := ibmvpc.CloudConfigsFromResources(rc, *inArgs.VPC, *inArgs.Debug)
+	cloudConfigs, err := ibmvpc.VPCConfigsFromResources(rc, *inArgs.VPC, *inArgs.Debug)
 	if err != nil {
 		return fmt.Errorf("error generating cloud config from input vpc resources file: %w", err)
 	}
-	numConfigs := len(cloudConfig)
-	for configName, config := range cloudConfig {
-		err = analysisPerCloudConfig(config, configName, inArgs, numConfigs)
+	for _, vpcConfig := range cloudConfigs {
+		err = analysisPerCloudConfig(vpcConfig, inArgs)
 		if err != nil {
 			return err
 		}

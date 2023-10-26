@@ -17,7 +17,7 @@ func TestGetRules(t *testing.T) {
 	inputResourcesJSON := acl3Input
 	rc, err := ParseResources(inputResourcesJSON)
 	require.Nilf(t, err, "err: %s", err)
-	cloudConfig, err := CloudConfigsFromResources(rc, "", false)
+	cloudConfig, err := VPCConfigsFromResources(rc, "", false)
 	require.Nilf(t, err, "err: %s", err)
 	for _, config := range cloudConfig {
 		for _, f := range config.FilterResources {

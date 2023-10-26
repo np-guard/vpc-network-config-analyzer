@@ -15,24 +15,30 @@ const (
 	mdHeader = "| src | dst | conn |\n|-----|-----|------|"
 )
 
-func (m *MDoutputFormatter) WriteOutputAllEndpoints(c *CloudConfig, conn *VPCConnectivity, outFile string, grouping bool) (string, error) {
-	lines := []string{mdTitle, mdHeader}
-	connLines := m.getGroupedOutput(conn)
+func (m *MDoutputFormatter) WriteOutput(c *VPCConfig,
+	conn *VPCConnectivity,
+	subnetsConn *VPCsubnetConnectivity,
+	outFile string,
+	grouping bool,
+	uc OutputUseCase) (string, error) {
+	// get output by analysis type
+	out := headerOfAnalyzedVPC(c.VPCName)
+	switch uc {
+	case AllEndpoints:
+		lines := []string{mdTitle, mdHeader}
+		connLines := m.getGroupedOutput(conn)
+		sort.Strings(connLines)
+		lines = append(lines, connLines...)
+		out += strings.Join(lines, "\n")
+		out += asteriskDetails
+	case AllSubnets:
+		return "", errors.New("SubnetLevel use case not supported for md format currently ")
+	case SingleSubnet:
+		return "", errors.New("DebugSubnet use case not supported for md format currently ")
+	}
 
-	sort.Strings(connLines)
-	lines = append(lines, connLines...)
-	out := strings.Join(lines, "\n")
-	out += asteriskDetails
 	err := WriteToFile(out, outFile)
 	return out, err
-}
-
-func (m *MDoutputFormatter) WriteOutputAllSubnets(subnetsConn *VPCsubnetConnectivity, outFile string) (string, error) {
-	return "", errors.New("SubnetLevel use case not supported for md format currently ")
-}
-
-func (m *MDoutputFormatter) WriteOutputSingleSubnet(c *CloudConfig, outFile string) (string, error) {
-	return "", errors.New("DebugSubnet use case not supported for md format currently ")
 }
 
 func (m *MDoutputFormatter) getGroupedOutput(conn *VPCConnectivity) []string {

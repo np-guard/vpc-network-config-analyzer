@@ -250,8 +250,8 @@ func runConnectivityTest(t *testing.T, tc *testNodesConfig, ncList []*naclConfig
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-func createConfigFromTestConfig(tc *testNodesConfig, ncList []*naclConfig) *vpcmodel.CloudConfig {
-	config := &vpcmodel.CloudConfig{
+func createConfigFromTestConfig(tc *testNodesConfig, ncList []*naclConfig) *vpcmodel.VPCConfig {
+	config := &vpcmodel.VPCConfig{
 		Nodes:            []vpcmodel.Node{},
 		NodeSets:         []vpcmodel.NodeSet{},
 		FilterResources:  []vpcmodel.FilterTrafficResource{},
@@ -295,7 +295,7 @@ func getAllowAllRules() []*NACLRule {
 	}
 }
 
-func addInterfaceNode(config *vpcmodel.CloudConfig, name, address, vsiName, subnetName string) {
+func addInterfaceNode(config *vpcmodel.VPCConfig, name, address, vsiName, subnetName string) {
 	intfNode := &NetworkInterface{
 		VPCResource: vpcmodel.VPCResource{ResourceName: name, ResourceUID: name, ResourceType: ResourceTypeNetworkInterface},
 		address:     address,
@@ -313,7 +313,7 @@ func addInterfaceNode(config *vpcmodel.CloudConfig, name, address, vsiName, subn
 	config.Nodes = append(config.Nodes, intfNode)
 }
 
-func addSubnet(config *vpcmodel.CloudConfig, name, cidr, zone string) *Subnet {
+func addSubnet(config *vpcmodel.VPCConfig, name, cidr, zone string) *Subnet {
 	subnetNode := &Subnet{
 		VPCResource: vpcmodel.VPCResource{ResourceName: name, ResourceUID: name, Zone: zone, ResourceType: ResourceTypeSubnet},
 		cidr:        cidr,
@@ -322,7 +322,7 @@ func addSubnet(config *vpcmodel.CloudConfig, name, cidr, zone string) *Subnet {
 	return subnetNode
 }
 
-func addNACL(config *vpcmodel.CloudConfig, name string, subnets map[string]*Subnet, analyzer *NACLAnalyzer) {
+func addNACL(config *vpcmodel.VPCConfig, name string, subnets map[string]*Subnet, analyzer *NACLAnalyzer) {
 	var layer *NaclLayer
 	for _, fr := range config.FilterResources {
 		if fr.Kind() == "NaclLayer" {
@@ -364,8 +364,8 @@ func newSimpleNACLAnalyzer() *NACLAnalyzer {
 }
 
 // simple config : 2 vsis in different subnets, nacl that allows all (for the 2 subnets), no SG layer
-func NewSimpleCloudConfig() *vpcmodel.CloudConfig {
-	config := &vpcmodel.CloudConfig{
+func NewSimpleCloudConfig() *vpcmodel.VPCConfig {
+	config := &vpcmodel.VPCConfig{
 		Nodes:            []vpcmodel.Node{},
 		NodeSets:         []vpcmodel.NodeSet{},
 		FilterResources:  []vpcmodel.FilterTrafficResource{},
