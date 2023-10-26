@@ -1,4 +1,4 @@
-Analysis for VPC ky-testenv-vpc:
+Analysis for VPC ky-testenv-vpc
 edge-0-instance-ky[192.168.32.4] => Public Internet (all ranges) : All Connections
 edge-0-instance-ky[192.168.32.4] => edge-1-instance-ky[192.168.36.4] : All Connections
 edge-0-instance-ky[192.168.32.4] => edge-2-instance-ky[192.168.40.4] : All Connections

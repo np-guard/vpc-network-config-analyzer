@@ -1,4 +1,4 @@
-Analysis for VPC test-vpc1-ky:
+Analysis for VPC test-vpc1-ky
 Subnet: 10.240.10.0/24
 Ingress Connectivity:
 remote: 0.0.0.0-10.240.19.255, conn: No Connections

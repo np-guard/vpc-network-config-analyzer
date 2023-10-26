@@ -1,4 +1,4 @@
-Analysis for VPC test-vpc1-ky:
+Analysis for VPC test-vpc1-ky
 Public Internet (all ranges) => vsi2-ky[10.240.2.4] : All Connections
 vsi0-ky[10.240.0.5] => Public Internet (all ranges) : All Connections
 vsi0-ky[10.240.0.5] => vsi1-ky[10.240.1.4] : All Connections

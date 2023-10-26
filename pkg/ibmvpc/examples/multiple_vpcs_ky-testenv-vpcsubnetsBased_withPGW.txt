@@ -1,4 +1,4 @@
-Analysis for VPC ky-testenv-vpc:
+Analysis for VPC ky-testenv-vpc
 combined connections between subnets:
 ky-testenv-edge-subnet-1 => Public Internet (all ranges) : All Connections
 ky-testenv-edge-subnet-1 => ky-testenv-edge-subnet-2 : All Connections

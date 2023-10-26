@@ -8,7 +8,7 @@ type TextOutputFormatter struct {
 const asteriskDetails = "\n\nconnections are stateful unless marked with *\n"
 
 func headerOfAnalyzedVPC(vpcName string) string {
-	return fmt.Sprintf("Analysis for VPC %s:\n", vpcName)
+	return fmt.Sprintf("Analysis for VPC %s\n", vpcName)
 }
 
 func (t *TextOutputFormatter) WriteOutput(c *VPCConfig,
