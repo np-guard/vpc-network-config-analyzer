@@ -376,9 +376,9 @@ func getInstancesConfig(
 		res[vpcUID].NameToResource[vsiNode.Name()] = vsiNode
 		for j := range instance.NetworkInterfaces {
 			netintf := instance.NetworkInterfaces[j]
-			// netintf has no CRN, thus using its ID for ResourceUID
+			// netintf has no CRN, thus using its PrimaryIP's ID for ResourceUID
 			intfNode := &NetworkInterface{
-				VPCResource: vpcmodel.VPCResource{ResourceName: *netintf.Name, ResourceUID: *netintf.ID,
+				VPCResource: vpcmodel.VPCResource{ResourceName: *netintf.Name, ResourceUID: *netintf.PrimaryIP.ID,
 					ResourceType: ResourceTypeNetworkInterface, Zone: *instance.Zone.Name},
 				address: *netintf.PrimaryIP.Address, vsi: *instance.Name}
 			res[vpcUID].Nodes = append(res[vpcUID].Nodes, intfNode)
@@ -524,27 +524,27 @@ func getFipConfig(
 ) error {
 	for _, fip := range rc.fipList {
 		targetIntf := fip.Target
-		var targetAddress string
+		var targetUID string
 		switch target := targetIntf.(type) {
 		case *vpc1.FloatingIPTargetNetworkInterfaceReference:
-			targetAddress = *target.PrimaryIP.Address
+			targetUID = *target.PrimaryIP.ID
 		case *vpc1.FloatingIPTarget:
 			if *target.ResourceType != networkInterfaceResourceType {
 				continue
 			}
-			targetAddress = *target.PrimaryIP.Address
+			targetUID = *target.PrimaryIP.ID
 		default:
 			return fmt.Errorf("unsupported fip target : %s", target)
 		}
 
-		if targetAddress == "" {
+		if targetUID == "" {
 			continue
 		}
 
 		var srcNodes []vpcmodel.Node
 		var vpcUID string
 		for uid, vpcConfig := range res {
-			srcNodes = getCertainNodes(vpcConfig.Nodes, func(n vpcmodel.Node) bool { return n.Cidr() == targetAddress })
+			srcNodes = getCertainNodes(vpcConfig.Nodes, func(n vpcmodel.Node) bool { return n.UID() == targetUID })
 			if len(srcNodes) > 0 {
 				vpcUID = uid
 				break
