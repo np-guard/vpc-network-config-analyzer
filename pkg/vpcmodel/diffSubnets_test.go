@@ -154,6 +154,8 @@ func TestSimpleIPAndSubnetSubtract(t *testing.T) {
 	subnet1Subtract2 := alignedSubnet1Conn.SubnetConnectivitySubtract(alignedSubnet1Conn2)
 	subnet1Subtract2Str := subnet1Subtract2.EnhancedString(true)
 	fmt.Printf("subnet1Subtract2:\n%v\n", subnet1Subtract2Str)
+	// todo should be equal to -- Public Internet [250.2.4.128/25] => subnet2 : missing connection
+	//      not clear why [1.2.3.0/30] lines are there
 	//
 	//subnet2Subtract1 := subnetConfigConn2.SubnetConnectivitySubtract(subnetConfigConn1)
 	//subnet2Subtract1Str := subnet2Subtract1.EnhancedString(false)

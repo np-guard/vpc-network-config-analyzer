@@ -317,21 +317,23 @@ func (subnetConnectivity *SubnetConnectivityMap) actualAlignGivenIPBlists(config
 			}
 			// the resizing element is external - go over all ipBlock and allocates the connection
 			// if the ipBlock is contained in the original src/dst
+			var origIpBlock *common.IPBlock
+			var err error
+			if resizeSrc {
+				origIpBlock, err = externalNodeToIpBlock(src.(Node))
+			} else {
+				origIpBlock, err = externalNodeToIpBlock(dst.(Node))
+			}
+			if err != nil {
+				return nil, err
+			}
+			origBlockContainsIPBlocks := false
 			for _, ipBlock := range disjointIPblocks {
 				// 1. get ipBlock of resized index (src/dst)
-				var origIpBlock *common.IPBlock
-				var err error
-				if resizeSrc {
-					origIpBlock, err = externalNodeToIpBlock(src.(Node))
-				} else {
-					origIpBlock, err = externalNodeToIpBlock(dst.(Node))
-				}
-				if err != nil {
-					return nil, err
-				}
 				if !ipBlock.ContainedIn(origIpBlock) { // ipBlock not relevant here
 					continue
 				}
+				origBlockContainsIPBlocks = true
 				cidrList := ipBlock.ToCidrList()
 				var nodeOfCidr Node
 				for _, cidr := range cidrList {
@@ -339,15 +341,18 @@ func (subnetConnectivity *SubnetConnectivityMap) actualAlignGivenIPBlists(config
 					if err != nil {
 						return nil, err
 					}
-				}
-				if resizeSrc {
-					if _, ok := alignedConnectivity[nodeOfCidr]; !ok {
-						alignedConnectivity[nodeOfCidr] = map[EndpointElem]*common.ConnectionSet{}
+					if resizeSrc {
+						if _, ok := alignedConnectivity[nodeOfCidr]; !ok {
+							alignedConnectivity[nodeOfCidr] = map[EndpointElem]*common.ConnectionSet{}
+						}
+						alignedConnectivity[nodeOfCidr][dst] = conns
+					} else {
+						alignedConnectivity[src][nodeOfCidr] = conns
 					}
-					alignedConnectivity[nodeOfCidr][dst] = conns
-				} else {
-					alignedConnectivity[src][nodeOfCidr] = conns
 				}
+			}
+			if !origBlockContainsIPBlocks { // keep as origin
+				alignedConnectivity[src][dst] = conns
 			}
 		}
 	}
@@ -503,7 +508,7 @@ func pairEpsComparable(myEp, otherEp EndpointElem) (bool, error) {
 //       this will requires some rewriting in the existing grouping functionality and the way it provides
 //       service to subnetsConnectivity and nodesConnectivity
 
-func (subnetConnectivity *SubnetConnectivityMap) printConnectivity() {
+func (subnetConnectivity *SubnetConnectivityMap) PrintConnectivity() {
 	for src, endpointConns := range *subnetConnectivity {
 		for dst, conns := range endpointConns {
 			if conns.IsEmpty() {
