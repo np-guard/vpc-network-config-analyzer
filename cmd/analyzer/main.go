@@ -40,27 +40,8 @@ func analysisTypeToUseCase(inArgs *InArgs) vpcmodel.OutputUseCase {
 	return vpcmodel.AllEndpoints
 }
 
-// The actual main function
-// Takes command-line flags and returns an error rather than exiting, so it can be more easily used in testing
-func _main(cmdlineArgs []string) error {
-	inArgs, err := ParseInArgs(cmdlineArgs)
-	if err == flag.ErrHelp {
-		return nil
-	}
-	if err != nil {
-		return fmt.Errorf("error parsing arguments: %w", err)
-	}
-
-	rc, err := ibmvpc.ParseResourrcesFromFile(*inArgs.InputConfigFile)
-	if err != nil {
-		return fmt.Errorf("error parsing input vpc resources file: %w", err)
-	}
-
-	cloudConfig, err := ibmvpc.NewCloudConfig(rc, *inArgs.VPC)
-	if err != nil {
-		return fmt.Errorf("error generating cloud config from input vpc resources file: %w", err)
-	}
-	og, err := vpcmodel.NewOutputGenerator(cloudConfig,
+func analysisPerVPCConfig(c *vpcmodel.VPCConfig, inArgs *InArgs) error {
+	og, err := vpcmodel.NewOutputGenerator(c,
 		*inArgs.Grouping,
 		analysisTypeToUseCase(inArgs),
 		*inArgs.OutputFormat == ARCHDRAWIOFormat)
@@ -79,6 +60,36 @@ func _main(cmdlineArgs []string) error {
 
 	// print to stdout as well
 	fmt.Println(output)
+
+	return nil
+}
+
+// The actual main function
+// Takes command-line flags and returns an error rather than exiting, so it can be more easily used in testing
+func _main(cmdlineArgs []string) error {
+	inArgs, err := ParseInArgs(cmdlineArgs)
+	if err == flag.ErrHelp {
+		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("error parsing arguments: %w", err)
+	}
+
+	rc, err := ibmvpc.ParseResourcesFromFile(*inArgs.InputConfigFile)
+	if err != nil {
+		return fmt.Errorf("error parsing input vpc resources file: %w", err)
+	}
+
+	vpcConfigs, err := ibmvpc.VPCConfigsFromResources(rc, *inArgs.VPC, *inArgs.Debug)
+	if err != nil {
+		return fmt.Errorf("error generating cloud config from input vpc resources file: %w", err)
+	}
+	for _, vpcConfig := range vpcConfigs {
+		err = analysisPerVPCConfig(vpcConfig, inArgs)
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
 }

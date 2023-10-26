@@ -34,7 +34,7 @@ import (
 //     subnet3 -> subnet4 different connection
 
 func configSimpleSubnetSubtract() (subnetConfigConn1, subnetConfigConn2 *SubnetConfigConnectivity) {
-	cfg1 := &CloudConfig{Nodes: []Node{}, NodeSets: []NodeSet{}}
+	cfg1 := &VPCConfig{Nodes: []Node{}, NodeSets: []NodeSet{}}
 	cfg1.Nodes = append(cfg1.Nodes,
 		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1-1"},
 		&mockNetIntf{cidr: "10.3.20.6/32", name: "vsi1-2"},
@@ -46,7 +46,7 @@ func configSimpleSubnetSubtract() (subnetConfigConn1, subnetConfigConn2 *SubnetC
 	cfg1.NodeSets = append(cfg1.NodeSets, &mockSubnet{"10.3.20.0/22", "subnet3", []Node{cfg1.Nodes[2]}},
 		&mockSubnet{"10.4.20.0/22", "subnet4", []Node{cfg1.Nodes[2]}})
 
-	cfg2 := &CloudConfig{Nodes: []Node{}, NodeSets: []NodeSet{}}
+	cfg2 := &VPCConfig{Nodes: []Node{}, NodeSets: []NodeSet{}}
 	cfg2.Nodes = append(cfg2.Nodes,
 		&mockNetIntf{cidr: "10.3.20.5/32", name: "vsi2-1"},
 		&mockNetIntf{cidr: "10.7.20.6/32", name: "vsi2-2"},

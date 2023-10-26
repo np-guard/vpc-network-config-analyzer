@@ -14,6 +14,7 @@ type InArgs struct {
 	AnalysisType    *string
 	Grouping        *bool
 	VPC             *string
+	Debug           *bool
 }
 
 const (
@@ -65,6 +66,7 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 		"supported analysis types: "+getSupportedValuesString(supportedAnalysisTypes))
 	args.Grouping = flagset.Bool("grouping", false, "whether to group together src/dst entries with identical connectivity")
 	args.VPC = flagset.String("vpc", "", "CRN of the VPC to analyze")
+	args.Debug = flagset.Bool("debug", false, "run in debug mode")
 
 	err := flagset.Parse(cmdlineArgs)
 	if err != nil {

@@ -28,12 +28,12 @@ type connectionDiff struct {
 type SubnetsDiff map[EndpointElem]map[EndpointElem]*connectionDiff
 
 type ConfigsForDiff struct {
-	config1 *CloudConfig
-	config2 *CloudConfig
+	config1 *VPCConfig
+	config2 *VPCConfig
 }
 
 type SubnetConfigConnectivity struct {
-	config             *CloudConfig
+	config             *VPCConfig
 	subnetConnectivity SubnetConnectivityMap
 }
 
@@ -75,7 +75,7 @@ func (configs ConfigsForDiff) GetSubnetsDiff(grouping bool) (*diffBetweenSubnets
 // subnet/external address in otherConfig or nil if the subnet does not exist in the other config.
 // ToDo: this is done based on names only at the moment. Perhaps take into account other factors such as cidr?
 // ToDo: instead of performing this search each time, use a map created once
-func (c *CloudConfig) getEndpointElemInOtherConfig(other *CloudConfig, ep EndpointElem) EndpointElem {
+func (c *VPCConfig) getEndpointElemInOtherConfig(other *VPCConfig, ep EndpointElem) EndpointElem {
 	if ep.IsExternal() {
 		for _, node := range other.Nodes {
 			if node.Name() == ep.Name() {
