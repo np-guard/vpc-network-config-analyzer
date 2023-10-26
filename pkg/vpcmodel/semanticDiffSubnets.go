@@ -243,14 +243,11 @@ func (subnetConfConnectivity *SubnetConfigConnectivity) alignSrcOrDstIPBlocks(ot
 		return nil, nil, err
 	}
 
-	fmt.Printf("\nresizeSrc %v\n--------------\n", resizeSrc)
-	fmt.Println("resizing connectivity")
 	alignedConnectivity, err := subnetConfConnectivity.subnetConnectivity.actualAlignGivenIPBlists(
 		alignedConfig, disjointIPblocks, resizeSrc)
 	if err != nil {
 		return nil, nil, err
 	}
-	fmt.Println("resizing otherConfConnectivity")
 	alignedOtherConnectivity, err := otherConfConnectivity.subnetConnectivity.actualAlignGivenIPBlists(
 		otherAlignedConfig, disjointIPblocks, resizeSrc)
 	if err != nil {
@@ -281,20 +278,16 @@ func resizeNodes(oldNodes []Node, disjointIPblocks []*common.IPBlock) (newNodes 
 			return nil, err
 		}
 		disjointContained := false
-		fmt.Printf("oldNode %v %v\n", oldNode.Name(), oldNode.Cidr())
 		for _, disjointIpBlock := range disjointIPblocks {
 			if disjointIpBlock.ContainedIn(nodeIpBlock) {
 				disjointContained = true
-				newNode, err := NewExternalNode(true, disjointIpBlock)
-				if err != nil {
-					return nil, err
+				for _, thisCidr := range disjointIpBlock.ToCidrList() {
+					newNode := NewExternalNodeForCidr(thisCidr)
+					newNodes = append(newNodes, newNode)
 				}
-				fmt.Printf("\tnewNode %v %v\n", newNode.Cidr(), newNode.Name())
-				newNodes = append(newNodes, newNode)
 			}
 		}
 		if !disjointContained {
-			fmt.Printf("!disjointContained adding %v %v\n", oldNode.Name(), oldNode.Cidr())
 			newNodes = append(newNodes, oldNode)
 		}
 	}
@@ -314,15 +307,12 @@ func (subnetConnectivity *SubnetConnectivityMap) actualAlignGivenIPBlists(config
 			if conns.IsEmpty() {
 				continue
 			}
-			fmt.Printf("actualAlignGivenIPBlists %v => %v %v\n", src.Name(), dst.Name(), conns.EnhancedString())
 			if _, ok := alignedConnectivity[src]; !ok {
 				alignedConnectivity[src] = map[EndpointElem]*common.ConnectionSet{}
 			}
-			fmt.Printf("\told: %v %v %v\n", src.Name(), dst.Name(), conns.EnhancedString())
 			// the resizing element is not external - copy as is
 			if (resizeSrc && !src.IsExternal()) || (!resizeSrc && !dst.IsExternal()) {
 				alignedConnectivity[src][dst] = conns
-				fmt.Printf("\t\tcopy old: %v %v %v\n", src.Name(), dst.Name(), conns.EnhancedString())
 				continue
 			}
 			// the resizing element is external - go over all ipBlock and allocates the connection
@@ -355,10 +345,8 @@ func (subnetConnectivity *SubnetConnectivityMap) actualAlignGivenIPBlists(config
 						alignedConnectivity[nodeOfCidr] = map[EndpointElem]*common.ConnectionSet{}
 					}
 					alignedConnectivity[nodeOfCidr][dst] = conns
-					fmt.Printf("\t\tnew:%v %v %v\n", nodeOfCidr.Cidr(), dst.Name(), conns.EnhancedString())
 				} else {
 					alignedConnectivity[src][nodeOfCidr] = conns
-					fmt.Printf("\t\tnew:%v %v %v\n", src.Name(), nodeOfCidr.Cidr(), conns.EnhancedString())
 				}
 			}
 		}
@@ -370,7 +358,6 @@ func (subnetConnectivity *SubnetConnectivityMap) actualAlignGivenIPBlists(config
 func findNodeWithCidr(configNodes []Node, cidr string) (Node, error) {
 	for _, node := range configNodes {
 		if node.Cidr() == cidr {
-			fmt.Printf("findNodeWithCidr cidr %v %v %v\n", cidr, node.Cidr(), cidr)
 			return node, nil
 		}
 	}
@@ -502,8 +489,6 @@ func pairEpsComparable(myEp, otherEp EndpointElem) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	// we need to resize if the IpBlocks are intersecting but not equal
-	//fmt.Printf("\t<%v, %v>: cidrs: %v, %v\n", myEp.Name(), otherEp.Name(), myExternal.Cidr(), otherExternal.Cidr())
 	if !myIpBlock.Equal(otherIpBlock) && !myIpBlock.Intersection(otherIpBlock).Empty() {
 		return true, nil
 	}
@@ -517,3 +502,14 @@ func pairEpsComparable(myEp, otherEp EndpointElem) (bool, error) {
 //       and also the diff where relevant
 //       this will requires some rewriting in the existing grouping functionality and the way it provides
 //       service to subnetsConnectivity and nodesConnectivity
+
+func (subnetConnectivity *SubnetConnectivityMap) printConnectivity() {
+	for src, endpointConns := range *subnetConnectivity {
+		for dst, conns := range endpointConns {
+			if conns.IsEmpty() {
+				continue
+			}
+			fmt.Printf("\t%v => %v %v\n", src.Name(), dst.Name(), conns.EnhancedString())
+		}
+	}
+}
