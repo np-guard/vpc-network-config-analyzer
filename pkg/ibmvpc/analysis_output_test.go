@@ -375,12 +375,12 @@ func (tt *vpcGeneralTest) runTest(t *testing.T) {
 	// init test - set the input/output file names according to test name
 	tt.initTest()
 
-	// get CloudConfig obj from parsing + analyzing input config file
-	cloudConfig := getCloudConfig(t, tt)
+	// get vpcConfigs obj from parsing + analyzing input config file
+	vpcConfigs := getVPCConfigs(t, tt)
 
 	// generate actual output for all use cases specified for this test
 	for _, uc := range tt.useCases {
-		err := runTestPerUseCase(t, tt, cloudConfig, uc, tt.mode)
+		err := runTestPerUseCase(t, tt, vpcConfigs, uc, tt.mode)
 		require.Equal(t, tt.errPerUseCase[uc], err, "comparing actual err to expected err")
 	}
 	for uc, outFile := range tt.actualOutput {
@@ -388,8 +388,8 @@ func (tt *vpcGeneralTest) runTest(t *testing.T) {
 	}
 }
 
-// getCloudConfig returns CloudConfig obj for the input test (config json file)
-func getCloudConfig(t *testing.T, tt *vpcGeneralTest) map[string]*vpcmodel.VPCConfig {
+// getVPCConfigs returns  map[string]*vpcmodel.VPCConfig obj for the input test (config json file)
+func getVPCConfigs(t *testing.T, tt *vpcGeneralTest) map[string]*vpcmodel.VPCConfig {
 	inputConfigFile := filepath.Join(getTestsDir(), tt.inputConfig)
 	inputConfigContent, err := os.ReadFile(inputConfigFile)
 	if err != nil {
@@ -399,11 +399,11 @@ func getCloudConfig(t *testing.T, tt *vpcGeneralTest) map[string]*vpcmodel.VPCCo
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
-	cloudConfig, err := VPCConfigsFromResources(rc, tt.vpc, false)
+	vpcConfigs, err := VPCConfigsFromResources(rc, tt.vpc, false)
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
-	return cloudConfig
+	return vpcConfigs
 }
 
 // runTestPerUseCase runs the connectivity analysis for the required use case and compares/generates the output

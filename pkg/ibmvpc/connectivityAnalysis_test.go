@@ -364,7 +364,7 @@ func newSimpleNACLAnalyzer() *NACLAnalyzer {
 }
 
 // simple config : 2 vsis in different subnets, nacl that allows all (for the 2 subnets), no SG layer
-func NewSimpleCloudConfig() *vpcmodel.VPCConfig {
+func NewSimpleVPCConfig() *vpcmodel.VPCConfig {
 	config := &vpcmodel.VPCConfig{
 		Nodes:            []vpcmodel.Node{},
 		NodeSets:         []vpcmodel.NodeSet{},
@@ -396,7 +396,7 @@ vsi-1[10.240.10.4] => vsi-2[10.240.20.4] : All Connections
 vsi-2[10.240.20.4] => vsi-1[10.240.10.4] : All Connections
 */
 func TestAnalyzeConnectivity(t *testing.T) {
-	c := NewSimpleCloudConfig()
+	c := NewSimpleVPCConfig()
 	connectivity, err := c.GetVPCNetworkConnectivity(false)
 	require.Nil(t, err)
 	connectivityStr := connectivity.DetailedString()

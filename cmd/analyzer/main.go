@@ -40,7 +40,7 @@ func analysisTypeToUseCase(inArgs *InArgs) vpcmodel.OutputUseCase {
 	return vpcmodel.AllEndpoints
 }
 
-func analysisPerCloudConfig(c *vpcmodel.VPCConfig, inArgs *InArgs) error {
+func analysisPerVPCConfig(c *vpcmodel.VPCConfig, inArgs *InArgs) error {
 	og, err := vpcmodel.NewOutputGenerator(c,
 		*inArgs.Grouping,
 		analysisTypeToUseCase(inArgs),
@@ -80,12 +80,12 @@ func _main(cmdlineArgs []string) error {
 		return fmt.Errorf("error parsing input vpc resources file: %w", err)
 	}
 
-	cloudConfigs, err := ibmvpc.VPCConfigsFromResources(rc, *inArgs.VPC, *inArgs.Debug)
+	vpcConfigs, err := ibmvpc.VPCConfigsFromResources(rc, *inArgs.VPC, *inArgs.Debug)
 	if err != nil {
 		return fmt.Errorf("error generating cloud config from input vpc resources file: %w", err)
 	}
-	for _, vpcConfig := range cloudConfigs {
-		err = analysisPerCloudConfig(vpcConfig, inArgs)
+	for _, vpcConfig := range vpcConfigs {
+		err = analysisPerVPCConfig(vpcConfig, inArgs)
 		if err != nil {
 			return err
 		}

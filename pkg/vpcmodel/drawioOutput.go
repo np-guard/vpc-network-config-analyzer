@@ -18,7 +18,7 @@ func (e *edgeInfo) IsExternal() bool {
 }
 
 // DrawioOutputFormatter create the drawio connectivity map.
-// It build the drawio tree out of the CloudConfig and VPCConnectivity, and output it to a drawio file
+// It build the drawio tree out of the VPCConfig and VPCConnectivity, and output it to a drawio file
 // the steps of creating the drawio tree:
 // 1. collect all the connectivity edges to a map of (src,dst,label) -> isDirected. also mark the nodes that has connections
 // 2. create the treeNodes of the NodeSets, filters. routers and nodes

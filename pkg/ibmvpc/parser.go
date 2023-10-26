@@ -600,7 +600,7 @@ func getVPCconfig(rc *ResourcesContainer, res map[string]*vpcmodel.VPCConfig, sk
 			nodes:       []vpcmodel.Node{},
 			zones:       map[string]*Zone{},
 		}
-		newVPCConfig := NewEmptyCloudConfig()
+		newVPCConfig := NewEmptyVPCConfig()
 		newVPCConfig.NodeSets = []vpcmodel.NodeSet{vpcNodeSet}
 		newVPCConfig.NameToResource[vpcNodeSet.Name()] = vpcNodeSet
 		newVPCConfig.VPCName = vpcName
@@ -831,7 +831,7 @@ func getIKSnodesConfig(res map[string]*vpcmodel.VPCConfig,
 	return nil
 }
 
-func NewEmptyCloudConfig() *vpcmodel.VPCConfig {
+func NewEmptyVPCConfig() *vpcmodel.VPCConfig {
 	return &vpcmodel.VPCConfig{
 		Nodes:            []vpcmodel.Node{},
 		NodeSets:         []vpcmodel.NodeSet{},
@@ -842,7 +842,7 @@ func NewEmptyCloudConfig() *vpcmodel.VPCConfig {
 	}
 }
 
-// VPCConfigsFromResources returns a map from VPC UID (string) to its corresponding CloudConfig object,
+// VPCConfigsFromResources returns a map from VPC UID (string) to its corresponding VPCConfig object,
 // containing the parsed resources in the relevant model objects
 func VPCConfigsFromResources(rc *ResourcesContainer, vpcID string, debug bool) (map[string]*vpcmodel.VPCConfig, error) {
 	res := map[string]*vpcmodel.VPCConfig{} // map from VPC UID to its config
@@ -916,7 +916,7 @@ func VPCConfigsFromResources(rc *ResourcesContainer, vpcID string, debug bool) (
 	}
 
 	if debug {
-		printCloudConfigs(res)
+		printVPCConfigs(res)
 	}
 
 	return res, nil
@@ -924,13 +924,13 @@ func VPCConfigsFromResources(rc *ResourcesContainer, vpcID string, debug bool) (
 
 // filter VPCs with empty address ranges, then add for remaining VPCs the external nodes
 func filterVPCSAndAddExternalNodes(vpcInternalAddressRange map[string]*common.IPBlock, res map[string]*vpcmodel.VPCConfig) error {
-	for vpcUID, vpcCloudConfig := range res {
+	for vpcUID, vpcConfig := range res {
 		if vpcInternalAddressRange[vpcUID] == nil {
 			fmt.Printf("Ignoring VPC %s, no subnets found fot this VPC\n", vpcUID)
 			delete(res, vpcUID)
 			continue
 		}
-		err := handlePublicInternetNodes(vpcCloudConfig, vpcInternalAddressRange[vpcUID])
+		err := handlePublicInternetNodes(vpcConfig, vpcInternalAddressRange[vpcUID])
 		if err != nil {
 			return err
 		}
@@ -1012,7 +1012,7 @@ func getVPCObjectByUID(vpcsMap map[string]*VPC, uid string) (*VPC, error) {
 
 /********** Functions used in Debug mode ***************/
 
-func printCloudConfigs(c map[string]*vpcmodel.VPCConfig) {
+func printVPCConfigs(c map[string]*vpcmodel.VPCConfig) {
 	printLineSection()
 	for vpcUID, config := range c {
 		fmt.Printf("config for vpc %s (vpc name: %s)\n", vpcUID, config.VPCName)

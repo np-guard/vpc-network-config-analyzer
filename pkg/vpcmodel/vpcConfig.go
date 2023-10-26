@@ -10,7 +10,7 @@ type VPCConfig struct {
 	VPCName          string // the VPC name for which this cloud config relates to
 }
 
-// TODO: consider add this mapping to CloudConfig
+// TODO: consider add this mapping to VPCConfig
 func (c *VPCConfig) getSubnetOfNode(n Node) NodeSet {
 	for _, nodeSet := range c.NodeSets {
 		if nodeSet.Kind() == subnetKind {

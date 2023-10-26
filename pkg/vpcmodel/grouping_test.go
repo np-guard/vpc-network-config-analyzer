@@ -75,7 +75,7 @@ func (m *mockSubnet) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNod
 }
 func (m *mockSubnet) IsExternal() bool { return false }
 
-func newCloudConfigTest1() (*VPCConfig, *VPCConnectivity) {
+func newVPCConfigTest1() (*VPCConfig, *VPCConnectivity) {
 	res := &VPCConfig{Nodes: []Node{}}
 	res.Nodes = append(res.Nodes,
 		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1"},
@@ -90,7 +90,7 @@ func newCloudConfigTest1() (*VPCConfig, *VPCConnectivity) {
 	return res, res1
 }
 
-func newCloudConfigTest2() (*VPCConfig, *VPCConnectivity) {
+func newVPCConfigTest2() (*VPCConfig, *VPCConnectivity) {
 	res := &VPCConfig{Nodes: []Node{}}
 	res.Nodes = append(res.Nodes,
 		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1"},
@@ -112,7 +112,7 @@ func newCloudConfigTest2() (*VPCConfig, *VPCConnectivity) {
 // Test simple grouping of 2 conn lines with common src+conn, with dest as external ip ranges
 // thus, expecting to be merged to one line with dest element of both ranges together
 func TestGroupingPhase1(t *testing.T) {
-	c, v := newCloudConfigTest1()
+	c, v := newVPCConfigTest1()
 	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
 		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
 		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
@@ -127,7 +127,7 @@ func TestGroupingPhase1(t *testing.T) {
 
 // Test simple grouping of 1 conn line with netInterface, grouped into subnet element.
 func TestGroupingPhase2(t *testing.T) {
-	c, v := newCloudConfigTest2()
+	c, v := newVPCConfigTest2()
 	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
 		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
 		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
