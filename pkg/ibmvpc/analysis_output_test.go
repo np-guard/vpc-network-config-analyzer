@@ -414,7 +414,7 @@ func runTestPerUseCase(t *testing.T,
 	mode testMode) error {
 	numConfigs := len(c)
 	for _, vpcConfig := range c {
-		expectedFileName, actualFileName, err := getTestFileName(tt.name, uc, tt.grouping, tt.format, vpcConfig.VPCName, numConfigs)
+		expectedFileName, actualFileName, err := getTestFileName(tt.name, uc, tt.grouping, tt.format, vpcConfig.VPC.Name(), numConfigs)
 		if err != nil {
 			return err
 		}

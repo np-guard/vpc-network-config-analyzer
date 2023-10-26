@@ -22,7 +22,7 @@ func (m *MDoutputFormatter) WriteOutput(c *VPCConfig,
 	grouping bool,
 	uc OutputUseCase) (string, error) {
 	// get output by analysis type
-	out := "# " + headerOfAnalyzedVPC(c.VPCName)
+	out := "# " + headerOfAnalyzedVPC(c.VPC.Name())
 	switch uc {
 	case AllEndpoints:
 		lines := []string{mdTitle, mdHeader}

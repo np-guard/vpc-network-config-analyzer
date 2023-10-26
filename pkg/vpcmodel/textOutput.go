@@ -18,7 +18,7 @@ func (t *TextOutputFormatter) WriteOutput(c *VPCConfig,
 	grouping bool,
 	uc OutputUseCase) (string, error) {
 	// header line - specify the VPC analyzed
-	out := headerOfAnalyzedVPC(c.VPCName)
+	out := headerOfAnalyzedVPC(c.VPC.Name())
 	// get output by analysis type
 	switch uc {
 	case AllEndpoints:
