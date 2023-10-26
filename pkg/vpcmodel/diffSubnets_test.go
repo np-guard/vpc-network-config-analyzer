@@ -146,10 +146,16 @@ func TestSimpleIPAndSubnetSubtract(t *testing.T) {
 	require.Contains(t, res, "<subnet2, public1-1> and <subnet2, public2-1> intersects")
 	require.Contains(t, res, "<public1-2, subnet2> and <public2-2, subnet2> intersects")
 
-	subnetConfigConn1.subnetConnectivity.GetConnectivesWithSameIPBlocks(subnetConfigConn2.subnetConnectivity)
-	//subnet1Subtract2 := subnetConfigConn1.SubnetConnectivitySubtract(subnetConfigConn2)
-	//subnet1Subtract2Str := subnet1Subtract2.EnhancedString(true)
-	//fmt.Printf("subnet1Subtract2:\n%v\n", subnet1Subtract2Str)
+	alignedSubnet1Conn, alignedSubnet2Conn, err := subnetConfigConn1.subnetConnectivity.GetConnectivesWithSameIPBlocks(subnetConfigConn2.subnetConnectivity)
+	if err != nil {
+		fmt.Printf("err: %v\n", err.Error())
+		return
+	}
+	subnetConfigConn1.subnetConnectivity = alignedSubnet1Conn
+	subnetConfigConn2.subnetConnectivity = alignedSubnet2Conn
+	subnet1Subtract2 := subnetConfigConn1.SubnetConnectivitySubtract(subnetConfigConn2)
+	subnet1Subtract2Str := subnet1Subtract2.EnhancedString(true)
+	fmt.Printf("subnet1Subtract2:\n%v\n", subnet1Subtract2Str)
 	//
 	//subnet2Subtract1 := subnetConfigConn2.SubnetConnectivitySubtract(subnetConfigConn1)
 	//subnet2Subtract1Str := subnet2Subtract1.EnhancedString(false)
