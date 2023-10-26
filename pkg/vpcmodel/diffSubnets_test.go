@@ -118,15 +118,15 @@ func configSimpleIPAndSubnetSubtract() (subnetConfigConn1, subnetConfigConn2 *Su
 	//<public1-1, subnet1> 			 and 		<public2-1, subnet1> are comparable
 	subnetConnMap1 := &VPCsubnetConnectivity{AllowedConnsCombined: NewSubnetConnectivityMap()}
 	subnetConnMap1.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg1.Nodes[0], cfg1.NodeSets[0], common.NewConnectionSet(true))
-	subnetConnMap1.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg1.NodeSets[1], cfg1.Nodes[0], common.NewConnectionSet(true))
 	subnetConnMap1.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg1.Nodes[0], cfg1.NodeSets[1], common.NewConnectionSet(true))
 	subnetConnMap1.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg1.Nodes[1], cfg1.NodeSets[1], common.NewConnectionSet(true))
+	subnetConnMap1.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg1.NodeSets[1], cfg1.Nodes[0], common.NewConnectionSet(true))
 
 	subnetConnMap2 := &VPCsubnetConnectivity{AllowedConnsCombined: NewSubnetConnectivityMap()}
 	subnetConnMap2.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg2.Nodes[0], cfg2.NodeSets[0], common.NewConnectionSet(true))
-	subnetConnMap2.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg2.NodeSets[1], cfg2.Nodes[0], common.NewConnectionSet(true))
 	subnetConnMap2.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg2.Nodes[0], cfg2.NodeSets[1], common.NewConnectionSet(true))
 	subnetConnMap2.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg2.Nodes[1], cfg2.NodeSets[1], common.NewConnectionSet(true))
+	subnetConnMap2.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg2.NodeSets[1], cfg2.Nodes[0], common.NewConnectionSet(true))
 
 	subnetConfigConn1 = &SubnetConfigConnectivity{cfg1, subnetConnMap1.AllowedConnsCombined}
 	subnetConfigConn2 = &SubnetConfigConnectivity{cfg2, subnetConnMap2.AllowedConnsCombined}
@@ -146,14 +146,12 @@ func TestSimpleIPAndSubnetSubtract(t *testing.T) {
 	require.Contains(t, res, "<subnet2, public1-1> and <subnet2, public2-1> intersects")
 	require.Contains(t, res, "<public1-2, subnet2> and <public2-2, subnet2> intersects")
 
-	alignedSubnet1Conn, alignedSubnet2Conn, err := subnetConfigConn1.subnetConnectivity.GetConnectivesWithSameIPBlocks(subnetConfigConn2.subnetConnectivity)
+	alignedSubnet1Conn, alignedSubnet1Conn2, err := subnetConfigConn1.GetConnectivesWithSameIPBlocks(subnetConfigConn2)
 	if err != nil {
 		fmt.Printf("err: %v\n", err.Error())
 		return
 	}
-	subnetConfigConn1.subnetConnectivity = alignedSubnet1Conn
-	subnetConfigConn2.subnetConnectivity = alignedSubnet2Conn
-	subnet1Subtract2 := subnetConfigConn1.SubnetConnectivitySubtract(subnetConfigConn2)
+	subnet1Subtract2 := alignedSubnet1Conn.SubnetConnectivitySubtract(alignedSubnet1Conn2)
 	subnet1Subtract2Str := subnet1Subtract2.EnhancedString(true)
 	fmt.Printf("subnet1Subtract2:\n%v\n", subnet1Subtract2Str)
 	//

@@ -58,16 +58,18 @@ func (configs ConfigsForDiff) GetSubnetsDiff(grouping bool) (*diffBetweenSubnets
 		return nil, err
 	}
 
-	// 2. Computes delta in both directions
-	connectivity1Aligned, connectivity2Aligned, err :=
-		subnetsConn1.AllowedConnsCombined.GetConnectivesWithSameIPBlocks(subnetsConn2.AllowedConnsCombined)
+	//2. Computes delta in both directions
+	subnetConfigConn1 := &SubnetConfigConnectivity{configs.config1,
+		subnetsConn1.AllowedConnsCombined}
+	subnetConfigConn2 := &SubnetConfigConnectivity{configs.config2,
+		subnetsConn2.AllowedConnsCombined}
+	alignedConfigConnectivity1, alignedConfigConnectivity2, err :=
+		subnetConfigConn1.GetConnectivesWithSameIPBlocks(subnetConfigConn2)
 	if err != nil {
 		return nil, err
 	}
-	subnetConfigConnectivity1 := SubnetConfigConnectivity{configs.config1, connectivity1Aligned}
-	subnetConfigConnectivity2 := SubnetConfigConnectivity{configs.config2, connectivity2Aligned}
-	subnet1Subtract2 := subnetConfigConnectivity1.SubnetConnectivitySubtract(&subnetConfigConnectivity2)
-	subnet2Subtract1 := subnetConfigConnectivity2.SubnetConnectivitySubtract(&subnetConfigConnectivity1)
+	subnet1Subtract2 := alignedConfigConnectivity1.SubnetConnectivitySubtract(alignedConfigConnectivity2)
+	subnet2Subtract1 := alignedConfigConnectivity2.SubnetConnectivitySubtract(alignedConfigConnectivity1)
 
 	// 3. ToDo: grouping, see comment at the end of this file
 
@@ -109,9 +111,6 @@ func (subnetConfConnectivity *SubnetConfigConnectivity) SubnetConnectivitySubtra
 	connectivitySubtract := map[EndpointElem]map[EndpointElem]*connectionDiff{}
 	for src, endpointConns := range subnetConfConnectivity.subnetConnectivity {
 		for dst, conns := range endpointConns {
-			if src.IsExternal() || dst.IsExternal() { // todo: tmp
-				continue
-			}
 			if conns.IsEmpty() {
 				continue
 			}
@@ -213,37 +212,51 @@ func diffDescription(diff DiffType) string {
 // Two equivalent SubnetConnectivityMap objects s.t. any (src1, dst1) of subnet1Connectivity and
 // (src2, dst2) of subnet2Connectivity s.t. if src1 and src2 (dst1 and dst2) are both external then
 // they are either equal or disjoint
-func (connectivity SubnetConnectivityMap) GetConnectivesWithSameIPBlocks(other SubnetConnectivityMap) (
-	alignedConnectivity SubnetConnectivityMap, alignedOther SubnetConnectivityMap, err error) {
+// todo: instead of connectivity -> SubnetConfigConnectivity
+func (connectivityConfig *SubnetConfigConnectivity) GetConnectivesWithSameIPBlocks(other *SubnetConfigConnectivity) (
+	alignedConnectivity, alignedOther *SubnetConfigConnectivity, err error) {
 	// Get a list of all disjoint src IPBlocks and dst IPBlocks and resize by the disjoint IPBlocks
-	srcAlignedConnectivity, srcAlignedOther, err := connectivity.alignSrcOrDstIPBlocks(other, true)               // resize src
+	srcAlignedConnectivity, srcAlignedOther, err := connectivityConfig.alignSrcOrDstIPBlocks(other, true)         // resize src
 	alignedConnectivity, alignedOther, err = srcAlignedConnectivity.alignSrcOrDstIPBlocks(srcAlignedOther, false) // resize dst
 	return
 }
 
+// todo: instead of connectivity -> SubnetConfigConnectivity both in receiver and return value
 // aligns src or dst in both connectivity and other
-func (connectivity SubnetConnectivityMap) alignSrcOrDstIPBlocks(other SubnetConnectivityMap, resizeSrc bool) (
-	alignedConnectivity, alignedOther SubnetConnectivityMap, err error) {
+func (connectivityConfig *SubnetConfigConnectivity) alignSrcOrDstIPBlocks(other *SubnetConfigConnectivity, resizeSrc bool) (
+	alignedConfigConnectivity, alignedConfigOther *SubnetConfigConnectivity, err error) {
 	err = nil
-	connectivitySrcOrDstIPBlist, err := connectivity.getIPBlocksList(resizeSrc)
+	// copy config, excluding nodes
+	alignedConfig := connectivityConfig.config
+	alignedConfig.Nodes = nil // todo nodes
+	alignedOtherConfig := other.config
+	alignedOtherConfig.Nodes = nil // todo nodes
+	connectivitySrcOrDstIPBlist, err := connectivityConfig.subnetConnectivity.getIPBlocksList(resizeSrc)
 	if err != nil {
 		return nil, nil, err
 	}
-	otherSrcOrDstIPBlist, err := other.getIPBlocksList(resizeSrc)
+	otherSrcOrDstIPBlist, err := other.subnetConnectivity.getIPBlocksList(resizeSrc)
 	if err != nil {
 		return nil, nil, err
 	}
 	disjointIPblocks := common.DisjointIPBlocks(connectivitySrcOrDstIPBlist, otherSrcOrDstIPBlist)
+	// todo: 2. nodes: range over old nodes and inside range over disjoint blocks
+	//          if a disjoint block is contained in an old node - create external node and add it
+	//          if no disjoint block is contained in an old node - add the old node as is
 
-	alignedConnectivity, err = connectivity.actualAlignGivenIPBlists(disjointIPblocks, resizeSrc)
+	fmt.Printf("\nresizeSrc %v\n--------------\n", resizeSrc)
+	fmt.Println("resizing connectivity")
+	alignedConnectivity, err := connectivityConfig.subnetConnectivity.actualAlignGivenIPBlists(disjointIPblocks, resizeSrc)
 	if err != nil {
 		return nil, nil, err
 	}
-	alignedOther, err = other.actualAlignGivenIPBlists(disjointIPblocks, resizeSrc)
+	fmt.Println("resizing other")
+	alignedOtherConnectivity, err := other.subnetConnectivity.actualAlignGivenIPBlists(disjointIPblocks, resizeSrc)
 	if err != nil {
 		return nil, nil, err
 	}
-	return alignedConnectivity, alignedOther, err
+	return &SubnetConfigConnectivity{alignedConfig, alignedConnectivity},
+		&SubnetConfigConnectivity{alignedOtherConfig, alignedOtherConnectivity}, err
 }
 
 func (connectivity SubnetConnectivityMap) actualAlignGivenIPBlists(disjointIPblocks []*common.IPBlock, resizeSrc bool) (
@@ -264,6 +277,7 @@ func (connectivity SubnetConnectivityMap) actualAlignGivenIPBlists(disjointIPblo
 			// the resizing element is not external - copy as is
 			if (resizeSrc && !src.IsExternal()) || (!resizeSrc && !dst.IsExternal()) {
 				alignedConnectivity[src][dst] = conns
+				fmt.Printf("\t\tnew (old): %v %v %v\n", src.Name(), dst.Name(), conns.EnhancedString())
 				continue
 			}
 			// the resizing element is external - go over all ipBlock and allocates the connection
@@ -290,6 +304,7 @@ func (connectivity SubnetConnectivityMap) actualAlignGivenIPBlists(disjointIPblo
 					if err != nil {
 						return nil, err
 					}
+					// todo: take node from config
 					nodeOfCidr, err = NewExternalNode(true, newIpBlock)
 					if err != nil {
 						return nil, err
@@ -300,8 +315,10 @@ func (connectivity SubnetConnectivityMap) actualAlignGivenIPBlists(disjointIPblo
 						alignedConnectivity[nodeOfCidr] = map[EndpointElem]*common.ConnectionSet{}
 					}
 					alignedConnectivity[nodeOfCidr][dst] = conns
+					fmt.Printf("\t\tnew:%v %v %v\n", nodeOfCidr.Cidr(), dst.Name(), conns.EnhancedString())
 				} else {
 					alignedConnectivity[src][nodeOfCidr] = conns
+					fmt.Printf("\t\tnew:%v %v %v\n", src.Name(), nodeOfCidr.Cidr(), conns.EnhancedString())
 				}
 			}
 		}
@@ -346,10 +363,9 @@ func externalNodeToIpBlock(external Node) (ipBlock *common.IPBlock, err error) {
 }
 
 // todo: the following code finds all couples of connections that should be resized (it IPBlock)
-//
-//		it seems that the code is redundant; yet we keep it with its unit test in case we'll decide
-//		to use it in the future
-//	 it return a string describing the intersecting connections for the unit test
+// todo: it seems that the code is redundant; yet we keep it with its unit test in case we'll decide
+// todo: to use it in the future
+// todo: it return a string describing the intersecting connections for the unit test
 func (connectivity SubnetConnectivityMap) getIntersectingConnections(other SubnetConnectivityMap) (areIntersecting string,
 	err error) {
 	err = nil
