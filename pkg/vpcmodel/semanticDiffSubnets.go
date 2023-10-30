@@ -58,7 +58,7 @@ func (configs ConfigsForDiff) GetSubnetsDiff(grouping bool) (*diffBetweenSubnets
 		return nil, err
 	}
 
-	//2. Computes delta in both directions
+	// 2. Computes delta in both directions
 	subnetConfigConn1 := &SubnetConfigConnectivity{configs.config1,
 		subnetsConn1.AllowedConnsCombined}
 	subnetConfigConn2 := &SubnetConfigConnectivity{configs.config2,
@@ -85,12 +85,11 @@ func (c *VPCConfig) getEndpointElemInOtherConfig(other *VPCConfig, ep EndpointEl
 	if ep.IsExternal() {
 		nodeSameCidr, _ := findNodeWithCidr(other.Nodes, ep.(Node).Cidr())
 		return nodeSameCidr
-	} else {
-		for _, nodeSet := range other.NodeSets {
-			if nodeSet.Name() == ep.Name() {
-				res := EndpointElem(nodeSet)
-				return res
-			}
+	}
+	for _, nodeSet := range other.NodeSets {
+		if nodeSet.Name() == ep.Name() {
+			res := EndpointElem(nodeSet)
+			return res
 		}
 	}
 	return nil
@@ -114,12 +113,7 @@ func (subnetConfConnectivity *SubnetConfigConnectivity) SubnetConnectivitySubtra
 			if srcInOther != nil && dstInOther != nil {
 				if otherSrc, ok := other.subnetConnectivity[srcInOther]; ok {
 					if otherSrcDst, ok := otherSrc[dstInOther]; ok {
-						// ToDo: current missing stateful:
-						// todo 1. is the delta connection stateful
-						// todo 2. connectionProperties is identical but conn stateful while other is not
-						//     the 2nd item can be computed by conns.Subtract, with enhancement to relevant structure
-						//     the 1st can not since we do not know where exactly the statefullness came from
-						//     we might need to repeat the statefullness computation for the delta connection
+						// ToDo: https://github.com/np-guard/vpc-network-config-analyzer/issues/199
 						subtractConn := conns.Subtract(otherSrcDst)
 						if subtractConn.IsEmpty() {
 							continue // no diff
@@ -204,7 +198,7 @@ func diffDescription(diff DiffType) string {
 // (src2, dst2) of subnet2Connectivity s.t. if src1 and src2 (dst1 and dst2) are both external then
 // they are either equal or disjoint
 func (subnetConfConnectivity *SubnetConfigConnectivity) GetConnectivesWithSameIPBlocks(otherConfConnectivity *SubnetConfigConnectivity) (
-	alignedConnectivityConfig, alignedOtherConnectivityConfig *SubnetConfigConnectivity, err error) {
+	alignedConnectivityConfig, alignedOtherConnectivityConfig *SubnetConfigConnectivity, myErr error) {
 	// 1. computes new set of external nodes (only type of nodes here) in cfg1 and cfg2
 	// does so by computing disjoint block between src+dst ipBlocks in cfg1 and in cfg2
 	// the new set of external nodes is determined based on them
@@ -238,7 +232,7 @@ func (subnetConfConnectivity *SubnetConfigConnectivity) GetConnectivesWithSameIP
 		return nil, nil, err
 	}
 	return &SubnetConfigConnectivity{alignedConfig, alignedConnectivity},
-		&SubnetConfigConnectivity{otherAlignedConfig, alignedOtherConnectivity}, err
+		&SubnetConfigConnectivity{otherAlignedConfig, alignedOtherConnectivity}, myErr
 }
 
 func (subnetConnectivity *SubnetConnectivityMap) alignConnectionsGivenIPBlists(config *VPCConfig, disjointIPblocks []*common.IPBlock) (
@@ -248,16 +242,16 @@ func (subnetConnectivity *SubnetConnectivityMap) alignConnectionsGivenIPBlists(c
 		return nil, err
 	}
 	alignedConnectivity, err = alignedConnectivitySrc.actualAlignSrcOrDstGivenIPBlists(config, disjointIPblocks, false)
-	return alignedConnectivity, nil
+	return alignedConnectivity, err
 }
 
 // aligned config: copies from old config everything but nodes,
 // nodes are resized by disjointIPblocks
-func (oldConfig *VPCConfig) copyConfig(disjointIPblocks []*common.IPBlock) (alignedConfig *VPCConfig, err error) {
+func (c *VPCConfig) copyConfig(disjointIPblocks []*common.IPBlock) (alignedConfig *VPCConfig, err error) {
 	// copy config
-	alignedConfig = oldConfig
+	alignedConfig = c
 	//  nodes - external addresses - are resized
-	alignedConfig.Nodes, err = resizeNodes(oldConfig.Nodes, disjointIPblocks)
+	alignedConfig.Nodes, err = resizeNodes(c.Nodes, disjointIPblocks)
 	return alignedConfig, err
 }
 
@@ -267,15 +261,15 @@ func resizeNodes(oldNodes []Node, disjointIPblocks []*common.IPBlock) (newNodes 
 	//  if a disjoint block is contained in an old oldNode - create external oldNode and add it
 	//  if no disjoint block is contained in an old oldNode - add the old oldNode as is
 	for _, oldNode := range oldNodes {
-		nodeIpBlock, err := common.NewIPBlock(oldNode.Cidr(), nil)
+		nodeIPBlock, err := common.NewIPBlock(oldNode.Cidr(), nil)
 		if err != nil {
 			return nil, err
 		}
 		disjointContained := false
-		for _, disjointIpBlock := range disjointIPblocks {
-			if disjointIpBlock.ContainedIn(nodeIpBlock) {
+		for _, disjointIPBlock := range disjointIPblocks {
+			if disjointIPBlock.ContainedIn(nodeIPBlock) {
 				disjointContained = true
-				for _, thisCidr := range disjointIpBlock.ToCidrList() {
+				for _, thisCidr := range disjointIPBlock.ToCidrList() {
 					newNode := NewExternalNodeForCidr(thisCidr)
 					newNodes = append(newNodes, newNode)
 				}
@@ -310,12 +304,11 @@ func (subnetConnectivity *SubnetConnectivityMap) actualAlignSrcOrDstGivenIPBlist
 			}
 			// the resizing element is external - go over all ipBlock and allocates the connection
 			// if the ipBlock is contained in the original src/dst
-			var origIpBlock *common.IPBlock
-			var err error
+			var origIPBlock *common.IPBlock
 			if resizeSrc {
-				origIpBlock, err = externalNodeToIpBlock(src.(Node))
+				origIPBlock, err = externalNodeToIPBlock(src.(Node))
 			} else {
-				origIpBlock, err = externalNodeToIpBlock(dst.(Node))
+				origIPBlock, err = externalNodeToIPBlock(dst.(Node))
 			}
 			if err != nil {
 				return nil, err
@@ -323,7 +316,7 @@ func (subnetConnectivity *SubnetConnectivityMap) actualAlignSrcOrDstGivenIPBlist
 			origBlockContainsIPBlocks := false
 			for _, ipBlock := range disjointIPblocks {
 				// 1. get ipBlock of resized index (src/dst)
-				if !ipBlock.ContainedIn(origIpBlock) { // ipBlock not relevant here
+				if !ipBlock.ContainedIn(origIPBlock) { // ipBlock not relevant here
 					continue
 				}
 				origBlockContainsIPBlocks = true
@@ -359,28 +352,28 @@ func findNodeWithCidr(configNodes []Node, cidr string) (Node, error) {
 			return node, nil
 		}
 	}
-	return nil, fmt.Errorf(fmt.Sprintf("A node with cidr %v not found in conf", cidr)) // should not get here
+	return nil, fmt.Errorf("%s", fmt.Sprintf("A node with cidr %v not found in conf", cidr)) // should not get here
 }
 
 // get a list of IPBlocks of the src and dst of the connections
 func (subnetConnectivity SubnetConnectivityMap) getIPBlocksList() (ipbList []*common.IPBlock,
-	err error) {
+	myErr error) {
 	ipbList = []*common.IPBlock{}
-	err = nil
+	myErr = nil
 	for src, endpointConns := range subnetConnectivity {
 		for dst, conns := range endpointConns {
 			if conns.IsEmpty() {
 				continue
 			}
 			if src.IsExternal() {
-				ipBlock, err := externalNodeToIpBlock(src.(Node))
+				ipBlock, err := externalNodeToIPBlock(src.(Node))
 				if err != nil {
 					return nil, err
 				}
 				ipbList = append(ipbList, ipBlock)
 			}
 			if dst.IsExternal() {
-				ipBlock, err := externalNodeToIpBlock(dst.(Node))
+				ipBlock, err := externalNodeToIPBlock(dst.(Node))
 				if err != nil {
 					return nil, err
 				}
@@ -388,10 +381,10 @@ func (subnetConnectivity SubnetConnectivityMap) getIPBlocksList() (ipbList []*co
 			}
 		}
 	}
-	return ipbList, err
+	return ipbList, myErr
 }
 
-func externalNodeToIpBlock(external Node) (ipBlock *common.IPBlock, err error) {
+func externalNodeToIPBlock(external Node) (ipBlock *common.IPBlock, err error) {
 	ipBlock, err = common.NewIPBlock(external.Cidr(), []string{})
 	if err != nil {
 		return nil, err
@@ -424,9 +417,9 @@ func (subnetConnectivity SubnetConnectivityMap) getIntersectingConnections(other
 					}
 					myEp := &ConnectionEnd{src, dst}
 					otherEp := &ConnectionEnd{otherSrc, otherDst}
-					intersecting, err := myEp.connectionsIntersecting(otherEp)
-					if err != nil {
-						return areIntersecting, err
+					intersecting, err1 := myEp.connectionsIntersecting(otherEp)
+					if err1 != nil {
+						return areIntersecting, err1
 					}
 					if intersecting {
 						areIntersecting += fmt.Sprintf("<%v, %v> and <%v, %v> intersects\n", src.Name(), dst.Name(), otherSrc.Name(), otherDst.Name())
@@ -475,20 +468,19 @@ func pairEpsComparable(myEp, otherEp EndpointElem) (bool, error) {
 	if isMySubnet { // implies that isOtherSubnet as well
 		if mySubnet.Name() == otherSubnet.Name() {
 			return true, nil
-		} else {
-			return false, nil
 		}
+		return false, nil
 	}
 	// if we got here then both eps refer to external IP
-	myIpBlock, err := common.NewIPBlock(myExternal.Cidr(), []string{})
+	myIPBlock, err := common.NewIPBlock(myExternal.Cidr(), []string{})
 	if err != nil {
 		return false, err
 	}
-	otherIpBlock, err := common.NewIPBlock(otherExternal.Cidr(), []string{})
+	otherIPBlock, err := common.NewIPBlock(otherExternal.Cidr(), []string{})
 	if err != nil {
 		return false, err
 	}
-	if !myIpBlock.Equal(otherIpBlock) && !myIpBlock.Intersection(otherIpBlock).Empty() {
+	if !myIPBlock.Equal(otherIPBlock) && !myIPBlock.Intersection(otherIPBlock).Empty() {
 		return true, nil
 	}
 	return false, nil
