@@ -203,33 +203,21 @@ func diffDescription(diff DiffType) string {
 // Two equivalent SubnetConnectivityMap objects s.t. any (src1, dst1) of subnet1Connectivity and
 // (src2, dst2) of subnet2Connectivity s.t. if src1 and src2 (dst1 and dst2) are both external then
 // they are either equal or disjoint
-func (subnetConfConnectivity *SubnetConfigConnectivity) GetConnectivesWithSameIPBlocks(othersubnetConfConnectivity *SubnetConfigConnectivity) (
-	alignedConnectivity, alignedOther *SubnetConfigConnectivity, err error) {
-	// Get a list of all disjoint src IPBlocks and dst IPBlocks and resize by the disjoint IPBlocks
-	srcAlignedConnectivity, srcAlignedOther, err := subnetConfConnectivity.alignSrcOrDstIPBlocks(othersubnetConfConnectivity, true) // resize src
-	if err != nil {
-		return
-	}
-	alignedConnectivity, alignedOther, err = srcAlignedConnectivity.alignSrcOrDstIPBlocks(srcAlignedOther, false) // resize dst
-	return
-}
-
-// aligns src or dst in both connectivity and other
-func (subnetConfConnectivity *SubnetConfigConnectivity) alignSrcOrDstIPBlocks(otherConfConnectivity *SubnetConfigConnectivity, resizeSrc bool) (
-	alignedConfigConnectivity, alignedConfigOther *SubnetConfigConnectivity, err error) {
-	err = nil
-	// computes disjoint IPBlocks
-	connectivitySrcOrDstIPBlist, err := subnetConfConnectivity.subnetConnectivity.getIPBlocksList(resizeSrc)
+func (subnetConfConnectivity *SubnetConfigConnectivity) GetConnectivesWithSameIPBlocks(otherConfConnectivity *SubnetConfigConnectivity) (
+	alignedConnectivityConfig, alignedOtherConnectivityConfig *SubnetConfigConnectivity, err error) {
+	// 1. computes new set of external nodes (only type of nodes here) in cfg1 and cfg2
+	// does so by computing disjoint block between src+dst ipBlocks in cfg1 and in cfg2
+	// the new set of external nodes is determined based on them
+	connectivityIPBlist, err := subnetConfConnectivity.subnetConnectivity.getIPBlocksList()
 	if err != nil {
 		return nil, nil, err
 	}
-	otherSrcOrDstIPBlist, err := otherConfConnectivity.subnetConnectivity.getIPBlocksList(resizeSrc)
+	otherIPBlist, err := otherConfConnectivity.subnetConnectivity.getIPBlocksList()
 	if err != nil {
 		return nil, nil, err
 	}
-	disjointIPblocks := common.DisjointIPBlocks(connectivitySrcOrDstIPBlist, otherSrcOrDstIPBlist)
-
-	// copy configs
+	disjointIPblocks := common.DisjointIPBlocks(connectivityIPBlist, otherIPBlist)
+	// 2. copy configs and generates Nodes[] as per disjointIPblocks
 	alignedConfig, err := subnetConfConnectivity.config.copyConfig(disjointIPblocks)
 	if err != nil {
 		return nil, nil, err
@@ -238,19 +226,29 @@ func (subnetConfConnectivity *SubnetConfigConnectivity) alignSrcOrDstIPBlocks(ot
 	if err != nil {
 		return nil, nil, err
 	}
-
-	alignedConnectivity, err := subnetConfConnectivity.subnetConnectivity.actualAlignGivenIPBlists(
-		alignedConfig, disjointIPblocks, resizeSrc)
+	// 3. resize connections as per the new Nodes[]
+	alignedConnectivity, err := subnetConfConnectivity.subnetConnectivity.alignConnectionsGivenIPBlists(
+		alignedConfig, disjointIPblocks)
 	if err != nil {
 		return nil, nil, err
 	}
-	alignedOtherConnectivity, err := otherConfConnectivity.subnetConnectivity.actualAlignGivenIPBlists(
-		otherAlignedConfig, disjointIPblocks, resizeSrc)
+	alignedOtherConnectivity, err := otherConfConnectivity.subnetConnectivity.alignConnectionsGivenIPBlists(
+		otherAlignedConfig, disjointIPblocks)
 	if err != nil {
 		return nil, nil, err
 	}
 	return &SubnetConfigConnectivity{alignedConfig, alignedConnectivity},
 		&SubnetConfigConnectivity{otherAlignedConfig, alignedOtherConnectivity}, err
+}
+
+func (subnetConnectivity *SubnetConnectivityMap) alignConnectionsGivenIPBlists(config *CloudConfig, disjointIPblocks []*common.IPBlock) (
+	alignedConnectivity SubnetConnectivityMap, err error) {
+	alignedConnectivitySrc, err := subnetConnectivity.actualAlignSrcOrDstGivenIPBlists(config, disjointIPblocks, true)
+	if err != nil {
+		return nil, err
+	}
+	alignedConnectivity, err = alignedConnectivitySrc.actualAlignSrcOrDstGivenIPBlists(config, disjointIPblocks, false)
+	return alignedConnectivity, nil
 }
 
 // aligned config: copies from old config everything but nodes,
@@ -287,11 +285,10 @@ func resizeNodes(oldNodes []Node, disjointIPblocks []*common.IPBlock) (newNodes 
 			newNodes = append(newNodes, oldNode)
 		}
 	}
-
 	return newNodes, nil
 }
 
-func (subnetConnectivity *SubnetConnectivityMap) actualAlignGivenIPBlists(config *CloudConfig, disjointIPblocks []*common.IPBlock, resizeSrc bool) (
+func (subnetConnectivity *SubnetConnectivityMap) actualAlignSrcOrDstGivenIPBlists(config *CloudConfig, disjointIPblocks []*common.IPBlock, resizeSrc bool) (
 	alignedConnectivity SubnetConnectivityMap, err error) {
 	// goes over all sources of connections in connectivity
 	// if src is external then for each IPBlock in disjointIPblocks copies dsts and connection type
@@ -365,8 +362,8 @@ func findNodeWithCidr(configNodes []Node, cidr string) (Node, error) {
 	return nil, fmt.Errorf(fmt.Sprintf("A node with cidr %v not found in conf", cidr)) // should not get here
 }
 
-// get a list of IPBlocks of the src/dst of the connections
-func (subnetConnectivity SubnetConnectivityMap) getIPBlocksList(getSrcList bool) (ipbList []*common.IPBlock,
+// get a list of IPBlocks of the src and dst of the connections
+func (subnetConnectivity SubnetConnectivityMap) getIPBlocksList() (ipbList []*common.IPBlock,
 	err error) {
 	ipbList = []*common.IPBlock{}
 	err = nil
@@ -375,13 +372,14 @@ func (subnetConnectivity SubnetConnectivityMap) getIPBlocksList(getSrcList bool)
 			if conns.IsEmpty() {
 				continue
 			}
-			if getSrcList && src.IsExternal() {
+			if src.IsExternal() {
 				ipBlock, err := externalNodeToIpBlock(src.(Node))
 				if err != nil {
 					return nil, err
 				}
 				ipbList = append(ipbList, ipBlock)
-			} else if !getSrcList && dst.IsExternal() {
+			}
+			if dst.IsExternal() {
 				ipBlock, err := externalNodeToIpBlock(dst.(Node))
 				if err != nil {
 					return nil, err
