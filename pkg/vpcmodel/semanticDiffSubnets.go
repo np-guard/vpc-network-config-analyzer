@@ -83,12 +83,8 @@ func (configs ConfigsForDiff) GetSubnetsDiff(grouping bool) (*diffBetweenSubnets
 // subnet/external address in otherConfig or nil if the subnet does not exist in the other config.
 func (c *CloudConfig) getEndpointElemInOtherConfig(other *CloudConfig, ep EndpointElem) EndpointElem {
 	if ep.IsExternal() {
-		for _, node := range other.Nodes {
-			if node.Name() == ep.Name() {
-				res := EndpointElem(node)
-				return res
-			}
-		}
+		nodeSameCidr, _ := findNodeWithCidr(other.Nodes, ep.(Node).Cidr())
+		return nodeSameCidr
 	} else {
 		for _, nodeSet := range other.NodeSets {
 			if nodeSet.Name() == ep.Name() {
