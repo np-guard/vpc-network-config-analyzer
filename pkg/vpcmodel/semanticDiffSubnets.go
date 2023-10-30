@@ -25,12 +25,12 @@ type connectionDiff struct {
 type SubnetsDiff map[EndpointElem]map[EndpointElem]*connectionDiff
 
 type ConfigsForDiff struct {
-	config1 *CloudConfig
-	config2 *CloudConfig
+	config1 *VPCConfig
+	config2 *VPCConfig
 }
 
 type SubnetConfigConnectivity struct {
-	config             *CloudConfig
+	config             *VPCConfig
 	subnetConnectivity SubnetConnectivityMap
 }
 
@@ -81,7 +81,7 @@ func (configs ConfigsForDiff) GetSubnetsDiff(grouping bool) (*diffBetweenSubnets
 
 // for a given EndpointElem (representing a subnet or an external ip) in config return the EndpointElem representing the
 // subnet/external address in otherConfig or nil if the subnet does not exist in the other config.
-func (c *CloudConfig) getEndpointElemInOtherConfig(other *CloudConfig, ep EndpointElem) EndpointElem {
+func (c *VPCConfig) getEndpointElemInOtherConfig(other *VPCConfig, ep EndpointElem) EndpointElem {
 	if ep.IsExternal() {
 		nodeSameCidr, _ := findNodeWithCidr(other.Nodes, ep.(Node).Cidr())
 		return nodeSameCidr
@@ -241,7 +241,7 @@ func (subnetConfConnectivity *SubnetConfigConnectivity) GetConnectivesWithSameIP
 		&SubnetConfigConnectivity{otherAlignedConfig, alignedOtherConnectivity}, err
 }
 
-func (subnetConnectivity *SubnetConnectivityMap) alignConnectionsGivenIPBlists(config *CloudConfig, disjointIPblocks []*common.IPBlock) (
+func (subnetConnectivity *SubnetConnectivityMap) alignConnectionsGivenIPBlists(config *VPCConfig, disjointIPblocks []*common.IPBlock) (
 	alignedConnectivity SubnetConnectivityMap, err error) {
 	alignedConnectivitySrc, err := subnetConnectivity.actualAlignSrcOrDstGivenIPBlists(config, disjointIPblocks, true)
 	if err != nil {
@@ -253,7 +253,7 @@ func (subnetConnectivity *SubnetConnectivityMap) alignConnectionsGivenIPBlists(c
 
 // aligned config: copies from old config everything but nodes,
 // nodes are resized by disjointIPblocks
-func (oldConfig *CloudConfig) copyConfig(disjointIPblocks []*common.IPBlock) (alignedConfig *CloudConfig, err error) {
+func (oldConfig *VPCConfig) copyConfig(disjointIPblocks []*common.IPBlock) (alignedConfig *VPCConfig, err error) {
 	// copy config
 	alignedConfig = oldConfig
 	//  nodes - external addresses - are resized
@@ -288,7 +288,7 @@ func resizeNodes(oldNodes []Node, disjointIPblocks []*common.IPBlock) (newNodes 
 	return newNodes, nil
 }
 
-func (subnetConnectivity *SubnetConnectivityMap) actualAlignSrcOrDstGivenIPBlists(config *CloudConfig, disjointIPblocks []*common.IPBlock, resizeSrc bool) (
+func (subnetConnectivity *SubnetConnectivityMap) actualAlignSrcOrDstGivenIPBlists(config *VPCConfig, disjointIPblocks []*common.IPBlock, resizeSrc bool) (
 	alignedConnectivity SubnetConnectivityMap, err error) {
 	// goes over all sources of connections in connectivity
 	// if src is external then for each IPBlock in disjointIPblocks copies dsts and connection type

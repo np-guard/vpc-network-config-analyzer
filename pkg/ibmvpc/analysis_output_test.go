@@ -58,22 +58,35 @@ const (
 )
 
 // getTestFileName returns expected file name and actual file name, for the relevant use case
-func getTestFileName(testName string, uc vpcmodel.OutputUseCase, grouping bool, format vpcmodel.OutFormat) (
-	expectedFileName, actualFileName string,
+func getTestFileName(testName string,
+	uc vpcmodel.OutputUseCase,
+	grouping bool,
+	format vpcmodel.OutFormat,
+	configName string,
+	numConfigs int) (
+	expectedFileName,
+	actualFileName string,
 	err error) {
 	var res string
+
+	// if there are more than one vpc in the config, split to a file per one vpc analysis
+	baseName := testName
+	if numConfigs > 1 {
+		baseName += "_" + configName
+	}
+
 	switch uc {
 	case vpcmodel.AllEndpoints:
-		res = testName
+		res = baseName
 		if grouping {
 			res += suffixOutFileWithGrouping
 		}
 	case vpcmodel.SingleSubnet:
-		res = testName + suffixOutFileDebugSubnet
+		res = baseName + suffixOutFileDebugSubnet
 	case vpcmodel.AllSubnets:
-		res = testName + suffixOutFileSubnetsLevel
+		res = baseName + suffixOutFileSubnetsLevel
 	case vpcmodel.AllSubnetsNoPGW:
-		res = testName + suffixOutFileSubnetsLevelNoPGW
+		res = baseName + suffixOutFileSubnetsLevelNoPGW
 	}
 	switch format {
 	case vpcmodel.Text:
@@ -291,6 +304,17 @@ var tests = []*vpcGeneralTest{
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		format:   vpcmodel.Text,
 	},
+	// multi-vpc config examples
+	{
+		name:     "experiments_env",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:   vpcmodel.Text,
+	},
+	{
+		name:     "multiple_vpcs",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		format:   vpcmodel.Text,
+	},
 }
 
 var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
@@ -351,12 +375,12 @@ func (tt *vpcGeneralTest) runTest(t *testing.T) {
 	// init test - set the input/output file names according to test name
 	tt.initTest()
 
-	// get CloudConfig obj from parsing + analyzing input config file
-	cloudConfig := getCloudConfig(t, tt)
+	// get vpcConfigs obj from parsing + analyzing input config file
+	vpcConfigs := getVPCConfigs(t, tt)
 
 	// generate actual output for all use cases specified for this test
 	for _, uc := range tt.useCases {
-		err := runTestPerUseCase(t, tt, cloudConfig, uc, tt.mode)
+		err := runTestPerUseCase(t, tt, vpcConfigs, uc, tt.mode)
 		require.Equal(t, tt.errPerUseCase[uc], err, "comparing actual err to expected err")
 	}
 	for uc, outFile := range tt.actualOutput {
@@ -364,8 +388,8 @@ func (tt *vpcGeneralTest) runTest(t *testing.T) {
 	}
 }
 
-// getCloudConfig returns CloudConfig obj for the input test (config json file)
-func getCloudConfig(t *testing.T, tt *vpcGeneralTest) *vpcmodel.CloudConfig {
+// getVPCConfigs returns  map[string]*vpcmodel.VPCConfig obj for the input test (config json file)
+func getVPCConfigs(t *testing.T, tt *vpcGeneralTest) map[string]*vpcmodel.VPCConfig {
 	inputConfigFile := filepath.Join(getTestsDir(), tt.inputConfig)
 	inputConfigContent, err := os.ReadFile(inputConfigFile)
 	if err != nil {
@@ -375,48 +399,55 @@ func getCloudConfig(t *testing.T, tt *vpcGeneralTest) *vpcmodel.CloudConfig {
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
-	cloudConfig, err := NewCloudConfig(rc, tt.vpc)
+	vpcConfigs, err := VPCConfigsFromResources(rc, tt.vpc, false)
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
-	return cloudConfig
+	return vpcConfigs
 }
 
 // runTestPerUseCase runs the connectivity analysis for the required use case and compares/generates the output
-func runTestPerUseCase(t *testing.T, tt *vpcGeneralTest, c *vpcmodel.CloudConfig, uc vpcmodel.OutputUseCase, mode testMode) error {
-	expectedFileName, actualFileName, err := getTestFileName(tt.name, uc, tt.grouping, tt.format)
-	if err != nil {
-		return err
-	}
-	tt.actualOutput[uc] = filepath.Join(getTestsDir(), actualFileName)
-	tt.expectedOutput[uc] = filepath.Join(getTestsDir(), expectedFileName)
-	var actualOutput string
-
-	og, err := vpcmodel.NewOutputGenerator(c, tt.grouping, uc, tt.format == vpcmodel.ARCHDRAWIO)
-	if err != nil {
-		return err
-	}
-	actualOutput, err = og.Generate(tt.format, tt.actualOutput[uc])
-	if err != nil {
-		return err
-	}
-
-	if mode == outputComparison {
-		expectedOutput, err := os.ReadFile(tt.expectedOutput[uc])
+func runTestPerUseCase(t *testing.T,
+	tt *vpcGeneralTest,
+	c map[string]*vpcmodel.VPCConfig,
+	uc vpcmodel.OutputUseCase,
+	mode testMode) error {
+	numConfigs := len(c)
+	for _, vpcConfig := range c {
+		expectedFileName, actualFileName, err := getTestFileName(tt.name, uc, tt.grouping, tt.format, vpcConfig.VPCName, numConfigs)
 		if err != nil {
-			t.Fatalf("err: %s", err)
-		}
-		expectedOutputStr := string(expectedOutput)
-		if cleanStr(expectedOutputStr) != cleanStr(actualOutput) {
-			compareTextualResult(expectedOutputStr, actualOutput)
-			t.Fatalf("output mismatch expected-vs-actual on test name: %s, use case: %d", tt.name, uc)
-		}
-	}
-
-	if mode == outputGeneration {
-		// create or override expected output file
-		if err := vpcmodel.WriteToFile(actualOutput, tt.expectedOutput[uc]); err != nil {
 			return err
+		}
+		tt.actualOutput[uc] = filepath.Join(getTestsDir(), actualFileName)
+		tt.expectedOutput[uc] = filepath.Join(getTestsDir(), expectedFileName)
+		var actualOutput string
+
+		og, err := vpcmodel.NewOutputGenerator(vpcConfig, tt.grouping, uc, tt.format == vpcmodel.ARCHDRAWIO)
+		if err != nil {
+			return err
+		}
+		actualOutput, err = og.Generate(tt.format, tt.actualOutput[uc])
+		if err != nil {
+			return err
+		}
+
+		if mode == outputComparison {
+			expectedOutput, err := os.ReadFile(tt.expectedOutput[uc])
+			if err != nil {
+				t.Fatalf("err: %s", err)
+			}
+			expectedOutputStr := string(expectedOutput)
+			if cleanStr(expectedOutputStr) != cleanStr(actualOutput) {
+				compareTextualResult(expectedOutputStr, actualOutput)
+				t.Fatalf("output mismatch expected-vs-actual on test name: %s, use case: %d", tt.name, uc)
+			}
+		}
+
+		if mode == outputGeneration {
+			// create or override expected output file
+			if err := vpcmodel.WriteToFile(actualOutput, tt.expectedOutput[uc]); err != nil {
+				return err
+			}
 		}
 	}
 

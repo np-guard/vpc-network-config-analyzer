@@ -183,9 +183,9 @@ func nodesAddressRange(nodes []vpcmodel.Node) *common.IPBlock {
 	var res *common.IPBlock
 	for _, n := range nodes {
 		if res == nil {
-			res = common.NewIPBlockFromCidr(n.Cidr())
+			res = common.NewIPBlockFromCidrOrAddress(n.Cidr())
 		} else {
-			res = res.Union(common.NewIPBlockFromCidr(n.Cidr()))
+			res = res.Union(common.NewIPBlockFromCidrOrAddress(n.Cidr()))
 		}
 	}
 	return res
