@@ -142,18 +142,6 @@ func configSimpleIPAndSubnetSubtract() (subnetConfigConn1, subnetConfigConn2 *Su
 
 func TestSimpleIPAndSubnetSubtract(t *testing.T) {
 	cfgConn1, cfgConn2 := configSimpleIPAndSubnetSubtract()
-
-	//// functionality not used
-	//res, _ := cfgConn1.subnetConnectivity.getIntersectingConnections(cfgConn2.subnetConnectivity)
-	//fmt.Printf("%v", res)
-	//newLines := strings.Count(res, "\n")
-	//// there should be 4 lines in cfg1SubtractCfg2Str
-	//require.Equal(t, 4, newLines)
-	//require.Contains(t, res, "<subnet2, public1-1> and <subnet2, public2-1> intersects")
-	//require.Contains(t, res, "<public1-1, subnet2> and <public2-1, subnet2> intersects")
-	//require.Contains(t, res, "<subnet2, public1-1> and <subnet2, public2-1> intersects")
-	//require.Contains(t, res, "<public1-2, subnet2> and <public2-2, subnet2> intersects")
-
 	alignedCfgConn1, alignedCfgConn2, err := cfgConn1.GetConnectivesWithSameIPBlocks(cfgConn2)
 	if err != nil {
 		fmt.Printf("err: %v\n", err.Error())

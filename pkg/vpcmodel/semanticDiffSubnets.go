@@ -42,11 +42,6 @@ type diffBetweenSubnets struct {
 	GroupedSubnet1Minus1 *GroupConnLines
 }
 
-type ConnectionEnd struct {
-	src EndpointElem
-	dst EndpointElem
-}
-
 func (configs ConfigsForDiff) GetSubnetsDiff(grouping bool) (*diffBetweenSubnets, error) {
 	// 1. compute connectivity for each of the subnets
 	subnetsConn1, err := configs.config1.GetSubnetsConnectivity(true, false)
@@ -282,7 +277,8 @@ func resizeNodes(oldNodes []Node, disjointIPblocks []*common.IPBlock) (newNodes 
 	return newNodes, nil
 }
 
-func (subnetConnectivity *SubnetConnectivityMap) actualAlignSrcOrDstGivenIPBlists(config *VPCConfig, disjointIPblocks []*common.IPBlock, resizeSrc bool) (
+func (subnetConnectivity *SubnetConnectivityMap) actualAlignSrcOrDstGivenIPBlists(config *VPCConfig,
+	disjointIPblocks []*common.IPBlock, resizeSrc bool) (
 	alignedConnectivity SubnetConnectivityMap, err error) {
 	// goes over all sources of connections in connectivity
 	// if src is external then for each IPBlock in disjointIPblocks copies dsts and connection type
@@ -313,36 +309,42 @@ func (subnetConnectivity *SubnetConnectivityMap) actualAlignSrcOrDstGivenIPBlist
 			if err != nil {
 				return nil, err
 			}
-			origBlockContainsIPBlocks := false
-			for _, ipBlock := range disjointIPblocks {
-				// 1. get ipBlock of resized index (src/dst)
-				if !ipBlock.ContainedIn(origIPBlock) { // ipBlock not relevant here
-					continue
-				}
-				origBlockContainsIPBlocks = true
-				cidrList := ipBlock.ToCidrList()
-				var nodeOfCidr Node
-				for _, cidr := range cidrList {
-					nodeOfCidr, err = findNodeWithCidr(config.Nodes, cidr)
-					if err != nil {
-						return nil, err
-					}
-					if resizeSrc {
-						if _, ok := alignedConnectivity[nodeOfCidr]; !ok {
-							alignedConnectivity[nodeOfCidr] = map[EndpointElem]*common.ConnectionSet{}
-						}
-						alignedConnectivity[nodeOfCidr][dst] = conns
-					} else {
-						alignedConnectivity[src][nodeOfCidr] = conns
-					}
-				}
-			}
-			if !origBlockContainsIPBlocks { // keep as origin
-				alignedConnectivity[src][dst] = conns
-			}
+			err = config.addIPBlockToConnectivityMap(disjointIPblocks, origIPBlock, alignedConnectivity, src, dst, conns, resizeSrc)
 		}
 	}
 	return alignedConnectivity, err
+}
+
+func (c *VPCConfig) addIPBlockToConnectivityMap(disjointIPblocks []*common.IPBlock,
+	origIPBlock *common.IPBlock, alignedConnectivity map[EndpointElem]map[EndpointElem]*common.ConnectionSet,
+	src, dst EndpointElem, conns *common.ConnectionSet, resizeSrc bool) error {
+	origBlockContainsIPBlocks := false
+	for _, ipBlock := range disjointIPblocks {
+		// 1. get ipBlock of resized index (src/dst)
+		if !ipBlock.ContainedIn(origIPBlock) { // ipBlock not relevant here
+			continue
+		}
+		origBlockContainsIPBlocks = true
+		cidrList := ipBlock.ToCidrList()
+		for _, cidr := range cidrList {
+			nodeOfCidr, err := findNodeWithCidr(c.Nodes, cidr)
+			if err != nil {
+				return err
+			}
+			if resizeSrc {
+				if _, ok := alignedConnectivity[nodeOfCidr]; !ok {
+					alignedConnectivity[nodeOfCidr] = map[EndpointElem]*common.ConnectionSet{}
+				}
+				alignedConnectivity[nodeOfCidr][dst] = conns
+			} else {
+				alignedConnectivity[src][nodeOfCidr] = conns
+			}
+		}
+	}
+	if !origBlockContainsIPBlocks { // keep as origin
+		alignedConnectivity[src][dst] = conns
+	}
+	return nil
 }
 
 // gets node with given cidr
@@ -396,7 +398,11 @@ func externalNodeToIPBlock(external Node) (ipBlock *common.IPBlock, err error) {
 // todo: it seems that the code is redundant; yet we keep it with its unit test in case we'll decide
 // todo: to use it in the future
 // todo: it return a string describing the intersecting connections for the unit test
-//func (subnetConnectivity SubnetConnectivityMap) getIntersectingConnections(other SubnetConnectivityMap) (areIntersecting string,
+// type ConnectionEnd struct {
+//	 src EndpointElem
+//	 dst EndpointElem
+// }
+// func (subnetConnectivity SubnetConnectivityMap) getIntersectingConnections(other SubnetConnectivityMap) (areIntersecting string,
 //	err error) {
 //	err = nil
 //	for src, endpointConns := range subnetConnectivity {
@@ -437,7 +443,7 @@ func externalNodeToIPBlock(external Node) (ipBlock *common.IPBlock, err error) {
 //// two connections s.t. each contains at least one external end are comparable if either:
 //// both src and dst in both connections are external and they both intersect but not equal
 //// or end (src/dst) are external in both and intersects and the other (dst/src) are the same subnet
-//func (myConnEnd *ConnectionEnd) connectionsIntersecting(otherConnEnd *ConnectionEnd) (bool, error) {
+// func (myConnEnd *ConnectionEnd) connectionsIntersecting(otherConnEnd *ConnectionEnd) (bool, error) {
 //	srcComparable, err := pairEpsComparable(myConnEnd.src, otherConnEnd.src)
 //	if err != nil {
 //		return false, err
@@ -453,11 +459,11 @@ func externalNodeToIPBlock(external Node) (ipBlock *common.IPBlock, err error) {
 //		return false, err
 //	}
 //	return true, nil
-//}
+// }
 //
 //// checks if two eps refers to the same subnet or
 //// refers to intersecting external addresses
-//func pairEpsComparable(myEp, otherEp EndpointElem) (bool, error) {
+// func pairEpsComparable(myEp, otherEp EndpointElem) (bool, error) {
 //	mySubnet, isMySubnet := myEp.(NodeSet)
 //	otherSubnet, isOtherSubnet := otherEp.(NodeSet)
 //	myExternal, isMyExternal := myEp.(Node)
@@ -494,7 +500,7 @@ func externalNodeToIPBlock(external Node) (ipBlock *common.IPBlock, err error) {
 ////       this will requires some rewriting in the existing grouping functionality and the way it provides
 ////       service to subnetsConnectivity and nodesConnectivity
 //
-//func (subnetConnectivity *SubnetConnectivityMap) PrintConnectivity() {
+// func (subnetConnectivity *SubnetConnectivityMap) PrintConnectivity() {
 //	for src, endpointConns := range *subnetConnectivity {
 //		for dst, conns := range endpointConns {
 //			if conns.IsEmpty() {
@@ -503,4 +509,4 @@ func externalNodeToIPBlock(external Node) (ipBlock *common.IPBlock, err error) {
 //			fmt.Printf("\t%v => %v %v\n", src.Name(), dst.Name(), conns.EnhancedString())
 //		}
 //	}
-//}
+// }
