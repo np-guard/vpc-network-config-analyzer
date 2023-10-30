@@ -396,111 +396,111 @@ func externalNodeToIPBlock(external Node) (ipBlock *common.IPBlock, err error) {
 // todo: it seems that the code is redundant; yet we keep it with its unit test in case we'll decide
 // todo: to use it in the future
 // todo: it return a string describing the intersecting connections for the unit test
-func (subnetConnectivity SubnetConnectivityMap) getIntersectingConnections(other SubnetConnectivityMap) (areIntersecting string,
-	err error) {
-	err = nil
-	for src, endpointConns := range subnetConnectivity {
-		for dst, conns := range endpointConns {
-			if (!src.IsExternal() && !dst.IsExternal()) || conns.IsEmpty() {
-				continue // nothing to do here
-			}
-			for otherSrc, otherEndpointConns := range other {
-				for otherDst, otherConns := range otherEndpointConns {
-					if otherConns.IsEmpty() {
-						continue
-					}
-					bothSrcExt := src.IsExternal() && otherSrc.IsExternal()
-					bothDstExt := dst.IsExternal() && otherDst.IsExternal()
-					if (!bothSrcExt && !bothDstExt) ||
-						otherConns.IsEmpty() {
-						continue // nothing to compare to here
-					}
-					myEp := &ConnectionEnd{src, dst}
-					otherEp := &ConnectionEnd{otherSrc, otherDst}
-					intersecting, err1 := myEp.connectionsIntersecting(otherEp)
-					if err1 != nil {
-						return areIntersecting, err1
-					}
-					if intersecting {
-						areIntersecting += fmt.Sprintf("<%v, %v> and <%v, %v> intersects\n", src.Name(), dst.Name(), otherSrc.Name(), otherDst.Name())
-					}
-				}
-			}
-		}
-	}
-	return areIntersecting, err
-}
-
-// two connections s.t. each contains at least one external end are comparable if either:
-// both src and dst in both connections are external and they both intersect
-// one end (src/dst) are external in both and intersects and the other (dst/src) are the same subnet
-// two connections s.t. each contains at least one external end are comparable if either:
-// both src and dst in both connections are external and they both intersect but not equal
-// or end (src/dst) are external in both and intersects and the other (dst/src) are the same subnet
-func (myConnEnd *ConnectionEnd) connectionsIntersecting(otherConnEnd *ConnectionEnd) (bool, error) {
-	srcComparable, err := pairEpsComparable(myConnEnd.src, otherConnEnd.src)
-	if err != nil {
-		return false, err
-	}
-	if !srcComparable {
-		return false, nil
-	}
-	dstComparable, err := pairEpsComparable(myConnEnd.dst, otherConnEnd.dst)
-	if err != nil {
-		return false, err
-	}
-	if !dstComparable {
-		return false, err
-	}
-	return true, nil
-}
-
-// checks if two eps refers to the same subnet or
-// refers to intersecting external addresses
-func pairEpsComparable(myEp, otherEp EndpointElem) (bool, error) {
-	mySubnet, isMySubnet := myEp.(NodeSet)
-	otherSubnet, isOtherSubnet := otherEp.(NodeSet)
-	myExternal, isMyExternal := myEp.(Node)
-	otherExternal, isOtherExternal := otherEp.(Node)
-	if (isMySubnet != isOtherSubnet) || (isMyExternal != isOtherExternal) {
-		return false, nil
-	}
-	if isMySubnet { // implies that isOtherSubnet as well
-		if mySubnet.Name() == otherSubnet.Name() {
-			return true, nil
-		}
-		return false, nil
-	}
-	// if we got here then both eps refer to external IP
-	myIPBlock, err := common.NewIPBlock(myExternal.Cidr(), []string{})
-	if err != nil {
-		return false, err
-	}
-	otherIPBlock, err := common.NewIPBlock(otherExternal.Cidr(), []string{})
-	if err != nil {
-		return false, err
-	}
-	if !myIPBlock.Equal(otherIPBlock) && !myIPBlock.Intersection(otherIPBlock).Empty() {
-		return true, nil
-	}
-	return false, nil
-}
-
-// todo: instead of adding functionality to grouping, I plan to have more generic connectivity items that will be grouped
-//       encode the SubnetsDiff into this generic item as well as the other entities we are grouping
-//       and then decode in the printing
-//       the idea is to use instead of *common.ConnectionSet in the grouped entity a string which will encode the connection
-//       and also the diff where relevant
-//       this will requires some rewriting in the existing grouping functionality and the way it provides
-//       service to subnetsConnectivity and nodesConnectivity
-
-func (subnetConnectivity *SubnetConnectivityMap) PrintConnectivity() {
-	for src, endpointConns := range *subnetConnectivity {
-		for dst, conns := range endpointConns {
-			if conns.IsEmpty() {
-				continue
-			}
-			fmt.Printf("\t%v => %v %v\n", src.Name(), dst.Name(), conns.EnhancedString())
-		}
-	}
-}
+//func (subnetConnectivity SubnetConnectivityMap) getIntersectingConnections(other SubnetConnectivityMap) (areIntersecting string,
+//	err error) {
+//	err = nil
+//	for src, endpointConns := range subnetConnectivity {
+//		for dst, conns := range endpointConns {
+//			if (!src.IsExternal() && !dst.IsExternal()) || conns.IsEmpty() {
+//				continue // nothing to do here
+//			}
+//			for otherSrc, otherEndpointConns := range other {
+//				for otherDst, otherConns := range otherEndpointConns {
+//					if otherConns.IsEmpty() {
+//						continue
+//					}
+//					bothSrcExt := src.IsExternal() && otherSrc.IsExternal()
+//					bothDstExt := dst.IsExternal() && otherDst.IsExternal()
+//					if (!bothSrcExt && !bothDstExt) ||
+//						otherConns.IsEmpty() {
+//						continue // nothing to compare to here
+//					}
+//					myEp := &ConnectionEnd{src, dst}
+//					otherEp := &ConnectionEnd{otherSrc, otherDst}
+//					intersecting, err1 := myEp.connectionsIntersecting(otherEp)
+//					if err1 != nil {
+//						return areIntersecting, err1
+//					}
+//					if intersecting {
+//						areIntersecting += fmt.Sprintf("<%v, %v> and <%v, %v> intersects\n", src.Name(), dst.Name(), otherSrc.Name(), otherDst.Name())
+//					}
+//				}
+//			}
+//		}
+//	}
+//	return areIntersecting, err
+//}
+//
+//// two connections s.t. each contains at least one external end are comparable if either:
+//// both src and dst in both connections are external and they both intersect
+//// one end (src/dst) are external in both and intersects and the other (dst/src) are the same subnet
+//// two connections s.t. each contains at least one external end are comparable if either:
+//// both src and dst in both connections are external and they both intersect but not equal
+//// or end (src/dst) are external in both and intersects and the other (dst/src) are the same subnet
+//func (myConnEnd *ConnectionEnd) connectionsIntersecting(otherConnEnd *ConnectionEnd) (bool, error) {
+//	srcComparable, err := pairEpsComparable(myConnEnd.src, otherConnEnd.src)
+//	if err != nil {
+//		return false, err
+//	}
+//	if !srcComparable {
+//		return false, nil
+//	}
+//	dstComparable, err := pairEpsComparable(myConnEnd.dst, otherConnEnd.dst)
+//	if err != nil {
+//		return false, err
+//	}
+//	if !dstComparable {
+//		return false, err
+//	}
+//	return true, nil
+//}
+//
+//// checks if two eps refers to the same subnet or
+//// refers to intersecting external addresses
+//func pairEpsComparable(myEp, otherEp EndpointElem) (bool, error) {
+//	mySubnet, isMySubnet := myEp.(NodeSet)
+//	otherSubnet, isOtherSubnet := otherEp.(NodeSet)
+//	myExternal, isMyExternal := myEp.(Node)
+//	otherExternal, isOtherExternal := otherEp.(Node)
+//	if (isMySubnet != isOtherSubnet) || (isMyExternal != isOtherExternal) {
+//		return false, nil
+//	}
+//	if isMySubnet { // implies that isOtherSubnet as well
+//		if mySubnet.Name() == otherSubnet.Name() {
+//			return true, nil
+//		}
+//		return false, nil
+//	}
+//	// if we got here then both eps refer to external IP
+//	myIPBlock, err := common.NewIPBlock(myExternal.Cidr(), []string{})
+//	if err != nil {
+//		return false, err
+//	}
+//	otherIPBlock, err := common.NewIPBlock(otherExternal.Cidr(), []string{})
+//	if err != nil {
+//		return false, err
+//	}
+//	if !myIPBlock.Equal(otherIPBlock) && !myIPBlock.Intersection(otherIPBlock).Empty() {
+//		return true, nil
+//	}
+//	return false, nil
+//}
+//
+//// todo: instead of adding functionality to grouping, I plan to have more generic connectivity items that will be grouped
+////       encode the SubnetsDiff into this generic item as well as the other entities we are grouping
+////       and then decode in the printing
+////       the idea is to use instead of *common.ConnectionSet in the grouped entity a string which will encode the connection
+////       and also the diff where relevant
+////       this will requires some rewriting in the existing grouping functionality and the way it provides
+////       service to subnetsConnectivity and nodesConnectivity
+//
+//func (subnetConnectivity *SubnetConnectivityMap) PrintConnectivity() {
+//	for src, endpointConns := range *subnetConnectivity {
+//		for dst, conns := range endpointConns {
+//			if conns.IsEmpty() {
+//				continue
+//			}
+//			fmt.Printf("\t%v => %v %v\n", src.Name(), dst.Name(), conns.EnhancedString())
+//		}
+//	}
+//}

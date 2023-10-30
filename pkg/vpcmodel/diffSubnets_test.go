@@ -143,16 +143,16 @@ func configSimpleIPAndSubnetSubtract() (subnetConfigConn1, subnetConfigConn2 *Su
 func TestSimpleIPAndSubnetSubtract(t *testing.T) {
 	cfgConn1, cfgConn2 := configSimpleIPAndSubnetSubtract()
 
-	// functionality not used
-	res, _ := cfgConn1.subnetConnectivity.getIntersectingConnections(cfgConn2.subnetConnectivity)
-	fmt.Printf("%v", res)
-	newLines := strings.Count(res, "\n")
-	// there should be 4 lines in cfg1SubtractCfg2Str
-	require.Equal(t, 4, newLines)
-	require.Contains(t, res, "<subnet2, public1-1> and <subnet2, public2-1> intersects")
-	require.Contains(t, res, "<public1-1, subnet2> and <public2-1, subnet2> intersects")
-	require.Contains(t, res, "<subnet2, public1-1> and <subnet2, public2-1> intersects")
-	require.Contains(t, res, "<public1-2, subnet2> and <public2-2, subnet2> intersects")
+	//// functionality not used
+	//res, _ := cfgConn1.subnetConnectivity.getIntersectingConnections(cfgConn2.subnetConnectivity)
+	//fmt.Printf("%v", res)
+	//newLines := strings.Count(res, "\n")
+	//// there should be 4 lines in cfg1SubtractCfg2Str
+	//require.Equal(t, 4, newLines)
+	//require.Contains(t, res, "<subnet2, public1-1> and <subnet2, public2-1> intersects")
+	//require.Contains(t, res, "<public1-1, subnet2> and <public2-1, subnet2> intersects")
+	//require.Contains(t, res, "<subnet2, public1-1> and <subnet2, public2-1> intersects")
+	//require.Contains(t, res, "<public1-2, subnet2> and <public2-2, subnet2> intersects")
 
 	alignedCfgConn1, alignedCfgConn2, err := cfgConn1.GetConnectivesWithSameIPBlocks(cfgConn2)
 	if err != nil {
@@ -165,7 +165,7 @@ func TestSimpleIPAndSubnetSubtract(t *testing.T) {
 	cfg1SubCfg2 := alignedCfgConn1.SubnetConnectivitySubtract(alignedCfgConn2)
 	cfg1SubtractCfg2Str := cfg1SubCfg2.EnhancedString(true)
 	fmt.Printf("cfg1SubCfg2:\n%v\n", cfg1SubtractCfg2Str)
-	newLines = strings.Count(cfg1SubtractCfg2Str, "\n")
+	newLines := strings.Count(cfg1SubtractCfg2Str, "\n")
 	// there should be 6 lines in subnet1Subtract2Str
 	require.Equal(t, 7, newLines)
 	require.Contains(t, cfg1SubtractCfg2Str, "-- Public Internet [250.2.4.4/30] => subnet2 : missing connection")
