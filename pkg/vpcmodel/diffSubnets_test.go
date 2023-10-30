@@ -102,14 +102,16 @@ func configSimpleIPAndSubnetSubtract() (subnetConfigConn1, subnetConfigConn2 *Su
 		&mockSubnet{"10.2.20.0/22", "subnet2", nil})
 	cfg1.Nodes = append(cfg1.Nodes,
 		&mockNetIntf{cidr: "1.2.3.0/30", name: "public1-1", isPublic: true},
-		&mockNetIntf{cidr: "250.2.4.0/24", name: "public1-2", isPublic: true})
+		&mockNetIntf{cidr: "250.2.4.0/24", name: "public1-2", isPublic: true},
+		&mockNetIntf{cidr: "200.2.4.0/24", name: "public1-3", isPublic: true})
 
 	cfg2 := &CloudConfig{Nodes: []Node{}, NodeSets: []NodeSet{}}
 	cfg2.NodeSets = append(cfg2.NodeSets, &mockSubnet{"10.1.20.0/22", "subnet1", nil},
 		&mockSubnet{"10.2.20.0/22", "subnet2", nil})
 	cfg2.Nodes = append(cfg2.Nodes,
 		&mockNetIntf{cidr: "1.2.3.0/26", name: "public2-1", isPublic: true},
-		&mockNetIntf{cidr: "250.2.4.0/30", name: "public2-2", isPublic: true})
+		&mockNetIntf{cidr: "250.2.4.0/30", name: "public2-2", isPublic: true},
+		&mockNetIntf{cidr: "200.2.4.0/24", name: "public1-3", isPublic: true})
 
 	//      cfg1                                            cfg2
 	//<subnet2, public1-1>			 and		<subnet2, public2-1> are comparable
@@ -121,12 +123,16 @@ func configSimpleIPAndSubnetSubtract() (subnetConfigConn1, subnetConfigConn2 *Su
 	subnetConnMap1.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg1.Nodes[0], cfg1.NodeSets[1], common.NewConnectionSet(true))
 	subnetConnMap1.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg1.Nodes[1], cfg1.NodeSets[1], common.NewConnectionSet(true))
 	subnetConnMap1.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg1.NodeSets[1], cfg1.Nodes[0], common.NewConnectionSet(true))
+	subnetConnMap1.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg1.NodeSets[1], cfg1.Nodes[2], common.NewConnectionSet(true))
 
 	subnetConnMap2 := &VPCsubnetConnectivity{AllowedConnsCombined: NewSubnetConnectivityMap()}
 	subnetConnMap2.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg2.Nodes[0], cfg2.NodeSets[0], common.NewConnectionSet(true))
 	subnetConnMap2.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg2.Nodes[0], cfg2.NodeSets[1], common.NewConnectionSet(true))
 	subnetConnMap2.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg2.Nodes[1], cfg2.NodeSets[1], common.NewConnectionSet(true))
 	subnetConnMap2.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg2.NodeSets[1], cfg2.Nodes[0], common.NewConnectionSet(true))
+	connectionTCP := common.NewConnectionSet(false)
+	connectionTCP.AddTCPorUDPConn(common.ProtocolTCP, 0, 1000, 0, 443)
+	subnetConnMap2.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg2.NodeSets[1], cfg2.Nodes[2], connectionTCP)
 
 	subnetConfigConn1 = &SubnetConfigConnectivity{cfg1, subnetConnMap1.AllowedConnsCombined}
 	subnetConfigConn2 = &SubnetConfigConnectivity{cfg2, subnetConnMap2.AllowedConnsCombined}
@@ -136,58 +142,38 @@ func configSimpleIPAndSubnetSubtract() (subnetConfigConn1, subnetConfigConn2 *Su
 
 func TestSimpleIPAndSubnetSubtract(t *testing.T) {
 	cfgConn1, cfgConn2 := configSimpleIPAndSubnetSubtract()
+
+	// functionality not used
 	res, _ := cfgConn1.subnetConnectivity.getIntersectingConnections(cfgConn2.subnetConnectivity)
 	fmt.Printf(res)
-	//newLines := strings.Count(res, "\n")
-	// there should be 4 lines in cfg1SubtractCfg2Str
-	//require.Equal(t, 4, newLines)
-	//require.Contains(t, res, "<subnet2, public1-1> and <subnet2, public2-1> intersects")
-	//require.Contains(t, res, "<public1-1, subnet2> and <public2-1, subnet2> intersects")
-	//require.Contains(t, res, "<subnet2, public1-1> and <subnet2, public2-1> intersects")
-	//require.Contains(t, res, "<public1-2, subnet2> and <public2-2, subnet2> intersects")
-	fmt.Printf("origin connectivites, before alignment\ncfg1:\n------\n")
-	cfgConn1.subnetConnectivity.PrintConnectivity()
-	fmt.Println("\ncfg2\n------")
-	cfgConn2.subnetConnectivity.PrintConnectivity()
+	newLines := strings.Count(res, "\n")
+	//there should be 4 lines in cfg1SubtractCfg2Str
+	require.Equal(t, 4, newLines)
+	require.Contains(t, res, "<subnet2, public1-1> and <subnet2, public2-1> intersects")
+	require.Contains(t, res, "<public1-1, subnet2> and <public2-1, subnet2> intersects")
+	require.Contains(t, res, "<subnet2, public1-1> and <subnet2, public2-1> intersects")
+	require.Contains(t, res, "<public1-2, subnet2> and <public2-2, subnet2> intersects")
+
 	alignedCfgConn1, alignedCfgConn2, err := cfgConn1.GetConnectivesWithSameIPBlocks(cfgConn2)
 	if err != nil {
 		fmt.Printf("err: %v\n", err.Error())
+		require.Equal(t, err, nil)
 		return
 	}
-	fmt.Printf("connectivites after alignment\ncfg1:\n------\n")
-	alignedCfgConn1.subnetConnectivity.PrintConnectivity()
 
-	fmt.Println("nodes in cfg1:")
-	for _, node := range alignedCfgConn1.config.Nodes {
-		fmt.Printf("\tnode: %v %v \n", node.Name(), node.Cidr())
-		fmt.Println("\tconnections:")
-		if alignedConnection, ok := alignedCfgConn1.subnetConnectivity[node]; ok {
-			for dst, conn := range alignedConnection {
-				fmt.Printf("%v => %v %v\n", node.Name(), dst.Name(), conn)
-			}
-		}
-	}
-
-	fmt.Println("nodes in cfg2:")
-	for _, node := range alignedCfgConn2.config.Nodes {
-		fmt.Printf("\tnode: %v %v \n", node.Name(), node.Cidr())
-		fmt.Println("\tconnections:")
-		if alignedConnection, ok := alignedCfgConn2.subnetConnectivity[node]; ok {
-			for dst, conn := range alignedConnection {
-				fmt.Printf("\t\t%v => %v %v\n", node.Name(), dst.Name(), conn)
-			}
-		}
-	}
-	fmt.Println("\nconnection in cfg2\n------")
-	alignedCfgConn2.subnetConnectivity.PrintConnectivity()
-
+	// verified bit by bit :-)
 	cfg1SubCfg2 := alignedCfgConn1.SubnetConnectivitySubtract(alignedCfgConn2)
 	cfg1SubtractCfg2Str := cfg1SubCfg2.EnhancedString(true)
 	fmt.Printf("cfg1SubCfg2:\n%v\n", cfg1SubtractCfg2Str)
-	// todo should be equal to -- Public Internet [250.2.4.128/25] => subnet2 : missing connection
-	//      not clear why [1.2.3.0/30] lines are there
-	//
-	//subnet2Subtract1 := cfgConn2.SubnetConnectivitySubtract(cfgConn1)
-	//subnet2Subtract1Str := subnet2Subtract1.EnhancedString(false)
-	//fmt.Printf("subnet2Subtract1:\n%v\n", subnet2Subtract1Str)
+	newLines = strings.Count(cfg1SubtractCfg2Str, "\n")
+	// there should be 6 lines in subnet1Subtract2Str
+	require.Equal(t, 7, newLines)
+	require.Contains(t, cfg1SubtractCfg2Str, "-- Public Internet [250.2.4.4/30] => subnet2 : missing connection")
+	require.Contains(t, cfg1SubtractCfg2Str, "-- Public Internet [250.2.4.4/30] => subnet2 : missing connection")
+	require.Contains(t, cfg1SubtractCfg2Str, "-- Public Internet [250.2.4.64/26] => subnet2 : missing connection")
+	require.Contains(t, cfg1SubtractCfg2Str, "-- Public Internet [250.2.4.128/25] => subnet2 : missing connection")
+	require.Contains(t, cfg1SubtractCfg2Str, "-- Public Internet [250.2.4.8/29] => subnet2 : missing connection")
+	require.Contains(t, cfg1SubtractCfg2Str, "-- Public Internet [250.2.4.32/27] => subnet2 : missing connection")
+	require.Contains(t, cfg1SubtractCfg2Str, "-- subnet2 => Public Internet [200.2.4.0/24] : changed connection "+
+		"protocol: TCP src-ports: 1-1000 dst-ports: 444-65535; protocol: TCP src-ports: 1001-65535; protocol: UDP,ICMP")
 }
