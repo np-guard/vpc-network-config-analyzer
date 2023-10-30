@@ -88,9 +88,9 @@ func TestSimpleSubnetSubtract(t *testing.T) {
 	require.Contains(t, subnet1Subtract2Str, "-- subnet0 => subnet1 : missing source and destination")
 	require.Contains(t, subnet1Subtract2Str, "-- subnet1 => subnet2 : missing source")
 
-	subnet2Subtract1 := subnetConfigConn2.SubnetConnectivitySubtract(subnetConfigConn1)
-	subnet2Subtract1Str := subnet2Subtract1.EnhancedString(false)
-	fmt.Printf("subnet2Subtract1:\n%v\n", subnet2Subtract1Str)
+	cfg2Subtract1 := subnetConfigConn2.SubnetConnectivitySubtract(subnetConfigConn1)
+	subnet2Subtract1Str := cfg2Subtract1.EnhancedString(false)
+	fmt.Printf("cfg2Subtract1:\n%v\n", subnet2Subtract1Str)
 	require.Equal(t, "++ subnet3 => subnet4 : changed connection "+
 		"protocol: TCP src-ports: 1-9,101-65535; protocol: TCP src-ports: "+
 		"10-100 dst-ports: 1-442,444-65535; protocol: UDP,ICMP\n", subnet2Subtract1Str)
@@ -139,21 +139,21 @@ func TestSimpleIPAndSubnetSubtract(t *testing.T) {
 	res, _ := subnetConfigConn1.subnetConnectivity.getIntersectingConnections(subnetConfigConn2.subnetConnectivity)
 	fmt.Printf(res)
 	newLines := strings.Count(res, "\n")
-	// there should be 4 lines in subnet1Subtract2Str
+	// there should be 4 lines in cfg1SubtractCfg2Str
 	require.Equal(t, 4, newLines)
 	require.Contains(t, res, "<subnet2, public1-1> and <subnet2, public2-1> intersects")
 	require.Contains(t, res, "<public1-1, subnet2> and <public2-1, subnet2> intersects")
 	require.Contains(t, res, "<subnet2, public1-1> and <subnet2, public2-1> intersects")
 	require.Contains(t, res, "<public1-2, subnet2> and <public2-2, subnet2> intersects")
 
-	alignedSubnet1Conn, alignedSubnet1Conn2, err := subnetConfigConn1.GetConnectivesWithSameIPBlocks(subnetConfigConn2)
+	alignedCfg1Conn, alignedCfg1Conn2, err := subnetConfigConn1.GetConnectivesWithSameIPBlocks(subnetConfigConn2)
 	if err != nil {
 		fmt.Printf("err: %v\n", err.Error())
 		return
 	}
-	subnet1Subtract2 := alignedSubnet1Conn.SubnetConnectivitySubtract(alignedSubnet1Conn2)
-	subnet1Subtract2Str := subnet1Subtract2.EnhancedString(true)
-	fmt.Printf("subnet1Subtract2:\n%v\n", subnet1Subtract2Str)
+	cfg1SubCfg2 := alignedCfg1Conn.SubnetConnectivitySubtract(alignedCfg1Conn2)
+	cfg1SubtractCfg2Str := cfg1SubCfg2.EnhancedString(true)
+	fmt.Printf("cfg1SubCfg2:\n%v\n", cfg1SubtractCfg2Str)
 	// todo should be equal to -- Public Internet [250.2.4.128/25] => subnet2 : missing connection
 	//      not clear why [1.2.3.0/30] lines are there
 	//
