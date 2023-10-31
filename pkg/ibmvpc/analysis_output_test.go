@@ -426,10 +426,11 @@ func runTestPerUseCase(t *testing.T,
 		if err != nil {
 			return err
 		}
-		actualOutput, err = og.Generate(tt.format, tt.actualOutput[uc])
+		vpcOutput, err := og.Generate(tt.format, tt.actualOutput[uc])
 		if err != nil {
 			return err
 		}
+		actualOutput = vpcOutput.Output
 
 		if mode == outputComparison {
 			expectedOutput, err := os.ReadFile(tt.expectedOutput[uc])

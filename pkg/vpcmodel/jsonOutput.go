@@ -16,7 +16,7 @@ func (j *JSONoutputFormatter) WriteOutput(c *VPCConfig,
 	subnetsConn *VPCsubnetConnectivity,
 	outFile string,
 	grouping bool,
-	uc OutputUseCase) (string, error) {
+	uc OutputUseCase) (*VPCAnalysisOutput, error) {
 	var all interface{}
 	switch uc {
 	case AllEndpoints:
@@ -24,9 +24,10 @@ func (j *JSONoutputFormatter) WriteOutput(c *VPCConfig,
 	case AllSubnets:
 		all = allSubnetsConnectivity{Connectivity: getConnLinesForSubnetsConnectivity(subnetsConn)}
 	case SingleSubnet:
-		return "", errors.New("DebugSubnet use case not supported for JSON format currently ")
+		return nil, errors.New("DebugSubnet use case not supported for JSON format currently ")
 	}
-	return writeJSON(all, outFile)
+	outStr, err := writeJSON(all, outFile)
+	return &VPCAnalysisOutput{Output: outStr, VPCName: c.VPC.Name(), format: JSON, jsonStruct: all}, err
 }
 
 type connLine struct {
