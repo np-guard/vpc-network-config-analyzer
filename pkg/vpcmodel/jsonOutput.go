@@ -11,6 +11,24 @@ import (
 type JSONoutputFormatter struct {
 }
 
+func (j *JSONoutputFormatter) WriteOutput(c *VPCConfig,
+	conn *VPCConnectivity,
+	subnetsConn *VPCsubnetConnectivity,
+	outFile string,
+	grouping bool,
+	uc OutputUseCase) (string, error) {
+	var all interface{}
+	switch uc {
+	case AllEndpoints:
+		all = allInfo{EndpointsConnectivity: getConnLines(conn)}
+	case AllSubnets:
+		all = allSubnetsConnectivity{Connectivity: getConnLinesForSubnetsConnectivity(subnetsConn)}
+	case SingleSubnet:
+		return "", errors.New("DebugSubnet use case not supported for JSON format currently ")
+	}
+	return writeJSON(all, outFile)
+}
+
 type connLine struct {
 	Src                EndpointElem       `json:"src"`
 	Dst                EndpointElem       `json:"dst"`
@@ -55,18 +73,6 @@ func getConnLines(conn *VPCConnectivity) []connLine {
 	return connLines
 }
 
-func (j *JSONoutputFormatter) WriteOutputAllEndpoints(c *CloudConfig, conn *VPCConnectivity, outFile string, grouping bool) (
-	string,
-	error,
-) {
-	all := allInfo{}
-	connLines := getConnLines(conn)
-
-	all.EndpointsConnectivity = connLines
-
-	return writeJSON(all, outFile)
-}
-
 func writeJSON(s interface{}, outFile string) (string, error) {
 	res, err := json.MarshalIndent(s, "", "    ")
 	if err != nil {
@@ -75,12 +81,6 @@ func writeJSON(s interface{}, outFile string) (string, error) {
 	resStr := string(res)
 	err = WriteToFile(resStr, outFile)
 	return resStr, err
-}
-
-func (j *JSONoutputFormatter) WriteOutputAllSubnets(subnetsConn *VPCsubnetConnectivity, outFile string) (string, error) {
-	all := allSubnetsConnectivity{}
-	all.Connectivity = getConnLinesForSubnetsConnectivity(subnetsConn)
-	return writeJSON(all, outFile)
 }
 
 type allSubnetsConnectivity struct {
@@ -105,8 +105,4 @@ func getConnLinesForSubnetsConnectivity(conn *VPCsubnetConnectivity) []connLine 
 
 	sortConnLines(connLines)
 	return connLines
-}
-
-func (j *JSONoutputFormatter) WriteOutputSingleSubnet(c *CloudConfig, outFile string) (string, error) {
-	return "", errors.New("DebugSubnet use case not supported for JSON format currently ")
 }

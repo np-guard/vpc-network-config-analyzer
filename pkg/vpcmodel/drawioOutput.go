@@ -18,32 +18,24 @@ func (e *edgeInfo) IsExternal() bool {
 }
 
 // DrawioOutputFormatter create the drawio connectivity map.
-// It build the drawio tree out of the CloudConfig and VPCConnectivity, and output it to a drawio file
+// It build the drawio tree out of the VPCConfig and VPCConnectivity, and output it to a drawio file
 // the steps of creating the drawio tree:
 // 1. collect all the connectivity edges to a map of (src,dst,label) -> isDirected. also mark the nodes that has connections
 // 2. create the treeNodes of the NodeSets, filters. routers and nodes
 // 3. create the edges from the map we created in stage (1). also also set the routers to the edges
 
 type DrawioOutputFormatter struct {
-	cConfig *CloudConfig
+	cConfig *VPCConfig
 	conn    *VPCConnectivity
 	gen     *DrawioGenerator
 	routers map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface
 }
 
-func (d *DrawioOutputFormatter) init(cConfig *CloudConfig, conn *VPCConnectivity) {
+func (d *DrawioOutputFormatter) init(cConfig *VPCConfig, conn *VPCConnectivity) {
 	d.cConfig = cConfig
 	d.conn = conn
 	d.gen = NewDrawioGenerator(cConfig.CloudName)
 	d.routers = map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface{}
-}
-
-func (d *DrawioOutputFormatter) WriteOutputAllEndpoints(cConfig *CloudConfig, conn *VPCConnectivity, outFile string, grouping bool) (
-	string, error) {
-	d.init(cConfig, conn)
-	d.createDrawioTree()
-	err := drawio.CreateDrawioConnectivityMapFile(d.gen.Network(), outFile)
-	return "", err
 }
 
 func (d *DrawioOutputFormatter) createDrawioTree() {
@@ -117,12 +109,22 @@ func (d *DrawioOutputFormatter) createEdges() {
 	}
 }
 
-func (d *DrawioOutputFormatter) WriteOutputAllSubnets(subnetsConn *VPCsubnetConnectivity, outFile string) (string, error) {
-	return "", errors.New("SubnetLevel use case not supported for draw.io format currently ")
-}
-
-func (d *DrawioOutputFormatter) WriteOutputSingleSubnet(c *CloudConfig, outFile string) (string, error) {
-	return "", errors.New("DebugSubnet use case not supported for draw.io format currently ")
+func (d *DrawioOutputFormatter) WriteOutput(c *VPCConfig,
+	conn *VPCConnectivity,
+	subnetsConn *VPCsubnetConnectivity,
+	outFile string,
+	grouping bool,
+	uc OutputUseCase) (string, error) {
+	var err error
+	switch uc {
+	case AllEndpoints:
+		d.init(c, conn)
+		d.createDrawioTree()
+		err = drawio.CreateDrawioConnectivityMapFile(d.gen.Network(), outFile)
+	case AllSubnets, SingleSubnet:
+		err = errors.New("SubnetLevel/SingleSubnet use case not supported for draw.io format")
+	}
+	return "", err
 }
 
 // /////////////////////////////////////////////////////////////////
@@ -134,18 +136,17 @@ type ArchDrawioOutputFormatter struct {
 	DrawioOutputFormatter
 }
 
-func (d *ArchDrawioOutputFormatter) WriteOutputAllEndpoints(
-	cConfig *CloudConfig,
+func (d *ArchDrawioOutputFormatter) WriteOutput(c *VPCConfig,
 	conn *VPCConnectivity,
+	subnetsConn *VPCsubnetConnectivity,
 	outFile string,
-	grouping bool) (string, error) {
-	return d.DrawioOutputFormatter.WriteOutputAllEndpoints(cConfig, nil, outFile, grouping)
-}
-
-func (d *ArchDrawioOutputFormatter) WriteOutputAllSubnets(subnetsConn *VPCsubnetConnectivity, outFile string) (string, error) {
-	return d.DrawioOutputFormatter.WriteOutputAllSubnets(nil, outFile)
-}
-
-func (d *ArchDrawioOutputFormatter) WriteOutputSingleSubnet(c *CloudConfig, outFile string) (string, error) {
-	return d.DrawioOutputFormatter.WriteOutputSingleSubnet(nil, outFile)
+	grouping bool,
+	uc OutputUseCase) (string, error) {
+	switch uc {
+	case AllEndpoints:
+		return d.DrawioOutputFormatter.WriteOutput(c, nil, nil, outFile, grouping, uc)
+	case AllSubnets, SingleSubnet:
+		return d.DrawioOutputFormatter.WriteOutput(nil, nil, nil, outFile, grouping, uc)
+	}
+	return "", nil
 }
