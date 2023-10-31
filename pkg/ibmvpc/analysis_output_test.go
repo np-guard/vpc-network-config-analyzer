@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"testing"
 
@@ -63,7 +64,8 @@ func getTestFileName(testName string,
 	grouping bool,
 	format vpcmodel.OutFormat,
 	configName string,
-	numConfigs int) (
+	numConfigs int,
+	allVPCs bool) (
 	expectedFileName,
 	actualFileName string,
 	err error) {
@@ -72,7 +74,11 @@ func getTestFileName(testName string,
 	// if there are more than one vpc in the config, split to a file per one vpc analysis
 	baseName := testName
 	if numConfigs > 1 {
-		baseName += "_" + configName
+		if allVPCs {
+			baseName += "_all_vpcs"
+		} else {
+			baseName += "_" + configName
+		}
 	}
 
 	switch uc {
@@ -311,6 +317,11 @@ var tests = []*vpcGeneralTest{
 		format:   vpcmodel.Text,
 	},
 	{
+		name:     "experiments_env",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:   vpcmodel.JSON,
+	},
+	{
 		name:     "multiple_vpcs",
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
 		format:   vpcmodel.Text,
@@ -406,6 +417,47 @@ func getVPCConfigs(t *testing.T, tt *vpcGeneralTest) map[string]*vpcmodel.VPCCon
 	return vpcConfigs
 }
 
+func compareOrRegenerateOutputPerTest(t *testing.T,
+	mode testMode,
+	actualOutput string,
+	tt *vpcGeneralTest,
+	uc vpcmodel.OutputUseCase) error {
+	if mode == outputComparison {
+		expectedOutput, err := os.ReadFile(tt.expectedOutput[uc])
+		if err != nil {
+			t.Fatalf("err: %s", err)
+		}
+		expectedOutputStr := string(expectedOutput)
+		if cleanStr(expectedOutputStr) != cleanStr(actualOutput) {
+			compareTextualResult(expectedOutputStr, actualOutput)
+			t.Fatalf("output mismatch expected-vs-actual on test name: %s, use case: %d", tt.name, uc)
+		}
+	}
+
+	if mode == outputGeneration {
+		// create or override expected output file
+		if err := vpcmodel.WriteToFile(actualOutput, tt.expectedOutput[uc]); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func initTestFileNames(tt *vpcGeneralTest,
+	uc vpcmodel.OutputUseCase,
+	numConfigs int,
+	vpcName string,
+	allVPCs bool) error {
+	expectedFileName, actualFileName, err := getTestFileName(
+		tt.name, uc, tt.grouping, tt.format, vpcName, numConfigs, allVPCs)
+	if err != nil {
+		return err
+	}
+	tt.actualOutput[uc] = filepath.Join(getTestsDir(), actualFileName)
+	tt.expectedOutput[uc] = filepath.Join(getTestsDir(), expectedFileName)
+	return nil
+}
+
 // runTestPerUseCase runs the connectivity analysis for the required use case and compares/generates the output
 func runTestPerUseCase(t *testing.T,
 	tt *vpcGeneralTest,
@@ -413,14 +465,12 @@ func runTestPerUseCase(t *testing.T,
 	uc vpcmodel.OutputUseCase,
 	mode testMode) error {
 	numConfigs := len(c)
+	allVPCsOutput := make([]*vpcmodel.VPCAnalysisOutput, numConfigs)
+	i := 0
 	for _, vpcConfig := range c {
-		expectedFileName, actualFileName, err := getTestFileName(tt.name, uc, tt.grouping, tt.format, vpcConfig.VPC.Name(), numConfigs)
-		if err != nil {
+		if err := initTestFileNames(tt, uc, numConfigs, vpcConfig.VPC.Name(), false); err != nil {
 			return err
 		}
-		tt.actualOutput[uc] = filepath.Join(getTestsDir(), actualFileName)
-		tt.expectedOutput[uc] = filepath.Join(getTestsDir(), expectedFileName)
-		var actualOutput string
 
 		og, err := vpcmodel.NewOutputGenerator(vpcConfig, tt.grouping, uc, tt.format == vpcmodel.ARCHDRAWIO)
 		if err != nil {
@@ -430,25 +480,29 @@ func runTestPerUseCase(t *testing.T,
 		if err != nil {
 			return err
 		}
-		actualOutput = vpcOutput.Output
-
-		if mode == outputComparison {
-			expectedOutput, err := os.ReadFile(tt.expectedOutput[uc])
-			if err != nil {
-				t.Fatalf("err: %s", err)
-			}
-			expectedOutputStr := string(expectedOutput)
-			if cleanStr(expectedOutputStr) != cleanStr(actualOutput) {
-				compareTextualResult(expectedOutputStr, actualOutput)
-				t.Fatalf("output mismatch expected-vs-actual on test name: %s, use case: %d", tt.name, uc)
-			}
+		allVPCsOutput[i] = vpcOutput
+		i++
+		if err := compareOrRegenerateOutputPerTest(t, mode, vpcOutput.Output, tt, uc); err != nil {
+			return err
+		}
+	}
+	// if more then one vpc -- compare also the aggregated output
+	if numConfigs > 1 {
+		if err := initTestFileNames(tt, uc, numConfigs, "", true); err != nil {
+			return err
 		}
 
-		if mode == outputGeneration {
-			// create or override expected output file
-			if err := vpcmodel.WriteToFile(actualOutput, tt.expectedOutput[uc]); err != nil {
-				return err
-			}
+		// sort allVPCsOutput by vpc name
+		sort.Slice(allVPCsOutput, func(i, j int) bool {
+			return allVPCsOutput[i].VPCName < allVPCsOutput[j].VPCName
+		})
+
+		actualOutput, err := vpcmodel.AggregateVPCsOutput(allVPCsOutput, tt.format, tt.actualOutput[uc])
+		if err != nil {
+			return err
+		}
+		if err := compareOrRegenerateOutputPerTest(t, mode, actualOutput, tt, uc); err != nil {
+			return err
 		}
 	}
 
