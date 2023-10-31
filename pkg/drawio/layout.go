@@ -1,8 +1,10 @@
 package drawio
 
 import (
+	"fmt"
 	"reflect"
 	"sort"
+	"strings"
 )
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -71,6 +73,8 @@ func (ly *layoutS) layout() {
 		ly.layoutSubnetsIcons()
 	} else {
 		ly.layoutSubnets()
+		ly.layoutSubnets2()
+		// ly.layoutSubnetsExample()
 	}
 	ly.matrix.removeUnusedLayers()
 	// 2. set the locations of the SG in the matrix, according to the locations of the icons
@@ -298,9 +302,21 @@ func (ly *layoutS) layoutSubnetsIcons() {
 	}
 }
 
-/////////////////////////////////////////////////////////////////////////////////////
 
-func (ly *layoutS) setGroupedSubnetsOffset() {
+func (ly *layoutS) layoutSubnets2() {
+	_, grs := ly.allSubnetsAndGroups()
+	sly := subnetsLayout{}
+	sly.createMiniGroups(grs)
+	sly.calcZoneOrder()
+	sly.createMatrix()
+	for _, miniGroup := range sly.miniGroups {
+		sly.handleMiniGroup(miniGroup)
+	}
+	fmt.Println(" ")
+
+}
+
+func (ly *layoutS) allSubnetsAndGroups() ([]TreeNodeInterface, []*GroupSubnetsSquareTreeNode) {
 	sns := []TreeNodeInterface{}
 	grs := []*GroupSubnetsSquareTreeNode{}
 	for _, tn := range getAllNodes(ly.network) {
@@ -311,6 +327,13 @@ func (ly *layoutS) setGroupedSubnetsOffset() {
 			grs = append(grs, tn.(*GroupSubnetsSquareTreeNode))
 		}
 	}
+	return sns, grs
+}
+
+/////////////////////////////////////////////////////////////////////////////////////
+
+func (ly *layoutS) setGroupedSubnetsOffset() {
+	sns, grs := ly.allSubnetsAndGroups()
 	for _, tn := range sns {
 		tn.Location().xOffset = borderWidth
 		tn.Location().yOffset = borderWidth
@@ -324,16 +347,19 @@ func (ly *layoutS) setGroupedSubnetsOffset() {
 		tn.Location().yEndOffset = -groupBorderWidth
 	}
 
-	for foundOverlap := true; foundOverlap; foundOverlap = false {
+	for foundOverlap := true; foundOverlap; {
+		foundOverlap = false
 		for _, tn1 := range grs {
 			for _, tn2 := range grs {
 				l1 := tn1.Location()
 				l2 := tn2.Location()
-				if tn1 == tn2{continue}
-				if l1.firstRow == l2.firstRow || l1.firstCol == l2.firstCol || l1.lastRow == l2.lastRow || l1.lastCol == l2.lastCol{
-					if l1.xOffset == l2.xOffset{
+				if tn1 == tn2 {
+					continue
+				}
+				if l1.firstRow == l2.firstRow || l1.firstCol == l2.firstCol || l1.lastRow == l2.lastRow || l1.lastCol == l2.lastCol {
+					if l1.xOffset == l2.xOffset {
 						toShrink := tn1
-						if len(tn2.groupedSubnets) < len(tn1.groupedSubnets){
+						if len(tn2.groupedSubnets) < len(tn1.groupedSubnets) {
 							toShrink = tn2
 						}
 						toShrink.Location().xOffset += groupInnerBorderWidth
@@ -342,8 +368,8 @@ func (ly *layoutS) setGroupedSubnetsOffset() {
 						toShrink.Location().yEndOffset += groupInnerBorderWidth
 						foundOverlap = true
 					}
-				} 
-				
+				}
+
 			}
 		}
 	}
@@ -363,6 +389,36 @@ func (ly *layoutS) layoutSubnets() {
 				for _, subnet := range zone.(*ZoneTreeNode).subnets {
 					ly.setDefaultLocation(subnet, rowIndex, colIndex)
 					rowIndex++
+				}
+				colIndex++
+			}
+			if vpc.(*VpcTreeNode).zones == nil {
+				colIndex++
+			}
+		}
+		if cloud.(*CloudTreeNode).vpcs == nil {
+			colIndex++
+		}
+	}
+}
+
+func (ly *layoutS) layoutSubnetsExample() {
+	ly.setDefaultLocation(ly.network, 0, 0)
+	colIndex := 0
+	for _, cloud := range ly.network.(*NetworkTreeNode).clouds {
+		ly.setDefaultLocation(cloud, 0, colIndex)
+		for _, vpc := range cloud.(*CloudTreeNode).vpcs {
+			ly.setDefaultLocation(vpc, 0, colIndex)
+			for _, zone := range vpc.(*VpcTreeNode).zones {
+				rowIndex := 0
+				ly.setDefaultLocation(zone, rowIndex, colIndex)
+				for _, l := range []string{"edge", "transit", "private"} {
+					for _, subnet := range zone.(*ZoneTreeNode).subnets {
+						if strings.Contains(subnet.Label(), l) {
+							ly.setDefaultLocation(subnet, rowIndex, colIndex)
+							rowIndex++
+						}
+					}
 				}
 				colIndex++
 			}

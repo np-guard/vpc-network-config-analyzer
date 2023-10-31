@@ -284,43 +284,67 @@ func createNetworkAllTypes() SquareTreeNodeInterface {
 	return network
 }
 
-func createNetworkSubnetGrouping() SquareTreeNodeInterface {
-	network := NewNetworkTreeNode()
-	network.SubnetMode = true
-	publicNetwork := NewPublicNetworkTreeNode(network)
+func createZone(zones *[][]SquareTreeNodeInterface, vpc *VpcTreeNode, size int, name string) {
+	zone := NewZoneTreeNode(vpc, name)
+	subnets := make([]SquareTreeNodeInterface, size)
+	*zones = append(*zones, subnets)
+	for i := 0; i < size; i++ {
+		sname := fmt.Sprint(name, i)
+		subnets[i] = NewSubnetTreeNode(zone, sname, "", "")
+	}
+}
+func createGroup(zones *[][]SquareTreeNodeInterface, vpc *VpcTreeNode, i1, i2, j1, j2 int) SquareTreeNodeInterface{
+	gr := []SquareTreeNodeInterface{}
+	for i := i1; i <= i2; i++ {
+		for j := j1; j <= j2; j++ {
+			gr = append(gr, (*zones)[i][j])
+		}
+	}
+	return GroupedSubnetsSquare(vpc, gr)
+}
 
+func createNetworkSubnetGrouping() SquareTreeNodeInterface {
+
+	network := NewNetworkTreeNode()
+	zones := &[][]SquareTreeNodeInterface{}
+	network.SubnetMode = true
 	cloud1 := NewCloudTreeNode(network, "IBM Cloud")
+	publicNetwork := NewPublicNetworkTreeNode(network)
 	vpc1 := NewVpcTreeNode(cloud1, "vpc1")
-	zone1 := NewZoneTreeNode(vpc1, "zone1")
-	subnet11 := NewSubnetTreeNode(zone1, "subnet1", "cidr1", "acl1")
-	subnet12 := NewSubnetTreeNode(zone1, "subnet2", "cidr2", "acl2")
-	subnet13 := NewSubnetTreeNode(zone1, "subnet3", "cidr2", "acl2")
-	zone2 := NewZoneTreeNode(vpc1, "zone1")
-	subnet21 := NewSubnetTreeNode(zone2, "subnet1", "cidr1", "acl1")
-	subnet22 := NewSubnetTreeNode(zone2, "subnet2", "cidr2", "acl2")
-	subnet23 := NewSubnetTreeNode(zone2, "subnet2", "cidr2", "acl2")
-	zone3 := NewZoneTreeNode(vpc1, "zone1")
-	subnet31 := NewSubnetTreeNode(zone3, "subnet1", "cidr1", "acl1")
-	subnet32 := NewSubnetTreeNode(zone3, "subnet2", "cidr2", "acl2")
-	subnet33 := NewSubnetTreeNode(zone3, "subnet2", "cidr2", "acl2")
+	createZone(zones, vpc1, 5, "z0")
+	createZone(zones, vpc1, 6, "z1")
+	createZone(zones, vpc1, 6, "z2")
+	createZone(zones, vpc1, 6, "z3")
+	createZone(zones, vpc1, 7, "z4")
+	createZone(zones, vpc1, 8, "z5")
+	createZone(zones, vpc1, 8, "z6")
+	createZone(zones, vpc1, 8, "z7")
+	createZone(zones, vpc1, 8, "z8")
+	createZone(zones, vpc1, 8, "z9")
+
 	i2 := NewInternetTreeNode(publicNetwork, "Internet2")
 
-	gr1 := []SquareTreeNodeInterface{subnet11, subnet12, subnet13}
-	gsq1 := GroupedSubnetsSquare(vpc1, gr1)
+	// gsq1 := createGroup(zones, vpc1,0,2,0,2)
+	// gsq2 := createGroup(zones, vpc1,0,3,0,2)
+	// gsq3 := createGroup(zones, vpc1,2,4,3,4)
+	// gsq4 := createGroup(zones, vpc1,6,7,3,5)
+	// gsq5 := createGroup(zones, vpc1,7,8,4,7)
+	// gsq6 := createGroup(zones, vpc1,6,8,1,2)
 
-	gr2 := []SquareTreeNodeInterface{subnet11, subnet21}
-	gsq2 := GroupedSubnetsSquare(vpc1, gr2)
+	gsq1 := createGroup(zones, vpc1,0,2,0,0)
+	gsq2 := createGroup(zones, vpc1,0,3,0,0)
+	gsq3 := createGroup(zones, vpc1,2,4,0,0)
+	gsq4 := createGroup(zones, vpc1,6,7,0,0)
+	gsq5 := createGroup(zones, vpc1,7,8,0,0)
+	gsq6 := createGroup(zones, vpc1,6,8,0,0)
 
-	NewConnectivityLineTreeNode(network, gsq1, subnet12, true, "gconn4")
-	NewConnectivityLineTreeNode(network, subnet13, subnet22, true, "gconn4")
-	NewConnectivityLineTreeNode(network, subnet31, subnet32, true, "gconn4")
-	NewConnectivityLineTreeNode(network, subnet33, gsq2, true, "gconn4")
-	NewConnectivityLineTreeNode(network, subnet23, i2, true, "gconn4")
 
-	NewConnectivityLineTreeNode(network, subnet31, zone1, true, "gconn4")
-	NewConnectivityLineTreeNode(network, subnet33, zone3, true, "gconn4")
-
-	NewConnectivityLineTreeNode(network, vpc1, subnet22, true, "gconn4")
+	NewConnectivityLineTreeNode(network, gsq1, i2, true, "gconn1")
+	NewConnectivityLineTreeNode(network, gsq2, i2, true, "gconn2")
+	NewConnectivityLineTreeNode(network, gsq3, i2, true, "gconn3")
+	NewConnectivityLineTreeNode(network, gsq4, i2, true, "gconn1")
+	NewConnectivityLineTreeNode(network, gsq5, i2, true, "gconn2")
+	NewConnectivityLineTreeNode(network, gsq6, i2, true, "gconn3")
 
 	return network
 }
