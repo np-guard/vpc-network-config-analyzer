@@ -306,7 +306,6 @@ func getKeyOfGroupConnLines(ep EndpointElem, connection string) string {
 // assuming the  g.groupedLines was already initialized by previous step groupExternalAddresses()
 func (g *GroupConnLines) groupInternalSrcOrDst(srcGrouping, groupVsi bool) {
 	res, groupingSrcOrDst := g.groupLinesByKey(srcGrouping, groupVsi)
-	res = g.unifiedGroupedConnLines(res)
 
 	// update g.groupedLines based on groupingSrcOrDst
 	for _, linesGroup := range groupingSrcOrDst {
@@ -330,12 +329,13 @@ func (g *GroupConnLines) groupInternalSrcOrDst(srcGrouping, groupVsi bool) {
 			}
 		}
 	}
-	g.GroupedLines = res
+	g.GroupedLines = g.unifiedGroupedConnLines(res)
 }
 
-// Go over the output of treating self loops as don't cares - extendGroupingSelfLoops
-// and align all src, dst to use the same reference via g.groupedEndpointsElemsMap
-// this is done here since *GroupConnLines is not known within the extendGroupingSelfLoops context
+// Go over the grouping result and make sure all groups have a unified reference.
+// this is required due to the functionality treating self loops as don't cares - extendGroupingSelfLoops
+// in which both srcs and dsts are manipulated  but *GroupConnLines is not familiar
+// within the extendGroupingSelfLoops context and thus can not be done there smoothly
 func (g *GroupConnLines) unifiedGroupedConnLines(oldConnLines []*GroupedConnLine) []*GroupedConnLine {
 	newGroupedLines := make([]*GroupedConnLine, len(oldConnLines))
 	// go over all connections; if src/dst is not external then use groupedEndpointsElemsMap
