@@ -29,6 +29,6 @@ func (t *TextOutputFormatter) WriteOutput(c *VPCConfig,
 		out += c.GetConnectivityOutputPerEachSubnetSeparately()
 	}
 	// write output to file and return the output string
-	outStr, err := writeOutput(out, outFile)
+	outStr, err := WriteToFile(out, outFile)
 	return &VPCAnalysisOutput{Output: outStr, VPCName: c.VPC.Name(), format: Text}, err
 }

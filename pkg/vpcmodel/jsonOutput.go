@@ -80,7 +80,7 @@ func writeJSON(s interface{}, outFile string) (string, error) {
 		return "", err
 	}
 	resStr := string(res)
-	err = WriteToFile(resStr, outFile)
+	_, err = WriteToFile(resStr, outFile)
 	return resStr, err
 }
 

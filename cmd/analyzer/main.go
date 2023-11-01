@@ -40,7 +40,7 @@ func analysisTypeToUseCase(inArgs *InArgs) vpcmodel.OutputUseCase {
 	return vpcmodel.AllEndpoints
 }
 
-func analysisPerVPCConfig(c *vpcmodel.VPCConfig, inArgs *InArgs) (*vpcmodel.VPCAnalysisOutput, error) {
+func analysisPerVPCConfig(c *vpcmodel.VPCConfig, inArgs *InArgs, outFile string) (*vpcmodel.VPCAnalysisOutput, error) {
 	og, err := vpcmodel.NewOutputGenerator(c,
 		*inArgs.Grouping,
 		analysisTypeToUseCase(inArgs),
@@ -49,8 +49,13 @@ func analysisPerVPCConfig(c *vpcmodel.VPCConfig, inArgs *InArgs) (*vpcmodel.VPCA
 		return nil, err
 	}
 
+	var genOutFile string
+	// currently for drawio output only one vpc level is supported, and not as aggregated output of multiple vpcs
+	if *inArgs.OutputFormat == ARCHDRAWIOFormat || *inArgs.OutputFormat == DRAWIOFormat {
+		genOutFile = outFile
+	}
 	outFormat := getOutputFormat(inArgs)
-	output, err := og.Generate(outFormat, "")
+	output, err := og.Generate(outFormat, genOutFile)
 	if err != nil {
 		return nil, fmt.Errorf("output generation error: %w", err)
 	}
@@ -78,11 +83,16 @@ func _main(cmdlineArgs []string) error {
 	if err != nil {
 		return fmt.Errorf("error generating cloud config from input vpc resources file: %w", err)
 	}
+	outFile := ""
+	if inArgs.OutputFile != nil {
+		outFile = *inArgs.OutputFile
+	}
+
 	outputPerVPC := make([]*vpcmodel.VPCAnalysisOutput, len(vpcConfigs))
 	i := 0
 	var vpcAnalysisOutput *vpcmodel.VPCAnalysisOutput
 	for _, vpcConfig := range vpcConfigs {
-		vpcAnalysisOutput, err = analysisPerVPCConfig(vpcConfig, inArgs)
+		vpcAnalysisOutput, err = analysisPerVPCConfig(vpcConfig, inArgs, outFile)
 		if err != nil {
 			return err
 		}
@@ -90,10 +100,6 @@ func _main(cmdlineArgs []string) error {
 		i++
 	}
 
-	outFile := ""
-	if inArgs.OutputFile != nil {
-		outFile = *inArgs.OutputFile
-	}
 	out, err := vpcmodel.AggregateVPCsOutput(outputPerVPC, getOutputFormat(inArgs), outFile)
 	if err != nil {
 		return err

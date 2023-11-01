@@ -103,16 +103,12 @@ type OutputFormatter interface {
 		grouping bool, uc OutputUseCase) (*VPCAnalysisOutput, error)
 }
 
-func writeOutput(out, file string) (string, error) {
-	err := WriteToFile(out, file)
-	return out, err
-}
-
-func WriteToFile(content, fileName string) error {
+func WriteToFile(content, fileName string) (string, error) {
 	if fileName != "" {
-		return os.WriteFile(fileName, []byte(content), writeFileMde)
+		err := os.WriteFile(fileName, []byte(content), writeFileMde)
+		return content, err
 	}
-	return nil
+	return content, nil
 }
 
 // AggregateVPCsOutput returns the output string for a list of VPCAnalysisOutput objects
@@ -127,7 +123,7 @@ func AggregateVPCsOutput(outputList []*VPCAnalysisOutput, f OutFormat, outFile s
 		for i, o := range outputList {
 			vpcsOut[i] = o.Output
 		}
-		res, err = writeOutput(strings.Join(vpcsOut, "\n"), outFile)
+		res, err = WriteToFile(strings.Join(vpcsOut, "\n"), outFile)
 
 	case JSON:
 		// aggregate to a map from vpc name to its json struct output

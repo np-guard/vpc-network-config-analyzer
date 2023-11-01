@@ -37,7 +37,7 @@ func (m *MDoutputFormatter) WriteOutput(c *VPCConfig,
 		return nil, errors.New("DebugSubnet use case not supported for md format currently ")
 	}
 
-	err := WriteToFile(out, outFile)
+	_, err := WriteToFile(out, outFile)
 	return &VPCAnalysisOutput{Output: out, VPCName: c.VPC.Name(), format: MD}, err
 }
 

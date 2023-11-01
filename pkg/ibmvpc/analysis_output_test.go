@@ -436,7 +436,7 @@ func compareOrRegenerateOutputPerTest(t *testing.T,
 
 	if mode == outputGeneration {
 		// create or override expected output file
-		if err := vpcmodel.WriteToFile(actualOutput, tt.expectedOutput[uc]); err != nil {
+		if _, err := vpcmodel.WriteToFile(actualOutput, tt.expectedOutput[uc]); err != nil {
 			return err
 		}
 	}
@@ -517,8 +517,8 @@ func cleanStr(str string) string {
 // compareTextualResult is called in case of output mismatch, to provide more details on the difference
 func compareTextualResult(expected, actual string) {
 	var err1, err2 error
-	err1 = vpcmodel.WriteToFile(expected, filepath.Join(getTestsDir(), "expected.txt"))
-	err2 = vpcmodel.WriteToFile(actual, filepath.Join(getTestsDir(), "actual.txt"))
+	_, err1 = vpcmodel.WriteToFile(expected, filepath.Join(getTestsDir(), "expected.txt"))
+	_, err2 = vpcmodel.WriteToFile(actual, filepath.Join(getTestsDir(), "actual.txt"))
 	if err1 != nil || err2 != nil {
 		fmt.Printf("compareTextualResult: error writing actual/expected output to files: %s, %s \n", err1, err2)
 	}
