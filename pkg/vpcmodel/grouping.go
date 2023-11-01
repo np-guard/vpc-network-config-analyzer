@@ -337,13 +337,12 @@ func (g *GroupConnLines) groupInternalSrcOrDst(srcGrouping, groupVsi bool) {
 // and align all src, dst to use the same reference via g.groupedEndpointsElemsMap
 // this is done here since *GroupConnLines is not known within the extendGroupingSelfLoops context
 func (g *GroupConnLines) unifiedGroupedConnLines(oldConnLines []*GroupedConnLine) []*GroupedConnLine {
-	newGroupedLines := []*GroupedConnLine{}
+	newGroupedLines := make([]*GroupedConnLine, len(oldConnLines))
 	// go over all connections; if src/dst is not external then use groupedEndpointsElemsMap
-	for _, groupedConnLine := range oldConnLines {
-		newGroupedConnLine := &GroupedConnLine{g.unifiedGroupedElems(groupedConnLine.Src),
+	for i, groupedConnLine := range oldConnLines {
+		newGroupedLines[i] = &GroupedConnLine{g.unifiedGroupedElems(groupedConnLine.Src),
 			g.unifiedGroupedElems(groupedConnLine.Dst),
 			groupedConnLine.Conn}
-		newGroupedLines = append(newGroupedLines, newGroupedConnLine)
 	}
 	return newGroupedLines
 }
