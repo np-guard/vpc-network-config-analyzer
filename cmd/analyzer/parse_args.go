@@ -8,13 +8,14 @@ import (
 
 // InArgs contains the input arguments for the analyzer
 type InArgs struct {
-	InputConfigFile *string
-	OutputFile      *string
-	OutputFormat    *string
-	AnalysisType    *string
-	Grouping        *bool
-	VPC             *string
-	Debug           *bool
+	InputConfigFile       *string
+	InputSecondConfigFile *string
+	OutputFile            *string
+	OutputFormat          *string
+	AnalysisType          *string
+	Grouping              *bool
+	VPC                   *string
+	Debug                 *bool
 }
 
 const (
@@ -60,6 +61,7 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args := InArgs{}
 	flagset := flag.NewFlagSet("vpc-network-config-analyzer", flag.ContinueOnError)
 	args.InputConfigFile = flagset.String("vpc-config", "", "file path to input config")
+	args.InputSecondConfigFile = flagset.String("vpc-config-second", "", "file path to second input config for semantic diff")
 	args.OutputFile = flagset.String("output-file", "", "file path to store results")
 	args.OutputFormat = flagset.String("format", TEXTFormat, "output format; must be one of "+getSupportedValuesString(supportedOutputFormats))
 	args.AnalysisType = flagset.String("analysis-type", allEndpoints,
@@ -77,6 +79,8 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 		flagset.PrintDefaults()
 		return nil, fmt.Errorf("missing parameter: vpc-config")
 	}
+	// todo: add semantic diffs to analysis_type
+	// todo: if 2nd config file is given then analysis must be semantic_diff
 
 	if !supportedOutputFormats[*args.OutputFormat] {
 		flagset.PrintDefaults()

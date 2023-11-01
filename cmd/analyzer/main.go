@@ -84,6 +84,10 @@ func _main(cmdlineArgs []string) error {
 	if err != nil {
 		return fmt.Errorf("error generating cloud config from input vpc resources file: %w", err)
 	}
+	// todo: perform the required analysis
+	if *inArgs.InputSecondConfigFile != "" {
+		fmt.Println("2nd config file is", *inArgs.InputSecondConfigFile)
+	}
 	for _, vpcConfig := range vpcConfigs {
 		err = analysisPerVPCConfig(vpcConfig, inArgs)
 		if err != nil {
