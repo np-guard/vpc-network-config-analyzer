@@ -20,9 +20,9 @@ func (m *MDoutputFormatter) WriteOutput(c *VPCConfig,
 	subnetsConn *VPCsubnetConnectivity,
 	outFile string,
 	grouping bool,
-	uc OutputUseCase) (string, error) {
+	uc OutputUseCase) (*VPCAnalysisOutput, error) {
 	// get output by analysis type
-	out := "# " + headerOfAnalyzedVPC(c.VPCName)
+	out := "# " + headerOfAnalyzedVPC(c.VPC.Name())
 	switch uc {
 	case AllEndpoints:
 		lines := []string{mdTitle, mdHeader}
@@ -32,13 +32,13 @@ func (m *MDoutputFormatter) WriteOutput(c *VPCConfig,
 		out += strings.Join(lines, "\n")
 		out += asteriskDetails
 	case AllSubnets:
-		return "", errors.New("SubnetLevel use case not supported for md format currently ")
+		return nil, errors.New("SubnetLevel use case not supported for md format currently ")
 	case SingleSubnet:
-		return "", errors.New("DebugSubnet use case not supported for md format currently ")
+		return nil, errors.New("DebugSubnet use case not supported for md format currently ")
 	}
 
-	err := WriteToFile(out, outFile)
-	return out, err
+	_, err := WriteToFile(out, outFile)
+	return &VPCAnalysisOutput{Output: out, VPCName: c.VPC.Name(), format: MD}, err
 }
 
 func (m *MDoutputFormatter) getGroupedOutput(conn *VPCConnectivity) []string {
