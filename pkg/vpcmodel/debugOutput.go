@@ -20,6 +20,6 @@ func (t *DebugOutputFormatter) WriteOutput(c *VPCConfig,
 	case SingleSubnet:
 		out = c.GetConnectivityOutputPerEachSubnetSeparately()
 	}
-	outStr, err := WriteToFile(out, outFile)
-	return &VPCAnalysisOutput{Output: outStr, VPCName: c.VPC.Name(), format: Debug}, err
+	_, err := WriteToFile(out, outFile)
+	return &VPCAnalysisOutput{Output: out, VPCName: c.VPC.Name(), format: Debug}, err
 }
