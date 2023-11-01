@@ -28,9 +28,11 @@ const (
 	DEBUGFormat      = "debug"
 
 	// connectivity analysis types supported
-	allEndpoints = "all_endpoints" // vsi to vsi connectivity analysis
-	allSubnets   = "all_subnets"   // subnet to subnet connectivity analysis
-	singleSubnet = "single_subnet" // single subnet connectivity analysis
+	allEndpoints     = "all_endpoints"      // vsi to vsi connectivity analysis
+	allSubnets       = "all_subnets"        // subnet to subnet connectivity analysis
+	singleSubnet     = "single_subnet"      // single subnet connectivity analysis
+	allEndpointsDiff = "diff_all_endpoints" // semantic diff of allEndpoints analysis between two configurations
+	allSubnetsDiff   = "diff_all_subnets"   // semantic diff of allSubnets analysis between two configurations
 )
 
 var supportedOutputFormats = map[string]bool{
@@ -42,9 +44,11 @@ var supportedOutputFormats = map[string]bool{
 	DEBUGFormat:      true,
 }
 var supportedAnalysisTypes = map[string]bool{
-	allEndpoints: true,
-	allSubnets:   true,
-	singleSubnet: true,
+	allEndpoints:     true,
+	allSubnets:       true,
+	singleSubnet:     true,
+	allSubnetsDiff:   true,
+	allEndpointsDiff: false,
 }
 
 func getSupportedValuesString(supportedValues map[string]bool) string {
@@ -79,12 +83,30 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 		flagset.PrintDefaults()
 		return nil, fmt.Errorf("missing parameter: vpc-config")
 	}
-	// todo: add semantic diffs to analysis_type
-	// todo: if 2nd config file is given then analysis must be semantic_diff
+
+	fileForDiffSpecified := args.InputSecondConfigFile != nil && *args.InputSecondConfigFile != ""
+	if fileForDiffSpecified && *args.AnalysisType != allEndpointsDiff &&
+		*args.AnalysisType != allSubnetsDiff {
+		return nil, fmt.Errorf("wrong analysis type %s for 2nd file (%v) specified for diff; "+
+			"must be diff_all_endpoints or diff_all_subnets", *args.AnalysisType, *args.InputSecondConfigFile)
+	}
+
+	if !fileForDiffSpecified && (*args.AnalysisType == allEndpointsDiff ||
+		*args.AnalysisType == allSubnetsDiff) {
+		return nil, fmt.Errorf("missing parameter vpc-config-second for diff analysis %s", *args.AnalysisType)
+	}
 
 	if !supportedOutputFormats[*args.OutputFormat] {
 		flagset.PrintDefaults()
 		return nil, fmt.Errorf("wrong output format %s; must be one of %s", *args.OutputFormat, getSupportedValuesString(supportedOutputFormats))
+	}
+
+	if *args.AnalysisType == allEndpointsDiff {
+		return nil, fmt.Errorf("diff_all_endpoints not supported yet")
+	}
+
+	if *args.AnalysisType == allSubnetsDiff && *args.OutputFormat != TEXTFormat {
+		return nil, fmt.Errorf("currently only txt output format supported with diff_all_subnets")
 	}
 
 	if !supportedAnalysisTypes[*args.AnalysisType] {

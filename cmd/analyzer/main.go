@@ -74,6 +74,10 @@ func _main(cmdlineArgs []string) error {
 		return fmt.Errorf("error parsing arguments: %w", err)
 	}
 
+	if *inArgs.AnalysisType == allSubnetsDiff || *inArgs.AnalysisType == allEndpointsDiff {
+		return nil // todo: tmp
+	}
+
 	rc, err := ibmvpc.ParseResourcesFromFile(*inArgs.InputConfigFile)
 	if err != nil {
 		return fmt.Errorf("error parsing input vpc resources file: %w", err)
@@ -90,10 +94,6 @@ func _main(cmdlineArgs []string) error {
 
 	outputPerVPC := make([]*vpcmodel.VPCAnalysisOutput, len(vpcConfigs))
 	i := 0
-	// todo: perform the required analysis
-	if *inArgs.InputSecondConfigFile != "" {
-		fmt.Println("2nd config file is", *inArgs.InputSecondConfigFile)
-	}
 	for _, vpcConfig := range vpcConfigs {
 		vpcAnalysisOutput, err2 := analysisPerVPCConfig(vpcConfig, inArgs, outFile)
 		if err2 != nil {
