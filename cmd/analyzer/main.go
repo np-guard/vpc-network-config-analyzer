@@ -74,6 +74,10 @@ func _main(cmdlineArgs []string) error {
 		return fmt.Errorf("error parsing arguments: %w", err)
 	}
 
+	if *inArgs.AnalysisType == allSubnetsDiff || *inArgs.AnalysisType == allEndpointsDiff {
+		return nil // todo: tmp
+	}
+
 	rc, err := ibmvpc.ParseResourcesFromFile(*inArgs.InputConfigFile)
 	if err != nil {
 		return fmt.Errorf("error parsing input vpc resources file: %w", err)
