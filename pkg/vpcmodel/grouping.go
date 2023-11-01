@@ -35,7 +35,7 @@ func newGroupingConnections() *groupingConnections {
 	return &res
 }
 
-func newGroupConnLines(c *CloudConfig, v *VPCConnectivity, grouping bool) *GroupConnLines {
+func newGroupConnLines(c *VPCConfig, v *VPCConnectivity, grouping bool) *GroupConnLines {
 	res := &GroupConnLines{c: c, v: v,
 		srcToDst:                 newGroupingConnections(),
 		dstToSrc:                 newGroupingConnections(),
@@ -45,7 +45,7 @@ func newGroupConnLines(c *CloudConfig, v *VPCConnectivity, grouping bool) *Group
 	return res
 }
 
-func newGroupConnLinesSubnetConnectivity(c *CloudConfig, s *VPCsubnetConnectivity, grouping bool) *GroupConnLines {
+func newGroupConnLinesSubnetConnectivity(c *VPCConfig, s *VPCsubnetConnectivity, grouping bool) *GroupConnLines {
 	res := &GroupConnLines{c: c, s: s,
 		srcToDst:                 newGroupingConnections(),
 		dstToSrc:                 newGroupingConnections(),
@@ -58,7 +58,7 @@ func newGroupConnLinesSubnetConnectivity(c *CloudConfig, s *VPCsubnetConnectivit
 // GroupConnLines used both for VPCConnectivity and for VPCsubnetConnectivity, one at a time. The other must be nil
 // todo: define abstraction above both?
 type GroupConnLines struct {
-	c        *CloudConfig
+	c        *VPCConfig
 	v        *VPCConnectivity
 	s        *VPCsubnetConnectivity
 	srcToDst *groupingConnections
@@ -165,7 +165,7 @@ func (g *groupingConnections) addPublicConnectivity(ep EndpointElem, conn string
 // vsiGroupingBySubnets returns a slice of EndpointElem objects, by grouping set of elements that
 // represent network interface nodes from the same subnet into a single groupedNetworkInterfaces object
 func vsiGroupingBySubnets(groupedConnLines *GroupConnLines,
-	elemsList []EndpointElem, c *CloudConfig) []EndpointElem {
+	elemsList []EndpointElem, c *VPCConfig) []EndpointElem {
 	res := []EndpointElem{}
 	subnetNameToNodes := map[string][]EndpointElem{} // map from subnet name to its nodes from the input
 	for _, elem := range elemsList {
@@ -306,6 +306,7 @@ func getKeyOfGroupConnLines(ep EndpointElem, connection string) string {
 // assuming the  g.groupedLines was already initialized by previous step groupExternalAddresses()
 func (g *GroupConnLines) groupInternalSrcOrDst(srcGrouping, groupVsi bool) {
 	res, groupingSrcOrDst := g.groupLinesByKey(srcGrouping, groupVsi)
+	res = g.unifiedGroupedConnLines(res)
 
 	// update g.groupedLines based on groupingSrcOrDst
 	for _, linesGroup := range groupingSrcOrDst {
@@ -330,6 +331,36 @@ func (g *GroupConnLines) groupInternalSrcOrDst(srcGrouping, groupVsi bool) {
 		}
 	}
 	g.GroupedLines = res
+}
+
+// Go over the output of treating self loops as don't cares - extendGroupingSelfLoops
+// and align all src, dst to use the same reference via g.groupedEndpointsElemsMap
+// this is done here since *GroupConnLines is not known within the extendGroupingSelfLoops context
+func (g *GroupConnLines) unifiedGroupedConnLines(oldConnLines []*GroupedConnLine) []*GroupedConnLine {
+	newGroupedLines := []*GroupedConnLine{}
+	// go over all connections; if src/dst is not external then use groupedEndpointsElemsMap
+	for _, groupedConnLine := range oldConnLines {
+		newGroupedConnLine := &GroupedConnLine{g.unifiedGroupedElems(groupedConnLine.Src),
+			g.unifiedGroupedElems(groupedConnLine.Dst),
+			groupedConnLine.Conn}
+		newGroupedLines = append(newGroupedLines, newGroupedConnLine)
+	}
+	return newGroupedLines
+}
+
+func (g *GroupConnLines) unifiedGroupedElems(srcOrDst EndpointElem) EndpointElem {
+	if srcOrDst.IsExternal() { // external
+		return srcOrDst
+	}
+	if _, ok := srcOrDst.(Node); ok { // vsi
+		return srcOrDst
+	}
+	if _, ok := srcOrDst.(NodeSet); ok { // subnet
+		return srcOrDst
+	}
+	groupedEE := srcOrDst.(*groupedEndpointsElems)
+	unifiedGroupedEE := g.getGroupedEndpointsElems(*groupedEE)
+	return unifiedGroupedEE
 }
 
 func (g *GroupConnLines) computeGrouping(grouping bool) {

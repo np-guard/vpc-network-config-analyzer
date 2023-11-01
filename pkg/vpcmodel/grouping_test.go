@@ -77,8 +77,8 @@ func (m *mockSubnet) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNod
 func (m *mockSubnet) IsExternal() bool { return false }
 func (m *mockSubnet) ShowOnSubnetMode() bool { return true }
 
-func newCloudConfigTest1() (*CloudConfig, *VPCConnectivity) {
-	res := &CloudConfig{Nodes: []Node{}}
+func newVPCConfigTest1() (*VPCConfig, *VPCConnectivity) {
+	res := &VPCConfig{Nodes: []Node{}}
 	res.Nodes = append(res.Nodes,
 		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1"},
 		&mockNetIntf{cidr: "1.2.3.4/22", name: "public1", isPublic: true},
@@ -92,8 +92,8 @@ func newCloudConfigTest1() (*CloudConfig, *VPCConnectivity) {
 	return res, res1
 }
 
-func newCloudConfigTest2() (*CloudConfig, *VPCConnectivity) {
-	res := &CloudConfig{Nodes: []Node{}}
+func newVPCConfigTest2() (*VPCConfig, *VPCConnectivity) {
+	res := &VPCConfig{Nodes: []Node{}}
 	res.Nodes = append(res.Nodes,
 		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1"},
 		&mockNetIntf{cidr: "1.2.3.4/22", name: "public1", isPublic: true},
@@ -114,7 +114,7 @@ func newCloudConfigTest2() (*CloudConfig, *VPCConnectivity) {
 // Test simple grouping of 2 conn lines with common src+conn, with dest as external ip ranges
 // thus, expecting to be merged to one line with dest element of both ranges together
 func TestGroupingPhase1(t *testing.T) {
-	c, v := newCloudConfigTest1()
+	c, v := newVPCConfigTest1()
 	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
 		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
 		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
@@ -129,7 +129,7 @@ func TestGroupingPhase1(t *testing.T) {
 
 // Test simple grouping of 1 conn line with netInterface, grouped into subnet element.
 func TestGroupingPhase2(t *testing.T) {
-	c, v := newCloudConfigTest2()
+	c, v := newVPCConfigTest2()
 	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
 		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
 		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
@@ -150,8 +150,8 @@ func TestGroupingPhase2(t *testing.T) {
 
 // connections from vsi1 should be grouped since both stateful
 // connections from vsi2 should not be grouped since one stateful and one not
-func configStatefulGrouping() (*CloudConfig, *VPCConnectivity) {
-	res := &CloudConfig{Nodes: []Node{}}
+func configStatefulGrouping() (*VPCConfig, *VPCConnectivity) {
+	res := &VPCConfig{Nodes: []Node{}}
 	res.Nodes = append(res.Nodes,
 		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1"},
 		&mockNetIntf{cidr: "1.2.3.4/22", name: "public1", isPublic: true},
@@ -187,8 +187,8 @@ func TestStatefulGrouping(t *testing.T) {
 }
 
 // grouping that results in cidrs presented as range and not as cidr
-func configIPRange() (*CloudConfig, *VPCConnectivity) {
-	res := &CloudConfig{Nodes: []Node{}}
+func configIPRange() (*VPCConfig, *VPCConnectivity) {
+	res := &VPCConfig{Nodes: []Node{}}
 	res.Nodes = append(res.Nodes,
 		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1"},
 		&mockNetIntf{cidr: "1.2.3.0/24", name: "public1", isPublic: true},
@@ -217,8 +217,8 @@ func TestIPRange(t *testing.T) {
 }
 
 // Simple test of self loop (don't care): clique of the same subnet. Should end in a single line
-func configSelfLoopClique() (*CloudConfig, *VPCConnectivity) {
-	res := &CloudConfig{Nodes: []Node{}}
+func configSelfLoopClique() (*VPCConfig, *VPCConnectivity) {
+	res := &VPCConfig{Nodes: []Node{}}
 	res.Nodes = append(res.Nodes,
 		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1"},
 		&mockNetIntf{cidr: "10.0.20.6/32", name: "vsi2"},
@@ -253,8 +253,8 @@ func TestSelfLoopClique(t *testing.T) {
 
 // Simple test of self loop (don't care): clique in which the vsis belongs to two subnets.
 // Should end in three lines
-func configSelfLoopCliqueDiffSubnets() (*CloudConfig, *VPCConnectivity) {
-	res := &CloudConfig{Nodes: []Node{}}
+func configSelfLoopCliqueDiffSubnets() (*VPCConfig, *VPCConnectivity) {
+	res := &VPCConfig{Nodes: []Node{}}
 	res.Nodes = append(res.Nodes,
 		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1-1"},
 		&mockNetIntf{cidr: "10.0.20.6/32", name: "vsi1-2"},
@@ -294,8 +294,8 @@ func TestSelfLoopCliqueDiffSubnets(t *testing.T) {
 // Simple test of self loop: two lines with 3 vsis of the same subnet and same connection.
 //
 //	should end in a single line, where one of the vsis being added a self loop
-func configSimpleSelfLoop() (*CloudConfig, *VPCConnectivity) {
-	res := &CloudConfig{Nodes: []Node{}}
+func configSimpleSelfLoop() (*VPCConfig, *VPCConnectivity) {
+	res := &VPCConfig{Nodes: []Node{}}
 	res.Nodes = append(res.Nodes,
 		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1"},
 		&mockNetIntf{cidr: "10.0.20.6/32", name: "vsi2"},
@@ -332,8 +332,8 @@ func TestSimpleSelfLoop(t *testing.T) {
 //	but ends in another local minimal grouping. Do we want to optimize?
 //	try source and then dest and vice versa and choose the one
 //	with less lines?
-func configSelfLoopCliqueLace() (*CloudConfig, *VPCConnectivity) {
-	res := &CloudConfig{Nodes: []Node{}}
+func configSelfLoopCliqueLace() (*VPCConfig, *VPCConnectivity) {
+	res := &VPCConfig{Nodes: []Node{}}
 	res.Nodes = append(res.Nodes,
 		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1"},
 		&mockNetIntf{cidr: "10.0.20.6/32", name: "vsi2"},
@@ -369,6 +369,43 @@ func TestConfigSelfLoopCliqueLace(t *testing.T) {
 	require.Equal(t, "vsi1,vsi2 => vsi1,vsi2,vsi3 : All Connections\n"+
 		"vsi3 => vsi1,vsi2,vsi4 : All Connections\n"+
 		"vsi4 => vsi5 : All Connections\n\n"+
+		"connections are stateful unless marked with *\n", groupingStr)
+	fmt.Println(groupingStr)
+	fmt.Println("done")
+}
+func configSubnetSelfLoop() (*VPCConfig, *VPCsubnetConnectivity) {
+	res := &VPCConfig{Nodes: []Node{}}
+	res.Nodes = append(res.Nodes,
+		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1"},
+		&mockNetIntf{cidr: "10.3.20.6/32", name: "vsi2"},
+		&mockNetIntf{cidr: "10.7.20.7/32", name: "vsi3"})
+
+	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0]}},
+		&mockSubnet{"10.3.20.0/22", "subnet2", []Node{res.Nodes[1]}},
+		&mockSubnet{"10.7.20.0/22", "subnet3", []Node{res.Nodes[2]}})
+
+	res1 := &VPCsubnetConnectivity{AllowedConnsCombined: NewSubnetConnectivityMap()}
+	res1.AllowedConnsCombined.updateAllowedSubnetConnsMap(res.NodeSets[0], res.NodeSets[1], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedSubnetConnsMap(res.NodeSets[0], res.NodeSets[2], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedSubnetConnsMap(res.NodeSets[1], res.NodeSets[0], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedSubnetConnsMap(res.NodeSets[1], res.NodeSets[2], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedSubnetConnsMap(res.NodeSets[2], res.NodeSets[0], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedSubnetConnsMap(res.NodeSets[2], res.NodeSets[1], common.NewConnectionSet(true))
+
+	return res, res1
+}
+
+func TestSubnetSelfLoop(t *testing.T) {
+	c, s := configSubnetSelfLoop()
+	res := &GroupConnLines{c: c, s: s,
+		srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
+		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
+		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
+	res.groupExternalAddressesForSubnets()
+	res.groupInternalSrcOrDst(false, false)
+	res.groupInternalSrcOrDst(true, false)
+	groupingStr := res.String()
+	require.Equal(t, "subnet1,subnet2,subnet3 => subnet1,subnet2,subnet3 : All Connections\n\n"+
 		"connections are stateful unless marked with *\n", groupingStr)
 	fmt.Println(groupingStr)
 	fmt.Println("done")

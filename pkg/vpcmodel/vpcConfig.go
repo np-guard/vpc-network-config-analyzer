@@ -1,16 +1,17 @@
 package vpcmodel
 
-type CloudConfig struct {
+type VPCConfig struct {
 	Nodes            []Node
 	NodeSets         []NodeSet
 	FilterResources  []FilterTrafficResource
 	RoutingResources []RoutingResource
 	NameToResource   map[string]VPCResourceIntf
 	CloudName        string
+	VPCName          string // the VPC name for which this cloud config relates to
 }
 
-// TODO: consider add this mapping to CloudConfig
-func (c *CloudConfig) getSubnetOfNode(n Node) NodeSet {
+// TODO: consider add this mapping to VPCConfig
+func (c *VPCConfig) getSubnetOfNode(n Node) NodeSet {
 	for _, nodeSet := range c.NodeSets {
 		if nodeSet.Kind() == subnetKind {
 			subnetNodes := nodeSet.Nodes()
@@ -22,7 +23,7 @@ func (c *CloudConfig) getSubnetOfNode(n Node) NodeSet {
 	return nil
 }
 
-func (c *CloudConfig) getFilterTrafficResourceOfKind(kind string) FilterTrafficResource {
+func (c *VPCConfig) getFilterTrafficResourceOfKind(kind string) FilterTrafficResource {
 	for _, filter := range c.FilterResources {
 		if filter.Kind() == kind {
 			return filter

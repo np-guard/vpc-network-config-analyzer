@@ -191,6 +191,12 @@ func (conn *ConnectionSet) isAllConnectionsWithoutAllowAll() bool {
 	return conn.connectionProperties.Equals(getAllPropertiesObject())
 }
 
+// Subtract
+// ToDo: Subtract seems to ignore IsStateful (see issue #199):
+//  1. is the delta connection stateful
+//  2. connectionProperties is identical but conn stateful while other is not
+//     the 2nd item can be computed here, with enhancement to relevant structure
+//     the 1st can not since we do not know where exactly the statefullness came from
 func (conn *ConnectionSet) Subtract(other *ConnectionSet) *ConnectionSet {
 	if conn.IsEmpty() || other.IsEmpty() {
 		return conn

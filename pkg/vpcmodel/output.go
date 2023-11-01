@@ -31,14 +31,14 @@ const (
 )
 
 type OutputGenerator struct {
-	config         *CloudConfig
+	config         *VPCConfig
 	outputGrouping bool
 	useCase        OutputUseCase
 	nodesConn      *VPCConnectivity
 	subnetsConn    *VPCsubnetConnectivity
 }
 
-func NewOutputGenerator(c *CloudConfig, grouping bool, uc OutputUseCase, archOnly bool) (*OutputGenerator, error) {
+func NewOutputGenerator(c *VPCConfig, grouping bool, uc OutputUseCase, archOnly bool) (*OutputGenerator, error) {
 	res := &OutputGenerator{
 		config:         c,
 		outputGrouping: grouping,
@@ -60,6 +60,7 @@ func NewOutputGenerator(c *CloudConfig, grouping bool, uc OutputUseCase, archOnl
 			res.subnetsConn = subnetsConn
 		}
 	}
+	// todo: add for diff
 	return res, nil
 }
 
@@ -82,22 +83,12 @@ func (o *OutputGenerator) Generate(f OutFormat, outFile string) (string, error) 
 		return "", errors.New("unsupported output format")
 	}
 
-	switch o.useCase {
-	case AllEndpoints:
-		return formatter.WriteOutputAllEndpoints(o.config, o.nodesConn, outFile, o.outputGrouping)
-	case SingleSubnet:
-		return formatter.WriteOutputSingleSubnet(o.config, outFile)
-	case AllSubnets:
-		return formatter.WriteOutputAllSubnets(o.subnetsConn, outFile)
-	}
-	return "", errors.New("unsupported useCase argument")
+	return formatter.WriteOutput(o.config, o.nodesConn, o.subnetsConn, outFile, o.outputGrouping, o.useCase)
 }
 
-// OutputFormatter has several write functions per each use-case
 type OutputFormatter interface {
-	WriteOutputAllEndpoints(c *CloudConfig, conn *VPCConnectivity, outFile string, grouping bool) (string, error)
-	WriteOutputAllSubnets(subnetsConn *VPCsubnetConnectivity, outFile string) (string, error)
-	WriteOutputSingleSubnet(c *CloudConfig, outFile string) (string, error)
+	WriteOutput(c *VPCConfig, conn *VPCConnectivity, subnetsConn *VPCsubnetConnectivity, outFile string,
+		grouping bool, uc OutputUseCase) (string, error)
 }
 
 func writeOutput(out, file string) (string, error) {

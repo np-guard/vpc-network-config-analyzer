@@ -18,21 +18,21 @@ func (e *edgeInfo) IsExternal() bool {
 }
 
 // DrawioOutputFormatter create the drawio connectivity map.
-// It build the drawio tree out of the CloudConfig and VPCConnectivity, and output it to a drawio file
+// It build the drawio tree out of the VPCConfig and VPCConnectivity, and output it to a drawio file
 // the steps of creating the drawio tree:
 // 1. collect all the connectivity edges to a map of (src,dst,label) -> isDirected. also mark the nodes that has connections
 // 2. create the treeNodes of the NodeSets, filters. routers and nodes
 // 3. create the edges from the map we created in stage (1). also also set the routers to the edges
 
 type DrawioOutputFormatter struct {
-	cConfig    *CloudConfig
+	cConfig    *VPCConfig
 	conn       *GroupConnLines
 	gen        *DrawioGenerator
 	subnetMode bool
 	routers    map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface
 }
 
-func (d *DrawioOutputFormatter) init(cConfig *CloudConfig, conn *GroupConnLines, subnetMode bool) {
+func (d *DrawioOutputFormatter) init(cConfig *VPCConfig, conn *GroupConnLines, subnetMode bool) {
 	d.cConfig = cConfig
 	d.conn = conn
 	d.subnetMode = subnetMode
@@ -41,7 +41,7 @@ func (d *DrawioOutputFormatter) init(cConfig *CloudConfig, conn *GroupConnLines,
 	d.routers = map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface{}
 }
 
-func (d *DrawioOutputFormatter) writeOutputGeneric(cConfig *CloudConfig, conn *GroupConnLines, outFile string, subnetMode bool) (
+func (d *DrawioOutputFormatter) writeOutputGeneric(cConfig *VPCConfig, conn *GroupConnLines, outFile string, subnetMode bool) (
 	string, error) {
 	d.init(cConfig, conn, subnetMode)
 	d.createDrawioTree()
@@ -131,23 +131,36 @@ func (d *DrawioOutputFormatter) createEdges() {
 	}
 }
 
-func (d *DrawioOutputFormatter) WriteOutputAllEndpoints(cConfig *CloudConfig, conn *VPCConnectivity, outFile string, grouping bool) (string, error) {
-	var gConn *GroupConnLines 
-	if conn != nil{
+func (d *DrawioOutputFormatter) WriteOutputAllEndpoints(cConfig *VPCConfig, conn *VPCConnectivity, outFile string, grouping bool) (string, error) {
+	var gConn *GroupConnLines
+	if conn != nil {
 		gConn = conn.GroupedConnectivity
 	}
 	return d.writeOutputGeneric(cConfig, gConn, outFile, false)
 }
 func (d *DrawioOutputFormatter) WriteOutputAllSubnets(subnetsConn *VPCsubnetConnectivity, outFile string) (string, error) {
-	var gConn *GroupConnLines 
-	if subnetsConn != nil{
+	var gConn *GroupConnLines
+	if subnetsConn != nil {
 		gConn = subnetsConn.GroupedConnectivity
 	}
-	return d.writeOutputGeneric(subnetsConn.CloudConfig, gConn, outFile, true)
+	return d.writeOutputGeneric(subnetsConn.VPCConfig, gConn, outFile, true)
 }
 
-func (d *DrawioOutputFormatter) WriteOutputSingleSubnet(c *CloudConfig, outFile string) (string, error) {
-	return "", errors.New("DebugSubnet use case not supported for draw.io format currently ")
+func (d *DrawioOutputFormatter) WriteOutput(c *VPCConfig,
+	conn *VPCConnectivity,
+	subnetsConn *VPCsubnetConnectivity,
+	outFile string,
+	grouping bool,
+	uc OutputUseCase) (string, error) {
+	switch uc {
+	case AllEndpoints:
+		return d.WriteOutputAllEndpoints(c, conn, outFile, grouping)
+	case AllSubnets:
+		return d.WriteOutputAllSubnets(subnetsConn, outFile)
+	case SingleSubnet:
+		return "", errors.New("DebugSubnet use case not supported for draw.io format currently ")
+	}
+	return "", nil
 }
 
 // /////////////////////////////////////////////////////////////////
@@ -159,18 +172,17 @@ type ArchDrawioOutputFormatter struct {
 	DrawioOutputFormatter
 }
 
-func (d *ArchDrawioOutputFormatter) WriteOutputAllEndpoints(
-	cConfig *CloudConfig,
+func (d *ArchDrawioOutputFormatter) WriteOutput(c *VPCConfig,
 	conn *VPCConnectivity,
+	subnetsConn *VPCsubnetConnectivity,
 	outFile string,
-	grouping bool) (string, error) {
-	return d.DrawioOutputFormatter.WriteOutputAllEndpoints(cConfig, nil, outFile, grouping)
-}
-
-func (d *ArchDrawioOutputFormatter) WriteOutputAllSubnets(subnetsConn *VPCsubnetConnectivity, outFile string) (string, error) {
-	return d.DrawioOutputFormatter.WriteOutputAllSubnets(nil, outFile)
-}
-
-func (d *ArchDrawioOutputFormatter) WriteOutputSingleSubnet(c *CloudConfig, outFile string) (string, error) {
-	return d.DrawioOutputFormatter.WriteOutputSingleSubnet(nil, outFile)
+	grouping bool,
+	uc OutputUseCase) (string, error) {
+	switch uc {
+	case AllEndpoints:
+		return d.DrawioOutputFormatter.WriteOutput(c, nil, nil, outFile, grouping, uc)
+	case AllSubnets, SingleSubnet:
+		return d.DrawioOutputFormatter.WriteOutput(nil, nil, nil, outFile, grouping, uc)
+	}
+	return "", nil
 }
