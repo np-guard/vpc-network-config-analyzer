@@ -90,11 +90,10 @@ func _main(cmdlineArgs []string) error {
 
 	outputPerVPC := make([]*vpcmodel.VPCAnalysisOutput, len(vpcConfigs))
 	i := 0
-	var vpcAnalysisOutput *vpcmodel.VPCAnalysisOutput
 	for _, vpcConfig := range vpcConfigs {
-		vpcAnalysisOutput, err = analysisPerVPCConfig(vpcConfig, inArgs, outFile)
-		if err != nil {
-			return err
+		vpcAnalysisOutput, err2 := analysisPerVPCConfig(vpcConfig, inArgs, outFile)
+		if err2 != nil {
+			return err2
 		}
 		outputPerVPC[i] = vpcAnalysisOutput
 		i++
