@@ -131,21 +131,6 @@ func (d *DrawioOutputFormatter) createEdges() {
 	}
 }
 
-func (d *DrawioOutputFormatter) WriteOutputAllEndpoints(cConfig *VPCConfig, conn *VPCConnectivity, outFile string, grouping bool) (string, error) {
-	var gConn *GroupConnLines
-	if conn != nil {
-		gConn = conn.GroupedConnectivity
-	}
-	return d.writeOutputGeneric(cConfig, gConn, outFile, false)
-}
-func (d *DrawioOutputFormatter) WriteOutputAllSubnets(subnetsConn *VPCsubnetConnectivity, outFile string) (string, error) {
-	var gConn *GroupConnLines
-	if subnetsConn != nil {
-		gConn = subnetsConn.GroupedConnectivity
-	}
-	return d.writeOutputGeneric(subnetsConn.VPCConfig, gConn, outFile, true)
-}
-
 func (d *DrawioOutputFormatter) WriteOutput(c *VPCConfig,
 	conn *VPCConnectivity,
 	subnetsConn *VPCsubnetConnectivity,
@@ -154,9 +139,17 @@ func (d *DrawioOutputFormatter) WriteOutput(c *VPCConfig,
 	uc OutputUseCase) (string, error) {
 	switch uc {
 	case AllEndpoints:
-		return d.WriteOutputAllEndpoints(c, conn, outFile, grouping)
+		var gConn *GroupConnLines
+		if conn != nil {
+			gConn = conn.GroupedConnectivity
+		}
+		return d.writeOutputGeneric(c, gConn, outFile, false)
 	case AllSubnets:
-		return d.WriteOutputAllSubnets(subnetsConn, outFile)
+		var gConn *GroupConnLines
+		if subnetsConn != nil {
+			gConn = subnetsConn.GroupedConnectivity
+		}
+		return d.writeOutputGeneric(subnetsConn.VPCConfig, gConn, outFile, true)
 	case SingleSubnet:
 		return "", errors.New("DebugSubnet use case not supported for draw.io format currently ")
 	}
