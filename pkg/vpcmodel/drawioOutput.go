@@ -42,11 +42,11 @@ func (d *DrawioOutputFormatter) init(cConfig *VPCConfig, conn *GroupConnLines, s
 }
 
 func (d *DrawioOutputFormatter) writeOutputGeneric(cConfig *VPCConfig, conn *GroupConnLines, outFile string, subnetMode bool) (
-	string, error) {
+	*VPCAnalysisOutput, error) {
 	d.init(cConfig, conn, subnetMode)
 	d.createDrawioTree()
 	err := drawio.CreateDrawioConnectivityMapFile(d.gen.Network(), outFile)
-	return "", err
+	return &VPCAnalysisOutput{}, err
 }
 
 func (d *DrawioOutputFormatter) createDrawioTree() {
@@ -136,7 +136,8 @@ func (d *DrawioOutputFormatter) WriteOutput(c *VPCConfig,
 	subnetsConn *VPCsubnetConnectivity,
 	outFile string,
 	grouping bool,
-	uc OutputUseCase) (string, error) {
+	uc OutputUseCase) (*VPCAnalysisOutput, error) {
+	var err error
 	switch uc {
 	case AllEndpoints:
 		var gConn *GroupConnLines
@@ -151,9 +152,9 @@ func (d *DrawioOutputFormatter) WriteOutput(c *VPCConfig,
 		}
 		return d.writeOutputGeneric(subnetsConn.VPCConfig, gConn, outFile, true)
 	case SingleSubnet:
-		return "", errors.New("DebugSubnet use case not supported for draw.io format currently ")
+		return &VPCAnalysisOutput{}, errors.New("DebugSubnet use case not supported for draw.io format currently ")
 	}
-	return "", nil
+	return &VPCAnalysisOutput{}, err
 }
 
 // /////////////////////////////////////////////////////////////////
@@ -170,12 +171,12 @@ func (d *ArchDrawioOutputFormatter) WriteOutput(c *VPCConfig,
 	subnetsConn *VPCsubnetConnectivity,
 	outFile string,
 	grouping bool,
-	uc OutputUseCase) (string, error) {
+	uc OutputUseCase) (*VPCAnalysisOutput, error) {
 	switch uc {
 	case AllEndpoints:
 		return d.DrawioOutputFormatter.WriteOutput(c, nil, nil, outFile, grouping, uc)
 	case AllSubnets, SingleSubnet:
 		return d.DrawioOutputFormatter.WriteOutput(nil, nil, nil, outFile, grouping, uc)
 	}
-	return "", nil
+	return &VPCAnalysisOutput{}, nil
 }

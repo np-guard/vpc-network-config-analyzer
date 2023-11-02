@@ -16,9 +16,9 @@ func (t *TextOutputFormatter) WriteOutput(c *VPCConfig,
 	subnetsConn *VPCsubnetConnectivity,
 	outFile string,
 	grouping bool,
-	uc OutputUseCase) (string, error) {
+	uc OutputUseCase) (*VPCAnalysisOutput, error) {
 	// header line - specify the VPC analyzed
-	out := headerOfAnalyzedVPC(c.VPCName)
+	out := headerOfAnalyzedVPC(c.VPC.Name())
 	// get output by analysis type
 	switch uc {
 	case AllEndpoints:
@@ -29,5 +29,6 @@ func (t *TextOutputFormatter) WriteOutput(c *VPCConfig,
 		out += c.GetConnectivityOutputPerEachSubnetSeparately()
 	}
 	// write output to file and return the output string
-	return writeOutput(out, outFile)
+	_, err := WriteToFile(out, outFile)
+	return &VPCAnalysisOutput{Output: out, VPCName: c.VPC.Name(), format: Text}, err
 }

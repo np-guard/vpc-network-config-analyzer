@@ -3,6 +3,7 @@ package vpcmodel
 import (
 	"errors"
 	"os"
+	"strings"
 )
 
 type OutFormat int64
@@ -30,6 +31,8 @@ const (
 	AllSubnetsNoPGW                      // connectivity between subnets (consider nacl only)
 )
 
+// OutputGenerator captures one vpc config with its connectivity analysis results, and implements
+// the functionality to generate the analysis output in various formats, for that vpc
 type OutputGenerator struct {
 	config         *VPCConfig
 	outputGrouping bool
@@ -64,7 +67,16 @@ func NewOutputGenerator(c *VPCConfig, grouping bool, uc OutputUseCase, archOnly 
 	return res, nil
 }
 
-func (o *OutputGenerator) Generate(f OutFormat, outFile string) (string, error) {
+// VPCAnalysisOutput captures output per VPC
+type VPCAnalysisOutput struct {
+	VPCName    string
+	Output     string
+	jsonStruct interface{}
+	format     OutFormat
+}
+
+// Generate returns VPCAnalysisOutput for its VPC analysis results
+func (o *OutputGenerator) Generate(f OutFormat, outFile string) (*VPCAnalysisOutput, error) {
 	var formatter OutputFormatter
 	switch f {
 	case JSON:
@@ -80,7 +92,7 @@ func (o *OutputGenerator) Generate(f OutFormat, outFile string) (string, error) 
 	case Debug:
 		formatter = &DebugOutputFormatter{}
 	default:
-		return "", errors.New("unsupported output format")
+		return nil, errors.New("unsupported output format")
 	}
 
 	return formatter.WriteOutput(o.config, o.nodesConn, o.subnetsConn, outFile, o.outputGrouping, o.useCase)
@@ -88,17 +100,38 @@ func (o *OutputGenerator) Generate(f OutFormat, outFile string) (string, error) 
 
 type OutputFormatter interface {
 	WriteOutput(c *VPCConfig, conn *VPCConnectivity, subnetsConn *VPCsubnetConnectivity, outFile string,
-		grouping bool, uc OutputUseCase) (string, error)
+		grouping bool, uc OutputUseCase) (*VPCAnalysisOutput, error)
 }
 
-func writeOutput(out, file string) (string, error) {
-	err := WriteToFile(out, file)
-	return out, err
-}
-
-func WriteToFile(content, fileName string) error {
+func WriteToFile(content, fileName string) (string, error) {
 	if fileName != "" {
-		return os.WriteFile(fileName, []byte(content), writeFileMde)
+		err := os.WriteFile(fileName, []byte(content), writeFileMde)
+		return content, err
 	}
-	return nil
+	return content, nil
+}
+
+// AggregateVPCsOutput returns the output string for a list of VPCAnalysisOutput objects
+// and writes the output to outFile
+func AggregateVPCsOutput(outputList []*VPCAnalysisOutput, f OutFormat, outFile string) (string, error) {
+	var res string
+	var err error
+	switch f {
+	case Text, MD, Debug:
+		// plain concatenation
+		vpcsOut := make([]string, len(outputList))
+		for i, o := range outputList {
+			vpcsOut[i] = o.Output
+		}
+		res, err = WriteToFile(strings.Join(vpcsOut, "\n"), outFile)
+
+	case JSON:
+		// aggregate to a map from vpc name to its json struct output
+		all := map[string]interface{}{}
+		for _, o := range outputList {
+			all[o.VPCName] = o.jsonStruct
+		}
+		res, err = writeJSON(all, outFile)
+	}
+	return res, err
 }
