@@ -45,11 +45,11 @@ type DiffBetweenSubnets struct {
 
 func (configs ConfigsForDiff) GetSubnetsDiff(grouping bool) (*DiffBetweenSubnets, error) {
 	// 1. compute connectivity for each of the subnets
-	subnetsConn1, err := configs.config1.GetSubnetsConnectivity(true, false)
+	subnetsConn1, err := configs.config1.GetSubnetsConnectivity(true, grouping)
 	if err != nil {
 		return nil, err
 	}
-	subnetsConn2, err := configs.config2.GetSubnetsConnectivity(true, false)
+	subnetsConn2, err := configs.config2.GetSubnetsConnectivity(true, grouping)
 	if err != nil {
 		return nil, err
 	}
@@ -537,7 +537,7 @@ func externalNodeToIPBlock(external Node) (ipBlock *common.IPBlock, err error) {
 //}
 //
 //// todo: instead of adding functionality to grouping, I plan to have more generic connectivity items that will be grouped
-////       encode the SubnetsDiff into this generic item as well as the other entities we are grouping
+////       encode the subnetsDiff into this generic item as well as the other entities we are grouping
 ////       and then decode in the printing
 ////       the idea is to use instead of *common.ConnectionSet in the grouped entity a string which will encode the connection
 ////       and also the diff where relevant
