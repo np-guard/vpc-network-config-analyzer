@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"reflect"
 	"sort"
-	"strings"
 )
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -73,7 +72,7 @@ func (ly *layoutS) layout() {
 		ly.layoutSubnetsIcons()
 	} else {
 		//		ly.layoutSubnets()
-		ly.layoutSubnets2()
+		ly.layoutSubnets()
 		// ly.layoutSubnetsExample()
 	}
 	ly.matrix.removeUnusedLayers()
@@ -302,35 +301,38 @@ func (ly *layoutS) layoutSubnetsIcons() {
 	}
 }
 
-func (ly *layoutS) layoutSubnets2() {
+func (ly *layoutS) layoutSubnets() {
 	_, grs := ly.allSubnetsAndGroups()
-	sly := subnetsLayout{}
-	sly.createMiniGroups(grs)
-	sly.calcZoneOrder()
-	toLayout := sly.splitSharing()
-	sly.createMatrix()
-	sly.layoutGroups(toLayout)
+	subnetMatrix := (&subnetsLayout{}).layout(grs)
+	ly.setSubnetsLocations(subnetMatrix)
+}
+
+func (ly *layoutS) setSubnetsLocations(subnetMatrix [][]TreeNodeInterface) {
 	locatedSubnets := map[TreeNodeInterface]bool{}
-	for ri, row := range sly.subnetMatrix {
+	zonesCol := map[TreeNodeInterface]int{}
+	for ri, row := range subnetMatrix {
 		for ci, s := range row {
 			if s != nil {
 				ly.setDefaultLocation(s.(SquareTreeNodeInterface), ri, ci)
+				zonesCol[s.Parent()] = ci
 				locatedSubnets[s] = true
 			}
 		}
 	}
-
 	ly.setDefaultLocation(ly.network, 0, 0)
 	for _, cloud := range ly.network.(*NetworkTreeNode).clouds {
 		for _, vpc := range cloud.(*CloudTreeNode).vpcs {
 			for _, zone := range vpc.(*VpcTreeNode).zones {
+				if _, ok := zonesCol[zone]; !ok{
+					zonesCol[zone] = len(zonesCol)
+				}
 				rowIndex := 0
 				for _, subnet := range zone.(*ZoneTreeNode).subnets {
 					if !locatedSubnets[subnet] {
-						for sly.miniGroupsMatrix[rowIndex][sly.zoneIndexOrder[zone]] != nil {
+						for subnetMatrix[rowIndex][zonesCol[zone]] != nil {
 							rowIndex++
 						}
-						ly.setDefaultLocation(subnet, rowIndex, sly.zoneIndexOrder[zone])
+						ly.setDefaultLocation(subnet, rowIndex, zonesCol[zone])
 						rowIndex++
 					}
 				}
@@ -402,61 +404,6 @@ func (ly *layoutS) setGroupedSubnetsOffset() {
 
 }
 
-func (ly *layoutS) layoutSubnets() {
-	ly.setDefaultLocation(ly.network, 0, 0)
-	colIndex := 0
-	for _, cloud := range ly.network.(*NetworkTreeNode).clouds {
-		ly.setDefaultLocation(cloud, 0, colIndex)
-		for _, vpc := range cloud.(*CloudTreeNode).vpcs {
-			ly.setDefaultLocation(vpc, 0, colIndex)
-			for _, zone := range vpc.(*VpcTreeNode).zones {
-				rowIndex := 0
-				ly.setDefaultLocation(zone, rowIndex, colIndex)
-				for _, subnet := range zone.(*ZoneTreeNode).subnets {
-					ly.setDefaultLocation(subnet, rowIndex, colIndex)
-					rowIndex++
-				}
-				colIndex++
-			}
-			if vpc.(*VpcTreeNode).zones == nil {
-				colIndex++
-			}
-		}
-		if cloud.(*CloudTreeNode).vpcs == nil {
-			colIndex++
-		}
-	}
-}
-
-func (ly *layoutS) layoutSubnetsExample() {
-	ly.setDefaultLocation(ly.network, 0, 0)
-	colIndex := 0
-	for _, cloud := range ly.network.(*NetworkTreeNode).clouds {
-		ly.setDefaultLocation(cloud, 0, colIndex)
-		for _, vpc := range cloud.(*CloudTreeNode).vpcs {
-			ly.setDefaultLocation(vpc, 0, colIndex)
-			for _, zone := range vpc.(*VpcTreeNode).zones {
-				rowIndex := 0
-				ly.setDefaultLocation(zone, rowIndex, colIndex)
-				for _, l := range []string{"edge", "transit", "private"} {
-					for _, subnet := range zone.(*ZoneTreeNode).subnets {
-						if strings.Contains(subnet.Label(), l) {
-							ly.setDefaultLocation(subnet, rowIndex, colIndex)
-							rowIndex++
-						}
-					}
-				}
-				colIndex++
-			}
-			if vpc.(*VpcTreeNode).zones == nil {
-				colIndex++
-			}
-		}
-		if cloud.(*CloudTreeNode).vpcs == nil {
-			colIndex++
-		}
-	}
-}
 
 // //////////////////////////////////////////////////////////////////////////////////////////
 // SG can have more than one squares. so setSGLocations() will add treeNodes of the kind PartialSGTreeNode

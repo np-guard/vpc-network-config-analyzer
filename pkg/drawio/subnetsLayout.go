@@ -84,7 +84,15 @@ type subnetsLayout struct {
 	subnetMatrix     [][]TreeNodeInterface
 	zoneOrder        []TreeNodeInterface
 	zoneIndexOrder   map[TreeNodeInterface]int
-	zoneToCol        map[TreeNodeInterface]int
+}
+
+func (ly *subnetsLayout) layout(grs []*GroupSubnetsSquareTreeNode) [][]TreeNodeInterface{
+	ly.createMiniGroups(grs)
+	ly.calcZoneOrder()
+	toLayout := ly.splitSharing()
+	ly.createMatrix()
+	ly.layoutGroups(toLayout)
+	return ly.subnetMatrix
 }
 
 func (ly *subnetsLayout) createMatrix() {
