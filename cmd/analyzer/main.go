@@ -142,11 +142,11 @@ func _main(cmdlineArgs []string) error {
 		// For diff analysis each vpcConfigs have a single element
 		c1 := getFirstCfg(vpcConfigs)
 		c2 := getFirstCfg(vpc2ndConfigs)
-		out, err2 := analysisDiffVPCConfig(c1, c2, inArgs, outFile)
+		analysisOutput, err2 := analysisDiffVPCConfig(c1, c2, inArgs, outFile)
 		if err2 != nil {
 			return err2
 		}
-		fmt.Println(out)
+		fmt.Println(analysisOutput.Output)
 	}
 	return nil
 }
