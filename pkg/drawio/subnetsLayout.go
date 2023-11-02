@@ -81,40 +81,134 @@ type subnetsLayout struct {
 	groups           []*groupDataS
 	miniGroups       []*miniGroupDataS
 	miniGroupsMatrix [][]*miniGroupDataS
+	subnetMatrix     [][]TreeNodeInterface
 	zoneOrder        []TreeNodeInterface
 	zoneIndexOrder   map[TreeNodeInterface]int
 	zoneToCol        map[TreeNodeInterface]int
 }
-func (ly *subnetsLayout)createMatrix(){
-	yDim := len(ly.miniGroups)
-	xDim := len(ly.miniGroups)
+
+func (ly *subnetsLayout) createMatrix() {
+	yDim := 100
+	xDim := 100
 
 	ly.miniGroupsMatrix = make([][]*miniGroupDataS, yDim)
 	for i := range ly.miniGroupsMatrix {
 		ly.miniGroupsMatrix[i] = make([]*miniGroupDataS, xDim)
 	}
 
+	ly.subnetMatrix = make([][]TreeNodeInterface, yDim)
+	for i := range ly.miniGroupsMatrix {
+		ly.subnetMatrix[i] = make([]TreeNodeInterface, xDim)
+	}
+
 }
 
-func (ly *subnetsLayout) handleGroup(group *groupDataS) {
-	handledMiniGroups := []*miniGroupDataS{}
-	for _, miniGroup := range group.miniGroups {
-		if miniGroup.located {
-			continue
+func groupInGroup(gr1, gr2 *groupDataS) bool {
+	minis := map[*miniGroupDataS]bool{}
+	for _, mg := range gr2.miniGroups {
+		minis[mg] = true
+	}
+	for _, mg := range gr1.miniGroups {
+		if !minis[mg] {
+			return false
 		}
-		fmt.Println("handling MiniGroup:", printMiniGroup(miniGroup.subnets, ""))
-		miniGroup.located = true
-		handledMiniGroups = append(handledMiniGroups, miniGroup)
 	}
-	for _, miniGroup := range handledMiniGroups {
-		ly.handleMiniGroup(miniGroup)
+	return true
+}
+
+// ////////////////////////////////////////////////////////////////////////
+func (ly *subnetsLayout) layoutGroups(groups []*groupDataS) {
+	rIndex := 0
+	for _, group := range groups {
+		rowSize := 1
+		for _, miniGroup := range group.miniGroups {
+			i := 0
+			for ly.miniGroupsMatrix[rIndex+i][ly.zoneIndexOrder[miniGroup.zone]] != nil {
+				i++
+			}
+			if rowSize < i+1 {
+				rowSize = i + 1
+			}
+			ly.miniGroupsMatrix[rIndex+i][ly.zoneIndexOrder[miniGroup.zone]] = miniGroup
+		}
+		rIndex += rowSize
+	}
+	rIndex = 0
+	for _, row := range ly.miniGroupsMatrix {
+		rowSize := 0
+		for _, miniGroup := range row {
+			if miniGroup == nil {
+				continue
+			}
+			i := 0
+			if rowSize < len(miniGroup.subnets) {
+				rowSize = len(miniGroup.subnets)
+			}
+			for s := range miniGroup.subnets {
+				ly.subnetMatrix[rIndex+i][ly.zoneIndexOrder[miniGroup.zone]] = s
+				i++
+			}
+		}
+		rIndex += rowSize
+	}
+}
+
+// ////////////////////////////////////////////////////////////////////////
+func (ly *subnetsLayout) splitSharing() []*groupDataS {
+	innerGroups := map[*groupDataS]bool{}
+	for _, group1 := range ly.groups {
+		for _, group2 := range ly.groups {
+			if group1 != group2 && groupInGroup(group1, group2) {
+				innerGroups[group1] = true
+			}
+		}
 	}
 
-}
-func (ly *subnetsLayout) handleMiniGroup(miniGroup *miniGroupDataS) {
-	for _, group := range miniGroup.groups {
-		ly.handleGroup(group)
+	sharedMini := map[*groupDataS]map[*groupDataS]bool{}
+
+	for _, miniGroup := range ly.miniGroups {
+		for _, group1 := range miniGroup.groups {
+			for _, group2 := range miniGroup.groups {
+				if group1 != group2 {
+					if !innerGroups[group1] && !innerGroups[group2] {
+						if _, ok := sharedMini[group1]; !ok {
+							sharedMini[group1] = map[*groupDataS]bool{}
+						}
+						sharedMini[group1][group2] = true
+					}
+				}
+			}
+		}
 	}
+	toSplitGroups := map[*groupDataS]bool{}
+	for len(sharedMini) > 0 {
+		bestSharingScore := 0
+		var mostSharedGroup *groupDataS
+		for group, sharedGroups := range sharedMini {
+			if len(sharedGroups) > bestSharingScore {
+				bestSharingScore = len(sharedGroups)
+				mostSharedGroup = group
+			}
+		}
+		if mostSharedGroup != nil {
+			toSplitGroups[mostSharedGroup] = true
+			delete(sharedMini, mostSharedGroup)
+			for group, sharedGroups := range sharedMini {
+				delete(sharedGroups, mostSharedGroup)
+				if len(sharedGroups) == 0 {
+					delete(sharedMini, group)
+				}
+			}
+		}
+	}
+	remainGroup := []*groupDataS{}
+	for _, group := range ly.groups {
+		if !toSplitGroups[group] && !innerGroups[group] {
+			remainGroup = append(remainGroup, group)
+		}
+	}
+	return remainGroup
+
 }
 
 // ////////////////////////////////////////////////////////////////////////

@@ -72,7 +72,7 @@ func (ly *layoutS) layout() {
 	if !ly.network.(*NetworkTreeNode).SubnetMode {
 		ly.layoutSubnetsIcons()
 	} else {
-		ly.layoutSubnets()
+		//		ly.layoutSubnets()
 		ly.layoutSubnets2()
 		// ly.layoutSubnetsExample()
 	}
@@ -302,16 +302,42 @@ func (ly *layoutS) layoutSubnetsIcons() {
 	}
 }
 
-
 func (ly *layoutS) layoutSubnets2() {
 	_, grs := ly.allSubnetsAndGroups()
 	sly := subnetsLayout{}
 	sly.createMiniGroups(grs)
 	sly.calcZoneOrder()
+	toLayout := sly.splitSharing()
 	sly.createMatrix()
-	for _, miniGroup := range sly.miniGroups {
-		sly.handleMiniGroup(miniGroup)
+	sly.layoutGroups(toLayout)
+	locatedSubnets := map[TreeNodeInterface]bool{}
+	for ri, row := range sly.subnetMatrix {
+		for ci, s := range row {
+			if s != nil {
+				ly.setDefaultLocation(s.(SquareTreeNodeInterface), ri, ci)
+				locatedSubnets[s] = true
+			}
+		}
 	}
+
+	ly.setDefaultLocation(ly.network, 0, 0)
+	for _, cloud := range ly.network.(*NetworkTreeNode).clouds {
+		for _, vpc := range cloud.(*CloudTreeNode).vpcs {
+			for _, zone := range vpc.(*VpcTreeNode).zones {
+				rowIndex := 0
+				for _, subnet := range zone.(*ZoneTreeNode).subnets {
+					if !locatedSubnets[subnet] {
+						for sly.miniGroupsMatrix[rowIndex][sly.zoneIndexOrder[zone]] != nil {
+							rowIndex++
+						}
+						ly.setDefaultLocation(subnet, rowIndex, sly.zoneIndexOrder[zone])
+						rowIndex++
+					}
+				}
+			}
+		}
+	}
+
 	fmt.Println(" ")
 
 }
