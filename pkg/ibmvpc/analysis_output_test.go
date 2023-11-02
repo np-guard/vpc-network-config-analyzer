@@ -472,7 +472,7 @@ func runTestPerUseCase(t *testing.T,
 			return err
 		}
 
-		og, err := vpcmodel.NewOutputGenerator(vpcConfig, tt.grouping, uc, tt.format == vpcmodel.ARCHDRAWIO)
+		og, err := vpcmodel.NewOutputGenerator(vpcConfig, nil, tt.grouping, uc, tt.format == vpcmodel.ARCHDRAWIO)
 		if err != nil {
 			return err
 		}

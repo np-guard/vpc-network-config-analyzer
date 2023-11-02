@@ -34,7 +34,7 @@ type SubnetConfigConnectivity struct {
 	subnetConnectivity SubnetConnectivityMap
 }
 
-type diffBetweenSubnets struct {
+type DiffBetweenSubnets struct {
 	subnet1Subtract2 SubnetsDiff
 	subnet2Subtract1 SubnetsDiff
 
@@ -42,7 +42,7 @@ type diffBetweenSubnets struct {
 	GroupedSubnet1Minus1 *GroupConnLines
 }
 
-func (configs ConfigsForDiff) GetSubnetsDiff(grouping bool) (*diffBetweenSubnets, error) {
+func (configs ConfigsForDiff) GetSubnetsDiff(grouping bool) (*DiffBetweenSubnets, error) {
 	// 1. compute connectivity for each of the subnets
 	subnetsConn1, err := configs.config1.GetSubnetsConnectivity(true, false)
 	if err != nil {
@@ -68,7 +68,7 @@ func (configs ConfigsForDiff) GetSubnetsDiff(grouping bool) (*diffBetweenSubnets
 
 	// 3. ToDo: grouping, see comment at the end of this file
 
-	res := &diffBetweenSubnets{
+	res := &DiffBetweenSubnets{
 		subnet1Subtract2: subnet1Subtract2,
 		subnet2Subtract1: subnet2Subtract1}
 	return res, nil
@@ -152,6 +152,12 @@ func getDiffType(src, srcInOther, dst, dstInOther EndpointElem) DiffType {
 
 // EnhancedString ToDo: likely the current printing functionality will no longer be needed once the grouping is added
 // anyways the diff print will be worked on before the final merge
+
+func (diff *DiffBetweenSubnets) String() string {
+	return diff.subnet1Subtract2.EnhancedString(true) + "\n" +
+		diff.subnet2Subtract1.EnhancedString(false)
+}
+
 func (subnetDiff *SubnetsDiff) EnhancedString(thisMinusOther bool) string {
 	var diffDirection, printDiff string
 	if thisMinusOther {

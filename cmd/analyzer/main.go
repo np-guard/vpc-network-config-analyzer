@@ -36,12 +36,14 @@ func analysisTypeToUseCase(inArgs *InArgs) vpcmodel.OutputUseCase {
 		return vpcmodel.SingleSubnet
 	case allSubnets:
 		return vpcmodel.AllSubnets
+	case allSubnetsDiff:
+		return vpcmodel.AllSubnetsDiff
 	}
 	return vpcmodel.AllEndpoints
 }
 
 func analysisPerVPCConfig(c *vpcmodel.VPCConfig, inArgs *InArgs, outFile string) (*vpcmodel.VPCAnalysisOutput, error) {
-	og, err := vpcmodel.NewOutputGenerator(c,
+	og, err := vpcmodel.NewOutputGenerator(c, nil,
 		*inArgs.Grouping,
 		analysisTypeToUseCase(inArgs),
 		*inArgs.OutputFormat == ARCHDRAWIOFormat)
@@ -63,6 +65,24 @@ func analysisPerVPCConfig(c *vpcmodel.VPCConfig, inArgs *InArgs, outFile string)
 	return output, nil
 }
 
+func analysisDiffVPCConfig(c1, c2 *vpcmodel.VPCConfig, inArgs *InArgs, outFile string) (*vpcmodel.VPCAnalysisOutput, error) {
+	og, err := vpcmodel.NewOutputGenerator(c1, c2,
+		*inArgs.Grouping,
+		analysisTypeToUseCase(inArgs),
+		false)
+	if err != nil {
+		return nil, err
+	}
+
+	outFormat := getOutputFormat(inArgs)
+	output, err := og.Generate(outFormat, outFile)
+	if err != nil {
+		return nil, fmt.Errorf("output generation error: %w", err)
+	}
+
+	return output, nil
+}
+
 // The actual main function
 // Takes command-line flags and returns an error rather than exiting, so it can be more easily used in testing
 func _main(cmdlineArgs []string) error {
@@ -74,10 +94,6 @@ func _main(cmdlineArgs []string) error {
 		return fmt.Errorf("error parsing arguments: %w", err)
 	}
 
-	if *inArgs.AnalysisType == allSubnetsDiff || *inArgs.AnalysisType == allEndpointsDiff {
-		return nil // todo: tmp
-	}
-
 	rc, err := ibmvpc.ParseResourcesFromFile(*inArgs.InputConfigFile)
 	if err != nil {
 		return fmt.Errorf("error parsing input vpc resources file: %w", err)
@@ -87,28 +103,58 @@ func _main(cmdlineArgs []string) error {
 	if err != nil {
 		return fmt.Errorf("error generating cloud config from input vpc resources file: %w", err)
 	}
+
 	outFile := ""
 	if inArgs.OutputFile != nil {
 		outFile = *inArgs.OutputFile
 	}
 
-	outputPerVPC := make([]*vpcmodel.VPCAnalysisOutput, len(vpcConfigs))
-	i := 0
-	for _, vpcConfig := range vpcConfigs {
-		vpcAnalysisOutput, err2 := analysisPerVPCConfig(vpcConfig, inArgs, outFile)
+	diffAnalysis := *inArgs.AnalysisType == allEndpointsDiff || *inArgs.AnalysisType == allSubnetsDiff
+	if !diffAnalysis {
+		outputPerVPC := make([]*vpcmodel.VPCAnalysisOutput, len(vpcConfigs))
+		i := 0
+		for _, vpcConfig := range vpcConfigs {
+			vpcAnalysisOutput, err2 := analysisPerVPCConfig(vpcConfig, inArgs, outFile)
+			if err2 != nil {
+				return err2
+			}
+			outputPerVPC[i] = vpcAnalysisOutput
+			i++
+		}
+
+		out, err := vpcmodel.AggregateVPCsOutput(outputPerVPC, getOutputFormat(inArgs), outFile)
+		if err != nil {
+			return err
+		}
+		fmt.Println(out)
+	} else {
+		// Diff analysis
+		// ToDo SM: for diff analysis assume 2 configs only, the 2nd given through vpc-config-second
+		var rc2ndForDiff *ibmvpc.ResourcesContainer
+		rc2ndForDiff, err = ibmvpc.ParseResourcesFromFile(*inArgs.InputSecondConfigFile)
+		if err != nil {
+			return fmt.Errorf("error parsing arguments: %w", err)
+		}
+		vpc2ndConfigs, err := ibmvpc.VPCConfigsFromResources(rc2ndForDiff, *inArgs.VPC, *inArgs.Debug)
+		if err != nil {
+			return fmt.Errorf("error generating cloud config from input vpc resources file: %w", err)
+		}
+		// For diff analysis each vpcConfigs have a single element
+		c1 := getFirstCfg(vpcConfigs)
+		c2 := getFirstCfg(vpc2ndConfigs)
+		out, err2 := analysisDiffVPCConfig(c1, c2, inArgs, outFile)
 		if err2 != nil {
 			return err2
 		}
-		outputPerVPC[i] = vpcAnalysisOutput
-		i++
+		fmt.Println(out)
 	}
+	return nil
+}
 
-	out, err := vpcmodel.AggregateVPCsOutput(outputPerVPC, getOutputFormat(inArgs), outFile)
-	if err != nil {
-		return err
+func getFirstCfg(vpcConfigs map[string]*vpcmodel.VPCConfig) *vpcmodel.VPCConfig {
+	for _, vpcConfig := range vpcConfigs {
+		return vpcConfig
 	}
-	fmt.Println(out)
-
 	return nil
 }
 

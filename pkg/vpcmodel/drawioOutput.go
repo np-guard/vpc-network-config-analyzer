@@ -112,6 +112,7 @@ func (d *DrawioOutputFormatter) createEdges() {
 func (d *DrawioOutputFormatter) WriteOutput(c *VPCConfig,
 	conn *VPCConnectivity,
 	subnetsConn *VPCsubnetConnectivity,
+	subnetsDiff *DiffBetweenSubnets,
 	outFile string,
 	grouping bool,
 	uc OutputUseCase) (*VPCAnalysisOutput, error) {
@@ -139,14 +140,15 @@ type ArchDrawioOutputFormatter struct {
 func (d *ArchDrawioOutputFormatter) WriteOutput(c *VPCConfig,
 	conn *VPCConnectivity,
 	subnetsConn *VPCsubnetConnectivity,
+	subnetsDiff *DiffBetweenSubnets,
 	outFile string,
 	grouping bool,
 	uc OutputUseCase) (*VPCAnalysisOutput, error) {
 	switch uc {
 	case AllEndpoints:
-		return d.DrawioOutputFormatter.WriteOutput(c, nil, nil, outFile, grouping, uc)
+		return d.DrawioOutputFormatter.WriteOutput(c, nil, nil, nil, outFile, grouping, uc)
 	case AllSubnets, SingleSubnet:
-		return d.DrawioOutputFormatter.WriteOutput(nil, nil, nil, outFile, grouping, uc)
+		return d.DrawioOutputFormatter.WriteOutput(nil, nil, nil, nil, outFile, grouping, uc)
 	}
 	return &VPCAnalysisOutput{}, nil
 }
