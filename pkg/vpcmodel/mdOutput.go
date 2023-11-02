@@ -18,6 +18,7 @@ const (
 func (m *MDoutputFormatter) WriteOutput(c *VPCConfig,
 	conn *VPCConnectivity,
 	subnetsConn *VPCsubnetConnectivity,
+	subnetsDiff *DiffBetweenSubnets,
 	outFile string,
 	grouping bool,
 	uc OutputUseCase) (*VPCAnalysisOutput, error) {

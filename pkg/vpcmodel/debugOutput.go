@@ -6,6 +6,7 @@ type DebugOutputFormatter struct {
 func (t *DebugOutputFormatter) WriteOutput(c *VPCConfig,
 	conn *VPCConnectivity,
 	subnetsConn *VPCsubnetConnectivity,
+	subnetsDiff *DiffBetweenSubnets,
 	outFile string,
 	grouping bool,
 	uc OutputUseCase) (*VPCAnalysisOutput, error) {

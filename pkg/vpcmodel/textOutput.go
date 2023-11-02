@@ -14,6 +14,7 @@ func headerOfAnalyzedVPC(vpcName string) string {
 func (t *TextOutputFormatter) WriteOutput(c *VPCConfig,
 	conn *VPCConnectivity,
 	subnetsConn *VPCsubnetConnectivity,
+	subnetsDiff *DiffBetweenSubnets,
 	outFile string,
 	grouping bool,
 	uc OutputUseCase) (*VPCAnalysisOutput, error) {
@@ -27,6 +28,8 @@ func (t *TextOutputFormatter) WriteOutput(c *VPCConfig,
 		out += subnetsConn.String()
 	case SingleSubnet:
 		out += c.GetConnectivityOutputPerEachSubnetSeparately()
+	case AllSubnetsDiff:
+		out += subnetsDiff.String()
 	}
 	// write output to file and return the output string
 	_, err := WriteToFile(out, outFile)
