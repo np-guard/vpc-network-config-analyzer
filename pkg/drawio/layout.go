@@ -303,13 +303,12 @@ func (ly *layoutS) layoutSubnetsIcons() {
 
 func (ly *layoutS) layoutSubnets() {
 	_, grs := ly.allSubnetsAndGroups()
-	subnetMatrix := (&subnetsLayout{}).layout(grs)
-	ly.setSubnetsLocations(subnetMatrix)
+	subnetMatrix, zoneCol := (&subnetsLayout{}).layout(grs)
+	ly.setSubnetsLocations(subnetMatrix,zoneCol)
 }
 
-func (ly *layoutS) setSubnetsLocations(subnetMatrix [][]TreeNodeInterface) {
+func (ly *layoutS) setSubnetsLocations(subnetMatrix [][]TreeNodeInterface, zonesCol map[TreeNodeInterface]int) {
 	locatedSubnets := map[TreeNodeInterface]bool{}
-	zonesCol := map[TreeNodeInterface]int{}
 	for ri, row := range subnetMatrix {
 		for ci, s := range row {
 			if s != nil {

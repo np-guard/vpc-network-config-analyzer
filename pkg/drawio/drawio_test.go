@@ -322,7 +322,12 @@ func createNetworkSubnetGrouping() SquareTreeNodeInterface {
 	createZone(zones, vpc1, 8, "z8")
 	createZone(zones, vpc1, 8, "z9")
 
+	i1 := NewInternetTreeNode(publicNetwork, "Internet1")
 	i2 := NewInternetTreeNode(publicNetwork, "Internet2")
+	i3 := NewInternetTreeNode(publicNetwork, "Internet3")
+	i4 := NewInternetTreeNode(publicNetwork, "Internet4")
+	i5 := NewInternetTreeNode(publicNetwork, "Internet5")
+	i6 := NewInternetTreeNode(publicNetwork, "Internet6")
 
 	// gsq1 := createGroup(zones, vpc1,0,2,0,2)
 	// gsq2 := createGroup(zones, vpc1,0,3,0,2)
@@ -339,12 +344,12 @@ func createNetworkSubnetGrouping() SquareTreeNodeInterface {
 	gsq6 := createGroup(zones, vpc1,6,8,0,0)
 
 
-	NewConnectivityLineTreeNode(network, gsq1, i2, true, "gconn1")
+	NewConnectivityLineTreeNode(network, gsq1, i1, true, "gconn1")
 	NewConnectivityLineTreeNode(network, gsq2, i2, true, "gconn2")
-	NewConnectivityLineTreeNode(network, gsq3, i2, true, "gconn3")
-	NewConnectivityLineTreeNode(network, gsq4, i2, true, "gconn1")
-	NewConnectivityLineTreeNode(network, gsq5, i2, true, "gconn2")
-	NewConnectivityLineTreeNode(network, gsq6, i2, true, "gconn3")
+	NewConnectivityLineTreeNode(network, gsq3, i3, true, "gconn3")
+	NewConnectivityLineTreeNode(network, gsq4, i4, true, "gconn1")
+	NewConnectivityLineTreeNode(network, gsq5, i5, true, "gconn2")
+	NewConnectivityLineTreeNode(network, gsq6, i6, true, "gconn3")
 
 	return network
 }

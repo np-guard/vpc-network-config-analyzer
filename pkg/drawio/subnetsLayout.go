@@ -35,6 +35,7 @@ type miniGroupDataS struct {
 }
 type groupDataS struct {
 	miniGroups []*miniGroupDataS
+	innerGroups []*groupDataS
 	located    bool
 	x1, y1     int
 	x2, y2     int
@@ -83,16 +84,16 @@ type subnetsLayout struct {
 	miniGroupsMatrix [][]*miniGroupDataS
 	subnetMatrix     [][]TreeNodeInterface
 	zoneOrder        []TreeNodeInterface
-	zoneIndexOrder   map[TreeNodeInterface]int
+	zonesCol   map[TreeNodeInterface]int
 }
 
-func (ly *subnetsLayout) layout(grs []*GroupSubnetsSquareTreeNode) [][]TreeNodeInterface{
+func (ly *subnetsLayout) layout(grs []*GroupSubnetsSquareTreeNode) ([][]TreeNodeInterface, map[TreeNodeInterface]int){
 	ly.createMiniGroups(grs)
 	ly.calcZoneOrder()
 	toLayout := ly.splitSharing()
 	ly.createMatrix()
 	ly.layoutGroups(toLayout)
-	return ly.subnetMatrix
+	return ly.subnetMatrix, ly.zonesCol
 }
 
 func (ly *subnetsLayout) createMatrix() {
@@ -131,13 +132,13 @@ func (ly *subnetsLayout) layoutGroups(groups []*groupDataS) {
 		rowSize := 1
 		for _, miniGroup := range group.miniGroups {
 			i := 0
-			for ly.miniGroupsMatrix[rIndex+i][ly.zoneIndexOrder[miniGroup.zone]] != nil {
+			for ly.miniGroupsMatrix[rIndex+i][ly.zonesCol[miniGroup.zone]] != nil {
 				i++
 			}
 			if rowSize < i+1 {
 				rowSize = i + 1
 			}
-			ly.miniGroupsMatrix[rIndex+i][ly.zoneIndexOrder[miniGroup.zone]] = miniGroup
+			ly.miniGroupsMatrix[rIndex+i][ly.zonesCol[miniGroup.zone]] = miniGroup
 		}
 		rIndex += rowSize
 	}
@@ -153,7 +154,7 @@ func (ly *subnetsLayout) layoutGroups(groups []*groupDataS) {
 				rowSize = len(miniGroup.subnets)
 			}
 			for s := range miniGroup.subnets {
-				ly.subnetMatrix[rIndex+i][ly.zoneIndexOrder[miniGroup.zone]] = s
+				ly.subnetMatrix[rIndex+i][ly.zonesCol[miniGroup.zone]] = s
 				i++
 			}
 		}
@@ -167,6 +168,7 @@ func (ly *subnetsLayout) splitSharing() []*groupDataS {
 	for _, group1 := range ly.groups {
 		for _, group2 := range ly.groups {
 			if group1 != group2 && groupInGroup(group1, group2) {
+				group2.innerGroups = append(group2.innerGroups, group1)
 				innerGroups[group1] = true
 			}
 		}
@@ -193,7 +195,8 @@ func (ly *subnetsLayout) splitSharing() []*groupDataS {
 		bestSharingScore := 0
 		var mostSharedGroup *groupDataS
 		for group, sharedGroups := range sharedMini {
-			if len(sharedGroups) > bestSharingScore {
+			if len(sharedGroups) > bestSharingScore  || 
+			(len(sharedGroups) == bestSharingScore && len(group.innerGroups) < len(mostSharedGroup.innerGroups)){
 				bestSharingScore = len(sharedGroups)
 				mostSharedGroup = group
 			}
@@ -299,9 +302,9 @@ func (ly *subnetsLayout) calcZoneOrder() {
 	}
 	fmt.Println("")
 	ly.zoneOrder = zoneOrder
-	ly.zoneIndexOrder = map[TreeNodeInterface]int{}
+	ly.zonesCol = map[TreeNodeInterface]int{}
 	for i, z := range zoneOrder {
-		ly.zoneIndexOrder[z] = i
+		ly.zonesCol[z] = i
 	}
 }
 
