@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"fmt"
 	"testing"
+	"strconv"
 )
 
 func TestWithParsing(t *testing.T) {
@@ -322,12 +323,6 @@ func createNetworkSubnetGrouping() SquareTreeNodeInterface {
 	createZone(zones, vpc1, 8, "z8")
 	createZone(zones, vpc1, 8, "z9")
 
-	i1 := NewInternetTreeNode(publicNetwork, "Internet1")
-	i2 := NewInternetTreeNode(publicNetwork, "Internet2")
-	i3 := NewInternetTreeNode(publicNetwork, "Internet3")
-	i4 := NewInternetTreeNode(publicNetwork, "Internet4")
-	i5 := NewInternetTreeNode(publicNetwork, "Internet5")
-	i6 := NewInternetTreeNode(publicNetwork, "Internet6")
 
 	// gsq1 := createGroup(zones, vpc1,0,2,0,2)
 	// gsq2 := createGroup(zones, vpc1,0,3,0,2)
@@ -336,20 +331,26 @@ func createNetworkSubnetGrouping() SquareTreeNodeInterface {
 	// gsq5 := createGroup(zones, vpc1,7,8,4,7)
 	// gsq6 := createGroup(zones, vpc1,6,8,1,2)
 
-	gsq1 := createGroup(zones, vpc1,0,2,0,0)
-	gsq2 := createGroup(zones, vpc1,0,3,0,0)
-	gsq3 := createGroup(zones, vpc1,2,4,0,0)
-	gsq4 := createGroup(zones, vpc1,6,7,0,0)
-	gsq5 := createGroup(zones, vpc1,7,8,0,0)
-	gsq6 := createGroup(zones, vpc1,6,8,0,0)
+	// gsq1 := createGroup(zones, vpc1,0,2,0,0)
+	// gsq2 := createGroup(zones, vpc1,0,3,0,0)
+	// gsq3 := createGroup(zones, vpc1,2,4,0,0)
+	// gsq4 := createGroup(zones, vpc1,6,7,0,0)
+	// gsq5 := createGroup(zones, vpc1,7,8,0,0)
+	// gsq6 := createGroup(zones, vpc1,6,8,0,0)
 
+	groups := []SquareTreeNodeInterface{}
+	groups = append(groups, createGroup(zones, vpc1,0,0,0,0))
+	groups = append(groups, createGroup(zones, vpc1,0,1,0,0))
+	groups = append(groups, createGroup(zones, vpc1,0,2,0,0))
+	groups = append(groups, createGroup(zones, vpc1,0,3,0,0))
+	groups = append(groups, createGroup(zones, vpc1,0,4,0,0))
+	groups = append(groups, createGroup(zones, vpc1,0,5,0,0))
 
-	NewConnectivityLineTreeNode(network, gsq1, i1, true, "gconn1")
-	NewConnectivityLineTreeNode(network, gsq2, i2, true, "gconn2")
-	NewConnectivityLineTreeNode(network, gsq3, i3, true, "gconn3")
-	NewConnectivityLineTreeNode(network, gsq4, i4, true, "gconn1")
-	NewConnectivityLineTreeNode(network, gsq5, i5, true, "gconn2")
-	NewConnectivityLineTreeNode(network, gsq6, i6, true, "gconn3")
+	for i, gr := range groups{
+		i1 := NewInternetTreeNode(publicNetwork, "Internet"+strconv.Itoa(i))
+		NewConnectivityLineTreeNode(network, gr, i1, true, "gconn"+strconv.Itoa(i))
+	
+	}
 
 	return network
 }

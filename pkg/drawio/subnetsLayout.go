@@ -37,12 +37,12 @@ type groupDataS struct {
 	miniGroups     []*miniGroupDataS
 	allInnerGroups []*groupDataS
 	topInnerGroups []*groupDataS
-	toSplitGroups map[*groupDataS]bool
+	toSplitGroups  map[*groupDataS]bool
 	treeNode       TreeNodeInterface
 
-	located        bool
-	x1, y1         int
-	x2, y2         int
+	located bool
+	x1, y1  int
+	x2, y2  int
 }
 
 // ////////////////////////////////////////////////////////////////////////
@@ -98,7 +98,8 @@ func (ly *subnetsLayout) layout(grs []*GroupSubnetsSquareTreeNode) ([][]TreeNode
 	splitSharing(topFakeGroup)
 	ly.calcZoneOrder()
 	ly.createMatrix()
-	ly.layoutGroups(topFakeGroup.topInnerGroups)
+	ly.layoutGroup(topFakeGroup, 0)
+	ly.setSubnetsMatrix()
 	return ly.subnetMatrix, ly.zonesCol
 }
 
@@ -131,24 +132,46 @@ func groupInGroup(gr1, gr2 *groupDataS) bool {
 	return true
 }
 
-// ////////////////////////////////////////////////////////////////////////
-func (ly *subnetsLayout) layoutGroups(groups []*groupDataS) {
-	rIndex := 0
-	for _, group := range groups {
-		rowSize := 1
-		for _, miniGroup := range group.miniGroups {
-			i := 0
-			for ly.miniGroupsMatrix[rIndex+i][ly.zonesCol[miniGroup.zone]] != nil {
-				i++
-			}
-			if rowSize < i+1 {
-				rowSize = i + 1
-			}
-			ly.miniGroupsMatrix[rIndex+i][ly.zonesCol[miniGroup.zone]] = miniGroup
-		}
-		rIndex += rowSize
+func shareMiniGroup(gr1, gr2 *groupDataS) bool {
+	minis := map[*miniGroupDataS]bool{}
+	for _, mg := range gr2.miniGroups {
+		minis[mg] = true
 	}
-	rIndex = 0
+	for _, mg := range gr1.miniGroups {
+		if minis[mg] {
+			return true
+		}
+	}
+	return false
+}
+
+// ////////////////////////////////////////////////////////////////////////
+func (ly *subnetsLayout) layoutGroup(group *groupDataS, firstRow int) int {
+	rowIndex := firstRow
+	for _, innerGroup := range group.topInnerGroups {
+		rowIndex = ly.layoutGroup(innerGroup, rowIndex)
+	}
+	rowSize := 1
+	for _, miniGroup := range group.miniGroups {
+		if miniGroup.located {
+			continue
+		}
+		i := 0
+		for ly.miniGroupsMatrix[rowIndex+i][ly.zonesCol[miniGroup.zone]] != nil {
+			i++
+		}
+		if rowSize < i+1 {
+			rowSize = i + 1
+		}
+		ly.miniGroupsMatrix[rowIndex+i][ly.zonesCol[miniGroup.zone]] = miniGroup
+		miniGroup.located = true
+	}
+
+	return rowIndex + rowSize
+
+}
+func (ly *subnetsLayout) setSubnetsMatrix() {
+	rIndex := 0
 	for _, row := range ly.miniGroupsMatrix {
 		rowSize := 0
 		for _, miniGroup := range row {
@@ -167,6 +190,7 @@ func (ly *subnetsLayout) layoutGroups(groups []*groupDataS) {
 		rIndex += rowSize
 	}
 }
+
 func (ly *subnetsLayout) setInnerGroups() {
 	for _, group1 := range ly.groups {
 		for _, group2 := range ly.groups {
@@ -190,16 +214,14 @@ func splitSharing(group *groupDataS) {
 
 	sharedMini := map[*groupDataS]map[*groupDataS]bool{}
 
-	for _, miniGroup := range group.miniGroups {
-		for _, group1 := range miniGroup.groups {
-			for _, group2 := range miniGroup.groups {
-				if group1 != group2 {
-					if !innerGroups[group1] && !innerGroups[group2] {
-						if _, ok := sharedMini[group1]; !ok {
-							sharedMini[group1] = map[*groupDataS]bool{}
-						}
-						sharedMini[group1][group2] = true
+	for _, group1 := range group.allInnerGroups {
+		for _, group2 := range group.allInnerGroups {
+			if group1 != group2 {
+				if !innerGroups[group1] && !innerGroups[group2] && shareMiniGroup(group1,group2){
+					if _, ok := sharedMini[group1]; !ok {
+						sharedMini[group1] = map[*groupDataS]bool{}
 					}
+					sharedMini[group1][group2] = true
 				}
 			}
 		}
@@ -227,6 +249,7 @@ func splitSharing(group *groupDataS) {
 	for _, innerGroup := range group.allInnerGroups {
 		if !group.toSplitGroups[innerGroup] && !innerGroups[innerGroup] {
 			group.topInnerGroups = append(group.topInnerGroups, innerGroup)
+			splitSharing(innerGroup)
 		}
 	}
 }
