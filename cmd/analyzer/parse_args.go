@@ -77,52 +77,55 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	if err != nil {
 		return nil, err
 	}
+	err = errorInErgs(&args, flagset)
+	if err != nil {
+		return nil, err
+	}
+	err = notSupportedYetArgs(&args)
+	if err != nil {
+		return nil, err
+	}
 
+	return &args, nil
+}
+
+func errorInErgs(args *InArgs, flagset *flag.FlagSet) error {
 	if args.InputConfigFile == nil || *args.InputConfigFile == "" {
 		flagset.PrintDefaults()
-		return nil, fmt.Errorf("missing parameter: vpc-config")
+		return fmt.Errorf("missing parameter: vpc-config")
 	}
-
-	fileForDiffSpecified := args.InputSecondConfigFile != nil && *args.InputSecondConfigFile != ""
-	if fileForDiffSpecified && *args.AnalysisType != allEndpointsDiff &&
-		*args.AnalysisType != allSubnetsDiff {
-		return nil, fmt.Errorf("wrong analysis type %s for 2nd file (%v) specified for diff; "+
-			"must be diff_all_endpoints or diff_all_subnets", *args.AnalysisType, *args.InputSecondConfigFile)
-	}
-
-	if !fileForDiffSpecified && (*args.AnalysisType == allEndpointsDiff ||
-		*args.AnalysisType == allSubnetsDiff) {
-		return nil, fmt.Errorf("missing parameter vpc-config-second for diff analysis %s", *args.AnalysisType)
-	}
-
-	if !supportedOutputFormats[*args.OutputFormat] {
-		flagset.PrintDefaults()
-		return nil, fmt.Errorf("wrong output format %s; must be one of %s", *args.OutputFormat, getSupportedValuesString(supportedOutputFormats))
-	}
-
-	if *args.AnalysisType == allEndpointsDiff {
-		return nil, fmt.Errorf("diff_all_endpoints not supported yet")
-	}
-
-	if *args.AnalysisType == allSubnetsDiff && *args.OutputFormat != TEXTFormat {
-		return nil, fmt.Errorf("currently only txt output format supported with diff_all_subnets")
-	}
-
 	if !supportedAnalysisTypes[*args.AnalysisType] {
 		flagset.PrintDefaults()
-		return nil, fmt.Errorf("wrong analysis type %s; must be one of: %s", *args.AnalysisType, getSupportedValuesString(supportedAnalysisTypes))
+		return fmt.Errorf("wrong analysis type %s; must be one of: %s", *args.AnalysisType, getSupportedValuesString(supportedAnalysisTypes))
 	}
+	if !supportedOutputFormats[*args.OutputFormat] {
+		flagset.PrintDefaults()
+		return fmt.Errorf("wrong output format %s; must be one of %s", *args.OutputFormat, getSupportedValuesString(supportedOutputFormats))
+	}
+	diffAnalysis := *args.AnalysisType == allEndpointsDiff || *args.AnalysisType == allSubnetsDiff
+	fileForDiffSpecified := args.InputSecondConfigFile != nil && *args.InputSecondConfigFile != ""
+	if fileForDiffSpecified && !diffAnalysis {
+		return fmt.Errorf("wrong analysis type %s for 2nd file (%v) specified for diff",
+			*args.AnalysisType, *args.InputSecondConfigFile)
+	}
+	if !fileForDiffSpecified && diffAnalysis {
+		return fmt.Errorf("missing parameter vpc-config-second for diff analysis %s", *args.AnalysisType)
+	}
+	return nil
+}
 
+func notSupportedYetArgs(args *InArgs) error {
 	if *args.AnalysisType != allEndpoints && *args.OutputFormat != TEXTFormat && *args.OutputFormat != JSONFormat {
-		return nil, fmt.Errorf("currently only txt/json output format supported with %s analysis type", *args.AnalysisType)
+		return fmt.Errorf("currently only txt/json output format supported with %s analysis type", *args.AnalysisType)
 	}
-
 	if *args.AnalysisType == singleSubnet && *args.Grouping {
-		return nil, fmt.Errorf("currently singleSubnet analysis type does not support grouping")
+		return fmt.Errorf("currently singleSubnet analysis type does not support grouping")
 	}
-
 	if *args.OutputFormat == JSONFormat && *args.Grouping {
-		return nil, fmt.Errorf("json output format is not supported with grouping")
+		return fmt.Errorf("json output format is not supported with grouping")
 	}
-	return &args, nil
+	if *args.AnalysisType == allSubnetsDiff && *args.OutputFormat != TEXTFormat {
+		return fmt.Errorf("currently only txt output format supported with diff_all_subnets")
+	}
+	return nil
 }
