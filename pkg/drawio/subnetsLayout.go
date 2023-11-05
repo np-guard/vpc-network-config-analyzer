@@ -37,6 +37,7 @@ type groupDataS struct {
 	miniGroups []*miniGroupDataS
 	allInnerGroups []*groupDataS
 	topInnerGroups []*groupDataS
+	treeNode TreeNodeInterface
 	located    bool
 	x1, y1     int
 	x2, y2     int
@@ -90,9 +91,10 @@ type subnetsLayout struct {
 
 func (ly *subnetsLayout) layout(grs []*GroupSubnetsSquareTreeNode) ([][]TreeNodeInterface, map[TreeNodeInterface]int){
 	ly.createMiniGroups(grs)
-	ly.calcZoneOrder()
+	ly.setInnerGroups()
 	topFakeGroup := &groupDataS{allInnerGroups: ly.groups, miniGroups: ly.miniGroups}
-	ly.splitSharing(topFakeGroup)
+	splitSharing(topFakeGroup)
+	ly.calcZoneOrder()
 	ly.createMatrix()
 	ly.layoutGroups(topFakeGroup.topInnerGroups)
 	return ly.subnetMatrix, ly.zonesCol
@@ -163,14 +165,21 @@ func (ly *subnetsLayout) layoutGroups(groups []*groupDataS) {
 		rIndex += rowSize
 	}
 }
-
+func (ly *subnetsLayout) setInnerGroups() {
+	for _, group1 := range ly.groups {
+		for _, group2 := range ly.groups {
+			if group1 != group2 && groupInGroup(group1, group2) {
+				group2.allInnerGroups = append(group2.allInnerGroups, group1)
+			}
+		}
+	}
+}
 // ////////////////////////////////////////////////////////////////////////
-func (lys *subnetsLayout) splitSharing(group *groupDataS) {
+func splitSharing(group *groupDataS) {
 	innerGroups := map[*groupDataS]bool{}
 	for _, group1 := range group.allInnerGroups {
 		for _, group2 := range group.allInnerGroups {
 			if group1 != group2 && groupInGroup(group1, group2) {
-				group2.allInnerGroups = append(group2.allInnerGroups, group1)
 				innerGroups[group1] = true
 			}
 		}
@@ -356,7 +365,7 @@ func (ly *subnetsLayout) createMiniGroups(grs []*GroupSubnetsSquareTreeNode) {
 	}
 	groups := []*groupDataS{}
 	for group, miniGroups2 := range groupToMiniGroups {
-		groupData := groupDataS{}
+		groupData := groupDataS{treeNode: group}
 		groups = append(groups, &groupData)
 		for _, miniGroup := range miniGroups2 {
 			groupData.miniGroups = append(groupData.miniGroups, miniGroup)
