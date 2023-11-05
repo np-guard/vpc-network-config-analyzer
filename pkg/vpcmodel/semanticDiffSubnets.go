@@ -74,8 +74,8 @@ func (configs ConfigsForDiff) GetSubnetsDiff(grouping bool) (*DiffBetweenSubnets
 	return res, nil
 }
 
-// for a given EndpointElem (representing a subnet or an external ip) in config return the EndpointElem representing the
-// subnet/external address in otherConfig or nil if the subnet does not exist in the other config.
+// for a given EndpointElem (representing a subnet or an external ip) in config1 return the EndpointElem representing the
+// subnet/external address in otherConfig or nil if the subnet does not exist in the other config1.
 func (c *VPCConfig) getEndpointElemInOtherConfig(other *VPCConfig, ep EndpointElem) EndpointElem {
 	if ep.IsExternal() {
 		nodeSameCidr, _ := findNodeWithCidr(other.Nodes, ep.(Node).Cidr())
@@ -246,10 +246,10 @@ func (subnetConnectivity *SubnetConnectivityMap) alignConnectionsGivenIPBlists(c
 	return alignedConnectivity, err
 }
 
-// aligned config: copies from old config everything but nodes,
+// aligned config1: copies from old config1 everything but nodes,
 // nodes are resized by disjointIPblocks
 func (c *VPCConfig) copyConfig(disjointIPblocks []*common.IPBlock) (alignedConfig *VPCConfig, err error) {
-	// copy config
+	// copy config1
 	alignedConfig = c
 	//  nodes - external addresses - are resized
 	alignedConfig.Nodes, err = resizeNodes(c.Nodes, disjointIPblocks)

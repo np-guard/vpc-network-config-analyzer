@@ -33,10 +33,10 @@ const (
 	AllSubnetsNoPGW                      // connectivity between subnets (consider nacl only)
 )
 
-// OutputGenerator captures one vpc config with its connectivity analysis results, and implements
+// OutputGenerator captures one vpc config1 with its connectivity analysis results, and implements
 // the functionality to generate the analysis output in various formats, for that vpc
 type OutputGenerator struct {
-	config         *VPCConfig
+	config1        *VPCConfig
 	config2        *VPCConfig // specified only when analysis is diff
 	outputGrouping bool
 	useCase        OutputUseCase
@@ -47,7 +47,8 @@ type OutputGenerator struct {
 
 func NewOutputGenerator(c1, c2 *VPCConfig, grouping bool, uc OutputUseCase, archOnly bool) (*OutputGenerator, error) {
 	res := &OutputGenerator{
-		config:         c1,
+		config1:        c1,
+		config2:        c2,
 		outputGrouping: grouping,
 		useCase:        uc,
 	}
@@ -106,11 +107,11 @@ func (o *OutputGenerator) Generate(f OutFormat, outFile string) (*VPCAnalysisOut
 		return nil, errors.New("unsupported output format")
 	}
 
-	return formatter.WriteOutput(o.config, o.nodesConn, o.subnetsConn, o.subnetsDiff, outFile, o.outputGrouping, o.useCase)
+	return formatter.WriteOutput(o.config1, o.config2, o.nodesConn, o.subnetsConn, o.subnetsDiff, outFile, o.outputGrouping, o.useCase)
 }
 
 type OutputFormatter interface {
-	WriteOutput(c *VPCConfig, conn *VPCConnectivity, subnetsConn *VPCsubnetConnectivity, subnetsDiff *DiffBetweenSubnets,
+	WriteOutput(c1, c2 *VPCConfig, conn *VPCConnectivity, subnetsConn *VPCsubnetConnectivity, subnetsDiff *DiffBetweenSubnets,
 		outFile string, grouping bool, uc OutputUseCase) (*VPCAnalysisOutput, error)
 }
 

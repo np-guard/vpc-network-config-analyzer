@@ -15,7 +15,7 @@ const (
 	mdHeader = "| src | dst | conn |\n|-----|-----|------|"
 )
 
-func (m *MDoutputFormatter) WriteOutput(c *VPCConfig,
+func (m *MDoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	conn *VPCConnectivity,
 	subnetsConn *VPCsubnetConnectivity,
 	subnetsDiff *DiffBetweenSubnets,
@@ -23,7 +23,7 @@ func (m *MDoutputFormatter) WriteOutput(c *VPCConfig,
 	grouping bool,
 	uc OutputUseCase) (*VPCAnalysisOutput, error) {
 	// get output by analysis type
-	out := "# " + headerOfAnalyzedVPC(c.VPC.Name())
+	out := "# " + headerOfAnalyzedVPC(c1.VPC.Name(), "")
 	switch uc {
 	case AllEndpoints:
 		lines := []string{mdTitle, mdHeader}
@@ -39,7 +39,7 @@ func (m *MDoutputFormatter) WriteOutput(c *VPCConfig,
 	}
 
 	_, err := WriteToFile(out, outFile)
-	return &VPCAnalysisOutput{Output: out, VPCName: c.VPC.Name(), format: MD}, err
+	return &VPCAnalysisOutput{Output: out, VPCName: c1.VPC.Name(), format: MD}, err
 }
 
 func (m *MDoutputFormatter) getGroupedOutput(conn *VPCConnectivity) []string {
