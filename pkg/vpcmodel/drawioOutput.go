@@ -109,7 +109,7 @@ func (d *DrawioOutputFormatter) createEdges() {
 	}
 }
 
-func (d *DrawioOutputFormatter) WriteOutput(c *VPCConfig,
+func (d *DrawioOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	conn *VPCConnectivity,
 	subnetsConn *VPCsubnetConnectivity,
 	subnetsDiff *DiffBetweenSubnets,
@@ -119,7 +119,7 @@ func (d *DrawioOutputFormatter) WriteOutput(c *VPCConfig,
 	var err error
 	switch uc {
 	case AllEndpoints:
-		d.init(c, conn)
+		d.init(c1, conn)
 		d.createDrawioTree()
 		err = drawio.CreateDrawioConnectivityMapFile(d.gen.Network(), outFile)
 	case AllSubnets, SingleSubnet:
@@ -137,7 +137,7 @@ type ArchDrawioOutputFormatter struct {
 	DrawioOutputFormatter
 }
 
-func (d *ArchDrawioOutputFormatter) WriteOutput(c *VPCConfig,
+func (d *ArchDrawioOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	conn *VPCConnectivity,
 	subnetsConn *VPCsubnetConnectivity,
 	subnetsDiff *DiffBetweenSubnets,
@@ -146,9 +146,9 @@ func (d *ArchDrawioOutputFormatter) WriteOutput(c *VPCConfig,
 	uc OutputUseCase) (*VPCAnalysisOutput, error) {
 	switch uc {
 	case AllEndpoints:
-		return d.DrawioOutputFormatter.WriteOutput(c, nil, nil, nil, outFile, grouping, uc)
+		return d.DrawioOutputFormatter.WriteOutput(c1, c2, nil, nil, nil, outFile, grouping, uc)
 	case AllSubnets, SingleSubnet:
-		return d.DrawioOutputFormatter.WriteOutput(nil, nil, nil, nil, outFile, grouping, uc)
+		return d.DrawioOutputFormatter.WriteOutput(nil, c2, nil, nil, nil, outFile, grouping, uc)
 	}
 	return &VPCAnalysisOutput{}, nil
 }

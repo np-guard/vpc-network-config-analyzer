@@ -131,7 +131,7 @@ func (c *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 				allLayersRes[peerNode] = NoConns()
 				continue
 			}
-			// ibm-config: appliedFilters are either both nacl and sg (for pgw) or only sg (for fip)
+			// ibm-config1: appliedFilters are either both nacl and sg (for pgw) or only sg (for fip)
 			// TODO: consider moving to pkg ibm-vpc
 			appliedFilters := appliedRouter.AppliedFiltersKinds()
 			for layer := range appliedFilters {
