@@ -1,0 +1,9 @@
+Analysis for diff between VPC test-vpc-ky1 and VPC test-vpc-ky2
+-- sub1-2-ky => sub1-1-ky : missing connection 
+-- sub1-3-ky => sub1-1-ky : missing connection 
+
+++ sub2-1-ky => Public Internet [8.8.8.0/29] : missing connection 
+++ sub2-1-ky => Public Internet [8.8.8.10/31] : missing connection 
+++ sub2-1-ky => Public Internet [8.8.8.12/30] : missing connection 
+++ sub2-1-ky => Public Internet [8.8.8.8/32] : changed connection protocol: UDP dst-ports: 43
+++ sub2-1-ky => Public Internet [8.8.8.9/32] : missing connection 
