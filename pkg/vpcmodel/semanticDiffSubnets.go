@@ -2,6 +2,8 @@ package vpcmodel
 
 import (
 	"fmt"
+	"sort"
+	"strings"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
@@ -178,7 +180,8 @@ func (diff *DiffBetweenSubnets) String() string {
 }
 
 func (subnetDiff *SubnetsDiff) EnhancedString(thisMinusOther bool) string {
-	var diffDirection, printDiff string
+	var diffDirection string
+	strList := []string{}
 	if thisMinusOther {
 		diffDirection = "--"
 	} else {
@@ -190,11 +193,14 @@ func (subnetDiff *SubnetsDiff) EnhancedString(thisMinusOther bool) string {
 			if connDiff.ConnectionSet != nil {
 				connectionSetDiff = connDiff.ConnectionSet.EnhancedString()
 			}
-			printDiff += fmt.Sprintf("%s %s => %s : %s %s\n", diffDirection, src.Name(), dst.Name(),
+			printDiff := fmt.Sprintf("%s %s => %s : %s %s\n", diffDirection, src.Name(), dst.Name(),
 				diffDescription(connDiff.diff), connectionSetDiff)
+			strList = append(strList, printDiff)
 		}
 	}
-	return printDiff
+	sort.Strings(strList)
+	res := strings.Join(strList, "")
+	return res
 }
 
 func diffDescription(diff DiffType) string {
