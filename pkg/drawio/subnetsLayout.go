@@ -34,13 +34,15 @@ type miniGroupDataS struct {
 	x, y    int
 }
 type groupDataS struct {
-	miniGroups []*miniGroupDataS
+	miniGroups     []*miniGroupDataS
 	allInnerGroups []*groupDataS
 	topInnerGroups []*groupDataS
-	treeNode TreeNodeInterface
-	located    bool
-	x1, y1     int
-	x2, y2     int
+	toSplitGroups map[*groupDataS]bool
+	treeNode       TreeNodeInterface
+
+	located        bool
+	x1, y1         int
+	x2, y2         int
 }
 
 // ////////////////////////////////////////////////////////////////////////
@@ -86,10 +88,10 @@ type subnetsLayout struct {
 	miniGroupsMatrix [][]*miniGroupDataS
 	subnetMatrix     [][]TreeNodeInterface
 	zoneOrder        []TreeNodeInterface
-	zonesCol   map[TreeNodeInterface]int
+	zonesCol         map[TreeNodeInterface]int
 }
 
-func (ly *subnetsLayout) layout(grs []*GroupSubnetsSquareTreeNode) ([][]TreeNodeInterface, map[TreeNodeInterface]int){
+func (ly *subnetsLayout) layout(grs []*GroupSubnetsSquareTreeNode) ([][]TreeNodeInterface, map[TreeNodeInterface]int) {
 	ly.createMiniGroups(grs)
 	ly.setInnerGroups()
 	topFakeGroup := &groupDataS{allInnerGroups: ly.groups, miniGroups: ly.miniGroups}
@@ -174,6 +176,7 @@ func (ly *subnetsLayout) setInnerGroups() {
 		}
 	}
 }
+
 // ////////////////////////////////////////////////////////////////////////
 func splitSharing(group *groupDataS) {
 	innerGroups := map[*groupDataS]bool{}
@@ -201,30 +204,28 @@ func splitSharing(group *groupDataS) {
 			}
 		}
 	}
-	toSplitGroups := map[*groupDataS]bool{}
+	group.toSplitGroups = map[*groupDataS]bool{}
 	for len(sharedMini) > 0 {
 		bestSharingScore := 0
 		var mostSharedGroup *groupDataS
 		for sharedGroup, sharedGroups := range sharedMini {
-			if len(sharedGroups) > bestSharingScore  || 
-			(len(sharedGroups) == bestSharingScore && len(sharedGroup.allInnerGroups) < len(mostSharedGroup.allInnerGroups)){
+			if len(sharedGroups) > bestSharingScore ||
+				(len(sharedGroups) == bestSharingScore && len(sharedGroup.allInnerGroups) < len(mostSharedGroup.allInnerGroups)) {
 				bestSharingScore = len(sharedGroups)
 				mostSharedGroup = sharedGroup
 			}
 		}
-		if mostSharedGroup != nil {
-			toSplitGroups[mostSharedGroup] = true
-			delete(sharedMini, mostSharedGroup)
-			for sharedGroup, sharedGroups := range sharedMini {
-				delete(sharedGroups, mostSharedGroup)
-				if len(sharedGroups) == 0 {
-					delete(sharedMini, sharedGroup)
-				}
+		group.toSplitGroups[mostSharedGroup] = true
+		delete(sharedMini, mostSharedGroup)
+		for sharedGroup, sharedGroups := range sharedMini {
+			delete(sharedGroups, mostSharedGroup)
+			if len(sharedGroups) == 0 {
+				delete(sharedMini, sharedGroup)
 			}
 		}
 	}
-	for _, innerGroup := range  group.allInnerGroups {
-		if !toSplitGroups[innerGroup] && !innerGroups[innerGroup] {
+	for _, innerGroup := range group.allInnerGroups {
+		if !group.toSplitGroups[innerGroup] && !innerGroups[innerGroup] {
 			group.topInnerGroups = append(group.topInnerGroups, innerGroup)
 		}
 	}
