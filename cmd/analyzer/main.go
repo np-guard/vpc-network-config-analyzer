@@ -10,6 +10,13 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
+const (
+	ParsingErr       = "error parsing arguments:"
+	OutGenerationErr = "output generation error:"
+	InGenerationErr  = "error generating cloud config from input vpc resources file:"
+	ErrorFormat      = "%s %w"
+)
+
 func getOutputFormat(inArgs *InArgs) vpcmodel.OutFormat {
 	switch *inArgs.OutputFormat {
 	case TEXTFormat:
@@ -59,7 +66,7 @@ func analysisPerVPCConfig(c *vpcmodel.VPCConfig, inArgs *InArgs, outFile string)
 	outFormat := getOutputFormat(inArgs)
 	output, err := og.Generate(outFormat, genOutFile)
 	if err != nil {
-		return nil, fmt.Errorf("output generation error: %w", err)
+		return nil, fmt.Errorf(ErrorFormat, OutGenerationErr, err)
 	}
 
 	return output, nil
@@ -74,13 +81,14 @@ func analysisDiffVPCConfig(c1, c2 *vpcmodel.VPCConfig, inArgs *InArgs, outFile s
 		return nil, err
 	}
 
+	var analysisOut *vpcmodel.VPCAnalysisOutput
 	outFormat := getOutputFormat(inArgs)
-	output, err := og.Generate(outFormat, outFile)
+	analysisOut, err = og.Generate(outFormat, outFile)
 	if err != nil {
-		return nil, fmt.Errorf("output generation error: %w", err)
+		return nil, fmt.Errorf(ErrorFormat, OutGenerationErr, err)
 	}
 
-	return output, nil
+	return analysisOut, nil
 }
 
 // The actual main function
@@ -91,7 +99,7 @@ func _main(cmdlineArgs []string) error {
 		return nil
 	}
 	if err != nil {
-		return fmt.Errorf("error parsing arguments: %w", err)
+		return fmt.Errorf(ErrorFormat, ParsingErr, err)
 	}
 
 	rc, err := ibmvpc.ParseResourcesFromFile(*inArgs.InputConfigFile)
@@ -101,7 +109,7 @@ func _main(cmdlineArgs []string) error {
 
 	vpcConfigs, err := ibmvpc.VPCConfigsFromResources(rc, *inArgs.VPC, *inArgs.Debug)
 	if err != nil {
-		return fmt.Errorf("error generating cloud config from input vpc resources file: %w", err)
+		return fmt.Errorf(ErrorFormat, InGenerationErr, err)
 	}
 
 	outFile := ""
@@ -122,7 +130,8 @@ func _main(cmdlineArgs []string) error {
 			i++
 		}
 
-		out, err := vpcmodel.AggregateVPCsOutput(outputPerVPC, getOutputFormat(inArgs), outFile)
+		var out string
+		out, err = vpcmodel.AggregateVPCsOutput(outputPerVPC, getOutputFormat(inArgs), outFile)
 		if err != nil {
 			return err
 		}
@@ -133,11 +142,11 @@ func _main(cmdlineArgs []string) error {
 		var rc2ndForDiff *ibmvpc.ResourcesContainer
 		rc2ndForDiff, err = ibmvpc.ParseResourcesFromFile(*inArgs.InputSecondConfigFile)
 		if err != nil {
-			return fmt.Errorf("error parsing arguments: %w", err)
+			return fmt.Errorf(ErrorFormat, ParsingErr, err)
 		}
 		vpc2ndConfigs, err := ibmvpc.VPCConfigsFromResources(rc2ndForDiff, *inArgs.VPC, *inArgs.Debug)
 		if err != nil {
-			return fmt.Errorf("error generating cloud config from input vpc resources file: %w", err)
+			return fmt.Errorf(ErrorFormat, InGenerationErr, err)
 		}
 		// For diff analysis each vpcConfigs have a single element
 		c1 := getFirstCfg(vpcConfigs)
