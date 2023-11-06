@@ -357,8 +357,6 @@ func findNodeWithCidr(configNodes []Node, cidr string) (Node, error) {
 // get a list of IPBlocks of the src and dst of the connections
 func (subnetConnectivity SubnetConnectivityMap) getIPBlocksList() (ipbList []*common.IPBlock,
 	myErr error) {
-	ipbList = []*common.IPBlock{}
-	myErr = nil
 	for src, endpointConns := range subnetConnectivity {
 		for dst, conns := range endpointConns {
 			if conns.IsEmpty() {
