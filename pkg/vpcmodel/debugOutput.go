@@ -8,8 +8,8 @@ func (t *DebugOutputFormatter) WriteOutput(c *VPCConfig,
 	subnetsConn *VPCsubnetConnectivity,
 	outFile string,
 	grouping bool,
-	uc OutputUseCase) (string, error) {
-	out := headerOfAnalyzedVPC(c.VPCName)
+	uc OutputUseCase) (*VPCAnalysisOutput, error) {
+	out := headerOfAnalyzedVPC(c.VPC.Name())
 	switch uc {
 	case AllEndpoints:
 		// TODO: add a flag of whether to include grouped output or not
@@ -20,5 +20,6 @@ func (t *DebugOutputFormatter) WriteOutput(c *VPCConfig,
 	case SingleSubnet:
 		out = c.GetConnectivityOutputPerEachSubnetSeparately()
 	}
-	return writeOutput(out, outFile)
+	_, err := WriteToFile(out, outFile)
+	return &VPCAnalysisOutput{Output: out, VPCName: c.VPC.Name(), format: Debug}, err
 }

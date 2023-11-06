@@ -1,0 +1,42 @@
+{
+    "endpoints_connectivity": [
+        {
+            "src": {
+                "ResourceName": "tint-reviver-caregiver-shorthand",
+                "ResourceUID": "id:105",
+                "ResourceType": "NetworkInterface",
+                "Zone": "us-south-1"
+            },
+            "dst": {
+                "ResourceName": "tint-reviver-caregiver-shorthand-11",
+                "ResourceUID": "id:10511",
+                "ResourceType": "NetworkInterface",
+                "Zone": "us-south-1"
+            },
+            "conn": [
+                {
+                    "protocol": "ANY"
+                }
+            ]
+        },
+        {
+            "src": {
+                "ResourceName": "tint-reviver-caregiver-shorthand-11",
+                "ResourceUID": "id:10511",
+                "ResourceType": "NetworkInterface",
+                "Zone": "us-south-1"
+            },
+            "dst": {
+                "ResourceName": "tint-reviver-caregiver-shorthand",
+                "ResourceUID": "id:105",
+                "ResourceType": "NetworkInterface",
+                "Zone": "us-south-1"
+            },
+            "conn": [
+                {
+                    "protocol": "ANY"
+                }
+            ]
+        }
+    ]
+}
