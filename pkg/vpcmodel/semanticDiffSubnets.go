@@ -394,7 +394,7 @@ func externalNodeToIPBlock(external Node) (ipBlock *common.IPBlock, err error) {
 	if err != nil {
 		return nil, err
 	}
-	return ipBlock, err
+	return ipBlock, nil
 }
 
 // todo: the following code finds all couples of connections that should be resized (it IPBlock)
