@@ -227,7 +227,7 @@ func (subnetConfConnectivity *SubnetConfigConnectivity) GetConnectivesWithSameIP
 		return nil, nil, err
 	}
 	return &SubnetConfigConnectivity{alignedConfig, alignedConnectivity},
-		&SubnetConfigConnectivity{otherAlignedConfig, alignedOtherConnectivity}, myErr
+		&SubnetConfigConnectivity{otherAlignedConfig, alignedOtherConnectivity}, nil
 }
 
 func (subnetConnectivity *SubnetConnectivityMap) alignConnectionsGivenIPBlists(config *VPCConfig, disjointIPblocks []*common.IPBlock) (
