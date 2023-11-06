@@ -313,7 +313,6 @@ func (ly *layoutS) setSubnetsLocations(subnetMatrix [][]TreeNodeInterface, zones
 		for ci, s := range row {
 			if s != nil {
 				ly.setDefaultLocation(s.(SquareTreeNodeInterface), ri, ci)
-				zonesCol[s.Parent()] = ci
 				locatedSubnets[s] = true
 			}
 		}
