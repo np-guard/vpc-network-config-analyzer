@@ -17,6 +17,10 @@ const (
 	ChangedConnection
 )
 
+const (
+	CastingNodeErr = "%s should be external node but casting to Node failed"
+)
+
 type connectionDiff struct {
 	*common.ConnectionSet
 	diff DiffType
@@ -370,7 +374,7 @@ func (subnetConnectivity SubnetConnectivityMap) getIPBlocksList() (ipbList []*co
 					}
 					ipbList = append(ipbList, ipBlock)
 				} else {
-					return nil, fmt.Errorf("%s should be external node but casting to Node failed", src.Name())
+					return nil, fmt.Errorf(CastingNodeErr, src.Name())
 				}
 			}
 			if dst.IsExternal() {
@@ -381,7 +385,7 @@ func (subnetConnectivity SubnetConnectivityMap) getIPBlocksList() (ipbList []*co
 					}
 					ipbList = append(ipbList, ipBlock)
 				} else {
-					return nil, fmt.Errorf("%s should be external node but casting to Node failed", dst.Name())
+					return nil, fmt.Errorf(CastingNodeErr, dst.Name())
 				}
 			}
 		}
