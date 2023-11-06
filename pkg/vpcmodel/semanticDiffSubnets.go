@@ -383,7 +383,7 @@ func (subnetConnectivity SubnetConnectivityMap) getIPBlocksList() (ipbList []*co
 			}
 		}
 	}
-	return ipbList, myErr
+	return ipbList, nil
 }
 
 func externalNodeToIPBlock(external Node) (ipBlock *common.IPBlock, err error) {
