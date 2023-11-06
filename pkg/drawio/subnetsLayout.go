@@ -145,29 +145,81 @@ func shareMiniGroup(gr1, gr2 *groupDataS) bool {
 	return false
 }
 
+func (ly *subnetsLayout) canShareRow(gr1, gr2 *groupDataS) bool {
+	miniGroups1 := map[*miniGroupDataS]bool{}
+	miniGroups2 := map[*miniGroupDataS]bool{}
+	for _, mg := range gr1.miniGroups {
+		miniGroups1[mg] = true
+	}
+	for _, mg := range gr2.miniGroups {
+		miniGroups2[mg] = true
+	}
+
+	minSepZone1, minSepZone2 := 1000, 1000
+	maxSepZone1, maxSepZone2 := -1, -1
+	for mg := range miniGroups1 {
+		if !miniGroups2[mg] {
+			if minSepZone1 > ly.zonesCol[mg.zone] {
+				minSepZone1 = ly.zonesCol[mg.zone]
+			}
+			if maxSepZone1 < ly.zonesCol[mg.zone] {
+				maxSepZone1 = ly.zonesCol[mg.zone]
+			}
+		}
+	}
+	for mg := range miniGroups2 {
+		if !miniGroups1[mg] {
+			if minSepZone2 > ly.zonesCol[mg.zone] {
+				minSepZone2 = ly.zonesCol[mg.zone]
+			}
+			if maxSepZone2 < ly.zonesCol[mg.zone] {
+				maxSepZone2 = ly.zonesCol[mg.zone]
+			}
+		}
+	}
+	if maxSepZone1 == -1 || maxSepZone2 == -1 {
+		return true
+	}
+	if minSepZone1 > maxSepZone2 {
+		return true
+	}
+	if minSepZone2 > maxSepZone1 {
+		return true
+	}
+	return false
+}
+
 // ////////////////////////////////////////////////////////////////////////
 func (ly *subnetsLayout) layoutGroup(group *groupDataS, firstRow int) int {
 	rowIndex := firstRow
-	for _, innerGroup := range group.topInnerGroups {
-		rowIndex = ly.layoutGroup(innerGroup, rowIndex)
+	lastRow := firstRow
+	maxRowSize := 0
+	for i, innerGroup := range group.topInnerGroups {
+		newRowSize := ly.layoutGroup(innerGroup, rowIndex)
+		if newRowSize > maxRowSize {
+			maxRowSize = newRowSize
+		}
+		if i < len(group.topInnerGroups)-1 && !ly.canShareRow(innerGroup, group.topInnerGroups[i+1]) {
+			rowIndex += maxRowSize
+			maxRowSize = 0
+		}
+		lastRow = rowIndex + maxRowSize
 	}
-	rowSize := 1
 	for _, miniGroup := range group.miniGroups {
 		if miniGroup.located {
 			continue
 		}
 		i := 0
-		for ly.miniGroupsMatrix[rowIndex+i][ly.zonesCol[miniGroup.zone]] != nil {
+		for ly.miniGroupsMatrix[firstRow+i][ly.zonesCol[miniGroup.zone]] != nil {
 			i++
 		}
-		if rowSize < i+1 {
-			rowSize = i + 1
+		if lastRow < firstRow+i {
+			lastRow = firstRow+i
 		}
-		ly.miniGroupsMatrix[rowIndex+i][ly.zonesCol[miniGroup.zone]] = miniGroup
+		ly.miniGroupsMatrix[firstRow+i][ly.zonesCol[miniGroup.zone]] = miniGroup
 		miniGroup.located = true
 	}
-
-	return rowIndex + rowSize
+	return lastRow - firstRow + 1
 
 }
 func (ly *subnetsLayout) setSubnetsMatrix() {
@@ -217,7 +269,7 @@ func splitSharing(group *groupDataS) {
 	for _, group1 := range group.allInnerGroups {
 		for _, group2 := range group.allInnerGroups {
 			if group1 != group2 {
-				if !innerGroups[group1] && !innerGroups[group2] && shareMiniGroup(group1,group2){
+				if !innerGroups[group1] && !innerGroups[group2] && shareMiniGroup(group1, group2) {
 					if _, ok := sharedMini[group1]; !ok {
 						sharedMini[group1] = map[*groupDataS]bool{}
 					}

@@ -340,11 +340,12 @@ func createNetworkSubnetGrouping() SquareTreeNodeInterface {
 
 	groups := []SquareTreeNodeInterface{}
 	groups = append(groups, createGroup(zones, vpc1,0,0,0,0))
-	groups = append(groups, createGroup(zones, vpc1,0,1,0,0))
-	groups = append(groups, createGroup(zones, vpc1,0,2,0,0))
-	groups = append(groups, createGroup(zones, vpc1,0,3,0,0))
-	groups = append(groups, createGroup(zones, vpc1,0,4,0,0))
-	groups = append(groups, createGroup(zones, vpc1,0,5,0,0))
+	groups = append(groups, createGroup(zones, vpc1,0,1,0,1))
+	// groups = append(groups, createGroup(zones, vpc1,1,1,0,0))
+	// groups = append(groups, createGroup(zones, vpc1,0,2,0,0))
+	// groups = append(groups, createGroup(zones, vpc1,3,3,0,0))
+	// groups = append(groups, createGroup(zones, vpc1,0,4,0,1))
+	// groups = append(groups, createGroup(zones, vpc1,0,5,0,1))
 
 	for i, gr := range groups{
 		i1 := NewInternetTreeNode(publicNetwork, "Internet"+strconv.Itoa(i))
