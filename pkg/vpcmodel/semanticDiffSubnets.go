@@ -291,11 +291,11 @@ func (subnetConnectivity *SubnetConnectivityMap) actualAlignSrcOrDstGivenIPBlist
 			if conns.IsEmpty() {
 				continue
 			}
-			if _, ok := alignedConnectivity[src]; !ok {
-				alignedConnectivity[src] = map[EndpointElem]*common.ConnectionSet{}
-			}
 			// the resizing element is not external - copy as is
 			if (resizeSrc && !src.IsExternal()) || (!resizeSrc && !dst.IsExternal()) {
+				if _, ok := alignedConnectivity[src]; !ok {
+					alignedConnectivity[src] = map[EndpointElem]*common.ConnectionSet{}
+				}
 				alignedConnectivity[src][dst] = conns
 				continue
 			}
@@ -310,13 +310,13 @@ func (subnetConnectivity *SubnetConnectivityMap) actualAlignSrcOrDstGivenIPBlist
 			if err != nil {
 				return nil, err
 			}
-			err = config.addIPBlockToConnectivityMap(disjointIPblocks, origIPBlock, alignedConnectivity, src, dst, conns, resizeSrc)
+			err = addIPBlockToConnectivityMap(config, disjointIPblocks, origIPBlock, alignedConnectivity, src, dst, conns, resizeSrc)
 		}
 	}
 	return alignedConnectivity, err
 }
 
-func (c *VPCConfig) addIPBlockToConnectivityMap(disjointIPblocks []*common.IPBlock,
+func addIPBlockToConnectivityMap(c *VPCConfig, disjointIPblocks []*common.IPBlock,
 	origIPBlock *common.IPBlock, alignedConnectivity map[EndpointElem]map[EndpointElem]*common.ConnectionSet,
 	src, dst EndpointElem, conns *common.ConnectionSet, resizeSrc bool) error {
 	origBlockContainsIPBlocks := false
@@ -338,6 +338,9 @@ func (c *VPCConfig) addIPBlockToConnectivityMap(disjointIPblocks []*common.IPBlo
 				}
 				alignedConnectivity[nodeOfCidr][dst] = conns
 			} else {
+				if _, ok := alignedConnectivity[src]; !ok {
+					alignedConnectivity[src] = map[EndpointElem]*common.ConnectionSet{}
+				}
 				alignedConnectivity[src][nodeOfCidr] = conns
 			}
 		}
