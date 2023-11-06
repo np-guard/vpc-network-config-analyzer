@@ -238,7 +238,7 @@ func (subnetConnectivity *SubnetConnectivityMap) alignConnectionsGivenIPBlists(c
 }
 
 // aligned config: copies from old config everything but external nodes,
-// nodes are resized by disjointIPblocks
+// external nodes are resized by disjointIPblocks
 func (c *VPCConfig) copyConfig(disjointIPblocks []*common.IPBlock) (alignedConfig *VPCConfig, err error) {
 	// copy config
 	alignedConfig = c
