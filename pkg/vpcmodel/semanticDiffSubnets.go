@@ -369,9 +369,9 @@ func (subnetConnectivity SubnetConnectivityMap) getIPBlocksList() (ipbList []*co
 						return nil, err
 					}
 					ipbList = append(ipbList, ipBlock)
+				} else {
+					return nil, fmt.Errorf("%s should be external node but casting to Node failed", src.Name())
 				}
-			} else {
-				return nil, fmt.Errorf("%s should be external node but casting to Node failed", src.Name())
 			}
 			if dst.IsExternal() {
 				if dstNode, ok := dst.(Node); ok {
