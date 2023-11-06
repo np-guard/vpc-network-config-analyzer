@@ -37,9 +37,6 @@ type SubnetConfigConnectivity struct {
 type diffBetweenSubnets struct {
 	subnet1Subtract2 SubnetsDiff
 	subnet2Subtract1 SubnetsDiff
-
-	GroupedSubnet1Minus2 *GroupConnLines
-	GroupedSubnet1Minus1 *GroupConnLines
 }
 
 func (configs ConfigsForDiff) GetSubnetsDiff(grouping bool) (*diffBetweenSubnets, error) {
@@ -59,12 +56,12 @@ func (configs ConfigsForDiff) GetSubnetsDiff(grouping bool) (*diffBetweenSubnets
 	subnetConfigConn2 := &SubnetConfigConnectivity{configs.config2,
 		subnetsConn2.AllowedConnsCombined}
 	alignedConfigConnectivity1, alignedConfigConnectivity2, err :=
-		subnetConfigConn1.GetConnectivesWithSameIPBlocks(subnetConfigConn2)
+		subnetConfigConn1.getConnectivesWithSameIPBlocks(subnetConfigConn2)
 	if err != nil {
 		return nil, err
 	}
-	subnet1Subtract2 := alignedConfigConnectivity1.SubnetConnectivitySubtract(alignedConfigConnectivity2)
-	subnet2Subtract1 := alignedConfigConnectivity2.SubnetConnectivitySubtract(alignedConfigConnectivity1)
+	subnet1Subtract2 := alignedConfigConnectivity1.subnetConnectivitySubtract(alignedConfigConnectivity2)
+	subnet2Subtract1 := alignedConfigConnectivity2.subnetConnectivitySubtract(alignedConfigConnectivity1)
 
 	// 3. ToDo: grouping, see comment at the end of this file
 
@@ -90,9 +87,9 @@ func (c *VPCConfig) getEndpointElemInOtherConfig(other *VPCConfig, ep EndpointEl
 	return nil
 }
 
-// SubnetConnectivitySubtract Subtract one SubnetConnectivityMap from the other
+// subnetConnectivitySubtract Subtract one SubnetConnectivityMap from the other
 // assumption: any connection from connectivity and "other" have src (dst) which are either disjoint or equal
-func (subnetConfConnectivity *SubnetConfigConnectivity) SubnetConnectivitySubtract(other *SubnetConfigConnectivity) SubnetsDiff {
+func (subnetConfConnectivity *SubnetConfigConnectivity) subnetConnectivitySubtract(other *SubnetConfigConnectivity) SubnetsDiff {
 	connectivitySubtract := map[EndpointElem]map[EndpointElem]*connectionDiff{}
 	for src, endpointConns := range subnetConfConnectivity.subnetConnectivity {
 		for dst, conns := range endpointConns {
@@ -188,11 +185,11 @@ func diffDescription(diff DiffType) string {
 	return ""
 }
 
-// GetConnectivesWithSameIPBlocks generates from subnet1Connectivity.AllowedConnsCombined and subnet2Connectivity.AllowedConnsCombined
+// getConnectivesWithSameIPBlocks generates from subnet1Connectivity.AllowedConnsCombined and subnet2Connectivity.AllowedConnsCombined
 // Two equivalent SubnetConnectivityMap objects s.t. any (src1, dst1) of subnet1Connectivity and
 // (src2, dst2) of subnet2Connectivity s.t. if src1 and src2 (dst1 and dst2) are both external then
 // they are either equal or disjoint
-func (subnetConfConnectivity *SubnetConfigConnectivity) GetConnectivesWithSameIPBlocks(otherConfConnectivity *SubnetConfigConnectivity) (
+func (subnetConfConnectivity *SubnetConfigConnectivity) getConnectivesWithSameIPBlocks(otherConfConnectivity *SubnetConfigConnectivity) (
 	alignedConnectivityConfig, alignedOtherConnectivityConfig *SubnetConfigConnectivity, myErr error) {
 	// 1. computes new set of external nodes (only type of nodes here) in cfg1 and cfg2
 	// does so by computing disjoint block between src+dst ipBlocks in cfg1 and in cfg2
@@ -368,18 +365,26 @@ func (subnetConnectivity SubnetConnectivityMap) getIPBlocksList() (ipbList []*co
 				continue
 			}
 			if src.IsExternal() {
-				ipBlock, err := externalNodeToIPBlock(src.(Node))
-				if err != nil {
-					return nil, err
+				if srcNode, ok := src.(Node); ok {
+					ipBlock, err := externalNodeToIPBlock(srcNode)
+					if err != nil {
+						return nil, err
+					}
+					ipbList = append(ipbList, ipBlock)
 				}
-				ipbList = append(ipbList, ipBlock)
+			} else {
+				return nil, fmt.Errorf("%s should be external node but casting to Node failed", src.Name())
 			}
 			if dst.IsExternal() {
-				ipBlock, err := externalNodeToIPBlock(dst.(Node))
-				if err != nil {
-					return nil, err
+				if dstNode, ok := dst.(Node); ok {
+					ipBlock, err := externalNodeToIPBlock(dstNode)
+					if err != nil {
+						return nil, err
+					}
+					ipbList = append(ipbList, ipBlock)
+				} else {
+					return nil, fmt.Errorf("%s should be external node but casting to Node failed", dst.Name())
 				}
-				ipbList = append(ipbList, ipBlock)
 			}
 		}
 	}
