@@ -7,7 +7,7 @@ type VPCConfig struct {
 	RoutingResources []RoutingResource
 	NameToResource   map[string]VPCResourceIntf
 	CloudName        string
-	VPCName          string // the VPC name for which this cloud config relates to
+	VPC              VPCResourceIntf
 }
 
 // TODO: consider add this mapping to VPCConfig

@@ -40,28 +40,27 @@ func analysisTypeToUseCase(inArgs *InArgs) vpcmodel.OutputUseCase {
 	return vpcmodel.AllEndpoints
 }
 
-func analysisPerVPCConfig(c *vpcmodel.VPCConfig, inArgs *InArgs) error {
+func analysisPerVPCConfig(c *vpcmodel.VPCConfig, inArgs *InArgs, outFile string) (*vpcmodel.VPCAnalysisOutput, error) {
 	og, err := vpcmodel.NewOutputGenerator(c,
 		*inArgs.Grouping,
 		analysisTypeToUseCase(inArgs),
 		*inArgs.OutputFormat == ARCHDRAWIOFormat)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	outFile := ""
-	if inArgs.OutputFile != nil {
-		outFile = *inArgs.OutputFile
+
+	var genOutFile string
+	// currently for drawio output only one vpc level is supported, and not as aggregated output of multiple vpcs
+	if *inArgs.OutputFormat == ARCHDRAWIOFormat || *inArgs.OutputFormat == DRAWIOFormat {
+		genOutFile = outFile
 	}
 	outFormat := getOutputFormat(inArgs)
-	output, err := og.Generate(outFormat, outFile)
+	output, err := og.Generate(outFormat, genOutFile)
 	if err != nil {
-		return fmt.Errorf("output generation error: %w", err)
+		return nil, fmt.Errorf("output generation error: %w", err)
 	}
 
-	// print to stdout as well
-	fmt.Println(output)
-
-	return nil
+	return output, nil
 }
 
 // The actual main function
@@ -84,12 +83,27 @@ func _main(cmdlineArgs []string) error {
 	if err != nil {
 		return fmt.Errorf("error generating cloud config from input vpc resources file: %w", err)
 	}
-	for _, vpcConfig := range vpcConfigs {
-		err = analysisPerVPCConfig(vpcConfig, inArgs)
-		if err != nil {
-			return err
-		}
+	outFile := ""
+	if inArgs.OutputFile != nil {
+		outFile = *inArgs.OutputFile
 	}
+
+	outputPerVPC := make([]*vpcmodel.VPCAnalysisOutput, len(vpcConfigs))
+	i := 0
+	for _, vpcConfig := range vpcConfigs {
+		vpcAnalysisOutput, err2 := analysisPerVPCConfig(vpcConfig, inArgs, outFile)
+		if err2 != nil {
+			return err2
+		}
+		outputPerVPC[i] = vpcAnalysisOutput
+		i++
+	}
+
+	out, err := vpcmodel.AggregateVPCsOutput(outputPerVPC, getOutputFormat(inArgs), outFile)
+	if err != nil {
+		return err
+	}
+	fmt.Println(out)
 
 	return nil
 }
