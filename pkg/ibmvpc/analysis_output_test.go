@@ -162,6 +162,11 @@ var tests = []*vpcGeneralTest{
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.SingleSubnet, vpcmodel.AllSubnets},
 		format:   vpcmodel.Text,
 	},
+	{
+		name:     "sg_testing_3",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+		format:   vpcmodel.Text,
+	},
 
 	// batch2: only vsi-level use-case, with grouping , text format
 	{

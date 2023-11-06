@@ -111,6 +111,9 @@ func GetExternalNetworkNodes(disjointRefExternalIPBlocks []*common.IPBlock) ([]N
 		var isPublicInternet bool
 		if ipb.ContainedIn(allInternetRagnes) {
 			isPublicInternet = true
+		} else {
+			// currently skip external nodes which are not in public internet ranges
+			continue
 		}
 		cidrs := ipb.ToCidrList()
 		for _, cidr := range cidrs {
