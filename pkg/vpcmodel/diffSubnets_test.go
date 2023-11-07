@@ -77,7 +77,11 @@ func configSimpleSubnetSubtract() (subnetConfigConn1, subnetConfigConn2 *SubnetC
 
 func TestSimpleSubnetSubtract(t *testing.T) {
 	subnetConfigConn1, subnetConfigConn2 := configSimpleSubnetSubtract()
-	subnet1Subtract2 := subnetConfigConn1.subnetConnectivitySubtract(subnetConfigConn2)
+	subnet1Subtract2, err := subnetConfigConn1.subnetConnectivitySubtract(subnetConfigConn2)
+	if err != nil {
+		fmt.Println("error:", err.Error())
+	}
+	require.Equal(t, err, nil)
 	subnet1Subtract2Str := subnet1Subtract2.EnhancedString(true)
 	fmt.Printf("subnet1Subtract2:\n%v\n", subnet1Subtract2Str)
 	newLines := strings.Count(subnet1Subtract2Str, "\n")
@@ -88,7 +92,11 @@ func TestSimpleSubnetSubtract(t *testing.T) {
 	require.Contains(t, subnet1Subtract2Str, "-- subnet0 => subnet1 : missing source and destination")
 	require.Contains(t, subnet1Subtract2Str, "-- subnet1 => subnet2 : missing source")
 
-	cfg2Subtract1 := subnetConfigConn2.subnetConnectivitySubtract(subnetConfigConn1)
+	cfg2Subtract1, err := subnetConfigConn2.subnetConnectivitySubtract(subnetConfigConn1)
+	if err != nil {
+		fmt.Println("error:", err.Error())
+	}
+	require.Equal(t, err, nil)
 	subnet2Subtract1Str := cfg2Subtract1.EnhancedString(false)
 	fmt.Printf("cfg2Subtract1:\n%v\n", subnet2Subtract1Str)
 	require.Equal(t, "++ subnet3 => subnet4 : changed connection "+
@@ -150,7 +158,11 @@ func TestSimpleIPAndSubnetSubtract(t *testing.T) {
 	}
 
 	// verified bit by bit :-)
-	cfg1SubCfg2 := alignedCfgConn1.subnetConnectivitySubtract(alignedCfgConn2)
+	cfg1SubCfg2, err := alignedCfgConn1.subnetConnectivitySubtract(alignedCfgConn2)
+	if err != nil {
+		fmt.Println("error:", err.Error())
+	}
+	require.Equal(t, err, nil)
 	cfg1SubtractCfg2Str := cfg1SubCfg2.EnhancedString(true)
 	fmt.Printf("cfg1SubCfg2:\n%v\n", cfg1SubtractCfg2Str)
 	newLines := strings.Count(cfg1SubtractCfg2Str, "\n")
