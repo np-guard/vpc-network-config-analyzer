@@ -77,7 +77,7 @@ func configSimpleSubnetSubtract() (subnetConfigConn1, subnetConfigConn2 *SubnetC
 
 func TestSimpleSubnetSubtract(t *testing.T) {
 	subnetConfigConn1, subnetConfigConn2 := configSimpleSubnetSubtract()
-	subnet1Subtract2, err := subnetConfigConn1.subnetConnectivitySubtract(subnetConfigConn2)
+	subnet1Subtract2, err := subnetConfigConn1.subtract(subnetConfigConn2)
 	if err != nil {
 		fmt.Println("error:", err.Error())
 	}
@@ -92,7 +92,7 @@ func TestSimpleSubnetSubtract(t *testing.T) {
 	require.Contains(t, subnet1Subtract2Str, "-- subnet0 => subnet1 : missing source and destination")
 	require.Contains(t, subnet1Subtract2Str, "-- subnet1 => subnet2 : missing source")
 
-	cfg2Subtract1, err := subnetConfigConn2.subnetConnectivitySubtract(subnetConfigConn1)
+	cfg2Subtract1, err := subnetConfigConn2.subtract(subnetConfigConn1)
 	if err != nil {
 		fmt.Println("error:", err.Error())
 	}
@@ -158,7 +158,7 @@ func TestSimpleIPAndSubnetSubtract(t *testing.T) {
 	}
 
 	// verified bit by bit :-)
-	cfg1SubCfg2, err := alignedCfgConn1.subnetConnectivitySubtract(alignedCfgConn2)
+	cfg1SubCfg2, err := alignedCfgConn1.subtract(alignedCfgConn2)
 	if err != nil {
 		fmt.Println("error:", err.Error())
 	}

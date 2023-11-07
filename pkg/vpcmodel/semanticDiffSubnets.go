@@ -64,11 +64,11 @@ func (configs ConfigsForDiff) GetSubnetsDiff(grouping bool) (*diffBetweenSubnets
 	if err != nil {
 		return nil, err
 	}
-	subnet1Subtract2, err1 := alignedConfigConnectivity1.subnetConnectivitySubtract(alignedConfigConnectivity2)
+	subnet1Subtract2, err1 := alignedConfigConnectivity1.subtract(alignedConfigConnectivity2)
 	if err1 != nil {
 		return nil, err1
 	}
-	subnet2Subtract1, err2 := alignedConfigConnectivity2.subnetConnectivitySubtract(alignedConfigConnectivity1)
+	subnet2Subtract1, err2 := alignedConfigConnectivity2.subtract(alignedConfigConnectivity1)
 	if err2 != nil {
 		return nil, err2
 	}
@@ -102,10 +102,10 @@ func (c *VPCConfig) getEndpointElemInOtherConfig(other *VPCConfig, ep EndpointEl
 	return nil, nil
 }
 
-// subnetConnectivitySubtract Subtract one SubnetConnectivityMap from the other
+// subtract Subtract one SubnetConnectivityMap from the other
 // assumption: any connection from connectivity and "other" have src (dst) which are either disjoint or equal
-func (subnetConfConnectivity *SubnetConfigConnectivity) subnetConnectivitySubtract(other *SubnetConfigConnectivity) (connectivitySubtract SubnetsDiff,
-	err error) {
+func (subnetConfConnectivity *SubnetConfigConnectivity) subtract(other *SubnetConfigConnectivity) (
+	connectivitySubtract SubnetsDiff, err error) {
 	connectivitySubtract = map[EndpointElem]map[EndpointElem]*connectionDiff{}
 	for src, endpointConns := range subnetConfConnectivity.subnetConnectivity {
 		for dst, conns := range endpointConns {
