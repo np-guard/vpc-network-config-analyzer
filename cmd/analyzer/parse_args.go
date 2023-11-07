@@ -65,6 +65,7 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args := InArgs{}
 	flagset := flag.NewFlagSet("vpc-network-config-analyzer", flag.ContinueOnError)
 	args.InputConfigFile = flagset.String("vpc-config", "", "file path to input config")
+	args.InputSecondConfigFile = flagset.String("vpc-config-second", "", "file path to second input config for semantic diff")
 	args.OutputFile = flagset.String("output-file", "", "file path to store results")
 	args.OutputFormat = flagset.String("format", TEXTFormat, "output format; must be one of "+getSupportedValuesString(supportedOutputFormats))
 	args.AnalysisType = flagset.String("analysis-type", allEndpoints,
