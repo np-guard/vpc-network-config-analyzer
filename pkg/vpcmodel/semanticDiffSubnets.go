@@ -226,14 +226,16 @@ func (subnetConfConnectivity *SubnetConfigConnectivity) getConnectivesWithSameIP
 	}
 	disjointIPblocks := common.DisjointIPBlocks(connectivityIPBlist, otherIPBlist)
 	// 2. copy configs and generates Nodes[] as per disjointIPblocks
-	alignedConfig, err := subnetConfConnectivity.config.copyConfig(disjointIPblocks)
+	err = subnetConfConnectivity.config.refineConfigExternalNodes(disjointIPblocks)
 	if err != nil {
 		return nil, nil, err
 	}
-	otherAlignedConfig, err := otherConfConnectivity.config.copyConfig(disjointIPblocks)
+	alignedConfig := subnetConfConnectivity.config
+	err = otherConfConnectivity.config.refineConfigExternalNodes(disjointIPblocks)
 	if err != nil {
 		return nil, nil, err
 	}
+	otherAlignedConfig := otherConfConnectivity.config
 	// 3. resize connections as per the new Nodes[]
 	alignedConnectivity, err := subnetConfConnectivity.subnetConnectivity.alignConnectionsGivenIPBlists(
 		alignedConfig, disjointIPblocks)
@@ -261,12 +263,12 @@ func (subnetConnectivity *SubnetConnectivityMap) alignConnectionsGivenIPBlists(c
 
 // aligned config: copies from old config everything but external nodes,
 // external nodes are resized by disjointIPblocks
-func (c *VPCConfig) copyConfig(disjointIPblocks []*common.IPBlock) (alignedConfig *VPCConfig, err error) {
+func (c *VPCConfig) refineConfigExternalNodes(disjointIPblocks []*common.IPBlock) error {
 	// copy config
-	alignedConfig = c
+	var err error
 	//  nodes - external addresses - are resized
-	alignedConfig.Nodes, err = resizeNodes(c.Nodes, disjointIPblocks)
-	return alignedConfig, err
+	c.Nodes, err = resizeNodes(c.Nodes, disjointIPblocks)
+	return err
 }
 
 func resizeNodes(oldNodes []Node, disjointIPblocks []*common.IPBlock) (newNodes []Node, err error) {
@@ -275,6 +277,10 @@ func resizeNodes(oldNodes []Node, disjointIPblocks []*common.IPBlock) (newNodes 
 	//  if a disjoint block is contained in an old oldNode - create external oldNode and add it
 	//  if no disjoint block is contained in an old oldNode - add the old oldNode as is
 	for _, oldNode := range oldNodes {
+		if oldNode.IsInternal() {
+			newNodes = append(newNodes, oldNode)
+			continue
+		}
 		nodeIPBlock, err := common.NewIPBlock(oldNode.Cidr(), nil)
 		if err != nil {
 			return nil, err
@@ -345,13 +351,12 @@ func (subnetConnectivity *SubnetConnectivityMap) actualAlignSrcOrDstGivenIPBlist
 func addIPBlockToConnectivityMap(c *VPCConfig, disjointIPblocks []*common.IPBlock,
 	origIPBlock *common.IPBlock, alignedConnectivity map[EndpointElem]map[EndpointElem]*common.ConnectionSet,
 	src, dst EndpointElem, conns *common.ConnectionSet, resizeSrc bool) error {
-	origBlockContainsIPBlocks := false
 	for _, ipBlock := range disjointIPblocks {
-		// 1. get ipBlock of resized index (src/dst)
+		// get ipBlock of resized index (src/dst)
 		if !ipBlock.ContainedIn(origIPBlock) { // ipBlock not relevant here
 			continue
 		}
-		origBlockContainsIPBlocks = true
+		// origIPBlock has either several new disjointIPblocks contained in it or is contained in itself
 		cidrList := ipBlock.ToCidrList()
 		for _, cidr := range cidrList {
 			nodeOfCidr := findNodeWithCidr(c.Nodes, cidr)
@@ -370,9 +375,6 @@ func addIPBlockToConnectivityMap(c *VPCConfig, disjointIPblocks []*common.IPBloc
 				alignedConnectivity[src][nodeOfCidr] = conns
 			}
 		}
-	}
-	if !origBlockContainsIPBlocks { // keep as origin
-		alignedConnectivity[src][dst] = conns
 	}
 	return nil
 }
