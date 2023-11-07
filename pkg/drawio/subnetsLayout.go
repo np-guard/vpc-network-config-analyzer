@@ -3,27 +3,31 @@ package drawio
 import (
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 )
 
-////////////////////////////////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////////////////////////////////
+var tnIndexes map[TreeNodeInterface]int
 
 type squareSet map[TreeNodeInterface]bool
 type squareSetAsKey string
 
 func (sqs *squareSet) asKey() squareSetAsKey {
+	if tnIndexes == nil {
+		tnIndexes = map[TreeNodeInterface]int{}
+	}
 	ss := []string{}
-	for gr := range *sqs {
-		ss2 := []string{}
-		for _, tn := range gr.(*GroupSubnetsSquareTreeNode).groupedSubnets {
-			ss2 = append(ss2, pL(tn.Label()))
+	for tn := range *sqs {
+		if _, ok := tnIndexes[tn]; !ok {
+			tnIndexes[tn] = len(tnIndexes)
 		}
-		sort.Strings(ss2)
-		ss = append(ss, strings.Join(ss2, ""))
-
+		ss = append(ss, strconv.Itoa(tnIndexes[tn]))
 	}
 	sort.Strings(ss)
-	return squareSetAsKey(strings.Join(ss, ","))
+	key := squareSetAsKey(strings.Join(ss, ","))
+	fmt.Println(key)
+	return key
 }
 
 type miniGroupDataS struct {
@@ -44,41 +48,6 @@ type groupDataS struct {
 	located           bool
 	firstRow, lastRow int
 	firstCol, lastCol int
-}
-
-// ////////////////////////////////////////////////////////////////////////
-func pL(l string) string {
-	return l
-	l = strings.Split(l, "&")[0]
-	ls := strings.Split(l, "-")
-	b := []byte{ls[2][0], ls[4][0]}
-	l = string(b[:])
-	return l
-}
-func printSubnet(s TreeNodeInterface) string {
-	return pL(s.Label())
-}
-func printGroup(g TreeNodeInterface, h string) string {
-	l := h
-	for _, subnet := range g.(*GroupSubnetsSquareTreeNode).groupedSubnets {
-		l += fmt.Sprint(printSubnet(subnet), ",")
-	}
-	return "[" + l + "]"
-}
-func printMiniGroup(mn squareSet, h string) string {
-	l := h
-	for subnet := range mn {
-		l += fmt.Sprint(printSubnet(subnet), ",")
-	}
-	return "[" + l + "]"
-}
-func printGroups(gs squareSet) string {
-	l := ""
-	for g := range gs {
-		l += printGroup(g, "")
-		l += ","
-	}
-	return l
 }
 
 // ////////////////////////////////////////////////////////////////////////
@@ -293,7 +262,7 @@ func (ly *subnetsLayout) checkIntegrity() {
 				subnet := matrix[r][c].subnet
 				if subnet != nil {
 					if !group.subnets[subnet] {
-						fmt.Println("subnet not in group ", subnet.Label())
+						fmt.Printf("subnet %s not in group %s\n", subnet.Label(), group.name)
 					}
 				}
 				matrix[r][c].groups[group] = true
@@ -367,6 +336,7 @@ func splitSharing(group *groupDataS) {
 			}
 			break
 		}
+		fmt.Println("group is split", mostSharedGroup.name)
 		group.toSplitGroups[mostSharedGroup] = true
 		delete(nonSplitGroup, mostSharedGroup)
 	}
@@ -469,7 +439,6 @@ func (ly *subnetsLayout) createMiniGroups(grs []*GroupSubnetsSquareTreeNode) {
 	groupSubnets := map[TreeNodeInterface]squareSet{}
 	for _, group := range grs {
 		groupSubnets[group] = squareSet{}
-		fmt.Println(printGroup(group, "gr:"))
 		for _, subnet := range group.groupedSubnets {
 			groupSubnets[group][subnet] = true
 			groupedSubnets[subnet] = true
@@ -488,7 +457,6 @@ func (ly *subnetsLayout) createMiniGroups(grs []*GroupSubnetsSquareTreeNode) {
 	fmt.Println("subnetToGroups: ")
 	groupSetToMiniGroup := map[squareSetAsKey]map[TreeNodeInterface]squareSet{}
 	for subnet, groups := range subnetToGroups {
-		fmt.Println(printSubnet(subnet), " groups", printGroups(groups))
 		if _, ok := groupSetToMiniGroup[groups.asKey()]; !ok {
 			groupSetToMiniGroup[groups.asKey()] = map[TreeNodeInterface]squareSet{}
 		}
@@ -499,11 +467,10 @@ func (ly *subnetsLayout) createMiniGroups(grs []*GroupSubnetsSquareTreeNode) {
 	}
 	groupToMiniGroups := map[TreeNodeInterface][]*miniGroupDataS{}
 	miniGroups := []*miniGroupDataS{}
-	for k, zoneMiniGroup := range groupSetToMiniGroup {
+	for _, zoneMiniGroup := range groupSetToMiniGroup {
 		for zone, miniGroup := range zoneMiniGroup {
 			miniGroupData := miniGroupDataS{subnets: miniGroup, zone: zone}
 			miniGroups = append(miniGroups, &miniGroupData)
-			fmt.Println("miniGroup: ", k, zone.Label(), printMiniGroup(miniGroup, ""))
 			for subnet := range miniGroup {
 				for group := range subnetToGroups[subnet] {
 					groupToMiniGroups[group] = append(groupToMiniGroups[group], &miniGroupData)
@@ -519,7 +486,6 @@ func (ly *subnetsLayout) createMiniGroups(grs []*GroupSubnetsSquareTreeNode) {
 		for _, miniGroup := range miniGroups2 {
 			groupData.miniGroups = append(groupData.miniGroups, miniGroup)
 			miniGroup.groups = append(miniGroup.groups, &groupData)
-			fmt.Println(printGroup(group, "group: "), printMiniGroup(miniGroup.subnets, ""))
 		}
 	}
 
