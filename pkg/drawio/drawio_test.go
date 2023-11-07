@@ -301,7 +301,9 @@ func createGroup(zones *[][]SquareTreeNodeInterface, vpc *VpcTreeNode, i1, i2, j
 			gr = append(gr, (*zones)[i][j])
 		}
 	}
-	return GroupedSubnetsSquare(vpc, gr)
+	g := GroupedSubnetsSquare(vpc, gr)
+	g.(*GroupSubnetsSquareTreeNode).name = fmt.Sprintf("%d-%d,%d,%d", i1, i2, j1, j2)
+	return g
 }
 
 func createNetworkSubnetGrouping() SquareTreeNodeInterface {
@@ -312,11 +314,11 @@ func createNetworkSubnetGrouping() SquareTreeNodeInterface {
 	cloud1 := NewCloudTreeNode(network, "IBM Cloud")
 	publicNetwork := NewPublicNetworkTreeNode(network)
 	vpc1 := NewVpcTreeNode(cloud1, "vpc1")
-	createZone(zones, vpc1, 5, "z0")
-	createZone(zones, vpc1, 6, "z1")
-	createZone(zones, vpc1, 6, "z2")
-	createZone(zones, vpc1, 6, "z3")
-	createZone(zones, vpc1, 7, "z4")
+	createZone(zones, vpc1, 8, "z0")
+	createZone(zones, vpc1, 8, "z1")
+	createZone(zones, vpc1, 8, "z2")
+	createZone(zones, vpc1, 8, "z3")
+	createZone(zones, vpc1, 8, "z4")
 	createZone(zones, vpc1, 8, "z5")
 	createZone(zones, vpc1, 8, "z6")
 	createZone(zones, vpc1, 8, "z7")
@@ -324,24 +326,12 @@ func createNetworkSubnetGrouping() SquareTreeNodeInterface {
 	createZone(zones, vpc1, 8, "z9")
 
 
-	// gsq1 := createGroup(zones, vpc1,0,2,0,2)
-	// gsq2 := createGroup(zones, vpc1,0,3,0,2)
-	// gsq3 := createGroup(zones, vpc1,2,4,3,4)
-	// gsq4 := createGroup(zones, vpc1,6,7,3,5)
-	// gsq5 := createGroup(zones, vpc1,7,8,4,7)
-	// gsq6 := createGroup(zones, vpc1,6,8,1,2)
-
-	// gsq1 := createGroup(zones, vpc1,0,2,0,0)
-	// gsq2 := createGroup(zones, vpc1,0,3,0,0)
-	// gsq3 := createGroup(zones, vpc1,2,4,0,0)
-	// gsq4 := createGroup(zones, vpc1,6,7,0,0)
-	// gsq5 := createGroup(zones, vpc1,7,8,0,0)
-	// gsq6 := createGroup(zones, vpc1,6,8,0,0)
 
 	groups := []SquareTreeNodeInterface{}
 	groups = append(groups, createGroup(zones, vpc1,0,0,0,1))
 	groups = append(groups, createGroup(zones, vpc1,1,1,0,1))
-	groups = append(groups, createGroup(zones, vpc1,0,2,0,4))
+	groups = append(groups, createGroup(zones, vpc1,0,2,0,6))
+	groups = append(groups, createGroup(zones, vpc1,0,2,4,6))
 	groups = append(groups, createGroup(zones, vpc1,3,3,1,2))
 	groups = append(groups, createGroup(zones, vpc1,0,4,0,3))
 	groups = append(groups, createGroup(zones, vpc1,0,5,0,3))

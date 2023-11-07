@@ -34,13 +34,13 @@ type miniGroupDataS struct {
 	x, y    int
 }
 type groupDataS struct {
-	miniGroups     []*miniGroupDataS
-	allInnerGroups []*groupDataS
-	topInnerGroups []*groupDataS
-	toSplitGroups  map[*groupDataS]bool
-	subnets        squareSet
-	treeNode       TreeNodeInterface
-
+	miniGroups        []*miniGroupDataS
+	allInnerGroups    []*groupDataS
+	topInnerGroups    []*groupDataS
+	toSplitGroups     map[*groupDataS]bool
+	subnets           squareSet
+	treeNode          TreeNodeInterface
+	name              string
 	located           bool
 	firstRow, lastRow int
 	firstCol, lastCol int
@@ -199,6 +199,7 @@ func (ly *subnetsLayout) layoutGroup(group *groupDataS, firstRow int) int {
 	rowIndex := firstRow
 	lastRow := firstRow
 	maxRowSize := 0
+	fmt.Println("layout group ", group.name)
 	for i, innerGroup := range group.topInnerGroups {
 		newRowSize := ly.layoutGroup(innerGroup, rowIndex)
 		if newRowSize > maxRowSize {
@@ -224,12 +225,13 @@ func (ly *subnetsLayout) layoutGroup(group *groupDataS, firstRow int) int {
 		ly.miniGroupsMatrix[firstRow+i][ly.zonesCol[miniGroup.zone]] = miniGroup
 		miniGroup.located = true
 	}
+	fmt.Println("end layout group ", group.name)
 	return lastRow - firstRow + 1
 
 }
 
 func (ly *subnetsLayout) setSubnetsMatrix() {
-	ly.subnetsIndexes  = map[TreeNodeInterface]indexes{}
+	ly.subnetsIndexes = map[TreeNodeInterface]indexes{}
 
 	rIndex := 0
 	for _, row := range ly.miniGroupsMatrix {
@@ -271,7 +273,7 @@ func (ly *subnetsLayout) checkIntegrity() {
 		group.firstRow, group.firstCol, group.lastRow, group.lastCol = 100, 100, -1, -1
 		for subnet := range group.subnets {
 			is := ly.subnetsIndexes[subnet]
-			c:= matrix[is.row][is.col]
+			c := matrix[is.row][is.col]
 			c.groups[group] = true
 			if group.firstRow > is.row {
 				group.firstRow = is.row
@@ -286,11 +288,11 @@ func (ly *subnetsLayout) checkIntegrity() {
 				group.lastCol = is.col
 			}
 		}
-		for r := group.firstRow; r <= group.lastRow; r++{
-			for c := group.firstCol; c <= group.lastCol; c++{
+		for r := group.firstRow; r <= group.lastRow; r++ {
+			for c := group.firstCol; c <= group.lastCol; c++ {
 				subnet := matrix[r][c].subnet
-				if subnet != nil{
-					if !group.subnets[subnet]{
+				if subnet != nil {
+					if !group.subnets[subnet] {
 						fmt.Println("subnet not in group ", subnet.Label())
 					}
 				}
@@ -300,7 +302,7 @@ func (ly *subnetsLayout) checkIntegrity() {
 	}
 	for ri, row := range matrix {
 		for ci, cell := range row {
-			if cell.subnet == nil && len(cell.groups) >0 {
+			if cell.subnet == nil && len(cell.groups) > 0 {
 				ly.subnetMatrix[ri][ci] = ly.miniGroups[0].zone
 			}
 		}
@@ -319,31 +321,35 @@ func (ly *subnetsLayout) setInnerGroups() {
 
 // ////////////////////////////////////////////////////////////////////////
 func splitSharing(group *groupDataS) {
-	innerGroups := map[*groupDataS]bool{}
-	for _, group1 := range group.allInnerGroups {
-		for _, group2 := range group.allInnerGroups {
-			if group1 != group2 && groupInGroup(group1, group2) {
-				innerGroups[group1] = true
-			}
-		}
+	nonSplitGroup := map[*groupDataS]bool{}
+	for _, innerGroup := range group.allInnerGroups {
+		nonSplitGroup[innerGroup] = true
 	}
-
-	sharedMini := map[*groupDataS]map[*groupDataS]bool{}
-
-	for _, group1 := range group.allInnerGroups {
-		for _, group2 := range group.allInnerGroups {
-			if group1 != group2 {
-				if !innerGroups[group1] && !innerGroups[group2] && shareMiniGroup(group1, group2) {
-					if _, ok := sharedMini[group1]; !ok {
-						sharedMini[group1] = map[*groupDataS]bool{}
-					}
-					sharedMini[group1][group2] = true
+	for {
+		innerGroups := map[*groupDataS]bool{}
+		for group1 := range nonSplitGroup {
+			for group2 := range nonSplitGroup {
+				if group1 != group2 && groupInGroup(group1, group2) {
+					innerGroups[group1] = true
 				}
 			}
 		}
-	}
-	group.toSplitGroups = map[*groupDataS]bool{}
-	for len(sharedMini) > 0 {
+
+		sharedMini := map[*groupDataS]map[*groupDataS]bool{}
+
+		for group1 := range nonSplitGroup {
+			for group2 := range nonSplitGroup {
+				if group1 != group2 {
+					if !innerGroups[group1] && !innerGroups[group2] && shareMiniGroup(group1, group2) {
+						if _, ok := sharedMini[group1]; !ok {
+							sharedMini[group1] = map[*groupDataS]bool{}
+						}
+						sharedMini[group1][group2] = true
+					}
+				}
+			}
+		}
+		group.toSplitGroups = map[*groupDataS]bool{}
 		bestSharingScore := 0
 		var mostSharedGroup *groupDataS
 		for sharedGroup, sharedGroups := range sharedMini {
@@ -353,20 +359,20 @@ func splitSharing(group *groupDataS) {
 				mostSharedGroup = sharedGroup
 			}
 		}
-		group.toSplitGroups[mostSharedGroup] = true
-		delete(sharedMini, mostSharedGroup)
-		for sharedGroup, sharedGroups := range sharedMini {
-			delete(sharedGroups, mostSharedGroup)
-			if len(sharedGroups) == 0 {
-				delete(sharedMini, sharedGroup)
+		if mostSharedGroup == nil {
+			for innerGroup := range nonSplitGroup {
+				if !innerGroups[innerGroup] {
+					group.topInnerGroups = append(group.topInnerGroups, innerGroup)
+				}
 			}
+			break
 		}
+		group.toSplitGroups[mostSharedGroup] = true
+		delete(nonSplitGroup, mostSharedGroup)
 	}
-	for _, innerGroup := range group.allInnerGroups {
-		if !group.toSplitGroups[innerGroup] && !innerGroups[innerGroup] {
-			group.topInnerGroups = append(group.topInnerGroups, innerGroup)
-			splitSharing(innerGroup)
-		}
+	for _, topInnerGroup := range group.topInnerGroups {
+		splitSharing(topInnerGroup)
+
 	}
 }
 
@@ -508,7 +514,7 @@ func (ly *subnetsLayout) createMiniGroups(grs []*GroupSubnetsSquareTreeNode) {
 	}
 	groups := []*groupDataS{}
 	for group, miniGroups2 := range groupToMiniGroups {
-		groupData := groupDataS{treeNode: group, subnets: groupSubnets[group]}
+		groupData := groupDataS{treeNode: group, subnets: groupSubnets[group], name: group.Label()}
 		groups = append(groups, &groupData)
 		for _, miniGroup := range miniGroups2 {
 			groupData.miniGroups = append(groupData.miniGroups, miniGroup)
