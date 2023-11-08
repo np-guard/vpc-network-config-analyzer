@@ -137,34 +137,44 @@ func _main(cmdlineArgs []string) error {
 		}
 		fmt.Println(out)
 	} else {
-		// Diff analysis
-		// ToDo SM: for diff analysis assume 2 configs only, the 2nd given through vpc-config-second
-		var rc2ndForDiff *ibmvpc.ResourcesContainer
-		rc2ndForDiff, err = ibmvpc.ParseResourcesFromFile(*inArgs.InputSecondConfigFile)
-		if err != nil {
-			return fmt.Errorf(ErrorFormat, ParsingErr, err)
-		}
-		vpc2ndConfigs, err := ibmvpc.VPCConfigsFromResources(rc2ndForDiff, *inArgs.VPC, *inArgs.Debug)
-		if err != nil {
-			return fmt.Errorf(ErrorFormat, InGenerationErr, err)
-		}
-		// For diff analysis each vpcConfigs have a single element
-		c1 := getFirstCfg(vpcConfigs)
-		c2 := getFirstCfg(vpc2ndConfigs)
-		analysisOutput, err2 := analysisDiffVPCConfig(c1, c2, inArgs, outFile)
-		if err2 != nil {
-			return err2
-		}
-		fmt.Println(analysisOutput.Output)
+		return diffAnalysisMain(inArgs, vpcConfigs, outFile)
 	}
 	return nil
 }
 
-func getFirstCfg(vpcConfigs map[string]*vpcmodel.VPCConfig) *vpcmodel.VPCConfig {
-	for _, vpcConfig := range vpcConfigs {
-		return vpcConfig
+func diffAnalysisMain(inArgs *InArgs, vpcConfigs map[string]*vpcmodel.VPCConfig, outFile string) error {
+	// ToDo SM: for diff analysis assume 2 configs only, the 2nd given through vpc-config-second
+	rc2ndForDiff, err := ibmvpc.ParseResourcesFromFile(*inArgs.InputSecondConfigFile)
+	if err != nil {
+		return fmt.Errorf(ErrorFormat, ParsingErr, err)
 	}
+	vpc2ndConfigs, err := ibmvpc.VPCConfigsFromResources(rc2ndForDiff, *inArgs.VPC, *inArgs.Debug)
+	if err != nil {
+		return fmt.Errorf(ErrorFormat, InGenerationErr, err)
+	}
+	// For diff analysis each vpcConfigs have a single element
+	c1, single1 := getSingleCfg(vpcConfigs)
+	c2, single2 := getSingleCfg(vpc2ndConfigs)
+	if !single1 || !single2 {
+		return fmt.Errorf("for diff mode %v a single configuration should be provided "+
+			"for both -vpc-config and -vpc-config-second", *inArgs.AnalysisType)
+	}
+	analysisOutput, err2 := analysisDiffVPCConfig(c1, c2, inArgs, outFile)
+	if err2 != nil {
+		return err2
+	}
+	fmt.Println(analysisOutput.Output)
 	return nil
+}
+
+func getSingleCfg(vpcConfigs map[string]*vpcmodel.VPCConfig) (*vpcmodel.VPCConfig, bool) {
+	if len(vpcConfigs) > 1 {
+		return nil, false
+	}
+	for _, vpcConfig := range vpcConfigs {
+		return vpcConfig, true
+	}
+	return nil, false
 }
 
 func main() {

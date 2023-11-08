@@ -333,9 +333,7 @@ func (n *NACL) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*com
 	if allInSubnet, err := common.IsAddressInSubnet(targetNode.Cidr(), subnetCidr); err == nil && allInSubnet {
 		return vpcmodel.AllConns(), nil // nacl has no control on traffic between two instances in its subnet
 	}
-	// TODO: consider err
-	res, _ := n.analyzer.AllowedConnectivity(subnetCidr, inSubnetCidr, targetNode.Cidr(), isIngress)
-	return res, nil
+	return n.analyzer.AllowedConnectivity(subnetCidr, inSubnetCidr, targetNode.Cidr(), isIngress)
 }
 
 // SecurityGroupLayer captures all SG in the vpc config, analyzes connectivity considering all SG resources
