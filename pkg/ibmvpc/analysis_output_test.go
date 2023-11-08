@@ -166,6 +166,11 @@ var tests = []*vpcGeneralTest{
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.SingleSubnet, vpcmodel.AllSubnets},
 		format:   vpcmodel.Text,
 	},
+	{
+		name:     "sg_testing_3",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+		format:   vpcmodel.Text,
+	},
 
 	// batch2: only vsi-level use-case, with grouping , text format
 	{
@@ -332,6 +337,8 @@ var tests = []*vpcGeneralTest{
 	},
 	{
 		name:     "acl_testing5",
+                // TODO: currently for this test, there are 2 connections that only differ in statefulness attribute, and 
+                // are not yet displayed in the diff report (sub1-1-ky => sub1-2-ky , sub1-1-ky => sub1-3-ky)
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnetsDiff},
 		format:   vpcmodel.Text,
 	},
