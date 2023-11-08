@@ -53,7 +53,7 @@
             },
             "href": "href:2",
             "id": "id:3",
-            "name": "test-vpc-ky1",
+            "name": "test-vpc-ky2",
             "resource_group": {
                 "href": "href:15",
                 "id": "id:16",
@@ -819,27 +819,6 @@
                 {
                     "action": "allow",
                     "before": {
-                        "href": "href:124",
-                        "id": "id:125",
-                        "name": "o2"
-                    },
-                    "created_at": "2023-07-26T08:00:43.000Z",
-                    "destination": "10.240.1.0/24",
-                    "direction": "outbound",
-                    "href": "href:122",
-                    "id": "id:123",
-                    "ip_version": "ipv4",
-                    "name": "o1",
-                    "source": "10.240.2.0/23",
-                    "destination_port_max": 65535,
-                    "destination_port_min": 1,
-                    "protocol": "tcp",
-                    "source_port_max": 65535,
-                    "source_port_min": 1
-                },
-                {
-                    "action": "allow",
-                    "before": {
                         "href": "href:126",
                         "id": "id:127",
                         "name": "i1"
@@ -941,7 +920,7 @@
                         "name": "o2"
                     },
                     "created_at": "2023-07-26T08:00:43.000Z",
-                    "destination": "8.8.8.8/32",
+                    "destination": "8.8.8.8/28",
                     "direction": "outbound",
                     "href": "href:130",
                     "id": "id:131",
@@ -950,6 +929,27 @@
                     "source": "10.240.64.0/24",
                     "destination_port_max": 53,
                     "destination_port_min": 53,
+                    "protocol": "udp",
+                    "source_port_max": 65535,
+                    "source_port_min": 1
+                },
+                {
+                    "action": "allow",
+                    "before": {
+                        "href": "href:132",
+                        "id": "id:133",
+                        "name": "o2"
+                    },
+                    "created_at": "2023-07-26T08:00:43.000Z",
+                    "destination": "8.8.8.8/32",
+                    "direction": "outbound",
+                    "href": "href:130",
+                    "id": "id:131",
+                    "ip_version": "ipv4",
+                    "name": "o1",
+                    "source": "10.240.64.0/24",
+                    "destination_port_max": 43,
+                    "destination_port_min": 43,
                     "protocol": "udp",
                     "source_port_max": 65535,
                     "source_port_min": 1

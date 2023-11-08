@@ -4,7 +4,7 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
-// VPCConnectivity holds detailed representation of allowed connectivity considering all resources in a vpc config instance
+// VPCConnectivity holds detailed representation of allowed connectivity considering all resources in a vpc config1 instance
 type VPCConnectivity struct {
 	// computed for each layer separately its allowed connections (ingress and egress separately)
 	AllowedConnsPerLayer map[Node]map[string]*ConnectivityResult
@@ -66,7 +66,7 @@ func NewIPbasedConnectivityResult() *IPbasedConnectivityResult {
 	}
 }
 
-// ConfigBasedConnectivityResults is used to capture allowed connectivity to/from elements in the vpc config (subnets / external ip-blocks)
+// ConfigBasedConnectivityResults is used to capture allowed connectivity to/from elements in the vpc config1 (subnets / external ip-blocks)
 // It is associated with a subnet when analyzing connectivity of subnets based on NACL resources
 type ConfigBasedConnectivityResults struct {
 	IngressAllowedConns map[EndpointElem]*common.ConnectionSet
