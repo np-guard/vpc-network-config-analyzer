@@ -169,7 +169,7 @@ func diffAnalysisMain(inArgs *InArgs, vpcConfigs map[string]*vpcmodel.VPCConfig,
 
 func getSingleCfg(vpcConfigs map[string]*vpcmodel.VPCConfig) (*vpcmodel.VPCConfig, bool) {
 	if len(vpcConfigs) > 1 {
-		return nil, true
+		return nil, false
 	}
 	for _, vpcConfig := range vpcConfigs {
 		return vpcConfig, true
