@@ -23,12 +23,19 @@ const (
 	CastingNodeErr = "%s should be external node but casting to Node failed"
 )
 
-type connectionDiff struct {
+type connectionDiffOld struct {
 	*common.ConnectionSet
 	diff DiffType
 }
 
-type SubnetsDiff map[VPCResourceIntf]map[VPCResourceIntf]*connectionDiff
+type connectionDiff struct {
+	conn1 *common.ConnectionSet
+	conn2 *common.ConnectionSet
+	diff  DiffType
+}
+
+type SubnetsDiffOld map[VPCResourceIntf]map[VPCResourceIntf]*connectionDiffOld
+type SubnetsDiff map[VPCResourceIntf]map[VPCResourceIntf]*connectionDiffOld
 
 type ConfigsForDiff struct {
 	config1 *VPCConfig
@@ -41,8 +48,8 @@ type SubnetConfigConnectivity struct {
 }
 
 type DiffBetweenSubnets struct {
-	subnet1Subtract2 SubnetsDiff
-	subnet2Subtract1 SubnetsDiff
+	subnet1Subtract2 SubnetsDiffOld
+	subnet2Subtract1 SubnetsDiffOld
 }
 
 func (configs ConfigsForDiff) GetSubnetsDiff(grouping bool) (*DiffBetweenSubnets, error) {
@@ -107,17 +114,17 @@ func (c *VPCConfig) getVPCResourceInfInOtherConfig(other *VPCConfig, ep VPCResou
 // subtract Subtract one SubnetConnectivityMap from the other
 // assumption: any connection from connectivity and "other" have src (dst) which are either disjoint or equal
 func (subnetConfConnectivity *SubnetConfigConnectivity) subtract(other *SubnetConfigConnectivity) (
-	connectivitySubtract SubnetsDiff, err error) {
-	connectivitySubtract = map[VPCResourceIntf]map[VPCResourceIntf]*connectionDiff{}
+	connectivitySubtract SubnetsDiffOld, err error) {
+	connectivitySubtract = map[VPCResourceIntf]map[VPCResourceIntf]*connectionDiffOld{}
 	for src, endpointConns := range subnetConfConnectivity.subnetConnectivity {
 		for dst, conns := range endpointConns {
 			if conns.IsEmpty() {
 				continue
 			}
 			if _, ok := connectivitySubtract[src]; !ok {
-				connectivitySubtract[src] = map[VPCResourceIntf]*connectionDiff{}
+				connectivitySubtract[src] = map[VPCResourceIntf]*connectionDiffOld{}
 			}
-			diffConnectionWithType := &connectionDiff{nil, NoDiff}
+			diffConnectionWithType := &connectionDiffOld{nil, NoDiff}
 			srcInOther, err1 := subnetConfConnectivity.config.getVPCResourceInfInOtherConfig(other.config, src)
 			if err1 != nil {
 				return nil, err1
@@ -179,7 +186,7 @@ func (diff *DiffBetweenSubnets) String() string {
 		diff.subnet2Subtract1.EnhancedString(false)
 }
 
-func (subnetDiff *SubnetsDiff) EnhancedString(thisMinusOther bool) string {
+func (subnetDiff *SubnetsDiffOld) EnhancedString(thisMinusOther bool) string {
 	var diffDirection string
 	strList := []string{}
 	if thisMinusOther {
