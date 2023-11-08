@@ -977,14 +977,14 @@ func addExternalNodes(config *vpcmodel.VPCConfig, vpcInternalAddressRange *commo
 
 	externalRefIPBlocks := []*common.IPBlock{}
 	for _, ipBlock := range ipBlocks {
-		intersection := ipBlock.Intersection(vpcInternalAddressRange)
-		if !intersection.Empty() {
+		if ipBlock.ContainedIn(vpcInternalAddressRange) {
 			continue
 		}
-		externalRefIPBlocks = append(externalRefIPBlocks, ipBlock)
+		externalRefIPBlocks = append(externalRefIPBlocks, ipBlock.Subtract(vpcInternalAddressRange))
 	}
 
 	disjointRefExternalIPBlocks := common.DisjointIPBlocks(externalRefIPBlocks, []*common.IPBlock{})
+
 	externalNodes, err := vpcmodel.GetExternalNetworkNodes(disjointRefExternalIPBlocks)
 	if err != nil {
 		return nil, err
