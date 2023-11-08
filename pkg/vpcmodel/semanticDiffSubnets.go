@@ -2,6 +2,8 @@ package vpcmodel
 
 import (
 	"fmt"
+	"sort"
+	"strings"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
@@ -38,18 +40,18 @@ type SubnetConfigConnectivity struct {
 	subnetConnectivity SubnetConnectivityMap
 }
 
-type diffBetweenSubnets struct {
+type DiffBetweenSubnets struct {
 	subnet1Subtract2 SubnetsDiff
 	subnet2Subtract1 SubnetsDiff
 }
 
-func (configs ConfigsForDiff) GetSubnetsDiff(grouping bool) (*diffBetweenSubnets, error) {
+func (configs ConfigsForDiff) GetSubnetsDiff(grouping bool) (*DiffBetweenSubnets, error) {
 	// 1. compute connectivity for each of the subnets
-	subnetsConn1, err := configs.config1.GetSubnetsConnectivity(true, false)
+	subnetsConn1, err := configs.config1.GetSubnetsConnectivity(true, grouping)
 	if err != nil {
 		return nil, err
 	}
-	subnetsConn2, err := configs.config2.GetSubnetsConnectivity(true, false)
+	subnetsConn2, err := configs.config2.GetSubnetsConnectivity(true, grouping)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +77,7 @@ func (configs ConfigsForDiff) GetSubnetsDiff(grouping bool) (*diffBetweenSubnets
 
 	// 3. ToDo: grouping, see comment at the end of this file
 
-	res := &diffBetweenSubnets{
+	res := &DiffBetweenSubnets{
 		subnet1Subtract2: subnet1Subtract2,
 		subnet2Subtract1: subnet2Subtract1}
 	return res, nil
@@ -171,8 +173,15 @@ func getDiffType(src, srcInOther, dst, dstInOther EndpointElem) DiffType {
 
 // EnhancedString ToDo: likely the current printing functionality will no longer be needed once the grouping is added
 // anyways the diff print will be worked on before the final merge
+
+func (diff *DiffBetweenSubnets) String() string {
+	return diff.subnet1Subtract2.EnhancedString(true) + "\n" +
+		diff.subnet2Subtract1.EnhancedString(false)
+}
+
 func (subnetDiff *SubnetsDiff) EnhancedString(thisMinusOther bool) string {
-	var diffDirection, printDiff string
+	var diffDirection string
+	strList := []string{}
 	if thisMinusOther {
 		diffDirection = "--"
 	} else {
@@ -184,11 +193,14 @@ func (subnetDiff *SubnetsDiff) EnhancedString(thisMinusOther bool) string {
 			if connDiff.ConnectionSet != nil {
 				connectionSetDiff = connDiff.ConnectionSet.EnhancedString()
 			}
-			printDiff += fmt.Sprintf("%s %s => %s : %s %s\n", diffDirection, src.Name(), dst.Name(),
+			printDiff := fmt.Sprintf("%s %s => %s : %s %s\n", diffDirection, src.Name(), dst.Name(),
 				diffDescription(connDiff.diff), connectionSetDiff)
+			strList = append(strList, printDiff)
 		}
 	}
-	return printDiff
+	sort.Strings(strList)
+	res := strings.Join(strList, "")
+	return res
 }
 
 func diffDescription(diff DiffType) string {
@@ -531,7 +543,7 @@ func externalNodeToIPBlock(external Node) (ipBlock *common.IPBlock, err error) {
 //}
 //
 //// todo: instead of adding functionality to grouping, I plan to have more generic connectivity items that will be grouped
-////       encode the SubnetsDiff into this generic item as well as the other entities we are grouping
+////       encode the subnetsDiff into this generic item as well as the other entities we are grouping
 ////       and then decode in the printing
 ////       the idea is to use instead of *common.ConnectionSet in the grouped entity a string which will encode the connection
 ////       and also the diff where relevant

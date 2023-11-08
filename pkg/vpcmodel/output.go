@@ -24,46 +24,58 @@ const (
 
 type OutputUseCase int
 
+// ToDo SM: subnets connectivity "only nacl" relevant to diff?
 const (
 	AllEndpoints    OutputUseCase = iota // connectivity between network interfaces and external ip-blocks
 	SingleSubnet                         // connectivity per single subnet with nacl
 	AllSubnets                           // connectivity between subnets (consider nacl + pgw)
+	AllSubnetsDiff                       // diff between two subnets connectivity (consider nacl + pgw)
 	AllSubnetsNoPGW                      // connectivity between subnets (consider nacl only)
 )
 
-// OutputGenerator captures one vpc config with its connectivity analysis results, and implements
+// OutputGenerator captures one vpc config1 with its connectivity analysis results, and implements
 // the functionality to generate the analysis output in various formats, for that vpc
 type OutputGenerator struct {
-	config         *VPCConfig
+	config1        *VPCConfig
+	config2        *VPCConfig // specified only when analysis is diff
 	outputGrouping bool
 	useCase        OutputUseCase
 	nodesConn      *VPCConnectivity
 	subnetsConn    *VPCsubnetConnectivity
+	subnetsDiff    *DiffBetweenSubnets
 }
 
-func NewOutputGenerator(c *VPCConfig, grouping bool, uc OutputUseCase, archOnly bool) (*OutputGenerator, error) {
+func NewOutputGenerator(c1, c2 *VPCConfig, grouping bool, uc OutputUseCase, archOnly bool) (*OutputGenerator, error) {
 	res := &OutputGenerator{
-		config:         c,
+		config1:        c1,
+		config2:        c2,
 		outputGrouping: grouping,
 		useCase:        uc,
 	}
 	if !archOnly {
 		if uc == AllEndpoints {
-			nodesConn, err := c.GetVPCNetworkConnectivity(grouping)
+			nodesConn, err := c1.GetVPCNetworkConnectivity(grouping)
 			if err != nil {
 				return nil, err
 			}
 			res.nodesConn = nodesConn
 		}
 		if uc == AllSubnets {
-			subnetsConn, err := c.GetSubnetsConnectivity(true, grouping)
+			subnetsConn, err := c1.GetSubnetsConnectivity(true, grouping)
 			if err != nil {
 				return nil, err
 			}
 			res.subnetsConn = subnetsConn
 		}
+		if uc == AllSubnetsDiff {
+			configsForDiff := &ConfigsForDiff{c1, c2}
+			subnetsDiff, err := configsForDiff.GetSubnetsDiff(grouping)
+			if err != nil {
+				return nil, err
+			}
+			res.subnetsDiff = subnetsDiff
+		}
 	}
-	// todo: add for diff
 	return res, nil
 }
 
@@ -95,12 +107,12 @@ func (o *OutputGenerator) Generate(f OutFormat, outFile string) (*VPCAnalysisOut
 		return nil, errors.New("unsupported output format")
 	}
 
-	return formatter.WriteOutput(o.config, o.nodesConn, o.subnetsConn, outFile, o.outputGrouping, o.useCase)
+	return formatter.WriteOutput(o.config1, o.config2, o.nodesConn, o.subnetsConn, o.subnetsDiff, outFile, o.outputGrouping, o.useCase)
 }
 
 type OutputFormatter interface {
-	WriteOutput(c *VPCConfig, conn *VPCConnectivity, subnetsConn *VPCsubnetConnectivity, outFile string,
-		grouping bool, uc OutputUseCase) (*VPCAnalysisOutput, error)
+	WriteOutput(c1, c2 *VPCConfig, conn *VPCConnectivity, subnetsConn *VPCsubnetConnectivity, subnetsDiff *DiffBetweenSubnets,
+		outFile string, grouping bool, uc OutputUseCase) (*VPCAnalysisOutput, error)
 }
 
 func WriteToFile(content, fileName string) (string, error) {

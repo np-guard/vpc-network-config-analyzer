@@ -11,9 +11,10 @@ import (
 type JSONoutputFormatter struct {
 }
 
-func (j *JSONoutputFormatter) WriteOutput(c *VPCConfig,
+func (j *JSONoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	conn *VPCConnectivity,
 	subnetsConn *VPCsubnetConnectivity,
+	subnetsDiff *DiffBetweenSubnets,
 	outFile string,
 	grouping bool,
 	uc OutputUseCase) (*VPCAnalysisOutput, error) {
@@ -27,7 +28,7 @@ func (j *JSONoutputFormatter) WriteOutput(c *VPCConfig,
 		return nil, errors.New("DebugSubnet use case not supported for JSON format currently ")
 	}
 	outStr, err := writeJSON(all, outFile)
-	return &VPCAnalysisOutput{Output: outStr, VPCName: c.VPC.Name(), format: JSON, jsonStruct: all}, err
+	return &VPCAnalysisOutput{Output: outStr, VPCName: c1.VPC.Name(), format: JSON, jsonStruct: all}, err
 }
 
 type connLine struct {
