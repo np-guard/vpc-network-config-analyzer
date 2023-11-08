@@ -461,8 +461,8 @@ func (pgw *PublicGateway) ConnectivityMap() map[string]vpcmodel.ConfigBasedConne
 	res := map[string]vpcmodel.ConfigBasedConnectivityResults{}
 	for _, subnetCidr := range pgw.subnetCidr {
 		res[subnetCidr] = vpcmodel.ConfigBasedConnectivityResults{
-			IngressAllowedConns: map[vpcmodel.EndpointElem]*common.ConnectionSet{},
-			EgressAllowedConns:  map[vpcmodel.EndpointElem]*common.ConnectionSet{},
+			IngressAllowedConns: map[vpcmodel.VPCResourceIntf]*common.ConnectionSet{},
+			EgressAllowedConns:  map[vpcmodel.VPCResourceIntf]*common.ConnectionSet{},
 		}
 		for _, dst := range pgw.destinations {
 			res[subnetCidr].EgressAllowedConns[dst] = vpcmodel.AllConns()

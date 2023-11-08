@@ -28,7 +28,7 @@ type connectionDiff struct {
 	diff DiffType
 }
 
-type SubnetsDiff map[EndpointElem]map[EndpointElem]*connectionDiff
+type SubnetsDiff map[VPCResourceIntf]map[VPCResourceIntf]*connectionDiff
 
 type ConfigsForDiff struct {
 	config1 *VPCConfig
@@ -83,9 +83,9 @@ func (configs ConfigsForDiff) GetSubnetsDiff(grouping bool) (*DiffBetweenSubnets
 	return res, nil
 }
 
-// for a given EndpointElem (representing a subnet or an external ip) in config return the EndpointElem representing the
+// for a given VPCResourceIntf (representing a subnet or an external ip) in config return the VPCResourceIntf representing the
 // subnet/external address in otherConfig or nil if the subnet does not exist in the other config.
-func (c *VPCConfig) getEndpointElemInOtherConfig(other *VPCConfig, ep EndpointElem) (res EndpointElem, err error) {
+func (c *VPCConfig) getVPCResourceInfInOtherConfig(other *VPCConfig, ep VPCResourceIntf) (res VPCResourceIntf, err error) {
 	if ep.IsExternal() {
 		var node Node
 		var ok bool
@@ -97,7 +97,7 @@ func (c *VPCConfig) getEndpointElemInOtherConfig(other *VPCConfig, ep EndpointEl
 	}
 	for _, nodeSet := range other.NodeSets {
 		if nodeSet.Name() == ep.Name() {
-			res = EndpointElem(nodeSet)
+			res = VPCResourceIntf(nodeSet)
 			return res, nil
 		}
 	}
@@ -108,21 +108,21 @@ func (c *VPCConfig) getEndpointElemInOtherConfig(other *VPCConfig, ep EndpointEl
 // assumption: any connection from connectivity and "other" have src (dst) which are either disjoint or equal
 func (subnetConfConnectivity *SubnetConfigConnectivity) subtract(other *SubnetConfigConnectivity) (
 	connectivitySubtract SubnetsDiff, err error) {
-	connectivitySubtract = map[EndpointElem]map[EndpointElem]*connectionDiff{}
+	connectivitySubtract = map[VPCResourceIntf]map[VPCResourceIntf]*connectionDiff{}
 	for src, endpointConns := range subnetConfConnectivity.subnetConnectivity {
 		for dst, conns := range endpointConns {
 			if conns.IsEmpty() {
 				continue
 			}
 			if _, ok := connectivitySubtract[src]; !ok {
-				connectivitySubtract[src] = map[EndpointElem]*connectionDiff{}
+				connectivitySubtract[src] = map[VPCResourceIntf]*connectionDiff{}
 			}
 			diffConnectionWithType := &connectionDiff{nil, NoDiff}
-			srcInOther, err1 := subnetConfConnectivity.config.getEndpointElemInOtherConfig(other.config, src)
+			srcInOther, err1 := subnetConfConnectivity.config.getVPCResourceInfInOtherConfig(other.config, src)
 			if err1 != nil {
 				return nil, err1
 			}
-			dstInOther, err2 := subnetConfConnectivity.config.getEndpointElemInOtherConfig(other.config, dst)
+			dstInOther, err2 := subnetConfConnectivity.config.getVPCResourceInfInOtherConfig(other.config, dst)
 			if err2 != nil {
 				return nil, err2
 			}
@@ -153,7 +153,7 @@ func (subnetConfConnectivity *SubnetConfigConnectivity) subtract(other *SubnetCo
 // lack of a subnet is marked as a missing endpoint
 // a lack of identical external endpoint is considered as a missing connection
 // and not as a missing endpoint
-func getDiffType(src, srcInOther, dst, dstInOther EndpointElem) DiffType {
+func getDiffType(src, srcInOther, dst, dstInOther VPCResourceIntf) DiffType {
 	_, srcIsSubnet := src.(NodeSet)
 	_, dstIsSubnet := dst.(NodeSet)
 	missingSrc := srcInOther == nil && srcIsSubnet
@@ -321,7 +321,7 @@ func (subnetConnectivity *SubnetConnectivityMap) actualAlignSrcOrDstGivenIPBlist
 	// if src is external then for each IPBlock in disjointIPblocks copies dsts and connection type
 	// otherwise just copies as is
 	err = nil
-	alignedConnectivity = map[EndpointElem]map[EndpointElem]*common.ConnectionSet{}
+	alignedConnectivity = map[VPCResourceIntf]map[VPCResourceIntf]*common.ConnectionSet{}
 	for src, endpointConns := range *subnetConnectivity {
 		for dst, conns := range endpointConns {
 			if conns.IsEmpty() {
@@ -330,7 +330,7 @@ func (subnetConnectivity *SubnetConnectivityMap) actualAlignSrcOrDstGivenIPBlist
 			// the resizing element is not external - copy as is
 			if (resizeSrc && !src.IsExternal()) || (!resizeSrc && !dst.IsExternal()) {
 				if _, ok := alignedConnectivity[src]; !ok {
-					alignedConnectivity[src] = map[EndpointElem]*common.ConnectionSet{}
+					alignedConnectivity[src] = map[VPCResourceIntf]*common.ConnectionSet{}
 				}
 				alignedConnectivity[src][dst] = conns
 				continue
@@ -361,8 +361,8 @@ func (subnetConnectivity *SubnetConnectivityMap) actualAlignSrcOrDstGivenIPBlist
 }
 
 func addIPBlockToConnectivityMap(c *VPCConfig, disjointIPblocks []*common.IPBlock,
-	origIPBlock *common.IPBlock, alignedConnectivity map[EndpointElem]map[EndpointElem]*common.ConnectionSet,
-	src, dst EndpointElem, conns *common.ConnectionSet, resizeSrc bool) error {
+	origIPBlock *common.IPBlock, alignedConnectivity map[VPCResourceIntf]map[VPCResourceIntf]*common.ConnectionSet,
+	src, dst VPCResourceIntf, conns *common.ConnectionSet, resizeSrc bool) error {
 	for _, ipBlock := range disjointIPblocks {
 		// get ipBlock of resized index (src/dst)
 		if !ipBlock.ContainedIn(origIPBlock) { // ipBlock not relevant here
@@ -377,12 +377,12 @@ func addIPBlockToConnectivityMap(c *VPCConfig, disjointIPblocks []*common.IPBloc
 			}
 			if resizeSrc {
 				if _, ok := alignedConnectivity[nodeOfCidr]; !ok {
-					alignedConnectivity[nodeOfCidr] = map[EndpointElem]*common.ConnectionSet{}
+					alignedConnectivity[nodeOfCidr] = map[VPCResourceIntf]*common.ConnectionSet{}
 				}
 				alignedConnectivity[nodeOfCidr][dst] = conns
 			} else {
 				if _, ok := alignedConnectivity[src]; !ok {
-					alignedConnectivity[src] = map[EndpointElem]*common.ConnectionSet{}
+					alignedConnectivity[src] = map[VPCResourceIntf]*common.ConnectionSet{}
 				}
 				alignedConnectivity[src][nodeOfCidr] = conns
 			}

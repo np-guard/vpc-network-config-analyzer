@@ -69,14 +69,14 @@ func NewIPbasedConnectivityResult() *IPbasedConnectivityResult {
 // ConfigBasedConnectivityResults is used to capture allowed connectivity to/from elements in the vpc config1 (subnets / external ip-blocks)
 // It is associated with a subnet when analyzing connectivity of subnets based on NACL resources
 type ConfigBasedConnectivityResults struct {
-	IngressAllowedConns map[EndpointElem]*common.ConnectionSet
-	EgressAllowedConns  map[EndpointElem]*common.ConnectionSet
+	IngressAllowedConns map[VPCResourceIntf]*common.ConnectionSet
+	EgressAllowedConns  map[VPCResourceIntf]*common.ConnectionSet
 }
 
 func NewConfigBasedConnectivityResults() *ConfigBasedConnectivityResults {
 	return &ConfigBasedConnectivityResults{
-		IngressAllowedConns: map[EndpointElem]*common.ConnectionSet{},
-		EgressAllowedConns:  map[EndpointElem]*common.ConnectionSet{},
+		IngressAllowedConns: map[VPCResourceIntf]*common.ConnectionSet{},
+		EgressAllowedConns:  map[VPCResourceIntf]*common.ConnectionSet{},
 	}
 }
 
