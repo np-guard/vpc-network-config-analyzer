@@ -516,6 +516,10 @@ func getPgwConfig(
 	return nil
 }
 
+func ignoreFIPWarning(fipName string) string {
+	return "warning: ignoring floatingIP " + fipName
+}
+
 func getFipConfig(
 	rc *ResourcesContainer,
 	res map[string]*vpcmodel.VPCConfig,
@@ -529,11 +533,13 @@ func getFipConfig(
 			targetUID = *target.PrimaryIP.ID
 		case *vpc1.FloatingIPTarget:
 			if *target.ResourceType != networkInterfaceResourceType {
+				fmt.Println(ignoreFIPWarning(*fip.Name))
 				continue
 			}
 			targetUID = *target.PrimaryIP.ID
 		default:
-			return fmt.Errorf("unsupported fip target : %s", target)
+			fmt.Println(ignoreFIPWarning(*fip.Name))
+			continue
 		}
 
 		if targetUID == "" {
@@ -920,7 +926,7 @@ func VPCConfigsFromResources(rc *ResourcesContainer, vpcID string, debug bool) (
 func filterVPCSAndAddExternalNodes(vpcInternalAddressRange map[string]*common.IPBlock, res map[string]*vpcmodel.VPCConfig) error {
 	for vpcUID, vpcConfig := range res {
 		if vpcInternalAddressRange[vpcUID] == nil {
-			fmt.Printf("Ignoring VPC %s, no subnets found fot this VPC\n", vpcUID)
+			fmt.Printf("Ignoring VPC %s, no subnets found for this VPC\n", vpcUID)
 			delete(res, vpcUID)
 			continue
 		}
