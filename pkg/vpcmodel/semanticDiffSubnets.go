@@ -208,7 +208,11 @@ func connStr(conn *common.ConnectionSet) string {
 	return conn.EnhancedString()
 }
 
-func diffAndWorkLoadDisc(diff DiffType, src, dst VPCResourceIntf, thisMinusOther bool) (diffDisc string, workLoad string) {
+func diffAndWorkLoadDisc(diff DiffType, src, dst VPCResourceIntf, thisMinusOther bool) (diffDisc, workLoad string) {
+	const (
+		WorkloadDiffInfo = ", workloads-diff-info: workload"
+		TripleString     = "%s %s %s"
+	)
 	addOrRemoved := ""
 	if thisMinusOther {
 		addOrRemoved = "added"
@@ -217,12 +221,12 @@ func diffAndWorkLoadDisc(diff DiffType, src, dst VPCResourceIntf, thisMinusOther
 	}
 	switch diff {
 	case MissingSrcEP:
-		return addOrRemoved, fmt.Sprintf(", workloads-diff-info: workload %s %s", src.Name(), addOrRemoved)
+		return addOrRemoved, fmt.Sprintf(TripleString, WorkloadDiffInfo, src.Name(), addOrRemoved)
 	case MissingDstEP:
-		return addOrRemoved, fmt.Sprintf(", workloads-diff-info: workload %s %s", dst.Name(), addOrRemoved)
+		return addOrRemoved, fmt.Sprintf(TripleString, WorkloadDiffInfo, dst.Name(), addOrRemoved)
 	case MissingSrcDstEP:
-		return addOrRemoved, fmt.Sprintf(", workloads-diff-info: workloads %s and %s %s",
-			src.Name(), dst.Name(), addOrRemoved)
+		return addOrRemoved, fmt.Sprintf("%ss %s and %s %s",
+			WorkloadDiffInfo, src.Name(), dst.Name(), addOrRemoved)
 	case MissingConnection:
 		return addOrRemoved, ""
 	case ChangedConnection:

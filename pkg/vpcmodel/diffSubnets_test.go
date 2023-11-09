@@ -2,9 +2,10 @@ package vpcmodel
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/require"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
@@ -173,12 +174,18 @@ func TestSimpleIPAndSubnetSubtract(t *testing.T) {
 	fmt.Printf("cfg1SubCfg2:\n%v\n", cfg1SubtractCfg2Str)
 	newLines := strings.Count(cfg1SubtractCfg2Str, "\n")
 	require.Equal(t, 7, newLines)
-	require.Contains(t, cfg1SubtractCfg2Str, "diff-type: added source: Public Internet [250.2.4.128/25] destination: subnet2 dir1: All Connections dir2: No connection")
-	require.Contains(t, cfg1SubtractCfg2Str, "diff-type: added source: Public Internet [250.2.4.16/28] destination: subnet2 dir1: All Connections dir2: No connection")
-	require.Contains(t, cfg1SubtractCfg2Str, "diff-type: added source: Public Internet [250.2.4.32/27] destination: subnet2 dir1: All Connections dir2: No connection")
-	require.Contains(t, cfg1SubtractCfg2Str, "diff-type: added source: Public Internet [250.2.4.4/30] destination: subnet2 dir1: All Connections dir2: No connection")
-	require.Contains(t, cfg1SubtractCfg2Str, "diff-type: added source: Public Internet [250.2.4.64/26] destination: subnet2 dir1: All Connections dir2: No connection")
-	require.Contains(t, cfg1SubtractCfg2Str, "diff-type: added source: Public Internet [250.2.4.8/29] destination: subnet2 dir1: All Connections dir2: No connection")
-	require.Contains(t, cfg1SubtractCfg2Str, "diff-type: changed source: subnet2 destination: Public Internet [200.2.4.0/24] dir1: All Connections dir2: protocol: TCP src-ports: 0-1000 dst-ports: 0-443")
-
+	require.Contains(t, cfg1SubtractCfg2Str, "diff-type: added source: Public Internet [250.2.4.128/25] destination: subnet2 "+
+		"dir1: All Connections dir2: No connection")
+	require.Contains(t, cfg1SubtractCfg2Str, "diff-type: added source: Public Internet [250.2.4.16/28] destination: subnet2 "+
+		"dir1: All Connections dir2: No connection")
+	require.Contains(t, cfg1SubtractCfg2Str, "diff-type: added source: Public Internet [250.2.4.32/27] destination: subnet2 "+
+		"dir1: All Connections dir2: No connection")
+	require.Contains(t, cfg1SubtractCfg2Str, "diff-type: added source: Public Internet [250.2.4.4/30] destination: subnet2 "+
+		"dir1: All Connections dir2: No connection")
+	require.Contains(t, cfg1SubtractCfg2Str, "diff-type: added source: Public Internet [250.2.4.64/26] destination: subnet2 "+
+		"dir1: All Connections dir2: No connection")
+	require.Contains(t, cfg1SubtractCfg2Str, "diff-type: added source: Public Internet [250.2.4.8/29] destination: subnet2 "+
+		"dir1: All Connections dir2: No connection")
+	require.Contains(t, cfg1SubtractCfg2Str, "diff-type: changed source: subnet2 destination: Public Internet [200.2.4.0/24] "+
+		"dir1: All Connections dir2: protocol: TCP src-ports: 0-1000 dst-ports: 0-443")
 }
