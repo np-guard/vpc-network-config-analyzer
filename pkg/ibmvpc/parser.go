@@ -516,8 +516,8 @@ func getPgwConfig(
 	return nil
 }
 
-func ignoreFIPWarning(fipName string) string {
-	return "warning: ignoring floatingIP " + fipName
+func ignoreFIPWarning(fipName, details string) string {
+	return fmt.Sprintf("warning: ignoring floatingIP %s: %s", fipName, details)
 }
 
 func getFipConfig(
@@ -533,12 +533,14 @@ func getFipConfig(
 			targetUID = *target.PrimaryIP.ID
 		case *vpc1.FloatingIPTarget:
 			if *target.ResourceType != networkInterfaceResourceType {
-				fmt.Println(ignoreFIPWarning(*fip.Name))
+				fmt.Println(ignoreFIPWarning(*fip.Name,
+					fmt.Sprintf("target.ResourceType %s is not supported (only networkInterfaceResourceType supported)",
+						*target.ResourceType)))
 				continue
 			}
 			targetUID = *target.PrimaryIP.ID
 		default:
-			fmt.Println(ignoreFIPWarning(*fip.Name))
+			fmt.Println(ignoreFIPWarning(*fip.Name, "target (FloatingIPTargetIntf) is not of the expected type"))
 			continue
 		}
 
