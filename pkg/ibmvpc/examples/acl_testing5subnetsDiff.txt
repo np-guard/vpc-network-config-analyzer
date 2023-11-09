@@ -1,8 +1,8 @@
 Analysis for diff between VPC test-vpc-ky1 and VPC test-vpc-ky2
 diff-type: added source: sub1-2-ky destination: sub1-1-ky dir1: protocol: TCP dir2: No connection
 diff-type: added source: sub1-3-ky destination: sub1-1-ky dir1: protocol: TCP dir2: No connection
-
 diff-type: changed source: sub2-1-ky destination: Public Internet [8.8.8.8/32] dir1: protocol: UDP dst-ports: 53 dir2: protocol: UDP dst-ports: 43,53
+
 diff-type: removed source: sub2-1-ky destination: Public Internet [8.8.8.0/29] dir1: No connection dir2: protocol: UDP dst-ports: 53 *
 diff-type: removed source: sub2-1-ky destination: Public Internet [8.8.8.10/31] dir1: No connection dir2: protocol: UDP dst-ports: 53 *
 diff-type: removed source: sub2-1-ky destination: Public Internet [8.8.8.12/30] dir1: No connection dir2: protocol: UDP dst-ports: 53 *

@@ -67,11 +67,11 @@ func (configs ConfigsForDiff) GetSubnetsDiff(grouping bool) (*DiffBetweenSubnets
 	if err != nil {
 		return nil, err
 	}
-	subnet1Subtract2, err1 := alignedConfigConnectivity1.subtract(alignedConfigConnectivity2)
+	subnet1Subtract2, err1 := alignedConfigConnectivity1.subtract(alignedConfigConnectivity2, true)
 	if err1 != nil {
 		return nil, err1
 	}
-	subnet2Subtract1, err2 := alignedConfigConnectivity2.subtract(alignedConfigConnectivity1)
+	subnet2Subtract1, err2 := alignedConfigConnectivity2.subtract(alignedConfigConnectivity1, false)
 	if err2 != nil {
 		return nil, err2
 	}
@@ -105,9 +105,12 @@ func (c *VPCConfig) getVPCResourceInfInOtherConfig(other *VPCConfig, ep VPCResou
 	return nil, nil
 }
 
-// subtract Subtract one SubnetConnectivityMap from the other
+// subtract Subtract one SubnetConnectivityMap from the other:
+// connections may be identical, non-existing in other or existing in other but changed;
+// the latter are included only if includeChanged, to avoid duplication in the final presentation
+//
 // assumption: any connection from connectivity and "other" have src (dst) which are either disjoint or equal
-func (subnetConfConnectivity *SubnetConfigConnectivity) subtract(other *SubnetConfigConnectivity) (
+func (subnetConfConnectivity *SubnetConfigConnectivity) subtract(other *SubnetConfigConnectivity, includeChanged bool) (
 	connectivitySubtract SubnetsDiff, err error) {
 	connectivitySubtract = map[VPCResourceIntf]map[VPCResourceIntf]*connectionDiff{}
 	for src, endpointConns := range subnetConfConnectivity.subnetConnectivity {
@@ -131,8 +134,8 @@ func (subnetConfConnectivity *SubnetConfigConnectivity) subtract(other *SubnetCo
 				if otherSrc, ok := other.subnetConnectivity[srcInOther]; ok {
 					if otherConn, ok := otherSrc[dstInOther]; ok {
 						// ToDo: https://github.com/np-guard/vpc-network-config-analyzer/issues/199
-						if conns.Equals(otherConn) {
-							continue // no diff
+						if !includeChanged || conns.Equal(otherConn) {
+							continue
 						}
 						connDiff.conn2 = otherConn
 						connDiff.diff = ChangedConnection

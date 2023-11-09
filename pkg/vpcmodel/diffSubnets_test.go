@@ -80,7 +80,7 @@ func configSimpleSubnetSubtract() (subnetConfigConn1, subnetConfigConn2 *SubnetC
 
 func TestSimpleSubnetSubtract(t *testing.T) {
 	subnetConfigConn1, subnetConfigConn2 := configSimpleSubnetSubtract()
-	subnet1Subtract2, err := subnetConfigConn1.subtract(subnetConfigConn2)
+	subnet1Subtract2, err := subnetConfigConn1.subtract(subnetConfigConn2, true)
 	if err != nil {
 		fmt.Println("error:", err.Error())
 	}
@@ -88,7 +88,7 @@ func TestSimpleSubnetSubtract(t *testing.T) {
 	fmt.Printf("subnet1Subtract2:\n%v\n", subnet1Subtract2Str)
 	require.Equal(t, err, nil)
 	newLines := strings.Count(subnet1Subtract2Str, "\n")
-	require.Equal(t, 4, newLines)
+	require.Equal(t, 5, newLines)
 	require.Contains(t, subnet1Subtract2Str, "diff-type: added source: subnet0 destination: subnet1 "+
 		"dir1: All Connections dir2: No connection, workloads-diff-info: workloads subnet0 and subnet1 added")
 	require.Contains(t, subnet1Subtract2Str, "diff-type: added source: subnet1 destination: subnet2 "+
@@ -97,17 +97,17 @@ func TestSimpleSubnetSubtract(t *testing.T) {
 		"dir1: All Connections dir2: No connection")
 	require.Contains(t, subnet1Subtract2Str, "diff-type: added source: subnet3 destination: subnet1 "+
 		"dir1: All Connections dir2: No connection, workloads-diff-info: workload subnet1 added")
+	require.Contains(t, subnet1Subtract2Str, "diff-type: changed source: subnet3 destination: subnet4 dir1: "+
+		"protocol: TCP src-ports: 10-100 dst-ports: 443 dir2: All Connections\n")
 
-	cfg2Subtract1, err := subnetConfigConn2.subtract(subnetConfigConn1)
+	cfg2Subtract1, err := subnetConfigConn2.subtract(subnetConfigConn1, false)
 	if err != nil {
 		fmt.Println("error:", err.Error())
 	}
 	require.Equal(t, err, nil)
 	subnet2Subtract1Str := cfg2Subtract1.EnhancedString(false)
 	fmt.Printf("cfg2Subtract1:\n%v", subnet2Subtract1Str)
-	require.Contains(t, subnet2Subtract1Str, "diff-type: changed source: subnet3 destination: subnet4 dir1: "+
-		"protocol: TCP src-ports: 10-100 dst-ports: 443 dir2: All Connections\n")
-	require.Contains(t, subnet2Subtract1Str, "diff-type: removed source: subnet4 destination: subnet5 dir1: "+
+	require.Equal(t, subnet2Subtract1Str, "diff-type: removed source: subnet4 destination: subnet5 dir1: "+
 		"No connection dir2: All Connections, workloads-diff-info: workload subnet5 removed\n")
 }
 
@@ -165,7 +165,7 @@ func TestSimpleIPAndSubnetSubtract(t *testing.T) {
 	}
 
 	// verified bit by bit :-)
-	cfg1SubCfg2, err := alignedCfgConn1.subtract(alignedCfgConn2)
+	cfg1SubCfg2, err := alignedCfgConn1.subtract(alignedCfgConn2, true)
 	if err != nil {
 		fmt.Println("error:", err.Error())
 	}
