@@ -44,7 +44,7 @@ func analysisTypeToUseCase(inArgs *InArgs) vpcmodel.OutputUseCase {
 	case allSubnets:
 		return vpcmodel.AllSubnets
 	case allSubnetsDiff:
-		return vpcmodel.AllSubnetsDiff
+		return vpcmodel.CfgsDiff
 	}
 	return vpcmodel.AllEndpoints
 }

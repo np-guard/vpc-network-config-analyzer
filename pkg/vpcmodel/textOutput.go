@@ -36,7 +36,7 @@ func (t *TextOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 		out += subnetsConn.String()
 	case SingleSubnet:
 		out += c1.GetConnectivityOutputPerEachSubnetSeparately()
-	case AllSubnetsDiff:
+	case CfgsDiff:
 		out += subnetsDiff.String()
 	}
 	// write output to file and return the output string

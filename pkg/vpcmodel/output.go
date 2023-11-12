@@ -29,8 +29,8 @@ const (
 	AllEndpoints    OutputUseCase = iota // connectivity between network interfaces and external ip-blocks
 	SingleSubnet                         // connectivity per single subnet with nacl
 	AllSubnets                           // connectivity between subnets (consider nacl + pgw)
-	AllSubnetsDiff                       // diff between two subnets connectivity (consider nacl + pgw)
 	AllSubnetsNoPGW                      // connectivity between subnets (consider nacl only)
+	CfgsDiff                             // diff between subnets connectivity of two cfgs (consider nacl + pgw)
 )
 
 // OutputGenerator captures one vpc config1 with its connectivity analysis results, and implements
@@ -42,7 +42,7 @@ type OutputGenerator struct {
 	useCase        OutputUseCase
 	nodesConn      *VPCConnectivity
 	subnetsConn    *VPCsubnetConnectivity
-	subnetsDiff    *diffBetweenCfgs
+	cfgsDiff       *diffBetweenCfgs
 }
 
 func NewOutputGenerator(c1, c2 *VPCConfig, grouping bool, uc OutputUseCase, archOnly bool) (*OutputGenerator, error) {
@@ -67,13 +67,13 @@ func NewOutputGenerator(c1, c2 *VPCConfig, grouping bool, uc OutputUseCase, arch
 			}
 			res.subnetsConn = subnetsConn
 		}
-		if uc == AllSubnetsDiff {
+		if uc == CfgsDiff {
 			configsForDiff := &ConfigsForDiff{c1, c2}
-			subnetsDiff, err := configsForDiff.GetDiff(grouping)
+			subnetsDiff, err := configsForDiff.GetDiff(Subnets, grouping)
 			if err != nil {
 				return nil, err
 			}
-			res.subnetsDiff = subnetsDiff
+			res.cfgsDiff = subnetsDiff
 		}
 	}
 	return res, nil
@@ -107,7 +107,7 @@ func (o *OutputGenerator) Generate(f OutFormat, outFile string) (*VPCAnalysisOut
 		return nil, errors.New("unsupported output format")
 	}
 
-	return formatter.WriteOutput(o.config1, o.config2, o.nodesConn, o.subnetsConn, o.subnetsDiff, outFile, o.outputGrouping, o.useCase)
+	return formatter.WriteOutput(o.config1, o.config2, o.nodesConn, o.subnetsConn, o.cfgsDiff, outFile, o.outputGrouping, o.useCase)
 }
 
 type OutputFormatter interface {

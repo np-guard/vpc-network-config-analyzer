@@ -95,7 +95,7 @@ func getTestFileName(testName string,
 		res = baseName + suffixOutFileSubnetsLevel
 	case vpcmodel.AllSubnetsNoPGW:
 		res = baseName + suffixOutFileSubnetsLevelNoPGW
-	case vpcmodel.AllSubnetsDiff:
+	case vpcmodel.CfgsDiff:
 		res = baseName + suffixOutFileDiffSubnets
 	}
 	switch format {
@@ -339,7 +339,7 @@ var tests = []*vpcGeneralTest{
 		name: "acl_testing5",
 		// TODO: currently for this test, there are 2 connections that only differ in statefulness attribute, and
 		// are not yet displayed in the diff report (sub1-1-ky => sub1-2-ky , sub1-1-ky => sub1-3-ky)
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnetsDiff},
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.CfgsDiff},
 		format:   vpcmodel.Text,
 	},
 }
@@ -407,7 +407,7 @@ func (tt *vpcGeneralTest) runTest(t *testing.T) {
 	var vpcConfigs2nd map[string]*vpcmodel.VPCConfig
 	diffUseCase := false
 	for _, useCase := range tt.useCases {
-		if useCase == vpcmodel.AllSubnetsDiff {
+		if useCase == vpcmodel.CfgsDiff {
 			diffUseCase = true
 		}
 	}

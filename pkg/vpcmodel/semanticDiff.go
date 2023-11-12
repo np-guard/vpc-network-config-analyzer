@@ -19,6 +19,13 @@ const (
 	changedConnection
 )
 
+type DiffComputationFor = int
+
+const (
+	Vsis DiffComputationFor = iota
+	Subnets
+)
+
 const (
 	castingNodeErr = "%s should be external node but casting to Node failed"
 )
@@ -46,22 +53,38 @@ type diffBetweenCfgs struct {
 	cfg2ConnRemovedFrom1 connectivesDiff
 }
 
-func (configs ConfigsForDiff) GetDiff(grouping bool) (*diffBetweenCfgs, error) {
-	// 1. compute connectivity for each of the subnets
-	subnetsConn1, err := configs.config1.GetSubnetsConnectivity(true, grouping)
-	if err != nil {
-		return nil, err
-	}
-	subnetsConn2, err := configs.config2.GetSubnetsConnectivity(true, grouping)
-	if err != nil {
-		return nil, err
+func (configs ConfigsForDiff) GetDiff(diffComputationFor DiffComputationFor, grouping bool) (*diffBetweenCfgs, error) {
+	// 1. compute connectivity for each of the configurations
+	var generalConnectivityMap1, generalConnectivityMap2 generalConnectivityMap
+	if diffComputationFor == Subnets {
+		subnetsConn1, err := configs.config1.GetSubnetsConnectivity(true, grouping)
+		if err != nil {
+			return nil, err
+		}
+		subnetsConn2, err := configs.config2.GetSubnetsConnectivity(true, grouping)
+		if err != nil {
+			return nil, err
+		}
+		generalConnectivityMap1 = subnetsConn1.AllowedConnsCombined
+		generalConnectivityMap2 = subnetsConn2.AllowedConnsCombined
+	} else if diffComputationFor == Vsis {
+		connectivity1, err := configs.config1.GetVPCNetworkConnectivity(grouping)
+		if err != nil {
+			return nil, err
+		}
+		connectivity2, err := configs.config2.GetVPCNetworkConnectivity(grouping)
+		if err != nil {
+			return nil, err
+		}
+		generalConnectivityMap1 = connectivity1.AllowedConnsCombined.nodesConnectivityToGeneralConnectivity()
+		generalConnectivityMap2 = connectivity2.AllowedConnsCombined.nodesConnectivityToGeneralConnectivity()
 	}
 
 	// 2. Computes delta in both directions
 	subnetConfigConn1 := &configConnectivity{configs.config1,
-		subnetsConn1.AllowedConnsCombined}
+		generalConnectivityMap1}
 	subnetConfigConn2 := &configConnectivity{configs.config2,
-		subnetsConn2.AllowedConnsCombined}
+		generalConnectivityMap2}
 	alignedConfigConnectivity1, alignedConfigConnectivity2, err :=
 		subnetConfigConn1.getConnectivesWithSameIPBlocks(subnetConfigConn2)
 	if err != nil {
@@ -82,6 +105,22 @@ func (configs ConfigsForDiff) GetDiff(grouping bool) (*diffBetweenCfgs, error) {
 		cfg1ConnRemovedFrom2: cfg1ConnRemovedFrom2,
 		cfg2ConnRemovedFrom1: cfg2ConnRemovedFrom1}
 	return res, nil
+}
+
+func (nodesConnectivity NodesConnectionsMap) nodesConnectivityToGeneralConnectivity() (generalConnMap generalConnectivityMap) {
+	generalConnMap = generalConnectivityMap{}
+	for src, connsMap := range nodesConnectivity {
+		for dst, conn := range connsMap {
+			if conn.IsEmpty() {
+				continue
+			}
+			if _, ok := generalConnMap[src]; !ok {
+				generalConnMap[src] = map[VPCResourceIntf]*common.ConnectionSet{}
+			}
+			generalConnMap[src][dst] = conn
+		}
+	}
+	return generalConnMap
 }
 
 // for a given VPCResourceIntf (representing a subnet or an external ip) in config return the VPCResourceIntf representing the
@@ -562,7 +601,7 @@ func externalNodeToIPBlock(external Node) (ipBlock *common.IPBlock, err error) {
 //}
 //
 //// todo: instead of adding functionality to grouping, I plan to have more generic connectivity items that will be grouped
-////       encode the subnetsDiff into this generic item as well as the other entities we are grouping
+////       encode the cfgsDiff into this generic item as well as the other entities we are grouping
 ////       and then decode in the printing
 ////       the idea is to use instead of *common.ConnectionSet in the grouped entity a string which will encode the connection
 ////       and also the diff where relevant
