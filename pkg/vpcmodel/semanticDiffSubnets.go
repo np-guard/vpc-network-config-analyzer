@@ -11,16 +11,16 @@ import (
 type DiffType = int
 
 const (
-	NoDiff DiffType = iota
-	MissingSrcEP
-	MissingDstEP
-	MissingSrcDstEP
-	MissingConnection
-	ChangedConnection
+	noDiff DiffType = iota
+	missingSrcEP
+	missingDstEP
+	missingSrcDstEP
+	missingConnection
+	changedConnection
 )
 
 const (
-	CastingNodeErr = "%s should be external node but casting to Node failed"
+	castingNodeErr = "%s should be external node but casting to Node failed"
 )
 
 type connectionDiff struct {
@@ -94,7 +94,7 @@ func (c *VPCConfig) getVPCResourceInfInOtherConfig(other *VPCConfig, ep VPCResou
 			nodeSameCidr := findNodeWithCidr(other.Nodes, ep.(Node).Cidr())
 			return nodeSameCidr, nil
 		}
-		return nil, fmt.Errorf(CastingNodeErr, node.Name())
+		return nil, fmt.Errorf(castingNodeErr, node.Name())
 	}
 	for _, nodeSet := range other.NodeSets {
 		if nodeSet.Name() == ep.Name() {
@@ -129,7 +129,7 @@ func (subnetConfConnectivity *SubnetConfigConnectivity) subtract(other *SubnetCo
 			if err2 != nil {
 				return nil, err2
 			}
-			connDiff := &connectionDiff{conns, nil, MissingConnection}
+			connDiff := &connectionDiff{conns, nil, missingConnection}
 			if srcInOther != nil && dstInOther != nil {
 				if otherSrc, ok := other.subnetConnectivity[srcInOther]; ok {
 					if otherConn, ok := otherSrc[dstInOther]; ok {
@@ -138,7 +138,7 @@ func (subnetConfConnectivity *SubnetConfigConnectivity) subtract(other *SubnetCo
 							continue
 						}
 						connDiff.conn2 = otherConn
-						connDiff.diff = ChangedConnection
+						connDiff.diff = changedConnection
 					}
 				}
 			} else { // srcInOther == nil || dstInOther == nil
@@ -160,15 +160,15 @@ func getDiffType(src, srcInOther, dst, dstInOther VPCResourceIntf) DiffType {
 	missingDst := dstInOther == nil && dstIsSubnet
 	switch {
 	case missingSrc && missingDst:
-		return MissingSrcDstEP
+		return missingSrcDstEP
 	case missingSrc:
-		return MissingSrcEP
+		return missingSrcEP
 	case missingDst:
-		return MissingDstEP
+		return missingDstEP
 	case srcInOther == nil || dstInOther == nil:
-		return MissingConnection
+		return missingConnection
 	}
-	return NoDiff
+	return noDiff
 }
 
 // EnhancedString ToDo: likely the current printing functionality will no longer be needed once the grouping is added
@@ -212,8 +212,8 @@ func connStr(conn *common.ConnectionSet) string {
 
 func diffAndEndpointsDisc(diff DiffType, src, dst VPCResourceIntf, thisMinusOther bool) (diffDisc, workLoad string) {
 	const (
-		SubnetsDiffInfo = ", subnets-diff-info:"
-		TripleString    = "%s %s %s"
+		subnetsDiffInfo = ", subnets-diff-info:"
+		tripleString    = "%s %s %s"
 	)
 	addOrRemoved := ""
 	if thisMinusOther {
@@ -222,16 +222,16 @@ func diffAndEndpointsDisc(diff DiffType, src, dst VPCResourceIntf, thisMinusOthe
 		addOrRemoved = "removed"
 	}
 	switch diff {
-	case MissingSrcEP:
-		return addOrRemoved, fmt.Sprintf(TripleString, SubnetsDiffInfo, src.Name(), addOrRemoved)
-	case MissingDstEP:
-		return addOrRemoved, fmt.Sprintf(TripleString, SubnetsDiffInfo, dst.Name(), addOrRemoved)
-	case MissingSrcDstEP:
+	case missingSrcEP:
+		return addOrRemoved, fmt.Sprintf(tripleString, subnetsDiffInfo, src.Name(), addOrRemoved)
+	case missingDstEP:
+		return addOrRemoved, fmt.Sprintf(tripleString, subnetsDiffInfo, dst.Name(), addOrRemoved)
+	case missingSrcDstEP:
 		return addOrRemoved, fmt.Sprintf("%s %s and %s %s",
-			SubnetsDiffInfo, src.Name(), dst.Name(), addOrRemoved)
-	case MissingConnection:
+			subnetsDiffInfo, src.Name(), dst.Name(), addOrRemoved)
+	case missingConnection:
 		return addOrRemoved, ""
-	case ChangedConnection:
+	case changedConnection:
 		return "changed", ""
 	}
 	return "", ""
@@ -360,13 +360,13 @@ func (subnetConnectivity *SubnetConnectivityMap) actualAlignSrcOrDstGivenIPBlist
 				if node, ok := src.(Node); ok {
 					origIPBlock, err = externalNodeToIPBlock(node)
 				} else {
-					return nil, fmt.Errorf(CastingNodeErr, node.Name())
+					return nil, fmt.Errorf(castingNodeErr, node.Name())
 				}
 			} else {
 				if node, ok := dst.(Node); ok {
 					origIPBlock, err = externalNodeToIPBlock(node)
 				} else {
-					return nil, fmt.Errorf(CastingNodeErr, node.Name())
+					return nil, fmt.Errorf(castingNodeErr, node.Name())
 				}
 			}
 			if err != nil {
@@ -435,7 +435,7 @@ func (subnetConnectivity SubnetConnectivityMap) getIPBlocksList() (ipbList []*co
 					}
 					ipbList = append(ipbList, ipBlock)
 				} else {
-					return nil, fmt.Errorf(CastingNodeErr, src.Name())
+					return nil, fmt.Errorf(castingNodeErr, src.Name())
 				}
 			}
 			if dst.IsExternal() {
@@ -446,7 +446,7 @@ func (subnetConnectivity SubnetConnectivityMap) getIPBlocksList() (ipbList []*co
 					}
 					ipbList = append(ipbList, ipBlock)
 				} else {
-					return nil, fmt.Errorf(CastingNodeErr, dst.Name())
+					return nil, fmt.Errorf(castingNodeErr, dst.Name())
 				}
 			}
 		}
