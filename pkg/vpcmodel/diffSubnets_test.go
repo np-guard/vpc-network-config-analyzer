@@ -22,15 +22,15 @@ import (
 //     subnet3 -> subnet2
 //     subnet3 -> subnet4
 
-//     expected diff cfg1 subtract cfg2:
-//     cfg1 subtract cfg2
+//     expected diff cfg1 connMissingOrChanged cfg2:
+//     cfg1 connMissingOrChanged cfg2
 //     subnet0 -> subnet1 missing src and dst
 //     subnet1 -> subnet2 missing src
 //     subnet3 -> subnet1 missing dst
 //     subnet2 -> subnet3 missing connection
 //
-//     cfg2 subtract cfg1
-//     subnet1 subtract subnet2:
+//     cfg2 connMissingOrChanged cfg1
+//     subnet1 connMissingOrChanged subnet2:
 //     subnet3 -> subnet4 different connection
 
 func configSimpleSubnetSubtract() (subnetConfigConn1, subnetConfigConn2 *SubnetConfigConnectivity) {
@@ -80,7 +80,7 @@ func configSimpleSubnetSubtract() (subnetConfigConn1, subnetConfigConn2 *SubnetC
 
 func TestSimpleSubnetSubtract(t *testing.T) {
 	subnetConfigConn1, subnetConfigConn2 := configSimpleSubnetSubtract()
-	subnet1Subtract2, err := subnetConfigConn1.subtract(subnetConfigConn2, true)
+	subnet1Subtract2, err := subnetConfigConn1.connMissingOrChanged(subnetConfigConn2, true)
 	if err != nil {
 		fmt.Println("error:", err.Error())
 	}
@@ -94,13 +94,13 @@ func TestSimpleSubnetSubtract(t *testing.T) {
 	require.Contains(t, subnet1Subtract2Str, "diff-type: added, source: subnet1, destination: subnet2, "+
 		"config1: All Connections, config2: No connection, subnets-diff-info: subnet1 added")
 	require.Contains(t, subnet1Subtract2Str, "diff-type: added, source: subnet2, destination: subnet3, "+
-		"config1: All Connections, config2: No connection")
+		"config1: All Connections, config2: No connection, subnets-diff-info:")
 	require.Contains(t, subnet1Subtract2Str, "diff-type: added, source: subnet3, destination: subnet1, "+
 		"config1: All Connections, config2: No connection, subnets-diff-info: subnet1 added")
-	require.Contains(t, subnet1Subtract2Str, "diff-type: changed, source: subnet3, destination: subnet4, config1: "+
-		"protocol: TCP src-ports: 10-100 dst-ports: 443, config2: All Connections\n")
+	require.Contains(t, subnet1Subtract2Str, "diff-type: changed, source: subnet3, destination: subnet4, "+
+		"config1: protocol: TCP src-ports: 10-100 dst-ports: 443, config2: All Connections, subnets-diff-info:")
 
-	cfg2Subtract1, err := subnetConfigConn2.subtract(subnetConfigConn1, false)
+	cfg2Subtract1, err := subnetConfigConn2.connMissingOrChanged(subnetConfigConn1, false)
 	if err != nil {
 		fmt.Println("error:", err.Error())
 	}
@@ -165,7 +165,7 @@ func TestSimpleIPAndSubnetSubtract(t *testing.T) {
 	}
 
 	// verified bit by bit :-)
-	cfg1SubCfg2, err := alignedCfgConn1.subtract(alignedCfgConn2, true)
+	cfg1SubCfg2, err := alignedCfgConn1.connMissingOrChanged(alignedCfgConn2, true)
 	if err != nil {
 		fmt.Println("error:", err.Error())
 	}
@@ -175,17 +175,17 @@ func TestSimpleIPAndSubnetSubtract(t *testing.T) {
 	newLines := strings.Count(cfg1SubtractCfg2Str, "\n")
 	require.Equal(t, 7, newLines)
 	require.Contains(t, cfg1SubtractCfg2Str, "diff-type: added, source: Public Internet [250.2.4.128/25], destination: subnet2, "+
-		"config1: All Connections, config2: No connection")
+		"config1: All Connections, config2: No connection, subnets-diff-info:")
 	require.Contains(t, cfg1SubtractCfg2Str, "diff-type: added, source: Public Internet [250.2.4.16/28], destination: subnet2, "+
-		"config1: All Connections, config2: No connection")
+		"config1: All Connections, config2: No connection, subnets-diff-info:")
 	require.Contains(t, cfg1SubtractCfg2Str, "diff-type: added, source: Public Internet [250.2.4.32/27], destination: subnet2, "+
-		"config1: All Connections, config2: No connection")
+		"config1: All Connections, config2: No connection, subnets-diff-info:")
 	require.Contains(t, cfg1SubtractCfg2Str, "diff-type: added, source: Public Internet [250.2.4.4/30], destination: subnet2, "+
-		"config1: All Connections, config2: No connection")
+		"config1: All Connections, config2: No connection, subnets-diff-info:")
 	require.Contains(t, cfg1SubtractCfg2Str, "diff-type: added, source: Public Internet [250.2.4.64/26], destination: subnet2, "+
-		"config1: All Connections, config2: No connection")
+		"config1: All Connections, config2: No connection, subnets-diff-info:")
 	require.Contains(t, cfg1SubtractCfg2Str, "diff-type: added, source: Public Internet [250.2.4.8/29], destination: subnet2, "+
-		"config1: All Connections, config2: No connection")
+		"config1: All Connections, config2: No connection, subnets-diff-info:")
 	require.Contains(t, cfg1SubtractCfg2Str, "diff-type: changed, source: subnet2, destination: Public Internet [200.2.4.0/24], "+
-		"config1: All Connections, config2: protocol: TCP src-ports: 0-1000 dst-ports: 0-443")
+		"config1: All Connections, config2: protocol: TCP src-ports: 0-1000 dst-ports: 0-443, subnets-diff-info:")
 }

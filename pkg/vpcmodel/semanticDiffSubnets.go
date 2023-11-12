@@ -67,11 +67,11 @@ func (configs ConfigsForDiff) GetSubnetsDiff(grouping bool) (*DiffBetweenSubnets
 	if err != nil {
 		return nil, err
 	}
-	subnet1Subtract2, err1 := alignedConfigConnectivity1.subtract(alignedConfigConnectivity2, true)
+	subnet1Subtract2, err1 := alignedConfigConnectivity1.connMissingOrChanged(alignedConfigConnectivity2, true)
 	if err1 != nil {
 		return nil, err1
 	}
-	subnet2Subtract1, err2 := alignedConfigConnectivity2.subtract(alignedConfigConnectivity1, false)
+	subnet2Subtract1, err2 := alignedConfigConnectivity2.connMissingOrChanged(alignedConfigConnectivity1, false)
 	if err2 != nil {
 		return nil, err2
 	}
@@ -105,12 +105,12 @@ func (c *VPCConfig) getVPCResourceInfInOtherConfig(other *VPCConfig, ep VPCResou
 	return nil, nil
 }
 
-// subtract Subtract one SubnetConnectivityMap from the other:
+// connMissingOrChanged of subnetConfConnectivity w.r.t. the other:
 // connections may be identical, non-existing in other or existing in other but changed;
 // the latter are included only if includeChanged, to avoid duplication in the final presentation
 //
 // assumption: any connection from connectivity and "other" have src (dst) which are either disjoint or equal
-func (subnetConfConnectivity *SubnetConfigConnectivity) subtract(other *SubnetConfigConnectivity, includeChanged bool) (
+func (subnetConfConnectivity *SubnetConfigConnectivity) connMissingOrChanged(other *SubnetConfigConnectivity, includeChanged bool) (
 	connectivitySubtract SubnetsDiff, err error) {
 	connectivitySubtract = map[VPCResourceIntf]map[VPCResourceIntf]*connectionDiff{}
 	for src, endpointConns := range subnetConfConnectivity.subnetConnectivity {
@@ -194,7 +194,7 @@ func (subnetDiff *SubnetsDiff) EnhancedString(thisMinusOther bool) string {
 				conn2Str = connStr(connDiff.conn1)
 			}
 			diffType, endpointsDiff := diffAndEndpointsDisc(connDiff.diff, src, dst, thisMinusOther)
-			printDiff := fmt.Sprintf("diff-type: %s, source: %s, destination: %s, config1: %s, config2: %s%s\n",
+			printDiff := fmt.Sprintf("diff-type: %s, source: %s, destination: %s, config1: %s, config2: %s, subnets-diff-info: %s\n",
 				diffType, src.Name(), dst.Name(), conn1Str, conn2Str, endpointsDiff)
 			strList = append(strList, printDiff)
 		}
@@ -214,8 +214,7 @@ func connStr(conn *common.ConnectionSet) string {
 
 func diffAndEndpointsDisc(diff DiffType, src, dst VPCResourceIntf, thisMinusOther bool) (diffDisc, workLoad string) {
 	const (
-		subnetsDiffInfo = ", subnets-diff-info:"
-		tripleString    = "%s %s %s"
+		doubleString = "%s %s"
 	)
 	addOrRemoved := ""
 	if thisMinusOther {
@@ -225,12 +224,12 @@ func diffAndEndpointsDisc(diff DiffType, src, dst VPCResourceIntf, thisMinusOthe
 	}
 	switch diff {
 	case missingSrcEP:
-		return addOrRemoved, fmt.Sprintf(tripleString, subnetsDiffInfo, src.Name(), addOrRemoved)
+		return addOrRemoved, fmt.Sprintf(doubleString, src.Name(), addOrRemoved)
 	case missingDstEP:
-		return addOrRemoved, fmt.Sprintf(tripleString, subnetsDiffInfo, dst.Name(), addOrRemoved)
+		return addOrRemoved, fmt.Sprintf(doubleString, dst.Name(), addOrRemoved)
 	case missingSrcDstEP:
-		return addOrRemoved, fmt.Sprintf("%s %s and %s %s",
-			subnetsDiffInfo, src.Name(), dst.Name(), addOrRemoved)
+		return addOrRemoved, fmt.Sprintf("%s and %s %s",
+			src.Name(), dst.Name(), addOrRemoved)
 	case missingConnection:
 		return addOrRemoved, ""
 	case changedConnection:
