@@ -177,7 +177,7 @@ func getDiffType(src, srcInOther, dst, dstInOther VPCResourceIntf) DiffType {
 // anyways the diff print will be worked on before the final merge
 
 func (diff *DiffBetweenSubnets) String() string {
-	return diff.subnet1Subtract2.EnhancedString(true) + "\n" +
+	return diff.subnet1Subtract2.EnhancedString(true) +
 		diff.subnet2Subtract1.EnhancedString(false)
 }
 
