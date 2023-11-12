@@ -1,10 +1,10 @@
 Analysis for diff between VPC test-vpc-ky1 and VPC test-vpc-ky2
-diff-type: added, source: sub1-2-ky, destination: sub1-1-ky, config1: protocol: TCP, config2: No connection, subnets-diff-info: 
-diff-type: added, source: sub1-3-ky, destination: sub1-1-ky, config1: protocol: TCP, config2: No connection, subnets-diff-info: 
 diff-type: changed, source: sub1-1-ky, destination: sub1-2-ky, config1: protocol: TCP, config2: protocol: TCP *, subnets-diff-info: 
 diff-type: changed, source: sub1-1-ky, destination: sub1-3-ky, config1: protocol: TCP, config2: protocol: TCP *, subnets-diff-info: 
 diff-type: changed, source: sub2-1-ky, destination: Public Internet [8.8.8.8/32], config1: protocol: UDP dst-ports: 53, config2: protocol: UDP dst-ports: 43,53, subnets-diff-info: 
-diff-type: removed, source: sub2-1-ky, destination: Public Internet [8.8.8.0/29], config1: No connection, config2: protocol: UDP dst-ports: 53 *, subnets-diff-info: 
-diff-type: removed, source: sub2-1-ky, destination: Public Internet [8.8.8.10/31], config1: No connection, config2: protocol: UDP dst-ports: 53 *, subnets-diff-info: 
-diff-type: removed, source: sub2-1-ky, destination: Public Internet [8.8.8.12/30], config1: No connection, config2: protocol: UDP dst-ports: 53 *, subnets-diff-info: 
-diff-type: removed, source: sub2-1-ky, destination: Public Internet [8.8.8.9/32], config1: No connection, config2: protocol: UDP dst-ports: 53 *, subnets-diff-info: 
+diff-type: removed, source: sub1-2-ky, destination: sub1-1-ky, config1: protocol: TCP, config2: No connection, subnets-diff-info: 
+diff-type: removed, source: sub1-3-ky, destination: sub1-1-ky, config1: protocol: TCP, config2: No connection, subnets-diff-info: 
+diff-type: added, source: sub2-1-ky, destination: Public Internet [8.8.8.0/29], config1: No connection, config2: protocol: UDP dst-ports: 53 *, subnets-diff-info: 
+diff-type: added, source: sub2-1-ky, destination: Public Internet [8.8.8.10/31], config1: No connection, config2: protocol: UDP dst-ports: 53 *, subnets-diff-info: 
+diff-type: added, source: sub2-1-ky, destination: Public Internet [8.8.8.12/30], config1: No connection, config2: protocol: UDP dst-ports: 53 *, subnets-diff-info: 
+diff-type: added, source: sub2-1-ky, destination: Public Internet [8.8.8.9/32], config1: No connection, config2: protocol: UDP dst-ports: 53 *, subnets-diff-info: 

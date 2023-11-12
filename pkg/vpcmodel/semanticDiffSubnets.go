@@ -218,9 +218,9 @@ func diffAndEndpointsDisc(diff DiffType, src, dst VPCResourceIntf, thisMinusOthe
 	)
 	addOrRemoved := ""
 	if thisMinusOther {
-		addOrRemoved = "added"
-	} else {
 		addOrRemoved = "removed"
+	} else {
+		addOrRemoved = "added"
 	}
 	switch diff {
 	case missingSrcEP:
