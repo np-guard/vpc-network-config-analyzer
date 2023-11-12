@@ -11,21 +11,22 @@ import (
 type DiffType = int
 
 const (
-	NoDiff DiffType = iota
-	MissingSrcEP
-	MissingDstEP
-	MissingSrcDstEP
-	MissingConnection
-	ChangedConnection
+	noDiff DiffType = iota
+	missingSrcEP
+	missingDstEP
+	missingSrcDstEP
+	missingConnection
+	changedConnection
 )
 
 const (
-	CastingNodeErr = "%s should be external node but casting to Node failed"
+	castingNodeErr = "%s should be external node but casting to Node failed"
 )
 
 type connectionDiff struct {
-	*common.ConnectionSet
-	diff DiffType
+	conn1 *common.ConnectionSet
+	conn2 *common.ConnectionSet
+	diff  DiffType
 }
 
 type SubnetsDiff map[VPCResourceIntf]map[VPCResourceIntf]*connectionDiff
@@ -66,11 +67,11 @@ func (configs ConfigsForDiff) GetSubnetsDiff(grouping bool) (*DiffBetweenSubnets
 	if err != nil {
 		return nil, err
 	}
-	subnet1Subtract2, err1 := alignedConfigConnectivity1.subtract(alignedConfigConnectivity2)
+	subnet1Subtract2, err1 := alignedConfigConnectivity1.connMissingOrChanged(alignedConfigConnectivity2, true)
 	if err1 != nil {
 		return nil, err1
 	}
-	subnet2Subtract1, err2 := alignedConfigConnectivity2.subtract(alignedConfigConnectivity1)
+	subnet2Subtract1, err2 := alignedConfigConnectivity2.connMissingOrChanged(alignedConfigConnectivity1, false)
 	if err2 != nil {
 		return nil, err2
 	}
@@ -93,7 +94,7 @@ func (c *VPCConfig) getVPCResourceInfInOtherConfig(other *VPCConfig, ep VPCResou
 			nodeSameCidr := findNodeWithCidr(other.Nodes, ep.(Node).Cidr())
 			return nodeSameCidr, nil
 		}
-		return nil, fmt.Errorf(CastingNodeErr, node.Name())
+		return nil, fmt.Errorf(castingNodeErr, node.Name())
 	}
 	for _, nodeSet := range other.NodeSets {
 		if nodeSet.Name() == ep.Name() {
@@ -104,9 +105,12 @@ func (c *VPCConfig) getVPCResourceInfInOtherConfig(other *VPCConfig, ep VPCResou
 	return nil, nil
 }
 
-// subtract Subtract one SubnetConnectivityMap from the other
+// connMissingOrChanged of subnetConfConnectivity w.r.t. the other:
+// connections may be identical, non-existing in other or existing in other but changed;
+// the latter are included only if includeChanged, to avoid duplication in the final presentation
+//
 // assumption: any connection from connectivity and "other" have src (dst) which are either disjoint or equal
-func (subnetConfConnectivity *SubnetConfigConnectivity) subtract(other *SubnetConfigConnectivity) (
+func (subnetConfConnectivity *SubnetConfigConnectivity) connMissingOrChanged(other *SubnetConfigConnectivity, includeChanged bool) (
 	connectivitySubtract SubnetsDiff, err error) {
 	connectivitySubtract = map[VPCResourceIntf]map[VPCResourceIntf]*connectionDiff{}
 	for src, endpointConns := range subnetConfConnectivity.subnetConnectivity {
@@ -117,7 +121,6 @@ func (subnetConfConnectivity *SubnetConfigConnectivity) subtract(other *SubnetCo
 			if _, ok := connectivitySubtract[src]; !ok {
 				connectivitySubtract[src] = map[VPCResourceIntf]*connectionDiff{}
 			}
-			diffConnectionWithType := &connectionDiff{nil, NoDiff}
 			srcInOther, err1 := subnetConfConnectivity.config.getVPCResourceInfInOtherConfig(other.config, src)
 			if err1 != nil {
 				return nil, err1
@@ -126,25 +129,24 @@ func (subnetConfConnectivity *SubnetConfigConnectivity) subtract(other *SubnetCo
 			if err2 != nil {
 				return nil, err2
 			}
+			connDiff := &connectionDiff{conns, nil, missingConnection}
 			if srcInOther != nil && dstInOther != nil {
 				if otherSrc, ok := other.subnetConnectivity[srcInOther]; ok {
-					if otherSrcDst, ok := otherSrc[dstInOther]; ok {
-						// ToDo: https://github.com/np-guard/vpc-network-config-analyzer/issues/199
-						subtractConn := conns.Subtract(otherSrcDst)
-						if subtractConn.IsEmpty() {
-							continue // no diff
+					if otherConn, ok := otherSrc[dstInOther]; ok {
+						equalConnections := conns.Equal(otherConn) &&
+							// ToDo: https://github.com/np-guard/vpc-network-config-analyzer/issues/199
+							conns.IsStateful == otherConn.IsStateful
+						if !includeChanged || equalConnections {
+							continue
 						}
-						diffConnectionWithType.ConnectionSet = subtractConn
-						diffConnectionWithType.diff = ChangedConnection
+						connDiff.conn2 = otherConn
+						connDiff.diff = changedConnection
 					}
 				}
-				if diffConnectionWithType.diff != ChangedConnection {
-					diffConnectionWithType.diff = MissingConnection
-				}
 			} else { // srcInOther == nil || dstInOther == nil
-				diffConnectionWithType.diff = getDiffType(src, srcInOther, dst, dstInOther)
+				connDiff.diff = getDiffType(src, srcInOther, dst, dstInOther)
 			}
-			connectivitySubtract[src][dst] = diffConnectionWithType
+			connectivitySubtract[src][dst] = connDiff
 		}
 	}
 	return connectivitySubtract, nil
@@ -160,41 +162,40 @@ func getDiffType(src, srcInOther, dst, dstInOther VPCResourceIntf) DiffType {
 	missingDst := dstInOther == nil && dstIsSubnet
 	switch {
 	case missingSrc && missingDst:
-		return MissingSrcDstEP
+		return missingSrcDstEP
 	case missingSrc:
-		return MissingSrcEP
+		return missingSrcEP
 	case missingDst:
-		return MissingDstEP
+		return missingDstEP
 	case srcInOther == nil || dstInOther == nil:
-		return MissingConnection
+		return missingConnection
 	}
-	return NoDiff
+	return noDiff
 }
 
 // EnhancedString ToDo: likely the current printing functionality will no longer be needed once the grouping is added
 // anyways the diff print will be worked on before the final merge
 
 func (diff *DiffBetweenSubnets) String() string {
-	return diff.subnet1Subtract2.EnhancedString(true) + "\n" +
+	return diff.subnet1Subtract2.EnhancedString(true) +
 		diff.subnet2Subtract1.EnhancedString(false)
 }
 
 func (subnetDiff *SubnetsDiff) EnhancedString(thisMinusOther bool) string {
-	var diffDirection string
 	strList := []string{}
-	if thisMinusOther {
-		diffDirection = "--"
-	} else {
-		diffDirection = "++"
-	}
 	for src, endpointConnDiff := range *subnetDiff {
 		for dst, connDiff := range endpointConnDiff {
-			var connectionSetDiff string
-			if connDiff.ConnectionSet != nil {
-				connectionSetDiff = connDiff.ConnectionSet.EnhancedString()
+			conn1Str, conn2Str := "", ""
+			if thisMinusOther {
+				conn1Str = connStr(connDiff.conn1)
+				conn2Str = connStr(connDiff.conn2)
+			} else {
+				conn1Str = connStr(connDiff.conn2)
+				conn2Str = connStr(connDiff.conn1)
 			}
-			printDiff := fmt.Sprintf("%s %s => %s : %s %s\n", diffDirection, src.Name(), dst.Name(),
-				diffDescription(connDiff.diff), connectionSetDiff)
+			diffType, endpointsDiff := diffAndEndpointsDisc(connDiff.diff, src, dst, thisMinusOther)
+			printDiff := fmt.Sprintf("diff-type: %s, source: %s, destination: %s, config1: %s, config2: %s, subnets-diff-info: %s\n",
+				diffType, src.Name(), dst.Name(), conn1Str, conn2Str, endpointsDiff)
 			strList = append(strList, printDiff)
 		}
 	}
@@ -203,20 +204,38 @@ func (subnetDiff *SubnetsDiff) EnhancedString(thisMinusOther bool) string {
 	return res
 }
 
-func diffDescription(diff DiffType) string {
-	switch diff {
-	case MissingSrcEP:
-		return "missing source"
-	case MissingDstEP:
-		return "missing destination"
-	case MissingSrcDstEP:
-		return "missing source and destination"
-	case MissingConnection:
-		return "missing connection"
-	case ChangedConnection:
-		return "changed connection"
+// prints connection for func (subnetDiff *SubnetsDiff) EnhancedString(..) where the connection could be empty
+func connStr(conn *common.ConnectionSet) string {
+	if conn == nil {
+		return "No connection"
 	}
-	return ""
+	return conn.EnhancedString()
+}
+
+func diffAndEndpointsDisc(diff DiffType, src, dst VPCResourceIntf, thisMinusOther bool) (diffDisc, workLoad string) {
+	const (
+		doubleString = "%s %s"
+	)
+	addOrRemoved := ""
+	if thisMinusOther {
+		addOrRemoved = "removed"
+	} else {
+		addOrRemoved = "added"
+	}
+	switch diff {
+	case missingSrcEP:
+		return addOrRemoved, fmt.Sprintf(doubleString, src.Name(), addOrRemoved)
+	case missingDstEP:
+		return addOrRemoved, fmt.Sprintf(doubleString, dst.Name(), addOrRemoved)
+	case missingSrcDstEP:
+		return addOrRemoved, fmt.Sprintf("%s and %s %s",
+			src.Name(), dst.Name(), addOrRemoved)
+	case missingConnection:
+		return addOrRemoved, ""
+	case changedConnection:
+		return "changed", ""
+	}
+	return "", ""
 }
 
 // getConnectivesWithSameIPBlocks generates from subnet1Connectivity.AllowedConnsCombined and subnet2Connectivity.AllowedConnsCombined
@@ -342,13 +361,13 @@ func (subnetConnectivity *SubnetConnectivityMap) actualAlignSrcOrDstGivenIPBlist
 				if node, ok := src.(Node); ok {
 					origIPBlock, err = externalNodeToIPBlock(node)
 				} else {
-					return nil, fmt.Errorf(CastingNodeErr, node.Name())
+					return nil, fmt.Errorf(castingNodeErr, node.Name())
 				}
 			} else {
 				if node, ok := dst.(Node); ok {
 					origIPBlock, err = externalNodeToIPBlock(node)
 				} else {
-					return nil, fmt.Errorf(CastingNodeErr, node.Name())
+					return nil, fmt.Errorf(castingNodeErr, node.Name())
 				}
 			}
 			if err != nil {
@@ -417,7 +436,7 @@ func (subnetConnectivity SubnetConnectivityMap) getIPBlocksList() (ipbList []*co
 					}
 					ipbList = append(ipbList, ipBlock)
 				} else {
-					return nil, fmt.Errorf(CastingNodeErr, src.Name())
+					return nil, fmt.Errorf(castingNodeErr, src.Name())
 				}
 			}
 			if dst.IsExternal() {
@@ -428,7 +447,7 @@ func (subnetConnectivity SubnetConnectivityMap) getIPBlocksList() (ipbList []*co
 					}
 					ipbList = append(ipbList, ipBlock)
 				} else {
-					return nil, fmt.Errorf(CastingNodeErr, dst.Name())
+					return nil, fmt.Errorf(castingNodeErr, dst.Name())
 				}
 			}
 		}
