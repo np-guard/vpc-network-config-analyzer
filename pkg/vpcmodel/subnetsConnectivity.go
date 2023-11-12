@@ -7,14 +7,12 @@ import (
 	"fmt"
 )
 
-type SubnetConnectivityMap map[VPCResourceIntf]map[VPCResourceIntf]*common.ConnectionSet
-
 // VPCsubnetConnectivity captures allowed connectivity for subnets, considering nacl and pgw resources
 type VPCsubnetConnectivity struct {
 	// computed for each node (subnet), by iterating its ConnectivityResult for all relevant VPC resources that capture it
 	AllowedConns map[VPCResourceIntf]*ConfigBasedConnectivityResults
 	// combined connectivity - considering both ingress and egress per connection
-	AllowedConnsCombined SubnetConnectivityMap
+	AllowedConnsCombined generalConnectivityMap
 	VPCConfig            *VPCConfig
 	// grouped connectivity result
 	GroupedConnectivity *GroupConnLines
@@ -26,8 +24,8 @@ const (
 	errUnexpectedTypePeerNode = "unexpected type for peerNode in computeAllowedConnsCombined"
 )
 
-func NewSubnetConnectivityMap() SubnetConnectivityMap {
-	return SubnetConnectivityMap{}
+func NewSubnetConnectivityMap() generalConnectivityMap {
+	return generalConnectivityMap{}
 }
 
 func subnetConnLine(subnet string, conn *common.ConnectionSet) string {
@@ -315,9 +313,9 @@ func (c *VPCConfig) GetConnectivityOutputPerEachSubnetSeparately() string {
 	return ""
 }
 
-func (subnetConnectivity SubnetConnectivityMap) updateAllowedSubnetConnsMap(src, dst VPCResourceIntf, conn *common.ConnectionSet) {
-	if _, ok := subnetConnectivity[src]; !ok {
-		subnetConnectivity[src] = map[VPCResourceIntf]*common.ConnectionSet{}
+func (connectivityMap generalConnectivityMap) updateAllowedSubnetConnsMap(src, dst VPCResourceIntf, conn *common.ConnectionSet) {
+	if _, ok := connectivityMap[src]; !ok {
+		connectivityMap[src] = map[VPCResourceIntf]*common.ConnectionSet{}
 	}
-	subnetConnectivity[src][dst] = conn
+	connectivityMap[src][dst] = conn
 }

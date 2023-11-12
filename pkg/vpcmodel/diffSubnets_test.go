@@ -33,7 +33,7 @@ import (
 //     subnet1 connMissingOrChanged subnet2:
 //     subnet3 -> subnet4 different connection
 
-func configSimpleSubnetSubtract() (subnetConfigConn1, subnetConfigConn2 *SubnetConfigConnectivity) {
+func configSimpleSubnetSubtract() (subnetConfigConn1, subnetConfigConn2 *configConnectivity) {
 	cfg1 := &VPCConfig{Nodes: []Node{}, NodeSets: []NodeSet{}}
 	cfg1.Nodes = append(cfg1.Nodes,
 		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1-1"},
@@ -72,8 +72,8 @@ func configSimpleSubnetSubtract() (subnetConfigConn1, subnetConfigConn2 *SubnetC
 	subnetConnMap2.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg2.NodeSets[1], cfg2.NodeSets[2], common.NewConnectionSet(true))
 	subnetConnMap2.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg2.NodeSets[2], cfg2.NodeSets[3], common.NewConnectionSet(true))
 
-	subnetConfigConn1 = &SubnetConfigConnectivity{cfg1, subnetConnMap1.AllowedConnsCombined}
-	subnetConfigConn2 = &SubnetConfigConnectivity{cfg2, subnetConnMap2.AllowedConnsCombined}
+	subnetConfigConn1 = &configConnectivity{cfg1, subnetConnMap1.AllowedConnsCombined}
+	subnetConfigConn2 = &configConnectivity{cfg2, subnetConnMap2.AllowedConnsCombined}
 
 	return subnetConfigConn1, subnetConfigConn2
 }
@@ -85,7 +85,7 @@ func TestSimpleSubnetSubtract(t *testing.T) {
 		fmt.Println("error:", err.Error())
 	}
 	subnet1Subtract2Str := subnet1Subtract2.EnhancedString(true)
-	fmt.Printf("subnet1Subtract2:\n%v\n", subnet1Subtract2Str)
+	fmt.Printf("cfg1ConnRemovedFrom2:\n%v\n", subnet1Subtract2Str)
 	require.Equal(t, err, nil)
 	newLines := strings.Count(subnet1Subtract2Str, "\n")
 	require.Equal(t, 5, newLines)
@@ -111,7 +111,7 @@ func TestSimpleSubnetSubtract(t *testing.T) {
 		"No connection, config2: All Connections, subnets-diff-info: subnet5 added\n")
 }
 
-func configSimpleIPAndSubnetSubtract() (subnetConfigConn1, subnetConfigConn2 *SubnetConfigConnectivity) {
+func configSimpleIPAndSubnetSubtract() (subnetConfigConn1, subnetConfigConn2 *configConnectivity) {
 	cfg1 := &VPCConfig{Nodes: []Node{}, NodeSets: []NodeSet{}}
 	cfg1.NodeSets = append(cfg1.NodeSets, &mockSubnet{"10.1.20.0/22", "subnet1", nil},
 		&mockSubnet{"10.2.20.0/22", "subnet2", nil})
@@ -149,8 +149,8 @@ func configSimpleIPAndSubnetSubtract() (subnetConfigConn1, subnetConfigConn2 *Su
 	connectionTCP.AddTCPorUDPConn(common.ProtocolTCP, 0, 1000, 0, 443)
 	subnetConnMap2.AllowedConnsCombined.updateAllowedSubnetConnsMap(cfg2.NodeSets[1], cfg2.Nodes[2], connectionTCP)
 
-	subnetConfigConn1 = &SubnetConfigConnectivity{cfg1, subnetConnMap1.AllowedConnsCombined}
-	subnetConfigConn2 = &SubnetConfigConnectivity{cfg2, subnetConnMap2.AllowedConnsCombined}
+	subnetConfigConn1 = &configConnectivity{cfg1, subnetConnMap1.AllowedConnsCombined}
+	subnetConfigConn2 = &configConnectivity{cfg2, subnetConnMap2.AllowedConnsCombined}
 
 	return subnetConfigConn1, subnetConfigConn2
 }

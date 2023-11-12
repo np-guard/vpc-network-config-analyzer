@@ -42,7 +42,7 @@ type OutputGenerator struct {
 	useCase        OutputUseCase
 	nodesConn      *VPCConnectivity
 	subnetsConn    *VPCsubnetConnectivity
-	subnetsDiff    *DiffBetweenSubnets
+	subnetsDiff    *diffBetweenCfgs
 }
 
 func NewOutputGenerator(c1, c2 *VPCConfig, grouping bool, uc OutputUseCase, archOnly bool) (*OutputGenerator, error) {
@@ -69,7 +69,7 @@ func NewOutputGenerator(c1, c2 *VPCConfig, grouping bool, uc OutputUseCase, arch
 		}
 		if uc == AllSubnetsDiff {
 			configsForDiff := &ConfigsForDiff{c1, c2}
-			subnetsDiff, err := configsForDiff.GetSubnetsDiff(grouping)
+			subnetsDiff, err := configsForDiff.GetDiff(grouping)
 			if err != nil {
 				return nil, err
 			}
@@ -111,7 +111,7 @@ func (o *OutputGenerator) Generate(f OutFormat, outFile string) (*VPCAnalysisOut
 }
 
 type OutputFormatter interface {
-	WriteOutput(c1, c2 *VPCConfig, conn *VPCConnectivity, subnetsConn *VPCsubnetConnectivity, subnetsDiff *DiffBetweenSubnets,
+	WriteOutput(c1, c2 *VPCConfig, conn *VPCConnectivity, subnetsConn *VPCsubnetConnectivity, subnetsDiff *diffBetweenCfgs,
 		outFile string, grouping bool, uc OutputUseCase) (*VPCAnalysisOutput, error)
 }
 

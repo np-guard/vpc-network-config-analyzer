@@ -18,7 +18,7 @@ func headerOfAnalyzedVPC(vpcName, vpc2Name string) string {
 func (t *TextOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	conn *VPCConnectivity,
 	subnetsConn *VPCsubnetConnectivity,
-	subnetsDiff *DiffBetweenSubnets,
+	subnetsDiff *diffBetweenCfgs,
 	outFile string,
 	grouping bool,
 	uc OutputUseCase) (*VPCAnalysisOutput, error) {
