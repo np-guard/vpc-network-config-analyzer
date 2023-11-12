@@ -134,7 +134,7 @@ func (subnetConfConnectivity *SubnetConfigConnectivity) subtract(other *SubnetCo
 				if otherSrc, ok := other.subnetConnectivity[srcInOther]; ok {
 					if otherConn, ok := otherSrc[dstInOther]; ok {
 						// ToDo: https://github.com/np-guard/vpc-network-config-analyzer/issues/199
-						if !includeChanged || conns.Equal(otherConn) {
+						if !includeChanged || (conns.Equal(otherConn) && conns.IsStateful == otherConn.IsStateful){
 							continue
 						}
 						connDiff.conn2 = otherConn
