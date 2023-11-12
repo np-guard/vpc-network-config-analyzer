@@ -191,9 +191,9 @@ func (subnetDiff *SubnetsDiff) EnhancedString(thisMinusOther bool) string {
 				conn1Str = connStr(connDiff.conn2)
 				conn2Str = connStr(connDiff.conn1)
 			}
-			diffType, workloadDiff := diffAndWorkLoadDisc(connDiff.diff, src, dst, thisMinusOther)
-			printDiff := fmt.Sprintf("diff-type: %s source: %s destination: %s dir1: %s dir2: %s%s\n",
-				diffType, src.Name(), dst.Name(), conn1Str, conn2Str, workloadDiff)
+			diffType, endpointsDiff := diffAndEndpointsDisc(connDiff.diff, src, dst, thisMinusOther)
+			printDiff := fmt.Sprintf("diff-type: %s, source: %s, destination: %s, config1: %s, config2: %s%s\n",
+				diffType, src.Name(), dst.Name(), conn1Str, conn2Str, endpointsDiff)
 			strList = append(strList, printDiff)
 		}
 	}
@@ -210,10 +210,10 @@ func connStr(conn *common.ConnectionSet) string {
 	return conn.EnhancedString()
 }
 
-func diffAndWorkLoadDisc(diff DiffType, src, dst VPCResourceIntf, thisMinusOther bool) (diffDisc, workLoad string) {
+func diffAndEndpointsDisc(diff DiffType, src, dst VPCResourceIntf, thisMinusOther bool) (diffDisc, workLoad string) {
 	const (
-		WorkloadDiffInfo = ", workloads-diff-info: workload"
-		TripleString     = "%s %s %s"
+		SubnetsDiffInfo = ", subnets-diff-info:"
+		TripleString    = "%s %s %s"
 	)
 	addOrRemoved := ""
 	if thisMinusOther {
@@ -223,12 +223,12 @@ func diffAndWorkLoadDisc(diff DiffType, src, dst VPCResourceIntf, thisMinusOther
 	}
 	switch diff {
 	case MissingSrcEP:
-		return addOrRemoved, fmt.Sprintf(TripleString, WorkloadDiffInfo, src.Name(), addOrRemoved)
+		return addOrRemoved, fmt.Sprintf(TripleString, SubnetsDiffInfo, src.Name(), addOrRemoved)
 	case MissingDstEP:
-		return addOrRemoved, fmt.Sprintf(TripleString, WorkloadDiffInfo, dst.Name(), addOrRemoved)
+		return addOrRemoved, fmt.Sprintf(TripleString, SubnetsDiffInfo, dst.Name(), addOrRemoved)
 	case MissingSrcDstEP:
-		return addOrRemoved, fmt.Sprintf("%ss %s and %s %s",
-			WorkloadDiffInfo, src.Name(), dst.Name(), addOrRemoved)
+		return addOrRemoved, fmt.Sprintf("%s %s and %s %s",
+			SubnetsDiffInfo, src.Name(), dst.Name(), addOrRemoved)
 	case MissingConnection:
 		return addOrRemoved, ""
 	case ChangedConnection:
