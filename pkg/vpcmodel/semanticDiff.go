@@ -110,9 +110,9 @@ func (configs ConfigsForDiff) GetDiff(grouping bool) (*diffBetweenCfgs, error) {
 	return res, nil
 }
 
-func (nodesConnectivity NodesConnectionsMap) nodesConnectivityToGeneralConnectivity() (generalConnMap generalConnectivityMap) {
+func (nodesConnMap NodesConnectionsMap) nodesConnectivityToGeneralConnectivity() (generalConnMap generalConnectivityMap) {
 	generalConnMap = generalConnectivityMap{}
-	for src, connsMap := range nodesConnectivity {
+	for src, connsMap := range nodesConnMap {
 		for dst, conn := range connsMap {
 			if conn.IsEmpty() {
 				continue
