@@ -80,11 +80,11 @@ func configSimpleSubnetSubtract() (subnetConfigConn1, subnetConfigConn2 *configC
 
 func TestSimpleSubnetSubtract(t *testing.T) {
 	subnetConfigConn1, subnetConfigConn2 := configSimpleSubnetSubtract()
-	subnet1Subtract2, err := subnetConfigConn1.connMissingOrChanged(subnetConfigConn2, true)
+	subnet1Subtract2, err := subnetConfigConn1.connMissingOrChanged(subnetConfigConn2, Subnets, true)
 	if err != nil {
 		fmt.Println("error:", err.Error())
 	}
-	subnet1Subtract2Str := subnet1Subtract2.EnhancedString(true)
+	subnet1Subtract2Str := subnet1Subtract2.EnhancedString(Subnets, true)
 	fmt.Printf("cfg1ConnRemovedFrom2:\n%v\n", subnet1Subtract2Str)
 	require.Equal(t, err, nil)
 	newLines := strings.Count(subnet1Subtract2Str, "\n")
@@ -100,12 +100,12 @@ func TestSimpleSubnetSubtract(t *testing.T) {
 	require.Contains(t, subnet1Subtract2Str, "diff-type: changed, source: subnet3, destination: subnet4, "+
 		"config1: protocol: TCP src-ports: 10-100 dst-ports: 443, config2: All Connections, subnets-diff-info:")
 
-	cfg2Subtract1, err := subnetConfigConn2.connMissingOrChanged(subnetConfigConn1, false)
+	cfg2Subtract1, err := subnetConfigConn2.connMissingOrChanged(subnetConfigConn1, Subnets, false)
 	if err != nil {
 		fmt.Println("error:", err.Error())
 	}
 	require.Equal(t, err, nil)
-	subnet2Subtract1Str := cfg2Subtract1.EnhancedString(false)
+	subnet2Subtract1Str := cfg2Subtract1.EnhancedString(Subnets, false)
 	fmt.Printf("cfg2Subtract1:\n%v", subnet2Subtract1Str)
 	require.Equal(t, subnet2Subtract1Str, "diff-type: added, source: subnet4, destination: subnet5, config1: "+
 		"No connection, config2: All Connections, subnets-diff-info: subnet5 added\n")
@@ -165,12 +165,12 @@ func TestSimpleIPAndSubnetSubtract(t *testing.T) {
 	}
 
 	// verified bit by bit :-)
-	cfg1SubCfg2, err := alignedCfgConn1.connMissingOrChanged(alignedCfgConn2, true)
+	cfg1SubCfg2, err := alignedCfgConn1.connMissingOrChanged(alignedCfgConn2, Subnets, true)
 	if err != nil {
 		fmt.Println("error:", err.Error())
 	}
 	require.Equal(t, err, nil)
-	cfg1SubtractCfg2Str := cfg1SubCfg2.EnhancedString(true)
+	cfg1SubtractCfg2Str := cfg1SubCfg2.EnhancedString(Subnets, true)
 	fmt.Printf("cfg1SubCfg2:\n%v\n", cfg1SubtractCfg2Str)
 	newLines := strings.Count(cfg1SubtractCfg2Str, "\n")
 	require.Equal(t, 7, newLines)

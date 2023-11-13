@@ -48,7 +48,7 @@ var supportedAnalysisTypes = map[string]bool{
 	allSubnets:       true,
 	singleSubnet:     true,
 	allSubnetsDiff:   true,
-	allEndpointsDiff: false,
+	allEndpointsDiff: true,
 }
 
 func getSupportedValuesString(supportedValues map[string]bool) string {
