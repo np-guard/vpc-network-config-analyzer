@@ -33,7 +33,7 @@ import (
 //     subnet1 connMissingOrChanged subnet2:
 //     subnet3 -> subnet4 different connection
 
-func configSimpleSubnetSubtract() (subnetConfigConn1, subnetConfigConn2 *configConnectivity) {
+func configSimpleSubnetDiff() (subnetConfigConn1, subnetConfigConn2 *configConnectivity) {
 	cfg1 := &VPCConfig{Nodes: []Node{}, NodeSets: []NodeSet{}}
 	cfg1.Nodes = append(cfg1.Nodes,
 		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1-1"},
@@ -78,8 +78,8 @@ func configSimpleSubnetSubtract() (subnetConfigConn1, subnetConfigConn2 *configC
 	return subnetConfigConn1, subnetConfigConn2
 }
 
-func TestSimpleSubnetSubtract(t *testing.T) {
-	subnetConfigConn1, subnetConfigConn2 := configSimpleSubnetSubtract()
+func TestSimpleSubnetDiff(t *testing.T) {
+	subnetConfigConn1, subnetConfigConn2 := configSimpleSubnetDiff()
 	subnet1Subtract2, err := subnetConfigConn1.connMissingOrChanged(subnetConfigConn2, Subnets, true)
 	if err != nil {
 		fmt.Println("error:", err.Error())
@@ -111,7 +111,7 @@ func TestSimpleSubnetSubtract(t *testing.T) {
 		"No connection, config2: All Connections, subnets-diff-info: subnet5 added\n")
 }
 
-func configSimpleIPAndSubnetSubtract() (subnetConfigConn1, subnetConfigConn2 *configConnectivity) {
+func configSimpleIPAndSubnetDiff() (subnetConfigConn1, subnetConfigConn2 *configConnectivity) {
 	cfg1 := &VPCConfig{Nodes: []Node{}, NodeSets: []NodeSet{}}
 	cfg1.NodeSets = append(cfg1.NodeSets, &mockSubnet{"10.1.20.0/22", "subnet1", nil},
 		&mockSubnet{"10.2.20.0/22", "subnet2", nil})
@@ -155,8 +155,8 @@ func configSimpleIPAndSubnetSubtract() (subnetConfigConn1, subnetConfigConn2 *co
 	return subnetConfigConn1, subnetConfigConn2
 }
 
-func TestSimpleIPAndSubnetSubtract(t *testing.T) {
-	cfgConn1, cfgConn2 := configSimpleIPAndSubnetSubtract()
+func TestSimpleIPAndSubnetDiff(t *testing.T) {
+	cfgConn1, cfgConn2 := configSimpleIPAndSubnetDiff()
 	alignedCfgConn1, alignedCfgConn2, err := cfgConn1.getConnectivesWithSameIPBlocks(cfgConn2)
 	if err != nil {
 		fmt.Printf("err: %v\n", err.Error())
