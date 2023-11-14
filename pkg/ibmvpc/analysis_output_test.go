@@ -101,26 +101,33 @@ func getTestFileName(testName string,
 	case vpcmodel.EndpointsDiff:
 		res = baseName + suffixOutFileDiffEndpoints
 	}
-	switch format {
-	case vpcmodel.Text:
-		res += txtOutSuffix
-	case vpcmodel.Debug:
-		res += debugOutSuffix
-	case vpcmodel.MD:
-		res += mdOutSuffix
-	case vpcmodel.JSON:
-		res += jsonOutSuffix
-	case vpcmodel.DRAWIO:
-		res += drawioOutSuffix
-	case vpcmodel.ARCHDRAWIO:
-		res += archDrawioOutSuffix
-	default:
-		return "", "", errors.New("unexpected out format")
+	suffix, suffixErr := getTestFileSuffix(format)
+	if suffixErr != nil {
+		return "", "", suffixErr
 	}
-
+	res += suffix
 	expectedFileName = res
 	actualFileName = actualOutFilePrefix + res
 	return expectedFileName, actualFileName, nil
+}
+
+func getTestFileSuffix(format vpcmodel.OutFormat) (suffix string, err error) {
+	switch format {
+	case vpcmodel.Text:
+		return txtOutSuffix, nil
+	case vpcmodel.Debug:
+		return debugOutSuffix, nil
+	case vpcmodel.MD:
+		return mdOutSuffix, nil
+	case vpcmodel.JSON:
+		return jsonOutSuffix, nil
+	case vpcmodel.DRAWIO:
+		return drawioOutSuffix, nil
+	case vpcmodel.ARCHDRAWIO:
+		return archDrawioOutSuffix, nil
+	default:
+		return "", errors.New("unexpected out format")
+	}
 }
 
 // initTest: based on the test name, set the input config file name, and the output
