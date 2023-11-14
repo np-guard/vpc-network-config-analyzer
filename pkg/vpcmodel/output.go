@@ -30,7 +30,8 @@ const (
 	SingleSubnet                         // connectivity per single subnet with nacl
 	AllSubnets                           // connectivity between subnets (consider nacl + pgw)
 	AllSubnetsNoPGW                      // connectivity between subnets (consider nacl only)
-	CfgsDiff                             // diff between subnets connectivity of two cfgs (consider nacl + pgw)
+	SubnetsDiff                          // diff between subnets connectivity of two cfgs (consider nacl + pgw)
+	EndpointsDiff                        // diff between vsis connectivity of two cfgs (consider nacl + pgw)
 )
 
 // OutputGenerator captures one vpc config1 with its connectivity analysis results, and implements
@@ -67,8 +68,16 @@ func NewOutputGenerator(c1, c2 *VPCConfig, grouping bool, uc OutputUseCase, arch
 			}
 			res.subnetsConn = subnetsConn
 		}
-		if uc == CfgsDiff {
+		if uc == SubnetsDiff {
 			configsForDiff := &ConfigsForDiff{c1, c2, Subnets}
+			configsDiff, err := configsForDiff.GetDiff(grouping)
+			if err != nil {
+				return nil, err
+			}
+			res.cfgsDiff = configsDiff
+		}
+		if uc == EndpointsDiff {
+			configsForDiff := &ConfigsForDiff{c1, c2, Vsis}
 			configsDiff, err := configsForDiff.GetDiff(grouping)
 			if err != nil {
 				return nil, err

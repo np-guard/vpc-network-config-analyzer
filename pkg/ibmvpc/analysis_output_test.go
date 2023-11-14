@@ -52,6 +52,7 @@ const (
 	suffixOutFileSubnetsLevel      = "subnetsBased_withPGW"
 	suffixOutFileSubnetsLevelNoPGW = "subnetsBased_withoutPGW"
 	suffixOutFileDiffSubnets       = "subnetsDiff"
+	suffixOutFileDiffEndpoints     = "endpointsDiff"
 	txtOutSuffix                   = ".txt"
 	debugOutSuffix                 = "_debug.txt"
 	mdOutSuffix                    = ".md"
@@ -95,8 +96,10 @@ func getTestFileName(testName string,
 		res = baseName + suffixOutFileSubnetsLevel
 	case vpcmodel.AllSubnetsNoPGW:
 		res = baseName + suffixOutFileSubnetsLevelNoPGW
-	case vpcmodel.CfgsDiff:
+	case vpcmodel.SubnetsDiff:
 		res = baseName + suffixOutFileDiffSubnets
+	case vpcmodel.EndpointsDiff:
+		res = baseName + suffixOutFileDiffEndpoints
 	}
 	switch format {
 	case vpcmodel.Text:
@@ -336,10 +339,13 @@ var tests = []*vpcGeneralTest{
 		format:   vpcmodel.Text,
 	},
 	{
-		name: "acl_testing5",
-		// TODO: currently for this test, there are 2 connections that only differ in statefulness attribute, and
-		// are not yet displayed in the diff report (sub1-1-ky => sub1-2-ky , sub1-1-ky => sub1-3-ky)
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.CfgsDiff},
+		name:     "acl_testing5",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.SubnetsDiff},
+		format:   vpcmodel.Text,
+	},
+	{
+		name:     "acl_testing3",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
 		format:   vpcmodel.Text,
 	},
 }
@@ -347,7 +353,8 @@ var tests = []*vpcGeneralTest{
 var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
 
 // uncomment the function below to run for updating the expected output
-/*var formatsAvoidOutputGeneration = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
+var formatsAvoidOutputGeneration = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
+
 func TestAllWithGeneration(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range tests {
@@ -364,7 +371,7 @@ func TestAllWithGeneration(t *testing.T) {
 		})
 	}
 	fmt.Println("done")
-}*/
+}
 
 func TestAllWithComparison(t *testing.T) {
 	// tests is the list of tests to run
@@ -407,7 +414,7 @@ func (tt *vpcGeneralTest) runTest(t *testing.T) {
 	var vpcConfigs2nd map[string]*vpcmodel.VPCConfig
 	diffUseCase := false
 	for _, useCase := range tt.useCases {
-		if useCase == vpcmodel.CfgsDiff {
+		if useCase == vpcmodel.SubnetsDiff || useCase == vpcmodel.EndpointsDiff {
 			diffUseCase = true
 		}
 	}
