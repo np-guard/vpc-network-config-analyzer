@@ -25,15 +25,12 @@ func (sqs *squareSet) asKey() squareSetAsKey {
 		ss = append(ss, strconv.Itoa(tnIndexes[tn]))
 	}
 	sort.Strings(ss)
-	key := squareSetAsKey(strings.Join(ss, ","))
-	fmt.Println(key)
-	return key
+	return squareSetAsKey(strings.Join(ss, ","))
 }
 
 type miniGroupDataS struct {
 	subnets squareSet
 	zone    TreeNodeInterface
-	groups  []*groupDataS
 	located bool
 	x, y    int
 }
@@ -340,7 +337,7 @@ func splitSharing(group *groupDataS) {
 		group.toSplitGroups[mostSharedGroup] = true
 		delete(nonSplitGroup, mostSharedGroup)
 	}
-	for _, topInnerGroup := range group.topInnerGroups {
+		for _, topInnerGroup := range group.topInnerGroups {
 		splitSharing(topInnerGroup)
 
 	}
@@ -454,7 +451,6 @@ func (ly *subnetsLayout) createMiniGroups(grs []*GroupSubnetsSquareTreeNode) {
 			subnetToGroups[subnet][group] = true
 		}
 	}
-	fmt.Println("subnetToGroups: ")
 	groupSetToMiniGroup := map[squareSetAsKey]map[TreeNodeInterface]squareSet{}
 	for subnet, groups := range subnetToGroups {
 		if _, ok := groupSetToMiniGroup[groups.asKey()]; !ok {
@@ -485,17 +481,7 @@ func (ly *subnetsLayout) createMiniGroups(grs []*GroupSubnetsSquareTreeNode) {
 		groups = append(groups, &groupData)
 		for _, miniGroup := range miniGroups2 {
 			groupData.miniGroups = append(groupData.miniGroups, miniGroup)
-			miniGroup.groups = append(miniGroup.groups, &groupData)
 		}
-	}
-
-	sort.Slice(miniGroups, func(i, j int) bool {
-		return len(miniGroups[i].groups) > len(miniGroups[j].groups)
-	})
-	for _, miniGroup := range miniGroups {
-		sort.Slice(miniGroup.groups, func(i, j int) bool {
-			return len(miniGroup.groups[i].miniGroups) > len(miniGroup.groups[j].miniGroups)
-		})
 	}
 	sort.Slice(groups, func(i, j int) bool {
 		return len(groups[i].miniGroups) > len(groups[j].miniGroups)
