@@ -188,6 +188,31 @@ func TestSimpleIPAndSubnetDiff(t *testing.T) {
 		"config1: All Connections, config2: No connection, subnets-diff-info:")
 	require.Contains(t, cfg1SubtractCfg2Str, "diff-type: changed, source: subnet2, destination: Public Internet [200.2.4.0/24], "+
 		"config1: All Connections, config2: protocol: TCP src-ports: 0-1000 dst-ports: 0-443, subnets-diff-info:")
+
+}
+
+func TestSimpleIPAndSubnetDiffGrouping(t *testing.T) {
+	cfgConn1, cfgConn2 := configSimpleIPAndSubnetDiff()
+	alignedCfgConn1, alignedCfgConn2, err := cfgConn1.getConnectivesWithSameIPBlocks(cfgConn2)
+	if err != nil {
+		fmt.Printf("err: %v\n", err.Error())
+		require.Equal(t, err, nil)
+		return
+	}
+	// verified bit by bit :-)
+	cfg1SubCfg2, err := alignedCfgConn1.connMissingOrChanged(alignedCfgConn2, Subnets, true)
+	if err != nil {
+		fmt.Println("error:", err.Error())
+	}
+	cfg2SubCfg1, err := alignedCfgConn2.connMissingOrChanged(alignedCfgConn1, Subnets, false)
+	if err != nil {
+		fmt.Println("error:", err.Error())
+	}
+	d := &diffBetweenCfgs{Subnets, cfg1SubCfg2, cfg2SubCfg1, nil}
+	groupConnLines := newGroupConnLinesDiff(d)
+	d.groupedLines = groupConnLines.GroupedLines
+	groupedPrinted := d.String()
+	fmt.Printf(groupedPrinted)
 }
 
 func configSimpleVsisDiff() (configConn1, configConn2 *configConnectivity) {

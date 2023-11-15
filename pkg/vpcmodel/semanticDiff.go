@@ -28,6 +28,8 @@ const (
 
 const (
 	castingNodeErr = "%s should be external node but casting to Node failed"
+	diffTypeStr    = "diff-type:"
+	configsStr     = "config1: %s, config2: %s, %s %s"
 )
 
 type connectionDiff struct {
@@ -50,9 +52,13 @@ type configConnectivity struct {
 }
 
 type diffBetweenCfgs struct {
+	diffAnalysis diffAnalysisType
+
 	cfg1ConnRemovedFrom2 connectivesDiff
 	cfg2ConnRemovedFrom1 connectivesDiff
-	diffAnalysis         diffAnalysisType
+
+	// grouped connectivity result
+	groupedLines []*GroupedConnLine
 }
 
 func (configs ConfigsForDiff) GetDiff() (*diffBetweenCfgs, error) {
@@ -101,12 +107,13 @@ func (configs ConfigsForDiff) GetDiff() (*diffBetweenCfgs, error) {
 		return nil, err2
 	}
 
-	// 3. ToDo: grouping, see comment at the end of this file
-
+	// 3. grouping
 	res := &diffBetweenCfgs{
 		cfg1ConnRemovedFrom2: cfg1ConnRemovedFrom2,
 		cfg2ConnRemovedFrom1: cfg2ConnRemovedFrom1,
 		diffAnalysis:         configs.diffAnalysis}
+	groupConnLines := newGroupConnLinesDiff(res)
+	res.groupedLines = groupConnLines.GroupedLines
 	return res, nil
 }
 
@@ -233,32 +240,15 @@ func getDiffType(src, srcInOther, dst, dstInOther VPCResourceIntf) DiffType {
 // EnhancedString ToDo: likely the current printing functionality will no longer be needed once the grouping is added
 // anyways the diff print will be worked on before the final merge
 
-func (diff *diffBetweenCfgs) String() string {
-	return diff.cfg1ConnRemovedFrom2.EnhancedString(diff.diffAnalysis, true) +
-		diff.cfg2ConnRemovedFrom1.EnhancedString(diff.diffAnalysis, false)
-}
-
 func (connDiff *connectivesDiff) EnhancedString(diffAnalysis diffAnalysisType, thisMinusOther bool) string {
 	strList := []string{}
 	for src, endpointConnDiff := range *connDiff {
 		for dst, connDiff := range endpointConnDiff {
-			conn1Str, conn2Str := "", ""
-			if thisMinusOther {
-				conn1Str = connStr(connDiff.conn1)
-				conn2Str = connStr(connDiff.conn2)
-			} else {
-				conn1Str = connStr(connDiff.conn2)
-				conn2Str = connStr(connDiff.conn1)
-			}
+			conn1Str, conn2Str := conn1And2Str(connDiff, thisMinusOther)
 			diffType, endpointsDiff := diffAndEndpointsDisc(connDiff.diff, src, dst, thisMinusOther)
-			diffInfo := ""
-			if diffAnalysis == Subnets {
-				diffInfo = "subnets-diff-info:"
-			} else if diffAnalysis == Vsis {
-				diffInfo = "vsis-diff-info:"
-			}
-			printDiff := fmt.Sprintf("diff-type: %s, source: %s, destination: %s, config1: %s, config2: %s, %s %s\n",
-				diffType, src.Name(), dst.Name(), conn1Str, conn2Str, diffInfo, endpointsDiff)
+			diffInfo := diffInfoStr(diffAnalysis)
+			printDiff := fmt.Sprintf("%v %s, source: %s, destination: %s, ", diffTypeStr, diffType, src.Name(), dst.Name())
+			printDiff += fmt.Sprintf(configsStr, conn1Str, conn2Str, diffInfo, endpointsDiff) + "\n"
 			strList = append(strList, printDiff)
 		}
 	}
@@ -267,7 +257,59 @@ func (connDiff *connectivesDiff) EnhancedString(diffAnalysis diffAnalysisType, t
 	return res
 }
 
-// prints connection for the above EnhancedString(..) where the connection could be empty
+// EnhancedConnDiffDecode decode connectivesDiff information for grouping:
+// this includes the following two strings seperated by ";"
+//  1. diff-type info: e.g. diff-type: removed
+//  2. configs info and info regarding missing endpoints:
+//     e.g.: config1: All Connections, config2: No connection, vsis-diff-info: vsi0 removed
+func EnhancedConnDiffDecode(src, dst VPCResourceIntf, connDiff *connectionDiff,
+	diffAnalysis diffAnalysisType, thisMinusOther bool) string {
+	conn1Str, conn2Str := conn1And2Str(connDiff, thisMinusOther)
+	diffType, endpointsDiff := diffAndEndpointsDisc(connDiff.diff, src, dst, thisMinusOther)
+	diffInfo := diffInfoStr(diffAnalysis)
+	diffTypeStr := fmt.Sprintf("%v %s", diffTypeStr, diffType)
+	connDiffStr := fmt.Sprintf(configsStr, conn1Str, conn2Str, diffInfo, endpointsDiff)
+	return diffTypeStr + ";" + connDiffStr
+}
+
+func diffInfoStr(diffAnalysis diffAnalysisType) string {
+	if diffAnalysis == Subnets {
+		return "subnets-diff-info:"
+	} else if diffAnalysis == Vsis {
+		return "vsis-diff-info:"
+	}
+	return ""
+}
+
+func conn1And2Str(connDiff *connectionDiff, thisMinusOther bool) (conn1Str, conn2Str string) {
+	if thisMinusOther {
+		conn1Str = connStr(connDiff.conn1)
+		conn2Str = connStr(connDiff.conn2)
+	} else {
+		conn1Str = connStr(connDiff.conn2)
+		conn2Str = connStr(connDiff.conn1)
+	}
+	return conn1Str, conn2Str
+}
+
+// EnhancedStringEncode decode the above string
+func EnhancedStringEncode(src, dst EndpointElem, decoded string) string {
+	encoded := strings.Split(decoded, ";")
+	printDiff := fmt.Sprintf("%s, source: %s, destination: %s, %s\n", encoded[0], src.Name(), dst.Name(), encoded[1])
+	return printDiff
+}
+
+func (diffCfgs *diffBetweenCfgs) String() string {
+	strList := make([]string, len(diffCfgs.groupedLines))
+	for i, grouped := range diffCfgs.groupedLines {
+		strList[i] = EnhancedStringEncode(grouped.Src, grouped.Dst, grouped.Conn)
+	}
+	sort.Strings(strList)
+	res := strings.Join(strList, "")
+	return res
+}
+
+// prints connection for the above EnhancedStringDecode(..) where the connection could be empty
 func connStr(conn *common.ConnectionSet) string {
 	if conn == nil {
 		return "No connection"
