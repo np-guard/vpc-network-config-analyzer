@@ -213,6 +213,19 @@ func TestSimpleIPAndSubnetDiffGrouping(t *testing.T) {
 	d.groupedLines = groupConnLines.GroupedLines
 	groupedPrinted := d.String()
 	fmt.Printf(groupedPrinted)
+	newLines := strings.Count(groupedPrinted, "\n")
+	require.Equal(t, 5, newLines)
+	require.Contains(t, groupedPrinted, "diff-type: added, source: Public Internet 1.2.3.4-1.2.3.63, "+
+		"destination: subnet1, config1: No connection, config2: All Connections, subnets-diff-info:")
+	require.Contains(t, groupedPrinted, "diff-type: added, source: Public Internet 1.2.3.4-1.2.3.63, "+
+		"destination: subnet2, config1: No connection, config2: All Connections, subnets-diff-info:")
+	require.Contains(t, groupedPrinted, "diff-type: added, source: subnet2, destination: Public Internet 1.2.3.4-1.2.3.63, "+
+		"config1: No connection, config2: All Connections, subnets-diff-info:")
+	require.Contains(t, groupedPrinted, "diff-type: changed, source: subnet2, destination: Public Internet 200.2.4.0/24, "+
+		"config1: All Connections, config2: protocol: TCP src-ports: 0-1000 dst-ports: 0-443, subnets-diff-info: ")
+	require.Contains(t, groupedPrinted, "diff-type: removed, source: Public Internet 250.2.4.4-250.2.4.255, destination: subnet2, "+
+		"config1: All Connections, config2: No connection, subnets-diff-info")
+
 }
 
 func configSimpleVsisDiff() (configConn1, configConn2 *configConnectivity) {
