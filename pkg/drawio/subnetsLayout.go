@@ -16,8 +16,6 @@ func asKey(l []interface{}) setAsKey {
 	if interfaceIndex == nil {
 		interfaceIndex = map[interface{}]int{}
 	}
-	ii:=interfaceIndex
-	if ii != nil{} 
 	ss := []string{}
 	for _, i := range l {
 		if _, ok := interfaceIndex[i]; !ok {
@@ -110,12 +108,15 @@ func (ly *subnetsLayout) createMatrix() {
 
 }
 
-func isGroupInGroup(gr1, gr2 *groupDataS) bool {
+func isGroupInGroup(subGroup, group *groupDataS) bool {
+	if len(group.miniGroups) == len(subGroup.miniGroups){
+		return false
+	}
 	minis := map[*miniGroupDataS]bool{}
-	for _, mg := range gr2.miniGroups {
+	for _, mg := range group.miniGroups {
 		minis[mg] = true
 	}
-	for _, mg := range gr1.miniGroups {
+	for _, mg := range subGroup.miniGroups {
 		if !minis[mg] {
 			return false
 		}
@@ -304,8 +305,9 @@ func (ly *subnetsLayout) setInnerGroups(group *groupDataS) {
 }
 
 // ////////////////////////////////////////////////////////////////////////
-func (ly *subnetsLayout)splitSharing(group *groupDataS) {
+func (ly *subnetsLayout) splitSharing(group *groupDataS) {
 
+	group.toSplitGroups = map[*groupDataS]bool{}
 	nonSplitGroup := map[*groupDataS]bool{}
 	ly.setInnerGroups(group)
 	for _, innerGroup := range group.allInnerGroups {
@@ -335,7 +337,6 @@ func (ly *subnetsLayout)splitSharing(group *groupDataS) {
 				}
 			}
 		}
-		group.toSplitGroups = map[*groupDataS]bool{}
 		bestSharingScore := 0
 		var mostSharedGroup *groupDataS
 		for sharedGroup, sharedGroups := range sharedMini {
@@ -359,7 +360,7 @@ func (ly *subnetsLayout)splitSharing(group *groupDataS) {
 	}
 
 	if len(group.toSplitGroups) > 0 {
-		rearrangeGroup(group)
+		ly.rearrangeGroup(group)
 	}
 	for _, topInnerGroup := range group.topInnerGroups {
 		ly.splitSharing(topInnerGroup)
@@ -368,7 +369,7 @@ func (ly *subnetsLayout)splitSharing(group *groupDataS) {
 }
 
 // /////////////////////////////////////////////////
-func rearrangeGroup(group *groupDataS) {
+func (ly *subnetsLayout) rearrangeGroup(group *groupDataS) {
 	miniGroups := map[*miniGroupDataS]bool{}
 	for sg := range group.toSplitGroups {
 		for _, mn := range sg.miniGroups {
@@ -379,18 +380,39 @@ func rearrangeGroup(group *groupDataS) {
 	for _, group := range group.allInnerGroups {
 		for _, miniGroup := range group.miniGroups {
 			if miniGroups[miniGroup] {
+				if _, ok := miniGroupToGroupSet[miniGroup]; !ok {
+					miniGroupToGroupSet[miniGroup] = groupSet{}
+				}
 				miniGroupToGroupSet[miniGroup][group] = true
 			}
 		}
 	}
-	newGroups := map[setAsKey][]*miniGroupDataS{}
+	groupSetToNewGroups := map[setAsKey][]*miniGroupDataS{}
+	keysToSet := map[setAsKey]groupSet{}
 	for miniGroup, groupSet := range miniGroupToGroupSet {
-		if _, ok := newGroups[groupSet.asKey()]; !ok {
-			newGroups[groupSet.asKey()] = []*miniGroupDataS{}
+		if _, ok := groupSetToNewGroups[groupSet.asKey()]; !ok {
+			groupSetToNewGroups[groupSet.asKey()] = []*miniGroupDataS{}
 		}
-		newGroups[groupSet.asKey()] = append(newGroups[groupSet.asKey()], miniGroup)
+		groupSetToNewGroups[groupSet.asKey()] = append(groupSetToNewGroups[groupSet.asKey()], miniGroup)
+		keysToSet[groupSet.asKey()] = groupSet
 	}
+	for groups, miniGroups := range groupSetToNewGroups {
+		for _, topGroup := range group.topInnerGroups {
+			if keysToSet[groups][topGroup] {
+				if len(topGroup.miniGroups) > len(miniGroups) {
+					// todo - check if the group already exist
+					newGroup := groupDataS{miniGroups: miniGroups, name: "createdGroup"}
+					ly.groups = append(ly.groups, &newGroup)
+				}
+			}
+		}
+		for splitGroup := range group.toSplitGroups {
+			if keysToSet[groups][splitGroup] {
+				//todo - need to give a connection info of the split group
+			}
+		}
 
+	}
 }
 
 // ////////////////////////////////////////////////////////////////////////
@@ -510,7 +532,7 @@ func (ly *subnetsLayout) createMiniGroups(grs []*GroupSubnetsSquareTreeNode) {
 		}
 		groupSetToMiniGroup[groups.asKey()][subnet.Parent()][subnet] = true
 	}
-	groupToMiniGroups := map[TreeNodeInterface][]*miniGroupDataS{}
+	groupToMiniGroups := map[TreeNodeInterface]map[*miniGroupDataS]bool{}
 	miniGroups := []*miniGroupDataS{}
 	for _, zoneMiniGroup := range groupSetToMiniGroup {
 		for zone, miniGroup := range zoneMiniGroup {
@@ -518,7 +540,10 @@ func (ly *subnetsLayout) createMiniGroups(grs []*GroupSubnetsSquareTreeNode) {
 			miniGroups = append(miniGroups, &miniGroupData)
 			for subnet := range miniGroup {
 				for group := range subnetToGroups[subnet] {
-					groupToMiniGroups[group] = append(groupToMiniGroups[group], &miniGroupData)
+					if _,ok := groupToMiniGroups[group]; !ok{
+						groupToMiniGroups[group] = map[*miniGroupDataS]bool{}
+					}
+					groupToMiniGroups[group][&miniGroupData] = true
 				}
 			}
 
@@ -528,7 +553,7 @@ func (ly *subnetsLayout) createMiniGroups(grs []*GroupSubnetsSquareTreeNode) {
 	for group, miniGroups2 := range groupToMiniGroups {
 		groupData := groupDataS{treeNode: group, subnets: groupSubnets[group], name: group.Label()}
 		groups = append(groups, &groupData)
-		for _, miniGroup := range miniGroups2 {
+		for miniGroup := range miniGroups2 {
 			groupData.miniGroups = append(groupData.miniGroups, miniGroup)
 		}
 	}
