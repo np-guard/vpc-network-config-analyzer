@@ -55,26 +55,26 @@ type diffBetweenCfgs struct {
 	diffAnalysis         diffAnalysisType
 }
 
-func (configs ConfigsForDiff) GetDiff(grouping bool) (*diffBetweenCfgs, error) {
+func (configs ConfigsForDiff) GetDiff() (*diffBetweenCfgs, error) {
 	// 1. compute connectivity for each of the configurations
 	var generalConnectivityMap1, generalConnectivityMap2 generalConnectivityMap
 	if configs.diffAnalysis == Subnets {
-		subnetsConn1, err := configs.config1.GetSubnetsConnectivity(true, grouping)
+		subnetsConn1, err := configs.config1.GetSubnetsConnectivity(true, false)
 		if err != nil {
 			return nil, err
 		}
-		subnetsConn2, err := configs.config2.GetSubnetsConnectivity(true, grouping)
+		subnetsConn2, err := configs.config2.GetSubnetsConnectivity(true, false)
 		if err != nil {
 			return nil, err
 		}
 		generalConnectivityMap1 = subnetsConn1.AllowedConnsCombined
 		generalConnectivityMap2 = subnetsConn2.AllowedConnsCombined
 	} else if configs.diffAnalysis == Vsis {
-		connectivity1, err := configs.config1.GetVPCNetworkConnectivity(grouping)
+		connectivity1, err := configs.config1.GetVPCNetworkConnectivity(false)
 		if err != nil {
 			return nil, err
 		}
-		connectivity2, err := configs.config2.GetVPCNetworkConnectivity(grouping)
+		connectivity2, err := configs.config2.GetVPCNetworkConnectivity(false)
 		if err != nil {
 			return nil, err
 		}
