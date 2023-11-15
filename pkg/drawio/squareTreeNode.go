@@ -271,6 +271,7 @@ func (tn *GroupSquareTreeNode) children() ([]SquareTreeNodeInterface, []IconTree
 type GroupSubnetsSquareTreeNode struct {
 	abstractSquareTreeNode
 	groupedSubnets []SquareTreeNodeInterface
+	split bool
 }
 
 func GroupedSubnetsSquare(parent *VpcTreeNode, groupedSubnets []SquareTreeNodeInterface) SquareTreeNodeInterface {
@@ -301,10 +302,11 @@ func GroupedSubnetsSquare(parent *VpcTreeNode, groupedSubnets []SquareTreeNodeIn
 }
 
 func NewGroupSubnetsSquareTreeNode(parent *VpcTreeNode, groupedSubnets []SquareTreeNodeInterface) *GroupSubnetsSquareTreeNode {
-	gs := GroupSubnetsSquareTreeNode{newAbstractSquareTreeNode(parent, ""), groupedSubnets}
+	gs := GroupSubnetsSquareTreeNode{newAbstractSquareTreeNode(parent, ""), groupedSubnets, false}
 	parent.groupSubnetsSquares = append(parent.groupSubnetsSquares, &gs)
 	return &gs
 }
 func (tn *GroupSubnetsSquareTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
 	return tn.groupedSubnets, tn.elements, tn.connections
 }
+func (tn *GroupSubnetsSquareTreeNode) NotShownInDrawio()bool {return tn.split}
