@@ -55,12 +55,23 @@ func newGroupConnLinesSubnetConnectivity(c *VPCConfig, s *VPCsubnetConnectivity,
 	return res
 }
 
+func newGroupConnLinesDiff(d *diffBetweenCfgs) *GroupConnLines {
+	res := &GroupConnLines{d: d,
+		srcToDst:                 newGroupingConnections(),
+		dstToSrc:                 newGroupingConnections(),
+		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
+		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
+	res.computeGroupingForDiff()
+	return res
+}
+
 // GroupConnLines used both for VPCConnectivity and for VPCsubnetConnectivity, one at a time. The other must be nil
 // todo: define abstraction above both?
 type GroupConnLines struct {
 	c        *VPCConfig
 	v        *VPCConnectivity
 	s        *VPCsubnetConnectivity
+	d        *diffBetweenCfgs
 	srcToDst *groupingConnections
 	dstToSrc *groupingConnections
 	// a map to groupedEndpointsElems used by GroupedConnLine from a unified key of such elements
@@ -262,6 +273,42 @@ func (g *GroupConnLines) groupExternalAddressesForSubnets() {
 	g.GroupedLines = res
 }
 
+func (g *GroupConnLines) groupExternalAddressesForDiff(thisMinusOther bool) {
+	// group public internet ranges
+	// initialize data structures
+	g.srcToDst = newGroupingConnections()
+	g.dstToSrc = newGroupingConnections()
+	var res []*GroupedConnLine
+	var connRemovedChanged connectivityDiff
+	if thisMinusOther {
+		connRemovedChanged = g.d.cfg1ConnRemovedFrom2
+	} else {
+		connRemovedChanged = g.d.cfg2ConnRemovedFrom1
+	}
+	for src, endpointConnDiff := range connRemovedChanged {
+		for dst, connDiff := range endpointConnDiff {
+			connDiffString := EnhancedConnDiffDecode(src, dst, connDiff, g.d.diffAnalysis, thisMinusOther)
+			srcNode, srcIsNode := src.(Node)
+			dstNose, dstIsNode := dst.(Node)
+			srcIsExternal := srcIsNode && src.IsExternal()
+			dstIsExternal := dstIsNode && dst.IsExternal()
+			switch {
+			case dstIsExternal:
+				g.srcToDst.addPublicConnectivity(src, connDiffString, dstNose)
+			case srcIsExternal:
+				g.dstToSrc.addPublicConnectivity(dst, connDiffString, srcNode)
+			default:
+				res = append(res, &GroupedConnLine{src, dst, connDiffString})
+			}
+		}
+	}
+
+	// add to res lines from  srcToDst and DstToSrc groupings
+	res = append(res, g.srcToDst.getGroupedConnLines(g, true)...)
+	res = append(res, g.dstToSrc.getGroupedConnLines(g, false)...)
+	g.GroupedLines = append(g.GroupedLines, res...)
+}
+
 // aux func, returns true iff the EndpointElem is Node if grouping vsis or NodeSet if grouping subnets
 func isInternalOfRequiredType(ep EndpointElem, groupVsi bool) bool {
 	if groupVsi { // groups vsis Nodes
@@ -376,6 +423,11 @@ func (g *GroupConnLines) computeGroupingForSubnets(grouping bool) {
 		g.groupInternalSrcOrDst(false, false)
 		g.groupInternalSrcOrDst(true, false)
 	}
+}
+
+func (g *GroupConnLines) computeGroupingForDiff() {
+	g.groupExternalAddressesForDiff(true)
+	g.groupExternalAddressesForDiff(false)
 }
 
 // get the grouped connectivity output
