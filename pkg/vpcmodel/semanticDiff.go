@@ -30,6 +30,7 @@ const (
 	castingNodeErr = "%s should be external node but casting to Node failed"
 	diffTypeStr    = "diff-type:"
 	configsStr     = "config1: %s, config2: %s, %s %s"
+	semicolon      = ";"
 )
 
 type connectionDiff struct {
@@ -258,7 +259,7 @@ func (connDiff *connectivesDiff) EnhancedString(diffAnalysis diffAnalysisType, t
 }
 
 // EnhancedConnDiffDecode decode connectivesDiff information for grouping:
-// this includes the following two strings seperated by ";"
+// this includes the following two strings separated by ";"
 //  1. diff-type info: e.g. diff-type: removed
 //  2. configs info and info regarding missing endpoints:
 //     e.g.: config1: All Connections, config2: No connection, vsis-diff-info: vsi0 removed
@@ -269,7 +270,7 @@ func EnhancedConnDiffDecode(src, dst VPCResourceIntf, connDiff *connectionDiff,
 	diffInfo := diffInfoStr(diffAnalysis)
 	diffTypeStr := fmt.Sprintf("%v %s", diffTypeStr, diffType)
 	connDiffStr := fmt.Sprintf(configsStr, conn1Str, conn2Str, diffInfo, endpointsDiff)
-	return diffTypeStr + ";" + connDiffStr
+	return diffTypeStr + semicolon + connDiffStr
 }
 
 func diffInfoStr(diffAnalysis diffAnalysisType) string {
@@ -294,7 +295,7 @@ func conn1And2Str(connDiff *connectionDiff, thisMinusOther bool) (conn1Str, conn
 
 // EnhancedStringEncode decode the above string
 func EnhancedStringEncode(src, dst EndpointElem, decoded string) string {
-	encoded := strings.Split(decoded, ";")
+	encoded := strings.Split(decoded, semicolon)
 	printDiff := fmt.Sprintf("%s, source: %s, destination: %s, %s\n", encoded[0], src.Name(), dst.Name(), encoded[1])
 	return printDiff
 }

@@ -303,7 +303,6 @@ func (g *GroupConnLines) groupExternalAddressesForDiff(thisMinusOther bool) {
 	res = append(res, g.srcToDst.getGroupedConnLines(g, true)...)
 	res = append(res, g.dstToSrc.getGroupedConnLines(g, false)...)
 	g.GroupedLines = res
-
 }
 
 // aux func, returns true iff the EndpointElem is Node if grouping vsis or NodeSet if grouping subnets
