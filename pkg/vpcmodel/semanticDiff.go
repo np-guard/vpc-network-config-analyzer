@@ -55,6 +55,8 @@ type diffBetweenCfgs struct {
 	diffAnalysis         diffAnalysisType
 }
 
+// GetDiff given 2 *VPCConfigs and an diff analysis - either subnets or endpoints -
+// computes and returns the semantic diff of endpoints or subnets connectivity, as per the required analysis
 func (configs configsForDiff) GetDiff(grouping bool) (*diffBetweenCfgs, error) {
 	// 1. compute connectivity for each of the configurations
 	var generalConnectivityMap1, generalConnectivityMap2 GeneralConnectivityMap
