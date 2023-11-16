@@ -353,3 +353,41 @@ func TestSimpleVsisDiff(t *testing.T) {
 	require.Contains(t, cfg2SubCfg1Str, "diff-type: removed, source: vsi3, destination: vsi4, config1: "+
 		"All Connections, config2: No connection, vsis-diff-info: vsi4 removed\n")
 }
+
+func TestSimpleVsisDiffGrouping(t *testing.T) {
+	cfgConn1, cfgConn2 := configSimpleVsisDiff()
+	alignedCfgConn1, alignedCfgConn2, err := cfgConn1.getConnectivesWithSameIPBlocks(cfgConn2)
+	if err != nil {
+		fmt.Printf("err: %v\n", err.Error())
+		require.Equal(t, err, nil)
+		return
+	}
+	cfg1SubCfg2, err := alignedCfgConn1.connMissingOrChanged(alignedCfgConn2, Vsis, true)
+	if err != nil {
+		fmt.Println("error:", err.Error())
+	}
+	cfg2SubCfg1, err := alignedCfgConn2.connMissingOrChanged(alignedCfgConn1, Vsis, false)
+	if err != nil {
+		fmt.Println("error:", err.Error())
+	}
+	require.Equal(t, err, nil)
+	d := &diffBetweenCfgs{Subnets, cfg1SubCfg2, cfg2SubCfg1, nil}
+	groupConnLines := newGroupConnLinesDiff(d)
+	d.groupedLines = groupConnLines.GroupedLines
+	groupedPrinted := d.String()
+	fmt.Println(groupedPrinted)
+	newLines := strings.Count(groupedPrinted, "\n")
+	require.Equal(t, 6, newLines)
+	require.Contains(t, groupedPrinted, "diff-type: added, source: vsi2, destination: Public Internet 1.2.3.4-1.2.3.63, "+
+		"config1: No connection, config2: All Connections, subnets-diff-info: \n")
+	require.Contains(t, groupedPrinted, "diff-type: added, source: vsi3, destination: vsi4, config1: No connection, "+
+		"config2: All Connections, subnets-diff-info: vsi4 added\n")
+	require.Contains(t, groupedPrinted, "diff-type: changed, source: vsi2, destination: Public Internet 1.2.3.0/30, "+
+		"config1: protocol: TCP src-ports: 10-100 dst-ports: 443, config2: All Connections, subnets-diff-info: \n")
+	require.Contains(t, groupedPrinted, "diff-type: changed, source: vsi2, destination: vsi3, "+
+		"config1: protocol: TCP src-ports: 10-100 dst-ports: 443, config2: All Connections, subnets-diff-info: \n")
+	require.Contains(t, groupedPrinted, "diff-type: removed, source: vsi0, destination: vsi1, config1: "+
+		"All Connections, config2: No connection, subnets-diff-info: vsi0 removed\n")
+	require.Contains(t, groupedPrinted, "diff-type: removed, source: vsi1, destination: vsi3, "+
+		"config1: All Connections, config2: No connection, subnets-diff-info: \n")
+}
