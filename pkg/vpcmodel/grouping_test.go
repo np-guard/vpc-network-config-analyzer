@@ -383,12 +383,12 @@ func configSubnetSelfLoop() (*VPCConfig, *VPCsubnetConnectivity) {
 		&mockSubnet{"10.7.20.0/22", "subnet3", []Node{res.Nodes[2]}})
 
 	res1 := &VPCsubnetConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
-	res1.AllowedConnsCombined.updateAllowedSubnetConnsMap(res.NodeSets[0], res.NodeSets[1], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedSubnetConnsMap(res.NodeSets[0], res.NodeSets[2], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedSubnetConnsMap(res.NodeSets[1], res.NodeSets[0], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedSubnetConnsMap(res.NodeSets[1], res.NodeSets[2], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedSubnetConnsMap(res.NodeSets[2], res.NodeSets[0], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedSubnetConnsMap(res.NodeSets[2], res.NodeSets[1], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.NodeSets[0], res.NodeSets[1], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.NodeSets[0], res.NodeSets[2], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.NodeSets[1], res.NodeSets[0], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.NodeSets[1], res.NodeSets[2], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.NodeSets[2], res.NodeSets[0], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.NodeSets[2], res.NodeSets[1], common.NewConnectionSet(true))
 
 	return res, res1
 }
