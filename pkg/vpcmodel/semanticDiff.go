@@ -232,15 +232,15 @@ func getDiffType(src, srcInOther, dst, dstInOther VPCResourceIntf) DiffType {
 	return noDiff
 }
 
-// enhancedString ToDo: likely the current printing functionality will no longer be needed once the grouping is added
+// string ToDo: likely the current printing functionality will no longer be needed once the grouping is added
 // anyways the diff print will be worked on before the final merge
 
 func (diff *diffBetweenCfgs) String() string {
-	return diff.cfg1ConnRemovedFrom2.enhancedString(diff.diffAnalysis, true) +
-		diff.cfg2ConnRemovedFrom1.enhancedString(diff.diffAnalysis, false)
+	return diff.cfg1ConnRemovedFrom2.string(diff.diffAnalysis, true) +
+		diff.cfg2ConnRemovedFrom1.string(diff.diffAnalysis, false)
 }
 
-func (connDiff *connectivityDiff) enhancedString(diffAnalysis diffAnalysisType, thisMinusOther bool) string {
+func (connDiff *connectivityDiff) string(diffAnalysis diffAnalysisType, thisMinusOther bool) string {
 	strList := []string{}
 	for src, endpointConnDiff := range *connDiff {
 		for dst, connDiff := range endpointConnDiff {
@@ -269,7 +269,7 @@ func (connDiff *connectivityDiff) enhancedString(diffAnalysis diffAnalysisType, 
 	return res
 }
 
-// prints connection for the above enhancedString(..) where the connection could be empty
+// prints connection for the above string(..) where the connection could be empty
 func connStr(conn *common.ConnectionSet) string {
 	if conn == nil {
 		return "No connection"
@@ -640,7 +640,7 @@ func externalNodeToIPBlock(external Node) (ipBlock *common.IPBlock, err error) {
 //			if conns.IsEmpty() {
 //				continue
 //			}
-//			fmt.Printf("\t%v => %v %v\n", src.Name(), dst.Name(), conns.enhancedString())
+//			fmt.Printf("\t%v => %v %v\n", src.Name(), dst.Name(), conns.string())
 //		}
 //	}
 // }
