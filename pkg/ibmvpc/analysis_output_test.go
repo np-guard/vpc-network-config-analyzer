@@ -52,6 +52,7 @@ const (
 	suffixOutFileSubnetsLevel      = "subnetsBased_withPGW"
 	suffixOutFileSubnetsLevelNoPGW = "subnetsBased_withoutPGW"
 	suffixOutFileDiffSubnets       = "subnetsDiff"
+	suffixOutFileDiffEndpoints     = "endpointsDiff"
 	txtOutSuffix                   = ".txt"
 	debugOutSuffix                 = "_debug.txt"
 	mdOutSuffix                    = ".md"
@@ -95,29 +96,38 @@ func getTestFileName(testName string,
 		res = baseName + suffixOutFileSubnetsLevel
 	case vpcmodel.AllSubnetsNoPGW:
 		res = baseName + suffixOutFileSubnetsLevelNoPGW
-	case vpcmodel.AllSubnetsDiff:
+	case vpcmodel.SubnetsDiff:
 		res = baseName + suffixOutFileDiffSubnets
+	case vpcmodel.EndpointsDiff:
+		res = baseName + suffixOutFileDiffEndpoints
 	}
-	switch format {
-	case vpcmodel.Text:
-		res += txtOutSuffix
-	case vpcmodel.Debug:
-		res += debugOutSuffix
-	case vpcmodel.MD:
-		res += mdOutSuffix
-	case vpcmodel.JSON:
-		res += jsonOutSuffix
-	case vpcmodel.DRAWIO:
-		res += drawioOutSuffix
-	case vpcmodel.ARCHDRAWIO:
-		res += archDrawioOutSuffix
-	default:
-		return "", "", errors.New("unexpected out format")
+	suffix, suffixErr := getTestFileSuffix(format)
+	if suffixErr != nil {
+		return "", "", suffixErr
 	}
-
+	res += suffix
 	expectedFileName = res
 	actualFileName = actualOutFilePrefix + res
 	return expectedFileName, actualFileName, nil
+}
+
+func getTestFileSuffix(format vpcmodel.OutFormat) (suffix string, err error) {
+	switch format {
+	case vpcmodel.Text:
+		return txtOutSuffix, nil
+	case vpcmodel.Debug:
+		return debugOutSuffix, nil
+	case vpcmodel.MD:
+		return mdOutSuffix, nil
+	case vpcmodel.JSON:
+		return jsonOutSuffix, nil
+	case vpcmodel.DRAWIO:
+		return drawioOutSuffix, nil
+	case vpcmodel.ARCHDRAWIO:
+		return archDrawioOutSuffix, nil
+	default:
+		return "", errors.New("unexpected out format")
+	}
 }
 
 // initTest: based on the test name, set the input config file name, and the output
@@ -336,10 +346,13 @@ var tests = []*vpcGeneralTest{
 		format:   vpcmodel.Text,
 	},
 	{
-		name: "acl_testing5",
-		// TODO: currently for this test, there are 2 connections that only differ in statefulness attribute, and
-		// are not yet displayed in the diff report (sub1-1-ky => sub1-2-ky , sub1-1-ky => sub1-3-ky)
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnetsDiff},
+		name:     "acl_testing5",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.SubnetsDiff},
+		format:   vpcmodel.Text,
+	},
+	{
+		name:     "acl_testing3",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
 		format:   vpcmodel.Text,
 	},
 }
@@ -347,24 +360,25 @@ var tests = []*vpcGeneralTest{
 var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
 
 // uncomment the function below to run for updating the expected output
-/*var formatsAvoidOutputGeneration = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
-func TestAllWithGeneration(t *testing.T) {
-	// tests is the list of tests to run
-	for testIdx := range tests {
-		tt := tests[testIdx]
-		// todo - remove the following if when drawio is stable
-		if formatsAvoidOutputGeneration[tt.format] {
-			tt.mode = outputIgnore
-		} else {
-			tt.mode = outputGeneration
-		}
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			tt.runTest(t)
-		})
-	}
-	fmt.Println("done")
-}*/
+// var formatsAvoidOutputGeneration = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
+//
+// func TestAllWithGeneration(t *testing.T) {
+//	// tests is the list of tests to run
+//	for testIdx := range tests {
+//		tt := tests[testIdx]
+//		// todo - remove the following if when drawio is stable
+//		if formatsAvoidOutputGeneration[tt.format] {
+//			tt.mode = outputIgnore
+//		} else {
+//			tt.mode = outputGeneration
+//		}
+//		t.Run(tt.name, func(t *testing.T) {
+//			t.Parallel()
+//			tt.runTest(t)
+//		})
+//	}
+//	fmt.Println("done")
+//}
 
 func TestAllWithComparison(t *testing.T) {
 	// tests is the list of tests to run
@@ -407,7 +421,7 @@ func (tt *vpcGeneralTest) runTest(t *testing.T) {
 	var vpcConfigs2nd map[string]*vpcmodel.VPCConfig
 	diffUseCase := false
 	for _, useCase := range tt.useCases {
-		if useCase == vpcmodel.AllSubnetsDiff {
+		if useCase == vpcmodel.SubnetsDiff || useCase == vpcmodel.EndpointsDiff {
 			diffUseCase = true
 		}
 	}

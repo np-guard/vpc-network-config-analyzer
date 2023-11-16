@@ -19,6 +19,13 @@ const (
 	changedConnection
 )
 
+type diffAnalysisType = int
+
+const (
+	Vsis diffAnalysisType = iota
+	Subnets
+)
+
 const (
 	castingNodeErr = "%s should be external node but casting to Node failed"
 )
@@ -29,64 +36,104 @@ type connectionDiff struct {
 	diff  DiffType
 }
 
-type SubnetsDiff map[VPCResourceIntf]map[VPCResourceIntf]*connectionDiff
+type connectivityDiff map[VPCResourceIntf]map[VPCResourceIntf]*connectionDiff
 
-type ConfigsForDiff struct {
-	config1 *VPCConfig
-	config2 *VPCConfig
+type configsForDiff struct {
+	config1      *VPCConfig
+	config2      *VPCConfig
+	diffAnalysis diffAnalysisType
 }
 
-type SubnetConfigConnectivity struct {
-	config             *VPCConfig
-	subnetConnectivity SubnetConnectivityMap
+type configConnectivity struct {
+	config       *VPCConfig
+	connectivity GeneralConnectivityMap
 }
 
-type DiffBetweenSubnets struct {
-	subnet1Subtract2 SubnetsDiff
-	subnet2Subtract1 SubnetsDiff
+type diffBetweenCfgs struct {
+	cfg1ConnRemovedFrom2 connectivityDiff
+	cfg2ConnRemovedFrom1 connectivityDiff
+	diffAnalysis         diffAnalysisType
 }
 
-func (configs ConfigsForDiff) GetSubnetsDiff(grouping bool) (*DiffBetweenSubnets, error) {
-	// 1. compute connectivity for each of the subnets
-	subnetsConn1, err := configs.config1.GetSubnetsConnectivity(true, grouping)
+// GetDiff given 2 *VPCConfigs and an diff analysis - either subnets or endpoints -
+// computes and returns the semantic diff of endpoints or subnets connectivity, as per the required analysis
+func (configs configsForDiff) GetDiff() (*diffBetweenCfgs, error) {
+	// 1. compute connectivity for each of the configurations
+	generalConnectivityMap1, err := configs.config1.getAllowedConnectionsCombined(configs.diffAnalysis)
 	if err != nil {
 		return nil, err
 	}
-	subnetsConn2, err := configs.config2.GetSubnetsConnectivity(true, grouping)
+	generalConnectivityMap2, err := configs.config2.getAllowedConnectionsCombined(configs.diffAnalysis)
 	if err != nil {
 		return nil, err
 	}
 
 	// 2. Computes delta in both directions
-	subnetConfigConn1 := &SubnetConfigConnectivity{configs.config1,
-		subnetsConn1.AllowedConnsCombined}
-	subnetConfigConn2 := &SubnetConfigConnectivity{configs.config2,
-		subnetsConn2.AllowedConnsCombined}
+	configConn1 := &configConnectivity{configs.config1,
+		generalConnectivityMap1}
+	configConn2 := &configConnectivity{configs.config2,
+		generalConnectivityMap2}
 	alignedConfigConnectivity1, alignedConfigConnectivity2, err :=
-		subnetConfigConn1.getConnectivesWithSameIPBlocks(subnetConfigConn2)
+		configConn1.getConnectivesWithSameIPBlocks(configConn2)
 	if err != nil {
 		return nil, err
 	}
-	subnet1Subtract2, err1 := alignedConfigConnectivity1.connMissingOrChanged(alignedConfigConnectivity2, true)
+	cfg1ConnRemovedFrom2, err1 := alignedConfigConnectivity1.connMissingOrChanged(alignedConfigConnectivity2, configs.diffAnalysis, true)
 	if err1 != nil {
 		return nil, err1
 	}
-	subnet2Subtract1, err2 := alignedConfigConnectivity2.connMissingOrChanged(alignedConfigConnectivity1, false)
+	cfg2ConnRemovedFrom1, err2 := alignedConfigConnectivity2.connMissingOrChanged(alignedConfigConnectivity1, configs.diffAnalysis, false)
 	if err2 != nil {
 		return nil, err2
 	}
 
 	// 3. ToDo: grouping, see comment at the end of this file
 
-	res := &DiffBetweenSubnets{
-		subnet1Subtract2: subnet1Subtract2,
-		subnet2Subtract1: subnet2Subtract1}
+	res := &diffBetweenCfgs{
+		cfg1ConnRemovedFrom2: cfg1ConnRemovedFrom2,
+		cfg2ConnRemovedFrom1: cfg2ConnRemovedFrom1,
+		diffAnalysis:         configs.diffAnalysis}
 	return res, nil
+}
+
+func (c *VPCConfig) getAllowedConnectionsCombined(
+	diffAnalysis diffAnalysisType) (generalConnectivityMap GeneralConnectivityMap, err error) {
+	if diffAnalysis == Subnets {
+		subnetsConn, err := c.GetSubnetsConnectivity(true, false)
+		if err != nil {
+			return nil, err
+		}
+		return subnetsConn.AllowedConnsCombined, err
+	} else if diffAnalysis == Vsis {
+		connectivity1, err := c.GetVPCNetworkConnectivity(false)
+		if err != nil {
+			return nil, err
+		}
+		return connectivity1.AllowedConnsCombined.nodesConnectivityToGeneralConnectivity(), nil
+	}
+	return nil, fmt.Errorf("illegal diff analysis type")
+}
+
+func (nodesConnMap NodesConnectionsMap) nodesConnectivityToGeneralConnectivity() (generalConnMap GeneralConnectivityMap) {
+	generalConnMap = GeneralConnectivityMap{}
+	for src, connsMap := range nodesConnMap {
+		for dst, conn := range connsMap {
+			if conn.IsEmpty() {
+				continue
+			}
+			if _, ok := generalConnMap[src]; !ok {
+				generalConnMap[src] = map[VPCResourceIntf]*common.ConnectionSet{}
+			}
+			generalConnMap[src][dst] = conn
+		}
+	}
+	return generalConnMap
 }
 
 // for a given VPCResourceIntf (representing a subnet or an external ip) in config return the VPCResourceIntf representing the
 // subnet/external address in otherConfig or nil if the subnet does not exist in the other config.
-func (c *VPCConfig) getVPCResourceInfInOtherConfig(other *VPCConfig, ep VPCResourceIntf) (res VPCResourceIntf, err error) {
+func (c *VPCConfig) getVPCResourceInfInOtherConfig(other *VPCConfig, ep VPCResourceIntf,
+	diffAnalysis diffAnalysisType) (res VPCResourceIntf, err error) {
 	if ep.IsExternal() {
 		var node Node
 		var ok bool
@@ -96,42 +143,56 @@ func (c *VPCConfig) getVPCResourceInfInOtherConfig(other *VPCConfig, ep VPCResou
 		}
 		return nil, fmt.Errorf(castingNodeErr, node.Name())
 	}
-	for _, nodeSet := range other.NodeSets {
-		if nodeSet.Name() == ep.Name() {
-			res = VPCResourceIntf(nodeSet)
-			return res, nil
+	// endpoint is a vsi or a subnet, depending on diffAnalysis value
+	if diffAnalysis == Vsis {
+		for _, node := range other.Nodes {
+			if !node.IsInternal() {
+				continue
+			}
+			if node.Name() == ep.Name() {
+				res = VPCResourceIntf(node)
+				return res, nil
+			}
+		}
+	} else if diffAnalysis == Subnets {
+		for _, nodeSet := range other.NodeSets {
+			if nodeSet.Name() == ep.Name() {
+				res = VPCResourceIntf(nodeSet)
+				return res, nil
+			}
 		}
 	}
 	return nil, nil
 }
 
-// connMissingOrChanged of subnetConfConnectivity w.r.t. the other:
+// connMissingOrChanged of confConnectivity w.r.t. the other:
 // connections may be identical, non-existing in other or existing in other but changed;
 // the latter are included only if includeChanged, to avoid duplication in the final presentation
 //
 // assumption: any connection from connectivity and "other" have src (dst) which are either disjoint or equal
-func (subnetConfConnectivity *SubnetConfigConnectivity) connMissingOrChanged(other *SubnetConfigConnectivity, includeChanged bool) (
-	connectivitySubtract SubnetsDiff, err error) {
-	connectivitySubtract = map[VPCResourceIntf]map[VPCResourceIntf]*connectionDiff{}
-	for src, endpointConns := range subnetConfConnectivity.subnetConnectivity {
+func (confConnectivity *configConnectivity) connMissingOrChanged(other *configConnectivity,
+	diffAnalysis diffAnalysisType, includeChanged bool) (
+	connectivityMissingOrChanged connectivityDiff, err error) {
+	connectivityMissingOrChanged = map[VPCResourceIntf]map[VPCResourceIntf]*connectionDiff{}
+	for src, endpointConns := range confConnectivity.connectivity {
 		for dst, conns := range endpointConns {
 			if conns.IsEmpty() {
 				continue
 			}
-			if _, ok := connectivitySubtract[src]; !ok {
-				connectivitySubtract[src] = map[VPCResourceIntf]*connectionDiff{}
+			if _, ok := connectivityMissingOrChanged[src]; !ok {
+				connectivityMissingOrChanged[src] = map[VPCResourceIntf]*connectionDiff{}
 			}
-			srcInOther, err1 := subnetConfConnectivity.config.getVPCResourceInfInOtherConfig(other.config, src)
+			srcInOther, err1 := confConnectivity.config.getVPCResourceInfInOtherConfig(other.config, src, diffAnalysis)
 			if err1 != nil {
 				return nil, err1
 			}
-			dstInOther, err2 := subnetConfConnectivity.config.getVPCResourceInfInOtherConfig(other.config, dst)
+			dstInOther, err2 := confConnectivity.config.getVPCResourceInfInOtherConfig(other.config, dst, diffAnalysis)
 			if err2 != nil {
 				return nil, err2
 			}
 			connDiff := &connectionDiff{conns, nil, missingConnection}
 			if srcInOther != nil && dstInOther != nil {
-				if otherSrc, ok := other.subnetConnectivity[srcInOther]; ok {
+				if otherSrc, ok := other.connectivity[srcInOther]; ok {
 					if otherConn, ok := otherSrc[dstInOther]; ok {
 						equalConnections := conns.Equal(otherConn) &&
 							// ToDo: https://github.com/np-guard/vpc-network-config-analyzer/issues/199
@@ -146,20 +207,20 @@ func (subnetConfConnectivity *SubnetConfigConnectivity) connMissingOrChanged(oth
 			} else { // srcInOther == nil || dstInOther == nil
 				connDiff.diff = getDiffType(src, srcInOther, dst, dstInOther)
 			}
-			connectivitySubtract[src][dst] = connDiff
+			connectivityMissingOrChanged[src][dst] = connDiff
 		}
 	}
-	return connectivitySubtract, nil
+	return connectivityMissingOrChanged, nil
 }
 
 // lack of a subnet is marked as a missing endpoint
 // a lack of identical external endpoint is considered as a missing connection
 // and not as a missing endpoint
 func getDiffType(src, srcInOther, dst, dstInOther VPCResourceIntf) DiffType {
-	_, srcIsSubnet := src.(NodeSet)
-	_, dstIsSubnet := dst.(NodeSet)
-	missingSrc := srcInOther == nil && srcIsSubnet
-	missingDst := dstInOther == nil && dstIsSubnet
+	srcIsInternal := !src.IsExternal()
+	dstIsInternal := !dst.IsExternal()
+	missingSrc := srcInOther == nil && srcIsInternal
+	missingDst := dstInOther == nil && dstIsInternal
 	switch {
 	case missingSrc && missingDst:
 		return missingSrcDstEP
@@ -173,17 +234,17 @@ func getDiffType(src, srcInOther, dst, dstInOther VPCResourceIntf) DiffType {
 	return noDiff
 }
 
-// EnhancedString ToDo: likely the current printing functionality will no longer be needed once the grouping is added
+// string ToDo: likely the current printing functionality will no longer be needed once the grouping is added
 // anyways the diff print will be worked on before the final merge
 
-func (diff *DiffBetweenSubnets) String() string {
-	return diff.subnet1Subtract2.EnhancedString(true) +
-		diff.subnet2Subtract1.EnhancedString(false)
+func (diff *diffBetweenCfgs) String() string {
+	return diff.cfg1ConnRemovedFrom2.string(diff.diffAnalysis, true) +
+		diff.cfg2ConnRemovedFrom1.string(diff.diffAnalysis, false)
 }
 
-func (subnetDiff *SubnetsDiff) EnhancedString(thisMinusOther bool) string {
+func (connDiff *connectivityDiff) string(diffAnalysis diffAnalysisType, thisMinusOther bool) string {
 	strList := []string{}
-	for src, endpointConnDiff := range *subnetDiff {
+	for src, endpointConnDiff := range *connDiff {
 		for dst, connDiff := range endpointConnDiff {
 			conn1Str, conn2Str := "", ""
 			if thisMinusOther {
@@ -194,8 +255,14 @@ func (subnetDiff *SubnetsDiff) EnhancedString(thisMinusOther bool) string {
 				conn2Str = connStr(connDiff.conn1)
 			}
 			diffType, endpointsDiff := diffAndEndpointsDisc(connDiff.diff, src, dst, thisMinusOther)
-			printDiff := fmt.Sprintf("diff-type: %s, source: %s, destination: %s, config1: %s, config2: %s, subnets-diff-info: %s\n",
-				diffType, src.Name(), dst.Name(), conn1Str, conn2Str, endpointsDiff)
+			diffInfo := ""
+			if diffAnalysis == Subnets {
+				diffInfo = "subnets-diff-info:"
+			} else if diffAnalysis == Vsis {
+				diffInfo = "vsis-diff-info:"
+			}
+			printDiff := fmt.Sprintf("diff-type: %s, source: %s, destination: %s, config1: %s, config2: %s, %s %s\n",
+				diffType, src.Name(), dst.Name(), conn1Str, conn2Str, diffInfo, endpointsDiff)
 			strList = append(strList, printDiff)
 		}
 	}
@@ -204,7 +271,7 @@ func (subnetDiff *SubnetsDiff) EnhancedString(thisMinusOther bool) string {
 	return res
 }
 
-// prints connection for func (subnetDiff *SubnetsDiff) EnhancedString(..) where the connection could be empty
+// prints connection for the above string(..) where the connection could be empty
 func connStr(conn *common.ConnectionSet) string {
 	if conn == nil {
 		return "No connection"
@@ -238,53 +305,53 @@ func diffAndEndpointsDisc(diff DiffType, src, dst VPCResourceIntf, thisMinusOthe
 	return "", ""
 }
 
-// getConnectivesWithSameIPBlocks generates from subnet1Connectivity.AllowedConnsCombined and subnet2Connectivity.AllowedConnsCombined
-// Two equivalent SubnetConnectivityMap objects s.t. any (src1, dst1) of subnet1Connectivity and
-// (src2, dst2) of subnet2Connectivity s.t. if src1 and src2 (dst1 and dst2) are both external then
+// getConnectivesWithSameIPBlocks generates from the given GeneralConnectivityMap
+// Two equivalent GeneralConnectivityMap objects s.t. any (src1, dst1) of the first map and
+// (src2, dst2) of the 2nd map s.t. if src1 and src2 (dst1 and dst2) are both external then
 // they are either equal or disjoint
-func (subnetConfConnectivity *SubnetConfigConnectivity) getConnectivesWithSameIPBlocks(otherConfConnectivity *SubnetConfigConnectivity) (
-	alignedConnectivityConfig, alignedOtherConnectivityConfig *SubnetConfigConnectivity, myErr error) {
+func (confConnectivity *configConnectivity) getConnectivesWithSameIPBlocks(otherConfConnectivity *configConnectivity) (
+	alignedConnectivityConfig, alignedOtherConnectivityConfig *configConnectivity, myErr error) {
 	// 1. computes new set of external nodes (only type of nodes here) in cfg1 and cfg2
 	// does so by computing disjoint block between src+dst ipBlocks in cfg1 and in cfg2
 	// the new set of external nodes is determined based on them
-	connectivityIPBlist, err := subnetConfConnectivity.subnetConnectivity.getIPBlocksList()
+	connectivityIPBlist, err := confConnectivity.connectivity.getIPBlocksList()
 	if err != nil {
 		return nil, nil, err
 	}
-	otherIPBlist, err := otherConfConnectivity.subnetConnectivity.getIPBlocksList()
+	otherIPBlist, err := otherConfConnectivity.connectivity.getIPBlocksList()
 	if err != nil {
 		return nil, nil, err
 	}
 	disjointIPblocks := common.DisjointIPBlocks(connectivityIPBlist, otherIPBlist)
 	// 2. copy configs and generates Nodes[] as per disjointIPblocks
-	err = subnetConfConnectivity.config.refineConfigExternalNodes(disjointIPblocks)
+	err = confConnectivity.config.refineConfigExternalNodes(disjointIPblocks)
 	if err != nil {
 		return nil, nil, err
 	}
-	alignedConfig := subnetConfConnectivity.config
+	alignedConfig := confConnectivity.config
 	err = otherConfConnectivity.config.refineConfigExternalNodes(disjointIPblocks)
 	if err != nil {
 		return nil, nil, err
 	}
 	otherAlignedConfig := otherConfConnectivity.config
 	// 3. resize connections as per the new Nodes[]
-	alignedConnectivity, err := subnetConfConnectivity.subnetConnectivity.alignConnectionsGivenIPBlists(
+	alignedConnectivity, err := confConnectivity.connectivity.alignConnectionsGivenIPBlists(
 		alignedConfig, disjointIPblocks)
 	if err != nil {
 		return nil, nil, err
 	}
-	alignedOtherConnectivity, err := otherConfConnectivity.subnetConnectivity.alignConnectionsGivenIPBlists(
+	alignedOtherConnectivity, err := otherConfConnectivity.connectivity.alignConnectionsGivenIPBlists(
 		otherAlignedConfig, disjointIPblocks)
 	if err != nil {
 		return nil, nil, err
 	}
-	return &SubnetConfigConnectivity{alignedConfig, alignedConnectivity},
-		&SubnetConfigConnectivity{otherAlignedConfig, alignedOtherConnectivity}, nil
+	return &configConnectivity{alignedConfig, alignedConnectivity},
+		&configConnectivity{otherAlignedConfig, alignedOtherConnectivity}, nil
 }
 
-func (subnetConnectivity *SubnetConnectivityMap) alignConnectionsGivenIPBlists(config *VPCConfig, disjointIPblocks []*common.IPBlock) (
-	alignedConnectivity SubnetConnectivityMap, err error) {
-	alignedConnectivitySrc, err := subnetConnectivity.actualAlignSrcOrDstGivenIPBlists(config, disjointIPblocks, true)
+func (connectivityMap *GeneralConnectivityMap) alignConnectionsGivenIPBlists(config *VPCConfig, disjointIPblocks []*common.IPBlock) (
+	alignedConnectivity GeneralConnectivityMap, err error) {
+	alignedConnectivitySrc, err := connectivityMap.actualAlignSrcOrDstGivenIPBlists(config, disjointIPblocks, true)
 	if err != nil {
 		return nil, err
 	}
@@ -333,15 +400,15 @@ func resizeNodes(oldNodes []Node, disjointIPblocks []*common.IPBlock) (newNodes 
 	return newNodes, nil
 }
 
-func (subnetConnectivity *SubnetConnectivityMap) actualAlignSrcOrDstGivenIPBlists(config *VPCConfig,
+func (connectivityMap *GeneralConnectivityMap) actualAlignSrcOrDstGivenIPBlists(config *VPCConfig,
 	disjointIPblocks []*common.IPBlock, resizeSrc bool) (
-	alignedConnectivity SubnetConnectivityMap, err error) {
+	alignedConnectivity GeneralConnectivityMap, err error) {
 	// goes over all sources of connections in connectivity
 	// if src is external then for each IPBlock in disjointIPblocks copies dsts and connection type
 	// otherwise just copies as is
 	err = nil
 	alignedConnectivity = map[VPCResourceIntf]map[VPCResourceIntf]*common.ConnectionSet{}
-	for src, endpointConns := range *subnetConnectivity {
+	for src, endpointConns := range *connectivityMap {
 		for dst, conns := range endpointConns {
 			if conns.IsEmpty() {
 				continue
@@ -421,9 +488,9 @@ func findNodeWithCidr(configNodes []Node, cidr string) Node {
 }
 
 // get a list of IPBlocks of the src and dst of the connections
-func (subnetConnectivity SubnetConnectivityMap) getIPBlocksList() (ipbList []*common.IPBlock,
+func (connectivityMap GeneralConnectivityMap) getIPBlocksList() (ipbList []*common.IPBlock,
 	myErr error) {
-	for src, endpointConns := range subnetConnectivity {
+	for src, endpointConns := range connectivityMap {
 		for dst, conns := range endpointConns {
 			if conns.IsEmpty() {
 				continue
@@ -471,10 +538,10 @@ func externalNodeToIPBlock(external Node) (ipBlock *common.IPBlock, err error) {
 //	 src EndpointElem
 //	 dst EndpointElem
 // }
-// func (subnetConnectivity SubnetConnectivityMap) getIntersectingConnections(other SubnetConnectivityMap) (areIntersecting string,
+// func (connectivity GeneralConnectivityMap) getIntersectingConnections(other GeneralConnectivityMap) (areIntersecting string,
 //	err error) {
 //	err = nil
-//	for src, endpointConns := range subnetConnectivity {
+//	for src, endpointConns := range connectivity {
 //		for dst, conns := range endpointConns {
 //			if (!src.IsExternal() && !dst.IsExternal()) || conns.IsEmpty() {
 //				continue // nothing to do here
@@ -562,20 +629,20 @@ func externalNodeToIPBlock(external Node) (ipBlock *common.IPBlock, err error) {
 //}
 //
 //// todo: instead of adding functionality to grouping, I plan to have more generic connectivity items that will be grouped
-////       encode the subnetsDiff into this generic item as well as the other entities we are grouping
+////       encode the cfgsDiff into this generic item as well as the other entities we are grouping
 ////       and then decode in the printing
 ////       the idea is to use instead of *common.ConnectionSet in the grouped entity a string which will encode the connection
 ////       and also the diff where relevant
 ////       this will requires some rewriting in the existing grouping functionality and the way it provides
 ////       service to subnetsConnectivity and nodesConnectivity
 //
-// func (subnetConnectivity *SubnetConnectivityMap) PrintConnectivity() {
-//	for src, endpointConns := range *subnetConnectivity {
+// func (connectivity *GeneralConnectivityMap) PrintConnectivity() {
+//	for src, endpointConns := range *connectivity {
 //		for dst, conns := range endpointConns {
 //			if conns.IsEmpty() {
 //				continue
 //			}
-//			fmt.Printf("\t%v => %v %v\n", src.Name(), dst.Name(), conns.EnhancedString())
+//			fmt.Printf("\t%v => %v %v\n", src.Name(), dst.Name(), conns.string())
 //		}
 //	}
 // }

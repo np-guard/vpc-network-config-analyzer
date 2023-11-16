@@ -4,6 +4,8 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
+type GeneralConnectivityMap map[VPCResourceIntf]map[VPCResourceIntf]*common.ConnectionSet
+
 // VPCConnectivity holds detailed representation of allowed connectivity considering all resources in a vpc config1 instance
 type VPCConnectivity struct {
 	// computed for each layer separately its allowed connections (ingress and egress separately)

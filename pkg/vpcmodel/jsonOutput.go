@@ -14,7 +14,7 @@ type JSONoutputFormatter struct {
 func (j *JSONoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	conn *VPCConnectivity,
 	subnetsConn *VPCsubnetConnectivity,
-	subnetsDiff *DiffBetweenSubnets,
+	subnetsDiff *diffBetweenCfgs,
 	outFile string,
 	grouping bool,
 	uc OutputUseCase) (*VPCAnalysisOutput, error) {

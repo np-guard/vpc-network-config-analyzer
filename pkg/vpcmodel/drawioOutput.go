@@ -112,7 +112,7 @@ func (d *DrawioOutputFormatter) createEdges() {
 func (d *DrawioOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	conn *VPCConnectivity,
 	subnetsConn *VPCsubnetConnectivity,
-	subnetsDiff *DiffBetweenSubnets,
+	subnetsDiff *diffBetweenCfgs,
 	outFile string,
 	grouping bool,
 	uc OutputUseCase) (*VPCAnalysisOutput, error) {
@@ -140,7 +140,7 @@ type ArchDrawioOutputFormatter struct {
 func (d *ArchDrawioOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	conn *VPCConnectivity,
 	subnetsConn *VPCsubnetConnectivity,
-	subnetsDiff *DiffBetweenSubnets,
+	subnetsDiff *diffBetweenCfgs,
 	outFile string,
 	grouping bool,
 	uc OutputUseCase) (*VPCAnalysisOutput, error) {
