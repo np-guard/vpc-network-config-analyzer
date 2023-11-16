@@ -70,7 +70,7 @@ func NewOutputGenerator(c1, c2 *VPCConfig, grouping bool, uc OutputUseCase, arch
 		}
 		if uc == SubnetsDiff {
 			configsForDiff := &configsForDiff{c1, c2, Subnets}
-			configsDiff, err := configsForDiff.GetDiff(grouping)
+			configsDiff, err := configsForDiff.GetDiff()
 			if err != nil {
 				return nil, err
 			}
@@ -78,7 +78,7 @@ func NewOutputGenerator(c1, c2 *VPCConfig, grouping bool, uc OutputUseCase, arch
 		}
 		if uc == EndpointsDiff {
 			configsForDiff := &configsForDiff{c1, c2, Vsis}
-			configsDiff, err := configsForDiff.GetDiff(grouping)
+			configsDiff, err := configsForDiff.GetDiff()
 			if err != nil {
 				return nil, err
 			}

@@ -57,31 +57,15 @@ type diffBetweenCfgs struct {
 
 // GetDiff given 2 *VPCConfigs and an diff analysis - either subnets or endpoints -
 // computes and returns the semantic diff of endpoints or subnets connectivity, as per the required analysis
-func (configs configsForDiff) GetDiff(grouping bool) (*diffBetweenCfgs, error) {
+func (configs configsForDiff) GetDiff() (*diffBetweenCfgs, error) {
 	// 1. compute connectivity for each of the configurations
-	var generalConnectivityMap1, generalConnectivityMap2 GeneralConnectivityMap
-	if configs.diffAnalysis == Subnets {
-		subnetsConn1, err := configs.config1.GetSubnetsConnectivity(true, grouping)
-		if err != nil {
-			return nil, err
-		}
-		subnetsConn2, err := configs.config2.GetSubnetsConnectivity(true, grouping)
-		if err != nil {
-			return nil, err
-		}
-		generalConnectivityMap1 = subnetsConn1.AllowedConnsCombined
-		generalConnectivityMap2 = subnetsConn2.AllowedConnsCombined
-	} else if configs.diffAnalysis == Vsis {
-		connectivity1, err := configs.config1.GetVPCNetworkConnectivity(grouping)
-		if err != nil {
-			return nil, err
-		}
-		connectivity2, err := configs.config2.GetVPCNetworkConnectivity(grouping)
-		if err != nil {
-			return nil, err
-		}
-		generalConnectivityMap1 = connectivity1.AllowedConnsCombined.nodesConnectivityToGeneralConnectivity()
-		generalConnectivityMap2 = connectivity2.AllowedConnsCombined.nodesConnectivityToGeneralConnectivity()
+	generalConnectivityMap1, err := configs.config1.getAllowedConnectionCombined(configs.diffAnalysis)
+	if err != nil {
+		return nil, err
+	}
+	generalConnectivityMap2, err := configs.config2.getAllowedConnectionCombined(configs.diffAnalysis)
+	if err != nil {
+		return nil, err
 	}
 
 	// 2. Computes delta in both directions
@@ -110,6 +94,24 @@ func (configs configsForDiff) GetDiff(grouping bool) (*diffBetweenCfgs, error) {
 		cfg2ConnRemovedFrom1: cfg2ConnRemovedFrom1,
 		diffAnalysis:         configs.diffAnalysis}
 	return res, nil
+}
+
+func (config *VPCConfig) getAllowedConnectionCombined(
+	diffAnalysis diffAnalysisType) (generalConnectivityMap GeneralConnectivityMap, err error) {
+	if diffAnalysis == Subnets {
+		subnetsConn, err := config.GetSubnetsConnectivity(true, false)
+		if err != nil {
+			return nil, err
+		}
+		return subnetsConn.AllowedConnsCombined, err
+	} else if diffAnalysis == Vsis {
+		connectivity1, err := config.GetVPCNetworkConnectivity(false)
+		if err != nil {
+			return nil, err
+		}
+		return connectivity1.AllowedConnsCombined.nodesConnectivityToGeneralConnectivity(), nil
+	}
+	return nil, fmt.Errorf("illegal diff analysis type")
 }
 
 func (nodesConnMap NodesConnectionsMap) nodesConnectivityToGeneralConnectivity() (generalConnMap GeneralConnectivityMap) {
