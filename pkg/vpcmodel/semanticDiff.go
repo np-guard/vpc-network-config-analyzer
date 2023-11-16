@@ -36,9 +36,9 @@ type connectionDiff struct {
 	diff  DiffType
 }
 
-type connectivesDiff map[VPCResourceIntf]map[VPCResourceIntf]*connectionDiff
+type connectivityDiff map[VPCResourceIntf]map[VPCResourceIntf]*connectionDiff
 
-type ConfigsForDiff struct {
+type configsForDiff struct {
 	config1      *VPCConfig
 	config2      *VPCConfig
 	diffAnalysis diffAnalysisType
@@ -50,12 +50,12 @@ type configConnectivity struct {
 }
 
 type diffBetweenCfgs struct {
-	cfg1ConnRemovedFrom2 connectivesDiff
-	cfg2ConnRemovedFrom1 connectivesDiff
+	cfg1ConnRemovedFrom2 connectivityDiff
+	cfg2ConnRemovedFrom1 connectivityDiff
 	diffAnalysis         diffAnalysisType
 }
 
-func (configs ConfigsForDiff) GetDiff(grouping bool) (*diffBetweenCfgs, error) {
+func (configs configsForDiff) GetDiff(grouping bool) (*diffBetweenCfgs, error) {
 	// 1. compute connectivity for each of the configurations
 	var generalConnectivityMap1, generalConnectivityMap2 GeneralConnectivityMap
 	if configs.diffAnalysis == Subnets {
@@ -168,7 +168,7 @@ func (c *VPCConfig) getVPCResourceInfInOtherConfig(other *VPCConfig, ep VPCResou
 // assumption: any connection from connectivity and "other" have src (dst) which are either disjoint or equal
 func (confConnectivity *configConnectivity) connMissingOrChanged(other *configConnectivity,
 	diffAnalysis diffAnalysisType, includeChanged bool) (
-	connectivityMissingOrChanged connectivesDiff, err error) {
+	connectivityMissingOrChanged connectivityDiff, err error) {
 	connectivityMissingOrChanged = map[VPCResourceIntf]map[VPCResourceIntf]*connectionDiff{}
 	for src, endpointConns := range confConnectivity.connectivity {
 		for dst, conns := range endpointConns {
@@ -230,15 +230,15 @@ func getDiffType(src, srcInOther, dst, dstInOther VPCResourceIntf) DiffType {
 	return noDiff
 }
 
-// EnhancedString ToDo: likely the current printing functionality will no longer be needed once the grouping is added
+// enhancedString ToDo: likely the current printing functionality will no longer be needed once the grouping is added
 // anyways the diff print will be worked on before the final merge
 
 func (diff *diffBetweenCfgs) String() string {
-	return diff.cfg1ConnRemovedFrom2.EnhancedString(diff.diffAnalysis, true) +
-		diff.cfg2ConnRemovedFrom1.EnhancedString(diff.diffAnalysis, false)
+	return diff.cfg1ConnRemovedFrom2.enhancedString(diff.diffAnalysis, true) +
+		diff.cfg2ConnRemovedFrom1.enhancedString(diff.diffAnalysis, false)
 }
 
-func (connDiff *connectivesDiff) EnhancedString(diffAnalysis diffAnalysisType, thisMinusOther bool) string {
+func (connDiff *connectivityDiff) enhancedString(diffAnalysis diffAnalysisType, thisMinusOther bool) string {
 	strList := []string{}
 	for src, endpointConnDiff := range *connDiff {
 		for dst, connDiff := range endpointConnDiff {
@@ -267,7 +267,7 @@ func (connDiff *connectivesDiff) EnhancedString(diffAnalysis diffAnalysisType, t
 	return res
 }
 
-// prints connection for the above EnhancedString(..) where the connection could be empty
+// prints connection for the above enhancedString(..) where the connection could be empty
 func connStr(conn *common.ConnectionSet) string {
 	if conn == nil {
 		return "No connection"
@@ -638,7 +638,7 @@ func externalNodeToIPBlock(external Node) (ipBlock *common.IPBlock, err error) {
 //			if conns.IsEmpty() {
 //				continue
 //			}
-//			fmt.Printf("\t%v => %v %v\n", src.Name(), dst.Name(), conns.EnhancedString())
+//			fmt.Printf("\t%v => %v %v\n", src.Name(), dst.Name(), conns.enhancedString())
 //		}
 //	}
 // }

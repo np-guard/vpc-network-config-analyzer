@@ -84,7 +84,7 @@ func TestSimpleSubnetDiff(t *testing.T) {
 	if err != nil {
 		fmt.Println("error:", err.Error())
 	}
-	subnet1Subtract2Str := subnet1Subtract2.EnhancedString(Subnets, true)
+	subnet1Subtract2Str := subnet1Subtract2.enhancedString(Subnets, true)
 	fmt.Printf("cfg1ConnRemovedFrom2:\n%v\n", subnet1Subtract2Str)
 	require.Equal(t, err, nil)
 	newLines := strings.Count(subnet1Subtract2Str, "\n")
@@ -105,7 +105,7 @@ func TestSimpleSubnetDiff(t *testing.T) {
 		fmt.Println("error:", err.Error())
 	}
 	require.Equal(t, err, nil)
-	subnet2Subtract1Str := cfg2Subtract1.EnhancedString(Subnets, false)
+	subnet2Subtract1Str := cfg2Subtract1.enhancedString(Subnets, false)
 	fmt.Printf("cfg2Subtract1:\n%v", subnet2Subtract1Str)
 	require.Equal(t, subnet2Subtract1Str, "diff-type: added, source: subnet4, destination: subnet5, config1: "+
 		"No connection, config2: All Connections, subnets-diff-info: subnet5 added\n")
@@ -170,7 +170,7 @@ func TestSimpleIPAndSubnetDiff(t *testing.T) {
 		fmt.Println("error:", err.Error())
 	}
 	require.Equal(t, err, nil)
-	cfg1SubtractCfg2Str := cfg1SubCfg2.EnhancedString(Subnets, true)
+	cfg1SubtractCfg2Str := cfg1SubCfg2.enhancedString(Subnets, true)
 	fmt.Printf("cfg1SubCfg2:\n%v\n", cfg1SubtractCfg2Str)
 	newLines := strings.Count(cfg1SubtractCfg2Str, "\n")
 	require.Equal(t, 7, newLines)
@@ -256,7 +256,7 @@ func TestSimpleVsisDiff(t *testing.T) {
 		fmt.Println("error:", err.Error())
 	}
 	require.Equal(t, err, nil)
-	cfg1SubCfg2Str := cfg1SubCfg2.EnhancedString(Vsis, true)
+	cfg1SubCfg2Str := cfg1SubCfg2.enhancedString(Vsis, true)
 	fmt.Printf("cfg1SubCfg2Str:\n%v\n", cfg1SubCfg2Str)
 	newLines := strings.Count(cfg1SubCfg2Str, "\n")
 	require.Equal(t, 4, newLines)
@@ -272,7 +272,7 @@ func TestSimpleVsisDiff(t *testing.T) {
 		fmt.Println("error:", err.Error())
 	}
 	require.Equal(t, err, nil)
-	cfg2SubCfg1Str := cfg2SubCfg1.EnhancedString(Vsis, true)
+	cfg2SubCfg1Str := cfg2SubCfg1.enhancedString(Vsis, true)
 	fmt.Printf("cfg2SubCfg1Str:\n%v\n", cfg2SubCfg1Str)
 	newLines = strings.Count(cfg2SubCfg1Str, "\n")
 	require.Equal(t, 5, newLines)
