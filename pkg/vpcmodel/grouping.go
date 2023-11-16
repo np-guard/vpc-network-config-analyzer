@@ -274,7 +274,11 @@ func (g *GroupConnLines) groupExternalAddressesForSubnets() {
 }
 
 func (g *GroupConnLines) groupExternalAddressesForDiff(thisMinusOther bool) {
-	res := []*GroupedConnLine{}
+	// group public internet ranges
+	// initialize data structures
+	g.srcToDst = newGroupingConnections()
+	g.dstToSrc = newGroupingConnections()
+	var res []*GroupedConnLine
 	var connRemovedChanged connectivesDiff
 	if thisMinusOther {
 		connRemovedChanged = g.d.cfg1ConnRemovedFrom2
