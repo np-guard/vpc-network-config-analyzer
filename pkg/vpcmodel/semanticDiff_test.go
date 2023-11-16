@@ -305,9 +305,6 @@ func configSimpleVsisDiff() (configConn1, configConn2 *configConnectivity) {
 	configConn1 = &configConnectivity{cfg1, cfg1ConnGeneral}
 	configConn2 = &configConnectivity{cfg2, cfg2ConnGeneral}
 
-	fmt.Printf("cfg1:\n%v\n", cfg1Conn.AllowedConnsCombined.getCombinedConnsStr())
-	fmt.Printf("cfg2:\n%v\n", cfg2Conn.AllowedConnsCombined.getCombinedConnsStr())
-
 	return configConn1, configConn2
 }
 
