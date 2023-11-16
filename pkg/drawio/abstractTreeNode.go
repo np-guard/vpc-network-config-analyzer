@@ -15,14 +15,15 @@ const (
 )
 
 type abstractTreeNode struct {
-	id       uint
-	x        int
-	y        int
-	name     string
-	width    int
-	height   int
-	parent   TreeNodeInterface
-	location *Location
+	id                uint
+	x                 int
+	y                 int
+	name              string
+	width             int
+	height            int
+	parent            TreeNodeInterface
+	location          *Location
+	doNotShowInDrawio bool
 }
 
 func (tn *abstractTreeNode) Label() string { return tn.name }
@@ -51,7 +52,8 @@ func (tn *abstractTreeNode) DrawioParent() TreeNodeInterface { return tn.parent 
 
 func (tn *abstractTreeNode) setLocation(location *Location) { tn.location = location }
 func (tn *abstractTreeNode) setParent(p TreeNodeInterface)  { tn.parent = p }
-func (tn *abstractTreeNode) NotShownInDrawio() bool         { return false }
+func (tn *abstractTreeNode) NotShownInDrawio() bool         { return tn.doNotShowInDrawio }
+func (tn *abstractTreeNode) SetNotShownInDrawio()           { tn.doNotShowInDrawio = true }
 
 var idCounter uint = minID
 

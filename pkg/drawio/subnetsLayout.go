@@ -219,6 +219,11 @@ func (ly *subnetsLayout) layoutGroup(group *groupDataS, firstRow int) int {
 		if miniGroup.located {
 			continue
 		}
+		name := ""
+			for s := range miniGroup.subnets{
+				name += s.Label()+","
+		}
+		fmt.Println("layout mini:  ", name)
 		i := 0
 		for ly.miniGroupsMatrix[firstRow+i][ly.zonesCol[miniGroup.zone]] != nil {
 			i++
@@ -328,7 +333,9 @@ func (ly *subnetsLayout) splitSharing(group *groupDataS) {
 	nonSplitGroup := map[*groupDataS]bool{}
 	ly.setInnerGroups(group)
 	for _, innerGroup := range group.allInnerGroups {
-		nonSplitGroup[innerGroup] = true
+		if len(innerGroup.splitTo) == 0 {
+			nonSplitGroup[innerGroup] = true
+		}
 	}
 	for {
 		innerGroups := map[*groupDataS]bool{}
@@ -421,7 +428,14 @@ func (ly *subnetsLayout) rearrangeGroup(group *groupDataS) {
 			}
 		}
 		if newGroup == nil {
-			newGroup = &groupDataS{miniGroups: miniGroups, name: "createdGroup"}
+			name := "created: "
+			for _, miniGroup := range miniGroups{
+				for s := range miniGroup.subnets{
+					name += s.Label()+","
+				}
+			}
+			fmt.Println("group created ", name)
+			newGroup = &groupDataS{miniGroups: miniGroups, name: name}
 			ly.groups = append(ly.groups, newGroup)
 		}
 		for splitGroup := range group.toSplitGroups {
@@ -442,7 +456,7 @@ func getVpc(group *groupDataS) *VpcTreeNode {
 func (ly *subnetsLayout) createNewGroups() {
 	for _, group := range ly.groups {
 		if len(group.splitTo) != 0 && group.treeNode != nil {
-			group.treeNode.(*GroupSubnetsSquareTreeNode).split = true
+			group.treeNode.SetNotShownInDrawio()
 		}
 		if len(group.splitTo) == 0 && group.treeNode == nil {
 			subnets := []SquareTreeNodeInterface{}
@@ -591,10 +605,10 @@ func (ly *subnetsLayout) createMiniGroups(grs []*GroupSubnetsSquareTreeNode) {
 		}
 	}
 	groups := []*groupDataS{}
-	for group, miniGroups2 := range groupToMiniGroups {
-		groupData := groupDataS{treeNode: group, subnets: groupSubnets[group], name: group.Label()}
+	for groupTn, miniGroups := range groupToMiniGroups {
+		groupData := groupDataS{treeNode: groupTn, subnets: groupSubnets[groupTn], name: groupTn.Label()}
 		groups = append(groups, &groupData)
-		for miniGroup := range miniGroups2 {
+		for miniGroup := range miniGroups {
 			groupData.miniGroups = append(groupData.miniGroups, miniGroup)
 		}
 	}
