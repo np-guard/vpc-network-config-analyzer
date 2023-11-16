@@ -111,6 +111,39 @@ func TestSimpleSubnetDiff(t *testing.T) {
 		"No connection, config2: All Connections, subnets-diff-info: subnet5 added\n")
 }
 
+func TestSimpleSubnetDiffGrouping(t *testing.T) {
+	subnetConfigConn1, subnetConfigConn2 := configSimpleSubnetDiff()
+	cfg1SubCfg2, err := subnetConfigConn1.connMissingOrChanged(subnetConfigConn2, Subnets, true)
+	if err != nil {
+		fmt.Println("error:", err.Error())
+	}
+	require.Equal(t, err, nil)
+	cfg2SubCfg1, err := subnetConfigConn2.connMissingOrChanged(subnetConfigConn1, Subnets, false)
+	if err != nil {
+		fmt.Println("error:", err.Error())
+	}
+	require.Equal(t, err, nil)
+	d := &diffBetweenCfgs{Subnets, cfg1SubCfg2, cfg2SubCfg1, nil}
+	groupConnLines := newGroupConnLinesDiff(d)
+	d.groupedLines = groupConnLines.GroupedLines
+	groupedPrinted := d.String()
+	fmt.Println(groupedPrinted)
+	newLines := strings.Count(groupedPrinted, "\n")
+	require.Equal(t, 6, newLines)
+	require.Contains(t, groupedPrinted, "diff-type: removed, source: subnet0, destination: subnet1, "+
+		"config1: All Connections, config2: No connection, subnets-diff-info: subnet0 and subnet1 removed\n")
+	require.Contains(t, groupedPrinted, "diff-type: removed, source: subnet1, destination: subnet2, "+
+		"config1: All Connections, config2: No connection, subnets-diff-info: subnet1 removed\n")
+	require.Contains(t, groupedPrinted, "diff-type: removed, source: subnet2, destination: subnet3, "+
+		"config1: All Connections, config2: No connection, subnets-diff-info: \n")
+	require.Contains(t, groupedPrinted, "diff-type: removed, source: subnet3, destination: subnet1, "+
+		"config1: All Connections, config2: No connection, subnets-diff-info: subnet1 removed\n")
+	require.Contains(t, groupedPrinted, "diff-type: changed, source: subnet3, destination: subnet4, "+
+		"config1: protocol: TCP src-ports: 10-100 dst-ports: 443, config2: All Connections, subnets-diff-info: \n")
+	require.Contains(t, groupedPrinted, "diff-type: added, source: subnet4, destination: subnet5, config1: "+
+		"No connection, config2: All Connections, subnets-diff-info: subnet5 added\n")
+}
+
 func configSimpleIPAndSubnetDiff() (subnetConfigConn1, subnetConfigConn2 *configConnectivity) {
 	cfg1 := &VPCConfig{Nodes: []Node{}, NodeSets: []NodeSet{}}
 	cfg1.NodeSets = append(cfg1.NodeSets, &mockSubnet{"10.1.20.0/22", "subnet1", nil},
