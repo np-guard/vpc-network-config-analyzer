@@ -360,9 +360,9 @@ var tests = []*vpcGeneralTest{
 var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
 
 // uncomment the function below to run for updating the expected output
-//var formatsAvoidOutputGeneration = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
+// var formatsAvoidOutputGeneration = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
 //
-//func TestAllWithGeneration(t *testing.T) {
+// func TestAllWithGeneration(t *testing.T) {
 //	// tests is the list of tests to run
 //	for testIdx := range tests {
 //		tt := tests[testIdx]

@@ -59,11 +59,11 @@ type diffBetweenCfgs struct {
 // computes and returns the semantic diff of endpoints or subnets connectivity, as per the required analysis
 func (configs configsForDiff) GetDiff() (*diffBetweenCfgs, error) {
 	// 1. compute connectivity for each of the configurations
-	generalConnectivityMap1, err := configs.config1.getAllowedConnectionCombined(configs.diffAnalysis)
+	generalConnectivityMap1, err := configs.config1.getAllowedConnectionsCombined(configs.diffAnalysis)
 	if err != nil {
 		return nil, err
 	}
-	generalConnectivityMap2, err := configs.config2.getAllowedConnectionCombined(configs.diffAnalysis)
+	generalConnectivityMap2, err := configs.config2.getAllowedConnectionsCombined(configs.diffAnalysis)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (configs configsForDiff) GetDiff() (*diffBetweenCfgs, error) {
 	return res, nil
 }
 
-func (c *VPCConfig) getAllowedConnectionCombined(
+func (c *VPCConfig) getAllowedConnectionsCombined(
 	diffAnalysis diffAnalysisType) (generalConnectivityMap GeneralConnectivityMap, err error) {
 	if diffAnalysis == Subnets {
 		subnetsConn, err := c.GetSubnetsConnectivity(true, false)
