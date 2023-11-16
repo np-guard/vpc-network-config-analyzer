@@ -46,7 +46,7 @@ type ConfigsForDiff struct {
 
 type configConnectivity struct {
 	config       *VPCConfig
-	connectivity generalConnectivityMap
+	connectivity GeneralConnectivityMap
 }
 
 type diffBetweenCfgs struct {
@@ -57,7 +57,7 @@ type diffBetweenCfgs struct {
 
 func (configs ConfigsForDiff) GetDiff(grouping bool) (*diffBetweenCfgs, error) {
 	// 1. compute connectivity for each of the configurations
-	var generalConnectivityMap1, generalConnectivityMap2 generalConnectivityMap
+	var generalConnectivityMap1, generalConnectivityMap2 GeneralConnectivityMap
 	if configs.diffAnalysis == Subnets {
 		subnetsConn1, err := configs.config1.GetSubnetsConnectivity(true, grouping)
 		if err != nil {
@@ -110,8 +110,8 @@ func (configs ConfigsForDiff) GetDiff(grouping bool) (*diffBetweenCfgs, error) {
 	return res, nil
 }
 
-func (nodesConnMap NodesConnectionsMap) nodesConnectivityToGeneralConnectivity() (generalConnMap generalConnectivityMap) {
-	generalConnMap = generalConnectivityMap{}
+func (nodesConnMap NodesConnectionsMap) nodesConnectivityToGeneralConnectivity() (generalConnMap GeneralConnectivityMap) {
+	generalConnMap = GeneralConnectivityMap{}
 	for src, connsMap := range nodesConnMap {
 		for dst, conn := range connsMap {
 			if conn.IsEmpty() {
@@ -301,8 +301,8 @@ func diffAndEndpointsDisc(diff DiffType, src, dst VPCResourceIntf, thisMinusOthe
 	return "", ""
 }
 
-// getConnectivesWithSameIPBlocks generates from the given generalConnectivityMap
-// Two equivalent generalConnectivityMap objects s.t. any (src1, dst1) of the first map and
+// getConnectivesWithSameIPBlocks generates from the given GeneralConnectivityMap
+// Two equivalent GeneralConnectivityMap objects s.t. any (src1, dst1) of the first map and
 // (src2, dst2) of the 2nd map s.t. if src1 and src2 (dst1 and dst2) are both external then
 // they are either equal or disjoint
 func (confConnectivity *configConnectivity) getConnectivesWithSameIPBlocks(otherConfConnectivity *configConnectivity) (
@@ -345,8 +345,8 @@ func (confConnectivity *configConnectivity) getConnectivesWithSameIPBlocks(other
 		&configConnectivity{otherAlignedConfig, alignedOtherConnectivity}, nil
 }
 
-func (connectivityMap *generalConnectivityMap) alignConnectionsGivenIPBlists(config *VPCConfig, disjointIPblocks []*common.IPBlock) (
-	alignedConnectivity generalConnectivityMap, err error) {
+func (connectivityMap *GeneralConnectivityMap) alignConnectionsGivenIPBlists(config *VPCConfig, disjointIPblocks []*common.IPBlock) (
+	alignedConnectivity GeneralConnectivityMap, err error) {
 	alignedConnectivitySrc, err := connectivityMap.actualAlignSrcOrDstGivenIPBlists(config, disjointIPblocks, true)
 	if err != nil {
 		return nil, err
@@ -396,9 +396,9 @@ func resizeNodes(oldNodes []Node, disjointIPblocks []*common.IPBlock) (newNodes 
 	return newNodes, nil
 }
 
-func (connectivityMap *generalConnectivityMap) actualAlignSrcOrDstGivenIPBlists(config *VPCConfig,
+func (connectivityMap *GeneralConnectivityMap) actualAlignSrcOrDstGivenIPBlists(config *VPCConfig,
 	disjointIPblocks []*common.IPBlock, resizeSrc bool) (
-	alignedConnectivity generalConnectivityMap, err error) {
+	alignedConnectivity GeneralConnectivityMap, err error) {
 	// goes over all sources of connections in connectivity
 	// if src is external then for each IPBlock in disjointIPblocks copies dsts and connection type
 	// otherwise just copies as is
@@ -484,7 +484,7 @@ func findNodeWithCidr(configNodes []Node, cidr string) Node {
 }
 
 // get a list of IPBlocks of the src and dst of the connections
-func (connectivityMap generalConnectivityMap) getIPBlocksList() (ipbList []*common.IPBlock,
+func (connectivityMap GeneralConnectivityMap) getIPBlocksList() (ipbList []*common.IPBlock,
 	myErr error) {
 	for src, endpointConns := range connectivityMap {
 		for dst, conns := range endpointConns {
@@ -534,7 +534,7 @@ func externalNodeToIPBlock(external Node) (ipBlock *common.IPBlock, err error) {
 //	 src EndpointElem
 //	 dst EndpointElem
 // }
-// func (connectivity generalConnectivityMap) getIntersectingConnections(other generalConnectivityMap) (areIntersecting string,
+// func (connectivity GeneralConnectivityMap) getIntersectingConnections(other GeneralConnectivityMap) (areIntersecting string,
 //	err error) {
 //	err = nil
 //	for src, endpointConns := range connectivity {
@@ -632,7 +632,7 @@ func externalNodeToIPBlock(external Node) (ipBlock *common.IPBlock, err error) {
 ////       this will requires some rewriting in the existing grouping functionality and the way it provides
 ////       service to subnetsConnectivity and nodesConnectivity
 //
-// func (connectivity *generalConnectivityMap) PrintConnectivity() {
+// func (connectivity *GeneralConnectivityMap) PrintConnectivity() {
 //	for src, endpointConns := range *connectivity {
 //		for dst, conns := range endpointConns {
 //			if conns.IsEmpty() {
