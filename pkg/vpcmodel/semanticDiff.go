@@ -96,16 +96,16 @@ func (configs configsForDiff) GetDiff() (*diffBetweenCfgs, error) {
 	return res, nil
 }
 
-func (config *VPCConfig) getAllowedConnectionCombined(
+func (c *VPCConfig) getAllowedConnectionCombined(
 	diffAnalysis diffAnalysisType) (generalConnectivityMap GeneralConnectivityMap, err error) {
 	if diffAnalysis == Subnets {
-		subnetsConn, err := config.GetSubnetsConnectivity(true, false)
+		subnetsConn, err := c.GetSubnetsConnectivity(true, false)
 		if err != nil {
 			return nil, err
 		}
 		return subnetsConn.AllowedConnsCombined, err
 	} else if diffAnalysis == Vsis {
-		connectivity1, err := config.GetVPCNetworkConnectivity(false)
+		connectivity1, err := c.GetVPCNetworkConnectivity(false)
 		if err != nil {
 			return nil, err
 		}
