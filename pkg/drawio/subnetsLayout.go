@@ -55,7 +55,6 @@ type miniGroupDataS struct {
 }
 type groupDataS struct {
 	miniGroups        []*miniGroupDataS
-	allInnerGroups    []*groupDataS
 	topInnerGroups    []*groupDataS
 	toSplitGroups     map[*groupDataS]bool
 	subnets           squareSet
@@ -220,8 +219,8 @@ func (ly *subnetsLayout) layoutGroup(group *groupDataS, firstRow int) int {
 			continue
 		}
 		name := ""
-			for s := range miniGroup.subnets{
-				name += s.Label()+","
+		for s := range miniGroup.subnets {
+			name += s.Label() + ","
 		}
 		fmt.Println("layout mini:  ", name)
 		i := 0
@@ -318,12 +317,14 @@ func (ly *subnetsLayout) checkIntegrity() {
 	}
 }
 
-func (ly *subnetsLayout) setInnerGroups(group *groupDataS) {
+func (ly *subnetsLayout) getInnerGroups(group *groupDataS) []*groupDataS {
+	allInnerGroups := []*groupDataS{}
 	for _, group1 := range ly.groups {
 		if group1 != group && isGroupInGroup(group1, group) {
-			group.allInnerGroups = append(group.allInnerGroups, group1)
+			allInnerGroups = append(allInnerGroups, group1)
 		}
 	}
+	return allInnerGroups
 }
 
 // ////////////////////////////////////////////////////////////////////////
@@ -331,8 +332,8 @@ func (ly *subnetsLayout) splitSharing(group *groupDataS) {
 
 	group.toSplitGroups = map[*groupDataS]bool{}
 	nonSplitGroup := map[*groupDataS]bool{}
-	ly.setInnerGroups(group)
-	for _, innerGroup := range group.allInnerGroups {
+	ly.getInnerGroups(group)
+	for _, innerGroup := range ly.getInnerGroups(group) {
 		if len(innerGroup.splitTo) == 0 {
 			nonSplitGroup[innerGroup] = true
 		}
@@ -401,7 +402,7 @@ func (ly *subnetsLayout) rearrangeGroup(group *groupDataS) {
 		}
 	}
 	miniGroupToGroupSet := map[*miniGroupDataS]groupSet{}
-	for _, group := range group.allInnerGroups {
+	for _, group := range ly.getInnerGroups(group) {
 		for _, miniGroup := range group.miniGroups {
 			if miniGroups[miniGroup] {
 				if _, ok := miniGroupToGroupSet[miniGroup]; !ok {
@@ -429,14 +430,26 @@ func (ly *subnetsLayout) rearrangeGroup(group *groupDataS) {
 		}
 		if newGroup == nil {
 			name := "created: "
-			for _, miniGroup := range miniGroups{
-				for s := range miniGroup.subnets{
-					name += s.Label()+","
+			for _, miniGroup := range miniGroups {
+				for s := range miniGroup.subnets {
+					name += s.Label() + ","
 				}
 			}
-			fmt.Println("group created ", name)
+			fmt.Println("group created ", name, " ", string(groups))
 			newGroup = &groupDataS{miniGroups: miniGroups, name: name}
 			ly.groups = append(ly.groups, newGroup)
+			
+			inTopGroup := false
+			for _, topGroup := range group.topInnerGroups {
+				if keysToSet[groups][topGroup] {
+					inTopGroup = true
+				}
+			}
+			if !inTopGroup {
+				fmt.Println("group ", newGroup.name, " !inTopGroup")
+				group.topInnerGroups = append(group.topInnerGroups, newGroup)
+			}
+	
 		}
 		for splitGroup := range group.toSplitGroups {
 			if keysToSet[groups][splitGroup] {
@@ -444,7 +457,6 @@ func (ly *subnetsLayout) rearrangeGroup(group *groupDataS) {
 				newGroup.splitFrom = append(newGroup.splitFrom, splitGroup)
 			}
 		}
-
 	}
 }
 func getVpc(group *groupDataS) *VpcTreeNode {
