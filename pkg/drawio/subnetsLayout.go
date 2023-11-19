@@ -71,6 +71,7 @@ type indexes struct {
 	row, col int
 }
 type subnetsLayout struct {
+	network          SquareTreeNodeInterface
 	groups           []*groupDataS
 	miniGroups       []*miniGroupDataS
 	miniGroupsMatrix [][]*miniGroupDataS
@@ -278,6 +279,9 @@ func (ly *subnetsLayout) checkIntegrity() {
 		matrix[is.row][is.col].subnet = s
 	}
 	for _, group := range ly.groups {
+		if len(group.splitTo) > 0 {
+			continue
+		}
 		group.firstRow, group.firstCol, group.lastRow, group.lastCol = 100, 100, -1, -1
 		for subnet := range group.subnets {
 			is := ly.subnetsIndexes[subnet]
@@ -438,7 +442,7 @@ func (ly *subnetsLayout) rearrangeGroup(group *groupDataS) {
 			fmt.Println("group created ", name, " ", string(groups))
 			newGroup = &groupDataS{miniGroups: miniGroups, name: name}
 			ly.groups = append(ly.groups, newGroup)
-			
+
 			inTopGroup := false
 			for _, topGroup := range group.topInnerGroups {
 				if keysToSet[groups][topGroup] {
@@ -449,11 +453,11 @@ func (ly *subnetsLayout) rearrangeGroup(group *groupDataS) {
 				fmt.Println("group ", newGroup.name, " !inTopGroup")
 				group.topInnerGroups = append(group.topInnerGroups, newGroup)
 			}
-	
+
 		}
 		for splitGroup := range group.toSplitGroups {
 			if keysToSet[groups][splitGroup] {
-				splitGroup.splitTo = append(group.splitTo, newGroup)
+				splitGroup.splitTo = append(splitGroup.splitTo, newGroup)
 				newGroup.splitFrom = append(newGroup.splitFrom, splitGroup)
 			}
 		}
@@ -465,11 +469,18 @@ func getVpc(group *groupDataS) *VpcTreeNode {
 	}
 	return getVpc(group.splitFrom[0])
 }
+
+// //////////////////////////////////////////
 func (ly *subnetsLayout) createNewGroups() {
+	tnToSplit := map[TreeNodeInterface]*groupDataS{}
 	for _, group := range ly.groups {
 		if len(group.splitTo) != 0 && group.treeNode != nil {
 			group.treeNode.SetNotShownInDrawio()
+			tnToSplit[group.treeNode] = group
 		}
+	}
+
+	for _, group := range ly.groups {
 		if len(group.splitTo) == 0 && group.treeNode == nil {
 			subnets := []SquareTreeNodeInterface{}
 			for _, miniGroup := range group.miniGroups {
@@ -479,6 +490,35 @@ func (ly *subnetsLayout) createNewGroups() {
 			}
 			group.treeNode = NewGroupSubnetsSquareTreeNode(getVpc(group), subnets)
 		}
+	}
+	for _, con := range getAllNodes(ly.network) {
+		if !con.IsLine() {
+			continue
+		}
+		src, dst := con.(LineTreeNodeInterface).Src(), con.(LineTreeNodeInterface).Dst()
+		srcGroup, dstGroup := tnToSplit[src], tnToSplit[dst]
+		if srcGroup == nil && dstGroup == nil {
+			continue
+		}
+		allSrcs, allDsts := []TreeNodeInterface{src}, []TreeNodeInterface{dst}
+		if srcGroup != nil {
+			allSrcs = []TreeNodeInterface{}
+			for _, gr := range srcGroup.splitTo {
+				allSrcs = append(allSrcs, gr.treeNode)
+			}
+		}
+		if dstGroup != nil {
+			allDsts = []TreeNodeInterface{}
+			for _, gr := range dstGroup.splitTo {
+				allDsts = append(allDsts, gr.treeNode)
+			}
+		}
+		for _, sTn := range allSrcs {
+			for _, dTn := range allDsts {
+				NewConnectivityLineTreeNode(ly.network, sTn, dTn, con.(*ConnectivityTreeNode).directed, con.(*ConnectivityTreeNode).name)
+			}
+		}
+		con.SetNotShownInDrawio()
 	}
 }
 

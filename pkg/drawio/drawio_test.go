@@ -4,7 +4,6 @@ import (
 	_ "embed"
 	"fmt"
 	"testing"
-	"strconv"
 )
 
 func TestWithParsing(t *testing.T) {
@@ -347,9 +346,9 @@ func createNetworkSubnetGrouping() SquareTreeNodeInterface {
 	groups = append(groups, createGroup(zones, vpc1,2,3,1,5))
 	groups = append(groups, createGroup(zones, vpc1,0,4,1,5))
 
-	for i, gr := range groups{
+	for _, gr := range groups{
 		i1 := NewInternetTreeNode(publicNetwork, "I "+gr.Label())
-		NewConnectivityLineTreeNode(network, gr, i1, true, "gconn"+strconv.Itoa(i))
+		NewConnectivityLineTreeNode(network, gr, i1, true, "gconn "+gr.Label())
 	
 	}
 
