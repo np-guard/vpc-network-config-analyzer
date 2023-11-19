@@ -62,6 +62,7 @@ type diffBetweenCfgs struct {
 	groupedLines []*GroupedConnLine
 }
 
+// tmp git test
 func (configs ConfigsForDiff) GetDiff() (*diffBetweenCfgs, error) {
 	// 1. compute connectivity for each of the configurations
 	var generalConnectivityMap1, generalConnectivityMap2 generalConnectivityMap
