@@ -287,7 +287,7 @@ func (g *GroupConnLines) groupExternalAddressesForDiff(thisMinusOther bool) {
 	}
 	for src, endpointConnDiff := range connRemovedChanged {
 		for dst, connDiff := range endpointConnDiff {
-			connDiffString := EnhancedConnDiffDecode(src, dst, connDiff, g.d.diffAnalysis, thisMinusOther)
+			connDiffString := connDiffDecode(src, dst, connDiff, g.d.diffAnalysis, thisMinusOther)
 			srcNode, srcIsNode := src.(Node)
 			dstNose, dstIsNode := dst.(Node)
 			srcIsExternal := srcIsNode && src.IsExternal()
