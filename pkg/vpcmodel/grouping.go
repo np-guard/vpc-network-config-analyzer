@@ -1,6 +1,7 @@
 package vpcmodel
 
 import (
+	"fmt"
 	"sort"
 	"strings"
 
@@ -230,18 +231,7 @@ func (g *GroupConnLines) groupExternalAddresses() {
 	res := []*GroupedConnLine{}
 	for src, nodeConns := range g.v.AllowedConnsCombined {
 		for dst, conns := range nodeConns {
-			if conns.IsEmpty() {
-				continue
-			}
-			connString := conns.EnhancedString()
-			switch {
-			case dst.IsPublicInternet():
-				g.srcToDst.addPublicConnectivity(src, connString, dst)
-			case src.IsPublicInternet():
-				g.dstToSrc.addPublicConnectivity(dst, connString, src)
-			default:
-				res = append(res, &GroupedConnLine{src, dst, connString})
-			}
+			g.addLineToExternalGrouping(&res, conns.IsEmpty(), src, dst, conns.EnhancedString())
 		}
 	}
 	// add to res lines from  srcToDst and DstToSrc groupings
@@ -255,16 +245,8 @@ func (g *GroupConnLines) groupExternalAddressesForSubnets() {
 	res := []*GroupedConnLine{}
 	for src, endpointConns := range g.s.AllowedConnsCombined {
 		for dst, conns := range endpointConns {
-			if conns.IsEmpty() {
-				continue
-			}
-			connString := conns.EnhancedString()
-			if dstNode, ok := dst.(Node); ok && dstNode.IsPublicInternet() {
-				g.srcToDst.addPublicConnectivity(src, connString, dstNode)
-			} else { // since pgw enable only egress src can not be public internet, the above is the only option of public internet
-				// not an external connection in source or destination - nothing to group, just append
-				res = append(res, &GroupedConnLine{src, dst, connString})
-			}
+			// Note that since pgw enable only egress src can not actually be public internet
+			g.addLineToExternalGrouping(&res, conns.IsEmpty(), src, dst, conns.EnhancedString())
 		}
 	}
 	// add to res lines from  srcToDst and DstToSrc groupings
@@ -288,18 +270,8 @@ func (g *GroupConnLines) groupExternalAddressesForDiff(thisMinusOther bool) {
 	for src, endpointConnDiff := range connRemovedChanged {
 		for dst, connDiff := range endpointConnDiff {
 			connDiffString := connDiffDecode(src, dst, connDiff, g.d.diffAnalysis, thisMinusOther)
-			srcNode, srcIsNode := src.(Node)
-			dstNose, dstIsNode := dst.(Node)
-			srcIsExternal := srcIsNode && src.IsExternal()
-			dstIsExternal := dstIsNode && dst.IsExternal()
-			switch {
-			case dstIsExternal:
-				g.srcToDst.addPublicConnectivity(src, connDiffString, dstNose)
-			case srcIsExternal:
-				g.dstToSrc.addPublicConnectivity(dst, connDiffString, srcNode)
-			default:
-				res = append(res, &GroupedConnLine{src, dst, connDiffString})
-			}
+			connsEmpty := connDiff.conn1.IsEmpty() && connDiff.conn2.IsEmpty()
+			g.addLineToExternalGrouping(&res, connsEmpty, src, dst, connDiffString)
 		}
 	}
 
@@ -307,6 +279,30 @@ func (g *GroupConnLines) groupExternalAddressesForDiff(thisMinusOther bool) {
 	res = append(res, g.srcToDst.getGroupedConnLines(g, true)...)
 	res = append(res, g.dstToSrc.getGroupedConnLines(g, false)...)
 	g.GroupedLines = append(g.GroupedLines, res...)
+}
+
+func (g *GroupConnLines) addLineToExternalGrouping(res *[]*GroupedConnLine, emptyConn bool,
+	src, dst VPCResourceIntf, connEnhanced string) error {
+	if emptyConn {
+		return nil
+	}
+	srcNode, srcIsNode := src.(Node)
+	dstNose, dstIsNode := dst.(Node)
+	if dst.IsExternal() && !dstIsNode ||
+		src.IsExternal() && !srcIsNode {
+		msg := fmt.Sprintf("%v or %v is External but not a node", src.Name(), dst.Name())
+		fmt.Println("error!:", msg) // todo: tmp
+		return fmt.Errorf(msg)
+	}
+	switch {
+	case dst.IsExternal():
+		g.srcToDst.addPublicConnectivity(src, connEnhanced, dstNose)
+	case src.IsExternal():
+		g.dstToSrc.addPublicConnectivity(dst, connEnhanced, srcNode)
+	default:
+		*res = append(*res, &GroupedConnLine{src, dst, connEnhanced})
+	}
+	return nil
 }
 
 // aux func, returns true iff the EndpointElem is Node if grouping vsis or NodeSet if grouping subnets
