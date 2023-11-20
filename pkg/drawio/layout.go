@@ -303,7 +303,7 @@ func (ly *layoutS) layoutSubnetsIcons() {
 
 func (ly *layoutS) layoutSubnets() {
 	_, grs := ly.allSubnetsAndGroups()
-	subnetMatrix, zoneCol := (&subnetsLayout{network:ly.network}).layout(grs)
+	subnetMatrix, zoneCol := newSubnetsLayout(ly.network).layout(grs)
 	ly.setSubnetsLocations(subnetMatrix,zoneCol)
 }
 
