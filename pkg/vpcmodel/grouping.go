@@ -226,22 +226,19 @@ func subnetGrouping(groupedConnLines *GroupConnLines,
 	return res
 }
 
+// group public internet ranges for vsis, subnets and diffs
+
 func (g *GroupConnLines) groupExternalAddresses() {
-	// phase1: group public internet ranges
 	res := []*GroupedConnLine{}
 	for src, nodeConns := range g.v.AllowedConnsCombined {
 		for dst, conns := range nodeConns {
 			g.addLineToExternalGrouping(&res, conns.IsEmpty(), src, dst, conns.EnhancedString())
 		}
 	}
-	// add to res lines from  srcToDst and DstToSrc groupings
-	res = append(res, g.srcToDst.getGroupedConnLines(g, true)...)
-	res = append(res, g.dstToSrc.getGroupedConnLines(g, false)...)
-	g.GroupedLines = res
+	g.appendGrouped(&res)
 }
 
 func (g *GroupConnLines) groupExternalAddressesForSubnets() {
-	// groups public internet ranges in dst when dst is public internet
 	res := []*GroupedConnLine{}
 	for src, endpointConns := range g.s.AllowedConnsCombined {
 		for dst, conns := range endpointConns {
@@ -249,14 +246,10 @@ func (g *GroupConnLines) groupExternalAddressesForSubnets() {
 			g.addLineToExternalGrouping(&res, conns.IsEmpty(), src, dst, conns.EnhancedString())
 		}
 	}
-	// add to res lines from  srcToDst and DstToSrc groupings
-	res = append(res, g.srcToDst.getGroupedConnLines(g, true)...)
-	res = append(res, g.dstToSrc.getGroupedConnLines(g, false)...)
-	g.GroupedLines = res
+	g.appendGrouped(&res)
 }
 
 func (g *GroupConnLines) groupExternalAddressesForDiff(thisMinusOther bool) {
-	// group public internet ranges
 	// initialize data structures
 	g.srcToDst = newGroupingConnections()
 	g.dstToSrc = newGroupingConnections()
@@ -274,11 +267,7 @@ func (g *GroupConnLines) groupExternalAddressesForDiff(thisMinusOther bool) {
 			g.addLineToExternalGrouping(&res, connsEmpty, src, dst, connDiffString)
 		}
 	}
-
-	// add to res lines from  srcToDst and DstToSrc groupings
-	res = append(res, g.srcToDst.getGroupedConnLines(g, true)...)
-	res = append(res, g.dstToSrc.getGroupedConnLines(g, false)...)
-	g.GroupedLines = append(g.GroupedLines, res...)
+	g.appendGrouped(&res)
 }
 
 func (g *GroupConnLines) addLineToExternalGrouping(res *[]*GroupedConnLine, emptyConn bool,
@@ -303,6 +292,14 @@ func (g *GroupConnLines) addLineToExternalGrouping(res *[]*GroupedConnLine, empt
 		*res = append(*res, &GroupedConnLine{src, dst, connEnhanced})
 	}
 	return nil
+}
+
+// add to res lines from  srcToDst and DstToSrc groupings
+func (g *GroupConnLines) appendGrouped(res *[]*GroupedConnLine) {
+	// add to res lines from  srcToDst and DstToSrc groupings
+	*res = append(*res, g.srcToDst.getGroupedConnLines(g, true)...)
+	*res = append(*res, g.dstToSrc.getGroupedConnLines(g, false)...)
+	g.GroupedLines = append(g.GroupedLines, *res...)
 }
 
 // aux func, returns true iff the EndpointElem is Node if grouping vsis or NodeSet if grouping subnets
