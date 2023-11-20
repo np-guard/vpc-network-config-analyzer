@@ -329,9 +329,10 @@ func createNetworkSubnetGrouping() SquareTreeNodeInterface {
 	groups := []SquareTreeNodeInterface{}
 
 
-	// groups = append(groups, createGroup(zones, vpc1,0,0,0,1))
-	// groups = append(groups, createGroup(zones, vpc1,0,0,1,4))
-	// groups = append(groups, createGroup(zones, vpc1,0,0,2,3))
+
+	// groups = append(groups, createGroup(zones, vpc1,0,1,0,1))
+	// groups = append(groups, createGroup(zones, vpc1,1,2,0,1))
+	// groups = append(groups, createGroup(zones, vpc1,2,3,0,1))
 
 
 	groups = append(groups, createGroup(zones, vpc1,0,0,0,1))
