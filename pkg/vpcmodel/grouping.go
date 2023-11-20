@@ -272,7 +272,7 @@ func (g *GroupConnLines) groupExternalAddressesForDiff(thisMinusOther bool) erro
 	}
 	for src, endpointConnDiff := range connRemovedChanged {
 		for dst, connDiff := range endpointConnDiff {
-			connDiffString := connDiffEncode(src, dst, connDiff, g.d.diffAnalysis, thisMinusOther)
+			connDiffString := connDiffEncode(src, dst, connDiff, thisMinusOther)
 			connsEmpty := connDiff.conn1.IsEmpty() && connDiff.conn2.IsEmpty()
 			err := g.addLineToExternalGrouping(&res, connsEmpty, src, dst, connDiffString)
 			if err != nil {

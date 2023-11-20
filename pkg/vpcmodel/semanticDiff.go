@@ -263,18 +263,16 @@ func (connDiff *connectivityDiff) string(diffAnalysis diffAnalysisType, thisMinu
 }
 
 // connDiffEncode encodes connectivesDiff information for grouping:
-// this includes the following two strings separated by ";"
+// this includes the following 4 strings separated by ";"
 //  1. diff-type info: e.g. diff-type: removed
-//  2. configs info and info regarding missing endpoints:
-//     e.g.: config1: All Connections, config2: No connection, vsis-diff-info: vsi0 removed
+//  2. connection of config1
+//  3. connection of config2
+//  4. info regarding missing endpoints: e.g. vsi0 removed
 func connDiffEncode(src, dst VPCResourceIntf, connDiff *connectionDiff,
-	diffAnalysis diffAnalysisType, thisMinusOther bool) string {
+	thisMinusOther bool) string {
 	conn1Str, conn2Str := conn1And2Str(connDiff, thisMinusOther)
 	diffType, endpointsDiff := diffAndEndpointsDisc(connDiff.diff, src, dst, thisMinusOther)
-	diffInfo := diffInfoStr(diffAnalysis)
-	diffTypeStr := fmt.Sprintf("%v %s", diffTypeStr, diffType)
-	connDiffStr := fmt.Sprintf(configsStr, conn1Str, conn2Str, diffInfo, endpointsDiff)
-	return diffTypeStr + semicolon + connDiffStr
+	return diffType + semicolon + conn1Str + semicolon + conn2Str + semicolon + endpointsDiff
 }
 
 func diffInfoStr(diffAnalysis diffAnalysisType) string {
@@ -297,17 +295,20 @@ func conn1And2Str(connDiff *connectionDiff, thisMinusOther bool) (conn1Str, conn
 	return conn1Str, conn2Str
 }
 
-// connDiffDecode decode the above string
-func connDiffDecode(src, dst EndpointElem, decoded string) string {
-	encoded := strings.Split(decoded, semicolon)
-	printDiff := fmt.Sprintf("%s, source: %s, destination: %s, %s\n", encoded[0], src.Name(), dst.Name(), encoded[1])
+// printDiffLine print one diff line, using the above string as input
+func printDiffLine(diffAnalysis diffAnalysisType, src, dst EndpointElem, decoded string) string {
+	decodedDetails := strings.Split(decoded, semicolon)
+	diffInfo := diffInfoStr(diffAnalysis)
+	diffTypeStr := fmt.Sprintf("%v %s", diffTypeStr, decodedDetails[0])
+	connDiffStr := fmt.Sprintf(configsStr, decodedDetails[1], decodedDetails[2], diffInfo, decodedDetails[3])
+	printDiff := fmt.Sprintf("%s, source: %s, destination: %s, %s\n", diffTypeStr, src.Name(), dst.Name(), connDiffStr)
 	return printDiff
 }
 
 func (diffCfgs *diffBetweenCfgs) String() string {
 	strList := make([]string, len(diffCfgs.groupedLines))
 	for i, grouped := range diffCfgs.groupedLines {
-		strList[i] = connDiffDecode(grouped.Src, grouped.Dst, grouped.Conn)
+		strList[i] = printDiffLine(diffCfgs.diffAnalysis, grouped.Src, grouped.Dst, grouped.Conn)
 	}
 	sort.Strings(strList)
 	res := strings.Join(strList, "")
