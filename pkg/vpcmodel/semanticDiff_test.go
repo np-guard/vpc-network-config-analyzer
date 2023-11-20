@@ -124,7 +124,7 @@ func TestSimpleSubnetDiffGrouping(t *testing.T) {
 	}
 	require.Equal(t, err, nil)
 	d := &diffBetweenCfgs{Subnets, cfg1SubCfg2, cfg2SubCfg1, nil}
-	groupConnLines := newGroupConnLinesDiff(d)
+	groupConnLines, _ := newGroupConnLinesDiff(d)
 	d.groupedLines = groupConnLines.GroupedLines
 	groupedPrinted := d.String()
 	fmt.Println(groupedPrinted)
@@ -241,7 +241,7 @@ func TestSimpleIPAndSubnetDiffGrouping(t *testing.T) {
 		fmt.Println("error:", err.Error())
 	}
 	d := &diffBetweenCfgs{Subnets, cfg1SubCfg2, cfg2SubCfg1, nil}
-	groupConnLines := newGroupConnLinesDiff(d)
+	groupConnLines, _ := newGroupConnLinesDiff(d)
 	d.groupedLines = groupConnLines.GroupedLines
 	groupedPrinted := d.String()
 	fmt.Println(groupedPrinted)
@@ -375,7 +375,7 @@ func TestSimpleVsisDiffGrouping(t *testing.T) {
 	}
 	require.Equal(t, err, nil)
 	d := &diffBetweenCfgs{Subnets, cfg1SubCfg2, cfg2SubCfg1, nil}
-	groupConnLines := newGroupConnLinesDiff(d)
+	groupConnLines, _ := newGroupConnLinesDiff(d)
 	d.groupedLines = groupConnLines.GroupedLines
 	groupedPrinted := d.String()
 	fmt.Println(groupedPrinted)

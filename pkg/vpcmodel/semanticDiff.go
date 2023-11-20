@@ -99,7 +99,10 @@ func (configs configsForDiff) GetDiff() (*diffBetweenCfgs, error) {
 		cfg1ConnRemovedFrom2: cfg1ConnRemovedFrom2,
 		cfg2ConnRemovedFrom1: cfg2ConnRemovedFrom1,
 		diffAnalysis:         configs.diffAnalysis}
-	groupConnLines := newGroupConnLinesDiff(res)
+	groupConnLines, err1 := newGroupConnLinesDiff(res)
+	if err1 != nil {
+		return nil, err1
+	}
 	res.groupedLines = groupConnLines.GroupedLines
 	return res, nil
 }

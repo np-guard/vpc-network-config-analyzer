@@ -15,8 +15,8 @@ import (
 // (2) compute AllowedConnsCombined (map[Node]map[Node]*common.ConnectionSet) : allowed conns considering both ingress and egress directions
 // (3) compute AllowedConnsCombinedStateful : stateful allowed connections, for which connection in reverse direction is also allowed
 // (4) if grouping required - compute grouping of connectivity results
-func (c *VPCConfig) GetVPCNetworkConnectivity(grouping bool) (*VPCConnectivity, error) {
-	res := &VPCConnectivity{
+func (c *VPCConfig) GetVPCNetworkConnectivity(grouping bool) (res *VPCConnectivity, err error) {
+	res = &VPCConnectivity{
 		AllowedConns:         map[Node]*ConnectivityResult{},
 		AllowedConnsPerLayer: map[Node]map[string]*ConnectivityResult{},
 	}
@@ -53,8 +53,8 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping bool) (*VPCConnectivity, 
 	}
 	res.computeAllowedConnsCombined()
 	res.computeAllowedStatefulConnections()
-	res.GroupedConnectivity = newGroupConnLines(c, res, grouping)
-	return res, nil
+	res.GroupedConnectivity, err = newGroupConnLines(c, res, grouping)
+	return res, err
 }
 
 func (c *VPCConfig) getFiltersAllowedConnsBetweenNodesPerDirectionAndLayer(

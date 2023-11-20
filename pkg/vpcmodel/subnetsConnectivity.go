@@ -195,7 +195,10 @@ func (c *VPCConfig) GetSubnetsConnectivity(includePGW, grouping bool) (*VPCsubne
 	}
 	res.computeStatefulConnections()
 
-	res.GroupedConnectivity = newGroupConnLinesSubnetConnectivity(c, res, grouping)
+	res.GroupedConnectivity, err = newGroupConnLinesSubnetConnectivity(c, res, grouping)
+	if err != nil {
+		return nil, err
+	}
 
 	return res, nil
 }
