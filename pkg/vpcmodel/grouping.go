@@ -42,7 +42,7 @@ func newGroupConnLines(c *VPCConfig, v *VPCConnectivity, grouping bool) *GroupCo
 		dstToSrc:                 newGroupingConnections(),
 		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
 		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
-	res.computeGrouping(grouping)
+	res.computeGrouping(true, grouping)
 	return res
 }
 
@@ -52,7 +52,7 @@ func newGroupConnLinesSubnetConnectivity(c *VPCConfig, s *VPCsubnetConnectivity,
 		dstToSrc:                 newGroupingConnections(),
 		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
 		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
-	res.computeGroupingForSubnets(grouping)
+	res.computeGrouping(false, grouping)
 	return res
 }
 
@@ -402,19 +402,15 @@ func (g *GroupConnLines) unifiedGroupedElems(srcOrDst EndpointElem) EndpointElem
 	return unifiedGroupedEE
 }
 
-func (g *GroupConnLines) computeGrouping(grouping bool) {
-	g.groupExternalAddresses()
-	if grouping {
-		g.groupInternalSrcOrDst(true, true)
-		g.groupInternalSrcOrDst(false, true)
+func (g *GroupConnLines) computeGrouping(vsi, grouping bool) {
+	if vsi {
+		g.groupExternalAddresses()
+	} else {
+		g.groupExternalAddressesForSubnets()
 	}
-}
-
-func (g *GroupConnLines) computeGroupingForSubnets(grouping bool) {
-	g.groupExternalAddressesForSubnets()
 	if grouping {
-		g.groupInternalSrcOrDst(false, false)
-		g.groupInternalSrcOrDst(true, false)
+		g.groupInternalSrcOrDst(true, vsi)
+		g.groupInternalSrcOrDst(false, vsi)
 	}
 }
 
