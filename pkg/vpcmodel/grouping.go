@@ -292,7 +292,7 @@ func (g *GroupConnLines) addLineToExternalGrouping(res *[]*GroupedConnLine, empt
 		src.IsExternal() && !srcIsNode {
 		msg := fmt.Sprintf("%v or %v is External but not a node", src.Name(), dst.Name())
 		fmt.Println("error!:", msg) // todo: tmp
-		return fmt.Errorf(msg)
+		return fmt.Errorf("%s", msg)
 	}
 	switch {
 	case dst.IsExternal():
