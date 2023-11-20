@@ -297,10 +297,10 @@ func GroupedSubnetsSquare(parent *VpcTreeNode, groupedSubnets []SquareTreeNodeIn
 	if sameZone && len(groupedSubnets) == len(zone.subnets) {
 		return zone
 	}
-	return NewGroupSubnetsSquareTreeNode(parent, groupedSubnets)
+	return newGroupSubnetsSquareTreeNode(parent, groupedSubnets)
 }
 
-func NewGroupSubnetsSquareTreeNode(parent *VpcTreeNode, groupedSubnets []SquareTreeNodeInterface) *GroupSubnetsSquareTreeNode {
+func newGroupSubnetsSquareTreeNode(parent *VpcTreeNode, groupedSubnets []SquareTreeNodeInterface) *GroupSubnetsSquareTreeNode {
 	gs := GroupSubnetsSquareTreeNode{newAbstractSquareTreeNode(parent, ""), groupedSubnets}
 	parent.groupSubnetsSquares = append(parent.groupSubnetsSquares, &gs)
 	return &gs

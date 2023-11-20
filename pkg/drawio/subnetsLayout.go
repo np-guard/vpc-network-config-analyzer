@@ -488,7 +488,11 @@ func (ly *subnetsLayout) createNewGroups() {
 					subnets = append(subnets, subnet.(SquareTreeNodeInterface))
 				}
 			}
-			group.treeNode = NewGroupSubnetsSquareTreeNode(getVpc(group), subnets)
+			if len(subnets) ==1 {
+				group.treeNode = subnets[0]	
+			}else{
+				group.treeNode = GroupedSubnetsSquare(getVpc(group), subnets)
+			}
 		}
 	}
 	for _, con := range getAllNodes(ly.network) {
