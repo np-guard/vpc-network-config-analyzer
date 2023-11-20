@@ -25,12 +25,12 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping bool) (res *VPCConnectivi
 		if !node.IsInternal() {
 			continue
 		}
-		allIngressAllowedConns, ingressAllowedConnsPerLayer, err := c.getAllowedConnsPerDirection(true, node)
-		if err != nil {
+		allIngressAllowedConns, ingressAllowedConnsPerLayer, err1 := c.getAllowedConnsPerDirection(true, node)
+		if err1 != nil {
 			return nil, err
 		}
-		allEgressAllowedConns, egressAllowedConnsPerLayer, err := c.getAllowedConnsPerDirection(false, node)
-		if err != nil {
+		allEgressAllowedConns, egressAllowedConnsPerLayer, err2 := c.getAllowedConnsPerDirection(false, node)
+		if err2 != nil {
 			return nil, err
 		}
 
