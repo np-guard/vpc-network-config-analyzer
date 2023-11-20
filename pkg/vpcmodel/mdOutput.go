@@ -11,8 +11,12 @@ type MDoutputFormatter struct {
 }
 
 const (
-	mdTitle  = "## Endpoint connectivity report"
-	mdHeader = "| src | dst | conn |\n|-----|-----|------|"
+	mdDefaultTitle       = "## Endpoint connectivity report"
+	mdDefaultHeader      = "| src | dst | conn |\n|-----|-----|------|"
+	mdEndpointsDiffTitle = "## Endpoints diff report"
+	mdSubnetsDiffTitle   = "## Subnets diff report"
+	mdEndDiffHeader      = "| type | src |  dst | conn1 | conn2 | diff-info |\n" +
+		"|------|-----|------|-------|-------|-----------|"
 )
 
 func (m *MDoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
@@ -26,8 +30,21 @@ func (m *MDoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	out := "# " + headerOfAnalyzedVPC(c1.VPC.Name(), "")
 	switch uc {
 	case AllEndpoints:
-		lines := []string{mdTitle, mdHeader}
+		lines := []string{mdDefaultTitle, mdDefaultHeader}
 		connLines := m.getGroupedOutput(conn)
+		sort.Strings(connLines)
+		lines = append(lines, connLines...)
+		out += strings.Join(lines, "\n")
+		out += asteriskDetails
+	case SubnetsDiff, EndpointsDiff:
+		var mdTitle string
+		if uc == EndpointsDiff {
+			mdTitle = mdEndpointsDiffTitle
+		} else {
+			mdTitle = mdEndpointsDiffTitle
+		}
+		lines := []string{mdTitle, mdEndDiffHeader}
+		connLines := m.getGroupedDiffOutput(conn)
 		sort.Strings(connLines)
 		lines = append(lines, connLines...)
 		out += strings.Join(lines, "\n")
@@ -48,6 +65,11 @@ func (m *MDoutputFormatter) getGroupedOutput(conn *VPCConnectivity) []string {
 		lines[i] = getGroupedMDLine(line)
 	}
 	return lines
+}
+
+func (m *MDoutputFormatter) getGroupedDiffOutput(conn *VPCConnectivity) []string {
+	// todo: will have to rewrite decode and encode funct in semanticDiff so that they can be used here
+	return nil
 }
 
 // formats a connection line for md output
