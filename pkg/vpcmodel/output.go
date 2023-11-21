@@ -89,6 +89,7 @@ func NewOutputGenerator(c1, c2 *VPCConfig, grouping bool, uc OutputUseCase, arch
 }
 
 // VPCAnalysisOutput captures output per VPC
+// todo: add 2nd vpc name
 type VPCAnalysisOutput struct {
 	VPCName    string
 	Output     string

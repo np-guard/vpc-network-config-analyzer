@@ -442,6 +442,9 @@ func getCubeAsICMPItems(cube []*CanonicalIntervalSet) []Icmp {
 }
 
 func ConnToJSONRep(c *ConnectionSet) ConnDetails {
+	if c == nil {
+		return nil // one of the connections in connectionDiff can be empty
+	}
 	if c.AllowAll {
 		return ConnDetails(ProtocolList{AnyProtocol{Protocol: AnyProtocolProtocolANY}})
 	}

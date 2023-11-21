@@ -14,7 +14,7 @@ type JSONoutputFormatter struct {
 func (j *JSONoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	conn *VPCConnectivity,
 	subnetsConn *VPCsubnetConnectivity,
-	subnetsDiff *diffBetweenCfgs,
+	diff *diffBetweenCfgs,
 	outFile string,
 	grouping bool,
 	uc OutputUseCase) (*VPCAnalysisOutput, error) {
@@ -24,6 +24,8 @@ func (j *JSONoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 		all = allInfo{EndpointsConnectivity: getConnLines(conn)}
 	case AllSubnets:
 		all = allSubnetsConnectivity{Connectivity: getConnLinesForSubnetsConnectivity(subnetsConn)}
+	case SubnetsDiff, EndpointsDiff:
+		all = allSemanticDiff{SemanticDiff: getDiffLines(diff)}
 	case SingleSubnet:
 		return nil, errors.New("DebugSubnet use case not supported for JSON format currently ")
 	}
@@ -36,6 +38,14 @@ type connLine struct {
 	Dst                EndpointElem       `json:"dst"`
 	Conn               common.ConnDetails `json:"conn"`
 	UnidirectionalConn common.ConnDetails `json:"unidirectional_conn,omitempty"`
+}
+
+type diffLine struct {
+	Diff  string             `json:"diff-type"`
+	Src   EndpointElem       `json:"src"`
+	Dst   EndpointElem       `json:"dst"`
+	Conn1 common.ConnDetails `json:"conn1"`
+	Conn2 common.ConnDetails `json:"conn2"`
 }
 
 func sortConnLines(connLines []connLine) {
@@ -107,4 +117,76 @@ func getConnLinesForSubnetsConnectivity(conn *VPCsubnetConnectivity) []connLine 
 
 	sortConnLines(connLines)
 	return connLines
+}
+
+type allSemanticDiff struct {
+	SemanticDiff []diffLine `json:"semantic_diff"`
+}
+
+func getDiffLines(configsDiff *diffBetweenCfgs) []diffLine {
+	diffLines := getDirectionalDiffLines(configsDiff.cfg1ConnRemovedFrom2, true)
+	diffLines = append(diffLines, getDirectionalDiffLines(configsDiff.cfg1ConnRemovedFrom2, false)...)
+	return diffLines
+}
+
+func getDirectionalDiffLines(connectDiff connectivityDiff, thisMinusTheOther bool) []diffLine {
+	diffLines := []diffLine{}
+	for src, endpointConnDiff := range connectDiff {
+		for dst, connDiff := range endpointConnDiff {
+			var diffStr string
+			if thisMinusTheOther {
+				diffStr = getDiffStrThis(connDiff.diff)
+			} else {
+				diffStr = getDiffStrOther(connDiff.diff)
+			}
+			diffLines = append(diffLines, diffLine{diffStr, src, dst, common.ConnToJSONRep(connDiff.conn1), common.ConnToJSONRep(connDiff.conn2)})
+		}
+	}
+
+	sortDiffLines(diffLines)
+	return diffLines
+}
+
+func sortDiffLines(diffLines []diffLine) {
+	sort.Slice(diffLines, func(i, j int) bool {
+		if diffLines[i].Diff != diffLines[j].Diff {
+			return diffLines[i].Diff < diffLines[j].Diff
+		}
+		if diffLines[i].Src.Name() != diffLines[j].Src.Name() {
+			return diffLines[i].Src.Name() < diffLines[j].Src.Name()
+		}
+		return diffLines[i].Dst.Name() < diffLines[j].Dst.Name()
+	})
+}
+
+func getDiffStrThis(diff DiffType) string {
+	switch diff {
+	case missingSrcEP:
+		return "source removed"
+	case missingDstEP:
+		return "destination removed"
+	case missingSrcDstEP:
+		return "source and destination removed"
+	case missingConnection:
+		return "connection removed"
+	case changedConnection:
+		return "connection changed"
+	}
+	return ""
+}
+
+func getDiffStrOther(diff DiffType) string {
+	switch diff {
+	case missingSrcEP:
+		return "source added"
+	case missingDstEP:
+		return "destination added"
+	case missingSrcDstEP:
+		return "source and destination added"
+	case missingConnection:
+		return "connection added"
+	case changedConnection:
+		return "connection changed"
+	}
+	return ""
 }
