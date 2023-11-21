@@ -103,7 +103,7 @@ func newSubnetsLayout(network SquareTreeNodeInterface) *subnetsLayout {
 
 func (ly *subnetsLayout) layout(grs []*GroupSubnetsSquareTreeNode) ([][]TreeNodeInterface, map[TreeNodeInterface]int) {
 	ly.createMiniGroups(grs)
-	topFakeGroup := &groupDataS{miniGroups: ly.miniGroups}
+	topFakeGroup := newGroupDataS("", ly.miniGroups, nil, nil)
 	ly.splitSharing(topFakeGroup)
 	ly.calcZoneOrder()
 	ly.createMatrix()
@@ -354,9 +354,7 @@ func (ly *subnetsLayout) getInnerGroups(group *groupDataS) []*groupDataS {
 // ////////////////////////////////////////////////////////////////////////
 func (ly *subnetsLayout) splitSharing(group *groupDataS) {
 
-	group.toSplitGroups = map[*groupDataS]bool{}
 	nonSplitGroup := map[*groupDataS]bool{}
-	ly.getInnerGroups(group)
 	for _, innerGroup := range ly.getInnerGroups(group) {
 		if len(innerGroup.splitTo) == 0 {
 			nonSplitGroup[innerGroup] = true
@@ -495,9 +493,18 @@ func getVpc(group *groupDataS) *VpcTreeNode {
 	}
 	var a *groupDataS
 	for a = range group.splitFrom {
-		break
+		return getVpc(a)
 	}
-	return getVpc(a)
+	return nil
+}
+
+func (group *groupDataS) reunion(){
+	fmt.Println("group is reunion ", group.name)
+	for gr := range group.splitTo {
+		delete(gr.splitFrom, group)
+	}
+	group.splitTo = map[*groupDataS]bool{}
+
 }
 
 // //////////////////////////////////////////
@@ -506,11 +513,7 @@ func (ly *subnetsLayout) createNewGroups() {
 	for _, group := range ly.groups {
 		if len(group.splitTo) != 0 && group.treeNode != nil {
 			if ly.checkGroupIntegrity(group) {
-				fmt.Println("group is reunion ", group.name)
-				for gr := range group.splitTo {
-					delete(gr.splitFrom, group)
-				}
-				group.splitTo = map[*groupDataS]bool{}
+				group.reunion()
 				continue
 			}
 			group.treeNode.SetNotShownInDrawio()
@@ -674,6 +677,11 @@ func (ly *subnetsLayout) calcZoneOrder() {
 	fmt.Println("")
 	for i, z := range zoneOrder {
 		ly.zonesCol[z] = i
+	}
+	for miniGroup := range ly.miniGroups {
+		if _, ok := ly.zonesCol[miniGroup.zone]; !ok{
+			ly.zonesCol[miniGroup.zone] = len(ly.zonesCol)
+		}
 	}
 }
 
