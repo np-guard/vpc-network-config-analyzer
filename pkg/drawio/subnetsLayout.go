@@ -49,19 +49,18 @@ type miniGroupDataS struct {
 	subnets squareSet
 	zone    TreeNodeInterface
 	located bool
-	x, y    int
 }
 type groupDataS struct {
 	miniGroups        map[*miniGroupDataS]bool
 	topInnerGroups    []*groupDataS
-	toSplitGroups     map[*groupDataS]bool
+	toSplitGroups     groupSet
 	subnets           squareSet
 	treeNode          TreeNodeInterface
 	name              string
 	firstRow, lastRow int
 	firstCol, lastCol int
-	splitFrom         map[*groupDataS]bool
-	splitTo           map[*groupDataS]bool
+	splitFrom         groupSet
+	splitTo           groupSet
 }
 
 func newGroupDataS(name string, miniGroups map[*miniGroupDataS]bool, subnets squareSet, tn TreeNodeInterface) *groupDataS {
@@ -70,9 +69,9 @@ func newGroupDataS(name string, miniGroups map[*miniGroupDataS]bool, subnets squ
 		subnets:       subnets,
 		treeNode:      tn,
 		name:          name,
-		toSplitGroups: map[*groupDataS]bool{},
-		splitFrom:     map[*groupDataS]bool{},
-		splitTo:       map[*groupDataS]bool{},
+		toSplitGroups: groupSet{},
+		splitFrom:     groupSet{},
+		splitTo:       groupSet{},
 	}
 }
 
@@ -113,6 +112,7 @@ func (ly *subnetsLayout) layout(grs []*GroupSubnetsSquareTreeNode) ([][]TreeNode
 	// ly.checkIntegrity()
 	return ly.subnetMatrix, ly.zonesCol
 }
+/////////////////////////////////////////////////////////////////////////////////////
 
 func (ly *subnetsLayout) createMatrix() {
 	yDim := 100
@@ -130,7 +130,7 @@ func (ly *subnetsLayout) createMatrix() {
 
 }
 
-func isGroupInGroup(subGroup, group *groupDataS) bool {
+func (group *groupDataS) isSubGroup(subGroup *groupDataS) bool {
 	if len(group.miniGroups) == len(subGroup.miniGroups) {
 		return false
 	}
@@ -280,69 +280,10 @@ func (ly *subnetsLayout) setGroupsIndexes() {
 	}
 }
 
-// //////////////////////////////////////////////////////////////////////////////////////////
-func (ly *subnetsLayout) checkIntegrity() {
-	type cell struct {
-		subnet TreeNodeInterface
-		groups map[*groupDataS]bool
-	}
-	matrix := make([][]cell, 100)
-	for i := range matrix {
-		matrix[i] = make([]cell, 100)
-		for j := range matrix[i] {
-			matrix[i][j].groups = map[*groupDataS]bool{}
-		}
-	}
-	for s, is := range ly.subnetsIndexes {
-		matrix[is.row][is.col].subnet = s
-	}
-	for _, group := range ly.groups {
-		if len(group.splitTo) > 0 {
-			continue
-		}
-		group.firstRow, group.firstCol, group.lastRow, group.lastCol = 100, 100, -1, -1
-		for subnet := range group.subnets {
-			is := ly.subnetsIndexes[subnet]
-			c := matrix[is.row][is.col]
-			c.groups[group] = true
-			if group.firstRow > is.row {
-				group.firstRow = is.row
-			}
-			if group.firstCol > is.col {
-				group.firstCol = is.col
-			}
-			if group.lastRow < is.row {
-				group.lastRow = is.row
-			}
-			if group.lastCol < is.col {
-				group.lastCol = is.col
-			}
-		}
-		for r := group.firstRow; r <= group.lastRow; r++ {
-			for c := group.firstCol; c <= group.lastCol; c++ {
-				subnet := matrix[r][c].subnet
-				if subnet != nil {
-					if !group.subnets[subnet] {
-						fmt.Printf("subnet %s not in group %s\n", subnet.Label(), group.name)
-					}
-				}
-				matrix[r][c].groups[group] = true
-			}
-		}
-	}
-	for ri, row := range matrix {
-		for ci, cell := range row {
-			if cell.subnet == nil && len(cell.groups) > 0 {
-				ly.subnetMatrix[ri][ci] = ly.network
-			}
-		}
-	}
-}
-
 func (ly *subnetsLayout) getInnerGroups(group *groupDataS) []*groupDataS {
 	allInnerGroups := []*groupDataS{}
 	for _, group1 := range ly.groups {
-		if group1 != group && isGroupInGroup(group1, group) {
+		if group.isSubGroup(group1) {
 			allInnerGroups = append(allInnerGroups, group1)
 		}
 	}
@@ -352,30 +293,30 @@ func (ly *subnetsLayout) getInnerGroups(group *groupDataS) []*groupDataS {
 // ////////////////////////////////////////////////////////////////////////
 func (ly *subnetsLayout) splitSharing(group *groupDataS) {
 
-	nonSplitGroup := map[*groupDataS]bool{}
+	nonSplitGroup := groupSet{}
 	for _, innerGroup := range ly.getInnerGroups(group) {
 		if len(innerGroup.splitTo) == 0 {
 			nonSplitGroup[innerGroup] = true
 		}
 	}
 	for {
-		innerGroups := map[*groupDataS]bool{}
+		innerGroups := groupSet{}
 		for group1 := range nonSplitGroup {
 			for group2 := range nonSplitGroup {
-				if group1 != group2 && isGroupInGroup(group1, group2) {
+				if group2.isSubGroup(group1) {
 					innerGroups[group1] = true
 				}
 			}
 		}
 
-		sharedMini := map[*groupDataS]map[*groupDataS]bool{}
+		sharedMini := map[*groupDataS]groupSet{}
 
 		for group1 := range nonSplitGroup {
 			for group2 := range nonSplitGroup {
 				if group1 != group2 {
 					if !innerGroups[group1] && !innerGroups[group2] && isShareMiniGroup(group1, group2) {
 						if _, ok := sharedMini[group1]; !ok {
-							sharedMini[group1] = map[*groupDataS]bool{}
+							sharedMini[group1] = groupSet{}
 						}
 						sharedMini[group1][group2] = true
 					}
@@ -501,7 +442,7 @@ func (group *groupDataS) reunion() {
 	for gr := range group.splitTo {
 		delete(gr.splitFrom, group)
 	}
-	group.splitTo = map[*groupDataS]bool{}
+	group.splitTo = groupSet{}
 
 }
 
