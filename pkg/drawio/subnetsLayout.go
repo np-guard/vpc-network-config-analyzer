@@ -8,16 +8,18 @@ import (
 )
 
 // //////////////////////////////////////////////////////////////////////////////////////////////
-var interfaceIndex map[interface{}]int
 
 type setAsKey string
+type squareSet map[TreeNodeInterface]bool
+type groupSet map[*groupDataS]bool
 
-func asKey(l []interface{}) setAsKey {
+var interfaceIndex map[interface{}]int
+func asKey(s map[interface{}]bool) setAsKey {
 	if interfaceIndex == nil {
 		interfaceIndex = map[interface{}]int{}
 	}
 	ss := []string{}
-	for _, i := range l {
+	for i := range s {
 		if _, ok := interfaceIndex[i]; !ok {
 			interfaceIndex[i] = len(interfaceIndex)
 		}
@@ -26,26 +28,22 @@ func asKey(l []interface{}) setAsKey {
 	sort.Strings(ss)
 	return setAsKey(strings.Join(ss, ","))
 }
-
-type squareSet map[TreeNodeInterface]bool
-
 func (sqs *squareSet) asKey() setAsKey {
-	l := []interface{}{}
+	s := map[interface{}]bool{}
 	for i := range *sqs {
-		l = append(l, i)
+		s[i] = true
 	}
-	return asKey(l)
+	return asKey(s)
 }
-
-type groupSet map[*groupDataS]bool
-
 func (sqs *groupSet) asKey() setAsKey {
-	l := []interface{}{}
+	s := map[interface{}]bool{}
 	for i := range *sqs {
-		l = append(l, i)
+		s[i] = true
 	}
-	return asKey(l)
+	return asKey(s)
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
 
 type miniGroupDataS struct {
 	subnets squareSet
@@ -498,7 +496,7 @@ func getVpc(group *groupDataS) *VpcTreeNode {
 	return nil
 }
 
-func (group *groupDataS) reunion(){
+func (group *groupDataS) reunion() {
 	fmt.Println("group is reunion ", group.name)
 	for gr := range group.splitTo {
 		delete(gr.splitFrom, group)
@@ -679,7 +677,7 @@ func (ly *subnetsLayout) calcZoneOrder() {
 		ly.zonesCol[z] = i
 	}
 	for miniGroup := range ly.miniGroups {
-		if _, ok := ly.zonesCol[miniGroup.zone]; !ok{
+		if _, ok := ly.zonesCol[miniGroup.zone]; !ok {
 			ly.zonesCol[miniGroup.zone] = len(ly.zonesCol)
 		}
 	}
