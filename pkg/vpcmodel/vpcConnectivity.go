@@ -121,3 +121,19 @@ func (nodesConnMap NodesConnectionsMap) getAllowedConnForPair(src, dst Node) *co
 	}
 	return NoConns()
 }
+
+func (nodesConnMap NodesConnectionsMap) nodesConnectivityToGeneralConnectivity() (generalConnMap GeneralConnectivityMap) {
+	generalConnMap = GeneralConnectivityMap{}
+	for src, connsMap := range nodesConnMap {
+		for dst, conn := range connsMap {
+			if conn.IsEmpty() {
+				continue
+			}
+			if _, ok := generalConnMap[src]; !ok {
+				generalConnMap[src] = map[VPCResourceIntf]*common.ConnectionSet{}
+			}
+			generalConnMap[src][dst] = conn
+		}
+	}
+	return generalConnMap
+}

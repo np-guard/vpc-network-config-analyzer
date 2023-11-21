@@ -125,22 +125,6 @@ func (c *VPCConfig) getAllowedConnectionsCombined(
 	return nil, fmt.Errorf("illegal diff analysis type")
 }
 
-func (nodesConnMap NodesConnectionsMap) nodesConnectivityToGeneralConnectivity() (generalConnMap GeneralConnectivityMap) {
-	generalConnMap = GeneralConnectivityMap{}
-	for src, connsMap := range nodesConnMap {
-		for dst, conn := range connsMap {
-			if conn.IsEmpty() {
-				continue
-			}
-			if _, ok := generalConnMap[src]; !ok {
-				generalConnMap[src] = map[VPCResourceIntf]*common.ConnectionSet{}
-			}
-			generalConnMap[src][dst] = conn
-		}
-	}
-	return generalConnMap
-}
-
 // for a given VPCResourceIntf (representing a subnet or an external ip) in config return the VPCResourceIntf representing the
 // subnet/external address in otherConfig or nil if the subnet does not exist in the other config.
 func (c *VPCConfig) getVPCResourceInfInOtherConfig(other *VPCConfig, ep VPCResourceIntf,

@@ -230,25 +230,16 @@ func subnetGrouping(groupedConnLines *GroupConnLines,
 
 // group public internet ranges for vsis, subnets and diffs
 
-func (g *GroupConnLines) groupExternalAddresses() error {
-	res := []*GroupedConnLine{}
-	for src, nodeConns := range g.v.AllowedConnsCombined {
-		for dst, conns := range nodeConns {
-			err := g.addLineToExternalGrouping(&res, conns.IsEmpty(), src, dst, conns.EnhancedString())
-			if err != nil {
-				return err
-			}
-		}
+func (g *GroupConnLines) groupExternalAddresses(vsi bool) error {
+	var allowedConnsCombined GeneralConnectivityMap
+	if vsi {
+		allowedConnsCombined = g.v.AllowedConnsCombined.nodesConnectivityToGeneralConnectivity()
+	} else {
+		allowedConnsCombined = g.s.AllowedConnsCombined
 	}
-	g.appendGrouped(&res)
-	return nil
-}
-
-func (g *GroupConnLines) groupExternalAddressesForSubnets() error {
 	res := []*GroupedConnLine{}
-	for src, endpointConns := range g.s.AllowedConnsCombined {
-		for dst, conns := range endpointConns {
-			// Note that since pgw enable only egress src can not actually be public internet
+	for src, nodeConns := range allowedConnsCombined {
+		for dst, conns := range nodeConns {
 			err := g.addLineToExternalGrouping(&res, conns.IsEmpty(), src, dst, conns.EnhancedString())
 			if err != nil {
 				return err
@@ -357,7 +348,7 @@ func getKeyOfGroupConnLines(ep EndpointElem, connection string) string {
 	return ep.Name() + commaSeparator + connection
 }
 
-// assuming the  g.groupedLines was already initialized by previous step groupExternalAddresses()
+// assuming the  g.groupedLines was already initialized by previous step groupExternalAddressesTmp()
 func (g *GroupConnLines) groupInternalSrcOrDst(srcGrouping, groupVsi bool) {
 	res, groupingSrcOrDst := g.groupLinesByKey(srcGrouping, groupVsi)
 
@@ -417,11 +408,7 @@ func (g *GroupConnLines) unifiedGroupedElems(srcOrDst EndpointElem) EndpointElem
 }
 
 func (g *GroupConnLines) computeGrouping(vsi, grouping bool) (err error) {
-	if vsi {
-		err = g.groupExternalAddresses()
-	} else {
-		err = g.groupExternalAddressesForSubnets()
-	}
+	err = g.groupExternalAddresses(vsi)
 	if err != nil {
 		return err
 	}

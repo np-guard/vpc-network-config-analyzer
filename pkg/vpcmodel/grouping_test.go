@@ -116,7 +116,7 @@ func TestGroupingPhase1(t *testing.T) {
 	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
 		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
 		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
-	err := res.groupExternalAddresses()
+	err := res.groupExternalAddresses(true)
 	require.Equal(t, err, nil)
 
 	groupingStr := res.String()
@@ -133,7 +133,7 @@ func TestGroupingPhase2(t *testing.T) {
 		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
 		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
 	// phase 1
-	err := res.groupExternalAddresses()
+	err := res.groupExternalAddresses(true)
 	require.Equal(t, err, nil)
 	groupingStr := res.String()
 	require.Equal(t, "vsi1 => Public Internet 1.2.0.0/22,8.8.8.8/32 : All Connections\n"+
@@ -175,7 +175,7 @@ func TestStatefulGrouping(t *testing.T) {
 	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
 		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
 		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
-	err := res.groupExternalAddresses()
+	err := res.groupExternalAddresses(true)
 	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(true, true)
 	groupingStr := res.String()
@@ -208,7 +208,7 @@ func TestIPRange(t *testing.T) {
 	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
 		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
 		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
-	err := res.groupExternalAddresses()
+	err := res.groupExternalAddresses(true)
 	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(true, true)
 	groupingStr := res.String()
@@ -244,7 +244,7 @@ func TestSelfLoopClique(t *testing.T) {
 	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
 		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
 		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
-	err := res.groupExternalAddresses()
+	err := res.groupExternalAddresses(true)
 	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(true, true)
 	groupingStr := res.String()
@@ -282,7 +282,7 @@ func TestSelfLoopCliqueDiffSubnets(t *testing.T) {
 	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
 		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
 		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
-	err := res.groupExternalAddresses()
+	err := res.groupExternalAddresses(true)
 	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(true, true)
 	res.groupInternalSrcOrDst(false, true)
@@ -320,7 +320,7 @@ func TestSimpleSelfLoop(t *testing.T) {
 	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
 		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
 		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
-	err := res.groupExternalAddresses()
+	err := res.groupExternalAddresses(true)
 	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(false, true)
 	res.groupInternalSrcOrDst(true, true)
@@ -367,7 +367,7 @@ func TestConfigSelfLoopCliqueLace(t *testing.T) {
 	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
 		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
 		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
-	err := res.groupExternalAddresses()
+	err := res.groupExternalAddresses(true)
 	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(false, true)
 	res.groupInternalSrcOrDst(true, true)
@@ -407,7 +407,7 @@ func TestSubnetSelfLoop(t *testing.T) {
 		srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
 		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
 		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
-	err := res.groupExternalAddressesForSubnets()
+	err := res.groupExternalAddresses(false)
 	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(false, false)
 	res.groupInternalSrcOrDst(true, false)
