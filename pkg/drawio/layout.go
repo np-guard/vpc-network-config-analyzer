@@ -302,9 +302,8 @@ func (ly *layoutS) layoutSubnetsIcons() {
 }
 
 func (ly *layoutS) layoutSubnets() {
-	_, grs := ly.allSubnetsAndGroups()
-	subnetMatrix, zoneCol := newSubnetsLayout(ly.network).layout(grs)
-	ly.setSubnetsLocations(subnetMatrix,zoneCol)
+	subnetMatrix, zoneCol := newSubnetsLayout(ly.network).layout()
+	ly.setSubnetsLocations(subnetMatrix, zoneCol)
 }
 
 func (ly *layoutS) setSubnetsLocations(subnetMatrix [][]TreeNodeInterface, zonesCol map[TreeNodeInterface]int) {
@@ -321,7 +320,7 @@ func (ly *layoutS) setSubnetsLocations(subnetMatrix [][]TreeNodeInterface, zones
 	for _, cloud := range ly.network.(*NetworkTreeNode).clouds {
 		for _, vpc := range cloud.(*CloudTreeNode).vpcs {
 			for _, zone := range vpc.(*VpcTreeNode).zones {
-				if _, ok := zonesCol[zone]; !ok{
+				if _, ok := zonesCol[zone]; !ok {
 					zonesCol[zone] = len(zonesCol)
 				}
 				rowIndex := 0
@@ -342,41 +341,30 @@ func (ly *layoutS) setSubnetsLocations(subnetMatrix [][]TreeNodeInterface, zones
 
 }
 
-func (ly *layoutS) allSubnetsAndGroups() ([]TreeNodeInterface, []*GroupSubnetsSquareTreeNode) {
-	sns := []TreeNodeInterface{}
-	grs := []*GroupSubnetsSquareTreeNode{}
-	for _, tn := range getAllNodes(ly.network) {
-		switch {
-		case reflect.TypeOf(tn).Elem() == reflect.TypeOf(SubnetTreeNode{}):
-			sns = append(sns, tn)
-		case reflect.TypeOf(tn).Elem() == reflect.TypeOf(GroupSubnetsSquareTreeNode{}):
-			grs = append(grs, tn.(*GroupSubnetsSquareTreeNode))
-		}
-	}
-	return sns, grs
-}
-
 /////////////////////////////////////////////////////////////////////////////////////
 
 func (ly *layoutS) setGroupedSubnetsOffset() {
-	sns, grs := ly.allSubnetsAndGroups()
-	for _, tn := range sns {
-		tn.Location().xOffset = borderWidth
-		tn.Location().yOffset = borderWidth
-		tn.Location().xEndOffset = borderWidth
-		tn.Location().yEndOffset = borderWidth
-	}
-	for _, tn := range grs {
-		tn.Location().xOffset = -groupBorderWidth
-		tn.Location().yOffset = -groupBorderWidth
-		tn.Location().xEndOffset = -groupBorderWidth
-		tn.Location().yEndOffset = -groupBorderWidth
-	}
+	allGroups := map[TreeNodeInterface]bool{}
+	for _, tn := range getAllNodes(ly.network) {
+		switch {
+		case reflect.TypeOf(tn).Elem() == reflect.TypeOf(SubnetTreeNode{}):
+			tn.Location().xOffset = borderWidth
+			tn.Location().yOffset = borderWidth
+			tn.Location().xEndOffset = borderWidth
+			tn.Location().yEndOffset = borderWidth
 
+		case reflect.TypeOf(tn).Elem() == reflect.TypeOf(GroupSubnetsSquareTreeNode{}):
+			tn.Location().xOffset = -groupBorderWidth
+			tn.Location().yOffset = -groupBorderWidth
+			tn.Location().xEndOffset = -groupBorderWidth
+			tn.Location().yEndOffset = -groupBorderWidth
+			allGroups[tn] = true
+		}
+	}
 	for foundOverlap := true; foundOverlap; {
 		foundOverlap = false
-		for _, tn1 := range grs {
-			for _, tn2 := range grs {
+		for tn1 := range allGroups {
+			for tn2 := range allGroups {
 				l1 := tn1.Location()
 				l2 := tn2.Location()
 				if tn1 == tn2 {
@@ -385,7 +373,7 @@ func (ly *layoutS) setGroupedSubnetsOffset() {
 				if l1.firstRow == l2.firstRow || l1.firstCol == l2.firstCol || l1.lastRow == l2.lastRow || l1.lastCol == l2.lastCol {
 					if l1.xOffset == l2.xOffset {
 						toShrink := tn1
-						if len(tn2.groupedSubnets) < len(tn1.groupedSubnets) {
+						if len(tn2.(*GroupSubnetsSquareTreeNode).groupedSubnets) < len(tn1.(*GroupSubnetsSquareTreeNode).groupedSubnets) {
 							toShrink = tn2
 						}
 						toShrink.Location().xOffset += groupInnerBorderWidth
@@ -401,7 +389,6 @@ func (ly *layoutS) setGroupedSubnetsOffset() {
 	}
 
 }
-
 
 // //////////////////////////////////////////////////////////////////////////////////////////
 // SG can have more than one squares. so setSGLocations() will add treeNodes of the kind PartialSGTreeNode
