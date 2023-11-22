@@ -19,12 +19,15 @@ func (s *genericSet[T]) equal(s2 *genericSet[T]) bool {
 }
 
 type genericSet[T comparable] map[T]bool
-type squareSet genericSet[TreeNodeInterface]
+type treeNodeSet genericSet[TreeNodeInterface]
+type subnetSet treeNodeSet
+type groupTnSet treeNodeSet
 type groupSet genericSet[*groupDataS]
 type miniGroupSet genericSet[*miniGroupDataS]
 
-//todo: remove???
-func (s *squareSet) asKey() setAsKey    { return ((*genericSet[TreeNodeInterface])(s)).asKey() }
+// todo: remove???
+func (s *subnetSet) asKey() setAsKey    { return ((*genericSet[TreeNodeInterface])(s)).asKey() }
+func (s *groupTnSet) asKey() setAsKey   { return ((*genericSet[TreeNodeInterface])(s)).asKey() }
 func (s *groupSet) asKey() setAsKey     { return ((*genericSet[*groupDataS])(s)).asKey() }
 func (s *miniGroupSet) asKey() setAsKey { return ((*genericSet[*miniGroupDataS])(s)).asKey() }
 func (s *miniGroupSet) equal(s2 *miniGroupSet) bool {
@@ -49,7 +52,7 @@ func (s *genericSet[T]) asKey() setAsKey {
 /////////////////////////////////////////////////////////////////
 
 type miniGroupDataS struct {
-	subnets squareSet
+	subnets subnetSet
 	zone    TreeNodeInterface
 	located bool
 }
@@ -57,7 +60,7 @@ type groupDataS struct {
 	miniGroups        miniGroupSet
 	topInnerGroups    []*groupDataS
 	toSplitGroups     groupSet
-	subnets           squareSet
+	subnets           subnetSet
 	treeNode          TreeNodeInterface
 	name              string
 	firstRow, lastRow int
@@ -66,7 +69,7 @@ type groupDataS struct {
 	splitTo           groupSet
 }
 
-func newGroupDataS(name string, miniGroups miniGroupSet, subnets squareSet, tn TreeNodeInterface) *groupDataS {
+func newGroupDataS(name string, miniGroups miniGroupSet, subnets subnetSet, tn TreeNodeInterface) *groupDataS {
 	return &groupDataS{
 		miniGroups:    miniGroups,
 		subnets:       subnets,
@@ -409,7 +412,7 @@ func (ly *subnetsLayout) rearrangeGroup(group *groupDataS) {
 					name += s.Label() + ","
 				}
 			}
-			subnets := squareSet{}
+			subnets := subnetSet{}
 			for miniGroup := range group.miniGroups {
 				for subnet := range miniGroup.subnets {
 					subnets[subnet] = true
@@ -628,34 +631,35 @@ func (ly *subnetsLayout) createMiniGroups() {
 		}
 	}
 
-	groupedSubnets := squareSet{}
-	groupSubnets := map[TreeNodeInterface]squareSet{}
+	groupedSubnets := subnetSet{}
+	groupSubnets := map[TreeNodeInterface]subnetSet{}
 	for group := range allGroups {
-		groupSubnets[group] = squareSet{}
+		groupSubnets[group] = subnetSet{}
 		for _, subnet := range group.groupedSubnets {
 			groupSubnets[group][subnet] = true
 			groupedSubnets[subnet] = true
 		}
 	}
-	subnetToGroups := map[TreeNodeInterface]squareSet{}
+	subnetToGroups := map[TreeNodeInterface]groupTnSet{}
 	for subnet := range groupedSubnets {
-		subnetToGroups[subnet] = squareSet{}
+		subnetToGroups[subnet] = groupTnSet{}
 	}
 	for group := range allGroups {
 		for _, subnet := range group.groupedSubnets {
 			subnetToGroups[subnet][group] = true
 		}
 	}
-	groupSetToMiniGroup := map[setAsKey]map[TreeNodeInterface]squareSet{}
+	groupSetToMiniGroup := map[setAsKey]map[TreeNodeInterface]subnetSet{}
 	for subnet, groups := range subnetToGroups {
 		if _, ok := groupSetToMiniGroup[groups.asKey()]; !ok {
-			groupSetToMiniGroup[groups.asKey()] = map[TreeNodeInterface]squareSet{}
+			groupSetToMiniGroup[groups.asKey()] = map[TreeNodeInterface]subnetSet{}
 		}
 		if _, ok := groupSetToMiniGroup[groups.asKey()][subnet.Parent()]; !ok {
-			groupSetToMiniGroup[groups.asKey()][subnet.Parent()] = squareSet{}
+			groupSetToMiniGroup[groups.asKey()][subnet.Parent()] = subnetSet{}
 		}
 		groupSetToMiniGroup[groups.asKey()][subnet.Parent()][subnet] = true
 	}
+	
 	groupToMiniGroups := map[TreeNodeInterface]miniGroupSet{}
 	for _, zoneMiniGroup := range groupSetToMiniGroup {
 		for zone, miniGroup := range zoneMiniGroup {
