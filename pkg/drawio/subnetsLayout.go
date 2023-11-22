@@ -19,15 +19,14 @@ func (s *genericSet[T]) equal(s2 *genericSet[T]) bool {
 }
 
 type genericSet[T comparable] map[T]bool
-type treeNodeSet genericSet[TreeNodeInterface]
-type subnetSet treeNodeSet
-type groupTnSet treeNodeSet
+type subnetSet genericSet[TreeNodeInterface]
+type groupTnSet genericSet[*GroupSubnetsSquareTreeNode]
 type groupSet genericSet[*groupDataS]
 type miniGroupSet genericSet[*miniGroupDataS]
 
 // todo: remove???
 func (s *subnetSet) asKey() setAsKey    { return ((*genericSet[TreeNodeInterface])(s)).asKey() }
-func (s *groupTnSet) asKey() setAsKey   { return ((*genericSet[TreeNodeInterface])(s)).asKey() }
+func (s *groupTnSet) asKey() setAsKey   { return ((*genericSet[*GroupSubnetsSquareTreeNode])(s)).asKey() }
 func (s *groupSet) asKey() setAsKey     { return ((*genericSet[*groupDataS])(s)).asKey() }
 func (s *miniGroupSet) asKey() setAsKey { return ((*genericSet[*miniGroupDataS])(s)).asKey() }
 func (s *miniGroupSet) equal(s2 *miniGroupSet) bool {
@@ -69,7 +68,13 @@ type groupDataS struct {
 	splitTo           groupSet
 }
 
-func newGroupDataS(name string, miniGroups miniGroupSet, subnets subnetSet, tn TreeNodeInterface) *groupDataS {
+func newGroupDataS(name string, miniGroups miniGroupSet, tn TreeNodeInterface) *groupDataS {
+	subnets := subnetSet{}
+	for miniGroup := range miniGroups {
+		for subnet := range miniGroup.subnets {
+			subnets[subnet] = true
+		}
+	}
 	return &groupDataS{
 		miniGroups:    miniGroups,
 		subnets:       subnets,
@@ -105,8 +110,8 @@ func newSubnetsLayout(network SquareTreeNodeInterface) *subnetsLayout {
 }
 
 func (ly *subnetsLayout) layout() ([][]TreeNodeInterface, map[TreeNodeInterface]int) {
-	ly.createMiniGroups()
-	topFakeGroup := newGroupDataS("", ly.miniGroups, nil, nil)
+	ly.createGroupsDataS()
+	topFakeGroup := newGroupDataS("", ly.miniGroups, nil)
 	ly.splitSharing(topFakeGroup)
 	ly.calcZoneOrder()
 	ly.createMatrix()
@@ -412,14 +417,8 @@ func (ly *subnetsLayout) rearrangeGroup(group *groupDataS) {
 					name += s.Label() + ","
 				}
 			}
-			subnets := subnetSet{}
-			for miniGroup := range group.miniGroups {
-				for subnet := range miniGroup.subnets {
-					subnets[subnet] = true
-				}
-			}
 			fmt.Println("group created ", name, " ", string(groups))
-			newGroup = newGroupDataS(name, miniGroups, subnets, nil)
+			newGroup = newGroupDataS(name, miniGroups, nil)
 			ly.groups = append(ly.groups, newGroup)
 
 			inTopGroup := false
@@ -621,65 +620,79 @@ func (ly *subnetsLayout) calcZoneOrder() {
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
 
-func (ly *subnetsLayout) createMiniGroups() {
-	allGroups := map[*GroupSubnetsSquareTreeNode]bool{}
+func (ly *subnetsLayout) groupTreeNodes() groupTnSet {
+	allGroups := groupTnSet{}
 	for _, tn := range getAllNodes(ly.network) {
 		if reflect.TypeOf(tn).Elem() == reflect.TypeOf(GroupSubnetsSquareTreeNode{}) {
 			allGroups[tn.(*GroupSubnetsSquareTreeNode)] = true
 		}
 	}
+	return allGroups
+}
 
-	groupedSubnets := subnetSet{}
-	groupSubnets := map[TreeNodeInterface]subnetSet{}
-	for group := range allGroups {
-		groupSubnets[group] = subnetSet{}
-		for _, subnet := range group.groupedSubnets {
-			groupSubnets[group][subnet] = true
-			groupedSubnets[subnet] = true
-		}
-	}
+func (ly *subnetsLayout) sortSubnets() map[TreeNodeInterface]groupTnSet {
+	allGroups := ly.groupTreeNodes()
 	subnetToGroups := map[TreeNodeInterface]groupTnSet{}
-	for subnet := range groupedSubnets {
-		subnetToGroups[subnet] = groupTnSet{}
-	}
 	for group := range allGroups {
 		for _, subnet := range group.groupedSubnets {
+			if _, ok := subnetToGroups[subnet]; !ok {
+				subnetToGroups[subnet] = groupTnSet{}
+			}
 			subnetToGroups[subnet][group] = true
 		}
 	}
-	groupSetToMiniGroup := map[setAsKey]map[TreeNodeInterface]subnetSet{}
+	return subnetToGroups
+}
+func sortSubnetsByZoneAndGroups(subnetToGroups map[TreeNodeInterface]groupTnSet) map[setAsKey]map[TreeNodeInterface]subnetSet {
+	groupSetToSubnetSet := map[setAsKey]map[TreeNodeInterface]subnetSet{}
 	for subnet, groups := range subnetToGroups {
-		if _, ok := groupSetToMiniGroup[groups.asKey()]; !ok {
-			groupSetToMiniGroup[groups.asKey()] = map[TreeNodeInterface]subnetSet{}
+		if _, ok := groupSetToSubnetSet[groups.asKey()]; !ok {
+			groupSetToSubnetSet[groups.asKey()] = map[TreeNodeInterface]subnetSet{}
 		}
-		if _, ok := groupSetToMiniGroup[groups.asKey()][subnet.Parent()]; !ok {
-			groupSetToMiniGroup[groups.asKey()][subnet.Parent()] = subnetSet{}
+		zone := subnet.Parent()
+		if _, ok := groupSetToSubnetSet[groups.asKey()][zone]; !ok {
+			groupSetToSubnetSet[groups.asKey()][subnet.Parent()] = subnetSet{}
 		}
-		groupSetToMiniGroup[groups.asKey()][subnet.Parent()][subnet] = true
+		groupSetToSubnetSet[groups.asKey()][zone][subnet] = true
 	}
-	
-	groupToMiniGroups := map[TreeNodeInterface]miniGroupSet{}
-	for _, zoneMiniGroup := range groupSetToMiniGroup {
+	return groupSetToSubnetSet
+}
+
+func (ly *subnetsLayout) createMiniGroups(groupSetToSubnetSet map[setAsKey]map[TreeNodeInterface]subnetSet) {
+	for _, zoneMiniGroup := range groupSetToSubnetSet {
 		for zone, miniGroup := range zoneMiniGroup {
 			miniGroupData := miniGroupDataS{subnets: miniGroup, zone: zone}
 			ly.miniGroups[&miniGroupData] = true
-			for subnet := range miniGroup {
-				for group := range subnetToGroups[subnet] {
-					if _, ok := groupToMiniGroups[group]; !ok {
-						groupToMiniGroups[group] = miniGroupSet{}
-					}
-					groupToMiniGroups[group][&miniGroupData] = true
+		}
+	}
+}
+func (ly *subnetsLayout)createGroups(subnetToGroups map[TreeNodeInterface]groupTnSet){
+	groupToMiniGroups := map[TreeNodeInterface]miniGroupSet{}
+	for miniGroup := range ly.miniGroups {
+		for subnet := range miniGroup.subnets {
+			for group := range subnetToGroups[subnet] {
+				if _, ok := groupToMiniGroups[group]; !ok {
+					groupToMiniGroups[group] = miniGroupSet{}
 				}
+				groupToMiniGroups[group][miniGroup] = true
 			}
-
 		}
 	}
 	for groupTn, miniGroups := range groupToMiniGroups {
-		groupData := newGroupDataS(groupTn.Label(), miniGroups, groupSubnets[groupTn], groupTn)
+		groupData := newGroupDataS(groupTn.Label(), miniGroups, groupTn)
 		ly.groups = append(ly.groups, groupData)
 	}
+
+}
+//////////////////////////////////////////////////////////////////////////
+
+func (ly *subnetsLayout) createGroupsDataS() {
+	subnetToGroups := ly.sortSubnets()
+	groupSetToSubnetSet := sortSubnetsByZoneAndGroups(subnetToGroups)
+	ly.createMiniGroups(groupSetToSubnetSet)
+	ly.createGroups(subnetToGroups)
 	sort.Slice(ly.groups, func(i, j int) bool {
 		return len(ly.groups[i].miniGroups) > len(ly.groups[j].miniGroups)
 	})
