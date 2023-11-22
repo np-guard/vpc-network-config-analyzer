@@ -11,18 +11,32 @@ import (
 // //////////////////////////////////////////////////////////////////////////////////////////////
 
 type setAsKey string
-type squareSet map[TreeNodeInterface]bool
-type groupSet map[*groupDataS]bool
-type miniGroupSet map[*miniGroupDataS]bool
 
 var interfaceIndex map[interface{}]int
 
-func asKey(s map[interface{}]bool) setAsKey {
+func (s *genericSet[T]) equal(s2 *genericSet[T]) bool {
+	return s.asKey() == s2.asKey()
+}
+
+type genericSet[T comparable] map[T]bool
+type squareSet genericSet[TreeNodeInterface]
+type groupSet genericSet[*groupDataS]
+type miniGroupSet genericSet[*miniGroupDataS]
+
+//todo: remove???
+func (s *squareSet) asKey() setAsKey    { return ((*genericSet[TreeNodeInterface])(s)).asKey() }
+func (s *groupSet) asKey() setAsKey     { return ((*genericSet[*groupDataS])(s)).asKey() }
+func (s *miniGroupSet) asKey() setAsKey { return ((*genericSet[*miniGroupDataS])(s)).asKey() }
+func (s *miniGroupSet) equal(s2 *miniGroupSet) bool {
+	return ((*genericSet[*miniGroupDataS])(s)).equal((*genericSet[*miniGroupDataS])(s2))
+}
+
+func (s *genericSet[T]) asKey() setAsKey {
 	if interfaceIndex == nil {
 		interfaceIndex = map[interface{}]int{}
 	}
 	ss := []string{}
-	for i := range s {
+	for i := range *s {
 		if _, ok := interfaceIndex[i]; !ok {
 			interfaceIndex[i] = len(interfaceIndex)
 		}
@@ -31,55 +45,6 @@ func asKey(s map[interface{}]bool) setAsKey {
 	sort.Strings(ss)
 	return setAsKey(strings.Join(ss, ","))
 }
-func (sqs *squareSet) asKey() setAsKey {
-	s := map[interface{}]bool{}
-	for i := range *sqs {
-		s[i] = true
-	}
-	return asKey(s)
-}
-func (sqs *groupSet) asKey() setAsKey {
-	s := map[interface{}]bool{}
-	for i := range *sqs {
-		s[i] = true
-	}
-	return asKey(s)
-}
-
-func (mg *miniGroupSet) asKey() setAsKey {
-	s := map[interface{}]bool{}
-	for i := range *mg {
-		s[i] = true
-	}
-	return asKey(s)
-}
-
-func (mg *miniGroupSet) equal(mg2 *miniGroupSet) bool {
-	return mg.asKey() == mg2.asKey()
-}
-
-
-
-
-type I interface {
-    foo()
-}
-type S struct {
-}
-func (s *S) foo() {}
-type set[T comparable] map[T]bool
-type Sset set[*S]
-//type Iset map[I]bool
-//this does not compile:
-type Iset set[I]
-
-
-
-
-
-
-
-
 
 /////////////////////////////////////////////////////////////////
 
