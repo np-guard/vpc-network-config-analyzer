@@ -24,5 +24,9 @@ func (t *DebugOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 		out += cfgsDiff.String()
 	}
 	_, err := WriteToFile(out, outFile)
-	return &SingleAnalysisOutput{Output: out, VPC1Name: c1.VPC.Name(), format: Debug}, err
+	v2Name := ""
+	if c2 != nil {
+		v2Name = c2.VPC.Name()
+	}
+	return &SingleAnalysisOutput{Output: out, VPC1Name: c1.VPC.Name(), VPC2Name: v2Name, format: Debug}, err
 }

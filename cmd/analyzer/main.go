@@ -51,7 +51,7 @@ func analysisTypeToUseCase(inArgs *InArgs) vpcmodel.OutputUseCase {
 	return vpcmodel.AllEndpoints
 }
 
-func analysisPerVPCConfig(c *vpcmodel.VPCConfig, inArgs *InArgs, outFile string) (*vpcmodel.VPCAnalysisOutput, error) {
+func analysisPerVPCConfig(c *vpcmodel.VPCConfig, inArgs *InArgs, outFile string) (*vpcmodel.SingleAnalysisOutput, error) {
 	og, err := vpcmodel.NewOutputGenerator(c, nil,
 		*inArgs.Grouping,
 		analysisTypeToUseCase(inArgs),
@@ -74,7 +74,7 @@ func analysisPerVPCConfig(c *vpcmodel.VPCConfig, inArgs *InArgs, outFile string)
 	return output, nil
 }
 
-func analysisDiffVPCConfig(c1, c2 *vpcmodel.VPCConfig, inArgs *InArgs, outFile string) (*vpcmodel.VPCAnalysisOutput, error) {
+func analysisDiffVPCConfig(c1, c2 *vpcmodel.VPCConfig, inArgs *InArgs, outFile string) (*vpcmodel.SingleAnalysisOutput, error) {
 	og, err := vpcmodel.NewOutputGenerator(c1, c2,
 		*inArgs.Grouping,
 		analysisTypeToUseCase(inArgs),
@@ -83,7 +83,7 @@ func analysisDiffVPCConfig(c1, c2 *vpcmodel.VPCConfig, inArgs *InArgs, outFile s
 		return nil, err
 	}
 
-	var analysisOut *vpcmodel.VPCAnalysisOutput
+	var analysisOut *vpcmodel.SingleAnalysisOutput
 	outFormat := getOutputFormat(inArgs)
 	analysisOut, err = og.Generate(outFormat, outFile)
 	if err != nil {
@@ -121,7 +121,7 @@ func _main(cmdlineArgs []string) error {
 
 	diffAnalysis := *inArgs.AnalysisType == allEndpointsDiff || *inArgs.AnalysisType == allSubnetsDiff
 	if !diffAnalysis {
-		outputPerVPC := make([]*vpcmodel.VPCAnalysisOutput, len(vpcConfigs))
+		outputPerVPC := make([]*vpcmodel.SingleAnalysisOutput, len(vpcConfigs))
 		i := 0
 		for _, vpcConfig := range vpcConfigs {
 			vpcAnalysisOutput, err2 := analysisPerVPCConfig(vpcConfig, inArgs, outFile)

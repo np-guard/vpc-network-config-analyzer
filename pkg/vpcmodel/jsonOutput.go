@@ -11,13 +11,15 @@ import (
 type JSONoutputFormatter struct {
 }
 
+const connectionChanged = "connection changed"
+
 func (j *JSONoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	conn *VPCConnectivity,
 	subnetsConn *VPCsubnetConnectivity,
-	diff *diffBetweenCfgs,
+	cfgsDiff *diffBetweenCfgs,
 	outFile string,
 	grouping bool,
-	uc OutputUseCase) (*VPCAnalysisOutput, error) {
+	uc OutputUseCase) (*SingleAnalysisOutput, error) {
 	var all interface{}
 	switch uc {
 	case AllEndpoints:
@@ -25,12 +27,16 @@ func (j *JSONoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	case AllSubnets:
 		all = allSubnetsConnectivity{Connectivity: getConnLinesForSubnetsConnectivity(subnetsConn)}
 	case SubnetsDiff, EndpointsDiff:
-		all = allSemanticDiff{SemanticDiff: getDiffLines(diff)}
+		all = allSemanticDiff{SemanticDiff: getDiffLines(cfgsDiff)}
 	case SingleSubnet:
 		return nil, errors.New("DebugSubnet use case not supported for JSON format currently ")
 	}
 	outStr, err := writeJSON(all, outFile)
-	return &VPCAnalysisOutput{Output: outStr, VPCName: c1.VPC.Name(), format: JSON, jsonStruct: all}, err
+	v2Name := ""
+	if c2 != nil {
+		v2Name = c2.VPC.Name()
+	}
+	return &SingleAnalysisOutput{Output: outStr, VPC1Name: c1.VPC.Name(), VPC2Name: v2Name, format: JSON, jsonStruct: all}, err
 }
 
 type connLine struct {
@@ -170,7 +176,7 @@ func getDiffStrThis(diff DiffType) string {
 	case missingConnection:
 		return "connection removed"
 	case changedConnection:
-		return "connection changed"
+		return connectionChanged
 	}
 	return ""
 }
@@ -186,7 +192,7 @@ func getDiffStrOther(diff DiffType) string {
 	case missingConnection:
 		return "connection added"
 	case changedConnection:
-		return "connection changed"
+		return connectionChanged
 	}
 	return ""
 }

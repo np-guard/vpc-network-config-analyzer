@@ -112,10 +112,10 @@ func (d *DrawioOutputFormatter) createEdges() {
 func (d *DrawioOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	conn *VPCConnectivity,
 	subnetsConn *VPCsubnetConnectivity,
-	subnetsDiff *diffBetweenCfgs,
+	cfgsDiff *diffBetweenCfgs,
 	outFile string,
 	grouping bool,
-	uc OutputUseCase) (*VPCAnalysisOutput, error) {
+	uc OutputUseCase) (*SingleAnalysisOutput, error) {
 	var err error
 	switch uc {
 	case AllEndpoints:
@@ -125,7 +125,7 @@ func (d *DrawioOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	case AllSubnets, SingleSubnet:
 		err = errors.New("SubnetLevel/SingleSubnet use case not supported for draw.io format")
 	}
-	return &VPCAnalysisOutput{}, err
+	return &SingleAnalysisOutput{}, err
 }
 
 // /////////////////////////////////////////////////////////////////
@@ -140,15 +140,15 @@ type ArchDrawioOutputFormatter struct {
 func (d *ArchDrawioOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	conn *VPCConnectivity,
 	subnetsConn *VPCsubnetConnectivity,
-	subnetsDiff *diffBetweenCfgs,
+	cfgsDiff *diffBetweenCfgs,
 	outFile string,
 	grouping bool,
-	uc OutputUseCase) (*VPCAnalysisOutput, error) {
+	uc OutputUseCase) (*SingleAnalysisOutput, error) {
 	switch uc {
 	case AllEndpoints:
 		return d.DrawioOutputFormatter.WriteOutput(c1, c2, nil, nil, nil, outFile, grouping, uc)
 	case AllSubnets, SingleSubnet:
 		return d.DrawioOutputFormatter.WriteOutput(nil, c2, nil, nil, nil, outFile, grouping, uc)
 	}
-	return &VPCAnalysisOutput{}, nil
+	return &SingleAnalysisOutput{}, nil
 }

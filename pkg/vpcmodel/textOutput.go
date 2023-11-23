@@ -21,7 +21,7 @@ func (t *TextOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	cfgsDiff *diffBetweenCfgs,
 	outFile string,
 	grouping bool,
-	uc OutputUseCase) (*VPCAnalysisOutput, error) {
+	uc OutputUseCase) (*SingleAnalysisOutput, error) {
 	vpc2Name := ""
 	if c2 != nil {
 		vpc2Name = c2.VPC.Name()
@@ -41,5 +41,9 @@ func (t *TextOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	}
 	// write output to file and return the output string
 	_, err := WriteToFile(out, outFile)
-	return &VPCAnalysisOutput{Output: out, VPCName: c1.VPC.Name(), format: Text}, err
+	v2Name := ""
+	if c2 != nil {
+		v2Name = c2.VPC.Name()
+	}
+	return &SingleAnalysisOutput{Output: out, VPC1Name: c1.VPC.Name(), VPC2Name: v2Name, format: Text}, err
 }
