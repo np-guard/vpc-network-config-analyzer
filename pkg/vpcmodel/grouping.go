@@ -228,7 +228,7 @@ func subnetGrouping(groupedConnLines *GroupConnLines,
 	return res
 }
 
-// group public internet ranges for vsis, subnets and diffs
+// group public internet ranges for vsis/subnets connectivity lines
 func (g *GroupConnLines) groupExternalAddresses(vsi bool) error {
 	var allowedConnsCombined GeneralConnectivityMap
 	if vsi {
