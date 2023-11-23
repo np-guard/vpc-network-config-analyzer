@@ -61,8 +61,6 @@ type groupDataS struct {
 	subnets           subnetSet
 	treeNode          TreeNodeInterface
 	name              string
-	firstRow, lastRow int
-	firstCol, lastCol int
 	splitFrom         groupSet
 	splitTo           groupSet
 }
@@ -117,7 +115,6 @@ func (ly *subnetsLayout) layout() ([][]TreeNodeInterface, map[TreeNodeInterface]
 	ly.createMatrix()
 	ly.layoutGroup(ly.topFakeGroup, 0)
 	ly.setSubnetsMatrix()
-	ly.setGroupsIndexes()
 	ly.createNewTreeNodes()
 	return ly.subnetMatrix, ly.zonesCol
 }
@@ -271,26 +268,6 @@ func (ly *subnetsLayout) setSubnetsMatrix() {
 			}
 		}
 		rIndex += rowSize
-	}
-}
-func (ly *subnetsLayout) setGroupsIndexes() {
-	for _, group := range ly.groups {
-		group.firstRow, group.firstCol, group.lastRow, group.lastCol = 100, 100, -1, -1
-		for subnet := range group.subnets {
-			subnetIndexes := ly.subnetsIndexes[subnet]
-			if group.firstRow > subnetIndexes.row {
-				group.firstRow = subnetIndexes.row
-			}
-			if group.firstCol > subnetIndexes.col {
-				group.firstCol = subnetIndexes.col
-			}
-			if group.lastRow < subnetIndexes.row {
-				group.lastRow = subnetIndexes.row
-			}
-			if group.lastCol < subnetIndexes.col {
-				group.lastCol = subnetIndexes.col
-			}
-		}
 	}
 }
 
@@ -503,9 +480,27 @@ func (ly *subnetsLayout) createNewTreeNodes() {
 }
 
 func (ly *subnetsLayout) checkGroupIntegrity(group *groupDataS) bool {
+
+
+	firstRow, firstCol, lastRow, lastCol := 100, 100, -1, -1
+	for subnet := range group.subnets {
+		subnetIndexes := ly.subnetsIndexes[subnet]
+		if firstRow > subnetIndexes.row {
+			firstRow = subnetIndexes.row
+		}
+		if firstCol > subnetIndexes.col {
+			firstCol = subnetIndexes.col
+		}
+		if lastRow < subnetIndexes.row {
+			lastRow = subnetIndexes.row
+		}
+		if lastCol < subnetIndexes.col {
+			lastCol = subnetIndexes.col
+		}
+	}
 	nSubnets := 0
-	for r := group.firstRow; r <= group.lastRow; r++ {
-		for c := group.firstCol; c <= group.lastCol; c++ {
+	for r := firstRow; r <= lastRow; r++ {
+		for c := firstCol; c <= lastCol; c++ {
 			subnet := ly.subnetMatrix[r][c]
 			if subnet != nil && subnet != fakeSubnet {
 				if !group.subnets[subnet] {
