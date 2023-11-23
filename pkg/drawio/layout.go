@@ -71,9 +71,7 @@ func (ly *layoutS) layout() {
 	if !ly.network.(*NetworkTreeNode).SubnetMode {
 		ly.layoutSubnetsIcons()
 	} else {
-		//		ly.layoutSubnets()
 		ly.layoutSubnets()
-		// ly.layoutSubnetsExample()
 	}
 	ly.matrix.removeUnusedLayers()
 	// 2. set the locations of the SG in the matrix, according to the locations of the icons
@@ -310,7 +308,7 @@ func (ly *layoutS) setSubnetsLocations(subnetMatrix [][]TreeNodeInterface, zones
 	locatedSubnets := map[TreeNodeInterface]bool{}
 	for ri, row := range subnetMatrix {
 		for ci, s := range row {
-			if s != nil {
+			if s != nil && s != fakeSubnet {
 				ly.setDefaultLocation(s.(SquareTreeNodeInterface), ri, ci)
 				locatedSubnets[s] = true
 			}

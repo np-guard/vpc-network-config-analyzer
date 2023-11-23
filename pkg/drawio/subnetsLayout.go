@@ -266,7 +266,7 @@ func (ly *subnetsLayout) setSubnetsMatrix() {
 			}
 			for i := 0; i < rowSize; i++ {
 				if ly.subnetMatrix[rIndex+i][colIndex] == nil {
-					ly.subnetMatrix[rIndex+i][colIndex] = ly.network
+					ly.subnetMatrix[rIndex+i][colIndex] = fakeSubnet
 				}
 			}
 		}
@@ -507,7 +507,7 @@ func (ly *subnetsLayout) checkGroupIntegrity(group *groupDataS) bool {
 	for r := group.firstRow; r <= group.lastRow; r++ {
 		for c := group.firstCol; c <= group.lastCol; c++ {
 			subnet := ly.subnetMatrix[r][c]
-			if subnet != nil && subnet != ly.network {
+			if subnet != nil && subnet != fakeSubnet {
 				if !group.subnets[subnet] {
 					return false
 				}
