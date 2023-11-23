@@ -54,15 +54,27 @@ type miniGroupDataS struct {
 	zone    TreeNodeInterface
 	located bool
 }
+
+func (mg *miniGroupDataS) name() string {
+	if mg == fakeMiniGroup {
+		return "fake"
+	}
+	name := ""
+	for s := range mg.subnets {
+		name += s.Label() + ","
+	}
+	return name
+}
+
 type groupDataS struct {
-	miniGroups        miniGroupSet
-	topInnerGroups    []*groupDataS
-	toSplitGroups     groupSet
-	subnets           subnetSet
-	treeNode          TreeNodeInterface
-	name              string
-	splitFrom         groupSet
-	splitTo           groupSet
+	miniGroups     miniGroupSet
+	topInnerGroups groupSet
+	toSplitGroups  groupSet
+	subnets        subnetSet
+	treeNode       TreeNodeInterface
+	name           string
+	splitFrom      groupSet
+	splitTo        groupSet
 }
 
 func newGroupDataS(name string, miniGroups miniGroupSet, tn TreeNodeInterface) *groupDataS {
@@ -73,68 +85,18 @@ func newGroupDataS(name string, miniGroups miniGroupSet, tn TreeNodeInterface) *
 		}
 	}
 	return &groupDataS{
-		miniGroups:    miniGroups,
-		subnets:       subnets,
-		treeNode:      tn,
-		name:          name,
-		toSplitGroups: groupSet{},
-		splitFrom:     groupSet{},
-		splitTo:       groupSet{},
+		miniGroups:     miniGroups,
+		topInnerGroups: groupSet{},
+		subnets:        subnets,
+		treeNode:       tn,
+		name:           name,
+		toSplitGroups:  groupSet{},
+		splitFrom:      groupSet{},
+		splitTo:        groupSet{},
 	}
 }
 
-// ////////////////////////////////////////////////////////////////////////
-type indexes struct {
-	row, col int
-}
-type subnetsLayout struct {
-	network          SquareTreeNodeInterface
-	groups           []*groupDataS
-	miniGroups       miniGroupSet
-	miniGroupsMatrix [][]*miniGroupDataS
-	subnetMatrix     [][]TreeNodeInterface
-	subnetsIndexes   map[TreeNodeInterface]indexes
-	zonesCol         map[TreeNodeInterface]int
-	topFakeGroup     *groupDataS
-}
-
-func newSubnetsLayout(network SquareTreeNodeInterface) *subnetsLayout {
-	return &subnetsLayout{
-		network:        network,
-		miniGroups:     miniGroupSet{},
-		subnetsIndexes: map[TreeNodeInterface]indexes{},
-		zonesCol:       map[TreeNodeInterface]int{},
-	}
-}
-
-func (ly *subnetsLayout) layout() ([][]TreeNodeInterface, map[TreeNodeInterface]int) {
-	ly.createGroupsDataS()
-	ly.topFakeGroup = newGroupDataS("", ly.miniGroups, nil)
-	ly.splitSharing(ly.topFakeGroup)
-	ly.calcZoneOrder()
-	ly.createMatrix()
-	ly.layoutGroup(ly.topFakeGroup, 0)
-	ly.setSubnetsMatrix()
-	ly.createNewTreeNodes()
-	return ly.subnetMatrix, ly.zonesCol
-}
-
-/////////////////////////////////////////////////////////////////////////////////////
-
-func (ly *subnetsLayout) createMatrix() {
-	maxDim := len(getAllNodes(ly.network))
-
-	ly.miniGroupsMatrix = make([][]*miniGroupDataS, maxDim)
-	for i := range ly.miniGroupsMatrix {
-		ly.miniGroupsMatrix[i] = make([]*miniGroupDataS, maxDim)
-	}
-
-	ly.subnetMatrix = make([][]TreeNodeInterface, maxDim)
-	for i := range ly.subnetMatrix {
-		ly.subnetMatrix[i] = make([]TreeNodeInterface, maxDim)
-	}
-}
-
+// /////////////////////////////////////////////////////////////////
 func (group *groupDataS) isSubGroup(subGroup *groupDataS) bool {
 	if len(group.miniGroups) == len(subGroup.miniGroups) {
 		return false
@@ -175,6 +137,148 @@ func (group *groupDataS) reunion() {
 
 }
 
+// ////////////////////////////////////////////////////////////////////////
+type indexes struct {
+	row, col int
+}
+type subnetsLayout struct {
+	network          SquareTreeNodeInterface
+	groups           []*groupDataS
+	miniGroups       miniGroupSet
+	miniGroupsMatrix [][]*miniGroupDataS
+	subnetMatrix     [][]TreeNodeInterface
+	subnetsIndexes   map[TreeNodeInterface]indexes
+	zonesCol         map[TreeNodeInterface]int
+	topFakeGroup     *groupDataS
+}
+
+func newSubnetsLayout(network SquareTreeNodeInterface) *subnetsLayout {
+	return &subnetsLayout{
+		network:        network,
+		miniGroups:     miniGroupSet{},
+		subnetsIndexes: map[TreeNodeInterface]indexes{},
+		zonesCol:       map[TreeNodeInterface]int{},
+	}
+}
+
+func (ly *subnetsLayout) layout() ([][]TreeNodeInterface, map[TreeNodeInterface]int) {
+	ly.createGroupsDataS()
+	ly.topFakeGroup = newGroupDataS("", ly.miniGroups, nil)
+	ly.splitSharing(ly.topFakeGroup)
+	ly.layoutGroups()
+	ly.createNewTreeNodes()
+	return ly.subnetMatrix, ly.zonesCol
+}
+
+func (ly *subnetsLayout) layoutGroups() {
+	ly.calcZoneOrder()
+	ly.createMatrix()
+	ly.layoutGroup(ly.topFakeGroup, 0)
+	ly.setSubnetsMatrix()
+}
+
+// ////////////////////////////////////////////////////////////////////////
+func (ly *subnetsLayout) calcZoneOrder() {
+	zoneConnections := map[TreeNodeInterface]map[TreeNodeInterface]int{}
+	for _, group := range ly.groups {
+		for miniGroup1 := range group.miniGroups {
+			for miniGroup2 := range group.miniGroups {
+				if miniGroup1 != miniGroup2 && miniGroup1.zone != miniGroup2.zone {
+					if _, ok := zoneConnections[miniGroup1.zone]; !ok {
+						zoneConnections[miniGroup1.zone] = map[TreeNodeInterface]int{}
+					}
+					zoneConnections[miniGroup1.zone][miniGroup2.zone] += 1
+				}
+			}
+		}
+	}
+	zoneOrder := []TreeNodeInterface{}
+
+	for len(zoneConnections) > 0 {
+
+		var zoneToAdd TreeNodeInterface
+		addToRight := 1
+		if len(zoneOrder) > 0 {
+			zonesAtEdges := []TreeNodeInterface{zoneOrder[0], zoneOrder[len(zoneOrder)-1]}
+			bestScores := []int{0, 0}
+			zonesWithBestScore := []TreeNodeInterface{nil, nil}
+			for i, zToChoose := range zonesAtEdges {
+				for z, score := range zoneConnections[zToChoose] {
+					if bestScores[i] < score {
+						bestScores[i] = score
+						zonesWithBestScore[i] = z
+					}
+				}
+			}
+			if bestScores[0] > bestScores[1] {
+				addToRight = 0
+			}
+			if bestScores[addToRight] > 0 {
+				zoneToAdd = zonesWithBestScore[addToRight]
+			}
+
+		}
+		if zoneToAdd == nil {
+			bestScore := 0
+			for z, friendsScore := range zoneConnections {
+				for _, score := range friendsScore {
+					if score > bestScore {
+						bestScore = score
+						zoneToAdd = z
+					}
+				}
+			}
+		}
+		if addToRight == 1 {
+			zoneOrder = append(zoneOrder, zoneToAdd)
+		} else {
+			zoneOrder = append([]TreeNodeInterface{zoneToAdd}, zoneOrder...)
+		}
+
+		if len(zoneOrder) > 2 {
+			if addToRight == 1 {
+				delete(zoneConnections, zoneOrder[len(zoneOrder)-2])
+			} else {
+				delete(zoneConnections, zoneOrder[1])
+			}
+		}
+		for _, zScores := range zoneConnections {
+			delete(zScores, zoneToAdd)
+		}
+		for z, score := range zoneConnections {
+			if len(score) == 0 {
+				delete(zoneConnections, z)
+			}
+		}
+
+	}
+	for _, zone := range zoneOrder {
+		fmt.Print(" ", zone.Label())
+	}
+	fmt.Println("")
+	for i, z := range zoneOrder {
+		ly.zonesCol[z] = i
+	}
+	for miniGroup := range ly.miniGroups {
+		if _, ok := ly.zonesCol[miniGroup.zone]; !ok {
+			ly.zonesCol[miniGroup.zone] = len(ly.zonesCol)
+		}
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////////////
+
+func (ly *subnetsLayout) createMatrix() {
+	ly.miniGroupsMatrix = make([][]*miniGroupDataS, len(ly.miniGroups))
+	for i := range ly.miniGroupsMatrix {
+		ly.miniGroupsMatrix[i] = make([]*miniGroupDataS, len(ly.zonesCol))
+	}
+	ly.subnetMatrix = make([][]TreeNodeInterface, len(ly.topFakeGroup.subnets))
+	for i := range ly.subnetMatrix {
+		ly.subnetMatrix[i] = make([]TreeNodeInterface, len(ly.zonesCol))
+	}
+}
+
 // ////////////////////////////////////////////////////////////////////////////////
 func (ly *subnetsLayout) layoutGroup(group *groupDataS, minRow int) {
 	minZoneCol, maxZoneCol := len(ly.zonesCol), -1
@@ -194,7 +298,7 @@ func (ly *subnetsLayout) layoutGroup(group *groupDataS, minRow int) {
 			}
 		}
 	}
-	for _, innerGroup := range group.topInnerGroups {
+	for innerGroup := range group.topInnerGroups {
 		ly.layoutGroup(innerGroup, firstRow)
 	}
 
@@ -202,28 +306,23 @@ func (ly *subnetsLayout) layoutGroup(group *groupDataS, minRow int) {
 		if miniGroup.located {
 			continue
 		}
-		name := ""
-		for s := range miniGroup.subnets {
-			name += s.Label() + ","
+		emptyCellRow := firstRow
+		for ly.miniGroupsMatrix[emptyCellRow][ly.zonesCol[miniGroup.zone]] != nil {
+			emptyCellRow++
 		}
-		emptyCell := firstRow
-		for ly.miniGroupsMatrix[emptyCell][ly.zonesCol[miniGroup.zone]] != nil {
-			emptyCell++
-		}
-		ly.miniGroupsMatrix[emptyCell][ly.zonesCol[miniGroup.zone]] = miniGroup
+		ly.miniGroupsMatrix[emptyCellRow][ly.zonesCol[miniGroup.zone]] = miniGroup
 		miniGroup.located = true
-		fmt.Printf("layout mini: %s (%d)\n", name, emptyCell)
 	}
 
-	lastRow := minRow
-	for rIndex := lastRow; rIndex < len(ly.miniGroupsMatrix); rIndex++ {
-		for cIndex := minZoneCol; cIndex <= maxZoneCol; cIndex++ {
-			if ly.miniGroupsMatrix[rIndex][cIndex] != nil {
-				lastRow = rIndex
+	if group != ly.topFakeGroup {
+		lastRow := minRow
+		for rIndex := lastRow; rIndex < len(ly.miniGroupsMatrix); rIndex++ {
+			for cIndex := minZoneCol; cIndex <= maxZoneCol; cIndex++ {
+				if ly.miniGroupsMatrix[rIndex][cIndex] != nil {
+					lastRow = rIndex
+				}
 			}
 		}
-	}
-	if group != ly.topFakeGroup {
 		for rIndex := firstRow; rIndex <= lastRow; rIndex++ {
 			for cIndex := minZoneCol; cIndex <= maxZoneCol; cIndex++ {
 				if ly.miniGroupsMatrix[rIndex][cIndex] == nil {
@@ -232,14 +331,24 @@ func (ly *subnetsLayout) layoutGroup(group *groupDataS, minRow int) {
 			}
 		}
 	}
-
-	fmt.Printf("end layout group %s %d-%d\n", group.name, firstRow, lastRow)
-
 }
 
-////////////////////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////////////////////
+func (ly *subnetsLayout) printMatrix() {
+	fmt.Println("-----------------------")
+	fmt.Println("-----------------------")
+	for rowIndex, row := range ly.miniGroupsMatrix {
+		fmt.Println(rowIndex,"-----------------------")
+		for colIndex, miniGroup := range row {
+			if miniGroup != nil {
+				fmt.Printf("(%d,%d) %s\n", rowIndex, colIndex, miniGroup.name())
+			}
+		}
+	}
+}
 
 func (ly *subnetsLayout) setSubnetsMatrix() {
+	ly.printMatrix()
 	rIndex := 0
 	for _, row := range ly.miniGroupsMatrix {
 		rowSize := 0
@@ -328,7 +437,7 @@ func (ly *subnetsLayout) splitSharing(group *groupDataS) {
 		if mostSharedGroup == nil {
 			for innerGroup := range nonSplitGroup {
 				if !innerGroups[innerGroup] {
-					group.topInnerGroups = append(group.topInnerGroups, innerGroup)
+					group.topInnerGroups[innerGroup] = true
 				}
 			}
 			break
@@ -341,7 +450,7 @@ func (ly *subnetsLayout) splitSharing(group *groupDataS) {
 	if len(group.toSplitGroups) > 0 {
 		ly.rearrangeGroup(group)
 	}
-	for _, topInnerGroup := range group.topInnerGroups {
+	for topInnerGroup := range group.topInnerGroups {
 		ly.splitSharing(topInnerGroup)
 
 	}
@@ -394,14 +503,14 @@ func (ly *subnetsLayout) rearrangeGroup(group *groupDataS) {
 			ly.groups = append(ly.groups, newGroup)
 
 			inTopGroup := false
-			for _, topGroup := range group.topInnerGroups {
+			for topGroup := range group.topInnerGroups {
 				if keysToSet[groups][topGroup] {
 					inTopGroup = true
 				}
 			}
 			if !inTopGroup {
 				fmt.Println("group ", newGroup.name, " !inTopGroup")
-				group.topInnerGroups = append(group.topInnerGroups, newGroup)
+				group.topInnerGroups[newGroup] = true
 			}
 
 		}
@@ -481,7 +590,6 @@ func (ly *subnetsLayout) createNewTreeNodes() {
 
 func (ly *subnetsLayout) checkGroupIntegrity(group *groupDataS) bool {
 
-
 	firstRow, firstCol, lastRow, lastCol := 100, 100, -1, -1
 	for subnet := range group.subnets {
 		subnetIndexes := ly.subnetsIndexes[subnet]
@@ -512,95 +620,6 @@ func (ly *subnetsLayout) checkGroupIntegrity(group *groupDataS) bool {
 	}
 
 	return nSubnets == len(group.subnets)
-}
-
-// ////////////////////////////////////////////////////////////////////////
-func (ly *subnetsLayout) calcZoneOrder() {
-	zoneConnections := map[TreeNodeInterface]map[TreeNodeInterface]int{}
-	for _, group := range ly.groups {
-		for miniGroup1 := range group.miniGroups {
-			for miniGroup2 := range group.miniGroups {
-				if miniGroup1 != miniGroup2 && miniGroup1.zone != miniGroup2.zone {
-					if _, ok := zoneConnections[miniGroup1.zone]; !ok {
-						zoneConnections[miniGroup1.zone] = map[TreeNodeInterface]int{}
-					}
-					zoneConnections[miniGroup1.zone][miniGroup2.zone] += 1
-				}
-			}
-		}
-	}
-	zoneOrder := []TreeNodeInterface{}
-
-	for {
-
-		for i := 1; i < len(zoneOrder)-1; i++ {
-			delete(zoneConnections, zoneOrder[i])
-		}
-		for _, zone := range zoneOrder {
-			for _, zScores := range zoneConnections {
-				delete(zScores, zone)
-			}
-		}
-		for z, score := range zoneConnections {
-			if len(score) == 0 {
-				delete(zoneConnections, z)
-			}
-		}
-		if len(zoneConnections) == 0 {
-			break
-		}
-
-		var zoneToAdd TreeNodeInterface
-		addToRight := 1
-		if len(zoneOrder) > 0 {
-			zonesAtEdges := []TreeNodeInterface{zoneOrder[0], zoneOrder[len(zoneOrder)-1]}
-			bestScores := []int{0, 0}
-			zonesWithBestScore := []TreeNodeInterface{nil, nil}
-			for i, zToChoose := range zonesAtEdges {
-				for z, score := range zoneConnections[zToChoose] {
-					if bestScores[i] < score {
-						bestScores[i] = score
-						zonesWithBestScore[i] = z
-					}
-				}
-			}
-			if bestScores[0] > bestScores[1] {
-				addToRight = 0
-			}
-			if bestScores[addToRight] > 0 {
-				zoneToAdd = zonesWithBestScore[addToRight]
-			}
-
-		}
-		if zoneToAdd == nil {
-			bestScore := 0
-			for z, friendsScore := range zoneConnections {
-				for _, score := range friendsScore {
-					if bestScore < score {
-						bestScore = score
-						zoneToAdd = z
-					}
-				}
-			}
-		}
-		if addToRight == 1 {
-			zoneOrder = append(zoneOrder, zoneToAdd)
-		} else {
-			zoneOrder = append([]TreeNodeInterface{zoneToAdd}, zoneOrder...)
-		}
-	}
-	for _, zone := range zoneOrder {
-		fmt.Print(" ", zone.Label())
-	}
-	fmt.Println("")
-	for i, z := range zoneOrder {
-		ly.zonesCol[z] = i
-	}
-	for miniGroup := range ly.miniGroups {
-		if _, ok := ly.zonesCol[miniGroup.zone]; !ok {
-			ly.zonesCol[miniGroup.zone] = len(ly.zonesCol)
-		}
-	}
 }
 
 //////////////////////////////////////////////////////////////////////////

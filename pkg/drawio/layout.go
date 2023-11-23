@@ -324,7 +324,8 @@ func (ly *layoutS) setSubnetsLocations(subnetMatrix [][]TreeNodeInterface, zones
 				rowIndex := 0
 				for _, subnet := range zone.(*ZoneTreeNode).subnets {
 					if !locatedSubnets[subnet] {
-						for subnetMatrix[rowIndex][zonesCol[zone]] != nil {
+						a := len(subnetMatrix)
+						for rowIndex < a && zonesCol[zone] < len(subnetMatrix[rowIndex]) && subnetMatrix[rowIndex][zonesCol[zone]] != nil {
 							rowIndex++
 						}
 						ly.setDefaultLocation(subnet, rowIndex, zonesCol[zone])
