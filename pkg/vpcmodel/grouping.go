@@ -348,7 +348,7 @@ func getKeyOfGroupConnLines(ep EndpointElem, connection string) string {
 	return ep.Name() + commaSeparator + connection
 }
 
-// assuming the  g.groupedLines was already initialized by previous step groupExternalAddressesTmp()
+// assuming the  g.groupedLines was already initialized by previous step groupExternalAddresses()
 func (g *GroupConnLines) groupInternalSrcOrDst(srcGrouping, groupVsi bool) {
 	res, groupingSrcOrDst := g.groupLinesByKey(srcGrouping, groupVsi)
 
