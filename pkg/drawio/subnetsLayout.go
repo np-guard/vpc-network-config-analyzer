@@ -16,8 +16,30 @@ var interfaceIndex map[interface{}]int = map[interface{}]int{}
 var fakeSubnet TreeNodeInterface = &SubnetTreeNode{}
 var fakeMiniGroup *miniGroupDataS = &miniGroupDataS{subnets: subnetSet{}}
 
+func (s *genericSet[T]) asKey() setAsKey {
+	ss := []string{}
+	for i := range *s {
+		if _, ok := interfaceIndex[i]; !ok {
+			interfaceIndex[i] = len(interfaceIndex)
+		}
+		ss = append(ss, strconv.Itoa(interfaceIndex[i]))
+	}
+	sort.Strings(ss)
+	return setAsKey(strings.Join(ss, ","))
+}
+
 func (s *genericSet[T]) equal(s2 *genericSet[T]) bool {
 	return s.asKey() == s2.asKey()
+}
+func (s *genericSet[T]) asList() []T {
+	keys := make([]T, len(*s))
+
+	i := 0
+	for k := range *s {
+		keys[i] = k
+		i++
+	}
+	return keys
 }
 
 type genericSet[T comparable] map[T]bool
@@ -34,18 +56,7 @@ func (s *miniGroupSet) asKey() setAsKey { return ((*genericSet[*miniGroupDataS])
 func (s *miniGroupSet) equal(s2 *miniGroupSet) bool {
 	return ((*genericSet[*miniGroupDataS])(s)).equal((*genericSet[*miniGroupDataS])(s2))
 }
-
-func (s *genericSet[T]) asKey() setAsKey {
-	ss := []string{}
-	for i := range *s {
-		if _, ok := interfaceIndex[i]; !ok {
-			interfaceIndex[i] = len(interfaceIndex)
-		}
-		ss = append(ss, strconv.Itoa(interfaceIndex[i]))
-	}
-	sort.Strings(ss)
-	return setAsKey(strings.Join(ss, ","))
-}
+func (s *groupSet) asList() []*groupDataS { return ((*genericSet[*groupDataS])(s)).asList() }
 
 /////////////////////////////////////////////////////////////////
 
@@ -298,7 +309,13 @@ func (ly *subnetsLayout) layoutGroup(group *groupDataS, minRow int) {
 			}
 		}
 	}
-	for innerGroup := range group.topInnerGroups {
+	
+	groupOrder := group.topInnerGroups.asList()
+	sort.Slice(groupOrder, func(i, j int) bool {
+		return len(groupOrder[i].miniGroups) > len(groupOrder[j].miniGroups)
+	})
+
+	for _, innerGroup := range groupOrder {
 		ly.layoutGroup(innerGroup, firstRow)
 	}
 
@@ -338,7 +355,7 @@ func (ly *subnetsLayout) printMatrix() {
 	fmt.Println("-----------------------")
 	fmt.Println("-----------------------")
 	for rowIndex, row := range ly.miniGroupsMatrix {
-		fmt.Println(rowIndex,"-----------------------")
+		fmt.Println(rowIndex, "-----------------------")
 		for colIndex, miniGroup := range row {
 			if miniGroup != nil {
 				fmt.Printf("(%d,%d) %s\n", rowIndex, colIndex, miniGroup.name())
