@@ -12,7 +12,9 @@ import (
 
 type setAsKey string
 
-var interfaceIndex map[interface{}]int
+var interfaceIndex map[interface{}]int = map[interface{}]int{}
+var fakeSubnet TreeNodeInterface = &SubnetTreeNode{}
+var fakeMiniGroup *miniGroupDataS = &miniGroupDataS{subnets: subnetSet{}}
 
 func (s *genericSet[T]) equal(s2 *genericSet[T]) bool {
 	return s.asKey() == s2.asKey()
@@ -34,9 +36,6 @@ func (s *miniGroupSet) equal(s2 *miniGroupSet) bool {
 }
 
 func (s *genericSet[T]) asKey() setAsKey {
-	if interfaceIndex == nil {
-		interfaceIndex = map[interface{}]int{}
-	}
 	ss := []string{}
 	for i := range *s {
 		if _, ok := interfaceIndex[i]; !ok {
@@ -98,6 +97,7 @@ type subnetsLayout struct {
 	subnetMatrix     [][]TreeNodeInterface
 	subnetsIndexes   map[TreeNodeInterface]indexes
 	zonesCol         map[TreeNodeInterface]int
+	topFakeGroup     *groupDataS
 }
 
 func newSubnetsLayout(network SquareTreeNodeInterface) *subnetsLayout {
@@ -111,15 +111,14 @@ func newSubnetsLayout(network SquareTreeNodeInterface) *subnetsLayout {
 
 func (ly *subnetsLayout) layout() ([][]TreeNodeInterface, map[TreeNodeInterface]int) {
 	ly.createGroupsDataS()
-	topFakeGroup := newGroupDataS("", ly.miniGroups, nil)
-	ly.splitSharing(topFakeGroup)
+	ly.topFakeGroup = newGroupDataS("", ly.miniGroups, nil)
+	ly.splitSharing(ly.topFakeGroup)
 	ly.calcZoneOrder()
 	ly.createMatrix()
-	ly.layoutGroup(topFakeGroup, 0)
+	ly.layoutGroup(ly.topFakeGroup, 0)
 	ly.setSubnetsMatrix()
 	ly.setGroupsIndexes()
-	ly.createNewGroups()
-	ly.fillGroupsSquares()
+	ly.createNewTreeNodes()
 	return ly.subnetMatrix, ly.zonesCol
 }
 
@@ -134,7 +133,7 @@ func (ly *subnetsLayout) createMatrix() {
 	}
 
 	ly.subnetMatrix = make([][]TreeNodeInterface, maxDim)
-	for i := range ly.miniGroupsMatrix {
+	for i := range ly.subnetMatrix {
 		ly.subnetMatrix[i] = make([]TreeNodeInterface, maxDim)
 	}
 }
@@ -178,7 +177,6 @@ func (group *groupDataS) reunion() {
 	group.splitTo = groupSet{}
 
 }
-
 
 // ////////////////////////////////////////////////////////////////////////////////
 func (ly *subnetsLayout) layoutGroup(group *groupDataS, minRow int) {
@@ -224,14 +222,16 @@ func (ly *subnetsLayout) layoutGroup(group *groupDataS, minRow int) {
 	for rIndex := lastRow; rIndex < len(ly.miniGroupsMatrix); rIndex++ {
 		for cIndex := minZoneCol; cIndex <= maxZoneCol; cIndex++ {
 			if ly.miniGroupsMatrix[rIndex][cIndex] != nil {
-				lastRow = rIndex + 1
+				lastRow = rIndex
 			}
 		}
 	}
-	for rIndex := firstRow; rIndex <= lastRow; rIndex++ {
-		for cIndex := minZoneCol; cIndex <= maxZoneCol; cIndex++ {
-			if ly.miniGroupsMatrix[rIndex][cIndex] == nil {
-				ly.miniGroupsMatrix[rIndex][cIndex] = &miniGroupDataS{}
+	if group != ly.topFakeGroup {
+		for rIndex := firstRow; rIndex <= lastRow; rIndex++ {
+			for cIndex := minZoneCol; cIndex <= maxZoneCol; cIndex++ {
+				if ly.miniGroupsMatrix[rIndex][cIndex] == nil {
+					ly.miniGroupsMatrix[rIndex][cIndex] = fakeMiniGroup
+				}
 			}
 		}
 	}
@@ -240,12 +240,13 @@ func (ly *subnetsLayout) layoutGroup(group *groupDataS, minRow int) {
 
 }
 
+////////////////////////////////////////////////////////////////////////////////////
 
 func (ly *subnetsLayout) setSubnetsMatrix() {
 	rIndex := 0
 	for _, row := range ly.miniGroupsMatrix {
 		rowSize := 0
-		for _, miniGroup := range row {
+		for colIndex, miniGroup := range row {
 			if miniGroup == nil {
 				continue
 			}
@@ -254,9 +255,19 @@ func (ly *subnetsLayout) setSubnetsMatrix() {
 				rowSize = len(miniGroup.subnets)
 			}
 			for s := range miniGroup.subnets {
-				ly.subnetMatrix[rIndex+i][ly.zonesCol[miniGroup.zone]] = s
-				ly.subnetsIndexes[s] = indexes{rIndex + i, ly.zonesCol[miniGroup.zone]}
+				ly.subnetMatrix[rIndex+i][colIndex] = s
+				ly.subnetsIndexes[s] = indexes{rIndex + i, colIndex}
 				i++
+			}
+		}
+		for colIndex, miniGroup := range row {
+			if miniGroup == nil {
+				continue
+			}
+			for i := 0; i < rowSize; i++ {
+				if ly.subnetMatrix[rIndex+i][colIndex] == nil {
+					ly.subnetMatrix[rIndex+i][colIndex] = ly.network
+				}
 			}
 		}
 		rIndex += rowSize
@@ -427,7 +438,7 @@ func (ly *subnetsLayout) rearrangeGroup(group *groupDataS) {
 }
 
 // //////////////////////////////////////////
-func (ly *subnetsLayout) createNewGroups() {
+func (ly *subnetsLayout) createNewTreeNodes() {
 	tnToSplit := map[TreeNodeInterface]*groupDataS{}
 	for _, group := range ly.groups {
 		if len(group.splitTo) != 0 && group.treeNode != nil {
@@ -491,28 +502,12 @@ func (ly *subnetsLayout) createNewGroups() {
 	}
 }
 
-func (ly *subnetsLayout) fillGroupsSquares() {
-	for _, group := range ly.groups {
-		if group.treeNode == nil || group.treeNode.NotShownInDrawio() {
-			continue
-		}
-		for r := group.firstRow; r <= group.lastRow; r++ {
-			for c := group.firstCol; c <= group.lastCol; c++ {
-				if ly.subnetMatrix[r][c] == nil {
-					ly.subnetMatrix[r][c] = ly.network
-				}
-			}
-		}
-	}
-
-}
-
 func (ly *subnetsLayout) checkGroupIntegrity(group *groupDataS) bool {
 	nSubnets := 0
 	for r := group.firstRow; r <= group.lastRow; r++ {
 		for c := group.firstCol; c <= group.lastCol; c++ {
 			subnet := ly.subnetMatrix[r][c]
-			if subnet != nil {
+			if subnet != nil && subnet != ly.network {
 				if !group.subnets[subnet] {
 					return false
 				}
@@ -613,6 +608,7 @@ func (ly *subnetsLayout) calcZoneOrder() {
 	}
 }
 
+//////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 
 func (ly *subnetsLayout) createGroupsDataS() {
