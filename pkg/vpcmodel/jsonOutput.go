@@ -131,7 +131,7 @@ type allSemanticDiff struct {
 
 func getDiffLines(configsDiff *diffBetweenCfgs) []diffLine {
 	diffLines := getDirectionalDiffLines(configsDiff.cfg1ConnRemovedFrom2, true)
-	diffLines = append(diffLines, getDirectionalDiffLines(configsDiff.cfg1ConnRemovedFrom2, false)...)
+	diffLines = append(diffLines, getDirectionalDiffLines(configsDiff.cfg2ConnRemovedFrom1, false)...)
 	return diffLines
 }
 
