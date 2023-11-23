@@ -121,8 +121,9 @@ func notSupportedYetArgs(args *InArgs) error {
 		*args.OutputFormat != JSONFormat {
 		return fmt.Errorf("currently only txt/json output format supported with %s analysis type", *args.AnalysisType)
 	}
-	if diffAnalysis && *args.OutputFormat != TEXTFormat && *args.OutputFormat != MDFormat && *args.OutputFormat != JSONFormat {
-		return fmt.Errorf("currently only txt/json/md output format supported with %s analysis type", *args.AnalysisType)
+	if diffAnalysis && *args.OutputFormat != TEXTFormat && *args.OutputFormat != MDFormat &&
+		*args.OutputFormat != JSONFormat && *args.OutputFormat != DEBUGFormat {
+		return fmt.Errorf("currently only txt/json/md/debug output format supported with %s analysis type", *args.AnalysisType)
 	}
 	if *args.AnalysisType == singleSubnet && *args.Grouping {
 		return fmt.Errorf("currently singleSubnet analysis type does not support grouping")

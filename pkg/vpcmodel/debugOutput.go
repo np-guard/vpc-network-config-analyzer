@@ -6,10 +6,10 @@ type DebugOutputFormatter struct {
 func (t *DebugOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	conn *VPCConnectivity,
 	subnetsConn *VPCsubnetConnectivity,
-	subnetsDiff *diffBetweenCfgs,
+	cfgsDiff *diffBetweenCfgs,
 	outFile string,
 	grouping bool,
-	uc OutputUseCase) (*VPCAnalysisOutput, error) {
+	uc OutputUseCase) (*SingleAnalysisOutput, error) {
 	out := headerOfAnalyzedVPC(c1.VPC.Name(), "")
 	switch uc {
 	case AllEndpoints:
@@ -20,7 +20,9 @@ func (t *DebugOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 		out = subnetsConn.String()
 	case SingleSubnet:
 		out = c1.GetConnectivityOutputPerEachSubnetSeparately()
+	case SubnetsDiff, EndpointsDiff:
+		out += cfgsDiff.String()
 	}
 	_, err := WriteToFile(out, outFile)
-	return &VPCAnalysisOutput{Output: out, VPCName: c1.VPC.Name(), format: Debug}, err
+	return &SingleAnalysisOutput{Output: out, VPC1Name: c1.VPC.Name(), format: Debug}, err
 }
