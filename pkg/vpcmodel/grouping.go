@@ -276,7 +276,7 @@ func (g *GroupConnLines) groupExternalAddressesForDiff(thisMinusOther bool) erro
 }
 
 func (g *GroupConnLines) addLineToExternalGrouping(res *[]*GroupedConnLine, emptyConn bool,
-	src, dst VPCResourceIntf, connEnhanced string) error {
+	src, dst VPCResourceIntf, connStr string) error {
 	if emptyConn {
 		return nil
 	}
@@ -288,11 +288,11 @@ func (g *GroupConnLines) addLineToExternalGrouping(res *[]*GroupedConnLine, empt
 	}
 	switch {
 	case dst.IsExternal():
-		g.srcToDst.addPublicConnectivity(src, connEnhanced, dstNode)
+		g.srcToDst.addPublicConnectivity(src, connStr, dstNode)
 	case src.IsExternal():
-		g.dstToSrc.addPublicConnectivity(dst, connEnhanced, srcNode)
+		g.dstToSrc.addPublicConnectivity(dst, connStr, srcNode)
 	default:
-		*res = append(*res, &GroupedConnLine{src, dst, connEnhanced})
+		*res = append(*res, &GroupedConnLine{src, dst, connStr})
 	}
 	return nil
 }
