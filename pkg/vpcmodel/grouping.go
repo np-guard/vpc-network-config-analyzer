@@ -280,7 +280,7 @@ func (g *GroupConnLines) addLineToExternalGrouping(res *[]*GroupedConnLine, empt
 		return nil
 	}
 	srcNode, srcIsNode := src.(Node)
-	dstNose, dstIsNode := dst.(Node)
+	dstNode, dstIsNode := dst.(Node)
 	if dst.IsExternal() && !dstIsNode ||
 		src.IsExternal() && !srcIsNode {
 		msg := fmt.Sprintf("%v or %v is External but not a node", src.Name(), dst.Name())
@@ -289,7 +289,7 @@ func (g *GroupConnLines) addLineToExternalGrouping(res *[]*GroupedConnLine, empt
 	}
 	switch {
 	case dst.IsExternal():
-		g.srcToDst.addPublicConnectivity(src, connEnhanced, dstNose)
+		g.srcToDst.addPublicConnectivity(src, connEnhanced, dstNode)
 	case src.IsExternal():
 		g.dstToSrc.addPublicConnectivity(dst, connEnhanced, srcNode)
 	default:
