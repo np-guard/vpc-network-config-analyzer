@@ -2,6 +2,7 @@ package vpcmodel
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"strings"
 )
@@ -155,6 +156,20 @@ func AggregateVPCsOutput(outputList []*SingleAnalysisOutput, f OutFormat, outFil
 			all[o.VPC1Name] = o.jsonStruct
 		}
 		res, err = writeJSON(all, outFile)
+	}
+	return res, err
+}
+
+func FinalizeDiffOutput(output *SingleAnalysisOutput, f OutFormat, outFile string) (string, error) {
+	var res string
+	var err error
+	switch f {
+	case Text, MD, Debug: // currently, return out as is
+		res, err = WriteToFile(output.Output, outFile)
+	case JSON:
+		all := map[string]interface{}{}
+		head := fmt.Sprintf("diff-%s-%s", output.VPC1Name, output.VPC2Name)
+		all[head] = output.jsonStruct
 	}
 	return res, err
 }
