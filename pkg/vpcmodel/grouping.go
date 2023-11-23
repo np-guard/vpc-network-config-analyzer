@@ -249,6 +249,7 @@ func (g *GroupConnLines) groupExternalAddresses(vsi bool) error {
 	return nil
 }
 
+// group public internet ranges for semantic-diff connectivity lines (subnets/vsis)
 func (g *GroupConnLines) groupExternalAddressesForDiff(thisMinusOther bool) error {
 	// initialize data structures
 	g.srcToDst = newGroupingConnections()
