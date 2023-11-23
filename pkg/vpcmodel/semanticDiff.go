@@ -246,19 +246,6 @@ func (connDiff *connectivityDiff) string(diffAnalysis diffAnalysisType, thisMinu
 	return res
 }
 
-// connDiffEncode encodes connectivesDiff information for grouping:
-// this includes the following 4 strings separated by ";"
-//  1. diff-type info: e.g. diff-type: removed
-//  2. connection of config1
-//  3. connection of config2
-//  4. info regarding missing endpoints: e.g. vsi0 removed
-func connDiffEncode(src, dst VPCResourceIntf, connDiff *connectionDiff,
-	thisMinusOther bool) string {
-	conn1Str, conn2Str := conn1And2Str(connDiff, thisMinusOther)
-	diffType, endpointsDiff := diffAndEndpointsDisc(connDiff.diff, src, dst, thisMinusOther)
-	return diffType + semicolon + conn1Str + semicolon + conn2Str + semicolon + endpointsDiff
-}
-
 func diffInfoStr(diffAnalysis diffAnalysisType) string {
 	if diffAnalysis == Subnets {
 		return "subnets-diff-info:"

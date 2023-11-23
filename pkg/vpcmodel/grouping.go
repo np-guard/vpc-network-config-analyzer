@@ -251,7 +251,7 @@ func (g *GroupConnLines) groupExternalAddresses(vsi bool) error {
 
 // group public internet ranges for semantic-diff connectivity lines (subnets/vsis)
 func (g *GroupConnLines) groupExternalAddressesForDiff(thisMinusOther bool) error {
-	// initialize data structures
+	// initialize data structures; this is required for the 2nd call of this function
 	g.srcToDst = newGroupingConnections()
 	g.dstToSrc = newGroupingConnections()
 	var res []*GroupedConnLine
@@ -407,6 +407,9 @@ func (g *GroupConnLines) unifiedGroupedElems(srcOrDst EndpointElem) EndpointElem
 	return unifiedGroupedEE
 }
 
+// computeGrouping does the grouping; for vsis (all_endpoints analysis)
+// if vsi = true otherwise for subnets (all_subnets analysis)
+// external endpoints are always grouped; vsis/subnets are grouped iff grouping is true
 func (g *GroupConnLines) computeGrouping(vsi, grouping bool) (err error) {
 	err = g.groupExternalAddresses(vsi)
 	if err != nil {
@@ -464,4 +467,17 @@ func (g *groupedExternalNodes) String() string {
 	}
 	// 3. print a list s.t. each element contains either a single cidr or an ip range
 	return strings.Join(unionBlock.ListToPrint(), commaSeparator)
+}
+
+// connDiffEncode encodes connectivesDiff information for grouping:
+// this includes the following 4 strings separated by ";"
+//  1. diff-type info: e.g. diff-type: removed
+//  2. connection of config1
+//  3. connection of config2
+//  4. info regarding missing endpoints: e.g. vsi0 removed
+func connDiffEncode(src, dst VPCResourceIntf, connDiff *connectionDiff,
+	thisMinusOther bool) string {
+	conn1Str, conn2Str := conn1And2Str(connDiff, thisMinusOther)
+	diffType, endpointsDiff := diffAndEndpointsDisc(connDiff.diff, src, dst, thisMinusOther)
+	return strings.Join([]string{diffType, conn1Str, conn2Str, endpointsDiff}, semicolon)
 }
