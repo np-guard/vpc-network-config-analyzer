@@ -166,9 +166,9 @@ func (c *VPCConfig) GetSubnetsConnectivity(includePGW, grouping bool) (*VPCsubne
 	// convert to subnet-based connectivity result
 	subnetsConnectivity := map[VPCResourceIntf]*ConfigBasedConnectivityResults{}
 	for subnetCidrStr, ipBasedConnectivity := range subnetsConnectivityFromACLresources {
-		subnetNodeSet, err := c.subnetCidrToSubnetElem(subnetCidrStr)
-		if err != nil {
-			return nil, err
+		subnetNodeSet, err1 := c.subnetCidrToSubnetElem(subnetCidrStr)
+		if err1 != nil {
+			return nil, err1
 		}
 
 		// create and update configBasedConns according to relevant router (pgw) resources
@@ -179,9 +179,9 @@ func (c *VPCConfig) GetSubnetsConnectivity(includePGW, grouping bool) (*VPCsubne
 		if !includePGW {
 			subnetHasPGW = true // do not limit connectivity to external nodes only if has actual PGW
 		}
-		configBasedConns, err := c.convertIPbasedToSubnetBasedResult(ipBasedConnectivity, subnetHasPGW)
-		if err != nil {
-			return nil, err
+		configBasedConns, err2 := c.convertIPbasedToSubnetBasedResult(ipBasedConnectivity, subnetHasPGW)
+		if err2 != nil {
+			return nil, err2
 		}
 
 		subnetsConnectivity[subnetNodeSet] = configBasedConns
@@ -190,12 +190,16 @@ func (c *VPCConfig) GetSubnetsConnectivity(includePGW, grouping bool) (*VPCsubne
 	res := &VPCsubnetConnectivity{AllowedConns: subnetsConnectivity, VPCConfig: c}
 
 	// get combined connections from subnetsConnectivity
-	if err := res.computeAllowedConnsCombined(); err != nil {
-		return nil, err
+	if err3 := res.computeAllowedConnsCombined(); err3 != nil {
+		return nil, err3
 	}
 	res.computeStatefulConnections()
 
-	res.GroupedConnectivity = newGroupConnLinesSubnetConnectivity(c, res, grouping)
+	groupedConnectivity, err4 := newGroupConnLinesSubnetConnectivity(c, res, grouping)
+	if err4 != nil {
+		return nil, err4
+	}
+	res.GroupedConnectivity = groupedConnectivity
 
 	return res, nil
 }

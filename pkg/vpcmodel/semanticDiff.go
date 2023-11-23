@@ -28,6 +28,9 @@ const (
 
 const (
 	castingNodeErr = "%s should be external node but casting to Node failed"
+	diffTypeStr    = "diff-type:"
+	configsStr     = "config1: %s, config2: %s, %s %s"
+	semicolon      = ";"
 )
 
 type connectionDiff struct {
@@ -50,9 +53,13 @@ type configConnectivity struct {
 }
 
 type diffBetweenCfgs struct {
+	diffAnalysis diffAnalysisType
+
 	cfg1ConnRemovedFrom2 connectivityDiff
 	cfg2ConnRemovedFrom1 connectivityDiff
-	diffAnalysis         diffAnalysisType
+
+	// grouped connectivity result
+	groupedLines []*GroupedConnLine
 }
 
 // GetDiff given 2 *VPCConfigs and an diff analysis - either subnets or endpoints -
@@ -87,12 +94,16 @@ func (configs configsForDiff) GetDiff() (*diffBetweenCfgs, error) {
 		return nil, err2
 	}
 
-	// 3. ToDo: grouping, see comment at the end of this file
-
+	// 3. grouping
 	res := &diffBetweenCfgs{
 		cfg1ConnRemovedFrom2: cfg1ConnRemovedFrom2,
 		cfg2ConnRemovedFrom1: cfg2ConnRemovedFrom1,
 		diffAnalysis:         configs.diffAnalysis}
+	groupConnLines, err1 := newGroupConnLinesDiff(res)
+	if err1 != nil {
+		return nil, err1
+	}
+	res.groupedLines = groupConnLines.GroupedLines
 	return res, nil
 }
 
@@ -112,22 +123,6 @@ func (c *VPCConfig) getAllowedConnectionsCombined(
 		return connectivity1.AllowedConnsCombined.nodesConnectivityToGeneralConnectivity(), nil
 	}
 	return nil, fmt.Errorf("illegal diff analysis type")
-}
-
-func (nodesConnMap NodesConnectionsMap) nodesConnectivityToGeneralConnectivity() (generalConnMap GeneralConnectivityMap) {
-	generalConnMap = GeneralConnectivityMap{}
-	for src, connsMap := range nodesConnMap {
-		for dst, conn := range connsMap {
-			if conn.IsEmpty() {
-				continue
-			}
-			if _, ok := generalConnMap[src]; !ok {
-				generalConnMap[src] = map[VPCResourceIntf]*common.ConnectionSet{}
-			}
-			generalConnMap[src][dst] = conn
-		}
-	}
-	return generalConnMap
 }
 
 // for a given VPCResourceIntf (representing a subnet or an external ip) in config return the VPCResourceIntf representing the
@@ -234,37 +229,63 @@ func getDiffType(src, srcInOther, dst, dstInOther VPCResourceIntf) DiffType {
 	return noDiff
 }
 
-// string ToDo: likely the current printing functionality will no longer be needed once the grouping is added
-// anyways the diff print will be worked on before the final merge
-
-func (diff *diffBetweenCfgs) String() string {
-	return diff.cfg1ConnRemovedFrom2.string(diff.diffAnalysis, true) +
-		diff.cfg2ConnRemovedFrom1.string(diff.diffAnalysis, false)
-}
-
 func (connDiff *connectivityDiff) string(diffAnalysis diffAnalysisType, thisMinusOther bool) string {
 	strList := []string{}
 	for src, endpointConnDiff := range *connDiff {
 		for dst, connDiff := range endpointConnDiff {
-			conn1Str, conn2Str := "", ""
-			if thisMinusOther {
-				conn1Str = connStr(connDiff.conn1)
-				conn2Str = connStr(connDiff.conn2)
-			} else {
-				conn1Str = connStr(connDiff.conn2)
-				conn2Str = connStr(connDiff.conn1)
-			}
+			conn1Str, conn2Str := conn1And2Str(connDiff, thisMinusOther)
 			diffType, endpointsDiff := diffAndEndpointsDisc(connDiff.diff, src, dst, thisMinusOther)
-			diffInfo := ""
-			if diffAnalysis == Subnets {
-				diffInfo = "subnets-diff-info:"
-			} else if diffAnalysis == Vsis {
-				diffInfo = "vsis-diff-info:"
-			}
-			printDiff := fmt.Sprintf("diff-type: %s, source: %s, destination: %s, config1: %s, config2: %s, %s %s\n",
-				diffType, src.Name(), dst.Name(), conn1Str, conn2Str, diffInfo, endpointsDiff)
+			diffInfo := diffInfoStr(diffAnalysis)
+			printDiff := fmt.Sprintf("%v %s, source: %s, destination: %s, ", diffTypeStr, diffType, src.Name(), dst.Name())
+			printDiff += fmt.Sprintf(configsStr, conn1Str, conn2Str, diffInfo, endpointsDiff) + "\n"
 			strList = append(strList, printDiff)
 		}
+	}
+	sort.Strings(strList)
+	res := strings.Join(strList, "")
+	return res
+}
+
+func diffInfoStr(diffAnalysis diffAnalysisType) string {
+	if diffAnalysis == Subnets {
+		return "subnets-diff-info:"
+	} else if diffAnalysis == Vsis {
+		return "vsis-diff-info:"
+	}
+	return ""
+}
+
+func conn1And2Str(connDiff *connectionDiff, thisMinusOther bool) (conn1Str, conn2Str string) {
+	if thisMinusOther {
+		conn1Str = connStr(connDiff.conn1)
+		conn2Str = connStr(connDiff.conn2)
+	} else {
+		conn1Str = connStr(connDiff.conn2)
+		conn2Str = connStr(connDiff.conn1)
+	}
+	return conn1Str, conn2Str
+}
+
+// printDiffLine print one diff line,
+// decoded comes from GroupedConnLine.Conn and is encoded by connDiffEncode() as follows:
+// the following 4 strings are separated by ";"
+//  1. diff-type info: e.g. diff-type: removed
+//  2. connection of config1
+//  3. connection of config2
+//  4. info regarding missing endpoints: e.g. vsi0 removed
+func printDiffLine(diffAnalysis diffAnalysisType, src, dst EndpointElem, decoded string) string {
+	decodedDetails := strings.Split(decoded, semicolon)
+	diffInfo := diffInfoStr(diffAnalysis)
+	diffTypeStr := fmt.Sprintf("%v %s", diffTypeStr, decodedDetails[0])
+	connDiffStr := fmt.Sprintf(configsStr, decodedDetails[1], decodedDetails[2], diffInfo, decodedDetails[3])
+	printDiff := fmt.Sprintf("%s, source: %s, destination: %s, %s\n", diffTypeStr, src.Name(), dst.Name(), connDiffStr)
+	return printDiff
+}
+
+func (diffCfgs *diffBetweenCfgs) String() string {
+	strList := make([]string, len(diffCfgs.groupedLines))
+	for i, grouped := range diffCfgs.groupedLines {
+		strList[i] = printDiffLine(diffCfgs.diffAnalysis, grouped.Src, grouped.Dst, grouped.Conn)
 	}
 	sort.Strings(strList)
 	res := strings.Join(strList, "")
