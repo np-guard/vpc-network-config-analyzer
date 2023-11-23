@@ -170,6 +170,7 @@ func FinalizeDiffOutput(output *SingleAnalysisOutput, f OutFormat, outFile strin
 		all := map[string]interface{}{}
 		head := fmt.Sprintf("diff-%s-%s", output.VPC1Name, output.VPC2Name)
 		all[head] = output.jsonStruct
+		res, err = writeJSON(all, outFile)
 	}
 	return res, err
 }
