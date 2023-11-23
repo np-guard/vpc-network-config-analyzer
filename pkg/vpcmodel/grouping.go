@@ -11,6 +11,11 @@ import (
 const commaSeparator = ","
 
 // for each line here can group list of external nodes to cidrs list as of one element
+// TODO: consider wrapping []Node from the map values in the type groupingConnections ,
+//
+//	as a type that includes more than that: []Node + the actual ConnectionSet object +
+//	actual diff-related objects (conn1 object, conn2 object, etc).
+//	It should include all the common relevant objects, aside from the relevant list of nodes that are grouped.
 type groupingConnections map[EndpointElem]map[string][]Node
 
 func (g *groupingConnections) getGroupedConnLines(groupedConnLines *GroupConnLines,
@@ -473,6 +478,9 @@ func (g *groupedExternalNodes) String() string {
 //  2. connection of config1
 //  3. connection of config2
 //  4. info regarding missing endpoints: e.g. vsi0 removed
+//
+// this encoding prevents the need to change all the grouping datastuctures
+// along the pipe: srcToDst and dstToSrc in addition to GroupedConnLine
 func connDiffEncode(src, dst VPCResourceIntf, connDiff *connectionDiff,
 	thisMinusOther bool) string {
 	conn1Str, conn2Str := conn1And2Str(connDiff, thisMinusOther)

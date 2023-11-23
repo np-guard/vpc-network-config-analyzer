@@ -266,7 +266,13 @@ func conn1And2Str(connDiff *connectionDiff, thisMinusOther bool) (conn1Str, conn
 	return conn1Str, conn2Str
 }
 
-// printDiffLine print one diff line, using the above string as input
+// printDiffLine print one diff line,
+// decoded comes from GroupedConnLine.Conn and is encoded by connDiffEncode() as follows:
+// the following 4 strings are separated by ";"
+//  1. diff-type info: e.g. diff-type: removed
+//  2. connection of config1
+//  3. connection of config2
+//  4. info regarding missing endpoints: e.g. vsi0 removed
 func printDiffLine(diffAnalysis diffAnalysisType, src, dst EndpointElem, decoded string) string {
 	decodedDetails := strings.Split(decoded, semicolon)
 	diffInfo := diffInfoStr(diffAnalysis)
