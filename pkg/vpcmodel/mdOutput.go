@@ -27,7 +27,11 @@ func (m *MDoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	grouping bool,
 	uc OutputUseCase) (*SingleAnalysisOutput, error) {
 	// get output by analysis type
-	out := "# " + headerOfAnalyzedVPC(c1.VPC.Name(), "")
+	v2Name := ""
+	if c2 != nil {
+		v2Name = c2.VPC.Name()
+	}
+	out := "# " + headerOfAnalyzedVPC(c1.VPC.Name(), v2Name)
 	switch uc {
 	case AllEndpoints:
 		lines := []string{mdDefaultTitle, mdDefaultHeader}
@@ -56,7 +60,7 @@ func (m *MDoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	}
 
 	_, err := WriteToFile(out, outFile)
-	return &SingleAnalysisOutput{Output: out, VPC1Name: c1.VPC.Name(), format: MD}, err
+	return &SingleAnalysisOutput{Output: out, VPC1Name: c1.VPC.Name(), VPC2Name: v2Name, format: MD}, err
 }
 
 func (m *MDoutputFormatter) getGroupedOutput(conn *VPCConnectivity) []string {

@@ -12,7 +12,7 @@ func headerOfAnalyzedVPC(vpcName, vpc2Name string) string {
 		return fmt.Sprintf("Analysis for VPC %s\n", vpcName)
 	}
 	// 2nd cfg given - the analysis is a semantic diff and concerns a single cfg
-	return fmt.Sprintf("Analysis for diff between VPC %s and VPC %s\n", vpcName, vpc2Name)
+	return fmt.Sprintf("Diff between VPC %s and VPC %s\n", vpcName, vpc2Name)
 }
 
 func (t *TextOutputFormatter) WriteOutput(c1, c2 *VPCConfig,

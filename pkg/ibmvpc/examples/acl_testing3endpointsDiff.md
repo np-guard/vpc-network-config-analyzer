@@ -1,4 +1,4 @@
-# Analysis for VPC test-vpc1-ky
+# Diff between VPC test-vpc1-ky and VPC test-vpc2-ky
 ## Endpoints diff report
 | type | src |  dst | conn1 | conn2 | diff-info |
 |------|-----|------|-------|-------|-----------|
