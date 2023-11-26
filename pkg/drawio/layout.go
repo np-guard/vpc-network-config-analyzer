@@ -2,7 +2,6 @@ package drawio
 
 import (
 	"fmt"
-	"reflect"
 	"sort"
 )
 
@@ -346,13 +345,13 @@ func (ly *layoutS) setGroupedSubnetsOffset() {
 	allGroups := map[TreeNodeInterface]bool{}
 	for _, tn := range getAllNodes(ly.network) {
 		switch {
-		case reflect.TypeOf(tn).Elem() == reflect.TypeOf(SubnetTreeNode{}):
+		case tn.IsSquare() && tn.(SquareTreeNodeInterface).IsSubnet():
 			tn.Location().xOffset = borderWidth
 			tn.Location().yOffset = borderWidth
 			tn.Location().xEndOffset = borderWidth
 			tn.Location().yEndOffset = borderWidth
 
-		case reflect.TypeOf(tn).Elem() == reflect.TypeOf(GroupSubnetsSquareTreeNode{}):
+		case tn.IsSquare() && tn.(SquareTreeNodeInterface).IsGroupSubnetsSquare():
 			tn.Location().xOffset = -groupBorderWidth
 			tn.Location().yOffset = -groupBorderWidth
 			tn.Location().xEndOffset = -groupBorderWidth

@@ -8,7 +8,9 @@ type SquareTreeNodeInterface interface {
 	IconTreeNodes() []IconTreeNodeInterface
 	TagID() uint
 	DecoreID() uint
+	IsSubnet() bool
 	IsGroupingSquare() bool
+	IsGroupSubnetsSquare() bool
 }
 
 type abstractSquareTreeNode struct {
@@ -35,7 +37,9 @@ func (tn *abstractSquareTreeNode) IsSquare() bool { return true }
 func (tn *abstractSquareTreeNode) TagID() uint    { return tn.id + tagID }
 func (tn *abstractSquareTreeNode) DecoreID() uint { return tn.id + decoreID }
 
-func (tn *abstractSquareTreeNode) IsGroupingSquare() bool { return false }
+func (tn *abstractSquareTreeNode) IsSubnet() bool             { return false }
+func (tn *abstractSquareTreeNode) IsGroupingSquare() bool     { return false }
+func (tn *abstractSquareTreeNode) IsGroupSubnetsSquare() bool { return false }
 
 func calculateSquareGeometry(tn SquareTreeNodeInterface) {
 	location := tn.Location()
@@ -202,6 +206,7 @@ func (tn *SubnetTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeI
 func (tn *SubnetTreeNode) Label() string {
 	return labels2Table([]string{tn.name, tn.cidr, tn.acl})
 }
+func (tn *SubnetTreeNode) IsSubnet() bool { return true }
 func (tn *SubnetTreeNode) SetACL(acl string) {
 	tn.acl = acl
 }
@@ -275,8 +280,8 @@ type GroupSubnetsSquareTreeNode struct {
 
 func GroupedSubnetsSquare(parent *VpcTreeNode, groupedSubnets []SquareTreeNodeInterface) SquareTreeNodeInterface {
 	sameZone, sameVpc := true, true
-	zone :=groupedSubnets[0].Parent().(*ZoneTreeNode)
-	vpc :=groupedSubnets[0].Parent().Parent().(*VpcTreeNode)
+	zone := groupedSubnets[0].Parent().(*ZoneTreeNode)
+	vpc := groupedSubnets[0].Parent().Parent().(*VpcTreeNode)
 	for _, subnet := range groupedSubnets {
 		if zone != subnet.Parent() {
 			sameZone = false
@@ -285,9 +290,9 @@ func GroupedSubnetsSquare(parent *VpcTreeNode, groupedSubnets []SquareTreeNodeIn
 			sameVpc = false
 		}
 	}
-	if sameVpc{
+	if sameVpc {
 		allVpcSubnets := []SquareTreeNodeInterface{}
-		for _,z := range vpc.zones{
+		for _, z := range vpc.zones {
 			allVpcSubnets = append(allVpcSubnets, z.(*ZoneTreeNode).subnets...)
 		}
 		if len(groupedSubnets) == len(allVpcSubnets) {
@@ -308,3 +313,4 @@ func newGroupSubnetsSquareTreeNode(parent *VpcTreeNode, groupedSubnets []SquareT
 func (tn *GroupSubnetsSquareTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
 	return tn.groupedSubnets, tn.elements, tn.connections
 }
+func (tn *GroupSubnetsSquareTreeNode) IsGroupSubnetsSquare() bool { return true }

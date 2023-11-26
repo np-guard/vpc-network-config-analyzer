@@ -2,7 +2,6 @@ package drawio
 
 import (
 	"fmt"
-	"reflect"
 	"sort"
 	"strconv"
 	"strings"
@@ -44,13 +43,13 @@ func (s *genericSet[T]) asList() []T {
 
 type genericSet[T comparable] map[T]bool
 type subnetSet genericSet[TreeNodeInterface]
-type groupTnSet genericSet[*GroupSubnetsSquareTreeNode]
+type groupTnSet genericSet[TreeNodeInterface]
 type groupSet genericSet[*groupDataS]
 type miniGroupSet genericSet[*miniGroupDataS]
 
-// todo: remove???
+// todo: how to remove???
 func (s *subnetSet) asKey() setAsKey    { return ((*genericSet[TreeNodeInterface])(s)).asKey() }
-func (s *groupTnSet) asKey() setAsKey   { return ((*genericSet[*GroupSubnetsSquareTreeNode])(s)).asKey() }
+func (s *groupTnSet) asKey() setAsKey   { return ((*genericSet[TreeNodeInterface])(s)).asKey() }
 func (s *groupSet) asKey() setAsKey     { return ((*genericSet[*groupDataS])(s)).asKey() }
 func (s *miniGroupSet) asKey() setAsKey { return ((*genericSet[*miniGroupDataS])(s)).asKey() }
 func (s *miniGroupSet) equal(s2 *miniGroupSet) bool {
@@ -583,21 +582,21 @@ func (ly *subnetsLayout)createNewLinesTreeNodes(){
 		if srcGroup == nil && dstGroup == nil {
 			continue
 		}
-		allSrcTns, allDstTns := []TreeNodeInterface{srcTn}, []TreeNodeInterface{dstTn}
+		allSrcTns, allDstTns := groupTnSet{srcTn:true}, groupTnSet{dstTn:true}
 		if srcGroup != nil {
-			allSrcTns = []TreeNodeInterface{}
+			allSrcTns = groupTnSet{}
 			for gr := range srcGroup.splitTo {
-				allSrcTns = append(allSrcTns, gr.treeNode)
+				allSrcTns[gr.treeNode] = true
 			}
 		}
 		if dstGroup != nil {
-			allDstTns = []TreeNodeInterface{}
+			allDstTns = groupTnSet{}
 			for gr := range dstGroup.splitTo {
-				allDstTns = append(allDstTns, gr.treeNode)
+				allDstTns[gr.treeNode] = true
 			}
 		}
-		for _, sTn := range allSrcTns {
-			for _, dTn := range allDstTns {
+		for sTn := range allSrcTns {
+			for dTn := range allDstTns {
 				NewConnectivityLineTreeNode(ly.network, sTn, dTn, con.(*ConnectivityTreeNode).directed, con.(*ConnectivityTreeNode).name)
 			}
 		}
@@ -671,8 +670,8 @@ func (ly *subnetsLayout) createGroupsDataS() {
 func (ly *subnetsLayout) groupTreeNodes() groupTnSet {
 	allGroups := groupTnSet{}
 	for _, tn := range getAllNodes(ly.network) {
-		if reflect.TypeOf(tn).Elem() == reflect.TypeOf(GroupSubnetsSquareTreeNode{}) {
-			allGroups[tn.(*GroupSubnetsSquareTreeNode)] = true
+		if tn.IsSquare() && tn.(SquareTreeNodeInterface).IsGroupSubnetsSquare() {
+			allGroups[tn] = true
 		}
 	}
 	return allGroups
@@ -682,7 +681,7 @@ func (ly *subnetsLayout) sortSubnets() map[TreeNodeInterface]groupTnSet {
 	allGroups := ly.groupTreeNodes()
 	subnetToGroups := map[TreeNodeInterface]groupTnSet{}
 	for group := range allGroups {
-		for _, subnet := range group.groupedSubnets {
+		for _, subnet := range group.(*GroupSubnetsSquareTreeNode).groupedSubnets {
 			if _, ok := subnetToGroups[subnet]; !ok {
 				subnetToGroups[subnet] = groupTnSet{}
 			}
