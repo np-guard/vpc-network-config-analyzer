@@ -553,7 +553,7 @@ func (ly *subnetsLayout) doNotShowSplitGroup() {
 	}
 }
 
-func (ly *subnetsLayout)createNewGroupsTreeNodes(){
+func (ly *subnetsLayout) createNewGroupsTreeNodes() {
 	for _, group := range ly.groups {
 		if len(group.splitTo) == 0 && group.treeNode == nil && len(group.splitFrom) > 0 {
 			subnets := []SquareTreeNodeInterface{}
@@ -572,37 +572,46 @@ func (ly *subnetsLayout)createNewGroupsTreeNodes(){
 	}
 }
 
-func (ly *subnetsLayout)createNewLinesTreeNodes(){
+func (ly *subnetsLayout) createNewLinesTreeNodes() {
 	for _, con := range getAllNodes(ly.network) {
 		if !con.IsLine() {
 			continue
 		}
 		srcTn, dstTn := con.(LineTreeNodeInterface).Src(), con.(LineTreeNodeInterface).Dst()
-		srcGroup, dstGroup := ly.treeNodesToGroups[srcTn], ly.treeNodesToGroups[dstTn]
-		if srcGroup == nil && dstGroup == nil {
+		if !srcTn.NotShownInDrawio() && !dstTn.NotShownInDrawio() {
 			continue
 		}
-		allSrcTns, allDstTns := groupTnSet{srcTn:true}, groupTnSet{dstTn:true}
-		if srcGroup != nil {
+		srcGroup, dstGroup := ly.treeNodesToGroups[srcTn], ly.treeNodesToGroups[dstTn]
+		allSrcTns, allDstTns := groupTnSet{srcTn: true}, groupTnSet{dstTn: true}
+		if srcGroup != nil && len(srcGroup.splitTo) > 0 {
 			allSrcTns = groupTnSet{}
 			for gr := range srcGroup.splitTo {
 				allSrcTns[gr.treeNode] = true
 			}
 		}
-		if dstGroup != nil {
+		if dstGroup != nil && len(dstGroup.splitTo) > 0 {
 			allDstTns = groupTnSet{}
 			for gr := range dstGroup.splitTo {
 				allDstTns[gr.treeNode] = true
 			}
 		}
+		handledSrcTns := groupTnSet{}
 		for sTn := range allSrcTns {
 			for dTn := range allDstTns {
-				NewConnectivityLineTreeNode(ly.network, sTn, dTn, con.(*ConnectivityTreeNode).directed, con.(*ConnectivityTreeNode).name)
+				switch {
+				case allSrcTns[dTn] && allDstTns[sTn] && handledSrcTns[dTn]:
+				case allSrcTns[dTn] && allDstTns[sTn]:
+					NewConnectivityLineTreeNode(ly.network, sTn, dTn, false, con.(*ConnectivityTreeNode).name)
+				default:
+					NewConnectivityLineTreeNode(ly.network, sTn, dTn, con.(*ConnectivityTreeNode).directed, con.(*ConnectivityTreeNode).name)
+				}
 			}
+			handledSrcTns[sTn] = true
 		}
 		con.SetNotShownInDrawio()
 	}
 }
+
 // //////////////////////////////////////////
 func (ly *subnetsLayout) createNewTreeNodes() {
 	ly.doNotShowSplitGroup()

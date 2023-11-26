@@ -330,20 +330,20 @@ func createNetworkSubnetGrouping() SquareTreeNodeInterface {
 
 
 
-	// groups = append(groups, createGroup(zones, vpc1,0,5,0,1))
-	// groups = append(groups, createGroup(zones, vpc1,1,6,0,1))
-	// groups = append(groups, createGroup(zones, vpc1,2,7,0,1))
-
-	// groups = append(groups, createGroup(zones, vpc1,2,3,0,1))
-	// groups = append(groups, createGroup(zones, vpc1,3,4,0,1))
+	// groups = append(groups, createGroup(zones, vpc1,0,1,0,1))
+	// groups = append(groups, createGroup(zones, vpc1,0,1,1,2))
+	// groups = append(groups, createGroup(zones, vpc1,1,2,2,3))
+	// NewConnectivityLineTreeNode(network, groups[len(groups) -2], groups[len(groups) -2], true, "gconn ")
 
 	groups = append(groups, createGroup(zones, vpc1,0,0,0,1))
 	groups = append(groups, createGroup(zones, vpc1,1,1,0,1))
 	groups = append(groups, createGroup(zones, vpc1,0,2,0,6))
 	groups = append(groups, createGroup(zones, vpc1,0,2,4,6))
+	groups = append(groups, createGroup(zones, vpc1,3,3,1,2))
 	groups = append(groups, createGroup(zones, vpc1,2,3,1,2))
-	gr3312 := groups[len(groups) -1]
-	NewConnectivityLineTreeNode(network, gr3312, gr3312, true, "gconn "+gr3312.Label())
+	gr3312 := groups[len(groups) -2]
+	gr2312 := groups[len(groups) -1]
+	NewConnectivityLineTreeNode(network, gr2312, gr3312, true, "gconn "+gr3312.Label())
 	groups = append(groups, createGroup(zones, vpc1,0,4,0,3))
 	groups = append(groups, createGroup(zones, vpc1,0,5,0,3))
 
