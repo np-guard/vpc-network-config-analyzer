@@ -342,6 +342,8 @@ func createNetworkSubnetGrouping() SquareTreeNodeInterface {
 	groups = append(groups, createGroup(zones, vpc1,0,2,0,6))
 	groups = append(groups, createGroup(zones, vpc1,0,2,4,6))
 	groups = append(groups, createGroup(zones, vpc1,3,3,1,2))
+	gr3312 := groups[len(groups) -1]
+	NewConnectivityLineTreeNode(network, gr3312, gr3312, true, "gconn "+gr3312.Label())
 	groups = append(groups, createGroup(zones, vpc1,0,4,0,3))
 	groups = append(groups, createGroup(zones, vpc1,0,5,0,3))
 

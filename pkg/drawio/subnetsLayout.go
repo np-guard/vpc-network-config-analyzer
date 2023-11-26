@@ -153,22 +153,24 @@ type indexes struct {
 	row, col int
 }
 type subnetsLayout struct {
-	network          SquareTreeNodeInterface
-	groups           []*groupDataS
-	miniGroups       miniGroupSet
-	miniGroupsMatrix [][]*miniGroupDataS
-	subnetMatrix     [][]TreeNodeInterface
-	subnetsIndexes   map[TreeNodeInterface]indexes
-	zonesCol         map[TreeNodeInterface]int
-	topFakeGroup     *groupDataS
+	network           SquareTreeNodeInterface
+	groups            []*groupDataS
+	miniGroups        miniGroupSet
+	miniGroupsMatrix  [][]*miniGroupDataS
+	subnetMatrix      [][]TreeNodeInterface
+	subnetsIndexes    map[TreeNodeInterface]indexes
+	zonesCol          map[TreeNodeInterface]int
+	treeNodesToGroups map[TreeNodeInterface]*groupDataS
+	topFakeGroup      *groupDataS
 }
 
 func newSubnetsLayout(network SquareTreeNodeInterface) *subnetsLayout {
 	return &subnetsLayout{
-		network:        network,
-		miniGroups:     miniGroupSet{},
-		subnetsIndexes: map[TreeNodeInterface]indexes{},
-		zonesCol:       map[TreeNodeInterface]int{},
+		network:           network,
+		miniGroups:        miniGroupSet{},
+		subnetsIndexes:    map[TreeNodeInterface]indexes{},
+		zonesCol:          map[TreeNodeInterface]int{},
+		treeNodesToGroups: map[TreeNodeInterface]*groupDataS{},
 	}
 }
 
@@ -183,7 +185,7 @@ func (ly *subnetsLayout) layout() ([][]TreeNodeInterface, map[TreeNodeInterface]
 
 func (ly *subnetsLayout) layoutGroups() {
 	ly.calcZoneOrder()
-	ly.createMatrix()
+	ly.createMatrixes()
 	ly.layoutGroup(ly.topFakeGroup, 0)
 	ly.setSubnetsMatrix()
 }
@@ -279,7 +281,7 @@ func (ly *subnetsLayout) calcZoneOrder() {
 
 /////////////////////////////////////////////////////////////////////////////////////
 
-func (ly *subnetsLayout) createMatrix() {
+func (ly *subnetsLayout) createMatrixes() {
 	ly.miniGroupsMatrix = make([][]*miniGroupDataS, len(ly.miniGroups))
 	for i := range ly.miniGroupsMatrix {
 		ly.miniGroupsMatrix[i] = make([]*miniGroupDataS, len(ly.zonesCol))
@@ -309,7 +311,7 @@ func (ly *subnetsLayout) layoutGroup(group *groupDataS, minRow int) {
 			}
 		}
 	}
-	
+
 	groupOrder := group.topInnerGroups.asList()
 	sort.Slice(groupOrder, func(i, j int) bool {
 		return len(groupOrder[i].miniGroups) > len(groupOrder[j].miniGroups)
@@ -540,24 +542,19 @@ func (ly *subnetsLayout) rearrangeGroup(group *groupDataS) {
 	}
 }
 
-// //////////////////////////////////////////
-func (ly *subnetsLayout) createNewTreeNodes() {
-	tnToSplit := map[TreeNodeInterface]*groupDataS{}
+func (ly *subnetsLayout) doNotShowSplitGroup() {
 	for _, group := range ly.groups {
 		if len(group.splitTo) != 0 && group.treeNode != nil {
-			if ly.checkGroupIntegrity(group) {
+			if ly.canShowGroup(group) {
 				group.reunion()
 				continue
 			}
 			group.treeNode.SetNotShownInDrawio()
-			tnToSplit[group.treeNode] = group
 		}
 	}
-	for _, group := range ly.groups {
-		if group.treeNode != nil && !group.treeNode.NotShownInDrawio() && !ly.checkGroupIntegrity(group) {
-			fmt.Println("group ", group.name, " is not integrate")
-		}
-	}
+}
+
+func (ly *subnetsLayout)createNewGroupsTreeNodes(){
 	for _, group := range ly.groups {
 		if len(group.splitTo) == 0 && group.treeNode == nil && len(group.splitFrom) > 0 {
 			subnets := []SquareTreeNodeInterface{}
@@ -571,43 +568,58 @@ func (ly *subnetsLayout) createNewTreeNodes() {
 			} else {
 				group.treeNode = GroupedSubnetsSquare(group.getVpc(), subnets)
 			}
+			ly.treeNodesToGroups[group.treeNode] = group
 		}
 	}
+}
 
+func (ly *subnetsLayout)createNewLinesTreeNodes(){
 	for _, con := range getAllNodes(ly.network) {
 		if !con.IsLine() {
 			continue
 		}
-		src, dst := con.(LineTreeNodeInterface).Src(), con.(LineTreeNodeInterface).Dst()
-		srcGroup, dstGroup := tnToSplit[src], tnToSplit[dst]
+		srcTn, dstTn := con.(LineTreeNodeInterface).Src(), con.(LineTreeNodeInterface).Dst()
+		srcGroup, dstGroup := ly.treeNodesToGroups[srcTn], ly.treeNodesToGroups[dstTn]
 		if srcGroup == nil && dstGroup == nil {
 			continue
 		}
-		allSrcs, allDsts := []TreeNodeInterface{src}, []TreeNodeInterface{dst}
+		allSrcTns, allDstTns := []TreeNodeInterface{srcTn}, []TreeNodeInterface{dstTn}
 		if srcGroup != nil {
-			allSrcs = []TreeNodeInterface{}
+			allSrcTns = []TreeNodeInterface{}
 			for gr := range srcGroup.splitTo {
-				allSrcs = append(allSrcs, gr.treeNode)
+				allSrcTns = append(allSrcTns, gr.treeNode)
 			}
 		}
 		if dstGroup != nil {
-			allDsts = []TreeNodeInterface{}
+			allDstTns = []TreeNodeInterface{}
 			for gr := range dstGroup.splitTo {
-				allDsts = append(allDsts, gr.treeNode)
+				allDstTns = append(allDstTns, gr.treeNode)
 			}
 		}
-		for _, sTn := range allSrcs {
-			for _, dTn := range allDsts {
+		for _, sTn := range allSrcTns {
+			for _, dTn := range allDstTns {
 				NewConnectivityLineTreeNode(ly.network, sTn, dTn, con.(*ConnectivityTreeNode).directed, con.(*ConnectivityTreeNode).name)
 			}
 		}
 		con.SetNotShownInDrawio()
 	}
 }
+// //////////////////////////////////////////
+func (ly *subnetsLayout) createNewTreeNodes() {
+	ly.doNotShowSplitGroup()
+	//todo - handle error:
+	for _, group := range ly.groups {
+		if group.treeNode != nil && !group.treeNode.NotShownInDrawio() && !ly.canShowGroup(group) {
+			fmt.Println("group ", group.name, " is not integrate")
+		}
+	}
+	ly.createNewGroupsTreeNodes()
+	ly.createNewLinesTreeNodes()
+}
 
-func (ly *subnetsLayout) checkGroupIntegrity(group *groupDataS) bool {
+func (ly *subnetsLayout) canShowGroup(group *groupDataS) bool {
 
-	firstRow, firstCol, lastRow, lastCol := 100, 100, -1, -1
+	firstRow, firstCol, lastRow, lastCol := len(ly.subnetMatrix), len(ly.subnetMatrix[0]), -1, -1
 	for subnet := range group.subnets {
 		subnetIndexes := ly.subnetsIndexes[subnet]
 		if firstRow > subnetIndexes.row {
@@ -716,6 +728,7 @@ func (ly *subnetsLayout) createGroups(subnetToGroups map[TreeNodeInterface]group
 	}
 	for groupTn, miniGroups := range groupToMiniGroups {
 		groupData := newGroupDataS(groupTn.Label(), miniGroups, groupTn)
+		ly.treeNodesToGroups[groupTn] = groupData
 		ly.groups = append(ly.groups, groupData)
 	}
 
