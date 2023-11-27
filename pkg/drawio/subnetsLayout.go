@@ -1,7 +1,6 @@
 package drawio
 
 import (
-	"fmt"
 	"sort"
 	"strconv"
 	"strings"
@@ -9,12 +8,13 @@ import (
 
 // //////////////////////////////////////////////////////////////////////////////////////////////
 
-type setAsKey string
-
-var interfaceIndex map[interface{}]int = map[interface{}]int{}
 var fakeSubnet TreeNodeInterface = &SubnetTreeNode{}
 var fakeMiniGroup *miniGroupDataS = &miniGroupDataS{subnets: subnetSet{}}
 
+type genericSet[T comparable] map[T]bool
+type setAsKey string
+
+var interfaceIndex map[interface{}]int = map[interface{}]int{}
 func (s *genericSet[T]) asKey() setAsKey {
 	ss := []string{}
 	for i := range *s {
@@ -32,7 +32,6 @@ func (s *genericSet[T]) equal(s2 *genericSet[T]) bool {
 }
 func (s *genericSet[T]) asList() []T {
 	keys := make([]T, len(*s))
-
 	i := 0
 	for k := range *s {
 		keys[i] = k
@@ -57,17 +56,14 @@ func (s *genericSet[T]) copy() genericSet[T] {
 	return c
 }
 
-type genericSet[T comparable] map[T]bool
 type subnetSet genericSet[TreeNodeInterface]
 type groupTnSet genericSet[TreeNodeInterface]
 type groupSet genericSet[*groupDataS]
 type miniGroupSet genericSet[*miniGroupDataS]
 
 // todo: how to remove???
-func (s *subnetSet) asKey() setAsKey    { return ((*genericSet[TreeNodeInterface])(s)).asKey() }
 func (s *groupTnSet) asKey() setAsKey   { return ((*genericSet[TreeNodeInterface])(s)).asKey() }
 func (s *groupSet) asKey() setAsKey     { return ((*genericSet[*groupDataS])(s)).asKey() }
-func (s *miniGroupSet) asKey() setAsKey { return ((*genericSet[*miniGroupDataS])(s)).asKey() }
 func (s *miniGroupSet) equal(s2 *miniGroupSet) bool {
 	return ((*genericSet[*miniGroupDataS])(s)).equal((*genericSet[*miniGroupDataS])(s2))
 }
@@ -85,29 +81,17 @@ type miniGroupDataS struct {
 	located bool
 }
 
-func (mg *miniGroupDataS) name() string {
-	if mg == fakeMiniGroup {
-		return "fake"
-	}
-	name := ""
-	for s := range mg.subnets {
-		name += s.Label() + ","
-	}
-	return name
-}
-
 type groupDataS struct {
 	miniGroups     miniGroupSet
 	topInnerGroups groupSet
 	toSplitGroups  groupSet
 	subnets        subnetSet
 	treeNode       TreeNodeInterface
-	name           string
 	splitFrom      groupSet
 	splitTo        groupSet
 }
 
-func newGroupDataS(name string, miniGroups miniGroupSet, tn TreeNodeInterface) *groupDataS {
+func newGroupDataS(miniGroups miniGroupSet, tn TreeNodeInterface) *groupDataS {
 	subnets := subnetSet{}
 	for miniGroup := range miniGroups {
 		for subnet := range miniGroup.subnets {
@@ -119,7 +103,6 @@ func newGroupDataS(name string, miniGroups miniGroupSet, tn TreeNodeInterface) *
 		topInnerGroups: groupSet{},
 		subnets:        subnets,
 		treeNode:       tn,
-		name:           name,
 		toSplitGroups:  groupSet{},
 		splitFrom:      groupSet{},
 		splitTo:        groupSet{},
@@ -139,15 +122,6 @@ func (group *groupDataS) isInnerGroup(subGroup *groupDataS) bool {
 	return true
 }
 
-func (group *groupDataS) shareMiniGroup(gr2 *groupDataS) bool {
-	for mg := range group.miniGroups {
-		if gr2.miniGroups[mg] {
-			return true
-		}
-	}
-	return false
-}
-
 func (group *groupDataS) getVpc() *VpcTreeNode {
 	if group.treeNode != nil {
 		return group.treeNode.Parent().(*VpcTreeNode)
@@ -159,7 +133,6 @@ func (group *groupDataS) getVpc() *VpcTreeNode {
 }
 
 func (group *groupDataS) reunion() {
-	fmt.Println("group is reunion ", group.name)
 	for gr := range group.splitTo {
 		delete(gr.splitFrom, group)
 	}
@@ -195,7 +168,7 @@ func newSubnetsLayout(network SquareTreeNodeInterface) *subnetsLayout {
 
 func (ly *subnetsLayout) layout() ([][]TreeNodeInterface, map[TreeNodeInterface]int) {
 	ly.createGroupsDataS()
-	ly.topFakeGroup = newGroupDataS("", ly.miniGroups, nil)
+	ly.topFakeGroup = newGroupDataS(ly.miniGroups, nil)
 	ly.createGroupSubTree(ly.topFakeGroup)
 	ly.layoutGroups()
 	ly.createNewTreeNodes()
@@ -284,10 +257,6 @@ func (ly *subnetsLayout) calcZoneOrder() {
 		}
 
 	}
-	for _, zone := range zoneOrder {
-		fmt.Print(" ", zone.Label())
-	}
-	fmt.Println("")
 	for i, z := range zoneOrder {
 		ly.zonesCol[z] = i
 	}
@@ -371,22 +340,7 @@ func (ly *subnetsLayout) layoutGroup(group *groupDataS, minRow int) {
 	}
 }
 
-// //////////////////////////////////////////////////////////////////////////////////
-func (ly *subnetsLayout) printMatrix() {
-	fmt.Println("-----------------------")
-	fmt.Println("-----------------------")
-	for rowIndex, row := range ly.miniGroupsMatrix {
-		fmt.Println(rowIndex, "-----------------------")
-		for colIndex, miniGroup := range row {
-			if miniGroup != nil {
-				fmt.Printf("(%d,%d) %s\n", rowIndex, colIndex, miniGroup.name())
-			}
-		}
-	}
-}
-
 func (ly *subnetsLayout) setSubnetsMatrix() {
-	ly.printMatrix()
 	rIndex := 0
 	for _, row := range ly.miniGroupsMatrix {
 		rowSize := 0
@@ -494,7 +448,6 @@ func (ly *subnetsLayout) createGroupSubTree(group *groupDataS) {
 			group.topInnerGroups = nonSplitNotInnerGroups
 			break
 		}
-		fmt.Println("group is split", mostSharedGroup.name)
 		group.toSplitGroups[mostSharedGroup] = true
 		delete(nonSplitGroups, mostSharedGroup)
 	}
@@ -550,11 +503,7 @@ func (ly *subnetsLayout) newGroupFromSplitMiniGroups(group *groupDataS,miniGroup
 		}
 	}
 	if newGroup == nil {
-		name := "created: "
-		for miniGroup := range miniGroups {
-			name += miniGroup.name() + ","
-		}
-		newGroup = newGroupDataS(name, miniGroups, nil)
+		newGroup = newGroupDataS(miniGroups, nil)
 		ly.groups = append(ly.groups, newGroup)
 
 		inTopGroup := false
@@ -567,7 +516,6 @@ func (ly *subnetsLayout) newGroupFromSplitMiniGroups(group *groupDataS,miniGroup
 		if !inTopGroup {
 			group.topInnerGroups[newGroup] = true
 		}
-
 	}
 	for splitGroup := range group.toSplitGroups {
 		if groups[splitGroup] {
@@ -575,8 +523,8 @@ func (ly *subnetsLayout) newGroupFromSplitMiniGroups(group *groupDataS,miniGroup
 			newGroup.splitFrom[splitGroup] = true
 		}
 	}
-
 }
+
 // //////////////////////////////////////////////////////////////////////////////////////////////
 func (ly *subnetsLayout) createGroupsFromSplitGroups(group *groupDataS) {
 	miniGroupToGroupSet := ly.sortSplitMiniGroupsByGroupSet(group)
@@ -664,12 +612,6 @@ func (ly *subnetsLayout) createNewLinesTreeNodes() {
 // //////////////////////////////////////////
 func (ly *subnetsLayout) createNewTreeNodes() {
 	ly.doNotShowSplitGroups()
-	//todo - handle error:
-	for _, group := range ly.groups {
-		if group.treeNode != nil && !group.treeNode.NotShownInDrawio() && !ly.canShowGroup(group) {
-			fmt.Println("group ", group.name, " is not integrate")
-		}
-	}
 	ly.createNewGroupsTreeNodes()
 	ly.createNewLinesTreeNodes()
 }
@@ -784,7 +726,7 @@ func (ly *subnetsLayout) createGroups(subnetToGroups map[TreeNodeInterface]group
 		}
 	}
 	for groupTn, miniGroups := range groupToMiniGroups {
-		groupData := newGroupDataS(groupTn.Label(), miniGroups, groupTn)
+		groupData := newGroupDataS(miniGroups, groupTn)
 		ly.treeNodesToGroups[groupTn] = groupData
 		ly.groups = append(ly.groups, groupData)
 	}
