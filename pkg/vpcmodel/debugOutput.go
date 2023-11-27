@@ -10,7 +10,7 @@ func (t *DebugOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	outFile string,
 	grouping bool,
 	uc OutputUseCase) (*SingleAnalysisOutput, error) {
-	out := headerOfAnalyzedVPC(c1.VPC.Name(), "")
+	out := headerOfAnalyzedVPC(uc, c1.VPC.Name(), "")
 	switch uc {
 	case AllEndpoints:
 		// TODO: add a flag of whether to include grouped output or not

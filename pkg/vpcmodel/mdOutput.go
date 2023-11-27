@@ -31,7 +31,7 @@ func (m *MDoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	if c2 != nil {
 		v2Name = c2.VPC.Name()
 	}
-	out := "# " + headerOfAnalyzedVPC(c1.VPC.Name(), v2Name)
+	out := "# " + headerOfAnalyzedVPC(uc, c1.VPC.Name(), v2Name)
 	switch uc {
 	case AllEndpoints:
 		lines := []string{mdDefaultTitle, mdDefaultHeader}
