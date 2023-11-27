@@ -432,7 +432,7 @@ func (ly *subnetsLayout) innerGroupsOfAGroup(group *groupDataS) groupSet {
 
 ////////////////////////////////////////////////////////////////////
 
-func calcIntersectGroups(groups groupSet) map[*groupDataS]groupSet {
+func intersectGroups(groups groupSet) map[*groupDataS]groupSet {
 	intersectGroups := map[*groupDataS]groupSet{}
 
 	for group1 := range groups {
@@ -488,7 +488,7 @@ func (ly *subnetsLayout) createGroupSubTree(group *groupDataS) {
 	}
 	for {
 		nonSplitNotInnerGroups := nonInnerGroups(nonSplitGroups)
-		intersectGroups := calcIntersectGroups(nonSplitNotInnerGroups)
+		intersectGroups := intersectGroups(nonSplitNotInnerGroups)
 		mostSharedGroup := chooseGroupToSplit(intersectGroups)
 		if mostSharedGroup == nil {
 			group.topInnerGroups = nonSplitNotInnerGroups
@@ -500,16 +500,14 @@ func (ly *subnetsLayout) createGroupSubTree(group *groupDataS) {
 	}
 
 	if len(group.toSplitGroups) > 0 {
-		ly.rearrangeGroup(group)
+		ly.createGroupsFromSplitGroups(group)
 	}
 	for topInnerGroup := range group.topInnerGroups {
 		ly.createGroupSubTree(topInnerGroup)
 
 	}
 }
-
-// //////////////////////////////////////////////////////////////////////////////////////////////
-func (ly *subnetsLayout) rearrangeGroup(group *groupDataS) {
+func (ly *subnetsLayout) sortSplitMiniGroupsByGroupSet(group *groupDataS) map[*miniGroupDataS]groupSet {
 	splitMiniGroups := miniGroupSet{}
 	for splitGroup := range group.toSplitGroups {
 		for mn := range splitGroup.miniGroups {
@@ -527,51 +525,66 @@ func (ly *subnetsLayout) rearrangeGroup(group *groupDataS) {
 			}
 		}
 	}
-	groupSetToNewGroups := map[setAsKey]miniGroupSet{}
-	keysToSet := map[setAsKey]groupSet{}
+	return miniGroupToGroupSet
+}
+// //////////////////////////////////////////////////////////////////////////////////////////////
+func groupSetToMiniGroups(miniGroupToGroupSet map[*miniGroupDataS]groupSet)  (map[setAsKey]miniGroupSet, map[setAsKey]groupSet) {
+	groupSetToMiniGroups := map[setAsKey]miniGroupSet{}
+	keysToGroupSet := map[setAsKey]groupSet{}
 	for miniGroup, groupSet := range miniGroupToGroupSet {
-		if _, ok := groupSetToNewGroups[groupSet.asKey()]; !ok {
-			groupSetToNewGroups[groupSet.asKey()] = miniGroupSet{}
+		if _, ok := groupSetToMiniGroups[groupSet.asKey()]; !ok {
+			groupSetToMiniGroups[groupSet.asKey()] = miniGroupSet{}
 		}
-		groupSetToNewGroups[groupSet.asKey()][miniGroup] = true
-		keysToSet[groupSet.asKey()] = groupSet
+		groupSetToMiniGroups[groupSet.asKey()][miniGroup] = true
+		keysToGroupSet[groupSet.asKey()] = groupSet
 	}
-	for groups, miniGroups := range groupSetToNewGroups {
-		var newGroup *groupDataS
-		for _, gr := range ly.groups {
-			if gr.miniGroups.equal(&miniGroups) {
-				newGroup = gr
-			}
-		}
-		if newGroup == nil {
-			name := "created: "
-			for miniGroup := range miniGroups {
-				for s := range miniGroup.subnets {
-					name += s.Label() + ","
-				}
-			}
-			fmt.Println("group created ", name, " ", string(groups))
-			newGroup = newGroupDataS(name, miniGroups, nil)
-			ly.groups = append(ly.groups, newGroup)
+	return groupSetToMiniGroups, keysToGroupSet
 
-			inTopGroup := false
-			for topGroup := range group.topInnerGroups {
-				if keysToSet[groups][topGroup] {
-					inTopGroup = true
-				}
-			}
-			if !inTopGroup {
-				fmt.Println("group ", newGroup.name, " !inTopGroup")
-				group.topInnerGroups[newGroup] = true
-			}
+}
+func (ly *subnetsLayout) newGroupFromSplitMiniGroups(group *groupDataS,miniGroups miniGroupSet, groups groupSet){
+	var newGroup *groupDataS
+	for _, gr := range ly.groups {
+		if gr.miniGroups.equal(&miniGroups) {
+			newGroup = gr
+			break
+		}
+	}
+	if newGroup == nil {
+		name := "created: "
+		for miniGroup := range miniGroups {
+			name += miniGroup.name() + ","
+		}
+		newGroup = newGroupDataS(name, miniGroups, nil)
+		ly.groups = append(ly.groups, newGroup)
 
-		}
-		for splitGroup := range group.toSplitGroups {
-			if keysToSet[groups][splitGroup] {
-				splitGroup.splitTo[newGroup] = true
-				newGroup.splitFrom[splitGroup] = true
+		inTopGroup := false
+		for topGroup := range group.topInnerGroups {
+			if groups[topGroup] {
+				inTopGroup = true
+				break
 			}
 		}
+		if !inTopGroup {
+			group.topInnerGroups[newGroup] = true
+		}
+
+	}
+	for splitGroup := range group.toSplitGroups {
+		if groups[splitGroup] {
+			splitGroup.splitTo[newGroup] = true
+			newGroup.splitFrom[splitGroup] = true
+		}
+	}
+
+}
+// //////////////////////////////////////////////////////////////////////////////////////////////
+func (ly *subnetsLayout) createGroupsFromSplitGroups(group *groupDataS) {
+	miniGroupToGroupSet := ly.sortSplitMiniGroupsByGroupSet(group)
+	groupSetToMiniGroups,keysToGroupSet := groupSetToMiniGroups(miniGroupToGroupSet)
+
+	for groupsKey, miniGroups := range groupSetToMiniGroups {
+		groups := keysToGroupSet[groupsKey]
+		ly.newGroupFromSplitMiniGroups(group,miniGroups, groups)
 	}
 }
 
