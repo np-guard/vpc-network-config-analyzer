@@ -11,12 +11,14 @@ type MDoutputFormatter struct {
 }
 
 const (
-	mdDefaultTitle       = "## Endpoint connectivity report"
-	mdDefaultHeader      = "| src | dst | conn |\n|-----|-----|------|"
-	mdEndpointsDiffTitle = "## Endpoints diff report"
-	mdSubnetsDiffTitle   = "## Subnets diff report"
-	mdEndDiffHeader      = "| type | src |  dst | conn1 | conn2 | diff-info |\n" +
-		"|------|-----|------|-------|-------|-----------|"
+	mdDefaultTitle        = "## Endpoint connectivity report"
+	mdDefaultHeader       = "| src | dst | conn |\n|-----|-----|------|"
+	mdEndpointsDiffTitle  = "## Endpoints diff report"
+	mdSubnetsDiffTitle    = "## Subnets diff report"
+	mdEndPointsDiffHeader = "| type | src |  dst | conn1 | conn2 | vsis-diff-info |\n" +
+		"|------|-----|------|-------|-------|----------------|"
+	mdSubnetsDiffHeader = "| type | src |  dst | conn1 | conn2 | subnets-diff-info |\n" +
+		"|------|-----|------|-------|-------|-------------------|"
 )
 
 func (m *MDoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
@@ -41,13 +43,15 @@ func (m *MDoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 		out += strings.Join(lines, "\n")
 		out += asteriskDetails
 	case SubnetsDiff, EndpointsDiff:
-		var mdTitle string
+		var mdTitle, mdHeader string
 		if uc == EndpointsDiff {
 			mdTitle = mdEndpointsDiffTitle
+			mdHeader = mdEndPointsDiffHeader
 		} else {
 			mdTitle = mdSubnetsDiffTitle
+			mdHeader = mdSubnetsDiffHeader
 		}
-		lines := []string{mdTitle, mdEndDiffHeader}
+		lines := []string{mdTitle, mdHeader}
 		connLines := m.getGroupedDiffOutput(cfgsDiff)
 		sort.Strings(connLines)
 		lines = append(lines, connLines...)

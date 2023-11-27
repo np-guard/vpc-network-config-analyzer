@@ -11,8 +11,6 @@ import (
 type JSONoutputFormatter struct {
 }
 
-const connectionChanged = "connection changed"
-
 func (j *JSONoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	conn *VPCConnectivity,
 	subnetsConn *VPCsubnetConnectivity,
@@ -165,16 +163,26 @@ func sortDiffLines(diffLines []diffLine) {
 	})
 }
 
+const (
+	connectionChanged    = "connection changed"
+	removed              = " removed"
+	added                = " added"
+	source               = "source"
+	destination          = "destination"
+	sourceAndDestination = "source and destination"
+	connection           = "connection"
+)
+
 func getDiffStrThis(diff DiffType) string {
 	switch diff {
 	case missingSrcEP:
-		return "source removed"
+		return source + removed
 	case missingDstEP:
-		return "destination removed"
+		return destination + removed
 	case missingSrcDstEP:
-		return "source and destination removed"
+		return sourceAndDestination + removed
 	case missingConnection:
-		return "connection removed"
+		return connection + removed
 	case changedConnection:
 		return connectionChanged
 	}
@@ -184,13 +192,13 @@ func getDiffStrThis(diff DiffType) string {
 func getDiffStrOther(diff DiffType) string {
 	switch diff {
 	case missingSrcEP:
-		return "source added"
+		return source + added
 	case missingDstEP:
-		return "destination added"
+		return destination + added
 	case missingSrcDstEP:
-		return "source and destination added"
+		return sourceAndDestination + added
 	case missingConnection:
-		return "connection added"
+		return connection + added
 	case changedConnection:
 		return connectionChanged
 	}
