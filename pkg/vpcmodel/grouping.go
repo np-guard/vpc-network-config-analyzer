@@ -354,7 +354,6 @@ func getKeyOfGroupConnLines(ep EndpointElem, connection string) string {
 // assuming the  g.groupedLines was already initialized by previous step groupExternalAddresses()
 func (g *GroupConnLines) groupInternalSrcOrDst(srcGrouping, groupVsi bool) {
 	res, groupingSrcOrDst := g.groupLinesByKey(srcGrouping, groupVsi)
-	res = g.unifiedGroupedConnLines(res)
 
 	// update g.groupedLines based on groupingSrcOrDst
 	for _, linesGroup := range groupingSrcOrDst {

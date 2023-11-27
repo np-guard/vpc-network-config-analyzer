@@ -65,8 +65,7 @@ func (g *groupedEndpointsElems) GenerateDrawioTreeNode(gen *DrawioGenerator) dra
 	if len(*g) == 1 {
 		return gen.TreeNode((*g)[0])
 	}
-	if gen.TreeNode((*g)[0]).IsSquare() {
-		// its a group of subnets
+	if gen.TreeNode((*g)[0]).IsSquare() && gen.TreeNode((*g)[0]).(drawio.SquareTreeNodeInterface).IsSubnet(){
 		groupedSubnetsTNs := make([]drawio.SquareTreeNodeInterface, len(*g))
 		for i, node := range *g {
 			groupedSubnetsTNs[i] = gen.TreeNode(node).(drawio.SquareTreeNodeInterface)
