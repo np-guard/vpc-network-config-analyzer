@@ -380,25 +380,25 @@ var tests = []*vpcGeneralTest{
 var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
 
 // uncomment the function below to run for updating the expected output
-var formatsAvoidOutputGeneration = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
-
-func TestAllWithGeneration(t *testing.T) {
-	// tests is the list of tests to run
-	for testIdx := range tests {
-		tt := tests[testIdx]
-		// todo - remove the following if when drawio is stable
-		if formatsAvoidOutputGeneration[tt.format] {
-			tt.mode = outputIgnore
-		} else {
-			tt.mode = outputGeneration
-		}
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			tt.runTest(t)
-		})
-	}
-	fmt.Println("done")
-}
+// var formatsAvoidOutputGeneration = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
+//
+// func TestAllWithGeneration(t *testing.T) {
+//	// tests is the list of tests to run
+//	for testIdx := range tests {
+//		tt := tests[testIdx]
+//		// todo - remove the following if when drawio is stable
+//		if formatsAvoidOutputGeneration[tt.format] {
+//			tt.mode = outputIgnore
+//		} else {
+//			tt.mode = outputGeneration
+//		}
+//		t.Run(tt.name, func(t *testing.T) {
+//			t.Parallel()
+//			tt.runTest(t)
+//		})
+//	}
+//	fmt.Println("done")
+//}
 
 func TestAllWithComparison(t *testing.T) {
 	// tests is the list of tests to run
