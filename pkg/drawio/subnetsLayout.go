@@ -196,7 +196,7 @@ func newSubnetsLayout(network SquareTreeNodeInterface) *subnetsLayout {
 func (ly *subnetsLayout) layout() ([][]TreeNodeInterface, map[TreeNodeInterface]int) {
 	ly.createGroupsDataS()
 	ly.topFakeGroup = newGroupDataS("", ly.miniGroups, nil)
-	ly.splitSharing(ly.topFakeGroup)
+	ly.createGroupSubTree(ly.topFakeGroup)
 	ly.layoutGroups()
 	ly.createNewTreeNodes()
 	return ly.subnetMatrix, ly.zonesCol
@@ -464,25 +464,30 @@ func chooseGroupToSplit(intersectGroups map[*groupDataS]groupSet) *groupDataS {
 	return mostSharedGroup
 }
 
-// ////////////////////////////////////////////////////////////////////////
-func (ly *subnetsLayout) splitSharing(group *groupDataS) {
+// ///////////////////////////////////////////////////////////////
+func nonInnerGroups(groups groupSet) groupSet {
+	nonInnerGroups := groups.copy()
+	for group1 := range groups {
+		for group2 := range groups {
+			if group2.isInnerGroup(group1) {
+				delete(nonInnerGroups, group1)
+			}
+		}
+	}
+	return nonInnerGroups
+}
 
-	nonSplitGroup := ly.innerGroupsOfAGroup(group)
-	for innerGroup := range ly.innerGroupsOfAGroup(group) {
+// ////////////////////////////////////////////////////////////////////////
+func (ly *subnetsLayout) createGroupSubTree(group *groupDataS) {
+
+	nonSplitGroups := ly.innerGroupsOfAGroup(group)
+	for innerGroup := range nonSplitGroups {
 		if len(innerGroup.splitTo) > 0 {
-			delete(nonSplitGroup, innerGroup)
+			delete(nonSplitGroups, innerGroup)
 		}
 	}
 	for {
-		nonSplitNotInnerGroups := nonSplitGroup.copy()
-		for group1 := range nonSplitGroup {
-			for group2 := range nonSplitGroup {
-				if group2.isInnerGroup(group1) {
-					delete(nonSplitNotInnerGroups, group1)
-				}
-			}
-		}
-
+		nonSplitNotInnerGroups := nonInnerGroups(nonSplitGroups)
 		intersectGroups := calcIntersectGroups(nonSplitNotInnerGroups)
 		mostSharedGroup := chooseGroupToSplit(intersectGroups)
 		if mostSharedGroup == nil {
@@ -491,14 +496,14 @@ func (ly *subnetsLayout) splitSharing(group *groupDataS) {
 		}
 		fmt.Println("group is split", mostSharedGroup.name)
 		group.toSplitGroups[mostSharedGroup] = true
-		delete(nonSplitGroup, mostSharedGroup)
+		delete(nonSplitGroups, mostSharedGroup)
 	}
 
 	if len(group.toSplitGroups) > 0 {
 		ly.rearrangeGroup(group)
 	}
 	for topInnerGroup := range group.topInnerGroups {
-		ly.splitSharing(topInnerGroup)
+		ly.createGroupSubTree(topInnerGroup)
 
 	}
 }
