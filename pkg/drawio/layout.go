@@ -1,7 +1,6 @@
 package drawio
 
 import (
-	"fmt"
 	"sort"
 )
 
@@ -67,6 +66,7 @@ func newLayout(network SquareTreeNodeInterface) *layoutS {
 func (ly *layoutS) layout() {
 	// main layout algorithm:
 	// 1. create a 2D matrix  - for each subnet icon, it set the location in the matrix
+	// in case of subnet mode, set the locations of the subnets
 	if !ly.network.(*NetworkTreeNode).SubnetMode {
 		ly.layoutSubnetsIcons()
 	} else {
@@ -335,34 +335,34 @@ func (ly *layoutS) setSubnetsLocations(subnetMatrix [][]TreeNodeInterface, zones
 		}
 	}
 
-	fmt.Println(" ")
-
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
 
 func (ly *layoutS) setGroupedSubnetsOffset() {
-	allGroups := map[TreeNodeInterface]bool{}
+	allSubnetsSquares := map[(*GroupSubnetsSquareTreeNode)]bool{}
 	for _, tn := range getAllNodes(ly.network) {
 		switch {
-		case tn.IsSquare() && tn.(SquareTreeNodeInterface).IsSubnet():
+		case tn.NotShownInDrawio():
+		case !tn.IsSquare():
+		case tn.(SquareTreeNodeInterface).IsSubnet():
 			tn.Location().xOffset = borderWidth
 			tn.Location().yOffset = borderWidth
 			tn.Location().xEndOffset = borderWidth
 			tn.Location().yEndOffset = borderWidth
 
-		case tn.IsSquare() && tn.(SquareTreeNodeInterface).IsGroupSubnetsSquare():
+		case tn.(SquareTreeNodeInterface).IsGroupSubnetsSquare():
 			tn.Location().xOffset = -groupBorderWidth
 			tn.Location().yOffset = -groupBorderWidth
 			tn.Location().xEndOffset = -groupBorderWidth
 			tn.Location().yEndOffset = -groupBorderWidth
-			allGroups[tn] = true
+			allSubnetsSquares[tn.(*GroupSubnetsSquareTreeNode)] = true
 		}
 	}
 	for foundOverlap := true; foundOverlap; {
 		foundOverlap = false
-		for tn1 := range allGroups {
-			for tn2 := range allGroups {
+		for tn1 := range allSubnetsSquares {
+			for tn2 := range allSubnetsSquares {
 				l1 := tn1.Location()
 				l2 := tn2.Location()
 				if tn1 == tn2 {
@@ -371,7 +371,7 @@ func (ly *layoutS) setGroupedSubnetsOffset() {
 				if l1.firstRow == l2.firstRow || l1.firstCol == l2.firstCol || l1.lastRow == l2.lastRow || l1.lastCol == l2.lastCol {
 					if l1.xOffset == l2.xOffset {
 						toShrink := tn1
-						if len(tn2.(*GroupSubnetsSquareTreeNode).groupedSubnets) < len(tn1.(*GroupSubnetsSquareTreeNode).groupedSubnets) {
+						if len(tn2.groupedSubnets) < len(tn1.groupedSubnets) {
 							toShrink = tn2
 						}
 						toShrink.Location().xOffset += groupInnerBorderWidth
@@ -385,7 +385,6 @@ func (ly *layoutS) setGroupedSubnetsOffset() {
 			}
 		}
 	}
-
 }
 
 // //////////////////////////////////////////////////////////////////////////////////////////
