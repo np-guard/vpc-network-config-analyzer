@@ -103,6 +103,9 @@ func errorInErgs(args *InArgs, flagset *flag.FlagSet) error {
 		flagset.PrintDefaults()
 		return fmt.Errorf("wrong output format %s; must be one of %s", *args.OutputFormat, getSupportedValuesString(supportedOutputFormats))
 	}
+	if *args.OutputFormat == DEBUGFormat && *args.AnalysisType != allEndpoints {
+		return fmt.Errorf("output format %s supported on for %s", DEBUGFormat, allEndpoints)
+	}
 	diffAnalysis := *args.AnalysisType == allEndpointsDiff || *args.AnalysisType == allSubnetsDiff
 	fileForDiffSpecified := args.InputSecondConfigFile != nil && *args.InputSecondConfigFile != ""
 	if fileForDiffSpecified && !diffAnalysis {

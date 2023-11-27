@@ -3,6 +3,7 @@ package vpcmodel
 type DebugOutputFormatter struct {
 }
 
+// WriteOutput at the moment only AllEndpoints supported for Debug mode
 func (t *DebugOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	conn *VPCConnectivity,
 	subnetsConn *VPCsubnetConnectivity,
@@ -17,11 +18,8 @@ func (t *DebugOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 		// TODO: add another 'debug' format that includes all detailed output
 		out = conn.DetailedString()
 	case AllSubnets:
-		out = subnetsConn.String()
 	case SingleSubnet:
-		out = c1.GetConnectivityOutputPerEachSubnetSeparately()
 	case SubnetsDiff, EndpointsDiff:
-		out += cfgsDiff.String()
 	}
 	_, err := WriteToFile(out, outFile)
 	v2Name := ""
