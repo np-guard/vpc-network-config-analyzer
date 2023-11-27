@@ -41,9 +41,5 @@ func (t *TextOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	}
 	// write output to file and return the output string
 	_, err := WriteToFile(out, outFile)
-	v2Name := ""
-	if c2 != nil {
-		v2Name = c2.VPC.Name()
-	}
-	return &SingleAnalysisOutput{Output: out, VPC1Name: c1.VPC.Name(), VPC2Name: v2Name, format: Text}, err
+	return &SingleAnalysisOutput{Output: out, VPC1Name: c1.VPC.Name(), VPC2Name: vpc2Name, format: Text}, err
 }
