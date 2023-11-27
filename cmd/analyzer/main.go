@@ -165,7 +165,7 @@ func diffAnalysisMain(inArgs *InArgs, vpcConfigs map[string]*vpcmodel.VPCConfig,
 	if err4 != nil {
 		return err4
 	}
-	out, err5 := vpcmodel.FinalizeDiffOutput(analysisOutput, getOutputFormat(inArgs), outFile)
+	out, err5 := vpcmodel.WriteDiffOutput(analysisOutput, getOutputFormat(inArgs), outFile)
 	if err5 != nil {
 		return err5
 	}

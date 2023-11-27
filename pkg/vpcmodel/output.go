@@ -160,7 +160,8 @@ func AggregateVPCsOutput(outputList []*SingleAnalysisOutput, f OutFormat, outFil
 	return res, err
 }
 
-func FinalizeDiffOutput(output *SingleAnalysisOutput, f OutFormat, outFile string) (string, error) {
+// WriteDiffOutput actual writing the output into file, with required format adjustments
+func WriteDiffOutput(output *SingleAnalysisOutput, f OutFormat, outFile string) (string, error) {
 	var res string
 	var err error
 	switch f {
