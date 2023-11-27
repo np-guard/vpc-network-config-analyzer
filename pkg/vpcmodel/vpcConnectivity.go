@@ -4,7 +4,9 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
-// VPCConnectivity holds detailed representation of allowed connectivity considering all resources in a vpc config instance
+type GeneralConnectivityMap map[VPCResourceIntf]map[VPCResourceIntf]*common.ConnectionSet
+
+// VPCConnectivity holds detailed representation of allowed connectivity considering all resources in a vpc config1 instance
 type VPCConnectivity struct {
 	// computed for each layer separately its allowed connections (ingress and egress separately)
 	AllowedConnsPerLayer map[Node]map[string]*ConnectivityResult
@@ -66,17 +68,17 @@ func NewIPbasedConnectivityResult() *IPbasedConnectivityResult {
 	}
 }
 
-// ConfigBasedConnectivityResults is used to capture allowed connectivity to/from elements in the vpc config (subnets / external ip-blocks)
+// ConfigBasedConnectivityResults is used to capture allowed connectivity to/from elements in the vpc config1 (subnets / external ip-blocks)
 // It is associated with a subnet when analyzing connectivity of subnets based on NACL resources
 type ConfigBasedConnectivityResults struct {
-	IngressAllowedConns map[EndpointElem]*common.ConnectionSet
-	EgressAllowedConns  map[EndpointElem]*common.ConnectionSet
+	IngressAllowedConns map[VPCResourceIntf]*common.ConnectionSet
+	EgressAllowedConns  map[VPCResourceIntf]*common.ConnectionSet
 }
 
 func NewConfigBasedConnectivityResults() *ConfigBasedConnectivityResults {
 	return &ConfigBasedConnectivityResults{
-		IngressAllowedConns: map[EndpointElem]*common.ConnectionSet{},
-		EgressAllowedConns:  map[EndpointElem]*common.ConnectionSet{},
+		IngressAllowedConns: map[VPCResourceIntf]*common.ConnectionSet{},
+		EgressAllowedConns:  map[VPCResourceIntf]*common.ConnectionSet{},
 	}
 }
 
@@ -118,4 +120,20 @@ func (nodesConnMap NodesConnectionsMap) getAllowedConnForPair(src, dst Node) *co
 		}
 	}
 	return NoConns()
+}
+
+func (nodesConnMap NodesConnectionsMap) nodesConnectivityToGeneralConnectivity() (generalConnMap GeneralConnectivityMap) {
+	generalConnMap = GeneralConnectivityMap{}
+	for src, connsMap := range nodesConnMap {
+		for dst, conn := range connsMap {
+			if conn.IsEmpty() {
+				continue
+			}
+			if _, ok := generalConnMap[src]; !ok {
+				generalConnMap[src] = map[VPCResourceIntf]*common.ConnectionSet{}
+			}
+			generalConnMap[src][dst] = conn
+		}
+	}
+	return generalConnMap
 }

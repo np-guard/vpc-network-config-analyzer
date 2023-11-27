@@ -99,6 +99,13 @@ func newExternalNode(isPublicInternet bool, ipb *common.IPBlock) (Node, error) {
 		isPublicInternet: isPublicInternet}, nil
 }
 
+func newExternalNodeForCidr(cidr string) Node {
+	return &ExternalNetwork{
+		ResourceType:     publicInternetNodeName,
+		CidrStr:          cidr,
+		isPublicInternet: true}
+}
+
 func GetExternalNetworkNodes(disjointRefExternalIPBlocks []*common.IPBlock) ([]Node, error) {
 	res := []Node{}
 	internetIPblocks, allInternetRagnes, err := getPublicInternetIPblocksList()
@@ -111,6 +118,9 @@ func GetExternalNetworkNodes(disjointRefExternalIPBlocks []*common.IPBlock) ([]N
 		var isPublicInternet bool
 		if ipb.ContainedIn(allInternetRagnes) {
 			isPublicInternet = true
+		} else {
+			// currently skip external nodes which are not in public internet ranges
+			continue
 		}
 		cidrs := ipb.ToCidrList()
 		for _, cidr := range cidrs {

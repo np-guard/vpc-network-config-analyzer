@@ -7,14 +7,12 @@ import (
 	"fmt"
 )
 
-type SubnetConnectivityMap map[EndpointElem]map[EndpointElem]*common.ConnectionSet
-
 // VPCsubnetConnectivity captures allowed connectivity for subnets, considering nacl and pgw resources
 type VPCsubnetConnectivity struct {
 	// computed for each node (subnet), by iterating its ConnectivityResult for all relevant VPC resources that capture it
-	AllowedConns map[EndpointElem]*ConfigBasedConnectivityResults
+	AllowedConns map[VPCResourceIntf]*ConfigBasedConnectivityResults
 	// combined connectivity - considering both ingress and egress per connection
-	AllowedConnsCombined SubnetConnectivityMap
+	AllowedConnsCombined GeneralConnectivityMap
 	VPCConfig            *VPCConfig
 	// grouped connectivity result
 	GroupedConnectivity *GroupConnLines
@@ -25,10 +23,6 @@ const (
 	pgwKind                   = "PublicGateway"
 	errUnexpectedTypePeerNode = "unexpected type for peerNode in computeAllowedConnsCombined"
 )
-
-func NewSubnetConnectivityMap() SubnetConnectivityMap {
-	return SubnetConnectivityMap{}
-}
 
 func subnetConnLine(subnet string, conn *common.ConnectionSet) string {
 	return fmt.Sprintf("%s : %s\n", subnet, conn.String())
@@ -170,11 +164,11 @@ func (c *VPCConfig) GetSubnetsConnectivity(includePGW, grouping bool) (*VPCsubne
 	}
 
 	// convert to subnet-based connectivity result
-	subnetsConnectivity := map[EndpointElem]*ConfigBasedConnectivityResults{}
+	subnetsConnectivity := map[VPCResourceIntf]*ConfigBasedConnectivityResults{}
 	for subnetCidrStr, ipBasedConnectivity := range subnetsConnectivityFromACLresources {
-		subnetNodeSet, err := c.subnetCidrToSubnetElem(subnetCidrStr)
-		if err != nil {
-			return nil, err
+		subnetNodeSet, err1 := c.subnetCidrToSubnetElem(subnetCidrStr)
+		if err1 != nil {
+			return nil, err1
 		}
 
 		// create and update configBasedConns according to relevant router (pgw) resources
@@ -185,9 +179,9 @@ func (c *VPCConfig) GetSubnetsConnectivity(includePGW, grouping bool) (*VPCsubne
 		if !includePGW {
 			subnetHasPGW = true // do not limit connectivity to external nodes only if has actual PGW
 		}
-		configBasedConns, err := c.convertIPbasedToSubnetBasedResult(ipBasedConnectivity, subnetHasPGW)
-		if err != nil {
-			return nil, err
+		configBasedConns, err2 := c.convertIPbasedToSubnetBasedResult(ipBasedConnectivity, subnetHasPGW)
+		if err2 != nil {
+			return nil, err2
 		}
 
 		subnetsConnectivity[subnetNodeSet] = configBasedConns
@@ -196,18 +190,22 @@ func (c *VPCConfig) GetSubnetsConnectivity(includePGW, grouping bool) (*VPCsubne
 	res := &VPCsubnetConnectivity{AllowedConns: subnetsConnectivity, VPCConfig: c}
 
 	// get combined connections from subnetsConnectivity
-	if err := res.computeAllowedConnsCombined(); err != nil {
-		return nil, err
+	if err3 := res.computeAllowedConnsCombined(); err3 != nil {
+		return nil, err3
 	}
 	res.computeStatefulConnections()
 
-	res.GroupedConnectivity = newGroupConnLinesSubnetConnectivity(c, res, grouping)
+	groupedConnectivity, err4 := newGroupConnLinesSubnetConnectivity(c, res, grouping)
+	if err4 != nil {
+		return nil, err4
+	}
+	res.GroupedConnectivity = groupedConnectivity
 
 	return res, nil
 }
 
 func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() error {
-	v.AllowedConnsCombined = map[EndpointElem]map[EndpointElem]*common.ConnectionSet{}
+	v.AllowedConnsCombined = map[VPCResourceIntf]map[VPCResourceIntf]*common.ConnectionSet{}
 	for subnetNodeSet, connsRes := range v.AllowedConns {
 		for peerNode, conns := range connsRes.IngressAllowedConns {
 			src := peerNode
@@ -232,7 +230,7 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() error {
 				continue
 			}
 			if _, ok := v.AllowedConnsCombined[src]; !ok {
-				v.AllowedConnsCombined[src] = map[EndpointElem]*common.ConnectionSet{}
+				v.AllowedConnsCombined[src] = map[VPCResourceIntf]*common.ConnectionSet{}
 			}
 			v.AllowedConnsCombined[src][dst] = combinedConns
 		}
@@ -255,7 +253,7 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() error {
 				return errors.New(errUnexpectedTypePeerNode)
 			}
 			if _, ok := v.AllowedConnsCombined[src]; !ok {
-				v.AllowedConnsCombined[src] = map[EndpointElem]*common.ConnectionSet{}
+				v.AllowedConnsCombined[src] = map[VPCResourceIntf]*common.ConnectionSet{}
 			}
 			v.AllowedConnsCombined[src][dst] = combinedConns
 		}
@@ -315,9 +313,9 @@ func (c *VPCConfig) GetConnectivityOutputPerEachSubnetSeparately() string {
 	return ""
 }
 
-func (connectivity SubnetConnectivityMap) updateAllowedSubnetConnsMap(src, dst NodeSet, conn *common.ConnectionSet) {
-	if _, ok := connectivity[src]; !ok {
-		connectivity[src] = map[EndpointElem]*common.ConnectionSet{}
+func (connectivityMap GeneralConnectivityMap) updateAllowedConnsMap(src, dst VPCResourceIntf, conn *common.ConnectionSet) {
+	if _, ok := connectivityMap[src]; !ok {
+		connectivityMap[src] = map[VPCResourceIntf]*common.ConnectionSet{}
 	}
-	connectivity[src][dst] = conn
+	connectivityMap[src][dst] = conn
 }

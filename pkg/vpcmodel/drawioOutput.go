@@ -131,9 +131,10 @@ func (d *DrawioOutputFormatter) createEdges() {
 	}
 }
 
-func (d *DrawioOutputFormatter) WriteOutput(c *VPCConfig,
+func (d *DrawioOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	conn *VPCConnectivity,
 	subnetsConn *VPCsubnetConnectivity,
+	subnetsDiff *diffBetweenCfgs,
 	outFile string,
 	grouping bool,
 	uc OutputUseCase) (*VPCAnalysisOutput, error) {
@@ -144,7 +145,7 @@ func (d *DrawioOutputFormatter) WriteOutput(c *VPCConfig,
 		if conn != nil {
 			gConn = conn.GroupedConnectivity
 		}
-		return d.writeOutputGeneric(c, gConn, outFile, false)
+		return d.writeOutputGeneric(c1, gConn, outFile, false)
 	case AllSubnets:
 		var gConn *GroupConnLines
 		if subnetsConn != nil {
@@ -166,17 +167,18 @@ type ArchDrawioOutputFormatter struct {
 	DrawioOutputFormatter
 }
 
-func (d *ArchDrawioOutputFormatter) WriteOutput(c *VPCConfig,
+func (d *ArchDrawioOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	conn *VPCConnectivity,
 	subnetsConn *VPCsubnetConnectivity,
+	subnetsDiff *diffBetweenCfgs,
 	outFile string,
 	grouping bool,
 	uc OutputUseCase) (*VPCAnalysisOutput, error) {
 	switch uc {
 	case AllEndpoints:
-		return d.DrawioOutputFormatter.WriteOutput(c, nil, nil, outFile, grouping, uc)
+		return d.DrawioOutputFormatter.WriteOutput(c1, c2, nil, nil, nil, outFile, grouping, uc)
 	case AllSubnets, SingleSubnet:
-		return d.DrawioOutputFormatter.WriteOutput(nil, nil, nil, outFile, grouping, uc)
+		return d.DrawioOutputFormatter.WriteOutput(nil, c2, nil, nil, nil, outFile, grouping, uc)
 	}
 	return &VPCAnalysisOutput{}, nil
 }

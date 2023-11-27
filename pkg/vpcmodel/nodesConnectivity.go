@@ -15,8 +15,8 @@ import (
 // (2) compute AllowedConnsCombined (map[Node]map[Node]*common.ConnectionSet) : allowed conns considering both ingress and egress directions
 // (3) compute AllowedConnsCombinedStateful : stateful allowed connections, for which connection in reverse direction is also allowed
 // (4) if grouping required - compute grouping of connectivity results
-func (c *VPCConfig) GetVPCNetworkConnectivity(grouping bool) (*VPCConnectivity, error) {
-	res := &VPCConnectivity{
+func (c *VPCConfig) GetVPCNetworkConnectivity(grouping bool) (res *VPCConnectivity, err error) {
+	res = &VPCConnectivity{
 		AllowedConns:         map[Node]*ConnectivityResult{},
 		AllowedConnsPerLayer: map[Node]map[string]*ConnectivityResult{},
 	}
@@ -25,12 +25,12 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping bool) (*VPCConnectivity, 
 		if !node.IsInternal() {
 			continue
 		}
-		allIngressAllowedConns, ingressAllowedConnsPerLayer, err := c.getAllowedConnsPerDirection(true, node)
-		if err != nil {
+		allIngressAllowedConns, ingressAllowedConnsPerLayer, err1 := c.getAllowedConnsPerDirection(true, node)
+		if err1 != nil {
 			return nil, err
 		}
-		allEgressAllowedConns, egressAllowedConnsPerLayer, err := c.getAllowedConnsPerDirection(false, node)
-		if err != nil {
+		allEgressAllowedConns, egressAllowedConnsPerLayer, err2 := c.getAllowedConnsPerDirection(false, node)
+		if err2 != nil {
 			return nil, err
 		}
 
@@ -53,8 +53,8 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping bool) (*VPCConnectivity, 
 	}
 	res.computeAllowedConnsCombined()
 	res.computeAllowedStatefulConnections()
-	res.GroupedConnectivity = newGroupConnLines(c, res, grouping)
-	return res, nil
+	res.GroupedConnectivity, err = newGroupConnLines(c, res, grouping)
+	return res, err
 }
 
 func (c *VPCConfig) getFiltersAllowedConnsBetweenNodesPerDirectionAndLayer(
@@ -131,7 +131,7 @@ func (c *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 				allLayersRes[peerNode] = NoConns()
 				continue
 			}
-			// ibm-config: appliedFilters are either both nacl and sg (for pgw) or only sg (for fip)
+			// ibm-config1: appliedFilters are either both nacl and sg (for pgw) or only sg (for fip)
 			// TODO: consider moving to pkg ibm-vpc
 			appliedFilters := appliedRouter.AppliedFiltersKinds()
 			for layer := range appliedFilters {

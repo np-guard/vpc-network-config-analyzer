@@ -1,6 +1,7 @@
 package vpcmodel
 
 import (
+	"fmt"
 	"sort"
 	"strings"
 
@@ -10,6 +11,11 @@ import (
 const commaSeparator = ","
 
 // for each line here can group list of external nodes to cidrs list as of one element
+// TODO: consider wrapping []Node from the map values in the type groupingConnections ,
+//
+//	as a type that includes more than that: []Node + the actual ConnectionSet object +
+//	actual diff-related objects (conn1 object, conn2 object, etc).
+//	It should include all the common relevant objects, aside from the relevant list of nodes that are grouped.
 type groupingConnections map[EndpointElem]map[string][]Node
 
 func (g *groupingConnections) getGroupedConnLines(groupedConnLines *GroupConnLines,
@@ -35,24 +41,36 @@ func newGroupingConnections() *groupingConnections {
 	return &res
 }
 
-func newGroupConnLines(c *VPCConfig, v *VPCConnectivity, grouping bool) *GroupConnLines {
-	res := &GroupConnLines{c: c, v: v,
+func newGroupConnLines(c *VPCConfig, v *VPCConnectivity,
+	grouping bool) (res *GroupConnLines, err error) {
+	res = &GroupConnLines{c: c, v: v,
 		srcToDst:                 newGroupingConnections(),
 		dstToSrc:                 newGroupingConnections(),
 		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
 		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
-	res.computeGrouping(grouping)
-	return res
+	err = res.computeGrouping(true, grouping)
+	return res, err
 }
 
-func newGroupConnLinesSubnetConnectivity(c *VPCConfig, s *VPCsubnetConnectivity, grouping bool) *GroupConnLines {
-	res := &GroupConnLines{c: c, s: s,
+func newGroupConnLinesSubnetConnectivity(c *VPCConfig, s *VPCsubnetConnectivity,
+	grouping bool) (res *GroupConnLines, err error) {
+	res = &GroupConnLines{c: c, s: s,
 		srcToDst:                 newGroupingConnections(),
 		dstToSrc:                 newGroupingConnections(),
 		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
 		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
-	res.computeGroupingForSubnets(grouping)
-	return res
+	err = res.computeGrouping(false, grouping)
+	return res, err
+}
+
+func newGroupConnLinesDiff(d *diffBetweenCfgs) (res *GroupConnLines, err error) {
+	res = &GroupConnLines{d: d,
+		srcToDst:                 newGroupingConnections(),
+		dstToSrc:                 newGroupingConnections(),
+		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
+		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
+	err = res.computeGroupingForDiff()
+	return res, err
 }
 
 // GroupConnLines used both for VPCConnectivity and for VPCsubnetConnectivity, one at a time. The other must be nil
@@ -61,6 +79,7 @@ type GroupConnLines struct {
 	c        *VPCConfig
 	v        *VPCConnectivity
 	s        *VPCsubnetConnectivity
+	d        *diffBetweenCfgs
 	srcToDst *groupingConnections
 	dstToSrc *groupingConnections
 	// a map to groupedEndpointsElems used by GroupedConnLine from a unified key of such elements
@@ -214,52 +233,81 @@ func subnetGrouping(groupedConnLines *GroupConnLines,
 	return res
 }
 
-func (g *GroupConnLines) groupExternalAddresses() {
-	// phase1: group public internet ranges
+// group public internet ranges for vsis/subnets connectivity lines
+func (g *GroupConnLines) groupExternalAddresses(vsi bool) error {
+	var allowedConnsCombined GeneralConnectivityMap
+	if vsi {
+		allowedConnsCombined = g.v.AllowedConnsCombined.nodesConnectivityToGeneralConnectivity()
+	} else {
+		allowedConnsCombined = g.s.AllowedConnsCombined
+	}
 	res := []*GroupedConnLine{}
-	for src, nodeConns := range g.v.AllowedConnsCombined {
+	for src, nodeConns := range allowedConnsCombined {
 		for dst, conns := range nodeConns {
-			if conns.IsEmpty() {
-				continue
-			}
-			connString := conns.EnhancedString()
-			switch {
-			case dst.IsPublicInternet():
-				g.srcToDst.addPublicConnectivity(src, connString, dst)
-			case src.IsPublicInternet():
-				g.dstToSrc.addPublicConnectivity(dst, connString, src)
-			default:
-				res = append(res, &GroupedConnLine{src, dst, connString})
+			err := g.addLineToExternalGrouping(&res, conns.IsEmpty(), src, dst, conns.EnhancedString())
+			if err != nil {
+				return err
 			}
 		}
 	}
-	// add to res lines from  srcToDst and DstToSrc groupings
-	res = append(res, g.srcToDst.getGroupedConnLines(g, true)...)
-	res = append(res, g.dstToSrc.getGroupedConnLines(g, false)...)
-	g.GroupedLines = res
+	g.appendGrouped(&res)
+	return nil
 }
 
-func (g *GroupConnLines) groupExternalAddressesForSubnets() {
-	// groups public internet ranges in dst when dst is public internet
-	res := []*GroupedConnLine{}
-	for src, endpointConns := range g.s.AllowedConnsCombined {
-		for dst, conns := range endpointConns {
-			if conns.IsEmpty() {
-				continue
-			}
-			connString := conns.EnhancedString()
-			if dstNode, ok := dst.(Node); ok && dstNode.IsPublicInternet() {
-				g.srcToDst.addPublicConnectivity(src, connString, dstNode)
-			} else { // since pgw enable only egress src can not be public internet, the above is the only option of public internet
-				// not an external connection in source or destination - nothing to group, just append
-				res = append(res, &GroupedConnLine{src, dst, connString})
+// group public internet ranges for semantic-diff connectivity lines (subnets/vsis)
+func (g *GroupConnLines) groupExternalAddressesForDiff(thisMinusOther bool) error {
+	// initialize data structures; this is required for the 2nd call of this function
+	g.srcToDst = newGroupingConnections()
+	g.dstToSrc = newGroupingConnections()
+	var res []*GroupedConnLine
+	var connRemovedChanged connectivityDiff
+	if thisMinusOther {
+		connRemovedChanged = g.d.cfg1ConnRemovedFrom2
+	} else {
+		connRemovedChanged = g.d.cfg2ConnRemovedFrom1
+	}
+	for src, endpointConnDiff := range connRemovedChanged {
+		for dst, connDiff := range endpointConnDiff {
+			connDiffString := connDiffEncode(src, dst, connDiff, thisMinusOther)
+			connsEmpty := connDiff.conn1.IsEmpty() && connDiff.conn2.IsEmpty()
+			err := g.addLineToExternalGrouping(&res, connsEmpty, src, dst, connDiffString)
+			if err != nil {
+				return err
 			}
 		}
 	}
+	g.appendGrouped(&res)
+	return nil
+}
+
+func (g *GroupConnLines) addLineToExternalGrouping(res *[]*GroupedConnLine, emptyConn bool,
+	src, dst VPCResourceIntf, connStr string) error {
+	if emptyConn {
+		return nil
+	}
+	srcNode, srcIsNode := src.(Node)
+	dstNode, dstIsNode := dst.(Node)
+	if dst.IsExternal() && !dstIsNode ||
+		src.IsExternal() && !srcIsNode {
+		return fmt.Errorf("%s or %s is External but not a node", src.Name(), dst.Name())
+	}
+	switch {
+	case dst.IsExternal():
+		g.srcToDst.addPublicConnectivity(src, connStr, dstNode)
+	case src.IsExternal():
+		g.dstToSrc.addPublicConnectivity(dst, connStr, srcNode)
+	default:
+		*res = append(*res, &GroupedConnLine{src, dst, connStr})
+	}
+	return nil
+}
+
+// add to res lines from  srcToDst and DstToSrc groupings
+func (g *GroupConnLines) appendGrouped(res *[]*GroupedConnLine) {
 	// add to res lines from  srcToDst and DstToSrc groupings
-	res = append(res, g.srcToDst.getGroupedConnLines(g, true)...)
-	res = append(res, g.dstToSrc.getGroupedConnLines(g, false)...)
-	g.GroupedLines = res
+	*res = append(*res, g.srcToDst.getGroupedConnLines(g, true)...)
+	*res = append(*res, g.dstToSrc.getGroupedConnLines(g, false)...)
+	g.GroupedLines = append(g.GroupedLines, *res...)
 }
 
 // aux func, returns true iff the EndpointElem is Node if grouping vsis or NodeSet if grouping subnets
@@ -333,18 +381,17 @@ func (g *GroupConnLines) groupInternalSrcOrDst(srcGrouping, groupVsi bool) {
 	g.GroupedLines = g.unifiedGroupedConnLines(res)
 }
 
-
-// Go over the output of treating self loops as don't cares - extendGroupingSelfLoops
-// and align all src, dst to use the same reference via g.groupedEndpointsElemsMap
-// this is done here since *GroupConnLines is not known within the extendGroupingSelfLoops context
+// Go over the grouping result and make sure all groups have a unified reference.
+// this is required due to the functionality treating self loops as don't cares - extendGroupingSelfLoops
+// in which both srcs and dsts are manipulated  but *GroupConnLines is not familiar
+// within the extendGroupingSelfLoops context and thus can not be done there smoothly
 func (g *GroupConnLines) unifiedGroupedConnLines(oldConnLines []*GroupedConnLine) []*GroupedConnLine {
-	newGroupedLines := []*GroupedConnLine{}
+	newGroupedLines := make([]*GroupedConnLine, len(oldConnLines))
 	// go over all connections; if src/dst is not external then use groupedEndpointsElemsMap
-	for _, groupedConnLine := range oldConnLines {
-		newGroupedConnLine := &GroupedConnLine{g.unifiedGroupedElems(groupedConnLine.Src),
+	for i, groupedConnLine := range oldConnLines {
+		newGroupedLines[i] = &GroupedConnLine{g.unifiedGroupedElems(groupedConnLine.Src),
 			g.unifiedGroupedElems(groupedConnLine.Dst),
 			groupedConnLine.Conn}
-		newGroupedLines = append(newGroupedLines, newGroupedConnLine)
 	}
 	return newGroupedLines
 }
@@ -364,20 +411,28 @@ func (g *GroupConnLines) unifiedGroupedElems(srcOrDst EndpointElem) EndpointElem
 	return unifiedGroupedEE
 }
 
-func (g *GroupConnLines) computeGrouping(grouping bool) {
-	g.groupExternalAddresses()
-	if grouping {
-		g.groupInternalSrcOrDst(true, true)
-		g.groupInternalSrcOrDst(false, true)
+// computeGrouping does the grouping; for vsis (all_endpoints analysis)
+// if vsi = true otherwise for subnets (all_subnets analysis)
+// external endpoints are always grouped; vsis/subnets are grouped iff grouping is true
+func (g *GroupConnLines) computeGrouping(vsi, grouping bool) (err error) {
+	err = g.groupExternalAddresses(vsi)
+	if err != nil {
+		return err
 	}
+	if grouping {
+		g.groupInternalSrcOrDst(true, vsi)
+		g.groupInternalSrcOrDst(false, vsi)
+	}
+	return nil
 }
 
-func (g *GroupConnLines) computeGroupingForSubnets(grouping bool) {
-	g.groupExternalAddressesForSubnets()
-	if grouping {
-		g.groupInternalSrcOrDst(false, false)
-		g.groupInternalSrcOrDst(true, false)
+func (g *GroupConnLines) computeGroupingForDiff() error {
+	err := g.groupExternalAddressesForDiff(true)
+	if err != nil {
+		return err
 	}
+	err = g.groupExternalAddressesForDiff(false)
+	return err
 }
 
 // get the grouped connectivity output
@@ -416,4 +471,20 @@ func (g *groupedExternalNodes) String() string {
 	}
 	// 3. print a list s.t. each element contains either a single cidr or an ip range
 	return strings.Join(unionBlock.ListToPrint(), commaSeparator)
+}
+
+// connDiffEncode encodes connectivesDiff information for grouping:
+// this includes the following 4 strings separated by ";"
+//  1. diff-type info: e.g. diff-type: removed
+//  2. connection of config1
+//  3. connection of config2
+//  4. info regarding missing endpoints: e.g. vsi0 removed
+//
+// this encoding prevents the need to change all the grouping datastuctures
+// along the pipe: srcToDst and dstToSrc in addition to GroupedConnLine
+func connDiffEncode(src, dst VPCResourceIntf, connDiff *connectionDiff,
+	thisMinusOther bool) string {
+	conn1Str, conn2Str := conn1And2Str(connDiff, thisMinusOther)
+	diffType, endpointsDiff := diffAndEndpointsDisc(connDiff.diff, src, dst, thisMinusOther)
+	return strings.Join([]string{diffType, conn1Str, conn2Str, endpointsDiff}, semicolon)
 }

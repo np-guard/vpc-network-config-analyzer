@@ -40,7 +40,7 @@ func (m *mockNetIntf) ZoneName() string {
 func (m *mockNetIntf) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
 	return nil
 }
-func (m *mockNetIntf) IsExternal() bool { return false }
+func (m *mockNetIntf) IsExternal() bool { return m.isPublic }
 func (m *mockNetIntf) ShowOnSubnetMode() bool { return false }
 
 type mockSubnet struct {
@@ -118,7 +118,8 @@ func TestGroupingPhase1(t *testing.T) {
 	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
 		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
 		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
-	res.groupExternalAddresses()
+	err := res.groupExternalAddresses(true)
+	require.Equal(t, err, nil)
 
 	groupingStr := res.String()
 	require.Equal(t, "vsi1 => Public Internet 1.2.0.0/22,8.8.8.8/32 : All Connections\n\n"+
@@ -134,7 +135,8 @@ func TestGroupingPhase2(t *testing.T) {
 		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
 		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
 	// phase 1
-	res.groupExternalAddresses()
+	err := res.groupExternalAddresses(true)
+	require.Equal(t, err, nil)
 	groupingStr := res.String()
 	require.Equal(t, "vsi1 => Public Internet 1.2.0.0/22,8.8.8.8/32 : All Connections\n"+
 		"vsi2 => Public Internet 1.2.0.0/22,8.8.8.8/32 : All Connections"+
@@ -175,7 +177,8 @@ func TestStatefulGrouping(t *testing.T) {
 	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
 		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
 		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
-	res.groupExternalAddresses()
+	err := res.groupExternalAddresses(true)
+	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(true, true)
 	groupingStr := res.String()
 	require.Equal(t, "vsi1 => Public Internet 1.2.0.0/22,8.8.8.8/32 : All Connections\n"+
@@ -207,7 +210,8 @@ func TestIPRange(t *testing.T) {
 	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
 		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
 		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
-	res.groupExternalAddresses()
+	err := res.groupExternalAddresses(true)
+	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(true, true)
 	groupingStr := res.String()
 	require.Equal(t, "vsi1 => Public Internet 1.2.3.0-1.2.4.255 : All Connections\n\n"+
@@ -242,7 +246,8 @@ func TestSelfLoopClique(t *testing.T) {
 	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
 		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
 		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
-	res.groupExternalAddresses()
+	err := res.groupExternalAddresses(true)
+	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(true, true)
 	groupingStr := res.String()
 	require.Equal(t, "vsi1,vsi2,vsi3 => vsi1,vsi2,vsi3 : All Connections\n\n"+
@@ -279,7 +284,8 @@ func TestSelfLoopCliqueDiffSubnets(t *testing.T) {
 	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
 		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
 		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
-	res.groupExternalAddresses()
+	err := res.groupExternalAddresses(true)
+	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(true, true)
 	res.groupInternalSrcOrDst(false, true)
 	groupingStr := res.String()
@@ -316,7 +322,8 @@ func TestSimpleSelfLoop(t *testing.T) {
 	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
 		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
 		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
-	res.groupExternalAddresses()
+	err := res.groupExternalAddresses(true)
+	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(false, true)
 	res.groupInternalSrcOrDst(true, true)
 	groupingStr := res.String()
@@ -362,7 +369,8 @@ func TestConfigSelfLoopCliqueLace(t *testing.T) {
 	res := &GroupConnLines{c: c, v: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
 		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
 		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
-	res.groupExternalAddresses()
+	err := res.groupExternalAddresses(true)
+	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(false, true)
 	res.groupInternalSrcOrDst(true, true)
 	groupingStr := res.String()
@@ -384,13 +392,13 @@ func configSubnetSelfLoop() (*VPCConfig, *VPCsubnetConnectivity) {
 		&mockSubnet{"10.3.20.0/22", "subnet2", []Node{res.Nodes[1]}},
 		&mockSubnet{"10.7.20.0/22", "subnet3", []Node{res.Nodes[2]}})
 
-	res1 := &VPCsubnetConnectivity{AllowedConnsCombined: NewSubnetConnectivityMap()}
-	res1.AllowedConnsCombined.updateAllowedSubnetConnsMap(res.NodeSets[0], res.NodeSets[1], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedSubnetConnsMap(res.NodeSets[0], res.NodeSets[2], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedSubnetConnsMap(res.NodeSets[1], res.NodeSets[0], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedSubnetConnsMap(res.NodeSets[1], res.NodeSets[2], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedSubnetConnsMap(res.NodeSets[2], res.NodeSets[0], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedSubnetConnsMap(res.NodeSets[2], res.NodeSets[1], common.NewConnectionSet(true))
+	res1 := &VPCsubnetConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.NodeSets[0], res.NodeSets[1], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.NodeSets[0], res.NodeSets[2], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.NodeSets[1], res.NodeSets[0], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.NodeSets[1], res.NodeSets[2], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.NodeSets[2], res.NodeSets[0], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.NodeSets[2], res.NodeSets[1], common.NewConnectionSet(true))
 
 	return res, res1
 }
@@ -401,7 +409,8 @@ func TestSubnetSelfLoop(t *testing.T) {
 		srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
 		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
 		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
-	res.groupExternalAddressesForSubnets()
+	err := res.groupExternalAddresses(false)
+	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(false, false)
 	res.groupInternalSrcOrDst(true, false)
 	groupingStr := res.String()

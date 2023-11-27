@@ -516,6 +516,10 @@ func getPgwConfig(
 	return nil
 }
 
+func ignoreFIPWarning(fipName, details string) string {
+	return fmt.Sprintf("warning: ignoring floatingIP %s: %s", fipName, details)
+}
+
 func getFipConfig(
 	rc *ResourcesContainer,
 	res map[string]*vpcmodel.VPCConfig,
@@ -529,11 +533,15 @@ func getFipConfig(
 			targetUID = *target.PrimaryIP.ID
 		case *vpc1.FloatingIPTarget:
 			if *target.ResourceType != networkInterfaceResourceType {
+				fmt.Println(ignoreFIPWarning(*fip.Name,
+					fmt.Sprintf("target.ResourceType %s is not supported (only networkInterfaceResourceType supported)",
+						*target.ResourceType)))
 				continue
 			}
 			targetUID = *target.PrimaryIP.ID
 		default:
-			return fmt.Errorf("unsupported fip target : %s", target)
+			fmt.Println(ignoreFIPWarning(*fip.Name, "target (FloatingIPTargetIntf) is not of the expected type"))
+			continue
 		}
 
 		if targetUID == "" {
@@ -920,7 +928,7 @@ func VPCConfigsFromResources(rc *ResourcesContainer, vpcID string, debug bool) (
 func filterVPCSAndAddExternalNodes(vpcInternalAddressRange map[string]*common.IPBlock, res map[string]*vpcmodel.VPCConfig) error {
 	for vpcUID, vpcConfig := range res {
 		if vpcInternalAddressRange[vpcUID] == nil {
-			fmt.Printf("Ignoring VPC %s, no subnets found fot this VPC\n", vpcUID)
+			fmt.Printf("Ignoring VPC %s, no subnets found for this VPC\n", vpcUID)
 			delete(res, vpcUID)
 			continue
 		}
@@ -977,14 +985,14 @@ func addExternalNodes(config *vpcmodel.VPCConfig, vpcInternalAddressRange *commo
 
 	externalRefIPBlocks := []*common.IPBlock{}
 	for _, ipBlock := range ipBlocks {
-		intersection := ipBlock.Intersection(vpcInternalAddressRange)
-		if !intersection.Empty() {
+		if ipBlock.ContainedIn(vpcInternalAddressRange) {
 			continue
 		}
-		externalRefIPBlocks = append(externalRefIPBlocks, ipBlock)
+		externalRefIPBlocks = append(externalRefIPBlocks, ipBlock.Subtract(vpcInternalAddressRange))
 	}
 
 	disjointRefExternalIPBlocks := common.DisjointIPBlocks(externalRefIPBlocks, []*common.IPBlock{})
+
 	externalNodes, err := vpcmodel.GetExternalNetworkNodes(disjointRefExternalIPBlocks)
 	if err != nil {
 		return nil, err

@@ -33,6 +33,7 @@ const (
 type vpcGeneralTest struct {
 	name           string                            // test name
 	inputConfig    string                            // name (relative path) of input config file (json)
+	inputConfig2nd string                            // 2nd input file for diff
 	expectedOutput map[vpcmodel.OutputUseCase]string // expected output file path
 	actualOutput   map[vpcmodel.OutputUseCase]string // actual output file path
 	useCases       []vpcmodel.OutputUseCase          // the list of output use cases to test
@@ -50,6 +51,8 @@ const (
 	suffixOutFileDebugSubnet       = "_analysisPerSubnetSeparately"
 	suffixOutFileSubnetsLevel      = "subnetsBased_withPGW"
 	suffixOutFileSubnetsLevelNoPGW = "subnetsBased_withoutPGW"
+	suffixOutFileDiffSubnets       = "subnetsDiff"
+	suffixOutFileDiffEndpoints     = "endpointsDiff"
 	txtOutSuffix                   = ".txt"
 	debugOutSuffix                 = "_debug.txt"
 	mdOutSuffix                    = ".md"
@@ -93,36 +96,47 @@ func getTestFileName(testName string,
 		res = baseName + suffixOutFileSubnetsLevel
 	case vpcmodel.AllSubnetsNoPGW:
 		res = baseName + suffixOutFileSubnetsLevelNoPGW
+	case vpcmodel.SubnetsDiff:
+		res = baseName + suffixOutFileDiffSubnets
+	case vpcmodel.EndpointsDiff:
+		res = baseName + suffixOutFileDiffEndpoints
 	}
-	switch format {
-	case vpcmodel.Text:
-		res += txtOutSuffix
-	case vpcmodel.Debug:
-		res += debugOutSuffix
-	case vpcmodel.MD:
-		res += mdOutSuffix
-	case vpcmodel.JSON:
-		res += jsonOutSuffix
-	case vpcmodel.DRAWIO:
-		res += drawioOutSuffix
-	case vpcmodel.ARCHDRAWIO:
-		res += archDrawioOutSuffix
-	default:
-		return "", "", errors.New("unexpected out format")
+	suffix, suffixErr := getTestFileSuffix(format)
+	if suffixErr != nil {
+		return "", "", suffixErr
 	}
-
+	res += suffix
 	expectedFileName = res
 	actualFileName = actualOutFilePrefix + res
 	return expectedFileName, actualFileName, nil
+}
+
+func getTestFileSuffix(format vpcmodel.OutFormat) (suffix string, err error) {
+	switch format {
+	case vpcmodel.Text:
+		return txtOutSuffix, nil
+	case vpcmodel.Debug:
+		return debugOutSuffix, nil
+	case vpcmodel.MD:
+		return mdOutSuffix, nil
+	case vpcmodel.JSON:
+		return jsonOutSuffix, nil
+	case vpcmodel.DRAWIO:
+		return drawioOutSuffix, nil
+	case vpcmodel.ARCHDRAWIO:
+		return archDrawioOutSuffix, nil
+	default:
+		return "", errors.New("unexpected out format")
+	}
 }
 
 // initTest: based on the test name, set the input config file name, and the output
 // files names (actual and expected), per use case
 func (tt *vpcGeneralTest) initTest() {
 	tt.inputConfig = inputFilePrefix + tt.name + ".json"
+	tt.inputConfig2nd = inputFilePrefix + tt.name + "_2nd.json"
 	tt.expectedOutput = map[vpcmodel.OutputUseCase]string{}
 	tt.actualOutput = map[vpcmodel.OutputUseCase]string{}
-
 	// init field of expected errs
 	if tt.errPerUseCase == nil {
 		tt.errPerUseCase = map[vpcmodel.OutputUseCase]error{}
@@ -215,6 +229,11 @@ var tests2 = []*vpcGeneralTest{
 	{
 		name:     "demo_with_instances",
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.SingleSubnet, vpcmodel.AllSubnets},
+		format:   vpcmodel.Text,
+	},
+	{
+		name:     "sg_testing_3",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
 		format:   vpcmodel.Text,
 	},
 
@@ -381,29 +400,40 @@ var tests2 = []*vpcGeneralTest{
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
 		format:   vpcmodel.Text,
 	},
+	{
+		name:     "acl_testing5",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.SubnetsDiff},
+		format:   vpcmodel.Text,
+	},
+	{
+		name:     "acl_testing3",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
+		format:   vpcmodel.Text,
+	},
 }
 
 var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
 
 // uncomment the function below to run for updating the expected output
-/*var formatsAvoidOutputGeneration = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
-func TestAllWithGeneration(t *testing.T) {
-	// tests is the list of tests to run
-	for testIdx := range tests {
-		tt := tests[testIdx]
-		// todo - remove the following if when drawio is stable
-		if formatsAvoidOutputGeneration[tt.format] {
-			tt.mode = outputIgnore
-		} else {
-			tt.mode = outputGeneration
-		}
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			tt.runTest(t)
-		})
-	}
-	fmt.Println("done")
-}*/
+// var formatsAvoidOutputGeneration = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
+//
+// func TestAllWithGeneration(t *testing.T) {
+//	// tests is the list of tests to run
+//	for testIdx := range tests {
+//		tt := tests[testIdx]
+//		// todo - remove the following if when drawio is stable
+//		if formatsAvoidOutputGeneration[tt.format] {
+//			tt.mode = outputIgnore
+//		} else {
+//			tt.mode = outputGeneration
+//		}
+//		t.Run(tt.name, func(t *testing.T) {
+//			t.Parallel()
+//			tt.runTest(t)
+//		})
+//	}
+//	fmt.Println("done")
+//}
 
 func TestAllWithComparison(t *testing.T) {
 	// tests is the list of tests to run
@@ -442,11 +472,23 @@ func (tt *vpcGeneralTest) runTest(t *testing.T) {
 	tt.initTest()
 
 	// get vpcConfigs obj from parsing + analyzing input config file
-	vpcConfigs := getVPCConfigs(t, tt)
+	vpcConfigs := getVPCConfigs(t, tt, true)
+	var vpcConfigs2nd map[string]*vpcmodel.VPCConfig
+	diffUseCase := false
+	for _, useCase := range tt.useCases {
+		if useCase == vpcmodel.SubnetsDiff || useCase == vpcmodel.EndpointsDiff {
+			diffUseCase = true
+		}
+	}
+	if diffUseCase {
+		vpcConfigs2nd = getVPCConfigs(t, tt, false)
+	} else { // inputConfig2nd should be ignored if not diffUseCase
+		tt.inputConfig2nd = ""
+	}
 
 	// generate actual output for all use cases specified for this test
 	for _, uc := range tt.useCases {
-		err := runTestPerUseCase(t, tt, vpcConfigs, uc, tt.mode)
+		err := runTestPerUseCase(t, tt, vpcConfigs, vpcConfigs2nd, uc, tt.mode)
 		require.Equal(t, tt.errPerUseCase[uc], err, "comparing actual err to expected err")
 	}
 	for uc, outFile := range tt.actualOutput {
@@ -455,8 +497,14 @@ func (tt *vpcGeneralTest) runTest(t *testing.T) {
 }
 
 // getVPCConfigs returns  map[string]*vpcmodel.VPCConfig obj for the input test (config json file)
-func getVPCConfigs(t *testing.T, tt *vpcGeneralTest) map[string]*vpcmodel.VPCConfig {
-	inputConfigFile := filepath.Join(getTestsDir(), tt.inputConfig)
+func getVPCConfigs(t *testing.T, tt *vpcGeneralTest, firstCfg bool) map[string]*vpcmodel.VPCConfig {
+	var inputConfig string
+	if firstCfg {
+		inputConfig = tt.inputConfig
+	} else {
+		inputConfig = tt.inputConfig2nd
+	}
+	inputConfigFile := filepath.Join(getTestsDir(), inputConfig)
 	inputConfigContent, err := os.ReadFile(inputConfigFile)
 	if err != nil {
 		t.Fatalf("err: %s", err)
@@ -516,18 +564,23 @@ func initTestFileNames(tt *vpcGeneralTest,
 // runTestPerUseCase runs the connectivity analysis for the required use case and compares/generates the output
 func runTestPerUseCase(t *testing.T,
 	tt *vpcGeneralTest,
-	c map[string]*vpcmodel.VPCConfig,
+	c1, c2 map[string]*vpcmodel.VPCConfig,
 	uc vpcmodel.OutputUseCase,
 	mode testMode) error {
-	numConfigs := len(c)
+	numConfigs := len(c1)
 	allVPCsOutput := make([]*vpcmodel.VPCAnalysisOutput, numConfigs)
 	i := 0
-	for _, vpcConfig := range c {
+	var vpcConfig2nd *vpcmodel.VPCConfig
+	// note that for diff analysis mode a single vpcConfig in c1 is provided; c2 is assumed to have a single cfg
+	for _, vpcConfig := range c2 {
+		vpcConfig2nd = vpcConfig
+	}
+	for _, vpcConfig := range c1 {
 		if err := initTestFileNames(tt, uc, numConfigs, vpcConfig.VPC.Name(), false); err != nil {
 			return err
 		}
 
-		og, err := vpcmodel.NewOutputGenerator(vpcConfig, tt.grouping, uc, tt.format == vpcmodel.ARCHDRAWIO)
+		og, err := vpcmodel.NewOutputGenerator(vpcConfig, vpcConfig2nd, tt.grouping, uc, tt.format == vpcmodel.ARCHDRAWIO)
 		if err != nil {
 			return err
 		}

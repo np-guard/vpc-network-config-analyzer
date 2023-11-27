@@ -333,9 +333,7 @@ func (n *NACL) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*com
 	if allInSubnet, err := common.IsAddressInSubnet(targetNode.Cidr(), subnetCidr); err == nil && allInSubnet {
 		return vpcmodel.AllConns(), nil // nacl has no control on traffic between two instances in its subnet
 	}
-	// TODO: consider err
-	res, _ := n.analyzer.AllowedConnectivity(subnetCidr, inSubnetCidr, targetNode.Cidr(), isIngress)
-	return res, nil
+	return n.analyzer.AllowedConnectivity(subnetCidr, inSubnetCidr, targetNode.Cidr(), isIngress)
 }
 
 // SecurityGroupLayer captures all SG in the vpc config, analyzes connectivity considering all SG resources
@@ -463,8 +461,8 @@ func (pgw *PublicGateway) ConnectivityMap() map[string]vpcmodel.ConfigBasedConne
 	res := map[string]vpcmodel.ConfigBasedConnectivityResults{}
 	for _, subnetCidr := range pgw.subnetCidr {
 		res[subnetCidr] = vpcmodel.ConfigBasedConnectivityResults{
-			IngressAllowedConns: map[vpcmodel.EndpointElem]*common.ConnectionSet{},
-			EgressAllowedConns:  map[vpcmodel.EndpointElem]*common.ConnectionSet{},
+			IngressAllowedConns: map[vpcmodel.VPCResourceIntf]*common.ConnectionSet{},
+			EgressAllowedConns:  map[vpcmodel.VPCResourceIntf]*common.ConnectionSet{},
 		}
 		for _, dst := range pgw.destinations {
 			res[subnetCidr].EgressAllowedConns[dst] = vpcmodel.AllConns()

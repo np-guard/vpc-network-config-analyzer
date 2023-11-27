@@ -444,5 +444,7 @@ func (na *NACLAnalyzer) AllowedConnectivity(subnetCidr, inSubentCidr, target str
 			}
 		}
 	}
-	return nil, nil //TODO: add err here?
+	// expecting disjoint ip-blocks, thus not expecting to get here
+	return nil, fmt.Errorf("isIngress: %t , target %s, subnetCidr: %s, inSubentCidr %s,  "+
+		"could not find allowed connectivity for given target + inSubentCidr", isIngress, target, subnetCidr, inSubentCidr)
 }
