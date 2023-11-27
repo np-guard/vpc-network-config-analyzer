@@ -89,7 +89,7 @@ func NewOutputGenerator(c1, c2 *VPCConfig, grouping bool, uc OutputUseCase, arch
 	return res, nil
 }
 
-// SingleAnalysisOutput captures output per VPC or per semantic diff between 2 VPCs
+// SingleAnalysisOutput captures output per connectivity analysis of a single VPC,  or per semantic diff between 2 VPCs
 // in the former case VPC2Name will be empty
 type SingleAnalysisOutput struct {
 	VPC1Name   string
