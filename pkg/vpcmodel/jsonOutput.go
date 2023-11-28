@@ -128,17 +128,17 @@ type allSemanticDiff struct {
 }
 
 func getDiffLines(configsDiff *diffBetweenCfgs) []diffLine {
-	diffLines := getDirectionalDiffLines(configsDiff.cfg1ConnRemovedFrom2, true)
-	diffLines = append(diffLines, getDirectionalDiffLines(configsDiff.cfg2ConnRemovedFrom1, false)...)
+	diffLines := getDirectionalDiffLines(configsDiff.cfg1ConnRemovedFrom2)
+	diffLines = append(diffLines, getDirectionalDiffLines(configsDiff.cfg2ConnRemovedFrom1)...)
 	return diffLines
 }
 
-func getDirectionalDiffLines(connectDiff connectivityDiff, thisMinusTheOther bool) []diffLine {
+func getDirectionalDiffLines(connectDiff connectivityDiff) []diffLine {
 	diffLines := []diffLine{}
 	for src, endpointConnDiff := range connectDiff {
 		for dst, connDiff := range endpointConnDiff {
 			var diffStr string
-			if thisMinusTheOther {
+			if connDiff.thisMinusOther {
 				diffStr = getDiffStrThis(connDiff.diff)
 			} else {
 				diffStr = getDiffStrOther(connDiff.diff)
