@@ -197,7 +197,7 @@ func newSubnetsLayout(network SquareTreeNodeInterface) *subnetsLayout {
 	}
 }
 
-//layout() - the top function, with the four steps of the algorithm:
+// layout() - the top function, with the four steps of the algorithm:
 func (ly *subnetsLayout) layout() ([][]TreeNodeInterface, map[TreeNodeInterface]int) {
 	//create a list of groups and miniGroups:
 	ly.createGroupsDataS()
@@ -211,7 +211,7 @@ func (ly *subnetsLayout) layout() ([][]TreeNodeInterface, map[TreeNodeInterface]
 	return ly.subnetMatrix, ly.zonesCol
 }
 
-////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////
 // createGroupsDataS() - sorting the subnets to miniGroups and groups
 // the output is a list of miniGroups and list of groups. (each group holds a set of miniGroups)
 // a miniGroup is a set of subnets from the same zone, each subnet in the set are at the same set of groups.
@@ -278,13 +278,14 @@ func (ly *subnetsLayout) createGroupSubTree(group *groupDataS) {
 	}
 }
 
-/////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////
 // the output of the layout algorithm is a matrix of miniGroups, later converted to a matrix of subnets
 // each column is dedicated to a different zone
 // layoutGroups() has two main steps:
 // 1. calc the zone order - try to put zones that share the same group next to each other
 // 2. layout groups - a recursive call to set the miniGroups locations on the matrix
+// see documentation of calcZoneOrder() and layoutGroup()
 func (ly *subnetsLayout) layoutGroups() {
 	ly.calcZoneOrder()
 	ly.createMatrixes()
@@ -292,8 +293,8 @@ func (ly *subnetsLayout) layoutGroups() {
 	ly.setSubnetsMatrix()
 }
 
-/////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////
 // createNewTreeNodes() do the follows:
 // check if a split group can somehow be shown on the canvas, if not, mark them as doNotShowOnDrawio
 // created treeNodes for the groups that was created during the splitting
@@ -507,25 +508,29 @@ func (ly *subnetsLayout) newGroupFromSplitMiniGroups(group *groupDataS, miniGrou
 
 ///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
+// calcZoneOrder()  set the order of the zones in the matrix (every zone has one column)
+// the output of the is a list of zones
+// 1. for every pair of zones, calc the score of the pair
+// 2. start a slice of a size of two, with the pair that has the highest score
+// 3. in a loop  - choose the best pair (z1,z2) such as z1 not in the slice and z2 in beginning/end of the slice. add z1 to the slice
 
 func (ly *subnetsLayout) calcZoneOrder() {
-	zoneConnections := map[TreeNodeInterface]map[TreeNodeInterface]int{}
+	zonesScores := map[TreeNodeInterface]map[TreeNodeInterface]int{}
 	for _, group := range ly.groups {
 		for miniGroup1 := range group.miniGroups {
 			for miniGroup2 := range group.miniGroups {
-				if miniGroup1 != miniGroup2 && miniGroup1.zone != miniGroup2.zone {
-					if _, ok := zoneConnections[miniGroup1.zone]; !ok {
-						zoneConnections[miniGroup1.zone] = map[TreeNodeInterface]int{}
+				if miniGroup1.zone != miniGroup2.zone {
+					if _, ok := zonesScores[miniGroup1.zone]; !ok {
+						zonesScores[miniGroup1.zone] = map[TreeNodeInterface]int{}
 					}
-					zoneConnections[miniGroup1.zone][miniGroup2.zone] += 1
+					zonesScores[miniGroup1.zone][miniGroup2.zone] += 1
 				}
 			}
 		}
 	}
+
 	zoneOrder := []TreeNodeInterface{}
-
-	for len(zoneConnections) > 0 {
-
+	for len(zonesScores) > 0 {
 		var zoneToAdd TreeNodeInterface
 		addToRight := 1
 		if len(zoneOrder) > 0 {
@@ -533,7 +538,7 @@ func (ly *subnetsLayout) calcZoneOrder() {
 			bestScores := []int{0, 0}
 			zonesWithBestScore := []TreeNodeInterface{nil, nil}
 			for i, zToChoose := range zonesAtEdges {
-				for z, score := range zoneConnections[zToChoose] {
+				for z, score := range zonesScores[zToChoose] {
 					if bestScores[i] < score {
 						bestScores[i] = score
 						zonesWithBestScore[i] = z
@@ -549,8 +554,9 @@ func (ly *subnetsLayout) calcZoneOrder() {
 
 		}
 		if zoneToAdd == nil {
+			// in case the zoneOrder is empty. or there are no score with one of the edge zones
 			bestScore := 0
-			for z, friendsScore := range zoneConnections {
+			for z, friendsScore := range zonesScores {
 				for _, score := range friendsScore {
 					if score > bestScore {
 						bestScore = score
@@ -567,20 +573,19 @@ func (ly *subnetsLayout) calcZoneOrder() {
 
 		if len(zoneOrder) > 2 {
 			if addToRight == 1 {
-				delete(zoneConnections, zoneOrder[len(zoneOrder)-2])
+				delete(zonesScores, zoneOrder[len(zoneOrder)-2])
 			} else {
-				delete(zoneConnections, zoneOrder[1])
+				delete(zonesScores, zoneOrder[1])
 			}
 		}
-		for _, zScores := range zoneConnections {
+		for _, zScores := range zonesScores {
 			delete(zScores, zoneToAdd)
 		}
-		for z, score := range zoneConnections {
+		for z, score := range zonesScores {
 			if len(score) == 0 {
-				delete(zoneConnections, z)
+				delete(zonesScores, z)
 			}
 		}
-
 	}
 	for i, z := range zoneOrder {
 		ly.zonesCol[z] = i
@@ -603,7 +608,18 @@ func (ly *subnetsLayout) createMatrixes() {
 	}
 }
 
-func (ly *subnetsLayout) layoutGroup(group *groupDataS, minRow int) {
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+// layoutGroup() is a recursive method to layout the group
+// phases:
+// 1. calc min and max Clos
+// 2. calc the first row of the group
+// 3. layout all the children
+// 4. layout the miniGroups of the group
+// 5. calc the last group.
+// 6. fill the square [firstRow-lastRow, minCol-maxCol] with a fake miniGroups, as space holders
+
+func (ly *subnetsLayout) layoutGroup(group *groupDataS, parentFirstRow int) {
 	minZoneCol, maxZoneCol := len(ly.zonesCol), -1
 	for mg := range group.miniGroups {
 		if minZoneCol > ly.zonesCol[mg.zone] {
@@ -613,7 +629,7 @@ func (ly *subnetsLayout) layoutGroup(group *groupDataS, minRow int) {
 			maxZoneCol = ly.zonesCol[mg.zone]
 		}
 	}
-	firstRow := minRow
+	firstRow := parentFirstRow
 	for rIndex := firstRow; rIndex < len(ly.miniGroupsMatrix); rIndex++ {
 		for cIndex := minZoneCol; cIndex <= maxZoneCol; cIndex++ {
 			if ly.miniGroupsMatrix[rIndex][cIndex] != nil {
@@ -644,7 +660,7 @@ func (ly *subnetsLayout) layoutGroup(group *groupDataS, minRow int) {
 	}
 
 	if group != ly.topFakeGroup {
-		lastRow := minRow
+		lastRow := parentFirstRow
 		for rIndex := lastRow; rIndex < len(ly.miniGroupsMatrix); rIndex++ {
 			for cIndex := minZoneCol; cIndex <= maxZoneCol; cIndex++ {
 				if ly.miniGroupsMatrix[rIndex][cIndex] != nil {
@@ -694,8 +710,6 @@ func (ly *subnetsLayout) setSubnetsMatrix() {
 	}
 }
 
-// ///////////////////////////////////////////////////////////////////////////
-// //////////////////////////////////////////////////////////////////////////
 func (ly *subnetsLayout) doNotShowSplitGroups() {
 	for _, group := range ly.groups {
 		if len(group.splitTo) != 0 && group.treeNode != nil {

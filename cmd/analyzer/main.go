@@ -113,7 +113,7 @@ func _main(cmdlineArgs []string) error {
 	if err != nil {
 		return fmt.Errorf(ErrorFormat, InGenerationErr, err)
 	}
-	
+
 	outFile := ""
 	if inArgs.OutputFile != nil {
 		outFile = *inArgs.OutputFile

@@ -337,25 +337,10 @@ func (ly *layoutS) setSubnetsLocations(subnetMatrix [][]TreeNodeInterface, zones
 
 }
 
-/////////////////////////////////////////////////////////////////////////////////////
-
-func (ly *layoutS) setGroupedSubnetsOffset() {
-	allSubnetsSquares := map[(*GroupSubnetsSquareTreeNode)]bool{}
+func (ly *layoutS) resolveGroupedSubnetsOverride() {
+	allSubnetsSquares := map[*GroupSubnetsSquareTreeNode]bool{}
 	for _, tn := range getAllNodes(ly.network) {
-		switch {
-		case tn.NotShownInDrawio():
-		case !tn.IsSquare():
-		case tn.(SquareTreeNodeInterface).IsSubnet():
-			tn.Location().xOffset = borderWidth
-			tn.Location().yOffset = borderWidth
-			tn.Location().xEndOffset = borderWidth
-			tn.Location().yEndOffset = borderWidth
-
-		case tn.(SquareTreeNodeInterface).IsGroupSubnetsSquare():
-			tn.Location().xOffset = -groupBorderWidth
-			tn.Location().yOffset = -groupBorderWidth
-			tn.Location().xEndOffset = -groupBorderWidth
-			tn.Location().yEndOffset = -groupBorderWidth
+		if !tn.NotShownInDrawio() && tn.(SquareTreeNodeInterface).IsGroupSubnetsSquare() {
 			allSubnetsSquares[tn.(*GroupSubnetsSquareTreeNode)] = true
 		}
 	}
@@ -381,10 +366,30 @@ func (ly *layoutS) setGroupedSubnetsOffset() {
 						foundOverlap = true
 					}
 				}
-
 			}
 		}
 	}
+}
+
+func (ly *layoutS) setGroupedSubnetsOffset() {
+	for _, tn := range getAllNodes(ly.network) {
+		switch {
+		case tn.NotShownInDrawio():
+		case !tn.IsSquare():
+		case tn.(SquareTreeNodeInterface).IsSubnet():
+			tn.Location().xOffset = borderWidth
+			tn.Location().yOffset = borderWidth
+			tn.Location().xEndOffset = borderWidth
+			tn.Location().yEndOffset = borderWidth
+
+		case tn.(SquareTreeNodeInterface).IsGroupSubnetsSquare():
+			tn.Location().xOffset = -groupBorderWidth
+			tn.Location().yOffset = -groupBorderWidth
+			tn.Location().xEndOffset = -groupBorderWidth
+			tn.Location().yEndOffset = -groupBorderWidth
+		}
+	}
+	ly.resolveGroupedSubnetsOverride()
 }
 
 // //////////////////////////////////////////////////////////////////////////////////////////
@@ -502,7 +507,6 @@ func (ly *layoutS) setSquaresLocations() {
 			for _, groupSubnetsSquare := range vpc.(*VpcTreeNode).groupSubnetsSquares {
 				resolveSquareLocation(groupSubnetsSquare, 0, false)
 			}
-
 		}
 	}
 	ly.resolvePublicNetworkLocations()
@@ -510,7 +514,6 @@ func (ly *layoutS) setSquaresLocations() {
 	if ly.network.(*NetworkTreeNode).SubnetMode {
 		ly.setGroupedSubnetsOffset()
 	}
-
 }
 
 // ////////////////////////////////////////////////////////////////////////////////////////

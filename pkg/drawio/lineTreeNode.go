@@ -34,8 +34,8 @@ func (tn *abstractLineTreeNode) IsLine() bool {
 	return true
 }
 
-func (tn *abstractLineTreeNode) SrcID() uint                { return tn.src.ID() }
-func (tn *abstractLineTreeNode) DstID() uint                { return tn.dst.ID() }
+func (tn *abstractLineTreeNode) SrcID() uint            { return tn.src.ID() }
+func (tn *abstractLineTreeNode) DstID() uint            { return tn.dst.ID() }
 func (tn *abstractLineTreeNode) Src() TreeNodeInterface { return tn.src }
 func (tn *abstractLineTreeNode) Dst() TreeNodeInterface { return tn.dst }
 
@@ -86,10 +86,10 @@ func NewConnectivityLineTreeNode(network SquareTreeNodeInterface,
 	src, dst TreeNodeInterface,
 	directed bool,
 	name string) *ConnectivityTreeNode {
-	if src.IsSquare() && src.(SquareTreeNodeInterface).IsGroupingSquare(){
+	if src.IsSquare() && src.(SquareTreeNodeInterface).IsGroupingSquare() {
 		src = NewGroupPointTreeNode(src.(SquareTreeNodeInterface), directed, true, "")
 	}
-	if dst.IsSquare()  && dst.(SquareTreeNodeInterface).IsGroupingSquare(){
+	if dst.IsSquare() && dst.(SquareTreeNodeInterface).IsGroupingSquare() {
 		dst = NewGroupPointTreeNode(dst.(SquareTreeNodeInterface), directed, false, "")
 	}
 	if src.IsIcon() && src.(IconTreeNodeInterface).IsGroupingPoint() {
