@@ -34,9 +34,10 @@ const (
 )
 
 type connectionDiff struct {
-	conn1 *common.ConnectionSet
-	conn2 *common.ConnectionSet
-	diff  DiffType
+	conn1          *common.ConnectionSet
+	conn2          *common.ConnectionSet
+	diff           DiffType
+	thisMinusOther bool
 }
 
 type connectivityDiff map[VPCResourceIntf]map[VPCResourceIntf]*connectionDiff
@@ -59,7 +60,7 @@ type diffBetweenCfgs struct {
 	cfg2ConnRemovedFrom1 connectivityDiff
 
 	// grouped connectivity result
-	groupedLines []*GroupedConnLine
+	groupedLines []*groupedConnLine
 }
 
 // GetDiff given 2 *VPCConfigs and an diff analysis - either subnets or endpoints -
@@ -81,7 +82,7 @@ func (configs configsForDiff) GetDiff() (*diffBetweenCfgs, error) {
 	configConn2 := &configConnectivity{configs.config2,
 		generalConnectivityMap2}
 	alignedConfigConnectivity1, alignedConfigConnectivity2, err :=
-		configConn1.getConnectivesWithSameIPBlocks(configConn2)
+		configConn1.getConnectivityWithSameIPBlocks(configConn2)
 	if err != nil {
 		return nil, err
 	}
@@ -185,7 +186,8 @@ func (confConnectivity *configConnectivity) connMissingOrChanged(other *configCo
 			if err2 != nil {
 				return nil, err2
 			}
-			connDiff := &connectionDiff{conns, nil, missingConnection}
+			// includeChanged indicates if it is thisMinusOther
+			connDiff := &connectionDiff{conns, nil, missingConnection, includeChanged}
 			if srcInOther != nil && dstInOther != nil {
 				if otherSrc, ok := other.connectivity[srcInOther]; ok {
 					if otherConn, ok := otherSrc[dstInOther]; ok {
@@ -229,23 +231,6 @@ func getDiffType(src, srcInOther, dst, dstInOther VPCResourceIntf) DiffType {
 	return noDiff
 }
 
-func (connDiff *connectivityDiff) string(diffAnalysis diffAnalysisType, thisMinusOther bool) string {
-	strList := []string{}
-	for src, endpointConnDiff := range *connDiff {
-		for dst, connDiff := range endpointConnDiff {
-			conn1Str, conn2Str := conn1And2Str(connDiff, thisMinusOther)
-			diffType, endpointsDiff := diffAndEndpointsDisc(connDiff.diff, src, dst, thisMinusOther)
-			diffInfo := diffInfoStr(diffAnalysis)
-			printDiff := fmt.Sprintf("%v %s, source: %s, destination: %s, ", diffTypeStr, diffType, src.Name(), dst.Name())
-			printDiff += fmt.Sprintf(configsStr, conn1Str, conn2Str, diffInfo, endpointsDiff) + "\n"
-			strList = append(strList, printDiff)
-		}
-	}
-	sort.Strings(strList)
-	res := strings.Join(strList, "")
-	return res
-}
-
 func diffInfoStr(diffAnalysis diffAnalysisType) string {
 	if diffAnalysis == Subnets {
 		return "subnets-diff-info:"
@@ -255,8 +240,8 @@ func diffInfoStr(diffAnalysis diffAnalysisType) string {
 	return ""
 }
 
-func conn1And2Str(connDiff *connectionDiff, thisMinusOther bool) (conn1Str, conn2Str string) {
-	if thisMinusOther {
+func conn1And2Str(connDiff *connectionDiff) (conn1Str, conn2Str string) {
+	if connDiff.thisMinusOther {
 		conn1Str = connStr(connDiff.conn1)
 		conn2Str = connStr(connDiff.conn2)
 	} else {
@@ -266,18 +251,13 @@ func conn1And2Str(connDiff *connectionDiff, thisMinusOther bool) (conn1Str, conn
 	return conn1Str, conn2Str
 }
 
-// printDiffLine print one diff line,
-// decoded comes from GroupedConnLine.Conn and is encoded by connDiffEncode() as follows:
-// the following 4 strings are separated by ";"
-//  1. diff-type info: e.g. diff-type: removed
-//  2. connection of config1
-//  3. connection of config2
-//  4. info regarding missing endpoints: e.g. vsi0 removed
-func printDiffLine(diffAnalysis diffAnalysisType, src, dst EndpointElem, decoded string) string {
-	decodedDetails := strings.Split(decoded, semicolon)
+// printDiffLine print one diff line
+func printDiffLine(diffAnalysis diffAnalysisType, src, dst EndpointElem, commonProps *groupedCommonProperties) string {
+	diffType, endpointsDiff := diffAndEndpointsDescription(commonProps.connDiff.diff, src, dst, commonProps.connDiff.thisMinusOther)
+	conn1Str, conn2Str := conn1And2Str(commonProps.connDiff)
 	diffInfo := diffInfoStr(diffAnalysis)
-	diffTypeStr := fmt.Sprintf("%v %s", diffTypeStr, decodedDetails[0])
-	connDiffStr := fmt.Sprintf(configsStr, decodedDetails[1], decodedDetails[2], diffInfo, decodedDetails[3])
+	diffTypeStr := fmt.Sprintf("%v %s", diffTypeStr, diffType)
+	connDiffStr := fmt.Sprintf(configsStr, conn1Str, conn2Str, diffInfo, endpointsDiff)
 	printDiff := fmt.Sprintf("%s, source: %s, destination: %s, %s\n", diffTypeStr, src.Name(), dst.Name(), connDiffStr)
 	return printDiff
 }
@@ -285,7 +265,7 @@ func printDiffLine(diffAnalysis diffAnalysisType, src, dst EndpointElem, decoded
 func (diffCfgs *diffBetweenCfgs) String() string {
 	strList := make([]string, len(diffCfgs.groupedLines))
 	for i, grouped := range diffCfgs.groupedLines {
-		strList[i] = printDiffLine(diffCfgs.diffAnalysis, grouped.Src, grouped.Dst, grouped.Conn)
+		strList[i] = printDiffLine(diffCfgs.diffAnalysis, grouped.src, grouped.dst, grouped.commonProperties)
 	}
 	sort.Strings(strList)
 	res := strings.Join(strList, "")
@@ -295,12 +275,12 @@ func (diffCfgs *diffBetweenCfgs) String() string {
 // prints connection for the above string(..) where the connection could be empty
 func connStr(conn *common.ConnectionSet) string {
 	if conn == nil {
-		return "No connection"
+		return common.NoConnections
 	}
 	return conn.EnhancedString()
 }
 
-func diffAndEndpointsDisc(diff DiffType, src, dst VPCResourceIntf, thisMinusOther bool) (diffDisc, workLoad string) {
+func diffAndEndpointsDescription(diff DiffType, src, dst EndpointElem, thisMinusOther bool) (diffDesc, workLoad string) {
 	const (
 		doubleString = "%s %s"
 	)
@@ -326,11 +306,11 @@ func diffAndEndpointsDisc(diff DiffType, src, dst VPCResourceIntf, thisMinusOthe
 	return "", ""
 }
 
-// getConnectivesWithSameIPBlocks generates from the given GeneralConnectivityMap
+// getConnectivityWithSameIPBlocks generates from the given GeneralConnectivityMap
 // Two equivalent GeneralConnectivityMap objects s.t. any (src1, dst1) of the first map and
 // (src2, dst2) of the 2nd map s.t. if src1 and src2 (dst1 and dst2) are both external then
 // they are either equal or disjoint
-func (confConnectivity *configConnectivity) getConnectivesWithSameIPBlocks(otherConfConnectivity *configConnectivity) (
+func (confConnectivity *configConnectivity) getConnectivityWithSameIPBlocks(otherConfConnectivity *configConnectivity) (
 	alignedConnectivityConfig, alignedOtherConnectivityConfig *configConnectivity, myErr error) {
 	// 1. computes new set of external nodes (only type of nodes here) in cfg1 and cfg2
 	// does so by computing disjoint block between src+dst ipBlocks in cfg1 and in cfg2

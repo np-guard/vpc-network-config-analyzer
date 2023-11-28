@@ -90,6 +90,6 @@ func connectivityLineMD(src, dst, conn string) string {
 	return fmt.Sprintf("| %s | %s | %s |", src, dst, conn)
 }
 
-func getGroupedMDLine(line *GroupedConnLine) string {
-	return connectivityLineMD(line.Src.Name(), line.Dst.Name(), line.Conn)
+func getGroupedMDLine(line *groupedConnLine) string {
+	return connectivityLineMD(line.src.Name(), line.dst.Name(), line.commonProperties.connStrKey)
 }
