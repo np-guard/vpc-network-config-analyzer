@@ -38,10 +38,7 @@ func (m *MDoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	case AllEndpoints:
 		lines := []string{mdDefaultTitle, mdDefaultHeader}
 		connLines := m.getGroupedOutput(conn)
-		sort.Strings(connLines)
-		lines = append(lines, connLines...)
-		out += strings.Join(lines, "\n")
-		out += asteriskDetails
+		out += linesToOutput(connLines, lines)
 	case SubnetsDiff, EndpointsDiff:
 		var mdTitle, mdHeader string
 		if uc == EndpointsDiff {
