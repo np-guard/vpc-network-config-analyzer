@@ -49,6 +49,10 @@ type Icmp struct {
 	Type *int `json:"type,omitempty"`
 }
 
+type StatefulInfo struct {
+	Stateful string `json:"stateful"`
+}
+
 type IcmpProtocol string
 
 const IcmpProtocolICMP IcmpProtocol = "ICMP"

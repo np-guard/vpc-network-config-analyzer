@@ -16,6 +16,9 @@
             "conn": [
                 {
                     "protocol": "ANY"
+                },
+                {
+                    "stateful": "Bidirectional connection"
                 }
             ]
         },
@@ -35,6 +38,9 @@
             "conn": [
                 {
                     "protocol": "ANY"
+                },
+                {
+                    "stateful": "Bidirectional connection"
                 }
             ]
         }

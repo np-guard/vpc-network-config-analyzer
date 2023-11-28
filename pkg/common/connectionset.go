@@ -116,6 +116,12 @@ const (
 	StatefulFalse
 )
 
+const (
+	unknown     = "Unknown"
+	isStateful  = "Bidirectional connection"
+	nonStateful = "Unidirectional connection"
+)
+
 type ConnectionSet struct {
 	AllowAll             bool
 	connectionProperties *CanonicalHypercubeSet
@@ -438,12 +444,25 @@ func getCubeAsICMPItems(cube []*CanonicalIntervalSet) []Icmp {
 	return res
 }
 
+func statefulStr(stateful int) string {
+	if stateful == StatefulUnknown {
+		return unknown
+	} else if stateful == StatefulTrue {
+		return isStateful
+	} else if stateful == StatefulFalse {
+		return nonStateful
+	}
+	return ""
+}
+
 func ConnToJSONRep(c *ConnectionSet) ConnDetails {
 	if c == nil {
 		return nil // one of the connections in connectionDiff can be empty
 	}
 	if c.AllowAll {
-		return ConnDetails(ProtocolList{AnyProtocol{Protocol: AnyProtocolProtocolANY}})
+		res := ConnDetails(ProtocolList{AnyProtocol{Protocol: AnyProtocolProtocolANY}})
+		res = append(res, StatefulInfo{Stateful: statefulStr(c.IsStateful)})
+		return res
 	}
 	res := ProtocolList{}
 
@@ -468,6 +487,7 @@ func ConnToJSONRep(c *ConnectionSet) ConnDetails {
 				res = append(res, item)
 			}
 		}
+		res = append(res, StatefulInfo{Stateful: statefulStr(c.IsStateful)})
 	}
 
 	return ConnDetails(res)

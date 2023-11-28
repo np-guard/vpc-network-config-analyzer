@@ -15,6 +15,9 @@
             "conn1": [
                 {
                     "protocol": "UDP"
+                },
+                {
+                    "stateful": "Unidirectional connection"
                 }
             ],
             "conn2": null
@@ -39,6 +42,9 @@
                 },
                 {
                     "protocol": "UDP"
+                },
+                {
+                    "stateful": "Bidirectional connection"
                 }
             ],
             "conn2": null
