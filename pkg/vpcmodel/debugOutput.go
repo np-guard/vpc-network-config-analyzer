@@ -22,9 +22,5 @@ func (t *DebugOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	case SubnetsDiff, EndpointsDiff:
 	}
 	_, err := WriteToFile(out, outFile)
-	v2Name := ""
-	if c2 != nil {
-		v2Name = c2.VPC.Name()
-	}
-	return &SingleAnalysisOutput{Output: out, VPC1Name: c1.VPC.Name(), VPC2Name: v2Name, format: Debug}, err
+	return &SingleAnalysisOutput{Output: out, VPC1Name: c1.VPC.Name(), VPC2Name: "", format: Debug}, err
 }
