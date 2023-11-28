@@ -14,7 +14,7 @@ func (ni *NetworkInterface) ShowOnSubnetMode() bool    { return false }
 func (n *IKSNode) ShowOnSubnetMode() bool              { return false }
 func (r *ReservedIP) ShowOnSubnetMode() bool           { return false }
 func (v *Vsi) ShowOnSubnetMode() bool                  { return false }
-func (v *Vpe) ShowOnSubnetMode() bool                   { return false }
+func (v *Vpe) ShowOnSubnetMode() bool                  { return false }
 func (pgw *PublicGateway) ShowOnSubnetMode() bool      { return true }
 func (fip *FloatingIP) ShowOnSubnetMode() bool         { return false }
 

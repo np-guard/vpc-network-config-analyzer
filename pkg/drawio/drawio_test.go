@@ -306,46 +306,26 @@ func createGroup(zones *[][]SquareTreeNodeInterface, vpc *VpcTreeNode, i1, i2, j
 }
 
 func createNetworkSubnetGrouping() SquareTreeNodeInterface {
-
 	network := NewNetworkTreeNode()
 	zones := &[][]SquareTreeNodeInterface{}
 	network.SubnetMode = true
 	cloud1 := NewCloudTreeNode(network, "IBM Cloud")
 	publicNetwork := NewPublicNetworkTreeNode(network)
 	vpc1 := NewVpcTreeNode(cloud1, "vpc1")
-	createZone(zones, vpc1, 8, "z0")
-	createZone(zones, vpc1, 8, "z1")
-	createZone(zones, vpc1, 8, "z2")
-	createZone(zones, vpc1, 8, "z3")
-	createZone(zones, vpc1, 8, "z4")
-	createZone(zones, vpc1, 8, "z5")
-	createZone(zones, vpc1, 8, "z6")
-	createZone(zones, vpc1, 8, "z7")
-	createZone(zones, vpc1, 8, "z8")
-	createZone(zones, vpc1, 8, "z9")
-
-	groups := []SquareTreeNodeInterface{}
-
-	// groups = append(groups, createGroup(zones, vpc1,0,1,0,1))
-	// groups = append(groups, createGroup(zones, vpc1,0,1,1,2))
-	// groups = append(groups, createGroup(zones, vpc1,1,2,2,3))
-	// NewConnectivityLineTreeNode(network, groups[len(groups) -2], groups[len(groups) -2], true, "gconn ")
-
-	groups = append(groups, createGroup(zones, vpc1, 0, 0, 0, 1))
-	groups = append(groups, createGroup(zones, vpc1, 1, 1, 0, 1))
-	groups = append(groups, createGroup(zones, vpc1, 0, 2, 0, 6))
-	groups = append(groups, createGroup(zones, vpc1, 0, 2, 4, 6))
-	groups = append(groups, createGroup(zones, vpc1, 3, 3, 1, 2))
-	groups = append(groups, createGroup(zones, vpc1, 2, 3, 1, 2))
-	gr3312 := groups[len(groups)-2]
-	gr2312 := groups[len(groups)-1]
-	NewConnectivityLineTreeNode(network, gr2312, gr3312, true, "gconn "+gr3312.Label())
-	groups = append(groups, createGroup(zones, vpc1, 0, 4, 0, 3))
-	groups = append(groups, createGroup(zones, vpc1, 0, 5, 0, 3))
-
-	groups = append(groups, createGroup(zones, vpc1, 3, 6, 2, 4))
-	groups = append(groups, createGroup(zones, vpc1, 2, 3, 1, 5))
-	groups = append(groups, createGroup(zones, vpc1, 0, 4, 1, 5))
+	for i := 0; i < 10; i++ {
+		createZone(zones, vpc1, 8, fmt.Sprintf("z%d", i))
+	}
+	groups := []SquareTreeNodeInterface{
+		createGroup(zones, vpc1, 0, 0, 0, 1),
+		createGroup(zones, vpc1, 1, 1, 0, 1),
+		createGroup(zones, vpc1, 0, 2, 0, 6),
+		createGroup(zones, vpc1, 0, 2, 4, 6),
+		createGroup(zones, vpc1, 3, 3, 1, 2),
+		createGroup(zones, vpc1, 2, 3, 1, 2),
+		createGroup(zones, vpc1, 0, 4, 0, 3),
+		createGroup(zones, vpc1, 0, 5, 0, 3),
+	}
+	NewConnectivityLineTreeNode(network, groups[4], groups[5], true, "gconn 1-2")
 
 	for _, gr := range groups {
 		i1 := NewInternetTreeNode(publicNetwork, "I "+gr.Label())
