@@ -72,7 +72,6 @@ func (g *groupedEndpointsElems) GenerateDrawioTreeNode(gen *DrawioGenerator) dra
 		}
 		vpcTn := groupedSubnetsTNs[0].Parent().Parent().(*drawio.VpcTreeNode)
 		return drawio.GroupedSubnetsSquare(vpcTn, groupedSubnetsTNs)
-
 	}
 	groupedIconsTNs := make([]drawio.IconTreeNodeInterface, len(*g))
 	for i, node := range *g {

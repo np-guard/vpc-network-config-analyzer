@@ -299,8 +299,9 @@ func (ly *layoutS) layoutSubnetsIcons() {
 }
 
 func (ly *layoutS) layoutSubnets() {
-	subnetMatrix, zoneCol := newSubnetsLayout(ly.network).layout()
-	ly.setSubnetsLocations(subnetMatrix, zoneCol)
+	sly := newSubnetsLayout(ly.network)
+	sly.layout()
+	ly.setSubnetsLocations(sly.subnetMatrix, sly.zonesCol)
 }
 
 func (ly *layoutS) setSubnetsLocations(subnetMatrix [][]TreeNodeInterface, zonesCol map[TreeNodeInterface]int) {
@@ -334,13 +335,12 @@ func (ly *layoutS) setSubnetsLocations(subnetMatrix [][]TreeNodeInterface, zones
 			}
 		}
 	}
-
 }
 
 func (ly *layoutS) resolveGroupedSubnetsOverride() {
 	allSubnetsSquares := map[*GroupSubnetsSquareTreeNode]bool{}
 	for _, tn := range getAllNodes(ly.network) {
-		if !tn.NotShownInDrawio() && tn.(SquareTreeNodeInterface).IsGroupSubnetsSquare() {
+		if !tn.NotShownInDrawio() && tn.IsSquare() && tn.(SquareTreeNodeInterface).IsGroupSubnetsSquare() {
 			allSubnetsSquares[tn.(*GroupSubnetsSquareTreeNode)] = true
 		}
 	}

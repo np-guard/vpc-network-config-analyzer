@@ -21,7 +21,8 @@ import (
 // a group is not a set of subnets, but a set of miniGroups
 //
 // the main phases of the layout algorithm:
-// 1. sort the subnets to miniGroups, sort the miniGroups to their groups - the output is a list of groups, each group has a list of miniGroups
+// 1. sort the subnets to miniGroups, sort the miniGroups to their groups:
+//   the output is a list of groups, each group has a list of miniGroups
 // 2. create a tree of groups - the children of a group are set of groups that do not intersect, and hold only miniGroups of the group
 //    (in this phase new groups are created, by splitting  groups to smaller groups)
 // 3. layout the groups
@@ -99,7 +100,7 @@ func (s *miniGroupSet) isIntersect(s2 *miniGroupSet) bool {
 	return ((*genericSet[*miniGroupDataS])(s)).isIntersect((*genericSet[*miniGroupDataS])(s2))
 }
 func (s *groupSet) asList() []*groupDataS { return ((*genericSet[*groupDataS])(s)).asList() }
-func (s *groupSet) copy() groupSet        { return (groupSet)(((*genericSet[*groupDataS])(s)).copy()) }
+func (s *groupSet) copy() groupSet        { return groupSet(((*genericSet[*groupDataS])(s)).copy()) }
 
 /////////////////////////////////////////////////////////////////
 
@@ -168,7 +169,6 @@ func (group *groupDataS) reunion() {
 		delete(gr.splitFrom, group)
 	}
 	group.splitTo = groupSet{}
-
 }
 
 // ////////////////////////////////////////////////////////////////////////
@@ -198,8 +198,8 @@ func newSubnetsLayout(network SquareTreeNodeInterface) *subnetsLayout {
 }
 
 // layout() - the top function, with the four steps of the algorithm:
-func (ly *subnetsLayout) layout() ([][]TreeNodeInterface, map[TreeNodeInterface]int) {
-	//create a list of groups and miniGroups:
+func (ly *subnetsLayout) layout() {
+	// create a list of groups and miniGroups:
 	ly.createGroupsDataS()
 	ly.topFakeGroup = newGroupDataS(ly.miniGroups, nil)
 	// create the group tree:
@@ -208,7 +208,6 @@ func (ly *subnetsLayout) layout() ([][]TreeNodeInterface, map[TreeNodeInterface]
 	ly.layoutGroups()
 	// create the new treeNodes:
 	ly.createNewTreeNodes()
-	return ly.subnetMatrix, ly.zonesCol
 }
 
 // //////////////////////////////////////////////////////////
@@ -246,7 +245,10 @@ func (ly *subnetsLayout) createGroupsDataS() {
 
 // the main challenge of createGroupSubTree() is to choose which groups to split
 // the candidates are all the subgroups of the group, which are not a subgroup of other subgroup (aka nonSplitNotInnerGroups).
-// each iteration of the loop updates nonSplitNotInnerGroups, and choose a sub group to split, till all nonSplitNotInnerGroups do not intersect each other.
+// each iteration of the loop:
+//     - updates nonSplitNotInnerGroups,
+//     - choose a sub group to split,
+//     - continue the loop till all nonSplitNotInnerGroups do not intersect each other.
 // the subgroups that remained at nonSplitNotInnerGroups, are set to be the children of the group
 // the sub groups that was chosen to be split, are split to new groups at createGroupsFromSplitGroups()
 
@@ -274,7 +276,6 @@ func (ly *subnetsLayout) createGroupSubTree(group *groupDataS) {
 	}
 	for topInnerGroup := range group.children {
 		ly.createGroupSubTree(topInnerGroup)
-
 	}
 }
 
@@ -461,9 +462,11 @@ func (ly *subnetsLayout) sortSplitMiniGroupsByGroupSet(group *groupDataS) map[*m
 	return miniGroupToGroupSet
 }
 
-func groupSetToMiniGroups(miniGroupToGroupSet map[*miniGroupDataS]groupSet) (map[setAsKey]miniGroupSet, map[setAsKey]groupSet) {
-	groupSetToMiniGroups := map[setAsKey]miniGroupSet{}
-	keysToGroupSet := map[setAsKey]groupSet{}
+func groupSetToMiniGroups(miniGroupToGroupSet map[*miniGroupDataS]groupSet) (
+	groupSetToMiniGroups map[setAsKey]miniGroupSet,
+	keysToGroupSet map[setAsKey]groupSet) {
+	groupSetToMiniGroups = map[setAsKey]miniGroupSet{}
+	keysToGroupSet = map[setAsKey]groupSet{}
 	for miniGroup, groupSet := range miniGroupToGroupSet {
 		if _, ok := groupSetToMiniGroups[groupSet.asKey()]; !ok {
 			groupSetToMiniGroups[groupSet.asKey()] = miniGroupSet{}
@@ -472,7 +475,6 @@ func groupSetToMiniGroups(miniGroupToGroupSet map[*miniGroupDataS]groupSet) (map
 		keysToGroupSet[groupSet.asKey()] = groupSet
 	}
 	return groupSetToMiniGroups, keysToGroupSet
-
 }
 
 func (ly *subnetsLayout) newGroupFromSplitMiniGroups(group *groupDataS, miniGroups miniGroupSet, groups groupSet) {
@@ -514,7 +516,7 @@ func (ly *subnetsLayout) newGroupFromSplitMiniGroups(group *groupDataS, miniGrou
 // 2. start a slice of a size of two, with the pair that has the highest score
 // 3. in a loop  - choose the best pair (z1,z2) such as z1 not in the slice and z2 in beginning/end of the slice. add z1 to the slice
 
-func (ly *subnetsLayout) calcZoneOrder() {
+func (ly *subnetsLayout) calcZonePairScores() map[TreeNodeInterface]map[TreeNodeInterface]int {
 	zonesScores := map[TreeNodeInterface]map[TreeNodeInterface]int{}
 	for _, group := range ly.groups {
 		for miniGroup1 := range group.miniGroups {
@@ -528,7 +530,11 @@ func (ly *subnetsLayout) calcZoneOrder() {
 			}
 		}
 	}
+	return zonesScores
+}
 
+func (ly *subnetsLayout) calcZoneOrder() {
+	zonesScores := ly.calcZonePairScores()
 	zoneOrder := []TreeNodeInterface{}
 	for len(zonesScores) > 0 {
 		var zoneToAdd TreeNodeInterface
@@ -551,7 +557,6 @@ func (ly *subnetsLayout) calcZoneOrder() {
 			if bestScores[addToRight] > 0 {
 				zoneToAdd = zonesWithBestScore[addToRight]
 			}
-
 		}
 		if zoneToAdd == nil {
 			// in case the zoneOrder is empty. or there are no score with one of the edge zones
@@ -782,7 +787,6 @@ func (ly *subnetsLayout) createNewLinesTreeNodes() {
 }
 
 func (ly *subnetsLayout) canShowGroup(group *groupDataS) bool {
-
 	firstRow, firstCol, lastRow, lastCol := len(ly.subnetMatrix), len(ly.subnetMatrix[0]), -1, -1
 	for subnet := range group.subnets {
 		subnetIndexes := ly.subnetsIndexes[subnet]
