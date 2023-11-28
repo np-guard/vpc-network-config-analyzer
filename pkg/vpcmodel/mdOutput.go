@@ -78,9 +78,11 @@ func (m *MDoutputFormatter) getGroupedOutput(conn *VPCConnectivity) []string {
 func (m *MDoutputFormatter) getGroupedDiffOutput(diff *diffBetweenCfgs) []string {
 	lines := make([]string, len(diff.groupedLines))
 	for i, line := range diff.groupedLines {
-		decodedDetails := strings.Split(line.Conn, semicolon)
-		lines[i] = fmt.Sprintf("| %s | %s | %s | %s | %s | %s |", decodedDetails[0], line.Src.Name(),
-			line.Dst.Name(), decodedDetails[1], decodedDetails[2], decodedDetails[3])
+		diffType, endpointsDiff := diffAndEndpointsDescription(line.commonProperties.connDiff.diff,
+			line.src, line.dst, line.commonProperties.connDiff.thisMinusOther)
+		conn1Str, conn2Str := conn1And2Str(line.commonProperties.connDiff)
+		lines[i] = fmt.Sprintf("| %s | %s | %s | %s | %s | %s |", diffType, line.src.Name(),
+			line.dst.Name(), conn1Str, conn2Str, endpointsDiff)
 	}
 	return lines
 }
