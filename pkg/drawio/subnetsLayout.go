@@ -7,12 +7,42 @@ import (
 )
 
 // //////////////////////////////////////////////////////////////////////////////////////////////
+// subnetsLayout struct is a struct for layout subnets when the network is in subnet mode.
+// the input of the layout algorithm is the groups of subnets,
+// and the output is a matrix of subnets, representing the subnets location on the drawio canvas.
+// the location of the groups squares is determinate later by the location of the subnets.
+// the layout algorithm should make sure that all the group subnets, and only the group subnets should be inside the group squares.
+// since some of the subnets can be in the more than one group, the solution is not trivial.
+// and is some cases we must split a group to smaller groups, and delete the original group.
+//
+// the algorithm uses the concept of miniGroup:
+// a miniGroup is a set of subnets. all the subnets in a miniGroup are sharing same groups, and the same zone.
+// all the subnet in the miniGroup will be alongside each other, so instead of layout the subnets, we layout miniGroups
+// a group is not a set of subnets, but a set of miniGroups
+//
+// the main phases of the layout algorithm:
+// 1. sort the subnets to miniGroups, sort the miniGroups to their groups - the output is a list of groups, each group has a list of miniGroups
+// 2. create a tree of groups - the children of a group are set of groups that do not intersect, and hold only miniGroups of the group
+//    (in this phase new groups are created, by splitting  groups to smaller groups)
+// 3. layout the groups
+// 4. create new treeNodes of the new groupSquares and new connectors
 
+// //////////////////////////////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////////////////////////////////
+
+// a genericSet is a generic implementation of a set.
+// the main functionality of genericSet is asKey() - conversion to a string.
+// asKey() is needed for:
+// 1. using genericSet as a key of a map
+// 2. comparing between two sets.
+// //////////////////////////////////////////////////////////////////////////////////////////////
 
 type genericSet[T comparable] map[T]bool
 type setAsKey string
 
 var interfaceIndex map[interface{}]int = map[interface{}]int{}
+
 func (s *genericSet[T]) asKey() setAsKey {
 	ss := []string{}
 	for i := range *s {
@@ -60,8 +90,8 @@ type groupSet genericSet[*groupDataS]
 type miniGroupSet genericSet[*miniGroupDataS]
 
 // todo: how to remove???
-func (s *groupTnSet) asKey() setAsKey   { return ((*genericSet[TreeNodeInterface])(s)).asKey() }
-func (s *groupSet) asKey() setAsKey     { return ((*genericSet[*groupDataS])(s)).asKey() }
+func (s *groupTnSet) asKey() setAsKey { return ((*genericSet[TreeNodeInterface])(s)).asKey() }
+func (s *groupSet) asKey() setAsKey   { return ((*genericSet[*groupDataS])(s)).asKey() }
 func (s *miniGroupSet) equal(s2 *miniGroupSet) bool {
 	return ((*genericSet[*miniGroupDataS])(s)).equal((*genericSet[*miniGroupDataS])(s2))
 }
@@ -80,14 +110,15 @@ type miniGroupDataS struct {
 }
 
 type groupDataS struct {
-	miniGroups     miniGroupSet
-	topInnerGroups groupSet
-	toSplitGroups  groupSet
-	subnets        subnetSet
-	treeNode       TreeNodeInterface
-	splitFrom      groupSet
-	splitTo        groupSet
+	miniGroups    miniGroupSet
+	subnets       subnetSet
+	treeNode      TreeNodeInterface
+	children      groupSet
+	toSplitGroups groupSet
+	splitFrom     groupSet
+	splitTo       groupSet
 }
+
 var fakeSubnet TreeNodeInterface = &SubnetTreeNode{}
 var fakeMiniGroup *miniGroupDataS = &miniGroupDataS{subnets: subnetSet{}}
 
@@ -99,13 +130,13 @@ func newGroupDataS(miniGroups miniGroupSet, tn TreeNodeInterface) *groupDataS {
 		}
 	}
 	return &groupDataS{
-		miniGroups:     miniGroups,
-		topInnerGroups: groupSet{},
-		subnets:        subnets,
-		treeNode:       tn,
-		toSplitGroups:  groupSet{},
-		splitFrom:      groupSet{},
-		splitTo:        groupSet{},
+		miniGroups:    miniGroups,
+		subnets:       subnets,
+		treeNode:      tn,
+		children:      groupSet{},
+		toSplitGroups: groupSet{},
+		splitFrom:     groupSet{},
+		splitTo:       groupSet{},
 	}
 }
 
@@ -166,15 +197,29 @@ func newSubnetsLayout(network SquareTreeNodeInterface) *subnetsLayout {
 	}
 }
 
+//layout() - the top function, with the four steps of the algorithm:
 func (ly *subnetsLayout) layout() ([][]TreeNodeInterface, map[TreeNodeInterface]int) {
+	//create a list of groups and miniGroups:
 	ly.createGroupsDataS()
 	ly.topFakeGroup = newGroupDataS(ly.miniGroups, nil)
+	// create the group tree:
 	ly.createGroupSubTree(ly.topFakeGroup)
+	// layout the groups:
 	ly.layoutGroups()
+	// create the new treeNodes:
 	ly.createNewTreeNodes()
 	return ly.subnetMatrix, ly.zonesCol
 }
 
+////////////////////////////////////////////////////////////
+// createGroupsDataS() - sorting the subnets to miniGroups and groups
+// the output is a list of miniGroups and list of groups. (each group holds a set of miniGroups)
+// a miniGroup is a set of subnets from the same zone, each subnet in the set are at the same set of groups.
+// phases:
+// 1. sort subnets to groups (map: subnet -> set of groups)
+// 2. sort sets of groups to set of subnets (map: group set -> subnet Set)
+// 3. create miniGroups
+// 4. create the groups
 func (ly *subnetsLayout) createGroupsDataS() {
 	subnetToGroups := ly.sortSubnets()
 	groupSetToSubnetSet := sortSubnetsByZoneAndGroups(subnetToGroups)
@@ -185,8 +230,27 @@ func (ly *subnetsLayout) createGroupsDataS() {
 	})
 }
 
-func (ly *subnetsLayout) createGroupSubTree(group *groupDataS) {
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+// createGroupSubTree() is a recursive method to create the tree of groups.
+// the root of the tree is a fake group that holds all the miniGroups
+// the creation of the tree might involve splitting groups to smaller new groups.
+// (the split group is not in the tree)
+// for example, consider the following list of groups:
+// (m1,m2,m3), (m2,m3,m4,m5), (m4,m5,m6), (m4, m5)
+// the algorithm will split (m2,m3,m4,m5). it will create a new group (m2,m3)
+// the tree will look like:
+// (m1,m2,m3,m4,m5,m6) -> (m1,m2,m3), (m4,m5,m6)
+// (m1,m2,m3) -> (m2,m3)
+// (m4,m5,m6) -> (m4,m5)
 
+// the main challenge of createGroupSubTree() is to choose which groups to split
+// the candidates are all the subgroups of the group, which are not a subgroup of other subgroup (aka nonSplitNotInnerGroups).
+// each iteration of the loop updates nonSplitNotInnerGroups, and choose a sub group to split, till all nonSplitNotInnerGroups do not intersect each other.
+// the subgroups that remained at nonSplitNotInnerGroups, are set to be the children of the group
+// the sub groups that was chosen to be split, are split to new groups at createGroupsFromSplitGroups()
+
+func (ly *subnetsLayout) createGroupSubTree(group *groupDataS) {
 	nonSplitGroups := ly.innerGroupsOfAGroup(group)
 	for innerGroup := range nonSplitGroups {
 		if len(innerGroup.splitTo) > 0 {
@@ -198,7 +262,7 @@ func (ly *subnetsLayout) createGroupSubTree(group *groupDataS) {
 		intersectGroups := intersectGroups(nonSplitNotInnerGroups)
 		mostSharedGroup := chooseGroupToSplit(intersectGroups)
 		if mostSharedGroup == nil {
-			group.topInnerGroups = nonSplitNotInnerGroups
+			group.children = nonSplitNotInnerGroups
 			break
 		}
 		group.toSplitGroups[mostSharedGroup] = true
@@ -208,12 +272,19 @@ func (ly *subnetsLayout) createGroupSubTree(group *groupDataS) {
 	if len(group.toSplitGroups) > 0 {
 		ly.createGroupsFromSplitGroups(group)
 	}
-	for topInnerGroup := range group.topInnerGroups {
+	for topInnerGroup := range group.children {
 		ly.createGroupSubTree(topInnerGroup)
 
 	}
 }
 
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+// the output of the layout algorithm is a matrix of miniGroups, later converted to a matrix of subnets
+// each column is dedicated to a different zone
+// layoutGroups() has two main steps:
+// 1. calc the zone order - try to put zones that share the same group next to each other
+// 2. layout groups - a recursive call to set the miniGroups locations on the matrix
 func (ly *subnetsLayout) layoutGroups() {
 	ly.calcZoneOrder()
 	ly.createMatrixes()
@@ -221,12 +292,17 @@ func (ly *subnetsLayout) layoutGroups() {
 	ly.setSubnetsMatrix()
 }
 
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+// createNewTreeNodes() do the follows:
+// check if a split group can somehow be shown on the canvas, if not, mark them as doNotShowOnDrawio
+// created treeNodes for the groups that was created during the splitting
+// creates new connections that replace the connections of groups that was split
 func (ly *subnetsLayout) createNewTreeNodes() {
 	ly.doNotShowSplitGroups()
 	ly.createNewGroupsTreeNodes()
 	ly.createNewLinesTreeNodes()
 }
-
 
 // ////////////////////////////////////////////////////////////////////////
 // ////////////////////////////////////////////////////////////////////////
@@ -294,7 +370,6 @@ func (ly *subnetsLayout) createGroups(subnetToGroups map[TreeNodeInterface]group
 		ly.treeNodesToGroups[groupTn] = groupData
 		ly.groups = append(ly.groups, groupData)
 	}
-
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -353,14 +428,14 @@ func chooseGroupToSplit(intersectGroups map[*groupDataS]groupSet) *groupDataS {
 	return mostSharedGroup
 }
 
-//////////////////////////////////////////////////////////////////////////
+// ////////////////////////////////////////////////////////////////////////
 func (ly *subnetsLayout) createGroupsFromSplitGroups(group *groupDataS) {
 	miniGroupToGroupSet := ly.sortSplitMiniGroupsByGroupSet(group)
-	groupSetToMiniGroups,keysToGroupSet := groupSetToMiniGroups(miniGroupToGroupSet)
+	groupSetToMiniGroups, keysToGroupSet := groupSetToMiniGroups(miniGroupToGroupSet)
 
 	for groupsKey, miniGroups := range groupSetToMiniGroups {
 		groups := keysToGroupSet[groupsKey]
-		ly.newGroupFromSplitMiniGroups(group,miniGroups, groups)
+		ly.newGroupFromSplitMiniGroups(group, miniGroups, groups)
 	}
 }
 
@@ -385,7 +460,7 @@ func (ly *subnetsLayout) sortSplitMiniGroupsByGroupSet(group *groupDataS) map[*m
 	return miniGroupToGroupSet
 }
 
-func groupSetToMiniGroups(miniGroupToGroupSet map[*miniGroupDataS]groupSet)  (map[setAsKey]miniGroupSet, map[setAsKey]groupSet) {
+func groupSetToMiniGroups(miniGroupToGroupSet map[*miniGroupDataS]groupSet) (map[setAsKey]miniGroupSet, map[setAsKey]groupSet) {
 	groupSetToMiniGroups := map[setAsKey]miniGroupSet{}
 	keysToGroupSet := map[setAsKey]groupSet{}
 	for miniGroup, groupSet := range miniGroupToGroupSet {
@@ -399,7 +474,7 @@ func groupSetToMiniGroups(miniGroupToGroupSet map[*miniGroupDataS]groupSet)  (ma
 
 }
 
-func (ly *subnetsLayout) newGroupFromSplitMiniGroups(group *groupDataS,miniGroups miniGroupSet, groups groupSet){
+func (ly *subnetsLayout) newGroupFromSplitMiniGroups(group *groupDataS, miniGroups miniGroupSet, groups groupSet) {
 	var newGroup *groupDataS
 	for _, gr := range ly.groups {
 		if gr.miniGroups.equal(&miniGroups) {
@@ -412,14 +487,14 @@ func (ly *subnetsLayout) newGroupFromSplitMiniGroups(group *groupDataS,miniGroup
 		ly.groups = append(ly.groups, newGroup)
 
 		inTopGroup := false
-		for topGroup := range group.topInnerGroups {
+		for topGroup := range group.children {
 			if groups[topGroup] {
 				inTopGroup = true
 				break
 			}
 		}
 		if !inTopGroup {
-			group.topInnerGroups[newGroup] = true
+			group.children[newGroup] = true
 		}
 	}
 	for splitGroup := range group.toSplitGroups {
@@ -432,7 +507,6 @@ func (ly *subnetsLayout) newGroupFromSplitMiniGroups(group *groupDataS,miniGroup
 
 ///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
-
 
 func (ly *subnetsLayout) calcZoneOrder() {
 	zoneConnections := map[TreeNodeInterface]map[TreeNodeInterface]int{}
@@ -548,13 +622,13 @@ func (ly *subnetsLayout) layoutGroup(group *groupDataS, minRow int) {
 		}
 	}
 
-	groupOrder := group.topInnerGroups.asList()
-	sort.Slice(groupOrder, func(i, j int) bool {
-		return len(groupOrder[i].miniGroups) > len(groupOrder[j].miniGroups)
+	childrenOrder := group.children.asList()
+	sort.Slice(childrenOrder, func(i, j int) bool {
+		return len(childrenOrder[i].miniGroups) > len(childrenOrder[j].miniGroups)
 	})
 
-	for _, innerGroup := range groupOrder {
-		ly.layoutGroup(innerGroup, firstRow)
+	for _, child := range childrenOrder {
+		ly.layoutGroup(child, firstRow)
 	}
 
 	for miniGroup := range group.miniGroups {
@@ -619,10 +693,6 @@ func (ly *subnetsLayout) setSubnetsMatrix() {
 		rIndex += rowSize
 	}
 }
-
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-
 
 // ///////////////////////////////////////////////////////////////////////////
 // //////////////////////////////////////////////////////////////////////////
@@ -730,7 +800,3 @@ func (ly *subnetsLayout) canShowGroup(group *groupDataS) bool {
 
 	return nSubnets == len(group.subnets)
 }
-
-////////////////////////////////////////////////////////////////////////////////////
-
-
