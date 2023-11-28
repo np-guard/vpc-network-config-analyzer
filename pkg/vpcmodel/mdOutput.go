@@ -53,10 +53,7 @@ func (m *MDoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 		}
 		lines := []string{mdTitle, mdHeader}
 		connLines := m.getGroupedDiffOutput(cfgsDiff)
-		sort.Strings(connLines)
-		lines = append(lines, connLines...)
-		out += strings.Join(lines, "\n")
-		out += asteriskDetails
+		out += linesToOutput(connLines, lines)
 	case AllSubnets:
 		return nil, errors.New("SubnetLevel use case not supported for md format currently ")
 	case SingleSubnet:
@@ -65,6 +62,14 @@ func (m *MDoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 
 	_, err := WriteToFile(out, outFile)
 	return &SingleAnalysisOutput{Output: out, VPC1Name: c1.VPC.Name(), VPC2Name: v2Name, format: MD}, err
+}
+
+func linesToOutput(connLines, lines []string) string {
+	sort.Strings(connLines)
+	lines = append(lines, connLines...)
+	out := strings.Join(lines, "\n")
+	out += asteriskDetails
+	return out
 }
 
 func (m *MDoutputFormatter) getGroupedOutput(conn *VPCConnectivity) []string {
