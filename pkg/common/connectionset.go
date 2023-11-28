@@ -445,14 +445,16 @@ func getCubeAsICMPItems(cube []*CanonicalIntervalSet) []Icmp {
 }
 
 func statefulStr(stateful int) string {
-	if stateful == StatefulUnknown {
+	switch stateful {
+	case StatefulUnknown:
 		return unknown
-	} else if stateful == StatefulTrue {
+	case StatefulTrue:
 		return isStateful
-	} else if stateful == StatefulFalse {
+	case StatefulFalse:
 		return nonStateful
+	default:
+		return ""
 	}
-	return ""
 }
 
 func ConnToJSONRep(c *ConnectionSet) ConnDetails {
