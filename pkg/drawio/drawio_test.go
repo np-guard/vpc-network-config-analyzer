@@ -324,8 +324,12 @@ func createNetworkSubnetGrouping() SquareTreeNodeInterface {
 		createGroup(zones, vpc1, 2, 3, 1, 2),
 		createGroup(zones, vpc1, 0, 4, 0, 3),
 		createGroup(zones, vpc1, 0, 5, 0, 3),
+
+		createGroup(zones, vpc1, 6, 7, 0, 1),
+		createGroup(zones, vpc1, 6, 6, 2, 3),
+		createGroup(zones, vpc1, 7, 8, 1, 2),
 	}
-	NewConnectivityLineTreeNode(network, groups[4], groups[5], true, "gconn 1-2")
+	NewConnectivityLineTreeNode(network, groups[0], groups[len(groups)-1], true, "gconn")
 
 	for _, gr := range groups {
 		i1 := NewInternetTreeNode(publicNetwork, "I "+gr.Label())
