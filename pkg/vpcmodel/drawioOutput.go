@@ -86,8 +86,8 @@ func (d *DrawioOutputFormatter) createEdges() {
 	}
 	isEdgeDirected := map[edgeKey]bool{}
 	for _, line := range d.conn.GroupedConnectivity.GroupedLines {
-		src := line.Src
-		dst := line.Dst
+		src := line.src
+		dst := line.dst
 		e := edgeKey{src, dst, line.ConnLabel()}
 		revE := edgeKey{dst, src, line.ConnLabel()}
 		_, revExist := isEdgeDirected[revE]

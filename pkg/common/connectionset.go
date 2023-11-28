@@ -55,9 +55,6 @@ const (
 	NoConnections  = "No Connections"
 )
 
-// IsAllConnections returns whether the input connection string represents all connection (true) or not (false)
-func IsAllConnections(conn string) bool { return strings.Contains(conn, AllConnections) }
-
 type Dimension int
 
 const (
