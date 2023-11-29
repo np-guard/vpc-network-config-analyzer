@@ -159,6 +159,18 @@ var tests = []*vpcGeneralTest{
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
 		format:   vpcmodel.Text,
 	},
+	{
+		name:     "acl_testing5",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		grouping: true,
+		format:   vpcmodel.DRAWIO,
+	},
+	{
+		name:     "demo_with_instances",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		grouping: true,
+		format:   vpcmodel.DRAWIO,
+	},
 	// batch1: cover all use-cases, with text output format , no grouping
 	{
 		name: "acl_testing3",
@@ -382,20 +394,20 @@ var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: tr
 // uncomment the function below to run for updating the expected output
 /*var formatsAvoidOutputGeneration = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
 func TestAllWithGeneration(t *testing.T) {
-	// tests is the list of tests to run
-	for testIdx := range tests {
-		tt := tests[testIdx]
-		// todo - remove the following if when drawio is stable
-		if formatsAvoidOutputGeneration[tt.format] {
-			tt.mode = outputIgnore
-		} else {
-			tt.mode = outputGeneration
-		}
+// tests is the list of tests to run
+for testIdx := range tests {
+tt := tests[testIdx]
+// todo - remove the following if when drawio is stable
+if formatsAvoidOutputGeneration[tt.format] {
+tt.mode = outputIgnore
+} else {
+tt.mode = outputGeneration
+}
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			tt.runTest(t)
-		})
-	}
+t.Parallel()
+tt.runTest(t)
+})
+}
 	fmt.Println("done")
 }*/
 

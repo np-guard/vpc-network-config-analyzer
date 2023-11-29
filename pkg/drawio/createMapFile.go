@@ -44,11 +44,15 @@ func (data *drawioData) ElementComment(tn TreeNodeInterface) string {
 // 2. we put the icons above the squares so we can mouse over it for tooltips
 // 3. we put the sgs in the bottom. if a sg is above a square, it will block the the tooltip of the children of the square.
 func orderNodesForDrawio(nodes []TreeNodeInterface) []TreeNodeInterface {
-	var sg, sq, ln, ic, orderedNodes []TreeNodeInterface
+	var sg, sq, ln, ic, grs, orderedNodes []TreeNodeInterface
 	for _, tn := range nodes {
 		switch {
 		case reflect.TypeOf(tn).Elem() == reflect.TypeOf(PartialSGTreeNode{}):
 			sg = append(sg, tn)
+		case reflect.TypeOf(tn).Elem() == reflect.TypeOf(GroupSquareTreeNode{}):
+			grs = append(grs, tn)
+		case reflect.TypeOf(tn).Elem() == reflect.TypeOf(GroupSubnetsSquareTreeNode{}):
+			grs = append(grs, tn)
 		case tn.IsSquare():
 			sq = append(sq, tn)
 		case tn.IsIcon():
@@ -57,6 +61,7 @@ func orderNodesForDrawio(nodes []TreeNodeInterface) []TreeNodeInterface {
 			ln = append(ln, tn)
 		}
 	}
+	orderedNodes = append(orderedNodes, grs...)
 	orderedNodes = append(orderedNodes, sg...)
 	orderedNodes = append(orderedNodes, sq...)
 	orderedNodes = append(orderedNodes, ic...)

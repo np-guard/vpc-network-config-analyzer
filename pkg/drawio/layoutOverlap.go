@@ -91,7 +91,7 @@ func (lyO *layoutOverlap) handleGroupingLinesOverBorders() {
 			continue
 		}
 		line := n.(LineTreeNodeInterface)
-		if !line.Src().IsGroupingPoint() || !line.Dst().IsGroupingPoint() {
+		if !line.Src().(IconTreeNodeInterface).IsGroupingPoint() || !line.Dst().(IconTreeNodeInterface).IsGroupingPoint() {
 			continue
 		}
 		src, dst := line.Src().(*GroupPointTreeNode), line.Dst().(*GroupPointTreeNode)
@@ -137,8 +137,8 @@ func (lyO *layoutOverlap) handleLinesOverLines() {
 			if len(line1.Points()) != 0 || len(line2.Points()) != 0 {
 				continue
 			}
-			srcPoint := iconCenterPoint(line1.Src())
-			dstPoint := iconCenterPoint(line1.Dst())
+			srcPoint := iconCenterPoint(line1.Src().(IconTreeNodeInterface))
+			dstPoint := iconCenterPoint(line1.Dst().(IconTreeNodeInterface))
 			middlePoint := point{(srcPoint.X + dstPoint.X) / 2, (srcPoint.Y + dstPoint.Y) / 2}
 			BP := lyO.getBypassPoint(srcPoint, dstPoint, middlePoint, line1)
 			if BP != noPoint {
@@ -264,11 +264,11 @@ func (lyO *layoutOverlap) getOverlappedIcon(p1, p2 point, line LineTreeNodeInter
 
 // some methods to convert absolute point to relative, and vis versa:
 func getLineAbsolutePoints(line LineTreeNodeInterface) []point {
-	absPoints := []point{iconCenterPoint(line.Src())}
+	absPoints := []point{iconCenterPoint(line.Src().(IconTreeNodeInterface))}
 	for _, p := range line.Points() {
 		absPoints = append(absPoints, getAbsolutePoint(line, p))
 	}
-	absPoints = append(absPoints, iconCenterPoint(line.Dst()))
+	absPoints = append(absPoints, iconCenterPoint(line.Dst().(IconTreeNodeInterface)))
 	return absPoints
 }
 
