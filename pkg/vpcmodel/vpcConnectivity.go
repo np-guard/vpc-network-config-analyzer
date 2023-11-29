@@ -67,7 +67,6 @@ func (v *VPCConnectivity) SplitAllowedConnsToUnidirectionalAndBidirectional() (
 	bidirectional = GeneralConnectivityMap{}
 	for src, connsMap := range v.AllowedConnsCombined {
 		for dst, conn := range connsMap {
-
 			if conn.IsEmpty() {
 				continue
 			}
@@ -86,8 +85,8 @@ func (v *VPCConnectivity) SplitAllowedConnsToUnidirectionalAndBidirectional() (
 	return bidirectional, unidirectional
 }
 
-func (nodesConnMap GeneralConnectivityMap) getAllowedConnForPair(src, dst VPCResourceIntf) *common.ConnectionSet {
-	if connsMap, ok := nodesConnMap[src]; ok {
+func (connectivityMap GeneralConnectivityMap) getAllowedConnForPair(src, dst VPCResourceIntf) *common.ConnectionSet {
+	if connsMap, ok := connectivityMap[src]; ok {
 		if conn, ok := connsMap[dst]; ok {
 			return conn
 		}

@@ -282,9 +282,9 @@ const (
 	fipRouter          = "FloatingIP"
 )
 
-func (nodesConnMap GeneralConnectivityMap) getCombinedConnsStr() string {
+func (connectivityMap GeneralConnectivityMap) getCombinedConnsStr() string {
 	strList := []string{}
-	for src, nodeConns := range nodesConnMap {
+	for src, nodeConns := range connectivityMap {
 		for dst, conns := range nodeConns {
 			// src and dst here are nodes, always. Thus ignoring potential error in conversion
 			srcNode := src.(Node)
