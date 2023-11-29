@@ -134,11 +134,11 @@ func (d *DrawioOutputFormatter) createEdges() {
 func (d *DrawioOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	conn *VPCConnectivity,
 	subnetsConn *VPCsubnetConnectivity,
-cfgsDiff *diffBetweenCfgs,
-outFile string,
-grouping bool,
-uc OutputUseCase) (*SingleAnalysisOutput, error) {
-var err error
+	cfgsDiff *diffBetweenCfgs,
+	outFile string,
+	grouping bool,
+	uc OutputUseCase) (*SingleAnalysisOutput, error) {
+	var err error
 	switch uc {
 	case AllEndpoints:
 		var gConn *GroupConnLines

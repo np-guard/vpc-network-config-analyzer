@@ -40,7 +40,7 @@ func (m *mockNetIntf) ZoneName() string {
 func (m *mockNetIntf) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
 	return nil
 }
-func (m *mockNetIntf) IsExternal() bool       { return m.isPublic }
+func (m *mockNetIntf) IsExternal() bool { return m.isPublic }
 func (m *mockNetIntf) ShowOnSubnetMode() bool { return false }
 
 type mockSubnet struct {
