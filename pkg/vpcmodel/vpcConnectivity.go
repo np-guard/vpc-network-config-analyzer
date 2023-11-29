@@ -14,19 +14,13 @@ type VPCConnectivity struct {
 	AllowedConns map[Node]*ConnectivityResult
 
 	// combined connectivity - considering both ingress and egress per connection
-	AllowedConnsCombined NodesConnectionsMap
+	AllowedConnsCombined GeneralConnectivityMap
 
 	// allowed connectivity combined and stateful
-	AllowedConnsCombinedStateful NodesConnectionsMap
+	AllowedConnsCombinedStateful GeneralConnectivityMap
 
 	// grouped connectivity result
 	GroupedConnectivity *GroupConnLines
-}
-
-type NodesConnectionsMap map[Node]map[Node]*common.ConnectionSet
-
-func NewNodesConnectionsMap() NodesConnectionsMap {
-	return NodesConnectionsMap{}
 }
 
 // ConnectivityResult is used to capture allowed connectivity between Node elements
@@ -83,11 +77,12 @@ func NewConfigBasedConnectivityResults() *ConfigBasedConnectivityResults {
 }
 
 func (v *VPCConnectivity) SplitAllowedConnsToUnidirectionalAndBidirectional() (
-	bidirectional, unidirectional NodesConnectionsMap) {
-	unidirectional = NewNodesConnectionsMap()
-	bidirectional = NewNodesConnectionsMap()
+	bidirectional, unidirectional GeneralConnectivityMap) {
+	unidirectional = GeneralConnectivityMap{}
+	bidirectional = GeneralConnectivityMap{}
 	for src, connsMap := range v.AllowedConnsCombined {
 		for dst, conn := range connsMap {
+
 			if conn.IsEmpty() {
 				continue
 			}
@@ -106,34 +101,11 @@ func (v *VPCConnectivity) SplitAllowedConnsToUnidirectionalAndBidirectional() (
 	return bidirectional, unidirectional
 }
 
-func (nodesConnMap NodesConnectionsMap) updateAllowedConnsMap(src, dst Node, conn *common.ConnectionSet) {
-	if _, ok := nodesConnMap[src]; !ok {
-		nodesConnMap[src] = map[Node]*common.ConnectionSet{}
-	}
-	nodesConnMap[src][dst] = conn
-}
-
-func (nodesConnMap NodesConnectionsMap) getAllowedConnForPair(src, dst Node) *common.ConnectionSet {
+func (nodesConnMap GeneralConnectivityMap) getAllowedConnForPair(src, dst VPCResourceIntf) *common.ConnectionSet {
 	if connsMap, ok := nodesConnMap[src]; ok {
 		if conn, ok := connsMap[dst]; ok {
 			return conn
 		}
 	}
 	return NoConns()
-}
-
-func (nodesConnMap NodesConnectionsMap) nodesConnectivityToGeneralConnectivity() (generalConnMap GeneralConnectivityMap) {
-	generalConnMap = GeneralConnectivityMap{}
-	for src, connsMap := range nodesConnMap {
-		for dst, conn := range connsMap {
-			if conn.IsEmpty() {
-				continue
-			}
-			if _, ok := generalConnMap[src]; !ok {
-				generalConnMap[src] = map[VPCResourceIntf]*common.ConnectionSet{}
-			}
-			generalConnMap[src][dst] = conn
-		}
-	}
-	return generalConnMap
 }
