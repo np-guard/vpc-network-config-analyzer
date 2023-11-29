@@ -57,14 +57,16 @@ type Node interface {
 	Cidr() string
 	IsInternal() bool
 	IsPublicInternet() bool
+	VPC() VPCResourceIntf // the VPC to which this node belongs to
 }
 
-// NodeSet is an element that may capture several nodes [vpc ,subnet, vsi, (service network?)]
+// NodeSet is an element that may capture several nodes [vpc ,subnet, vsi, vpe]
 type NodeSet interface {
 	VPCResourceIntf
 	Nodes() []Node
 	Connectivity() *ConnectivityResult
 	AddressRange() *common.IPBlock
+	VPC() VPCResourceIntf // the VPC to which this node belongs to
 }
 
 // FilterTrafficResource capture allowed traffic between 2 endpoints
@@ -78,7 +80,7 @@ type FilterTrafficResource interface {
 }
 
 // routing resource enables connectivity from src to destination via that resource
-// fip, pgw, vpe
+// fip, pgw, tgw
 type RoutingResource interface {
 	VPCResourceIntf
 	Src() []Node

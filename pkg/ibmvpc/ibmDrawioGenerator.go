@@ -95,3 +95,7 @@ func (fip *FloatingIP) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) dra
 	nitn.SetFIP(fip.Name())
 	return nitn
 }
+
+func (tgw *TransitGateway) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
+	return nil
+}

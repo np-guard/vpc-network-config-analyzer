@@ -1,0 +1,5 @@
+Analysis for VPC ky-vpc1
+Public Internet (all ranges) => ky-vpc1-vsi[10.240.0.5] : All Connections
+ky-vpc1-vsi[10.240.0.5] => Public Internet (all ranges) : All Connections
+
+connections are stateful unless marked with *

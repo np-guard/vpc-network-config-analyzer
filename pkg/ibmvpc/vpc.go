@@ -25,11 +25,13 @@ func (z *Zone) VPC() *VPC {
 	return z.vpc
 }
 
+// ReservedIP implements vpcmodel.Node interface
 type ReservedIP struct {
 	vpcmodel.VPCResource
 	address string
 	subnet  *Subnet
 	vpe     string
+	vpc     vpcmodel.VPCResourceIntf
 }
 
 func (r *ReservedIP) Cidr() string {
@@ -49,12 +51,17 @@ func (r *ReservedIP) Name() string {
 	return getNodeName(r.vpe, r.address)
 }
 
-// nodes elements - implement vpcmodel.Node interface
+func (r *ReservedIP) VPC() vpcmodel.VPCResourceIntf {
+	return r.vpc
+}
+
+// NetworkInterface implements vpcmodel.Node interface
 type NetworkInterface struct {
 	vpcmodel.VPCResource
 	address string
 	vsi     string
 	subnet  *Subnet
+	vpc     vpcmodel.VPCResourceIntf
 }
 
 func (ni *NetworkInterface) Cidr() string {
@@ -78,10 +85,16 @@ func (ni *NetworkInterface) Name() string {
 	return getNodeName(ni.vsi, ni.address)
 }
 
+func (ni *NetworkInterface) VPC() vpcmodel.VPCResourceIntf {
+	return ni.vpc
+}
+
+// IKSNode implements vpcmodel.Node interface
 type IKSNode struct {
 	vpcmodel.VPCResource
 	address string
 	subnet  *Subnet
+	vpc     vpcmodel.VPCResourceIntf
 }
 
 func (n *IKSNode) Cidr() string {
@@ -101,6 +114,10 @@ func (n *IKSNode) VsiName() string {
 
 func (n *IKSNode) Name() string {
 	return getNodeName(n.ResourceName, n.address)
+}
+
+func (n *IKSNode) VPC() vpcmodel.VPCResourceIntf {
+	return n.vpc
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -132,6 +149,10 @@ func (v *VPC) AddressRange() *common.IPBlock {
 	return v.internalAddressRange
 }
 
+func (v *VPC) VPC() vpcmodel.VPCResourceIntf {
+	return v
+}
+
 type Subnet struct {
 	vpcmodel.VPCResource
 	nodes             []vpcmodel.Node
@@ -156,6 +177,10 @@ func (s *Subnet) Connectivity() *vpcmodel.ConnectivityResult {
 	return s.connectivityRules
 }
 
+func (s *Subnet) VPC() vpcmodel.VPCResourceIntf {
+	return s.vpc
+}
+
 type Vsi struct {
 	vpcmodel.VPCResource
 	nodes             []vpcmodel.Node
@@ -177,6 +202,10 @@ func (v *Vsi) Connectivity() *vpcmodel.ConnectivityResult {
 
 func (v *Vsi) AddressRange() *common.IPBlock {
 	return nodesAddressRange(v.nodes)
+}
+
+func (v *Vsi) VPC() vpcmodel.VPCResourceIntf {
+	return v.vpc
 }
 
 func nodesAddressRange(nodes []vpcmodel.Node) *common.IPBlock {
@@ -213,6 +242,10 @@ func (v *Vpe) AddressRange() *common.IPBlock {
 // vpe is per vpc and not per zone...
 func (v *Vpe) Zone() (*Zone, error) {
 	return nil, nil
+}
+
+func (v *Vpe) VPC() vpcmodel.VPCResourceIntf {
+	return v.vpc
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -488,4 +521,28 @@ func (pgw *PublicGateway) AllowedConnectivity(src, dst vpcmodel.Node) *common.Co
 
 func (pgw *PublicGateway) AppliedFiltersKinds() map[string]bool {
 	return map[string]bool{vpcmodel.NaclLayer: true, vpcmodel.SecurityGroupLayer: true}
+}
+
+type TransitGateway struct {
+	vpcmodel.VPCResource
+	vpcs []*VPC // the VPCs connected by a TGW
+}
+
+func (tgw *TransitGateway) ConnectivityMap() map[string]vpcmodel.ConfigBasedConnectivityResults {
+	return nil
+}
+
+func (tgw *TransitGateway) Src() []vpcmodel.Node {
+	return nil
+}
+func (tgw *TransitGateway) Destinations() []vpcmodel.Node {
+	return nil
+}
+
+func (tgw *TransitGateway) AllowedConnectivity(src, dst vpcmodel.Node) *common.ConnectionSet {
+	return nil
+}
+
+func (tgw *TransitGateway) AppliedFiltersKinds() map[string]bool {
+	return nil
 }

@@ -36,6 +36,7 @@ const (
 	ResourceTypeNACL             = "NACL"
 	ResourceTypeIKSNode          = "IKSNodeNetworkInterface"
 	ResourceTypeVPE              = "VPE"
+	ResourceTypeTGW              = "TGW"
 	ResourceTypeReservedIP       = "ReservedIP"
 )
 
@@ -49,6 +50,7 @@ type ResourcesContainer struct {
 	pgwList      []*vpc1.PublicGateway
 	vpeList      []*vpc1.EndpointGateway
 	iksNodes     []*iksNode
+	transitConns []*transitConnection
 }
 
 func NewResourcesContainer() *ResourcesContainer {
@@ -61,6 +63,7 @@ func NewResourcesContainer() *ResourcesContainer {
 		fipList:      []*vpc1.FloatingIP{},
 		pgwList:      []*vpc1.PublicGateway{},
 		iksNodes:     []*iksNode{},
+		transitConns: []*transitConnection{},
 	}
 	return res
 }
@@ -99,6 +102,10 @@ func (rc *ResourcesContainer) addVPE(n *vpc1.EndpointGateway) {
 
 func (rc *ResourcesContainer) addIKSNode(n *iksNode) {
 	rc.iksNodes = append(rc.iksNodes, n)
+}
+
+func (rc *ResourcesContainer) addTransitConn(n *transitConnection) {
+	rc.transitConns = append(rc.transitConns, n)
 }
 
 var _ = (*ResourcesContainer).printDetails // avoiding "unused" warning
@@ -147,6 +154,36 @@ type iksNode struct {
 	IPAddress string
 	SubnetID  string
 	ID        string
+}
+
+type transitConnection struct {
+	NetworkID string // network_id is the vpc's crn connected to the tgw
+	Name      string // name of the tgw
+	CRN       string // crn of the tgw
+}
+
+/*
+assuming the following components are within input to  transitConnection:
+            "network_id": vpc-crn,
+            "transit_gateway": {
+                "crn": tgw-crn,
+                "id": tgw-id,
+                "name": tgw-name
+            },
+*/
+
+func parseTransitConn(m map[string]json.RawMessage) (*transitConnection, error) {
+	res := &transitConnection{}
+
+	err := json.Unmarshal(m["transit_gateway"], &res)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(m["network_id"], &res.NetworkID)
+	if err != nil {
+		return nil, err
+	}
+	return res, err
 }
 
 var errIksParsing = errors.New("issue parsing IKS node")
@@ -200,6 +237,21 @@ func parseIKSNode(m map[string]json.RawMessage) (*iksNode, error) {
 	}
 
 	return res, nil
+}
+
+func addParsedTransitConn(vList []json.RawMessage, res *ResourcesContainer) error {
+	for i := range vList {
+		nodesMap, err := JSONToMap(vList[i])
+		if err != nil {
+			return err
+		}
+		obj, err := parseTransitConn(nodesMap)
+		if err != nil {
+			return err
+		}
+		res.addTransitConn(obj)
+	}
+	return nil
 }
 
 func addParsedWorkerNodes(vList []json.RawMessage, res *ResourcesContainer) error {
@@ -293,6 +345,8 @@ func parseSingleResourceList(key string, vList []json.RawMessage, res *Resources
 		return addParsedVPE(vList, res)
 	case "iks_worker_nodes":
 		return addParsedWorkerNodes(vList, res)
+	case "transit_connections":
+		return addParsedTransitConn(vList, res)
 	default:
 		fmt.Printf("%s resource type is not yet supported\n", key)
 	}
@@ -380,7 +434,7 @@ func getInstancesConfig(
 			intfNode := &NetworkInterface{
 				VPCResource: vpcmodel.VPCResource{ResourceName: *netintf.Name, ResourceUID: *netintf.PrimaryIP.ID,
 					ResourceType: ResourceTypeNetworkInterface, Zone: *instance.Zone.Name},
-				address: *netintf.PrimaryIP.Address, vsi: *instance.Name}
+				address: *netintf.PrimaryIP.Address, vsi: *instance.Name, vpc: vpc}
 			res[vpcUID].Nodes = append(res[vpcUID].Nodes, intfNode)
 			res[vpcUID].NameToResource[intfNode.Name()] = intfNode
 			vsiNode.nodes = append(vsiNode.nodes, intfNode)
@@ -741,6 +795,133 @@ func getNACLconfig(rc *ResourcesContainer,
 	return nil
 }
 
+func getTgwConfig(c *ResourcesContainer,
+	res map[string]*vpcmodel.VPCConfig) map[string]*TransitGateway {
+	tgwMap := map[string]*TransitGateway{} // collect all tgw resources
+	for _, tgwConn := range c.transitConns {
+		tgwUID := tgwConn.CRN
+		tgwName := tgwConn.Name
+		vpcUID := tgwConn.NetworkID
+		vpc, err := getVPCObjectByUID(res, vpcUID)
+		if err != nil {
+			fmt.Printf("warning: ignoring vpc that does not exist in tgw config, vpcID: %s\n", vpcUID)
+			continue
+		}
+		if _, ok := tgwMap[tgwUID]; !ok {
+			tgw := &TransitGateway{
+				VPCResource: vpcmodel.VPCResource{
+					ResourceName: tgwName,
+					ResourceUID:  tgwUID,
+					ResourceType: ResourceTypeTGW,
+				},
+				vpcs: []*VPC{vpc},
+			}
+			tgwMap[tgwUID] = tgw
+		} else {
+			tgwMap[tgwUID].vpcs = append(tgwMap[tgwUID].vpcs, vpc)
+		}
+	}
+	return tgwMap
+}
+
+// generate a config that combines multiple vpc entities, which are connected by a tgw
+// currently assuming only all-to-all connectivity is configured
+// in the analysis, such a config should only focus on connections cross-vpcs
+// should make sure that the internal address ranges per all connected vpcs are disjoint
+func extendToTGWconnectedConfigs(tgws map[string]*TransitGateway, res map[string]*vpcmodel.VPCConfig) error {
+	for _, tgw := range tgws {
+		if len(tgw.vpcs) <= 1 {
+			// skip tgw if it does not connect between at least 2 vpcs
+			continue
+		}
+		newConfig := &vpcmodel.VPCConfig{
+			NameToResource:       map[string]vpcmodel.VPCResourceIntf{},
+			IsMultipleVPCsConfig: true,
+		}
+		var vpcsAddressRanges *common.IPBlock // collect all internal address ranges of involved VPCs
+		nacls := &NaclLayer{VPCResource: vpcmodel.VPCResource{ResourceType: vpcmodel.NaclLayer}}
+		sgs := &SecurityGroupLayer{VPCResource: vpcmodel.VPCResource{ResourceType: vpcmodel.SecurityGroupLayer}}
+		vpcsZones := map[string]*Zone{} // collect all zones from all vpcs
+		for _, vpc := range tgw.vpcs {  // iterate the involved VPCs
+			vpcConfig, ok := res[vpc.ResourceUID]
+			if !ok {
+				return fmt.Errorf("missing vpc config for vpc CRN %s", vpc.ResourceUID)
+			}
+			// merge vpc config to the new "combined" config, used to get conns between vpcs only
+			newConfig.Nodes = append(newConfig.Nodes, vpcConfig.Nodes...)
+			newConfig.NodeSets = append(newConfig.NodeSets, vpcConfig.NodeSets...)
+
+			// FilterResources: merge NACLLayers to a single NACLLayer object, same for sg
+			for _, fr := range vpcConfig.FilterResources {
+				switch layer := fr.(type) {
+				case *NaclLayer:
+					nacls.naclList = append(nacls.naclList, layer.naclList...)
+				case *SecurityGroupLayer:
+					sgs.sgList = append(sgs.sgList, layer.sgList...)
+				default:
+					return fmt.Errorf("unexpected type for filter resource in VPC %s", vpc.ResourceUID)
+				}
+			}
+
+			// omit routing resources -- assuming only internal vpc-to-vpc connectivity is of interest to analyze
+			// TODO: is there a scenario of connectivity from one vpc's vsi to external entity through another vpc's pgw/fip ?
+
+			// simple union for NameToResource map
+			for n, r := range vpcConfig.NameToResource {
+				newConfig.NameToResource[n] = r
+			}
+			if vpcsAddressRanges == nil {
+				vpcsAddressRanges = vpcConfig.VPC.(*VPC).internalAddressRange
+			} else {
+				// currently supporting only disjoint address ranges for the connected VPCs
+				intersection := vpcsAddressRanges.Intersection(vpcConfig.VPC.(*VPC).internalAddressRange)
+				if !intersection.Empty() {
+					fmt.Printf("warning: ignoring TGW %s, as currently not supporting connected VPCs with overlapping address ranges\n",
+						tgw.ResourceName)
+					continue
+				}
+				vpcsAddressRanges = vpcsAddressRanges.Union(vpcConfig.VPC.(*VPC).internalAddressRange)
+			}
+
+			// simple union of vpc zones
+			for name, zone := range vpc.zones {
+				// currently assuming no same zones names in the different vpcs
+				vpcsZones[name] = zone
+			}
+		}
+
+		internalNodes := []vpcmodel.Node{}
+		for _, n := range newConfig.Nodes {
+			if n.IsInternal() {
+				internalNodes = append(internalNodes, n)
+			}
+		}
+		newConfig.Nodes = internalNodes
+		// no need to add external nodes - analyzing cross-vpc connections between internal endpoints
+
+		vpcPrefix := "combined-vpc-"
+		newConfig.VPC = &VPC{
+			VPCResource: vpcmodel.VPCResource{
+				ResourceName: vpcPrefix + tgw.ResourceName,
+				ResourceUID:  vpcPrefix + tgw.ResourceUID,
+				ResourceType: ResourceTypeVPC,
+			},
+			internalAddressRange: vpcsAddressRanges,
+			nodes:                internalNodes,
+			zones:                vpcsZones,
+		}
+		nacls.vpc = newConfig.VPC.(*VPC)
+		sgs.vpc = newConfig.VPC.(*VPC)
+		// TODO: analysis should warn if more than one naclLayer/sgLayer is present in FilterTrafficResource, as it is going
+		// to be ignored
+		newConfig.FilterResources = append(newConfig.FilterResources, []vpcmodel.FilterTrafficResource{nacls, sgs}...)
+		newConfig.RoutingResources = []vpcmodel.RoutingResource{tgw}
+
+		res[newConfig.VPC.UID()] = newConfig
+	}
+	return nil
+}
+
 func getSubnetByIPAddress(address string, c *vpcmodel.VPCConfig) (subnet *Subnet, err error) {
 	addressIPblock := common.NewIPBlockFromCidrOrAddress(address)
 	for _, s := range c.NodeSets {
@@ -779,6 +960,7 @@ func getVPEconfig(rc *ResourcesContainer,
 					ResourceType: ResourceTypeReservedIP, Zone: ""}, // the zone gets updated later
 				vpe:     *vpe.Name,
 				address: *rIP.Address,
+				vpc:     vpc,
 			}
 			subnet, err := getSubnetByIPAddress(*rIP.Address, res[vpcUID])
 			if err != nil {
@@ -822,10 +1004,15 @@ func getIKSnodesConfig(res map[string]*vpcmodel.VPCConfig,
 			continue
 		}
 		vpcUID := subnet.vpc.ResourceUID
+		vpc, err := getVPCObjectByUID(res, vpcUID)
+		if err != nil {
+			return err
+		}
 		nodeObject := &IKSNode{
 			VPCResource: vpcmodel.VPCResource{ResourceName: "iks-node", ResourceUID: iksNode.ID, ResourceType: ResourceTypeIKSNode},
 			address:     iksNode.IPAddress,
 			subnet:      subnet,
+			vpc:         vpc,
 		}
 		res[vpcUID].Nodes = append(res[vpcUID].Nodes, nodeObject)
 		// attach the node to the subnet
@@ -913,6 +1100,12 @@ func VPCConfigsFromResources(rc *ResourcesContainer, vpcID string, debug bool) (
 	}
 
 	err = filterVPCSAndAddExternalNodes(vpcInternalAddressRange, res)
+	if err != nil {
+		return nil, err
+	}
+
+	tgws := getTgwConfig(rc, res)
+	err = extendToTGWconnectedConfigs(tgws, res)
 	if err != nil {
 		return nil, err
 	}
