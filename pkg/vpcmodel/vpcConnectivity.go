@@ -32,14 +32,6 @@ type ConnectivityResult struct {
 	EgressAllowedConns  map[Node]*common.ConnectionSet
 }
 
-// NewConnectivityResult returns a new (empty) ConnectivityResult object
-func NewConnectivityResult() *ConnectivityResult {
-	return &ConnectivityResult{
-		IngressAllowedConns: map[Node]*common.ConnectionSet{},
-		EgressAllowedConns:  map[Node]*common.ConnectionSet{},
-	}
-}
-
 func (cr *ConnectivityResult) ingressOrEgressAllowedConns(isIngress bool) map[Node]*common.ConnectionSet {
 	if isIngress {
 		return cr.IngressAllowedConns
@@ -53,13 +45,6 @@ func (cr *ConnectivityResult) ingressOrEgressAllowedConns(isIngress bool) map[No
 type IPbasedConnectivityResult struct {
 	IngressAllowedConns map[*common.IPBlock]*common.ConnectionSet
 	EgressAllowedConns  map[*common.IPBlock]*common.ConnectionSet
-}
-
-func NewIPbasedConnectivityResult() *IPbasedConnectivityResult {
-	return &IPbasedConnectivityResult{
-		IngressAllowedConns: map[*common.IPBlock]*common.ConnectionSet{},
-		EgressAllowedConns:  map[*common.IPBlock]*common.ConnectionSet{},
-	}
 }
 
 // ConfigBasedConnectivityResults is used to capture allowed connectivity to/from elements in the vpc config1 (subnets / external ip-blocks)
