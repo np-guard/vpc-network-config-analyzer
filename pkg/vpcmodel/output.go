@@ -2,6 +2,7 @@ package vpcmodel
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"strings"
 )
@@ -88,16 +89,18 @@ func NewOutputGenerator(c1, c2 *VPCConfig, grouping bool, uc OutputUseCase, arch
 	return res, nil
 }
 
-// VPCAnalysisOutput captures output per VPC
-type VPCAnalysisOutput struct {
-	VPCName    string
+// SingleAnalysisOutput captures output per connectivity analysis of a single VPC,  or per semantic diff between 2 VPCs
+// in the former case VPC2Name will be empty
+type SingleAnalysisOutput struct {
+	VPC1Name   string
+	VPC2Name   string
 	Output     string
 	jsonStruct interface{}
 	format     OutFormat
 }
 
-// Generate returns VPCAnalysisOutput for its VPC analysis results
-func (o *OutputGenerator) Generate(f OutFormat, outFile string) (*VPCAnalysisOutput, error) {
+// Generate returns SingleAnalysisOutput for its VPC analysis results
+func (o *OutputGenerator) Generate(f OutFormat, outFile string) (*SingleAnalysisOutput, error) {
 	var formatter OutputFormatter
 	switch f {
 	case JSON:
@@ -121,7 +124,7 @@ func (o *OutputGenerator) Generate(f OutFormat, outFile string) (*VPCAnalysisOut
 
 type OutputFormatter interface {
 	WriteOutput(c1, c2 *VPCConfig, conn *VPCConnectivity, subnetsConn *VPCsubnetConnectivity, subnetsDiff *diffBetweenCfgs,
-		outFile string, grouping bool, uc OutputUseCase) (*VPCAnalysisOutput, error)
+		outFile string, grouping bool, uc OutputUseCase) (*SingleAnalysisOutput, error)
 }
 
 func WriteToFile(content, fileName string) (string, error) {
@@ -132,9 +135,9 @@ func WriteToFile(content, fileName string) (string, error) {
 	return content, nil
 }
 
-// AggregateVPCsOutput returns the output string for a list of VPCAnalysisOutput objects
+// AggregateVPCsOutput returns the output string for a list of SingleAnalysisOutput objects
 // and writes the output to outFile
-func AggregateVPCsOutput(outputList []*VPCAnalysisOutput, f OutFormat, outFile string) (string, error) {
+func AggregateVPCsOutput(outputList []*SingleAnalysisOutput, f OutFormat, outFile string) (string, error) {
 	var res string
 	var err error
 	switch f {
@@ -150,8 +153,24 @@ func AggregateVPCsOutput(outputList []*VPCAnalysisOutput, f OutFormat, outFile s
 		// aggregate to a map from vpc name to its json struct output
 		all := map[string]interface{}{}
 		for _, o := range outputList {
-			all[o.VPCName] = o.jsonStruct
+			all[o.VPC1Name] = o.jsonStruct
 		}
+		res, err = writeJSON(all, outFile)
+	}
+	return res, err
+}
+
+// WriteDiffOutput actual writing the output into file, with required format adjustments
+func WriteDiffOutput(output *SingleAnalysisOutput, f OutFormat, outFile string) (string, error) {
+	var res string
+	var err error
+	switch f {
+	case Text, MD, Debug: // currently, return out as is
+		res, err = WriteToFile(output.Output, outFile)
+	case JSON:
+		all := map[string]interface{}{}
+		head := fmt.Sprintf("diff-%s-%s", output.VPC1Name, output.VPC2Name)
+		all[head] = output.jsonStruct
 		res, err = writeJSON(all, outFile)
 	}
 	return res, err

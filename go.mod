@@ -3,12 +3,12 @@ module github.com/np-guard/vpc-network-config-analyzer
 go 1.20
 
 require (
-	github.com/IBM/vpc-go-sdk v0.43.0
+	github.com/IBM/vpc-go-sdk v0.44.0
 	github.com/stretchr/testify v1.8.4
 )
 
 require (
-	github.com/IBM/go-sdk-core/v5 v5.13.4 // indirect
+	github.com/IBM/go-sdk-core/v5 v5.14.1 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-openapi/errors v0.20.3 // indirect

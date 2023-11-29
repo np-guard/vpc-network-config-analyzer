@@ -14,21 +14,27 @@ type JSONoutputFormatter struct {
 func (j *JSONoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	conn *VPCConnectivity,
 	subnetsConn *VPCsubnetConnectivity,
-	subnetsDiff *diffBetweenCfgs,
+	cfgsDiff *diffBetweenCfgs,
 	outFile string,
 	grouping bool,
-	uc OutputUseCase) (*VPCAnalysisOutput, error) {
+	uc OutputUseCase) (*SingleAnalysisOutput, error) {
 	var all interface{}
 	switch uc {
 	case AllEndpoints:
 		all = allInfo{EndpointsConnectivity: getConnLines(conn)}
 	case AllSubnets:
 		all = allSubnetsConnectivity{Connectivity: getConnLinesForSubnetsConnectivity(subnetsConn)}
+	case SubnetsDiff, EndpointsDiff:
+		all = allSemanticDiff{SemanticDiff: getDiffLines(cfgsDiff)}
 	case SingleSubnet:
 		return nil, errors.New("DebugSubnet use case not supported for JSON format currently ")
 	}
 	outStr, err := writeJSON(all, outFile)
-	return &VPCAnalysisOutput{Output: outStr, VPCName: c1.VPC.Name(), format: JSON, jsonStruct: all}, err
+	v2Name := ""
+	if c2 != nil {
+		v2Name = c2.VPC.Name()
+	}
+	return &SingleAnalysisOutput{Output: outStr, VPC1Name: c1.VPC.Name(), VPC2Name: v2Name, format: JSON, jsonStruct: all}, err
 }
 
 type connLine struct {
@@ -36,6 +42,14 @@ type connLine struct {
 	Dst                EndpointElem       `json:"dst"`
 	Conn               common.ConnDetails `json:"conn"`
 	UnidirectionalConn common.ConnDetails `json:"unidirectional_conn,omitempty"`
+}
+
+type diffLine struct {
+	Diff  string             `json:"diff-type"`
+	Src   EndpointElem       `json:"src"`
+	Dst   EndpointElem       `json:"dst"`
+	Conn1 common.ConnDetails `json:"conn1"`
+	Conn2 common.ConnDetails `json:"conn2"`
 }
 
 func sortConnLines(connLines []connLine) {
@@ -107,4 +121,86 @@ func getConnLinesForSubnetsConnectivity(conn *VPCsubnetConnectivity) []connLine 
 
 	sortConnLines(connLines)
 	return connLines
+}
+
+type allSemanticDiff struct {
+	SemanticDiff []diffLine `json:"semantic_diff"`
+}
+
+func getDiffLines(configsDiff *diffBetweenCfgs) []diffLine {
+	diffLines := getDirectionalDiffLines(configsDiff.cfg1ConnRemovedFrom2)
+	diffLines = append(diffLines, getDirectionalDiffLines(configsDiff.cfg2ConnRemovedFrom1)...)
+	return diffLines
+}
+
+func getDirectionalDiffLines(connectDiff connectivityDiff) []diffLine {
+	diffLines := []diffLine{}
+	for src, endpointConnDiff := range connectDiff {
+		for dst, connDiff := range endpointConnDiff {
+			var diffStr string
+			if connDiff.thisMinusOther {
+				diffStr = getDiffStrThis(connDiff.diff)
+			} else {
+				diffStr = getDiffStrOther(connDiff.diff)
+			}
+			diffLines = append(diffLines, diffLine{diffStr, src, dst, common.ConnToJSONRep(connDiff.conn1), common.ConnToJSONRep(connDiff.conn2)})
+		}
+	}
+
+	sortDiffLines(diffLines)
+	return diffLines
+}
+
+func sortDiffLines(diffLines []diffLine) {
+	sort.Slice(diffLines, func(i, j int) bool {
+		if diffLines[i].Diff != diffLines[j].Diff {
+			return diffLines[i].Diff < diffLines[j].Diff
+		}
+		if diffLines[i].Src.Name() != diffLines[j].Src.Name() {
+			return diffLines[i].Src.Name() < diffLines[j].Src.Name()
+		}
+		return diffLines[i].Dst.Name() < diffLines[j].Dst.Name()
+	})
+}
+
+const (
+	connectionChanged    = "connection changed"
+	removed              = " removed"
+	added                = " added"
+	source               = "source"
+	destination          = "destination"
+	sourceAndDestination = "source and destination"
+	connection           = "connection"
+)
+
+func getDiffStrThis(diff DiffType) string {
+	switch diff {
+	case missingSrcEP:
+		return source + removed
+	case missingDstEP:
+		return destination + removed
+	case missingSrcDstEP:
+		return sourceAndDestination + removed
+	case missingConnection:
+		return connection + removed
+	case changedConnection:
+		return connectionChanged
+	}
+	return ""
+}
+
+func getDiffStrOther(diff DiffType) string {
+	switch diff {
+	case missingSrcEP:
+		return source + added
+	case missingDstEP:
+		return destination + added
+	case missingSrcDstEP:
+		return sourceAndDestination + added
+	case missingConnection:
+		return connection + added
+	case changedConnection:
+		return connectionChanged
+	}
+	return ""
 }

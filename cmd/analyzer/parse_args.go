@@ -103,6 +103,9 @@ func errorInErgs(args *InArgs, flagset *flag.FlagSet) error {
 		flagset.PrintDefaults()
 		return fmt.Errorf("wrong output format %s; must be one of %s", *args.OutputFormat, getSupportedValuesString(supportedOutputFormats))
 	}
+	if *args.OutputFormat == DEBUGFormat && *args.AnalysisType != allEndpoints {
+		return fmt.Errorf("output format %s supported on for %s", DEBUGFormat, allEndpoints)
+	}
 	diffAnalysis := *args.AnalysisType == allEndpointsDiff || *args.AnalysisType == allSubnetsDiff
 	fileForDiffSpecified := args.InputSecondConfigFile != nil && *args.InputSecondConfigFile != ""
 	if fileForDiffSpecified && !diffAnalysis {
@@ -116,17 +119,20 @@ func errorInErgs(args *InArgs, flagset *flag.FlagSet) error {
 }
 
 func notSupportedYetArgs(args *InArgs) error {
-	if *args.AnalysisType != allEndpoints && *args.OutputFormat != TEXTFormat && *args.OutputFormat != JSONFormat {
+	diffAnalysis := *args.AnalysisType == allEndpointsDiff || *args.AnalysisType == allSubnetsDiff
+	if !diffAnalysis && *args.AnalysisType != allEndpoints && *args.OutputFormat != TEXTFormat &&
+		*args.OutputFormat != JSONFormat {
 		return fmt.Errorf("currently only txt/json output format supported with %s analysis type", *args.AnalysisType)
+	}
+	if diffAnalysis && *args.OutputFormat != TEXTFormat && *args.OutputFormat != MDFormat &&
+		*args.OutputFormat != JSONFormat && *args.OutputFormat != DEBUGFormat {
+		return fmt.Errorf("currently only txt/json/md/debug output format supported with %s analysis type", *args.AnalysisType)
 	}
 	if *args.AnalysisType == singleSubnet && *args.Grouping {
 		return fmt.Errorf("currently singleSubnet analysis type does not support grouping")
 	}
 	if *args.OutputFormat == JSONFormat && *args.Grouping {
 		return fmt.Errorf("json output format is not supported with grouping")
-	}
-	if *args.AnalysisType == allSubnetsDiff && *args.OutputFormat != TEXTFormat {
-		return fmt.Errorf("currently only txt output format supported with diff_all_subnets")
 	}
 	return nil
 }

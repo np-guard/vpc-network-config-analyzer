@@ -369,9 +369,29 @@ var tests = []*vpcGeneralTest{
 		format:   vpcmodel.Text,
 	},
 	{
+		name:     "acl_testing5",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.SubnetsDiff},
+		format:   vpcmodel.MD,
+	},
+	{
+		name:     "acl_testing5",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.SubnetsDiff},
+		format:   vpcmodel.JSON,
+	},
+	{
 		name:     "acl_testing3",
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
 		format:   vpcmodel.Text,
+	},
+	{
+		name:     "acl_testing3",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
+		format:   vpcmodel.MD,
+	},
+	{
+		name:     "acl_testing3",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
+		format:   vpcmodel.JSON,
 	},
 }
 
@@ -531,7 +551,7 @@ func runTestPerUseCase(t *testing.T,
 	uc vpcmodel.OutputUseCase,
 	mode testMode) error {
 	numConfigs := len(c1)
-	allVPCsOutput := make([]*vpcmodel.VPCAnalysisOutput, numConfigs)
+	allVPCsOutput := make([]*vpcmodel.SingleAnalysisOutput, numConfigs)
 	i := 0
 	var vpcConfig2nd *vpcmodel.VPCConfig
 	// note that for diff analysis mode a single vpcConfig in c1 is provided; c2 is assumed to have a single cfg
@@ -565,7 +585,7 @@ func runTestPerUseCase(t *testing.T,
 
 		// sort allVPCsOutput by vpc name
 		sort.Slice(allVPCsOutput, func(i, j int) bool {
-			return allVPCsOutput[i].VPCName < allVPCsOutput[j].VPCName
+			return allVPCsOutput[i].VPC1Name < allVPCsOutput[j].VPC1Name
 		})
 
 		actualOutput, err := vpcmodel.AggregateVPCsOutput(allVPCsOutput, tt.format, tt.actualOutput[uc])

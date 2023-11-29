@@ -7,12 +7,14 @@ type TextOutputFormatter struct {
 
 const asteriskDetails = "\n\nconnections are stateful unless marked with *\n"
 
-func headerOfAnalyzedVPC(vpcName, vpc2Name string) string {
-	if vpc2Name == "" {
+func headerOfAnalyzedVPC(uc OutputUseCase, vpcName, vpc2Name string) string {
+	switch uc {
+	case AllEndpoints, AllSubnets, SingleSubnet:
 		return fmt.Sprintf("Analysis for VPC %s\n", vpcName)
+	case SubnetsDiff, EndpointsDiff:
+		return fmt.Sprintf("Diff between VPC %s and VPC %s\n", vpcName, vpc2Name)
 	}
-	// 2nd cfg given - the analysis is a semantic diff and concerns a single cfg
-	return fmt.Sprintf("Analysis for diff between VPC %s and VPC %s\n", vpcName, vpc2Name)
+	return "" // should never get here
 }
 
 func (t *TextOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
@@ -21,13 +23,13 @@ func (t *TextOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	cfgsDiff *diffBetweenCfgs,
 	outFile string,
 	grouping bool,
-	uc OutputUseCase) (*VPCAnalysisOutput, error) {
+	uc OutputUseCase) (*SingleAnalysisOutput, error) {
 	vpc2Name := ""
 	if c2 != nil {
 		vpc2Name = c2.VPC.Name()
 	}
 	// header line - specify the VPC analyzed
-	out := headerOfAnalyzedVPC(c1.VPC.Name(), vpc2Name)
+	out := headerOfAnalyzedVPC(uc, c1.VPC.Name(), vpc2Name)
 	// get output by analysis type
 	switch uc {
 	case AllEndpoints:
@@ -41,5 +43,5 @@ func (t *TextOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	}
 	// write output to file and return the output string
 	_, err := WriteToFile(out, outFile)
-	return &VPCAnalysisOutput{Output: out, VPCName: c1.VPC.Name(), format: Text}, err
+	return &SingleAnalysisOutput{Output: out, VPC1Name: c1.VPC.Name(), VPC2Name: vpc2Name, format: Text}, err
 }
