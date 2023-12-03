@@ -375,7 +375,7 @@ func TestSimpleVsisDiffGrouping(t *testing.T) {
 		fmt.Println("error:", err.Error())
 	}
 	require.Equal(t, err, nil)
-	d := &diffBetweenCfgs{Subnets, cfg1SubCfg2, cfg2SubCfg1, nil}
+	d := &diffBetweenCfgs{Vsis, cfg1SubCfg2, cfg2SubCfg1, nil}
 	groupConnLines, _ := newGroupConnLinesDiff(d)
 	d.groupedLines = groupConnLines.GroupedLines
 	groupedPrinted := d.String()
@@ -383,17 +383,17 @@ func TestSimpleVsisDiffGrouping(t *testing.T) {
 	newLines := strings.Count(groupedPrinted, "\n")
 	require.Equal(t, 6, newLines)
 	require.Contains(t, groupedPrinted, "diff-type: added, source: vsi2, destination: Public Internet 1.2.3.4-1.2.3.63, "+
-		"config1: No Connections, config2: All Connections, subnets-diff-info: \n")
+		"config1: No Connections, config2: All Connections, vsis-diff-info: \n")
 	require.Contains(t, groupedPrinted, "diff-type: added, source: vsi3, destination: vsi4, config1: No Connections, "+
-		"config2: All Connections, subnets-diff-info: vsi4 added\n")
+		"config2: All Connections, vsis-diff-info: vsi4 added\n")
 	require.Contains(t, groupedPrinted, "diff-type: changed, source: vsi2, destination: Public Internet 1.2.3.0/30, "+
-		"config1: protocol: TCP src-ports: 10-100 dst-ports: 443, config2: All Connections, subnets-diff-info: \n")
+		"config1: protocol: TCP src-ports: 10-100 dst-ports: 443, config2: All Connections, vsis-diff-info: \n")
 	require.Contains(t, groupedPrinted, "diff-type: changed, source: vsi2, destination: vsi3, "+
-		"config1: protocol: TCP src-ports: 10-100 dst-ports: 443, config2: All Connections, subnets-diff-info: \n")
+		"config1: protocol: TCP src-ports: 10-100 dst-ports: 443, config2: All Connections, vsis-diff-info: \n")
 	require.Contains(t, groupedPrinted, "diff-type: removed, source: vsi0, destination: vsi1, config1: "+
-		"All Connections, config2: No Connections, subnets-diff-info: vsi0 removed\n")
+		"All Connections, config2: No Connections, vsis-diff-info: vsi0 removed\n")
 	require.Contains(t, groupedPrinted, "diff-type: removed, source: vsi1, destination: vsi3, "+
-		"config1: All Connections, config2: No Connections, subnets-diff-info: \n")
+		"config1: All Connections, config2: No Connections, vsis-diff-info: \n")
 }
 
 func (connDiff *connectivityDiff) string(diffAnalysis diffAnalysisType, thisMinusOther bool) string {
