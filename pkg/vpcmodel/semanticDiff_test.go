@@ -107,7 +107,7 @@ func TestSimpleSubnetDiff(t *testing.T) {
 	}
 	require.Equal(t, err, nil)
 	subnet2Subtract1Str := cfg2Subtract1.string(Subnets, false)
-	fmt.Printf("cfg2Subtract1:\n%v", subnet2Subtract1Str)
+	fmt.Printf("cfg2ConnRemovedFrom1:\n%v", subnet2Subtract1Str)
 	require.Equal(t, subnet2Subtract1Str, "diff-type: added, source: subnet4, destination: subnet5, config1: "+
 		"No Connections, config2: All Connections, subnets-diff-info: subnet5 added\n")
 }
