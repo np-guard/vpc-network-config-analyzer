@@ -130,7 +130,7 @@ func TestSimpleSubnetDiffGrouping(t *testing.T) {
 	groupedPrinted := d.String()
 	fmt.Println(groupedPrinted)
 	newLines := strings.Count(groupedPrinted, "\n")
-	require.Equal(t, 6, newLines)
+	require.Equal(t, 9, newLines)
 	require.Contains(t, groupedPrinted, "diff-type: removed, source: subnet0, destination: subnet1, "+
 		"config1: All Connections, config2: No Connections, subnets-diff-info: subnet0 and subnet1 removed\n")
 	require.Contains(t, groupedPrinted, "diff-type: removed, source: subnet1, destination: subnet2, "+
@@ -247,7 +247,7 @@ func TestSimpleIPAndSubnetDiffGrouping(t *testing.T) {
 	groupedPrinted := d.String()
 	fmt.Println(groupedPrinted)
 	newLines := strings.Count(groupedPrinted, "\n")
-	require.Equal(t, 5, newLines)
+	require.Equal(t, 8, newLines)
 	require.Contains(t, groupedPrinted, "diff-type: added, source: Public Internet 1.2.3.4-1.2.3.63, "+
 		"destination: subnet1, config1: No Connections, config2: All Connections, subnets-diff-info:")
 	require.Contains(t, groupedPrinted, "diff-type: added, source: Public Internet 1.2.3.4-1.2.3.63, "+
@@ -381,7 +381,7 @@ func TestSimpleVsisDiffGrouping(t *testing.T) {
 	groupedPrinted := d.String()
 	fmt.Println(groupedPrinted)
 	newLines := strings.Count(groupedPrinted, "\n")
-	require.Equal(t, 6, newLines)
+	require.Equal(t, 9, newLines)
 	require.Contains(t, groupedPrinted, "diff-type: added, source: vsi2, destination: Public Internet 1.2.3.4-1.2.3.63, "+
 		"config1: No Connections, config2: All Connections, vsis-diff-info: \n")
 	require.Contains(t, groupedPrinted, "diff-type: added, source: vsi3, destination: vsi4, config1: No Connections, "+
