@@ -77,7 +77,7 @@ func (v *Vpe) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeN
 	for i, resIP := range v.Nodes() {
 		resIPs[i] = gen.TreeNode(resIP)
 	}
-	vpcTn := gen.TreeNode(v.vpc).(drawio.SquareTreeNodeInterface)
+	vpcTn := gen.TreeNode(v.VPC()).(drawio.SquareTreeNodeInterface)
 	drawio.GroupResIPsWithVpe(vpcTn, v.Name(), resIPs)
 	return nil
 }

@@ -25,13 +25,19 @@ func (z *Zone) VPC() *VPC {
 	return z.vpc
 }
 
+func zoneFromVPCResource(r vpcmodel.VPCResourceIntf) (*Zone, error) {
+	if vpc, ok := r.VPC().(*VPC); ok {
+		return vpc.getZoneByName(r.ZoneName())
+	}
+	return nil, errors.New("error getting VPC from resource object")
+}
+
 // ReservedIP implements vpcmodel.Node interface
 type ReservedIP struct {
 	vpcmodel.VPCResource
 	address string
 	subnet  *Subnet
 	vpe     string
-	vpc     vpcmodel.VPCResourceIntf
 }
 
 func (r *ReservedIP) Cidr() string {
@@ -51,17 +57,12 @@ func (r *ReservedIP) Name() string {
 	return getNodeName(r.vpe, r.address)
 }
 
-func (r *ReservedIP) VPC() vpcmodel.VPCResourceIntf {
-	return r.vpc
-}
-
 // NetworkInterface implements vpcmodel.Node interface
 type NetworkInterface struct {
 	vpcmodel.VPCResource
 	address string
 	vsi     string
 	subnet  *Subnet
-	vpc     vpcmodel.VPCResourceIntf
 }
 
 func (ni *NetworkInterface) Cidr() string {
@@ -85,16 +86,11 @@ func (ni *NetworkInterface) Name() string {
 	return getNodeName(ni.vsi, ni.address)
 }
 
-func (ni *NetworkInterface) VPC() vpcmodel.VPCResourceIntf {
-	return ni.vpc
-}
-
 // IKSNode implements vpcmodel.Node interface
 type IKSNode struct {
 	vpcmodel.VPCResource
 	address string
 	subnet  *Subnet
-	vpc     vpcmodel.VPCResourceIntf
 }
 
 func (n *IKSNode) Cidr() string {
@@ -114,10 +110,6 @@ func (n *IKSNode) VsiName() string {
 
 func (n *IKSNode) Name() string {
 	return getNodeName(n.ResourceName, n.address)
-}
-
-func (n *IKSNode) VPC() vpcmodel.VPCResourceIntf {
-	return n.vpc
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -149,20 +141,15 @@ func (v *VPC) AddressRange() *common.IPBlock {
 	return v.internalAddressRange
 }
 
-func (v *VPC) VPC() vpcmodel.VPCResourceIntf {
-	return v
-}
-
 type Subnet struct {
 	vpcmodel.VPCResource
 	nodes             []vpcmodel.Node
 	connectivityRules *vpcmodel.ConnectivityResult // allowed connectivity between elements within the subnet
 	cidr              string
-	vpc               *VPC
 }
 
 func (s *Subnet) Zone() (*Zone, error) {
-	return s.vpc.getZoneByName(s.ZoneName())
+	return zoneFromVPCResource(s)
 }
 
 func (s *Subnet) Nodes() []vpcmodel.Node {
@@ -177,19 +164,14 @@ func (s *Subnet) Connectivity() *vpcmodel.ConnectivityResult {
 	return s.connectivityRules
 }
 
-func (s *Subnet) VPC() vpcmodel.VPCResourceIntf {
-	return s.vpc
-}
-
 type Vsi struct {
 	vpcmodel.VPCResource
 	nodes             []vpcmodel.Node
 	connectivityRules *vpcmodel.ConnectivityResult // possible rule: if has floating ip -> create connectivity to FIP, deny connectivity to PGW
-	vpc               *VPC
 }
 
 func (v *Vsi) Zone() (*Zone, error) {
-	return v.vpc.getZoneByName(v.ZoneName())
+	return zoneFromVPCResource(v)
 }
 
 func (v *Vsi) Nodes() []vpcmodel.Node {
@@ -202,10 +184,6 @@ func (v *Vsi) Connectivity() *vpcmodel.ConnectivityResult {
 
 func (v *Vsi) AddressRange() *common.IPBlock {
 	return nodesAddressRange(v.nodes)
-}
-
-func (v *Vsi) VPC() vpcmodel.VPCResourceIntf {
-	return v.vpc
 }
 
 func nodesAddressRange(nodes []vpcmodel.Node) *common.IPBlock {
@@ -224,7 +202,6 @@ func nodesAddressRange(nodes []vpcmodel.Node) *common.IPBlock {
 type Vpe struct {
 	vpcmodel.VPCResource
 	nodes []vpcmodel.Node
-	vpc   *VPC
 }
 
 func (v *Vpe) Nodes() []vpcmodel.Node {
@@ -244,21 +221,12 @@ func (v *Vpe) Zone() (*Zone, error) {
 	return nil, nil
 }
 
-func (v *Vpe) VPC() vpcmodel.VPCResourceIntf {
-	return v.vpc
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // FilterTraffic elements
 
 type NaclLayer struct {
 	vpcmodel.VPCResource
 	naclList []*NACL
-	vpc      *VPC
-}
-
-func (nl *NaclLayer) VPC() *VPC {
-	return nl.vpc
 }
 
 // per-layer connectivity analysis
@@ -318,11 +286,6 @@ type NACL struct {
 	vpcmodel.VPCResource
 	subnets  map[string]*Subnet // map of subnets (pair of cidr strings and subnet obj) for which this nacl is applied to
 	analyzer *NACLAnalyzer
-	vpc      *VPC
-}
-
-func (n *NACL) VPC() *VPC {
-	return n.vpc
 }
 
 func (n *NACL) GeneralConnectivityPerSubnet(subnetCidr string) string {
@@ -373,15 +336,10 @@ func (n *NACL) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*com
 type SecurityGroupLayer struct {
 	vpcmodel.VPCResource
 	sgList []*SecurityGroup
-	vpc    *VPC
 }
 
 func (sgl *SecurityGroupLayer) Name() string {
 	return ""
-}
-
-func (sgl *SecurityGroupLayer) VPC() *VPC {
-	return sgl.vpc
 }
 
 func (sgl *SecurityGroupLayer) ConnectivityMap() (map[string]*vpcmodel.IPbasedConnectivityResult, error) {
@@ -417,11 +375,6 @@ type SecurityGroup struct {
 	vpcmodel.VPCResource
 	analyzer *SGAnalyzer
 	members  map[string]vpcmodel.Node // map of members: pairs(address[string], object[NetworkInterface/ReservedIP])
-	vpc      *VPC
-}
-
-func (sg *SecurityGroup) VPC() *VPC {
-	return sg.vpc
 }
 
 func (sg *SecurityGroup) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *common.ConnectionSet {

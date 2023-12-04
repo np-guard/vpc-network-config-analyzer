@@ -10,6 +10,7 @@ type VPCResourceIntf interface {
 	Name() string
 	ZoneName() string
 	Kind() string
+	VPC() VPCResourceIntf // the VPC to which this resource belongs to
 
 	DrawioResourceIntf
 }
@@ -21,6 +22,8 @@ type VPCResource struct {
 	ResourceUID  string
 	ResourceType string
 	Zone         string
+	// the VPC to which this resource belongs to
+	VPCRef VPCResourceIntf `json:"-"`
 }
 
 func (n *VPCResource) Name() string {
@@ -42,6 +45,10 @@ func (n *VPCResource) IsExternal() bool {
 	return false
 }
 
+func (n *VPCResource) VPC() VPCResourceIntf {
+	return n.VPCRef
+}
+
 const (
 	// filter-resources layer names (grouping all vpc resources of that kind)
 	NaclLayer          = "NaclLayer"
@@ -57,7 +64,6 @@ type Node interface {
 	Cidr() string
 	IsInternal() bool
 	IsPublicInternet() bool
-	VPC() VPCResourceIntf // the VPC to which this node belongs to
 }
 
 // NodeSet is an element that may capture several nodes [vpc ,subnet, vsi, vpe]
@@ -66,7 +72,6 @@ type NodeSet interface {
 	Nodes() []Node
 	Connectivity() *ConnectivityResult
 	AddressRange() *common.IPBlock
-	VPC() VPCResourceIntf // the VPC to which this node belongs to
 }
 
 // FilterTrafficResource capture allowed traffic between 2 endpoints

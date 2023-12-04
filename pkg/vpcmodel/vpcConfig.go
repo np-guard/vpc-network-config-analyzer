@@ -1,6 +1,8 @@
 package vpcmodel
 
-import "errors"
+import (
+	"errors"
+)
 
 // VPCConfig captures the configured resources for a VPC
 type VPCConfig struct {
@@ -44,22 +46,9 @@ func (c *VPCConfig) getFilterTrafficResourceOfKind(kind string) FilterTrafficRes
 	return nil
 }
 
-func getResourceVPC(r VPCResourceIntf) (VPCResourceIntf, error) {
-	var rVPC VPCResourceIntf
-	switch r1Obj := r.(type) {
-	case Node:
-		rVPC = r1Obj.VPC()
-	case NodeSet:
-		rVPC = r1Obj.VPC()
-	default:
-		return nil, errors.New("unexpected resource type to get VPC, should be Node/NodeSet")
-	}
-	return rVPC, nil
-}
-
 // shouldConsiderPairForConnectivity gets a pair of resources from connectivity analysis (r1, r2),
 // and returns true if this pair should be considered.
-// pairs are discarded when both r1,r2 are the same, or when analysis if cross-vpc connectivity,
+// pairs are discarded when both r1,r2 are the same, or when analysis is cross-vpc connectivity,
 // and both r1,r2 are from the same vpc
 // the types of r1,r2 should be the same - either both are a Node or a NodeSet
 func (c *VPCConfig) shouldConsiderPairForConnectivity(r1, r2 VPCResourceIntf) (bool, error) {
@@ -67,13 +56,10 @@ func (c *VPCConfig) shouldConsiderPairForConnectivity(r1, r2 VPCResourceIntf) (b
 		return false, nil
 	}
 	if c.IsMultipleVPCsConfig {
-		r1VPC, err1 := getResourceVPC(r1)
-		if err1 != nil {
-			return false, err1
-		}
-		r2VPC, err2 := getResourceVPC(r2)
-		if err2 != nil {
-			return false, err2
+		r1VPC := r1.VPC()
+		r2VPC := r2.VPC()
+		if r1 == nil || r2 == nil {
+			return false, errors.New("error getting VPC of a VPCResourceIntf object")
 		}
 		return r1VPC.UID() != r2VPC.UID(), nil
 	}
