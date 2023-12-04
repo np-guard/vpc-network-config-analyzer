@@ -19,7 +19,7 @@ Usage of vpc-network-config-analyzer:
   -vpc-config string
         file path to input config
   -vpc-config-second string
-        file path to input config; relevant only for analysis-type diff_all_endpoints and for diff_all_subnets      
+        file path to the 2nd input config; relevant only for analysis-type diff_all_endpoints and for diff_all_subnets      
 ```
 
 ### Input config files
