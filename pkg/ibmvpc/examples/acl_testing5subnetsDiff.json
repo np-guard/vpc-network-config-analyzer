@@ -1,7 +1,8 @@
 {
     "semantic_diff": [
         {
-            "diff-type": "connection changed",
+            "src-change": "none",
+            "dst-change": "none",
             "src": {
                 "ResourceName": "sub1-1-ky",
                 "ResourceUID": "crn:17",
@@ -26,7 +27,8 @@
             ]
         },
         {
-            "diff-type": "connection changed",
+            "src-change": "none",
+            "dst-change": "none",
             "src": {
                 "ResourceName": "sub1-1-ky",
                 "ResourceUID": "crn:17",
@@ -51,7 +53,52 @@
             ]
         },
         {
-            "diff-type": "connection changed",
+            "src-change": "none",
+            "dst-change": "none",
+            "src": {
+                "ResourceName": "sub1-2-ky",
+                "ResourceUID": "crn:36",
+                "ResourceType": "Subnet",
+                "Zone": "us-south-1"
+            },
+            "dst": {
+                "ResourceName": "sub1-1-ky",
+                "ResourceUID": "crn:17",
+                "ResourceType": "Subnet",
+                "Zone": "us-south-1"
+            },
+            "conn1": [
+                {
+                    "protocol": "TCP"
+                }
+            ],
+            "conn2": null
+        },
+        {
+            "src-change": "none",
+            "dst-change": "none",
+            "src": {
+                "ResourceName": "sub1-3-ky",
+                "ResourceUID": "crn:71",
+                "ResourceType": "Subnet",
+                "Zone": "us-south-1"
+            },
+            "dst": {
+                "ResourceName": "sub1-1-ky",
+                "ResourceUID": "crn:17",
+                "ResourceType": "Subnet",
+                "Zone": "us-south-1"
+            },
+            "conn1": [
+                {
+                    "protocol": "TCP"
+                }
+            ],
+            "conn2": null
+        },
+        {
+            "src-change": "none",
+            "dst-change": "none",
             "src": {
                 "ResourceName": "sub2-1-ky",
                 "ResourceUID": "crn:52",
@@ -83,49 +130,8 @@
             ]
         },
         {
-            "diff-type": "connection removed",
-            "src": {
-                "ResourceName": "sub1-2-ky",
-                "ResourceUID": "crn:36",
-                "ResourceType": "Subnet",
-                "Zone": "us-south-1"
-            },
-            "dst": {
-                "ResourceName": "sub1-1-ky",
-                "ResourceUID": "crn:17",
-                "ResourceType": "Subnet",
-                "Zone": "us-south-1"
-            },
-            "conn1": [
-                {
-                    "protocol": "TCP"
-                }
-            ],
-            "conn2": null
-        },
-        {
-            "diff-type": "connection removed",
-            "src": {
-                "ResourceName": "sub1-3-ky",
-                "ResourceUID": "crn:71",
-                "ResourceType": "Subnet",
-                "Zone": "us-south-1"
-            },
-            "dst": {
-                "ResourceName": "sub1-1-ky",
-                "ResourceUID": "crn:17",
-                "ResourceType": "Subnet",
-                "Zone": "us-south-1"
-            },
-            "conn1": [
-                {
-                    "protocol": "TCP"
-                }
-            ],
-            "conn2": null
-        },
-        {
-            "diff-type": "connection added",
+            "src-change": "none",
+            "dst-change": "none",
             "src": {
                 "ResourceName": "sub2-1-ky",
                 "ResourceUID": "crn:52",
@@ -146,7 +152,8 @@
             "conn2": null
         },
         {
-            "diff-type": "connection added",
+            "src-change": "none",
+            "dst-change": "none",
             "src": {
                 "ResourceName": "sub2-1-ky",
                 "ResourceUID": "crn:52",
@@ -167,7 +174,8 @@
             "conn2": null
         },
         {
-            "diff-type": "connection added",
+            "src-change": "none",
+            "dst-change": "none",
             "src": {
                 "ResourceName": "sub2-1-ky",
                 "ResourceUID": "crn:52",
@@ -188,7 +196,8 @@
             "conn2": null
         },
         {
-            "diff-type": "connection added",
+            "src-change": "none",
+            "dst-change": "none",
             "src": {
                 "ResourceName": "sub2-1-ky",
                 "ResourceUID": "crn:52",
