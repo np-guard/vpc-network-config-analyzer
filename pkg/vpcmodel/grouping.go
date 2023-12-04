@@ -249,7 +249,7 @@ func subnetGrouping(groupedConnLines *GroupConnLines,
 func (g *GroupConnLines) groupExternalAddresses(vsi bool) error {
 	var allowedConnsCombined GeneralConnectivityMap
 	if vsi {
-		allowedConnsCombined = g.v.AllowedConnsCombined.nodesConnectivityToGeneralConnectivity()
+		allowedConnsCombined = g.v.AllowedConnsCombined
 	} else {
 		allowedConnsCombined = g.s.AllowedConnsCombined
 	}

@@ -47,8 +47,8 @@ var supportedAnalysisTypes = map[string]bool{
 	allEndpoints:     true,
 	allSubnets:       true,
 	singleSubnet:     true,
-	allSubnetsDiff:   true,
 	allEndpointsDiff: true,
+	allSubnetsDiff:   true,
 }
 
 func getSupportedValuesString(supportedValues map[string]bool) string {
@@ -65,7 +65,8 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args := InArgs{}
 	flagset := flag.NewFlagSet("vpc-network-config-analyzer", flag.ContinueOnError)
 	args.InputConfigFile = flagset.String("vpc-config", "", "file path to input config")
-	args.InputSecondConfigFile = flagset.String("vpc-config-second", "", "file path to second input config for semantic diff")
+	args.InputSecondConfigFile = flagset.String("vpc-config-second", "", "file path to the 2nd input config; "+
+		"relevant only for analysis-type diff_all_endpoints and for diff_all_subnets")
 	args.OutputFile = flagset.String("output-file", "", "file path to store results")
 	args.OutputFormat = flagset.String("format", TEXTFormat, "output format; must be one of "+getSupportedValuesString(supportedOutputFormats))
 	args.AnalysisType = flagset.String("analysis-type", allEndpoints,
@@ -124,9 +125,8 @@ func notSupportedYetArgs(args *InArgs) error {
 		*args.OutputFormat != JSONFormat {
 		return fmt.Errorf("currently only txt/json output format supported with %s analysis type", *args.AnalysisType)
 	}
-	if diffAnalysis && *args.OutputFormat != TEXTFormat && *args.OutputFormat != MDFormat &&
-		*args.OutputFormat != JSONFormat && *args.OutputFormat != DEBUGFormat {
-		return fmt.Errorf("currently only txt/json/md/debug output format supported with %s analysis type", *args.AnalysisType)
+	if diffAnalysis && *args.OutputFormat != TEXTFormat && *args.OutputFormat != MDFormat {
+		return fmt.Errorf("currently only txt/md output format supported with %s analysis type", *args.AnalysisType)
 	}
 	if *args.AnalysisType == singleSubnet && *args.Grouping {
 		return fmt.Errorf("currently singleSubnet analysis type does not support grouping")
