@@ -45,11 +45,12 @@ type connLine struct {
 }
 
 type diffLine struct {
-	Diff  string             `json:"diff-type"`
-	Src   EndpointElem       `json:"src"`
-	Dst   EndpointElem       `json:"dst"`
-	Conn1 common.ConnDetails `json:"conn1"`
-	Conn2 common.ConnDetails `json:"conn2"`
+	SrcChange string             `json:"src-change"`
+	DstChange string             `json:"dst-change"`
+	Src       EndpointElem       `json:"src"`
+	Dst       EndpointElem       `json:"dst"`
+	Conn1     common.ConnDetails `json:"conn1"`
+	Conn2     common.ConnDetails `json:"conn2"`
 }
 
 func sortConnLines(connLines []connLine) {
@@ -133,28 +134,13 @@ func getDiffLines(configsDiff *diffBetweenCfgs) []diffLine {
 	return diffLines
 }
 
-func getDirectionalDiffLines(connectDiff connectivityDiff) []diffLine {
-	diffLines := []diffLine{}
-	for src, endpointConnDiff := range connectDiff {
-		for dst, connDiff := range endpointConnDiff {
-			var diffStr string
-			if connDiff.thisMinusOther {
-				diffStr = getDiffStrThis(connDiff.diff)
-			} else {
-				diffStr = getDiffStrOther(connDiff.diff)
-			}
-			diffLines = append(diffLines, diffLine{diffStr, src, dst, common.ConnToJSONRep(connDiff.conn1), common.ConnToJSONRep(connDiff.conn2)})
-		}
-	}
-
-	sortDiffLines(diffLines)
-	return diffLines
-}
-
 func sortDiffLines(diffLines []diffLine) {
 	sort.Slice(diffLines, func(i, j int) bool {
-		if diffLines[i].Diff != diffLines[j].Diff {
-			return diffLines[i].Diff < diffLines[j].Diff
+		if diffLines[i].SrcChange != diffLines[j].SrcChange {
+			return diffLines[i].SrcChange < diffLines[j].SrcChange
+		}
+		if diffLines[i].DstChange != diffLines[j].DstChange {
+			return diffLines[i].DstChange < diffLines[j].DstChange
 		}
 		if diffLines[i].Src.Name() != diffLines[j].Src.Name() {
 			return diffLines[i].Src.Name() < diffLines[j].Src.Name()
@@ -163,44 +149,57 @@ func sortDiffLines(diffLines []diffLine) {
 	})
 }
 
-const (
-	connectionChanged    = "connection changed"
-	removed              = " removed"
-	added                = " added"
-	source               = "source"
-	destination          = "destination"
-	sourceAndDestination = "source and destination"
-	connection           = "connection"
-)
-
-func getDiffStrThis(diff DiffType) string {
-	switch diff {
-	case missingSrcEP:
-		return source + removed
-	case missingDstEP:
-		return destination + removed
-	case missingSrcDstEP:
-		return sourceAndDestination + removed
-	case missingConnection:
-		return connection + removed
-	case changedConnection:
-		return connectionChanged
+func getDirectionalDiffLines(connectDiff connectivityDiff) []diffLine {
+	diffLines := []diffLine{}
+	for src, endpointConnDiff := range connectDiff {
+		for dst, connDiff := range endpointConnDiff {
+			var diffSrcStr, diffDstStr string
+			if connDiff.thisMinusOther {
+				diffSrcStr = getDiffSrcThis(connDiff.diff)
+				diffDstStr = getDiffDstThis(connDiff.diff)
+			} else {
+				diffSrcStr = getDiffSrcOther(connDiff.diff)
+				diffDstStr = getDiffDstOther(connDiff.diff)
+			}
+			diffLines = append(diffLines, diffLine{diffSrcStr, diffDstStr,
+				src, dst, common.ConnToJSONRep(connDiff.conn1), common.ConnToJSONRep(connDiff.conn2)})
+		}
 	}
-	return ""
+
+	sortDiffLines(diffLines)
+	return diffLines
 }
 
-func getDiffStrOther(diff DiffType) string {
-	switch diff {
-	case missingSrcEP:
-		return source + added
-	case missingDstEP:
-		return destination + added
-	case missingSrcDstEP:
-		return sourceAndDestination + added
-	case missingConnection:
-		return connection + added
-	case changedConnection:
-		return connectionChanged
+const (
+	removed = "removed"
+	added   = "added"
+	none    = "none"
+)
+
+func getDiffSrcThis(diff DiffType) string {
+	if diff == missingSrcDstEP || diff == missingSrcEP {
+		return removed
 	}
-	return ""
+	return none
+}
+
+func getDiffSrcOther(diff DiffType) string {
+	if diff == missingSrcDstEP || diff == missingSrcEP {
+		return added
+	}
+	return none
+}
+
+func getDiffDstThis(diff DiffType) string {
+	if diff == missingSrcDstEP || diff == missingSrcEP {
+		return removed
+	}
+	return none
+}
+
+func getDiffDstOther(diff DiffType) string {
+	if diff == missingSrcDstEP || diff == missingDstEP {
+		return added
+	}
+	return none
 }

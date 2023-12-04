@@ -1,7 +1,8 @@
 {
     "semantic_diff": [
         {
-            "diff-type": "connection removed",
+            "src-change": "none",
+            "dst-change": "none",
             "src": {
                 "ResourceName": "cycling-juvenile-traipse-paramount",
                 "ResourceUID": "id:44",
@@ -20,7 +21,8 @@
             "conn2": null
         },
         {
-            "diff-type": "connection removed",
+            "src-change": "none",
+            "dst-change": "none",
             "src": {
                 "ResourceName": "cycling-juvenile-traipse-paramount",
                 "ResourceUID": "id:44",
