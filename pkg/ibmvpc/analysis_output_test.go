@@ -385,6 +385,7 @@ var tests = []*vpcGeneralTest{
 	{
 		name:     "tgw_basic_example",
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+		format:   vpcmodel.Text,
 	},
 }
 
