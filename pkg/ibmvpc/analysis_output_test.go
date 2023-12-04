@@ -375,6 +375,11 @@ var tests = []*vpcGeneralTest{
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
 		format:   vpcmodel.JSON,
 	},
+	{
+		name:     "sg_testing1_new",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
+		format:   vpcmodel.Text,
+	},
 }
 
 var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
