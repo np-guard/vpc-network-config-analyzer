@@ -84,7 +84,7 @@ func newVPCConfigTest1() (*VPCConfig, *VPCConnectivity) {
 
 	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0]}})
 
-	res1 := &VPCConnectivity{AllowedConnsCombined: NewNodesConnectionsMap()}
+	res1 := &VPCConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
 	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], common.NewConnectionSet(true))
 	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], common.NewConnectionSet(true))
 	return res, res1
@@ -100,7 +100,7 @@ func newVPCConfigTest2() (*VPCConfig, *VPCConnectivity) {
 
 	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0], res.Nodes[3]}})
 
-	res1 := &VPCConnectivity{AllowedConnsCombined: NewNodesConnectionsMap()}
+	res1 := &VPCConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
 	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], common.NewConnectionSet(true))
 	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], common.NewConnectionSet(true))
 	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[3], res.Nodes[1], common.NewConnectionSet(true))
@@ -160,7 +160,7 @@ func configStatefulGrouping() (*VPCConfig, *VPCConnectivity) {
 
 	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0], res.Nodes[3]}})
 
-	res1 := &VPCConnectivity{AllowedConnsCombined: NewNodesConnectionsMap()}
+	res1 := &VPCConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
 	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], common.NewConnectionSetWithStateful(true, common.StatefulTrue))
 	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], common.NewConnectionSetWithStateful(true, common.StatefulTrue))
 	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[3], res.Nodes[1], common.NewConnectionSetWithStateful(true, common.StatefulTrue))
@@ -197,7 +197,7 @@ func configIPRange() (*VPCConfig, *VPCConnectivity) {
 
 	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0]}})
 
-	res1 := &VPCConnectivity{AllowedConnsCombined: NewNodesConnectionsMap()}
+	res1 := &VPCConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
 	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], common.NewConnectionSet(true))
 	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], common.NewConnectionSet(true))
 	return res, res1
@@ -228,7 +228,7 @@ func configSelfLoopClique() (*VPCConfig, *VPCConnectivity) {
 
 	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0], res.Nodes[1], res.Nodes[2]}})
 
-	res1 := &VPCConnectivity{AllowedConnsCombined: NewNodesConnectionsMap()}
+	res1 := &VPCConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
 	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], common.NewConnectionSet(true))
 	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], common.NewConnectionSet(true))
 	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[1], res.Nodes[0], common.NewConnectionSet(true))
@@ -266,7 +266,7 @@ func configSelfLoopCliqueDiffSubnets() (*VPCConfig, *VPCConnectivity) {
 	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0], res.Nodes[1]}},
 		&mockSubnet{"10.240.10.0/22", "subnet2", []Node{res.Nodes[2]}})
 
-	res1 := &VPCConnectivity{AllowedConnsCombined: NewNodesConnectionsMap()}
+	res1 := &VPCConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
 	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], common.NewConnectionSet(true))
 	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], common.NewConnectionSet(true))
 	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[1], res.Nodes[0], common.NewConnectionSet(true))
@@ -307,7 +307,7 @@ func configSimpleSelfLoop() (*VPCConfig, *VPCConnectivity) {
 
 	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0], res.Nodes[1], res.Nodes[2]}})
 
-	res1 := &VPCConnectivity{AllowedConnsCombined: NewNodesConnectionsMap()}
+	res1 := &VPCConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
 	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], common.NewConnectionSet(true))
 	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], common.NewConnectionSet(true))
 	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[1], res.Nodes[2], common.NewConnectionSet(true))
@@ -349,7 +349,7 @@ func configSelfLoopCliqueLace() (*VPCConfig, *VPCConnectivity) {
 	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1",
 		[]Node{res.Nodes[0], res.Nodes[1], res.Nodes[2], res.Nodes[3], res.Nodes[4]}})
 
-	res1 := &VPCConnectivity{AllowedConnsCombined: NewNodesConnectionsMap()}
+	res1 := &VPCConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
 	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], common.NewConnectionSet(true))
 	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], common.NewConnectionSet(true))
 	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[1], res.Nodes[0], common.NewConnectionSet(true))

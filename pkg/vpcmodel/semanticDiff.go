@@ -121,7 +121,7 @@ func (c *VPCConfig) getAllowedConnectionsCombined(
 		if err != nil {
 			return nil, err
 		}
-		return connectivity1.AllowedConnsCombined.nodesConnectivityToGeneralConnectivity(), nil
+		return connectivity1.AllowedConnsCombined, nil
 	}
 	return nil, fmt.Errorf("illegal diff analysis type")
 }
