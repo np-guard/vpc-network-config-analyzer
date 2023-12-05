@@ -811,15 +811,13 @@ func getSubnetByCidr(m map[string]*Subnet, cidr string) (*Subnet, error) {
 func getIKSnodesConfig(res map[string]*vpcmodel.VPCConfig,
 	subnetNameToSubnet map[string]*Subnet,
 	rc *ResourcesContainer,
-	skipByVPC func(string) bool) error {
+	skipByVPC func(string) bool) {
 	for _, iksNode := range rc.iksNodes {
-
 		subnet, err := getSubnetByCidr(subnetNameToSubnet, iksNode.Cidr)
 		if err != nil {
 			fmt.Printf("warning: ignoring iksNode with ID %s\n", iksNode.ID)
 			continue
 		}
-
 		if skipByVPC(subnet.vpc.ResourceUID) {
 			continue
 		}
@@ -833,7 +831,6 @@ func getIKSnodesConfig(res map[string]*vpcmodel.VPCConfig,
 		// attach the node to the subnet
 		subnet.nodes = append(subnet.nodes, nodeObject)
 	}
-	return nil
 }
 
 func NewEmptyVPCConfig() *vpcmodel.VPCConfig {
@@ -884,10 +881,7 @@ func VPCConfigsFromResources(rc *ResourcesContainer, vpcID string, debug bool) (
 		return nil, err
 	}
 
-	err = getIKSnodesConfig(res, subnetNameToSubnet, rc, shouldSkipByVPC)
-	if err != nil {
-		return nil, err
-	}
+	getIKSnodesConfig(res, subnetNameToSubnet, rc, shouldSkipByVPC)
 
 	err = getPgwConfig(res, rc, pgwToSubnet, shouldSkipByVPC)
 	if err != nil {
