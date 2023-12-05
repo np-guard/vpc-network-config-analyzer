@@ -9,11 +9,22 @@ import (
 
 // VPCsubnetConnectivity captures allowed connectivity for subnets, considering nacl and pgw resources
 type VPCsubnetConnectivity struct {
+	VPCConfig *VPCConfig
+
 	// computed for each node (subnet), by iterating its ConnectivityResult for all relevant VPC resources that capture it
+	// computed for each subnet, by iterating its ConfigBasedConnectivityResults for all relevant VPC resources that capture it
+	// a subnet is mapped to its set of  its allowed ingress (egress) communication as captured by
+	// pairs of external ip/subnet+connection
+	// This is auxiliary computation based on which AllowedConnsCombined is computed
+	// todo: add debug output mode based on this structure
 	AllowedConns map[VPCResourceIntf]*ConfigBasedConnectivityResults
+
 	// combined connectivity - considering both ingress and egress per connection
+	// The main outcome of the computation of which the outputs is based
+	// For each src node provides a map of dsts and the connection it has to these dsts, including stateful attributes
+	// a connection is considered stateful if all paths in it are stateful
 	AllowedConnsCombined GeneralConnectivityMap
-	VPCConfig            *VPCConfig
+
 	// grouped connectivity result
 	GroupedConnectivity *GroupConnLines
 }
