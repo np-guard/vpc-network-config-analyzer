@@ -813,9 +813,11 @@ func getIKSnodesConfig(res map[string]*vpcmodel.VPCConfig,
 	rc *ResourcesContainer,
 	skipByVPC func(string) bool) error {
 	for _, iksNode := range rc.iksNodes {
+
 		subnet, err := getSubnetByCidr(subnetNameToSubnet, iksNode.Cidr)
 		if err != nil {
-			return err
+			fmt.Printf("warning: ignoring iksNode with ID %s\n", iksNode.ID)
+			continue
 		}
 
 		if skipByVPC(subnet.vpc.ResourceUID) {
