@@ -1,4 +1,4 @@
-Analysis for VPC ky-vpc1
+Connectivity for VPC ky-vpc1
 combined connections between subnets:
 
 

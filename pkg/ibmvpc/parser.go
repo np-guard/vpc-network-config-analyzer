@@ -930,7 +930,7 @@ func addTGWbasedConfigs(tgws map[string]*TransitGateway, res map[string]*vpcmode
 		newConfig.Nodes = internalNodes
 		// no need to add external nodes - analyzing cross-vpc connections between internal endpoints
 
-		vpcPrefix := "combined-vpc-"
+		const vpcPrefix = "combined-vpc-"
 		newConfig.VPC = &VPC{
 			VPCResource: vpcmodel.VPCResource{
 				ResourceName: vpcPrefix + tgw.ResourceName,

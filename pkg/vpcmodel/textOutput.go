@@ -18,11 +18,11 @@ func headerOfAnalyzedVPC(uc OutputUseCase, vpcName, vpc2Name string, c1 *VPCConf
 				return "", errors.New("unexpected config of multiple VPCs connected by TGW, missing TGW resource")
 			}
 			tgw := c1.RoutingResources[0]
-			return fmt.Sprintf("Analysis for connectivity between VPCs connected by TGW %s (UID: %s)\n", tgw.Name(), tgw.UID()), nil
+			return fmt.Sprintf("Connectivity between VPCs connected by TGW %s (UID: %s)\n", tgw.Name(), tgw.UID()), nil
 		}
-		return fmt.Sprintf("Analysis for VPC %s\n", vpcName), nil
+		return fmt.Sprintf("Connectivity for VPC %s\n", vpcName), nil
 	case SubnetsDiff, EndpointsDiff:
-		return fmt.Sprintf("Diff between VPC %s and VPC %s\n", vpcName, vpc2Name), nil
+		return fmt.Sprintf("Connectivity diff between VPC %s and VPC %s\n", vpcName, vpc2Name), nil
 	}
 	return "", nil // should never get here
 }
