@@ -274,8 +274,8 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() error {
 
 func (v *VPCsubnetConnectivity) computeStatefulConnections() {
 	for src, endpointConns := range v.AllowedConnsCombined {
-		for dst, conns := range endpointConns {
-			if conns.IsEmpty() {
+		for dst, conn := range endpointConns {
+			if conn.IsEmpty() {
 				continue
 			}
 			dstObj := v.VPCConfig.NameToResource[dst.Name()]
@@ -290,15 +290,14 @@ func (v *VPCsubnetConnectivity) computeStatefulConnections() {
 				otherDirectionConn = v.AllowedConns[src].IngressAllowedConns[dst]
 			default:
 			}
-			conns.IsStateful = common.StatefulFalse
+			conn.IsStateful = common.StatefulFalse
 			if otherDirectionConn == nil {
 				continue
 			}
-			connsSwitchPortsDirection := conns.ResponseConnection()
-			stateful := connsSwitchPortsDirection.Intersection(otherDirectionConn)
-			// if there is a way back for the response, then the connection is considered stateful
-			if !stateful.IsEmpty() {
-				conns.IsStateful = common.StatefulTrue
+			connsSwitchPortsDirection := conn.ResponseConnection()
+			statefulCombinedConn := connsSwitchPortsDirection.Intersection(otherDirectionConn)
+			if statefulCombinedConn.Equal(connsSwitchPortsDirection) {
+				conn.IsStateful = common.StatefulTrue
 			}
 		}
 	}
