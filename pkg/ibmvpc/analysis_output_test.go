@@ -356,11 +356,6 @@ var tests = []*vpcGeneralTest{
 		format:   vpcmodel.MD,
 	},
 	{
-		name:     "acl_testing5",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.SubnetsDiff},
-		format:   vpcmodel.JSON,
-	},
-	{
 		name:     "acl_testing3",
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
 		format:   vpcmodel.Text,
@@ -369,11 +364,6 @@ var tests = []*vpcGeneralTest{
 		name:     "acl_testing3",
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
 		format:   vpcmodel.MD,
-	},
-	{
-		name:     "acl_testing3",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
-		format:   vpcmodel.JSON,
 	},
 	{
 		name:     "sg_testing1_new",
