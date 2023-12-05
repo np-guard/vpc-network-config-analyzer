@@ -1,4 +1,4 @@
-# Analysis for VPC ky-testenv-vpc
+# Connectivity for VPC ky-testenv-vpc
 ## Endpoint connectivity report
 | src | dst | conn |
 |-----|-----|------|

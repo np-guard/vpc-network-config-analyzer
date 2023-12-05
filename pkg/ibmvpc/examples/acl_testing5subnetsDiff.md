@@ -1,4 +1,4 @@
-# Diff between VPC test-vpc-ky1 and VPC test-vpc-ky2
+# Connectivity diff between VPC test-vpc-ky1 and VPC test-vpc-ky2
 ## Subnets diff report
 | type | src |  dst | conn1 | conn2 | subnets-diff-info |
 |------|-----|------|-------|-------|-------------------|

@@ -87,8 +87,12 @@ func (c *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 
 	// iterate pairs (capturedNode, peerNode) to analyze their allowed ingress/egress conns
 	for _, peerNode := range c.Nodes {
-		// skip analysis between node to itself
-		if peerNode.Cidr() == capturedNode.Cidr() {
+		// skip analysis between certain pairs of nodes
+		considerPair, err := c.shouldConsiderPairForConnectivity(capturedNode, peerNode)
+		if err != nil {
+			return nil, nil, err
+		}
+		if !considerPair {
 			continue
 		}
 		src, dst := switchSrcDstNodes(!isIngress, peerNode, capturedNode)
