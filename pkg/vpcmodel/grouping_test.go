@@ -42,6 +42,10 @@ func (m *mockNetIntf) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNo
 }
 func (m *mockNetIntf) IsExternal() bool { return m.isPublic }
 
+func (m *mockNetIntf) VPC() VPCResourceIntf {
+	return nil
+}
+
 type mockSubnet struct {
 	cidr  string
 	name  string
@@ -74,6 +78,9 @@ func (m *mockSubnet) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNod
 	return nil
 }
 func (m *mockSubnet) IsExternal() bool { return false }
+func (m *mockSubnet) VPC() VPCResourceIntf {
+	return nil
+}
 
 func newVPCConfigTest1() (*VPCConfig, *VPCConnectivity) {
 	res := &VPCConfig{Nodes: []Node{}}

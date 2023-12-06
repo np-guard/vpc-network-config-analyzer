@@ -221,10 +221,13 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() error {
 		for peerNode, conns := range connsRes.IngressAllowedConns {
 			src := peerNode
 			dst := subnetNodeSet
-			if src.Name() == dst.Name() {
+			considerPair, err := v.VPCConfig.shouldConsiderPairForConnectivity(src, dst)
+			if err != nil {
+				return err
+			}
+			if !considerPair {
 				continue
 			}
-
 			var combinedConns *common.ConnectionSet
 			// peerNode kind is expected to be Subnet or External
 			peerNodeObj := v.VPCConfig.NameToResource[peerNode.Name()]

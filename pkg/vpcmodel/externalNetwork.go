@@ -65,6 +65,10 @@ func (exn *ExternalNetwork) Kind() string {
 	return externalNetworkNodeKind
 }
 
+func (exn *ExternalNetwork) VPC() VPCResourceIntf {
+	return nil
+}
+
 func ipStringsToIPblocks(ipList []string) (ipbList []*common.IPBlock, unionIPblock *common.IPBlock, err error) {
 	ipbList = []*common.IPBlock{}
 	unionIPblock = &common.IPBlock{}

@@ -11,7 +11,10 @@ func (t *DebugOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	outFile string,
 	grouping bool,
 	uc OutputUseCase) (*SingleAnalysisOutput, error) {
-	out := headerOfAnalyzedVPC(uc, c1.VPC.Name(), "")
+	out, err := headerOfAnalyzedVPC(uc, c1.VPC.Name(), "", c1)
+	if err != nil {
+		return nil, err
+	}
 	switch uc {
 	case AllEndpoints:
 		// TODO: add a flag of whether to include grouped output or not
@@ -21,6 +24,6 @@ func (t *DebugOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	case SingleSubnet:
 	case SubnetsDiff, EndpointsDiff:
 	}
-	_, err := WriteToFile(out, outFile)
+	_, err = WriteToFile(out, outFile)
 	return &SingleAnalysisOutput{Output: out, VPC1Name: c1.VPC.Name(), VPC2Name: "", format: Debug}, err
 }

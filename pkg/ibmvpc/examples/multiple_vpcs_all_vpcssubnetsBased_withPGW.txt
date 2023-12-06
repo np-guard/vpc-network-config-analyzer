@@ -1,4 +1,4 @@
-Analysis for VPC ky-testenv-vpc
+Connectivity for VPC ky-testenv-vpc
 combined connections between subnets:
 ky-testenv-edge-subnet-1 => Public Internet (all ranges) : All Connections
 ky-testenv-edge-subnet-1 => ky-testenv-edge-subnet-2 : All Connections
@@ -78,7 +78,7 @@ ky-testenv-transit-subnet-3 => ky-testenv-transit-subnet-2 : All Connections
 
 connections are stateful unless marked with *
 
-Analysis for VPC test-vpc-ky
+Connectivity for VPC test-vpc-ky
 combined connections between subnets:
 sub1-1-ky => Public Internet 8.8.8.8/32 : protocol: UDP dst-ports: 53
 sub1-1-ky => sub1-2-ky : protocol: TCP

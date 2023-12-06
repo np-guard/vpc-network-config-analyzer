@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 )
 
@@ -147,6 +148,7 @@ func AggregateVPCsOutput(outputList []*SingleAnalysisOutput, f OutFormat, outFil
 		for i, o := range outputList {
 			vpcsOut[i] = o.Output
 		}
+		sort.Strings(vpcsOut)
 		res, err = WriteToFile(strings.Join(vpcsOut, "\n"), outFile)
 
 	case JSON:

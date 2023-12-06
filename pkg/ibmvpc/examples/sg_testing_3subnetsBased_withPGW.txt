@@ -1,4 +1,4 @@
-Analysis for VPC test-vpc-ky
+Connectivity for VPC test-vpc-ky
 combined connections between subnets:
 sub1-ky => sub2-ky : All Connections *
 sub1-ky => sub3-ky : All Connections
