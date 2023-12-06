@@ -7,14 +7,28 @@ import (
 // VPCConnectivity holds detailed representation of allowed connectivity considering all resources in a vpc config1 instance
 type VPCConnectivity struct {
 	// computed for each layer separately its allowed connections (ingress and egress separately)
+	// This is used for computing AllowedConns
 	AllowedConnsPerLayer map[Node]map[string]*ConnectivityResult
+
 	// computed for each node, by iterating its ConnectivityResult for all relevant VPC resources that capture it
+	// a node is mapped to its set of  its allowed ingress (egress) communication as captured by
+	// pairs of node+connection
+	// This is auxiliary computation based on which AllowedConnsCombined is computed, however the "debug" format uses it
 	AllowedConns map[Node]*ConnectivityResult
 
 	// combined connectivity - considering both ingress and egress per connection
+	// The main outcome of the computation of which most of the outputs are based
+	// (outputs excluding json and debug)
+	// For each src node provides a map of dsts and the connection it has to these dsts, including stateful attributes
+	// a connection is considered stateful if all paths in it are stateful
+	// that stateful component is computed along with the following  AllowedConnsCombinedStateful
 	AllowedConnsCombined GeneralConnectivityMap
 
 	// allowed connectivity combined and stateful
+	// used by debug and json format only (at the moment)
+	// For src node provides a map of dsts and the stateful connection it has to these dsts
+	// note that subset of a non-stateful connection from AllowedConnsCombined can still be stateful
+	// and as such add to this map
 	AllowedConnsCombinedStateful GeneralConnectivityMap
 
 	// grouped connectivity result

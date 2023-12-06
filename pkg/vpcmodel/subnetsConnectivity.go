@@ -9,11 +9,22 @@ import (
 
 // VPCsubnetConnectivity captures allowed connectivity for subnets, considering nacl and pgw resources
 type VPCsubnetConnectivity struct {
+	VPCConfig *VPCConfig
+
 	// computed for each node (subnet), by iterating its ConnectivityResult for all relevant VPC resources that capture it
+	// computed for each subnet, by iterating its ConfigBasedConnectivityResults for all relevant VPC resources that capture it
+	// a subnet is mapped to its set of  its allowed ingress (egress) communication as captured by
+	// pairs of external ip/subnet+connection
+	// This is auxiliary computation based on which AllowedConnsCombined is computed
+	// todo: add debug output mode based on this structure
 	AllowedConns map[VPCResourceIntf]*ConfigBasedConnectivityResults
+
 	// combined connectivity - considering both ingress and egress per connection
+	// The main outcome of the computation of which the outputs is based
+	// For each src node provides a map of dsts and the connection it has to these dsts, including stateful attributes
+	// a connection is considered stateful if all paths in it are stateful
 	AllowedConnsCombined GeneralConnectivityMap
-	VPCConfig            *VPCConfig
+
 	// grouped connectivity result
 	GroupedConnectivity *GroupConnLines
 }
@@ -266,8 +277,8 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() error {
 
 func (v *VPCsubnetConnectivity) computeStatefulConnections() {
 	for src, endpointConns := range v.AllowedConnsCombined {
-		for dst, conns := range endpointConns {
-			if conns.IsEmpty() {
+		for dst, conn := range endpointConns {
+			if conn.IsEmpty() {
 				continue
 			}
 			dstObj := v.VPCConfig.NameToResource[dst.Name()]
@@ -282,15 +293,14 @@ func (v *VPCsubnetConnectivity) computeStatefulConnections() {
 				otherDirectionConn = v.AllowedConns[src].IngressAllowedConns[dst]
 			default:
 			}
-			conns.IsStateful = common.StatefulFalse
+			conn.IsStateful = common.StatefulFalse
 			if otherDirectionConn == nil {
 				continue
 			}
-			connsSwitchPortsDirection := conns.ResponseConnection()
-			stateful := connsSwitchPortsDirection.Intersection(otherDirectionConn)
-			// if there is a way back for the response, then the connection is considered stateful
-			if !stateful.IsEmpty() {
-				conns.IsStateful = common.StatefulTrue
+			connsSwitchPortsDirection := conn.ResponseConnection()
+			statefulCombinedConn := connsSwitchPortsDirection.Intersection(otherDirectionConn)
+			if statefulCombinedConn.Equal(connsSwitchPortsDirection) {
+				conn.IsStateful = common.StatefulTrue
 			}
 		}
 	}
