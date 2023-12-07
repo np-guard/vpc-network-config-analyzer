@@ -6,6 +6,7 @@ package vpcmodel
 // stage 1:
 // input: src and dst, both vsi names in string
 // 1. Translate src and dst to Nodes
+//    if there is a connection:
 // 2. Find the ingress and egress rules enabling the connection in the SGAnalyzer struct.
 //    specifically, the []*SGRule ingressRules and egressRules contributing to the connection.
 //    There are two alternatives of achieving this:
@@ -23,9 +24,13 @@ package vpcmodel
 //    In this case in addition to ParseResourcesFromFile and VPCConfigsFromResources, GetVPCNetworkConnectivity will be called
 //     after which a dedicated function for collecting the relevant SG rules will be deployed.
 //
+//   Alternative a) chosen
+//
 //  3. Extract the actual sg rules from *SGRule and print as output.
 //
+//     if there is no connection:
+// 2' .Find which connection is missing: ingress, egress or both
+//     If the missing connection is ingress: is it the default?
+//
+//
 //     * pointer to the original rule has to be added to SGRule struct [perhaps the first PR here]
-
-// ToDo:
-// Highlevel of handling nacl as lack of connection explanability as well, just to see we will not need to rewrite everything

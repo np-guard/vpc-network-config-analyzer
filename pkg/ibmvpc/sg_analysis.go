@@ -243,7 +243,6 @@ func (cr *ConnectivityResult) string() string {
 	return strings.Join(res, "\n")
 }
 
-// todo: add here reference to the enabling rules
 // todo: or write a function that given src, dst Node, isIngress bool same is AllowedConnectivity signature finds the relevant enabling rules
 func AnalyzeSGRules(rules []*SGRule, isIngress bool) *ConnectivityResult {
 	targets := []*common.IPBlock{}
