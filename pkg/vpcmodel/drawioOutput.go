@@ -25,19 +25,19 @@ func (e *edgeInfo) IsExternal() bool {
 // 3. create the edges from the map we created in stage (1). also also set the routers to the edges
 
 type DrawioOutputFormatter struct {
-	cConfig    *VPCConfig
-	conn       *GroupConnLines
-	gen        *DrawioGenerator
-	subnetMode bool
-	routers    map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface
+	cConfig *VPCConfig
+	conn    *GroupConnLines
+	gen     *DrawioGenerator
+	routers map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface
+	uc      OutputUseCase
 }
 
-func (d *DrawioOutputFormatter) init(cConfig *VPCConfig, conn *GroupConnLines, subnetMode bool) {
+func (d *DrawioOutputFormatter) init(cConfig *VPCConfig, conn *GroupConnLines, uc OutputUseCase) {
 	d.cConfig = cConfig
 	d.conn = conn
-	d.subnetMode = subnetMode
+	d.uc = uc
 	d.gen = NewDrawioGenerator(cConfig.CloudName)
-	d.gen.network.SubnetMode = subnetMode
+	d.gen.network.SubnetMode = uc == AllSubnets
 	d.routers = map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface{}
 }
 
@@ -50,7 +50,8 @@ func (d *DrawioOutputFormatter) writeOutputGeneric(outFile string) (
 
 func (d *DrawioOutputFormatter) createDrawioTree() {
 	d.createNodeSets()
-	if !d.subnetMode {
+	if d.uc != AllSubnets {
+		// todo - support filters on subnet mode
 		d.createNodes()
 		d.createFilters()
 	}
@@ -131,7 +132,7 @@ func (d *DrawioOutputFormatter) createEdges() {
 }
 
 func (d *DrawioOutputFormatter) showResource(res DrawioResourceIntf) bool {
-	return !d.subnetMode || res.ShowOnSubnetMode()
+	return d.uc != AllSubnets || res.ShowOnSubnetMode()
 }
 
 func (d *DrawioOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
@@ -141,28 +142,26 @@ func (d *DrawioOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	outFile string,
 	grouping bool,
 	uc OutputUseCase) (*SingleAnalysisOutput, error) {
-	var err error
 	switch uc {
 	case AllEndpoints:
 		var gConn *GroupConnLines
 		if conn != nil {
 			gConn = conn.GroupedConnectivity
 		}
-		d.init(c1, gConn, false)
+		d.init(c1, gConn, uc)
 		return d.writeOutputGeneric(outFile)
 	case AllSubnets:
 		var gConn *GroupConnLines
 		if subnetsConn != nil {
 			gConn = subnetsConn.GroupedConnectivity
 		}
-		d.init(subnetsConn.VPCConfig, gConn, true)
+		d.init(subnetsConn.VPCConfig, gConn, uc)
 		return d.writeOutputGeneric(outFile)
 	case SingleSubnet:
 		return &SingleAnalysisOutput{}, errors.New("SingleSubnet use case not supported for draw.io format currently ")
 	default:
-		return &SingleAnalysisOutput{}, errors.New("Use case is not currently supported for draw.io format")
+		return &SingleAnalysisOutput{}, errors.New("use case is not currently supported for draw.io format")
 	}
-	return &SingleAnalysisOutput{}, err
 }
 
 // /////////////////////////////////////////////////////////////////
@@ -181,5 +180,5 @@ func (d *ArchDrawioOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	outFile string,
 	grouping bool,
 	uc OutputUseCase) (*SingleAnalysisOutput, error) {
-		return d.DrawioOutputFormatter.WriteOutput(c1, c2, nil, nil, nil, outFile, grouping, uc)
+	return d.DrawioOutputFormatter.WriteOutput(c1, c2, nil, nil, nil, outFile, grouping, uc)
 }
