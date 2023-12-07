@@ -55,8 +55,8 @@ const (
 )
 
 type layoutS struct {
-	network SquareTreeNodeInterface
-	matrix  *layoutMatrix
+	network    SquareTreeNodeInterface
+	matrix     *layoutMatrix
 	subnetMode bool
 }
 
