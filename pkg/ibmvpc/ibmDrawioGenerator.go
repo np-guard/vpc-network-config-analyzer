@@ -17,6 +17,8 @@ func (v *Vsi) ShowOnSubnetMode() bool                  { return false }
 func (v *Vpe) ShowOnSubnetMode() bool                  { return false }
 func (pgw *PublicGateway) ShowOnSubnetMode() bool      { return true }
 func (fip *FloatingIP) ShowOnSubnetMode() bool         { return false }
+// todo - support TransitGateway?
+func (tgw *TransitGateway) ShowOnSubnetMode() bool     { return false }
 
 // implementations of the GenerateDrawioTreeNode() for resource defined in ibmvpc:
 func (v *VPC) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
