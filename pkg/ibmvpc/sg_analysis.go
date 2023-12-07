@@ -224,7 +224,7 @@ func (sga *SGAnalyzer) getSGrules(sgObj *vpc1.SecurityGroup) (ingressRules, egre
 type SGRule struct {
 	target      *common.IPBlock
 	connections *common.ConnectionSet
-	// add pointer to original rule
+	// todo add pointer to original rule
 }
 
 // ConnectivityResult should be built on disjoint ip-blocks for targets of all relevant sg results
@@ -243,6 +243,8 @@ func (cr *ConnectivityResult) string() string {
 	return strings.Join(res, "\n")
 }
 
+// todo: add here reference to the enabling rules
+// todo: or write a function that given src, dst Node, isIngress bool same is AllowedConnectivity signature finds the relevant enabling rules
 func AnalyzeSGRules(rules []*SGRule, isIngress bool) *ConnectivityResult {
 	targets := []*common.IPBlock{}
 	for i := range rules {
