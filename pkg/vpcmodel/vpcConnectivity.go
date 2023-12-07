@@ -4,29 +4,35 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
-type GeneralConnectivityMap map[VPCResourceIntf]map[VPCResourceIntf]*common.ConnectionSet
-
 // VPCConnectivity holds detailed representation of allowed connectivity considering all resources in a vpc config1 instance
 type VPCConnectivity struct {
 	// computed for each layer separately its allowed connections (ingress and egress separately)
+	// This is used for computing AllowedConns
 	AllowedConnsPerLayer map[Node]map[string]*ConnectivityResult
+
 	// computed for each node, by iterating its ConnectivityResult for all relevant VPC resources that capture it
+	// a node is mapped to its set of  its allowed ingress (egress) communication as captured by
+	// pairs of node+connection
+	// This is auxiliary computation based on which AllowedConnsCombined is computed, however the "debug" format uses it
 	AllowedConns map[Node]*ConnectivityResult
 
 	// combined connectivity - considering both ingress and egress per connection
-	AllowedConnsCombined NodesConnectionsMap
+	// The main outcome of the computation of which most of the outputs are based
+	// (outputs excluding json and debug)
+	// For each src node provides a map of dsts and the connection it has to these dsts, including stateful attributes
+	// a connection is considered stateful if all paths in it are stateful
+	// that stateful component is computed along with the following  AllowedConnsCombinedStateful
+	AllowedConnsCombined GeneralConnectivityMap
 
 	// allowed connectivity combined and stateful
-	AllowedConnsCombinedStateful NodesConnectionsMap
+	// used by debug and json format only (at the moment)
+	// For src node provides a map of dsts and the stateful connection it has to these dsts
+	// note that subset of a non-stateful connection from AllowedConnsCombined can still be stateful
+	// and as such add to this map
+	AllowedConnsCombinedStateful GeneralConnectivityMap
 
 	// grouped connectivity result
 	GroupedConnectivity *GroupConnLines
-}
-
-type NodesConnectionsMap map[Node]map[Node]*common.ConnectionSet
-
-func NewNodesConnectionsMap() NodesConnectionsMap {
-	return NodesConnectionsMap{}
 }
 
 // ConnectivityResult is used to capture allowed connectivity between Node elements
@@ -36,14 +42,6 @@ func NewNodesConnectionsMap() NodesConnectionsMap {
 type ConnectivityResult struct {
 	IngressAllowedConns map[Node]*common.ConnectionSet
 	EgressAllowedConns  map[Node]*common.ConnectionSet
-}
-
-// NewConnectivityResult returns a new (empty) ConnectivityResult object
-func NewConnectivityResult() *ConnectivityResult {
-	return &ConnectivityResult{
-		IngressAllowedConns: map[Node]*common.ConnectionSet{},
-		EgressAllowedConns:  map[Node]*common.ConnectionSet{},
-	}
 }
 
 func (cr *ConnectivityResult) ingressOrEgressAllowedConns(isIngress bool) map[Node]*common.ConnectionSet {
@@ -61,13 +59,6 @@ type IPbasedConnectivityResult struct {
 	EgressAllowedConns  map[*common.IPBlock]*common.ConnectionSet
 }
 
-func NewIPbasedConnectivityResult() *IPbasedConnectivityResult {
-	return &IPbasedConnectivityResult{
-		IngressAllowedConns: map[*common.IPBlock]*common.ConnectionSet{},
-		EgressAllowedConns:  map[*common.IPBlock]*common.ConnectionSet{},
-	}
-}
-
 // ConfigBasedConnectivityResults is used to capture allowed connectivity to/from elements in the vpc config1 (subnets / external ip-blocks)
 // It is associated with a subnet when analyzing connectivity of subnets based on NACL resources
 type ConfigBasedConnectivityResults struct {
@@ -83,9 +74,9 @@ func NewConfigBasedConnectivityResults() *ConfigBasedConnectivityResults {
 }
 
 func (v *VPCConnectivity) SplitAllowedConnsToUnidirectionalAndBidirectional() (
-	bidirectional, unidirectional NodesConnectionsMap) {
-	unidirectional = NewNodesConnectionsMap()
-	bidirectional = NewNodesConnectionsMap()
+	bidirectional, unidirectional GeneralConnectivityMap) {
+	unidirectional = GeneralConnectivityMap{}
+	bidirectional = GeneralConnectivityMap{}
 	for src, connsMap := range v.AllowedConnsCombined {
 		for dst, conn := range connsMap {
 			if conn.IsEmpty() {
@@ -106,34 +97,11 @@ func (v *VPCConnectivity) SplitAllowedConnsToUnidirectionalAndBidirectional() (
 	return bidirectional, unidirectional
 }
 
-func (nodesConnMap NodesConnectionsMap) updateAllowedConnsMap(src, dst Node, conn *common.ConnectionSet) {
-	if _, ok := nodesConnMap[src]; !ok {
-		nodesConnMap[src] = map[Node]*common.ConnectionSet{}
-	}
-	nodesConnMap[src][dst] = conn
-}
-
-func (nodesConnMap NodesConnectionsMap) getAllowedConnForPair(src, dst Node) *common.ConnectionSet {
-	if connsMap, ok := nodesConnMap[src]; ok {
+func (connectivityMap GeneralConnectivityMap) getAllowedConnForPair(src, dst VPCResourceIntf) *common.ConnectionSet {
+	if connsMap, ok := connectivityMap[src]; ok {
 		if conn, ok := connsMap[dst]; ok {
 			return conn
 		}
 	}
 	return NoConns()
-}
-
-func (nodesConnMap NodesConnectionsMap) nodesConnectivityToGeneralConnectivity() (generalConnMap GeneralConnectivityMap) {
-	generalConnMap = GeneralConnectivityMap{}
-	for src, connsMap := range nodesConnMap {
-		for dst, conn := range connsMap {
-			if conn.IsEmpty() {
-				continue
-			}
-			if _, ok := generalConnMap[src]; !ok {
-				generalConnMap[src] = map[VPCResourceIntf]*common.ConnectionSet{}
-			}
-			generalConnMap[src][dst] = conn
-		}
-	}
-	return generalConnMap
 }

@@ -33,7 +33,11 @@ func (m *MDoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	if c2 != nil {
 		v2Name = c2.VPC.Name()
 	}
-	out := "# " + headerOfAnalyzedVPC(uc, c1.VPC.Name(), v2Name)
+	out, err := headerOfAnalyzedVPC(uc, c1.VPC.Name(), v2Name, c1)
+	if err != nil {
+		return nil, err
+	}
+	out = "# " + out
 	switch uc {
 	case AllEndpoints:
 		lines := []string{mdDefaultTitle, mdDefaultHeader}
@@ -57,7 +61,7 @@ func (m *MDoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 		return nil, errors.New("DebugSubnet use case not supported for md format currently ")
 	}
 
-	_, err := WriteToFile(out, outFile)
+	_, err = WriteToFile(out, outFile)
 	return &SingleAnalysisOutput{Output: out, VPC1Name: c1.VPC.Name(), VPC2Name: v2Name, format: MD}, err
 }
 

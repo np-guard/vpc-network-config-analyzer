@@ -87,8 +87,12 @@ func (c *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 
 	// iterate pairs (capturedNode, peerNode) to analyze their allowed ingress/egress conns
 	for _, peerNode := range c.Nodes {
-		// skip analysis between node to itself
-		if peerNode.Cidr() == capturedNode.Cidr() {
+		// skip analysis between certain pairs of nodes
+		considerPair, err := c.shouldConsiderPairForConnectivity(capturedNode, peerNode)
+		if err != nil {
+			return nil, nil, err
+		}
+		if !considerPair {
 			continue
 		}
 		src, dst := switchSrcDstNodes(!isIngress, peerNode, capturedNode)
@@ -169,7 +173,7 @@ func (v *VPCConnectivity) computeCombinedConnectionsPerDirection(isIngressDirect
 // the result for this computation is stateless connections
 // (could be that some of them or a subset of them are stateful,but this is not computed here)
 func (v *VPCConnectivity) computeAllowedConnsCombined() {
-	v.AllowedConnsCombined = NewNodesConnectionsMap()
+	v.AllowedConnsCombined = GeneralConnectivityMap{}
 	for node, connectivityRes := range v.AllowedConns {
 		v.computeCombinedConnectionsPerDirection(true, node, connectivityRes)
 		v.computeCombinedConnectionsPerDirection(false, node, connectivityRes)
@@ -215,12 +219,15 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections() {
 	// on overlapping/matching connection-set, (src-dst ports should be switched),
 	// for it to be considered as stateful
 
-	v.AllowedConnsCombinedStateful = NewNodesConnectionsMap()
+	v.AllowedConnsCombinedStateful = GeneralConnectivityMap{}
 
 	for src, connsMap := range v.AllowedConnsCombined {
 		for dst, conn := range connsMap {
+			// src and dst here are nodes, always. Thus ignoring potential error in conversion
+			srcNode := src.(Node)
+			dstNode := dst.(Node)
 			// iterate pairs (src,dst) with conn as allowed connectivity, to check stateful aspect
-			if v.isConnExternalThroughFIP(src, dst) {
+			if v.isConnExternalThroughFIP(srcNode, dstNode) {
 				// TODO: this may be ibm-specific. consider moving to ibmvpc
 				v.AllowedConnsCombinedStateful.updateAllowedConnsMap(src, dst, conn)
 				conn.IsStateful = common.StatefulTrue
@@ -231,9 +238,9 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections() {
 			// check allowed conns per NACL-layer from dst to src (dst->src)
 			var DstAllowedEgressToSrc, SrcAllowedIngressFromDst *common.ConnectionSet
 			// can dst egress to src?
-			DstAllowedEgressToSrc = v.getPerLayerConnectivity(statelessLayerName, dst, src, false)
+			DstAllowedEgressToSrc = v.getPerLayerConnectivity(statelessLayerName, dstNode, srcNode, false)
 			// can src ingress from dst?
-			SrcAllowedIngressFromDst = v.getPerLayerConnectivity(statelessLayerName, dst, src, true)
+			SrcAllowedIngressFromDst = v.getPerLayerConnectivity(statelessLayerName, dstNode, srcNode, true)
 			combinedDstToSrc := DstAllowedEgressToSrc.Intersection(SrcAllowedIngressFromDst)
 			// flip src/dst ports before intersection
 			combinedDstToSrcSwitchPortsDirection := combinedDstToSrc.ResponseConnection()
@@ -279,19 +286,22 @@ const (
 	fipRouter          = "FloatingIP"
 )
 
-func (nodesConnMap NodesConnectionsMap) getCombinedConnsStr() string {
+func (connectivityMap GeneralConnectivityMap) getCombinedConnsStr() string {
 	strList := []string{}
-	for src, nodeConns := range nodesConnMap {
+	for src, nodeConns := range connectivityMap {
 		for dst, conns := range nodeConns {
+			// src and dst here are nodes, always. Thus ignoring potential error in conversion
+			srcNode := src.(Node)
+			dstNode := dst.(Node)
 			if conns.IsEmpty() {
 				continue
 			}
-			srcName := src.Cidr()
-			if src.IsInternal() {
+			srcName := srcNode.Cidr()
+			if srcNode.IsInternal() {
 				srcName = src.Name()
 			}
-			dstName := dst.Cidr()
-			if dst.IsInternal() {
+			dstName := dstNode.Cidr()
+			if dstNode.IsInternal() {
 				dstName = dst.Name()
 			}
 			connsStr := conns.EnhancedString()
@@ -327,7 +337,8 @@ func (v *VPCConnectivity) DetailedString() string {
 	strList = []string{}
 	for src, nodeConns := range v.AllowedConnsCombined {
 		for dst, conns := range nodeConns {
-			strList = append(strList, getConnectionStr(src.Cidr(), dst.Cidr(), conns.String(), ""))
+			// src and dst here are nodes, always. Thus ignoring potential error in conversion
+			strList = append(strList, getConnectionStr(src.(Node).Cidr(), dst.(Node).Cidr(), conns.String(), ""))
 		}
 	}
 	sort.Strings(strList)

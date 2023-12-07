@@ -357,6 +357,7 @@ var tests = []*vpcGeneralTest{
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
 		format:   vpcmodel.Text,
 	},
+	// diff examples:
 	{
 		name:     "acl_testing5",
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.SubnetsDiff},
@@ -366,11 +367,6 @@ var tests = []*vpcGeneralTest{
 		name:     "acl_testing5",
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.SubnetsDiff},
 		format:   vpcmodel.MD,
-	},
-	{
-		name:     "acl_testing5",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.SubnetsDiff},
-		format:   vpcmodel.JSON,
 	},
 	{
 		name:     "acl_testing3",
@@ -383,9 +379,15 @@ var tests = []*vpcGeneralTest{
 		format:   vpcmodel.MD,
 	},
 	{
-		name:     "acl_testing3",
+		name:     "sg_testing1_new",
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
-		format:   vpcmodel.JSON,
+		format:   vpcmodel.Text,
+	},
+	// tgw example
+	{
+		name:     "tgw_basic_example",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+		format:   vpcmodel.Text,
 	},
 }
 

@@ -107,7 +107,7 @@ func TestSimpleSubnetDiff(t *testing.T) {
 	}
 	require.Equal(t, err, nil)
 	subnet2Subtract1Str := cfg2Subtract1.string(Subnets, false)
-	fmt.Printf("cfg2Subtract1:\n%v", subnet2Subtract1Str)
+	fmt.Printf("cfg2ConnRemovedFrom1:\n%v", subnet2Subtract1Str)
 	require.Equal(t, subnet2Subtract1Str, "diff-type: added, source: subnet4, destination: subnet5, config1: "+
 		"No Connections, config2: All Connections, subnets-diff-info: subnet5 added\n")
 }
@@ -130,7 +130,7 @@ func TestSimpleSubnetDiffGrouping(t *testing.T) {
 	groupedPrinted := d.String()
 	fmt.Println(groupedPrinted)
 	newLines := strings.Count(groupedPrinted, "\n")
-	require.Equal(t, 6, newLines)
+	require.Equal(t, 9, newLines)
 	require.Contains(t, groupedPrinted, "diff-type: removed, source: subnet0, destination: subnet1, "+
 		"config1: All Connections, config2: No Connections, subnets-diff-info: subnet0 and subnet1 removed\n")
 	require.Contains(t, groupedPrinted, "diff-type: removed, source: subnet1, destination: subnet2, "+
@@ -247,7 +247,7 @@ func TestSimpleIPAndSubnetDiffGrouping(t *testing.T) {
 	groupedPrinted := d.String()
 	fmt.Println(groupedPrinted)
 	newLines := strings.Count(groupedPrinted, "\n")
-	require.Equal(t, 5, newLines)
+	require.Equal(t, 8, newLines)
 	require.Contains(t, groupedPrinted, "diff-type: added, source: Public Internet 1.2.3.4-1.2.3.63, "+
 		"destination: subnet1, config1: No Connections, config2: All Connections, subnets-diff-info:")
 	require.Contains(t, groupedPrinted, "diff-type: added, source: Public Internet 1.2.3.4-1.2.3.63, "+
@@ -285,14 +285,14 @@ func configSimpleVsisDiff() (configConn1, configConn2 *configConnectivity) {
 
 	connectionTCP := common.NewConnectionSet(false)
 	connectionTCP.AddTCPorUDPConn(common.ProtocolTCP, 10, 100, 443, 443)
-	cfg1Conn := &VPCConnectivity{AllowedConnsCombined: NewNodesConnectionsMap()}
+	cfg1Conn := &VPCConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
 	cfg1Conn.AllowedConnsCombined.updateAllowedConnsMap(cfg1.Nodes[0], cfg1.Nodes[1], common.NewConnectionSet(true))
 	cfg1Conn.AllowedConnsCombined.updateAllowedConnsMap(cfg1.Nodes[1], cfg1.Nodes[2], common.NewConnectionSet(true))
 	cfg1Conn.AllowedConnsCombined.updateAllowedConnsMap(cfg1.Nodes[1], cfg1.Nodes[3], common.NewConnectionSet(true))
 	cfg1Conn.AllowedConnsCombined.updateAllowedConnsMap(cfg1.Nodes[2], cfg1.Nodes[3], connectionTCP)
 	cfg1Conn.AllowedConnsCombined.updateAllowedConnsMap(cfg1.Nodes[2], cfg1.Nodes[4], connectionTCP)
 
-	cfg2Conn := &VPCConnectivity{AllowedConnsCombined: NewNodesConnectionsMap()}
+	cfg2Conn := &VPCConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
 	// 1st connections is identical to these in cfg1; the 2nd one differs in the conn type, the 3rd one has a dst that
 	// does not exist in cfg1
 	cfg2Conn.AllowedConnsCombined.updateAllowedConnsMap(cfg2.Nodes[0], cfg2.Nodes[1], common.NewConnectionSet(true))
@@ -300,11 +300,8 @@ func configSimpleVsisDiff() (configConn1, configConn2 *configConnectivity) {
 	cfg2Conn.AllowedConnsCombined.updateAllowedConnsMap(cfg2.Nodes[2], cfg2.Nodes[3], common.NewConnectionSet(true))
 	cfg2Conn.AllowedConnsCombined.updateAllowedConnsMap(cfg2.Nodes[1], cfg2.Nodes[4], common.NewConnectionSet(true))
 
-	cfg1ConnGeneral := cfg1Conn.AllowedConnsCombined.nodesConnectivityToGeneralConnectivity()
-	cfg2ConnGeneral := cfg2Conn.AllowedConnsCombined.nodesConnectivityToGeneralConnectivity()
-
-	configConn1 = &configConnectivity{cfg1, cfg1ConnGeneral}
-	configConn2 = &configConnectivity{cfg2, cfg2ConnGeneral}
+	configConn1 = &configConnectivity{cfg1, cfg1Conn.AllowedConnsCombined}
+	configConn2 = &configConnectivity{cfg2, cfg2Conn.AllowedConnsCombined}
 
 	fmt.Printf("cfg1:\n%v\n", cfg1Conn.AllowedConnsCombined.getCombinedConnsStr())
 	fmt.Printf("cfg2:\n%v\n", cfg2Conn.AllowedConnsCombined.getCombinedConnsStr())
@@ -375,25 +372,25 @@ func TestSimpleVsisDiffGrouping(t *testing.T) {
 		fmt.Println("error:", err.Error())
 	}
 	require.Equal(t, err, nil)
-	d := &diffBetweenCfgs{Subnets, cfg1SubCfg2, cfg2SubCfg1, nil}
+	d := &diffBetweenCfgs{Vsis, cfg1SubCfg2, cfg2SubCfg1, nil}
 	groupConnLines, _ := newGroupConnLinesDiff(d)
 	d.groupedLines = groupConnLines.GroupedLines
 	groupedPrinted := d.String()
 	fmt.Println(groupedPrinted)
 	newLines := strings.Count(groupedPrinted, "\n")
-	require.Equal(t, 6, newLines)
+	require.Equal(t, 9, newLines)
 	require.Contains(t, groupedPrinted, "diff-type: added, source: vsi2, destination: Public Internet 1.2.3.4-1.2.3.63, "+
-		"config1: No Connections, config2: All Connections, subnets-diff-info: \n")
+		"config1: No Connections, config2: All Connections, vsis-diff-info: \n")
 	require.Contains(t, groupedPrinted, "diff-type: added, source: vsi3, destination: vsi4, config1: No Connections, "+
-		"config2: All Connections, subnets-diff-info: vsi4 added\n")
+		"config2: All Connections, vsis-diff-info: vsi4 added\n")
 	require.Contains(t, groupedPrinted, "diff-type: changed, source: vsi2, destination: Public Internet 1.2.3.0/30, "+
-		"config1: protocol: TCP src-ports: 10-100 dst-ports: 443, config2: All Connections, subnets-diff-info: \n")
+		"config1: protocol: TCP src-ports: 10-100 dst-ports: 443, config2: All Connections, vsis-diff-info: \n")
 	require.Contains(t, groupedPrinted, "diff-type: changed, source: vsi2, destination: vsi3, "+
-		"config1: protocol: TCP src-ports: 10-100 dst-ports: 443, config2: All Connections, subnets-diff-info: \n")
+		"config1: protocol: TCP src-ports: 10-100 dst-ports: 443, config2: All Connections, vsis-diff-info: \n")
 	require.Contains(t, groupedPrinted, "diff-type: removed, source: vsi0, destination: vsi1, config1: "+
-		"All Connections, config2: No Connections, subnets-diff-info: vsi0 removed\n")
+		"All Connections, config2: No Connections, vsis-diff-info: vsi0 removed\n")
 	require.Contains(t, groupedPrinted, "diff-type: removed, source: vsi1, destination: vsi3, "+
-		"config1: All Connections, config2: No Connections, subnets-diff-info: \n")
+		"config1: All Connections, config2: No Connections, vsis-diff-info: \n")
 }
 
 func (connDiff *connectivityDiff) string(diffAnalysis diffAnalysisType, thisMinusOther bool) string {

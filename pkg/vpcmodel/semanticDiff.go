@@ -121,7 +121,7 @@ func (c *VPCConfig) getAllowedConnectionsCombined(
 		if err != nil {
 			return nil, err
 		}
-		return connectivity1.AllowedConnsCombined.nodesConnectivityToGeneralConnectivity(), nil
+		return connectivity1.AllowedConnsCombined, nil
 	}
 	return nil, fmt.Errorf("illegal diff analysis type")
 }
@@ -268,8 +268,7 @@ func (diffCfgs *diffBetweenCfgs) String() string {
 		strList[i] = printDiffLine(diffCfgs.diffAnalysis, grouped.src, grouped.dst, grouped.commonProperties)
 	}
 	sort.Strings(strList)
-	res := strings.Join(strList, "")
-	return res
+	return strings.Join(strList, "") + asteriskDetails
 }
 
 // prints connection for the above string(..) where the connection could be empty

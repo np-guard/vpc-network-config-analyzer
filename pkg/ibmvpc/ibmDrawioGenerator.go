@@ -90,7 +90,7 @@ func (v *Vpe) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeN
 	for i, resIP := range v.Nodes() {
 		resIPs[i] = gen.TreeNode(resIP)
 	}
-	vpcTn := gen.TreeNode(v.vpc).(drawio.SquareTreeNodeInterface)
+	vpcTn := gen.TreeNode(v.VPC()).(drawio.SquareTreeNodeInterface)
 	drawio.GroupResIPsWithVpe(vpcTn, v.Name(), resIPs)
 	return nil
 }
@@ -107,4 +107,8 @@ func (fip *FloatingIP) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) dra
 	nitn := gen.TreeNode(fip.Src()[0]).(*drawio.NITreeNode)
 	nitn.SetFIP(fip.Name())
 	return nitn
+}
+
+func (tgw *TransitGateway) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
+	return nil
 }
