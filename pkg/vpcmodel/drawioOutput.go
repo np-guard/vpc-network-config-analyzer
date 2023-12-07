@@ -37,14 +37,13 @@ func (d *DrawioOutputFormatter) init(cConfig *VPCConfig, conn *GroupConnLines, u
 	d.conn = conn
 	d.uc = uc
 	d.gen = NewDrawioGenerator(cConfig.CloudName)
-	d.gen.network.SubnetMode = uc == AllSubnets
 	d.routers = map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface{}
 }
 
 func (d *DrawioOutputFormatter) writeOutputGeneric(outFile string) (
 	*SingleAnalysisOutput, error) {
 	d.createDrawioTree()
-	err := drawio.CreateDrawioConnectivityMapFile(d.gen.Network(), outFile)
+	err := drawio.CreateDrawioConnectivityMapFile(d.gen.Network(), outFile, d.uc == AllSubnets)
 	return &SingleAnalysisOutput{}, err
 }
 

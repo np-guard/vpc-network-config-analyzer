@@ -57,17 +57,18 @@ const (
 type layoutS struct {
 	network SquareTreeNodeInterface
 	matrix  *layoutMatrix
+	subnetMode bool
 }
 
-func newLayout(network SquareTreeNodeInterface) *layoutS {
-	return &layoutS{network: network, matrix: newLayoutMatrix()}
+func newLayout(network SquareTreeNodeInterface, subnetMode bool) *layoutS {
+	return &layoutS{network: network, matrix: newLayoutMatrix(), subnetMode: subnetMode}
 }
 
 func (ly *layoutS) layout() {
 	// main layout algorithm:
 	// 1. create a 2D matrix  - for each subnet icon, it set the location in the matrix
 	// in case of subnet mode, set the locations of the subnets
-	if !ly.network.(*NetworkTreeNode).SubnetMode {
+	if !ly.subnetMode {
 		ly.layoutSubnetsIcons()
 	} else {
 		ly.layoutSubnets()
@@ -85,7 +86,7 @@ func (ly *layoutS) layout() {
 	// 6. set the geometry for each node in the drawio
 	ly.matrix.setLayersDistance()
 	ly.setGeometries()
-	if !ly.network.(*NetworkTreeNode).SubnetMode {
+	if !ly.subnetMode {
 		newLayoutOverlap(ly.network).fixOverlapping()
 	}
 }
@@ -511,7 +512,7 @@ func (ly *layoutS) setSquaresLocations() {
 	}
 	ly.resolvePublicNetworkLocations()
 	resolveSquareLocation(ly.network, 1, false)
-	if ly.network.(*NetworkTreeNode).SubnetMode {
+	if ly.subnetMode {
 		ly.setGroupedSubnetsOffset()
 	}
 }

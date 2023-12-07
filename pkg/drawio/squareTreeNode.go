@@ -64,7 +64,6 @@ type NetworkTreeNode struct {
 	abstractSquareTreeNode
 	clouds        []SquareTreeNodeInterface
 	publicNetwork SquareTreeNodeInterface
-	SubnetMode    bool
 }
 
 func NewNetworkTreeNode() *NetworkTreeNode {

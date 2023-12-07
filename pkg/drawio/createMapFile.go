@@ -69,8 +69,8 @@ func orderNodesForDrawio(nodes []TreeNodeInterface) []TreeNodeInterface {
 	return orderedNodes
 }
 
-func CreateDrawioConnectivityMapFile(network SquareTreeNodeInterface, outputFile string) error {
-	newLayout(network).layout()
+func CreateDrawioConnectivityMapFile(network SquareTreeNodeInterface, outputFile string, subnetMode bool) error {
+	newLayout(network,subnetMode).layout()
 
 	return writeDrawioFile(NewDrawioData(network), outputFile)
 }
