@@ -148,19 +148,16 @@ func (d *DrawioOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 			gConn = conn.GroupedConnectivity
 		}
 		d.init(c1, gConn, uc)
-		return d.writeOutputGeneric(outFile)
 	case AllSubnets:
 		var gConn *GroupConnLines
 		if subnetsConn != nil {
 			gConn = subnetsConn.GroupedConnectivity
 		}
 		d.init(subnetsConn.VPCConfig, gConn, uc)
-		return d.writeOutputGeneric(outFile)
-	case SingleSubnet:
-		return &SingleAnalysisOutput{}, errors.New("SingleSubnet use case not supported for draw.io format currently ")
 	default:
 		return &SingleAnalysisOutput{}, errors.New("use case is not currently supported for draw.io format")
 	}
+	return d.writeOutputGeneric(outFile)
 }
 
 // /////////////////////////////////////////////////////////////////

@@ -338,7 +338,7 @@ func (ly *layoutS) setSubnetsLocations(subnetMatrix [][]TreeNodeInterface, zones
 	}
 }
 
-func (ly *layoutS) resolveGroupedSubnetsOverride() {
+func (ly *layoutS) resolveGroupedSubnetsOverlap() {
 	allSubnetsSquares := map[*GroupSubnetsSquareTreeNode]bool{}
 	for _, tn := range getAllNodes(ly.network) {
 		if !tn.NotShownInDrawio() && tn.IsSquare() && tn.(SquareTreeNodeInterface).IsGroupSubnetsSquare() {
@@ -390,7 +390,7 @@ func (ly *layoutS) setGroupedSubnetsOffset() {
 			tn.Location().yEndOffset = -groupBorderWidth
 		}
 	}
-	ly.resolveGroupedSubnetsOverride()
+	ly.resolveGroupedSubnetsOverlap()
 }
 
 // //////////////////////////////////////////////////////////////////////////////////////////
