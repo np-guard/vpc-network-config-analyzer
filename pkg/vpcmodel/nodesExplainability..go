@@ -1,5 +1,7 @@
 package vpcmodel
 
+import "fmt"
+
 // stage 1: vsi to vsi of the same subnet (Adi prefers the definition "vsi to vsi considering only SGs")
 //          this is relatively simple since only SG can effect this connection, and SG has only enabling rules
 
@@ -38,9 +40,25 @@ package vpcmodel
 // finds the node of a given, by its name, Vsi
 func (c *VPCConfig) getVsiNode(name string) Node {
 	for _, node := range c.Nodes {
+		// currently, supported: network interface given takes only that one.
+		//  todo:   if address not given but only vsi name - take all network interfaces of that vsi
 		if name == node.Name() {
 			return node
 		}
 	}
+	return nil
+}
+
+func (c *VPCConfig) ExplainConnectivity(srcName, dstName string) error {
+	src := c.getVsiNode(srcName)
+	if src == nil {
+		return fmt.Errorf("src %v does not represent a VSI", srcName)
+	}
+	dst := c.getVsiNode(dstName)
+	if dst == nil {
+		return fmt.Errorf("dst %v does not represent a VSI", srcName)
+	}
+	// todo tmp
+	fmt.Printf("Explanbility for connection between %s to %s\n", src.Name(), dst.Name())
 	return nil
 }
