@@ -1,9 +1,10 @@
 package drawio
 
 import (
+	"maps"
 	"sort"
-	"strconv"
-	"strings"
+
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 // //////////////////////////////////////////////////////////////////////////////////////////////
@@ -27,80 +28,23 @@ import (
 //    (in this phase new groups are created, by splitting  groups to smaller groups)
 // 3. layout the groups
 // 4. create new treeNodes of the new groupSquares and new connectors
-
-// //////////////////////////////////////////////////////////////////////////////////////////////
-// //////////////////////////////////////////////////////////////////////////////////////////////
 // //////////////////////////////////////////////////////////////////////////////////////////////
 
-// a genericSet is a generic implementation of a set.
-// the main functionality of genericSet is asKey() - conversion to a string.
-// asKey() is needed for:
-// 1. using genericSet as a key of a map
-// 2. comparing between two sets.
-// //////////////////////////////////////////////////////////////////////////////////////////////
-
-type genericSet[T comparable] map[T]bool
-type setAsKey string
-
-var interfaceIndex map[interface{}]int = map[interface{}]int{}
-
-func (s *genericSet[T]) asKey() setAsKey {
-	ss := []string{}
-	for i := range *s {
-		if _, ok := interfaceIndex[i]; !ok {
-			interfaceIndex[i] = len(interfaceIndex)
-		}
-		ss = append(ss, strconv.Itoa(interfaceIndex[i]))
-	}
-	sort.Strings(ss)
-	return setAsKey(strings.Join(ss, ","))
-}
-
-func (s *genericSet[T]) equal(s2 *genericSet[T]) bool {
-	return s.asKey() == s2.asKey()
-}
-func (s *genericSet[T]) asList() []T {
-	keys := make([]T, len(*s))
-	i := 0
-	for k := range *s {
-		keys[i] = k
-		i++
-	}
-	return keys
-}
-
-func (s *genericSet[T]) isIntersect(s2 *genericSet[T]) bool {
-	for i := range *s {
-		if (*s2)[i] {
-			return true
-		}
-	}
-	return false
-}
-func (s *genericSet[T]) copy() genericSet[T] {
-	c := genericSet[T]{}
-	for i := range *s {
-		c[i] = (*s)[i]
-	}
-	return c
-}
-
-type subnetSet genericSet[TreeNodeInterface]
-type groupTnSet genericSet[TreeNodeInterface]
-type groupSet genericSet[*groupDataS]
-type miniGroupSet genericSet[*miniGroupDataS]
+type subnetSet common.GenericSet[TreeNodeInterface]
+type groupTnSet common.GenericSet[TreeNodeInterface]
+type groupSet common.GenericSet[*groupDataS]
+type miniGroupSet common.GenericSet[*miniGroupDataS]
+type setAsKey common.SetAsKey
 
 // todo: how to remove???
-func (s *groupTnSet) asKey() setAsKey { return ((*genericSet[TreeNodeInterface])(s)).asKey() }
-func (s *groupSet) asKey() setAsKey   { return ((*genericSet[*groupDataS])(s)).asKey() }
-func (s *miniGroupSet) equal(s2 *miniGroupSet) bool {
-	return ((*genericSet[*miniGroupDataS])(s)).equal((*genericSet[*miniGroupDataS])(s2))
+func (s *groupTnSet) AsKey() setAsKey {
+	return setAsKey(((*common.GenericSet[TreeNodeInterface])(s)).AsKey())
 }
-func (s *miniGroupSet) isIntersect(s2 *miniGroupSet) bool {
-	return ((*genericSet[*miniGroupDataS])(s)).isIntersect((*genericSet[*miniGroupDataS])(s2))
+func (s *groupSet) AsKey() setAsKey { return setAsKey(((*common.GenericSet[*groupDataS])(s)).AsKey()) }
+func (s *miniGroupSet) IsIntersect(s2 *miniGroupSet) bool {
+	return ((*common.GenericSet[*miniGroupDataS])(s)).IsIntersect((*common.GenericSet[*miniGroupDataS])(s2))
 }
-func (s *groupSet) asList() []*groupDataS { return ((*genericSet[*groupDataS])(s)).asList() }
-func (s *groupSet) copy() groupSet        { return groupSet(((*genericSet[*groupDataS])(s)).copy()) }
+func (s *groupSet) AsList() []*groupDataS { return ((*common.GenericSet[*groupDataS])(s)).AsList() }
 
 /////////////////////////////////////////////////////////////////
 
@@ -335,14 +279,14 @@ func (ly *subnetsLayout) groupsTreeNodes() groupTnSet {
 func sortSubnetsByZoneAndGroups(subnetToGroups map[TreeNodeInterface]groupTnSet) map[setAsKey]map[TreeNodeInterface]subnetSet {
 	groupSetToSubnetSet := map[setAsKey]map[TreeNodeInterface]subnetSet{}
 	for subnet, groups := range subnetToGroups {
-		if _, ok := groupSetToSubnetSet[groups.asKey()]; !ok {
-			groupSetToSubnetSet[groups.asKey()] = map[TreeNodeInterface]subnetSet{}
+		if _, ok := groupSetToSubnetSet[groups.AsKey()]; !ok {
+			groupSetToSubnetSet[groups.AsKey()] = map[TreeNodeInterface]subnetSet{}
 		}
 		zone := subnet.Parent()
-		if _, ok := groupSetToSubnetSet[groups.asKey()][zone]; !ok {
-			groupSetToSubnetSet[groups.asKey()][subnet.Parent()] = subnetSet{}
+		if _, ok := groupSetToSubnetSet[groups.AsKey()][zone]; !ok {
+			groupSetToSubnetSet[groups.AsKey()][subnet.Parent()] = subnetSet{}
 		}
-		groupSetToSubnetSet[groups.asKey()][zone][subnet] = true
+		groupSetToSubnetSet[groups.AsKey()][zone][subnet] = true
 	}
 	return groupSetToSubnetSet
 }
@@ -388,7 +332,7 @@ func (ly *subnetsLayout) innerGroupsOfAGroup(group *groupDataS) groupSet {
 }
 
 func nonInnerGroups(groups groupSet) groupSet {
-	nonInnerGroups := groups.copy()
+	nonInnerGroups := maps.Clone(groups)
 	for group1 := range groups {
 		for group2 := range groups {
 			if group2.isInnerGroup(group1) {
@@ -405,7 +349,7 @@ func intersectGroups(groups groupSet) map[*groupDataS]groupSet {
 	for group1 := range groups {
 		for group2 := range groups {
 			if group1 != group2 {
-				if group1.miniGroups.isIntersect(&group2.miniGroups) {
+				if group1.miniGroups.IsIntersect(&group2.miniGroups) {
 					if _, ok := intersectGroups[group1]; !ok {
 						intersectGroups[group1] = groupSet{}
 					}
@@ -468,11 +412,11 @@ func groupSetToMiniGroups(miniGroupToGroupSet map[*miniGroupDataS]groupSet) (
 	groupSetToMiniGroups = map[setAsKey]miniGroupSet{}
 	keysToGroupSet = map[setAsKey]groupSet{}
 	for miniGroup, groupSet := range miniGroupToGroupSet {
-		if _, ok := groupSetToMiniGroups[groupSet.asKey()]; !ok {
-			groupSetToMiniGroups[groupSet.asKey()] = miniGroupSet{}
+		if _, ok := groupSetToMiniGroups[groupSet.AsKey()]; !ok {
+			groupSetToMiniGroups[groupSet.AsKey()] = miniGroupSet{}
 		}
-		groupSetToMiniGroups[groupSet.asKey()][miniGroup] = true
-		keysToGroupSet[groupSet.asKey()] = groupSet
+		groupSetToMiniGroups[groupSet.AsKey()][miniGroup] = true
+		keysToGroupSet[groupSet.AsKey()] = groupSet
 	}
 	return groupSetToMiniGroups, keysToGroupSet
 }
@@ -480,7 +424,7 @@ func groupSetToMiniGroups(miniGroupToGroupSet map[*miniGroupDataS]groupSet) (
 func (ly *subnetsLayout) newGroupFromSplitMiniGroups(group *groupDataS, miniGroups miniGroupSet, groups groupSet) {
 	var newGroup *groupDataS
 	for _, gr := range ly.groups {
-		if gr.miniGroups.equal(&miniGroups) {
+		if maps.Equal(gr.miniGroups, miniGroups) {
 			newGroup = gr
 			break
 		}
@@ -629,7 +573,7 @@ func (ly *subnetsLayout) createMatrixes() {
 // 5. calc the last group.
 // 6. fill the square [firstRow-lastRow, minCol-maxCol] with a fake miniGroups, as space holders
 func (ly *subnetsLayout) layoutGroup(group *groupDataS, parentFirstRow int) {
-	childrenOrder := group.children.asList()
+	childrenOrder := group.children.AsList()
 	sort.Slice(childrenOrder, func(i, j int) bool {
 		return len(childrenOrder[i].miniGroups) > len(childrenOrder[j].miniGroups)
 	})
