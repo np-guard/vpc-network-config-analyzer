@@ -106,7 +106,7 @@ func _main(cmdlineArgs []string) error {
 
 	rc, err1 := ibmvpc.ParseResourcesFromFile(*inArgs.InputConfigFile)
 	if err1 != nil {
-		return fmt.Errorf("error parsing input vpc resources file: %w", err)
+		return fmt.Errorf("error parsing input vpc resources file: %w", err1)
 	}
 
 	vpcConfigs, err2 := ibmvpc.VPCConfigsFromResources(rc, *inArgs.VPC, *inArgs.Debug)
