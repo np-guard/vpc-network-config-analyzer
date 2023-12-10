@@ -111,7 +111,7 @@ func _main(cmdlineArgs []string) error {
 
 	vpcConfigs, err2 := ibmvpc.VPCConfigsFromResources(rc, *inArgs.VPC, *inArgs.Debug)
 	if err2 != nil {
-		return fmt.Errorf(ErrorFormat, InGenerationErr, err)
+		return fmt.Errorf(ErrorFormat, InGenerationErr, err2)
 	}
 
 	outFile := ""
