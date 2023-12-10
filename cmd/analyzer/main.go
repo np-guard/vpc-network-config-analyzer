@@ -93,8 +93,6 @@ func analysisDiffVPCConfig(c1, c2 *vpcmodel.VPCConfig, inArgs *InArgs, outFile s
 	return analysisOut, nil
 }
 
-const tmpForExplainabilityMode = false
-
 // The actual main function
 // Takes command-line flags and returns an error rather than exiting, so it can be more easily used in testing
 func _main(cmdlineArgs []string) error {
@@ -114,17 +112,6 @@ func _main(cmdlineArgs []string) error {
 	vpcConfigs, err2 := ibmvpc.VPCConfigsFromResources(rc, *inArgs.VPC, *inArgs.Debug)
 	if err2 != nil {
 		return fmt.Errorf(ErrorFormat, InGenerationErr, err)
-	}
-
-	// todo: tmp
-	if tmpForExplainabilityMode {
-		for _, vpcConfig := range vpcConfigs {
-			err3 := vpcConfig.ExplainConnectivity("vsi2-ky[10.240.20.4]", "vsi1-ky[10.240.10.4]")
-			if err3 != nil {
-				fmt.Printf("error: %s\n", err.Error())
-			}
-			return nil
-		}
 	}
 
 	outFile := ""
