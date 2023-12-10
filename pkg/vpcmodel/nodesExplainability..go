@@ -36,10 +36,10 @@ package vpcmodel
 //     * pointer to the original rule has to be added to SGRule struct [perhaps the first PR here]
 
 // finds the node of a given, by its name, Vsi
-func (c *VPCConfig) getVsiNode(name string) *Node {
+func (c *VPCConfig) getVsiNode(name string) Node {
 	for _, node := range c.Nodes {
 		if name == node.Name() {
-			return &node
+			return node
 		}
 	}
 	return nil
