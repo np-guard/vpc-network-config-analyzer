@@ -1,6 +1,8 @@
 package vpcmodel
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // stage 1: vsi to vsi of the same subnet (Adi prefers the definition "vsi to vsi considering only SGs")
 //          this is relatively simple since only SG can effect this connection, and SG has only enabling rules

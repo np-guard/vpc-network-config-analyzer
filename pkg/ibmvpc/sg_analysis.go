@@ -236,6 +236,7 @@ type SGRule struct {
 type ConnectivityResult struct {
 	isIngress    bool
 	allowedconns map[*common.IPBlock]*common.ConnectionSet // allowed target and its allowed connections
+	contribRules map[*common.IPBlock][]int                 // indexes of contribRules contributing to this connectivity
 }
 
 func (cr *ConnectivityResult) string() string {
@@ -247,9 +248,6 @@ func (cr *ConnectivityResult) string() string {
 	return strings.Join(res, "\n")
 }
 
-// todo: or write a function that given src, dst Node, isIngress bool same is
-//
-//	AllowedConnectivity signature finds the relevant enabling rules
 func AnalyzeSGRules(rules []*SGRule, isIngress bool) *ConnectivityResult {
 	targets := []*common.IPBlock{}
 	for i := range rules {
@@ -258,7 +256,8 @@ func AnalyzeSGRules(rules []*SGRule, isIngress bool) *ConnectivityResult {
 		}
 	}
 	disjointTargets := common.DisjointIPBlocks(targets, []*common.IPBlock{common.GetCidrAll()})
-	res := &ConnectivityResult{isIngress: isIngress, allowedconns: map[*common.IPBlock]*common.ConnectionSet{}}
+	res := &ConnectivityResult{isIngress: isIngress, allowedconns: map[*common.IPBlock]*common.ConnectionSet{},
+		contribRules: map[*common.IPBlock][]int{}}
 	for i := range disjointTargets {
 		res.allowedconns[disjointTargets[i]] = getEmptyConnSet()
 	}
@@ -269,6 +268,10 @@ func AnalyzeSGRules(rules []*SGRule, isIngress bool) *ConnectivityResult {
 		for disjointTarget := range res.allowedconns {
 			if disjointTarget.ContainedIn(target) {
 				res.allowedconns[disjointTarget] = res.allowedconns[disjointTarget].Union(conn)
+				if _, ok := res.contribRules[disjointTarget]; !ok {
+					res.contribRules[disjointTarget] = []int{}
+				}
+				res.contribRules[disjointTarget] = append(res.contribRules[disjointTarget], i)
 			}
 		}
 	}
@@ -291,18 +294,20 @@ func (sga *SGAnalyzer) prepareAnalyzer(sgMap map[string]*SecurityGroup, currentS
 }
 
 func (sga *SGAnalyzer) AllowedConnectivity(target string, isIngress bool) *common.ConnectionSet {
-	ipb := common.NewIPBlockFromCidrOrAddress(target)
-
-	var analyzedConns *ConnectivityResult
-	if isIngress {
-		analyzedConns = sga.ingressConnectivity
-	} else {
-		analyzedConns = sga.egressConnectivity
-	}
+	analyzedConns, ipb := sga.getAnalyzedConnsIpB(target, isIngress)
 	for definedTarget, conn := range analyzedConns.allowedconns {
 		if ipb.ContainedIn(definedTarget) {
 			return conn
 		}
 	}
 	return vpcmodel.NoConns()
+}
+
+func (sga *SGAnalyzer) getAnalyzedConnsIpB(target string, isIngress bool) (res *ConnectivityResult, ipb *common.IPBlock) {
+	ipb = common.NewIPBlockFromCidrOrAddress(target)
+	if isIngress {
+		return sga.ingressConnectivity, ipb
+	} else {
+		return sga.egressConnectivity, ipb
+	}
 }

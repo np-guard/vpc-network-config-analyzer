@@ -378,6 +378,15 @@ type SecurityGroup struct {
 }
 
 func (sg *SecurityGroup) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *common.ConnectionSet {
+	memberStrAddress, targetStrAddress := sg.getMemberTargetStrAddress(src, dst, isIngress)
+	if _, ok := sg.members[memberStrAddress]; !ok {
+		return vpcmodel.NoConns() // connectivity not affected by this SG resource - input node is not its member
+	}
+	return sg.analyzer.AllowedConnectivity(targetStrAddress, isIngress)
+}
+
+func (sg *SecurityGroup) getMemberTargetStrAddress(src, dst vpcmodel.Node,
+	isIngress bool) (memberStrAddress, targetStrAddress string) {
 	var member, target vpcmodel.Node
 	if isIngress {
 		member = dst
@@ -386,12 +395,9 @@ func (sg *SecurityGroup) AllowedConnectivity(src, dst vpcmodel.Node, isIngress b
 		member = src
 		target = dst
 	}
-	memberStrAddress := member.Cidr()
-	if _, ok := sg.members[memberStrAddress]; !ok {
-		return vpcmodel.NoConns() // connectivity not affected by this SG resource - input node is not its member
-	}
-	targetStrAddress := target.Cidr()
-	return sg.analyzer.AllowedConnectivity(targetStrAddress, isIngress)
+	memberStrAddress = member.Cidr()
+	targetStrAddress = target.Cidr()
+	return memberStrAddress, targetStrAddress
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
