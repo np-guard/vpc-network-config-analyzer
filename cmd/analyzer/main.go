@@ -104,14 +104,14 @@ func _main(cmdlineArgs []string) error {
 		return fmt.Errorf(ErrorFormat, ParsingErr, err)
 	}
 
-	rc, err := ibmvpc.ParseResourcesFromFile(*inArgs.InputConfigFile)
-	if err != nil {
-		return fmt.Errorf("error parsing input vpc resources file: %w", err)
+	rc, err1 := ibmvpc.ParseResourcesFromFile(*inArgs.InputConfigFile)
+	if err1 != nil {
+		return fmt.Errorf("error parsing input vpc resources file: %w", err1)
 	}
 
-	vpcConfigs, err := ibmvpc.VPCConfigsFromResources(rc, *inArgs.VPC, *inArgs.Debug)
-	if err != nil {
-		return fmt.Errorf(ErrorFormat, InGenerationErr, err)
+	vpcConfigs, err2 := ibmvpc.VPCConfigsFromResources(rc, *inArgs.VPC, *inArgs.Debug)
+	if err2 != nil {
+		return fmt.Errorf(ErrorFormat, InGenerationErr, err2)
 	}
 
 	outFile := ""
