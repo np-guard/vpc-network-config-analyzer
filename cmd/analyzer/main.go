@@ -106,21 +106,21 @@ func _main(cmdlineArgs []string) error {
 		return fmt.Errorf(ErrorFormat, ParsingErr, err)
 	}
 
-	rc, err := ibmvpc.ParseResourcesFromFile(*inArgs.InputConfigFile)
-	if err != nil {
+	rc, err1 := ibmvpc.ParseResourcesFromFile(*inArgs.InputConfigFile)
+	if err1 != nil {
 		return fmt.Errorf("error parsing input vpc resources file: %w", err)
 	}
 
-	vpcConfigs, err := ibmvpc.VPCConfigsFromResources(rc, *inArgs.VPC, *inArgs.Debug)
-	if err != nil {
+	vpcConfigs, err2 := ibmvpc.VPCConfigsFromResources(rc, *inArgs.VPC, *inArgs.Debug)
+	if err2 != nil {
 		return fmt.Errorf(ErrorFormat, InGenerationErr, err)
 	}
 
 	// todo: tmp
 	if tmpForExplainabilityMode {
 		for _, vpcConfig := range vpcConfigs {
-			err := vpcConfig.ExplainConnectivity("vsi2-ky[10.240.20.4]", "vsi1-ky[10.240.10.4]")
-			if err != nil {
+			err3 := vpcConfig.ExplainConnectivity("vsi2-ky[10.240.20.4]", "vsi1-ky[10.240.10.4]")
+			if err3 != nil {
 				fmt.Printf("error: %s\n", err.Error())
 			}
 			return nil
