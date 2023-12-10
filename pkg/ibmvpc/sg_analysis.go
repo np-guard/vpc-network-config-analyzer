@@ -184,17 +184,21 @@ func (sga *SGAnalyzer) getProtocolIcmpRule(ruleObj *vpc1.SecurityGroupRuleSecuri
 	return ruleStr, ruleRes, isIngress, nil
 }
 
-func (sga *SGAnalyzer) getSGRule(rule vpc1.SecurityGroupRuleIntf) (
+func (sga *SGAnalyzer) getSGRule(rule vpc1.SecurityGroupRuleIntf, index int) (
 	ruleStr string, ruleRes *SGRule, isIngress bool, err error) {
 	if ruleObj, ok := rule.(*vpc1.SecurityGroupRuleSecurityGroupRuleProtocolAll); ok {
-		return sga.getProtocolAllRule(ruleObj)
+		ruleStr, ruleRes, isIngress, err = sga.getProtocolAllRule(ruleObj)
 	}
 	if ruleObj, ok := rule.(*vpc1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudp); ok {
-		return sga.getProtocolTcpudpRule(ruleObj)
+		ruleStr, ruleRes, isIngress, err = sga.getProtocolTcpudpRule(ruleObj)
 	}
 	// SecurityGroupRuleSecurityGroupRuleProtocolIcmp
 	if ruleObj, ok := rule.(*vpc1.SecurityGroupRuleSecurityGroupRuleProtocolIcmp); ok {
-		return sga.getProtocolIcmpRule(ruleObj)
+		ruleStr, ruleRes, isIngress, err = sga.getProtocolIcmpRule(ruleObj)
+	}
+	if err == nil {
+		ruleRes.index = index
+		return fmt.Sprintf("index: %d, %v", index, ruleStr), ruleRes, isIngress, nil
 	}
 
 	return "", nil, false, fmt.Errorf("getSGRule error: unsupported type")
@@ -205,7 +209,7 @@ func (sga *SGAnalyzer) getSGrules(sgObj *vpc1.SecurityGroup) (ingressRules, egre
 	egressRules = []*SGRule{}
 	for index := range sgObj.Rules {
 		rule := sgObj.Rules[index]
-		_, ruleObj, isIngress, err := sga.getSGRule(rule)
+		_, ruleObj, isIngress, err := sga.getSGRule(rule, index)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -224,7 +228,7 @@ func (sga *SGAnalyzer) getSGrules(sgObj *vpc1.SecurityGroup) (ingressRules, egre
 type SGRule struct {
 	target      *common.IPBlock
 	connections *common.ConnectionSet
-	// todo add pointer to original rule
+	index       int // index of original rule in *vpc1.SecurityGroup.Rules
 }
 
 // ConnectivityResult should be built on disjoint ip-blocks for targets of all relevant sg results
