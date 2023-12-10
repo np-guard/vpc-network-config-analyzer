@@ -1,0 +1,5 @@
+Connectivity for VPC test-vpc1-ky
+vsi11-ky[10.240.11.4] => vsi12-ky[10.240.12.4] : All Connections
+vsi12-ky[10.240.12.4] => vsi11-ky[10.240.11.4] : All Connections
+
+connections are stateful unless marked with *

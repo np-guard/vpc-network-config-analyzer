@@ -1,0 +1,6 @@
+Connectivity for VPC test-vpc3-ky
+combined connections between subnets:
+subnet31-ky => subnet32-ky : All Connections
+subnet32-ky => subnet31-ky : All Connections
+
+connections are stateful unless marked with *
