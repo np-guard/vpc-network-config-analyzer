@@ -303,6 +303,19 @@ func (sga *SGAnalyzer) AllowedConnectivity(target string, isIngress bool) *commo
 	return vpcmodel.NoConns()
 }
 
+// todo: add signature to relevant interface, which only skeleton in nacl
+// RulesInConnectivity list of SG rules contributing to the connectivity
+func (sga *SGAnalyzer) RulesInConnectivity(target string, isIngress bool) []int {
+	analyzedConns, ipb := sga.getAnalyzedConnsIpB(target, isIngress)
+	for definedTarget, rules := range analyzedConns.contribRules {
+		if ipb.ContainedIn(definedTarget) {
+			return rules
+		}
+	}
+	return nil
+
+}
+
 func (sga *SGAnalyzer) getAnalyzedConnsIpB(target string, isIngress bool) (res *ConnectivityResult, ipb *common.IPBlock) {
 	ipb = common.NewIPBlockFromCidrOrAddress(target)
 	if isIngress {
