@@ -274,6 +274,12 @@ func (nl *NaclLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool)
 	return res, nil
 }
 
+// RulesInConnectivity list of SG rules contributing to the connectivity
+// todo: write
+func (nl *NaclLayer) RulesInConnectivity(src, dst vpcmodel.Node, isIngress bool) ([]int, error) {
+	return nil, nil
+}
+
 func (nl *NaclLayer) ReferencedIPblocks() []*common.IPBlock {
 	res := []*common.IPBlock{}
 	for _, n := range nl.naclList {
@@ -363,6 +369,18 @@ func (sgl *SecurityGroupLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIng
 	return res, nil
 }
 
+func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node, isIngress bool) ([]int, error) {
+	if (isIngress && dst.Kind() == ResourceTypeIKSNode) || (!isIngress && src.Kind() == ResourceTypeIKSNode) {
+		return nil, nil
+	}
+	var res []int
+	for _, sg := range sgl.sgList {
+		sgRules := sg.RulesInConnectivity(src, dst, isIngress)
+		res = append(res, sgRules...)
+	}
+	return res, nil
+}
+
 func (sgl *SecurityGroupLayer) ReferencedIPblocks() []*common.IPBlock {
 	res := []*common.IPBlock{}
 	for _, sg := range sgl.sgList {
@@ -383,6 +401,15 @@ func (sg *SecurityGroup) AllowedConnectivity(src, dst vpcmodel.Node, isIngress b
 		return vpcmodel.NoConns() // connectivity not affected by this SG resource - input node is not its member
 	}
 	return sg.analyzer.AllowedConnectivity(targetStrAddress, isIngress)
+}
+
+// RulesInConnectivity list of SG rules contributing to the connectivity
+func (sg *SecurityGroup) RulesInConnectivity(src, dst vpcmodel.Node, isIngress bool) []int {
+	memberStrAddress, targetStrAddress := sg.getMemberTargetStrAddress(src, dst, isIngress)
+	if _, ok := sg.members[memberStrAddress]; !ok {
+		return nil // connectivity not affected by this SG resource - input node is not its member
+	}
+	return sg.analyzer.rulesInConnectivity(targetStrAddress, isIngress)
 }
 
 func (sg *SecurityGroup) getMemberTargetStrAddress(src, dst vpcmodel.Node,
@@ -500,6 +527,11 @@ func (tgw *TransitGateway) Destinations() []vpcmodel.Node {
 
 func (tgw *TransitGateway) AllowedConnectivity(src, dst vpcmodel.Node) *common.ConnectionSet {
 	return nil
+}
+
+// RulesInConnectivity list of SG rules contributing to the connectivity
+func (tgw *TransitGateway) RulesInConnectivity(src, dst vpcmodel.Node, isIngress bool) ([]int, error) {
+	return nil, nil
 }
 
 func (tgw *TransitGateway) AppliedFiltersKinds() map[string]bool {

@@ -77,14 +77,17 @@ type NodeSet interface {
 // FilterTrafficResource capture allowed traffic between 2 endpoints
 type FilterTrafficResource interface {
 	VPCResourceIntf
-	// get the connectivity result when the filterTraffic resource is applied to the given NodeSet element
+	// AllowedConnectivity get the connectivity result when the filterTraffic resource is applied to the given NodeSet element
 	AllowedConnectivity(src, dst Node, isIngress bool) (*common.ConnectionSet, error)
+	// RulesInConnectivity get the list of rules of a given filter that contributes to the connection between src and dst
+	// todo: currently implemented only to sg; likely src and dst will be VPCResourceIntf instead of Node
+	RulesInConnectivity(src, dst Node, isIngress bool) ([]int, error)
 	ReferencedIPblocks() []*common.IPBlock
 	ConnectivityMap() (map[string]*IPbasedConnectivityResult, error)
 	GetConnectivityOutputPerEachElemSeparately() string
 }
 
-// routing resource enables connectivity from src to destination via that resource
+// RoutingResource routing resource enables connectivity from src to destination via that resource
 // fip, pgw, tgw
 type RoutingResource interface {
 	VPCResourceIntf
