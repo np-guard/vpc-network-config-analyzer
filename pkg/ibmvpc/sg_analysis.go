@@ -323,3 +323,16 @@ func (sga *SGAnalyzer) getAnalyzedConnsIpB(target string, isIngress bool) (res *
 		return sga.egressConnectivity, ipb
 	}
 }
+
+// // returns a string with the details of the specified rules
+func (sga *SGAnalyzer) StringRules(rules []int) string {
+	var strRules string
+	for _, ruleIndx := range rules {
+		strRule, _, _, err := sga.getSGRule(ruleIndx)
+		if err != nil {
+			return ""
+		}
+		strRules += strRule + "\n"
+	}
+	return strRules
+}

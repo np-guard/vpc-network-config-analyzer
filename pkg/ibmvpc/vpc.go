@@ -275,9 +275,12 @@ func (nl *NaclLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool)
 }
 
 // RulesInConnectivity list of SG rules contributing to the connectivity
-// todo: write
-func (nl *NaclLayer) RulesInConnectivity(src, dst vpcmodel.Node, isIngress bool) ([]vpcmodel.RulesInFilter, error) {
+func (nl *NaclLayer) RulesInConnectivity(vpcmodel.Node, vpcmodel.Node, bool) ([]vpcmodel.RulesInFilter, error) {
 	return nil, nil
+}
+
+func (nl *NaclLayer) StringRulesOfFilter([]vpcmodel.RulesInFilter) string {
+	return ""
 }
 
 func (nl *NaclLayer) ReferencedIPblocks() []*common.IPBlock {
@@ -386,6 +389,17 @@ func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 		}
 	}
 	return res, nil
+}
+
+func (sgl *SecurityGroupLayer) StringRulesOfFilter(listRulesInFilter []vpcmodel.RulesInFilter) string {
+	strListRulesInFilter := ""
+	for _, rulesInFilter := range listRulesInFilter {
+		sg := sgl.sgList[rulesInFilter.FilterIndex]
+		strListRulesInFilter += "enabling rules from " + sg.Name() +
+			"------------------------------------------------------\n"
+		return sg.analyzer.StringRules(rulesInFilter.Rules)
+	}
+	return strListRulesInFilter
 }
 
 func (sgl *SecurityGroupLayer) ReferencedIPblocks() []*common.IPBlock {
@@ -534,11 +548,6 @@ func (tgw *TransitGateway) Destinations() []vpcmodel.Node {
 
 func (tgw *TransitGateway) AllowedConnectivity(src, dst vpcmodel.Node) *common.ConnectionSet {
 	return nil
-}
-
-// RulesInConnectivity list of SG rules contributing to the connectivity
-func (tgw *TransitGateway) RulesInConnectivity(src, dst vpcmodel.Node, isIngress bool) ([]int, error) {
-	return nil, nil
 }
 
 func (tgw *TransitGateway) AppliedFiltersKinds() map[string]bool {

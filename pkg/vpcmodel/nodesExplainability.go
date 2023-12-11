@@ -51,47 +51,60 @@ func (c *VPCConfig) getVsiNode(name string) Node {
 	return nil
 }
 
-func (c *VPCConfig) ExplainConnectivity(srcName, dstName string) error {
+func (c *VPCConfig) ExplainConnectivity(srcName, dstName string) (explanation string, err error) {
 	src := c.getVsiNode(srcName)
 	if src == nil {
-		return fmt.Errorf("src %v does not represent a VSI", srcName)
+		return "", fmt.Errorf("src %v does not represent a VSI", srcName)
 	}
 	dst := c.getVsiNode(dstName)
 	if dst == nil {
-		return fmt.Errorf("dst %v does not represent a VSI", srcName)
+		return "", fmt.Errorf("dst %v does not represent a VSI", srcName)
 	}
 	// todo tmp
 	fmt.Printf("Explanbility for connection between %s to %s\n", src.Name(), dst.Name())
 	// todo in this stage only SG considered, thus only
 	//      connectivity between nodes of the same subnet is supported
 	// ingress rules
-	ingressRules, err1 := c.getFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(src, dst, true, SecurityGroupLayer)
+	ingressRulesStr, err1 := c.getStrFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(src, dst, true, SecurityGroupLayer)
 	if err1 != nil {
-		return err1
+		return "", err1
 	}
 	// egress rules
-	egressRules, err2 := c.getFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(src, dst, true, SecurityGroupLayer)
+	egressRulesStr, err2 := c.getStrFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(src, dst, true, SecurityGroupLayer)
 	if err2 != nil {
-		return err2
+		return "", err2
 	}
 	switch {
-	case ingressRules == nil && egressRules == nil:
-		fmt.Printf("No connection between %v and %v; connection blocked both by ingress and egress\n", src.Name(), dst.Name())
-	case ingressRules == nil:
-		fmt.Printf("No connection between %v and %v; connection blocked by ingress\n", src.Name(), dst.Name())
-	case egressRules == nil:
-		fmt.Printf("No connection between %v and %v; connection blocked by egress\n", src.Name(), dst.Name())
+	case ingressRulesStr == "" && egressRulesStr == "":
+		explanation = fmt.Sprintf("No connection between %v and %v; connection blocked both by ingress and egress\n", src.Name(), dst.Name())
+	case ingressRulesStr == "":
+		explanation = fmt.Sprintf("No connection between %v and %v; connection blocked by ingress\n", src.Name(), dst.Name())
+	case egressRulesStr == "":
+		explanation = fmt.Sprintf("No connection between %v and %v; connection blocked by egress\n", src.Name(), dst.Name())
+	default: // there is a connection
+		explanation = fmt.Sprintf("There is a connection between %v and %v. Ingress Rules:\n~~~~~~~~~~~~~~\n%v\n"+
+			"Egress Rules:\n~~~~~~~~~~~~~~\n%v\n", src.Name(), dst.Name(), ingressRulesStr, egressRulesStr)
+
 	}
-	return nil
+	return explanation, nil
 }
 
-func (c *VPCConfig) getFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(
+func (c *VPCConfig) getStrFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(
 	src, dst Node,
 	isIngress bool,
-	layer string) ([]RulesInFilter, error) {
+	layer string) (string, error) {
+	rulesStr := ""
 	filter := c.getFilterTrafficResourceOfKind(layer)
 	if filter == nil {
-		return nil, nil
+		return "", nil
 	}
-	return filter.RulesInConnectivity(src, dst, isIngress)
+	rulesOfFilter, err := filter.RulesInConnectivity(src, dst, isIngress)
+	if err != nil {
+		return "", nil
+	}
+	if rulesOfFilter != nil {
+		rulesStr += "\nSecurity Groups Rules\n------------------------------\n"
+		filter.StringRulesOfFilter(rulesOfFilter)
+	}
+	return rulesStr, nil
 }
