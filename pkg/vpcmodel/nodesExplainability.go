@@ -88,7 +88,7 @@ func (c *VPCConfig) ExplainConnectivity(srcName, dstName string) error {
 func (c *VPCConfig) getFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(
 	src, dst Node,
 	isIngress bool,
-	layer string) ([]int, error) {
+	layer string) ([]RulesInFilter, error) {
 	filter := c.getFilterTrafficResourceOfKind(layer)
 	if filter == nil {
 		return nil, nil

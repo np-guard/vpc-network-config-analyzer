@@ -276,7 +276,7 @@ func (nl *NaclLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool)
 
 // RulesInConnectivity list of SG rules contributing to the connectivity
 // todo: write
-func (nl *NaclLayer) RulesInConnectivity(src, dst vpcmodel.Node, isIngress bool) ([]int, error) {
+func (nl *NaclLayer) RulesInConnectivity(src, dst vpcmodel.Node, isIngress bool) ([]vpcmodel.RulesInFilter, error) {
 	return nil, nil
 }
 
@@ -356,6 +356,7 @@ func (sgl *SecurityGroupLayer) GetConnectivityOutputPerEachElemSeparately() stri
 	return ""
 }
 
+// AllowedConnectivity
 // TODO: fix: is it possible that no sg applies  to the input peer? if so, should not return "no conns" when none applies
 func (sgl *SecurityGroupLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*common.ConnectionSet, error) {
 	if (isIngress && dst.Kind() == ResourceTypeIKSNode) || (!isIngress && src.Kind() == ResourceTypeIKSNode) {
@@ -369,14 +370,20 @@ func (sgl *SecurityGroupLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIng
 	return res, nil
 }
 
-func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node, isIngress bool) ([]int, error) {
+func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
+	isIngress bool) (res []vpcmodel.RulesInFilter, err error) {
 	if (isIngress && dst.Kind() == ResourceTypeIKSNode) || (!isIngress && src.Kind() == ResourceTypeIKSNode) {
 		return nil, nil
 	}
-	var res []int
-	for _, sg := range sgl.sgList {
+	for indx, sg := range sgl.sgList {
 		sgRules := sg.RulesInConnectivity(src, dst, isIngress)
-		res = append(res, sgRules...)
+		if sgRules != nil && len(sgRules) > 0 {
+			rulesInSg := vpcmodel.RulesInFilter{
+				FilterIndex: indx,
+				Rules:       sgRules,
+			}
+			res = append(res, rulesInSg)
+		}
 	}
 	return res, nil
 }

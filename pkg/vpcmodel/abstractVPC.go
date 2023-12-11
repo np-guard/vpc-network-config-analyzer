@@ -74,6 +74,13 @@ type NodeSet interface {
 	AddressRange() *common.IPBlock
 }
 
+type RulesInFilter struct {
+	// todo: is the assumption that the set of rules will always be kept in a list a valid one?
+	FilterIndex int   // sg/nacl index in sgList/naclList
+	Rules       []int // list of indexes if rules in the sg/nacl
+
+}
+
 // FilterTrafficResource capture allowed traffic between 2 endpoints
 type FilterTrafficResource interface {
 	VPCResourceIntf
@@ -81,7 +88,7 @@ type FilterTrafficResource interface {
 	AllowedConnectivity(src, dst Node, isIngress bool) (*common.ConnectionSet, error)
 	// RulesInConnectivity get the list of rules of a given filter that contributes to the connection between src and dst
 	// todo: currently implemented only to sg; likely src and dst will be VPCResourceIntf instead of Node
-	RulesInConnectivity(src, dst Node, isIngress bool) ([]int, error) // todo: each rule index should go with string
+	RulesInConnectivity(src, dst Node, isIngress bool) ([]RulesInFilter, error)
 	ReferencedIPblocks() []*common.IPBlock
 	ConnectivityMap() (map[string]*IPbasedConnectivityResult, error)
 	GetConnectivityOutputPerEachElemSeparately() string
