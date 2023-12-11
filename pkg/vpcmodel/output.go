@@ -39,52 +39,57 @@ const (
 // OutputGenerator captures one vpc config1 with its connectivity analysis results, and implements
 // the functionality to generate the analysis output in various formats, for that vpc
 type OutputGenerator struct {
-	config1        *VPCConfig
-	config2        *VPCConfig // specified only when analysis is diff
+	config1        map[string]*VPCConfig
+	config2        map[string]*VPCConfig // specified only when analysis is diff
 	outputGrouping bool
 	useCase        OutputUseCase
-	nodesConn      *VPCConnectivity
-	subnetsConn    *VPCsubnetConnectivity
+	nodesConn      map[string]*VPCConnectivity
+	subnetsConn    map[string]*VPCsubnetConnectivity
 	cfgsDiff       *diffBetweenCfgs
 }
 
-func NewOutputGenerator(c1, c2 *VPCConfig, grouping bool, uc OutputUseCase, archOnly bool) (*OutputGenerator, error) {
+func NewOutputGenerator(c1, c2 map[string]*VPCConfig, grouping bool, uc OutputUseCase, archOnly bool) (*OutputGenerator, error) {
 	res := &OutputGenerator{
 		config1:        c1,
 		config2:        c2,
 		outputGrouping: grouping,
 		useCase:        uc,
+		nodesConn:      map[string]*VPCConnectivity{},
+		subnetsConn:    map[string]*VPCsubnetConnectivity{},
+	
 	}
 	if !archOnly {
-		if uc == AllEndpoints {
-			nodesConn, err := c1.GetVPCNetworkConnectivity(grouping)
-			if err != nil {
-				return nil, err
+		for i := range c1 {
+			if uc == AllEndpoints {
+				nodesConn, err := c1[i].GetVPCNetworkConnectivity(grouping)
+				if err != nil {
+					return nil, err
+				}
+				res.nodesConn[i] = nodesConn
 			}
-			res.nodesConn = nodesConn
-		}
-		if uc == AllSubnets {
-			subnetsConn, err := c1.GetSubnetsConnectivity(true, grouping)
-			if err != nil {
-				return nil, err
+			if uc == AllSubnets {
+				subnetsConn, err := c1[i].GetSubnetsConnectivity(true, grouping)
+				if err != nil {
+					return nil, err
+				}
+				res.subnetsConn[i] = subnetsConn
 			}
-			res.subnetsConn = subnetsConn
-		}
-		if uc == SubnetsDiff {
-			configsForDiff := &configsForDiff{c1, c2, Subnets}
-			configsDiff, err := configsForDiff.GetDiff()
-			if err != nil {
-				return nil, err
+			if uc == SubnetsDiff {
+				configsForDiff := &configsForDiff{c1[i], c2[i], Subnets}
+				configsDiff, err := configsForDiff.GetDiff()
+				if err != nil {
+					return nil, err
+				}
+				res.cfgsDiff = configsDiff
 			}
-			res.cfgsDiff = configsDiff
-		}
-		if uc == EndpointsDiff {
-			configsForDiff := &configsForDiff{c1, c2, Vsis}
-			configsDiff, err := configsForDiff.GetDiff()
-			if err != nil {
-				return nil, err
+			if uc == EndpointsDiff {
+				configsForDiff := &configsForDiff{c1[i], c2[i], Vsis}
+				configsDiff, err := configsForDiff.GetDiff()
+				if err != nil {
+					return nil, err
+				}
+				res.cfgsDiff = configsDiff
 			}
-			res.cfgsDiff = configsDiff
 		}
 	}
 	return res, nil
@@ -101,7 +106,8 @@ type SingleAnalysisOutput struct {
 }
 
 // Generate returns SingleAnalysisOutput for its VPC analysis results
-func (o *OutputGenerator) Generate(f OutFormat, outFile string) (*SingleAnalysisOutput, error) {
+func (o *OutputGenerator) Generate(f OutFormat, outFile string) (string, error) {
+	var multiFormatter MultiVpcOutputFormatter
 	var formatter OutputFormatter
 	switch f {
 	case JSON:
@@ -117,15 +123,39 @@ func (o *OutputGenerator) Generate(f OutFormat, outFile string) (*SingleAnalysis
 	case Debug:
 		formatter = &DebugOutputFormatter{}
 	default:
-		return nil, errors.New("unsupported output format")
+		return "", errors.New("unsupported output format")
 	}
-
-	return formatter.WriteOutput(o.config1, o.config2, o.nodesConn, o.subnetsConn, o.cfgsDiff, outFile, o.outputGrouping, o.useCase)
+	multiFormatter = &SerialOutputFormatter{singleVpcFormatter: formatter, outFormat: f}
+	return multiFormatter.WriteOutput(o.config1, o.config2, o.nodesConn, o.subnetsConn, o.cfgsDiff, outFile, o.outputGrouping, o.useCase)
 }
 
 type OutputFormatter interface {
 	WriteOutput(c1, c2 *VPCConfig, conn *VPCConnectivity, subnetsConn *VPCsubnetConnectivity, subnetsDiff *diffBetweenCfgs,
 		outFile string, grouping bool, uc OutputUseCase) (*SingleAnalysisOutput, error)
+}
+type MultiVpcOutputFormatter interface {
+	WriteOutput(c1, c2 map[string]*VPCConfig, conn map[string]*VPCConnectivity, subnetsConn map[string]*VPCsubnetConnectivity, subnetsDiff *diffBetweenCfgs,
+		outFile string, grouping bool, uc OutputUseCase) (string, error)
+}
+
+type SerialOutputFormatter struct {
+	singleVpcFormatter OutputFormatter
+	outFormat          OutFormat
+}
+
+func (of *SerialOutputFormatter) WriteOutput(c1, c2 map[string]*VPCConfig, conns map[string]*VPCConnectivity, subnetsConns map[string]*VPCsubnetConnectivity, subnetsDiff *diffBetweenCfgs,
+	outFile string, grouping bool, uc OutputUseCase) (string, error) {
+	outputPerVPC := make([]*SingleAnalysisOutput, len(c1))
+	i:= 0
+	for name := range c1 {
+		vpcAnalysisOutput, err2 := of.singleVpcFormatter.WriteOutput(c1[name], c2[name], conns[name], subnetsConns[name], subnetsDiff, "", grouping, uc)
+		if err2 != nil {
+			return "", err2
+		}
+		outputPerVPC[i] = vpcAnalysisOutput
+		i++
+	}
+	return AggregateVPCsOutput(outputPerVPC, of.outFormat, outFile)
 }
 
 func WriteToFile(content, fileName string) (string, error) {
@@ -141,6 +171,11 @@ func WriteToFile(content, fileName string) (string, error) {
 func AggregateVPCsOutput(outputList []*SingleAnalysisOutput, f OutFormat, outFile string) (string, error) {
 	var res string
 	var err error
+
+	sort.Slice(outputList, func(i, j int) bool {
+		return outputList[i].VPC1Name < outputList[j].VPC1Name
+	})
+
 	switch f {
 	case Text, MD, Debug:
 		// plain concatenation

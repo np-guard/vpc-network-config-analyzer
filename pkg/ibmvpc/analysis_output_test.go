@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 	"testing"
 
@@ -147,8 +146,46 @@ func (tt *vpcGeneralTest) initTest() {
 		}
 	}
 }
-
 var tests = []*vpcGeneralTest{
+	// {
+	// 	name:     "acl_testing5",
+	// 	useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+	// 	format:   vpcmodel.Text,
+	// },
+	// {
+	// 	name:     "multiple_vpcs",
+	// 	useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+	// 	format:   vpcmodel.Text,
+	// },
+	// multi-vpc config examples
+	{
+		name:     "experiments_env",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:   vpcmodel.Text,
+	},
+	{
+		name:     "experiments_env",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:   vpcmodel.JSON,
+	},
+	// {
+	// 	name:     "multiple_vpcs",
+	// 	useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+	// 	format:   vpcmodel.Text,
+	// },
+	// // diff examples:
+	// {
+	// 	name:     "acl_testing5",
+	// 	useCases: []vpcmodel.OutputUseCase{vpcmodel.SubnetsDiff},
+	// 	format:   vpcmodel.Text,
+	// },
+	// {
+	// 	name:     "acl_testing5",
+	// 	useCases: []vpcmodel.OutputUseCase{vpcmodel.SubnetsDiff},
+	// 	format:   vpcmodel.MD,
+	// },
+}
+var tests2 = []*vpcGeneralTest{
 	{
 		name:     "acl_testing5",
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
@@ -545,51 +582,25 @@ func runTestPerUseCase(t *testing.T,
 	c1, c2 map[string]*vpcmodel.VPCConfig,
 	uc vpcmodel.OutputUseCase,
 	mode testMode) error {
-	numConfigs := len(c1)
-	allVPCsOutput := make([]*vpcmodel.SingleAnalysisOutput, numConfigs)
-	i := 0
-	var vpcConfig2nd *vpcmodel.VPCConfig
-	// note that for diff analysis mode a single vpcConfig in c1 is provided; c2 is assumed to have a single cfg
-	for _, vpcConfig := range c2 {
-		vpcConfig2nd = vpcConfig
+
+	og, err := vpcmodel.NewOutputGenerator(c1, c2, tt.grouping, uc, tt.format == vpcmodel.ARCHDRAWIO)
+	if err != nil {
+		return err
 	}
-	for _, vpcConfig := range c1 {
-		if err := initTestFileNames(tt, uc, numConfigs, vpcConfig.VPC.Name(), false); err != nil {
-			return err
-		}
-
-		og, err := vpcmodel.NewOutputGenerator(vpcConfig, vpcConfig2nd, tt.grouping, uc, tt.format == vpcmodel.ARCHDRAWIO)
-		if err != nil {
-			return err
-		}
-		vpcOutput, err := og.Generate(tt.format, tt.actualOutput[uc])
-		if err != nil {
-			return err
-		}
-		allVPCsOutput[i] = vpcOutput
-		i++
-		if err := compareOrRegenerateOutputPerTest(t, mode, vpcOutput.Output, tt, uc); err != nil {
-			return err
-		}
+	actualOutput, err := og.Generate(tt.format, tt.actualOutput[uc])
+	if err != nil {
+		return err
 	}
-	// if more then one vpc -- compare also the aggregated output
-	if numConfigs > 1 {
-		if err := initTestFileNames(tt, uc, numConfigs, "", true); err != nil {
-			return err
-		}
+	if err := initTestFileNames(tt, uc, len(c1), "", true); err != nil {
+		return err
+	}
 
-		// sort allVPCsOutput by vpc name
-		sort.Slice(allVPCsOutput, func(i, j int) bool {
-			return allVPCsOutput[i].VPC1Name < allVPCsOutput[j].VPC1Name
-		})
+	// sort.Slice(allVPCsOutput, func(i, j int) bool {
+	// 	return allVPCsOutput[i].VPC1Name < allVPCsOutput[j].VPC1Name
+	// })
 
-		actualOutput, err := vpcmodel.AggregateVPCsOutput(allVPCsOutput, tt.format, tt.actualOutput[uc])
-		if err != nil {
-			return err
-		}
-		if err := compareOrRegenerateOutputPerTest(t, mode, actualOutput, tt, uc); err != nil {
-			return err
-		}
+	if err := compareOrRegenerateOutputPerTest(t, mode, actualOutput, tt, uc); err != nil {
+		return err
 	}
 
 	return nil
