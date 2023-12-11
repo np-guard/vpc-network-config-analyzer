@@ -184,8 +184,9 @@ func (sga *SGAnalyzer) getProtocolIcmpRule(ruleObj *vpc1.SecurityGroupRuleSecuri
 	return ruleStr, ruleRes, isIngress, nil
 }
 
-func (sga *SGAnalyzer) getSGRule(rule vpc1.SecurityGroupRuleIntf, index int) (
+func (sga *SGAnalyzer) getSGRule(index int) (
 	ruleStr string, ruleRes *SGRule, isIngress bool, err error) {
+	rule := sga.sgResource.Rules[index]
 	if ruleObj, ok := rule.(*vpc1.SecurityGroupRuleSecurityGroupRuleProtocolAll); ok {
 		ruleStr, ruleRes, isIngress, err = sga.getProtocolAllRule(ruleObj)
 	}
@@ -208,8 +209,7 @@ func (sga *SGAnalyzer) getSGrules(sgObj *vpc1.SecurityGroup) (ingressRules, egre
 	ingressRules = []*SGRule{}
 	egressRules = []*SGRule{}
 	for index := range sgObj.Rules {
-		rule := sgObj.Rules[index]
-		_, ruleObj, isIngress, err := sga.getSGRule(rule, index)
+		_, ruleObj, isIngress, err := sga.getSGRule(index)
 		if err != nil {
 			return nil, nil, err
 		}
