@@ -62,5 +62,36 @@ func (c *VPCConfig) ExplainConnectivity(srcName, dstName string) error {
 	}
 	// todo tmp
 	fmt.Printf("Explanbility for connection between %s to %s\n", src.Name(), dst.Name())
+	// todo in this stage only SG considered, thus only
+	//      connectivity between nodes of the same subnet is supported
+	// ingress rules
+	ingressRules, err1 := c.getFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(src, dst, true, SecurityGroupLayer)
+	if err1 != nil {
+		return err1
+	}
+	// egress rules
+	egressRules, err2 := c.getFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(src, dst, true, SecurityGroupLayer)
+	if err2 != nil {
+		return err2
+	}
+	switch {
+	case ingressRules == nil && egressRules == nil:
+		fmt.Printf("No connection between %v and %v; connection blocked both by ingress and egress\n", src.Name(), dst.Name())
+	case ingressRules == nil:
+		fmt.Printf("No connection between %v and %v; connection blocked by ingress\n", src.Name(), dst.Name())
+	case egressRules == nil:
+		fmt.Printf("No connection between %v and %v; connection blocked by egress\n", src.Name(), dst.Name())
+	}
 	return nil
+}
+
+func (c *VPCConfig) getFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(
+	src, dst Node,
+	isIngress bool,
+	layer string) ([]int, error) {
+	filter := c.getFilterTrafficResourceOfKind(layer)
+	if filter == nil {
+		return nil, nil
+	}
+	return filter.RulesInConnectivity(src, dst, isIngress)
 }
