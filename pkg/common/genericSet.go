@@ -1,8 +1,8 @@
-//nolint:govet // need to convert a pointer to a string
 package common
 
 import (
 	"fmt"
+	"reflect"
 	"sort"
 	"strings"
 )
@@ -20,7 +20,14 @@ type SetAsKey string
 func (s GenericSet[T]) AsKey() SetAsKey {
 	ss := []string{}
 	for i := range s {
-		ss = append(ss, fmt.Sprintf("%p", i))
+		key := ""
+		rv := reflect.ValueOf(i)
+		if rv.Kind() == reflect.Ptr || rv.Kind() == reflect.Interface {
+			key = fmt.Sprintf("%x", rv.Pointer())
+		} else {
+			key = fmt.Sprint(i)
+		}
+		ss = append(ss, key)
 	}
 	sort.Strings(ss)
 	return SetAsKey(strings.Join(ss, ","))
