@@ -352,7 +352,7 @@ func intersectGroups(groups groupSet) map[*groupDataS]groupSet {
 	for group1 := range groups {
 		for group2 := range groups {
 			if group1 != group2 {
-				if group1.miniGroups.IsIntersect(&group2.miniGroups) {
+				if group1.miniGroups.IsIntersect(group2.miniGroups) {
 					if _, ok := intersectGroups[group1]; !ok {
 						intersectGroups[group1] = groupSet{}
 					}

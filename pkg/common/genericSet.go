@@ -36,9 +36,9 @@ func (s GenericSet[T]) AsList() []T {
 	return keys
 }
 
-func (s GenericSet[T]) IsIntersect(s2 *GenericSet[T]) bool {
+func (s GenericSet[T]) IsIntersect(s2 GenericSet[T]) bool {
 	for i := range s {
-		if (*s2)[i] {
+		if (s2)[i] {
 			return true
 		}
 	}
