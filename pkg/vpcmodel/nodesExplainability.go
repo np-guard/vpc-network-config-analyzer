@@ -60,8 +60,6 @@ func (c *VPCConfig) ExplainConnectivity(srcName, dstName string) (explanation st
 	if dst == nil {
 		return "", fmt.Errorf("dst %v does not represent a VSI", srcName)
 	}
-	// todo tmp
-	fmt.Printf("Explanbility for connection between %s to %s\n", src.Name(), dst.Name())
 	// todo in this stage only SG considered, thus only
 	//      connectivity between nodes of the same subnet is supported
 	// ingress rules

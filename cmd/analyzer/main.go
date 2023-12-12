@@ -183,6 +183,18 @@ func getSingleCfg(vpcConfigs map[string]*vpcmodel.VPCConfig) (*vpcmodel.VPCConfi
 	return nil, false
 }
 
+func explanabilityAnalysisMain(inArgs *InArgs, vpcConfigs map[string]*vpcmodel.VPCConfig) error {
+	// ToDo SM: for explanability analysis assume a single config
+	c1, _ := getSingleCfg(vpcConfigs)
+	// todo: tmp, for testing. Need to connect to cli and extract src and dst from inArgs
+	explainStr, err := c1.ExplainConnectivity("vsi3b-ky[10.240.30.4]", "vsi3a-ky[10.240.30.5]")
+	if err != nil {
+		return err
+	}
+	fmt.Println(explainStr)
+	return nil
+}
+
 func main() {
 	err := _main(os.Args[1:])
 	if err != nil {
