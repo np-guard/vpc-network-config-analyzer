@@ -1,8 +1,9 @@
+//nolint:govet // need to convert a pointer to a string
 package common
 
 import (
+	"fmt"
 	"sort"
-	"strconv"
 	"strings"
 )
 
@@ -16,32 +17,27 @@ import (
 type GenericSet[T comparable] map[T]bool
 type SetAsKey string
 
-var interfaceIndex map[interface{}]int = map[interface{}]int{}
-
-func (s *GenericSet[T]) AsKey() SetAsKey {
+func (s GenericSet[T]) AsKey() SetAsKey {
 	ss := []string{}
-	for i := range *s {
-		if _, ok := interfaceIndex[i]; !ok {
-			interfaceIndex[i] = len(interfaceIndex)
-		}
-		ss = append(ss, strconv.Itoa(interfaceIndex[i]))
+	for i := range s {
+		ss = append(ss, fmt.Sprintf("%p", i))
 	}
 	sort.Strings(ss)
 	return SetAsKey(strings.Join(ss, ","))
 }
 
-func (s *GenericSet[T]) AsList() []T {
-	keys := make([]T, len(*s))
+func (s GenericSet[T]) AsList() []T {
+	keys := make([]T, len(s))
 	i := 0
-	for k := range *s {
+	for k := range s {
 		keys[i] = k
 		i++
 	}
 	return keys
 }
 
-func (s *GenericSet[T]) IsIntersect(s2 *GenericSet[T]) bool {
-	for i := range *s {
+func (s GenericSet[T]) IsIntersect(s2 *GenericSet[T]) bool {
+	for i := range s {
 		if (*s2)[i] {
 			return true
 		}
