@@ -67,6 +67,8 @@ func (c *VPCConfig) ExplainConnectivity(srcName, dstName string) (explanation st
 	if err1 != nil {
 		return "", err1
 	}
+	fmt.Printf("src: %v, dst: %v\ningressRulesStr is %v\n", src.Name(), dst.Name(), ingressRulesStr)
+	return "", nil
 	// egress rules
 	egressRulesStr, err2 := c.getStrFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(src, dst, false, SecurityGroupLayer)
 	if err2 != nil {
