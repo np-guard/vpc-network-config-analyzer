@@ -80,8 +80,8 @@ func (c *VPCConfig) ExplainConnectivity(srcName, dstName string) (explanation st
 	case egressRulesStr == "":
 		explanation = fmt.Sprintf("No connection between %v and %v; connection blocked by egress\n", src.Name(), dst.Name())
 	default: // there is a connection
-		explanation = fmt.Sprintf("There is a connection between %v and %v.\nIngress Rules:\n~~~~~~~~~~~~~~\n%v\n"+
-			"Egress Rules:\n~~~~~~~~~~~~~~\n%v\n", src.Name(), dst.Name(), ingressRulesStr, egressRulesStr)
+		explanation = fmt.Sprintf("There is a connection between %v and %v.\nEgress Rules:\n~~~~~~~~~~~~~\n%v\n"+
+			"Ingress Rules:\n~~~~~~~~~~~~~~\n%v\n", src.Name(), dst.Name(), egressRulesStr, ingressRulesStr)
 
 	}
 	return explanation, nil
