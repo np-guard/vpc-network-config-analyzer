@@ -80,7 +80,7 @@ func (c *VPCConfig) ExplainConnectivity(srcName, dstName string) (explanation st
 	case egressRulesStr == "":
 		explanation = fmt.Sprintf("No connection between %v and %v; connection blocked by egress\n", src.Name(), dst.Name())
 	default: // there is a connection
-		explanation = fmt.Sprintf("There is a connection between %v and %v. Ingress Rules:\n~~~~~~~~~~~~~~\n%v\n"+
+		explanation = fmt.Sprintf("There is a connection between %v and %v.\nIngress Rules:\n~~~~~~~~~~~~~~\n%v\n"+
 			"Egress Rules:\n~~~~~~~~~~~~~~\n%v\n", src.Name(), dst.Name(), ingressRulesStr, egressRulesStr)
 
 	}
@@ -100,8 +100,8 @@ func (c *VPCConfig) getStrFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(
 	if err != nil {
 		return "", nil
 	}
-	if rulesOfFilter != nil {
-		rulesStr += "\nSecurity Groups Rules\n------------------------------\n"
+	if rulesOfFilter != nil && len(rulesOfFilter) > 0 {
+		rulesStr += "\nSecurity Groups Rules\n---------------------\n"
 		filter.StringRulesOfFilter(rulesOfFilter)
 	}
 	return rulesStr, nil
