@@ -395,9 +395,8 @@ func (sgl *SecurityGroupLayer) StringRulesOfFilter(listRulesInFilter []vpcmodel.
 	strListRulesInFilter := ""
 	for _, rulesInFilter := range listRulesInFilter {
 		sg := sgl.sgList[rulesInFilter.FilterIndex]
-		strListRulesInFilter += "enabling rules from " + sg.Name() +
-			"\n------------------------------------------------------\n"
-		return sg.analyzer.StringRules(rulesInFilter.Rules)
+		strListRulesInFilter += "enabling rules from " + sg.Name() + ":\n" +
+			sg.analyzer.StringRules(rulesInFilter.Rules)
 	}
 	return strListRulesInFilter
 }

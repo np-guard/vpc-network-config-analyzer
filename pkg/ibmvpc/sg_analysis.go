@@ -332,7 +332,7 @@ func (sga *SGAnalyzer) StringRules(rules []int) string {
 		if err != nil {
 			return ""
 		}
-		strRules += strRule + "\n"
+		strRules += "\t" + strRule + "\n"
 	}
 	return strRules
 }

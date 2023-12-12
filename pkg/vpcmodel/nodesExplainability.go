@@ -68,7 +68,7 @@ func (c *VPCConfig) ExplainConnectivity(srcName, dstName string) (explanation st
 		return "", err1
 	}
 	// egress rules
-	egressRulesStr, err2 := c.getStrFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(src, dst, true, SecurityGroupLayer)
+	egressRulesStr, err2 := c.getStrFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(src, dst, false, SecurityGroupLayer)
 	if err2 != nil {
 		return "", err2
 	}
@@ -101,8 +101,8 @@ func (c *VPCConfig) getStrFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(
 		return "", nil
 	}
 	if rulesOfFilter != nil && len(rulesOfFilter) > 0 {
-		rulesStr += "\nSecurity Groups Rules\n---------------------\n"
-		filter.StringRulesOfFilter(rulesOfFilter)
+		rulesStr += "Security Groups Rules\n---------------------\n" +
+			filter.StringRulesOfFilter(rulesOfFilter)
 	}
 	return rulesStr, nil
 }
