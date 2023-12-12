@@ -58,7 +58,7 @@ func (c *VPCConfig) ExplainConnectivity(srcName, dstName string) (explanation st
 	}
 	dst := c.getVsiNode(dstName)
 	if dst == nil {
-		return "", fmt.Errorf("dst %v does not represent a VSI", srcName)
+		return "", fmt.Errorf("dst %v does not represent a VSI", dstName)
 	}
 	// todo in this stage only SG considered, thus only
 	//      connectivity between nodes of the same subnet is supported
