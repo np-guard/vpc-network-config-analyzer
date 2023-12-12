@@ -260,6 +260,7 @@ func AnalyzeSGRules(rules []*SGRule, isIngress bool) *ConnectivityResult {
 		contribRules: map[*common.IPBlock][]int{}}
 	for i := range disjointTargets {
 		res.allowedconns[disjointTargets[i]] = getEmptyConnSet()
+		res.contribRules[disjointTargets[i]] = []int{}
 	}
 	for i := range rules {
 		rule := rules[i]
@@ -268,9 +269,6 @@ func AnalyzeSGRules(rules []*SGRule, isIngress bool) *ConnectivityResult {
 		for disjointTarget := range res.allowedconns {
 			if disjointTarget.ContainedIn(target) {
 				res.allowedconns[disjointTarget] = res.allowedconns[disjointTarget].Union(conn)
-				if _, ok := res.contribRules[disjointTarget]; !ok {
-					res.contribRules[disjointTarget] = []int{}
-				}
 				res.contribRules[disjointTarget] = append(res.contribRules[disjointTarget], i)
 			}
 		}
