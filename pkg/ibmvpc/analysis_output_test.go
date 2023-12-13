@@ -154,50 +154,9 @@ var tests = []*vpcGeneralTest{
 		format:   vpcmodel.Text,
 	},
 	{
-		name:     "multiple_vpcs",
+		name:     "acl_testing5_old",
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
 		format:   vpcmodel.Text,
-	},
-	{
-		name:     "experiments_env",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:   vpcmodel.Text,
-	},
-	{
-		name:     "experiments_env",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:   vpcmodel.JSON,
-	},
-	{
-		name:     "multiple_vpcs",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
-		format:   vpcmodel.Text,
-	},
-	{
-		name:     "acl_testing5",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.SubnetsDiff},
-		format:   vpcmodel.Text,
-	},
-	{
-		name:     "acl_testing5",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.SubnetsDiff},
-		format:   vpcmodel.MD,
-	},
-	{
-		name:     "demo_with_instances",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping: true,
-		format:   vpcmodel.Text,
-	},
-	{
-		name:     "demo_with_instances",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:   vpcmodel.MD,
-	},
-	{
-		name:     "demo_with_instances",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
-		format:   vpcmodel.JSON,
 	},
 	{
 		name:     "acl_testing5",
@@ -205,29 +164,11 @@ var tests = []*vpcGeneralTest{
 		grouping: true,
 		format:   vpcmodel.DRAWIO,
 	},
-}
-var tests2 = []*vpcGeneralTest{
-	{
-		name:     "acl_testing5",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
-		format:   vpcmodel.Text,
-	},
-	{
-		name:     "acl_testing5_old",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
-		format:   vpcmodel.Text,
-	},
-	{
-		name:     "acl_testing5",
-	useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
-	grouping: true,
-	format:   vpcmodel.DRAWIO,
-	},
 	{
 		name:     "demo_with_instances",
-	useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
-	grouping: true,
-	format:   vpcmodel.DRAWIO,
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		grouping: true,
+		format:   vpcmodel.DRAWIO,
 	},
 	// batch1: cover all use-cases, with text output format , no grouping
 	{
@@ -275,33 +216,33 @@ var tests2 = []*vpcGeneralTest{
 	// batch2.5: only vsi-level use-case, with grouping , drawio format
 	{
 		name:     "acl_testing3",
-	useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-	grouping: true,
-	format:   vpcmodel.DRAWIO,
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping: true,
+		format:   vpcmodel.DRAWIO,
 	},
 	{
 		name:     "sg_testing1_new",
-	useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-	grouping: true,
-	format:   vpcmodel.DRAWIO,
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping: true,
+		format:   vpcmodel.DRAWIO,
 	},
 	{
 		name:     "demo_with_instances",
-	useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-	grouping: true,
-	format:   vpcmodel.DRAWIO,
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping: true,
+		format:   vpcmodel.DRAWIO,
 	},
 	{
 		name:     "iks_config_object",
-	useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-	grouping: true,
-	format:   vpcmodel.DRAWIO,
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping: true,
+		format:   vpcmodel.DRAWIO,
 	},
 	{
 		name:     "mult_NIs_single_VSI",
-	useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-	grouping: true,
-	format:   vpcmodel.DRAWIO,
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping: true,
+		format:   vpcmodel.DRAWIO,
 	},
 
 	//batch3: only vsi-level use-case, no grouping, with debug / md  output formats
@@ -338,34 +279,34 @@ var tests2 = []*vpcGeneralTest{
 	// disable drawio tests until supported with VPE
 	{
 		name:     "acl_testing3",
-	useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-	format:   vpcmodel.DRAWIO,
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:   vpcmodel.DRAWIO,
 	},
 	{
 		name:     "sg_testing1_new",
-	useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-	format:   vpcmodel.DRAWIO,
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:   vpcmodel.DRAWIO,
 	},
 	{
 		name:     "demo_with_instances",
-	useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-	format:   vpcmodel.DRAWIO,
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:   vpcmodel.DRAWIO,
 	},
 
 	{
 		name:     "acl_testing3",
-	useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-	format:   vpcmodel.ARCHDRAWIO,
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:   vpcmodel.ARCHDRAWIO,
 	},
 	{
 		name:     "sg_testing1_new",
-	useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-	format:   vpcmodel.ARCHDRAWIO,
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:   vpcmodel.ARCHDRAWIO,
 	},
 	{
 		name:     "demo_with_instances",
-	useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-	format:   vpcmodel.ARCHDRAWIO,
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:   vpcmodel.ARCHDRAWIO,
 	},
 	{
 		name:     "sg_testing1_new_grouping",
@@ -609,15 +550,15 @@ func runTestPerUseCase(t *testing.T,
 	uc vpcmodel.OutputUseCase,
 	mode testMode) error {
 
+	if err := initTestFileNames(tt, uc, len(c1), "", true); err != nil {
+		return err
+	}
 	og, err := vpcmodel.NewOutputGenerator(c1, c2, tt.grouping, uc, tt.format == vpcmodel.ARCHDRAWIO)
 	if err != nil {
 		return err
 	}
 	actualOutput, err := og.Generate(tt.format, tt.actualOutput[uc])
 	if err != nil {
-		return err
-	}
-	if err := initTestFileNames(tt, uc, len(c1), "", true); err != nil {
 		return err
 	}
 

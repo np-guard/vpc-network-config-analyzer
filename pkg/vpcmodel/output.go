@@ -107,24 +107,22 @@ type SingleAnalysisOutput struct {
 // Generate returns SingleAnalysisOutput for its VPC analysis results
 func (o *OutputGenerator) Generate(f OutFormat, outFile string) (string, error) {
 	var multiFormatter MultiVpcOutputFormatter
-	var formatter OutputFormatter
 	switch f {
 	case JSON:
-		formatter = &JSONoutputFormatter{}
+		multiFormatter = &SerialOutputFormatter{singleVpcFormatter: &JSONoutputFormatter{}, outFormat: f}
 	case Text:
-		formatter = &TextOutputFormatter{}
+		multiFormatter = &SerialOutputFormatter{singleVpcFormatter: &TextOutputFormatter{}, outFormat: f}
 	case MD:
-		formatter = &MDoutputFormatter{}
+		multiFormatter = &SerialOutputFormatter{singleVpcFormatter: &MDoutputFormatter{}, outFormat: f}
 	case DRAWIO:
-		formatter = &DrawioOutputFormatter{}
+		multiFormatter = &DrawioOutputFormatter{}
 	case ARCHDRAWIO:
-		formatter = &ArchDrawioOutputFormatter{}
+		multiFormatter = &ArchDrawioOutputFormatter{}
 	case Debug:
-		formatter = &DebugOutputFormatter{}
+		multiFormatter = &SerialOutputFormatter{singleVpcFormatter: &DebugOutputFormatter{}, outFormat: f}
 	default:
 		return "", errors.New("unsupported output format")
 	}
-	multiFormatter = &SerialOutputFormatter{singleVpcFormatter: formatter, outFormat: f}
 	return multiFormatter.WriteOutput(o.config1, o.config2, o.nodesConn, o.subnetsConn, o.cfgsDiff, outFile, o.outputGrouping, o.useCase)
 }
 
@@ -193,7 +191,7 @@ func AggregateVPCsOutput(outputList []*SingleAnalysisOutput, f OutFormat, outFil
 				all[o.VPC1Name] = o.jsonStruct
 			}
 			res, err = writeJSON(all, outFile)
-		} else{
+		} else {
 			for _, o := range outputList {
 				res, err = writeJSON(o.jsonStruct, outFile)
 				break
