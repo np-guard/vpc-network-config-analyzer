@@ -60,49 +60,95 @@ func (c *VPCConfig) ExplainConnectivity(srcName, dstName string) (explanation st
 	if dst == nil {
 		return "", fmt.Errorf("dst %v does not represent a VSI", dstName)
 	}
-	// todo in this stage only SG considered, thus only
-	//      connectivity between nodes of the same subnet is supported
-	// ingress rules
-	ingressRulesStr, err1 := c.getStrFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(src, dst, true, SecurityGroupLayer)
+	rulesOfConnection, err1 := c.GetRulesOfConnection(src, dst)
 	if err1 != nil {
 		return "", err1
 	}
-	// egress rules
-	egressRulesStr, err2 := c.getStrFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(src, dst, false, SecurityGroupLayer)
-	if err2 != nil {
-		return "", err2
-	}
-	switch {
-	case ingressRulesStr == "" && egressRulesStr == "":
-		explanation = fmt.Sprintf("No connection between %v and %v; connection blocked both by ingress and egress\n", src.Name(), dst.Name())
-	case ingressRulesStr == "":
-		explanation = fmt.Sprintf("No connection between %v and %v; connection blocked by ingress\n", src.Name(), dst.Name())
-	case egressRulesStr == "":
-		explanation = fmt.Sprintf("No connection between %v and %v; connection blocked by egress\n", src.Name(), dst.Name())
-	default: // there is a connection
-		explanation = fmt.Sprintf("There is a connection between %v and %v.\nEgress Rules:\n~~~~~~~~~~~~~\n%v\n"+
-			"Ingress Rules:\n~~~~~~~~~~~~~~\n%v\n", src.Name(), dst.Name(), egressRulesStr, ingressRulesStr)
-
-	}
-	return explanation, nil
+	return rulesOfConnection.String(src, dst, c), nil
 }
 
-func (c *VPCConfig) getStrFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(
+func (c *VPCConfig) getFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(
 	src, dst Node,
 	isIngress bool,
-	layer string) (string, error) {
-	rulesStr := ""
+	layer string) (*[]RulesInFilter, error) {
 	filter := c.getFilterTrafficResourceOfKind(layer)
 	if filter == nil {
-		return "", nil
+		return nil, nil
 	}
 	rulesOfFilter, err := filter.RulesInConnectivity(src, dst, isIngress)
 	if err != nil {
-		return "", nil
+		return nil, nil
 	}
-	if rulesOfFilter != nil && len(rulesOfFilter) > 0 {
-		rulesStr += "Security Groups Rules\n---------------------\n" +
-			filter.StringRulesOfFilter(rulesOfFilter)
+	return &rulesOfFilter, nil
+}
+
+func (c *VPCConfig) GetRulesOfConnection(src, dst Node) (rulesOfConnection *RulesOfConnection, err error) {
+	filterLayers := []string{SecurityGroupLayer}
+	rulesOfConnection = &RulesOfConnection{make([]rulesInLayer, len(filterLayers), len(filterLayers)),
+		make([]rulesInLayer, len(filterLayers), len(filterLayers))}
+	for i, layer := range filterLayers {
+		// ingress rules
+		ingressRules, err1 := c.getFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(src, dst, true, layer)
+		if err1 != nil {
+			return nil, err1
+		}
+		ingressThisLayer := rulesInLayer{layer: layer, rules: *ingressRules}
+		rulesOfConnection.ingressRules[i] = ingressThisLayer
+
+		// egress rules
+		egressRules, err2 := c.getFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(src, dst, false, layer)
+		if err2 != nil {
+			return nil, err2
+		}
+		if len(*egressRules) > 0 {
+			egressThisLayer := rulesInLayer{layer: layer, rules: *egressRules}
+			rulesOfConnection.egressRules[i] = egressThisLayer
+		}
 	}
-	return rulesStr, nil
+	return rulesOfConnection, nil
+}
+
+func (rulesOfConnection *RulesOfConnection) String(src, dst Node, c *VPCConfig) string {
+	noIngressRules := !rulesOfConnection.ingressRules.hasRules()
+	noEgressRules := !rulesOfConnection.egressRules.hasRules()
+	switch {
+	case noIngressRules && noEgressRules:
+		return fmt.Sprintf("No connection between %v and %v; connection blocked both by ingress and egress\n", src.Name(), dst.Name())
+	case noIngressRules:
+		return fmt.Sprintf("No connection between %v and %v; connection blocked by ingress\n", src.Name(), dst.Name())
+	case noEgressRules:
+		return fmt.Sprintf("No connection between %v and %v; connection blocked by egress\n", src.Name(), dst.Name())
+	default: // there is a connection
+		egressRulesStr := rulesOfConnection.egressRules.string(c)
+		ingressRulesStr := rulesOfConnection.ingressRules.string(c)
+		return fmt.Sprintf("There is a connection between %v and %v.\nEgress Rules:\n~~~~~~~~~~~~~\n%v\n"+
+			"Ingress Rules:\n~~~~~~~~~~~~~~\n%v\n", src.Name(), dst.Name(), egressRulesStr, ingressRulesStr)
+
+	}
+	return ""
+}
+
+func (rulesInLayers *rulesInLayers) hasRules() bool {
+	if rulesInLayers == nil {
+		return false
+	}
+	for _, rulesInLayer := range *rulesInLayers {
+		if len(rulesInLayer.rules) > 0 {
+			return true
+		}
+	}
+	return false
+}
+
+func (rulesInLayers *rulesInLayers) string(c *VPCConfig) string {
+	rulesInLayersStr := ""
+	for _, rulesInLayer := range *rulesInLayers {
+		filter := c.getFilterTrafficResourceOfKind(rulesInLayer.layer)
+		if filter == nil {
+			continue
+		}
+		rulesInLayersStr += rulesInLayer.layer + " Rules\n------------------------\n" +
+			filter.StringRulesOfFilter(rulesInLayer.rules)
+	}
+	return rulesInLayersStr
 }

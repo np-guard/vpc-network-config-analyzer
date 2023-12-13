@@ -81,6 +81,18 @@ type RulesInFilter struct {
 
 }
 
+type rulesInLayer struct {
+	layer string
+	rules []RulesInFilter
+}
+
+type rulesInLayers []rulesInLayer
+
+type RulesOfConnection struct {
+	ingressRules rulesInLayers
+	egressRules  rulesInLayers
+}
+
 // FilterTrafficResource capture allowed traffic between 2 endpoints
 type FilterTrafficResource interface {
 	VPCResourceIntf

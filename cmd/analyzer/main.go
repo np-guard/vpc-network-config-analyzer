@@ -195,10 +195,14 @@ func explanabilityAnalysisMain(inArgs *InArgs, vpcConfigs map[string]*vpcmodel.V
 	c1, _ := getSingleCfg(vpcConfigs)
 	// todo: tmp, for testing. Need to connect to cli and extract src and dst from inArgs
 	explainStr, err := c1.ExplainConnectivity("vsi2-ky[10.240.20.4]", "vsi3b-ky[10.240.30.4]")
+	//explainStr, err := c1.ExplainConnectivity("vsi2-ky[10.240.20.4]", "vsi1-ky[10.240.10.4]")
+	//explainStr, err := c1.ExplainConnectivity("vsi3a-ky[10.240.30.5]", "vsi1-ky[10.240.10.4]")
+	//explainStr, err := c1.ExplainConnectivity("vsi1-ky[10.240.10.4]", "vsi2-ky[10.240.20.4]")
+	//explainStr, err := c1.ExplainConnectivity("vsi3a-ky[10.240.30.5]", "vsi2-ky[10.240.20.4]")
 	if err != nil {
 		return err
 	}
-	fmt.Println(explainStr)
+	fmt.Printf("\n%v", explainStr)
 	return nil
 }
 
