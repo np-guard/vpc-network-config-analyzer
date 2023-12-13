@@ -269,7 +269,7 @@ func AnalyzeSGRules(rules []*SGRule, isIngress bool) *ConnectivityResult {
 		for disjointTarget := range res.allowedconns {
 			if disjointTarget.ContainedIn(target) {
 				res.allowedconns[disjointTarget] = res.allowedconns[disjointTarget].Union(conn)
-				res.contribRules[disjointTarget] = append(res.contribRules[disjointTarget], i)
+				res.contribRules[disjointTarget] = append(res.contribRules[disjointTarget], rule.index)
 			}
 		}
 	}
