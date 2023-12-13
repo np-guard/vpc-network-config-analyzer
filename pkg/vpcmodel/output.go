@@ -56,7 +56,6 @@ func NewOutputGenerator(c1, c2 map[string]*VPCConfig, grouping bool, uc OutputUs
 		useCase:        uc,
 		nodesConn:      map[string]*VPCConnectivity{},
 		subnetsConn:    map[string]*VPCsubnetConnectivity{},
-	
 	}
 	if !archOnly {
 		for i := range c1 {
@@ -146,7 +145,7 @@ type SerialOutputFormatter struct {
 func (of *SerialOutputFormatter) WriteOutput(c1, c2 map[string]*VPCConfig, conns map[string]*VPCConnectivity, subnetsConns map[string]*VPCsubnetConnectivity, subnetsDiff *diffBetweenCfgs,
 	outFile string, grouping bool, uc OutputUseCase) (string, error) {
 	outputPerVPC := make([]*SingleAnalysisOutput, len(c1))
-	i:= 0
+	i := 0
 	for name := range c1 {
 		vpcAnalysisOutput, err2 := of.singleVpcFormatter.WriteOutput(c1[name], c2[name], conns[name], subnetsConns[name], subnetsDiff, "", grouping, uc)
 		if err2 != nil {
@@ -187,12 +186,19 @@ func AggregateVPCsOutput(outputList []*SingleAnalysisOutput, f OutFormat, outFil
 		res, err = WriteToFile(strings.Join(vpcsOut, "\n"), outFile)
 
 	case JSON:
-		// aggregate to a map from vpc name to its json struct output
-		all := map[string]interface{}{}
-		for _, o := range outputList {
-			all[o.VPC1Name] = o.jsonStruct
+		if len(outputList) > 1 {
+			// aggregate to a map from vpc name to its json struct output
+			all := map[string]interface{}{}
+			for _, o := range outputList {
+				all[o.VPC1Name] = o.jsonStruct
+			}
+			res, err = writeJSON(all, outFile)
+		} else{
+			for _, o := range outputList {
+				res, err = writeJSON(o.jsonStruct, outFile)
+				break
+			}
 		}
-		res, err = writeJSON(all, outFile)
 	}
 	return res, err
 }
