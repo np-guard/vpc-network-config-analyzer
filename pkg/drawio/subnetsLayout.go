@@ -30,21 +30,11 @@ import (
 // 4. create new treeNodes of the new groupSquares and new connectors
 // //////////////////////////////////////////////////////////////////////////////////////////////
 
-type subnetSet common.GenericSet[TreeNodeInterface]
-type groupTnSet common.GenericSet[TreeNodeInterface]
-type groupSet common.GenericSet[*groupDataS]
-type miniGroupSet common.GenericSet[*miniGroupDataS]
-type setAsKey common.SetAsKey
-
-// todo: how to remove???
-func (s *groupTnSet) AsKey() setAsKey {
-	return setAsKey(((*common.GenericSet[TreeNodeInterface])(s)).AsKey())
-}
-func (s *groupSet) AsKey() setAsKey { return setAsKey(((*common.GenericSet[*groupDataS])(s)).AsKey()) }
-func (s *miniGroupSet) IsIntersect(s2 *miniGroupSet) bool {
-	return ((*common.GenericSet[*miniGroupDataS])(s)).IsIntersect((*common.GenericSet[*miniGroupDataS])(s2))
-}
-func (s *groupSet) AsList() []*groupDataS { return ((*common.GenericSet[*groupDataS])(s)).AsList() }
+type subnetSet = common.GenericSet[TreeNodeInterface]
+type groupTnSet = common.GenericSet[TreeNodeInterface]
+type groupSet = common.GenericSet[*groupDataS]
+type miniGroupSet = common.GenericSet[*miniGroupDataS]
+type setAsKey = common.SetAsKey
 
 /////////////////////////////////////////////////////////////////
 
@@ -54,16 +44,29 @@ type miniGroupDataS struct {
 	located bool
 }
 
+// ///////////////////////////////////////////////////////////////////
+// groupsDataS is the struct representing a group.
+// they are creating if the first step, when sorting the miniGroups to groups.
+// some more are created when groups are split to smaller group
+// /////////////////////////////////////////////////////////////////
 type groupDataS struct {
-	miniGroups    miniGroupSet
-	subnets       subnetSet
-	treeNode      TreeNodeInterface
-	children      groupSet
+	// miniGroups - set of the miniGroups of the group
+	// subnets - set of all the subnets  of the group
+	miniGroups miniGroupSet
+	subnets    subnetSet
+	// treeNode - the relevant treeNode of the group, for most groups we already have a treeNode, for new groups, we create a new treeNode
+	treeNode TreeNodeInterface
+	// children - the children in the tree of groups
+	children groupSet
+	// toSplitGroups - toSplitGroups are all the subgroups of the group that will be split. these groups will not be te the groups tree
 	toSplitGroups groupSet
-	splitFrom     groupSet
-	splitTo       groupSet
+	// splitFrom - if a group was created during splitting, splitFrom is the groups that the group was split from
+	// splitTo - if a group was split, splitTo is the groups that the group was split to
+	splitFrom groupSet
+	splitTo   groupSet
 }
 
+// fakeSubnet and fakeMiniGroup are used as space holders in the matrixes
 var fakeSubnet TreeNodeInterface = &SubnetTreeNode{}
 var fakeMiniGroup *miniGroupDataS = &miniGroupDataS{subnets: subnetSet{}}
 
@@ -349,7 +352,7 @@ func intersectGroups(groups groupSet) map[*groupDataS]groupSet {
 	for group1 := range groups {
 		for group2 := range groups {
 			if group1 != group2 {
-				if group1.miniGroups.IsIntersect(&group2.miniGroups) {
+				if group1.miniGroups.IsIntersect(group2.miniGroups) {
 					if _, ok := intersectGroups[group1]; !ok {
 						intersectGroups[group1] = groupSet{}
 					}

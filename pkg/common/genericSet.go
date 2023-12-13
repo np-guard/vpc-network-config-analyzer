@@ -1,8 +1,9 @@
 package common
 
 import (
+	"fmt"
+	"reflect"
 	"sort"
-	"strconv"
 	"strings"
 )
 
@@ -16,33 +17,35 @@ import (
 type GenericSet[T comparable] map[T]bool
 type SetAsKey string
 
-var interfaceIndex map[interface{}]int = map[interface{}]int{}
-
-func (s *GenericSet[T]) AsKey() SetAsKey {
+func (s GenericSet[T]) AsKey() SetAsKey {
 	ss := []string{}
-	for i := range *s {
-		if _, ok := interfaceIndex[i]; !ok {
-			interfaceIndex[i] = len(interfaceIndex)
+	for i := range s {
+		key := ""
+		rv := reflect.ValueOf(i)
+		if rv.Kind() == reflect.Ptr || rv.Kind() == reflect.Interface {
+			key = fmt.Sprintf("%x", rv.Pointer())
+		} else {
+			key = fmt.Sprint(i)
 		}
-		ss = append(ss, strconv.Itoa(interfaceIndex[i]))
+		ss = append(ss, key)
 	}
 	sort.Strings(ss)
 	return SetAsKey(strings.Join(ss, ","))
 }
 
-func (s *GenericSet[T]) AsList() []T {
-	keys := make([]T, len(*s))
+func (s GenericSet[T]) AsList() []T {
+	keys := make([]T, len(s))
 	i := 0
-	for k := range *s {
+	for k := range s {
 		keys[i] = k
 		i++
 	}
 	return keys
 }
 
-func (s *GenericSet[T]) IsIntersect(s2 *GenericSet[T]) bool {
-	for i := range *s {
-		if (*s2)[i] {
+func (s GenericSet[T]) IsIntersect(s2 GenericSet[T]) bool {
+	for i := range s {
+		if (s2)[i] {
 			return true
 		}
 	}
