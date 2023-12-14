@@ -114,13 +114,6 @@ func _main(cmdlineArgs []string) error {
 		return fmt.Errorf(ErrorFormat, InGenerationErr, err2)
 	}
 
-	err3 := explanabilityAnalysisMain(inArgs, vpcConfigs)
-	if err3 != nil {
-		fmt.Printf("error:%v\n", err3.Error())
-		return err3
-	}
-	return nil
-
 	outFile := ""
 	if inArgs.OutputFile != nil {
 		outFile = *inArgs.OutputFile
@@ -188,22 +181,6 @@ func getSingleCfg(vpcConfigs map[string]*vpcmodel.VPCConfig) (*vpcmodel.VPCConfi
 		return vpcConfig, true
 	}
 	return nil, false
-}
-
-func explanabilityAnalysisMain(inArgs *InArgs, vpcConfigs map[string]*vpcmodel.VPCConfig) error {
-	// ToDo SM: for explanability analysis assume a single config
-	c1, _ := getSingleCfg(vpcConfigs)
-	// todo: tmp, for testing. Need to connect to cli and extract src and dst from inArgs
-	explainStr, err := c1.ExplainConnectivity("vsi2-ky[10.240.20.4]", "vsi3b-ky[10.240.30.4]")
-	//explainStr, err := c1.ExplainConnectivity("vsi2-ky[10.240.20.4]", "vsi1-ky[10.240.10.4]")
-	//explainStr, err := c1.ExplainConnectivity("vsi3a-ky[10.240.30.5]", "vsi1-ky[10.240.10.4]")
-	//explainStr, err := c1.ExplainConnectivity("vsi1-ky[10.240.10.4]", "vsi2-ky[10.240.20.4]")
-	//explainStr, err := c1.ExplainConnectivity("vsi3a-ky[10.240.30.5]", "vsi2-ky[10.240.20.4]")
-	if err != nil {
-		return err
-	}
-	fmt.Printf("\n%v", explainStr)
-	return nil
 }
 
 func main() {
