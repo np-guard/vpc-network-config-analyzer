@@ -310,7 +310,6 @@ func (sga *SGAnalyzer) rulesInConnectivity(target string, isIngress bool) []int 
 		}
 	}
 	return nil
-
 }
 
 func (sga *SGAnalyzer) getAnalyzedConnsIPB(target string, isIngress bool) (res *ConnectivityResult, ipb *common.IPBlock) {

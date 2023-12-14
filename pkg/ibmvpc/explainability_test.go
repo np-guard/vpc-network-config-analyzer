@@ -2,12 +2,13 @@ package ibmvpc
 
 import (
 	"fmt"
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"path/filepath"
+
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
 // todo: quick and dirty tmp until added to the cli, by which these will be added as end-to-end tests
