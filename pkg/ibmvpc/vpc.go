@@ -384,7 +384,7 @@ func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 	}
 	for indx, sg := range sgl.sgList {
 		sgRules := sg.RulesInConnectivity(src, dst, isIngress)
-		if sgRules != nil && len(sgRules) > 0 {
+		if len(sgRules) > 0 {
 			rulesInSg := vpcmodel.RulesInFilter{
 				FilterIndex: indx,
 				Rules:       sgRules,

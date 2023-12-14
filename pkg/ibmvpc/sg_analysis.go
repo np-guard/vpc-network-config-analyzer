@@ -292,7 +292,7 @@ func (sga *SGAnalyzer) prepareAnalyzer(sgMap map[string]*SecurityGroup, currentS
 }
 
 func (sga *SGAnalyzer) AllowedConnectivity(target string, isIngress bool) *common.ConnectionSet {
-	analyzedConns, ipb := sga.getAnalyzedConnsIpB(target, isIngress)
+	analyzedConns, ipb := sga.getAnalyzedConnsIPB(target, isIngress)
 	for definedTarget, conn := range analyzedConns.allowedconns {
 		if ipb.ContainedIn(definedTarget) {
 			return conn
@@ -303,7 +303,7 @@ func (sga *SGAnalyzer) AllowedConnectivity(target string, isIngress bool) *commo
 
 // rulesInConnectivity list of SG rules contributing to the connectivity
 func (sga *SGAnalyzer) rulesInConnectivity(target string, isIngress bool) []int {
-	analyzedConns, ipb := sga.getAnalyzedConnsIpB(target, isIngress)
+	analyzedConns, ipb := sga.getAnalyzedConnsIPB(target, isIngress)
 	for definedTarget, rules := range analyzedConns.contribRules {
 		if ipb.ContainedIn(definedTarget) {
 			return rules
@@ -313,13 +313,12 @@ func (sga *SGAnalyzer) rulesInConnectivity(target string, isIngress bool) []int 
 
 }
 
-func (sga *SGAnalyzer) getAnalyzedConnsIpB(target string, isIngress bool) (res *ConnectivityResult, ipb *common.IPBlock) {
+func (sga *SGAnalyzer) getAnalyzedConnsIPB(target string, isIngress bool) (res *ConnectivityResult, ipb *common.IPBlock) {
 	ipb = common.NewIPBlockFromCidrOrAddress(target)
 	if isIngress {
 		return sga.ingressConnectivity, ipb
-	} else {
-		return sga.egressConnectivity, ipb
 	}
+	return sga.egressConnectivity, ipb
 }
 
 // StringRules returns a string with the details of the specified rules

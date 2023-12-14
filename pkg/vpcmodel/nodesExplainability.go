@@ -69,9 +69,7 @@ func (c *VPCConfig) ExplainConnectivity(srcName, dstName string) (explanation st
 }
 
 func (c *VPCConfig) getFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(
-	src, dst Node,
-	isIngress bool,
-	layer string) (*[]RulesInFilter, error) {
+	src, dst Node, isIngress bool, layer string) (*[]RulesInFilter, error) {
 	filter := c.getFilterTrafficResourceOfKind(layer)
 	if filter == nil {
 		return nil, nil
@@ -85,8 +83,8 @@ func (c *VPCConfig) getFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(
 
 func (c *VPCConfig) GetRulesOfConnection(src, dst Node) (rulesOfConnection *RulesOfConnection, err error) {
 	filterLayers := []string{SecurityGroupLayer}
-	rulesOfConnection = &RulesOfConnection{make([]rulesInLayer, len(filterLayers), len(filterLayers)),
-		make([]rulesInLayer, len(filterLayers), len(filterLayers))}
+	rulesOfConnection = &RulesOfConnection{make([]rulesInLayer, len(filterLayers)),
+		make([]rulesInLayer, len(filterLayers))}
 	for i, layer := range filterLayers {
 		// ingress rules
 		ingressRules, err1 := c.getFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(src, dst, true, layer)
