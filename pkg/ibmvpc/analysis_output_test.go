@@ -86,9 +86,6 @@ func getTestFileName(testName string,
 	switch uc {
 	case vpcmodel.AllEndpoints:
 		res = baseName
-		if grouping {
-			res += suffixOutFileWithGrouping
-		}
 	case vpcmodel.SingleSubnet:
 		res = baseName + suffixOutFileDebugSubnet
 	case vpcmodel.AllSubnets:
@@ -99,6 +96,9 @@ func getTestFileName(testName string,
 		res = baseName + suffixOutFileDiffSubnets
 	case vpcmodel.EndpointsDiff:
 		res = baseName + suffixOutFileDiffEndpoints
+	}
+	if grouping {
+		res += suffixOutFileWithGrouping
 	}
 	suffix, suffixErr := getTestFileSuffix(format)
 	if suffixErr != nil {
@@ -393,6 +393,30 @@ var tests = []*vpcGeneralTest{
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
 		format:   vpcmodel.Text,
 	},
+	// multivpc drawio:
+	{
+		name:     "multiple_vpcs",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		format:   vpcmodel.DRAWIO,
+	},
+	{
+		name:     "multiple_vpcs",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		grouping: true,
+		format:   vpcmodel.DRAWIO,
+	},
+	{
+		name:     "experiments_env",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:   vpcmodel.ARCHDRAWIO,
+	},
+	{
+		name:     "experiments_env",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping: true,
+		format:   vpcmodel.DRAWIO,
+	},
+
 }
 
 var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
