@@ -5,8 +5,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/stretchr/testify/require"
 	"path/filepath"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
