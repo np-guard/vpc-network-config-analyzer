@@ -51,6 +51,7 @@ func (c *VPCConfig) getVsiNode(name string) Node {
 	return nil
 }
 
+// ExplainConnectivity todo: this will not be needed here once we connect explanbility to the cli
 func (c *VPCConfig) ExplainConnectivity(srcName, dstName string) (explanation string, err error) {
 	src := c.getVsiNode(srcName)
 	if src == nil {
@@ -123,9 +124,7 @@ func (rulesOfConnection *RulesOfConnection) String(src, dst Node, c *VPCConfig) 
 		ingressRulesStr := rulesOfConnection.ingressRules.string(c)
 		return fmt.Sprintf("There is a connection between %v and %v.\nEgress Rules:\n~~~~~~~~~~~~~\n%v\n"+
 			"Ingress Rules:\n~~~~~~~~~~~~~~\n%v\n", src.Name(), dst.Name(), egressRulesStr, ingressRulesStr)
-
 	}
-	return ""
 }
 
 func (rulesInLayers *rulesInLayers) hasRules() bool {
