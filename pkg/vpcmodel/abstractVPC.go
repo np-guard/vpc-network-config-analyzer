@@ -76,8 +76,8 @@ type NodeSet interface {
 
 type RulesInFilter struct {
 	// todo: is the assumption that the set of rules will always be kept in a list a valid one?
-	FilterIndex int   // sg/nacl index in sgList/naclList
-	Rules       []int // list of indexes if rules in the sg/nacl
+	RulesIndexes int   // sg/nacl index in sgList/naclList
+	Rules        []int // list of indexes if rules in the sg/nacl
 
 }
 

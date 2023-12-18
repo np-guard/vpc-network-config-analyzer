@@ -69,16 +69,16 @@ func (c *VPCConfig) ExplainConnectivity(srcName, dstName string) (explanation st
 }
 
 func (c *VPCConfig) getFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(
-	src, dst Node, isIngress bool, layer string) *[]RulesInFilter {
+	src, dst Node, isIngress bool, layer string) (rules *[]RulesInFilter, err error) {
 	filter := c.getFilterTrafficResourceOfKind(layer)
 	if filter == nil {
-		return nil
+		return nil, fmt.Errorf("layer %v not found in configuration", layer)
 	}
 	rulesOfFilter, err := filter.RulesInConnectivity(src, dst, isIngress)
 	if err != nil {
-		return nil
+		return nil, err
 	}
-	return &rulesOfFilter
+	return &rulesOfFilter, nil
 }
 
 func (c *VPCConfig) GetRulesOfConnection(src, dst Node) (rulesOfConnection *RulesOfConnection, err error) {
@@ -87,12 +87,18 @@ func (c *VPCConfig) GetRulesOfConnection(src, dst Node) (rulesOfConnection *Rule
 		make([]rulesInLayer, len(filterLayers))}
 	for i, layer := range filterLayers {
 		// ingress rules
-		ingressRules := c.getFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(src, dst, true, layer)
+		ingressRules, err1 := c.getFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(src, dst, true, layer)
+		if err1 != nil {
+			return nil, err1
+		}
 		ingressThisLayer := rulesInLayer{layer: layer, rules: *ingressRules}
 		rulesOfConnection.ingressRules[i] = ingressThisLayer
 
 		// egress rules
-		egressRules := c.getFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(src, dst, false, layer)
+		egressRules, err2 := c.getFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(src, dst, false, layer)
+		if err2 != nil {
+			return nil, err2
+		}
 		if len(*egressRules) > 0 {
 			egressThisLayer := rulesInLayer{layer: layer, rules: *egressRules}
 			rulesOfConnection.egressRules[i] = egressThisLayer
