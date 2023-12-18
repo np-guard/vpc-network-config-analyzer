@@ -10,51 +10,66 @@ import (
 
 // Functions for the computation of VPC connectivity between nodes elements
 
-// GetVPCNetworkConnectivity computes VPCConnectivity in few steps
+// GetVPCNetworkConnectivity computes VPCConnectivity by calling getVPCNetworkOrNodeConnectivity
+// for all nodes; the connectivity is computes in a few steps as explained below
+func (c *VPCConfig) GetVPCNetworkConnectivity(grouping bool) (res *VPCConnectivity, err error) {
+	return c.getVPCNetworkOrNodeConnectivity(grouping, nil)
+}
+
+// getVPCNetworkOrNodeConnectivity computes VPCConnectivity in few steps
+// if node given computes connectivity only for it, otherwise for all nodes
 // (1) compute AllowedConns (map[Node]*ConnectivityResult) : ingress or egress allowed conns separately
 // (2) compute AllowedConnsCombined (map[Node]map[Node]*common.ConnectionSet) : allowed conns considering both ingress and egress directions
 // (3) compute AllowedConnsCombinedStateful : stateful allowed connections, for which connection in reverse direction is also allowed
 // (4) if grouping required - compute grouping of connectivity results
-func (c *VPCConfig) GetVPCNetworkConnectivity(grouping bool) (res *VPCConnectivity, err error) {
+func (c *VPCConfig) getVPCNetworkOrNodeConnectivity(grouping bool, node Node) (res *VPCConnectivity, err error) {
 	res = &VPCConnectivity{
 		AllowedConns:         map[Node]*ConnectivityResult{},
 		AllowedConnsPerLayer: map[Node]map[string]*ConnectivityResult{},
 	}
-	// get connectivity in level of nodes elements
-	for _, node := range c.Nodes {
-		if !node.IsInternal() {
-			continue
+	if node == nil {
+		for _, nodeItem := range c.Nodes {
+			c.getNodeIngressEgress(res, nodeItem)
 		}
-		allIngressAllowedConns, ingressAllowedConnsPerLayer, err1 := c.getAllowedConnsPerDirection(true, node)
-		if err1 != nil {
-			return nil, err
-		}
-		allEgressAllowedConns, egressAllowedConnsPerLayer, err2 := c.getAllowedConnsPerDirection(false, node)
-		if err2 != nil {
-			return nil, err
-		}
-
-		res.AllowedConns[node] = &ConnectivityResult{
-			IngressAllowedConns: allIngressAllowedConns,
-			EgressAllowedConns:  allEgressAllowedConns,
-		}
-		res.AllowedConnsPerLayer[node] = map[string]*ConnectivityResult{}
-		for layer := range ingressAllowedConnsPerLayer {
-			res.AllowedConnsPerLayer[node][layer] = &ConnectivityResult{
-				IngressAllowedConns: ingressAllowedConnsPerLayer[layer],
-			}
-		}
-		for layer := range egressAllowedConnsPerLayer {
-			if res.AllowedConnsPerLayer[node][layer] == nil {
-				res.AllowedConnsPerLayer[node][layer] = &ConnectivityResult{}
-			}
-			res.AllowedConnsPerLayer[node][layer].EgressAllowedConns = egressAllowedConnsPerLayer[layer]
-		}
+	} else {
+		c.getNodeIngressEgress(res, node)
 	}
 	res.computeAllowedConnsCombined()
 	res.computeAllowedStatefulConnections()
 	res.GroupedConnectivity, err = newGroupConnLines(c, res, grouping)
 	return res, err
+}
+
+func (c *VPCConfig) getNodeIngressEgress(res *VPCConnectivity, node Node) error {
+	if !node.IsInternal() {
+		return nil
+	}
+	allIngressAllowedConns, ingressAllowedConnsPerLayer, err1 := c.getAllowedConnsPerDirection(true, node)
+	if err1 != nil {
+		return err1
+	}
+	allEgressAllowedConns, egressAllowedConnsPerLayer, err2 := c.getAllowedConnsPerDirection(false, node)
+	if err2 != nil {
+		return err2
+	}
+
+	res.AllowedConns[node] = &ConnectivityResult{
+		IngressAllowedConns: allIngressAllowedConns,
+		EgressAllowedConns:  allEgressAllowedConns,
+	}
+	res.AllowedConnsPerLayer[node] = map[string]*ConnectivityResult{}
+	for layer := range ingressAllowedConnsPerLayer {
+		res.AllowedConnsPerLayer[node][layer] = &ConnectivityResult{
+			IngressAllowedConns: ingressAllowedConnsPerLayer[layer],
+		}
+	}
+	for layer := range egressAllowedConnsPerLayer {
+		if res.AllowedConnsPerLayer[node][layer] == nil {
+			res.AllowedConnsPerLayer[node][layer] = &ConnectivityResult{}
+		}
+		res.AllowedConnsPerLayer[node][layer].EgressAllowedConns = egressAllowedConnsPerLayer[layer]
+	}
+	return nil
 }
 
 func (c *VPCConfig) getFiltersAllowedConnsBetweenNodesPerDirectionAndLayer(
