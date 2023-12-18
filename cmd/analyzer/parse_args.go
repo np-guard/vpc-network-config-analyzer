@@ -16,6 +16,7 @@ type InArgs struct {
 	Grouping              *bool
 	VPC                   *string
 	Debug                 *bool
+	Version               *bool
 }
 
 const (
@@ -74,6 +75,7 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args.Grouping = flagset.Bool("grouping", false, "whether to group together src/dst entries with identical connectivity")
 	args.VPC = flagset.String("vpc", "", "CRN of the VPC to analyze")
 	args.Debug = flagset.Bool("debug", false, "run in debug mode")
+	args.Version = flagset.Bool("version", false, "prints the release version number")
 
 	err := flagset.Parse(cmdlineArgs)
 	if err != nil {
@@ -92,7 +94,7 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 }
 
 func errorInErgs(args *InArgs, flagset *flag.FlagSet) error {
-	if args.InputConfigFile == nil || *args.InputConfigFile == "" {
+	if !*args.Version && (args.InputConfigFile == nil || *args.InputConfigFile == "") {
 		flagset.PrintDefaults()
 		return fmt.Errorf("missing parameter: vpc-config")
 	}
