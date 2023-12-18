@@ -3,7 +3,7 @@
 # Copyright 2023- IBM Inc. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-# creates a release version commit for `cloud-resource-collector`
+# creates a release version commit for `vpc-network-config-analyzer`
 # Use like: create.sh <release-version>
 # EG: create.sh 0.3.0
 
