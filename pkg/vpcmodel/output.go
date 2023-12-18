@@ -142,17 +142,30 @@ type SerialOutputFormatter struct {
 
 func (of *SerialOutputFormatter) WriteOutput(c1, c2 map[string]*VPCConfig, conns map[string]*VPCConnectivity, subnetsConns map[string]*VPCsubnetConnectivity, subnetsDiff *diffBetweenCfgs,
 	outFile string, grouping bool, uc OutputUseCase) (string, error) {
-	outputPerVPC := make([]*SingleAnalysisOutput, len(c1))
-	i := 0
-	for name := range c1 {
+	diffAnalysis := uc == EndpointsDiff || uc == SubnetsDiff
+	if !diffAnalysis {
+		outputPerVPC := make([]*SingleAnalysisOutput, len(c1))
+		i := 0
+		for name := range c1 {
+			vpcAnalysisOutput, err2 := of.singleVpcFormatter.WriteOutput(c1[name], c2[name], conns[name], subnetsConns[name], subnetsDiff, "", grouping, uc)
+			if err2 != nil {
+				return "", err2
+			}
+			outputPerVPC[i] = vpcAnalysisOutput
+			i++
+		}
+		return AggregateVPCsOutput(outputPerVPC, of.outFormat, outFile)
+	} else {
+		name := ""
+		for name = range c1 {
+			break
+		}
 		vpcAnalysisOutput, err2 := of.singleVpcFormatter.WriteOutput(c1[name], c2[name], conns[name], subnetsConns[name], subnetsDiff, "", grouping, uc)
 		if err2 != nil {
 			return "", err2
 		}
-		outputPerVPC[i] = vpcAnalysisOutput
-		i++
+		return WriteDiffOutput(vpcAnalysisOutput, of.outFormat, outFile)
 	}
-	return AggregateVPCsOutput(outputPerVPC, of.outFormat, outFile)
 }
 
 func WriteToFile(content, fileName string) (string, error) {

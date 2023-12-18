@@ -150,6 +150,14 @@ func (tt *vpcGeneralTest) initTest() {
 var tests = []*vpcGeneralTest{
 	{
 		name:     "acl_testing5",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.SubnetsDiff},
+		format:   vpcmodel.Text,
+	},
+}
+
+var tests2 = []*vpcGeneralTest{
+	{
+		name:     "acl_testing5",
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
 		format:   vpcmodel.Text,
 	},
@@ -416,7 +424,6 @@ var tests = []*vpcGeneralTest{
 		grouping: true,
 		format:   vpcmodel.DRAWIO,
 	},
-
 }
 
 var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}

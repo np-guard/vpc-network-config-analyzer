@@ -52,43 +52,38 @@ func analysisTypeToUseCase(inArgs *InArgs) vpcmodel.OutputUseCase {
 	return vpcmodel.AllEndpoints
 }
 
-func analysisPerVPCConfig(c *vpcmodel.VPCConfig, inArgs *InArgs, outFile string) (*vpcmodel.SingleAnalysisOutput, error) {
+func analysisVPCConfigs(c map[string]*vpcmodel.VPCConfig, inArgs *InArgs, outFile string) (string, error) {
 	og, err := vpcmodel.NewOutputGenerator(c, nil,
 		*inArgs.Grouping,
 		analysisTypeToUseCase(inArgs),
 		*inArgs.OutputFormat == ARCHDRAWIOFormat)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	var genOutFile string
-	// currently for drawio output only one vpc level is supported, and not as aggregated output of multiple vpcs
-	if *inArgs.OutputFormat == ARCHDRAWIOFormat || *inArgs.OutputFormat == DRAWIOFormat {
-		genOutFile = outFile
-	}
 	outFormat := getOutputFormat(inArgs)
-	output, err := og.Generate(outFormat, genOutFile)
+	output, err := og.Generate(outFormat, outFile)
 	if err != nil {
-		return nil, fmt.Errorf(ErrorFormat, OutGenerationErr, err)
+		return "", fmt.Errorf(ErrorFormat, OutGenerationErr, err)
 	}
 
 	return output, nil
 }
 
-func analysisDiffVPCConfig(c1, c2 *vpcmodel.VPCConfig, inArgs *InArgs, outFile string) (*vpcmodel.SingleAnalysisOutput, error) {
+func analysisDiffVPCConfig(c1, c2 map[string]*vpcmodel.VPCConfig, inArgs *InArgs, outFile string) (string, error) {
 	og, err := vpcmodel.NewOutputGenerator(c1, c2,
 		*inArgs.Grouping,
 		analysisTypeToUseCase(inArgs),
 		false)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	var analysisOut *vpcmodel.SingleAnalysisOutput
+	var analysisOut string
 	outFormat := getOutputFormat(inArgs)
 	analysisOut, err = og.Generate(outFormat, outFile)
 	if err != nil {
-		return nil, fmt.Errorf(ErrorFormat, OutGenerationErr, err)
+		return "", fmt.Errorf(ErrorFormat, OutGenerationErr, err)
 	}
 
 	return analysisOut, nil
@@ -127,23 +122,14 @@ func _main(cmdlineArgs []string) error {
 
 	diffAnalysis := *inArgs.AnalysisType == allEndpointsDiff || *inArgs.AnalysisType == allSubnetsDiff
 	if !diffAnalysis {
-		outputPerVPC := make([]*vpcmodel.SingleAnalysisOutput, len(vpcConfigs))
-		i := 0
-		for _, vpcConfig := range vpcConfigs {
-			vpcAnalysisOutput, err2 := analysisPerVPCConfig(vpcConfig, inArgs, outFile)
+			vpcAnalysisOutput, err2 := analysisVPCConfigs(vpcConfigs, inArgs, outFile)
 			if err2 != nil {
 				return err2
 			}
-			outputPerVPC[i] = vpcAnalysisOutput
-			i++
-		}
-
-		var out string
-		out, err = vpcmodel.AggregateVPCsOutput(outputPerVPC, getOutputFormat(inArgs), outFile)
 		if err != nil {
 			return err
 		}
-		fmt.Println(out)
+		fmt.Println(vpcAnalysisOutput)
 	} else {
 		return diffAnalysisMain(inArgs, vpcConfigs, outFile)
 	}
@@ -161,32 +147,16 @@ func diffAnalysisMain(inArgs *InArgs, vpcConfigs map[string]*vpcmodel.VPCConfig,
 		return fmt.Errorf(ErrorFormat, InGenerationErr, err4)
 	}
 	// For diff analysis each vpcConfigs have a single element
-	c1, single1 := getSingleCfg(vpcConfigs)
-	c2, single2 := getSingleCfg(vpc2ndConfigs)
-	if !single1 || !single2 {
+	if len(vpcConfigs) != 1 || len(vpc2ndConfigs) != 1 {
 		return fmt.Errorf("for diff mode %v a single configuration should be provided "+
 			"for both -vpc-config and -vpc-config-second", *inArgs.AnalysisType)
 	}
-	analysisOutput, err4 := analysisDiffVPCConfig(c1, c2, inArgs, outFile)
+	analysisOutput, err4 := analysisDiffVPCConfig(vpcConfigs, vpc2ndConfigs, inArgs, outFile)
 	if err4 != nil {
 		return err4
 	}
-	out, err5 := vpcmodel.WriteDiffOutput(analysisOutput, getOutputFormat(inArgs), outFile)
-	if err5 != nil {
-		return err5
-	}
-	fmt.Println(out)
+	fmt.Println(analysisOutput)
 	return nil
-}
-
-func getSingleCfg(vpcConfigs map[string]*vpcmodel.VPCConfig) (*vpcmodel.VPCConfig, bool) {
-	if len(vpcConfigs) > 1 {
-		return nil, false
-	}
-	for _, vpcConfig := range vpcConfigs {
-		return vpcConfig, true
-	}
-	return nil, false
 }
 
 func main() {
