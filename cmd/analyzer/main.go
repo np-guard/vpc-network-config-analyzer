@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/ibmvpc"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/version"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -102,6 +103,11 @@ func _main(cmdlineArgs []string) error {
 	}
 	if err != nil {
 		return fmt.Errorf(ErrorFormat, ParsingErr, err)
+	}
+
+	if *inArgs.Version {
+		fmt.Printf("vpc-network-config-analyzer v%s\n", version.VersionCore)
+		return nil
 	}
 
 	rc, err1 := ibmvpc.ParseResourcesFromFile(*inArgs.InputConfigFile)
