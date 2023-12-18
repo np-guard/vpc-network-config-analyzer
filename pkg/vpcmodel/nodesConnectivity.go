@@ -29,10 +29,13 @@ func (c *VPCConfig) getVPCNetworkOrNodeConnectivity(grouping bool, node Node) (r
 	}
 	if node == nil {
 		for _, nodeItem := range c.Nodes {
-			c.getNodeIngressEgress(res, nodeItem)
+			err = c.getNodeIngressEgress(res, nodeItem)
 		}
 	} else {
-		c.getNodeIngressEgress(res, node)
+		err = c.getNodeIngressEgress(res, node)
+	}
+	if err != nil {
+		return nil, err
 	}
 	res.computeAllowedConnsCombined()
 	res.computeAllowedStatefulConnections()

@@ -46,7 +46,8 @@ func TestExplainability(t *testing.T) {
 		require.Fail(t, err3.Error())
 	}
 	fmt.Println(explanbilityStr3)
-	require.Equal(t, "The following connection exists between vsi3a-ky[10.240.30.5] and vsi1-ky[10.240.10.4]: All Connections; its enabled by\n"+
+	require.Equal(t, "The following connection exists between vsi3a-ky[10.240.30.5] and vsi1-ky[10.240.10.4]: "+
+		"All Connections; its enabled by\n"+
 		"Egress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg3-ky:\n"+
 		"\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n\nIngress Rules:\n~~~~~~~~~~~~~~\nSecurityGroupLayer Rules"+
 		"\n------------------------\nenabling rules from sg1-ky:\n"+
