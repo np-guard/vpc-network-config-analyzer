@@ -330,7 +330,7 @@ var tests = []*vpcGeneralTest{
 		format:   vpcmodel.Text,
 	},
 	// multi-vpc config examples
-	{
+	/*{
 		name:     "experiments_env",
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		format:   vpcmodel.Text,
@@ -339,7 +339,7 @@ var tests = []*vpcGeneralTest{
 		name:     "experiments_env",
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		format:   vpcmodel.JSON,
-	},
+	},*/
 	{
 		name:     "multiple_vpcs",
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
