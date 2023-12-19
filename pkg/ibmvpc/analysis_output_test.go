@@ -476,11 +476,7 @@ func getVPCConfigs(t *testing.T, tt *vpcGeneralTest, firstCfg bool) map[string]*
 		inputConfig = tt.inputConfig2nd
 	}
 	inputConfigFile := filepath.Join(getTestsDir(), inputConfig)
-	inputConfigContent, err := os.ReadFile(inputConfigFile)
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
-	rc, err := ParseResources(inputConfigContent)
+	rc, err := ParseResourcesFromFile(inputConfigFile)
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}

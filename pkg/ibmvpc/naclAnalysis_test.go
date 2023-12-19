@@ -1,8 +1,8 @@
 package ibmvpc
 
 import (
-	_ "embed"
 	"fmt"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -10,12 +10,8 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
-//go:embed examples/input_acl_testing3.json
-var acl3Input []byte
-
 func TestGetRules(t *testing.T) {
-	inputResourcesJSON := acl3Input
-	rc, err := ParseResources(inputResourcesJSON)
+	rc, err := ParseResourcesFromFile(filepath.Join(getTestsDir(), "input_acl_testing3.json"))
 	require.Nilf(t, err, "err: %s", err)
 	vpcConfigs, err := VPCConfigsFromResources(rc, "", false)
 	require.Nilf(t, err, "err: %s", err)
