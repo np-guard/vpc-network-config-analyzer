@@ -85,14 +85,33 @@ func (c *VPCConfig) GetRulesOfConnection(src, dst Node) (rulesOfConnection *Rule
 	return rulesOfConnection, nil
 }
 
+// AreRulesDefult used when connection is blocked.
+// todo: Extension to include nacl will require more than just adding nacl;
+//
+//	by which it might make sense to add the printing to other cases
+func (c *VPCConfig) areRulesDefault() bool {
+	filterLayers := []string{SecurityGroupLayer}
+	isDefault := true
+	for _, layer := range filterLayers {
+		filter := c.getFilterTrafficResourceOfKind(layer)
+		// we will dump prior to here if filter == nil, thus not checking here
+		isDefault = isDefault && filter.IsDefault()
+	}
+	return isDefault
+}
+
 func (rulesOfConnection *RulesOfConnection) String(src, dst Node, c *VPCConfig) string {
 	noIngressRules := len(rulesOfConnection.ingressRules) == 0
 	noEgressRules := len(rulesOfConnection.egressRules) == 0
 	egressRulesStr := rulesOfConnection.egressRules.string(c)
 	ingressRulesStr := rulesOfConnection.ingressRules.string(c)
+	allLayersDefault := ""
+	if c.areRulesDefault() {
+		allLayersDefault = "\n\nRules are the default (no rules specified manually)"
+	}
 	switch {
 	case noIngressRules && noEgressRules:
-		return fmt.Sprintf("No connection between %v and %v; connection blocked both by ingress and egress\n", src.Name(), dst.Name())
+		return fmt.Sprintf("No connection between %v and %v; connection blocked both by ingress and egress\n%v", src.Name(), dst.Name(), allLayersDefault)
 	case noIngressRules:
 		return fmt.Sprintf("No connection between %v and %v; connection blocked by ingress\n"+
 			"Egress Rules:\n~~~~~~~~~~~~~~\n%v", src.Name(), dst.Name(), egressRulesStr)

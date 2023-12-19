@@ -279,6 +279,10 @@ func (nl *NaclLayer) RulesInConnectivity(vpcmodel.Node, vpcmodel.Node, bool) ([]
 	return nil, nil
 }
 
+func (nl *NaclLayer) IsDefault() bool {
+	return false
+}
+
 func (nl *NaclLayer) StringRulesOfFilter([]vpcmodel.RulesInFilter) string {
 	return ""
 }
@@ -395,12 +399,24 @@ func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 	return res, nil
 }
 
+// IsDefault the layer is considered default if all sgs' rules are default
+func (sgl *SecurityGroupLayer) IsDefault() bool {
+	isDefault := true
+	for _, sg := range sgl.sgList {
+		isDefault = isDefault && sg.analyzer.rulesAreDefault
+	}
+	return isDefault
+}
+
 func (sgl *SecurityGroupLayer) StringRulesOfFilter(listRulesInFilter []vpcmodel.RulesInFilter) string {
 	strListRulesInFilter := ""
 	for _, rulesInFilter := range listRulesInFilter {
 		sg := sgl.sgList[rulesInFilter.Filter]
 		strListRulesInFilter += "enabling rules from " + sg.Name() + ":\n" +
 			sg.analyzer.StringRules(rulesInFilter.Rules)
+		if sg.analyzer.rulesAreDefault {
+			strListRulesInFilter += "default rules (no rules specified manually)\n"
+		}
 	}
 	return strListRulesInFilter
 }

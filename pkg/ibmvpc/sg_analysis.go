@@ -11,10 +11,13 @@ import (
 	vpcmodel "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
+const allCidr = "0.0.0.0/0"
+
 type SGAnalyzer struct {
 	sgResource          *vpc1.SecurityGroup
 	ingressRules        []*SGRule
 	egressRules         []*SGRule
+	rulesAreDefault     bool // rules are the default ones
 	ingressConnectivity *ConnectivityResult
 	egressConnectivity  *ConnectivityResult
 	sgMap               map[string]*SecurityGroup
@@ -288,7 +291,26 @@ func (sga *SGAnalyzer) prepareAnalyzer(sgMap map[string]*SecurityGroup, currentS
 	}
 	sga.ingressConnectivity = AnalyzeSGRules(sga.ingressRules, true)
 	sga.egressConnectivity = AnalyzeSGRules(sga.egressRules, false)
+	sga.rulesAreDefault = sga.areRulesDefault()
 	return nil
+}
+
+// areRulesDefault are the rules equal to the default rules,
+// defined as "deny all inbound traffic and permit all outbound traffic"
+// namely, no inbound rules and a single outbound rule with target 0.0.0.0/0
+func (sga *SGAnalyzer) areRulesDefault() bool {
+	if len(sga.ingressRules) > 0 || len(sga.egressRules) != 1 {
+		return false
+	}
+	egressRule := sga.egressRules[0]
+	egressRuleCidrs := egressRule.target.ToCidrList()
+	if len(egressRuleCidrs) != 1 {
+		return false
+	}
+	if egressRuleCidrs[0] == allCidr {
+		return true
+	}
+	return false
 }
 
 func (sga *SGAnalyzer) AllowedConnectivity(target string, isIngress bool) *common.ConnectionSet {
