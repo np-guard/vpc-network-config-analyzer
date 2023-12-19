@@ -27,9 +27,9 @@ func (e *edgeInfo) IsExternal() bool {
 type DrawioOutputFormatter struct {
 	cConfigs map[string]*VPCConfig
 	conns    map[string]*GroupConnLines
-	gen     *DrawioGenerator
-	routers map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface
-	uc      OutputUseCase
+	gen      *DrawioGenerator
+	routers  map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface
+	uc       OutputUseCase
 }
 
 func (d *DrawioOutputFormatter) init(cConfigs map[string]*VPCConfig, conns map[string]*GroupConnLines, uc OutputUseCase) {
