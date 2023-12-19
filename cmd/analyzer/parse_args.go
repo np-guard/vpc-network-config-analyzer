@@ -126,7 +126,8 @@ func notSupportedYetArgs(args *InArgs) error {
 	if *args.OutputFormat == DRAWIOFormat || *args.OutputFormat == ARCHDRAWIOFormat {
 		return notSupportedYetDrawioArgs(args)
 	}
-	if !diffAnalysis && *args.AnalysisType != allEndpoints && *args.OutputFormat != TEXTFormat && *args.OutputFormat != JSONFormat{
+	if !diffAnalysis && *args.AnalysisType != allEndpoints && *args.OutputFormat != TEXTFormat &&
+		*args.OutputFormat != JSONFormat {
 		return fmt.Errorf("currently only txt/json output format supported with %s analysis type", *args.AnalysisType)
 	}
 	if diffAnalysis && *args.OutputFormat != TEXTFormat && *args.OutputFormat != MDFormat {
