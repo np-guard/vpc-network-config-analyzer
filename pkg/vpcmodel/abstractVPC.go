@@ -81,19 +81,10 @@ type RulesInFilter struct {
 	Rules  []int // list of indexes of rules in the sg/nacl
 }
 
-// rulesInLayers contains specific rules across all layers (SGLayer/NACLLayer)
-type rulesInLayers map[string][]RulesInFilter
-
-// RulesOfConnection contains the rules enabling a connection
-type RulesOfConnection struct {
-	ingressRules rulesInLayers
-	egressRules  rulesInLayers
-}
-
 // FilterTrafficResource capture allowed traffic between 2 endpoints
 type FilterTrafficResource interface {
 	VPCResourceIntf
-	// AllowedConnectivity get the connectivity result when the filterTraffic resource is applied to the given Node element
+	// AllowedConnectivity get the connectivity from src Node to dst Node considering this filterTraffic resource
 	AllowedConnectivity(src, dst Node, isIngress bool) (*common.ConnectionSet, error)
 	// RulesInConnectivity get the list of rules of a given filter that contributes to the connection between src and dst
 	// todo: currently implemented only to sg; likely src and dst will be VPCResourceIntf instead of Node
