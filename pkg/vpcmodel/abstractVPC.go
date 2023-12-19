@@ -81,14 +81,8 @@ type RulesInFilter struct {
 	Rules  []int // list of indexes of rules in the sg/nacl
 }
 
-// rulesInLayer contains specific rules defined in a specific layer (SGLayer/NACLLayer)
-type rulesInLayer struct {
-	layer string
-	rules []RulesInFilter
-}
-
 // rulesInLayers contains specific rules across all layers (SGLayer/NACLLayer)
-type rulesInLayers []rulesInLayer
+type rulesInLayers map[string][]RulesInFilter
 
 // RulesOfConnection contains the rules enabling a connection
 type RulesOfConnection struct {

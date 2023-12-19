@@ -83,16 +83,18 @@ func (c *VPCConfig) getFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(
 
 func (c *VPCConfig) GetRulesOfConnection(src, dst Node) (rulesOfConnection *RulesOfConnection, err error) {
 	filterLayers := []string{SecurityGroupLayer}
-	rulesOfConnection = &RulesOfConnection{make([]rulesInLayer, len(filterLayers)),
-		make([]rulesInLayer, len(filterLayers))}
-	for i, layer := range filterLayers {
+	rulesOfConnection = &RulesOfConnection{make(rulesInLayers, len(filterLayers)),
+		make(rulesInLayers, len(filterLayers))}
+	ingressRulesPerLayer, egressRulesPerLayer := make(rulesInLayers), make(rulesInLayers)
+	for _, layer := range filterLayers {
 		// ingress rules
 		ingressRules, err1 := c.getFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(src, dst, true, layer)
 		if err1 != nil {
 			return nil, err1
 		}
-		ingressThisLayer := rulesInLayer{layer: layer, rules: *ingressRules}
-		rulesOfConnection.ingressRules[i] = ingressThisLayer
+		if len(*ingressRules) > 0 {
+			ingressRulesPerLayer[layer] = *ingressRules
+		}
 
 		// egress rules
 		egressRules, err2 := c.getFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(src, dst, false, layer)
@@ -100,16 +102,17 @@ func (c *VPCConfig) GetRulesOfConnection(src, dst Node) (rulesOfConnection *Rule
 			return nil, err2
 		}
 		if len(*egressRules) > 0 {
-			egressThisLayer := rulesInLayer{layer: layer, rules: *egressRules}
-			rulesOfConnection.egressRules[i] = egressThisLayer
+			egressRulesPerLayer[layer] = *egressRules
 		}
 	}
+	rulesOfConnection.ingressRules = ingressRulesPerLayer
+	rulesOfConnection.egressRules = egressRulesPerLayer
 	return rulesOfConnection, nil
 }
 
 func (rulesOfConnection *RulesOfConnection) String(src, dst Node, c *VPCConfig) string {
-	noIngressRules := !rulesOfConnection.ingressRules.hasRules()
-	noEgressRules := !rulesOfConnection.egressRules.hasRules()
+	noIngressRules := len(rulesOfConnection.ingressRules) == 0
+	noEgressRules := len(rulesOfConnection.egressRules) == 0
 	switch {
 	case noIngressRules && noEgressRules:
 		return fmt.Sprintf("No connection between %v and %v; connection blocked both by ingress and egress\n", src.Name(), dst.Name())
@@ -125,27 +128,15 @@ func (rulesOfConnection *RulesOfConnection) String(src, dst Node, c *VPCConfig) 
 	}
 }
 
-func (rulesInLayers *rulesInLayers) hasRules() bool {
-	if rulesInLayers == nil {
-		return false
-	}
-	for _, rulesInLayer := range *rulesInLayers {
-		if len(rulesInLayer.rules) > 0 {
-			return true
-		}
-	}
-	return false
-}
-
 func (rulesInLayers *rulesInLayers) string(c *VPCConfig) string {
 	rulesInLayersStr := ""
-	for _, rulesInLayer := range *rulesInLayers {
-		filter := c.getFilterTrafficResourceOfKind(rulesInLayer.layer)
+	for layer, rules := range *rulesInLayers {
+		filter := c.getFilterTrafficResourceOfKind(layer)
 		if filter == nil {
 			continue
 		}
-		rulesInLayersStr += rulesInLayer.layer + " Rules\n------------------------\n" +
-			filter.StringRulesOfFilter(rulesInLayer.rules)
+		rulesInLayersStr += layer + " Rules\n------------------------\n" +
+			filter.StringRulesOfFilter(rules)
 	}
 	return rulesInLayersStr
 }
