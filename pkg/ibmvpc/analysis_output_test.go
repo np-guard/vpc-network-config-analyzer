@@ -150,14 +150,6 @@ func (tt *vpcGeneralTest) initTest() {
 var tests = []*vpcGeneralTest{
 	{
 		name:     "acl_testing5",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.SubnetsDiff},
-		format:   vpcmodel.Text,
-	},
-}
-
-var tests2 = []*vpcGeneralTest{
-	{
-		name:     "acl_testing5",
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
 		format:   vpcmodel.Text,
 	},
@@ -580,7 +572,6 @@ func runTestPerUseCase(t *testing.T,
 	c1, c2 map[string]*vpcmodel.VPCConfig,
 	uc vpcmodel.OutputUseCase,
 	mode testMode) error {
-
 	if err := initTestFileNames(tt, uc, len(c1), "", true); err != nil {
 		return err
 	}
@@ -592,11 +583,9 @@ func runTestPerUseCase(t *testing.T,
 	if err != nil {
 		return err
 	}
-
 	if err := compareOrRegenerateOutputPerTest(t, mode, actualOutput, tt, uc); err != nil {
 		return err
 	}
-
 	return nil
 }
 

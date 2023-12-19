@@ -1,3 +1,4 @@
+//nolint:lll // styles are too long and can not be split
 package main
 
 import (

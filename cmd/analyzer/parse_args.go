@@ -124,8 +124,7 @@ func errorInErgs(args *InArgs, flagset *flag.FlagSet) error {
 func notSupportedYetArgs(args *InArgs) error {
 	diffAnalysis := *args.AnalysisType == allEndpointsDiff || *args.AnalysisType == allSubnetsDiff
 	drawioFormat := *args.OutputFormat == DRAWIOFormat || *args.OutputFormat == ARCHDRAWIOFormat
-	if !diffAnalysis && *args.AnalysisType != allEndpoints && *args.OutputFormat != TEXTFormat &&
-		*args.OutputFormat != JSONFormat  && !drawioFormat{
+	if !diffAnalysis && *args.AnalysisType != allEndpoints && *args.OutputFormat != TEXTFormat && !drawioFormat {
 		return fmt.Errorf("currently only txt/json output format supported with %s analysis type", *args.AnalysisType)
 	}
 	if diffAnalysis && *args.OutputFormat != TEXTFormat && *args.OutputFormat != MDFormat && *args.OutputFormat != JSONFormat {

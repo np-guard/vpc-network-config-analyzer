@@ -66,7 +66,6 @@ func (d *DrawioOutputFormatter) createDrawioTree() {
 }
 
 func (d *DrawioOutputFormatter) createNodeSets() {
-
 	for _, vpcConfig := range d.cConfig {
 		for _, ns := range vpcConfig.NodeSets {
 			if d.showResource(ns) {
@@ -160,10 +159,8 @@ func (d *DrawioOutputFormatter) WriteOutput(c1, c2 map[string]*VPCConfig,
 	switch uc {
 	case AllEndpoints:
 		gConn := map[string]*GroupConnLines{}
-		if conn != nil {
-			for name, vpcConn := range conn {
-				gConn[name] = vpcConn.GroupedConnectivity
-			}
+		for name, vpcConn := range conn {
+			gConn[name] = vpcConn.GroupedConnectivity
 		}
 		d.init(c1, gConn, uc)
 	case AllSubnets:
