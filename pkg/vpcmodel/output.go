@@ -159,10 +159,7 @@ func (of *SerialOutputFormatter) WriteOutput(c1, c2 map[string]*VPCConfig, conns
 		}
 		return of.AggregateVPCsOutput(outputPerVPC, outFile)
 	}
-	name := ""
-	for name = range c1 {
-		break
-	}
+	name, _ := aMapEntry(c1)
 	vpcAnalysisOutput, err2 :=
 		of.singleVpcFormatter.WriteOutput(c1[name], c2[name], conns[name], subnetsConns[name], subnetsDiff, "", grouping, uc)
 	if err2 != nil {
@@ -208,10 +205,7 @@ func (of *SerialOutputFormatter) AggregateVPCsOutput(outputList []*SingleAnalysi
 			}
 			res, err = writeJSON(all, outFile)
 		} else {
-			for _, o := range outputList {
-				res, err = writeJSON(o.jsonStruct, outFile)
-				break
-			}
+			res, err = writeJSON(outputList[0].jsonStruct, outFile)
 		}
 	}
 	return res, err
@@ -231,4 +225,11 @@ func (of *SerialOutputFormatter) WriteDiffOutput(output *SingleAnalysisOutput, o
 		res, err = writeJSON(all, outFile)
 	}
 	return res, err
+}
+
+func aMapEntry[K comparable, V any](m map[K]V) (k K, v V) {
+	for k, v = range m {
+		break
+	}
+	return k, v
 }

@@ -25,23 +25,20 @@ func (e *edgeInfo) IsExternal() bool {
 // 3. create the edges from the map we created in stage (1). also also set the routers to the edges
 
 type DrawioOutputFormatter struct {
-	cConfig map[string]*VPCConfig
-	conn    map[string]*GroupConnLines
+	cConfigs map[string]*VPCConfig
+	conns    map[string]*GroupConnLines
 	gen     *DrawioGenerator
 	routers map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface
 	uc      OutputUseCase
 }
 
-func (d *DrawioOutputFormatter) init(cConfig map[string]*VPCConfig, conn map[string]*GroupConnLines, uc OutputUseCase) {
-	d.cConfig = cConfig
-	d.conn = conn
+func (d *DrawioOutputFormatter) init(cConfigs map[string]*VPCConfig, conns map[string]*GroupConnLines, uc OutputUseCase) {
+	d.cConfigs = cConfigs
+	d.conns = conns
 	d.uc = uc
 	// just take the cloud name from one of the configs
-	cloudName := ""
-	for _, vpcConfig := range cConfig {
-		cloudName = vpcConfig.CloudName
-		break
-	}
+	_, aVpcConfig := aMapEntry(cConfigs)
+	cloudName := aVpcConfig.CloudName
 	d.gen = NewDrawioGenerator(cloudName)
 	d.routers = map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface{}
 }
@@ -60,13 +57,13 @@ func (d *DrawioOutputFormatter) createDrawioTree() {
 		d.createFilters()
 	}
 	d.createRouters()
-	if d.conn != nil {
+	if d.conns != nil {
 		d.createEdges()
 	}
 }
 
 func (d *DrawioOutputFormatter) createNodeSets() {
-	for _, vpcConfig := range d.cConfig {
+	for _, vpcConfig := range d.cConfigs {
 		for _, ns := range vpcConfig.NodeSets {
 			if d.showResource(ns) {
 				d.gen.TreeNode(ns)
@@ -76,7 +73,7 @@ func (d *DrawioOutputFormatter) createNodeSets() {
 }
 
 func (d *DrawioOutputFormatter) createNodes() {
-	for _, vpcConfig := range d.cConfig {
+	for _, vpcConfig := range d.cConfigs {
 		for _, n := range vpcConfig.Nodes {
 			if !n.IsExternal() && d.showResource(n) {
 				d.gen.TreeNode(n)
@@ -86,7 +83,7 @@ func (d *DrawioOutputFormatter) createNodes() {
 }
 
 func (d *DrawioOutputFormatter) createFilters() {
-	for _, vpcConfig := range d.cConfig {
+	for _, vpcConfig := range d.cConfigs {
 		for _, fl := range vpcConfig.FilterResources {
 			if d.showResource(fl) {
 				d.gen.TreeNode(fl)
@@ -96,7 +93,7 @@ func (d *DrawioOutputFormatter) createFilters() {
 }
 
 func (d *DrawioOutputFormatter) createRouters() {
-	for _, vpcConfig := range d.cConfig {
+	for _, vpcConfig := range d.cConfigs {
 		for _, r := range vpcConfig.RoutingResources {
 			if d.showResource(r) {
 				rTn := d.gen.TreeNode(r)
@@ -117,7 +114,7 @@ func (d *DrawioOutputFormatter) createEdges() {
 		label string
 	}
 	isEdgeDirected := map[edgeKey]bool{}
-	for _, vpcConn := range d.conn {
+	for _, vpcConn := range d.conns {
 		for _, line := range vpcConn.GroupedLines {
 			src := line.src
 			dst := line.dst
