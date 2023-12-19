@@ -19,6 +19,7 @@ type InArgs struct {
 	Version               *bool
 }
 
+// flagHasValue indicates for each input arg if it is expected to have a value in the cli or not
 var flagHasValue = map[string]bool{
 	InputConfigFile:       true,
 	InputSecondConfigFile: true,
@@ -135,6 +136,7 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args.Version = flagset.Bool(Version, false, "prints the release version number")
 
 	// calling parseCmdLine prior to flagset.Parse to ensure that excessive and unsupported arguments are handled
+	// for example, flagset.Parse() ignores input args missing the `-`
 	err := parseCmdLine(cmdlineArgs)
 	if err != nil {
 		return nil, err
