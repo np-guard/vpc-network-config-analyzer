@@ -123,8 +123,10 @@ func errorInErgs(args *InArgs, flagset *flag.FlagSet) error {
 
 func notSupportedYetArgs(args *InArgs) error {
 	diffAnalysis := *args.AnalysisType == allEndpointsDiff || *args.AnalysisType == allSubnetsDiff
-	drawioFormat := *args.OutputFormat == DRAWIOFormat || *args.OutputFormat == ARCHDRAWIOFormat
-	if !diffAnalysis && *args.AnalysisType != allEndpoints && *args.OutputFormat != TEXTFormat && !drawioFormat {
+	if *args.OutputFormat == DRAWIOFormat || *args.OutputFormat == ARCHDRAWIOFormat {
+		return notSupportedYetDrawioArgs(args)
+	}
+	if !diffAnalysis && *args.AnalysisType != allEndpoints && *args.OutputFormat != TEXTFormat {
 		return fmt.Errorf("currently only txt/json output format supported with %s analysis type", *args.AnalysisType)
 	}
 	if diffAnalysis && *args.OutputFormat != TEXTFormat && *args.OutputFormat != MDFormat && *args.OutputFormat != JSONFormat {
@@ -135,6 +137,13 @@ func notSupportedYetArgs(args *InArgs) error {
 	}
 	if *args.OutputFormat == JSONFormat && *args.Grouping {
 		return fmt.Errorf("json output format is not supported with grouping")
+	}
+	return nil
+}
+
+func notSupportedYetDrawioArgs(args *InArgs) error {
+	if *args.AnalysisType != allEndpoints && *args.AnalysisType != allSubnets {
+		return fmt.Errorf("drawio output format is not supported with %s analysis type", *args.AnalysisType)
 	}
 	return nil
 }
