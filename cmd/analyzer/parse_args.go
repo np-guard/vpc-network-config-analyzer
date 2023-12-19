@@ -126,10 +126,10 @@ func notSupportedYetArgs(args *InArgs) error {
 	if *args.OutputFormat == DRAWIOFormat || *args.OutputFormat == ARCHDRAWIOFormat {
 		return notSupportedYetDrawioArgs(args)
 	}
-	if !diffAnalysis && *args.AnalysisType != allEndpoints && *args.OutputFormat != TEXTFormat {
+	if !diffAnalysis && *args.AnalysisType != allEndpoints && *args.OutputFormat != TEXTFormat && *args.OutputFormat != JSONFormat{
 		return fmt.Errorf("currently only txt/json output format supported with %s analysis type", *args.AnalysisType)
 	}
-	if diffAnalysis && *args.OutputFormat != TEXTFormat && *args.OutputFormat != MDFormat && *args.OutputFormat != JSONFormat {
+	if diffAnalysis && *args.OutputFormat != TEXTFormat && *args.OutputFormat != MDFormat {
 		return fmt.Errorf("currently only txt/md output format supported with %s analysis type", *args.AnalysisType)
 	}
 	if *args.AnalysisType == singleSubnet && *args.Grouping {
