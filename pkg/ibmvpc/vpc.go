@@ -386,8 +386,8 @@ func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 		sgRules := sg.RulesInConnectivity(src, dst, isIngress)
 		if len(sgRules) > 0 {
 			rulesInSg := vpcmodel.RulesInFilter{
-				RulesIndexes: indx,
-				Rules:        sgRules,
+				Filter: indx,
+				Rules:  sgRules,
 			}
 			res = append(res, rulesInSg)
 		}
@@ -398,7 +398,7 @@ func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 func (sgl *SecurityGroupLayer) StringRulesOfFilter(listRulesInFilter []vpcmodel.RulesInFilter) string {
 	strListRulesInFilter := ""
 	for _, rulesInFilter := range listRulesInFilter {
-		sg := sgl.sgList[rulesInFilter.RulesIndexes]
+		sg := sgl.sgList[rulesInFilter.Filter]
 		strListRulesInFilter += "enabling rules from " + sg.Name() + ":\n" +
 			sg.analyzer.StringRules(rulesInFilter.Rules)
 	}
