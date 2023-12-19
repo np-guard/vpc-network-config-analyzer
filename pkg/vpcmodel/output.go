@@ -106,37 +106,37 @@ type SingleAnalysisOutput struct {
 
 // Generate returns SingleAnalysisOutput for its VPC analysis results
 func (o *OutputGenerator) Generate(f OutFormat, outFile string) (string, error) {
-	var multiFormatter MultiVpcOutputFormatter
+	var formatter OutputFormatter
 	switch f {
 	case JSON:
-		multiFormatter = &SerialOutputFormatter{singleVpcFormatter: &JSONoutputFormatter{}, outFormat: f}
+		formatter = &SerialOutputFormatter{singleVpcFormatter: &JSONoutputFormatter{}, outFormat: f}
 	case Text:
-		multiFormatter = &SerialOutputFormatter{singleVpcFormatter: &TextOutputFormatter{}, outFormat: f}
+		formatter = &SerialOutputFormatter{singleVpcFormatter: &TextOutputFormatter{}, outFormat: f}
 	case MD:
-		multiFormatter = &SerialOutputFormatter{singleVpcFormatter: &MDoutputFormatter{}, outFormat: f}
+		formatter = &SerialOutputFormatter{singleVpcFormatter: &MDoutputFormatter{}, outFormat: f}
 	case DRAWIO:
-		multiFormatter = &DrawioOutputFormatter{}
+		formatter = &DrawioOutputFormatter{}
 	case ARCHDRAWIO:
-		multiFormatter = &ArchDrawioOutputFormatter{}
+		formatter = &ArchDrawioOutputFormatter{}
 	case Debug:
-		multiFormatter = &SerialOutputFormatter{singleVpcFormatter: &DebugOutputFormatter{}, outFormat: f}
+		formatter = &SerialOutputFormatter{singleVpcFormatter: &DebugOutputFormatter{}, outFormat: f}
 	default:
 		return "", errors.New("unsupported output format")
 	}
-	return multiFormatter.WriteOutput(o.config1, o.config2, o.nodesConn, o.subnetsConn, o.cfgsDiff, outFile, o.outputGrouping, o.useCase)
+	return formatter.WriteOutput(o.config1, o.config2, o.nodesConn, o.subnetsConn, o.cfgsDiff, outFile, o.outputGrouping, o.useCase)
 }
 
-type OutputFormatter interface {
+type SingleVpcOutputFormatter interface {
 	WriteOutput(c1, c2 *VPCConfig, conn *VPCConnectivity, subnetsConn *VPCsubnetConnectivity, subnetsDiff *diffBetweenCfgs,
 		outFile string, grouping bool, uc OutputUseCase) (*SingleAnalysisOutput, error)
 }
-type MultiVpcOutputFormatter interface {
+type OutputFormatter interface {
 	WriteOutput(c1, c2 map[string]*VPCConfig, conn map[string]*VPCConnectivity, subnetsConn map[string]*VPCsubnetConnectivity, subnetsDiff *diffBetweenCfgs,
 		outFile string, grouping bool, uc OutputUseCase) (string, error)
 }
 
 type SerialOutputFormatter struct {
-	singleVpcFormatter OutputFormatter
+	singleVpcFormatter SingleVpcOutputFormatter
 	outFormat          OutFormat
 }
 
@@ -154,7 +154,7 @@ func (of *SerialOutputFormatter) WriteOutput(c1, c2 map[string]*VPCConfig, conns
 			outputPerVPC[i] = vpcAnalysisOutput
 			i++
 		}
-		return AggregateVPCsOutput(outputPerVPC, of.outFormat, outFile)
+		return of.AggregateVPCsOutput(outputPerVPC, outFile)
 	} else {
 		name := ""
 		for name = range c1 {
@@ -164,7 +164,7 @@ func (of *SerialOutputFormatter) WriteOutput(c1, c2 map[string]*VPCConfig, conns
 		if err2 != nil {
 			return "", err2
 		}
-		return WriteDiffOutput(vpcAnalysisOutput, of.outFormat, outFile)
+		return of.WriteDiffOutput(vpcAnalysisOutput, outFile)
 	}
 }
 
@@ -178,7 +178,7 @@ func WriteToFile(content, fileName string) (string, error) {
 
 // AggregateVPCsOutput returns the output string for a list of SingleAnalysisOutput objects
 // and writes the output to outFile
-func AggregateVPCsOutput(outputList []*SingleAnalysisOutput, f OutFormat, outFile string) (string, error) {
+func (of *SerialOutputFormatter) AggregateVPCsOutput(outputList []*SingleAnalysisOutput, outFile string) (string, error) {
 	var res string
 	var err error
 
@@ -186,7 +186,7 @@ func AggregateVPCsOutput(outputList []*SingleAnalysisOutput, f OutFormat, outFil
 		return outputList[i].VPC1Name < outputList[j].VPC1Name
 	})
 
-	switch f {
+	switch of.outFormat {
 	case Text, MD, Debug:
 		// plain concatenation
 		vpcsOut := make([]string, len(outputList))
@@ -215,10 +215,10 @@ func AggregateVPCsOutput(outputList []*SingleAnalysisOutput, f OutFormat, outFil
 }
 
 // WriteDiffOutput actual writing the output into file, with required format adjustments
-func WriteDiffOutput(output *SingleAnalysisOutput, f OutFormat, outFile string) (string, error) {
+func (of *SerialOutputFormatter)WriteDiffOutput(output *SingleAnalysisOutput, outFile string) (string, error) {
 	var res string
 	var err error
-	switch f {
+	switch of.outFormat {
 	case Text, MD, Debug: // currently, return out as is
 		res, err = WriteToFile(output.Output, outFile)
 	case JSON:
