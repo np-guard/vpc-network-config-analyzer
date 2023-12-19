@@ -274,6 +274,15 @@ func (nl *NaclLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool)
 	return res, nil
 }
 
+// RulesInConnectivity list of SG rules contributing to the connectivity
+func (nl *NaclLayer) RulesInConnectivity(vpcmodel.Node, vpcmodel.Node, bool) ([]vpcmodel.RulesInFilter, error) {
+	return nil, nil
+}
+
+func (nl *NaclLayer) StringRulesOfFilter([]vpcmodel.RulesInFilter) string {
+	return ""
+}
+
 func (nl *NaclLayer) ReferencedIPblocks() []*common.IPBlock {
 	res := []*common.IPBlock{}
 	for _, n := range nl.naclList {
@@ -350,9 +359,14 @@ func (sgl *SecurityGroupLayer) GetConnectivityOutputPerEachElemSeparately() stri
 	return ""
 }
 
+func connHasIKSNode(src, dst vpcmodel.Node, isIngress bool) bool {
+	return (isIngress && dst.Kind() == ResourceTypeIKSNode) || (!isIngress && src.Kind() == ResourceTypeIKSNode)
+}
+
+// AllowedConnectivity
 // TODO: fix: is it possible that no sg applies  to the input peer? if so, should not return "no conns" when none applies
 func (sgl *SecurityGroupLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*common.ConnectionSet, error) {
-	if (isIngress && dst.Kind() == ResourceTypeIKSNode) || (!isIngress && src.Kind() == ResourceTypeIKSNode) {
+	if connHasIKSNode(src, dst, isIngress) {
 		return vpcmodel.AllConns(), nil
 	}
 	res := vpcmodel.NoConns()
@@ -361,6 +375,34 @@ func (sgl *SecurityGroupLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIng
 		res = res.Union(sgConn)
 	}
 	return res, nil
+}
+
+func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
+	isIngress bool) (res []vpcmodel.RulesInFilter, err error) {
+	if connHasIKSNode(src, dst, isIngress) {
+		return nil, fmt.Errorf("explainability for IKS node not supported yet")
+	}
+	for indx, sg := range sgl.sgList {
+		sgRules := sg.RulesInConnectivity(src, dst, isIngress)
+		if len(sgRules) > 0 {
+			rulesInSg := vpcmodel.RulesInFilter{
+				Filter: indx,
+				Rules:  sgRules,
+			}
+			res = append(res, rulesInSg)
+		}
+	}
+	return res, nil
+}
+
+func (sgl *SecurityGroupLayer) StringRulesOfFilter(listRulesInFilter []vpcmodel.RulesInFilter) string {
+	strListRulesInFilter := ""
+	for _, rulesInFilter := range listRulesInFilter {
+		sg := sgl.sgList[rulesInFilter.Filter]
+		strListRulesInFilter += "enabling rules from " + sg.Name() + ":\n" +
+			sg.analyzer.StringRules(rulesInFilter.Rules)
+	}
+	return strListRulesInFilter
 }
 
 func (sgl *SecurityGroupLayer) ReferencedIPblocks() []*common.IPBlock {
@@ -378,6 +420,24 @@ type SecurityGroup struct {
 }
 
 func (sg *SecurityGroup) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *common.ConnectionSet {
+	memberStrAddress, targetStrAddress := sg.getMemberTargetStrAddress(src, dst, isIngress)
+	if _, ok := sg.members[memberStrAddress]; !ok {
+		return vpcmodel.NoConns() // connectivity not affected by this SG resource - input node is not its member
+	}
+	return sg.analyzer.AllowedConnectivity(targetStrAddress, isIngress)
+}
+
+// RulesInConnectivity list of SG rules contributing to the connectivity
+func (sg *SecurityGroup) RulesInConnectivity(src, dst vpcmodel.Node, isIngress bool) []int {
+	memberStrAddress, targetStrAddress := sg.getMemberTargetStrAddress(src, dst, isIngress)
+	if _, ok := sg.members[memberStrAddress]; !ok {
+		return nil // connectivity not affected by this SG resource - input node is not its member
+	}
+	return sg.analyzer.rulesInConnectivity(targetStrAddress, isIngress)
+}
+
+func (sg *SecurityGroup) getMemberTargetStrAddress(src, dst vpcmodel.Node,
+	isIngress bool) (memberStrAddress, targetStrAddress string) {
 	var member, target vpcmodel.Node
 	if isIngress {
 		member = dst
@@ -386,12 +446,9 @@ func (sg *SecurityGroup) AllowedConnectivity(src, dst vpcmodel.Node, isIngress b
 		member = src
 		target = dst
 	}
-	memberStrAddress := member.Cidr()
-	if _, ok := sg.members[memberStrAddress]; !ok {
-		return vpcmodel.NoConns() // connectivity not affected by this SG resource - input node is not its member
-	}
-	targetStrAddress := target.Cidr()
-	return sg.analyzer.AllowedConnectivity(targetStrAddress, isIngress)
+	memberStrAddress = member.Cidr()
+	targetStrAddress = target.Cidr()
+	return memberStrAddress, targetStrAddress
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

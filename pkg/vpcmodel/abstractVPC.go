@@ -74,17 +74,28 @@ type NodeSet interface {
 	AddressRange() *common.IPBlock
 }
 
+// RulesInFilter for a given layer (SGLayer/NACLLayer) contains specific rules in a specific SG/NACL filter
+type RulesInFilter struct {
+	// todo: is the assumption that the set of rules will always be kept in a list a valid one?
+	Filter int   // sg/nacl index in sgList/naclList in the relevant layer SGLayer/NACLLayer/..
+	Rules  []int // list of indexes of rules in the sg/nacl
+}
+
 // FilterTrafficResource capture allowed traffic between 2 endpoints
 type FilterTrafficResource interface {
 	VPCResourceIntf
-	// get the connectivity result when the filterTraffic resource is applied to the given NodeSet element
+	// AllowedConnectivity get the connectivity from src Node to dst Node considering this filterTraffic resource
 	AllowedConnectivity(src, dst Node, isIngress bool) (*common.ConnectionSet, error)
+	// RulesInConnectivity get the list of rules of a given filter that contributes to the connection between src and dst
+	// todo: currently implemented only to sg; likely src and dst will be VPCResourceIntf instead of Node
+	RulesInConnectivity(src, dst Node, isIngress bool) ([]RulesInFilter, error)
+	StringRulesOfFilter(listRulesInFilter []RulesInFilter) string
 	ReferencedIPblocks() []*common.IPBlock
 	ConnectivityMap() (map[string]*IPbasedConnectivityResult, error)
 	GetConnectivityOutputPerEachElemSeparately() string
 }
 
-// routing resource enables connectivity from src to destination via that resource
+// RoutingResource routing resource enables connectivity from src to destination via that resource
 // fip, pgw, tgw
 type RoutingResource interface {
 	VPCResourceIntf
