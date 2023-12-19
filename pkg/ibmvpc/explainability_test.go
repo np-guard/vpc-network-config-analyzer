@@ -13,7 +13,7 @@ import (
 )
 
 // todo: quick and dirty tmp until added to the cli, by which these will be added as end-to-end tests
-func TestExplainability(t *testing.T) {
+func TestExplainability1(t *testing.T) {
 	vpcConfig := getConfig(t, "input_sg_testing1_new.json")
 	if vpcConfig == nil {
 		require.Fail(t, "vpcConfig equals nil")
@@ -65,6 +65,33 @@ func TestExplainability(t *testing.T) {
 	require.Equal(t, "No connection between vsi3a-ky[10.240.30.5] and vsi2-ky[10.240.20.4]; connection blocked by ingress\n"+
 		"Egress Rules:\n~~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg3-ky:"+
 		"\n\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n", explanbilityStr5)
+	fmt.Println("done")
+}
+
+// sg1-ky: vsi1-ky
+// sg2-ky: vsi2-ky, vsi3b-ky
+// sg3-ky: vsi3a-ky
+// sg1-ky, sg3-ky: default
+// sg2-ky: allow all
+func TestExplainability2(t *testing.T) {
+	vpcConfig := getConfig(t, "input_sg_testing_default.json")
+	if vpcConfig == nil {
+		require.Fail(t, "vpcConfig equals nil")
+	}
+	// no connection, disabled by default rules
+	explanbilityStr1, err1 := vpcConfig.ExplainConnectivity("vsi1-ky[10.240.10.4]", "vsi3a-ky[10.240.30.5]")
+	if err1 != nil {
+		require.Fail(t, err1.Error())
+	}
+	fmt.Println(explanbilityStr1)
+	require.Equal(t, "", explanbilityStr1) // todo..
+	// connection, egress (sg3-ky) is default
+	explanbilityStr2, err2 := vpcConfig.ExplainConnectivity("vsi3a-ky[10.240.30.5]", "vsi2-ky[10.240.20.4]")
+	if err2 != nil {
+		require.Fail(t, err2.Error())
+	}
+	fmt.Println(explanbilityStr2)
+	require.Equal(t, "", explanbilityStr2) // todo ..
 	fmt.Println("done")
 }
 
