@@ -20,18 +20,29 @@ type InArgs struct {
 }
 
 var flagHasValue = map[string]bool{
-	"vpc-config":        true,
-	"vpc-config-second": true,
-	"output-file":       true,
-	"format":            true,
-	"analysis-type":     true,
-	"grouping":          false,
-	"vpc":               true,
-	"debug":             false,
-	"version":           false,
+	InputConfigFile:       true,
+	InputSecondConfigFile: true,
+	OutputFile:            true,
+	OutputFormat:          true,
+	AnalysisType:          true,
+	Grouping:              false,
+	VPC:                   true,
+	Debug:                 false,
+	Version:               false,
 }
 
 const (
+	// flags
+	InputConfigFile       = "vpc-config"
+	InputSecondConfigFile = "vpc-config-second"
+	OutputFile            = "output-file"
+	OutputFormat          = "format"
+	AnalysisType          = "analysis-type"
+	Grouping              = "grouping"
+	VPC                   = "vpc"
+	Debug                 = "debug"
+	Version               = "version"
+
 	// output formats supported
 	JSONFormat       = "json"
 	TEXTFormat       = "txt"
@@ -79,7 +90,17 @@ func parseCmdLine(cmdlineArgs []string) error {
 	for _, arg := range cmdlineArgs {
 		if argIsFlag {
 			if arg[0] == '-' {
-				if val, ok := flagHasValue[arg[1:]]; ok {
+				key := arg[1:]
+				if len(key) == 0 {
+					return fmt.Errorf("bad flag syntax: %s", arg)
+				}
+				if arg[1] == '-' {
+					key = arg[2:]
+				}
+				if len(key) == 0 {
+					return fmt.Errorf("bad flag syntax: %s", arg)
+				}
+				if val, ok := flagHasValue[key]; ok {
 					if val {
 						argIsFlag = false
 					}
@@ -99,17 +120,17 @@ func parseCmdLine(cmdlineArgs []string) error {
 func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args := InArgs{}
 	flagset := flag.NewFlagSet("vpc-network-config-analyzer", flag.ContinueOnError)
-	args.InputConfigFile = flagset.String("vpc-config", "", "file path to input config")
-	args.InputSecondConfigFile = flagset.String("vpc-config-second", "", "file path to the 2nd input config; "+
+	args.InputConfigFile = flagset.String(InputConfigFile, "", "file path to input config")
+	args.InputSecondConfigFile = flagset.String(InputSecondConfigFile, "", "file path to the 2nd input config; "+
 		"relevant only for analysis-type diff_all_endpoints and for diff_all_subnets")
-	args.OutputFile = flagset.String("output-file", "", "file path to store results")
-	args.OutputFormat = flagset.String("format", TEXTFormat, "output format; must be one of "+getSupportedValuesString(supportedOutputFormats))
-	args.AnalysisType = flagset.String("analysis-type", allEndpoints,
+	args.OutputFile = flagset.String(OutputFile, "", "file path to store results")
+	args.OutputFormat = flagset.String(OutputFormat, TEXTFormat, "output format; must be one of "+getSupportedValuesString(supportedOutputFormats))
+	args.AnalysisType = flagset.String(AnalysisType, allEndpoints,
 		"supported analysis types: "+getSupportedValuesString(supportedAnalysisTypes))
-	args.Grouping = flagset.Bool("grouping", false, "whether to group together src/dst entries with identical connectivity")
-	args.VPC = flagset.String("vpc", "", "CRN of the VPC to analyze")
-	args.Debug = flagset.Bool("debug", false, "run in debug mode")
-	args.Version = flagset.Bool("version", false, "prints the release version number")
+	args.Grouping = flagset.Bool(Grouping, false, "whether to group together src/dst entries with identical connectivity")
+	args.VPC = flagset.String(VPC, "", "CRN of the VPC to analyze")
+	args.Debug = flagset.Bool(Debug, false, "run in debug mode")
+	args.Version = flagset.Bool(Version, false, "prints the release version number")
 
 	err := parseCmdLine(cmdlineArgs)
 	if err != nil {
