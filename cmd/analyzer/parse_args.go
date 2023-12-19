@@ -19,6 +19,18 @@ type InArgs struct {
 	Version               *bool
 }
 
+var InArgsTypes = map[string]string{
+	"vpc-config":        "string",
+	"vpc-config-second": "string",
+	"output-file":       "string",
+	"format":            "string",
+	"analysis-type":     "string",
+	"grouping":          "bool",
+	"vpc":               "string",
+	"debug":             "bool",
+	"version":           "bool",
+}
+
 const (
 	// output formats supported
 	JSONFormat       = "json"
@@ -62,6 +74,24 @@ func getSupportedValuesString(supportedValues map[string]bool) string {
 	return strings.Join(valuesList, ",")
 }
 
+func parseCmdLine(cmdlineArgs []string) error {
+	argIsFlag := true
+	for _, arg := range cmdlineArgs {
+		if argIsFlag {
+			if arg[0] == '-' {
+				if InArgsTypes[arg[1:]] == "string" {
+					argIsFlag = false
+				}
+			} else {
+				return fmt.Errorf("bad flag syntax: %s", arg)
+			}
+		} else {
+			argIsFlag = true
+		}
+	}
+	return nil
+}
+
 func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args := InArgs{}
 	flagset := flag.NewFlagSet("vpc-network-config-analyzer", flag.ContinueOnError)
@@ -77,7 +107,12 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args.Debug = flagset.Bool("debug", false, "run in debug mode")
 	args.Version = flagset.Bool("version", false, "prints the release version number")
 
-	err := flagset.Parse(cmdlineArgs)
+	err := parseCmdLine(cmdlineArgs)
+	if err != nil {
+		return nil, err
+	}
+
+	err = flagset.Parse(cmdlineArgs)
 	if err != nil {
 		return nil, err
 	}
