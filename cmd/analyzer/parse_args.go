@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -60,30 +61,37 @@ const (
 	allSubnetsDiff   = "diff_all_subnets"   // semantic diff of allSubnets analysis between two configurations
 )
 
-var supportedOutputFormats = map[string]bool{
-	JSONFormat:       true,
-	TEXTFormat:       true,
-	MDFormat:         true,
-	DRAWIOFormat:     true,
-	ARCHDRAWIOFormat: true,
-	DEBUGFormat:      true,
+var supportedOutputFormats = map[string][]string{
+	JSONFormat:       {allEndpoints, allSubnets},
+	TEXTFormat:       {allEndpoints, allSubnets, singleSubnet, allEndpointsDiff, allSubnetsDiff},
+	MDFormat:         {allEndpoints, allEndpointsDiff, allSubnetsDiff},
+	DRAWIOFormat:     {allEndpoints},
+	ARCHDRAWIOFormat: {allEndpoints},
+	DEBUGFormat:      {allEndpoints},
 }
-var supportedAnalysisTypes = map[string]bool{
-	allEndpoints:     true,
-	allSubnets:       true,
-	singleSubnet:     true,
-	allEndpointsDiff: true,
-	allSubnetsDiff:   true,
+var supportedAnalysisTypes = map[string][]string{
+	allEndpoints:     {TEXTFormat, JSONFormat, MDFormat, DRAWIOFormat, ARCHDRAWIOFormat, DEBUGFormat},
+	allSubnets:       {TEXTFormat, JSONFormat},
+	singleSubnet:     {TEXTFormat},
+	allEndpointsDiff: {TEXTFormat, MDFormat},
+	allSubnetsDiff:   {TEXTFormat, MDFormat},
 }
 
-func getSupportedValuesString(supportedValues map[string]bool) string {
+func getSupportedValuesString(supportedValues map[string][]string) string {
 	valuesList := make([]string, len(supportedValues))
 	i := 0
-	for value := range supportedValues {
-		valuesList[i] = value
+	for key := range supportedValues {
+		j := 0
+		valuesString := make([]string, len(supportedValues[key])+1)
+		for _, value := range supportedValues[key] {
+			valuesString[j] = value
+			j += 1
+		}
+		valuesString[j] = "\n"
+		valuesList[i] = strconv.Itoa(i) + ") " + key + "  - supported with: " + strings.Join(valuesString, ", ")
 		i += 1
 	}
-	return strings.Join(valuesList, ",")
+	return strings.Join(valuesList, "")
 }
 
 // parseCmdLine checks if unspported arguments were passed
@@ -122,15 +130,16 @@ func parseCmdLine(cmdlineArgs []string) error {
 func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args := InArgs{}
 	flagset := flag.NewFlagSet("vpc-network-config-analyzer", flag.ContinueOnError)
-	args.InputConfigFile = flagset.String(InputConfigFile, "", "file path to input config")
+	args.InputConfigFile = flagset.String(InputConfigFile, "", "Required. file path to input config")
 	args.InputSecondConfigFile = flagset.String(InputSecondConfigFile, "", "file path to the 2nd input config; "+
 		"relevant only for analysis-type diff_all_endpoints and for diff_all_subnets")
 	args.OutputFile = flagset.String(OutputFile, "", "file path to store results")
 	args.OutputFormat = flagset.String(OutputFormat, TEXTFormat,
-		"output format; must be one of "+getSupportedValuesString(supportedOutputFormats))
+		"output format; must be one of:\n"+getSupportedValuesString(supportedOutputFormats))
 	args.AnalysisType = flagset.String(AnalysisType, allEndpoints,
-		"supported analysis types: "+getSupportedValuesString(supportedAnalysisTypes))
-	args.Grouping = flagset.Bool(Grouping, false, "whether to group together src/dst entries with identical connectivity")
+		"supported analysis types:\n"+getSupportedValuesString(supportedAnalysisTypes))
+	args.Grouping = flagset.Bool(Grouping, false, "whether to group together src/dst entries with identical connectivity\n"+
+		"Currently does not support single_subnet analysis-type and json output format")
 	args.VPC = flagset.String(VPC, "", "CRN of the VPC to analyze")
 	args.Debug = flagset.Bool(Debug, false, "run in debug mode")
 	args.Version = flagset.Bool(Version, false, "prints the release version number")
@@ -163,11 +172,11 @@ func errorInErgs(args *InArgs, flagset *flag.FlagSet) error {
 		flagset.PrintDefaults()
 		return fmt.Errorf("missing parameter: vpc-config")
 	}
-	if !supportedAnalysisTypes[*args.AnalysisType] {
+	if _, ok := supportedAnalysisTypes[*args.AnalysisType]; !ok {
 		flagset.PrintDefaults()
 		return fmt.Errorf("wrong analysis type %s; must be one of: %s", *args.AnalysisType, getSupportedValuesString(supportedAnalysisTypes))
 	}
-	if !supportedOutputFormats[*args.OutputFormat] {
+	if _, ok := supportedOutputFormats[*args.OutputFormat]; !ok {
 		flagset.PrintDefaults()
 		return fmt.Errorf("wrong output format %s; must be one of %s", *args.OutputFormat, getSupportedValuesString(supportedOutputFormats))
 	}
