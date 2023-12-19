@@ -19,16 +19,16 @@ type InArgs struct {
 	Version               *bool
 }
 
-var InArgsTypes = map[string]string{
-	"vpc-config":        "string",
-	"vpc-config-second": "string",
-	"output-file":       "string",
-	"format":            "string",
-	"analysis-type":     "string",
-	"grouping":          "bool",
-	"vpc":               "string",
-	"debug":             "bool",
-	"version":           "bool",
+var flagHasValue = map[string]bool{
+	"vpc-config":        true,
+	"vpc-config-second": true,
+	"output-file":       true,
+	"format":            true,
+	"analysis-type":     true,
+	"grouping":          false,
+	"vpc":               true,
+	"debug":             false,
+	"version":           false,
 }
 
 const (
@@ -79,8 +79,12 @@ func parseCmdLine(cmdlineArgs []string) error {
 	for _, arg := range cmdlineArgs {
 		if argIsFlag {
 			if arg[0] == '-' {
-				if InArgsTypes[arg[1:]] == "string" {
-					argIsFlag = false
+				if val, ok := flagHasValue[arg[1:]]; ok {
+					if val {
+						argIsFlag = false
+					}
+				} else {
+					return fmt.Errorf("flag not supported: %s", arg)
 				}
 			} else {
 				return fmt.Errorf("bad flag syntax: %s", arg)
