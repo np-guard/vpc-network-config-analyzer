@@ -113,16 +113,18 @@ func (c *VPCConfig) GetRulesOfConnection(src, dst Node) (rulesOfConnection *Rule
 func (rulesOfConnection *RulesOfConnection) String(src, dst Node, c *VPCConfig) string {
 	noIngressRules := len(rulesOfConnection.ingressRules) == 0
 	noEgressRules := len(rulesOfConnection.egressRules) == 0
+	egressRulesStr := rulesOfConnection.egressRules.string(c)
+	ingressRulesStr := rulesOfConnection.ingressRules.string(c)
 	switch {
 	case noIngressRules && noEgressRules:
 		return fmt.Sprintf("No connection between %v and %v; connection blocked both by ingress and egress\n", src.Name(), dst.Name())
 	case noIngressRules:
-		return fmt.Sprintf("No connection between %v and %v; connection blocked by ingress\n", src.Name(), dst.Name())
+		return fmt.Sprintf("No connection between %v and %v; connection blocked by ingress\n"+
+			"Egress Rules:\n~~~~~~~~~~~~~~\n%v", src.Name(), dst.Name(), egressRulesStr)
 	case noEgressRules:
-		return fmt.Sprintf("No connection between %v and %v; connection blocked by egress\n", src.Name(), dst.Name())
+		return fmt.Sprintf("No connection between %v and %v; connection blocked by egress\n"+
+			"Ingress Rules:\n~~~~~~~~~~~~~\n%v", src.Name(), dst.Name(), ingressRulesStr)
 	default: // there is a connection
-		egressRulesStr := rulesOfConnection.egressRules.string(c)
-		ingressRulesStr := rulesOfConnection.ingressRules.string(c)
 		return fmt.Sprintf("There is a connection between %v and %v.\nEgress Rules:\n~~~~~~~~~~~~~\n%v\n"+
 			"Ingress Rules:\n~~~~~~~~~~~~~~\n%v\n", src.Name(), dst.Name(), egressRulesStr, ingressRulesStr)
 	}

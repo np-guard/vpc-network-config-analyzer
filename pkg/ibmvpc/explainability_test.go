@@ -55,14 +55,16 @@ func TestExplainability(t *testing.T) {
 	}
 	fmt.Println(explanbilityStr4)
 	require.Equal(t, "No connection between vsi1-ky[10.240.10.4] and vsi2-ky[10.240.20.4]; "+
-		"connection blocked by egress\n", explanbilityStr4)
+		"connection blocked by egress\nIngress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\n"+
+		"enabling rules from sg2-ky:\n\tindex: 4, direction: inbound, protocol: all, cidr: 10.240.10.4/32\n", explanbilityStr4)
 	explanbilityStr5, err5 := vpcConfig.ExplainConnectivity("vsi3a-ky[10.240.30.5]", "vsi2-ky[10.240.20.4]")
 	if err5 != nil {
 		require.Fail(t, err5.Error())
 	}
 	fmt.Println(explanbilityStr5)
-	require.Equal(t, "No connection between vsi3a-ky[10.240.30.5] and vsi2-ky[10.240.20.4]; "+
-		"connection blocked by ingress\n", explanbilityStr5)
+	require.Equal(t, "No connection between vsi3a-ky[10.240.30.5] and vsi2-ky[10.240.20.4]; connection blocked by ingress\n"+
+		"Egress Rules:\n~~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg3-ky:"+
+		"\n\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n", explanbilityStr5)
 	fmt.Println("done")
 }
 
