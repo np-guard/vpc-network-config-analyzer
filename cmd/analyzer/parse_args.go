@@ -85,20 +85,21 @@ func getSupportedValuesString(supportedValues map[string]bool) string {
 	return strings.Join(valuesList, ",")
 }
 
+// parseCmdLine checks if unspported arguments were passed
 func parseCmdLine(cmdlineArgs []string) error {
 	argIsFlag := true
 	for _, arg := range cmdlineArgs {
 		if argIsFlag {
+			if arg == "-h" || arg == "--h" || arg == "-help" || arg == "--help" {
+				continue
+			}
 			if arg[0] == '-' {
 				key := arg[1:]
-				if len(key) == 0 {
-					return fmt.Errorf("bad flag syntax: %s", arg)
+				if key == "" {
+					return fmt.Errorf("bad syntax: %s", arg)
 				}
 				if arg[1] == '-' {
 					key = arg[2:]
-				}
-				if len(key) == 0 {
-					return fmt.Errorf("bad flag syntax: %s", arg)
 				}
 				if val, ok := flagHasValue[key]; ok {
 					if val {
@@ -124,7 +125,8 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args.InputSecondConfigFile = flagset.String(InputSecondConfigFile, "", "file path to the 2nd input config; "+
 		"relevant only for analysis-type diff_all_endpoints and for diff_all_subnets")
 	args.OutputFile = flagset.String(OutputFile, "", "file path to store results")
-	args.OutputFormat = flagset.String(OutputFormat, TEXTFormat, "output format; must be one of "+getSupportedValuesString(supportedOutputFormats))
+	args.OutputFormat = flagset.String(OutputFormat, TEXTFormat,
+		"output format; must be one of "+getSupportedValuesString(supportedOutputFormats))
 	args.AnalysisType = flagset.String(AnalysisType, allEndpoints,
 		"supported analysis types: "+getSupportedValuesString(supportedAnalysisTypes))
 	args.Grouping = flagset.Bool(Grouping, false, "whether to group together src/dst entries with identical connectivity")
@@ -132,6 +134,7 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args.Debug = flagset.Bool(Debug, false, "run in debug mode")
 	args.Version = flagset.Bool(Version, false, "prints the release version number")
 
+	// calling parseCmdLine prior to flagset.Parse to ensure that excessive and unsupported arguments are handled
 	err := parseCmdLine(cmdlineArgs)
 	if err != nil {
 		return nil, err
