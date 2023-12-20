@@ -94,7 +94,7 @@ func (rulesOfConnection *RulesOfConnection) String(src, dst Node, c *VPCConfig) 
 	ingressRulesStr := rulesOfConnection.ingressRules.string(c)
 	switch {
 	case noIngressRules && noEgressRules:
-		return fmt.Sprintf("No connection between %v and %v; connection blocked both by ingress and egress\n%v", src.Name(), dst.Name())
+		return fmt.Sprintf("No connection between %v and %v; connection blocked both by ingress and egress\n", src.Name(), dst.Name())
 	case noIngressRules:
 		return fmt.Sprintf("No connection between %v and %v; connection blocked by ingress\n"+
 			"Egress Rules:\n~~~~~~~~~~~~~~\n%v", src.Name(), dst.Name(), egressRulesStr)

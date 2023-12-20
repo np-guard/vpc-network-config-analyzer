@@ -97,7 +97,8 @@ func TestExplainability2(t *testing.T) {
 	require.Equal(t, "There is a connection between vsi3a-ky[10.240.30.5] and vsi2-ky[10.240.20.4].\n"+
 		"Egress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\n"+
 		"rules in sg3-ky are the default, namely this is the enabling egress rule:\n"+
-		"\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n\nIngress Rules:\n~~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\n"+
+		"\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n\n"+
+		"Ingress Rules:\n~~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\n"+
 		"enabling rules from sg2-ky:\n\tindex: 1, direction: inbound, protocol: all, cidr: 0.0.0.0/0\n\n", explanbilityStr2)
 	fmt.Println("done")
 }
