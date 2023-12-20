@@ -407,7 +407,14 @@ func (sgl *SecurityGroupLayer) IsDefault() bool {
 	}
 	return isDefault
 }
-
+func (sgl *SecurityGroupLayer) IsDefault() bool {
+	for _, sg := range sgl.sgList {
+		if !sg.analyzer.rulesAreDefault{
+		    return false
+		}
+	}
+	return true
+}
 func (sgl *SecurityGroupLayer) StringRulesOfFilter(listRulesInFilter []vpcmodel.RulesInFilter) string {
 	strListRulesInFilter := ""
 	for _, rulesInFilter := range listRulesInFilter {
