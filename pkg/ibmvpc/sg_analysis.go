@@ -11,8 +11,6 @@ import (
 	vpcmodel "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
-const allCidr = "0.0.0.0/0"
-
 type SGAnalyzer struct {
 	sgResource   *vpc1.SecurityGroup
 	ingressRules []*SGRule
@@ -308,7 +306,7 @@ func (sga *SGAnalyzer) areSGRulesDefault() bool {
 	if len(egressRuleCidrs) != 1 {
 		return false
 	}
-	if egressRuleCidrs[0] == allCidr {
+	if egressRuleCidrs[0] == common.CidrAll {
 		return true
 	}
 	return false
