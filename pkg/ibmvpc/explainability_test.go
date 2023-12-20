@@ -23,7 +23,8 @@ func TestExplainability1(t *testing.T) {
 		require.Fail(t, err1.Error())
 	}
 	fmt.Println(explanbilityStr1)
-	require.Equal(t, "There is a connection between vsi2-ky[10.240.20.4] and vsi3b-ky[10.240.30.4].\nEgress Rules:\n~~~~~~~~~~~~~\n"+
+	require.Equal(t, "The following connection exists between vsi2-ky[10.240.20.4] and vsi3b-ky[10.240.30.4]: "+
+		"protocol: TCP; its enabled by\nEgress Rules:\n~~~~~~~~~~~~~\n"+
 		"SecurityGroupLayer Rules\n------------------------\nenabling rules from sg2-ky:"+
 		"\n\tindex: 5, direction: outbound, protocol: all, cidr: 10.240.30.0/24"+
 		"\n\tindex: 6, direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, cidr: 10.240.20.4/32,10.240.30.4/32"+
@@ -34,7 +35,8 @@ func TestExplainability1(t *testing.T) {
 		require.Fail(t, err2.Error())
 	}
 	fmt.Println(explanbilityStr2)
-	require.Equal(t, "There is a connection between vsi2-ky[10.240.20.4] and vsi1-ky[10.240.10.4].\nEgress Rules:\n~~~~~~~~~~~~~\n"+
+	require.Equal(t, "The following connection exists between vsi2-ky[10.240.20.4] and vsi1-ky[10.240.10.4]: "+
+		"All Connections; its enabled by\nEgress Rules:\n~~~~~~~~~~~~~\n"+
 		"SecurityGroupLayer Rules\n------------------------\nenabling rules from sg2-ky:"+
 		"\n\tindex: 1, direction: outbound, protocol: all, cidr: 10.240.10.0/24\n\nIngress Rules:"+
 		"\n~~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n\t"+
@@ -44,7 +46,8 @@ func TestExplainability1(t *testing.T) {
 		require.Fail(t, err3.Error())
 	}
 	fmt.Println(explanbilityStr3)
-	require.Equal(t, "There is a connection between vsi3a-ky[10.240.30.5] and vsi1-ky[10.240.10.4].\n"+
+	require.Equal(t, "The following connection exists between vsi3a-ky[10.240.30.5] and vsi1-ky[10.240.10.4]: "+
+		"All Connections; its enabled by\n"+
 		"Egress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg3-ky:\n"+
 		"\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n\nIngress Rules:\n~~~~~~~~~~~~~~\nSecurityGroupLayer Rules"+
 		"\n------------------------\nenabling rules from sg1-ky:\n"+
@@ -94,8 +97,8 @@ func TestExplainability2(t *testing.T) {
 		require.Fail(t, err2.Error())
 	}
 	fmt.Println(explanbilityStr2)
-	require.Equal(t, "There is a connection between vsi3a-ky[10.240.30.5] and vsi2-ky[10.240.20.4].\n"+
-		"Egress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\n"+
+	require.Equal(t, "The following connection exists between vsi3a-ky[10.240.30.5] and vsi2-ky[10.240.20.4]: All Connections; "+
+		"its enabled by\nEgress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\n"+
 		"rules in sg3-ky are the default, namely this is the enabling egress rule:\n"+
 		"\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n\n"+
 		"Ingress Rules:\n~~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\n"+

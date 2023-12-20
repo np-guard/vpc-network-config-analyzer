@@ -40,7 +40,7 @@ func (c *VPCConfig) ExplainConnectivity(srcName, dstName string) (explanation st
 	if err1 != nil {
 		return "", err1
 	}
-	return rulesOfConnection.String(src, dst, c), nil
+	return rulesOfConnection.String(src, dst, c)
 }
 
 func (c *VPCConfig) getFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(
@@ -87,23 +87,34 @@ func (c *VPCConfig) GetRulesOfConnection(src, dst Node) (rulesOfConnection *Rule
 
 // todo: when there is more than just SG, add explanation when all layers are default
 
-func (rulesOfConnection *RulesOfConnection) String(src, dst Node, c *VPCConfig) string {
+func (rulesOfConnection *RulesOfConnection) String(src, dst Node, c *VPCConfig) (string, error) {
 	noIngressRules := len(rulesOfConnection.ingressRules) == 0
 	noEgressRules := len(rulesOfConnection.egressRules) == 0
 	egressRulesStr := rulesOfConnection.egressRules.string(c)
 	ingressRulesStr := rulesOfConnection.ingressRules.string(c)
 	switch {
 	case noIngressRules && noEgressRules:
-		return fmt.Sprintf("No connection between %v and %v; connection blocked both by ingress and egress\n", src.Name(), dst.Name())
+		return fmt.Sprintf("No connection between %v and %v; connection blocked both by ingress and egress\n", src.Name(), dst.Name()), nil
 	case noIngressRules:
 		return fmt.Sprintf("No connection between %v and %v; connection blocked by ingress\n"+
-			"Egress Rules:\n~~~~~~~~~~~~~~\n%v", src.Name(), dst.Name(), egressRulesStr)
+			"Egress Rules:\n~~~~~~~~~~~~~~\n%v", src.Name(), dst.Name(), egressRulesStr), nil
 	case noEgressRules:
 		return fmt.Sprintf("No connection between %v and %v; connection blocked by egress\n"+
-			"Ingress Rules:\n~~~~~~~~~~~~~\n%v", src.Name(), dst.Name(), ingressRulesStr)
+			"Ingress Rules:\n~~~~~~~~~~~~~\n%v", src.Name(), dst.Name(), ingressRulesStr), nil
 	default: // there is a connection
-		return fmt.Sprintf("There is a connection between %v and %v.\nEgress Rules:\n~~~~~~~~~~~~~\n%v\n"+
-			"Ingress Rules:\n~~~~~~~~~~~~~~\n%v\n", src.Name(), dst.Name(), egressRulesStr, ingressRulesStr)
+		// todo: connectivity is computed for the entire network, even though we need only src-> dst
+		//       this is seems the time spent here should be neglectable, not worth the effort of adding dedicated code.
+		connectivity, err := c.GetVPCNetworkConnectivity(false) // computes connectivity
+		if err != nil {
+			return "", err
+		}
+		conn, ok := connectivity.AllowedConnsCombined[src][dst]
+		if !ok {
+			return "", fmt.Errorf("error: there is a connection between %v and %v, but connection computation failed",
+				src.Name(), dst.Name())
+		}
+		return fmt.Sprintf("The following connection exists between %v and %v: %v; its enabled by\nEgress Rules:\n~~~~~~~~~~~~~\n%v\n"+
+			"Ingress Rules:\n~~~~~~~~~~~~~~\n%v\n", src.Name(), dst.Name(), conn.String(), egressRulesStr, ingressRulesStr), nil
 	}
 }
 
