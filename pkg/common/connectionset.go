@@ -16,6 +16,8 @@ package common
 import (
 	"sort"
 	"strings"
+
+	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/jsonio"
 )
 
 type ProtocolStr string
@@ -358,21 +360,21 @@ func (conn *ConnectionSet) String() string {
 	return strings.Join(resStrings, "; ")
 }
 
-type ConnDetails ProtocolList
+type ConnDetails jsonio.ProtocolList
 
-func getCubeAsTCPItems(cube []*CanonicalIntervalSet, protocol TcpUdpProtocol) []TcpUdp {
-	tcpItemsTemp := []TcpUdp{}
-	tcpItemsFinal := []TcpUdp{}
+func getCubeAsTCPItems(cube []*CanonicalIntervalSet, protocol jsonio.TcpUdpProtocol) []jsonio.TcpUdp {
+	tcpItemsTemp := []jsonio.TcpUdp{}
+	tcpItemsFinal := []jsonio.TcpUdp{}
 	// consider src ports
 	srcPorts := cube[srcPort]
 	if !srcPorts.Equal(*getDimensionDomain(srcPort)) {
 		// iterate the intervals in the interval-set
 		for _, interval := range srcPorts.IntervalSet {
-			tcpRes := TcpUdp{Protocol: protocol, MinSourcePort: int(interval.Start), MaxSourcePort: int(interval.End)}
+			tcpRes := jsonio.TcpUdp{Protocol: protocol, MinSourcePort: int(interval.Start), MaxSourcePort: int(interval.End)}
 			tcpItemsTemp = append(tcpItemsTemp, tcpRes)
 		}
 	} else {
-		tcpItemsTemp = append(tcpItemsTemp, TcpUdp{Protocol: protocol})
+		tcpItemsTemp = append(tcpItemsTemp, jsonio.TcpUdp{Protocol: protocol})
 	}
 	// consider dst ports
 	dstPorts := cube[dstPort]
@@ -380,7 +382,7 @@ func getCubeAsTCPItems(cube []*CanonicalIntervalSet, protocol TcpUdpProtocol) []
 		// iterate the intervals in the interval-set
 		for _, interval := range dstPorts.IntervalSet {
 			for _, tcpItemTemp := range tcpItemsTemp {
-				tcpRes := TcpUdp{
+				tcpRes := jsonio.TcpUdp{
 					Protocol:           protocol,
 					MinSourcePort:      tcpItemTemp.MinSourcePort,
 					MaxSourcePort:      tcpItemTemp.MaxSourcePort,
@@ -406,24 +408,24 @@ func getIntervalNumbers(c *CanonicalIntervalSet) []int {
 	return res
 }
 
-func getCubeAsICMPItems(cube []*CanonicalIntervalSet) []Icmp {
+func getCubeAsICMPItems(cube []*CanonicalIntervalSet) []jsonio.Icmp {
 	icmpTypes := cube[icmpType]
 	icmpCodes := cube[icmpCode]
 	if icmpTypes.Equal(*getDimensionDomain(icmpType)) && icmpCodes.Equal(*getDimensionDomain(icmpCode)) {
-		return []Icmp{{Protocol: IcmpProtocolICMP}}
+		return []jsonio.Icmp{{Protocol: jsonio.IcmpProtocolICMP}}
 	}
-	res := []Icmp{}
+	res := []jsonio.Icmp{}
 	if icmpTypes.Equal(*getDimensionDomain(icmpType)) {
 		codeNumbers := getIntervalNumbers(icmpCodes)
 		for i := range codeNumbers {
-			res = append(res, Icmp{Protocol: IcmpProtocolICMP, Code: &codeNumbers[i]})
+			res = append(res, jsonio.Icmp{Protocol: jsonio.IcmpProtocolICMP, Code: &codeNumbers[i]})
 		}
 		return res
 	}
 	if icmpCodes.Equal(*getDimensionDomain(icmpCode)) {
 		typeNumbers := getIntervalNumbers(icmpTypes)
 		for i := range typeNumbers {
-			res = append(res, Icmp{Protocol: IcmpProtocolICMP, Type: &typeNumbers[i]})
+			res = append(res, jsonio.Icmp{Protocol: jsonio.IcmpProtocolICMP, Type: &typeNumbers[i]})
 		}
 		return res
 	}
@@ -432,7 +434,7 @@ func getCubeAsICMPItems(cube []*CanonicalIntervalSet) []Icmp {
 	codeNumbers := getIntervalNumbers(icmpCodes)
 	for i := range typeNumbers {
 		for j := range codeNumbers {
-			res = append(res, Icmp{Protocol: IcmpProtocolICMP, Type: &typeNumbers[i], Code: &codeNumbers[j]})
+			res = append(res, jsonio.Icmp{Protocol: jsonio.IcmpProtocolICMP, Type: &typeNumbers[i], Code: &codeNumbers[j]})
 		}
 	}
 	return res
@@ -443,21 +445,21 @@ func ConnToJSONRep(c *ConnectionSet) ConnDetails {
 		return nil // one of the connections in connectionDiff can be empty
 	}
 	if c.AllowAll {
-		return ConnDetails(ProtocolList{AnyProtocol{Protocol: AnyProtocolProtocolANY}})
+		return ConnDetails(jsonio.ProtocolList{jsonio.AnyProtocol{Protocol: jsonio.AnyProtocolProtocolANY}})
 	}
-	res := ProtocolList{}
+	res := jsonio.ProtocolList{}
 
 	cubes := c.connectionProperties.GetCubesList()
 	for _, cube := range cubes {
 		protocols := cube[protocol]
 		if protocols.Contains(TCP) {
-			tcpItems := getCubeAsTCPItems(cube, TcpUdpProtocolTCP)
+			tcpItems := getCubeAsTCPItems(cube, jsonio.TcpUdpProtocolTCP)
 			for _, item := range tcpItems {
 				res = append(res, item)
 			}
 		}
 		if protocols.Contains(UDP) {
-			udpItems := getCubeAsTCPItems(cube, TcpUdpProtocolUDP)
+			udpItems := getCubeAsTCPItems(cube, jsonio.TcpUdpProtocolUDP)
 			for _, item := range udpItems {
 				res = append(res, item)
 			}
