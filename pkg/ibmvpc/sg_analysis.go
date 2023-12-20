@@ -14,10 +14,11 @@ import (
 const allCidr = "0.0.0.0/0"
 
 type SGAnalyzer struct {
-	sgResource          *vpc1.SecurityGroup
-	ingressRules        []*SGRule
-	egressRules         []*SGRule
-	rulesAreDefault     bool // rules are the default ones
+	sgResource   *vpc1.SecurityGroup
+	ingressRules []*SGRule
+	egressRules  []*SGRule
+	// rules are the default ones; that is, no rules were specified manually
+	isDefault           bool
 	ingressConnectivity *ConnectivityResult
 	egressConnectivity  *ConnectivityResult
 	sgMap               map[string]*SecurityGroup
@@ -291,14 +292,14 @@ func (sga *SGAnalyzer) prepareAnalyzer(sgMap map[string]*SecurityGroup, currentS
 	}
 	sga.ingressConnectivity = AnalyzeSGRules(sga.ingressRules, true)
 	sga.egressConnectivity = AnalyzeSGRules(sga.egressRules, false)
-	sga.rulesAreDefault = sga.areRulesDefault()
+	sga.isDefault = sga.areSGRulesDefault()
 	return nil
 }
 
-// areRulesDefault are the rules equal to the default rules,
+// areSGRulesDefault are the rules equal to the default rules,
 // defined as "deny all inbound traffic and permit all outbound traffic"
 // namely, no inbound rules and a single outbound rule with target 0.0.0.0/0
-func (sga *SGAnalyzer) areRulesDefault() bool {
+func (sga *SGAnalyzer) areSGRulesDefault() bool {
 	if len(sga.ingressRules) > 0 || len(sga.egressRules) != 1 {
 		return false
 	}

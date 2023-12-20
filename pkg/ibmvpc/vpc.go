@@ -403,7 +403,7 @@ func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 func (sgl *SecurityGroupLayer) IsDefault() bool {
 	isDefault := true
 	for _, sg := range sgl.sgList {
-		isDefault = isDefault && sg.analyzer.rulesAreDefault
+		isDefault = isDefault && sg.analyzer.isDefault
 	}
 	return isDefault
 }
@@ -412,7 +412,7 @@ func (sgl *SecurityGroupLayer) StringRulesOfFilter(listRulesInFilter []vpcmodel.
 	strListRulesInFilter := ""
 	for _, rulesInFilter := range listRulesInFilter {
 		sg := sgl.sgList[rulesInFilter.Filter]
-		if !sg.analyzer.rulesAreDefault {
+		if !sg.analyzer.isDefault {
 			strListRulesInFilter += "enabling rules from " + sg.Name() + ":\n"
 		} else {
 			strListRulesInFilter += "rules in " + sg.Name() + " are the default, namely this is the enabling egress rule:\n"
