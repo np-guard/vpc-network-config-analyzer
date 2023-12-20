@@ -85,6 +85,8 @@ func (c *VPCConfig) GetRulesOfConnection(src, dst Node) (rulesOfConnection *Rule
 	return rulesOfConnection, nil
 }
 
+// todo: when there is more than just SG, add explanation when all layers are default
+
 func (rulesOfConnection *RulesOfConnection) String(src, dst Node, c *VPCConfig) string {
 	noIngressRules := len(rulesOfConnection.ingressRules) == 0
 	noEgressRules := len(rulesOfConnection.egressRules) == 0

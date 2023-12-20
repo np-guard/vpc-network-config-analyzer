@@ -412,11 +412,12 @@ func (sgl *SecurityGroupLayer) StringRulesOfFilter(listRulesInFilter []vpcmodel.
 	strListRulesInFilter := ""
 	for _, rulesInFilter := range listRulesInFilter {
 		sg := sgl.sgList[rulesInFilter.Filter]
-		strListRulesInFilter += "enabling rules from " + sg.Name() + ":\n" +
-			sg.analyzer.StringRules(rulesInFilter.Rules)
-		if sg.analyzer.rulesAreDefault {
-			strListRulesInFilter += "default rules (no rules specified manually)\n"
+		if !sg.analyzer.rulesAreDefault {
+			strListRulesInFilter += "enabling rules from " + sg.Name() + ":\n"
+		} else {
+			strListRulesInFilter += "rules in " + sg.Name() + " are the default, namely this is the enabling egress rule:\n"
 		}
+		strListRulesInFilter += sg.analyzer.StringRules(rulesInFilter.Rules)
 	}
 	return strListRulesInFilter
 }

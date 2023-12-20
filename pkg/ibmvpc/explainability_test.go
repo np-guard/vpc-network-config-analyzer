@@ -84,14 +84,21 @@ func TestExplainability2(t *testing.T) {
 		require.Fail(t, err1.Error())
 	}
 	fmt.Println(explanbilityStr1)
-	require.Equal(t, "", explanbilityStr1) // todo..
+	require.Equal(t, "No connection between vsi1-ky[10.240.10.4] and vsi3a-ky[10.240.30.5]; "+
+		"connection blocked by ingress\nEgress Rules:\n~~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n"+
+		"------------------------\nrules in sg1-ky are the default, namely this is the enabling egress rule:\n"+
+		"\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n", explanbilityStr1)
 	// connection, egress (sg3-ky) is default
 	explanbilityStr2, err2 := vpcConfig.ExplainConnectivity("vsi3a-ky[10.240.30.5]", "vsi2-ky[10.240.20.4]")
 	if err2 != nil {
 		require.Fail(t, err2.Error())
 	}
 	fmt.Println(explanbilityStr2)
-	require.Equal(t, "", explanbilityStr2) // todo ..
+	require.Equal(t, "There is a connection between vsi3a-ky[10.240.30.5] and vsi2-ky[10.240.20.4].\n"+
+		"Egress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\n"+
+		"rules in sg3-ky are the default, namely this is the enabling egress rule:\n"+
+		"\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n\nIngress Rules:\n~~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\n"+
+		"enabling rules from sg2-ky:\n\tindex: 1, direction: inbound, protocol: all, cidr: 0.0.0.0/0\n\n", explanbilityStr2)
 	fmt.Println("done")
 }
 
