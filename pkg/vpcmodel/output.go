@@ -109,17 +109,17 @@ func (o *OutputGenerator) Generate(f OutFormat, outFile string) (string, error) 
 	var formatter OutputFormatter
 	switch f {
 	case JSON:
-		formatter = &SerialOutputFormatter{singleVpcFormatter: &JSONoutputFormatter{}, outFormat: f}
+		formatter = &TextualOutputFormatter{&JSONoutputFormatter{}, f}
 	case Text:
-		formatter = &SerialOutputFormatter{singleVpcFormatter: &TextOutputFormatter{}, outFormat: f}
+		formatter = &TextualOutputFormatter{&TextOutputFormatter{}, f}
 	case MD:
-		formatter = &SerialOutputFormatter{singleVpcFormatter: &MDoutputFormatter{}, outFormat: f}
+		formatter = &TextualOutputFormatter{&MDoutputFormatter{}, f}
 	case DRAWIO:
 		formatter = &DrawioOutputFormatter{}
 	case ARCHDRAWIO:
 		formatter = &ArchDrawioOutputFormatter{}
 	case Debug:
-		formatter = &SerialOutputFormatter{singleVpcFormatter: &DebugOutputFormatter{}, outFormat: f}
+		formatter = &TextualOutputFormatter{&DebugOutputFormatter{}, f}
 	default:
 		return "", errors.New("unsupported output format")
 	}
@@ -127,7 +127,8 @@ func (o *OutputGenerator) Generate(f OutFormat, outFile string) (string, error) 
 }
 
 type SingleVpcOutputFormatter interface {
-	WriteOutput(c1, c2 *VPCConfig, conn *VPCConnectivity, subnetsConn *VPCsubnetConnectivity, subnetsDiff *diffBetweenCfgs,
+	WriteOutput(c1, c2 *VPCConfig, conn *VPCConnectivity,
+		subnetsConn *VPCsubnetConnectivity, subnetsDiff *diffBetweenCfgs,
 		outFile string, grouping bool, uc OutputUseCase) (*SingleAnalysisOutput, error)
 }
 type OutputFormatter interface {
@@ -136,12 +137,12 @@ type OutputFormatter interface {
 		outFile string, grouping bool, uc OutputUseCase) (string, error)
 }
 
-type SerialOutputFormatter struct {
+type TextualOutputFormatter struct {
 	singleVpcFormatter SingleVpcOutputFormatter
 	outFormat          OutFormat
 }
 
-func (of *SerialOutputFormatter) WriteOutput(c1, c2 map[string]*VPCConfig, conns map[string]*VPCConnectivity,
+func (of *TextualOutputFormatter) WriteOutput(c1, c2 map[string]*VPCConfig, conns map[string]*VPCConnectivity,
 	subnetsConns map[string]*VPCsubnetConnectivity, subnetsDiff *diffBetweenCfgs,
 	outFile string, grouping bool, uc OutputUseCase) (string, error) {
 	diffAnalysis := uc == EndpointsDiff || uc == SubnetsDiff
@@ -178,7 +179,7 @@ func WriteToFile(content, fileName string) (string, error) {
 
 // AggregateVPCsOutput returns the output string for a list of SingleAnalysisOutput objects
 // and writes the output to outFile
-func (of *SerialOutputFormatter) AggregateVPCsOutput(outputList []*SingleAnalysisOutput, outFile string) (string, error) {
+func (of *TextualOutputFormatter) AggregateVPCsOutput(outputList []*SingleAnalysisOutput, outFile string) (string, error) {
 	var res string
 	var err error
 
@@ -212,7 +213,7 @@ func (of *SerialOutputFormatter) AggregateVPCsOutput(outputList []*SingleAnalysi
 }
 
 // WriteDiffOutput actual writing the output into file, with required format adjustments
-func (of *SerialOutputFormatter) WriteDiffOutput(output *SingleAnalysisOutput, outFile string) (string, error) {
+func (of *TextualOutputFormatter) WriteDiffOutput(output *SingleAnalysisOutput, outFile string) (string, error) {
 	var res string
 	var err error
 	switch of.outFormat {
