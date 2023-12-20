@@ -401,16 +401,9 @@ func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 
 // IsDefault the layer is considered default if all sgs' rules are default
 func (sgl *SecurityGroupLayer) IsDefault() bool {
-	isDefault := true
 	for _, sg := range sgl.sgList {
-		isDefault = isDefault && sg.analyzer.isDefault
-	}
-	return isDefault
-}
-func (sgl *SecurityGroupLayer) IsDefault() bool {
-	for _, sg := range sgl.sgList {
-		if !sg.analyzer.rulesAreDefault{
-		    return false
+		if !sg.analyzer.areSGRulesDefault() {
+			return false
 		}
 	}
 	return true
