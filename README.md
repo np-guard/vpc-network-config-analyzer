@@ -9,37 +9,37 @@ This repo contains packages and a CLI for analyzing the network connectivity of 
 $ ./bin/vpcanalyzer -h
 Usage of vpc-network-config-analyzer:
   -analysis-type string
-        supported analysis types:
-        0) all_endpoints  - supported with: txt, json, md, drawio, arch_drawio, debug,
-        1) all_subnets  - supported with: txt, json,
-        2) single_subnet  - supported with: txt,
-        3) diff_all_endpoints  - supported with: txt, md,
-        4) diff_all_subnets  - supported with: txt, md,
+        Supported analysis types:
+        * all_endpoints  - supported with: txt, json, md, drawio, arch_drawio, debug,
+        * all_subnets  - supported with: txt, json,
+        * single_subnet  - supported with: txt,
+        * diff_all_endpoints  - supported with: txt, md,
+        * diff_all_subnets  - supported with: txt, md,
          (default "all_endpoints")
   -debug
-        run in debug mode
+        Run in debug mode
   -format string
-        output format; must be one of:
-        0) md  - supported with: all_endpoints, diff_all_endpoints, diff_all_subnets,
-        1) drawio  - supported with: all_endpoints,
-        2) arch_drawio  - supported with: all_endpoints,
-        3) debug  - supported with: all_endpoints,
-        4) json  - supported with: all_endpoints, all_subnets,
-        5) txt  - supported with: all_endpoints, all_subnets, single_subnet, diff_all_endpoints, diff_all_subnets,
+        Output format; must be one of:
+        * json  - supported with: all_endpoints, all_subnets,
+        * txt  - supported with: all_endpoints, all_subnets, single_subnet, diff_all_endpoints, diff_all_subnets,
+        * md  - supported with: all_endpoints, diff_all_endpoints, diff_all_subnets,
+        * drawio  - supported with: all_endpoints,
+        * arch_drawio  - supported with: all_endpoints,
+        * debug  - supported with: all_endpoints,
          (default "txt")
   -grouping
-        whether to group together src/dst entries with identical connectivity
-        Currently does not support single_subnet analysis-type and json output format
+        Whether to group together src/dst entries with identical connectivity
+        Does not support single_subnet analysis-type and json output format
   -output-file string
-        file path to store results
+        File path to store results
   -version
-        prints the release version number
+        Prints the release version number
   -vpc string
         CRN of the VPC to analyze
   -vpc-config string
-        Required. file path to input config
+        Required. File path to input config
   -vpc-config-second string
-        file path to the 2nd input config; relevant only for analysis-type diff_all_endpoints and for diff_all_subnets
+        File path to the 2nd input config; relevant only for analysis-type diff_all_endpoints and for diff_all_subnets
   
 ```
 

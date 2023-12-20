@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"strconv"
 	"strings"
 )
 
@@ -88,7 +87,7 @@ func getSupportedValuesString(supportedValues map[string][]string) string {
 			j += 1
 		}
 		valuesString[j] = "\n"
-		valuesList[i] = strconv.Itoa(i) + ") " + key + "  - supported with: " + strings.Join(valuesString, ", ")
+		valuesList[i] = "* " + key + "  - supported with: " + strings.Join(valuesString, ", ")
 		i += 1
 	}
 	return strings.Join(valuesList, "")
@@ -130,19 +129,19 @@ func parseCmdLine(cmdlineArgs []string) error {
 func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args := InArgs{}
 	flagset := flag.NewFlagSet("vpc-network-config-analyzer", flag.ContinueOnError)
-	args.InputConfigFile = flagset.String(InputConfigFile, "", "Required. file path to input config")
-	args.InputSecondConfigFile = flagset.String(InputSecondConfigFile, "", "file path to the 2nd input config; "+
+	args.InputConfigFile = flagset.String(InputConfigFile, "", "Required. File path to input config")
+	args.InputSecondConfigFile = flagset.String(InputSecondConfigFile, "", "File path to the 2nd input config; "+
 		"relevant only for analysis-type diff_all_endpoints and for diff_all_subnets")
-	args.OutputFile = flagset.String(OutputFile, "", "file path to store results")
+	args.OutputFile = flagset.String(OutputFile, "", "File path to store results")
 	args.OutputFormat = flagset.String(OutputFormat, TEXTFormat,
-		"output format; must be one of:\n"+getSupportedValuesString(supportedOutputFormats))
+		"Output format; must be one of:\n"+getSupportedValuesString(supportedOutputFormats))
 	args.AnalysisType = flagset.String(AnalysisType, allEndpoints,
-		"supported analysis types:\n"+getSupportedValuesString(supportedAnalysisTypes))
-	args.Grouping = flagset.Bool(Grouping, false, "whether to group together src/dst entries with identical connectivity\n"+
-		"Currently does not support single_subnet analysis-type and json output format")
+		"Supported analysis types:\n"+getSupportedValuesString(supportedAnalysisTypes))
+	args.Grouping = flagset.Bool(Grouping, false, "Whether to group together src/dst entries with identical connectivity\n"+
+		"Does not support single_subnet analysis-type and json output format")
 	args.VPC = flagset.String(VPC, "", "CRN of the VPC to analyze")
-	args.Debug = flagset.Bool(Debug, false, "run in debug mode")
-	args.Version = flagset.Bool(Version, false, "prints the release version number")
+	args.Debug = flagset.Bool(Debug, false, "Run in debug mode")
+	args.Version = flagset.Bool(Version, false, "Prints the release version number")
 
 	// calling parseCmdLine prior to flagset.Parse to ensure that excessive and unsupported arguments are handled
 	// for example, flagset.Parse() ignores input args missing the `-`
