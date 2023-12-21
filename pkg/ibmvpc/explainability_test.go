@@ -106,6 +106,23 @@ func TestExplainability2(t *testing.T) {
 	fmt.Println("done")
 }
 
+func TestExplainability3(t *testing.T) {
+	vpcConfig := getConfig(t, "input_sg_testing1_new.json")
+	if vpcConfig == nil {
+		require.Fail(t, "vpcConfig equals nil")
+	}
+	cidr := "0.0.0.0/0"
+	myNodes := vpcConfig.TempToTestGetExternalNodes(cidr)
+	if myNodes == nil {
+		fmt.Println("myNodes is nil")
+	} else {
+		fmt.Printf("nodes of cidr %v are:\n", cidr)
+		for _, node := range myNodes {
+			fmt.Println(node.Name())
+		}
+	}
+}
+
 // getConfigs returns  map[string]*vpcmodel.VPCConfig obj for the input test (config json file)
 func getConfig(t *testing.T, inputConfig string) *vpcmodel.VPCConfig {
 	inputConfigFile := filepath.Join(getTestsDir(), inputConfig)

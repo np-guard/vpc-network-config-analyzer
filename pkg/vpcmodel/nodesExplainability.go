@@ -2,6 +2,7 @@ package vpcmodel
 
 import (
 	"fmt"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 // rulesInLayers contains specific rules across all layers (SGLayer/NACLLayer)
@@ -25,10 +26,34 @@ func (c *VPCConfig) getVsiNode(name string) Node {
 	return nil
 }
 
+// gets the external nodes of a given cidr string
+func (c *VPCConfig) getExternalNodes(cidr string) []Node {
+	ipBlock := common.NewIPBlockFromCidr(cidr)
+	if ipBlock == nil { // string cidr does not represent a legal cidr
+		return nil
+	}
+	ipBlocks := []*common.IPBlock{ipBlock}
+	nodes, err := GetExternalNetworkNodes(ipBlocks)
+	if err != nil {
+		return nil
+	}
+	return nodes
+}
+
+func (c *VPCConfig) TempToTestGetExternalNodes(cidr string) []Node {
+	return c.getExternalNodes(cidr)
+}
+
+// todo: external addresses
+//       1. translate the string to []Node of external addresses
+//       2. apply GetRulesOfConnection to the VSI (src or dst) and each of the external Nodes (src or dst)
+//       3. aggregate the results. need to yet think how. Can we do it s.t. the output remains as it is today?
+
 // ExplainConnectivity todo: this will not be needed here once we connect explanbility to the cli
 // todo: add support of external network
 func (c *VPCConfig) ExplainConnectivity(srcName, dstName string) (explanation string, err error) {
 	src := c.getVsiNode(srcName)
+
 	if src == nil {
 		return "", fmt.Errorf("src %v does not represent a VSI", srcName)
 	}
