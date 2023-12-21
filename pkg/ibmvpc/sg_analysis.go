@@ -306,7 +306,7 @@ func (sga *SGAnalyzer) areSGRulesDefault() bool {
 	if len(egressRuleCidrs) != 1 {
 		return false
 	}
-	if egressRuleCidrs[0] == common.CidrAll {
+	if egressRuleCidrs[0] == common.CidrAll && egressRule.connections.AllowAll {
 		return true
 	}
 	return false
