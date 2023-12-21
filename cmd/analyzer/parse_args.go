@@ -76,21 +76,31 @@ var supportedAnalysisTypes = map[string][]string{
 	allSubnetsDiff:   {TEXTFormat, MDFormat},
 }
 
-func getSupportedValuesString(supportedValues map[string][]string) string {
-	valuesList := make([]string, len(supportedValues))
+func getSupportedAnalysisTypesString() string {
+	valuesList := make([]string, len(supportedAnalysisTypes)+1)
 	i := 0
-	for key := range supportedValues {
+	for key := range supportedAnalysisTypes {
 		j := 0
-		valuesString := make([]string, len(supportedValues[key])+1)
-		for _, value := range supportedValues[key] {
+		valuesString := make([]string, len(supportedAnalysisTypes[key]))
+		for _, value := range supportedAnalysisTypes[key] {
 			valuesString[j] = value
 			j += 1
 		}
-		valuesString[j] = "\n"
 		valuesList[i] = "* " + key + "  - supported with: " + strings.Join(valuesString, ", ")
 		i += 1
 	}
-	return strings.Join(valuesList, "")
+	valuesList[i] = "\n"
+	return strings.Join(valuesList, "\n")
+}
+
+func getSupportedValuesString(supportedValues map[string][]string) string {
+	valuesList := make([]string, len(supportedValues))
+	i := 0
+	for value := range supportedValues {
+		valuesList[i] = value
+		i += 1
+	}
+	return strings.Join(valuesList, ", ")
 }
 
 // parseCmdLine checks if unspported arguments were passed
@@ -136,9 +146,9 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args.OutputFormat = flagset.String(OutputFormat, TEXTFormat,
 		"Output format; must be one of:\n"+getSupportedValuesString(supportedOutputFormats))
 	args.AnalysisType = flagset.String(AnalysisType, allEndpoints,
-		"Supported analysis types:\n"+getSupportedValuesString(supportedAnalysisTypes))
+		"Supported analysis types:\n"+getSupportedAnalysisTypesString())
 	args.Grouping = flagset.Bool(Grouping, false, "Whether to group together src/dst entries with identical connectivity\n"+
-		"Does not support single_subnet analysis-type and json output format")
+		"Does not support single_subnet, diff_all_endpoints and diff_all_subnets analysis-types and json output format")
 	args.VPC = flagset.String(VPC, "", "CRN of the VPC to analyze")
 	args.Debug = flagset.Bool(Debug, false, "Run in debug mode")
 	args.Version = flagset.Bool(Version, false, "Prints the release version number")
@@ -203,8 +213,8 @@ func notSupportedYetArgs(args *InArgs) error {
 	if diffAnalysis && *args.OutputFormat != TEXTFormat && *args.OutputFormat != MDFormat {
 		return fmt.Errorf("currently only txt/md output format supported with %s analysis type", *args.AnalysisType)
 	}
-	if *args.AnalysisType == singleSubnet && *args.Grouping {
-		return fmt.Errorf("currently singleSubnet analysis type does not support grouping")
+	if (*args.AnalysisType == singleSubnet || diffAnalysis) && *args.Grouping {
+		return fmt.Errorf("currently %s analysis type does not support grouping", *args.AnalysisType)
 	}
 	if *args.OutputFormat == JSONFormat && *args.Grouping {
 		return fmt.Errorf("json output format is not supported with grouping")

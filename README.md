@@ -10,26 +10,20 @@ $ ./bin/vpcanalyzer -h
 Usage of vpc-network-config-analyzer:
   -analysis-type string
         Supported analysis types:
-        * all_endpoints  - supported with: txt, json, md, drawio, arch_drawio, debug,
-        * all_subnets  - supported with: txt, json,
-        * single_subnet  - supported with: txt,
-        * diff_all_endpoints  - supported with: txt, md,
-        * diff_all_subnets  - supported with: txt, md,
+        * all_endpoints  - supported with: txt, json, md, drawio, arch_drawio, debug
+        * all_subnets  - supported with: txt, json
+        * single_subnet  - supported with: txt
+        * diff_all_endpoints  - supported with: txt, md
+        * diff_all_subnets  - supported with: txt, md
          (default "all_endpoints")
   -debug
         Run in debug mode
   -format string
         Output format; must be one of:
-        * json  - supported with: all_endpoints, all_subnets,
-        * txt  - supported with: all_endpoints, all_subnets, single_subnet, diff_all_endpoints, diff_all_subnets,
-        * md  - supported with: all_endpoints, diff_all_endpoints, diff_all_subnets,
-        * drawio  - supported with: all_endpoints,
-        * arch_drawio  - supported with: all_endpoints,
-        * debug  - supported with: all_endpoints,
-         (default "txt")
+        json, txt, md, drawio, arch_drawio, debug (default "txt")
   -grouping
         Whether to group together src/dst entries with identical connectivity
-        Does not support single_subnet analysis-type and json output format
+        Does not support single_subnet, diff_all_endpoints and diff_all_subnets analysis-types and json output format
   -output-file string
         File path to store results
   -version
