@@ -9,19 +9,32 @@ This repo contains packages and a CLI for analyzing the network connectivity of 
 $ ./bin/vpcanalyzer -h
 Usage of vpc-network-config-analyzer:
   -analysis-type string
-        supported analysis types: all_endpoints,all_subnets,single_subnet, diff_all_endpoints, diff_all_subnets (default "all_endpoints")
+        Supported analysis types:
+        * all_endpoints  - supported with: txt, md, json, drawio, arch_drawio, debug
+        * all_subnets  - supported with: txt, json
+        * single_subnet  - supported with: txt
+        * diff_all_endpoints  - supported with: txt, md
+        * diff_all_subnets  - supported with: txt, md
+         (default "all_endpoints")
+  -debug
+        Run in debug mode
   -format string
-        output format; must be one of txt,md,drawio,arch_drawio,json (default "txt")
+        Output format; must be one of:
+        txt, md, json, drawio, arch_drawio, debug (default "txt")
   -grouping
-        whether to group together src/dst entries with identical connectivity
+        Whether to group together src/dst entries with identical connectivity
+        Does not support single_subnet, diff_all_endpoints and diff_all_subnets analysis-types and json output format
   -output-file string
-        file path to store results
-  -vpc-config string
-        file path to input config
-  -vpc-config-second string
-        file path to the 2nd input config; relevant only for analysis-type diff_all_endpoints and for diff_all_subnets
+        File path to store results
   -version
-        prints the release version number    
+        Prints the release version number
+  -vpc string
+        CRN of the VPC to analyze
+  -vpc-config string
+        Required. File path to input config
+  -vpc-config-second string
+        File path to the 2nd input config; relevant only for analysis-type diff_all_endpoints and for diff_all_subnets
+  
 ```
 
 ### Input config files
