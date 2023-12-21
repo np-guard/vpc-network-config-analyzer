@@ -58,6 +58,9 @@ const (
 	singleSubnet     = "single_subnet"      // single subnet connectivity analysis
 	allEndpointsDiff = "diff_all_endpoints" // semantic diff of allEndpoints analysis between two configurations
 	allSubnetsDiff   = "diff_all_subnets"   // semantic diff of allSubnets analysis between two configurations
+
+	// separator
+	separator = ", "
 )
 
 var supportedOutputFormatsMap = map[string]bool{
@@ -101,7 +104,7 @@ func getSupportedAnalysisTypesMapString() string {
 	valuesList := make([]string, len(supportedAnalysisTypesList)+1)
 	i := 0
 	for _, key := range supportedAnalysisTypesList {
-		valuesList[i] = "* " + key + "  - supported with: " + strings.Join(supportedAnalysisTypesMap[key], ", ")
+		valuesList[i] = "* " + key + "  - supported with: " + strings.Join(supportedAnalysisTypesMap[key], separator)
 		i += 1
 	}
 	return strings.Join(valuesList, "\n")
@@ -148,7 +151,7 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 		"relevant only for analysis-type diff_all_endpoints and for diff_all_subnets")
 	args.OutputFile = flagset.String(OutputFile, "", "File path to store results")
 	args.OutputFormat = flagset.String(OutputFormat, TEXTFormat,
-		"Output format; must be one of:\n"+strings.Join(supportedOutputFormatsList, ", "))
+		"Output format; must be one of:\n"+strings.Join(supportedOutputFormatsList, separator))
 	args.AnalysisType = flagset.String(AnalysisType, allEndpoints,
 		"Supported analysis types:\n"+getSupportedAnalysisTypesMapString())
 	args.Grouping = flagset.Bool(Grouping, false, "Whether to group together src/dst entries with identical connectivity\n"+
@@ -186,11 +189,11 @@ func errorInErgs(args *InArgs, flagset *flag.FlagSet) error {
 	}
 	if _, ok := supportedAnalysisTypesMap[*args.AnalysisType]; !ok {
 		flagset.PrintDefaults()
-		return fmt.Errorf("wrong analysis type %s; must be one of: %s", *args.AnalysisType, strings.Join(supportedAnalysisTypesList, ", "))
+		return fmt.Errorf("wrong analysis type %s; must be one of: %s", *args.AnalysisType, strings.Join(supportedAnalysisTypesList, separator))
 	}
 	if supportedOutputFormatsMap[*args.OutputFormat] {
 		flagset.PrintDefaults()
-		return fmt.Errorf("wrong output format %s; must be one of %s", *args.OutputFormat, strings.Join(supportedOutputFormatsList, ", "))
+		return fmt.Errorf("wrong output format %s; must be one of %s", *args.OutputFormat, strings.Join(supportedOutputFormatsList, separator))
 	}
 	if *args.OutputFormat == DEBUGFormat && *args.AnalysisType != allEndpoints {
 		return fmt.Errorf("output format %s supported on for %s", DEBUGFormat, allEndpoints)
