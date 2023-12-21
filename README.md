@@ -10,7 +10,7 @@ $ ./bin/vpcanalyzer -h
 Usage of vpc-network-config-analyzer:
   -analysis-type string
         Supported analysis types:
-        * all_endpoints  - supported with: txt, json, md, drawio, arch_drawio, debug
+        * all_endpoints  - supported with: txt, md, json, drawio, arch_drawio, debug
         * all_subnets  - supported with: txt, json
         * single_subnet  - supported with: txt
         * diff_all_endpoints  - supported with: txt, md
@@ -20,7 +20,7 @@ Usage of vpc-network-config-analyzer:
         Run in debug mode
   -format string
         Output format; must be one of:
-        json,txt,md,drawio,arch_drawio,debug (default "txt")
+        txt, md, json, drawio, arch_drawio, debug (default "txt")
   -grouping
         Whether to group together src/dst entries with identical connectivity
         Does not support single_subnet, diff_all_endpoints and diff_all_subnets analysis-types and json output format
