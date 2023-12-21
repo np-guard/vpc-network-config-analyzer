@@ -19,7 +19,7 @@ const (
 	ipBase      = 10
 	ipMask      = 0xffffffff
 	maxIPv4Bits = 32
-	cidrAll     = "0.0.0.0/0"
+	CidrAll     = "0.0.0.0/0"
 )
 
 // IPBlock captures a set of ip ranges
@@ -330,7 +330,7 @@ func IPBlockFromIPRangeStr(ipRagneStr string) (*IPBlock, error) {
 }
 
 func GetCidrAll() *IPBlock {
-	return NewIPBlockFromCidr(cidrAll)
+	return NewIPBlockFromCidr(CidrAll)
 }
 
 func IsAddressInSubnet(address, subnetCidr string) (bool, error) {
