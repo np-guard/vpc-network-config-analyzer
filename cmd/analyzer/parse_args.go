@@ -191,7 +191,7 @@ func errorInErgs(args *InArgs, flagset *flag.FlagSet) error {
 		flagset.PrintDefaults()
 		return fmt.Errorf("wrong analysis type %s; must be one of: %s", *args.AnalysisType, strings.Join(supportedAnalysisTypesList, separator))
 	}
-	if _, ok := supportedOutputFormatsMap[*args.OutputFormat]; !ok {
+	if !supportedOutputFormatsMap[*args.OutputFormat] {
 		flagset.PrintDefaults()
 		return fmt.Errorf("wrong output format %s; must be one of: %s", *args.OutputFormat, strings.Join(supportedOutputFormatsList, separator))
 	}
