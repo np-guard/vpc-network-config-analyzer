@@ -100,7 +100,7 @@ func getSupportedValuesString(supportedValues map[string][]string) string {
 		valuesList[i] = value
 		i += 1
 	}
-	return strings.Join(valuesList, ", ")
+	return strings.Join(valuesList, ",")
 }
 
 // parseCmdLine checks if unspported arguments were passed
