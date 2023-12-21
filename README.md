@@ -20,7 +20,7 @@ Usage of vpc-network-config-analyzer:
         Run in debug mode
   -format string
         Output format; must be one of:
-        json, txt, md, drawio, arch_drawio, debug (default "txt")
+        json,txt,md,drawio,arch_drawio,debug (default "txt")
   -grouping
         Whether to group together src/dst entries with identical connectivity
         Does not support single_subnet, diff_all_endpoints and diff_all_subnets analysis-types and json output format
