@@ -76,8 +76,6 @@ ky-testenv-transit-subnet-3 => ky-testenv-private-subnet-3 : protocol: TCP src-p
 ky-testenv-transit-subnet-3 => ky-testenv-transit-subnet-1 : All Connections
 ky-testenv-transit-subnet-3 => ky-testenv-transit-subnet-2 : All Connections
 
-connections are stateful unless marked with *
-
 Connectivity for VPC test-vpc-ky
 combined connections between subnets:
 sub1-1-ky => Public Internet 8.8.8.8/32 : protocol: UDP dst-ports: 53

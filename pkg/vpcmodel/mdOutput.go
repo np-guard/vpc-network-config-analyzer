@@ -69,7 +69,7 @@ func linesToOutput(connLines, lines []string) string {
 	sort.Strings(connLines)
 	lines = append(lines, connLines...)
 	out := strings.Join(lines, "\n")
-	out += asteriskDetails
+	out += "\n"
 	return out
 }
 

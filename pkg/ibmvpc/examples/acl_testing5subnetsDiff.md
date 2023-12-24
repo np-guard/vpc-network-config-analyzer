@@ -8,5 +8,3 @@
 | changed | sub2-1-ky | Public Internet 8.8.8.8/32 | protocol: UDP dst-ports: 53 | protocol: UDP dst-ports: 43,53 * |  |
 | removed | sub1-2-ky | sub1-1-ky | protocol: TCP | No Connections |  |
 | removed | sub1-3-ky | sub1-1-ky | protocol: TCP | No Connections |  |
-
-connections are stateful unless marked with *

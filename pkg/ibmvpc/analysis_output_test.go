@@ -576,7 +576,7 @@ func runTestPerUseCase(t *testing.T,
 			return allVPCsOutput[i].VPC1Name < allVPCsOutput[j].VPC1Name
 		})
 
-		actualOutput, err := vpcmodel.AggregateVPCsOutput(allVPCsOutput, tt.format, tt.actualOutput[uc])
+		actualOutput, err := vpcmodel.AggregateVPCsOutput(allVPCsOutput, tt.format, uc, tt.actualOutput[uc])
 		if err != nil {
 			return err
 		}

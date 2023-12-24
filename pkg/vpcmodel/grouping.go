@@ -458,7 +458,7 @@ func (g *GroupConnLines) String() string {
 		linesStr[i] = line.String()
 	}
 	sort.Strings(linesStr)
-	return strings.Join(linesStr, "\n") + asteriskDetails
+	return strings.Join(linesStr, "\n") + "\n"
 }
 
 func listEndpointElemStr(eps []EndpointElem, fn func(ep EndpointElem) string) string {
