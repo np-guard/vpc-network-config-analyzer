@@ -26,32 +26,56 @@ func (c *VPCConfig) getVsiNode(name string) Node {
 	return nil
 }
 
-// gets the external nodes of a given cidr string
-func (c *VPCConfig) getExternalNodes(cidr string) []Node {
-	ipBlock := common.NewIPBlockFromCidr(cidr)
-	if ipBlock == nil { // string cidr does not represent a legal cidr
-		return nil
+// given input cidr, gets (disjoint) external nodes I s.t.:
+//  1. The union of these nodes is the cidr
+//  2. Let i be a node in I and n be a node in VPCConfig.
+//     i and n are either disjoint or i is contained in n
+//     to get nodes I as above:
+//  1. Calculate the IP blocks of the nodes N
+//  2. Calculate from N and the cidr block, disjoint IP blocks
+//  3. Return the nodes created from each block from 2 contained in the input cidr
+func (c *VPCConfig) getCidrExternalNodes(cidr string) (cidrDisjointNodes []Node, err error) {
+	cidrsIpBlock := common.NewIPBlockFromCidr(cidr)
+	if cidrsIpBlock == nil { // string cidr does not represent a legal cidr
+		return nil, nil
 	}
-	ipBlocks := []*common.IPBlock{ipBlock}
-	nodes, err := GetExternalNetworkNodes(ipBlocks)
-	if err != nil {
-		return nil
+	cidrIpBlocks := []*common.IPBlock{cidrsIpBlock}
+	// 1.
+	vpcConfigNodesExternalBlock := make([]*common.IPBlock, 0)
+	for _, node := range c.Nodes {
+		if !node.IsExternal() {
+			continue
+		}
+		thisNodeBlock := common.NewIPBlockFromCidr(node.Cidr())
+		vpcConfigNodesExternalBlock = append(vpcConfigNodesExternalBlock, thisNodeBlock)
 	}
-	return nodes
+	// 2.
+	disjointBlocks := common.DisjointIPBlocks(cidrIpBlocks, vpcConfigNodesExternalBlock)
+	// 3.
+	cidrDisjointNodes = make([]Node, 0)
+	for _, block := range disjointBlocks {
+		if block.ContainedIn(cidrsIpBlock) {
+			node, err := newExternalNode(true, block)
+			if err != nil {
+				return nil, err
+			}
+			cidrDisjointNodes = append(cidrDisjointNodes, node)
+		}
+	}
+	return cidrDisjointNodes, err
 }
 
 // given a string or a vsi or a cidr returns the corresponding node(s)
-func (c *VPCConfig) getNodesFromInput(cidrOrName string) []Node {
+func (c *VPCConfig) getNodesFromInput(cidrOrName string) ([]Node, error) {
 	if vsi := c.getVsiNode(cidrOrName); vsi != nil {
-		return []Node{vsi}
+		return []Node{vsi}, nil
 	}
-	return c.getExternalNodes(cidrOrName)
+	return c.getCidrExternalNodes(cidrOrName)
 }
 
 // todo: group results. for now just prints each
 
 // ExplainConnectivity todo: this will not be needed here once we connect explanbility to the cli
-// todo: add support of external network
 func (c *VPCConfig) ExplainConnectivity(srcName, dstName string) (explanation string, err error) {
 	srcNodes, dstNodes, err := c.processInput(srcName, dstName)
 	if err != nil {
@@ -76,11 +100,17 @@ func (c *VPCConfig) ExplainConnectivity(srcName, dstName string) (explanation st
 }
 
 func (c *VPCConfig) processInput(srcName, dstName string) (srcNodes, dstNodes []Node, err error) {
-	srcNodes = c.getNodesFromInput(srcName)
+	srcNodes, err = c.getNodesFromInput(srcName)
+	if err != nil {
+		return nil, nil, err
+	}
 	if srcNodes == nil || len(srcNodes) == 0 {
 		return nil, nil, fmt.Errorf("src %v does not represent a VSI or an external IP", srcName)
 	}
-	dstNodes = c.getNodesFromInput(dstName)
+	dstNodes, err = c.getNodesFromInput(dstName)
+	if err != nil {
+		return nil, nil, err
+	}
 	if dstNodes == nil || len(dstNodes) == 0 {
 		return nil, nil, fmt.Errorf("dst %v does not represent a VSI or an external IP", dstName)
 	}
