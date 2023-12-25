@@ -113,22 +113,26 @@ func (c *VPCConfig) GetRulesOfConnection(src, dst Node) (rulesOfConnection *Rule
 		make(rulesInLayers, len(filterLayers))}
 	ingressRulesPerLayer, egressRulesPerLayer := make(rulesInLayers), make(rulesInLayers)
 	for _, layer := range filterLayers {
-		// ingress rules
-		ingressRules, err1 := c.getFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(src, dst, true, layer)
-		if err1 != nil {
-			return nil, err1
-		}
-		if len(*ingressRules) > 0 {
-			ingressRulesPerLayer[layer] = *ingressRules
+		// ingress rules: relevant only if dst is internal
+		if dst.IsInternal() {
+			ingressRules, err1 := c.getFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(src, dst, true, layer)
+			if err1 != nil {
+				return nil, err1
+			}
+			if len(*ingressRules) > 0 {
+				ingressRulesPerLayer[layer] = *ingressRules
+			}
 		}
 
-		// egress rules
-		egressRules, err2 := c.getFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(src, dst, false, layer)
-		if err2 != nil {
-			return nil, err2
-		}
-		if len(*egressRules) > 0 {
-			egressRulesPerLayer[layer] = *egressRules
+		// egress rules: relevant only is src is internal
+		if src.IsInternal() {
+			egressRules, err2 := c.getFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(src, dst, false, layer)
+			if err2 != nil {
+				return nil, err2
+			}
+			if len(*egressRules) > 0 {
+				egressRulesPerLayer[layer] = *egressRules
+			}
 		}
 	}
 	rulesOfConnection.ingressRules = ingressRulesPerLayer
