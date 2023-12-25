@@ -13,7 +13,7 @@ import (
 )
 
 // todo: quick and dirty tmp until added to the cli, by which these will be added as end-to-end tests
-func TestExplainability1(t *testing.T) {
+func TestVsiToVsi(t *testing.T) {
 	vpcConfig := getConfig(t, "input_sg_testing1_new.json")
 	if vpcConfig == nil {
 		require.Fail(t, "vpcConfig equals nil")
@@ -76,7 +76,7 @@ func TestExplainability1(t *testing.T) {
 // sg3-ky: vsi3a-ky
 // sg1-ky, sg3-ky: default
 // sg2-ky: allow all
-func TestExplainability2(t *testing.T) {
+func TestSGDefaultRules(t *testing.T) {
 	vpcConfig := getConfig(t, "input_sg_testing_default.json")
 	if vpcConfig == nil {
 		require.Fail(t, "vpcConfig equals nil")
@@ -106,22 +106,25 @@ func TestExplainability2(t *testing.T) {
 	fmt.Println("done")
 }
 
-//func TestExplainability3(t *testing.T) {
-//	vpcConfig := getConfig(t, "input_sg_testing1_new.json")
-//	if vpcConfig == nil {
-//		require.Fail(t, "vpcConfig equals nil")
-//	}
-//	cidr := "0.0.0.0/0"
-//	myNodes := vpcConfig.TempToTestGetExternalNodes(cidr)
-//	if myNodes == nil {
-//		fmt.Println("myNodes is nil")
-//	} else {
-//		fmt.Printf("nodes of cidr %v are:\n", cidr)
-//		for _, node := range myNodes {
-//			fmt.Println(node.Name())
-//		}
-//	}
-//}
+func TestInputValidity(t *testing.T) {
+	vpcConfig := getConfig(t, "input_sg_testing1_new.json")
+	if vpcConfig == nil {
+		require.Fail(t, "vpcConfig equals nil")
+	}
+	cidr1 := "0.0.0.0/0"
+	cidr2 := "161.26.0.0/16"
+	nonExistingVSI := "vsi2-ky[10.240.10.4]"
+	_, err1 := vpcConfig.ExplainConnectivity(cidr1, cidr2)
+	fmt.Println(err1.Error())
+	if err1 == nil {
+		require.Fail(t, err1.Error())
+	}
+	_, err2 := vpcConfig.ExplainConnectivity(cidr1, nonExistingVSI)
+	fmt.Println(err2.Error())
+	if err2 == nil {
+		require.Fail(t, err1.Error())
+	}
+}
 
 // getConfigs returns  map[string]*vpcmodel.VPCConfig obj for the input test (config json file)
 func getConfig(t *testing.T, inputConfig string) *vpcmodel.VPCConfig {

@@ -48,10 +48,7 @@ func (c *VPCConfig) getNodesFromInput(cidrOrName string) []Node {
 	return c.getExternalNodes(cidrOrName)
 }
 
-// todo: external addresses
-//       1. translate the string to []Node of external addresses
-//       2. apply getRulesOfConnection to the VSI (src or dst) and each of the external Nodes (src or dst). Use the current printing and check
-//       3. aggregate the results. need to yet think how. Can we do it s.t. the output remains as it is today?
+// todo: group results. for now just prints each
 
 // ExplainConnectivity todo: this will not be needed here once we connect explanbility to the cli
 // todo: add support of external network
