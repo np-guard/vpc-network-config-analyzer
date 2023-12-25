@@ -126,6 +126,20 @@ func TestInputValidity(t *testing.T) {
 	}
 }
 
+func TestSimpleExternal(t *testing.T) {
+	vpcConfig := getConfig(t, "input_sg_testing1_new.json")
+	if vpcConfig == nil {
+		require.Fail(t, "vpcConfig equals nil")
+	}
+	vsi1 := "vsi1-ky[10.240.10.4]"
+	cidr := "161.26.0.0/16"
+	explanbilityStr1, err1 := vpcConfig.ExplainConnectivity(vsi1, cidr)
+	if err1 != nil {
+		require.Fail(t, err1.Error())
+	}
+	fmt.Println(explanbilityStr1)
+}
+
 // getConfigs returns  map[string]*vpcmodel.VPCConfig obj for the input test (config json file)
 func getConfig(t *testing.T, inputConfig string) *vpcmodel.VPCConfig {
 	inputConfigFile := filepath.Join(getTestsDir(), inputConfig)
