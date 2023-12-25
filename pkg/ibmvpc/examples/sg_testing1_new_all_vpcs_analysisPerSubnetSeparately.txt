@@ -1,0 +1,18 @@
+Connectivity for VPC test-vpc1-ky
+Subnet: 10.240.10.0/24
+Ingress Connectivity:
+remote: 0.0.0.0-255.255.255.255, conn: All Connections
+Egress Connectivity:
+remote: 0.0.0.0-255.255.255.255, conn: All Connections
+
+Subnet: 10.240.20.0/24
+Ingress Connectivity:
+remote: 0.0.0.0-255.255.255.255, conn: All Connections
+Egress Connectivity:
+remote: 0.0.0.0-255.255.255.255, conn: All Connections
+
+Subnet: 10.240.30.0/24
+Ingress Connectivity:
+remote: 0.0.0.0-255.255.255.255, conn: All Connections
+Egress Connectivity:
+remote: 0.0.0.0-255.255.255.255, conn: All Connections

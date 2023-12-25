@@ -1,0 +1,66 @@
+Connectivity for VPC ky-testenv-vpc
+Subnet: 192.168.0.0/22
+Ingress Connectivity:
+remote: 0.0.0.0-161.25.255.255,161.27.0.0-166.7.255.255,166.12.0.0-255.255.255.255, conn: protocol: TCP src-ports: 443
+remote: 161.26.0.0-161.26.255.255, conn: All Connections
+remote: 166.8.0.0-166.11.255.255, conn: All Connections
+Egress Connectivity:
+remote: 0.0.0.0-161.25.255.255,161.27.0.0-166.7.255.255,166.12.0.0-255.255.255.255, conn: protocol: TCP dst-ports: 443
+remote: 161.26.0.0-161.26.255.255, conn: All Connections
+remote: 166.8.0.0-166.11.255.255, conn: All Connections
+
+Subnet: 192.168.16.0/22
+Ingress Connectivity:
+remote: 0.0.0.0-255.255.255.255, conn: All Connections
+Egress Connectivity:
+remote: 0.0.0.0-255.255.255.255, conn: All Connections
+
+Subnet: 192.168.20.0/22
+Ingress Connectivity:
+remote: 0.0.0.0-255.255.255.255, conn: All Connections
+Egress Connectivity:
+remote: 0.0.0.0-255.255.255.255, conn: All Connections
+
+Subnet: 192.168.24.0/22
+Ingress Connectivity:
+remote: 0.0.0.0-255.255.255.255, conn: All Connections
+Egress Connectivity:
+remote: 0.0.0.0-255.255.255.255, conn: All Connections
+
+Subnet: 192.168.32.0/22
+Ingress Connectivity:
+remote: 0.0.0.0-255.255.255.255, conn: All Connections
+Egress Connectivity:
+remote: 0.0.0.0-255.255.255.255, conn: All Connections
+
+Subnet: 192.168.36.0/22
+Ingress Connectivity:
+remote: 0.0.0.0-255.255.255.255, conn: All Connections
+Egress Connectivity:
+remote: 0.0.0.0-255.255.255.255, conn: All Connections
+
+Subnet: 192.168.4.0/22
+Ingress Connectivity:
+remote: 0.0.0.0-161.25.255.255,161.27.0.0-166.7.255.255,166.12.0.0-255.255.255.255, conn: protocol: TCP src-ports: 443
+remote: 161.26.0.0-161.26.255.255, conn: All Connections
+remote: 166.8.0.0-166.11.255.255, conn: All Connections
+Egress Connectivity:
+remote: 0.0.0.0-161.25.255.255,161.27.0.0-166.7.255.255,166.12.0.0-255.255.255.255, conn: protocol: TCP dst-ports: 443
+remote: 161.26.0.0-161.26.255.255, conn: All Connections
+remote: 166.8.0.0-166.11.255.255, conn: All Connections
+
+Subnet: 192.168.40.0/22
+Ingress Connectivity:
+remote: 0.0.0.0-255.255.255.255, conn: All Connections
+Egress Connectivity:
+remote: 0.0.0.0-255.255.255.255, conn: All Connections
+
+Subnet: 192.168.8.0/22
+Ingress Connectivity:
+remote: 0.0.0.0-161.25.255.255,161.27.0.0-166.7.255.255,166.12.0.0-255.255.255.255, conn: protocol: TCP src-ports: 443
+remote: 161.26.0.0-161.26.255.255, conn: All Connections
+remote: 166.8.0.0-166.11.255.255, conn: All Connections
+Egress Connectivity:
+remote: 0.0.0.0-161.25.255.255,161.27.0.0-166.7.255.255,166.12.0.0-255.255.255.255, conn: protocol: TCP dst-ports: 443
+remote: 161.26.0.0-161.26.255.255, conn: All Connections
+remote: 166.8.0.0-166.11.255.255, conn: All Connections
