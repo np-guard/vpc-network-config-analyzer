@@ -40,32 +40,58 @@ func (c *VPCConfig) getExternalNodes(cidr string) []Node {
 	return nodes
 }
 
-func (c *VPCConfig) TempToTestGetExternalNodes(cidr string) []Node {
-	return c.getExternalNodes(cidr)
+// given a string or a vsi or a cidr returns the corresponding node(s)
+func (c *VPCConfig) getNodesFromInput(cidrOrName string) []Node {
+	if vsi := c.getVsiNode(cidrOrName); vsi != nil {
+		return []Node{vsi}
+	}
+	return c.getExternalNodes(cidrOrName)
 }
 
 // todo: external addresses
 //       1. translate the string to []Node of external addresses
-//       2. apply GetRulesOfConnection to the VSI (src or dst) and each of the external Nodes (src or dst)
+//       2. apply GetRulesOfConnection to the VSI (src or dst) and each of the external Nodes (src or dst). Use the current printing and check
 //       3. aggregate the results. need to yet think how. Can we do it s.t. the output remains as it is today?
 
 // ExplainConnectivity todo: this will not be needed here once we connect explanbility to the cli
 // todo: add support of external network
 func (c *VPCConfig) ExplainConnectivity(srcName, dstName string) (explanation string, err error) {
-	src := c.getVsiNode(srcName)
+	srcNodes, dstNodes, err := c.processInput(srcName, dstName)
+	if err != nil {
+		return "", err
+	}
+	// todo tmp: aggregating the explanations for now. Will have to group them
+	explanationStr := ""
+	for _, src := range srcNodes {
+		for _, dst := range dstNodes {
+			rulesOfConnection, err1 := c.GetRulesOfConnection(src, dst)
+			if err1 != nil {
+				return "", err1
+			}
+			thisExplanationStr, err := rulesOfConnection.String(src, dst, c)
+			if err != nil {
+				return "", err
+			}
+			explanationStr += thisExplanationStr
+		}
+	}
+	return explanationStr, nil
+}
 
-	if src == nil {
-		return "", fmt.Errorf("src %v does not represent a VSI", srcName)
+func (c *VPCConfig) processInput(srcName, dstName string) (srcNodes, dstNodes []Node, err error) {
+	srcNodes = c.getNodesFromInput(srcName)
+	if srcNodes == nil || len(srcNodes) == 0 {
+		return nil, nil, fmt.Errorf("src %v does not represent a VSI or an external IP", srcName)
 	}
-	dst := c.getVsiNode(dstName)
-	if dst == nil {
-		return "", fmt.Errorf("dst %v does not represent a VSI", dstName)
+	dstNodes = c.getNodesFromInput(dstName)
+	if dstNodes == nil || len(dstNodes) == 0 {
+		return nil, nil, fmt.Errorf("dst %v does not represent a VSI or an external IP", dstName)
 	}
-	rulesOfConnection, err1 := c.GetRulesOfConnection(src, dst)
-	if err1 != nil {
-		return "", err1
+	// only one of src/dst can be external; there could be multiple nodes only if external
+	if srcNodes[0].IsExternal() && dstNodes[0].IsExternal() {
+		return nil, nil, fmt.Errorf("both src %v and dst %v are external", srcName, dstName)
 	}
-	return rulesOfConnection.String(src, dst, c)
+	return srcNodes, dstNodes, nil
 }
 
 func (c *VPCConfig) getFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(
