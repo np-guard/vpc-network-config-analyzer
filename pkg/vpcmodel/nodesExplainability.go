@@ -50,7 +50,7 @@ func (c *VPCConfig) getNodesFromInput(cidrOrName string) []Node {
 
 // todo: external addresses
 //       1. translate the string to []Node of external addresses
-//       2. apply GetRulesOfConnection to the VSI (src or dst) and each of the external Nodes (src or dst). Use the current printing and check
+//       2. apply getRulesOfConnection to the VSI (src or dst) and each of the external Nodes (src or dst). Use the current printing and check
 //       3. aggregate the results. need to yet think how. Can we do it s.t. the output remains as it is today?
 
 // ExplainConnectivity todo: this will not be needed here once we connect explanbility to the cli
@@ -64,7 +64,7 @@ func (c *VPCConfig) ExplainConnectivity(srcName, dstName string) (explanation st
 	explanationStr := ""
 	for _, src := range srcNodes {
 		for _, dst := range dstNodes {
-			rulesOfConnection, err1 := c.GetRulesOfConnection(src, dst)
+			rulesOfConnection, err1 := c.getRulesOfConnection(src, dst)
 			if err1 != nil {
 				return "", err1
 			}
@@ -107,7 +107,7 @@ func (c *VPCConfig) getFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(
 	return &rulesOfFilter, nil
 }
 
-func (c *VPCConfig) GetRulesOfConnection(src, dst Node) (rulesOfConnection *RulesOfConnection, err error) {
+func (c *VPCConfig) getRulesOfConnection(src, dst Node) (rulesOfConnection *RulesOfConnection, err error) {
 	filterLayers := []string{SecurityGroupLayer}
 	rulesOfConnection = &RulesOfConnection{make(rulesInLayers, len(filterLayers)),
 		make(rulesInLayers, len(filterLayers))}
