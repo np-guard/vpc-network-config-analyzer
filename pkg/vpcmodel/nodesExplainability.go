@@ -2,6 +2,7 @@ package vpcmodel
 
 import (
 	"fmt"
+
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
@@ -35,11 +36,11 @@ func (c *VPCConfig) getVsiNode(name string) Node {
 //  2. Calculate from N and the cidr block, disjoint IP blocks
 //  3. Return the nodes created from each block from 2 contained in the input cidr
 func (c *VPCConfig) getCidrExternalNodes(cidr string) (cidrDisjointNodes []Node, err error) {
-	cidrsIpBlock := common.NewIPBlockFromCidr(cidr)
-	if cidrsIpBlock == nil { // string cidr does not represent a legal cidr
+	cidrsIPBlock := common.NewIPBlockFromCidr(cidr)
+	if cidrsIPBlock == nil { // string cidr does not represent a legal cidr
 		return nil, nil
 	}
-	cidrIpBlocks := []*common.IPBlock{cidrsIpBlock}
+	cidrIPBlocks := []*common.IPBlock{cidrsIPBlock}
 	// 1.
 	vpcConfigNodesExternalBlock := make([]*common.IPBlock, 0)
 	for _, node := range c.Nodes {
@@ -50,19 +51,19 @@ func (c *VPCConfig) getCidrExternalNodes(cidr string) (cidrDisjointNodes []Node,
 		vpcConfigNodesExternalBlock = append(vpcConfigNodesExternalBlock, thisNodeBlock)
 	}
 	// 2.
-	disjointBlocks := common.DisjointIPBlocks(cidrIpBlocks, vpcConfigNodesExternalBlock)
+	disjointBlocks := common.DisjointIPBlocks(cidrIPBlocks, vpcConfigNodesExternalBlock)
 	// 3.
 	cidrDisjointNodes = make([]Node, 0)
 	for _, block := range disjointBlocks {
-		if block.ContainedIn(cidrsIpBlock) {
-			node, err := newExternalNode(true, block)
-			if err != nil {
-				return nil, err
+		if block.ContainedIn(cidrsIPBlock) {
+			node, err1 := newExternalNode(true, block)
+			if err1 != nil {
+				return nil, err1
 			}
 			cidrDisjointNodes = append(cidrDisjointNodes, node)
 		}
 	}
-	return cidrDisjointNodes, err
+	return cidrDisjointNodes, nil
 }
 
 // given a string or a vsi or a cidr returns the corresponding node(s)
@@ -104,14 +105,14 @@ func (c *VPCConfig) processInput(srcName, dstName string) (srcNodes, dstNodes []
 	if err != nil {
 		return nil, nil, err
 	}
-	if srcNodes == nil || len(srcNodes) == 0 {
+	if len(srcNodes) == 0 {
 		return nil, nil, fmt.Errorf("src %v does not represent a VSI or an external IP", srcName)
 	}
 	dstNodes, err = c.getNodesFromInput(dstName)
 	if err != nil {
 		return nil, nil, err
 	}
-	if dstNodes == nil || len(dstNodes) == 0 {
+	if len(dstNodes) == 0 {
 		return nil, nil, fmt.Errorf("dst %v does not represent a VSI or an external IP", dstName)
 	}
 	// only one of src/dst can be external; there could be multiple nodes only if external
