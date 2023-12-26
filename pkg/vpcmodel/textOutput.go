@@ -41,18 +41,23 @@ func (t *TextOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	if err != nil {
 		return nil, err
 	}
+	unStateFul := false
+	resOut := ""
 	// get output by analysis type
 	switch uc {
 	case AllEndpoints:
-		out += conn.GroupedConnectivity.String()
+		resOut, unStateFul = conn.GroupedConnectivity.String()
+		out += resOut
 	case AllSubnets:
-		out += subnetsConn.String()
+		resOut, unStateFul = subnetsConn.String()
+		out += resOut
 	case SingleSubnet:
 		out += c1.GetConnectivityOutputPerEachSubnetSeparately()
 	case SubnetsDiff, EndpointsDiff:
-		out += cfgsDiff.String()
+		resOut, unStateFul = cfgsDiff.String()
+		out += resOut
 	}
 	// write output to file and return the output string
 	_, err = WriteToFile(out, outFile)
-	return &SingleAnalysisOutput{Output: out, VPC1Name: c1.VPC.Name(), VPC2Name: vpc2Name, format: Text}, err
+	return &SingleAnalysisOutput{Output: out, VPC1Name: c1.VPC.Name(), VPC2Name: vpc2Name, format: Text, HaveUnStateFulConn: unStateFul}, err
 }

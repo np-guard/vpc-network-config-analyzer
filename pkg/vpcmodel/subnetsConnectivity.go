@@ -306,11 +306,11 @@ func (v *VPCsubnetConnectivity) computeStatefulConnections() {
 	}
 }
 
-func (v *VPCsubnetConnectivity) String() string {
+func (v *VPCsubnetConnectivity) String() (string, bool) {
 	res := "combined connections between subnets:\n"
 	// res += v.GroupedConnectivity.String() ToDo: uncomment once https://github.com/np-guard/vpc-network-config-analyzer/issues/138 is solved
-	res += v.GroupedConnectivity.String()
-	return res
+	out, unStateful := v.GroupedConnectivity.String()
+	return res + out, unStateful
 }
 
 // GetConnectivityOutputPerEachSubnetSeparately returns string results of connectivity analysis per

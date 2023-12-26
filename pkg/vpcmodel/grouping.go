@@ -37,10 +37,16 @@ func (g *groupingConnections) getGroupedConnLines(groupedConnLines *GroupConnLin
 		for _, b := range aMap {
 			var resElem *groupedConnLine
 			bGrouped := groupedConnLines.getGroupedExternalNodes(b.nodes)
-			if isSrcToDst {
-				resElem = &groupedConnLine{a, bGrouped, b.commonProperties}
+			isUnStateFul := false
+			if b.commonProperties.conn != nil {
+				isUnStateFul = b.commonProperties.conn.IsStateful == common.StatefulFalse
 			} else {
-				resElem = &groupedConnLine{bGrouped, a, b.commonProperties}
+				isUnStateFul = b.commonProperties.connDiff.conn1.IsStateful == common.StatefulFalse
+			}
+			if isSrcToDst {
+				resElem = &groupedConnLine{a, bGrouped, b.commonProperties, isUnStateFul}
+			} else {
+				resElem = &groupedConnLine{bGrouped, a, b.commonProperties, isUnStateFul}
 			}
 			res = append(res, resElem)
 		}
@@ -113,6 +119,7 @@ type groupedConnLine struct {
 	src              EndpointElem
 	dst              EndpointElem
 	commonProperties *groupedCommonProperties // holds the common conn/diff properties
+	UnStateFul       bool
 }
 
 func (g *groupedConnLine) String() string {
@@ -257,7 +264,7 @@ func (g *GroupConnLines) groupExternalAddresses(vsi bool) error {
 	for src, nodeConns := range allowedConnsCombined {
 		for dst, conns := range nodeConns {
 			err := g.addLineToExternalGrouping(&res, conns.IsEmpty(), src, dst,
-				&groupedCommonProperties{conn: conns, connStrKey: conns.EnhancedString()})
+				&groupedCommonProperties{conn: conns, connStrKey: conns.EnhancedString()}, conns.IsStateful == common.StatefulFalse)
 			if err != nil {
 				return err
 			}
@@ -281,10 +288,18 @@ func (g *GroupConnLines) groupExternalAddressesForDiff(thisMinusOther bool) erro
 	}
 	for src, endpointConnDiff := range connRemovedChanged {
 		for dst, connDiff := range endpointConnDiff {
+			fmt.Printf("conn1: %s\n", connDiff.conn1)
+			if connDiff.conn1 != nil {
+				fmt.Printf("conn1 stateful: %s\n", connDiff.conn1.IsStateful)
+			}
+			fmt.Printf("conn2: %s\n", connDiff.conn2)
+			if connDiff.conn2 != nil {
+				fmt.Printf("conn2 stateful: %s\n", connDiff.conn2.IsStateful)
+			}
 			connDiffString := connDiffEncode(src, dst, connDiff)
 			connsEmpty := connDiff.conn1.IsEmpty() && connDiff.conn2.IsEmpty()
 			err := g.addLineToExternalGrouping(&res, connsEmpty, src, dst,
-				&groupedCommonProperties{connDiff: connDiff, connStrKey: connDiffString})
+				&groupedCommonProperties{connDiff: connDiff, connStrKey: connDiffString}, (connDiff.conn1 != nil && connDiff.conn1.IsStateful == common.StatefulFalse) || (connDiff.conn2 != nil && connDiff.conn2.IsStateful == common.StatefulFalse))
 			if err != nil {
 				return err
 			}
@@ -295,7 +310,7 @@ func (g *GroupConnLines) groupExternalAddressesForDiff(thisMinusOther bool) erro
 }
 
 func (g *GroupConnLines) addLineToExternalGrouping(res *[]*groupedConnLine, emptyConn bool,
-	src, dst VPCResourceIntf, commonProps *groupedCommonProperties) error {
+	src, dst VPCResourceIntf, commonProps *groupedCommonProperties, unStateFul bool) error {
 	if emptyConn {
 		return nil
 	}
@@ -314,7 +329,7 @@ func (g *GroupConnLines) addLineToExternalGrouping(res *[]*groupedConnLine, empt
 	case src.IsExternal():
 		g.dstToSrc.addPublicConnectivity(dst, commonProps, srcNode)
 	default:
-		*res = append(*res, &groupedConnLine{src, dst, commonProps})
+		*res = append(*res, &groupedConnLine{src, dst, commonProps, unStateFul})
 	}
 	return nil
 }
@@ -388,9 +403,9 @@ func (g *GroupConnLines) groupInternalSrcOrDst(srcGrouping, groupVsi bool) {
 		}
 		for _, groupedSrcOrDstElem := range groupedSrcOrDst {
 			if srcGrouping {
-				res = append(res, &groupedConnLine{groupedSrcOrDstElem, linesGroup[0].dst, linesGroup[0].commonProperties})
+				res = append(res, &groupedConnLine{groupedSrcOrDstElem, linesGroup[0].dst, linesGroup[0].commonProperties, linesGroup[0].UnStateFul})
 			} else {
-				res = append(res, &groupedConnLine{linesGroup[0].src, groupedSrcOrDstElem, linesGroup[0].commonProperties})
+				res = append(res, &groupedConnLine{linesGroup[0].src, groupedSrcOrDstElem, linesGroup[0].commonProperties, linesGroup[0].UnStateFul})
 			}
 		}
 	}
@@ -407,7 +422,8 @@ func (g *GroupConnLines) unifiedGroupedConnLines(oldConnLines []*groupedConnLine
 	for i, groupedLine := range oldConnLines {
 		newGroupedLines[i] = &groupedConnLine{g.unifiedGroupedElems(groupedLine.src),
 			g.unifiedGroupedElems(groupedLine.dst),
-			groupedLine.commonProperties}
+			groupedLine.commonProperties,
+			groupedLine.UnStateFul}
 	}
 	return newGroupedLines
 }
@@ -452,13 +468,15 @@ func (g *GroupConnLines) computeGroupingForDiff() error {
 }
 
 // get the grouped connectivity output
-func (g *GroupConnLines) String() string {
+func (g *GroupConnLines) String() (string, bool) {
 	linesStr := make([]string, len(g.GroupedLines))
+	unStateFul := false
 	for i, line := range g.GroupedLines {
+		unStateFul = unStateFul || line.UnStateFul
 		linesStr[i] = line.String()
 	}
 	sort.Strings(linesStr)
-	return strings.Join(linesStr, "\n") + "\n"
+	return strings.Join(linesStr, "\n") + "\n", unStateFul
 }
 
 func listEndpointElemStr(eps []EndpointElem, fn func(ep EndpointElem) string) string {

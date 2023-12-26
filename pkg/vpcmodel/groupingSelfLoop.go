@@ -2,6 +2,8 @@ package vpcmodel
 
 import (
 	"strings"
+
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 // extends grouping by considering self loops as don't care https://github.com/np-guard/vpc-network-config-analyzer/issues/98
@@ -362,9 +364,9 @@ func mergeGivenList(oldGroupingSrcOrDst map[string][]*groupedConnLine, srcGroupi
 	epsInNewLines, conn, commonPros := listOfUniqueEndpoints(oldGroupingSrcOrDst, !srcGrouping, toMergeKeys)
 	for _, epInLineValue := range epsInNewLines {
 		if srcGrouping {
-			newGroupedConnLine = append(newGroupedConnLine, &groupedConnLine{epInLineValue, &epsInNewKey, commonPros})
+			newGroupedConnLine = append(newGroupedConnLine, &groupedConnLine{epInLineValue, &epsInNewKey, commonPros, commonPros.conn.IsStateful == common.StatefulFalse})
 		} else {
-			newGroupedConnLine = append(newGroupedConnLine, &groupedConnLine{&epsInNewKey, epInLineValue, commonPros})
+			newGroupedConnLine = append(newGroupedConnLine, &groupedConnLine{&epsInNewKey, epInLineValue, commonPros, commonPros.conn.IsStateful == common.StatefulFalse})
 		}
 	}
 	newKey = getKeyOfGroupConnLines(&epsInNewKey, conn)

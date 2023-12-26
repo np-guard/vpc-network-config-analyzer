@@ -126,7 +126,7 @@ func TestGroupingPhase1(t *testing.T) {
 	err := res.groupExternalAddresses(true)
 	require.Equal(t, err, nil)
 
-	groupingStr := res.String()
+	groupingStr, _ := res.String()
 	require.Equal(t, "vsi1 => Public Internet 1.2.0.0/22,8.8.8.8/32 : All Connections\n", groupingStr)
 	fmt.Println(groupingStr)
 	fmt.Println("done")
@@ -141,12 +141,12 @@ func TestGroupingPhase2(t *testing.T) {
 	// phase 1
 	err := res.groupExternalAddresses(true)
 	require.Equal(t, err, nil)
-	groupingStr := res.String()
+	groupingStr, _ := res.String()
 	require.Equal(t, "vsi1 => Public Internet 1.2.0.0/22,8.8.8.8/32 : All Connections\n"+
 		"vsi2 => Public Internet 1.2.0.0/22,8.8.8.8/32 : All Connections\n", groupingStr)
 	// phase 2
 	res.groupInternalSrcOrDst(true, true)
-	groupingStr = res.String()
+	groupingStr, _ = res.String()
 	require.Equal(t, "vsi1,vsi2 => Public Internet 1.2.0.0/22,8.8.8.8/32 : All Connections\n", groupingStr)
 	fmt.Println(groupingStr)
 	fmt.Println("done")
@@ -182,7 +182,7 @@ func TestStatefulGrouping(t *testing.T) {
 	err := res.groupExternalAddresses(true)
 	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(true, true)
-	groupingStr := res.String()
+	groupingStr, _ := res.String()
 	require.Equal(t, "vsi1 => Public Internet 1.2.0.0/22,8.8.8.8/32 : All Connections\n"+
 		"vsi2 => Public Internet 1.2.0.0/22 : All Connections\n"+
 		"vsi2 => Public Internet 8.8.8.8/32 : All Connections *\n", groupingStr)
@@ -214,7 +214,7 @@ func TestIPRange(t *testing.T) {
 	err := res.groupExternalAddresses(true)
 	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(true, true)
-	groupingStr := res.String()
+	groupingStr, _ := res.String()
 	require.Equal(t, "vsi1 => Public Internet 1.2.3.0-1.2.4.255 : All Connections\n", groupingStr)
 	fmt.Println(groupingStr)
 	fmt.Println("done")
@@ -249,7 +249,7 @@ func TestSelfLoopClique(t *testing.T) {
 	err := res.groupExternalAddresses(true)
 	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(true, true)
-	groupingStr := res.String()
+	groupingStr, _ := res.String()
 	require.Equal(t, "vsi1,vsi2,vsi3 => vsi1,vsi2,vsi3 : All Connections\n", groupingStr)
 	fmt.Println(groupingStr)
 	fmt.Println("done")
@@ -287,7 +287,7 @@ func TestSelfLoopCliqueDiffSubnets(t *testing.T) {
 	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(true, true)
 	res.groupInternalSrcOrDst(false, true)
-	groupingStr := res.String()
+	groupingStr, _ := res.String()
 	require.Equal(t, "vsi1-1,vsi1-2 => vsi1-1,vsi1-2 : All Connections\n"+
 		"vsi1-1,vsi1-2 => vsi2-1 : All Connections\n"+
 		"vsi2-1 => vsi1-1,vsi1-2 : All Connections\n", groupingStr)
@@ -324,7 +324,7 @@ func TestSimpleSelfLoop(t *testing.T) {
 	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(false, true)
 	res.groupInternalSrcOrDst(true, true)
-	groupingStr := res.String()
+	groupingStr, _ := res.String()
 	require.Equal(t, "vsi1,vsi2 => vsi2,vsi3 : All Connections\n", groupingStr)
 	fmt.Println(groupingStr)
 	fmt.Println("done")
@@ -370,7 +370,7 @@ func TestConfigSelfLoopCliqueLace(t *testing.T) {
 	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(false, true)
 	res.groupInternalSrcOrDst(true, true)
-	groupingStr := res.String()
+	groupingStr, _ := res.String()
 	require.Equal(t, "vsi1,vsi2 => vsi1,vsi2,vsi3 : All Connections\n"+
 		"vsi3 => vsi1,vsi2,vsi4 : All Connections\n"+
 		"vsi4 => vsi5 : All Connections\n", groupingStr)
@@ -409,7 +409,7 @@ func TestSubnetSelfLoop(t *testing.T) {
 	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(false, false)
 	res.groupInternalSrcOrDst(true, false)
-	groupingStr := res.String()
+	groupingStr, _ := res.String()
 	require.Equal(t, "subnet1,subnet2,subnet3 => subnet1,subnet2,subnet3 : All Connections\n", groupingStr)
 	fmt.Println(groupingStr)
 	fmt.Println("done")

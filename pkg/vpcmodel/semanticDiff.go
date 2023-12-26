@@ -262,13 +262,16 @@ func printDiffLine(diffAnalysis diffAnalysisType, src, dst EndpointElem, commonP
 	return printDiff
 }
 
-func (diffCfgs *diffBetweenCfgs) String() string {
+func (diffCfgs *diffBetweenCfgs) String() (string, bool) {
 	strList := make([]string, len(diffCfgs.groupedLines))
+	unStateFul := false
 	for i, grouped := range diffCfgs.groupedLines {
+		unStateFul = unStateFul || grouped.UnStateFul
+		//unStateFul = unStateFul || (grouped.commonProperties.connDiff.conn1 != nil && grouped.commonProperties.connDiff.conn1.IsStateful == common.StatefulFalse) || (grouped.commonProperties.connDiff.conn2 != nil && grouped.commonProperties.connDiff.conn2.IsStateful == common.StatefulFalse)
 		strList[i] = printDiffLine(diffCfgs.diffAnalysis, grouped.src, grouped.dst, grouped.commonProperties)
 	}
 	sort.Strings(strList)
-	return strings.Join(strList, "")
+	return strings.Join(strList, ""), unStateFul
 }
 
 // prints connection for the above string(..) where the connection could be empty

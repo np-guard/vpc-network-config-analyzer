@@ -127,7 +127,7 @@ func TestSimpleSubnetDiffGrouping(t *testing.T) {
 	d := &diffBetweenCfgs{Subnets, cfg1SubCfg2, cfg2SubCfg1, nil}
 	groupConnLines, _ := newGroupConnLinesDiff(d)
 	d.groupedLines = groupConnLines.GroupedLines
-	groupedPrinted := d.String()
+	groupedPrinted, _ := d.String()
 	fmt.Println(groupedPrinted)
 	newLines := strings.Count(groupedPrinted, "\n")
 	require.Equal(t, 6, newLines)
@@ -244,7 +244,7 @@ func TestSimpleIPAndSubnetDiffGrouping(t *testing.T) {
 	d := &diffBetweenCfgs{Subnets, cfg1SubCfg2, cfg2SubCfg1, nil}
 	groupConnLines, _ := newGroupConnLinesDiff(d)
 	d.groupedLines = groupConnLines.GroupedLines
-	groupedPrinted := d.String()
+	groupedPrinted, _ := d.String()
 	fmt.Println(groupedPrinted)
 	newLines := strings.Count(groupedPrinted, "\n")
 	require.Equal(t, 5, newLines)
@@ -375,7 +375,7 @@ func TestSimpleVsisDiffGrouping(t *testing.T) {
 	d := &diffBetweenCfgs{Vsis, cfg1SubCfg2, cfg2SubCfg1, nil}
 	groupConnLines, _ := newGroupConnLinesDiff(d)
 	d.groupedLines = groupConnLines.GroupedLines
-	groupedPrinted := d.String()
+	groupedPrinted, _ := d.String()
 	fmt.Println(groupedPrinted)
 	newLines := strings.Count(groupedPrinted, "\n")
 	require.Equal(t, 6, newLines)
