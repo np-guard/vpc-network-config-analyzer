@@ -132,12 +132,30 @@ func TestSimpleExternal(t *testing.T) {
 		require.Fail(t, "vpcConfig equals nil")
 	}
 	vsi1 := "vsi1-ky[10.240.10.4]"
-	cidr := "161.26.0.0/16"
-	explanbilityStr1, err1 := vpcConfig.ExplainConnectivity(vsi1, cidr)
+	cidr1 := "161.26.0.0/16"
+	cidr2 := "161.26.0.0/32"
+	explanbilityStr1, err1 := vpcConfig.ExplainConnectivity(vsi1, cidr1)
 	if err1 != nil {
 		require.Fail(t, err1.Error())
 	}
+	require.Equal(t, "Connection exists between vsi1-ky[10.240.10.4] and Public Internet [161.26.0.0/16]; its enabled by\n"+
+		"Egress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n\t"+
+		"index: 2, direction: outbound,  conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n", explanbilityStr1)
 	fmt.Println(explanbilityStr1)
+	explanbilityStr2, err2 := vpcConfig.ExplainConnectivity(cidr1, vsi1)
+	if err2 != nil {
+		require.Fail(t, err2.Error())
+	}
+	fmt.Println(explanbilityStr2)
+	require.Equal(t, "No connection between Public Internet [161.26.0.0/16] and vsi1-ky[10.240.10.4]; connection blocked by ingress\n", explanbilityStr2)
+	explanbilityStr3, err3 := vpcConfig.ExplainConnectivity(vsi1, cidr2)
+	if err3 != nil {
+		require.Fail(t, err3.Error())
+	}
+	require.Equal(t, "Connection exists between vsi1-ky[10.240.10.4] and Public Internet [161.26.0.0/32]; its enabled by\n"+
+		"Egress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n\t"+
+		"index: 2, direction: outbound,  conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n", explanbilityStr3)
+	fmt.Println(explanbilityStr3)
 }
 
 // getConfigs returns  map[string]*vpcmodel.VPCConfig obj for the input test (config json file)
