@@ -12,6 +12,7 @@ func (t *DebugOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	grouping bool,
 	uc OutputUseCase) (*SingleAnalysisOutput, error) {
 	out, err := headerOfAnalyzedVPC(uc, c1.VPC.Name(), "", c1)
+	unStateFul := false
 	if err != nil {
 		return nil, err
 	}
@@ -20,10 +21,11 @@ func (t *DebugOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 		// TODO: add a flag of whether to include grouped output or not
 		// TODO: add another 'debug' format that includes all detailed output
 		out = conn.DetailedString()
+		unStateFul = conn.GroupedConnectivity.HasStatelessConns()
 	case AllSubnets:
 	case SingleSubnet:
 	case SubnetsDiff, EndpointsDiff:
 	}
 	_, err = WriteToFile(out, outFile)
-	return &SingleAnalysisOutput{Output: out, VPC1Name: c1.VPC.Name(), VPC2Name: "", format: Debug}, err
+	return &SingleAnalysisOutput{Output: out, VPC1Name: c1.VPC.Name(), VPC2Name: "", format: Debug, HaveUnStateFulConn: unStateFul}, err
 }

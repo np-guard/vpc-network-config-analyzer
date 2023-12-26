@@ -271,6 +271,15 @@ func (diffCfgs *diffBetweenCfgs) String() string {
 	return strings.Join(strList, "")
 }
 
+// get the grouped diff connectivity stateLessness
+func (diffCfgs *diffBetweenCfgs) HasStatelessConns() bool {
+	unStateFul := false
+	for _, grouped := range diffCfgs.groupedLines {
+		unStateFul = unStateFul || (grouped.commonProperties.connDiff.conn1 != nil && grouped.commonProperties.connDiff.conn1.IsStateful == common.StatefulFalse) || (grouped.commonProperties.connDiff.conn2 != nil && grouped.commonProperties.connDiff.conn2.IsStateful == common.StatefulFalse)
+	}
+	return unStateFul
+}
+
 // prints connection for the above string(..) where the connection could be empty
 func connStr(conn *common.ConnectionSet) string {
 	if conn == nil {

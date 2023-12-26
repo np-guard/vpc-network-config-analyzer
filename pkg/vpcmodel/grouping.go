@@ -494,6 +494,15 @@ func (g *GroupConnLines) String() string {
 	return strings.Join(linesStr, "\n") + "\n"
 }
 
+// get the grouped connectivity stateLessness
+func (g *GroupConnLines) HasStatelessConns() bool {
+	unStateFul := false
+	for _, line := range g.GroupedLines {
+		unStateFul = unStateFul || line.commonProperties.conn.IsStateful == common.StatefulFalse
+	}
+	return unStateFul
+}
+
 func listEndpointElemStr(eps []EndpointElem, fn func(ep EndpointElem) string) string {
 	endpointsStrings := make([]string, len(eps))
 	for i, ep := range eps {

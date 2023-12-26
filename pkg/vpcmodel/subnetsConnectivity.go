@@ -313,6 +313,15 @@ func (v *VPCsubnetConnectivity) String() string {
 	return res
 }
 
+// get the grouped subnet connectivity stateLessness
+func (v *VPCsubnetConnectivity) HasStatelessConns() bool {
+	unStateFul := false
+	for _, line := range v.GroupedConnectivity.GroupedLines {
+		unStateFul = unStateFul || line.commonProperties.conn.IsStateful == common.StatefulFalse
+	}
+	return unStateFul
+}
+
 // GetConnectivityOutputPerEachSubnetSeparately returns string results of connectivity analysis per
 // single subnet with its attached nacl, separately per subnet - useful to get understanding of the
 // connectivity implied from nacl configuration applied on a certain subnet in the vpc
