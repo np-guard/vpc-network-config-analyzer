@@ -174,8 +174,8 @@ func (rulesOfConnection *RulesOfConnection) String(src, dst Node, c *VPCConfig) 
 	needIngress := dst.IsInternal()
 	noIngressRules := len(rulesOfConnection.ingressRules) == 0 && needIngress
 	noEgressRules := len(rulesOfConnection.egressRules) == 0 && needEgress
-	egressRulesStr := fmt.Sprintf("Egress Rules:\n~~~~~~~~~~~~~~\n%v", rulesOfConnection.egressRules.string(c))
-	ingressRulesStr := fmt.Sprintf("Ingress Rules:\n~~~~~~~~~~~~~\n%v", rulesOfConnection.ingressRules.string(c))
+	egressRulesStr := fmt.Sprintf("Egress Rules:\n~~~~~~~~~~~~~\n%v", rulesOfConnection.egressRules.string(c))
+	ingressRulesStr := fmt.Sprintf("Ingress Rules:\n~~~~~~~~~~~~~~\n%v", rulesOfConnection.ingressRules.string(c))
 	noConnection := fmt.Sprintf("No connection between %v and %v;", src.Name(), dst.Name())
 	resStr := ""
 	switch {
@@ -194,16 +194,22 @@ func (rulesOfConnection *RulesOfConnection) String(src, dst Node, c *VPCConfig) 
 	default: // there is a connection
 		// todo: connectivity is computed for the entire network, even though we need only src-> dst
 		//       this is seems the time spent here should be neglectable, not worth the effort of adding dedicated code.
-		connectivity, err := c.GetVPCNetworkConnectivity(false) // computes connectivity
-		if err != nil {
-			return "", err
+		// todo: this computation does not work for external ip since the nodes are different ranges.
+		//       Disabling for this PRs for external addresses
+		if !src.IsExternal() && !dst.IsExternal() {
+			connectivity, err := c.GetVPCNetworkConnectivity(false) // computes connectivity
+			if err != nil {
+				return "", err
+			}
+			conn, ok := connectivity.AllowedConnsCombined[src][dst]
+			if !ok {
+				return "", fmt.Errorf("error: there is a connection between %v and %v, but connection computation failed",
+					src.Name(), dst.Name())
+			}
+			resStr = fmt.Sprintf("The following connection exists between %v and %v: %v; its enabled by\n", src.Name(), dst.Name(), conn.String())
+		} else {
+			resStr = fmt.Sprintf("Connection exists between %v and %v; its enabled by\n", src.Name(), dst.Name())
 		}
-		conn, ok := connectivity.AllowedConnsCombined[src][dst]
-		if !ok {
-			return "", fmt.Errorf("error: there is a connection between %v and %v, but connection computation failed",
-				src.Name(), dst.Name())
-		}
-		resStr = fmt.Sprintf("The following connection exists between %v and %v: %v; its enabled by\n", src.Name(), dst.Name(), conn.String())
 		if needEgress {
 			resStr += egressRulesStr
 		}
