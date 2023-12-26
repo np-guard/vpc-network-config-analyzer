@@ -2,5 +2,3 @@ Connectivity between VPCs connected by TGW local-tg-ky (UID: crn:161)
 combined connections between subnets:
 ky-vpc1-net1 => ky-vpc2-net1 : All Connections
 ky-vpc2-net1 => ky-vpc1-net1 : All Connections
-
-connections are stateful unless marked with *
