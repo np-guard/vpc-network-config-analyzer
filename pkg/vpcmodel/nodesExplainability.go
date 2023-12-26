@@ -31,6 +31,8 @@ func (c *VPCConfig) getVsiNode(name string) Node {
 //  1. The union of these nodes is the cidr
 //  2. Let i be a node in I and n be a node in VPCConfig.
 //     i and n are either disjoint or i is contained in n
+//     Note that the vpconfig nodes were chosen w.r.t. connectivity rules (SG and NACL)
+//     s.t. each node either fully belongs to a rule or is disjoint to it.
 //     to get nodes I as above:
 //  1. Calculate the IP blocks of the nodes N
 //  2. Calculate from N and the cidr block, disjoint IP blocks
