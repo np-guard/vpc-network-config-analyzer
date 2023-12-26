@@ -170,6 +170,51 @@ func (c *VPCConfig) getRulesOfConnection(src, dst Node) (rulesOfConnection *Rule
 	return rulesOfConnection, nil
 }
 
+// given that there is a connection between src to dst, gets it
+// if src or dst is a node then the node is from getCidrExternalNodes,
+// thus there is a node in VPCConfig that either equal to or contains it.
+func (c *VPCConfig) getConnection(src, dst Node) (conn *common.ConnectionSet, err error) {
+	srcForConnection, err1 := c.getContainingConfigNode(src)
+	if err1 != nil {
+		return nil, err1
+	}
+	dstForConnection, err2 := c.getContainingConfigNode(dst)
+	if err2 != nil {
+		return nil, err2
+	}
+	connectivity, err3 := c.GetVPCNetworkConnectivity(false) // computes connectivity
+	if err3 != nil {
+		return nil, err3
+	}
+	conn, ok := connectivity.AllowedConnsCombined[srcForConnection][dstForConnection]
+	if !ok {
+		return nil, fmt.Errorf("error: there is a connection between %v and %v, but connection computation failed",
+			srcForConnection.Name(), dstForConnection.Name())
+	}
+	return conn, nil
+}
+
+// node is from getCidrExternalNodes, thus there is a node in VPCConfig that either equal to or contains it.
+func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
+	if !node.IsExternal() { // node is not external - nothing to do
+		return node, nil
+	}
+	nodeIPBlock := common.NewIPBlockFromCidr(node.Cidr())
+	if nodeIPBlock == nil { // string cidr does not represent a legal cidr
+		return nil, fmt.Errorf("could not find IP block of external node %v", node.Name())
+	}
+	for _, configNode := range c.Nodes {
+		if !configNode.IsExternal() {
+			continue
+		}
+		configNodeIPBlock := common.NewIPBlockFromCidr(configNode.Cidr())
+		if nodeIPBlock.ContainedIn(configNodeIPBlock) {
+			return configNode, nil
+		}
+	}
+	return nil, fmt.Errorf("could not find containing config node for %v", node.Name())
+}
+
 // todo: when there is more than just SG, add explanation when all layers are default
 
 func (rulesOfConnection *RulesOfConnection) String(src, dst Node, c *VPCConfig) (string, error) {
@@ -197,22 +242,11 @@ func (rulesOfConnection *RulesOfConnection) String(src, dst Node, c *VPCConfig) 
 	default: // there is a connection
 		// todo: connectivity is computed for the entire network, even though we need only src-> dst
 		//       this is seems the time spent here should be neglectable, not worth the effort of adding dedicated code.
-		// todo: this computation does not work for external ip since the nodes are different ranges.
-		//       Disabling for this PRs for external addresses
-		if !src.IsExternal() && !dst.IsExternal() {
-			connectivity, err := c.GetVPCNetworkConnectivity(false) // computes connectivity
-			if err != nil {
-				return "", err
-			}
-			conn, ok := connectivity.AllowedConnsCombined[src][dst]
-			if !ok {
-				return "", fmt.Errorf("error: there is a connection between %v and %v, but connection computation failed",
-					src.Name(), dst.Name())
-			}
-			resStr = fmt.Sprintf("The following connection exists between %v and %v: %v; its enabled by\n", src.Name(), dst.Name(), conn.String())
-		} else {
-			resStr = fmt.Sprintf("Connection exists between %v and %v; its enabled by\n", src.Name(), dst.Name())
+		conn, err2 := c.getConnection(src, dst)
+		if err2 != nil {
+			return "", err2
 		}
+		resStr = fmt.Sprintf("The following connection exists between %v and %v: %v; its enabled by\n", src.Name(), dst.Name(), conn.String())
 		if needEgress {
 			resStr += egressRulesStr
 		}
