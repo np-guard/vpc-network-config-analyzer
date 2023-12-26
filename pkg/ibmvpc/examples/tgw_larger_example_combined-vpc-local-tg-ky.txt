@@ -23,5 +23,3 @@ vsi31-ky[10.240.31.4] => vsi21b-ky[10.240.64.5] : All Connections
 vsi31-ky[10.240.31.4] => vsi21c-ky[10.240.64.6] : All Connections
 vsi32-ky[10.240.128.4] => vsi21a-ky[10.240.64.4] : All Connections
 vsi32-ky[10.240.128.4] => vsi21b-ky[10.240.64.5] : All Connections
-
-connections are stateful unless marked with *
