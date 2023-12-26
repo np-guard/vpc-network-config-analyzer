@@ -138,7 +138,8 @@ func TestSimpleExternal(t *testing.T) {
 	if err1 != nil {
 		require.Fail(t, err1.Error())
 	}
-	require.Equal(t, "The following connection exists between vsi1-ky[10.240.10.4] and Public Internet [161.26.0.0/16]: protocol: UDP; its enabled by\n"+
+	require.Equal(t, "The following connection exists between vsi1-ky[10.240.10.4] and Public Internet [161.26.0.0/16]: "+
+		"protocol: UDP; its enabled by\n"+
 		"Egress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n\t"+
 		"index: 2, direction: outbound,  conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n", explanbilityStr1)
 	fmt.Println(explanbilityStr1)
@@ -153,7 +154,8 @@ func TestSimpleExternal(t *testing.T) {
 	if err3 != nil {
 		require.Fail(t, err3.Error())
 	}
-	require.Equal(t, "The following connection exists between vsi1-ky[10.240.10.4] and Public Internet [161.26.0.0/32]: protocol: UDP; its enabled by\n"+
+	require.Equal(t, "The following connection exists between vsi1-ky[10.240.10.4] and Public Internet [161.26.0.0/32]: "+
+		"protocol: UDP; its enabled by\n"+
 		"Egress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n\t"+
 		"index: 2, direction: outbound,  conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n", explanbilityStr3)
 	fmt.Println(explanbilityStr3)
