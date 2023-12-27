@@ -1,5 +1,3 @@
 Connectivity for VPC test-vpc2-ky
 vsi21a-ky[10.240.64.4] => vsi21b-ky[10.240.64.5] : All Connections
 vsi21b-ky[10.240.64.5] => vsi21a-ky[10.240.64.4] : All Connections
-
-connections are stateful unless marked with *

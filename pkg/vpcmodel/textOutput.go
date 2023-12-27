@@ -8,8 +8,6 @@ import (
 type TextOutputFormatter struct {
 }
 
-const asteriskDetails = "\n\nconnections are stateful unless marked with *\n"
-
 func headerOfAnalyzedVPC(uc OutputUseCase, vpcName, vpc2Name string, c1 *VPCConfig) (string, error) {
 	switch uc {
 	case AllEndpoints, AllSubnets, SingleSubnet:

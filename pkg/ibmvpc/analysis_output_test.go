@@ -66,7 +66,6 @@ func getTestFileName(testName string,
 	grouping bool,
 	format vpcmodel.OutFormat,
 	configName string,
-	numConfigs int,
 	allVPCs bool) (
 	expectedFileName,
 	actualFileName string,
@@ -75,12 +74,10 @@ func getTestFileName(testName string,
 
 	// if there are more than one vpc in the config, split to a file per one vpc analysis
 	baseName := testName
-	if numConfigs > 1 {
-		if allVPCs {
-			baseName += "_all_vpcs"
-		} else {
-			baseName += "_" + configName
-		}
+	if allVPCs {
+		baseName += "_all_vpcs_"
+	} else {
+		baseName += "_" + configName
 	}
 
 	switch uc {
@@ -553,11 +550,10 @@ func compareOrRegenerateOutputPerTest(t *testing.T,
 
 func initTestFileNames(tt *vpcGeneralTest,
 	uc vpcmodel.OutputUseCase,
-	numConfigs int,
 	vpcName string,
 	allVPCs bool) error {
 	expectedFileName, actualFileName, err := getTestFileName(
-		tt.name, uc, tt.grouping, tt.format, vpcName, numConfigs, allVPCs)
+		tt.name, uc, tt.grouping, tt.format, vpcName, allVPCs)
 	if err != nil {
 		return err
 	}
@@ -572,7 +568,7 @@ func runTestPerUseCase(t *testing.T,
 	c1, c2 map[string]*vpcmodel.VPCConfig,
 	uc vpcmodel.OutputUseCase,
 	mode testMode) error {
-	if err := initTestFileNames(tt, uc, len(c1), "", true); err != nil {
+	if err := initTestFileNames(tt, uc, "", true); err != nil {
 		return err
 	}
 	og, err := vpcmodel.NewOutputGenerator(c1, c2, tt.grouping, uc, tt.format == vpcmodel.ARCHDRAWIO)
