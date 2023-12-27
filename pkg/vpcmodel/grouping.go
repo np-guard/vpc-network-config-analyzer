@@ -22,8 +22,9 @@ type groupedNodesInfo struct {
 type groupedCommonProperties struct {
 	conn     *common.ConnectionSet
 	connDiff *connectionDiff
-	// connStrKey is the string of conn per grouping of conn lines, and string of connDiff per grouping of diff lines
-	connStrKey string // the key used for grouping per connectivity lines or diff lines
+	// groupingStrKey is the key by which the grouping is done:
+	// the string of conn per grouping of conn lines, and string of connDiff per grouping of diff lines
+	groupingStrKey string // the key used for grouping per connectivity lines or diff lines
 }
 
 func (g *groupedNodesInfo) appendNode(n Node) {
@@ -116,14 +117,14 @@ type groupedConnLine struct {
 }
 
 func (g *groupedConnLine) String() string {
-	return g.src.Name() + " => " + g.dst.Name() + " : " + g.commonProperties.connStrKey
+	return g.src.Name() + " => " + g.dst.Name() + " : " + g.commonProperties.groupingStrKey
 }
 
 func (g *groupedConnLine) ConnLabel() string {
 	if g.commonProperties.conn.AllowAll {
 		return ""
 	}
-	return g.commonProperties.connStrKey
+	return g.commonProperties.groupingStrKey
 }
 
 func (g *groupedConnLine) getSrcOrDst(isSrc bool) EndpointElem {
@@ -183,7 +184,7 @@ func (g *GroupConnLines) getGroupedExternalNodes(grouped groupedExternalNodes) *
 }
 
 func (g *groupingConnections) addPublicConnectivity(ep EndpointElem, commonProps *groupedCommonProperties, targetNode Node) {
-	connKey := commonProps.connStrKey
+	connKey := commonProps.groupingStrKey
 	if _, ok := (*g)[ep]; !ok {
 		(*g)[ep] = map[string]*groupedNodesInfo{}
 	}
@@ -257,7 +258,7 @@ func (g *GroupConnLines) groupExternalAddresses(vsi bool) error {
 	for src, nodeConns := range allowedConnsCombined {
 		for dst, conns := range nodeConns {
 			err := g.addLineToExternalGrouping(&res, conns.IsEmpty(), src, dst,
-				&groupedCommonProperties{conn: conns, connStrKey: conns.EnhancedString()})
+				&groupedCommonProperties{conn: conns, groupingStrKey: conns.EnhancedString()})
 			if err != nil {
 				return err
 			}
@@ -284,7 +285,7 @@ func (g *GroupConnLines) groupExternalAddressesForDiff(thisMinusOther bool) erro
 			connDiffString := connDiffEncode(src, dst, connDiff)
 			connsEmpty := connDiff.conn1.IsEmpty() && connDiff.conn2.IsEmpty()
 			err := g.addLineToExternalGrouping(&res, connsEmpty, src, dst,
-				&groupedCommonProperties{connDiff: connDiff, connStrKey: connDiffString})
+				&groupedCommonProperties{connDiff: connDiff, groupingStrKey: connDiffString})
 			if err != nil {
 				return err
 			}
@@ -354,7 +355,7 @@ func (g *GroupConnLines) groupLinesByKey(srcGrouping, groupVsi bool) (res []*gro
 			res = append(res, line)
 			continue
 		}
-		key := getKeyOfGroupConnLines(dstOrSrc, line.commonProperties.connStrKey)
+		key := getKeyOfGroupConnLines(dstOrSrc, line.commonProperties.groupingStrKey)
 		if _, ok := groupingSrcOrDst[key]; !ok {
 			groupingSrcOrDst[key] = []*groupedConnLine{}
 		}
