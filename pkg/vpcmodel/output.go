@@ -204,16 +204,11 @@ func (of *TextualOutputFormatter) AggregateVPCsOutput(outputList []*SingleAnalys
 		res, err = WriteToFile(strings.Join(vpcsOut, "\n")+infoMessage, outFile)
 
 	case JSON:
-		if len(outputList) > 1 {
-			// aggregate to a map from vpc name to its json struct output
-			all := map[string]interface{}{}
-			for _, o := range outputList {
-				all[o.VPC1Name] = o.jsonStruct
-			}
-			res, err = writeJSON(all, outFile)
-		} else {
-			res, err = writeJSON(outputList[0].jsonStruct, outFile)
+		all := map[string]interface{}{}
+		for _, o := range outputList {
+			all[o.VPC1Name] = o.jsonStruct
 		}
+		res, err = writeJSON(all, outFile)
 	}
 	return res, err
 }
