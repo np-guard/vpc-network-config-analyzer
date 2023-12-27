@@ -18,10 +18,11 @@ type rulesConnection struct {
 type rulesSingleSrcDst struct {
 	src   Node
 	dst   Node
+	conn  *common.ConnectionSet
 	rules *rulesConnection
 }
 
-type explainStruct []rulesSingleSrcDst
+type explainStruct []*rulesSingleSrcDst
 
 // finds the node of a given, by its name, Vsi
 func (c *VPCConfig) getVsiNode(name string) Node {
@@ -92,6 +93,10 @@ func (c *VPCConfig) ExplainConnectivity(src, dst string) (explanation string, er
 	if err1 != nil {
 		return "", err1
 	}
+	err2 := explanationStruct.computeConnections(c)
+	if err2 != nil {
+		return "", err2
+	}
 	return explanationStruct.String(c)
 }
 
@@ -108,8 +113,8 @@ func (c *VPCConfig) computeExplainRules(srcName, dstName string) (explanationStr
 			if err != nil {
 				return nil, err
 			}
-			rulesThisSrcDst := &rulesSingleSrcDst{src, dst, rulesOfConnection}
-			explanationStruct[i] = *rulesThisSrcDst
+			rulesThisSrcDst := &rulesSingleSrcDst{src, dst, nil, rulesOfConnection}
+			explanationStruct[i] = rulesThisSrcDst
 			i++
 		}
 	}
@@ -184,30 +189,6 @@ func (c *VPCConfig) getRulesOfConnection(src, dst Node) (rulesOfConnection *rule
 	return rulesOfConnection, nil
 }
 
-// given that there is a connection between src to dst, gets it
-// if src or dst is a node then the node is from getCidrExternalNodes,
-// thus there is a node in VPCConfig that either equal to or contains it.
-func (c *VPCConfig) getConnection(src, dst Node) (conn *common.ConnectionSet, err error) {
-	srcForConnection, err1 := c.getContainingConfigNode(src)
-	if err1 != nil {
-		return nil, err1
-	}
-	dstForConnection, err2 := c.getContainingConfigNode(dst)
-	if err2 != nil {
-		return nil, err2
-	}
-	connectivity, err3 := c.GetVPCNetworkConnectivity(false) // computes connectivity
-	if err3 != nil {
-		return nil, err3
-	}
-	conn, ok := connectivity.AllowedConnsCombined[srcForConnection][dstForConnection]
-	if !ok {
-		return nil, fmt.Errorf("error: there is a connection between %v and %v, but connection computation failed",
-			srcForConnection.Name(), dstForConnection.Name())
-	}
-	return conn, nil
-}
-
 // node is from getCidrExternalNodes, thus there is a node in VPCConfig that either equal to or contains it.
 func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
 	if !node.IsExternal() { // node is not external - nothing to do
@@ -257,13 +238,8 @@ func (explanationStruct *explainStruct) String(c *VPCConfig) (string, error) {
 				resStr += ingressRulesStr
 			}
 		default: // there is a connection
-			// todo: connectivity is computed for the entire network, even though we need only src-> dst
-			//       this is seems the time spent here should be neglectable, not worth the effort of adding dedicated code.
-			conn, err2 := c.getConnection(src, dst)
-			if err2 != nil {
-				return "", err2
-			}
-			resStr = fmt.Sprintf("The following connection exists between %v and %v: %v; its enabled by\n", src.Name(), dst.Name(), conn.String())
+			resStr = fmt.Sprintf("The following connection exists between %v and %v: %v; its enabled by\n", src.Name(), dst.Name(),
+				rulesSrcDst.conn.String())
 			if needEgress {
 				resStr += egressRulesStr
 			}
@@ -274,6 +250,47 @@ func (explanationStruct *explainStruct) String(c *VPCConfig) (string, error) {
 		// todo: not adding newlines in between since this will be replaced by grouping in the next PR
 	}
 	return resStr, nil
+}
+
+// todo: connectivity is computed for the entire network, even though we need only for specific src, dst pairs
+// this is seems the time spent here should be neglectable, not worth the effort of adding dedicated code.
+func (explanationStruct *explainStruct) computeConnections(c *VPCConfig) error {
+	connectivity, err := c.GetVPCNetworkConnectivity(false) // computes connectivity
+	if err != nil {
+		return err
+	}
+	for _, rulesSrcDst := range *explanationStruct {
+		// is there a connection?
+		if (len(rulesSrcDst.rules.egressRules) > 0 || rulesSrcDst.src.IsExternal()) && // egress enabled or not needed
+			(len(rulesSrcDst.rules.ingressRules) > 0 || rulesSrcDst.dst.IsExternal()) { // ingress enabled or not needed
+			conn, err := connectivity.getConnection(c, rulesSrcDst.src, rulesSrcDst.dst)
+			if err != nil {
+				return err
+			}
+			rulesSrcDst.conn = conn
+		}
+	}
+	return nil
+}
+
+// given that there is a connection between src to dst, gets it
+// if src or dst is a node then the node is from getCidrExternalNodes,
+// thus there is a node in VPCConfig that either equal to or contains it.
+func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (conn *common.ConnectionSet, err error) {
+	srcForConnection, err1 := c.getContainingConfigNode(src)
+	if err1 != nil {
+		return nil, err1
+	}
+	dstForConnection, err2 := c.getContainingConfigNode(dst)
+	if err2 != nil {
+		return nil, err2
+	}
+	conn, ok := v.AllowedConnsCombined[srcForConnection][dstForConnection]
+	if !ok {
+		return nil, fmt.Errorf("error: there is a connection between %v and %v, but connection computation failed",
+			srcForConnection.Name(), dstForConnection.Name())
+	}
+	return conn, nil
 }
 
 func (rulesInLayers *rulesInLayers) string(c *VPCConfig) string {
