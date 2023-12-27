@@ -24,6 +24,13 @@ type rulesSingleSrcDst struct {
 
 type explainStruct []*rulesSingleSrcDst
 
+type explanation struct {
+	c             *VPCConfig
+	explainStruct *explainStruct
+	// grouped connectivity result
+	groupedLines []*groupedConnLine
+}
+
 // finds the node of a given, by its name, Vsi
 func (c *VPCConfig) getVsiNode(name string) Node {
 	for _, node := range c.Nodes {
@@ -88,7 +95,7 @@ func (c *VPCConfig) getNodesFromInput(cidrOrName string) ([]Node, error) {
 // todo: group results. for now just prints each
 
 // ExplainConnectivity todo: this will not be needed here once we connect explanbility to the cli
-func (c *VPCConfig) ExplainConnectivity(src, dst string) (explanation string, err error) {
+func (c *VPCConfig) ExplainConnectivity(src, dst string) (out string, err error) {
 	explanationStruct, err1 := c.computeExplainRules(src, dst)
 	if err1 != nil {
 		return "", err1
@@ -97,7 +104,12 @@ func (c *VPCConfig) ExplainConnectivity(src, dst string) (explanation string, er
 	if err2 != nil {
 		return "", err2
 	}
-	return explanationStruct.String(c)
+	groupedLines, err3 := newGroupConnExplainability(&explanationStruct)
+	if err3 != nil {
+		return "", err3
+	}
+	res := &explanation{c, &explanationStruct, groupedLines.GroupedLines}
+	return res.String(), nil
 }
 
 func (c *VPCConfig) computeExplainRules(srcName, dstName string) (explanationStruct explainStruct, err error) {
@@ -217,6 +229,17 @@ func (explanationStruct *explainStruct) String(c *VPCConfig) (string, error) {
 		resStr += stringExplainabilityLine(c, rulesSrcDst.src, rulesSrcDst.dst, rulesSrcDst.conn, rulesSrcDst.rules)
 	}
 	return resStr, nil
+}
+
+func (explanation *explanation) String() string {
+	resStr := ""
+	groupedLines := explanation.groupedLines
+	for _, line := range groupedLines {
+		// by design, line.src and line.dst are Nodes. Thus avoiding error handling.
+		resStr += stringExplainabilityLine(explanation.c, line.src.(Node), line.dst.(Node), line.commonProperties.conn,
+			line.commonProperties.rules)
+	}
+	return resStr
 }
 
 func stringExplainabilityLine(c *VPCConfig, src, dst Node, conn *common.ConnectionSet, rules *rulesConnection) string {
