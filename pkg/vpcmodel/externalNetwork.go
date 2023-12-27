@@ -41,7 +41,7 @@ type ExternalNetwork struct {
 	isPublicInternet bool
 }
 
-func (exn *ExternalNetwork) UID() string      { return "" }
+func (exn *ExternalNetwork) UID() string      { return exn.Name() }
 func (exn *ExternalNetwork) ZoneName() string { return "" }
 func (exn *ExternalNetwork) IsExternal() bool { return true }
 

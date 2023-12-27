@@ -230,7 +230,7 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() error {
 			}
 			var combinedConns *common.ConnectionSet
 			// peerNode kind is expected to be Subnet or External
-			peerNodeObj := v.VPCConfig.NameToResource[peerNode.Name()]
+			peerNodeObj := v.VPCConfig.UIDToResource[peerNode.UID()]
 			switch concPeerNode := peerNodeObj.(type) {
 			case NodeSet:
 				egressConns := v.AllowedConns[concPeerNode].EgressAllowedConns[subnetNodeSet]
@@ -257,7 +257,7 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() error {
 			combinedConns := conns
 
 			// peerNode kind is expected to be Subnet or External
-			peerNodeObj := v.VPCConfig.NameToResource[peerNode.Name()]
+			peerNodeObj := v.VPCConfig.UIDToResource[peerNode.UID()]
 			switch peerNodeObj.(type) {
 			case NodeSet:
 				continue
@@ -281,7 +281,7 @@ func (v *VPCsubnetConnectivity) computeStatefulConnections() {
 			if conn.IsEmpty() {
 				continue
 			}
-			dstObj := v.VPCConfig.NameToResource[dst.Name()]
+			dstObj := v.VPCConfig.UIDToResource[dst.UID()]
 			var otherDirectionConn *common.ConnectionSet
 			switch dstObj.(type) {
 			case NodeSet:
