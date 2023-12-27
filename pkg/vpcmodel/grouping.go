@@ -22,8 +22,10 @@ type groupedNodesInfo struct {
 type groupedCommonProperties struct {
 	conn     *common.ConnectionSet
 	connDiff *connectionDiff
+	rules    *rulesConnection
 	// groupingStrKey is the key by which the grouping is done:
-	// the string of conn per grouping of conn lines, and string of connDiff per grouping of diff lines
+	// the string of conn per grouping of conn lines, string of connDiff per grouping of diff lines
+	// and string of conn and rules for explainblity
 	groupingStrKey string // the key used for grouping per connectivity lines or diff lines
 }
 
@@ -86,6 +88,17 @@ func newGroupConnLinesDiff(d *diffBetweenCfgs) (res *GroupConnLines, err error) 
 	return res, err
 }
 
+func newGroupConnExplainability(e *explainStruct) (res *GroupConnLines, err error) {
+	res = &GroupConnLines{
+		e:                        e,
+		srcToDst:                 newGroupingConnections(),
+		dstToSrc:                 newGroupingConnections(),
+		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
+		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
+	err = res.groupExternalAddressesForExplainability()
+	return res, err
+}
+
 // GroupConnLines used both for VPCConnectivity and for VPCsubnetConnectivity, one at a time. The other must be nil
 // todo: define abstraction above both?
 type GroupConnLines struct {
@@ -93,6 +106,7 @@ type GroupConnLines struct {
 	v        *VPCConnectivity
 	s        *VPCsubnetConnectivity
 	d        *diffBetweenCfgs
+	e        *explainStruct
 	srcToDst *groupingConnections
 	dstToSrc *groupingConnections
 	// a map to groupedEndpointsElems used by GroupedConnLine from a unified key of such elements
@@ -292,6 +306,12 @@ func (g *GroupConnLines) groupExternalAddressesForDiff(thisMinusOther bool) erro
 		}
 	}
 	g.appendGrouped(res)
+	return nil
+}
+
+// group public internet ranges for explainability lines
+func (g *GroupConnLines) groupExternalAddressesForExplainability() error {
+	//var res []*groupedConnLine
 	return nil
 }
 
