@@ -90,7 +90,7 @@ func (c *VPCConfig) getNodesFromInput(cidrOrName string) ([]Node, error) {
 func (c *VPCConfig) ExplainConnectivity(src, dst string) (explanation string, err error) {
 	explanationStruct, err1 := c.computeExplainRules(src, dst)
 	if err1 != nil {
-		return "", nil
+		return "", err1
 	}
 	return explanationStruct.String(c)
 }
