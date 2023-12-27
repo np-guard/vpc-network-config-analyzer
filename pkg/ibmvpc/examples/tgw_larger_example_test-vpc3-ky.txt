@@ -3,5 +3,3 @@ Public Internet (all ranges) => vsi32-ky[10.240.128.4] : All Connections
 vsi31-ky[10.240.31.4] => vsi32-ky[10.240.128.4] : All Connections
 vsi32-ky[10.240.128.4] => Public Internet (all ranges) : All Connections
 vsi32-ky[10.240.128.4] => vsi31-ky[10.240.31.4] : All Connections
-
-connections are stateful unless marked with *

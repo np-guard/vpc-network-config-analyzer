@@ -10,6 +10,8 @@ import (
 
 type OutFormat int64
 
+const asteriskDetails = "\nconnections are stateful unless marked with *\n"
+
 const (
 	JSON OutFormat = iota
 	Text
@@ -138,7 +140,7 @@ func WriteToFile(content, fileName string) (string, error) {
 
 // AggregateVPCsOutput returns the output string for a list of SingleAnalysisOutput objects
 // and writes the output to outFile
-func AggregateVPCsOutput(outputList []*SingleAnalysisOutput, f OutFormat, outFile string) (string, error) {
+func AggregateVPCsOutput(outputList []*SingleAnalysisOutput, f OutFormat, uc OutputUseCase, outFile string) (string, error) {
 	var res string
 	var err error
 	switch f {
@@ -148,8 +150,12 @@ func AggregateVPCsOutput(outputList []*SingleAnalysisOutput, f OutFormat, outFil
 		for i, o := range outputList {
 			vpcsOut[i] = o.Output
 		}
+		infoMessage := asteriskDetails
 		sort.Strings(vpcsOut)
-		res, err = WriteToFile(strings.Join(vpcsOut, "\n"), outFile)
+		if uc == SingleSubnet {
+			infoMessage = ""
+		}
+		res, err = WriteToFile(strings.Join(vpcsOut, "\n")+infoMessage, outFile)
 
 	case JSON:
 		// aggregate to a map from vpc name to its json struct output
@@ -168,7 +174,7 @@ func WriteDiffOutput(output *SingleAnalysisOutput, f OutFormat, outFile string) 
 	var err error
 	switch f {
 	case Text, MD, Debug: // currently, return out as is
-		res, err = WriteToFile(output.Output, outFile)
+		res, err = WriteToFile(output.Output+asteriskDetails, outFile)
 	case JSON:
 		all := map[string]interface{}{}
 		head := fmt.Sprintf("diff-%s-%s", output.VPC1Name, output.VPC2Name)

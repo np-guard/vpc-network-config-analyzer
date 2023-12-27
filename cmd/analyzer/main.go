@@ -139,7 +139,7 @@ func _main(cmdlineArgs []string) error {
 		}
 
 		var out string
-		out, err = vpcmodel.AggregateVPCsOutput(outputPerVPC, getOutputFormat(inArgs), outFile)
+		out, err = vpcmodel.AggregateVPCsOutput(outputPerVPC, getOutputFormat(inArgs), analysisTypeToUseCase(inArgs), outFile)
 		if err != nil {
 			return err
 		}

@@ -1,5 +1,3 @@
 Connectivity for VPC zn-vpc1
 combined connections between subnets:
 
-
-connections are stateful unless marked with *

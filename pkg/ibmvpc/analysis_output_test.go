@@ -67,7 +67,6 @@ func getTestFileName(testName string,
 	grouping bool,
 	format vpcmodel.OutFormat,
 	configName string,
-	numConfigs int,
 	allVPCs bool) (
 	expectedFileName,
 	actualFileName string,
@@ -76,12 +75,10 @@ func getTestFileName(testName string,
 
 	// if there are more than one vpc in the config, split to a file per one vpc analysis
 	baseName := testName
-	if numConfigs > 1 {
-		if allVPCs {
-			baseName += "_all_vpcs"
-		} else {
-			baseName += "_" + configName
-		}
+	if allVPCs {
+		baseName += "_all_vpcs_"
+	} else {
+		baseName += "_" + configName
 	}
 
 	switch uc {
@@ -531,11 +528,10 @@ func compareOrRegenerateOutputPerTest(t *testing.T,
 
 func initTestFileNames(tt *vpcGeneralTest,
 	uc vpcmodel.OutputUseCase,
-	numConfigs int,
 	vpcName string,
 	allVPCs bool) error {
 	expectedFileName, actualFileName, err := getTestFileName(
-		tt.name, uc, tt.grouping, tt.format, vpcName, numConfigs, allVPCs)
+		tt.name, uc, tt.grouping, tt.format, vpcName, allVPCs)
 	if err != nil {
 		return err
 	}
@@ -559,7 +555,7 @@ func runTestPerUseCase(t *testing.T,
 		vpcConfig2nd = vpcConfig
 	}
 	for _, vpcConfig := range c1 {
-		if err := initTestFileNames(tt, uc, numConfigs, vpcConfig.VPC.Name(), false); err != nil {
+		if err := initTestFileNames(tt, uc, vpcConfig.VPC.Name(), false); err != nil {
 			return err
 		}
 
@@ -577,24 +573,22 @@ func runTestPerUseCase(t *testing.T,
 			return err
 		}
 	}
-	// if more then one vpc -- compare also the aggregated output
-	if numConfigs > 1 {
-		if err := initTestFileNames(tt, uc, numConfigs, "", true); err != nil {
-			return err
-		}
+	// compare also the aggregated output
+	if err := initTestFileNames(tt, uc, "", true); err != nil {
+		return err
+	}
 
-		// sort allVPCsOutput by vpc name
-		sort.Slice(allVPCsOutput, func(i, j int) bool {
-			return allVPCsOutput[i].VPC1Name < allVPCsOutput[j].VPC1Name
-		})
+	// sort allVPCsOutput by vpc name
+	sort.Slice(allVPCsOutput, func(i, j int) bool {
+		return allVPCsOutput[i].VPC1Name < allVPCsOutput[j].VPC1Name
+	})
 
-		actualOutput, err := vpcmodel.AggregateVPCsOutput(allVPCsOutput, tt.format, tt.actualOutput[uc])
-		if err != nil {
-			return err
-		}
-		if err := compareOrRegenerateOutputPerTest(t, mode, actualOutput, tt, uc); err != nil {
-			return err
-		}
+	actualOutput, err := vpcmodel.AggregateVPCsOutput(allVPCsOutput, tt.format, uc, tt.actualOutput[uc])
+	if err != nil {
+		return err
+	}
+	if err := compareOrRegenerateOutputPerTest(t, mode, actualOutput, tt, uc); err != nil {
+		return err
 	}
 
 	return nil

@@ -8,5 +8,3 @@ vsi1-ky[10.240.1.4] => vsi2-ky[10.240.2.4] : All Connections
 vsi2-ky[10.240.2.4] => Public Internet (all ranges) : All Connections
 vsi2-ky[10.240.2.4] => vsi0-ky[10.240.0.5] : All Connections
 vsi2-ky[10.240.2.4] => vsi1-ky[10.240.1.4] : All Connections
-
-connections are stateful unless marked with *

@@ -310,7 +310,6 @@ func (connectivityMap GeneralConnectivityMap) getCombinedConnsStr() string {
 	}
 	sort.Strings(strList)
 	res := strings.Join(strList, "")
-	res += asteriskDetails
 	return res
 }
 
