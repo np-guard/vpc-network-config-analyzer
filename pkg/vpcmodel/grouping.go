@@ -311,7 +311,19 @@ func (g *GroupConnLines) groupExternalAddressesForDiff(thisMinusOther bool) erro
 
 // group public internet ranges for explainability lines
 func (g *GroupConnLines) groupExternalAddressesForExplainability() error {
-	//var res []*groupedConnLine
+	var res []*groupedConnLine
+	for _, rulesSrcDst := range *g.e {
+		connStr := ""
+		if rulesSrcDst.conn != nil {
+			connStr = rulesSrcDst.conn.String() + ";"
+		}
+		groupingStrKey := rulesSrcDst.src.Name() + ";" + rulesSrcDst.dst.Name() + ";" + connStr + rulesSrcDst.rules.rulesEncode(g.c)
+		err := g.addLineToExternalGrouping(&res, rulesSrcDst.conn.IsEmpty(), rulesSrcDst.src, rulesSrcDst.dst,
+			&groupedCommonProperties{conn: rulesSrcDst.conn, rules: rulesSrcDst.rules, groupingStrKey: groupingStrKey})
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -516,11 +528,20 @@ func (g *groupedExternalNodes) String() string {
 //  2. connection of config1
 //  3. connection of config2
 //  4. info regarding missing endpoints: e.g. vsi0 removed
-//
-// this encoding prevents the need to change all the grouping datastuctures
-// along the pipe: srcToDst and dstToSrc in addition to GroupedConnLine
 func connDiffEncode(src, dst VPCResourceIntf, connDiff *connectionDiff) string {
 	conn1Str, conn2Str := conn1And2Str(connDiff)
 	diffType, endpointsDiff := diffAndEndpointsDescription(connDiff.diff, src, dst, connDiff.thisMinusOther)
 	return strings.Join([]string{diffType, conn1Str, conn2Str, endpointsDiff}, semicolon)
+}
+
+// encodes rulesConnection for grouping
+func (rules *rulesConnection) rulesEncode(c *VPCConfig) string {
+	egressStr, ingressStr := "", ""
+	if len(rules.egressRules) > 0 {
+		egressStr = "egress:" + rules.egressRules.string(c) + ";"
+	}
+	if len(rules.ingressRules) > 0 {
+		egressStr = "ingress:" + rules.ingressRules.string(c) + ";"
+	}
+	return egressStr + ingressStr
 }
