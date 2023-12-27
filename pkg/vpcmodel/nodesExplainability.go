@@ -15,6 +15,14 @@ type rulesConnection struct {
 	egressRules  rulesInLayers
 }
 
+type rulesSingleSrcDst struct {
+	src   Node
+	dst   Node
+	rules *rulesConnection
+}
+
+type explainStruct []rulesSingleSrcDst
+
 // finds the node of a given, by its name, Vsi
 func (c *VPCConfig) getVsiNode(name string) Node {
 	for _, node := range c.Nodes {
@@ -79,27 +87,33 @@ func (c *VPCConfig) getNodesFromInput(cidrOrName string) ([]Node, error) {
 // todo: group results. for now just prints each
 
 // ExplainConnectivity todo: this will not be needed here once we connect explanbility to the cli
-func (c *VPCConfig) ExplainConnectivity(srcName, dstName string) (explanation string, err error) {
+func (c *VPCConfig) ExplainConnectivity(src, dst string) (explanation string, err error) {
+	explanationStruct, err1 := c.computeExplainRules(src, dst)
+	if err1 != nil {
+		return "", nil
+	}
+	return explanationStruct.String(c)
+}
+
+func (c *VPCConfig) computeExplainRules(srcName, dstName string) (explanationStruct explainStruct, err error) {
 	srcNodes, dstNodes, err := c.processInput(srcName, dstName)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	// todo tmp: aggregating the explanations for now. Will have to group them
-	explanationStr := ""
+	explanationStruct = make(explainStruct, max(len(srcNodes), len(dstNodes)))
+	i := 0
 	for _, src := range srcNodes {
 		for _, dst := range dstNodes {
-			rulesOfConnection, err1 := c.getRulesOfConnection(src, dst)
-			if err1 != nil {
-				return "", err1
-			}
-			thisExplanationStr, err := rulesOfConnection.String(src, dst, c)
+			rulesOfConnection, err := c.getRulesOfConnection(src, dst)
 			if err != nil {
-				return "", err
+				return nil, err
 			}
-			explanationStr += thisExplanationStr
+			rulesThisSrcDst := &rulesSingleSrcDst{src, dst, rulesOfConnection}
+			explanationStruct[i] = *rulesThisSrcDst
+			i++
 		}
 	}
-	return explanationStr, nil
+	return explanationStruct, nil
 }
 
 func (c *VPCConfig) processInput(srcName, dstName string) (srcNodes, dstNodes []Node, err error) {
@@ -215,44 +229,49 @@ func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
 	return nil, fmt.Errorf("could not find containing config node for %v", node.Name())
 }
 
-// todo: when there is more than just SG, add explanation when all layers are default
-
-func (rulesOfConnection *rulesConnection) String(src, dst Node, c *VPCConfig) (string, error) {
-	needEgress := src.IsInternal()
-	needIngress := dst.IsInternal()
-	noIngressRules := len(rulesOfConnection.ingressRules) == 0 && needIngress
-	noEgressRules := len(rulesOfConnection.egressRules) == 0 && needEgress
-	egressRulesStr := fmt.Sprintf("Egress Rules:\n~~~~~~~~~~~~~\n%v", rulesOfConnection.egressRules.string(c))
-	ingressRulesStr := fmt.Sprintf("Ingress Rules:\n~~~~~~~~~~~~~~\n%v", rulesOfConnection.ingressRules.string(c))
-	noConnection := fmt.Sprintf("No connection between %v and %v;", src.Name(), dst.Name())
+// todo: tmp prints each separately; will need to group.
+func (explanationStruct *explainStruct) String(c *VPCConfig) (string, error) {
 	resStr := ""
-	switch {
-	case noIngressRules && noEgressRules:
-		return fmt.Sprintf("%v connection blocked both by ingress and egress\n", noConnection), nil
-	case noIngressRules:
-		resStr = fmt.Sprintf("%v connection blocked by ingress\n", noConnection)
-		if needEgress {
-			resStr += egressRulesStr
+	for _, rulesSrcDst := range *explanationStruct {
+		src := rulesSrcDst.src
+		dst := rulesSrcDst.dst
+		rules := rulesSrcDst.rules
+		needEgress := src.IsInternal()
+		needIngress := dst.IsInternal()
+		noIngressRules := len(rules.ingressRules) == 0 && needIngress
+		noEgressRules := len(rules.egressRules) == 0 && needEgress
+		egressRulesStr := fmt.Sprintf("Egress Rules:\n~~~~~~~~~~~~~\n%v", rules.egressRules.string(c))
+		ingressRulesStr := fmt.Sprintf("Ingress Rules:\n~~~~~~~~~~~~~~\n%v", rules.ingressRules.string(c))
+		noConnection := fmt.Sprintf("No connection between %v and %v;", src.Name(), dst.Name())
+		switch {
+		case noIngressRules && noEgressRules:
+			resStr += fmt.Sprintf("%v connection blocked both by ingress and egress\n", noConnection)
+		case noIngressRules:
+			resStr += fmt.Sprintf("%v connection blocked by ingress\n", noConnection)
+			if needEgress {
+				resStr += egressRulesStr
+			}
+		case noEgressRules:
+			resStr += fmt.Sprintf("%v connection blocked by egress\n", noConnection)
+			if needIngress {
+				resStr += ingressRulesStr
+			}
+		default: // there is a connection
+			// todo: connectivity is computed for the entire network, even though we need only src-> dst
+			//       this is seems the time spent here should be neglectable, not worth the effort of adding dedicated code.
+			conn, err2 := c.getConnection(src, dst)
+			if err2 != nil {
+				return "", err2
+			}
+			resStr = fmt.Sprintf("The following connection exists between %v and %v: %v; its enabled by\n", src.Name(), dst.Name(), conn.String())
+			if needEgress {
+				resStr += egressRulesStr
+			}
+			if needIngress {
+				resStr += ingressRulesStr
+			}
 		}
-	case noEgressRules:
-		resStr = fmt.Sprintf("%v connection blocked by egress\n", noConnection)
-		if needIngress {
-			resStr += ingressRulesStr
-		}
-	default: // there is a connection
-		// todo: connectivity is computed for the entire network, even though we need only src-> dst
-		//       this is seems the time spent here should be neglectable, not worth the effort of adding dedicated code.
-		conn, err2 := c.getConnection(src, dst)
-		if err2 != nil {
-			return "", err2
-		}
-		resStr = fmt.Sprintf("The following connection exists between %v and %v: %v; its enabled by\n", src.Name(), dst.Name(), conn.String())
-		if needEgress {
-			resStr += egressRulesStr
-		}
-		if needIngress {
-			resStr += ingressRulesStr
-		}
+		// todo: not adding newlines in between since this will be replaced by grouping in the next PR
 	}
 	return resStr, nil
 }
