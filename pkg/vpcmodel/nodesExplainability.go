@@ -9,8 +9,8 @@ import (
 // rulesInLayers contains specific rules across all layers (SGLayer/NACLLayer)
 type rulesInLayers map[string][]RulesInFilter
 
-// RulesOfConnection contains the rules enabling a connection
-type RulesOfConnection struct {
+// rulesConnection contains the rules enabling a connection
+type rulesConnection struct {
 	ingressRules rulesInLayers
 	egressRules  rulesInLayers
 }
@@ -137,9 +137,9 @@ func (c *VPCConfig) getFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(
 	return &rulesOfFilter, nil
 }
 
-func (c *VPCConfig) getRulesOfConnection(src, dst Node) (rulesOfConnection *RulesOfConnection, err error) {
+func (c *VPCConfig) getRulesOfConnection(src, dst Node) (rulesOfConnection *rulesConnection, err error) {
 	filterLayers := []string{SecurityGroupLayer}
-	rulesOfConnection = &RulesOfConnection{make(rulesInLayers, len(filterLayers)),
+	rulesOfConnection = &rulesConnection{make(rulesInLayers, len(filterLayers)),
 		make(rulesInLayers, len(filterLayers))}
 	ingressRulesPerLayer, egressRulesPerLayer := make(rulesInLayers), make(rulesInLayers)
 	for _, layer := range filterLayers {
@@ -217,7 +217,7 @@ func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
 
 // todo: when there is more than just SG, add explanation when all layers are default
 
-func (rulesOfConnection *RulesOfConnection) String(src, dst Node, c *VPCConfig) (string, error) {
+func (rulesOfConnection *rulesConnection) String(src, dst Node, c *VPCConfig) (string, error) {
 	needEgress := src.IsInternal()
 	needIngress := dst.IsInternal()
 	noIngressRules := len(rulesOfConnection.ingressRules) == 0 && needIngress
