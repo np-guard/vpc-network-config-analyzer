@@ -3,13 +3,13 @@
         {
             "src": {
                 "ResourceName": "tint-reviver-caregiver-shorthand",
-                "ResourceUID": "id:105",
+                "ResourceUID": "id:107",
                 "ResourceType": "NetworkInterface",
                 "Zone": "us-south-1"
             },
             "dst": {
                 "ResourceName": "tint-reviver-caregiver-shorthand-11",
-                "ResourceUID": "id:10511",
+                "ResourceUID": "id:10711",
                 "ResourceType": "NetworkInterface",
                 "Zone": "us-south-1"
             },
@@ -22,13 +22,13 @@
         {
             "src": {
                 "ResourceName": "tint-reviver-caregiver-shorthand-11",
-                "ResourceUID": "id:10511",
+                "ResourceUID": "id:10711",
                 "ResourceType": "NetworkInterface",
                 "Zone": "us-south-1"
             },
             "dst": {
                 "ResourceName": "tint-reviver-caregiver-shorthand",
-                "ResourceUID": "id:105",
+                "ResourceUID": "id:107",
                 "ResourceType": "NetworkInterface",
                 "Zone": "us-south-1"
             },
