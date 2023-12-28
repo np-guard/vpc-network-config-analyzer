@@ -320,9 +320,9 @@ func (g *GroupConnLines) groupExternalAddressesForExplainability() error {
 	for _, rulesSrcDst := range *g.e {
 		connStr := ""
 		if rulesSrcDst.conn != nil {
-			connStr = rulesSrcDst.conn.String() + ";"
+			connStr = rulesSrcDst.conn.String() + semicolon
 		}
-		groupingStrKey := rulesSrcDst.src.Name() + ";" + rulesSrcDst.dst.Name() + ";" + connStr + rulesSrcDst.rules.rulesEncode(g.c)
+		groupingStrKey := rulesSrcDst.src.Name() + semicolon + rulesSrcDst.dst.Name() + semicolon + connStr + rulesSrcDst.rules.rulesEncode(g.c)
 		err := g.addLineToExternalGrouping(&res, rulesSrcDst.src, rulesSrcDst.dst,
 			&groupedCommonProperties{conn: rulesSrcDst.conn, rules: rulesSrcDst.rules, groupingStrKey: groupingStrKey})
 		if err != nil {
@@ -541,10 +541,10 @@ func connDiffEncode(src, dst VPCResourceIntf, connDiff *connectionDiff) string {
 func (rules *rulesConnection) rulesEncode(c *VPCConfig) string {
 	egressStr, ingressStr := "", ""
 	if len(rules.egressRules) > 0 {
-		egressStr = "egress:" + rules.egressRules.string(c) + ";"
+		egressStr = "egress:" + rules.egressRules.string(c) + semicolon
 	}
 	if len(rules.ingressRules) > 0 {
-		egressStr = "ingress:" + rules.ingressRules.string(c) + ";"
+		egressStr = "ingress:" + rules.ingressRules.string(c) + semicolon
 	}
 	return egressStr + ingressStr
 }

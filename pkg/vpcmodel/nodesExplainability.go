@@ -235,8 +235,7 @@ func (explanation *explanation) String() string {
 	resStr := ""
 	groupedLines := explanation.groupedLines
 	for _, line := range groupedLines {
-		// by design, line.src and line.dst are Nodes. Thus avoiding error handling.
-		resStr += stringExplainabilityLine(explanation.c, line.src.(EndpointElem), line.dst.(EndpointElem), line.commonProperties.conn,
+		resStr += stringExplainabilityLine(explanation.c, line.src, line.dst, line.commonProperties.conn,
 			line.commonProperties.rules)
 	}
 	return resStr
