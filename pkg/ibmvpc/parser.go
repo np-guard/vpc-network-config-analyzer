@@ -434,11 +434,11 @@ func getInstancesConfig(
 		res[vpcUID].NameToResource[vsiNode.Name()] = vsiNode
 		for j := range instance.NetworkInterfaces {
 			netintf := instance.NetworkInterfaces[j]
-			// netintf has no CRN, thus using its PrimaryIP's ID for ResourceUID
+			// netintf has no CRN, thus using its ID for ResourceUID
 			intfNode := &NetworkInterface{
 				VPCResource: vpcmodel.VPCResource{
 					ResourceName: *netintf.Name,
-					ResourceUID:  *netintf.PrimaryIP.ID,
+					ResourceUID:  *netintf.ID,
 					ResourceType: ResourceTypeNetworkInterface,
 					Zone:         *instance.Zone.Name,
 					VPCRef:       vpc,
@@ -447,7 +447,7 @@ func getInstancesConfig(
 			res[vpcUID].Nodes = append(res[vpcUID].Nodes, intfNode)
 			res[vpcUID].NameToResource[intfNode.Name()] = intfNode
 			vsiNode.nodes = append(vsiNode.nodes, intfNode)
-			intfNameToIntf[*netintf.Name] = intfNode
+			intfNameToIntf[intfNode.ResourceName] = intfNode
 			subnetName := *netintf.Subnet.Name
 			if _, ok := subnetNameToNetIntf[subnetName]; !ok {
 				subnetNameToNetIntf[subnetName] = []*NetworkInterface{}
@@ -595,7 +595,7 @@ func getFipConfig(
 		var targetUID string
 		switch target := targetIntf.(type) {
 		case *vpc1.FloatingIPTargetNetworkInterfaceReference:
-			targetUID = *target.PrimaryIP.ID
+			targetUID = *target.ID
 		case *vpc1.FloatingIPTarget:
 			if *target.ResourceType != networkInterfaceResourceType {
 				fmt.Println(ignoreFIPWarning(*fip.Name,
@@ -603,7 +603,7 @@ func getFipConfig(
 						*target.ResourceType)))
 				continue
 			}
-			targetUID = *target.PrimaryIP.ID
+			targetUID = *target.ID
 		default:
 			fmt.Println(ignoreFIPWarning(*fip.Name, "target (FloatingIPTargetIntf) is not of the expected type"))
 			continue
