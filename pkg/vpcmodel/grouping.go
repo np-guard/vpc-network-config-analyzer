@@ -88,8 +88,9 @@ func newGroupConnLinesDiff(d *diffBetweenCfgs) (res *GroupConnLines, err error) 
 	return res, err
 }
 
-func newGroupConnExplainability(e *explainStruct) (res *GroupConnLines, err error) {
+func newGroupConnExplainability(c *VPCConfig, e *explainStruct) (res *GroupConnLines, err error) {
 	res = &GroupConnLines{
+		c:                        c,
 		e:                        e,
 		srcToDst:                 newGroupingConnections(),
 		dstToSrc:                 newGroupingConnections(),
@@ -324,6 +325,7 @@ func (g *GroupConnLines) groupExternalAddressesForExplainability() error {
 			return err
 		}
 	}
+	g.appendGrouped(res)
 	return nil
 }
 

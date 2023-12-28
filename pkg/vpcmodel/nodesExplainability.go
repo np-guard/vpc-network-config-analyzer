@@ -104,7 +104,7 @@ func (c *VPCConfig) ExplainConnectivity(src, dst string) (out string, err error)
 	if err2 != nil {
 		return "", err2
 	}
-	groupedLines, err3 := newGroupConnExplainability(&explanationStruct)
+	groupedLines, err3 := newGroupConnExplainability(c, &explanationStruct)
 	if err3 != nil {
 		return "", err3
 	}
