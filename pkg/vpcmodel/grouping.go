@@ -315,11 +315,13 @@ func (g *GroupConnLines) groupExternalAddressesForExplainability() error {
 	var res []*groupedConnLine
 	for _, rulesSrcDst := range *g.e {
 		connStr := ""
+		connEmpty := true
 		if rulesSrcDst.conn != nil {
 			connStr = rulesSrcDst.conn.String() + ";"
+			connEmpty = rulesSrcDst.conn.IsEmpty()
 		}
 		groupingStrKey := rulesSrcDst.src.Name() + ";" + rulesSrcDst.dst.Name() + ";" + connStr + rulesSrcDst.rules.rulesEncode(g.c)
-		err := g.addLineToExternalGrouping(&res, rulesSrcDst.conn.IsEmpty(), rulesSrcDst.src, rulesSrcDst.dst,
+		err := g.addLineToExternalGrouping(&res, connEmpty, rulesSrcDst.src, rulesSrcDst.dst,
 			&groupedCommonProperties{conn: rulesSrcDst.conn, rules: rulesSrcDst.rules, groupingStrKey: groupingStrKey})
 		if err != nil {
 			return err
