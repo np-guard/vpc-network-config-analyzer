@@ -272,10 +272,12 @@ func (g *GroupConnLines) groupExternalAddresses(vsi bool) error {
 	res := []*groupedConnLine{}
 	for src, nodeConns := range allowedConnsCombined {
 		for dst, conns := range nodeConns {
-			err := g.addLineToExternalGrouping(&res, conns.IsEmpty(), src, dst,
-				&groupedCommonProperties{conn: conns, groupingStrKey: conns.EnhancedString()})
-			if err != nil {
-				return err
+			if !conns.IsEmpty() {
+				err := g.addLineToExternalGrouping(&res, src, dst,
+					&groupedCommonProperties{conn: conns, groupingStrKey: conns.EnhancedString()})
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -298,11 +300,12 @@ func (g *GroupConnLines) groupExternalAddressesForDiff(thisMinusOther bool) erro
 	for src, endpointConnDiff := range connRemovedChanged {
 		for dst, connDiff := range endpointConnDiff {
 			connDiffString := connDiffEncode(src, dst, connDiff)
-			connsEmpty := connDiff.conn1.IsEmpty() && connDiff.conn2.IsEmpty()
-			err := g.addLineToExternalGrouping(&res, connsEmpty, src, dst,
-				&groupedCommonProperties{connDiff: connDiff, groupingStrKey: connDiffString})
-			if err != nil {
-				return err
+			if !(connDiff.conn1.IsEmpty() && connDiff.conn2.IsEmpty()) {
+				err := g.addLineToExternalGrouping(&res, src, dst,
+					&groupedCommonProperties{connDiff: connDiff, groupingStrKey: connDiffString})
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -315,13 +318,11 @@ func (g *GroupConnLines) groupExternalAddressesForExplainability() error {
 	var res []*groupedConnLine
 	for _, rulesSrcDst := range *g.e {
 		connStr := ""
-		connEmpty := true
 		if rulesSrcDst.conn != nil {
 			connStr = rulesSrcDst.conn.String() + ";"
-			connEmpty = rulesSrcDst.conn.IsEmpty()
 		}
 		groupingStrKey := rulesSrcDst.src.Name() + ";" + rulesSrcDst.dst.Name() + ";" + connStr + rulesSrcDst.rules.rulesEncode(g.c)
-		err := g.addLineToExternalGrouping(&res, connEmpty, rulesSrcDst.src, rulesSrcDst.dst,
+		err := g.addLineToExternalGrouping(&res, rulesSrcDst.src, rulesSrcDst.dst,
 			&groupedCommonProperties{conn: rulesSrcDst.conn, rules: rulesSrcDst.rules, groupingStrKey: groupingStrKey})
 		if err != nil {
 			return err
@@ -331,11 +332,8 @@ func (g *GroupConnLines) groupExternalAddressesForExplainability() error {
 	return nil
 }
 
-func (g *GroupConnLines) addLineToExternalGrouping(res *[]*groupedConnLine, emptyConn bool,
+func (g *GroupConnLines) addLineToExternalGrouping(res *[]*groupedConnLine,
 	src, dst VPCResourceIntf, commonProps *groupedCommonProperties) error {
-	if emptyConn {
-		return nil
-	}
 	srcNode, srcIsNode := src.(Node)
 	dstNode, dstIsNode := dst.(Node)
 	if dst.IsExternal() && !dstIsNode ||
