@@ -322,7 +322,7 @@ func (g *GroupConnLines) groupExternalAddressesForExplainability() error {
 		if rulesSrcDst.conn != nil {
 			connStr = rulesSrcDst.conn.String() + semicolon
 		}
-		groupingStrKey := rulesSrcDst.src.Name() + semicolon + rulesSrcDst.dst.Name() + semicolon + connStr + rulesSrcDst.rules.rulesEncode(g.c)
+		groupingStrKey := connStr + rulesSrcDst.rules.rulesEncode(g.c)
 		err := g.addLineToExternalGrouping(&res, rulesSrcDst.src, rulesSrcDst.dst,
 			&groupedCommonProperties{conn: rulesSrcDst.conn, rules: rulesSrcDst.rules, groupingStrKey: groupingStrKey})
 		if err != nil {
