@@ -46,35 +46,34 @@ func (c *VPCConfig) getVsiNode(name string) Node {
 //  1. Calculate the IP blocks of the nodes N
 //  2. Calculate from N and the cidr block, disjoint IP blocks
 //  3. Return the nodes created from each block from 2 contained in the input cidr
-func (c *VPCConfig) getCidrExternalNodes(cidr string) (cidrDisjointNodes []Node, err error) {
+func (c *VPCConfig) getCidrExternalNodes(cidr string) (cidrNodes []Node, err error) {
 	cidrsIPBlock := common.NewIPBlockFromCidr(cidr)
 	if cidrsIPBlock == nil { // string cidr does not represent a legal cidr
 		return nil, nil
 	}
-	cidrIPBlocks := []*common.IPBlock{cidrsIPBlock}
 	// 1.
-	vpcConfigNodesExternalBlock := make([]*common.IPBlock, 0)
+	var vpcConfigNodesExternalBlock []*common.IPBlock
 	for _, node := range c.Nodes {
-		if !node.IsExternal() {
+		if node.IsInternal() {
 			continue
 		}
 		thisNodeBlock := common.NewIPBlockFromCidr(node.Cidr())
 		vpcConfigNodesExternalBlock = append(vpcConfigNodesExternalBlock, thisNodeBlock)
 	}
 	// 2.
-	disjointBlocks := common.DisjointIPBlocks(cidrIPBlocks, vpcConfigNodesExternalBlock)
+	disjointBlocks := common.DisjointIPBlocks([]*common.IPBlock{cidrsIPBlock}, vpcConfigNodesExternalBlock)
 	// 3.
-	cidrDisjointNodes = make([]Node, 0)
+	cidrNodes = make([]Node, 0)
 	for _, block := range disjointBlocks {
 		if block.ContainedIn(cidrsIPBlock) {
 			node, err1 := newExternalNode(true, block)
 			if err1 != nil {
 				return nil, err1
 			}
-			cidrDisjointNodes = append(cidrDisjointNodes, node)
+			cidrNodes = append(cidrNodes, node)
 		}
 	}
-	return cidrDisjointNodes, nil
+	return cidrNodes, nil
 }
 
 // given a string or a vsi or a cidr returns the corresponding node(s)
@@ -100,6 +99,7 @@ func (c *VPCConfig) ExplainConnectivity(src, dst string) (explanation string, er
 	return explanationStruct.String(c)
 }
 
+// computeExplainRules computes the egress and ingress rules contributing to the (existing or missing) connection <src, dst>
 func (c *VPCConfig) computeExplainRules(srcName, dstName string) (explanationStruct explainStruct, err error) {
 	srcNodes, dstNodes, err := c.processInput(srcName, dstName)
 	if err != nil {
@@ -107,6 +107,8 @@ func (c *VPCConfig) computeExplainRules(srcName, dstName string) (explanationStr
 	}
 	explanationStruct = make(explainStruct, max(len(srcNodes), len(dstNodes)))
 	i := 0
+	// either src of dst has more than one item; never both
+	// the loop is on two dimension since we do not know which, but actually we have a single dimension
 	for _, src := range srcNodes {
 		for _, dst := range dstNodes {
 			rulesOfConnection, err := c.getRulesOfConnection(src, dst)
@@ -137,7 +139,7 @@ func (c *VPCConfig) processInput(srcName, dstName string) (srcNodes, dstNodes []
 		return nil, nil, fmt.Errorf("dst %v does not represent a VSI or an external IP", dstName)
 	}
 	// only one of src/dst can be external; there could be multiple nodes only if external
-	if srcNodes[0].IsExternal() && dstNodes[0].IsExternal() {
+	if !srcNodes[0].IsInternal() && !dstNodes[0].IsInternal() {
 		return nil, nil, fmt.Errorf("both src %v and dst %v are external", srcName, dstName)
 	}
 	return srcNodes, dstNodes, nil
@@ -191,7 +193,7 @@ func (c *VPCConfig) getRulesOfConnection(src, dst Node) (rulesOfConnection *rule
 
 // node is from getCidrExternalNodes, thus there is a node in VPCConfig that either equal to or contains it.
 func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
-	if !node.IsExternal() { // node is not external - nothing to do
+	if node.IsInternal() { // node is not external - nothing to do
 		return node, nil
 	}
 	nodeIPBlock := common.NewIPBlockFromCidr(node.Cidr())
@@ -199,7 +201,7 @@ func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
 		return nil, fmt.Errorf("could not find IP block of external node %v", node.Name())
 	}
 	for _, configNode := range c.Nodes {
-		if !configNode.IsExternal() {
+		if configNode.IsInternal() {
 			continue
 		}
 		configNodeIPBlock := common.NewIPBlockFromCidr(configNode.Cidr())
@@ -261,8 +263,8 @@ func (explanationStruct *explainStruct) computeConnections(c *VPCConfig) error {
 	}
 	for _, rulesSrcDst := range *explanationStruct {
 		// is there a connection?
-		if (len(rulesSrcDst.rules.egressRules) > 0 || rulesSrcDst.src.IsExternal()) && // egress enabled or not needed
-			(len(rulesSrcDst.rules.ingressRules) > 0 || rulesSrcDst.dst.IsExternal()) { // ingress enabled or not needed
+		if (len(rulesSrcDst.rules.egressRules) > 0 || !rulesSrcDst.src.IsInternal()) && // egress enabled or not needed
+			(len(rulesSrcDst.rules.ingressRules) > 0 || !rulesSrcDst.dst.IsInternal()) { // ingress enabled or not needed
 			conn, err := connectivity.getConnection(c, rulesSrcDst.src, rulesSrcDst.dst)
 			if err != nil {
 				return err
