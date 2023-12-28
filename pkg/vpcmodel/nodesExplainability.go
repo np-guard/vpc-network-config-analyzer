@@ -236,15 +236,15 @@ func (explanation *explanation) String() string {
 	groupedLines := explanation.groupedLines
 	for _, line := range groupedLines {
 		// by design, line.src and line.dst are Nodes. Thus avoiding error handling.
-		resStr += stringExplainabilityLine(explanation.c, line.src.(Node), line.dst.(Node), line.commonProperties.conn,
+		resStr += stringExplainabilityLine(explanation.c, line.src.(EndpointElem), line.dst.(EndpointElem), line.commonProperties.conn,
 			line.commonProperties.rules)
 	}
 	return resStr
 }
 
-func stringExplainabilityLine(c *VPCConfig, src, dst Node, conn *common.ConnectionSet, rules *rulesConnection) string {
-	needEgress := src.IsInternal()
-	needIngress := dst.IsInternal()
+func stringExplainabilityLine(c *VPCConfig, src, dst EndpointElem, conn *common.ConnectionSet, rules *rulesConnection) string {
+	needEgress := !src.IsExternal()
+	needIngress := !dst.IsExternal()
 	noIngressRules := len(rules.ingressRules) == 0 && needIngress
 	noEgressRules := len(rules.egressRules) == 0 && needEgress
 	egressRulesStr := fmt.Sprintf("Egress Rules:\n~~~~~~~~~~~~~\n%v", rules.egressRules.string(c))
