@@ -52,7 +52,7 @@ func (c *VPCConfig) getCidrExternalNodes(cidr string) (cidrNodes []Node, err err
 		return nil, nil
 	}
 	// 1.
-	vpcConfigNodesExternalBlock := make([]*common.IPBlock, 0)
+	vpcConfigNodesExternalBlock := []*common.IPBlock{}
 	for _, node := range c.Nodes {
 		if node.IsInternal() {
 			continue
