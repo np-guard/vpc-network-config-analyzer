@@ -205,7 +205,7 @@ func TestGroupingExternal(t *testing.T) {
 	fmt.Println(explanbilityStr3)
 	require.Equal(t, "No connection between vsi2-ky[10.240.20.4] and Public Internet 0.0.0.0-141.255.255.255,143.0.0.0-255.255.255.255; "+
 		"connection blocked by egress\n\nThe following connection exists between vsi2-ky[10.240.20.4] "+
-		"and Public Internet 142.0.0.0/8: protocol: ICMPits enabled by\nEgress Rules:\n"+
+		"and Public Internet 142.0.0.0/8: protocol: ICMP; its enabled by\nEgress Rules:\n"+
 		"~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg2-ky:\n\t"+
 		"index: 3, direction: outbound,  conns: protocol: icmp,  icmpType: protocol: ICMP, cidr: 142.0.0.0/8\n\n",
 		explanbilityStr2)
