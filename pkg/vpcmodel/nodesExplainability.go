@@ -2,8 +2,9 @@ package vpcmodel
 
 import (
 	"fmt"
-
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+	"sort"
+	"strings"
 )
 
 // rulesInLayers contains specific rules across all layers (SGLayer/NACLLayer)
@@ -232,13 +233,14 @@ func (explanationStruct *explainStruct) String(c *VPCConfig) (string, error) {
 }
 
 func (explanation *explanation) String() string {
-	resStr := ""
+	linesStr := make([]string, len(explanation.groupedLines))
 	groupedLines := explanation.groupedLines
-	for _, line := range groupedLines {
-		resStr += stringExplainabilityLine(explanation.c, line.src, line.dst, line.commonProperties.conn,
+	for i, line := range groupedLines {
+		linesStr[i] = stringExplainabilityLine(explanation.c, line.src, line.dst, line.commonProperties.conn,
 			line.commonProperties.rules)
 	}
-	return resStr
+	sort.Strings(linesStr)
+	return strings.Join(linesStr, "\n") + "\n"
 }
 
 func stringExplainabilityLine(c *VPCConfig, src, dst EndpointElem, conn *common.ConnectionSet, rules *rulesConnection) string {
