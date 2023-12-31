@@ -2,9 +2,10 @@ package vpcmodel
 
 import (
 	"fmt"
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"sort"
 	"strings"
+
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 // rulesInLayers contains specific rules across all layers (SGLayer/NACLLayer)

@@ -176,9 +176,11 @@ func TestGroupingExternal(t *testing.T) {
 	if err1 != nil {
 		require.Fail(t, err1.Error())
 	}
-	require.Equal(t, "No connection between vsi1-ky[10.240.10.4] and Public Internet 161.0.0.0-161.25.255.255,161.27.0.0-161.255.255.255; connection blocked by egress\n\n"+
-		"The following connection exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16: protocol: UDP; its enabled by\nEgress Rules:\n~~~~~~~~~~~~~\n"+
-		"SecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n\tindex: 2, direction: outbound,  conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\n",
+	require.Equal(t, "No connection between vsi1-ky[10.240.10.4] and Public Internet 161.0.0.0-161.25.255.255,161.27.0.0-161.255.255.255; "+
+		"connection blocked by egress\n\n"+
+		"The following connection exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16: protocol: UDP; its enabled by\n"+
+		"Egress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n"+
+		"\tindex: 2, direction: outbound,  conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\n",
 		explanbilityStr1)
 	fmt.Println(explanbilityStr1)
 	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
@@ -190,9 +192,10 @@ func TestGroupingExternal(t *testing.T) {
 	}
 	fmt.Println(explanbilityStr2)
 	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
-	require.Equal(t, "No connection between vsi2-ky[10.240.20.4] and Public Internet 0.0.0.0-141.255.255.255,143.0.0.0-255.255.255.255; connection blocked by egress\n\n"+
-		"The following connection exists between vsi2-ky[10.240.20.4] and Public Internet 142.0.0.0/8: protocol: ICMP; its enabled by\nEgress Rules:\n"+
-		"~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg2-ky:\n"+
+	require.Equal(t, "No connection between vsi2-ky[10.240.20.4] and Public Internet 0.0.0.0-141.255.255.255,143.0.0.0-255.255.255.255; "+
+		"connection blocked by egress\n\n"+
+		"The following connection exists between vsi2-ky[10.240.20.4] and Public Internet 142.0.0.0/8: protocol: ICMP; its enabled by\n"+
+		"Egress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg2-ky:\n"+
 		"\tindex: 3, direction: outbound,  conns: protocol: icmp,  icmpType: protocol: ICMP, cidr: 142.0.0.0/8\n\n",
 		explanbilityStr2)
 	explanbilityStr3, err3 := vpcConfig.ExplainConnectivity(cidrAll, vsi2)
@@ -201,8 +204,9 @@ func TestGroupingExternal(t *testing.T) {
 	}
 	fmt.Println(explanbilityStr3)
 	require.Equal(t, "No connection between vsi2-ky[10.240.20.4] and Public Internet 0.0.0.0-141.255.255.255,143.0.0.0-255.255.255.255; "+
-		"connection blocked by egress\n\nThe following connection exists between vsi2-ky[10.240.20.4] and Public Internet 142.0.0.0/8: protocol: ICMP; its enabled by\n"+
-		"Egress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg2-ky:\n\t"+
+		"connection blocked by egress\n\nThe following connection exists between vsi2-ky[10.240.20.4] "+
+		"and Public Internet 142.0.0.0/8: protocol: ICMPits enabled by\nEgress Rules:\n"+
+		"~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg2-ky:\n\t"+
 		"index: 3, direction: outbound,  conns: protocol: icmp,  icmpType: protocol: ICMP, cidr: 142.0.0.0/8\n\n",
 		explanbilityStr2)
 	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
