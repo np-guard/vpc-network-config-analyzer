@@ -97,6 +97,7 @@ func (c *VPCConfig) getNodesFromInput(cidrOrName string) ([]Node, error) {
 // todo: group results. for now just prints each
 
 // ExplainConnectivity todo: this will not be needed here once we connect explanbility to the cli
+// todo: support vsi given as an ID/IP address (CRN?)
 func (c *VPCConfig) ExplainConnectivity(src, dst string) (out string, err error) {
 	explanationStruct, err1 := c.computeExplainRules(src, dst)
 	if err1 != nil {
@@ -172,8 +173,7 @@ func (c *VPCConfig) getFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(
 
 func (c *VPCConfig) getRulesOfConnection(src, dst Node) (rulesOfConnection *rulesConnection, err error) {
 	filterLayers := []string{SecurityGroupLayer}
-	rulesOfConnection = &rulesConnection{make(rulesInLayers, len(filterLayers)),
-		make(rulesInLayers, len(filterLayers))}
+	rulesOfConnection = &rulesConnection{}
 	ingressRulesPerLayer, egressRulesPerLayer := make(rulesInLayers), make(rulesInLayers)
 	for _, layer := range filterLayers {
 		// ingress rules: relevant only if dst is internal
@@ -312,7 +312,11 @@ func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (conn *comm
 	if err2 != nil {
 		return nil, err2
 	}
-	conn, ok := v.AllowedConnsCombined[srcForConnection][dstForConnection]
+	var ok bool
+	srcMapValue, ok := v.AllowedConnsCombined[srcForConnection]
+	if ok {
+		conn, ok = srcMapValue[dstForConnection]
+	}
 	if !ok {
 		return nil, fmt.Errorf("error: there is a connection between %v and %v, but connection computation failed",
 			srcForConnection.Name(), dstForConnection.Name())
