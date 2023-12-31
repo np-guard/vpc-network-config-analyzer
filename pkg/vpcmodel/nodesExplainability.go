@@ -2,6 +2,8 @@ package vpcmodel
 
 import (
 	"fmt"
+	"sort"
+	"strings"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
@@ -23,6 +25,13 @@ type rulesSingleSrcDst struct {
 }
 
 type explainStruct []*rulesSingleSrcDst
+
+type explanation struct {
+	c             *VPCConfig
+	explainStruct *explainStruct
+	// grouped connectivity result
+	groupedLines []*groupedConnLine
+}
 
 // finds the node of a given, by its name, Vsi
 func (c *VPCConfig) getVsiNode(name string) Node {
@@ -97,7 +106,12 @@ func (c *VPCConfig) ExplainConnectivity(src, dst string) (out string, err error)
 	if err2 != nil {
 		return "", err2
 	}
-	return explanationStruct.String(c)
+	groupedLines, err3 := newGroupConnExplainability(c, &explanationStruct)
+	if err3 != nil {
+		return "", err3
+	}
+	res := &explanation{c, &explanationStruct, groupedLines.GroupedLines}
+	return res.String(), nil
 }
 
 // computeExplainRules computes the egress and ingress rules contributing to the (existing or missing) connection <src, dst>
@@ -212,46 +226,59 @@ func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
 	return nil, fmt.Errorf("could not find containing config node for %v", node.Name())
 }
 
-// todo: tmp prints each separately; will need to group.
+// prints each separately without grouping - for debug
 func (explanationStruct *explainStruct) String(c *VPCConfig) (string, error) {
 	resStr := ""
 	for _, rulesSrcDst := range *explanationStruct {
-		src := rulesSrcDst.src
-		dst := rulesSrcDst.dst
-		rules := rulesSrcDst.rules
-		needEgress := src.IsInternal()
-		needIngress := dst.IsInternal()
-		noIngressRules := len(rules.ingressRules) == 0 && needIngress
-		noEgressRules := len(rules.egressRules) == 0 && needEgress
-		egressRulesStr := fmt.Sprintf("Egress Rules:\n~~~~~~~~~~~~~\n%v", rules.egressRules.string(c))
-		ingressRulesStr := fmt.Sprintf("Ingress Rules:\n~~~~~~~~~~~~~~\n%v", rules.ingressRules.string(c))
-		noConnection := fmt.Sprintf("No connection between %v and %v;", src.Name(), dst.Name())
-		switch {
-		case noIngressRules && noEgressRules:
-			resStr += fmt.Sprintf("%v connection blocked both by ingress and egress\n", noConnection)
-		case noIngressRules:
-			resStr += fmt.Sprintf("%v connection blocked by ingress\n", noConnection)
-			if needEgress {
-				resStr += egressRulesStr
-			}
-		case noEgressRules:
-			resStr += fmt.Sprintf("%v connection blocked by egress\n", noConnection)
-			if needIngress {
-				resStr += ingressRulesStr
-			}
-		default: // there is a connection
-			resStr = fmt.Sprintf("The following connection exists between %v and %v: %v; its enabled by\n", src.Name(), dst.Name(),
-				rulesSrcDst.conn.String())
-			if needEgress {
-				resStr += egressRulesStr
-			}
-			if needIngress {
-				resStr += ingressRulesStr
-			}
-		}
-		// todo: not adding newlines in between since this will be replaced by grouping in the next PR
+		resStr += stringExplainabilityLine(c, rulesSrcDst.src, rulesSrcDst.dst, rulesSrcDst.conn, rulesSrcDst.rules)
 	}
 	return resStr, nil
+}
+
+func (explanation *explanation) String() string {
+	linesStr := make([]string, len(explanation.groupedLines))
+	groupedLines := explanation.groupedLines
+	for i, line := range groupedLines {
+		linesStr[i] = stringExplainabilityLine(explanation.c, line.src, line.dst, line.commonProperties.conn,
+			line.commonProperties.rules)
+	}
+	sort.Strings(linesStr)
+	return strings.Join(linesStr, "\n") + "\n"
+}
+
+func stringExplainabilityLine(c *VPCConfig, src, dst EndpointElem, conn *common.ConnectionSet, rules *rulesConnection) string {
+	needEgress := !src.IsExternal()
+	needIngress := !dst.IsExternal()
+	noIngressRules := len(rules.ingressRules) == 0 && needIngress
+	noEgressRules := len(rules.egressRules) == 0 && needEgress
+	egressRulesStr := fmt.Sprintf("Egress Rules:\n~~~~~~~~~~~~~\n%v", rules.egressRules.string(c))
+	ingressRulesStr := fmt.Sprintf("Ingress Rules:\n~~~~~~~~~~~~~~\n%v", rules.ingressRules.string(c))
+	noConnection := fmt.Sprintf("No connection between %v and %v;", src.Name(), dst.Name())
+	resStr := ""
+	switch {
+	case noIngressRules && noEgressRules:
+		resStr += fmt.Sprintf("%v connection blocked both by ingress and egress\n", noConnection)
+	case noIngressRules:
+		resStr += fmt.Sprintf("%v connection blocked by ingress\n", noConnection)
+		if needEgress {
+			resStr += egressRulesStr
+		}
+	case noEgressRules:
+		resStr += fmt.Sprintf("%v connection blocked by egress\n", noConnection)
+		if needIngress {
+			resStr += ingressRulesStr
+		}
+	default: // there is a connection
+		resStr = fmt.Sprintf("The following connection exists between %v and %v: %v; its enabled by\n", src.Name(), dst.Name(),
+			conn.String())
+		if needEgress {
+			resStr += egressRulesStr
+		}
+		if needIngress {
+			resStr += ingressRulesStr
+		}
+	}
+	return resStr
 }
 
 // todo: connectivity is computed for the entire network, even though we need only for specific src, dst pairs

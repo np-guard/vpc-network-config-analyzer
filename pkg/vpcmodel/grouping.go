@@ -22,8 +22,11 @@ type groupedNodesInfo struct {
 type groupedCommonProperties struct {
 	conn     *common.ConnectionSet
 	connDiff *connectionDiff
-	// connStrKey is the string of conn per grouping of conn lines, and string of connDiff per grouping of diff lines
-	connStrKey string // the key used for grouping per connectivity lines or diff lines
+	rules    *rulesConnection
+	// groupingStrKey is the key by which the grouping is done:
+	// the string of conn per grouping of conn lines, string of connDiff per grouping of diff lines
+	// and string of conn and rules for explainblity
+	groupingStrKey string // the key used for grouping per connectivity lines or diff lines
 }
 
 func (g *groupedNodesInfo) appendNode(n Node) {
@@ -85,6 +88,18 @@ func newGroupConnLinesDiff(d *diffBetweenCfgs) (res *GroupConnLines, err error) 
 	return res, err
 }
 
+func newGroupConnExplainability(c *VPCConfig, e *explainStruct) (res *GroupConnLines, err error) {
+	res = &GroupConnLines{
+		c:                        c,
+		e:                        e,
+		srcToDst:                 newGroupingConnections(),
+		dstToSrc:                 newGroupingConnections(),
+		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
+		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
+	err = res.groupExternalAddressesForExplainability()
+	return res, err
+}
+
 // GroupConnLines used both for VPCConnectivity and for VPCsubnetConnectivity, one at a time. The other must be nil
 // todo: define abstraction above both?
 type GroupConnLines struct {
@@ -92,6 +107,7 @@ type GroupConnLines struct {
 	v        *VPCConnectivity
 	s        *VPCsubnetConnectivity
 	d        *diffBetweenCfgs
+	e        *explainStruct
 	srcToDst *groupingConnections
 	dstToSrc *groupingConnections
 	// a map to groupedEndpointsElems used by GroupedConnLine from a unified key of such elements
@@ -106,6 +122,7 @@ type GroupConnLines struct {
 // EndpointElem can be Node(networkInterface) / groupedExternalNodes / groupedNetworkInterfaces / NodeSet(subnet)
 type EndpointElem interface {
 	Name() string
+	IsExternal() bool
 	DrawioResourceIntf
 }
 
@@ -116,14 +133,14 @@ type groupedConnLine struct {
 }
 
 func (g *groupedConnLine) String() string {
-	return g.src.Name() + " => " + g.dst.Name() + " : " + g.commonProperties.connStrKey
+	return g.src.Name() + " => " + g.dst.Name() + " : " + g.commonProperties.groupingStrKey
 }
 
 func (g *groupedConnLine) ConnLabel() string {
 	if g.commonProperties.conn.AllowAll {
 		return ""
 	}
-	return g.commonProperties.connStrKey
+	return g.commonProperties.groupingStrKey
 }
 
 func (g *groupedConnLine) getSrcOrDst(isSrc bool) EndpointElem {
@@ -183,7 +200,7 @@ func (g *GroupConnLines) getGroupedExternalNodes(grouped groupedExternalNodes) *
 }
 
 func (g *groupingConnections) addPublicConnectivity(ep EndpointElem, commonProps *groupedCommonProperties, targetNode Node) {
-	connKey := commonProps.connStrKey
+	connKey := commonProps.groupingStrKey
 	if _, ok := (*g)[ep]; !ok {
 		(*g)[ep] = map[string]*groupedNodesInfo{}
 	}
@@ -256,10 +273,12 @@ func (g *GroupConnLines) groupExternalAddresses(vsi bool) error {
 	res := []*groupedConnLine{}
 	for src, nodeConns := range allowedConnsCombined {
 		for dst, conns := range nodeConns {
-			err := g.addLineToExternalGrouping(&res, conns.IsEmpty(), src, dst,
-				&groupedCommonProperties{conn: conns, connStrKey: conns.EnhancedString()})
-			if err != nil {
-				return err
+			if !conns.IsEmpty() {
+				err := g.addLineToExternalGrouping(&res, src, dst,
+					&groupedCommonProperties{conn: conns, groupingStrKey: conns.EnhancedString()})
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -282,11 +301,12 @@ func (g *GroupConnLines) groupExternalAddressesForDiff(thisMinusOther bool) erro
 	for src, endpointConnDiff := range connRemovedChanged {
 		for dst, connDiff := range endpointConnDiff {
 			connDiffString := connDiffEncode(src, dst, connDiff)
-			connsEmpty := connDiff.conn1.IsEmpty() && connDiff.conn2.IsEmpty()
-			err := g.addLineToExternalGrouping(&res, connsEmpty, src, dst,
-				&groupedCommonProperties{connDiff: connDiff, connStrKey: connDiffString})
-			if err != nil {
-				return err
+			if !(connDiff.conn1.IsEmpty() && connDiff.conn2.IsEmpty()) {
+				err := g.addLineToExternalGrouping(&res, src, dst,
+					&groupedCommonProperties{connDiff: connDiff, groupingStrKey: connDiffString})
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -294,11 +314,27 @@ func (g *GroupConnLines) groupExternalAddressesForDiff(thisMinusOther bool) erro
 	return nil
 }
 
-func (g *GroupConnLines) addLineToExternalGrouping(res *[]*groupedConnLine, emptyConn bool,
-	src, dst VPCResourceIntf, commonProps *groupedCommonProperties) error {
-	if emptyConn {
-		return nil
+// group public internet ranges for explainability lines
+func (g *GroupConnLines) groupExternalAddressesForExplainability() error {
+	var res []*groupedConnLine
+	for _, rulesSrcDst := range *g.e {
+		connStr := ""
+		if rulesSrcDst.conn != nil {
+			connStr = rulesSrcDst.conn.String() + semicolon
+		}
+		groupingStrKey := connStr + rulesSrcDst.rules.rulesEncode(g.c)
+		err := g.addLineToExternalGrouping(&res, rulesSrcDst.src, rulesSrcDst.dst,
+			&groupedCommonProperties{conn: rulesSrcDst.conn, rules: rulesSrcDst.rules, groupingStrKey: groupingStrKey})
+		if err != nil {
+			return err
+		}
 	}
+	g.appendGrouped(res)
+	return nil
+}
+
+func (g *GroupConnLines) addLineToExternalGrouping(res *[]*groupedConnLine,
+	src, dst VPCResourceIntf, commonProps *groupedCommonProperties) error {
 	srcNode, srcIsNode := src.(Node)
 	dstNode, dstIsNode := dst.(Node)
 	if dst.IsExternal() && !dstIsNode ||
@@ -354,7 +390,7 @@ func (g *GroupConnLines) groupLinesByKey(srcGrouping, groupVsi bool) (res []*gro
 			res = append(res, line)
 			continue
 		}
-		key := getKeyOfGroupConnLines(dstOrSrc, line.commonProperties.connStrKey)
+		key := getKeyOfGroupConnLines(dstOrSrc, line.commonProperties.groupingStrKey)
 		if _, ok := groupingSrcOrDst[key]; !ok {
 			groupingSrcOrDst[key] = []*groupedConnLine{}
 		}
@@ -495,11 +531,20 @@ func (g *groupedExternalNodes) String() string {
 //  2. connection of config1
 //  3. connection of config2
 //  4. info regarding missing endpoints: e.g. vsi0 removed
-//
-// this encoding prevents the need to change all the grouping datastuctures
-// along the pipe: srcToDst and dstToSrc in addition to GroupedConnLine
 func connDiffEncode(src, dst VPCResourceIntf, connDiff *connectionDiff) string {
 	conn1Str, conn2Str := conn1And2Str(connDiff)
 	diffType, endpointsDiff := diffAndEndpointsDescription(connDiff.diff, src, dst, connDiff.thisMinusOther)
 	return strings.Join([]string{diffType, conn1Str, conn2Str, endpointsDiff}, semicolon)
+}
+
+// encodes rulesConnection for grouping
+func (rules *rulesConnection) rulesEncode(c *VPCConfig) string {
+	egressStr, ingressStr := "", ""
+	if len(rules.egressRules) > 0 {
+		egressStr = "egress:" + rules.egressRules.string(c) + semicolon
+	}
+	if len(rules.ingressRules) > 0 {
+		egressStr = "ingress:" + rules.ingressRules.string(c) + semicolon
+	}
+	return egressStr + ingressStr
 }

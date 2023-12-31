@@ -99,5 +99,5 @@ func connectivityLineMD(src, dst, conn string) string {
 }
 
 func getGroupedMDLine(line *groupedConnLine) string {
-	return connectivityLineMD(line.src.Name(), line.dst.Name(), line.commonProperties.connStrKey)
+	return connectivityLineMD(line.src.Name(), line.dst.Name(), line.commonProperties.groupingStrKey)
 }
