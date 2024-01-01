@@ -403,7 +403,6 @@ func addZone(zoneName, vpcUID string, res map[string]*vpcmodel.VPCConfig) error 
 func getInstancesConfig(
 	instanceList []*vpc1.Instance,
 	subnetNameToNetIntf map[string][]*NetworkInterface,
-	intfNameToIntf map[string]*NetworkInterface,
 	res map[string]*vpcmodel.VPCConfig,
 	skipByVPC func(string) bool,
 ) error {
@@ -431,7 +430,7 @@ func getInstancesConfig(
 			return err
 		}
 		res[vpcUID].NodeSets = append(res[vpcUID].NodeSets, vsiNode)
-		res[vpcUID].NameToResource[vsiNode.Name()] = vsiNode
+		res[vpcUID].UIDToResource[vsiNode.ResourceUID] = vsiNode
 		for j := range instance.NetworkInterfaces {
 			netintf := instance.NetworkInterfaces[j]
 			// netintf has no CRN, thus using its ID for ResourceUID
@@ -445,9 +444,8 @@ func getInstancesConfig(
 				},
 				address: *netintf.PrimaryIP.Address, vsi: *instance.Name}
 			res[vpcUID].Nodes = append(res[vpcUID].Nodes, intfNode)
-			res[vpcUID].NameToResource[intfNode.Name()] = intfNode
+			res[vpcUID].UIDToResource[intfNode.ResourceUID] = intfNode
 			vsiNode.nodes = append(vsiNode.nodes, intfNode)
-			intfNameToIntf[intfNode.ResourceName] = intfNode
 			subnetName := *netintf.Subnet.Name
 			if _, ok := subnetNameToNetIntf[subnetName]; !ok {
 				subnetNameToNetIntf[subnetName] = []*NetworkInterface{}
@@ -501,7 +499,7 @@ func getSubnetsConfig(
 		if err := addZone(*subnet.Zone.Name, vpcUID, res); err != nil {
 			return nil, err
 		}
-		res[vpcUID].NameToResource[subnetNode.Name()] = subnetNode
+		res[vpcUID].UIDToResource[subnetNode.ResourceUID] = subnetNode
 		subnetNameToSubnet[*subnet.Name] = subnetNode
 		if subnet.PublicGateway != nil {
 			if _, ok := pgwToSubnet[*subnet.PublicGateway.Name]; !ok {
@@ -572,7 +570,7 @@ func getPgwConfig(
 			vpc:        vpc,
 		} // TODO: get cidr from fip of the pgw
 		res[vpcUID].RoutingResources = append(res[vpcUID].RoutingResources, routerPgw)
-		res[vpcUID].NameToResource[routerPgw.Name()] = routerPgw
+		res[vpcUID].UIDToResource[routerPgw.ResourceUID] = routerPgw
 		err = addZone(*pgw.Zone.Name, vpcUID, res)
 		if err != nil {
 			return err
@@ -646,7 +644,7 @@ func getFipConfig(
 			},
 			cidr: *fip.Address, src: srcNodes}
 		res[vpcUID].RoutingResources = append(res[vpcUID].RoutingResources, routerFip)
-		res[vpcUID].NameToResource[routerFip.Name()] = routerFip
+		res[vpcUID].UIDToResource[routerFip.ResourceUID] = routerFip
 
 		// node with fip should not have pgw
 		for _, r := range res[vpcUID].RoutingResources {
@@ -681,7 +679,7 @@ func getVPCconfig(rc *ResourcesContainer, res map[string]*vpcmodel.VPCConfig, sk
 		vpcNodeSet.VPCRef = vpcNodeSet
 		newVPCConfig := NewEmptyVPCConfig()
 		newVPCConfig.NodeSets = []vpcmodel.NodeSet{vpcNodeSet}
-		newVPCConfig.NameToResource[vpcNodeSet.Name()] = vpcNodeSet
+		newVPCConfig.UIDToResource[vpcNodeSet.ResourceUID] = vpcNodeSet
 		newVPCConfig.VPC = vpcNodeSet
 		res[vpcNodeSet.ResourceUID] = newVPCConfig
 	}
@@ -693,21 +691,21 @@ func getVPCconfig(rc *ResourcesContainer, res map[string]*vpcmodel.VPCConfig, sk
 
 func parseSGTargets(sgResource *SecurityGroup,
 	sg *vpc1.SecurityGroup,
-	c *vpcmodel.VPCConfig,
-	intfNameToIntf map[string]*NetworkInterface) {
+	c *vpcmodel.VPCConfig) {
 	targets := sg.Targets // *SecurityGroupTargetReference
 	// type SecurityGroupTargetReference struct
 	for _, target := range targets {
 		if targetIntfRef, ok := target.(*vpc1.SecurityGroupTargetReference); ok {
 			// get from target name + resource type -> find the address of the target
 			targetType := *targetIntfRef.ResourceType
-			targetName := *targetIntfRef.Name
 			if targetType == networkInterfaceResourceType {
-				if intfNode, ok := intfNameToIntf[targetName]; ok {
-					sgResource.members[intfNode.address] = intfNode
+				if intfNode, ok := c.UIDToResource[*targetIntfRef.ID]; ok {
+					if intfNodeObj, ok := intfNode.(*NetworkInterface); ok {
+						sgResource.members[intfNodeObj.address] = intfNodeObj
+					}
 				}
 			} else if targetType == vpeResourceType {
-				if vpe, ok := c.NameToResource[targetName]; ok {
+				if vpe, ok := c.UIDToResource[*targetIntfRef.CRN]; ok {
 					vpeObj := vpe.(*Vpe)
 					for _, n := range vpeObj.nodes {
 						nIP := n.(*ReservedIP)
@@ -721,7 +719,6 @@ func parseSGTargets(sgResource *SecurityGroup,
 
 func getSGconfig(rc *ResourcesContainer,
 	res map[string]*vpcmodel.VPCConfig,
-	intfNameToIntf map[string]*NetworkInterface,
 	skipByVPC func(string) bool,
 ) error {
 	sgMap := map[string]map[string]*SecurityGroup{} // map from vpc uid to map from sg name to its sg object
@@ -749,7 +746,7 @@ func getSGconfig(rc *ResourcesContainer,
 			sgMap[vpcUID] = map[string]*SecurityGroup{}
 		}
 		sgMap[vpcUID][*sg.Name] = sgResource
-		parseSGTargets(sgResource, sg, res[vpcUID], intfNameToIntf)
+		parseSGTargets(sgResource, sg, res[vpcUID])
 		sgLists[vpcUID] = append(sgLists[vpcUID], sgResource)
 	}
 	for vpcUID, sgListInstance := range sgLists {
@@ -873,7 +870,7 @@ func addTGWbasedConfigs(tgws map[string]*TransitGateway, res map[string]*vpcmode
 			continue
 		}
 		newConfig := &vpcmodel.VPCConfig{
-			NameToResource:       map[string]vpcmodel.VPCResourceIntf{},
+			UIDToResource:        map[string]vpcmodel.VPCResourceIntf{},
 			IsMultipleVPCsConfig: true,
 		}
 		var vpcsAddressRanges *common.IPBlock // collect all internal address ranges of involved VPCs
@@ -904,8 +901,8 @@ func addTGWbasedConfigs(tgws map[string]*TransitGateway, res map[string]*vpcmode
 			// TODO: is there a scenario of connectivity from one vpc's vsi to external entity through another vpc's pgw/fip ?
 
 			// simple union for NameToResource map
-			for n, r := range vpcConfig.NameToResource {
-				newConfig.NameToResource[n] = r
+			for n, r := range vpcConfig.UIDToResource {
+				newConfig.UIDToResource[n] = r
 			}
 			if vpcsAddressRanges == nil {
 				vpcsAddressRanges = vpcConfig.VPC.(*VPC).internalAddressRange
@@ -1009,10 +1006,10 @@ func getVPEconfig(rc *ResourcesContainer,
 			res[vpcUID].Nodes = append(res[vpcUID].Nodes, rIPNode)
 			// TODO: make sure the address is in the subnet's reserved ips list?
 			subnet.nodes = append(subnet.nodes, rIPNode)
-			res[vpcUID].NameToResource[rIPNode.Name()] = rIPNode
+			res[vpcUID].UIDToResource[rIPNode.ResourceUID] = rIPNode
 			vpeResource.nodes = append(vpeResource.nodes, rIPNode)
 		}
-		res[vpcUID].NameToResource[vpeResource.ResourceName] = vpeResource
+		res[vpcUID].UIDToResource[vpeResource.ResourceUID] = vpeResource
 		// TODO: verify that vpe.SecurityGroups contain the reserved-ips as members? (not at this stage)
 		// sgList := vpe.SecurityGroups
 	}
@@ -1065,7 +1062,7 @@ func NewEmptyVPCConfig() *vpcmodel.VPCConfig {
 		NodeSets:         []vpcmodel.NodeSet{},
 		FilterResources:  []vpcmodel.FilterTrafficResource{},
 		RoutingResources: []vpcmodel.RoutingResource{},
-		NameToResource:   map[string]vpcmodel.VPCResourceIntf{},
+		UIDToResource:    map[string]vpcmodel.VPCResourceIntf{},
 		CloudName:        "IBM Cloud",
 	}
 }
@@ -1089,8 +1086,7 @@ func VPCConfigsFromResources(rc *ResourcesContainer, vpcID string, debug bool) (
 	var vpcInternalAddressRange map[string]*common.IPBlock // map from vpc name to its internal address range
 
 	subnetNameToNetIntf := map[string][]*NetworkInterface{}
-	intfNameToIntf := map[string]*NetworkInterface{}
-	err = getInstancesConfig(rc.instanceList, subnetNameToNetIntf, intfNameToIntf, res, shouldSkipByVPC)
+	err = getInstancesConfig(rc.instanceList, subnetNameToNetIntf, res, shouldSkipByVPC)
 	if err != nil {
 		return nil, err
 	}
@@ -1124,7 +1120,7 @@ func VPCConfigsFromResources(rc *ResourcesContainer, vpcID string, debug bool) (
 		return nil, err
 	}
 
-	err = getSGconfig(rc, res, intfNameToIntf, shouldSkipByVPC)
+	err = getSGconfig(rc, res, shouldSkipByVPC)
 	if err != nil {
 		return nil, err
 	}
@@ -1227,7 +1223,7 @@ func addExternalNodes(config *vpcmodel.VPCConfig, vpcInternalAddressRange *commo
 	}
 	config.Nodes = append(config.Nodes, externalNodes...)
 	for _, n := range externalNodes {
-		config.NameToResource[n.Name()] = n
+		config.UIDToResource[n.UID()] = n
 	}
 	return externalNodes, nil
 }

@@ -14,9 +14,9 @@ type VPCConfig struct {
 	FilterResources []FilterTrafficResource
 	// RoutingResources is the list of resources that enable certain types of connectivity, such as PGW, FIP
 	RoutingResources []RoutingResource
-	// NameToResource is a map from resource UID to its object in the VPC
-	NameToResource map[string]VPCResourceIntf
-	CloudName      string
+	// UIDToResource is a map from resource UID to its object in the VPC
+	UIDToResource map[string]VPCResourceIntf
+	CloudName     string
 	// VPC is a reference to the relevant VPC object for which this config belongs
 	VPC VPCResourceIntf
 	// IsMultipleVPCsConfig is a bool indicator, when set true, it means that the VPCConfig contains resources from
