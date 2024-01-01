@@ -2,7 +2,6 @@ package ibmvpc
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"path/filepath"
@@ -16,11 +15,7 @@ import (
 // getConfigs returns  map[string]*vpcmodel.VPCConfig obj for the input test (config json file)
 func getConfig(t *testing.T) *vpcmodel.VPCConfig {
 	inputConfigFile := filepath.Join(getTestsDir(), "input_sg_testing1_new.json")
-	inputConfigContent, err := os.ReadFile(inputConfigFile)
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
-	rc, err := ParseResources(inputConfigContent)
+	rc, err := ParseResourcesFromFile(inputConfigFile)
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
