@@ -10,6 +10,7 @@ import (
 // the input to the layout algorithm is the tree itself. the output is the geometry for each node in the drawio (x, y, height, width)
 // the steps:
 // 1. create a 2D matrix  - for each subnet icon, it set the location in the matrix (see details about layouting a subnet)
+// (when we are in subnet mode, we set the locations of the subnets, using the subnetsLayout struct. see subnetsLayout.go
 // 2. set the locations of the SG in the matrix, according to the locations of the icons
 // 3. add squares borders - resizing the matrix. adding rows and columns to the matrix, to be used as the borders of all squares
 // 4. set the locations of all the squares in the matrix
@@ -55,18 +56,24 @@ const (
 )
 
 type layoutS struct {
-	network SquareTreeNodeInterface
-	matrix  *layoutMatrix
+	network    SquareTreeNodeInterface
+	matrix     *layoutMatrix
+	subnetMode bool
 }
 
-func newLayout(network SquareTreeNodeInterface) *layoutS {
-	return &layoutS{network: network, matrix: newLayoutMatrix()}
+func newLayout(network SquareTreeNodeInterface, subnetMode bool) *layoutS {
+	return &layoutS{network: network, matrix: newLayoutMatrix(), subnetMode: subnetMode}
 }
 
 func (ly *layoutS) layout() {
 	// main layout algorithm:
 	// 1. create a 2D matrix  - for each subnet icon, it set the location in the matrix
-	ly.layoutSubnetsIcons()
+	// in case of subnet mode, set the locations of the subnets
+	if !ly.subnetMode {
+		ly.layoutSubnetsIcons()
+	} else {
+		ly.layoutSubnets()
+	}
 	ly.matrix.removeUnusedLayers()
 	// 2. set the locations of the SG in the matrix, according to the locations of the icons
 	ly.setSGLocations()
@@ -80,7 +87,9 @@ func (ly *layoutS) layout() {
 	// 6. set the geometry for each node in the drawio
 	ly.matrix.setLayersDistance()
 	ly.setGeometries()
-	newLayoutOverlap(ly.network).fixOverlapping()
+	if !ly.subnetMode {
+		newLayoutOverlap(ly.network).fixOverlapping()
+	}
 }
 
 // setDefaultLocation() set locations to squares
@@ -275,6 +284,9 @@ func (ly *layoutS) layoutSubnetsIcons() {
 					for _, group := range groups {
 						rowIndex, colIndex = ly.layoutGroupIcons(group, rowIndex, colIndex)
 					}
+					if rowIndex == subnet.Location().firstRow.index {
+						rowIndex++
+					}
 				}
 				colIndex++
 			}
@@ -286,6 +298,111 @@ func (ly *layoutS) layoutSubnetsIcons() {
 			colIndex++
 		}
 	}
+}
+
+func (ly *layoutS) layoutSubnets() {
+	sly := newSubnetsLayout(ly.network)
+	sly.layout()
+	ly.setSubnetsLocations(sly.subnetMatrix, sly.zonesCol)
+}
+
+func (ly *layoutS) setSubnetsLocations(subnetMatrix [][]TreeNodeInterface, zonesCol map[TreeNodeInterface]int) {
+	locatedSubnets := map[TreeNodeInterface]bool{}
+	for ri, row := range subnetMatrix {
+		for ci, s := range row {
+			if s != nil && s != fakeSubnet {
+				ly.setDefaultLocation(s.(SquareTreeNodeInterface), ri, ci)
+				locatedSubnets[s] = true
+			}
+		}
+	}
+	ly.setDefaultLocation(ly.network, 0, 0)
+	for _, cloud := range ly.network.(*NetworkTreeNode).clouds {
+		for _, vpc := range cloud.(*CloudTreeNode).vpcs {
+			for _, zone := range vpc.(*VpcTreeNode).zones {
+				if _, ok := zonesCol[zone]; !ok {
+					zonesCol[zone] = len(zonesCol)
+				}
+				rowIndex := 0
+				for _, subnet := range zone.(*ZoneTreeNode).subnets {
+					if !locatedSubnets[subnet] {
+						a := len(subnetMatrix)
+						for rowIndex < a && zonesCol[zone] < len(subnetMatrix[rowIndex]) && subnetMatrix[rowIndex][zonesCol[zone]] != nil {
+							rowIndex++
+						}
+						ly.setDefaultLocation(subnet, rowIndex, zonesCol[zone])
+						rowIndex++
+					}
+				}
+			}
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////
+// resolveGroupedSubnetsOverlap() handles overlapping GroupSubnetsSquare.
+// it makes sure that the borders of two squares will not overlap each other.
+// the borders of two squares overlap if these two condition happened:
+// 1. they have the same first raw, or the same last raw, or the same first col or the same last col
+// 2. they have the same xOffset (since xOffset == yOffset == xEndOffset == yEndOffset)
+//
+// in case we find such a pair, we shrink the smaller one by increasing its offsets
+// we continue to look for such pairs till cant find any
+
+func (ly *layoutS) resolveGroupedSubnetsOverlap() {
+	allSubnetsSquares := map[*GroupSubnetsSquareTreeNode]bool{}
+	for _, tn := range getAllNodes(ly.network) {
+		if !tn.NotShownInDrawio() && tn.IsSquare() && tn.(SquareTreeNodeInterface).IsGroupSubnetsSquare() {
+			allSubnetsSquares[tn.(*GroupSubnetsSquareTreeNode)] = true
+		}
+	}
+	for foundOverlap := true; foundOverlap; {
+		foundOverlap = false
+		for tn1 := range allSubnetsSquares {
+			for tn2 := range allSubnetsSquares {
+				if tn1 == tn2 {
+					continue
+				}
+				l1 := tn1.Location()
+				l2 := tn2.Location()
+				if l1.firstRow == l2.firstRow || l1.firstCol == l2.firstCol || l1.lastRow == l2.lastRow || l1.lastCol == l2.lastCol {
+					if l1.xOffset == l2.xOffset {
+						toShrink := tn1
+						if len(tn2.groupedSubnets) < len(tn1.groupedSubnets) {
+							toShrink = tn2
+						}
+						toShrink.Location().xOffset += groupInnerBorderWidth
+						toShrink.Location().yOffset += groupInnerBorderWidth
+						toShrink.Location().xEndOffset += groupInnerBorderWidth
+						toShrink.Location().yEndOffset += groupInnerBorderWidth
+						foundOverlap = true
+					}
+				}
+			}
+		}
+	}
+}
+
+// since we do not have subnet icons, we set the subnets smaller and the GroupSubnetsSquare bigger
+func (ly *layoutS) setGroupedSubnetsOffset() {
+	for _, tn := range getAllNodes(ly.network) {
+		switch {
+		case tn.NotShownInDrawio():
+		case !tn.IsSquare():
+		case tn.(SquareTreeNodeInterface).IsSubnet():
+			tn.Location().xOffset = borderWidth
+			tn.Location().yOffset = borderWidth
+			tn.Location().xEndOffset = borderWidth
+			tn.Location().yEndOffset = borderWidth
+
+		case tn.(SquareTreeNodeInterface).IsGroupSubnetsSquare():
+			tn.Location().xOffset = -groupBorderWidth
+			tn.Location().yOffset = -groupBorderWidth
+			tn.Location().xEndOffset = -groupBorderWidth
+			tn.Location().yEndOffset = -groupBorderWidth
+		}
+	}
+	ly.resolveGroupedSubnetsOverlap()
 }
 
 // //////////////////////////////////////////////////////////////////////////////////////////
@@ -400,10 +517,16 @@ func (ly *layoutS) setSquaresLocations() {
 					}
 				}
 			}
+			for _, groupSubnetsSquare := range vpc.(*VpcTreeNode).groupSubnetsSquares {
+				resolveSquareLocation(groupSubnetsSquare, 0, false)
+			}
 		}
 	}
 	ly.resolvePublicNetworkLocations()
 	resolveSquareLocation(ly.network, 1, false)
+	if ly.subnetMode {
+		ly.setGroupedSubnetsOffset()
+	}
 }
 
 // ////////////////////////////////////////////////////////////////////////////////////////

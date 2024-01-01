@@ -5,6 +5,22 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
+func (v *VPC) ShowOnSubnetMode() bool                  { return true }
+func (z *Zone) ShowOnSubnetMode() bool                 { return true }
+func (s *Subnet) ShowOnSubnetMode() bool               { return true }
+func (sgl *SecurityGroupLayer) ShowOnSubnetMode() bool { return false }
+func (nl *NaclLayer) ShowOnSubnetMode() bool           { return true }
+func (ni *NetworkInterface) ShowOnSubnetMode() bool    { return false }
+func (n *IKSNode) ShowOnSubnetMode() bool              { return false }
+func (r *ReservedIP) ShowOnSubnetMode() bool           { return false }
+func (v *Vsi) ShowOnSubnetMode() bool                  { return false }
+func (v *Vpe) ShowOnSubnetMode() bool                  { return false }
+func (pgw *PublicGateway) ShowOnSubnetMode() bool      { return true }
+func (fip *FloatingIP) ShowOnSubnetMode() bool         { return false }
+
+// todo - support TransitGateway?
+func (tgw *TransitGateway) ShowOnSubnetMode() bool { return false }
+
 // implementations of the GenerateDrawioTreeNode() for resource defined in ibmvpc:
 func (v *VPC) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	return drawio.NewVpcTreeNode(gen.Cloud(), v.Name())

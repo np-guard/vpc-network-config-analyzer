@@ -52,6 +52,7 @@ type TreeNodeInterface interface {
 	setParent(TreeNodeInterface)
 	setLocation(location *Location)
 	NotShownInDrawio() bool
+	SetNotShownInDrawio()
 	setID()
 
 	/////////////////////////////

@@ -8,7 +8,9 @@ type SquareTreeNodeInterface interface {
 	IconTreeNodes() []IconTreeNodeInterface
 	TagID() uint
 	DecoreID() uint
+	IsSubnet() bool
 	IsGroupingSquare() bool
+	IsGroupSubnetsSquare() bool
 }
 
 type abstractSquareTreeNode struct {
@@ -35,7 +37,9 @@ func (tn *abstractSquareTreeNode) IsSquare() bool { return true }
 func (tn *abstractSquareTreeNode) TagID() uint    { return tn.id + tagID }
 func (tn *abstractSquareTreeNode) DecoreID() uint { return tn.id + decoreID }
 
-func (tn *abstractSquareTreeNode) IsGroupingSquare() bool { return false }
+func (tn *abstractSquareTreeNode) IsSubnet() bool             { return false }
+func (tn *abstractSquareTreeNode) IsGroupingSquare() bool     { return false }
+func (tn *abstractSquareTreeNode) IsGroupSubnetsSquare() bool { return false }
 
 func calculateSquareGeometry(tn SquareTreeNodeInterface) {
 	location := tn.Location()
@@ -108,8 +112,9 @@ func (tn *CloudTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeIn
 // ////////////////////////////////////////////////////////////////////////////////////////
 type VpcTreeNode struct {
 	abstractSquareTreeNode
-	zones []SquareTreeNodeInterface
-	sgs   []SquareTreeNodeInterface
+	zones               []SquareTreeNodeInterface
+	sgs                 []SquareTreeNodeInterface
+	groupSubnetsSquares []SquareTreeNodeInterface
 }
 
 func NewVpcTreeNode(parent *CloudTreeNode, name string) *VpcTreeNode {
@@ -118,7 +123,7 @@ func NewVpcTreeNode(parent *CloudTreeNode, name string) *VpcTreeNode {
 	return &vpc
 }
 func (tn *VpcTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
-	return append(tn.zones, tn.sgs...), tn.elements, tn.connections
+	return append(append(tn.zones, tn.sgs...), tn.groupSubnetsSquares...), tn.elements, tn.connections
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -200,6 +205,7 @@ func (tn *SubnetTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeI
 func (tn *SubnetTreeNode) Label() string {
 	return labels2Table([]string{tn.name, tn.cidr, tn.acl})
 }
+func (tn *SubnetTreeNode) IsSubnet() bool { return true }
 func (tn *SubnetTreeNode) SetACL(acl string) {
 	tn.acl = acl
 }
@@ -264,3 +270,46 @@ func (tn *GroupSquareTreeNode) setVisibility(visibility groupSquareVisibility) {
 func (tn *GroupSquareTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
 	return nil, append(tn.elements, tn.groupedIcons...), tn.connections
 }
+
+// ////////////////////////////////////////////////////////////////////////////
+type GroupSubnetsSquareTreeNode struct {
+	abstractSquareTreeNode
+	groupedSubnets []SquareTreeNodeInterface
+}
+
+func GroupedSubnetsSquare(parent *VpcTreeNode, groupedSubnets []SquareTreeNodeInterface) SquareTreeNodeInterface {
+	sameZone, sameVpc := true, true
+	zone := groupedSubnets[0].Parent().(*ZoneTreeNode)
+	vpc := groupedSubnets[0].Parent().Parent().(*VpcTreeNode)
+	for _, subnet := range groupedSubnets {
+		if zone != subnet.Parent() {
+			sameZone = false
+		}
+		if vpc != subnet.Parent().Parent() {
+			sameVpc = false
+		}
+	}
+	if sameVpc {
+		allVpcSubnets := []SquareTreeNodeInterface{}
+		for _, z := range vpc.zones {
+			allVpcSubnets = append(allVpcSubnets, z.(*ZoneTreeNode).subnets...)
+		}
+		if len(groupedSubnets) == len(allVpcSubnets) {
+			return vpc
+		}
+	}
+	if sameZone && len(groupedSubnets) == len(zone.subnets) {
+		return zone
+	}
+	return newGroupSubnetsSquareTreeNode(parent, groupedSubnets)
+}
+
+func newGroupSubnetsSquareTreeNode(parent *VpcTreeNode, groupedSubnets []SquareTreeNodeInterface) *GroupSubnetsSquareTreeNode {
+	gs := GroupSubnetsSquareTreeNode{newAbstractSquareTreeNode(parent, ""), groupedSubnets}
+	parent.groupSubnetsSquares = append(parent.groupSubnetsSquares, &gs)
+	return &gs
+}
+func (tn *GroupSubnetsSquareTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
+	return tn.groupedSubnets, tn.elements, tn.connections
+}
+func (tn *GroupSubnetsSquareTreeNode) IsGroupSubnetsSquare() bool { return true }
