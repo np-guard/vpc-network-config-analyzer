@@ -11,8 +11,8 @@ type point struct {
 // //////////////////////////////////////////////////////////////////////////////
 type LineTreeNodeInterface interface {
 	TreeNodeInterface
-	Src() IconTreeNodeInterface
-	Dst() IconTreeNodeInterface
+	Src() TreeNodeInterface
+	Dst() TreeNodeInterface
 	SrcID() uint
 	DstID() uint
 	Points() []point
@@ -24,8 +24,8 @@ type LineTreeNodeInterface interface {
 
 type abstractLineTreeNode struct {
 	abstractTreeNode
-	src    IconTreeNodeInterface
-	dst    IconTreeNodeInterface
+	src    TreeNodeInterface
+	dst    TreeNodeInterface
 	router IconTreeNodeInterface
 	points []point
 }
@@ -34,10 +34,10 @@ func (tn *abstractLineTreeNode) IsLine() bool {
 	return true
 }
 
-func (tn *abstractLineTreeNode) SrcID() uint                { return tn.src.ID() }
-func (tn *abstractLineTreeNode) DstID() uint                { return tn.dst.ID() }
-func (tn *abstractLineTreeNode) Src() IconTreeNodeInterface { return tn.src }
-func (tn *abstractLineTreeNode) Dst() IconTreeNodeInterface { return tn.dst }
+func (tn *abstractLineTreeNode) SrcID() uint            { return tn.src.ID() }
+func (tn *abstractLineTreeNode) DstID() uint            { return tn.dst.ID() }
+func (tn *abstractLineTreeNode) Src() TreeNodeInterface { return tn.src }
+func (tn *abstractLineTreeNode) Dst() TreeNodeInterface { return tn.dst }
 
 func (tn *abstractLineTreeNode) DrawioParent() TreeNodeInterface {
 	if tn.router != nil {
@@ -86,29 +86,24 @@ func NewConnectivityLineTreeNode(network SquareTreeNodeInterface,
 	src, dst TreeNodeInterface,
 	directed bool,
 	name string) *ConnectivityTreeNode {
-	var iconSrc, iconDst IconTreeNodeInterface
-	if src.IsSquare() {
-		iconSrc = NewGroupPointTreeNode(src.(SquareTreeNodeInterface), directed, true, "")
-	} else {
-		iconSrc = src.(IconTreeNodeInterface)
+	if src.IsSquare() && src.(SquareTreeNodeInterface).IsGroupingSquare() {
+		src = NewGroupPointTreeNode(src.(SquareTreeNodeInterface), directed, true, "")
 	}
-	if dst.IsSquare() {
-		iconDst = NewGroupPointTreeNode(dst.(SquareTreeNodeInterface), directed, false, "")
-	} else {
-		iconDst = dst.(IconTreeNodeInterface)
+	if dst.IsSquare() && dst.(SquareTreeNodeInterface).IsGroupingSquare() {
+		dst = NewGroupPointTreeNode(dst.(SquareTreeNodeInterface), directed, false, "")
 	}
-	if iconSrc.IsGroupingPoint() {
-		iconSrc.(*GroupPointTreeNode).setColleague(iconDst)
+	if src.IsIcon() && src.(IconTreeNodeInterface).IsGroupingPoint() {
+		src.(*GroupPointTreeNode).setColleague(dst.(IconTreeNodeInterface))
 	}
-	if iconDst.IsGroupingPoint() {
-		iconDst.(*GroupPointTreeNode).setColleague(iconSrc)
+	if dst.IsIcon() && dst.(IconTreeNodeInterface).IsGroupingPoint() {
+		dst.(*GroupPointTreeNode).setColleague(src.(IconTreeNodeInterface))
 	}
 
 	conn := ConnectivityTreeNode{
 		abstractLineTreeNode: abstractLineTreeNode{
 			abstractTreeNode: newAbstractTreeNode(network, name),
-			src:              iconSrc,
-			dst:              iconDst},
+			src:              src,
+			dst:              dst},
 		directed: directed}
 	network.addLineTreeNode(&conn)
 	return &conn
