@@ -6,6 +6,7 @@ import (
 	"os"
 	"sort"
 	"strings"
+
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
@@ -111,41 +112,59 @@ type SingleAnalysisOutput struct {
 func (o *OutputGenerator) Generate(f OutFormat, outFile string) (string, error) {
 	var formatter OutputFormatter
 	switch f {
-	case JSON:
-		formatter = &TextualOutputFormatter{&JSONoutputFormatter{}, f}
-	case Text:
-		formatter = &TextualOutputFormatter{&TextOutputFormatter{}, f}
-	case MD:
-		formatter = &TextualOutputFormatter{&MDoutputFormatter{}, f}
+	case JSON, Text, MD, Debug:
+		formatter = &serialOutputFormatter{f}
 	case DRAWIO:
 		formatter = &DrawioOutputFormatter{}
 	case ARCHDRAWIO:
 		formatter = &ArchDrawioOutputFormatter{}
-	case Debug:
-		formatter = &TextualOutputFormatter{&DebugOutputFormatter{}, f}
 	default:
 		return "", errors.New("unsupported output format")
 	}
 	return formatter.WriteOutput(o.config1, o.config2, o.nodesConn, o.subnetsConn, o.cfgsDiff, outFile, o.outputGrouping, o.useCase)
 }
 
+// SingleVpcOutputFormatter is an interface for a formatter that can handle only one vpc
+// this interface is implemented by textOutputFormatter, jsonOutputFormatter, mdOutputFormatter
 type SingleVpcOutputFormatter interface {
 	WriteOutput(c1, c2 *VPCConfig, conn *VPCConnectivity,
 		subnetsConn *VPCsubnetConnectivity, subnetsDiff *diffBetweenCfgs,
 		outFile string, grouping bool, uc OutputUseCase) (*SingleAnalysisOutput, error)
 }
+
+// OutputFormatter is an interface for formatter that handle multi vpcs.
+// implemented by serialOutputFormatter and drawioOutputFormatter
 type OutputFormatter interface {
 	WriteOutput(c1, c2 map[string]*VPCConfig, conn map[string]*VPCConnectivity,
 		subnetsConn map[string]*VPCsubnetConnectivity, subnetsDiff *diffBetweenCfgs,
 		outFile string, grouping bool, uc OutputUseCase) (string, error)
 }
 
-type TextualOutputFormatter struct {
-	singleVpcFormatter SingleVpcOutputFormatter
-	outFormat          OutFormat
+// serialOutputFormatter is the formatter for json, md, txt formats.
+// serialOutputFormatter implements the interface OutputFormatter.
+// its hold an instance of a formater that implement
+// its main flow of WriteOutput() of serialOutputFormatter is:
+// 1. for each vpc, use a SingleVpcOutputFormatter to create a VPCsubnetConnectivity,
+// 2. aggregate the VPCsubnetConnectivity to one output 
+type serialOutputFormatter struct {
+	outFormat OutFormat
 }
 
-func (of *TextualOutputFormatter) WriteOutput(c1, c2 map[string]*VPCConfig, conns map[string]*VPCConnectivity,
+func (o *serialOutputFormatter) createSingleVpcFormatter() SingleVpcOutputFormatter {
+	switch o.outFormat {
+	case JSON:
+		return &JSONoutputFormatter{}
+	case Text:
+		return &TextOutputFormatter{}
+	case MD:
+		return &MDoutputFormatter{}
+	case Debug:
+		return &DebugOutputFormatter{}
+	}
+	return nil
+}
+
+func (of *serialOutputFormatter) WriteOutput(c1, c2 map[string]*VPCConfig, conns map[string]*VPCConnectivity,
 	subnetsConns map[string]*VPCsubnetConnectivity, subnetsDiff *diffBetweenCfgs,
 	outFile string, grouping bool, uc OutputUseCase) (string, error) {
 	diffAnalysis := uc == EndpointsDiff || uc == SubnetsDiff
@@ -154,7 +173,7 @@ func (of *TextualOutputFormatter) WriteOutput(c1, c2 map[string]*VPCConfig, conn
 		i := 0
 		for name := range c1 {
 			vpcAnalysisOutput, err2 :=
-				of.singleVpcFormatter.WriteOutput(c1[name], nil, conns[name], subnetsConns[name], subnetsDiff, "", grouping, uc)
+				of.createSingleVpcFormatter().WriteOutput(c1[name], nil, conns[name], subnetsConns[name], subnetsDiff, "", grouping, uc)
 			if err2 != nil {
 				return "", err2
 			}
@@ -163,9 +182,10 @@ func (of *TextualOutputFormatter) WriteOutput(c1, c2 map[string]*VPCConfig, conn
 		}
 		return of.AggregateVPCsOutput(outputPerVPC, uc, outFile)
 	}
+	// its a diff mode, we have only one vpc on each map:
 	name, _ := common.AnyMapEntry(c1)
 	vpcAnalysisOutput, err2 :=
-		of.singleVpcFormatter.WriteOutput(c1[name], c2[name], conns[name], subnetsConns[name], subnetsDiff, "", grouping, uc)
+		of.createSingleVpcFormatter().WriteOutput(c1[name], c2[name], conns[name], subnetsConns[name], subnetsDiff, "", grouping, uc)
 	if err2 != nil {
 		return "", err2
 	}
@@ -182,7 +202,7 @@ func WriteToFile(content, fileName string) (string, error) {
 
 // AggregateVPCsOutput returns the output string for a list of SingleAnalysisOutput objects
 // and writes the output to outFile
-func (of *TextualOutputFormatter) AggregateVPCsOutput(outputList []*SingleAnalysisOutput, uc OutputUseCase, outFile string) (string, error) {
+func (of *serialOutputFormatter) AggregateVPCsOutput(outputList []*SingleAnalysisOutput, uc OutputUseCase, outFile string) (string, error) {
 	var res string
 	var err error
 
@@ -215,7 +235,7 @@ func (of *TextualOutputFormatter) AggregateVPCsOutput(outputList []*SingleAnalys
 }
 
 // WriteDiffOutput actual writing the output into file, with required format adjustments
-func (of *TextualOutputFormatter) WriteDiffOutput(output *SingleAnalysisOutput, outFile string) (string, error) {
+func (of *serialOutputFormatter) WriteDiffOutput(output *SingleAnalysisOutput, outFile string) (string, error) {
 	var res string
 	var err error
 	switch of.outFormat {

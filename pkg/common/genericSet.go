@@ -51,8 +51,12 @@ func (s GenericSet[T]) IsIntersect(s2 GenericSet[T]) bool {
 	}
 	return false
 }
+
 ///////////////////////////////////////////////////////////////////
-// just another common function
+// AnyMapEntry() return one arbitrary entry of a map.
+// this func is not related to genericSet, 
+// todo: consider moving to another file
+// todo: AnyMapEntry() for GenericSet, and use it   
 ///////////////////////////////////////////////////////////
 func AnyMapEntry[K comparable, V any](m map[K]V) (k K, v V) {
 	for k, v = range m {
