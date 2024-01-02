@@ -5,9 +5,10 @@ import (
 	"strings"
 	"testing"
 )
-////////////////////////////////////
-// this file need to be rewritten, no need to code review it 
-/////////////////////////////////////////
+
+// //////////////////////////////////
+// this file need to be rewritten, no need to code review it
+// ///////////////////////////////////////
 func Test_main(t *testing.T) {
 	tests := []struct {
 		name string

@@ -210,10 +210,14 @@ func errorInErgs(args *InArgs, flagset *flag.FlagSet) error {
 	return nil
 }
 
+//gocyclo:ignore
 func notSupportedYetArgs(args *InArgs) error {
 	diffAnalysis := *args.AnalysisType == allEndpointsDiff || *args.AnalysisType == allSubnetsDiff
 	if *args.OutputFormat == DRAWIOFormat || *args.OutputFormat == ARCHDRAWIOFormat {
-		return notSupportedYetDrawioArgs(args)
+		if *args.AnalysisType != allEndpoints && *args.AnalysisType != allSubnets {
+			return fmt.Errorf("drawio output format is not supported with %s analysis type", *args.AnalysisType)
+		}
+		return nil
 	}
 	if !diffAnalysis && *args.AnalysisType != allEndpoints && *args.OutputFormat != TEXTFormat &&
 		*args.OutputFormat != JSONFormat {
@@ -227,13 +231,6 @@ func notSupportedYetArgs(args *InArgs) error {
 	}
 	if *args.OutputFormat == JSONFormat && *args.Grouping {
 		return fmt.Errorf("json output format is not supported with grouping")
-	}
-	return nil
-}
-
-func notSupportedYetDrawioArgs(args *InArgs) error {
-	if *args.AnalysisType != allEndpoints && *args.AnalysisType != allSubnets {
-		return fmt.Errorf("drawio output format is not supported with %s analysis type", *args.AnalysisType)
 	}
 	return nil
 }

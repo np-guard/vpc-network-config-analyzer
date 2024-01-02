@@ -145,13 +145,13 @@ type OutputFormatter interface {
 // its hold an instance of a formater that implement
 // its main flow of WriteOutput() of serialOutputFormatter is:
 // 1. for each vpc, use a SingleVpcOutputFormatter to create a VPCsubnetConnectivity,
-// 2. aggregate the VPCsubnetConnectivity to one output 
+// 2. aggregate the VPCsubnetConnectivity to one output
 type serialOutputFormatter struct {
 	outFormat OutFormat
 }
 
-func (o *serialOutputFormatter) createSingleVpcFormatter() SingleVpcOutputFormatter {
-	switch o.outFormat {
+func (of *serialOutputFormatter) createSingleVpcFormatter() SingleVpcOutputFormatter {
+	switch of.outFormat {
 	case JSON:
 		return &JSONoutputFormatter{}
 	case Text:
