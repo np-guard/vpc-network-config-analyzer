@@ -6,6 +6,7 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 type OutFormat int64
@@ -162,7 +163,7 @@ func (of *TextualOutputFormatter) WriteOutput(c1, c2 map[string]*VPCConfig, conn
 		}
 		return of.AggregateVPCsOutput(outputPerVPC, uc, outFile)
 	}
-	name, _ := aMapEntry(c1)
+	name, _ := common.AnyMapEntry(c1)
 	vpcAnalysisOutput, err2 :=
 		of.singleVpcFormatter.WriteOutput(c1[name], c2[name], conns[name], subnetsConns[name], subnetsDiff, "", grouping, uc)
 	if err2 != nil {
@@ -227,11 +228,4 @@ func (of *TextualOutputFormatter) WriteDiffOutput(output *SingleAnalysisOutput, 
 		res, err = writeJSON(all, outFile)
 	}
 	return res, err
-}
-
-func aMapEntry[K comparable, V any](m map[K]V) (k K, v V) {
-	for k, v = range m {
-		break
-	}
-	return k, v
 }

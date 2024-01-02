@@ -51,3 +51,12 @@ func (s GenericSet[T]) IsIntersect(s2 GenericSet[T]) bool {
 	}
 	return false
 }
+///////////////////////////////////////////////////////////////////
+// just another common function
+///////////////////////////////////////////////////////////
+func AnyMapEntry[K comparable, V any](m map[K]V) (k K, v V) {
+	for k, v = range m {
+		break
+	}
+	return k, v
+}

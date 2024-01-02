@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 type edgeInfo struct {
@@ -37,7 +38,7 @@ func (d *DrawioOutputFormatter) init(cConfigs map[string]*VPCConfig, conns map[s
 	d.conns = conns
 	d.uc = uc
 	// just take the cloud name from one of the configs
-	_, aVpcConfig := aMapEntry(cConfigs)
+	_, aVpcConfig := common.AnyMapEntry(cConfigs)
 	cloudName := aVpcConfig.CloudName
 	d.gen = NewDrawioGenerator(cloudName)
 	d.routers = map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface{}
