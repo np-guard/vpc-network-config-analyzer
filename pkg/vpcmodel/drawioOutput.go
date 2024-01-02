@@ -3,8 +3,8 @@ package vpcmodel
 import (
 	"errors"
 
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
 )
 
 type edgeInfo struct {
@@ -19,11 +19,11 @@ func (e *edgeInfo) IsExternal() bool {
 }
 
 // DrawioOutputFormatter create the drawio connectivity map.
-// It build the drawio tree out of the VPCConfig and VPCConnectivity, and output it to a drawio file
+// It build the drawio tree out of the VPCConfigs and VPCConnectivitys, and output it to a drawio file
 // the steps of creating the drawio tree:
 // 1. collect all the connectivity edges to a map of (src,dst,label) -> isDirected. also mark the nodes that has connections
 // 2. create the treeNodes of the NodeSets, filters. routers and nodes
-// 3. create the edges from the map we created in stage (1). also also set the routers to the edges
+// 3. create the edges from the map we created in stage (1). also set the routers to the edges
 
 type DrawioOutputFormatter struct {
 	cConfigs map[string]*VPCConfig
@@ -42,12 +42,6 @@ func (d *DrawioOutputFormatter) init(cConfigs map[string]*VPCConfig, conns map[s
 	cloudName := aVpcConfig.CloudName
 	d.gen = NewDrawioGenerator(cloudName)
 	d.routers = map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface{}
-}
-
-func (d *DrawioOutputFormatter) writeOutputGeneric(outFile string) (string, error) {
-	d.createDrawioTree()
-	err := drawio.CreateDrawioConnectivityMapFile(d.gen.Network(), outFile, d.uc == AllSubnets)
-	return "", err
 }
 
 func (d *DrawioOutputFormatter) createDrawioTree() {
@@ -176,7 +170,8 @@ func (d *DrawioOutputFormatter) WriteOutput(c1, c2 map[string]*VPCConfig,
 	default:
 		return "", errors.New("use case is not currently supported for draw.io format")
 	}
-	return d.writeOutputGeneric(outFile)
+	d.createDrawioTree()
+	return "", drawio.CreateDrawioConnectivityMapFile(d.gen.Network(), outFile, d.uc == AllSubnets)
 }
 
 // /////////////////////////////////////////////////////////////////
