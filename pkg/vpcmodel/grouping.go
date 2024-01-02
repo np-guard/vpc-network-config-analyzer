@@ -61,8 +61,8 @@ func newGroupConnLines(c *VPCConfig, v *VPCConnectivity,
 	res = &GroupConnLines{c: c, v: v,
 		srcToDst:                 newGroupingConnections(),
 		dstToSrc:                 newGroupingConnections(),
-		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
-		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
+		groupedEndpointsElemsMap: map[string]*groupedEndpointsElems{},
+		groupedExternalNodesMap:  map[string]*groupedExternalNodes{}}
 	err = res.computeGrouping(true, grouping)
 	return res, err
 }
