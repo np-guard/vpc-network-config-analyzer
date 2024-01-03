@@ -34,7 +34,6 @@ func getConfig(t *testing.T, inputConfig string) *vpcmodel.VPCConfig {
 	return nil
 }
 
-// todo: quick and dirty tmp until added to the cli, by which these will be added as end-to-end tests
 func TestVsiToVsi(t *testing.T) {
 	vpcConfig := getConfig(t, "input_sg_testing1_new.json")
 	if vpcConfig == nil {
@@ -265,7 +264,7 @@ func TestSimpleQueryConnection(t *testing.T) {
 		explanbilityStr2)
 	fmt.Println(explanbilityStr2)
 
-	//test3: the required connection is contained in the existing one
+	//test3: the required connection is contained in the existing one per connection
 	connectionUDP2 := common.NewConnectionSet(false)
 	connectionUDP2.AddTCPorUDPConn(common.ProtocolUDP, 10, 100, 443, 443)
 	explanbilityStr3, err3 := vpcConfig.ExplainConnectivity(vsi1, cidr1, connectionUDP2)
@@ -278,7 +277,8 @@ func TestSimpleQueryConnection(t *testing.T) {
 		"\tindex: 2, direction: outbound,  conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\n",
 		explanbilityStr3)
 	fmt.Println(explanbilityStr3)
-	// test4: the required connection contains the existing one per connection (so answer should be no) but neither is all connections
-	// test5: the required connection contains the existing one per src or dst (so answer should be no)
-	// test6: a connection does not exist
+	// test4: the required connection is contained in the existing one per ip of src/dst
+	// test5: the required connection contains the existing one per connection (so answer should be no) but neither is all connections
+	// test6: the required connection contains the existing one per src or dst (so answer should be no)
+	// test7: a connection does not exist
 }
