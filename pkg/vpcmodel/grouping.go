@@ -58,7 +58,7 @@ func newGroupingConnections() *groupingConnections {
 
 func newGroupConnLines(c *VPCConfig, v *VPCConnectivity,
 	grouping bool) (res *GroupConnLines, err error) {
-	res = &GroupConnLines{c: c, v: v,
+	res = &GroupConnLines{config: c, nodesConn: v,
 		srcToDst:                 newGroupingConnections(),
 		dstToSrc:                 newGroupingConnections(),
 		groupedEndpointsElemsMap: map[string]*groupedEndpointsElems{},
@@ -69,7 +69,7 @@ func newGroupConnLines(c *VPCConfig, v *VPCConnectivity,
 
 func newGroupConnLinesSubnetConnectivity(c *VPCConfig, s *VPCsubnetConnectivity,
 	grouping bool) (res *GroupConnLines, err error) {
-	res = &GroupConnLines{c: c, s: s,
+	res = &GroupConnLines{config: c, subnetsConn: s,
 		srcToDst:                 newGroupingConnections(),
 		dstToSrc:                 newGroupingConnections(),
 		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
@@ -79,7 +79,7 @@ func newGroupConnLinesSubnetConnectivity(c *VPCConfig, s *VPCsubnetConnectivity,
 }
 
 func newGroupConnLinesDiff(d *diffBetweenCfgs) (res *GroupConnLines, err error) {
-	res = &GroupConnLines{d: d,
+	res = &GroupConnLines{diff: d,
 		srcToDst:                 newGroupingConnections(),
 		dstToSrc:                 newGroupingConnections(),
 		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
@@ -90,8 +90,8 @@ func newGroupConnLinesDiff(d *diffBetweenCfgs) (res *GroupConnLines, err error) 
 
 func newGroupConnExplainability(c *VPCConfig, e *explainStruct) (res *GroupConnLines, err error) {
 	res = &GroupConnLines{
-		c:                        c,
-		e:                        e,
+		config:                   c,
+		explain:                  e,
 		srcToDst:                 newGroupingConnections(),
 		dstToSrc:                 newGroupingConnections(),
 		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
@@ -103,13 +103,13 @@ func newGroupConnExplainability(c *VPCConfig, e *explainStruct) (res *GroupConnL
 // GroupConnLines used both for VPCConnectivity and for VPCsubnetConnectivity, one at a time. The other must be nil
 // todo: define abstraction above both?
 type GroupConnLines struct {
-	c        *VPCConfig
-	v        *VPCConnectivity
-	s        *VPCsubnetConnectivity
-	d        *diffBetweenCfgs
-	e        *explainStruct
-	srcToDst *groupingConnections
-	dstToSrc *groupingConnections
+	config      *VPCConfig
+	nodesConn   *VPCConnectivity
+	subnetsConn *VPCsubnetConnectivity
+	diff        *diffBetweenCfgs
+	explain     *explainStruct
+	srcToDst    *groupingConnections
+	dstToSrc    *groupingConnections
 	// a map to groupedEndpointsElems used by GroupedConnLine from a unified key of such elements
 	// representing grouped vsis or grouped subnets
 	// this is to avoid duplication of identical groupedEndpointsElems
@@ -266,9 +266,9 @@ func subnetGrouping(groupedConnLines *GroupConnLines,
 func (g *GroupConnLines) groupExternalAddresses(vsi bool) error {
 	var allowedConnsCombined GeneralConnectivityMap
 	if vsi {
-		allowedConnsCombined = g.v.AllowedConnsCombined
+		allowedConnsCombined = g.nodesConn.AllowedConnsCombined
 	} else {
-		allowedConnsCombined = g.s.AllowedConnsCombined
+		allowedConnsCombined = g.subnetsConn.AllowedConnsCombined
 	}
 	res := []*groupedConnLine{}
 	for src, nodeConns := range allowedConnsCombined {
@@ -294,9 +294,9 @@ func (g *GroupConnLines) groupExternalAddressesForDiff(thisMinusOther bool) erro
 	var res []*groupedConnLine
 	var connRemovedChanged connectivityDiff
 	if thisMinusOther {
-		connRemovedChanged = g.d.cfg1ConnRemovedFrom2
+		connRemovedChanged = g.diff.cfg1ConnRemovedFrom2
 	} else {
-		connRemovedChanged = g.d.cfg2ConnRemovedFrom1
+		connRemovedChanged = g.diff.cfg2ConnRemovedFrom1
 	}
 	for src, endpointConnDiff := range connRemovedChanged {
 		for dst, connDiff := range endpointConnDiff {
@@ -317,12 +317,12 @@ func (g *GroupConnLines) groupExternalAddressesForDiff(thisMinusOther bool) erro
 // group public internet ranges for explainability lines
 func (g *GroupConnLines) groupExternalAddressesForExplainability() error {
 	var res []*groupedConnLine
-	for _, rulesSrcDst := range *g.e {
+	for _, rulesSrcDst := range *g.explain {
 		connStr := ""
 		if rulesSrcDst.conn != nil {
 			connStr = rulesSrcDst.conn.String() + semicolon
 		}
-		groupingStrKey := connStr + rulesSrcDst.rules.rulesEncode(g.c)
+		groupingStrKey := connStr + rulesSrcDst.rules.rulesEncode(g.config)
 		err := g.addLineToExternalGrouping(&res, rulesSrcDst.src, rulesSrcDst.dst,
 			&groupedCommonProperties{conn: rulesSrcDst.conn, rules: rulesSrcDst.rules, groupingStrKey: groupingStrKey})
 		if err != nil {
@@ -418,7 +418,7 @@ func (g *GroupConnLines) groupInternalSrcOrDst(srcGrouping, groupVsi bool) {
 		}
 		var groupedSrcOrDst []EndpointElem
 		if groupVsi {
-			groupedSrcOrDst = vsiGroupingBySubnets(g, srcOrDstGroup, g.c)
+			groupedSrcOrDst = vsiGroupingBySubnets(g, srcOrDstGroup, g.config)
 		} else {
 			groupedSrcOrDst = subnetGrouping(g, srcOrDstGroup)
 		}
