@@ -59,7 +59,7 @@ The output is very similar to the one in `diff_all_endpoints` with `vsis` replac
 
 ## Build the project
 
-Make sure you have golang 1.19+ on your platform
+Make sure you have golang 1.21+ on your platform
 
 ```commandline
 git clone git@github.com:np-guard/vpc-network-config-analyzer.git
