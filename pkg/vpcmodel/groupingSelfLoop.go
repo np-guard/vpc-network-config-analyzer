@@ -115,7 +115,7 @@ func (g *GroupConnLines) findMergeCandidates(groupingSrcOrDst map[string][]*grou
 	bucketToKeys := make(map[string]map[string]struct{})
 	for _, key := range relevantKeys {
 		lines := groupingSrcOrDst[key]
-		bucket := lines[0].commonProperties.connStrKey
+		bucket := lines[0].commonProperties.groupingStrKey
 		subnetIfVsi := g.getSubnetIfVsi(lines[0].src)
 		if subnetIfVsi != "" {
 			bucket += ";" + subnetIfVsi
@@ -167,7 +167,7 @@ func (g *GroupConnLines) findMergeCandidates(groupingSrcOrDst map[string][]*grou
 func (g *GroupConnLines) getSubnetIfVsi(ep EndpointElem) string {
 	if isVsi, node := isEpVsi(ep); isVsi {
 		// if ep is groupedEndpointsElems of vsis then all belong to the same subnet
-		return g.c.getSubnetOfNode(node).Name()
+		return g.config.getSubnetOfNode(node).Name()
 	}
 	return ""
 }
@@ -332,7 +332,7 @@ func listOfUniqueEndpoints(oldGroupingSrcOrDst map[string][]*groupedConnLine, sr
 		for _, line := range oldGroupingSrcOrDst[oldKeyToMerge] {
 			endPointInKey := line.getSrcOrDst(!srcGrouping)
 			if conn == "" {
-				conn = line.commonProperties.connStrKey // connection is the same for all lines to be merged
+				conn = line.commonProperties.groupingStrKey // connection is the same for all lines to be merged
 				connProps = line.commonProperties
 			}
 			if _, isSliceEndpoints := endPointInKey.(*groupedEndpointsElems); isSliceEndpoints {
