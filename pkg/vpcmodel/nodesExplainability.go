@@ -132,7 +132,7 @@ func (c *VPCConfig) computeExplainRules(srcName, dstName string) (explanationStr
 			if err != nil {
 				return nil, err
 			}
-			rulesThisSrcDst := &rulesSingleSrcDst{src, dst, nil, rulesOfConnection}
+			rulesThisSrcDst := &rulesSingleSrcDst{src, dst, common.NewConnectionSet(false), rulesOfConnection}
 			explanationStruct[i] = rulesThisSrcDst
 			i++
 		}

@@ -319,7 +319,7 @@ func (g *GroupConnLines) groupExternalAddressesForExplainability() error {
 	var res []*groupedConnLine
 	for _, rulesSrcDst := range *g.explain {
 		connStr := ""
-		if rulesSrcDst.conn != nil {
+		if !rulesSrcDst.conn.IsEmpty() {
 			connStr = rulesSrcDst.conn.String() + semicolon
 		}
 		groupingStrKey := connStr + rulesSrcDst.rules.rulesEncode(g.config)
