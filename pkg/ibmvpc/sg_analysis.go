@@ -347,7 +347,8 @@ func (sga *SGAnalyzer) rulesInConnectivity(target string, conn *common.Connectio
 // given a list of rules and a connection, return the sublist of rules that contributes to the connection
 func (sga *SGAnalyzer) getRulesRelevantConn(rules []int, conn *common.ConnectionSet) []int {
 	relevantRules := []int{}
-	allRules := append(sga.ingressRules, sga.egressRules...)
+	allRules := sga.ingressRules
+	allRules = append(allRules, sga.egressRules...)
 	for _, rule := range allRules {
 		if contains(rules, rule.index) && rule.connections.Intersection(conn) != nil {
 			relevantRules = append(relevantRules, rule.index)

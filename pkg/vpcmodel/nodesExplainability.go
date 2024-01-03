@@ -287,7 +287,7 @@ func stringExplainabilityLine(c *VPCConfig, connQuery *common.ConnectionSet, src
 			resStr = fmt.Sprintf("The following connection exists between %v and %v: %v; its enabled by\n", src.Name(), dst.Name(),
 				conn.String())
 		} else {
-			resStr = fmt.Sprintf("Connection %v exists between %v and %v: %v; its enabled by\n", connQuery.String(),
+			resStr = fmt.Sprintf("Connection %v exists between %v and %v; its enabled by\n", connQuery.String(),
 				src.Name(), dst.Name())
 		}
 		if needEgress {
