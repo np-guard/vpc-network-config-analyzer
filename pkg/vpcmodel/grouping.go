@@ -318,10 +318,7 @@ func (g *GroupConnLines) groupExternalAddressesForDiff(thisMinusOther bool) erro
 func (g *GroupConnLines) groupExternalAddressesForExplainability() error {
 	var res []*groupedConnLine
 	for _, rulesSrcDst := range *g.explain {
-		connStr := ""
-		if !rulesSrcDst.conn.IsEmpty() {
-			connStr = rulesSrcDst.conn.String() + semicolon
-		}
+		connStr := rulesSrcDst.conn.String() + semicolon
 		groupingStrKey := connStr + rulesSrcDst.rules.rulesEncode(g.config)
 		err := g.addLineToExternalGrouping(&res, rulesSrcDst.src, rulesSrcDst.dst,
 			&groupedCommonProperties{conn: rulesSrcDst.conn, rules: rulesSrcDst.rules, groupingStrKey: groupingStrKey})
