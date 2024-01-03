@@ -5,8 +5,8 @@ import (
 )
 
 // extends grouping by considering self loops as don't care https://github.com/np-guard/vpc-network-config-analyzer/issues/98
-// e.g. a => b,config   b => a, config   and   config => a,b   is actually a clique a,b,config => a,b,config
-// a => b,config, b => config can be presented in one line as  a,b => b,config
+// e.g. a => b,c   b => a, c   and   c => a,b   is actually a clique a,b,c => a,b,c
+// a => b,c, b => c can be presented in one line as  a,b => b,c
 
 // After the basic grouping, which is of worst time complexity O(n^2), we optimize grouping treating self loops as don't care.
 // Intuitively, we check if two GroupedConnLine can be merged treating self loops as don't care
