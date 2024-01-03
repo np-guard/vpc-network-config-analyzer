@@ -108,3 +108,6 @@ issues:
 
 run:
   timeout: 5m
+
+output:
+  print-issued-lines: false
