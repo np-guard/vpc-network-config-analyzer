@@ -29,7 +29,9 @@ type explainStruct []*rulesSingleSrcDst
 type explanation struct {
 	c             *VPCConfig
 	explainStruct *explainStruct
-	// grouped connectivity result -- grouping common explanation lines with common src/dst (internal node) and different dst/src (external node)  [required due to computation with disjoint ip-blocks] 
+	// grouped connectivity result:
+	// grouping common explanation lines with common src/dst (internal node) and different dst/src (external node)
+	// [required due to computation with disjoint ip-blocks]
 	groupedLines []*groupedConnLine
 }
 
