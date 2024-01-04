@@ -323,7 +323,7 @@ func TestQueryConnectionSG2(t *testing.T) {
 		require.Fail(t, "vpcConfig equals nil")
 	}
 	// test 1: only a subset of the rules are relevant
-	// todo not working
+	// todo not working, seems to be due to bug in func (conn *ConnectionSet) ContainedIn(other *ConnectionSet)
 	connectionUDP1 := common.NewConnectionSet(false)
 	connectionUDP1.AddTCPorUDPConn(common.ProtocolUDP, common.MinPort, common.MaxPort, common.MinPort, common.MaxPort)
 	explanbilityStr1, err1 := vpcConfig.ExplainConnectivity("vsi2-ky[10.240.20.4]", "vsi3b-ky[10.240.30.4]", connectionUDP1)
@@ -333,5 +333,6 @@ func TestQueryConnectionSG2(t *testing.T) {
 	fmt.Println(explanbilityStr1)
 	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 
-	// test3: the required connection contains the existing one per connection (so answer should be no) but neither is all connections
+	// test2: the required connection contains the existing one per connection (so answer should be no) but neither is all connections
+	//        todo: after the above bug is fixed this test will be added
 }
