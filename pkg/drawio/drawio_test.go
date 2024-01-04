@@ -332,7 +332,7 @@ func createNetworkSubnetGrouping() SquareTreeNodeInterface {
 		{0, 6, 6, 2, 3},
 		{0, 7, 8, 1, 2},
 	}
-	return createNetworkSubnetGroupingGeneric(1, groupsIndexes)
+	return createNetworkSubnetGroupingGeneric(groupsIndexes)
 }
 
 func createNetworkSubnetGroupingMultiVpc() SquareTreeNodeInterface {
@@ -353,10 +353,10 @@ func createNetworkSubnetGroupingMultiVpc() SquareTreeNodeInterface {
 		{2, 16, 17, 0, 1},
 		{2, 17, 18, 0, 1},
 	}
-	return createNetworkSubnetGroupingGeneric(1, groupsIndexes)
+	return createNetworkSubnetGroupingGeneric(groupsIndexes)
 }
 
-func createNetworkSubnetGroupingGeneric(nVpcs int, groupsIndexes []groupIndexes) SquareTreeNodeInterface {
+func createNetworkSubnetGroupingGeneric(groupsIndexes []groupIndexes) SquareTreeNodeInterface {
 	network := NewNetworkTreeNode()
 	zones := &[][]SquareTreeNodeInterface{}
 	cloud1 := NewCloudTreeNode(network, "IBM Cloud")

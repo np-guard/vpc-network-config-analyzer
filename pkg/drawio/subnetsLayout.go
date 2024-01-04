@@ -498,6 +498,10 @@ func (ly *subnetsLayout) calcZoneOrder() {
 		}
 	}
 	zoneOrders = append(zoneOrders, zoneOrder)
+	ly.setZonesCol(zoneOrders)
+}
+
+func (ly *subnetsLayout) setZonesCol(zoneOrders [][]TreeNodeInterface) {
 	// zoneOrders of the same VPCs must be together
 	// sorting the zoneOrders by their VPCs:
 	vpcToOrders := map[TreeNodeInterface][][]TreeNodeInterface{}
