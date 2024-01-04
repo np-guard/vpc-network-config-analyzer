@@ -24,7 +24,7 @@ func TestWithParsing(t *testing.T) {
 	}
 	n = createNetworkSubnetGrouping()
 	err = CreateDrawioConnectivityMapFile(n, "subnetGrouping.drawio", true)
-	if err != nil {
+		if err != nil {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
 	}
 
@@ -284,6 +284,7 @@ func createNetworkAllTypes() SquareTreeNodeInterface {
 	return network
 }
 
+// /////////////////////////////////////////////////////////////////////////////
 func createZone(zones *[][]SquareTreeNodeInterface, vpc *VpcTreeNode, size int, name string) {
 	zone := NewZoneTreeNode(vpc, name)
 	subnets := make([]SquareTreeNodeInterface, size)
@@ -305,28 +306,78 @@ func createGroup(zones *[][]SquareTreeNodeInterface, vpc *VpcTreeNode, i1, i2, j
 	return g
 }
 
+type groupIndexes struct {
+	vpcIndex int
+	z1, z2   int
+	s1, s2   int
+}
 func createNetworkSubnetGrouping() SquareTreeNodeInterface {
+	groupsIndexes := []groupIndexes{
+		{0, 0, 0, 0, 1},
+		{0, 1, 1, 0, 1},
+		{0, 0, 2, 0, 6},
+		{0, 0, 2, 4, 6},
+		{0, 3, 3, 1, 2},
+		{0, 2, 3, 1, 2},
+		{0, 0, 4, 0, 3},
+		{0, 0, 5, 0, 3},
+
+		{0, 6, 7, 0, 1},
+		{0, 6, 6, 2, 3},
+		{0, 7, 8, 1, 2},
+	}
+	return createNetworkSubnetGroupingGeneric(1, groupsIndexes)
+}
+
+func createNetworkSubnetGroupingMultiVpc() SquareTreeNodeInterface {
+	groupsIndexes := []groupIndexes{
+		{0, 0, 1, 0, 1},
+		{0, 3, 4, 0, 1},
+		{0, 1, 2, 0, 1},
+		{0, 2, 3, 0, 1},
+
+		{1, 5, 6, 0, 1},
+		{1, 8, 9, 0, 1},
+		{1, 6, 7, 0, 1},
+		{1, 7, 8, 0, 1},
+
+
+		{2, 10, 11, 0, 1},
+		{2, 13, 14, 0, 1},
+		{2, 11, 12, 0, 1},
+		{2, 12, 13, 0, 1},
+
+	}
+	return createNetworkSubnetGroupingGeneric(1, groupsIndexes)
+}
+
+func createNetworkSubnetGroupingGeneric(nVpcs int, groupsIndexes []groupIndexes) SquareTreeNodeInterface {
 	network := NewNetworkTreeNode()
 	zones := &[][]SquareTreeNodeInterface{}
 	cloud1 := NewCloudTreeNode(network, "IBM Cloud")
 	publicNetwork := NewPublicNetworkTreeNode(network)
-	vpc1 := NewVpcTreeNode(cloud1, "vpc1")
-	for i := 0; i < 10; i++ {
-		createZone(zones, vpc1, 8, fmt.Sprintf("z%d", i))
+	zoneIndexToVpcIndex := map[int]int{}
+	maxVpcIndex := 0
+	maxZoneIndex := 0
+	maxSubnetIndex := 0
+	for _, index := range groupsIndexes {
+		for z := index.z1; z <= index.z2; z++{
+			zoneIndexToVpcIndex[z] = index.vpcIndex
+			maxVpcIndex = max(maxVpcIndex, index.vpcIndex)
+			maxZoneIndex  = max(maxZoneIndex, index.z2)
+			maxSubnetIndex  = max(maxSubnetIndex, index.s2)
+		}
 	}
-	groups := []SquareTreeNodeInterface{
-		createGroup(zones, vpc1, 0, 0, 0, 1),
-		createGroup(zones, vpc1, 1, 1, 0, 1),
-		createGroup(zones, vpc1, 0, 2, 0, 6),
-		createGroup(zones, vpc1, 0, 2, 4, 6),
-		createGroup(zones, vpc1, 3, 3, 1, 2),
-		createGroup(zones, vpc1, 2, 3, 1, 2),
-		createGroup(zones, vpc1, 0, 4, 0, 3),
-		createGroup(zones, vpc1, 0, 5, 0, 3),
-
-		createGroup(zones, vpc1, 6, 7, 0, 1),
-		createGroup(zones, vpc1, 6, 6, 2, 3),
-		createGroup(zones, vpc1, 7, 8, 1, 2),
+	vpcs := make([]*VpcTreeNode, maxVpcIndex + 1)
+	for i := 0; i <= maxVpcIndex; i++ {
+		vpcs[i] = NewVpcTreeNode(cloud1, fmt.Sprintf("vpc%d", i))
+	}
+	for i := 0; i <= maxZoneIndex; i++ {
+		createZone(zones, vpcs[0], maxSubnetIndex+1, fmt.Sprintf("z%d", i))
+	}
+	groups := make([]SquareTreeNodeInterface, len(groupsIndexes))
+	for i, index := range groupsIndexes {
+		groups[i] = createGroup(zones, vpcs[index.vpcIndex], index.z1, index.z2, index.s1, index.s2)
 	}
 	NewConnectivityLineTreeNode(network, groups[0], groups[len(groups)-1], true, "gconn")
 
