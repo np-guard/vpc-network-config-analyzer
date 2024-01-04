@@ -272,16 +272,16 @@ func (diffCfgs *diffBetweenCfgs) String() string {
 }
 
 // get the grouped diff connectivity stateLessness
-func (diffCfgs *diffBetweenCfgs) HasStatelessConns() bool {
-	unStateFul := false
+func (diffCfgs *diffBetweenCfgs) hasStatelessConns() bool {
+	hasStatelessConns := false
 	for _, grouped := range diffCfgs.groupedLines {
-		unStateFul = unStateFul ||
+		hasStatelessConns = hasStatelessConns ||
 			(grouped.commonProperties.connDiff.conn1 != nil &&
 				grouped.commonProperties.connDiff.conn1.IsStateful == common.StatefulFalse) ||
 			(grouped.commonProperties.connDiff.conn2 != nil &&
 				grouped.commonProperties.connDiff.conn2.IsStateful == common.StatefulFalse)
 	}
-	return unStateFul
+	return hasStatelessConns
 }
 
 // prints connection for the above string(..) where the connection could be empty

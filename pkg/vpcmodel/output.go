@@ -101,12 +101,13 @@ func NewOutputGenerator(c1, c2 map[string]*VPCConfig, grouping bool, uc OutputUs
 // SingleAnalysisOutput captures output per connectivity analysis of a single VPC,  or per semantic diff between 2 VPCs
 // in the former case VPC2Name will be empty
 type SingleAnalysisOutput struct {
-	VPC1Name           string
-	VPC2Name           string
-	Output             string
-	jsonStruct         interface{}
-	format             OutFormat
-	HaveUnStateFulConn bool
+	VPC1Name   string
+	VPC2Name   string
+	Output     string
+	jsonStruct interface{}
+	format     OutFormat
+	// hasStatelessConn indicates if the connectivity results contain a stateless conn
+	hasStatelessConn bool
 }
 
 // Generate returns a string representing the analysis output for all input VPCs
@@ -217,7 +218,7 @@ func (of *serialOutputFormatter) AggregateVPCsOutput(outputList []*SingleAnalysi
 		vpcsOut := make([]string, len(outputList))
 		for i, o := range outputList {
 			vpcsOut[i] = o.Output
-			if uc != SingleSubnet && o.HaveUnStateFulConn {
+			if uc != SingleSubnet && o.hasStatelessConn {
 				infoMessage = asteriskDetails
 			}
 		}
@@ -241,7 +242,7 @@ func (of *serialOutputFormatter) WriteDiffOutput(output *SingleAnalysisOutput, o
 	switch of.outFormat {
 	case Text, MD, Debug: // currently, return out as is
 		infoMessage := ""
-		if output.HaveUnStateFulConn {
+		if output.hasStatelessConn {
 			infoMessage = asteriskDetails
 		}
 		res, err = WriteToFile(output.Output+infoMessage, outFile)

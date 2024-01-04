@@ -314,12 +314,12 @@ func (v *VPCsubnetConnectivity) String() string {
 }
 
 // get the grouped subnet connectivity stateLessness
-func (v *VPCsubnetConnectivity) HasStatelessConns() bool {
-	unStateFul := false
+func (v *VPCsubnetConnectivity) hasStatelessConns() bool {
+	hasStatelessConns := false
 	for _, line := range v.GroupedConnectivity.GroupedLines {
-		unStateFul = unStateFul || line.commonProperties.conn.IsStateful == common.StatefulFalse
+		hasStatelessConns = hasStatelessConns || line.commonProperties.conn.IsStateful == common.StatefulFalse
 	}
-	return unStateFul
+	return hasStatelessConns
 }
 
 // GetConnectivityOutputPerEachSubnetSeparately returns string results of connectivity analysis per

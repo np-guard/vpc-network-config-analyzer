@@ -41,16 +41,16 @@ func (m *MDoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	out = "# " + out
 	var lines []string
 	var connLines []string
-	unStateFul := false
+	hasStatelessConns := false
 	switch uc {
 	case AllEndpoints:
 		lines = []string{mdDefaultTitle, mdDefaultHeader}
 		connLines = m.getGroupedOutput(conn.GroupedConnectivity)
-		unStateFul = conn.GroupedConnectivity.HasStatelessConns()
+		hasStatelessConns = conn.GroupedConnectivity.hasStatelessConns()
 	case AllSubnets:
 		lines = []string{mdSubnetsTitle, mdDefaultHeader}
 		connLines = m.getGroupedOutput(subnetsConn.GroupedConnectivity)
-		unStateFul = subnetsConn.GroupedConnectivity.HasStatelessConns()
+		hasStatelessConns = subnetsConn.GroupedConnectivity.hasStatelessConns()
 	case SubnetsDiff, EndpointsDiff:
 		var mdTitle, mdHeader string
 		if uc == EndpointsDiff {
@@ -62,14 +62,14 @@ func (m *MDoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 		}
 		lines = []string{mdTitle, mdHeader}
 		connLines = m.getGroupedDiffOutput(cfgsDiff)
-		unStateFul = m.DiffHasStatelessConns(cfgsDiff)
+		hasStatelessConns = cfgsDiff.hasStatelessConns()
 	case SingleSubnet:
 		return nil, errors.New("DebugSubnet use case not supported for md format currently ")
 	}
 	out += linesToOutput(connLines, lines)
 
 	_, err = WriteToFile(out, outFile)
-	return &SingleAnalysisOutput{Output: out, VPC1Name: c1.VPC.Name(), VPC2Name: v2Name, format: MD, HaveUnStateFulConn: unStateFul}, err
+	return &SingleAnalysisOutput{Output: out, VPC1Name: c1.VPC.Name(), VPC2Name: v2Name, format: MD, hasStatelessConn: hasStatelessConns}, err
 }
 
 func linesToOutput(connLines, lines []string) string {
@@ -98,11 +98,6 @@ func (m *MDoutputFormatter) getGroupedDiffOutput(diff *diffBetweenCfgs) []string
 			line.dst.Name(), conn1Str, conn2Str, endpointsDiff)
 	}
 	return lines
-}
-
-// get the diff grouped connectivity stateLessness
-func (m *MDoutputFormatter) DiffHasStatelessConns(diff *diffBetweenCfgs) bool {
-	return diff.HasStatelessConns()
 }
 
 // formats a connection line for md output
