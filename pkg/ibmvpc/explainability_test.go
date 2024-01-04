@@ -299,11 +299,13 @@ func TestQueryConnectionSG1(t *testing.T) {
 	if err5 != nil {
 		require.Fail(t, err5.Error())
 	}
-	require.Equal(t, "Connection protocol: UDP src-ports: 10-100 dst-ports: 443 exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16; its enabled by\n"+
+	require.Equal(t, "Connection protocol: UDP src-ports: 10-100 dst-ports: "+
+		"443 exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16; its enabled by\n"+
 		"Egress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n"+
 		"\tindex: 2, direction: outbound,  conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\n"+
 		"There is no connection \"protocol: UDP src-ports: 10-100 dst-ports: 443\" "+
-		"between vsi1-ky[10.240.10.4] and Public Internet 161.16.0.0-161.25.255.255,161.27.0.0-161.31.255.255; connection blocked by egress\n\n", explanbilityStr5)
+		"between vsi1-ky[10.240.10.4] and Public Internet 161.16.0.0-161.25.255.255,161.27.0.0-161.31.255.255; "+
+		"connection blocked by egress\n\n", explanbilityStr5)
 	fmt.Println(explanbilityStr5)
 
 	// test6: a connection does not exist regardless of the query
@@ -311,7 +313,8 @@ func TestQueryConnectionSG1(t *testing.T) {
 	if err6 != nil {
 		require.Fail(t, err6.Error())
 	}
-	require.Equal(t, "There is no connection \"protocol: UDP src-ports: 10-100 dst-ports: 443\" between vsi1-ky[10.240.10.4] and vsi3a-ky[10.240.30.5]; "+
+	require.Equal(t, "There is no connection \"protocol: UDP src-ports: 10-100 dst-ports: 443\" "+
+		"between vsi1-ky[10.240.10.4] and vsi3a-ky[10.240.30.5]; "+
 		"connection blocked both by ingress and egress\n\n", explanbilityStr6)
 	fmt.Println(explanbilityStr6)
 	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
