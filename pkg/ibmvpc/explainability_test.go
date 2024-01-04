@@ -307,17 +307,6 @@ func TestQueryConnectionSG1(t *testing.T) {
 		"between vsi1-ky[10.240.10.4] and Public Internet 161.16.0.0-161.25.255.255,161.27.0.0-161.31.255.255; "+
 		"connection blocked by egress\n\n", explanbilityStr5)
 	fmt.Println(explanbilityStr5)
-
-	// test6: a connection does not exist regardless of the query
-	explanbilityStr6, err6 := vpcConfig.ExplainConnectivity("vsi1-ky[10.240.10.4]", "vsi3a-ky[10.240.30.5]", connectionUDP2)
-	if err6 != nil {
-		require.Fail(t, err6.Error())
-	}
-	require.Equal(t, "There is no connection \"protocol: UDP src-ports: 10-100 dst-ports: 443\" "+
-		"between vsi1-ky[10.240.10.4] and vsi3a-ky[10.240.30.5]; "+
-		"connection blocked both by ingress and egress\n\n", explanbilityStr6)
-	fmt.Println(explanbilityStr6)
-	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 }
 
 func TestQueryConnectionSG2(t *testing.T) {
@@ -326,7 +315,6 @@ func TestQueryConnectionSG2(t *testing.T) {
 		require.Fail(t, "vpcConfig equals nil")
 	}
 	// test 1: only a subset of the rules are relevant
-	// todo not working, seems to be due to bug in func (conn *ConnectionSet) ContainedIn(other *ConnectionSet)
 	connectionUDP1 := common.NewConnectionSet(false)
 	connectionUDP1.AddTCPorUDPConn(common.ProtocolUDP, common.MinPort, common.MaxPort, common.MinPort, common.MaxPort)
 	explanbilityStr1, err1 := vpcConfig.ExplainConnectivity("vsi2-ky[10.240.20.4]", "vsi3b-ky[10.240.30.4]", connectionUDP1)
@@ -334,8 +322,23 @@ func TestQueryConnectionSG2(t *testing.T) {
 		require.Fail(t, err1.Error())
 	}
 	fmt.Println(explanbilityStr1)
+	require.Equal(t, "There is no connection \"protocol: UDP\" between vsi2-ky[10.240.20.4] and vsi3b-ky[10.240.30.4]; "+
+		"connection blocked by ingress\nEgress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\n"+
+		"enabling rules from sg2-ky:\n\tindex: 5, direction: outbound, protocol: all, cidr: 10.240.30.0/24\n\n", explanbilityStr1)
 	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 
 	// test2: the required connection contains the existing one per connection (so answer should be no) but neither is all connections
-	//        todo: after the above bug is fixed this test will be added
+
+	// test6: a connection does not exist regardless of the query
+	connectionUDP2 := common.NewConnectionSet(false)
+	connectionUDP2.AddTCPorUDPConn(common.ProtocolUDP, 10, 100, 443, 443)
+	explanbilityStr3, err3 := vpcConfig.ExplainConnectivity("vsi1-ky[10.240.10.4]", "vsi3a-ky[10.240.30.5]", connectionUDP2)
+	if err3 != nil {
+		require.Fail(t, err3.Error())
+	}
+	require.Equal(t, "There is no connection \"protocol: UDP src-ports: 10-100 dst-ports: 443\" "+
+		"between vsi1-ky[10.240.10.4] and vsi3a-ky[10.240.30.5]; "+
+		"connection blocked both by ingress and egress\n\n", explanbilityStr3)
+	fmt.Println(explanbilityStr3)
+	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 }
