@@ -1,7 +1,7 @@
 package drawio
 
 import (
-		"maps"
+	"maps"
 	"sort"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
@@ -470,7 +470,7 @@ func (ly *subnetsLayout) calcZoneOrder() {
 	for len(zonesScores) > 0 {
 		zoneToAdd, addToRight, newZoneOrder := chooseZoneToAdd(zonesScores, zoneOrder)
 		if newZoneOrder {
-			if zoneOrder != nil{
+			if zoneOrder != nil {
 				zoneOrders = append(zoneOrders, zoneOrder)
 			}
 			zoneOrder = []TreeNodeInterface{}
@@ -498,11 +498,20 @@ func (ly *subnetsLayout) calcZoneOrder() {
 		}
 	}
 	zoneOrders = append(zoneOrders, zoneOrder)
-	i := 0
+	// zoneOrders of the same VPCs must be together
+	// sorting the zoneOrders by their VPCs:
+	vpcToOrders := map[TreeNodeInterface][][]TreeNodeInterface{}
 	for _, order := range zoneOrders {
-		for _, z := range order {
-			ly.zonesCol[z] = i
-			i++
+		vpc := order[0].Parent()
+		vpcToOrders[vpc] = append(vpcToOrders[vpc], order)
+	}
+	i := 0
+	for _, vpcOrders := range vpcToOrders {
+		for _, order := range vpcOrders {
+			for _, z := range order {
+				ly.zonesCol[z] = i
+				i++
+			}
 		}
 	}
 	for miniGroup := range ly.miniGroups {
