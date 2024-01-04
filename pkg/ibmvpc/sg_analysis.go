@@ -334,7 +334,7 @@ func (sga *SGAnalyzer) rulesInConnectivity(target string, conn *common.Connectio
 					return nil, err
 				}
 				if contained {
-					return sga.getRulesRelevantConn(rules, conn), err
+					return sga.getRulesRelevantConn(rules, conn)
 				}
 				return nil, nil
 			}
@@ -345,16 +345,20 @@ func (sga *SGAnalyzer) rulesInConnectivity(target string, conn *common.Connectio
 }
 
 // given a list of rules and a connection, return the sublist of rules that contributes to the connection
-func (sga *SGAnalyzer) getRulesRelevantConn(rules []int, conn *common.ConnectionSet) []int {
+func (sga *SGAnalyzer) getRulesRelevantConn(rules []int, conn *common.ConnectionSet) ([]int, error) {
 	relevantRules := []int{}
 	allRules := sga.ingressRules
 	allRules = append(allRules, sga.egressRules...)
 	for _, rule := range allRules {
-		if contains(rules, rule.index) && rule.connections.Intersection(conn) != nil {
+		isContained, err := conn.ContainedIn(rule.connections)
+		if err != nil {
+			return nil, err
+		}
+		if contains(rules, rule.index) && isContained {
 			relevantRules = append(relevantRules, rule.index)
 		}
 	}
-	return relevantRules
+	return relevantRules, nil
 }
 
 func contains(s []int, e int) bool {
