@@ -233,7 +233,7 @@ func TestGroupingExternal(t *testing.T) {
 	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 }
 
-func TestSimpleQueryConnection(t *testing.T) {
+func TestQueryConnectionSG1(t *testing.T) {
 	vpcConfig := getConfig(t, "input_sg_testing1_new.json")
 	if vpcConfig == nil {
 		require.Fail(t, "vpcConfig equals nil")
@@ -248,6 +248,7 @@ func TestSimpleQueryConnection(t *testing.T) {
 		"enabling rules from sg2-ky:\n\tindex: 5, direction: outbound, protocol: all, cidr: 10.240.30.0/24\n"+
 		"\tindex: 6, direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, cidr: 10.240.20.4/32,10.240.30.4/32\n\n", explanbilityStr1)
 	fmt.Println(explanbilityStr1)
+	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 
 	// test2: the existing connection is exactly the one required by the query
 	vsi1 := "vsi1-ky[10.240.10.4]"
@@ -263,6 +264,7 @@ func TestSimpleQueryConnection(t *testing.T) {
 		"\tindex: 2, direction: outbound,  conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\n",
 		explanbilityStr2)
 	fmt.Println(explanbilityStr2)
+	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 
 	//test3: the required connection is contained in the existing one per connection
 	connectionUDP2 := common.NewConnectionSet(false)
@@ -277,8 +279,59 @@ func TestSimpleQueryConnection(t *testing.T) {
 		"\tindex: 2, direction: outbound,  conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\n",
 		explanbilityStr3)
 	fmt.Println(explanbilityStr3)
+	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 	// test4: the required connection is contained in the existing one per ip of src/dst
-	// test5: the required connection contains the existing one per connection (so answer should be no) but neither is all connections
-	// test6: the required connection contains the existing one per src or dst (so answer should be no)
-	// test7: a connection does not exist
+	cidr2 := "161.26.0.0/20"
+	explanbilityStr4, err4 := vpcConfig.ExplainConnectivity(vsi1, cidr2, connectionUDP2)
+	if err4 != nil {
+		require.Fail(t, err4.Error())
+	}
+	require.Equal(t, "Connection protocol: UDP src-ports: 10-100 dst-ports: 443 exists between vsi1-ky[10.240.10.4] "+
+		"and Public Internet 161.26.0.0/20; its enabled by\n"+
+		"Egress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n"+
+		"\tindex: 2, direction: outbound,  conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\n",
+		explanbilityStr4)
+	fmt.Println(explanbilityStr4)
+	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
+	// test5: the required connection exists for part of the dst ip
+	cidr3 := "161.26.0.0/12"
+	explanbilityStr5, err5 := vpcConfig.ExplainConnectivity(vsi1, cidr3, connectionUDP2)
+	if err5 != nil {
+		require.Fail(t, err5.Error())
+	}
+	require.Equal(t, "Connection protocol: UDP src-ports: 10-100 dst-ports: 443 exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16; its enabled by\n"+
+		"Egress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n"+
+		"\tindex: 2, direction: outbound,  conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\n"+
+		"There is no connection \"protocol: UDP src-ports: 10-100 dst-ports: 443\" "+
+		"between vsi1-ky[10.240.10.4] and Public Internet 161.16.0.0-161.25.255.255,161.27.0.0-161.31.255.255; connection blocked by egress\n\n", explanbilityStr5)
+	fmt.Println(explanbilityStr5)
+
+	// test6: a connection does not exist regardless of the query
+	explanbilityStr6, err6 := vpcConfig.ExplainConnectivity("vsi1-ky[10.240.10.4]", "vsi3a-ky[10.240.30.5]", connectionUDP2)
+	if err6 != nil {
+		require.Fail(t, err6.Error())
+	}
+	require.Equal(t, "There is no connection \"protocol: UDP src-ports: 10-100 dst-ports: 443\" between vsi1-ky[10.240.10.4] and vsi3a-ky[10.240.30.5]; "+
+		"connection blocked both by ingress and egress\n\n", explanbilityStr6)
+	fmt.Println(explanbilityStr6)
+	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
+}
+
+func TestQueryConnectionSG2(t *testing.T) {
+	vpcConfig := getConfig(t, "input_sg_testing1_new.json")
+	if vpcConfig == nil {
+		require.Fail(t, "vpcConfig equals nil")
+	}
+	// test 1: only a subset of the rules are relevant
+	// todo not working
+	connectionUDP1 := common.NewConnectionSet(false)
+	connectionUDP1.AddTCPorUDPConn(common.ProtocolUDP, common.MinPort, common.MaxPort, common.MinPort, common.MaxPort)
+	explanbilityStr1, err1 := vpcConfig.ExplainConnectivity("vsi2-ky[10.240.20.4]", "vsi3b-ky[10.240.30.4]", connectionUDP1)
+	if err1 != nil {
+		require.Fail(t, err1.Error())
+	}
+	fmt.Println(explanbilityStr1)
+	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
+
+	// test3: the required connection contains the existing one per connection (so answer should be no) but neither is all connections
 }
