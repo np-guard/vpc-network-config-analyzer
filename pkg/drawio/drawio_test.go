@@ -7,6 +7,15 @@ import (
 )
 
 func TestWithParsing(t *testing.T) {
+	n := createNetworkSubnetGroupingOverlapping()
+	err := CreateDrawioConnectivityMapFile(n, "subnetGroupingOverlapping.drawio", true)
+	if err != nil {
+		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
+	}
+
+}
+
+func TestWithParsing2(t *testing.T) {
 	n := createNetwork()
 	err := CreateDrawioConnectivityMapFile(n, "fake.drawio", false)
 	if err != nil {
@@ -29,6 +38,11 @@ func TestWithParsing(t *testing.T) {
 	}
 	n = createNetworkSubnetGroupingMultiVpc()
 	err = CreateDrawioConnectivityMapFile(n, "subnetGroupingMultiVpc.drawio", true)
+	if err != nil {
+		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
+	}
+	n = createNetworkSubnetGroupingOverlapping()
+	err = CreateDrawioConnectivityMapFile(n, "subnetGroupingOverlapping.drawio", true)
 	if err != nil {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
 	}
@@ -307,7 +321,7 @@ func createGroup(zones *[][]SquareTreeNodeInterface, vpc *VpcTreeNode, i1, i2, j
 		}
 	}
 	g := GroupedSubnetsSquare(vpc, gr)
-	g.(*GroupSubnetsSquareTreeNode).name = fmt.Sprintf("%d-%d,%d,%d", i1, i2, j1, j2)
+	// g.(*GroupSubnetsSquareTreeNode).name = fmt.Sprintf("%d-%d,%d,%d", i1, i2, j1, j2)
 	return g
 }
 
@@ -332,7 +346,8 @@ func createNetworkSubnetGrouping() SquareTreeNodeInterface {
 		{0, 6, 6, 2, 3},
 		{0, 7, 8, 1, 2},
 	}
-	return createNetworkSubnetGroupingGeneric(groupsIndexes)
+	n, _ := createNetworkSubnetGroupingGeneric(groupsIndexes)
+	return n
 }
 
 func createNetworkSubnetGroupingMultiVpc() SquareTreeNodeInterface {
@@ -353,10 +368,37 @@ func createNetworkSubnetGroupingMultiVpc() SquareTreeNodeInterface {
 		{2, 16, 17, 0, 1},
 		{2, 17, 18, 0, 1},
 	}
-	return createNetworkSubnetGroupingGeneric(groupsIndexes)
+	n, _ := createNetworkSubnetGroupingGeneric(groupsIndexes)
+	return n
 }
 
-func createNetworkSubnetGroupingGeneric(groupsIndexes []groupIndexes) SquareTreeNodeInterface {
+func createNetworkSubnetGroupingOverlapping() SquareTreeNodeInterface {
+	groupsIndexes := []groupIndexes{
+		{0, 0, 3, 0, 3},
+		{0, 0, 0, 0, 0},
+		{0, 0, 0, 3, 3},
+		{0, 3, 3, 0, 0},
+		{0, 3, 3, 3, 3},
+		{0, 0, 1, 4, 4},
+		{0, 1, 2, 4, 4},
+		{0, 2, 3, 4, 4},
+	}
+	n, groups := createNetworkSubnetGroupingGeneric(groupsIndexes)
+	conns := [][]SquareTreeNodeInterface{
+		{groups[1], groups[2]},
+		{groups[2], groups[1]},
+		{groups[1], groups[3]},
+		{groups[3], groups[1]},
+		{groups[1], groups[4]},
+		{groups[4], groups[1]},
+	}
+	for _, conn := range conns {
+		NewConnectivityLineTreeNode(n, conn[0], conn[1], true, "gconn "+groups[1].Label()+"->"+groups[2].Label())
+	}
+	return n
+}
+
+func createNetworkSubnetGroupingGeneric(groupsIndexes []groupIndexes) (SquareTreeNodeInterface, []SquareTreeNodeInterface) {
 	network := NewNetworkTreeNode()
 	zones := &[][]SquareTreeNodeInterface{}
 	cloud1 := NewCloudTreeNode(network, "IBM Cloud")
@@ -384,13 +426,12 @@ func createNetworkSubnetGroupingGeneric(groupsIndexes []groupIndexes) SquareTree
 	for i, index := range groupsIndexes {
 		groups[i] = createGroup(zones, vpcs[index.vpcIndex], index.z1, index.z2, index.s1, index.s2)
 	}
-	NewConnectivityLineTreeNode(network, groups[0], groups[len(groups)-1], true, "gconn")
 
 	for _, gr := range groups {
 		i1 := NewInternetTreeNode(publicNetwork, "I "+gr.Label())
 		NewConnectivityLineTreeNode(network, gr, i1, true, "gconn "+gr.Label())
 	}
-	return network
+	return network, groups
 }
 
 func createNetworkGrouping() SquareTreeNodeInterface {
