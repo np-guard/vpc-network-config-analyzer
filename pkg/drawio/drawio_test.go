@@ -374,7 +374,7 @@ func createNetworkSubnetGroupingMultiVpc() SquareTreeNodeInterface {
 
 func createNetworkSubnetGroupingOverlapping() SquareTreeNodeInterface {
 	groupsIndexes := []groupIndexes{
-		{0, 0, 3, 0, 3},
+		// {0, 0, 3, 0, 3},
 		{0, 0, 0, 0, 0},
 		{0, 0, 0, 3, 3},
 		{0, 3, 3, 0, 0},
@@ -382,15 +382,24 @@ func createNetworkSubnetGroupingOverlapping() SquareTreeNodeInterface {
 		{0, 0, 1, 4, 4},
 		{0, 1, 2, 4, 4},
 		{0, 2, 3, 4, 4},
+		// {0, 4, 4, 0, 1},
+		// {0, 4, 4, 1, 2},
+		// {0, 4, 4, 2, 3},
 	}
 	n, groups := createNetworkSubnetGroupingGeneric(groupsIndexes)
 	conns := [][]SquareTreeNodeInterface{
+		{groups[0], groups[1]},
+		{groups[1], groups[0]},
+		{groups[0], groups[2]},
+		{groups[2], groups[0]},
+		{groups[0], groups[3]},
+		{groups[3], groups[0]},
 		{groups[1], groups[2]},
 		{groups[2], groups[1]},
 		{groups[1], groups[3]},
 		{groups[3], groups[1]},
-		{groups[1], groups[4]},
-		{groups[4], groups[1]},
+		{groups[2], groups[3]},
+		{groups[3], groups[2]},
 	}
 	for _, conn := range conns {
 		NewConnectivityLineTreeNode(n, conn[0], conn[1], true, "gconn "+groups[1].Label()+"->"+groups[2].Label())
