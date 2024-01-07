@@ -140,11 +140,10 @@ type OutputFormatter interface {
 		outFile string, grouping bool, uc OutputUseCase) (string, error)
 }
 
-// serialOutputFormatter is the formatter for json, md, txt formats.
+// serialOutputFormatter is the formatter for json, md and txt formats.
 // serialOutputFormatter implements the interface OutputFormatter.
-// its hold an instance of a formater that implement
-// its main flow of WriteOutput() of serialOutputFormatter is:
-// 1. for each vpc, use a SingleVpcOutputFormatter to create a VPCsubnetConnectivity,
+// the main flow of WriteOutput() of serialOutputFormatter is:
+// 1. for each vpc, create and use a SingleVpcOutputFormatter to create a VPCsubnetConnectivity,
 // 2. aggregate the VPCsubnetConnectivity to one output
 type serialOutputFormatter struct {
 	outFormat OutFormat

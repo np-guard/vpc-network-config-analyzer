@@ -54,6 +54,9 @@ func (s GenericSet[T]) IsIntersect(s2 GenericSet[T]) bool {
 
 // /////////////////////////////////////////////////////////////////
 // AnyMapEntry() return one arbitrary entry of a map.
+// the user of this function should know that "arbitrary" means that *any* entry in the map can be returned,
+// so, the user will probably use this function only in cases that it does not matter which of the entries is returned.
+// however, the user can use this function for other cases, but she should know that it return an arbitrary entry of a map.
 // this func is not related to genericSet,
 // todo: consider moving to another file
 // todo: AnyMapEntry() for GenericSet, and use it
