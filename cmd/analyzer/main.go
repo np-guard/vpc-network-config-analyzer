@@ -70,6 +70,19 @@ func analysisVPCConfigs(c1, c2 map[string]*vpcmodel.VPCConfig, inArgs *InArgs, o
 	return analysisOut, nil
 }
 
+func vpcConfigsFromFile(fileName string, inArgs *InArgs) (map[string]*vpcmodel.VPCConfig, error) {
+	rc, err1 := ibmvpc.ParseResourcesFromFile(fileName)
+	if err1 != nil {
+		return nil, fmt.Errorf("error parsing input vpc resources file: %w", err1)
+	}
+
+	vpcConfigs, err2 := ibmvpc.VPCConfigsFromResources(rc, *inArgs.VPC, *inArgs.Debug)
+	if err2 != nil {
+		return nil, fmt.Errorf(ErrorFormat, InGenerationErr, err2)
+	}
+	return vpcConfigs, nil
+}
+
 // The actual main function
 // Takes command-line flags and returns an error rather than exiting, so it can be more easily used in testing
 func _main(cmdlineArgs []string) error {
@@ -85,55 +98,31 @@ func _main(cmdlineArgs []string) error {
 		fmt.Printf("vpc-network-config-analyzer v%s\n", version.VersionCore)
 		return nil
 	}
-
-	rc, err1 := ibmvpc.ParseResourcesFromFile(*inArgs.InputConfigFile)
-	if err1 != nil {
-		return fmt.Errorf("error parsing input vpc resources file: %w", err1)
-	}
-
-	vpcConfigs, err2 := ibmvpc.VPCConfigsFromResources(rc, *inArgs.VPC, *inArgs.Debug)
+	vpcConfigs1, err2 := vpcConfigsFromFile(*inArgs.InputConfigFile, inArgs)
 	if err2 != nil {
-		return fmt.Errorf(ErrorFormat, InGenerationErr, err2)
+		return err2
 	}
-
+	var vpcConfigs2 map[string]*vpcmodel.VPCConfig
+	if inArgs.InputSecondConfigFile != nil && *inArgs.InputSecondConfigFile != "" {
+		vpcConfigs2, err2 = vpcConfigsFromFile(*inArgs.InputSecondConfigFile, inArgs)
+		if err2 != nil {
+			return err2
+		}
+		// we are in diff mode, checking we have only one config per file:
+		if len(vpcConfigs1) != 1 || len(vpcConfigs2) != 1 {
+			return fmt.Errorf("for diff mode %v a single configuration should be provided "+
+				"for both -vpc-config and -vpc-config-second", *inArgs.AnalysisType)
+		}
+	}
 	outFile := ""
 	if inArgs.OutputFile != nil {
 		outFile = *inArgs.OutputFile
 	}
-
-	diffAnalysis := *inArgs.AnalysisType == allEndpointsDiff || *inArgs.AnalysisType == allSubnetsDiff
-	if !diffAnalysis {
-		vpcAnalysisOutput, err2 := analysisVPCConfigs(vpcConfigs, nil, inArgs, outFile)
-		if err2 != nil {
-			return err2
-		}
-		fmt.Println(vpcAnalysisOutput)
-	} else {
-		return diffAnalysisMain(inArgs, vpcConfigs, outFile)
-	}
-	return nil
-}
-
-func diffAnalysisMain(inArgs *InArgs, vpcConfigs map[string]*vpcmodel.VPCConfig, outFile string) error {
-	// ToDo SM: for diff analysis assume 2 configs only, the 2nd given through vpc-config-second
-	rc2ndForDiff, err1 := ibmvpc.ParseResourcesFromFile(*inArgs.InputSecondConfigFile)
-	if err1 != nil {
-		return fmt.Errorf(ErrorFormat, ParsingErr, err1)
-	}
-	vpc2ndConfigs, err2 := ibmvpc.VPCConfigsFromResources(rc2ndForDiff, *inArgs.VPC, *inArgs.Debug)
-	if err2 != nil {
-		return fmt.Errorf(ErrorFormat, InGenerationErr, err2)
-	}
-	// For diff analysis each vpcConfigs have a single element
-	if len(vpcConfigs) != 1 || len(vpc2ndConfigs) != 1 {
-		return fmt.Errorf("for diff mode %v a single configuration should be provided "+
-			"for both -vpc-config and -vpc-config-second", *inArgs.AnalysisType)
-	}
-	analysisOutput, err2 := analysisVPCConfigs(vpcConfigs, vpc2ndConfigs, inArgs, outFile)
+	vpcAnalysisOutput, err2 := analysisVPCConfigs(vpcConfigs1, vpcConfigs2, inArgs, outFile)
 	if err2 != nil {
 		return err2
 	}
-	fmt.Println(analysisOutput)
+	fmt.Println(vpcAnalysisOutput)
 	return nil
 }
 
