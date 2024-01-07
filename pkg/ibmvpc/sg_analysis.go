@@ -350,11 +350,7 @@ func (sga *SGAnalyzer) getRulesRelevantConn(rules []int, conn *common.Connection
 	allRules := sga.ingressRules
 	allRules = append(allRules, sga.egressRules...)
 	for _, rule := range allRules {
-		isContained, err := conn.ContainedIn(rule.connections)
-		if err != nil {
-			return nil, err
-		}
-		if contains(rules, rule.index) && isContained {
+		if contains(rules, rule.index) && !conn.Intersection(rule.connections).IsEmpty() {
 			relevantRules = append(relevantRules, rule.index)
 		}
 	}
