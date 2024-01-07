@@ -233,12 +233,12 @@ func TestGroupingExternal(t *testing.T) {
 	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 }
 
-func TestQueryConnectionSG1(t *testing.T) {
+func TestQueryConnectionSGBasic(t *testing.T) {
 	vpcConfig := getConfig(t, "input_sg_testing1_new.json")
 	if vpcConfig == nil {
 		require.Fail(t, "vpcConfig equals nil")
 	}
-	// test1: a connection exists, but it is not the required one by query todo: add the existing connection
+	// test1: a connection exists, but it is not the required one by query
 	explanbilityStr1, err1 := vpcConfig.ExplainConnectivity("vsi2-ky[10.240.20.4]", "vsi3b-ky[10.240.30.4]", common.NewConnectionSet(true))
 	if err1 != nil {
 		require.Fail(t, err1.Error())
@@ -249,7 +249,6 @@ func TestQueryConnectionSG1(t *testing.T) {
 		"\tindex: 6, direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, cidr: 10.240.20.4/32,10.240.30.4/32\n\n", explanbilityStr1)
 	fmt.Println(explanbilityStr1)
 	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
-
 	// test2: the existing connection is exactly the one required by the query
 	vsi1 := "vsi1-ky[10.240.10.4]"
 	cidr1 := "161.26.0.0/16"
@@ -307,14 +306,24 @@ func TestQueryConnectionSG1(t *testing.T) {
 		"between vsi1-ky[10.240.10.4] and Public Internet 161.16.0.0-161.25.255.255,161.27.0.0-161.31.255.255; "+
 		"connection blocked by egress\n\n", explanbilityStr5)
 	fmt.Println(explanbilityStr5)
+	// test6: a connection does not exist regardless of the query
+	explanbilityStr6, err6 := vpcConfig.ExplainConnectivity("vsi1-ky[10.240.10.4]", "vsi3a-ky[10.240.30.5]", connectionUDP2)
+	if err6 != nil {
+		require.Fail(t, err6.Error())
+	}
+	require.Equal(t, "There is no connection \"protocol: UDP src-ports: 10-100 dst-ports: 443\" "+
+		"between vsi1-ky[10.240.10.4] and vsi3a-ky[10.240.30.5]; "+
+		"connection blocked both by ingress and egress\n\n", explanbilityStr6)
+	fmt.Println(explanbilityStr6)
+	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 }
 
-func TestQueryConnectionSG2(t *testing.T) {
+func TestQueryConnectionSGRules(t *testing.T) {
 	vpcConfig := getConfig(t, "input_sg_testing1_new.json")
 	if vpcConfig == nil {
 		require.Fail(t, "vpcConfig equals nil")
 	}
-	// test 1: only a subset of the rules are relevant
+	// test 1: only a subset of the rules are relevant, protocol wise
 	connectionUDP1 := common.NewConnectionSet(false)
 	connectionUDP1.AddTCPorUDPConn(common.ProtocolUDP, common.MinPort, common.MaxPort, common.MinPort, common.MaxPort)
 	explanbilityStr1, err1 := vpcConfig.ExplainConnectivity("vsi2-ky[10.240.20.4]", "vsi3b-ky[10.240.30.4]", connectionUDP1)
@@ -327,18 +336,7 @@ func TestQueryConnectionSG2(t *testing.T) {
 		"enabling rules from sg2-ky:\n\tindex: 5, direction: outbound, protocol: all, cidr: 10.240.30.0/24\n\n", explanbilityStr1)
 	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 
-	// test2: the required connection contains the existing one per connection (so answer should be no) but neither is all connections
+	// test 2: only a subset of the rules are relevant, port wise
+	// test 3: the required connection contains the existing one per connection (so answer should be no) but neither is all connections
 
-	// test6: a connection does not exist regardless of the query
-	connectionUDP2 := common.NewConnectionSet(false)
-	connectionUDP2.AddTCPorUDPConn(common.ProtocolUDP, 10, 100, 443, 443)
-	explanbilityStr3, err3 := vpcConfig.ExplainConnectivity("vsi1-ky[10.240.10.4]", "vsi3a-ky[10.240.30.5]", connectionUDP2)
-	if err3 != nil {
-		require.Fail(t, err3.Error())
-	}
-	require.Equal(t, "There is no connection \"protocol: UDP src-ports: 10-100 dst-ports: 443\" "+
-		"between vsi1-ky[10.240.10.4] and vsi3a-ky[10.240.30.5]; "+
-		"connection blocked both by ingress and egress\n\n", explanbilityStr3)
-	fmt.Println(explanbilityStr3)
-	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 }
