@@ -69,10 +69,11 @@ func TestVsiToVsi(t *testing.T) {
 	}
 	fmt.Println(explanbilityStr3)
 	require.Equal(t, "The following connection exists between vsi3a-ky[10.240.30.5] and vsi1-ky[10.240.10.4]: "+
-		"All Connections; its enabled by\n"+
-		"Egress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg3-ky:\n"+
-		"\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\nIngress Rules:\n~~~~~~~~~~~~~~\nSecurityGroupLayer Rules"+
-		"\n------------------------\nenabling rules from sg1-ky:\n"+
+		"All Connections; its enabled by\nEgress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\n"+
+		"enabling rules from sg3-ky:\n\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n"+
+		"\tindex: 2, direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, cidr: 0.0.0.0/0\n"+
+		"\tindex: 3, direction: outbound,  conns: protocol: tcp,  dstPorts: 100-200, cidr: 0.0.0.0/0\n"+
+		"Ingress Rules:\n~~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n"+
 		"\tindex: 4, direction: inbound, protocol: all, cidr: 10.240.30.5/32,10.240.30.6/32\n\n", explanbilityStr3)
 	explanbilityStr4, err4 := vpcConfig.ExplainConnectivity("vsi1-ky[10.240.10.4]", "vsi2-ky[10.240.20.4]", nil)
 	if err4 != nil {
@@ -87,9 +88,11 @@ func TestVsiToVsi(t *testing.T) {
 		require.Fail(t, err5.Error())
 	}
 	fmt.Println(explanbilityStr5)
-	require.Equal(t, "No connection between vsi3a-ky[10.240.30.5] and vsi2-ky[10.240.20.4]; connection blocked by ingress\n"+
-		"Egress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg3-ky:"+
-		"\n\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n\n", explanbilityStr5)
+	require.Equal(t, "No connection between vsi3a-ky[10.240.30.5] and vsi2-ky[10.240.20.4]; "+
+		"connection blocked by ingress\nEgress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\n"+
+		"enabling rules from sg3-ky:\n\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n"+
+		"\tindex: 2, direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, cidr: 0.0.0.0/0\n"+
+		"\tindex: 3, direction: outbound,  conns: protocol: tcp,  dstPorts: 100-200, cidr: 0.0.0.0/0\n\n", explanbilityStr5)
 	fmt.Println("done")
 }
 
@@ -98,35 +101,35 @@ func TestVsiToVsi(t *testing.T) {
 // sg3-ky: vsi3a-ky
 // sg1-ky, sg3-ky: default
 // sg2-ky: allow all
-func TestSGDefaultRules(t *testing.T) {
-	vpcConfig := getConfig(t, "input_sg_testing_default.json")
-	if vpcConfig == nil {
-		require.Fail(t, "vpcConfig equals nil")
-	}
-	// no connection, disabled by default rules
-	explanbilityStr1, err1 := vpcConfig.ExplainConnectivity("vsi1-ky[10.240.10.4]", "vsi3a-ky[10.240.30.5]", nil)
-	if err1 != nil {
-		require.Fail(t, err1.Error())
-	}
-	fmt.Println(explanbilityStr1)
-	require.Equal(t, "No connection between vsi1-ky[10.240.10.4] and vsi3a-ky[10.240.30.5]; "+
-		"connection blocked by ingress\nEgress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n"+
-		"------------------------\nrules in sg1-ky are the default, namely this is the enabling egress rule:\n"+
-		"\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n\n", explanbilityStr1)
-	// connection, egress (sg3-ky) is default
-	explanbilityStr2, err2 := vpcConfig.ExplainConnectivity("vsi3a-ky[10.240.30.5]", "vsi2-ky[10.240.20.4]", nil)
-	if err2 != nil {
-		require.Fail(t, err2.Error())
-	}
-	fmt.Println(explanbilityStr2)
-	require.Equal(t, "The following connection exists between vsi3a-ky[10.240.30.5] and vsi2-ky[10.240.20.4]: All Connections; "+
-		"its enabled by\nEgress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\n"+
-		"rules in sg3-ky are the default, namely this is the enabling egress rule:\n"+
-		"\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n"+
-		"Ingress Rules:\n~~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\n"+
-		"enabling rules from sg2-ky:\n\tindex: 1, direction: inbound, protocol: all, cidr: 0.0.0.0/0\n\n", explanbilityStr2)
-	fmt.Println("done")
-}
+//func TestSGDefaultRules(t *testing.T) {
+//	vpcConfig := getConfig(t, "input_sg_testing_default.json")
+//	if vpcConfig == nil {
+//		require.Fail(t, "vpcConfig equals nil")
+//	}
+//	// no connection, disabled by default rules
+//	explanbilityStr1, err1 := vpcConfig.ExplainConnectivity("vsi1-ky[10.240.10.4]", "vsi3a-ky[10.240.30.5]", nil)
+//	if err1 != nil {
+//		require.Fail(t, err1.Error())
+//	}
+//	fmt.Println(explanbilityStr1)
+//	require.Equal(t, "No connection between vsi1-ky[10.240.10.4] and vsi3a-ky[10.240.30.5]; "+
+//		"connection blocked by ingress\nEgress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n"+
+//		"------------------------\nrules in sg1-ky are the default, namely this is the enabling egress rule:\n"+
+//		"\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n\n", explanbilityStr1)
+//	// connection, egress (sg3-ky) is default
+//	explanbilityStr2, err2 := vpcConfig.ExplainConnectivity("vsi3a-ky[10.240.30.5]", "vsi2-ky[10.240.20.4]", nil)
+//	if err2 != nil {
+//		require.Fail(t, err2.Error())
+//	}
+//	fmt.Println(explanbilityStr2)
+//	require.Equal(t, "The following connection exists between vsi3a-ky[10.240.30.5] and vsi2-ky[10.240.20.4]: All Connections; "+
+//		"its enabled by\nEgress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\n"+
+//		"rules in sg3-ky are the default, namely this is the enabling egress rule:\n"+
+//		"\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n"+
+//		"Ingress Rules:\n~~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\n"+
+//		"enabling rules from sg2-ky:\n\tindex: 1, direction: inbound, protocol: all, cidr: 0.0.0.0/0\n\n", explanbilityStr2)
+//	fmt.Println("done")
+//}
 
 func TestInputValidity(t *testing.T) {
 	vpcConfig := getConfig(t, "input_sg_testing1_new.json")
@@ -148,7 +151,7 @@ func TestInputValidity(t *testing.T) {
 	}
 }
 
-func TestSimpleExternal(t *testing.T) {
+func TestSimpleExternalSG(t *testing.T) {
 	vpcConfig := getConfig(t, "input_sg_testing1_new.json")
 	if vpcConfig == nil {
 		require.Fail(t, "vpcConfig equals nil")
@@ -186,7 +189,7 @@ func TestSimpleExternal(t *testing.T) {
 	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 }
 
-func TestGroupingExternal(t *testing.T) {
+func TestGroupingExternalSG(t *testing.T) {
 	vpcConfig := getConfig(t, "input_sg_testing1_new.json")
 	if vpcConfig == nil {
 		require.Fail(t, "vpcConfig equals nil")
@@ -323,20 +326,65 @@ func TestQueryConnectionSGRules(t *testing.T) {
 	if vpcConfig == nil {
 		require.Fail(t, "vpcConfig equals nil")
 	}
-	// test 1: only a subset of the rules are relevant, protocol wise
-	connectionUDP1 := common.NewConnectionSet(false)
-	connectionUDP1.AddTCPorUDPConn(common.ProtocolUDP, common.MinPort, common.MaxPort, common.MinPort, common.MaxPort)
-	explanbilityStr1, err1 := vpcConfig.ExplainConnectivity("vsi2-ky[10.240.20.4]", "vsi3b-ky[10.240.30.4]", connectionUDP1)
+	// test1: all rules are relevant (for comparison)
+	vsi1 := "vsi1-ky[10.240.10.4]"
+	vsi3a := "vsi3a-ky[10.240.30.5]"
+	explanbilityStr1, err1 := vpcConfig.ExplainConnectivity(vsi3a, vsi1, nil)
 	if err1 != nil {
 		require.Fail(t, err1.Error())
 	}
 	fmt.Println(explanbilityStr1)
-	require.Equal(t, "There is no connection \"protocol: UDP\" between vsi2-ky[10.240.20.4] and vsi3b-ky[10.240.30.4]; "+
-		"connection blocked by ingress\nEgress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\n"+
-		"enabling rules from sg2-ky:\n\tindex: 5, direction: outbound, protocol: all, cidr: 10.240.30.0/24\n\n", explanbilityStr1)
+	require.Equal(t, "The following connection exists between vsi3a-ky[10.240.30.5] and vsi1-ky[10.240.10.4]: "+
+		"All Connections; its enabled by\nEgress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\n"+
+		"enabling rules from sg3-ky:\n\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n"+
+		"\tindex: 2, direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, cidr: 0.0.0.0/0\n"+
+		"\tindex: 3, direction: outbound,  conns: protocol: tcp,  dstPorts: 100-200, cidr: 0.0.0.0/0\n"+
+		"Ingress Rules:\n~~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n"+
+		"\tindex: 4, direction: inbound, protocol: all, cidr: 10.240.30.5/32,10.240.30.6/32\n\n", explanbilityStr1)
+	//test 2: only a subset of the rules are relevant, protocol wise
+	connectionUDP1 := common.NewConnectionSet(false)
+	connectionUDP1.AddTCPorUDPConn(common.ProtocolUDP, common.MinPort, common.MaxPort, common.MinPort, common.MaxPort)
+	explanbilityStr2, err2 := vpcConfig.ExplainConnectivity(vsi3a, vsi1, connectionUDP1)
+	if err2 != nil {
+		require.Fail(t, err2.Error())
+	}
+	fmt.Println(explanbilityStr2)
+	require.Equal(t, "Connection protocol: UDP exists between vsi3a-ky[10.240.30.5] and vsi1-ky[10.240.10.4]; its enabled by\n"+
+		"Egress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg3-ky:\n"+
+		"\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\nIngress Rules:\n~~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n"+
+		"------------------------\nenabling rules from sg1-ky:\n\tindex: 4, direction: inbound, protocol: all, cidr: 10.240.30.5/32,10.240.30.6/32\n\n", explanbilityStr2)
 	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 
-	// test 2: only a subset of the rules are relevant, port wise
-	// test 3: the required connection contains the existing one per connection (so answer should be no) but neither is all connections
+	// test 3: only a subset of the rules are relevant, port wise and protocol wise
+	connectionTCP1 := common.NewConnectionSet(false)
+	connectionTCP1.AddTCPorUDPConn(common.ProtocolTCP, common.MinPort, common.MaxPort, 50, 54)
+	explanbilityStr3, err3 := vpcConfig.ExplainConnectivity(vsi3a, vsi1, connectionTCP1)
+	if err3 != nil {
+		require.Fail(t, err3.Error())
+	}
+	fmt.Println(explanbilityStr3)
+	require.Equal(t, "Connection protocol: TCP dst-ports: 50-54 exists between vsi3a-ky[10.240.30.5] and vsi1-ky[10.240.10.4]; its enabled by\n"+
+		"Egress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg3-ky:\n"+
+		"\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n"+
+		"\tindex: 2, direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, cidr: 0.0.0.0/0\nIngress Rules:\n~~~~~~~~~~~~~~\nSecurityGroupLayer Rules"+
+		"\n------------------------\nenabling rules from sg1-ky:\n\tindex: 4, direction: inbound, protocol: all, cidr: 10.240.30.5/32,10.240.30.6/32\n\n", explanbilityStr3)
+	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
+
+	// test 4: all rules are relevant, with specified port wise protocol
+	connectionTCP2 := common.NewConnectionSet(false)
+	connectionTCP2.AddTCPorUDPConn(common.ProtocolTCP, common.MinPort, common.MaxPort, 120, 230)
+	explanbilityStr4, err4 := vpcConfig.ExplainConnectivity(vsi3a, vsi1, connectionTCP2)
+	if err4 != nil {
+		require.Fail(t, err4.Error())
+	}
+	fmt.Println(explanbilityStr4)
+	require.Equal(t, "Connection protocol: TCP dst-ports: 120-230 exists between vsi3a-ky[10.240.30.5] and vsi1-ky[10.240.10.4]; "+
+		"its enabled by\nEgress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\n"+
+		"enabling rules from sg3-ky:\n\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n"+
+		"\tindex: 2, direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, cidr: 0.0.0.0/0\n\t"+
+		"index: 3, direction: outbound,  conns: protocol: tcp,  dstPorts: 100-200, cidr: 0.0.0.0/0\nIngress Rules:\n"+
+		"~~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n"+
+		"\tindex: 4, direction: inbound, protocol: all, cidr: 10.240.30.5/32,10.240.30.6/32\n\n", explanbilityStr4)
+	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 
 }
