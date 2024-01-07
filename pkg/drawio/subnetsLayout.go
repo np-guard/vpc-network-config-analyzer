@@ -497,7 +497,9 @@ func (ly *subnetsLayout) calcZoneOrder() {
 			}
 		}
 	}
-	zoneOrders = append(zoneOrders, zoneOrder)
+	if len(zoneOrders) > 0 {
+		zoneOrders = append(zoneOrders, zoneOrder)
+	}
 	ly.setZonesCol(zoneOrders)
 }
 
