@@ -119,7 +119,8 @@ func (c *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 			// else : external node -> consider attached routing resources
 
 			allowedConnsBetweenCapturedAndPeerNode := NoConns()
-			// node is associated with either a pgw or a fip
+			// node is associated with either a pgw or a fip;
+			// if the relevant network interface has both the parser will keep only the fip.
 			var appliedRouter RoutingResource
 			for _, router := range c.RoutingResources {
 				routerConnRes := router.AllowedConnectivity(src, dst)
