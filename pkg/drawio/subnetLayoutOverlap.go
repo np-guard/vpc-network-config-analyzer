@@ -6,11 +6,6 @@ func tnCenter(tn TreeNodeInterface) (int, int) {
 	l := tn.Location()
 	return l.firstRow.index + l.lastRow.index + 1, l.firstCol.index + l.lastCol.index + 1
 }
-func lineGradient(line LineTreeNodeInterface) (int, int) {
-	xSrc, ySrc := tnCenter(line.Src())
-	xDst, yDst := tnCenter(line.Dst())
-	return xDst - xSrc, yDst - ySrc
-}
 func findOverlapLines(network TreeNodeInterface) {
 	for _, tn1 := range getAllNodes(network) {
 		for _, tn2 := range getAllNodes(network) {
@@ -45,6 +40,16 @@ func findOverlapLines(network TreeNodeInterface) {
 				continue
 			}
 			fmt.Println("overlap Lines: " + tn1.Label() + " " + tn2.Label())
+			switch {
+			case srcX1 == dstX1 && srcY1 < dstY1:
+				l1.setSrcExitAngle(10)
+			case srcX1 == dstX1 && srcY1 > dstY1:
+				l1.setSrcExitAngle(16)
+			case srcY1 == dstY1 && srcX1 < dstX1:
+				l1.setSrcExitAngle(4)
+			case srcY1 == dstY1 && srcX1 > dstX1:
+				l1.setSrcExitAngle(14)
+			}
 		}
 	}
 }
