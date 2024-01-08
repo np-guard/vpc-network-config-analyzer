@@ -470,7 +470,7 @@ func (ly *subnetsLayout) calcZoneOrder() {
 	for len(zonesScores) > 0 {
 		zoneToAdd, addToRight, newZoneOrder := chooseZoneToAdd(zonesScores, zoneOrder)
 		if newZoneOrder {
-			if zoneOrder != nil {
+			if len(zoneOrder) > 0 {
 				zoneOrders = append(zoneOrders, zoneOrder)
 			}
 			zoneOrder = []TreeNodeInterface{}
