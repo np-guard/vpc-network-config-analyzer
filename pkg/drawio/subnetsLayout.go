@@ -465,9 +465,16 @@ func (ly *subnetsLayout) newGroupFromSplitMiniGroups(group *groupDataS, miniGrou
 
 func (ly *subnetsLayout) calcZoneOrder() {
 	zonesScores := ly.calcZonePairScores()
-	zoneOrder := []TreeNodeInterface{}
+	var zoneOrder []TreeNodeInterface
+	zoneOrders := [][]TreeNodeInterface{}
 	for len(zonesScores) > 0 {
-		zoneToAdd, addToRight := chooseZoneToAdd(zonesScores, zoneOrder)
+		zoneToAdd, addToRight, newZoneOrder := chooseZoneToAdd(zonesScores, zoneOrder)
+		if newZoneOrder {
+			if len(zoneOrder) > 0 {
+				zoneOrders = append(zoneOrders, zoneOrder)
+			}
+			zoneOrder = []TreeNodeInterface{}
+		}
 		if addToRight == 1 {
 			zoneOrder = append(zoneOrder, zoneToAdd)
 		} else {
@@ -490,8 +497,28 @@ func (ly *subnetsLayout) calcZoneOrder() {
 			}
 		}
 	}
-	for i, z := range zoneOrder {
-		ly.zonesCol[z] = i
+	if len(zoneOrder) > 0 {
+		zoneOrders = append(zoneOrders, zoneOrder)
+	}
+	ly.setZonesCol(zoneOrders)
+}
+
+func (ly *subnetsLayout) setZonesCol(zoneOrders [][]TreeNodeInterface) {
+	// zoneOrders of the same VPCs must be together
+	// sorting the zoneOrders by their VPCs:
+	vpcToOrders := map[TreeNodeInterface][][]TreeNodeInterface{}
+	for _, order := range zoneOrders {
+		vpc := order[0].Parent()
+		vpcToOrders[vpc] = append(vpcToOrders[vpc], order)
+	}
+	i := 0
+	for _, vpcOrders := range vpcToOrders {
+		for _, order := range vpcOrders {
+			for _, z := range order {
+				ly.zonesCol[z] = i
+				i++
+			}
+		}
 	}
 	for miniGroup := range ly.miniGroups {
 		if _, ok := ly.zonesCol[miniGroup.zone]; !ok {
@@ -517,8 +544,7 @@ func (ly *subnetsLayout) calcZonePairScores() map[TreeNodeInterface]map[TreeNode
 	return zonesScores
 }
 func chooseZoneToAdd(zonesScores map[TreeNodeInterface]map[TreeNodeInterface]int,
-	zoneOrder []TreeNodeInterface) (zoneToAdd TreeNodeInterface,
-	addToRight int) {
+	zoneOrder []TreeNodeInterface) (zoneToAdd TreeNodeInterface, addToRight int, newZoneOrder bool) {
 	addToRight = 1
 	if len(zoneOrder) > 0 {
 		zonesAtEdges := []TreeNodeInterface{zoneOrder[0], zoneOrder[len(zoneOrder)-1]}
@@ -541,6 +567,7 @@ func chooseZoneToAdd(zonesScores map[TreeNodeInterface]map[TreeNodeInterface]int
 	}
 	if zoneToAdd == nil {
 		// in case the zoneOrder is empty. or there are no score with one of the edge zones
+		newZoneOrder = true
 		bestScore := 0
 		for z, friendsScore := range zonesScores {
 			for _, score := range friendsScore {
@@ -551,7 +578,7 @@ func chooseZoneToAdd(zonesScores map[TreeNodeInterface]map[TreeNodeInterface]int
 			}
 		}
 	}
-	return zoneToAdd, addToRight
+	return zoneToAdd, addToRight, newZoneOrder
 }
 
 func (ly *subnetsLayout) createMatrixes() {
