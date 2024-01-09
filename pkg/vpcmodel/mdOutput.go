@@ -41,7 +41,11 @@ func (m *MDoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	switch uc {
 	case AllEndpoints:
 		lines := []string{mdDefaultTitle, mdDefaultHeader}
-		connLines := m.getGroupedOutput(conn)
+		connLines := m.getGroupedOutput(conn.GroupedConnectivity)
+		out += linesToOutput(connLines, lines)
+	case AllSubnets:
+		lines := []string{mdDefaultTitle, mdDefaultHeader}
+		connLines := m.getGroupedOutput(subnetsConn.GroupedConnectivity)
 		out += linesToOutput(connLines, lines)
 	case SubnetsDiff, EndpointsDiff:
 		var mdTitle, mdHeader string
@@ -55,8 +59,6 @@ func (m *MDoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 		lines := []string{mdTitle, mdHeader}
 		connLines := m.getGroupedDiffOutput(cfgsDiff)
 		out += linesToOutput(connLines, lines)
-	case AllSubnets:
-		return nil, errors.New("SubnetLevel use case not supported for md format currently ")
 	case SingleSubnet:
 		return nil, errors.New("DebugSubnet use case not supported for md format currently ")
 	}
@@ -73,9 +75,9 @@ func linesToOutput(connLines, lines []string) string {
 	return out
 }
 
-func (m *MDoutputFormatter) getGroupedOutput(conn *VPCConnectivity) []string {
-	lines := make([]string, len(conn.GroupedConnectivity.GroupedLines))
-	for i, line := range conn.GroupedConnectivity.GroupedLines {
+func (m *MDoutputFormatter) getGroupedOutput(connLines *GroupConnLines) []string {
+	lines := make([]string, len(connLines.GroupedLines))
+	for i, line := range connLines.GroupedLines {
 		lines[i] = getGroupedMDLine(line)
 	}
 	return lines
