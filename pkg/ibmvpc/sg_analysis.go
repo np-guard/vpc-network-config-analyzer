@@ -327,10 +327,8 @@ func (sga *SGAnalyzer) rulesInConnectivity(target string, conn *common.Connectio
 	analyzedConns, ipb := sga.getAnalyzedConnsIPB(target, isIngress)
 	for definedTarget, rules := range analyzedConns.contribRules {
 		if ipb.ContainedIn(definedTarget) {
-			definedTargetConn := analyzedConns.allowedconns[definedTarget]
 			if conn != nil { // connection not part of the query
-			     definedTargetConn := analyzedConns.allowedconns[definedTarget]
-				contained, err := conn.ContainedIn(definedTargetConn)
+				contained, err := conn.ContainedIn(analyzedConns.allowedconns[definedTarget])
 				if err != nil {
 					return nil, err
 				}
@@ -348,23 +346,12 @@ func (sga *SGAnalyzer) rulesInConnectivity(target string, conn *common.Connectio
 // given a list of rules and a connection, return the sublist of rules that contributes to the connection
 func (sga *SGAnalyzer) getRulesRelevantConn(rules []int, conn *common.ConnectionSet) ([]int, error) {
 	relevantRules := []int{}
-	allRules := sga.ingressRules
-	allRules = append(allRules, sga.egressRules...)
-	for _, rule := range allRules {
-		if contains(rules, rule.index) && !conn.Intersection(rule.connections).IsEmpty() {
+	for _, rule := range append(sga.ingressRules, sga.egressRules...) {
+		if common.Contains(rules, rule.index) && !conn.Intersection(rule.connections).IsEmpty() {
 			relevantRules = append(relevantRules, rule.index)
 		}
 	}
 	return relevantRules, nil
-}
-
-func contains(s []int, e int) bool {
-	for _, a := range s {
-		if a == e {
-			return true
-		}
-	}
-	return false
 }
 
 func (sga *SGAnalyzer) getAnalyzedConnsIPB(target string, isIngress bool) (res *ConnectivityResult, ipb *common.IPBlock) {
