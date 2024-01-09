@@ -52,7 +52,7 @@ func (s GenericSet[T]) IsIntersect(s2 GenericSet[T]) bool {
 	return false
 }
 
-func Contains(s []int, e int) bool {
+func Contains[T comparable](s []T, e T) bool {
 	for _, a := range s {
 		if a == e {
 			return true
