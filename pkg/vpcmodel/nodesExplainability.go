@@ -9,6 +9,7 @@ import (
 )
 
 // rulesInLayers contains specific rules across all layers (SGLayer/NACLLayer)
+// it maps from the layer name to the list of rules
 type rulesInLayers map[string][]RulesInFilter
 
 // rulesConnection contains the rules enabling a connection
@@ -24,11 +25,13 @@ type rulesSingleSrcDst struct {
 	rules *rulesConnection
 }
 
-type explainStruct []*rulesSingleSrcDst
+type rulesAndConnDetails []*rulesSingleSrcDst
 
 type explanation struct {
-	c             *VPCConfig
-	explainStruct *explainStruct
+	c              *VPCConfig
+	router         *RoutingResource     // the router(fip or pgw); nil if none
+	potentialRules *rulesAndConnDetails // rules potentially enabling connection
+	actualRules    *rulesAndConnDetails //  rules enabling connection given router
 	// grouped connectivity result:
 	// grouping common explanation lines with common src/dst (internal node) and different dst/src (external node)
 	// [required due to computation with disjoint ip-blocks]
@@ -108,21 +111,23 @@ func (c *VPCConfig) ExplainConnectivity(src, dst string) (out string, err error)
 	if err2 != nil {
 		return "", err2
 	}
+	// todo: here needs to compute router and actualRules from router and potential rules
 	groupedLines, err3 := newGroupConnExplainability(c, &explanationStruct)
 	if err3 != nil {
 		return "", err3
 	}
-	res := &explanation{c, &explanationStruct, groupedLines.GroupedLines}
+	// todo: tmp both potentialRules and actualRules are potentialRules
+	res := &explanation{c, nil, &explanationStruct, &explanationStruct, groupedLines.GroupedLines}
 	return res.String(), nil
 }
 
 // computeExplainRules computes the egress and ingress rules contributing to the (existing or missing) connection <src, dst>
-func (c *VPCConfig) computeExplainRules(srcName, dstName string) (explanationStruct explainStruct, err error) {
+func (c *VPCConfig) computeExplainRules(srcName, dstName string) (explanationStruct rulesAndConnDetails, err error) {
 	srcNodes, dstNodes, err := c.processInput(srcName, dstName)
 	if err != nil {
 		return nil, err
 	}
-	explanationStruct = make(explainStruct, max(len(srcNodes), len(dstNodes)))
+	explanationStruct = make(rulesAndConnDetails, max(len(srcNodes), len(dstNodes)))
 	i := 0
 	// either src of dst has more than one item; never both
 	// the loop is on two dimension since we do not know which, but actually we have a single dimension
@@ -229,7 +234,7 @@ func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
 }
 
 // prints each separately without grouping - for debug
-func (explanationStruct *explainStruct) String(c *VPCConfig) (string, error) {
+func (explanationStruct *rulesAndConnDetails) String(c *VPCConfig) (string, error) {
 	resStr := ""
 	for _, rulesSrcDst := range *explanationStruct {
 		resStr += stringExplainabilityLine(c, rulesSrcDst.src, rulesSrcDst.dst, rulesSrcDst.conn, rulesSrcDst.rules)
@@ -285,7 +290,7 @@ func stringExplainabilityLine(c *VPCConfig, src, dst EndpointElem, conn *common.
 
 // todo: connectivity is computed for the entire network, even though we need only for specific src, dst pairs
 // this is seems the time spent here should be neglectable, not worth the effort of adding dedicated code.
-func (explanationStruct *explainStruct) computeConnections(c *VPCConfig) error {
+func (explanationStruct *rulesAndConnDetails) computeConnections(c *VPCConfig) error {
 	connectivity, err := c.GetVPCNetworkConnectivity(false) // computes connectivity
 	if err != nil {
 		return err

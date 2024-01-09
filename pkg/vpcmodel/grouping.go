@@ -88,7 +88,7 @@ func newGroupConnLinesDiff(d *diffBetweenCfgs) (res *GroupConnLines, err error) 
 	return res, err
 }
 
-func newGroupConnExplainability(c *VPCConfig, e *explainStruct) (res *GroupConnLines, err error) {
+func newGroupConnExplainability(c *VPCConfig, e *rulesAndConnDetails) (res *GroupConnLines, err error) {
 	res = &GroupConnLines{
 		config:                   c,
 		explain:                  e,
@@ -107,7 +107,7 @@ type GroupConnLines struct {
 	nodesConn   *VPCConnectivity
 	subnetsConn *VPCsubnetConnectivity
 	diff        *diffBetweenCfgs
-	explain     *explainStruct
+	explain     *rulesAndConnDetails
 	srcToDst    *groupingConnections
 	dstToSrc    *groupingConnections
 	// a map to groupedEndpointsElems used by GroupedConnLine from a unified key of such elements
