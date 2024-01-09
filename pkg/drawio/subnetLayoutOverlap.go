@@ -7,6 +7,7 @@ func tnCenter(tn TreeNodeInterface) (int, int) {
 	return l.firstRow.index + l.lastRow.index + 1, l.firstCol.index + l.lastCol.index + 1
 }
 func findOverlapLines(network TreeNodeInterface) {
+
 	for _, tn1 := range getAllNodes(network) {
 		for _, tn2 := range getAllNodes(network) {
 			if !tn1.IsLine() || !tn2.IsLine() || tn1 == tn2 {
@@ -14,6 +15,9 @@ func findOverlapLines(network TreeNodeInterface) {
 			}
 			l1, l2 := tn1.(LineTreeNodeInterface), tn2.(LineTreeNodeInterface)
 			if !l1.Src().IsSquare() || !l1.Dst().IsSquare() || !l2.Src().IsSquare() || !l2.Dst().IsSquare() {
+				continue
+			}
+			if l1.SrcExitAngle() > 0 || l2.SrcExitAngle() > 0 {
 				continue
 			}
 			srcX1, srcY1 := tnCenter(l1.Src())
@@ -40,15 +44,29 @@ func findOverlapLines(network TreeNodeInterface) {
 				continue
 			}
 			fmt.Println("overlap Lines: " + tn1.Label() + " " + tn2.Label())
+			// 15 16 01 02 03
+			// 14          04
+			// 13          05
+			// 12          06
+			// 11 10 09 08 07
 			switch {
 			case srcX1 == dstX1 && srcY1 < dstY1:
 				l1.setSrcExitAngle(10)
 			case srcX1 == dstX1 && srcY1 > dstY1:
-				l1.setSrcExitAngle(16)
-			case srcY1 == dstY1 && srcX1 < dstX1:
+				l1.setSrcExitAngle(2)
+			case srcX1 < dstX1 && srcY1 < dstY1:
+				l1.setSrcExitAngle(8)
+			case srcX1 < dstX1 && srcY1 == dstY1:
+				l1.setSrcExitAngle(6)
+			case srcX1 < dstX1 && srcY1 > dstY1:
 				l1.setSrcExitAngle(4)
-			case srcY1 == dstY1 && srcX1 > dstX1:
+			case srcX1 > dstX1 && srcY1 == dstY1:
 				l1.setSrcExitAngle(14)
+			case srcX1 > dstX1 && srcY1 > dstY1:
+				l1.setSrcExitAngle(16)
+			case srcX1 > dstX1 && srcY1 < dstY1:
+				l1.setSrcExitAngle(12)
+
 			}
 		}
 	}

@@ -119,7 +119,7 @@ func connExitStyle(exitAngle int) string {
 	case 9, 1:
 		exitY = 0.5
 	case 2, 8:
-		exitX = 0.75
+		exitY = 0.75
 	}
 
 	return fmt.Sprintf(connSrcExitFormat, exitX, exitY)
