@@ -10,3 +10,16 @@ func (connectivityMap GeneralConnectivityMap) updateAllowedConnsMap(src, dst VPC
 	}
 	connectivityMap[src][dst] = conn
 }
+
+// getRoutingResource: gets the routing resource and its conn; currently the conn is either all or none
+// node is associated with either a pgw or a fip;
+// if the relevant network interface has both the parser will keep only the fip.
+func (c *VPCConfig) getRoutingResource(src, dst Node) (RoutingResource, *common.ConnectionSet) {
+	for _, router := range c.RoutingResources {
+		routerConnRes := router.AllowedConnectivity(src, dst)
+		if !routerConnRes.IsEmpty() { // connection is allowed through router resource
+			return router, routerConnRes
+		}
+	}
+	return nil, NoConns()
+}
