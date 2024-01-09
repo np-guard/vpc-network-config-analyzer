@@ -266,7 +266,6 @@ func stringExplainabilityLine(c *VPCConfig, connQuery *common.ConnectionSet, src
 		noConnection = fmt.Sprintf("No connection between %v and %v;", src.Name(), dst.Name())
 	} else {
 		noConnection = fmt.Sprintf("There is no connection \"%v\" between %v and %v;", connQuery.String(), src.Name(), dst.Name())
-		// todo: add however... if a connection does exist between src and dst
 	}
 	resStr := ""
 	switch {
