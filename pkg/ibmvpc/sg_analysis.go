@@ -322,7 +322,11 @@ func (sga *SGAnalyzer) AllowedConnectivity(target string, isIngress bool) *commo
 	return vpcmodel.NoConns()
 }
 
-// rulesInConnectivity list of SG rules contributing to the connectivity
+// rulesInConnectivity list of SG rules contributing to the connectivity, if the required connection exists
+//  1. The required connection (src/dst) is detected, if exists.
+//  2. If connection is part of the query: is the required connection contained in the existing connection?
+//     if it does, then the contributing rules are detected: rules that intersect the required connection
+//     otherwise, the answer to the query is "no" and nil is returned
 func (sga *SGAnalyzer) rulesInConnectivity(target string, conn *common.ConnectionSet, isIngress bool) ([]int, error) {
 	analyzedConns, ipb := sga.getAnalyzedConnsIPB(target, isIngress)
 	for definedTarget, rules := range analyzedConns.contribRules {
