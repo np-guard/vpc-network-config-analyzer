@@ -999,6 +999,28 @@
                     "remote": {
                         "cidr_block": "10.240.30.0/24"
                     }
+                },
+                {
+                    "direction": "outbound",
+                    "href": "href:124",
+                    "id": "id:125",
+                    "ip_version": "ipv4",
+                    "protocol": "tcp",
+                    "remote": {
+                        "cidr_block": "0.0.0.0/0"
+                    }
+                },
+                {
+                    "direction": "outbound",
+                    "href": "href:124",
+                    "id": "id:125",
+                    "ip_version": "ipv4",
+                    "protocol": "tcp",
+                    "port_max": 200,
+                    "port_min": 100,
+                    "remote": {
+                        "cidr_block": "0.0.0.0/0"
+                    }
                 }
             ],
             "tags": [],

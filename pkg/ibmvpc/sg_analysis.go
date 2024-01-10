@@ -2,6 +2,7 @@ package ibmvpc
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 
@@ -322,15 +323,40 @@ func (sga *SGAnalyzer) AllowedConnectivity(target string, isIngress bool) *commo
 	return vpcmodel.NoConns()
 }
 
-// rulesInConnectivity list of SG rules contributing to the connectivity
-func (sga *SGAnalyzer) rulesInConnectivity(target string, isIngress bool) []int {
+// rulesInConnectivity list of SG rules contributing to the connectivity, if the required connection exists
+//  1. The required connection (src/dst) is detected, if exists.
+//  2. If connection is part of the query: is the required connection contained in the existing connection?
+//     if it does, then the contributing rules are detected: rules that intersect the required connection
+//     otherwise, the answer to the query is "no" and nil is returned
+func (sga *SGAnalyzer) rulesInConnectivity(target string, conn *common.ConnectionSet, isIngress bool) ([]int, error) {
 	analyzedConns, ipb := sga.getAnalyzedConnsIPB(target, isIngress)
 	for definedTarget, rules := range analyzedConns.contribRules {
 		if ipb.ContainedIn(definedTarget) {
-			return rules
+			if conn != nil { // connection is part of the query
+				contained, err := conn.ContainedIn(analyzedConns.allowedconns[definedTarget])
+				if err != nil {
+					return nil, err
+				}
+				if contained {
+					return sga.getRulesRelevantConn(rules, conn)
+				}
+				return nil, nil
+			}
+			return rules, nil // connection not part of query - all rules are relevant
 		}
 	}
-	return nil
+	return nil, nil
+}
+
+// given a list of rules and a connection, return the sublist of rules that contributes to the connection
+func (sga *SGAnalyzer) getRulesRelevantConn(rules []int, conn *common.ConnectionSet) ([]int, error) {
+	relevantRules := []int{}
+	for _, rule := range append(sga.ingressRules, sga.egressRules...) {
+		if slices.Contains(rules, rule.index) && !conn.Intersection(rule.connections).IsEmpty() {
+			relevantRules = append(relevantRules, rule.index)
+		}
+	}
+	return relevantRules, nil
 }
 
 func (sga *SGAnalyzer) getAnalyzedConnsIPB(target string, isIngress bool) (res *ConnectivityResult, ipb *common.IPBlock) {
