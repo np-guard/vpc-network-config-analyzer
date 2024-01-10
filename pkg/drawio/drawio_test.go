@@ -413,6 +413,11 @@ func createNetworkSubnetGroupingOverlapping() SquareTreeNodeInterface {
 		{(*zones)[0][0], (*zones)[1][1]},
 		{(*zones)[1][1], (*zones)[3][3]},
 
+		{(*zones)[0][0], (*zones)[1][3]},
+		{(*zones)[1][3], (*zones)[0][0]},
+		{(*zones)[0][0], (*zones)[3][1]},
+		{(*zones)[3][1], (*zones)[0][0]},
+
 	}
 	for _, conn := range conns {
 		NewConnectivityLineTreeNode(n, conn[0], conn[1], true, "gconn "+conn[0].Label()+"->"+conn[1].Label())
