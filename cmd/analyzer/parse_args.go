@@ -203,9 +203,6 @@ func errorInErgs(args *InArgs, flagset *flag.FlagSet) error {
 		return fmt.Errorf("wrong output format '%s' for analysis type '%s'; must be one of: %s",
 			*args.OutputFormat, *args.AnalysisType, strings.Join(supportedAnalysisTypesMap[*args.AnalysisType], separator))
 	}
-	if *args.OutputFormat == DEBUGFormat && *args.AnalysisType != allEndpoints {
-		return fmt.Errorf("output format %s supported on for %s", DEBUGFormat, allEndpoints)
-	}
 	diffAnalysis := *args.AnalysisType == allEndpointsDiff || *args.AnalysisType == allSubnetsDiff
 	fileForDiffSpecified := args.InputSecondConfigFile != nil && *args.InputSecondConfigFile != ""
 	if fileForDiffSpecified && !diffAnalysis {
@@ -218,12 +215,8 @@ func errorInErgs(args *InArgs, flagset *flag.FlagSet) error {
 	return nil
 }
 
-//gocyclo:ignore
 func notSupportedYetArgs(args *InArgs) error {
 	diffAnalysis := *args.AnalysisType == allEndpointsDiff || *args.AnalysisType == allSubnetsDiff
-	if diffAnalysis && *args.OutputFormat != TEXTFormat && *args.OutputFormat != MDFormat {
-		return fmt.Errorf("currently only txt/md output format supported with %s analysis type", *args.AnalysisType)
-	}
 	if (*args.AnalysisType == singleSubnet || diffAnalysis) && *args.Grouping {
 		return fmt.Errorf("currently %s analysis type does not support grouping", *args.AnalysisType)
 	}
