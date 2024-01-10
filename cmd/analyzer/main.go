@@ -52,46 +52,35 @@ func analysisTypeToUseCase(inArgs *InArgs) vpcmodel.OutputUseCase {
 	return vpcmodel.AllEndpoints
 }
 
-func analysisPerVPCConfig(c *vpcmodel.VPCConfig, inArgs *InArgs, outFile string) (*vpcmodel.SingleAnalysisOutput, error) {
-	og, err := vpcmodel.NewOutputGenerator(c, nil,
-		*inArgs.Grouping,
-		analysisTypeToUseCase(inArgs),
-		*inArgs.OutputFormat == ARCHDRAWIOFormat)
-	if err != nil {
-		return nil, err
-	}
-
-	var genOutFile string
-	// currently for drawio output only one vpc level is supported, and not as aggregated output of multiple vpcs
-	if *inArgs.OutputFormat == ARCHDRAWIOFormat || *inArgs.OutputFormat == DRAWIOFormat {
-		genOutFile = outFile
-	}
-	outFormat := getOutputFormat(inArgs)
-	output, err := og.Generate(outFormat, genOutFile)
-	if err != nil {
-		return nil, fmt.Errorf(ErrorFormat, OutGenerationErr, err)
-	}
-
-	return output, nil
-}
-
-func analysisDiffVPCConfig(c1, c2 *vpcmodel.VPCConfig, inArgs *InArgs, outFile string) (*vpcmodel.SingleAnalysisOutput, error) {
+func analysisVPCConfigs(c1, c2 map[string]*vpcmodel.VPCConfig, inArgs *InArgs, outFile string) (string, error) {
 	og, err := vpcmodel.NewOutputGenerator(c1, c2,
 		*inArgs.Grouping,
 		analysisTypeToUseCase(inArgs),
 		false)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	var analysisOut *vpcmodel.SingleAnalysisOutput
 	outFormat := getOutputFormat(inArgs)
-	analysisOut, err = og.Generate(outFormat, outFile)
+	analysisOut, err := og.Generate(outFormat, outFile)
 	if err != nil {
-		return nil, fmt.Errorf(ErrorFormat, OutGenerationErr, err)
+		return "", fmt.Errorf(ErrorFormat, OutGenerationErr, err)
 	}
 
 	return analysisOut, nil
+}
+
+func vpcConfigsFromFile(fileName string, inArgs *InArgs) (map[string]*vpcmodel.VPCConfig, error) {
+	rc, err1 := ibmvpc.ParseResourcesFromFile(fileName)
+	if err1 != nil {
+		return nil, fmt.Errorf("error parsing input vpc resources file: %w", err1)
+	}
+
+	vpcConfigs, err2 := ibmvpc.VPCConfigsFromResources(rc, *inArgs.VPC, *inArgs.Debug)
+	if err2 != nil {
+		return nil, fmt.Errorf(ErrorFormat, InGenerationErr, err2)
+	}
+	return vpcConfigs, nil
 }
 
 // The actual main function
@@ -109,84 +98,32 @@ func _main(cmdlineArgs []string) error {
 		fmt.Printf("vpc-network-config-analyzer v%s\n", version.VersionCore)
 		return nil
 	}
-
-	rc, err1 := ibmvpc.ParseResourcesFromFile(*inArgs.InputConfigFile)
-	if err1 != nil {
-		return fmt.Errorf("error parsing input vpc resources file: %w", err1)
-	}
-
-	vpcConfigs, err2 := ibmvpc.VPCConfigsFromResources(rc, *inArgs.VPC, *inArgs.Debug)
+	vpcConfigs1, err2 := vpcConfigsFromFile(*inArgs.InputConfigFile, inArgs)
 	if err2 != nil {
-		return fmt.Errorf(ErrorFormat, InGenerationErr, err2)
+		return err2
 	}
-
+	var vpcConfigs2 map[string]*vpcmodel.VPCConfig
+	if inArgs.InputSecondConfigFile != nil && *inArgs.InputSecondConfigFile != "" {
+		vpcConfigs2, err2 = vpcConfigsFromFile(*inArgs.InputSecondConfigFile, inArgs)
+		if err2 != nil {
+			return err2
+		}
+		// we are in diff mode, checking we have only one config per file:
+		if len(vpcConfigs1) != 1 || len(vpcConfigs2) != 1 {
+			return fmt.Errorf("for diff mode %v a single configuration should be provided "+
+				"for both -vpc-config and -vpc-config-second", *inArgs.AnalysisType)
+		}
+	}
 	outFile := ""
 	if inArgs.OutputFile != nil {
 		outFile = *inArgs.OutputFile
 	}
-
-	diffAnalysis := *inArgs.AnalysisType == allEndpointsDiff || *inArgs.AnalysisType == allSubnetsDiff
-	if !diffAnalysis {
-		outputPerVPC := make([]*vpcmodel.SingleAnalysisOutput, len(vpcConfigs))
-		i := 0
-		for _, vpcConfig := range vpcConfigs {
-			vpcAnalysisOutput, err2 := analysisPerVPCConfig(vpcConfig, inArgs, outFile)
-			if err2 != nil {
-				return err2
-			}
-			outputPerVPC[i] = vpcAnalysisOutput
-			i++
-		}
-
-		var out string
-		out, err = vpcmodel.AggregateVPCsOutput(outputPerVPC, getOutputFormat(inArgs), analysisTypeToUseCase(inArgs), outFile)
-		if err != nil {
-			return err
-		}
-		fmt.Println(out)
-	} else {
-		return diffAnalysisMain(inArgs, vpcConfigs, outFile)
+	vpcAnalysisOutput, err2 := analysisVPCConfigs(vpcConfigs1, vpcConfigs2, inArgs, outFile)
+	if err2 != nil {
+		return err2
 	}
+	fmt.Println(vpcAnalysisOutput)
 	return nil
-}
-
-func diffAnalysisMain(inArgs *InArgs, vpcConfigs map[string]*vpcmodel.VPCConfig, outFile string) error {
-	// ToDo SM: for diff analysis assume 2 configs only, the 2nd given through vpc-config-second
-	rc2ndForDiff, err1 := ibmvpc.ParseResourcesFromFile(*inArgs.InputSecondConfigFile)
-	if err1 != nil {
-		return fmt.Errorf(ErrorFormat, ParsingErr, err1)
-	}
-	vpc2ndConfigs, err4 := ibmvpc.VPCConfigsFromResources(rc2ndForDiff, *inArgs.VPC, *inArgs.Debug)
-	if err4 != nil {
-		return fmt.Errorf(ErrorFormat, InGenerationErr, err4)
-	}
-	// For diff analysis each vpcConfigs have a single element
-	c1, single1 := getSingleCfg(vpcConfigs)
-	c2, single2 := getSingleCfg(vpc2ndConfigs)
-	if !single1 || !single2 {
-		return fmt.Errorf("for diff mode %v a single configuration should be provided "+
-			"for both -vpc-config and -vpc-config-second", *inArgs.AnalysisType)
-	}
-	analysisOutput, err4 := analysisDiffVPCConfig(c1, c2, inArgs, outFile)
-	if err4 != nil {
-		return err4
-	}
-	out, err5 := vpcmodel.WriteDiffOutput(analysisOutput, getOutputFormat(inArgs), outFile)
-	if err5 != nil {
-		return err5
-	}
-	fmt.Println(out)
-	return nil
-}
-
-func getSingleCfg(vpcConfigs map[string]*vpcmodel.VPCConfig) (*vpcmodel.VPCConfig, bool) {
-	if len(vpcConfigs) > 1 {
-		return nil, false
-	}
-	for _, vpcConfig := range vpcConfigs {
-		return vpcConfig, true
-	}
-	return nil, false
 }
 
 func main() {
