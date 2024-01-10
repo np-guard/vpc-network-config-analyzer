@@ -28,11 +28,13 @@ type rulesSingleSrcDst struct {
 type rulesAndConnDetails []*rulesSingleSrcDst
 
 type explanation struct {
-	c              *VPCConfig
-	connQuery      *common.ConnectionSet
-	router         *RoutingResource     // the router (fip or pgw) to external network; nil if none
-	potentialRules *rulesAndConnDetails // rules potentially enabling connection
-	actualRules    *rulesAndConnDetails //  rules enabling connection given router
+	c               *VPCConfig
+	connQuery       *common.ConnectionSet
+	router          *RoutingResource     // the router (fip or pgw) to external network; nil if none
+	filtersExternal map[string]bool      // filters relevant for external IP
+	potentialRules  *rulesAndConnDetails // rules potentially enabling connection
+	actualRules     *rulesAndConnDetails // rules enabling connection given router
+	// potentialRules may differ from actualRules only if src or dst is external
 	// grouped connectivity result:
 	// grouping common explanation lines with common src/dst (internal node) and different dst/src (external node)
 	// [required due to computation with disjoint ip-blocks]
@@ -103,13 +105,16 @@ func (c *VPCConfig) getNodesFromInput(cidrOrName string) ([]Node, error) {
 
 // ExplainConnectivity todo: this will not be needed here once we connect explanbility to the cli
 // todo: support vsi given as an ID/IP address (CRN?)
-// todo: connection should be given in a string format, of course
 // nil conn means connection is not part of the query
 func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.ConnectionSet) (out string, err error) {
 	srcNodes, dstNodes, err := c.processInput(src, dst)
 	if err != nil {
 		return "", err
 	}
+	// the routingResource (fip or nacl) in the same for all srcNodes and dstNodes
+	// this is since there are multiple srcNodes or dstNodes only for an external cidr
+	// the routingResource is determined by the vsi(s) participating in the connection
+	routingResource, _ := c.getRoutingResource(srcNodes[0], dstNodes[0])
 	explanationStruct, err1 := c.computeExplainRules(srcNodes, dstNodes, connQuery)
 	if err1 != nil {
 		return "", err1
@@ -120,13 +125,17 @@ func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.Conne
 			return "", err2
 		}
 	}
-	// todo: here needs to compute router and actualRules from router and potential rules
+	var filtersForExternal map[string]bool
+	if routingResource != nil {
+		filtersForExternal = routingResource.AppliedFiltersKinds() // relevant filtersExternal
+	}
+	// todo: here needs to compute actualRules from filtersForExternal
 	groupedLines, err3 := newGroupConnExplainability(c, &explanationStruct)
 	if err3 != nil {
 		return "", err3
 	}
-	// todo: tmp both potentialRules and actualRules are potentialRules
-	res := &explanation{c, connQuery, nil, &explanationStruct, &explanationStruct, groupedLines.GroupedLines}
+	res := &explanation{c, connQuery, &routingResource, filtersForExternal,
+		&explanationStruct, &explanationStruct, groupedLines.GroupedLines}
 	return res.String(), nil
 }
 
