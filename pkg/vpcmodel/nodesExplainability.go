@@ -29,7 +29,7 @@ type rulesAndConnDetails []*rulesSingleSrcDst
 
 type explanation struct {
 	c              *VPCConfig
-	router         *RoutingResource     // the router(fip or pgw); nil if none
+	router         *RoutingResource     // the router (fip or pgw) to external network; nil if none
 	potentialRules *rulesAndConnDetails // rules potentially enabling connection
 	actualRules    *rulesAndConnDetails //  rules enabling connection given router
 	// grouped connectivity result:
@@ -103,7 +103,11 @@ func (c *VPCConfig) getNodesFromInput(cidrOrName string) ([]Node, error) {
 // ExplainConnectivity todo: this will not be needed here once we connect explanbility to the cli
 // todo: support vsi given as an ID/IP address (CRN?)
 func (c *VPCConfig) ExplainConnectivity(src, dst string) (out string, err error) {
-	explanationStruct, err1 := c.computeExplainRules(src, dst)
+	srcNodes, dstNodes, err := c.processInput(src, dst)
+	if err != nil {
+		return "", err
+	}
+	explanationStruct, err1 := c.computeExplainRules(srcNodes, dstNodes)
 	if err1 != nil {
 		return "", err1
 	}
@@ -122,11 +126,7 @@ func (c *VPCConfig) ExplainConnectivity(src, dst string) (out string, err error)
 }
 
 // computeExplainRules computes the egress and ingress rules contributing to the (existing or missing) connection <src, dst>
-func (c *VPCConfig) computeExplainRules(srcName, dstName string) (explanationStruct rulesAndConnDetails, err error) {
-	srcNodes, dstNodes, err := c.processInput(srcName, dstName)
-	if err != nil {
-		return nil, err
-	}
+func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node) (explanationStruct rulesAndConnDetails, err error) {
 	explanationStruct = make(rulesAndConnDetails, max(len(srcNodes), len(dstNodes)))
 	i := 0
 	// either src of dst has more than one item; never both
