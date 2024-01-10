@@ -327,7 +327,7 @@ func (sga *SGAnalyzer) rulesInConnectivity(target string, conn *common.Connectio
 	analyzedConns, ipb := sga.getAnalyzedConnsIPB(target, isIngress)
 	for definedTarget, rules := range analyzedConns.contribRules {
 		if ipb.ContainedIn(definedTarget) {
-			if conn != nil { // connection not part of the query
+			if conn != nil { // connection is part of the query
 				contained, err := conn.ContainedIn(analyzedConns.allowedconns[definedTarget])
 				if err != nil {
 					return nil, err
