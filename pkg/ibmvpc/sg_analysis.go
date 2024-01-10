@@ -337,7 +337,7 @@ func (sga *SGAnalyzer) rulesInConnectivity(target string, conn *common.Connectio
 				}
 				return nil, nil
 			}
-			return rules, nil // connection not part of query
+			return rules, nil // connection not part of query - all rules are relevant
 		}
 	}
 	return nil, nil
