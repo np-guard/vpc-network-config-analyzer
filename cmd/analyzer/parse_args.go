@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"slices"
 	"strings"
 )
 
@@ -75,7 +76,7 @@ var supportedOutputFormatsMap = map[string]bool{
 // supportedAnalysisTypesMap is a map from analysis type to its list of supported output formats
 var supportedAnalysisTypesMap = map[string][]string{
 	allEndpoints:     {TEXTFormat, MDFormat, JSONFormat, DRAWIOFormat, ARCHDRAWIOFormat, DEBUGFormat},
-	allSubnets:       {TEXTFormat, JSONFormat},
+	allSubnets:       {TEXTFormat, JSONFormat, DRAWIOFormat, ARCHDRAWIOFormat},
 	singleSubnet:     {TEXTFormat},
 	allEndpointsDiff: {TEXTFormat, MDFormat},
 	allSubnetsDiff:   {TEXTFormat, MDFormat},
@@ -189,11 +190,18 @@ func errorInErgs(args *InArgs, flagset *flag.FlagSet) error {
 	}
 	if _, ok := supportedAnalysisTypesMap[*args.AnalysisType]; !ok {
 		flagset.PrintDefaults()
-		return fmt.Errorf("wrong analysis type %s; must be one of: %s", *args.AnalysisType, strings.Join(supportedAnalysisTypesList, separator))
+		return fmt.Errorf("wrong analysis type '%s'; must be one of: '%s'",
+			*args.AnalysisType, strings.Join(supportedAnalysisTypesList, separator))
 	}
 	if !supportedOutputFormatsMap[*args.OutputFormat] {
 		flagset.PrintDefaults()
-		return fmt.Errorf("wrong output format %s; must be one of: %s", *args.OutputFormat, strings.Join(supportedOutputFormatsList, separator))
+		return fmt.Errorf("wrong output format '%s'; must be one of: '%s'",
+			*args.OutputFormat, strings.Join(supportedOutputFormatsList, separator))
+	}
+	if !slices.Contains(supportedAnalysisTypesMap[*args.AnalysisType], *args.OutputFormat) {
+		flagset.PrintDefaults()
+		return fmt.Errorf("wrong output format '%s' for analysis type '%s'; must be one of: %s",
+			*args.OutputFormat, *args.AnalysisType, strings.Join(supportedAnalysisTypesMap[*args.AnalysisType], separator))
 	}
 	if *args.OutputFormat == DEBUGFormat && *args.AnalysisType != allEndpoints {
 		return fmt.Errorf("output format %s supported on for %s", DEBUGFormat, allEndpoints)
@@ -213,16 +221,6 @@ func errorInErgs(args *InArgs, flagset *flag.FlagSet) error {
 //gocyclo:ignore
 func notSupportedYetArgs(args *InArgs) error {
 	diffAnalysis := *args.AnalysisType == allEndpointsDiff || *args.AnalysisType == allSubnetsDiff
-	if *args.OutputFormat == DRAWIOFormat || *args.OutputFormat == ARCHDRAWIOFormat {
-		if *args.AnalysisType != allEndpoints && *args.AnalysisType != allSubnets {
-			return fmt.Errorf("drawio output format is not supported with %s analysis type", *args.AnalysisType)
-		}
-		return nil
-	}
-	if !diffAnalysis && *args.AnalysisType != allEndpoints && *args.OutputFormat != TEXTFormat &&
-		*args.OutputFormat != JSONFormat {
-		return fmt.Errorf("currently only txt/json output format supported with %s analysis type", *args.AnalysisType)
-	}
 	if diffAnalysis && *args.OutputFormat != TEXTFormat && *args.OutputFormat != MDFormat {
 		return fmt.Errorf("currently only txt/md output format supported with %s analysis type", *args.AnalysisType)
 	}

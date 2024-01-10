@@ -108,7 +108,7 @@ type SingleAnalysisOutput struct {
 	format     OutFormat
 }
 
-// Generate returns SingleAnalysisOutput for its VPC analysis results
+// Generate returns a string representing the analysis output for all input VPCs
 func (o *OutputGenerator) Generate(f OutFormat, outFile string) (string, error) {
 	var formatter OutputFormatter
 	switch f {
@@ -143,8 +143,8 @@ type OutputFormatter interface {
 // serialOutputFormatter is the formatter for json, md and txt formats.
 // serialOutputFormatter implements the interface OutputFormatter.
 // the main flow of WriteOutput() of serialOutputFormatter is:
-// 1. for each vpc, create and use a SingleVpcOutputFormatter to create a VPCsubnetConnectivity,
-// 2. aggregate the VPCsubnetConnectivity to one output
+// 1. for each vpc, create and use a SingleVpcOutputFormatter to create a SingleAnalysisOutput ,
+// 2. aggregate the SingleAnalysisOutputs to one output
 type serialOutputFormatter struct {
 	outFormat OutFormat
 }
