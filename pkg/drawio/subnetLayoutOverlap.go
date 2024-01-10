@@ -44,28 +44,28 @@ func findOverlapLines(network TreeNodeInterface) {
 				continue
 			}
 			fmt.Println("overlap Lines: " + tn1.Label() + " " + tn2.Label())
-			// 15 16 01 02 03
-			// 14          04
-			// 13          05
-			// 12          06
-			// 11 10 09 08 07
+			// 14 15 16 01 02
+			// 13          03
+			// 12          04
+			// 11          05
+			// 10 09 08 07 06
 			switch {
 			case srcX1 == dstX1 && srcY1 < dstY1:
-				l1.setSrcExitAngle(10)
+				l1.setSrcExitAngle(9)
 			case srcX1 == dstX1 && srcY1 > dstY1:
-				l1.setSrcExitAngle(2)
+				l1.setSrcExitAngle(1)
 			case srcX1 < dstX1 && srcY1 < dstY1:
-				l1.setSrcExitAngle(8)
+				l1.setSrcExitAngle(7)
 			case srcX1 < dstX1 && srcY1 == dstY1:
-				l1.setSrcExitAngle(6)
+				l1.setSrcExitAngle(5)
 			case srcX1 < dstX1 && srcY1 > dstY1:
-				l1.setSrcExitAngle(4)
+				l1.setSrcExitAngle(3)
 			case srcX1 > dstX1 && srcY1 == dstY1:
-				l1.setSrcExitAngle(14)
+				l1.setSrcExitAngle(13)
 			case srcX1 > dstX1 && srcY1 > dstY1:
-				l1.setSrcExitAngle(16)
+				l1.setSrcExitAngle(15)
 			case srcX1 > dstX1 && srcY1 < dstY1:
-				l1.setSrcExitAngle(12)
+				l1.setSrcExitAngle(11)
 
 			}
 		}

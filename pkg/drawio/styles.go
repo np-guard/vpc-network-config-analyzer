@@ -98,27 +98,27 @@ func connExitStyle(exitAngle int) string {
 	}
 	exitX, exitY := 0.0, 0.0
 	switch exitAngle {
-	case 15, 16, 1, 2, 3:
+	case 14, 15, 16, 1, 2:
 		exitX = 0
-	case 7, 8, 9, 10, 11:
+	case 6, 7, 8, 9, 10:
 		exitX = 1
-	case 4, 14:
+	case 3, 13:
 		exitX = 0.25
-	case 5, 13:
+	case 4, 12:
 		exitX = 0.5
-	case 6, 12:
+	case 5, 11:
 		exitX = 0.75
 	}
 	switch exitAngle {
-	case 3, 4, 5, 6, 7:
+	case 2, 3, 4, 5, 6:
 		exitY = 1
-	case 11, 12, 13, 14, 15:
+	case 10, 11, 12, 13, 14:
 		exitY = 0
-	case 10, 16:
+	case 9, 15:
 		exitY = 0.25
-	case 9, 1:
+	case 8, 16:
 		exitY = 0.5
-	case 2, 8:
+	case 1, 7:
 		exitY = 0.75
 	}
 
