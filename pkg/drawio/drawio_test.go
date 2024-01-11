@@ -320,12 +320,15 @@ func createGroup(zones *[][]SquareTreeNodeInterface, vpc *VpcTreeNode, i1, i2, j
 			gr = append(gr, (*zones)[i][j])
 		}
 	}
-	if len(gr) ==1{
+	if len(gr) == 1 {
 		return gr[0]
 	}
 	g := GroupedSubnetsSquare(vpc, gr)
-	// g.(*GroupSubnetsSquareTreeNode).name = fmt.Sprintf("%d-%d,%d,%d", i1, i2, j1, j2)
+	if g.IsGroupSubnetsSquare() {
+		g.(*GroupSubnetsSquareTreeNode).name = fmt.Sprintf("%d-%d,%d,%d", i1, i2, j1, j2)
+	}
 	return g
+
 }
 
 type groupIndexes struct {
@@ -381,53 +384,63 @@ func createNetworkSubnetGroupingOverlapping() SquareTreeNodeInterface {
 		{0, 1, 2, 4, 4},
 		{0, 2, 3, 4, 4},
 
+		{0, 0, 2, 0, 2},
 	}
 	n, groups, zones := createNetworkSubnetGroupingGeneric(groupsIndexes)
 	conns := [][]SquareTreeNodeInterface{
 		{groups[0], groups[1]},
 		{groups[0], groups[2]},
 		{groups[1], groups[2]},
-		{(*zones)[0][0], (*zones)[0][3]},
-		{(*zones)[0][0], (*zones)[3][3]},
-		{(*zones)[0][0], (*zones)[3][0]},
 
-		{(*zones)[0][3], (*zones)[0][0]},
-		{(*zones)[0][3], (*zones)[3][3]},
-		{(*zones)[0][3], (*zones)[3][0]},
+		{groups[3], (*zones)[3][3]},
+		{(*zones)[3][3], groups[3]},
 
-		{(*zones)[3][0], (*zones)[0][0]},
-		{(*zones)[3][0], (*zones)[0][3]},
-		{(*zones)[3][0], (*zones)[3][3]},
+		{groups[3], groups[0]},
+		{groups[3], groups[1]},
+		{groups[3], groups[2]},
+		{groups[0], groups[3]},
+		{groups[1], groups[3]},
+		{groups[2], groups[3]},
 
-		{(*zones)[3][3], (*zones)[0][0]},
-		{(*zones)[3][3], (*zones)[0][3]},
-		{(*zones)[3][3], (*zones)[3][0]},
+		// {(*zones)[0][0], (*zones)[0][3]},
+		// {(*zones)[0][0], (*zones)[3][3]},
+		// {(*zones)[0][0], (*zones)[3][0]},
 
+		// {(*zones)[0][3], (*zones)[0][0]},
+		// {(*zones)[0][3], (*zones)[3][3]},
+		// {(*zones)[0][3], (*zones)[3][0]},
 
-		{(*zones)[0][0], (*zones)[0][1]},
-		{(*zones)[0][1], (*zones)[0][3]},
+		// {(*zones)[3][0], (*zones)[0][0]},
+		// {(*zones)[3][0], (*zones)[0][3]},
+		// {(*zones)[3][0], (*zones)[3][3]},
 
-		{(*zones)[0][0], (*zones)[1][0]},
-		{(*zones)[1][0], (*zones)[3][0]},
+		// {(*zones)[3][3], (*zones)[0][0]},
+		// {(*zones)[3][3], (*zones)[0][3]},
+		// {(*zones)[3][3], (*zones)[3][0]},
 
-		{(*zones)[0][0], (*zones)[1][1]},
-		{(*zones)[1][1], (*zones)[3][3]},
+		// {(*zones)[0][0], (*zones)[0][1]},
+		// {(*zones)[0][1], (*zones)[0][3]},
 
-		{(*zones)[0][0], (*zones)[1][3]},
-		{(*zones)[1][3], (*zones)[0][0]},
-		{(*zones)[0][0], (*zones)[3][1]},
-		{(*zones)[3][1], (*zones)[0][0]},
+		// {(*zones)[0][0], (*zones)[1][0]},
+		// {(*zones)[1][0], (*zones)[3][0]},
 
-		{(*zones)[0][3], (*zones)[3][2]},
-		{(*zones)[3][2], (*zones)[0][3]},
-		{(*zones)[0][3], (*zones)[2][0]},
-		{(*zones)[2][0], (*zones)[0][3]},
+		// {(*zones)[0][0], (*zones)[1][1]},
+		// {(*zones)[1][1], (*zones)[3][3]},
 
-		{(*zones)[3][0], (*zones)[2][3]},
-		{(*zones)[2][3], (*zones)[3][0]},
-		{(*zones)[3][0], (*zones)[0][2]},
-		{(*zones)[0][2], (*zones)[3][0]},
+		// {(*zones)[0][0], (*zones)[1][3]},
+		// {(*zones)[1][3], (*zones)[0][0]},
+		// {(*zones)[0][0], (*zones)[3][1]},
+		// {(*zones)[3][1], (*zones)[0][0]},
 
+		// {(*zones)[0][3], (*zones)[3][2]},
+		// {(*zones)[3][2], (*zones)[0][3]},
+		// {(*zones)[0][3], (*zones)[2][0]},
+		// {(*zones)[2][0], (*zones)[0][3]},
+
+		// {(*zones)[3][0], (*zones)[2][3]},
+		// {(*zones)[2][3], (*zones)[3][0]},
+		// {(*zones)[3][0], (*zones)[0][2]},
+		// {(*zones)[0][2], (*zones)[3][0]},
 	}
 	for _, conn := range conns {
 		NewConnectivityLineTreeNode(n, conn[0], conn[1], true, "gconn "+conn[0].Label()+"->"+conn[1].Label())

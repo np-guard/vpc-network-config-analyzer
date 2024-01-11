@@ -137,7 +137,7 @@ func connectivityStyle(con *ConnectivityTreeNode) string {
 	if con.Dst().IsIcon() && con.Dst().(IconTreeNodeInterface).IsGroupingPoint() && !con.Dst().(*GroupPointTreeNode).hasShownSquare() {
 		endArrow = noneEndEdge
 	}
-	if con.router != nil {
+	if con.router != nil  || con.SrcExitAngle() != 0{
 		strokeColor = connRouteredCollor
 	}
 	return fmt.Sprintf(connStyleFormat, endArrow, startArrow, strokeColor, connExitStyle(con.SrcExitAngle()))

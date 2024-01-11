@@ -29,7 +29,7 @@ func (lyO *subnetLayoutOverlap) tnCenter(tn TreeNodeInterface) (int, int) {
 }
 func (lyO *subnetLayoutOverlap) tnSize(tn TreeNodeInterface) (int, int) {
 	l := tn.Location()
-	return (l.firstRow.index - l.lastRow.index + 1) * 2, (l.firstCol.index - l.lastCol.index + 1) * 2
+	return (lyO.xIndexes[l.lastCol] - lyO.xIndexes[l.firstCol] + 1) * 2, (lyO.yIndexes[l.lastRow] - lyO.yIndexes[l.firstRow] + 1) * 2
 
 }
 func (lyO *subnetLayoutOverlap) findOverlapLines() {
@@ -98,7 +98,7 @@ func (lyO *subnetLayoutOverlap) currentExitPoint(l LineTreeNodeInterface) int {
 	srcX1, srcY1 := lyO.tnCenter(l.Src())
 	dstX1, dstY1 := lyO.tnCenter(l.Dst())
 	dx1, dy1 := dstX1-srcX1, dstY1-srcY1
-	srcHight1, srcWidth1 := lyO.tnSize(l.Src())
+	srcWidth1, srcHight1 := lyO.tnSize(l.Src())
 
 	switch {
 	case dx1 > 0 && dy1 == 0:
