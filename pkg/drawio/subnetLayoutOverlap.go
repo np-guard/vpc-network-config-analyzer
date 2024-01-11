@@ -1,7 +1,5 @@
 package drawio
 
-import "fmt"
-
 type subnetLayoutOverlap struct {
 	xIndexes map[*col]int
 	yIndexes map[*row]int
@@ -48,82 +46,95 @@ func (lyO *subnetLayoutOverlap) findOverlapLines() {
 			if l1.SrcExitAngle() > 0 || l2.SrcExitAngle() > 0 {
 				continue
 			}
-			srcX1, srcY1 := lyO.tnCenter(l1.Src())
-			srcX2, srcY2 := lyO.tnCenter(l2.Src())
-			dstX1, dstY1 := lyO.tnCenter(l1.Dst())
-			dstX2, dstY2 := lyO.tnCenter(l2.Dst())
-			dx1, dy1 := dstX1-srcX1, dstY1-srcY1
-			dx2, dy2 := dstX2-srcX2, dstY2-srcY2
-			minX1, minY1 := min(srcX1, dstX1), min(srcY1, dstY1)
-			minX2, minY2 := min(srcX2, dstX2), min(srcY2, dstY2)
-			maxX1, maxY1 := max(srcX1, dstX1), max(srcY1, dstY1)
-			maxX2, maxY2 := max(srcX2, dstX2), max(srcY2, dstY2)
-			// is same gradient?
-			if dx1*dy2 != dx2*dy1 {
-				continue
-			}
-			// is same graph?
-			if dx1*(srcY2-srcY1) != dy1*(srcX2-srcX1) {
-				continue
-			}
-			// share domain?
-			if (minX1 >= maxX2 || minX2 >= maxX1) && (minY1 >= maxY2 || minY2 >= maxY1) {
-				// fmt.Println("not overlap Lines: " + tn1.Label() + " " + tn2.Label())
+			if !lyO.linesOverlap(l1, l2) {
 				continue
 			}
 			// fmt.Println("overlap Lines: " + tn1.Label() + " " + tn2.Label())
-
-			srcHight1, srcWidth1 := lyO.tnSize(l1.Src())
-			// fmt.Printf("sizes %s, %d %d\n",tn1.Label(), srcHight1, srcWidth1)
-			// 14 15 16 01 02
-			// 13          03
-			// 12          04
-			// 11          05
-			// 10 09 08 07 06
-
-			currentExitPoint := 0
-			switch {
-			case dx1 > 0 && dy1 == 0:
-				currentExitPoint = 4
-			case dx1 == 0 && dy1 > 0:
-				currentExitPoint = 8
-			case dx1 < 0 && dy1 == 0:
-				currentExitPoint = 12
-			case dx1 == 0 && dy1 < 0:
-				currentExitPoint = 16
-
-			case dx1 > 0 && dy1 > 0 && srcHight1*dy1 == srcWidth1*dx1:
-				currentExitPoint = 6
-			case dx1 < 0 && dy1 > 0 && -srcHight1*dy1 == srcWidth1*dx1:
-				currentExitPoint = 10
-			case dx1 < 0 && dy1 < 0 && srcHight1*dy1 == srcWidth1*dx1:
-				currentExitPoint = 14
-			case dx1 > 0 && dy1 < 0 && -srcHight1*dy1 == srcWidth1*dx1:
-				currentExitPoint = 2
-
-			case dx1 > 0 && dy1 > 0 && srcHight1*dy1 < srcWidth1*dx1:
-				currentExitPoint = 5
-			case dx1 > 0 && dy1 > 0 && srcHight1*dy1 > srcWidth1*dx1:
-				currentExitPoint = 7
-			case dx1 < 0 && dy1 > 0 && -srcHight1*dy1 < srcWidth1*dx1:
-				currentExitPoint = 9
-			case dx1 < 0 && dy1 > 0 && -srcHight1*dy1 > srcWidth1*dx1:
-				currentExitPoint = 11
-			case dx1 < 0 && dy1 < 0 && srcHight1*dy1 > srcWidth1*dx1:
-				currentExitPoint = 13
-			case dx1 < 0 && dy1 < 0 && srcHight1*dy1 < srcWidth1*dx1:
-				currentExitPoint = 15
-			case dx1 > 0 && dy1 < 0 && -srcHight1*dy1 > srcWidth1*dx1:
-				currentExitPoint = 1
-			case dx1 > 0 && dy1 < 0 && -srcHight1*dy1 < srcWidth1*dx1:
-				currentExitPoint = 3
-			default:
-				fmt.Println("case error: " + tn1.Label())
-				fmt.Printf("sizes %s, %d %d, deltas %d %d (%d,%d) -> (%d,%d)\n", tn1.Label(), srcHight1, srcWidth1, dx1, dy1, dstX1, dstY1, srcX1, srcY1)
-
+			ep := lyO.currentExitPoint(l1)
+			ep = ep + 1
+			if ep == 17 {
+				ep = 1
 			}
-			l1.setSrcExitAngle(currentExitPoint +1)
-			fmt.Printf("case %d:  %s\n", l1.SrcExitAngle(), tn1.Label())
+			l1.setSrcExitAngle(ep)
 		}
 	}
+}
+
+func (lyO *subnetLayoutOverlap) linesOverlap(l1, l2 LineTreeNodeInterface) bool {
+	srcX1, srcY1 := lyO.tnCenter(l1.Src())
+	srcX2, srcY2 := lyO.tnCenter(l2.Src())
+	dstX1, dstY1 := lyO.tnCenter(l1.Dst())
+	dstX2, dstY2 := lyO.tnCenter(l2.Dst())
+	dx1, dy1 := dstX1-srcX1, dstY1-srcY1
+	dx2, dy2 := dstX2-srcX2, dstY2-srcY2
+	minX1, minY1 := min(srcX1, dstX1), min(srcY1, dstY1)
+	minX2, minY2 := min(srcX2, dstX2), min(srcY2, dstY2)
+	maxX1, maxY1 := max(srcX1, dstX1), max(srcY1, dstY1)
+	maxX2, maxY2 := max(srcX2, dstX2), max(srcY2, dstY2)
+	// is same gradient?
+	if dx1*dy2 != dx2*dy1 {
+		return false
+	}
+	// is same graph?
+	if dx1*(srcY2-srcY1) != dy1*(srcX2-srcX1) {
+		return false
+	}
+	// share domain?
+	if (minX1 >= maxX2 || minX2 >= maxX1) && (minY1 >= maxY2 || minY2 >= maxY1) {
+		// fmt.Println("not same domain: " + tn1.Label() + " " + tn2.Label())
+		return false
+	}
+	// fmt.Println("overlap Lines: " + tn1.Label() + " " + tn2.Label())
+	return true
+}
+
+// 14 15 16 01 02
+// 13          03
+// 12          04
+// 11          05
+// 10 09 08 07 06
+
+func (lyO *subnetLayoutOverlap) currentExitPoint(l LineTreeNodeInterface) int {
+	srcX1, srcY1 := lyO.tnCenter(l.Src())
+	dstX1, dstY1 := lyO.tnCenter(l.Dst())
+	dx1, dy1 := dstX1-srcX1, dstY1-srcY1
+	srcHight1, srcWidth1 := lyO.tnSize(l.Src())
+
+	switch {
+	case dx1 > 0 && dy1 == 0:
+		return 4
+	case dx1 == 0 && dy1 > 0:
+		return 8
+	case dx1 < 0 && dy1 == 0:
+		return 12
+	case dx1 == 0 && dy1 < 0:
+		return 16
+
+	case dx1 > 0 && dy1 > 0 && srcHight1*dy1 == srcWidth1*dx1:
+		return 6
+	case dx1 < 0 && dy1 > 0 && -srcHight1*dy1 == srcWidth1*dx1:
+		return 10
+	case dx1 < 0 && dy1 < 0 && srcHight1*dy1 == srcWidth1*dx1:
+		return 14
+	case dx1 > 0 && dy1 < 0 && -srcHight1*dy1 == srcWidth1*dx1:
+		return 2
+
+	case dx1 > 0 && dy1 > 0 && srcHight1*dy1 < srcWidth1*dx1:
+		return 5
+	case dx1 > 0 && dy1 > 0 && srcHight1*dy1 > srcWidth1*dx1:
+		return 7
+	case dx1 < 0 && dy1 > 0 && -srcHight1*dy1 < srcWidth1*dx1:
+		return 9
+	case dx1 < 0 && dy1 > 0 && -srcHight1*dy1 > srcWidth1*dx1:
+		return 11
+	case dx1 < 0 && dy1 < 0 && srcHight1*dy1 > srcWidth1*dx1:
+		return 13
+	case dx1 < 0 && dy1 < 0 && srcHight1*dy1 < srcWidth1*dx1:
+		return 15
+	case dx1 > 0 && dy1 < 0 && -srcHight1*dy1 > srcWidth1*dx1:
+		return 1
+	case dx1 > 0 && dy1 < 0 && -srcHight1*dy1 < srcWidth1*dx1:
+		return 3
+	}
+	return 0
 }
