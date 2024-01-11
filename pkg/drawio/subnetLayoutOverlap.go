@@ -45,9 +45,9 @@ func (lyO *subnetLayoutOverlap) findOverlapLines() {
 			if !l1.Src().IsSquare() || !l1.Dst().IsSquare() || !l2.Src().IsSquare() || !l2.Dst().IsSquare() {
 				continue
 			}
-			// if l1.SrcExitAngle() > 0 || l2.SrcExitAngle() > 0 {
-			// 	continue
-			// }
+			if l1.SrcExitAngle() > 0 || l2.SrcExitAngle() > 0 {
+				continue
+			}
 			srcX1, srcY1 := lyO.tnCenter(l1.Src())
 			srcX2, srcY2 := lyO.tnCenter(l2.Src())
 			dstX1, dstY1 := lyO.tnCenter(l1.Dst())
@@ -75,66 +75,55 @@ func (lyO *subnetLayoutOverlap) findOverlapLines() {
 
 			srcHight1, srcWidth1 := lyO.tnSize(l1.Src())
 			// fmt.Printf("sizes %s, %d %d\n",tn1.Label(), srcHight1, srcWidth1)
-
-			switch {
-			case dx1 > 0 && dy1 == 0:
-				fmt.Println("case 4: " + tn1.Label())
-				l1.setSrcExitAngle(4)
-			case dx1 > 0 && dy1 > 0 && srcHight1*dy1 < srcWidth1*dx1:
-				fmt.Println("case 5: " + tn1.Label())
-				l1.setSrcExitAngle(5)
-			case dx1 > 0 && dy1 > 0 && srcHight1*dy1 == srcWidth1*dx1:
-				fmt.Println("case 6: " + tn1.Label())
-				l1.setSrcExitAngle(6)
-			case dx1 > 0 && dy1 > 0 && srcHight1*dy1 > srcWidth1*dx1:
-				fmt.Println("case 7: " + tn1.Label())
-				l1.setSrcExitAngle(7)
-			case dx1 == 0 && dy1 > 0:
-				fmt.Println("case 8: " + tn1.Label())
-				l1.setSrcExitAngle(8)
-			case dx1 < 0 && dy1 > 0 && -srcHight1*dy1 < srcWidth1*dx1:
-				fmt.Println("case 9: " + tn1.Label())
-				l1.setSrcExitAngle(9)
-			case dx1 < 0 && dy1 > 0 && -srcHight1*dy1 == srcWidth1*dx1:
-				fmt.Println("case 10: " + tn1.Label())
-				l1.setSrcExitAngle(10)
-			case dx1 < 0 && dy1 > 0 && -srcHight1*dy1 > srcWidth1*dx1:
-				fmt.Println("case 11: " + tn1.Label())
-				l1.setSrcExitAngle(11)
-			case dx1 < 0 && dy1 == 0:
-				fmt.Println("case 12: " + tn1.Label())
-				l1.setSrcExitAngle(12)
-			case dx1 < 0 && dy1 < 0 && srcHight1*dy1 > srcWidth1*dx1:
-				fmt.Println("case 13: " + tn1.Label())
-				l1.setSrcExitAngle(13)
-			case dx1 < 0 && dy1 < 0 && srcHight1*dy1 == srcWidth1*dx1:
-				fmt.Println("case 14: " + tn1.Label())
-				l1.setSrcExitAngle(14)
-			case dx1 < 0 && dy1 < 0 && srcHight1*dy1 < srcWidth1*dx1:
-				fmt.Println("case 15: " + tn1.Label())
-				l1.setSrcExitAngle(15)
-			case dx1 == 0 && dy1 < 0:
-				fmt.Println("case 16: " + tn1.Label())
-				l1.setSrcExitAngle(16)
-			case dx1 > 0 && dy1 < 0 && -srcHight1*dy1 > srcWidth1*dx1:
-				fmt.Println("case 1: " + tn1.Label())
-				l1.setSrcExitAngle(1)
-			case dx1 > 0 && dy1 < 0 && -srcHight1*dy1 == srcWidth1*dx1:
-				fmt.Println("case 2: " + tn1.Label())
-				l1.setSrcExitAngle(2)
-			case dx1 > 0 && dy1 < 0 && -srcHight1*dy1 < srcWidth1*dx1:
-				fmt.Println("case 3: " + tn1.Label())
-				l1.setSrcExitAngle(3)
-			default:
-				fmt.Println("case error: " + tn1.Label())
-				fmt.Printf("sizes %s, %d %d, deltas %d %d (%d,%d) -> (%d,%d)\n", tn1.Label(), srcHight1, srcWidth1, dx1, dy1, dstX1, dstY1, srcX1, srcY1)
-
-			}
 			// 14 15 16 01 02
 			// 13          03
 			// 12          04
 			// 11          05
 			// 10 09 08 07 06
+
+			currentExitPoint := 0
+			switch {
+			case dx1 > 0 && dy1 == 0:
+				currentExitPoint = 4
+			case dx1 == 0 && dy1 > 0:
+				currentExitPoint = 8
+			case dx1 < 0 && dy1 == 0:
+				currentExitPoint = 12
+			case dx1 == 0 && dy1 < 0:
+				currentExitPoint = 16
+
+			case dx1 > 0 && dy1 > 0 && srcHight1*dy1 == srcWidth1*dx1:
+				currentExitPoint = 6
+			case dx1 < 0 && dy1 > 0 && -srcHight1*dy1 == srcWidth1*dx1:
+				currentExitPoint = 10
+			case dx1 < 0 && dy1 < 0 && srcHight1*dy1 == srcWidth1*dx1:
+				currentExitPoint = 14
+			case dx1 > 0 && dy1 < 0 && -srcHight1*dy1 == srcWidth1*dx1:
+				currentExitPoint = 2
+
+			case dx1 > 0 && dy1 > 0 && srcHight1*dy1 < srcWidth1*dx1:
+				currentExitPoint = 5
+			case dx1 > 0 && dy1 > 0 && srcHight1*dy1 > srcWidth1*dx1:
+				currentExitPoint = 7
+			case dx1 < 0 && dy1 > 0 && -srcHight1*dy1 < srcWidth1*dx1:
+				currentExitPoint = 9
+			case dx1 < 0 && dy1 > 0 && -srcHight1*dy1 > srcWidth1*dx1:
+				currentExitPoint = 11
+			case dx1 < 0 && dy1 < 0 && srcHight1*dy1 > srcWidth1*dx1:
+				currentExitPoint = 13
+			case dx1 < 0 && dy1 < 0 && srcHight1*dy1 < srcWidth1*dx1:
+				currentExitPoint = 15
+			case dx1 > 0 && dy1 < 0 && -srcHight1*dy1 > srcWidth1*dx1:
+				currentExitPoint = 1
+			case dx1 > 0 && dy1 < 0 && -srcHight1*dy1 < srcWidth1*dx1:
+				currentExitPoint = 3
+			default:
+				fmt.Println("case error: " + tn1.Label())
+				fmt.Printf("sizes %s, %d %d, deltas %d %d (%d,%d) -> (%d,%d)\n", tn1.Label(), srcHight1, srcWidth1, dx1, dy1, dstX1, dstY1, srcX1, srcY1)
+
+			}
+			l1.setSrcExitAngle(currentExitPoint +1)
+			fmt.Printf("case %d:  %s\n", l1.SrcExitAngle(), tn1.Label())
 		}
 	}
 }
