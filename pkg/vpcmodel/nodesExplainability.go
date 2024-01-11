@@ -121,10 +121,13 @@ func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.Conne
 			return "", err2
 		}
 	}
-	c.computeRouterAndActualRules(&potentialRulesAndConnDetails)
-	groupedLines, err3 := newGroupConnExplainability(c, &potentialRulesAndConnDetails)
+	actualRulesAndConnDetails, err3 := c.computeRouterAndActualRules(&potentialRulesAndConnDetails)
 	if err3 != nil {
 		return "", err3
+	}
+	groupedLines, err4 := newGroupConnExplainability(c, actualRulesAndConnDetails)
+	if err4 != nil {
+		return "", err4
 	}
 	res := &explanation{c, connQuery, &potentialRulesAndConnDetails,
 		&potentialRulesAndConnDetails, groupedLines.GroupedLines}
@@ -154,13 +157,23 @@ func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node, conn *common.
 // computeActualRules computes from potentialRules the rules that actually enable traffic, considering the filtersExternal
 // (which was computed based on the RoutingResource) and (in the near future) considering the combined filters
 // at the moment (only SG supported) actual can differ from potential only if src or dst is external
-func (c *VPCConfig) computeRouterAndActualRules(potentialRules *rulesAndConnDetails) *rulesAndConnDetails {
+func (c *VPCConfig) computeRouterAndActualRules(potentialRules *rulesAndConnDetails) (*rulesAndConnDetails, error) {
 	actualRulesAndConn := make(rulesAndConnDetails, max(len(*potentialRules), len(*potentialRules)))
 	for i, potential := range *potentialRules {
 		src := potential.src
 		dst := potential.dst
 		fmt.Printf("src: %v, dst: %v\n", src.Name(), dst.Name())
-		routingResource, _ := c.getRoutingResource(src, dst)
+		// RoutingResources are computed by the parser for []Nodes of the VPC,
+		// finds the relevant nodes for the query's src and dst
+		containingSrcNode, err1 := c.getContainingConfigNode(src)
+		if err1 != nil {
+			return nil, err1
+		}
+		containingDstNode, err2 := c.getContainingConfigNode(dst)
+		if err2 != nil {
+			return nil, err2
+		}
+		routingResource, _ := c.getRoutingResource(containingSrcNode, containingDstNode)
 		if routingResource != nil {
 			fmt.Printf("\troutingResource is %v\n", routingResource.Name())
 		} else {
@@ -183,7 +196,7 @@ func (c *VPCConfig) computeRouterAndActualRules(potentialRules *rulesAndConnDeta
 		}
 		actualRulesAndConn[i] = actual
 	}
-	return &actualRulesAndConn
+	return &actualRulesAndConn, nil
 }
 
 func computeActualRules(potentialRules *rulesInLayers, filtersExternal map[string]bool) *rulesInLayers {
