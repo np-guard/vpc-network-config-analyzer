@@ -68,7 +68,7 @@ func (lyO *subnetLayoutOverlap) findOverlapLines() {
 			}
 			// share domain?
 			if (minX1 >= maxX2 || minX2 >= maxX1) && (minY1 >= maxY2 || minY2 >= maxY1) {
-				fmt.Println("not overlap Lines: " + tn1.Label() + " " + tn2.Label())
+				// fmt.Println("not overlap Lines: " + tn1.Label() + " " + tn2.Label())
 				continue
 			}
 			// fmt.Println("overlap Lines: " + tn1.Label() + " " + tn2.Label())
@@ -80,50 +80,50 @@ func (lyO *subnetLayoutOverlap) findOverlapLines() {
 			case dx1 > 0 && dy1 == 0:
 				fmt.Println("case 4: " + tn1.Label())
 				l1.setSrcExitAngle(4)
-			case dx1 > 0 && dy1 > 0 && srcHight1*dy1 > srcWidth1*dx1:
-				fmt.Println("case 4->6: " + tn1.Label())
+			case dx1 > 0 && dy1 > 0 && srcHight1*dy1 < srcWidth1*dx1:
+				fmt.Println("case 5: " + tn1.Label())
 				l1.setSrcExitAngle(5)
 			case dx1 > 0 && dy1 > 0 && srcHight1*dy1 == srcWidth1*dx1:
 				fmt.Println("case 6: " + tn1.Label())
 				l1.setSrcExitAngle(6)
-			case dx1 > 0 && dy1 > 0 && srcHight1*dy1 < srcWidth1*dx1:
-				fmt.Println("case 6->8: " + tn1.Label())
+			case dx1 > 0 && dy1 > 0 && srcHight1*dy1 > srcWidth1*dx1:
+				fmt.Println("case 7: " + tn1.Label())
 				l1.setSrcExitAngle(7)
 			case dx1 == 0 && dy1 > 0:
 				fmt.Println("case 8: " + tn1.Label())
 				l1.setSrcExitAngle(8)
 			case dx1 < 0 && dy1 > 0 && -srcHight1*dy1 < srcWidth1*dx1:
-				fmt.Println("case 8->10: " + tn1.Label())
+				fmt.Println("case 9: " + tn1.Label())
 				l1.setSrcExitAngle(9)
 			case dx1 < 0 && dy1 > 0 && -srcHight1*dy1 == srcWidth1*dx1:
 				fmt.Println("case 10: " + tn1.Label())
 				l1.setSrcExitAngle(10)
 			case dx1 < 0 && dy1 > 0 && -srcHight1*dy1 > srcWidth1*dx1:
-				fmt.Println("case 10->12: " + tn1.Label())
+				fmt.Println("case 11: " + tn1.Label())
 				l1.setSrcExitAngle(11)
 			case dx1 < 0 && dy1 == 0:
 				fmt.Println("case 12: " + tn1.Label())
 				l1.setSrcExitAngle(12)
-			case dx1 < 0 && dy1 < 0 && srcHight1*dy1 < srcWidth1*dx1:
-				fmt.Println("case 12->14: " + tn1.Label())
+			case dx1 < 0 && dy1 < 0 && srcHight1*dy1 > srcWidth1*dx1:
+				fmt.Println("case 13: " + tn1.Label())
 				l1.setSrcExitAngle(13)
 			case dx1 < 0 && dy1 < 0 && srcHight1*dy1 == srcWidth1*dx1:
 				fmt.Println("case 14: " + tn1.Label())
 				l1.setSrcExitAngle(14)
-			case dx1 < 0 && dy1 < 0 && srcHight1*dy1 > srcWidth1*dx1:
-				fmt.Println("case 14->16: " + tn1.Label())
+			case dx1 < 0 && dy1 < 0 && srcHight1*dy1 < srcWidth1*dx1:
+				fmt.Println("case 15: " + tn1.Label())
 				l1.setSrcExitAngle(15)
 			case dx1 == 0 && dy1 < 0:
 				fmt.Println("case 16: " + tn1.Label())
 				l1.setSrcExitAngle(16)
 			case dx1 > 0 && dy1 < 0 && -srcHight1*dy1 > srcWidth1*dx1:
-				fmt.Println("case 16->2: " + tn1.Label())
+				fmt.Println("case 1: " + tn1.Label())
 				l1.setSrcExitAngle(1)
 			case dx1 > 0 && dy1 < 0 && -srcHight1*dy1 == srcWidth1*dx1:
 				fmt.Println("case 2: " + tn1.Label())
 				l1.setSrcExitAngle(2)
 			case dx1 > 0 && dy1 < 0 && -srcHight1*dy1 < srcWidth1*dx1:
-				fmt.Println("case 2->4: " + tn1.Label())
+				fmt.Println("case 3: " + tn1.Label())
 				l1.setSrcExitAngle(3)
 			default:
 				fmt.Println("case error: " + tn1.Label())
