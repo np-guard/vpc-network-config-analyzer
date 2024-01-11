@@ -89,8 +89,8 @@ func (ly *layoutS) layout() {
 	ly.setGeometries()
 	if !ly.subnetMode {
 		newLayoutOverlap(ly.network).fixOverlapping()
-	}else{
-		findOverlapLines(ly.network)
+	} else {
+		newSubnetLayoutOverlap(ly.network, ly.matrix).findOverlapLines()
 	}
 }
 

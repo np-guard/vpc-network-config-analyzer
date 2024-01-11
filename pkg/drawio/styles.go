@@ -96,30 +96,30 @@ func connExitStyle(exitAngle int) string {
 	if exitAngle == 0 {
 		return ""
 	}
-	exitX, exitY := 0.0, 0.0
+	exitY, exitX := 0.0, 0.0
 	switch exitAngle {
 	case 14, 15, 16, 1, 2:
-		exitX = 0
+		exitY = 0
 	case 6, 7, 8, 9, 10:
-		exitX = 1
+		exitY = 1
 	case 3, 13:
-		exitX = 0.25
+		exitY = 0.25
 	case 4, 12:
-		exitX = 0.5
+		exitY = 0.5
 	case 5, 11:
-		exitX = 0.75
+		exitY = 0.75
 	}
 	switch exitAngle {
 	case 2, 3, 4, 5, 6:
-		exitY = 1
+		exitX = 1
 	case 10, 11, 12, 13, 14:
-		exitY = 0
+		exitX = 0
 	case 9, 15:
-		exitY = 0.25
+		exitX = 0.25
 	case 8, 16:
-		exitY = 0.5
+		exitX = 0.5
 	case 1, 7:
-		exitY = 0.75
+		exitX = 0.75
 	}
 
 	return fmt.Sprintf(connSrcExitFormat, exitX, exitY)
