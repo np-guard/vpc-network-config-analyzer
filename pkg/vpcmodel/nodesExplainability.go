@@ -129,6 +129,7 @@ func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.Conne
 	if routingResource != nil {
 		filtersForExternal = routingResource.AppliedFiltersKinds() // relevant filtersExternal
 	}
+	computeActualRulesAndConnDetails(&potentialRulesAndConnDetails, filtersForExternal)
 	groupedLines, err3 := newGroupConnExplainability(c, &potentialRulesAndConnDetails)
 	if err3 != nil {
 		return "", err3
@@ -156,6 +157,35 @@ func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node, conn *common.
 		}
 	}
 	return rulesAndConn, nil
+}
+
+// computeActualRules computes from potentialRules the rules that actually enable traffic, considering the filtersExternal
+// (which was computed based on the RoutingResource) and (in the near future) considering the combined filters
+// at the moment (only SG supported) actual can differ from potential only if src or dst is external
+func computeActualRulesAndConnDetails(potentialRules *rulesAndConnDetails, filtersExternal map[string]bool) *rulesAndConnDetails {
+	actualRulesAndConn := make(rulesAndConnDetails, max(len(*potentialRules), len(*potentialRules)))
+	for i, potential := range *potentialRules {
+		actual := &rulesSingleSrcDst{potential.src, potential.dst, potential.conn, nil}
+		if potential.src.IsInternal() && potential.dst.IsInternal() { // internal: no need for routingResource, copy as is
+			actual.rules = potential.rules
+		} else { // connection to/from external address; adds only relevant filters
+			actualIngress := computeActualRules(&potential.rules.ingressRules, filtersExternal)
+			actualEgress := computeActualRules(&potential.rules.egressRules, filtersExternal)
+			actual.rules = &rulesConnection{*actualIngress, *actualEgress}
+		}
+		actualRulesAndConn[i] = actual
+	}
+	return &actualRulesAndConn
+}
+
+func computeActualRules(potentialRules *rulesInLayers, filtersExternal map[string]bool) *rulesInLayers {
+	actualRules := make(rulesInLayers)
+	for filter, potentialRules := range *potentialRules {
+		if filtersExternal[filter] {
+			actualRules[filter] = potentialRules
+		}
+	}
+	return &actualRules
 }
 
 func (c *VPCConfig) processInput(srcName, dstName string) (srcNodes, dstNodes []Node, err error) {
