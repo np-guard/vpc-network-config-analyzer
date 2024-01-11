@@ -34,7 +34,7 @@ type explanation struct {
 	filtersExternal map[string]bool      // filters relevant for external IP
 	potentialRules  *rulesAndConnDetails // rules potentially enabling connection
 	actualRules     *rulesAndConnDetails // rules enabling connection given router
-	// potentialRules may differ from actualRules only if src or dst is external
+	// at the moment (only SG) potentialRules may differ from actualRules only if src or dst is external
 	// grouped connectivity result:
 	// grouping common explanation lines with common src/dst (internal node) and different dst/src (external node)
 	// [required due to computation with disjoint ip-blocks]
@@ -115,12 +115,12 @@ func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.Conne
 	// this is since there are multiple srcNodes or dstNodes only for an external cidr
 	// the routingResource is determined by the vsi(s) participating in the connection
 	routingResource, _ := c.getRoutingResource(srcNodes[0], dstNodes[0])
-	explanationStruct, err1 := c.computeExplainRules(srcNodes, dstNodes, connQuery)
+	potentialRulesAndConnDetails, err1 := c.computeExplainRules(srcNodes, dstNodes, connQuery)
 	if err1 != nil {
 		return "", err1
 	}
 	if connQuery == nil { // find the connection between src and dst if connection not specified in query
-		err2 := explanationStruct.computeConnections(c)
+		err2 := potentialRulesAndConnDetails.computeConnections(c)
 		if err2 != nil {
 			return "", err2
 		}
@@ -129,19 +129,18 @@ func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.Conne
 	if routingResource != nil {
 		filtersForExternal = routingResource.AppliedFiltersKinds() // relevant filtersExternal
 	}
-	// todo: here needs to compute actualRules from filtersForExternal
-	groupedLines, err3 := newGroupConnExplainability(c, &explanationStruct)
+	groupedLines, err3 := newGroupConnExplainability(c, &potentialRulesAndConnDetails)
 	if err3 != nil {
 		return "", err3
 	}
 	res := &explanation{c, connQuery, &routingResource, filtersForExternal,
-		&explanationStruct, &explanationStruct, groupedLines.GroupedLines}
+		&potentialRulesAndConnDetails, &potentialRulesAndConnDetails, groupedLines.GroupedLines}
 	return res.String(), nil
 }
 
 // computeExplainRules computes the egress and ingress rules contributing to the (existing or missing) connection <src, dst>
-func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node, conn *common.ConnectionSet) (explanationStruct rulesAndConnDetails, err error) {
-	explanationStruct = make(rulesAndConnDetails, max(len(srcNodes), len(dstNodes)))
+func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node, conn *common.ConnectionSet) (rulesAndConn rulesAndConnDetails, err error) {
+	rulesAndConn = make(rulesAndConnDetails, max(len(srcNodes), len(dstNodes)))
 	i := 0
 	// either src of dst has more than one item; never both
 	// the loop is on two dimension since we do not know which, but actually we have a single dimension
@@ -152,11 +151,11 @@ func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node, conn *common.
 				return nil, err
 			}
 			rulesThisSrcDst := &rulesSingleSrcDst{src, dst, common.NewConnectionSet(false), rulesOfConnection}
-			explanationStruct[i] = rulesThisSrcDst
+			rulesAndConn[i] = rulesThisSrcDst
 			i++
 		}
 	}
-	return explanationStruct, nil
+	return rulesAndConn, nil
 }
 
 func (c *VPCConfig) processInput(srcName, dstName string) (srcNodes, dstNodes []Node, err error) {
