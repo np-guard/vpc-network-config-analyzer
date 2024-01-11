@@ -4,7 +4,10 @@ import (
 	"flag"
 	"fmt"
 	"slices"
+	"strconv"
 	"strings"
+
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 // InArgs contains the input arguments for the analyzer
@@ -18,6 +21,10 @@ type InArgs struct {
 	VPC                   *string
 	Debug                 *bool
 	Version               *bool
+	ConnectionDescription *string
+	Protocol              string
+	SrcMinPort            int64
+	SrcMaxPort            int64
 }
 
 // flagHasValue indicates for each input arg if it is expected to have a value in the cli or not
@@ -31,6 +38,7 @@ var flagHasValue = map[string]bool{
 	VPC:                   true,
 	Debug:                 false,
 	Version:               false,
+	ConnectionDescription: true,
 }
 
 const (
@@ -44,6 +52,7 @@ const (
 	VPC                   = "vpc"
 	Debug                 = "debug"
 	Version               = "version"
+	ConnectionDescription = "connection-description"
 
 	// output formats supported
 	JSONFormat       = "json"
@@ -160,6 +169,8 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args.VPC = flagset.String(VPC, "", "CRN of the VPC to analyze")
 	args.Debug = flagset.Bool(Debug, false, "Run in debug mode")
 	args.Version = flagset.Bool(Version, false, "Prints the release version number")
+	args.ConnectionDescription = flagset.String(ConnectionDescription, "",
+		"Description to a connection in the format: 'Protocol', 'MinSrc', 'MaxSrc'")
 
 	// calling parseCmdLine prior to flagset.Parse to ensure that excessive and unsupported arguments are handled
 	// for example, flagset.Parse() ignores input args missing the `-`
@@ -180,9 +191,48 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	if err != nil {
 		return nil, err
 	}
+	err = parseConnectionDescription(args.ConnectionDescription, &args)
+	if err != nil {
+		return nil, err
+	}
 
 	return &args, nil
 }
+
+func parseConnectionDescription(connectionDescription *string, args *InArgs) error {
+	if *connectionDescription == "" {
+		return nil
+	}
+	stringSlice := strings.Split(*connectionDescription, ", ")
+	protocol := strings.ToLower(stringSlice[0])
+	if protocol != "tcp" && protocol != "udp" && protocol != "icmp" {
+		return fmt.Errorf("wrong connection description protocol '%s'; must be one of: 'TCP, UDP, ICMP'", protocol)
+	}
+	args.Protocol = protocol
+
+	srcMinPort, err := strconv.ParseInt(stringSlice[1], 10, 64)
+	if err != nil {
+		return err
+	}
+	srcMaxPort, err := strconv.ParseInt(stringSlice[2], 10, 64)
+	if err != nil {
+		return err
+	}
+
+	if srcMinPort > srcMaxPort {
+		return fmt.Errorf("wrong connection description '%s'; srcMaxPort should be higher than srcMinPort", *connectionDescription)
+	}
+
+	if srcMinPort > common.MaxPort || srcMinPort < common.MinPort || srcMaxPort > common.MaxPort || srcMaxPort < common.MinPort {
+		return fmt.Errorf("wrong connection description '%s'; srcMaxPort and srcMinPort must be in ranges [%d, %d]", *connectionDescription, common.MinPort, common.MaxPort)
+	}
+
+	args.SrcMinPort = srcMinPort
+	args.SrcMaxPort = srcMaxPort
+
+	return nil
+}
+
 func errorInErgs(args *InArgs, flagset *flag.FlagSet) error {
 	if !*args.Version && (args.InputConfigFile == nil || *args.InputConfigFile == "") {
 		flagset.PrintDefaults()

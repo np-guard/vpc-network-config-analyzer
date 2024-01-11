@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/ibmvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/version"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
@@ -81,6 +82,16 @@ func vpcConfigsFromFile(fileName string, inArgs *InArgs) (map[string]*vpcmodel.V
 		return nil, fmt.Errorf(ErrorFormat, InGenerationErr, err2)
 	}
 	return vpcConfigs, nil
+}
+
+func translateCDtoConnectionSet(inArgs *InArgs) *common.ConnectionSet {
+	connection := common.NewConnectionSet(false)
+	if inArgs.Protocol == "icmp" {
+		connection.AddICMPConnection(inArgs.SrcMinPort, inArgs.SrcMaxPort, common.MinPort, common.MaxPort)
+	}
+	connection.AddTCPorUDPConn(common.ProtocolStr(inArgs.Protocol), inArgs.SrcMinPort, inArgs.SrcMaxPort, common.MinPort, common.MaxPort)
+
+	return connection
 }
 
 // The actual main function
