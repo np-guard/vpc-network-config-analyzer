@@ -23,6 +23,7 @@ type groupedCommonProperties struct {
 	conn     *common.ConnectionSet
 	connDiff *connectionDiff
 	rules    *rulesConnection
+	router   RoutingResource
 	// groupingStrKey is the key by which the grouping is done:
 	// the string of conn per grouping of conn lines, string of connDiff per grouping of diff lines
 	// and string of conn and rules for explainblity
@@ -319,9 +320,17 @@ func (g *GroupConnLines) groupExternalAddressesForExplainability() error {
 	var res []*groupedConnLine
 	for _, rulesSrcDst := range *g.explain {
 		connStr := rulesSrcDst.conn.String() + semicolon
+		//routingStr := ""
+		//if rulesSrcDst.router != nil {
+		//	router := rulesSrcDst.router
+		//	routingStr = router.Name() + ";"
+		//}
+		//groupingStrKey := connStr + routingStr + rulesSrcDst.rules.rulesEncode(g.config)
 		groupingStrKey := connStr + rulesSrcDst.rules.rulesEncode(g.config)
 		err := g.addLineToExternalGrouping(&res, rulesSrcDst.src, rulesSrcDst.dst,
-			&groupedCommonProperties{conn: rulesSrcDst.conn, rules: rulesSrcDst.rules, groupingStrKey: groupingStrKey})
+			&groupedCommonProperties{conn: rulesSrcDst.conn, router: rulesSrcDst.router,
+				rules: rulesSrcDst.rules, groupingStrKey: groupingStrKey})
+		//fmt.Printf("\tsrc: %v dst: %v\n\t\tgroupingStrKey: %v\n", rulesSrcDst.src.Name(), rulesSrcDst.dst.Name(), groupingStrKey)
 		if err != nil {
 			return err
 		}
