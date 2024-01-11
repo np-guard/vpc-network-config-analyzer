@@ -22,8 +22,8 @@ type rulesSingleSrcDst struct {
 	src             Node
 	dst             Node
 	conn            *common.ConnectionSet
-	router          *RoutingResource // the router (fip or pgw) to external network; nil if none
-	filtersExternal map[string]bool  // filters relevant for external IP
+	router          RoutingResource // the router (fip or pgw) to external network; nil if none
+	filtersExternal map[string]bool // filters relevant for external IP
 	rules           *rulesConnection
 }
 
@@ -172,9 +172,9 @@ func (c *VPCConfig) computeRouterAndActualRules(potentialRules *rulesAndConnDeta
 		if routingResource != nil {
 			filtersForExternal = routingResource.AppliedFiltersKinds() // relevant filtersExternal
 		}
-		potential.router = &routingResource
+		potential.router = routingResource
 		potential.filtersExternal = filtersForExternal
-		actual := &rulesSingleSrcDst{potential.src, potential.dst, potential.conn, &routingResource, filtersForExternal, nil}
+		actual := &rulesSingleSrcDst{potential.src, potential.dst, potential.conn, routingResource, filtersForExternal, nil}
 		if potential.src.IsInternal() && potential.dst.IsInternal() { // internal: no need for routingResource, copy as is
 			actual.rules = potential.rules
 		} else { // connection to/from external address; adds only relevant filters
