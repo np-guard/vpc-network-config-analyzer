@@ -121,7 +121,7 @@ func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.Conne
 			return "", err2
 		}
 	}
-	//computeActualRulesAndConnDetails(&potentialRulesAndConnDetails, filtersForExternal)
+	c.computeRouterAndActualRules(&potentialRulesAndConnDetails)
 	groupedLines, err3 := newGroupConnExplainability(c, &potentialRulesAndConnDetails)
 	if err3 != nil {
 		return "", err3
@@ -154,7 +154,7 @@ func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node, conn *common.
 // computeActualRules computes from potentialRules the rules that actually enable traffic, considering the filtersExternal
 // (which was computed based on the RoutingResource) and (in the near future) considering the combined filters
 // at the moment (only SG supported) actual can differ from potential only if src or dst is external
-func (c *VPCConfig) computeRouterAndActualRules(potentialRules *rulesAndConnDetails, filtersExternal map[string]bool) *rulesAndConnDetails {
+func (c *VPCConfig) computeRouterAndActualRules(potentialRules *rulesAndConnDetails) *rulesAndConnDetails {
 	actualRulesAndConn := make(rulesAndConnDetails, max(len(*potentialRules), len(*potentialRules)))
 	for i, potential := range *potentialRules {
 		src := potential.src
@@ -172,13 +172,13 @@ func (c *VPCConfig) computeRouterAndActualRules(potentialRules *rulesAndConnDeta
 			fmt.Printf("filters of %v are %+v\n", routingResource.Name(), filtersForExternal)
 		}
 		potential.router = &routingResource
-		potential.filtersExternal = filtersExternal
-		actual := &rulesSingleSrcDst{potential.src, potential.dst, potential.conn, &routingResource, filtersExternal, nil}
+		potential.filtersExternal = filtersForExternal
+		actual := &rulesSingleSrcDst{potential.src, potential.dst, potential.conn, &routingResource, filtersForExternal, nil}
 		if potential.src.IsInternal() && potential.dst.IsInternal() { // internal: no need for routingResource, copy as is
 			actual.rules = potential.rules
 		} else { // connection to/from external address; adds only relevant filters
-			actualIngress := computeActualRules(&potential.rules.ingressRules, filtersExternal)
-			actualEgress := computeActualRules(&potential.rules.egressRules, filtersExternal)
+			actualIngress := computeActualRules(&potential.rules.ingressRules, filtersForExternal)
+			actualEgress := computeActualRules(&potential.rules.egressRules, filtersForExternal)
 			actual.rules = &rulesConnection{*actualIngress, *actualEgress}
 		}
 		actualRulesAndConn[i] = actual
