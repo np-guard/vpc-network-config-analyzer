@@ -228,15 +228,17 @@ func invalidArgsConnectionDescription(args *InArgs) error {
 		return fmt.Errorf("srcMaxPort %d should be higher than srcMinPort %d", *args.QSrcMaxPort, *args.QSrcMinPort)
 	}
 
-	if *args.QSrcMinPort > common.MaxPort || *args.QSrcMinPort < common.MinPort || *args.QSrcMaxPort > common.MaxPort || *args.QSrcMaxPort < common.MinPort {
+	if *args.QSrcMinPort > common.MaxPort || *args.QSrcMinPort < common.MinPort ||
+		*args.QSrcMaxPort > common.MaxPort || *args.QSrcMaxPort < common.MinPort {
 		return fmt.Errorf("srcMaxPort and srcMinPort must be in ranges [%d, %d]", common.MinPort, common.MaxPort)
 	}
 
 	if *args.QDstMinPort > *args.QDstMaxPort {
-		return fmt.Errorf("srcMaxPort %d should be higher than srcMinPort %d", *args.QSrcMaxPort, *args.QSrcMinPort)
+		return fmt.Errorf("DstMaxPort %d should be higher than DstMinPort %d", *args.QSrcMaxPort, *args.QSrcMinPort)
 	}
 
-	if *args.QDstMinPort > common.MaxPort || *args.QDstMinPort < common.MinPort || *args.QDstMaxPort > common.MaxPort || *args.QDstMaxPort < common.MinPort {
+	if *args.QDstMinPort > common.MaxPort || *args.QDstMinPort < common.MinPort ||
+		*args.QDstMaxPort > common.MaxPort || *args.QDstMaxPort < common.MinPort {
 		return fmt.Errorf("DstMaxPort and DstMinPort must be in ranges [%d, %d]", common.MinPort, common.MaxPort)
 	}
 
