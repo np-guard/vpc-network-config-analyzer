@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"slices"
-	"strconv"
 	"strings"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
@@ -21,10 +20,12 @@ type InArgs struct {
 	VPC                   *string
 	Debug                 *bool
 	Version               *bool
-	ConnectionDescription *string
-	Protocol              string
-	SrcMinPort            int64
-	SrcMaxPort            int64
+	QueryMode             *bool
+	QProtocol             *string
+	QSrcMinPort           *int64
+	QSrcMaxPort           *int64
+	QDstMinPort           *int64
+	QDstMaxPort           *int64
 }
 
 // flagHasValue indicates for each input arg if it is expected to have a value in the cli or not
@@ -38,7 +39,12 @@ var flagHasValue = map[string]bool{
 	VPC:                   true,
 	Debug:                 false,
 	Version:               false,
-	ConnectionDescription: true,
+	QueryMode:             false,
+	QProtocol:             true,
+	QSrcMinPort:           true,
+	QSrcMaxPort:           true,
+	QDstMinPort:           true,
+	QDstMaxPort:           true,
 }
 
 const (
@@ -52,7 +58,12 @@ const (
 	VPC                   = "vpc"
 	Debug                 = "debug"
 	Version               = "version"
-	ConnectionDescription = "connection-description"
+	QueryMode             = "query-mode"
+	QProtocol             = "q-protocol"
+	QSrcMinPort           = "q-src-min-port"
+	QSrcMaxPort           = "q-src-max-port"
+	QDstMinPort           = "q-dst-min-port"
+	QDstMaxPort           = "q-dst-max-port"
 
 	// output formats supported
 	JSONFormat       = "json"
@@ -169,8 +180,11 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args.VPC = flagset.String(VPC, "", "CRN of the VPC to analyze")
 	args.Debug = flagset.Bool(Debug, false, "Run in debug mode")
 	args.Version = flagset.Bool(Version, false, "Prints the release version number")
-	args.ConnectionDescription = flagset.String(ConnectionDescription, "",
-		"Description to a connection in the format: 'Protocol', 'MinSrc', 'MaxSrc'")
+	args.QProtocol = flagset.String(QProtocol, "", "Protocol for connection description")
+	args.QSrcMinPort = flagset.Int64(QSrcMinPort, common.MinPort, "SrcMinPort for connection description")
+	args.QSrcMaxPort = flagset.Int64(QSrcMaxPort, common.MaxPort, "SrcMaxPort for connection description")
+	args.QDstMinPort = flagset.Int64(QDstMinPort, common.MinPort, "DstMinPort for connection description")
+	args.QDstMaxPort = flagset.Int64(QDstMaxPort, common.MaxPort, "DstMaxPort for connection description")
 
 	// calling parseCmdLine prior to flagset.Parse to ensure that excessive and unsupported arguments are handled
 	// for example, flagset.Parse() ignores input args missing the `-`
@@ -191,7 +205,7 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = parseConnectionDescription(args.ConnectionDescription, &args)
+	err = invalidArgsConnectionDescription(&args)
 	if err != nil {
 		return nil, err
 	}
@@ -199,36 +213,32 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	return &args, nil
 }
 
-func parseConnectionDescription(connectionDescription *string, args *InArgs) error {
-	if *connectionDescription == "" {
+func invalidArgsConnectionDescription(args *InArgs) error {
+	if *args.QProtocol == "" {
 		return nil
 	}
-	stringSlice := strings.Split(*connectionDescription, ", ")
-	protocol := strings.ToLower(stringSlice[0])
-	if protocol != "tcp" && protocol != "udp" && protocol != "icmp" {
+
+	protocol := strings.ToUpper(*args.QProtocol)
+	if protocol != "TCP" && protocol != "UDP" && protocol != "ICMP" {
 		return fmt.Errorf("wrong connection description protocol '%s'; must be one of: 'TCP, UDP, ICMP'", protocol)
 	}
-	args.Protocol = protocol
+	args.QProtocol = &protocol
 
-	srcMinPort, err := strconv.ParseInt(stringSlice[1], 10, 64)
-	if err != nil {
-		return err
-	}
-	srcMaxPort, err := strconv.ParseInt(stringSlice[2], 10, 64)
-	if err != nil {
-		return err
+	if *args.QSrcMinPort > *args.QSrcMaxPort {
+		return fmt.Errorf("srcMaxPort %d should be higher than srcMinPort %d", *args.QSrcMaxPort, *args.QSrcMinPort)
 	}
 
-	if srcMinPort > srcMaxPort {
-		return fmt.Errorf("wrong connection description '%s'; srcMaxPort should be higher than srcMinPort", *connectionDescription)
+	if *args.QSrcMinPort > common.MaxPort || *args.QSrcMinPort < common.MinPort || *args.QSrcMaxPort > common.MaxPort || *args.QSrcMaxPort < common.MinPort {
+		return fmt.Errorf("srcMaxPort and srcMinPort must be in ranges [%d, %d]", common.MinPort, common.MaxPort)
 	}
 
-	if srcMinPort > common.MaxPort || srcMinPort < common.MinPort || srcMaxPort > common.MaxPort || srcMaxPort < common.MinPort {
-		return fmt.Errorf("wrong connection description '%s'; srcMaxPort and srcMinPort must be in ranges [%d, %d]", *connectionDescription, common.MinPort, common.MaxPort)
+	if *args.QDstMinPort > *args.QDstMaxPort {
+		return fmt.Errorf("srcMaxPort %d should be higher than srcMinPort %d", *args.QSrcMaxPort, *args.QSrcMinPort)
 	}
 
-	args.SrcMinPort = srcMinPort
-	args.SrcMaxPort = srcMaxPort
+	if *args.QDstMinPort > common.MaxPort || *args.QDstMinPort < common.MinPort || *args.QDstMaxPort > common.MaxPort || *args.QDstMaxPort < common.MinPort {
+		return fmt.Errorf("DstMaxPort and DstMinPort must be in ranges [%d, %d]", common.MinPort, common.MaxPort)
+	}
 
 	return nil
 }

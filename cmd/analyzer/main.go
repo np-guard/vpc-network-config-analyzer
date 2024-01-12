@@ -86,10 +86,11 @@ func vpcConfigsFromFile(fileName string, inArgs *InArgs) (map[string]*vpcmodel.V
 
 func translateCDtoConnectionSet(inArgs *InArgs) *common.ConnectionSet {
 	connection := common.NewConnectionSet(false)
-	if inArgs.Protocol == "icmp" {
-		connection.AddICMPConnection(inArgs.SrcMinPort, inArgs.SrcMaxPort, common.MinPort, common.MaxPort)
+	if *inArgs.QProtocol == "ICMP" {
+		connection.AddICMPConnection(*inArgs.QSrcMinPort, *inArgs.QSrcMaxPort, *inArgs.QDstMinPort, *inArgs.QDstMaxPort)
+	} else {
+		connection.AddTCPorUDPConn(common.ProtocolStr(*inArgs.QProtocol), *inArgs.QSrcMinPort, *inArgs.QSrcMaxPort, *inArgs.QDstMinPort, *inArgs.QDstMaxPort)
 	}
-	connection.AddTCPorUDPConn(common.ProtocolStr(inArgs.Protocol), inArgs.SrcMinPort, inArgs.SrcMaxPort, common.MinPort, common.MaxPort)
 
 	return connection
 }
