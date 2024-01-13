@@ -51,3 +51,18 @@ func (s GenericSet[T]) IsIntersect(s2 GenericSet[T]) bool {
 	}
 	return false
 }
+
+// /////////////////////////////////////////////////////////////////
+// AnyMapEntry() return an arbitrary (not random) entry of a map.
+// Needed for cases we do not care which entry.
+// it just returns the first entry returned by range
+// this func is not related to genericSet,
+// todo: consider moving to another file
+// todo: create AnyMapEntry() for GenericSet, and use it
+// /////////////////////////////////////////////////////////
+func AnyMapEntry[K comparable, V any](m map[K]V) (k K, v V) {
+	for k, v = range m {
+		break
+	}
+	return k, v
+}

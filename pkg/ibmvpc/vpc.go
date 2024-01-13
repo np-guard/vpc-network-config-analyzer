@@ -275,7 +275,7 @@ func (nl *NaclLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool)
 }
 
 // RulesInConnectivity list of SG rules contributing to the connectivity
-func (nl *NaclLayer) RulesInConnectivity(vpcmodel.Node, vpcmodel.Node, bool) ([]vpcmodel.RulesInFilter, error) {
+func (nl *NaclLayer) RulesInConnectivity(vpcmodel.Node, vpcmodel.Node, *common.ConnectionSet, bool) ([]vpcmodel.RulesInFilter, error) {
 	return nil, nil
 }
 
@@ -378,12 +378,15 @@ func (sgl *SecurityGroupLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIng
 }
 
 func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
-	isIngress bool) (res []vpcmodel.RulesInFilter, err error) {
+	conn *common.ConnectionSet, isIngress bool) (res []vpcmodel.RulesInFilter, err error) {
 	if connHasIKSNode(src, dst, isIngress) {
 		return nil, fmt.Errorf("explainability for IKS node not supported yet")
 	}
 	for indx, sg := range sgl.sgList {
-		sgRules := sg.RulesInConnectivity(src, dst, isIngress)
+		sgRules, err1 := sg.RulesInConnectivity(src, dst, conn, isIngress)
+		if err1 != nil {
+			return nil, err1
+		}
 		if len(sgRules) > 0 {
 			rulesInSg := vpcmodel.RulesInFilter{
 				Filter: indx,
@@ -432,12 +435,12 @@ func (sg *SecurityGroup) AllowedConnectivity(src, dst vpcmodel.Node, isIngress b
 }
 
 // RulesInConnectivity list of SG rules contributing to the connectivity
-func (sg *SecurityGroup) RulesInConnectivity(src, dst vpcmodel.Node, isIngress bool) []int {
+func (sg *SecurityGroup) RulesInConnectivity(src, dst vpcmodel.Node, conn *common.ConnectionSet, isIngress bool) ([]int, error) {
 	memberStrAddress, targetStrAddress := sg.getMemberTargetStrAddress(src, dst, isIngress)
 	if _, ok := sg.members[memberStrAddress]; !ok {
-		return nil // connectivity not affected by this SG resource - input node is not its member
+		return nil, nil // connectivity not affected by this SG resource - input node is not its member
 	}
-	return sg.analyzer.rulesInConnectivity(targetStrAddress, isIngress)
+	return sg.analyzer.rulesInConnectivity(targetStrAddress, conn, isIngress)
 }
 
 func (sg *SecurityGroup) getMemberTargetStrAddress(src, dst vpcmodel.Node,

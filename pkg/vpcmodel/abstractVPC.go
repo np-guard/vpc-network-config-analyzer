@@ -88,7 +88,7 @@ type FilterTrafficResource interface {
 	AllowedConnectivity(src, dst Node, isIngress bool) (*common.ConnectionSet, error)
 	// RulesInConnectivity get the list of rules of a given filter that contributes to the connection between src and dst
 	// todo: currently implemented only to sg; likely src and dst will be VPCResourceIntf instead of Node
-	RulesInConnectivity(src, dst Node, isIngress bool) ([]RulesInFilter, error)
+	RulesInConnectivity(src, dst Node, conn *common.ConnectionSet, isIngress bool) ([]RulesInFilter, error)
 	StringRulesOfFilter(listRulesInFilter []RulesInFilter) string
 	ReferencedIPblocks() []*common.IPBlock
 	ConnectivityMap() (map[string]*IPbasedConnectivityResult, error)
