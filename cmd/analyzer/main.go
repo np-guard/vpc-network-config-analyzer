@@ -137,7 +137,10 @@ func _main(cmdlineArgs []string) error {
 	}
 	fmt.Println(vpcAnalysisOutput)
 
-	translateCDtoConnectionSet(inArgs)
+	if *inArgs.QProtocol != "" {
+		_ = translateCDtoConnectionSet(inArgs)
+	}
+
 	return nil
 }
 
