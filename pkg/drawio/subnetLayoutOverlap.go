@@ -23,26 +23,36 @@ func newSubnetLayoutOverlap(network TreeNodeInterface, m *layoutMatrix) *subnetL
 	}
 	return &lyO
 }
-func (lyO *subnetLayoutOverlap) tnsOverlap(tn1, tn2 TreeNodeInterface) bool {
-	l1 := tn1.Location()
-	l2 := tn2.Location()
-	oneIsSubnet := tn1.(SquareTreeNodeInterface).IsSubnet() || tn2.(SquareTreeNodeInterface).IsSubnet()
+
+func (lyO *subnetLayoutOverlap) addPoint(line LineTreeNodeInterface) {
+	src, dst := line.Src().(SquareTreeNodeInterface), line.Dst().(SquareTreeNodeInterface)
+	xSrc, ySrc := absoluteGeometry(src)
+	xDst, yDst := absoluteGeometry(dst)
+	x := (xDst + dst.Width()/2)*6/10 + (xSrc + src.Width()/2)*4/10
+	y := max(ySrc+src.Height(), yDst+dst.Height()) + subnetWidth/3
+	line.addPoint(x, y)
+}
+func (lyO *subnetLayoutOverlap) squaresOverlap(line LineTreeNodeInterface) bool {
+	src, dst := line.Src().(SquareTreeNodeInterface), line.Dst().(SquareTreeNodeInterface)
+	lSrc := src.Location()
+	lDst := dst.Location()
+	oneIsSubnet := src.IsSubnet() || dst.IsSubnet()
 	switch {
-	case lyO.xIndexes[l1.firstCol] > lyO.xIndexes[l2.lastCol]+1:
+	case lyO.xIndexes[lSrc.firstCol] > lyO.xIndexes[lDst.lastCol]+1:
 		return false
-	case lyO.xIndexes[l1.lastCol] < lyO.xIndexes[l2.firstCol]-1:
+	case lyO.xIndexes[lSrc.lastCol] < lyO.xIndexes[lDst.firstCol]-1:
 		return false
-	case lyO.yIndexes[l1.firstRow] > lyO.yIndexes[l2.lastRow]+1:
+	case lyO.yIndexes[lSrc.firstRow] > lyO.yIndexes[lDst.lastRow]+1:
 		return false
-	case lyO.yIndexes[l1.lastRow] < lyO.yIndexes[l2.firstRow]-1:
+	case lyO.yIndexes[lSrc.lastRow] < lyO.yIndexes[lDst.firstRow]-1:
 		return false
-	case lyO.xIndexes[l1.firstCol] > lyO.xIndexes[l2.lastCol] && oneIsSubnet:
+	case lyO.xIndexes[lSrc.firstCol] > lyO.xIndexes[lDst.lastCol] && oneIsSubnet:
 		return false
-	case lyO.xIndexes[l1.lastCol] < lyO.xIndexes[l2.firstCol] && oneIsSubnet:
+	case lyO.xIndexes[lSrc.lastCol] < lyO.xIndexes[lDst.firstCol] && oneIsSubnet:
 		return false
-	case lyO.yIndexes[l1.firstRow] > lyO.yIndexes[l2.lastRow] && oneIsSubnet:
+	case lyO.yIndexes[lSrc.firstRow] > lyO.yIndexes[lDst.lastRow] && oneIsSubnet:
 		return false
-	case lyO.yIndexes[l1.lastRow] < lyO.yIndexes[l2.firstRow] && oneIsSubnet:
+	case lyO.yIndexes[lSrc.lastRow] < lyO.yIndexes[lDst.firstRow] && oneIsSubnet:
 		return false
 	}
 	return true
@@ -70,8 +80,8 @@ func (lyO *subnetLayoutOverlap) fixOverlapping() {
 		if len(l1.Points()) > 0 {
 			continue
 		}
-		if lyO.tnsOverlap(l1.Src(), l1.Dst()) {
-			l1.addPoint(0, 0)
+		if lyO.squaresOverlap(l1) {
+			lyO.addPoint(l1)
 		}
 		for _, tn2 := range getAllNodes(lyO.network) {
 			if !tn2.IsLine() || tn1 == tn2 {
