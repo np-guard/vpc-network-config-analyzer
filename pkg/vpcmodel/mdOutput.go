@@ -12,6 +12,7 @@ type MDoutputFormatter struct {
 
 const (
 	mdDefaultTitle        = "## Endpoint connectivity report"
+	mdSubnetsTitle        = "## Subnets connectivity report"
 	mdDefaultHeader       = "| src | dst | conn |\n|-----|-----|------|"
 	mdEndpointsDiffTitle  = "## Endpoints diff report"
 	mdSubnetsDiffTitle    = "## Subnets diff report"
@@ -38,11 +39,18 @@ func (m *MDoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 		return nil, err
 	}
 	out = "# " + out
+	var lines []string
+	var connLines []string
+	hasStatelessConns := false
 	switch uc {
 	case AllEndpoints:
-		lines := []string{mdDefaultTitle, mdDefaultHeader}
-		connLines := m.getGroupedOutput(conn)
-		out += linesToOutput(connLines, lines)
+		lines = []string{mdDefaultTitle, mdDefaultHeader}
+		connLines = m.getGroupedOutput(conn.GroupedConnectivity)
+		hasStatelessConns = conn.GroupedConnectivity.hasStatelessConns()
+	case AllSubnets:
+		lines = []string{mdSubnetsTitle, mdDefaultHeader}
+		connLines = m.getGroupedOutput(subnetsConn.GroupedConnectivity)
+		hasStatelessConns = subnetsConn.GroupedConnectivity.hasStatelessConns()
 	case SubnetsDiff, EndpointsDiff:
 		var mdTitle, mdHeader string
 		if uc == EndpointsDiff {
@@ -52,17 +60,16 @@ func (m *MDoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 			mdTitle = mdSubnetsDiffTitle
 			mdHeader = mdSubnetsDiffHeader
 		}
-		lines := []string{mdTitle, mdHeader}
-		connLines := m.getGroupedDiffOutput(cfgsDiff)
-		out += linesToOutput(connLines, lines)
-	case AllSubnets:
-		return nil, errors.New("SubnetLevel use case not supported for md format currently ")
+		lines = []string{mdTitle, mdHeader}
+		connLines = m.getGroupedDiffOutput(cfgsDiff)
+		hasStatelessConns = cfgsDiff.hasStatelessConns()
 	case SingleSubnet:
 		return nil, errors.New("DebugSubnet use case not supported for md format currently ")
 	}
+	out += linesToOutput(connLines, lines)
 
 	_, err = WriteToFile(out, outFile)
-	return &SingleAnalysisOutput{Output: out, VPC1Name: c1.VPC.Name(), VPC2Name: v2Name, format: MD}, err
+	return &SingleAnalysisOutput{Output: out, VPC1Name: c1.VPC.Name(), VPC2Name: v2Name, format: MD, hasStatelessConn: hasStatelessConns}, err
 }
 
 func linesToOutput(connLines, lines []string) string {
@@ -73,9 +80,9 @@ func linesToOutput(connLines, lines []string) string {
 	return out
 }
 
-func (m *MDoutputFormatter) getGroupedOutput(conn *VPCConnectivity) []string {
-	lines := make([]string, len(conn.GroupedConnectivity.GroupedLines))
-	for i, line := range conn.GroupedConnectivity.GroupedLines {
+func (m *MDoutputFormatter) getGroupedOutput(connLines *GroupConnLines) []string {
+	lines := make([]string, len(connLines.GroupedLines))
+	for i, line := range connLines.GroupedLines {
 		lines[i] = getGroupedMDLine(line)
 	}
 	return lines
