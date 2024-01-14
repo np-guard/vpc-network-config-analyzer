@@ -94,7 +94,7 @@ var supportedOutputFormatsMap = map[string]bool{
 // supportedAnalysisTypesMap is a map from analysis type to its list of supported output formats
 var supportedAnalysisTypesMap = map[string][]string{
 	allEndpoints:     {TEXTFormat, MDFormat, JSONFormat, DRAWIOFormat, ARCHDRAWIOFormat, DEBUGFormat},
-	allSubnets:       {TEXTFormat, JSONFormat, DRAWIOFormat, ARCHDRAWIOFormat},
+	allSubnets:       {TEXTFormat, MDFormat, JSONFormat, DRAWIOFormat, ARCHDRAWIOFormat},
 	singleSubnet:     {TEXTFormat},
 	allEndpointsDiff: {TEXTFormat, MDFormat},
 	allSubnetsDiff:   {TEXTFormat, MDFormat},
