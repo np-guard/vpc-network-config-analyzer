@@ -260,6 +260,10 @@ func invalidArgsQueryMode(args *InArgs, flagset *flag.FlagSet) error {
 			QProtocol, QSrcMinPort, QSrcMaxPort, QDstMinPort, QDstMaxPort)
 	}
 
+	if *args.AnalysisType != queryMode {
+		return nil
+	}
+
 	protocol := strings.ToUpper(*args.QProtocol)
 	if protocol != "TCP" && protocol != "UDP" && protocol != "ICMP" {
 		return fmt.Errorf("wrong connection description protocol '%s'; must be one of: 'TCP, UDP, ICMP'", protocol)
