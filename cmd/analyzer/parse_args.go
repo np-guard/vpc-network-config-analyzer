@@ -205,7 +205,7 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = invalidArgsConnectionDescription(&args, flagset)
+	err = invalidArgsQueryMode(&args, flagset)
 	if err != nil {
 		return nil, err
 	}
@@ -223,22 +223,16 @@ func isFlagPassed(name string, flagset *flag.FlagSet) bool {
 	return found
 }
 
-func invalidArgsConnectionDescription(args *InArgs, flagset *flag.FlagSet) error {
-	if *args.AnalysisType != queryMode {
-		if isFlagPassed(QProtocol, flagset) || isFlagPassed(QSrcMinPort, flagset) || isFlagPassed(QSrcMaxPort, flagset) ||
-			isFlagPassed(QDstMinPort, flagset) || isFlagPassed(QDstMaxPort, flagset) {
-			return fmt.Errorf("%s, %s, %s, %s and %s can be specified only when analysis-type is query",
-				QProtocol, QSrcMinPort, QSrcMaxPort, QDstMinPort, QDstMaxPort)
-		}
-		return nil
+func isQueryModeParamsPassed(flagset *flag.FlagSet) bool {
+	if isFlagPassed(QProtocol, flagset) || isFlagPassed(QSrcMinPort, flagset) || isFlagPassed(QSrcMaxPort, flagset) ||
+		isFlagPassed(QDstMinPort, flagset) || isFlagPassed(QDstMaxPort, flagset) {
+		return true
 	}
 
-	protocol := strings.ToUpper(*args.QProtocol)
-	if protocol != "TCP" && protocol != "UDP" && protocol != "ICMP" {
-		return fmt.Errorf("wrong connection description protocol '%s'; must be one of: 'TCP, UDP, ICMP'", protocol)
-	}
-	args.QProtocol = &protocol
+	return false
+}
 
+func validRangeConnectionQueryMode(args *InArgs) error {
 	if *args.QSrcMinPort > *args.QSrcMaxPort {
 		return fmt.Errorf("srcMaxPort %d should be higher than srcMinPort %d", *args.QSrcMaxPort, *args.QSrcMinPort)
 	}
@@ -258,6 +252,21 @@ func invalidArgsConnectionDescription(args *InArgs, flagset *flag.FlagSet) error
 	}
 
 	return nil
+}
+
+func invalidArgsQueryMode(args *InArgs, flagset *flag.FlagSet) error {
+	if *args.AnalysisType != queryMode && isQueryModeParamsPassed(flagset) {
+		return fmt.Errorf("%s, %s, %s, %s and %s can be specified only when analysis-type is query",
+			QProtocol, QSrcMinPort, QSrcMaxPort, QDstMinPort, QDstMaxPort)
+	}
+
+	protocol := strings.ToUpper(*args.QProtocol)
+	if protocol != "TCP" && protocol != "UDP" && protocol != "ICMP" {
+		return fmt.Errorf("wrong connection description protocol '%s'; must be one of: 'TCP, UDP, ICMP'", protocol)
+	}
+	args.QProtocol = &protocol
+
+	return validRangeConnectionQueryMode(args)
 }
 
 func errorInErgs(args *InArgs, flagset *flag.FlagSet) error {

@@ -139,7 +139,7 @@ func _main(cmdlineArgs []string) error {
 	}
 	fmt.Println(vpcAnalysisOutput)
 
-	if *inArgs.QProtocol != "" {
+	if *inArgs.AnalysisType == queryMode {
 		_ = translateCDtoConnectionSet(inArgs)
 	}
 
