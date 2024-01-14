@@ -201,6 +201,7 @@ func WriteToFile(content, fileName string) (string, error) {
 	return content, nil
 }
 
+// getAsteriskDetails returns the info message about how non stateful conns are marked in the output, when relevant
 func getAsteriskDetails(uc OutputUseCase, hasStatelessConn bool, outFormat OutFormat) string {
 	if uc != SingleSubnet && (outFormat == Text || outFormat == MD || outFormat == Debug) && hasStatelessConn {
 		return asteriskDetails
@@ -250,8 +251,7 @@ func (of *serialOutputFormatter) WriteDiffOutput(output *SingleAnalysisOutput, u
 	var err error
 	switch of.outFormat {
 	case Text, MD, Debug: // currently, return out as is
-		infoMessage := ""
-		infoMessage = getAsteriskDetails(uc, output.hasStatelessConn, of.outFormat)
+		infoMessage := getAsteriskDetails(uc, output.hasStatelessConn, of.outFormat)
 		res, err = WriteToFile(output.Output+infoMessage, outFile)
 	case JSON:
 		all := map[string]interface{}{}
