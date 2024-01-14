@@ -222,13 +222,16 @@ func (of *serialOutputFormatter) AggregateVPCsOutput(outputList []*SingleAnalysi
 	switch of.outFormat {
 	case Text, MD, Debug:
 		// plain concatenation
-		infoMessage := ""
 		vpcsOut := make([]string, len(outputList))
+		hasStatelessConn := false
 		for i, o := range outputList {
 			vpcsOut[i] = o.Output
-			infoMessage = getAsteriskDetails(uc, o.hasStatelessConn, of.outFormat)
+			if o.hasStatelessConn {
+				hasStatelessConn = true
+			}
 		}
 		sort.Strings(vpcsOut)
+		infoMessage := getAsteriskDetails(uc, hasStatelessConn, of.outFormat)
 		res, err = WriteToFile(strings.Join(vpcsOut, "\n")+infoMessage, outFile)
 
 	case JSON:
