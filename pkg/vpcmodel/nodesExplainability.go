@@ -340,22 +340,30 @@ func stringExplainabilityLine(c *VPCConfig, connQuery *common.ConnectionSet, src
 			resStr += ingressRulesStr
 		}
 	default: // there is a connection
-		if connQuery == nil {
-			resStr = fmt.Sprintf("The following connection exists between %v and %v: %v; its enabled by\n", src.Name(), dst.Name(),
-				conn.String())
-		} else {
-			resStr = fmt.Sprintf("Connection %v exists between %v and %v; its enabled by\n", connQuery.String(),
-				src.Name(), dst.Name())
-		}
-		if src.IsExternal() || dst.IsExternal() {
-			resStr += "External Router " + router.Kind() + ": " + router.Name() + "\n"
-		}
-		if needEgress {
-			resStr += egressRulesStr
-		}
-		if needIngress {
-			resStr += ingressRulesStr
-		}
+		return stringExplainabilityConnection(connQuery, src, dst, conn, router, needEgress, needIngress, egressRulesStr, ingressRulesStr)
+	}
+	return resStr
+}
+
+func stringExplainabilityConnection(connQuery *common.ConnectionSet, src, dst EndpointElem,
+	conn *common.ConnectionSet, router RoutingResource,
+	needEgress, needIngress bool, egressRulesStr, ingressRulesStr string) string {
+	resStr := ""
+	if connQuery == nil {
+		resStr = fmt.Sprintf("The following connection exists between %v and %v: %v; its enabled by\n", src.Name(), dst.Name(),
+			conn.String())
+	} else {
+		resStr = fmt.Sprintf("Connection %v exists between %v and %v; its enabled by\n", connQuery.String(),
+			src.Name(), dst.Name())
+	}
+	if src.IsExternal() || dst.IsExternal() {
+		resStr += "External Router " + router.Kind() + ": " + router.Name() + "\n"
+	}
+	if needEgress {
+		resStr += egressRulesStr
+	}
+	if needIngress {
+		resStr += ingressRulesStr
 	}
 	return resStr
 }
