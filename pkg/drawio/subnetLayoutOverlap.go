@@ -23,6 +23,31 @@ func newSubnetLayoutOverlap(network TreeNodeInterface, m *layoutMatrix) *subnetL
 	}
 	return &lyO
 }
+func (lyO *subnetLayoutOverlap) tnsOverlap(tn1, tn2 TreeNodeInterface) bool {
+	l1 := tn1.Location()
+	l2 := tn2.Location()
+	oneIsSubnet := tn1.(SquareTreeNodeInterface).IsSubnet() || tn2.(SquareTreeNodeInterface).IsSubnet()
+	switch {
+	case lyO.xIndexes[l1.firstCol] > lyO.xIndexes[l2.lastCol]+1:
+		return false
+	case lyO.xIndexes[l1.lastCol] < lyO.xIndexes[l2.firstCol]-1:
+		return false
+	case lyO.yIndexes[l1.firstRow] > lyO.yIndexes[l2.lastRow]+1:
+		return false
+	case lyO.yIndexes[l1.lastRow] < lyO.yIndexes[l2.firstRow]-1:
+		return false
+	case lyO.xIndexes[l1.firstCol] > lyO.xIndexes[l2.lastCol] && oneIsSubnet:
+		return false
+	case lyO.xIndexes[l1.lastCol] < lyO.xIndexes[l2.firstCol] && oneIsSubnet:
+		return false
+	case lyO.yIndexes[l1.firstRow] > lyO.yIndexes[l2.lastRow] && oneIsSubnet:
+		return false
+	case lyO.yIndexes[l1.lastRow] < lyO.yIndexes[l2.firstRow] && oneIsSubnet:
+		return false
+	}
+	return true
+}
+
 func (lyO *subnetLayoutOverlap) tnCenter(tn TreeNodeInterface) (int, int) {
 	l := tn.Location()
 	return lyO.xIndexes[l.firstCol] + lyO.xIndexes[l.lastCol] + 1, lyO.yIndexes[l.firstRow] + lyO.yIndexes[l.lastRow] + 1
@@ -32,15 +57,31 @@ func (lyO *subnetLayoutOverlap) tnSize(tn TreeNodeInterface) (int, int) {
 	return (lyO.xIndexes[l.lastCol] - lyO.xIndexes[l.firstCol] + 1) * 2, (lyO.yIndexes[l.lastRow] - lyO.yIndexes[l.firstRow] + 1) * 2
 
 }
-func (lyO *subnetLayoutOverlap) findOverlapLines() {
+func (lyO *subnetLayoutOverlap) fixOverlapping() {
 
 	for _, tn1 := range getAllNodes(lyO.network) {
+		if !tn1.IsLine() {
+			continue
+		}
+		l1 := tn1.(LineTreeNodeInterface)
+		if !l1.Src().IsSquare() || !l1.Dst().IsSquare() {
+			continue
+		}
+		if len(l1.Points()) > 0 {
+			continue
+		}
+		if lyO.tnsOverlap(l1.Src(), l1.Dst()) {
+			l1.addPoint(0, 0)
+		}
 		for _, tn2 := range getAllNodes(lyO.network) {
-			if !tn1.IsLine() || !tn2.IsLine() || tn1 == tn2 {
+			if !tn2.IsLine() || tn1 == tn2 {
 				continue
 			}
-			l1, l2 := tn1.(LineTreeNodeInterface), tn2.(LineTreeNodeInterface)
-			if !l1.Src().IsSquare() || !l1.Dst().IsSquare() || !l2.Src().IsSquare() || !l2.Dst().IsSquare() {
+			l2 := tn2.(LineTreeNodeInterface)
+			if !l2.Src().IsSquare() || !l2.Dst().IsSquare() {
+				continue
+			}
+			if len(l1.Points()) > 0 || len(l2.Points()) > 0 {
 				continue
 			}
 			if l1.SrcExitAngle() > 0 || l2.SrcExitAngle() > 0 {
