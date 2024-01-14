@@ -320,13 +320,12 @@ func (g *GroupConnLines) groupExternalAddressesForExplainability() error {
 	var res []*groupedConnLine
 	for _, rulesSrcDst := range *g.explain {
 		connStr := rulesSrcDst.conn.String() + semicolon
-		//routingStr := ""
-		//if rulesSrcDst.router != nil {
-		//	router := rulesSrcDst.router
-		//	routingStr = router.Name() + ";"
-		//}
-		//groupingStrKey := connStr + routingStr + rulesSrcDst.rules.rulesEncode(g.config)
-		groupingStrKey := connStr + rulesSrcDst.rules.rulesEncode(g.config)
+		routingStr := ""
+		if rulesSrcDst.router != nil {
+			router := rulesSrcDst.router
+			routingStr = router.Name() + ";"
+		}
+		groupingStrKey := connStr + routingStr + rulesSrcDst.rules.rulesEncode(g.config)
 		err := g.addLineToExternalGrouping(&res, rulesSrcDst.src, rulesSrcDst.dst,
 			&groupedCommonProperties{conn: rulesSrcDst.conn, router: rulesSrcDst.router,
 				rules: rulesSrcDst.rules, groupingStrKey: groupingStrKey})

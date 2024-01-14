@@ -289,7 +289,7 @@ func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
 func (explanationStruct *rulesAndConnDetails) String(c *VPCConfig, connQuery *common.ConnectionSet) (string, error) {
 	resStr := ""
 	for _, rulesSrcDst := range *explanationStruct {
-		resStr += stringExplainabilityLine(c, connQuery, rulesSrcDst.src, rulesSrcDst.dst, rulesSrcDst.conn, rulesSrcDst.rules)
+		resStr += stringExplainabilityLine(c, connQuery, rulesSrcDst.src, rulesSrcDst.dst, rulesSrcDst.conn, rulesSrcDst.router, rulesSrcDst.rules)
 	}
 	return resStr, nil
 }
@@ -299,14 +299,14 @@ func (explanation *explanation) String() string {
 	groupedLines := explanation.groupedLines
 	for i, line := range groupedLines {
 		linesStr[i] = stringExplainabilityLine(explanation.c, explanation.connQuery, line.src, line.dst, line.commonProperties.conn,
-			line.commonProperties.rules)
+			line.commonProperties.router, line.commonProperties.rules)
 	}
 	sort.Strings(linesStr)
 	return strings.Join(linesStr, "\n") + "\n"
 }
 
 func stringExplainabilityLine(c *VPCConfig, connQuery *common.ConnectionSet, src, dst EndpointElem,
-	conn *common.ConnectionSet, rules *rulesConnection) string {
+	conn *common.ConnectionSet, router RoutingResource, rules *rulesConnection) string {
 	needEgress := !src.IsExternal()
 	needIngress := !dst.IsExternal()
 	noIngressRules := len(rules.ingressRules) == 0 && needIngress
@@ -321,6 +321,10 @@ func stringExplainabilityLine(c *VPCConfig, connQuery *common.ConnectionSet, src
 	}
 	resStr := ""
 	switch {
+	case router == nil && src.IsExternal():
+		resStr += fmt.Sprintf("%v no fip router and src is external\n", noConnection)
+	case router == nil && dst.IsExternal():
+		resStr += fmt.Sprintf("%v no router (fip/pgw) and dst is external\n", noConnection)
 	case noIngressRules && noEgressRules:
 		resStr += fmt.Sprintf("%v connection blocked both by ingress and egress\n", noConnection)
 	case noIngressRules:
@@ -340,6 +344,9 @@ func stringExplainabilityLine(c *VPCConfig, connQuery *common.ConnectionSet, src
 		} else {
 			resStr = fmt.Sprintf("Connection %v exists between %v and %v; its enabled by\n", connQuery.String(),
 				src.Name(), dst.Name())
+		}
+		if src.IsExternal() || dst.IsExternal() {
+			resStr += "External Router " + router.Kind() + ": " + router.Name() + "\n"
 		}
 		if needEgress {
 			resStr += egressRulesStr
