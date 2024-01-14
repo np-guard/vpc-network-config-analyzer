@@ -498,7 +498,10 @@ func (g *GroupConnLines) String() string {
 func (g *GroupConnLines) hasStatelessConns() bool {
 	hasStatelessConns := false
 	for _, line := range g.GroupedLines {
-		hasStatelessConns = hasStatelessConns || line.commonProperties.conn.IsStateful == common.StatefulFalse
+		if line.commonProperties.conn.IsStateful == common.StatefulFalse {
+			hasStatelessConns = true
+			break
+		}
 	}
 	return hasStatelessConns
 }

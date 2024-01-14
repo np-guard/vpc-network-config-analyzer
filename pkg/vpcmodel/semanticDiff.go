@@ -275,11 +275,13 @@ func (diffCfgs *diffBetweenCfgs) String() string {
 func (diffCfgs *diffBetweenCfgs) hasStatelessConns() bool {
 	hasStatelessConns := false
 	for _, grouped := range diffCfgs.groupedLines {
-		hasStatelessConns = hasStatelessConns ||
-			(grouped.commonProperties.connDiff.conn1 != nil &&
-				grouped.commonProperties.connDiff.conn1.IsStateful == common.StatefulFalse) ||
+		if (grouped.commonProperties.connDiff.conn1 != nil &&
+			grouped.commonProperties.connDiff.conn1.IsStateful == common.StatefulFalse) ||
 			(grouped.commonProperties.connDiff.conn2 != nil &&
-				grouped.commonProperties.connDiff.conn2.IsStateful == common.StatefulFalse)
+				grouped.commonProperties.connDiff.conn2.IsStateful == common.StatefulFalse) {
+			hasStatelessConns = true
+			break
+		}
 	}
 	return hasStatelessConns
 }
