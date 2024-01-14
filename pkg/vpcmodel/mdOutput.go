@@ -12,6 +12,7 @@ type MDoutputFormatter struct {
 
 const (
 	mdDefaultTitle        = "## Endpoint connectivity report"
+	mdSubnetsTitle        = "## Subnets connectivity report"
 	mdDefaultHeader       = "| src | dst | conn |\n|-----|-----|------|"
 	mdEndpointsDiffTitle  = "## Endpoints diff report"
 	mdSubnetsDiffTitle    = "## Subnets diff report"
@@ -38,12 +39,14 @@ func (m *MDoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 		return nil, err
 	}
 	out = "# " + out
-	lines := []string{mdDefaultTitle, mdDefaultHeader}
+	var lines []string
 	var connLines []string
 	switch uc {
 	case AllEndpoints:
+		lines = []string{mdDefaultTitle, mdDefaultHeader}
 		connLines = m.getGroupedOutput(conn.GroupedConnectivity)
 	case AllSubnets:
+		lines = []string{mdSubnetsTitle, mdDefaultHeader}
 		connLines = m.getGroupedOutput(subnetsConn.GroupedConnectivity)
 	case SubnetsDiff, EndpointsDiff:
 		var mdTitle, mdHeader string
