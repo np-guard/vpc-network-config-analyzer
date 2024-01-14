@@ -20,7 +20,6 @@ type InArgs struct {
 	VPC                   *string
 	Debug                 *bool
 	Version               *bool
-	QueryMode             *bool
 	QProtocol             *string
 	QSrcMinPort           *int64
 	QSrcMaxPort           *int64
@@ -39,7 +38,6 @@ var flagHasValue = map[string]bool{
 	VPC:                   true,
 	Debug:                 false,
 	Version:               false,
-	QueryMode:             false,
 	QProtocol:             true,
 	QSrcMinPort:           true,
 	QSrcMaxPort:           true,
@@ -58,7 +56,6 @@ const (
 	VPC                   = "vpc"
 	Debug                 = "debug"
 	Version               = "version"
-	QueryMode             = "query-mode"
 	QProtocol             = "q-protocol"
 	QSrcMinPort           = "q-src-min-port"
 	QSrcMaxPort           = "q-src-max-port"
@@ -79,6 +76,7 @@ const (
 	singleSubnet     = "single_subnet"      // single subnet connectivity analysis
 	allEndpointsDiff = "diff_all_endpoints" // semantic diff of allEndpoints analysis between two configurations
 	allSubnetsDiff   = "diff_all_subnets"   // semantic diff of allSubnets analysis between two configurations
+	queryMode        = "query"              // analyze a connection description
 
 	// separator
 	separator = ", "
@@ -100,6 +98,7 @@ var supportedAnalysisTypesMap = map[string][]string{
 	singleSubnet:     {TEXTFormat},
 	allEndpointsDiff: {TEXTFormat, MDFormat},
 	allSubnetsDiff:   {TEXTFormat, MDFormat},
+	queryMode:        {TEXTFormat},
 }
 
 // supportedOutputFormatsList is an ordered list of supported output formats (usage details presented in this order)
@@ -119,6 +118,7 @@ var supportedAnalysisTypesList = []string{
 	singleSubnet,
 	allEndpointsDiff,
 	allSubnetsDiff,
+	queryMode,
 }
 
 func getSupportedAnalysisTypesMapString() string {
@@ -205,7 +205,7 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = invalidArgsConnectionDescription(&args)
+	err = invalidArgsConnectionDescription(&args, flagset)
 	if err != nil {
 		return nil, err
 	}
@@ -213,8 +213,23 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	return &args, nil
 }
 
-func invalidArgsConnectionDescription(args *InArgs) error {
-	if *args.QProtocol == "" {
+func isFlagPassed(name string, flagset *flag.FlagSet) bool {
+	found := false
+	flagset.Visit(func(f *flag.Flag) {
+		if f.Name == name {
+			found = true
+		}
+	})
+	return found
+}
+
+func invalidArgsConnectionDescription(args *InArgs, flagset *flag.FlagSet) error {
+	if *args.AnalysisType != queryMode {
+		if isFlagPassed(QProtocol, flagset) || isFlagPassed(QSrcMinPort, flagset) || isFlagPassed(QSrcMaxPort, flagset) ||
+			isFlagPassed(QDstMinPort, flagset) || isFlagPassed(QDstMaxPort, flagset) {
+			return fmt.Errorf("%s, %s, %s, %s and %s can be specified only when analysis-type is query",
+				QProtocol, QSrcMinPort, QSrcMaxPort, QDstMinPort, QDstMaxPort)
+		}
 		return nil
 	}
 
