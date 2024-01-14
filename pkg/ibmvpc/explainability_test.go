@@ -159,7 +159,8 @@ func TestSimpleExternalSG(t *testing.T) {
 	}
 	fmt.Println(explainStr4)
 	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
-
+	require.Equal(t, "No connection between vsi3b-ky[10.240.30.4] and Public Internet 161.26.0.0/32; no router (fip/pgw) and dst is external\n\n",
+		explainStr4)
 }
 
 func TestGroupingExternalSG(t *testing.T) {
