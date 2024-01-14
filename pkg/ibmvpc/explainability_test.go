@@ -221,12 +221,13 @@ func TestQueryConnectionSGBasic(t *testing.T) {
 	if err1 != nil {
 		require.Fail(t, err1.Error())
 	}
+	fmt.Println(explainStr1)
+	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 	require.Equal(t, "There is no connection \"All Connections\" between vsi2-ky[10.240.20.4] and vsi3b-ky[10.240.30.4]; "+
 		"connection blocked by ingress\nEgress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\n"+
 		"enabling rules from sg2-ky:\n\tindex: 5, direction: outbound, protocol: all, cidr: 10.240.30.0/24\n"+
 		"\tindex: 6, direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, cidr: 10.240.20.4/32,10.240.30.4/32\n\n", explainStr1)
-	fmt.Println(explainStr1)
-	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
+
 	// test2: the existing connection is exactly the one required by the query
 	vsi1 := "vsi1-ky[10.240.10.4]"
 	cidr1 := "161.26.0.0/16"
@@ -236,12 +237,13 @@ func TestQueryConnectionSGBasic(t *testing.T) {
 	if err2 != nil {
 		require.Fail(t, err2.Error())
 	}
+	fmt.Println(explainStr2)
+	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 	require.Equal(t, "Connection protocol: UDP exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16; its enabled by\n"+
+		"External Router PublicGateway: public-gw-ky\n"+
 		"Egress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n"+
 		"\tindex: 2, direction: outbound,  conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\n",
 		explainStr2)
-	fmt.Println(explainStr2)
-	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 
 	//test3: the required connection is contained in the existing one per connection
 	connectionUDP2 := common.NewConnectionSet(false)
@@ -250,50 +252,54 @@ func TestQueryConnectionSGBasic(t *testing.T) {
 	if err3 != nil {
 		require.Fail(t, err3.Error())
 	}
+	fmt.Println(explainStr3)
+	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 	require.Equal(t, "Connection protocol: UDP src-ports: 10-100 dst-ports: 443 exists between vsi1-ky[10.240.10.4] "+
-		"and Public Internet 161.26.0.0/16; its enabled by\n"+
+		"and Public Internet 161.26.0.0/16; its enabled by\nExternal Router PublicGateway: public-gw-ky\n"+
 		"Egress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n"+
 		"\tindex: 2, direction: outbound,  conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\n",
 		explainStr3)
-	fmt.Println(explainStr3)
-	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
+
 	// test4: the required connection is contained in the existing one per ip of src/dst
 	cidr2 := "161.26.0.0/20"
 	explainStr4, err4 := vpcConfig.ExplainConnectivity(vsi1, cidr2, connectionUDP2)
 	if err4 != nil {
 		require.Fail(t, err4.Error())
 	}
+	fmt.Println(explainStr4)
+	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 	require.Equal(t, "Connection protocol: UDP src-ports: 10-100 dst-ports: 443 exists between vsi1-ky[10.240.10.4] "+
-		"and Public Internet 161.26.0.0/20; its enabled by\n"+
+		"and Public Internet 161.26.0.0/20; its enabled by\nExternal Router PublicGateway: public-gw-ky\n"+
 		"Egress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n"+
 		"\tindex: 2, direction: outbound,  conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\n",
 		explainStr4)
-	fmt.Println(explainStr4)
-	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
+
 	// test5: the required connection exists for part of the dst ip
 	cidr3 := "161.26.0.0/12"
 	explainStr5, err5 := vpcConfig.ExplainConnectivity(vsi1, cidr3, connectionUDP2)
 	if err5 != nil {
 		require.Fail(t, err5.Error())
 	}
+	fmt.Println(explainStr5)
+	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 	require.Equal(t, "Connection protocol: UDP src-ports: 10-100 dst-ports: "+
-		"443 exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16; its enabled by\n"+
+		"443 exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16; its enabled by\nExternal Router PublicGateway: public-gw-ky\n"+
 		"Egress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n"+
 		"\tindex: 2, direction: outbound,  conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\n"+
 		"There is no connection \"protocol: UDP src-ports: 10-100 dst-ports: 443\" "+
 		"between vsi1-ky[10.240.10.4] and Public Internet 161.16.0.0-161.25.255.255,161.27.0.0-161.31.255.255; "+
 		"connection blocked by egress\n\n", explainStr5)
-	fmt.Println(explainStr5)
+
 	// test6: a connection does not exist regardless of the query
 	explainStr6, err6 := vpcConfig.ExplainConnectivity("vsi1-ky[10.240.10.4]", "vsi3a-ky[10.240.30.5]", connectionUDP2)
 	if err6 != nil {
 		require.Fail(t, err6.Error())
 	}
+	fmt.Println(explainStr6)
+	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 	require.Equal(t, "There is no connection \"protocol: UDP src-ports: 10-100 dst-ports: 443\" "+
 		"between vsi1-ky[10.240.10.4] and vsi3a-ky[10.240.30.5]; "+
 		"connection blocked both by ingress and egress\n\n", explainStr6)
-	fmt.Println(explainStr6)
-	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 }
 
 func TestQueryConnectionSGRules(t *testing.T) {
