@@ -329,7 +329,6 @@ func (g *GroupConnLines) groupExternalAddressesForExplainability() error {
 		err := g.addLineToExternalGrouping(&res, rulesSrcDst.src, rulesSrcDst.dst,
 			&groupedCommonProperties{conn: rulesSrcDst.conn, router: rulesSrcDst.router,
 				rules: rulesSrcDst.rules, groupingStrKey: groupingStrKey})
-		//fmt.Printf("\tsrc: %v dst: %v\n\t\tgroupingStrKey: %v\n", rulesSrcDst.src.Name(), rulesSrcDst.dst.Name(), groupingStrKey)
 		if err != nil {
 			return err
 		}

@@ -132,7 +132,8 @@ func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.Conne
 }
 
 // computeExplainRules computes the egress and ingress rules contributing to the (existing or missing) connection <src, dst>
-func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node, conn *common.ConnectionSet) (rulesAndConn rulesAndConnDetails, err error) {
+func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node,
+	conn *common.ConnectionSet) (rulesAndConn rulesAndConnDetails, err error) {
 	rulesAndConn = make(rulesAndConnDetails, max(len(srcNodes), len(dstNodes)))
 	i := 0
 	// either src of dst has more than one item; never both
@@ -289,7 +290,8 @@ func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
 func (explanationStruct *rulesAndConnDetails) String(c *VPCConfig, connQuery *common.ConnectionSet) (string, error) {
 	resStr := ""
 	for _, rulesSrcDst := range *explanationStruct {
-		resStr += stringExplainabilityLine(c, connQuery, rulesSrcDst.src, rulesSrcDst.dst, rulesSrcDst.conn, rulesSrcDst.router, rulesSrcDst.rules)
+		resStr += stringExplainabilityLine(c, connQuery, rulesSrcDst.src, rulesSrcDst.dst,
+			rulesSrcDst.conn, rulesSrcDst.router, rulesSrcDst.rules)
 	}
 	return resStr, nil
 }

@@ -138,8 +138,10 @@ func TestSimpleExternalSG(t *testing.T) {
 		require.Fail(t, err2.Error())
 	}
 	fmt.Println(explainStr2)
-	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
-	require.Equal(t, "No connection between Public Internet 161.26.0.0/16 and vsi1-ky[10.240.10.4]; no fip router and src is external\n\n",
+	fmt.Println("-------------------------------------------------------------------------------------" +
+		"--------------------------------------")
+	require.Equal(t, "No connection between Public Internet 161.26.0.0/16 and vsi1-ky[10.240.10.4]; "+
+		"no fip router and src is external\n\n",
 		explainStr2)
 	cidr2 := "161.26.0.0/32"
 	explainStr3, err3 := vpcConfig.ExplainConnectivity(vsi1, cidr2, nil)
@@ -158,8 +160,10 @@ func TestSimpleExternalSG(t *testing.T) {
 		require.Fail(t, err4.Error())
 	}
 	fmt.Println(explainStr4)
-	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
-	require.Equal(t, "No connection between vsi3b-ky[10.240.30.4] and Public Internet 161.26.0.0/32; no router (fip/pgw) and dst is external\n\n",
+	fmt.Println("--------------------------------------------------------------------------------------------------" +
+		"-------------------------")
+	require.Equal(t, "No connection between vsi3b-ky[10.240.30.4] and Public Internet 161.26.0.0/32; "+
+		"no router (fip/pgw) and dst is external\n\n",
 		explainStr4)
 }
 
@@ -184,32 +188,34 @@ func TestGroupingExternalSG(t *testing.T) {
 		"\tindex: 2, direction: outbound,  conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\n",
 		explainStr1)
 	// todo: now that external and internal IPs are treated differently, deffer cidrAll test to the time we properly support internal IP #305
-	//vsi2 := "vsi2-ky[10.240.20.4]"
-	//cidrAll := "0.0.0.0/0"
-	//explainStr2, err2 := vpcConfig.ExplainConnectivity(vsi2, cidrAll, nil)
-	//if err2 != nil {
+	// vsi2 := "vsi2-ky[10.240.20.4]"
+	// cidrAll := "0.0.0.0/0"
+	// explainStr2, err2 := vpcConfig.ExplainConnectivity(vsi2, cidrAll, nil)
+	// if err2 != nil {
 	//	require.Fail(t, err2.Error())
-	//}
-	//fmt.Println(explainStr2)
-	//fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
-	//require.Equal(t, "No connection between vsi2-ky[10.240.20.4] and Public Internet 0.0.0.0-141.255.255.255,143.0.0.0-255.255.255.255; "+
+	// }
+	// fmt.Println(explainStr2)
+	// fmt.Println("--------------------------------------------------------------------------
+	// -------------------------------------------------")
+	// require.Equal(t, "No connection between vsi2-ky[10.240.20.4] and Public Internet 0.0.0.0-141.255.255.255,143.0.0.0-255.255.255.255; "+
 	//	"connection blocked by egress\n\n"+
 	//	"The following connection exists between vsi2-ky[10.240.20.4] and Public Internet 142.0.0.0/8: protocol: ICMP; its enabled by\n"+
 	//	"Egress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg2-ky:\n"+
 	//	"\tindex: 3, direction: outbound,  conns: protocol: icmp,  icmpType: protocol: ICMP, cidr: 142.0.0.0/8\n\n",
 	//	explainStr2)
-	//explainStr3, err3 := vpcConfig.ExplainConnectivity(cidrAll, vsi2, nil)
-	//if err3 != nil {
+	// explainStr3, err3 := vpcConfig.ExplainConnectivity(cidrAll, vsi2, nil)
+	// if err3 != nil {
 	//	require.Fail(t, err3.Error())
-	//}
-	//fmt.Println(explainStr3)
-	//require.Equal(t, "No connection between vsi2-ky[10.240.20.4] and Public Internet 0.0.0.0-141.255.255.255,143.0.0.0-255.255.255.255; "+
+	// }
+	// fmt.Println(explainStr3)
+	// require.Equal(t, "No connection between vsi2-ky[10.240.20.4] and Public Internet 0.0.0.0-141.255.255.255,143.0.0.0-255.255.255.255; "+
 	//	"connection blocked by egress\n\nThe following connection exists between vsi2-ky[10.240.20.4] "+
 	//	"and Public Internet 142.0.0.0/8: protocol: ICMP; its enabled by\nEgress Rules:\n"+
 	//	"~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg2-ky:\n\t"+
 	//	"index: 3, direction: outbound,  conns: protocol: icmp,  icmpType: protocol: ICMP, cidr: 142.0.0.0/8\n\n",
 	//	explainStr2)
-	//fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
+	// fmt.Println("----------------------------------------------------------------------------------------------
+	// -----------------------------")
 }
 
 func TestQueryConnectionSGBasic(t *testing.T) {
@@ -282,9 +288,11 @@ func TestQueryConnectionSGBasic(t *testing.T) {
 		require.Fail(t, err5.Error())
 	}
 	fmt.Println(explainStr5)
-	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
+	fmt.Println("-------------------------------------------------------------------------------------" +
+		"--------------------------------------")
 	require.Equal(t, "Connection protocol: UDP src-ports: 10-100 dst-ports: "+
-		"443 exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16; its enabled by\nExternal Router PublicGateway: public-gw-ky\n"+
+		"443 exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16; its enabled by\n"+
+		"External Router PublicGateway: public-gw-ky\n"+
 		"Egress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n"+
 		"\tindex: 2, direction: outbound,  conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\n"+
 		"There is no connection \"protocol: UDP src-ports: 10-100 dst-ports: 443\" "+
