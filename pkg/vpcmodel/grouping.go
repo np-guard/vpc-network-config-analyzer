@@ -494,6 +494,18 @@ func (g *GroupConnLines) String() string {
 	return strings.Join(linesStr, "\n") + "\n"
 }
 
+// get indication if the connections contain a stateless connection
+func (g *GroupConnLines) hasStatelessConns() bool {
+	hasStatelessConns := false
+	for _, line := range g.GroupedLines {
+		if line.commonProperties.conn.IsStateful == common.StatefulFalse {
+			hasStatelessConns = true
+			break
+		}
+	}
+	return hasStatelessConns
+}
+
 func listEndpointElemStr(eps []EndpointElem, fn func(ep EndpointElem) string) string {
 	endpointsStrings := make([]string, len(eps))
 	for i, ep := range eps {

@@ -8,5 +8,3 @@ ky-vpc1-vsi[10.240.0.5] => Public Internet (all ranges) : All Connections
 
 Connectivity for VPC ky-vpc2
 
-
-connections are stateful unless marked with *
