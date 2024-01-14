@@ -107,6 +107,8 @@ type SingleAnalysisOutput struct {
 	Output     string
 	jsonStruct interface{}
 	format     OutFormat
+	// hasStatelessConn indicates if the connectivity results contain a stateless conn
+	hasStatelessConn bool
 }
 
 // Generate returns a string representing the analysis output for all input VPCs
@@ -189,7 +191,7 @@ func (of *serialOutputFormatter) WriteOutput(c1, c2 map[string]*VPCConfig, conns
 	if err2 != nil {
 		return "", err2
 	}
-	return of.WriteDiffOutput(vpcAnalysisOutput, outFile)
+	return of.WriteDiffOutput(vpcAnalysisOutput, uc, outFile)
 }
 
 func WriteToFile(content, fileName string) (string, error) {
@@ -198,6 +200,15 @@ func WriteToFile(content, fileName string) (string, error) {
 		return content, err
 	}
 	return content, nil
+}
+
+// getAsteriskDetails returns the info message about how non stateful conns are marked in the output, when relevant
+func getAsteriskDetails(uc OutputUseCase, hasStatelessConn bool, outFormat OutFormat) string {
+	if uc != SingleSubnet && (outFormat == Text || outFormat == MD || outFormat == Debug) && hasStatelessConn {
+		return asteriskDetails
+	}
+
+	return ""
 }
 
 // AggregateVPCsOutput returns the output string for a list of SingleAnalysisOutput objects
@@ -214,14 +225,15 @@ func (of *serialOutputFormatter) AggregateVPCsOutput(outputList []*SingleAnalysi
 	case Text, MD, Debug:
 		// plain concatenation
 		vpcsOut := make([]string, len(outputList))
+		hasStatelessConn := false
 		for i, o := range outputList {
 			vpcsOut[i] = o.Output
+			if o.hasStatelessConn {
+				hasStatelessConn = true
+			}
 		}
-		infoMessage := asteriskDetails
 		sort.Strings(vpcsOut)
-		if uc == SingleSubnet {
-			infoMessage = ""
-		}
+		infoMessage := getAsteriskDetails(uc, hasStatelessConn, of.outFormat)
 		res, err = WriteToFile(strings.Join(vpcsOut, "\n")+infoMessage, outFile)
 
 	case JSON:
@@ -235,12 +247,13 @@ func (of *serialOutputFormatter) AggregateVPCsOutput(outputList []*SingleAnalysi
 }
 
 // WriteDiffOutput actual writing the output into file, with required format adjustments
-func (of *serialOutputFormatter) WriteDiffOutput(output *SingleAnalysisOutput, outFile string) (string, error) {
+func (of *serialOutputFormatter) WriteDiffOutput(output *SingleAnalysisOutput, uc OutputUseCase, outFile string) (string, error) {
 	var res string
 	var err error
 	switch of.outFormat {
 	case Text, MD, Debug: // currently, return out as is
-		res, err = WriteToFile(output.Output+asteriskDetails, outFile)
+		infoMessage := getAsteriskDetails(uc, output.hasStatelessConn, of.outFormat)
+		res, err = WriteToFile(output.Output+infoMessage, outFile)
 	case JSON:
 		all := map[string]interface{}{}
 		head := fmt.Sprintf("diff-%s-%s", output.VPC1Name, output.VPC2Name)

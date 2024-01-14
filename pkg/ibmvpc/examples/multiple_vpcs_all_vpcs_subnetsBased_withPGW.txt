@@ -92,5 +92,3 @@ sub2-1-ky => sub3-1-ky : protocol: ICMP icmp-type: 0 icmp-code: 0; protocol: TCP
 sub2-2-ky => sub2-1-ky : All Connections
 sub3-1-ky => sub1-1-ky : protocol: ICMP icmp-type: 0 icmp-code: 0
 sub3-1-ky => sub2-1-ky : protocol: ICMP icmp-type: 0 icmp-code: 0; protocol: TCP dst-ports: 443
-
-connections are stateful unless marked with *

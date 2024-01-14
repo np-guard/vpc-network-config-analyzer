@@ -77,5 +77,3 @@
 | transit-2-instance-ky[192.168.24.4] | private-2-instance-ky[192.168.8.4] | protocol: TCP src-ports: 443 |
 | transit-2-instance-ky[192.168.24.4] | transit-0-instance-ky[192.168.16.4] | All Connections |
 | transit-2-instance-ky[192.168.24.4] | transit-1-instance-ky[192.168.20.4] | All Connections |
-
-connections are stateful unless marked with *
