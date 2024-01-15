@@ -240,13 +240,22 @@ func PortInRange(port int64) bool {
 	return true
 }
 
-func validRangeConnectionExplainMode(args *InArgs) error {
-	if *args.QSrcMinPort > *args.QSrcMaxPort {
-		return fmt.Errorf("srcMaxPort %d should be higher than srcMinPort %d", *args.QSrcMaxPort, *args.QSrcMinPort)
+func minMaxValidity(minPort, maxPort int64, minPortName, maxPortName string) error {
+	if minPort > maxPort {
+		return fmt.Errorf("%s %d must not be larger than %s %d", minPortName, minPort, maxPortName, maxPort)
 	}
 
-	if *args.QDstMinPort > *args.QDstMaxPort {
-		return fmt.Errorf("DstMaxPort %d should be higher than DstMinPort %d", *args.QSrcMaxPort, *args.QSrcMinPort)
+	return nil
+}
+
+func validRangeConnectionExplainMode(args *InArgs) error {
+	err := minMaxValidity(*args.QSrcMinPort, *args.QSrcMaxPort, QSrcMinPort, QSrcMaxPort)
+	if err != nil {
+		return err
+	}
+	err = minMaxValidity(*args.QDstMinPort, *args.QDstMaxPort, QDstMinPort, QDstMaxPort)
+	if err != nil {
+		return err
 	}
 
 	if !PortInRange(*args.QSrcMinPort) || !PortInRange(*args.QSrcMaxPort) ||
