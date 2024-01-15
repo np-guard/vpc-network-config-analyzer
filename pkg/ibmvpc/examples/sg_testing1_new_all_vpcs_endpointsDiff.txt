@@ -4,5 +4,3 @@ diff-type: removed, source: vsi1-ky[10.240.10.4], destination: Public Internet 1
 diff-type: removed, source: vsi3a-ky[10.240.30.5], destination: db-endpoint-gateway-ky[10.240.30.6], config1: All Connections, config2: No Connections, vsis-diff-info: vsi3a-ky[10.240.30.5] removed
 diff-type: removed, source: vsi3a-ky[10.240.30.5], destination: vsi1-ky[10.240.10.4], config1: All Connections, config2: No Connections, vsis-diff-info: vsi3a-ky[10.240.30.5] removed
 diff-type: removed, source: vsi3b-ky[10.240.30.4], destination: vsi3a-ky[10.240.30.5], config1: All Connections, config2: No Connections, vsis-diff-info: vsi3a-ky[10.240.30.5] removed
-
-connections are stateful unless marked with *
