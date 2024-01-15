@@ -76,7 +76,7 @@ const (
 	singleSubnet     = "single_subnet"      // single subnet connectivity analysis
 	allEndpointsDiff = "diff_all_endpoints" // semantic diff of allEndpoints analysis between two configurations
 	allSubnetsDiff   = "diff_all_subnets"   // semantic diff of allSubnets analysis between two configurations
-	queryMode        = "query"              // analyze a connection description
+	explainMode      = "explain"            // explain specified connectivity, given src,dst and connection
 
 	// separator
 	separator = ", "
@@ -98,7 +98,7 @@ var supportedAnalysisTypesMap = map[string][]string{
 	singleSubnet:     {TEXTFormat},
 	allEndpointsDiff: {TEXTFormat, MDFormat},
 	allSubnetsDiff:   {TEXTFormat, MDFormat},
-	queryMode:        {TEXTFormat},
+	explainMode:      {TEXTFormat},
 }
 
 // supportedOutputFormatsList is an ordered list of supported output formats (usage details presented in this order)
@@ -118,7 +118,7 @@ var supportedAnalysisTypesList = []string{
 	singleSubnet,
 	allEndpointsDiff,
 	allSubnetsDiff,
-	queryMode,
+	explainMode,
 }
 
 func getSupportedAnalysisTypesMapString() string {
@@ -205,7 +205,7 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = invalidArgsQueryMode(&args, flagset)
+	err = invalidArgsExplainMode(&args, flagset)
 	if err != nil {
 		return nil, err
 	}
@@ -213,7 +213,7 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	return &args, nil
 }
 
-func isFlagPassed(name string, flagset *flag.FlagSet) bool {
+func wasFlagSpecified(name string, flagset *flag.FlagSet) bool {
 	found := false
 	flagset.Visit(func(f *flag.Flag) {
 		if f.Name == name {
@@ -223,54 +223,58 @@ func isFlagPassed(name string, flagset *flag.FlagSet) bool {
 	return found
 }
 
-func isQueryModeParamsPassed(flagset *flag.FlagSet) bool {
-	if isFlagPassed(QProtocol, flagset) || isFlagPassed(QSrcMinPort, flagset) || isFlagPassed(QSrcMaxPort, flagset) ||
-		isFlagPassed(QDstMinPort, flagset) || isFlagPassed(QDstMaxPort, flagset) {
+func wereExplainParmSpecified(flagset *flag.FlagSet) bool {
+	if wasFlagSpecified(QProtocol, flagset) || wasFlagSpecified(QSrcMinPort, flagset) || wasFlagSpecified(QSrcMaxPort, flagset) ||
+		wasFlagSpecified(QDstMinPort, flagset) || wasFlagSpecified(QDstMaxPort, flagset) {
 		return true
 	}
 
 	return false
 }
 
-func validRangeConnectionQueryMode(args *InArgs) error {
-	if *args.QSrcMinPort > *args.QSrcMaxPort {
-		return fmt.Errorf("srcMaxPort %d should be higher than srcMinPort %d", *args.QSrcMaxPort, *args.QSrcMinPort)
+func PortInRange(port int64) bool {
+	if port > common.MaxPort || port < common.MinPort {
+		return false
 	}
 
-	if *args.QSrcMinPort > common.MaxPort || *args.QSrcMinPort < common.MinPort ||
-		*args.QSrcMaxPort > common.MaxPort || *args.QSrcMaxPort < common.MinPort {
-		return fmt.Errorf("srcMaxPort and srcMinPort must be in ranges [%d, %d]", common.MinPort, common.MaxPort)
+	return true
+}
+
+func validRangeConnectionExplainMode(args *InArgs) error {
+	if *args.QSrcMinPort > *args.QSrcMaxPort {
+		return fmt.Errorf("srcMaxPort %d should be higher than srcMinPort %d", *args.QSrcMaxPort, *args.QSrcMinPort)
 	}
 
 	if *args.QDstMinPort > *args.QDstMaxPort {
 		return fmt.Errorf("DstMaxPort %d should be higher than DstMinPort %d", *args.QSrcMaxPort, *args.QSrcMinPort)
 	}
 
-	if *args.QDstMinPort > common.MaxPort || *args.QDstMinPort < common.MinPort ||
-		*args.QDstMaxPort > common.MaxPort || *args.QDstMaxPort < common.MinPort {
-		return fmt.Errorf("DstMaxPort and DstMinPort must be in ranges [%d, %d]", common.MinPort, common.MaxPort)
+	if !PortInRange(*args.QSrcMinPort) || !PortInRange(*args.QSrcMaxPort) ||
+		!PortInRange(*args.QDstMinPort) || !PortInRange(*args.QDstMaxPort) {
+		return fmt.Errorf("%s, %s, %s and %s must be in ranges [%d, %d]",
+			QSrcMinPort, QSrcMaxPort, QDstMinPort, QDstMaxPort, common.MinPort, common.MaxPort)
 	}
 
 	return nil
 }
 
-func invalidArgsQueryMode(args *InArgs, flagset *flag.FlagSet) error {
-	if *args.AnalysisType != queryMode && isQueryModeParamsPassed(flagset) {
-		return fmt.Errorf("%s, %s, %s, %s and %s can be specified only when analysis-type is query",
-			QProtocol, QSrcMinPort, QSrcMaxPort, QDstMinPort, QDstMaxPort)
+func invalidArgsExplainMode(args *InArgs, flagset *flag.FlagSet) error {
+	if *args.AnalysisType != explainMode && wereExplainParmSpecified(flagset) {
+		return fmt.Errorf("%s, %s, %s, %s and %s can be specified only when analysis-type is %s",
+			QProtocol, QSrcMinPort, QSrcMaxPort, QDstMinPort, QDstMaxPort, explainMode)
 	}
 
-	if *args.AnalysisType != queryMode {
+	if *args.AnalysisType != explainMode {
 		return nil
 	}
 
 	protocol := strings.ToUpper(*args.QProtocol)
-	if protocol != "TCP" && protocol != "UDP" && protocol != "ICMP" {
+	if protocol != string(common.ProtocolTCP) && protocol != string(common.ProtocolUDP) && protocol != string(common.ProtocolICMP) {
 		return fmt.Errorf("wrong connection description protocol '%s'; must be one of: 'TCP, UDP, ICMP'", protocol)
 	}
 	args.QProtocol = &protocol
 
-	return validRangeConnectionQueryMode(args)
+	return validRangeConnectionExplainMode(args)
 }
 
 func errorInErgs(args *InArgs, flagset *flag.FlagSet) error {

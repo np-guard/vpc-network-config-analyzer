@@ -49,8 +49,8 @@ func analysisTypeToUseCase(inArgs *InArgs) vpcmodel.OutputUseCase {
 		return vpcmodel.SubnetsDiff
 	case allEndpointsDiff:
 		return vpcmodel.EndpointsDiff
-	case queryMode:
-		return vpcmodel.Query
+	case explainMode:
+		return vpcmodel.Explain
 	}
 	return vpcmodel.AllEndpoints
 }
@@ -89,7 +89,8 @@ func vpcConfigsFromFile(fileName string, inArgs *InArgs) (map[string]*vpcmodel.V
 func translateCDtoConnectionSet(inArgs *InArgs) *common.ConnectionSet {
 	connection := common.NewConnectionSet(false)
 	if common.ProtocolStr(*inArgs.QProtocol) == common.ProtocolICMP {
-		connection.AddICMPConnection(*inArgs.QSrcMinPort, *inArgs.QSrcMaxPort, *inArgs.QDstMinPort, *inArgs.QDstMaxPort)
+		connection.AddICMPConnection(common.MinICMPtype, common.MaxICMPtype,
+			common.MinICMPcode, common.MaxICMPcode)
 	} else {
 		connection.AddTCPorUDPConn(common.ProtocolStr(*inArgs.QProtocol), *inArgs.QSrcMinPort, *inArgs.QSrcMaxPort,
 			*inArgs.QDstMinPort, *inArgs.QDstMaxPort)
@@ -139,7 +140,7 @@ func _main(cmdlineArgs []string) error {
 	}
 	fmt.Println(vpcAnalysisOutput)
 
-	if *inArgs.AnalysisType == queryMode {
+	if *inArgs.AnalysisType == explainMode {
 		_ = translateCDtoConnectionSet(inArgs)
 	}
 
