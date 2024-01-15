@@ -223,7 +223,7 @@ func wasFlagSpecified(name string, flagset *flag.FlagSet) bool {
 	return found
 }
 
-func wereExplainParmSpecified(flagset *flag.FlagSet) bool {
+func wereExplainParamsSpecified(flagset *flag.FlagSet) bool {
 	if wasFlagSpecified(QProtocol, flagset) || wasFlagSpecified(QSrcMinPort, flagset) || wasFlagSpecified(QSrcMaxPort, flagset) ||
 		wasFlagSpecified(QDstMinPort, flagset) || wasFlagSpecified(QDstMaxPort, flagset) {
 		return true
@@ -259,7 +259,7 @@ func validRangeConnectionExplainMode(args *InArgs) error {
 }
 
 func invalidArgsExplainMode(args *InArgs, flagset *flag.FlagSet) error {
-	if *args.AnalysisType != explainMode && wereExplainParmSpecified(flagset) {
+	if *args.AnalysisType != explainMode && wereExplainParamsSpecified(flagset) {
 		return fmt.Errorf("%s, %s, %s, %s and %s can be specified only when analysis-type is %s",
 			QProtocol, QSrcMinPort, QSrcMaxPort, QDstMinPort, QDstMaxPort, explainMode)
 	}
