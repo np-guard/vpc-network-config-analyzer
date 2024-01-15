@@ -10,5 +10,3 @@ combined connections between subnets:
 Connectivity for VPC ky-vpc2
 combined connections between subnets:
 
-
-connections are stateful unless marked with *
