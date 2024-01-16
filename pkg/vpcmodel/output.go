@@ -54,7 +54,8 @@ type OutputGenerator struct {
 	explainStruct  *Explanation
 }
 
-func NewOutputGenerator(c1, c2 map[string]*VPCConfig, grouping bool, uc OutputUseCase, archOnly bool, explainStruct *Explanation) (*OutputGenerator, error) {
+func NewOutputGenerator(c1, c2 map[string]*VPCConfig, grouping bool, uc OutputUseCase,
+	archOnly bool, explainStruct *Explanation) (*OutputGenerator, error) {
 	res := &OutputGenerator{
 		config1:        c1,
 		config2:        c2,
@@ -126,7 +127,8 @@ func (o *OutputGenerator) Generate(f OutFormat, outFile string) (string, error) 
 	default:
 		return "", errors.New("unsupported output format")
 	}
-	return formatter.WriteOutput(o.config1, o.config2, o.nodesConn, o.subnetsConn, o.cfgsDiff, outFile, o.outputGrouping, o.useCase, o.explainStruct)
+	return formatter.WriteOutput(o.config1, o.config2, o.nodesConn, o.subnetsConn, o.cfgsDiff,
+		outFile, o.outputGrouping, o.useCase, o.explainStruct)
 }
 
 // SingleVpcOutputFormatter is an interface for a formatter that can handle only one vpc
@@ -177,7 +179,8 @@ func (of *serialOutputFormatter) WriteOutput(c1, c2 map[string]*VPCConfig, conns
 		i := 0
 		for name := range c1 {
 			vpcAnalysisOutput, err2 :=
-				of.createSingleVpcFormatter().WriteOutput(c1[name], nil, conns[name], subnetsConns[name], subnetsDiff, "", grouping, uc, explainStruct)
+				of.createSingleVpcFormatter().WriteOutput(c1[name], nil, conns[name], subnetsConns[name],
+					subnetsDiff, "", grouping, uc, explainStruct)
 			if err2 != nil {
 				return "", err2
 			}
@@ -189,7 +192,8 @@ func (of *serialOutputFormatter) WriteOutput(c1, c2 map[string]*VPCConfig, conns
 	// its a diff mode, we have only one vpc on each map:
 	name, _ := common.AnyMapEntry(c1)
 	vpcAnalysisOutput, err2 :=
-		of.createSingleVpcFormatter().WriteOutput(c1[name], c2[name], conns[name], subnetsConns[name], subnetsDiff, "", grouping, uc, explainStruct)
+		of.createSingleVpcFormatter().WriteOutput(c1[name], c2[name], conns[name], subnetsConns[name],
+			subnetsDiff, "", grouping, uc, explainStruct)
 	if err2 != nil {
 		return "", err2
 	}
