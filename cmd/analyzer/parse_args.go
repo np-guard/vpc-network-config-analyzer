@@ -20,11 +20,13 @@ type InArgs struct {
 	VPC                   *string
 	Debug                 *bool
 	Version               *bool
-	QProtocol             *string
-	QSrcMinPort           *int64
-	QSrcMaxPort           *int64
-	QDstMinPort           *int64
-	QDstMaxPort           *int64
+	ESrc                  *string
+	EDst                  *string
+	EProtocol             *string
+	ESrcMinPort           *int64
+	ESrcMaxPort           *int64
+	EDstMinPort           *int64
+	EDstMaxPort           *int64
 }
 
 // flagHasValue indicates for each input arg if it is expected to have a value in the cli or not
@@ -38,11 +40,13 @@ var flagHasValue = map[string]bool{
 	VPC:                   true,
 	Debug:                 false,
 	Version:               false,
-	QProtocol:             true,
-	QSrcMinPort:           true,
-	QSrcMaxPort:           true,
-	QDstMinPort:           true,
-	QDstMaxPort:           true,
+	ESrc:                  true,
+	EDst:                  true,
+	EProtocol:             true,
+	ESrcMinPort:           true,
+	ESrcMaxPort:           true,
+	EDstMinPort:           true,
+	EDstMaxPort:           true,
 }
 
 const (
@@ -56,11 +60,13 @@ const (
 	VPC                   = "vpc"
 	Debug                 = "debug"
 	Version               = "version"
-	QProtocol             = "q-protocol"
-	QSrcMinPort           = "q-src-min-port"
-	QSrcMaxPort           = "q-src-max-port"
-	QDstMinPort           = "q-dst-min-port"
-	QDstMaxPort           = "q-dst-max-port"
+	ESrc                  = "e-src"
+	EDst                  = "e-dst"
+	EProtocol             = "e-protocol"
+	ESrcMinPort           = "e-src-min-port"
+	ESrcMaxPort           = "e-src-max-port"
+	EDstMinPort           = "e-dst-min-port"
+	EDstMaxPort           = "e-dst-max-port"
 
 	// output formats supported
 	JSONFormat       = "json"
@@ -180,11 +186,13 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args.VPC = flagset.String(VPC, "", "CRN of the VPC to analyze")
 	args.Debug = flagset.Bool(Debug, false, "Run in debug mode")
 	args.Version = flagset.Bool(Version, false, "Prints the release version number")
-	args.QProtocol = flagset.String(QProtocol, "", "Protocol for connection description")
-	args.QSrcMinPort = flagset.Int64(QSrcMinPort, common.MinPort, "SrcMinPort for connection description")
-	args.QSrcMaxPort = flagset.Int64(QSrcMaxPort, common.MaxPort, "SrcMaxPort for connection description")
-	args.QDstMinPort = flagset.Int64(QDstMinPort, common.MinPort, "DstMinPort for connection description")
-	args.QDstMaxPort = flagset.Int64(QDstMaxPort, common.MaxPort, "DstMaxPort for connection description")
+	args.ESrc = flagset.String(ESrc, "", "Src name for network_interface or an external ip to be explained")
+	args.EDst = flagset.String(EDst, "", "Dst name for network_interface or an external ip to be explained")
+	args.EProtocol = flagset.String(EProtocol, "", "Protocol for connection description")
+	args.ESrcMinPort = flagset.Int64(ESrcMinPort, common.MinPort, "SrcMinPort for connection description")
+	args.ESrcMaxPort = flagset.Int64(ESrcMaxPort, common.MaxPort, "SrcMaxPort for connection description")
+	args.EDstMinPort = flagset.Int64(EDstMinPort, common.MinPort, "DstMinPort for connection description")
+	args.EDstMaxPort = flagset.Int64(EDstMaxPort, common.MaxPort, "DstMaxPort for connection description")
 
 	// calling parseCmdLine prior to flagset.Parse to ensure that excessive and unsupported arguments are handled
 	// for example, flagset.Parse() ignores input args missing the `-`
@@ -223,13 +231,15 @@ func wasFlagSpecified(name string, flagset *flag.FlagSet) bool {
 	return found
 }
 
-func wereExplainParamsSpecified(flagset *flag.FlagSet) bool {
-	if wasFlagSpecified(QProtocol, flagset) || wasFlagSpecified(QSrcMinPort, flagset) || wasFlagSpecified(QSrcMaxPort, flagset) ||
-		wasFlagSpecified(QDstMinPort, flagset) || wasFlagSpecified(QDstMaxPort, flagset) {
-		return true
+func wereExplainParamsSpecified(flagset *flag.FlagSet, flagNames []string) bool {
+	specified := false
+	for i := 0; i < len(flagNames); i++ {
+		if wasFlagSpecified(flagNames[i], flagset) {
+			specified = true
+		}
 	}
 
-	return false
+	return specified
 }
 
 func PortInRange(port int64) bool {
@@ -249,39 +259,50 @@ func minMaxValidity(minPort, maxPort int64, minPortName, maxPortName string) err
 }
 
 func validRangeConnectionExplainMode(args *InArgs) error {
-	err := minMaxValidity(*args.QSrcMinPort, *args.QSrcMaxPort, QSrcMinPort, QSrcMaxPort)
+	err := minMaxValidity(*args.ESrcMinPort, *args.ESrcMaxPort, ESrcMinPort, ESrcMaxPort)
 	if err != nil {
 		return err
 	}
-	err = minMaxValidity(*args.QDstMinPort, *args.QDstMaxPort, QDstMinPort, QDstMaxPort)
+	err = minMaxValidity(*args.EDstMinPort, *args.EDstMaxPort, EDstMinPort, EDstMaxPort)
 	if err != nil {
 		return err
 	}
 
-	if !PortInRange(*args.QSrcMinPort) || !PortInRange(*args.QSrcMaxPort) ||
-		!PortInRange(*args.QDstMinPort) || !PortInRange(*args.QDstMaxPort) {
+	if !PortInRange(*args.ESrcMinPort) || !PortInRange(*args.ESrcMaxPort) ||
+		!PortInRange(*args.EDstMinPort) || !PortInRange(*args.EDstMaxPort) {
 		return fmt.Errorf("%s, %s, %s and %s must be in ranges [%d, %d]",
-			QSrcMinPort, QSrcMaxPort, QDstMinPort, QDstMaxPort, common.MinPort, common.MaxPort)
+			ESrcMinPort, ESrcMaxPort, EDstMinPort, EDstMaxPort, common.MinPort, common.MaxPort)
 	}
 
 	return nil
 }
 
 func invalidArgsExplainMode(args *InArgs, flagset *flag.FlagSet) error {
-	if *args.AnalysisType != explainMode && wereExplainParamsSpecified(flagset) {
-		return fmt.Errorf("%s, %s, %s, %s and %s can be specified only when analysis-type is %s",
-			QProtocol, QSrcMinPort, QSrcMaxPort, QDstMinPort, QDstMaxPort, explainMode)
-	}
-
 	if *args.AnalysisType != explainMode {
+		if wereExplainParamsSpecified(flagset, []string{ESrc, EDst, EProtocol, ESrcMinPort, ESrcMaxPort, EDstMinPort, EDstMaxPort, explainMode}) {
+			return fmt.Errorf("%s, %s, %s, %s, %s, %s and %s can be specified only when analysis-type is %s",
+				ESrc, EDst, EProtocol, ESrcMinPort, ESrcMaxPort, EDstMinPort, EDstMaxPort, explainMode)
+		}
 		return nil
 	}
 
-	protocol := strings.ToUpper(*args.QProtocol)
+	if *args.ESrc == "" || *args.EDst == "" {
+		return fmt.Errorf("please specify %s and %s network_interface / external ip you want to explain connectivity for", ESrc, EDst)
+	}
+
+	if *args.EProtocol == "" {
+		if wereExplainParamsSpecified(flagset, []string{EProtocol, ESrcMinPort, ESrcMaxPort, EDstMinPort, EDstMaxPort, explainMode}) {
+			return fmt.Errorf("%s, %s, %s, %s and %s can be specified only when specifying %s",
+				ESrcMinPort, ESrcMaxPort, EDstMinPort, EDstMaxPort, EProtocol)
+		}
+		return nil
+	}
+
+	protocol := strings.ToUpper(*args.EProtocol)
 	if protocol != string(common.ProtocolTCP) && protocol != string(common.ProtocolUDP) && protocol != string(common.ProtocolICMP) {
 		return fmt.Errorf("wrong connection description protocol '%s'; must be one of: 'TCP, UDP, ICMP'", protocol)
 	}
-	args.QProtocol = &protocol
+	args.EProtocol = &protocol
 
 	return validRangeConnectionExplainMode(args)
 }

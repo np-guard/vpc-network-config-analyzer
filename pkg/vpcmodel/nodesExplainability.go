@@ -30,14 +30,31 @@ type srcDstDetails struct {
 
 type rulesAndConnDetails []*srcDstDetails
 
-type explanation struct {
+type Explanation struct {
 	c               *VPCConfig
 	connQuery       *common.ConnectionSet
 	rulesAndDetails *rulesAndConnDetails // rules and more details for a single src->dst
+	src             string
+	dst             string
 	// grouped connectivity result:
 	// grouping common explanation lines with common src/dst (internal node) and different dst/src (external node)
 	// [required due to computation with disjoint ip-blocks]
 	groupedLines []*groupedConnLine
+}
+
+func TranslateCDtoConnectionSet(protocol string, srcMinPort, srcMaxPort, dstMinPort, dstMaxPort int64) *common.ConnectionSet {
+	if protocol == "" {
+		return nil
+	}
+	connection := common.NewConnectionSet(false)
+	if common.ProtocolStr(protocol) == common.ProtocolICMP {
+		connection.AddICMPConnection(common.MinICMPtype, common.MaxICMPtype,
+			common.MinICMPcode, common.MaxICMPcode)
+	} else {
+		connection.AddTCPorUDPConn(common.ProtocolStr(protocol), srcMinPort, srcMaxPort, dstMinPort, dstMaxPort)
+	}
+
+	return connection
 }
 
 // finds the node of a given, by its name, Vsi
@@ -102,31 +119,31 @@ func (c *VPCConfig) getNodesFromInput(cidrOrName string) ([]Node, error) {
 
 // ExplainConnectivity todo: this will not be needed here once we connect explanbility to the cli
 // nil conn means connection is not part of the query
-func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.ConnectionSet) (out string, err error) {
+func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.ConnectionSet) (res *Explanation, err error) {
 	srcNodes, dstNodes, err := c.processInput(src, dst)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	rulesAndDetails, err1 := c.computeExplainRules(srcNodes, dstNodes, connQuery)
 	if err1 != nil {
-		return "", err1
+		return nil, err1
 	}
 	if connQuery == nil { // find the connection between src and dst if connection not specified in query
 		err2 := rulesAndDetails.computeConnections(c)
 		if err2 != nil {
-			return "", err2
+			return nil, err2
 		}
 	}
 	err3 := c.computeRouterAndActualRules(&rulesAndDetails)
 	if err3 != nil {
-		return "", err3
+		return nil, err3
 	}
 	groupedLines, err4 := newGroupConnExplainability(c, &rulesAndDetails)
 	if err4 != nil {
-		return "", err4
+		return nil, err4
 	}
-	res := &explanation{c, connQuery, &rulesAndDetails, groupedLines.GroupedLines}
-	return res.String(), nil
+
+	return &Explanation{c, connQuery, &rulesAndDetails, src, dst, groupedLines.GroupedLines}, nil
 }
 
 // computeExplainRules computes the egress and ingress rules contributing to the (existing or missing) connection <src, dst>
@@ -299,7 +316,7 @@ func (explanationStruct *rulesAndConnDetails) String(c *VPCConfig, connQuery *co
 	return resStr, nil
 }
 
-func (explanation *explanation) String() string {
+func (explanation *Explanation) String() string {
 	linesStr := make([]string, len(explanation.groupedLines))
 	groupedLines := explanation.groupedLines
 	for i, line := range groupedLines {

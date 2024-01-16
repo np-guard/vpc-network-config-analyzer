@@ -51,9 +51,10 @@ type OutputGenerator struct {
 	nodesConn      map[string]*VPCConnectivity
 	subnetsConn    map[string]*VPCsubnetConnectivity
 	cfgsDiff       *diffBetweenCfgs
+	explainStruct  *Explanation
 }
 
-func NewOutputGenerator(c1, c2 map[string]*VPCConfig, grouping bool, uc OutputUseCase, archOnly bool) (*OutputGenerator, error) {
+func NewOutputGenerator(c1, c2 map[string]*VPCConfig, grouping bool, uc OutputUseCase, archOnly bool, explainStruct *Explanation) (*OutputGenerator, error) {
 	res := &OutputGenerator{
 		config1:        c1,
 		config2:        c2,
@@ -61,6 +62,7 @@ func NewOutputGenerator(c1, c2 map[string]*VPCConfig, grouping bool, uc OutputUs
 		useCase:        uc,
 		nodesConn:      map[string]*VPCConnectivity{},
 		subnetsConn:    map[string]*VPCsubnetConnectivity{},
+		explainStruct:  explainStruct,
 	}
 	if !archOnly {
 		for i := range c1 {
@@ -124,7 +126,7 @@ func (o *OutputGenerator) Generate(f OutFormat, outFile string) (string, error) 
 	default:
 		return "", errors.New("unsupported output format")
 	}
-	return formatter.WriteOutput(o.config1, o.config2, o.nodesConn, o.subnetsConn, o.cfgsDiff, outFile, o.outputGrouping, o.useCase)
+	return formatter.WriteOutput(o.config1, o.config2, o.nodesConn, o.subnetsConn, o.cfgsDiff, outFile, o.outputGrouping, o.useCase, o.explainStruct)
 }
 
 // SingleVpcOutputFormatter is an interface for a formatter that can handle only one vpc
@@ -132,7 +134,7 @@ func (o *OutputGenerator) Generate(f OutFormat, outFile string) (string, error) 
 type SingleVpcOutputFormatter interface {
 	WriteOutput(c1, c2 *VPCConfig, conn *VPCConnectivity,
 		subnetsConn *VPCsubnetConnectivity, subnetsDiff *diffBetweenCfgs,
-		outFile string, grouping bool, uc OutputUseCase) (*SingleAnalysisOutput, error)
+		outFile string, grouping bool, uc OutputUseCase, explainStruct *Explanation) (*SingleAnalysisOutput, error)
 }
 
 // OutputFormatter is an interface for formatter that handle multi vpcs.
@@ -140,7 +142,7 @@ type SingleVpcOutputFormatter interface {
 type OutputFormatter interface {
 	WriteOutput(c1, c2 map[string]*VPCConfig, conn map[string]*VPCConnectivity,
 		subnetsConn map[string]*VPCsubnetConnectivity, subnetsDiff *diffBetweenCfgs,
-		outFile string, grouping bool, uc OutputUseCase) (string, error)
+		outFile string, grouping bool, uc OutputUseCase, explainStruct *Explanation) (string, error)
 }
 
 // serialOutputFormatter is the formatter for json, md and txt formats.
@@ -168,14 +170,14 @@ func (of *serialOutputFormatter) createSingleVpcFormatter() SingleVpcOutputForma
 
 func (of *serialOutputFormatter) WriteOutput(c1, c2 map[string]*VPCConfig, conns map[string]*VPCConnectivity,
 	subnetsConns map[string]*VPCsubnetConnectivity, subnetsDiff *diffBetweenCfgs,
-	outFile string, grouping bool, uc OutputUseCase) (string, error) {
+	outFile string, grouping bool, uc OutputUseCase, explainStruct *Explanation) (string, error) {
 	diffAnalysis := uc == EndpointsDiff || uc == SubnetsDiff
 	if !diffAnalysis {
 		outputPerVPC := make([]*SingleAnalysisOutput, len(c1))
 		i := 0
 		for name := range c1 {
 			vpcAnalysisOutput, err2 :=
-				of.createSingleVpcFormatter().WriteOutput(c1[name], nil, conns[name], subnetsConns[name], subnetsDiff, "", grouping, uc)
+				of.createSingleVpcFormatter().WriteOutput(c1[name], nil, conns[name], subnetsConns[name], subnetsDiff, "", grouping, uc, explainStruct)
 			if err2 != nil {
 				return "", err2
 			}
@@ -187,7 +189,7 @@ func (of *serialOutputFormatter) WriteOutput(c1, c2 map[string]*VPCConfig, conns
 	// its a diff mode, we have only one vpc on each map:
 	name, _ := common.AnyMapEntry(c1)
 	vpcAnalysisOutput, err2 :=
-		of.createSingleVpcFormatter().WriteOutput(c1[name], c2[name], conns[name], subnetsConns[name], subnetsDiff, "", grouping, uc)
+		of.createSingleVpcFormatter().WriteOutput(c1[name], c2[name], conns[name], subnetsConns[name], subnetsDiff, "", grouping, uc, explainStruct)
 	if err2 != nil {
 		return "", err2
 	}

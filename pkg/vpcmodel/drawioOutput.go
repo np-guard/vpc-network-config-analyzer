@@ -147,7 +147,8 @@ func (d *DrawioOutputFormatter) WriteOutput(c1, c2 map[string]*VPCConfig,
 	cfgsDiff *diffBetweenCfgs,
 	outFile string,
 	grouping bool,
-	uc OutputUseCase) (string, error) {
+	uc OutputUseCase,
+	explanation *Explanation) (string, error) {
 	switch uc {
 	case AllEndpoints:
 		gConn := map[string]*GroupConnLines{}
@@ -189,6 +190,7 @@ func (d *ArchDrawioOutputFormatter) WriteOutput(c1, c2 map[string]*VPCConfig,
 	cfgsDiff *diffBetweenCfgs,
 	outFile string,
 	grouping bool,
-	uc OutputUseCase) (string, error) {
-	return d.DrawioOutputFormatter.WriteOutput(c1, c2, nil, nil, nil, outFile, grouping, uc)
+	uc OutputUseCase,
+	explanation *Explanation) (string, error) {
+	return d.DrawioOutputFormatter.WriteOutput(c1, c2, nil, nil, nil, outFile, grouping, uc, explanation)
 }

@@ -11,6 +11,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -41,6 +42,13 @@ type vpcGeneralTest struct {
 	grouping       bool
 	format         vpcmodel.OutFormat
 	vpc            string
+	ESrc           string
+	EDst           string
+	EProtocol      string
+	ESrcMinPort    int64
+	ESrcMaxPort    int64
+	EDstMinPort    int64
+	EDstMaxPort    int64
 }
 
 const (
@@ -52,6 +60,7 @@ const (
 	suffixOutFileSubnetsLevelNoPGW = "subnetsBased_withoutPGW"
 	suffixOutFileDiffSubnets       = "subnetsDiff"
 	suffixOutFileDiffEndpoints     = "endpointsDiff"
+	suffixOutFileExplain           = "explain"
 	txtOutSuffix                   = ".txt"
 	debugOutSuffix                 = "_debug.txt"
 	mdOutSuffix                    = ".md"
@@ -93,6 +102,8 @@ func getTestFileName(testName string,
 		res = baseName + suffixOutFileDiffSubnets
 	case vpcmodel.EndpointsDiff:
 		res = baseName + suffixOutFileDiffEndpoints
+	case vpcmodel.Explain:
+		res = baseName + suffixOutFileExplain
 	}
 	if grouping {
 		res += suffixOutFileWithGrouping
@@ -183,6 +194,14 @@ var tests = []*vpcGeneralTest{
 		// TODO: currently skipping uc3 since it is not supported with partial subnet connectivity
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.SingleSubnet},
 		format:   vpcmodel.Text,
+	},
+	{
+		name: "acl_testing3",
+		// TODO: currently skipping uc3 since it is not supported with partial subnet connectivity
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.Explain},
+		format:   vpcmodel.Text,
+		ESrc:     "vsi1-ky[10.240.10.4]",
+		EDst:     "vsi2-ky[10.240.20.4]",
 	},
 	{
 		name:     "sg_testing1_new",
@@ -493,9 +512,13 @@ func (tt *vpcGeneralTest) runTest(t *testing.T) {
 	vpcConfigs := getVPCConfigs(t, tt, true)
 	var vpcConfigs2nd map[string]*vpcmodel.VPCConfig
 	diffUseCase := false
+	explainUseCase := false
 	for _, useCase := range tt.useCases {
 		if useCase == vpcmodel.SubnetsDiff || useCase == vpcmodel.EndpointsDiff {
 			diffUseCase = true
+		}
+		if useCase == vpcmodel.Explain {
+			explainUseCase = true
 		}
 	}
 	if diffUseCase {
@@ -504,9 +527,20 @@ func (tt *vpcGeneralTest) runTest(t *testing.T) {
 		tt.inputConfig2nd = ""
 	}
 
+	var explanation *vpcmodel.Explanation
+	if explainUseCase {
+		// in explain analysis-type we have only one vpc
+		_, vpcConfig := common.AnyMapEntry(vpcConfigs)
+		connQuery := vpcmodel.TranslateCDtoConnectionSet(tt.EProtocol, tt.ESrcMinPort,
+			tt.ESrcMaxPort, tt.EDstMinPort, tt.EDstMaxPort)
+		explanation, _ = vpcConfig.ExplainConnectivity(tt.ESrc, tt.EDst, connQuery)
+	} else {
+		explanation = nil
+	}
+
 	// generate actual output for all use cases specified for this test
 	for _, uc := range tt.useCases {
-		err := runTestPerUseCase(t, tt, vpcConfigs, vpcConfigs2nd, uc, tt.mode)
+		err := runTestPerUseCase(t, tt, vpcConfigs, vpcConfigs2nd, uc, tt.mode, explanation)
 		require.Equal(t, tt.errPerUseCase[uc], err, "comparing actual err to expected err")
 	}
 	for uc, outFile := range tt.actualOutput {
@@ -579,11 +613,12 @@ func runTestPerUseCase(t *testing.T,
 	tt *vpcGeneralTest,
 	c1, c2 map[string]*vpcmodel.VPCConfig,
 	uc vpcmodel.OutputUseCase,
-	mode testMode) error {
+	mode testMode,
+	explanation *vpcmodel.Explanation) error {
 	if err := initTestFileNames(tt, uc, "", true); err != nil {
 		return err
 	}
-	og, err := vpcmodel.NewOutputGenerator(c1, c2, tt.grouping, uc, tt.format == vpcmodel.ARCHDRAWIO)
+	og, err := vpcmodel.NewOutputGenerator(c1, c2, tt.grouping, uc, tt.format == vpcmodel.ARCHDRAWIO, explanation)
 	if err != nil {
 		return err
 	}

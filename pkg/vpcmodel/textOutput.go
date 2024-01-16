@@ -8,7 +8,7 @@ import (
 type TextOutputFormatter struct {
 }
 
-func headerOfAnalyzedVPC(uc OutputUseCase, vpcName, vpc2Name string, c1 *VPCConfig) (string, error) {
+func headerOfAnalyzedVPC(uc OutputUseCase, vpcName, vpc2Name string, c1 *VPCConfig, explanation *Explanation) (string, error) {
 	switch uc {
 	case AllEndpoints, AllSubnets, SingleSubnet:
 		if c1.IsMultipleVPCsConfig {
@@ -21,6 +21,8 @@ func headerOfAnalyzedVPC(uc OutputUseCase, vpcName, vpc2Name string, c1 *VPCConf
 		return fmt.Sprintf("Connectivity for VPC %s\n", vpcName), nil
 	case SubnetsDiff, EndpointsDiff:
 		return fmt.Sprintf("Connectivity diff between VPC %s and VPC %s\n", vpcName, vpc2Name), nil
+	case Explain:
+		return fmt.Sprintf("Connectivity explanation between %s and %s\n", explanation.src, explanation.dst), nil
 	}
 	return "", nil // should never get here
 }
@@ -31,13 +33,14 @@ func (t *TextOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	cfgsDiff *diffBetweenCfgs,
 	outFile string,
 	grouping bool,
-	uc OutputUseCase) (*SingleAnalysisOutput, error) {
+	uc OutputUseCase,
+	explanation *Explanation) (*SingleAnalysisOutput, error) {
 	vpc2Name := ""
 	if c2 != nil {
 		vpc2Name = c2.VPC.Name()
 	}
 	// header line - specify the VPC analyzed
-	out, err := headerOfAnalyzedVPC(uc, c1.VPC.Name(), vpc2Name, c1)
+	out, err := headerOfAnalyzedVPC(uc, c1.VPC.Name(), vpc2Name, c1, explanation)
 	if err != nil {
 		return nil, err
 	}
@@ -56,6 +59,8 @@ func (t *TextOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	case SubnetsDiff, EndpointsDiff:
 		out += cfgsDiff.String()
 		hasStatelessConns = cfgsDiff.hasStatelessConns()
+	case Explain:
+		out += explanation.String()
 	}
 	// write output to file and return the output string
 	_, err = WriteToFile(out, outFile)
