@@ -28,10 +28,13 @@ func (lyO *subnetLayoutOverlap) addPoint(line LineTreeNodeInterface) {
 	src, dst := line.Src().(SquareTreeNodeInterface), line.Dst().(SquareTreeNodeInterface)
 	xSrc, ySrc := absoluteGeometry(src)
 	xDst, yDst := absoluteGeometry(dst)
-	x := (xDst + dst.Width()/2)*6/10 + (xSrc + src.Width()/2)*4/10
-	y := max(ySrc+src.Height(), yDst+dst.Height()) + subnetWidth/3
-	line.addPoint(x, y)
+	xSrc, ySrc = xSrc+src.Width()/2, ySrc+src.Height()/2
+	xDst, yDst = xDst+dst.Width()/2, yDst+dst.Height()/2
+	dX, dY := xDst-xSrc, yDst-ySrc
+	midX, midY := (xDst+xSrc)/2, (yDst+ySrc)/2
+	line.addPoint(midX - 100*dY/ (dX+ dY), midY + 100*dX/ (dX+ dY))
 }
+
 func (lyO *subnetLayoutOverlap) squaresOverlap(line LineTreeNodeInterface) bool {
 	src, dst := line.Src().(SquareTreeNodeInterface), line.Dst().(SquareTreeNodeInterface)
 	lSrc := src.Location()
