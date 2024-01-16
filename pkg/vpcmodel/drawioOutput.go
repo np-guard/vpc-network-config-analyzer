@@ -2,6 +2,7 @@ package vpcmodel
 
 import (
 	"errors"
+	"slices"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
@@ -30,6 +31,7 @@ type DrawioOutputFormatter struct {
 	conns    map[string]*GroupConnLines
 	gen      *DrawioGenerator
 	routers  map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface
+	tGWs     map[*VPCConfig]drawio.IconTreeNodeInterface
 	uc       OutputUseCase
 }
 
@@ -42,6 +44,7 @@ func (d *DrawioOutputFormatter) init(cConfigs map[string]*VPCConfig, conns map[s
 	cloudName := aVpcConfig.CloudName
 	d.gen = NewDrawioGenerator(cloudName)
 	d.routers = map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface{}
+	d.tGWs = map[*VPCConfig]drawio.IconTreeNodeInterface{}
 }
 
 func (d *DrawioOutputFormatter) createDrawioTree() {
@@ -97,6 +100,21 @@ func (d *DrawioOutputFormatter) createRouters() {
 						d.routers[d.gen.TreeNode(ni)] = rTn.(drawio.IconTreeNodeInterface)
 					}
 				}
+				//////////// todo - replace with isTGW?
+				allVpcs := []NodeSet{}
+				for _, vpcConfig := range d.cConfigs {
+					allVpcs = append(allVpcs, vpcConfig.VPC.(NodeSet))
+				}
+				vpcs := []NodeSet{}
+				for _, ns := range vpcConfig.NodeSets {
+					if slices.Contains(allVpcs, ns) {
+						vpcs = append(vpcs, ns)
+					}
+				}
+				//////
+				if len(vpcs) > 1 {
+					d.tGWs[vpcConfig] = rTn.(drawio.IconTreeNodeInterface)
+				}
 			}
 		}
 	}
@@ -106,15 +124,16 @@ func (d *DrawioOutputFormatter) createEdges() {
 	type edgeKey struct {
 		src   EndpointElem
 		dst   EndpointElem
+		tgw   drawio.IconTreeNodeInterface
 		label string
 	}
 	isEdgeDirected := map[edgeKey]bool{}
-	for _, vpcConn := range d.conns {
+	for configName, vpcConn := range d.conns {
 		for _, line := range vpcConn.GroupedLines {
 			src := line.src
 			dst := line.dst
-			e := edgeKey{src, dst, line.ConnLabel()}
-			revE := edgeKey{dst, src, line.ConnLabel()}
+			e := edgeKey{src, dst, d.tGWs[d.cConfigs[configName]], line.ConnLabel()}
+			revE := edgeKey{dst, src, d.tGWs[d.cConfigs[configName]], line.ConnLabel()}
 			_, revExist := isEdgeDirected[revE]
 			if revExist {
 				isEdgeDirected[revE] = false
@@ -133,6 +152,10 @@ func (d *DrawioOutputFormatter) createEdges() {
 			if d.routers[cn.Dst()] != nil && e.src.IsExternal() {
 				cn.SetRouter(d.routers[cn.Dst()], true)
 			}
+			if e.tgw != nil{
+				cn.SetRouter(e.tgw, true)
+
+			}	
 		}
 	}
 }

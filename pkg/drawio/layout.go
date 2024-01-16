@@ -702,6 +702,7 @@ func (ly *layoutS) setIconsLocations() {
 			}
 			ly.setVpcIconsLocations(vpc)
 		}
+		ly.setVpcIconsLocations(cloud)
 	}
 	ly.setPublicNetworkIconsLocations()
 	ly.setGroupingIconLocations()
