@@ -23,6 +23,11 @@ func newSubnetLayoutOverlap(network TreeNodeInterface, m *layoutMatrix) *subnetL
 	}
 	return &lyO
 }
+func isPointInSquare(sq SquareTreeNodeInterface, x, y int) bool {
+	xMin, yMin := absoluteGeometry(sq)
+	xMax, yMax := xMin+sq.Width(), yMin+sq.Height()
+	return x >= xMin && x <= xMax && y >= yMin && y <= yMax
+}
 
 func (lyO *subnetLayoutOverlap) addPoint(line LineTreeNodeInterface) {
 	src, dst := line.Src().(SquareTreeNodeInterface), line.Dst().(SquareTreeNodeInterface)
@@ -32,7 +37,51 @@ func (lyO *subnetLayoutOverlap) addPoint(line LineTreeNodeInterface) {
 	xDst, yDst = xDst+dst.Width()/2, yDst+dst.Height()/2
 	dX, dY := xDst-xSrc, yDst-ySrc
 	midX, midY := (xDst+xSrc)/2, (yDst+ySrc)/2
-	line.addPoint(midX - 100*dY/ (dX+ dY), midY + 100*dX/ (dX+ dY))
+	x, y := 0, 0
+	switch {
+	case abs(dY) < minSize && abs(dX) < minSize:
+		// todo
+	case abs(dX) < minSize:
+		y = midY
+		x = midX + max(src.Width()/2, dst.Width()/2) + subnetWidth/2
+	case abs(dY) < minSize:
+		y = midY + max(src.Height()/2, dst.Height()/2) + subnetHeight/2
+		x = midX
+	default:
+		potentialXs := []int{
+			midX + src.Width()/2 + subnetWidth/2,
+			midX + dst.Width()/2 + subnetWidth/2,
+			midX - src.Width()/2 - subnetWidth/2,
+			midX - dst.Width()/2 - subnetWidth/2,
+		}
+		potentialYs := []int{
+			midY + src.Height()/2 + subnetHeight/2,
+			midY + dst.Height()/2 + subnetHeight/2,
+			midY - src.Height()/2 - subnetHeight/2,
+			midY - dst.Height()/2 - subnetHeight/2,
+		}
+		potentialPoints := []point{}
+		for _, px := range potentialXs {
+			py := midY + (midX-px)*dX/dY
+			potentialPoints = append(potentialPoints, point{px, py})
+		}
+		for _, py := range potentialYs {
+			px := midY + (midY-py)*dY/dX
+			potentialPoints = append(potentialPoints, point{px, py})
+		}
+		score := 10000000
+		for _, point := range potentialPoints {
+			if !isPointInSquare(src, point.X, point.Y) && !isPointInSquare(dst, point.Y, point.Y) {
+				newScore := abs(point.X-midX) + abs(point.Y-midY)
+				if newScore < score {
+					x, y = point.X, point.Y
+					score = newScore
+				}
+			}
+		}
+	}
+	line.addPoint(x, y)
+	// line.addPoint(midX-100*dY/(dX+dY), midY+100*dX/(dX+dY))
 }
 
 func (lyO *subnetLayoutOverlap) squaresOverlap(line LineTreeNodeInterface) bool {

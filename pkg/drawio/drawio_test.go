@@ -469,6 +469,9 @@ func createNetworkSubnetGroupingGroupInGroup() SquareTreeNodeInterface {
 		{0, 0, 3, 0, 3},
 
 		{0, 0, 4, 4, 4},
+
+		{0, 0, 3, 2, 3},
+
 	}
 	n, groups, _ := createNetworkSubnetGroupingGeneric(groupsIndexes)
 	conns := [][]SquareTreeNodeInterface{
@@ -481,15 +484,18 @@ func createNetworkSubnetGroupingGroupInGroup() SquareTreeNodeInterface {
 
 
 		{groups[4], groups[0]},
-		// {groups[4], groups[1]},
-		// {groups[4], groups[2]},
-		// {groups[4], groups[3]},
+		{groups[4], groups[1]},
+		{groups[4], groups[2]},
+		{groups[4], groups[3]},
 
-		// {groups[5], groups[0]},
-		// {groups[5], groups[1]},
-		// {groups[5], groups[2]},
-		// {groups[5], groups[3]},
-		// {groups[5], groups[4]},
+		{groups[5], groups[0]},
+		{groups[5], groups[1]},
+		{groups[5], groups[2]},
+		{groups[5], groups[3]},
+		{groups[5], groups[4]},
+
+		{groups[0], groups[6]},
+		{groups[2], groups[6]},
 
 	}
 	for _, conn := range conns {
