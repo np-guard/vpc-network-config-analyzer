@@ -292,7 +292,7 @@ func invalidArgsExplainMode(args *InArgs, flagset *flag.FlagSet) error {
 
 	if *args.EProtocol == "" {
 		if wereExplainParamsSpecified(flagset, []string{EProtocol, ESrcMinPort, ESrcMaxPort, EDstMinPort, EDstMaxPort, explainMode}) {
-			return fmt.Errorf("%s, %s, %s, %s and %s can be specified only when specifying %s",
+			return fmt.Errorf("%s, %s, %s and %s can be specified only when specifying %s",
 				ESrcMinPort, ESrcMaxPort, EDstMinPort, EDstMaxPort, EProtocol)
 		}
 		return nil
