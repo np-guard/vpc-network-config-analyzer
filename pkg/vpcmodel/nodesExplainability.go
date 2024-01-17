@@ -175,15 +175,13 @@ func (c *VPCConfig) computeRouterAndActualRules(potentialRules *rulesAndConnDeta
 		}
 		potential.router = routingResource
 		potential.filtersExternal = filtersForExternal
-		actual := &rulesSingleSrcDst{potential.src, potential.dst, potential.conn, routingResource, filtersForExternal, nil}
-		if potential.src.IsInternal() && potential.dst.IsInternal() { // internal: no need for routingResource, copy as is
-			actual.rules = potential.rules
-		} else { // connection to/from external address; adds only relevant filters
+		actual := *potential
+		if !potential.src.IsInternal() || !potential.dst.IsInternal() {
 			actualIngress := computeActualRules(&potential.rules.ingressRules, filtersForExternal)
 			actualEgress := computeActualRules(&potential.rules.egressRules, filtersForExternal)
 			actual.rules = &rulesConnection{*actualIngress, *actualEgress}
 		}
-		actualRulesAndConn[i] = actual
+		actualRulesAndConn[i] = &actual
 	}
 	return &actualRulesAndConn
 }
