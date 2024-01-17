@@ -172,6 +172,13 @@ func (c *VPCConfig) computeRouterAndActualRules(potentialRules *rulesAndConnDeta
 		var filtersForExternal map[string]bool
 		if routingResource != nil {
 			filtersForExternal = routingResource.AppliedFiltersKinds() // relevant filtersExternal
+		var routingResource RoutingResource
+		var filtersForExternal map[string]bool
+		if err1 == nil && err2 == nil {
+			routingResource, _ = c.getRoutingResource(containingSrcNode, containingDstNode)
+	        	if routingResource != nil {
+		        	filtersForExternal = routingResource.AppliedFiltersKinds() // relevant filtersExternal
+		        }
 		}
 		potential.router = routingResource
 		potential.filtersExternal = filtersForExternal
@@ -184,7 +191,12 @@ func (c *VPCConfig) computeRouterAndActualRules(potentialRules *rulesAndConnDeta
 			actual.rules = &rulesConnection{*actualIngress, *actualEgress}
 		}
 		actualRulesAndConn[i] = actual
-	}
+		actual := *potential
+		if !potential.src.IsInternal() || !potential.dst.IsInternal() {
+			actualIngress := computeActualRules(&potential.rules.ingressRules, filtersForExternal)
+			actualEgress := computeActualRules(&potential.rules.egressRules, filtersForExternal)
+			actual.rules = &rulesConnection{*actualIngress, *actualEgress}
+		}
 	return &actualRulesAndConn
 }
 
