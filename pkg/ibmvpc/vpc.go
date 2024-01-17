@@ -121,6 +121,7 @@ type VPC struct {
 	connectivityRules    *vpcmodel.ConnectivityResult // allowed connectivity between elements within the vpc
 	zones                map[string]*Zone
 	internalAddressRange *common.IPBlock
+	subnetsList          []*Subnet
 }
 
 func (v *VPC) getZoneByName(name string) (*Zone, error) {
@@ -139,6 +140,10 @@ func (v *VPC) Connectivity() *vpcmodel.ConnectivityResult {
 
 func (v *VPC) AddressRange() *common.IPBlock {
 	return v.internalAddressRange
+}
+
+func (v *VPC) subnets() []*Subnet {
+	return v.subnetsList
 }
 
 type Subnet struct {
@@ -542,7 +547,8 @@ func (pgw *PublicGateway) AppliedFiltersKinds() map[string]bool {
 
 type TransitGateway struct {
 	vpcmodel.VPCResource
-	vpcs []*VPC // the VPCs connected by a TGW
+	vpcs       []*VPC                     // the VPCs connected by a TGW
+	vpcFilters map[string]map[string]bool // map from VPC UID to its allowed set of subnets to be exported by the TGW
 }
 
 func (tgw *TransitGateway) ConnectivityMap() map[string]vpcmodel.ConfigBasedConnectivityResults {
