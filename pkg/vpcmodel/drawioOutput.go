@@ -2,7 +2,6 @@ package vpcmodel
 
 import (
 	"errors"
-	"slices"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
@@ -100,19 +99,7 @@ func (d *DrawioOutputFormatter) createRouters() {
 						d.routers[d.gen.TreeNode(ni)] = rTn.(drawio.IconTreeNodeInterface)
 					}
 				}
-				//////////// todo - replace with isTGW?
-				allVpcs := []NodeSet{}
-				for _, vpcConfig := range d.cConfigs {
-					allVpcs = append(allVpcs, vpcConfig.VPC.(NodeSet))
-				}
-				vpcs := []NodeSet{}
-				for _, ns := range vpcConfig.NodeSets {
-					if slices.Contains(allVpcs, ns) {
-						vpcs = append(vpcs, ns)
-					}
-				}
-				//////
-				if len(vpcs) > 1 {
+				if rTn.(drawio.IconTreeNodeInterface).IsTransitGateway() {
 					d.tGWs[vpcConfig] = rTn.(drawio.IconTreeNodeInterface)
 				}
 			}
@@ -152,10 +139,10 @@ func (d *DrawioOutputFormatter) createEdges() {
 			if d.routers[cn.Dst()] != nil && e.src.IsExternal() {
 				cn.SetRouter(d.routers[cn.Dst()], true)
 			}
-			if e.tgw != nil{
+			if e.tgw != nil {
 				cn.SetRouter(e.tgw, true)
 
-			}	
+			}
 		}
 	}
 }

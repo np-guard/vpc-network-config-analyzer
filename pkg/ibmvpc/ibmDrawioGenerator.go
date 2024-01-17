@@ -113,5 +113,5 @@ func (fip *FloatingIP) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) dra
 }
 
 func (tgw *TransitGateway) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
-	return drawio.NewGatewayTreeNode(gen.Cloud(), tgw.Name())
+	return drawio.NewTransitGatewayTreeNode(gen.Cloud(), tgw.Name())
 }
