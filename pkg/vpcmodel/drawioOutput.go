@@ -126,7 +126,15 @@ func (d *DrawioOutputFormatter) createEdges() {
 		for _, line := range vpcConn.GroupedLines {
 			src := line.src
 			dst := line.dst
-			router := d.multiVpcRouters[vpcResourceName]
+			var router drawio.IconTreeNodeInterface
+			switch {
+			case d.cConfigs[vpcResourceName].IsMultipleVPCsConfig:
+				router = d.multiVpcRouters[vpcResourceName]
+			case line.dst.IsExternal():
+				router = d.nodeRouters[d.gen.TreeNode(src)]
+			case line.src.IsExternal():
+				router = d.nodeRouters[d.gen.TreeNode(dst)]
+			}
 			e := edgeKey{src, dst, router, line.ConnLabel()}
 			revE := edgeKey{dst, src, router, line.ConnLabel()}
 			_, revExist := isEdgeDirected[revE]
@@ -141,14 +149,8 @@ func (d *DrawioOutputFormatter) createEdges() {
 		ei := &edgeInfo{e.src, e.dst, e.label, directed}
 		if d.showResource(ei) {
 			cn := d.gen.TreeNode(ei).(*drawio.ConnectivityTreeNode)
-			if d.nodeRouters[cn.Src()] != nil && e.dst.IsExternal() {
-				cn.SetRouter(d.nodeRouters[cn.Src()], false)
-			}
-			if d.nodeRouters[cn.Dst()] != nil && e.src.IsExternal() {
-				cn.SetRouter(d.nodeRouters[cn.Dst()], true)
-			}
 			if e.router != nil {
-				cn.SetRouter(e.router, true)
+				cn.SetRouter(e.router, e.src.IsExternal())
 
 			}
 		}

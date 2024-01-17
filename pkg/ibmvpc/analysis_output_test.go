@@ -148,7 +148,7 @@ func (tt *vpcGeneralTest) initTest() {
 var tests = []*vpcGeneralTest{
 	{
 		name:     "tgw_basic_example",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints,vpcmodel.AllSubnets},
 		format:   vpcmodel.DRAWIO,
 	},
 	// {
@@ -158,7 +158,7 @@ var tests = []*vpcGeneralTest{
 	// },
 	{
 		name:     "tgw_larger_example",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints,vpcmodel.AllSubnets},
 		format:   vpcmodel.DRAWIO,
 	},
 }
