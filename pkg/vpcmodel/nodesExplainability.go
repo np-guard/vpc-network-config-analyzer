@@ -166,12 +166,12 @@ func (c *VPCConfig) computeRouterAndActualRules(potentialRules *rulesAndConnDeta
 		containingSrcNode, err1 := c.getContainingConfigNode(src)
 		containingDstNode, err2 := c.getContainingConfigNode(dst)
 		var routingResource RoutingResource
+		var filtersForExternal map[string]bool
 		if err1 == nil && err2 == nil {
 			routingResource, _ = c.getRoutingResource(containingSrcNode, containingDstNode)
-		}
-		var filtersForExternal map[string]bool
-		if routingResource != nil {
-			filtersForExternal = routingResource.AppliedFiltersKinds() // relevant filtersExternal
+			if routingResource != nil {
+				filtersForExternal = routingResource.AppliedFiltersKinds() // relevant filtersExternal
+			}
 		}
 		potential.router = routingResource
 		potential.filtersExternal = filtersForExternal
