@@ -189,7 +189,7 @@ func (c *VPCConfig) computeRouterAndActualRules(potentialRules *rulesAndConnDeta
 }
 
 func computeActualRules(potentialRules *rulesInLayers, filtersExternal map[string]bool) *rulesInLayers {
-	actualRules := make(rulesInLayers)
+	actualRules := rulesInLayers{}
 	for filter, potentialRules := range *potentialRules {
 		if filtersExternal[filter] {
 			actualRules[filter] = potentialRules
