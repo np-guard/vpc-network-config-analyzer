@@ -1,0 +1,62 @@
+Connectivity between VPCs connected by TGW global-tg-ky (UID: crn:607)
+combined connections between subnets:
+ky-vpc1-net1 => ky-vpc3-net1 : All Connections
+ky-vpc3-net1 => ky-vpc1-net1 : All Connections
+
+Connectivity between VPCs connected by TGW global-tg-zn (UID: crn:595)
+combined connections between subnets:
+zn-vpc1-net1 => zn-vpc3-net1 : All Connections
+zn-vpc3-net1 => zn-vpc1-net1 : All Connections
+
+Connectivity between VPCs connected by TGW local-tg-ky (UID: crn:603)
+combined connections between subnets:
+ky-vpc1-net1 => ky-vpc2-net1 : All Connections
+ky-vpc2-net1 => ky-vpc1-net1 : All Connections
+
+Connectivity between VPCs connected by TGW local-tg-zn (UID: crn:599)
+combined connections between subnets:
+zn-vpc1-net1 => zn-vpc2-net1 : All Connections
+zn-vpc2-net1 => zn-vpc1-net1 : All Connections
+
+Connectivity for VPC ete-backup-and-storage
+combined connections between subnets:
+sn-20230126-01 => sn-20230126-02 : All Connections
+sn-20230126-01 => sn-20230126-03 : All Connections
+sn-20230126-02 => sn-20230126-01 : All Connections
+sn-20230126-02 => sn-20230126-03 : All Connections
+sn-20230126-03 => sn-20230126-01 : All Connections
+sn-20230126-03 => sn-20230126-02 : All Connections
+
+Connectivity for VPC ete-storage-project
+combined connections between subnets:
+sn-20221205-01 => sn-20221205-02 : All Connections
+sn-20221205-01 => sn-20221205-03 : All Connections
+sn-20221205-02 => Public Internet (all ranges) : All Connections
+sn-20221205-02 => sn-20221205-01 : All Connections
+sn-20221205-02 => sn-20221205-03 : All Connections
+sn-20221205-03 => sn-20221205-01 : All Connections
+sn-20221205-03 => sn-20221205-02 : All Connections
+
+Connectivity for VPC ky-vpc1
+combined connections between subnets:
+
+
+Connectivity for VPC ky-vpc2
+combined connections between subnets:
+
+
+Connectivity for VPC ky-vpc3
+combined connections between subnets:
+
+
+Connectivity for VPC zn-vpc1
+combined connections between subnets:
+
+
+Connectivity for VPC zn-vpc2
+combined connections between subnets:
+
+
+Connectivity for VPC zn-vpc3
+combined connections between subnets:
+

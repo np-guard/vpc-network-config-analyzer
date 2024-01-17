@@ -396,6 +396,11 @@ var tests = []*vpcGeneralTest{
 		format:   vpcmodel.Text,
 	},
 	{
+		name:     "tgw_basic_example_multiple_regions",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+		format:   vpcmodel.Text,
+	},
+	{
 		name:     "tgw_larger_example",
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
 		format:   vpcmodel.Text,
@@ -518,11 +523,7 @@ func getVPCConfigs(t *testing.T, tt *vpcGeneralTest, firstCfg bool) map[string]*
 		inputConfig = tt.inputConfig2nd
 	}
 	inputConfigFile := filepath.Join(getTestsDir(), inputConfig)
-	inputConfigContent, err := os.ReadFile(inputConfigFile)
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
-	rc, err := ParseResources(inputConfigContent)
+	rc, err := ParseResourcesFromFile(inputConfigFile)
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
