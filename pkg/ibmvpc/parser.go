@@ -594,96 +594,6 @@ func getNACLconfig(rc *datamodel.ResourcesContainerModel,
 	return nil
 }
 
-// LE/GE: Without either, an entry will match an exact prefix.
-// The le parameter can be included to match all more-specific prefixes within a parent prefix up to a certain length.
-// For example, 10.0.0.0/24 le 30 will match 10.0.0.0/24 and all prefixes contained therein with a length of 30 or less.
-
-/*
-// TransitGatewayConnectionPrefixFilter : A prefix filter for a Transit Gateway connection.
-type TransitGatewayConnectionPrefixFilter struct {
-	// Whether to permit or deny prefix filter.
-	Action *string `json:"action" validate:"required"`
-
-	// IP Prefix GE.
-	Ge *int64 `json:"ge,omitempty"`
-
-	// IP Prefix LE.
-	Le *int64 `json:"le,omitempty"`
-
-	// IP Prefix.
-	Prefix *string `json:"prefix" validate:"required"`
-}
-*/
-
-func prefixLeGeMatch(prefix *string, le, ge *int64, subnet *Subnet) (bool, error) {
-	prefixIPBlock := common.NewIPBlockFromCidr(*prefix)
-	subnetCIDR := subnet.AddressRange()
-	subnetCIDRLen, err := subnetCIDR.PrefixLength()
-	if err != nil {
-		return false, err
-	}
-	switch {
-	case ge == nil && le == nil:
-		return subnetCIDR.Equal(prefixIPBlock), nil
-	case ge == nil:
-		return subnetCIDR.ContainedIn(prefixIPBlock) && subnetCIDRLen <= *le, nil
-	case le == nil:
-		return subnetCIDR.ContainedIn(prefixIPBlock) && subnetCIDRLen >= *ge, nil
-	default:
-		return subnetCIDR.ContainedIn(prefixIPBlock) && subnetCIDRLen >= *ge && subnetCIDRLen <= *le, nil
-	}
-}
-
-func isSubnetMatchedByPrefixFilters(subnet *Subnet, tc *datamodel.TransitConnection) (bool, error) {
-	// Array of prefix route filters for a transit gateway connection. This is order dependent with those first in the
-	// array being applied first, and those at the end of the array is applied last, or just before the default.
-	pfList := tc.PrefixFilters
-
-	// Default setting of permit or deny which applies to any routes that don't match a specified filter.
-	pfDefault := tc.PrefixFiltersDefault
-
-	// TODO: currently assuming subnet cidrs are the advertised routes to the TGW, matched against the prefix filters
-	// TOTO: currently ignoring the "Before" field of each PrefixFilter, since assuming the array is ordered
-	// iterate by order the array of prefix route filters
-	for _, pf := range pfList {
-		match, err := prefixLeGeMatch(pf.Prefix, pf.Le, pf.Ge, subnet)
-		if err != nil {
-			return false, err
-		}
-		if match {
-			if *pf.Action == "permit" {
-				return true, nil
-			} else if *pf.Action == "deny" {
-				return false, nil
-			} else {
-				return false, errors.New("prefix filter action should be permit or deny")
-			}
-		}
-	}
-	// no match by pfList -- use default
-	if *pfDefault == "permit" {
-		return true, nil
-	} else if *pfDefault == "deny" {
-		return false, nil
-	}
-	return false, errors.New("prefix filter default should be permit or deny")
-}
-
-// given a TransitConnection object, analyze its prefix filters, and get the permitted set subnets
-func getTransitConnectionFiltersForVPC(tc *datamodel.TransitConnection, vpc *VPC) (map[string]bool, error) {
-	res := map[string]bool{}
-	for _, subnet := range vpc.subnets() {
-		matched, err := isSubnetMatchedByPrefixFilters(subnet, tc)
-		if nil != err {
-			return nil, err
-		}
-		if matched {
-			res[subnet.UID()] = true
-		}
-	}
-	return res, nil
-}
-
 func getTgwObjects(c *datamodel.ResourcesContainerModel,
 	res map[string]*vpcmodel.VPCConfig) map[string]*TransitGateway {
 	tgwMap := map[string]*TransitGateway{} // collect all tgw resources
@@ -710,11 +620,11 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 		} else {
 			tgwMap[tgwUID].vpcs = append(tgwMap[tgwUID].vpcs, vpc)
 		}
-		permittedCIDRs, err := getTransitConnectionFiltersForVPC(tgwConn, vpc)
+		permittedSubnets, err := getTransitConnectionFiltersForVPC(tgwConn, vpc)
 		if err != nil {
 			fmt.Printf("warning: ignoring prefix filters, vpcID: %s, tgwID: %s, err is: %s\n", vpcUID, tgwUID, err.Error())
 		} else {
-			tgwMap[tgwUID].vpcFilters[vpc.ResourceUID] = permittedCIDRs
+			tgwMap[tgwUID].vpcFilters[vpc.ResourceUID] = permittedSubnets
 		}
 	}
 	return tgwMap
