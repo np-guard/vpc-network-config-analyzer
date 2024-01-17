@@ -191,7 +191,12 @@ func (c *VPCConfig) computeRouterAndActualRules(potentialRules *rulesAndConnDeta
 			actual.rules = &rulesConnection{*actualIngress, *actualEgress}
 		}
 		actualRulesAndConn[i] = actual
-	}
+		actual := *potential
+		if !potential.src.IsInternal() || !potential.dst.IsInternal() {
+			actualIngress := computeActualRules(&potential.rules.ingressRules, filtersForExternal)
+			actualEgress := computeActualRules(&potential.rules.egressRules, filtersForExternal)
+			actual.rules = &rulesConnection{*actualIngress, *actualEgress}
+		}
 	return &actualRulesAndConn
 }
 
