@@ -156,7 +156,7 @@ func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node,
 // (which was computed based on the RoutingResource) and (in the near future) considering the combined filters
 // at the moment (only SG supported) actual can differ from potential only if src or dst is external
 func (c *VPCConfig) computeRouterAndActualRules(potentialRules *rulesAndConnDetails) *rulesAndConnDetails {
-	actualRulesAndConn := make(rulesAndConnDetails, max(len(*potentialRules), len(*potentialRules)))
+	actualRulesAndConn := make(rulesAndConnDetails, len(*potentialRules))
 	for i, potential := range *potentialRules {
 		src := potential.src
 		dst := potential.dst
