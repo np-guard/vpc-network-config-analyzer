@@ -306,7 +306,7 @@ func createGroup(zones *[][]SquareTreeNodeInterface, vpc *VpcTreeNode, i1, i2, j
 			gr = append(gr, (*zones)[i][j])
 		}
 	}
-	g := GroupedSubnetsSquare(vpc, gr)
+	g := GroupedSubnetsSquare(gr)
 	g.(*GroupSubnetsSquareTreeNode).name = fmt.Sprintf("%d-%d,%d,%d", i1, i2, j1, j2)
 	return g
 }

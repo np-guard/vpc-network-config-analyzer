@@ -98,6 +98,7 @@ func (tn *PublicNetworkTreeNode) NotShownInDrawio() bool { return len(tn.IconTre
 type CloudTreeNode struct {
 	abstractSquareTreeNode
 	vpcs []SquareTreeNodeInterface
+	groupSubnetsSquares []SquareTreeNodeInterface
 }
 
 func NewCloudTreeNode(parent *NetworkTreeNode, name string) *CloudTreeNode {
@@ -106,7 +107,7 @@ func NewCloudTreeNode(parent *NetworkTreeNode, name string) *CloudTreeNode {
 	return &cloud
 }
 func (tn *CloudTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
-	return tn.vpcs, tn.elements, tn.connections
+	return append(tn.vpcs, tn.groupSubnetsSquares...), tn.elements, tn.connections
 }
 
 // ////////////////////////////////////////////////////////////////////////////////////////
@@ -114,7 +115,6 @@ type VpcTreeNode struct {
 	abstractSquareTreeNode
 	zones               []SquareTreeNodeInterface
 	sgs                 []SquareTreeNodeInterface
-	groupSubnetsSquares []SquareTreeNodeInterface
 }
 
 func NewVpcTreeNode(parent *CloudTreeNode, name string) *VpcTreeNode {
@@ -123,7 +123,7 @@ func NewVpcTreeNode(parent *CloudTreeNode, name string) *VpcTreeNode {
 	return &vpc
 }
 func (tn *VpcTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
-	return append(append(tn.zones, tn.sgs...), tn.groupSubnetsSquares...), tn.elements, tn.connections
+	return append(tn.zones, tn.sgs...), tn.elements, tn.connections
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -277,10 +277,11 @@ type GroupSubnetsSquareTreeNode struct {
 	groupedSubnets []SquareTreeNodeInterface
 }
 
-func GroupedSubnetsSquare(parent *VpcTreeNode, groupedSubnets []SquareTreeNodeInterface) SquareTreeNodeInterface {
+func GroupedSubnetsSquare(groupedSubnets []SquareTreeNodeInterface) SquareTreeNodeInterface {
 	sameZone, sameVpc := true, true
 	zone := groupedSubnets[0].Parent().(*ZoneTreeNode)
 	vpc := groupedSubnets[0].Parent().Parent().(*VpcTreeNode)
+	cloud := groupedSubnets[0].Parent().Parent().Parent().(*CloudTreeNode)
 	for _, subnet := range groupedSubnets {
 		if zone != subnet.Parent() {
 			sameZone = false
@@ -301,10 +302,10 @@ func GroupedSubnetsSquare(parent *VpcTreeNode, groupedSubnets []SquareTreeNodeIn
 	if sameZone && len(groupedSubnets) == len(zone.subnets) {
 		return zone
 	}
-	return newGroupSubnetsSquareTreeNode(parent, groupedSubnets)
+	return newGroupSubnetsSquareTreeNode(cloud, groupedSubnets)
 }
 
-func newGroupSubnetsSquareTreeNode(parent *VpcTreeNode, groupedSubnets []SquareTreeNodeInterface) *GroupSubnetsSquareTreeNode {
+func newGroupSubnetsSquareTreeNode(parent *CloudTreeNode, groupedSubnets []SquareTreeNodeInterface) *GroupSubnetsSquareTreeNode {
 	gs := GroupSubnetsSquareTreeNode{newAbstractSquareTreeNode(parent, ""), groupedSubnets}
 	parent.groupSubnetsSquares = append(parent.groupSubnetsSquares, &gs)
 	return &gs

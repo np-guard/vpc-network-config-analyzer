@@ -101,16 +101,6 @@ func (group *groupDataS) isInnerGroup(subGroup *groupDataS) bool {
 	return true
 }
 
-func (group *groupDataS) getVpc() *VpcTreeNode {
-	if group.treeNode != nil {
-		return group.treeNode.Parent().(*VpcTreeNode)
-	}
-	for g := range group.splitFrom {
-		return g.getVpc()
-	}
-	return nil
-}
-
 func (group *groupDataS) reunion() {
 	for gr := range group.splitTo {
 		delete(gr.splitFrom, group)
@@ -720,7 +710,7 @@ func (ly *subnetsLayout) createNewGroupsTreeNodes() {
 			if len(subnets) == 1 {
 				group.treeNode = subnets[0]
 			} else {
-				group.treeNode = GroupedSubnetsSquare(group.getVpc(), subnets)
+				group.treeNode = GroupedSubnetsSquare(subnets)
 			}
 			ly.treeNodesToGroups[group.treeNode] = group
 		}

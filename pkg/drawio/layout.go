@@ -517,11 +517,11 @@ func (ly *layoutS) setSquaresLocations() {
 					}
 				}
 			}
-			for _, groupSubnetsSquare := range vpc.(*VpcTreeNode).groupSubnetsSquares {
-				resolveSquareLocation(groupSubnetsSquare, 0, false)
-			}
 		}
-	}
+		for _, groupSubnetsSquare := range cloud.(*CloudTreeNode).groupSubnetsSquares {
+			resolveSquareLocation(groupSubnetsSquare, 0, false)
+		}
+}
 	ly.resolvePublicNetworkLocations()
 	resolveSquareLocation(ly.network, 1, false)
 	if ly.subnetMode {
