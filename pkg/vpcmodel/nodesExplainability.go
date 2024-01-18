@@ -155,12 +155,12 @@ func (c *VPCConfig) computeRouterAndActualRules(details *rulesAndConnDetails) {
 		dst := singleSrcDstDetails.dst
 		// RoutingResources are computed by the parser for []Nodes of the VPC,
 		// finds the relevant nodes for the query's src and dst;
-		// err (err1 or err2) indicates no containing node was found, which is an indication there is no router
-		containingSrcNode, err1 := c.getContainingConfigNode(src)
-		containingDstNode, err2 := c.getContainingConfigNode(dst)
+		// if for src or dst no containing node was found, there is no router
+		containingSrcNode := c.getContainingConfigNode(src)
+		containingDstNode := c.getContainingConfigNode(dst)
 		var routingResource RoutingResource
 		var filtersForExternal map[string]bool
-		if err1 == nil && err2 == nil {
+		if containingSrcNode != nil && containingDstNode != nil {
 			routingResource, _ = c.getRoutingResource(containingSrcNode, containingDstNode)
 			if routingResource != nil {
 				filtersForExternal = routingResource.AppliedFiltersKinds() // relevant filtersExternal
@@ -256,13 +256,13 @@ func (c *VPCConfig) getRulesOfConnection(src, dst Node, conn *common.ConnectionS
 }
 
 // node is from getCidrExternalNodes, thus there is a node in VPCConfig that either equal to or contains it.
-func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
+func (c *VPCConfig) getContainingConfigNode(node Node) Node {
 	if node.IsInternal() { // node is not external - nothing to do
-		return node, nil
+		return node
 	}
 	nodeIPBlock := common.NewIPBlockFromCidr(node.Cidr())
-	if nodeIPBlock == nil { // string cidr does not represent a legal cidr
-		return nil, fmt.Errorf("could not find IP block of external node %v", node.Name())
+	if nodeIPBlock == nil { // string cidr does not represent a legal cidr, would be handled earlier
+		return nil
 	}
 	for _, configNode := range c.Nodes {
 		if configNode.IsInternal() {
@@ -270,10 +270,10 @@ func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
 		}
 		configNodeIPBlock := common.NewIPBlockFromCidr(configNode.Cidr())
 		if nodeIPBlock.ContainedIn(configNodeIPBlock) {
-			return configNode, nil
+			return configNode
 		}
 	}
-	return nil, fmt.Errorf("could not find containing config node for %v", node.Name())
+	return nil
 }
 
 // prints each separately without grouping - for debug
@@ -379,13 +379,14 @@ func (explanationStruct *rulesAndConnDetails) computeConnections(c *VPCConfig) e
 // if src or dst is a node then the node is from getCidrExternalNodes,
 // thus there is a node in VPCConfig that either equal to or contains it.
 func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (conn *common.ConnectionSet, err error) {
-	srcForConnection, err1 := c.getContainingConfigNode(src)
-	if err1 != nil {
-		return nil, err1
+	srcForConnection := c.getContainingConfigNode(src)
+	errMsg := "could not find containing config node for %v"
+	if srcForConnection == nil {
+		return nil, fmt.Errorf(errMsg, src.Name())
 	}
-	dstForConnection, err2 := c.getContainingConfigNode(dst)
-	if err2 != nil {
-		return nil, err2
+	dstForConnection := c.getContainingConfigNode(dst)
+	if srcForConnection == nil {
+		return nil, fmt.Errorf(errMsg, dst.Name())
 	}
 	var ok bool
 	srcMapValue, ok := v.AllowedConnsCombined[srcForConnection]
