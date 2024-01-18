@@ -71,23 +71,6 @@ func parseActionString(action *string) (bool, error) {
 // For example, 10.0.0.0/24 le 30 will match 10.0.0.0/24 and all prefixes contained therein with a length of 30 or less.
 // (see https://packetlife.net/blog/2010/feb/1/understanding-ip-prefix-lists/ )
 
-/*
-// TransitGatewayConnectionPrefixFilter : A prefix filter for a Transit Gateway connection.
-type TransitGatewayConnectionPrefixFilter struct {
-	// Whether to permit or deny prefix filter.
-	Action *string `json:"action" validate:"required"`
-
-	// IP Prefix GE.
-	Ge *int64 `json:"ge,omitempty"`
-
-	// IP Prefix LE.
-	Le *int64 `json:"le,omitempty"`
-
-	// IP Prefix.
-	Prefix *string `json:"prefix" validate:"required"`
-}
-*/
-
 // prefixLeGeMatch checks if a subnet cidr is matched by a given prefix with le/ge attributes
 func prefixLeGeMatch(prefix *string, le, ge *int64, subnet *Subnet) (bool, error) {
 	prefixIPBlock := common.NewIPBlockFromCidr(*prefix)
