@@ -322,7 +322,7 @@ func (g *GroupConnLines) groupExternalAddressesForExplainability() error {
 		groupingStrKey := details.explanationEncode(g.config)
 		err := g.addLineToExternalGrouping(&res, details.src, details.dst,
 			&groupedCommonProperties{conn: details.conn, router: details.router,
-				rules: details.rules, groupingStrKey: groupingStrKey})
+				rules: details.actualRules, groupingStrKey: groupingStrKey})
 		if err != nil {
 			return err
 		}
@@ -556,11 +556,11 @@ func (details *srcDstDetails) explanationEncode(c *VPCConfig) string {
 		routingStr = router.Name() + ";"
 	}
 	egressStr, ingressStr := "", ""
-	if len(details.rules.egressRules) > 0 {
-		egressStr = "egress:" + details.rules.egressRules.string(c) + semicolon
+	if len(details.actualRules.egressRules) > 0 {
+		egressStr = "egress:" + details.actualRules.egressRules.string(c) + semicolon
 	}
-	if len(details.rules.ingressRules) > 0 {
-		egressStr = "ingress:" + details.rules.ingressRules.string(c) + semicolon
+	if len(details.actualRules.ingressRules) > 0 {
+		egressStr = "ingress:" + details.actualRules.ingressRules.string(c) + semicolon
 	}
 	return connStr + routingStr + egressStr + ingressStr
 }
