@@ -299,7 +299,7 @@ func createZone(zones *[][]SquareTreeNodeInterface, vpc *VpcTreeNode, size int, 
 		subnets[i] = NewSubnetTreeNode(zone, sname, "", "")
 	}
 }
-func createGroup(zones *[][]SquareTreeNodeInterface, vpc *VpcTreeNode, i1, i2, j1, j2 int) SquareTreeNodeInterface {
+func createGroup(zones *[][]SquareTreeNodeInterface, i1, i2, j1, j2 int) SquareTreeNodeInterface {
 	gr := []SquareTreeNodeInterface{}
 	for i := i1; i <= i2; i++ {
 		for j := j1; j <= j2; j++ {
@@ -382,7 +382,7 @@ func createNetworkSubnetGroupingGeneric(groupsIndexes []groupIndexes) SquareTree
 	}
 	groups := make([]SquareTreeNodeInterface, len(groupsIndexes))
 	for i, index := range groupsIndexes {
-		groups[i] = createGroup(zones, vpcs[index.vpcIndex], index.z1, index.z2, index.s1, index.s2)
+		groups[i] = createGroup(zones, index.z1, index.z2, index.s1, index.s2)
 	}
 	NewConnectivityLineTreeNode(network, groups[0], groups[len(groups)-1], true, "gconn")
 

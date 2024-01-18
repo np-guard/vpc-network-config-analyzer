@@ -97,7 +97,7 @@ func (tn *PublicNetworkTreeNode) NotShownInDrawio() bool { return len(tn.IconTre
 // ////////////////////////////////////////////////////////////////
 type CloudTreeNode struct {
 	abstractSquareTreeNode
-	vpcs []SquareTreeNodeInterface
+	vpcs                []SquareTreeNodeInterface
 	groupSubnetsSquares []SquareTreeNodeInterface
 }
 
@@ -113,8 +113,8 @@ func (tn *CloudTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeIn
 // ////////////////////////////////////////////////////////////////////////////////////////
 type VpcTreeNode struct {
 	abstractSquareTreeNode
-	zones               []SquareTreeNodeInterface
-	sgs                 []SquareTreeNodeInterface
+	zones []SquareTreeNodeInterface
+	sgs   []SquareTreeNodeInterface
 }
 
 func NewVpcTreeNode(parent *CloudTreeNode, name string) *VpcTreeNode {
@@ -280,8 +280,8 @@ type GroupSubnetsSquareTreeNode struct {
 func GroupedSubnetsSquare(groupedSubnets []SquareTreeNodeInterface) SquareTreeNodeInterface {
 	sameZone, sameVpc := true, true
 	zone := groupedSubnets[0].Parent().(*ZoneTreeNode)
-	vpc := groupedSubnets[0].Parent().Parent().(*VpcTreeNode)
-	cloud := groupedSubnets[0].Parent().Parent().Parent().(*CloudTreeNode)
+	vpc := zone.Parent().(*VpcTreeNode)
+	cloud := vpc.Parent().(*CloudTreeNode)
 	for _, subnet := range groupedSubnets {
 		if zone != subnet.Parent() {
 			sameZone = false
