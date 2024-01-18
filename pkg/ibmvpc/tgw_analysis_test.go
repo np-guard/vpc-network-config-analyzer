@@ -5,9 +5,10 @@ import (
 	"testing"
 
 	tgw "github.com/IBM/networking-go-sdk/transitgatewayapisv1"
+	"github.com/stretchr/testify/require"
+
 	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
-	"github.com/stretchr/testify/require"
 )
 
 var permit string = "permit"

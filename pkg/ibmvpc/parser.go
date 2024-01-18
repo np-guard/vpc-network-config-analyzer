@@ -439,7 +439,6 @@ func getVPCconfig(rc *datamodel.ResourcesContainerModel, res map[string]*vpcmode
 			},
 			nodes: []vpcmodel.Node{},
 			zones: map[string]*Zone{},
-			//subnetsList: []*Subnet{},
 		}
 		vpcNodeSet.VPCRef = vpcNodeSet
 		newVPCConfig := NewEmptyVPCConfig()
@@ -652,13 +651,12 @@ func getNotFilteredNodes(nodes []vpcmodel.Node, filteredSubnets map[string]bool)
 // so that only those are added as part of the "combined" vpc representing the cross-vpc connectivity
 func getVPCResourcesNotFiltered(tgw *TransitGateway, vpcConfig *vpcmodel.VPCConfig) (
 	nodes []vpcmodel.Node, nodeSets []vpcmodel.NodeSet, err error) {
-
 	filteredSubnets, ok := tgw.vpcFilters[vpcConfig.VPC.UID()]
 	if !ok {
 		return nil, nil, fmt.Errorf("missing vpcFilters for TGW %s, VPC %s", tgw.UID(), vpcConfig.VPC.UID())
 	}
 
-	nodes = append(nodes, getNotFilteredNodes(nodes, filteredSubnets)...)
+	nodes = getNotFilteredNodes(vpcConfig.Nodes, filteredSubnets)
 
 	for _, nodeSet := range vpcConfig.NodeSets {
 		// skip VPE type for nodeSet
@@ -674,7 +672,6 @@ func getVPCResourcesNotFiltered(tgw *TransitGateway, vpcConfig *vpcmodel.VPCConf
 		case *VPC:
 			nodeSets = append(nodeSets, nodeSet)
 		}
-
 	}
 	return nodes, nodeSets, err
 }

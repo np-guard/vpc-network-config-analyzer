@@ -18,7 +18,7 @@ func getTransitConnectionFiltersForVPC(tc *datamodel.TransitConnection, vpc *VPC
 	res := map[string]bool{}
 	for _, subnet := range vpc.subnets() {
 		matched, err := isSubnetMatchedByPrefixFilters(subnet, tc)
-		if nil != err {
+		if err != nil {
 			return nil, err
 		}
 		if matched {

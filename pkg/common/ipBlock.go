@@ -21,6 +21,7 @@ const (
 	maxIPv4Bits   = 32
 	CidrAll       = "0.0.0.0/0"
 	cidrSeparator = "/"
+	bitSize64     = 64
 )
 
 // IPBlock captures a set of ip ranges
@@ -349,6 +350,8 @@ func CIDRtoIPrange(cidr string) string {
 	return ipb.ToIPRanges()
 }
 
+// PrefixLength returns the cidr's prefix length, assuming the ipBlock is exactly one cidr.
+// Prefix length specifies the number of bits in the IP address that are to be used as the subnet mask.
 func (b *IPBlock) PrefixLength() (int64, error) {
 	cidrs := b.ToCidrList()
 	if len(cidrs) != 1 {
@@ -356,5 +359,5 @@ func (b *IPBlock) PrefixLength() (int64, error) {
 	}
 	cidrStr := cidrs[0]
 	lenStr := strings.Split(cidrStr, cidrSeparator)[1]
-	return strconv.ParseInt(lenStr, 10, 64)
+	return strconv.ParseInt(lenStr, ipBase, bitSize64)
 }

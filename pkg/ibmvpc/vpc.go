@@ -548,7 +548,7 @@ func (pgw *PublicGateway) AppliedFiltersKinds() map[string]bool {
 type TransitGateway struct {
 	vpcmodel.VPCResource
 	vpcs       []*VPC                     // the VPCs connected by a TGW
-	vpcFilters map[string]map[string]bool // map from VPC UID to its allowed set of subnets to be exported by the TGW
+	vpcFilters map[string]map[string]bool // map from VPC UID to its allowed set of subnets (UIDs) to be exposed to the TGW
 }
 
 func (tgw *TransitGateway) ConnectivityMap() map[string]vpcmodel.ConfigBasedConnectivityResults {
