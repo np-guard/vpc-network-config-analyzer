@@ -2,14 +2,15 @@
 package main
 
 import (
+	"errors"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
 
-// //////////////////////////////////
-// this file need to be rewritten, no need to code review it
-// ///////////////////////////////////////
-func Test_main(t *testing.T) {
+// TODO: this file need to be rewritten
+func TestMain(t *testing.T) {
 	tests := []struct {
 		name string
 		args string
@@ -27,5 +28,19 @@ func Test_main(t *testing.T) {
 				t.Errorf("_main(), name %s, error = %v", tt.name, err)
 			}
 		})
+	}
+	removeGeneratedFiles()
+}
+
+func removeGeneratedFiles() {
+	files1, err1 := filepath.Glob("*.txt")
+	files2, err2 := filepath.Glob("*.drawio")
+	if err1 != nil || err2 != nil {
+		panic(errors.Join(err1, err2))
+	}
+	for _, f := range append(files1, files2...) {
+		if err := os.Remove(f); err != nil {
+			panic(err)
+		}
 	}
 }

@@ -38,6 +38,7 @@ const (
 	AllSubnetsNoPGW                      // connectivity between subnets (consider nacl only)
 	SubnetsDiff                          // diff between subnets connectivity of two cfgs (consider nacl + pgw)
 	EndpointsDiff                        // diff between vsis connectivity of two cfgs
+	Explain                              // explain specified connectivity, given src,dst and connection
 )
 
 // OutputGenerator captures one vpc config1 with its connectivity analysis results, and implements
