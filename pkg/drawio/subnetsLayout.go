@@ -1,7 +1,7 @@
 package drawio
 
 import (
-	"maps"
+		"maps"
 	"sort"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
@@ -506,7 +506,7 @@ func (ly *subnetsLayout) setZonesCol(zoneOrders [][]TreeNodeInterface) {
 		for _, order := range vpcOrders {
 			for _, z := range order {
 				ly.zonesCol[z] = i
-				i++
+								i++
 			}
 		}
 	}
@@ -528,6 +528,14 @@ func (ly *subnetsLayout) calcZonePairScores() map[TreeNodeInterface]map[TreeNode
 					}
 					zonesScores[miniGroup1.zone][miniGroup2.zone] += 1
 				}
+			}
+		}
+	}
+	// for a pair of zones of the same vpc, we gives higher score then pair from different zone:
+	for z1, friendsScore := range zonesScores {
+		for z2 := range friendsScore {
+			if z1.Parent() == z2.Parent() {
+				zonesScores[z1][z2] += len(ly.miniGroups)*len(ly.miniGroups)
 			}
 		}
 	}
