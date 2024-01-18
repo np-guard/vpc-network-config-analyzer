@@ -314,7 +314,8 @@ func stringExplainabilityLine(c *VPCConfig, connQuery *common.ConnectionSet, src
 	resStr := ""
 	switch {
 	case router == nil && src.IsExternal():
-		resStr += fmt.Sprintf("%v no fip router and src is external\n", noConnection)
+		resStr += fmt.Sprintf("%v no fip router and src is external (fip is required for "+
+			"outbound external connection)\n", noConnection)
 	case router == nil && dst.IsExternal():
 		resStr += fmt.Sprintf("%v no router (fip/pgw) and dst is external\n", noConnection)
 	case noIngressRules && noEgressRules:

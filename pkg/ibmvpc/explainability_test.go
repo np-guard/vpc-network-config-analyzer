@@ -136,7 +136,7 @@ func TestSimpleExternalSG(t *testing.T) {
 	fmt.Println("-------------------------------------------------------------------------------------" +
 		"--------------------------------------")
 	require.Equal(t, "No connection between Public Internet 161.26.0.0/16 and vsi1-ky[10.240.10.4]; "+
-		"no fip router and src is external\n\n",
+		"no fip router and src is external (fip is required for outbound external connection)\n\n",
 		explainStr2)
 	cidr2 := "161.26.0.0/32"
 	explainStr3, err3 := vpcConfig.ExplainConnectivity(vsi1, cidr2, nil)
