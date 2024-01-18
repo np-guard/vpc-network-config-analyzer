@@ -283,6 +283,9 @@ func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
 			return configNode, nil
 		}
 	}
+	// todo: at the moment gets here for certain internal addresses not connected to vsi.
+	//       should be handled as part of the https://github.com/np-guard/vpc-network-config-analyzer/issues/305
+	//       verify internal addresses gets her - open a issue if this is the case
 	return nil, nil
 }
 
