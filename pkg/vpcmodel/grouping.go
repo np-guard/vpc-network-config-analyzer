@@ -548,18 +548,6 @@ func connDiffEncode(src, dst VPCResourceIntf, connDiff *connectionDiff) string {
 }
 
 // encodes rulesConnection for grouping
-func (rules *rulesConnection) rulesEncode(c *VPCConfig) string {
-	egressStr, ingressStr := "", ""
-	if len(rules.egressRules) > 0 {
-		egressStr = "egress:" + rules.egressRules.string(c) + semicolon
-	}
-	if len(rules.ingressRules) > 0 {
-		egressStr = "ingress:" + rules.ingressRules.string(c) + semicolon
-	}
-	return egressStr + ingressStr
-}
-
-// encodes rulesConnection for grouping
 func (details *srcDstDetails) explanationEncode(c *VPCConfig) string {
 	connStr := details.conn.String() + semicolon
 	routingStr := ""
