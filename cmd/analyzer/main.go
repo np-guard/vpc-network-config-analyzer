@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/ibmvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/version"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
@@ -56,26 +55,12 @@ func analysisTypeToUseCase(inArgs *InArgs) vpcmodel.OutputUseCase {
 }
 
 func analysisVPCConfigs(c1, c2 map[string]*vpcmodel.VPCConfig, inArgs *InArgs, outFile string) (string, error) {
-	var explanation *vpcmodel.Explanation
-	var err error
-	if *inArgs.AnalysisType == explainMode {
-		// in explain analysis-type we have only one vpc
-		_, vpcConfig := common.AnyMapEntry(c1)
-		connQuery := vpcmodel.TranslateCDtoConnectionSet(*inArgs.EProtocol, *inArgs.ESrcMinPort,
-			*inArgs.ESrcMaxPort, *inArgs.EDstMinPort, *inArgs.EDstMaxPort)
-		explanation, err = vpcConfig.ExplainConnectivity(*inArgs.ESrc, *inArgs.EDst, connQuery)
-		if err != nil {
-			return "", err
-		}
-	} else {
-		explanation = nil
-	}
-
 	og, err := vpcmodel.NewOutputGenerator(c1, c2,
 		*inArgs.Grouping,
 		analysisTypeToUseCase(inArgs),
 		false,
-		explanation)
+		vpcmodel.NewExplanationArgs(*inArgs.ESrc, *inArgs.EDst, *inArgs.EProtocol,
+			*inArgs.ESrcMinPort, *inArgs.ESrcMaxPort, *inArgs.EDstMinPort, *inArgs.EDstMaxPort))
 	if err != nil {
 		return "", err
 	}

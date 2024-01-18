@@ -11,7 +11,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -527,20 +526,17 @@ func (tt *vpcGeneralTest) runTest(t *testing.T) {
 		tt.inputConfig2nd = ""
 	}
 
-	var explanation *vpcmodel.Explanation
+	var explanationArgs *vpcmodel.ExplanationArgs
 	if explainUseCase {
-		// in explain analysis-type we have only one vpc
-		_, vpcConfig := common.AnyMapEntry(vpcConfigs)
-		connQuery := vpcmodel.TranslateCDtoConnectionSet(tt.EProtocol, tt.ESrcMinPort,
-			tt.ESrcMaxPort, tt.EDstMinPort, tt.EDstMaxPort)
-		explanation, _ = vpcConfig.ExplainConnectivity(tt.ESrc, tt.EDst, connQuery)
+		vpcmodel.NewExplanationArgs(tt.ESrc, tt.EDst, tt.EProtocol,
+			tt.ESrcMinPort, tt.ESrcMaxPort, tt.EDstMinPort, tt.EDstMaxPort)
 	} else {
-		explanation = nil
+		explanationArgs = nil
 	}
 
 	// generate actual output for all use cases specified for this test
 	for _, uc := range tt.useCases {
-		err := runTestPerUseCase(t, tt, vpcConfigs, vpcConfigs2nd, uc, tt.mode, explanation)
+		err := runTestPerUseCase(t, tt, vpcConfigs, vpcConfigs2nd, uc, tt.mode, explanationArgs)
 		require.Equal(t, tt.errPerUseCase[uc], err, "comparing actual err to expected err")
 	}
 	for uc, outFile := range tt.actualOutput {
@@ -614,11 +610,11 @@ func runTestPerUseCase(t *testing.T,
 	c1, c2 map[string]*vpcmodel.VPCConfig,
 	uc vpcmodel.OutputUseCase,
 	mode testMode,
-	explanation *vpcmodel.Explanation) error {
+	explanationArgs *vpcmodel.ExplanationArgs) error {
 	if err := initTestFileNames(tt, uc, "", true); err != nil {
 		return err
 	}
-	og, err := vpcmodel.NewOutputGenerator(c1, c2, tt.grouping, uc, tt.format == vpcmodel.ARCHDRAWIO, explanation)
+	og, err := vpcmodel.NewOutputGenerator(c1, c2, tt.grouping, uc, tt.format == vpcmodel.ARCHDRAWIO, explanationArgs)
 	if err != nil {
 		return err
 	}

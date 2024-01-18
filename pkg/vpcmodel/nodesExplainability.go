@@ -30,6 +30,21 @@ type srcDstDetails struct {
 
 type rulesAndConnDetails []*srcDstDetails
 
+type ExplanationArgs struct {
+	src        string
+	dst        string
+	protocol   string
+	srcMinPort int64
+	srcMaxPort int64
+	dstMinPort int64
+	dstMaxPort int64
+}
+
+func NewExplanationArgs(src, dst, protocol string, srcMinPort, srcMaxPort, dstMinPort, dstMaxPort int64) *ExplanationArgs {
+	return &ExplanationArgs{src: src, dst: dst, protocol: protocol,
+		srcMinPort: srcMinPort, srcMaxPort: srcMaxPort, dstMinPort: dstMinPort, dstMaxPort: dstMaxPort}
+}
+
 type Explanation struct {
 	c               *VPCConfig
 	connQuery       *common.ConnectionSet

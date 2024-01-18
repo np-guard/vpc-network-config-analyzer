@@ -51,11 +51,11 @@ type OutputGenerator struct {
 	nodesConn      map[string]*VPCConnectivity
 	subnetsConn    map[string]*VPCsubnetConnectivity
 	cfgsDiff       *diffBetweenCfgs
-	explainStruct  *Explanation
+	explanation    *Explanation
 }
 
 func NewOutputGenerator(c1, c2 map[string]*VPCConfig, grouping bool, uc OutputUseCase,
-	archOnly bool, explainStruct *Explanation) (*OutputGenerator, error) {
+	archOnly bool, explanationArgs *ExplanationArgs) (*OutputGenerator, error) {
 	res := &OutputGenerator{
 		config1:        c1,
 		config2:        c2,
@@ -63,7 +63,6 @@ func NewOutputGenerator(c1, c2 map[string]*VPCConfig, grouping bool, uc OutputUs
 		useCase:        uc,
 		nodesConn:      map[string]*VPCConnectivity{},
 		subnetsConn:    map[string]*VPCsubnetConnectivity{},
-		explainStruct:  explainStruct,
 	}
 	if !archOnly {
 		for i := range c1 {
@@ -97,6 +96,15 @@ func NewOutputGenerator(c1, c2 map[string]*VPCConfig, grouping bool, uc OutputUs
 				}
 				res.cfgsDiff = configsDiff
 			}
+			if uc == Explain {
+				connQuery := TranslateCDtoConnectionSet(explanationArgs.protocol, explanationArgs.srcMinPort,
+					explanationArgs.srcMaxPort, explanationArgs.dstMinPort, explanationArgs.dstMaxPort)
+				explanation, err := c1[i].ExplainConnectivity(explanationArgs.src, explanationArgs.dst, connQuery)
+				if err != nil {
+					return nil, err
+				}
+				res.explanation = explanation
+			}
 		}
 	}
 	return res, nil
@@ -128,7 +136,7 @@ func (o *OutputGenerator) Generate(f OutFormat, outFile string) (string, error) 
 		return "", errors.New("unsupported output format")
 	}
 	return formatter.WriteOutput(o.config1, o.config2, o.nodesConn, o.subnetsConn, o.cfgsDiff,
-		outFile, o.outputGrouping, o.useCase, o.explainStruct)
+		outFile, o.outputGrouping, o.useCase, o.explanation)
 }
 
 // SingleVpcOutputFormatter is an interface for a formatter that can handle only one vpc
