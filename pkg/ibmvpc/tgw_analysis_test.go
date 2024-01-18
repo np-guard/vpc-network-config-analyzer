@@ -11,8 +11,8 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
-var permit string = "permit"
-var deny string = "deny"
+var permit string = permitAction
+var deny string = denyAction
 var subnetA string = "192.168.100.0/24"
 var subnetB string = "192.168.101.0/24"
 var subnetC string = "192.168.102.0/24"
