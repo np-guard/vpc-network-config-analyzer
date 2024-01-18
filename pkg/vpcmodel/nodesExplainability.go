@@ -152,9 +152,10 @@ func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node,
 	return rulesAndConn, nil
 }
 
-// computeActualRules computes from potentialRules the rules that actually enable traffic, considering the filtersExternal
-// (which was computed based on the RoutingResource) and (in the near future) considering the combined filters
-// at the moment (only SG supported) actual can differ from potential only if src or dst is external
+// computeActualRules computes from potentialRules the rules that actually enable traffic, considering filtersExternal
+// potential.filtersExternal (which was computed based on the RoutingResource) and (in the near future)
+// considering the combined filters at the moment (only SG supported) actual can differ from potential
+// only if src or dst is external
 func (c *VPCConfig) computeRouterAndActualRules(potentialRules *rulesAndConnDetails) *rulesAndConnDetails {
 	actualRulesAndConn := make(rulesAndConnDetails, len(*potentialRules))
 	for i, potential := range *potentialRules {
@@ -162,7 +163,7 @@ func (c *VPCConfig) computeRouterAndActualRules(potentialRules *rulesAndConnDeta
 		dst := potential.dst
 		// RoutingResources are computed by the parser for []Nodes of the VPC,
 		// finds the relevant nodes for the query's src and dst;
-		// err indicates no containing node was found, which is an indication there is no router
+		// err (err1 or err2) indicates no containing node was found, which is an indication there is no router
 		containingSrcNode, err1 := c.getContainingConfigNode(src)
 		containingDstNode, err2 := c.getContainingConfigNode(dst)
 		var routingResource RoutingResource
