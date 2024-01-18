@@ -562,15 +562,15 @@ func (ly *layoutS) setPublicNetworkIconsLocations() {
 // setIconsLocationsOnTop() sets all the icons in the first square row.
 // choose the cols with width >= iconSpace, and the cols below them
 // for icons in vpc and cloud squares
-func (ly *layoutS) setIconsLocationsOnTop(vpc SquareTreeNodeInterface) {
-	icons := vpc.IconTreeNodes()
+func (ly *layoutS) setIconsLocationsOnTop(square SquareTreeNodeInterface) {
+	icons := square.IconTreeNodes()
 	if len(icons) == 0 {
 		return
 	}
 
 	cols := []*col{}
-	firstColIndex := vpc.Location().firstCol.index
-	lastColIndex := vpc.Location().lastCol.index
+	firstColIndex := square.Location().firstCol.index
+	lastColIndex := square.Location().lastCol.index
 	for ci := firstColIndex; ci <= lastColIndex; ci++ {
 		col := ly.matrix.cols[ci]
 		if col.width() >= iconSpace {
@@ -581,11 +581,11 @@ func (ly *layoutS) setIconsLocationsOnTop(vpc SquareTreeNodeInterface) {
 		}
 	}
 	iconsPerCol := (len(icons)-1)/len(cols) + 1
-	if vpc.Location().firstRow.height() < iconSpace*iconsPerCol {
-		vpc.Location().firstRow.setHeight(iconSpace * iconsPerCol)
+	if square.Location().firstRow.height() < iconSpace*iconsPerCol {
+		square.Location().firstRow.setHeight(iconSpace * iconsPerCol)
 	}
 	for iconIndex, icon := range icons {
-		icon.setLocation(newCellLocation(vpc.Location().firstRow, cols[iconIndex/iconsPerCol]))
+		icon.setLocation(newCellLocation(square.Location().firstRow, cols[iconIndex/iconsPerCol]))
 		icon.Location().yOffset = iconSpace*(iconIndex%iconsPerCol) - (iconSpace*(iconsPerCol-1))/2
 	}
 }
