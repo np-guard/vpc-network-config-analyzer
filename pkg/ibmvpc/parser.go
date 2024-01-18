@@ -673,7 +673,7 @@ func getVPCResourcesNotFiltered(tgw *TransitGateway, vpcConfig *vpcmodel.VPCConf
 			nodeSets = append(nodeSets, nodeSet)
 		}
 	}
-	return nodes, nodeSets, err
+	return nodes, nodeSets, nil
 }
 
 // For each Transit Gateway, generate a config that combines multiple vpc entities, which are
