@@ -144,39 +144,7 @@ func (tt *vpcGeneralTest) initTest() {
 	}
 }
 
-// tgw examples
 var tests = []*vpcGeneralTest{
-	{
-		name:     "tgw_basic_example",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
-		format:   vpcmodel.DRAWIO,
-		grouping: true,
-	},
-	{
-		name:     "tgw_basic_example",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:   vpcmodel.DRAWIO,
-		grouping: true,
-	},
-	{
-		name:     "tgw_basic_example",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints,vpcmodel.AllSubnets},
-		format:   vpcmodel.DRAWIO,
-	},
-	{
-		name:     "tgw_larger_example",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints,vpcmodel.AllSubnets},
-		format:   vpcmodel.DRAWIO,
-		grouping: true,
-	},
-	{
-		name:     "tgw_larger_example",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints,vpcmodel.AllSubnets},
-		format:   vpcmodel.DRAWIO,
-	},
-}
-
-var tests2 = []*vpcGeneralTest{
 	{
 		name:     "acl_testing5",
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
@@ -436,6 +404,17 @@ var tests2 = []*vpcGeneralTest{
 		name:     "tgw_larger_example",
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
 		format:   vpcmodel.Text,
+	},
+	{
+		name:     "tgw_larger_example",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+		format:   vpcmodel.DRAWIO,
+	},
+	{
+		name:     "tgw_larger_example",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+		format:   vpcmodel.DRAWIO,
+		grouping: true,
 	},
 	// multivpc drawio:
 	{

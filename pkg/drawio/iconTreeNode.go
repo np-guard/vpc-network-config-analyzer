@@ -14,7 +14,6 @@ type IconTreeNodeInterface interface {
 	HasTooltip() bool
 	Tooltip() string
 	IsGateway() bool
-	IsTransitGateway() bool
 	absoluteRouterGeometry() (int, int)
 	IconSize() int
 	hasMiniIcon() bool
@@ -36,7 +35,6 @@ func (tn *abstractIconTreeNode) setSG(sg SquareTreeNodeInterface) { tn.sg = sg }
 func (tn *abstractIconTreeNode) IsIcon() bool                     { return true }
 func (tn *abstractIconTreeNode) IsVSI() bool                      { return false }
 func (tn *abstractIconTreeNode) IsGateway() bool                  { return false }
-func (tn *abstractIconTreeNode) IsTransitGateway() bool           { return false }
 func (tn *abstractIconTreeNode) IsNI() bool                       { return false }
 func (tn *abstractIconTreeNode) IsGroupingPoint() bool            { return false }
 func (tn *abstractIconTreeNode) SetTooltip(tooltip []string)      { tn.tooltip = tooltip }
@@ -142,7 +140,6 @@ func NewTransitGatewayTreeNode(parent SquareTreeNodeInterface, name string) *Tra
 	parent.addIconTreeNode(&tgw)
 	return &tgw
 }
-func (tn *TransitGatewayTreeNode) IsTransitGateway() bool { return true }
 
 // ///////////////////////////////////////////
 type UserTreeNode struct {

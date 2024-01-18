@@ -559,9 +559,10 @@ func (ly *layoutS) setPublicNetworkIconsLocations() {
 }
 
 // ////////////////////////////////////////////////////////////////////////////////////////
-// setVpcIconsLocations() sets all the icons in the first vpc row.
+// setIconsLocationsOnTop() sets all the icons in the first square row.
 // choose the cols with width >= iconSpace, and the cols below them
-func (ly *layoutS) setVpcIconsLocations(vpc SquareTreeNodeInterface) {
+// for icons in vpc and cloud squares
+func (ly *layoutS) setIconsLocationsOnTop(vpc SquareTreeNodeInterface) {
 	icons := vpc.IconTreeNodes()
 	if len(icons) == 0 {
 		return
@@ -700,9 +701,9 @@ func (ly *layoutS) setIconsLocations() {
 			for _, zone := range vpc.(*VpcTreeNode).zones {
 				setZoneIconsLocations(zone)
 			}
-			ly.setVpcIconsLocations(vpc)
+			ly.setIconsLocationsOnTop(vpc)
 		}
-		ly.setVpcIconsLocations(cloud)
+		ly.setIconsLocationsOnTop(cloud)
 	}
 	ly.setPublicNetworkIconsLocations()
 	ly.setGroupingIconLocations()
