@@ -428,6 +428,11 @@ var tests2 = []*vpcGeneralTest{
 		format:   vpcmodel.Text,
 	},
 	{
+		name:     "tgw_basic_example_multiple_regions",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+		format:   vpcmodel.Text,
+	},
+	{
 		name:     "tgw_larger_example",
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
 		format:   vpcmodel.Text,
