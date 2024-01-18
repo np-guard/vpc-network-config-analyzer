@@ -630,7 +630,7 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 }
 
 func isNodeNotFiltered(node vpcmodel.Node, filteredSubnets map[string]bool) bool {
-	// currently skipping nodes other than network interface (e.g. reserved ip, iks nodes)
+	// TODO: currently skipping nodes other than network interface (e.g. reserved ip, iks nodes)
 	if netIntf, ok := node.(*NetworkInterface); ok {
 		return filteredSubnets[netIntf.subnet.UID()]
 	}
