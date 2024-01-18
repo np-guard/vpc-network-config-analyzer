@@ -117,10 +117,13 @@ func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.Conne
 			return "", err2
 		}
 	}
-	c.computeRouterAndActualRules(&rulesAndDetails)
-	groupedLines, err3 := newGroupConnExplainability(c, &rulesAndDetails)
+	err3 := c.computeRouterAndActualRules(&rulesAndDetails)
 	if err3 != nil {
 		return "", err3
+	}
+	groupedLines, err4 := newGroupConnExplainability(c, &rulesAndDetails)
+	if err4 != nil {
+		return "", err4
 	}
 	res := &explanation{c, connQuery, &rulesAndDetails, groupedLines.GroupedLines}
 	return res.String(), nil
@@ -149,15 +152,21 @@ func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node,
 
 // computeActualRules computes from the potentialRules the actualRules that actually enable traffic,
 // considering filtersExternal potential.filtersExternal (which was computed based on the RoutingResource)
-func (c *VPCConfig) computeRouterAndActualRules(details *rulesAndConnDetails) {
+func (c *VPCConfig) computeRouterAndActualRules(details *rulesAndConnDetails) error {
 	for _, singleSrcDstDetails := range *details {
 		src := singleSrcDstDetails.src
 		dst := singleSrcDstDetails.dst
 		// RoutingResources are computed by the parser for []Nodes of the VPC,
 		// finds the relevant nodes for the query's src and dst;
 		// if for src or dst no containing node was found, there is no router
-		containingSrcNode := c.getContainingConfigNode(src)
-		containingDstNode := c.getContainingConfigNode(dst)
+		containingSrcNode, err1 := c.getContainingConfigNode(src)
+		if err1 != nil {
+			return err1
+		}
+		containingDstNode, err2 := c.getContainingConfigNode(dst)
+		if err2 != nil {
+			return err2
+		}
 		var routingResource RoutingResource
 		var filtersForExternal map[string]bool
 		if containingSrcNode != nil && containingDstNode != nil {
@@ -176,6 +185,7 @@ func (c *VPCConfig) computeRouterAndActualRules(details *rulesAndConnDetails) {
 			singleSrcDstDetails.actualRules = singleSrcDstDetails.potentialRules
 		}
 	}
+	return nil
 }
 
 func computeActualRules(potentialRules *rulesInLayers, filtersExternal map[string]bool) *rulesInLayers {
@@ -256,13 +266,13 @@ func (c *VPCConfig) getRulesOfConnection(src, dst Node, conn *common.ConnectionS
 }
 
 // node is from getCidrExternalNodes, thus there is a node in VPCConfig that either equal to or contains it.
-func (c *VPCConfig) getContainingConfigNode(node Node) Node {
+func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
 	if node.IsInternal() { // node is not external - nothing to do
-		return node
+		return node, nil
 	}
 	nodeIPBlock := common.NewIPBlockFromCidr(node.Cidr())
 	if nodeIPBlock == nil { // string cidr does not represent a legal cidr, would be handled earlier
-		return nil
+		return nil, fmt.Errorf("node %v does not refer to a legal IP", node.Name())
 	}
 	for _, configNode := range c.Nodes {
 		if configNode.IsInternal() {
@@ -270,10 +280,10 @@ func (c *VPCConfig) getContainingConfigNode(node Node) Node {
 		}
 		configNodeIPBlock := common.NewIPBlockFromCidr(configNode.Cidr())
 		if nodeIPBlock.ContainedIn(configNodeIPBlock) {
-			return configNode
+			return configNode, nil
 		}
 	}
-	return nil
+	return nil, nil
 }
 
 // prints each separately without grouping - for debug
@@ -380,12 +390,18 @@ func (explanationStruct *rulesAndConnDetails) computeConnections(c *VPCConfig) e
 // if src or dst is a node then the node is from getCidrExternalNodes,
 // thus there is a node in VPCConfig that either equal to or contains it.
 func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (conn *common.ConnectionSet, err error) {
-	srcForConnection := c.getContainingConfigNode(src)
+	srcForConnection, err1 := c.getContainingConfigNode(src)
+	if err1 != nil {
+		return nil, err1
+	}
 	errMsg := "could not find containing config node for %v"
 	if srcForConnection == nil {
 		return nil, fmt.Errorf(errMsg, src.Name())
 	}
-	dstForConnection := c.getContainingConfigNode(dst)
+	dstForConnection, err2 := c.getContainingConfigNode(dst)
+	if err2 != nil {
+		return nil, err2
+	}
 	if srcForConnection == nil {
 		return nil, fmt.Errorf(errMsg, dst.Name())
 	}
