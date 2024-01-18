@@ -114,27 +114,31 @@ func (d *DrawioOutputFormatter) createRouters() {
 	}
 }
 
+func (d *DrawioOutputFormatter) lineRouter(line *groupedConnLine, vpcResourceName string) drawio.IconTreeNodeInterface {
+	switch {
+	case d.cConfigs[vpcResourceName].IsMultipleVPCsConfig:
+		return d.multiVpcRouters[vpcResourceName]
+	case line.dst.IsExternal():
+		return d.nodeRouters[d.gen.TreeNode(line.src)]
+	case line.src.IsExternal():
+		return d.nodeRouters[d.gen.TreeNode(line.dst)]
+	}
+	return nil
+}
+
 func (d *DrawioOutputFormatter) createEdges() {
 	type edgeKey struct {
-		src       EndpointElem
-		dst       EndpointElem
+		src    EndpointElem
+		dst    EndpointElem
 		router drawio.IconTreeNodeInterface
-		label     string
+		label  string
 	}
 	isEdgeDirected := map[edgeKey]bool{}
 	for vpcResourceName, vpcConn := range d.conns {
 		for _, line := range vpcConn.GroupedLines {
 			src := line.src
 			dst := line.dst
-			var router drawio.IconTreeNodeInterface
-			switch {
-			case d.cConfigs[vpcResourceName].IsMultipleVPCsConfig:
-				router = d.multiVpcRouters[vpcResourceName]
-			case line.dst.IsExternal():
-				router = d.nodeRouters[d.gen.TreeNode(src)]
-			case line.src.IsExternal():
-				router = d.nodeRouters[d.gen.TreeNode(dst)]
-			}
+			router := d.lineRouter(line, vpcResourceName)
 			e := edgeKey{src, dst, router, line.ConnLabel()}
 			revE := edgeKey{dst, src, router, line.ConnLabel()}
 			_, revExist := isEdgeDirected[revE]
