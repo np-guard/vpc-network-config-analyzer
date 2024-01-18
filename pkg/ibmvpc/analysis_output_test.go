@@ -148,14 +148,27 @@ func (tt *vpcGeneralTest) initTest() {
 var tests = []*vpcGeneralTest{
 	{
 		name:     "tgw_basic_example",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		format:   vpcmodel.DRAWIO,
+		grouping: true,
+	},
+	{
+		name:     "tgw_basic_example",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:   vpcmodel.DRAWIO,
+		grouping: true,
+	},
+	{
+		name:     "tgw_basic_example",
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints,vpcmodel.AllSubnets},
 		format:   vpcmodel.DRAWIO,
 	},
-	// {
-	// 	name:     "tgw_basic_example",
-	// 	useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
-	// 	format:   vpcmodel.Text,
-	// },
+	{
+		name:     "tgw_larger_example",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints,vpcmodel.AllSubnets},
+		format:   vpcmodel.DRAWIO,
+		grouping: true,
+	},
 	{
 		name:     "tgw_larger_example",
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints,vpcmodel.AllSubnets},
