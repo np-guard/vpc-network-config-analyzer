@@ -19,14 +19,18 @@ type groupedNodesInfo struct {
 	commonProperties *groupedCommonProperties
 }
 
+type explainDetails struct {
+	rules  *rulesConnection
+	router RoutingResource
+}
+
 type groupedCommonProperties struct {
-	conn     *common.ConnectionSet
-	connDiff *connectionDiff
-	rules    *rulesConnection
-	router   RoutingResource
+	conn       *common.ConnectionSet
+	connDiff   *connectionDiff
+	expDetails *explainDetails
 	// groupingStrKey is the key by which the grouping is done:
 	// the string of conn per grouping of conn lines, string of connDiff per grouping of diff lines
-	// and string of conn and rules for explainblity
+	// and string of conn and explainDetails for explainblity
 	groupingStrKey string // the key used for grouping per connectivity lines or diff lines
 }
 
@@ -320,9 +324,10 @@ func (g *GroupConnLines) groupExternalAddressesForExplainability() error {
 	var res []*groupedConnLine
 	for _, details := range *g.explain {
 		groupingStrKey := details.explanationEncode(g.config)
+		expDetails := &explainDetails{details.actualRules, details.router}
 		err := g.addLineToExternalGrouping(&res, details.src, details.dst,
-			&groupedCommonProperties{conn: details.conn, router: details.router,
-				rules: details.actualRules, groupingStrKey: groupingStrKey})
+			&groupedCommonProperties{conn: details.conn, expDetails: expDetails,
+				groupingStrKey: groupingStrKey})
 		if err != nil {
 			return err
 		}

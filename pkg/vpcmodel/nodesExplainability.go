@@ -291,7 +291,7 @@ func (explanation *explanation) String() string {
 	groupedLines := explanation.groupedLines
 	for i, line := range groupedLines {
 		linesStr[i] = stringExplainabilityLine(explanation.c, explanation.connQuery, line.src, line.dst, line.commonProperties.conn,
-			line.commonProperties.router, line.commonProperties.rules)
+			line.commonProperties.expDetails.router, line.commonProperties.expDetails.rules)
 	}
 	sort.Strings(linesStr)
 	return strings.Join(linesStr, "\n") + "\n"
