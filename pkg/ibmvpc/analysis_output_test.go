@@ -528,7 +528,7 @@ func (tt *vpcGeneralTest) runTest(t *testing.T) {
 
 	var explanationArgs *vpcmodel.ExplanationArgs
 	if explainUseCase {
-		vpcmodel.NewExplanationArgs(tt.ESrc, tt.EDst, tt.EProtocol,
+		explanationArgs = vpcmodel.NewExplanationArgs(tt.ESrc, tt.EDst, tt.EProtocol,
 			tt.ESrcMinPort, tt.ESrcMaxPort, tt.EDstMinPort, tt.EDstMaxPort)
 	} else {
 		explanationArgs = nil
