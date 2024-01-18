@@ -23,7 +23,7 @@ type rulesSingleSrcDst struct {
 	dst             Node
 	conn            *common.ConnectionSet
 	router          RoutingResource // the router (fip or pgw) to external network; nil if none
-	filtersExternal map[string]bool // filters relevant for external IP
+	filtersExternal map[string]bool // filters relevant for external IP, map keys are the filters kind (NaclLayer/SecurityGroupLayer)
 	rules           *rulesConnection
 }
 
