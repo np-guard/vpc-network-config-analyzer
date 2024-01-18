@@ -560,7 +560,7 @@ func (rules *rulesConnection) rulesEncode(c *VPCConfig) string {
 }
 
 // encodes rulesConnection for grouping
-func (details *singleSrcDstDetails) explanationEncode(c *VPCConfig) string {
+func (details *srcDstDetails) explanationEncode(c *VPCConfig) string {
 	connStr := details.conn.String() + semicolon
 	routingStr := ""
 	if details.router != nil {

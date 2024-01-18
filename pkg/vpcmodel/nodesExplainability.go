@@ -18,7 +18,7 @@ type rulesConnection struct {
 	egressRules  rulesInLayers
 }
 
-type singleSrcDstDetails struct {
+type srcDstDetails struct {
 	src             Node
 	dst             Node
 	conn            *common.ConnectionSet
@@ -27,7 +27,7 @@ type singleSrcDstDetails struct {
 	rules           *rulesConnection
 }
 
-type rulesAndConnDetails []*singleSrcDstDetails
+type rulesAndConnDetails []*srcDstDetails
 
 type explanation struct {
 	c              *VPCConfig
@@ -144,7 +144,7 @@ func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node,
 			if err != nil {
 				return nil, err
 			}
-			rulesThisSrcDst := &singleSrcDstDetails{src, dst, common.NewConnectionSet(false), nil, nil, rulesOfConnection}
+			rulesThisSrcDst := &srcDstDetails{src, dst, common.NewConnectionSet(false), nil, nil, rulesOfConnection}
 			rulesAndConn[i] = rulesThisSrcDst
 			i++
 		}
