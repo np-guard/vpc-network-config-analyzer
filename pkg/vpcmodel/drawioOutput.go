@@ -155,7 +155,6 @@ func (d *DrawioOutputFormatter) createEdges() {
 			cn := d.gen.TreeNode(ei).(*drawio.ConnectivityTreeNode)
 			if e.router != nil {
 				cn.SetRouter(e.router, e.src.IsExternal())
-
 			}
 		}
 	}

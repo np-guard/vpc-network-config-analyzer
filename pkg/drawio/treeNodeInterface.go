@@ -1,10 +1,5 @@
 package drawio
 
-import (
-	"encoding/json"
-	"os"
-)
-
 /////////////////////////////////////////////////////////////
 // the drawio has three kinds of elements:
 // 1. squares (vpcs, zones, sgs, subnets...)
@@ -121,30 +116,31 @@ func absoluteGeometry(tn TreeNodeInterface) (x, y int) {
 		tn.Y() + tn.DrawioParent().Location().firstRow.y() + tn.DrawioParent().Location().yOffset
 }
 
-// both writeAsJson() treeNodeAsMap() are for debug of a treeNode
-func treeNodeAsMap(tn TreeNodeInterface) map[string]interface{} {
-	res := map[string]interface{}{}
-	squares, icons, lines := tn.children()
-	sqs := []interface{}{}
-	ics := []interface{}{}
-	lns := []interface{}{}
-	for _, s := range squares {
-		sqs = append(sqs, treeNodeAsMap(s))
-	}
-	for _, s := range icons {
-		ics = append(ics, treeNodeAsMap(s))
-	}
-	for _, s := range lines {
-		lns = append(lns, treeNodeAsMap(s))
-	}
-	res["name"] = tn.Label()
-	res["squares"] = sqs
-	res["icons"] = ics
-	res["lines"] = lns
-	return res
-}
+// uncomment writeAsJson() treeNodeAsMap() for debug of a treeNode
 
-func writeTreeNodeToJsonFile(tn TreeNodeInterface, outFile string) {
-	res, _ := json.MarshalIndent(treeNodeAsMap(tn), "", "    ")
-	os.WriteFile(outFile, []byte(res), 0o600)
-}
+// func treeNodeAsMap(tn TreeNodeInterface) map[string]interface{} {
+// 	res := map[string]interface{}{}
+// 	squares, icons, lines := tn.children()
+// 	sqs := []interface{}{}
+// 	ics := []interface{}{}
+// 	lns := []interface{}{}
+// 	for _, s := range squares {
+// 		sqs = append(sqs, treeNodeAsMap(s))
+// 	}
+// 	for _, s := range icons {
+// 		ics = append(ics, treeNodeAsMap(s))
+// 	}
+// 	for _, s := range lines {
+// 		lns = append(lns, treeNodeAsMap(s))
+// 	}
+// 	res["name"] = tn.Label()
+// 	res["squares"] = sqs
+// 	res["icons"] = ics
+// 	res["lines"] = lns
+// 	return res
+// }
+
+// func writeTreeNodeToJsonFile(tn TreeNodeInterface, outFile string) {
+// 	res, _ := json.MarshalIndent(treeNodeAsMap(tn), "", "    ")
+// 	os.WriteFile(outFile, []byte(res), 0o600)
+// }
