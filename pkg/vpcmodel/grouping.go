@@ -552,8 +552,7 @@ func (details *srcDstDetails) explanationEncode(c *VPCConfig) string {
 	connStr := details.conn.String() + semicolon
 	routingStr := ""
 	if details.router != nil {
-		router := details.router
-		routingStr = router.Name() + ";"
+		routingStr = details.router.Name() + ";"
 	}
 	egressStr, ingressStr := "", ""
 	if len(details.actualRules.egressRules) > 0 {
