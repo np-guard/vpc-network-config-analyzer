@@ -107,22 +107,22 @@ func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.Conne
 	if err != nil {
 		return "", err
 	}
-	rulesAndConnDetails, err1 := c.computeExplainRules(srcNodes, dstNodes, connQuery)
+	rulesAndDetails, err1 := c.computeExplainRules(srcNodes, dstNodes, connQuery)
 	if err1 != nil {
 		return "", err1
 	}
 	if connQuery == nil { // find the connection between src and dst if connection not specified in query
-		err2 := rulesAndConnDetails.computeConnections(c)
+		err2 := rulesAndDetails.computeConnections(c)
 		if err2 != nil {
 			return "", err2
 		}
 	}
-	c.computeRouterAndActualRules(&rulesAndConnDetails)
-	groupedLines, err3 := newGroupConnExplainability(c, &rulesAndConnDetails)
+	c.computeRouterAndActualRules(&rulesAndDetails)
+	groupedLines, err3 := newGroupConnExplainability(c, &rulesAndDetails)
 	if err3 != nil {
 		return "", err3
 	}
-	res := &explanation{c, connQuery, &rulesAndConnDetails, groupedLines.GroupedLines}
+	res := &explanation{c, connQuery, &rulesAndDetails, groupedLines.GroupedLines}
 	return res.String(), nil
 }
 
