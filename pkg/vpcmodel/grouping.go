@@ -318,17 +318,11 @@ func (g *GroupConnLines) groupExternalAddressesForDiff(thisMinusOther bool) erro
 // group public internet ranges for explainability lines
 func (g *GroupConnLines) groupExternalAddressesForExplainability() error {
 	var res []*groupedConnLine
-	for _, rulesSrcDst := range *g.explain {
-		connStr := rulesSrcDst.conn.String() + semicolon
-		routingStr := ""
-		if rulesSrcDst.router != nil {
-			router := rulesSrcDst.router
-			routingStr = router.Name() + ";"
-		}
-		groupingStrKey := connStr + routingStr + rulesSrcDst.rules.rulesEncode(g.config)
-		err := g.addLineToExternalGrouping(&res, rulesSrcDst.src, rulesSrcDst.dst,
-			&groupedCommonProperties{conn: rulesSrcDst.conn, router: rulesSrcDst.router,
-				rules: rulesSrcDst.rules, groupingStrKey: groupingStrKey})
+	for _, details := range *g.explain {
+		groupingStrKey := details.explanationEncode(g.config)
+		err := g.addLineToExternalGrouping(&res, details.src, details.dst,
+			&groupedCommonProperties{conn: details.conn, router: details.router,
+				rules: details.rules, groupingStrKey: groupingStrKey})
 		if err != nil {
 			return err
 		}
@@ -563,4 +557,22 @@ func (rules *rulesConnection) rulesEncode(c *VPCConfig) string {
 		egressStr = "ingress:" + rules.ingressRules.string(c) + semicolon
 	}
 	return egressStr + ingressStr
+}
+
+// encodes rulesConnection for grouping
+func (details *singleSrcDstDetails) explanationEncode(c *VPCConfig) string {
+	connStr := details.conn.String() + semicolon
+	routingStr := ""
+	if details.router != nil {
+		router := details.router
+		routingStr = router.Name() + ";"
+	}
+	egressStr, ingressStr := "", ""
+	if len(details.rules.egressRules) > 0 {
+		egressStr = "egress:" + details.rules.egressRules.string(c) + semicolon
+	}
+	if len(details.rules.ingressRules) > 0 {
+		egressStr = "ingress:" + details.rules.ingressRules.string(c) + semicolon
+	}
+	return connStr + routingStr + egressStr + ingressStr
 }

@@ -18,7 +18,7 @@ type rulesConnection struct {
 	egressRules  rulesInLayers
 }
 
-type rulesSingleSrcDst struct {
+type singleSrcDstDetails struct {
 	src             Node
 	dst             Node
 	conn            *common.ConnectionSet
@@ -27,7 +27,7 @@ type rulesSingleSrcDst struct {
 	rules           *rulesConnection
 }
 
-type rulesAndConnDetails []*rulesSingleSrcDst
+type rulesAndConnDetails []*singleSrcDstDetails
 
 type explanation struct {
 	c              *VPCConfig
@@ -144,7 +144,7 @@ func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node,
 			if err != nil {
 				return nil, err
 			}
-			rulesThisSrcDst := &rulesSingleSrcDst{src, dst, common.NewConnectionSet(false), nil, nil, rulesOfConnection}
+			rulesThisSrcDst := &singleSrcDstDetails{src, dst, common.NewConnectionSet(false), nil, nil, rulesOfConnection}
 			rulesAndConn[i] = rulesThisSrcDst
 			i++
 		}
@@ -288,9 +288,9 @@ func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
 // prints each separately without grouping - for debug
 func (explanationStruct *rulesAndConnDetails) String(c *VPCConfig, connQuery *common.ConnectionSet) (string, error) {
 	resStr := ""
-	for _, rulesSrcDst := range *explanationStruct {
-		resStr += stringExplainabilityLine(c, connQuery, rulesSrcDst.src, rulesSrcDst.dst,
-			rulesSrcDst.conn, rulesSrcDst.router, rulesSrcDst.rules)
+	for _, srcDstDetails := range *explanationStruct {
+		resStr += stringExplainabilityLine(c, connQuery, srcDstDetails.src, srcDstDetails.dst,
+			srcDstDetails.conn, srcDstDetails.router, srcDstDetails.rules)
 	}
 	return resStr, nil
 }
@@ -374,15 +374,15 @@ func (explanationStruct *rulesAndConnDetails) computeConnections(c *VPCConfig) e
 	if err != nil {
 		return err
 	}
-	for _, rulesSrcDst := range *explanationStruct {
+	for _, srcDstDetails := range *explanationStruct {
 		// is there a connection?
-		if (len(rulesSrcDst.rules.egressRules) > 0 || !rulesSrcDst.src.IsInternal()) && // egress enabled or not needed
-			(len(rulesSrcDst.rules.ingressRules) > 0 || !rulesSrcDst.dst.IsInternal()) { // ingress enabled or not needed
-			conn, err := connectivity.getConnection(c, rulesSrcDst.src, rulesSrcDst.dst)
+		if (len(srcDstDetails.rules.egressRules) > 0 || !srcDstDetails.src.IsInternal()) && // egress enabled or not needed
+			(len(srcDstDetails.rules.ingressRules) > 0 || !srcDstDetails.dst.IsInternal()) { // ingress enabled or not needed
+			conn, err := connectivity.getConnection(c, srcDstDetails.src, srcDstDetails.dst)
 			if err != nil {
 				return err
 			}
-			rulesSrcDst.conn = conn
+			srcDstDetails.conn = conn
 		}
 	}
 	return nil
