@@ -1,8 +1,9 @@
 package vpcmodel
 
 import (
-	"errors"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+
+	"errors"
 )
 
 // VPCConfig captures the configured resources for a VPC
