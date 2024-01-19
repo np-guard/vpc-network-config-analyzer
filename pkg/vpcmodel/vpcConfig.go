@@ -1,6 +1,8 @@
 package vpcmodel
 
 import (
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+
 	"errors"
 )
 
@@ -64,4 +66,17 @@ func (c *VPCConfig) shouldConsiderPairForConnectivity(r1, r2 VPCResourceIntf) (b
 		return r1VPC.UID() != r2VPC.UID(), nil
 	}
 	return true, nil
+}
+
+// getRoutingResource: gets the routing resource and its conn; currently the conn is either all or none
+// node is associated with either a pgw or a fip;
+// if the relevant network interface has both the parser will keep only the fip.
+func (c *VPCConfig) getRoutingResource(src, dst Node) (RoutingResource, *common.ConnectionSet) {
+	for _, router := range c.RoutingResources {
+		routerConnRes := router.AllowedConnectivity(src, dst)
+		if !routerConnRes.IsEmpty() { // connection is allowed through router resource
+			return router, routerConnRes
+		}
+	}
+	return nil, NoConns()
 }
