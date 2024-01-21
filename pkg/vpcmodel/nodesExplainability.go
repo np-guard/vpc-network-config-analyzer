@@ -8,6 +8,8 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
+var filterLayers = [2]string{NaclLayer, SecurityGroupLayer}
+
 // rulesInLayers contains specific rules across all layers (SGLayer/NACLLayer)
 // it maps from the layer name to the list of rules
 type rulesInLayers map[string][]RulesInFilter
@@ -19,8 +21,14 @@ type rulesConnection struct {
 }
 
 type srcDstDetails struct {
-	src             Node
-	dst             Node
+	src         Node
+	dst         Node
+	connEnabled bool
+	// note that if dst/src is external then egressEnabled/ingressEnabled may be false and yet connEnabled true
+	ingressEnabled bool
+	egressEnabled  bool
+	// the connection between src to dst, in case the connection was not part of the query; conn nil when either
+	// conn part of query or connEnabled is false; connEnabled needed to distinguish between the cases
 	conn            *common.ConnectionSet
 	router          RoutingResource  // the router (fip or pgw) to external network; nil if none
 	filtersExternal map[string]bool  // filters relevant for external IP, map keys are the filters kind (NaclLayer/SecurityGroupLayer)
@@ -111,13 +119,12 @@ func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.Conne
 	if err1 != nil {
 		return "", err1
 	}
-	if connQuery == nil { // find the connection between src and dst if connection not specified in query
-		err2 := rulesAndDetails.computeConnections(c)
-		if err2 != nil {
-			return "", err2
-		}
+	// finds connEnabled (always) and the connection between src and dst if connection not specified in query
+	err2 := rulesAndDetails.computeConnections(c, connQuery)
+	if err2 != nil {
+		return "", err2
 	}
-	err3 := c.computeRouterAndActualRules(&rulesAndDetails)
+	err3 := c.computeActualRulesAndSpecifics(&rulesAndDetails)
 	if err3 != nil {
 		return "", err3
 	}
@@ -142,7 +149,8 @@ func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node,
 			if err != nil {
 				return nil, err
 			}
-			rulesThisSrcDst := &srcDstDetails{src, dst, common.NewConnectionSet(false), nil, nil, rulesOfConnection, nil}
+			rulesThisSrcDst := &srcDstDetails{src, dst, false, false, false,
+				common.NewConnectionSet(false), nil, nil, rulesOfConnection, nil}
 			rulesAndConn[i] = rulesThisSrcDst
 			i++
 		}
@@ -152,7 +160,7 @@ func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node,
 
 // computeActualRules computes from the potentialRules the actualRules that actually enable traffic,
 // considering filtersExternal potential.filtersExternal (which was computed based on the RoutingResource)
-func (c *VPCConfig) computeRouterAndActualRules(details *rulesAndConnDetails) error {
+func (c *VPCConfig) computeActualRulesAndSpecifics(details *rulesAndConnDetails) error {
 	for _, singleSrcDstDetails := range *details {
 		src := singleSrcDstDetails.src
 		dst := singleSrcDstDetails.dst
@@ -177,25 +185,41 @@ func (c *VPCConfig) computeRouterAndActualRules(details *rulesAndConnDetails) er
 		}
 		singleSrcDstDetails.router = routingResource
 		singleSrcDstDetails.filtersExternal = filtersForExternal
-		if !singleSrcDstDetails.src.IsInternal() || !singleSrcDstDetails.dst.IsInternal() {
-			actualIngress := computeActualRules(&singleSrcDstDetails.potentialRules.ingressRules, filtersForExternal)
-			actualEgress := computeActualRules(&singleSrcDstDetails.potentialRules.egressRules, filtersForExternal)
-			singleSrcDstDetails.actualRules = &rulesConnection{*actualIngress, *actualEgress}
-		} else {
-			singleSrcDstDetails.actualRules = singleSrcDstDetails.potentialRules
-		}
+		isInternal := singleSrcDstDetails.src.IsInternal() && singleSrcDstDetails.dst.IsInternal()
+		actualIngress, ingressEnabled := computeActualRules(&singleSrcDstDetails.potentialRules.ingressRules, filtersForExternal, isInternal)
+		actualEgress, egressEnabled := computeActualRules(&singleSrcDstDetails.potentialRules.egressRules, filtersForExternal, isInternal)
+		actual := &rulesConnection{*actualIngress, *actualEgress}
+		singleSrcDstDetails.actualRules = actual
+		singleSrcDstDetails.ingressEnabled = ingressEnabled
+		singleSrcDstDetails.egressEnabled = egressEnabled
+		fmt.Printf("ingressEnabled is %v and egressEnabled is %v\n", ingressEnabled, egressEnabled)
 	}
 	return nil
 }
 
-func computeActualRules(potentialRules *rulesInLayers, filtersExternal map[string]bool) *rulesInLayers {
-	actualRules := rulesInLayers{}
-	for filter, potentialRules := range *potentialRules {
-		if filtersExternal[filter] {
+// computes actual rules relevant to the connectoin, as well as whether the direction is enabled
+func computeActualRules(rulesLayer *rulesInLayers, filtersExternal map[string]bool, srcDstInternal bool) (*rulesInLayers, bool) {
+	actualRules := make(rulesInLayers)
+	filterNotBlocking := map[string]bool{}
+	for filter, potentialRules := range *rulesLayer {
+		filterIsRelevant := filtersExternal[filter] || srcDstInternal
+		if filterIsRelevant {
 			actualRules[filter] = potentialRules
 		}
+		// the filter is not blocking if it has enabling  rules or is not required for the router
+		if len(potentialRules) > 0 || !filterIsRelevant {
+			// if nacl and src dst same subnet then there will be a single rule with index -1, not to be printed
+			filterNotBlocking[filter] = true
+		}
 	}
-	return &actualRules
+	directionEnabled := true
+	for _, filter := range filterLayers {
+		if _, ok := filterNotBlocking[filter]; !ok {
+			directionEnabled = false
+		}
+	}
+	// the direction is enabled if all none of the filters is blocking it
+	return &actualRules, directionEnabled
 }
 
 func (c *VPCConfig) processInput(srcName, dstName string) (srcNodes, dstNodes []Node, err error) {
@@ -234,7 +258,6 @@ func (c *VPCConfig) getFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(
 }
 
 func (c *VPCConfig) getRulesOfConnection(src, dst Node, conn *common.ConnectionSet) (rulesOfConnection *rulesConnection, err error) {
-	filterLayers := []string{SecurityGroupLayer}
 	rulesOfConnection = &rulesConnection{}
 	ingressRulesPerLayer, egressRulesPerLayer := make(rulesInLayers), make(rulesInLayers)
 	for _, layer := range filterLayers {
@@ -293,8 +316,9 @@ func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
 func (explanationStruct *rulesAndConnDetails) String(c *VPCConfig, connQuery *common.ConnectionSet) (string, error) {
 	resStr := ""
 	for _, srcDstDetails := range *explanationStruct {
-		resStr += stringExplainabilityLine(c, connQuery, srcDstDetails.src, srcDstDetails.dst,
-			srcDstDetails.conn, srcDstDetails.router, srcDstDetails.actualRules)
+		resStr += stringExplainabilityLine(c, connQuery, srcDstDetails.src, srcDstDetails.dst, srcDstDetails.conn,
+			srcDstDetails.ingressEnabled, srcDstDetails.egressEnabled,
+			srcDstDetails.router, srcDstDetails.actualRules)
 	}
 	return resStr, nil
 }
@@ -304,6 +328,7 @@ func (explanation *explanation) String() string {
 	groupedLines := explanation.groupedLines
 	for i, line := range groupedLines {
 		linesStr[i] = stringExplainabilityLine(explanation.c, explanation.connQuery, line.src, line.dst, line.commonProperties.conn,
+			line.commonProperties.expDetails.ingressEnabled, line.commonProperties.expDetails.egressEnabled,
 			line.commonProperties.expDetails.router, line.commonProperties.expDetails.rules)
 	}
 	sort.Strings(linesStr)
@@ -311,11 +336,12 @@ func (explanation *explanation) String() string {
 }
 
 func stringExplainabilityLine(c *VPCConfig, connQuery *common.ConnectionSet, src, dst EndpointElem,
-	conn *common.ConnectionSet, router RoutingResource, rules *rulesConnection) string {
+	conn *common.ConnectionSet, ingressEnabled, egressEnabled bool,
+	router RoutingResource, rules *rulesConnection) string {
 	needEgress := !src.IsExternal()
 	needIngress := !dst.IsExternal()
-	noIngressRules := len(rules.ingressRules) == 0 && needIngress
-	noEgressRules := len(rules.egressRules) == 0 && needEgress
+	noIngressRules := !ingressEnabled && needIngress
+	noEgressRules := !egressEnabled && needEgress
 	egressRulesStr := fmt.Sprintf("Egress Rules:\n~~~~~~~~~~~~~\n%v", rules.egressRules.string(c))
 	ingressRulesStr := fmt.Sprintf("Ingress Rules:\n~~~~~~~~~~~~~~\n%v", rules.ingressRules.string(c))
 	noConnection := ""
@@ -373,8 +399,9 @@ func stringExplainabilityConnection(connQuery *common.ConnectionSet, src, dst En
 }
 
 // todo: connectivity is computed for the entire network, even though we need only for specific src, dst pairs
-// this is seems the time spent here should be neglectable, not worth the effort of adding dedicated code.
-func (explanationStruct *rulesAndConnDetails) computeConnections(c *VPCConfig) error {
+// this is seems the time spent here should be neglectable, not worth the effort of adding dedicated code
+// computeConnections computes connEnabled (always) and the connection between src and dst if connection not specified in query.
+func (explanationStruct *rulesAndConnDetails) computeConnections(c *VPCConfig, connQuery *common.ConnectionSet) error {
 	connectivity, err := c.GetVPCNetworkConnectivity(false) // computes connectivity
 	if err != nil {
 		return err
@@ -385,6 +412,15 @@ func (explanationStruct *rulesAndConnDetails) computeConnections(c *VPCConfig) e
 			return err
 		}
 		srcDstDetails.conn = conn
+		if connQuery != nil { // connection is part of the query
+			connEnabled, err := connQuery.ContainedIn(conn)
+			if err != nil {
+				return err
+			}
+			srcDstDetails.connEnabled = connEnabled
+		} else {
+			srcDstDetails.connEnabled = !conn.IsEmpty()
+		}
 	}
 	return nil
 }
@@ -420,15 +456,20 @@ func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (conn *comm
 	return conn, nil
 }
 
-func (rulesInLayers *rulesInLayers) string(c *VPCConfig) string {
+func (rulesInLayers rulesInLayers) string(c *VPCConfig) string {
 	rulesInLayersStr := ""
-	for layer, rules := range *rulesInLayers {
+	for _, layer := range filterLayers {
 		filter := c.getFilterTrafficResourceOfKind(layer)
 		if filter == nil {
 			continue
 		}
-		rulesInLayersStr += layer + " Rules\n------------------------\n" +
-			filter.StringRulesOfFilter(rules)
+		if rules, ok := rulesInLayers[layer]; ok {
+			stringRulesOfFilter := filter.StringRulesOfFilter(rules)
+			if stringRulesOfFilter != "" {
+				rulesInLayersStr += layer + " Rules\n------------------------\n" +
+					stringRulesOfFilter
+			}
+		}
 	}
 	return rulesInLayersStr
 }

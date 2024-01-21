@@ -20,8 +20,11 @@ type groupedNodesInfo struct {
 }
 
 type explainDetails struct {
-	rules  *rulesConnection
-	router RoutingResource
+	rules          *rulesConnection
+	router         RoutingResource
+	connEnabled    bool
+	ingressEnabled bool
+	egressEnabled  bool
 }
 
 type groupedCommonProperties struct {
@@ -324,7 +327,7 @@ func (g *GroupConnLines) groupExternalAddressesForExplainability() error {
 	var res []*groupedConnLine
 	for _, details := range *g.explain {
 		groupingStrKey := details.explanationEncode(g.config)
-		expDetails := &explainDetails{details.actualRules, details.router}
+		expDetails := &explainDetails{details.actualRules, details.router, details.connEnabled, details.ingressEnabled, details.egressEnabled}
 		err := g.addLineToExternalGrouping(&res, details.src, details.dst,
 			&groupedCommonProperties{conn: details.conn, expDetails: expDetails,
 				groupingStrKey: groupingStrKey})
