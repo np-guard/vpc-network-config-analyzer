@@ -189,10 +189,10 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args.ESrc = flagset.String(ESrc, "", "Src name for network_interface or an external ip to be explained")
 	args.EDst = flagset.String(EDst, "", "Dst name for network_interface or an external ip to be explained")
 	args.EProtocol = flagset.String(EProtocol, "", "Protocol for connection description")
-	args.ESrcMinPort = flagset.Int64(ESrcMinPort, common.MinPort, "SrcMinPort for connection description")
-	args.ESrcMaxPort = flagset.Int64(ESrcMaxPort, common.MaxPort, "SrcMaxPort for connection description")
-	args.EDstMinPort = flagset.Int64(EDstMinPort, common.MinPort, "DstMinPort for connection description")
-	args.EDstMaxPort = flagset.Int64(EDstMaxPort, common.MaxPort, "DstMaxPort for connection description")
+	args.ESrcMinPort = flagset.Int64(ESrcMinPort, common.MinPort, "minimum source port for connection description")
+	args.ESrcMaxPort = flagset.Int64(ESrcMaxPort, common.MaxPort, "maximum source port for connection description")
+	args.EDstMinPort = flagset.Int64(EDstMinPort, common.MinPort, "minimum destination port for connection description")
+	args.EDstMaxPort = flagset.Int64(EDstMaxPort, common.MaxPort, "maximum destination port for connection description")
 
 	// calling parseCmdLine prior to flagset.Parse to ensure that excessive and unsupported arguments are handled
 	// for example, flagset.Parse() ignores input args missing the `-`
@@ -280,7 +280,7 @@ func validRangeConnectionExplainMode(args *InArgs) error {
 func invalidArgsExplainMode(args *InArgs, flagset *flag.FlagSet) error {
 	if *args.AnalysisType != explainMode {
 		if wereExplainParamsSpecified(flagset, []string{ESrc, EDst, EProtocol, ESrcMinPort, ESrcMaxPort, EDstMinPort, EDstMaxPort, explainMode}) {
-			return fmt.Errorf("%s, %s, %s, %s, %s, %s and %s can be specified only when analysis-type is %s",
+			return fmt.Errorf("Explainability related params %s, %s, %s, %s, %s, %s and %s can be specified only in explain mode: analysis-type equals %s",
 				ESrc, EDst, EProtocol, ESrcMinPort, ESrcMaxPort, EDstMinPort, EDstMaxPort, explainMode)
 		}
 		return nil
@@ -292,8 +292,7 @@ func invalidArgsExplainMode(args *InArgs, flagset *flag.FlagSet) error {
 
 	if *args.EProtocol == "" {
 		if wereExplainParamsSpecified(flagset, []string{EProtocol, ESrcMinPort, ESrcMaxPort, EDstMinPort, EDstMaxPort, explainMode}) {
-			return fmt.Errorf("%s, %s, %s and %s can be specified only when specifying %s",
-				ESrcMinPort, ESrcMaxPort, EDstMinPort, EDstMaxPort, EProtocol)
+			return fmt.Errorf("Protocol must be specified when querying a specific connection")
 		}
 		return nil
 	}

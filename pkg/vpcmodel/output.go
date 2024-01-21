@@ -97,7 +97,7 @@ func NewOutputGenerator(c1, c2 map[string]*VPCConfig, grouping bool, uc OutputUs
 				res.cfgsDiff = configsDiff
 			}
 			if uc == Explain {
-				connQuery := TranslateCDtoConnectionSet(explanationArgs.protocol, explanationArgs.srcMinPort,
+				connQuery := translateCDtoConnectionSet(explanationArgs.protocol, explanationArgs.srcMinPort,
 					explanationArgs.srcMaxPort, explanationArgs.dstMinPort, explanationArgs.dstMaxPort)
 				explanation, err := c1[i].ExplainConnectivity(explanationArgs.src, explanationArgs.dst, connQuery)
 				if err != nil {
@@ -182,7 +182,7 @@ func (of *serialOutputFormatter) WriteOutput(c1, c2 map[string]*VPCConfig, conns
 	subnetsConns map[string]*VPCsubnetConnectivity, subnetsDiff *diffBetweenCfgs,
 	outFile string, grouping bool, uc OutputUseCase, explainStruct *Explanation) (string, error) {
 	diffAnalysis := uc == EndpointsDiff || uc == SubnetsDiff
-	if !diffAnalysis {
+	if !diffAnalysis && uc != Explain {
 		outputPerVPC := make([]*SingleAnalysisOutput, len(c1))
 		i := 0
 		for name := range c1 {
@@ -197,7 +197,7 @@ func (of *serialOutputFormatter) WriteOutput(c1, c2 map[string]*VPCConfig, conns
 		}
 		return of.AggregateVPCsOutput(outputPerVPC, uc, outFile)
 	}
-	// its a diff mode, we have only one vpc on each map:
+	// its diff or explain mode, we have only one vpc on each map:
 	name, _ := common.AnyMapEntry(c1)
 	vpcAnalysisOutput, err2 :=
 		of.createSingleVpcFormatter().WriteOutput(c1[name], c2[name], conns[name], subnetsConns[name],
@@ -205,7 +205,7 @@ func (of *serialOutputFormatter) WriteOutput(c1, c2 map[string]*VPCConfig, conns
 	if err2 != nil {
 		return "", err2
 	}
-	return of.WriteDiffOutput(vpcAnalysisOutput, uc, outFile)
+	return of.WriteDiffOrExplainOutput(vpcAnalysisOutput, uc, outFile)
 }
 
 func WriteToFile(content, fileName string) (string, error) {
@@ -261,7 +261,7 @@ func (of *serialOutputFormatter) AggregateVPCsOutput(outputList []*SingleAnalysi
 }
 
 // WriteDiffOutput actual writing the output into file, with required format adjustments
-func (of *serialOutputFormatter) WriteDiffOutput(output *SingleAnalysisOutput, uc OutputUseCase, outFile string) (string, error) {
+func (of *serialOutputFormatter) WriteDiffOrExplainOutput(output *SingleAnalysisOutput, uc OutputUseCase, outFile string) (string, error) {
 	var res string
 	var err error
 	switch of.outFormat {

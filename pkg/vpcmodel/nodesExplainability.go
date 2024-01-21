@@ -57,7 +57,7 @@ type Explanation struct {
 	groupedLines []*groupedConnLine
 }
 
-func TranslateCDtoConnectionSet(protocol string, srcMinPort, srcMaxPort, dstMinPort, dstMaxPort int64) *common.ConnectionSet {
+func translateCDtoConnectionSet(protocol string, srcMinPort, srcMaxPort, dstMinPort, dstMaxPort int64) *common.ConnectionSet {
 	if protocol == "" {
 		return nil
 	}

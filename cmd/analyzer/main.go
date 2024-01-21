@@ -55,12 +55,17 @@ func analysisTypeToUseCase(inArgs *InArgs) vpcmodel.OutputUseCase {
 }
 
 func analysisVPCConfigs(c1, c2 map[string]*vpcmodel.VPCConfig, inArgs *InArgs, outFile string) (string, error) {
+	var explanationArgs *vpcmodel.ExplanationArgs
+	if *inArgs.AnalysisType == explainMode {
+		explanationArgs = vpcmodel.NewExplanationArgs(*inArgs.ESrc, *inArgs.EDst, *inArgs.EProtocol,
+			*inArgs.ESrcMinPort, *inArgs.ESrcMaxPort, *inArgs.EDstMinPort, *inArgs.EDstMaxPort)
+	}
+
 	og, err := vpcmodel.NewOutputGenerator(c1, c2,
 		*inArgs.Grouping,
 		analysisTypeToUseCase(inArgs),
 		false,
-		vpcmodel.NewExplanationArgs(*inArgs.ESrc, *inArgs.EDst, *inArgs.EProtocol,
-			*inArgs.ESrcMinPort, *inArgs.ESrcMaxPort, *inArgs.EDstMinPort, *inArgs.EDstMaxPort))
+		explanationArgs)
 	if err != nil {
 		return "", err
 	}
