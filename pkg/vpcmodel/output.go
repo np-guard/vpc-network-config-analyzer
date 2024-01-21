@@ -180,8 +180,8 @@ func (of *serialOutputFormatter) createSingleVpcFormatter() SingleVpcOutputForma
 func (of *serialOutputFormatter) WriteOutput(c1, c2 map[string]*VPCConfig, conns map[string]*VPCConnectivity,
 	subnetsConns map[string]*VPCsubnetConnectivity, subnetsDiff *diffBetweenCfgs,
 	outFile string, grouping bool, uc OutputUseCase, explainStruct *Explanation) (string, error) {
-	diffAnalysis := uc == EndpointsDiff || uc == SubnetsDiff
-	if !diffAnalysis && uc != Explain {
+	singleVPCAnalysis := uc == EndpointsDiff || uc == SubnetsDiff || uc == Explain
+	if !singleVPCAnalysis {
 		outputPerVPC := make([]*SingleAnalysisOutput, len(c1))
 		i := 0
 		for name := range c1 {
