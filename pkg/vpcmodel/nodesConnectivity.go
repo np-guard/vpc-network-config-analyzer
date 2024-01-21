@@ -117,10 +117,20 @@ func (c *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 			allLayersRes[peerNode] = allowedConnsBetweenCapturedAndPeerNode
 		} else {
 			// else : external node -> consider attached routing resources
-			appliedRouter, routerConnRes := c.getRoutingResource(src, dst)
-			if appliedRouter != nil {
-				updatePerLayerRes(perLayerRes, appliedRouter.Kind(), peerNode, routerConnRes)
-			} else {
+
+			allowedConnsBetweenCapturedAndPeerNode := NoConns()
+			// node is associated with either a pgw or a fip
+			var appliedRouter RoutingResource
+			for _, router := range c.RoutingResources {
+				routerConnRes := router.AllowedConnectivity(src, dst)
+				if !routerConnRes.IsEmpty() { // connection is allowed through router resource
+					// TODO: consider adding connection attribute with details of routing through this router resource
+					allowedConnsBetweenCapturedAndPeerNode = routerConnRes
+					appliedRouter = router
+					updatePerLayerRes(perLayerRes, router.Kind(), peerNode, routerConnRes)
+				}
+			}
+			if appliedRouter == nil {
 				// without fip/pgw there is no external connectivity
 				allLayersRes[peerNode] = NoConns()
 				continue
@@ -129,9 +139,9 @@ func (c *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 			// TODO: consider moving to pkg ibm-vpc
 			appliedFilters := appliedRouter.AppliedFiltersKinds()
 			for layer := range appliedFilters {
-				routerConnRes = routerConnRes.Intersection(perLayerRes[layer][peerNode])
+				allowedConnsBetweenCapturedAndPeerNode = allowedConnsBetweenCapturedAndPeerNode.Intersection(perLayerRes[layer][peerNode])
 			}
-			allLayersRes[peerNode] = routerConnRes
+			allLayersRes[peerNode] = allowedConnsBetweenCapturedAndPeerNode
 		}
 	}
 	return allLayersRes, perLayerRes, nil
