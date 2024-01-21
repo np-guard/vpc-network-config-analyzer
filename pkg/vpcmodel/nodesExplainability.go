@@ -9,6 +9,7 @@ import (
 )
 
 // rulesInLayers contains specific rules across all layers (SGLayer/NACLLayer)
+// it maps from the layer name to the list of rules
 type rulesInLayers map[string][]RulesInFilter
 
 // rulesConnection contains the rules enabling a connection
@@ -17,19 +18,22 @@ type rulesConnection struct {
 	egressRules  rulesInLayers
 }
 
-type rulesSingleSrcDst struct {
-	src   Node
-	dst   Node
-	conn  *common.ConnectionSet
-	rules *rulesConnection
+type srcDstDetails struct {
+	src             Node
+	dst             Node
+	conn            *common.ConnectionSet
+	router          RoutingResource  // the router (fip or pgw) to external network; nil if none
+	filtersExternal map[string]bool  // filters relevant for external IP, map keys are the filters kind (NaclLayer/SecurityGroupLayer)
+	potentialRules  *rulesConnection // potentialRules potentially enabling connection
+	actualRules     *rulesConnection // actualRules enabling connection given router; e.g. NACL is not relevant for fip
 }
 
-type explainStruct []*rulesSingleSrcDst
+type rulesAndConnDetails []*srcDstDetails
 
 type explanation struct {
-	c             *VPCConfig
-	connQuery     *common.ConnectionSet
-	explainStruct *explainStruct
+	c               *VPCConfig
+	connQuery       *common.ConnectionSet
+	rulesAndDetails *rulesAndConnDetails // rules and more details for a single src->dst
 	// grouped connectivity result:
 	// grouping common explanation lines with common src/dst (internal node) and different dst/src (external node)
 	// [required due to computation with disjoint ip-blocks]
@@ -96,38 +100,39 @@ func (c *VPCConfig) getNodesFromInput(cidrOrName string) ([]Node, error) {
 	return c.getCidrExternalNodes(cidrOrName)
 }
 
-// todo: group results. for now just prints each
-
 // ExplainConnectivity todo: this will not be needed here once we connect explanbility to the cli
-// todo: support vsi given as an ID/IP address (CRN?)
-// todo: connection should be given in a string format, of course
 // nil conn means connection is not part of the query
 func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.ConnectionSet) (out string, err error) {
-	explanationStruct, err1 := c.computeExplainRules(src, dst, connQuery)
+	srcNodes, dstNodes, err := c.processInput(src, dst)
+	if err != nil {
+		return "", err
+	}
+	rulesAndDetails, err1 := c.computeExplainRules(srcNodes, dstNodes, connQuery)
 	if err1 != nil {
 		return "", err1
 	}
 	if connQuery == nil { // find the connection between src and dst if connection not specified in query
-		err2 := explanationStruct.computeConnections(c)
+		err2 := rulesAndDetails.computeConnections(c)
 		if err2 != nil {
 			return "", err2
 		}
 	}
-	groupedLines, err3 := newGroupConnExplainability(c, &explanationStruct)
+	err3 := c.computeRouterAndActualRules(&rulesAndDetails)
 	if err3 != nil {
 		return "", err3
 	}
-	res := &explanation{c, connQuery, &explanationStruct, groupedLines.GroupedLines}
+	groupedLines, err4 := newGroupConnExplainability(c, &rulesAndDetails)
+	if err4 != nil {
+		return "", err4
+	}
+	res := &explanation{c, connQuery, &rulesAndDetails, groupedLines.GroupedLines}
 	return res.String(), nil
 }
 
 // computeExplainRules computes the egress and ingress rules contributing to the (existing or missing) connection <src, dst>
-func (c *VPCConfig) computeExplainRules(srcName, dstName string, conn *common.ConnectionSet) (explanationStruct explainStruct, err error) {
-	srcNodes, dstNodes, err := c.processInput(srcName, dstName) // todo: should also handle connection string translation
-	if err != nil {
-		return nil, err
-	}
-	explanationStruct = make(explainStruct, max(len(srcNodes), len(dstNodes)))
+func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node,
+	conn *common.ConnectionSet) (rulesAndConn rulesAndConnDetails, err error) {
+	rulesAndConn = make(rulesAndConnDetails, max(len(srcNodes), len(dstNodes)))
 	i := 0
 	// either src of dst has more than one item; never both
 	// the loop is on two dimension since we do not know which, but actually we have a single dimension
@@ -137,12 +142,60 @@ func (c *VPCConfig) computeExplainRules(srcName, dstName string, conn *common.Co
 			if err != nil {
 				return nil, err
 			}
-			rulesThisSrcDst := &rulesSingleSrcDst{src, dst, common.NewConnectionSet(false), rulesOfConnection}
-			explanationStruct[i] = rulesThisSrcDst
+			rulesThisSrcDst := &srcDstDetails{src, dst, common.NewConnectionSet(false), nil, nil, rulesOfConnection, nil}
+			rulesAndConn[i] = rulesThisSrcDst
 			i++
 		}
 	}
-	return explanationStruct, nil
+	return rulesAndConn, nil
+}
+
+// computeActualRules computes from the potentialRules the actualRules that actually enable traffic,
+// considering filtersExternal potential.filtersExternal (which was computed based on the RoutingResource)
+func (c *VPCConfig) computeRouterAndActualRules(details *rulesAndConnDetails) error {
+	for _, singleSrcDstDetails := range *details {
+		src := singleSrcDstDetails.src
+		dst := singleSrcDstDetails.dst
+		// RoutingResources are computed by the parser for []Nodes of the VPC,
+		// finds the relevant nodes for the query's src and dst;
+		// if for src or dst no containing node was found, there is no router
+		containingSrcNode, err1 := c.getContainingConfigNode(src)
+		if err1 != nil {
+			return err1
+		}
+		containingDstNode, err2 := c.getContainingConfigNode(dst)
+		if err2 != nil {
+			return err2
+		}
+		var routingResource RoutingResource
+		var filtersForExternal map[string]bool
+		if containingSrcNode != nil && containingDstNode != nil {
+			routingResource, _ = c.getRoutingResource(containingSrcNode, containingDstNode)
+			if routingResource != nil {
+				filtersForExternal = routingResource.AppliedFiltersKinds() // relevant filtersExternal
+			}
+		}
+		singleSrcDstDetails.router = routingResource
+		singleSrcDstDetails.filtersExternal = filtersForExternal
+		if !singleSrcDstDetails.src.IsInternal() || !singleSrcDstDetails.dst.IsInternal() {
+			actualIngress := computeActualRules(&singleSrcDstDetails.potentialRules.ingressRules, filtersForExternal)
+			actualEgress := computeActualRules(&singleSrcDstDetails.potentialRules.egressRules, filtersForExternal)
+			singleSrcDstDetails.actualRules = &rulesConnection{*actualIngress, *actualEgress}
+		} else {
+			singleSrcDstDetails.actualRules = singleSrcDstDetails.potentialRules
+		}
+	}
+	return nil
+}
+
+func computeActualRules(potentialRules *rulesInLayers, filtersExternal map[string]bool) *rulesInLayers {
+	actualRules := rulesInLayers{}
+	for filter, potentialRules := range *potentialRules {
+		if filtersExternal[filter] {
+			actualRules[filter] = potentialRules
+		}
+	}
+	return &actualRules
 }
 
 func (c *VPCConfig) processInput(srcName, dstName string) (srcNodes, dstNodes []Node, err error) {
@@ -218,8 +271,8 @@ func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
 		return node, nil
 	}
 	nodeIPBlock := common.NewIPBlockFromCidr(node.Cidr())
-	if nodeIPBlock == nil { // string cidr does not represent a legal cidr
-		return nil, fmt.Errorf("could not find IP block of external node %v", node.Name())
+	if nodeIPBlock == nil { // string cidr does not represent a legal cidr, would be handled earlier
+		return nil, fmt.Errorf("node %v does not refer to a legal IP", node.Name())
 	}
 	for _, configNode := range c.Nodes {
 		if configNode.IsInternal() {
@@ -230,14 +283,18 @@ func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
 			return configNode, nil
 		}
 	}
-	return nil, fmt.Errorf("could not find containing config node for %v", node.Name())
+	// todo: at the moment gets here for certain internal addresses not connected to vsi.
+	//       should be handled as part of the https://github.com/np-guard/vpc-network-config-analyzer/issues/305
+	//       verify internal addresses gets her - open a issue if this is the case
+	return nil, nil
 }
 
 // prints each separately without grouping - for debug
-func (explanationStruct *explainStruct) String(c *VPCConfig, connQuery *common.ConnectionSet) (string, error) {
+func (explanationStruct *rulesAndConnDetails) String(c *VPCConfig, connQuery *common.ConnectionSet) (string, error) {
 	resStr := ""
-	for _, rulesSrcDst := range *explanationStruct {
-		resStr += stringExplainabilityLine(c, connQuery, rulesSrcDst.src, rulesSrcDst.dst, rulesSrcDst.conn, rulesSrcDst.rules)
+	for _, srcDstDetails := range *explanationStruct {
+		resStr += stringExplainabilityLine(c, connQuery, srcDstDetails.src, srcDstDetails.dst,
+			srcDstDetails.conn, srcDstDetails.router, srcDstDetails.actualRules)
 	}
 	return resStr, nil
 }
@@ -247,14 +304,14 @@ func (explanation *explanation) String() string {
 	groupedLines := explanation.groupedLines
 	for i, line := range groupedLines {
 		linesStr[i] = stringExplainabilityLine(explanation.c, explanation.connQuery, line.src, line.dst, line.commonProperties.conn,
-			line.commonProperties.rules)
+			line.commonProperties.expDetails.router, line.commonProperties.expDetails.rules)
 	}
 	sort.Strings(linesStr)
 	return strings.Join(linesStr, "\n") + "\n"
 }
 
 func stringExplainabilityLine(c *VPCConfig, connQuery *common.ConnectionSet, src, dst EndpointElem,
-	conn *common.ConnectionSet, rules *rulesConnection) string {
+	conn *common.ConnectionSet, router RoutingResource, rules *rulesConnection) string {
 	needEgress := !src.IsExternal()
 	needIngress := !dst.IsExternal()
 	noIngressRules := len(rules.ingressRules) == 0 && needIngress
@@ -269,6 +326,11 @@ func stringExplainabilityLine(c *VPCConfig, connQuery *common.ConnectionSet, src
 	}
 	resStr := ""
 	switch {
+	case router == nil && src.IsExternal():
+		resStr += fmt.Sprintf("%v no fip router and src is external (fip is required for "+
+			"outbound external connection)\n", noConnection)
+	case router == nil && dst.IsExternal():
+		resStr += fmt.Sprintf("%v no router (fip/pgw) and dst is external\n", noConnection)
 	case noIngressRules && noEgressRules:
 		resStr += fmt.Sprintf("%v connection blocked both by ingress and egress\n", noConnection)
 	case noIngressRules:
@@ -282,40 +344,47 @@ func stringExplainabilityLine(c *VPCConfig, connQuery *common.ConnectionSet, src
 			resStr += ingressRulesStr
 		}
 	default: // there is a connection
-		if connQuery == nil {
-			resStr = fmt.Sprintf("The following connection exists between %v and %v: %v; its enabled by\n", src.Name(), dst.Name(),
-				conn.String())
-		} else {
-			resStr = fmt.Sprintf("Connection %v exists between %v and %v; its enabled by\n", connQuery.String(),
-				src.Name(), dst.Name())
-		}
-		if needEgress {
-			resStr += egressRulesStr
-		}
-		if needIngress {
-			resStr += ingressRulesStr
-		}
+		return stringExplainabilityConnection(connQuery, src, dst, conn, router, needEgress, needIngress, egressRulesStr, ingressRulesStr)
+	}
+	return resStr
+}
+
+func stringExplainabilityConnection(connQuery *common.ConnectionSet, src, dst EndpointElem,
+	conn *common.ConnectionSet, router RoutingResource,
+	needEgress, needIngress bool, egressRulesStr, ingressRulesStr string) string {
+	resStr := ""
+	if connQuery == nil {
+		resStr = fmt.Sprintf("The following connection exists between %v and %v: %v; its enabled by\n", src.Name(), dst.Name(),
+			conn.String())
+	} else {
+		resStr = fmt.Sprintf("Connection %v exists between %v and %v; its enabled by\n", connQuery.String(),
+			src.Name(), dst.Name())
+	}
+	if src.IsExternal() || dst.IsExternal() {
+		resStr += "External Router " + router.Kind() + ": " + router.Name() + "\n"
+	}
+	if needEgress {
+		resStr += egressRulesStr
+	}
+	if needIngress {
+		resStr += ingressRulesStr
 	}
 	return resStr
 }
 
 // todo: connectivity is computed for the entire network, even though we need only for specific src, dst pairs
 // this is seems the time spent here should be neglectable, not worth the effort of adding dedicated code.
-func (explanationStruct *explainStruct) computeConnections(c *VPCConfig) error {
+func (explanationStruct *rulesAndConnDetails) computeConnections(c *VPCConfig) error {
 	connectivity, err := c.GetVPCNetworkConnectivity(false) // computes connectivity
 	if err != nil {
 		return err
 	}
-	for _, rulesSrcDst := range *explanationStruct {
-		// is there a connection?
-		if (len(rulesSrcDst.rules.egressRules) > 0 || !rulesSrcDst.src.IsInternal()) && // egress enabled or not needed
-			(len(rulesSrcDst.rules.ingressRules) > 0 || !rulesSrcDst.dst.IsInternal()) { // ingress enabled or not needed
-			conn, err := connectivity.getConnection(c, rulesSrcDst.src, rulesSrcDst.dst)
-			if err != nil {
-				return err
-			}
-			rulesSrcDst.conn = conn
+	for _, srcDstDetails := range *explanationStruct {
+		conn, err := connectivity.getConnection(c, srcDstDetails.src, srcDstDetails.dst)
+		if err != nil {
+			return err
 		}
+		srcDstDetails.conn = conn
 	}
 	return nil
 }
@@ -328,9 +397,16 @@ func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (conn *comm
 	if err1 != nil {
 		return nil, err1
 	}
+	errMsg := "could not find containing config node for %v"
+	if srcForConnection == nil {
+		return nil, fmt.Errorf(errMsg, src.Name())
+	}
 	dstForConnection, err2 := c.getContainingConfigNode(dst)
 	if err2 != nil {
 		return nil, err2
+	}
+	if srcForConnection == nil {
+		return nil, fmt.Errorf(errMsg, dst.Name())
 	}
 	var ok bool
 	srcMapValue, ok := v.AllowedConnsCombined[srcForConnection]
