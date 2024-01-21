@@ -280,7 +280,8 @@ func validRangeConnectionExplainMode(args *InArgs) error {
 func invalidArgsExplainMode(args *InArgs, flagset *flag.FlagSet) error {
 	if *args.AnalysisType != explainMode {
 		if wereExplainParamsSpecified(flagset, []string{ESrc, EDst, EProtocol, ESrcMinPort, ESrcMaxPort, EDstMinPort, EDstMaxPort, explainMode}) {
-			return fmt.Errorf("Explainability related params %s, %s, %s, %s, %s, %s and %s can be specified only in explain mode: analysis-type equals %s",
+			return fmt.Errorf("explainability related params %s, %s, %s, %s, %s, %s and %s"+
+				"can be specified only in explain mode: analysis-type equals %s",
 				ESrc, EDst, EProtocol, ESrcMinPort, ESrcMaxPort, EDstMinPort, EDstMaxPort, explainMode)
 		}
 		return nil
@@ -292,7 +293,7 @@ func invalidArgsExplainMode(args *InArgs, flagset *flag.FlagSet) error {
 
 	if *args.EProtocol == "" {
 		if wereExplainParamsSpecified(flagset, []string{EProtocol, ESrcMinPort, ESrcMaxPort, EDstMinPort, EDstMaxPort, explainMode}) {
-			return fmt.Errorf("Protocol must be specified when querying a specific connection")
+			return fmt.Errorf("protocol must be specified when querying a specific connection")
 		}
 		return nil
 	}
