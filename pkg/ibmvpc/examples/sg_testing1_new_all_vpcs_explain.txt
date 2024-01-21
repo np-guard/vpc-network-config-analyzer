@@ -1,5 +1,5 @@
 Connectivity explanation between vsi1-ky[10.240.10.4] and vsi2-ky[10.240.20.4]
-No connection between vsi1-ky[10.240.10.4] and vsi2-ky[10.240.20.4]; connection blocked by egress
+There is no connection "protocol: TCP src-ports: 1-5 dst-ports: 0" between vsi1-ky[10.240.10.4] and vsi2-ky[10.240.20.4]; connection blocked by egress
 Ingress Rules:
 ~~~~~~~~~~~~~~
 SecurityGroupLayer Rules

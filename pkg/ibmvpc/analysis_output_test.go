@@ -207,6 +207,7 @@ var tests = []*vpcGeneralTest{
 		format:      vpcmodel.Text,
 		ESrc:        "vsi1-ky[10.240.10.4]",
 		EDst:        "vsi2-ky[10.240.20.4]",
+		EProtocol:   "TCP",
 		ESrcMinPort: 1,
 		ESrcMaxPort: 5,
 	},
@@ -538,8 +539,6 @@ func (tt *vpcGeneralTest) runTest(t *testing.T) {
 	if explainUseCase {
 		explanationArgs = vpcmodel.NewExplanationArgs(tt.ESrc, tt.EDst, tt.EProtocol,
 			tt.ESrcMinPort, tt.ESrcMaxPort, tt.EDstMinPort, tt.EDstMaxPort)
-	} else {
-		explanationArgs = nil
 	}
 
 	// generate actual output for all use cases specified for this test

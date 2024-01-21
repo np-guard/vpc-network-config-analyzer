@@ -57,16 +57,19 @@ type Explanation struct {
 	groupedLines []*groupedConnLine
 }
 
-func translateCDtoConnectionSet(protocol string, srcMinPort, srcMaxPort, dstMinPort, dstMaxPort int64) *common.ConnectionSet {
-	if protocol == "" {
+// TODO: handle also input ICMP properties (type, code) as input args
+// translates explanation args to a connection set
+func (e *ExplanationArgs) getConnectionSet() *common.ConnectionSet {
+	if e.protocol == "" {
 		return nil
 	}
 	connection := common.NewConnectionSet(false)
-	if common.ProtocolStr(protocol) == common.ProtocolICMP {
+	if common.ProtocolStr(e.protocol) == common.ProtocolICMP {
 		connection.AddICMPConnection(common.MinICMPtype, common.MaxICMPtype,
 			common.MinICMPcode, common.MaxICMPcode)
 	} else {
-		connection.AddTCPorUDPConn(common.ProtocolStr(protocol), srcMinPort, srcMaxPort, dstMinPort, dstMaxPort)
+		connection.AddTCPorUDPConn(common.ProtocolStr(e.protocol), e.srcMinPort,
+			e.srcMaxPort, e.dstMinPort, e.dstMaxPort)
 	}
 
 	return connection
