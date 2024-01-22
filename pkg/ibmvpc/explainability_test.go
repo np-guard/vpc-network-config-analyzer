@@ -500,7 +500,7 @@ func TestNACLInternal(t *testing.T) {
 		require.Fail(t, "vpcConfig equals nil")
 	}
 	// connection between 2 vsis
-	// todo: why only TCP and UDP?
+	// todo: misleading since deny not supported yet
 	vsi1 := "vsi1-ky[10.240.10.4]"
 	vsi2 := "vsi2-ky[10.240.20.4]"
 	explain1, err1 := vpcConfig.ExplainConnectivity(vsi1, vsi2, nil)
