@@ -500,6 +500,7 @@ func TestNACLInternal(t *testing.T) {
 		require.Fail(t, "vpcConfig equals nil")
 	}
 	// connection between 2 vsis
+	// todo: why only TCP and UDP?
 	vsi1 := "vsi1-ky[10.240.10.4]"
 	vsi2 := "vsi2-ky[10.240.20.4]"
 	explain1, err1 := vpcConfig.ExplainConnectivity(vsi1, vsi2, nil)
@@ -562,4 +563,46 @@ func TestNACLGrouping(t *testing.T) {
 		"enabling rules from acl1-ky:\n\tindex: 1, direction: outbound , src: 10.240.10.0/24 , dst: 161.26.0.0/16, conn: protocol: udp, "+
 		"srcPorts: 1-65535, dstPorts: 1-65535, action: allow\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n"+
 		"\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n\n", explainStr1)
+}
+
+func TestNACLQueryConnection(t *testing.T) {
+	vpcConfig := getConfigNACL(t)
+	if vpcConfig == nil {
+		require.Fail(t, "vpcConfig equals nil")
+	}
+	// connection between 2 vsis
+	vsi1 := "vsi1-ky[10.240.10.4]"
+	cidr2 := "161.26.0.0/16"
+	explain1, err1 := vpcConfig.ExplainConnectivity(vsi1, cidr2, nil)
+	if err1 != nil {
+		require.Fail(t, err1.Error())
+	}
+	explainStr1 := explain1.String()
+	fmt.Println(explainStr1)
+	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
+	connectionUDP := common.NewConnectionSet(false)
+	connectionUDP.AddTCPorUDPConn(common.ProtocolUDP, common.MinPort, common.MaxPort, common.MinPort, common.MaxPort)
+	explain2, err2 := vpcConfig.ExplainConnectivity(vsi1, cidr2, connectionUDP)
+	if err2 != nil {
+		require.Fail(t, err2.Error())
+	}
+	explainStr2 := explain2.String()
+	fmt.Println(explainStr2)
+	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
+	require.Equal(t, "Connection protocol: UDP exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16; "+
+		"its enabled by\nExternal Router PublicGateway: public-gw-ky\nEgress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n"+
+		"------------------------\nenabling rules from acl1-ky:\n"+
+		"\tindex: 1, direction: outbound , src: 10.240.10.0/24 , dst: 161.26.0.0/16, conn: protocol: udp, srcPorts: 1-65535, dstPorts: 1-65535, "+
+		"action: allow\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n\tindex: 0, direction: outbound, "+
+		"protocol: all, cidr: 0.0.0.0/0\n\n", explainStr2)
+	connectionTCP := common.NewConnectionSet(false)
+	connectionTCP.AddTCPorUDPConn(common.ProtocolTCP, common.MinPort, common.MaxPort, common.MinPort, common.MaxPort)
+	explain3, err3 := vpcConfig.ExplainConnectivity(vsi1, cidr2, connectionTCP)
+	if err3 != nil {
+		require.Fail(t, err3.Error())
+	}
+	explainStr3 := explain3.String()
+	fmt.Println(explainStr3)
+	require.Equal(t, "There is no connection \"protocol: TCP\" between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16; "+
+		"connection blocked by egress\n\n", explainStr3)
 }
