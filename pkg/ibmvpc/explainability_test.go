@@ -38,10 +38,11 @@ func TestVsiToVsi(t *testing.T) {
 	if vpcConfig == nil {
 		require.Fail(t, "vpcConfig equals nil")
 	}
-	explainStr1, err1 := vpcConfig.ExplainConnectivity("vsi2-ky[10.240.20.4]", "vsi3b-ky[10.240.30.4]", nil)
+	explain1, err1 := vpcConfig.ExplainConnectivity("vsi2-ky[10.240.20.4]", "vsi3b-ky[10.240.30.4]", nil)
 	if err1 != nil {
 		require.Fail(t, err1.Error())
 	}
+	explainStr1 := explain1.String()
 	fmt.Println(explainStr1)
 	require.Equal(t,
 		"The following connection exists between vsi2-ky[10.240.20.4] and vsi3b-ky[10.240.30.4]: protocol: TCP; "+
@@ -53,10 +54,11 @@ func TestVsiToVsi(t *testing.T) {
 			"\tindex: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\nSecurityGroupLayer Rules\n"+
 			"------------------------\nenabling rules from sg2-ky:\n"+
 			"\tindex: 7, direction: inbound,  conns: protocol: tcp,  dstPorts: 1-65535, cidr: 10.240.20.4/32,10.240.30.4/32\n\n", explainStr1)
-	explainStr2, err2 := vpcConfig.ExplainConnectivity("vsi2-ky[10.240.20.4]", "vsi1-ky[10.240.10.4]", nil)
+	explain2, err2 := vpcConfig.ExplainConnectivity("vsi2-ky[10.240.20.4]", "vsi1-ky[10.240.10.4]", nil)
 	if err2 != nil {
 		require.Fail(t, err2.Error())
 	}
+	explainStr2 := explain2.String()
 	fmt.Println(explainStr2)
 	require.Equal(t, "The following connection exists between vsi2-ky[10.240.20.4] and vsi1-ky[10.240.10.4]: All Connections; its enabled by\n"+
 		"Egress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl2-ky:\n"+
@@ -65,10 +67,11 @@ func TestVsiToVsi(t *testing.T) {
 		"Ingress Rules:\n~~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl1-ky:\n"+
 		"\tindex: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\nSecurityGroupLayer Rules\n------------------------\n"+
 		"enabling rules from sg1-ky:\n\tindex: 3, direction: inbound, protocol: all, cidr: 10.240.20.4/32,10.240.30.4/32\n\n", explainStr2)
-	explainStr3, err3 := vpcConfig.ExplainConnectivity("vsi3a-ky[10.240.30.5]", "vsi1-ky[10.240.10.4]", nil)
+	explain3, err3 := vpcConfig.ExplainConnectivity("vsi3a-ky[10.240.30.5]", "vsi1-ky[10.240.10.4]", nil)
 	if err3 != nil {
 		require.Fail(t, err3.Error())
 	}
+	explainStr3 := explain3.String()
 	fmt.Println(explainStr3)
 	require.Equal(t, "The following connection exists between vsi3a-ky[10.240.30.5] and vsi1-ky[10.240.10.4]: "+
 		"All Connections; its enabled by\nEgress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\n"+
@@ -80,19 +83,21 @@ func TestVsiToVsi(t *testing.T) {
 		"Ingress Rules:\n~~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl1-ky:\n"+
 		"\tindex: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\nSecurityGroupLayer Rules\n"+
 		"------------------------\nenabling rules from sg1-ky:\n\tindex: 4, direction: inbound, protocol: all, cidr: 10.240.30.5/32,10.240.30.6/32\n\n", explainStr3)
-	explainStr4, err4 := vpcConfig.ExplainConnectivity("vsi1-ky[10.240.10.4]", "vsi2-ky[10.240.20.4]", nil)
+	explain4, err4 := vpcConfig.ExplainConnectivity("vsi1-ky[10.240.10.4]", "vsi2-ky[10.240.20.4]", nil)
 	if err4 != nil {
 		require.Fail(t, err4.Error())
 	}
+	explainStr4 := explain4.String()
 	fmt.Println(explainStr4)
 	require.Equal(t, "No connection between vsi1-ky[10.240.10.4] and vsi2-ky[10.240.20.4]; connection blocked by egress\nIngress Rules:\n"+
 		"~~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl2-ky:\n"+
 		"\tindex: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\nSecurityGroupLayer Rules\n------------------------\n"+
 		"enabling rules from sg2-ky:\n\tindex: 4, direction: inbound, protocol: all, cidr: 10.240.10.4/32\n\n", explainStr4)
-	explainStr5, err5 := vpcConfig.ExplainConnectivity("vsi3a-ky[10.240.30.5]", "vsi2-ky[10.240.20.4]", nil)
+	explain5, err5 := vpcConfig.ExplainConnectivity("vsi3a-ky[10.240.30.5]", "vsi2-ky[10.240.20.4]", nil)
 	if err5 != nil {
 		require.Fail(t, err5.Error())
 	}
+	explainStr5 := explain5.String()
 	fmt.Println(explainStr5)
 	require.Equal(t, "No connection between vsi3a-ky[10.240.30.5] and vsi2-ky[10.240.20.4]; connection blocked by ingress\nEgress Rules:\n~~~~~~~~~~~~~\n"+
 		"NaclLayer Rules\n------------------------\nenabling rules from acl3-ky:\n"+
@@ -130,10 +135,11 @@ func TestSimpleExternalSG(t *testing.T) {
 	}
 	vsi1 := "vsi1-ky[10.240.10.4]"
 	cidr1 := "161.26.0.0/16"
-	explainStr1, err1 := vpcConfig.ExplainConnectivity(vsi1, cidr1, nil)
+	explain1, err1 := vpcConfig.ExplainConnectivity(vsi1, cidr1, nil)
 	if err1 != nil {
 		require.Fail(t, err1.Error())
 	}
+	explainStr1 := explain1.String()
 	fmt.Println(explainStr1)
 	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 	require.Equal(t, "The following connection exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16: "+
@@ -142,10 +148,11 @@ func TestSimpleExternalSG(t *testing.T) {
 		"\tindex: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\nSecurityGroupLayer Rules\n"+
 		"------------------------\nenabling rules from sg1-ky:\n"+
 		"\tindex: 2, direction: outbound,  conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\n", explainStr1)
-	explainStr2, err2 := vpcConfig.ExplainConnectivity(cidr1, vsi1, nil)
+	explain2, err2 := vpcConfig.ExplainConnectivity(cidr1, vsi1, nil)
 	if err2 != nil {
 		require.Fail(t, err2.Error())
 	}
+	explainStr2 := explain2.String()
 	fmt.Println(explainStr2)
 	fmt.Println("-------------------------------------------------------------------------------------" +
 		"--------------------------------------")
@@ -153,10 +160,11 @@ func TestSimpleExternalSG(t *testing.T) {
 		"no fip router and src is external (fip is required for outbound external connection)\n\n",
 		explainStr2)
 	cidr2 := "161.26.0.0/32"
-	explainStr3, err3 := vpcConfig.ExplainConnectivity(vsi1, cidr2, nil)
+	explain3, err3 := vpcConfig.ExplainConnectivity(vsi1, cidr2, nil)
 	if err3 != nil {
 		require.Fail(t, err3.Error())
 	}
+	explainStr3 := explain3.String()
 	fmt.Println(explainStr3)
 	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 	require.Equal(t, "The following connection exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/32: "+
@@ -165,10 +173,11 @@ func TestSimpleExternalSG(t *testing.T) {
 		"\tindex: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\nSecurityGroupLayer Rules\n"+
 		"------------------------\nenabling rules from sg1-ky:\n\tindex: 2, direction: outbound,  conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\n", explainStr3)
 	vsi3b := "vsi3b-ky[10.240.30.4]"
-	explainStr4, err4 := vpcConfig.ExplainConnectivity(vsi3b, cidr2, nil)
+	explain4, err4 := vpcConfig.ExplainConnectivity(vsi3b, cidr2, nil)
 	if err4 != nil {
 		require.Fail(t, err4.Error())
 	}
+	explainStr4 := explain4.String()
 	fmt.Println(explainStr4)
 	fmt.Println("--------------------------------------------------------------------------------------------------" +
 		"-------------------------")
@@ -184,10 +193,11 @@ func TestGroupingExternalSG(t *testing.T) {
 	}
 	vsi1 := "vsi1-ky[10.240.10.4]"
 	cidr1 := "161.26.0.0/8"
-	explainStr1, err1 := vpcConfig.ExplainConnectivity(vsi1, cidr1, nil)
+	explain1, err1 := vpcConfig.ExplainConnectivity(vsi1, cidr1, nil)
 	if err1 != nil {
 		require.Fail(t, err1.Error())
 	}
+	explainStr1 := explain1.String()
 	fmt.Println(explainStr1)
 	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 	require.Equal(t, "No connection between vsi1-ky[10.240.10.4] and Public Internet 161.0.0.0-161.25.255.255,161.27.0.0-161.255.255.255; "+
@@ -234,10 +244,11 @@ func TestQueryConnectionSGBasic(t *testing.T) {
 		require.Fail(t, "vpcConfig equals nil")
 	}
 	// test1: a connection exists, but it is not the required one by query
-	explainStr1, err1 := vpcConfig.ExplainConnectivity("vsi2-ky[10.240.20.4]", "vsi3b-ky[10.240.30.4]", common.NewConnectionSet(true))
+	explain1, err1 := vpcConfig.ExplainConnectivity("vsi2-ky[10.240.20.4]", "vsi3b-ky[10.240.30.4]", common.NewConnectionSet(true))
 	if err1 != nil {
 		require.Fail(t, err1.Error())
 	}
+	explainStr1 := explain1.String()
 	fmt.Println(explainStr1)
 	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 	require.Equal(t, "There is no connection \"All Connections\" between vsi2-ky[10.240.20.4] and vsi3b-ky[10.240.30.4]; connection blocked by ingress\n"+
@@ -252,10 +263,11 @@ func TestQueryConnectionSGBasic(t *testing.T) {
 	cidr1 := "161.26.0.0/16"
 	connectionUDP1 := common.NewConnectionSet(false)
 	connectionUDP1.AddTCPorUDPConn(common.ProtocolUDP, common.MinPort, common.MaxPort, common.MinPort, common.MaxPort)
-	explainStr2, err2 := vpcConfig.ExplainConnectivity(vsi1, cidr1, connectionUDP1)
+	explain2, err2 := vpcConfig.ExplainConnectivity(vsi1, cidr1, connectionUDP1)
 	if err2 != nil {
 		require.Fail(t, err2.Error())
 	}
+	explainStr2 := explain2.String()
 	fmt.Println(explainStr2)
 	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 	require.Equal(t, "Connection protocol: UDP exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16; its enabled by\n"+
@@ -267,10 +279,11 @@ func TestQueryConnectionSGBasic(t *testing.T) {
 	//test3: the required connection is contained in the existing one per connection
 	connectionUDP2 := common.NewConnectionSet(false)
 	connectionUDP2.AddTCPorUDPConn(common.ProtocolUDP, 10, 100, 443, 443)
-	explainStr3, err3 := vpcConfig.ExplainConnectivity(vsi1, cidr1, connectionUDP2)
+	explain3, err3 := vpcConfig.ExplainConnectivity(vsi1, cidr1, connectionUDP2)
 	if err3 != nil {
 		require.Fail(t, err3.Error())
 	}
+	explainStr3 := explain3.String()
 	fmt.Println(explainStr3)
 	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 	require.Equal(t, "Connection protocol: UDP src-ports: 10-100 dst-ports: 443 exists between vsi1-ky[10.240.10.4] and "+
@@ -282,10 +295,11 @@ func TestQueryConnectionSGBasic(t *testing.T) {
 
 	// test4: the required connection is contained in the existing one per ip of src/dst
 	cidr2 := "161.26.0.0/20"
-	explainStr4, err4 := vpcConfig.ExplainConnectivity(vsi1, cidr2, connectionUDP2)
+	explain4, err4 := vpcConfig.ExplainConnectivity(vsi1, cidr2, connectionUDP2)
 	if err4 != nil {
 		require.Fail(t, err4.Error())
 	}
+	explainStr4 := explain4.String()
 	fmt.Println(explainStr4)
 	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 	require.Equal(t, "Connection protocol: UDP src-ports: 10-100 dst-ports: 443 exists between vsi1-ky[10.240.10.4] and "+
@@ -297,10 +311,11 @@ func TestQueryConnectionSGBasic(t *testing.T) {
 
 	// test5: the required connection exists for part of the dst ip
 	cidr3 := "161.26.0.0/12"
-	explainStr5, err5 := vpcConfig.ExplainConnectivity(vsi1, cidr3, connectionUDP2)
+	explain5, err5 := vpcConfig.ExplainConnectivity(vsi1, cidr3, connectionUDP2)
 	if err5 != nil {
 		require.Fail(t, err5.Error())
 	}
+	explainStr5 := explain5.String()
 	fmt.Println(explainStr5)
 	fmt.Println("-------------------------------------------------------------------------------------" +
 		"--------------------------------------")
@@ -314,10 +329,11 @@ func TestQueryConnectionSGBasic(t *testing.T) {
 		"connection blocked by egress\n\n", explainStr5)
 
 	// test6: a connection does not exist regardless of the query
-	explainStr6, err6 := vpcConfig.ExplainConnectivity("vsi1-ky[10.240.10.4]", "vsi3a-ky[10.240.30.5]", connectionUDP2)
+	explain6, err6 := vpcConfig.ExplainConnectivity("vsi1-ky[10.240.10.4]", "vsi3a-ky[10.240.30.5]", connectionUDP2)
 	if err6 != nil {
 		require.Fail(t, err6.Error())
 	}
+	explainStr6 := explain6.String()
 	fmt.Println(explainStr6)
 	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 	require.Equal(t, "There is no connection \"protocol: UDP src-ports: 10-100 dst-ports: 443\" "+
@@ -333,10 +349,11 @@ func TestQueryConnectionSGRules(t *testing.T) {
 	// test1: all rules are relevant (for comparison)
 	vsi1 := "vsi1-ky[10.240.10.4]"
 	vsi3a := "vsi3a-ky[10.240.30.5]"
-	explainStr1, err1 := vpcConfig.ExplainConnectivity(vsi3a, vsi1, nil)
+	explain1, err1 := vpcConfig.ExplainConnectivity(vsi3a, vsi1, nil)
 	if err1 != nil {
 		require.Fail(t, err1.Error())
 	}
+	explainStr1 := explain1.String()
 	fmt.Println(explainStr1)
 	require.Equal(t, "The following connection exists between vsi3a-ky[10.240.30.5] and vsi1-ky[10.240.10.4]: All Connections; its enabled by\n"+
 		"Egress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl3-ky:\n"+
@@ -350,10 +367,11 @@ func TestQueryConnectionSGRules(t *testing.T) {
 	// test 2: only a subset of the rules are relevant, protocol wise
 	connectionUDP1 := common.NewConnectionSet(false)
 	connectionUDP1.AddTCPorUDPConn(common.ProtocolUDP, common.MinPort, common.MaxPort, common.MinPort, common.MaxPort)
-	explainStr2, err2 := vpcConfig.ExplainConnectivity(vsi3a, vsi1, connectionUDP1)
+	explain2, err2 := vpcConfig.ExplainConnectivity(vsi3a, vsi1, connectionUDP1)
 	if err2 != nil {
 		require.Fail(t, err2.Error())
 	}
+	explainStr2 := explain2.String()
 	fmt.Println(explainStr2)
 	require.Equal(t, "Connection protocol: UDP exists between vsi3a-ky[10.240.30.5] and vsi1-ky[10.240.10.4]; its enabled by\n"+
 		"Egress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl3-ky:\n"+
@@ -368,10 +386,11 @@ func TestQueryConnectionSGRules(t *testing.T) {
 	// test 3: only a subset of the rules are relevant, port wise and protocol wise
 	connectionTCP1 := common.NewConnectionSet(false)
 	connectionTCP1.AddTCPorUDPConn(common.ProtocolTCP, common.MinPort, common.MaxPort, 50, 54)
-	explainStr3, err3 := vpcConfig.ExplainConnectivity(vsi3a, vsi1, connectionTCP1)
+	explain3, err3 := vpcConfig.ExplainConnectivity(vsi3a, vsi1, connectionTCP1)
 	if err3 != nil {
 		require.Fail(t, err3.Error())
 	}
+	explainStr3 := explain3.String()
 	fmt.Println(explainStr3)
 	require.Equal(t, "Connection protocol: TCP dst-ports: 50-54 exists between vsi3a-ky[10.240.30.5] and vsi1-ky[10.240.10.4]; its enabled by\n"+
 		"Egress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl3-ky:\n\t"+
@@ -388,10 +407,11 @@ func TestQueryConnectionSGRules(t *testing.T) {
 	// test 4: all rules are relevant, with specified port wise protocol
 	connectionTCP2 := common.NewConnectionSet(false)
 	connectionTCP2.AddTCPorUDPConn(common.ProtocolTCP, common.MinPort, common.MaxPort, 120, 230)
-	explainStr4, err4 := vpcConfig.ExplainConnectivity(vsi3a, vsi1, connectionTCP2)
+	explain4, err4 := vpcConfig.ExplainConnectivity(vsi3a, vsi1, connectionTCP2)
 	if err4 != nil {
 		require.Fail(t, err4.Error())
 	}
+	explainStr4 := explain4.String()
 	fmt.Println(explainStr4)
 	require.Equal(t, "Connection protocol: TCP dst-ports: 120-230 exists between vsi3a-ky[10.240.30.5] and vsi1-ky[10.240.10.4]; its enabled by\n"+
 		"Egress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl3-ky:\n"+
@@ -417,10 +437,11 @@ func TestNACLExternal(t *testing.T) {
 	// connection exists to external
 	vsi1 := "vsi1-ky[10.240.10.4]"
 	cidr1 := "161.26.0.0/16"
-	explainStr1, err1 := vpcConfig.ExplainConnectivity(vsi1, cidr1, nil)
+	explain1, err1 := vpcConfig.ExplainConnectivity(vsi1, cidr1, nil)
 	if err1 != nil {
 		require.Fail(t, err1.Error())
 	}
+	explainStr1 := explain1.String()
 	fmt.Println(explainStr1)
 	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 	require.Equal(t, "The following connection exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16: protocol: UDP; "+
@@ -430,18 +451,20 @@ func TestNACLExternal(t *testing.T) {
 		"\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n\n", explainStr1)
 	// connection does not exist to external, blocked by egress
 	cidr2 := "100.128.0.0/32"
-	explainStr2, err2 := vpcConfig.ExplainConnectivity(vsi1, cidr2, nil)
+	explain2, err2 := vpcConfig.ExplainConnectivity(vsi1, cidr2, nil)
 	if err2 != nil {
 		require.Fail(t, err2.Error())
 	}
+	explainStr2 := explain2.String()
 	fmt.Println(explainStr2)
 	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 	require.Equal(t, "No connection between vsi1-ky[10.240.10.4] and Public Internet 100.128.0.0/32; connection blocked by egress\n\n", explainStr2)
 	// connection does not exist to external, blocked by ingress
-	explainStr3, err3 := vpcConfig.ExplainConnectivity(cidr2, vsi1, nil)
+	explain3, err3 := vpcConfig.ExplainConnectivity(cidr2, vsi1, nil)
 	if err3 != nil {
 		require.Fail(t, err3.Error())
 	}
+	explainStr3 := explain3.String()
 	fmt.Println(explainStr3)
 	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 	require.Equal(t, "No connection between Public Internet 100.128.0.0/32 and vsi1-ky[10.240.10.4]; no fip router and src is external"+
@@ -456,10 +479,11 @@ func TestNACLInternal(t *testing.T) {
 	// connection between 2 vsis
 	vsi1 := "vsi1-ky[10.240.10.4]"
 	vsi2 := "vsi2-ky[10.240.20.4]"
-	explainStr1, err1 := vpcConfig.ExplainConnectivity(vsi1, vsi2, nil)
+	explain1, err1 := vpcConfig.ExplainConnectivity(vsi1, vsi2, nil)
 	if err1 != nil {
 		require.Fail(t, err1.Error())
 	}
+	explainStr1 := explain1.String()
 	fmt.Println(explainStr1)
 	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 	require.Equal(t, "The following connection exists between vsi1-ky[10.240.10.4] and vsi2-ky[10.240.20.4]: "+
@@ -469,18 +493,20 @@ func TestNACLInternal(t *testing.T) {
 		"Ingress Rules:\n~~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl2-ky:\n"+
 		"\tindex: 6, direction: inbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, conn: all, action: allow\nSecurityGroupLayer Rules\n------------------------\n"+
 		"enabling rules from sg1-ky:\n\tindex: 1, direction: inbound, protocol: all, cidr: 0.0.0.0/0\n\n", explainStr1)
-	explainStr2, err2 := vpcConfig.ExplainConnectivity(vsi2, vsi1, nil)
+	explain2, err2 := vpcConfig.ExplainConnectivity(vsi2, vsi1, nil)
 	if err2 != nil {
 		require.Fail(t, err2.Error())
 	}
+	explainStr2 := explain2.String()
 	fmt.Println(explainStr2)
 	fmt.Println("--------------------------------------------------------------------------------------------------------------------------")
 	vsi3a := "vsi3a-ky[10.240.30.5]"
-	explainStr3, err3 := vpcConfig.ExplainConnectivity(vsi1, vsi3a, nil)
+	explain3, err3 := vpcConfig.ExplainConnectivity(vsi1, vsi3a, nil)
 	if err3 != nil {
 		require.Fail(t, err3.Error())
 	}
 	// connection blocked one way between 2 vsis
+	explainStr3 := explain3.String()
 	fmt.Println(explainStr3)
 	fmt.Println("--------------------------------------------------------------------------------------------------------------------------")
 	require.Equal(t, "No connection between vsi1-ky[10.240.10.4] and vsi3a-ky[10.240.30.5]; connection blocked by egress\nIngress Rules:\n"+
@@ -498,10 +524,11 @@ func TestNACLGrouping(t *testing.T) {
 	// connection exists to external
 	vsi1 := "vsi1-ky[10.240.10.4]"
 	cidr1 := "161.26.0.0/15"
-	explainStr1, err1 := vpcConfig.ExplainConnectivity(vsi1, cidr1, nil)
+	explain1, err1 := vpcConfig.ExplainConnectivity(vsi1, cidr1, nil)
 	if err1 != nil {
 		require.Fail(t, err1.Error())
 	}
+	explainStr1 := explain1.String()
 	fmt.Println(explainStr1)
 	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 	require.Equal(t, "No connection between vsi1-ky[10.240.10.4] and Public Internet 161.27.0.0/16; connection blocked by egress\n\n"+
