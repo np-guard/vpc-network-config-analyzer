@@ -339,7 +339,8 @@ func TestQueryConnectionSGBasic(t *testing.T) {
 		"SecurityGroupLayer Rules\n------------------------\n"+
 		"enabling rules from sg1-ky:\n\t"+
 		"index: 2, direction: outbound,  conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\nThere is no connection \""+
-		"protocol: UDP src-ports: 10-100 dst-ports: 443\" between vsi1-ky[10.240.10.4] and Public Internet 161.16.0.0-161.25.255.255,161.27.0.0-161.31.255.255; "+
+		"protocol: UDP src-ports: 10-100 dst-ports: 443\" between vsi1-ky[10.240.10.4] and "+
+		"Public Internet 161.16.0.0-161.25.255.255,161.27.0.0-161.31.255.255; "+
 		"connection blocked by egress\n\n", explainStr5)
 
 	// test6: a connection does not exist regardless of the query
@@ -379,7 +380,8 @@ func TestQueryConnectionSGRules(t *testing.T) {
 		"\tindex: 3, direction: outbound,  conns: protocol: tcp,  dstPorts: 100-200, cidr: 0.0.0.0/0\nIngress Rules:\n~~~~~~~~~~~~~~\n"+
 		"NaclLayer Rules\n------------------------\nenabling rules from acl1-ky:\n"+
 		"\tindex: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\nSecurityGroupLayer Rules\n"+
-		"------------------------\nenabling rules from sg1-ky:\n\tindex: 4, direction: inbound, protocol: all, cidr: 10.240.30.5/32,10.240.30.6/32\n\n", explainStr1)
+		"------------------------\nenabling rules from sg1-ky:\n\tindex: 4, direction: inbound, "+
+		"protocol: all, cidr: 10.240.30.5/32,10.240.30.6/32\n\n", explainStr1)
 	// test 2: only a subset of the rules are relevant, protocol wise
 	connectionUDP1 := common.NewConnectionSet(false)
 	connectionUDP1.AddTCPorUDPConn(common.ProtocolUDP, common.MinPort, common.MaxPort, common.MinPort, common.MaxPort)
@@ -396,7 +398,8 @@ func TestQueryConnectionSGRules(t *testing.T) {
 		"\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\nIngress Rules:\n~~~~~~~~~~~~~~\n"+
 		"NaclLayer Rules\n------------------------\nenabling rules from acl1-ky:\n"+
 		"\tindex: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\nSecurityGroupLayer Rules\n"+
-		"------------------------\nenabling rules from sg1-ky:\n\tindex: 4, direction: inbound, protocol: all, cidr: 10.240.30.5/32,10.240.30.6/32\n\n", explainStr2)
+		"------------------------\nenabling rules from sg1-ky:\n\tindex: 4, direction: inbound, "+
+		"protocol: all, cidr: 10.240.30.5/32,10.240.30.6/32\n\n", explainStr2)
 	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 
 	// test 3: only a subset of the rules are relevant, port wise and protocol wise
@@ -439,7 +442,8 @@ func TestQueryConnectionSGRules(t *testing.T) {
 		"\tindex: 3, direction: outbound,  conns: protocol: tcp,  dstPorts: 100-200, cidr: 0.0.0.0/0\nIngress Rules:\n~~~~~~~~~~~~~~\n"+
 		"NaclLayer Rules\n------------------------\nenabling rules from acl1-ky:\n"+
 		"\tindex: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\nSecurityGroupLayer Rules\n"+
-		"------------------------\nenabling rules from sg1-ky:\n\tindex: 4, direction: inbound, protocol: all, cidr: 10.240.30.5/32,10.240.30.6/32\n\n", explainStr4)
+		"------------------------\nenabling rules from sg1-ky:\n\tindex: 4, direction: inbound, "+
+		"protocol: all, cidr: 10.240.30.5/32,10.240.30.6/32\n\n", explainStr4)
 	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 }
 
