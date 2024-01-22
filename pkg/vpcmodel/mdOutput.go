@@ -28,13 +28,14 @@ func (m *MDoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	cfgsDiff *diffBetweenCfgs,
 	outFile string,
 	grouping bool,
-	uc OutputUseCase) (*SingleAnalysisOutput, error) {
+	uc OutputUseCase,
+	explanation *Explanation) (*SingleAnalysisOutput, error) {
 	// get output by analysis type
 	v2Name := ""
 	if c2 != nil {
 		v2Name = c2.VPC.Name()
 	}
-	out, err := headerOfAnalyzedVPC(uc, c1.VPC.Name(), v2Name, c1)
+	out, err := headerOfAnalyzedVPC(uc, c1.VPC.Name(), v2Name, c1, explanation)
 	if err != nil {
 		return nil, err
 	}

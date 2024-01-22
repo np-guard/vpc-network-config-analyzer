@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/ibmvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/version"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
@@ -56,10 +55,17 @@ func analysisTypeToUseCase(inArgs *InArgs) vpcmodel.OutputUseCase {
 }
 
 func analysisVPCConfigs(c1, c2 map[string]*vpcmodel.VPCConfig, inArgs *InArgs, outFile string) (string, error) {
+	var explanationArgs *vpcmodel.ExplanationArgs
+	if *inArgs.AnalysisType == explainMode {
+		explanationArgs = vpcmodel.NewExplanationArgs(*inArgs.ESrc, *inArgs.EDst, *inArgs.EProtocol,
+			*inArgs.ESrcMinPort, *inArgs.ESrcMaxPort, *inArgs.EDstMinPort, *inArgs.EDstMaxPort)
+	}
+
 	og, err := vpcmodel.NewOutputGenerator(c1, c2,
 		*inArgs.Grouping,
 		analysisTypeToUseCase(inArgs),
-		false)
+		false,
+		explanationArgs)
 	if err != nil {
 		return "", err
 	}
@@ -84,19 +90,6 @@ func vpcConfigsFromFile(fileName string, inArgs *InArgs) (map[string]*vpcmodel.V
 		return nil, fmt.Errorf(ErrorFormat, InGenerationErr, err2)
 	}
 	return vpcConfigs, nil
-}
-
-func translateCDtoConnectionSet(inArgs *InArgs) *common.ConnectionSet {
-	connection := common.NewConnectionSet(false)
-	if common.ProtocolStr(*inArgs.QProtocol) == common.ProtocolICMP {
-		connection.AddICMPConnection(common.MinICMPtype, common.MaxICMPtype,
-			common.MinICMPcode, common.MaxICMPcode)
-	} else {
-		connection.AddTCPorUDPConn(common.ProtocolStr(*inArgs.QProtocol), *inArgs.QSrcMinPort, *inArgs.QSrcMaxPort,
-			*inArgs.QDstMinPort, *inArgs.QDstMaxPort)
-	}
-
-	return connection
 }
 
 // The actual main function
@@ -139,10 +132,6 @@ func _main(cmdlineArgs []string) error {
 		return err2
 	}
 	fmt.Println(vpcAnalysisOutput)
-
-	if *inArgs.AnalysisType == explainMode {
-		_ = translateCDtoConnectionSet(inArgs)
-	}
 
 	return nil
 }
