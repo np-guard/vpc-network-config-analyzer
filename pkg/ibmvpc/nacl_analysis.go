@@ -150,10 +150,10 @@ func (na *NACLAnalyzer) dumpNACLrules() string {
 // given ingress/egress rules from NACL , specific src, subnet cidr and disjoint peers of dest ip-blocks -- get the allowed connections
 func getAllowedXgressConnections(rules []*NACLRule, src, subnetCidr *common.IPBlock,
 	disjointPeers []*common.IPBlock, isIngress bool,
-) (map[string]*common.ConnectionSet, map[string][]int) {
-	allowedXgress := map[string]*common.ConnectionSet{}
+) (allowedXgress map[string]*common.ConnectionSet, contribRules map[string][]int) {
+	allowedXgress = map[string]*common.ConnectionSet{}
 	deniedXgress := map[string]*common.ConnectionSet{}
-	contribRules := map[string][]int{}
+	contribRules = map[string][]int{}
 	for _, cidr := range disjointPeers {
 		if cidr.ContainedIn(subnetCidr) {
 			allowedXgress[cidr.ToIPRanges()] = getEmptyConnSet()
