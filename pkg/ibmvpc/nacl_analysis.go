@@ -251,50 +251,34 @@ func getDisjointPeersForEgressAnalysis(rules []*NACLRule, subnet *common.IPBlock
 	return getDisjointPeersForIngressOrEgressAnalysis(rules, subnet, false)
 }
 
-// get connectivity result for each disjoint target in the subnet
+// AnalyzeNACLRulesPerDisjointTargets get connectivity result for each disjoint target in the subnet
 func (na *NACLAnalyzer) AnalyzeNACLRulesPerDisjointTargets(
 	rules []*NACLRule, subnet *common.IPBlock, isIngress bool) map[string]*ConnectivityResult {
 	res := map[string]*ConnectivityResult{}
+	var disjointSrcPeers, disjointDstPeers []*common.IPBlock
+	// the src/dst vars naming below are w.r.t. ingress; for egress it is the other way around
 	if isIngress {
-		disjointSrcPeers, disjointDstPeers := getDisjointPeersForIngressAnalysis(rules, subnet)
-		for _, src := range disjointSrcPeers {
-			allowedIngressConns, contribRules := getAllowedXgressConnections(rules, src, subnet, disjointDstPeers, true)
-			for dst, conn := range allowedIngressConns {
-				if dstIP, err := common.IPBlockFromIPRangeStr(dst); err == nil {
-					if connRes, ok := res[dstIP.ToIPRanges()]; ok {
-						connRes.allowedconns[src] = conn
-						connRes.contribRules[src] = contribRules[dst]
-					} else {
-						res[dstIP.ToIPRanges()] = &ConnectivityResult{isIngress: true, allowedconns: map[*common.IPBlock]*common.ConnectionSet{},
-							contribRules: map[*common.IPBlock][]int{}}
-						res[dstIP.ToIPRanges()].allowedconns[src] = conn
-						// contribRules indexes are identical to these of allowedIngressConns, thus access legit
-						res[dstIP.ToIPRanges()].contribRules[src] = contribRules[dst]
-					}
-				}
-			}
-		}
-		return res
+		disjointSrcPeers, disjointDstPeers = getDisjointPeersForIngressAnalysis(rules, subnet)
+	} else {
+		disjointDstPeers, disjointSrcPeers = getDisjointPeersForEgressAnalysis(rules, subnet)
 	}
-	disjointSrcPeers, disjointDstPeers := getDisjointPeersForEgressAnalysis(rules, subnet)
-	for _, dst := range disjointDstPeers {
-		allowedEgressConns, contribRules := getAllowedXgressConnections(rules, dst, subnet, disjointSrcPeers, false)
-		for src, conn := range allowedEgressConns {
-			if srcIP, err := common.IPBlockFromIPRangeStr(src); err == nil {
-				if connRes, ok := res[srcIP.ToIPRanges()]; ok {
-					connRes.allowedconns[dst] = conn
-					connRes.contribRules[dst] = contribRules[src]
+	for _, src := range disjointSrcPeers {
+		allowedIngressConns, contribRules := getAllowedXgressConnections(rules, src, subnet, disjointDstPeers, isIngress)
+		for dst, conn := range allowedIngressConns {
+			if dstIP, err := common.IPBlockFromIPRangeStr(dst); err == nil {
+				if connRes, ok := res[dstIP.ToIPRanges()]; ok {
+					connRes.allowedconns[src] = conn
+					connRes.contribRules[src] = contribRules[dst]
 				} else {
-					res[srcIP.ToIPRanges()] = &ConnectivityResult{isIngress: true, allowedconns: map[*common.IPBlock]*common.ConnectionSet{},
+					res[dstIP.ToIPRanges()] = &ConnectivityResult{isIngress: true, allowedconns: map[*common.IPBlock]*common.ConnectionSet{},
 						contribRules: map[*common.IPBlock][]int{}}
-					res[srcIP.ToIPRanges()].allowedconns[dst] = conn
+					res[dstIP.ToIPRanges()].allowedconns[src] = conn
 					// contribRules indexes are identical to these of allowedIngressConns, thus access legit
-					res[srcIP.ToIPRanges()].contribRules[dst] = contribRules[src]
+					res[dstIP.ToIPRanges()].contribRules[src] = contribRules[dst]
 				}
 			}
 		}
 	}
-
 	return res
 }
 
