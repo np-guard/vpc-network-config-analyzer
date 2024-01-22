@@ -515,7 +515,8 @@ func TestNACLInternal(t *testing.T) {
 		"\tindex: 2, direction: outbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, conn: all, action: allow\nSecurityGroupLayer Rules\n"+
 		"------------------------\nenabling rules from sg1-ky:\n\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n"+
 		"Ingress Rules:\n~~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl2-ky:\n"+
-		"\tindex: 6, direction: inbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, conn: all, action: allow\nSecurityGroupLayer Rules\n------------------------\n"+
+		"\tindex: 6, direction: inbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, "+
+		"conn: all, action: allow\nSecurityGroupLayer Rules\n------------------------\n"+
 		"enabling rules from sg1-ky:\n\tindex: 1, direction: inbound, protocol: all, cidr: 0.0.0.0/0\n\n", explainStr1)
 	explain2, err2 := vpcConfig.ExplainConnectivity(vsi2, vsi1, nil)
 	if err2 != nil {
