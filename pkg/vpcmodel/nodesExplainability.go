@@ -227,7 +227,6 @@ func (c *VPCConfig) computeActualRulesAndSpecifics(details *rulesAndConnDetails)
 		singleSrcDstDetails.actualRules = actual
 		singleSrcDstDetails.ingressEnabled = ingressEnabled
 		singleSrcDstDetails.egressEnabled = egressEnabled
-		fmt.Printf("ingressEnabled is %v and egressEnabled is %v\n", ingressEnabled, egressEnabled)
 	}
 	return nil
 }
