@@ -277,6 +277,8 @@ func getSubnetsConfig(
 			}
 			subnetNode.nodes = subnetNodes
 		}
+		// add subnet to its vpc's list of subnets
+		vpc.subnetsList = append(vpc.subnetsList, subnetNode)
 	}
 	return vpcInternalAddressRange, nil
 }
@@ -610,14 +612,68 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 					ResourceUID:  tgwUID,
 					ResourceType: ResourceTypeTGW,
 				},
-				vpcs: []*VPC{vpc},
+				vpcs:       []*VPC{vpc},
+				vpcFilters: map[string]map[string]bool{},
 			}
 			tgwMap[tgwUID] = tgw
 		} else {
 			tgwMap[tgwUID].vpcs = append(tgwMap[tgwUID].vpcs, vpc)
 		}
+		permittedSubnets, err := getTransitConnectionFiltersForVPC(tgwConn, vpc)
+		if err != nil {
+			fmt.Printf("warning: ignoring prefix filters, vpcID: %s, tgwID: %s, err is: %s\n", vpcUID, tgwUID, err.Error())
+		} else {
+			tgwMap[tgwUID].vpcFilters[vpc.ResourceUID] = permittedSubnets
+		}
 	}
 	return tgwMap
+}
+
+func isNodeNotFiltered(node vpcmodel.Node, filteredSubnets map[string]bool) bool {
+	// TODO: currently skipping nodes other than network interface (e.g. reserved ip, iks nodes)
+	if netIntf, ok := node.(*NetworkInterface); ok {
+		return filteredSubnets[netIntf.subnet.UID()]
+	}
+	return false
+}
+
+func getNotFilteredNodes(nodes []vpcmodel.Node, filteredSubnets map[string]bool) []vpcmodel.Node {
+	res := []vpcmodel.Node{}
+	for _, n := range nodes {
+		if isNodeNotFiltered(n, filteredSubnets) {
+			res = append(res, n)
+		}
+	}
+	return res
+}
+
+// getVPCResourcesNotFiltered returns Nodes and NodeSets not filtered by prefix filters,
+// so that only those are added as part of the "combined" vpc representing the cross-vpc connectivity
+func getVPCResourcesNotFiltered(tgw *TransitGateway, vpcConfig *vpcmodel.VPCConfig) (
+	nodes []vpcmodel.Node, nodeSets []vpcmodel.NodeSet, err error) {
+	filteredSubnets, ok := tgw.vpcFilters[vpcConfig.VPC.UID()]
+	if !ok {
+		return nil, nil, fmt.Errorf("missing vpcFilters for TGW %s, VPC %s", tgw.UID(), vpcConfig.VPC.UID())
+	}
+
+	nodes = getNotFilteredNodes(vpcConfig.Nodes, filteredSubnets)
+
+	for _, nodeSet := range vpcConfig.NodeSets {
+		// skip VPE type for nodeSet
+		switch n := nodeSet.(type) {
+		case *Subnet:
+			if filteredSubnets[n.UID()] {
+				nodeSets = append(nodeSets, nodeSet)
+			}
+		case *Vsi:
+			if len(getNotFilteredNodes(n.nodes, filteredSubnets)) > 0 {
+				nodeSets = append(nodeSets, nodeSet)
+			}
+		case *VPC:
+			nodeSets = append(nodeSets, nodeSet)
+		}
+	}
+	return nodes, nodeSets, nil
 }
 
 // For each Transit Gateway, generate a config that combines multiple vpc entities, which are
@@ -638,14 +694,18 @@ func addTGWbasedConfigs(tgws map[string]*TransitGateway, res map[string]*vpcmode
 		var vpcsAddressRanges *common.IPBlock // collect all internal address ranges of involved VPCs
 		nacls := &NaclLayer{VPCResource: vpcmodel.VPCResource{ResourceType: vpcmodel.NaclLayer}}
 		sgs := &SecurityGroupLayer{VPCResource: vpcmodel.VPCResource{ResourceType: vpcmodel.SecurityGroupLayer}}
-		for _, vpc := range tgw.vpcs { // iterate the involved VPCs
+		for _, vpc := range tgw.vpcs { // iterate the involved VPCs -- all of them are connected (all to all)
 			vpcConfig, ok := res[vpc.ResourceUID]
 			if !ok {
 				return fmt.Errorf("missing vpc config for vpc CRN %s", vpc.ResourceUID)
 			}
 			// merge vpc config to the new "combined" config, used to get conns between vpcs only
-			newConfig.Nodes = append(newConfig.Nodes, vpcConfig.Nodes...)
-			newConfig.NodeSets = append(newConfig.NodeSets, vpcConfig.NodeSets...)
+			filteredNodes, filteredNodeSets, err := getVPCResourcesNotFiltered(tgw, vpcConfig)
+			if err != nil {
+				return err
+			}
+			newConfig.Nodes = append(newConfig.Nodes, filteredNodes...)
+			newConfig.NodeSets = append(newConfig.NodeSets, filteredNodeSets...)
 
 			// FilterResources: merge NACLLayers to a single NACLLayer object, same for sg
 			for _, fr := range vpcConfig.FilterResources {
