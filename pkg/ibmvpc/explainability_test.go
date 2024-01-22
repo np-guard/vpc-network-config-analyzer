@@ -60,12 +60,14 @@ func TestVsiToVsi(t *testing.T) {
 	}
 	explainStr2 := explain2.String()
 	fmt.Println(explainStr2)
-	require.Equal(t, "The following connection exists between vsi2-ky[10.240.20.4] and vsi1-ky[10.240.10.4]: All Connections; its enabled by\n"+
+	require.Equal(t, "The following connection exists between vsi2-ky[10.240.20.4] and vsi1-ky[10.240.10.4]: "+
+		"All Connections; its enabled by\n"+
 		"Egress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl2-ky:\n"+
 		"\tindex: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\nSecurityGroupLayer Rules\n"+
 		"------------------------\nenabling rules from sg2-ky:\n\tindex: 1, direction: outbound, protocol: all, cidr: 10.240.10.0/24\n"+
 		"Ingress Rules:\n~~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl1-ky:\n"+
-		"\tindex: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\nSecurityGroupLayer Rules\n------------------------\n"+
+		"\tindex: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, "+
+		"action: allow\nSecurityGroupLayer Rules\n------------------------\n"+
 		"enabling rules from sg1-ky:\n\tindex: 3, direction: inbound, protocol: all, cidr: 10.240.20.4/32,10.240.30.4/32\n\n", explainStr2)
 	explain3, err3 := vpcConfig.ExplainConnectivity("vsi3a-ky[10.240.30.5]", "vsi1-ky[10.240.10.4]", nil)
 	if err3 != nil {
@@ -82,7 +84,8 @@ func TestVsiToVsi(t *testing.T) {
 		"\tindex: 3, direction: outbound,  conns: protocol: tcp,  dstPorts: 100-200, cidr: 0.0.0.0/0\n"+
 		"Ingress Rules:\n~~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl1-ky:\n"+
 		"\tindex: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\nSecurityGroupLayer Rules\n"+
-		"------------------------\nenabling rules from sg1-ky:\n\tindex: 4, direction: inbound, protocol: all, cidr: 10.240.30.5/32,10.240.30.6/32\n\n", explainStr3)
+		"------------------------\nenabling rules from sg1-ky:\n\tindex: 4, direction: inbound, "+
+		"protocol: all, cidr: 10.240.30.5/32,10.240.30.6/32\n\n", explainStr3)
 	explain4, err4 := vpcConfig.ExplainConnectivity("vsi1-ky[10.240.10.4]", "vsi2-ky[10.240.20.4]", nil)
 	if err4 != nil {
 		require.Fail(t, err4.Error())
@@ -91,7 +94,8 @@ func TestVsiToVsi(t *testing.T) {
 	fmt.Println(explainStr4)
 	require.Equal(t, "No connection between vsi1-ky[10.240.10.4] and vsi2-ky[10.240.20.4]; connection blocked by egress\nIngress Rules:\n"+
 		"~~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl2-ky:\n"+
-		"\tindex: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\nSecurityGroupLayer Rules\n------------------------\n"+
+		"\tindex: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\n"+
+		"SecurityGroupLayer Rules\n------------------------\n"+
 		"enabling rules from sg2-ky:\n\tindex: 4, direction: inbound, protocol: all, cidr: 10.240.10.4/32\n\n", explainStr4)
 	explain5, err5 := vpcConfig.ExplainConnectivity("vsi3a-ky[10.240.30.5]", "vsi2-ky[10.240.20.4]", nil)
 	if err5 != nil {
@@ -99,9 +103,11 @@ func TestVsiToVsi(t *testing.T) {
 	}
 	explainStr5 := explain5.String()
 	fmt.Println(explainStr5)
-	require.Equal(t, "No connection between vsi3a-ky[10.240.30.5] and vsi2-ky[10.240.20.4]; connection blocked by ingress\nEgress Rules:\n~~~~~~~~~~~~~\n"+
+	require.Equal(t, "No connection between vsi3a-ky[10.240.30.5] and vsi2-ky[10.240.20.4]; "+
+		"connection blocked by ingress\nEgress Rules:\n~~~~~~~~~~~~~\n"+
 		"NaclLayer Rules\n------------------------\nenabling rules from acl3-ky:\n"+
-		"\tindex: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\nSecurityGroupLayer Rules\n------------------------\n"+
+		"\tindex: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\n"+
+		"SecurityGroupLayer Rules\n------------------------\n"+
 		"enabling rules from sg3-ky:\n\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n"+
 		"\tindex: 2, direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, cidr: 0.0.0.0/0\n"+
 		"\tindex: 3, direction: outbound,  conns: protocol: tcp,  dstPorts: 100-200, cidr: 0.0.0.0/0\n\n", explainStr5)
@@ -171,7 +177,8 @@ func TestSimpleExternalSG(t *testing.T) {
 		"protocol: UDP; its enabled by\nExternal Router PublicGateway: public-gw-ky\nEgress Rules:\n~~~~~~~~~~~~~\n"+
 		"NaclLayer Rules\n------------------------\nenabling rules from acl1-ky:\n"+
 		"\tindex: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\nSecurityGroupLayer Rules\n"+
-		"------------------------\nenabling rules from sg1-ky:\n\tindex: 2, direction: outbound,  conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\n", explainStr3)
+		"------------------------\nenabling rules from sg1-ky:\n\tindex: 2, direction: outbound,  "+
+		"conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\n", explainStr3)
 	vsi3b := "vsi3b-ky[10.240.30.4]"
 	explain4, err4 := vpcConfig.ExplainConnectivity(vsi3b, cidr2, nil)
 	if err4 != nil {
@@ -251,9 +258,11 @@ func TestQueryConnectionSGBasic(t *testing.T) {
 	explainStr1 := explain1.String()
 	fmt.Println(explainStr1)
 	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
-	require.Equal(t, "There is no connection \"All Connections\" between vsi2-ky[10.240.20.4] and vsi3b-ky[10.240.30.4]; connection blocked by ingress\n"+
+	require.Equal(t, "There is no connection \"All Connections\" between vsi2-ky[10.240.20.4] and vsi3b-ky[10.240.30.4]; "+
+		"connection blocked by ingress\n"+
 		"Egress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl2-ky:\n"+
-		"\tindex: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\nSecurityGroupLayer Rules\n------------------------\n"+
+		"\tindex: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\n"+
+		"SecurityGroupLayer Rules\n------------------------\n"+
 		"enabling rules from sg2-ky:\n\tindex: 5, direction: outbound, protocol: all, cidr: 10.240.30.0/24\n\t"+
 		"index: 6, direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, cidr: 10.240.20.4/32,10.240.30.4/32\n\n",
 		explainStr1)
@@ -272,8 +281,10 @@ func TestQueryConnectionSGBasic(t *testing.T) {
 	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 	require.Equal(t, "Connection protocol: UDP exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16; its enabled by\n"+
 		"External Router PublicGateway: public-gw-ky\nEgress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\n"+
-		"enabling rules from acl1-ky:\n\tindex: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\nSecurityGroupLayer Rules\n"+
-		"------------------------\nenabling rules from sg1-ky:\n\tindex: 2, direction: outbound,  conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\n",
+		"enabling rules from acl1-ky:\n\tindex: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, "+
+		"conn: all, action: allow\nSecurityGroupLayer Rules\n"+
+		"------------------------\nenabling rules from sg1-ky:\n\tindex: 2, direction: outbound,  "+
+		"conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\n",
 		explainStr2)
 
 	//test3: the required connection is contained in the existing one per connection
@@ -290,7 +301,8 @@ func TestQueryConnectionSGBasic(t *testing.T) {
 		"Public Internet 161.26.0.0/16; its enabled by\nExternal Router PublicGateway: public-gw-ky\nEgress Rules:\n~~~~~~~~~~~~~\n"+
 		"NaclLayer Rules\n------------------------\nenabling rules from acl1-ky:\n"+
 		"\tindex: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\nSecurityGroupLayer Rules\n"+
-		"------------------------\nenabling rules from sg1-ky:\n\tindex: 2, direction: outbound,  conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\n",
+		"------------------------\nenabling rules from sg1-ky:\n\tindex: 2, direction: outbound,  "+
+		"conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\n",
 		explainStr3)
 
 	// test4: the required connection is contained in the existing one per ip of src/dst
@@ -306,7 +318,8 @@ func TestQueryConnectionSGBasic(t *testing.T) {
 		"Public Internet 161.26.0.0/20; its enabled by\nExternal Router PublicGateway: public-gw-ky\n"+
 		"Egress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl1-ky:\n"+
 		"\tindex: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\nSecurityGroupLayer Rules\n"+
-		"------------------------\nenabling rules from sg1-ky:\n\tindex: 2, direction: outbound,  conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\n",
+		"------------------------\nenabling rules from sg1-ky:\n\tindex: 2, direction: outbound,  "+
+		"conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\n",
 		explainStr4)
 
 	// test5: the required connection exists for part of the dst ip
@@ -322,7 +335,8 @@ func TestQueryConnectionSGBasic(t *testing.T) {
 	require.Equal(t, "Connection protocol: UDP src-ports: 10-100 dst-ports: 443 exists between vsi1-ky[10.240.10.4] and "+
 		"Public Internet 161.26.0.0/16; its enabled by\nExternal Router PublicGateway: public-gw-ky\nEgress Rules:\n~~~~~~~~~~~~~\n"+
 		"NaclLayer Rules\n------------------------\nenabling rules from acl1-ky:\n\t"+
-		"index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\nSecurityGroupLayer Rules\n------------------------\n"+
+		"index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\n"+
+		"SecurityGroupLayer Rules\n------------------------\n"+
 		"enabling rules from sg1-ky:\n\t"+
 		"index: 2, direction: outbound,  conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\nThere is no connection \""+
 		"protocol: UDP src-ports: 10-100 dst-ports: 443\" between vsi1-ky[10.240.10.4] and Public Internet 161.16.0.0-161.25.255.255,161.27.0.0-161.31.255.255; "+
@@ -355,9 +369,11 @@ func TestQueryConnectionSGRules(t *testing.T) {
 	}
 	explainStr1 := explain1.String()
 	fmt.Println(explainStr1)
-	require.Equal(t, "The following connection exists between vsi3a-ky[10.240.30.5] and vsi1-ky[10.240.10.4]: All Connections; its enabled by\n"+
+	require.Equal(t, "The following connection exists between vsi3a-ky[10.240.30.5] "+
+		"and vsi1-ky[10.240.10.4]: All Connections; its enabled by\n"+
 		"Egress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl3-ky:\n"+
-		"\tindex: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\nSecurityGroupLayer Rules\n------------------------\n"+
+		"\tindex: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\n"+
+		"SecurityGroupLayer Rules\n------------------------\n"+
 		"enabling rules from sg3-ky:\n\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n"+
 		"\tindex: 2, direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, cidr: 0.0.0.0/0\n"+
 		"\tindex: 3, direction: outbound,  conns: protocol: tcp,  dstPorts: 100-200, cidr: 0.0.0.0/0\nIngress Rules:\n~~~~~~~~~~~~~~\n"+
@@ -392,7 +408,8 @@ func TestQueryConnectionSGRules(t *testing.T) {
 	}
 	explainStr3 := explain3.String()
 	fmt.Println(explainStr3)
-	require.Equal(t, "Connection protocol: TCP dst-ports: 50-54 exists between vsi3a-ky[10.240.30.5] and vsi1-ky[10.240.10.4]; its enabled by\n"+
+	require.Equal(t, "Connection protocol: TCP dst-ports: 50-54 exists between vsi3a-ky[10.240.30.5] "+
+		"and vsi1-ky[10.240.10.4]; its enabled by\n"+
 		"Egress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl3-ky:\n\t"+
 		"index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\n"+
 		"SecurityGroupLayer Rules\n------------------------\nenabling rules from sg3-ky:\n\t"+
@@ -413,7 +430,8 @@ func TestQueryConnectionSGRules(t *testing.T) {
 	}
 	explainStr4 := explain4.String()
 	fmt.Println(explainStr4)
-	require.Equal(t, "Connection protocol: TCP dst-ports: 120-230 exists between vsi3a-ky[10.240.30.5] and vsi1-ky[10.240.10.4]; its enabled by\n"+
+	require.Equal(t, "Connection protocol: TCP dst-ports: 120-230 exists between vsi3a-ky[10.240.30.5] "+
+		"and vsi1-ky[10.240.10.4]; its enabled by\n"+
 		"Egress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl3-ky:\n"+
 		"\tindex: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\nSecurityGroupLayer Rules\n"+
 		"------------------------\nenabling rules from sg3-ky:\n\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n"+
@@ -458,7 +476,8 @@ func TestNACLExternal(t *testing.T) {
 	explainStr2 := explain2.String()
 	fmt.Println(explainStr2)
 	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
-	require.Equal(t, "No connection between vsi1-ky[10.240.10.4] and Public Internet 100.128.0.0/32; connection blocked by egress\n\n", explainStr2)
+	require.Equal(t, "No connection between vsi1-ky[10.240.10.4] and Public Internet 100.128.0.0/32;"+
+		" connection blocked by egress\n\n", explainStr2)
 	// connection does not exist to external, blocked by ingress
 	explain3, err3 := vpcConfig.ExplainConnectivity(cidr2, vsi1, nil)
 	if err3 != nil {
@@ -487,7 +506,8 @@ func TestNACLInternal(t *testing.T) {
 	fmt.Println(explainStr1)
 	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 	require.Equal(t, "The following connection exists between vsi1-ky[10.240.10.4] and vsi2-ky[10.240.20.4]: "+
-		"protocol: TCP,UDP; its enabled by\nEgress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl1-ky:\n"+
+		"protocol: TCP,UDP; its enabled by\nEgress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\n"+
+		"enabling rules from acl1-ky:\n"+
 		"\tindex: 2, direction: outbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, conn: all, action: allow\nSecurityGroupLayer Rules\n"+
 		"------------------------\nenabling rules from sg1-ky:\n\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n"+
 		"Ingress Rules:\n~~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl2-ky:\n"+

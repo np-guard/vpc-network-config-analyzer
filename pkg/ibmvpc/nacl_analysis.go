@@ -435,7 +435,6 @@ func (na *NACLAnalyzer) initConnectivityRelatedCompute(subnetCidr, inSubentCidr,
 	targetIPblock = common.NewIPBlockFromCidrOrAddress(target)
 	inSubnetIPblock = common.NewIPBlockFromCidrOrAddress(inSubentCidr)
 	return analyzedConns, targetIPblock, inSubnetIPblock
-
 }
 
 const notFoundMsg = "isIngress: %t , target %s, subnetCidr: %s, inSubentCidr %s, " +
@@ -469,7 +468,9 @@ func (na *NACLAnalyzer) AllowedConnectivity(subnetCidr, inSubentCidr, target str
 // if conn is specified then rules contributing to that connection; otherwise to any connection src->dst
 // if the input subnet was not yet analyzed, it first adds its analysis to saved results
 // todo: add filtering for conn if given
-func (na *NACLAnalyzer) rulesInConnectivity(subnetCidr, inSubentCidr, target string, conn *common.ConnectionSet, isIngress bool) ([]int, error) {
+func (na *NACLAnalyzer) rulesInConnectivity(subnetCidr, inSubentCidr,
+	target string, conn *common.ConnectionSet, isIngress bool) ([]int, error) {
+	_ = conn // to keep lint quiet until relevant code added
 	// add analysis of the given subnet
 	// analyzes per subnet disjoint cidrs (it is not necessarily entire subnet cidr)
 	analyzedConns, targetIPblock, inSubnetIPblock := na.initConnectivityRelatedCompute(subnetCidr, inSubentCidr, target, isIngress)
