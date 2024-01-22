@@ -12,14 +12,16 @@ import (
 )
 
 const (
-	ipByte      = 0xff
-	ipShift0    = 24
-	ipShift1    = 16
-	ipShift2    = 8
-	ipBase      = 10
-	ipMask      = 0xffffffff
-	maxIPv4Bits = 32
-	CidrAll     = "0.0.0.0/0"
+	ipByte        = 0xff
+	ipShift0      = 24
+	ipShift1      = 16
+	ipShift2      = 8
+	ipBase        = 10
+	ipMask        = 0xffffffff
+	maxIPv4Bits   = 32
+	CidrAll       = "0.0.0.0/0"
+	cidrSeparator = "/"
+	bitSize64     = 64
 )
 
 // IPBlock captures a set of ip ranges
@@ -191,7 +193,7 @@ func NewIPBlockFromCidr(cidr string) *IPBlock {
 
 func NewIPBlockFromCidrOrAddress(s string) *IPBlock {
 	var res *IPBlock
-	if strings.Contains(s, "/") {
+	if strings.Contains(s, cidrSeparator) {
 		res = NewIPBlockFromCidr(s)
 	} else {
 		res, _ = NewIPBlockFromIPAddress(s)
@@ -346,4 +348,16 @@ func IsAddressInSubnet(address, subnetCidr string) (bool, error) {
 func CIDRtoIPrange(cidr string) string {
 	ipb := NewIPBlockFromCidr(cidr)
 	return ipb.ToIPRanges()
+}
+
+// PrefixLength returns the cidr's prefix length, assuming the ipBlock is exactly one cidr.
+// Prefix length specifies the number of bits in the IP address that are to be used as the subnet mask.
+func (b *IPBlock) PrefixLength() (int64, error) {
+	cidrs := b.ToCidrList()
+	if len(cidrs) != 1 {
+		return 0, errors.New("prefixLength err: ipBlock is not a single cidr")
+	}
+	cidrStr := cidrs[0]
+	lenStr := strings.Split(cidrStr, cidrSeparator)[1]
+	return strconv.ParseInt(lenStr, ipBase, bitSize64)
 }

@@ -17,7 +17,8 @@ func (j *JSONoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	cfgsDiff *diffBetweenCfgs,
 	outFile string,
 	grouping bool,
-	uc OutputUseCase) (*SingleAnalysisOutput, error) {
+	uc OutputUseCase,
+	explanation *Explanation) (*SingleAnalysisOutput, error) {
 	var all interface{}
 	switch uc {
 	case AllEndpoints:
