@@ -5,9 +5,10 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
-	"github.com/stretchr/testify/require"
 )
 
 // getConfigs returns  map[string]*vpcmodel.VPCConfig obj for the input test (config json file)
