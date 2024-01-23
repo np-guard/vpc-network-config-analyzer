@@ -506,17 +506,18 @@ func (na *NACLAnalyzer) getRulesRelevantConn(rules []int, conn *common.Connectio
 	relevantRules := []int{}
 	curConn := common.NewConnectionSet(false)
 	for _, rule := range append(na.ingressRules, na.egressRules...) {
-		if slices.Contains(rules, rule.index) && !conn.Intersection(rule.connections).IsEmpty() {
-			curConn := curConn.Union(rule.connections)
-			relevantRules = append(relevantRules, rule.index)
-			contains, err := conn.ContainedIn(curConn)
-			if err != nil {
-				return nil, err
-			}
-			if contains { // of the required conn is contained in connections thus far, lower priority rules
-				// are not relevant
-				return relevantRules, nil
-			}
+		if !slices.Contains(rules, rule.index) || conn.Intersection(rule.connections).IsEmpty() {
+			continue
+		}
+		curConn = curConn.Union(rule.connections)
+		relevantRules = append(relevantRules, rule.index)
+		contains, err := conn.ContainedIn(curConn)
+		if err != nil {
+			return nil, err
+		}
+		if contains { // of the required conn is contained in connections thus far, lower priority rules
+			// are not relevant
+			return relevantRules, nil
 		}
 	}
 	return relevantRules, nil
