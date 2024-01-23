@@ -468,7 +468,6 @@ func (na *NACLAnalyzer) AllowedConnectivity(subnetCidr, inSubentCidr, target str
 // rulesInConnectivity returns set of rules contributing to a connections given src/dst and direction
 // if conn is specified then rules contributing to that connection; otherwise to any connection src->dst
 // if the input subnet was not yet analyzed, it first adds its analysis to saved results
-// todo: add filtering for conn if given
 func (na *NACLAnalyzer) rulesInConnectivity(subnetCidr, inSubentCidr,
 	target string, conn *common.ConnectionSet, isIngress bool) ([]int, error) {
 	// add analysis of the given subnet
@@ -505,9 +504,19 @@ func (na *NACLAnalyzer) rulesInConnectivity(subnetCidr, inSubentCidr,
 // given a list of rules and a connection, return the sublist of rules that contributes to the connection
 func (na *NACLAnalyzer) getRulesRelevantConn(rules []int, conn *common.ConnectionSet) ([]int, error) {
 	relevantRules := []int{}
+	curConn := common.NewConnectionSet(false)
 	for _, rule := range append(na.ingressRules, na.egressRules...) {
 		if slices.Contains(rules, rule.index) && !conn.Intersection(rule.connections).IsEmpty() {
+			curConn := curConn.Union(rule.connections)
 			relevantRules = append(relevantRules, rule.index)
+			contains, err := conn.ContainedIn(curConn)
+			if err != nil {
+				return nil, err
+			}
+			if contains { // of the required conn is contained in connections thus far, lower priority rules
+				// are not relevant
+				return relevantRules, nil
+			}
 		}
 	}
 	return relevantRules, nil
