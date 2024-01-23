@@ -59,7 +59,7 @@ type Explanation struct {
 
 // TODO: handle also input ICMP properties (type, code) as input args
 // translates explanation args to a connection set
-func (e *ExplanationArgs) getConnectionSet() *common.ConnectionSet {
+func (e *ExplanationArgs) GetConnectionSet() *common.ConnectionSet {
 	if e.protocol == "" {
 		return nil
 	}
@@ -73,6 +73,14 @@ func (e *ExplanationArgs) getConnectionSet() *common.ConnectionSet {
 	}
 
 	return connection
+}
+
+func (e *ExplanationArgs) GetSrc() string {
+	return e.src
+}
+
+func (e *ExplanationArgs) GetDst() string {
+	return e.dst
 }
 
 // finds the node of a given, by its name, Vsi
