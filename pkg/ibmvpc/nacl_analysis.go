@@ -2,6 +2,7 @@ package ibmvpc
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 
@@ -488,8 +489,7 @@ func (na *NACLAnalyzer) rulesInConnectivity(subnetCidr, inSubentCidr,
 							return nil, err
 						}
 						if contained {
-							return rules, nil
-							//return sga.getRulesRelevantConn(rules, conn) // todo return only if indeed relevant
+							return na.getRulesRelevantConn(rules, conn) // gets only rules relevant to conn
 						}
 						return nil, nil
 					}
@@ -500,6 +500,17 @@ func (na *NACLAnalyzer) rulesInConnectivity(subnetCidr, inSubentCidr,
 	}
 	// expecting disjoint ip-blocks, thus not expecting to get here
 	return nil, fmt.Errorf(notFoundMsg, isIngress, target, subnetCidr, inSubentCidr)
+}
+
+// given a list of rules and a connection, return the sublist of rules that contributes to the connection
+func (na *NACLAnalyzer) getRulesRelevantConn(rules []int, conn *common.ConnectionSet) ([]int, error) {
+	relevantRules := []int{}
+	for _, rule := range append(na.ingressRules, na.egressRules...) {
+		if slices.Contains(rules, rule.index) && !conn.Intersection(rule.connections).IsEmpty() {
+			relevantRules = append(relevantRules, rule.index)
+		}
+	}
+	return relevantRules, nil
 }
 
 // StringRules returns a string with the details of the specified rules
