@@ -447,12 +447,16 @@ func TestQueryConnectionSGRules(t *testing.T) {
 	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 }
 
-func getConfigNACL(t *testing.T) *vpcmodel.VPCConfig {
+func getConfigNACL1(t *testing.T) *vpcmodel.VPCConfig {
 	return getConfig(t, "input_acl_testing3.json")
 }
 
+func getConfigNACL2(t *testing.T) *vpcmodel.VPCConfig {
+	return getConfig(t, "input_acl_testing3_3rd.json")
+}
+
 func TestNACLExternal(t *testing.T) {
-	vpcConfig := getConfigNACL(t)
+	vpcConfig := getConfigNACL1(t)
 	if vpcConfig == nil {
 		require.Fail(t, "vpcConfig equals nil")
 	}
@@ -495,7 +499,7 @@ func TestNACLExternal(t *testing.T) {
 }
 
 func TestNACLInternal(t *testing.T) {
-	vpcConfig := getConfigNACL(t)
+	vpcConfig := getConfigNACL1(t)
 	if vpcConfig == nil {
 		require.Fail(t, "vpcConfig equals nil")
 	}
@@ -543,7 +547,7 @@ func TestNACLInternal(t *testing.T) {
 }
 
 func TestNACLGrouping(t *testing.T) {
-	vpcConfig := getConfigNACL(t)
+	vpcConfig := getConfigNACL1(t)
 	if vpcConfig == nil {
 		require.Fail(t, "vpcConfig equals nil")
 	}
@@ -566,11 +570,10 @@ func TestNACLGrouping(t *testing.T) {
 }
 
 func TestNACLQueryConnection(t *testing.T) {
-	vpcConfig := getConfigNACL(t)
+	vpcConfig := getConfigNACL1(t)
 	if vpcConfig == nil {
 		require.Fail(t, "vpcConfig equals nil")
 	}
-	// connection between 2 vsis
 	vsi1 := "vsi1-ky[10.240.10.4]"
 	cidr2 := "161.26.0.0/16"
 	explain1, err1 := vpcConfig.ExplainConnectivity(vsi1, cidr2, nil)
@@ -605,4 +608,43 @@ func TestNACLQueryConnection(t *testing.T) {
 	fmt.Println(explainStr3)
 	require.Equal(t, "There is no connection \"protocol: TCP\" between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16; "+
 		"connection blocked by egress\n\n", explainStr3)
+}
+
+func TestNACLQueryConnectionRules(t *testing.T) {
+	vpcConfig := getConfigNACL2(t)
+	if vpcConfig == nil {
+		require.Fail(t, "vpcConfig equals nil")
+	}
+	// connection between 2
+	vsi1 := "vsi1-ky[10.240.10.4]"
+	cidr1 := "161.26.0.0/16"
+	// all rules
+	explain1, err1 := vpcConfig.ExplainConnectivity(vsi1, cidr1, nil)
+	if err1 != nil {
+		require.Fail(t, err1.Error())
+	}
+	explainStr1 := explain1.String()
+	fmt.Println(explainStr1)
+	require.Equal(t, "The following connection exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16: "+
+		"All Connections; its enabled by\nExternal Router PublicGateway: public-gw-ky\nEgress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n"+
+		"------------------------\nenabling rules from acl1-ky:\n"+
+		"\tindex: 1, direction: outbound , src: 10.240.10.0/24 , dst: 161.26.0.0/16, conn: protocol: udp, srcPorts: 1-65535, dstPorts: 1-65535, action: allow\n"+
+		"\tindex: 2, direction: outbound , src: 10.240.10.0/24 , dst: 161.26.0.0/16, conn: all, action: allow\nSecurityGroupLayer Rules\n------------------------\n"+
+		"enabling rules from sg1-ky:\n\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n\n", explainStr1)
+	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
+	connectionTCP := common.NewConnectionSet(false)
+	connectionTCP.AddTCPorUDPConn(common.ProtocolTCP, common.MinPort, common.MaxPort, common.MinPort, common.MaxPort)
+	// without the udp rule
+	explain2, err2 := vpcConfig.ExplainConnectivity(vsi1, cidr1, connectionTCP)
+	if err2 != nil {
+		require.Fail(t, err2.Error())
+	}
+	explainStr2 := explain2.String()
+	fmt.Println(explainStr2)
+	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
+	require.Equal(t, "Connection protocol: TCP exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16; its enabled by\n"+
+		"External Router PublicGateway: public-gw-ky\nEgress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl1-ky:\n\t"+
+		"index: 2, direction: outbound , src: 10.240.10.0/24 , dst: 161.26.0.0/16, conn: all, action: allow\nSecurityGroupLayer Rules\n------------------------\n"+
+		"enabling rules from sg1-ky:\n\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n\n", explainStr2)
+	// todo: without the "all" rule since tcp rule has higher priority
 }
