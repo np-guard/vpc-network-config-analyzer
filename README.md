@@ -20,11 +20,11 @@ Usage of vpc-network-config-analyzer:
   -debug
         Run in debug mode
   -dst string
-        Dst name for network_interface or an external ip to be explained
+        Destination name for network_interface or an external IP to be explained
   -dst-max-port int
-        maximum destination port for connection description (default 65535)
+        Maximum destination port for connection description (default 65535)
   -dst-min-port int
-        minimum destination port for connection description (default 1)
+        Minimum destination port for connection description (default 1)
   -format string
         Output format; must be one of:
         txt, md, json, drawio, arch_drawio, debug (default "txt")
@@ -36,11 +36,11 @@ Usage of vpc-network-config-analyzer:
   -protocol string
         Protocol for connection description
   -src string
-        Src name for network_interface or an external ip to be explained
+        Source name for network_interface or an external IP to be explained
   -src-max-port int
-        maximum source port for connection description (default 65535)
+        Maximum source port for connection description (default 65535)
   -src-min-port int
-        minimum source port for connection description (default 1)
+        Minimum source port for connection description (default 1)
   -version
         Prints the release version number
   -vpc string
