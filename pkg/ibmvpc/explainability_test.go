@@ -335,7 +335,7 @@ func (tt *explainGeneralTest) runTest(t *testing.T) {
 	explanationArgs := vpcmodel.NewExplanationArgs(tt.ESrc, tt.EDst, string(tt.EProtocol),
 		tt.ESrcMinPort, tt.ESrcMaxPort, tt.EDstMinPort, tt.EDstMaxPort)
 	connQuery := explanationArgs.GetConnectionSet()
-	explanation, err := vpcConfig.ExplainConnectivity(explanationArgs.GetSrc(), explanationArgs.GetDst(), connQuery)
+	explanation, err := vpcConfig.ExplainConnectivity(explanationArgs.Src(), explanationArgs.Dst(), connQuery)
 	if err != nil {
 		require.Fail(t, err.Error())
 	}

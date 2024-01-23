@@ -75,11 +75,11 @@ func (e *ExplanationArgs) GetConnectionSet() *common.ConnectionSet {
 	return connection
 }
 
-func (e *ExplanationArgs) GetSrc() string {
+func (e *ExplanationArgs) Src() string {
 	return e.src
 }
 
-func (e *ExplanationArgs) GetDst() string {
+func (e *ExplanationArgs) Dst() string {
 	return e.dst
 }
 
