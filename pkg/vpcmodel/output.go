@@ -97,7 +97,7 @@ func NewOutputGenerator(c1, c2 map[string]*VPCConfig, grouping bool, uc OutputUs
 				res.cfgsDiff = configsDiff
 			}
 			if uc == Explain {
-				connQuery := explanationArgs.getConnectionSet()
+				connQuery := explanationArgs.GetConnectionSet()
 				explanation, err := c1[i].ExplainConnectivity(explanationArgs.src, explanationArgs.dst, connQuery)
 				if err != nil {
 					return nil, err
