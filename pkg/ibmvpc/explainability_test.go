@@ -361,6 +361,7 @@ func TestInputValidity(t *testing.T) {
 	}
 }
 
+// this test can not be tested with cli main args
 func TestQueryConnectionSGBasic(t *testing.T) {
 	vpcConfig := getConfig(t, "input_sg_testing1_new")
 	if vpcConfig == nil {
