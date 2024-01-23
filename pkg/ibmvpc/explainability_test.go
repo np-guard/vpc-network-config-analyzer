@@ -646,5 +646,14 @@ func TestNACLQueryConnectionRules(t *testing.T) {
 		"External Router PublicGateway: public-gw-ky\nEgress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl1-ky:\n\t"+
 		"index: 2, direction: outbound , src: 10.240.10.0/24 , dst: 161.26.0.0/16, conn: all, action: allow\nSecurityGroupLayer Rules\n------------------------\n"+
 		"enabling rules from sg1-ky:\n\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n\n", explainStr2)
-	// todo: without the "all" rule since tcp rule has higher priority
+	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
+	// without the "all" rule since tcp rule has higher priority
+	connectionUDP := common.NewConnectionSet(false)
+	connectionUDP.AddTCPorUDPConn(common.ProtocolUDP, common.MinPort, common.MaxPort, common.MinPort, common.MaxPort)
+	explain3, err3 := vpcConfig.ExplainConnectivity(vsi1, cidr1, connectionUDP)
+	if err3 != nil {
+		require.Fail(t, err3.Error())
+	}
+	explainStr3 := explain3.String()
+	fmt.Println(explainStr3)
 }
