@@ -186,13 +186,13 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args.VPC = flagset.String(VPC, "", "CRN of the VPC to analyze")
 	args.Debug = flagset.Bool(Debug, false, "Run in debug mode")
 	args.Version = flagset.Bool(Version, false, "Prints the release version number")
-	args.ESrc = flagset.String(ESrc, "", "Src name for network_interface or an external ip to be explained")
-	args.EDst = flagset.String(EDst, "", "Dst name for network_interface or an external ip to be explained")
+	args.ESrc = flagset.String(ESrc, "", "Source name for network_interface or an external IP to be explained")
+	args.EDst = flagset.String(EDst, "", "Destination name for network_interface or an external IP to be explained")
 	args.EProtocol = flagset.String(EProtocol, "", "Protocol for connection description")
-	args.ESrcMinPort = flagset.Int64(ESrcMinPort, common.MinPort, "minimum source port for connection description")
-	args.ESrcMaxPort = flagset.Int64(ESrcMaxPort, common.MaxPort, "maximum source port for connection description")
-	args.EDstMinPort = flagset.Int64(EDstMinPort, common.MinPort, "minimum destination port for connection description")
-	args.EDstMaxPort = flagset.Int64(EDstMaxPort, common.MaxPort, "maximum destination port for connection description")
+	args.ESrcMinPort = flagset.Int64(ESrcMinPort, common.MinPort, "Minimum source port for connection description")
+	args.ESrcMaxPort = flagset.Int64(ESrcMaxPort, common.MaxPort, "Maximum source port for connection description")
+	args.EDstMinPort = flagset.Int64(EDstMinPort, common.MinPort, "Minimum destination port for connection description")
+	args.EDstMaxPort = flagset.Int64(EDstMaxPort, common.MaxPort, "Maximum destination port for connection description")
 
 	// calling parseCmdLine prior to flagset.Parse to ensure that excessive and unsupported arguments are handled
 	// for example, flagset.Parse() ignores input args missing the `-`

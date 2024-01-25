@@ -11,13 +11,20 @@ Usage of vpc-network-config-analyzer:
   -analysis-type string
         Supported analysis types:
         * all_endpoints  - supported with: txt, md, json, drawio, arch_drawio, debug
-        * all_subnets  - supported with: txt, json
+        * all_subnets  - supported with: txt, md, json, drawio, arch_drawio
         * single_subnet  - supported with: txt
         * diff_all_endpoints  - supported with: txt, md
         * diff_all_subnets  - supported with: txt, md
+        * explain  - supported with: txt
          (default "all_endpoints")
   -debug
         Run in debug mode
+  -dst string
+        Destination name for network_interface or an external IP to be explained
+  -dst-max-port int
+        Maximum destination port for connection description (default 65535)
+  -dst-min-port int
+        Minimum destination port for connection description (default 1)
   -format string
         Output format; must be one of:
         txt, md, json, drawio, arch_drawio, debug (default "txt")
@@ -26,6 +33,14 @@ Usage of vpc-network-config-analyzer:
         Does not support single_subnet, diff_all_endpoints and diff_all_subnets analysis-types and json output format
   -output-file string
         File path to store results
+  -protocol string
+        Protocol for connection description
+  -src string
+        Source name for network_interface or an external IP to be explained
+  -src-max-port int
+        Maximum source port for connection description (default 65535)
+  -src-min-port int
+        Minimum source port for connection description (default 1)
   -version
         Prints the release version number
   -vpc string
@@ -34,6 +49,7 @@ Usage of vpc-network-config-analyzer:
         Required. File path to input config
   -vpc-config-second string
         File path to the 2nd input config; relevant only for analysis-type diff_all_endpoints and for diff_all_subnets
+
   
 ```
 
