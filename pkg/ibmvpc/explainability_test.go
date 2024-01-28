@@ -190,84 +190,93 @@ var explainTests = []*explainGeneralTest{
 			"~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg2-ky:\n\t" +
 			"index: 3, direction: outbound,  conns: protocol: icmp,  icmpType: protocol: ICMP, cidr: 142.0.0.0/8\n\n",
 	},*/
-	//{
-	//	name:        "QueryConnectionSGBasic1",
-	//	inputConfig: "input_sg_testing1_new",
-	//	ESrc:        "vsi1-ky[10.240.10.4]",
-	//	EDst:        "161.26.0.0/16",
-	//	EProtocol:   common.ProtocolUDP,
-	//	ESrcMinPort: common.MinPort,
-	//	ESrcMaxPort: common.MaxPort,
-	//	EDstMinPort: common.MinPort,
-	//	EDstMaxPort: common.MaxPort,
-	//	out: "Connection protocol: UDP exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16; its enabled by\n" +
-	//		"External Router PublicGateway: public-gw-ky\n" +
-	//		"Egress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n" +
-	//		"\tindex: 2, direction: outbound,  conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\n",
-	//},
-	//{
-	//	name:        "QueryConnectionSGBasic2",
-	//	inputConfig: "input_sg_testing1_new",
-	//	ESrc:        "vsi1-ky[10.240.10.4]",
-	//	EDst:        "161.26.0.0/16",
-	//	EProtocol:   common.ProtocolUDP,
-	//	ESrcMinPort: 10,
-	//	ESrcMaxPort: 100,
-	//	EDstMinPort: 443,
-	//	EDstMaxPort: 443,
-	//	out: "Connection protocol: UDP src-ports: 10-100 dst-ports: 443 exists between vsi1-ky[10.240.10.4] " +
-	//		"and Public Internet 161.26.0.0/16; its enabled by\nExternal Router PublicGateway: public-gw-ky\n" +
-	//		"Egress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n" +
-	//		"\tindex: 2, direction: outbound,  conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\n",
-	//},
-	//{
-	//	name:        "QueryConnectionSGBasic3",
-	//	inputConfig: "input_sg_testing1_new",
-	//	ESrc:        "vsi1-ky[10.240.10.4]",
-	//	EDst:        "161.26.0.0/20",
-	//	EProtocol:   common.ProtocolUDP,
-	//	ESrcMinPort: 10,
-	//	ESrcMaxPort: 100,
-	//	EDstMinPort: 443,
-	//	EDstMaxPort: 443,
-	//	out: "Connection protocol: UDP src-ports: 10-100 dst-ports: 443 exists between vsi1-ky[10.240.10.4] " +
-	//		"and Public Internet 161.26.0.0/20; its enabled by\nExternal Router PublicGateway: public-gw-ky\n" +
-	//		"Egress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n" +
-	//		"\tindex: 2, direction: outbound,  conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\n",
-	//},
-	//{
-	//	name:        "QueryConnectionSGBasic4",
-	//	inputConfig: "input_sg_testing1_new",
-	//	ESrc:        "vsi1-ky[10.240.10.4]",
-	//	EDst:        "161.26.0.0/12",
-	//	EProtocol:   common.ProtocolUDP,
-	//	ESrcMinPort: 10,
-	//	ESrcMaxPort: 100,
-	//	EDstMinPort: 443,
-	//	EDstMaxPort: 443,
-	//	out: "Connection protocol: UDP src-ports: 10-100 dst-ports: " +
-	//		"443 exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16; its enabled by\n" +
-	//		"External Router PublicGateway: public-gw-ky\n" +
-	//		"Egress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n" +
-	//		"\tindex: 2, direction: outbound,  conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\n" +
-	//		"There is no connection \"protocol: UDP src-ports: 10-100 dst-ports: 443\" " +
-	//		"between vsi1-ky[10.240.10.4] and Public Internet 161.16.0.0-161.25.255.255,161.27.0.0-161.31.255.255; " +
-	//		"connection blocked by egress\n\n",
-	//},
-	//{
-	//	name:        "QueryConnectionSGBasic5",
-	//	inputConfig: "input_sg_testing1_new",
-	//	ESrc:        "vsi1-ky[10.240.10.4]",
-	//	EDst:        "vsi3a-ky[10.240.30.5]",
-	//	EProtocol:   common.ProtocolUDP,
-	//	ESrcMinPort: 10,
-	//	ESrcMaxPort: 100,
-	//	EDstMinPort: 443,
-	//	EDstMaxPort: 443,
-	//	out: "There is no connection \"protocol: UDP src-ports: 10-100 dst-ports: 443\" " +
-	//		"between vsi1-ky[10.240.10.4] and vsi3a-ky[10.240.30.5]; " +
-	//		"connection blocked both by ingress and egress\n\n",
-	//},
+	// todo: first test in QueryConnectionSGBasic is missing!!!
+	{
+		name:        "QueryConnectionSGBasic1",
+		inputConfig: "input_sg_testing1_new",
+		ESrc:        "vsi1-ky[10.240.10.4]",
+		EDst:        "161.26.0.0/16",
+		EProtocol:   common.ProtocolUDP,
+		ESrcMinPort: common.MinPort,
+		ESrcMaxPort: common.MaxPort,
+		EDstMinPort: common.MinPort,
+		EDstMaxPort: common.MaxPort,
+		out: "Connection protocol: UDP exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16; its enabled by\n" +
+			"External Router PublicGateway: public-gw-ky\nEgress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\n" +
+			"enabling rules from acl1-ky:\n\tindex: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, " +
+			"conn: all, action: allow\nSecurityGroupLayer Rules\n" +
+			"------------------------\nenabling rules from sg1-ky:\n\tindex: 2, direction: outbound,  " +
+			"conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\n",
+	},
+	{
+		name:        "QueryConnectionSGBasic2",
+		inputConfig: "input_sg_testing1_new",
+		ESrc:        "vsi1-ky[10.240.10.4]",
+		EDst:        "161.26.0.0/16",
+		EProtocol:   common.ProtocolUDP,
+		ESrcMinPort: 10,
+		ESrcMaxPort: 100,
+		EDstMinPort: 443,
+		EDstMaxPort: 443,
+		out: "Connection protocol: UDP src-ports: 10-100 dst-ports: 443 exists between vsi1-ky[10.240.10.4] and " +
+			"Public Internet 161.26.0.0/16; its enabled by\nExternal Router PublicGateway: public-gw-ky\nEgress Rules:\n~~~~~~~~~~~~~\n" +
+			"NaclLayer Rules\n------------------------\nenabling rules from acl1-ky:\n" +
+			"\tindex: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\nSecurityGroupLayer Rules\n" +
+			"------------------------\nenabling rules from sg1-ky:\n\tindex: 2, direction: outbound,  " +
+			"conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\n",
+	},
+	{
+		name:        "QueryConnectionSGBasic3",
+		inputConfig: "input_sg_testing1_new",
+		ESrc:        "vsi1-ky[10.240.10.4]",
+		EDst:        "161.26.0.0/20",
+		EProtocol:   common.ProtocolUDP,
+		ESrcMinPort: 10,
+		ESrcMaxPort: 100,
+		EDstMinPort: 443,
+		EDstMaxPort: 443,
+		out: "Connection protocol: UDP src-ports: 10-100 dst-ports: 443 exists between vsi1-ky[10.240.10.4] and " +
+			"Public Internet 161.26.0.0/20; its enabled by\nExternal Router PublicGateway: public-gw-ky\n" +
+			"Egress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl1-ky:\n" +
+			"\tindex: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\nSecurityGroupLayer Rules\n" +
+			"------------------------\nenabling rules from sg1-ky:\n\tindex: 2, direction: outbound,  " +
+			"conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\n",
+	},
+	{
+		name:        "QueryConnectionSGBasic4",
+		inputConfig: "input_sg_testing1_new",
+		ESrc:        "vsi1-ky[10.240.10.4]",
+		EDst:        "161.26.0.0/12",
+		EProtocol:   common.ProtocolUDP,
+		ESrcMinPort: 10,
+		ESrcMaxPort: 100,
+		EDstMinPort: 443,
+		EDstMaxPort: 443,
+		out: "Connection protocol: UDP src-ports: 10-100 dst-ports: 443 exists between vsi1-ky[10.240.10.4] and " +
+			"Public Internet 161.26.0.0/16; its enabled by\nExternal Router PublicGateway: public-gw-ky\nEgress Rules:\n~~~~~~~~~~~~~\n" +
+			"NaclLayer Rules\n------------------------\nenabling rules from acl1-ky:\n\t" +
+			"index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\n" +
+			"SecurityGroupLayer Rules\n------------------------\n" +
+			"enabling rules from sg1-ky:\n\t" +
+			"index: 2, direction: outbound,  conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\nThere is no connection \"" +
+			"protocol: UDP src-ports: 10-100 dst-ports: 443\" between vsi1-ky[10.240.10.4] and " +
+			"Public Internet 161.16.0.0-161.25.255.255,161.27.0.0-161.31.255.255; " +
+			"connection blocked by egress\n\n",
+	},
+	{
+		name:        "QueryConnectionSGBasic5",
+		inputConfig: "input_sg_testing1_new",
+		ESrc:        "vsi1-ky[10.240.10.4]",
+		EDst:        "vsi3a-ky[10.240.30.5]",
+		EProtocol:   common.ProtocolUDP,
+		ESrcMinPort: 10,
+		ESrcMaxPort: 100,
+		EDstMinPort: 443,
+		EDstMaxPort: 443,
+		out: "There is no connection \"protocol: UDP src-ports: 10-100 dst-ports: 443\" " +
+			"between vsi1-ky[10.240.10.4] and vsi3a-ky[10.240.30.5]; " +
+			"connection blocked both by ingress and egress\n\n",
+	},
 	//{
 	//	name:        "QueryConnectionSGRules1",
 	//	inputConfig: "input_sg_testing1_new",
