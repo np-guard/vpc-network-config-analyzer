@@ -413,7 +413,7 @@ var explainTests = []*explainGeneralTest{
 			"\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n\n",
 	},
 	{
-		name:        "NACLQueryConnectionRules1",
+		name:        "NACLQueryConnection1",
 		inputConfig: "input_acl_testing3",
 		ESrc:        "vsi1-ky[10.240.10.4]",
 		EDst:        "161.26.0.0/16",
@@ -430,7 +430,7 @@ var explainTests = []*explainGeneralTest{
 			"protocol: all, cidr: 0.0.0.0/0\n\n",
 	},
 	{
-		name:        "NACLQueryConnectionRules1",
+		name:        "NACLQueryConnection2",
 		inputConfig: "input_acl_testing3",
 		ESrc:        "vsi1-ky[10.240.10.4]",
 		EDst:        "161.26.0.0/16",
@@ -441,6 +441,23 @@ var explainTests = []*explainGeneralTest{
 		EDstMaxPort: common.MaxPort,
 		out: "There is no connection \"protocol: TCP\" between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16; " +
 			"connection blocked by egress\n\n",
+	},
+	{
+		name:        "NACLQueryConnectionRules1",
+		inputConfig: "input_acl_testing3_3rd",
+		ESrc:        "vsi1-ky[10.240.10.4]",
+		EDst:        "161.26.0.0/16",
+		EProtocol:   common.ProtocolUDP,
+		ESrcMinPort: common.MinPort,
+		ESrcMaxPort: common.MaxPort,
+		EDstMinPort: common.MinPort,
+		EDstMaxPort: common.MaxPort,
+		out: "Connection protocol: UDP exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16; " +
+			"its enabled by\nExternal Router PublicGateway: public-gw-ky\nEgress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n" +
+			"------------------------\nenabling rules from acl1-ky:\n" +
+			"\tindex: 1, direction: outbound , src: 10.240.10.0/24 , dst: 161.26.0.0/16, conn: protocol: udp, srcPorts: 1-65535, dstPorts: 1-65535, " +
+			"action: allow\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n\tindex: 0, direction: outbound, " +
+			"protocol: all, cidr: 0.0.0.0/0\n\n",
 	},
 }
 
