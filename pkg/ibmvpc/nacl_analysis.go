@@ -202,7 +202,7 @@ func getAllowedXgressConnections(rules []*NACLRule, src, subnetCidr *common.IPBl
 				allowedXgressDestCidrBefore := allowedXgress[disjointDestCidr.ToIPRanges()]
 				allowedXgress[disjointDestCidr.ToIPRanges()] = allowedXgress[disjointDestCidr.ToIPRanges()].Union(addedAllowedConns)
 				allowedXgressDestCidrAfter := allowedXgress[disjointDestCidr.ToIPRanges()]
-				if !allowedXgressDestCidrAfter.Equal(allowedXgressDestCidrBefore) { // this rule contributes to the connection
+				if !allowedXgress[disjointDestCidr.ToIPRanges()].Equal(allowedXgressDestCidrBefore) { // this rule contributes to the connection
 					contribRules[disjointDestCidr.ToIPRanges()] = append(contribRules[disjointDestCidr.ToIPRanges()], rule.index)
 				}
 			} else if rule.action == "deny" {
