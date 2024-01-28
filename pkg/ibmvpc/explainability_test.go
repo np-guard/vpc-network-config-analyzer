@@ -614,7 +614,11 @@ func TestQueryConnectionSGBasic(t *testing.T) {
 	fmt.Println(explainStr1)
 	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
 	require.Equal(t, "There is no connection \"All Connections\" between vsi2-ky[10.240.20.4] and vsi3b-ky[10.240.30.4]; "+
-		"connection blocked by ingress\nEgress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\n"+
-		"enabling rules from sg2-ky:\n\tindex: 5, direction: outbound, protocol: all, cidr: 10.240.30.0/24\n"+
-		"\tindex: 6, direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, cidr: 10.240.20.4/32,10.240.30.4/32\n\n", explainStr1)
+		"connection blocked by ingress\n"+
+		"Egress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl2-ky:\n"+
+		"\tindex: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\n"+
+		"SecurityGroupLayer Rules\n------------------------\n"+
+		"enabling rules from sg2-ky:\n\tindex: 5, direction: outbound, protocol: all, cidr: 10.240.30.0/24\n\t"+
+		"index: 6, direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, cidr: 10.240.20.4/32,10.240.30.4/32\n\n",
+		explainStr1)
 }
