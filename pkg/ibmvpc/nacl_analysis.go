@@ -481,7 +481,22 @@ func (na *NACLAnalyzer) rulesInConnectivity(subnetCidr, inSubentCidr,
 		}
 		if inSubnetIPblock.ContainedIn(disjointSubnetCidrIPblock) {
 			for resTarget, rules := range analyzedConnsPerCidr.contribRules {
-				if targetIPblock.ContainedIn(resTarget) {
+					if !targetIPblock.ContainedIn(resTarget) {
+					    continue
+					}
+					if conn != nil { 
+    					    return rules, nil
+					}
+					// connection is part of the query
+					contained, err := conn.ContainedIn(analyzedConnsPerCidr.allowedconns[resTarget])
+					if err != nil {
+						return nil, err
+					}
+					if contained {
+						return na.getRulesRelevantConn(rules, conn) // gets only rules relevant to conn
+					}
+					return nil, nil
+
 					if conn != nil { // connection is part of the query
 						contained, err := conn.ContainedIn(analyzedConnsPerCidr.allowedconns[resTarget])
 						if err != nil {
