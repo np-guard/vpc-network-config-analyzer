@@ -455,6 +455,18 @@ var explainTests = []*explainGeneralTest{
 			"\tindex: 1, direction: inbound, protocol: all, cidr: 0.0.0.0/0\n\n",
 	},
 	{
+		name:        "NACLGrouping",
+		inputConfig: "input_acl_testing3",
+		ESrc:        "vsi1-ky[10.240.10.4]",
+		EDst:        "161.26.0.0/15",
+		out: "No connection between vsi1-ky[10.240.10.4] and Public Internet 161.27.0.0/16; connection blocked by egress\n\n" +
+			"The following connection exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16: protocol: UDP; " +
+			"its enabled by\nExternal Router PublicGateway: public-gw-ky\nEgress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\n" +
+			"enabling rules from acl1-ky:\n\tindex: 1, direction: outbound , src: 10.240.10.0/24 , dst: 161.26.0.0/16, conn: protocol: udp, " +
+			"srcPorts: 1-65535, dstPorts: 1-65535, action: allow\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n" +
+			"\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n\n",
+	},
+	{
 		name:        "NACLQueryConnection1",
 		inputConfig: "input_acl_testing3",
 		ESrc:        "vsi1-ky[10.240.10.4]",
