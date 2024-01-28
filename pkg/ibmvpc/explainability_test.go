@@ -466,7 +466,8 @@ var explainTests = []*explainGeneralTest{
 			"its enabled by\nExternal Router PublicGateway: public-gw-ky\nEgress Rules:\n~~~~~~~~~~~~~\n" +
 			"NaclLayer Rules\n------------------------\n" +
 			"enabling rules from acl1-ky:\n\tindex: 1, direction: outbound , src: 10.240.10.0/24 , dst: 161.26.0.0/16, conn: protocol: udp, " +
-			"srcPorts: 1-65535, dstPorts: 1-65535, action: allow\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n" +
+			"srcPorts: 1-65535, dstPorts: 1-65535, action: allow\n" +
+			"SecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n" +
 			"\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n\n",
 	},
 	{
