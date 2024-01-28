@@ -257,25 +257,24 @@ func (na *NACLAnalyzer) AnalyzeNACLRulesPerDisjointTargets(
 	rules []*NACLRule, subnet *common.IPBlock, isIngress bool) map[string]*ConnectivityResult {
 	res := map[string]*ConnectivityResult{}
 	var disjointSrcPeers, disjointDstPeers []*common.IPBlock
-	// the src/dst vars naming below are w.r.t. ingress; for egress it is the other way around
 	if isIngress {
 		disjointSrcPeers, disjointDstPeers = getDisjointPeersForIngressAnalysis(rules, subnet)
 	} else {
 		disjointDstPeers, disjointSrcPeers = getDisjointPeersForEgressAnalysis(rules, subnet)
 	}
-	for _, src := range disjointSrcPeers {
-		allowedIngressConns, contribRules := getAllowedXgressConnections(rules, src, subnet, disjointDstPeers, isIngress)
-		for dst, conn := range allowedIngressConns {
-			if dstIP, err := common.IPBlockFromIPRangeStr(dst); err == nil {
-				if connRes, ok := res[dstIP.ToIPRanges()]; ok {
-					connRes.allowedconns[src] = conn
-					connRes.contribRules[src] = contribRules[dst]
+	for _, srcIngDstEgr := range disjointSrcPeers {
+		allowedIngressConns, contribRules := getAllowedXgressConnections(rules, srcIngDstEgr, subnet, disjointDstPeers, isIngress)
+		for dstIngSrcEg, conn := range allowedIngressConns {
+			if dstIPIngSrcIpEg, err := common.IPBlockFromIPRangeStr(dstIngSrcEg); err == nil {
+				if connRes, ok := res[dstIPIngSrcIpEg.ToIPRanges()]; ok {
+					connRes.allowedconns[srcIngDstEgr] = conn
+					connRes.contribRules[srcIngDstEgr] = contribRules[dstIngSrcEg]
 				} else {
-					res[dstIP.ToIPRanges()] = &ConnectivityResult{isIngress: true, allowedconns: map[*common.IPBlock]*common.ConnectionSet{},
+					res[dstIPIngSrcIpEg.ToIPRanges()] = &ConnectivityResult{isIngress: true, allowedconns: map[*common.IPBlock]*common.ConnectionSet{},
 						contribRules: map[*common.IPBlock][]int{}}
-					res[dstIP.ToIPRanges()].allowedconns[src] = conn
+					res[dstIPIngSrcIpEg.ToIPRanges()].allowedconns[srcIngDstEgr] = conn
 					// contribRules indexes are identical to these of allowedIngressConns, thus access legit
-					res[dstIP.ToIPRanges()].contribRules[src] = contribRules[dst]
+					res[dstIPIngSrcIpEg.ToIPRanges()].contribRules[srcIngDstEgr] = contribRules[dstIngSrcEg]
 				}
 			}
 		}
