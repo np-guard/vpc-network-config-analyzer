@@ -468,7 +468,7 @@ func (na *NACLAnalyzer) AllowedConnectivity(subnetCidr, inSubentCidr, target str
 // if conn is specified then rules contributing to that connection; otherwise to any connection src->dst
 // if the input subnet was not yet analyzed, it first adds its analysis to saved results
 func (na *NACLAnalyzer) rulesInConnectivity(subnetCidr, inSubentCidr,
-	target string, conn *common.ConnectionSet, isIngress bool) ([]int, error) {
+	target string, connQuery *common.ConnectionSet, isIngress bool) ([]int, error) {
 	// add analysis of the given subnet
 	// analyzes per subnet disjoint cidrs (it is not necessarily entire subnet cidr)
 	analyzedConns, targetIPblock, inSubnetIPblock := na.initConnectivityRelatedCompute(subnetCidr, inSubentCidr, target, isIngress)
@@ -480,34 +480,21 @@ func (na *NACLAnalyzer) rulesInConnectivity(subnetCidr, inSubentCidr,
 		}
 		if inSubnetIPblock.ContainedIn(disjointSubnetCidrIPblock) {
 			for resTarget, rules := range analyzedConnsPerCidr.contribRules {
-					if !targetIPblock.ContainedIn(resTarget) {
-					    continue
-					}
-					if conn != nil { 
-    					    return rules, nil
-					}
-					// connection is part of the query
-					contained, err := conn.ContainedIn(analyzedConnsPerCidr.allowedconns[resTarget])
-					if err != nil {
-						return nil, err
-					}
-					if contained {
-						return na.getRulesRelevantConn(rules, conn) // gets only rules relevant to conn
-					}
-					return nil, nil
-
-					if conn != nil { // connection is part of the query
-						contained, err := conn.ContainedIn(analyzedConnsPerCidr.allowedconns[resTarget])
-						if err != nil {
-							return nil, err
-						}
-						if contained {
-							return na.getRulesRelevantConn(rules, conn) // gets only rules relevant to conn
-						}
-						return nil, nil
-					}
+				if !targetIPblock.ContainedIn(resTarget) {
+					continue
+				}
+				if connQuery == nil {
 					return rules, nil
 				}
+				// connection is part of the query
+				contained, err := connQuery.ContainedIn(analyzedConnsPerCidr.allowedconns[resTarget])
+				if err != nil {
+					return nil, err
+				}
+				if contained {
+					return na.getRulesRelevantConn(rules, connQuery) // gets only rules relevant to conn
+				}
+				return nil, nil
 			}
 		}
 	}
