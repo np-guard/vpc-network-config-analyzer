@@ -184,7 +184,7 @@ func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node,
 			if err != nil {
 				return nil, err
 			}
-			rulesThisSrcDst := &srcDstDetails{src:src, dst:dst ...
+			rulesThisSrcDst := &srcDstDetails{src, dst, false, false, false,
 				common.NewConnectionSet(false), nil, nil, rulesOfConnection, nil}
 			rulesAndConn[i] = rulesThisSrcDst
 			i++

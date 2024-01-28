@@ -302,7 +302,7 @@ func (nl *NaclLayer) StringRulesOfFilter(listRulesInFilter []vpcmodel.RulesInFil
 	strListRulesInFilter := ""
 	for _, rulesInFilter := range listRulesInFilter {
 		nacl := nl.naclList[rulesInFilter.Filter]
-		strListRulesInFilter += printRulesOfFilterHeader(nacl.Name())
+		strListRulesInFilter += rulesOfFilterHeader(nacl.Name())
 		strListRulesInFilter += nacl.analyzer.StringRules(rulesInFilter.Rules)
 	}
 	return strListRulesInFilter
@@ -442,7 +442,7 @@ func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 	return res, nil
 }
 
-func printRulesOfFilterHeader(name string) string {
+func rulesOfFilterHeader(name string) string {
 	return "enabling rules from " + name + ":\n"
 }
 
@@ -451,7 +451,7 @@ func (sgl *SecurityGroupLayer) StringRulesOfFilter(listRulesInFilter []vpcmodel.
 	for _, rulesInFilter := range listRulesInFilter {
 		sg := sgl.sgList[rulesInFilter.Filter]
 		if !sg.analyzer.isDefault {
-			strListRulesInFilter += printRulesOfFilterHeader(sg.Name())
+			strListRulesInFilter += rulesOfFilterHeader(sg.Name())
 		} else {
 			strListRulesInFilter += "rules in " + sg.Name() + " are the default, namely this is the enabling egress rule:\n"
 		}
