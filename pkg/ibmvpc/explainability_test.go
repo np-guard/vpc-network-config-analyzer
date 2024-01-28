@@ -191,6 +191,7 @@ var explainTests = []*explainGeneralTest{
 			"index: 3, direction: outbound,  conns: protocol: icmp,  icmpType: protocol: ICMP, cidr: 142.0.0.0/8\n\n",
 	},*/
 	{
+		// the existing connection is exactly the one required by the query
 		name:        "QueryConnectionSGBasic1",
 		inputConfig: "input_sg_testing1_new",
 		ESrc:        "vsi1-ky[10.240.10.4]",
@@ -207,6 +208,7 @@ var explainTests = []*explainGeneralTest{
 			"------------------------\nenabling rules from sg1-ky:\n\tindex: 2, direction: outbound,  " +
 			"conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\n",
 	},
+	// the required connection is contained in the existing one per connection
 	{
 		name:        "QueryConnectionSGBasic2",
 		inputConfig: "input_sg_testing1_new",
@@ -224,6 +226,7 @@ var explainTests = []*explainGeneralTest{
 			"------------------------\nenabling rules from sg1-ky:\n\tindex: 2, direction: outbound,  " +
 			"conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\n",
 	},
+	//  the required connection is contained in the existing one per ip of src/dst
 	{
 		name:        "QueryConnectionSGBasic3",
 		inputConfig: "input_sg_testing1_new",
@@ -241,6 +244,7 @@ var explainTests = []*explainGeneralTest{
 			"------------------------\nenabling rules from sg1-ky:\n\tindex: 2, direction: outbound,  " +
 			"conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\n",
 	},
+	// the required connection exists for part of the dst ip
 	{
 		name:        "QueryConnectionSGBasic4",
 		inputConfig: "input_sg_testing1_new",
@@ -262,6 +266,7 @@ var explainTests = []*explainGeneralTest{
 			"Public Internet 161.16.0.0-161.25.255.255,161.27.0.0-161.31.255.255; " +
 			"connection blocked by egress\n\n",
 	},
+	// a connection does not exist regardless of the query
 	{
 		name:        "QueryConnectionSGBasic5",
 		inputConfig: "input_sg_testing1_new",
@@ -276,6 +281,7 @@ var explainTests = []*explainGeneralTest{
 			"between vsi1-ky[10.240.10.4] and vsi3a-ky[10.240.30.5]; " +
 			"connection blocked both by ingress and egress\n\n",
 	},
+	//  all rules are relevant (for comparison)
 	{
 		name:        "QueryConnectionSGRules1",
 		inputConfig: "input_sg_testing1_new",
@@ -294,6 +300,7 @@ var explainTests = []*explainGeneralTest{
 			"------------------------\nenabling rules from sg1-ky:\n\tindex: 4, direction: inbound, " +
 			"protocol: all, cidr: 10.240.30.5/32,10.240.30.6/32\n\n",
 	},
+	// only a subset of the rules are relevant, protocol wise
 	{
 		name:        "QueryConnectionSGRules2",
 		inputConfig: "input_sg_testing1_new",
@@ -314,6 +321,7 @@ var explainTests = []*explainGeneralTest{
 			"------------------------\nenabling rules from sg1-ky:\n\tindex: 4, direction: inbound, " +
 			"protocol: all, cidr: 10.240.30.5/32,10.240.30.6/32\n\n",
 	},
+	// only a subset of the rules are relevant, port wise and protocol wise
 	{
 		name:        "QueryConnectionSGRules3",
 		inputConfig: "input_sg_testing1_new",
@@ -336,6 +344,7 @@ var explainTests = []*explainGeneralTest{
 			"SecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n" +
 			"\tindex: 4, direction: inbound, protocol: all, cidr: 10.240.30.5/32,10.240.30.6/32\n\n",
 	},
+	//  all rules are relevant, with specified port wise protocol
 	{
 		name:        "QueryConnectionSGRules4",
 		inputConfig: "input_sg_testing1_new",
@@ -358,6 +367,7 @@ var explainTests = []*explainGeneralTest{
 			"------------------------\nenabling rules from sg1-ky:\n\tindex: 4, direction: inbound, " +
 			"protocol: all, cidr: 10.240.30.5/32,10.240.30.6/32\n\n",
 	},
+	// connection exists to external
 	{
 		name:        "NACLExternal1",
 		inputConfig: "input_acl_testing3",
@@ -369,6 +379,7 @@ var explainTests = []*explainGeneralTest{
 			"srcPorts: 1-65535, dstPorts: 1-65535, action: allow\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n" +
 			"\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n\n",
 	},
+	// connection does not exist to external, blocked by egress
 	{
 		name:        "NACLExternal2",
 		inputConfig: "input_acl_testing3",
@@ -377,6 +388,7 @@ var explainTests = []*explainGeneralTest{
 		out: "No connection between vsi1-ky[10.240.10.4] and Public Internet 100.128.0.0/32;" +
 			" connection blocked by egress\n\n",
 	},
+	// connection does not exist to external, no fip router
 	{
 		name:        "NACLExternal3",
 		inputConfig: "input_acl_testing3",
@@ -401,16 +413,46 @@ var explainTests = []*explainGeneralTest{
 			"enabling rules from sg1-ky:\n\tindex: 1, direction: inbound, protocol: all, cidr: 0.0.0.0/0\n\n",
 	},
 	{
-		name:        "NACLInternal2",
+		// todo: misleading since deny not supported yet
+		name:        "NACLInternal1",
 		inputConfig: "input_acl_testing3",
 		ESrc:        "vsi1-ky[10.240.10.4]",
-		EDst:        "161.26.0.0/15",
-		out: "No connection between vsi1-ky[10.240.10.4] and Public Internet 161.27.0.0/16; connection blocked by egress\n\n" +
-			"The following connection exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16: protocol: UDP; " +
-			"its enabled by\nExternal Router PublicGateway: public-gw-ky\nEgress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\n" +
-			"enabling rules from acl1-ky:\n\tindex: 1, direction: outbound , src: 10.240.10.0/24 , dst: 161.26.0.0/16, conn: protocol: udp, " +
-			"srcPorts: 1-65535, dstPorts: 1-65535, action: allow\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n" +
-			"\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n\n",
+		EDst:        "vsi2-ky[10.240.20.4]",
+		out: "The following connection exists between vsi1-ky[10.240.10.4] and vsi2-ky[10.240.20.4]: " +
+			"protocol: TCP,UDP; its enabled by\nEgress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\n" +
+			"enabling rules from acl1-ky:\n" +
+			"\tindex: 2, direction: outbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, conn: all, action: allow\nSecurityGroupLayer Rules\n" +
+			"------------------------\nenabling rules from sg1-ky:\n\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n" +
+			"Ingress Rules:\n~~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl2-ky:\n" +
+			"\tindex: 6, direction: inbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, " +
+			"conn: all, action: allow\nSecurityGroupLayer Rules\n------------------------\n" +
+			"enabling rules from sg1-ky:\n\tindex: 1, direction: inbound, protocol: all, cidr: 0.0.0.0/0\n\n",
+	},
+	{
+		name:        "NACLInternal2",
+		inputConfig: "input_acl_testing3",
+		ESrc:        "vsi2-ky[10.240.20.4]",
+		EDst:        "vsi1-ky[10.240.10.4]",
+		out: "The following connection exists between vsi2-ky[10.240.20.4] and vsi1-ky[10.240.10.4]: " +
+			"All Connections; its enabled by\nEgress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\n" +
+			"enabling rules from acl2-ky:\n\tindex: 2, direction: outbound , src: 10.240.20.0/24 , dst: 10.240.10.0/24, " +
+			"conn: all, action: allow\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n" +
+			"\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\nIngress Rules:\n~~~~~~~~~~~~~~\n" +
+			"NaclLayer Rules\n------------------------\nenabling rules from acl1-ky:\n" +
+			"\tindex: 4, direction: inbound , src: 10.240.20.0/24 , dst: 10.240.10.0/24, conn: all, action: allow\n" +
+			"SecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n" +
+			"\tindex: 1, direction: inbound, protocol: all, cidr: 0.0.0.0/0\n\n",
+	},
+	{
+		name:        "NACLInternal3",
+		inputConfig: "input_acl_testing3",
+		ESrc:        "vsi1-ky[10.240.10.4]",
+		EDst:        "vsi3a-ky[10.240.30.5]",
+		out: "No connection between vsi1-ky[10.240.10.4] and vsi3a-ky[10.240.30.5]; connection blocked by egress\nIngress Rules:\n" +
+			"~~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl3-ky:\n" +
+			"\tindex: 2, direction: inbound , src: 10.240.10.0/24 , dst: 0.0.0.0/0, conn: all, action: allow\n" +
+			"SecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n" +
+			"\tindex: 1, direction: inbound, protocol: all, cidr: 0.0.0.0/0\n\n",
 	},
 	{
 		name:        "NACLQueryConnection1",
