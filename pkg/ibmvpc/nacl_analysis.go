@@ -195,20 +195,20 @@ func getAllowedXgressConnections(rules []*NACLRule, src, subnetCidr *common.IPBl
 			}
 		}
 		for _, disjointDestCidr := range destCidrList {
+			disjointDestIP := disjointDestCidr.ToIPRanges()
 			if rule.action == "allow" {
 				addedAllowedConns := rule.connections.Copy()
-				addedAllowedConns = addedAllowedConns.Subtract(deniedXgress[disjointDestCidr.ToIPRanges()])
+				addedAllowedConns = addedAllowedConns.Subtract(deniedXgress[disjointDestIP])
 				// issue here at union below
-				allowedXgressDestCidrBefore := allowedXgress[disjointDestCidr.ToIPRanges()]
-				allowedXgress[disjointDestCidr.ToIPRanges()] = allowedXgress[disjointDestCidr.ToIPRanges()].Union(addedAllowedConns)
-				allowedXgressDestCidrAfter := allowedXgress[disjointDestCidr.ToIPRanges()]
-				if !allowedXgress[disjointDestCidr.ToIPRanges()].Equal(allowedXgressDestCidrBefore) { // this rule contributes to the connection
-					contribRules[disjointDestCidr.ToIPRanges()] = append(contribRules[disjointDestCidr.ToIPRanges()], rule.index)
+				allowedXgressDestCidrBefore := allowedXgress[disjointDestIP]
+				allowedXgress[disjointDestIP] = allowedXgress[disjointDestIP].Union(addedAllowedConns)
+				if !allowedXgress[disjointDestIP].Equal(allowedXgressDestCidrBefore) { // this rule contributes to the connection
+					contribRules[disjointDestIP] = append(contribRules[disjointDestIP], rule.index)
 				}
 			} else if rule.action == "deny" {
 				addedDeniedConns := rule.connections.Copy()
-				addedDeniedConns = addedDeniedConns.Subtract(allowedXgress[disjointDestCidr.ToIPRanges()])
-				deniedXgress[disjointDestCidr.ToIPRanges()] = deniedXgress[disjointDestCidr.ToIPRanges()].Union(addedDeniedConns)
+				addedDeniedConns = addedDeniedConns.Subtract(allowedXgress[disjointDestIP])
+				deniedXgress[disjointDestIP] = deniedXgress[disjointDestIP].Union(addedDeniedConns)
 			}
 		}
 	}
