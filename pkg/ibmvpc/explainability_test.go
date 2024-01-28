@@ -374,9 +374,11 @@ var explainTests = []*explainGeneralTest{
 		ESrc:        "vsi1-ky[10.240.10.4]",
 		EDst:        "161.26.0.0/16",
 		out: "The following connection exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16: protocol: UDP; " +
-			"its enabled by\nExternal Router PublicGateway: public-gw-ky\nEgress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\n" +
+			"its enabled by\nExternal Router PublicGateway: public-gw-ky\nEgress Rules:\n~~~~~~~~~~~~~\n" +
+			"NaclLayer Rules\n------------------------\n" +
 			"enabling rules from acl1-ky:\n\tindex: 1, direction: outbound , src: 10.240.10.0/24 , dst: 161.26.0.0/16, conn: protocol: udp, " +
-			"srcPorts: 1-65535, dstPorts: 1-65535, action: allow\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n" +
+			"srcPorts: 1-65535, dstPorts: 1-65535, action: allow\nSecurityGroupLayer Rules\n" +
+			"------------------------\nenabling rules from sg1-ky:\n" +
 			"\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n\n",
 	},
 	// connection does not exist to external, blocked by egress
@@ -461,7 +463,8 @@ var explainTests = []*explainGeneralTest{
 		EDst:        "161.26.0.0/15",
 		out: "No connection between vsi1-ky[10.240.10.4] and Public Internet 161.27.0.0/16; connection blocked by egress\n\n" +
 			"The following connection exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16: protocol: UDP; " +
-			"its enabled by\nExternal Router PublicGateway: public-gw-ky\nEgress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\n" +
+			"its enabled by\nExternal Router PublicGateway: public-gw-ky\nEgress Rules:\n~~~~~~~~~~~~~\n" +
+			"NaclLayer Rules\n------------------------\n" +
 			"enabling rules from acl1-ky:\n\tindex: 1, direction: outbound , src: 10.240.10.0/24 , dst: 161.26.0.0/16, conn: protocol: udp, " +
 			"srcPorts: 1-65535, dstPorts: 1-65535, action: allow\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n" +
 			"\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n\n",
@@ -479,7 +482,8 @@ var explainTests = []*explainGeneralTest{
 		out: "Connection protocol: UDP exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16; " +
 			"its enabled by\nExternal Router PublicGateway: public-gw-ky\nEgress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n" +
 			"------------------------\nenabling rules from acl1-ky:\n" +
-			"\tindex: 1, direction: outbound , src: 10.240.10.0/24 , dst: 161.26.0.0/16, conn: protocol: udp, srcPorts: 1-65535, dstPorts: 1-65535, " +
+			"\tindex: 1, direction: outbound , src: 10.240.10.0/24 , dst: 161.26.0.0/16, conn: " +
+			"protocol: udp, srcPorts: 1-65535, dstPorts: 1-65535, " +
 			"action: allow\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n\tindex: 0, direction: outbound, " +
 			"protocol: all, cidr: 0.0.0.0/0\n\n",
 	},
