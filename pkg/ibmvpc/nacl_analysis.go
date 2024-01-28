@@ -265,16 +265,16 @@ func (na *NACLAnalyzer) AnalyzeNACLRulesPerDisjointTargets(
 	for _, srcIngDstEgr := range disjointSrcPeers {
 		allowedIngressConns, contribRules := getAllowedXgressConnections(rules, srcIngDstEgr, subnet, disjointDstPeers, isIngress)
 		for dstIngSrcEg, conn := range allowedIngressConns {
-			if dstIPIngSrcIpEg, err := common.IPBlockFromIPRangeStr(dstIngSrcEg); err == nil {
-				if connRes, ok := res[dstIPIngSrcIpEg.ToIPRanges()]; ok {
+			if dstIPIngSrcIPEg, err := common.IPBlockFromIPRangeStr(dstIngSrcEg); err == nil {
+				if connRes, ok := res[dstIPIngSrcIPEg.ToIPRanges()]; ok {
 					connRes.allowedconns[srcIngDstEgr] = conn
 					connRes.contribRules[srcIngDstEgr] = contribRules[dstIngSrcEg]
 				} else {
-					res[dstIPIngSrcIpEg.ToIPRanges()] = &ConnectivityResult{isIngress: true, allowedconns: map[*common.IPBlock]*common.ConnectionSet{},
+					res[dstIPIngSrcIPEg.ToIPRanges()] = &ConnectivityResult{isIngress: true, allowedconns: map[*common.IPBlock]*common.ConnectionSet{},
 						contribRules: map[*common.IPBlock][]int{}}
-					res[dstIPIngSrcIpEg.ToIPRanges()].allowedconns[srcIngDstEgr] = conn
+					res[dstIPIngSrcIPEg.ToIPRanges()].allowedconns[srcIngDstEgr] = conn
 					// contribRules indexes are identical to these of allowedIngressConns, thus access legit
-					res[dstIPIngSrcIpEg.ToIPRanges()].contribRules[srcIngDstEgr] = contribRules[dstIngSrcEg]
+					res[dstIPIngSrcIPEg.ToIPRanges()].contribRules[srcIngDstEgr] = contribRules[dstIngSrcEg]
 				}
 			}
 		}
