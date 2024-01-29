@@ -528,6 +528,9 @@ func (na *NACLAnalyzer) getRulesRelevantConn(rules []int, conn *common.Connectio
 func (na *NACLAnalyzer) StringRules(rules []int) string {
 	var strRules string
 	for _, ruleIndex := range rules {
+		if ruleIndex == -1 {
+			continue
+		}
 		strRule, _, _, err := na.getNACLRule(ruleIndex)
 		if err != nil {
 			return ""
