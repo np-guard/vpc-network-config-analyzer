@@ -48,7 +48,18 @@ func (lyO *subnetLayoutOverlap) addPoint(line LineTreeNodeInterface) {
 	x, y := 0, 0
 	switch {
 	case abs(dY) < minSize && abs(dX) < minSize:
-		// todo
+		if max(src.Width()/2, dst.Width()/2) > max(src.Height()/2, dst.Height()/2) {
+			y = midY + max(src.Height()/2, dst.Height()/2) + subnetHeight/2
+			x = midX
+			line.addPoint(x-minSize, y)
+			line.addPoint(x+minSize, y)
+		} else {
+			y = midY
+			x = midX + max(src.Width()/2, dst.Width()/2) + subnetWidth/2
+			line.addPoint(x, y-minSize)
+			line.addPoint(x, y+minSize)
+		}
+		return
 	case abs(dX) < minSize:
 		y = midY
 		x = midX + max(src.Width()/2, dst.Width()/2) + subnetWidth/2
