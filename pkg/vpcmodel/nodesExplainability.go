@@ -260,7 +260,7 @@ func computeActualRules(rulesLayer *rulesInLayers, filtersExternal map[string]bo
 			directionEnabled = false
 		}
 	}
-	// the direction is enabled if all none of the filters is blocking it
+	// the direction is enabled if none of the filters is blocking it
 	return &actualRules, directionEnabled
 }
 
