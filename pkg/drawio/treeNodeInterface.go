@@ -115,3 +115,32 @@ func absoluteGeometry(tn TreeNodeInterface) (x, y int) {
 	return tn.X() + tn.DrawioParent().Location().firstCol.x() + tn.DrawioParent().Location().xOffset,
 		tn.Y() + tn.DrawioParent().Location().firstRow.y() + tn.DrawioParent().Location().yOffset
 }
+
+// uncomment writeAsJson() treeNodeAsMap() for debug of a treeNode
+
+// func treeNodeAsMap(tn TreeNodeInterface) map[string]interface{} {
+// 	res := map[string]interface{}{}
+// 	squares, icons, lines := tn.children()
+// 	sqs := []interface{}{}
+// 	ics := []interface{}{}
+// 	lns := []interface{}{}
+// 	for _, s := range squares {
+// 		sqs = append(sqs, treeNodeAsMap(s))
+// 	}
+// 	for _, s := range icons {
+// 		ics = append(ics, treeNodeAsMap(s))
+// 	}
+// 	for _, s := range lines {
+// 		lns = append(lns, treeNodeAsMap(s))
+// 	}
+// 	res["name"] = tn.Label()
+// 	res["squares"] = sqs
+// 	res["icons"] = ics
+// 	res["lines"] = lns
+// 	return res
+// }
+
+// func writeTreeNodeToJsonFile(tn TreeNodeInterface, outFile string) {
+// 	res, _ := json.MarshalIndent(treeNodeAsMap(tn), "", "    ")
+// 	os.WriteFile(outFile, []byte(res), 0o600)
+// }

@@ -49,6 +49,7 @@ func (n *VPCResource) VPC() VPCResourceIntf {
 	return n.VPCRef
 }
 
+// todo: define enum for filters
 const (
 	// filter-resources layer names (grouping all vpc resources of that kind)
 	NaclLayer          = "NaclLayer"

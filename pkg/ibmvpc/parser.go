@@ -9,9 +9,109 @@ import (
 
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
 
+	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	vpcmodel "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
+
+// ParseResourcesFromFile returns datamodel.ResourcesContainerModel object, containing the configured resources structs
+// from the input JSON file
+func ParseResourcesFromFile(fileName string) (*datamodel.ResourcesContainerModel, error) {
+	inputConfigContent, err := os.ReadFile(fileName)
+	if err != nil {
+		return nil, err
+	}
+	config := datamodel.ResourcesContainerModel{}
+	err = json.Unmarshal(inputConfigContent, &config)
+	if err != nil {
+		return nil, err
+	}
+	return &config, nil
+}
+
+// VPCConfigsFromResources returns a map from VPC UID (string) to its corresponding VPCConfig object,
+// containing the parsed resources in the relevant model objects
+func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID string, debug bool) (map[string]*vpcmodel.VPCConfig, error) {
+	res := map[string]*vpcmodel.VPCConfig{} // map from VPC UID to its config
+	var err error
+
+	// if certain VPC to analyze is specified, skip resources configured outside that VPC
+	var shouldSkipByVPC = func(crn string) bool {
+		return vpcID != "" && crn != vpcID
+	}
+
+	err = getVPCconfig(rc, res, shouldSkipByVPC)
+	if err != nil {
+		return nil, err
+	}
+
+	var vpcInternalAddressRange map[string]*common.IPBlock // map from vpc name to its internal address range
+
+	subnetNameToNetIntf := map[string][]*NetworkInterface{}
+	err = getInstancesConfig(rc.InstanceList, subnetNameToNetIntf, res, shouldSkipByVPC)
+	if err != nil {
+		return nil, err
+	}
+	// pgw can be attached to multiple subnets in the zone
+	pgwToSubnet := map[string][]*Subnet{} // map from pgw name to its attached subnet(s)
+	subnetNameToSubnet := map[string]*Subnet{}
+	vpcInternalAddressRange, err = getSubnetsConfig(res, pgwToSubnet, subnetNameToSubnet, subnetNameToNetIntf, rc, shouldSkipByVPC)
+	if err != nil {
+		return nil, err
+	}
+	// assign to each vpc object its internal address range, as inferred from its subnets
+	err = updateVPCSAddressRanges(vpcInternalAddressRange, res)
+	if err != nil {
+		return nil, err
+	}
+
+	err = getIKSnodesConfig(res, subnetNameToSubnet, rc, shouldSkipByVPC)
+	if err != nil {
+		return nil, err
+	}
+
+	err = getPgwConfig(res, rc, pgwToSubnet, shouldSkipByVPC)
+	if err != nil {
+		return nil, err
+	}
+
+	err = getFipConfig(rc, res, shouldSkipByVPC)
+	if err != nil {
+		return nil, err
+	}
+
+	err = getVPEconfig(rc, res, shouldSkipByVPC)
+	if err != nil {
+		return nil, err
+	}
+
+	err = getSGconfig(rc, res, shouldSkipByVPC)
+	if err != nil {
+		return nil, err
+	}
+
+	err = getNACLconfig(rc, res, subnetNameToSubnet, shouldSkipByVPC)
+	if err != nil {
+		return nil, err
+	}
+
+	err = filterVPCSAndAddExternalNodes(vpcInternalAddressRange, res)
+	if err != nil {
+		return nil, err
+	}
+
+	tgws := getTgwObjects(rc, res)
+	err = addTGWbasedConfigs(tgws, res)
+	if err != nil {
+		return nil, err
+	}
+
+	if debug {
+		printVPCConfigs(res)
+	}
+
+	return res, nil
+}
 
 const (
 	protocolTCP                  = "tcp"
@@ -40,345 +140,7 @@ const (
 	ResourceTypeReservedIP       = "ReservedIP"
 )
 
-type ResourcesContainer struct {
-	naclList     []*vpc1.NetworkACL
-	sgList       []*vpc1.SecurityGroup
-	instanceList []*vpc1.Instance
-	subnetsList  []*vpc1.Subnet
-	vpcsList     []*vpc1.VPC
-	fipList      []*vpc1.FloatingIP
-	pgwList      []*vpc1.PublicGateway
-	vpeList      []*vpc1.EndpointGateway
-	iksNodes     []*iksNode
-	transitConns []*transitConnection
-}
-
-func NewResourcesContainer() *ResourcesContainer {
-	res := &ResourcesContainer{
-		naclList:     []*vpc1.NetworkACL{},
-		sgList:       []*vpc1.SecurityGroup{},
-		instanceList: []*vpc1.Instance{},
-		subnetsList:  []*vpc1.Subnet{},
-		vpcsList:     []*vpc1.VPC{},
-		fipList:      []*vpc1.FloatingIP{},
-		pgwList:      []*vpc1.PublicGateway{},
-		iksNodes:     []*iksNode{},
-		transitConns: []*transitConnection{},
-	}
-	return res
-}
-
-func (rc *ResourcesContainer) addNACL(n *vpc1.NetworkACL) {
-	rc.naclList = append(rc.naclList, n)
-}
-
-func (rc *ResourcesContainer) addSG(n *vpc1.SecurityGroup) {
-	rc.sgList = append(rc.sgList, n)
-}
-
-func (rc *ResourcesContainer) addInstance(n *vpc1.Instance) {
-	rc.instanceList = append(rc.instanceList, n)
-}
-
-func (rc *ResourcesContainer) addSubnet(n *vpc1.Subnet) {
-	rc.subnetsList = append(rc.subnetsList, n)
-}
-
-func (rc *ResourcesContainer) addVpc(n *vpc1.VPC) {
-	rc.vpcsList = append(rc.vpcsList, n)
-}
-
-func (rc *ResourcesContainer) addFloatingIP(n *vpc1.FloatingIP) {
-	rc.fipList = append(rc.fipList, n)
-}
-
-func (rc *ResourcesContainer) addPublicGateway(n *vpc1.PublicGateway) {
-	rc.pgwList = append(rc.pgwList, n)
-}
-
-func (rc *ResourcesContainer) addVPE(n *vpc1.EndpointGateway) {
-	rc.vpeList = append(rc.vpeList, n)
-}
-
-func (rc *ResourcesContainer) addIKSNode(n *iksNode) {
-	rc.iksNodes = append(rc.iksNodes, n)
-}
-
-func (rc *ResourcesContainer) addTransitConn(n *transitConnection) {
-	rc.transitConns = append(rc.transitConns, n)
-}
-
-var _ = (*ResourcesContainer).printDetails // avoiding "unused" warning
-
-func (rc *ResourcesContainer) printDetails() {
-	fmt.Printf("Has %d nacl objects\n", len(rc.naclList))
-	fmt.Printf("Has %d sg objects\n", len(rc.sgList))
-	fmt.Printf("Has %d instance objects\n", len(rc.instanceList))
-}
-
-func addParsedNACL(vList []json.RawMessage, res *ResourcesContainer) error {
-	for i := range vList {
-		obj, err := JSONNaclToObject(vList[i])
-		if err != nil {
-			return err
-		}
-		res.addNACL(obj)
-	}
-	return nil
-}
-
-func addParsedSG(vList []json.RawMessage, res *ResourcesContainer) error {
-	for i := range vList {
-		obj, err := JSONSgToObject(vList[i])
-		if err != nil {
-			return err
-		}
-		res.addSG(obj)
-	}
-	return nil
-}
-
-func addParsedInstances(vList []json.RawMessage, res *ResourcesContainer) error {
-	for i := range vList {
-		obj, err := JSONInstanceToObject(vList[i])
-		if err != nil {
-			return err
-		}
-		res.addInstance(obj)
-	}
-	return nil
-}
-
-type iksNode struct {
-	Cidr      string
-	IPAddress string
-	SubnetID  string
-	ID        string
-}
-
-type transitConnection struct {
-	NetworkID string // network_id is the vpc's crn connected to the tgw
-	Name      string // name of the tgw
-	CRN       string // crn of the tgw
-}
-
-/*
-assuming the following components are within input to  transitConnection:
-            "network_id": vpc-crn,
-            "transit_gateway": {
-                "crn": tgw-crn,
-                "id": tgw-id,
-                "name": tgw-name
-            },
-*/
-
-func parseTransitConn(m map[string]json.RawMessage) (*transitConnection, error) {
-	res := &transitConnection{}
-
-	err := json.Unmarshal(m["transit_gateway"], &res)
-	if err != nil {
-		return nil, err
-	}
-	err = json.Unmarshal(m["network_id"], &res.NetworkID)
-	if err != nil {
-		return nil, err
-	}
-	return res, err
-}
-
 var errIksParsing = errors.New("issue parsing IKS node")
-
-/*
-assuming the following components are within input to parseIKSNode:
-"networkInterfaces": [
-                {
-                    "cidr": "cidr-str",
-                    "ipAddress": "ip-str",
-                    "subnetID": "id-str"
-                }
-            ],
-"id": "id-str",
-
-*/
-
-func parseIKSNode(m map[string]json.RawMessage) (*iksNode, error) {
-	// parse the "networkInterfaces" section
-	nis, ok := m["networkInterfaces"]
-	if !ok {
-		return nil, errIksParsing
-	}
-	netInterfaces, err := JSONToList(nis)
-	if err != nil {
-		return nil, err
-	}
-	if len(netInterfaces) != 1 {
-		return nil, errIksParsing
-	}
-
-	var iksNodes []iksNode
-	err = json.Unmarshal(nis, &iksNodes)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(iksNodes) != 1 {
-		return nil, errIksParsing
-	}
-	res := &iksNodes[0]
-
-	// parse the "id" section
-	id, ok := m["id"]
-	if !ok {
-		return nil, errIksParsing
-	}
-	err = json.Unmarshal(id, &res.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
-}
-
-func addParsedTransitConn(vList []json.RawMessage, res *ResourcesContainer) error {
-	for i := range vList {
-		nodesMap, err := JSONToMap(vList[i])
-		if err != nil {
-			return err
-		}
-		obj, err := parseTransitConn(nodesMap)
-		if err != nil {
-			return err
-		}
-		res.addTransitConn(obj)
-	}
-	return nil
-}
-
-func addParsedWorkerNodes(vList []json.RawMessage, res *ResourcesContainer) error {
-	for i := range vList {
-		nodesMap, err := JSONToMap(vList[i])
-		if err != nil {
-			return err
-		}
-		obj, err := parseIKSNode(nodesMap)
-		if err != nil {
-			return err
-		}
-		res.addIKSNode(obj)
-	}
-
-	return nil
-}
-
-func addParsedSubnets(vList []json.RawMessage, res *ResourcesContainer) error {
-	for i := range vList {
-		obj, err := JSONSubnetToObject(vList[i])
-		if err != nil {
-			return err
-		}
-		res.addSubnet(obj)
-	}
-	return nil
-}
-
-func addParsedVPCs(vList []json.RawMessage, res *ResourcesContainer) error {
-	for i := range vList {
-		obj, err := JSONVpcToObject(vList[i])
-		if err != nil {
-			return err
-		}
-		res.addVpc(obj)
-	}
-	return nil
-}
-
-func addParsedFips(vList []json.RawMessage, res *ResourcesContainer) error {
-	for i := range vList {
-		obj, err := JSONFipToObject(vList[i])
-		if err != nil {
-			return err
-		}
-		res.addFloatingIP(obj)
-	}
-	return nil
-}
-
-func addParsedPgw(vList []json.RawMessage, res *ResourcesContainer) error {
-	for i := range vList {
-		obj, err := JSONPgwTpObject(vList[i])
-		if err != nil {
-			return err
-		}
-		res.addPublicGateway(obj)
-	}
-	return nil
-}
-
-func addParsedVPE(vList []json.RawMessage, res *ResourcesContainer) error {
-	for i := range vList {
-		obj, err := JSONVpeToObject(vList[i])
-		if err != nil {
-			return err
-		}
-		res.addVPE(obj)
-	}
-	return nil
-}
-
-func parseSingleResourceList(key string, vList []json.RawMessage, res *ResourcesContainer) error {
-	switch key {
-	case "network_acls":
-		return addParsedNACL(vList, res)
-	case "security_groups":
-		return addParsedSG(vList, res)
-	case "instances":
-		return addParsedInstances(vList, res)
-	case "subnets":
-		return addParsedSubnets(vList, res)
-	case "vpcs":
-		return addParsedVPCs(vList, res)
-	case "floating_ips":
-		return addParsedFips(vList, res)
-	case "public_gateways":
-		return addParsedPgw(vList, res)
-	case "endpoint_gateways":
-		return addParsedVPE(vList, res)
-	case "iks_worker_nodes":
-		return addParsedWorkerNodes(vList, res)
-	case "transit_connections":
-		return addParsedTransitConn(vList, res)
-	default:
-		fmt.Printf("%s resource type is not yet supported\n", key)
-	}
-	return nil
-}
-
-func ParseResourcesFromFile(fileName string) (*ResourcesContainer, error) {
-	jsonContent, err := os.ReadFile(fileName)
-	if err != nil {
-		return nil, err
-	}
-	return ParseResources(jsonContent)
-}
-
-func ParseResources(resourcesJSONFile []byte) (*ResourcesContainer, error) {
-	var err error
-	res := NewResourcesContainer()
-	resourcesMap, err := JSONToMap(resourcesJSONFile)
-	if err != nil {
-		return nil, err
-	}
-	for k, v := range resourcesMap {
-		vList, err := JSONToList(v)
-		if err != nil {
-			return nil, err
-		}
-		if err := parseSingleResourceList(k, vList, res); err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
 
 func getCertainNodes(allNodes []vpcmodel.Node, shouldTakeNode func(vpcmodel.Node) bool) (ret []vpcmodel.Node) {
 	for _, s := range allNodes {
@@ -401,7 +163,7 @@ func addZone(zoneName, vpcUID string, res map[string]*vpcmodel.VPCConfig) error 
 }
 
 func getInstancesConfig(
-	instanceList []*vpc1.Instance,
+	instanceList []*datamodel.Instance,
 	subnetNameToNetIntf map[string][]*NetworkInterface,
 	res map[string]*vpcmodel.VPCConfig,
 	skipByVPC func(string) bool,
@@ -461,14 +223,14 @@ func getSubnetsConfig(
 	pgwToSubnet map[string][]*Subnet,
 	subnetNameToSubnet map[string]*Subnet,
 	subnetNameToNetIntf map[string][]*NetworkInterface,
-	rc *ResourcesContainer,
+	rc *datamodel.ResourcesContainerModel,
 	skipByVPC func(string) bool,
 ) (vpcInternalAddressRange map[string]*common.IPBlock, err error) {
 	vpcInternalAddressRange = map[string]*common.IPBlock{}
 	for vpcUID := range res {
 		vpcInternalAddressRange[vpcUID] = nil
 	}
-	for _, subnet := range rc.subnetsList {
+	for _, subnet := range rc.SubnetList {
 		if skipByVPC(*subnet.VPC.CRN) {
 			continue
 		}
@@ -515,6 +277,8 @@ func getSubnetsConfig(
 			}
 			subnetNode.nodes = subnetNodes
 		}
+		// add subnet to its vpc's list of subnets
+		vpc.subnetsList = append(vpc.subnetsList, subnetNode)
 	}
 	return vpcInternalAddressRange, nil
 }
@@ -537,11 +301,11 @@ func getSubnetsCidrs(subnets []*Subnet) []string {
 
 func getPgwConfig(
 	res map[string]*vpcmodel.VPCConfig,
-	rc *ResourcesContainer,
+	rc *datamodel.ResourcesContainerModel,
 	pgwToSubnet map[string][]*Subnet,
 	skipByVPC func(string) bool,
 ) error {
-	for _, pgw := range rc.pgwList {
+	for _, pgw := range rc.PublicGWList {
 		if skipByVPC(*pgw.VPC.CRN) {
 			continue
 		}
@@ -584,11 +348,11 @@ func ignoreFIPWarning(fipName, details string) string {
 }
 
 func getFipConfig(
-	rc *ResourcesContainer,
+	rc *datamodel.ResourcesContainerModel,
 	res map[string]*vpcmodel.VPCConfig,
 	skipByVPC func(string) bool,
 ) error {
-	for _, fip := range rc.fipList {
+	for _, fip := range rc.FloatingIPList {
 		targetIntf := fip.Target
 		var targetUID string
 		switch target := targetIntf.(type) {
@@ -661,8 +425,8 @@ func getFipConfig(
 	return nil
 }
 
-func getVPCconfig(rc *ResourcesContainer, res map[string]*vpcmodel.VPCConfig, skipByVPC func(string) bool) error {
-	for _, vpc := range rc.vpcsList {
+func getVPCconfig(rc *datamodel.ResourcesContainerModel, res map[string]*vpcmodel.VPCConfig, skipByVPC func(string) bool) error {
+	for _, vpc := range rc.VpcList {
 		if skipByVPC(*vpc.CRN) {
 			continue // skip vpc not specified to analyze
 		}
@@ -717,13 +481,13 @@ func parseSGTargets(sgResource *SecurityGroup,
 	}
 }
 
-func getSGconfig(rc *ResourcesContainer,
+func getSGconfig(rc *datamodel.ResourcesContainerModel,
 	res map[string]*vpcmodel.VPCConfig,
 	skipByVPC func(string) bool,
 ) error {
 	sgMap := map[string]map[string]*SecurityGroup{} // map from vpc uid to map from sg name to its sg object
 	sgLists := map[string][]*SecurityGroup{}
-	for _, sg := range rc.sgList {
+	for _, sg := range rc.SecurityGroupList {
 		if skipByVPC(*sg.VPC.CRN) {
 			continue
 		}
@@ -740,13 +504,13 @@ func getSGconfig(rc *ResourcesContainer,
 				ResourceType: ResourceTypeSG,
 				VPCRef:       vpc,
 			},
-			analyzer: NewSGAnalyzer(sg), members: map[string]vpcmodel.Node{},
+			analyzer: NewSGAnalyzer(&sg.SecurityGroup), members: map[string]vpcmodel.Node{},
 		}
 		if _, ok := sgMap[vpcUID]; !ok {
 			sgMap[vpcUID] = map[string]*SecurityGroup{}
 		}
 		sgMap[vpcUID][*sg.Name] = sgResource
-		parseSGTargets(sgResource, sg, res[vpcUID])
+		parseSGTargets(sgResource, &sg.SecurityGroup, res[vpcUID])
 		sgLists[vpcUID] = append(sgLists[vpcUID], sgResource)
 	}
 	for vpcUID, sgListInstance := range sgLists {
@@ -776,17 +540,17 @@ func getSGconfig(rc *ResourcesContainer,
 	return nil
 }
 
-func getNACLconfig(rc *ResourcesContainer,
+func getNACLconfig(rc *datamodel.ResourcesContainerModel,
 	res map[string]*vpcmodel.VPCConfig,
 	subnetNameToSubnet map[string]*Subnet,
 	skipByVPC func(string) bool,
 ) error {
 	naclLists := map[string][]*NACL{} // map from vpc uid to its nacls
-	for _, nacl := range rc.naclList {
+	for _, nacl := range rc.NetworkACLList {
 		if skipByVPC(*nacl.VPC.CRN) {
 			continue
 		}
-		naclAnalyzer, err := NewNACLAnalyzer(nacl)
+		naclAnalyzer, err := NewNACLAnalyzer(&nacl.NetworkACL)
 		if err != nil {
 			return err
 		}
@@ -829,13 +593,13 @@ func getNACLconfig(rc *ResourcesContainer,
 	return nil
 }
 
-func getTgwObjects(c *ResourcesContainer,
+func getTgwObjects(c *datamodel.ResourcesContainerModel,
 	res map[string]*vpcmodel.VPCConfig) map[string]*TransitGateway {
 	tgwMap := map[string]*TransitGateway{} // collect all tgw resources
-	for _, tgwConn := range c.transitConns {
-		tgwUID := tgwConn.CRN
-		tgwName := tgwConn.Name
-		vpcUID := tgwConn.NetworkID
+	for _, tgwConn := range c.TransitConnectionList {
+		tgwUID := *tgwConn.TransitGateway.Crn
+		tgwName := *tgwConn.TransitGateway.Name
+		vpcUID := *tgwConn.NetworkID
 		vpc, err := getVPCObjectByUID(res, vpcUID)
 		if err != nil {
 			fmt.Printf("warning: ignoring vpc that does not exist in tgw config, vpcID: %s\n", vpcUID)
@@ -848,14 +612,68 @@ func getTgwObjects(c *ResourcesContainer,
 					ResourceUID:  tgwUID,
 					ResourceType: ResourceTypeTGW,
 				},
-				vpcs: []*VPC{vpc},
+				vpcs:       []*VPC{vpc},
+				vpcFilters: map[string]map[string]bool{},
 			}
 			tgwMap[tgwUID] = tgw
 		} else {
 			tgwMap[tgwUID].vpcs = append(tgwMap[tgwUID].vpcs, vpc)
 		}
+		permittedSubnets, err := getTransitConnectionFiltersForVPC(tgwConn, vpc)
+		if err != nil {
+			fmt.Printf("warning: ignoring prefix filters, vpcID: %s, tgwID: %s, err is: %s\n", vpcUID, tgwUID, err.Error())
+		} else {
+			tgwMap[tgwUID].vpcFilters[vpc.ResourceUID] = permittedSubnets
+		}
 	}
 	return tgwMap
+}
+
+func isNodeNotFiltered(node vpcmodel.Node, filteredSubnets map[string]bool) bool {
+	// TODO: currently skipping nodes other than network interface (e.g. reserved ip, iks nodes)
+	if netIntf, ok := node.(*NetworkInterface); ok {
+		return filteredSubnets[netIntf.subnet.UID()]
+	}
+	return false
+}
+
+func getNotFilteredNodes(nodes []vpcmodel.Node, filteredSubnets map[string]bool) []vpcmodel.Node {
+	res := []vpcmodel.Node{}
+	for _, n := range nodes {
+		if isNodeNotFiltered(n, filteredSubnets) {
+			res = append(res, n)
+		}
+	}
+	return res
+}
+
+// getVPCResourcesNotFiltered returns Nodes and NodeSets not filtered by prefix filters,
+// so that only those are added as part of the "combined" vpc representing the cross-vpc connectivity
+func getVPCResourcesNotFiltered(tgw *TransitGateway, vpcConfig *vpcmodel.VPCConfig) (
+	nodes []vpcmodel.Node, nodeSets []vpcmodel.NodeSet, err error) {
+	filteredSubnets, ok := tgw.vpcFilters[vpcConfig.VPC.UID()]
+	if !ok {
+		return nil, nil, fmt.Errorf("missing vpcFilters for TGW %s, VPC %s", tgw.UID(), vpcConfig.VPC.UID())
+	}
+
+	nodes = getNotFilteredNodes(vpcConfig.Nodes, filteredSubnets)
+
+	for _, nodeSet := range vpcConfig.NodeSets {
+		// skip VPE type for nodeSet
+		switch n := nodeSet.(type) {
+		case *Subnet:
+			if filteredSubnets[n.UID()] {
+				nodeSets = append(nodeSets, nodeSet)
+			}
+		case *Vsi:
+			if len(getNotFilteredNodes(n.nodes, filteredSubnets)) > 0 {
+				nodeSets = append(nodeSets, nodeSet)
+			}
+		case *VPC:
+			nodeSets = append(nodeSets, nodeSet)
+		}
+	}
+	return nodes, nodeSets, nil
 }
 
 // For each Transit Gateway, generate a config that combines multiple vpc entities, which are
@@ -876,14 +694,18 @@ func addTGWbasedConfigs(tgws map[string]*TransitGateway, res map[string]*vpcmode
 		var vpcsAddressRanges *common.IPBlock // collect all internal address ranges of involved VPCs
 		nacls := &NaclLayer{VPCResource: vpcmodel.VPCResource{ResourceType: vpcmodel.NaclLayer}}
 		sgs := &SecurityGroupLayer{VPCResource: vpcmodel.VPCResource{ResourceType: vpcmodel.SecurityGroupLayer}}
-		for _, vpc := range tgw.vpcs { // iterate the involved VPCs
+		for _, vpc := range tgw.vpcs { // iterate the involved VPCs -- all of them are connected (all to all)
 			vpcConfig, ok := res[vpc.ResourceUID]
 			if !ok {
 				return fmt.Errorf("missing vpc config for vpc CRN %s", vpc.ResourceUID)
 			}
 			// merge vpc config to the new "combined" config, used to get conns between vpcs only
-			newConfig.Nodes = append(newConfig.Nodes, vpcConfig.Nodes...)
-			newConfig.NodeSets = append(newConfig.NodeSets, vpcConfig.NodeSets...)
+			filteredNodes, filteredNodeSets, err := getVPCResourcesNotFiltered(tgw, vpcConfig)
+			if err != nil {
+				return err
+			}
+			newConfig.Nodes = append(newConfig.Nodes, filteredNodes...)
+			newConfig.NodeSets = append(newConfig.NodeSets, filteredNodeSets...)
 
 			// FilterResources: merge NACLLayers to a single NACLLayer object, same for sg
 			for _, fr := range vpcConfig.FilterResources {
@@ -962,11 +784,11 @@ func getSubnetByIPAddress(address string, c *vpcmodel.VPCConfig) (subnet *Subnet
 	return nil, fmt.Errorf("could not find matching subnet for address %s", address)
 }
 
-func getVPEconfig(rc *ResourcesContainer,
+func getVPEconfig(rc *datamodel.ResourcesContainerModel,
 	res map[string]*vpcmodel.VPCConfig,
 	skipByVPC func(string) bool,
 ) (err error) {
-	for _, vpe := range rc.vpeList {
+	for _, vpe := range rc.EndpointGWList {
 		if skipByVPC(*vpe.VPC.CRN) {
 			continue
 		}
@@ -1027,12 +849,18 @@ func getSubnetByCidr(m map[string]*Subnet, cidr string) (*Subnet, error) {
 
 func getIKSnodesConfig(res map[string]*vpcmodel.VPCConfig,
 	subnetNameToSubnet map[string]*Subnet,
-	rc *ResourcesContainer,
-	skipByVPC func(string) bool) {
-	for _, iksNode := range rc.iksNodes {
-		subnet, err := getSubnetByCidr(subnetNameToSubnet, iksNode.Cidr)
+	rc *datamodel.ResourcesContainerModel,
+	skipByVPC func(string) bool) error {
+	for _, iksNode := range rc.IKSWorkerNodes {
+		if len(iksNode.NetworkInterfaces) != 1 {
+			return errIksParsing
+		}
+		iksNodeNetIntfObj := iksNode.NetworkInterfaces[0]
+
+		subnet, err := getSubnetByCidr(subnetNameToSubnet, *iksNodeNetIntfObj.Cidr)
 		if err != nil {
-			fmt.Printf("warning: ignoring iksNode with ID %s (could not find subnet with iksNode's CIDR: %s)\n", iksNode.ID, iksNode.Cidr)
+			fmt.Printf("warning: ignoring iksNode with ID %s (could not find subnet with iksNode's CIDR: %s)\n",
+				*iksNode.ID, *iksNodeNetIntfObj.Cidr)
 			continue
 		}
 		if skipByVPC(subnet.VPC().UID()) {
@@ -1043,17 +871,18 @@ func getIKSnodesConfig(res map[string]*vpcmodel.VPCConfig,
 		nodeObject := &IKSNode{
 			VPCResource: vpcmodel.VPCResource{
 				ResourceName: "iks-node",
-				ResourceUID:  iksNode.ID,
+				ResourceUID:  *iksNode.ID,
 				ResourceType: ResourceTypeIKSNode,
 				VPCRef:       vpc,
 			},
-			address: iksNode.IPAddress,
+			address: *iksNodeNetIntfObj.IpAddress,
 			subnet:  subnet,
 		}
 		res[vpcUID].Nodes = append(res[vpcUID].Nodes, nodeObject)
 		// attach the node to the subnet
 		subnet.nodes = append(subnet.nodes, nodeObject)
 	}
+	return nil
 }
 
 func NewEmptyVPCConfig() *vpcmodel.VPCConfig {
@@ -1065,87 +894,6 @@ func NewEmptyVPCConfig() *vpcmodel.VPCConfig {
 		UIDToResource:    map[string]vpcmodel.VPCResourceIntf{},
 		CloudName:        "IBM Cloud",
 	}
-}
-
-// VPCConfigsFromResources returns a map from VPC UID (string) to its corresponding VPCConfig object,
-// containing the parsed resources in the relevant model objects
-func VPCConfigsFromResources(rc *ResourcesContainer, vpcID string, debug bool) (map[string]*vpcmodel.VPCConfig, error) {
-	res := map[string]*vpcmodel.VPCConfig{} // map from VPC UID to its config
-	var err error
-
-	// if certain VPC to analyze is specified, skip resources configured outside that VPC
-	var shouldSkipByVPC = func(crn string) bool {
-		return vpcID != "" && crn != vpcID
-	}
-
-	err = getVPCconfig(rc, res, shouldSkipByVPC)
-	if err != nil {
-		return nil, err
-	}
-
-	var vpcInternalAddressRange map[string]*common.IPBlock // map from vpc name to its internal address range
-
-	subnetNameToNetIntf := map[string][]*NetworkInterface{}
-	err = getInstancesConfig(rc.instanceList, subnetNameToNetIntf, res, shouldSkipByVPC)
-	if err != nil {
-		return nil, err
-	}
-	// pgw can be attached to multiple subnets in the zone
-	pgwToSubnet := map[string][]*Subnet{} // map from pgw name to its attached subnet(s)
-	subnetNameToSubnet := map[string]*Subnet{}
-	vpcInternalAddressRange, err = getSubnetsConfig(res, pgwToSubnet, subnetNameToSubnet, subnetNameToNetIntf, rc, shouldSkipByVPC)
-	if err != nil {
-		return nil, err
-	}
-	// assign to each vpc object its internal address range, as inferred from its subnets
-	err = updateVPCSAddressRanges(vpcInternalAddressRange, res)
-	if err != nil {
-		return nil, err
-	}
-
-	getIKSnodesConfig(res, subnetNameToSubnet, rc, shouldSkipByVPC)
-
-	err = getPgwConfig(res, rc, pgwToSubnet, shouldSkipByVPC)
-	if err != nil {
-		return nil, err
-	}
-
-	err = getFipConfig(rc, res, shouldSkipByVPC)
-	if err != nil {
-		return nil, err
-	}
-
-	err = getVPEconfig(rc, res, shouldSkipByVPC)
-	if err != nil {
-		return nil, err
-	}
-
-	err = getSGconfig(rc, res, shouldSkipByVPC)
-	if err != nil {
-		return nil, err
-	}
-
-	err = getNACLconfig(rc, res, subnetNameToSubnet, shouldSkipByVPC)
-	if err != nil {
-		return nil, err
-	}
-
-	err = filterVPCSAndAddExternalNodes(vpcInternalAddressRange, res)
-	if err != nil {
-		return nil, err
-	}
-
-	tgws := getTgwObjects(rc, res)
-	err = addTGWbasedConfigs(tgws, res)
-	if err != nil {
-		return nil, err
-	}
-
-	if debug {
-		printVPCConfigs(res)
-	}
-
-	return res, nil
 }
 
 // filter VPCs with empty address ranges, then add for remaining VPCs the external nodes

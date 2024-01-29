@@ -10,8 +10,9 @@ func (t *DebugOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	cfgsDiff *diffBetweenCfgs,
 	outFile string,
 	grouping bool,
-	uc OutputUseCase) (*SingleAnalysisOutput, error) {
-	out, err := headerOfAnalyzedVPC(uc, c1.VPC.Name(), "", c1)
+	uc OutputUseCase,
+	explanation *Explanation) (*SingleAnalysisOutput, error) {
+	out, err := headerOfAnalyzedVPC(uc, c1.VPC.Name(), "", c1, explanation)
 	hasStatelessConns := false
 	if err != nil {
 		return nil, err

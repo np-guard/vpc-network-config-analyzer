@@ -19,13 +19,18 @@ type groupedNodesInfo struct {
 	commonProperties *groupedCommonProperties
 }
 
+type explainDetails struct {
+	rules  *rulesConnection
+	router RoutingResource
+}
+
 type groupedCommonProperties struct {
-	conn     *common.ConnectionSet
-	connDiff *connectionDiff
-	rules    *rulesConnection
+	conn       *common.ConnectionSet
+	connDiff   *connectionDiff
+	expDetails *explainDetails
 	// groupingStrKey is the key by which the grouping is done:
 	// the string of conn per grouping of conn lines, string of connDiff per grouping of diff lines
-	// and string of conn and rules for explainblity
+	// and string of conn and explainDetails for explainblity
 	groupingStrKey string // the key used for grouping per connectivity lines or diff lines
 }
 
@@ -88,7 +93,7 @@ func newGroupConnLinesDiff(d *diffBetweenCfgs) (res *GroupConnLines, err error) 
 	return res, err
 }
 
-func newGroupConnExplainability(c *VPCConfig, e *explainStruct) (res *GroupConnLines, err error) {
+func newGroupConnExplainability(c *VPCConfig, e *rulesAndConnDetails) (res *GroupConnLines, err error) {
 	res = &GroupConnLines{
 		config:                   c,
 		explain:                  e,
@@ -107,7 +112,7 @@ type GroupConnLines struct {
 	nodesConn   *VPCConnectivity
 	subnetsConn *VPCsubnetConnectivity
 	diff        *diffBetweenCfgs
-	explain     *explainStruct
+	explain     *rulesAndConnDetails
 	srcToDst    *groupingConnections
 	dstToSrc    *groupingConnections
 	// a map to groupedEndpointsElems used by GroupedConnLine from a unified key of such elements
@@ -317,11 +322,12 @@ func (g *GroupConnLines) groupExternalAddressesForDiff(thisMinusOther bool) erro
 // group public internet ranges for explainability lines
 func (g *GroupConnLines) groupExternalAddressesForExplainability() error {
 	var res []*groupedConnLine
-	for _, rulesSrcDst := range *g.explain {
-		connStr := rulesSrcDst.conn.String() + semicolon
-		groupingStrKey := connStr + rulesSrcDst.rules.rulesEncode(g.config)
-		err := g.addLineToExternalGrouping(&res, rulesSrcDst.src, rulesSrcDst.dst,
-			&groupedCommonProperties{conn: rulesSrcDst.conn, rules: rulesSrcDst.rules, groupingStrKey: groupingStrKey})
+	for _, details := range *g.explain {
+		groupingStrKey := details.explanationEncode(g.config)
+		expDetails := &explainDetails{details.actualRules, details.router}
+		err := g.addLineToExternalGrouping(&res, details.src, details.dst,
+			&groupedCommonProperties{conn: details.conn, expDetails: expDetails,
+				groupingStrKey: groupingStrKey})
 		if err != nil {
 			return err
 		}
@@ -547,13 +553,18 @@ func connDiffEncode(src, dst VPCResourceIntf, connDiff *connectionDiff) string {
 }
 
 // encodes rulesConnection for grouping
-func (rules *rulesConnection) rulesEncode(c *VPCConfig) string {
+func (details *srcDstDetails) explanationEncode(c *VPCConfig) string {
+	connStr := details.conn.String() + semicolon
+	routingStr := ""
+	if details.router != nil {
+		routingStr = details.router.Name() + ";"
+	}
 	egressStr, ingressStr := "", ""
-	if len(rules.egressRules) > 0 {
-		egressStr = "egress:" + rules.egressRules.string(c) + semicolon
+	if len(details.actualRules.egressRules) > 0 {
+		egressStr = "egress:" + details.actualRules.egressRules.string(c) + semicolon
 	}
-	if len(rules.ingressRules) > 0 {
-		egressStr = "ingress:" + rules.ingressRules.string(c) + semicolon
+	if len(details.actualRules.ingressRules) > 0 {
+		egressStr = "ingress:" + details.actualRules.ingressRules.string(c) + semicolon
 	}
-	return egressStr + ingressStr
+	return connStr + routingStr + egressStr + ingressStr
 }

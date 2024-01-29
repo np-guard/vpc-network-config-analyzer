@@ -48,15 +48,24 @@ func analysisTypeToUseCase(inArgs *InArgs) vpcmodel.OutputUseCase {
 		return vpcmodel.SubnetsDiff
 	case allEndpointsDiff:
 		return vpcmodel.EndpointsDiff
+	case explainMode:
+		return vpcmodel.Explain
 	}
 	return vpcmodel.AllEndpoints
 }
 
 func analysisVPCConfigs(c1, c2 map[string]*vpcmodel.VPCConfig, inArgs *InArgs, outFile string) (string, error) {
+	var explanationArgs *vpcmodel.ExplanationArgs
+	if *inArgs.AnalysisType == explainMode {
+		explanationArgs = vpcmodel.NewExplanationArgs(*inArgs.ESrc, *inArgs.EDst, *inArgs.EProtocol,
+			*inArgs.ESrcMinPort, *inArgs.ESrcMaxPort, *inArgs.EDstMinPort, *inArgs.EDstMaxPort)
+	}
+
 	og, err := vpcmodel.NewOutputGenerator(c1, c2,
 		*inArgs.Grouping,
 		analysisTypeToUseCase(inArgs),
-		false)
+		false,
+		explanationArgs)
 	if err != nil {
 		return "", err
 	}
@@ -123,6 +132,7 @@ func _main(cmdlineArgs []string) error {
 		return err2
 	}
 	fmt.Println(vpcAnalysisOutput)
+
 	return nil
 }
 

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 // InArgs contains the input arguments for the analyzer
@@ -18,6 +20,13 @@ type InArgs struct {
 	VPC                   *string
 	Debug                 *bool
 	Version               *bool
+	ESrc                  *string
+	EDst                  *string
+	EProtocol             *string
+	ESrcMinPort           *int64
+	ESrcMaxPort           *int64
+	EDstMinPort           *int64
+	EDstMaxPort           *int64
 }
 
 // flagHasValue indicates for each input arg if it is expected to have a value in the cli or not
@@ -31,6 +40,13 @@ var flagHasValue = map[string]bool{
 	VPC:                   true,
 	Debug:                 false,
 	Version:               false,
+	ESrc:                  true,
+	EDst:                  true,
+	EProtocol:             true,
+	ESrcMinPort:           true,
+	ESrcMaxPort:           true,
+	EDstMinPort:           true,
+	EDstMaxPort:           true,
 }
 
 const (
@@ -44,6 +60,13 @@ const (
 	VPC                   = "vpc"
 	Debug                 = "debug"
 	Version               = "version"
+	ESrc                  = "src"
+	EDst                  = "dst"
+	EProtocol             = "protocol"
+	ESrcMinPort           = "src-min-port"
+	ESrcMaxPort           = "src-max-port"
+	EDstMinPort           = "dst-min-port"
+	EDstMaxPort           = "dst-max-port"
 
 	// output formats supported
 	JSONFormat       = "json"
@@ -59,6 +82,7 @@ const (
 	singleSubnet     = "single_subnet"      // single subnet connectivity analysis
 	allEndpointsDiff = "diff_all_endpoints" // semantic diff of allEndpoints analysis between two configurations
 	allSubnetsDiff   = "diff_all_subnets"   // semantic diff of allSubnets analysis between two configurations
+	explainMode      = "explain"            // explain specified connectivity, given src,dst and connection
 
 	// separator
 	separator = ", "
@@ -80,6 +104,7 @@ var supportedAnalysisTypesMap = map[string][]string{
 	singleSubnet:     {TEXTFormat},
 	allEndpointsDiff: {TEXTFormat, MDFormat},
 	allSubnetsDiff:   {TEXTFormat, MDFormat},
+	explainMode:      {TEXTFormat},
 }
 
 // supportedOutputFormatsList is an ordered list of supported output formats (usage details presented in this order)
@@ -99,6 +124,7 @@ var supportedAnalysisTypesList = []string{
 	singleSubnet,
 	allEndpointsDiff,
 	allSubnetsDiff,
+	explainMode,
 }
 
 func getSupportedAnalysisTypesMapString() string {
@@ -160,6 +186,13 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args.VPC = flagset.String(VPC, "", "CRN of the VPC to analyze")
 	args.Debug = flagset.Bool(Debug, false, "Run in debug mode")
 	args.Version = flagset.Bool(Version, false, "Prints the release version number")
+	args.ESrc = flagset.String(ESrc, "", "Source name for network_interface or an external IP to be explained")
+	args.EDst = flagset.String(EDst, "", "Destination name for network_interface or an external IP to be explained")
+	args.EProtocol = flagset.String(EProtocol, "", "Protocol for connection description")
+	args.ESrcMinPort = flagset.Int64(ESrcMinPort, common.MinPort, "Minimum source port for connection description")
+	args.ESrcMaxPort = flagset.Int64(ESrcMaxPort, common.MaxPort, "Maximum source port for connection description")
+	args.EDstMinPort = flagset.Int64(EDstMinPort, common.MinPort, "Minimum destination port for connection description")
+	args.EDstMaxPort = flagset.Int64(EDstMaxPort, common.MaxPort, "Maximum destination port for connection description")
 
 	// calling parseCmdLine prior to flagset.Parse to ensure that excessive and unsupported arguments are handled
 	// for example, flagset.Parse() ignores input args missing the `-`
@@ -180,9 +213,100 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	if err != nil {
 		return nil, err
 	}
+	err = invalidArgsExplainMode(&args, flagset)
+	if err != nil {
+		return nil, err
+	}
 
 	return &args, nil
 }
+
+func wasFlagSpecified(name string, flagset *flag.FlagSet) bool {
+	found := false
+	flagset.Visit(func(f *flag.Flag) {
+		if f.Name == name {
+			found = true
+		}
+	})
+	return found
+}
+
+func wereExplainParamsSpecified(flagset *flag.FlagSet, flagNames []string) bool {
+	specified := false
+	for i := 0; i < len(flagNames); i++ {
+		if wasFlagSpecified(flagNames[i], flagset) {
+			specified = true
+		}
+	}
+
+	return specified
+}
+
+func PortInRange(port int64) bool {
+	if port > common.MaxPort || port < common.MinPort {
+		return false
+	}
+
+	return true
+}
+
+func minMaxValidity(minPort, maxPort int64, minPortName, maxPortName string) error {
+	if minPort > maxPort {
+		return fmt.Errorf("%s %d must not be larger than %s %d", minPortName, minPort, maxPortName, maxPort)
+	}
+
+	return nil
+}
+
+func validRangeConnectionExplainMode(args *InArgs) error {
+	err := minMaxValidity(*args.ESrcMinPort, *args.ESrcMaxPort, ESrcMinPort, ESrcMaxPort)
+	if err != nil {
+		return err
+	}
+	err = minMaxValidity(*args.EDstMinPort, *args.EDstMaxPort, EDstMinPort, EDstMaxPort)
+	if err != nil {
+		return err
+	}
+
+	if !PortInRange(*args.ESrcMinPort) || !PortInRange(*args.ESrcMaxPort) ||
+		!PortInRange(*args.EDstMinPort) || !PortInRange(*args.EDstMaxPort) {
+		return fmt.Errorf("%s, %s, %s and %s must be in ranges [%d, %d]",
+			ESrcMinPort, ESrcMaxPort, EDstMinPort, EDstMaxPort, common.MinPort, common.MaxPort)
+	}
+
+	return nil
+}
+
+func invalidArgsExplainMode(args *InArgs, flagset *flag.FlagSet) error {
+	if *args.AnalysisType != explainMode {
+		if wereExplainParamsSpecified(flagset, []string{ESrc, EDst, EProtocol, ESrcMinPort, ESrcMaxPort, EDstMinPort, EDstMaxPort, explainMode}) {
+			return fmt.Errorf("explainability related params %s, %s, %s, %s, %s, %s and %s"+
+				"can be specified only in explain mode: analysis-type equals %s",
+				ESrc, EDst, EProtocol, ESrcMinPort, ESrcMaxPort, EDstMinPort, EDstMaxPort, explainMode)
+		}
+		return nil
+	}
+
+	if *args.ESrc == "" || *args.EDst == "" {
+		return fmt.Errorf("please specify %s and %s network_interface / external ip you want to explain connectivity for", ESrc, EDst)
+	}
+
+	if *args.EProtocol == "" {
+		if wereExplainParamsSpecified(flagset, []string{EProtocol, ESrcMinPort, ESrcMaxPort, EDstMinPort, EDstMaxPort, explainMode}) {
+			return fmt.Errorf("protocol must be specified when querying a specific connection")
+		}
+		return nil
+	}
+
+	protocol := strings.ToUpper(*args.EProtocol)
+	if protocol != string(common.ProtocolTCP) && protocol != string(common.ProtocolUDP) && protocol != string(common.ProtocolICMP) {
+		return fmt.Errorf("wrong connection description protocol '%s'; must be one of: 'TCP, UDP, ICMP'", protocol)
+	}
+	args.EProtocol = &protocol
+
+	return validRangeConnectionExplainMode(args)
+}
+
 func errorInErgs(args *InArgs, flagset *flag.FlagSet) error {
 	if !*args.Version && (args.InputConfigFile == nil || *args.InputConfigFile == "") {
 		flagset.PrintDefaults()
