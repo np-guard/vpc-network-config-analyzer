@@ -239,7 +239,7 @@ func (c *VPCConfig) computeActualRulesAndSpecifics(details *rulesAndConnDetails)
 	return nil
 }
 
-// computes actual rules relevant to the connectoin, as well as whether the direction is enabled
+// computes actual rules relevant to the connection, as well as whether the direction is enabled
 func computeActualRules(rulesLayer *rulesInLayers, filtersExternal map[string]bool, srcDstInternal bool) (*rulesInLayers, bool) {
 	actualRules := make(rulesInLayers)
 	filterNotBlocking := map[string]bool{}
