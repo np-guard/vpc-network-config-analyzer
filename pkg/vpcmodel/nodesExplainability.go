@@ -166,7 +166,7 @@ func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.Conne
 	if err2 != nil {
 		return nil, err2
 	}
-	err3 := c.computeAdditionalDetails(&rulesAndDetails)
+	err3 := rulesAndDetails.computeAdditionalDetails(c)
 	if err3 != nil {
 		return nil, err3
 	}
@@ -208,7 +208,7 @@ func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node,
 // not relevant for the Router e.g. nacl not relevant fip
 // 4. ingressEnabled and egressEnabled: whether traffic is enabled via ingress, egress
 
-func (c *VPCConfig) computeAdditionalDetails(details *rulesAndConnDetails) error {
+func (details *rulesAndConnDetails) computeAdditionalDetails(c *VPCConfig) error {
 	for _, singleSrcDstDetails := range *details {
 		src := singleSrcDstDetails.src
 		dst := singleSrcDstDetails.dst
@@ -360,9 +360,9 @@ func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
 }
 
 // prints each separately without grouping - for debug
-func (explanationStruct *rulesAndConnDetails) String(c *VPCConfig, connQuery *common.ConnectionSet) (string, error) {
+func (details *rulesAndConnDetails) String(c *VPCConfig, connQuery *common.ConnectionSet) (string, error) {
 	resStr := ""
-	for _, srcDstDetails := range *explanationStruct {
+	for _, srcDstDetails := range *details {
 		resStr += stringExplainabilityLine(c, connQuery, srcDstDetails.src, srcDstDetails.dst, srcDstDetails.conn,
 			srcDstDetails.ingressEnabled, srcDstDetails.egressEnabled,
 			srcDstDetails.router, srcDstDetails.actualRules)
@@ -448,12 +448,12 @@ func stringExplainabilityConnection(connQuery *common.ConnectionSet, src, dst En
 // computeConnections computes connEnabled (always) and the connection between src and dst if connection not specified in query.
 // todo: connectivity is computed for the entire network, even though we need only for specific src, dst pairs
 // this is seems the time spent here should be neglectable, not worth the effort of adding dedicated code
-func (explanationStruct *rulesAndConnDetails) computeConnections(c *VPCConfig, connQuery *common.ConnectionSet) error {
+func (details *rulesAndConnDetails) computeConnections(c *VPCConfig, connQuery *common.ConnectionSet) error {
 	connectivity, err := c.GetVPCNetworkConnectivity(false) // computes connectivity
 	if err != nil {
 		return err
 	}
-	for _, srcDstDetails := range *explanationStruct {
+	for _, srcDstDetails := range *details {
 		conn, err := connectivity.getConnection(c, srcDstDetails.src, srcDstDetails.dst)
 		if err != nil {
 			return err
