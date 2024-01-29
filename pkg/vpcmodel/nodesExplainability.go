@@ -27,8 +27,8 @@ type srcDstDetails struct {
 	// note that if dst/src is external then egressEnabled/ingressEnabled may be false and yet connEnabled true
 	ingressEnabled bool
 	egressEnabled  bool
-	// the connection between src to dst, in case the connection was not part of the query; conn nil when either
-	// conn part of query or connEnabled is false; connEnabled needed to distinguish between the cases
+	// the connection between src to dst, in case the connection was not part of the query; nil otherwise.
+	// conn nil when either conn part of query or connEnabled is false; connEnabled needed to distinguish between the cases
 	conn            *common.ConnectionSet
 	router          RoutingResource  // the router (fip or pgw) to external network; nil if none
 	filtersExternal map[string]bool  // filters relevant for external IP, map keys are the filters kind (NaclLayer/SecurityGroupLayer)
@@ -440,9 +440,9 @@ func stringExplainabilityConnection(connQuery *common.ConnectionSet, src, dst En
 	return resStr
 }
 
+// computeConnections computes connEnabled (always) and the connection between src and dst if connection not specified in query.
 // todo: connectivity is computed for the entire network, even though we need only for specific src, dst pairs
 // this is seems the time spent here should be neglectable, not worth the effort of adding dedicated code
-// computeConnections computes connEnabled (always) and the connection between src and dst if connection not specified in query.
 func (explanationStruct *rulesAndConnDetails) computeConnections(c *VPCConfig, connQuery *common.ConnectionSet) error {
 	connectivity, err := c.GetVPCNetworkConnectivity(false) // computes connectivity
 	if err != nil {
@@ -453,7 +453,6 @@ func (explanationStruct *rulesAndConnDetails) computeConnections(c *VPCConfig, c
 		if err != nil {
 			return err
 		}
-		srcDstDetails.conn = conn
 		if connQuery != nil { // connection is part of the query
 			connEnabled, err := connQuery.ContainedIn(conn)
 			if err != nil {
@@ -461,6 +460,7 @@ func (explanationStruct *rulesAndConnDetails) computeConnections(c *VPCConfig, c
 			}
 			srcDstDetails.connEnabled = connEnabled
 		} else {
+			srcDstDetails.conn = conn
 			srcDstDetails.connEnabled = !conn.IsEmpty()
 		}
 	}
