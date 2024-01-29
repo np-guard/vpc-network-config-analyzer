@@ -256,6 +256,7 @@ func computeActualRules(rulesLayer *rulesInLayers, filtersExternal map[string]bo
 		// the filter is not blocking if it has enabling  rules or is not required for the router
 		if len(potentialRules) > 0 || !filterIsRelevant {
 			// if nacl and src dst same subnet then there will be a single rule with index -1, not to be printed
+			// thus nacl will not be identified as a blocking filter in this case
 			filterNotBlocking[filter] = true
 		}
 	}
