@@ -432,6 +432,17 @@ var tests = []*vpcGeneralTest{
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
 		format:   vpcmodel.Text,
 	},
+	{
+		name:     "tgw_larger_example",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+		format:   vpcmodel.DRAWIO,
+	},
+	{
+		name:     "tgw_larger_example",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+		format:   vpcmodel.DRAWIO,
+		grouping: true,
+	},
 	// multivpc drawio:
 	{
 		name:     "multiple_vpcs",

@@ -131,6 +131,17 @@ func NewGatewayTreeNode(parent SquareTreeNodeInterface, name string) *GatewayTre
 func (tn *GatewayTreeNode) IsGateway() bool { return true }
 
 // ///////////////////////////////////////////
+type TransitGatewayTreeNode struct {
+	abstractIconTreeNode
+}
+
+func NewTransitGatewayTreeNode(parent SquareTreeNodeInterface, name string) *TransitGatewayTreeNode {
+	tgw := TransitGatewayTreeNode{newAbstractIconTreeNode(parent, name)}
+	parent.addIconTreeNode(&tgw)
+	return &tgw
+}
+
+// ///////////////////////////////////////////
 type UserTreeNode struct {
 	abstractIconTreeNode
 }
