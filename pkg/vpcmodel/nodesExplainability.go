@@ -28,7 +28,6 @@ type srcDstDetails struct {
 	ingressEnabled bool
 	egressEnabled  bool
 	// the connection between src to dst, in case the connection was not part of the query; nil otherwise.
-	// conn nil when either conn part of query or connEnabled is false; connEnabled needed to distinguish between the cases
 	conn            *common.ConnectionSet
 	router          RoutingResource  // the router (fip or pgw) to external network; nil if none
 	filtersExternal map[string]bool  // filters relevant for external IP, map keys are the filters kind (NaclLayer/SecurityGroupLayer)
