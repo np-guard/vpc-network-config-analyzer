@@ -167,7 +167,7 @@ func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.Conne
 	if err2 != nil {
 		return nil, err2
 	}
-	err3 := c.computeActualRulesAndSpecifics(&rulesAndDetails)
+	err3 := c.computeAdditionalDetails(&rulesAndDetails)
 	if err3 != nil {
 		return nil, err3
 	}
@@ -201,9 +201,15 @@ func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node,
 	return rulesAndConn, nil
 }
 
-// computeActualRules computes from the potentialRules the actualRules that actually enable traffic,
-// considering filtersExternal potential.filtersExternal (which was computed based on the RoutingResource)
-func (c *VPCConfig) computeActualRulesAndSpecifics(details *rulesAndConnDetails) error {
+// computeAdditionalDetails computes, after potentialRules were computed, for each  <src, dst> :
+// 1. The routingResource
+// 2. The actual filters relevant to the src, dst given the routingResource
+// 3. from the potentialRules the actualRules (per ingress, egress) that actually enable traffic,
+// considering filtersExternal (which was computed based on the RoutingResource) and removing filters
+// not relevant for the Router e.g. nacl not relevant fip
+// 4. ingressEnabled and egressEnabled: whether traffic is enabled via ingress, egress
+
+func (c *VPCConfig) computeAdditionalDetails(details *rulesAndConnDetails) error {
 	for _, singleSrcDstDetails := range *details {
 		src := singleSrcDstDetails.src
 		dst := singleSrcDstDetails.dst
