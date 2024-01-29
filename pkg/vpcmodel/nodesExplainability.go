@@ -256,7 +256,7 @@ func computeActualRules(rulesLayer *rulesInLayers, filtersExternal map[string]bo
 	}
 	directionEnabled := true
 	for _, filter := range filterLayers {
-		if _, ok := filterNotBlocking[filter]; !ok {
+		if !filterNotBlocking[filter]{
 			directionEnabled = false
 		}
 	}
