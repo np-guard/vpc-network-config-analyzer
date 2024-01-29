@@ -497,6 +497,8 @@ func createNetworkSubnetGroupingGroupInGroup() SquareTreeNodeInterface {
 		{groups[0], groups[6]},
 		{groups[2], groups[6]},
 
+		{groups[0], groups[0]},
+
 	}
 	for _, conn := range conns {
 		NewConnectivityLineTreeNode(n, conn[0], conn[1], true, "gconn "+conn[0].Label()+"->"+conn[1].Label())

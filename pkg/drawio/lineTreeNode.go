@@ -20,8 +20,8 @@ type LineTreeNodeInterface interface {
 	addPoint(x int, y int)
 	SetRouter(router IconTreeNodeInterface, reverse bool)
 	Router() IconTreeNodeInterface
-	SrcExitAngle() int
-	setSrcExitAngle(int)
+	SrcExitDirection() lineExitDirection
+	setSrcExitDirection(lineExitDirection)
 }
 
 type abstractLineTreeNode struct {
@@ -30,7 +30,7 @@ type abstractLineTreeNode struct {
 	dst          TreeNodeInterface
 	router       IconTreeNodeInterface
 	points       []point
-	srcExitAngle int // value from 1 -> 16, like a clock with 16 hours. 0 means NA
+	srcExitAngle lineExitDirection
 }
 
 func (tn *abstractLineTreeNode) IsLine() bool {
@@ -69,8 +69,10 @@ func (tn *abstractLineTreeNode) addPoint(x, y int) {
 	tn.points = append(tn.points, point{x, y})
 }
 
-func (tn *abstractLineTreeNode) SrcExitAngle() int                { return tn.srcExitAngle }
-func (tn *abstractLineTreeNode) setSrcExitAngle(srcExitAngle int) { tn.srcExitAngle = srcExitAngle }
+func (tn *abstractLineTreeNode) SrcExitDirection() lineExitDirection { return tn.srcExitAngle }
+func (tn *abstractLineTreeNode) setSrcExitDirection(srcExitAngle lineExitDirection) {
+	tn.srcExitAngle = srcExitAngle
+}
 
 // ////////////////////////////////////////////////////////////////
 type LogicalLineTreeNode struct {

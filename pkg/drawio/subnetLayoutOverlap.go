@@ -1,5 +1,13 @@
 package drawio
 
+// the lineExitDirection is a value from 1 -> 16, like a clock with 16 hours. 0 means NA
+// 14 15 16 01 02
+// 13          03
+// 12          04
+// 11          05
+// 10 09 08 07 06
+type lineExitDirection int
+
 type subnetLayoutOverlap struct {
 	xIndexes map[*col]int
 	yIndexes map[*row]int
@@ -81,7 +89,6 @@ func (lyO *subnetLayoutOverlap) addPoint(line LineTreeNodeInterface) {
 		}
 	}
 	line.addPoint(x, y)
-	// line.addPoint(midX-100*dY/(dX+dY), midY+100*dX/(dX+dY))
 }
 
 func (lyO *subnetLayoutOverlap) squaresOverlap(line LineTreeNodeInterface) bool {
@@ -129,6 +136,9 @@ func (lyO *subnetLayoutOverlap) fixOverlapping() {
 		if !l1.Src().IsSquare() || !l1.Dst().IsSquare() {
 			continue
 		}
+		if l1.Src() == l1.Dst() {
+			continue
+		}
 		if len(l1.Points()) > 0 {
 			continue
 		}
@@ -146,7 +156,7 @@ func (lyO *subnetLayoutOverlap) fixOverlapping() {
 			if len(l1.Points()) > 0 || len(l2.Points()) > 0 {
 				continue
 			}
-			if l1.SrcExitAngle() > 0 || l2.SrcExitAngle() > 0 {
+			if l1.SrcExitDirection() > 0 || l2.SrcExitDirection() > 0 {
 				continue
 			}
 			if !lyO.linesOverlap(l1, l2) {
@@ -158,7 +168,7 @@ func (lyO *subnetLayoutOverlap) fixOverlapping() {
 			if ep == 17 {
 				ep = 1
 			}
-			l1.setSrcExitAngle(ep)
+			l1.setSrcExitDirection(ep)
 		}
 	}
 }
@@ -191,13 +201,7 @@ func (lyO *subnetLayoutOverlap) linesOverlap(l1, l2 LineTreeNodeInterface) bool 
 	return true
 }
 
-// 14 15 16 01 02
-// 13          03
-// 12          04
-// 11          05
-// 10 09 08 07 06
-
-func (lyO *subnetLayoutOverlap) currentExitPoint(l LineTreeNodeInterface) int {
+func (lyO *subnetLayoutOverlap) currentExitPoint(l LineTreeNodeInterface) lineExitDirection {
 	srcX1, srcY1 := lyO.tnCenter(l.Src())
 	dstX1, dstY1 := lyO.tnCenter(l.Dst())
 	dx1, dy1 := dstX1-srcX1, dstY1-srcY1

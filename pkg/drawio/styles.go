@@ -94,12 +94,12 @@ func newDrawioStyles(nodes []TreeNodeInterface) drawioStyles {
 	}
 	return stl
 }
-func connExitStyle(exitAngle int) string {
-	if exitAngle == 0 {
+func connExitStyle(exitDirection lineExitDirection) string {
+	if exitDirection == 0 {
 		return ""
 	}
 	exitY, exitX := 0.0, 0.0
-	switch exitAngle {
+	switch exitDirection {
 	case 14, 15, 16, 1, 2:
 		exitY = 0
 	case 6, 7, 8, 9, 10:
@@ -111,7 +111,7 @@ func connExitStyle(exitAngle int) string {
 	case 5, 11:
 		exitY = 0.75
 	}
-	switch exitAngle {
+	switch exitDirection {
 	case 2, 3, 4, 5, 6:
 		exitX = 1
 	case 10, 11, 12, 13, 14:
@@ -139,10 +139,10 @@ func connectivityStyle(con *ConnectivityTreeNode) string {
 	if con.Dst().IsIcon() && con.Dst().(IconTreeNodeInterface).IsGroupingPoint() && !con.Dst().(*GroupPointTreeNode).hasShownSquare() {
 		endArrow = noneEndEdge
 	}
-	if con.router != nil || con.SrcExitAngle() != 0 {
+	if con.router != nil || con.SrcExitDirection() != 0 {
 		strokeColor = connRouteredCollor
 	}
-	return fmt.Sprintf(connStyleFormat, endArrow, startArrow, strokeColor, connExitStyle(con.SrcExitAngle()))
+	return fmt.Sprintf(connStyleFormat, endArrow, startArrow, strokeColor, connExitStyle(con.SrcExitDirection()))
 }
 
 // mini icons:
