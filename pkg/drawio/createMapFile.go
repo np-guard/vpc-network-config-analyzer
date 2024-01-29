@@ -71,7 +71,6 @@ func orderNodesForDrawio(nodes []TreeNodeInterface) []TreeNodeInterface {
 
 func CreateDrawioConnectivityMapFile(network SquareTreeNodeInterface, outputFile string, subnetMode bool) error {
 	newLayout(network, subnetMode).layout()
-
 	return writeDrawioFile(NewDrawioData(network), outputFile)
 }
 
