@@ -130,7 +130,7 @@ func (c *VPCConfig) getCidrExternalNodes(cidr string) (cidrNodes []Node, err err
 	// 2.
 	disjointBlocks := common.DisjointIPBlocks([]*common.IPBlock{cidrsIPBlock}, vpcConfigNodesExternalBlock)
 	// 3.
-	cidrNodes = make([]Node, 0)
+	cidrNodes = []Node{}
 	for _, block := range disjointBlocks {
 		if block.ContainedIn(cidrsIPBlock) {
 			node, err1 := newExternalNode(true, block)
@@ -247,7 +247,7 @@ func (c *VPCConfig) computeAdditionalDetails(details *rulesAndConnDetails) error
 
 // computes actual rules relevant to the connection, as well as whether the direction is enabled
 func computeActualRules(rulesLayer *rulesInLayers, filtersExternal map[string]bool, srcDstInternal bool) (*rulesInLayers, bool) {
-	actualRules := make(rulesInLayers)
+	actualRules := rulesInLayers{}
 	filterNotBlocking := map[string]bool{}
 	for filter, potentialRules := range *rulesLayer {
 		filterIsRelevant := filtersExternal[filter] || srcDstInternal
@@ -307,7 +307,7 @@ func (c *VPCConfig) getFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(
 
 func (c *VPCConfig) getRulesOfConnection(src, dst Node, conn *common.ConnectionSet) (rulesOfConnection *rulesConnection, err error) {
 	rulesOfConnection = &rulesConnection{}
-	ingressRulesPerLayer, egressRulesPerLayer := make(rulesInLayers), make(rulesInLayers)
+	ingressRulesPerLayer, egressRulesPerLayer := rulesInLayers{}, rulesInLayers{}
 	for _, layer := range filterLayers {
 		// ingress rules: relevant only if dst is internal
 		if dst.IsInternal() {
