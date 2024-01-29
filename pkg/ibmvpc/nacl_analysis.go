@@ -516,7 +516,7 @@ func (na *NACLAnalyzer) getRulesRelevantConn(rules []int, conn *common.Connectio
 		if err != nil {
 			return nil, err
 		}
-		if contains { // of the required conn is contained in connections thus far, lower priority rules
+		if contains { // if the required conn is contained in connections thus far, lower priority rules
 			// are not relevant
 			return relevantRules, nil
 		}
