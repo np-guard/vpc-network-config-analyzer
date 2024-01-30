@@ -36,6 +36,12 @@ set_version() {
   echo "Updated ${VERSION_FILE} for ${1}"
 }
 
+# create a new branch for a release from ($1)
+create_release_branch() {
+  git checkout -b "release_${1}"
+  echo "Created release branch for ${1}"
+}
+
 # make a commit denoting the version ($1)
 make_commit() {
   git add "${VERSION_FILE}"
@@ -43,22 +49,22 @@ make_commit() {
   echo "Created commit for ${1}"
 }
 
-# add a git tag with $1
-add_tag() {
-  git tag "${1}"
-  echo "Tagged ${1}"
+# make a commit denoting the version ($1)
+push_commit() {
+  git push --set-upstream origin "release_${1}"
+  echo "Pushed commit ${1}"
 }
 
 set_version "${1}"
+create_release_branch "${1}"
 make_commit "v${1}"
-add_tag "v${1}"
+push_commit "${1}"
 
 
 # print follow-up instructions
 echo ""
-echo "Created commits for v${1}, you should now:"
-echo " - git push"
-echo " - File a PR with these pushed commits"
-echo " - Merge the PR"
-echo " - git push ${UPSTREAM} v${1}"
+echo "Created commit for v${1}, you should now:"
+echo " - File a PR with the pushed commit"
+echo " - Merge the PR to main"
+echo " - Run './release/tag.sh'"
 echo " - Create a GitHub release from the pushed tag v${1}"
