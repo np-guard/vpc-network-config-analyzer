@@ -7,15 +7,14 @@ import (
 )
 
 const (
-	groupSquareStyle  = "rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#82b366;strokeWidth=6;perimeterSpacing=0;arcSize=12;gradientColor=none;opacity=70;"
-	niStyle           = "shape=image;aspect=fixed;image=data:image/svg+xml,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+CjxkZWZzPgo8c3R5bGU+LmNscy0xe2ZpbGw6I2VlNTM5Njt9LmNscy0ye2ZpbGw6bm9uZTt9LmNscy0ze2ZpbGw6I2ZmZjt9PC9zdHlsZT4KPC9kZWZzPg0KPHJlY3QgY2xhc3M9ImNscy0xIiB4PSIwLjUiIHk9IjAuNSIgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4Ii8+CjxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMTQuNSIgeT0iMTQuNSIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIi8+DQo8dGV4dCBmb250LXNpemU9IjMwIiBmaWxsPSJ3aGl0ZSIgeD0iOCIgeT0iMzUiPk5JPC90ZXh0Pgo8L3N2Zz4=;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;spacingTop=-7;"
-	vsiStyle          = "shape=image;aspect=fixed;image=data:image/svg+xml,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiMxOTgwMzg7fS5jbHMtMntmaWxsOiNmZmY7fS5jbHMtM3tmaWxsOm5vbmU7fTwvc3R5bGU+PC9kZWZzPjxyZWN0IGNsYXNzPSJjbHMtMSIgeD0iMC41IiB5PSIwLjUiIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIvPjxjaXJjbGUgY2xhc3M9ImNscy0yIiBjeD0iMTguODgiIGN5PSIyOC44OCIgcj0iMC42MyIvPjxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMTUuNzUiIHk9IjE4LjI1IiB3aWR0aD0iMi41IiBoZWlnaHQ9IjEuMjUiLz48cmVjdCBjbGFzcz0iY2xzLTIiIHg9IjE5LjUiIHk9IjE4LjI1IiB3aWR0aD0iMi41IiBoZWlnaHQ9IjEuMjUiLz48cmVjdCBjbGFzcz0iY2xzLTIiIHg9IjIzLjI1IiB5PSIxOC4yNSIgd2lkdGg9IjIuNSIgaGVpZ2h0PSIxLjI1Ii8+PHJlY3QgY2xhc3M9ImNscy0yIiB4PSIyNyIgeT0iMTguMjUiIHdpZHRoPSIyLjUiIGhlaWdodD0iMS4yNSIvPjxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMzAuNzUiIHk9IjE4LjI1IiB3aWR0aD0iMi41IiBoZWlnaHQ9IjEuMjUiLz48cGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik0zMiwzMkgxN2ExLjI1LDEuMjUsMCwwLDEtMS4yNS0xLjI1VjI3QTEuMjUsMS4yNSwwLDAsMSwxNywyNS43NUgzMkExLjI1LDEuMjUsMCwwLDEsMzMuMjUsMjd2My43NUExLjI1LDEuMjUsMCwwLDEsMzIsMzJaTTE3LDI3djMuNzVIMzJWMjdaIi8+PHJlY3QgY2xhc3M9ImNscy0zIiB4PSIxNC41IiB5PSIxNC41IiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiLz48cmVjdCBjbGFzcz0iY2xzLTIiIHg9IjE1Ljc1IiB5PSIyMiIgd2lkdGg9IjE3LjUiIGhlaWdodD0iMS4yNSIvPjwvc3ZnPg==;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;spacingTop=-7;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;"
-	resIPStyle        = "shape=image;aspect=fixed;image=data:image/svg+xml,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+CjxkZWZzPgo8c3R5bGU+LmNscy0xe2ZpbGw6I2VlNTM5Njt9LmNscy0ye2ZpbGw6bm9uZTt9LmNscy0ze2ZpbGw6I2ZmZjt9PC9zdHlsZT4KPC9kZWZzPg0KPHJlY3QgY2xhc3M9ImNscy0xIiB4PSIwLjUiIHk9IjAuNSIgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4Ii8+CjxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMTQuNSIgeT0iMTQuNSIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIi8+DQo8dGV4dCBmb250LXNpemU9IjIwIiBmaWxsPSJ3aGl0ZSIgeD0iNSIgeT0iMzIiPnJlc0lQPC90ZXh0Pgo8L3N2Zz4=;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;spacingTop=-7;"
-	vpeStyle          = "shape=image;aspect=fixed;image=data:image/svg+xml,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiMxMTkyZTg7fS5jbHMtMntmaWxsOiNmZmY7fS5jbHMtM3tmaWxsOm5vbmU7fTwvc3R5bGU+PC9kZWZzPjxyZWN0IGNsYXNzPSJjbHMtMSIgeD0iMC41IiB5PSIwLjUiIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIvPjxwYXRoIGlkPSJ2cGNfZ3JhZGllbnRfYm90dG9tIiBkYXRhLW5hbWU9InZwYyBncmFkaWVudCBib3R0b20iIGNsYXNzPSJjbHMtMiIgZD0iTTI3LDMxLjM4SDE4Ljg4YTEuMjcsMS4yNywwLDAsMS0xLjI2LTEuMjVWMjJoMS4yNnY4LjEzSDI3WiIvPjxwYXRoIGlkPSJ2cGNfZ3JhZGllbnRfdG9wIiBkYXRhLW5hbWU9InZwYyBncmFkaWVudCB0b3AiIGNsYXNzPSJjbHMtMiIgZD0iTTMwLjEyLDI3aDEuMjZWMTguODhhMS4yNiwxLjI2LDAsMCwwLTEuMjYtMS4yNUgyMnYxLjI1aDguMTJaIi8+PHBhdGggaWQ9ImVuZHBvaW50cyIgY2xhc3M9ImNscy0yIiBkPSJNMjkuMTIsMjguMjVsLTIuNS0yLjVBMi4yNiwyLjI2LDAsMCwwLDI3LDI0LjUsMi41MSwyLjUxLDAsMCwwLDI0LjUsMjJhMi4xOSwyLjE5LDAsMCwwLTEuMjUuMzhsLTIuNS0yLjVWMTUuNzVoLTV2NWg0LjEzbDIuNSwyLjVBMi4yNiwyLjI2LDAsMCwwLDIyLDI0LjUsMi41MSwyLjUxLDAsMCwwLDI0LjUsMjdhMi4yNiwyLjI2LDAsMCwwLDEuMjUtLjM4bDIuNSwyLjV2NC4xM2g1di01Wk0xOS41LDE5LjVIMTdWMTdoMi41Wm01LDYuMjVhMS4yNSwxLjI1LDAsMSwxLDEuMjUtMS4yNUExLjI1LDEuMjUsMCwwLDEsMjQuNSwyNS43NVpNMzIsMzJIMjkuNVYyOS41SDMyWiIvPjxyZWN0IGNsYXNzPSJjbHMtMyIgeD0iMTQuNSIgeT0iMTQuNSIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIi8+PC9zdmc+;fontSize=14;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;spacingTop=-7;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;"
-	fipStyle          = "shape=image;aspect=fixed;image=data:image/svg+xml,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiMxMTkyZTg7fS5jbHMtMntmaWxsOiNmZmY7fS5jbHMtM3tmaWxsOm5vbmU7fTwvc3R5bGU+PC9kZWZzPjxyZWN0IGNsYXNzPSJjbHMtMSIgeD0iMC41IiB5PSIwLjkyIiB3aWR0aD0iNDgiIGhlaWdodD0iNDcuMTYiIHJ4PSI4Ii8+PHBhdGggY2xhc3M9ImNscy0yIiBkPSJNMzAuMTIsMjEuNDNhMy4xMywzLjEzLDAsMCwwLTMuMDYsMi40NkgyMS45NGEzLjA3LDMuMDcsMCwxLDAsMCwxLjIyaDUuMTJhMy4xMiwzLjEyLDAsMSwwLDMuMDYtMy42OFptMCw0LjkxQTEuODQsMS44NCwwLDEsMSwzMiwyNC41LDEuODUsMS44NSwwLDAsMSwzMC4xMiwyNi4zNFoiLz48cmVjdCBjbGFzcz0iY2xzLTMiIHg9IjE0LjUiIHk9IjE0LjY3IiB3aWR0aD0iMjAiIGhlaWdodD0iMTkuNjUiLz48L3N2Zz4=;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;spacingTop=-7;"
-	connStyleFormat   = "endArrow=%s;html=1;fontSize=16;fontColor=#4376BB;strokeWidth=2;endFill=1;rounded=0;startArrow=%s;%sstartFill=1;%s"
-	connSrcExitFormat = "exitX=%v;exitY=%v;exitDx=0;exitDy=0;"
-	// connSrcExitFormat  = "exitX=%v;exitY=%v;exitDx=0;exitDy=0;edgeStyle=orthogonalEdgeStyle;elbow=vertical;"
+	groupSquareStyle   = "rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#82b366;strokeWidth=6;perimeterSpacing=0;arcSize=12;gradientColor=none;opacity=70;"
+	niStyle            = "shape=image;aspect=fixed;image=data:image/svg+xml,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+CjxkZWZzPgo8c3R5bGU+LmNscy0xe2ZpbGw6I2VlNTM5Njt9LmNscy0ye2ZpbGw6bm9uZTt9LmNscy0ze2ZpbGw6I2ZmZjt9PC9zdHlsZT4KPC9kZWZzPg0KPHJlY3QgY2xhc3M9ImNscy0xIiB4PSIwLjUiIHk9IjAuNSIgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4Ii8+CjxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMTQuNSIgeT0iMTQuNSIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIi8+DQo8dGV4dCBmb250LXNpemU9IjMwIiBmaWxsPSJ3aGl0ZSIgeD0iOCIgeT0iMzUiPk5JPC90ZXh0Pgo8L3N2Zz4=;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;spacingTop=-7;"
+	vsiStyle           = "shape=image;aspect=fixed;image=data:image/svg+xml,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiMxOTgwMzg7fS5jbHMtMntmaWxsOiNmZmY7fS5jbHMtM3tmaWxsOm5vbmU7fTwvc3R5bGU+PC9kZWZzPjxyZWN0IGNsYXNzPSJjbHMtMSIgeD0iMC41IiB5PSIwLjUiIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIvPjxjaXJjbGUgY2xhc3M9ImNscy0yIiBjeD0iMTguODgiIGN5PSIyOC44OCIgcj0iMC42MyIvPjxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMTUuNzUiIHk9IjE4LjI1IiB3aWR0aD0iMi41IiBoZWlnaHQ9IjEuMjUiLz48cmVjdCBjbGFzcz0iY2xzLTIiIHg9IjE5LjUiIHk9IjE4LjI1IiB3aWR0aD0iMi41IiBoZWlnaHQ9IjEuMjUiLz48cmVjdCBjbGFzcz0iY2xzLTIiIHg9IjIzLjI1IiB5PSIxOC4yNSIgd2lkdGg9IjIuNSIgaGVpZ2h0PSIxLjI1Ii8+PHJlY3QgY2xhc3M9ImNscy0yIiB4PSIyNyIgeT0iMTguMjUiIHdpZHRoPSIyLjUiIGhlaWdodD0iMS4yNSIvPjxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMzAuNzUiIHk9IjE4LjI1IiB3aWR0aD0iMi41IiBoZWlnaHQ9IjEuMjUiLz48cGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik0zMiwzMkgxN2ExLjI1LDEuMjUsMCwwLDEtMS4yNS0xLjI1VjI3QTEuMjUsMS4yNSwwLDAsMSwxNywyNS43NUgzMkExLjI1LDEuMjUsMCwwLDEsMzMuMjUsMjd2My43NUExLjI1LDEuMjUsMCwwLDEsMzIsMzJaTTE3LDI3djMuNzVIMzJWMjdaIi8+PHJlY3QgY2xhc3M9ImNscy0zIiB4PSIxNC41IiB5PSIxNC41IiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiLz48cmVjdCBjbGFzcz0iY2xzLTIiIHg9IjE1Ljc1IiB5PSIyMiIgd2lkdGg9IjE3LjUiIGhlaWdodD0iMS4yNSIvPjwvc3ZnPg==;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;spacingTop=-7;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;"
+	resIPStyle         = "shape=image;aspect=fixed;image=data:image/svg+xml,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+CjxkZWZzPgo8c3R5bGU+LmNscy0xe2ZpbGw6I2VlNTM5Njt9LmNscy0ye2ZpbGw6bm9uZTt9LmNscy0ze2ZpbGw6I2ZmZjt9PC9zdHlsZT4KPC9kZWZzPg0KPHJlY3QgY2xhc3M9ImNscy0xIiB4PSIwLjUiIHk9IjAuNSIgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4Ii8+CjxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMTQuNSIgeT0iMTQuNSIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIi8+DQo8dGV4dCBmb250LXNpemU9IjIwIiBmaWxsPSJ3aGl0ZSIgeD0iNSIgeT0iMzIiPnJlc0lQPC90ZXh0Pgo8L3N2Zz4=;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;spacingTop=-7;"
+	vpeStyle           = "shape=image;aspect=fixed;image=data:image/svg+xml,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiMxMTkyZTg7fS5jbHMtMntmaWxsOiNmZmY7fS5jbHMtM3tmaWxsOm5vbmU7fTwvc3R5bGU+PC9kZWZzPjxyZWN0IGNsYXNzPSJjbHMtMSIgeD0iMC41IiB5PSIwLjUiIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIvPjxwYXRoIGlkPSJ2cGNfZ3JhZGllbnRfYm90dG9tIiBkYXRhLW5hbWU9InZwYyBncmFkaWVudCBib3R0b20iIGNsYXNzPSJjbHMtMiIgZD0iTTI3LDMxLjM4SDE4Ljg4YTEuMjcsMS4yNywwLDAsMS0xLjI2LTEuMjVWMjJoMS4yNnY4LjEzSDI3WiIvPjxwYXRoIGlkPSJ2cGNfZ3JhZGllbnRfdG9wIiBkYXRhLW5hbWU9InZwYyBncmFkaWVudCB0b3AiIGNsYXNzPSJjbHMtMiIgZD0iTTMwLjEyLDI3aDEuMjZWMTguODhhMS4yNiwxLjI2LDAsMCwwLTEuMjYtMS4yNUgyMnYxLjI1aDguMTJaIi8+PHBhdGggaWQ9ImVuZHBvaW50cyIgY2xhc3M9ImNscy0yIiBkPSJNMjkuMTIsMjguMjVsLTIuNS0yLjVBMi4yNiwyLjI2LDAsMCwwLDI3LDI0LjUsMi41MSwyLjUxLDAsMCwwLDI0LjUsMjJhMi4xOSwyLjE5LDAsMCwwLTEuMjUuMzhsLTIuNS0yLjVWMTUuNzVoLTV2NWg0LjEzbDIuNSwyLjVBMi4yNiwyLjI2LDAsMCwwLDIyLDI0LjUsMi41MSwyLjUxLDAsMCwwLDI0LjUsMjdhMi4yNiwyLjI2LDAsMCwwLDEuMjUtLjM4bDIuNSwyLjV2NC4xM2g1di01Wk0xOS41LDE5LjVIMTdWMTdoMi41Wm01LDYuMjVhMS4yNSwxLjI1LDAsMSwxLDEuMjUtMS4yNUExLjI1LDEuMjUsMCwwLDEsMjQuNSwyNS43NVpNMzIsMzJIMjkuNVYyOS41SDMyWiIvPjxyZWN0IGNsYXNzPSJjbHMtMyIgeD0iMTQuNSIgeT0iMTQuNSIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIi8+PC9zdmc+;fontSize=14;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;spacingTop=-7;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;"
+	fipStyle           = "shape=image;aspect=fixed;image=data:image/svg+xml,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiMxMTkyZTg7fS5jbHMtMntmaWxsOiNmZmY7fS5jbHMtM3tmaWxsOm5vbmU7fTwvc3R5bGU+PC9kZWZzPjxyZWN0IGNsYXNzPSJjbHMtMSIgeD0iMC41IiB5PSIwLjkyIiB3aWR0aD0iNDgiIGhlaWdodD0iNDcuMTYiIHJ4PSI4Ii8+PHBhdGggY2xhc3M9ImNscy0yIiBkPSJNMzAuMTIsMjEuNDNhMy4xMywzLjEzLDAsMCwwLTMuMDYsMi40NkgyMS45NGEzLjA3LDMuMDcsMCwxLDAsMCwxLjIyaDUuMTJhMy4xMiwzLjEyLDAsMSwwLDMuMDYtMy42OFptMCw0LjkxQTEuODQsMS44NCwwLDEsMSwzMiwyNC41LDEuODUsMS44NSwwLDAsMSwzMC4xMiwyNi4zNFoiLz48cmVjdCBjbGFzcz0iY2xzLTMiIHg9IjE0LjUiIHk9IjE0LjY3IiB3aWR0aD0iMjAiIGhlaWdodD0iMTkuNjUiLz48L3N2Zz4=;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;spacingTop=-7;"
+	connStyleFormat    = "endArrow=%s;html=1;fontSize=16;fontColor=#4376BB;strokeWidth=2;endFill=1;rounded=0;startArrow=%s;%sstartFill=1;%s"
+	lineExitFormat     = "exitX=%v;exitY=%v;exitDx=0;exitDy=0;"
 	connRouteredCollor = "strokeColor=#007FFF;"
 
 	ovalEndEdge  = "oval"
@@ -94,38 +93,6 @@ func newDrawioStyles(nodes []TreeNodeInterface) drawioStyles {
 	}
 	return stl
 }
-func connExitStyle(exitDirection lineExitDirection) string {
-	if exitDirection == 0 {
-		return ""
-	}
-	exitY, exitX := 0.0, 0.0
-	switch exitDirection {
-	case 14, 15, 16, 1, 2:
-		exitY = 0
-	case 6, 7, 8, 9, 10:
-		exitY = 1
-	case 3, 13:
-		exitY = 0.25
-	case 4, 12:
-		exitY = 0.5
-	case 5, 11:
-		exitY = 0.75
-	}
-	switch exitDirection {
-	case 2, 3, 4, 5, 6:
-		exitX = 1
-	case 10, 11, 12, 13, 14:
-		exitX = 0
-	case 9, 15:
-		exitX = 0.25
-	case 8, 16:
-		exitX = 0.5
-	case 1, 7:
-		exitX = 0.75
-	}
-
-	return fmt.Sprintf(connSrcExitFormat, exitX, exitY)
-}
 
 func connectivityStyle(con *ConnectivityTreeNode) string {
 	startArrow, endArrow := ovalEndEdge, ovalEndEdge
@@ -139,10 +106,10 @@ func connectivityStyle(con *ConnectivityTreeNode) string {
 	if con.Dst().IsIcon() && con.Dst().(IconTreeNodeInterface).IsGroupingPoint() && !con.Dst().(*GroupPointTreeNode).hasShownSquare() {
 		endArrow = noneEndEdge
 	}
-	if con.router != nil || con.SrcExitDirection() != 0 {
+	if con.router != nil {
 		strokeColor = connRouteredCollor
 	}
-	return fmt.Sprintf(connStyleFormat, endArrow, startArrow, strokeColor, connExitStyle(con.SrcExitDirection()))
+	return fmt.Sprintf(connStyleFormat, endArrow, startArrow, strokeColor, lineConnectionPointsStyle(con))
 }
 
 // mini icons:
@@ -185,3 +152,42 @@ func (stl *drawioStyles) DecoreStyle(tn TreeNodeInterface) string {
 	return decoreStyles[reflect.TypeOf(tn).Elem()]
 }
 func (stl *drawioStyles) FIPStyle() string { return fipStyle }
+
+// /////////////////////////////////////////////
+// lineConnectionPointsStyle() set the enter/exit style for a line (currntly only for the src),
+func lineConnectionPointsStyle(line LineTreeNodeInterface) string {
+	srcConnectionPoint := line.SrcConnectionPoint()
+	if srcConnectionPoint == 0 {
+		return ""
+	}
+	x, y := lineConnectionPointToDrawioXY(srcConnectionPoint)
+	return fmt.Sprintf(lineExitFormat, x, y)
+}
+
+func lineConnectionPointToDrawioXY(connectionPoint lineConnectionPoint) (x, y float64) {
+	switch connectionPoint {
+	case 2, 3, 4, 5, 6:
+		x = 1.0
+	case 10, 11, 12, 13, 14:
+		x = 0.0
+	case 9, 15:
+		x = 0.25
+	case 8, 16:
+		x = 0.5
+	case 1, 7:
+		x = 0.75
+	}
+	switch connectionPoint {
+	case 14, 15, 16, 1, 2:
+		y = 0.0
+	case 6, 7, 8, 9, 10:
+		y = 1.0
+	case 3, 13:
+		y = 0.25
+	case 4, 12:
+		y = 0.5
+	case 5, 11:
+		y = 0.75
+	}
+	return x, y
+}

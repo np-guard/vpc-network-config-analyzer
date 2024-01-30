@@ -1,13 +1,5 @@
 package drawio
 
-// the lineExitDirection is a value from 1 -> 16, like a clock with 16 hours. 0 means NA
-// 14 15 16 01 02
-// 13          03
-// 12          04
-// 11          05
-// 10 09 08 07 06
-type lineExitDirection int
-
 type subnetLayoutOverlap struct {
 	xIndexes map[*col]int
 	yIndexes map[*row]int
@@ -37,7 +29,7 @@ func isPointInSquare(sq SquareTreeNodeInterface, x, y int) bool {
 	return x >= xMin && x <= xMax && y >= yMin && y <= yMax
 }
 
-func (lyO *subnetLayoutOverlap) addPoint(line LineTreeNodeInterface) {
+func (lyO *subnetLayoutOverlap) addPointOutsideSquares(line LineTreeNodeInterface) {
 	src, dst := line.Src().(SquareTreeNodeInterface), line.Dst().(SquareTreeNodeInterface)
 	xSrc, ySrc := absoluteGeometry(src)
 	xDst, yDst := absoluteGeometry(dst)
@@ -88,7 +80,7 @@ func (lyO *subnetLayoutOverlap) addPoint(line LineTreeNodeInterface) {
 			px := midY + (midY-py)*dY/dX
 			potentialPoints = append(potentialPoints, point{px, py})
 		}
-		score := 10000000
+		score := max(src.Width(), dst.Width()) + max(src.Height(), dst.Height())
 		for _, point := range potentialPoints {
 			if !isPointInSquare(src, point.X, point.Y) && !isPointInSquare(dst, point.Y, point.Y) {
 				newScore := abs(point.X-midX) + abs(point.Y-midY)
@@ -154,7 +146,8 @@ func (lyO *subnetLayoutOverlap) fixOverlapping() {
 			continue
 		}
 		if lyO.squaresOverlap(l1) {
-			lyO.addPoint(l1)
+			lyO.addPointOutsideSquares(l1)
+			continue
 		}
 		for _, tn2 := range getAllNodes(lyO.network) {
 			if !tn2.IsLine() || tn1 == tn2 {
@@ -164,22 +157,22 @@ func (lyO *subnetLayoutOverlap) fixOverlapping() {
 			if !l2.Src().IsSquare() || !l2.Dst().IsSquare() {
 				continue
 			}
-			if len(l1.Points()) > 0 || len(l2.Points()) > 0 {
+			if len(l2.Points()) > 0 {
 				continue
 			}
-			if l1.SrcExitDirection() > 0 || l2.SrcExitDirection() > 0 {
+			if l1.SrcConnectionPoint() > 0 || l2.SrcConnectionPoint() > 0 {
 				continue
 			}
 			if !lyO.linesOverlap(l1, l2) {
 				continue
 			}
 			// fmt.Println("overlap Lines: " + tn1.Label() + " " + tn2.Label())
-			ep := lyO.currentExitPoint(l1)
+			ep := lyO.currentSrcPoint(l1)
 			ep = ep + 1
 			if ep == 17 {
 				ep = 1
 			}
-			l1.setSrcExitDirection(ep)
+			l1.setConnectionPoint(ep)
 		}
 	}
 }
@@ -212,7 +205,7 @@ func (lyO *subnetLayoutOverlap) linesOverlap(l1, l2 LineTreeNodeInterface) bool 
 	return true
 }
 
-func (lyO *subnetLayoutOverlap) currentExitPoint(l LineTreeNodeInterface) lineExitDirection {
+func (lyO *subnetLayoutOverlap) currentSrcPoint(l LineTreeNodeInterface) lineConnectionPoint {
 	srcX1, srcY1 := lyO.tnCenter(l.Src())
 	dstX1, dstY1 := lyO.tnCenter(l.Dst())
 	dx1, dy1 := dstX1-srcX1, dstY1-srcY1

@@ -1,5 +1,16 @@
 package drawio
 
+// the drawio allow us to set the point in which the line will enter/exit the dst/src
+// there are 16 points, so the value of lineConnectionPoint are from 1 to 16, like a clock with 16 hours.
+// 0 means no connection point (the drawio will choose for us)
+
+// 14 15 16 01 02
+// 13          03
+// 12          04
+// 11          05
+// 10 09 08 07 06
+type lineConnectionPoint int
+
 // /////////////////////////////////////////////////////////////////////
 //
 // ////////////////////////////////////////////////////////////////
@@ -20,17 +31,17 @@ type LineTreeNodeInterface interface {
 	addPoint(x int, y int)
 	SetRouter(router IconTreeNodeInterface, reverse bool)
 	Router() IconTreeNodeInterface
-	SrcExitDirection() lineExitDirection
-	setSrcExitDirection(lineExitDirection)
+	SrcConnectionPoint() lineConnectionPoint
+	setConnectionPoint(lineConnectionPoint)
 }
 
 type abstractLineTreeNode struct {
 	abstractTreeNode
-	src          TreeNodeInterface
-	dst          TreeNodeInterface
-	router       IconTreeNodeInterface
-	points       []point
-	srcExitAngle lineExitDirection
+	src                TreeNodeInterface
+	dst                TreeNodeInterface
+	router             IconTreeNodeInterface
+	points             []point
+	srcConnectionPoint lineConnectionPoint
 }
 
 func (tn *abstractLineTreeNode) IsLine() bool {
@@ -69,9 +80,11 @@ func (tn *abstractLineTreeNode) addPoint(x, y int) {
 	tn.points = append(tn.points, point{x, y})
 }
 
-func (tn *abstractLineTreeNode) SrcExitDirection() lineExitDirection { return tn.srcExitAngle }
-func (tn *abstractLineTreeNode) setSrcExitDirection(srcExitAngle lineExitDirection) {
-	tn.srcExitAngle = srcExitAngle
+func (tn *abstractLineTreeNode) SrcConnectionPoint() lineConnectionPoint {
+	return tn.srcConnectionPoint
+}
+func (tn *abstractLineTreeNode) setConnectionPoint(srcConnectionPoint lineConnectionPoint) {
+	tn.srcConnectionPoint = srcConnectionPoint
 }
 
 // ////////////////////////////////////////////////////////////////
