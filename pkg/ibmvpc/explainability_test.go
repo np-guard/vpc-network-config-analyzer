@@ -281,92 +281,92 @@ var explainTests = []*explainGeneralTest{
 			"between vsi1-ky[10.240.10.4] and vsi3a-ky[10.240.30.5]; " +
 			"connection blocked both by ingress and egress\n\n",
 	},
-	////  all rules are relevant (for comparison)
-	//{
-	//	name:        "QueryConnectionSGRules1",
-	//	inputConfig: "input_sg_testing1_new",
-	//	ESrc:        "vsi3a-ky[10.240.30.5]",
-	//	EDst:        "vsi1-ky[10.240.10.4]",
-	//	out: "The following connection exists between vsi3a-ky[10.240.30.5] " +
-	//		"and vsi1-ky[10.240.10.4]: All Connections; its enabled by\n" +
-	//		"Egress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl3-ky:\n" +
-	//		"\tindex: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\n" +
-	//		"SecurityGroupLayer Rules\n------------------------\n" +
-	//		"enabling rules from sg3-ky:\n\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n" +
-	//		"\tindex: 2, direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, cidr: 0.0.0.0/0\n" +
-	//		"\tindex: 3, direction: outbound,  conns: protocol: tcp,  dstPorts: 100-200, cidr: 0.0.0.0/0\nIngress Rules:\n~~~~~~~~~~~~~~\n" +
-	//		"NaclLayer Rules\n------------------------\nenabling rules from acl1-ky:\n" +
-	//		"\tindex: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\nSecurityGroupLayer Rules\n" +
-	//		"------------------------\nenabling rules from sg1-ky:\n\tindex: 4, direction: inbound, " +
-	//		"protocol: all, cidr: 10.240.30.5/32,10.240.30.6/32\n\n",
-	//},
-	//// only a subset of the rules are relevant, protocol wise
-	//{
-	//	name:        "QueryConnectionSGRules2",
-	//	inputConfig: "input_sg_testing1_new",
-	//	ESrc:        "vsi3a-ky[10.240.30.5]",
-	//	EDst:        "vsi1-ky[10.240.10.4]",
-	//	EProtocol:   common.ProtocolUDP,
-	//	ESrcMinPort: common.MinPort,
-	//	ESrcMaxPort: common.MaxPort,
-	//	EDstMinPort: common.MinPort,
-	//	EDstMaxPort: common.MaxPort,
-	//	out: "Connection protocol: UDP exists between vsi3a-ky[10.240.30.5] and vsi1-ky[10.240.10.4]; its enabled by\n" +
-	//		"Egress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl3-ky:\n" +
-	//		"\tindex: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\n" +
-	//		"SecurityGroupLayer Rules\n------------------------\nenabling rules from sg3-ky:\n" +
-	//		"\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\nIngress Rules:\n~~~~~~~~~~~~~~\n" +
-	//		"NaclLayer Rules\n------------------------\nenabling rules from acl1-ky:\n" +
-	//		"\tindex: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\nSecurityGroupLayer Rules\n" +
-	//		"------------------------\nenabling rules from sg1-ky:\n\tindex: 4, direction: inbound, " +
-	//		"protocol: all, cidr: 10.240.30.5/32,10.240.30.6/32\n\n",
-	//},
-	//// only a subset of the rules are relevant, port wise and protocol wise
-	//{
-	//	name:        "QueryConnectionSGRules3",
-	//	inputConfig: "input_sg_testing1_new",
-	//	ESrc:        "vsi3a-ky[10.240.30.5]",
-	//	EDst:        "vsi1-ky[10.240.10.4]",
-	//	EProtocol:   common.ProtocolTCP,
-	//	ESrcMinPort: common.MinPort,
-	//	ESrcMaxPort: common.MaxPort,
-	//	EDstMinPort: 50,
-	//	EDstMaxPort: 54,
-	//	out: "Connection protocol: TCP dst-ports: 50-54 exists between vsi3a-ky[10.240.30.5] " +
-	//		"and vsi1-ky[10.240.10.4]; its enabled by\n" +
-	//		"Egress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl3-ky:\n\t" +
-	//		"index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\n" +
-	//		"SecurityGroupLayer Rules\n------------------------\nenabling rules from sg3-ky:\n\t" +
-	//		"index: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n\t" +
-	//		"index: 2, direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, cidr: 0.0.0.0/0\nIngress Rules:\n~~~~~~~~~~~~~~\n" +
-	//		"NaclLayer Rules\n------------------------\nenabling rules from acl1-ky:\n" +
-	//		"\tindex: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\n" +
-	//		"SecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n" +
-	//		"\tindex: 4, direction: inbound, protocol: all, cidr: 10.240.30.5/32,10.240.30.6/32\n\n",
-	//},
-	////  all rules are relevant, with specified port wise protocol
-	//{
-	//	name:        "QueryConnectionSGRules4",
-	//	inputConfig: "input_sg_testing1_new",
-	//	ESrc:        "vsi3a-ky[10.240.30.5]",
-	//	EDst:        "vsi1-ky[10.240.10.4]",
-	//	EProtocol:   common.ProtocolTCP,
-	//	ESrcMinPort: common.MinPort,
-	//	ESrcMaxPort: common.MaxPort,
-	//	EDstMinPort: 120,
-	//	EDstMaxPort: 230,
-	//	out: "Connection protocol: TCP dst-ports: 120-230 exists between vsi3a-ky[10.240.30.5] " +
-	//		"and vsi1-ky[10.240.10.4]; its enabled by\n" +
-	//		"Egress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl3-ky:\n" +
-	//		"\tindex: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\nSecurityGroupLayer Rules\n" +
-	//		"------------------------\nenabling rules from sg3-ky:\n\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n" +
-	//		"\tindex: 2, direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, cidr: 0.0.0.0/0\n" +
-	//		"\tindex: 3, direction: outbound,  conns: protocol: tcp,  dstPorts: 100-200, cidr: 0.0.0.0/0\nIngress Rules:\n~~~~~~~~~~~~~~\n" +
-	//		"NaclLayer Rules\n------------------------\nenabling rules from acl1-ky:\n" +
-	//		"\tindex: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\nSecurityGroupLayer Rules\n" +
-	//		"------------------------\nenabling rules from sg1-ky:\n\tindex: 4, direction: inbound, " +
-	//		"protocol: all, cidr: 10.240.30.5/32,10.240.30.6/32\n\n",
-	//},
+	//  all rules are relevant (for comparison)
+	{
+		name:        "QueryConnectionSGRules1",
+		inputConfig: "input_sg_testing1_new",
+		ESrc:        "vsi3a-ky[10.240.30.5]",
+		EDst:        "vsi1-ky[10.240.10.4]",
+		out: "The following connection exists between vsi3a-ky[10.240.30.5] " +
+			"and vsi1-ky[10.240.10.4]: All Connections; its enabled by\n" +
+			"Egress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl3-ky:\n" +
+			"\tindex: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\n" +
+			"SecurityGroupLayer Rules\n------------------------\n" +
+			"enabling rules from sg3-ky:\n\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n" +
+			"\tindex: 2, direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, cidr: 0.0.0.0/0\n" +
+			"\tindex: 3, direction: outbound,  conns: protocol: tcp,  dstPorts: 100-200, cidr: 0.0.0.0/0\nIngress Rules:\n~~~~~~~~~~~~~~\n" +
+			"NaclLayer Rules\n------------------------\nenabling rules from acl1-ky:\n" +
+			"\tindex: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\nSecurityGroupLayer Rules\n" +
+			"------------------------\nenabling rules from sg1-ky:\n\tindex: 4, direction: inbound, " +
+			"protocol: all, cidr: 10.240.30.5/32,10.240.30.6/32\n\n",
+	},
+	// only a subset of the rules are relevant, protocol wise
+	{
+		name:        "QueryConnectionSGRules2",
+		inputConfig: "input_sg_testing1_new",
+		ESrc:        "vsi3a-ky[10.240.30.5]",
+		EDst:        "vsi1-ky[10.240.10.4]",
+		EProtocol:   common.ProtocolUDP,
+		ESrcMinPort: common.MinPort,
+		ESrcMaxPort: common.MaxPort,
+		EDstMinPort: common.MinPort,
+		EDstMaxPort: common.MaxPort,
+		out: "Connection protocol: UDP exists between vsi3a-ky[10.240.30.5] and vsi1-ky[10.240.10.4]; its enabled by\n" +
+			"Egress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl3-ky:\n" +
+			"\tindex: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\n" +
+			"SecurityGroupLayer Rules\n------------------------\nenabling rules from sg3-ky:\n" +
+			"\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\nIngress Rules:\n~~~~~~~~~~~~~~\n" +
+			"NaclLayer Rules\n------------------------\nenabling rules from acl1-ky:\n" +
+			"\tindex: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\nSecurityGroupLayer Rules\n" +
+			"------------------------\nenabling rules from sg1-ky:\n\tindex: 4, direction: inbound, " +
+			"protocol: all, cidr: 10.240.30.5/32,10.240.30.6/32\n\n",
+	},
+	// only a subset of the rules are relevant, port wise and protocol wise
+	{
+		name:        "QueryConnectionSGRules3",
+		inputConfig: "input_sg_testing1_new",
+		ESrc:        "vsi3a-ky[10.240.30.5]",
+		EDst:        "vsi1-ky[10.240.10.4]",
+		EProtocol:   common.ProtocolTCP,
+		ESrcMinPort: common.MinPort,
+		ESrcMaxPort: common.MaxPort,
+		EDstMinPort: 50,
+		EDstMaxPort: 54,
+		out: "Connection protocol: TCP dst-ports: 50-54 exists between vsi3a-ky[10.240.30.5] " +
+			"and vsi1-ky[10.240.10.4]; its enabled by\n" +
+			"Egress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl3-ky:\n\t" +
+			"index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\n" +
+			"SecurityGroupLayer Rules\n------------------------\nenabling rules from sg3-ky:\n\t" +
+			"index: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n\t" +
+			"index: 2, direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, cidr: 0.0.0.0/0\nIngress Rules:\n~~~~~~~~~~~~~~\n" +
+			"NaclLayer Rules\n------------------------\nenabling rules from acl1-ky:\n" +
+			"\tindex: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\n" +
+			"SecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n" +
+			"\tindex: 4, direction: inbound, protocol: all, cidr: 10.240.30.5/32,10.240.30.6/32\n\n",
+	},
+	//  all rules are relevant, with specified port wise protocol
+	{
+		name:        "QueryConnectionSGRules4",
+		inputConfig: "input_sg_testing1_new",
+		ESrc:        "vsi3a-ky[10.240.30.5]",
+		EDst:        "vsi1-ky[10.240.10.4]",
+		EProtocol:   common.ProtocolTCP,
+		ESrcMinPort: common.MinPort,
+		ESrcMaxPort: common.MaxPort,
+		EDstMinPort: 120,
+		EDstMaxPort: 230,
+		out: "Connection protocol: TCP dst-ports: 120-230 exists between vsi3a-ky[10.240.30.5] " +
+			"and vsi1-ky[10.240.10.4]; its enabled by\n" +
+			"Egress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl3-ky:\n" +
+			"\tindex: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\nSecurityGroupLayer Rules\n" +
+			"------------------------\nenabling rules from sg3-ky:\n\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n" +
+			"\tindex: 2, direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, cidr: 0.0.0.0/0\n" +
+			"\tindex: 3, direction: outbound,  conns: protocol: tcp,  dstPorts: 100-200, cidr: 0.0.0.0/0\nIngress Rules:\n~~~~~~~~~~~~~~\n" +
+			"NaclLayer Rules\n------------------------\nenabling rules from acl1-ky:\n" +
+			"\tindex: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\nSecurityGroupLayer Rules\n" +
+			"------------------------\nenabling rules from sg1-ky:\n\tindex: 4, direction: inbound, " +
+			"protocol: all, cidr: 10.240.30.5/32,10.240.30.6/32\n\n",
+	},
 	//// connection exists to external
 	{
 		name:        "NACLExternal1",
