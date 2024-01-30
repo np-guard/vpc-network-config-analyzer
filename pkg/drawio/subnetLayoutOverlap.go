@@ -199,7 +199,6 @@ func (lyO *subnetLayoutOverlap) addPointOutsideSquares(line LineTreeNodeInterfac
 		// find the closest point, which is outside of both squares:
 		score := max(src.Width(), dst.Width()) + max(src.Height(), dst.Height())
 		for _, point := range potentialPoints {
-			lyO.network.addDebugPoint(point)
 			if !isPointInSquare(src, point) && !isPointInSquare(dst, point) {
 				newScore := abs(point.X-midX) + abs(point.Y-midY)
 				if newScore < score {

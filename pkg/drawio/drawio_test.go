@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestWithParsing2(t *testing.T) {
+func TestWithParsing(t *testing.T) {
 	n := createNetwork()
 	err := CreateDrawioConnectivityMapFile(n, "fake.drawio", false)
 	if err != nil {
