@@ -281,6 +281,19 @@ var explainTests = []*explainGeneralTest{
 			"between vsi1-ky[10.240.10.4] and vsi3a-ky[10.240.30.5]; " +
 			"connection blocked both by ingress and egress\n\n",
 	},
+	// a subset of the required ports exists
+	{
+		name:        "QueryConnectionSGSubsetPorts",
+		inputConfig: "input_sg_testing1_new",
+		ESrc:        "147.235.219.206/32",
+		EDst:        "vsi2-ky[10.240.20.4]",
+		EProtocol:   common.ProtocolTCP,
+		ESrcMinPort: common.MinPort,
+		ESrcMaxPort: common.MaxPort,
+		EDstMinPort: 10,
+		EDstMaxPort: 30,
+		out:         "",
+	},
 	//  all rules are relevant (for comparison)
 	{
 		name:        "QueryConnectionSGRules1",
