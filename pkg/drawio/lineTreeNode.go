@@ -34,7 +34,7 @@ type LineTreeNodeInterface interface {
 	SetRouter(router IconTreeNodeInterface, reverse bool)
 	Router() IconTreeNodeInterface
 	SrcConnectionPoint() lineConnectionPoint
-	setConnectionPoint(lineConnectionPoint)
+	setSrcConnectionPoint(lineConnectionPoint)
 }
 
 type abstractLineTreeNode struct {
@@ -85,7 +85,7 @@ func (tn *abstractLineTreeNode) addPoint(x, y int) {
 func (tn *abstractLineTreeNode) SrcConnectionPoint() lineConnectionPoint {
 	return tn.srcConnectionPoint
 }
-func (tn *abstractLineTreeNode) setConnectionPoint(srcConnectionPoint lineConnectionPoint) {
+func (tn *abstractLineTreeNode) setSrcConnectionPoint(srcConnectionPoint lineConnectionPoint) {
 	tn.srcConnectionPoint = srcConnectionPoint
 }
 

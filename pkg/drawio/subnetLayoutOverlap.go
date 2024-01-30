@@ -1,5 +1,11 @@
 package drawio
 
+// subnetLayoutOverlap is for handling overlaps in subnet mode.
+// it handle two kind of issues:
+// 1. src and dst of a line are intersect - this is solved by adding a point to the line.
+//    the point should be outside both src and dst
+// 2. two lines are in opposite direction - this is solved by changing the the exit point of the line from the src
+
 type subnetLayoutOverlap struct {
 	xIndexes map[*col]int
 	yIndexes map[*row]int
@@ -8,92 +14,83 @@ type subnetLayoutOverlap struct {
 
 func newSubnetLayoutOverlap(network TreeNodeInterface, m *layoutMatrix) *subnetLayoutOverlap {
 	lyO := subnetLayoutOverlap{xIndexes: map[*col]int{}, yIndexes: map[*row]int{}, network: network}
-	x, y := 0, 0
+	lyO.setIndexes(m)
+	return &lyO
+}
+
+// some of the calculations are done on a matrix that take in account only the thick rows and cols
+// (basically ignores the border rows/cols)
+// so, as first step, we indexing all the thick rows/cols (set lyO.xIndexes and lyO.yIndexes)
+// later, to find the location of a square in this matrix, we take their indexes from lyO.xIndexes and lyO.yIndexes
+func (lyO *subnetLayoutOverlap) setIndexes(m *layoutMatrix) {
+	xi, yi := 0, 0
 	for _, c := range m.cols {
 		if c.width() >= subnetWidth {
-			lyO.xIndexes[c] = x
-			x++
+			lyO.xIndexes[c] = xi
+			xi++
 		}
 	}
 	for _, r := range m.rows {
 		if r.height() >= subnetHeight {
-			lyO.yIndexes[r] = y
-			y++
+			lyO.yIndexes[r] = yi
+			yi++
 		}
 	}
-	return &lyO
-}
-func isPointInSquare(sq SquareTreeNodeInterface, p point) bool {
-	xMin, yMin := absoluteGeometry(sq)
-	xMax, yMax := xMin+sq.Width(), yMin+sq.Height()
-	return p.X >= xMin && p.X <= xMax && p.Y >= yMin && p.Y <= yMax
 }
 
-func (lyO *subnetLayoutOverlap) addPointOutsideSquares(line LineTreeNodeInterface) {
-	src, dst := line.Src().(SquareTreeNodeInterface), line.Dst().(SquareTreeNodeInterface)
-	xSrc, ySrc := absoluteGeometry(src)
-	xDst, yDst := absoluteGeometry(dst)
-	xSrc, ySrc = xSrc+src.Width()/2, ySrc+src.Height()/2
-	xDst, yDst = xDst+dst.Width()/2, yDst+dst.Height()/2
-	dX, dY := xDst-xSrc, yDst-ySrc
-	midX, midY := (xDst+xSrc)/2, (yDst+ySrc)/2
-	x, y := 0, 0
-	switch {
-	case abs(dY) < minSize && abs(dX) < minSize:
-		if max(src.Width()/2, dst.Width()/2) > max(src.Height()/2, dst.Height()/2) {
-			y = midY + max(src.Height()/2, dst.Height()/2) + subnetHeight/2
-			x = midX
-			line.addPoint(x-minSize, y)
-			line.addPoint(x+minSize, y)
-		} else {
-			y = midY
-			x = midX + max(src.Width()/2, dst.Width()/2) + subnetWidth/2
-			line.addPoint(x, y-minSize)
-			line.addPoint(x, y+minSize)
+////////////////////////////////////////////////////////////////////////////////////////
+// fixOverlapping() is the main func for handling overlapping.
+// it iterate over the lines, find and simultaneously issues of both kinds
+func (lyO *subnetLayoutOverlap) fixOverlapping() {
+	for _, tn1 := range getAllNodes(lyO.network) {
+		if !tn1.IsLine() {
+			continue
 		}
-		return
-	case abs(dX) < minSize:
-		y = midY
-		x = midX + max(src.Width()/2, dst.Width()/2) + subnetWidth/2
-	case abs(dY) < minSize:
-		y = midY + max(src.Height()/2, dst.Height()/2) + subnetHeight/2
-		x = midX
-	default:
-		potentialXs := []int{
-			midX + src.Width()/2 + subnetWidth/2,
-			midX + dst.Width()/2 + subnetWidth/2,
-			midX - src.Width()/2 - subnetWidth/2,
-			midX - dst.Width()/2 - subnetWidth/2,
+		l1 := tn1.(LineTreeNodeInterface)
+		if !l1.Src().IsSquare() || !l1.Dst().IsSquare() {
+			continue
 		}
-		potentialYs := []int{
-			midY + src.Height()/2 + subnetHeight/2,
-			midY + dst.Height()/2 + subnetHeight/2,
-			midY - src.Height()/2 - subnetHeight/2,
-			midY - dst.Height()/2 - subnetHeight/2,
+		if l1.Src() == l1.Dst() {
+			// if src == dst, the drawio fix it for us, nothing to do
+			continue
 		}
-		potentialPoints := []point{}
-		for _, px := range potentialXs {
-			py := midY + (midX-px)*dX/dY
-			potentialPoints = append(potentialPoints, point{px, py})
+		if len(l1.Points()) > 0 {
+			// we already has points on the line
+			continue
 		}
-		for _, py := range potentialYs {
-			px := midY + (midY-py)*dY/dX
-			potentialPoints = append(potentialPoints, point{px, py})
+		if lyO.squaresOverlap(l1) {
+			// src and dst intersect, adding a point to the line
+			lyO.addPointOutsideSquares(l1)
+			continue
 		}
-		score := max(src.Width(), dst.Width()) + max(src.Height(), dst.Height())
-		for _, point := range potentialPoints {
-			if !isPointInSquare(src, point) && !isPointInSquare(dst, point) {
-				newScore := abs(point.X-midX) + abs(point.Y-midY)
-				if newScore < score {
-					x, y = point.X, point.Y
-					score = newScore
-				}
+		for _, tn2 := range getAllNodes(lyO.network) {
+			if !tn2.IsLine() || tn1 == tn2 {
+				continue
+			}
+			l2 := tn2.(LineTreeNodeInterface)
+			if !l2.Src().IsSquare() || !l2.Dst().IsSquare() {
+				continue
+			}
+			if len(l2.Points()) > 0 {
+				// we already has points on the line
+				continue
+			}
+			if l2.SrcConnectionPoint() > 0 {
+				// we already change the src point of one of them
+				continue
+			}
+			if lyO.isLinesOverlap(l1, l2) {
+				lyO.changeLineSrcPoint(l1)
+				break
 			}
 		}
 	}
-	line.addPoint(x, y)
 }
 
+//////////////////////////////////////////////////////////////////////////////////////
+// squaresOverlap() check if the src and the dst of a line are overlap
+// the are overlap if they share the same row/col.
+// unless one of them is a subnet, square are also overlap if there is no gap between them
 func (lyO *subnetLayoutOverlap) squaresOverlap(line LineTreeNodeInterface) bool {
 	src, dst := line.Src().(SquareTreeNodeInterface), line.Dst().(SquareTreeNodeInterface)
 	lSrc := src.Location()
@@ -120,60 +117,108 @@ func (lyO *subnetLayoutOverlap) squaresOverlap(line LineTreeNodeInterface) bool 
 	return true
 }
 
-func (lyO *subnetLayoutOverlap) tnCenter(tn TreeNodeInterface) (int, int) {
-	l := tn.Location()
-	return lyO.xIndexes[l.firstCol] + lyO.xIndexes[l.lastCol] + 1, lyO.yIndexes[l.firstRow] + lyO.yIndexes[l.lastRow] + 1
-}
-func (lyO *subnetLayoutOverlap) tnSize(tn TreeNodeInterface) (int, int) {
-	l := tn.Location()
-	return (lyO.xIndexes[l.lastCol] - lyO.xIndexes[l.firstCol] + 1) * 2, (lyO.yIndexes[l.lastRow] - lyO.yIndexes[l.firstRow] + 1) * 2
-
-}
-func (lyO *subnetLayoutOverlap) fixOverlapping() {
-
-	for _, tn1 := range getAllNodes(lyO.network) {
-		if !tn1.IsLine() {
-			continue
+/////////////////////////////////////////////////////////////////////////
+// addPointOutsideSquares() adds a point to the line, to fix issue of the first type.
+// we first draw an imaginary line between the src and the dst.
+// we draw a second imaginary line that:
+//     1. vertical to the first line
+//     2. intersect the first line in the middle
+// than we choose a point that
+//      1. on the second line
+//      2. outside both squares
+func (lyO *subnetLayoutOverlap) addPointOutsideSquares(line LineTreeNodeInterface) {
+	src, dst := line.Src().(SquareTreeNodeInterface), line.Dst().(SquareTreeNodeInterface)
+	xSrc, ySrc := absoluteGeometry(src)
+	xDst, yDst := absoluteGeometry(dst)
+	xSrc, ySrc = xSrc+src.Width()/2, ySrc+src.Height()/2
+	xDst, yDst = xDst+dst.Width()/2, yDst+dst.Height()/2
+	dX, dY := xDst-xSrc, yDst-ySrc
+	midX, midY := (xDst+xSrc)/2, (yDst+ySrc)/2
+	x, y := 0, 0
+	switch {
+	case abs(dY) < minSize && abs(dX) < minSize:
+		// this is the case that both squares has the same center.
+		if max(src.Width()/2, dst.Width()/2) > max(src.Height()/2, dst.Height()/2) {
+			// width is bigger then hight, we choose a point below the center, outside both squares:
+			y = midY + max(src.Height()/2, dst.Height()/2) + subnetHeight/2
+			x = midX
+			// in this case we needs two points, close to each other:
+			line.addPoint(x-minSize, y)
+			line.addPoint(x+minSize, y)
+		} else {
+			// hight is bigger then width, we choose a point right to the center, outside both squares:
+			y = midY
+			x = midX + max(src.Width()/2, dst.Width()/2) + subnetWidth/2
+			line.addPoint(x, y-minSize)
+			line.addPoint(x, y+minSize)
 		}
-		l1 := tn1.(LineTreeNodeInterface)
-		if !l1.Src().IsSquare() || !l1.Dst().IsSquare() {
-			continue
+		return
+	case abs(dX) < minSize:
+		// centers are one bellow each other, will take a point at the right to both squares
+		y = midY
+		x = midX + max(src.Width()/2, dst.Width()/2) + subnetWidth/2
+	case abs(dY) < minSize:
+		// centers are one right each other, will take a point at the below both squares
+		y = midY + max(src.Height()/2, dst.Height()/2) + subnetHeight/2
+		x = midX
+	default:
+		// we collect a list of potential points on the second line, and choose the closest of them
+		// list of potential Xs:
+		potentialXs := []int{
+			midX + src.Width()/2 + subnetWidth/2,
+			midX + dst.Width()/2 + subnetWidth/2,
+			midX - src.Width()/2 - subnetWidth/2,
+			midX - dst.Width()/2 - subnetWidth/2,
 		}
-		if l1.Src() == l1.Dst() {
-			continue
+		// list of potential Ys:
+		potentialYs := []int{
+			midY + src.Height()/2 + subnetHeight/2,
+			midY + dst.Height()/2 + subnetHeight/2,
+			midY - src.Height()/2 - subnetHeight/2,
+			midY - dst.Height()/2 - subnetHeight/2,
 		}
-		if len(l1.Points()) > 0 {
-			continue
+		// foreach potential X/Y, calculate its X/Y:
+		// we know that for two points on a line (y2-y1) = gradient*(x2-x1)
+		// the second line is vertical to the first, so the gradient == -dX/dY
+		// so (py - midY)*dY = (py - midY)*(-dX)
+		potentialPoints := []point{}
+		for _, px := range potentialXs {
+			py := midY + (midX-px)*dX/dY
+			potentialPoints = append(potentialPoints, point{px, py})
 		}
-		if lyO.squaresOverlap(l1) {
-			lyO.addPointOutsideSquares(l1)
-			continue
+		for _, py := range potentialYs {
+			px := midY + (midY-py)*dY/dX
+			potentialPoints = append(potentialPoints, point{px, py})
 		}
-		for _, tn2 := range getAllNodes(lyO.network) {
-			if !tn2.IsLine() || tn1 == tn2 {
-				continue
+		// find the closest point, which is outside of both squares:
+		score := max(src.Width(), dst.Width()) + max(src.Height(), dst.Height())
+		for _, point := range potentialPoints {
+			if !isPointInSquare(src, point) && !isPointInSquare(dst, point) {
+				newScore := abs(point.X-midX) + abs(point.Y-midY)
+				if newScore < score {
+					x, y = point.X, point.Y
+					score = newScore
+				}
 			}
-			l2 := tn2.(LineTreeNodeInterface)
-			if !l2.Src().IsSquare() || !l2.Dst().IsSquare() {
-				continue
-			}
-			if len(l2.Points()) > 0 {
-				continue
-			}
-			if l1.SrcConnectionPoint() > 0 || l2.SrcConnectionPoint() > 0 {
-				continue
-			}
-			if !lyO.linesOverlap(l1, l2) {
-				continue
-			}
-			// fmt.Println("overlap Lines: " + tn1.Label() + " " + tn2.Label())
-			newSrcPoint := lyO.currentSrcConnectionPoint(l1)%maxLineConnectionPoint + 1
-			l1.setConnectionPoint(newSrcPoint)
 		}
 	}
+	line.addPoint(x, y)
 }
 
-func (lyO *subnetLayoutOverlap) linesOverlap(l1, l2 LineTreeNodeInterface) bool {
+//////////////////////////////////////////////////////////
+func isPointInSquare(sq SquareTreeNodeInterface, p point) bool {
+	xMin, yMin := absoluteGeometry(sq)
+	xMax, yMax := xMin+sq.Width(), yMin+sq.Height()
+	return p.X >= xMin && p.X <= xMax && p.Y >= yMin && p.Y <= yMax
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+// isLinesOverlap() checks if two lines overlap 
+// both lines are are of the form Y = gradient*X + C
+// gradient is dy/dx
+// two points on the same line iff dx*(y2-y1) == dy*(x2-x1)
+
+func (lyO *subnetLayoutOverlap) isLinesOverlap(l1, l2 LineTreeNodeInterface) bool {
 	srcX1, srcY1 := lyO.tnCenter(l1.Src())
 	srcX2, srcY2 := lyO.tnCenter(l2.Src())
 	dstX1, dstY1 := lyO.tnCenter(l1.Dst())
@@ -188,19 +233,27 @@ func (lyO *subnetLayoutOverlap) linesOverlap(l1, l2 LineTreeNodeInterface) bool 
 	if dx1*dy2 != dx2*dy1 {
 		return false
 	}
-	// is same graph?
+	// same gradient, is same graph?
 	if dx1*(srcY2-srcY1) != dy1*(srcX2-srcX1) {
 		return false
 	}
 	// share domain?
 	if (minX1 >= maxX2 || minX2 >= maxX1) && (minY1 >= maxY2 || minY2 >= maxY1) {
-		// fmt.Println("not same domain: " + tn1.Label() + " " + tn2.Label())
 		return false
 	}
-	// fmt.Println("overlap Lines: " + tn1.Label() + " " + tn2.Label())
 	return true
 }
+// changeLineSrcPoint() find the current connection point of the src, and changing it to the point next to it 
+func (lyO *subnetLayoutOverlap) changeLineSrcPoint(l LineTreeNodeInterface) {
+	currentPoint := lyO.currentSrcConnectionPoint(l)
+	newSrcPoint := currentPoint%maxLineConnectionPoint + 1
+	l.setSrcConnectionPoint(newSrcPoint)
+}
 
+//////////////////////////////////////////////////////////////////////////////////////////
+// currentSrcConnectionPoint() calc the src connection point that will be chosen by drawio.
+// if connection point is not set, drawio draw the line between the centers of the squares
+// the calc is too complicated to document, but it works.
 func (lyO *subnetLayoutOverlap) currentSrcConnectionPoint(l LineTreeNodeInterface) lineConnectionPoint {
 	srcX1, srcY1 := lyO.tnCenter(l.Src())
 	dstX1, dstY1 := lyO.tnCenter(l.Dst())
@@ -244,4 +297,18 @@ func (lyO *subnetLayoutOverlap) currentSrcConnectionPoint(l LineTreeNodeInterfac
 		return 3
 	}
 	return 0
+}
+/////////////////////////////////////////////////////////////////////////////
+// tnCenter() and tnSize() assume that the width of every row/col is 2.
+// this trick alow us to work with integer
+func (lyO *subnetLayoutOverlap) tnCenter(tn TreeNodeInterface) (int, int) {
+	l := tn.Location()
+	return lyO.xIndexes[l.firstCol] + lyO.xIndexes[l.lastCol] + 1,
+		lyO.yIndexes[l.firstRow] + lyO.yIndexes[l.lastRow] + 1
+}
+func (lyO *subnetLayoutOverlap) tnSize(tn TreeNodeInterface) (int, int) {
+	l := tn.Location()
+	return (lyO.xIndexes[l.lastCol] - lyO.xIndexes[l.firstCol] + 1) * 2,
+		(lyO.yIndexes[l.lastRow] - lyO.yIndexes[l.firstRow] + 1) * 2
+
 }
