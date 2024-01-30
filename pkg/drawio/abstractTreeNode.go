@@ -56,11 +56,13 @@ func (tn *abstractTreeNode) NotShownInDrawio() bool         { return tn.doNotSho
 func (tn *abstractTreeNode) SetNotShownInDrawio()           { tn.doNotShowInDrawio = true }
 
 var idCounter uint = minID
-
+func createId() uint{
+	idCounter += nextIDStep
+	return idCounter
+} 
 func (tn *abstractTreeNode) setID() {
 	if tn.id == 0 {
-		tn.id = idCounter
-		idCounter += nextIDStep
+		tn.id = createId()
 	}
 }
 

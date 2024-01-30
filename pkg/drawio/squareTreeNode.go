@@ -1,5 +1,11 @@
 package drawio
 
+type debugPoint struct {
+	P  point
+	ID uint
+	L  string
+}
+
 // /////////////////////////////////////////////////////////////////////
 type SquareTreeNodeInterface interface {
 	TreeNodeInterface
@@ -11,12 +17,15 @@ type SquareTreeNodeInterface interface {
 	IsSubnet() bool
 	IsGroupingSquare() bool
 	IsGroupSubnetsSquare() bool
+	DebugPoints() []debugPoint
+	addDebugPoint(p point)
 }
 
 type abstractSquareTreeNode struct {
 	abstractTreeNode
 	elements    []IconTreeNodeInterface
 	connections []LineTreeNodeInterface
+	debugPoints []debugPoint
 }
 
 func newAbstractSquareTreeNode(parent TreeNodeInterface, name string) abstractSquareTreeNode {
@@ -40,6 +49,12 @@ func (tn *abstractSquareTreeNode) DecoreID() uint { return tn.id + decoreID }
 func (tn *abstractSquareTreeNode) IsSubnet() bool             { return false }
 func (tn *abstractSquareTreeNode) IsGroupingSquare() bool     { return false }
 func (tn *abstractSquareTreeNode) IsGroupSubnetsSquare() bool { return false }
+
+
+func (tn *abstractSquareTreeNode) DebugPoints() []debugPoint { return tn.debugPoints }
+func (tn *abstractSquareTreeNode) addDebugPoint(p point) {
+	tn.debugPoints = append(tn.debugPoints, debugPoint{P: p, ID: createId()})
+}
 
 func calculateSquareGeometry(tn SquareTreeNodeInterface) {
 	location := tn.Location()

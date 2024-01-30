@@ -9,10 +9,10 @@ package drawio
 type subnetLayoutOverlap struct {
 	xIndexes map[*col]int
 	yIndexes map[*row]int
-	network  TreeNodeInterface
+	network  SquareTreeNodeInterface
 }
 
-func newSubnetLayoutOverlap(network TreeNodeInterface, m *layoutMatrix) *subnetLayoutOverlap {
+func newSubnetLayoutOverlap(network SquareTreeNodeInterface, m *layoutMatrix) *subnetLayoutOverlap {
 	lyO := subnetLayoutOverlap{xIndexes: map[*col]int{}, yIndexes: map[*row]int{}, network: network}
 	lyO.setIndexes(m)
 	return &lyO
@@ -187,12 +187,13 @@ func (lyO *subnetLayoutOverlap) addPointOutsideSquares(line LineTreeNodeInterfac
 			potentialPoints = append(potentialPoints, point{px, py})
 		}
 		for _, py := range potentialYs {
-			px := midY + (midY-py)*dY/dX
+			px := midX + (midY-py)*dY/dX
 			potentialPoints = append(potentialPoints, point{px, py})
 		}
 		// find the closest point, which is outside of both squares:
 		score := max(src.Width(), dst.Width()) + max(src.Height(), dst.Height())
 		for _, point := range potentialPoints {
+			lyO.network.addDebugPoint(point)
 			if !isPointInSquare(src, point) && !isPointInSquare(dst, point) {
 				newScore := abs(point.X-midX) + abs(point.Y-midY)
 				if newScore < score {
