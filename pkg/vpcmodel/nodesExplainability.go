@@ -253,9 +253,14 @@ func computeActualRules(rulesLayer *rulesInLayers, filtersExternal map[string]bo
 		if filterIsRelevant {
 			actualRules[filter] = potentialRules
 		}
-		// the filter is not blocking if it has enabling  rules or is not required for the router
+		// The filter is not blocking if it has enabling  rules or is not required for the router
+		// Specifically, current filters are nacl and sg; if both src and dst are internal then they are both relevant.
+		// (if both are in the same nacl then the nacl analyzer will handle it correctly.)
+		// If fip is the router and one of src/dst is external then nacl is ignored.
 		if len(potentialRules) > 0 || !filterIsRelevant {
-			// if nacl and src dst same subnet then there will be a single rule with index -1, not to be printed
+			// The case of two vsis of the same subnet is tricky: the nacl filter is relevant but there are no potential rules
+			// this is solved by adding a dummy rule for this case with index -1, so that potentialRules here will not be empty
+			// the printing functionality ignores rules of index -1
 			// thus nacl will not be identified as a blocking filter in this case
 			filterNotBlocking[filter] = true
 		}

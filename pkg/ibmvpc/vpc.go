@@ -12,6 +12,8 @@ import (
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////
 
+const dummyRule = -1
+
 func getNodeName(name, addr string) string {
 	return fmt.Sprintf("%s[%s]", name, addr)
 }
@@ -380,7 +382,7 @@ func (n *NACL) RulesInConnectivity(src, dst vpcmodel.Node, conn *common.Connecti
 	// nacl has no control on traffic between two instances in its subnet; this is marked by a rule with index -1
 	// which is not printed but only signals that this filter does not block (since there are rules)
 	if allInSubnet, err := common.IsAddressInSubnet(targetNode.Cidr(), subnetCidr); err == nil && allInSubnet {
-		return []int{-1}, nil
+		return []int{dummyRule}, nil
 	}
 	return n.analyzer.rulesInConnectivity(subnetCidr, inSubnetCidr, targetNode.Cidr(), conn, isIngress)
 }
