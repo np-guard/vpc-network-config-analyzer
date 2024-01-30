@@ -436,7 +436,7 @@ func stringExplainabilityConnection(connQuery *common.ConnectionSet, src, dst En
 		resStr = fmt.Sprintf("The following connection exists between %v and %v: %v; its enabled by\n", src.Name(), dst.Name(),
 			conn.String())
 	} else {
-		resStr = fmt.Sprintf("Connection %v exists between %v and %v; its enabled by\n", connQuery.String(),
+		resStr = fmt.Sprintf("Connection %v exists between %v and %v; its enabled by\n", conn.String(),
 			src.Name(), dst.Name())
 	}
 	if src.IsExternal() || dst.IsExternal() {
