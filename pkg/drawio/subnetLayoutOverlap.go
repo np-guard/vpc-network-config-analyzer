@@ -23,10 +23,10 @@ func newSubnetLayoutOverlap(network TreeNodeInterface, m *layoutMatrix) *subnetL
 	}
 	return &lyO
 }
-func isPointInSquare(sq SquareTreeNodeInterface, x, y int) bool {
+func isPointInSquare(sq SquareTreeNodeInterface, p point) bool {
 	xMin, yMin := absoluteGeometry(sq)
 	xMax, yMax := xMin+sq.Width(), yMin+sq.Height()
-	return x >= xMin && x <= xMax && y >= yMin && y <= yMax
+	return p.X >= xMin && p.X <= xMax && p.Y >= yMin && p.Y <= yMax
 }
 
 func (lyO *subnetLayoutOverlap) addPointOutsideSquares(line LineTreeNodeInterface) {
@@ -82,7 +82,7 @@ func (lyO *subnetLayoutOverlap) addPointOutsideSquares(line LineTreeNodeInterfac
 		}
 		score := max(src.Width(), dst.Width()) + max(src.Height(), dst.Height())
 		for _, point := range potentialPoints {
-			if !isPointInSquare(src, point.X, point.Y) && !isPointInSquare(dst, point.Y, point.Y) {
+			if !isPointInSquare(src, point) && !isPointInSquare(dst, point) {
 				newScore := abs(point.X-midX) + abs(point.Y-midY)
 				if newScore < score {
 					x, y = point.X, point.Y
@@ -167,12 +167,8 @@ func (lyO *subnetLayoutOverlap) fixOverlapping() {
 				continue
 			}
 			// fmt.Println("overlap Lines: " + tn1.Label() + " " + tn2.Label())
-			ep := lyO.currentSrcPoint(l1)
-			ep = ep + 1
-			if ep == 17 {
-				ep = 1
-			}
-			l1.setConnectionPoint(ep)
+			newSrcPoint := lyO.currentSrcConnectionPoint(l1)%maxLineConnectionPoint + 1
+			l1.setConnectionPoint(newSrcPoint)
 		}
 	}
 }
@@ -205,7 +201,7 @@ func (lyO *subnetLayoutOverlap) linesOverlap(l1, l2 LineTreeNodeInterface) bool 
 	return true
 }
 
-func (lyO *subnetLayoutOverlap) currentSrcPoint(l LineTreeNodeInterface) lineConnectionPoint {
+func (lyO *subnetLayoutOverlap) currentSrcConnectionPoint(l LineTreeNodeInterface) lineConnectionPoint {
 	srcX1, srcY1 := lyO.tnCenter(l.Src())
 	dstX1, dstY1 := lyO.tnCenter(l.Dst())
 	dx1, dy1 := dstX1-srcX1, dstY1-srcY1
