@@ -3,11 +3,11 @@
 # Copyright 2023- IBM Inc. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-# creates a release version commit for `cloud-resource-collector`
+# creates a release version commit for `vpc-network-config-analyzer`
 # Use like: create.sh <release-version>
 # EG: create.sh 0.3.0
 
-UPSTREAM='https://github.com/np-guard/cloud-resource-collector.git'
+UPSTREAM='https://github.com/np-guard/vpc-network-config-analyzer.git'
 
 # cd to the repo root
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
