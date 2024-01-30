@@ -448,8 +448,10 @@ var explainTests = []*explainGeneralTest{
 		ESrc:        "vsi3b-ky[10.240.30.6]",
 		EDst:        "vsi3a-ky[10.240.30.5]",
 		out: "The following connection exists between vsi3b-ky[10.240.30.6] and vsi3a-ky[10.240.30.5]: " +
-			"All Connections; its enabled by\nEgress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n" +
-			"\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\nIngress Rules:\n~~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\n" +
+			"All Connections; its enabled by\nEgress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\n" +
+			"enabling rules from sg1-ky:\n" +
+			"\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\nIngress Rules:\n~~~~~~~~~~~~~~\n" +
+			"SecurityGroupLayer Rules\n------------------------\n" +
 			"enabling rules from sg1-ky:\n\tindex: 1, direction: inbound, protocol: all, cidr: 0.0.0.0/0\n\n",
 	},
 	{
