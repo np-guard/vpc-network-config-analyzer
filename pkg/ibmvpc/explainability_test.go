@@ -190,60 +190,60 @@ var explainTests = []*explainGeneralTest{
 			"~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg2-ky:\n\t" +
 			"index: 3, direction: outbound,  conns: protocol: icmp,  icmpType: protocol: ICMP, cidr: 142.0.0.0/8\n\n",
 	},*/
-	//{
-	//	// the existing connection is exactly the one required by the query
-	//	name:        "QueryConnectionSGBasic1",
-	//	inputConfig: "input_sg_testing1_new",
-	//	ESrc:        "vsi1-ky[10.240.10.4]",
-	//	EDst:        "161.26.0.0/16",
-	//	EProtocol:   common.ProtocolUDP,
-	//	ESrcMinPort: common.MinPort,
-	//	ESrcMaxPort: common.MaxPort,
-	//	EDstMinPort: common.MinPort,
-	//	EDstMaxPort: common.MaxPort,
-	//	out: "Connection protocol: UDP exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16; its enabled by\n" +
-	//		"External Router PublicGateway: public-gw-ky\nEgress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\n" +
-	//		"enabling rules from acl1-ky:\n\tindex: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, " +
-	//		"conn: all, action: allow\nSecurityGroupLayer Rules\n" +
-	//		"------------------------\nenabling rules from sg1-ky:\n\tindex: 2, direction: outbound,  " +
-	//		"conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\n",
-	//},
-	//// the required connection is contained in the existing one per connection
-	//{
-	//	name:        "QueryConnectionSGBasic2",
-	//	inputConfig: "input_sg_testing1_new",
-	//	ESrc:        "vsi1-ky[10.240.10.4]",
-	//	EDst:        "161.26.0.0/16",
-	//	EProtocol:   common.ProtocolUDP,
-	//	ESrcMinPort: 10,
-	//	ESrcMaxPort: 100,
-	//	EDstMinPort: 443,
-	//	EDstMaxPort: 443,
-	//	out: "Connection protocol: UDP src-ports: 10-100 dst-ports: 443 exists between vsi1-ky[10.240.10.4] and " +
-	//		"Public Internet 161.26.0.0/16; its enabled by\nExternal Router PublicGateway: public-gw-ky\nEgress Rules:\n~~~~~~~~~~~~~\n" +
-	//		"NaclLayer Rules\n------------------------\nenabling rules from acl1-ky:\n" +
-	//		"\tindex: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\nSecurityGroupLayer Rules\n" +
-	//		"------------------------\nenabling rules from sg1-ky:\n\tindex: 2, direction: outbound,  " +
-	//		"conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\n",
-	//},
-	////  the required connection is contained in the existing one per ip of src/dst
-	//{
-	//	name:        "QueryConnectionSGBasic3",
-	//	inputConfig: "input_sg_testing1_new",
-	//	ESrc:        "vsi1-ky[10.240.10.4]",
-	//	EDst:        "161.26.0.0/20",
-	//	EProtocol:   common.ProtocolUDP,
-	//	ESrcMinPort: 10,
-	//	ESrcMaxPort: 100,
-	//	EDstMinPort: 443,
-	//	EDstMaxPort: 443,
-	//	out: "Connection protocol: UDP src-ports: 10-100 dst-ports: 443 exists between vsi1-ky[10.240.10.4] and " +
-	//		"Public Internet 161.26.0.0/20; its enabled by\nExternal Router PublicGateway: public-gw-ky\n" +
-	//		"Egress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl1-ky:\n" +
-	//		"\tindex: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\nSecurityGroupLayer Rules\n" +
-	//		"------------------------\nenabling rules from sg1-ky:\n\tindex: 2, direction: outbound,  " +
-	//		"conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\n",
-	//},
+	{
+		// the existing connection is exactly the one required by the query
+		name:        "QueryConnectionSGBasic1",
+		inputConfig: "input_sg_testing1_new",
+		ESrc:        "vsi1-ky[10.240.10.4]",
+		EDst:        "161.26.0.0/16",
+		EProtocol:   common.ProtocolUDP,
+		ESrcMinPort: common.MinPort,
+		ESrcMaxPort: common.MaxPort,
+		EDstMinPort: common.MinPort,
+		EDstMaxPort: common.MaxPort,
+		out: "Connection protocol: UDP exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16; its enabled by\n" +
+			"External Router PublicGateway: public-gw-ky\nEgress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\n" +
+			"enabling rules from acl1-ky:\n\tindex: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, " +
+			"conn: all, action: allow\nSecurityGroupLayer Rules\n" +
+			"------------------------\nenabling rules from sg1-ky:\n\tindex: 2, direction: outbound,  " +
+			"conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\n",
+	},
+	// the required connection is contained in the existing one per connection
+	{
+		name:        "QueryConnectionSGBasic2",
+		inputConfig: "input_sg_testing1_new",
+		ESrc:        "vsi1-ky[10.240.10.4]",
+		EDst:        "161.26.0.0/16",
+		EProtocol:   common.ProtocolUDP,
+		ESrcMinPort: 10,
+		ESrcMaxPort: 100,
+		EDstMinPort: 443,
+		EDstMaxPort: 443,
+		out: "Connection protocol: UDP src-ports: 10-100 dst-ports: 443 exists between vsi1-ky[10.240.10.4] and " +
+			"Public Internet 161.26.0.0/16; its enabled by\nExternal Router PublicGateway: public-gw-ky\nEgress Rules:\n~~~~~~~~~~~~~\n" +
+			"NaclLayer Rules\n------------------------\nenabling rules from acl1-ky:\n" +
+			"\tindex: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\nSecurityGroupLayer Rules\n" +
+			"------------------------\nenabling rules from sg1-ky:\n\tindex: 2, direction: outbound,  " +
+			"conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\n",
+	},
+	//  the required connection is contained in the existing one per ip of src/dst
+	{
+		name:        "QueryConnectionSGBasic3",
+		inputConfig: "input_sg_testing1_new",
+		ESrc:        "vsi1-ky[10.240.10.4]",
+		EDst:        "161.26.0.0/20",
+		EProtocol:   common.ProtocolUDP,
+		ESrcMinPort: 10,
+		ESrcMaxPort: 100,
+		EDstMinPort: 443,
+		EDstMaxPort: 443,
+		out: "Connection protocol: UDP src-ports: 10-100 dst-ports: 443 exists between vsi1-ky[10.240.10.4] and " +
+			"Public Internet 161.26.0.0/20; its enabled by\nExternal Router PublicGateway: public-gw-ky\n" +
+			"Egress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl1-ky:\n" +
+			"\tindex: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\nSecurityGroupLayer Rules\n" +
+			"------------------------\nenabling rules from sg1-ky:\n\tindex: 2, direction: outbound,  " +
+			"conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16\n\n",
+	},
 	//// the required connection exists for part of the dst ip
 	//{
 	//	name:        "QueryConnectionSGBasic4",
