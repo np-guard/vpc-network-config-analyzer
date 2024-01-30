@@ -13,8 +13,8 @@ var drawioTemplate string
 
 type drawioData struct {
 	drawioStyles
-	rootID uint
-	Nodes  []TreeNodeInterface
+	rootID      uint
+	Nodes       []TreeNodeInterface
 	DebugPoints []debugPoint
 }
 

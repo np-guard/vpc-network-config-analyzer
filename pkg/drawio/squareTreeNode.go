@@ -50,7 +50,6 @@ func (tn *abstractSquareTreeNode) IsSubnet() bool             { return false }
 func (tn *abstractSquareTreeNode) IsGroupingSquare() bool     { return false }
 func (tn *abstractSquareTreeNode) IsGroupSubnetsSquare() bool { return false }
 
-
 func (tn *abstractSquareTreeNode) DebugPoints() []debugPoint { return tn.debugPoints }
 func (tn *abstractSquareTreeNode) addDebugPoint(p point) {
 	tn.debugPoints = append(tn.debugPoints, debugPoint{P: p, ID: createId()})

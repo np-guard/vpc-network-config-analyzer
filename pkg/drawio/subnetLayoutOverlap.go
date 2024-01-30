@@ -38,7 +38,7 @@ func (lyO *subnetLayoutOverlap) setIndexes(m *layoutMatrix) {
 	}
 }
 
-////////////////////////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////////////////////////
 // fixOverlapping() is the main func for handling overlapping.
 // it iterate over the lines, find and simultaneously issues of both kinds
 func (lyO *subnetLayoutOverlap) fixOverlapping() {
@@ -71,7 +71,7 @@ func (lyO *subnetLayoutOverlap) fixOverlapping() {
 	}
 }
 
-////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////
 // notNeedFixing() check for cases fix is not needed
 func notNeedFixing(line LineTreeNodeInterface) bool {
 	if !line.Src().IsSquare() || !line.Dst().IsSquare() {
@@ -92,7 +92,7 @@ func notNeedFixing(line LineTreeNodeInterface) bool {
 	return false
 }
 
-//////////////////////////////////////////////////////////////////////////////////////
+// ////////////////////////////////////////////////////////////////////////////////////
 // squaresOverlap() check if the src and the dst of a line are overlap
 // the are overlap if they share the same row/col.
 // unless one of them is a subnet, square are also overlap if there is no gap between them
@@ -122,15 +122,16 @@ func (lyO *subnetLayoutOverlap) squaresOverlap(line LineTreeNodeInterface) bool 
 	return true
 }
 
-/////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////
 // addPointOutsideSquares() adds a point to the line, to fix issue of the first type.
 // we first draw an imaginary line between the src and the dst.
 // we draw a second imaginary line that:
-//     1. vertical to the first line
-//     2. intersect the first line in the middle
+//  1. vertical to the first line
+//  2. intersect the first line in the middle
+//
 // than we choose a point that
-//      1. on the second line
-//      2. outside both squares
+//  1. on the second line
+//  2. outside both squares
 func (lyO *subnetLayoutOverlap) addPointOutsideSquares(line LineTreeNodeInterface) {
 	src, dst := line.Src().(SquareTreeNodeInterface), line.Dst().(SquareTreeNodeInterface)
 	xSrc, ySrc := absoluteGeometry(src)
@@ -211,7 +212,7 @@ func (lyO *subnetLayoutOverlap) addPointOutsideSquares(line LineTreeNodeInterfac
 	line.addPoint(x, y)
 }
 
-//////////////////////////////////////////////////////////
+// ////////////////////////////////////////////////////////
 func isPointInSquare(sq SquareTreeNodeInterface, p point) bool {
 	xMin, yMin := absoluteGeometry(sq)
 	xMax, yMax := xMin+sq.Width(), yMin+sq.Height()
@@ -307,7 +308,7 @@ func (lyO *subnetLayoutOverlap) currentSrcConnectionPoint(l LineTreeNodeInterfac
 	return 0
 }
 
-/////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////
 // tnCenter() and tnSize() assume that the width of every row/col is 2.
 // this trick alow us to work with integer
 func (lyO *subnetLayoutOverlap) tnCenter(tn TreeNodeInterface) (x, y int) {
