@@ -161,7 +161,7 @@ func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.Conne
 	if err1 != nil {
 		return nil, err1
 	}
-	// finds connEnabled (always) and the connection between src and dst if connection not specified in query
+	// finds connEnabled and the relevant connection between src and dst
 	err2 := rulesAndDetails.computeConnections(c, connQuery)
 	if err2 != nil {
 		return nil, err2
@@ -451,7 +451,9 @@ func stringExplainabilityConnection(connQuery *common.ConnectionSet, src, dst En
 	return resStr
 }
 
-// computeConnections computes connEnabled (always) and the connection between src and dst if connection not specified in query.
+// computeConnections computes connEnabled and the relevant connection between src and dst
+// if conn not specified in the query then the entire existing connection is relevant;
+// if conn specified in the query then the relevant connection is their intersection
 // todo: connectivity is computed for the entire network, even though we need only for specific src, dst pairs
 // this is seems the time spent here should be neglectable, not worth the effort of adding dedicated code
 func (details *rulesAndConnDetails) computeConnections(c *VPCConfig, connQuery *common.ConnectionSet) error {
@@ -465,15 +467,11 @@ func (details *rulesAndConnDetails) computeConnections(c *VPCConfig, connQuery *
 			return err
 		}
 		if connQuery != nil { // connection is part of the query
-			connEnabled, err := connQuery.ContainedIn(conn)
-			if err != nil {
-				return err
-			}
-			srcDstDetails.connEnabled = connEnabled
+			srcDstDetails.conn = conn.Intersection(connQuery)
 		} else {
 			srcDstDetails.conn = conn
-			srcDstDetails.connEnabled = !conn.IsEmpty()
 		}
+		srcDstDetails.connEnabled = !srcDstDetails.conn.IsEmpty()
 	}
 	return nil
 }
