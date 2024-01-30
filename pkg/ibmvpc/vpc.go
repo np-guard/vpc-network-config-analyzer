@@ -304,8 +304,10 @@ func (nl *NaclLayer) StringRulesOfFilter(listRulesInFilter []vpcmodel.RulesInFil
 	strListRulesInFilter := ""
 	for _, rulesInFilter := range listRulesInFilter {
 		nacl := nl.naclList[rulesInFilter.Filter]
-		strListRulesInFilter += rulesOfFilterHeader(nacl.Name())
-		strListRulesInFilter += nacl.analyzer.StringRules(rulesInFilter.Rules)
+		strListRulesThisNacl := nacl.analyzer.StringRules(rulesInFilter.Rules)
+		if strListRulesThisNacl != "" {
+			strListRulesInFilter += rulesOfFilterHeader(nacl.Name()) + strListRulesThisNacl
+		}
 	}
 	return strListRulesInFilter
 }
