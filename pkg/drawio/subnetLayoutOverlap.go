@@ -47,15 +47,7 @@ func (lyO *subnetLayoutOverlap) fixOverlapping() {
 			continue
 		}
 		l1 := tn1.(LineTreeNodeInterface)
-		if !l1.Src().IsSquare() || !l1.Dst().IsSquare() {
-			continue
-		}
-		if l1.Src() == l1.Dst() {
-			// if src == dst, the drawio fix it for us, nothing to do
-			continue
-		}
-		if len(l1.Points()) > 0 {
-			// we already has points on the line
+		if notNeedFixing(l1) {
 			continue
 		}
 		if lyO.squaresOverlap(l1) {
@@ -68,15 +60,7 @@ func (lyO *subnetLayoutOverlap) fixOverlapping() {
 				continue
 			}
 			l2 := tn2.(LineTreeNodeInterface)
-			if !l2.Src().IsSquare() || !l2.Dst().IsSquare() {
-				continue
-			}
-			if len(l2.Points()) > 0 {
-				// we already has points on the line
-				continue
-			}
-			if l2.SrcConnectionPoint() > 0 {
-				// we already change the src point of one of them
+			if notNeedFixing(l2) {
 				continue
 			}
 			if lyO.isLinesOverlap(l1, l2) {
@@ -85,6 +69,27 @@ func (lyO *subnetLayoutOverlap) fixOverlapping() {
 			}
 		}
 	}
+}
+
+////////////////////////////////////////////////////////////
+// notNeedFixing() check for cases fix is not needed
+func notNeedFixing(line LineTreeNodeInterface) bool {
+	if !line.Src().IsSquare() || !line.Dst().IsSquare() {
+		return true
+	}
+	if line.Src() == line.Dst() {
+		// if src == dst, the drawio fix it for us, nothing to do
+		return true
+	}
+	if len(line.Points()) > 0 {
+		// we already has points on the line
+		return true
+	}
+	if line.SrcConnectionPoint() > 0 {
+		// we already change the src point of line
+		return true
+	}
+	return false
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -214,7 +219,7 @@ func isPointInSquare(sq SquareTreeNodeInterface, p point) bool {
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
-// isLinesOverlap() checks if two lines overlap 
+// isLinesOverlap() checks if two lines overlap
 // both lines are are of the form Y = gradient*X + C
 // gradient is dy/dx
 // two points on the same line iff dx*(y2-y1) == dy*(x2-x1)
@@ -244,7 +249,8 @@ func (lyO *subnetLayoutOverlap) isLinesOverlap(l1, l2 LineTreeNodeInterface) boo
 	}
 	return true
 }
-// changeLineSrcPoint() find the current connection point of the src, and changing it to the point next to it 
+
+// changeLineSrcPoint() find the current connection point of the src, and changing it to the point next to it
 func (lyO *subnetLayoutOverlap) changeLineSrcPoint(l LineTreeNodeInterface) {
 	currentPoint := lyO.currentSrcConnectionPoint(l)
 	newSrcPoint := currentPoint%maxLineConnectionPoint + 1
@@ -255,7 +261,10 @@ func (lyO *subnetLayoutOverlap) changeLineSrcPoint(l LineTreeNodeInterface) {
 // currentSrcConnectionPoint() calc the src connection point that will be chosen by drawio.
 // if connection point is not set, drawio draw the line between the centers of the squares
 // the calc is too complicated to document, but it works.
+
+//nolint:gocyclo,gomnd // its just a big case, values of lineConnectionPoint are 1 to 16
 func (lyO *subnetLayoutOverlap) currentSrcConnectionPoint(l LineTreeNodeInterface) lineConnectionPoint {
+	//revive:disable // these are the numbers required by drawio
 	srcX1, srcY1 := lyO.tnCenter(l.Src())
 	dstX1, dstY1 := lyO.tnCenter(l.Dst())
 	dx1, dy1 := dstX1-srcX1, dstY1-srcY1
@@ -270,7 +279,6 @@ func (lyO *subnetLayoutOverlap) currentSrcConnectionPoint(l LineTreeNodeInterfac
 		return 12
 	case dx1 == 0 && dy1 < 0:
 		return 16
-
 	case dx1 > 0 && dy1 > 0 && srcHight1*dy1 == srcWidth1*dx1:
 		return 6
 	case dx1 < 0 && dy1 > 0 && -srcHight1*dy1 == srcWidth1*dx1:
@@ -279,7 +287,6 @@ func (lyO *subnetLayoutOverlap) currentSrcConnectionPoint(l LineTreeNodeInterfac
 		return 14
 	case dx1 > 0 && dy1 < 0 && -srcHight1*dy1 == srcWidth1*dx1:
 		return 2
-
 	case dx1 > 0 && dy1 > 0 && srcHight1*dy1 < srcWidth1*dx1:
 		return 5
 	case dx1 > 0 && dy1 > 0 && srcHight1*dy1 > srcWidth1*dx1:
@@ -299,17 +306,17 @@ func (lyO *subnetLayoutOverlap) currentSrcConnectionPoint(l LineTreeNodeInterfac
 	}
 	return 0
 }
+
 /////////////////////////////////////////////////////////////////////////////
 // tnCenter() and tnSize() assume that the width of every row/col is 2.
 // this trick alow us to work with integer
-func (lyO *subnetLayoutOverlap) tnCenter(tn TreeNodeInterface) (int, int) {
+func (lyO *subnetLayoutOverlap) tnCenter(tn TreeNodeInterface) (x, y int) {
 	l := tn.Location()
 	return lyO.xIndexes[l.firstCol] + lyO.xIndexes[l.lastCol] + 1,
 		lyO.yIndexes[l.firstRow] + lyO.yIndexes[l.lastRow] + 1
 }
-func (lyO *subnetLayoutOverlap) tnSize(tn TreeNodeInterface) (int, int) {
+func (lyO *subnetLayoutOverlap) tnSize(tn TreeNodeInterface) (x, y int) {
 	l := tn.Location()
 	return (lyO.xIndexes[l.lastCol] - lyO.xIndexes[l.firstCol] + 1) * 2,
 		(lyO.yIndexes[l.lastRow] - lyO.yIndexes[l.firstRow] + 1) * 2
-
 }

@@ -164,7 +164,10 @@ func lineConnectionPointsStyle(line LineTreeNodeInterface) string {
 	return fmt.Sprintf(lineExitFormat, x, y)
 }
 
+//nolint:gomnd // lineConnectionPoint is numerated form 1 to 16
 func lineConnectionPointToDrawioXY(connectionPoint lineConnectionPoint) (x, y float64) {
+	//revive:disable // these are the numbers required by drawio
+
 	switch connectionPoint {
 	case 2, 3, 4, 5, 6:
 		x = 1.0

@@ -6,9 +6,39 @@ import (
 	"testing"
 )
 
-func TestWithParsing(t *testing.T) {
-	n := createNetworkSubnetGroupingOverlapping()
-	err := CreateDrawioConnectivityMapFile(n, "subnetGroupingOverlapping.drawio", true)
+func TestWithParsing2(t *testing.T) {
+	n := createNetwork()
+	err := CreateDrawioConnectivityMapFile(n, "fake.drawio", false)
+	if err != nil {
+		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
+	}
+	n = createNetwork2()
+	err = CreateDrawioConnectivityMapFile(n, "fake2.drawio", false)
+	if err != nil {
+		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
+	}
+	n = createNetworkGrouping()
+	err = CreateDrawioConnectivityMapFile(n, "grouping.drawio", false)
+	if err != nil {
+		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
+	}
+	n = createNetworkSubnetGrouping()
+	err = CreateDrawioConnectivityMapFile(n, "subnetGrouping.drawio", true)
+	if err != nil {
+		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
+	}
+	n = createNetworkSubnetGroupingBug()
+	err = CreateDrawioConnectivityMapFile(n, "subnetGroupingBug.drawio", true)
+	if err != nil {
+		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
+	}
+	n = createNetworkSubnetGroupingMultiVpc()
+	err = CreateDrawioConnectivityMapFile(n, "subnetGroupingMultiVpc.drawio", true)
+	if err != nil {
+		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
+	}
+	n = createNetworkSubnetGroupingOverlapping()
+	err = CreateDrawioConnectivityMapFile(n, "subnetGroupingOverlapping.drawio", true)
 	if err != nil {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
 	}
@@ -17,60 +47,21 @@ func TestWithParsing(t *testing.T) {
 	if err != nil {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
 	}
-	
+	n2 := NewNetworkTreeNode()
+	NewCloudTreeNode(n2, "empty Cloud")
+	NewPublicNetworkTreeNode(n2)
+	NewCloudTreeNode(n2, "empty cloud2")
+	err = CreateDrawioConnectivityMapFile(n2, "fake3.drawio", false)
+	if err != nil {
+		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
+	}
+
+	n = createNetworkAllTypes()
+	err = CreateDrawioConnectivityMapFile(n, "all.drawio", false)
+	if err != nil {
+		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
+	}
 }
-
-// func TestWithParsing2(t *testing.T) {
-	// 	n := createNetwork()
-	// 	err := CreateDrawioConnectivityMapFile(n, "fake.drawio", false)
-	// 	if err != nil {
-	// 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
-	// 	}
-	// 	n = createNetwork2()
-	// 	err = CreateDrawioConnectivityMapFile(n, "fake2.drawio", false)
-	// 	if err != nil {
-	// 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
-	// 	}
-	// 	n = createNetworkGrouping()
-	// 	err = CreateDrawioConnectivityMapFile(n, "grouping.drawio", false)
-	// 	if err != nil {
-	// 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
-	// 	}
-	// 	n = createNetworkSubnetGrouping()
-	// 	err = CreateDrawioConnectivityMapFile(n, "subnetGrouping.drawio", true)
-	// 	if err != nil {
-	// 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
-	// 	}
-	// 	n = createNetworkSubnetGroupingMultiVpc()
-	// 	err = CreateDrawioConnectivityMapFile(n, "subnetGroupingMultiVpc.drawio", true)
-	// 	if err != nil {
-	// 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
-	// 	}
-	// 	n = createNetworkSubnetGroupingOverlapping()
-	// 	err = CreateDrawioConnectivityMapFile(n, "subnetGroupingOverlapping.drawio", true)
-	// 	if err != nil {
-	// 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
-	// 	}
-	// n := createNetworkSubnetGroupingBug()
-	// err := CreateDrawioConnectivityMapFile(n, "subnetGroupingBug.drawio", true)
-	// if err != nil {
-	// 	fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
-	// }
-	// 	n2 := NewNetworkTreeNode()
-	// 	NewCloudTreeNode(n2, "empty Cloud")
-	// 	NewPublicNetworkTreeNode(n2)
-	// 	NewCloudTreeNode(n2, "empty cloud2")
-	// 	err = CreateDrawioConnectivityMapFile(n2, "fake3.drawio", false)
-	// 	if err != nil {
-	// 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
-	// 	}
-
-	// 	n = createNetworkAllTypes()
-	// 	err = CreateDrawioConnectivityMapFile(n, "all.drawio", false)
-	// 	if err != nil {
-	// 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
-	// 	}
-// }
 
 func createNetwork() SquareTreeNodeInterface {
 	network := NewNetworkTreeNode()
@@ -337,7 +328,6 @@ func createGroup(zones *[][]SquareTreeNodeInterface, vpc *VpcTreeNode, i1, i2, j
 		g.(*GroupSubnetsSquareTreeNode).name = fmt.Sprintf("%d-%d,%d,%d", i1, i2, j1, j2)
 	}
 	return g
-
 }
 
 type groupIndexes struct {
@@ -405,7 +395,6 @@ func createNetworkSubnetGroupingOverlapping() SquareTreeNodeInterface {
 		{0, 0, 1, 4, 4},
 		{0, 1, 2, 4, 4},
 		{0, 2, 3, 4, 4},
-
 	}
 	n, groups, zones := createNetworkSubnetGroupingGeneric(groupsIndexes)
 	conns := [][]SquareTreeNodeInterface{
@@ -471,7 +460,6 @@ func createNetworkSubnetGroupingGroupInGroup() SquareTreeNodeInterface {
 		{0, 0, 4, 4, 4},
 
 		{0, 0, 3, 2, 3},
-
 	}
 	n, groups, zones := createNetworkSubnetGroupingGeneric(groupsIndexes)
 	conns := [][]SquareTreeNodeInterface{
@@ -481,7 +469,6 @@ func createNetworkSubnetGroupingGroupInGroup() SquareTreeNodeInterface {
 		{groups[1], groups[2]},
 		{groups[1], groups[3]},
 		{groups[2], groups[3]},
-
 
 		{groups[4], groups[0]},
 		{groups[4], groups[1]},
@@ -499,12 +486,11 @@ func createNetworkSubnetGroupingGroupInGroup() SquareTreeNodeInterface {
 
 		{groups[0], groups[0]},
 
-		{groups[5],  (*zones)[0][4]},
-		{groups[5],  (*zones)[1][4]},
-		{groups[5],  (*zones)[2][4]},
-		{groups[5],  (*zones)[3][4]},
-		{groups[5],  (*zones)[4][4]},
-
+		{groups[5], (*zones)[0][4]},
+		{groups[5], (*zones)[1][4]},
+		{groups[5], (*zones)[2][4]},
+		{groups[5], (*zones)[3][4]},
+		{groups[5], (*zones)[4][4]},
 	}
 	for _, conn := range conns {
 		NewConnectivityLineTreeNode(n, conn[0], conn[1], true, "gconn "+conn[0].Label()+"->"+conn[1].Label())
@@ -512,12 +498,13 @@ func createNetworkSubnetGroupingGroupInGroup() SquareTreeNodeInterface {
 	return n
 }
 
-
-func createNetworkSubnetGroupingGeneric(groupsIndexes []groupIndexes) (SquareTreeNodeInterface, []SquareTreeNodeInterface, *[][]SquareTreeNodeInterface) {
-	network := NewNetworkTreeNode()
-	zones := &[][]SquareTreeNodeInterface{}
-	cloud1 := NewCloudTreeNode(network, "IBM Cloud")
-	publicNetwork := NewPublicNetworkTreeNode(network)
+func createNetworkSubnetGroupingGeneric(groupsIndexes []groupIndexes) (
+	network SquareTreeNodeInterface, groups []SquareTreeNodeInterface, zones *[][]SquareTreeNodeInterface) {
+	n := NewNetworkTreeNode()
+	network = n
+	zones = &[][]SquareTreeNodeInterface{}
+	cloud1 := NewCloudTreeNode(n, "IBM Cloud")
+	publicNetwork := NewPublicNetworkTreeNode(n)
 	zoneIndexToVpcIndex := map[int]int{}
 	maxVpcIndex := 0
 	maxZoneIndex := 0
@@ -537,7 +524,7 @@ func createNetworkSubnetGroupingGeneric(groupsIndexes []groupIndexes) (SquareTre
 	for i := 0; i <= maxZoneIndex; i++ {
 		createZone(zones, vpcs[zoneIndexToVpcIndex[i]], maxSubnetIndex+1, fmt.Sprintf("z%d", i))
 	}
-	groups := make([]SquareTreeNodeInterface, len(groupsIndexes))
+	groups = make([]SquareTreeNodeInterface, len(groupsIndexes))
 	for i, index := range groupsIndexes {
 		groups[i] = createGroup(zones, vpcs[index.vpcIndex], index.z1, index.z2, index.s1, index.s2)
 	}
