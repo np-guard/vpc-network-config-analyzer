@@ -74,18 +74,13 @@ func (lyO *subnetLayoutOverlap) fixOverlapping() {
 // //////////////////////////////////////////////////////////
 // notNeedFixing() check for cases fix is not needed
 func notNeedFixing(line LineTreeNodeInterface) bool {
-	if !line.Src().IsSquare() || !line.Dst().IsSquare() {
-		return true
-	}
-	if line.Src() == line.Dst() {
+	switch {
+	case !line.Src().IsSquare() || !line.Dst().IsSquare(),
+		line.Src() == line.Dst(),
 		// if src == dst, the drawio fix it for us, nothing to do
-		return true
-	}
-	if len(line.Points()) > 0 {
+		len(line.Points()) > 0,
 		// we already has points on the line
-		return true
-	}
-	if line.SrcConnectionPoint() > 0 {
+		line.SrcConnectionPoint() > 0:
 		// we already change the src point of line
 		return true
 	}
@@ -235,16 +230,13 @@ func (lyO *subnetLayoutOverlap) isLinesOverlap(l1, l2 LineTreeNodeInterface) boo
 	minX2, minY2 := min(srcX2, dstX2), min(srcY2, dstY2)
 	maxX1, maxY1 := max(srcX1, dstX1), max(srcY1, dstY1)
 	maxX2, maxY2 := max(srcX2, dstX2), max(srcY2, dstY2)
+	switch {
 	// is same gradient?
-	if dx1*dy2 != dx2*dy1 {
-		return false
-	}
-	// same gradient, is same graph?
-	if dx1*(srcY2-srcY1) != dy1*(srcX2-srcX1) {
-		return false
-	}
-	// share domain?
-	if (minX1 >= maxX2 || minX2 >= maxX1) && (minY1 >= maxY2 || minY2 >= maxY1) {
+	case dx1*dy2 != dx2*dy1,
+		// same gradient, is same graph?
+		dx1*(srcY2-srcY1) != dy1*(srcX2-srcX1),
+		// share domain?
+		(minX1 >= maxX2 || minX2 >= maxX1) && (minY1 >= maxY2 || minY2 >= maxY1):
 		return false
 	}
 	return true
