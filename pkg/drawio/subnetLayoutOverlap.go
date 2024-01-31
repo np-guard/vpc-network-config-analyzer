@@ -18,8 +18,9 @@ func newSubnetLayoutOverlap(network SquareTreeNodeInterface, m *layoutMatrix) *s
 	return &lyO
 }
 
-// some of the calculations are done on a matrix that take in account only the thick rows and cols
+// some of the calculations are done on a matrix that take in account only the thick rows and cols.
 // (basically ignores the border rows/cols)
+// we can do this because all the squares has thick rows/cols.
 // so, as first step, we indexing all the thick rows/cols (set lyO.xIndexes and lyO.yIndexes)
 // later, to find the location of a square in this matrix, we take their indexes from lyO.xIndexes and lyO.yIndexes
 func (lyO *subnetLayoutOverlap) setIndexes(m *layoutMatrix) {
@@ -42,11 +43,8 @@ func (lyO *subnetLayoutOverlap) setIndexes(m *layoutMatrix) {
 // fixOverlapping() is the main func for handling overlapping.
 // it iterate over the lines, find and simultaneously issues of both kinds
 func (lyO *subnetLayoutOverlap) fixOverlapping() {
-	for _, tn1 := range getAllNodes(lyO.network) {
-		if !tn1.IsLine() {
-			continue
-		}
-		l1 := tn1.(LineTreeNodeInterface)
+	allLines := getAllLines(lyO.network)
+	for i1, l1 := range allLines {
 		if notNeedFixing(l1) {
 			continue
 		}
@@ -55,11 +53,7 @@ func (lyO *subnetLayoutOverlap) fixOverlapping() {
 			lyO.addPointOutsideSquares(l1)
 			continue
 		}
-		for _, tn2 := range getAllNodes(lyO.network) {
-			if !tn2.IsLine() || tn1 == tn2 {
-				continue
-			}
-			l2 := tn2.(LineTreeNodeInterface)
+		for _, l2 := range allLines[i1+1:] {
 			if notNeedFixing(l2) {
 				continue
 			}
@@ -74,17 +68,10 @@ func (lyO *subnetLayoutOverlap) fixOverlapping() {
 // //////////////////////////////////////////////////////////
 // notNeedFixing() check for cases fix is not needed
 func notNeedFixing(line LineTreeNodeInterface) bool {
-	switch {
-	case !line.Src().IsSquare() || !line.Dst().IsSquare(),
-		line.Src() == line.Dst(),
-		// if src == dst, the drawio fix it for us, nothing to do
-		len(line.Points()) > 0,
-		// we already has points on the line
-		line.SrcConnectionPoint() > 0:
-		// we already change the src point of line
-		return true
-	}
-	return false
+	return (!line.Src().IsSquare() || !line.Dst().IsSquare()) ||
+		line.Src() == line.Dst() || // if src == dst, the drawio fix it for us, nothing to do
+		len(line.Points()) > 0 || // we already has points on the line
+		line.SrcConnectionPoint() > 0 // we already change the src point of line
 }
 
 // ////////////////////////////////////////////////////////////////////////////////////
@@ -230,16 +217,11 @@ func (lyO *subnetLayoutOverlap) isLinesOverlap(l1, l2 LineTreeNodeInterface) boo
 	minX2, minY2 := min(srcX2, dstX2), min(srcY2, dstY2)
 	maxX1, maxY1 := max(srcX1, dstX1), max(srcY1, dstY1)
 	maxX2, maxY2 := max(srcX2, dstX2), max(srcY2, dstY2)
-	switch {
-	// is same gradient?
-	case dx1*dy2 != dx2*dy1,
-		// same gradient, is same graph?
-		dx1*(srcY2-srcY1) != dy1*(srcX2-srcX1),
-		// share domain?
-		(minX1 >= maxX2 || minX2 >= maxX1) && (minY1 >= maxY2 || minY2 >= maxY1):
-		return false
-	}
-	return true
+
+	return dx1*dy2 == dx2*dy1 && // is same gradient?
+		dx1*(srcY2-srcY1) == dy1*(srcX2-srcX1) && // is same graph?
+		((minX1 < maxX2 && minX2 < maxX1) || dx1 == 0) && // share x domain?
+		((minY1 < maxY2 && minY2 < maxY1) || dy1 == 0) // share y domain?
 }
 
 // changeLineSrcPoint() find the current connection point of the src, and changing it to the point next to it

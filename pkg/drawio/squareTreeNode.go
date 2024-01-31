@@ -1,9 +1,11 @@
 package drawio
 
+// debug points are points that can be added to the drawio,
+// they are used ad a debug tool for the developer of this package (aka me)
+// to add a point to the canvas call addDebugPoint(), with a point having absolute values of x and y
 type debugPoint struct {
 	P  point
 	ID uint
-	L  string
 }
 
 // /////////////////////////////////////////////////////////////////////
