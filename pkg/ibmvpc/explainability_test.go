@@ -281,6 +281,22 @@ var explainTests = []*explainGeneralTest{
 			"between vsi1-ky[10.240.10.4] and vsi3a-ky[10.240.30.5]; " +
 			"connection blocked both by ingress and egress\n\n",
 	},
+	// a subset of the required ports exists
+	{
+		name:        "QueryConnectionSGSubsetPorts",
+		inputConfig: "input_sg_testing1_new",
+		ESrc:        "147.235.219.206/32",
+		EDst:        "vsi2-ky[10.240.20.4]",
+		EProtocol:   common.ProtocolTCP,
+		ESrcMinPort: common.MinPort,
+		ESrcMaxPort: common.MaxPort,
+		EDstMinPort: 10,
+		EDstMaxPort: 30,
+		out: "Connection protocol: TCP dst-ports: 22 exists between Public Internet 147.235.219.206/32 and vsi2-ky[10.240.20.4]; " +
+			"its enabled by\nExternal Router FloatingIP: floating-ip-ky\nIngress Rules:\n~~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n" +
+			"------------------------\nenabling rules from sg2-ky:\n" +
+			"\tindex: 2, direction: inbound,  conns: protocol: tcp,  dstPorts: 22-22, cidr: 147.235.219.206/32\n\n",
+	},
 	//  all rules are relevant (for comparison)
 	{
 		name:        "QueryConnectionSGRules1",
@@ -596,28 +612,4 @@ func TestInputValidity(t *testing.T) {
 	if err2 == nil {
 		require.Fail(t, err1.Error())
 	}
-}
-
-// this test can not be tested with cli main args
-func TestQueryConnectionSGBasic(t *testing.T) {
-	vpcConfig := getConfig(t, "input_sg_testing1_new")
-	if vpcConfig == nil {
-		require.Fail(t, "vpcConfig equals nil")
-	}
-	// test1: a connection exists, but it is not the required one by query
-	explain1, err1 := vpcConfig.ExplainConnectivity("vsi2-ky[10.240.20.4]", "vsi3b-ky[10.240.30.4]", common.NewConnectionSet(true))
-	if err1 != nil {
-		require.Fail(t, err1.Error())
-	}
-	explainStr1 := explain1.String()
-	fmt.Println(explainStr1)
-	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
-	require.Equal(t, "There is no connection \"All Connections\" between vsi2-ky[10.240.20.4] and vsi3b-ky[10.240.30.4]; "+
-		"connection blocked by ingress\n"+
-		"Egress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl2-ky:\n"+
-		"\tindex: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow\n"+
-		"SecurityGroupLayer Rules\n------------------------\n"+
-		"enabling rules from sg2-ky:\n\tindex: 5, direction: outbound, protocol: all, cidr: 10.240.30.0/24\n\t"+
-		"index: 6, direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, cidr: 10.240.20.4/32,10.240.30.4/32\n\n",
-		explainStr1)
 }
