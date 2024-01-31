@@ -417,7 +417,7 @@ var explainTests = []*explainGeneralTest{
 	},
 	// todo: add unit test that simulates merging rules when there is more than one nacl table
 	{
-		// todo: misleading since deny not supported yet
+		// combined allow and deny
 		name:        "NACLInternal1",
 		inputConfig: "input_acl_testing3",
 		ESrc:        "vsi1-ky[10.240.10.4]",
@@ -432,45 +432,45 @@ var explainTests = []*explainGeneralTest{
 			"conn: all, action: allow\nSecurityGroupLayer Rules\n------------------------\n" +
 			"enabling rules from sg1-ky:\n\tindex: 1, direction: inbound, protocol: all, cidr: 0.0.0.0/0\n\n",
 	},
-	//{
-	//	name:        "NACLInternal2",
-	//	inputConfig: "input_acl_testing3",
-	//	ESrc:        "vsi2-ky[10.240.20.4]",
-	//	EDst:        "vsi1-ky[10.240.10.4]",
-	//	out: "The following connection exists between vsi2-ky[10.240.20.4] and vsi1-ky[10.240.10.4]: " +
-	//		"All Connections; its enabled by\nEgress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\n" +
-	//		"enabling rules from acl2-ky:\n\tindex: 2, direction: outbound , src: 10.240.20.0/24 , dst: 10.240.10.0/24, " +
-	//		"conn: all, action: allow\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n" +
-	//		"\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\nIngress Rules:\n~~~~~~~~~~~~~~\n" +
-	//		"NaclLayer Rules\n------------------------\nenabling rules from acl1-ky:\n" +
-	//		"\tindex: 4, direction: inbound , src: 10.240.20.0/24 , dst: 10.240.10.0/24, conn: all, action: allow\n" +
-	//		"SecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n" +
-	//		"\tindex: 1, direction: inbound, protocol: all, cidr: 0.0.0.0/0\n\n",
-	//},
-	//{
-	//	name:        "NACLInternal3",
-	//	inputConfig: "input_acl_testing3",
-	//	ESrc:        "vsi1-ky[10.240.10.4]",
-	//	EDst:        "vsi3a-ky[10.240.30.5]",
-	//	out: "No connection between vsi1-ky[10.240.10.4] and vsi3a-ky[10.240.30.5]; connection blocked by egress\nIngress Rules:\n" +
-	//		"~~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl3-ky:\n" +
-	//		"\tindex: 2, direction: inbound , src: 10.240.10.0/24 , dst: 0.0.0.0/0, conn: all, action: allow\n" +
-	//		"SecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n" +
-	//		"\tindex: 1, direction: inbound, protocol: all, cidr: 0.0.0.0/0\n\n",
-	//},
-	//{
-	//	// same subnet: no actual rules in nacl, but connection enabled
-	//	name:        "NACLInternal4",
-	//	inputConfig: "input_acl_testing3",
-	//	ESrc:        "vsi3b-ky[10.240.30.6]",
-	//	EDst:        "vsi3a-ky[10.240.30.5]",
-	//	out: "The following connection exists between vsi3b-ky[10.240.30.6] and vsi3a-ky[10.240.30.5]: " +
-	//		"All Connections; its enabled by\nEgress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\n" +
-	//		"enabling rules from sg1-ky:\n" +
-	//		"\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\nIngress Rules:\n~~~~~~~~~~~~~~\n" +
-	//		"SecurityGroupLayer Rules\n------------------------\n" +
-	//		"enabling rules from sg1-ky:\n\tindex: 1, direction: inbound, protocol: all, cidr: 0.0.0.0/0\n\n",
-	//},
+	{
+		name:        "NACLInternal2",
+		inputConfig: "input_acl_testing3",
+		ESrc:        "vsi2-ky[10.240.20.4]",
+		EDst:        "vsi1-ky[10.240.10.4]",
+		out: "The following connection exists between vsi2-ky[10.240.20.4] and vsi1-ky[10.240.10.4]: " +
+			"All Connections; its enabled by\nEgress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\n" +
+			"enabling rules from acl2-ky:\n\tindex: 2, direction: outbound , src: 10.240.20.0/24 , dst: 10.240.10.0/24, " +
+			"conn: all, action: allow\nSecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n" +
+			"\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\nIngress Rules:\n~~~~~~~~~~~~~~\n" +
+			"NaclLayer Rules\n------------------------\nenabling rules from acl1-ky:\n" +
+			"\tindex: 4, direction: inbound , src: 10.240.20.0/24 , dst: 10.240.10.0/24, conn: all, action: allow\n" +
+			"SecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n" +
+			"\tindex: 1, direction: inbound, protocol: all, cidr: 0.0.0.0/0\n\n",
+	},
+	{
+		name:        "NACLInternal3",
+		inputConfig: "input_acl_testing3",
+		ESrc:        "vsi1-ky[10.240.10.4]",
+		EDst:        "vsi3a-ky[10.240.30.5]",
+		out: "No connection between vsi1-ky[10.240.10.4] and vsi3a-ky[10.240.30.5]; connection blocked by egress\nIngress Rules:\n" +
+			"~~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl3-ky:\n" +
+			"\tindex: 2, direction: inbound , src: 10.240.10.0/24 , dst: 0.0.0.0/0, conn: all, action: allow\n" +
+			"SecurityGroupLayer Rules\n------------------------\nenabling rules from sg1-ky:\n" +
+			"\tindex: 1, direction: inbound, protocol: all, cidr: 0.0.0.0/0\n\n",
+	},
+	{
+		// same subnet: no actual rules in nacl, but connection enabled
+		name:        "NACLInternal4",
+		inputConfig: "input_acl_testing3",
+		ESrc:        "vsi3b-ky[10.240.30.6]",
+		EDst:        "vsi3a-ky[10.240.30.5]",
+		out: "The following connection exists between vsi3b-ky[10.240.30.6] and vsi3a-ky[10.240.30.5]: " +
+			"All Connections; its enabled by\nEgress Rules:\n~~~~~~~~~~~~~\nSecurityGroupLayer Rules\n------------------------\n" +
+			"enabling rules from sg1-ky:\n" +
+			"\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\nIngress Rules:\n~~~~~~~~~~~~~~\n" +
+			"SecurityGroupLayer Rules\n------------------------\n" +
+			"enabling rules from sg1-ky:\n\tindex: 1, direction: inbound, protocol: all, cidr: 0.0.0.0/0\n\n",
+	},
 	//{
 	//	name:        "NACLGrouping",
 	//	inputConfig: "input_acl_testing3",
