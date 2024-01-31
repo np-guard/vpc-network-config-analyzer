@@ -1,2 +1,0 @@
-Connectivity for VPC zn-vpc1
-

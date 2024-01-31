@@ -1,9 +1,0 @@
-Connectivity for VPC test-vpc0-ky
-vsi1-ky[10.240.1.4] => Public Internet 172.217.22.46/32 : All Connections
-vsi1-ky[10.240.1.4] => vsi3a-ky[10.240.3.5] : protocol: TCP src-ports: 1-442,444-65535 dst-ports: 443; protocol: TCP src-ports: 443
-vsi1-ky[10.240.1.4] => vsi3b-ky[10.240.3.4] : protocol: TCP src-ports: 1-442,444-65535 dst-ports: 443; protocol: TCP src-ports: 443
-vsi2-ky[10.240.2.4] => Public Internet (all ranges) : All Connections
-vsi3a-ky[10.240.3.5] => vsi1-ky[10.240.1.4] : protocol: TCP src-ports: 1-442,444-65535 dst-ports: 443; protocol: TCP src-ports: 443
-vsi3a-ky[10.240.3.5] => vsi3b-ky[10.240.3.4] : All Connections
-vsi3b-ky[10.240.3.4] => vsi1-ky[10.240.1.4] : protocol: TCP src-ports: 1-442,444-65535 dst-ports: 443; protocol: TCP src-ports: 443
-vsi3b-ky[10.240.3.4] => vsi3a-ky[10.240.3.5] : All Connections

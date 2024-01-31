@@ -1,2 +1,0 @@
-Connectivity between VPCs connected by TGW local-tg-zn (UID: crn:574)
-

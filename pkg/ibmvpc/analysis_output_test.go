@@ -617,8 +617,8 @@ func initTestFileNames(tt *vpcGeneralTest,
 	if err != nil {
 		return err
 	}
-	tt.actualOutput[uc] = filepath.Join(getTestsDir("out/analysis_out/actual"), actualFileName)
-	tt.expectedOutput[uc] = filepath.Join(getTestsDir("out/analysis_out/expected"), expectedFileName)
+	tt.actualOutput[uc] = filepath.Join(getTestsDir("out/analysis_out"), actualFileName)
+	tt.expectedOutput[uc] = filepath.Join(getTestsDir("out/analysis_out"), expectedFileName)
 	return nil
 }
 
@@ -654,8 +654,8 @@ func cleanStr(str string) string {
 // compareTextualResult is called in case of output mismatch, to provide more details on the difference
 func compareTextualResult(expected, actual string) {
 	var err1, err2 error
-	_, err1 = vpcmodel.WriteToFile(expected, filepath.Join(getTestsDir("out/analysis_out/expected"), "expected.txt"))
-	_, err2 = vpcmodel.WriteToFile(actual, filepath.Join(getTestsDir("out/analysis_out/actual"), "actual.txt"))
+	_, err1 = vpcmodel.WriteToFile(expected, filepath.Join(getTestsDir("out/analysis_out"), "expected.txt"))
+	_, err2 = vpcmodel.WriteToFile(actual, filepath.Join(getTestsDir("out/analysis_out"), "actual.txt"))
 	if err1 != nil || err2 != nil {
 		fmt.Printf("compareTextualResult: error writing actual/expected output to files: %s, %s \n", err1, err2)
 	}

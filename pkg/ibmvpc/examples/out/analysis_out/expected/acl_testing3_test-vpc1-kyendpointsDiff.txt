@@ -1,3 +1,0 @@
-Connectivity diff between VPC test-vpc1-ky and VPC test-vpc2-ky
-diff-type: removed, source: vsi1-ky[10.240.10.4], destination: Public Internet 161.26.0.0/16, config1: protocol: UDP *, config2: No Connections, vsis-diff-info: 
-diff-type: removed, source: vsi1-ky[10.240.10.4], destination: vsi2-ky[10.240.20.4], config1: protocol: TCP,UDP, config2: No Connections, vsis-diff-info: 
