@@ -415,22 +415,23 @@ var explainTests = []*explainGeneralTest{
 		out: "No connection between Public Internet 100.128.0.0/32 and vsi1-ky[10.240.10.4]; no fip router and src is external" +
 			" (fip is required for outbound external connection)\n\n",
 	},
-	//{
-	//	// todo: misleading since deny not supported yet
-	//	name:        "NACLInternal1",
-	//	inputConfig: "input_acl_testing3",
-	//	ESrc:        "vsi1-ky[10.240.10.4]",
-	//	EDst:        "vsi2-ky[10.240.20.4]",
-	//	out: "The following connection exists between vsi1-ky[10.240.10.4] and vsi2-ky[10.240.20.4]: " +
-	//		"protocol: TCP,UDP; its enabled by\nEgress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\n" +
-	//		"enabling rules from acl1-ky:\n" +
-	//		"\tindex: 2, direction: outbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, conn: all, action: allow\nSecurityGroupLayer Rules\n" +
-	//		"------------------------\nenabling rules from sg1-ky:\n\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n" +
-	//		"Ingress Rules:\n~~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl2-ky:\n" +
-	//		"\tindex: 6, direction: inbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, " +
-	//		"conn: all, action: allow\nSecurityGroupLayer Rules\n------------------------\n" +
-	//		"enabling rules from sg1-ky:\n\tindex: 1, direction: inbound, protocol: all, cidr: 0.0.0.0/0\n\n",
-	//},
+	// todo: add unit test that simulates merging rules when there is more than one nacl table
+	{
+		// todo: misleading since deny not supported yet
+		name:        "NACLInternal1",
+		inputConfig: "input_acl_testing3",
+		ESrc:        "vsi1-ky[10.240.10.4]",
+		EDst:        "vsi2-ky[10.240.20.4]",
+		out: "The following connection exists between vsi1-ky[10.240.10.4] and vsi2-ky[10.240.20.4]: " +
+			"protocol: TCP,UDP; its enabled by\nEgress Rules:\n~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\n" +
+			"enabling rules from acl1-ky:\n\tindex: 0, direction: outbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, conn: protocol: icmp, action: deny\n" +
+			"\tindex: 2, direction: outbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, conn: all, action: allow\nSecurityGroupLayer Rules\n" +
+			"------------------------\nenabling rules from sg1-ky:\n\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n" +
+			"Ingress Rules:\n~~~~~~~~~~~~~~\nNaclLayer Rules\n------------------------\nenabling rules from acl2-ky:\n" +
+			"\tindex: 6, direction: inbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, " +
+			"conn: all, action: allow\nSecurityGroupLayer Rules\n------------------------\n" +
+			"enabling rules from sg1-ky:\n\tindex: 1, direction: inbound, protocol: all, cidr: 0.0.0.0/0\n\n",
+	},
 	//{
 	//	name:        "NACLInternal2",
 	//	inputConfig: "input_acl_testing3",
