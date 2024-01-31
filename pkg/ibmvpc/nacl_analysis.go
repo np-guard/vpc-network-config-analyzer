@@ -487,14 +487,14 @@ func (na *NACLAnalyzer) rulesInConnectivity(subnetCidr, inSubentCidr,
 					return rules, nil
 				}
 				// connection is part of the query
-				contained, err := connQuery.ContainedIn(analyzedConnsPerCidr.allowedconns[resTarget])
-				if err != nil {
-					return nil, err
+				// the required connection - conn - should intersect with the existing connection
+				// Namely, connection for the required protocol exists (one can query a single protocol)
+				// on a nonempty set of the subnets
+				intersectConn := connQuery.Intersection(analyzedConnsPerCidr.allowedconns[resTarget])
+				if intersectConn.IsEmpty() {
+					return nil, nil
 				}
-				if contained {
-					return na.getRulesRelevantConn(rules, connQuery) // gets only rules relevant to conn
-				}
-				return nil, nil
+				return na.getRulesRelevantConn(rules, connQuery) // gets only rules relevant to conn
 			}
 		}
 	}

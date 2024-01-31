@@ -22,7 +22,11 @@ func headerOfAnalyzedVPC(uc OutputUseCase, vpcName, vpc2Name string, c1 *VPCConf
 	case SubnetsDiff, EndpointsDiff:
 		return fmt.Sprintf("Connectivity diff between VPC %s and VPC %s\n", vpcName, vpc2Name), nil
 	case Explain:
-		return fmt.Sprintf("Connectivity explanation between %s and %s\n", explanation.src, explanation.dst), nil
+		connStr := ""
+		if explanation.connQuery != nil {
+			connStr = " for " + explanation.connQuery.String()
+		}
+		return fmt.Sprintf("Connectivity explanation%s between %s and %s\n", connStr, explanation.src, explanation.dst), nil
 	}
 	return "", nil // should never get here
 }

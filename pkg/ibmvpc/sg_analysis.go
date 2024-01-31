@@ -328,21 +328,22 @@ func (sga *SGAnalyzer) AllowedConnectivity(target string, isIngress bool) *commo
 //  2. If connection is part of the query: is the required connection contained in the existing connection?
 //     if it does, then the contributing rules are detected: rules that intersect the required connection
 //     otherwise, the answer to the query is "no" and nil is returned
-func (sga *SGAnalyzer) rulesInConnectivity(target string, conn *common.ConnectionSet, isIngress bool) ([]int, error) {
+func (sga *SGAnalyzer) rulesInConnectivity(target string, connQuery *common.ConnectionSet, isIngress bool) ([]int, error) {
 	analyzedConns, ipb := sga.getAnalyzedConnsIPB(target, isIngress)
 	for definedTarget, rules := range analyzedConns.contribRules {
 		if ipb.ContainedIn(definedTarget) {
-			if conn != nil { // connection is part of the query
-				contained, err := conn.ContainedIn(analyzedConns.allowedconns[definedTarget])
-				if err != nil {
-					return nil, err
-				}
-				if contained {
-					return sga.getRulesRelevantConn(rules, conn)
-				}
+			if connQuery == nil {
+				return rules, nil // connection not part of query - all rules are relevant
+			}
+			// connection is part of the query
+			// the required connection - conn - should intersect with the existing connection
+			// Namely, connection for the required protocol exists (one can query a single protocol)
+			// on a nonempty set of the subnets
+			intersectConn := connQuery.Intersection(analyzedConns.allowedconns[definedTarget])
+			if intersectConn.IsEmpty() {
 				return nil, nil
 			}
-			return rules, nil // connection not part of query - all rules are relevant
+			return sga.getRulesRelevantConn(rules, connQuery)
 		}
 	}
 	return nil, nil
