@@ -570,7 +570,7 @@ func getVPCConfigs(t *testing.T, tt *vpcGeneralTest, firstCfg bool) map[string]*
 	} else {
 		inputConfig = tt.inputConfig2nd
 	}
-	inputConfigFile := filepath.Join(getTestsDir(), inputConfig)
+	inputConfigFile := filepath.Join(getTestsDir("input"), inputConfig)
 	rc, err := ParseResourcesFromFile(inputConfigFile)
 	if err != nil {
 		t.Fatalf("err: %s", err)
@@ -617,8 +617,8 @@ func initTestFileNames(tt *vpcGeneralTest,
 	if err != nil {
 		return err
 	}
-	tt.actualOutput[uc] = filepath.Join(getTestsDir(), actualFileName)
-	tt.expectedOutput[uc] = filepath.Join(getTestsDir(), expectedFileName)
+	tt.actualOutput[uc] = filepath.Join(getTestsDir("out/analysis_out/actual"), actualFileName)
+	tt.expectedOutput[uc] = filepath.Join(getTestsDir("out/analysis_out/expected"), expectedFileName)
 	return nil
 }
 
@@ -654,8 +654,8 @@ func cleanStr(str string) string {
 // compareTextualResult is called in case of output mismatch, to provide more details on the difference
 func compareTextualResult(expected, actual string) {
 	var err1, err2 error
-	_, err1 = vpcmodel.WriteToFile(expected, filepath.Join(getTestsDir(), "expected.txt"))
-	_, err2 = vpcmodel.WriteToFile(actual, filepath.Join(getTestsDir(), "actual.txt"))
+	_, err1 = vpcmodel.WriteToFile(expected, filepath.Join(getTestsDir("out/analysis_out/expected"), "expected.txt"))
+	_, err2 = vpcmodel.WriteToFile(actual, filepath.Join(getTestsDir("out/analysis_out/actual"), "actual.txt"))
 	if err1 != nil || err2 != nil {
 		fmt.Printf("compareTextualResult: error writing actual/expected output to files: %s, %s \n", err1, err2)
 	}
@@ -677,7 +677,7 @@ func compareTextualResult(expected, actual string) {
 }
 
 // getTestsDir returns the path to the dir where test input and output files are located
-func getTestsDir() string {
+func getTestsDir(dir string) string {
 	currentDir, _ := os.Getwd()
-	return filepath.Join(currentDir, "examples")
+	return filepath.Join(currentDir, "examples/"+dir)
 }
