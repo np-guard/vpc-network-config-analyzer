@@ -384,37 +384,37 @@ var explainTests = []*explainGeneralTest{
 			"protocol: all, cidr: 10.240.30.5/32,10.240.30.6/32\n\n",
 	},
 	// connection exists to external
-	//{
-	//	name:        "NACLExternal1",
-	//	inputConfig: "input_acl_testing3",
-	//	ESrc:        "vsi1-ky[10.240.10.4]",
-	//	EDst:        "161.26.0.0/16",
-	//	out: "The following connection exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16: protocol: UDP; " +
-	//		"its enabled by\nExternal Router PublicGateway: public-gw-ky\nEgress Rules:\n~~~~~~~~~~~~~\n" +
-	//		"NaclLayer Rules\n------------------------\n" +
-	//		"enabling rules from acl1-ky:\n\tindex: 1, direction: outbound , src: 10.240.10.0/24 , dst: 161.26.0.0/16, conn: protocol: udp, " +
-	//		"srcPorts: 1-65535, dstPorts: 1-65535, action: allow\nSecurityGroupLayer Rules\n" +
-	//		"------------------------\nenabling rules from sg1-ky:\n" +
-	//		"\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n\n",
-	//},
+	{
+		name:        "NACLExternal1",
+		inputConfig: "input_acl_testing3",
+		ESrc:        "vsi1-ky[10.240.10.4]",
+		EDst:        "161.26.0.0/16",
+		out: "The following connection exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16: protocol: UDP; " +
+			"its enabled by\nExternal Router PublicGateway: public-gw-ky\nEgress Rules:\n~~~~~~~~~~~~~\n" +
+			"NaclLayer Rules\n------------------------\n" +
+			"enabling rules from acl1-ky:\n\tindex: 1, direction: outbound , src: 10.240.10.0/24 , dst: 161.26.0.0/16, conn: protocol: udp, " +
+			"srcPorts: 1-65535, dstPorts: 1-65535, action: allow\nSecurityGroupLayer Rules\n" +
+			"------------------------\nenabling rules from sg1-ky:\n" +
+			"\tindex: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0\n\n",
+	},
 	//// connection does not exist to external, blocked by egress
-	//{
-	//	name:        "NACLExternal2",
-	//	inputConfig: "input_acl_testing3",
-	//	ESrc:        "vsi1-ky[10.240.10.4]",
-	//	EDst:        "100.128.0.0/32",
-	//	out: "No connection between vsi1-ky[10.240.10.4] and Public Internet 100.128.0.0/32;" +
-	//		" connection blocked by egress\n\n",
-	//},
-	//// connection does not exist to external, no fip router
-	//{
-	//	name:        "NACLExternal3",
-	//	inputConfig: "input_acl_testing3",
-	//	ESrc:        "100.128.0.0/32",
-	//	EDst:        "vsi1-ky[10.240.10.4]",
-	//	out: "No connection between Public Internet 100.128.0.0/32 and vsi1-ky[10.240.10.4]; no fip router and src is external" +
-	//		" (fip is required for outbound external connection)\n\n",
-	//},
+	{
+		name:        "NACLExternal2",
+		inputConfig: "input_acl_testing3",
+		ESrc:        "vsi1-ky[10.240.10.4]",
+		EDst:        "100.128.0.0/32",
+		out: "No connection between vsi1-ky[10.240.10.4] and Public Internet 100.128.0.0/32;" +
+			" connection blocked by egress\n\n",
+	},
+	// connection does not exist to external, no fip router
+	{
+		name:        "NACLExternal3",
+		inputConfig: "input_acl_testing3",
+		ESrc:        "100.128.0.0/32",
+		EDst:        "vsi1-ky[10.240.10.4]",
+		out: "No connection between Public Internet 100.128.0.0/32 and vsi1-ky[10.240.10.4]; no fip router and src is external" +
+			" (fip is required for outbound external connection)\n\n",
+	},
 	//{
 	//	// todo: misleading since deny not supported yet
 	//	name:        "NACLInternal1",
