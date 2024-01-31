@@ -305,20 +305,20 @@ func (details *rulesAndConnDetails) computeCombinedActualRules() {
 
 // merges two rulesInLayers - for merging deny and allow for ingress and egress
 func mergeAllowDeny(allow, deny rulesInLayers) rulesInLayers {
-	combinedRulesInLayers := rulesInLayers{}
+	allowDenyMerged := rulesInLayers{}
 	for _, layer := range filterLayers {
 		allowForLayer, ok1 := allow[layer]
 		denyForLayer, ok2 := deny[layer]
 		if !ok1 || !ok2 {
 			switch {
 			case ok1: // layer relevant only for deny
-				combinedRulesInLayers[layer] = allowForLayer
+				allowDenyMerged[layer] = allowForLayer
 			case ok2: // layer relevant only for allow
-				combinedRulesInLayers[layer] = denyForLayer
+				allowDenyMerged[layer] = denyForLayer
 			}
 			continue
 		}
-		combinedRulesInLayer := []RulesInFilter{} // both deny and allow in layer
+		mergedRulesInLayer := []RulesInFilter{} // both deny and allow in layer
 		// gets all indexes, both allow and deny, of a layer (e.g. indexes of nacls)
 		allIndexes := getAllIndexesForFilter(allowForLayer, denyForLayer)
 		for _, filterIndex := range allIndexes {
@@ -327,20 +327,21 @@ func mergeAllowDeny(allow, deny rulesInLayers) rulesInLayers {
 			// only one of them can be nil if we got here
 			switch {
 			case denyRules == nil:
-				combinedRulesInLayer = append(combinedRulesInLayer, *allowRules)
+				mergedRulesInLayer = append(mergedRulesInLayer, *allowRules)
 			case allowRules == nil:
-				combinedRulesInLayer = append(combinedRulesInLayer, *denyRules)
+				mergedRulesInLayer = append(mergedRulesInLayer, *denyRules)
 			default: // none nil, merge
-				mergedRules := make([]int, len(allowRules.Rules)+len(denyRules.Rules))
-				copy(mergedRules, allowRules.Rules)
+				mergedRules := []int{}
+				mergedRules = append(mergedRules, allowRules.Rules...)
 				mergedRules = append(mergedRules, denyRules.Rules...)
 				slices.Sort(mergedRules)
 				mergedRulesInFilter := RulesInFilter{Filter: allowRules.Filter, Rules: mergedRules}
-				combinedRulesInLayer = append(combinedRulesInLayer, mergedRulesInFilter)
+				mergedRulesInLayer = append(mergedRulesInLayer, mergedRulesInFilter)
 			}
 		}
+		allowDenyMerged[layer] = mergedRulesInLayer
 	}
-	return combinedRulesInLayers
+	return allowDenyMerged
 }
 
 // allow and deny in layer: gets all indexes of a layer (e.g. indexes of nacls)
