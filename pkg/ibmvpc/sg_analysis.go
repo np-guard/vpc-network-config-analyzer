@@ -239,7 +239,8 @@ type SGRule struct {
 type ConnectivityResult struct {
 	isIngress    bool
 	allowedconns map[*common.IPBlock]*common.ConnectionSet // allowed target and its allowed connections
-	contribRules map[*common.IPBlock][]int                 // indexes of contribRules contributing to this connectivity
+	contribRules map[*common.IPBlock][]int                 // indexes of (positive) contribRules contributing to this connectivity
+	denyRules    map[*common.IPBlock][]int                 // indexes of deny rules relevant to this connectivity; only for nacl
 }
 
 func (cr *ConnectivityResult) string() string {
