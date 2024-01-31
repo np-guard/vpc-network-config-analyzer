@@ -239,7 +239,7 @@ type SGRule struct {
 type ConnectivityResult struct {
 	isIngress    bool
 	allowedconns map[*common.IPBlock]*common.ConnectionSet // allowed target and its allowed connections
-	contribRules map[*common.IPBlock][]int                 // indexes of (positive) contribRules contributing to this connectivity
+	allowRules   map[*common.IPBlock][]int                 // indexes of (positive) allowRules contributing to this connectivity
 	denyRules    map[*common.IPBlock][]int                 // indexes of deny rules relevant to this connectivity; only for nacl
 }
 
@@ -261,10 +261,10 @@ func AnalyzeSGRules(rules []*SGRule, isIngress bool) *ConnectivityResult {
 	}
 	disjointTargets := common.DisjointIPBlocks(targets, []*common.IPBlock{common.GetCidrAll()})
 	res := &ConnectivityResult{isIngress: isIngress, allowedconns: map[*common.IPBlock]*common.ConnectionSet{},
-		contribRules: map[*common.IPBlock][]int{}}
+		allowRules: map[*common.IPBlock][]int{}}
 	for i := range disjointTargets {
 		res.allowedconns[disjointTargets[i]] = getEmptyConnSet()
-		res.contribRules[disjointTargets[i]] = []int{}
+		res.allowRules[disjointTargets[i]] = []int{}
 	}
 	for i := range rules {
 		rule := rules[i]
@@ -273,7 +273,7 @@ func AnalyzeSGRules(rules []*SGRule, isIngress bool) *ConnectivityResult {
 		for disjointTarget := range res.allowedconns {
 			if disjointTarget.ContainedIn(target) {
 				res.allowedconns[disjointTarget] = res.allowedconns[disjointTarget].Union(conn)
-				res.contribRules[disjointTarget] = append(res.contribRules[disjointTarget], rule.index)
+				res.allowRules[disjointTarget] = append(res.allowRules[disjointTarget], rule.index)
 			}
 		}
 	}
@@ -331,7 +331,7 @@ func (sga *SGAnalyzer) AllowedConnectivity(target string, isIngress bool) *commo
 //     otherwise, the answer to the query is "no" and nil is returned
 func (sga *SGAnalyzer) rulesInConnectivity(target string, connQuery *common.ConnectionSet, isIngress bool) ([]int, error) {
 	analyzedConns, ipb := sga.getAnalyzedConnsIPB(target, isIngress)
-	for definedTarget, rules := range analyzedConns.contribRules {
+	for definedTarget, rules := range analyzedConns.allowRules {
 		if ipb.ContainedIn(definedTarget) {
 			if connQuery == nil {
 				return rules, nil // connection not part of query - all rules are relevant
