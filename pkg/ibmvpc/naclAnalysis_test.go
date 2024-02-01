@@ -127,7 +127,7 @@ func TestGetAllowedXgressConnections(t *testing.T) {
 			dst := common.NewIPBlockFromCidr(tt.dst[i])
 			disjointPeers := []*common.IPBlock{dst}
 			expectedConn := tt.expectedConns[i]
-			res, _, _ := getAllowedXgressConnections(tt.naclRules, src, dst, disjointPeers, true)
+			res, _, _, _ := getAllowedXgressConnections(tt.naclRules, src, dst, disjointPeers, true)
 			dstStr := dst.ToIPRanges()
 			actualConn := res[dstStr]
 			require.True(t, expectedConn.Equal(actualConn))

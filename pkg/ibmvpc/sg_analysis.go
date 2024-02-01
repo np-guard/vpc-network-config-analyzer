@@ -240,7 +240,9 @@ type ConnectivityResult struct {
 	isIngress    bool
 	allowedconns map[*common.IPBlock]*common.ConnectionSet // allowed target and its allowed connections
 	allowRules   map[*common.IPBlock][]int                 // indexes of (positive) allowRules contributing to this connectivity
-	denyRules    map[*common.IPBlock][]int                 // indexes of deny rules relevant to this connectivity; only for nacl
+	// the following are relevant only to filters with deny rules - nacl
+	deniedconns map[*common.IPBlock]*common.ConnectionSet // denied target and its allowed connections, by deny rules.
+	denyRules   map[*common.IPBlock][]int                 // indexes of deny rules relevant to this connectivity
 }
 
 func (cr *ConnectivityResult) string() string {
