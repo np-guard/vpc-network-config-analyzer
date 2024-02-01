@@ -312,7 +312,7 @@ func (nl *NaclLayer) StringRulesOfFilter(listRulesInFilter []vpcmodel.RulesInFil
 		nacl := nl.naclList[rulesInFilter.Filter]
 		strListRulesThisNacl := nacl.analyzer.StringRules(rulesInFilter.Rules)
 		if strListRulesThisNacl != "" {
-			strListRulesInFilter += rulesOfFilterHeader("network acl "+nacl.Name()) + strListRulesThisNacl
+			strListRulesInFilter += rulesOfFilterHeader("network ACL "+nacl.Name()) + strListRulesThisNacl
 		}
 	}
 	return strListRulesInFilter

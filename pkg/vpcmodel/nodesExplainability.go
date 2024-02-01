@@ -502,8 +502,15 @@ func stringExplainabilityLine(c *VPCConfig, connQuery *common.ConnectionSet, src
 	needIngress := !dst.IsExternal()
 	noIngressRules := !ingressEnabled && needIngress
 	noEgressRules := !egressEnabled && needEgress
-	egressRulesStr := fmt.Sprintf("Egress Rules:\n~~~~~~~~~~~~~\n%v", rules.egressRules.string(c))
-	ingressRulesStr := fmt.Sprintf("Ingress Rules:\n~~~~~~~~~~~~~~\n%v", rules.ingressRules.string(c))
+	egressRulesStr := rules.egressRules.string(c)
+	ingressRulesStr := rules.ingressRules.string(c)
+	if needEgress && egressRulesStr != "" {
+		egressRulesStr = "Egress Rules:\n~~~~~~~~~~~~~\n" + egressRulesStr
+	}
+	if needIngress && ingressRulesStr != "" {
+		ingressRulesStr = "Ingress Rules:\n~~~~~~~~~~~~~\n" + ingressRulesStr
+	}
+	rulesStr := egressRulesStr + ingressRulesStr
 	noConnection := ""
 	if connQuery == nil {
 		noConnection = fmt.Sprintf("No connection between %v and %v;", src.Name(), dst.Name())
@@ -518,26 +525,19 @@ func stringExplainabilityLine(c *VPCConfig, connQuery *common.ConnectionSet, src
 	case router == nil && dst.IsExternal():
 		resStr += fmt.Sprintf("%v no router (fip/pgw) and dst is external\n", noConnection)
 	case noIngressRules && noEgressRules:
-		resStr += fmt.Sprintf("%v connection blocked both by ingress and egress\n", noConnection)
+		resStr += fmt.Sprintf("%v connection blocked both by ingress and egress\n%v", noConnection, rulesStr)
 	case noIngressRules:
-		resStr += fmt.Sprintf("%v connection blocked by ingress\n", noConnection)
-		if needEgress {
-			resStr += egressRulesStr
-		}
+		resStr += fmt.Sprintf("%v connection blocked by ingress\n%v", noConnection, rulesStr)
 	case noEgressRules:
-		resStr += fmt.Sprintf("%v connection blocked by egress\n", noConnection)
-		if needIngress {
-			resStr += ingressRulesStr
-		}
+		resStr += fmt.Sprintf("%v connection blocked by egress\n%v", noConnection, rulesStr)
 	default: // there is a connection
-		return stringExplainabilityConnection(connQuery, src, dst, conn, router, needEgress, needIngress, egressRulesStr, ingressRulesStr)
+		return stringExplainabilityConnection(connQuery, src, dst, conn, router, rulesStr)
 	}
 	return resStr
 }
 
 func stringExplainabilityConnection(connQuery *common.ConnectionSet, src, dst EndpointElem,
-	conn *common.ConnectionSet, router RoutingResource,
-	needEgress, needIngress bool, egressRulesStr, ingressRulesStr string) string {
+	conn *common.ConnectionSet, router RoutingResource, rulesStr string) string {
 	resStr := ""
 	if connQuery == nil {
 		resStr = fmt.Sprintf("The following connection exists between %v and %v: %v; its enabled by\n", src.Name(), dst.Name(),
@@ -549,12 +549,7 @@ func stringExplainabilityConnection(connQuery *common.ConnectionSet, src, dst En
 	if src.IsExternal() || dst.IsExternal() {
 		resStr += "External Router " + router.Kind() + ": " + router.Name() + "\n"
 	}
-	if needEgress {
-		resStr += egressRulesStr
-	}
-	if needIngress {
-		resStr += ingressRulesStr
-	}
+	resStr += rulesStr
 	return resStr
 }
 
