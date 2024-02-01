@@ -48,7 +48,9 @@ func (lyO *subnetLayoutOverlap) fixOverlapping() {
 		if notNeedFixing(l1) {
 			continue
 		}
-		if l1.Src() != l1.Dst() {
+		selfLoop1 := l1.Src() == l1.Dst()
+		if  !selfLoop1{
+			// if self loop, the drawio fix it for us, do not add points
 			if lyO.squaresOverlap(l1) {
 				// src and dst intersect, adding a point to the line
 				addPointOutsideSquares(l1)
@@ -59,8 +61,9 @@ func (lyO *subnetLayoutOverlap) fixOverlapping() {
 			if notNeedFixing(l2) {
 				continue
 			}
-			if l1.Src() == l1.Dst() && l1.Src() == l2.Src() && l1.Src() == l2.Dst() {
-				// two self loops on the same square
+			selfLoop2 := l2.Src() == l2.Dst()
+			if l1.Src() == l2.Src() && selfLoop1 && selfLoop2 {
+				// two self loops on the same square, in that case the drawio does not handle correctly
 				handleDoubleSelfLoop(l1, l2)
 				break
 			}
@@ -130,9 +133,7 @@ func addPointOutsideSquares(line LineTreeNodeInterface) {
 	midX, midY := (xDst+xSrc)/2, (yDst+ySrc)/2
 	x, y := 0, 0
 	switch {
-	case src == dst: // drawio is fixing it for us
-		return
-	case abs(dY) < minSize && abs(dX) < minSize:
+		case abs(dY) < minSize && abs(dX) < minSize:
 		// this is the case that both squares has the same center.
 		// in this case we needs two points, close to each other.
 		// we might also have a line in the opposite direction, so we give the points an offset
@@ -213,10 +214,10 @@ func handleDoubleSelfLoop(l1, l2 LineTreeNodeInterface) {
 	square := l1.Src()
 	x, y := absoluteGeometry(square)
 	y += square.Height() / 2
-	l1.addPoint(x-minSize*3, y-minSize)
-	l1.addPoint(x-minSize*3, y+minSize)
-	l2.addPoint(x+square.Width()+minSize*3, y-minSize)
-	l2.addPoint(x+square.Width()+minSize*3, y+minSize)
+	l1.addPoint(x-minSize*3, y-minSize*2)
+	l1.addPoint(x-minSize*3, y+minSize*2)
+	l2.addPoint(x+square.Width()+minSize*3, y-minSize*2)
+	l2.addPoint(x+square.Width()+minSize*3, y+minSize*2)
 
 }
 
