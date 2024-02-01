@@ -139,7 +139,9 @@ func getTestFileSuffix(format vpcmodel.OutFormat) (suffix string, err error) {
 // initTest: based on the test name, set the input config file name, and the output
 // files names (actual and expected), per use case
 func (tt *vpcGeneralTest) initTest() {
-	tt.inputConfig = inputFilePrefix + tt.name + ".json"
+	if tt.inputConfig == "" {
+		tt.inputConfig = inputFilePrefix + tt.name + ".json"
+	}
 	tt.inputConfig2nd = inputFilePrefix + tt.name + "_2nd.json"
 	tt.expectedOutput = map[vpcmodel.OutputUseCase]string{}
 	tt.actualOutput = map[vpcmodel.OutputUseCase]string{}
@@ -554,7 +556,7 @@ func (tt *vpcGeneralTest) runTest(t *testing.T) {
 
 	// generate actual output for all use cases specified for this test
 	for _, uc := range tt.useCases {
-		err := runTestPerUseCase(t, tt, vpcConfigs, vpcConfigs2nd, uc, tt.mode, explanationArgs)
+		err := runTestPerUseCase(t, tt, vpcConfigs, vpcConfigs2nd, uc, tt.mode, "out/analysis_out", explanationArgs)
 		require.Equal(t, tt.errPerUseCase[uc], err, "comparing actual err to expected err")
 	}
 	for uc, outFile := range tt.actualOutput {
@@ -611,14 +613,15 @@ func compareOrRegenerateOutputPerTest(t *testing.T,
 func initTestFileNames(tt *vpcGeneralTest,
 	uc vpcmodel.OutputUseCase,
 	vpcName string,
-	allVPCs bool) error {
+	allVPCs bool,
+	outDir string) error {
 	expectedFileName, actualFileName, err := getTestFileName(
 		tt.name, uc, tt.grouping, tt.format, vpcName, allVPCs)
 	if err != nil {
 		return err
 	}
-	tt.actualOutput[uc] = filepath.Join(getTestsDir("out/analysis_out"), actualFileName)
-	tt.expectedOutput[uc] = filepath.Join(getTestsDir("out/analysis_out"), expectedFileName)
+	tt.actualOutput[uc] = filepath.Join(getTestsDir(outDir), actualFileName)
+	tt.expectedOutput[uc] = filepath.Join(getTestsDir(outDir), expectedFileName)
 	return nil
 }
 
@@ -628,8 +631,9 @@ func runTestPerUseCase(t *testing.T,
 	c1, c2 map[string]*vpcmodel.VPCConfig,
 	uc vpcmodel.OutputUseCase,
 	mode testMode,
+	outDir string,
 	explanationArgs *vpcmodel.ExplanationArgs) error {
-	if err := initTestFileNames(tt, uc, "", true); err != nil {
+	if err := initTestFileNames(tt, uc, "", true, outDir); err != nil {
 		return err
 	}
 	og, err := vpcmodel.NewOutputGenerator(c1, c2, tt.grouping, uc, tt.format == vpcmodel.ARCHDRAWIO, explanationArgs)
