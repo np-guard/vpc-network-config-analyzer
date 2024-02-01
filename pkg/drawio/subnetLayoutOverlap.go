@@ -48,14 +48,21 @@ func (lyO *subnetLayoutOverlap) fixOverlapping() {
 		if notNeedFixing(l1) {
 			continue
 		}
-		if lyO.squaresOverlap(l1) {
-			// src and dst intersect, adding a point to the line
-			lyO.addPointOutsideSquares(l1)
-			continue
+		if l1.Src() != l1.Dst() {
+			if lyO.squaresOverlap(l1) {
+				// src and dst intersect, adding a point to the line
+				addPointOutsideSquares(l1)
+				continue
+			}
 		}
 		for _, l2 := range allLines[i1+1:] {
 			if notNeedFixing(l2) {
 				continue
+			}
+			if l1.Src() == l1.Dst() && l1.Src() == l2.Src() && l1.Src() == l2.Dst() {
+				// two self loops on the same square
+				handleDoubleSelfLoop(l1, l2)
+				break
 			}
 			if lyO.isLinesOverlap(l1, l2) {
 				lyO.changeLineSrcPoint(l1)
@@ -113,7 +120,7 @@ func (lyO *subnetLayoutOverlap) squaresOverlap(line LineTreeNodeInterface) bool 
 // than we choose a point that
 //  1. on the second line
 //  2. outside both squares
-func (lyO *subnetLayoutOverlap) addPointOutsideSquares(line LineTreeNodeInterface) {
+func addPointOutsideSquares(line LineTreeNodeInterface) {
 	src, dst := line.Src().(SquareTreeNodeInterface), line.Dst().(SquareTreeNodeInterface)
 	xSrc, ySrc := absoluteGeometry(src)
 	xDst, yDst := absoluteGeometry(dst)
@@ -197,6 +204,20 @@ func (lyO *subnetLayoutOverlap) addPointOutsideSquares(line LineTreeNodeInterfac
 		}
 	}
 	line.addPoint(x, y)
+}
+
+/////////////////////////////////////////////////////////////////
+// handleDoubleSelfLoop() is for the case in which a one square has two self loops
+// in this case, we will give the square two nice ears
+func handleDoubleSelfLoop(l1, l2 LineTreeNodeInterface) {
+	square := l1.Src()
+	x, y := absoluteGeometry(square)
+	y += square.Height() / 2
+	l1.addPoint(x-minSize*3, y-minSize)
+	l1.addPoint(x-minSize*3, y+minSize)
+	l2.addPoint(x+square.Width()+minSize*3, y-minSize)
+	l2.addPoint(x+square.Width()+minSize*3, y+minSize)
+
 }
 
 // ////////////////////////////////////////////////////////
