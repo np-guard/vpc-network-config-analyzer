@@ -317,7 +317,7 @@ var explainTests = []*vpcGeneralTest{
 		inputConfig: "input_acl_testing3_3rd.json",
 		ESrc:        "vsi1-ky[10.240.10.4]",
 		EDst:        "161.26.0.0/16",
-		EProtocol:   string(string(common.ProtocolUDP)),
+		EProtocol:   string(common.ProtocolUDP),
 		ESrcMinPort: common.MinPort,
 		ESrcMaxPort: common.MaxPort,
 		EDstMinPort: common.MinPort,
