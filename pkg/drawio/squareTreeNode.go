@@ -1,5 +1,13 @@
 package drawio
 
+// debug points are points that can be added to the drawio,
+// they are used ad a debug tool for the developer of this package (aka me)
+// to add a point to the canvas call addDebugPoint(), with a point having absolute values of x and y
+type debugPoint struct {
+	P  point
+	ID uint
+}
+
 // /////////////////////////////////////////////////////////////////////
 type SquareTreeNodeInterface interface {
 	TreeNodeInterface
@@ -11,12 +19,15 @@ type SquareTreeNodeInterface interface {
 	IsSubnet() bool
 	IsGroupingSquare() bool
 	IsGroupSubnetsSquare() bool
+	DebugPoints() []debugPoint
+	addDebugPoint(p point)
 }
 
 type abstractSquareTreeNode struct {
 	abstractTreeNode
 	elements    []IconTreeNodeInterface
 	connections []LineTreeNodeInterface
+	debugPoints []debugPoint
 }
 
 func newAbstractSquareTreeNode(parent TreeNodeInterface, name string) abstractSquareTreeNode {
@@ -40,6 +51,11 @@ func (tn *abstractSquareTreeNode) DecoreID() uint { return tn.id + decoreID }
 func (tn *abstractSquareTreeNode) IsSubnet() bool             { return false }
 func (tn *abstractSquareTreeNode) IsGroupingSquare() bool     { return false }
 func (tn *abstractSquareTreeNode) IsGroupSubnetsSquare() bool { return false }
+
+func (tn *abstractSquareTreeNode) DebugPoints() []debugPoint { return tn.debugPoints }
+func (tn *abstractSquareTreeNode) addDebugPoint(p point) {
+	tn.debugPoints = append(tn.debugPoints, debugPoint{P: p, ID: createID()})
+}
 
 func calculateSquareGeometry(tn SquareTreeNodeInterface) {
 	location := tn.Location()

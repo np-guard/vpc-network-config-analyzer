@@ -5,6 +5,11 @@
 {{ $data := .}}
 <mxCell id="0"/>
 <mxCell id="{{$data.IDsPrefix}}-{{$data.RootID}}" parent="0"/>
+    {{range $point := $data.DebugPoints}}
+        <mxCell id="{{$data.IDsPrefix}}-{{$point.ID}}" value="" style="verticalLabelPosition=bottom;verticalAlign=top;html=1;shape=mxgraph.basic.8_point_star" vertex="1" parent="{{$data.IDsPrefix}}-{{$data.RootID}}">
+        <mxGeometry width="10" height="10" x="{{$point.P.X}}" y="{{$point.P.Y}}" as="geometry"/>
+        </mxCell>
+    {{end}}
     {{range $node := $data.Nodes}}
     <!-- {{$data.ElementComment $node}} -->
         {{ if $node.NotShownInDrawio }}

@@ -728,11 +728,8 @@ func (ly *subnetsLayout) createNewGroupsTreeNodes() {
 }
 
 func (ly *subnetsLayout) createNewLinesTreeNodes() {
-	for _, con := range getAllNodes(ly.network) {
-		if !con.IsLine() {
-			continue
-		}
-		srcTn, dstTn := con.(LineTreeNodeInterface).Src(), con.(LineTreeNodeInterface).Dst()
+	for _, con := range getAllLines(ly.network) {
+		srcTn, dstTn := con.Src(), con.Dst()
 		if !srcTn.NotShownInDrawio() && !dstTn.NotShownInDrawio() {
 			continue
 		}

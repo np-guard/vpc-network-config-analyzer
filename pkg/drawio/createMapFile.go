@@ -13,8 +13,9 @@ var drawioTemplate string
 
 type drawioData struct {
 	drawioStyles
-	rootID uint
-	Nodes  []TreeNodeInterface
+	rootID      uint
+	Nodes       []TreeNodeInterface
+	DebugPoints []debugPoint
 }
 
 func NewDrawioData(network SquareTreeNodeInterface) *drawioData {
@@ -24,6 +25,7 @@ func NewDrawioData(network SquareTreeNodeInterface) *drawioData {
 		newDrawioStyles(allNodes),
 		network.ID(),
 		orderedNodes,
+		network.DebugPoints(),
 	}
 }
 func (data *drawioData) FipXOffset() int      { return fipXOffset }
