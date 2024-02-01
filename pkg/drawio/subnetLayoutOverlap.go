@@ -69,7 +69,6 @@ func (lyO *subnetLayoutOverlap) fixOverlapping() {
 // notNeedFixing() check for cases fix is not needed
 func notNeedFixing(line LineTreeNodeInterface) bool {
 	return (!line.Src().IsSquare() || !line.Dst().IsSquare()) ||
-		line.Src() == line.Dst() || // if src == dst, the drawio fix it for us, nothing to do
 		len(line.Points()) > 0 || // we already has points on the line
 		line.SrcConnectionPoint() > 0 // we already change the src point of line
 }
@@ -124,21 +123,28 @@ func (lyO *subnetLayoutOverlap) addPointOutsideSquares(line LineTreeNodeInterfac
 	midX, midY := (xDst+xSrc)/2, (yDst+ySrc)/2
 	x, y := 0, 0
 	switch {
+	case src == dst: // drawio is fixing it for us
+		return
 	case abs(dY) < minSize && abs(dX) < minSize:
 		// this is the case that both squares has the same center.
+		// in this case we needs two points, close to each other.
+		// we might also have a line in the opposite direction, so we give the points an offset
+		offset := 4 * minSize
+		if src.ID() > dst.ID() {
+			offset = -offset
+		}
 		if max(src.Width()/2, dst.Width()/2) > max(src.Height()/2, dst.Height()/2) {
 			// width is bigger then hight, we choose a point below the center, outside both squares:
 			y = midY + max(src.Height()/2, dst.Height()/2) + subnetHeight/2
 			x = midX
-			// in this case we needs two points, close to each other:
-			line.addPoint(x-minSize, y)
-			line.addPoint(x+minSize, y)
+			line.addPoint(x-minSize+offset, y)
+			line.addPoint(x+minSize+offset, y)
 		} else {
 			// hight is bigger then width, we choose a point right to the center, outside both squares:
 			y = midY
 			x = midX + max(src.Width()/2, dst.Width()/2) + subnetWidth/2
-			line.addPoint(x, y-minSize)
-			line.addPoint(x, y+minSize)
+			line.addPoint(x, y-minSize+offset)
+			line.addPoint(x, y+minSize+offset)
 		}
 		return
 	case abs(dX) < minSize:
