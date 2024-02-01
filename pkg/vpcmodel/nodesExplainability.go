@@ -37,7 +37,7 @@ type srcDstDetails struct {
 	actualAllowRules    *rulesConnection // enabling rules effecting connection given router; e.g. NACL is not relevant for fip
 	potentialDenyRules  *rulesConnection // deny rules potentially (w.r.t. router) effecting the connection, relevant for ACL
 	actualDenyRules     *rulesConnection // deny rules effecting the connection, relevant for ACL
-	actualRules         *rulesConnection // rules actually effecting the connection (both allow and deny)
+	actualMergedRules   *rulesConnection // rules actually effecting the connection (both allow and deny)
 	// enabling rules implies whether ingress/egress is enabled
 	// potential rules are saved for further debugging and explanation provided to the user
 }
@@ -299,7 +299,7 @@ func (details *rulesAndConnDetails) computeCombinedActualRules() {
 		actualRulesEgress := mergeAllowDeny(singleSrcDstDetails.actualAllowRules.egressRules,
 			singleSrcDstDetails.actualDenyRules.egressRules)
 		actualRules := &rulesConnection{actualRulesIngress, actualRulesEgress}
-		singleSrcDstDetails.actualRules = actualRules
+		singleSrcDstDetails.actualMergedRules = actualRules
 	}
 }
 
@@ -478,7 +478,7 @@ func (details *rulesAndConnDetails) String(c *VPCConfig, connQuery *common.Conne
 	for _, srcDstDetails := range *details {
 		resStr += stringExplainabilityLine(c, connQuery, srcDstDetails.src, srcDstDetails.dst, srcDstDetails.conn,
 			srcDstDetails.ingressEnabled, srcDstDetails.egressEnabled,
-			srcDstDetails.router, srcDstDetails.actualRules)
+			srcDstDetails.router, srcDstDetails.actualMergedRules)
 	}
 	return resStr, nil
 }
