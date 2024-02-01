@@ -622,11 +622,7 @@ func (rulesInLayers rulesInLayers) string(c *VPCConfig) string {
 			continue
 		}
 		if rules, ok := rulesInLayers[layer]; ok {
-			stringRulesOfFilter := filter.StringRulesOfFilter(rules)
-			if stringRulesOfFilter != "" {
-				rulesInLayersStr += layer + " Rules\n------------------------\n" +
-					stringRulesOfFilter
-			}
+			rulesInLayersStr += filter.StringRulesOfFilter(rules)
 		}
 	}
 	return rulesInLayersStr
