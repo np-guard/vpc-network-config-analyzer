@@ -218,10 +218,12 @@ func (lyO *subnetLayoutOverlap) isLinesOverlap(l1, l2 LineTreeNodeInterface) boo
 	maxX1, maxY1 := max(srcX1, dstX1), max(srcY1, dstY1)
 	maxX2, maxY2 := max(srcX2, dstX2), max(srcY2, dstY2)
 
-	return dx1*dy2 == dx2*dy1 && // is same gradient?
+	return (dx1 != 0 || dy1 != 0) && // src1 == dst1
+		(dx2 != 0 || dy2 != 0) && // src2 == dst2
+		dx1*dy2 == dx2*dy1 && // is same gradient?
 		dx1*(srcY2-srcY1) == dy1*(srcX2-srcX1) && // is same graph?
-		((minX1 < maxX2 && minX2 < maxX1) || dx1 == 0) && // share x domain?
-		((minY1 < maxY2 && minY2 < maxY1) || dy1 == 0) // share y domain?
+		((minX1 < maxX2 && minX2 < maxX1) || dx1 == 0) && // share x domain (relevant only if dx != 0)?
+		((minY1 < maxY2 && minY2 < maxY1) || dy1 == 0) // share y domain (relevant only if dy != 0)?
 }
 
 // changeLineSrcPoint() find the current connection point of the src, and changing it to the point next to it

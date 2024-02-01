@@ -1,8 +1,10 @@
 package drawio
 
-// the drawio allow us to set the point in which the line will enter/exit the dst/src
-// there are 16 points, so the value of lineConnectionPoint are from 1 to 16, like a clock with 16 hours.
-// 0 means no connection point (the drawio will choose for us)
+// the drawio allow us to set the point in which the line will enter/exit the dst/src.
+// there are 16 points that drawio allow us to set.
+// for coding convenience, we enumerated these points from 1 to 16 (see diagram below).
+// so the value of lineConnectionPoint are from 1 to 16, like a clock with 16 hours.
+// 0 means no connection point (in that case, the drawio will choose for us)
 
 // 14 15 16 01 02
 // 13          03
