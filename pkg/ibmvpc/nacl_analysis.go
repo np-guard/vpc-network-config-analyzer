@@ -527,16 +527,16 @@ func (na *NACLAnalyzer) rulesInConnectivity(subnetCidr, inSubentCidr,
 }
 
 // given a list of rules and a connection, return the sublist of rules that contributes to the connection
-func (na *NACLAnalyzer) getRulesRelevantConn(rules []int, conn *common.ConnectionSet) ([]int, error) {
+func (na *NACLAnalyzer) getRulesRelevantConn(rules []int, connQuery *common.ConnectionSet) ([]int, error) {
 	relevantRules := []int{}
 	curConn := common.NewConnectionSet(false)
 	for _, rule := range append(na.ingressRules, na.egressRules...) {
-		if !slices.Contains(rules, rule.index) || conn.Intersection(rule.connections).IsEmpty() {
+		if !slices.Contains(rules, rule.index) || connQuery.Intersection(rule.connections).IsEmpty() {
 			continue
 		}
 		curConn = curConn.Union(rule.connections)
 		relevantRules = append(relevantRules, rule.index)
-		contains, err := conn.ContainedIn(curConn)
+		contains, err := connQuery.ContainedIn(curConn)
 		if err != nil {
 			return nil, err
 		}
