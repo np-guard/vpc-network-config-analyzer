@@ -472,6 +472,14 @@ var explainTests = []*explainGeneralTest{
 			"enabling rules from sg1-ky:\n\tindex: 1, direction: inbound, protocol: all, cidr: 0.0.0.0/0\n\n",
 	},
 	{
+		// blocked by deny rules
+		name:        "NACLInternalBlockedByDebyRules",
+		inputConfig: "input_acl_testing3_3rd",
+		ESrc:        "vsi1-ky[10.240.10.4]",
+		EDst:        "vsi2-ky[10.240.20.4]",
+		out:         "",
+	},
+	{
 		name:        "NACLGrouping",
 		inputConfig: "input_acl_testing3",
 		ESrc:        "vsi1-ky[10.240.10.4]",
