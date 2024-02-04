@@ -15,7 +15,7 @@ const explainOut = "explain_out"
 
 // getConfigs returns  map[string]*vpcmodel.VPCConfig obj for the input test (config json file)
 func getConfig(t *testing.T, fileName string) *vpcmodel.VPCConfig {
-	inputConfigFile := filepath.Join(getTestsDirInput(), "input_"+fileName+".json")
+	inputConfigFile := filepath.Join(getTestsDirInput(), inputFilePrefix+fileName+jsonOutSuffix)
 	rc, err := ParseResourcesFromFile(inputConfigFile)
 	if err != nil {
 		t.Fatalf("err: %s", err)
