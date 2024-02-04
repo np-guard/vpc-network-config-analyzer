@@ -12,6 +12,11 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
+const (
+	ALLOW string = "allow"
+	DENY  string = "deny"
+)
+
 type NACLAnalyzer struct {
 	naclResource *vpc1.NetworkACL
 	ingressRules []*NACLRule
@@ -198,7 +203,7 @@ func getAllowedXgressConnections(rules []*NACLRule, src, subnetCidr *common.IPBl
 		}
 		for _, disjointDestCidr := range destCidrList {
 			disjointDestIP := disjointDestCidr.ToIPRanges()
-			if rule.action == "allow" {
+			if rule.action == ALLOW {
 				addedAllowedConns := rule.connections.Copy()
 				addedAllowedConns = addedAllowedConns.Subtract(deniedXgress[disjointDestIP])
 				// issue here at union below
@@ -207,7 +212,7 @@ func getAllowedXgressConnections(rules []*NACLRule, src, subnetCidr *common.IPBl
 				if !allowedXgress[disjointDestIP].Equal(allowedXgressDestCidrBefore) { // this rule contributes to the connection
 					allowRules[disjointDestIP] = append(allowRules[disjointDestIP], rule.index)
 				}
-			} else if rule.action == "deny" {
+			} else if rule.action == DENY {
 				addedDeniedConns := rule.connections.Copy()
 				addedDeniedConns = addedDeniedConns.Subtract(allowedXgress[disjointDestIP])
 				deniedXgressDestCidrBefore := deniedXgress[disjointDestIP]
@@ -532,17 +537,15 @@ func (na *NACLAnalyzer) rulesInConnectivity(subnetCidr, inSubentCidr,
 func (na *NACLAnalyzer) getRulesRelevantConn(rules []int,
 	connQuery *common.ConnectionSet) (allowRelevant, denyRelevant []int, err error) {
 	allowRelevant, denyRelevant = []int{}, []int{}
-	relevantRules := []int{}
 	curConn := common.NewConnectionSet(false)
 	for _, rule := range append(na.ingressRules, na.egressRules...) {
 		if !slices.Contains(rules, rule.index) || connQuery.Intersection(rule.connections).IsEmpty() {
 			continue
 		}
 		curConn = curConn.Union(rule.connections)
-		relevantRules = append(relevantRules, rule.index)
-		if rule.action == "allow" {
+		if rule.action == ALLOW {
 			allowRelevant = append(allowRelevant, rule.index)
-		} else if rule.action == "deny" {
+		} else if rule.action == DENY {
 			denyRelevant = append(denyRelevant, rule.index)
 		}
 		contains, err := connQuery.ContainedIn(curConn)
