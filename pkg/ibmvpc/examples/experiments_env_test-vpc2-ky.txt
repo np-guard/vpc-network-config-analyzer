@@ -1,3 +1,0 @@
-Connectivity for VPC test-vpc2-ky
-vsi20-ky[10.240.128.4] => vsi21-ky[10.240.128.5] : All Connections
-vsi21-ky[10.240.128.5] => vsi20-ky[10.240.128.4] : All Connections

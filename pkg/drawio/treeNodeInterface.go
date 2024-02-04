@@ -100,6 +100,16 @@ func getAllNodes(tn TreeNodeInterface) []TreeNodeInterface {
 	return ret
 }
 
+func getAllLines(tn TreeNodeInterface) (ret []LineTreeNodeInterface) {
+	nodes := getAllNodes(tn)
+	for _, n := range nodes {
+		if n.IsLine() {
+			ret = append(ret, n.(LineTreeNodeInterface))
+		}
+	}
+	return ret
+}
+
 func locations(tns []TreeNodeInterface) []*Location {
 	locations := []*Location{}
 	for _, c := range tns {

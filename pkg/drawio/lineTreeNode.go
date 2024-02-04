@@ -1,5 +1,20 @@
 package drawio
 
+// the drawio allow us to set the point in which the line will enter/exit the dst/src.
+// there are 16 points that drawio allow us to set.
+// for coding convenience, we enumerated these points from 1 to 16 (see diagram below).
+// so the value of lineConnectionPoint are from 1 to 16, like a clock with 16 hours.
+// 0 means no connection point (in that case, the drawio will choose for us)
+
+// 14 15 16 01 02
+// 13          03
+// 12          04
+// 11          05
+// 10 09 08 07 06
+type lineConnectionPoint int
+
+const maxLineConnectionPoint = 16
+
 // /////////////////////////////////////////////////////////////////////
 //
 // ////////////////////////////////////////////////////////////////
@@ -20,14 +35,17 @@ type LineTreeNodeInterface interface {
 	addPoint(x int, y int)
 	SetRouter(router IconTreeNodeInterface, reverse bool)
 	Router() IconTreeNodeInterface
+	SrcConnectionPoint() lineConnectionPoint
+	setSrcConnectionPoint(lineConnectionPoint)
 }
 
 type abstractLineTreeNode struct {
 	abstractTreeNode
-	src    TreeNodeInterface
-	dst    TreeNodeInterface
-	router IconTreeNodeInterface
-	points []point
+	src                TreeNodeInterface
+	dst                TreeNodeInterface
+	router             IconTreeNodeInterface
+	points             []point
+	srcConnectionPoint lineConnectionPoint
 }
 
 func (tn *abstractLineTreeNode) IsLine() bool {
@@ -64,6 +82,13 @@ func (tn *abstractLineTreeNode) SetRouter(router IconTreeNodeInterface, reverse 
 
 func (tn *abstractLineTreeNode) addPoint(x, y int) {
 	tn.points = append(tn.points, point{x, y})
+}
+
+func (tn *abstractLineTreeNode) SrcConnectionPoint() lineConnectionPoint {
+	return tn.srcConnectionPoint
+}
+func (tn *abstractLineTreeNode) setSrcConnectionPoint(srcConnectionPoint lineConnectionPoint) {
+	tn.srcConnectionPoint = srcConnectionPoint
 }
 
 // ////////////////////////////////////////////////////////////////

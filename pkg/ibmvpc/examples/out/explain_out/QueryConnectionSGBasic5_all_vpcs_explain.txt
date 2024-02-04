@@ -1,0 +1,3 @@
+Connectivity explanation for protocol: UDP src-ports: 10-100 dst-ports: 443 between vsi1-ky[10.240.10.4] and vsi3a-ky[10.240.30.5]
+There is no connection "protocol: UDP src-ports: 10-100 dst-ports: 443" between vsi1-ky[10.240.10.4] and vsi3a-ky[10.240.30.5]; connection blocked both by ingress and egress
+

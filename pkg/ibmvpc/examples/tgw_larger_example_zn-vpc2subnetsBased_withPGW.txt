@@ -1,3 +1,0 @@
-Connectivity for VPC zn-vpc2
-combined connections between subnets:
-

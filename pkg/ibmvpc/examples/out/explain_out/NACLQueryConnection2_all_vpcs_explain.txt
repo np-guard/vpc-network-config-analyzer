@@ -1,0 +1,3 @@
+Connectivity explanation for protocol: TCP between vsi1-ky[10.240.10.4] and 161.26.0.0/16
+There is no connection "protocol: TCP" between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16; connection blocked by egress
+
