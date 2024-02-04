@@ -504,15 +504,7 @@ func stringExplainabilityLine(c *VPCConfig, connQuery *common.ConnectionSet, src
 	needIngress := !dst.IsExternal()
 	noIngressRules := !ingressEnabled && needIngress
 	noEgressRules := !egressEnabled && needEgress
-	egressRulesStr := rules.egressRules.string(c)
-	ingressRulesStr := rules.ingressRules.string(c)
-	if needEgress && egressRulesStr != "" {
-		egressRulesStr = "Egress Rules:\n~~~~~~~~~~~~~\n" + egressRulesStr
-	}
-	if needIngress && ingressRulesStr != "" {
-		ingressRulesStr = "Ingress Rules:\n~~~~~~~~~~~~~\n" + ingressRulesStr
-	}
-	rulesStr := egressRulesStr + ingressRulesStr
+	rulesStr := rules.getRuleStr(c, needEgress, needIngress)
 	noConnection := ""
 	if connQuery == nil {
 		noConnection = fmt.Sprintf("No connection between %v and %v;", src.Name(), dst.Name())
@@ -536,6 +528,18 @@ func stringExplainabilityLine(c *VPCConfig, connQuery *common.ConnectionSet, src
 		return stringExplainabilityConnection(connQuery, src, dst, conn, router, rulesStr)
 	}
 	return resStr
+}
+
+func (rules *rulesConnection) getRuleStr(c *VPCConfig, needEgress, needIngress bool) string {
+	egressRulesStr := rules.egressRules.string(c)
+	ingressRulesStr := rules.ingressRules.string(c)
+	if needEgress && egressRulesStr != "" {
+		egressRulesStr = "Egress Rules:\n~~~~~~~~~~~~~\n" + egressRulesStr
+	}
+	if needIngress && ingressRulesStr != "" {
+		ingressRulesStr = "Ingress Rules:\n~~~~~~~~~~~~~\n" + ingressRulesStr
+	}
+	return egressRulesStr + ingressRulesStr
 }
 
 func stringExplainabilityConnection(connQuery *common.ConnectionSet, src, dst EndpointElem,
