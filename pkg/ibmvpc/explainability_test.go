@@ -11,9 +11,11 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
+const explainOut = "explain_out"
+
 // getConfigs returns  map[string]*vpcmodel.VPCConfig obj for the input test (config json file)
 func getConfig(t *testing.T, fileName string) *vpcmodel.VPCConfig {
-	inputConfigFile := filepath.Join(getTestsDir("input"), fileName+".json")
+	inputConfigFile := filepath.Join(getTestsDirInput(), fileName+".json")
 	rc, err := ParseResourcesFromFile(inputConfigFile)
 	if err != nil {
 		t.Fatalf("err: %s", err)
@@ -365,7 +367,7 @@ func (tt *vpcGeneralTest) runExplainTest(t *testing.T) {
 		tt.ESrcMinPort, tt.ESrcMaxPort, tt.EDstMinPort, tt.EDstMaxPort)
 
 	// generate actual output for all use cases specified for this test
-	err := runTestPerUseCase(t, tt, vpcConfigs, nil, vpcmodel.Explain, tt.mode, "out/explain_out", explanationArgs)
+	err := runTestPerUseCase(t, tt, vpcConfigs, nil, vpcmodel.Explain, tt.mode, explainOut, explanationArgs)
 	require.Equal(t, tt.errPerUseCase[vpcmodel.Explain], err, "comparing actual err to expected err")
 	for uc, outFile := range tt.actualOutput {
 		fmt.Printf("test %s use-case %d - generated output file: %s\n", tt.name, uc, outFile)
