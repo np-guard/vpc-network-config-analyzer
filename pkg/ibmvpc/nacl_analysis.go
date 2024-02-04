@@ -181,15 +181,7 @@ func getAllowedXgressConnections(rules []*NACLRule, src, subnetCidr *common.IPBl
 	}
 
 	for _, rule := range rules {
-		var s *common.IPBlock
-		var d *common.IPBlock
-		if isIngress {
-			s = rule.src
-			d = rule.dst
-		} else {
-			s = rule.dst
-			d = rule.src
-		}
+		s, d := rule.getSrcDst(isIngress)
 		if !src.ContainedIn(s) {
 			continue
 		}
@@ -224,6 +216,17 @@ func getAllowedXgressConnections(rules []*NACLRule, src, subnetCidr *common.IPBl
 		}
 	}
 	return allowedXgress, deniedXgress, allowRules, denyRules
+}
+
+func (rule *NACLRule) getSrcDst(isIngress bool) (src, dst *common.IPBlock) {
+	if isIngress {
+		src = rule.src
+		dst = rule.dst
+	} else {
+		src = rule.dst
+		dst = rule.src
+	}
+	return src, dst
 }
 
 func getDisjointPeersForIngressOrEgressAnalysis(
