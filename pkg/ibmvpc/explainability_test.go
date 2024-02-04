@@ -337,7 +337,7 @@ func TestAll(t *testing.T) {
 	fmt.Println("done")
 }
 
-// uncomment the function below to run for updating the expected output
+// uncomment the function below for generating the expected output files instead of comparing
 /*
 func TestAllWithGeneration(t *testing.T) {
 // tests is the list of tests to run
