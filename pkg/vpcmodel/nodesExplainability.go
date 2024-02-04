@@ -246,8 +246,10 @@ func (details *rulesAndConnDetails) computeAdditionalDetails(c *VPCConfig) error
 		singleSrcDstDetails.router = routingResource
 		singleSrcDstDetails.filtersExternal = filtersForExternal
 		isInternal := singleSrcDstDetails.src.IsInternal() && singleSrcDstDetails.dst.IsInternal()
-		actualAllowIngress, ingressEnabled := computeActualRules(&singleSrcDstDetails.potentialAllowRules.ingressRules, filtersForExternal, isInternal)
-		actualAllowEgress, egressEnabled := computeActualRules(&singleSrcDstDetails.potentialAllowRules.egressRules, filtersForExternal, isInternal)
+		actualAllowIngress, ingressEnabled := computeActualRules(&singleSrcDstDetails.potentialAllowRules.ingressRules,
+			filtersForExternal, isInternal)
+		actualAllowEgress, egressEnabled := computeActualRules(&singleSrcDstDetails.potentialAllowRules.egressRules,
+			filtersForExternal, isInternal)
 		actualDenyIngress, _ := computeActualRules(&singleSrcDstDetails.potentialDenyRules.ingressRules, filtersForExternal, isInternal)
 		actualDenyEgress, _ := computeActualRules(&singleSrcDstDetails.potentialDenyRules.egressRules, filtersForExternal, isInternal)
 		actualAllow := &rulesConnection{*actualAllowIngress, *actualAllowEgress}
