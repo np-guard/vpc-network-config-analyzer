@@ -512,14 +512,13 @@ func (na *NACLAnalyzer) rulesInConnectivity(subnetCidr, inSubentCidr,
 				if connQuery == nil {
 					return allowRules, denyRules, nil
 				}
-				var allowRelevant, denyRelevant []int
+				var mergedRules, allowRelevant, denyRelevant []int
+				mergedRules = append(mergedRules, allowRules...)
+				mergedRules = append(mergedRules, denyRules...)
+				slices.Sort(mergedRules)
 				// connection is part of the query
-				// the required connection - connQuery - should intersect with the existing connection
-				// Namely, enabling rules intersect the connection
-				// todo: merge and sort deny and allow. Then relevant must be together.
-				//       seperate to two list per allow/deny
-				allowRelevant, err = na.getRulesRelevantConn(allowRules, connQuery) // gets only rules relevant to conn
-				denyRelevant, err = na.getRulesRelevantConn(denyRules, connQuery)
+				// takes only rules relevant to connQuery
+				allowRelevant, denyRelevant, err = na.getRulesRelevantConn(mergedRules, connQuery)
 				return allowRelevant, denyRelevant, nil
 			}
 		}
@@ -528,8 +527,11 @@ func (na *NACLAnalyzer) rulesInConnectivity(subnetCidr, inSubentCidr,
 	return nil, nil, fmt.Errorf(notFoundMsg, isIngress, target, subnetCidr, inSubentCidr)
 }
 
-// given a list of rules and a connection, return the sublist of rules that contributes to the connection
-func (na *NACLAnalyzer) getRulesRelevantConn(rules []int, connQuery *common.ConnectionSet) ([]int, error) {
+// given a list of allow and deny rules and a connection,
+// return the allow and deny sublists of rules that contributes to the connection
+func (na *NACLAnalyzer) getRulesRelevantConn(rules []int,
+	connQuery *common.ConnectionSet) (allowRelevant, denyRelevant []int, err error) {
+	allowRelevant, denyRelevant = []int{}, []int{}
 	relevantRules := []int{}
 	curConn := common.NewConnectionSet(false)
 	for _, rule := range append(na.ingressRules, na.egressRules...) {
@@ -538,16 +540,21 @@ func (na *NACLAnalyzer) getRulesRelevantConn(rules []int, connQuery *common.Conn
 		}
 		curConn = curConn.Union(rule.connections)
 		relevantRules = append(relevantRules, rule.index)
+		if rule.action == "allow" {
+			allowRelevant = append(allowRelevant, rule.index)
+		} else if rule.action == "deny" {
+			denyRelevant = append(denyRelevant, rule.index)
+		}
 		contains, err := connQuery.ContainedIn(curConn)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
-		if contains { // if the required conn is contained in connections thus far, lower priority rules
-			// are not relevant
-			return relevantRules, nil
+		if contains {
+			// if the required connQuery is contained in connections thus far, lower priority rules not relevant
+			return allowRelevant, denyRelevant, nil
 		}
 	}
-	return relevantRules, nil
+	return allowRelevant, denyRelevant, nil
 }
 
 // StringRules returns a string with the details of the specified rules
