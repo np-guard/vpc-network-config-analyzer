@@ -516,6 +516,8 @@ func (na *NACLAnalyzer) rulesInConnectivity(subnetCidr, inSubentCidr,
 				// connection is part of the query
 				// the required connection - connQuery - should intersect with the existing connection
 				// Namely, enabling rules intersect the connection
+				// todo: merge and sort deny and allow. Then relevant must be together.
+				//       seperate to two list per allow/deny
 				allowRelevant, err = na.getRulesRelevantConn(allowRules, connQuery) // gets only rules relevant to conn
 				denyRelevant, err = na.getRulesRelevantConn(denyRules, connQuery)
 				return allowRelevant, denyRelevant, nil
