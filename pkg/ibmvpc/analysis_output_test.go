@@ -71,6 +71,7 @@ const (
 	debugOutSuffix                 = "_debug.txt"
 	mdOutSuffix                    = ".md"
 	jsonOutSuffix                  = ".json"
+	secJsonOutSuffix               = "_2nd.json"
 	drawioOutSuffix                = ".drawio"
 	archDrawioOutSuffix            = "_arch.drawio"
 )
@@ -146,8 +147,8 @@ func getTestFileSuffix(format vpcmodel.OutFormat) (suffix string, err error) {
 // initTest: based on the test name, set the input config file name, and the output
 // files names (actual and expected), per use case
 func (tt *vpcGeneralTest) initTest() {
-	tt.inputConfig = inputFilePrefix + tt.inputConfig + ".json"
-	tt.inputConfig2nd = inputFilePrefix + tt.inputConfig + "_2nd.json"
+	tt.inputConfig2nd = inputFilePrefix + tt.inputConfig + secJsonOutSuffix
+	tt.inputConfig = inputFilePrefix + tt.inputConfig + jsonOutSuffix
 	tt.expectedOutput = map[vpcmodel.OutputUseCase]string{}
 	tt.actualOutput = map[vpcmodel.OutputUseCase]string{}
 	// init field of expected errs
