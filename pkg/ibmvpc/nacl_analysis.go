@@ -524,7 +524,7 @@ func (na *NACLAnalyzer) rulesInConnectivity(subnetCidr, inSubentCidr,
 				// connection is part of the query
 				// takes only rules relevant to connQuery
 				allowRelevant, denyRelevant, err = na.getRulesRelevantConn(mergedRules, connQuery)
-				return allowRelevant, denyRelevant, nil
+				return allowRelevant, denyRelevant, err
 			}
 		}
 	}
