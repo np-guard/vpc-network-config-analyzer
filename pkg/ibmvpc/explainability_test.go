@@ -327,7 +327,7 @@ var explainTests = []*vpcGeneralTest{
 	},
 	{
 		name:        "NACLOnlyDenyNoConnQuery",
-		inputConfig: "input_acl_testing3_3rd.json",
+		inputConfig: "acl_testing3_3rd",
 		ESrc:        "vsi1-ky[10.240.10.4]",
 		EDst:        "vsi2-ky[10.240.20.4]",
 		EProtocol:   string(common.ProtocolICMP),

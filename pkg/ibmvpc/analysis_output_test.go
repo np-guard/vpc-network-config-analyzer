@@ -203,9 +203,9 @@ var tests = []*vpcGeneralTest{
 		format:   vpcmodel.Text,
 	},
 	{
-		name:     "sg_testing1_new",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.SingleSubnet, vpcmodel.AllSubnets},
-		format:   vpcmodel.Text,
+		inputConfig: "sg_testing1_new",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.SingleSubnet, vpcmodel.AllSubnets},
+		format:      vpcmodel.Text,
 	},
 	{
 		inputConfig: "demo_with_instances",
