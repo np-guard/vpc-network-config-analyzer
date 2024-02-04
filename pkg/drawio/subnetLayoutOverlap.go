@@ -48,24 +48,14 @@ func (lyO *subnetLayoutOverlap) fixOverlapping() {
 		if notNeedFixing(l1) {
 			continue
 		}
-		selfLoop1 := l1.Src() == l1.Dst()
-		if !selfLoop1 {
-			// if self loop, the drawio fix it for us, do not add points
-			if lyO.squaresOverlap(l1) {
-				// src and dst intersect, adding a point to the line
-				addPointOutsideSquares(l1)
-				continue
-			}
+		if lyO.squaresOverlap(l1) {
+			// src and dst intersect, adding a point to the line
+			addPointOutsideSquares(l1)
+			continue
 		}
 		for _, l2 := range allLines[i1+1:] {
 			if notNeedFixing(l2) {
 				continue
-			}
-			selfLoop2 := l2.Src() == l2.Dst()
-			if l1.Src() == l2.Src() && selfLoop1 && selfLoop2 {
-				// two self loops on the same square, in that case the drawio does not handle correctly
-				handleDoubleSelfLoop(l1, l2)
-				break
 			}
 			if lyO.isLinesOverlap(l1, l2) {
 				lyO.changeLineSrcPoint(l1)
@@ -79,6 +69,7 @@ func (lyO *subnetLayoutOverlap) fixOverlapping() {
 // notNeedFixing() check for cases fix is not needed
 func notNeedFixing(line LineTreeNodeInterface) bool {
 	return (!line.Src().IsSquare() || !line.Dst().IsSquare()) ||
+		line.Src() == line.Dst() || // if src == dst, the drawio fix it for us, nothing to do
 		len(line.Points()) > 0 || // we already has points on the line
 		line.SrcConnectionPoint() > 0 // we already change the src point of line
 }
@@ -205,19 +196,6 @@ func addPointOutsideSquares(line LineTreeNodeInterface) {
 		}
 	}
 	line.addPoint(x, y)
-}
-
-// ///////////////////////////////////////////////////////////////
-// handleDoubleSelfLoop() is for the case in which a one square has two self loops
-// in this case, we will give the square two nice ears
-func handleDoubleSelfLoop(l1, l2 LineTreeNodeInterface) {
-	square := l1.Src()
-	x, y := absoluteGeometry(square)
-	y += square.Height() / 2
-	l1.addPoint(x-threeMinSize, y-twoMinSize)
-	l1.addPoint(x-threeMinSize, y+twoMinSize)
-	l2.addPoint(x+square.Width()+threeMinSize, y-twoMinSize)
-	l2.addPoint(x+square.Width()+threeMinSize, y+twoMinSize)
 }
 
 // ////////////////////////////////////////////////////////

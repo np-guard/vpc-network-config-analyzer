@@ -444,10 +444,6 @@ func createNetworkSubnetGroupingOverlapping() SquareTreeNodeInterface {
 		{(*zones)[3][0], (*zones)[0][2]},
 		{(*zones)[0][2], (*zones)[3][0]},
 
-		{(*zones)[1][1], (*zones)[1][1]},
-		{(*zones)[1][1], (*zones)[1][1]},
-		{groups[3], groups[3]},
-		{groups[3], groups[3]},
 		{groups[3], (*zones)[1][0]},
 		{(*zones)[1][0], groups[3]},
 		{groups[3], (*zones)[1][1]},
