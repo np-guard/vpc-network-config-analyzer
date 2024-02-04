@@ -29,6 +29,13 @@ const (
 	outputIgnore                     // ignore expected output
 )
 
+const (
+	examplesDir = "examples/"
+	inputDir    = "input/"
+	outDir      = "out/"
+	analysisOut = "analysis_out"
+)
+
 type vpcGeneralTest struct {
 	name           string                            // test name
 	inputConfig    string                            // name (relative path) of input config file (json)
@@ -139,7 +146,9 @@ func getTestFileSuffix(format vpcmodel.OutFormat) (suffix string, err error) {
 // initTest: based on the test name, set the input config file name, and the output
 // files names (actual and expected), per use case
 func (tt *vpcGeneralTest) initTest() {
-	tt.inputConfig = inputFilePrefix + tt.name + ".json"
+	if tt.inputConfig == "" {
+		tt.inputConfig = inputFilePrefix + tt.name + ".json"
+	}
 	tt.inputConfig2nd = inputFilePrefix + tt.name + "_2nd.json"
 	tt.expectedOutput = map[vpcmodel.OutputUseCase]string{}
 	tt.actualOutput = map[vpcmodel.OutputUseCase]string{}
@@ -554,7 +563,7 @@ func (tt *vpcGeneralTest) runTest(t *testing.T) {
 
 	// generate actual output for all use cases specified for this test
 	for _, uc := range tt.useCases {
-		err := runTestPerUseCase(t, tt, vpcConfigs, vpcConfigs2nd, uc, tt.mode, explanationArgs)
+		err := runTestPerUseCase(t, tt, vpcConfigs, vpcConfigs2nd, uc, tt.mode, analysisOut, explanationArgs)
 		require.Equal(t, tt.errPerUseCase[uc], err, "comparing actual err to expected err")
 	}
 	for uc, outFile := range tt.actualOutput {
@@ -570,7 +579,7 @@ func getVPCConfigs(t *testing.T, tt *vpcGeneralTest, firstCfg bool) map[string]*
 	} else {
 		inputConfig = tt.inputConfig2nd
 	}
-	inputConfigFile := filepath.Join(getTestsDir(), inputConfig)
+	inputConfigFile := filepath.Join(getTestsDirInput(), inputConfig)
 	rc, err := ParseResourcesFromFile(inputConfigFile)
 	if err != nil {
 		t.Fatalf("err: %s", err)
@@ -611,14 +620,15 @@ func compareOrRegenerateOutputPerTest(t *testing.T,
 func initTestFileNames(tt *vpcGeneralTest,
 	uc vpcmodel.OutputUseCase,
 	vpcName string,
-	allVPCs bool) error {
+	allVPCs bool,
+	testDir string) error {
 	expectedFileName, actualFileName, err := getTestFileName(
 		tt.name, uc, tt.grouping, tt.format, vpcName, allVPCs)
 	if err != nil {
 		return err
 	}
-	tt.actualOutput[uc] = filepath.Join(getTestsDir(), actualFileName)
-	tt.expectedOutput[uc] = filepath.Join(getTestsDir(), expectedFileName)
+	tt.actualOutput[uc] = filepath.Join(getTestsDirOut(testDir), actualFileName)
+	tt.expectedOutput[uc] = filepath.Join(getTestsDirOut(testDir), expectedFileName)
 	return nil
 }
 
@@ -628,8 +638,9 @@ func runTestPerUseCase(t *testing.T,
 	c1, c2 map[string]*vpcmodel.VPCConfig,
 	uc vpcmodel.OutputUseCase,
 	mode testMode,
+	outDir string,
 	explanationArgs *vpcmodel.ExplanationArgs) error {
-	if err := initTestFileNames(tt, uc, "", true); err != nil {
+	if err := initTestFileNames(tt, uc, "", true, outDir); err != nil {
 		return err
 	}
 	og, err := vpcmodel.NewOutputGenerator(c1, c2, tt.grouping, uc, tt.format == vpcmodel.ARCHDRAWIO, explanationArgs)
@@ -654,8 +665,8 @@ func cleanStr(str string) string {
 // compareTextualResult is called in case of output mismatch, to provide more details on the difference
 func compareTextualResult(expected, actual string) {
 	var err1, err2 error
-	_, err1 = vpcmodel.WriteToFile(expected, filepath.Join(getTestsDir(), "expected.txt"))
-	_, err2 = vpcmodel.WriteToFile(actual, filepath.Join(getTestsDir(), "actual.txt"))
+	_, err1 = vpcmodel.WriteToFile(expected, filepath.Join(getTestsDirOut(analysisOut), "expected.txt"))
+	_, err2 = vpcmodel.WriteToFile(actual, filepath.Join(getTestsDirOut(analysisOut), "actual.txt"))
 	if err1 != nil || err2 != nil {
 		fmt.Printf("compareTextualResult: error writing actual/expected output to files: %s, %s \n", err1, err2)
 	}
@@ -676,8 +687,14 @@ func compareTextualResult(expected, actual string) {
 	}
 }
 
-// getTestsDir returns the path to the dir where test input and output files are located
-func getTestsDir() string {
+// getTestsDir returns the path to the dir where test output files are located
+func getTestsDirOut(testDir string) string {
 	currentDir, _ := os.Getwd()
-	return filepath.Join(currentDir, "examples")
+	return filepath.Join(currentDir, examplesDir+outDir+testDir)
+}
+
+// getTestsDir returns the path to the dir where test input files are located
+func getTestsDirInput() string {
+	currentDir, _ := os.Getwd()
+	return filepath.Join(currentDir, examplesDir+inputDir)
 }
