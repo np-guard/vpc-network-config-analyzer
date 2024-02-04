@@ -130,9 +130,9 @@ type NACLRule struct {
 	// add ingress/egress ?
 }
 
-func (r *NACLRule) dumpRule() string {
+func (rule *NACLRule) dumpRule() string {
 	return fmt.Sprintf("index: %d, src: %s, dst: %s, conn: %s, action: %s",
-		r.index, r.src.ToIPRanges(), r.dst.ToIPRanges(), r.connections.String(), r.action)
+		rule.index, rule.src.ToIPRanges(), rule.dst.ToIPRanges(), rule.connections.String(), rule.action)
 }
 
 var _ = (*NACLAnalyzer).dumpNACLrules // avoiding "unused" warning
