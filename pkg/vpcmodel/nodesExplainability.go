@@ -102,6 +102,21 @@ func (c *VPCConfig) getVsiNode(name string) Node {
 	return nil
 }
 
+// given a string address in non-cidr format return the list of all network interfaces attached to it
+func (c *VPCConfig) GetNetworkInterfaces(internalAddress string) (networkInterfaceNodes []Node, err error) {
+	if err != nil {
+		return nil, err
+	}
+
+	networkInterfaceNodes = []Node{}
+	for _, node := range c.Nodes {
+		if node.Kind() == "NetworkInterface" && node.Cidr() == internalAddress {
+			networkInterfaceNodes = append(networkInterfaceNodes, node)
+		}
+	}
+	return networkInterfaceNodes, nil
+}
+
 // given input cidr, gets (disjoint) external nodes I s.t.:
 //  1. The union of these nodes is the cidr
 //  2. Let i be a node in I and n be a node in VPCConfig.
