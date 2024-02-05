@@ -322,12 +322,26 @@ func (nl *NaclLayer) StringRulesOfFilter(listRulesInFilter []vpcmodel.RulesInFil
 	strListRulesInFilter := ""
 	for _, rulesInFilter := range listRulesInFilter {
 		nacl := nl.naclList[rulesInFilter.Filter]
-		strListRulesThisNacl := nacl.analyzer.StringRules(rulesInFilter.Rules)
-		if strListRulesThisNacl != "" {
-			strListRulesInFilter += rulesOfFilterHeader("network ACL "+nacl.Name()) + strListRulesThisNacl
+		switch rulesInFilter.RType {
+
 		}
+		strListRulesInFilter += getHeaderRulesType("network ACL "+nacl.Name(), rulesInFilter.RType) +
+			nacl.analyzer.StringRules(rulesInFilter.Rules)
 	}
 	return strListRulesInFilter
+}
+
+func getHeaderRulesType(filter string, rType vpcmodel.RulesType) string {
+	switch rType {
+	case vpcmodel.NoRules:
+		return filter + " blocks connection since there are no allow rules\n"
+	case vpcmodel.OnlyDeny:
+		return filter + " blocks connection with the following deny rules:\n"
+	case vpcmodel.BothAllowDeny:
+		return filter + " allows connection with the following allow and deny rules\n"
+	default: // onlyAllow
+		return filter + " allows connection with the following allow rules\n"
+	}
 }
 
 func (nl *NaclLayer) ReferencedIPblocks() []*common.IPBlock {
@@ -475,15 +489,11 @@ func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 	return allowRes, nil, nil
 }
 
-func rulesOfFilterHeader(name string) string {
-	return "relevant rules from " + name + ":\n"
-}
-
 func (sgl *SecurityGroupLayer) StringRulesOfFilter(listRulesInFilter []vpcmodel.RulesInFilter) string {
 	strListRulesInFilter := ""
 	for _, rulesInFilter := range listRulesInFilter {
 		sg := sgl.sgList[rulesInFilter.Filter]
-		strListRulesInFilter += rulesOfFilterHeader("security group "+sg.Name()) +
+		strListRulesInFilter += getHeaderRulesType("security group "+sg.Name(), rulesInFilter.RType) +
 			sg.analyzer.StringRules(rulesInFilter.Rules)
 	}
 	return strListRulesInFilter
