@@ -46,8 +46,8 @@ type connLine struct {
 }
 
 type diffLine struct {
-	SrcChange string             `json:"src-change"`
-	DstChange string             `json:"dst-change"`
+	SrcChange string             `json:"src_change"`
+	DstChange string             `json:"dst_change"`
 	Src       EndpointElem       `json:"src"`
 	Dst       EndpointElem       `json:"dst"`
 	Conn1     common.ConnDetails `json:"conn1"`
