@@ -26,9 +26,7 @@ import (
 
 const (
 	minSize         = 10
-	twoMinSize      = 20
-	threeMinSize    = 20
-	fourMinSize     = 40
+	fourTimeMinSize = 40
 	borderWidth     = 40
 	subnetWidth     = 8 * 40
 	subnetHeight    = 6 * 40

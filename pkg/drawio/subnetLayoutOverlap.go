@@ -128,7 +128,7 @@ func addPointOutsideSquares(line LineTreeNodeInterface) {
 		// this is the case that both squares has the same center.
 		// in this case we needs two points, close to each other.
 		// we might also have a line in the opposite direction, so we give the points an offset
-		offset := fourMinSize
+		offset := fourTimeMinSize
 		if src.ID() > dst.ID() {
 			offset = -offset
 		}
