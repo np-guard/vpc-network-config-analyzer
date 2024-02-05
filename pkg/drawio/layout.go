@@ -25,14 +25,14 @@ import (
 // that alow to add/remove rows/column without updating the treeNodes.
 
 const (
-	minSize         = 10
-	fourTimeMinSize = 40
-	borderWidth     = 40
-	subnetWidth     = 8 * 40
-	subnetHeight    = 6 * 40
-	iconSize        = 60
-	groupedIconSize = 10
-	iconSpace       = 4 * 40
+	minSize          = 10
+	fourTimesMinSize = 40
+	borderWidth      = 40
+	subnetWidth      = 8 * 40
+	subnetHeight     = 6 * 40
+	iconSize         = 60
+	groupedIconSize  = 10
+	iconSpace        = 4 * 40
 
 	groupBorderWidth      = 20
 	groupTopBorderWidth   = 60
