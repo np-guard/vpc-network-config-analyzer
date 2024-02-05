@@ -10,6 +10,8 @@ import (
 
 var filterLayers = [2]string{NaclLayer, SecurityGroupLayer}
 
+const resourceTypeNetworkInterface = "NetworkInterface"
+
 // rulesInLayers contains specific rules across all layers (SGLayer/NACLLayer)
 // it maps from the layer name to the list of rules
 type rulesInLayers map[string][]RulesInFilter
@@ -110,7 +112,7 @@ func (c *VPCConfig) GetNetworkInterfaces(internalAddress string) (networkInterfa
 
 	networkInterfaceNodes = []Node{}
 	for _, node := range c.Nodes {
-		if node.Kind() == "NetworkInterface" && node.Cidr() == internalAddress {
+		if node.Kind() == resourceTypeNetworkInterface && node.Cidr() == internalAddress {
 			networkInterfaceNodes = append(networkInterfaceNodes, node)
 		}
 	}
