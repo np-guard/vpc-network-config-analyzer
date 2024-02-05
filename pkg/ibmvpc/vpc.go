@@ -290,21 +290,30 @@ func (nl *NaclLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 		if err1 != nil {
 			return nil, nil, err1
 		}
-		appendToRulesInFilter(tableRelevant, &allowRes, &allowRules, index)
-		appendToRulesInFilter(tableRelevant, &denyRes, &denyRules, index)
+		appendToRulesInFilter(tableRelevant, &allowRes, &allowRules, index, true)
+		appendToRulesInFilter(tableRelevant, &denyRes, &denyRules, index, false)
 	}
 	return allowRes, denyRes, nil
 }
 
 func appendToRulesInFilter(tableRelevant bool, resRulesInFilter *[]vpcmodel.RulesInFilter,
-	rules *[]int, filterIndex int) {
+	rules *[]int, filterIndex int, isAllow bool) {
 	if !tableRelevant {
 		return
 	}
-	// if tableRelevant appends also if rules is empty - an indication of no allow/disallow rules
+	var rType vpcmodel.RulesType
+	switch {
+	case len(*rules) == 0:
+		rType = vpcmodel.NoRules
+	case isAllow:
+		rType = vpcmodel.OnlyAllow
+	default: // more than 0 deny rules
+		rType = vpcmodel.OnlyDeny
+	}
 	rulesInNacl := vpcmodel.RulesInFilter{
 		Filter: filterIndex,
 		Rules:  *rules,
+		RType:  rType,
 	}
 	*resRulesInFilter = append(*resRulesInFilter, rulesInNacl)
 }
@@ -451,9 +460,14 @@ func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 			return nil, nil, err1
 		}
 		if tableRelevant {
+			var rType vpcmodel.RulesType = vpcmodel.OnlyAllow
+			if len(sgRules) == 0 {
+				rType = vpcmodel.NoRules
+			}
 			rulesInSg := vpcmodel.RulesInFilter{
 				Filter: index,
 				Rules:  sgRules,
+				RType:  rType,
 			}
 			allowRes = append(allowRes, rulesInSg)
 		}

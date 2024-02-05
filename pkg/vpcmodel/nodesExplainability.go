@@ -337,7 +337,18 @@ func mergeAllowDeny(allow, deny rulesInLayers) rulesInLayers {
 				mergedRules = append(mergedRules, allowRules.Rules...)
 				mergedRules = append(mergedRules, denyRules.Rules...)
 				slices.Sort(mergedRules)
-				mergedRulesInFilter := RulesInFilter{Filter: allowRules.Filter, Rules: mergedRules}
+				var rType RulesType
+				switch {
+				case len(allowRules.Rules) > 0 && len(denyRules.Rules) > 0:
+					rType = BothAllowDeny
+				case len(allowRules.Rules) > 0:
+					rType = OnlyAllow
+				case len(denyRules.Rules) > 0:
+					rType = OnlyDeny
+				default: // no rules
+					rType = NoRules
+				}
+				mergedRulesInFilter := RulesInFilter{Filter: allowRules.Filter, Rules: mergedRules, RType: rType}
 				mergedRulesInLayer = append(mergedRulesInLayer, mergedRulesInFilter)
 			}
 		}
