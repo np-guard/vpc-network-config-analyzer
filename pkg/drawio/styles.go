@@ -3,7 +3,9 @@ package drawio
 
 import (
 	"fmt"
+	"math/big"
 	"reflect"
+	"strings"
 )
 
 const (
@@ -128,30 +130,54 @@ func (stl *drawioStyles) HasMiniIcon(tn TreeNodeInterface) bool {
 func (stl *drawioStyles) Style(tn TreeNodeInterface) string {
 	tnType := reflect.TypeOf(tn).Elem()
 	if tnType == reflect.TypeOf(ConnectivityTreeNode{}) {
-		return connectivityStyle(tn.(*ConnectivityTreeNode))
+		return markColorWithID(connectivityStyle(tn.(*ConnectivityTreeNode)), tn)
 	} else if stl.canTypeHaveAMiniIcon[tnType] && !tn.(IconTreeNodeInterface).hasMiniIcon() {
-		return miniStyles[tnType]
+		return markColorWithID(miniStyles[tnType], tn)
 	}
-	return styles[tnType]
+	return markColorWithID(styles[tnType], tn)
 }
 func (stl *drawioStyles) MiniIconStyle(tn TreeNodeInterface) string {
-	return miniStyles[reflect.TypeOf(tn).Elem()]
+	return markColorWithID(miniStyles[reflect.TypeOf(tn).Elem()], tn)
 }
 
 func (stl *drawioStyles) TextStyle(tn TreeNodeInterface) string {
-	return textStyles[reflect.TypeOf(tn).Elem()]
+	return markColorWithID(textStyles[reflect.TypeOf(tn).Elem()], tn)
 }
 func (stl *drawioStyles) TagStyle(tn TreeNodeInterface) string {
-	return tagStyles[reflect.TypeOf(tn).Elem()]
+	return markColorWithID(tagStyles[reflect.TypeOf(tn).Elem()], tn)
 }
 func (stl *drawioStyles) HasTag(tn TreeNodeInterface) bool {
 	_, ok := tagStyles[reflect.TypeOf(tn).Elem()]
 	return ok
 }
 func (stl *drawioStyles) DecoreStyle(tn TreeNodeInterface) string {
-	return decoreStyles[reflect.TypeOf(tn).Elem()]
+	return markColorWithID(decoreStyles[reflect.TypeOf(tn).Elem()], tn)
 }
 func (stl *drawioStyles) FIPStyle() string { return fipStyle }
+
+func markColorWithID(style string, tn TreeNodeInterface) string {
+	basicRbg := new(big.Int)
+	basicRbg.SetString("878d96", 16)
+	id := new(big.Int)
+	id.SetUint64(uint64((tn.ID() - minID) * 100))
+	basicRbg.Add(id, basicRbg)
+	color := fmt.Sprintf("#%x", basicRbg)
+	if strings.Contains(style, "shape=image") {
+		style = strings.ReplaceAll(style, "shape=image;aspect=fixed;image=data:image/svg+xml,", "rounded=0;whiteSpace=wrap;html=1;blabla=")
+	}
+	for _, pre := range []string{"stroke", "fill", "font"} {
+		if !strings.Contains(style, pre+"Color=") {
+			style += pre + "Color=none;"
+		}
+	}
+	for strings.Contains(style, "Color=#") {
+		i := strings.Index(style, "Color=#")
+		p := style[i : i+len("Color=#FFFFFF")]
+		style = strings.ReplaceAll(style, p, "Color=none")
+	}
+	return strings.ReplaceAll(style, "Color=none", "Color="+color)
+
+}
 
 // /////////////////////////////////////////////
 // lineConnectionPointsStyle() set the enter/exit style for a line (currntly only for the src),
