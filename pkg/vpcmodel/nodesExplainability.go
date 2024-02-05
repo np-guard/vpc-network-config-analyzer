@@ -9,7 +9,7 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
-var filterLayers = [2]string{NaclLayer, SecurityGroupLayer}
+var filterLayers = [2]string{SecurityGroupLayer, NaclLayer}
 
 // rulesInLayers contains specific rules across all layers (SGLayer/NACLLayer)
 // it maps from the layer name to the list of rules
@@ -566,8 +566,8 @@ func stringExplainabilityLine(c *VPCConfig, connQuery *common.ConnectionSet, src
 }
 
 func (rules *rulesConnection) getRuleStr(c *VPCConfig, needEgress, needIngress bool) string {
-	egressRulesStr := rules.egressRules.string(c)
-	ingressRulesStr := rules.ingressRules.string(c)
+	egressRulesStr := rules.egressRules.string(c, false)
+	ingressRulesStr := rules.ingressRules.string(c, true)
 	if needEgress && egressRulesStr != "" {
 		egressRulesStr = "Egress Rules:\n~~~~~~~~~~~~~\n" + egressRulesStr
 	}
@@ -650,9 +650,18 @@ func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (conn *comm
 	return conn, nil
 }
 
-func (rulesInLayers rulesInLayers) string(c *VPCConfig) string {
+func (rulesInLayers rulesInLayers) string(c *VPCConfig, isIngress bool) string {
 	rulesInLayersStr := ""
-	for _, layer := range filterLayers {
+	// order of presentation should be same as order of evaluation:
+	// (1) the SGs attached to the src NIF (2) the outbound rules in the ACL attached to the src NIF's subnet
+	// (3) the inbound rules in the ACL attached to the dst NIF's subnet (4) the SGs attached to the dst NIF.
+	// thus, egress: security group first, ingress: nacl first
+	filterLayersOrder := filterLayers
+	if isIngress {
+		filterLayersOrder[0] = NaclLayer
+		filterLayersOrder[1] = SecurityGroupLayer
+	}
+	for _, layer := range filterLayersOrder {
 		filter := c.getFilterTrafficResourceOfKind(layer)
 		if filter == nil {
 			continue
