@@ -275,7 +275,7 @@ func computeActualRules(rulesLayer *rulesInLayers, filtersExternal map[string]bo
 		// Specifically, current filters are nacl and sg; if both src and dst are internal then they are both relevant.
 		// (if both are in the same nacl then the nacl analyzer will handle it correctly.)
 		// If fip is the router and one of src/dst is external then nacl is ignored.
-		if len(potentialRules) > 0 || !filterIsRelevant {
+		if filterHasRelevantRules(potentialRules) || !filterIsRelevant {
 			// The case of two vsis of the same subnet is tricky: the nacl filter is relevant but there are no potential rules
 			// this is solved by adding a dummy rule for this case with index -1, so that potentialRules here will not be empty
 			// the printing functionality ignores rules of index -1
@@ -291,6 +291,16 @@ func computeActualRules(rulesLayer *rulesInLayers, filtersExternal map[string]bo
 	}
 	// the direction is enabled if none of the filters is blocking it
 	return &actualRules, directionEnabled
+}
+
+// returns true if filter contains rules
+func filterHasRelevantRules(rulesInFilter []RulesInFilter) bool {
+	for _, rulesFilter := range rulesInFilter {
+		if len(rulesFilter.Rules) > 0 {
+			return true
+		}
+	}
+	return false
 }
 
 // computes combined list of rules, both deny and allow
@@ -545,10 +555,10 @@ func (rules *rulesConnection) getRuleStr(c *VPCConfig, needEgress, needIngress b
 	egressRulesStr := rules.egressRules.string(c, false)
 	ingressRulesStr := rules.ingressRules.string(c, true)
 	if needEgress && egressRulesStr != "" {
-		egressRulesStr = "Egress Rules:\n~~~~~~~~~~~~~\n" + egressRulesStr
+		egressRulesStr = "Egress:\n~~~~~~~\n" + egressRulesStr
 	}
 	if needIngress && ingressRulesStr != "" {
-		ingressRulesStr = "Ingress Rules:\n~~~~~~~~~~~~~\n" + ingressRulesStr
+		ingressRulesStr = "Ingress:\n~~~~~~~~\n" + ingressRulesStr
 	}
 	return egressRulesStr + ingressRulesStr
 }
