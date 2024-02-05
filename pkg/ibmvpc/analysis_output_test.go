@@ -29,6 +29,13 @@ const (
 	outputIgnore                     // ignore expected output
 )
 
+const (
+	examplesDir = "examples/"
+	inputDir    = "input/"
+	outDir      = "out/"
+	analysisOut = "analysis_out"
+)
+
 type vpcGeneralTest struct {
 	name           string                            // test name
 	inputConfig    string                            // name (relative path) of input config file (json)
@@ -64,6 +71,7 @@ const (
 	debugOutSuffix                 = "_debug.txt"
 	mdOutSuffix                    = ".md"
 	jsonOutSuffix                  = ".json"
+	secJSONOutSuffix               = "_2nd.json"
 	drawioOutSuffix                = ".drawio"
 	archDrawioOutSuffix            = "_arch.drawio"
 )
@@ -139,8 +147,8 @@ func getTestFileSuffix(format vpcmodel.OutFormat) (suffix string, err error) {
 // initTest: based on the test name, set the input config file name, and the output
 // files names (actual and expected), per use case
 func (tt *vpcGeneralTest) initTest() {
-	tt.inputConfig = inputFilePrefix + tt.name + ".json"
-	tt.inputConfig2nd = inputFilePrefix + tt.name + "_2nd.json"
+	tt.inputConfig2nd = inputFilePrefix + tt.inputConfig + secJSONOutSuffix
+	tt.inputConfig = inputFilePrefix + tt.inputConfig + jsonOutSuffix
 	tt.expectedOutput = map[vpcmodel.OutputUseCase]string{}
 	tt.actualOutput = map[vpcmodel.OutputUseCase]string{}
 	// init field of expected errs
@@ -156,53 +164,53 @@ func (tt *vpcGeneralTest) initTest() {
 
 var tests = []*vpcGeneralTest{
 	{
-		name:     "acl_testing5",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
-		format:   vpcmodel.MD,
+		inputConfig: "acl_testing5",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		format:      vpcmodel.MD,
 	},
 	{
-		name:     "acl_testing5_old",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
-		format:   vpcmodel.MD,
+		inputConfig: "acl_testing5_old",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		format:      vpcmodel.MD,
 	},
 	{
-		name:     "acl_testing5",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
-		format:   vpcmodel.Text,
+		inputConfig: "acl_testing5",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		format:      vpcmodel.Text,
 	},
 	{
-		name:     "acl_testing5_old",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
-		format:   vpcmodel.Text,
+		inputConfig: "acl_testing5_old",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		format:      vpcmodel.Text,
 	},
 	{
-		name:     "acl_testing5",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
-		grouping: true,
-		format:   vpcmodel.DRAWIO,
+		inputConfig: "acl_testing5",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		grouping:    true,
+		format:      vpcmodel.DRAWIO,
 	},
 	{
-		name:     "demo_with_instances",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
-		grouping: true,
-		format:   vpcmodel.DRAWIO,
+		inputConfig: "demo_with_instances",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		grouping:    true,
+		format:      vpcmodel.DRAWIO,
 	},
 	// batch1: cover all use-cases, with text output format , no grouping
 	{
-		name: "acl_testing3",
+		inputConfig: "acl_testing3",
 		// TODO: currently skipping uc3 since it is not supported with partial subnet connectivity
 		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.SingleSubnet},
 		format:   vpcmodel.Text,
 	},
 	{
-		name:     "acl_testing3",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.Explain},
-		format:   vpcmodel.Text,
-		ESrc:     "vsi1-ky[10.240.10.4]",
-		EDst:     "vsi2-ky[10.240.20.4]",
+		inputConfig: "acl_testing3",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.Explain},
+		format:      vpcmodel.Text,
+		ESrc:        "vsi1-ky[10.240.10.4]",
+		EDst:        "vsi2-ky[10.240.20.4]",
 	},
 	{
-		name:        "sg_testing1_new",
+		inputConfig: "sg_testing1_new",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.Explain},
 		format:      vpcmodel.Text,
 		ESrc:        "vsi1-ky[10.240.10.4]",
@@ -212,259 +220,259 @@ var tests = []*vpcGeneralTest{
 		ESrcMaxPort: 5,
 	},
 	{
-		name:     "sg_testing1_new",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.SingleSubnet, vpcmodel.AllSubnets},
-		format:   vpcmodel.Text,
+		inputConfig: "sg_testing1_new",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.SingleSubnet, vpcmodel.AllSubnets},
+		format:      vpcmodel.Text,
 	},
 	{
-		name:     "demo_with_instances",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.SingleSubnet, vpcmodel.AllSubnets},
-		format:   vpcmodel.Text,
+		inputConfig: "demo_with_instances",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.SingleSubnet, vpcmodel.AllSubnets},
+		format:      vpcmodel.Text,
 	},
 	{
-		name:     "sg_testing_3",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
-		format:   vpcmodel.Text,
+		inputConfig: "sg_testing_3",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+		format:      vpcmodel.Text,
 	},
 
 	// batch2: only vsi-level use-case, with grouping , text format
 	{
-		name:     "acl_testing3",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping: true,
-		format:   vpcmodel.Text,
+		inputConfig: "acl_testing3",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.Text,
 	},
 	{
-		name:     "sg_testing1_new",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping: true,
-		format:   vpcmodel.Text,
+		inputConfig: "sg_testing1_new",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.Text,
 	},
 	{
-		name:     "demo_with_instances",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping: true,
-		format:   vpcmodel.Text,
+		inputConfig: "demo_with_instances",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.Text,
 	},
 
 	// batch2.5: only vsi-level use-case, with grouping , drawio format
 	{
-		name:     "acl_testing3",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping: true,
-		format:   vpcmodel.DRAWIO,
+		inputConfig: "acl_testing3",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.DRAWIO,
 	},
 	{
-		name:     "sg_testing1_new",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping: true,
-		format:   vpcmodel.DRAWIO,
+		inputConfig: "sg_testing1_new",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.DRAWIO,
 	},
 	{
-		name:     "demo_with_instances",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping: true,
-		format:   vpcmodel.DRAWIO,
+		inputConfig: "demo_with_instances",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.DRAWIO,
 	},
 	{
-		name:     "iks_config_object",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping: true,
-		format:   vpcmodel.DRAWIO,
+		inputConfig: "iks_config_object",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.DRAWIO,
 	},
 	{
-		name:     "mult_NIs_single_VSI",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping: true,
-		format:   vpcmodel.DRAWIO,
+		inputConfig: "mult_NIs_single_VSI",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.DRAWIO,
 	},
 
 	//batch3: only vsi-level use-case, no grouping, with debug / md  output formats
 	{
-		name:     "acl_testing3",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:   vpcmodel.MD,
+		inputConfig: "acl_testing3",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:      vpcmodel.MD,
 	},
 	{
-		name:     "sg_testing1_new",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:   vpcmodel.MD,
+		inputConfig: "sg_testing1_new",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:      vpcmodel.MD,
 	},
 	{
-		name:     "demo_with_instances",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:   vpcmodel.MD,
+		inputConfig: "demo_with_instances",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:      vpcmodel.MD,
 	},
 	{
-		name:     "acl_testing3",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:   vpcmodel.Debug,
+		inputConfig: "acl_testing3",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:      vpcmodel.Debug,
 	},
 	{
-		name:     "sg_testing1_new",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:   vpcmodel.Debug,
+		inputConfig: "sg_testing1_new",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:      vpcmodel.Debug,
 	},
 	{
-		name:     "demo_with_instances",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:   vpcmodel.Debug,
+		inputConfig: "demo_with_instances",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:      vpcmodel.Debug,
 	},
 	// disable drawio tests until supported with VPE
 	{
-		name:     "acl_testing3",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:   vpcmodel.DRAWIO,
+		inputConfig: "acl_testing3",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:      vpcmodel.DRAWIO,
 	},
 	{
-		name:     "sg_testing1_new",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:   vpcmodel.DRAWIO,
+		inputConfig: "sg_testing1_new",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:      vpcmodel.DRAWIO,
 	},
 	{
-		name:     "demo_with_instances",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:   vpcmodel.DRAWIO,
+		inputConfig: "demo_with_instances",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:      vpcmodel.DRAWIO,
 	},
 
 	{
-		name:     "acl_testing3",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:   vpcmodel.ARCHDRAWIO,
+		inputConfig: "acl_testing3",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:      vpcmodel.ARCHDRAWIO,
 	},
 	{
-		name:     "sg_testing1_new",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:   vpcmodel.ARCHDRAWIO,
+		inputConfig: "sg_testing1_new",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:      vpcmodel.ARCHDRAWIO,
 	},
 	{
-		name:     "demo_with_instances",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:   vpcmodel.ARCHDRAWIO,
+		inputConfig: "demo_with_instances",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:      vpcmodel.ARCHDRAWIO,
 	},
 	{
-		name:     "sg_testing1_new_grouping",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
-		grouping: true,
-		format:   vpcmodel.Text,
+		inputConfig: "sg_testing1_new_grouping",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		grouping:    true,
+		format:      vpcmodel.Text,
 	},
 	// iks-nodes example
 	{
-		name:     "iks_config_object",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping: true,
-		format:   vpcmodel.Text,
+		inputConfig: "iks_config_object",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.Text,
 	},
 	// json example
 	{
-		name:     "demo_with_instances",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
-		format:   vpcmodel.JSON,
+		inputConfig: "demo_with_instances",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+		format:      vpcmodel.JSON,
 	},
 	// multi-vpc config example
 	{
-		name:     "acl_testing3_with_two_vpcs",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:   vpcmodel.Text,
-		vpc:      "crn:12", // specify the vpc to analyze
+		inputConfig: "acl_testing3_with_two_vpcs",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:      vpcmodel.Text,
+		vpc:         "crn:12", // specify the vpc to analyze
 	},
 	// vpe example
 	{
-		name:     "demo_with_instances_vpes",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:   vpcmodel.Text,
+		inputConfig: "demo_with_instances_vpes",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:      vpcmodel.Text,
 	},
 	// multi-vpc config examples
 	{
-		name:     "experiments_env",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:   vpcmodel.Text,
+		inputConfig: "experiments_env",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:      vpcmodel.Text,
 	},
 	{
-		name:     "experiments_env",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:   vpcmodel.JSON,
+		inputConfig: "experiments_env",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:      vpcmodel.JSON,
 	},
 	{
-		name:     "multiple_vpcs",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
-		format:   vpcmodel.Text,
+		inputConfig: "multiple_vpcs",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		format:      vpcmodel.Text,
 	},
 	// diff examples:
 	{
-		name:     "acl_testing5",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.SubnetsDiff},
-		format:   vpcmodel.Text,
+		inputConfig: "acl_testing5",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.SubnetsDiff},
+		format:      vpcmodel.Text,
 	},
 	{
-		name:     "acl_testing5",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.SubnetsDiff},
-		format:   vpcmodel.MD,
+		inputConfig: "acl_testing5",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.SubnetsDiff},
+		format:      vpcmodel.MD,
 	},
 	{
-		name:     "acl_testing3",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
-		format:   vpcmodel.Text,
+		inputConfig: "acl_testing3",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
+		format:      vpcmodel.Text,
 	},
 	{
-		name:     "acl_testing3",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
-		format:   vpcmodel.MD,
+		inputConfig: "acl_testing3",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
+		format:      vpcmodel.MD,
 	},
 	{
-		name:     "sg_testing1_new",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
-		format:   vpcmodel.Text,
+		inputConfig: "sg_testing1_new",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
+		format:      vpcmodel.Text,
 	},
 	// tgw examples
 	{
-		name:     "tgw_basic_example",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
-		format:   vpcmodel.Text,
+		inputConfig: "tgw_basic_example",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+		format:      vpcmodel.Text,
 	},
 	{
-		name:     "tgw_basic_example_multiple_regions",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
-		format:   vpcmodel.Text,
+		inputConfig: "tgw_basic_example_multiple_regions",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+		format:      vpcmodel.Text,
 	},
 	{
-		name:     "tgw_larger_example",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
-		format:   vpcmodel.Text,
+		inputConfig: "tgw_larger_example",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+		format:      vpcmodel.Text,
 	},
 	{
-		name:     "tgw_larger_example",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
-		format:   vpcmodel.DRAWIO,
+		inputConfig: "tgw_larger_example",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+		format:      vpcmodel.DRAWIO,
 	},
 	{
-		name:     "tgw_larger_example",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
-		format:   vpcmodel.DRAWIO,
-		grouping: true,
+		inputConfig: "tgw_larger_example",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+		format:      vpcmodel.DRAWIO,
+		grouping:    true,
 	},
 	// multivpc drawio:
 	{
-		name:     "multiple_vpcs",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
-		format:   vpcmodel.DRAWIO,
+		inputConfig: "multiple_vpcs",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		format:      vpcmodel.DRAWIO,
 	},
 	{
-		name:     "multiple_vpcs",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
-		grouping: true,
-		format:   vpcmodel.DRAWIO,
+		inputConfig: "multiple_vpcs",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		grouping:    true,
+		format:      vpcmodel.DRAWIO,
 	},
 	{
-		name:     "experiments_env",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:   vpcmodel.ARCHDRAWIO,
+		inputConfig: "experiments_env",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:      vpcmodel.ARCHDRAWIO,
 	},
 	{
-		name:     "experiments_env",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping: true,
-		format:   vpcmodel.DRAWIO,
+		inputConfig: "experiments_env",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.DRAWIO,
 	},
 }
 
@@ -483,12 +491,13 @@ tt.mode = outputIgnore
 } else {
 tt.mode = outputGeneration
 }
-		t.Run(tt.name, func(t *testing.T) {
+tt.name = tt.inputConfig
+t.Run(tt.name, func(t *testing.T) {
 t.Parallel()
 tt.runTest(t)
 })
 }
-	fmt.Println("done")
+fmt.Println("done")
 }*/
 
 func TestAllWithComparison(t *testing.T) {
@@ -501,6 +510,7 @@ func TestAllWithComparison(t *testing.T) {
 		} else {
 			tt.mode = outputComparison
 		}
+		tt.name = tt.inputConfig
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			tt.runTest(t)
@@ -512,9 +522,9 @@ func TestAllWithComparison(t *testing.T) {
 // TODO: this test function should be removed after supporting this analysis
 func TestUnsupportedAnalysis(t *testing.T) {
 	test := &vpcGeneralTest{
-		name:     "acl_testing3",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
-		format:   vpcmodel.Text,
+		inputConfig: "acl_testing3",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		format:      vpcmodel.Text,
 		errPerUseCase: map[vpcmodel.OutputUseCase]error{
 			vpcmodel.AllSubnets: errors.New("unsupported connectivity map with partial subnet ranges per connectivity result"),
 		},
@@ -554,7 +564,7 @@ func (tt *vpcGeneralTest) runTest(t *testing.T) {
 
 	// generate actual output for all use cases specified for this test
 	for _, uc := range tt.useCases {
-		err := runTestPerUseCase(t, tt, vpcConfigs, vpcConfigs2nd, uc, tt.mode, explanationArgs)
+		err := runTestPerUseCase(t, tt, vpcConfigs, vpcConfigs2nd, uc, tt.mode, analysisOut, explanationArgs)
 		require.Equal(t, tt.errPerUseCase[uc], err, "comparing actual err to expected err")
 	}
 	for uc, outFile := range tt.actualOutput {
@@ -570,7 +580,7 @@ func getVPCConfigs(t *testing.T, tt *vpcGeneralTest, firstCfg bool) map[string]*
 	} else {
 		inputConfig = tt.inputConfig2nd
 	}
-	inputConfigFile := filepath.Join(getTestsDir(), inputConfig)
+	inputConfigFile := filepath.Join(getTestsDirInput(), inputConfig)
 	rc, err := ParseResourcesFromFile(inputConfigFile)
 	if err != nil {
 		t.Fatalf("err: %s", err)
@@ -611,14 +621,15 @@ func compareOrRegenerateOutputPerTest(t *testing.T,
 func initTestFileNames(tt *vpcGeneralTest,
 	uc vpcmodel.OutputUseCase,
 	vpcName string,
-	allVPCs bool) error {
+	allVPCs bool,
+	testDir string) error {
 	expectedFileName, actualFileName, err := getTestFileName(
 		tt.name, uc, tt.grouping, tt.format, vpcName, allVPCs)
 	if err != nil {
 		return err
 	}
-	tt.actualOutput[uc] = filepath.Join(getTestsDir(), actualFileName)
-	tt.expectedOutput[uc] = filepath.Join(getTestsDir(), expectedFileName)
+	tt.actualOutput[uc] = filepath.Join(getTestsDirOut(testDir), actualFileName)
+	tt.expectedOutput[uc] = filepath.Join(getTestsDirOut(testDir), expectedFileName)
 	return nil
 }
 
@@ -628,8 +639,9 @@ func runTestPerUseCase(t *testing.T,
 	c1, c2 map[string]*vpcmodel.VPCConfig,
 	uc vpcmodel.OutputUseCase,
 	mode testMode,
+	outDir string,
 	explanationArgs *vpcmodel.ExplanationArgs) error {
-	if err := initTestFileNames(tt, uc, "", true); err != nil {
+	if err := initTestFileNames(tt, uc, "", true, outDir); err != nil {
 		return err
 	}
 	og, err := vpcmodel.NewOutputGenerator(c1, c2, tt.grouping, uc, tt.format == vpcmodel.ARCHDRAWIO, explanationArgs)
@@ -654,8 +666,8 @@ func cleanStr(str string) string {
 // compareTextualResult is called in case of output mismatch, to provide more details on the difference
 func compareTextualResult(expected, actual string) {
 	var err1, err2 error
-	_, err1 = vpcmodel.WriteToFile(expected, filepath.Join(getTestsDir(), "expected.txt"))
-	_, err2 = vpcmodel.WriteToFile(actual, filepath.Join(getTestsDir(), "actual.txt"))
+	_, err1 = vpcmodel.WriteToFile(expected, filepath.Join(getTestsDirOut(analysisOut), "expected.txt"))
+	_, err2 = vpcmodel.WriteToFile(actual, filepath.Join(getTestsDirOut(analysisOut), "actual.txt"))
 	if err1 != nil || err2 != nil {
 		fmt.Printf("compareTextualResult: error writing actual/expected output to files: %s, %s \n", err1, err2)
 	}
@@ -676,8 +688,14 @@ func compareTextualResult(expected, actual string) {
 	}
 }
 
-// getTestsDir returns the path to the dir where test input and output files are located
-func getTestsDir() string {
+// getTestsDir returns the path to the dir where test output files are located
+func getTestsDirOut(testDir string) string {
 	currentDir, _ := os.Getwd()
-	return filepath.Join(currentDir, "examples")
+	return filepath.Join(currentDir, examplesDir+outDir+testDir)
+}
+
+// getTestsDir returns the path to the dir where test input files are located
+func getTestsDirInput() string {
+	currentDir, _ := os.Getwd()
+	return filepath.Join(currentDir, examplesDir+inputDir)
 }

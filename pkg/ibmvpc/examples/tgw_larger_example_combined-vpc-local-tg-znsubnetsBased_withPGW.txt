@@ -1,4 +1,0 @@
-Connectivity between VPCs connected by TGW local-tg-zn (UID: crn:574)
-combined connections between subnets:
-zn-vpc1-net1 => zn-vpc2-net1 : All Connections
-zn-vpc2-net1 => zn-vpc1-net1 : All Connections
