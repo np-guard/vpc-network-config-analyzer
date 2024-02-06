@@ -102,7 +102,8 @@ func (c *VPCConfig) getVsiNode(name string) Node {
 	return nil
 }
 
-// given a string address in cider format or non-cidr format return the list of all network interfaces attached to it
+// GetNodesWithinAddress is given a string address in CIDR format or exact IP address format, and
+// returns the list of all internal nodes with this address
 func (c *VPCConfig) GetNodesWithinAddress(ipAddress string) (networkInterfaceNodes []Node, err error) {
 	var addressIPblock, networkInterfaceIPBlock *common.IPBlock
 	addressIPblock = common.NewIPBlockFromCidrOrAddress(ipAddress)
@@ -114,7 +115,7 @@ func (c *VPCConfig) GetNodesWithinAddress(ipAddress string) (networkInterfaceNod
 		}
 		contained := networkInterfaceIPBlock.ContainedIn(addressIPblock)
 		if node.IsExternal() && contained {
-			return nil, fmt.Errorf("src or dst address %v represents an external IP", ipAddress)
+			return nil, fmt.Errorf("src or dst address %s represents an external IP", ipAddress)
 		}
 		if node.IsInternal() && contained {
 			networkInterfaceNodes = append(networkInterfaceNodes, node)
