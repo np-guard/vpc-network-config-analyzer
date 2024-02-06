@@ -55,6 +55,15 @@ func (tn *abstractTreeNode) setParent(p TreeNodeInterface)  { tn.parent = p }
 func (tn *abstractTreeNode) NotShownInDrawio() bool         { return tn.doNotShowInDrawio }
 func (tn *abstractTreeNode) SetNotShownInDrawio()           { tn.doNotShowInDrawio = true }
 
+func (tn *abstractTreeNode) AX() int {
+	x, _ := absoluteGeometry(tn)
+	return x
+}
+func (tn *abstractTreeNode) AY() int {
+	_, y := absoluteGeometry(tn)
+	return y
+}
+
 var idCounter uint = minID
 
 func createID() uint {

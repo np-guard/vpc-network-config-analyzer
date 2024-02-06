@@ -153,9 +153,10 @@ func (stl *drawioStyles) HasTag(tn TreeNodeInterface) bool {
 func (stl *drawioStyles) DecoreStyle(tn TreeNodeInterface) string {
 	return markColorWithID(decoreStyles[reflect.TypeOf(tn).Elem()], tn)
 }
-func (stl *drawioStyles) FIPStyle() string { return fipStyle }
+func (stl *drawioStyles) FIPStyle(tn TreeNodeInterface) string { return markColorWithID(fipStyle, tn) }
 
 func markColorWithID(style string, tn TreeNodeInterface) string {
+	return style
 	basicRbg := new(big.Int)
 	basicRbg.SetString("878d96", 16)
 	id := new(big.Int)

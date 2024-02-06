@@ -73,10 +73,12 @@ func orderNodesForDrawio(nodes []TreeNodeInterface) []TreeNodeInterface {
 
 func CreateDrawioConnectivityMapFile(network SquareTreeNodeInterface, outputFile string, subnetMode bool) error {
 	newLayout(network, subnetMode).layout()
-	return writeDrawioFile(NewDrawioData(network), outputFile)
+	writeDrawioFile(network, outputFile)
+	return writeSvgFile(network, outputFile+".svg")
 }
 
-func writeDrawioFile(data *drawioData, outputFile string) error {
+func writeDrawioFile(network SquareTreeNodeInterface, outputFile string) error {
+	data := NewDrawioData(network)
 	tmpl, err := template.New("connectivityMap.drawio.tmpl").Parse(drawioTemplate)
 	if err != nil {
 		return err

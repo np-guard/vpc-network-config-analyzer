@@ -47,7 +47,7 @@
             {{ end }}
             {{ if $node.IsNI }}
                 {{ if $node.HasFip  }}
-                    <mxCell id="{{$data.IDsPrefix}}-{{$node.FipID}}" value="{{$node.Fip}}" style="{{$data.FIPStyle}}" parent="{{$data.IDsPrefix}}-{{$node.ID}}" vertex="1">
+                    <mxCell id="{{$data.IDsPrefix}}-{{$node.FipID}}" value="{{$node.Fip}}" style="{{$data.FIPStyle $node}}" parent="{{$data.IDsPrefix}}-{{$node.ID}}" vertex="1">
                     <mxGeometry x="{{$data.FipXOffset}}" y="{{$data.FipYOffset}}" width="{{$node.IconSize}}" height="{{$node.IconSize}}" as="geometry"/>
                     </mxCell>
                 {{ end }}
