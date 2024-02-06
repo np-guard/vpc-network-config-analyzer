@@ -527,7 +527,7 @@ func stringExplainabilityLine(c *VPCConfig, connQuery *common.ConnectionSet, src
 	needIngress := !dst.IsExternal()
 	noIngressRules := !ingressEnabled && needIngress
 	noEgressRules := !egressEnabled && needEgress
-	rulesStr := rules.getRuleStr(c, needEgress, needIngress)
+	rulesStr := rules.getRuleDetailsStr(c, needEgress, needIngress)
 	noConnection := ""
 	if connQuery == nil {
 		noConnection = fmt.Sprintf("No connection between %v and %v;", src.Name(), dst.Name())
@@ -553,7 +553,7 @@ func stringExplainabilityLine(c *VPCConfig, connQuery *common.ConnectionSet, src
 	return resStr
 }
 
-func (rules *rulesConnection) getRuleStr(c *VPCConfig, needEgress, needIngress bool) string {
+func (rules *rulesConnection) getRuleDetailsStr(c *VPCConfig, needEgress, needIngress bool) string {
 	egressRulesStr := rules.egressRules.string(c, false)
 	ingressRulesStr := rules.ingressRules.string(c, true)
 	if needEgress && egressRulesStr != "" {
@@ -655,7 +655,7 @@ func (rulesInLayers rulesInLayers) string(c *VPCConfig, isIngress bool) string {
 			continue
 		}
 		if rules, ok := rulesInLayers[layer]; ok {
-			rulesInLayersStr += filter.StringRulesOfFilter(rules)
+			rulesInLayersStr += filter.StringDetailsRulesOfFilter(rules)
 		}
 	}
 	return rulesInLayersStr
