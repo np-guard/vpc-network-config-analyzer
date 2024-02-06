@@ -101,7 +101,7 @@ type FilterTrafficResource interface {
 	// RulesInConnectivity get the list of rules of a given filter that contributes to the connection between src and dst
 	// if conn is also given the above is per connection
 	RulesInConnectivity(src, dst Node, conn *common.ConnectionSet, isIngress bool) ([]RulesInFilter, []RulesInFilter, error)
-	StringRulesOfFilter(listRulesInFilter []RulesInFilter) string
+	StringDetailsRulesOfFilter(listRulesInFilter []RulesInFilter) string
 	ReferencedIPblocks() []*common.IPBlock
 	ConnectivityMap() (map[string]*IPbasedConnectivityResult, error)
 	GetConnectivityOutputPerEachElemSeparately() string

@@ -321,7 +321,7 @@ func appendToRulesInFilter(tableRelevant bool, resRulesInFilter *[]vpcmodel.Rule
 	*resRulesInFilter = append(*resRulesInFilter, rulesInNacl)
 }
 
-func (nl *NaclLayer) StringRulesOfFilter(listRulesInFilter []vpcmodel.RulesInFilter) string {
+func (nl *NaclLayer) StringDetailsRulesOfFilter(listRulesInFilter []vpcmodel.RulesInFilter) string {
 	strListRulesInFilter := ""
 	for _, rulesInFilter := range listRulesInFilter {
 		nacl := nl.naclList[rulesInFilter.Filter]
@@ -496,7 +496,7 @@ func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 	return allowRes, nil, nil
 }
 
-func (sgl *SecurityGroupLayer) StringRulesOfFilter(listRulesInFilter []vpcmodel.RulesInFilter) string {
+func (sgl *SecurityGroupLayer) StringDetailsRulesOfFilter(listRulesInFilter []vpcmodel.RulesInFilter) string {
 	strListRulesInFilter := ""
 	for _, rulesInFilter := range listRulesInFilter {
 		sg := sgl.sgList[rulesInFilter.Filter]
