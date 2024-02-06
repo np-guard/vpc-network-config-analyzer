@@ -82,6 +82,7 @@ const (
 	OnlyAllow
 	OnlyDeny
 	BothAllowDeny
+	OnlyDummyRule
 )
 
 // RulesInFilter for a given layer (SGLayer/NACLLayer) contains specific rules in a specific SG/NACL filter

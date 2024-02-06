@@ -1,11 +1,11 @@
 Connectivity explanation between vsi3b-ky[10.240.30.6] and vsi3a-ky[10.240.30.5]
 The following connection exists between vsi3b-ky[10.240.30.6] and vsi3a-ky[10.240.30.5]: All Connections; its enabled by
-Egress Rules:
-~~~~~~~~~~~~~
-relevant rules from security group sg1-ky:
+Egress:
+~~~~~~~
+security group sg1-ky allows connection with the following allow rules
 	index: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0
-Ingress Rules:
-~~~~~~~~~~~~~
-relevant rules from security group sg1-ky:
+Ingress:
+~~~~~~~~
+security group sg1-ky allows connection with the following allow rules
 	index: 1, direction: inbound, protocol: all, cidr: 0.0.0.0/0
 
