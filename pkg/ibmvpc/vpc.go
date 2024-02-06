@@ -336,6 +336,19 @@ func (nl *NaclLayer) StringDetailsRulesOfFilter(listRulesInFilter []vpcmodel.Rul
 	return strListRulesInFilter
 }
 
+func (nl *NaclLayer) StringFilterEffect(listRulesInFilter []vpcmodel.RulesInFilter) string {
+	var filtersEffectList []string
+	for _, rulesInFilter := range listRulesInFilter {
+		nacl := nl.naclList[rulesInFilter.Filter]
+		header := getSummaryFilterEffect("network ACL "+nacl.Name(), rulesInFilter.RType)
+		if header == "" {
+			continue // only dummy rule - nacl not needed between two vsis of the same subnet
+		}
+		filtersEffectList = append(filtersEffectList, header)
+	}
+	return strings.Join(filtersEffectList, "; ")
+}
+
 func getHeaderRulesType(filter string, rType vpcmodel.RulesType) string {
 	switch rType {
 	case vpcmodel.NoRules:
@@ -346,6 +359,21 @@ func getHeaderRulesType(filter string, rType vpcmodel.RulesType) string {
 		return filter + " allows connection with the following allow and deny rules\n"
 	case vpcmodel.OnlyAllow:
 		return filter + " allows connection with the following allow rules\n"
+	default:
+		return "" // OnlyDummyRule
+	}
+}
+
+func getSummaryFilterEffect(filter string, rType vpcmodel.RulesType) string {
+	switch rType {
+	case vpcmodel.NoRules:
+		return filter + " blocks connection (no relevant allow rules)"
+	case vpcmodel.OnlyDeny:
+		return filter + " blocks connection (with deny rules)"
+	case vpcmodel.BothAllowDeny:
+		return filter + " allows connection (with allow and deny rules)"
+	case vpcmodel.OnlyAllow:
+		return filter + " allows connection (with allow rules)"
 	default:
 		return "" // OnlyDummyRule
 	}
@@ -504,6 +532,15 @@ func (sgl *SecurityGroupLayer) StringDetailsRulesOfFilter(listRulesInFilter []vp
 			sg.analyzer.StringRules(rulesInFilter.Rules)
 	}
 	return strListRulesInFilter
+}
+
+func (sgl *SecurityGroupLayer) StringFilterEffect(listRulesInFilter []vpcmodel.RulesInFilter) string {
+	var filtersEffectList []string
+	for _, rulesInFilter := range listRulesInFilter {
+		sg := sgl.sgList[rulesInFilter.Filter]
+		filtersEffectList = append(filtersEffectList, getSummaryFilterEffect("security group "+sg.Name(), rulesInFilter.RType))
+	}
+	return strings.Join(filtersEffectList, "; ")
 }
 
 func (sgl *SecurityGroupLayer) ReferencedIPblocks() []*common.IPBlock {

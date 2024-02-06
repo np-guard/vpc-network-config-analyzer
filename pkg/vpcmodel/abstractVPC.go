@@ -102,7 +102,7 @@ type FilterTrafficResource interface {
 	// if conn is also given the above is per connection
 	RulesInConnectivity(src, dst Node, conn *common.ConnectionSet, isIngress bool) ([]RulesInFilter, []RulesInFilter, error)
 	StringDetailsRulesOfFilter(listRulesInFilter []RulesInFilter) string
-	//StringHeaderRulesOfFilter(listRulesInFilter []RulesInFilter) string // todo: implement header with blocking/allowing details for each table
+	StringFilterEffect(listRulesInFilter []RulesInFilter) string
 	ReferencedIPblocks() []*common.IPBlock
 	ConnectivityMap() (map[string]*IPbasedConnectivityResult, error)
 	GetConnectivityOutputPerEachElemSeparately() string
