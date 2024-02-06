@@ -349,6 +349,8 @@ func mergeAllowDeny(allow, deny rulesInLayers) rulesInLayers {
 				slices.Sort(mergedRules)
 				var rType RulesType
 				switch {
+				case len(mergedRules) == 1 && mergedRules[0] == -1:
+					rType = OnlyDummyRule
 				case len(allowRules.Rules) > 0 && len(denyRules.Rules) > 0:
 					rType = BothAllowDeny
 				case len(allowRules.Rules) > 0:

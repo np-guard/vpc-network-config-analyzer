@@ -301,10 +301,13 @@ func appendToRulesInFilter(tableRelevant bool, resRulesInFilter *[]vpcmodel.Rule
 	if !tableRelevant {
 		return
 	}
+
 	var rType vpcmodel.RulesType
 	switch {
 	case len(*rules) == 0:
 		rType = vpcmodel.NoRules
+	case len(*rules) == 1 && (*rules)[0] == -1:
+		rType = vpcmodel.OnlyDummyRule
 	case isAllow:
 		rType = vpcmodel.OnlyAllow
 	default: // more than 0 deny rules
@@ -322,8 +325,10 @@ func (nl *NaclLayer) StringRulesOfFilter(listRulesInFilter []vpcmodel.RulesInFil
 	strListRulesInFilter := ""
 	for _, rulesInFilter := range listRulesInFilter {
 		nacl := nl.naclList[rulesInFilter.Filter]
-		switch rulesInFilter.RType {
-
+		header := getHeaderRulesType("network ACL "+nacl.Name(), rulesInFilter.RType) +
+			nacl.analyzer.StringRules(rulesInFilter.Rules)
+		if header == "" {
+			continue // only dummy rule - nacl not needed between two vsis of the same subnet
 		}
 		strListRulesInFilter += getHeaderRulesType("network ACL "+nacl.Name(), rulesInFilter.RType) +
 			nacl.analyzer.StringRules(rulesInFilter.Rules)
@@ -334,13 +339,15 @@ func (nl *NaclLayer) StringRulesOfFilter(listRulesInFilter []vpcmodel.RulesInFil
 func getHeaderRulesType(filter string, rType vpcmodel.RulesType) string {
 	switch rType {
 	case vpcmodel.NoRules:
-		return filter + " blocks connection since there are no allow rules\n"
+		return filter + " blocks connection since there are no relevant allow rules\n"
 	case vpcmodel.OnlyDeny:
 		return filter + " blocks connection with the following deny rules:\n"
 	case vpcmodel.BothAllowDeny:
 		return filter + " allows connection with the following allow and deny rules\n"
-	default: // onlyAllow
+	case vpcmodel.OnlyAllow:
 		return filter + " allows connection with the following allow rules\n"
+	default:
+		return "" // OnlyDummyRule
 	}
 }
 
