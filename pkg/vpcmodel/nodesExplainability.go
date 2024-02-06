@@ -105,16 +105,14 @@ func (c *VPCConfig) getVsiNode(name string) Node {
 // given a string address in cider format or non-cidr format return the list of all network interfaces attached to it
 func (c *VPCConfig) GetNodesWithinAddress(ipAddress string) (networkInterfaceNodes []Node, err error) {
 	var addressIPblock, networkInterfaceIPBlock *common.IPBlock
-	if addressIPblock, err = common.NewIPBlockFromIPAddress(ipAddress); err != nil {
-		return nil, err
-	}
+	addressIPblock = common.NewIPBlockFromCidrOrAddress(ipAddress)
+
 	networkInterfaceNodes = []Node{}
 	for _, node := range c.Nodes {
-		networkInterfaceIPBlock = common.NewIPBlockFromCidrOrAddress(node.Cidr())
-		if networkInterfaceIPBlock == nil {
-			continue
+		if networkInterfaceIPBlock, err = common.NewIPBlockFromIPAddress(node.Cidr()); err != nil {
+			return nil, err
 		}
-		contained := addressIPblock.Equal(networkInterfaceIPBlock)
+		contained := networkInterfaceIPBlock.ContainedIn(addressIPblock)
 		if node.IsExternal() && contained {
 			return nil, fmt.Errorf("src or dst address %v represents an external IP", ipAddress)
 		}
