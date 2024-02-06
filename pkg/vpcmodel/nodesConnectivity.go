@@ -27,11 +27,11 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping bool) (res *VPCConnectivi
 		}
 		allIngressAllowedConns, ingressAllowedConnsPerLayer, err1 := c.getAllowedConnsPerDirection(true, node)
 		if err1 != nil {
-			return nil, err
+			return nil, err1
 		}
 		allEgressAllowedConns, egressAllowedConnsPerLayer, err2 := c.getAllowedConnsPerDirection(false, node)
 		if err2 != nil {
-			return nil, err
+			return nil, err2
 		}
 
 		res.AllowedConns[node] = &ConnectivityResult{

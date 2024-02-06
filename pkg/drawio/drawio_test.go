@@ -395,6 +395,8 @@ func createNetworkSubnetGroupingOverlapping() SquareTreeNodeInterface {
 		{0, 0, 1, 4, 4},
 		{0, 1, 2, 4, 4},
 		{0, 2, 3, 4, 4},
+
+		{0, 0, 2, 0, 2},
 	}
 	n, groups, zones := createNetworkSubnetGroupingGeneric(groupsIndexes)
 	conns := [][]SquareTreeNodeInterface{
@@ -441,9 +443,16 @@ func createNetworkSubnetGroupingOverlapping() SquareTreeNodeInterface {
 		{(*zones)[2][3], (*zones)[3][0]},
 		{(*zones)[3][0], (*zones)[0][2]},
 		{(*zones)[0][2], (*zones)[3][0]},
+
+		{groups[3], (*zones)[1][0]},
+		{(*zones)[1][0], groups[3]},
+		{groups[3], (*zones)[1][1]},
+		{(*zones)[1][1], groups[3]},
+		{groups[3], (*zones)[1][2]},
+		{(*zones)[1][2], groups[3]},
 	}
-	for _, conn := range conns {
-		NewConnectivityLineTreeNode(n, conn[0], conn[1], true, "gconn "+conn[0].Label()+"->"+conn[1].Label())
+	for i, conn := range conns {
+		NewConnectivityLineTreeNode(n, conn[0], conn[1], true, fmt.Sprintf("gconn%d %s->%s", i, conn[0].Label(), conn[1].Label()))
 	}
 	return n
 }
@@ -492,8 +501,8 @@ func createNetworkSubnetGroupingGroupInGroup() SquareTreeNodeInterface {
 		{groups[5], (*zones)[3][4]},
 		{groups[5], (*zones)[4][4]},
 	}
-	for _, conn := range conns {
-		NewConnectivityLineTreeNode(n, conn[0], conn[1], true, "gconn "+conn[0].Label()+"->"+conn[1].Label())
+	for i, conn := range conns {
+		NewConnectivityLineTreeNode(n, conn[0], conn[1], true, fmt.Sprintf("gconn%d %s->%s", i, conn[0].Label(), conn[1].Label()))
 	}
 	return n
 }
