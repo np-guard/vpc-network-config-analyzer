@@ -1,12 +1,14 @@
 Connectivity explanation between vsi1-ky[10.240.10.4] and vsi3a-ky[10.240.30.5]
 No connection between vsi1-ky[10.240.10.4] and vsi3a-ky[10.240.30.5]; connection blocked by egress
+Egress: security group sg1-ky allows connection (with allow rules); network ACL acl1-ky blocks connection (no relevant allow rules), Ingres: network ACL acl3-ky allows connection (with allow rules); security group sg1-ky allows connection (with allow rules)
+
+Rules details:
+~~~~~~~~~~~~~~
 Egress:
-~~~~~~~
 security group sg1-ky allows connection with the following allow rules
 	index: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0
 network ACL acl1-ky blocks connection since there are no relevant allow rules
 Ingress:
-~~~~~~~~
 network ACL acl3-ky allows connection with the following allow rules
 	index: 2, direction: inbound , src: 10.240.10.0/24 , dst: 0.0.0.0/0, conn: all, action: allow
 security group sg1-ky allows connection with the following allow rules
