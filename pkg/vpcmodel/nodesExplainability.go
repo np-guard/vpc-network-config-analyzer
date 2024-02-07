@@ -536,12 +536,10 @@ func (explanation *Explanation) String() string {
 	linesStr := make([]string, len(explanation.groupedLines))
 	groupedLines := explanation.groupedLines
 	for i, line := range groupedLines {
-		if i > 0 {
-			linesStr[i-1] += "\n------------------------------------------------------------------------------------------------------------\n"
-		}
-		linesStr[i] = stringExplainabilityLine(explanation.c, explanation.connQuery, line.src, line.dst, line.commonProperties.conn,
+		linesStr[i] += stringExplainabilityLine(explanation.c, explanation.connQuery, line.src, line.dst, line.commonProperties.conn,
 			line.commonProperties.expDetails.ingressEnabled, line.commonProperties.expDetails.egressEnabled,
-			line.commonProperties.expDetails.router, line.commonProperties.expDetails.rules)
+			line.commonProperties.expDetails.router, line.commonProperties.expDetails.rules) +
+			"------------------------------------------------------------------------------------------------------------------------\n"
 	}
 	sort.Strings(linesStr)
 	return strings.Join(linesStr, "\n") + "\n"

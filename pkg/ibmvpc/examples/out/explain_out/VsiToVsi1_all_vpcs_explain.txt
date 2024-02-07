@@ -1,5 +1,5 @@
 Connectivity explanation between vsi2-ky[10.240.20.4] and vsi3b-ky[10.240.30.4]
-===================================================================================
+===================================================================================================
 
 The following connection exists between vsi2-ky[10.240.20.4] and vsi3b-ky[10.240.30.4]: protocol: TCP
 Egress: security group sg2-ky allows connection (with allow rules); network ACL acl2-ky allows connection (with allow rules)
@@ -18,4 +18,5 @@ network ACL acl3-ky allows connection with the following allow rules
 	index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 security group sg2-ky allows connection with the following allow rules
 	index: 7, direction: inbound,  conns: protocol: tcp,  dstPorts: 1-65535, cidr: 10.240.20.4/32,10.240.30.4/32
+------------------------------------------------------------------------------------------------------------------------
 
