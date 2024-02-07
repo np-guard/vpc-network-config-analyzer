@@ -341,7 +341,7 @@ func (nl *NaclLayer) StringDetailsRulesOfFilter(listRulesInFilter []vpcmodel.Rul
 }
 
 func (nl *NaclLayer) StringFilterEffect(listRulesInFilter []vpcmodel.RulesInFilter) string {
-	var filtersEffectList []string
+	filtersEffectList := []string{}
 	for _, rulesInFilter := range listRulesInFilter {
 		nacl := nl.naclList[rulesInFilter.Filter]
 		header := getSummaryFilterEffect(networkACLStr+nacl.Name(), rulesInFilter.RType)
@@ -455,11 +455,12 @@ func (n *NACL) rulesInConnectivity(src, dst vpcmodel.Node, conn *common.Connecti
 	}
 	// nacl has no control on traffic between two instances in its subnet; this is marked by a rule with index -1
 	// which is not printed but only signals that this filter does not block (since there are rules)
-	if allInSubnet, err := common.IsAddressInSubnet(targetNode.Cidr(), subnetCidr); err == nil && allInSubnet {
+	if allInSubnet, err1 := common.IsAddressInSubnet(targetNode.Cidr(), subnetCidr); err1 == nil && allInSubnet {
 		return true, []int{dummyRule}, nil, nil
 	}
-	allow, deny, err = n.analyzer.rulesInConnectivity(subnetCidr, inSubnetCidr, targetNode.Cidr(), conn, isIngress)
-	return true, allow, deny, err
+	var err2 error
+	allow, deny, err2 = n.analyzer.rulesInConnectivity(subnetCidr, inSubnetCidr, targetNode.Cidr(), conn, isIngress)
+	return true, allow, deny, err2
 }
 
 // SecurityGroupLayer captures all SG in the vpc config, analyzes connectivity considering all SG resources
@@ -539,7 +540,7 @@ func (sgl *SecurityGroupLayer) StringDetailsRulesOfFilter(listRulesInFilter []vp
 }
 
 func (sgl *SecurityGroupLayer) StringFilterEffect(listRulesInFilter []vpcmodel.RulesInFilter) string {
-	var filtersEffectList []string
+	filtersEffectList := []string{}
 	for _, rulesInFilter := range listRulesInFilter {
 		sg := sgl.sgList[rulesInFilter.Filter]
 		filtersEffectList = append(filtersEffectList, getSummaryFilterEffect(securityGroupStr+sg.Name(), rulesInFilter.RType))
