@@ -2,12 +2,14 @@ package ibmvpc
 
 import (
 	"fmt"
+	"slices"
 	"testing"
 
 	tgw "github.com/IBM/networking-go-sdk/transitgatewayapisv1"
 	"github.com/stretchr/testify/require"
 
 	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -19,6 +21,7 @@ var subnetC string = "192.168.102.0/24"
 var subnetD string = "10.10.10.192/26"
 var subnetE string = "10.10.10.0/24"
 var subnetF string = "10.10.10.0/28"
+var subnetG string = "10.10.10.16/28"
 var prefix string = "192.168.100.0/20"
 var prefix2 string = "192.168.100.0/21"
 var prefix3 string = "192.168.100.0/22"
@@ -39,6 +42,7 @@ func newVPCWithSubnets(uidTocidrs map[string]string) *VPC {
 	vpc := &VPC{}
 	for uid, cidr := range uidTocidrs {
 		vpc.subnetsList = append(vpc.subnetsList, &Subnet{cidr: cidr, VPCResource: vpcmodel.VPCResource{ResourceUID: uid}})
+		vpc.addressPrefixes = append(vpc.addressPrefixes, cidr)
 	}
 	return vpc
 }
@@ -105,39 +109,44 @@ var tgwTests = []tgwTest{
 	{
 		name: "prefix_list_with_mixed_permit_deny_rules",
 		vpc: newVPCWithSubnets(map[string]string{
-			"A": subnetA,
-			"B": subnetB,
-			"C": subnetC,
-			"D": subnetD,
-			"E": subnetE,
-			"F": subnetF,
+			"A": subnetA, // "192.168.100.0/24"
+			"B": subnetB, // "192.168.101.0/24"
+			"C": subnetC, // "192.168.102.0/24"
+			"D": subnetD, // "10.10.10.192/26"
+			"F": subnetF, // "10.10.10.0/28"
+			"G": subnetG, // "10.10.10.16/28"
 		}),
 		tc: &datamodel.TransitConnection{
 			TransitConnection: tgw.TransitConnection{
 				PrefixFiltersDefault: &deny,
 				PrefixFilters: []tgw.TransitGatewayConnectionPrefixFilterReference{
 					{
+						// deny 10.10.10.192/26
 						Action: &deny,
 						Prefix: &subnetD,
 					},
 					{
-						Action: &permit,
-						Prefix: &subnetE,
-					},
-					{
+						// permit 10.10.10.0/24 le=32
 						Action: &permit,
 						Prefix: &subnetE,
 						Le:     &le,
 					},
 					{
+						// permit 192.168.100.0/24
 						Action: &permit,
 						Prefix: &subnetA,
 					},
 				},
 			},
 		},
-		expectedPermittedSubnets: []string{"A", "E", "F"},
+		expectedPermittedSubnets: []string{"A", "G", "F"},
 		expectedFilteredSubnets:  []string{"B", "C", "D"},
+		/*
+			available routes:
+			[192.168.100.0/24]
+			[10.10.10.0/24]
+			[10.10.10.16/28]
+		*/
 	},
 	{
 		name: "prefix_filter_with_ge",
@@ -170,9 +179,6 @@ var tgwTests = []tgwTest{
 	{
 		name: "prefix_filter_with_le_and_ge",
 		vpc: newVPCWithSubnets(map[string]string{
-			"A": subnetA,
-			"B": subnetB,
-			"C": subnetC,
 			"D": subnetD,
 			"E": subnetE,
 			"F": subnetF,
@@ -194,18 +200,25 @@ var tgwTests = []tgwTest{
 			},
 		},
 		expectedPermittedSubnets: []string{"H", "I"},
-		expectedFilteredSubnets:  []string{"A", "B", "C", "D", "E", "F", "G"},
+		expectedFilteredSubnets:  []string{"D", "E", "F", "G"},
 	},
 }
 
 func (tt *tgwTest) runTest(t *testing.T) {
-	permittedSubnets, err := getTransitConnectionFiltersForVPC(tt.tc, tt.vpc)
-	require.Nil(t, err)
-	for _, s := range tt.expectedPermittedSubnets {
-		require.True(t, permittedSubnets[s])
+	availableRoutes, err := getVPCAdvertisedRoutes(tt.tc, tt.vpc)
+	for _, r := range availableRoutes {
+		fmt.Printf("%s\n", r.ToCidrList())
 	}
-	for _, s := range tt.expectedFilteredSubnets {
-		require.False(t, permittedSubnets[s])
+	availableRoutesMap := map[string][]*common.IPBlock{tt.vpc.UID(): availableRoutes}
+	permittedSubnets := getVPCdestSubnetsByAdvertisedRoutes(&TransitGateway{availableRoutes: availableRoutesMap}, tt.vpc)
+	require.Nil(t, err)
+	for _, subnet := range tt.vpc.subnetsList {
+		if slices.Contains(tt.expectedPermittedSubnets, subnet.UID()) {
+			require.True(t, slices.Contains(permittedSubnets, subnet))
+		} else {
+			require.False(t, slices.Contains(permittedSubnets, subnet))
+			require.True(t, slices.Contains(tt.expectedFilteredSubnets, subnet.UID()))
+		}
 	}
 }
 

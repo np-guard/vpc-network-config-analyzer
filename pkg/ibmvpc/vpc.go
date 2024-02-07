@@ -124,6 +124,7 @@ type VPC struct {
 	zones                map[string]*Zone
 	internalAddressRange *common.IPBlock
 	subnetsList          []*Subnet
+	addressPrefixes      []string
 }
 
 func (v *VPC) getZoneByName(name string) (*Zone, error) {
@@ -594,25 +595,58 @@ func (pgw *PublicGateway) AppliedFiltersKinds() map[string]bool {
 
 type TransitGateway struct {
 	vpcmodel.VPCResource
-	vpcs       []*VPC                     // the VPCs connected by a TGW
-	vpcFilters map[string]map[string]bool // map from VPC UID to its allowed set of subnets (UIDs) to be exposed to the TGW
+
+	// vpcs are the VPCs connected by a TGW
+	vpcs []*VPC
+
+	// availableRoutes are the published address prefixes from all connected vpcs that arrive at the TGW's table of available routes,
+	// as considered from prefix filters: map from vpc UID to its available routes in the routes table
+	availableRoutes map[string][]*common.IPBlock
+
+	// sourceSubnets are the subnets from the connected vpcs that can have connection to destination
+	// subnet from another vpc
+	sourceSubnets []*Subnet
+
+	// destSubnets are the subnets from the connected vpcs that can de destination for a connection from
+	// remote source subnet from another vpc, based on the availableRoutes in the TGW
+	destSubnets []*Subnet
 }
 
 func (tgw *TransitGateway) ConnectivityMap() map[string]vpcmodel.ConfigBasedConnectivityResults {
-	return nil
+	res := map[string]vpcmodel.ConfigBasedConnectivityResults{}
+	for _, src := range tgw.sourceSubnets {
+		res[src.cidr] = vpcmodel.ConfigBasedConnectivityResults{
+			IngressAllowedConns: map[vpcmodel.VPCResourceIntf]*common.ConnectionSet{},
+			EgressAllowedConns:  map[vpcmodel.VPCResourceIntf]*common.ConnectionSet{},
+		}
+		for _, dst := range tgw.destSubnets {
+			res[src.cidr].EgressAllowedConns[dst] = vpcmodel.AllConns()
+		}
+	}
+	return res
 }
 
-func (tgw *TransitGateway) Src() []vpcmodel.Node {
-	return nil
+func (tgw *TransitGateway) Src() (res []vpcmodel.Node) {
+	for _, subnet := range tgw.sourceSubnets {
+		res = append(res, subnet.Nodes()...)
+	}
+	return res
 }
-func (tgw *TransitGateway) Destinations() []vpcmodel.Node {
-	return nil
+func (tgw *TransitGateway) Destinations() (res []vpcmodel.Node) {
+	for _, subnet := range tgw.destSubnets {
+		res = append(res, subnet.Nodes()...)
+	}
+	return res
 }
 
 func (tgw *TransitGateway) AllowedConnectivity(src, dst vpcmodel.Node) *common.ConnectionSet {
-	return nil
+	if vpcmodel.HasNode(tgw.Src(), src) && vpcmodel.HasNode(tgw.Destinations(), dst) {
+		return vpcmodel.AllConns()
+	}
+	return vpcmodel.NoConns()
 }
 
+// todo: currently not used
 func (tgw *TransitGateway) AppliedFiltersKinds() map[string]bool {
-	return nil
+	return map[string]bool{vpcmodel.NaclLayer: true, vpcmodel.SecurityGroupLayer: true}
 }

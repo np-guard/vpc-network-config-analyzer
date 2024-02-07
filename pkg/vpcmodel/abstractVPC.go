@@ -49,6 +49,10 @@ func (n *VPCResource) VPC() VPCResourceIntf {
 	return n.VPCRef
 }
 
+func (n *VPCResource) NameAndUID() string {
+	return n.Name() + " (" + n.UID() + ")"
+}
+
 // todo: define enum for filters
 const (
 	// filter-resources layer names (grouping all vpc resources of that kind)

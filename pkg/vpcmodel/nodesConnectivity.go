@@ -108,9 +108,15 @@ func (c *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 		}
 
 		if peerNode.IsInternal() {
-			// no need for router node, connectivity is from within VPC
-			// only check filtering resources
-			allowedConnsBetweenCapturedAndPeerNode := AllConns()
+			var allowedConnsBetweenCapturedAndPeerNode *common.ConnectionSet
+			if c.IsMultipleVPCsConfig {
+				// in case of cross-vpc connectivity, do need a router (tgw) enabling this connection
+				_, allowedConnsBetweenCapturedAndPeerNode = c.getRoutingResource(src, dst)
+			} else {
+				// no need for router, connectivity is from within VPC
+				allowedConnsBetweenCapturedAndPeerNode = AllConns()
+			}
+			// now check filtering resources
 			for _, resMap := range perLayerRes {
 				allowedConnsBetweenCapturedAndPeerNode = allowedConnsBetweenCapturedAndPeerNode.Intersection(resMap[peerNode])
 			}
