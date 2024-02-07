@@ -10,6 +10,8 @@ import (
 
 var filterLayers = [2]string{NaclLayer, SecurityGroupLayer}
 
+const ResourceTypeVSI = "VSI"
+
 // rulesInLayers contains specific rules across all layers (SGLayer/NACLLayer)
 // it maps from the layer name to the list of rules
 type rulesInLayers map[string][]RulesInFilter
@@ -122,6 +124,20 @@ func (c *VPCConfig) GetNodesWithinAddress(ipAddress string) (networkInterfaceNod
 		}
 	}
 	return networkInterfaceNodes, nil
+}
+
+// getNodesOfVsi is given a string name or UID of VSI, and
+// returns the list of all nodes with this vsi name or UID
+func (c *VPCConfig) GetNodesOfVsi(vsi string) (vsiNodes []Node, err error) {
+	for _, nodeSet := range c.NodeSets {
+		if nodeSet.Kind() == ResourceTypeVSI && (nodeSet.Name() == vsi || nodeSet.UID() == vsi) {
+			if vsiNodes != nil {
+				return nil, fmt.Errorf("input string %s matched the UID/name of more than one VSI", vsi)
+			}
+			vsiNodes = nodeSet.Nodes()
+		}
+	}
+	return vsiNodes, err
 }
 
 // given input cidr, gets (disjoint) external nodes I s.t.:
