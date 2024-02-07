@@ -26,7 +26,8 @@ func headerOfAnalyzedVPC(uc OutputUseCase, vpcName, vpc2Name string, c1 *VPCConf
 		if explanation.connQuery != nil {
 			connStr = " for " + explanation.connQuery.String()
 		}
-		return fmt.Sprintf("Connectivity explanation%s between %s and %s\n", connStr, explanation.src, explanation.dst), nil
+		return fmt.Sprintf("Connectivity explanation%s between %s and %s\n===================================================================================\n\n",
+			connStr, explanation.src, explanation.dst), nil
 	}
 	return "", nil // should never get here
 }

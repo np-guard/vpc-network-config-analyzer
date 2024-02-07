@@ -259,7 +259,7 @@ func (of *serialOutputFormatter) AggregateVPCsOutput(outputList []*SingleAnalysi
 	return res, err
 }
 
-// WriteDiffOutput actual writing the output into file, with required format adjustments
+// WriteDiffOrExplainOutput actual writing the output into file, with required format adjustments
 func (of *serialOutputFormatter) WriteDiffOrExplainOutput(output *SingleAnalysisOutput, uc OutputUseCase, outFile string) (string, error) {
 	var res string
 	var err error
