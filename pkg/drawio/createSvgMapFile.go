@@ -13,7 +13,7 @@ import (
 var svgTemplate string
 
 type svgData struct {
-	// drawioStyles
+	drawioStyles
 	Width       int
 	Height      int
 	Nodes       []TreeNodeInterface
@@ -22,7 +22,7 @@ type svgData struct {
 
 func NewSvgData(network SquareTreeNodeInterface) *svgData {
 	return &svgData{
-		// newDrawioStyles(allNodes),
+		newDrawioStyles(getAllNodes(network)),
 		network.Width(),
 		network.Height(),
 		getAllNodes(network),
@@ -40,6 +40,17 @@ func NewSvgData(network SquareTreeNodeInterface) *svgData {
 // func (data *drawioData) ElementComment(tn TreeNodeInterface) string {
 // 	return reflect.TypeOf(tn).Elem().Name() + " " + tn.Label()
 // }
+func (data *svgData) Add( a int ,b float64) float64         { return float64(a)+b }
+
+func (data *svgData) AX(tn TreeNodeInterface) int {
+	x, _ := absoluteGeometry(tn)
+	return x
+}
+func (data *svgData) AY(tn TreeNodeInterface) int {
+	_, y := absoluteGeometry(tn)
+	return y
+}
+
 
 func writeSvgFile(network SquareTreeNodeInterface, outputFile string) error {
 	data := NewSvgData(network)
