@@ -4,19 +4,5 @@ Connectivity explanation between vsi1-ky[10.240.10.4] and vsi2-ky[10.240.20.4]
 The following connection exists between vsi1-ky[10.240.10.4] and vsi2-ky[10.240.20.4]: protocol: TCP,UDP
 Egress: security group sg1-ky allows connection (with allow rules); network ACL acl1-ky allows connection (with allow and deny rules)
 Ingres: network ACL acl2-ky allows connection (with allow rules); security group sg1-ky allows connection (with allow rules)
-
-Rules details:
-~~~~~~~~~~~~~~
-Egress:
-security group sg1-ky allows connection with the following allow rules
-	index: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0
-network ACL acl1-ky allows connection with the following allow and deny rules
-	index: 0, direction: outbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, conn: protocol: icmp, action: deny
-	index: 2, direction: outbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, conn: all, action: allow
-Ingress:
-network ACL acl2-ky allows connection with the following allow rules
-	index: 6, direction: inbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, conn: all, action: allow
-security group sg1-ky allows connection with the following allow rules
-	index: 1, direction: inbound, protocol: all, cidr: 0.0.0.0/0
 ------------------------------------------------------------------------------------------------------------------------
 
