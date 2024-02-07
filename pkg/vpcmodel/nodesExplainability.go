@@ -662,7 +662,7 @@ func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (conn *comm
 }
 
 // prints either rulesDetails by calling StringDetailsRulesOfFilter or effect of each filter by calling StringFilterEffect
-func (rulesInLayers rulesInLayers) string(c *VPCConfig, isIngress bool, rulesDetails bool) string {
+func (rulesInLayers rulesInLayers) string(c *VPCConfig, isIngress, rulesDetails bool) string {
 	rulesInLayersStr := ""
 	// order of presentation should be same as order of evaluation:
 	// (1) the SGs attached to the src NIF (2) the outbound rules in the ACL attached to the src NIF's subnet
