@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -96,7 +97,7 @@ func vpcConfigsFromFile(fileName string, inArgs *InArgs) (map[string]*vpcmodel.V
 // Takes command-line flags and returns an error rather than exiting, so it can be more easily used in testing
 func _main(cmdlineArgs []string) error {
 	inArgs, err := ParseInArgs(cmdlineArgs)
-	if err == flag.ErrHelp {
+	if errors.Is(err, flag.ErrHelp) {
 		return nil
 	}
 	if err != nil {
