@@ -1,6 +1,9 @@
 Connectivity explanation between vsi3a-ky[10.240.30.5] and vsi2-ky[10.240.20.4]
+===================================================================================
+
 No connection between vsi3a-ky[10.240.30.5] and vsi2-ky[10.240.20.4]; connection blocked by ingress
-Egress: security group sg3-ky allows connection (with allow rules); network ACL acl3-ky allows connection (with allow rules), Ingres: network ACL acl2-ky allows connection (with allow rules); security group sg2-ky blocks connection (no relevant allow rules)
+Egress: security group sg3-ky allows connection (with allow rules); network ACL acl3-ky allows connection (with allow rules)
+Ingres: network ACL acl2-ky allows connection (with allow rules); security group sg2-ky blocks connection (no relevant allow rules)
 
 Rules details:
 ~~~~~~~~~~~~~~
