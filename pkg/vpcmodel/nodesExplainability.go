@@ -498,21 +498,20 @@ func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
 }
 
 // prints each separately without grouping - for debug
-func (details *rulesAndConnDetails) String(c *VPCConfig, connQuery *common.ConnectionSet) (string, error) {
+func (details *rulesAndConnDetails) String(c *VPCConfig, verbose bool, connQuery *common.ConnectionSet) (string, error) {
 	resStr := ""
 	for _, srcDstDetails := range *details {
-		resStr += stringExplainabilityLine(c, connQuery, srcDstDetails.src, srcDstDetails.dst, srcDstDetails.conn,
-			srcDstDetails.ingressEnabled, srcDstDetails.egressEnabled,
-			srcDstDetails.router, srcDstDetails.actualMergedRules)
+		resStr += stringExplainabilityLine(verbose, c, connQuery, srcDstDetails.src, srcDstDetails.dst, srcDstDetails.conn,
+			srcDstDetails.ingressEnabled, srcDstDetails.egressEnabled, srcDstDetails.router, srcDstDetails.actualMergedRules)
 	}
 	return resStr, nil
 }
 
-func (explanation *Explanation) String() string {
+func (explanation *Explanation) String(verbose bool) string {
 	linesStr := make([]string, len(explanation.groupedLines))
 	groupedLines := explanation.groupedLines
 	for i, line := range groupedLines {
-		linesStr[i] += stringExplainabilityLine(explanation.c, explanation.connQuery, line.src, line.dst, line.commonProperties.conn,
+		linesStr[i] += stringExplainabilityLine(verbose, explanation.c, explanation.connQuery, line.src, line.dst, line.commonProperties.conn,
 			line.commonProperties.expDetails.ingressEnabled, line.commonProperties.expDetails.egressEnabled,
 			line.commonProperties.expDetails.router, line.commonProperties.expDetails.rules) +
 			"------------------------------------------------------------------------------------------------------------------------\n"
@@ -521,7 +520,7 @@ func (explanation *Explanation) String() string {
 	return strings.Join(linesStr, "\n") + "\n"
 }
 
-func stringExplainabilityLine(c *VPCConfig, connQuery *common.ConnectionSet, src, dst EndpointElem,
+func stringExplainabilityLine(verbose bool, c *VPCConfig, connQuery *common.ConnectionSet, src, dst EndpointElem,
 	conn *common.ConnectionSet, ingressEnabled, egressEnabled bool,
 	router RoutingResource, rules *rulesConnection) string {
 	needEgress := !src.IsExternal()
@@ -533,7 +532,10 @@ func stringExplainabilityLine(c *VPCConfig, connQuery *common.ConnectionSet, src
 		routerStr = "External Router " + router.Kind() + ": " + router.Name() + "\n"
 	}
 	routerFiltersHeader := routerStr + rules.getFilterEffectStr(c, needEgress, needIngress)
-	rulesStr := rules.getRuleDetailsStr(c, needEgress, needIngress)
+	var rulesStr string
+	if verbose {
+		rulesStr = rules.getRuleDetailsStr(c, needEgress, needIngress)
+	}
 	noConnection := ""
 	if connQuery == nil {
 		noConnection = fmt.Sprintf("No connection between %v and %v;", src.Name(), dst.Name())

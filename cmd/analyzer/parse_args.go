@@ -104,7 +104,7 @@ var supportedAnalysisTypesMap = map[string][]string{
 	singleSubnet:     {TEXTFormat},
 	allEndpointsDiff: {TEXTFormat, MDFormat},
 	allSubnetsDiff:   {TEXTFormat, MDFormat},
-	explainMode:      {TEXTFormat},
+	explainMode:      {TEXTFormat, DEBUGFormat},
 }
 
 // supportedOutputFormatsList is an ordered list of supported output formats (usage details presented in this order)
