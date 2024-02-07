@@ -527,22 +527,17 @@ func stringExplainabilityLine(verbose bool, c *VPCConfig, connQuery *common.Conn
 	needIngress := !dst.IsExternal()
 	noIngressRules := !ingressEnabled && needIngress
 	noEgressRules := !egressEnabled && needEgress
-	routerStr := ""
+	var routerStr, rulesStr, noConnection, resStr string
 	if router != nil && (src.IsExternal() || dst.IsExternal()) {
 		routerStr = "External Router " + router.Kind() + ": " + router.Name() + "\n"
 	}
 	routerFiltersHeader := routerStr + rules.getFilterEffectStr(c, needEgress, needIngress)
-	var rulesStr string
-	if verbose {
-		rulesStr = rules.getRuleDetailsStr(c, needEgress, needIngress)
-	}
-	noConnection := ""
+	rulesStr = rules.getRuleDetailsStr(c, verbose, needEgress, needIngress)
 	if connQuery == nil {
 		noConnection = fmt.Sprintf("No connection between %v and %v;", src.Name(), dst.Name())
 	} else {
 		noConnection = fmt.Sprintf("There is no connection \"%v\" between %v and %v;", connQuery.String(), src.Name(), dst.Name())
 	}
-	resStr := ""
 	switch {
 	case router == nil && src.IsExternal():
 		resStr += fmt.Sprintf("%v no fip router and src is external (fip is required for "+
@@ -576,7 +571,10 @@ func (rules *rulesConnection) getFilterEffectStr(c *VPCConfig, needEgress, needI
 	return egressRulesStr + ingressRulesStr
 }
 
-func (rules *rulesConnection) getRuleDetailsStr(c *VPCConfig, needEgress, needIngress bool) string {
+func (rules *rulesConnection) getRuleDetailsStr(c *VPCConfig, verbose, needEgress, needIngress bool) string {
+	if !verbose {
+		return ""
+	}
 	egressRulesStr := rules.egressRules.string(c, false, true)
 	ingressRulesStr := rules.ingressRules.string(c, true, true)
 	if needEgress && egressRulesStr != "" {
