@@ -1,5 +1,5 @@
 Connectivity explanation for protocol: TCP between vsi1-ky[10.240.10.4] and 161.26.0.0/16
-===================================================================================
+===================================================================================================
 
 Connection protocol: TCP exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16
 External Router PublicGateway: public-gw-ky
@@ -12,4 +12,5 @@ security group sg1-ky allows connection with the following allow rules
 	index: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0
 network ACL acl1-ky allows connection with the following allow rules
 	index: 2, direction: outbound , src: 10.240.10.0/24 , dst: 161.26.0.0/16, conn: all, action: allow
+------------------------------------------------------------------------------------------------------------------------
 
