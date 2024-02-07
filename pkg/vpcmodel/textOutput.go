@@ -65,7 +65,7 @@ func (t *TextOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 		out += cfgsDiff.String()
 		hasStatelessConns = cfgsDiff.hasStatelessConns()
 	case Explain:
-		out += explanation.String()
+		out += explanation.String(false)
 	}
 	// write output to file and return the output string
 	_, err = WriteToFile(out, outFile)
