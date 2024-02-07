@@ -1,0 +1,14 @@
+Connectivity explanation between vsi1-ky[10.240.10.4] and 161.26.0.0/32
+The following connection exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/32: protocol: UDP; its enabled by
+External Router PublicGateway: public-gw-ky
+Egress Rules:
+~~~~~~~~~~~~~
+NaclLayer Rules
+------------------------
+enabling rules from acl1-ky:
+	index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+SecurityGroupLayer Rules
+------------------------
+enabling rules from sg1-ky:
+	index: 2, direction: outbound,  conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16
+

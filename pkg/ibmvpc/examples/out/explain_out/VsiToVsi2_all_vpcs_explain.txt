@@ -1,0 +1,23 @@
+Connectivity explanation between vsi2-ky[10.240.20.4] and vsi1-ky[10.240.10.4]
+The following connection exists between vsi2-ky[10.240.20.4] and vsi1-ky[10.240.10.4]: All Connections; its enabled by
+Egress Rules:
+~~~~~~~~~~~~~
+NaclLayer Rules
+------------------------
+enabling rules from acl2-ky:
+	index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+SecurityGroupLayer Rules
+------------------------
+enabling rules from sg2-ky:
+	index: 1, direction: outbound, protocol: all, cidr: 10.240.10.0/24
+Ingress Rules:
+~~~~~~~~~~~~~~
+NaclLayer Rules
+------------------------
+enabling rules from acl1-ky:
+	index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+SecurityGroupLayer Rules
+------------------------
+enabling rules from sg1-ky:
+	index: 3, direction: inbound, protocol: all, cidr: 10.240.20.4/32,10.240.30.4/32
+

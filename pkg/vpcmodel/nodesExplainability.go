@@ -102,6 +102,28 @@ func (c *VPCConfig) getVsiNode(name string) Node {
 	return nil
 }
 
+// GetNodesWithinAddress is given a string address in CIDR format or exact IP address format, and
+// returns the list of all internal nodes with this address
+func (c *VPCConfig) GetNodesWithinAddress(ipAddress string) (networkInterfaceNodes []Node, err error) {
+	var addressIPblock, networkInterfaceIPBlock *common.IPBlock
+	addressIPblock = common.NewIPBlockFromCidrOrAddress(ipAddress)
+
+	networkInterfaceNodes = []Node{}
+	for _, node := range c.Nodes {
+		if networkInterfaceIPBlock, err = common.NewIPBlockFromIPAddress(node.Cidr()); err != nil {
+			return nil, err
+		}
+		contained := networkInterfaceIPBlock.ContainedIn(addressIPblock)
+		if node.IsExternal() && contained {
+			return nil, fmt.Errorf("src or dst address %s represents an external IP", ipAddress)
+		}
+		if node.IsInternal() && contained {
+			networkInterfaceNodes = append(networkInterfaceNodes, node)
+		}
+	}
+	return networkInterfaceNodes, nil
+}
+
 // given input cidr, gets (disjoint) external nodes I s.t.:
 //  1. The union of these nodes is the cidr
 //  2. Let i be a node in I and n be a node in VPCConfig.

@@ -50,7 +50,7 @@ func (lyO *subnetLayoutOverlap) fixOverlapping() {
 		}
 		if lyO.squaresOverlap(l1) {
 			// src and dst intersect, adding a point to the line
-			lyO.addPointOutsideSquares(l1)
+			addPointOutsideSquares(l1)
 			continue
 		}
 		for _, l2 := range allLines[i1+1:] {
@@ -114,7 +114,7 @@ func (lyO *subnetLayoutOverlap) squaresOverlap(line LineTreeNodeInterface) bool 
 // than we choose a point that
 //  1. on the second line
 //  2. outside both squares
-func (lyO *subnetLayoutOverlap) addPointOutsideSquares(line LineTreeNodeInterface) {
+func addPointOutsideSquares(line LineTreeNodeInterface) {
 	src, dst := line.Src().(SquareTreeNodeInterface), line.Dst().(SquareTreeNodeInterface)
 	xSrc, ySrc := absoluteGeometry(src)
 	xDst, yDst := absoluteGeometry(dst)
@@ -126,19 +126,24 @@ func (lyO *subnetLayoutOverlap) addPointOutsideSquares(line LineTreeNodeInterfac
 	switch {
 	case abs(dY) < minSize && abs(dX) < minSize:
 		// this is the case that both squares has the same center.
+		// in this case we needs two points, close to each other.
+		// we might also have a line in the opposite direction, so we give the points an offset
+		offset := fourTimesMinSize
+		if src.ID() > dst.ID() {
+			offset = -offset
+		}
 		if max(src.Width()/2, dst.Width()/2) > max(src.Height()/2, dst.Height()/2) {
 			// width is bigger then hight, we choose a point below the center, outside both squares:
 			y = midY + max(src.Height()/2, dst.Height()/2) + subnetHeight/2
 			x = midX
-			// in this case we needs two points, close to each other:
-			line.addPoint(x-minSize, y)
-			line.addPoint(x+minSize, y)
+			line.addPoint(x-minSize+offset, y)
+			line.addPoint(x+minSize+offset, y)
 		} else {
 			// hight is bigger then width, we choose a point right to the center, outside both squares:
 			y = midY
 			x = midX + max(src.Width()/2, dst.Width()/2) + subnetWidth/2
-			line.addPoint(x, y-minSize)
-			line.addPoint(x, y+minSize)
+			line.addPoint(x, y-minSize+offset)
+			line.addPoint(x, y+minSize+offset)
 		}
 		return
 	case abs(dX) < minSize:

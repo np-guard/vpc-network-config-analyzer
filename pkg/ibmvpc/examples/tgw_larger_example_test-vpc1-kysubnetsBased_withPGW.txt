@@ -1,4 +1,0 @@
-Connectivity for VPC test-vpc1-ky
-combined connections between subnets:
-subnet11-ky => subnet12-ky : All Connections
-subnet12-ky => subnet11-ky : All Connections
