@@ -179,12 +179,19 @@ func (stl *drawioStyles) LineTextStyle(tn TreeNodeInterface) string {
 func (stl *drawioStyles) TagStyle(tn TreeNodeInterface) string {
 	return imageDrawioStyle + images[reflect.TypeOf(tn).Elem()] + ";"
 }
+
+//////////////////////////////////////////////////////////////////////////////////////////
 func (stl *drawioStyles) ImageStyle(tn TreeNodeInterface) string {
 	if stl.canTypeHaveAMiniIcon[reflect.TypeOf(tn).Elem()] && !tn.(IconTreeNodeInterface).hasMiniIcon(){
 	 return miniImages[reflect.TypeOf(tn).Elem()]
 	}
 	return images[reflect.TypeOf(tn).Elem()]
 }
+func (stl *drawioStyles) Color(tn TreeNodeInterface) string {
+	return colors[reflect.TypeOf(tn).Elem()]
+}
+
+//////////////////////////////////////////////////////////////////////////////////
 
 func (stl *drawioStyles) HasTag(tn TreeNodeInterface) bool {
 	return isIbmSquare(tn)

@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"fmt"
 	"os"
+	"reflect"
 
 	// "reflect"
 	"text/template"
@@ -37,9 +38,9 @@ func NewSvgData(network SquareTreeNodeInterface) *svgData {
 // func (data *drawioData) MiniIconSize() int    { return miniIconSize }
 // func (data *drawioData) RootID() uint         { return data.rootID }
 // func (data *drawioData) IDsPrefix() string    { return idsPrefix }
-// func (data *drawioData) ElementComment(tn TreeNodeInterface) string {
-// 	return reflect.TypeOf(tn).Elem().Name() + " " + tn.Label()
-// }
+func (data *svgData) ElementComment(tn TreeNodeInterface) string {
+	return reflect.TypeOf(tn).Elem().Name() + " " + tn.Label()
+}
 func (data *svgData) Add( a int ,b float64) float64         { return float64(a)+b }
 
 func (data *svgData) AX(tn TreeNodeInterface) int {

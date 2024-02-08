@@ -7,11 +7,12 @@
 
 
     {{range $node := $data.Nodes}}
+        <!-- {{$data.ElementComment $node}} -->
         {{ if $node.NotShownInDrawio }}
         {{ else if $node.IsSquare }}
-            <rect x="{{$data.AX $node}}" y="{{$data.AY $node}}" width="{{$node.Width}}" height="{{$node.Height}}" fill="none" stroke="#1192e8" pointer-events="all"/>
+            <rect x="{{$data.AX $node}}" y="{{$data.AY $node}}" width="{{$node.Width}}" height="{{$node.Height}}" fill="none" stroke="{{$data.Color $node}}" pointer-events="all"/>
             <image x="{{$data.Add ($data.AX $node) 18.5}}" y="{{$data.Add ($data.AY $node) 6}}" width="22" height="19.73" xlink:href="data:image/svg+xml;base64,{{$data.ImageStyle $node}}"/>
-            <rect x="{{$data.AX $node}}" y="{{$data.AY $node}}" width="7" height="37" fill="#1192e8" stroke="none" pointer-events="all"/>
+            <rect x="{{$data.AX $node}}" y="{{$data.AY $node}}" width="7" height="37" fill="{{$data.Color $node}}" stroke="none" pointer-events="all"/>
             <rect x="{{$data.Add ($data.AX $node) 51}}" y="{{$data.Add ($data.AY $node) 8}}" width="163" height="20" fill="none" stroke="none" pointer-events="all"/>
 
             <g transform="translate(-0.5 -0.5)">
