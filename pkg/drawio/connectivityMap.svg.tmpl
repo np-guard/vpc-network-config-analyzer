@@ -9,29 +9,29 @@
     {{range $node := $data.Nodes}}
         {{ if $node.NotShownInDrawio }}
         {{ else if $node.IsSquare }}
-<rect x="{{$data.AX $node}}" y="{{$data.AY $node}}" width="{{$node.Width}}" height="{{$node.Height}}" fill="none" stroke="#1192e8" pointer-events="all"/>
-<image x="{{$data.Add ($data.AX $node) 18.5}}" y="{{$data.Add ($data.AY $node) 6}}" width="22" height="19.73" xlink:href="data:image/svg+xml;base64,{{$data.ImageStyle $node}}"/>
-<rect x="{{$data.AX $node}}" y="{{$data.AY $node}}" width="7" height="37" fill="#1192e8" stroke="none" pointer-events="all"/>
-<rect x="{{$data.Add ($data.AX $node) 51}}" y="{{$data.Add ($data.AY $node) 8}}" width="163" height="20" fill="none" stroke="none" pointer-events="all"/>
+            <rect x="{{$data.AX $node}}" y="{{$data.AY $node}}" width="{{$node.Width}}" height="{{$node.Height}}" fill="none" stroke="#1192e8" pointer-events="all"/>
+            <image x="{{$data.Add ($data.AX $node) 18.5}}" y="{{$data.Add ($data.AY $node) 6}}" width="22" height="19.73" xlink:href="data:image/svg+xml;base64,{{$data.ImageStyle $node}}"/>
+            <rect x="{{$data.AX $node}}" y="{{$data.AY $node}}" width="7" height="37" fill="#1192e8" stroke="none" pointer-events="all"/>
+            <rect x="{{$data.Add ($data.AX $node) 51}}" y="{{$data.Add ($data.AY $node) 8}}" width="163" height="20" fill="none" stroke="none" pointer-events="all"/>
 
-<g transform="translate(-0.5 -0.5)">
-<switch>
-<foreignObject pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility" style="overflow: visible; text-align: left;">
-<div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe flex-start; width: 161px; height: 1px; padding-top: {{$data.Add ($data.AY $node) 18}}px; margin-left: {{$data.Add ($data.AX $node) 53}}px;">
-<div data-drawio-colors="color: rgb(0, 0, 0); " style="box-sizing: border-box; font-size: 0px; text-align: left;">
-<div style="display: inline-block; font-size: 14px; font-family: &quot;IBM Plex Sans&quot;; color: rgb(0, 0, 0); line-height: 1.2; pointer-events: all; white-space: normal; overflow-wrap: normal;">{{$node.Label}}</div>
-</div>
-</div>
-</foreignObject>
-<text x="{{$data.Add ($data.AX $node) 53}}" y="{{$data.Add ($data.AY $node) 22}}" fill="rgb(0, 0, 0)" font-family="IBM Plex Sans" font-size="14px">{{$node.Label}}</text>
-</switch>
-</g>
+            <g transform="translate(-0.5 -0.5)">
+            <switch>
+            <foreignObject pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility" style="overflow: visible; text-align: left;">
+            <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe flex-start; width: 161px; height: 1px; padding-top: {{$data.Add ($data.AY $node) 18}}px; margin-left: {{$data.Add ($data.AX $node) 53}}px;">
+            <div data-drawio-colors="color: rgb(0, 0, 0); " style="box-sizing: border-box; font-size: 0px; text-align: left;">
+            <div style="display: inline-block; font-size: 14px; font-family: &quot;IBM Plex Sans&quot;; color: rgb(0, 0, 0); line-height: 1.2; pointer-events: all; white-space: normal; overflow-wrap: normal;">{{$node.Label}}</div>
+            </div>
+            </div>
+            </foreignObject>
+            <text x="{{$data.Add ($data.AX $node) 53}}" y="{{$data.Add ($data.AY $node) 22}}" fill="rgb(0, 0, 0)" font-family="IBM Plex Sans" font-size="14px">{{$node.Label}}</text>
+            </switch>
+            </g>
 
         {{ else if $node.IsIcon }}
-<image x="169.5" y="49.5" width="60" height="60" xlink:href="data:image/svg+xml;base64,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiMxMTkyZTg7fS5jbHMtMiwuY2xzLTR7ZmlsbDpub25lO30uY2xzLTJ7ZmlsbC1ydWxlOmV2ZW5vZGQ7fS5jbHMtM3tmaWxsOiNmZmY7fTwvc3R5bGU+PC9kZWZzPjxyZWN0IGNsYXNzPSJjbHMtMSIgeD0iMC41IiB5PSIwLjUiIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIvPjxnIGlkPSJtYXNrLTIiPjxwb2x5Z29uIGlkPSJwYXRoLTEiIGNsYXNzPSJjbHMtMiIgcG9pbnRzPSIxNy4xOCAxNC4yOSAzNy4xNyAxNC4yOSAzNy4xNyAzNC4yOSAxNy4xOCAzNC4yOSAxNy4xOCAxNC4yOSIvPjwvZz48cGF0aCBjbGFzcz0iY2xzLTMiIGQ9Ik0zMC42OSwyNy41NmwyLjE4LTIuMTlhMS4yMSwxLjIxLDAsMCwwLDAtMS43NWwtMy4zMS0zLjMxLjg4LS44N2EuNTYuNTYsMCwwLDAsLjMxLjA2LDEuMjUsMS4yNSwwLDEsMC0xLjI1LTEuMjUuNTcuNTcsMCwwLDAsLjA2LjMxbC0zLjgxLDMuODJBMi4yNiwyLjI2LDAsMCwwLDI0LjUsMjJhMi4xOSwyLjE5LDAsMCwwLTEuMjUuMzhsLTIuMDYtMi4wN0wyNC41LDE3bDIuMTksMi4xOS44Ny0uODgtMi4xOS0yLjE5YTEuMjEsMS4yMSwwLDAsMC0xLjc0LDBsLTMuMzIsMy4zMi0uODctLjg4YS41Ny41NywwLDAsMCwuMDYtLjMxLDEuMjUsMS4yNSwwLDEsMC0xLjI1LDEuMjUuNTcuNTcsMCwwLDAsLjMxLS4wNmwzLjgyLDMuODFBMi4yNiwyLjI2LDAsMCwwLDIyLDI0LjVhMi4xOSwyLjE5LDAsMCwwLC4zOCwxLjI1bC0yLjA3LDIuMDZMMTcsMjQuNWwyLjE5LTIuMTktLjg4LS44Ny0yLjE5LDIuMTlhMS4yLDEuMiwwLDAsMCwwLDEuNzRsMy4zMiwzLjMyLS44OC44N2EuNTcuNTcsMCwwLDAtLjMxLS4wNiwxLjI1LDEuMjUsMCwxLDAsMS4yNSwxLjI1LjU2LjU2LDAsMCwwLS4wNi0uMzFsMy44MS0zLjgyYTIuMjUsMi4yNSwwLDAsMCwyLjUsMGwyLjA2LDIuMDdMMjQuNSwzMmwtMi4xOS0yLjE5LS44Ny44OCwyLjE5LDIuMThhMS4xOSwxLjE5LDAsMCwwLDEuNzQsMGwzLjMyLTMuMzEuODcuODhjMCwuMTItLjA2LjE4LS4wNi4zMWExLjI1LDEuMjUsMCwxLDAsMS4yNS0xLjI1LjU2LjU2LDAsMCwwLS4zMS4wNmwtMy44Mi0zLjgxYTIuMjUsMi4yNSwwLDAsMCwwLTIuNWwyLjA3LTIuMDZMMzIsMjQuNWwtMi4xOSwyLjE5Wk0yNC41LDI1Ljc1YTEuMjUsMS4yNSwwLDEsMSwxLjI1LTEuMjVBMS4yNSwxLjI1LDAsMCwxLDI0LjUsMjUuNzVaIi8+PHJlY3QgY2xhc3M9ImNscy00IiB4PSIxNC41IiB5PSIxNC41IiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiLz48L3N2Zz4="/>
-<g fill="rgb(0, 0, 0)" font-family="IBM Plex Sans" text-anchor="middle" font-size="14px">
-<text x="199.5" y="122.5">tgw</text>
-</g>
+            <image x="{{$data.AX $node}}" y="{{$data.AY $node}}" width="60" height="60" xlink:href="data:image/svg+xml;base64,{{$data.ImageStyle $node}}"/>
+            <g fill="rgb(0, 0, 0)" font-family="IBM Plex Sans" text-anchor="middle" font-size="14px">
+            <text x="{{$data.Add ($data.AX $node) 30}}" y="{{$data.Add ($data.AY $node) 73}}">{{$node.Label}}</text>
+            </g>
         {{ else if $node.IsLine }}
         {{ end }}
     {{end}}
