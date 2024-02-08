@@ -30,6 +30,7 @@ const (
 	vpeStyle           = imageDrawioStyle + vpeImage + iconDrawioStyle
 	fipStyle           = imageDrawioStyle + fipImage + iconDrawioStyle
 	connStyleFormat    = "endArrow=%s;html=1;fontSize=16;fontColor=#4376BB;strokeWidth=2;endFill=1;rounded=0;startArrow=%s;%sstartFill=1;%s"
+	logicalLineStyle = "html=1;verticalAlign=middle;startArrow=oval;startFill=1;endArrow=oval;startSize=6;strokeColor=#000000;align=center;dashed=1;strokeWidth=2;horizontal=1;labelPosition=center;verticalLabelPosition=middle;endFill=1;rounded=0;"
 	lineExitFormat     = "exitX=%v;exitY=%v;exitDx=0;exitDy=0;"
 	connRouteredCollor = "strokeColor=#007FFF;"
 
@@ -48,6 +49,10 @@ var images = map[reflect.Type]string{
 	reflect.TypeOf(SubnetTreeNode{}):        "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB3aWR0aD0iMjlweCIgaGVpZ2h0PSIyOXB4IiB2aWV3Qm94PSIwIDAgMjkgMjkiIHZlcnNpb249IjEuMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayI+CiAgICA8IS0tIEdlbmVyYXRvcjogU2tldGNoIDUzICg3MjUyMCkgLSBodHRwczovL3NrZXRjaGFwcC5jb20gLS0+CiAgICA8dGl0bGU+SUJNIFN1Ym5ldCA6IEFDTCBCbGFjazwvdGl0bGU+CiAgICA8ZGVzYz5DcmVhdGVkIHdpdGggU2tldGNoLjwvZGVzYz4KICAgIDxnIGlkPSJQYWdlLTEiIHN0cm9rZT0ibm9uZSIgc3Ryb2tlLXdpZHRoPSIxIiBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPgogICAgICAgIDxnIGlkPSJJQk0tU3VibmV0LTotQUNMLUJsYWNrIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLjc1MDAwMCwgMC4wNzQ5NTkpIiBmaWxsPSIjMDAwMDAwIj4KICAgICAgICAgICAgPHBhdGggZD0iTTI0LjAxNjEsMjYuMjIyMSBDMjIuOTEyMSwyNi4yMjIxIDIyLjAxNjEsMjUuMzI2MSAyMi4wMTYxLDI0LjIyMjEgQzIyLjAxNjEsMjMuMTE4MSAyMi45MTIxLDIyLjIyMjEgMjQuMDE2MSwyMi4yMjIxIEMyNS4xMjAxLDIyLjIyMjEgMjYuMDE2MSwyMy4xMTgxIDI2LjAxNjEsMjQuMjIyMSBDMjYuMDEzMSwyNS4zMjUxIDI1LjExOTEsMjYuMjE5MSAyNC4wMTYxLDI2LjIyMjEgTTQuMDE2MSwyNi4yMjIxIEMyLjkxMjEsMjYuMjIyMSAyLjAxNjEsMjUuMzI2MSAyLjAxNjEsMjQuMjIyMSBDMi4wMTYxLDIzLjExODEgMi45MTIxLDIyLjIyMjEgNC4wMTYxLDIyLjIyMjEgQzUuMTIwMSwyMi4yMjIxIDYuMDE2MSwyMy4xMTgxIDYuMDE2MSwyNC4yMjIxIEM2LjAxMzEsMjUuMzI1MSA1LjExOTEsMjYuMjE5MSA0LjAxNjEsMjYuMjIyMSBNNC4wMTYxLDYuMjIyMSBDMi45MTIxLDYuMjIyMSAyLjAxNjEsNS4zMjYxIDIuMDE2MSw0LjIyMjEgQzIuMDE2MSwzLjExODEgMi45MTIxLDIuMjIyMSA0LjAxNjEsMi4yMjIxIEM1LjEyMDEsMi4yMjIxIDYuMDE2MSwzLjExODEgNi4wMTYxLDQuMjIyMSBDNi4wMTMxLDUuMzI1MSA1LjExOTEsNi4yMTkxIDQuMDE2MSw2LjIyMjEgTTI0LjAxNjEsMi4yMjIxIEMyNS4xMjAxLDIuMjIyMSAyNi4wMTYxLDMuMTE4MSAyNi4wMTYxLDQuMjIyMSBDMjYuMDE2MSw1LjMyNjEgMjUuMTIwMSw2LjIyMjEgMjQuMDE2MSw2LjIyMjEgQzIyLjkxMjEsNi4yMjIxIDIyLjAxNjEsNS4zMjYxIDIyLjAxNjEsNC4yMjIxIEMyMi4wMTkxLDMuMTE4MSAyMi45MTMxLDIuMjI1MSAyNC4wMTYxLDIuMjIyMSBNMjQuMDE2MSwyMC4wMDAxIEMyMy4zMDUxLDE5Ljk5ODEgMjIuNjA5MSwyMC4yMDcxIDIyLjAxNjEsMjAuNjAwMSBMMTcuNDMwMSwxNi4wMDAxIEwxNi4wMTYxLDE3LjQxNDEgTDIwLjYxNjEsMjIuMDAwMSBDMjAuNDQwMSwyMi4zMTQxIDIwLjMwNjEsMjIuNjUxMSAyMC4yMTYxLDIzLjAwMDEgTDcuODc0MSwyMy4wMDAxIEM3Ljc3NDEsMjIuNjQ1MSA3LjYyMDEsMjIuMzA3MSA3LjQxNjEsMjIuMDAwMSBMMjIuMDE2MSw3LjQwMDEgQzIzLjgwNzEsOC41ODYxIDI2LjUzNzEsOC4wOTQxIDI3Ljc5NDEsNS4xOTgxIEMyNy45MTAxLDQuOTMyMSAyNy45OTIxLDQuNjQ0MSAyOC4wMTYxLDQuMzU1MSBDMjguMjIxMSwxLjk5NDEgMjYuMzcwMSwwLjAwOTEgMjQuMDQ4MSwwLjAwMDEgQzIyLjIxODEsLTAuMDA2OSAyMC42MTcxLDEuMjI4MSAyMC4xNTkxLDMuMDAwMSBMNy45MTYxLDMuMDAwMSBDNy40MzMxLDEuMjQwMSA1Ljg0MTEsMC4wMTUxIDQuMDE2MSwwLjAwMDEgQzEuNjc0MSwwLjAwMDEgLTAuMTk2OSwyLjAxMjEgMC4wMzYxLDQuNDAyMSBDMC4wNjcxLDQuNzIzMSAwLjE2MzEsNS4wNDExIDAuMjk5MSw1LjMzNTEgQzEuNTgyMSw4LjEwOTEgNC4yNTQxLDguNTY3MSA2LjAxNjEsNy40MDAxIEwxMC42MDIxLDEyLjAwMDEgTDEyLjAxNjEsMTAuNTg2MSBMNy40MTYxLDYuMDAwMSBDNy41OTIxLDUuNjg1MSA3LjcyNjEsNS4zNDkxIDcuODE2MSw1LjAwMDEgTDIwLjE1ODEsNS4wMDAxIEMyMC4yNTgxLDUuMzU1MSAyMC40MTIxLDUuNjkyMSAyMC42MTYxLDYuMDAwMSBMNi4wMTYxLDIwLjYwMDEgQzQuMjI0MSwxOS40MTMxIDEuNDk0MSwxOS45MDcxIDAuMjM3MSwyMi44MDUxIEMwLjEyMjEsMjMuMDcwMSAwLjA0MDEsMjMuMzU3MSAwLjAxNjEsMjMuNjQ1MSBDLTAuMTg3OSwyNi4wMDYxIDEuNjYzMSwyNy45OTExIDMuOTg0MSwyOC4wMDAxIEM1LjgxNDEsMjguMDA3MSA3LjQxNTEsMjYuNzcyMSA3Ljg3MzEsMjUuMDAwMSBMMjAuMTE2MSwyNS4wMDAxIEMyMC43MjkxLDI3LjQxMzEgMjMuNDEyMSwyOC43NTUxIDI1Ljc4NzEsMjcuNjEwMSBDMjcuMTAzMSwyNi45NzUxIDI3Ljk4NzEsMjUuNjA0MSAyOC4wMTgxLDI0LjE0MzEgQzI4LjA2ODEsMjEuNzk1MSAyNi4yMTIxLDIwLjAwNjEgMjQuMDE2MSwyMC4wMDAxIiBpZD0iRmlsbC0xIj48L3BhdGg+CiAgICAgICAgPC9nPgogICAgPC9nPgo8L3N2Zz4=",
 
 	// icons
+	reflect.TypeOf(NITreeNode{}):              vsiImage,
+	reflect.TypeOf(VsiTreeNode{}):             vsiImage,
+	reflect.TypeOf(ResIPTreeNode{}):           vpeImage,
+	reflect.TypeOf(VpeTreeNode{}):             vpeImage,
 	reflect.TypeOf(UserTreeNode{}):            "PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOm5vbmU7fS5jbHMtMntmaWxsOiNmZmY7ZmlsbC1ydWxlOmV2ZW5vZGQ7fTwvc3R5bGU+PC9kZWZzPjxyZWN0IHg9IjAuNSIgeT0iMC41IiB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHJ4PSIyNCIvPjxyZWN0IGNsYXNzPSJjbHMtMSIgeD0iMTQuNSIgeT0iMTQuNSIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIi8+PHBhdGggaWQ9IkZpbGwtMyIgY2xhc3M9ImNscy0yIiBkPSJNMzAuOCwzMy44N0gyOVYyOS41OUEyLjYzLDIuNjMsMCwwLDAsMjYuMywyN0gyMi43QTIuNjMsMi42MywwLDAsMCwyMCwyOS41OXY0LjI4SDE4LjJWMjkuNTlhNC40MSw0LjQxLDAsMCwxLDQuNS00LjI4aDMuNmE0LjQxLDQuNDEsMCwwLDEsNC41LDQuMjhaIi8+PHBhdGggaWQ9IkZpbGwtNSIgY2xhc3M9ImNscy0yIiBkPSJNMjQuNSwxNS4wNUE0LjM5LDQuMzksMCwwLDAsMjAsMTkuMzNhNC41MSw0LjUxLDAsMCwwLDksMCw0LjM5LDQuMzksMCwwLDAtNC41LTQuMjhtMCwxLjcxYTIuNTcsMi41NywwLDEsMS0yLjcsMi41NywyLjY0LDIuNjQsMCwwLDEsMi43LTIuNTciLz48L3N2Zz4=" + iconDrawioStyle,
 	reflect.TypeOf(GatewayTreeNode{}):         "PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiMxMTkyZTg7fS5jbHMtMntmaWxsOiNmZmY7fS5jbHMtM3tmaWxsOm5vbmU7fTwvc3R5bGU+PC9kZWZzPjxyZWN0IGNsYXNzPSJjbHMtMSIgeD0iMC41IiB5PSIwLjUiIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgcng9IjgiLz48cGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik0zMy41MSwyNS4zOGExLjIzLDEuMjMsMCwwLDAsMC0xLjc2TDI5Ljg5LDIwbDEuODEtMS43OWExLjI1LDEuMjUsMCwxLDAtLjU4LTIuMDksMS4yMiwxLjIyLDAsMCwwLS4zMiwxLjIyTDI5LDE5LjEybC0zLjYzLTMuNjNhMS4yMywxLjIzLDAsMCwwLTEuNzYsMEwyMCwxOS4xMWwtMS43OS0xLjgyYTEuMjQsMS4yNCwwLDEsMC0yLjA5LjU5LDEuMjIsMS4yMiwwLDAsMCwxLjIyLjMyTDE5LjEyLDIwbC0zLjYzLDMuNjNhMS4yMywxLjIzLDAsMCwwLDAsMS43NkwxOS4xMiwyOSwxNy4zNCwzMC44YTEuMjIsMS4yMiwwLDAsMC0xLjIyLjMyLDEuMjQsMS4yNCwwLDEsMCwyLjA5LjU5TDIwLDI5Ljg5bDMuNjIsMy42MmExLjIzLDEuMjMsMCwwLDAsMS43NiwwTDI5LDI5Ljg4bDEuNzksMS43OGExLjIyLDEuMjIsMCwwLDAsLjMyLDEuMjIsMS4yNCwxLjI0LDAsMSwwLC41OC0yLjA5TDI5Ljg5LDI5Wm0tOSw3LjI0TDE2LjM4LDI0LjVsOC4xMi04LjEyLDguMTIsOC4xMloiLz48cmVjdCBjbGFzcz0iY2xzLTMiIHg9IjE0LjUiIHk9IjE0LjUiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIvPjxwYXRoIGNsYXNzPSJjbHMtMiIgZD0iTTI2LjM4LDIzLjI1SDIzLjI1VjIyYTEuMjUsMS4yNSwwLDAsMSwyLjUsMEgyN2EyLjUsMi41LDAsMCwwLTUsMHYxLjQyYTEuMjYsMS4yNiwwLDAsMC0uNjIsMS4wOHYzLjEyYTEuMjYsMS4yNiwwLDAsMCwxLjI0LDEuMjZoMy43NmExLjI2LDEuMjYsMCwwLDAsMS4yNC0xLjI2VjI0LjVBMS4yNSwxLjI1LDAsMCwwLDI2LjM4LDIzLjI1Wm0wLDQuMzdIMjIuNjJWMjQuNWgzLjc2WiIvPjwvc3ZnPg==",
 	reflect.TypeOf(TransitGatewayTreeNode{}):  "PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiMxMTkyZTg7fS5jbHMtMiwuY2xzLTR7ZmlsbDpub25lO30uY2xzLTJ7ZmlsbC1ydWxlOmV2ZW5vZGQ7fS5jbHMtM3tmaWxsOiNmZmY7fTwvc3R5bGU+PC9kZWZzPjxyZWN0IGNsYXNzPSJjbHMtMSIgeD0iMC41IiB5PSIwLjUiIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIvPjxnIGlkPSJtYXNrLTIiPjxwb2x5Z29uIGlkPSJwYXRoLTEiIGNsYXNzPSJjbHMtMiIgcG9pbnRzPSIxNy4xOCAxNC4yOSAzNy4xNyAxNC4yOSAzNy4xNyAzNC4yOSAxNy4xOCAzNC4yOSAxNy4xOCAxNC4yOSIvPjwvZz48cGF0aCBjbGFzcz0iY2xzLTMiIGQ9Ik0zMC42OSwyNy41NmwyLjE4LTIuMTlhMS4yMSwxLjIxLDAsMCwwLDAtMS43NWwtMy4zMS0zLjMxLjg4LS44N2EuNTYuNTYsMCwwLDAsLjMxLjA2LDEuMjUsMS4yNSwwLDEsMC0xLjI1LTEuMjUuNTcuNTcsMCwwLDAsLjA2LjMxbC0zLjgxLDMuODJBMi4yNiwyLjI2LDAsMCwwLDI0LjUsMjJhMi4xOSwyLjE5LDAsMCwwLTEuMjUuMzhsLTIuMDYtMi4wN0wyNC41LDE3bDIuMTksMi4xOS44Ny0uODgtMi4xOS0yLjE5YTEuMjEsMS4yMSwwLDAsMC0xLjc0LDBsLTMuMzIsMy4zMi0uODctLjg4YS41Ny41NywwLDAsMCwuMDYtLjMxLDEuMjUsMS4yNSwwLDEsMC0xLjI1LDEuMjUuNTcuNTcsMCwwLDAsLjMxLS4wNmwzLjgyLDMuODFBMi4yNiwyLjI2LDAsMCwwLDIyLDI0LjVhMi4xOSwyLjE5LDAsMCwwLC4zOCwxLjI1bC0yLjA3LDIuMDZMMTcsMjQuNWwyLjE5LTIuMTktLjg4LS44Ny0yLjE5LDIuMTlhMS4yLDEuMiwwLDAsMCwwLDEuNzRsMy4zMiwzLjMyLS44OC44N2EuNTcuNTcsMCwwLDAtLjMxLS4wNiwxLjI1LDEuMjUsMCwxLDAsMS4yNSwxLjI1LjU2LjU2LDAsMCwwLS4wNi0uMzFsMy44MS0zLjgyYTIuMjUsMi4yNSwwLDAsMCwyLjUsMGwyLjA2LDIuMDdMMjQuNSwzMmwtMi4xOS0yLjE5LS44Ny44OCwyLjE5LDIuMThhMS4xOSwxLjE5LDAsMCwwLDEuNzQsMGwzLjMyLTMuMzEuODcuODhjMCwuMTItLjA2LjE4LS4wNi4zMWExLjI1LDEuMjUsMCwxLDAsMS4yNS0xLjI1LjU2LjU2LDAsMCwwLS4zMS4wNmwtMy44Mi0zLjgxYTIuMjUsMi4yNSwwLDAsMCwwLTIuNWwyLjA3LTIuMDZMMzIsMjQuNWwtMi4xOSwyLjE5Wk0yNC41LDI1Ljc1YTEuMjUsMS4yNSwwLDEsMSwxLjI1LTEuMjVBMS4yNSwxLjI1LDAsMCwxLDI0LjUsMjUuNzVaIi8+PHJlY3QgY2xhc3M9ImNscy00IiB4PSIxNC41IiB5PSIxNC41IiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiLz48L3N2Zz4=",
@@ -57,28 +62,43 @@ var images = map[reflect.Type]string{
 
 }
 
-var styles = map[reflect.Type]string{
-	reflect.TypeOf(PublicNetworkTreeNode{}):      fmt.Sprintf(ibmSquareDrawioFroamt, ibmSquareDrawioPrefix, colors[reflect.TypeOf(PublicNetworkTreeNode{})]),
-	reflect.TypeOf(CloudTreeNode{}):              fmt.Sprintf(ibmSquareDrawioFroamt, ibmSquareDrawioPrefix, colors[reflect.TypeOf(CloudTreeNode{})]),
-	reflect.TypeOf(VpcTreeNode{}):                fmt.Sprintf(ibmSquareDrawioFroamt, ibmSquareDrawioPrefix, colors[reflect.TypeOf(VpcTreeNode{})]),
-	reflect.TypeOf(ZoneTreeNode{}):               fmt.Sprintf(ibmSquareDrawioFroamt, ibmSquareDrawioPrefix, colors[reflect.TypeOf(ZoneTreeNode{})]),
-	reflect.TypeOf(PartialSGTreeNode{}):          fmt.Sprintf(ibmSquareDrawioFroamt, ibmSquareDrawioPrefix, colors[reflect.TypeOf(PartialSGTreeNode{})]),
-	reflect.TypeOf(SubnetTreeNode{}):             fmt.Sprintf(ibmSquareDrawioFroamt, ibmSquareDrawioPrefix, colors[reflect.TypeOf(SubnetTreeNode{})]),
-	reflect.TypeOf(GroupSquareTreeNode{}):        groupSquareStyle,
-	reflect.TypeOf(GroupSubnetsSquareTreeNode{}): groupSquareStyle,
-	reflect.TypeOf(NITreeNode{}):                 vsiStyle,
-	reflect.TypeOf(VsiTreeNode{}):                vsiStyle,
-	reflect.TypeOf(ResIPTreeNode{}):              vpeStyle,
-	reflect.TypeOf(VpeTreeNode{}):                vpeStyle,
-	reflect.TypeOf(GroupPointTreeNode{}):         "ellipse;whiteSpace=wrap;html=1;aspect=fixed;",
-	reflect.TypeOf(UserTreeNode{}):               imageDrawioStyle + images[reflect.TypeOf(UserTreeNode{})] + iconDrawioStyle,
-	reflect.TypeOf(GatewayTreeNode{}):            imageDrawioStyle + images[reflect.TypeOf(TransitGatewayTreeNode{})] + iconDrawioStyle,
-	reflect.TypeOf(TransitGatewayTreeNode{}):     imageDrawioStyle + images[reflect.TypeOf(TransitGatewayTreeNode{})] + iconDrawioStyle,
-	reflect.TypeOf(InternetTreeNode{}):           imageDrawioStyle + images[reflect.TypeOf(InternetTreeNode{})] + iconDrawioStyle,
-	reflect.TypeOf(InternetServiceTreeNode{}):    imageDrawioStyle + images[reflect.TypeOf(InternetServiceTreeNode{})] + ";fontSize=14;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;spacingTop=-6;",
-	reflect.TypeOf(LogicalLineTreeNode{}):        "html=1;verticalAlign=middle;startArrow=oval;startFill=1;endArrow=oval;startSize=6;strokeColor=#000000;align=center;dashed=1;strokeWidth=2;horizontal=1;labelPosition=center;verticalLabelPosition=middle;endFill=1;rounded=0;",
-	// reflect.TypeOf(EndPointTreeNode{}):        imageDrawioStyle + images[reflect.TypeOf(EndPointTreeNode{})] +iconStyle,
+func isIbmSquare(tn TreeNodeInterface) bool {
+	return map[reflect.Type]bool{
+		reflect.TypeOf(PublicNetworkTreeNode{}): true,
+		reflect.TypeOf(CloudTreeNode{}):         true,
+		reflect.TypeOf(VpcTreeNode{}):           true,
+		reflect.TypeOf(ZoneTreeNode{}):          true,
+		reflect.TypeOf(PartialSGTreeNode{}):     true,
+		reflect.TypeOf(SubnetTreeNode{}):        true,
+	}[reflect.TypeOf(tn).Elem()]
 }
+func isGroupingSquare(tn TreeNodeInterface) bool {
+	return reflect.TypeOf(tn).Elem() == reflect.TypeOf(GroupSubnetsSquareTreeNode{}) ||
+		reflect.TypeOf(tn).Elem() == reflect.TypeOf(GroupSquareTreeNode{})
+}
+func isIbmIcon(tn TreeNodeInterface) bool {
+	return tn.IsIcon() && reflect.TypeOf(tn).Elem() != reflect.TypeOf(GroupPointTreeNode{})
+}
+func isGroupingIcon(tn TreeNodeInterface) bool {
+	return tn.IsIcon() && reflect.TypeOf(tn).Elem() == reflect.TypeOf(GroupPointTreeNode{})
+}
+
+func stylesB(tn TreeNodeInterface) string {
+	switch {
+	case isIbmSquare(tn):
+		return fmt.Sprintf(ibmSquareDrawioFroamt, ibmSquareDrawioPrefix, colors[reflect.TypeOf(SubnetTreeNode{})])
+	case isGroupingSquare(tn):
+		return groupSquareStyle
+	case isIbmIcon(tn):
+		return imageDrawioStyle + images[reflect.TypeOf(tn).Elem()] + iconDrawioStyle
+	case isGroupingIcon(tn):
+		return  "ellipse;whiteSpace=wrap;html=1;aspect=fixed;"
+	case tn.IsLine():
+		return logicalLineStyle
+	}
+	return ""
+}
+
 var miniStyles = map[reflect.Type]string{
 	reflect.TypeOf(NITreeNode{}):    niStyle,
 	reflect.TypeOf(ResIPTreeNode{}): resIPStyle,
@@ -99,7 +119,7 @@ var textStyles = map[reflect.Type]string{
 	reflect.TypeOf(SubnetTreeNode{}):        squareTextDrawioStyle,
 	reflect.TypeOf(PartialSGTreeNode{}):     squareTextDrawioStyle,
 	reflect.TypeOf(ConnectivityTreeNode{}):  lineTextDrawioStyle,
-	reflect.TypeOf(LogicalLineTreeNode{}):   "edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];",
+	reflect.TypeOf(LogicalLineTreeNode{}):   lineTextDrawioStyle,
 }
 
 var colors = map[reflect.Type]string{
@@ -167,7 +187,7 @@ func (stl *drawioStyles) Style(tn TreeNodeInterface) string {
 	} else if stl.canTypeHaveAMiniIcon[tnType] && !tn.(IconTreeNodeInterface).hasMiniIcon() {
 		return miniStyles[tnType]
 	}
-	return styles[tnType]
+	return stylesB(tn)
 }
 func (stl *drawioStyles) MiniIconStyle(tn TreeNodeInterface) string {
 	return miniStyles[reflect.TypeOf(tn).Elem()]
