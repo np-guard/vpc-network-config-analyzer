@@ -335,6 +335,7 @@ func mergeAllowDeny(allow, deny rulesInLayers) rulesInLayers {
 		denyForLayer, ok2 := deny[layer]
 		switch {
 		case ok1 && ok2:
+			// do nothing (merge will be right after the switch)
 		case ok1: // layer relevant only for allow
 			allowDenyMerged[layer] = allowForLayer
 			continue
