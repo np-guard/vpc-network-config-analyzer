@@ -362,6 +362,7 @@ func mergeAllowDeny(allow, deny rulesInLayers) rulesInLayers {
 				mergedRulesInLayer = append(mergedRulesInLayer, *denyRules)
 			default: // none nil, merge
 				mergedRules := []int{}
+				// todo: once we update to go.1.22 use slices.Concat
 				mergedRules = append(mergedRules, allowRules.Rules...)
 				mergedRules = append(mergedRules, denyRules.Rules...)
 				slices.Sort(mergedRules)

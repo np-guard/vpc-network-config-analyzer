@@ -516,6 +516,7 @@ func (na *NACLAnalyzer) rulesInConnectivity(subnetCidr, inSubentCidr,
 					return allowRules, denyRules, nil
 				}
 				var mergedRules []int
+				// todo: once we update to go.1.22 use slices.Concat
 				mergedRules = append(mergedRules, allowRules...)
 				mergedRules = append(mergedRules, denyRules...)
 				slices.Sort(mergedRules)
