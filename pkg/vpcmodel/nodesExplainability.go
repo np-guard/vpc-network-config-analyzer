@@ -347,9 +347,12 @@ func mergeAllowDeny(allow, deny rulesInLayers) rulesInLayers {
 		mergedRulesInLayer := []RulesInFilter{} // both deny and allow in layer
 		// gets all indexes, both allow and deny, of a layer (e.g. indexes of nacls)
 		allIndexes := getAllIndexesForFilter(allowForLayer, denyForLayer)
+		// translates []RulesInFilter to a map for access efficiency
+		allowRulesMap := rulesInLayerToMap(allowForLayer)
+		denyRulesMap := rulesInLayerToMap(denyForLayer)
 		for filterIndex := range allIndexes {
-			allowRules := getRulesInFilter(allowForLayer, filterIndex)
-			denyRules := getRulesInFilter(denyForLayer, filterIndex)
+			allowRules := allowRulesMap[filterIndex]
+			denyRules := denyRulesMap[filterIndex]
 			// only one of them can be nil if we got here
 			switch {
 			case denyRules == nil:
@@ -381,20 +384,19 @@ func getAllIndexesForFilter(allowForLayer, denyForLayer []RulesInFilter) (indexe
 	return indexes
 }
 
+// translates rulesInLayer in a map from filter's index to the rules indexes
+func rulesInLayerToMap(rulesInLayer []RulesInFilter) map[int]*RulesInFilter {
+	mapFilterRules := map[int]*RulesInFilter{}
+	for _, rulesInFilter := range rulesInLayer {
+		mapFilterRules[rulesInFilter.Filter] = &rulesInFilter
+	}
+	return mapFilterRules
+}
+
 func addIndexesOfFilters(indexes intSet, rulesInLayer []RulesInFilter) {
 	for _, rulesInFilter := range rulesInLayer {
 		indexes[rulesInFilter.Filter] = true
 	}
-}
-
-// todo: this is not very efficient, but structs here should be small
-func getRulesInFilter(rulesInLayer []RulesInFilter, filter int) *RulesInFilter {
-	for _, rulesInFilter := range rulesInLayer {
-		if filter == rulesInFilter.Filter {
-			return &rulesInFilter
-		}
-	}
-	return nil
 }
 
 func (c *VPCConfig) processInput(srcName, dstName string) (srcNodes, dstNodes []Node, err error) {
