@@ -388,7 +388,9 @@ func getAllIndexesForFilter(allowForLayer, denyForLayer []RulesInFilter) (indexe
 func rulesInLayerToMap(rulesInLayer []RulesInFilter) map[int]*RulesInFilter {
 	mapFilterRules := map[int]*RulesInFilter{}
 	for _, rulesInFilter := range rulesInLayer {
-		mapFilterRules[rulesInFilter.Filter] = &rulesInFilter
+		thisRulesInFilter := rulesInFilter // to make lint happy
+		// do not reference an address of a loop value
+		mapFilterRules[rulesInFilter.Filter] = &thisRulesInFilter
 	}
 	return mapFilterRules
 }
