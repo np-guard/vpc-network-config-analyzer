@@ -89,12 +89,14 @@ var miniImages = map[reflect.Type]string{
 	reflect.TypeOf(ResIPTreeNode{}): resIPImage,
 }
 var colors = map[reflect.Type]string{
-	reflect.TypeOf(PublicNetworkTreeNode{}): "#1192E8",
-	reflect.TypeOf(CloudTreeNode{}):         "#1192E8",
-	reflect.TypeOf(VpcTreeNode{}):           "#1192E8",
-	reflect.TypeOf(ZoneTreeNode{}):          "#878d96",
-	reflect.TypeOf(SubnetTreeNode{}):        "#1192E8",
-	reflect.TypeOf(PartialSGTreeNode{}):     "#FA4D56",
+	reflect.TypeOf(PublicNetworkTreeNode{}):      "#1192E8",
+	reflect.TypeOf(CloudTreeNode{}):              "#1192E8",
+	reflect.TypeOf(VpcTreeNode{}):                "#1192E8",
+	reflect.TypeOf(ZoneTreeNode{}):               "#878d96",
+	reflect.TypeOf(SubnetTreeNode{}):             "#1192E8",
+	reflect.TypeOf(PartialSGTreeNode{}):          "#FA4D56",
+	reflect.TypeOf(GroupSquareTreeNode{}):        "#82b366",
+	reflect.TypeOf(GroupSubnetsSquareTreeNode{}): "#82b366",
 }
 
 type drawioStyles struct {
@@ -180,10 +182,10 @@ func (stl *drawioStyles) TagStyle(tn TreeNodeInterface) string {
 	return imageDrawioStyle + images[reflect.TypeOf(tn).Elem()] + ";"
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
+// ////////////////////////////////////////////////////////////////////////////////////////
 func (stl *drawioStyles) ImageStyle(tn TreeNodeInterface) string {
-	if stl.canTypeHaveAMiniIcon[reflect.TypeOf(tn).Elem()] && !tn.(IconTreeNodeInterface).hasMiniIcon(){
-	 return miniImages[reflect.TypeOf(tn).Elem()]
+	if stl.canTypeHaveAMiniIcon[reflect.TypeOf(tn).Elem()] && !tn.(IconTreeNodeInterface).hasMiniIcon() {
+		return miniImages[reflect.TypeOf(tn).Elem()]
 	}
 	return images[reflect.TypeOf(tn).Elem()]
 }
