@@ -25,11 +25,12 @@ func getVPCdestSubnetsByAdvertisedRoutes(tg *TransitGateway, vpc *VPC) (res []*S
 
 func isSubnetTGWDestination(tg *TransitGateway, subnet *Subnet) bool {
 	dstIPB := common.NewIPBlockFromCidrOrAddress(subnet.cidr)
-	for _, routesListPerVPC := range tg.availableRoutes {
-		for _, routeCIDR := range routesListPerVPC {
-			if dstIPB.ContainedIn(routeCIDR) {
-				return true
-			}
+	// TODO: routesListPerVPC is currently restricted only to the subnet's VPC, but with
+	// overlapping address prefixes the TGW may choose available route from a different VPC
+	routesListPerVPC := tg.availableRoutes[subnet.VPCRef.UID()]
+	for _, routeCIDR := range routesListPerVPC {
+		if dstIPB.ContainedIn(routeCIDR) {
+			return true
 		}
 	}
 	return false
