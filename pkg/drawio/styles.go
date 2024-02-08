@@ -24,13 +24,8 @@ const (
 	vpeImage   = "PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiMxMTkyZTg7fS5jbHMtMntmaWxsOiNmZmY7fS5jbHMtM3tmaWxsOm5vbmU7fTwvc3R5bGU+PC9kZWZzPjxyZWN0IGNsYXNzPSJjbHMtMSIgeD0iMC41IiB5PSIwLjUiIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIvPjxwYXRoIGlkPSJ2cGNfZ3JhZGllbnRfYm90dG9tIiBkYXRhLW5hbWU9InZwYyBncmFkaWVudCBib3R0b20iIGNsYXNzPSJjbHMtMiIgZD0iTTI3LDMxLjM4SDE4Ljg4YTEuMjcsMS4yNywwLDAsMS0xLjI2LTEuMjVWMjJoMS4yNnY4LjEzSDI3WiIvPjxwYXRoIGlkPSJ2cGNfZ3JhZGllbnRfdG9wIiBkYXRhLW5hbWU9InZwYyBncmFkaWVudCB0b3AiIGNsYXNzPSJjbHMtMiIgZD0iTTMwLjEyLDI3aDEuMjZWMTguODhhMS4yNiwxLjI2LDAsMCwwLTEuMjYtMS4yNUgyMnYxLjI1aDguMTJaIi8+PHBhdGggaWQ9ImVuZHBvaW50cyIgY2xhc3M9ImNscy0yIiBkPSJNMjkuMTIsMjguMjVsLTIuNS0yLjVBMi4yNiwyLjI2LDAsMCwwLDI3LDI0LjUsMi41MSwyLjUxLDAsMCwwLDI0LjUsMjJhMi4xOSwyLjE5LDAsMCwwLTEuMjUuMzhsLTIuNS0yLjVWMTUuNzVoLTV2NWg0LjEzbDIuNSwyLjVBMi4yNiwyLjI2LDAsMCwwLDIyLDI0LjUsMi41MSwyLjUxLDAsMCwwLDI0LjUsMjdhMi4yNiwyLjI2LDAsMCwwLDEuMjUtLjM4bDIuNSwyLjV2NC4xM2g1di01Wk0xOS41LDE5LjVIMTdWMTdoMi41Wm01LDYuMjVhMS4yNSwxLjI1LDAsMSwxLDEuMjUtMS4yNUExLjI1LDEuMjUsMCwwLDEsMjQuNSwyNS43NVpNMzIsMzJIMjkuNVYyOS41SDMyWiIvPjxyZWN0IGNsYXNzPSJjbHMtMyIgeD0iMTQuNSIgeT0iMTQuNSIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIi8+PC9zdmc+"
 	fipImage   = "PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiMxMTkyZTg7fS5jbHMtMntmaWxsOiNmZmY7fS5jbHMtM3tmaWxsOm5vbmU7fTwvc3R5bGU+PC9kZWZzPjxyZWN0IGNsYXNzPSJjbHMtMSIgeD0iMC41IiB5PSIwLjkyIiB3aWR0aD0iNDgiIGhlaWdodD0iNDcuMTYiIHJ4PSI4Ii8+PHBhdGggY2xhc3M9ImNscy0yIiBkPSJNMzAuMTIsMjEuNDNhMy4xMywzLjEzLDAsMCwwLTMuMDYsMi40NkgyMS45NGEzLjA3LDMuMDcsMCwxLDAsMCwxLjIyaDUuMTJhMy4xMiwzLjEyLDAsMSwwLDMuMDYtMy42OFptMCw0LjkxQTEuODQsMS44NCwwLDEsMSwzMiwyNC41LDEuODUsMS44NSwwLDAsMSwzMC4xMiwyNi4zNFoiLz48cmVjdCBjbGFzcz0iY2xzLTMiIHg9IjE0LjUiIHk9IjE0LjY3IiB3aWR0aD0iMjAiIGhlaWdodD0iMTkuNjUiLz48L3N2Zz4="
 
-	niStyle            = imageDrawioStyle + niImage + iconDrawioStyle
-	vsiStyle           = imageDrawioStyle + vsiImage + iconDrawioStyle
-	resIPStyle         = imageDrawioStyle + resIPImage + iconDrawioStyle
-	vpeStyle           = imageDrawioStyle + vpeImage + iconDrawioStyle
-	fipStyle           = imageDrawioStyle + fipImage + iconDrawioStyle
 	connStyleFormat    = "endArrow=%s;html=1;fontSize=16;fontColor=#4376BB;strokeWidth=2;endFill=1;rounded=0;startArrow=%s;%sstartFill=1;%s"
-	logicalLineStyle = "html=1;verticalAlign=middle;startArrow=oval;startFill=1;endArrow=oval;startSize=6;strokeColor=#000000;align=center;dashed=1;strokeWidth=2;horizontal=1;labelPosition=center;verticalLabelPosition=middle;endFill=1;rounded=0;"
+	logicalLineStyle   = "html=1;verticalAlign=middle;startArrow=oval;startFill=1;endArrow=oval;startSize=6;strokeColor=#000000;align=center;dashed=1;strokeWidth=2;horizontal=1;labelPosition=center;verticalLabelPosition=middle;endFill=1;rounded=0;"
 	lineExitFormat     = "exitX=%v;exitY=%v;exitDx=0;exitDy=0;"
 	connRouteredCollor = "strokeColor=#007FFF;"
 
@@ -82,46 +77,17 @@ func isIbmIcon(tn TreeNodeInterface) bool {
 func isGroupingIcon(tn TreeNodeInterface) bool {
 	return tn.IsIcon() && reflect.TypeOf(tn).Elem() == reflect.TypeOf(GroupPointTreeNode{})
 }
-
-func stylesB(tn TreeNodeInterface) string {
-	switch {
-	case isIbmSquare(tn):
-		return fmt.Sprintf(ibmSquareDrawioFroamt, ibmSquareDrawioPrefix, colors[reflect.TypeOf(SubnetTreeNode{})])
-	case isGroupingSquare(tn):
-		return groupSquareStyle
-	case isIbmIcon(tn):
-		return imageDrawioStyle + images[reflect.TypeOf(tn).Elem()] + iconDrawioStyle
-	case isGroupingIcon(tn):
-		return  "ellipse;whiteSpace=wrap;html=1;aspect=fixed;"
-	case tn.IsLine():
-		return logicalLineStyle
-	}
-	return ""
+func isLogicalLine(tn TreeNodeInterface) bool {
+	return reflect.TypeOf(tn).Elem() == reflect.TypeOf(LogicalLineTreeNode{})
+}
+func isConnectionLine(tn TreeNodeInterface) bool {
+	return reflect.TypeOf(tn).Elem() == reflect.TypeOf(ConnectivityTreeNode{})
 }
 
-var miniStyles = map[reflect.Type]string{
-	reflect.TypeOf(NITreeNode{}):    niStyle,
-	reflect.TypeOf(ResIPTreeNode{}): resIPStyle,
+var miniImages = map[reflect.Type]string{
+	reflect.TypeOf(NITreeNode{}):    niImage,
+	reflect.TypeOf(ResIPTreeNode{}): resIPImage,
 }
-var tagStyles = map[reflect.Type]string{
-	reflect.TypeOf(PublicNetworkTreeNode{}): imageDrawioStyle + images[reflect.TypeOf(PublicNetworkTreeNode{})] + ";",
-	reflect.TypeOf(CloudTreeNode{}):         imageDrawioStyle + images[reflect.TypeOf(CloudTreeNode{})] + ";",
-	reflect.TypeOf(VpcTreeNode{}):           imageDrawioStyle + images[reflect.TypeOf(VpcTreeNode{})] + ";",
-	reflect.TypeOf(ZoneTreeNode{}):          imageDrawioStyle + images[reflect.TypeOf(ZoneTreeNode{})] + ";",
-	reflect.TypeOf(PartialSGTreeNode{}):     imageDrawioStyle + images[reflect.TypeOf(PartialSGTreeNode{})] + ";",
-	reflect.TypeOf(SubnetTreeNode{}):        imageDrawioStyle + images[reflect.TypeOf(SubnetTreeNode{})] + ";",
-}
-var textStyles = map[reflect.Type]string{
-	reflect.TypeOf(PublicNetworkTreeNode{}): squareTextDrawioStyle,
-	reflect.TypeOf(CloudTreeNode{}):         squareTextDrawioStyle,
-	reflect.TypeOf(VpcTreeNode{}):           squareTextDrawioStyle,
-	reflect.TypeOf(ZoneTreeNode{}):          squareTextDrawioStyle,
-	reflect.TypeOf(SubnetTreeNode{}):        squareTextDrawioStyle,
-	reflect.TypeOf(PartialSGTreeNode{}):     squareTextDrawioStyle,
-	reflect.TypeOf(ConnectivityTreeNode{}):  lineTextDrawioStyle,
-	reflect.TypeOf(LogicalLineTreeNode{}):   lineTextDrawioStyle,
-}
-
 var colors = map[reflect.Type]string{
 	reflect.TypeOf(PublicNetworkTreeNode{}): "#1192E8",
 	reflect.TypeOf(CloudTreeNode{}):         "#1192E8",
@@ -174,42 +140,56 @@ func connectivityStyle(con *ConnectivityTreeNode) string {
 // if the ni is connected to a vsi that has only one ni, than the ni displayed as vsi icon, with an ni mini icons
 // if the ni is connected to a vsi that has more than one ni, than the ni displayed as ni icon, and without mini icons
 // same with resIp and vpe
+
 func (stl *drawioStyles) HasMiniIcon(tn TreeNodeInterface) bool {
-	if stl.canTypeHaveAMiniIcon[reflect.TypeOf(tn).Elem()] && tn.(IconTreeNodeInterface).hasMiniIcon() {
-		return true
-	}
-	return false
-}
-func (stl *drawioStyles) Style(tn TreeNodeInterface) string {
-	tnType := reflect.TypeOf(tn).Elem()
-	if tnType == reflect.TypeOf(ConnectivityTreeNode{}) {
-		return connectivityStyle(tn.(*ConnectivityTreeNode))
-	} else if stl.canTypeHaveAMiniIcon[tnType] && !tn.(IconTreeNodeInterface).hasMiniIcon() {
-		return miniStyles[tnType]
-	}
-	return stylesB(tn)
-}
-func (stl *drawioStyles) MiniIconStyle(tn TreeNodeInterface) string {
-	return miniStyles[reflect.TypeOf(tn).Elem()]
+	return stl.canTypeHaveAMiniIcon[reflect.TypeOf(tn).Elem()] && tn.(IconTreeNodeInterface).hasMiniIcon()
 }
 
-func (stl *drawioStyles) TextStyle(tn TreeNodeInterface) string {
-	return textStyles[reflect.TypeOf(tn).Elem()]
+func (stl *drawioStyles) Style(tn TreeNodeInterface) string {
+	switch {
+	case stl.canTypeHaveAMiniIcon[reflect.TypeOf(tn).Elem()] && !tn.(IconTreeNodeInterface).hasMiniIcon():
+		return stl.MiniIconStyle(tn)
+	case isConnectionLine(tn):
+		return connectivityStyle(tn.(*ConnectivityTreeNode))
+	case isIbmSquare(tn):
+		return fmt.Sprintf(ibmSquareDrawioFroamt, ibmSquareDrawioPrefix, colors[reflect.TypeOf(SubnetTreeNode{})])
+	case isGroupingSquare(tn):
+		return groupSquareStyle
+	case isIbmIcon(tn):
+		return imageDrawioStyle + images[reflect.TypeOf(tn).Elem()] + iconDrawioStyle
+	case isGroupingIcon(tn):
+		return "ellipse;whiteSpace=wrap;html=1;aspect=fixed;"
+	case isLogicalLine(tn):
+		return logicalLineStyle
+	}
+	return ""
 }
+func (stl *drawioStyles) MiniIconStyle(tn TreeNodeInterface) string {
+	return imageDrawioStyle + miniImages[reflect.TypeOf(tn).Elem()] + iconDrawioStyle
+}
+
+func (stl *drawioStyles) SquareTextStyle(tn TreeNodeInterface) string {
+	return squareTextDrawioStyle
+}
+func (stl *drawioStyles) LineTextStyle(tn TreeNodeInterface) string {
+	return lineTextDrawioStyle
+}
+
 func (stl *drawioStyles) TagStyle(tn TreeNodeInterface) string {
-	return tagStyles[reflect.TypeOf(tn).Elem()]
+	return imageDrawioStyle + images[reflect.TypeOf(tn).Elem()] + ";"
 }
 func (stl *drawioStyles) ImageStyle(tn TreeNodeInterface) string {
 	return images[reflect.TypeOf(tn).Elem()]
 }
 func (stl *drawioStyles) HasTag(tn TreeNodeInterface) bool {
-	_, ok := tagStyles[reflect.TypeOf(tn).Elem()]
-	return ok
+	return isIbmSquare(tn)
 }
 func (stl *drawioStyles) DecoreStyle(tn TreeNodeInterface) string {
 	return fmt.Sprintf(decorFormat, colors[reflect.TypeOf(tn).Elem()])
 }
-func (stl *drawioStyles) FIPStyle(tn TreeNodeInterface) string { return fipStyle }
+func (stl *drawioStyles) FIPStyle(tn TreeNodeInterface) string {
+	return imageDrawioStyle + fipImage + iconDrawioStyle
+}
 
 func markColorWithID(style string, tn TreeNodeInterface) string {
 	return style
