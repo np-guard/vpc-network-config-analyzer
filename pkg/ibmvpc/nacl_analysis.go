@@ -276,26 +276,29 @@ func AnalyzeNACLRulesPerDisjointTargets(
 	for _, srcIngDstEgr := range disjointSrcPeers {
 		allowedIngressConns, deniedIngressConns,
 			allowRules, denyRules := getAllowedXgressConnections(rules, srcIngDstEgr, subnet, disjointDstPeers, isIngress)
-		for dstIngSrcEg, conn := range allowedIngressConns {
-			if dstIngSrcEgIPBlock, err := common.IPBlockFromIPRangeStr(dstIngSrcEg); err == nil {
-				dstIngSrcEgIPRange := dstIngSrcEgIPBlock.ToIPRanges()
-				initConnectivityResult(res, dstIngSrcEgIPRange, isIngress)
+		updateAllowDeny(true, isIngress, allowedIngressConns, allowRules, srcIngDstEgr, res)
+		updateAllowDeny(false, isIngress, deniedIngressConns, denyRules, srcIngDstEgr, res)
+	}
+	return res
+}
+
+func updateAllowDeny(allow, isIngress bool, xgressConn map[string]*common.ConnectionSet, rules map[string][]int,
+	srcIngDstEgr *common.IPBlock, res map[string]*ConnectivityResult) {
+	for dstIngSrcEg, conn := range xgressConn {
+		if dstIngSrcEgIPBlock, err := common.IPBlockFromIPRangeStr(dstIngSrcEg); err == nil {
+			dstIngSrcEgIPRange := dstIngSrcEgIPBlock.ToIPRanges()
+			initConnectivityResult(res, dstIngSrcEgIPRange, isIngress)
+			if allow {
 				res[dstIngSrcEgIPRange].allowedConns[srcIngDstEgr] = conn
 				// allowRules indexes are identical to these of allowedIngressConns, thus access legit
-				res[dstIngSrcEgIPRange].allowRules[srcIngDstEgr] = allowRules[dstIngSrcEg]
-			}
-		}
-		for dstIngSrcEg, conn := range deniedIngressConns {
-			if dstIngSrcEgIPBlock, err := common.IPBlockFromIPRangeStr(dstIngSrcEg); err == nil {
-				dstIngSrcEgIPRange := dstIngSrcEgIPBlock.ToIPRanges()
-				initConnectivityResult(res, dstIngSrcEgIPRange, isIngress)
+				res[dstIngSrcEgIPRange].allowRules[srcIngDstEgr] = rules[dstIngSrcEg]
+			} else {
 				res[dstIngSrcEgIPRange].deniedConns[srcIngDstEgr] = conn
 				// allowRules indexes are identical to these of allowedIngressConns, thus access legit
-				res[dstIngSrcEgIPRange].denyRules[srcIngDstEgr] = denyRules[dstIngSrcEg]
+				res[dstIngSrcEgIPRange].denyRules[srcIngDstEgr] = rules[dstIngSrcEg]
 			}
 		}
 	}
-	return res
 }
 
 func initConnectivityResult(connectivityMap map[string]*ConnectivityResult, indxToinit string, isIngress bool) {
