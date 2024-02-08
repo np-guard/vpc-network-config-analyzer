@@ -311,13 +311,15 @@ func mergeAllowDeny(allow, deny rulesInLayers) rulesInLayers {
 	for _, layer := range filterLayers {
 		allowForLayer, ok1 := allow[layer]
 		denyForLayer, ok2 := deny[layer]
-		if !ok1 || !ok2 {
-			switch {
-			case ok1: // layer relevant only for deny
-				allowDenyMerged[layer] = allowForLayer
-			case ok2: // layer relevant only for allow
-				allowDenyMerged[layer] = denyForLayer
-			}
+		switch {
+		case ok1 && ok2:
+		case ok1: // layer relevant only for deny
+			allowDenyMerged[layer] = allowForLayer
+			continue
+		case ok2: // layer relevant only for allow
+			allowDenyMerged[layer] = denyForLayer
+			continue
+		default: // no rules in this layer
 			continue
 		}
 		mergedRulesInLayer := []RulesInFilter{} // both deny and allow in layer
@@ -351,12 +353,12 @@ func getAllIndexesForFilter(allowForLayer, denyForLayer []RulesInFilter) []int {
 	indexesAllow := getIndexesOfFilters(allowForLayer)
 	indexesDeny := getIndexesOfFilters(denyForLayer)
 	allIndexes := indexesAllow
-	for _, indx := range indexesDeny {
-		if !slices.Contains(allIndexes, indx) {
-			allIndexes = append(allIndexes, indx)
+	for _, index := range indexesDeny {
+		if !slices.Contains(allIndexes, index) {
+			allIndexes = append(allIndexes, index)
 		}
 	}
-	sort.Ints(allIndexes)
+	slices.Sort(allIndexes)
 	return allIndexes
 }
 
