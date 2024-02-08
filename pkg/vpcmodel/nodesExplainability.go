@@ -373,7 +373,6 @@ func mergeAllowDeny(allow, deny rulesInLayers) rulesInLayers {
 	return allowDenyMerged
 }
 
-// allow and deny in layer: gets all indexes of a layer (e.g. indexes of nacls)
 type intSet = common.GenericSet[int]
 
 // allow and deny in layer: gets all indexes of a layer (e.g. indexes of nacls)
