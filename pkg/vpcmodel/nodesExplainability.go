@@ -347,7 +347,7 @@ func mergeAllowDeny(allow, deny rulesInLayers) rulesInLayers {
 		mergedRulesInLayer := []RulesInFilter{} // both deny and allow in layer
 		// gets all indexes, both allow and deny, of a layer (e.g. indexes of nacls)
 		allIndexes := getAllIndexesForFilter(allowForLayer, denyForLayer)
-		for _, filterIndex := range allIndexes {
+		for filterIndex := range allIndexes {
 			allowRules := getRulesInFilter(allowForLayer, filterIndex)
 			denyRules := getRulesInFilter(denyForLayer, filterIndex)
 			// only one of them can be nil if we got here
@@ -371,17 +371,20 @@ func mergeAllowDeny(allow, deny rulesInLayers) rulesInLayers {
 }
 
 // allow and deny in layer: gets all indexes of a layer (e.g. indexes of nacls)
-func getAllIndexesForFilter(allowForLayer, denyForLayer []RulesInFilter) []int {
-	indexesAllow := getIndexesOfFilters(allowForLayer)
-	indexesDeny := getIndexesOfFilters(denyForLayer)
-	allIndexes := indexesAllow
-	for _, index := range indexesDeny {
-		if !slices.Contains(allIndexes, index) {
-			allIndexes = append(allIndexes, index)
-		}
+type intSet = common.GenericSet[int]
+
+// allow and deny in layer: gets all indexes of a layer (e.g. indexes of nacls)
+func getAllIndexesForFilter(allowForLayer, denyForLayer []RulesInFilter) (indexes intSet) {
+	indexes = intSet{}
+	addIndexesOfFilters(indexes, allowForLayer)
+	addIndexesOfFilters(indexes, denyForLayer)
+	return indexes
+}
+
+func addIndexesOfFilters(indexes intSet, rulesInLayer []RulesInFilter) {
+	for _, rulesInFilter := range rulesInLayer {
+		indexes[rulesInFilter.Filter] = true
 	}
-	slices.Sort(allIndexes)
-	return allIndexes
 }
 
 // todo: this is not very efficient, but structs here should be small
@@ -392,14 +395,6 @@ func getRulesInFilter(rulesInLayer []RulesInFilter, filter int) *RulesInFilter {
 		}
 	}
 	return nil
-}
-
-func getIndexesOfFilters(rulesInFilter []RulesInFilter) []int {
-	filterIndexes := make([]int, len(rulesInFilter))
-	for i, rulesInFilter := range rulesInFilter {
-		filterIndexes[i] = rulesInFilter.Filter
-	}
-	return filterIndexes
 }
 
 func (c *VPCConfig) processInput(srcName, dstName string) (srcNodes, dstNodes []Node, err error) {
