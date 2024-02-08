@@ -241,7 +241,7 @@ type ConnectivityResult struct {
 	allowedconns map[*common.IPBlock]*common.ConnectionSet // allowed target and its allowed connections
 	allowRules   map[*common.IPBlock][]int                 // indexes of (positive) allowRules contributing to this connectivity
 	// the following are relevant only to filters with deny rules - nacl
-	deniedconns map[*common.IPBlock]*common.ConnectionSet // denied target and its allowed connections, by deny rules.
+	deniedconns map[*common.IPBlock]*common.ConnectionSet // denied target and its denied connections, by deny rules.
 	denyRules   map[*common.IPBlock][]int                 // indexes of deny rules relevant to this connectivity
 }
 
