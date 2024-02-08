@@ -195,8 +195,8 @@ func (stl *drawioStyles) Color(tn TreeNodeInterface) string {
 
 //////////////////////////////////////////////////////////////////////////////////
 
-func (stl *drawioStyles) HasTag(tn TreeNodeInterface) bool {
-	return isIbmSquare(tn)
+func (stl *drawioStyles) HasText(tn TreeNodeInterface) bool {
+	return isIbmSquare(tn) || isIbmIcon(tn)
 }
 func (stl *drawioStyles) DecoreStyle(tn TreeNodeInterface) string {
 	return fmt.Sprintf(decorFormat, colors[reflect.TypeOf(tn).Elem()])

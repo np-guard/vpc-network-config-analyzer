@@ -17,7 +17,7 @@
             <mxCell id="{{$data.IDsPrefix}}-{{$node.ID}}" value="" style="{{$data.Style $node}}" parent="{{$data.IDsPrefix}}-{{$node.DrawioParent.ID}}" vertex="1">
             <mxGeometry width="{{$node.Width}}" height="{{$node.Height}}" x="{{$node.X}}" y="{{$node.Y}}" as="geometry"/>
             </mxCell>
-            {{if $data.HasTag $node}}
+            {{if $data.HasText $node}}
                 <mxCell id="{{$data.IDsPrefix}}-{{$node.TagID}}" value="" style="{{$data.TagStyle $node}}" parent="{{$data.IDsPrefix}}-{{$node.ID}}" vertex="1">
                 <mxGeometry x="19" y="6.5" width="22" height="19.73" as="geometry" />
                 </mxCell>

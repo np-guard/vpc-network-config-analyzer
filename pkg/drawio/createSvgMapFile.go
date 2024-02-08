@@ -41,7 +41,9 @@ func NewSvgData(network SquareTreeNodeInterface) *svgData {
 func (data *svgData) ElementComment(tn TreeNodeInterface) string {
 	return reflect.TypeOf(tn).Elem().Name() + " " + tn.Label()
 }
-func (data *svgData) Add( a int ,b float64) float64         { return float64(a)+b }
+func (data *svgData) AddF(a int, b float64) float64 { return float64(a) + b }
+func (data *svgData) Add(a int, b int) int { return a + b }
+func (data *svgData) Half(a int) int               { return a / 2 }
 
 func (data *svgData) AX(tn TreeNodeInterface) int {
 	x, _ := absoluteGeometry(tn)
@@ -51,7 +53,6 @@ func (data *svgData) AY(tn TreeNodeInterface) int {
 	_, y := absoluteGeometry(tn)
 	return y
 }
-
 
 func writeSvgFile(network SquareTreeNodeInterface, outputFile string) error {
 	data := NewSvgData(network)
