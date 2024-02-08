@@ -655,8 +655,8 @@ func validateVPCsAddressPrefixesForTGW(vpcsList []*VPC) error {
 	}
 
 	// validate disjoint address prefixes for each VPCs pair
-	for i1 := 0; i1 < len(ipBlocksForAP); i1++ {
-		for i2 := i1 + 1; i2 < len(ipBlocksForAP); i2++ {
+	for i1 := range ipBlocksForAP {
+		for i2 := range ipBlocksForAP[i1+1:] {
 			if !ipBlocksForAP[i1].Intersection(ipBlocksForAP[i2]).Empty() {
 				return fmt.Errorf("TGW analysis requires all VPCs have disjoint address prefixes, but found intersecting ones for vpcs %s, %s",
 					vpcsList[i1].NameAndUID(), vpcsList[i2].NameAndUID())
