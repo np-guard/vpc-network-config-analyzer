@@ -383,7 +383,7 @@ func getAllIndexesForFilter(allowForLayer, denyForLayer []RulesInFilter) (indexe
 	return indexes
 }
 
-// translates rulesInLayer in a map from filter's index to the rules indexes
+// translates rulesInLayer into a map from filter's index to the rules indexes
 func rulesInLayerToMap(rulesInLayer []RulesInFilter) map[int]*RulesInFilter {
 	mapFilterRules := map[int]*RulesInFilter{}
 	for _, rulesInFilter := range rulesInLayer {
