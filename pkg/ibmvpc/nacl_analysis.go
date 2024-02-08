@@ -264,7 +264,7 @@ func getDisjointPeersForEgressAnalysis(rules []*NACLRule, subnet *common.IPBlock
 }
 
 // AnalyzeNACLRulesPerDisjointTargets get connectivity result for each disjoint target in the subnet
-func (na *NACLAnalyzer) AnalyzeNACLRulesPerDisjointTargets(
+func AnalyzeNACLRulesPerDisjointTargets(
 	rules []*NACLRule, subnet *common.IPBlock, isIngress bool) map[string]*ConnectivityResult {
 	res := map[string]*ConnectivityResult{}
 	var disjointSrcPeers, disjointDstPeers []*common.IPBlock
@@ -385,8 +385,8 @@ func (na *NACLAnalyzer) AnalyzeNACLRules(rules []*NACLRule, subnet *common.IPBlo
 // get allowed and denied connections (ingress and egress) for a certain subnet to which this nacl is applied
 func (na *NACLAnalyzer) AnalyzeNACL(subnet *common.IPBlock) (
 	ingressResConnectivity, egressResConnectivity map[string]*ConnectivityResult) {
-	ingressResConnectivity = na.AnalyzeNACLRulesPerDisjointTargets(na.ingressRules, subnet, true)
-	egressResConnectivity = na.AnalyzeNACLRulesPerDisjointTargets(na.egressRules, subnet, false)
+	ingressResConnectivity = AnalyzeNACLRulesPerDisjointTargets(na.ingressRules, subnet, true)
+	egressResConnectivity = AnalyzeNACLRulesPerDisjointTargets(na.egressRules, subnet, false)
 	return ingressResConnectivity, egressResConnectivity
 }
 
