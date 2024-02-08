@@ -115,7 +115,8 @@ func newDrawioStyles(nodes []TreeNodeInterface) drawioStyles {
 	return stl
 }
 
-func connectivityStyle(con *ConnectivityTreeNode) string {
+func connectivityStyle(tn TreeNodeInterface) string {
+	con := tn.(*ConnectivityTreeNode)
 	startArrow, endArrow := ovalEndEdge, ovalEndEdge
 	strokeColor := ""
 	if con.directed {
@@ -150,7 +151,7 @@ func (stl *drawioStyles) Style(tn TreeNodeInterface) string {
 	case stl.canTypeHaveAMiniIcon[reflect.TypeOf(tn).Elem()] && !tn.(IconTreeNodeInterface).hasMiniIcon():
 		return stl.MiniIconStyle(tn)
 	case isConnectionLine(tn):
-		return connectivityStyle(tn.(*ConnectivityTreeNode))
+		return connectivityStyle(tn)
 	case isIbmSquare(tn):
 		return fmt.Sprintf(ibmSquareDrawioFroamt, ibmSquareDrawioPrefix, colors[reflect.TypeOf(SubnetTreeNode{})])
 	case isGroupingSquare(tn):
@@ -179,8 +180,12 @@ func (stl *drawioStyles) TagStyle(tn TreeNodeInterface) string {
 	return imageDrawioStyle + images[reflect.TypeOf(tn).Elem()] + ";"
 }
 func (stl *drawioStyles) ImageStyle(tn TreeNodeInterface) string {
+	if stl.canTypeHaveAMiniIcon[reflect.TypeOf(tn).Elem()] && !tn.(IconTreeNodeInterface).hasMiniIcon(){
+	 return miniImages[reflect.TypeOf(tn).Elem()]
+	}
 	return images[reflect.TypeOf(tn).Elem()]
 }
+
 func (stl *drawioStyles) HasTag(tn TreeNodeInterface) bool {
 	return isIbmSquare(tn)
 }
