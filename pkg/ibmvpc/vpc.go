@@ -15,6 +15,9 @@ import (
 const dummyRule = -1
 const semicolonSeparator = "; "
 
+const networkACLStr = "network ACL "
+const securityGroupStr = "security group "
+
 func getNodeName(name, addr string) string {
 	return fmt.Sprintf("%s[%s]", name, addr)
 }
@@ -320,9 +323,6 @@ func appendToRulesInFilter(resRulesInFilter *[]vpcmodel.RulesInFilter, rules *[]
 	*resRulesInFilter = append(*resRulesInFilter, rulesInNacl)
 }
 
-const networkACLStr = "network ACL "
-const securityGroupStr = "security group "
-
 func (nl *NaclLayer) StringDetailsRulesOfFilter(listRulesInFilter []vpcmodel.RulesInFilter) string {
 	strListRulesInFilter := ""
 	for _, rulesInFilter := range listRulesInFilter {
@@ -348,6 +348,14 @@ func (nl *NaclLayer) StringFilterEffect(listRulesInFilter []vpcmodel.RulesInFilt
 		filtersEffectList = append(filtersEffectList, header)
 	}
 	return strings.Join(filtersEffectList, semicolonSeparator)
+}
+
+func (nl *NaclLayer) ReferencedIPblocks() []*common.IPBlock {
+	res := []*common.IPBlock{}
+	for _, n := range nl.naclList {
+		res = append(res, n.analyzer.referencedIPblocks...)
+	}
+	return res
 }
 
 func getHeaderRulesType(filter string, rType vpcmodel.RulesType) string {
@@ -378,14 +386,6 @@ func getSummaryFilterEffect(filter string, rType vpcmodel.RulesType) string {
 	default:
 		return "" // OnlyDummyRule
 	}
-}
-
-func (nl *NaclLayer) ReferencedIPblocks() []*common.IPBlock {
-	res := []*common.IPBlock{}
-	for _, n := range nl.naclList {
-		res = append(res, n.analyzer.referencedIPblocks...)
-	}
-	return res
 }
 
 type NACL struct {
