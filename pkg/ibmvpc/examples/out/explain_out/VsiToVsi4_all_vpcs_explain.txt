@@ -1,13 +1,13 @@
 Connectivity explanation between vsi1-ky[10.240.10.4] and vsi2-ky[10.240.20.4]
 No connection between vsi1-ky[10.240.10.4] and vsi2-ky[10.240.20.4]; connection blocked by egress
+Egress Rules:
+~~~~~~~~~~~~~
+relevant rules from network ACL acl1-ky:
+	index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 Ingress Rules:
-~~~~~~~~~~~~~~
-NaclLayer Rules
-------------------------
-enabling rules from acl2-ky:
+~~~~~~~~~~~~~
+relevant rules from network ACL acl2-ky:
 	index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
-SecurityGroupLayer Rules
-------------------------
-enabling rules from sg2-ky:
+relevant rules from security group sg2-ky:
 	index: 4, direction: inbound, protocol: all, cidr: 10.240.10.4/32
 

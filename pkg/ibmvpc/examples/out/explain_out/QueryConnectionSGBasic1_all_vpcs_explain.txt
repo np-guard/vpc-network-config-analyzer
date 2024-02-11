@@ -3,12 +3,8 @@ Connection protocol: UDP exists between vsi1-ky[10.240.10.4] and Public Internet
 External Router PublicGateway: public-gw-ky
 Egress Rules:
 ~~~~~~~~~~~~~
-NaclLayer Rules
-------------------------
-enabling rules from acl1-ky:
+relevant rules from network ACL acl1-ky:
 	index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
-SecurityGroupLayer Rules
-------------------------
-enabling rules from sg1-ky:
+relevant rules from security group sg1-ky:
 	index: 2, direction: outbound,  conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16
 
