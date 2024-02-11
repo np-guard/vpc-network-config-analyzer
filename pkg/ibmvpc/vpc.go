@@ -300,9 +300,7 @@ func (nl *NaclLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 	return allowRes, denyRes, nil
 }
 
-func appendToRulesInFilter(resRulesInFilter *[]vpcmodel.RulesInFilter,
-	rules *[]int, filterIndex int, isAllow bool) {
-
+func appendToRulesInFilter(resRulesInFilter *[]vpcmodel.RulesInFilter, rules *[]int, filterIndex int, isAllow bool) {
 	var rType vpcmodel.RulesType
 	switch {
 	case len(*rules) == 0:
@@ -513,7 +511,7 @@ func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 			return nil, nil, err1
 		}
 		if tableRelevant {
-			rType := vpcmodel.OnlyAllow
+			var rType vpcmodel.RulesType = vpcmodel.OnlyAllow
 			if len(sgRules) == 0 {
 				rType = vpcmodel.NoRules
 			}
