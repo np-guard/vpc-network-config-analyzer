@@ -327,7 +327,8 @@ func (g *GroupConnLines) groupExternalAddressesForExplainability() error {
 	var res []*groupedConnLine
 	for _, details := range *g.explain {
 		groupingStrKey := details.explanationEncode(g.config)
-		expDetails := &explainDetails{details.actualRules, details.router, details.connEnabled, details.ingressEnabled, details.egressEnabled}
+		expDetails := &explainDetails{details.actualMergedRules, details.router, details.connEnabled,
+			details.ingressEnabled, details.egressEnabled}
 		err := g.addLineToExternalGrouping(&res, details.src, details.dst,
 			&groupedCommonProperties{conn: details.conn, expDetails: expDetails,
 				groupingStrKey: groupingStrKey})
@@ -563,11 +564,11 @@ func (details *srcDstDetails) explanationEncode(c *VPCConfig) string {
 		routingStr = details.router.Name() + ";"
 	}
 	egressStr, ingressStr := "", ""
-	if len(details.actualRules.egressRules) > 0 {
-		egressStr = "egress:" + details.actualRules.egressRules.string(c) + semicolon
+	if len(details.actualMergedRules.egressRules) > 0 {
+		egressStr = "egress:" + details.actualMergedRules.egressRules.string(c) + semicolon
 	}
-	if len(details.actualRules.ingressRules) > 0 {
-		egressStr = "ingress:" + details.actualRules.ingressRules.string(c) + semicolon
+	if len(details.actualMergedRules.ingressRules) > 0 {
+		egressStr = "ingress:" + details.actualMergedRules.ingressRules.string(c) + semicolon
 	}
 	return connStr + routingStr + egressStr + ingressStr
 }

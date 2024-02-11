@@ -325,6 +325,17 @@ var explainTests = []*vpcGeneralTest{
 		EDstMinPort: common.MinPort,
 		EDstMaxPort: common.MaxPort,
 	},
+	{
+		name:        "NACLOnlyDenyNoConnQuery",
+		inputConfig: "acl_testing3_3rd",
+		ESrc:        "vsi1-ky[10.240.10.4]",
+		EDst:        "vsi2-ky[10.240.20.4]",
+		EProtocol:   string(common.ProtocolICMP),
+		ESrcMinPort: common.MinPort,
+		ESrcMaxPort: common.MaxPort,
+		EDstMinPort: common.MinPort,
+		EDstMaxPort: common.MaxPort,
+	},
 }
 
 func TestAll(t *testing.T) {

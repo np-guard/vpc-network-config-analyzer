@@ -203,23 +203,6 @@ var tests = []*vpcGeneralTest{
 		format:   vpcmodel.Text,
 	},
 	{
-		inputConfig: "acl_testing3",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.Explain},
-		format:      vpcmodel.Text,
-		ESrc:        "vsi1-ky[10.240.10.4]",
-		EDst:        "vsi2-ky[10.240.20.4]",
-	},
-	{
-		inputConfig: "sg_testing1_new",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.Explain},
-		format:      vpcmodel.Text,
-		ESrc:        "vsi1-ky[10.240.10.4]",
-		EDst:        "vsi2-ky[10.240.20.4]",
-		EProtocol:   "TCP",
-		ESrcMinPort: 1,
-		ESrcMaxPort: 5,
-	},
-	{
 		inputConfig: "sg_testing1_new",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.SingleSubnet, vpcmodel.AllSubnets},
 		format:      vpcmodel.Text,
