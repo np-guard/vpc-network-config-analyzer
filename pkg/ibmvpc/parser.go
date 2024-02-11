@@ -330,6 +330,7 @@ func getPgwConfig(
 			},
 			cidr:       "",
 			src:        srcNodes,
+			srcSubnets: pgwToSubnet[pgwName],
 			subnetCidr: getSubnetsCidrs(pgwToSubnet[pgwName]),
 			vpc:        vpc,
 		} // TODO: get cidr from fip of the pgw
@@ -415,8 +416,8 @@ func getFipConfig(
 			if pgw, ok := r.(*PublicGateway); ok {
 				// a node captured by a fip should not be captured by a pgw
 				for _, nodeWithFip := range srcNodes {
-					if vpcmodel.HasNode(pgw.Src(), nodeWithFip) {
-						pgw.src = getCertainNodes(pgw.Src(), func(n vpcmodel.Node) bool { return n.Cidr() != nodeWithFip.Cidr() })
+					if vpcmodel.HasNode(pgw.Sources(), nodeWithFip) {
+						pgw.src = getCertainNodes(pgw.Sources(), func(n vpcmodel.Node) bool { return n.Cidr() != nodeWithFip.Cidr() })
 					}
 				}
 			}
@@ -638,6 +639,7 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 			tgwMap[tgwUID].sourceSubnets = append(tgwMap[tgwUID].sourceSubnets, vpc.subnets()...)
 			// TGW's destSubnets contains subnets from its connected VPCs which are contained within routes from its table
 			tgwMap[tgwUID].destSubnets = append(tgwMap[tgwUID].destSubnets, getVPCdestSubnetsByAdvertisedRoutes(tgwMap[tgwUID], vpc)...)
+			tgwMap[tgwUID].addSourceAndDestNodes()
 		}
 	}
 	return tgwMap

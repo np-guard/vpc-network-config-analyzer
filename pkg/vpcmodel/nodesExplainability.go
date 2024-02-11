@@ -247,8 +247,12 @@ func (details *rulesAndConnDetails) computeAdditionalDetails(c *VPCConfig) error
 		}
 		var routingResource RoutingResource
 		var filtersForExternal map[string]bool
+		var err3 error
 		if containingSrcNode != nil && containingDstNode != nil {
-			routingResource, _ = c.getRoutingResource(containingSrcNode, containingDstNode)
+			routingResource, _, err3 = c.getRoutingResource(containingSrcNode, containingDstNode)
+			if err3 != nil {
+				return err3
+			}
 			if routingResource != nil {
 				filtersForExternal = routingResource.AppliedFiltersKinds() // relevant filtersExternal
 			}

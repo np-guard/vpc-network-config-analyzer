@@ -148,6 +148,39 @@ func (c *VPCConfig) subnetCidrToSubnetElem(cidr string) (NodeSet, error) {
 	return nil, err
 }
 
+func getSubnetsForPGW(c *VPCConfig, pgw RoutingResource, externalNode Node) (res []NodeSet) {
+	for _, nodeSet := range c.NodeSets {
+		conn, err := pgw.AllowedConnectivity(nodeSet, externalNode)
+		if err == nil && conn.AllowAll {
+			res = append(res, nodeSet)
+		}
+	}
+	return res
+}
+
+func getSomeExternalNode(c *VPCConfig) Node {
+	for _, n := range c.Nodes {
+		if n.IsExternal() {
+			return n
+		}
+	}
+	return nil
+}
+
+func getSubnetsWithPGW(c *VPCConfig) map[string]bool {
+	someExternalNode := getSomeExternalNode(c)
+	res := map[string]bool{}
+	for _, r := range c.RoutingResources {
+		if r.Kind() == pgwKind {
+			attachedSubnets := getSubnetsForPGW(c, r, someExternalNode)
+			for _, subnet := range attachedSubnets {
+				res[subnet.AddressRange().ToCidrListString()] = true
+			}
+		}
+	}
+	return res
+}
+
 // the main function to compute connectivity per subnet based on resources that capture subnets, such as nacl, pgw, tgw, routing-tables
 func (c *VPCConfig) GetSubnetsConnectivity(includePGW, grouping bool) (*VPCsubnetConnectivity, error) {
 	var subnetsConnectivityFromACLresources map[string]*IPbasedConnectivityResult
@@ -164,15 +197,7 @@ func (c *VPCConfig) GetSubnetsConnectivity(includePGW, grouping bool) (*VPCsubne
 		return nil, errors.New("missing connectivity results from NACL resources")
 	}
 
-	subnetsWithPGW := map[string]bool{}
-	for _, r := range c.RoutingResources {
-		if r.Kind() == pgwKind {
-			conns := r.ConnectivityMap()
-			for subnetCidr := range conns {
-				subnetsWithPGW[subnetCidr] = true
-			}
-		}
-	}
+	subnetsWithPGW := getSubnetsWithPGW(c)
 
 	// convert to subnet-based connectivity result
 	subnetsConnectivity := map[VPCResourceIntf]*ConfigBasedConnectivityResults{}
@@ -215,19 +240,6 @@ func (c *VPCConfig) GetSubnetsConnectivity(includePGW, grouping bool) (*VPCsubne
 	return res, nil
 }
 
-func getSubnetCIDR(s VPCResourceIntf) (string, error) {
-	subnet, ok := s.(NodeSet)
-	if !ok {
-		return "", fmt.Errorf("getSubnetCIDR cannot convert VPCResourceIntf to subnet")
-	}
-	addresses := subnet.AddressRange()
-	cidrs := addresses.ToCidrList()
-	if len(cidrs) != 1 {
-		return "", fmt.Errorf("getSubnetCIDR unexpected num of CIDRS for subnet.AddressRange()")
-	}
-	return cidrs[0], nil
-}
-
 // updateSubnetsConnectivityByTransitGateway checks if subnets pair (src,dst) cross-vpc connection is enabled by tgw,
 // and if yes - returns the original computed combinedConns, else returns no-conns object
 func updateSubnetsConnectivityByTransitGateway(src, dst VPCResourceIntf,
@@ -239,17 +251,12 @@ func updateSubnetsConnectivityByTransitGateway(src, dst VPCResourceIntf,
 		return nil, fmt.Errorf("unexpected number of RoutingResources for MultipleVPCsConfig, expecting only TGW")
 	}
 	tgw := c.RoutingResources[0]
-	connections := tgw.ConnectivityMap()
-	srcCIDR, err := getSubnetCIDR(src)
+	connections, err := tgw.AllowedConnectivity(src, dst)
 	if err != nil {
 		return nil, err
 	}
-	if srcConns, ok := connections[srcCIDR]; ok {
-		if conn, ok := srcConns.EgressAllowedConns[dst]; ok {
-			if conn.AllowAll {
-				return combinedConns, nil
-			}
-		}
+	if connections.AllowAll {
+		return combinedConns, nil
 	}
 	return NoConns(), nil
 }

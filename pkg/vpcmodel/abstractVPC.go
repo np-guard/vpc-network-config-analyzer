@@ -104,9 +104,8 @@ type FilterTrafficResource interface {
 // fip, pgw, tgw
 type RoutingResource interface {
 	VPCResourceIntf
-	Src() []Node
+	Sources() []Node
 	Destinations() []Node
-	AllowedConnectivity(src, dst Node) *common.ConnectionSet
-	ConnectivityMap() map[string]ConfigBasedConnectivityResults
+	AllowedConnectivity(src, dst VPCResourceIntf) (*common.ConnectionSet, error)
 	AppliedFiltersKinds() map[string]bool
 }
