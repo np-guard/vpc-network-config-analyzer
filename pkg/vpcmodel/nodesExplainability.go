@@ -706,7 +706,7 @@ func (rulesInLayers rulesInLayers) string(c *VPCConfig, isIngress, rulesDetails 
 			} else {
 				thisFilterEffectString := filter.StringFilterEffect(rules)
 				if rulesInLayersStr != "" && thisFilterEffectString != "" {
-					rulesInLayersStr += "; "
+					rulesInLayersStr += semicolon + " "
 				}
 				rulesInLayersStr += filter.StringFilterEffect(rules)
 			}
