@@ -290,7 +290,7 @@ func (nl *NaclLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 	conn *common.ConnectionSet, isIngress bool) (allowRes []vpcmodel.RulesInFilter,
 	denyRes []vpcmodel.RulesInFilter, err error) {
 	for index, nacl := range nl.naclList {
-		tableRelevant, allowRules, denyRules, err1 := nacl.rulesInConnectivity(src, dst, conn, isIngress)
+		tableRelevant, allowRules, denyRules, err1 := nacl.rulesFilterInConnectivity(src, dst, conn, isIngress)
 		if err1 != nil {
 			return nil, nil, err1
 		}
@@ -440,7 +440,7 @@ func (n *NACL) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*com
 	return n.analyzer.AllowedConnectivity(subnetCidr, inSubnetCidr, targetNode.Cidr(), isIngress)
 }
 
-func (n *NACL) rulesInConnectivity(src, dst vpcmodel.Node, conn *common.ConnectionSet,
+func (n *NACL) rulesFilterInConnectivity(src, dst vpcmodel.Node, conn *common.ConnectionSet,
 	isIngress bool) (tableRelevant bool, allow, deny []int, err error) {
 	targetNode, subnetCidr, inSubnetCidr, err1 := n.initConnectivityComputation(src, dst, isIngress)
 	if err1 != nil {
@@ -456,7 +456,7 @@ func (n *NACL) rulesInConnectivity(src, dst vpcmodel.Node, conn *common.Connecti
 		return true, []int{dummyRule}, nil, nil
 	}
 	var err2 error
-	allow, deny, err2 = n.analyzer.rulesInConnectivity(subnetCidr, inSubnetCidr, targetNode.Cidr(), conn, isIngress)
+	allow, deny, err2 = n.analyzer.rulesFilterInConnectivity(subnetCidr, inSubnetCidr, targetNode.Cidr(), conn, isIngress)
 	return true, allow, deny, err2
 }
 
@@ -506,7 +506,7 @@ func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 		return nil, nil, fmt.Errorf("explainability for IKS node not supported yet")
 	}
 	for index, sg := range sgl.sgList {
-		tableRelevant, sgRules, err1 := sg.rulesInConnectivity(src, dst, conn, isIngress)
+		tableRelevant, sgRules, err1 := sg.rulesFilterInConnectivity(src, dst, conn, isIngress)
 		if err1 != nil {
 			return nil, nil, err1
 		}
@@ -567,14 +567,14 @@ func (sg *SecurityGroup) AllowedConnectivity(src, dst vpcmodel.Node, isIngress b
 	return sg.analyzer.AllowedConnectivity(targetStrAddress, isIngress)
 }
 
-// rulesInConnectivity list of SG rules contributing to the connectivity
-func (sg *SecurityGroup) rulesInConnectivity(src, dst vpcmodel.Node, conn *common.ConnectionSet,
+// rulesFilterInConnectivity list of SG rules contributing to the connectivity
+func (sg *SecurityGroup) rulesFilterInConnectivity(src, dst vpcmodel.Node, conn *common.ConnectionSet,
 	isIngress bool) (tableRelevant bool, rules []int, err error) {
 	memberStrAddress, targetStrAddress := sg.getMemberTargetStrAddress(src, dst, isIngress)
 	if _, ok := sg.members[memberStrAddress]; !ok {
 		return false, nil, nil // connectivity not affected by this SG resource - input node is not its member
 	}
-	rules, err = sg.analyzer.rulesInConnectivity(targetStrAddress, conn, isIngress)
+	rules, err = sg.analyzer.rulesFilterInConnectivity(targetStrAddress, conn, isIngress)
 	return true, rules, err
 }
 
