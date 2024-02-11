@@ -234,17 +234,9 @@ type SGRule struct {
 	index       int // index of original rule in *vpc1.SecurityGroup.Rules
 }
 
-// ConnectivityResult should be built on disjoint ip-blocks for targets of all relevant sg results
-// ConnectivityResult is per VSI network interface: contains allowed connectivity (with connection attributes) per target
-type ConnectivityResult struct {
-	isIngress    bool
-	allowedconns map[*common.IPBlock]*common.ConnectionSet // allowed target and its allowed connections
-	contribRules map[*common.IPBlock][]int                 // indexes of contribRules contributing to this connectivity
-}
-
 func (cr *ConnectivityResult) string() string {
 	res := []string{}
-	for t, conn := range cr.allowedconns {
+	for t, conn := range cr.allowedConns {
 		res = append(res, fmt.Sprintf("remote: %s, conn: %s", t.ToIPRanges(), conn.String()))
 	}
 	sort.Strings(res)
@@ -259,20 +251,20 @@ func AnalyzeSGRules(rules []*SGRule, isIngress bool) *ConnectivityResult {
 		}
 	}
 	disjointTargets := common.DisjointIPBlocks(targets, []*common.IPBlock{common.GetCidrAll()})
-	res := &ConnectivityResult{isIngress: isIngress, allowedconns: map[*common.IPBlock]*common.ConnectionSet{},
-		contribRules: map[*common.IPBlock][]int{}}
+	res := &ConnectivityResult{isIngress: isIngress, allowedConns: map[*common.IPBlock]*common.ConnectionSet{},
+		allowRules: map[*common.IPBlock][]int{}}
 	for i := range disjointTargets {
-		res.allowedconns[disjointTargets[i]] = getEmptyConnSet()
-		res.contribRules[disjointTargets[i]] = []int{}
+		res.allowedConns[disjointTargets[i]] = getEmptyConnSet()
+		res.allowRules[disjointTargets[i]] = []int{}
 	}
 	for i := range rules {
 		rule := rules[i]
 		target := rule.target
 		conn := rule.connections
-		for disjointTarget := range res.allowedconns {
+		for disjointTarget := range res.allowedConns {
 			if disjointTarget.ContainedIn(target) {
-				res.allowedconns[disjointTarget] = res.allowedconns[disjointTarget].Union(conn)
-				res.contribRules[disjointTarget] = append(res.contribRules[disjointTarget], rule.index)
+				res.allowedConns[disjointTarget] = res.allowedConns[disjointTarget].Union(conn)
+				res.allowRules[disjointTarget] = append(res.allowRules[disjointTarget], rule.index)
 			}
 		}
 	}
@@ -315,7 +307,7 @@ func (sga *SGAnalyzer) areSGRulesDefault() bool {
 
 func (sga *SGAnalyzer) AllowedConnectivity(target string, isIngress bool) *common.ConnectionSet {
 	analyzedConns, ipb := sga.getAnalyzedConnsIPB(target, isIngress)
-	for definedTarget, conn := range analyzedConns.allowedconns {
+	for definedTarget, conn := range analyzedConns.allowedConns {
 		if ipb.ContainedIn(definedTarget) {
 			return conn
 		}
@@ -330,7 +322,7 @@ func (sga *SGAnalyzer) AllowedConnectivity(target string, isIngress bool) *commo
 //     otherwise, the answer to the query is "no" and nil is returned
 func (sga *SGAnalyzer) rulesInConnectivity(target string, connQuery *common.ConnectionSet, isIngress bool) ([]int, error) {
 	analyzedConns, ipb := sga.getAnalyzedConnsIPB(target, isIngress)
-	for definedTarget, rules := range analyzedConns.contribRules {
+	for definedTarget, rules := range analyzedConns.allowRules {
 		if ipb.ContainedIn(definedTarget) {
 			if connQuery == nil {
 				return rules, nil // connection not part of query - all rules are relevant
@@ -339,7 +331,7 @@ func (sga *SGAnalyzer) rulesInConnectivity(target string, connQuery *common.Conn
 			// the required connection - conn - should intersect with the existing connection
 			// Namely, connection for the required protocol exists (one can query a single protocol)
 			// on a nonempty set of the subnets
-			intersectConn := connQuery.Intersection(analyzedConns.allowedconns[definedTarget])
+			intersectConn := connQuery.Intersection(analyzedConns.allowedConns[definedTarget])
 			if intersectConn.IsEmpty() {
 				return nil, nil
 			}
