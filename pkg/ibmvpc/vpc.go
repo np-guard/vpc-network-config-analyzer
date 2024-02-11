@@ -513,7 +513,7 @@ func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 			return nil, nil, err1
 		}
 		if tableRelevant {
-			var rType vpcmodel.RulesType = vpcmodel.OnlyAllow
+			rType := vpcmodel.OnlyAllow
 			if len(sgRules) == 0 {
 				rType = vpcmodel.NoRules
 			}
