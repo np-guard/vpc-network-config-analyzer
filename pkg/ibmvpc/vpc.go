@@ -291,17 +291,17 @@ func (nl *NaclLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 		if err1 != nil {
 			return nil, nil, err1
 		}
-		appendToRulesInFilter(tableRelevant, &allowRes, &allowRules, index, true)
-		appendToRulesInFilter(tableRelevant, &denyRes, &denyRules, index, false)
+		if !tableRelevant {
+			continue
+		}
+		appendToRulesInFilter(&allowRes, &allowRules, index, true)
+		appendToRulesInFilter(&denyRes, &denyRules, index, false)
 	}
 	return allowRes, denyRes, nil
 }
 
-func appendToRulesInFilter(tableRelevant bool, resRulesInFilter *[]vpcmodel.RulesInFilter,
+func appendToRulesInFilter(resRulesInFilter *[]vpcmodel.RulesInFilter,
 	rules *[]int, filterIndex int, isAllow bool) {
-	if !tableRelevant {
-		return
-	}
 
 	var rType vpcmodel.RulesType
 	switch {
