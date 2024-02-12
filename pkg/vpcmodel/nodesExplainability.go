@@ -692,7 +692,7 @@ func (rulesInLayers rulesInLayers) string(c *VPCConfig, isIngress, rulesDetails 
 	// thus, egress: security group first, ingress: nacl first
 	filterLayersOrder := [2]string{SecurityGroupLayer, NaclLayer}
 	if isIngress {
-        	filterLayersOrder = [2]string{NaclLayer, SecurityGroupLayer}
+		filterLayersOrder = [2]string{NaclLayer, SecurityGroupLayer}
 	}
 	if isIngress {
 		filterLayersOrder[0] = NaclLayer
