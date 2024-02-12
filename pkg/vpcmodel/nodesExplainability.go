@@ -141,7 +141,7 @@ func (c *VPCConfig) GetNodesOfVsi(vsi string) ([]Node, error) {
 			if nodeSetWithVsi != nil {
 				return nil, fmt.Errorf("there is more than one resource (%s, %s) with the given input string %s representing its name. "+
 					"can not determine which resource to analyze. consider using unique names or use input UID instead",
-					vsi, nodeSetWithVsi.UID(), nodeSet.UID())
+					nodeSetWithVsi.UID(), nodeSet.UID(), vsi)
 			}
 			nodeSetWithVsi = nodeSet
 		}
