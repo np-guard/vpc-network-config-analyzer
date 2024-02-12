@@ -11,8 +11,6 @@ import (
 
 var filterLayers = [2]string{NaclLayer, SecurityGroupLayer}
 
-const ResourceTypeVSI = "VSI"
-
 // rulesInLayers contains specific rules across all layers (SGLayer/NACLLayer)
 // it maps from the layer name to the list of rules
 type rulesInLayers map[string][]RulesInFilter
