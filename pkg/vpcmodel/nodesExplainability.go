@@ -690,7 +690,10 @@ func (rulesInLayers rulesInLayers) string(c *VPCConfig, isIngress, rulesDetails 
 	// (1) the SGs attached to the src NIF (2) the outbound rules in the ACL attached to the src NIF's subnet
 	// (3) the inbound rules in the ACL attached to the dst NIF's subnet (4) the SGs attached to the dst NIF.
 	// thus, egress: security group first, ingress: nacl first
-	filterLayersOrder := filterLayers
+	filterLayersOrder := [2]string{SecurityGroupLayer, NaclLayer}
+	if isIngress {
+        	filterLayersOrder = [2]string{NaclLayer, SecurityGroupLayer}
+	}
 	if isIngress {
 		filterLayersOrder[0] = NaclLayer
 		filterLayersOrder[1] = SecurityGroupLayer
