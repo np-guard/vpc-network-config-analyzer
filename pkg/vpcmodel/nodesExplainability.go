@@ -110,7 +110,7 @@ func (c *VPCConfig) getVsiNode(name string) Node {
 }
 
 // GetNodesWithinAddress is given a string address in CIDR format or exact IP address format, and
-// returns the list of all internal nodes with this address
+// returns the list of all nodes within this vsi
 func (c *VPCConfig) GetNodesWithinAddress(ipAddress string) (networkInterfaceNodes []Node, err error) {
 	var addressIPblock, networkInterfaceIPBlock *common.IPBlock
 	addressIPblock = common.NewIPBlockFromCidrOrAddress(ipAddress)
