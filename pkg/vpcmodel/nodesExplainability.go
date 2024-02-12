@@ -137,9 +137,9 @@ func (c *VPCConfig) GetNodesWithinAddress(ipAddress string) (networkInterfaceNod
 // returns the list of all nodes with this vsi name or UID
 func (c *VPCConfig) GetNodesOfVsi(vsi string) (vsiNodes []Node, err error) {
 	for _, nodeSet := range c.NodeSets {
-		if nodeSet.Kind() == ResourceTypeVSI && (nodeSet.Name() == vsi || nodeSet.UID() == vsi) {
+		if nodeSet.Name() == vsi || nodeSet.UID() == vsi {
 			if vsiNodes != nil {
-				return nil, fmt.Errorf("input string %s matched the UID/name of more than one VSI", vsi)
+				return nil, fmt.Errorf("input string %s matched the UID/name of more than one node", vsi)
 			}
 			vsiNodes = nodeSet.Nodes()
 		}
