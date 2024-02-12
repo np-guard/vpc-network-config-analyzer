@@ -133,17 +133,20 @@ func (c *VPCConfig) GetNodesWithinAddress(ipAddress string) (networkInterfaceNod
 
 // getNodesOfVsi is given a string name or UID of VSI, and
 // returns the list of all nodes within this vsi
-func (c *VPCConfig) GetNodesOfVsi(vsi string) (vsiNodes []Node, err error) {
+// todo: move this function after (#380) for adding abstract vpc and subnet
+func (c *VPCConfig) GetNodesOfVsi(vsi string) ([]Node, error) {
+	var nodeSetWithVsi NodeSet
 	for _, nodeSet := range c.NodeSets {
 		if nodeSet.Name() == vsi || nodeSet.UID() == vsi {
-			if vsiNodes != nil {
-				return nil, fmt.Errorf("there is more than one resource with the given input string %s representing its name. "+
-					"can not determine which resource to analyze. consider using unique names or use input UID instead", vsi)
+			if nodeSetWithVsi != nil {
+				return nil, fmt.Errorf("there is more than one resource (%s, %s) with the given input string %s representing its name. "+
+					"can not determine which resource to analyze. consider using unique names or use input UID instead",
+					vsi, nodeSetWithVsi.UID(), nodeSet.UID())
 			}
-			vsiNodes = nodeSet.Nodes()
+			nodeSetWithVsi = nodeSet
 		}
 	}
-	return vsiNodes, err
+	return nodeSetWithVsi.Nodes(), nil
 }
 
 // given input cidr, gets (disjoint) external nodes I s.t.:
