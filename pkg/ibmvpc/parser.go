@@ -330,6 +330,7 @@ func getPgwConfig(
 			},
 			cidr:       "",
 			src:        srcNodes,
+			srcSubnets: pgwToSubnet[pgwName],
 			subnetCidr: getSubnetsCidrs(pgwToSubnet[pgwName]),
 			vpc:        vpc,
 		} // TODO: get cidr from fip of the pgw
@@ -415,14 +416,21 @@ func getFipConfig(
 			if pgw, ok := r.(*PublicGateway); ok {
 				// a node captured by a fip should not be captured by a pgw
 				for _, nodeWithFip := range srcNodes {
-					if vpcmodel.HasNode(pgw.Src(), nodeWithFip) {
-						pgw.src = getCertainNodes(pgw.Src(), func(n vpcmodel.Node) bool { return n.Cidr() != nodeWithFip.Cidr() })
+					if vpcmodel.HasNode(pgw.Sources(), nodeWithFip) {
+						pgw.src = getCertainNodes(pgw.Sources(), func(n vpcmodel.Node) bool { return n.Cidr() != nodeWithFip.Cidr() })
 					}
 				}
 			}
 		}
 	}
 	return nil
+}
+
+func getVPCAddressPrefixes(vpc *datamodel.VPC) (res []string) {
+	for _, ap := range vpc.AddressPrefixes {
+		res = append(res, *ap.CIDR)
+	}
+	return res
 }
 
 func getVPCconfig(rc *datamodel.ResourcesContainerModel, res map[string]*vpcmodel.VPCConfig, skipByVPC func(string) bool) error {
@@ -437,8 +445,9 @@ func getVPCconfig(rc *datamodel.ResourcesContainerModel, res map[string]*vpcmode
 				ResourceUID:  *vpc.CRN,
 				ResourceType: ResourceTypeVPC,
 			},
-			nodes: []vpcmodel.Node{},
-			zones: map[string]*Zone{},
+			nodes:           []vpcmodel.Node{},
+			zones:           map[string]*Zone{},
+			addressPrefixes: getVPCAddressPrefixes(vpc),
 		}
 		vpcNodeSet.VPCRef = vpcNodeSet
 		newVPCConfig := NewEmptyVPCConfig()
@@ -612,68 +621,51 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 					ResourceUID:  tgwUID,
 					ResourceType: ResourceTypeTGW,
 				},
-				vpcs:       []*VPC{vpc},
-				vpcFilters: map[string]map[string]bool{},
+				vpcs:            []*VPC{vpc},
+				availableRoutes: map[string][]*common.IPBlock{},
 			}
 			tgwMap[tgwUID] = tgw
 		} else {
 			tgwMap[tgwUID].vpcs = append(tgwMap[tgwUID].vpcs, vpc)
 		}
-		permittedSubnets, err := getTransitConnectionFiltersForVPC(tgwConn, vpc)
+
+		advertisedRoutes, err := getVPCAdvertisedRoutes(tgwConn, vpc)
 		if err != nil {
 			fmt.Printf("warning: ignoring prefix filters, vpcID: %s, tgwID: %s, err is: %s\n", vpcUID, tgwUID, err.Error())
 		} else {
-			tgwMap[tgwUID].vpcFilters[vpc.ResourceUID] = permittedSubnets
+			// availableRoutes are the address prefixes from this VPC reaching to the TGW's routes table
+			tgwMap[tgwUID].availableRoutes[vpcUID] = append(tgwMap[tgwUID].availableRoutes[vpcUID], advertisedRoutes...)
+			// TGW's sourceSubnets contains all subnets from its connected VPCs
+			tgwMap[tgwUID].sourceSubnets = append(tgwMap[tgwUID].sourceSubnets, vpc.subnets()...)
+			// TGW's destSubnets contains subnets from its connected VPCs which are contained within routes from its table
+			tgwMap[tgwUID].destSubnets = append(tgwMap[tgwUID].destSubnets, getVPCdestSubnetsByAdvertisedRoutes(tgwMap[tgwUID], vpc)...)
+			tgwMap[tgwUID].addSourceAndDestNodes()
 		}
 	}
 	return tgwMap
 }
 
-func isNodeNotFiltered(node vpcmodel.Node, filteredSubnets map[string]bool) bool {
-	// TODO: currently skipping nodes other than network interface (e.g. reserved ip, iks nodes)
-	if netIntf, ok := node.(*NetworkInterface); ok {
-		return filteredSubnets[netIntf.subnet.UID()]
+// validateVPCsAddressPrefixesForTGW checks that all VPCs address prefixes (connected by TGW) are disjoint,
+// returns error if address prefixes are missing or overlapping
+func validateVPCsAddressPrefixesForTGW(vpcsList []*VPC) error {
+	ipBlocksForAP := make([]*common.IPBlock, len(vpcsList))
+	for i, vpc := range vpcsList {
+		if len(vpc.addressPrefixes) == 0 {
+			return fmt.Errorf("TGW analysis requires all VPCs have configured address prefixes, but this is missing for vpc %s", vpc.NameAndUID())
+		}
+		ipBlocksForAP[i] = common.NewIPBlockFromCidrList(vpc.addressPrefixes)
 	}
-	return false
-}
 
-func getNotFilteredNodes(nodes []vpcmodel.Node, filteredSubnets map[string]bool) []vpcmodel.Node {
-	res := []vpcmodel.Node{}
-	for _, n := range nodes {
-		if isNodeNotFiltered(n, filteredSubnets) {
-			res = append(res, n)
+	// validate disjoint address prefixes for each VPCs pair
+	for i1 := range ipBlocksForAP {
+		for i2 := range ipBlocksForAP[i1+1:] {
+			if !ipBlocksForAP[i1].Intersection(ipBlocksForAP[i1+1:][i2]).Empty() {
+				return fmt.Errorf("TGW analysis requires all VPCs have disjoint address prefixes, but found intersecting ones for vpcs %s, %s",
+					vpcsList[i1].NameAndUID(), vpcsList[i1+1:][i2].NameAndUID())
+			}
 		}
 	}
-	return res
-}
-
-// getVPCResourcesNotFiltered returns Nodes and NodeSets not filtered by prefix filters,
-// so that only those are added as part of the "combined" vpc representing the cross-vpc connectivity
-func getVPCResourcesNotFiltered(tgw *TransitGateway, vpcConfig *vpcmodel.VPCConfig) (
-	nodes []vpcmodel.Node, nodeSets []vpcmodel.NodeSet, err error) {
-	filteredSubnets, ok := tgw.vpcFilters[vpcConfig.VPC.UID()]
-	if !ok {
-		return nil, nil, fmt.Errorf("missing vpcFilters for TGW %s, VPC %s", tgw.UID(), vpcConfig.VPC.UID())
-	}
-
-	nodes = getNotFilteredNodes(vpcConfig.Nodes, filteredSubnets)
-
-	for _, nodeSet := range vpcConfig.NodeSets {
-		// skip VPE type for nodeSet
-		switch n := nodeSet.(type) {
-		case *Subnet:
-			if filteredSubnets[n.UID()] {
-				nodeSets = append(nodeSets, nodeSet)
-			}
-		case *Vsi:
-			if len(getNotFilteredNodes(n.nodes, filteredSubnets)) > 0 {
-				nodeSets = append(nodeSets, nodeSet)
-			}
-		case *VPC:
-			nodeSets = append(nodeSets, nodeSet)
-		}
-	}
-	return nodes, nodeSets, nil
+	return nil
 }
 
 // For each Transit Gateway, generate a config that combines multiple vpc entities, which are
@@ -685,6 +677,13 @@ func addTGWbasedConfigs(tgws map[string]*TransitGateway, res map[string]*vpcmode
 	for _, tgw := range tgws {
 		if len(tgw.vpcs) <= 1 {
 			// skip tgw if it does not connect between at least 2 vpcs
+			fmt.Printf("skipping TGW %s, as it is not connected to at least 2 VPCs\n", tgw.NameAndUID())
+			continue
+		}
+		// TODO: for now, the analysis supports only disjoint VPCs address prefixes
+		// consider adding support for overlapping address prefixes with conflict resolution logic
+		if err := validateVPCsAddressPrefixesForTGW(tgw.vpcs); err != nil {
+			fmt.Printf("skipping TGW %s: %s\n", tgw.NameAndUID(), err.Error())
 			continue
 		}
 		newConfig := &vpcmodel.VPCConfig{
@@ -700,12 +699,8 @@ func addTGWbasedConfigs(tgws map[string]*TransitGateway, res map[string]*vpcmode
 				return fmt.Errorf("missing vpc config for vpc CRN %s", vpc.ResourceUID)
 			}
 			// merge vpc config to the new "combined" config, used to get conns between vpcs only
-			filteredNodes, filteredNodeSets, err := getVPCResourcesNotFiltered(tgw, vpcConfig)
-			if err != nil {
-				return err
-			}
-			newConfig.Nodes = append(newConfig.Nodes, filteredNodes...)
-			newConfig.NodeSets = append(newConfig.NodeSets, filteredNodeSets...)
+			newConfig.Nodes = append(newConfig.Nodes, vpcConfig.Nodes...)
+			newConfig.NodeSets = append(newConfig.NodeSets, vpcConfig.NodeSets...)
 
 			// FilterResources: merge NACLLayers to a single NACLLayer object, same for sg
 			for _, fr := range vpcConfig.FilterResources {
@@ -1022,15 +1017,54 @@ func printConfig(c *vpcmodel.VPCConfig) {
 		case *NaclLayer:
 			for _, nacl := range filters.naclList {
 				fmt.Println(strings.Join([]string{nacl.ResourceType, nacl.ResourceName, nacl.UID()}, separator))
+				printNACLRules(nacl)
 			}
 		case *SecurityGroupLayer:
 			for _, sg := range filters.sgList {
 				fmt.Println(strings.Join([]string{sg.ResourceType, sg.ResourceName, sg.UID()}, separator))
+				printSGRules(sg)
 			}
 		}
 	}
 	fmt.Println("RoutingResources:")
 	for _, r := range c.RoutingResources {
 		fmt.Println(strings.Join([]string{r.Kind(), r.Name(), r.UID()}, separator))
+		if tgw, ok := r.(*TransitGateway); ok {
+			printTGWAvailableRoutes(tgw)
+		}
+	}
+}
+
+func printTGWAvailableRoutes(tgw *TransitGateway) {
+	for vpcUID, rList := range tgw.availableRoutes {
+		fmt.Printf("routes for vpc %s:\n", vpcUID)
+		for _, r := range rList {
+			fmt.Printf("%s\n", r.ToCidrList())
+		}
+	}
+}
+
+func printSGRules(sg *SecurityGroup) {
+	fmt.Printf("num rules: %d\n", len(sg.analyzer.sgResource.Rules))
+	numRules := len(sg.analyzer.sgResource.Rules)
+	for i := 0; i < numRules; i++ {
+		strRule, _, _, err := sg.analyzer.getSGRule(i)
+		printRule(strRule, i, err)
+	}
+}
+
+func printNACLRules(nacl *NACL) {
+	numRules := len(nacl.analyzer.naclResource.Rules)
+	for i := 0; i < numRules; i++ {
+		strRule, _, _, err := nacl.analyzer.getNACLRule(i)
+		printRule(strRule, i, err)
+	}
+}
+
+func printRule(ruleStr string, index int, err error) {
+	if err == nil {
+		fmt.Println(ruleStr)
+	} else {
+		fmt.Printf("err for rule %d: %s\n", index, err.Error())
 	}
 }

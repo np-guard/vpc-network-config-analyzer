@@ -49,6 +49,10 @@ func (n *VPCResource) VPC() VPCResourceIntf {
 	return n.VPCRef
 }
 
+func (n *VPCResource) NameAndUID() string {
+	return n.Name() + " (" + n.UID() + ")"
+}
+
 // todo: define enum for filters
 const (
 	// filter-resources layer names (grouping all vpc resources of that kind)
@@ -112,9 +116,8 @@ type FilterTrafficResource interface {
 // fip, pgw, tgw
 type RoutingResource interface {
 	VPCResourceIntf
-	Src() []Node
+	Sources() []Node
 	Destinations() []Node
-	AllowedConnectivity(src, dst Node) *common.ConnectionSet
-	ConnectivityMap() map[string]ConfigBasedConnectivityResults
+	AllowedConnectivity(src, dst VPCResourceIntf) (*common.ConnectionSet, error)
 	AppliedFiltersKinds() map[string]bool
 }

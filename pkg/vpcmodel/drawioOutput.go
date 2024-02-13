@@ -103,7 +103,7 @@ func (d *DrawioOutputFormatter) createRouters() {
 				if vpcConfig.IsMultipleVPCsConfig {
 					d.multiVpcRouters[vpcResourceName] = rTn.(drawio.IconTreeNodeInterface)
 				} else {
-					for _, ni := range r.Src() {
+					for _, ni := range r.Sources() {
 						if d.showResource(ni) {
 							d.nodeRouters[d.gen.TreeNode(ni)] = rTn.(drawio.IconTreeNodeInterface)
 						}

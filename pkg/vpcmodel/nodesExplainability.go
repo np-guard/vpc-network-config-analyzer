@@ -281,8 +281,12 @@ func (details *rulesAndConnDetails) computeAdditionalDetails(c *VPCConfig) error
 		}
 		var routingResource RoutingResource
 		var filtersForExternal map[string]bool
+		var err3 error
 		if containingSrcNode != nil && containingDstNode != nil {
-			routingResource, _ = c.getRoutingResource(containingSrcNode, containingDstNode)
+			routingResource, _, err3 = c.getRoutingResource(containingSrcNode, containingDstNode)
+			if err3 != nil {
+				return err3
+			}
 			if routingResource != nil {
 				filtersForExternal = routingResource.AppliedFiltersKinds() // relevant filtersExternal
 			}
@@ -317,7 +321,7 @@ func computeActualRules(rulesLayer *rulesInLayers, filtersExternal map[string]bo
 		}
 		// The filter is not blocking if it has enabling  rules or is not required for the router
 		// Specifically, current filters are nacl and sg; if both src and dst are internal then they are both relevant.
-		// (if both are in the same nacl then the nacl analyzer will handle it correctly.)
+		// (if both are in the same subnet then the nacl analyzer will handle it correctly.)
 		// If fip is the router and one of src/dst is external then nacl is ignored.
 		if filterHasRelevantRules(potentialRules) || !filterIsRelevant {
 			// The case of two vsis of the same subnet is tricky: the nacl filter is relevant but there are no potential rules

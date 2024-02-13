@@ -126,6 +126,7 @@ type VPC struct {
 	zones                map[string]*Zone
 	internalAddressRange *common.IPBlock
 	subnetsList          []*Subnet
+	addressPrefixes      []string
 }
 
 func (v *VPC) getZoneByName(name string) (*Zone, error) {
@@ -603,29 +604,28 @@ type FloatingIP struct {
 	destinations []vpcmodel.Node
 }
 
-func (fip *FloatingIP) Src() []vpcmodel.Node {
+func (fip *FloatingIP) Sources() []vpcmodel.Node {
 	return fip.src
 }
 func (fip *FloatingIP) Destinations() []vpcmodel.Node {
 	return fip.destinations
 }
 
-func (fip *FloatingIP) AllowedConnectivity(src, dst vpcmodel.Node) *common.ConnectionSet {
-	if vpcmodel.HasNode(fip.Src(), src) && vpcmodel.HasNode(fip.Destinations(), dst) {
-		return vpcmodel.AllConns()
+func (fip *FloatingIP) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*common.ConnectionSet, error) {
+	if areNodes, src1, dst1 := isNodesPair(src, dst); areNodes {
+		if vpcmodel.HasNode(fip.Sources(), src1) && dst1.IsExternal() {
+			return vpcmodel.AllConns(), nil
+		}
+		if vpcmodel.HasNode(fip.Sources(), dst1) && src1.IsExternal() {
+			return vpcmodel.AllConns(), nil
+		}
+		return vpcmodel.NoConns(), nil
 	}
-	if vpcmodel.HasNode(fip.Src(), dst) && vpcmodel.HasNode(fip.Destinations(), src) {
-		return vpcmodel.AllConns()
-	}
-	return vpcmodel.NoConns()
+	return nil, errors.New("FloatingIP.AllowedConnectivity unexpected src/dst types")
 }
 
 func (fip *FloatingIP) AppliedFiltersKinds() map[string]bool {
 	return map[string]bool{vpcmodel.SecurityGroupLayer: true}
-}
-
-func (fip *FloatingIP) ConnectivityMap() map[string]vpcmodel.ConfigBasedConnectivityResults {
-	return nil
 }
 
 type PublicGateway struct {
@@ -633,6 +633,7 @@ type PublicGateway struct {
 	cidr         string
 	src          []vpcmodel.Node
 	destinations []vpcmodel.Node
+	srcSubnets   []*Subnet
 	subnetCidr   []string
 	vpc          *VPC
 }
@@ -641,33 +642,30 @@ func (pgw *PublicGateway) Zone() (*Zone, error) {
 	return pgw.vpc.getZoneByName(pgw.ZoneName())
 }
 
-func (pgw *PublicGateway) ConnectivityMap() map[string]vpcmodel.ConfigBasedConnectivityResults {
-	res := map[string]vpcmodel.ConfigBasedConnectivityResults{}
-	for _, subnetCidr := range pgw.subnetCidr {
-		res[subnetCidr] = vpcmodel.ConfigBasedConnectivityResults{
-			IngressAllowedConns: map[vpcmodel.VPCResourceIntf]*common.ConnectionSet{},
-			EgressAllowedConns:  map[vpcmodel.VPCResourceIntf]*common.ConnectionSet{},
-		}
-		for _, dst := range pgw.destinations {
-			res[subnetCidr].EgressAllowedConns[dst] = vpcmodel.AllConns()
-		}
-	}
-
-	return res
-}
-
-func (pgw *PublicGateway) Src() []vpcmodel.Node {
+func (pgw *PublicGateway) Sources() []vpcmodel.Node {
 	return pgw.src
 }
 func (pgw *PublicGateway) Destinations() []vpcmodel.Node {
 	return pgw.destinations
 }
 
-func (pgw *PublicGateway) AllowedConnectivity(src, dst vpcmodel.Node) *common.ConnectionSet {
-	if vpcmodel.HasNode(pgw.Src(), src) && vpcmodel.HasNode(pgw.Destinations(), dst) {
-		return vpcmodel.AllConns()
+func (pgw *PublicGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*common.ConnectionSet, error) {
+	if areNodes, src1, dst1 := isNodesPair(src, dst); areNodes {
+		if vpcmodel.HasNode(pgw.Sources(), src1) && dst1.IsExternal() {
+			return vpcmodel.AllConns(), nil
+		}
+		return vpcmodel.NoConns(), nil
 	}
-	return vpcmodel.NoConns()
+	if src.Kind() == ResourceTypeSubnet {
+		srcSubnet := src.(*Subnet)
+		if dstNode, ok := dst.(vpcmodel.Node); ok {
+			if dstNode.IsExternal() && hasSubnet(pgw.srcSubnets, srcSubnet) {
+				return vpcmodel.AllConns(), nil
+			}
+			return vpcmodel.NoConns(), nil
+		}
+	}
+	return nil, errors.New("unexpected src/dst input types")
 }
 
 func (pgw *PublicGateway) AppliedFiltersKinds() map[string]bool {
@@ -676,25 +674,81 @@ func (pgw *PublicGateway) AppliedFiltersKinds() map[string]bool {
 
 type TransitGateway struct {
 	vpcmodel.VPCResource
-	vpcs       []*VPC                     // the VPCs connected by a TGW
-	vpcFilters map[string]map[string]bool // map from VPC UID to its allowed set of subnets (UIDs) to be exposed to the TGW
+
+	// vpcs are the VPCs connected by a TGW
+	vpcs []*VPC
+
+	// availableRoutes are the published address prefixes from all connected vpcs that arrive at the TGW's table of available routes,
+	// as considered from prefix filters: map from vpc UID to its available routes in the routes table
+	availableRoutes map[string][]*common.IPBlock
+
+	// sourceSubnets are the subnets from the connected vpcs that can have connection to destination
+	// subnet from another vpc
+	sourceSubnets []*Subnet
+
+	// destSubnets are the subnets from the connected vpcs that can de destination for a connection from
+	// remote source subnet from another vpc, based on the availableRoutes in the TGW
+	destSubnets []*Subnet
+
+	sourceNodes []vpcmodel.Node
+	destNodes   []vpcmodel.Node
 }
 
-func (tgw *TransitGateway) ConnectivityMap() map[string]vpcmodel.ConfigBasedConnectivityResults {
-	return nil
+func (tgw *TransitGateway) addSourceAndDestNodes() {
+	for _, subnet := range tgw.sourceSubnets {
+		tgw.sourceNodes = append(tgw.sourceNodes, subnet.Nodes()...)
+	}
+	for _, subnet := range tgw.destSubnets {
+		tgw.destNodes = append(tgw.destNodes, subnet.Nodes()...)
+	}
 }
 
-func (tgw *TransitGateway) Src() []vpcmodel.Node {
-	return nil
+func (tgw *TransitGateway) Sources() (res []vpcmodel.Node) {
+	return tgw.sourceNodes
 }
-func (tgw *TransitGateway) Destinations() []vpcmodel.Node {
-	return nil
-}
-
-func (tgw *TransitGateway) AllowedConnectivity(src, dst vpcmodel.Node) *common.ConnectionSet {
-	return nil
+func (tgw *TransitGateway) Destinations() (res []vpcmodel.Node) {
+	return tgw.destNodes
 }
 
+func (tgw *TransitGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*common.ConnectionSet, error) {
+	if areNodes, src1, dst1 := isNodesPair(src, dst); areNodes {
+		if vpcmodel.HasNode(tgw.sourceNodes, src1) && vpcmodel.HasNode(tgw.destNodes, dst1) {
+			return vpcmodel.AllConns(), nil
+		}
+		return vpcmodel.NoConns(), nil
+	}
+	if areSubnets, src1, dst1 := isSubnetsPair(src, dst); areSubnets {
+		if hasSubnet(tgw.sourceSubnets, src1) && hasSubnet(tgw.destSubnets, dst1) {
+			return vpcmodel.AllConns(), nil
+		}
+		return vpcmodel.NoConns(), nil
+	}
+
+	return nil, errors.New("TransitGateway.AllowedConnectivity() expected src and dst to be two nodes or two subnets")
+}
+
+// todo: currently not used
 func (tgw *TransitGateway) AppliedFiltersKinds() map[string]bool {
-	return nil
+	return map[string]bool{vpcmodel.NaclLayer: true, vpcmodel.SecurityGroupLayer: true}
+}
+
+func isNodesPair(src, dst vpcmodel.VPCResourceIntf) (res bool, srcNode, dstNode vpcmodel.Node) {
+	srcNode, isSrcNode := src.(vpcmodel.Node)
+	dstNode, isDstNode := dst.(vpcmodel.Node)
+	return isSrcNode && isDstNode, srcNode, dstNode
+}
+
+func isSubnetsPair(src, dst vpcmodel.VPCResourceIntf) (res bool, srcSubnet, dstSubnet *Subnet) {
+	srcSubnet, isSrcNode := src.(*Subnet)
+	dstSubnet, isDstNode := dst.(*Subnet)
+	return isSrcNode && isDstNode, srcSubnet, dstSubnet
+}
+
+func hasSubnet(listSubnets []*Subnet, subnet *Subnet) bool {
+	for _, n := range listSubnets {
+		if n.UID() == subnet.UID() {
+			return true
+		}
+	}
+	return false
 }

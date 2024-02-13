@@ -105,7 +105,7 @@ func (pgw *PublicGateway) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) 
 
 func (fip *FloatingIP) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	// todo - what if r.Src() is not at size of one?
-	nitn := gen.TreeNode(fip.Src()[0]).(*drawio.NITreeNode)
+	nitn := gen.TreeNode(fip.Sources()[0]).(*drawio.NITreeNode)
 	nitn.SetFIP(fip.Name())
 	return nitn
 }
