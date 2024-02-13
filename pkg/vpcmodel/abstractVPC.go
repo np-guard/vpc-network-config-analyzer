@@ -80,7 +80,7 @@ type NodeSet interface {
 }
 
 // RulesType Type of rules in a given filter (e.g. specific NACL table) relevant to
-// path between path to destination
+// path between src to destination
 type RulesType int
 
 const (
