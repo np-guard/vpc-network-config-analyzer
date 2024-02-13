@@ -2,6 +2,7 @@ package vpcmodel
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 
@@ -27,12 +28,18 @@ type srcDstDetails struct {
 	// note that if dst/src is external then egressEnabled/ingressEnabled may be false and yet connEnabled true
 	ingressEnabled bool
 	egressEnabled  bool
-	// the connection between src to dst, in case the connection was not part of the query; nil otherwise.
-	conn            *common.ConnectionSet
-	router          RoutingResource  // the router (fip or pgw) to external network; nil if none
-	filtersExternal map[string]bool  // filters relevant for external IP, map keys are the filters kind (NaclLayer/SecurityGroupLayer)
-	potentialRules  *rulesConnection // potentialRules potentially enabling connection
-	actualRules     *rulesConnection // actualRules enabling connection given router; e.g. NACL is not relevant for fip
+	// the connection between src to dst, in case the connection was not part of the query;
+	// the part of the connection relevant to the query otherwise.
+	conn                *common.ConnectionSet
+	router              RoutingResource  // the router (fip or pgw) to external network; nil if none
+	filtersExternal     map[string]bool  // filters relevant for external IP, map keys are the filters kind (NaclLayer/SecurityGroupLayer)
+	potentialAllowRules *rulesConnection // potentially enabling connection - potential given the filter is relevant
+	actualAllowRules    *rulesConnection // enabling rules effecting connection given router; e.g. NACL is not relevant for fip
+	potentialDenyRules  *rulesConnection // deny rules potentially (w.r.t. router) effecting the connection, relevant for ACL
+	actualDenyRules     *rulesConnection // deny rules effecting the connection, relevant for ACL
+	actualMergedRules   *rulesConnection // rules actually effecting the connection (both allow and deny)
+	// enabling rules implies whether ingress/egress is enabled
+	// potential rules are saved for further debugging and explanation provided to the user
 }
 
 type rulesAndConnDetails []*srcDstDetails
@@ -124,6 +131,25 @@ func (c *VPCConfig) GetNodesWithinAddress(ipAddress string) (networkInterfaceNod
 	return networkInterfaceNodes, nil
 }
 
+// getNodesOfVsi is given a string name or UID of VSI, and
+// returns the list of all nodes within this vsi
+func (c *VPCConfig) GetNodesOfVsi(vsi string) ([]Node, error) {
+	var nodeSetWithVsi NodeSet
+	for _, nodeSet := range c.NodeSets {
+		// todo: at the moment we consider here all NodeSets and not just vsis (e.g. also subnets)
+		//       fix once we have abstract vpc and subnets (#380)
+		if nodeSet.Name() == vsi || nodeSet.UID() == vsi {
+			if nodeSetWithVsi != nil {
+				return nil, fmt.Errorf("there is more than one resource (%s, %s) with the given input string %s representing its name. "+
+					"can not determine which resource to analyze. consider using unique names or use input UID instead",
+					nodeSetWithVsi.UID(), nodeSet.UID(), vsi)
+			}
+			nodeSetWithVsi = nodeSet
+		}
+	}
+	return nodeSetWithVsi.Nodes(), nil
+}
+
 // given input cidr, gets (disjoint) external nodes I s.t.:
 //  1. The union of these nodes is the cidr
 //  2. Let i be a node in I and n be a node in VPCConfig.
@@ -172,8 +198,8 @@ func (c *VPCConfig) getNodesFromInput(cidrOrName string) ([]Node, error) {
 	return c.getCidrExternalNodes(cidrOrName)
 }
 
-// ExplainConnectivity todo: this will not be needed here once we connect explanbility to the cli
-// nil conn means connection is not part of the query
+// ExplainConnectivity given src, dst and connQuery returns a struct with all explanation details
+// nil connQuery means connection is not part of the query
 func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.ConnectionSet) (res *Explanation, err error) {
 	srcNodes, dstNodes, err := c.processInput(src, dst)
 	if err != nil {
@@ -183,7 +209,8 @@ func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.Conne
 	if err1 != nil {
 		return nil, err1
 	}
-	// finds connEnabled and the relevant connection between src and dst
+	// finds connEnabled and the existing connection between src and dst if connQuery nil,
+	// otherwise the part of the connection intersecting connQuery
 	err2 := rulesAndDetails.computeConnections(c, connQuery)
 	if err2 != nil {
 		return nil, err2
@@ -192,6 +219,9 @@ func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.Conne
 	if err3 != nil {
 		return nil, err3
 	}
+
+	rulesAndDetails.computeCombinedActualRules() // combined deny and allow
+
 	groupedLines, err4 := newGroupConnExplainability(c, &rulesAndDetails)
 	if err4 != nil {
 		return nil, err4
@@ -209,12 +239,13 @@ func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node,
 	// the loop is on two dimension since we do not know which, but actually we have a single dimension
 	for _, src := range srcNodes {
 		for _, dst := range dstNodes {
-			rulesOfConnection, err := c.getRulesOfConnection(src, dst, conn)
+			allowRules, denyRules, err := c.getRulesOfConnection(src, dst, conn)
 			if err != nil {
 				return nil, err
 			}
 			rulesThisSrcDst := &srcDstDetails{src, dst, false, false, false,
-				common.NewConnectionSet(false), nil, nil, rulesOfConnection, nil}
+				common.NewConnectionSet(false), nil, nil, allowRules,
+				nil, denyRules, nil, nil}
 			rulesAndConn[i] = rulesThisSrcDst
 			i++
 		}
@@ -247,8 +278,12 @@ func (details *rulesAndConnDetails) computeAdditionalDetails(c *VPCConfig) error
 		}
 		var routingResource RoutingResource
 		var filtersForExternal map[string]bool
+		var err3 error
 		if containingSrcNode != nil && containingDstNode != nil {
-			routingResource, _ = c.getRoutingResource(containingSrcNode, containingDstNode)
+			routingResource, _, err3 = c.getRoutingResource(containingSrcNode, containingDstNode)
+			if err3 != nil {
+				return err3
+			}
 			if routingResource != nil {
 				filtersForExternal = routingResource.AppliedFiltersKinds() // relevant filtersExternal
 			}
@@ -256,12 +291,18 @@ func (details *rulesAndConnDetails) computeAdditionalDetails(c *VPCConfig) error
 		singleSrcDstDetails.router = routingResource
 		singleSrcDstDetails.filtersExternal = filtersForExternal
 		isInternal := singleSrcDstDetails.src.IsInternal() && singleSrcDstDetails.dst.IsInternal()
-		actualIngress, ingressEnabled := computeActualRules(&singleSrcDstDetails.potentialRules.ingressRules, filtersForExternal, isInternal)
-		actualEgress, egressEnabled := computeActualRules(&singleSrcDstDetails.potentialRules.egressRules, filtersForExternal, isInternal)
-		actual := &rulesConnection{*actualIngress, *actualEgress}
-		singleSrcDstDetails.actualRules = actual
+		actualAllowIngress, ingressEnabled := computeActualRules(&singleSrcDstDetails.potentialAllowRules.ingressRules,
+			filtersForExternal, isInternal)
+		actualAllowEgress, egressEnabled := computeActualRules(&singleSrcDstDetails.potentialAllowRules.egressRules,
+			filtersForExternal, isInternal)
+		actualDenyIngress, _ := computeActualRules(&singleSrcDstDetails.potentialDenyRules.ingressRules, filtersForExternal, isInternal)
+		actualDenyEgress, _ := computeActualRules(&singleSrcDstDetails.potentialDenyRules.egressRules, filtersForExternal, isInternal)
+		actualAllow := &rulesConnection{*actualAllowIngress, *actualAllowEgress}
+		actualDeny := &rulesConnection{*actualDenyIngress, *actualDenyEgress}
+		singleSrcDstDetails.actualAllowRules = actualAllow
 		singleSrcDstDetails.ingressEnabled = ingressEnabled
 		singleSrcDstDetails.egressEnabled = egressEnabled
+		singleSrcDstDetails.actualDenyRules = actualDeny
 	}
 	return nil
 }
@@ -297,6 +338,93 @@ func computeActualRules(rulesLayer *rulesInLayers, filtersExternal map[string]bo
 	return &actualRules, directionEnabled
 }
 
+// computes combined list of rules, both deny and allow
+func (details *rulesAndConnDetails) computeCombinedActualRules() {
+	for _, singleSrcDstDetails := range *details {
+		actualRulesIngress := mergeAllowDeny(singleSrcDstDetails.actualAllowRules.ingressRules,
+			singleSrcDstDetails.actualDenyRules.ingressRules)
+		actualRulesEgress := mergeAllowDeny(singleSrcDstDetails.actualAllowRules.egressRules,
+			singleSrcDstDetails.actualDenyRules.egressRules)
+		actualRules := &rulesConnection{actualRulesIngress, actualRulesEgress}
+		singleSrcDstDetails.actualMergedRules = actualRules
+	}
+}
+
+// merges two rulesInLayers - for merging deny and allow for ingress and egress
+func mergeAllowDeny(allow, deny rulesInLayers) rulesInLayers {
+	allowDenyMerged := rulesInLayers{}
+	for _, layer := range filterLayers {
+		allowForLayer, ok1 := allow[layer]
+		denyForLayer, ok2 := deny[layer]
+		switch {
+		case ok1 && ok2:
+			// do nothing (merge will be right after the switch)
+		case ok1: // layer relevant only for allow
+			allowDenyMerged[layer] = allowForLayer
+			continue
+		case ok2: // layer relevant only for deny
+			allowDenyMerged[layer] = denyForLayer
+			continue
+		default: // no rules in this layer
+			continue
+		}
+		mergedRulesInLayer := []RulesInFilter{} // both deny and allow in layer
+		// gets all indexes, both allow and deny, of a layer (e.g. indexes of nacls)
+		allIndexes := getAllIndexesForFilter(allowForLayer, denyForLayer)
+		// translates []RulesInFilter to a map for access efficiency
+		allowRulesMap := rulesInLayerToMap(allowForLayer)
+		denyRulesMap := rulesInLayerToMap(denyForLayer)
+		for filterIndex := range allIndexes {
+			allowRules := allowRulesMap[filterIndex]
+			denyRules := denyRulesMap[filterIndex]
+			// only one of them can be nil if we got here
+			switch {
+			case denyRules == nil:
+				mergedRulesInLayer = append(mergedRulesInLayer, *allowRules)
+			case allowRules == nil:
+				mergedRulesInLayer = append(mergedRulesInLayer, *denyRules)
+			default: // none nil, merge
+				mergedRules := []int{}
+				// todo: once we update to go.1.22 use slices.Concat
+				mergedRules = append(mergedRules, allowRules.Rules...)
+				mergedRules = append(mergedRules, denyRules.Rules...)
+				slices.Sort(mergedRules)
+				mergedRulesInFilter := RulesInFilter{Filter: filterIndex, Rules: mergedRules}
+				mergedRulesInLayer = append(mergedRulesInLayer, mergedRulesInFilter)
+			}
+		}
+		allowDenyMerged[layer] = mergedRulesInLayer
+	}
+	return allowDenyMerged
+}
+
+type intSet = common.GenericSet[int]
+
+// allow and deny in layer: gets all indexes of a layer (e.g. indexes of nacls)
+func getAllIndexesForFilter(allowForLayer, denyForLayer []RulesInFilter) (indexes intSet) {
+	indexes = intSet{}
+	addIndexesOfFilters(indexes, allowForLayer)
+	addIndexesOfFilters(indexes, denyForLayer)
+	return indexes
+}
+
+// translates rulesInLayer into a map from filter's index to the rules indexes
+func rulesInLayerToMap(rulesInLayer []RulesInFilter) map[int]*RulesInFilter {
+	mapFilterRules := map[int]*RulesInFilter{}
+	for _, rulesInFilter := range rulesInLayer {
+		thisRulesInFilter := rulesInFilter // to make lint happy
+		// do not reference an address of a loop value
+		mapFilterRules[rulesInFilter.Filter] = &thisRulesInFilter
+	}
+	return mapFilterRules
+}
+
+func addIndexesOfFilters(indexes intSet, rulesInLayer []RulesInFilter) {
+	for _, rulesInFilter := range rulesInLayer {
+		indexes[rulesInFilter.Filter] = true
+	}
+}
+
 func (c *VPCConfig) processInput(srcName, dstName string) (srcNodes, dstNodes []Node, err error) {
 	srcNodes, err = c.getNodesFromInput(srcName)
 	if err != nil {
@@ -319,48 +447,54 @@ func (c *VPCConfig) processInput(srcName, dstName string) (srcNodes, dstNodes []
 	return srcNodes, dstNodes, nil
 }
 
-func (c *VPCConfig) getFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(
-	src, dst Node, conn *common.ConnectionSet, isIngress bool, layer string) (rules *[]RulesInFilter, err error) {
+func (c *VPCConfig) getFiltersRulesBetweenNodesPerDirectionAndLayer(
+	src, dst Node, conn *common.ConnectionSet, isIngress bool, layer string) (allowRules *[]RulesInFilter,
+	denyRules *[]RulesInFilter, err error) {
 	filter := c.getFilterTrafficResourceOfKind(layer)
 	if filter == nil {
-		return nil, fmt.Errorf("layer %v not found in configuration", layer)
+		return nil, nil, fmt.Errorf("layer %v not found in configuration", layer)
 	}
-	rulesOfFilter, err := filter.RulesInConnectivity(src, dst, conn, isIngress)
+	rulesOfFilter, denyRulesOfFilter, err := filter.RulesInConnectivity(src, dst, conn, isIngress)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return &rulesOfFilter, nil
+	return &rulesOfFilter, &denyRulesOfFilter, nil
 }
 
-func (c *VPCConfig) getRulesOfConnection(src, dst Node, conn *common.ConnectionSet) (rulesOfConnection *rulesConnection, err error) {
-	rulesOfConnection = &rulesConnection{}
-	ingressRulesPerLayer, egressRulesPerLayer := rulesInLayers{}, rulesInLayers{}
+func (c *VPCConfig) getRulesOfConnection(src, dst Node,
+	conn *common.ConnectionSet) (allowRulesOfConnection, denyRulesOfConnection *rulesConnection, err error) {
+	ingressAllowPerLayer, egressAllowPerLayer := rulesInLayers{}, rulesInLayers{}
+	ingressDenyPerLayer, egressDenyPerLayer := rulesInLayers{}, rulesInLayers{}
 	for _, layer := range filterLayers {
 		// ingress rules: relevant only if dst is internal
 		if dst.IsInternal() {
-			ingressRules, err1 := c.getFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(src, dst, conn, true, layer)
+			ingressAllowRules, ingressDenyRules, err1 := c.getFiltersRulesBetweenNodesPerDirectionAndLayer(src, dst, conn, true, layer)
 			if err1 != nil {
-				return nil, err1
+				return nil, nil, err1
 			}
-			if len(*ingressRules) > 0 {
-				ingressRulesPerLayer[layer] = *ingressRules
-			}
+			ingressAllowPerLayer.updateRulesPerLayerIfNonEmpty(layer, ingressAllowRules)
+			ingressDenyPerLayer.updateRulesPerLayerIfNonEmpty(layer, ingressDenyRules)
 		}
 
 		// egress rules: relevant only is src is internal
 		if src.IsInternal() {
-			egressRules, err2 := c.getFiltersEnablingRulesBetweenNodesPerDirectionAndLayer(src, dst, conn, false, layer)
+			egressAllowRules, egressDenyRules, err2 := c.getFiltersRulesBetweenNodesPerDirectionAndLayer(src, dst, conn, false, layer)
 			if err2 != nil {
-				return nil, err2
+				return nil, nil, err2
 			}
-			if len(*egressRules) > 0 {
-				egressRulesPerLayer[layer] = *egressRules
-			}
+			egressAllowPerLayer.updateRulesPerLayerIfNonEmpty(layer, egressAllowRules)
+			egressDenyPerLayer.updateRulesPerLayerIfNonEmpty(layer, egressDenyRules)
 		}
 	}
-	rulesOfConnection.ingressRules = ingressRulesPerLayer
-	rulesOfConnection.egressRules = egressRulesPerLayer
-	return rulesOfConnection, nil
+	allowRulesOfConnection = &rulesConnection{ingressRules: ingressAllowPerLayer, egressRules: egressAllowPerLayer}
+	denyRulesOfConnection = &rulesConnection{ingressRules: ingressDenyPerLayer, egressRules: egressDenyPerLayer}
+	return allowRulesOfConnection, denyRulesOfConnection, nil
+}
+
+func (rulesInLayers rulesInLayers) updateRulesPerLayerIfNonEmpty(layer string, rulesFilter *[]RulesInFilter) {
+	if len(*rulesFilter) > 0 {
+		rulesInLayers[layer] = *rulesFilter
+	}
 }
 
 // node is from getCidrExternalNodes, thus there is a node in VPCConfig that either equal to or contains it.
@@ -393,7 +527,7 @@ func (details *rulesAndConnDetails) String(c *VPCConfig, connQuery *common.Conne
 	for _, srcDstDetails := range *details {
 		resStr += stringExplainabilityLine(c, connQuery, srcDstDetails.src, srcDstDetails.dst, srcDstDetails.conn,
 			srcDstDetails.ingressEnabled, srcDstDetails.egressEnabled,
-			srcDstDetails.router, srcDstDetails.actualRules)
+			srcDstDetails.router, srcDstDetails.actualMergedRules)
 	}
 	return resStr, nil
 }
@@ -417,8 +551,7 @@ func stringExplainabilityLine(c *VPCConfig, connQuery *common.ConnectionSet, src
 	needIngress := !dst.IsExternal()
 	noIngressRules := !ingressEnabled && needIngress
 	noEgressRules := !egressEnabled && needEgress
-	egressRulesStr := fmt.Sprintf("Egress Rules:\n~~~~~~~~~~~~~\n%v", rules.egressRules.string(c))
-	ingressRulesStr := fmt.Sprintf("Ingress Rules:\n~~~~~~~~~~~~~~\n%v", rules.ingressRules.string(c))
+	rulesStr := rules.getRuleStr(c, needEgress, needIngress)
 	noConnection := ""
 	if connQuery == nil {
 		noConnection = fmt.Sprintf("No connection between %v and %v;", src.Name(), dst.Name())
@@ -433,26 +566,31 @@ func stringExplainabilityLine(c *VPCConfig, connQuery *common.ConnectionSet, src
 	case router == nil && dst.IsExternal():
 		resStr += fmt.Sprintf("%v no router (fip/pgw) and dst is external\n", noConnection)
 	case noIngressRules && noEgressRules:
-		resStr += fmt.Sprintf("%v connection blocked both by ingress and egress\n", noConnection)
+		resStr += fmt.Sprintf("%v connection blocked both by ingress and egress\n%v", noConnection, rulesStr)
 	case noIngressRules:
-		resStr += fmt.Sprintf("%v connection blocked by ingress\n", noConnection)
-		if needEgress {
-			resStr += egressRulesStr
-		}
+		resStr += fmt.Sprintf("%v connection blocked by ingress\n%v", noConnection, rulesStr)
 	case noEgressRules:
-		resStr += fmt.Sprintf("%v connection blocked by egress\n", noConnection)
-		if needIngress {
-			resStr += ingressRulesStr
-		}
+		resStr += fmt.Sprintf("%v connection blocked by egress\n%v", noConnection, rulesStr)
 	default: // there is a connection
-		return stringExplainabilityConnection(connQuery, src, dst, conn, router, needEgress, needIngress, egressRulesStr, ingressRulesStr)
+		return stringExplainabilityConnection(connQuery, src, dst, conn, router, rulesStr)
 	}
 	return resStr
 }
 
+func (rules *rulesConnection) getRuleStr(c *VPCConfig, needEgress, needIngress bool) string {
+	egressRulesStr := rules.egressRules.string(c)
+	ingressRulesStr := rules.ingressRules.string(c)
+	if needEgress && egressRulesStr != "" {
+		egressRulesStr = "Egress Rules:\n~~~~~~~~~~~~~\n" + egressRulesStr
+	}
+	if needIngress && ingressRulesStr != "" {
+		ingressRulesStr = "Ingress Rules:\n~~~~~~~~~~~~~\n" + ingressRulesStr
+	}
+	return egressRulesStr + ingressRulesStr
+}
+
 func stringExplainabilityConnection(connQuery *common.ConnectionSet, src, dst EndpointElem,
-	conn *common.ConnectionSet, router RoutingResource,
-	needEgress, needIngress bool, egressRulesStr, ingressRulesStr string) string {
+	conn *common.ConnectionSet, router RoutingResource, rulesStr string) string {
 	resStr := ""
 	if connQuery == nil {
 		resStr = fmt.Sprintf("The following connection exists between %v and %v: %v; its enabled by\n", src.Name(), dst.Name(),
@@ -464,12 +602,7 @@ func stringExplainabilityConnection(connQuery *common.ConnectionSet, src, dst En
 	if src.IsExternal() || dst.IsExternal() {
 		resStr += "External Router " + router.Kind() + ": " + router.Name() + "\n"
 	}
-	if needEgress {
-		resStr += egressRulesStr
-	}
-	if needIngress {
-		resStr += ingressRulesStr
-	}
+	resStr += rulesStr
 	return resStr
 }
 
@@ -537,11 +670,7 @@ func (rulesInLayers rulesInLayers) string(c *VPCConfig) string {
 			continue
 		}
 		if rules, ok := rulesInLayers[layer]; ok {
-			stringRulesOfFilter := filter.StringRulesOfFilter(rules)
-			if stringRulesOfFilter != "" {
-				rulesInLayersStr += layer + " Rules\n------------------------\n" +
-					stringRulesOfFilter
-			}
+			rulesInLayersStr += filter.StringRulesOfFilter(rules)
 		}
 	}
 	return rulesInLayersStr

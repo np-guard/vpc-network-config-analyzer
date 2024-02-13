@@ -124,6 +124,7 @@ type VPC struct {
 	zones                map[string]*Zone
 	internalAddressRange *common.IPBlock
 	subnetsList          []*Subnet
+	addressPrefixes      []string
 }
 
 func (v *VPC) getZoneByName(name string) (*Zone, error) {
@@ -283,21 +284,27 @@ func (nl *NaclLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool)
 
 // RulesInConnectivity list of NACL rules contributing to the connectivity
 func (nl *NaclLayer) RulesInConnectivity(src, dst vpcmodel.Node,
-	conn *common.ConnectionSet, isIngress bool) (res []vpcmodel.RulesInFilter, err error) {
+	conn *common.ConnectionSet, isIngress bool) (allowRes []vpcmodel.RulesInFilter,
+	denyRes []vpcmodel.RulesInFilter, err error) {
 	for index, nacl := range nl.naclList {
-		naclRules, err1 := nacl.RulesInConnectivity(src, dst, conn, isIngress)
+		allowRules, denyRules, err1 := nacl.RulesInConnectivity(src, dst, conn, isIngress)
 		if err1 != nil {
-			return nil, err1
+			return nil, nil, err1
 		}
-		if len(naclRules) > 0 {
-			rulesInNacl := vpcmodel.RulesInFilter{
-				Filter: index,
-				Rules:  naclRules,
-			}
-			res = append(res, rulesInNacl)
-		}
+		appendToRulesInFilter(&allowRes, &allowRules, index)
+		appendToRulesInFilter(&denyRes, &denyRules, index)
 	}
-	return res, nil
+	return allowRes, denyRes, nil
+}
+
+func appendToRulesInFilter(resRulesInFilter *[]vpcmodel.RulesInFilter, rules *[]int, filterIndex int) {
+	if len(*rules) > 0 {
+		rulesInNacl := vpcmodel.RulesInFilter{
+			Filter: filterIndex,
+			Rules:  *rules,
+		}
+		*resRulesInFilter = append(*resRulesInFilter, rulesInNacl)
+	}
 }
 
 func (nl *NaclLayer) StringRulesOfFilter(listRulesInFilter []vpcmodel.RulesInFilter) string {
@@ -306,7 +313,7 @@ func (nl *NaclLayer) StringRulesOfFilter(listRulesInFilter []vpcmodel.RulesInFil
 		nacl := nl.naclList[rulesInFilter.Filter]
 		strListRulesThisNacl := nacl.analyzer.StringRules(rulesInFilter.Rules)
 		if strListRulesThisNacl != "" {
-			strListRulesInFilter += rulesOfFilterHeader(nacl.Name()) + strListRulesThisNacl
+			strListRulesInFilter += rulesOfFilterHeader("network ACL "+nacl.Name()) + strListRulesThisNacl
 		}
 	}
 	return strListRulesInFilter
@@ -372,19 +379,20 @@ func (n *NACL) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*com
 	return n.analyzer.AllowedConnectivity(subnetCidr, inSubnetCidr, targetNode.Cidr(), isIngress)
 }
 
-func (n *NACL) RulesInConnectivity(src, dst vpcmodel.Node, conn *common.ConnectionSet, isIngress bool) ([]int, error) {
+func (n *NACL) RulesInConnectivity(src, dst vpcmodel.Node, conn *common.ConnectionSet,
+	isIngress bool) (allow, deny []int, err error) {
 	targetNode, subnetCidr, inSubnetCidr, err := n.initConnectivityComputation(src, dst, isIngress)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	// check if the subnet of the given node is affected by this nacl
 	if _, ok := n.subnets[subnetCidr]; !ok {
-		return nil, nil // not affected by current nacl
+		return nil, nil, nil // not affected by current nacl
 	}
 	// nacl has no control on traffic between two instances in its subnet; this is marked by a rule with index -1
 	// which is not printed but only signals that this filter does not block (since there are rules)
 	if allInSubnet, err := common.IsAddressInSubnet(targetNode.Cidr(), subnetCidr); err == nil && allInSubnet {
-		return []int{dummyRule}, nil
+		return []int{dummyRule}, nil, nil
 	}
 	return n.analyzer.rulesInConnectivity(subnetCidr, inSubnetCidr, targetNode.Cidr(), conn, isIngress)
 }
@@ -425,41 +433,41 @@ func (sgl *SecurityGroupLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIng
 	return res, nil
 }
 
+// RulesInConnectivity return allow rules between src and dst,
+// or between src and dst of connection conn if conn specified
+// denyRules not relevant here - returns nil
 func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
-	conn *common.ConnectionSet, isIngress bool) (res []vpcmodel.RulesInFilter, err error) {
+	conn *common.ConnectionSet, isIngress bool) (allowRes []vpcmodel.RulesInFilter,
+	denyRes []vpcmodel.RulesInFilter, err error) {
 	if connHasIKSNode(src, dst, isIngress) {
-		return nil, fmt.Errorf("explainability for IKS node not supported yet")
+		return nil, nil, fmt.Errorf("explainability for IKS node not supported yet")
 	}
 	for index, sg := range sgl.sgList {
 		sgRules, err1 := sg.RulesInConnectivity(src, dst, conn, isIngress)
 		if err1 != nil {
-			return nil, err1
+			return nil, nil, err1
 		}
 		if len(sgRules) > 0 {
 			rulesInSg := vpcmodel.RulesInFilter{
 				Filter: index,
 				Rules:  sgRules,
 			}
-			res = append(res, rulesInSg)
+			allowRes = append(allowRes, rulesInSg)
 		}
 	}
-	return res, nil
+	return allowRes, nil, nil
 }
 
 func rulesOfFilterHeader(name string) string {
-	return "enabling rules from " + name + ":\n"
+	return "relevant rules from " + name + ":\n"
 }
 
 func (sgl *SecurityGroupLayer) StringRulesOfFilter(listRulesInFilter []vpcmodel.RulesInFilter) string {
 	strListRulesInFilter := ""
 	for _, rulesInFilter := range listRulesInFilter {
 		sg := sgl.sgList[rulesInFilter.Filter]
-		if !sg.analyzer.isDefault {
-			strListRulesInFilter += rulesOfFilterHeader(sg.Name())
-		} else {
-			strListRulesInFilter += "rules in " + sg.Name() + " are the default, namely this is the enabling egress rule:\n"
-		}
-		strListRulesInFilter += sg.analyzer.StringRules(rulesInFilter.Rules)
+		strListRulesInFilter += rulesOfFilterHeader("security group "+sg.Name()) +
+			sg.analyzer.StringRules(rulesInFilter.Rules)
 	}
 	return strListRulesInFilter
 }
@@ -521,29 +529,28 @@ type FloatingIP struct {
 	destinations []vpcmodel.Node
 }
 
-func (fip *FloatingIP) Src() []vpcmodel.Node {
+func (fip *FloatingIP) Sources() []vpcmodel.Node {
 	return fip.src
 }
 func (fip *FloatingIP) Destinations() []vpcmodel.Node {
 	return fip.destinations
 }
 
-func (fip *FloatingIP) AllowedConnectivity(src, dst vpcmodel.Node) *common.ConnectionSet {
-	if vpcmodel.HasNode(fip.Src(), src) && vpcmodel.HasNode(fip.Destinations(), dst) {
-		return vpcmodel.AllConns()
+func (fip *FloatingIP) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*common.ConnectionSet, error) {
+	if areNodes, src1, dst1 := isNodesPair(src, dst); areNodes {
+		if vpcmodel.HasNode(fip.Sources(), src1) && dst1.IsExternal() {
+			return vpcmodel.AllConns(), nil
+		}
+		if vpcmodel.HasNode(fip.Sources(), dst1) && src1.IsExternal() {
+			return vpcmodel.AllConns(), nil
+		}
+		return vpcmodel.NoConns(), nil
 	}
-	if vpcmodel.HasNode(fip.Src(), dst) && vpcmodel.HasNode(fip.Destinations(), src) {
-		return vpcmodel.AllConns()
-	}
-	return vpcmodel.NoConns()
+	return nil, errors.New("FloatingIP.AllowedConnectivity unexpected src/dst types")
 }
 
 func (fip *FloatingIP) AppliedFiltersKinds() map[string]bool {
 	return map[string]bool{vpcmodel.SecurityGroupLayer: true}
-}
-
-func (fip *FloatingIP) ConnectivityMap() map[string]vpcmodel.ConfigBasedConnectivityResults {
-	return nil
 }
 
 type PublicGateway struct {
@@ -551,6 +558,7 @@ type PublicGateway struct {
 	cidr         string
 	src          []vpcmodel.Node
 	destinations []vpcmodel.Node
+	srcSubnets   []*Subnet
 	subnetCidr   []string
 	vpc          *VPC
 }
@@ -559,33 +567,30 @@ func (pgw *PublicGateway) Zone() (*Zone, error) {
 	return pgw.vpc.getZoneByName(pgw.ZoneName())
 }
 
-func (pgw *PublicGateway) ConnectivityMap() map[string]vpcmodel.ConfigBasedConnectivityResults {
-	res := map[string]vpcmodel.ConfigBasedConnectivityResults{}
-	for _, subnetCidr := range pgw.subnetCidr {
-		res[subnetCidr] = vpcmodel.ConfigBasedConnectivityResults{
-			IngressAllowedConns: map[vpcmodel.VPCResourceIntf]*common.ConnectionSet{},
-			EgressAllowedConns:  map[vpcmodel.VPCResourceIntf]*common.ConnectionSet{},
-		}
-		for _, dst := range pgw.destinations {
-			res[subnetCidr].EgressAllowedConns[dst] = vpcmodel.AllConns()
-		}
-	}
-
-	return res
-}
-
-func (pgw *PublicGateway) Src() []vpcmodel.Node {
+func (pgw *PublicGateway) Sources() []vpcmodel.Node {
 	return pgw.src
 }
 func (pgw *PublicGateway) Destinations() []vpcmodel.Node {
 	return pgw.destinations
 }
 
-func (pgw *PublicGateway) AllowedConnectivity(src, dst vpcmodel.Node) *common.ConnectionSet {
-	if vpcmodel.HasNode(pgw.Src(), src) && vpcmodel.HasNode(pgw.Destinations(), dst) {
-		return vpcmodel.AllConns()
+func (pgw *PublicGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*common.ConnectionSet, error) {
+	if areNodes, src1, dst1 := isNodesPair(src, dst); areNodes {
+		if vpcmodel.HasNode(pgw.Sources(), src1) && dst1.IsExternal() {
+			return vpcmodel.AllConns(), nil
+		}
+		return vpcmodel.NoConns(), nil
 	}
-	return vpcmodel.NoConns()
+	if src.Kind() == ResourceTypeSubnet {
+		srcSubnet := src.(*Subnet)
+		if dstNode, ok := dst.(vpcmodel.Node); ok {
+			if dstNode.IsExternal() && hasSubnet(pgw.srcSubnets, srcSubnet) {
+				return vpcmodel.AllConns(), nil
+			}
+			return vpcmodel.NoConns(), nil
+		}
+	}
+	return nil, errors.New("unexpected src/dst input types")
 }
 
 func (pgw *PublicGateway) AppliedFiltersKinds() map[string]bool {
@@ -594,25 +599,81 @@ func (pgw *PublicGateway) AppliedFiltersKinds() map[string]bool {
 
 type TransitGateway struct {
 	vpcmodel.VPCResource
-	vpcs       []*VPC                     // the VPCs connected by a TGW
-	vpcFilters map[string]map[string]bool // map from VPC UID to its allowed set of subnets (UIDs) to be exposed to the TGW
+
+	// vpcs are the VPCs connected by a TGW
+	vpcs []*VPC
+
+	// availableRoutes are the published address prefixes from all connected vpcs that arrive at the TGW's table of available routes,
+	// as considered from prefix filters: map from vpc UID to its available routes in the routes table
+	availableRoutes map[string][]*common.IPBlock
+
+	// sourceSubnets are the subnets from the connected vpcs that can have connection to destination
+	// subnet from another vpc
+	sourceSubnets []*Subnet
+
+	// destSubnets are the subnets from the connected vpcs that can de destination for a connection from
+	// remote source subnet from another vpc, based on the availableRoutes in the TGW
+	destSubnets []*Subnet
+
+	sourceNodes []vpcmodel.Node
+	destNodes   []vpcmodel.Node
 }
 
-func (tgw *TransitGateway) ConnectivityMap() map[string]vpcmodel.ConfigBasedConnectivityResults {
-	return nil
+func (tgw *TransitGateway) addSourceAndDestNodes() {
+	for _, subnet := range tgw.sourceSubnets {
+		tgw.sourceNodes = append(tgw.sourceNodes, subnet.Nodes()...)
+	}
+	for _, subnet := range tgw.destSubnets {
+		tgw.destNodes = append(tgw.destNodes, subnet.Nodes()...)
+	}
 }
 
-func (tgw *TransitGateway) Src() []vpcmodel.Node {
-	return nil
+func (tgw *TransitGateway) Sources() (res []vpcmodel.Node) {
+	return tgw.sourceNodes
 }
-func (tgw *TransitGateway) Destinations() []vpcmodel.Node {
-	return nil
-}
-
-func (tgw *TransitGateway) AllowedConnectivity(src, dst vpcmodel.Node) *common.ConnectionSet {
-	return nil
+func (tgw *TransitGateway) Destinations() (res []vpcmodel.Node) {
+	return tgw.destNodes
 }
 
+func (tgw *TransitGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*common.ConnectionSet, error) {
+	if areNodes, src1, dst1 := isNodesPair(src, dst); areNodes {
+		if vpcmodel.HasNode(tgw.sourceNodes, src1) && vpcmodel.HasNode(tgw.destNodes, dst1) {
+			return vpcmodel.AllConns(), nil
+		}
+		return vpcmodel.NoConns(), nil
+	}
+	if areSubnets, src1, dst1 := isSubnetsPair(src, dst); areSubnets {
+		if hasSubnet(tgw.sourceSubnets, src1) && hasSubnet(tgw.destSubnets, dst1) {
+			return vpcmodel.AllConns(), nil
+		}
+		return vpcmodel.NoConns(), nil
+	}
+
+	return nil, errors.New("TransitGateway.AllowedConnectivity() expected src and dst to be two nodes or two subnets")
+}
+
+// todo: currently not used
 func (tgw *TransitGateway) AppliedFiltersKinds() map[string]bool {
-	return nil
+	return map[string]bool{vpcmodel.NaclLayer: true, vpcmodel.SecurityGroupLayer: true}
+}
+
+func isNodesPair(src, dst vpcmodel.VPCResourceIntf) (res bool, srcNode, dstNode vpcmodel.Node) {
+	srcNode, isSrcNode := src.(vpcmodel.Node)
+	dstNode, isDstNode := dst.(vpcmodel.Node)
+	return isSrcNode && isDstNode, srcNode, dstNode
+}
+
+func isSubnetsPair(src, dst vpcmodel.VPCResourceIntf) (res bool, srcSubnet, dstSubnet *Subnet) {
+	srcSubnet, isSrcNode := src.(*Subnet)
+	dstSubnet, isDstNode := dst.(*Subnet)
+	return isSrcNode && isDstNode, srcSubnet, dstSubnet
+}
+
+func hasSubnet(listSubnets []*Subnet, subnet *Subnet) bool {
+	for _, n := range listSubnets {
+		if n.UID() == subnet.UID() {
+			return true
+		}
+	}
+	return false
 }

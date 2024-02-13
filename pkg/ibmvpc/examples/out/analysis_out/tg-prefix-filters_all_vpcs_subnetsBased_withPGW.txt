@@ -1,0 +1,78 @@
+Connectivity between VPCs connected by TGW local-tg-ky (UID: crn:550)
+combined connections between subnets:
+subnet0 => subnet10 : All Connections *
+subnet0 => subnet11 : All Connections *
+subnet0 => subnet20 : All Connections *
+subnet1 => subnet10 : All Connections *
+subnet1 => subnet11 : All Connections *
+subnet1 => subnet20 : All Connections *
+subnet10 => subnet20 : All Connections
+subnet10 => subnet3 : All Connections
+subnet10 => subnet4 : All Connections
+subnet10 => subnet5 : All Connections
+subnet11 => subnet20 : All Connections
+subnet11 => subnet3 : All Connections
+subnet11 => subnet4 : All Connections
+subnet11 => subnet5 : All Connections
+subnet2 => subnet10 : All Connections *
+subnet2 => subnet11 : All Connections *
+subnet2 => subnet20 : All Connections
+subnet20 => subnet10 : All Connections
+subnet20 => subnet11 : All Connections
+subnet20 => subnet2 : All Connections
+subnet20 => subnet3 : All Connections
+subnet20 => subnet4 : All Connections
+subnet20 => subnet5 : All Connections
+subnet3 => subnet10 : All Connections
+subnet3 => subnet11 : All Connections
+subnet3 => subnet20 : All Connections
+subnet4 => subnet10 : All Connections
+subnet4 => subnet11 : All Connections
+subnet4 => subnet20 : All Connections
+subnet5 => subnet10 : All Connections
+subnet5 => subnet11 : All Connections
+subnet5 => subnet20 : All Connections
+
+Connectivity for VPC test-vpc0-ky
+combined connections between subnets:
+subnet0 => subnet1 : All Connections
+subnet0 => subnet2 : All Connections
+subnet0 => subnet3 : All Connections
+subnet0 => subnet4 : All Connections
+subnet0 => subnet5 : All Connections
+subnet1 => subnet0 : All Connections
+subnet1 => subnet2 : All Connections
+subnet1 => subnet3 : All Connections
+subnet1 => subnet4 : All Connections
+subnet1 => subnet5 : All Connections
+subnet2 => subnet0 : All Connections
+subnet2 => subnet1 : All Connections
+subnet2 => subnet3 : All Connections
+subnet2 => subnet4 : All Connections
+subnet2 => subnet5 : All Connections
+subnet3 => subnet0 : All Connections
+subnet3 => subnet1 : All Connections
+subnet3 => subnet2 : All Connections
+subnet3 => subnet4 : All Connections
+subnet3 => subnet5 : All Connections
+subnet4 => subnet0 : All Connections
+subnet4 => subnet1 : All Connections
+subnet4 => subnet2 : All Connections
+subnet4 => subnet3 : All Connections
+subnet4 => subnet5 : All Connections
+subnet5 => subnet0 : All Connections
+subnet5 => subnet1 : All Connections
+subnet5 => subnet2 : All Connections
+subnet5 => subnet3 : All Connections
+subnet5 => subnet4 : All Connections
+
+Connectivity for VPC test-vpc1-ky
+combined connections between subnets:
+subnet10 => subnet11 : All Connections
+subnet11 => subnet10 : All Connections
+
+Connectivity for VPC test-vpc2-ky
+combined connections between subnets:
+
+
+connections are stateful unless marked with *

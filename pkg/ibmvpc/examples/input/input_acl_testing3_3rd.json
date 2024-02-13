@@ -1027,7 +1027,7 @@
                     "id": "id:124",
                     "ip_version": "ipv4",
                     "name": "acl1-out-1",
-                    "protocol": "icmp",
+                    "protocol": "all",
                     "source": "10.240.10.0/24"
                 },
                 {
