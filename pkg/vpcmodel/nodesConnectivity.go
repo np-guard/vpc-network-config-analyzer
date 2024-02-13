@@ -100,24 +100,36 @@ func (c *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 		// first compute connectivity per layer of filters resources
 		filterLayers := []string{NaclLayer, SecurityGroupLayer}
 		for _, layer := range filterLayers {
-			conns, err := c.getFiltersAllowedConnsBetweenNodesPerDirectionAndLayer(src, dst, isIngress, layer)
-			if err != nil {
-				return nil, nil, err
+			conns, err1 := c.getFiltersAllowedConnsBetweenNodesPerDirectionAndLayer(src, dst, isIngress, layer)
+			if err1 != nil {
+				return nil, nil, err1
 			}
 			updatePerLayerRes(perLayerRes, layer, peerNode, conns)
 		}
 
 		if peerNode.IsInternal() {
-			// no need for router node, connectivity is from within VPC
-			// only check filtering resources
-			allowedConnsBetweenCapturedAndPeerNode := AllConns()
+			var allowedConnsBetweenCapturedAndPeerNode *common.ConnectionSet
+			if c.IsMultipleVPCsConfig {
+				// in case of cross-vpc connectivity, do need a router (tgw) enabling this connection
+				_, allowedConnsBetweenCapturedAndPeerNode, err = c.getRoutingResource(src, dst)
+				if err != nil {
+					return nil, nil, err
+				}
+			} else {
+				// no need for router, connectivity is from within VPC
+				allowedConnsBetweenCapturedAndPeerNode = AllConns()
+			}
+			// now check filtering resources
 			for _, resMap := range perLayerRes {
 				allowedConnsBetweenCapturedAndPeerNode = allowedConnsBetweenCapturedAndPeerNode.Intersection(resMap[peerNode])
 			}
 			allLayersRes[peerNode] = allowedConnsBetweenCapturedAndPeerNode
 		} else {
 			// else : external node -> consider attached routing resources
-			appliedRouter, routerConnRes := c.getRoutingResource(src, dst)
+			appliedRouter, routerConnRes, err := c.getRoutingResource(src, dst)
+			if err != nil {
+				return nil, nil, err
+			}
 			if appliedRouter != nil {
 				updatePerLayerRes(perLayerRes, appliedRouter.Kind(), peerNode, routerConnRes)
 			} else {

@@ -12,16 +12,17 @@ import (
 )
 
 const (
-	ipByte        = 0xff
-	ipShift0      = 24
-	ipShift1      = 16
-	ipShift2      = 8
-	ipBase        = 10
-	ipMask        = 0xffffffff
-	maxIPv4Bits   = 32
-	CidrAll       = "0.0.0.0/0"
-	cidrSeparator = "/"
-	bitSize64     = 64
+	ipByte         = 0xff
+	ipShift0       = 24
+	ipShift1       = 16
+	ipShift2       = 8
+	ipBase         = 10
+	ipMask         = 0xffffffff
+	maxIPv4Bits    = 32
+	CidrAll        = "0.0.0.0/0"
+	cidrSeparator  = "/"
+	bitSize64      = 64
+	commaSeparator = ", "
 )
 
 // IPBlock captures a set of ip ranges
@@ -31,7 +32,7 @@ type IPBlock struct {
 
 // ToIPRanges returns a string of the ip ranges in the current IPBlock object
 func (b *IPBlock) ToIPRanges() string {
-	return strings.Join(b.ToIPRangesList(), ",")
+	return strings.Join(b.ToIPRangesList(), commaSeparator)
 }
 
 // ToIPRange returns a string of the ip range of a single interval
@@ -201,6 +202,16 @@ func NewIPBlockFromCidrOrAddress(s string) *IPBlock {
 	return res
 }
 
+// NewIPBlockFromCidrList returns IPBlock object from multiple CIDRs given as list of strings
+func NewIPBlockFromCidrList(cidrsList []string) *IPBlock {
+	res := &IPBlock{ipRange: CanonicalIntervalSet{}}
+	for _, cidr := range cidrsList {
+		block := NewIPBlockFromCidr(cidr)
+		res = res.Union(block)
+	}
+	return res
+}
+
 // NewIPBlock returns an IPBlock object from input cidr str an exceptions cidr str
 func NewIPBlock(cidr string, exceptions []string) (*IPBlock, error) {
 	res := IPBlock{ipRange: CanonicalIntervalSet{}}
@@ -260,6 +271,11 @@ func (b *IPBlock) ToCidrList() []string {
 		cidrList = append(cidrList, IntervalToCidrList(interval.Start, interval.End)...)
 	}
 	return cidrList
+}
+
+// ToCidrListString returns a string with all CIDRs within the IPBlock object
+func (b *IPBlock) ToCidrListString() string {
+	return strings.Join(b.ToCidrList(), commaSeparator)
 }
 
 // ListToPrint: returns a uniform to print list s.t. each element contains either a single cidr or an ip range
