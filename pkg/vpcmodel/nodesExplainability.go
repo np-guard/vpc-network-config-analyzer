@@ -153,15 +153,6 @@ func (c *VPCConfig) GetNodesOfVsi(vsi string) ([]Node, error) {
 	return nodeSetWithVsi.Nodes(), nil
 }
 
-// TranslatePlainIPToCidr is given a plain IP address, and returns it in cidr format
-func TranslatePlainIPToCidr(plainIP string) string {
-	if strings.Contains(plainIP, "/") {
-		return plainIP
-	}
-
-	return plainIP + "/32"
-}
-
 // given input cidr, gets (disjoint) external nodes I s.t.:
 //  1. The union of these nodes is the cidr
 //  2. Let i be a node in I and n be a node in VPCConfig.
@@ -173,7 +164,7 @@ func TranslatePlainIPToCidr(plainIP string) string {
 //  2. Calculate from N and the cidr block, disjoint IP blocks
 //  3. Return the nodes created from each block from 2 contained in the input cidr
 func (c *VPCConfig) getCidrExternalNodes(cidr string) (cidrNodes []Node, err error) {
-	cidrsIPBlock := common.NewIPBlockFromCidr(cidr)
+	cidrsIPBlock := common.NewIPBlockFromCidrOrAddress(cidr)
 	if cidrsIPBlock == nil { // string cidr does not represent a legal cidr
 		return nil, nil
 	}
