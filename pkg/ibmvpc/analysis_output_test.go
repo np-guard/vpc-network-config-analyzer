@@ -419,10 +419,22 @@ var tests = []*vpcGeneralTest{
 		format:      vpcmodel.Text,
 	},
 	{
+		inputConfig: "tgw_basic_example_with_some_default_deny",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+		format:      vpcmodel.Text,
+	},
+	{
 		inputConfig: "tgw_larger_example",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
 		format:      vpcmodel.Text,
 	},
+
+	{
+		inputConfig: "tg-prefix-filters",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+		format:      vpcmodel.Text,
+	},
+	// tgw examples with drawio
 	{
 		inputConfig: "tgw_larger_example",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
@@ -462,26 +474,28 @@ var tests = []*vpcGeneralTest{
 var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
 
 // uncomment the function below to run for updating the expected output
-/*var formatsAvoidOutputGeneration = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
+/*
+var formatsAvoidOutputGeneration = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
 
 func TestAllWithGeneration(t *testing.T) {
-// tests is the list of tests to run
-for testIdx := range tests {
-tt := tests[testIdx]
-// todo - remove the following if when drawio is stable
-if formatsAvoidOutputGeneration[tt.format] {
-tt.mode = outputIgnore
-} else {
-tt.mode = outputGeneration
+	// tests is the list of tests to run
+	for testIdx := range tests {
+		tt := tests[testIdx]
+		// todo - remove the following if when drawio is stable
+		if formatsAvoidOutputGeneration[tt.format] {
+			tt.mode = outputIgnore
+		} else {
+			tt.mode = outputGeneration
+		}
+		tt.name = tt.inputConfig
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			tt.runTest(t)
+		})
+	}
+	fmt.Println("done")
 }
-tt.name = tt.inputConfig
-t.Run(tt.name, func(t *testing.T) {
-t.Parallel()
-tt.runTest(t)
-})
-}
-fmt.Println("done")
-}*/
+*/
 
 func TestAllWithComparison(t *testing.T) {
 	// tests is the list of tests to run
