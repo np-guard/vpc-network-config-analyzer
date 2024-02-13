@@ -452,7 +452,7 @@ func (na *NACLAnalyzer) GeneralConnectivityPerSubnet(subnetCidr string) (
 	return strResult, connectivityObjResult
 }
 
-// initConnectivityRelatedCompute performs initial computation for AllowedConnectivity and rulesInConnectivity
+// initConnectivityRelatedCompute performs initial computation for AllowedConnectivity and rulesFilterInConnectivity
 func (na *NACLAnalyzer) initConnectivityRelatedCompute(subnetCidr, inSubentCidr, target string,
 	isIngress bool) (analyzedConns map[string]*ConnectivityResult, targetIPblock, inSubnetIPblock *common.IPBlock) {
 	na.addAnalysisPerSubnet(subnetCidr)
@@ -493,10 +493,10 @@ func (na *NACLAnalyzer) AllowedConnectivity(subnetCidr, inSubentCidr, target str
 	return nil, fmt.Errorf(notFoundMsg, isIngress, target, subnetCidr, inSubentCidr)
 }
 
-// rulesInConnectivity returns set of rules contributing to a connections given src/dst and direction
+// rulesFilterInConnectivity returns set of rules contributing to a connections given src/dst and direction
 // if conn is specified then rules contributing to that connection; otherwise to any connection src->dst
 // if the input subnet was not yet analyzed, it first adds its analysis to saved results
-func (na *NACLAnalyzer) rulesInConnectivity(subnetCidr, inSubentCidr,
+func (na *NACLAnalyzer) rulesFilterInConnectivity(subnetCidr, inSubentCidr,
 	target string, connQuery *common.ConnectionSet,
 	isIngress bool) (allow, deny []int, err error) {
 	// add analysis of the given subnet
@@ -565,7 +565,7 @@ func (na *NACLAnalyzer) getRulesRelevantConn(rules []int,
 func (na *NACLAnalyzer) StringRules(rules []int) string {
 	var strRules string
 	for _, ruleIndex := range rules {
-		if ruleIndex == dummyRule {
+		if ruleIndex == vpcmodel.DummyRule {
 			continue
 		}
 		strRule, _, _, err := na.getNACLRule(ruleIndex)

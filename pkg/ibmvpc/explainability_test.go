@@ -36,60 +36,77 @@ var explainTests = []*vpcGeneralTest{
 		inputConfig: "sg_testing1_new",
 		ESrc:        "vsi2-ky[10.240.20.4]",
 		EDst:        "vsi3b-ky[10.240.30.4]",
+		format:      vpcmodel.Debug,
 	},
 	{
 		name:        "VsiToVsi2",
 		inputConfig: "sg_testing1_new",
 		ESrc:        "vsi2-ky[10.240.20.4]",
 		EDst:        "vsi1-ky[10.240.10.4]",
+		format:      vpcmodel.Debug,
 	},
 	{
 		name:        "VsiToVsi3",
 		inputConfig: "sg_testing1_new",
 		ESrc:        "vsi3a-ky[10.240.30.5]",
 		EDst:        "vsi1-ky[10.240.10.4]",
+		format:      vpcmodel.Debug,
 	},
 	{
 		name:        "VsiToVsi4",
 		inputConfig: "sg_testing1_new",
 		ESrc:        "vsi1-ky[10.240.10.4]",
 		EDst:        "vsi2-ky[10.240.20.4]",
+		format:      vpcmodel.Debug,
 	},
 	{
 		name:        "VsiToVsi5",
 		inputConfig: "sg_testing1_new",
 		ESrc:        "vsi3a-ky[10.240.30.5]",
 		EDst:        "vsi2-ky[10.240.20.4]",
+		format:      vpcmodel.Debug,
 	},
 	{
 		name:        "SimpleExternalSG1",
 		inputConfig: "sg_testing1_new",
 		ESrc:        "vsi1-ky[10.240.10.4]",
 		EDst:        "161.26.0.0/16",
+		format:      vpcmodel.Debug,
 	},
 	{
 		name:        "SimpleExternalSG2",
 		inputConfig: "sg_testing1_new",
 		ESrc:        "161.26.0.0/16",
 		EDst:        "vsi1-ky[10.240.10.4]",
+		format:      vpcmodel.Text,
 	},
 	{
 		name:        "SimpleExternalSG3",
 		inputConfig: "sg_testing1_new",
 		ESrc:        "vsi1-ky[10.240.10.4]",
 		EDst:        "161.26.0.0/32",
+		format:      vpcmodel.Debug,
 	},
 	{
 		name:        "SimpleExternalSG4",
 		inputConfig: "sg_testing1_new",
 		ESrc:        "vsi3b-ky[10.240.30.4]",
 		EDst:        "161.26.0.0/32",
+		format:      vpcmodel.Text,
 	},
 	{
 		name:        "GroupingExternalSG1",
 		inputConfig: "sg_testing1_new",
 		ESrc:        "vsi1-ky[10.240.10.4]",
 		EDst:        "161.26.0.0/8",
+		format:      vpcmodel.Debug,
+	},
+	{
+		name:        "GroupingExternalSG1",
+		inputConfig: "sg_testing1_new",
+		ESrc:        "vsi1-ky[10.240.10.4]",
+		EDst:        "161.26.0.0/8",
+		format:      vpcmodel.Text,
 	},
 	//todo: now that external and internal IPs are treated differently, deffer cidrAll test to the time we properly support internal IP #305
 	/*{
@@ -115,6 +132,7 @@ var explainTests = []*vpcGeneralTest{
 		ESrcMaxPort: common.MaxPort,
 		EDstMinPort: common.MinPort,
 		EDstMaxPort: common.MaxPort,
+		format:      vpcmodel.Debug,
 	},
 	// the required connection is contained in the existing one per connection
 	{
@@ -127,6 +145,7 @@ var explainTests = []*vpcGeneralTest{
 		ESrcMaxPort: 100,
 		EDstMinPort: 443,
 		EDstMaxPort: 443,
+		format:      vpcmodel.Debug,
 	},
 	//  the required connection is contained in the existing one per ip of src/dst
 	{
@@ -139,6 +158,7 @@ var explainTests = []*vpcGeneralTest{
 		ESrcMaxPort: 100,
 		EDstMinPort: 443,
 		EDstMaxPort: 443,
+		format:      vpcmodel.Debug,
 	},
 	// the required connection exists for part of the dst ip
 	{
@@ -151,6 +171,7 @@ var explainTests = []*vpcGeneralTest{
 		ESrcMaxPort: 100,
 		EDstMinPort: 443,
 		EDstMaxPort: 443,
+		format:      vpcmodel.Debug,
 	},
 	// a connection does not exist regardless of the query
 	{
@@ -163,6 +184,7 @@ var explainTests = []*vpcGeneralTest{
 		ESrcMaxPort: 100,
 		EDstMinPort: 443,
 		EDstMaxPort: 443,
+		format:      vpcmodel.Debug,
 	},
 	// a subset of the required ports exists
 	{
@@ -175,6 +197,7 @@ var explainTests = []*vpcGeneralTest{
 		ESrcMaxPort: common.MaxPort,
 		EDstMinPort: 10,
 		EDstMaxPort: 30,
+		format:      vpcmodel.Debug,
 	},
 	//  all rules are relevant (for comparison)
 	{
@@ -182,6 +205,7 @@ var explainTests = []*vpcGeneralTest{
 		inputConfig: "sg_testing1_new",
 		ESrc:        "vsi3a-ky[10.240.30.5]",
 		EDst:        "vsi1-ky[10.240.10.4]",
+		format:      vpcmodel.Debug,
 	},
 	// only a subset of the rules are relevant, protocol wise
 	{
@@ -194,6 +218,7 @@ var explainTests = []*vpcGeneralTest{
 		ESrcMaxPort: common.MaxPort,
 		EDstMinPort: common.MinPort,
 		EDstMaxPort: common.MaxPort,
+		format:      vpcmodel.Debug,
 	},
 	// only a subset of the rules are relevant, port wise and protocol wise
 	{
@@ -206,6 +231,7 @@ var explainTests = []*vpcGeneralTest{
 		ESrcMaxPort: common.MaxPort,
 		EDstMinPort: 50,
 		EDstMaxPort: 54,
+		format:      vpcmodel.Debug,
 	},
 	//  all rules are relevant, with specified port wise protocol
 	{
@@ -218,6 +244,7 @@ var explainTests = []*vpcGeneralTest{
 		ESrcMaxPort: common.MaxPort,
 		EDstMinPort: 120,
 		EDstMaxPort: 230,
+		format:      vpcmodel.Debug,
 	},
 	// connection exists to external
 	{
@@ -225,6 +252,7 @@ var explainTests = []*vpcGeneralTest{
 		inputConfig: "acl_testing3",
 		ESrc:        "vsi1-ky[10.240.10.4]",
 		EDst:        "161.26.0.0/16",
+		format:      vpcmodel.Debug,
 	},
 	// connection does not exist to external, blocked by egress
 	{
@@ -232,6 +260,7 @@ var explainTests = []*vpcGeneralTest{
 		inputConfig: "acl_testing3",
 		ESrc:        "vsi1-ky[10.240.10.4]",
 		EDst:        "100.128.0.0/32",
+		format:      vpcmodel.Debug,
 	},
 	// connection does not exist to external, no fip router
 	{
@@ -239,25 +268,35 @@ var explainTests = []*vpcGeneralTest{
 		inputConfig: "acl_testing3",
 		ESrc:        "100.128.0.0/32",
 		EDst:        "vsi1-ky[10.240.10.4]",
+		format:      vpcmodel.Text,
 	},
 	{
-		// todo: misleading since deny not supported yet
 		name:        "NACLInternal1",
 		inputConfig: "acl_testing3",
 		ESrc:        "vsi1-ky[10.240.10.4]",
 		EDst:        "vsi2-ky[10.240.20.4]",
+		format:      vpcmodel.Debug,
+	},
+	{
+		name:        "NACLInternal1",
+		inputConfig: "acl_testing3",
+		ESrc:        "vsi1-ky[10.240.10.4]",
+		EDst:        "vsi2-ky[10.240.20.4]",
+		format:      vpcmodel.Text,
 	},
 	{
 		name:        "NACLInternal2",
 		inputConfig: "acl_testing3",
 		ESrc:        "vsi2-ky[10.240.20.4]",
 		EDst:        "vsi1-ky[10.240.10.4]",
+		format:      vpcmodel.Debug,
 	},
 	{
 		name:        "NACLInternal3",
 		inputConfig: "acl_testing3",
 		ESrc:        "vsi1-ky[10.240.10.4]",
 		EDst:        "vsi3a-ky[10.240.30.5]",
+		format:      vpcmodel.Debug,
 	},
 	{
 		// same subnet: no actual rules in nacl, but connection enabled
@@ -265,12 +304,14 @@ var explainTests = []*vpcGeneralTest{
 		inputConfig: "acl_testing3",
 		ESrc:        "vsi3b-ky[10.240.30.6]",
 		EDst:        "vsi3a-ky[10.240.30.5]",
+		format:      vpcmodel.Debug,
 	},
 	{
 		name:        "NACLGrouping",
 		inputConfig: "acl_testing3",
 		ESrc:        "vsi1-ky[10.240.10.4]",
 		EDst:        "161.26.0.0/15",
+		format:      vpcmodel.Debug,
 	},
 	{
 		name:        "NACLQueryConnection1",
@@ -282,6 +323,7 @@ var explainTests = []*vpcGeneralTest{
 		ESrcMaxPort: common.MaxPort,
 		EDstMinPort: common.MinPort,
 		EDstMaxPort: common.MaxPort,
+		format:      vpcmodel.Debug,
 	},
 	{
 		name:        "NACLQueryConnection2",
@@ -293,6 +335,7 @@ var explainTests = []*vpcGeneralTest{
 		ESrcMaxPort: common.MaxPort,
 		EDstMinPort: common.MinPort,
 		EDstMaxPort: common.MaxPort,
+		format:      vpcmodel.Debug,
 	},
 	// all rules
 	{
@@ -300,6 +343,7 @@ var explainTests = []*vpcGeneralTest{
 		inputConfig: "acl_testing3_3rd",
 		ESrc:        "vsi1-ky[10.240.10.4]",
 		EDst:        "161.26.0.0/16",
+		format:      vpcmodel.Debug,
 	},
 	// without the udp rule
 	{
@@ -312,6 +356,7 @@ var explainTests = []*vpcGeneralTest{
 		ESrcMaxPort: common.MaxPort,
 		EDstMinPort: common.MinPort,
 		EDstMaxPort: common.MaxPort,
+		format:      vpcmodel.Debug,
 	},
 	// without the "all" rule since udp rule has higher priority
 	{
@@ -324,6 +369,7 @@ var explainTests = []*vpcGeneralTest{
 		ESrcMaxPort: common.MaxPort,
 		EDstMinPort: common.MinPort,
 		EDstMaxPort: common.MaxPort,
+		format:      vpcmodel.Debug,
 	},
 	{
 		name:        "NACLOnlyDenyNoConnQuery",
@@ -335,6 +381,7 @@ var explainTests = []*vpcGeneralTest{
 		ESrcMaxPort: common.MaxPort,
 		EDstMinPort: common.MinPort,
 		EDstMaxPort: common.MaxPort,
+		format:      vpcmodel.Debug,
 	},
 }
 
@@ -368,7 +415,6 @@ fmt.Println("done")
 func (tt *vpcGeneralTest) runExplainTest(t *testing.T) {
 	// all tests in explain mode
 	tt.useCases = []vpcmodel.OutputUseCase{vpcmodel.Explain}
-	tt.format = vpcmodel.Text
 	// init test - set the input/output file names according to test name
 	tt.initTest()
 

@@ -11,8 +11,10 @@ import (
 )
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////
+const semicolonSeparator = "; "
 
-const dummyRule = -1
+const networkACLStr = "network ACL "
+const securityGroupStr = "security group "
 
 func getNodeName(name, addr string) string {
 	return fmt.Sprintf("%s[%s]", name, addr)
@@ -287,36 +289,64 @@ func (nl *NaclLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 	conn *common.ConnectionSet, isIngress bool) (allowRes []vpcmodel.RulesInFilter,
 	denyRes []vpcmodel.RulesInFilter, err error) {
 	for index, nacl := range nl.naclList {
-		allowRules, denyRules, err1 := nacl.RulesInConnectivity(src, dst, conn, isIngress)
+		tableRelevant, allowRules, denyRules, err1 := nacl.rulesFilterInConnectivity(src, dst, conn, isIngress)
 		if err1 != nil {
 			return nil, nil, err1
 		}
-		appendToRulesInFilter(&allowRes, &allowRules, index)
-		appendToRulesInFilter(&denyRes, &denyRules, index)
+		if !tableRelevant {
+			continue
+		}
+		appendToRulesInFilter(&allowRes, &allowRules, index, true)
+		appendToRulesInFilter(&denyRes, &denyRules, index, false)
 	}
 	return allowRes, denyRes, nil
 }
 
-func appendToRulesInFilter(resRulesInFilter *[]vpcmodel.RulesInFilter, rules *[]int, filterIndex int) {
-	if len(*rules) > 0 {
-		rulesInNacl := vpcmodel.RulesInFilter{
-			Filter: filterIndex,
-			Rules:  *rules,
-		}
-		*resRulesInFilter = append(*resRulesInFilter, rulesInNacl)
+func appendToRulesInFilter(resRulesInFilter *[]vpcmodel.RulesInFilter, rules *[]int, filterIndex int, isAllow bool) {
+	var rType vpcmodel.RulesType
+	switch {
+	case len(*rules) == 0:
+		rType = vpcmodel.NoRules
+	case len(*rules) == 1 && (*rules)[0] == vpcmodel.DummyRule:
+		rType = vpcmodel.OnlyDummyRule
+	case isAllow:
+		rType = vpcmodel.OnlyAllow
+	default: // more than 0 deny rules
+		rType = vpcmodel.OnlyDeny
 	}
+	rulesInNacl := vpcmodel.RulesInFilter{
+		Filter:          filterIndex,
+		Rules:           *rules,
+		RulesFilterType: rType,
+	}
+	*resRulesInFilter = append(*resRulesInFilter, rulesInNacl)
 }
 
-func (nl *NaclLayer) StringRulesOfFilter(listRulesInFilter []vpcmodel.RulesInFilter) string {
+func (nl *NaclLayer) StringDetailsRulesOfFilter(listRulesInFilter []vpcmodel.RulesInFilter) string {
 	strListRulesInFilter := ""
 	for _, rulesInFilter := range listRulesInFilter {
 		nacl := nl.naclList[rulesInFilter.Filter]
-		strListRulesThisNacl := nacl.analyzer.StringRules(rulesInFilter.Rules)
-		if strListRulesThisNacl != "" {
-			strListRulesInFilter += rulesOfFilterHeader("network ACL "+nacl.Name()) + strListRulesThisNacl
+		header := getHeaderRulesType(networkACLStr+nacl.Name(), rulesInFilter.RulesFilterType) +
+			nacl.analyzer.StringRules(rulesInFilter.Rules)
+		if header == "" {
+			continue // only dummy rule - nacl not needed between two vsis of the same subnet
 		}
+		strListRulesInFilter += header
 	}
 	return strListRulesInFilter
+}
+
+func (nl *NaclLayer) StringFilterEffect(listRulesInFilter []vpcmodel.RulesInFilter) string {
+	filtersEffectList := []string{}
+	for _, rulesInFilter := range listRulesInFilter {
+		nacl := nl.naclList[rulesInFilter.Filter]
+		header := getSummaryFilterEffect(networkACLStr+nacl.Name(), rulesInFilter.RulesFilterType)
+		if header == "" {
+			continue // only dummy rule - nacl not needed between two vsis of the same subnet
+		}
+		filtersEffectList = append(filtersEffectList, header)
+	}
+	return strings.Join(filtersEffectList, semicolonSeparator)
 }
 
 func (nl *NaclLayer) ReferencedIPblocks() []*common.IPBlock {
@@ -325,6 +355,36 @@ func (nl *NaclLayer) ReferencedIPblocks() []*common.IPBlock {
 		res = append(res, n.analyzer.referencedIPblocks...)
 	}
 	return res
+}
+
+func getHeaderRulesType(filter string, rType vpcmodel.RulesType) string {
+	switch rType {
+	case vpcmodel.NoRules:
+		return filter + " blocks connection since there are no relevant allow rules\n"
+	case vpcmodel.OnlyDeny:
+		return filter + " blocks connection with the following deny rules:\n"
+	case vpcmodel.BothAllowDeny:
+		return filter + " allows connection with the following allow and deny rules\n"
+	case vpcmodel.OnlyAllow:
+		return filter + " allows connection with the following allow rules\n"
+	default:
+		return "" // OnlyDummyRule
+	}
+}
+
+func getSummaryFilterEffect(filter string, rType vpcmodel.RulesType) string {
+	switch rType {
+	case vpcmodel.NoRules:
+		return filter + " blocks connection (no relevant allow rules)"
+	case vpcmodel.OnlyDeny:
+		return filter + " blocks connection (with deny rules)"
+	case vpcmodel.BothAllowDeny:
+		return filter + " allows connection (with allow and deny rules)"
+	case vpcmodel.OnlyAllow:
+		return filter + " allows connection (with allow rules)"
+	default:
+		return "" // OnlyDummyRule
+	}
 }
 
 type NACL struct {
@@ -379,22 +439,25 @@ func (n *NACL) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*com
 	return n.analyzer.AllowedConnectivity(subnetCidr, inSubnetCidr, targetNode.Cidr(), isIngress)
 }
 
-func (n *NACL) RulesInConnectivity(src, dst vpcmodel.Node, conn *common.ConnectionSet,
-	isIngress bool) (allow, deny []int, err error) {
-	targetNode, subnetCidr, inSubnetCidr, err := n.initConnectivityComputation(src, dst, isIngress)
-	if err != nil {
-		return nil, nil, err
+func (n *NACL) rulesFilterInConnectivity(src, dst vpcmodel.Node, conn *common.ConnectionSet,
+	isIngress bool) (tableRelevant bool, allow, deny []int, err error) {
+	targetNode, subnetCidr, inSubnetCidr, err1 := n.initConnectivityComputation(src, dst, isIngress)
+	if err1 != nil {
+		return false, nil, nil, err1
 	}
 	// check if the subnet of the given node is affected by this nacl
 	if _, ok := n.subnets[subnetCidr]; !ok {
-		return nil, nil, nil // not affected by current nacl
+		return false, nil, nil, nil // not affected by current nacl
 	}
-	// nacl has no control on traffic between two instances in its subnet; this is marked by a rule with index -1
+	// nacl has no control on traffic between two instances in its subnet;
+	// this is marked by a rule with index -1 (ibmvpc.DummyRule)
 	// which is not printed but only signals that this filter does not block (since there are rules)
-	if allInSubnet, err := common.IsAddressInSubnet(targetNode.Cidr(), subnetCidr); err == nil && allInSubnet {
-		return []int{dummyRule}, nil, nil
+	if allInSubnet, err1 := common.IsAddressInSubnet(targetNode.Cidr(), subnetCidr); err1 == nil && allInSubnet {
+		return true, []int{vpcmodel.DummyRule}, nil, nil
 	}
-	return n.analyzer.rulesInConnectivity(subnetCidr, inSubnetCidr, targetNode.Cidr(), conn, isIngress)
+	var err2 error
+	allow, deny, err2 = n.analyzer.rulesFilterInConnectivity(subnetCidr, inSubnetCidr, targetNode.Cidr(), conn, isIngress)
+	return true, allow, deny, err2
 }
 
 // SecurityGroupLayer captures all SG in the vpc config, analyzes connectivity considering all SG resources
@@ -443,14 +506,19 @@ func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 		return nil, nil, fmt.Errorf("explainability for IKS node not supported yet")
 	}
 	for index, sg := range sgl.sgList {
-		sgRules, err1 := sg.RulesInConnectivity(src, dst, conn, isIngress)
+		tableRelevant, sgRules, err1 := sg.rulesFilterInConnectivity(src, dst, conn, isIngress)
 		if err1 != nil {
 			return nil, nil, err1
 		}
-		if len(sgRules) > 0 {
+		if tableRelevant {
+			var rType vpcmodel.RulesType = vpcmodel.OnlyAllow
+			if len(sgRules) == 0 {
+				rType = vpcmodel.NoRules
+			}
 			rulesInSg := vpcmodel.RulesInFilter{
-				Filter: index,
-				Rules:  sgRules,
+				Filter:          index,
+				Rules:           sgRules,
+				RulesFilterType: rType,
 			}
 			allowRes = append(allowRes, rulesInSg)
 		}
@@ -458,18 +526,23 @@ func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 	return allowRes, nil, nil
 }
 
-func rulesOfFilterHeader(name string) string {
-	return "relevant rules from " + name + ":\n"
-}
-
-func (sgl *SecurityGroupLayer) StringRulesOfFilter(listRulesInFilter []vpcmodel.RulesInFilter) string {
+func (sgl *SecurityGroupLayer) StringDetailsRulesOfFilter(listRulesInFilter []vpcmodel.RulesInFilter) string {
 	strListRulesInFilter := ""
 	for _, rulesInFilter := range listRulesInFilter {
 		sg := sgl.sgList[rulesInFilter.Filter]
-		strListRulesInFilter += rulesOfFilterHeader("security group "+sg.Name()) +
+		strListRulesInFilter += getHeaderRulesType(securityGroupStr+sg.Name(), rulesInFilter.RulesFilterType) +
 			sg.analyzer.StringRules(rulesInFilter.Rules)
 	}
 	return strListRulesInFilter
+}
+
+func (sgl *SecurityGroupLayer) StringFilterEffect(listRulesInFilter []vpcmodel.RulesInFilter) string {
+	filtersEffectList := []string{}
+	for _, rulesInFilter := range listRulesInFilter {
+		sg := sgl.sgList[rulesInFilter.Filter]
+		filtersEffectList = append(filtersEffectList, getSummaryFilterEffect(securityGroupStr+sg.Name(), rulesInFilter.RulesFilterType))
+	}
+	return strings.Join(filtersEffectList, semicolonSeparator)
 }
 
 func (sgl *SecurityGroupLayer) ReferencedIPblocks() []*common.IPBlock {
@@ -494,13 +567,15 @@ func (sg *SecurityGroup) AllowedConnectivity(src, dst vpcmodel.Node, isIngress b
 	return sg.analyzer.AllowedConnectivity(targetStrAddress, isIngress)
 }
 
-// RulesInConnectivity list of SG rules contributing to the connectivity
-func (sg *SecurityGroup) RulesInConnectivity(src, dst vpcmodel.Node, conn *common.ConnectionSet, isIngress bool) ([]int, error) {
+// rulesFilterInConnectivity list of SG rules contributing to the connectivity
+func (sg *SecurityGroup) rulesFilterInConnectivity(src, dst vpcmodel.Node, conn *common.ConnectionSet,
+	isIngress bool) (tableRelevant bool, rules []int, err error) {
 	memberStrAddress, targetStrAddress := sg.getMemberTargetStrAddress(src, dst, isIngress)
 	if _, ok := sg.members[memberStrAddress]; !ok {
-		return nil, nil // connectivity not affected by this SG resource - input node is not its member
+		return false, nil, nil // connectivity not affected by this SG resource - input node is not its member
 	}
-	return sg.analyzer.rulesInConnectivity(targetStrAddress, conn, isIngress)
+	rules, err = sg.analyzer.rulesFilterInConnectivity(targetStrAddress, conn, isIngress)
+	return true, rules, err
 }
 
 func (sg *SecurityGroup) getMemberTargetStrAddress(src, dst vpcmodel.Node,
