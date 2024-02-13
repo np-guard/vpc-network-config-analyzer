@@ -27,10 +27,10 @@ const (
 	connStyleFormat    = "endArrow=%s;html=1;fontSize=16;fontColor=#4376BB;strokeWidth=2;endFill=1;rounded=0;startArrow=%s;%sstartFill=1;%s"
 	logicalLineStyle   = "html=1;verticalAlign=middle;startArrow=oval;startFill=1;endArrow=oval;startSize=6;strokeColor=#000000;align=center;dashed=1;strokeWidth=2;horizontal=1;labelPosition=center;verticalLabelPosition=middle;endFill=1;rounded=0;"
 	lineExitFormat     = "exitX=%v;exitY=%v;exitDx=0;exitDy=0;"
-	connRouteredCollor = "strokeColor=#007FFF;"
+	connRouteredCollor = "#007FFF"
 
 	ovalEndEdge  = "oval"
-	errorEndEdge = "block"
+	errowEndEdge = "block"
 	noneEndEdge  = "none"
 )
 
@@ -122,7 +122,7 @@ func connectivityStyle(tn TreeNodeInterface) string {
 	startArrow, endArrow := ovalEndEdge, ovalEndEdge
 	strokeColor := ""
 	if con.directed {
-		endArrow = errorEndEdge
+		endArrow = errowEndEdge
 	}
 	if con.Src().IsIcon() && con.Src().(IconTreeNodeInterface).IsGroupingPoint() && !con.Src().(*GroupPointTreeNode).hasShownSquare() {
 		startArrow = noneEndEdge
@@ -131,9 +131,24 @@ func connectivityStyle(tn TreeNodeInterface) string {
 		endArrow = noneEndEdge
 	}
 	if con.router != nil {
-		strokeColor = connRouteredCollor
+		strokeColor = "strokeColor=" + connRouteredCollor + ";"
 	}
 	return fmt.Sprintf(connStyleFormat, endArrow, startArrow, strokeColor, lineConnectionPointsStyle(con))
+}
+
+func (stl *drawioStyles) ConnectivityColor(tn TreeNodeInterface) string {
+	if isConnectionLine(tn) && tn.(*ConnectivityTreeNode).router != nil {
+		return connRouteredCollor
+	}
+	return "#000000"
+}
+func (stl *drawioStyles) ConnectivityPoints(tn TreeNodeInterface) string {
+	src, dst := tn.(LineTreeNodeInterface).Src(), tn.(LineTreeNodeInterface).Dst()
+	xs, ys := absoluteGeometry(src)
+	xd, yd := absoluteGeometry(dst)
+	xs, ys = xs + src.Width()/2, ys + src.Height()/2
+	xd, yd = xd + dst.Width()/2, yd + dst.Height()/2
+	return fmt.Sprintf("M %d %d L %d %d", xs, ys, xd, yd)
 }
 
 // mini icons:

@@ -41,6 +41,20 @@
                 <ellipse cx="{{$data.Add ($data.AX $node) ($data.Half $node.IconSize)}}" cy="{{$data.Add ($data.AY $node) ($data.Half $node.IconSize)}}" rx="{{$data.Half $node.IconSize}}" ry="{{$data.Half $node.IconSize}}" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" pointer-events="all"/>
             {{end}}
         {{ else if $node.IsLine }}
+                <path d="{{$data.ConnectivityPoints $node}}" fill="none" stroke="{{$data.ConnectivityColor $node}}" stroke-width="2" stroke-miterlimit="10" pointer-events="stroke"/>
+                <ellipse cx="51" cy="30.64" rx="3" ry="3" fill="{{$data.ConnectivityColor $node}}" stroke="{{$data.ConnectivityColor $node}}" stroke-width="2" pointer-events="all"/>
+                <path d="M 470.84 146.77 L 462.07 148.49 L 464.2 140.78 Z" fill="{{$data.ConnectivityColor $node}}" stroke="{{$data.ConnectivityColor $node}}" stroke-width="2" stroke-miterlimit="10" pointer-events="all"/>
+                <g transform="translate(-0.5 -0.5)">
+                <switch>
+                <foreignObject pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility" style="overflow: visible; text-align: left;">
+                <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 1px; height: 1px; padding-top: 100px; margin-left: 245px;">
+                <div data-drawio-colors="color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); " style="box-sizing: border-box; font-size: 0px; text-align: center;">
+                <div style="display: inline-block; font-size: 11px; font-family: Helvetica; color: rgb(0, 0, 0); line-height: 1.2; pointer-events: all; background-color: rgb(255, 255, 255); white-space: nowrap;">{{$node.Label}}</div>
+                </div>
+                </div>
+                </foreignObject>
+                </switch>
+                </g>
         {{ end }}
     {{end}}
 
