@@ -133,10 +133,11 @@ func (c *VPCConfig) GetNodesWithinAddress(ipAddress string) (networkInterfaceNod
 
 // getNodesOfVsi is given a string name or UID of VSI, and
 // returns the list of all nodes within this vsi
-// todo: move this function after (#380) for adding abstract vpc and subnet
 func (c *VPCConfig) GetNodesOfVsi(vsi string) ([]Node, error) {
 	var nodeSetWithVsi NodeSet
 	for _, nodeSet := range c.NodeSets {
+		// todo: at the moment we consider here all NodeSets and not just vsis (e.g. also subnets)
+		//       fix once we have abstract vpc and subnets (#380)
 		if nodeSet.Name() == vsi || nodeSet.UID() == vsi {
 			if nodeSetWithVsi != nil {
 				return nil, fmt.Errorf("there is more than one resource (%s, %s) with the given input string %s representing its name. "+
