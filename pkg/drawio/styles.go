@@ -143,12 +143,12 @@ func (stl *drawioStyles) ConnectivityColor(tn TreeNodeInterface) string {
 	return "#000000"
 }
 func (stl *drawioStyles) ConnectivityPoints(tn TreeNodeInterface) string {
-	src, dst := tn.(LineTreeNodeInterface).Src(), tn.(LineTreeNodeInterface).Dst()
-	xs, ys := absoluteGeometry(src)
-	xd, yd := absoluteGeometry(dst)
-	xs, ys = xs + src.Width()/2, ys + src.Height()/2
-	xd, yd = xd + dst.Width()/2, yd + dst.Height()/2
-	return fmt.Sprintf("M %d %d L %d %d", xs, ys, xd, yd)
+	points := getLineAbsolutePoints(tn.(LineTreeNodeInterface))
+	pointsStr := fmt.Sprintf("M %d %d", points[0].X, points[0].Y)
+	for _, point := range points[1:] {
+		pointsStr += fmt.Sprintf(" L %d %d", point.X, point.Y)
+	}
+	return pointsStr
 }
 
 // mini icons:
