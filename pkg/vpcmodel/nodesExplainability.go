@@ -164,7 +164,7 @@ func (c *VPCConfig) GetNodesOfVsi(vsi string) ([]Node, error) {
 //  2. Calculate from N and the cidr block, disjoint IP blocks
 //  3. Return the nodes created from each block from 2 contained in the input cidr
 func (c *VPCConfig) getCidrExternalNodes(cidr string) (cidrNodes []Node, err error) {
-	cidrsIPBlock := common.NewIPBlockFromCidr(cidr)
+	cidrsIPBlock := common.NewIPBlockFromCidrOrAddress(cidr)
 	if cidrsIPBlock == nil { // string cidr does not represent a legal cidr
 		return nil, nil
 	}
