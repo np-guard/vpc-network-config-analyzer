@@ -100,8 +100,8 @@ func (e *ExplanationArgs) Dst() string {
 	return e.dst
 }
 
-// finds the node of a given, by its name, Vsi
-func (c *VPCConfig) getVsiNode(name string) Node {
+// finds the node of a given, by its name, NetworkInterface
+func (c *VPCConfig) getNetworkIntefaceNode(name string) Node {
 	for _, node := range c.Nodes {
 		// currently, supported: network interface given takes only that one.
 		//  todo:   if address not given but only vsi name - take all network interfaces of that vsi
@@ -195,7 +195,7 @@ func (c *VPCConfig) getCidrExternalNodes(cidr string) (cidrNodes []Node, err err
 
 // given a string or a vsi or a cidr returns the corresponding node(s)
 func (c *VPCConfig) getNodesFromInput(cidrOrName string) ([]Node, error) {
-	if vsi := c.getVsiNode(cidrOrName); vsi != nil {
+	if vsi := c.getNetworkIntefaceNode(cidrOrName); vsi != nil {
 		return []Node{vsi}, nil
 	}
 	return c.getCidrExternalNodes(cidrOrName)
