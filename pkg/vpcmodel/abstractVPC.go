@@ -92,9 +92,9 @@ const (
 // RulesInFilter for a given layer (SGLayer/NACLLayer) contains specific rules in a specific SG/NACL filter
 type RulesInFilter struct {
 	// todo: is the assumption that the set of rules will always be kept in a list a valid one?
-	Filter int   // sg/nacl index in sgList/naclList in the relevant layer SGLayer/NACLLayer/..
-	Rules  []int // list of indexes of rules in the sg/nacl
-	RType  RulesType
+	Filter          int   // sg/nacl index in sgList/naclList in the relevant layer SGLayer/NACLLayer/..
+	Rules           []int // list of indexes of rules in the sg/nacl
+	RulesFilterType RulesType
 }
 
 // FilterTrafficResource capture allowed traffic between 2 endpoints

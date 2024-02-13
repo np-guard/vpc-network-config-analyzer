@@ -315,9 +315,9 @@ func appendToRulesInFilter(resRulesInFilter *[]vpcmodel.RulesInFilter, rules *[]
 		rType = vpcmodel.OnlyDeny
 	}
 	rulesInNacl := vpcmodel.RulesInFilter{
-		Filter: filterIndex,
-		Rules:  *rules,
-		RType:  rType,
+		Filter:          filterIndex,
+		Rules:           *rules,
+		RulesFilterType: rType,
 	}
 	*resRulesInFilter = append(*resRulesInFilter, rulesInNacl)
 }
@@ -326,7 +326,7 @@ func (nl *NaclLayer) StringDetailsRulesOfFilter(listRulesInFilter []vpcmodel.Rul
 	strListRulesInFilter := ""
 	for _, rulesInFilter := range listRulesInFilter {
 		nacl := nl.naclList[rulesInFilter.Filter]
-		header := getHeaderRulesType(networkACLStr+nacl.Name(), rulesInFilter.RType) +
+		header := getHeaderRulesType(networkACLStr+nacl.Name(), rulesInFilter.RulesFilterType) +
 			nacl.analyzer.StringRules(rulesInFilter.Rules)
 		if header == "" {
 			continue // only dummy rule - nacl not needed between two vsis of the same subnet
@@ -340,7 +340,7 @@ func (nl *NaclLayer) StringFilterEffect(listRulesInFilter []vpcmodel.RulesInFilt
 	filtersEffectList := []string{}
 	for _, rulesInFilter := range listRulesInFilter {
 		nacl := nl.naclList[rulesInFilter.Filter]
-		header := getSummaryFilterEffect(networkACLStr+nacl.Name(), rulesInFilter.RType)
+		header := getSummaryFilterEffect(networkACLStr+nacl.Name(), rulesInFilter.RulesFilterType)
 		if header == "" {
 			continue // only dummy rule - nacl not needed between two vsis of the same subnet
 		}
@@ -516,9 +516,9 @@ func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 				rType = vpcmodel.NoRules
 			}
 			rulesInSg := vpcmodel.RulesInFilter{
-				Filter: index,
-				Rules:  sgRules,
-				RType:  rType,
+				Filter:          index,
+				Rules:           sgRules,
+				RulesFilterType: rType,
 			}
 			allowRes = append(allowRes, rulesInSg)
 		}
@@ -530,7 +530,7 @@ func (sgl *SecurityGroupLayer) StringDetailsRulesOfFilter(listRulesInFilter []vp
 	strListRulesInFilter := ""
 	for _, rulesInFilter := range listRulesInFilter {
 		sg := sgl.sgList[rulesInFilter.Filter]
-		strListRulesInFilter += getHeaderRulesType(securityGroupStr+sg.Name(), rulesInFilter.RType) +
+		strListRulesInFilter += getHeaderRulesType(securityGroupStr+sg.Name(), rulesInFilter.RulesFilterType) +
 			sg.analyzer.StringRules(rulesInFilter.Rules)
 	}
 	return strListRulesInFilter
@@ -540,7 +540,7 @@ func (sgl *SecurityGroupLayer) StringFilterEffect(listRulesInFilter []vpcmodel.R
 	filtersEffectList := []string{}
 	for _, rulesInFilter := range listRulesInFilter {
 		sg := sgl.sgList[rulesInFilter.Filter]
-		filtersEffectList = append(filtersEffectList, getSummaryFilterEffect(securityGroupStr+sg.Name(), rulesInFilter.RType))
+		filtersEffectList = append(filtersEffectList, getSummaryFilterEffect(securityGroupStr+sg.Name(), rulesInFilter.RulesFilterType))
 	}
 	return strings.Join(filtersEffectList, semicolonSeparator)
 }
