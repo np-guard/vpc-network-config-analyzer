@@ -4,10 +4,25 @@ Connectivity explanation between vsi1-ky[10.240.10.4] and 161.26.0.0/8
 No connection between vsi1-ky[10.240.10.4] and Public Internet 161.0.0.0-161.25.255.255,161.27.0.0-161.255.255.255; connection blocked by egress
 External Router PublicGateway: public-gw-ky
 Egress: security group sg1-ky blocks connection (no relevant allow rules); network ACL acl1-ky allows connection (with allow rules)
+
+Rules details:
+~~~~~~~~~~~~~~
+Egress:
+security group sg1-ky blocks connection since there are no relevant allow rules
+network ACL acl1-ky allows connection with the following allow rules
+	index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 ------------------------------------------------------------------------------------------------------------------------
 
 The following connection exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16: protocol: UDP
 External Router PublicGateway: public-gw-ky
 Egress: security group sg1-ky allows connection (with allow rules); network ACL acl1-ky allows connection (with allow rules)
+
+Rules details:
+~~~~~~~~~~~~~~
+Egress:
+security group sg1-ky allows connection with the following allow rules
+	index: 2, direction: outbound,  conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16
+network ACL acl1-ky allows connection with the following allow rules
+	index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 ------------------------------------------------------------------------------------------------------------------------
 

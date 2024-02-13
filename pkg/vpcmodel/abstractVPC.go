@@ -79,22 +79,41 @@ type NodeSet interface {
 	AddressRange() *common.IPBlock
 }
 
+// RulesType Type of rules in a given filter (e.g. specific NACL table) relevant to
+// path between src to destination
+type RulesType int
+
+const (
+	NoRules       = iota // there are no relevant rules in this filter
+	OnlyAllow            // there are only relevant allow rules in this filter
+	OnlyDeny             // there are only relevant deny rules in this filter
+	BothAllowDeny        // there are relevant allow and deny rules in this filter
+	OnlyDummyRule        // This is used to mark a nacl table when src, dst are in the same subnet
+)
+
 // RulesInFilter for a given layer (SGLayer/NACLLayer) contains specific rules in a specific SG/NACL filter
 type RulesInFilter struct {
 	// todo: is the assumption that the set of rules will always be kept in a list a valid one?
-	Filter int   // sg/nacl index in sgList/naclList in the relevant layer SGLayer/NACLLayer/..
-	Rules  []int // list of indexes of rules in the sg/nacl
+	Filter          int   // sg/nacl index in sgList/naclList in the relevant layer SGLayer/NACLLayer/..
+	Rules           []int // list of indexes of rules in the sg/nacl
+	RulesFilterType RulesType
 }
 
 // FilterTrafficResource capture allowed traffic between 2 endpoints
 type FilterTrafficResource interface {
 	VPCResourceIntf
-	// AllowedConnectivity get the connectivity from src Node to dst Node considering this filterTraffic resource
+	// AllowedConnectivity computes the connectivity from src Node to dst Node considering this filterTraffic resource
 	AllowedConnectivity(src, dst Node, isIngress bool) (*common.ConnectionSet, error)
-	// RulesInConnectivity get the list of rules of a given filter that contributes to the connection between src and dst
+	// RulesInConnectivity computes the list of rules of a given filter that contributes to the connection between src and dst
 	// if conn is also given the above is per connection
 	RulesInConnectivity(src, dst Node, conn *common.ConnectionSet, isIngress bool) ([]RulesInFilter, []RulesInFilter, error)
-	StringRulesOfFilter(listRulesInFilter []RulesInFilter) string
+	// StringDetailsRulesOfFilter gets, for a specific filter (sg/nacl), a struct with relevant rules in it,
+	// and prints the effect of each filter (e.g. security group sg1-ky allows connection (with allow rules))
+	// and the detailed list of relevant rules
+	StringDetailsRulesOfFilter(listRulesInFilter []RulesInFilter) string
+	// StringFilterEffect gets the same input as StringDetailsRulesOfFilter, and prints of each filter its effect
+	// (namely, it prints only the prefix printed by StringDetailsRulesOfFilter)
+	StringFilterEffect(listRulesInFilter []RulesInFilter) string
 	ReferencedIPblocks() []*common.IPBlock
 	ConnectivityMap() (map[string]*IPbasedConnectivityResult, error)
 	GetConnectivityOutputPerEachElemSeparately() string

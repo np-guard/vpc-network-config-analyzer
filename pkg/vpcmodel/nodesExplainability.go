@@ -9,7 +9,10 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
-var filterLayers = [2]string{NaclLayer, SecurityGroupLayer}
+const DummyRule = -1 // used so that []rules will not be empty in a certain case in which
+// there is no relevant rules, see detail explanation in computeActualRules
+
+var filterLayers = [2]string{SecurityGroupLayer, NaclLayer}
 
 // rulesInLayers contains specific rules across all layers (SGLayer/NACLLayer)
 // it maps from the layer name to the list of rules
@@ -310,12 +313,13 @@ func computeActualRules(rulesLayer *rulesInLayers, filtersExternal map[string]bo
 		}
 		// The filter is not blocking if it has enabling  rules or is not required for the router
 		// Specifically, current filters are nacl and sg; if both src and dst are internal then they are both relevant.
-		// (if both are in the same nacl then the nacl analyzer will handle it correctly.)
+		// (if both are in the same subnet then the nacl analyzer will handle it correctly.)
 		// If fip is the router and one of src/dst is external then nacl is ignored.
-		if len(potentialRules) > 0 || !filterIsRelevant {
+		if filterHasRelevantRules(potentialRules) || !filterIsRelevant {
 			// The case of two vsis of the same subnet is tricky: the nacl filter is relevant but there are no potential rules
-			// this is solved by adding a dummy rule for this case with index -1, so that potentialRules here will not be empty
-			// the printing functionality ignores rules of index -1
+			// this is solved by adding a dummy rule for this case with index -1 (DummyRule),
+			// so that potentialRules here will not be empty
+			// the printing functionality ignores rules of index -1 (DummyRule)
 			// thus nacl will not be identified as a blocking filter in this case
 			filterNotBlocking[filter] = true
 		}
@@ -328,6 +332,16 @@ func computeActualRules(rulesLayer *rulesInLayers, filtersExternal map[string]bo
 	}
 	// the direction is enabled if none of the filters is blocking it
 	return &actualRules, directionEnabled
+}
+
+// returns true if filter contains rules
+func filterHasRelevantRules(rulesInFilter []RulesInFilter) bool {
+	for _, rulesFilter := range rulesInFilter {
+		if len(rulesFilter.Rules) > 0 {
+			return true
+		}
+	}
+	return false
 }
 
 // computes combined list of rules, both deny and allow
@@ -381,7 +395,20 @@ func mergeAllowDeny(allow, deny rulesInLayers) rulesInLayers {
 				mergedRules = append(mergedRules, allowRules.Rules...)
 				mergedRules = append(mergedRules, denyRules.Rules...)
 				slices.Sort(mergedRules)
-				mergedRulesInFilter := RulesInFilter{Filter: filterIndex, Rules: mergedRules}
+				var rType RulesType
+				switch {
+				case len(mergedRules) == 1 && mergedRules[0] == DummyRule:
+					rType = OnlyDummyRule
+				case len(allowRules.Rules) > 0 && len(denyRules.Rules) > 0:
+					rType = BothAllowDeny
+				case len(allowRules.Rules) > 0:
+					rType = OnlyAllow
+				case len(denyRules.Rules) > 0:
+					rType = OnlyDeny
+				default: // no rules
+					rType = NoRules
+				}
+				mergedRulesInFilter := RulesInFilter{Filter: filterIndex, Rules: mergedRules, RulesFilterType: rType}
 				mergedRulesInLayer = append(mergedRulesInLayer, mergedRulesInFilter)
 			}
 		}
@@ -514,43 +541,46 @@ func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
 }
 
 // prints each separately without grouping - for debug
-func (details *rulesAndConnDetails) String(c *VPCConfig, connQuery *common.ConnectionSet) (string, error) {
+func (details *rulesAndConnDetails) String(c *VPCConfig, verbose bool, connQuery *common.ConnectionSet) (string, error) {
 	resStr := ""
 	for _, srcDstDetails := range *details {
-		resStr += stringExplainabilityLine(c, connQuery, srcDstDetails.src, srcDstDetails.dst, srcDstDetails.conn,
-			srcDstDetails.ingressEnabled, srcDstDetails.egressEnabled,
-			srcDstDetails.router, srcDstDetails.actualMergedRules)
+		resStr += stringExplainabilityLine(verbose, c, connQuery, srcDstDetails.src, srcDstDetails.dst, srcDstDetails.conn,
+			srcDstDetails.ingressEnabled, srcDstDetails.egressEnabled, srcDstDetails.router, srcDstDetails.actualMergedRules)
 	}
 	return resStr, nil
 }
 
-func (explanation *Explanation) String() string {
+func (explanation *Explanation) String(verbose bool) string {
 	linesStr := make([]string, len(explanation.groupedLines))
 	groupedLines := explanation.groupedLines
 	for i, line := range groupedLines {
-		linesStr[i] = stringExplainabilityLine(explanation.c, explanation.connQuery, line.src, line.dst, line.commonProperties.conn,
+		linesStr[i] += stringExplainabilityLine(verbose, explanation.c, explanation.connQuery, line.src, line.dst, line.commonProperties.conn,
 			line.commonProperties.expDetails.ingressEnabled, line.commonProperties.expDetails.egressEnabled,
-			line.commonProperties.expDetails.router, line.commonProperties.expDetails.rules)
+			line.commonProperties.expDetails.router, line.commonProperties.expDetails.rules) +
+			"------------------------------------------------------------------------------------------------------------------------\n"
 	}
 	sort.Strings(linesStr)
 	return strings.Join(linesStr, "\n") + "\n"
 }
 
-func stringExplainabilityLine(c *VPCConfig, connQuery *common.ConnectionSet, src, dst EndpointElem,
+func stringExplainabilityLine(verbose bool, c *VPCConfig, connQuery *common.ConnectionSet, src, dst EndpointElem,
 	conn *common.ConnectionSet, ingressEnabled, egressEnabled bool,
 	router RoutingResource, rules *rulesConnection) string {
 	needEgress := !src.IsExternal()
 	needIngress := !dst.IsExternal()
 	noIngressRules := !ingressEnabled && needIngress
 	noEgressRules := !egressEnabled && needEgress
-	rulesStr := rules.getRuleStr(c, needEgress, needIngress)
-	noConnection := ""
+	var routerStr, rulesStr, noConnection, resStr string
+	if router != nil && (src.IsExternal() || dst.IsExternal()) {
+		routerStr = "External Router " + router.Kind() + ": " + router.Name() + "\n"
+	}
+	routerFiltersHeader := routerStr + rules.getFilterEffectStr(c, needEgress, needIngress)
+	rulesStr = rules.getRuleDetailsStr(c, verbose, needEgress, needIngress)
 	if connQuery == nil {
 		noConnection = fmt.Sprintf("No connection between %v and %v;", src.Name(), dst.Name())
 	} else {
 		noConnection = fmt.Sprintf("There is no connection \"%v\" between %v and %v;", connQuery.String(), src.Name(), dst.Name())
 	}
-	resStr := ""
 	switch {
 	case router == nil && src.IsExternal():
 		resStr += fmt.Sprintf("%v no fip router and src is external (fip is required for "+
@@ -558,43 +588,61 @@ func stringExplainabilityLine(c *VPCConfig, connQuery *common.ConnectionSet, src
 	case router == nil && dst.IsExternal():
 		resStr += fmt.Sprintf("%v no router (fip/pgw) and dst is external\n", noConnection)
 	case noIngressRules && noEgressRules:
-		resStr += fmt.Sprintf("%v connection blocked both by ingress and egress\n%v", noConnection, rulesStr)
+		resStr += fmt.Sprintf("%v connection blocked both by ingress and egress\n%v\n%v", noConnection, routerFiltersHeader, rulesStr)
 	case noIngressRules:
-		resStr += fmt.Sprintf("%v connection blocked by ingress\n%v", noConnection, rulesStr)
+		resStr += fmt.Sprintf("%v connection blocked by ingress\n%v\n%v", noConnection, routerFiltersHeader, rulesStr)
 	case noEgressRules:
-		resStr += fmt.Sprintf("%v connection blocked by egress\n%v", noConnection, rulesStr)
+		resStr += fmt.Sprintf("%v connection blocked by egress\n%v\n%v", noConnection, routerFiltersHeader, rulesStr)
 	default: // there is a connection
-		return stringExplainabilityConnection(connQuery, src, dst, conn, router, rulesStr)
+		return stringExplainabilityConnection(connQuery, src, dst, conn, routerFiltersHeader, rulesStr)
 	}
 	return resStr
 }
 
-func (rules *rulesConnection) getRuleStr(c *VPCConfig, needEgress, needIngress bool) string {
-	egressRulesStr := rules.egressRules.string(c)
-	ingressRulesStr := rules.ingressRules.string(c)
+func (rules *rulesConnection) getFilterEffectStr(c *VPCConfig, needEgress, needIngress bool) string {
+	egressRulesStr := rules.egressRules.string(c, false, false)
+	ingressRulesStr := rules.ingressRules.string(c, true, false)
 	if needEgress && egressRulesStr != "" {
-		egressRulesStr = "Egress Rules:\n~~~~~~~~~~~~~\n" + egressRulesStr
+		egressRulesStr = "Egress: " + egressRulesStr
 	}
 	if needIngress && ingressRulesStr != "" {
-		ingressRulesStr = "Ingress Rules:\n~~~~~~~~~~~~~\n" + ingressRulesStr
+		ingressRulesStr = "Ingres: " + ingressRulesStr
+	}
+	if egressRulesStr != "" && ingressRulesStr != "" {
+		return egressRulesStr + "\n" + ingressRulesStr
 	}
 	return egressRulesStr + ingressRulesStr
 }
 
+func (rules *rulesConnection) getRuleDetailsStr(c *VPCConfig, verbose, needEgress, needIngress bool) string {
+	if !verbose {
+		return ""
+	}
+	egressRulesStr := rules.egressRules.string(c, false, true)
+	ingressRulesStr := rules.ingressRules.string(c, true, true)
+	if needEgress && egressRulesStr != "" {
+		egressRulesStr = "Egress:\n" + egressRulesStr
+	}
+	if needIngress && ingressRulesStr != "" {
+		ingressRulesStr = "Ingress:\n" + ingressRulesStr
+	}
+	if egressRulesStr != "" || ingressRulesStr != "" {
+		return "\nRules details:\n~~~~~~~~~~~~~~\n" + egressRulesStr + ingressRulesStr
+	}
+	return ""
+}
+
 func stringExplainabilityConnection(connQuery *common.ConnectionSet, src, dst EndpointElem,
-	conn *common.ConnectionSet, router RoutingResource, rulesStr string) string {
+	conn *common.ConnectionSet, filtersEffectStr, rulesStr string) string {
 	resStr := ""
 	if connQuery == nil {
-		resStr = fmt.Sprintf("The following connection exists between %v and %v: %v; its enabled by\n", src.Name(), dst.Name(),
+		resStr = fmt.Sprintf("The following connection exists between %v and %v: %v\n", src.Name(), dst.Name(),
 			conn.String())
 	} else {
-		resStr = fmt.Sprintf("Connection %v exists between %v and %v; its enabled by\n", conn.String(),
+		resStr = fmt.Sprintf("Connection %v exists between %v and %v\n", conn.String(),
 			src.Name(), dst.Name())
 	}
-	if src.IsExternal() || dst.IsExternal() {
-		resStr += "External Router " + router.Kind() + ": " + router.Name() + "\n"
-	}
-	resStr += rulesStr
+	resStr += filtersEffectStr + "\n" + rulesStr
 	return resStr
 }
 
@@ -654,15 +702,36 @@ func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (conn *comm
 	return conn, nil
 }
 
-func (rulesInLayers rulesInLayers) string(c *VPCConfig) string {
+// prints either rulesDetails by calling StringDetailsRulesOfFilter or effect of each filter by calling StringFilterEffect
+func (rulesInLayers rulesInLayers) string(c *VPCConfig, isIngress, rulesDetails bool) string {
 	rulesInLayersStr := ""
-	for _, layer := range filterLayers {
+	// order of presentation should be same as order of evaluation:
+	// (1) the SGs attached to the src NIF (2) the outbound rules in the ACL attached to the src NIF's subnet
+	// (3) the inbound rules in the ACL attached to the dst NIF's subnet (4) the SGs attached to the dst NIF.
+	// thus, egress: security group first, ingress: nacl first
+	filterLayersOrder := [2]string{SecurityGroupLayer, NaclLayer}
+	if isIngress {
+		filterLayersOrder = [2]string{NaclLayer, SecurityGroupLayer}
+	}
+	if isIngress {
+		filterLayersOrder[0] = NaclLayer
+		filterLayersOrder[1] = SecurityGroupLayer
+	}
+	for _, layer := range filterLayersOrder {
 		filter := c.getFilterTrafficResourceOfKind(layer)
 		if filter == nil {
 			continue
 		}
 		if rules, ok := rulesInLayers[layer]; ok {
-			rulesInLayersStr += filter.StringRulesOfFilter(rules)
+			if rulesDetails {
+				rulesInLayersStr += filter.StringDetailsRulesOfFilter(rules)
+			} else {
+				thisFilterEffectString := filter.StringFilterEffect(rules)
+				if rulesInLayersStr != "" && thisFilterEffectString != "" {
+					rulesInLayersStr += semicolon + " "
+				}
+				rulesInLayersStr += filter.StringFilterEffect(rules)
+			}
 		}
 	}
 	return rulesInLayersStr
