@@ -4,18 +4,20 @@ import (
 	"errors"
 	"sort"
 	"strings"
+
+	"github.com/np-guard/models/pkg/intervals"
 )
 
 // CanonicalHypercubeSet is a canonical representation for set of n-dimensional cubes, from integer intervals
 type CanonicalHypercubeSet struct {
-	layers     map[*CanonicalIntervalSet]*CanonicalHypercubeSet
+	layers     map[*intervals.CanonicalIntervalSet]*CanonicalHypercubeSet
 	dimensions int
 }
 
 // NewCanonicalHypercubeSet returns a new empty CanonicalHypercubeSet with n dimensions
 func NewCanonicalHypercubeSet(n int) *CanonicalHypercubeSet {
 	return &CanonicalHypercubeSet{
-		layers:     map[*CanonicalIntervalSet]*CanonicalHypercubeSet{},
+		layers:     map[*intervals.CanonicalIntervalSet]*CanonicalHypercubeSet{},
 		dimensions: n,
 	}
 }
@@ -52,7 +54,7 @@ func (c *CanonicalHypercubeSet) Union(other *CanonicalHypercubeSet) *CanonicalHy
 		return nil
 	}
 	res := NewCanonicalHypercubeSet(c.dimensions)
-	remainingsFromOther := map[*CanonicalIntervalSet]*CanonicalIntervalSet{}
+	remainingsFromOther := map[*intervals.CanonicalIntervalSet]*intervals.CanonicalIntervalSet{}
 	for k := range other.layers {
 		kCopy := k.Copy()
 		remainingsFromOther[k] = &kCopy
@@ -150,8 +152,8 @@ func (c *CanonicalHypercubeSet) Subtraction(other *CanonicalHypercubeSet) *Canon
 	return res
 }
 
-func (c *CanonicalHypercubeSet) getIntervalSetUnion() *CanonicalIntervalSet {
-	res := NewCanonicalIntervalSet()
+func (c *CanonicalHypercubeSet) getIntervalSetUnion() *intervals.CanonicalIntervalSet {
+	res := intervals.NewCanonicalIntervalSet()
 	for k := range c.layers {
 		res.Union(*k)
 	}
@@ -207,7 +209,7 @@ func (c *CanonicalHypercubeSet) Copy() *CanonicalHypercubeSet {
 	return res
 }
 
-func getCubeStr(cube []*CanonicalIntervalSet) string {
+func getCubeStr(cube []*intervals.CanonicalIntervalSet) string {
 	strList := []string{}
 	for _, v := range cube {
 		strList = append(strList, "("+v.String()+")")
@@ -227,18 +229,18 @@ func (c *CanonicalHypercubeSet) String() string {
 }
 
 // GetCubesList returns the list of cubes in c, each cube as a slice of CanonicalIntervalSet
-func (c *CanonicalHypercubeSet) GetCubesList() [][]*CanonicalIntervalSet {
-	res := [][]*CanonicalIntervalSet{}
+func (c *CanonicalHypercubeSet) GetCubesList() [][]*intervals.CanonicalIntervalSet {
+	res := [][]*intervals.CanonicalIntervalSet{}
 	if c.dimensions == 1 {
 		for k := range c.layers {
-			res = append(res, []*CanonicalIntervalSet{k})
+			res = append(res, []*intervals.CanonicalIntervalSet{k})
 		}
 		return res
 	}
 	for k, v := range c.layers {
 		subRes := v.GetCubesList()
 		for _, subList := range subRes {
-			cube := []*CanonicalIntervalSet{k}
+			cube := []*intervals.CanonicalIntervalSet{k}
 			cube = append(cube, subList...)
 			res = append(res, cube)
 		}
@@ -248,18 +250,18 @@ func (c *CanonicalHypercubeSet) GetCubesList() [][]*CanonicalIntervalSet {
 
 func (c *CanonicalHypercubeSet) applyElementsUnionPerLayer() {
 	type pair struct {
-		hc *CanonicalHypercubeSet  // hypercube set object
-		is []*CanonicalIntervalSet // interval-set list
+		hc *CanonicalHypercubeSet            // hypercube set object
+		is []*intervals.CanonicalIntervalSet // interval-set list
 	}
 	equivClasses := map[string]*pair{}
 	for k, v := range c.layers {
 		if _, ok := equivClasses[v.String()]; ok {
 			equivClasses[v.String()].is = append(equivClasses[v.String()].is, k)
 		} else {
-			equivClasses[v.String()] = &pair{hc: v, is: []*CanonicalIntervalSet{k}}
+			equivClasses[v.String()] = &pair{hc: v, is: []*intervals.CanonicalIntervalSet{k}}
 		}
 	}
-	newLayers := map[*CanonicalIntervalSet]*CanonicalHypercubeSet{}
+	newLayers := map[*intervals.CanonicalIntervalSet]*CanonicalHypercubeSet{}
 	for _, p := range equivClasses {
 		newVal := p.hc
 		newKey := p.is[0]
@@ -273,7 +275,7 @@ func (c *CanonicalHypercubeSet) applyElementsUnionPerLayer() {
 
 // CreateFromCube returns a new CanonicalHypercubeSet created from a single input cube
 // the input cube is a slice of CanonicalIntervalSet, treated as ordered list of dimension values
-func CreateFromCube(cube []*CanonicalIntervalSet) *CanonicalHypercubeSet {
+func CreateFromCube(cube []*intervals.CanonicalIntervalSet) *CanonicalHypercubeSet {
 	if len(cube) == 0 {
 		return nil
 	}
@@ -289,7 +291,7 @@ func CreateFromCube(cube []*CanonicalIntervalSet) *CanonicalHypercubeSet {
 	return res
 }
 
-func CreateFromCubeAsIntervals(values ...*CanonicalIntervalSet) *CanonicalHypercubeSet {
+func CreateFromCubeAsIntervals(values ...*intervals.CanonicalIntervalSet) *CanonicalHypercubeSet {
 	return CreateFromCube(values)
 }
 
@@ -297,14 +299,14 @@ func CreateFromCubeAsIntervals(values ...*CanonicalIntervalSet) *CanonicalHyperc
 // the input cube is given as an ordered list of integer values, where each two values
 // represent the range (start,end) for a dimension value
 func CreateFromCubeShort(values ...int64) *CanonicalHypercubeSet {
-	cube := []*CanonicalIntervalSet{}
+	cube := []*intervals.CanonicalIntervalSet{}
 	for i := 0; i < len(values); i += 2 {
-		cube = append(cube, CreateFromInterval(values[i], values[i+1]))
+		cube = append(cube, intervals.CreateFromInterval(values[i], values[i+1]))
 	}
 	return CreateFromCube(cube)
 }
 
-func copyIntervalSet(a *CanonicalIntervalSet) *CanonicalIntervalSet {
+func copyIntervalSet(a *intervals.CanonicalIntervalSet) *intervals.CanonicalIntervalSet {
 	res := a.Copy()
 	return &res
 }
