@@ -25,6 +25,9 @@ func (e *ExplanationArgs) GetConnectionSet() *common.ConnectionSet {
 	return connection
 }
 
+// todo: temp dump after calling the srcDstInputToNodes; integrate Ola's function; update error messages;
+//       error message for external + internal address together
+
 // given src and dst input finds the []nodes they represent
 // src/dst may refer to:
 // 1. NetworkInterface by name
@@ -54,9 +57,15 @@ func (c *VPCConfig) srcDstInputToNodes(srcName, dstName string) (srcNodes, dstNo
 
 // given a string or a vsi or a cidr returns the corresponding node(s)
 func (c *VPCConfig) getNodesFromInputString(cidrOrName string) ([]Node, error) {
+	// 1. cidrOrName references a network interface
 	if networkInterface := c.getNetworkIntefaceNode(cidrOrName); networkInterface != nil {
 		return []Node{networkInterface}, nil
 	}
+	// 2. ToDo: cidrOrName reference vsi
+	// ToDo: cidrOrName if legal references an address.
+	// 3. ToDo verifies cidrOrName does not references a combination of internal and external address
+	// 4. Todo cidrOrName references external address
+	// 5. ToDo cidrOrName references internal address
 	return c.getCidrExternalNodes(cidrOrName)
 }
 
