@@ -236,10 +236,8 @@ func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.Conne
 // computeExplainRules computes the egress and ingress rules contributing to the (existing or missing) connection <src, dst>
 func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node,
 	conn *common.ConnectionSet) (rulesAndConn rulesAndConnDetails, err error) {
-	rulesAndConn = make(rulesAndConnDetails, max(len(srcNodes), len(dstNodes)))
+	rulesAndConn = make(rulesAndConnDetails, len(srcNodes)*len(dstNodes))
 	i := 0
-	// either src of dst has more than one item; never both
-	// the loop is on two dimension since we do not know which, but actually we have a single dimension
 	for _, src := range srcNodes {
 		for _, dst := range dstNodes {
 			allowRules, denyRules, err := c.getRulesOfConnection(src, dst, conn)
