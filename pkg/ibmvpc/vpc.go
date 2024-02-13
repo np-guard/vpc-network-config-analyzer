@@ -11,8 +11,6 @@ import (
 )
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////
-
-const dummyRule = -1
 const semicolonSeparator = "; "
 
 const networkACLStr = "network ACL "
@@ -308,7 +306,7 @@ func appendToRulesInFilter(resRulesInFilter *[]vpcmodel.RulesInFilter, rules *[]
 	switch {
 	case len(*rules) == 0:
 		rType = vpcmodel.NoRules
-	case len(*rules) == 1 && (*rules)[0] == -1:
+	case len(*rules) == 1 && (*rules)[0] == vpcmodel.DummyRule:
 		rType = vpcmodel.OnlyDummyRule
 	case isAllow:
 		rType = vpcmodel.OnlyAllow
@@ -450,10 +448,11 @@ func (n *NACL) rulesFilterInConnectivity(src, dst vpcmodel.Node, conn *common.Co
 	if _, ok := n.subnets[subnetCidr]; !ok {
 		return false, nil, nil, nil // not affected by current nacl
 	}
-	// nacl has no control on traffic between two instances in its subnet; this is marked by a rule with index -1
+	// nacl has no control on traffic between two instances in its subnet;
+	// this is marked by a rule with index -1 (ibmvpc.DummyRule)
 	// which is not printed but only signals that this filter does not block (since there are rules)
 	if allInSubnet, err1 := common.IsAddressInSubnet(targetNode.Cidr(), subnetCidr); err1 == nil && allInSubnet {
-		return true, []int{dummyRule}, nil, nil
+		return true, []int{vpcmodel.DummyRule}, nil, nil
 	}
 	var err2 error
 	allow, deny, err2 = n.analyzer.rulesFilterInConnectivity(subnetCidr, inSubnetCidr, targetNode.Cidr(), conn, isIngress)

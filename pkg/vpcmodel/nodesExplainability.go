@@ -9,6 +9,9 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
+const DummyRule = -1 // used so that []rules will not be empty in a certain case in which
+// there is no relevant rules, see detail explanation in computeActualRules
+
 var filterLayers = [2]string{SecurityGroupLayer, NaclLayer}
 
 // rulesInLayers contains specific rules across all layers (SGLayer/NACLLayer)
@@ -318,8 +321,9 @@ func computeActualRules(rulesLayer *rulesInLayers, filtersExternal map[string]bo
 		// If fip is the router and one of src/dst is external then nacl is ignored.
 		if filterHasRelevantRules(potentialRules) || !filterIsRelevant {
 			// The case of two vsis of the same subnet is tricky: the nacl filter is relevant but there are no potential rules
-			// this is solved by adding a dummy rule for this case with index -1, so that potentialRules here will not be empty
-			// the printing functionality ignores rules of index -1
+			// this is solved by adding a dummy rule for this case with index -1 (DummyRule),
+			// so that potentialRules here will not be empty
+			// the printing functionality ignores rules of index -1 (DummyRule)
 			// thus nacl will not be identified as a blocking filter in this case
 			filterNotBlocking[filter] = true
 		}
@@ -397,7 +401,7 @@ func mergeAllowDeny(allow, deny rulesInLayers) rulesInLayers {
 				slices.Sort(mergedRules)
 				var rType RulesType
 				switch {
-				case len(mergedRules) == 1 && mergedRules[0] == -1:
+				case len(mergedRules) == 1 && mergedRules[0] == DummyRule:
 					rType = OnlyDummyRule
 				case len(allowRules.Rules) > 0 && len(denyRules.Rules) > 0:
 					rType = BothAllowDeny

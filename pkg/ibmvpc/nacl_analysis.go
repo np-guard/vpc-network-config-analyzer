@@ -565,7 +565,7 @@ func (na *NACLAnalyzer) getRulesRelevantConn(rules []int,
 func (na *NACLAnalyzer) StringRules(rules []int) string {
 	var strRules string
 	for _, ruleIndex := range rules {
-		if ruleIndex == dummyRule {
+		if ruleIndex == vpcmodel.DummyRule {
 			continue
 		}
 		strRule, _, _, err := na.getNACLRule(ruleIndex)
