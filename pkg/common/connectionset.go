@@ -17,6 +17,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/np-guard/models/pkg/intervals"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/jsonio"
 )
 
@@ -79,24 +80,24 @@ var dimensionsList = []Dimension{
 	icmpCode,
 }
 
-func getDimensionDomain(dim Dimension) *CanonicalIntervalSet {
+func getDimensionDomain(dim Dimension) *intervals.CanonicalIntervalSet {
 	switch dim {
 	case protocol:
-		return CreateFromInterval(minProtocol, maxProtocol)
+		return intervals.CreateFromInterval(minProtocol, maxProtocol)
 	case srcPort:
-		return CreateFromInterval(MinPort, MaxPort)
+		return intervals.CreateFromInterval(MinPort, MaxPort)
 	case dstPort:
-		return CreateFromInterval(MinPort, MaxPort)
+		return intervals.CreateFromInterval(MinPort, MaxPort)
 	case icmpType:
-		return CreateFromInterval(MinICMPtype, MaxICMPtype)
+		return intervals.CreateFromInterval(MinICMPtype, MaxICMPtype)
 	case icmpCode:
-		return CreateFromInterval(MinICMPcode, MaxICMPcode)
+		return intervals.CreateFromInterval(MinICMPcode, MaxICMPcode)
 	}
 	return nil
 }
 
-func getDimensionDomainsList() []*CanonicalIntervalSet {
-	res := make([]*CanonicalIntervalSet, len(dimensionsList))
+func getDimensionDomainsList() []*intervals.CanonicalIntervalSet {
+	res := make([]*intervals.CanonicalIntervalSet, len(dimensionsList))
 	for i := range dimensionsList {
 		res[i] = getDimensionDomain(dimensionsList[i])
 	}
@@ -271,7 +272,7 @@ func getProtocolStr(p int64) string {
 	return ""
 }
 
-func getDimensionStr(dimValue *CanonicalIntervalSet, dim Dimension) string {
+func getDimensionStr(dimValue *intervals.CanonicalIntervalSet, dim Dimension) string {
 	domainValues := getDimensionDomain(dim)
 	if dimValue.Equal(*domainValues) {
 		// avoid adding dimension str on full dimension values
@@ -308,7 +309,7 @@ func filterEmptyPropertiesStr(inputList []string) []string {
 	return res
 }
 
-func getICMPbasedCubeStr(protocolsValues, icmpTypeValues, icmpCodeValues *CanonicalIntervalSet) string {
+func getICMPbasedCubeStr(protocolsValues, icmpTypeValues, icmpCodeValues *intervals.CanonicalIntervalSet) string {
 	strList := []string{
 		getDimensionStr(protocolsValues, protocol),
 		getDimensionStr(icmpTypeValues, icmpType),
@@ -317,7 +318,7 @@ func getICMPbasedCubeStr(protocolsValues, icmpTypeValues, icmpCodeValues *Canoni
 	return strings.Join(filterEmptyPropertiesStr(strList), propertySeparator)
 }
 
-func getPortBasedCubeStr(protocolsValues, srcPortsValues, dstPortsValues *CanonicalIntervalSet) string {
+func getPortBasedCubeStr(protocolsValues, srcPortsValues, dstPortsValues *intervals.CanonicalIntervalSet) string {
 	strList := []string{
 		getDimensionStr(protocolsValues, protocol),
 		getDimensionStr(srcPortsValues, srcPort),
@@ -326,12 +327,12 @@ func getPortBasedCubeStr(protocolsValues, srcPortsValues, dstPortsValues *Canoni
 	return strings.Join(filterEmptyPropertiesStr(strList), propertySeparator)
 }
 
-func getMixedProtocolsCubeStr(protocols *CanonicalIntervalSet) string {
+func getMixedProtocolsCubeStr(protocols *intervals.CanonicalIntervalSet) string {
 	// TODO: make sure other dimension values are full
 	return getDimensionStr(protocols, protocol)
 }
 
-func getConnsCubeStr(cube []*CanonicalIntervalSet) string {
+func getConnsCubeStr(cube []*intervals.CanonicalIntervalSet) string {
 	protocols := cube[protocol]
 	if (protocols.Contains(TCP) || protocols.Contains(UDP)) && !protocols.Contains(ICMP) {
 		return getPortBasedCubeStr(cube[protocol], cube[srcPort], cube[dstPort])
@@ -362,7 +363,7 @@ func (conn *ConnectionSet) String() string {
 
 type ConnDetails jsonio.ProtocolList
 
-func getCubeAsTCPItems(cube []*CanonicalIntervalSet, protocol jsonio.TcpUdpProtocol) []jsonio.TcpUdp {
+func getCubeAsTCPItems(cube []*intervals.CanonicalIntervalSet, protocol jsonio.TcpUdpProtocol) []jsonio.TcpUdp {
 	tcpItemsTemp := []jsonio.TcpUdp{}
 	tcpItemsFinal := []jsonio.TcpUdp{}
 	// consider src ports
@@ -398,7 +399,7 @@ func getCubeAsTCPItems(cube []*CanonicalIntervalSet, protocol jsonio.TcpUdpProto
 	return tcpItemsFinal
 }
 
-func getIntervalNumbers(c *CanonicalIntervalSet) []int {
+func getIntervalNumbers(c *intervals.CanonicalIntervalSet) []int {
 	res := []int{}
 	for _, interval := range c.IntervalSet {
 		for i := interval.Start; i <= interval.End; i++ {
@@ -408,7 +409,7 @@ func getIntervalNumbers(c *CanonicalIntervalSet) []int {
 	return res
 }
 
-func getCubeAsICMPItems(cube []*CanonicalIntervalSet) []jsonio.Icmp {
+func getCubeAsICMPItems(cube []*intervals.CanonicalIntervalSet) []jsonio.Icmp {
 	icmpTypes := cube[icmpType]
 	icmpCodes := cube[icmpCode]
 	if icmpTypes.Equal(*getDimensionDomain(icmpType)) && icmpCodes.Equal(*getDimensionDomain(icmpCode)) {
@@ -492,8 +493,8 @@ func NewTCPConnectionSet() *ConnectionSet {
 }
 
 // copyCube returns a new slice of intervals copied from input cube
-func copyCube(cube []*CanonicalIntervalSet) []*CanonicalIntervalSet {
-	newCube := make([]*CanonicalIntervalSet, len(cube))
+func copyCube(cube []*intervals.CanonicalIntervalSet) []*intervals.CanonicalIntervalSet {
+	newCube := make([]*intervals.CanonicalIntervalSet, len(cube))
 	for i, interval := range cube {
 		newInterval := interval.Copy()
 		newCube[i] = &newInterval
