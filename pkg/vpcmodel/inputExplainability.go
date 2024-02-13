@@ -5,7 +5,9 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
-// TODO: handle also input ICMP properties (type, code) as input args
+const noValidInputErr = "%v does not represent a VSI, an internal interface or a valid external or internal IP"
+
+// GetConnectionSet TODO: handle also input ICMP properties (type, code) as input args
 // translates explanation args to a connection set
 func (e *ExplanationArgs) GetConnectionSet() *common.ConnectionSet {
 	if e.protocol == "" {
@@ -29,19 +31,19 @@ func (e *ExplanationArgs) GetConnectionSet() *common.ConnectionSet {
 // 2. VSI by UID or name; in this case we consider all the network interfaces of the VSI
 // 3. Internal IP address
 func (c *VPCConfig) srcDstInputToNodes(srcName, dstName string) (srcNodes, dstNodes []Node, err error) {
-	srcNodes, err = c.getNodesFromInput(srcName)
+	srcNodes, err = c.getNodesFromInputString(srcName)
 	if err != nil {
 		return nil, nil, err
 	}
 	if len(srcNodes) == 0 {
-		return nil, nil, fmt.Errorf("src %v does not represent a VSI, an internal interface or a valid external or internal IP", srcName)
+		return nil, nil, fmt.Errorf("src %v %v", noValidInputErr, srcName)
 	}
-	dstNodes, err = c.getNodesFromInput(dstName)
+	dstNodes, err = c.getNodesFromInputString(dstName)
 	if err != nil {
 		return nil, nil, err
 	}
 	if len(dstNodes) == 0 {
-		return nil, nil, fmt.Errorf("dst %v does not represent a VSI or an external IP", dstName)
+		return nil, nil, fmt.Errorf("dst %v %v", noValidInputErr, dstName)
 	}
 	// only one of src/dst can be external; there could be multiple nodes only if external
 	if !srcNodes[0].IsInternal() && !dstNodes[0].IsInternal() {
@@ -51,14 +53,14 @@ func (c *VPCConfig) srcDstInputToNodes(srcName, dstName string) (srcNodes, dstNo
 }
 
 // given a string or a vsi or a cidr returns the corresponding node(s)
-func (c *VPCConfig) getNodesFromInput(cidrOrName string) ([]Node, error) {
+func (c *VPCConfig) getNodesFromInputString(cidrOrName string) ([]Node, error) {
 	if networkInterface := c.getNetworkIntefaceNode(cidrOrName); networkInterface != nil {
 		return []Node{networkInterface}, nil
 	}
 	return c.getCidrExternalNodes(cidrOrName)
 }
 
-// finds the node of a given, by its name, NetworkInterface
+// finds the node of a given, by its name, NetworkInterface (if any)
 func (c *VPCConfig) getNetworkIntefaceNode(name string) Node {
 	for _, node := range c.Nodes {
 		// currently, supported: network interface given takes only that one.
@@ -110,9 +112,9 @@ func (c *VPCConfig) getCidrExternalNodes(cidr string) (cidrNodes []Node, err err
 	return cidrNodes, nil
 }
 
-// GetNodesWithinAddress is given a string address in CIDR format or exact IP address format, and
-// returns the list of all internal nodes with this address
-func (c *VPCConfig) GetNodesWithinAddress(ipAddress string) (networkInterfaceNodes []Node, err error) {
+// getNodesWithinInternalAddress gets a string address in CIDR format or exact IP address format representing internal address
+// and returns the list of all internal nodes (should be VSI) within address
+func (c *VPCConfig) getNodesWithinInternalAddress(ipAddress string) (networkInterfaceNodes []Node, err error) {
 	var addressIPblock, networkInterfaceIPBlock *common.IPBlock
 	addressIPblock = common.NewIPBlockFromCidrOrAddress(ipAddress)
 
@@ -132,9 +134,9 @@ func (c *VPCConfig) GetNodesWithinAddress(ipAddress string) (networkInterfaceNod
 	return networkInterfaceNodes, nil
 }
 
-// getNodesOfVsi is given a string name or UID of VSI, and
+// getNodesOfVsi gets a string name or UID of VSI, and
 // returns the list of all nodes within this vsi
-func (c *VPCConfig) GetNodesOfVsi(vsi string) ([]Node, error) {
+func (c *VPCConfig) getNodesOfVsi(vsi string) ([]Node, error) {
 	var nodeSetWithVsi NodeSet
 	for _, nodeSet := range c.NodeSets {
 		// todo: at the moment we consider here all NodeSets and not just vsis (e.g. also subnets)
