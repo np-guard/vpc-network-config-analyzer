@@ -131,6 +131,25 @@ func (c *VPCConfig) GetNodesWithinAddress(ipAddress string) (networkInterfaceNod
 	return networkInterfaceNodes, nil
 }
 
+// getNodesOfVsi is given a string name or UID of VSI, and
+// returns the list of all nodes within this vsi
+func (c *VPCConfig) GetNodesOfVsi(vsi string) ([]Node, error) {
+	var nodeSetWithVsi NodeSet
+	for _, nodeSet := range c.NodeSets {
+		// todo: at the moment we consider here all NodeSets and not just vsis (e.g. also subnets)
+		//       fix once we have abstract vpc and subnets (#380)
+		if nodeSet.Name() == vsi || nodeSet.UID() == vsi {
+			if nodeSetWithVsi != nil {
+				return nil, fmt.Errorf("there is more than one resource (%s, %s) with the given input string %s representing its name. "+
+					"can not determine which resource to analyze. consider using unique names or use input UID instead",
+					nodeSetWithVsi.UID(), nodeSet.UID(), vsi)
+			}
+			nodeSetWithVsi = nodeSet
+		}
+	}
+	return nodeSetWithVsi.Nodes(), nil
+}
+
 // given input cidr, gets (disjoint) external nodes I s.t.:
 //  1. The union of these nodes is the cidr
 //  2. Let i be a node in I and n be a node in VPCConfig.
