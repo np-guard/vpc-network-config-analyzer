@@ -1,4 +1,4 @@
-Connectivity for VPC ky-testenv-vpc
+Connectivity per subnet for VPC ky-testenv-vpc
 Subnet: 192.168.0.0/22
 Ingress Connectivity:
 remote: 0.0.0.0-161.25.255.255, conn: protocol: TCP src-ports: 443

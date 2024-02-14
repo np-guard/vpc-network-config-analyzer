@@ -11,8 +11,6 @@ type MDoutputFormatter struct {
 }
 
 const (
-	mdDefaultTitle        = "## Endpoint connectivity report"
-	mdSubnetsTitle        = "## Subnets connectivity report"
 	mdDefaultHeader       = "| src | dst | conn |\n|-----|-----|------|"
 	mdEndpointsDiffTitle  = "## Endpoints diff report"
 	mdSubnetsDiffTitle    = "## Subnets diff report"
@@ -45,11 +43,11 @@ func (m *MDoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	hasStatelessConns := false
 	switch uc {
 	case AllEndpoints:
-		lines = []string{mdDefaultTitle, mdDefaultHeader}
+		lines = []string{mdDefaultHeader}
 		connLines = m.getGroupedOutput(conn.GroupedConnectivity)
 		hasStatelessConns = conn.GroupedConnectivity.hasStatelessConns()
 	case AllSubnets:
-		lines = []string{mdSubnetsTitle, mdDefaultHeader}
+		lines = []string{mdDefaultHeader}
 		connLines = m.getGroupedOutput(subnetsConn.GroupedConnectivity)
 		hasStatelessConns = subnetsConn.GroupedConnectivity.hasStatelessConns()
 	case SubnetsDiff, EndpointsDiff:
