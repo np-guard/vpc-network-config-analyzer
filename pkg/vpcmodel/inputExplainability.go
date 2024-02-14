@@ -62,7 +62,8 @@ func (c *VPCConfig) getSrcOrDstInputNode(name, srcOrDst string) ([]Node, error) 
 // given a string or a vsi or a cidr returns the corresponding node(s)
 func (c *VPCConfig) getNodesFromInputString(cidrOrName string) ([]Node, error) {
 	// 1. cidrOrName references a network interface
-	if networkInterfaces := c.getNetworkInterfaceNodes(cidrOrName); networkInterfaces != nil {
+	if networkInterfaces := c.getNetworkInterfaceNodes(cidrOrName); len(networkInterfaces) > 0 {
+		fmt.Println("networkInterfaces is", networkInterfaces)
 		return networkInterfaces, nil
 	}
 	// 2. cidrOrName references vsi
@@ -82,8 +83,6 @@ func (c *VPCConfig) getNodesFromInputString(cidrOrName string) ([]Node, error) {
 func (c *VPCConfig) getNetworkInterfaceNodes(name string) []Node {
 	networkInterfaceNodes := []Node{}
 	for _, node := range c.Nodes {
-		// currently, supported: network interface given takes only that one.
-		//  todo:   if address not given but only vsi name - take all network interfaces of that vsi
 		if name == node.Name() {
 			networkInterfaceNodes = append(networkInterfaceNodes, node)
 		}
