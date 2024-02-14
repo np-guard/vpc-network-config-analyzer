@@ -5,7 +5,7 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
-const noValidInputErr = "%v does not represent a VSI, an internal interface, an internal IP with network interface or " +
+const noValidInputErr = "does not represent a VSI, an internal interface, an internal IP with network interface or " +
 	"a valid external IP"
 
 // GetConnectionSet TODO: handle also input ICMP properties (type, code) as input args
@@ -37,12 +37,9 @@ func (c *VPCConfig) srcDstInputToNodes(srcName, dstName string) (srcNodes, dstNo
 	if err != nil {
 		return nil, nil, err
 	}
-	dstNodes, err = c.getNodesFromInputString(dstName)
+	dstNodes, err = c.getSrcOrDstInputNode(dstName, "dst")
 	if err != nil {
 		return nil, nil, err
-	}
-	if len(dstNodes) == 0 {
-		return nil, nil, fmt.Errorf("dst %v %v", noValidInputErr, dstName)
 	}
 	// only one of src/dst can be external; there could be multiple nodes only if external
 	if !srcNodes[0].IsInternal() && !dstNodes[0].IsInternal() {
@@ -57,7 +54,7 @@ func (c *VPCConfig) getSrcOrDstInputNode(name, srcOrDst string) ([]Node, error) 
 		return nil, fmt.Errorf("illegal %v: %v", srcOrDst, err.Error())
 	}
 	if len(outNodes) == 0 {
-		return nil, fmt.Errorf(srcOrDst, noValidInputErr, name)
+		return nil, fmt.Errorf(fmt.Sprintf("%v %v %v", srcOrDst, name, noValidInputErr))
 	}
 	return outNodes, nil
 }

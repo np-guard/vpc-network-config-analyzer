@@ -87,7 +87,8 @@ func (e *ExplanationArgs) Dst() string {
 func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.ConnectionSet) (res *Explanation, err error) {
 	srcNodes, dstNodes, err := c.srcDstInputToNodes(src, dst)
 	if err != nil {
-		return nil, err
+		fmt.Println(err.Error())
+		return nil, nil
 	}
 	// todo tmp: prints src and dst nodes and panics
 	fmt.Println("SrcNodes\n-----------")
@@ -99,6 +100,9 @@ func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.Conne
 		fmt.Println("\t", dstNode.Name())
 	}
 	panic("")
+	if err != nil {
+		return nil, err
+	}
 	rulesAndDetails, err1 := c.computeExplainRules(srcNodes, dstNodes, connQuery)
 	if err1 != nil {
 		return nil, err1
