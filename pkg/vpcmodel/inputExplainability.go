@@ -104,6 +104,9 @@ func (c *VPCConfig) getNodesOfVsi(vsi string) ([]Node, error) {
 			nodeSetWithVsi = nodeSet
 		}
 	}
+	if nodeSetWithVsi == nil {
+		return nil, nil
+	}
 	return nodeSetWithVsi.Nodes(), nil
 }
 
