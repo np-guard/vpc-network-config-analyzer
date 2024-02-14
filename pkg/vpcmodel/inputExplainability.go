@@ -63,7 +63,6 @@ func (c *VPCConfig) getSrcOrDstInputNode(name, srcOrDst string) ([]Node, error) 
 func (c *VPCConfig) getNodesFromInputString(cidrOrName string) ([]Node, error) {
 	// 1. cidrOrName references a network interface
 	if networkInterfaces := c.getNetworkInterfaceNodes(cidrOrName); len(networkInterfaces) > 0 {
-		fmt.Println("networkInterfaces is", networkInterfaces)
 		return networkInterfaces, nil
 	}
 	// 2. cidrOrName references vsi
