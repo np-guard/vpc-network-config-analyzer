@@ -104,7 +104,7 @@ ky-vsi2-subnet20[10.240.128.6] => ky-vsi0-subnet3[10.240.5.5] : All Connections
 ky-vsi2-subnet20[10.240.128.6] => ky-vsi1-subnet2[10.240.4.5] : All Connections
 ky-vsi2-subnet20[10.240.128.6] => ky-vsi1-subnet3[10.240.5.4] : All Connections
 
-Connectivity for VPC test-vpc0-ky
+Endpoint connectivity for VPC test-vpc0-ky
 Public Internet (all ranges) => ky-vsi0-subnet0[10.240.0.5] : All Connections
 ky-vsi0-subnet0[10.240.0.5] => Public Internet (all ranges) : All Connections
 ky-vsi0-subnet0[10.240.0.5] => ky-vsi0-subnet1[10.240.1.5] : All Connections
@@ -240,13 +240,13 @@ ky-vsi1-subnet5[10.240.9.5] => ky-vsi1-subnet2[10.240.4.5] : All Connections
 ky-vsi1-subnet5[10.240.9.5] => ky-vsi1-subnet3[10.240.5.4] : All Connections
 ky-vsi1-subnet5[10.240.9.5] => ky-vsi1-subnet4[10.240.8.5] : All Connections
 
-Connectivity for VPC test-vpc1-ky
+Endpoint connectivity for VPC test-vpc1-ky
 Public Internet (all ranges) => ky-vsi0-subnet10[10.240.64.4] : All Connections
 ky-vsi0-subnet10[10.240.64.4] => Public Internet (all ranges) : All Connections
 ky-vsi0-subnet10[10.240.64.4] => ky-vsi0-subnet11[10.240.80.4] : All Connections
 ky-vsi0-subnet11[10.240.80.4] => ky-vsi0-subnet10[10.240.64.4] : All Connections
 
-Connectivity for VPC test-vpc2-ky
+Endpoint connectivity for VPC test-vpc2-ky
 Public Internet (all ranges) => ky-vsi1-subnet20[10.240.128.5] : All Connections
 ky-vsi0-subnet20[10.240.128.4] => ky-vsi1-subnet20[10.240.128.5] : All Connections
 ky-vsi0-subnet20[10.240.128.4] => ky-vsi2-subnet20[10.240.128.6] : All Connections

@@ -1,4 +1,4 @@
-# Connectivity for VPC test-vpc-ky
+# Subnet connectivity for VPC test-vpc-ky
 ## Subnets connectivity report
 | src | dst | conn |
 |-----|-----|------|

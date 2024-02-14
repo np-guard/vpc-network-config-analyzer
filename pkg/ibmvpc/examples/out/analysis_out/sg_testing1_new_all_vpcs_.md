@@ -1,4 +1,4 @@
-# Connectivity for VPC test-vpc1-ky
+# Endpoint connectivity for VPC test-vpc1-ky
 ## Endpoint connectivity report
 | src | dst | conn |
 |-----|-----|------|

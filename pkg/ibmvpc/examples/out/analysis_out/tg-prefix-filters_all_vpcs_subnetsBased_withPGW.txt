@@ -1,5 +1,4 @@
 Connectivity between VPCs connected by TGW local-tg-ky (UID: crn:550)
-combined connections between subnets:
 subnet0 => subnet10 : All Connections *
 subnet0 => subnet11 : All Connections *
 subnet0 => subnet20 : All Connections *
@@ -33,8 +32,7 @@ subnet5 => subnet10 : All Connections
 subnet5 => subnet11 : All Connections
 subnet5 => subnet20 : All Connections
 
-Connectivity for VPC test-vpc0-ky
-combined connections between subnets:
+Subnet connectivity for VPC test-vpc0-ky
 subnet0 => subnet1 : All Connections
 subnet0 => subnet2 : All Connections
 subnet0 => subnet3 : All Connections
@@ -66,13 +64,11 @@ subnet5 => subnet2 : All Connections
 subnet5 => subnet3 : All Connections
 subnet5 => subnet4 : All Connections
 
-Connectivity for VPC test-vpc1-ky
-combined connections between subnets:
+Subnet connectivity for VPC test-vpc1-ky
 subnet10 => subnet11 : All Connections
 subnet11 => subnet10 : All Connections
 
-Connectivity for VPC test-vpc2-ky
-combined connections between subnets:
+Subnet connectivity for VPC test-vpc2-ky
 
 
 connections are stateful unless marked with *
