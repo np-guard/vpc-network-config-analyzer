@@ -1,4 +1,4 @@
-Connectivity explanation between vsi1-ky[10.240.10.4] and 161.26.0.0/15
+Connectivity explanation between 10.240.10.4 and 161.26.0.0/15
 ===================================================================================================
 
 No connection between vsi1-ky[10.240.10.4] and Public Internet 161.27.0.0/16; connection blocked by egress

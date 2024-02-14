@@ -1,4 +1,4 @@
-Connectivity explanation for protocol: ICMP between vsi1-ky[10.240.10.4] and vsi2-ky[10.240.20.4]
+Connectivity explanation for protocol: ICMP between vsi1-ky and vsi2-ky
 ===================================================================================================
 
 There is no connection "protocol: ICMP" between vsi1-ky[10.240.10.4] and vsi2-ky[10.240.20.4]; connection blocked by egress

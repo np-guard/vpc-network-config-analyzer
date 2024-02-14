@@ -1,4 +1,4 @@
-Connectivity explanation between vsi1-ky[10.240.10.4] and vsi2-ky[10.240.20.4]
+Connectivity explanation between vsi1-ky[10.240.10.4] and 10.240.20.4
 ===================================================================================================
 
 The following connection exists between vsi1-ky[10.240.10.4] and vsi2-ky[10.240.20.4]: protocol: TCP,UDP

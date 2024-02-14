@@ -1,4 +1,4 @@
-Connectivity explanation between vsi3b-ky[10.240.30.6] and vsi3a-ky[10.240.30.5]
+Connectivity explanation between vsi3b-ky and vsi3a-ky[10.240.30.5]
 ===================================================================================================
 
 The following connection exists between vsi3b-ky[10.240.30.6] and vsi3a-ky[10.240.30.5]: All Connections
