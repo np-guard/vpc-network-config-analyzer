@@ -17,6 +17,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/np-guard/models/pkg/hypercubes"
 	"github.com/np-guard/models/pkg/intervals"
 	"github.com/np-guard/vpc-network-config-synthesis/pkg/io/jsonio"
 )
@@ -121,19 +122,19 @@ const (
 
 type ConnectionSet struct {
 	AllowAll             bool
-	connectionProperties *CanonicalHypercubeSet
+	connectionProperties *hypercubes.CanonicalHypercubeSet
 	IsStateful           int // default is StatefulUnknown
 }
 
 func NewConnectionSet(all bool) *ConnectionSet {
-	return &ConnectionSet{AllowAll: all, connectionProperties: NewCanonicalHypercubeSet(numDimensions)}
+	return &ConnectionSet{AllowAll: all, connectionProperties: hypercubes.NewCanonicalHypercubeSet(numDimensions)}
 }
 
 func NewConnectionSetWithStateful(all bool, isStateful int) *ConnectionSet {
-	return &ConnectionSet{AllowAll: all, connectionProperties: NewCanonicalHypercubeSet(numDimensions), IsStateful: isStateful}
+	return &ConnectionSet{AllowAll: all, connectionProperties: hypercubes.NewCanonicalHypercubeSet(numDimensions), IsStateful: isStateful}
 }
 
-func NewConnectionSetWithCube(cube *CanonicalHypercubeSet) *ConnectionSet {
+func NewConnectionSetWithCube(cube *hypercubes.CanonicalHypercubeSet) *ConnectionSet {
 	res := NewConnectionSet(false)
 	res.connectionProperties.Union(cube)
 	if res.isAllConnectionsWithoutAllowAll() {
@@ -180,8 +181,8 @@ func (conn *ConnectionSet) Union(other *ConnectionSet) *ConnectionSet {
 	return res
 }
 
-func getAllPropertiesObject() *CanonicalHypercubeSet {
-	return CreateFromCube(getDimensionDomainsList())
+func getAllPropertiesObject() *hypercubes.CanonicalHypercubeSet {
+	return hypercubes.CreateFromCube(getDimensionDomainsList())
 }
 
 func (conn *ConnectionSet) isAllConnectionsWithoutAllowAll() bool {
@@ -204,7 +205,7 @@ func (conn *ConnectionSet) Subtract(other *ConnectionSet) *ConnectionSet {
 	if other.AllowAll {
 		return NewConnectionSet(false)
 	}
-	var connProperites *CanonicalHypercubeSet
+	var connProperites *hypercubes.CanonicalHypercubeSet
 	if conn.AllowAll {
 		connProperites = getAllPropertiesObject()
 	} else {
@@ -225,28 +226,28 @@ func (conn *ConnectionSet) ContainedIn(other *ConnectionSet) (bool, error) {
 }
 
 func (conn *ConnectionSet) AddTCPorUDPConn(protocol ProtocolStr, srcMinP, srcMaxP, dstMinP, dstMaxP int64) {
-	var cube *CanonicalHypercubeSet
+	var cube *hypercubes.CanonicalHypercubeSet
 	switch protocol {
 	case ProtocolTCP:
-		cube = CreateFromCubeShort(TCP, TCP, srcMinP, srcMaxP, dstMinP, dstMaxP, MinICMPtype, MaxICMPtype, MinICMPcode, MaxICMPcode)
+		cube = hypercubes.CreateFromCubeShort(TCP, TCP, srcMinP, srcMaxP, dstMinP, dstMaxP, MinICMPtype, MaxICMPtype, MinICMPcode, MaxICMPcode)
 	case ProtocolUDP:
-		cube = CreateFromCubeShort(UDP, UDP, srcMinP, srcMaxP, dstMinP, dstMaxP, MinICMPtype, MaxICMPtype, MinICMPcode, MaxICMPcode)
+		cube = hypercubes.CreateFromCubeShort(UDP, UDP, srcMinP, srcMaxP, dstMinP, dstMaxP, MinICMPtype, MaxICMPtype, MinICMPcode, MaxICMPcode)
 	}
 	conn.connectionProperties = conn.connectionProperties.Union(cube)
 	// check if all connections allowed after this union
 	if conn.isAllConnectionsWithoutAllowAll() {
 		conn.AllowAll = true
-		conn.connectionProperties = NewCanonicalHypercubeSet(numDimensions)
+		conn.connectionProperties = hypercubes.NewCanonicalHypercubeSet(numDimensions)
 	}
 }
 
 func (conn *ConnectionSet) AddICMPConnection(icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax int64) {
-	cube := CreateFromCubeShort(ICMP, ICMP, MinPort, MaxPort, MinPort, MaxPort, icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax)
+	cube := hypercubes.CreateFromCubeShort(ICMP, ICMP, MinPort, MaxPort, MinPort, MaxPort, icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax)
 	conn.connectionProperties = conn.connectionProperties.Union(cube)
 	// check if all connections allowed after this union
 	if conn.isAllConnectionsWithoutAllowAll() {
 		conn.AllowAll = true
-		conn.connectionProperties = NewCanonicalHypercubeSet(numDimensions)
+		conn.connectionProperties = hypercubes.NewCanonicalHypercubeSet(numDimensions)
 	}
 }
 
@@ -522,12 +523,12 @@ func (conn *ConnectionSet) ResponseConnection() *ConnectionSet {
 			if !srcPorts.Equal(*getDimensionDomain(srcPort)) || !dstPorts.Equal(*getDimensionDomain(dstPort)) {
 				newCube := copyCube(cube)
 				newCube[srcPort], newCube[dstPort] = newCube[dstPort], newCube[srcPort]
-				res.connectionProperties = res.connectionProperties.Union(CreateFromCube(newCube))
+				res.connectionProperties = res.connectionProperties.Union(hypercubes.CreateFromCube(newCube))
 			} else {
-				res.connectionProperties = res.connectionProperties.Union(CreateFromCube(cube))
+				res.connectionProperties = res.connectionProperties.Union(hypercubes.CreateFromCube(cube))
 			}
 		} else if protocols.Contains(ICMP) {
-			res.connectionProperties = res.connectionProperties.Union(CreateFromCube(cube))
+			res.connectionProperties = res.connectionProperties.Union(hypercubes.CreateFromCube(cube))
 		}
 	}
 	return res
