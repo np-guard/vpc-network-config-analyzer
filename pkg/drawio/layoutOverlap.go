@@ -1,7 +1,7 @@
 package drawio
 
 import (
-	"math"
+		"math"
 )
 
 // layoutOverlap is a struct that handle overlapping between lines, and overlapping lines on icons.
@@ -161,7 +161,7 @@ func (lyO *layoutOverlap) handleLinesOverIcons() {
 			continue
 		}
 		line := tn.(LineTreeNodeInterface)
-		newLinePoint := []point{}
+				newLinePoint := []point{}
 		oldLinePoints := line.Points()
 		absPoints := getLineAbsolutePoints(line)
 		for pointIndex := range absPoints[0 : len(absPoints)-1] {
@@ -282,7 +282,8 @@ func getAbsolutePoint(line LineTreeNodeInterface, p point) point {
 		x, y := line.Router().absoluteRouterGeometry()
 		return point{x + p.X, y + p.Y}
 	}
-	return p
+	lpx, lpy := absoluteGeometry(line.Parent())
+	return point{lpx + p.X, lpy + p.Y}
 }
 
 func getRelativePoint(line LineTreeNodeInterface, absPoint point) point {
