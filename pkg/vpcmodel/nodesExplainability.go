@@ -89,6 +89,16 @@ func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.Conne
 	if err != nil {
 		return nil, err
 	}
+	// todo tmp: prints src and dst nodes and panics
+	fmt.Println("SrcNodes\n-----------")
+	for _, srcNode := range srcNodes {
+		fmt.Println("\t", srcNode.Name())
+	}
+	fmt.Println("dstNodes\n-----------")
+	for _, dstNode := range dstNodes {
+		fmt.Println("\t", dstNode.Name())
+	}
+	panic("")
 	rulesAndDetails, err1 := c.computeExplainRules(srcNodes, dstNodes, connQuery)
 	if err1 != nil {
 		return nil, err1
