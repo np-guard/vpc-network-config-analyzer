@@ -86,11 +86,11 @@ func (e *ExplanationArgs) Dst() string {
 // nil connQuery means connection is not part of the query
 func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.ConnectionSet) (res *Explanation, err error) {
 	srcNodes, dstNodes, err := c.srcDstInputToNodes(src, dst)
+	// todo tmp for dev begin -------------------------------------------
 	if err != nil {
 		fmt.Println(err.Error())
-		return nil, nil
+		panic("")
 	}
-	// todo tmp: prints src and dst nodes and panics
 	fmt.Println("SrcNodes\n-----------")
 	for _, srcNode := range srcNodes {
 		fmt.Println("\t", srcNode.Name())
@@ -100,6 +100,7 @@ func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.Conne
 		fmt.Println("\t", dstNode.Name())
 	}
 	panic("")
+	// todo tmp for dev end ----------------------------------------------
 	if err != nil {
 		return nil, err
 	}
