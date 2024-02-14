@@ -362,7 +362,7 @@ var explainTests = []*vpcGeneralTest{
 	{
 		name:        "NACLQueryConnectionRules4",
 		inputConfig: "acl_testing3_3rd",
-		ESrc:        "vsi1-ky[10.240.10.4]",
+		ESrc:        "10.240.10.4/32",
 		EDst:        "161.26.0.0/16",
 		EProtocol:   string(common.ProtocolUDP),
 		ESrcMinPort: common.MinPort,
