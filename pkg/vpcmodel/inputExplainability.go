@@ -58,19 +58,26 @@ func (c *VPCConfig) srcDstInputToNodes(srcName, dstName string) (srcNodes, dstNo
 // given a string or a vsi or a cidr returns the corresponding node(s)
 func (c *VPCConfig) getNodesFromInputString(cidrOrName string) ([]Node, error) {
 	// 1. cidrOrName references a network interface
-	if networkInterface := c.getNetworkIntefaceNode(cidrOrName); networkInterface != nil {
+	if networkInterface := c.getNetworkInterfaceNode(cidrOrName); networkInterface != nil {
 		return []Node{networkInterface}, nil
 	}
-	// 2. ToDo: cidrOrName reference vsi
-	// ToDo: cidrOrName if legal references an address.
+	// 2. cidrOrName references vsi
+	vsi, err1 := c.getNodesOfVsi(cidrOrName)
+	if err1 != nil {
+		return nil, err1
+	}
+	if vsi != nil {
+		return vsi, nil
+	}
+	// cidrOrName, if legal, references an address.
 	// 3. ToDo verifies cidrOrName does not references a combination of internal and external address
-	// 4. Todo cidrOrName references external address
+	// 4. cidrOrName references external address
 	// 5. ToDo cidrOrName references internal address
 	return c.getCidrExternalNodes(cidrOrName)
 }
 
 // finds the node of a given, by its name, NetworkInterface (if any)
-func (c *VPCConfig) getNetworkIntefaceNode(name string) Node {
+func (c *VPCConfig) getNetworkInterfaceNode(name string) Node {
 	for _, node := range c.Nodes {
 		// currently, supported: network interface given takes only that one.
 		//  todo:   if address not given but only vsi name - take all network interfaces of that vsi
@@ -79,6 +86,48 @@ func (c *VPCConfig) getNetworkIntefaceNode(name string) Node {
 		}
 	}
 	return nil
+}
+
+// getNodesOfVsi gets a string name or UID of VSI, and
+// returns the list of all nodes within this vsi
+func (c *VPCConfig) getNodesOfVsi(vsi string) ([]Node, error) {
+	var nodeSetWithVsi NodeSet
+	for _, nodeSet := range c.NodeSets {
+		// todo: at the moment we consider here all NodeSets and not just vsis (e.g. also subnets)
+		//       fix once we have abstract vpc and subnets (#380)
+		if nodeSet.Name() == vsi || nodeSet.UID() == vsi {
+			if nodeSetWithVsi != nil {
+				return nil, fmt.Errorf("there is more than one resource (%s, %s) with the given input string %s representing its name. "+
+					"can not determine which resource to analyze. consider using unique names or use input UID instead",
+					nodeSetWithVsi.UID(), nodeSet.UID(), vsi)
+			}
+			nodeSetWithVsi = nodeSet
+		}
+	}
+	return nodeSetWithVsi.Nodes(), nil
+}
+
+// getNodesFromAddress gets a string that should present a cidr or IP
+// 1. If it does not present a cidr or IP, return nil
+// 2. Verifies it presents either an external or an internal address; otherwise return an error
+// 3. If it presents an external address, returns external addresses nodes
+// 4. If it presents internal address, return connected network interfaces if any, error otherwise
+func (c *VPCConfig) getNodesFromAddress(ipOrCidr string) ([]Node, error) {
+	cidrsIPBlock := common.NewIPBlockFromCidrOrAddress(ipOrCidr)
+	if cidrsIPBlock == nil { // 1. string cidr does not represent a legal cidr
+		return nil, nil
+	}
+	// 2.
+	isExternal, isInternal := false, false
+
+	if isExternal && isInternal {
+		return nil, fmt.Errorf(fmt.Sprintf("%s contains external and internal addresses which is not supported. "+
+			"src, dst should be external *or* internal address", ipOrCidr))
+	}
+	if isExternal {
+		return c.getCidrExternalNodes(ipOrCidr)
+	}
+	return nil, nil
 }
 
 // given input cidr, gets (disjoint) external nodes I s.t.:
@@ -91,8 +140,8 @@ func (c *VPCConfig) getNetworkIntefaceNode(name string) Node {
 //  1. Calculate the IP blocks of the nodes N
 //  2. Calculate from N and the cidr block, disjoint IP blocks
 //  3. Return the nodes created from each block from 2 contained in the input cidr
-func (c *VPCConfig) getCidrExternalNodes(cidr string) (cidrNodes []Node, err error) {
-	cidrsIPBlock := common.NewIPBlockFromCidrOrAddress(cidr)
+func (c *VPCConfig) getCidrExternalNodes(ipOrCidr string) (cidrNodes []Node, err error) {
+	cidrsIPBlock := common.NewIPBlockFromCidrOrAddress(ipOrCidr)
 	if cidrsIPBlock == nil { // string cidr does not represent a legal cidr
 		return nil, nil
 	}
@@ -123,9 +172,9 @@ func (c *VPCConfig) getCidrExternalNodes(cidr string) (cidrNodes []Node, err err
 
 // getNodesWithinInternalAddress gets a string address in CIDR format or exact IP address format representing internal address
 // and returns the list of all internal nodes (should be VSI) within address
-func (c *VPCConfig) getNodesWithinInternalAddress(ipAddress string) (networkInterfaceNodes []Node, err error) {
+func (c *VPCConfig) getNodesWithinInternalAddress(ipOrCidr string) (networkInterfaceNodes []Node, err error) {
 	var addressIPblock, networkInterfaceIPBlock *common.IPBlock
-	addressIPblock = common.NewIPBlockFromCidrOrAddress(ipAddress)
+	addressIPblock = common.NewIPBlockFromCidrOrAddress(ipOrCidr)
 
 	networkInterfaceNodes = []Node{}
 	for _, node := range c.Nodes {
@@ -134,30 +183,11 @@ func (c *VPCConfig) getNodesWithinInternalAddress(ipAddress string) (networkInte
 		}
 		contained := networkInterfaceIPBlock.ContainedIn(addressIPblock)
 		if node.IsExternal() && contained {
-			return nil, fmt.Errorf("src or dst address %s represents an external IP", ipAddress)
+			return nil, fmt.Errorf("src or dst address %s represents an external IP", ipOrCidr)
 		}
 		if node.IsInternal() && contained {
 			networkInterfaceNodes = append(networkInterfaceNodes, node)
 		}
 	}
 	return networkInterfaceNodes, nil
-}
-
-// getNodesOfVsi gets a string name or UID of VSI, and
-// returns the list of all nodes within this vsi
-func (c *VPCConfig) getNodesOfVsi(vsi string) ([]Node, error) {
-	var nodeSetWithVsi NodeSet
-	for _, nodeSet := range c.NodeSets {
-		// todo: at the moment we consider here all NodeSets and not just vsis (e.g. also subnets)
-		//       fix once we have abstract vpc and subnets (#380)
-		if nodeSet.Name() == vsi || nodeSet.UID() == vsi {
-			if nodeSetWithVsi != nil {
-				return nil, fmt.Errorf("there is more than one resource (%s, %s) with the given input string %s representing its name. "+
-					"can not determine which resource to analyze. consider using unique names or use input UID instead",
-					nodeSetWithVsi.UID(), nodeSet.UID(), vsi)
-			}
-			nodeSetWithVsi = nodeSet
-		}
-	}
-	return nodeSetWithVsi.Nodes(), nil
 }
