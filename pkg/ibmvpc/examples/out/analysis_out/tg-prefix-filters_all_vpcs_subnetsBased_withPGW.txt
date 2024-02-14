@@ -69,6 +69,6 @@ subnet10 => subnet11 : All Connections
 subnet11 => subnet10 : All Connections
 
 Subnet connectivity for VPC test-vpc2-ky
-
+<nothing to report>
 
 connections are stateful unless marked with *

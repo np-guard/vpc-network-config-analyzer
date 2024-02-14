@@ -25,16 +25,16 @@ subnet11-ky => subnet12-ky : All Connections
 subnet12-ky => subnet11-ky : All Connections
 
 Subnet connectivity for VPC test-vpc2-ky
-
+<nothing to report>
 
 Subnet connectivity for VPC test-vpc3-ky
 subnet31-ky => subnet32-ky : All Connections
 subnet32-ky => subnet31-ky : All Connections
 
 Subnet connectivity for VPC zn-vpc1
-
+<nothing to report>
 
 Subnet connectivity for VPC zn-vpc2
-
+<nothing to report>
 
 connections are stateful unless marked with *

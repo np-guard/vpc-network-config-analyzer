@@ -1,5 +1,4 @@
 # Endpoint connectivity for VPC test-vpc1-ky
-## Endpoint connectivity report
 | src | dst | conn |
 |-----|-----|------|
 | Public Internet 147.235.219.206/32 | vsi2-ky[10.240.20.4] | protocol: TCP dst-ports: 22 |

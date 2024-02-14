@@ -25,7 +25,7 @@ vsi32-ky[10.240.128.4] => vsi21a-ky[10.240.64.4] : All Connections
 vsi32-ky[10.240.128.4] => vsi21b-ky[10.240.64.5] : All Connections
 
 Connectivity between VPCs connected by TGW local-tg-zn (UID: crn:574)
-
+<nothing to report>
 
 Endpoint connectivity for VPC test-vpc0-ky
 vsi1-ky[10.240.1.4] => Public Internet 172.217.22.46/32 : All Connections
@@ -52,9 +52,9 @@ vsi32-ky[10.240.128.4] => Public Internet (all ranges) : All Connections
 vsi32-ky[10.240.128.4] => vsi31-ky[10.240.31.4] : All Connections
 
 Endpoint connectivity for VPC zn-vpc1
-
+<nothing to report>
 
 Endpoint connectivity for VPC zn-vpc2
-
+<nothing to report>
 
 connections are stateful unless marked with *

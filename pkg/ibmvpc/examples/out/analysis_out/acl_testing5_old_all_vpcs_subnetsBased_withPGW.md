@@ -1,5 +1,4 @@
 # Subnet connectivity for VPC test-vpc-ky
-## Subnets connectivity report
 | src | dst | conn |
 |-----|-----|------|
 | sub1-1-ky | Public Internet 8.8.8.8/32 | protocol: UDP dst-ports: 53 |

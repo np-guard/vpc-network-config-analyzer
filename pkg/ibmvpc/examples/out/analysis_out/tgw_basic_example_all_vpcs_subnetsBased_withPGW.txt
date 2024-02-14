@@ -3,7 +3,7 @@ ky-vpc1-net1 => ky-vpc2-net1 : All Connections
 ky-vpc2-net1 => ky-vpc1-net1 : All Connections
 
 Subnet connectivity for VPC ky-vpc1
-
+<nothing to report>
 
 Subnet connectivity for VPC ky-vpc2
-
+<nothing to report>

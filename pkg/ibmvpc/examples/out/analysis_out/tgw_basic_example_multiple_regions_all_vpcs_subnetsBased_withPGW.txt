@@ -32,19 +32,19 @@ sn-20221205-03 => sn-20221205-01 : All Connections
 sn-20221205-03 => sn-20221205-02 : All Connections
 
 Subnet connectivity for VPC ky-vpc1
-
+<nothing to report>
 
 Subnet connectivity for VPC ky-vpc2
-
+<nothing to report>
 
 Subnet connectivity for VPC ky-vpc3
-
+<nothing to report>
 
 Subnet connectivity for VPC zn-vpc1
-
+<nothing to report>
 
 Subnet connectivity for VPC zn-vpc2
-
+<nothing to report>
 
 Subnet connectivity for VPC zn-vpc3
-
+<nothing to report>
