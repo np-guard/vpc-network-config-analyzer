@@ -436,17 +436,26 @@ func TestInputValidity(t *testing.T) {
 	if vpcConfig == nil {
 		require.Fail(t, "vpcConfig equals nil")
 	}
-	cidr1 := "0.0.0.0/0"
+	cidr1 := "169.255.0.0"
 	cidr2 := "161.26.0.0/16"
-	nonExistingVSI := "vsi2-ky[10.240.10.4]"
+	cidrAll := "0.0.0.0/0"
+	nonExistingNif := "vsi2-ky[10.240.10.4]"
+	existingNif := " vsi3a-ky[10.240.30.5]"
+	// should fail since two external addresses
 	_, err1 := vpcConfig.ExplainConnectivity(cidr1, cidr2, nil)
 	fmt.Println(err1.Error())
 	if err1 == nil {
 		require.Fail(t, err1.Error())
 	}
-	_, err2 := vpcConfig.ExplainConnectivity(cidr1, nonExistingVSI, nil)
+	// should fail due to non existing networkInterface
+	_, err2 := vpcConfig.ExplainConnectivity(cidr1, nonExistingNif, nil)
 	fmt.Println(err2.Error())
 	if err2 == nil {
-		require.Fail(t, err1.Error())
+		require.Fail(t, err2.Error())
+	}
+	_, err3 := vpcConfig.ExplainConnectivity(cidrAll, existingNif, nil)
+	fmt.Println(err3.Error())
+	if err3 == nil {
+		require.Fail(t, err3.Error())
 	}
 }
