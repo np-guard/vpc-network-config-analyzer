@@ -190,13 +190,12 @@ func (c *VPCConfig) getNodesWithinInternalAddress(inputIPBlock *common.IPBlock) 
 	var networkInterfaceIPBlock *common.IPBlock
 	networkInterfaceNodes = []Node{}
 	for _, node := range c.Nodes {
-		if networkInterfaceIPBlock, err = common.NewIPBlockFromIPAddress(node.Cidr()); err != nil {
-			return nil, err
+		networkInterfaceIPBlock = common.NewIPBlockFromCidrOrAddress(node.Cidr())
+		if networkInterfaceIPBlock == nil {
+			return nil, fmt.Errorf(fmt.Sprintf("NP-guard error: was not able to create IPBlock to %v",
+				node.Name()))
 		}
 		contained := networkInterfaceIPBlock.ContainedIn(inputIPBlock)
-		if node.IsExternal() && contained {
-			return nil, fmt.Errorf("src or dst address %s represents an external IP", inputIPBlock)
-		}
 		if node.IsInternal() && contained {
 			networkInterfaceNodes = append(networkInterfaceNodes, node)
 		}
