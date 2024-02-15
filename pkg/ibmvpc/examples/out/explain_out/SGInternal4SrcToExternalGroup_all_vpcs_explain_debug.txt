@@ -1,0 +1,47 @@
+Connectivity explanation between 10.240.10.4/16 (vsi1-ky[10.240.10.4], vsi2-ky[10.240.20.4], vsi3a-ky[10.240.30.5], vsi3b-ky[10.240.30.4], db-endpoint-gateway-ky[10.240.30.6]) and 161.26.0.0/8
+================================================================================================================================================================================================
+
+No connection between db-endpoint-gateway-ky[10.240.30.6] and Public Internet 161.0.0.0/8; no router (fip/pgw) and dst is external
+------------------------------------------------------------------------------------------------------------------------
+
+No connection between vsi1-ky[10.240.10.4] and Public Internet 161.0.0.0-161.25.255.255,161.27.0.0-161.255.255.255; connection blocked by egress
+External Router PublicGateway: public-gw-ky
+Egress: security group sg1-ky blocks connection (no relevant allow rules); network ACL acl1-ky allows connection (with allow rules)
+
+Rules details:
+~~~~~~~~~~~~~~
+Egress:
+security group sg1-ky blocks connection since there are no relevant allow rules
+network ACL acl1-ky allows connection with the following allow rules
+	index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+------------------------------------------------------------------------------------------------------------------------
+
+No connection between vsi2-ky[10.240.20.4] and Public Internet 161.0.0.0/8; connection blocked by egress
+External Router FloatingIP: floating-ip-ky
+Egress: security group sg2-ky blocks connection (no relevant allow rules)
+
+Rules details:
+~~~~~~~~~~~~~~
+Egress:
+security group sg2-ky blocks connection since there are no relevant allow rules
+------------------------------------------------------------------------------------------------------------------------
+
+No connection between vsi3a-ky[10.240.30.5] and Public Internet 161.0.0.0/8; no router (fip/pgw) and dst is external
+------------------------------------------------------------------------------------------------------------------------
+
+No connection between vsi3b-ky[10.240.30.4] and Public Internet 161.0.0.0/8; no router (fip/pgw) and dst is external
+------------------------------------------------------------------------------------------------------------------------
+
+The following connection exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16: protocol: UDP
+External Router PublicGateway: public-gw-ky
+Egress: security group sg1-ky allows connection (with allow rules); network ACL acl1-ky allows connection (with allow rules)
+
+Rules details:
+~~~~~~~~~~~~~~
+Egress:
+security group sg1-ky allows connection with the following allow rules
+	index: 2, direction: outbound,  conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16
+network ACL acl1-ky allows connection with the following allow rules
+	index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+------------------------------------------------------------------------------------------------------------------------
+

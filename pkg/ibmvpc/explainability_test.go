@@ -337,6 +337,23 @@ var explainTests = []*vpcGeneralTest{
 		EDstMaxPort: common.MaxPort,
 		format:      vpcmodel.Debug,
 	},
+	// src: one of these network interfaces, dst: internal address of 4 network interfaces
+	{
+		name:        "NACLInternalSrcTo4DstInternal",
+		inputConfig: "acl_testing3",
+		ESrc:        "vsi3b-ky",
+		EDst:        "10.240.30.4/26",
+		format:      vpcmodel.Debug,
+	},
+	// src: internal address of 5 network interfaces, dst: external address that spans rules
+	// "many to many"
+	{
+		name:        "SGInternal4SrcToExternalGroup",
+		inputConfig: "sg_testing1_new",
+		ESrc:        "10.240.10.4/16",
+		EDst:        "161.26.0.0/8",
+		format:      vpcmodel.Debug,
+	},
 	// all rules
 	{
 		name:        "NACLQueryConnectionRules2",
