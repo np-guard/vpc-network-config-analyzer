@@ -1,7 +1,6 @@
 package vpcmodel
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
@@ -201,8 +200,8 @@ func (c *VPCConfig) getNodesWithinInternalAddress(inputIPBlock *common.IPBlock) 
 	for _, node := range c.Nodes {
 		networkInterfaceIPBlock = common.NewIPBlockFromCidrOrAddress(node.Cidr())
 		if networkInterfaceIPBlock == nil {
-			return nil, errors.New(fmt.Sprintf("NP-guard error: was not able to create IPBlock to %v",
-				node.Name()))
+			return nil, fmt.Errorf("NP-guard error: was not able to create IPBlock to %v",
+				node.Name())
 		}
 		contained := networkInterfaceIPBlock.ContainedIn(inputIPBlock)
 		if node.IsInternal() && contained {
