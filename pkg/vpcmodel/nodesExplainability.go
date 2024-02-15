@@ -271,26 +271,18 @@ func (details *rulesAndConnDetails) computeAdditionalDetails(c *VPCConfig) error
 		// RoutingResources are computed by the parser for []Nodes of the VPC,
 		// finds the relevant nodes for the query's src and dst;
 		// if for src or dst no containing node was found, there is no router
-		containingSrcNode, err1 := c.getContainingConfigNode(src)
-		if err1 != nil {
-			return err1
-		}
-		containingDstNode, err2 := c.getContainingConfigNode(dst)
-		if err2 != nil {
-			return err2
-		}
 		var routingResource RoutingResource
 		var filtersForExternal map[string]bool
-		var err3 error
-		if containingSrcNode != nil && containingDstNode != nil {
-			routingResource, _, err3 = c.getRoutingResource(containingSrcNode, containingDstNode)
-			if err3 != nil {
-				return err3
-			}
-			if routingResource != nil {
-				filtersForExternal = routingResource.AppliedFiltersKinds() // relevant filtersExternal
-			}
+		var err error
+
+		routingResource, _, err = c.getRoutingResource(src, dst)
+		if err != nil {
+			return err
 		}
+		if routingResource != nil {
+			filtersForExternal = routingResource.AppliedFiltersKinds() // relevant filtersExternal
+		}
+
 		singleSrcDstDetails.router = routingResource
 		singleSrcDstDetails.filtersExternal = filtersForExternal
 		isInternal := singleSrcDstDetails.src.IsInternal() && singleSrcDstDetails.dst.IsInternal()
