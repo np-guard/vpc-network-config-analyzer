@@ -132,7 +132,7 @@ func getNetworkInterfacesFromIP(isInputInternalIP bool, nodes []Node) []Node {
 func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node,
 	conn *common.ConnectionSet) (rulesAndConn rulesAndConnDetails, err error) {
 	// the size is not known in this stage due to the corner case in which we have the same node both in srcNodes and dstNodes
-	rulesAndConn = make(rulesAndConnDetails, 0)
+	rulesAndConn = rulesAndConnDetails{}
 	for _, src := range srcNodes {
 		for _, dst := range dstNodes {
 			if src.UID() == dst.UID() {
