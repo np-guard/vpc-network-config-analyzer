@@ -32,46 +32,49 @@ func (e *ExplanationArgs) GetConnectionSet() *common.ConnectionSet {
 // 2. VSI by UID or name; in this case we consider the network interfaces of the VSI
 // 3. Internal IP address; in this case we consider the vsis in that address range
 // 4. external IP address
-func (c *VPCConfig) srcDstInputToNodes(srcName, dstName string) (srcNodes, dstNodes []Node, err error) {
-	srcNodes, err = c.getSrcOrDstInputNode(srcName, "src")
+func (c *VPCConfig) srcDstInputToNodes(srcName, dstName string) (srcNodes, dstNodes []Node,
+	isSrcInternalIP, isDstInternalIP bool, err error) {
+	srcNodes, isSrcInternalIP, err = c.getSrcOrDstInputNode(srcName, "src")
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, false, false, err
 	}
-	dstNodes, err = c.getSrcOrDstInputNode(dstName, "dst")
+	dstNodes, isDstInternalIP, err = c.getSrcOrDstInputNode(dstName, "dst")
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, false, false, err
 	}
 	// only one of src/dst can be external; there could be multiple nodes only if external
 	if !srcNodes[0].IsInternal() && !dstNodes[0].IsInternal() {
-		return nil, nil, fmt.Errorf("both src %v and dst %v are external", srcName, dstName)
+		return nil, nil, false, false, fmt.Errorf("both src %v and dst %v are external", srcName, dstName)
 	}
-	return srcNodes, dstNodes, nil
+	return srcNodes, dstNodes, isDstInternalIP, isDstInternalIP, nil
 }
 
-func (c *VPCConfig) getSrcOrDstInputNode(name, srcOrDst string) ([]Node, error) {
-	outNodes, err := c.getNodesFromInputString(name)
+func (c *VPCConfig) getSrcOrDstInputNode(name, srcOrDst string) (nodes []Node, internalIP bool, err error) {
+	outNodes, isInternalIP, err := c.getNodesFromInputString(name)
 	if err != nil {
-		return nil, fmt.Errorf("illegal %v: %v", srcOrDst, err.Error())
+		return nil, false, fmt.Errorf("illegal %v: %v", srcOrDst, err.Error())
 	}
 	if len(outNodes) == 0 {
-		return nil, fmt.Errorf(fmt.Sprintf("%v %v %v", srcOrDst, name, noValidInputErr))
+		return nil, false, fmt.Errorf(fmt.Sprintf("%v %v %v", srcOrDst, name, noValidInputErr))
 	}
-	return outNodes, nil
+	return outNodes, isInternalIP, nil
 }
 
-// given a string or a vsi or a cidr returns the corresponding node(s)
-func (c *VPCConfig) getNodesFromInputString(cidrOrName string) ([]Node, error) {
+// given a string cidrOrName representing a networkinterface/vsi/internal or external cidr/address returns the
+// corresponding node(s) and a bool which is true iff cidrOrName is an internal address
+// (and the nodes are its network interfaces)
+func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node, internalIP bool, err error) {
 	// 1. cidrOrName references a network interface
 	if networkInterfaces := c.getNetworkInterfaceNodes(cidrOrName); len(networkInterfaces) > 0 {
-		return networkInterfaces, nil
+		return networkInterfaces, false, nil
 	}
 	// 2. cidrOrName references vsi
 	vsi, err1 := c.getNodesOfVsi(cidrOrName)
 	if err1 != nil {
-		return nil, err1
+		return nil, false, err1
 	}
 	if vsi != nil {
-		return vsi, nil
+		return vsi, false, nil
 	}
 	// cidrOrName, if legal, references an address.
 	// 3. cidrOrName references an ip address
@@ -112,40 +115,44 @@ func (c *VPCConfig) getNodesOfVsi(vsi string) ([]Node, error) {
 }
 
 // getNodesFromAddress gets a string that should present a cidr or IP
-// 1. If it does not present a cidr or IP, returns nil
-// 2. If it represents a cidr which is both internal and external, returns an error
-// 3. If it presents an external address, returns external addresses nodes
-// 4. If it presents an internal address, return connected network interfaces if any, error otherwise
-func (c *VPCConfig) getNodesFromAddress(ipOrCidr string) ([]Node, error) {
+// and returns the corresponding node(s) and a bool which is true iff cidrOrName is an internal address
+// (and the nodes are its network interfaces). Specifically:
+//  1. If it does not present a cidr or IP, returns nil and false
+//  2. If it represents a cidr which is both internal and external, returns an error
+//  3. If it presents an external address, returns external addresses nodes and false
+//  4. If it presents an internal address, return connected network interfaces if any and true,
+//     error otherwise
+func (c *VPCConfig) getNodesFromAddress(ipOrCidr string) (nodes []Node, internalIP bool, err error) {
 	inputIPBlock := common.NewIPBlockFromCidrOrAddress(ipOrCidr)
 	if inputIPBlock == nil { // 1. string cidr does not represent a legal cidr
-		return nil, nil
+		return nil, false, nil
 	}
 	// 2.
 	_, publicInternet, err1 := getPublicInternetIPblocksList()
 	if err1 != nil {
-		return nil, err1
+		return nil, false, err1
 	}
 	isExternal := !inputIPBlock.Intersection(publicInternet).Empty()
 	isInternal := !inputIPBlock.ContainedIn(publicInternet)
 	if isInternal && isExternal {
-		return nil, fmt.Errorf(fmt.Sprintf("%s contains external and internal addresses which is not supported. "+
+		return nil, false, fmt.Errorf(fmt.Sprintf("%s contains external and internal addresses which is not supported. "+
 			"src, dst should be external *or* internal address", ipOrCidr))
 	}
 	if isExternal { // 3.
-		return c.getCidrExternalNodes(inputIPBlock)
+		nodes, err = c.getCidrExternalNodes(inputIPBlock)
+		return nodes, false, err
 	} else if isInternal { // 4.
 		networkInterfaces, err2 := c.getNodesWithinInternalAddress(inputIPBlock)
 		if err2 != nil {
-			return nil, err2
+			return nil, false, err2
 		}
 		// a given internal address should have vsi connected to it
 		if networkInterfaces == nil {
-			return nil, fmt.Errorf(fmt.Sprintf("No network interfaces are connected to %s", ipOrCidr))
+			return nil, true, fmt.Errorf(fmt.Sprintf("No network interfaces are connected to %s", ipOrCidr))
 		}
-		return networkInterfaces, nil
+		return networkInterfaces, true, nil
 	}
-	return nil, nil
+	return nil, false, nil
 }
 
 // given input IPBlock, gets (disjoint) external nodes I s.t.:

@@ -70,8 +70,8 @@ type Explanation struct {
 	dst             string
 	// the following two properties are for the case src/dst are given as internal address connected to network interface
 	// this information should be handy; otherwise empty (slice of size 0)
-	srcNetworkInterfaces []Node
-	dstNetworkInterfaces []Node
+	srcNetworkInterfacesFromIP []Node
+	dstNetworkInterfacesFromIP []Node
 	// grouped connectivity result:
 	// grouping common explanation lines with common src/dst (internal node) and different dst/src (external node)
 	// [required due to computation with disjoint ip-blocks]
@@ -89,7 +89,7 @@ func (e *ExplanationArgs) Dst() string {
 // ExplainConnectivity given src, dst and connQuery returns a struct with all explanation details
 // nil connQuery means connection is not part of the query
 func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.ConnectionSet) (res *Explanation, err error) {
-	srcNodes, dstNodes, err := c.srcDstInputToNodes(src, dst)
+	srcNodes, dstNodes, isSrcInternalIP, isDstInternalIP, err := c.srcDstInputToNodes(src, dst)
 	if err != nil {
 		return nil, err
 	}
@@ -115,8 +115,17 @@ func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.Conne
 		return nil, err4
 	}
 
-	return &Explanation{c, connQuery, &rulesAndDetails, src, dst, nil, nil,
+	return &Explanation{c, connQuery, &rulesAndDetails, src, dst,
+		getNetworkInterfacesFromIP(isSrcInternalIP, srcNodes),
+		getNetworkInterfacesFromIP(isDstInternalIP, dstNodes),
 		groupedLines.GroupedLines}, nil
+}
+
+func getNetworkInterfacesFromIP(isInputInternalIP bool, nodes []Node) []Node {
+	if isInputInternalIP {
+		return nodes
+	}
+	return []Node{}
 }
 
 // computeExplainRules computes the egress and ingress rules contributing to the (existing or missing) connection <src, dst>

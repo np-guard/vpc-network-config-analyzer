@@ -27,8 +27,8 @@ func headerOfAnalyzedVPC(uc OutputUseCase, vpcName, vpc2Name string, c1 *VPCConf
 		if explanation.connQuery != nil {
 			connStr = " for " + explanation.connQuery.String()
 		}
-		srcNetworkInterfaces := explainNetworkInterfaces(explanation.srcNetworkInterfaces)
-		dstNetworkInterfaces := explainNetworkInterfaces(explanation.dstNetworkInterfaces)
+		srcNetworkInterfaces := explainNetworkInterfaces(explanation.srcNetworkInterfacesFromIP)
+		dstNetworkInterfaces := explainNetworkInterfaces(explanation.dstNetworkInterfacesFromIP)
 		return fmt.Sprintf("Connectivity explanation%s between %s%s and "+
 			"%s%s\n===================================================================================================\n\n",
 			connStr, explanation.src, srcNetworkInterfaces, explanation.dst, dstNetworkInterfaces), nil
