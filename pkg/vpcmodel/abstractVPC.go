@@ -4,8 +4,10 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
-const leftParentheses = " ("
-const rightParentheses = ")"
+const (
+	leftParentheses  = " ("
+	rightParentheses = ")"
+)
 
 // VPCResourceIntf captures common properties for VPC resources
 type VPCResourceIntf interface {
