@@ -135,7 +135,7 @@ func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node,
 	rulesAndConn = make(rulesAndConnDetails, 0)
 	for _, src := range srcNodes {
 		for _, dst := range dstNodes {
-			if src.Name() == dst.Name() {
+			if src.UID() == dst.UID() {
 				continue
 			}
 			allowRules, denyRules, err := c.getRulesOfConnection(src, dst, conn)
