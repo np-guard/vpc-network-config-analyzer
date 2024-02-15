@@ -450,9 +450,8 @@ func (tt *vpcGeneralTest) runExplainTest(t *testing.T) {
 
 func TestInputValidity(t *testing.T) {
 	vpcConfig := getConfig(t, "sg_testing1_new")
-	if vpcConfig == nil {
-		require.Fail(t, "vpcConfig equals nil")
-	}
+	require.NotNil(t, vpcConfig, "vpcConfig equals nil")
+
 	cidr1 := "169.255.0.0"
 	cidr2 := "161.26.0.0/16"
 	cidrAll := "0.0.0.0/0"
@@ -461,18 +460,17 @@ func TestInputValidity(t *testing.T) {
 	// should fail since two external addresses
 	_, err1 := vpcConfig.ExplainConnectivity(cidr1, cidr2, nil)
 	fmt.Println(err1.Error())
-	if err1 == nil {
-		require.Fail(t, err1.Error())
-	}
+	require.NotNil(t, err1, "the test should fail since both src and dst are external")
+
 	// should fail due to non existing networkInterface
 	_, err2 := vpcConfig.ExplainConnectivity(cidr1, nonExistingNif, nil)
 	fmt.Println(err2.Error())
-	if err2 == nil {
-		require.Fail(t, err2.Error())
-	}
+	require.NotNil(t, err2, "the test should fail since dst refers to non existing "+
+		"network interface")
+
+	// should fail due to a cidr containing both public internet and internal address
 	_, err3 := vpcConfig.ExplainConnectivity(cidrAll, existingNif, nil)
 	fmt.Println(err3.Error())
-	if err3 == nil {
-		require.Fail(t, err3.Error())
-	}
+	require.NotNil(t, err2, "the test should fail since src is cidr containing both public "+
+		"internet and internal address ")
 }

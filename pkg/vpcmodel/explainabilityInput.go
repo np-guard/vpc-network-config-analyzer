@@ -9,6 +9,16 @@ import (
 const noValidInputErr = "does not represent a VSI, an internal interface, an internal IP with network interface or " +
 	"a valid external IP"
 
+type ExplanationArgs struct {
+	src        string
+	dst        string
+	protocol   string
+	srcMinPort int64
+	srcMaxPort int64
+	dstMinPort int64
+	dstMaxPort int64
+}
+
 // GetConnectionSet TODO: handle also input ICMP properties (type, code) as input args
 // translates explanation args to a connection set
 func (e *ExplanationArgs) GetConnectionSet() *common.ConnectionSet {
