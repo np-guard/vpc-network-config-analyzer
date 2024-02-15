@@ -31,7 +31,7 @@ func (e *ExplanationArgs) GetConnectionSet() *common.ConnectionSet {
 // src/dst may refer to:
 // 1. NetworkInterface by name
 // 2. VSI by UID or name; in this case we consider the network interfaces of the VSI
-// 3. Internal IP address; in this case we consider the vsis in that address range
+// 3. Internal IP address or cidr; in this case we consider the vsis in that address range
 // 4. external IP address or cidr
 func (c *VPCConfig) srcDstInputToNodes(srcName, dstName string) (srcNodes, dstNodes []Node,
 	isSrcInternalIP, isDstInternalIP bool, err error) {
