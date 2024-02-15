@@ -46,7 +46,7 @@ func explainNetworkInterfaces(nodes []Node) string {
 	for i, node := range nodes {
 		networkinterfaces[i] = node.Name()
 	}
-	return " (" + strings.Join(networkinterfaces, ", ") + ")"
+	return leftParentheses + strings.Join(networkinterfaces, ", ") + rightParentheses
 }
 
 func (t *TextOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
