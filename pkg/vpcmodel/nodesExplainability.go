@@ -69,7 +69,7 @@ type Explanation struct {
 	src             string
 	dst             string
 	// the following two properties are for the case src/dst are given as internal address connected to network interface
-	// this information should be handy
+	// this information should be handy; otherwise empty (slice of size 0)
 	srcNetworkInterfaces []Node
 	dstNetworkInterfaces []Node
 	// grouped connectivity result:

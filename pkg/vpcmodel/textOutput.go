@@ -3,6 +3,7 @@ package vpcmodel
 import (
 	"errors"
 	"fmt"
+	"strings"
 )
 
 type TextOutputFormatter struct {
@@ -26,11 +27,25 @@ func headerOfAnalyzedVPC(uc OutputUseCase, vpcName, vpc2Name string, c1 *VPCConf
 		if explanation.connQuery != nil {
 			connStr = " for " + explanation.connQuery.String()
 		}
-		return fmt.Sprintf("Connectivity explanation%s between %s and "+
-			"%s\n===================================================================================================\n\n",
-			connStr, explanation.src, explanation.dst), nil
+		srcNetworkInterfaces := explainNetworkInterfaces(explanation.srcNetworkInterfaces)
+		dstNetworkInterfaces := explainNetworkInterfaces(explanation.dstNetworkInterfaces)
+		return fmt.Sprintf("Connectivity explanation%s between %s%s and "+
+			"%s%s\n===================================================================================================\n\n",
+			connStr, explanation.src, srcNetworkInterfaces, explanation.dst, dstNetworkInterfaces), nil
 	}
 	return "", nil // should never get here
+}
+
+// in case the src/dst of a network interface given as an internal address connected to network interface
+func explainNetworkInterfaces(nodes []Node) string {
+	if len(nodes) == 0 {
+		return ""
+	}
+	networkinterfaces := make([]string, len(nodes))
+	for i, node := range nodes {
+		networkinterfaces[i] = node.Name()
+	}
+	return " (" + strings.Join(networkinterfaces, ",") + ") "
 }
 
 func (t *TextOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
