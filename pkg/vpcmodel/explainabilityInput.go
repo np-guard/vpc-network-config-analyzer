@@ -3,6 +3,7 @@ package vpcmodel
 import (
 	"errors"
 	"fmt"
+
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
@@ -56,7 +57,7 @@ func (c *VPCConfig) getSrcOrDstInputNode(name, srcOrDst string) (nodes []Node, i
 		return nil, false, fmt.Errorf("illegal %v: %v", srcOrDst, err.Error())
 	}
 	if len(outNodes) == 0 {
-		return nil, false, errors.New(fmt.Sprintf("%v %v %v", srcOrDst, name, noValidInputErr))
+		return nil, false, fmt.Errorf("%v %v %v", srcOrDst, name, noValidInputErr)
 	}
 	return outNodes, isInternalIP, nil
 }
@@ -136,8 +137,8 @@ func (c *VPCConfig) getNodesFromAddress(ipOrCidr string) (nodes []Node, internal
 	isExternal := !inputIPBlock.Intersection(publicInternet).Empty()
 	isInternal := !inputIPBlock.ContainedIn(publicInternet)
 	if isInternal && isExternal {
-		return nil, false, errors.New(fmt.Sprintf("%s contains external and internal addresses which is not supported. "+
-			"src, dst should be external *or* internal address", ipOrCidr))
+		return nil, false, fmt.Errorf("%s contains external and internal addresses which is not supported. "+
+			"src, dst should be external *or* internal address", ipOrCidr)
 	}
 	if isExternal { // 3.
 		nodes, err = c.getCidrExternalNodes(inputIPBlock)
@@ -149,7 +150,7 @@ func (c *VPCConfig) getNodesFromAddress(ipOrCidr string) (nodes []Node, internal
 		}
 		// a given internal address should have vsi connected to it
 		if networkInterfaces == nil {
-			return nil, true, errors.New(fmt.Sprintf("No network interfaces are connected to %s", ipOrCidr))
+			return nil, true, fmt.Errorf("no network interfaces are connected to %s", ipOrCidr)
 		}
 		return networkInterfaces, true, nil
 	}
