@@ -46,7 +46,7 @@ func (c *VPCConfig) srcDstInputToNodes(srcName, dstName string) (srcNodes, dstNo
 	if !srcNodes[0].IsInternal() && !dstNodes[0].IsInternal() {
 		return nil, nil, false, false, fmt.Errorf("both src %v and dst %v are external", srcName, dstName)
 	}
-	return srcNodes, dstNodes, isDstInternalIP, isDstInternalIP, nil
+	return srcNodes, dstNodes, isSrcInternalIP, isDstInternalIP, nil
 }
 
 func (c *VPCConfig) getSrcOrDstInputNode(name, srcOrDst string) (nodes []Node, internalIP bool, err error) {
