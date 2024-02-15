@@ -1,6 +1,7 @@
 package vpcmodel
 
 import (
+	"errors"
 	"fmt"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
@@ -55,7 +56,7 @@ func (c *VPCConfig) getSrcOrDstInputNode(name, srcOrDst string) (nodes []Node, i
 		return nil, false, fmt.Errorf("illegal %v: %v", srcOrDst, err.Error())
 	}
 	if len(outNodes) == 0 {
-		return nil, false, fmt.Errorf(fmt.Sprintf("%v %v %v", srcOrDst, name, noValidInputErr))
+		return nil, false, errors.New(fmt.Sprintf("%v %v %v", srcOrDst, name, noValidInputErr))
 	}
 	return outNodes, isInternalIP, nil
 }
@@ -135,7 +136,7 @@ func (c *VPCConfig) getNodesFromAddress(ipOrCidr string) (nodes []Node, internal
 	isExternal := !inputIPBlock.Intersection(publicInternet).Empty()
 	isInternal := !inputIPBlock.ContainedIn(publicInternet)
 	if isInternal && isExternal {
-		return nil, false, fmt.Errorf(fmt.Sprintf("%s contains external and internal addresses which is not supported. "+
+		return nil, false, errors.New(fmt.Sprintf("%s contains external and internal addresses which is not supported. "+
 			"src, dst should be external *or* internal address", ipOrCidr))
 	}
 	if isExternal { // 3.
@@ -148,7 +149,7 @@ func (c *VPCConfig) getNodesFromAddress(ipOrCidr string) (nodes []Node, internal
 		}
 		// a given internal address should have vsi connected to it
 		if networkInterfaces == nil {
-			return nil, true, fmt.Errorf(fmt.Sprintf("No network interfaces are connected to %s", ipOrCidr))
+			return nil, true, errors.New(fmt.Sprintf("No network interfaces are connected to %s", ipOrCidr))
 		}
 		return networkInterfaces, true, nil
 	}
@@ -199,7 +200,7 @@ func (c *VPCConfig) getNodesWithinInternalAddress(inputIPBlock *common.IPBlock) 
 	for _, node := range c.Nodes {
 		networkInterfaceIPBlock = common.NewIPBlockFromCidrOrAddress(node.Cidr())
 		if networkInterfaceIPBlock == nil {
-			return nil, fmt.Errorf(fmt.Sprintf("NP-guard error: was not able to create IPBlock to %v",
+			return nil, errors.New(fmt.Sprintf("NP-guard error: was not able to create IPBlock to %v",
 				node.Name()))
 		}
 		contained := networkInterfaceIPBlock.ContainedIn(inputIPBlock)
