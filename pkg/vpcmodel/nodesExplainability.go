@@ -68,6 +68,10 @@ type Explanation struct {
 	rulesAndDetails *rulesAndConnDetails // rules and more details for a single src->dst
 	src             string
 	dst             string
+	// the following two properties are for the case src/dst are given as internal address connected to network interface
+	// this information should be handy
+	srcNetworkInterfaces []Node
+	dstNetworkInterfaces []Node
 	// grouped connectivity result:
 	// grouping common explanation lines with common src/dst (internal node) and different dst/src (external node)
 	// [required due to computation with disjoint ip-blocks]
@@ -111,7 +115,8 @@ func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.Conne
 		return nil, err4
 	}
 
-	return &Explanation{c, connQuery, &rulesAndDetails, src, dst, groupedLines.GroupedLines}, nil
+	return &Explanation{c, connQuery, &rulesAndDetails, src, dst, nil, nil,
+		groupedLines.GroupedLines}, nil
 }
 
 // computeExplainRules computes the egress and ingress rules contributing to the (existing or missing) connection <src, dst>
