@@ -117,10 +117,13 @@ func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.Conne
 // computeExplainRules computes the egress and ingress rules contributing to the (existing or missing) connection <src, dst>
 func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node,
 	conn *common.ConnectionSet) (rulesAndConn rulesAndConnDetails, err error) {
-	rulesAndConn = make(rulesAndConnDetails, len(srcNodes)*len(dstNodes))
-	i := 0
+	// the size is not known in this stage due to the corner case in which we have the same node both in srcNodes and dstNodes
+	rulesAndConn = make(rulesAndConnDetails, 0)
 	for _, src := range srcNodes {
 		for _, dst := range dstNodes {
+			if src.Name() == dst.Name() {
+				continue
+			}
 			allowRules, denyRules, err := c.getRulesOfConnection(src, dst, conn)
 			if err != nil {
 				return nil, err
@@ -128,8 +131,7 @@ func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node,
 			rulesThisSrcDst := &srcDstDetails{src, dst, false, false, false,
 				common.NewConnectionSet(false), nil, nil, allowRules,
 				nil, denyRules, nil, nil}
-			rulesAndConn[i] = rulesThisSrcDst
-			i++
+			rulesAndConn = append(rulesAndConn, rulesThisSrcDst)
 		}
 	}
 	return rulesAndConn, nil
