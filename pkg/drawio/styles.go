@@ -144,27 +144,36 @@ func (stl *drawioStyles) ConnectivityColor(tn TreeNodeInterface) string {
 }
 func (stl *drawioStyles) ConnectivityLabelPos(tn TreeNodeInterface) string {
 	points := getLineAbsolutePoints(tn.(LineTreeNodeInterface))
-	x,y := (points[0].X + points[1].X)/2 , (points[0].Y + points[1].Y)/2
-	if len(points) > 2{
-		x,y = points[1].X,  points[1].Y
+	x, y := (points[0].X+points[1].X)/2, (points[0].Y+points[1].Y)/2
+	if len(points) > 2 {
+		x, y = points[1].X, points[1].Y
 	}
 	return fmt.Sprintf("padding-top: %dpx; margin-left: %dpx;", y, x)
 }
 
-
 func (stl *drawioStyles) ConnectivityPoints(tn TreeNodeInterface) string {
 	line := tn.(LineTreeNodeInterface)
 	points := getLineAbsolutePoints(line)
-	sx, sy, _ := currentSrcConnectionPoint(tn.(LineTreeNodeInterface).Src(), points[0], points[1])
-	dx, dy, _ := currentSrcConnectionPoint(tn.(LineTreeNodeInterface).Dst(), points[len(points)-1], points[len(points)-2])
-	points[0].X, points[0].Y = sx, sy
-	points[len(points)-1].X, points[len(points)-1].Y = dx, dy
+	if line.Src() == line.Dst() && len(points) == 2 {
+		p := point{points[0].X + line.Src().Width()/2, points[0].Y - iconSize/2}
+		points = []point{
+			p,
+			point{p.X + iconSize, p.Y},
+			point{p.X + iconSize, p.Y + iconSize},
+			point{p.X, p.Y + iconSize},
+		}
+	} else {
+		sx, sy, _ := currentSrcConnectionPoint(line.Src(), points[0], points[1])
+		dx, dy, _ := currentSrcConnectionPoint(line.Dst(), points[len(points)-1], points[len(points)-2])
+		points[0].X, points[0].Y = sx, sy
+		points[len(points)-1].X, points[len(points)-1].Y = dx, dy
+		// line.setLabel(fmt.Sprintf("%d->%d", sp, dp))
+	}
 	pointsStr := fmt.Sprintf("M %d %d", points[0].X, points[0].Y)
-	// line.setLabel(fmt.Sprintf("%d->%d", sp, dp))
 	for _, point := range points[1:] {
 		pointsStr += fmt.Sprintf(" L %d %d", point.X, point.Y)
 	}
-		return pointsStr
+	return pointsStr
 }
 
 func currentSrcConnectionPoint(tn TreeNodeInterface, center, out point) (x, y, p int) {
@@ -180,33 +189,33 @@ func currentSrcConnectionPoint(tn TreeNodeInterface, center, out point) (x, y, p
 	case dx == 0 && dy > 0: //8
 		return srcX, srcY + srcHight/2, 8
 	case dx < 0 && dy == 0:
-		return srcX - srcWidth/2, srcY , 12
+		return srcX - srcWidth/2, srcY, 12
 	case dx == 0 && dy < 0:
-		return srcX, srcY - srcHight/2 , 16
+		return srcX, srcY - srcHight/2, 16
 	case dx > 0 && dy > 0 && srcHight*dx == srcWidth*dy:
-		return srcX + srcWidth/2, srcY + srcHight/2 ,6
+		return srcX + srcWidth/2, srcY + srcHight/2, 6
 	case dx < 0 && dy > 0 && -srcHight*dx == srcWidth*dy:
-		return srcX - srcWidth/2, srcY + srcHight/2 ,10
+		return srcX - srcWidth/2, srcY + srcHight/2, 10
 	case dx < 0 && dy < 0 && srcHight*dx == srcWidth*dy:
-		return srcX - srcWidth/2, srcY - srcHight/2 ,14
+		return srcX - srcWidth/2, srcY - srcHight/2, 14
 	case dx > 0 && dy < 0 && -srcHight*dx == srcWidth*dy:
-		return srcX + srcWidth/2, srcY - srcHight/2 ,2
+		return srcX + srcWidth/2, srcY - srcHight/2, 2
 	case dx > 0 && dy > 0 && srcHight*dx > srcWidth*dy:
-		return srcX + srcWidth/2, srcY + srcWidth*dy/dx/2 ,5
+		return srcX + srcWidth/2, srcY + srcWidth*dy/dx/2, 5
 	case dx > 0 && dy > 0 && srcHight*dx < srcWidth*dy:
-		return srcX + srcHight*dx/dy/2, srcY + srcHight/2 ,7
+		return srcX + srcHight*dx/dy/2, srcY + srcHight/2, 7
 	case dx < 0 && dy > 0 && -srcHight*dx < srcWidth*dy:
-		return srcX + srcHight*dx/dy/2, srcY + srcHight/2 ,9
+		return srcX + srcHight*dx/dy/2, srcY + srcHight/2, 9
 	case dx < 0 && dy > 0 && -srcHight*dx > srcWidth*dy:
-		return srcX - srcWidth/2, srcY - srcWidth*dy/dx/2 ,11
+		return srcX - srcWidth/2, srcY - srcWidth*dy/dx/2, 11
 	case dx < 0 && dy < 0 && srcHight*dx < srcWidth*dy:
-		return srcX - srcWidth/2, srcY - srcWidth*dy/dx/2 ,13
+		return srcX - srcWidth/2, srcY - srcWidth*dy/dx/2, 13
 	case dx < 0 && dy < 0 && srcHight*dx > srcWidth*dy:
-		return srcX - srcHight*dx/dy/2, srcY - srcHight/2 ,15
+		return srcX - srcHight*dx/dy/2, srcY - srcHight/2, 15
 	case dx > 0 && dy < 0 && -srcHight*dx > srcWidth*dy:
-		return srcX - srcHight*dx/dy/2, srcY - srcHight/2 ,1
+		return srcX - srcHight*dx/dy/2, srcY - srcHight/2, 1
 	case dx > 0 && dy < 0 && -srcHight*dx < srcWidth*dy:
-		return srcX + srcWidth/2, srcY + srcWidth*dy/dx/2 ,3
+		return srcX + srcWidth/2, srcY + srcWidth*dy/dx/2, 3
 	}
 	return srcX, srcY, 0
 }
