@@ -1,5 +1,7 @@
 package common
 
+import "github.com/np-guard/models/pkg/hypercubes"
+
 const (
 	// StatefulUnknown is the default value for a ConnectionSet object,
 	StatefulUnknown int = iota
@@ -77,9 +79,9 @@ func (conn *ConnectionSet) switchSrcDstPorts() *ConnectionSet {
 			if !srcPorts.Equal(*getDimensionDomain(srcPort)) || !dstPorts.Equal(*getDimensionDomain(dstPort)) {
 				newCube := copyCube(cube)
 				newCube[srcPort], newCube[dstPort] = newCube[dstPort], newCube[srcPort]
-				res.connectionProperties = res.connectionProperties.Union(CreateFromCube(newCube))
+				res.connectionProperties = res.connectionProperties.Union(hypercubes.CreateFromCube(newCube))
 			} else {
-				res.connectionProperties = res.connectionProperties.Union(CreateFromCube(cube))
+				res.connectionProperties = res.connectionProperties.Union(hypercubes.CreateFromCube(cube))
 			}
 		}
 	}
@@ -87,5 +89,5 @@ func (conn *ConnectionSet) switchSrcDstPorts() *ConnectionSet {
 }
 
 func NewConnectionSetWithStateful(all bool, isStateful int) *ConnectionSet {
-	return &ConnectionSet{AllowAll: all, connectionProperties: NewCanonicalHypercubeSet(numDimensions), IsStateful: isStateful}
+	return &ConnectionSet{AllowAll: all, connectionProperties: hypercubes.NewCanonicalHypercubeSet(numDimensions), IsStateful: isStateful}
 }
