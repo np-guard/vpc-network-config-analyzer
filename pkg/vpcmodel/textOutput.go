@@ -29,9 +29,10 @@ func headerOfAnalyzedVPC(uc OutputUseCase, vpcName, vpc2Name string, c1 *VPCConf
 		}
 		srcNetworkInterfaces := explainNetworkInterfaces(explanation.srcNetworkInterfacesFromIP)
 		dstNetworkInterfaces := explainNetworkInterfaces(explanation.dstNetworkInterfacesFromIP)
-		return fmt.Sprintf("Connectivity explanation%s between %s%s and "+
-			"%s%s\n===================================================================================================\n\n",
-			connStr, explanation.src, srcNetworkInterfaces, explanation.dst, dstNetworkInterfaces), nil
+		header1 := fmt.Sprintf("Connectivity explanation%s between %s%s and %s%s",
+			connStr, explanation.src, srcNetworkInterfaces, explanation.dst, dstNetworkInterfaces)
+		header2 := strings.Repeat("=", len(header1))
+		return header1 + "\n" + header2 + "\n\n", nil
 	}
 	return "", nil // should never get here
 }
@@ -45,7 +46,7 @@ func explainNetworkInterfaces(nodes []Node) string {
 	for i, node := range nodes {
 		networkinterfaces[i] = node.Name()
 	}
-	return " (" + strings.Join(networkinterfaces, ",") + ") "
+	return " (" + strings.Join(networkinterfaces, ", ") + ")"
 }
 
 func (t *TextOutputFormatter) WriteOutput(c1, c2 *VPCConfig,

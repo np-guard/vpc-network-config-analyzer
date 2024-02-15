@@ -1,5 +1,5 @@
 Connectivity explanation between vsi2-ky[10.240.20.4] and vsi1-ky[10.240.10.4]
-===================================================================================================
+==============================================================================
 
 The following connection exists between vsi2-ky[10.240.20.4] and vsi1-ky[10.240.10.4]: All Connections
 Egress: security group sg2-ky allows connection (with allow rules); network ACL acl2-ky allows connection (with allow rules)
