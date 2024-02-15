@@ -84,6 +84,12 @@ func (m *mockSubnet) VPC() VPCResourceIntf {
 	return nil
 }
 
+func newConnectionSetWithStateful(all bool, isStateful int) *common.ConnectionSet {
+	res := common.NewConnectionSet(all)
+	res.IsStateful = isStateful
+	return res
+}
+
 func newVPCConfigTest1() (*VPCConfig, *VPCConnectivity) {
 	res := &VPCConfig{Nodes: []Node{}}
 	res.Nodes = append(res.Nodes,
@@ -167,11 +173,11 @@ func configStatefulGrouping() (*VPCConfig, *VPCConnectivity) {
 	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0], res.Nodes[3]}})
 
 	res1 := &VPCConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], common.NewConnectionSetWithStateful(true, common.StatefulTrue))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], common.NewConnectionSetWithStateful(true, common.StatefulTrue))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[3], res.Nodes[1], common.NewConnectionSetWithStateful(true, common.StatefulTrue))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], newConnectionSetWithStateful(true, common.StatefulTrue))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], newConnectionSetWithStateful(true, common.StatefulTrue))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[3], res.Nodes[1], newConnectionSetWithStateful(true, common.StatefulTrue))
 	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[3], res.Nodes[2],
-		common.NewConnectionSetWithStateful(true, common.StatefulFalse))
+		newConnectionSetWithStateful(true, common.StatefulFalse))
 
 	return res, res1
 }

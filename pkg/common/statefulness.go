@@ -66,7 +66,7 @@ func (conn *ConnectionSet) tcpConn() *ConnectionSet {
 // For TCP the src and dst ports on relevant cubes are being switched.
 func (conn *ConnectionSet) switchSrcDstPorts() *ConnectionSet {
 	if conn.AllowAll || conn.IsEmpty() {
-		return conn
+		return conn.Copy()
 	}
 	res := NewConnectionSet(false)
 	cubes := conn.connectionProperties.GetCubesList()
@@ -86,8 +86,4 @@ func (conn *ConnectionSet) switchSrcDstPorts() *ConnectionSet {
 		}
 	}
 	return res
-}
-
-func NewConnectionSetWithStateful(all bool, isStateful int) *ConnectionSet {
-	return &ConnectionSet{AllowAll: all, connectionProperties: hypercubes.NewCanonicalHypercubeSet(numDimensions), IsStateful: isStateful}
 }

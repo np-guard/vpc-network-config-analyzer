@@ -134,7 +134,11 @@ func NewConnectionSetWithCube(cube *hypercubes.CanonicalHypercubeSet) *Connectio
 }
 
 func (conn *ConnectionSet) Copy() *ConnectionSet {
-	return &ConnectionSet{AllowAll: conn.AllowAll, connectionProperties: conn.connectionProperties.Copy()}
+	return &ConnectionSet{
+		AllowAll:             conn.AllowAll,
+		connectionProperties: conn.connectionProperties.Copy(),
+		IsStateful:           conn.IsStateful,
+	}
 }
 
 func (conn *ConnectionSet) Intersection(other *ConnectionSet) *ConnectionSet {
