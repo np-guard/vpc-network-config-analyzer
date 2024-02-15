@@ -1,5 +1,4 @@
-Connectivity for VPC ky-testenv-vpc
-combined connections between subnets:
+Subnet connectivity for VPC ky-testenv-vpc
 ky-testenv-edge-subnet-1 => Public Internet (all ranges) : All Connections
 ky-testenv-edge-subnet-1 => ky-testenv-edge-subnet-2 : All Connections
 ky-testenv-edge-subnet-1 => ky-testenv-edge-subnet-3 : All Connections

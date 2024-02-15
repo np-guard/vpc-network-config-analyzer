@@ -496,6 +496,9 @@ func (g *GroupConnLines) computeGroupingForDiff() error {
 
 // get the grouped connectivity output
 func (g *GroupConnLines) String() string {
+	if len(g.GroupedLines) == 0 {
+		return "<nothing to report>\n"
+	}
 	linesStr := make([]string, len(g.GroupedLines))
 	for i, line := range g.GroupedLines {
 		linesStr[i] = line.String()

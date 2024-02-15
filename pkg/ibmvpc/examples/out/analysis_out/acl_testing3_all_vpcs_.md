@@ -1,5 +1,4 @@
-# Connectivity for VPC test-vpc1-ky
-## Endpoint connectivity report
+# Endpoint connectivity for VPC test-vpc1-ky
 | src | dst | conn |
 |-----|-----|------|
 | Public Internet (all ranges) | vsi2-ky[10.240.20.4] | All Connections |

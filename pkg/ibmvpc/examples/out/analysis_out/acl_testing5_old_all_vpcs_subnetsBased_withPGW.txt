@@ -1,5 +1,4 @@
-Connectivity for VPC test-vpc-ky
-combined connections between subnets:
+Subnet connectivity for VPC test-vpc-ky
 sub1-1-ky => Public Internet 8.8.8.8/32 : protocol: UDP dst-ports: 53
 sub1-1-ky => sub1-2-ky : protocol: TCP
 sub1-1-ky => sub1-3-ky : protocol: TCP
