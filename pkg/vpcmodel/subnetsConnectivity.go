@@ -229,11 +229,13 @@ func (c *VPCConfig) GetSubnetsConnectivity(includePGW, grouping bool) (*VPCsubne
 	if err3 := res.computeAllowedConnsCombined(); err3 != nil {
 		return nil, err3
 	}
-	res.computeStatefulConnections()
-
-	groupedConnectivity, err4 := newGroupConnLinesSubnetConnectivity(c, res, grouping)
-	if err4 != nil {
+	if err4 := res.computeStatefulConnections(); err4 != nil {
 		return nil, err4
+	}
+
+	groupedConnectivity, err5 := newGroupConnLinesSubnetConnectivity(c, res, grouping)
+	if err5 != nil {
+		return nil, err5
 	}
 	res.GroupedConnectivity = groupedConnectivity
 
@@ -322,7 +324,7 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() error {
 	return nil
 }
 
-func (v *VPCsubnetConnectivity) computeStatefulConnections() {
+func (v *VPCsubnetConnectivity) computeStatefulConnections() error {
 	for src, endpointConns := range v.AllowedConnsCombined {
 		for dst, conn := range endpointConns {
 			if conn.IsEmpty() {
@@ -339,18 +341,12 @@ func (v *VPCsubnetConnectivity) computeStatefulConnections() {
 				// from external nodes can not be initiated for pgw
 				otherDirectionConn = v.AllowedConns[src].IngressAllowedConns[dst]
 			default:
+				return fmt.Errorf("computeStatefulConnections: unexpected type for input dst")
 			}
-			conn.IsStateful = common.StatefulFalse
-			if otherDirectionConn == nil {
-				continue
-			}
-			connsSwitchPortsDirection := conn.ResponseConnection()
-			statefulCombinedConn := connsSwitchPortsDirection.Intersection(otherDirectionConn)
-			if statefulCombinedConn.Equal(connsSwitchPortsDirection) {
-				conn.IsStateful = common.StatefulTrue
-			}
+			conn.ConnectionWithStatefulness(otherDirectionConn)
 		}
 	}
+	return nil
 }
 
 func (v *VPCsubnetConnectivity) String() string {

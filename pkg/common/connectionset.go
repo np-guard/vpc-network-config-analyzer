@@ -112,12 +112,6 @@ func getDimensionDomainsList() []*CanonicalIntervalSet {
 // icmp type
 // icmp code
 
-const (
-	StatefulUnknown int = iota
-	StatefulTrue
-	StatefulFalse
-)
-
 type ConnectionSet struct {
 	AllowAll             bool
 	connectionProperties *CanonicalHypercubeSet
@@ -126,10 +120,6 @@ type ConnectionSet struct {
 
 func NewConnectionSet(all bool) *ConnectionSet {
 	return &ConnectionSet{AllowAll: all, connectionProperties: NewCanonicalHypercubeSet(numDimensions)}
-}
-
-func NewConnectionSetWithStateful(all bool, isStateful int) *ConnectionSet {
-	return &ConnectionSet{AllowAll: all, connectionProperties: NewCanonicalHypercubeSet(numDimensions), IsStateful: isStateful}
 }
 
 func NewConnectionSetWithCube(cube *CanonicalHypercubeSet) *ConnectionSet {
@@ -475,15 +465,6 @@ func ConnToJSONRep(c *ConnectionSet) ConnDetails {
 	return ConnDetails(res)
 }
 
-// EnhancedString returns a connection string with possibly added asterisk for unidirectional connection,
-// and bool result indicating if such asterisk was added
-func (conn *ConnectionSet) EnhancedString() string {
-	if conn.IsStateful == StatefulFalse {
-		return conn.String() + " *"
-	}
-	return conn.String()
-}
-
 // NewTCPConnectionSet returns a ConnectionSet object with TCP protocol (all ports)
 func NewTCPConnectionSet() *ConnectionSet {
 	res := NewConnectionSet(false)
@@ -499,37 +480,6 @@ func copyCube(cube []*CanonicalIntervalSet) []*CanonicalIntervalSet {
 		newCube[i] = &newInterval
 	}
 	return newCube
-}
-
-// ResponseConnection returns a new ConnectionSet object, built from the input ConnectionSet object,
-// which is the response's should be connection.
-// For TCP and UDP the src and dst ports on relevant cubes are being switched,
-// and for ICMP (which does not have src or dst ports) the connection is copied on relevant cubes
-func (conn *ConnectionSet) ResponseConnection() *ConnectionSet {
-	if conn.AllowAll || conn.IsEmpty() {
-		return conn
-	}
-	res := NewConnectionSet(false)
-	cubes := conn.connectionProperties.GetCubesList()
-
-	for _, cube := range cubes {
-		protocols := cube[protocol]
-		if protocols.Contains(TCP) || protocols.Contains(UDP) {
-			srcPorts := cube[srcPort]
-			dstPorts := cube[dstPort]
-			// if the entire domain is enabled by both src and dst no need to switch
-			if !srcPorts.Equal(*getDimensionDomain(srcPort)) || !dstPorts.Equal(*getDimensionDomain(dstPort)) {
-				newCube := copyCube(cube)
-				newCube[srcPort], newCube[dstPort] = newCube[dstPort], newCube[srcPort]
-				res.connectionProperties = res.connectionProperties.Union(CreateFromCube(newCube))
-			} else {
-				res.connectionProperties = res.connectionProperties.Union(CreateFromCube(cube))
-			}
-		} else if protocols.Contains(ICMP) {
-			res.connectionProperties = res.connectionProperties.Union(CreateFromCube(cube))
-		}
-	}
-	return res
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -244,15 +244,9 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections() {
 			// can src ingress from dst?
 			SrcAllowedIngressFromDst = v.getPerLayerConnectivity(statelessLayerName, dstNode, srcNode, true)
 			combinedDstToSrc := DstAllowedEgressToSrc.Intersection(SrcAllowedIngressFromDst)
-			// flip src/dst ports before intersection
-			combinedDstToSrcSwitchPortsDirection := combinedDstToSrc.ResponseConnection()
-			statefulCombinedConn := conn.Intersection(combinedDstToSrcSwitchPortsDirection)
+			// ConnectionWithStatefulness updates conn with IsStateful value, and returns the stateful subset
+			statefulCombinedConn := conn.ConnectionWithStatefulness(combinedDstToSrc)
 			v.AllowedConnsCombinedStateful.updateAllowedConnsMap(src, dst, statefulCombinedConn)
-			if !conn.Equal(statefulCombinedConn) {
-				conn.IsStateful = common.StatefulFalse
-			} else {
-				conn.IsStateful = common.StatefulTrue
-			}
 		}
 	}
 }
