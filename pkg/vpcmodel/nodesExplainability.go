@@ -116,7 +116,10 @@ func (c *VPCConfig) getVsiNode(name string) Node {
 // returns the list of all internal nodes with this address
 func (c *VPCConfig) GetNodesWithinAddress(ipAddress string) (networkInterfaceNodes []Node, err error) {
 	var addressIPblock, networkInterfaceIPBlock *common.IPBlock
-	addressIPblock = common.NewIPBlockFromCidrOrAddress(ipAddress)
+	addressIPblock, err = common.NewIPBlockFromCidrOrAddress(ipAddress)
+	if err != nil {
+		return nil, err
+	}
 
 	networkInterfaceNodes = []Node{}
 	for _, node := range c.Nodes {
@@ -164,9 +167,9 @@ func (c *VPCConfig) GetNodesOfVsi(vsi string) ([]Node, error) {
 //  2. Calculate from N and the cidr block, disjoint IP blocks
 //  3. Return the nodes created from each block from 2 contained in the input cidr
 func (c *VPCConfig) getCidrExternalNodes(cidr string) (cidrNodes []Node, err error) {
-	cidrsIPBlock := common.NewIPBlockFromCidrOrAddress(cidr)
-	if cidrsIPBlock == nil { // string cidr does not represent a legal cidr
-		return nil, nil
+	cidrsIPBlock, err := common.NewIPBlockFromCidrOrAddress(cidr)
+	if err != nil { // string cidr does not represent a legal cidr
+		return nil, err
 	}
 	// 1.
 	vpcConfigNodesExternalBlock := []*common.IPBlock{}
@@ -174,7 +177,7 @@ func (c *VPCConfig) getCidrExternalNodes(cidr string) (cidrNodes []Node, err err
 		if node.IsInternal() {
 			continue
 		}
-		thisNodeBlock := common.NewIPBlockFromCidr(node.Cidr())
+		thisNodeBlock := node.IPBlock()
 		vpcConfigNodesExternalBlock = append(vpcConfigNodesExternalBlock, thisNodeBlock)
 	}
 	// 2.
@@ -449,6 +452,7 @@ func (c *VPCConfig) processInput(srcName, dstName string) (srcNodes, dstNodes []
 	if err != nil {
 		return nil, nil, err
 	}
+	// TODO: next 'if' seems to be redundant now
 	if len(srcNodes) == 0 {
 		return nil, nil, fmt.Errorf("src %v does not represent a VSI or an external IP", srcName)
 	}
@@ -521,7 +525,7 @@ func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
 	if node.IsInternal() { // node is not external - nothing to do
 		return node, nil
 	}
-	nodeIPBlock := common.NewIPBlockFromCidr(node.Cidr())
+	nodeIPBlock := node.IPBlock()
 	if nodeIPBlock == nil { // string cidr does not represent a legal cidr, would be handled earlier
 		return nil, fmt.Errorf("node %v does not refer to a legal IP", node.Name())
 	}
@@ -529,7 +533,7 @@ func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
 		if configNode.IsInternal() {
 			continue
 		}
-		configNodeIPBlock := common.NewIPBlockFromCidr(configNode.Cidr())
+		configNodeIPBlock := configNode.IPBlock()
 		if nodeIPBlock.ContainedIn(configNodeIPBlock) {
 			return configNode, nil
 		}

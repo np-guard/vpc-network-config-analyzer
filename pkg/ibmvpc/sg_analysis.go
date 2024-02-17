@@ -53,6 +53,7 @@ func (sga *SGAnalyzer) getRemoteCidr(remote vpc1.SecurityGroupRuleRemoteIntf) (*
 	var target *common.IPBlock
 	var cidr string
 	var cidrRes string
+	var err error
 	//TODO: handle other remote types:
 	// SecurityGroupRuleRemoteIP
 	// SecurityGroupRuleRemoteSecurityGroupReference
@@ -63,11 +64,17 @@ func (sga *SGAnalyzer) getRemoteCidr(remote vpc1.SecurityGroupRuleRemoteIntf) (*
 		switch {
 		case remoteObj.CIDRBlock != nil:
 			cidr = *remoteObj.CIDRBlock
-			target = common.NewIPBlockFromCidr(cidr)
+			target, err = common.NewIPBlockFromCidr(cidr)
+			if err != nil {
+				return nil, "", err
+			}
 			cidrRes = target.ToCidrList()[0]
 		case remoteObj.Address != nil:
 			address := *remoteObj.Address
-			target, _ = common.NewIPBlockFromIPAddress(address)
+			target, err = common.NewIPBlockFromIPAddress(address)
+			if err != nil {
+				return nil, "", err
+			}
 			cidrRes = target.ToCidrList()[0]
 		case remoteObj.Name != nil:
 			if remoteSg, ok := sga.sgMap[*remoteObj.Name]; ok {
@@ -305,10 +312,10 @@ func (sga *SGAnalyzer) areSGRulesDefault() bool {
 	return false
 }
 
-func (sga *SGAnalyzer) AllowedConnectivity(target string, isIngress bool) *common.ConnectionSet {
-	analyzedConns, ipb := sga.getAnalyzedConnsIPB(target, isIngress)
+func (sga *SGAnalyzer) AllowedConnectivity(target *common.IPBlock, isIngress bool) *common.ConnectionSet {
+	analyzedConns := sga.getAnalyzedConnsIPB(isIngress)
 	for definedTarget, conn := range analyzedConns.allowedConns {
-		if ipb.ContainedIn(definedTarget) {
+		if target.ContainedIn(definedTarget) {
 			return conn
 		}
 	}
@@ -320,10 +327,10 @@ func (sga *SGAnalyzer) AllowedConnectivity(target string, isIngress bool) *commo
 //  2. If connection is part of the query: is the required connection contained in the existing connection?
 //     if it does, then the contributing rules are detected: rules that intersect the required connection
 //     otherwise, the answer to the query is "no" and nil is returned
-func (sga *SGAnalyzer) rulesFilterInConnectivity(target string, connQuery *common.ConnectionSet, isIngress bool) ([]int, error) {
-	analyzedConns, ipb := sga.getAnalyzedConnsIPB(target, isIngress)
+func (sga *SGAnalyzer) rulesFilterInConnectivity(target *common.IPBlock, connQuery *common.ConnectionSet, isIngress bool) ([]int, error) {
+	analyzedConns := sga.getAnalyzedConnsIPB(isIngress)
 	for definedTarget, rules := range analyzedConns.allowRules {
-		if ipb.ContainedIn(definedTarget) {
+		if target.ContainedIn(definedTarget) {
 			if connQuery == nil {
 				return rules, nil // connection not part of query - all rules are relevant
 			}
@@ -352,12 +359,11 @@ func (sga *SGAnalyzer) getRulesRelevantConn(rules []int, conn *common.Connection
 	return relevantRules, nil
 }
 
-func (sga *SGAnalyzer) getAnalyzedConnsIPB(target string, isIngress bool) (res *ConnectivityResult, ipb *common.IPBlock) {
-	ipb = common.NewIPBlockFromCidrOrAddress(target)
+func (sga *SGAnalyzer) getAnalyzedConnsIPB(isIngress bool) (res *ConnectivityResult) {
 	if isIngress {
-		return sga.ingressConnectivity, ipb
+		return sga.ingressConnectivity
 	}
-	return sga.egressConnectivity, ipb
+	return sga.egressConnectivity
 }
 
 // StringRules returns a string with the details of the specified rules

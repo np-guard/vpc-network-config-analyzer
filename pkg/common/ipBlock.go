@@ -186,32 +186,32 @@ func addIntervalToList(ipbNew *IPBlock, ipbList []*IPBlock) []*IPBlock {
 	return ipbList
 }
 
-func NewIPBlockFromCidr(cidr string) *IPBlock {
+func NewIPBlockFromCidr(cidr string) (*IPBlock, error) {
 	res, err := NewIPBlock(cidr, []string{})
 	if err != nil {
-		return nil
+		return nil, err
 	}
-	return res
+	return res, nil
 }
 
-func NewIPBlockFromCidrOrAddress(s string) *IPBlock {
-	var res *IPBlock
+func NewIPBlockFromCidrOrAddress(s string) (*IPBlock, error) {
 	if strings.Contains(s, cidrSeparator) {
-		res = NewIPBlockFromCidr(s)
-	} else {
-		res, _ = NewIPBlockFromIPAddress(s)
+		return NewIPBlockFromCidr(s)
 	}
-	return res
+	return NewIPBlockFromIPAddress(s)
 }
 
 // NewIPBlockFromCidrList returns IPBlock object from multiple CIDRs given as list of strings
-func NewIPBlockFromCidrList(cidrsList []string) *IPBlock {
+func NewIPBlockFromCidrList(cidrsList []string) (*IPBlock, error) {
 	res := &IPBlock{ipRange: intervals.CanonicalIntervalSet{}}
 	for _, cidr := range cidrsList {
-		block := NewIPBlockFromCidr(cidr)
+		block, err := NewIPBlockFromCidr(cidr)
+		if err != nil {
+			return nil, err
+		}
 		res = res.Union(block)
 	}
-	return res
+	return res, nil
 }
 
 // NewIPBlock returns an IPBlock object from input cidr str an exceptions cidr str
@@ -350,22 +350,26 @@ func IPBlockFromIPRangeStr(ipRagneStr string) (*IPBlock, error) {
 }
 
 func GetCidrAll() *IPBlock {
-	return NewIPBlockFromCidr(CidrAll)
+	res, _ := NewIPBlockFromCidr(CidrAll)
+	return res
 }
 
 func IsAddressInSubnet(address, subnetCidr string) (bool, error) {
 	var addressIPblock, subnetIPBlock *IPBlock
-	var err error
-	if addressIPblock, err = NewIPBlockFromIPAddress(address); err != nil {
-		return false, err
+	addressIPblock, err1 := NewIPBlockFromCidrOrAddress(address)
+	subnetIPBlock, err2 := NewIPBlockFromCidr(subnetCidr)
+	if err1 != nil || err2 != nil {
+		return false, errors.Join(err1, err2)
 	}
-	subnetIPBlock = NewIPBlockFromCidr(subnetCidr)
 	return addressIPblock.ContainedIn(subnetIPBlock), nil
 }
 
-func CIDRtoIPrange(cidr string) string {
-	ipb := NewIPBlockFromCidr(cidr)
-	return ipb.ToIPRanges()
+func CIDRtoIPrange(cidr string) (string, error) {
+	ipb, err := NewIPBlockFromCidr(cidr)
+	if err != nil {
+		return "", err
+	}
+	return ipb.ToIPRanges(), nil
 }
 
 // PrefixLength returns the cidr's prefix length, assuming the ipBlock is exactly one cidr.

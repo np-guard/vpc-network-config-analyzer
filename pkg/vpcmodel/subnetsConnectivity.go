@@ -89,8 +89,7 @@ func (c *VPCConfig) ipblockToNamedResourcesInConfig(ipb *common.IPBlock, exclude
 		if exn.IsInternal() {
 			continue
 		}
-		nodeCidr := exn.Cidr()
-		nodeCidrIPB := common.NewIPBlockFromCidr(nodeCidr)
+		nodeCidrIPB := exn.IPBlock()
 		if nodeCidrIPB.ContainedIn(ipb) {
 			res = append(res, exn)
 		}
@@ -130,7 +129,10 @@ func (c *VPCConfig) convertIPbasedToSubnetBasedResult(ipconn *IPbasedConnectivit
 }
 
 func (c *VPCConfig) subnetCidrToSubnetElem(cidr string) (NodeSet, error) {
-	cidrIPBlock := common.NewIPBlockFromCidr(cidr)
+	cidrIPBlock, err := common.NewIPBlockFromCidr(cidr)
+	if err != nil {
+		return nil, err
+	}
 	elems, err := c.ipblockToNamedResourcesInConfig(cidrIPBlock, true)
 	if err != nil {
 		return nil, err

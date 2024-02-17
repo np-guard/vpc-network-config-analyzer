@@ -1,6 +1,7 @@
 package ibmvpc
 
 import (
+	"errors"
 	"fmt"
 	"slices"
 	"sort"
@@ -395,25 +396,24 @@ func (na *NACLAnalyzer) AnalyzeNACL(subnet *common.IPBlock) (
 
 // this function adds the analysis of certain subnet connectivity based on the the NACL
 // it saves the analysis results in na.analyzedSubnets
-func (na *NACLAnalyzer) addAnalysisPerSubnet(subnetCidr string) {
-	if _, ok := na.analyzedSubnets[subnetCidr]; ok {
+func (na *NACLAnalyzer) addAnalysisPerSubnet(subnet *Subnet) {
+	if _, ok := na.analyzedSubnets[subnet.cidr]; ok {
 		return
 	}
-	subnetCidrIPBlock := common.NewIPBlockFromCidr(subnetCidr)
-	ingressRes, egressRes := na.AnalyzeNACL(subnetCidrIPBlock)
-	na.analyzedSubnets[subnetCidr] = NewAnalysisResultPerSubnet(subnetCidr, ingressRes, egressRes)
+	ingressRes, egressRes := na.AnalyzeNACL(subnet.ipblock)
+	na.analyzedSubnets[subnet.cidr] = NewAnalysisResultPerSubnet(subnet.cidr, ingressRes, egressRes)
 }
 
 // GeneralConnectivityPerSubnet returns the str of the connectivity for analyzed subnet input
-func (na *NACLAnalyzer) GeneralConnectivityPerSubnet(subnetCidr string) (
+func (na *NACLAnalyzer) GeneralConnectivityPerSubnet(subnet *Subnet) (
 	strResult string,
 	connectivityObjResult map[string]*vpcmodel.IPbasedConnectivityResult,
 ) {
-	na.addAnalysisPerSubnet(subnetCidr)
+	na.addAnalysisPerSubnet(subnet)
 
-	strResult = "Subnet: " + subnetCidr + "\n"
-	ingressRes := na.analyzedSubnets[subnetCidr].ingressRes
-	egressRes := na.analyzedSubnets[subnetCidr].egressRes
+	strResult = "Subnet: " + subnet.cidr + "\n"
+	ingressRes := na.analyzedSubnets[subnet.cidr].ingressRes
+	egressRes := na.analyzedSubnets[subnet.cidr].egressRes
 	connectivityObjResult = map[string]*vpcmodel.IPbasedConnectivityResult{}
 
 	// map from disjointSubnetCidr to its connectivity str
@@ -453,17 +453,23 @@ func (na *NACLAnalyzer) GeneralConnectivityPerSubnet(subnetCidr string) (
 }
 
 // initConnectivityRelatedCompute performs initial computation for AllowedConnectivity and rulesFilterInConnectivity
-func (na *NACLAnalyzer) initConnectivityRelatedCompute(subnetCidr, inSubentCidr, target string,
-	isIngress bool) (analyzedConns map[string]*ConnectivityResult, targetIPblock, inSubnetIPblock *common.IPBlock) {
-	na.addAnalysisPerSubnet(subnetCidr)
+func (na *NACLAnalyzer) initConnectivityRelatedCompute(subnet *Subnet, inSubentCidr, target string,
+	isIngress bool) (
+	analyzedConns map[string]*ConnectivityResult,
+	targetIPblock, inSubnetIPblock *common.IPBlock,
+	err error) {
+	na.addAnalysisPerSubnet(subnet)
 	if isIngress {
-		analyzedConns = na.analyzedSubnets[subnetCidr].ingressRes
+		analyzedConns = na.analyzedSubnets[subnet.cidr].ingressRes
 	} else {
-		analyzedConns = na.analyzedSubnets[subnetCidr].egressRes
+		analyzedConns = na.analyzedSubnets[subnet.cidr].egressRes
 	}
-	targetIPblock = common.NewIPBlockFromCidrOrAddress(target)
-	inSubnetIPblock = common.NewIPBlockFromCidrOrAddress(inSubentCidr)
-	return analyzedConns, targetIPblock, inSubnetIPblock
+	targetIPblock, err1 := common.NewIPBlockFromCidrOrAddress(target)
+	inSubnetIPblock, err2 := common.NewIPBlockFromCidrOrAddress(inSubentCidr)
+	if err1 != nil && err2 != nil {
+		return nil, nil, nil, errors.Join(err1, err2)
+	}
+	return analyzedConns, targetIPblock, inSubnetIPblock, nil
 }
 
 const notFoundMsg = "isIngress: %t , target %s, subnetCidr: %s, inSubentCidr %s, " +
@@ -471,10 +477,13 @@ const notFoundMsg = "isIngress: %t , target %s, subnetCidr: %s, inSubentCidr %s,
 
 // AllowedConnectivity returns set of allowed connections given src/dst and direction
 // if the input subnet was not yet analyzed, it first adds its analysis to saved results
-func (na *NACLAnalyzer) AllowedConnectivity(subnetCidr, inSubentCidr, target string, isIngress bool) (*common.ConnectionSet, error) {
+func (na *NACLAnalyzer) AllowedConnectivity(subnet *Subnet, inSubentCidr, target string, isIngress bool) (*common.ConnectionSet, error) {
 	// add analysis of the given subnet
 	// analyzes per subnet disjoint cidrs (it is not necessarily entire subnet cidr)
-	analyzedConns, targetIPblock, inSubnetIPblock := na.initConnectivityRelatedCompute(subnetCidr, inSubentCidr, target, isIngress)
+	analyzedConns, targetIPblock, inSubnetIPblock, err := na.initConnectivityRelatedCompute(subnet, inSubentCidr, target, isIngress)
+	if err != nil {
+		return nil, err
+	}
 
 	for disjointSubnetCidr, analyzedConnsPerCidr := range analyzedConns {
 		disjointSubnetCidrIPblock, err := common.IPBlockFromIPRangeStr(disjointSubnetCidr)
@@ -490,18 +499,21 @@ func (na *NACLAnalyzer) AllowedConnectivity(subnetCidr, inSubentCidr, target str
 		}
 	}
 	// expecting disjoint ip-blocks, thus not expecting to get here
-	return nil, fmt.Errorf(notFoundMsg, isIngress, target, subnetCidr, inSubentCidr)
+	return nil, fmt.Errorf(notFoundMsg, isIngress, target, subnet.cidr, inSubentCidr)
 }
 
 // rulesFilterInConnectivity returns set of rules contributing to a connections given src/dst and direction
 // if conn is specified then rules contributing to that connection; otherwise to any connection src->dst
 // if the input subnet was not yet analyzed, it first adds its analysis to saved results
-func (na *NACLAnalyzer) rulesFilterInConnectivity(subnetCidr, inSubentCidr,
+func (na *NACLAnalyzer) rulesFilterInConnectivity(subnet *Subnet, subnetCidr, inSubentCidr,
 	target string, connQuery *common.ConnectionSet,
 	isIngress bool) (allow, deny []int, err error) {
 	// add analysis of the given subnet
 	// analyzes per subnet disjoint cidrs (it is not necessarily entire subnet cidr)
-	analyzedConns, targetIPblock, inSubnetIPblock := na.initConnectivityRelatedCompute(subnetCidr, inSubentCidr, target, isIngress)
+	analyzedConns, targetIPblock, inSubnetIPblock, err := na.initConnectivityRelatedCompute(subnet, inSubentCidr, target, isIngress)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	for disjointSubnetCidr, analyzedConnsPerCidr := range analyzedConns {
 		disjointSubnetCidrIPblock, err := common.IPBlockFromIPRangeStr(disjointSubnetCidr)

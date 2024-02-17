@@ -24,7 +24,7 @@ func getVPCdestSubnetsByAdvertisedRoutes(tg *TransitGateway, vpc *VPC) (res []*S
 }
 
 func isSubnetTGWDestination(tg *TransitGateway, subnet *Subnet) bool {
-	dstIPB := common.NewIPBlockFromCidrOrAddress(subnet.cidr)
+	dstIPB := subnet.ipblock
 	// TODO: routesListPerVPC is currently restricted only to the subnet's VPC, but with
 	// overlapping address prefixes the TGW may choose available route from a different VPC
 	routesListPerVPC := tg.availableRoutes[subnet.VPCRef.UID()]
@@ -56,7 +56,11 @@ func getVPCAdvertisedRoutes(tc *datamodel.TransitConnection, vpc *VPC) (res []*c
 			return nil, err
 		}
 		if matched {
-			res = append(res, common.NewIPBlockFromCidr(ap))
+			apIPBlock, err := common.NewIPBlockFromCidr(ap)
+			if err != nil {
+				return nil, err
+			}
+			res = append(res, apIPBlock)
 		}
 	}
 	return res, nil
@@ -107,8 +111,11 @@ func parseActionString(action *string) (bool, error) {
 
 // prefixLeGeMatch checks if a subnet cidr is matched by a given prefix with le/ge attributes
 func prefixLeGeMatch(prefix *string, le, ge *int64, cidr string) (bool, error) {
-	prefixIPBlock := common.NewIPBlockFromCidr(*prefix)
-	cidrBlock := common.NewIPBlockFromCidr(cidr)
+	prefixIPBlock, err1 := common.NewIPBlockFromCidr(*prefix)
+	cidrBlock, err2 := common.NewIPBlockFromCidr(cidr)
+	if err1 != nil || err2 != nil {
+		return false, errors.Join(err1, err2)
+	}
 	subnetCIDRLen, err := cidrBlock.PrefixLength()
 	if err != nil {
 		return false, err

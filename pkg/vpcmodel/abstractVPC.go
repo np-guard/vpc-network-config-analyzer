@@ -67,6 +67,7 @@ const (
 type Node interface {
 	VPCResourceIntf
 	Cidr() string
+	IPBlock() *common.IPBlock
 	IsInternal() bool
 	IsPublicInternet() bool
 }

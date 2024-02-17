@@ -39,6 +39,7 @@ type ExternalNetwork struct {
 	ResourceType     string
 	CidrStr          string
 	isPublicInternet bool
+	ipblock          *common.IPBlock
 }
 
 func (exn *ExternalNetwork) UID() string      { return exn.Name() }
@@ -47,6 +48,10 @@ func (exn *ExternalNetwork) IsExternal() bool { return true }
 
 func (exn *ExternalNetwork) Cidr() string {
 	return exn.CidrStr
+}
+
+func (exn *ExternalNetwork) IPBlock() *common.IPBlock {
+	return exn.ipblock
 }
 
 func (exn *ExternalNetwork) Name() string {
@@ -97,17 +102,28 @@ func newExternalNode(isPublicInternet bool, ipb *common.IPBlock) (Node, error) {
 		return nil, errors.New("newExternalNode: input ip-block should be of a single cidr")
 	}
 	cidr := ipb.ToCidrList()[0]
+	cidrIPBlodk, err := common.NewIPBlockFromCidr(cidr)
+	if err != nil {
+		return nil, err
+	}
 	return &ExternalNetwork{
 		ResourceType:     publicInternetNodeName,
 		CidrStr:          cidr,
-		isPublicInternet: isPublicInternet}, nil
+		isPublicInternet: isPublicInternet,
+		ipblock:          cidrIPBlodk}, nil
 }
 
-func newExternalNodeForCidr(cidr string) Node {
+func newExternalNodeForCidr(cidr string) (Node, error) {
+	cidrIPBlodk, err := common.NewIPBlockFromCidr(cidr)
+	if err != nil {
+		return nil, err
+	}
 	return &ExternalNetwork{
 		ResourceType:     publicInternetNodeName,
 		CidrStr:          cidr,
-		isPublicInternet: true}
+		isPublicInternet: true,
+		ipblock:          cidrIPBlodk,
+	}, nil
 }
 
 func GetExternalNetworkNodes(disjointRefExternalIPBlocks []*common.IPBlock) ([]Node, error) {
@@ -128,7 +144,11 @@ func GetExternalNetworkNodes(disjointRefExternalIPBlocks []*common.IPBlock) ([]N
 		}
 		cidrs := ipb.ToCidrList()
 		for _, cidr := range cidrs {
-			newNode, err := newExternalNode(isPublicInternet, common.NewIPBlockFromCidr(cidr))
+			nodeIPBlock, err := common.NewIPBlockFromCidr(cidr)
+			if err != nil {
+				return nil, err
+			}
+			newNode, err := newExternalNode(isPublicInternet, nodeIPBlock)
 			if err != nil {
 				return nil, err
 			}
