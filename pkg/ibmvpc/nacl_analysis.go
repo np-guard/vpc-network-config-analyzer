@@ -466,6 +466,8 @@ func (na *NACLAnalyzer) initConnectivityRelatedCompute(subnet *Subnet, isIngress
 const notFoundMsg = "isIngress: %t , target %s, subnetCidr: %s, inSubentCidr %s, " +
 	"could not find connectivity for given target + inSubentCidr"
 
+// TODO: Avoid some duplication if AllowedConnectivity & rulesFilterInConnectivity
+
 // AllowedConnectivity returns set of allowed connections given src/dst and direction
 // if the input subnet was not yet analyzed, it first adds its analysis to saved results
 func (na *NACLAnalyzer) AllowedConnectivity(subnet *Subnet, nodeInSubnet, targetNode vpcmodel.Node, isIngress bool) (
