@@ -1,7 +1,6 @@
 package ibmvpc
 
 import (
-	"errors"
 	"fmt"
 	"slices"
 	"sort"
@@ -453,23 +452,15 @@ func (na *NACLAnalyzer) GeneralConnectivityPerSubnet(subnet *Subnet) (
 }
 
 // initConnectivityRelatedCompute performs initial computation for AllowedConnectivity and rulesFilterInConnectivity
-func (na *NACLAnalyzer) initConnectivityRelatedCompute(subnet *Subnet, inSubentCidr, target string,
-	isIngress bool) (
-	analyzedConns map[string]*ConnectivityResult,
-	targetIPblock, inSubnetIPblock *common.IPBlock,
-	err error) {
+func (na *NACLAnalyzer) initConnectivityRelatedCompute(subnet *Subnet, isIngress bool,
+) (analyzedConns map[string]*ConnectivityResult) {
 	na.addAnalysisPerSubnet(subnet)
 	if isIngress {
 		analyzedConns = na.analyzedSubnets[subnet.cidr].ingressRes
 	} else {
 		analyzedConns = na.analyzedSubnets[subnet.cidr].egressRes
 	}
-	targetIPblock, err1 := common.NewIPBlockFromCidrOrAddress(target)
-	inSubnetIPblock, err2 := common.NewIPBlockFromCidrOrAddress(inSubentCidr)
-	if err1 != nil && err2 != nil {
-		return nil, nil, nil, errors.Join(err1, err2)
-	}
-	return analyzedConns, targetIPblock, inSubnetIPblock, nil
+	return analyzedConns
 }
 
 const notFoundMsg = "isIngress: %t , target %s, subnetCidr: %s, inSubentCidr %s, " +
@@ -477,13 +468,13 @@ const notFoundMsg = "isIngress: %t , target %s, subnetCidr: %s, inSubentCidr %s,
 
 // AllowedConnectivity returns set of allowed connections given src/dst and direction
 // if the input subnet was not yet analyzed, it first adds its analysis to saved results
-func (na *NACLAnalyzer) AllowedConnectivity(subnet *Subnet, inSubentCidr, target string, isIngress bool) (*common.ConnectionSet, error) {
+func (na *NACLAnalyzer) AllowedConnectivity(subnet *Subnet, nodeInSubnet, targetNode vpcmodel.Node, isIngress bool) (
+	*common.ConnectionSet, error) {
 	// add analysis of the given subnet
 	// analyzes per subnet disjoint cidrs (it is not necessarily entire subnet cidr)
-	analyzedConns, targetIPblock, inSubnetIPblock, err := na.initConnectivityRelatedCompute(subnet, inSubentCidr, target, isIngress)
-	if err != nil {
-		return nil, err
-	}
+	targetIPblock := targetNode.IPBlock()
+	inSubnetIPblock := nodeInSubnet.IPBlock()
+	analyzedConns := na.initConnectivityRelatedCompute(subnet, isIngress)
 
 	for disjointSubnetCidr, analyzedConnsPerCidr := range analyzedConns {
 		disjointSubnetCidrIPblock, err := common.IPBlockFromIPRangeStr(disjointSubnetCidr)
@@ -499,21 +490,22 @@ func (na *NACLAnalyzer) AllowedConnectivity(subnet *Subnet, inSubentCidr, target
 		}
 	}
 	// expecting disjoint ip-blocks, thus not expecting to get here
-	return nil, fmt.Errorf(notFoundMsg, isIngress, target, subnet.cidr, inSubentCidr)
+	return nil, fmt.Errorf(notFoundMsg, isIngress, targetNode.CidrOrAddress(), subnet.cidr, nodeInSubnet.CidrOrAddress())
 }
 
 // rulesFilterInConnectivity returns set of rules contributing to a connections given src/dst and direction
 // if conn is specified then rules contributing to that connection; otherwise to any connection src->dst
 // if the input subnet was not yet analyzed, it first adds its analysis to saved results
-func (na *NACLAnalyzer) rulesFilterInConnectivity(subnet *Subnet, subnetCidr, inSubentCidr,
-	target string, connQuery *common.ConnectionSet,
-	isIngress bool) (allow, deny []int, err error) {
+func (na *NACLAnalyzer) rulesFilterInConnectivity(subnet *Subnet,
+	nodeInSubnet, targetNode vpcmodel.Node,
+	connQuery *common.ConnectionSet,
+	isIngress bool) (
+	allow, deny []int, err error) {
 	// add analysis of the given subnet
 	// analyzes per subnet disjoint cidrs (it is not necessarily entire subnet cidr)
-	analyzedConns, targetIPblock, inSubnetIPblock, err := na.initConnectivityRelatedCompute(subnet, inSubentCidr, target, isIngress)
-	if err != nil {
-		return nil, nil, err
-	}
+	targetIPblock := targetNode.IPBlock()
+	inSubnetIPblock := nodeInSubnet.IPBlock()
+	analyzedConns := na.initConnectivityRelatedCompute(subnet, isIngress)
 
 	for disjointSubnetCidr, analyzedConnsPerCidr := range analyzedConns {
 		disjointSubnetCidrIPblock, err := common.IPBlockFromIPRangeStr(disjointSubnetCidr)
@@ -542,7 +534,7 @@ func (na *NACLAnalyzer) rulesFilterInConnectivity(subnet *Subnet, subnetCidr, in
 		}
 	}
 	// expecting disjoint ip-blocks, thus not expecting to get here
-	return nil, nil, fmt.Errorf(notFoundMsg, isIngress, target, subnetCidr, inSubentCidr)
+	return nil, nil, fmt.Errorf(notFoundMsg, isIngress, targetNode.CidrOrAddress(), subnet.cidr, nodeInSubnet.CidrOrAddress())
 }
 
 // given a list of allow and deny rules and a connection,

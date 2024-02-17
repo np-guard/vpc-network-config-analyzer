@@ -417,65 +417,65 @@ func (n *NACL) GeneralConnectivityPerSubnet(subnet *Subnet) string {
 	return res
 }
 
-func getNodeCidrs(n vpcmodel.Node) (subnetCidr, nodeCidr string, subnet *Subnet, err error) {
-	switch t := n.(type) {
+func subnetFromNode(node vpcmodel.Node) (subnet *Subnet, err error) {
+	switch concreteNode := node.(type) {
 	case *NetworkInterface:
-		return t.subnet.cidr, t.CidrOrAddress(), t.subnet, nil
+		return concreteNode.subnet, nil
 	case *IKSNode:
-		return t.subnet.cidr, t.CidrOrAddress(), t.subnet, nil
+		return concreteNode.subnet, nil
 	case *ReservedIP:
-		return t.subnet.cidr, t.CidrOrAddress(), t.subnet, nil
+		return concreteNode.subnet, nil
 	default:
-		return "", "", nil, fmt.Errorf("cannot get cidr for node: %+v", n)
+		return nil, fmt.Errorf("cannot get cidr for node: %+v", node)
 	}
 }
 
 func (n *NACL) initConnectivityComputation(src, dst vpcmodel.Node,
-	isIngress bool) (targetNode vpcmodel.Node, subnetCidr, inSubnetCidr string, subnet *Subnet, err error) {
+	isIngress bool) (targetNode, nodeInSubnet vpcmodel.Node, subnet *Subnet, err error) {
 	if isIngress {
-		targetNode = src
-		subnetCidr, inSubnetCidr, subnet, err = getNodeCidrs(dst)
+		targetNode, nodeInSubnet = src, dst
 	} else {
-		targetNode = dst
-		subnetCidr, inSubnetCidr, subnet, err = getNodeCidrs(src)
+		targetNode, nodeInSubnet = dst, src
 	}
-	return targetNode, subnetCidr, inSubnetCidr, subnet, err
+	subnet, err = subnetFromNode(nodeInSubnet)
+	return targetNode, nodeInSubnet, subnet, err
 }
 
 func (n *NACL) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*common.ConnectionSet, error) {
-	targetNode, subnetCidr, inSubnetCidr, subnet, err := n.initConnectivityComputation(src, dst, isIngress)
+	targetNode, nodeInSubnet, subnet, err := n.initConnectivityComputation(src, dst, isIngress)
 	if err != nil {
 		return nil, err
 	}
 	// check if the subnet of the given node is affected by this nacl
-	if _, ok := n.subnets[subnetCidr]; !ok {
+	if _, ok := n.subnets[subnet.cidr]; !ok {
 		return vpcmodel.NoConns(), nil // not affected by current nacl
 	}
 	// TODO: differentiate between "has no effect" vs "affects with allow-all / allow-none "
-	if targetNode.IPBlock().ContainedIn(subnet.ipblock) {
+	if targetNode.IsInternal() && targetNode.IPBlock().ContainedIn(subnet.ipblock) {
 		return vpcmodel.AllConns(), nil // nacl has no control on traffic between two instances in its subnet
 	}
-	return n.analyzer.AllowedConnectivity(subnet, inSubnetCidr, targetNode.CidrOrAddress(), isIngress)
+	return n.analyzer.AllowedConnectivity(subnet, nodeInSubnet, targetNode, isIngress)
 }
 
+// TODO: rulesFilterInConnectivity has some duplicated code with AllowedConnectivity
 func (n *NACL) rulesFilterInConnectivity(src, dst vpcmodel.Node, conn *common.ConnectionSet,
 	isIngress bool) (tableRelevant bool, allow, deny []int, err error) {
-	targetNode, subnetCidr, inSubnetCidr, subnet, err1 := n.initConnectivityComputation(src, dst, isIngress)
+	targetNode, nodeInSubnet, subnet, err1 := n.initConnectivityComputation(src, dst, isIngress)
 	if err1 != nil {
 		return false, nil, nil, err1
 	}
 	// check if the subnet of the given node is affected by this nacl
-	if _, ok := n.subnets[subnetCidr]; !ok {
+	if _, ok := n.subnets[subnet.cidr]; !ok {
 		return false, nil, nil, nil // not affected by current nacl
 	}
 	// nacl has no control on traffic between two instances in its subnet;
 	// this is marked by a rule with index -1 (ibmvpc.DummyRule)
 	// which is not printed but only signals that this filter does not block (since there are rules)
-	if allInSubnet, err1 := common.IsAddressInSubnet(targetNode.CidrOrAddress(), subnetCidr); err1 == nil && allInSubnet {
+	if targetNode.IsInternal() && targetNode.IPBlock().ContainedIn(subnet.ipblock) {
 		return true, []int{vpcmodel.DummyRule}, nil, nil
 	}
 	var err2 error
-	allow, deny, err2 = n.analyzer.rulesFilterInConnectivity(subnet, subnetCidr, inSubnetCidr, targetNode.CidrOrAddress(), conn, isIngress)
+	allow, deny, err2 = n.analyzer.rulesFilterInConnectivity(subnet, nodeInSubnet, targetNode, conn, isIngress)
 	return true, allow, deny, err2
 }
 
