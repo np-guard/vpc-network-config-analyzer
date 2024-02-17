@@ -87,7 +87,7 @@ func (g *groupedExternalNodes) GenerateDrawioTreeNode(gen *DrawioGenerator) draw
 	}
 	tooltip := []string{}
 	for _, n := range *g {
-		tooltip = append(tooltip, n.(*ExternalNetwork).Cidr())
+		tooltip = append(tooltip, n.(*ExternalNetwork).CidrOrAddress())
 	}
 	name := "Various IP ranges"
 	if all, _ := isEntirePublicInternetRange(*g); all {

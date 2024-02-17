@@ -45,7 +45,7 @@ type ReservedIP struct {
 	vpe     string
 }
 
-func (r *ReservedIP) Cidr() string {
+func (r *ReservedIP) CidrOrAddress() string {
 	return r.address
 	// TODO: fix so that it works with cidr instead of address returned
 	// return common.IPv4AddressToCidr(ni.address)
@@ -76,7 +76,7 @@ type NetworkInterface struct {
 	ipblock *common.IPBlock
 }
 
-func (ni *NetworkInterface) Cidr() string {
+func (ni *NetworkInterface) CidrOrAddress() string {
 	return ni.address
 	// TODO: fix so that it works with cidr instead of address returned
 	// return common.IPv4AddressToCidr(ni.address)
@@ -110,7 +110,7 @@ type IKSNode struct {
 	subnet  *Subnet
 }
 
-func (n *IKSNode) Cidr() string {
+func (n *IKSNode) CidrOrAddress() string {
 	return n.address
 }
 
@@ -420,11 +420,11 @@ func (n *NACL) GeneralConnectivityPerSubnet(subnet *Subnet) string {
 func getNodeCidrs(n vpcmodel.Node) (subnetCidr, nodeCidr string, subnet *Subnet, err error) {
 	switch t := n.(type) {
 	case *NetworkInterface:
-		return t.subnet.cidr, t.Cidr(), t.subnet, nil
+		return t.subnet.cidr, t.CidrOrAddress(), t.subnet, nil
 	case *IKSNode:
-		return t.subnet.cidr, t.Cidr(), t.subnet, nil
+		return t.subnet.cidr, t.CidrOrAddress(), t.subnet, nil
 	case *ReservedIP:
-		return t.subnet.cidr, t.Cidr(), t.subnet, nil
+		return t.subnet.cidr, t.CidrOrAddress(), t.subnet, nil
 	default:
 		return "", "", nil, fmt.Errorf("cannot get cidr for node: %+v", n)
 	}
@@ -455,7 +455,7 @@ func (n *NACL) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*com
 	if targetNode.IPBlock().ContainedIn(subnet.ipblock) {
 		return vpcmodel.AllConns(), nil // nacl has no control on traffic between two instances in its subnet
 	}
-	return n.analyzer.AllowedConnectivity(subnet, inSubnetCidr, targetNode.Cidr(), isIngress)
+	return n.analyzer.AllowedConnectivity(subnet, inSubnetCidr, targetNode.CidrOrAddress(), isIngress)
 }
 
 func (n *NACL) rulesFilterInConnectivity(src, dst vpcmodel.Node, conn *common.ConnectionSet,
@@ -471,11 +471,11 @@ func (n *NACL) rulesFilterInConnectivity(src, dst vpcmodel.Node, conn *common.Co
 	// nacl has no control on traffic between two instances in its subnet;
 	// this is marked by a rule with index -1 (ibmvpc.DummyRule)
 	// which is not printed but only signals that this filter does not block (since there are rules)
-	if allInSubnet, err1 := common.IsAddressInSubnet(targetNode.Cidr(), subnetCidr); err1 == nil && allInSubnet {
+	if allInSubnet, err1 := common.IsAddressInSubnet(targetNode.CidrOrAddress(), subnetCidr); err1 == nil && allInSubnet {
 		return true, []int{vpcmodel.DummyRule}, nil, nil
 	}
 	var err2 error
-	allow, deny, err2 = n.analyzer.rulesFilterInConnectivity(subnet, subnetCidr, inSubnetCidr, targetNode.Cidr(), conn, isIngress)
+	allow, deny, err2 = n.analyzer.rulesFilterInConnectivity(subnet, subnetCidr, inSubnetCidr, targetNode.CidrOrAddress(), conn, isIngress)
 	return true, allow, deny, err2
 }
 
@@ -607,7 +607,7 @@ func (sg *SecurityGroup) getMemberTargetStrAddress(src, dst vpcmodel.Node,
 		member = src
 		target = dst
 	}
-	memberStrAddress = member.Cidr()
+	memberStrAddress = member.CidrOrAddress()
 	return memberStrAddress, target.IPBlock()
 }
 

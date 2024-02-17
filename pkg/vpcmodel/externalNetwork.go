@@ -46,7 +46,7 @@ func (exn *ExternalNetwork) UID() string      { return exn.Name() }
 func (exn *ExternalNetwork) ZoneName() string { return "" }
 func (exn *ExternalNetwork) IsExternal() bool { return true }
 
-func (exn *ExternalNetwork) Cidr() string {
+func (exn *ExternalNetwork) CidrOrAddress() string {
 	return exn.CidrStr
 }
 
@@ -161,7 +161,7 @@ func GetExternalNetworkNodes(disjointRefExternalIPBlocks []*common.IPBlock) ([]N
 func isEntirePublicInternetRange(nodes []Node) (bool, error) {
 	ipList := make([]string, len(nodes))
 	for i, n := range nodes {
-		ipList[i] = n.Cidr()
+		ipList[i] = n.CidrOrAddress()
 	}
 
 	_, nodesRanges, err := ipStringsToIPblocks(ipList)

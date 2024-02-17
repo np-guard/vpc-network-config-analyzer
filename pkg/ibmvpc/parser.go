@@ -426,7 +426,7 @@ func getFipConfig(
 				// a node captured by a fip should not be captured by a pgw
 				for _, nodeWithFip := range srcNodes {
 					if vpcmodel.HasNode(pgw.Sources(), nodeWithFip) {
-						pgw.src = getCertainNodes(pgw.Sources(), func(n vpcmodel.Node) bool { return n.Cidr() != nodeWithFip.Cidr() })
+						pgw.src = getCertainNodes(pgw.Sources(), func(n vpcmodel.Node) bool { return n.CidrOrAddress() != nodeWithFip.CidrOrAddress() })
 					}
 				}
 			}
@@ -1030,7 +1030,7 @@ func printConfig(c *vpcmodel.VPCConfig) {
 		if n.IsExternal() {
 			continue
 		}
-		fmt.Println(strings.Join([]string{n.Kind(), n.Cidr(), n.Name(), n.UID()}, separator))
+		fmt.Println(strings.Join([]string{n.Kind(), n.CidrOrAddress(), n.Name(), n.UID()}, separator))
 	}
 	fmt.Println("NodeSets:")
 	for _, n := range c.NodeSets {

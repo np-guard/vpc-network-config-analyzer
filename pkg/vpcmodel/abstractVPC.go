@@ -66,9 +66,14 @@ const (
 
 type Node interface {
 	VPCResourceIntf
-	Cidr() string
+	// CidrOrAddress returns the string of the Node's ip-address (for internal node) or cidr ) (for external node)
+	CidrOrAddress() string
+	// IPBlock returns the IPBlock object of the IP addresses associated with this node
 	IPBlock() *common.IPBlock
+	// IsInternal returns true if the node is internal, within a VPC
 	IsInternal() bool
+	// IsPublicInternet returns true if the node is external,
+	// currently nodes which are external but not public Internet are ignored
 	IsPublicInternet() bool
 }
 

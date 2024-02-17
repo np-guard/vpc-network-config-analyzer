@@ -16,7 +16,7 @@ type mockNetIntf struct {
 	name     string
 }
 
-func (m *mockNetIntf) Cidr() string {
+func (m *mockNetIntf) CidrOrAddress() string {
 	return m.cidr
 }
 func (m *mockNetIntf) IPBlock() *common.IPBlock {
