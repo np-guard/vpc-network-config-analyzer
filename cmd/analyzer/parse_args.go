@@ -186,8 +186,9 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args.VPC = flagset.String(VPC, "", "CRN of the VPC to analyze")
 	args.Debug = flagset.Bool(Debug, false, "Run in debug mode")
 	args.Version = flagset.Bool(Version, false, "Prints the release version number")
-	args.ESrc = flagset.String(ESrc, "", "Source name for network_interface or an external IP to be explained")
-	args.EDst = flagset.String(EDst, "", "Destination name for network_interface or an external IP to be explained")
+	args.ESrc = flagset.String(ESrc, "", "Source name for explanation; "+
+		"can be specified as a vsi name or an internal or external address (IP/cidr)")
+	args.EDst = flagset.String(EDst, "", "Destination name for explanation; same format as src")
 	args.EProtocol = flagset.String(EProtocol, "", "Protocol for connection description")
 	args.ESrcMinPort = flagset.Int64(ESrcMinPort, common.MinPort, "Minimum source port for connection description")
 	args.ESrcMaxPort = flagset.Int64(ESrcMaxPort, common.MaxPort, "Maximum source port for connection description")

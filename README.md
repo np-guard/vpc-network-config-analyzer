@@ -20,7 +20,7 @@ Usage of vpc-network-config-analyzer:
   -debug
         Run in debug mode
   -dst string
-        Destination name for network_interface or an external IP to be explained
+        Destination name for explaination; can be specified as a vsi name or an internal or external address (IP/cidr)
   -dst-max-port int
         Maximum destination port for connection description (default 65535)
   -dst-min-port int
@@ -36,7 +36,7 @@ Usage of vpc-network-config-analyzer:
   -protocol string
         Protocol for connection description
   -src string
-        Source name for network_interface or an external IP to be explained
+        Source name for explaination; can be specified as a vsi name or an internal or external address (IP/cidr)
   -src-max-port int
         Maximum source port for connection description (default 65535)
   -src-min-port int
