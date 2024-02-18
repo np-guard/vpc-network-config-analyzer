@@ -1,5 +1,5 @@
-Connectivity explanation for protocol: UDP src-ports: 10-100 dst-ports: 443 between vsi1-ky[10.240.10.4] and 161.26.0.0/16
-==========================================================================================================================
+Connectivity explanation for protocol: UDP src-ports: 10-100 dst-ports: 443 between 10.240.10.4 (vsi1-ky[10.240.10.4]) and 161.26.0.0/16
+========================================================================================================================================
 
 Connection protocol: UDP src-ports: 10-100 dst-ports: 443 exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16
 External Router PublicGateway: public-gw-ky

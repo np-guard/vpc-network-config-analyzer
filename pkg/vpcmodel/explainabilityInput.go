@@ -39,10 +39,9 @@ func (e *ExplanationArgs) GetConnectionSet() *common.ConnectionSet {
 
 // given src and dst input finds the []nodes they represent
 // src/dst may refer to:
-// 1. NetworkInterface by name
-// 2. VSI by UID or name; in this case we consider the network interfaces of the VSI
-// 3. Internal IP address or cidr; in this case we consider the vsis in that address range
-// 4. external IP address or cidr
+// 1. VSI by UID or name; in this case we consider the network interfaces of the VSI
+// 2. Internal IP address or cidr; in this case we consider the vsis in that address range
+// 3. external IP address or cidr
 func (c *VPCConfig) srcDstInputToNodes(srcName, dstName string) (srcNodes, dstNodes []Node,
 	isSrcInternalIP, isDstInternalIP bool, err error) {
 	srcNodes, isSrcInternalIP, err = c.getSrcOrDstInputNode(srcName, "src")
@@ -71,15 +70,11 @@ func (c *VPCConfig) getSrcOrDstInputNode(name, srcOrDst string) (nodes []Node, i
 	return outNodes, isInternalIP, nil
 }
 
-// given a string cidrOrName representing a networkinterface/vsi/internal or external cidr/address returns the
+// given a string cidrOrName representing a vsi or internal/external cidr/address returns the
 // corresponding node(s) and a bool which is true iff cidrOrName is an internal address
 // (and the nodes are its network interfaces)
 func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node, internalIP bool, err error) {
-	// 1. cidrOrName references a network interface
-	if networkInterfaces := c.getNetworkInterfaceNodes(cidrOrName); len(networkInterfaces) > 0 {
-		return networkInterfaces, false, nil
-	}
-	// 2. cidrOrName references vsi
+	// 1. cidrOrName references vsi
 	vsi, err1 := c.getNodesOfVsi(cidrOrName)
 	if err1 != nil {
 		return nil, false, err1
@@ -88,19 +83,8 @@ func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node, in
 		return vsi, false, nil
 	}
 	// cidrOrName, if legal, references an address.
-	// 3. cidrOrName references an ip address
+	// 2. cidrOrName references an ip address
 	return c.getNodesFromAddress(cidrOrName)
-}
-
-// finds nodes of a given, by its name, NetworkInterface (if any)
-func (c *VPCConfig) getNetworkInterfaceNodes(name string) []Node {
-	networkInterfaceNodes := []Node{}
-	for _, node := range c.Nodes {
-		if name == node.Name() {
-			networkInterfaceNodes = append(networkInterfaceNodes, node)
-		}
-	}
-	return networkInterfaceNodes
 }
 
 // getNodesOfVsi gets a string name or UID of VSI, and

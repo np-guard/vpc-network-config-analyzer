@@ -1,5 +1,5 @@
-Connectivity explanation between 161.26.0.0/16 and vsi1-ky[10.240.10.4]
-=======================================================================
+Connectivity explanation between 161.26.0.0/16 and vsi1-ky
+==========================================================
 
 No connection between Public Internet 161.26.0.0/16 and vsi1-ky[10.240.10.4]; no fip router and src is external (fip is required for outbound external connection)
 ------------------------------------------------------------------------------------------------------------------------
