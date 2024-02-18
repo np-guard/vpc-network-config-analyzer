@@ -47,6 +47,11 @@ func TestWithParsing(t *testing.T) {
 	if err != nil {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
 	}
+	n = createNetworkLoadBalancer()
+	err = CreateDrawioConnectivityMapFile(n, "LoadBalancer.drawio", false)
+	if err != nil {
+		fmt.Println("Error when calling createNetworkLoadBalancer():", err)
+	}
 	n2 := NewNetworkTreeNode()
 	NewCloudTreeNode(n2, "empty Cloud")
 	NewPublicNetworkTreeNode(n2)
@@ -543,6 +548,94 @@ func createNetworkSubnetGroupingGeneric(groupsIndexes []groupIndexes) (
 		NewConnectivityLineTreeNode(network, gr, i1, true, "gconn "+gr.Label())
 	}
 	return network, groups, zones
+}
+
+func createNetworkLoadBalancer() SquareTreeNodeInterface {
+	network := NewNetworkTreeNode()
+	// NewCloudTreeNode(network, "IBM Cloud")
+	cloud1 := NewCloudTreeNode(network, "IBM Cloud")
+	vpc1 := NewVpcTreeNode(cloud1, "vpc1")
+	
+	
+	// NewZoneTreeNode(vpc1, "userZone")
+	// NewZoneTreeNode(vpc1, "frontSone")
+	// NewZoneTreeNode(vpc1, "backendZone")
+
+	userZone := NewZoneTreeNode(vpc1, "userZone")
+	frontendZone := NewZoneTreeNode(vpc1, "frontSone")
+	backendZone := NewZoneTreeNode(vpc1, "backendZone")
+
+	lb := NewInternetServiceTreeNode(vpc1, "loadBalancer")
+	pool0 := NewInternetServiceTreeNode(vpc1, "pool0")
+	pool1 := NewInternetServiceTreeNode(vpc1, "pool1")
+	pool2 := NewInternetServiceTreeNode(vpc1, "pool2")
+
+	lis0 := NewInternetServiceTreeNode(vpc1, "listener0")
+	lis1 := NewInternetServiceTreeNode(vpc1, "listener1")
+
+	userSubnet := NewSubnetTreeNode(userZone, "userSubnet0", "cidr", "acl")
+	userVsis := []IconTreeNodeInterface{
+		NewNITreeNode(userSubnet, "userVsi-0"),
+		NewNITreeNode(userSubnet, "userVsi-1"),
+	}
+
+
+
+	frontendSubnet0 := NewSubnetTreeNode(frontendZone, "frontendSubnet1", "cidr", "acl")
+	frontendSubnet1 := NewSubnetTreeNode(frontendZone, "frontendSubnet2", "cidr", "acl")
+	frontendVsis0 := []IconTreeNodeInterface{
+		NewNITreeNode(frontendSubnet0, "vsi-00"),
+		NewNITreeNode(frontendSubnet0, "vsi-01"),
+	}
+	frontendVsis1 := []IconTreeNodeInterface{
+		NewNITreeNode(frontendSubnet1, "vsi-10"),
+		NewNITreeNode(frontendSubnet1, "vsi-11"),
+	}
+
+	lbf0 := NewNITreeNode(frontendSubnet0, "lb-interface0")
+	lbf1 := NewNITreeNode(frontendSubnet1, "lb-interface1")
+
+
+	backendSubnet0 := NewSubnetTreeNode(backendZone, "backendSubnet0", "cidr", "acl")
+	backendSubnet1 := NewSubnetTreeNode(backendZone, "backendSubnet1", "cidr", "acl")
+	backendVsis0 := []IconTreeNodeInterface{
+		NewNITreeNode(backendSubnet0, "backendVsi-00"),
+		NewNITreeNode(backendSubnet0, "backendVsi-01"),
+	}
+	backendVsis1 := []IconTreeNodeInterface{
+		NewNITreeNode(backendSubnet1, "backendVsi-10"),
+		NewNITreeNode(backendSubnet1, "backendVsi-11"),
+	}
+
+
+
+	NewConnectivityLineTreeNode(network, pool0, backendVsis0[0], true, "pool")
+	NewConnectivityLineTreeNode(network, pool0, backendVsis0[1], true, "pool")
+	NewConnectivityLineTreeNode(network, pool1, backendVsis1[0], true, "pool")
+	NewConnectivityLineTreeNode(network, pool1, backendVsis1[1], true, "pool")
+	NewConnectivityLineTreeNode(network, pool2, backendVsis0[0], true, "pool")
+	NewConnectivityLineTreeNode(network, pool2, backendVsis1[1], true, "pool")
+
+	NewConnectivityLineTreeNode(network, lis0, pool0, true, "lis pool")
+	NewConnectivityLineTreeNode(network, lis1, pool1, true, "lis pool")
+	NewConnectivityLineTreeNode(network, lis1, pool2, true, "lis another pool")
+
+	NewConnectivityLineTreeNode(network, lb, lis0, true, "cars,3028")
+	NewConnectivityLineTreeNode(network, lb, lis1, true, "doctors,4040")
+
+	NewConnectivityLineTreeNode(network, lbf0, lb, true, "")
+	NewConnectivityLineTreeNode(network, lbf1, lb, true, "")
+
+	NewConnectivityLineTreeNode(network, frontendVsis0[0], lbf0, true, "by Default")
+	NewConnectivityLineTreeNode(network, frontendVsis0[1], lbf0, true, "by Default")
+	NewConnectivityLineTreeNode(network, frontendVsis1[0], lbf1, true, "by Default")
+	NewConnectivityLineTreeNode(network, frontendVsis1[1], lbf1, true, "by Default")
+
+
+	NewConnectivityLineTreeNode(network, userVsis[0], lbf0, true, "access to subnet")
+	NewConnectivityLineTreeNode(network, userVsis[1], lbf1, true, "access to subnet")
+
+	return network
 }
 
 func createNetworkGrouping() SquareTreeNodeInterface {
