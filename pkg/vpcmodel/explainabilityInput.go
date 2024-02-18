@@ -100,6 +100,7 @@ func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node, in
 func (c *VPCConfig) getNodesOfVsi(vsi string) ([]Node, error) {
 	var nodeSetWithVsi NodeSet
 	for _, nodeSet := range c.NodeSets {
+		fmt.Printf("name: %v uid: %v\n", nodeSet.Name(), nodeSet.UID())
 		// todo: at the moment we consider here all NodeSets and not just vsis (e.g. also subnets)
 		//       fix once we have abstract vpc and subnets (#380)
 		if nodeSet.Name() == vsi || nodeSet.UID() == vsi {
@@ -123,9 +124,12 @@ func (c *VPCConfig) getNodesOfVsi(vsi string) ([]Node, error) {
 //  1. If it does not present a cidr or IP, returns nil and false
 //  2. If it represents a cidr which is both internal and external, returns an error
 //  3. If it presents an external address, returns external addresses nodes and false
-//  4. If it contains internal address not within the address prefix of this vpc, returns an error
+//  4. If it contains internal address not within the address range of the vpc's, subnets,
+//     returns an error
 //  5. If it presents an internal address, return connected network interfaces if any and true,
 //     error otherwise
+//
+// todo: 4 - replace subnet's address range in vpc's address prefix
 func (c *VPCConfig) getNodesFromAddress(ipOrCidr string) (nodes []Node, internalIP bool, err error) {
 	inputIPBlock := common.NewIPBlockFromCidrOrAddress(ipOrCidr)
 	// 1.
@@ -153,7 +157,7 @@ func (c *VPCConfig) getNodesFromAddress(ipOrCidr string) (nodes []Node, internal
 		// 4.
 		vpcAP := c.VPC.AddressRange()
 		if !inputIPBlock.ContainedIn(vpcAP) {
-			return nil, false, fmt.Errorf("internal address %s not within vpc's address prefix %s",
+			return nil, false, fmt.Errorf("internal address %s not within the vpc's subnets address range %s",
 				inputIPBlock.ToIPRanges(), vpcAP.ToIPRanges())
 		}
 		// 5.
