@@ -115,9 +115,9 @@ func newDrawioStyles(nodes []TreeNodeInterface) drawioStyles {
 	return stl
 }
 
-func connectPointStyle(tn TreeNodeInterface) (string,string) {
+func connectPointStyle(tn TreeNodeInterface) (string, string) {
 	startArrow, endArrow := ovalEndEdge, ovalEndEdge
-	if isLogicalLine(tn){
+	if isLogicalLine(tn) {
 		return startArrow, endArrow
 	}
 	con := tn.(*ConnectivityTreeNode)
@@ -134,13 +134,17 @@ func connectPointStyle(tn TreeNodeInterface) (string,string) {
 }
 
 func (stl *drawioStyles) SVGConnectivityStyle(tn TreeNodeInterface) string {
-	startArrow, endArrow :=  connectPointStyle(tn)
-	return fmt.Sprintf("marker-start='url(#%s)' marker-end='url(#%s)'",startArrow, endArrow)
+	startArrow, endArrow := connectPointStyle(tn)
+	dash := ""
+	if isLogicalLine(tn) {
+		dash = "stroke-dasharray=\"6 6\""
+	}
+	return fmt.Sprintf("marker-start='url(#%s)' marker-end='url(#%s)' %s", startArrow, endArrow, dash)
 }
 
 func connectivityStyle(tn TreeNodeInterface) string {
 	con := tn.(*ConnectivityTreeNode)
-	startArrow, endArrow :=  connectPointStyle(tn)
+	startArrow, endArrow := connectPointStyle(tn)
 	strokeColor := ""
 	if con.router != nil {
 		strokeColor = "strokeColor=" + connRouteredCollor + ";"
@@ -307,7 +311,6 @@ func (stl *drawioStyles) DecoreStyle(tn TreeNodeInterface) string {
 func (stl *drawioStyles) FIPStyle(tn TreeNodeInterface) string {
 	return imageDrawioStyle + fipImage + iconDrawioStyle
 }
-
 
 // /////////////////////////////////////////////
 // lineConnectionPointsStyle() set the enter/exit style for a line (currntly only for the src),
