@@ -109,12 +109,11 @@ func parseActionString(action *string) (bool, error) {
 // For example, 10.0.0.0/24 le 30 will match 10.0.0.0/24 and all prefixes contained therein with a length of 30 or less.
 // (see https://packetlife.net/blog/2010/feb/1/understanding-ip-prefix-lists/ )
 
-// prefixLeGeMatch checks if a subnet cidr is matched by a given prefix with le/ge attributes
+// prefixLeGeMatch checks if a vpc's address-prefix cidr is matched by a given rule's prefix with le/ge attributes
 func prefixLeGeMatch(prefix *string, le, ge *int64, cidr string) (bool, error) {
-	prefixIPBlock, err1 := common.NewIPBlockFromCidr(*prefix)
-	cidrBlock, err2 := common.NewIPBlockFromCidr(cidr)
-	if err1 != nil || err2 != nil {
-		return false, errors.Join(err1, err2)
+	prefixIPBlock, cidrBlock, err := common.PairCIDRsToIPBlocks(*prefix, cidr)
+	if err != nil {
+		return false, err
 	}
 	subnetCIDRLen, err := cidrBlock.PrefixLength()
 	if err != nil {

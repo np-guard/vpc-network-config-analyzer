@@ -66,7 +66,7 @@ const (
 
 type Node interface {
 	VPCResourceIntf
-	// CidrOrAddress returns the string of the Node's ip-address (for internal node) or cidr ) (for external node)
+	// CidrOrAddress returns the string of the Node's IP-address (for internal node) or CIDR (for external node)
 	CidrOrAddress() string
 	// IPBlock returns the IPBlock object of the IP addresses associated with this node
 	IPBlock() *common.IPBlock

@@ -195,6 +195,16 @@ func NewIPBlockFromCidr(cidr string) (*IPBlock, error) {
 	return res, nil
 }
 
+// PairCIDRsToIPBlocks returns two IPBlock objects from two input CIDR strings
+func PairCIDRsToIPBlocks(cidr1, cidr2 string) (ipb1, ipb2 *IPBlock, err error) {
+	ipb1, err1 := NewIPBlockFromCidr(cidr1)
+	ipb2, err2 := NewIPBlockFromCidr(cidr2)
+	if err1 != nil || err2 != nil {
+		return nil, nil, errors.Join(err1, err2)
+	}
+	return ipb1, ipb2, nil
+}
+
 // NewIPBlockFromCidr returns a new IPBlock object from input string of CIDR or IP address
 func NewIPBlockFromCidrOrAddress(s string) (*IPBlock, error) {
 	if strings.Contains(s, cidrSeparator) {

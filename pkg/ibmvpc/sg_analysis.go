@@ -313,7 +313,7 @@ func (sga *SGAnalyzer) areSGRulesDefault() bool {
 }
 
 func (sga *SGAnalyzer) AllowedConnectivity(target *common.IPBlock, isIngress bool) *common.ConnectionSet {
-	analyzedConns := sga.getAnalyzedConnsIPB(isIngress)
+	analyzedConns := sga.ingressOrEgressConnectivity(isIngress)
 	for definedTarget, conn := range analyzedConns.allowedConns {
 		if target.ContainedIn(definedTarget) {
 			return conn
@@ -328,7 +328,7 @@ func (sga *SGAnalyzer) AllowedConnectivity(target *common.IPBlock, isIngress boo
 //     if it does, then the contributing rules are detected: rules that intersect the required connection
 //     otherwise, the answer to the query is "no" and nil is returned
 func (sga *SGAnalyzer) rulesFilterInConnectivity(target *common.IPBlock, connQuery *common.ConnectionSet, isIngress bool) ([]int, error) {
-	analyzedConns := sga.getAnalyzedConnsIPB(isIngress)
+	analyzedConns := sga.ingressOrEgressConnectivity(isIngress)
 	for definedTarget, rules := range analyzedConns.allowRules {
 		if target.ContainedIn(definedTarget) {
 			if connQuery == nil {
@@ -359,7 +359,7 @@ func (sga *SGAnalyzer) getRulesRelevantConn(rules []int, conn *common.Connection
 	return relevantRules, nil
 }
 
-func (sga *SGAnalyzer) getAnalyzedConnsIPB(isIngress bool) (res *ConnectivityResult) {
+func (sga *SGAnalyzer) ingressOrEgressConnectivity(isIngress bool) (res *ConnectivityResult) {
 	if isIngress {
 		return sga.ingressConnectivity
 	}
