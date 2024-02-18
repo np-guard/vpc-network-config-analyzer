@@ -31,13 +31,13 @@ func NewSvgData(network SquareTreeNodeInterface) *svgData {
 	}
 }
 
-// func (data *drawioData) FipXOffset() int      { return fipXOffset }
-// func (data *drawioData) FipYOffset() int      { return fipYOffset }
-// func (data *drawioData) MiniIconXOffset() int { return miniIconXOffset }
-// func (data *drawioData) MiniIconYOffset() int { return miniIconYOffset }
-// func (data *drawioData) MiniIconSize() int    { return miniIconSize }
-// func (data *drawioData) RootID() uint         { return data.rootID }
-// func (data *drawioData) IDsPrefix() string    { return idsPrefix }
+func (data *svgData) FipXOffset() int      { return fipXOffset }
+func (data *svgData) FipYOffset() int      { return fipYOffset }
+func (data *svgData) MiniIconXOffset() int { return miniIconXOffset }
+func (data *svgData) MiniIconYOffset() int { return miniIconYOffset }
+func (data *svgData) MiniIconSize() int    { return miniIconSize }
+// func (data *svgData) RootID() uint         { return data.rootID }
+// func (data *svgData) IDsPrefix() string    { return idsPrefix }
 func (data *svgData) ElementComment(tn TreeNodeInterface) string {
 	return reflect.TypeOf(tn).Elem().Name() + " " + tn.Label()
 }

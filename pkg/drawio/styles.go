@@ -273,6 +273,9 @@ func (stl *drawioStyles) ImageStyle(tn TreeNodeInterface) string {
 	}
 	return images[reflect.TypeOf(tn).Elem()]
 }
+func (stl *drawioStyles) MiniImageStyle(tn TreeNodeInterface) string {
+	return miniImages[reflect.TypeOf(tn).Elem()]
+}
 
 func (stl *drawioStyles) Color(tn TreeNodeInterface) string {
 	return colors[reflect.TypeOf(tn).Elem()]
