@@ -7,10 +7,17 @@
         <path d='M0,0 V6 L6,3 Z' fill="black"/>
         </marker>
         <marker id='oval' orient="auto" markerWidth='6' markerHeight='6' refX='3' refY='3'>
-        <ellipse cx="3" cy="3" rx="2" ry="2" fill="black" stroke="rgb(0, 0, 0)" />
+        <ellipse cx="3" cy="3" rx="2" ry="2" fill="black" />
         </marker>
         <marker id='none' orient="auto" markerWidth='6' markerHeight='6' refX='3' refY='3'>
         </marker>
+        <marker id='route_block' orient="auto" markerWidth='6' markerHeight='6' refX='6' refY='3'>
+        <path d='M0,0 V6 L6,3 Z' fill="{{$data.ConnRouteredCollor}}"/>
+        </marker>
+        <marker id='route_oval' orient="auto" markerWidth='6' markerHeight='6' refX='3' refY='3'>
+        <ellipse cx="3" cy="3" rx="2" ry="2" fill="{{$data.ConnRouteredCollor}}" />
+        </marker>
+        
     </defs>
   <g>
     {{range $node := $data.Nodes}}
@@ -63,8 +70,6 @@
             {{end}}
         {{ else if $node.IsLine }}
                 <path d="{{$data.ConnectivityPoints $node}}" {{$data.SVGConnectivityStyle $node}} fill="none" stroke="{{$data.ConnectivityColor $node}}" stroke-width="2" stroke-miterlimit="10" pointer-events="stroke"/>
-                <ellipse cx="51" cy="30.64" rx="3" ry="3" fill="{{$data.ConnectivityColor $node}}" stroke="{{$data.ConnectivityColor $node}}" stroke-width="2" pointer-events="all"/>
-                <path d="M 470.84 146.77 L 462.07 148.49 L 464.2 140.78 Z" fill="{{$data.ConnectivityColor $node}}" stroke="{{$data.ConnectivityColor $node}}" stroke-width="2" stroke-miterlimit="10" pointer-events="all"/>
                 <g transform="translate(-0.5 -0.5)">
                 <switch>
                 <foreignObject pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility" style="overflow: visible; text-align: left;">

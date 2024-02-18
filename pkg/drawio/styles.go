@@ -136,10 +136,16 @@ func connectPointStyle(tn TreeNodeInterface) (string, string) {
 func (stl *drawioStyles) SVGConnectivityStyle(tn TreeNodeInterface) string {
 	startArrow, endArrow := connectPointStyle(tn)
 	dash := ""
+	routePrefix := ""
 	if isLogicalLine(tn) {
 		dash = "stroke-dasharray=\"6 6\""
+	} else {
+		if tn.(*ConnectivityTreeNode).router != nil {
+			routePrefix = "route_"
+		}
 	}
-	return fmt.Sprintf("marker-start='url(#%s)' marker-end='url(#%s)' %s", startArrow, endArrow, dash)
+
+	return fmt.Sprintf("marker-start='url(#%s%s)' marker-end='url(#%s%s)' %s", routePrefix, startArrow, routePrefix, endArrow, dash)
 }
 
 func connectivityStyle(tn TreeNodeInterface) string {
@@ -158,6 +164,11 @@ func (stl *drawioStyles) ConnectivityColor(tn TreeNodeInterface) string {
 	}
 	return "#000000"
 }
+
+func (stl *drawioStyles) ConnRouteredCollor() string {
+		return connRouteredCollor
+}
+
 func (stl *drawioStyles) ConnectivityLabelPos(tn TreeNodeInterface) string {
 	points := getLineAbsolutePoints(tn.(LineTreeNodeInterface))
 	x, y := (points[0].X+points[1].X)/2, (points[0].Y+points[1].Y)/2
