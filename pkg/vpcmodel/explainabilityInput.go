@@ -119,7 +119,7 @@ func (c *VPCConfig) getNodesOfVsi(vsi string) ([]Node, error) {
 }
 
 // getNodesFromAddress gets a string that should present a cidr or IP
-// and returns the corresponding node(s) and a bool which is true iff cidrOrName is an internal address
+// and returns the corresponding node(s) and a bool which is true iff ipOrCidr is an internal address
 // (and the nodes are its network interfaces). Specifically:
 //  1. If it does not present a cidr or IP, returns nil and false
 //  2. If it represents a cidr which is both internal and external, returns an error
