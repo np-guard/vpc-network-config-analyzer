@@ -3,9 +3,7 @@ package drawio
 
 import (
 	"fmt"
-	"math/big"
 	"reflect"
-	"strings"
 )
 
 const (
@@ -117,10 +115,12 @@ func newDrawioStyles(nodes []TreeNodeInterface) drawioStyles {
 	return stl
 }
 
-func connectivityStyle(tn TreeNodeInterface) string {
-	con := tn.(*ConnectivityTreeNode)
+func connectPointStyle(tn TreeNodeInterface) (string,string) {
 	startArrow, endArrow := ovalEndEdge, ovalEndEdge
-	strokeColor := ""
+	if isLogicalLine(tn){
+		return startArrow, endArrow
+	}
+	con := tn.(*ConnectivityTreeNode)
 	if con.directed {
 		endArrow = errowEndEdge
 	}
@@ -130,6 +130,18 @@ func connectivityStyle(tn TreeNodeInterface) string {
 	if con.Dst().IsIcon() && con.Dst().(IconTreeNodeInterface).IsGroupingPoint() && !con.Dst().(*GroupPointTreeNode).hasShownSquare() {
 		endArrow = noneEndEdge
 	}
+	return startArrow, endArrow
+}
+
+func (stl *drawioStyles) SVGConnectivityStyle(tn TreeNodeInterface) string {
+	startArrow, endArrow :=  connectPointStyle(tn)
+	return fmt.Sprintf("marker-start='url(#%s)' marker-end='url(#%s)'",startArrow, endArrow)
+}
+
+func connectivityStyle(tn TreeNodeInterface) string {
+	con := tn.(*ConnectivityTreeNode)
+	startArrow, endArrow :=  connectPointStyle(tn)
+	strokeColor := ""
 	if con.router != nil {
 		strokeColor = "strokeColor=" + connRouteredCollor + ";"
 	}
@@ -296,30 +308,6 @@ func (stl *drawioStyles) FIPStyle(tn TreeNodeInterface) string {
 	return imageDrawioStyle + fipImage + iconDrawioStyle
 }
 
-func markColorWithID(style string, tn TreeNodeInterface) string {
-	return style
-	basicRbg := new(big.Int)
-	basicRbg.SetString("878d96", 16)
-	id := new(big.Int)
-	id.SetUint64(uint64((tn.ID() - minID) * 100))
-	basicRbg.Add(id, basicRbg)
-	color := fmt.Sprintf("#%x", basicRbg)
-	if strings.Contains(style, "shape=image") {
-		style = strings.ReplaceAll(style, imageDrawioStyle+"", "rounded=0;whiteSpace=wrap;html=1;blabla=")
-	}
-	for _, pre := range []string{"stroke", "fill", "font"} {
-		if !strings.Contains(style, pre+"Color=") {
-			style += pre + "Color=none;"
-		}
-	}
-	for strings.Contains(style, "Color=#") {
-		i := strings.Index(style, "Color=#")
-		p := style[i : i+len("Color=#FFFFFF")]
-		style = strings.ReplaceAll(style, p, "Color=none")
-	}
-	return strings.ReplaceAll(style, "Color=none", "Color="+color)
-
-}
 
 // /////////////////////////////////////////////
 // lineConnectionPointsStyle() set the enter/exit style for a line (currntly only for the src),

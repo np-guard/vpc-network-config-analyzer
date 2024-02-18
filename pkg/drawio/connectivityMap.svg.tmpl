@@ -2,10 +2,17 @@
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 {{ $data := .}}
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="{{$data.Width}}px" height="{{$data.Height}}px" viewBox="-0.5 -0.5 {{$data.Width}} {{$data.Height}}">
-<defs/>
-<g>
-
-
+    <defs>
+        <marker id='block' orient="auto" markerWidth='6' markerHeight='6' refX='6' refY='3'>
+        <path d='M0,0 V6 L6,3 Z' fill="black"/>
+        </marker>
+        <marker id='oval' orient="auto" markerWidth='6' markerHeight='6' refX='3' refY='3'>
+        <ellipse cx="3" cy="3" rx="2" ry="2" fill="black" stroke="rgb(0, 0, 0)" />
+        </marker>
+        <marker id='none' orient="auto" markerWidth='6' markerHeight='6' refX='3' refY='3'>
+        </marker>
+    </defs>
+  <g>
     {{range $node := $data.Nodes}}
         <!-- {{$data.ElementComment $node}} -->
         {{ $ax := $data.AX $node}}
@@ -55,7 +62,7 @@
                 <ellipse cx="{{$data.Add $ax ($data.Half $node.IconSize)}}" cy="{{$data.Add $ay ($data.Half $node.IconSize)}}" rx="{{$data.Half $node.IconSize}}" ry="{{$data.Half $node.IconSize}}" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" pointer-events="all"/>
             {{end}}
         {{ else if $node.IsLine }}
-                <path d="{{$data.ConnectivityPoints $node}}" fill="none" stroke="{{$data.ConnectivityColor $node}}" stroke-width="2" stroke-miterlimit="10" pointer-events="stroke"/>
+                <path d="{{$data.ConnectivityPoints $node}}" {{$data.SVGConnectivityStyle $node}} fill="none" stroke="{{$data.ConnectivityColor $node}}" stroke-width="2" stroke-miterlimit="10" pointer-events="stroke"/>
                 <ellipse cx="51" cy="30.64" rx="3" ry="3" fill="{{$data.ConnectivityColor $node}}" stroke="{{$data.ConnectivityColor $node}}" stroke-width="2" pointer-events="all"/>
                 <path d="M 470.84 146.77 L 462.07 148.49 L 464.2 140.78 Z" fill="{{$data.ConnectivityColor $node}}" stroke="{{$data.ConnectivityColor $node}}" stroke-width="2" stroke-miterlimit="10" pointer-events="all"/>
                 <g transform="translate(-0.5 -0.5)">
