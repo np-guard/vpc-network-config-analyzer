@@ -47,8 +47,6 @@ type ReservedIP struct {
 
 func (r *ReservedIP) CidrOrAddress() string {
 	return r.address
-	// TODO: fix so that it works with cidr instead of address returned
-	// return common.IPv4AddressToCidr(ni.address)
 }
 
 func (r *ReservedIP) IPBlock() *common.IPBlock {
@@ -78,8 +76,6 @@ type NetworkInterface struct {
 
 func (ni *NetworkInterface) CidrOrAddress() string {
 	return ni.address
-	// TODO: fix so that it works with cidr instead of address returned
-	// return common.IPv4AddressToCidr(ni.address)
 }
 
 func (ni *NetworkInterface) IPBlock() *common.IPBlock {
@@ -575,7 +571,8 @@ func (sgl *SecurityGroupLayer) ReferencedIPblocks() []*common.IPBlock {
 type SecurityGroup struct {
 	vpcmodel.VPCResource
 	analyzer *SGAnalyzer
-	members  map[string]vpcmodel.Node // map of members: pairs(address[string], object[NetworkInterface/ReservedIP])
+	// map of SG members, key is IP-address: pairs(address[string], object[NetworkInterface/ReservedIP])
+	members map[string]vpcmodel.Node
 }
 
 func (sg *SecurityGroup) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *common.ConnectionSet {
@@ -601,14 +598,11 @@ func (sg *SecurityGroup) getMemberTargetStrAddress(src, dst vpcmodel.Node,
 	isIngress bool) (memberStrAddress string, targetIPBlock *common.IPBlock) {
 	var member, target vpcmodel.Node
 	if isIngress {
-		member = dst
-		target = src
+		member, target = dst, src
 	} else {
-		member = src
-		target = dst
+		member, target = src, dst
 	}
-	memberStrAddress = member.CidrOrAddress()
-	return memberStrAddress, target.IPBlock()
+	return member.CidrOrAddress(), target.IPBlock()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
