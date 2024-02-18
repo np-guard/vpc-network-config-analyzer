@@ -100,7 +100,6 @@ func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node, in
 func (c *VPCConfig) getNodesOfVsi(vsi string) ([]Node, error) {
 	var nodeSetWithVsi NodeSet
 	for _, nodeSet := range c.NodeSets {
-		fmt.Printf("name: %v uid: %v\n", nodeSet.Name(), nodeSet.UID())
 		// todo: at the moment we consider here all NodeSets and not just vsis (e.g. also subnets)
 		//       fix once we have abstract vpc and subnets (#380)
 		if nodeSet.Name() == vsi || nodeSet.UID() == vsi {
