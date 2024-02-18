@@ -127,6 +127,8 @@ var supportedAnalysisTypesList = []string{
 	explainMode,
 }
 
+const srcDstUsage = "endpoint for explanation; can be specified as a VSI name/CRN or an internal/external IP-address/CIDR"
+
 func getSupportedAnalysisTypesMapString() string {
 	valuesList := make([]string, len(supportedAnalysisTypesList)+1)
 	i := 0
@@ -186,9 +188,8 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args.VPC = flagset.String(VPC, "", "CRN of the VPC to analyze")
 	args.Debug = flagset.Bool(Debug, false, "Run in debug mode")
 	args.Version = flagset.Bool(Version, false, "Prints the release version number")
-	args.ESrc = flagset.String(ESrc, "", "Source endpoint for explanation; "+
-		"can be specified as a VSI name/CRN or an internal/external IP-address/CIDR")
-	args.EDst = flagset.String(EDst, "", "Destination endpoint for explanation; same format as src")
+	args.ESrc = flagset.String(ESrc, "", "Source "+srcDstUsage)
+	args.EDst = flagset.String(EDst, "", "Destination"+srcDstUsage)
 	args.EProtocol = flagset.String(EProtocol, "", "Protocol for connection description")
 	args.ESrcMinPort = flagset.Int64(ESrcMinPort, common.MinPort, "Minimum source port for connection description")
 	args.ESrcMaxPort = flagset.Int64(ESrcMaxPort, common.MaxPort, "Maximum source port for connection description")
