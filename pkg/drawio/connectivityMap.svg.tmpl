@@ -42,6 +42,15 @@
                 {{ if $data.HasMiniIcon $node }}
                     <image x="{{$data.Add $ax $data.MiniIconXOffset}}" y="{{$data.Add $ay $data.MiniIconYOffset}}" width="{{$data.MiniIconSize}}" height="{{$data.MiniIconSize}}" xlink:href="data:image/svg+xml;base64,{{$data.MiniImageStyle $node}}"/>
                 {{ end }}
+                {{ if $node.IsNI }}
+                    {{ if $node.HasFip  }}
+                        <image x="{{$data.Add $ax $data.FipXOffset}}" y="{{$data.Add $ay $data.FipYOffset}}" width="{{$node.IconSize}}" height="{{$node.IconSize}}" xlink:href="data:image/svg+xml;base64,{{$data.FIPImageStyle}}"/>
+                        <g fill="rgb(0, 0, 0)" font-family="IBM Plex Sans" text-anchor="middle" font-size="14px">
+                        <text x="{{$data.Add3 $ax $data.FipXOffset 30}}" y="{{$data.Add3 $ay $data.FipYOffset 73}}">{{$node.Fip}}</text>
+                        </g>
+                    {{ end }}
+                {{ end }}
+
             {{else}}
                 <ellipse cx="{{$data.Add $ax ($data.Half $node.IconSize)}}" cy="{{$data.Add $ay ($data.Half $node.IconSize)}}" rx="{{$data.Half $node.IconSize}}" ry="{{$data.Half $node.IconSize}}" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" pointer-events="all"/>
             {{end}}

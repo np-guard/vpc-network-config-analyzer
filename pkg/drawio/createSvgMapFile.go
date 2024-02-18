@@ -36,14 +36,16 @@ func (data *svgData) FipYOffset() int      { return fipYOffset }
 func (data *svgData) MiniIconXOffset() int { return miniIconXOffset }
 func (data *svgData) MiniIconYOffset() int { return miniIconYOffset }
 func (data *svgData) MiniIconSize() int    { return miniIconSize }
+
 // func (data *svgData) RootID() uint         { return data.rootID }
 // func (data *svgData) IDsPrefix() string    { return idsPrefix }
 func (data *svgData) ElementComment(tn TreeNodeInterface) string {
 	return reflect.TypeOf(tn).Elem().Name() + " " + tn.Label()
 }
 func (data *svgData) AddF(a int, b float64) float64 { return float64(a) + b }
-func (data *svgData) Add(a int, b int) int { return a + b }
-func (data *svgData) Half(a int) int               { return a / 2 }
+func (data *svgData) Add(a int, b int) int          { return a + b }
+func (data *svgData) Add3(a, b, c int) int          { return a + b + c }
+func (data *svgData) Half(a int) int                { return a / 2 }
 
 func (data *svgData) AX(tn TreeNodeInterface) int {
 	x, _ := absoluteGeometry(tn)

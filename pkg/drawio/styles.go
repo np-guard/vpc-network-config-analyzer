@@ -280,6 +280,9 @@ func (stl *drawioStyles) MiniImageStyle(tn TreeNodeInterface) string {
 func (stl *drawioStyles) Color(tn TreeNodeInterface) string {
 	return colors[reflect.TypeOf(tn).Elem()]
 }
+func (stl *drawioStyles) FIPImageStyle() string {
+	return fipImage
+}
 
 //////////////////////////////////////////////////////////////////////////////////
 
