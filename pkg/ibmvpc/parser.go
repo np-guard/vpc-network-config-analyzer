@@ -787,7 +787,7 @@ func getSubnetByIPAddress(addressIPblock *common.IPBlock, c *vpcmodel.VPCConfig)
 			}
 		}
 	}
-	return nil, fmt.Errorf("could not find matching subnet for address %s", addressIPblock.ToIPAdress())
+	return nil, fmt.Errorf("could not find matching subnet for address %s", addressIPblock.ToIPAdressString())
 }
 
 func setNodeIPBlock(node vpcmodel.Node, address string) error {

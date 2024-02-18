@@ -15,6 +15,8 @@ const (
 	externalNetworkNodeKind = "ExternalNetwork"
 )
 
+// TODO: move getPublicInternetAddressList to pkg IPBlock ?
+
 // All public IP addresses belong to one of the following public IP address ranges:
 func getPublicInternetAddressList() []string {
 	return []string{
@@ -74,13 +76,14 @@ func (exn *ExternalNetwork) VPC() VPCResourceIntf {
 	return nil
 }
 
+// input ipList is a list of  cidrs / ip-ranges (see getPublicInternetAddressList() as example)
 func ipStringsToIPblocks(ipList []string) (ipbList []*common.IPBlock, unionIPblock *common.IPBlock, err error) {
 	ipbList = []*common.IPBlock{}
 	unionIPblock = &common.IPBlock{}
 	for _, ipAddressRange := range ipList {
 		var ipb *common.IPBlock
 		if ipb, err = common.IPBlockFromIPRangeStr(ipAddressRange); err != nil {
-			ipb, err = common.NewIPBlock(ipAddressRange, []string{})
+			ipb, err = common.NewIPBlockFromCidr(ipAddressRange)
 		}
 		if err != nil {
 			return nil, nil, err

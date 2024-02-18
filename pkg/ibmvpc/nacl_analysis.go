@@ -1,6 +1,7 @@
 package ibmvpc
 
 import (
+	"errors"
 	"fmt"
 	"slices"
 	"sort"
@@ -106,13 +107,10 @@ func (na *NACLAnalyzer) getNACLRule(index int) (ruleStr string, ruleRes *NACLRul
 		return "", nil, false, err
 	}
 
-	srcIP, err := common.NewIPBlock(src, []string{})
-	if err != nil {
-		return "", nil, false, err
-	}
-	dstIP, err := common.NewIPBlock(dst, []string{})
-	if err != nil {
-		return "", nil, false, err
+	srcIP, err1 := common.NewIPBlockFromCidr(src)
+	dstIP, err2 := common.NewIPBlockFromCidr(dst)
+	if err1 != nil || err2 != nil {
+		return "", nil, false, errors.Join(err1, err2)
 	}
 	ruleRes = &NACLRule{src: srcIP, dst: dstIP, connections: conns, action: action}
 	isIngress = direction == inbound
