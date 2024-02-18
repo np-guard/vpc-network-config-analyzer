@@ -6,7 +6,7 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
-const noValidInputErr = "does not represent a VSI, an internal interface, an internal IP with network interface or " +
+const noValidInputErr = "does not represent an internal interface, an internal IP with network interface or " +
 	"a valid external IP"
 
 type ExplanationArgs struct {
@@ -115,10 +115,12 @@ func (c *VPCConfig) getNodesOfVsi(vsi string) ([]Node, error) {
 //  1. If it does not present a cidr or IP, returns nil and false
 //  2. If it represents a cidr which is both internal and external, returns an error
 //  3. If it presents an external address, returns external addresses nodes and false
-//  4. If it presents an internal address, return connected network interfaces if any and true,
+//  4. If it contains internal address not within the address prefix of this vpc, returns an error
+//  5. If it presents an internal address, return connected network interfaces if any and true,
 //     error otherwise
 func (c *VPCConfig) getNodesFromAddress(ipOrCidr string) (nodes []Node, internalIP bool, err error) {
 	inputIPBlock := common.NewIPBlockFromCidrOrAddress(ipOrCidr)
+	// 1.
 	if inputIPBlock == nil { // 1. string cidr does not represent a legal cidr
 		return nil, false, nil
 	}
@@ -127,16 +129,26 @@ func (c *VPCConfig) getNodesFromAddress(ipOrCidr string) (nodes []Node, internal
 	if err1 != nil {
 		return nil, false, err1
 	}
+	// 2.
 	isExternal := !inputIPBlock.Intersection(publicInternet).Empty()
 	isInternal := !inputIPBlock.ContainedIn(publicInternet)
 	if isInternal && isExternal {
 		return nil, false, fmt.Errorf("%s contains external and internal addresses which is not supported. "+
 			"src, dst should be external *or* internal address", ipOrCidr)
 	}
+	// 3.
 	if isExternal { // 3.
 		nodes, err = c.getCidrExternalNodes(inputIPBlock)
 		return nodes, false, err
-	} else if isInternal { // 4.
+		// internal address
+	} else if isInternal {
+		// 4.
+		vpcAP := c.VPC.AddressRange()
+		if !inputIPBlock.ContainedIn(vpcAP) {
+			return nil, false, fmt.Errorf("internal address %s not within vpc's address prefix %s",
+				inputIPBlock.ToIPRanges(), vpcAP.ToIPRanges())
+		}
+		// 5.
 		networkInterfaces, err2 := c.getNodesWithinInternalAddress(inputIPBlock)
 		if err2 != nil {
 			return nil, false, err2

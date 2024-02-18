@@ -348,9 +348,9 @@ var explainTests = []*vpcGeneralTest{
 	// src: internal address of 5 network interfaces, dst: external address that spans rules
 	// "many to many"
 	{
-		name:        "SGInternal4SrcToExternalGroup",
+		name:        "SGInternal3SrcToExternalGroup",
 		inputConfig: "sg_testing1_new",
-		ESrc:        "10.240.10.4/16",
+		ESrc:        "10.240.30.4/24",
 		EDst:        "161.26.0.0/8",
 		format:      vpcmodel.Debug,
 	},
@@ -454,23 +454,23 @@ func TestInputValidity(t *testing.T) {
 
 	cidr1 := "169.255.0.0"
 	cidr2 := "161.26.0.0/16"
+	cidrInternalNonAP := "10.240.10.4/16"
 	cidrAll := "0.0.0.0/0"
-	nonExistingNif := "vsi2-ky[10.240.10.4]"
-	existingNif := " vsi3a-ky[10.240.30.5]"
+	existingNif := "vsi3a-ky"
 	// should fail since two external addresses
 	_, err1 := vpcConfig.ExplainConnectivity(cidr1, cidr2, nil)
 	fmt.Println(err1.Error())
 	require.NotNil(t, err1, "the test should fail since both src and dst are external")
 
-	// should fail due to non existing networkInterface
-	_, err2 := vpcConfig.ExplainConnectivity(cidr1, nonExistingNif, nil)
-	fmt.Println(err2.Error())
-	require.NotNil(t, err2, "the test should fail since dst refers to non existing "+
-		"network interface")
-
 	// should fail due to a cidr containing both public internet and internal address
-	_, err3 := vpcConfig.ExplainConnectivity(cidrAll, existingNif, nil)
-	fmt.Println(err3.Error())
+	_, err2 := vpcConfig.ExplainConnectivity(cidrAll, existingNif, nil)
+	fmt.Println(err2.Error())
 	require.NotNil(t, err2, "the test should fail since src is cidr containing both public "+
-		"internet and internal address ")
+		"internet and internal address")
+
+	// should fail due to cidr containing internal address not within vpc's address prefix
+	_, err3 := vpcConfig.ExplainConnectivity(cidrInternalNonAP, existingNif, nil)
+	fmt.Println(err3.Error())
+	require.NotNil(t, err3, "the test should fail since src is cidr containing internal address "+
+		"not within vpc's AP")
 }
