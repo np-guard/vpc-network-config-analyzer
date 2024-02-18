@@ -3,7 +3,6 @@ package vpcmodel
 import (
 	"errors"
 	"fmt"
-	"strings"
 )
 
 type TextOutputFormatter struct {
@@ -37,30 +36,10 @@ func headerOfAnalyzedVPC(uc OutputUseCase, vpcName, vpc2Name string, c1 *VPCConf
 	case SubnetsDiff, EndpointsDiff:
 		return fmt.Sprintf("Connectivity diff between VPC %s and VPC %s\n", vpcName, vpc2Name), nil
 	case Explain:
-		connStr := ""
-		if explanation.connQuery != nil {
-			connStr = " for " + explanation.connQuery.String()
-		}
-		srcNetworkInterfaces := explainNetworkInterfaces(explanation.srcNetworkInterfacesFromIP)
-		dstNetworkInterfaces := explainNetworkInterfaces(explanation.dstNetworkInterfacesFromIP)
-		header1 := fmt.Sprintf("Connectivity explanation%s between %s%s and %s%s",
-			connStr, explanation.src, srcNetworkInterfaces, explanation.dst, dstNetworkInterfaces)
-		header2 := strings.Repeat("=", len(header1))
-		return header1 + "\n" + header2 + "\n\n", nil
+		header := explainHeader(explanation)
+		return header, nil
 	}
 	return "", nil // should never get here
-}
-
-// in case the src/dst of a network interface given as an internal address connected to network interface
-func explainNetworkInterfaces(nodes []Node) string {
-	if len(nodes) == 0 {
-		return ""
-	}
-	networkInterfaces := make([]string, len(nodes))
-	for i, node := range nodes {
-		networkInterfaces[i] = node.Name()
-	}
-	return leftParentheses + strings.Join(networkInterfaces, ", ") + rightParentheses
 }
 
 func (t *TextOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
