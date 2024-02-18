@@ -151,7 +151,7 @@ var explainTests = []*vpcGeneralTest{
 	{
 		name:        "QueryConnectionSGBasic3",
 		inputConfig: "sg_testing1_new",
-		ESrc:        "crn:29", // crn:29 is vsi1-ky
+		ESrc:        "crn:v1:staging:public:is:us-south:a/6527::vpc:a456", // crn:v1:staging:public:is:us-south:a/6527::vpc:a456 is vsi1-ky
 		EDst:        "161.26.0.0/20",
 		EProtocol:   string(common.ProtocolUDP),
 		ESrcMinPort: 10,
