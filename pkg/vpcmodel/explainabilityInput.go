@@ -19,6 +19,14 @@ type ExplanationArgs struct {
 	dstMaxPort int64
 }
 
+func (e *ExplanationArgs) Src() string {
+	return e.src
+}
+
+func (e *ExplanationArgs) Dst() string {
+	return e.dst
+}
+
 // GetConnectionSet TODO: handle also input ICMP properties (type, code) as input args
 // translates explanation args to a connection set
 func (e *ExplanationArgs) GetConnectionSet() *common.ConnectionSet {

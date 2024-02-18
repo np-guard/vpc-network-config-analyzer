@@ -68,14 +68,6 @@ type Explanation struct {
 	groupedLines []*groupedConnLine
 }
 
-func (e *ExplanationArgs) Src() string {
-	return e.src
-}
-
-func (e *ExplanationArgs) Dst() string {
-	return e.dst
-}
-
 // ExplainConnectivity given src, dst and connQuery returns a struct with all explanation details
 // nil connQuery means connection is not part of the query
 func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.ConnectionSet) (res *Explanation, err error) {
