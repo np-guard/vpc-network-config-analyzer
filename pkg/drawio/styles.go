@@ -8,8 +8,6 @@ import (
 
 const (
 	groupSquareStyle      = "rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#82b366;strokeWidth=6;perimeterSpacing=0;arcSize=12;gradientColor=none;opacity=70;"
-	ibmSquareDrawioPrefix = "rounded=0;whiteSpace=wrap;html=1;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;spacingBottom=-28;spacingTop=0;labelPosition=-100;verticalLabelPosition=top;align=center;verticalAlign=bottom;spacingLeft=9;spacing=0;expand=0;recursiveResize=0;spacingRight=0;container=1;collapsible=0;fillColor=none;strokeColor="
-	ibmSquareDrawioFroamt = "%s%s;"
 
 	niImage    = "PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+CjxkZWZzPgo8c3R5bGU+LmNscy0xe2ZpbGw6I2VlNTM5Njt9LmNscy0ye2ZpbGw6bm9uZTt9LmNscy0ze2ZpbGw6I2ZmZjt9PC9zdHlsZT4KPC9kZWZzPg0KPHJlY3QgY2xhc3M9ImNscy0xIiB4PSIwLjUiIHk9IjAuNSIgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4Ii8+CjxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMTQuNSIgeT0iMTQuNSIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIi8+DQo8dGV4dCBmb250LXNpemU9IjMwIiBmaWxsPSJ3aGl0ZSIgeD0iOCIgeT0iMzUiPk5JPC90ZXh0Pgo8L3N2Zz4="
 	vsiImage   = "PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiMxOTgwMzg7fS5jbHMtMntmaWxsOiNmZmY7fS5jbHMtM3tmaWxsOm5vbmU7fTwvc3R5bGU+PC9kZWZzPjxyZWN0IGNsYXNzPSJjbHMtMSIgeD0iMC41IiB5PSIwLjUiIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIvPjxjaXJjbGUgY2xhc3M9ImNscy0yIiBjeD0iMTguODgiIGN5PSIyOC44OCIgcj0iMC42MyIvPjxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMTUuNzUiIHk9IjE4LjI1IiB3aWR0aD0iMi41IiBoZWlnaHQ9IjEuMjUiLz48cmVjdCBjbGFzcz0iY2xzLTIiIHg9IjE5LjUiIHk9IjE4LjI1IiB3aWR0aD0iMi41IiBoZWlnaHQ9IjEuMjUiLz48cmVjdCBjbGFzcz0iY2xzLTIiIHg9IjIzLjI1IiB5PSIxOC4yNSIgd2lkdGg9IjIuNSIgaGVpZ2h0PSIxLjI1Ii8+PHJlY3QgY2xhc3M9ImNscy0yIiB4PSIyNyIgeT0iMTguMjUiIHdpZHRoPSIyLjUiIGhlaWdodD0iMS4yNSIvPjxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMzAuNzUiIHk9IjE4LjI1IiB3aWR0aD0iMi41IiBoZWlnaHQ9IjEuMjUiLz48cGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik0zMiwzMkgxN2ExLjI1LDEuMjUsMCwwLDEtMS4yNS0xLjI1VjI3QTEuMjUsMS4yNSwwLDAsMSwxNywyNS43NUgzMkExLjI1LDEuMjUsMCwwLDEsMzMuMjUsMjd2My43NUExLjI1LDEuMjUsMCwwLDEsMzIsMzJaTTE3LDI3djMuNzVIMzJWMjdaIi8+PHJlY3QgY2xhc3M9ImNscy0zIiB4PSIxNC41IiB5PSIxNC41IiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiLz48cmVjdCBjbGFzcz0iY2xzLTIiIHg9IjE1Ljc1IiB5PSIyMiIgd2lkdGg9IjE3LjUiIGhlaWdodD0iMS4yNSIvPjwvc3ZnPg=="
@@ -50,7 +48,7 @@ var images = map[reflect.Type]string{
 
 }
 
-func isIbmSquare(tn TreeNodeInterface) bool {
+func (stl *drawioStyles) IsIbmSquare(tn TreeNodeInterface) bool {
 	return map[reflect.Type]bool{
 		reflect.TypeOf(PublicNetworkTreeNode{}): true,
 		reflect.TypeOf(CloudTreeNode{}):         true,
@@ -60,20 +58,20 @@ func isIbmSquare(tn TreeNodeInterface) bool {
 		reflect.TypeOf(SubnetTreeNode{}):        true,
 	}[reflect.TypeOf(tn).Elem()]
 }
-func isGroupingSquare(tn TreeNodeInterface) bool {
+func (stl *drawioStyles) IsGroupingSquare(tn TreeNodeInterface) bool {
 	return reflect.TypeOf(tn).Elem() == reflect.TypeOf(GroupSubnetsSquareTreeNode{}) ||
 		reflect.TypeOf(tn).Elem() == reflect.TypeOf(GroupSquareTreeNode{})
 }
-func isIbmIcon(tn TreeNodeInterface) bool {
+func (stl *drawioStyles) IsIbmIcon(tn TreeNodeInterface) bool {
 	return tn.IsIcon() && reflect.TypeOf(tn).Elem() != reflect.TypeOf(GroupPointTreeNode{})
 }
-func isGroupingIcon(tn TreeNodeInterface) bool {
+func (stl *drawioStyles) IsGroupingIcon(tn TreeNodeInterface) bool {
 	return tn.IsIcon() && reflect.TypeOf(tn).Elem() == reflect.TypeOf(GroupPointTreeNode{})
 }
-func isLogicalLine(tn TreeNodeInterface) bool {
+func (stl *drawioStyles) IsLogicalLine(tn TreeNodeInterface) bool {
 	return reflect.TypeOf(tn).Elem() == reflect.TypeOf(LogicalLineTreeNode{})
 }
-func isConnectionLine(tn TreeNodeInterface) bool {
+func (stl *drawioStyles) IsConnectionLine(tn TreeNodeInterface) bool {
 	return reflect.TypeOf(tn).Elem() == reflect.TypeOf(ConnectivityTreeNode{})
 }
 
@@ -110,9 +108,9 @@ func newDrawioStyles(nodes []TreeNodeInterface) drawioStyles {
 	return stl
 }
 
-func connectPointStyle(tn TreeNodeInterface) (string, string) {
+func (stl *drawioStyles) connectPointStyle(tn TreeNodeInterface) (string, string) {
 	startArrow, endArrow := ovalEndEdge, ovalEndEdge
-	if isLogicalLine(tn) {
+	if stl.IsLogicalLine(tn) {
 		return startArrow, endArrow
 	}
 	con := tn.(*ConnectivityTreeNode)
@@ -129,10 +127,10 @@ func connectPointStyle(tn TreeNodeInterface) (string, string) {
 }
 
 func (stl *drawioStyles) SVGConnectivityStyle(tn TreeNodeInterface) string {
-	startArrow, endArrow := connectPointStyle(tn)
+	startArrow, endArrow := stl.connectPointStyle(tn)
 	dash := ""
 	routePrefix := ""
-	if isLogicalLine(tn) {
+	if stl.IsLogicalLine(tn) {
 		dash = "stroke-dasharray=\"6 6\""
 	} else {
 		if tn.(*ConnectivityTreeNode).router != nil {
@@ -143,9 +141,9 @@ func (stl *drawioStyles) SVGConnectivityStyle(tn TreeNodeInterface) string {
 	return fmt.Sprintf("marker-start='url(#%s%s)' marker-end='url(#%s%s)' %s", routePrefix, startArrow, routePrefix, endArrow, dash)
 }
 
-func connectivityStyle(tn TreeNodeInterface) string {
+func (stl *drawioStyles)connectivityStyle(tn TreeNodeInterface) string {
 	con := tn.(*ConnectivityTreeNode)
-	startArrow, endArrow := connectPointStyle(tn)
+	startArrow, endArrow := stl.connectPointStyle(tn)
 	strokeColor := ""
 	if con.router != nil {
 		strokeColor = "strokeColor=" + connRouteredCollor + ";"
@@ -154,7 +152,7 @@ func connectivityStyle(tn TreeNodeInterface) string {
 }
 
 func (stl *drawioStyles) ConnectivityColor(tn TreeNodeInterface) string {
-	if isConnectionLine(tn) && tn.(*ConnectivityTreeNode).router != nil {
+	if stl.IsConnectionLine(tn) && tn.(*ConnectivityTreeNode).router != nil {
 		return connRouteredCollor
 	}
 	return "#000000"
@@ -268,17 +266,15 @@ func (stl *drawioStyles) Style(tn TreeNodeInterface) string {
 	switch {
 	case stl.canTypeHaveAMiniIcon[reflect.TypeOf(tn).Elem()] && !tn.(IconTreeNodeInterface).hasMiniIcon():
 		return stl.MiniImage(tn)
-	case isConnectionLine(tn):
-		return connectivityStyle(tn)
-	case isIbmSquare(tn):
-		return fmt.Sprintf(ibmSquareDrawioFroamt, ibmSquareDrawioPrefix, colors[reflect.TypeOf(SubnetTreeNode{})])
-	case isGroupingSquare(tn):
+	case stl.IsConnectionLine(tn):
+		return stl.connectivityStyle(tn)
+	case stl.IsGroupingSquare(tn):
 		return groupSquareStyle
-	case isIbmIcon(tn):
+	case stl.IsIbmIcon(tn):
 		return images[reflect.TypeOf(tn).Elem()]
-	case isGroupingIcon(tn):
+	case stl.IsGroupingIcon(tn):
 		return "ellipse;whiteSpace=wrap;html=1;aspect=fixed;"
-	case isLogicalLine(tn):
+	case stl.IsLogicalLine(tn):
 		return logicalLineStyle
 	}
 	return ""
@@ -305,7 +301,7 @@ func (stl *drawioStyles) FIPImage() string {
 //////////////////////////////////////////////////////////////////////////////////
 
 func (stl *drawioStyles) HasText(tn TreeNodeInterface) bool {
-	return isIbmSquare(tn) || isIbmIcon(tn)
+	return stl.IsIbmSquare(tn) || stl.IsIbmIcon(tn)
 }
 
 // /////////////////////////////////////////////

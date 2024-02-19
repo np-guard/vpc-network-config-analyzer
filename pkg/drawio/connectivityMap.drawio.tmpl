@@ -37,7 +37,7 @@
 
         {{ else if $node.IsIcon }}
             {{if $data.HasText $node}}
-                <mxCell id="{{$data.IDsPrefix}}-{{$node.ID}}" value="{{$node.Label}}" style="{{$imageStyle}}{{$data.Style $node}};{{$iconStyle}}" parent="{{$data.IDsPrefix}}-{{$node.DrawioParent.ID}}" vertex="1">
+                <mxCell id="{{$data.IDsPrefix}}-{{$node.ID}}" value="{{$node.Label}}" style="{{$imageStyle}}{{$data.Image $node}};{{$iconStyle}}" parent="{{$data.IDsPrefix}}-{{$node.DrawioParent.ID}}" vertex="1">
                 <mxGeometry width="{{$node.IconSize}}" height="{{$node.IconSize}}" x="{{$node.X}}" y="{{$node.Y}}" as="geometry"/>
                 </mxCell>
             {{ else if $node.HasTooltip }}
