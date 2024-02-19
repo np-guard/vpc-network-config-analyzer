@@ -422,7 +422,7 @@ func subnetFromNode(node vpcmodel.Node) (subnet *Subnet, err error) {
 	case *ReservedIP:
 		return concreteNode.subnet, nil
 	default:
-		return nil, fmt.Errorf("cannot get cidr for node: %+v", node)
+		return nil, fmt.Errorf("cannot get subnet for node: %+v", node)
 	}
 }
 

@@ -188,11 +188,7 @@ func addIntervalToList(ipbNew *IPBlock, ipbList []*IPBlock) []*IPBlock {
 
 // NewIPBlockFromCidr returns a new IPBlock object from input CIDR string
 func NewIPBlockFromCidr(cidr string) (*IPBlock, error) {
-	res, err := NewIPBlock(cidr, []string{})
-	if err != nil {
-		return nil, err
-	}
-	return res, nil
+	return NewIPBlock(cidr, []string{})
 }
 
 // PairCIDRsToIPBlocks returns two IPBlock objects from two input CIDR strings
