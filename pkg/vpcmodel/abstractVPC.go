@@ -4,6 +4,11 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
+const (
+	leftParentheses  = " ("
+	rightParentheses = ")"
+)
+
 // VPCResourceIntf captures common properties for VPC resources
 type VPCResourceIntf interface {
 	UID() string
@@ -50,7 +55,7 @@ func (n *VPCResource) VPC() VPCResourceIntf {
 }
 
 func (n *VPCResource) NameAndUID() string {
-	return n.Name() + " (" + n.UID() + ")"
+	return n.Name() + leftParentheses + n.UID() + rightParentheses
 }
 
 // todo: define enum for filters

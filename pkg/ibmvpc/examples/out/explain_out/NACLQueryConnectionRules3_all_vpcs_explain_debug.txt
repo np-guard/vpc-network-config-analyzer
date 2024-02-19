@@ -1,5 +1,5 @@
-Connectivity explanation for protocol: TCP between vsi1-ky[10.240.10.4] and 161.26.0.0/16
-===================================================================================================
+Connectivity explanation for protocol: TCP between vsi1-ky and 161.26.0.0/16
+============================================================================
 
 Connection protocol: TCP exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16
 External Router PublicGateway: public-gw-ky

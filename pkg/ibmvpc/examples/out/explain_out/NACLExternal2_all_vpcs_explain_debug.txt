@@ -1,5 +1,5 @@
-Connectivity explanation between vsi1-ky[10.240.10.4] and 100.128.0.0/32
-===================================================================================================
+Connectivity explanation between vsi1-ky and 100.128.0.0/32
+===========================================================
 
 No connection between vsi1-ky[10.240.10.4] and Public Internet 100.128.0.0/32; connection blocked by egress
 External Router PublicGateway: public-gw-ky

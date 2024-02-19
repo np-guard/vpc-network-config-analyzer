@@ -20,7 +20,7 @@ type VPCConfig struct {
 	UIDToResource map[string]VPCResourceIntf
 	CloudName     string
 	// VPC is a reference to the relevant VPC object for which this config belongs
-	VPC VPCResourceIntf
+	VPC NodeSet
 	// IsMultipleVPCsConfig is a bool indicator, when set true, it means that the VPCConfig contains resources from
 	// multiple VPCs connected to each other, and such config is relevant for reasoning about cross-vpc connectivity
 	IsMultipleVPCsConfig bool
