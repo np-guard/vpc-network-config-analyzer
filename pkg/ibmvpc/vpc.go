@@ -447,6 +447,7 @@ func (n *NACL) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*com
 		return vpcmodel.NoConns(), nil // not affected by current nacl
 	}
 	// TODO: differentiate between "has no effect" vs "affects with allow-all / allow-none "
+	// checking if targetNode is internal, to save a call to ContainedIn for external nodes
 	if targetNode.IsInternal() && targetNode.IPBlock().ContainedIn(subnet.ipblock) {
 		return vpcmodel.AllConns(), nil // nacl has no control on traffic between two instances in its subnet
 	}
@@ -467,6 +468,8 @@ func (n *NACL) rulesFilterInConnectivity(src, dst vpcmodel.Node, conn *common.Co
 	// nacl has no control on traffic between two instances in its subnet;
 	// this is marked by a rule with index -1 (ibmvpc.DummyRule)
 	// which is not printed but only signals that this filter does not block (since there are rules)
+
+	// checking if targetNode is internal, to save a call to ContainedIn for external nodes
 	if targetNode.IsInternal() && targetNode.IPBlock().ContainedIn(subnet.ipblock) {
 		return true, []int{vpcmodel.DummyRule}, nil, nil
 	}
