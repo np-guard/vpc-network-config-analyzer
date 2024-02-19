@@ -129,7 +129,7 @@
                 }
             },
             "created_at": "2023-03-26T07:40:05Z",
-            "crn": "crn:29",
+            "crn": "crn:v1:staging:public:is:us-south:a/6527::vpc:a456",
             "disks": [],
             "href": "href:30",
             "id": "id:31",
