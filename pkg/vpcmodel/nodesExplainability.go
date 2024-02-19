@@ -144,7 +144,7 @@ func (c *VPCConfig) GetNodesOfVsi(vsi string) ([]Node, error) {
 func (c *VPCConfig) getCidrExternalNodes(cidr string) (cidrNodes []Node, err error) {
 	cidrsIPBlock, err := common.NewIPBlockFromCidrOrAddress(cidr)
 	if err != nil { // string cidr does not represent a legal cidr
-		return nil, err
+		return nil, nil // a more general err will be returned by processInput()
 	}
 	// 1.
 	vpcConfigNodesExternalBlock := []*common.IPBlock{}
