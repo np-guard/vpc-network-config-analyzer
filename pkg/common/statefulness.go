@@ -43,7 +43,7 @@ func (conn *ConnectionSet) ConnectionWithStatefulness(secondDirectionConn *Conne
 // connTCPWithStatefulness assumes that both `conn` and `secondDirectionConn` are within TCP.
 // it assigns IsStateful a value within `conn`, and returns the subset from `conn` which is stateful.
 func (conn *ConnectionSet) connTCPWithStatefulness(secondDirectionConn *ConnectionSet) *ConnectionSet {
-	secondDirectionSwitchPortsDirection := secondDirectionConn.switchSrcDstPorts()
+	secondDirectionSwitchPortsDirection := secondDirectionConn.switchSrcDstPortsOnTCP()
 	// flip src/dst ports before intersection
 	statefulCombinedConn := conn.Intersection(secondDirectionSwitchPortsDirection)
 	if !conn.Equal(statefulCombinedConn) {
@@ -61,28 +61,26 @@ func (conn *ConnectionSet) tcpConn() *ConnectionSet {
 	return conn.Intersection(res)
 }
 
-// switchSrcDstPorts returns a new ConnectionSet object, built from the input ConnectionSet object.
+// switchSrcDstPortsOnTCP returns a new ConnectionSet object, built from the input ConnectionSet object.
 // It assumes the input connection object is only within TCP protocol.
 // For TCP the src and dst ports on relevant cubes are being switched.
-func (conn *ConnectionSet) switchSrcDstPorts() *ConnectionSet {
+func (conn *ConnectionSet) switchSrcDstPortsOnTCP() *ConnectionSet {
 	if conn.AllowAll || conn.IsEmpty() {
 		return conn.Copy()
 	}
 	res := NewConnectionSet(false)
 	cubes := conn.connectionProperties.GetCubesList()
 	for _, cube := range cubes {
-		protocols := cube[protocol]
-		if protocols.Contains(TCP) {
-			srcPorts := cube[srcPort]
-			dstPorts := cube[dstPort]
-			// if the entire domain is enabled by both src and dst no need to switch
-			if !srcPorts.Equal(*getDimensionDomain(srcPort)) || !dstPorts.Equal(*getDimensionDomain(dstPort)) {
-				newCube := copyCube(cube)
-				newCube[srcPort], newCube[dstPort] = newCube[dstPort], newCube[srcPort]
-				res.connectionProperties = res.connectionProperties.Union(hypercubes.CreateFromCube(newCube))
-			} else {
-				res.connectionProperties = res.connectionProperties.Union(hypercubes.CreateFromCube(cube))
-			}
+		// assuming cube[protocol] contains TCP only
+		srcPorts := cube[srcPort]
+		dstPorts := cube[dstPort]
+		// if the entire domain is enabled by both src and dst no need to switch
+		if !srcPorts.Equal(*getDimensionDomain(srcPort)) || !dstPorts.Equal(*getDimensionDomain(dstPort)) {
+			newCube := copyCube(cube)
+			newCube[srcPort], newCube[dstPort] = newCube[dstPort], newCube[srcPort]
+			res.connectionProperties = res.connectionProperties.Union(hypercubes.CreateFromCube(newCube))
+		} else {
+			res.connectionProperties = res.connectionProperties.Union(hypercubes.CreateFromCube(cube))
 		}
 	}
 	return res
