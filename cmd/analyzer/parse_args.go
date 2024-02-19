@@ -189,7 +189,7 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args.Debug = flagset.Bool(Debug, false, "Run in debug mode")
 	args.Version = flagset.Bool(Version, false, "Prints the release version number")
 	args.ESrc = flagset.String(ESrc, "", "Source "+srcDstUsage)
-	args.EDst = flagset.String(EDst, "", "Destination"+srcDstUsage)
+	args.EDst = flagset.String(EDst, "", "Destination "+srcDstUsage)
 	args.EProtocol = flagset.String(EProtocol, "", "Protocol for connection description")
 	args.ESrcMinPort = flagset.Int64(ESrcMinPort, common.MinPort, "Minimum source port for connection description")
 	args.ESrcMaxPort = flagset.Int64(ESrcMaxPort, common.MaxPort, "Maximum source port for connection description")
