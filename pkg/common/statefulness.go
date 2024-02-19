@@ -5,11 +5,11 @@ import "github.com/np-guard/models/pkg/hypercubes"
 const (
 	// StatefulUnknown is the default value for a ConnectionSet object,
 	StatefulUnknown int = iota
-	// StatefulTrue represents a connection object for which any allowed TCP
+	// StatefulTrue represents a connection object for which any allowed TCP (on all allowed src/dst ports)
 	// has an allowed response connection
 	StatefulTrue
 	// StatefulFalse represents a connection object for which there exists some allowed TCP
-	// that does not have an allowed response connection
+	// (on any allowed subset from the allowed src/dst ports) that does not have an allowed response connection
 	StatefulFalse
 )
 
