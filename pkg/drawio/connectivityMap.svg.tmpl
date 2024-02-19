@@ -28,7 +28,7 @@
         {{ else if $node.IsSquare }}
             {{if $data.HasText $node}}
                 <rect x="{{$ax}}" y="{{$ay}}" width="{{$node.Width}}" height="{{$node.Height}}" fill="none" stroke="{{$data.Color $node}}" pointer-events="all"/>
-                <image x="{{$data.AddF $ax 18.5}}" y="{{$data.AddF $ay 6}}" width="22" height="19.73" xlink:href="data:image/svg+xml;base64,{{$data.ImageStyle $node}}"/>
+                <image x="{{$data.AddF $ax 18.5}}" y="{{$data.AddF $ay 6}}" width="22" height="19.73" xlink:href="data:image/svg+xml;base64,{{$data.Image $node}}"/>
                 <rect x="{{$ax}}" y="{{$ay}}" width="7" height="37" fill="{{$data.Color $node}}" stroke="none" pointer-events="all"/>
                 <rect x="{{$data.AddF $ax 51}}" y="{{$data.AddF $ay 8}}" width="163" height="20" fill="none" stroke="none" pointer-events="all"/>
                 <text x="{{$data.AddF $ax 53}}" y="{{$data.AddF $ay 22}}" fill="rgb(0, 0, 0)" font-family="IBM Plex Sans" font-size="14px" line-height="1.2" text-align="left">{{$node.Label}}</text>
@@ -37,14 +37,14 @@
             {{end}}
         {{ else if $node.IsIcon }}
             {{if $data.HasText $node}}
-                <image x="{{$ax}}" y="{{$ay}}" width="{{$node.IconSize}}" height="{{$node.IconSize}}" xlink:href="data:image/svg+xml;base64,{{$data.ImageStyle $node}}"/>
+                <image x="{{$ax}}" y="{{$ay}}" width="{{$node.IconSize}}" height="{{$node.IconSize}}" xlink:href="data:image/svg+xml;base64,{{$data.Image $node}}"/>
                 <text fill="rgb(0, 0, 0)" font-family="IBM Plex Sans" text-anchor="middle" font-size="14px" x="{{$data.Add $ax 30}}" y="{{$data.Add $ay 73}}">{{$node.Label}}</text>
                 {{ if $data.HasMiniIcon $node }}
-                    <image x="{{$data.Add $ax $data.MiniIconXOffset}}" y="{{$data.Add $ay $data.MiniIconYOffset}}" width="{{$data.MiniIconSize}}" height="{{$data.MiniIconSize}}" xlink:href="data:image/svg+xml;base64,{{$data.MiniImageStyle $node}}"/>
+                    <image x="{{$data.Add $ax $data.MiniIconXOffset}}" y="{{$data.Add $ay $data.MiniIconYOffset}}" width="{{$data.MiniIconSize}}" height="{{$data.MiniIconSize}}" xlink:href="data:image/svg+xml;base64,{{$data.MiniImage $node}}"/>
                 {{ end }}
                 {{ if $node.IsNI }}
                     {{ if $node.HasFip  }}
-                        <image x="{{$data.Add $ax $data.FipXOffset}}" y="{{$data.Add $ay $data.FipYOffset}}" width="{{$node.IconSize}}" height="{{$node.IconSize}}" xlink:href="data:image/svg+xml;base64,{{$data.FIPImageStyle}}"/>
+                        <image x="{{$data.Add $ax $data.FipXOffset}}" y="{{$data.Add $ay $data.FipYOffset}}" width="{{$node.IconSize}}" height="{{$node.IconSize}}" xlink:href="data:image/svg+xml;base64,{{$data.FIPImage}}"/>
                         <text fill="rgb(0, 0, 0)" font-family="IBM Plex Sans" text-anchor="middle" font-size="14px" x="{{$data.Add3 $ax $data.FipXOffset 30}}" y="{{$data.Add3 $ay $data.FipYOffset 73}}">{{$node.Fip}}</text>
                     {{ end }}
                 {{ end }}

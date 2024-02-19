@@ -270,7 +270,7 @@ func (stl *drawioStyles) HasMiniIcon(tn TreeNodeInterface) bool {
 func (stl *drawioStyles) Style(tn TreeNodeInterface) string {
 	switch {
 	case stl.canTypeHaveAMiniIcon[reflect.TypeOf(tn).Elem()] && !tn.(IconTreeNodeInterface).hasMiniIcon():
-		return stl.MiniIconStyle(tn)
+		return stl.MiniImage(tn)
 	case isConnectionLine(tn):
 		return connectivityStyle(tn)
 	case isIbmSquare(tn):
@@ -278,16 +278,13 @@ func (stl *drawioStyles) Style(tn TreeNodeInterface) string {
 	case isGroupingSquare(tn):
 		return groupSquareStyle
 	case isIbmIcon(tn):
-		return imageDrawioStyle + images[reflect.TypeOf(tn).Elem()]
+		return images[reflect.TypeOf(tn).Elem()]
 	case isGroupingIcon(tn):
 		return "ellipse;whiteSpace=wrap;html=1;aspect=fixed;"
 	case isLogicalLine(tn):
 		return logicalLineStyle
 	}
 	return ""
-}
-func (stl *drawioStyles) MiniIconStyle(tn TreeNodeInterface) string {
-	return imageDrawioStyle + miniImages[reflect.TypeOf(tn).Elem()]
 }
 
 func (stl *drawioStyles) SquareTextStyle(tn TreeNodeInterface) string {
@@ -302,20 +299,20 @@ func (stl *drawioStyles) TagStyle(tn TreeNodeInterface) string {
 }
 
 // ////////////////////////////////////////////////////////////////////////////////////////
-func (stl *drawioStyles) ImageStyle(tn TreeNodeInterface) string {
+func (stl *drawioStyles) Image(tn TreeNodeInterface) string {
 	if stl.canTypeHaveAMiniIcon[reflect.TypeOf(tn).Elem()] && !tn.(IconTreeNodeInterface).hasMiniIcon() {
 		return miniImages[reflect.TypeOf(tn).Elem()]
 	}
 	return images[reflect.TypeOf(tn).Elem()]
 }
-func (stl *drawioStyles) MiniImageStyle(tn TreeNodeInterface) string {
+func (stl *drawioStyles) MiniImage(tn TreeNodeInterface) string {
 	return miniImages[reflect.TypeOf(tn).Elem()]
 }
 
 func (stl *drawioStyles) Color(tn TreeNodeInterface) string {
 	return colors[reflect.TypeOf(tn).Elem()]
 }
-func (stl *drawioStyles) FIPImageStyle() string {
+func (stl *drawioStyles) FIPImage() string {
 	return fipImage
 }
 
@@ -323,9 +320,6 @@ func (stl *drawioStyles) FIPImageStyle() string {
 
 func (stl *drawioStyles) HasText(tn TreeNodeInterface) bool {
 	return isIbmSquare(tn) || isIbmIcon(tn)
-}
-func (stl *drawioStyles) FIPStyle(tn TreeNodeInterface) string {
-	return imageDrawioStyle + fipImage
 }
 
 // /////////////////////////////////////////////

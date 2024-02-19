@@ -4,6 +4,7 @@
 <root>
 {{ $data := .}}
 {{ $iconStyle := "fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;spacingTop=-7;" }}
+{{$imageStyle := "shape=image;aspect=fixed;image=data:image/svg+xml,"}}
 <mxCell id="0"/>
 <mxCell id="{{$data.IDsPrefix}}-{{$data.RootID}}" parent="0"/>
     {{range $point := $data.DebugPoints}}
@@ -30,25 +31,29 @@
                 </mxCell>
             {{end}}
         {{ else if $node.IsIcon }}
-            {{ if $node.HasTooltip }}
+            {{if $data.HasText $node}}
+                <mxCell id="{{$data.IDsPrefix}}-{{$node.ID}}" value="{{$node.Label}}" style="{{$imageStyle}}{{$data.Style $node}};{{$iconStyle}}" parent="{{$data.IDsPrefix}}-{{$node.DrawioParent.ID}}" vertex="1">
+                <mxGeometry width="{{$node.IconSize}}" height="{{$node.IconSize}}" x="{{$node.X}}" y="{{$node.Y}}" as="geometry"/>
+                </mxCell>
+            {{ else if $node.HasTooltip }}
                 <UserObject label="{{$node.Label}}" tooltip="{{$node.Tooltip}}" id="{{$data.IDsPrefix}}-{{$node.ID}}">
-                    <mxCell style="{{$data.Style $node}};{{$iconStyle}}" parent="{{$data.IDsPrefix}}-{{$node.DrawioParent.ID}}" vertex="1">
+                    <mxCell style="{{$imageStyle}}{{$data.Style $node}};{{$iconStyle}}" parent="{{$data.IDsPrefix}}-{{$node.DrawioParent.ID}}" vertex="1">
                     <mxGeometry width="{{$node.IconSize}}" height="{{$node.IconSize}}" x="{{$node.X}}" y="{{$node.Y}}" as="geometry"/>
                     </mxCell>
                 </UserObject>
             {{else}}
-                <mxCell id="{{$data.IDsPrefix}}-{{$node.ID}}" value="{{$node.Label}}" style="{{$data.Style $node}};{{$iconStyle}}" parent="{{$data.IDsPrefix}}-{{$node.DrawioParent.ID}}" vertex="1">
+                <mxCell id="{{$data.IDsPrefix}}-{{$node.ID}}" value="{{$node.Label}}" style="{{$data.Style $node}}" parent="{{$data.IDsPrefix}}-{{$node.DrawioParent.ID}}" vertex="1">
                 <mxGeometry width="{{$node.IconSize}}" height="{{$node.IconSize}}" x="{{$node.X}}" y="{{$node.Y}}" as="geometry"/>
                 </mxCell>
             {{ end }}
             {{ if $data.HasMiniIcon $node }}
-                <mxCell id="{{$data.IDsPrefix}}-{{$node.MiniIconID}}" value="" style="{{$data.MiniIconStyle $node}};{{$iconStyle}}" parent="{{$data.IDsPrefix}}-{{$node.ID}}" vertex="1">
+                <mxCell id="{{$data.IDsPrefix}}-{{$node.MiniIconID}}" value="" style="{{$imageStyle}}{{$data.MiniImage $node}};{{$iconStyle}}" parent="{{$data.IDsPrefix}}-{{$node.ID}}" vertex="1">
                 <mxGeometry x="{{$data.MiniIconXOffset}}" y="{{$data.MiniIconYOffset}}" width="{{$data.MiniIconSize}}" height="{{$data.MiniIconSize}}" as="geometry"/>
                 </mxCell>
             {{ end }}
             {{ if $node.IsNI }}
                 {{ if $node.HasFip  }}
-                    <mxCell id="{{$data.IDsPrefix}}-{{$node.FipID}}" value="{{$node.Fip}}" style="{{$data.FIPStyle $node}};{{$iconStyle}}" parent="{{$data.IDsPrefix}}-{{$node.ID}}" vertex="1">
+                    <mxCell id="{{$data.IDsPrefix}}-{{$node.FipID}}" value="{{$node.Fip}}" style="{{$imageStyle}}{{$data.FIPImage}};{{$iconStyle}}" parent="{{$data.IDsPrefix}}-{{$node.ID}}" vertex="1">
                     <mxGeometry x="{{$data.FipXOffset}}" y="{{$data.FipYOffset}}" width="{{$node.IconSize}}" height="{{$node.IconSize}}" as="geometry"/>
                     </mxCell>
                 {{ end }}
