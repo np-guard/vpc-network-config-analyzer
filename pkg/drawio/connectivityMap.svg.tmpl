@@ -53,7 +53,7 @@
                 <ellipse cx="{{$data.Add $ax ($data.Half $node.IconSize)}}" cy="{{$data.Add $ay ($data.Half $node.IconSize)}}" rx="{{$data.Half $node.IconSize}}" ry="{{$data.Half $node.IconSize}}" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" pointer-events="all"/>
             {{end}}
         {{ else if $node.IsLine }}
-            <path id="{{$data.IDsPrefix}}-{{$node.ID}}" d="{{$data.ConnectivityPoints $node}}" {{$data.SVGConnectivityStyle $node}} fill="none" stroke="{{$data.ConnectivityColor $node}}" stroke-width="2" stroke-miterlimit="10" pointer-events="stroke"/>
+            <path d="{{$data.ConnectivityPoints $node}}" {{$data.SVGConnectivityStyle $node}} fill="none" stroke="{{$data.ConnectivityColor $node}}" stroke-width="2" stroke-miterlimit="10" pointer-events="stroke"/>
             <text {{$data.ConnectivityLabelPos $node}} font-family="Helvetica" font-size="11"> {{$node.Label}}</text>
         {{ end }}
     {{end}}

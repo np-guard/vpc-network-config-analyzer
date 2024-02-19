@@ -7,10 +7,8 @@ import (
 )
 
 const (
-	iconDrawioStyle       = ";fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;labelPosition=center;verticalLabelPosition=bottom;align=center;verticalAlign=top;spacingTop=-7;"
 	imageDrawioStyle      = "shape=image;aspect=fixed;image=data:image/svg+xml,"
 	groupSquareStyle      = "rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#82b366;strokeWidth=6;perimeterSpacing=0;arcSize=12;gradientColor=none;opacity=70;"
-	decorFormat           = "rounded=0;whiteSpace=wrap;html=1;strokeColor=none;fillColor=%s;"
 	squareTextDrawioStyle = "text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;"
 	lineTextDrawioStyle   = "edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];"
 	ibmSquareDrawioPrefix = "rounded=0;whiteSpace=wrap;html=1;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;spacingBottom=-28;spacingTop=0;labelPosition=-100;verticalLabelPosition=top;align=center;verticalAlign=bottom;spacingLeft=9;spacing=0;expand=0;recursiveResize=0;spacingRight=0;container=1;collapsible=0"
@@ -280,7 +278,7 @@ func (stl *drawioStyles) Style(tn TreeNodeInterface) string {
 	case isGroupingSquare(tn):
 		return groupSquareStyle
 	case isIbmIcon(tn):
-		return imageDrawioStyle + images[reflect.TypeOf(tn).Elem()] + iconDrawioStyle
+		return imageDrawioStyle + images[reflect.TypeOf(tn).Elem()]
 	case isGroupingIcon(tn):
 		return "ellipse;whiteSpace=wrap;html=1;aspect=fixed;"
 	case isLogicalLine(tn):
@@ -289,7 +287,7 @@ func (stl *drawioStyles) Style(tn TreeNodeInterface) string {
 	return ""
 }
 func (stl *drawioStyles) MiniIconStyle(tn TreeNodeInterface) string {
-	return imageDrawioStyle + miniImages[reflect.TypeOf(tn).Elem()] + iconDrawioStyle
+	return imageDrawioStyle + miniImages[reflect.TypeOf(tn).Elem()]
 }
 
 func (stl *drawioStyles) SquareTextStyle(tn TreeNodeInterface) string {
@@ -300,7 +298,7 @@ func (stl *drawioStyles) LineTextStyle(tn TreeNodeInterface) string {
 }
 
 func (stl *drawioStyles) TagStyle(tn TreeNodeInterface) string {
-	return imageDrawioStyle + images[reflect.TypeOf(tn).Elem()] + ";"
+	return imageDrawioStyle + images[reflect.TypeOf(tn).Elem()]
 }
 
 // ////////////////////////////////////////////////////////////////////////////////////////
@@ -326,11 +324,8 @@ func (stl *drawioStyles) FIPImageStyle() string {
 func (stl *drawioStyles) HasText(tn TreeNodeInterface) bool {
 	return isIbmSquare(tn) || isIbmIcon(tn)
 }
-func (stl *drawioStyles) DecoreStyle(tn TreeNodeInterface) string {
-	return fmt.Sprintf(decorFormat, colors[reflect.TypeOf(tn).Elem()])
-}
 func (stl *drawioStyles) FIPStyle(tn TreeNodeInterface) string {
-	return imageDrawioStyle + fipImage + iconDrawioStyle
+	return imageDrawioStyle + fipImage
 }
 
 // /////////////////////////////////////////////
