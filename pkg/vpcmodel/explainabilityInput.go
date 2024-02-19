@@ -92,7 +92,10 @@ func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node, in
 	}
 	// cidrOrName, if legal, references an address.
 	// 2. cidrOrName references an ip address
-	return c.getNodesFromAddress(cidrOrName)
+	if common.IsValidIPV4CIDROrAddress(cidrOrName) {
+		return c.getNodesFromAddress(cidrOrName)
+	}
+	return nil, false, nil // could not find any match
 }
 
 // getNodesOfVsi gets a string name or UID of VSI, and
@@ -120,7 +123,7 @@ func (c *VPCConfig) getNodesOfVsi(vsi string) ([]Node, error) {
 // getNodesFromAddress gets a string that should present a cidr or IP
 // and returns the corresponding node(s) and a bool which is true iff ipOrCidr is an internal address
 // (and the nodes are its network interfaces). Specifically:
-//  1. If it does not present a cidr or IP, returns nil and false
+//  1. If the input cannot be converted to IPBlock , return error
 //  2. If it represents a cidr which is both internal and external, returns an error
 //  3. If it presents an external address, returns external addresses nodes and false
 //  4. If it contains internal address not within the address range of the vpc's, subnets,
@@ -130,10 +133,10 @@ func (c *VPCConfig) getNodesOfVsi(vsi string) ([]Node, error) {
 //
 // todo: 4 - replace subnet's address range in vpc's address prefix
 func (c *VPCConfig) getNodesFromAddress(ipOrCidr string) (nodes []Node, internalIP bool, err error) {
-	inputIPBlock, err := common.NewIPBlockFromCidrOrAddress(ipOrCidr)
 	// 1.
-	if err != nil { // 1. string cidr does not represent a legal cidr
-		return nil, false, nil // a more general err will be returned by getSrcOrDstInputNode
+	inputIPBlock, err := common.NewIPBlockFromCidrOrAddress(ipOrCidr)
+	if err != nil { // 1. error converting input ipOrCidr to IPBlock
+		return nil, false, err
 	}
 	// 2.
 	_, publicInternet, err1 := getPublicInternetIPblocksList()

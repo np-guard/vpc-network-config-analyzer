@@ -209,6 +209,18 @@ func NewIPBlockFromCidrOrAddress(s string) (*IPBlock, error) {
 	return NewIPBlockFromIPAddress(s)
 }
 
+// IsValidIPV4CIDROrAddress returns true if input string is valid IP Address or CIDR
+func IsValidIPV4CIDROrAddress(s string) bool {
+	// TODO: change so that it returns false for IPv6
+	if _, _, err := net.ParseCIDR(s); err == nil {
+		return true
+	}
+	if net.ParseIP(s) == nil {
+		return false
+	}
+	return true
+}
+
 // NewIPBlockFromCidrList returns IPBlock object from multiple CIDRs given as list of strings
 func NewIPBlockFromCidrList(cidrsList []string) (*IPBlock, error) {
 	res := &IPBlock{ipRange: intervals.CanonicalIntervalSet{}}
