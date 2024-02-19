@@ -43,7 +43,7 @@ func newVPCWithSubnets(uidTocidrs map[string]string) *VPC {
 	for uid, cidr := range uidTocidrs {
 		vpc.subnetsList = append(vpc.subnetsList, &Subnet{
 			cidr:        cidr,
-			ipblock:     newIPBlockFromValidatedCIDROrAddress(cidr),
+			ipblock:     newIPBlockFromCIDROrAddressWithoutValidation(cidr),
 			VPCResource: vpcmodel.VPCResource{ResourceUID: uid, VPCRef: vpc}})
 		vpc.addressPrefixes = append(vpc.addressPrefixes, cidr)
 	}

@@ -68,8 +68,8 @@ var nc3 = &naclConfig{
 	ingressRules: getAllowAllRules(),
 	egressRules: []*NACLRule{
 		{
-			src:         newIPBlockFromValidatedCIDROrAddress("0.0.0.0/0"),
-			dst:         newIPBlockFromValidatedCIDROrAddress("10.240.20.0/24"),
+			src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
+			dst:         newIPBlockFromCIDROrAddressWithoutValidation("10.240.20.0/24"),
 			connections: getAllConnSet(),
 			action:      "allow",
 		},
@@ -83,8 +83,8 @@ var nc4 = &naclConfig{
 	ingressRules: getAllowAllRules(),
 	egressRules: []*NACLRule{
 		{
-			src:         newIPBlockFromValidatedCIDROrAddress("0.0.0.0/0"),
-			dst:         newIPBlockFromValidatedCIDROrAddress("0.0.0.0/0"),
+			src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
+			dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
 			connections: common.NewTCPConnectionSet(),
 			action:      "allow",
 		},
@@ -104,8 +104,8 @@ var nc5 = &naclConfig{
 	ingressRules: getAllowAllRules(),
 	egressRules: []*NACLRule{
 		{
-			src:         newIPBlockFromValidatedCIDROrAddress("0.0.0.0/0"),
-			dst:         newIPBlockFromValidatedCIDROrAddress("0.0.0.0/0"),
+			src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
+			dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
 			connections: nc5Conn(),
 			action:      "allow",
 		},
@@ -124,8 +124,8 @@ var nc6 = &naclConfig{
 	ingressRules: getAllowAllRules(),
 	egressRules: []*NACLRule{
 		{
-			src:         newIPBlockFromValidatedCIDROrAddress("0.0.0.0/0"),
-			dst:         newIPBlockFromValidatedCIDROrAddress("0.0.0.0/0"),
+			src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
+			dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
 			connections: nc6Conn(),
 			action:      "allow",
 		},
@@ -263,8 +263,8 @@ func createConfigFromTestConfig(tc *testNodesConfig, ncList []*naclConfig) *vpcm
 func getAllowAllRules() []*NACLRule {
 	return []*NACLRule{
 		{
-			src:         newIPBlockFromValidatedCIDROrAddress("0.0.0.0/0"),
-			dst:         newIPBlockFromValidatedCIDROrAddress("0.0.0.0/0"),
+			src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
+			dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
 			connections: getAllConnSet(),
 			action:      "allow",
 		},
@@ -276,7 +276,7 @@ func addInterfaceNode(config *vpcmodel.VPCConfig, name, address, vsiName, subnet
 		VPCResource: vpcmodel.VPCResource{ResourceName: name, ResourceUID: name, ResourceType: ResourceTypeNetworkInterface},
 		address:     address,
 		vsi:         vsiName,
-		ipblock:     newIPBlockFromValidatedCIDROrAddress(address),
+		ipblock:     newIPBlockFromCIDROrAddressWithoutValidation(address),
 	}
 	// add references between subnet to interface (both directions)
 	for _, subnet := range config.NodeSets {
@@ -294,7 +294,7 @@ func addSubnet(config *vpcmodel.VPCConfig, name, cidr, zone string) *Subnet {
 	subnetNode := &Subnet{
 		VPCResource: vpcmodel.VPCResource{ResourceName: name, ResourceUID: name, Zone: zone, ResourceType: ResourceTypeSubnet},
 		cidr:        cidr,
-		ipblock:     newIPBlockFromValidatedCIDROrAddress(cidr),
+		ipblock:     newIPBlockFromCIDROrAddressWithoutValidation(cidr),
 	}
 	config.NodeSets = append(config.NodeSets, subnetNode)
 	return subnetNode
@@ -382,7 +382,7 @@ func TestAnalyzeConnectivity(t *testing.T) {
 	fmt.Println("done")
 }
 
-func newIPBlockFromValidatedCIDROrAddress(cidr string) *common.IPBlock {
+func newIPBlockFromCIDROrAddressWithoutValidation(cidr string) *common.IPBlock {
 	res, _ := common.NewIPBlockFromCidrOrAddress(cidr)
 	return res
 }

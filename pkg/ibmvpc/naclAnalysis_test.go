@@ -39,14 +39,14 @@ func testSingleNACL(nacl *NACL) {
 func TestGetAllowedXgressConnections(t *testing.T) {
 	rulesTest1 := []*NACLRule{
 		{
-			src:         newIPBlockFromValidatedCIDROrAddress("1.2.3.4/32"),
-			dst:         newIPBlockFromValidatedCIDROrAddress("10.0.0.1/32"),
+			src:         newIPBlockFromCIDROrAddressWithoutValidation("1.2.3.4/32"),
+			dst:         newIPBlockFromCIDROrAddressWithoutValidation("10.0.0.1/32"),
 			connections: getAllConnSet(),
 			action:      "deny",
 		},
 		{
-			src:         newIPBlockFromValidatedCIDROrAddress("0.0.0.0/0"),
-			dst:         newIPBlockFromValidatedCIDROrAddress("0.0.0.0/0"),
+			src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
+			dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
 			connections: getAllConnSet(),
 			action:      "allow",
 		},
@@ -123,8 +123,8 @@ func TestGetAllowedXgressConnections(t *testing.T) {
 		require.Equal(t, len(tt.src), len(tt.dst))
 		require.Equal(t, len(tt.src), len(tt.expectedConns))
 		for i := range tt.src {
-			src := newIPBlockFromValidatedCIDROrAddress(tt.src[i])
-			dst := newIPBlockFromValidatedCIDROrAddress(tt.dst[i])
+			src := newIPBlockFromCIDROrAddressWithoutValidation(tt.src[i])
+			dst := newIPBlockFromCIDROrAddressWithoutValidation(tt.dst[i])
 			disjointPeers := []*common.IPBlock{dst}
 			expectedConn := tt.expectedConns[i]
 			res, _, _, _ := getAllowedXgressConnections(tt.naclRules, src, dst, disjointPeers, true)
