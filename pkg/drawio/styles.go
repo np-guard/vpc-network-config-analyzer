@@ -166,19 +166,24 @@ func (stl *drawioStyles) ConnectivityColor(tn TreeNodeInterface) string {
 }
 
 func (stl *drawioStyles) ConnRouteredCollor() string {
-		return connRouteredCollor
+	return connRouteredCollor
 }
 
 func (stl *drawioStyles) ConnectivityLabelPos(tn TreeNodeInterface) string {
-	points := getLineAbsolutePoints(tn.(LineTreeNodeInterface))
-	x, y := (points[0].X+points[1].X)/2, (points[0].Y+points[1].Y)/2
-	if len(points) > 2 {
-		x, y = points[1].X, points[1].Y
+	points := connectivityAbsPoints(tn)
+	maxDistance := 0
+	var x,y int
+	for i, to := range points[1:] {
+		from := points[i]
+		distance := (from.X - to.X) * (from.X - to.X) + (from.Y - to.Y) *(from.Y - to.Y)
+		if distance > maxDistance {
+			x, y = (from.X+to.X)/2, (from.Y+to.Y)/2
+			maxDistance = distance
+		}
 	}
-	return fmt.Sprintf("padding-top: %dpx; margin-left: %dpx;", y, x)
+	return fmt.Sprintf("x=\"%d\" y=\"%d\"", x, y)
 }
-
-func (stl *drawioStyles) ConnectivityPoints(tn TreeNodeInterface) string {
+func connectivityAbsPoints(tn TreeNodeInterface) []point {
 	line := tn.(LineTreeNodeInterface)
 	points := getLineAbsolutePoints(line)
 	if line.Src() == line.Dst() && len(points) == 2 {
@@ -196,6 +201,11 @@ func (stl *drawioStyles) ConnectivityPoints(tn TreeNodeInterface) string {
 		points[len(points)-1].X, points[len(points)-1].Y = dx, dy
 		// line.setLabel(fmt.Sprintf("%d->%d", sp, dp))
 	}
+	return points
+}
+
+func (stl *drawioStyles) ConnectivityPoints(tn TreeNodeInterface) string {
+	points := connectivityAbsPoints(tn)
 	pointsStr := fmt.Sprintf("M %d %d", points[0].X, points[0].Y)
 	for _, point := range points[1:] {
 		pointsStr += fmt.Sprintf(" L %d %d", point.X, point.Y)
