@@ -93,10 +93,10 @@ func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node, in
 	// cidrOrName, if legal, references an address.
 	// 2. cidrOrName references an ip address
 	ipBlock, err := common.NewIPBlockFromCidrOrAddress(cidrOrName)
-	if err == nil {
-		return c.getNodesFromAddress(cidrOrName, ipBlock)
+	if err != nil {
+		return nil, false, err // could not find any match
 	}
-	return nil, false, nil // could not find any match
+	return c.getNodesFromAddress(cidrOrName, ipBlock)
 }
 
 // getNodesOfVsi gets a string name or UID of VSI, and
@@ -138,7 +138,6 @@ func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *common.IP
 	if err1 != nil {
 		return nil, false, err1
 	}
-	// 1.
 	isExternal := !inputIPBlock.Intersection(publicInternet).Empty()
 	isInternal := !inputIPBlock.ContainedIn(publicInternet)
 	if isInternal && isExternal {
@@ -146,7 +145,7 @@ func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *common.IP
 			"src, dst should be external *or* internal address", ipOrCidr)
 	}
 	// 2.
-	if isExternal { // 2.
+	if isExternal {
 		nodes, err = c.getCidrExternalNodes(inputIPBlock)
 		return nodes, false, err
 		// internal address
@@ -160,7 +159,7 @@ func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *common.IP
 		// 4.
 		networkInterfaces := c.getNodesWithinInternalAddress(inputIPBlock)
 		// a given internal address should have vsi connected to it
-		if networkInterfaces == nil {
+		if len(networkInterfaces) == 0 {
 			return nil, true, fmt.Errorf("no network interfaces are connected to %s", ipOrCidr)
 		}
 		return networkInterfaces, true, nil
