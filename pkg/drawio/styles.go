@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	groupSquareStyle      = "rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#82b366;strokeWidth=6;perimeterSpacing=0;arcSize=12;gradientColor=none;opacity=70;"
+	groupSquareStyle = "rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#82b366;strokeWidth=6;perimeterSpacing=0;arcSize=12;gradientColor=none;opacity=70;"
 
 	niImage    = "PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+CjxkZWZzPgo8c3R5bGU+LmNscy0xe2ZpbGw6I2VlNTM5Njt9LmNscy0ye2ZpbGw6bm9uZTt9LmNscy0ze2ZpbGw6I2ZmZjt9PC9zdHlsZT4KPC9kZWZzPg0KPHJlY3QgY2xhc3M9ImNscy0xIiB4PSIwLjUiIHk9IjAuNSIgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4Ii8+CjxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMTQuNSIgeT0iMTQuNSIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIi8+DQo8dGV4dCBmb250LXNpemU9IjMwIiBmaWxsPSJ3aGl0ZSIgeD0iOCIgeT0iMzUiPk5JPC90ZXh0Pgo8L3N2Zz4="
 	vsiImage   = "PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiMxOTgwMzg7fS5jbHMtMntmaWxsOiNmZmY7fS5jbHMtM3tmaWxsOm5vbmU7fTwvc3R5bGU+PC9kZWZzPjxyZWN0IGNsYXNzPSJjbHMtMSIgeD0iMC41IiB5PSIwLjUiIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIvPjxjaXJjbGUgY2xhc3M9ImNscy0yIiBjeD0iMTguODgiIGN5PSIyOC44OCIgcj0iMC42MyIvPjxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMTUuNzUiIHk9IjE4LjI1IiB3aWR0aD0iMi41IiBoZWlnaHQ9IjEuMjUiLz48cmVjdCBjbGFzcz0iY2xzLTIiIHg9IjE5LjUiIHk9IjE4LjI1IiB3aWR0aD0iMi41IiBoZWlnaHQ9IjEuMjUiLz48cmVjdCBjbGFzcz0iY2xzLTIiIHg9IjIzLjI1IiB5PSIxOC4yNSIgd2lkdGg9IjIuNSIgaGVpZ2h0PSIxLjI1Ii8+PHJlY3QgY2xhc3M9ImNscy0yIiB4PSIyNyIgeT0iMTguMjUiIHdpZHRoPSIyLjUiIGhlaWdodD0iMS4yNSIvPjxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMzAuNzUiIHk9IjE4LjI1IiB3aWR0aD0iMi41IiBoZWlnaHQ9IjEuMjUiLz48cGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik0zMiwzMkgxN2ExLjI1LDEuMjUsMCwwLDEtMS4yNS0xLjI1VjI3QTEuMjUsMS4yNSwwLDAsMSwxNywyNS43NUgzMkExLjI1LDEuMjUsMCwwLDEsMzMuMjUsMjd2My43NUExLjI1LDEuMjUsMCwwLDEsMzIsMzJaTTE3LDI3djMuNzVIMzJWMjdaIi8+PHJlY3QgY2xhc3M9ImNscy0zIiB4PSIxNC41IiB5PSIxNC41IiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiLz48cmVjdCBjbGFzcz0iY2xzLTIiIHg9IjE1Ljc1IiB5PSIyMiIgd2lkdGg9IjE3LjUiIGhlaWdodD0iMS4yNSIvPjwvc3ZnPg=="
@@ -74,6 +74,28 @@ func (stl *drawioStyles) IsLogicalLine(tn TreeNodeInterface) bool {
 func (stl *drawioStyles) IsConnectionLine(tn TreeNodeInterface) bool {
 	return reflect.TypeOf(tn).Elem() == reflect.TypeOf(ConnectivityTreeNode{})
 }
+func (stl *drawioStyles) tnType(tn TreeNodeInterface) int {
+	switch {
+	case tn.NotShownInDrawio():
+		return stl.DoNotShow
+	case tn.IsSquare() && tn.(SquareTreeNodeInterface).IsGroupingSquare():
+		return stl.GroupingSquare
+	case tn.IsSquare() && tn.(SquareTreeNodeInterface).IsGroupSubnetsSquare():
+		return stl.GroupingSquare
+	case tn.IsSquare():
+		return stl.IBMSquare
+	case tn.IsIcon() && tn.(IconTreeNodeInterface).IsGroupingPoint():
+		return stl.GroupingIcon
+	case tn.IsIcon():
+		return stl.IbmIcon
+	case tn.IsLine():
+		return stl.Line
+	}
+	return stl.DoNotShow
+}
+func (stl *drawioStyles) IsType(tn TreeNodeInterface, tp int) bool {
+	return stl.tnType(tn) == tp
+}
 
 var miniImages = map[reflect.Type]string{
 	reflect.TypeOf(NITreeNode{}):    niImage,
@@ -91,12 +113,12 @@ var colors = map[reflect.Type]string{
 }
 
 type drawioStyles struct {
-	canTypeHaveAMiniIcon map[reflect.Type]bool
+	DoNotShow, IBMSquare, GroupingSquare, IbmIcon, GroupingIcon, Line int
+	canTypeHaveAMiniIcon                                              map[reflect.Type]bool
 }
 
 func newDrawioStyles(nodes []TreeNodeInterface) drawioStyles {
-	stl := drawioStyles{}
-	stl.canTypeHaveAMiniIcon = map[reflect.Type]bool{}
+	stl := drawioStyles{0, 1, 2, 3, 4, 6, map[reflect.Type]bool{}}
 	for _, tn := range nodes {
 		if reflect.TypeOf(tn).Elem() == reflect.TypeOf(VsiTreeNode{}) {
 			stl.canTypeHaveAMiniIcon[reflect.TypeOf(NITreeNode{})] = true
@@ -141,7 +163,7 @@ func (stl *drawioStyles) SVGConnectivityStyle(tn TreeNodeInterface) string {
 	return fmt.Sprintf("marker-start='url(#%s%s)' marker-end='url(#%s%s)' %s", routePrefix, startArrow, routePrefix, endArrow, dash)
 }
 
-func (stl *drawioStyles)connectivityStyle(tn TreeNodeInterface) string {
+func (stl *drawioStyles) connectivityStyle(tn TreeNodeInterface) string {
 	con := tn.(*ConnectivityTreeNode)
 	startArrow, endArrow := stl.connectPointStyle(tn)
 	strokeColor := ""
@@ -165,10 +187,10 @@ func (stl *drawioStyles) ConnRouteredCollor() string {
 func (stl *drawioStyles) ConnectivityLabelPos(tn TreeNodeInterface) string {
 	points := connectivityAbsPoints(tn)
 	maxDistance := 0
-	var x,y int
+	var x, y int
 	for i, to := range points[1:] {
 		from := points[i]
-		distance := (from.X - to.X) * (from.X - to.X) + (from.Y - to.Y) *(from.Y - to.Y)
+		distance := (from.X-to.X)*(from.X-to.X) + (from.Y-to.Y)*(from.Y-to.Y)
 		if distance > maxDistance {
 			x, y = (from.X+to.X)/2, (from.Y+to.Y)/2
 			maxDistance = distance
