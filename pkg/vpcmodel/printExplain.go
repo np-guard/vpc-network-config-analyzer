@@ -99,7 +99,7 @@ func (rules *rulesConnection) getFilterEffectStr(c *VPCConfig, needEgress, needI
 		egressRulesStr = "Egress: " + egressRulesStr
 	}
 	if needIngress && ingressRulesStr != "" {
-		ingressRulesStr = "Ingres: " + ingressRulesStr
+		ingressRulesStr = "Ingress: " + ingressRulesStr
 	}
 	if egressRulesStr != "" && ingressRulesStr != "" {
 		return egressRulesStr + "\n" + ingressRulesStr
