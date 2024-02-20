@@ -214,6 +214,13 @@ func (v *VPCConnectivity) isConnExternalThroughFIP(src, dst Node) bool {
 	return false
 }
 
+// computeAllowedStatefulConnections adds the statefulness analysis for the computed allowed connections.
+// In the connectivity output, a connection A -> B is stateful on TCP (allows bidrectional flow) if both SG and NACL
+// (of A and B) allow connection (ingress and egress) from A to B , AND if NACL (of A and B) allow connection
+// (ingress and egress) from B to A .
+// if connection A->B (considering NACL & SG) is allowed with TCP, src_port: x_range, dst_port: y_range,
+// and if connection B->A is allowed (considering NACL) with TCP, src_port: z_range, dst_port: w_range, then
+// the stateful allowed connection A->B is TCP , src_port: x&w , dst_port: y&z.
 func (v *VPCConnectivity) computeAllowedStatefulConnections() {
 	// assuming v.AllowedConnsCombined was already computed
 
@@ -244,15 +251,9 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections() {
 			// can src ingress from dst?
 			SrcAllowedIngressFromDst = v.getPerLayerConnectivity(statelessLayerName, dstNode, srcNode, true)
 			combinedDstToSrc := DstAllowedEgressToSrc.Intersection(SrcAllowedIngressFromDst)
-			// flip src/dst ports before intersection
-			combinedDstToSrcSwitchPortsDirection := combinedDstToSrc.ResponseConnection()
-			statefulCombinedConn := conn.Intersection(combinedDstToSrcSwitchPortsDirection)
+			// ConnectionWithStatefulness updates conn with IsStateful value, and returns the stateful subset
+			statefulCombinedConn := conn.ConnectionWithStatefulness(combinedDstToSrc)
 			v.AllowedConnsCombinedStateful.updateAllowedConnsMap(src, dst, statefulCombinedConn)
-			if !conn.Equal(statefulCombinedConn) {
-				conn.IsStateful = common.StatefulFalse
-			} else {
-				conn.IsStateful = common.StatefulTrue
-			}
 		}
 	}
 }
