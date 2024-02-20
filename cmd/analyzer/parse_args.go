@@ -332,14 +332,23 @@ func invalidArgsExplainMode(args *InArgs, flagset *flag.FlagSet) error {
 	return validRangeConnectionExplainMode(args)
 }
 
-func errorInErgs(args *InArgs, flagset *flag.FlagSet) error {
+func invalidArgsConfigFile(args *InArgs, flagset *flag.FlagSet) error {
+	if !*args.Version && (args.InputConfigFile == nil || *args.InputConfigFile == "") && (args.Provider == nil || *args.Provider == "") {
+		flagset.PrintDefaults()
+		return fmt.Errorf("missing parameter: vpc-config, or use provider flag to collect directly from the account")
+	}
 	if *args.InputConfigFile != "" && *args.Provider != "" {
 		flagset.PrintDefaults()
 		return fmt.Errorf("error in parameters: can not use vpc-config and provider flag together")
 	}
-	if !*args.Version && (args.InputConfigFile == nil || *args.InputConfigFile == "") && (args.Provider == nil || *args.Provider == "") {
-		flagset.PrintDefaults()
-		return fmt.Errorf("missing parameter: vpc-config, or use provider flag to collect directly from the account")
+
+	return nil
+}
+
+func errorInErgs(args *InArgs, flagset *flag.FlagSet) error {
+	err := invalidArgsConfigFile(args, flagset)
+	if err != nil {
+		return err
 	}
 	if _, ok := supportedAnalysisTypesMap[*args.AnalysisType]; !ok {
 		flagset.PrintDefaults()
