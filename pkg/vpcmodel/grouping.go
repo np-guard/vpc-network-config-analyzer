@@ -169,7 +169,7 @@ func (g *groupedEndpointsElems) IsExternal() bool {
 }
 
 // implements endpointElem interface
-type groupedExternalNodes []Node
+type groupedExternalNodes []*ExternalNetwork
 
 func (g *groupedExternalNodes) IsExternal() bool {
 	return true
@@ -197,14 +197,19 @@ func (g *GroupConnLines) getGroupedEndpointsElems(grouped groupedEndpointsElems)
 }
 
 // same as the previous function, for groupedExternalNodesMap
-func (g *GroupConnLines) getGroupedExternalNodes(grouped groupedExternalNodes) *groupedExternalNodes {
+func (g *GroupConnLines) getGroupedExternalNodes(grouped []Node) *groupedExternalNodes {
 	// Due to the canonical representation, grouped.String() and thus grouped.Name() will be identical
 	//  to equiv groupedExternalNodes
-	if existingGrouped, ok := g.groupedExternalNodesMap[grouped.Name()]; ok {
+	res := make(groupedExternalNodes, len(grouped))
+	for i := range grouped {
+		res[i] = grouped[i].(*ExternalNetwork)
+	}
+
+	if existingGrouped, ok := g.groupedExternalNodesMap[res.Name()]; ok {
 		return existingGrouped
 	}
-	g.groupedExternalNodesMap[grouped.Name()] = &grouped
-	return &grouped
+	g.groupedExternalNodesMap[res.Name()] = &res
+	return &res
 }
 
 func (g *groupingConnections) addPublicConnectivity(ep EndpointElem, commonProps *groupedCommonProperties, targetNode Node) {
@@ -532,7 +537,7 @@ func (g *groupedExternalNodes) String() string {
 	// 1. Created a list of IPBlocks
 	cidrList := make([]string, len(*g))
 	for i, n := range *g {
-		cidrList[i] = n.CidrOrAddress()
+		cidrList[i] = n.CidrStr
 	}
 	ipbList, _, err := ipStringsToIPblocks(cidrList)
 	if err != nil {

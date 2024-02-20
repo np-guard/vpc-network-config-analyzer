@@ -131,10 +131,10 @@ func (c *VPCConfig) getAllowedConnectionsCombined(
 func (c *VPCConfig) getVPCResourceInfInOtherConfig(other *VPCConfig, ep VPCResourceIntf,
 	diffAnalysis diffAnalysisType) (res VPCResourceIntf, err error) {
 	if ep.IsExternal() {
-		var node Node
+		var node *ExternalNetwork
 		var ok bool
-		if node, ok = ep.(Node); ok {
-			nodeSameCidr := findNodeWithCidr(other.Nodes, ep.(Node).CidrOrAddress())
+		if node, ok = ep.(*ExternalNetwork); ok {
+			nodeSameCidr := findNodeWithCidr(other.Nodes, node.CidrStr)
 			return nodeSameCidr, nil
 		}
 		return nil, fmt.Errorf(castingNodeErr, node.Name())

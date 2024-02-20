@@ -204,10 +204,13 @@ func getInstancesConfig(
 					Zone:         *instance.Zone.Name,
 					VPCRef:       vpc,
 				},
-				address: *netintf.PrimaryIP.Address,
-				vsi:     *instance.Name,
+				InternalNode: vpcmodel.InternalNode{
+					AddressStr: *netintf.PrimaryIP.Address,
+				},
+				vsi: *instance.Name,
 			}
-			if err := setNodeIPBlock(intfNode, intfNode.address); err != nil {
+
+			if err := intfNode.SetIPBlockFromAddress(); err != nil {
 				return err
 			}
 			res[vpcUID].Nodes = append(res[vpcUID].Nodes, intfNode)
@@ -483,7 +486,7 @@ func parseSGTargets(sgResource *SecurityGroup,
 			if targetType == networkInterfaceResourceType {
 				if intfNode, ok := c.UIDToResource[*targetIntfRef.ID]; ok {
 					if intfNodeObj, ok := intfNode.(*NetworkInterface); ok {
-						sgResource.members[intfNodeObj.address] = intfNodeObj
+						sgResource.members[intfNodeObj.Address()] = intfNodeObj
 					}
 				}
 			} else if targetType == vpeResourceType {
@@ -491,7 +494,7 @@ func parseSGTargets(sgResource *SecurityGroup,
 					vpeObj := vpe.(*Vpe)
 					for _, n := range vpeObj.nodes {
 						nIP := n.(*ReservedIP)
-						sgResource.members[nIP.address] = n
+						sgResource.members[nIP.Address()] = n
 					}
 				}
 			}
@@ -781,31 +784,12 @@ func addTGWbasedConfigs(tgws map[string]*TransitGateway, res map[string]*vpcmode
 func getSubnetByIPAddress(addressIPblock *common.IPBlock, c *vpcmodel.VPCConfig) (subnet *Subnet, err error) {
 	for _, s := range c.NodeSets {
 		if s.Kind() == ResourceTypeSubnet {
-			subnetRange := s.AddressRange()
-			if addressIPblock.ContainedIn(subnetRange) {
+			if addressIPblock.ContainedIn(s.AddressRange()) {
 				return s.(*Subnet), nil
 			}
 		}
 	}
 	return nil, fmt.Errorf("could not find matching subnet for address %s", addressIPblock.ToIPAdressString())
-}
-
-func setNodeIPBlock(node vpcmodel.Node, address string) error {
-	addressIPBlock, err := common.NewIPBlockFromIPAddress(address)
-	if err != nil {
-		return err
-	}
-	switch nodeConcrete := node.(type) {
-	case *ReservedIP:
-		nodeConcrete.ipblock = addressIPBlock
-	case *NetworkInterface:
-		nodeConcrete.ipblock = addressIPBlock
-	case *IKSNode:
-		nodeConcrete.ipblock = addressIPBlock
-	default:
-		return fmt.Errorf("setNodeIPBlock: unexpected type for input node")
-	}
-	return nil
 }
 
 func getVPEconfig(rc *datamodel.ResourcesContainerModel,
@@ -840,13 +824,15 @@ func getVPEconfig(rc *datamodel.ResourcesContainerModel,
 					Zone:         "",
 					VPCRef:       vpc,
 				}, // the zone gets updated later
-				vpe:     *vpe.Name,
-				address: *rIP.Address,
+				InternalNode: vpcmodel.InternalNode{
+					AddressStr: *rIP.Address,
+				},
+				vpe: *vpe.Name,
 			}
-			if err := setNodeIPBlock(rIPNode, rIPNode.address); err != nil {
+			if err := rIPNode.SetIPBlockFromAddress(); err != nil {
 				return err
 			}
-			subnet, err := getSubnetByIPAddress(rIPNode.ipblock, res[vpcUID])
+			subnet, err := getSubnetByIPAddress(rIPNode.IPBlock(), res[vpcUID])
 			if err != nil {
 				return err
 			}
@@ -902,10 +888,12 @@ func getIKSnodesConfig(res map[string]*vpcmodel.VPCConfig,
 				ResourceType: ResourceTypeIKSNode,
 				VPCRef:       vpc,
 			},
-			address: *iksNodeNetIntfObj.IpAddress,
-			subnet:  subnet,
+			InternalNode: vpcmodel.InternalNode{
+				AddressStr: *iksNodeNetIntfObj.IpAddress,
+			},
+			subnet: subnet,
 		}
-		if err := setNodeIPBlock(nodeObject, nodeObject.address); err != nil {
+		if err := nodeObject.SetIPBlockFromAddress(); err != nil {
 			return err
 		}
 		res[vpcUID].Nodes = append(res[vpcUID].Nodes, nodeObject)
