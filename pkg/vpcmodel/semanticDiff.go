@@ -29,7 +29,7 @@ const (
 const (
 	castingNodeErr = "%s should be external node but casting to Node failed"
 	diffTypeStr    = "diff-type:"
-	configsStr     = "config1: %s, config2: %s, %s %s"
+	configsStr     = "config1: %s, config2: %s%s"
 	semicolon      = ";"
 )
 
@@ -231,7 +231,7 @@ func getDiffType(src, srcInOther, dst, dstInOther VPCResourceIntf) DiffType {
 	return noDiff
 }
 
-func diffInfoStr(diffAnalysis diffAnalysisType) string {
+func getDiffInfoHeader(diffAnalysis diffAnalysisType) string {
 	if diffAnalysis == Subnets {
 		return "subnets-diff-info:"
 	} else if diffAnalysis == Vsis {
@@ -251,21 +251,29 @@ func conn1And2Str(connDiff *connectionDiff) (conn1Str, conn2Str string) {
 	return conn1Str, conn2Str
 }
 
-// printDiffLine print one diff line
-func printDiffLine(diffAnalysis diffAnalysisType, src, dst EndpointElem, commonProps *groupedCommonProperties) string {
-	diffType, endpointsDiff := diffAndEndpointsDescription(commonProps.connDiff.diff, src, dst, commonProps.connDiff.thisMinusOther)
+// printGroupedDiffLine print one grouped diff line
+func printGroupedDiffLine(diffAnalysis diffAnalysisType, src, dst EndpointElem, commonProps *groupedCommonProperties) string {
+	diffType, diffInfoBody := diffAndEndpointsDescription(commonProps.connDiff.diff, src, dst, commonProps.connDiff.thisMinusOther)
 	conn1Str, conn2Str := conn1And2Str(commonProps.connDiff)
-	diffInfo := diffInfoStr(diffAnalysis)
 	diffTypeStr := fmt.Sprintf("%v %s", diffTypeStr, diffType)
-	connDiffStr := fmt.Sprintf(configsStr, conn1Str, conn2Str, diffInfo, endpointsDiff)
+	diffInfo := getDiffInfo(diffAnalysis, diffInfoBody)
+	connDiffStr := fmt.Sprintf(configsStr, conn1Str, conn2Str, diffInfo)
 	printDiff := fmt.Sprintf("%s, source: %s, destination: %s, %s\n", diffTypeStr, src.Name(), dst.Name(), connDiffStr)
 	return printDiff
+}
+
+func getDiffInfo(diffAnalysis diffAnalysisType, diffInfoBody string) string {
+	if diffInfoBody == "" {
+		return ""
+	}
+	diffInfoHeader := getDiffInfoHeader(diffAnalysis)
+	return ", " + diffInfoHeader + " " + diffInfoBody
 }
 
 func (diffCfgs *diffBetweenCfgs) String() string {
 	strList := make([]string, len(diffCfgs.groupedLines))
 	for i, grouped := range diffCfgs.groupedLines {
-		strList[i] = printDiffLine(diffCfgs.diffAnalysis, grouped.src, grouped.dst, grouped.commonProperties)
+		strList[i] = printGroupedDiffLine(diffCfgs.diffAnalysis, grouped.src, grouped.dst, grouped.commonProperties)
 	}
 	sort.Strings(strList)
 	return strings.Join(strList, "")
