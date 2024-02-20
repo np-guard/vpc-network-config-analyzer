@@ -1,7 +1,7 @@
 Connectivity explanation for protocol: TCP dst-ports: 10-30 between 147.235.219.206/32 and vsi2-ky
 ==================================================================================================
 
-Connection protocol: TCP dst-ports: 22 exists between Public Internet 147.235.219.206/32 and vsi2-ky[10.240.20.4]
+Connection protocol: TCP dst-ports: 22 exists between Public Internet 147.235.219.206/32 and vsi2-ky[10.240.20.4] (note that the connection is a proper subset of the queried one)
 External traffic via FloatingIP: floating-ip-ky
 Ingress: security group sg2-ky allows connection
 

@@ -135,8 +135,12 @@ func stringExplainabilityConnection(connQuery *common.ConnectionSet, src, dst En
 		resStr = fmt.Sprintf("The following connection exists between %v and %v: %v\n", src.Name(), dst.Name(),
 			conn.String())
 	} else {
-		resStr = fmt.Sprintf("Connection %v exists between %v and %v\n", conn.String(),
-			src.Name(), dst.Name())
+		properSubsetConn := ""
+		if !conn.Equal(connQuery) {
+			properSubsetConn = " (note that the connection is a proper subset of the queried one)"
+		}
+		resStr = fmt.Sprintf("Connection %v exists between %v and %v%s\n", conn.String(),
+			src.Name(), dst.Name(), properSubsetConn)
 	}
 	resStr += filtersEffectStr + "\n" + rulesStr
 	return resStr
