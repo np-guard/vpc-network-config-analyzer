@@ -12,7 +12,7 @@ import (
 
 type OutFormat int64
 
-const asteriskDetails = "\nconnections are stateful unless marked with *\n"
+const asteriskDetails = "\nconnections are stateful (on TCP) unless marked with *\n"
 
 const (
 	JSON OutFormat = iota

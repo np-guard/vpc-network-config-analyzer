@@ -346,10 +346,15 @@ var tests = []*vpcGeneralTest{
 		grouping:    true,
 		format:      vpcmodel.Text,
 	},
-	// json example
+	// json examples
 	{
 		inputConfig: "demo_with_instances",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+		format:      vpcmodel.JSON,
+	},
+	{
+		inputConfig: "acl_testing3",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		format:      vpcmodel.JSON,
 	},
 	// multi-vpc config example

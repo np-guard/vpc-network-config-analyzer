@@ -256,4 +256,4 @@ ky-vsi1-subnet20[10.240.128.5] => ky-vsi2-subnet20[10.240.128.6] : All Connectio
 ky-vsi2-subnet20[10.240.128.6] => ky-vsi0-subnet20[10.240.128.4] : All Connections
 ky-vsi2-subnet20[10.240.128.6] => ky-vsi1-subnet20[10.240.128.5] : All Connections
 
-connections are stateful unless marked with *
+connections are stateful (on TCP) unless marked with *
