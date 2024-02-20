@@ -131,7 +131,7 @@ func (d *DrawioOutputFormatter) createEdges() {
 		src    EndpointElem
 		dst    EndpointElem
 		router drawio.IconTreeNodeInterface
-		label  string
+				label  string
 	}
 	isEdgeDirected := map[edgeKey]bool{}
 	for vpcResourceName, vpcConn := range d.conns {
@@ -154,7 +154,7 @@ func (d *DrawioOutputFormatter) createEdges() {
 		if d.showResource(ei) {
 			cn := d.gen.TreeNode(ei).(*drawio.ConnectivityTreeNode)
 			if e.router != nil {
-				cn.SetRouter(e.router, e.src.IsExternal())
+				cn.SetRouter(e.router)
 			}
 		}
 	}

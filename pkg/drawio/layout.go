@@ -88,6 +88,7 @@ func (ly *layoutS) layout() {
 	// 6. set the geometry for each node in the drawio
 	ly.matrix.setLayersDistance()
 	ly.setGeometries()
+	ly.setRouterPoints()
 	if !ly.subnetMode {
 		newLayoutOverlap(ly.network).fixOverlapping()
 	} else {
@@ -715,5 +716,10 @@ func (ly *layoutS) setIconsLocations() {
 func (ly *layoutS) setGeometries() {
 	for _, tn := range getAllNodes(ly.network) {
 		setGeometry(tn)
+	}
+}
+func (ly *layoutS) setRouterPoints() {
+	for _, tn := range getAllLines(ly.network) {
+		tn.setRouterPoints()
 	}
 }
