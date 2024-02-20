@@ -2,16 +2,17 @@ Connectivity explanation between vsi2-ky and 10.240.10.4 (vsi1-ky[10.240.10.4])
 ===============================================================================
 
 The following connection exists between vsi2-ky[10.240.20.4] and vsi1-ky[10.240.10.4]: All Connections
-Egress: security group sg2-ky allows connection (with allow rules); network ACL acl2-ky allows connection (with allow rules)
-Ingress: network ACL acl1-ky allows connection (with allow rules); security group sg1-ky allows connection (with allow rules)
+Egress: security group sg2-ky allows connection; network ACL acl2-ky allows connection
+Ingress: network ACL acl1-ky allows connection; security group sg1-ky allows connection
 
-Rules details:
-~~~~~~~~~~~~~~
+Details:
+~~~~~~~~
 Egress:
 security group sg2-ky allows connection with the following allow rules
 	index: 1, direction: outbound, protocol: all, cidr: 10.240.10.0/24
 network ACL acl2-ky allows connection with the following allow rules
 	index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+
 Ingress:
 network ACL acl1-ky allows connection with the following allow rules
 	index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow

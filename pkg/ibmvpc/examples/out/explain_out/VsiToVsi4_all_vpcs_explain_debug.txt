@@ -2,15 +2,16 @@ Connectivity explanation between 10.240.10.4 (vsi1-ky[10.240.10.4]) and 10.240.2
 ==========================================================================================================
 
 No connection between vsi1-ky[10.240.10.4] and vsi2-ky[10.240.20.4]; connection blocked by egress
-Egress: security group sg1-ky blocks connection (no relevant allow rules); network ACL acl1-ky allows connection (with allow rules)
-Ingress: network ACL acl2-ky allows connection (with allow rules); security group sg2-ky allows connection (with allow rules)
+Egress: security group sg1-ky blocks connection; network ACL acl1-ky allows connection
+Ingress: network ACL acl2-ky allows connection; security group sg2-ky allows connection
 
-Rules details:
-~~~~~~~~~~~~~~
+Details:
+~~~~~~~~
 Egress:
 security group sg1-ky blocks connection since there are no relevant allow rules
 network ACL acl1-ky allows connection with the following allow rules
 	index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+
 Ingress:
 network ACL acl2-ky allows connection with the following allow rules
 	index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow

@@ -374,14 +374,10 @@ func getHeaderRulesType(filter string, rType vpcmodel.RulesType) string {
 
 func getSummaryFilterEffect(filter string, rType vpcmodel.RulesType) string {
 	switch rType {
-	case vpcmodel.NoRules:
-		return filter + " blocks connection (no relevant allow rules)"
-	case vpcmodel.OnlyDeny:
-		return filter + " blocks connection (with deny rules)"
-	case vpcmodel.BothAllowDeny:
-		return filter + " allows connection (with allow and deny rules)"
-	case vpcmodel.OnlyAllow:
-		return filter + " allows connection (with allow rules)"
+	case vpcmodel.NoRules, vpcmodel.OnlyDeny:
+		return filter + " blocks connection"
+	case vpcmodel.BothAllowDeny, vpcmodel.OnlyAllow:
+		return filter + " allows connection"
 	default:
 		return "" // OnlyDummyRule
 	}

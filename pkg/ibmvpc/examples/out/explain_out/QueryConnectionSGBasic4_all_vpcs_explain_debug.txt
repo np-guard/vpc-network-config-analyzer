@@ -3,10 +3,10 @@ Connectivity explanation for protocol: UDP src-ports: 10-100 dst-ports: 443 betw
 
 Connection protocol: UDP src-ports: 10-100 dst-ports: 443 exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16
 External Router PublicGateway: public-gw-ky
-Egress: security group sg1-ky allows connection (with allow rules); network ACL acl1-ky allows connection (with allow rules)
+Egress: security group sg1-ky allows connection; network ACL acl1-ky allows connection
 
-Rules details:
-~~~~~~~~~~~~~~
+Details:
+~~~~~~~~
 Egress:
 security group sg1-ky allows connection with the following allow rules
 	index: 2, direction: outbound,  conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16
@@ -16,10 +16,10 @@ network ACL acl1-ky allows connection with the following allow rules
 
 There is no connection "protocol: UDP src-ports: 10-100 dst-ports: 443" between vsi1-ky[10.240.10.4] and Public Internet 161.16.0.0-161.25.255.255,161.27.0.0-161.31.255.255; connection blocked by egress
 External Router PublicGateway: public-gw-ky
-Egress: security group sg1-ky blocks connection (no relevant allow rules); network ACL acl1-ky allows connection (with allow rules)
+Egress: security group sg1-ky blocks connection; network ACL acl1-ky allows connection
 
-Rules details:
-~~~~~~~~~~~~~~
+Details:
+~~~~~~~~
 Egress:
 security group sg1-ky blocks connection since there are no relevant allow rules
 network ACL acl1-ky allows connection with the following allow rules

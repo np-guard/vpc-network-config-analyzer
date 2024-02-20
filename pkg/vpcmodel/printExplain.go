@@ -118,9 +118,12 @@ func (rules *rulesConnection) getRuleDetailsStr(c *VPCConfig, verbose, needEgres
 	}
 	if needIngress && ingressRulesStr != "" {
 		ingressRulesStr = "Ingress:\n" + ingressRulesStr
+		if needEgress && egressRulesStr != "" {
+			egressRulesStr += "\n"
+		}
 	}
 	if egressRulesStr != "" || ingressRulesStr != "" {
-		return "\nRules details:\n~~~~~~~~~~~~~~\n" + egressRulesStr + ingressRulesStr
+		return "\nDetails:\n~~~~~~~~\n" + egressRulesStr + ingressRulesStr
 	}
 	return ""
 }
