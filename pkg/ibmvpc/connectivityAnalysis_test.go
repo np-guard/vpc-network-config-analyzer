@@ -307,8 +307,8 @@ func getAllowAllRules() []*NACLRule {
 func getDenyAllRules() []*NACLRule {
 	return []*NACLRule{
 		{
-			src:         common.NewIPBlockFromCidr("0.0.0.0/0"),
-			dst:         common.NewIPBlockFromCidr("0.0.0.0/0"),
+			src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
+			dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
 			connections: getAllConnSet(),
 			action:      "deny",
 		},
@@ -318,8 +318,8 @@ func getDenyAllRules() []*NACLRule {
 func getAllowICMPRules() []*NACLRule {
 	return []*NACLRule{
 		{
-			src:         common.NewIPBlockFromCidr("0.0.0.0/0"),
-			dst:         common.NewIPBlockFromCidr("0.0.0.0/0"),
+			src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
+			dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
 			connections: icmpConn(),
 			action:      "allow",
 		},
