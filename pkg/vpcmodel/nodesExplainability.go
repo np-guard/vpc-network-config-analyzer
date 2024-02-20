@@ -69,6 +69,10 @@ type Explanation struct {
 // ExplainConnectivity given src, dst and connQuery returns a struct with all explanation details
 // nil connQuery means connection is not part of the query
 func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.ConnectionSet) (res *Explanation, err error) {
+	// we do not support multiple configs, yet
+	if c.IsMultipleVPCsConfig {
+		return nil, fmt.Errorf("multiple VPCs not supported by exlain mode, yet")
+	}
 	srcNodes, dstNodes, isSrcInternalIP, isDstInternalIP, err := c.srcDstInputToNodes(src, dst)
 	if err != nil {
 		return nil, err
