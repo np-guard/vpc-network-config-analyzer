@@ -374,7 +374,7 @@ func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
 	if node.IsInternal() { // node is not external - nothing to do
 		return node, nil
 	}
-	nodeIPBlock := common.NewIPBlockFromCidr(node.Cidr())
+	nodeIPBlock := node.IPBlock()
 	if nodeIPBlock == nil { // string cidr does not represent a legal cidr, would be handled earlier
 		return nil, fmt.Errorf("node %v does not refer to a legal IP", node.Name())
 	}
@@ -382,7 +382,7 @@ func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
 		if configNode.IsInternal() {
 			continue
 		}
-		configNodeIPBlock := common.NewIPBlockFromCidr(configNode.Cidr())
+		configNodeIPBlock := configNode.IPBlock()
 		if nodeIPBlock.ContainedIn(configNodeIPBlock) {
 			return configNode, nil
 		}
