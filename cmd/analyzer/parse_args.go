@@ -9,6 +9,17 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
+type regionList []string
+
+func (dp *regionList) String() string {
+	return fmt.Sprintln(*dp)
+}
+
+func (dp *regionList) Set(region string) error {
+	*dp = append(*dp, region)
+	return nil
+}
+
 // InArgs contains the input arguments for the analyzer
 type InArgs struct {
 	InputConfigFile       *string
@@ -27,6 +38,9 @@ type InArgs struct {
 	ESrcMaxPort           *int64
 	EDstMinPort           *int64
 	EDstMaxPort           *int64
+	Provider              *string
+	RegionList            regionList
+	ResourceGroup         *string
 }
 
 // flagHasValue indicates for each input arg if it is expected to have a value in the cli or not
@@ -47,6 +61,9 @@ var flagHasValue = map[string]bool{
 	ESrcMaxPort:           true,
 	EDstMinPort:           true,
 	EDstMaxPort:           true,
+	Provider:              true,
+	RegionList:            true,
+	ResourceGroup:         true,
 }
 
 const (
@@ -67,6 +84,9 @@ const (
 	ESrcMaxPort           = "src-max-port"
 	EDstMinPort           = "dst-min-port"
 	EDstMaxPort           = "dst-max-port"
+	Provider              = "provider"
+	RegionList            = "region"
+	ResourceGroup         = "resource-group"
 
 	// output formats supported
 	JSONFormat       = "json"
@@ -195,6 +215,9 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args.ESrcMaxPort = flagset.Int64(ESrcMaxPort, common.MaxPort, "Maximum source port for connection description")
 	args.EDstMinPort = flagset.Int64(EDstMinPort, common.MinPort, "Minimum destination port for connection description")
 	args.EDstMaxPort = flagset.Int64(EDstMaxPort, common.MaxPort, "Maximum destination port for connection description")
+	args.Provider = flagset.String(Provider, "", "Cloud provider from which to collect resources")
+	args.ResourceGroup = flagset.String(ResourceGroup, "", "Resource group id or name from which to collect resources")
+	flagset.Var(&args.RegionList, "region", "cloud region from which to collect resources")
 
 	// calling parseCmdLine prior to flagset.Parse to ensure that excessive and unsupported arguments are handled
 	// for example, flagset.Parse() ignores input args missing the `-`
@@ -310,9 +333,13 @@ func invalidArgsExplainMode(args *InArgs, flagset *flag.FlagSet) error {
 }
 
 func errorInErgs(args *InArgs, flagset *flag.FlagSet) error {
-	if !*args.Version && (args.InputConfigFile == nil || *args.InputConfigFile == "") {
+	if *args.InputConfigFile != "" && *args.Provider != "" {
 		flagset.PrintDefaults()
-		return fmt.Errorf("missing parameter: vpc-config")
+		return fmt.Errorf("error in parameters: can not use vpc-config and provider flag together")
+	}
+	if !*args.Version && (args.InputConfigFile == nil || *args.InputConfigFile == "") && (args.Provider == nil || *args.Provider == "") {
+		flagset.PrintDefaults()
+		return fmt.Errorf("missing parameter: vpc-config, or use provider flag to collect directly from the account")
 	}
 	if _, ok := supportedAnalysisTypesMap[*args.AnalysisType]; !ok {
 		flagset.PrintDefaults()
@@ -348,6 +375,9 @@ func notSupportedYetArgs(args *InArgs) error {
 	}
 	if *args.OutputFormat == JSONFormat && *args.Grouping {
 		return fmt.Errorf("json output format is not supported with grouping")
+	}
+	if (len(args.RegionList) != 0 || *args.ResourceGroup != "") && *args.Provider == "" {
+		return fmt.Errorf("error in parameters: you need to specify provider when specifying resource-group or region")
 	}
 	return nil
 }

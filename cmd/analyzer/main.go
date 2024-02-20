@@ -7,6 +7,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/np-guard/cloud-resource-collector/pkg/factory"
+	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/ibmvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/version"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
@@ -108,15 +110,31 @@ func _main(cmdlineArgs []string) error {
 		fmt.Printf("vpc-network-config-analyzer v%s\n", version.VersionCore)
 		return nil
 	}
-	vpcConfigs1, err2 := vpcConfigsFromFile(*inArgs.InputConfigFile, inArgs)
-	if err2 != nil {
-		return err2
+
+	var vpcConfigs1 map[string]*vpcmodel.VPCConfig
+	if *inArgs.Provider != "" {
+		rc := factory.GetResourceContainer(*inArgs.Provider, inArgs.RegionList, *inArgs.ResourceGroup)
+		// Collect resources from the provider API and generate output
+		err = rc.CollectResourcesFromAPI()
+		if err != nil {
+			return err
+		}
+		vpcConfigs1, err = ibmvpc.VPCConfigsFromResources(rc.GetResources().(*datamodel.ResourcesContainerModel), *inArgs.VPC, *inArgs.Debug)
+		if err != nil {
+			return err
+		}
+	} else {
+		vpcConfigs1, err = vpcConfigsFromFile(*inArgs.InputConfigFile, inArgs)
+		if err != nil {
+			return err
+		}
 	}
+
 	var vpcConfigs2 map[string]*vpcmodel.VPCConfig
 	if inArgs.InputSecondConfigFile != nil && *inArgs.InputSecondConfigFile != "" {
-		vpcConfigs2, err2 = vpcConfigsFromFile(*inArgs.InputSecondConfigFile, inArgs)
-		if err2 != nil {
-			return err2
+		vpcConfigs2, err = vpcConfigsFromFile(*inArgs.InputSecondConfigFile, inArgs)
+		if err != nil {
+			return err
 		}
 		// we are in diff mode, checking we have only one config per file:
 		if len(vpcConfigs1) != 1 || len(vpcConfigs2) != 1 {
