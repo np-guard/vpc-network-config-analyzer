@@ -83,7 +83,7 @@ func (stl *drawioStyles) tnType(tn TreeNodeInterface) int {
 	case tn.IsSquare() && tn.(SquareTreeNodeInterface).IsGroupSubnetsSquare():
 		return stl.GroupingSquare
 	case tn.IsSquare():
-		return stl.IBMSquare
+		return stl.IbmSquare
 	case tn.IsIcon() && tn.(IconTreeNodeInterface).IsGroupingPoint():
 		return stl.GroupingIcon
 	case tn.IsIcon():
@@ -113,7 +113,7 @@ var colors = map[reflect.Type]string{
 }
 
 type drawioStyles struct {
-	DoNotShow, IBMSquare, GroupingSquare, IbmIcon, GroupingIcon, Line int
+	DoNotShow, IbmSquare, GroupingSquare, IbmIcon, GroupingIcon, Line int
 	canTypeHaveAMiniIcon                                              map[reflect.Type]bool
 }
 
