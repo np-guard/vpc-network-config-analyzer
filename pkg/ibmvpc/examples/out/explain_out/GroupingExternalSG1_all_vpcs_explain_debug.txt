@@ -2,7 +2,7 @@ Connectivity explanation between 10.240.10.4 (vsi1-ky[10.240.10.4]) and 161.26.0
 ====================================================================================
 
 No connection between vsi1-ky[10.240.10.4] and Public Internet 161.0.0.0-161.25.255.255,161.27.0.0-161.255.255.255; connection blocked by egress
-External Router PublicGateway: public-gw-ky
+External traffic via PublicGateway: public-gw-ky
 Egress: security group sg1-ky blocks connection; network ACL acl1-ky allows connection
 
 Details:
@@ -14,7 +14,7 @@ network ACL acl1-ky allows connection with the following allow rules
 ------------------------------------------------------------------------------------------------------------------------
 
 The following connection exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16: protocol: UDP
-External Router PublicGateway: public-gw-ky
+External traffic via PublicGateway: public-gw-ky
 Egress: security group sg1-ky allows connection; network ACL acl1-ky allows connection
 
 Details:

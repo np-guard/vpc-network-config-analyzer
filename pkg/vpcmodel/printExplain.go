@@ -65,7 +65,7 @@ func stringExplainabilityLine(verbose bool, c *VPCConfig, connQuery *common.Conn
 	noEgressRules := !egressEnabled && needEgress
 	var routerStr, rulesStr, noConnection, resStr string
 	if router != nil && (src.IsExternal() || dst.IsExternal()) {
-		routerStr = "External Router " + router.Kind() + ": " + router.Name() + "\n"
+		routerStr = "External traffic via " + router.Kind() + ": " + router.Name() + "\n"
 	}
 	routerFiltersHeader := routerStr + rules.getFilterEffectStr(c, needEgress, needIngress)
 	rulesStr = rules.getRuleDetailsStr(c, verbose, needEgress, needIngress)
@@ -76,10 +76,10 @@ func stringExplainabilityLine(verbose bool, c *VPCConfig, connQuery *common.Conn
 	}
 	switch {
 	case router == nil && src.IsExternal():
-		resStr += fmt.Sprintf("%v no fip router and src is external (fip is required for "+
+		resStr += fmt.Sprintf("%v no fip and src is external (fip is required for "+
 			"outbound external connection)\n", noConnection)
 	case router == nil && dst.IsExternal():
-		resStr += fmt.Sprintf("%v no router (fip/pgw) and dst is external\n", noConnection)
+		resStr += fmt.Sprintf("%v no fip/pgw and dst is external\n", noConnection)
 	case noIngressRules && noEgressRules:
 		resStr += fmt.Sprintf("%v connection blocked both by ingress and egress\n%v\n%v", noConnection, routerFiltersHeader, rulesStr)
 	case noIngressRules:
