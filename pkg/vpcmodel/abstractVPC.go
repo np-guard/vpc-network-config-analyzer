@@ -71,8 +71,14 @@ const (
 
 type Node interface {
 	VPCResourceIntf
-	Cidr() string
+	// CidrOrAddress returns the string of the Node's IP-address (for internal node) or CIDR (for external node)
+	CidrOrAddress() string
+	// IPBlock returns the IPBlock object of the IP addresses associated with this node
+	IPBlock() *common.IPBlock
+	// IsInternal returns true if the node is internal, within a VPC
 	IsInternal() bool
+	// IsPublicInternet returns true if the node is external,
+	// currently nodes which are external but not public Internet are ignored
 	IsPublicInternet() bool
 }
 
@@ -113,7 +119,7 @@ type FilterTrafficResource interface {
 	// if conn is also given the above is per connection
 	RulesInConnectivity(src, dst Node, conn *common.ConnectionSet, isIngress bool) ([]RulesInFilter, []RulesInFilter, error)
 	// StringDetailsRulesOfFilter gets, for a specific filter (sg/nacl), a struct with relevant rules in it,
-	// and prints the effect of each filter (e.g. security group sg1-ky allows connection (with allow rules))
+	// and prints the effect of each filter (e.g. security group sg1-ky allows connection)
 	// and the detailed list of relevant rules
 	StringDetailsRulesOfFilter(listRulesInFilter []RulesInFilter) string
 	// StringFilterEffect gets the same input as StringDetailsRulesOfFilter, and prints of each filter its effect

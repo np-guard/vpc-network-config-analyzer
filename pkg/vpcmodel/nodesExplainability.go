@@ -69,6 +69,10 @@ type Explanation struct {
 // ExplainConnectivity given src, dst and connQuery returns a struct with all explanation details
 // nil connQuery means connection is not part of the query
 func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.ConnectionSet) (res *Explanation, err error) {
+	// we do not support multiple configs, yet
+	if c.IsMultipleVPCsConfig {
+		return nil, fmt.Errorf("multiple VPCs not supported by explain mode, yet")
+	}
 	srcNodes, dstNodes, isSrcInternalIP, isDstInternalIP, err := c.srcDstInputToNodes(src, dst)
 	if err != nil {
 		return nil, err
@@ -374,7 +378,7 @@ func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
 	if node.IsInternal() { // node is not external - nothing to do
 		return node, nil
 	}
-	nodeIPBlock := common.NewIPBlockFromCidr(node.Cidr())
+	nodeIPBlock := node.IPBlock()
 	if nodeIPBlock == nil { // string cidr does not represent a legal cidr, would be handled earlier
 		return nil, fmt.Errorf("node %v does not refer to a legal IP", node.Name())
 	}
@@ -382,7 +386,7 @@ func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
 		if configNode.IsInternal() {
 			continue
 		}
-		configNodeIPBlock := common.NewIPBlockFromCidr(configNode.Cidr())
+		configNodeIPBlock := configNode.IPBlock()
 		if nodeIPBlock.ContainedIn(configNodeIPBlock) {
 			return configNode, nil
 		}

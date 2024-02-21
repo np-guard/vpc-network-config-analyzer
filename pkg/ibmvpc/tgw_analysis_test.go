@@ -41,7 +41,10 @@ type tgwTest struct {
 func newVPCWithSubnets(uidTocidrs map[string]string) *VPC {
 	vpc := &VPC{}
 	for uid, cidr := range uidTocidrs {
-		vpc.subnetsList = append(vpc.subnetsList, &Subnet{cidr: cidr, VPCResource: vpcmodel.VPCResource{ResourceUID: uid, VPCRef: vpc}})
+		vpc.subnetsList = append(vpc.subnetsList, &Subnet{
+			cidr:        cidr,
+			ipblock:     newIPBlockFromCIDROrAddressWithoutValidation(cidr),
+			VPCResource: vpcmodel.VPCResource{ResourceUID: uid, VPCRef: vpc}})
 		vpc.addressPrefixes = append(vpc.addressPrefixes, cidr)
 	}
 	return vpc

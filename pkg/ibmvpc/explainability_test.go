@@ -400,6 +400,19 @@ var explainTests = []*vpcGeneralTest{
 		EDstMaxPort: common.MaxPort,
 		format:      vpcmodel.Debug,
 	},
+	// allow connection subset of the queried one
+	{
+		name:        "NACLQueryAllowSubset",
+		inputConfig: "acl_testing3_4th",
+		ESrc:        "vsi1-ky",
+		EDst:        "161.26.0.0/16",
+		EProtocol:   string(common.ProtocolUDP),
+		ESrcMinPort: common.MinPort,
+		ESrcMaxPort: common.MaxPort,
+		EDstMinPort: common.MinPort,
+		EDstMaxPort: common.MaxPort,
+		format:      vpcmodel.Debug,
+	},
 }
 
 func TestAll(t *testing.T) {
