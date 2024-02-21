@@ -12,10 +12,10 @@ const commaSeparator = ","
 
 // for each line here can group list of external nodes to cidrs list as of one element
 // groupedNodesInfo contains the list of nodes to be grouped and their common connection properties
-type groupingConnections map[EndpointElem]map[string]*groupedNodesInfo
+type groupingConnections map[EndpointElem]map[string]*groupedExternalNodesInfo
 
-type groupedNodesInfo struct {
-	nodes            []*ExternalNetwork
+type groupedExternalNodesInfo struct {
+	nodes            groupedExternalNodes
 	commonProperties *groupedCommonProperties
 }
 
@@ -37,7 +37,7 @@ type groupedCommonProperties struct {
 	groupingStrKey string // the key used for grouping per connectivity lines or diff lines
 }
 
-func (g *groupedNodesInfo) appendNode(n *ExternalNetwork) {
+func (g *groupedExternalNodesInfo) appendNode(n *ExternalNetwork) {
 	g.nodes = append(g.nodes, n)
 }
 
@@ -60,7 +60,7 @@ func (g *groupingConnections) getGroupedConnLines(groupedConnLines *GroupConnLin
 }
 
 func newGroupingConnections() *groupingConnections {
-	res := groupingConnections(map[EndpointElem]map[string]*groupedNodesInfo{})
+	res := groupingConnections(map[EndpointElem]map[string]*groupedExternalNodesInfo{})
 	return &res
 }
 
@@ -210,10 +210,10 @@ func (g *GroupConnLines) getGroupedExternalNodes(grouped groupedExternalNodes) *
 func (g *groupingConnections) addPublicConnectivity(ep EndpointElem, commonProps *groupedCommonProperties, targetNode *ExternalNetwork) {
 	connKey := commonProps.groupingStrKey
 	if _, ok := (*g)[ep]; !ok {
-		(*g)[ep] = map[string]*groupedNodesInfo{}
+		(*g)[ep] = map[string]*groupedExternalNodesInfo{}
 	}
 	if _, ok := (*g)[ep][connKey]; !ok {
-		(*g)[ep][connKey] = &groupedNodesInfo{commonProperties: commonProps}
+		(*g)[ep][connKey] = &groupedExternalNodesInfo{commonProperties: commonProps}
 	}
 	(*g)[ep][connKey].appendNode(targetNode)
 }
