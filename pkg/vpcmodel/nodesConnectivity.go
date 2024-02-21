@@ -299,11 +299,11 @@ func (connectivityMap GeneralConnectivityMap) getCombinedConnsStr() string {
 			if conns.IsEmpty() {
 				continue
 			}
-			srcName := srcNode.Cidr()
+			srcName := srcNode.CidrOrAddress()
 			if srcNode.IsInternal() {
 				srcName = src.Name()
 			}
-			dstName := dstNode.Cidr()
+			dstName := dstNode.CidrOrAddress()
 			if dstNode.IsInternal() {
 				dstName = dst.Name()
 			}
@@ -326,11 +326,11 @@ func (v *VPCConnectivity) DetailedString() string {
 	for node, connectivity := range v.AllowedConns {
 		// ingress
 		for peerNode, conn := range connectivity.IngressAllowedConns {
-			strList = append(strList, getConnectionStr(peerNode.Cidr(), node.Cidr(), conn.String(), " [inbound]"))
+			strList = append(strList, getConnectionStr(peerNode.CidrOrAddress(), node.CidrOrAddress(), conn.String(), " [inbound]"))
 		}
 		// egress
 		for peerNode, conn := range connectivity.EgressAllowedConns {
-			strList = append(strList, getConnectionStr(node.Cidr(), peerNode.Cidr(), conn.String(), " [outbound]"))
+			strList = append(strList, getConnectionStr(node.CidrOrAddress(), peerNode.CidrOrAddress(), conn.String(), " [outbound]"))
 		}
 	}
 	sort.Strings(strList)
@@ -340,7 +340,7 @@ func (v *VPCConnectivity) DetailedString() string {
 	for src, nodeConns := range v.AllowedConnsCombined {
 		for dst, conns := range nodeConns {
 			// src and dst here are nodes, always. Thus ignoring potential error in conversion
-			strList = append(strList, getConnectionStr(src.(Node).Cidr(), dst.(Node).Cidr(), conns.String(), ""))
+			strList = append(strList, getConnectionStr(src.(Node).CidrOrAddress(), dst.(Node).CidrOrAddress(), conns.String(), ""))
 		}
 	}
 	sort.Strings(strList)

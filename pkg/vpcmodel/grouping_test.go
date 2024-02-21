@@ -16,9 +16,14 @@ type mockNetIntf struct {
 	name     string
 }
 
-func (m *mockNetIntf) Cidr() string {
+func (m *mockNetIntf) CidrOrAddress() string {
 	return m.cidr
 }
+func (m *mockNetIntf) IPBlock() *common.IPBlock {
+	res, _ := common.NewIPBlockFromCidrOrAddress(m.cidr)
+	return res
+}
+
 func (m *mockNetIntf) IsInternal() bool {
 	return !m.isPublic
 }
@@ -29,7 +34,7 @@ func (m *mockNetIntf) Kind() string {
 	return "NetworkInterface"
 }
 func (m *mockNetIntf) UID() string {
-	return ""
+	return m.name
 }
 func (m *mockNetIntf) Name() string {
 	return m.name
@@ -54,7 +59,7 @@ type mockSubnet struct {
 }
 
 func (m *mockSubnet) UID() string {
-	return ""
+	return m.name
 }
 func (m *mockSubnet) Name() string {
 	return m.name
@@ -94,8 +99,8 @@ func newVPCConfigTest1() (*VPCConfig, *VPCConnectivity) {
 	res := &VPCConfig{Nodes: []Node{}}
 	res.Nodes = append(res.Nodes,
 		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1"},
-		&mockNetIntf{cidr: "1.2.3.4/22", name: "public1", isPublic: true},
-		&mockNetIntf{cidr: "8.8.8.8/32", name: "public2", isPublic: true})
+		&ExternalNetwork{CidrStr: "1.2.3.4/22", isPublicInternet: true},
+		&ExternalNetwork{CidrStr: "8.8.8.8/32", isPublicInternet: true})
 
 	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0]}})
 
@@ -109,8 +114,8 @@ func newVPCConfigTest2() (*VPCConfig, *VPCConnectivity) {
 	res := &VPCConfig{Nodes: []Node{}}
 	res.Nodes = append(res.Nodes,
 		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1"},
-		&mockNetIntf{cidr: "1.2.3.4/22", name: "public1", isPublic: true},
-		&mockNetIntf{cidr: "8.8.8.8/32", name: "public2", isPublic: true},
+		&ExternalNetwork{CidrStr: "1.2.3.4/22", isPublicInternet: true},
+		&ExternalNetwork{CidrStr: "8.8.8.8/32", isPublicInternet: true},
 		&mockNetIntf{cidr: "10.0.20.6/32", name: "vsi2"})
 
 	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0], res.Nodes[3]}})
@@ -166,8 +171,8 @@ func configStatefulGrouping() (*VPCConfig, *VPCConnectivity) {
 	res := &VPCConfig{Nodes: []Node{}}
 	res.Nodes = append(res.Nodes,
 		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1"},
-		&mockNetIntf{cidr: "1.2.3.4/22", name: "public1", isPublic: true},
-		&mockNetIntf{cidr: "8.8.8.8/32", name: "public2", isPublic: true},
+		&ExternalNetwork{CidrStr: "1.2.3.4/22", isPublicInternet: true},
+		&ExternalNetwork{CidrStr: "8.8.8.8/32", isPublicInternet: true},
 		&mockNetIntf{cidr: "10.0.20.6/32", name: "vsi2"})
 
 	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0], res.Nodes[3]}})
@@ -203,9 +208,8 @@ func configIPRange() (*VPCConfig, *VPCConnectivity) {
 	res := &VPCConfig{Nodes: []Node{}}
 	res.Nodes = append(res.Nodes,
 		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1"},
-		&mockNetIntf{cidr: "1.2.3.0/24", name: "public1", isPublic: true},
-		&mockNetIntf{cidr: "1.2.4.0/24", name: "public2", isPublic: true})
-
+		&ExternalNetwork{CidrStr: "1.2.3.0/24", isPublicInternet: true},
+		&ExternalNetwork{CidrStr: "1.2.4.0/24", isPublicInternet: true})
 	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0]}})
 
 	res1 := &VPCConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
