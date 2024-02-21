@@ -613,12 +613,49 @@ func (ly *layoutS) setTgwLocations(cloud SquareTreeNodeInterface) {
 	if len(tgws) == 0 {
 		return
 	}
+	tgwOptionalCols, availableCols := ly.calcTgwOptionalCols(cloud)
 	cloud.Location().firstRow.setHeight(iconSpace)
-	firstColIndex := cloud.Location().firstCol.index
-	lastColIndex := cloud.Location().lastCol.index
+	// we want to choose for the tgw with less options:
+	sort.Slice(tgws, func(i, j int) bool {
+		return len(tgwOptionalCols[tgws[i]]) < len(tgwOptionalCols[tgws[j]])
+	})
+	for _, tgw := range tgws {
+		// the tgwOptionalCols are already sorted, the first and last are our last choice, so moving the first to the end:
+		tgwOptionalCols[tgw] = append(tgwOptionalCols[tgw][1:], tgwOptionalCols[tgw][0])
+		for _, ci := range tgwOptionalCols[tgw] {
+			if availableCols[ci] {
+				tgw.setLocation(newCellLocation(cloud.Location().firstRow, ly.matrix.cols[ci]))
+				delete(availableCols, ci)
+				break
+			}
+		}
+	}
+	for _, tgw := range tgws {
+		if tgw.Location() != nil {
+			continue
+		}
+		// hope we do not get here, taking the closest available:
+		var bestColAvailable int
+		bestDistance := cloud.Location().lastCol.index
+		tgwOptCol := tgwOptionalCols[tgw][0] + tgwOptionalCols[tgw][len(tgwOptionalCols[tgw])-1]/2
+		for col := range availableCols {
+			if abs(col-tgwOptCol) < bestDistance {
+				bestColAvailable = col
+				bestDistance = abs(col - tgwOptCol)
+			}
+		}
+		tgw.setLocation(newCellLocation(cloud.Location().firstRow, ly.matrix.cols[bestColAvailable]))
+	}
+}
+
+// calcTgwOptionalCols() calc the optional cols of the tgws, and a se of all the cols
+func (ly *layoutS) calcTgwOptionalCols(cloud SquareTreeNodeInterface) (
+	tgwOptionalCols map[IconTreeNodeInterface][]int, allCols map[int]bool) {
+	tgws := cloud.IconTreeNodes()
+	firstColIndex, lastColIndex := cloud.Location().firstCol.index, cloud.Location().lastCol.index
 	tgwMinCol := map[IconTreeNodeInterface]int{}
 	tgwMaxCol := map[IconTreeNodeInterface]int{}
-	tgwOptionalCols := map[IconTreeNodeInterface][]int{}
+	tgwOptionalCols = map[IconTreeNodeInterface][]int{}
 	for _, tgw := range tgws {
 		tgwMinCol[tgw] = firstColIndex
 		tgwMaxCol[tgw] = lastColIndex
@@ -638,17 +675,15 @@ func (ly *layoutS) setTgwLocations(cloud SquareTreeNodeInterface) {
 	for _, tgw := range tgws {
 		// in the case there is no range, we flip MinCol and maxCol:
 		if tgwMinCol[tgw] > tgwMaxCol[tgw] {
-			c := tgwMinCol[tgw]
-			tgwMinCol[tgw] = tgwMaxCol[tgw]
-			tgwMaxCol[tgw] = c
+			tgwMinCol[tgw], tgwMaxCol[tgw] = tgwMaxCol[tgw], tgwMinCol[tgw]
 		}
 	}
 	// we collect the optional cols for each tgw:
-	availableCols := map[int]bool{}
+	allCols = map[int]bool{}
 	for ci := firstColIndex; ci <= lastColIndex; ci++ {
 		col := ly.matrix.cols[ci]
 		if col.width() >= iconSpace {
-			availableCols[ci] = true
+			allCols[ci] = true
 			for _, tgw := range tgws {
 				if ci >= tgwMinCol[tgw] && ci <= tgwMaxCol[tgw] {
 					tgwOptionalCols[tgw] = append(tgwOptionalCols[tgw], ci)
@@ -656,36 +691,7 @@ func (ly *layoutS) setTgwLocations(cloud SquareTreeNodeInterface) {
 			}
 		}
 	}
-	// we want to choose for the tgw with less options:
-	sort.Slice(tgws, func(i, j int) bool {
-		return len(tgwOptionalCols[tgws[i]]) < len(tgwOptionalCols[tgws[j]])
-	})
-	for _, tgw := range tgws {
-		// the tgwOptionalCols are already sorted, the first and last are our last choice, so moving the first to the end:
-		tgwOptionalCols[tgw] = append(tgwOptionalCols[tgw][1:], tgwOptionalCols[tgw][0])
-		for _, ci := range tgwOptionalCols[tgw] {
-			if availableCols[ci] {
-				tgw.setLocation(newCellLocation(cloud.Location().firstRow, ly.matrix.cols[ci]))
-				delete(availableCols, ci)
-				break
-			}
-		}
-	}
-	for _, tgw := range tgws {
-		if tgw.Location() == nil {
-			//hope we do not get here, taking the closest available:
-			var bestColAvailable int
-			bestDistance := lastColIndex
-			tgwOptCol := tgwOptionalCols[tgw][0] + tgwOptionalCols[tgw][len(tgwOptionalCols[tgw])-1]/2
-			for col := range availableCols {
-				if abs(col-tgwOptCol) < bestDistance {
-					bestColAvailable = col
-					bestDistance = abs(col - tgwOptCol)
-				}
-			}
-			tgw.setLocation(newCellLocation(cloud.Location().firstRow, ly.matrix.cols[bestColAvailable]))
-		}
-	}
+	return tgwOptionalCols, allCols
 }
 
 // every connection to a group square is done via a grouping point
