@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+	"github.com/np-guard/models/pkg/ipblocks"
 )
 
 const (
@@ -48,7 +48,7 @@ func validateAddressPrefixesExist(vpc *VPC) {
 
 // getVPCAdvertisedRoutes returns a list of IPBlock objects for vpc address prefixes matched by prefix filters,
 // thus advertised to a TGW
-func getVPCAdvertisedRoutes(tc *datamodel.TransitConnection, vpc *VPC) (res []*common.IPBlock, err error) {
+func getVPCAdvertisedRoutes(tc *datamodel.TransitConnection, vpc *VPC) (res []*ipblocks.IPBlock, err error) {
 	validateAddressPrefixesExist(vpc)
 	for _, ap := range vpc.addressPrefixes {
 		matched, err := isCIDRMatchedByPrefixFilters(ap, tc)
@@ -56,7 +56,7 @@ func getVPCAdvertisedRoutes(tc *datamodel.TransitConnection, vpc *VPC) (res []*c
 			return nil, err
 		}
 		if matched {
-			apIPBlock, err := common.NewIPBlockFromCidr(ap)
+			apIPBlock, err := ipblocks.NewIPBlockFromCidr(ap)
 			if err != nil {
 				return nil, err
 			}
@@ -111,7 +111,7 @@ func parseActionString(action *string) (bool, error) {
 
 // prefixLeGeMatch checks if a vpc's address-prefix cidr is matched by a given rule's prefix with le/ge attributes
 func prefixLeGeMatch(prefix *string, le, ge *int64, cidr string) (bool, error) {
-	prefixIPBlock, cidrBlock, err := common.PairCIDRsToIPBlocks(*prefix, cidr)
+	prefixIPBlock, cidrBlock, err := ipblocks.PairCIDRsToIPBlocks(*prefix, cidr)
 	if err != nil {
 		return false, err
 	}

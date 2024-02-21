@@ -1,6 +1,7 @@
 package vpcmodel
 
 import (
+	"github.com/np-guard/models/pkg/ipblocks"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
@@ -73,7 +74,7 @@ type Node interface {
 	// CidrOrAddress returns the string of the Node's IP-address (for internal node) or CIDR (for external node)
 	CidrOrAddress() string
 	// IPBlock returns the IPBlock object of the IP addresses associated with this node
-	IPBlock() *common.IPBlock
+	IPBlock() *ipblocks.IPBlock
 	// IsInternal returns true if the node is internal, within a VPC
 	IsInternal() bool
 	// IsPublicInternet returns true if the node is external,
@@ -88,7 +89,7 @@ type InternalNodeIntf interface {
 	// an InternalNodeIntf has an exact one IP Address
 	Address() string
 	// IPBlock returns the IPBlock object representing the node's IP Address
-	IPBlock() *common.IPBlock
+	IPBlock() *ipblocks.IPBlock
 }
 
 // InternalNode implements interface InternalNodeIntf
@@ -99,21 +100,21 @@ type InternalNode struct {
 	// This field is skipped in the JSON output (nodes connectivity output in JSON format),
 	// since it is sufficient to have the AddressStr, and no need to represent IPBlockObj as another
 	// attribute in the JSON output.
-	IPBlockObj *common.IPBlock `json:"-"`
+	IPBlockObj *ipblocks.IPBlock `json:"-"`
 }
 
 func (n *InternalNode) Address() string {
 	return n.AddressStr
 }
 
-func (n *InternalNode) IPBlock() *common.IPBlock {
+func (n *InternalNode) IPBlock() *ipblocks.IPBlock {
 	return n.IPBlockObj
 }
 
 // SetIPBlockFromAddress sets the node's IPBlockObj field from its AddressStr field.
 // Assumes its AddressStr field is assigned with valid IPv4 string value.
 func (n *InternalNode) SetIPBlockFromAddress() (err error) {
-	n.IPBlockObj, err = common.NewIPBlockFromIPAddress(n.AddressStr)
+	n.IPBlockObj, err = ipblocks.NewIPBlockFromIPAddress(n.AddressStr)
 	return err
 }
 
@@ -134,7 +135,7 @@ type NodeSet interface {
 	VPCResourceIntf
 	Nodes() []Node
 	Connectivity() *ConnectivityResult
-	AddressRange() *common.IPBlock
+	AddressRange() *ipblocks.IPBlock
 }
 
 // RulesType Type of rules in a given filter (e.g. specific NACL table) relevant to
@@ -172,7 +173,7 @@ type FilterTrafficResource interface {
 	// StringFilterEffect gets the same input as StringDetailsRulesOfFilter, and prints of each filter its effect
 	// (namely, it prints only the prefix printed by StringDetailsRulesOfFilter)
 	StringFilterEffect(listRulesInFilter []RulesInFilter) string
-	ReferencedIPblocks() []*common.IPBlock
+	ReferencedIPblocks() []*ipblocks.IPBlock
 	ConnectivityMap() (map[string]*IPbasedConnectivityResult, error)
 	GetConnectivityOutputPerEachElemSeparately() string
 }

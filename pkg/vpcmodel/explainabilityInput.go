@@ -3,6 +3,7 @@ package vpcmodel
 import (
 	"fmt"
 
+	"github.com/np-guard/models/pkg/ipblocks"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
@@ -92,7 +93,7 @@ func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node, in
 	}
 	// cidrOrName, if legal, references an address.
 	// 2. cidrOrName references an ip address
-	ipBlock, err := common.NewIPBlockFromCidrOrAddress(cidrOrName)
+	ipBlock, err := ipblocks.NewIPBlockFromCidrOrAddress(cidrOrName)
 	if err != nil {
 		return nil, false, err // could not find any match
 	}
@@ -132,7 +133,7 @@ func (c *VPCConfig) getNodesOfVsi(vsi string) ([]Node, error) {
 //     error otherwise
 //
 // todo: 4 - replace subnet's address range in vpc's address prefix
-func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *common.IPBlock) (nodes []Node, internalIP bool, err error) {
+func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *ipblocks.IPBlock) (nodes []Node, internalIP bool, err error) {
 	// 1.
 	_, publicInternet, err1 := getPublicInternetIPblocksList()
 	if err1 != nil {
@@ -177,9 +178,9 @@ func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *common.IP
 //  1. Calculate the IP blocks of the nodes N
 //  2. Calculate from N and the cidr block, disjoint IP blocks
 //  3. Return the nodes created from each block from 2 contained in the input cidr
-func (c *VPCConfig) getCidrExternalNodes(inputIPBlock *common.IPBlock) (cidrNodes []Node, err error) {
+func (c *VPCConfig) getCidrExternalNodes(inputIPBlock *ipblocks.IPBlock) (cidrNodes []Node, err error) {
 	// 1.
-	vpcConfigNodesExternalBlock := []*common.IPBlock{}
+	vpcConfigNodesExternalBlock := []*ipblocks.IPBlock{}
 	for _, node := range c.Nodes {
 		if node.IsInternal() {
 			continue
@@ -187,7 +188,7 @@ func (c *VPCConfig) getCidrExternalNodes(inputIPBlock *common.IPBlock) (cidrNode
 		vpcConfigNodesExternalBlock = append(vpcConfigNodesExternalBlock, node.IPBlock())
 	}
 	// 2.
-	disjointBlocks := common.DisjointIPBlocks([]*common.IPBlock{inputIPBlock}, vpcConfigNodesExternalBlock)
+	disjointBlocks := ipblocks.DisjointIPBlocks([]*ipblocks.IPBlock{inputIPBlock}, vpcConfigNodesExternalBlock)
 	// 3.
 	cidrNodes = []Node{}
 	for _, block := range disjointBlocks {
@@ -204,7 +205,7 @@ func (c *VPCConfig) getCidrExternalNodes(inputIPBlock *common.IPBlock) (cidrNode
 
 // getNodesWithinInternalAddress gets input IPBlock
 // and returns the list of all internal nodes (should be VSI) within address
-func (c *VPCConfig) getNodesWithinInternalAddress(inputIPBlock *common.IPBlock) (networkInterfaceNodes []Node) {
+func (c *VPCConfig) getNodesWithinInternalAddress(inputIPBlock *ipblocks.IPBlock) (networkInterfaceNodes []Node) {
 	networkInterfaceNodes = []Node{}
 	for _, node := range c.Nodes {
 		if node.IsInternal() && node.IPBlock().ContainedIn(inputIPBlock) {
