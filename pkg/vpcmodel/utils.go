@@ -12,7 +12,7 @@ func NoConns() *common.ConnectionSet {
 
 func HasNode(listNodes []Node, node Node) bool {
 	for _, n := range listNodes {
-		if n.CidrOrAddress() == node.CidrOrAddress() {
+		if n.UID() == node.UID() {
 			return true
 		}
 	}
