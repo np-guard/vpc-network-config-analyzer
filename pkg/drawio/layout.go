@@ -564,8 +564,8 @@ func (ly *layoutS) setPublicNetworkIconsLocations() {
 
 // ////////////////////////////////////////////////////////////////////////////////////////
 // setIconsLocationsOnTop() sets all the icons in the first square row.
-// choose the cols with width >= iconSpace, and the cols below them
-// for icons in vpc and cloud squares
+// choose the cols with width >= iconSpace, and the cols next to them
+// for icons in vpc
 func (ly *layoutS) setIconsLocationsOnTop(square SquareTreeNodeInterface) {
 	icons := square.IconTreeNodes()
 	if len(icons) == 0 {
@@ -591,6 +591,101 @@ func (ly *layoutS) setIconsLocationsOnTop(square SquareTreeNodeInterface) {
 	for iconIndex, icon := range icons {
 		icon.setLocation(newCellLocation(square.Location().firstRow, cols[iconIndex/iconsPerCol]))
 		icon.Location().yOffset = iconSpace*(iconIndex%iconsPerCol) - (iconSpace*(iconsPerCol-1))/2
+	}
+}
+
+// ////////////////////////////////////////////////////////////////////////////////////////
+// setTgwLocations() sets all the tgw in the first cloud row.
+// we assume that number of tgws is less than number of vpcs
+// we choose the cols with width >= iconSpace. and set a col per tgw (a col can not have two tgw):
+// 1. for each tgw, find the optional cols for it (details on optional col below)
+// 2. sort the tgws by the number of optional cols (to handle the tgw with the less number of optional cols first)
+// 3. for each tgw choose a col from its optional cols
+// 4. for those how fail in step 3, choose an closest available col
+// 
+// in general, a col is *not* an optional col for a tgw, if there is a line that:
+//        a. routers by the tgw 
+//        b. both src and dst are on the left/right to the col.
+
+func (ly *layoutS) setTgwLocations(square SquareTreeNodeInterface) {
+	tgws := append(square.IconTreeNodes(), []IconTreeNodeInterface{}...)
+	if len(tgws) == 0 {
+		return
+	}
+	firstColIndex := square.Location().firstCol.index
+	lastColIndex := square.Location().lastCol.index
+	tgwMinCol := map[IconTreeNodeInterface]int{}
+	tgwMaxCol := map[IconTreeNodeInterface]int{}
+	tgwOptionalCols := map[IconTreeNodeInterface][]int{}
+	for _, tgw := range tgws {
+		tgwMinCol[tgw] = firstColIndex
+		tgwMaxCol[tgw] = lastColIndex
+		tgwOptionalCols[tgw] = []int{}
+	}
+	// each tgw has a MinCol and a maxCol. the optional cols of the tgw are in this range.
+	// we iterate over the lines, and update these values
+	for _, line := range getAllLines(ly.network) {
+		tgw := line.Router()
+		if _, ok := tgwMinCol[tgw]; ok {
+			srcLocation := line.Src().Parent().Location()
+			dstLocation := line.Dst().Parent().Location()
+			tgwMinCol[tgw] = max(tgwMinCol[tgw], min(srcLocation.firstCol.index, dstLocation.firstCol.index))
+			tgwMaxCol[tgw] = min(tgwMaxCol[tgw], max(srcLocation.lastCol.index, dstLocation.lastCol.index))
+		}
+	}
+	for _, tgw := range tgws {
+		// in the case there is no range we flip MinCol and maxCol:
+		if tgwMinCol[tgw] > tgwMaxCol[tgw] {
+			c := tgwMinCol[tgw]
+			tgwMinCol[tgw] = tgwMaxCol[tgw]
+			tgwMaxCol[tgw] = c
+		}
+	}
+	// we collect the optional coles for each tgw:
+	availableCols := map[int]bool{}
+	for ci := firstColIndex; ci <= lastColIndex; ci++ {
+		col := ly.matrix.cols[ci]
+		if col.width() >= iconSpace {
+			availableCols[ci] = true
+			for _, tgw := range tgws {
+				if ci >= tgwMinCol[tgw] && ci <= tgwMaxCol[tgw] {
+					tgwOptionalCols[tgw] = append(tgwOptionalCols[tgw], ci)
+				}
+			}
+		}
+	}
+	// we want to choose for the tgw with less options:
+	sort.Slice(tgws, func(i, j int) bool {
+		return len(tgwOptionalCols[tgws[i]]) < len(tgwOptionalCols[tgws[j]])
+	})
+
+
+	square.Location().firstRow.setHeight(iconSpace)
+	for _, tgw := range tgws {
+		// the tgwOptionalCols are already sorted, the first and last are our last choice
+		tgwOptionalColsOrder := append(tgwOptionalCols[tgw][1:], tgwOptionalCols[tgw][0])
+		for _, ci := range tgwOptionalColsOrder {
+			if availableCols[ci] {
+				tgw.setLocation(newCellLocation(square.Location().firstRow, ly.matrix.cols[ci]))
+				delete(availableCols, ci)
+				break
+			}
+		}
+	}
+	//hope we do not get here, taking the closest available:
+ 	for _, tgw := range tgws {
+		if tgw.Location() == nil {
+			var bestColAvailable int
+			bestDistance := lastColIndex
+			tgwOptCol := tgwOptionalCols[tgw][0] + tgwOptionalCols[tgw][len(tgwOptionalCols[tgw])-1]/2
+			for col := range availableCols{
+				if abs(col - tgwOptCol) < bestDistance{
+					bestColAvailable = col
+					bestDistance = abs(col - tgwOptCol)
+				}
+			}
+			tgw.setLocation(newCellLocation(square.Location().firstRow, ly.matrix.cols[bestColAvailable]))
+		}
 	}
 }
 
@@ -707,7 +802,7 @@ func (ly *layoutS) setIconsLocations() {
 			}
 			ly.setIconsLocationsOnTop(vpc)
 		}
-		ly.setIconsLocationsOnTop(cloud)
+		ly.setTgwLocations(cloud)
 	}
 	ly.setPublicNetworkIconsLocations()
 	ly.setGroupingIconLocations()
