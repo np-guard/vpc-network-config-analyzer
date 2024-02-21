@@ -15,7 +15,7 @@ const commaSeparator = ","
 type groupingConnections map[EndpointElem]map[string]*groupedNodesInfo
 
 type groupedNodesInfo struct {
-	nodes            []Node
+	nodes            []*ExternalNetwork
 	commonProperties *groupedCommonProperties
 }
 
@@ -37,7 +37,7 @@ type groupedCommonProperties struct {
 	groupingStrKey string // the key used for grouping per connectivity lines or diff lines
 }
 
-func (g *groupedNodesInfo) appendNode(n Node) {
+func (g *groupedNodesInfo) appendNode(n *ExternalNetwork) {
 	g.nodes = append(g.nodes, n)
 }
 
@@ -197,21 +197,17 @@ func (g *GroupConnLines) getGroupedEndpointsElems(grouped groupedEndpointsElems)
 }
 
 // same as the previous function, for groupedExternalNodesMap
-func (g *GroupConnLines) getGroupedExternalNodes(grouped []Node) *groupedExternalNodes {
-	res := make(groupedExternalNodes, len(grouped))
-	for i := range grouped {
-		res[i] = grouped[i].(*ExternalNetwork)
-	}
+func (g *GroupConnLines) getGroupedExternalNodes(grouped groupedExternalNodes) *groupedExternalNodes {
 	// Due to the canonical representation, grouped.String() and thus grouped.Name() will be identical
 	//  to equiv groupedExternalNodes
-	if existingGrouped, ok := g.groupedExternalNodesMap[res.Name()]; ok {
+	if existingGrouped, ok := g.groupedExternalNodesMap[grouped.Name()]; ok {
 		return existingGrouped
 	}
-	g.groupedExternalNodesMap[res.Name()] = &res
-	return &res
+	g.groupedExternalNodesMap[grouped.Name()] = &grouped
+	return &grouped
 }
 
-func (g *groupingConnections) addPublicConnectivity(ep EndpointElem, commonProps *groupedCommonProperties, targetNode Node) {
+func (g *groupingConnections) addPublicConnectivity(ep EndpointElem, commonProps *groupedCommonProperties, targetNode *ExternalNetwork) {
 	connKey := commonProps.groupingStrKey
 	if _, ok := (*g)[ep]; !ok {
 		(*g)[ep] = map[string]*groupedNodesInfo{}
@@ -357,9 +353,9 @@ func (g *GroupConnLines) addLineToExternalGrouping(res *[]*groupedConnLine,
 	}
 	switch {
 	case dst.IsExternal():
-		g.srcToDst.addPublicConnectivity(src, commonProps, dstNode)
+		g.srcToDst.addPublicConnectivity(src, commonProps, dstNode.(*ExternalNetwork))
 	case src.IsExternal():
-		g.dstToSrc.addPublicConnectivity(dst, commonProps, srcNode)
+		g.dstToSrc.addPublicConnectivity(dst, commonProps, srcNode.(*ExternalNetwork))
 	default:
 		*res = append(*res, &groupedConnLine{src, dst, commonProps})
 	}

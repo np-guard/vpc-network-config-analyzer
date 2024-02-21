@@ -131,13 +131,11 @@ func (c *VPCConfig) getAllowedConnectionsCombined(
 func (c *VPCConfig) getVPCResourceInfInOtherConfig(other *VPCConfig, ep VPCResourceIntf,
 	diffAnalysis diffAnalysisType) (res VPCResourceIntf, err error) {
 	if ep.IsExternal() {
-		var node *ExternalNetwork
-		var ok bool
-		if node, ok = ep.(*ExternalNetwork); ok {
+		if node, ok := ep.(*ExternalNetwork); ok {
 			nodeSameCidr := findNodeWithCidr(other.Nodes, node.CidrStr)
 			return nodeSameCidr, nil
 		}
-		return nil, fmt.Errorf(castingNodeErr, node.Name())
+		return nil, fmt.Errorf(castingNodeErr, ep.Name())
 	}
 	// endpoint is a vsi or a subnet, depending on diffAnalysis value
 	if diffAnalysis == Vsis {

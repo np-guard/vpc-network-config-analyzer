@@ -28,7 +28,7 @@ type VPCResource struct {
 	ResourceType string
 	Zone         string
 	// the VPC to which this resource belongs to
-	VPCRef VPCResourceIntf `json:"-"` // avoid having this field in the JSON output
+	VPCRef VPCResourceIntf `json:"-"`
 }
 
 func (n *VPCResource) Name() string {
@@ -95,8 +95,8 @@ type InternalNodeIntf interface {
 type InternalNode struct {
 	// AddressStr is an IPv4 string, as the node's IP Address
 	AddressStr string
-	// IPBlockObj is an IPBlock object of the node's address (created from AddressStr)
-	// `json:"-"` is to avoid having this field in the JSON output (nodes connectivity output in JSON format),
+	// IPBlockObj is an IPBlock object of the node's address (created from AddressStr).
+	// This field is skipped in the JSON output (nodes connectivity output in JSON format),
 	// since it is sufficient to have the AddressStr, and no need to represent IPBlockObj as another
 	// attribute in the JSON output.
 	IPBlockObj *common.IPBlock `json:"-"`
