@@ -35,6 +35,12 @@ Usage of vpc-network-config-analyzer:
         File path to store results
   -protocol string
         Protocol for connection description
+  -provider string
+        Collect resources from an account in this cloud provider
+  -region value
+        Cloud region from which to collect resources
+  -resource-group string
+        Resource group id or name from which to collect resources
   -src string
         Source endpoint for explanation; can be specified as a VSI name/CRN or an internal/external IP-address/CIDR
   -src-max-port int
