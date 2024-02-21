@@ -39,55 +39,21 @@ func zoneFromVPCResource(r vpcmodel.VPCResourceIntf) (*Zone, error) {
 // ReservedIP implements vpcmodel.Node interface
 type ReservedIP struct {
 	vpcmodel.VPCResource
-	address string
-	ipblock *common.IPBlock
-	subnet  *Subnet
-	vpe     string
-}
-
-func (r *ReservedIP) CidrOrAddress() string {
-	return r.address
-}
-
-func (r *ReservedIP) IPBlock() *common.IPBlock {
-	return r.ipblock
-}
-
-func (r *ReservedIP) IsInternal() bool {
-	return true
-}
-
-func (r *ReservedIP) IsPublicInternet() bool {
-	return false
+	vpcmodel.InternalNode
+	subnet *Subnet
+	vpe    string
 }
 
 func (r *ReservedIP) Name() string {
-	return getNodeName(r.vpe, r.address)
+	return getNodeName(r.vpe, r.Address())
 }
 
 // NetworkInterface implements vpcmodel.Node interface
 type NetworkInterface struct {
 	vpcmodel.VPCResource
-	address string
-	vsi     string
-	subnet  *Subnet
-	ipblock *common.IPBlock
-}
-
-func (ni *NetworkInterface) CidrOrAddress() string {
-	return ni.address
-}
-
-func (ni *NetworkInterface) IPBlock() *common.IPBlock {
-	return ni.ipblock
-}
-
-func (ni *NetworkInterface) IsInternal() bool {
-	return true
-}
-
-func (ni *NetworkInterface) IsPublicInternet() bool {
-	return false
+	vpcmodel.InternalNode
+	vsi    string
+	subnet *Subnet
 }
 
 func (ni *NetworkInterface) VsiName() string {
@@ -95,31 +61,14 @@ func (ni *NetworkInterface) VsiName() string {
 }
 
 func (ni *NetworkInterface) Name() string {
-	return getNodeName(ni.vsi, ni.address)
+	return getNodeName(ni.vsi, ni.Address())
 }
 
 // IKSNode implements vpcmodel.Node interface
 type IKSNode struct {
 	vpcmodel.VPCResource
-	address string
-	ipblock *common.IPBlock
-	subnet  *Subnet
-}
-
-func (n *IKSNode) CidrOrAddress() string {
-	return n.address
-}
-
-func (n *IKSNode) IPBlock() *common.IPBlock {
-	return n.ipblock
-}
-
-func (n *IKSNode) IsInternal() bool {
-	return true
-}
-
-func (n *IKSNode) IsPublicInternet() bool {
-	return false
+	vpcmodel.InternalNode
+	subnet *Subnet
 }
 
 func (n *IKSNode) VsiName() string {
@@ -127,7 +76,7 @@ func (n *IKSNode) VsiName() string {
 }
 
 func (n *IKSNode) Name() string {
-	return getNodeName(n.ResourceName, n.address)
+	return getNodeName(n.ResourceName, n.Address())
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -601,6 +550,7 @@ func (sg *SecurityGroup) getMemberTargetStrAddress(src, dst vpcmodel.Node,
 	} else {
 		member, target = src, dst
 	}
+	// TODO: member is expected to be internal node (validate?) [could use member.(vpcmodel.InternalNodeIntf).Address()]
 	return member.CidrOrAddress(), target.IPBlock()
 }
 

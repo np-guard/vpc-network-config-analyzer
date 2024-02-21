@@ -334,10 +334,9 @@ func icmpConn() *common.ConnectionSet {
 
 func addInterfaceNode(config *vpcmodel.VPCConfig, name, address, vsiName, subnetName string) {
 	intfNode := &NetworkInterface{
-		VPCResource: vpcmodel.VPCResource{ResourceName: name, ResourceUID: name, ResourceType: ResourceTypeNetworkInterface},
-		address:     address,
-		vsi:         vsiName,
-		ipblock:     newIPBlockFromCIDROrAddressWithoutValidation(address),
+		VPCResource:  vpcmodel.VPCResource{ResourceName: name, ResourceUID: name, ResourceType: ResourceTypeNetworkInterface},
+		InternalNode: vpcmodel.InternalNode{AddressStr: address, IPBlockObj: newIPBlockFromCIDROrAddressWithoutValidation(address)},
+		vsi:          vsiName,
 	}
 	// add references between subnet to interface (both directions)
 	for _, subnet := range config.NodeSets {
