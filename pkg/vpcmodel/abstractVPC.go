@@ -28,7 +28,7 @@ type VPCResource struct {
 	ResourceType string
 	Zone         string
 	// the VPC to which this resource belongs to
-	VPCRef VPCResourceIntf `json:"-"`
+	VPCRef VPCResourceIntf `json:"-"` // avoid having this field in the JSON output
 }
 
 func (n *VPCResource) Name() string {
@@ -82,6 +82,7 @@ type Node interface {
 }
 
 // InternalNodeIntf captures common properties for internal nodes: single IP address
+// Implemented by NetworkInterface, IKSNode, ReservedIP (embedding InternalNode)
 type InternalNodeIntf interface {
 	// an InternalNodeIntf has an exact one IP Address
 	Address() string
@@ -92,7 +93,7 @@ type InternalNodeIntf interface {
 // InternalNode implements interface InternalNodeIntf
 type InternalNode struct {
 	AddressStr string
-	IPBlockObj *common.IPBlock `json:"-"`
+	IPBlockObj *common.IPBlock `json:"-"` // avoid having this field in the JSON output
 }
 
 func (n *InternalNode) Address() string {
