@@ -29,7 +29,7 @@ const (
 const (
 	castingNodeErr = "%s should be external node but casting to Node failed"
 	diffTypeStr    = "diff-type:"
-	configsStr     = "config1: %s, config2: %s, %s %s"
+	configsStr     = "config1: %s, config2: %s%s"
 	semicolon      = ";"
 )
 
@@ -134,7 +134,7 @@ func (c *VPCConfig) getVPCResourceInfInOtherConfig(other *VPCConfig, ep VPCResou
 		var node Node
 		var ok bool
 		if node, ok = ep.(Node); ok {
-			nodeSameCidr := findNodeWithCidr(other.Nodes, ep.(Node).Cidr())
+			nodeSameCidr := findNodeWithCidr(other.Nodes, ep.(Node).CidrOrAddress())
 			return nodeSameCidr, nil
 		}
 		return nil, fmt.Errorf(castingNodeErr, node.Name())
@@ -231,7 +231,7 @@ func getDiffType(src, srcInOther, dst, dstInOther VPCResourceIntf) DiffType {
 	return noDiff
 }
 
-func diffInfoStr(diffAnalysis diffAnalysisType) string {
+func getDiffInfoHeader(diffAnalysis diffAnalysisType) string {
 	if diffAnalysis == Subnets {
 		return "subnets-diff-info:"
 	} else if diffAnalysis == Vsis {
@@ -251,21 +251,29 @@ func conn1And2Str(connDiff *connectionDiff) (conn1Str, conn2Str string) {
 	return conn1Str, conn2Str
 }
 
-// printDiffLine print one diff line
-func printDiffLine(diffAnalysis diffAnalysisType, src, dst EndpointElem, commonProps *groupedCommonProperties) string {
-	diffType, endpointsDiff := diffAndEndpointsDescription(commonProps.connDiff.diff, src, dst, commonProps.connDiff.thisMinusOther)
+// printGroupedDiffLine print one grouped diff line
+func printGroupedDiffLine(diffAnalysis diffAnalysisType, src, dst EndpointElem, commonProps *groupedCommonProperties) string {
+	diffType, diffInfoBody := diffAndEndpointsDescription(commonProps.connDiff.diff, src, dst, commonProps.connDiff.thisMinusOther)
 	conn1Str, conn2Str := conn1And2Str(commonProps.connDiff)
-	diffInfo := diffInfoStr(diffAnalysis)
 	diffTypeStr := fmt.Sprintf("%v %s", diffTypeStr, diffType)
-	connDiffStr := fmt.Sprintf(configsStr, conn1Str, conn2Str, diffInfo, endpointsDiff)
+	diffInfo := getDiffInfo(diffAnalysis, diffInfoBody)
+	connDiffStr := fmt.Sprintf(configsStr, conn1Str, conn2Str, diffInfo)
 	printDiff := fmt.Sprintf("%s, source: %s, destination: %s, %s\n", diffTypeStr, src.Name(), dst.Name(), connDiffStr)
 	return printDiff
+}
+
+func getDiffInfo(diffAnalysis diffAnalysisType, diffInfoBody string) string {
+	if diffInfoBody == "" {
+		return ""
+	}
+	diffInfoHeader := getDiffInfoHeader(diffAnalysis)
+	return ", " + diffInfoHeader + " " + diffInfoBody
 }
 
 func (diffCfgs *diffBetweenCfgs) String() string {
 	strList := make([]string, len(diffCfgs.groupedLines))
 	for i, grouped := range diffCfgs.groupedLines {
-		strList[i] = printDiffLine(diffCfgs.diffAnalysis, grouped.src, grouped.dst, grouped.commonProperties)
+		strList[i] = printGroupedDiffLine(diffCfgs.diffAnalysis, grouped.src, grouped.dst, grouped.commonProperties)
 	}
 	sort.Strings(strList)
 	return strings.Join(strList, "")
@@ -394,16 +402,15 @@ func resizeNodes(oldNodes []Node, disjointIPblocks []*common.IPBlock) (newNodes 
 			newNodes = append(newNodes, oldNode)
 			continue
 		}
-		nodeIPBlock, err := common.NewIPBlock(oldNode.Cidr(), nil)
-		if err != nil {
-			return nil, err
-		}
 		disjointContained := false
 		for _, disjointIPBlock := range disjointIPblocks {
-			if disjointIPBlock.ContainedIn(nodeIPBlock) {
+			if disjointIPBlock.ContainedIn(oldNode.IPBlock()) {
 				disjointContained = true
 				for _, thisCidr := range disjointIPBlock.ToCidrList() {
-					newNode := newExternalNodeForCidr(thisCidr)
+					newNode, err := newExternalNodeForCidr(thisCidr)
+					if err != nil {
+						return nil, err
+					}
 					newNodes = append(newNodes, newNode)
 				}
 			}
@@ -441,13 +448,13 @@ func (connectivityMap *GeneralConnectivityMap) actualAlignSrcOrDstGivenIPBlists(
 			var origIPBlock *common.IPBlock
 			if resizeSrc {
 				if node, ok := src.(Node); ok {
-					origIPBlock, err = externalNodeToIPBlock(node)
+					origIPBlock = node.IPBlock()
 				} else {
 					return nil, fmt.Errorf(castingNodeErr, node.Name())
 				}
 			} else {
 				if node, ok := dst.(Node); ok {
-					origIPBlock, err = externalNodeToIPBlock(node)
+					origIPBlock = node.IPBlock()
 				} else {
 					return nil, fmt.Errorf(castingNodeErr, node.Name())
 				}
@@ -495,7 +502,7 @@ func addIPBlockToConnectivityMap(c *VPCConfig, disjointIPblocks []*common.IPBloc
 // gets node with given cidr
 func findNodeWithCidr(configNodes []Node, cidr string) Node {
 	for _, node := range configNodes {
-		if node.Cidr() == cidr {
+		if node.CidrOrAddress() == cidr {
 			return node
 		}
 	}
@@ -512,22 +519,14 @@ func (connectivityMap GeneralConnectivityMap) getIPBlocksList() (ipbList []*comm
 			}
 			if src.IsExternal() {
 				if srcNode, ok := src.(Node); ok {
-					ipBlock, err := externalNodeToIPBlock(srcNode)
-					if err != nil {
-						return nil, err
-					}
-					ipbList = append(ipbList, ipBlock)
+					ipbList = append(ipbList, srcNode.IPBlock())
 				} else {
 					return nil, fmt.Errorf(castingNodeErr, src.Name())
 				}
 			}
 			if dst.IsExternal() {
 				if dstNode, ok := dst.(Node); ok {
-					ipBlock, err := externalNodeToIPBlock(dstNode)
-					if err != nil {
-						return nil, err
-					}
-					ipbList = append(ipbList, ipBlock)
+					ipbList = append(ipbList, dstNode.IPBlock())
 				} else {
 					return nil, fmt.Errorf(castingNodeErr, dst.Name())
 				}
@@ -535,14 +534,6 @@ func (connectivityMap GeneralConnectivityMap) getIPBlocksList() (ipbList []*comm
 		}
 	}
 	return ipbList, nil
-}
-
-func externalNodeToIPBlock(external Node) (ipBlock *common.IPBlock, err error) {
-	ipBlock, err = common.NewIPBlock(external.Cidr(), []string{})
-	if err != nil {
-		return nil, err
-	}
-	return ipBlock, nil
 }
 
 // todo: the following code finds all couples of connections that should be resized (it IPBlock)
