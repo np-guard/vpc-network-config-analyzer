@@ -198,13 +198,12 @@ func (g *GroupConnLines) getGroupedEndpointsElems(grouped groupedEndpointsElems)
 
 // same as the previous function, for groupedExternalNodesMap
 func (g *GroupConnLines) getGroupedExternalNodes(grouped []Node) *groupedExternalNodes {
-	// Due to the canonical representation, grouped.String() and thus grouped.Name() will be identical
-	//  to equiv groupedExternalNodes
 	res := make(groupedExternalNodes, len(grouped))
 	for i := range grouped {
 		res[i] = grouped[i].(*ExternalNetwork)
 	}
-
+	// Due to the canonical representation, grouped.String() and thus grouped.Name() will be identical
+	//  to equiv groupedExternalNodes
 	if existingGrouped, ok := g.groupedExternalNodesMap[res.Name()]; ok {
 		return existingGrouped
 	}
