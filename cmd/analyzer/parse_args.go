@@ -389,7 +389,7 @@ func notSupportedYetArgs(args *InArgs) error {
 	if (len(args.RegionList) != 0 || *args.ResourceGroup != "") && *args.Provider == "" {
 		return fmt.Errorf("error in parameters: resource-group and region can only be specified in combination with provider flag")
 	}
-	if *args.Provider != factory.IBM {
+	if *args.Provider != factory.IBM && *args.Provider != "" {
 		return fmt.Errorf("unsupported provider: %s", *args.Provider)
 	}
 	return nil
