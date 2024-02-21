@@ -8,6 +8,7 @@ import (
 
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
 
+	"github.com/np-guard/models/pkg/ipblocks"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
@@ -23,7 +24,7 @@ type NACLAnalyzer struct {
 	egressRules  []*NACLRule
 	// analysis results
 	analyzedSubnets    map[string]*AnalysisResultPerSubnet
-	referencedIPblocks []*common.IPBlock
+	referencedIPblocks []*ipblocks.IPBlock
 }
 
 type AnalysisResultPerSubnet struct {
@@ -106,7 +107,7 @@ func (na *NACLAnalyzer) getNACLRule(index int) (ruleStr string, ruleRes *NACLRul
 		return "", nil, false, err
 	}
 
-	srcIP, dstIP, err := common.PairCIDRsToIPBlocks(src, dst)
+	srcIP, dstIP, err := ipblocks.PairCIDRsToIPBlocks(src, dst)
 	if err != nil {
 		return "", nil, false, err
 	}
@@ -118,8 +119,8 @@ func (na *NACLAnalyzer) getNACLRule(index int) (ruleStr string, ruleRes *NACLRul
 }
 
 type NACLRule struct {
-	src         *common.IPBlock
-	dst         *common.IPBlock
+	src         *ipblocks.IPBlock
+	dst         *ipblocks.IPBlock
 	connections *common.ConnectionSet
 	action      string
 	index       int // index of original rule in *vpc1.NetworkACL
@@ -151,8 +152,8 @@ func (na *NACLAnalyzer) dumpNACLrules() string {
 
 // given ingress/egress rules from NACL , specific src, subnet cidr and disjoint peers of dest ip-blocks --
 // get the allowed connections, the relevant allow rules and relevant deny rules
-func getAllowedXgressConnections(rules []*NACLRule, src, subnetCidr *common.IPBlock,
-	disjointPeers []*common.IPBlock, isIngress bool,
+func getAllowedXgressConnections(rules []*NACLRule, src, subnetCidr *ipblocks.IPBlock,
+	disjointPeers []*ipblocks.IPBlock, isIngress bool,
 ) (allowedXgress, deniedXgress map[string]*common.ConnectionSet, allowRules, denyRules map[string][]int) {
 	allowedXgress = map[string]*common.ConnectionSet{}
 	deniedXgress = map[string]*common.ConnectionSet{}
@@ -184,7 +185,7 @@ func getAllowedXgressConnections(rules []*NACLRule, src, subnetCidr *common.IPBl
 		}
 		destCidr := d.Intersection(subnetCidr)
 		// split destCidr to disjoint ip-blocks
-		destCidrList := []*common.IPBlock{}
+		destCidrList := []*ipblocks.IPBlock{}
 		for _, cidr := range disjointPeers {
 			if cidr.ContainedIn(destCidr) {
 				destCidrList = append(destCidrList, cidr)
@@ -215,7 +216,7 @@ func getAllowedXgressConnections(rules []*NACLRule, src, subnetCidr *common.IPBl
 	return allowedXgress, deniedXgress, allowRules, denyRules
 }
 
-func (rule *NACLRule) getSrcDst(isIngress bool) (src, dst *common.IPBlock) {
+func (rule *NACLRule) getSrcDst(isIngress bool) (src, dst *ipblocks.IPBlock) {
 	if isIngress {
 		return rule.src, rule.dst
 	}
@@ -223,13 +224,13 @@ func (rule *NACLRule) getSrcDst(isIngress bool) (src, dst *common.IPBlock) {
 }
 
 func getDisjointPeersForIngressOrEgressAnalysis(
-	rules []*NACLRule, subnet *common.IPBlock, isIngress bool) (
+	rules []*NACLRule, subnet *ipblocks.IPBlock, isIngress bool) (
 	disjointSrcPeers,
-	disjointDstPeers []*common.IPBlock) {
-	var srcPeers, dstPeers []*common.IPBlock
-	srcPeers = make([]*common.IPBlock, 1+len(rules))
-	dstPeers = make([]*common.IPBlock, 1+len(rules))
-	cidrAll := common.GetCidrAll()
+	disjointDstPeers []*ipblocks.IPBlock) {
+	var srcPeers, dstPeers []*ipblocks.IPBlock
+	srcPeers = make([]*ipblocks.IPBlock, 1+len(rules))
+	dstPeers = make([]*ipblocks.IPBlock, 1+len(rules))
+	cidrAll := ipblocks.GetCidrAll()
 	if isIngress {
 		srcPeers[0] = cidrAll
 		dstPeers[0] = subnet
@@ -242,28 +243,28 @@ func getDisjointPeersForIngressOrEgressAnalysis(
 		dstPeers[i+1] = rule.dst
 	}
 	if isIngress {
-		disjointSrcPeers = common.DisjointIPBlocks(srcPeers, []*common.IPBlock{common.GetCidrAll()})
-		disjointDstPeers = common.DisjointIPBlocks(dstPeers, []*common.IPBlock{subnet})
+		disjointSrcPeers = ipblocks.DisjointIPBlocks(srcPeers, []*ipblocks.IPBlock{ipblocks.GetCidrAll()})
+		disjointDstPeers = ipblocks.DisjointIPBlocks(dstPeers, []*ipblocks.IPBlock{subnet})
 	} else {
-		disjointSrcPeers = common.DisjointIPBlocks(srcPeers, []*common.IPBlock{subnet})
-		disjointDstPeers = common.DisjointIPBlocks(dstPeers, []*common.IPBlock{common.GetCidrAll()})
+		disjointSrcPeers = ipblocks.DisjointIPBlocks(srcPeers, []*ipblocks.IPBlock{subnet})
+		disjointDstPeers = ipblocks.DisjointIPBlocks(dstPeers, []*ipblocks.IPBlock{ipblocks.GetCidrAll()})
 	}
 	return
 }
 
-func getDisjointPeersForIngressAnalysis(rules []*NACLRule, subnet *common.IPBlock) (disjointSrcPeers, disjointDstPeers []*common.IPBlock) {
+func getDisjointPeersForIngressAnalysis(rules []*NACLRule, subnet *ipblocks.IPBlock) (srcPeers, dstPeers []*ipblocks.IPBlock) {
 	return getDisjointPeersForIngressOrEgressAnalysis(rules, subnet, true)
 }
 
-func getDisjointPeersForEgressAnalysis(rules []*NACLRule, subnet *common.IPBlock) (disjointSrcPeers, disjointDstPeers []*common.IPBlock) {
+func getDisjointPeersForEgressAnalysis(rules []*NACLRule, subnet *ipblocks.IPBlock) (srcPeers, dstPeers []*ipblocks.IPBlock) {
 	return getDisjointPeersForIngressOrEgressAnalysis(rules, subnet, false)
 }
 
 // AnalyzeNACLRulesPerDisjointTargets get connectivity result for each disjoint target in the subnet
 func AnalyzeNACLRulesPerDisjointTargets(
-	rules []*NACLRule, subnet *common.IPBlock, isIngress bool) map[string]*ConnectivityResult {
+	rules []*NACLRule, subnet *ipblocks.IPBlock, isIngress bool) map[string]*ConnectivityResult {
 	res := map[string]*ConnectivityResult{}
-	var disjointSrcPeers, disjointDstPeers []*common.IPBlock
+	var disjointSrcPeers, disjointDstPeers []*ipblocks.IPBlock
 	if isIngress {
 		disjointSrcPeers, disjointDstPeers = getDisjointPeersForIngressAnalysis(rules, subnet)
 	} else {
@@ -279,9 +280,9 @@ func AnalyzeNACLRulesPerDisjointTargets(
 }
 
 func updateAllowDeny(allow, isIngress bool, xgressConn map[string]*common.ConnectionSet, rules map[string][]int,
-	srcIngDstEgr *common.IPBlock, res map[string]*ConnectivityResult) {
+	srcIngDstEgr *ipblocks.IPBlock, res map[string]*ConnectivityResult) {
 	for dstIngSrcEg, conn := range xgressConn {
-		if dstIngSrcEgIPBlock, err := common.IPBlockFromIPRangeStr(dstIngSrcEg); err == nil {
+		if dstIngSrcEgIPBlock, err := ipblocks.IPBlockFromIPRangeStr(dstIngSrcEg); err == nil {
 			dstIngSrcEgIPRange := dstIngSrcEgIPBlock.ToIPRanges()
 			initConnectivityResult(res, dstIngSrcEgIPRange, isIngress)
 			if allow {
@@ -300,8 +301,8 @@ func updateAllowDeny(allow, isIngress bool, xgressConn map[string]*common.Connec
 func initConnectivityResult(connectivityMap map[string]*ConnectivityResult, indxToinit string, isIngress bool) {
 	if _, ok := connectivityMap[indxToinit]; !ok {
 		connectivityMap[indxToinit] = &ConnectivityResult{isIngress: isIngress,
-			allowedConns: map[*common.IPBlock]*common.ConnectionSet{}, allowRules: map[*common.IPBlock][]int{},
-			deniedConns: map[*common.IPBlock]*common.ConnectionSet{}, denyRules: map[*common.IPBlock][]int{}}
+			allowedConns: map[*ipblocks.IPBlock]*common.ConnectionSet{}, allowRules: map[*ipblocks.IPBlock][]int{},
+			deniedConns: map[*ipblocks.IPBlock]*common.ConnectionSet{}, denyRules: map[*ipblocks.IPBlock][]int{}}
 	}
 }
 
@@ -336,13 +337,13 @@ func getConnStr(src, dst, conn string) string {
 }
 
 // AnalyzeNACLRules todo: this is used only in testing. Did not expand for deny.
-func (na *NACLAnalyzer) AnalyzeNACLRules(rules []*NACLRule, subnet *common.IPBlock,
-	isIngress bool, subnetDisjointTarget *common.IPBlock,
+func (na *NACLAnalyzer) AnalyzeNACLRules(rules []*NACLRule, subnet *ipblocks.IPBlock,
+	isIngress bool, subnetDisjointTarget *ipblocks.IPBlock,
 ) (string, *ConnectivityResult) {
 	res := []string{}
 	connResult := &ConnectivityResult{isIngress: isIngress}
-	connResult.allowedConns = map[*common.IPBlock]*common.ConnectionSet{}
-	connResult.deniedConns = map[*common.IPBlock]*common.ConnectionSet{}
+	connResult.allowedConns = map[*ipblocks.IPBlock]*common.ConnectionSet{}
+	connResult.deniedConns = map[*ipblocks.IPBlock]*common.ConnectionSet{}
 	if subnetDisjointTarget == nil {
 		connResult = nil
 	}
@@ -353,7 +354,7 @@ func (na *NACLAnalyzer) AnalyzeNACLRules(rules []*NACLRule, subnet *common.IPBlo
 			allowedIngressConns, _, allowRules, _ := getAllowedXgressConnections(rules, src, subnet, disjointDstPeers, true)
 			for dst, conn := range allowedIngressConns {
 				res = append(res, getConnStr(src.ToIPRanges(), dst, conn.String()))
-				dstIP, err := common.IPBlockFromIPRangeStr(dst)
+				dstIP, err := ipblocks.IPBlockFromIPRangeStr(dst)
 				if err == nil && subnetDisjointTarget != nil && subnetDisjointTarget.ContainedIn(dstIP) {
 					connResult.allowedConns[src] = conn
 					// the indexing of allowedIngressConns and allowRules are identical
@@ -369,7 +370,7 @@ func (na *NACLAnalyzer) AnalyzeNACLRules(rules []*NACLRule, subnet *common.IPBlo
 		allowedEgressConns, _, allowRules, _ := getAllowedXgressConnections(rules, dst, subnet, disjointSrcPeers, false)
 		for src, conn := range allowedEgressConns {
 			res = append(res, getConnStr(src, dst.ToIPRanges(), conn.String()))
-			srcIP, err := common.IPBlockFromIPRangeStr(src)
+			srcIP, err := ipblocks.IPBlockFromIPRangeStr(src)
 			if err == nil && subnetDisjointTarget != nil && subnetDisjointTarget.ContainedIn(srcIP) {
 				connResult.allowedConns[dst] = conn
 				// the indexing of allowedEgressConns and allowRules are identical
@@ -382,7 +383,7 @@ func (na *NACLAnalyzer) AnalyzeNACLRules(rules []*NACLRule, subnet *common.IPBlo
 
 // TODO: return a map from each possible subnetDisjointTarget to its ConnectivityResult, instead of a specific ConnectivityResult
 // get allowed and denied connections (ingress and egress) for a certain subnet to which this nacl is applied
-func (na *NACLAnalyzer) AnalyzeNACL(subnet *common.IPBlock) (
+func (na *NACLAnalyzer) AnalyzeNACL(subnet *ipblocks.IPBlock) (
 	ingressResConnectivity, egressResConnectivity map[string]*ConnectivityResult) {
 	ingressResConnectivity = AnalyzeNACLRulesPerDisjointTargets(na.ingressRules, subnet, true)
 	egressResConnectivity = AnalyzeNACLRulesPerDisjointTargets(na.egressRules, subnet, false)
@@ -475,7 +476,7 @@ func (na *NACLAnalyzer) AllowedConnectivity(subnet *Subnet, nodeInSubnet, target
 	analyzedConns := na.initConnectivityRelatedCompute(subnet, isIngress)
 
 	for disjointSubnetCidr, analyzedConnsPerCidr := range analyzedConns {
-		disjointSubnetCidrIPblock, err := common.IPBlockFromIPRangeStr(disjointSubnetCidr)
+		disjointSubnetCidrIPblock, err := ipblocks.IPBlockFromIPRangeStr(disjointSubnetCidr)
 		if err != nil {
 			return nil, err
 		}
@@ -506,7 +507,7 @@ func (na *NACLAnalyzer) rulesFilterInConnectivity(subnet *Subnet,
 	analyzedConns := na.initConnectivityRelatedCompute(subnet, isIngress)
 
 	for disjointSubnetCidr, analyzedConnsPerCidr := range analyzedConns {
-		disjointSubnetCidrIPblock, err := common.IPBlockFromIPRangeStr(disjointSubnetCidr)
+		disjointSubnetCidrIPblock, err := ipblocks.IPBlockFromIPRangeStr(disjointSubnetCidr)
 		if err != nil {
 			return nil, nil, err
 		}

@@ -3,7 +3,7 @@ package vpcmodel
 import (
 	"errors"
 
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+	"github.com/np-guard/models/pkg/ipblocks"
 )
 
 const (
@@ -41,7 +41,7 @@ type ExternalNetwork struct {
 	ResourceType     string
 	CidrStr          string
 	isPublicInternet bool
-	ipblock          *common.IPBlock
+	ipblock          *ipblocks.IPBlock
 }
 
 func (exn *ExternalNetwork) UID() string      { return exn.Name() }
@@ -52,7 +52,7 @@ func (exn *ExternalNetwork) CidrOrAddress() string {
 	return exn.CidrStr
 }
 
-func (exn *ExternalNetwork) IPBlock() *common.IPBlock {
+func (exn *ExternalNetwork) IPBlock() *ipblocks.IPBlock {
 	return exn.ipblock
 }
 
@@ -77,13 +77,13 @@ func (exn *ExternalNetwork) VPC() VPCResourceIntf {
 }
 
 // input ipList is a list of  cidrs / ip-ranges (see getPublicInternetAddressList() as example)
-func ipStringsToIPblocks(ipList []string) (ipbList []*common.IPBlock, unionIPblock *common.IPBlock, err error) {
-	ipbList = []*common.IPBlock{}
-	unionIPblock = &common.IPBlock{}
+func ipStringsToIPblocks(ipList []string) (ipbList []*ipblocks.IPBlock, unionIPblock *ipblocks.IPBlock, err error) {
+	ipbList = []*ipblocks.IPBlock{}
+	unionIPblock = &ipblocks.IPBlock{}
 	for _, ipAddressRange := range ipList {
-		var ipb *common.IPBlock
-		if ipb, err = common.IPBlockFromIPRangeStr(ipAddressRange); err != nil {
-			ipb, err = common.NewIPBlockFromCidr(ipAddressRange)
+		var ipb *ipblocks.IPBlock
+		if ipb, err = ipblocks.IPBlockFromIPRangeStr(ipAddressRange); err != nil {
+			ipb, err = ipblocks.NewIPBlockFromCidr(ipAddressRange)
 		}
 		if err != nil {
 			return nil, nil, err
@@ -94,12 +94,12 @@ func ipStringsToIPblocks(ipList []string) (ipbList []*common.IPBlock, unionIPblo
 	return ipbList, unionIPblock, nil
 }
 
-func getPublicInternetIPblocksList() (internetIPblocksList []*common.IPBlock, allInternetRagnes *common.IPBlock, err error) {
+func getPublicInternetIPblocksList() (internetIPblocksList []*ipblocks.IPBlock, allInternetRagnes *ipblocks.IPBlock, err error) {
 	publicInternetAddressList := getPublicInternetAddressList()
 	return ipStringsToIPblocks(publicInternetAddressList)
 }
 
-func newExternalNode(isPublicInternet bool, ipb *common.IPBlock) (Node, error) {
+func newExternalNode(isPublicInternet bool, ipb *ipblocks.IPBlock) (Node, error) {
 	cidrsList := ipb.ToCidrList()
 	if len(cidrsList) > 1 {
 		return nil, errors.New("newExternalNode: input ip-block should be of a single CIDR")
@@ -113,7 +113,7 @@ func newExternalNode(isPublicInternet bool, ipb *common.IPBlock) (Node, error) {
 }
 
 func newExternalNodeForCidr(cidr string) (Node, error) {
-	cidrIPBlodk, err := common.NewIPBlockFromCidr(cidr)
+	cidrIPBlodk, err := ipblocks.NewIPBlockFromCidr(cidr)
 	if err != nil {
 		return nil, err
 	}
@@ -125,13 +125,13 @@ func newExternalNodeForCidr(cidr string) (Node, error) {
 	}, nil
 }
 
-func GetExternalNetworkNodes(disjointRefExternalIPBlocks []*common.IPBlock) ([]Node, error) {
+func GetExternalNetworkNodes(disjointRefExternalIPBlocks []*ipblocks.IPBlock) ([]Node, error) {
 	res := []Node{}
 	internetIPblocks, allInternetRagnes, err := getPublicInternetIPblocksList()
 	if err != nil {
 		return nil, err
 	}
-	disjointRefExternalIPBlocksAll := common.DisjointIPBlocks(internetIPblocks, disjointRefExternalIPBlocks)
+	disjointRefExternalIPBlocksAll := ipblocks.DisjointIPBlocks(internetIPblocks, disjointRefExternalIPBlocks)
 
 	for _, ipb := range disjointRefExternalIPBlocksAll {
 		var isPublicInternet bool
@@ -143,7 +143,7 @@ func GetExternalNetworkNodes(disjointRefExternalIPBlocks []*common.IPBlock) ([]N
 		}
 		cidrs := ipb.ToCidrList()
 		for _, cidr := range cidrs {
-			nodeIPBlock, err := common.NewIPBlockFromCidr(cidr)
+			nodeIPBlock, err := ipblocks.NewIPBlockFromCidr(cidr)
 			if err != nil {
 				return nil, err
 			}
