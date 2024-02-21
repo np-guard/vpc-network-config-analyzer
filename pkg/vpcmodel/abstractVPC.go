@@ -84,13 +84,11 @@ type Node interface {
 // InternalNodeIntf captures common properties for internal nodes: single IP address
 // Implemented by NetworkInterface, IKSNode, ReservedIP (embedding InternalNode)
 type InternalNodeIntf interface {
+	// Address returns the node's address
 	// an InternalNodeIntf has an exact one IP Address
 	Address() string
 	// IPBlock returns the IPBlock object representing the node's IP Address
 	IPBlock() *common.IPBlock
-	// SetIPBlockFromAddress sets the node's IPBlock object from its Address .
-	// Assumes its address is assigned with valid IPv4 string value.
-	SetIPBlockFromAddress() error
 }
 
 // InternalNode implements interface InternalNodeIntf
@@ -112,6 +110,8 @@ func (n *InternalNode) IPBlock() *common.IPBlock {
 	return n.IPBlockObj
 }
 
+// SetIPBlockFromAddress sets the node's IPBlockObj field from its AddressStr field.
+// Assumes its AddressStr field is assigned with valid IPv4 string value.
 func (n *InternalNode) SetIPBlockFromAddress() (err error) {
 	n.IPBlockObj, err = common.NewIPBlockFromIPAddress(n.AddressStr)
 	return err
