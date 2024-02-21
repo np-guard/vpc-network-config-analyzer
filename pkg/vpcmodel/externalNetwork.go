@@ -157,10 +157,10 @@ func GetExternalNetworkNodes(disjointRefExternalIPBlocks []*common.IPBlock) ([]N
 	return res, nil
 }
 
-func isEntirePublicInternetRange(nodes []Node) (bool, error) {
+func isEntirePublicInternetRange(nodes []*ExternalNetwork) (bool, error) {
 	ipList := make([]string, len(nodes))
 	for i, n := range nodes {
-		ipList[i] = n.CidrOrAddress()
+		ipList[i] = n.CidrStr
 	}
 
 	_, nodesRanges, err := ipStringsToIPblocks(ipList)
