@@ -602,9 +602,9 @@ func (ly *layoutS) setIconsLocationsOnTop(square SquareTreeNodeInterface) {
 // 2. sort the tgws by the number of optional cols (to handle the tgw with the less number of optional cols first)
 // 3. for each tgw choose a col from its optional cols
 // 4. for those how fail in step 3, choose an closest available col
-// 
+//
 // in general, a col is *not* an optional for a tgw, if there is a line that:
-//        a. routers by the tgw 
+//        a. routers by the tgw
 //        b. both src and dst are on the left/right to the col.
 
 func (ly *layoutS) setTgwLocations(cloud SquareTreeNodeInterface) {
@@ -671,14 +671,14 @@ func (ly *layoutS) setTgwLocations(cloud SquareTreeNodeInterface) {
 			}
 		}
 	}
- 	for _, tgw := range tgws {
+	for _, tgw := range tgws {
 		if tgw.Location() == nil {
 			//hope we do not get here, taking the closest available:
 			var bestColAvailable int
 			bestDistance := lastColIndex
 			tgwOptCol := tgwOptionalCols[tgw][0] + tgwOptionalCols[tgw][len(tgwOptionalCols[tgw])-1]/2
-			for col := range availableCols{
-				if abs(col - tgwOptCol) < bestDistance{
+			for col := range availableCols {
+				if abs(col-tgwOptCol) < bestDistance {
 					bestColAvailable = col
 					bestDistance = abs(col - tgwOptCol)
 				}

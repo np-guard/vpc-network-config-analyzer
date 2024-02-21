@@ -69,14 +69,14 @@ func (tn *abstractLineTreeNode) Points() []point               { return tn.point
 func (tn *abstractLineTreeNode) setPoints(points []point)      { tn.points = points }
 func (tn *abstractLineTreeNode) Router() IconTreeNodeInterface { return tn.router }
 
-func (tn *abstractLineTreeNode) SetRouter(router IconTreeNodeInterface) {tn.router = router}
+func (tn *abstractLineTreeNode) SetRouter(router IconTreeNodeInterface) { tn.router = router }
 func (tn *abstractLineTreeNode) setRouterPoints() {
 	if tn.router == nil {
 		return
 	}
 	routeOffset := tn.router.allocateNewRouteOffset()
-	sx,_ := absoluteGeometry(tn.Src())
-	dx,_ := absoluteGeometry(tn.Dst())
+	sx, _ := absoluteGeometry(tn.Src())
+	dx, _ := absoluteGeometry(tn.Dst())
 	if sx > dx {
 		tn.addPoint(iconSize, iconSize/2+routeOffset)
 		tn.addPoint(0, iconSize/2+routeOffset)
