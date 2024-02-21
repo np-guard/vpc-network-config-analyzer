@@ -137,7 +137,7 @@ func stringExplainabilityConnection(connQuery *common.ConnectionSet, src, dst En
 	} else {
 		properSubsetConn := ""
 		if !conn.Equal(connQuery) {
-			properSubsetConn = " (note that the connection is a proper subset of the queried one)"
+			properSubsetConn = " (note that not all queried protocols/ports are allowed)"
 		}
 		resStr = fmt.Sprintf("Connection %v exists between %v and %v%s\n", conn.String(),
 			src.Name(), dst.Name(), properSubsetConn)
