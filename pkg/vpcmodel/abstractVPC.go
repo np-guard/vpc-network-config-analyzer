@@ -99,7 +99,7 @@ type InternalNode struct {
 	// `json:"-"` is to avoid having this field in the JSON output (nodes connectivity output in JSON format),
 	// since it is sufficient to have the AddressStr, and no need to represent IPBlockObj as another
 	// attribute in the JSON output.
-	IPBlockObj *common.IPBlock `json:"-"` // avoid having this field in the JSON output
+	IPBlockObj *common.IPBlock `json:"-"`
 }
 
 func (n *InternalNode) Address() string {
