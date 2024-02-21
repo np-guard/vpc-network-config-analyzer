@@ -204,7 +204,12 @@ func getInstancesConfig(
 					Zone:         *instance.Zone.Name,
 					VPCRef:       vpc,
 				},
-				address: *netintf.PrimaryIP.Address, vsi: *instance.Name}
+				address: *netintf.PrimaryIP.Address,
+				vsi:     *instance.Name,
+			}
+			if err := setNodeIPBlock(intfNode, intfNode.address); err != nil {
+				return err
+			}
 			res[vpcUID].Nodes = append(res[vpcUID].Nodes, intfNode)
 			res[vpcUID].UIDToResource[intfNode.ResourceUID] = intfNode
 			vsiNode.nodes = append(vsiNode.nodes, intfNode)
@@ -251,7 +256,11 @@ func getSubnetsConfig(
 			cidr: *subnet.Ipv4CIDRBlock,
 		}
 
-		cidrIPBlock := common.NewIPBlockFromCidr(subnetNode.cidr)
+		cidrIPBlock, err := common.NewIPBlockFromCidr(subnetNode.cidr)
+		if err != nil {
+			return nil, err
+		}
+		subnetNode.ipblock = cidrIPBlock
 		if vpcInternalAddressRange[vpcUID] == nil {
 			vpcInternalAddressRange[vpcUID] = cidrIPBlock
 		} else {
@@ -417,7 +426,7 @@ func getFipConfig(
 				// a node captured by a fip should not be captured by a pgw
 				for _, nodeWithFip := range srcNodes {
 					if vpcmodel.HasNode(pgw.Sources(), nodeWithFip) {
-						pgw.src = getCertainNodes(pgw.Sources(), func(n vpcmodel.Node) bool { return n.Cidr() != nodeWithFip.Cidr() })
+						pgw.src = getCertainNodes(pgw.Sources(), func(n vpcmodel.Node) bool { return n.CidrOrAddress() != nodeWithFip.CidrOrAddress() })
 					}
 				}
 			}
@@ -647,13 +656,16 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 
 // validateVPCsAddressPrefixesForTGW checks that all VPCs address prefixes (connected by TGW) are disjoint,
 // returns error if address prefixes are missing or overlapping
-func validateVPCsAddressPrefixesForTGW(vpcsList []*VPC) error {
+func validateVPCsAddressPrefixesForTGW(vpcsList []*VPC) (err error) {
 	ipBlocksForAP := make([]*common.IPBlock, len(vpcsList))
 	for i, vpc := range vpcsList {
 		if len(vpc.addressPrefixes) == 0 {
 			return fmt.Errorf("TGW analysis requires all VPCs have configured address prefixes, but this is missing for vpc %s", vpc.NameAndUID())
 		}
-		ipBlocksForAP[i] = common.NewIPBlockFromCidrList(vpc.addressPrefixes)
+		ipBlocksForAP[i], err = common.NewIPBlockFromCidrList(vpc.addressPrefixes)
+		if err != nil {
+			return err
+		}
 	}
 
 	// validate disjoint address prefixes for each VPCs pair
@@ -766,8 +778,7 @@ func addTGWbasedConfigs(tgws map[string]*TransitGateway, res map[string]*vpcmode
 	return nil
 }
 
-func getSubnetByIPAddress(address string, c *vpcmodel.VPCConfig) (subnet *Subnet, err error) {
-	addressIPblock := common.NewIPBlockFromCidrOrAddress(address)
+func getSubnetByIPAddress(addressIPblock *common.IPBlock, c *vpcmodel.VPCConfig) (subnet *Subnet, err error) {
 	for _, s := range c.NodeSets {
 		if s.Kind() == ResourceTypeSubnet {
 			subnetRange := s.AddressRange()
@@ -776,7 +787,25 @@ func getSubnetByIPAddress(address string, c *vpcmodel.VPCConfig) (subnet *Subnet
 			}
 		}
 	}
-	return nil, fmt.Errorf("could not find matching subnet for address %s", address)
+	return nil, fmt.Errorf("could not find matching subnet for address %s", addressIPblock.ToIPAdressString())
+}
+
+func setNodeIPBlock(node vpcmodel.Node, address string) error {
+	addressIPBlock, err := common.NewIPBlockFromIPAddress(address)
+	if err != nil {
+		return err
+	}
+	switch nodeConcrete := node.(type) {
+	case *ReservedIP:
+		nodeConcrete.ipblock = addressIPBlock
+	case *NetworkInterface:
+		nodeConcrete.ipblock = addressIPBlock
+	case *IKSNode:
+		nodeConcrete.ipblock = addressIPBlock
+	default:
+		return fmt.Errorf("setNodeIPBlock: unexpected type for input node")
+	}
+	return nil
 }
 
 func getVPEconfig(rc *datamodel.ResourcesContainerModel,
@@ -814,7 +843,10 @@ func getVPEconfig(rc *datamodel.ResourcesContainerModel,
 				vpe:     *vpe.Name,
 				address: *rIP.Address,
 			}
-			subnet, err := getSubnetByIPAddress(*rIP.Address, res[vpcUID])
+			if err := setNodeIPBlock(rIPNode, rIPNode.address); err != nil {
+				return err
+			}
+			subnet, err := getSubnetByIPAddress(rIPNode.ipblock, res[vpcUID])
 			if err != nil {
 				return err
 			}
@@ -872,6 +904,9 @@ func getIKSnodesConfig(res map[string]*vpcmodel.VPCConfig,
 			},
 			address: *iksNodeNetIntfObj.IpAddress,
 			subnet:  subnet,
+		}
+		if err := setNodeIPBlock(nodeObject, nodeObject.address); err != nil {
+			return err
 		}
 		res[vpcUID].Nodes = append(res[vpcUID].Nodes, nodeObject)
 		// attach the node to the subnet
@@ -1005,7 +1040,7 @@ func printConfig(c *vpcmodel.VPCConfig) {
 		if n.IsExternal() {
 			continue
 		}
-		fmt.Println(strings.Join([]string{n.Kind(), n.Cidr(), n.Name(), n.UID()}, separator))
+		fmt.Println(strings.Join([]string{n.Kind(), n.CidrOrAddress(), n.Name(), n.UID()}, separator))
 	}
 	fmt.Println("NodeSets:")
 	for _, n := range c.NodeSets {
