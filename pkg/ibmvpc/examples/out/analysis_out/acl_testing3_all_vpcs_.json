@@ -10,7 +10,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -27,7 +28,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -44,7 +46,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -61,7 +64,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -78,7 +82,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -95,7 +100,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -112,7 +118,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -129,7 +136,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -146,7 +154,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -163,7 +172,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -180,7 +190,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -197,7 +208,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -214,7 +226,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -231,7 +244,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -248,7 +262,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -265,7 +280,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -282,7 +298,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -299,7 +316,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -316,7 +334,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -333,7 +352,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -350,7 +370,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -367,7 +388,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -384,7 +406,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -401,7 +424,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -418,7 +442,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -435,7 +460,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -452,7 +478,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -469,7 +496,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -486,7 +514,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -503,7 +532,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -520,7 +550,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -537,7 +568,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -554,7 +586,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -571,7 +604,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -588,7 +622,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -605,7 +640,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -622,7 +658,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -639,7 +676,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -656,7 +694,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -673,7 +712,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -690,7 +730,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -707,7 +748,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -724,7 +766,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -741,7 +784,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -758,7 +802,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -775,7 +820,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -792,7 +838,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -809,7 +856,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -826,7 +874,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -843,7 +892,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -860,7 +910,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -877,7 +928,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -894,7 +946,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -911,7 +964,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -928,7 +982,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -945,7 +1000,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -962,7 +1018,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -979,7 +1036,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -996,7 +1054,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1013,7 +1072,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1030,7 +1090,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1047,7 +1108,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1064,7 +1126,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1081,7 +1144,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1098,7 +1162,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1115,7 +1180,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1132,7 +1198,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1149,7 +1216,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1166,7 +1234,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1183,7 +1252,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1200,7 +1270,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1217,7 +1288,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1234,7 +1306,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1251,7 +1324,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1268,7 +1342,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1285,7 +1360,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1302,7 +1378,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1319,7 +1396,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1336,7 +1414,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1353,7 +1432,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1370,7 +1450,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1387,7 +1468,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1404,7 +1486,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1421,7 +1504,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1438,7 +1522,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1455,7 +1540,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1472,7 +1558,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1489,7 +1576,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1506,7 +1594,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1523,7 +1612,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1540,7 +1630,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1557,7 +1648,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1574,7 +1666,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1591,7 +1684,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1608,7 +1702,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1625,7 +1720,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1642,7 +1738,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1659,7 +1756,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1676,7 +1774,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1693,7 +1792,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1710,7 +1810,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1727,7 +1828,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1744,7 +1846,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1761,7 +1864,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1778,7 +1882,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1795,7 +1900,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1812,7 +1918,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1829,7 +1936,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1846,7 +1954,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1863,7 +1972,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1880,7 +1990,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1897,7 +2008,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1914,7 +2026,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1931,7 +2044,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1948,7 +2062,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1965,7 +2080,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1982,7 +2098,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -1999,7 +2116,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2016,7 +2134,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2033,7 +2152,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2050,7 +2170,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2067,7 +2188,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2084,7 +2206,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2101,7 +2224,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2118,7 +2242,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2135,7 +2260,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2152,7 +2278,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2169,7 +2296,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2186,7 +2314,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2203,7 +2332,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2220,7 +2350,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2237,7 +2368,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2254,7 +2386,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2271,7 +2404,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2288,7 +2422,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2305,7 +2440,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2322,7 +2458,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2339,7 +2476,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2356,7 +2494,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2373,7 +2512,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2390,7 +2530,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2407,7 +2548,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2424,7 +2566,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2441,7 +2584,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2458,7 +2602,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2475,7 +2620,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2492,7 +2638,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2509,7 +2656,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2526,7 +2674,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2543,7 +2692,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2560,7 +2710,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2577,7 +2728,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2594,7 +2746,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2611,7 +2764,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2628,7 +2782,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2645,7 +2800,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2662,7 +2818,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2679,7 +2836,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2696,7 +2854,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2713,7 +2872,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2726,13 +2886,15 @@
                     "ResourceName": "vpe-for-etcd-db-ky",
                     "ResourceUID": "id:5",
                     "ResourceType": "ReservedIP",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.30.7"
                 },
                 "dst": {
                     "ResourceName": "cycling-juvenile-traipse-paramount",
                     "ResourceUID": "id:42",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.10.4"
                 },
                 "conn": [
                     {
@@ -2753,13 +2915,15 @@
                     "ResourceName": "vpe-for-etcd-db-ky",
                     "ResourceUID": "id:5",
                     "ResourceType": "ReservedIP",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.30.7"
                 },
                 "dst": {
                     "ResourceName": "data-washstand-blot-scrambler",
                     "ResourceUID": "id:71",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.30.5"
                 },
                 "conn": [
                     {
@@ -2772,13 +2936,15 @@
                     "ResourceName": "vpe-for-etcd-db-ky",
                     "ResourceUID": "id:5",
                     "ResourceType": "ReservedIP",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.30.7"
                 },
                 "dst": {
                     "ResourceName": "filterable-steersman-collar-whoops",
                     "ResourceUID": "id:100",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.30.6"
                 },
                 "conn": [
                     {
@@ -2791,13 +2957,15 @@
                     "ResourceName": "vpe-for-etcd-db-ky",
                     "ResourceUID": "id:5",
                     "ResourceType": "ReservedIP",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.30.7"
                 },
                 "dst": {
                     "ResourceName": "contest-dance-divided-brilliant",
                     "ResourceUID": "id:87",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.30.4"
                 },
                 "conn": [
                     {
@@ -2810,7 +2978,8 @@
                     "ResourceName": "cycling-juvenile-traipse-paramount",
                     "ResourceUID": "id:42",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.10.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -2827,13 +2996,15 @@
                     "ResourceName": "cycling-juvenile-traipse-paramount",
                     "ResourceUID": "id:42",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.10.4"
                 },
                 "dst": {
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "conn": [
                     {
@@ -2849,7 +3020,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -2866,7 +3038,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -2883,7 +3056,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -2900,7 +3074,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -2917,7 +3092,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -2934,7 +3110,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -2951,7 +3128,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -2968,7 +3146,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -2985,7 +3164,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3002,7 +3182,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3019,7 +3200,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3036,7 +3218,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3053,7 +3236,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3070,7 +3254,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3087,7 +3272,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3104,7 +3290,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3121,7 +3308,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3138,7 +3326,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3155,7 +3344,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3172,7 +3362,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3189,7 +3380,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3206,7 +3398,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3223,7 +3416,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3240,7 +3434,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3257,7 +3452,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3274,7 +3470,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3291,7 +3488,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3308,7 +3506,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3325,7 +3524,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3342,7 +3542,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3359,7 +3560,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3376,7 +3578,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3393,7 +3596,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3410,7 +3614,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3427,7 +3632,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3444,7 +3650,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3461,7 +3668,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3478,7 +3686,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3495,7 +3704,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3512,7 +3722,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3529,7 +3740,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3546,7 +3758,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3563,7 +3776,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3580,7 +3794,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3597,7 +3812,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3614,7 +3830,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3631,7 +3848,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3648,7 +3866,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3665,7 +3884,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3682,7 +3902,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3699,7 +3920,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3716,7 +3938,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3733,7 +3956,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3750,7 +3974,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3767,7 +3992,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3784,7 +4010,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3801,7 +4028,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3818,7 +4046,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3835,7 +4064,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3852,7 +4082,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3869,7 +4100,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3886,7 +4118,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3903,7 +4136,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3920,7 +4154,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3937,7 +4172,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3954,7 +4190,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3971,7 +4208,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -3988,7 +4226,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4005,7 +4244,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4022,7 +4262,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4039,7 +4280,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4056,7 +4298,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4073,7 +4316,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4090,7 +4334,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4107,7 +4352,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4124,7 +4370,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4141,7 +4388,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4158,7 +4406,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4175,7 +4424,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4192,7 +4442,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4209,7 +4460,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4226,7 +4478,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4243,7 +4496,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4260,7 +4514,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4277,7 +4532,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4294,7 +4550,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4311,7 +4568,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4328,7 +4586,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4345,7 +4604,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4362,7 +4622,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4379,7 +4640,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4396,7 +4658,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4413,7 +4676,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4430,7 +4694,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4447,7 +4712,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4464,7 +4730,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4481,7 +4748,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4498,7 +4766,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4515,7 +4784,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4532,7 +4802,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4549,7 +4820,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4566,7 +4838,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4583,7 +4856,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4600,7 +4874,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4617,7 +4892,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4634,7 +4910,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4651,7 +4928,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4668,7 +4946,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4685,7 +4964,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4702,7 +4982,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4719,7 +5000,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4736,7 +5018,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4753,7 +5036,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4770,7 +5054,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4787,7 +5072,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4804,7 +5090,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4821,7 +5108,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4838,7 +5126,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4855,7 +5144,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4872,7 +5162,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4889,7 +5180,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4906,7 +5198,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4923,7 +5216,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4940,7 +5234,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4957,7 +5252,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4974,7 +5270,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -4991,7 +5288,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -5008,7 +5306,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -5025,7 +5324,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -5042,7 +5342,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -5059,7 +5360,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -5076,7 +5378,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -5093,7 +5396,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -5110,7 +5414,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -5127,7 +5432,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -5144,7 +5450,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -5161,7 +5468,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -5178,7 +5486,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -5195,7 +5504,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -5212,7 +5522,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -5229,7 +5540,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -5246,7 +5558,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -5263,7 +5576,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -5280,7 +5594,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -5297,7 +5612,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -5314,7 +5630,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -5331,7 +5648,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -5348,7 +5666,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -5365,7 +5684,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -5382,7 +5702,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -5399,7 +5720,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -5416,7 +5738,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -5433,7 +5756,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -5450,7 +5774,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -5467,7 +5792,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -5484,7 +5810,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -5501,7 +5828,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -5518,7 +5846,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -5535,7 +5864,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -5552,7 +5882,8 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
@@ -5569,13 +5900,15 @@
                     "ResourceName": "yarn-canary-guileless-deftly",
                     "ResourceUID": "id:19",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.20.4"
                 },
                 "dst": {
                     "ResourceName": "cycling-juvenile-traipse-paramount",
                     "ResourceUID": "id:42",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.10.4"
                 },
                 "conn": [
                     {
@@ -5588,13 +5921,15 @@
                     "ResourceName": "data-washstand-blot-scrambler",
                     "ResourceUID": "id:71",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.30.5"
                 },
                 "dst": {
                     "ResourceName": "vpe-for-etcd-db-ky",
                     "ResourceUID": "id:5",
                     "ResourceType": "ReservedIP",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.30.7"
                 },
                 "conn": [
                     {
@@ -5607,13 +5942,15 @@
                     "ResourceName": "data-washstand-blot-scrambler",
                     "ResourceUID": "id:71",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.30.5"
                 },
                 "dst": {
                     "ResourceName": "cycling-juvenile-traipse-paramount",
                     "ResourceUID": "id:42",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.10.4"
                 },
                 "conn": [
                     {
@@ -5634,13 +5971,15 @@
                     "ResourceName": "data-washstand-blot-scrambler",
                     "ResourceUID": "id:71",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.30.5"
                 },
                 "dst": {
                     "ResourceName": "filterable-steersman-collar-whoops",
                     "ResourceUID": "id:100",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.30.6"
                 },
                 "conn": [
                     {
@@ -5653,13 +5992,15 @@
                     "ResourceName": "data-washstand-blot-scrambler",
                     "ResourceUID": "id:71",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.30.5"
                 },
                 "dst": {
                     "ResourceName": "contest-dance-divided-brilliant",
                     "ResourceUID": "id:87",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.30.4"
                 },
                 "conn": [
                     {
@@ -5672,13 +6013,15 @@
                     "ResourceName": "filterable-steersman-collar-whoops",
                     "ResourceUID": "id:100",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.30.6"
                 },
                 "dst": {
                     "ResourceName": "vpe-for-etcd-db-ky",
                     "ResourceUID": "id:5",
                     "ResourceType": "ReservedIP",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.30.7"
                 },
                 "conn": [
                     {
@@ -5691,13 +6034,15 @@
                     "ResourceName": "filterable-steersman-collar-whoops",
                     "ResourceUID": "id:100",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.30.6"
                 },
                 "dst": {
                     "ResourceName": "cycling-juvenile-traipse-paramount",
                     "ResourceUID": "id:42",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.10.4"
                 },
                 "conn": [
                     {
@@ -5718,13 +6063,15 @@
                     "ResourceName": "filterable-steersman-collar-whoops",
                     "ResourceUID": "id:100",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.30.6"
                 },
                 "dst": {
                     "ResourceName": "data-washstand-blot-scrambler",
                     "ResourceUID": "id:71",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.30.5"
                 },
                 "conn": [
                     {
@@ -5737,13 +6084,15 @@
                     "ResourceName": "filterable-steersman-collar-whoops",
                     "ResourceUID": "id:100",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.30.6"
                 },
                 "dst": {
                     "ResourceName": "contest-dance-divided-brilliant",
                     "ResourceUID": "id:87",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.30.4"
                 },
                 "conn": [
                     {
@@ -5756,13 +6105,15 @@
                     "ResourceName": "contest-dance-divided-brilliant",
                     "ResourceUID": "id:87",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.30.4"
                 },
                 "dst": {
                     "ResourceName": "vpe-for-etcd-db-ky",
                     "ResourceUID": "id:5",
                     "ResourceType": "ReservedIP",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.30.7"
                 },
                 "conn": [
                     {
@@ -5775,13 +6126,15 @@
                     "ResourceName": "contest-dance-divided-brilliant",
                     "ResourceUID": "id:87",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.30.4"
                 },
                 "dst": {
                     "ResourceName": "cycling-juvenile-traipse-paramount",
                     "ResourceUID": "id:42",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.10.4"
                 },
                 "conn": [
                     {
@@ -5802,13 +6155,15 @@
                     "ResourceName": "contest-dance-divided-brilliant",
                     "ResourceUID": "id:87",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.30.4"
                 },
                 "dst": {
                     "ResourceName": "data-washstand-blot-scrambler",
                     "ResourceUID": "id:71",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.30.5"
                 },
                 "conn": [
                     {
@@ -5821,13 +6176,15 @@
                     "ResourceName": "contest-dance-divided-brilliant",
                     "ResourceUID": "id:87",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.30.4"
                 },
                 "dst": {
                     "ResourceName": "filterable-steersman-collar-whoops",
                     "ResourceUID": "id:100",
                     "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1"
+                    "Zone": "us-south-1",
+                    "AddressStr": "10.240.30.6"
                 },
                 "conn": [
                     {

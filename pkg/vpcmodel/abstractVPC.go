@@ -67,8 +67,7 @@ const (
 
 ///////////////////////////vpc resources////////////////////////////////////////////////////////////////////////////
 
-// Node is the basic endpoint element in the connectivity graph [ network interface , reserved ip, external cidrs]
-
+// Node is the basic endpoint element in the connectivity graph [ network interface , reserved ip, iks node, external cidrs]
 type Node interface {
 	VPCResourceIntf
 	// CidrOrAddress returns the string of the Node's IP-address (for internal node) or CIDR (for external node)
@@ -80,6 +79,54 @@ type Node interface {
 	// IsPublicInternet returns true if the node is external,
 	// currently nodes which are external but not public Internet are ignored
 	IsPublicInternet() bool
+}
+
+// InternalNodeIntf captures common properties for internal nodes: single IP address
+// Implemented by NetworkInterface, IKSNode, ReservedIP (embedding InternalNode)
+type InternalNodeIntf interface {
+	// Address returns the node's address
+	// an InternalNodeIntf has an exact one IP Address
+	Address() string
+	// IPBlock returns the IPBlock object representing the node's IP Address
+	IPBlock() *common.IPBlock
+}
+
+// InternalNode implements interface InternalNodeIntf
+type InternalNode struct {
+	// AddressStr is an IPv4 string, as the node's IP Address
+	AddressStr string
+	// IPBlockObj is an IPBlock object of the node's address (created from AddressStr).
+	// This field is skipped in the JSON output (nodes connectivity output in JSON format),
+	// since it is sufficient to have the AddressStr, and no need to represent IPBlockObj as another
+	// attribute in the JSON output.
+	IPBlockObj *common.IPBlock `json:"-"`
+}
+
+func (n *InternalNode) Address() string {
+	return n.AddressStr
+}
+
+func (n *InternalNode) IPBlock() *common.IPBlock {
+	return n.IPBlockObj
+}
+
+// SetIPBlockFromAddress sets the node's IPBlockObj field from its AddressStr field.
+// Assumes its AddressStr field is assigned with valid IPv4 string value.
+func (n *InternalNode) SetIPBlockFromAddress() (err error) {
+	n.IPBlockObj, err = common.NewIPBlockFromIPAddress(n.AddressStr)
+	return err
+}
+
+func (n *InternalNode) CidrOrAddress() string {
+	return n.AddressStr
+}
+
+func (n *InternalNode) IsInternal() bool {
+	return true
+}
+
+func (n *InternalNode) IsPublicInternet() bool {
+	return false
 }
 
 // NodeSet is an element that may capture several nodes [vpc ,subnet, vsi, vpe]
