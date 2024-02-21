@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/np-guard/models/pkg/ipblocks"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
@@ -125,7 +126,7 @@ func TestGetAllowedXgressConnections(t *testing.T) {
 		for i := range tt.src {
 			src := newIPBlockFromCIDROrAddressWithoutValidation(tt.src[i])
 			dst := newIPBlockFromCIDROrAddressWithoutValidation(tt.dst[i])
-			disjointPeers := []*common.IPBlock{dst}
+			disjointPeers := []*ipblocks.IPBlock{dst}
 			expectedConn := tt.expectedConns[i]
 			res, _, _, _ := getAllowedXgressConnections(tt.naclRules, src, dst, disjointPeers, true)
 			dstStr := dst.ToIPRanges()
@@ -137,7 +138,7 @@ func TestGetAllowedXgressConnections(t *testing.T) {
 	//nolint:all
 	/*src := common.NewIPBlockFromCidr("1.1.1.1/32")
 	dst := common.NewIPBlockFromCidr("10.0.0.0/24")
-	disjointPeers := []*common.IPBlock{dst}
+	disjointPeers := []*ipblocks.IPBlock{dst}
 	res := getAllowedXgressConnections(rulesTest1, src, dst, disjointPeers, true)
 	for d, c := range res {
 		fmt.Printf("%s => %s : %s\n", src.ToIPAdress(), d, c.String())
