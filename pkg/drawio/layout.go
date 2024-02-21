@@ -596,24 +596,26 @@ func (ly *layoutS) setIconsLocationsOnTop(square SquareTreeNodeInterface) {
 
 // ////////////////////////////////////////////////////////////////////////////////////////
 // setTgwLocations() sets all the tgw in the first cloud row.
-// we assume that number of tgws is less than number of vpcs
+// we assume that number of tgws is less than number of vpcs, so we have enough cols
 // we choose the cols with width >= iconSpace. and set a col per tgw (a col can not have two tgw):
 // 1. for each tgw, find the optional cols for it (details on optional col below)
 // 2. sort the tgws by the number of optional cols (to handle the tgw with the less number of optional cols first)
 // 3. for each tgw choose a col from its optional cols
 // 4. for those how fail in step 3, choose an closest available col
 // 
-// in general, a col is *not* an optional col for a tgw, if there is a line that:
+// in general, a col is *not* an optional for a tgw, if there is a line that:
 //        a. routers by the tgw 
 //        b. both src and dst are on the left/right to the col.
 
-func (ly *layoutS) setTgwLocations(square SquareTreeNodeInterface) {
-	tgws := append(square.IconTreeNodes(), []IconTreeNodeInterface{}...)
+func (ly *layoutS) setTgwLocations(cloud SquareTreeNodeInterface) {
+	// make a copy of icons:
+	tgws := append(cloud.IconTreeNodes(), []IconTreeNodeInterface{}...)
 	if len(tgws) == 0 {
 		return
 	}
-	firstColIndex := square.Location().firstCol.index
-	lastColIndex := square.Location().lastCol.index
+	cloud.Location().firstRow.setHeight(iconSpace)
+	firstColIndex := cloud.Location().firstCol.index
+	lastColIndex := cloud.Location().lastCol.index
 	tgwMinCol := map[IconTreeNodeInterface]int{}
 	tgwMaxCol := map[IconTreeNodeInterface]int{}
 	tgwOptionalCols := map[IconTreeNodeInterface][]int{}
@@ -622,8 +624,8 @@ func (ly *layoutS) setTgwLocations(square SquareTreeNodeInterface) {
 		tgwMaxCol[tgw] = lastColIndex
 		tgwOptionalCols[tgw] = []int{}
 	}
-	// each tgw has a MinCol and a maxCol. the optional cols of the tgw are in this range.
-	// we iterate over the lines, and update these values
+	// each tgw has a MinCol and a maxCol. (the optional cols of the tgw are in this range).
+	// we iterate over the lines, and update these values:
 	for _, line := range getAllLines(ly.network) {
 		tgw := line.Router()
 		if _, ok := tgwMinCol[tgw]; ok {
@@ -634,14 +636,14 @@ func (ly *layoutS) setTgwLocations(square SquareTreeNodeInterface) {
 		}
 	}
 	for _, tgw := range tgws {
-		// in the case there is no range we flip MinCol and maxCol:
+		// in the case there is no range, we flip MinCol and maxCol:
 		if tgwMinCol[tgw] > tgwMaxCol[tgw] {
 			c := tgwMinCol[tgw]
 			tgwMinCol[tgw] = tgwMaxCol[tgw]
 			tgwMaxCol[tgw] = c
 		}
 	}
-	// we collect the optional coles for each tgw:
+	// we collect the optional cols for each tgw:
 	availableCols := map[int]bool{}
 	for ci := firstColIndex; ci <= lastColIndex; ci++ {
 		col := ly.matrix.cols[ci]
@@ -658,23 +660,20 @@ func (ly *layoutS) setTgwLocations(square SquareTreeNodeInterface) {
 	sort.Slice(tgws, func(i, j int) bool {
 		return len(tgwOptionalCols[tgws[i]]) < len(tgwOptionalCols[tgws[j]])
 	})
-
-
-	square.Location().firstRow.setHeight(iconSpace)
 	for _, tgw := range tgws {
-		// the tgwOptionalCols are already sorted, the first and last are our last choice
-		tgwOptionalColsOrder := append(tgwOptionalCols[tgw][1:], tgwOptionalCols[tgw][0])
-		for _, ci := range tgwOptionalColsOrder {
+		// the tgwOptionalCols are already sorted, the first and last are our last choice, so moving the first to the end:
+		tgwOptionalCols[tgw] = append(tgwOptionalCols[tgw][1:], tgwOptionalCols[tgw][0])
+		for _, ci := range tgwOptionalCols[tgw] {
 			if availableCols[ci] {
-				tgw.setLocation(newCellLocation(square.Location().firstRow, ly.matrix.cols[ci]))
+				tgw.setLocation(newCellLocation(cloud.Location().firstRow, ly.matrix.cols[ci]))
 				delete(availableCols, ci)
 				break
 			}
 		}
 	}
-	//hope we do not get here, taking the closest available:
  	for _, tgw := range tgws {
 		if tgw.Location() == nil {
+			//hope we do not get here, taking the closest available:
 			var bestColAvailable int
 			bestDistance := lastColIndex
 			tgwOptCol := tgwOptionalCols[tgw][0] + tgwOptionalCols[tgw][len(tgwOptionalCols[tgw])-1]/2
@@ -684,7 +683,7 @@ func (ly *layoutS) setTgwLocations(square SquareTreeNodeInterface) {
 					bestDistance = abs(col - tgwOptCol)
 				}
 			}
-			tgw.setLocation(newCellLocation(square.Location().firstRow, ly.matrix.cols[bestColAvailable]))
+			tgw.setLocation(newCellLocation(cloud.Location().firstRow, ly.matrix.cols[bestColAvailable]))
 		}
 	}
 }
