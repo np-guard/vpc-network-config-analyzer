@@ -34,7 +34,7 @@ func (m *mockNetIntf) Kind() string {
 	return "NetworkInterface"
 }
 func (m *mockNetIntf) UID() string {
-	return ""
+	return m.name
 }
 func (m *mockNetIntf) Name() string {
 	return m.name
@@ -59,7 +59,7 @@ type mockSubnet struct {
 }
 
 func (m *mockSubnet) UID() string {
-	return ""
+	return m.name
 }
 func (m *mockSubnet) Name() string {
 	return m.name
