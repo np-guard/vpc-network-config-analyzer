@@ -532,7 +532,7 @@ func (g *groupedExternalNodes) String() string {
 	// 1. Created a list of IPBlocks
 	cidrList := make([]string, len(*g))
 	for i, n := range *g {
-		cidrList[i] = n.Cidr()
+		cidrList[i] = n.CidrOrAddress()
 	}
 	ipbList, _, err := ipStringsToIPblocks(cidrList)
 	if err != nil {
