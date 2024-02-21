@@ -36,9 +36,9 @@ Usage of vpc-network-config-analyzer:
   -protocol string
         Protocol for connection description
   -provider string
-        Cloud provider from which to collect resources
+        Collect resources from an account in this cloud provider
   -region value
-        cloud region from which to collect resources
+        Cloud region from which to collect resources
   -resource-group string
         Resource group id or name from which to collect resources
   -src string

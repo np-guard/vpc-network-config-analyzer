@@ -95,6 +95,26 @@ func vpcConfigsFromFile(fileName string, inArgs *InArgs) (map[string]*vpcmodel.V
 	return vpcConfigs, nil
 }
 
+func vpcConfigsFromAccount(inArgs *InArgs) (map[string]*vpcmodel.VPCConfig, error) {
+	rc := factory.GetResourceContainer(*inArgs.Provider, inArgs.RegionList, *inArgs.ResourceGroup)
+	// Collect resources from the provider API and generate output
+	err := rc.CollectResourcesFromAPI()
+	if err != nil {
+		return nil, err
+	}
+
+	// todo: when analysis for other providers is available, select provider according to flag
+	resources, ok := rc.GetResources().(*datamodel.ResourcesContainerModel)
+	if !ok {
+		return nil, fmt.Errorf("error casting resources to *datamodel.ResourcesContainerModel type")
+	}
+	vpcConfigs, err := ibmvpc.VPCConfigsFromResources(resources, *inArgs.VPC, *inArgs.Debug)
+	if err != nil {
+		return nil, err
+	}
+	return vpcConfigs, nil
+}
+
 // The actual main function
 // Takes command-line flags and returns an error rather than exiting, so it can be more easily used in testing
 func _main(cmdlineArgs []string) error {
@@ -113,13 +133,7 @@ func _main(cmdlineArgs []string) error {
 
 	var vpcConfigs1 map[string]*vpcmodel.VPCConfig
 	if *inArgs.Provider != "" {
-		rc := factory.GetResourceContainer(*inArgs.Provider, inArgs.RegionList, *inArgs.ResourceGroup)
-		// Collect resources from the provider API and generate output
-		err = rc.CollectResourcesFromAPI()
-		if err != nil {
-			return err
-		}
-		vpcConfigs1, err = ibmvpc.VPCConfigsFromResources(rc.GetResources().(*datamodel.ResourcesContainerModel), *inArgs.VPC, *inArgs.Debug)
+		vpcConfigs1, err = vpcConfigsFromAccount(inArgs)
 		if err != nil {
 			return err
 		}

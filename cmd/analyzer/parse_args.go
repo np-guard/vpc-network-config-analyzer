@@ -215,9 +215,9 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args.ESrcMaxPort = flagset.Int64(ESrcMaxPort, common.MaxPort, "Maximum source port for connection description")
 	args.EDstMinPort = flagset.Int64(EDstMinPort, common.MinPort, "Minimum destination port for connection description")
 	args.EDstMaxPort = flagset.Int64(EDstMaxPort, common.MaxPort, "Maximum destination port for connection description")
-	args.Provider = flagset.String(Provider, "", "Cloud provider from which to collect resources")
+	args.Provider = flagset.String(Provider, "", "Collect resources from an account in this cloud provider")
 	args.ResourceGroup = flagset.String(ResourceGroup, "", "Resource group id or name from which to collect resources")
-	flagset.Var(&args.RegionList, "region", "cloud region from which to collect resources")
+	flagset.Var(&args.RegionList, "region", "Cloud region from which to collect resources")
 
 	// calling parseCmdLine prior to flagset.Parse to ensure that excessive and unsupported arguments are handled
 	// for example, flagset.Parse() ignores input args missing the `-`
@@ -230,7 +230,7 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = errorInErgs(&args, flagset)
+	err = errorInArgs(&args, flagset)
 	if err != nil {
 		return nil, err
 	}
@@ -335,17 +335,17 @@ func invalidArgsExplainMode(args *InArgs, flagset *flag.FlagSet) error {
 func invalidArgsConfigFile(args *InArgs, flagset *flag.FlagSet) error {
 	if !*args.Version && (args.InputConfigFile == nil || *args.InputConfigFile == "") && (args.Provider == nil || *args.Provider == "") {
 		flagset.PrintDefaults()
-		return fmt.Errorf("missing parameter: vpc-config, or use provider flag to collect directly from the account")
+		return fmt.Errorf("missing parameter: either vpc-config flag or provider flag must be specified")
 	}
 	if *args.InputConfigFile != "" && *args.Provider != "" {
 		flagset.PrintDefaults()
-		return fmt.Errorf("error in parameters: can not use vpc-config and provider flag together")
+		return fmt.Errorf("error in parameters: vpc-config flag and provider flag cannot be specified together")
 	}
 
 	return nil
 }
 
-func errorInErgs(args *InArgs, flagset *flag.FlagSet) error {
+func errorInArgs(args *InArgs, flagset *flag.FlagSet) error {
 	err := invalidArgsConfigFile(args, flagset)
 	if err != nil {
 		return err
@@ -386,7 +386,7 @@ func notSupportedYetArgs(args *InArgs) error {
 		return fmt.Errorf("json output format is not supported with grouping")
 	}
 	if (len(args.RegionList) != 0 || *args.ResourceGroup != "") && *args.Provider == "" {
-		return fmt.Errorf("error in parameters: you need to specify provider when specifying resource-group or region")
+		return fmt.Errorf("error in parameters: resource-group and region can only be specified in combination with provider flag")
 	}
 	return nil
 }
