@@ -86,13 +86,21 @@ type Node interface {
 type InternalNodeIntf interface {
 	// an InternalNodeIntf has an exact one IP Address
 	Address() string
+	// IPBlock returns the IPBlock object representing the node's IP Address
 	IPBlock() *common.IPBlock
+	// SetIPBlockFromAddress sets the node's IPBlock object from its Address .
+	// Assumes its address is assigned with valid IPv4 string value.
 	SetIPBlockFromAddress() error
 }
 
 // InternalNode implements interface InternalNodeIntf
 type InternalNode struct {
+	// AddressStr is an IPv4 string, as the node's IP Address
 	AddressStr string
+	// IPBlockObj is an IPBlock object of the node's address (created from AddressStr)
+	// `json:"-"` is to avoid having this field in the JSON output (nodes connectivity output in JSON format),
+	// since it is sufficient to have the AddressStr, and no need to represent IPBlockObj as another
+	// attribute in the JSON output.
 	IPBlockObj *common.IPBlock `json:"-"` // avoid having this field in the JSON output
 }
 
