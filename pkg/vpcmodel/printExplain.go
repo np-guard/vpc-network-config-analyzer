@@ -65,7 +65,7 @@ func stringExplainabilityLine(verbose bool, c *VPCConfig, connQuery *common.Conn
 	noEgressRules := !egressEnabled && needEgress
 	var routerStr, rulesStr, noConnection, resStr string
 	if router != nil && (src.IsExternal() || dst.IsExternal()) {
-		routerStr = "External Router " + router.Kind() + ": " + router.Name() + "\n"
+		routerStr = "External traffic via " + router.Kind() + ": " + router.Name() + "\n"
 	}
 	routerFiltersHeader := routerStr + rules.getFilterEffectStr(c, needEgress, needIngress)
 	rulesStr = rules.getRuleDetailsStr(c, verbose, needEgress, needIngress)
@@ -76,10 +76,10 @@ func stringExplainabilityLine(verbose bool, c *VPCConfig, connQuery *common.Conn
 	}
 	switch {
 	case router == nil && src.IsExternal():
-		resStr += fmt.Sprintf("%v no fip router and src is external (fip is required for "+
+		resStr += fmt.Sprintf("%v no fip and src is external (fip is required for "+
 			"outbound external connection)\n", noConnection)
 	case router == nil && dst.IsExternal():
-		resStr += fmt.Sprintf("%v no router (fip/pgw) and dst is external\n", noConnection)
+		resStr += fmt.Sprintf("%v no fip/pgw and dst is external\n", noConnection)
 	case noIngressRules && noEgressRules:
 		resStr += fmt.Sprintf("%v connection blocked both by ingress and egress\n%v\n%v", noConnection, routerFiltersHeader, rulesStr)
 	case noIngressRules:
@@ -99,7 +99,7 @@ func (rules *rulesConnection) getFilterEffectStr(c *VPCConfig, needEgress, needI
 		egressRulesStr = "Egress: " + egressRulesStr
 	}
 	if needIngress && ingressRulesStr != "" {
-		ingressRulesStr = "Ingres: " + ingressRulesStr
+		ingressRulesStr = "Ingress: " + ingressRulesStr
 	}
 	if egressRulesStr != "" && ingressRulesStr != "" {
 		return egressRulesStr + "\n" + ingressRulesStr
@@ -118,9 +118,12 @@ func (rules *rulesConnection) getRuleDetailsStr(c *VPCConfig, verbose, needEgres
 	}
 	if needIngress && ingressRulesStr != "" {
 		ingressRulesStr = "Ingress:\n" + ingressRulesStr
+		if needEgress && egressRulesStr != "" {
+			egressRulesStr += "\n"
+		}
 	}
 	if egressRulesStr != "" || ingressRulesStr != "" {
-		return "\nRules details:\n~~~~~~~~~~~~~~\n" + egressRulesStr + ingressRulesStr
+		return "\nDetails:\n~~~~~~~~\n" + egressRulesStr + ingressRulesStr
 	}
 	return ""
 }
@@ -132,8 +135,12 @@ func stringExplainabilityConnection(connQuery *common.ConnectionSet, src, dst En
 		resStr = fmt.Sprintf("The following connection exists between %v and %v: %v\n", src.Name(), dst.Name(),
 			conn.String())
 	} else {
-		resStr = fmt.Sprintf("Connection %v exists between %v and %v\n", conn.String(),
-			src.Name(), dst.Name())
+		properSubsetConn := ""
+		if !conn.Equal(connQuery) {
+			properSubsetConn = " (note that not all queried protocols/ports are allowed)"
+		}
+		resStr = fmt.Sprintf("Connection %v exists between %v and %v%s\n", conn.String(),
+			src.Name(), dst.Name(), properSubsetConn)
 	}
 	resStr += filtersEffectStr + "\n" + rulesStr
 	return resStr
