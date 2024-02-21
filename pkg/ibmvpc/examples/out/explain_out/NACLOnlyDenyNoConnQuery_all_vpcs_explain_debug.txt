@@ -2,16 +2,17 @@ Connectivity explanation for protocol: ICMP between vsi1-ky and vsi2-ky
 =======================================================================
 
 There is no connection "protocol: ICMP" between vsi1-ky[10.240.10.4] and vsi2-ky[10.240.20.4]; connection blocked by egress
-Egress: security group sg1-ky allows connection (with allow rules); network ACL acl1-ky blocks connection (with deny rules)
-Ingres: network ACL acl2-ky allows connection (with allow rules); security group sg1-ky allows connection (with allow rules)
+Egress: security group sg1-ky allows connection; network ACL acl1-ky blocks connection
+Ingress: network ACL acl2-ky allows connection; security group sg1-ky allows connection
 
-Rules details:
-~~~~~~~~~~~~~~
+Details:
+~~~~~~~~
 Egress:
 security group sg1-ky allows connection with the following allow rules
 	index: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0
 network ACL acl1-ky blocks connection with the following deny rules:
 	index: 0, direction: outbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, conn: all, action: deny
+
 Ingress:
 network ACL acl2-ky allows connection with the following allow rules
 	index: 6, direction: inbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, conn: all, action: allow

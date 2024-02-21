@@ -2,42 +2,45 @@ Connectivity explanation between vsi3b-ky and 10.240.30.4/26 (vsi3a-ky[10.240.30
 =======================================================================================================================================================================
 
 The following connection exists between vsi3b-ky[10.240.30.6] and db-endpoint-gateway-ky[10.240.30.7]: All Connections
-Egress: security group sg1-ky allows connection (with allow rules)
-Ingres: security group sg1-ky allows connection (with allow rules)
+Egress: security group sg1-ky allows connection
+Ingress: security group sg1-ky allows connection
 
-Rules details:
-~~~~~~~~~~~~~~
+Details:
+~~~~~~~~
 Egress:
 security group sg1-ky allows connection with the following allow rules
 	index: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0
+
 Ingress:
 security group sg1-ky allows connection with the following allow rules
 	index: 1, direction: inbound, protocol: all, cidr: 0.0.0.0/0
 ------------------------------------------------------------------------------------------------------------------------
 
 The following connection exists between vsi3b-ky[10.240.30.6] and vsi3a-ky[10.240.30.5]: All Connections
-Egress: security group sg1-ky allows connection (with allow rules)
-Ingres: security group sg1-ky allows connection (with allow rules)
+Egress: security group sg1-ky allows connection
+Ingress: security group sg1-ky allows connection
 
-Rules details:
-~~~~~~~~~~~~~~
+Details:
+~~~~~~~~
 Egress:
 security group sg1-ky allows connection with the following allow rules
 	index: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0
+
 Ingress:
 security group sg1-ky allows connection with the following allow rules
 	index: 1, direction: inbound, protocol: all, cidr: 0.0.0.0/0
 ------------------------------------------------------------------------------------------------------------------------
 
 The following connection exists between vsi3b-ky[10.240.30.6] and vsi3c-ky[10.240.30.4]: All Connections
-Egress: security group sg1-ky allows connection (with allow rules)
-Ingres: security group sg1-ky allows connection (with allow rules)
+Egress: security group sg1-ky allows connection
+Ingress: security group sg1-ky allows connection
 
-Rules details:
-~~~~~~~~~~~~~~
+Details:
+~~~~~~~~
 Egress:
 security group sg1-ky allows connection with the following allow rules
 	index: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0
+
 Ingress:
 security group sg1-ky allows connection with the following allow rules
 	index: 1, direction: inbound, protocol: all, cidr: 0.0.0.0/0

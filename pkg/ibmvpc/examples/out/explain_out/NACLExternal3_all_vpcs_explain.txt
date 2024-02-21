@@ -1,6 +1,6 @@
 Connectivity explanation between 100.128.0.0/32 and vsi1-ky
 ===========================================================
 
-No connection between Public Internet 100.128.0.0/32 and vsi1-ky[10.240.10.4]; no fip router and src is external (fip is required for outbound external connection)
+No connection between Public Internet 100.128.0.0/32 and vsi1-ky[10.240.10.4]; no fip and src is external (fip is required for outbound external connection)
 ------------------------------------------------------------------------------------------------------------------------
 
