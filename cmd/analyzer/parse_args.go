@@ -6,6 +6,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/np-guard/cloud-resource-collector/pkg/factory"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
@@ -387,6 +388,9 @@ func notSupportedYetArgs(args *InArgs) error {
 	}
 	if (len(args.RegionList) != 0 || *args.ResourceGroup != "") && *args.Provider == "" {
 		return fmt.Errorf("error in parameters: resource-group and region can only be specified in combination with provider flag")
+	}
+	if *args.Provider != factory.IBM {
+		return fmt.Errorf("unsupported provider: %s", *args.Provider)
 	}
 	return nil
 }
