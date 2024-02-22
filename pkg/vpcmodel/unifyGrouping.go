@@ -7,7 +7,6 @@ func UnifyMultiVPC(config1 map[string]*VPCConfig, nodesConn map[string]*VPCConne
 	subnetsConn map[string]*VPCsubnetConnectivity, f OutFormat) {
 	groupedEndpointsElemsMap := map[string]*groupedEndpointsElems{}
 	groupedExternalNodesMap := map[string]*groupedExternalNodes{}
-	// tmp for testing
 	if f != DRAWIO && f != ARCHDRAWIO {
 		return
 	}
@@ -27,17 +26,7 @@ func UnifyMultiVPC(config1 map[string]*VPCConfig, nodesConn map[string]*VPCConne
 			}
 		}
 	}
-	//// tmp printing for testing
-	//fmt.Println("groupedEndpointsElemsMap\n~~~~~~~~~~~~~~~~~~~~~~~~")
-	//for key, item := range groupedEndpointsElemsMap {
-	//	fmt.Printf("\tkey: %v item:%v\n", key, item.Name())
-	//}
-	//fmt.Println("groupedExternalNodesMap\n~~~~~~~~~~~~~~~~~~~~~~~~")
-	//for key, item := range groupedExternalNodesMap {
-	//	fmt.Printf("\tkey: %v item:%v\n", key, item.Name())
-	//}
 	return
-
 }
 
 // Go over the grouping result and set groups s.t. all semantically equiv groups have a unified reference.
