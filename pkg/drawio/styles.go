@@ -182,23 +182,27 @@ func (stl *drawioStyles) lineParameters(tn LineTreeNodeInterface) (start, end, c
 func (stl *drawioStyles) DrawioConnectivityStyle(tn TreeNodeInterface) string {
 	line := tn.(LineTreeNodeInterface)
 	startArrow, endArrow, color, dash := stl.lineParameters(line)
-	dashStr := ""
+	dashStyle := ""
 	if dash {
-		dashStr = "dashed=1;"
+		dashStyle = "dashed=1;"
 	}
-	connStyleFormat := "startArrow=%s;endArrow=%s;strokeColor=%s;%s%s"
-	return fmt.Sprintf(connStyleFormat, startArrow, endArrow, color, lineConnectionPointsStyle(line), dashStr)
+	exitStyle := ""
+	lineExitFormat := "exitX=%v;exitY=%v;exitDx=0;exitDy=0;"
+	if srcConnectionPoint := line.SrcConnectionPoint(); srcConnectionPoint != 0 {
+		x, y := lineConnectionPointToDrawioXY(srcConnectionPoint)
+		exitStyle = fmt.Sprintf(lineExitFormat, x, y)
+	}
+	return fmt.Sprintf("startArrow=%s;endArrow=%s;strokeColor=%s;%s%s", startArrow, endArrow, color, exitStyle, dashStyle)
 }
 
 func (stl *drawioStyles) SVGConnectivityStyle(tn TreeNodeInterface) string {
 	startArrow, endArrow, color, dash := stl.lineParameters(tn.(LineTreeNodeInterface))
-	dashStr := ""
+	dashStyle := ""
 	if dash {
-		dashStr = "stroke-dasharray=\"6 6\""
+		dashStyle = "stroke-dasharray=\"6 6\""
 	}
-
 	return fmt.Sprintf("marker-start='url(#%s_%s)' marker-end='url(#%s_%s)' stroke=\"%s\" %s",
-		color, startArrow, color, endArrow, stl.Cnst.ColorCodes[color], dashStr)
+		color, startArrow, color, endArrow, stl.Cnst.ColorCodes[color], dashStyle)
 }
 
 func (stl *drawioStyles) SvgConnectivityLabelPos(tn TreeNodeInterface) string {
@@ -242,12 +246,18 @@ func connectivityAbsPoints(tn TreeNodeInterface) []point {
 			point{p.X, p.Y + iconSize},
 		}
 	} else {
-		points[0] = calcConnectionPoint(line.Src(), points[0], points[1])
+		if srcConnectionPoint := line.SrcConnectionPoint(); srcConnectionPoint != 0 {
+			x, y := lineConnectionPointToDrawioXY(srcConnectionPoint)
+			points[0] = point{
+				points[0].X + int(float64(line.Src().Width())*(x-0.5)),
+				points[0].Y + int(float64(line.Src().Height())*(y-0.5))}
+		} else {
+			points[0] = calcConnectionPoint(line.Src(), points[0], points[1])
+		}
 		points[len(points)-1] = calcConnectionPoint(line.Dst(), points[len(points)-1], points[len(points)-2])
 	}
 	return points
 }
-
 
 func calcConnectionPoint(tn TreeNodeInterface, center, out point) point {
 	//revive:disable // these are the numbers required by drawio
@@ -293,20 +303,7 @@ func calcConnectionPoint(tn TreeNodeInterface, center, out point) point {
 	return point{srcX, srcY} //0
 }
 
-
 //////////////////////////////////////////////////////////////////////////////////
-
-// /////////////////////////////////////////////
-// lineConnectionPointsStyle() set the enter/exit style for a line (currntly only for the src),
-func lineConnectionPointsStyle(line LineTreeNodeInterface) string {
-	lineExitFormat := "exitX=%v;exitY=%v;exitDx=0;exitDy=0;"
-	srcConnectionPoint := line.SrcConnectionPoint()
-	if srcConnectionPoint == 0 {
-		return ""
-	}
-	x, y := lineConnectionPointToDrawioXY(srcConnectionPoint)
-	return fmt.Sprintf(lineExitFormat, x, y)
-}
 
 //nolint:gomnd // lineConnectionPoint is numerated form 1 to 16
 func lineConnectionPointToDrawioXY(connectionPoint lineConnectionPoint) (x, y float64) {
