@@ -187,13 +187,14 @@ func (g *groupedExternalNodes) Name() string {
 
 // given a groupedEndpointsElems returns an equiv item from groupedEndpointsElemsMap if exists,
 // or adds it to groupedEndpointsElemsMap if such an item does not exist
-func (g *GroupConnLines) getGroupedEndpointsElems(grouped groupedEndpointsElems) *groupedEndpointsElems {
+func getGroupedEndpointsElems(grouped groupedEndpointsElems,
+	groupedEndpointsElemsMap map[string]*groupedEndpointsElems) *groupedEndpointsElems {
 	// since the endpoints (vsis/subnets) are sorted before printed, grouped.Name() will be identical
 	// to equiv groupedEndpointsElems
-	if existingGrouped, ok := g.groupedEndpointsElemsMap[grouped.Name()]; ok {
+	if existingGrouped, ok := groupedEndpointsElemsMap[grouped.Name()]; ok {
 		return existingGrouped
 	}
-	g.groupedEndpointsElemsMap[grouped.Name()] = &grouped
+	groupedEndpointsElemsMap[grouped.Name()] = &grouped
 	return &grouped
 }
 
@@ -241,7 +242,7 @@ func vsiGroupingBySubnets(groupedConnLines *GroupConnLines,
 		if len(nodesList) == 1 { // a single network interface on subnet is just added to the result (no grouping)
 			res = append(res, nodesList[0])
 		} else { // a set of network interfaces from the same subnet is grouped by groupedNetworkInterfaces object
-			groupedNodes := groupedConnLines.getGroupedEndpointsElems(nodesList)
+			groupedNodes := getGroupedEndpointsElems(nodesList, groupedConnLines.groupedEndpointsElemsMap)
 			res = append(res, groupedNodes)
 		}
 	}
@@ -265,7 +266,7 @@ func subnetGrouping(groupedConnLines *GroupConnLines,
 	if len(subnetsToGroup) == 1 {
 		res = append(res, subnetsToGroup[0])
 	} else {
-		groupedNodes := groupedConnLines.getGroupedEndpointsElems(subnetsToGroup)
+		groupedNodes := getGroupedEndpointsElems(subnetsToGroup, groupedConnLines.groupedEndpointsElemsMap)
 		res = append(res, groupedNodes)
 	}
 	return res
@@ -467,7 +468,7 @@ func (g *GroupConnLines) unifiedGroupedElems(srcOrDst EndpointElem) EndpointElem
 		return srcOrDst
 	}
 	groupedEE := srcOrDst.(*groupedEndpointsElems)
-	unifiedGroupedEE := g.getGroupedEndpointsElems(*groupedEE)
+	unifiedGroupedEE := getGroupedEndpointsElems(*groupedEE, g.groupedEndpointsElemsMap)
 	return unifiedGroupedEE
 }
 
