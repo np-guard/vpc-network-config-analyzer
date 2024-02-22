@@ -15,14 +15,14 @@ func UnifyMultiVPC(config1, config2 map[string]*VPCConfig, nodesConn map[string]
 			if len(VPCconnectivity.GroupedConnectivity.GroupedLines) > 0 {
 				VPCconnectivity.GroupedConnectivity.GroupedLines =
 					unifiedGroupedConnLines(VPCconnectivity.GroupedConnectivity.GroupedLines,
-						groupedEndpointsElemsMap, groupedExternalNodesMap, false)
+						groupedEndpointsElemsMap, groupedExternalNodesMap, true)
 			}
 		}
 		if subnetConnectivity, ok := subnetsConn[vpcName]; ok {
 			if len(subnetConnectivity.GroupedConnectivity.GroupedLines) > 0 {
 				subnetConnectivity.GroupedConnectivity.GroupedLines =
 					unifiedGroupedConnLines(subnetConnectivity.GroupedConnectivity.GroupedLines,
-						groupedEndpointsElemsMap, groupedExternalNodesMap, false)
+						groupedEndpointsElemsMap, groupedExternalNodesMap, true)
 			}
 		}
 	}
