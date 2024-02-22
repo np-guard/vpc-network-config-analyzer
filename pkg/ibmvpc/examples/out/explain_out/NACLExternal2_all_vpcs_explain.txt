@@ -1,7 +1,0 @@
-Connectivity explanation between vsi1-ky[10.240.10.4] and 100.128.0.0/32
-No connection between vsi1-ky[10.240.10.4] and Public Internet 100.128.0.0/32; connection blocked by egress
-Egress Rules:
-~~~~~~~~~~~~~
-relevant rules from security group sg1-ky:
-	index: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0
-

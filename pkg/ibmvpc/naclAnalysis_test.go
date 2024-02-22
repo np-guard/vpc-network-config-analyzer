@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/np-guard/models/pkg/ipblocks"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
@@ -28,7 +29,7 @@ func TestGetRules(t *testing.T) {
 
 func testSingleNACL(nacl *NACL) {
 	// test addAnalysisPerSubnet
-	for subnet := range nacl.subnets {
+	for _, subnet := range nacl.subnets {
 		nacl.analyzer.addAnalysisPerSubnet(subnet)
 		// functions to test
 		// AnalyzeNACLRulesPerDisjointTargets
@@ -39,14 +40,14 @@ func testSingleNACL(nacl *NACL) {
 func TestGetAllowedXgressConnections(t *testing.T) {
 	rulesTest1 := []*NACLRule{
 		{
-			src:         common.NewIPBlockFromCidr("1.2.3.4/32"),
-			dst:         common.NewIPBlockFromCidr("10.0.0.1/32"),
+			src:         newIPBlockFromCIDROrAddressWithoutValidation("1.2.3.4/32"),
+			dst:         newIPBlockFromCIDROrAddressWithoutValidation("10.0.0.1/32"),
 			connections: getAllConnSet(),
 			action:      "deny",
 		},
 		{
-			src:         common.NewIPBlockFromCidr("0.0.0.0/0"),
-			dst:         common.NewIPBlockFromCidr("0.0.0.0/0"),
+			src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
+			dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
 			connections: getAllConnSet(),
 			action:      "allow",
 		},
@@ -123,9 +124,9 @@ func TestGetAllowedXgressConnections(t *testing.T) {
 		require.Equal(t, len(tt.src), len(tt.dst))
 		require.Equal(t, len(tt.src), len(tt.expectedConns))
 		for i := range tt.src {
-			src := common.NewIPBlockFromCidr(tt.src[i])
-			dst := common.NewIPBlockFromCidr(tt.dst[i])
-			disjointPeers := []*common.IPBlock{dst}
+			src := newIPBlockFromCIDROrAddressWithoutValidation(tt.src[i])
+			dst := newIPBlockFromCIDROrAddressWithoutValidation(tt.dst[i])
+			disjointPeers := []*ipblocks.IPBlock{dst}
 			expectedConn := tt.expectedConns[i]
 			res, _, _, _ := getAllowedXgressConnections(tt.naclRules, src, dst, disjointPeers, true)
 			dstStr := dst.ToIPRanges()
@@ -137,7 +138,7 @@ func TestGetAllowedXgressConnections(t *testing.T) {
 	//nolint:all
 	/*src := common.NewIPBlockFromCidr("1.1.1.1/32")
 	dst := common.NewIPBlockFromCidr("10.0.0.0/24")
-	disjointPeers := []*common.IPBlock{dst}
+	disjointPeers := []*ipblocks.IPBlock{dst}
 	res := getAllowedXgressConnections(rulesTest1, src, dst, disjointPeers, true)
 	for d, c := range res {
 		fmt.Printf("%s => %s : %s\n", src.ToIPAdress(), d, c.String())

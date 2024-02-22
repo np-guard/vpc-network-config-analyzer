@@ -1,0 +1,14 @@
+Connectivity explanation for protocol: TCP dst-ports: 10-30 between 147.235.219.206/32 and vsi2-ky
+==================================================================================================
+
+Connection protocol: TCP dst-ports: 22 exists between Public Internet 147.235.219.206/32 and vsi2-ky[10.240.20.4] (note that not all queried protocols/ports are allowed)
+External traffic via FloatingIP: floating-ip-ky
+Ingress: security group sg2-ky allows connection
+
+Details:
+~~~~~~~~
+Ingress:
+security group sg2-ky allows connection with the following allow rules
+	index: 2, direction: inbound,  conns: protocol: tcp,  dstPorts: 22-22, cidr: 147.235.219.206/32
+------------------------------------------------------------------------------------------------------------------------
+

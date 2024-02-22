@@ -1,10 +1,11 @@
 package vpcmodel
 
 import (
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
-
 	"errors"
 	"fmt"
+
+	"github.com/np-guard/models/pkg/ipblocks"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 // VPCsubnetConnectivity captures allowed connectivity for subnets, considering nacl and pgw resources
@@ -63,7 +64,7 @@ func (v *VPCsubnetConnectivity) printAllowedConns() {
 	}
 }
 
-func (c *VPCConfig) ipblockToNamedResourcesInConfig(ipb *common.IPBlock, excludeExternalNodes bool) ([]VPCResourceIntf, error) {
+func (c *VPCConfig) ipblockToNamedResourcesInConfig(ipb *ipblocks.IPBlock, excludeExternalNodes bool) ([]VPCResourceIntf, error) {
 	res := []VPCResourceIntf{}
 
 	// consider subnets
@@ -71,7 +72,7 @@ func (c *VPCConfig) ipblockToNamedResourcesInConfig(ipb *common.IPBlock, exclude
 		if nodeset.Kind() != subnetKind {
 			continue
 		}
-		var subnetCidrIPB *common.IPBlock
+		var subnetCidrIPB *ipblocks.IPBlock
 		if subnetCidrIPB = nodeset.AddressRange(); subnetCidrIPB == nil {
 			return nil, errors.New("missing AddressRange for subnet")
 		}
@@ -89,8 +90,7 @@ func (c *VPCConfig) ipblockToNamedResourcesInConfig(ipb *common.IPBlock, exclude
 		if exn.IsInternal() {
 			continue
 		}
-		nodeCidr := exn.Cidr()
-		nodeCidrIPB := common.NewIPBlockFromCidr(nodeCidr)
+		nodeCidrIPB := exn.IPBlock()
 		if nodeCidrIPB.ContainedIn(ipb) {
 			res = append(res, exn)
 		}
@@ -130,7 +130,10 @@ func (c *VPCConfig) convertIPbasedToSubnetBasedResult(ipconn *IPbasedConnectivit
 }
 
 func (c *VPCConfig) subnetCidrToSubnetElem(cidr string) (NodeSet, error) {
-	cidrIPBlock := common.NewIPBlockFromCidr(cidr)
+	cidrIPBlock, err := ipblocks.NewIPBlockFromCidr(cidr)
+	if err != nil {
+		return nil, err
+	}
 	elems, err := c.ipblockToNamedResourcesInConfig(cidrIPBlock, true)
 	if err != nil {
 		return nil, err
@@ -229,11 +232,13 @@ func (c *VPCConfig) GetSubnetsConnectivity(includePGW, grouping bool) (*VPCsubne
 	if err3 := res.computeAllowedConnsCombined(); err3 != nil {
 		return nil, err3
 	}
-	res.computeStatefulConnections()
-
-	groupedConnectivity, err4 := newGroupConnLinesSubnetConnectivity(c, res, grouping)
-	if err4 != nil {
+	if err4 := res.computeStatefulConnections(); err4 != nil {
 		return nil, err4
+	}
+
+	groupedConnectivity, err5 := newGroupConnLinesSubnetConnectivity(c, res, grouping)
+	if err5 != nil {
+		return nil, err5
 	}
 	res.GroupedConnectivity = groupedConnectivity
 
@@ -322,7 +327,7 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() error {
 	return nil
 }
 
-func (v *VPCsubnetConnectivity) computeStatefulConnections() {
+func (v *VPCsubnetConnectivity) computeStatefulConnections() error {
 	for src, endpointConns := range v.AllowedConnsCombined {
 		for dst, conn := range endpointConns {
 			if conn.IsEmpty() {
@@ -339,25 +344,12 @@ func (v *VPCsubnetConnectivity) computeStatefulConnections() {
 				// from external nodes can not be initiated for pgw
 				otherDirectionConn = v.AllowedConns[src].IngressAllowedConns[dst]
 			default:
+				return fmt.Errorf("computeStatefulConnections: unexpected type for input dst")
 			}
-			conn.IsStateful = common.StatefulFalse
-			if otherDirectionConn == nil {
-				continue
-			}
-			connsSwitchPortsDirection := conn.ResponseConnection()
-			statefulCombinedConn := connsSwitchPortsDirection.Intersection(otherDirectionConn)
-			if statefulCombinedConn.Equal(connsSwitchPortsDirection) {
-				conn.IsStateful = common.StatefulTrue
-			}
+			conn.ConnectionWithStatefulness(otherDirectionConn)
 		}
 	}
-}
-
-func (v *VPCsubnetConnectivity) String() string {
-	res := "combined connections between subnets:\n"
-	// res += v.GroupedConnectivity.String() ToDo: uncomment once https://github.com/np-guard/vpc-network-config-analyzer/issues/138 is solved
-	res += v.GroupedConnectivity.String()
-	return res
+	return nil
 }
 
 // GetConnectivityOutputPerEachSubnetSeparately returns string results of connectivity analysis per

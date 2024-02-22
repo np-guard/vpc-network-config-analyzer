@@ -1,3 +1,6 @@
-Connectivity explanation between vsi3b-ky[10.240.30.4] and 161.26.0.0/32
-No connection between vsi3b-ky[10.240.30.4] and Public Internet 161.26.0.0/32; no router (fip/pgw) and dst is external
+Connectivity explanation between vsi3b-ky and 161.26.0.0/32
+===========================================================
+
+No connection between vsi3b-ky[10.240.30.4] and Public Internet 161.26.0.0/32; no fip/pgw and dst is external
+------------------------------------------------------------------------------------------------------------------------
 

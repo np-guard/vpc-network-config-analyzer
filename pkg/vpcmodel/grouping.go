@@ -5,6 +5,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/np-guard/models/pkg/ipblocks"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
@@ -12,10 +13,10 @@ const commaSeparator = ","
 
 // for each line here can group list of external nodes to cidrs list as of one element
 // groupedNodesInfo contains the list of nodes to be grouped and their common connection properties
-type groupingConnections map[EndpointElem]map[string]*groupedNodesInfo
+type groupingConnections map[EndpointElem]map[string]*groupedExternalNodesInfo
 
-type groupedNodesInfo struct {
-	nodes            []Node
+type groupedExternalNodesInfo struct {
+	nodes            groupedExternalNodes
 	commonProperties *groupedCommonProperties
 }
 
@@ -37,7 +38,7 @@ type groupedCommonProperties struct {
 	groupingStrKey string // the key used for grouping per connectivity lines or diff lines
 }
 
-func (g *groupedNodesInfo) appendNode(n Node) {
+func (g *groupedExternalNodesInfo) appendNode(n *ExternalNetwork) {
 	g.nodes = append(g.nodes, n)
 }
 
@@ -60,7 +61,7 @@ func (g *groupingConnections) getGroupedConnLines(groupedConnLines *GroupConnLin
 }
 
 func newGroupingConnections() *groupingConnections {
-	res := groupingConnections(map[EndpointElem]map[string]*groupedNodesInfo{})
+	res := groupingConnections(map[EndpointElem]map[string]*groupedExternalNodesInfo{})
 	return &res
 }
 
@@ -169,7 +170,7 @@ func (g *groupedEndpointsElems) IsExternal() bool {
 }
 
 // implements endpointElem interface
-type groupedExternalNodes []Node
+type groupedExternalNodes []*ExternalNetwork
 
 func (g *groupedExternalNodes) IsExternal() bool {
 	return true
@@ -207,13 +208,13 @@ func (g *GroupConnLines) getGroupedExternalNodes(grouped groupedExternalNodes) *
 	return &grouped
 }
 
-func (g *groupingConnections) addPublicConnectivity(ep EndpointElem, commonProps *groupedCommonProperties, targetNode Node) {
+func (g *groupingConnections) addPublicConnectivity(ep EndpointElem, commonProps *groupedCommonProperties, targetNode *ExternalNetwork) {
 	connKey := commonProps.groupingStrKey
 	if _, ok := (*g)[ep]; !ok {
-		(*g)[ep] = map[string]*groupedNodesInfo{}
+		(*g)[ep] = map[string]*groupedExternalNodesInfo{}
 	}
 	if _, ok := (*g)[ep][connKey]; !ok {
-		(*g)[ep][connKey] = &groupedNodesInfo{commonProperties: commonProps}
+		(*g)[ep][connKey] = &groupedExternalNodesInfo{commonProperties: commonProps}
 	}
 	(*g)[ep][connKey].appendNode(targetNode)
 }
@@ -353,9 +354,9 @@ func (g *GroupConnLines) addLineToExternalGrouping(res *[]*groupedConnLine,
 	}
 	switch {
 	case dst.IsExternal():
-		g.srcToDst.addPublicConnectivity(src, commonProps, dstNode)
+		g.srcToDst.addPublicConnectivity(src, commonProps, dstNode.(*ExternalNetwork))
 	case src.IsExternal():
-		g.dstToSrc.addPublicConnectivity(dst, commonProps, srcNode)
+		g.dstToSrc.addPublicConnectivity(dst, commonProps, srcNode.(*ExternalNetwork))
 	default:
 		*res = append(*res, &groupedConnLine{src, dst, commonProps})
 	}
@@ -496,6 +497,9 @@ func (g *GroupConnLines) computeGroupingForDiff() error {
 
 // get the grouped connectivity output
 func (g *GroupConnLines) String() string {
+	if len(g.GroupedLines) == 0 {
+		return "<nothing to report>\n"
+	}
 	linesStr := make([]string, len(g.GroupedLines))
 	for i, line := range g.GroupedLines {
 		linesStr[i] = line.String()
@@ -529,14 +533,14 @@ func (g *groupedExternalNodes) String() string {
 	// 1. Created a list of IPBlocks
 	cidrList := make([]string, len(*g))
 	for i, n := range *g {
-		cidrList[i] = n.Cidr()
+		cidrList[i] = n.CidrStr
 	}
 	ipbList, _, err := ipStringsToIPblocks(cidrList)
 	if err != nil {
 		return ""
 	}
 	// 2. Union all IPBlocks in a single one; its intervals will be the cidr blocks or ranges that should be printed, after all possible merges
-	unionBlock := &common.IPBlock{}
+	unionBlock := &ipblocks.IPBlock{}
 	for _, ipBlock := range ipbList {
 		unionBlock = unionBlock.Union(ipBlock)
 	}
@@ -565,10 +569,10 @@ func (details *srcDstDetails) explanationEncode(c *VPCConfig) string {
 	}
 	egressStr, ingressStr := "", ""
 	if len(details.actualMergedRules.egressRules) > 0 {
-		egressStr = "egress:" + details.actualMergedRules.egressRules.string(c) + semicolon
+		egressStr = "egress:" + details.actualMergedRules.egressRules.string(c, false, true) + semicolon
 	}
 	if len(details.actualMergedRules.ingressRules) > 0 {
-		egressStr = "ingress:" + details.actualMergedRules.ingressRules.string(c) + semicolon
+		egressStr = "ingress:" + details.actualMergedRules.ingressRules.string(c, true, true) + semicolon
 	}
 	return connStr + routingStr + egressStr + ingressStr
 }

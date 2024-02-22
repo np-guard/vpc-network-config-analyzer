@@ -8,25 +8,35 @@ import (
 type TextOutputFormatter struct {
 }
 
+func multipleVPCsConfigHeader(c *VPCConfig) (string, error) {
+	if len(c.RoutingResources) != 1 {
+		return "", errors.New("unexpected config of multiple VPCs connected by TGW, missing TGW resource")
+	}
+	tgw := c.RoutingResources[0]
+	return fmt.Sprintf("Connectivity between VPCs connected by TGW %s (UID: %s)\n", tgw.Name(), tgw.UID()), nil
+}
+
 func headerOfAnalyzedVPC(uc OutputUseCase, vpcName, vpc2Name string, c1 *VPCConfig, explanation *Explanation) (string, error) {
 	switch uc {
-	case AllEndpoints, AllSubnets, SingleSubnet:
+	case AllEndpoints:
 		if c1.IsMultipleVPCsConfig {
-			if len(c1.RoutingResources) != 1 {
-				return "", errors.New("unexpected config of multiple VPCs connected by TGW, missing TGW resource")
-			}
-			tgw := c1.RoutingResources[0]
-			return fmt.Sprintf("Connectivity between VPCs connected by TGW %s (UID: %s)\n", tgw.Name(), tgw.UID()), nil
+			return multipleVPCsConfigHeader(c1)
 		}
-		return fmt.Sprintf("Connectivity for VPC %s\n", vpcName), nil
+		return fmt.Sprintf("Endpoint connectivity for VPC %s\n", vpcName), nil
+	case AllSubnets:
+		if c1.IsMultipleVPCsConfig {
+			return multipleVPCsConfigHeader(c1)
+		}
+		return fmt.Sprintf("Subnet connectivity for VPC %s\n", vpcName), nil
+	case SingleSubnet:
+		if c1.IsMultipleVPCsConfig {
+			return multipleVPCsConfigHeader(c1)
+		}
+		return fmt.Sprintf("Connectivity per subnet for VPC %s\n", vpcName), nil
 	case SubnetsDiff, EndpointsDiff:
 		return fmt.Sprintf("Connectivity diff between VPC %s and VPC %s\n", vpcName, vpc2Name), nil
 	case Explain:
-		connStr := ""
-		if explanation.connQuery != nil {
-			connStr = " for " + explanation.connQuery.String()
-		}
-		return fmt.Sprintf("Connectivity explanation%s between %s and %s\n", connStr, explanation.src, explanation.dst), nil
+		return explainHeader(explanation), nil
 	}
 	return "", nil // should never get here
 }
@@ -56,7 +66,7 @@ func (t *TextOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 		out += conn.GroupedConnectivity.String()
 		hasStatelessConns = conn.GroupedConnectivity.hasStatelessConns()
 	case AllSubnets:
-		out += subnetsConn.String()
+		out += subnetsConn.GroupedConnectivity.String()
 		hasStatelessConns = subnetsConn.GroupedConnectivity.hasStatelessConns()
 	case SingleSubnet:
 		out += c1.GetConnectivityOutputPerEachSubnetSeparately()
@@ -64,7 +74,7 @@ func (t *TextOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 		out += cfgsDiff.String()
 		hasStatelessConns = cfgsDiff.hasStatelessConns()
 	case Explain:
-		out += explanation.String()
+		out += explanation.String(false)
 	}
 	// write output to file and return the output string
 	_, err = WriteToFile(out, outFile)

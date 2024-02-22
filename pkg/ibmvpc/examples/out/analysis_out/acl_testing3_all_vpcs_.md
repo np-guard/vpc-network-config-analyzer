@@ -1,5 +1,4 @@
-# Connectivity for VPC test-vpc1-ky
-## Endpoint connectivity report
+# Endpoint connectivity for VPC test-vpc1-ky
 | src | dst | conn |
 |-----|-----|------|
 | Public Internet (all ranges) | vsi2-ky[10.240.20.4] | All Connections |
@@ -7,10 +6,10 @@
 | db-endpoint-gateway-ky[10.240.30.7] | vsi3a-ky[10.240.30.5] | All Connections |
 | db-endpoint-gateway-ky[10.240.30.7] | vsi3b-ky[10.240.30.6] | All Connections |
 | db-endpoint-gateway-ky[10.240.30.7] | vsi3c-ky[10.240.30.4] | All Connections |
-| vsi1-ky[10.240.10.4] | Public Internet 161.26.0.0/16 | protocol: UDP * |
+| vsi1-ky[10.240.10.4] | Public Internet 161.26.0.0/16 | protocol: UDP |
 | vsi1-ky[10.240.10.4] | vsi2-ky[10.240.20.4] | protocol: TCP,UDP |
 | vsi2-ky[10.240.20.4] | Public Internet (all ranges) | All Connections |
-| vsi2-ky[10.240.20.4] | vsi1-ky[10.240.10.4] | All Connections * |
+| vsi2-ky[10.240.20.4] | vsi1-ky[10.240.10.4] | All Connections |
 | vsi3a-ky[10.240.30.5] | db-endpoint-gateway-ky[10.240.30.7] | All Connections |
 | vsi3a-ky[10.240.30.5] | vsi1-ky[10.240.10.4] | All Connections * |
 | vsi3a-ky[10.240.30.5] | vsi3b-ky[10.240.30.6] | All Connections |
@@ -24,4 +23,4 @@
 | vsi3c-ky[10.240.30.4] | vsi3a-ky[10.240.30.5] | All Connections |
 | vsi3c-ky[10.240.30.4] | vsi3b-ky[10.240.30.6] | All Connections |
 
-connections are stateful unless marked with *
+connections are stateful (on TCP) unless marked with *

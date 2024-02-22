@@ -6,8 +6,20 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/np-guard/cloud-resource-collector/pkg/factory"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
+
+type regionList []string
+
+func (dp *regionList) String() string {
+	return fmt.Sprintln(*dp)
+}
+
+func (dp *regionList) Set(region string) error {
+	*dp = append(*dp, region)
+	return nil
+}
 
 // InArgs contains the input arguments for the analyzer
 type InArgs struct {
@@ -27,6 +39,9 @@ type InArgs struct {
 	ESrcMaxPort           *int64
 	EDstMinPort           *int64
 	EDstMaxPort           *int64
+	Provider              *string
+	RegionList            regionList
+	ResourceGroup         *string
 }
 
 // flagHasValue indicates for each input arg if it is expected to have a value in the cli or not
@@ -47,6 +62,9 @@ var flagHasValue = map[string]bool{
 	ESrcMaxPort:           true,
 	EDstMinPort:           true,
 	EDstMaxPort:           true,
+	Provider:              true,
+	RegionList:            true,
+	ResourceGroup:         true,
 }
 
 const (
@@ -67,6 +85,9 @@ const (
 	ESrcMaxPort           = "src-max-port"
 	EDstMinPort           = "dst-min-port"
 	EDstMaxPort           = "dst-max-port"
+	Provider              = "provider"
+	RegionList            = "region"
+	ResourceGroup         = "resource-group"
 
 	// output formats supported
 	JSONFormat       = "json"
@@ -104,7 +125,7 @@ var supportedAnalysisTypesMap = map[string][]string{
 	singleSubnet:     {TEXTFormat},
 	allEndpointsDiff: {TEXTFormat, MDFormat},
 	allSubnetsDiff:   {TEXTFormat, MDFormat},
-	explainMode:      {TEXTFormat},
+	explainMode:      {TEXTFormat, DEBUGFormat},
 }
 
 // supportedOutputFormatsList is an ordered list of supported output formats (usage details presented in this order)
@@ -126,6 +147,8 @@ var supportedAnalysisTypesList = []string{
 	allSubnetsDiff,
 	explainMode,
 }
+
+const srcDstUsage = "endpoint for explanation; can be specified as a VSI name/CRN or an internal/external IP-address/CIDR"
 
 func getSupportedAnalysisTypesMapString() string {
 	valuesList := make([]string, len(supportedAnalysisTypesList)+1)
@@ -186,13 +209,16 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args.VPC = flagset.String(VPC, "", "CRN of the VPC to analyze")
 	args.Debug = flagset.Bool(Debug, false, "Run in debug mode")
 	args.Version = flagset.Bool(Version, false, "Prints the release version number")
-	args.ESrc = flagset.String(ESrc, "", "Source name for network_interface or an external IP to be explained")
-	args.EDst = flagset.String(EDst, "", "Destination name for network_interface or an external IP to be explained")
+	args.ESrc = flagset.String(ESrc, "", "Source "+srcDstUsage)
+	args.EDst = flagset.String(EDst, "", "Destination "+srcDstUsage)
 	args.EProtocol = flagset.String(EProtocol, "", "Protocol for connection description")
 	args.ESrcMinPort = flagset.Int64(ESrcMinPort, common.MinPort, "Minimum source port for connection description")
 	args.ESrcMaxPort = flagset.Int64(ESrcMaxPort, common.MaxPort, "Maximum source port for connection description")
 	args.EDstMinPort = flagset.Int64(EDstMinPort, common.MinPort, "Minimum destination port for connection description")
 	args.EDstMaxPort = flagset.Int64(EDstMaxPort, common.MaxPort, "Maximum destination port for connection description")
+	args.Provider = flagset.String(Provider, "", "Collect resources from an account in this cloud provider")
+	args.ResourceGroup = flagset.String(ResourceGroup, "", "Resource group id or name from which to collect resources")
+	flagset.Var(&args.RegionList, "region", "Cloud region from which to collect resources")
 
 	// calling parseCmdLine prior to flagset.Parse to ensure that excessive and unsupported arguments are handled
 	// for example, flagset.Parse() ignores input args missing the `-`
@@ -205,7 +231,7 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = errorInErgs(&args, flagset)
+	err = errorInArgs(&args, flagset)
 	if err != nil {
 		return nil, err
 	}
@@ -307,10 +333,23 @@ func invalidArgsExplainMode(args *InArgs, flagset *flag.FlagSet) error {
 	return validRangeConnectionExplainMode(args)
 }
 
-func errorInErgs(args *InArgs, flagset *flag.FlagSet) error {
-	if !*args.Version && (args.InputConfigFile == nil || *args.InputConfigFile == "") {
+func invalidArgsConfigFile(args *InArgs, flagset *flag.FlagSet) error {
+	if !*args.Version && (args.InputConfigFile == nil || *args.InputConfigFile == "") && (args.Provider == nil || *args.Provider == "") {
 		flagset.PrintDefaults()
-		return fmt.Errorf("missing parameter: vpc-config")
+		return fmt.Errorf("missing parameter: either vpc-config flag or provider flag must be specified")
+	}
+	if *args.InputConfigFile != "" && *args.Provider != "" {
+		flagset.PrintDefaults()
+		return fmt.Errorf("error in parameters: vpc-config flag and provider flag cannot be specified together")
+	}
+
+	return nil
+}
+
+func errorInArgs(args *InArgs, flagset *flag.FlagSet) error {
+	err := invalidArgsConfigFile(args, flagset)
+	if err != nil {
+		return err
 	}
 	if _, ok := supportedAnalysisTypesMap[*args.AnalysisType]; !ok {
 		flagset.PrintDefaults()
@@ -346,6 +385,12 @@ func notSupportedYetArgs(args *InArgs) error {
 	}
 	if *args.OutputFormat == JSONFormat && *args.Grouping {
 		return fmt.Errorf("json output format is not supported with grouping")
+	}
+	if (len(args.RegionList) != 0 || *args.ResourceGroup != "") && *args.Provider == "" {
+		return fmt.Errorf("error in parameters: resource-group and region can only be specified in combination with provider flag")
+	}
+	if *args.Provider != factory.IBM && *args.Provider != "" {
+		return fmt.Errorf("unsupported provider: %s", *args.Provider)
 	}
 	return nil
 }

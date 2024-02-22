@@ -1,5 +1,4 @@
-# Connectivity for VPC ky-testenv-vpc
-## Endpoint connectivity report
+# Endpoint connectivity for VPC ky-testenv-vpc
 | src | dst | conn |
 |-----|-----|------|
 | edge-0-instance-ky[192.168.32.4] | Public Internet (all ranges) | All Connections |
