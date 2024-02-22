@@ -1,6 +1,7 @@
 package drawio
 
 import (
+	"slices"
 	"sort"
 )
 
@@ -608,8 +609,7 @@ func (ly *layoutS) setIconsLocationsOnTop(square SquareTreeNodeInterface) {
 //        b. both src and dst are on the left/right to the col.
 
 func (ly *layoutS) setTgwLocations(cloud SquareTreeNodeInterface) {
-	// make a copy of icons:
-	tgws := append(cloud.IconTreeNodes(), []IconTreeNodeInterface{}...)
+	tgws := slices.Clone(cloud.IconTreeNodes())
 	if len(tgws) == 0 {
 		return
 	}
@@ -645,6 +645,7 @@ func (ly *layoutS) setTgwLocations(cloud SquareTreeNodeInterface) {
 			}
 		}
 		tgw.setLocation(newCellLocation(cloud.Location().firstRow, ly.matrix.cols[bestColAvailable]))
+		delete(availableCols, bestColAvailable)
 	}
 }
 

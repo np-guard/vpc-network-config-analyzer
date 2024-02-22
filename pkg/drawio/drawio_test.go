@@ -748,9 +748,11 @@ func createNetworkTgw() SquareTreeNodeInterface {
 	tgw1 := NewTransitGatewayTreeNode(cloud, "tgw1")
 	tgw2 := NewTransitGatewayTreeNode(cloud, "tgw2")
 	tgw3 := NewTransitGatewayTreeNode(cloud, "tgw3")
+	tgw4 := NewTransitGatewayTreeNode(cloud, "tgw3")
 	NewConnectivityLineTreeNode(network, nis[9], nis[10], true, "").SetRouter(tgw1)
 	NewConnectivityLineTreeNode(network, nis[9], nis[10], true, "").SetRouter(tgw2)
 	NewConnectivityLineTreeNode(network, nis[9], nis[10], true, "").SetRouter(tgw3)
+	NewConnectivityLineTreeNode(network, nis[9], nis[10], true, "").SetRouter(tgw4)
 
 	return network
 }
