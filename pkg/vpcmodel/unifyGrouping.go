@@ -45,19 +45,25 @@ func unifiedGroupedElems(srcOrDst EndpointElem,
 	groupedEndpointsElemsMap map[string]*groupedEndpointsElems,
 	groupedExternalNodesMap map[string]*groupedExternalNodes,
 	unifyGroupedExternalNodes bool) EndpointElem {
-	// external in case external Shiri
+	// external in case external grouping does not need to be unifed
 	if !unifyGroupedExternalNodes && srcOrDst.IsExternal() {
 		return srcOrDst
 	}
-	if _, ok := srcOrDst.(Node); ok { // vsi
+	if _, ok := srcOrDst.(Node); ok { // vsi or single node external address
 		return srcOrDst
 	}
 	if _, ok := srcOrDst.(NodeSet); ok { // subnet
 		return srcOrDst
 	}
-	groupedEE := srcOrDst.(*groupedEndpointsElems)
-	unifiedGroupedEE := getGroupedEndpointsElems(*groupedEE, groupedEndpointsElemsMap)
-	return unifiedGroupedEE
+	if groupedEE, ok := srcOrDst.(*groupedEndpointsElems); ok {
+		unifiedGroupedEE := getGroupedEndpointsElems(*groupedEE, groupedEndpointsElemsMap)
+		return unifiedGroupedEE
+	}
+	if groupedExternal, ok := srcOrDst.(*groupedExternalNodes); ok {
+		unifiedGroupedEE := getGroupedExternalNodes(*groupedExternal, groupedExternalNodesMap)
+		return unifiedGroupedEE
+	}
+	return srcOrDst
 }
 
 // UnifyMultiVPC unifies multi-vpc graph for endpoints and subnets connectivity s.t.
