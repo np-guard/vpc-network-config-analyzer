@@ -415,7 +415,7 @@ func (g *GroupConnLines) groupInternalSrcOrDst(srcGrouping, groupVsi bool) {
 			}
 		}
 	}
-	g.GroupedLines = unifiedGroupedConnLines(res, g.groupedEndpointsElemsMap)
+	g.GroupedLines = unifiedGroupedConnLines(res, g.groupedEndpointsElemsMap, nil, false)
 }
 
 // computeGrouping does the grouping; for vsis (all_endpoints analysis)
