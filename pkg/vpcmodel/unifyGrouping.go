@@ -3,10 +3,11 @@ package vpcmodel
 // UnifyMultiVPC unifies multi-vpc graph for endpoints and subnets connectivity s.t.
 // each node appears once across multi-vpcs this is relevant only for DRAWIO and ARCHDRAWIO
 // in which there is a multivpc presentation
-func UnifyMultiVPC(config1, config2 map[string]*VPCConfig, nodesConn map[string]*VPCConnectivity,
+func UnifyMultiVPC(config1 map[string]*VPCConfig, nodesConn map[string]*VPCConnectivity,
 	subnetsConn map[string]*VPCsubnetConnectivity, f OutFormat) {
 	groupedEndpointsElemsMap := map[string]*groupedEndpointsElems{}
 	groupedExternalNodesMap := map[string]*groupedExternalNodes{}
+	// tmp for testing
 	if f != DRAWIO && f != ARCHDRAWIO {
 		return
 	}
@@ -26,6 +27,15 @@ func UnifyMultiVPC(config1, config2 map[string]*VPCConfig, nodesConn map[string]
 			}
 		}
 	}
+	//// tmp printing for testing
+	//fmt.Println("groupedEndpointsElemsMap\n~~~~~~~~~~~~~~~~~~~~~~~~")
+	//for key, item := range groupedEndpointsElemsMap {
+	//	fmt.Printf("\tkey: %v item:%v\n", key, item.Name())
+	//}
+	//fmt.Println("groupedExternalNodesMap\n~~~~~~~~~~~~~~~~~~~~~~~~")
+	//for key, item := range groupedExternalNodesMap {
+	//	fmt.Printf("\tkey: %v item:%v\n", key, item.Name())
+	//}
 	return
 
 }

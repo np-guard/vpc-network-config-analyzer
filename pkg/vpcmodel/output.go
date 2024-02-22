@@ -48,8 +48,8 @@ type OutputGenerator struct {
 	config2        map[string]*VPCConfig // specified only when analysis is diff
 	outputGrouping bool
 	useCase        OutputUseCase
-	nodesConn      map[string]*VPCConnectivity
-	subnetsConn    map[string]*VPCsubnetConnectivity
+	NodesConn      map[string]*VPCConnectivity
+	SubnetsConn    map[string]*VPCsubnetConnectivity
 	cfgsDiff       *diffBetweenCfgs
 	explanation    *Explanation
 }
@@ -61,8 +61,8 @@ func NewOutputGenerator(c1, c2 map[string]*VPCConfig, grouping bool, uc OutputUs
 		config2:        c2,
 		outputGrouping: grouping,
 		useCase:        uc,
-		nodesConn:      map[string]*VPCConnectivity{},
-		subnetsConn:    map[string]*VPCsubnetConnectivity{},
+		NodesConn:      map[string]*VPCConnectivity{},
+		SubnetsConn:    map[string]*VPCsubnetConnectivity{},
 	}
 	if !archOnly {
 		for i := range c1 {
@@ -71,14 +71,14 @@ func NewOutputGenerator(c1, c2 map[string]*VPCConfig, grouping bool, uc OutputUs
 				if err != nil {
 					return nil, err
 				}
-				res.nodesConn[i] = nodesConn
+				res.NodesConn[i] = nodesConn
 			}
 			if uc == AllSubnets {
 				subnetsConn, err := c1[i].GetSubnetsConnectivity(true, grouping)
 				if err != nil {
 					return nil, err
 				}
-				res.subnetsConn[i] = subnetsConn
+				res.SubnetsConn[i] = subnetsConn
 			}
 			if uc == SubnetsDiff {
 				configsForDiff := &configsForDiff{c1[i], c2[i], Subnets}
@@ -134,7 +134,7 @@ func (o *OutputGenerator) Generate(f OutFormat, outFile string) (string, error) 
 	default:
 		return "", errors.New("unsupported output format")
 	}
-	return formatter.WriteOutput(o.config1, o.config2, o.nodesConn, o.subnetsConn, o.cfgsDiff,
+	return formatter.WriteOutput(o.config1, o.config2, o.NodesConn, o.SubnetsConn, o.cfgsDiff,
 		outFile, o.outputGrouping, o.useCase, o.explanation)
 }
 

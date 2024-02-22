@@ -78,6 +78,9 @@ func analysisVPCConfigs(c1, c2 map[string]*vpcmodel.VPCConfig, inArgs *InArgs, o
 	}
 
 	outFormat := getOutputFormat(inArgs)
+
+	vpcmodel.UnifyMultiVPC(c1, og.NodesConn, og.SubnetsConn, outFormat)
+
 	analysisOut, err := og.Generate(outFormat, outFile)
 	if err != nil {
 		return "", fmt.Errorf(ErrorFormat, OutGenerationErr, err)
