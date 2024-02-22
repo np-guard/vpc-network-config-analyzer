@@ -3,19 +3,21 @@
 {{ $data := .}}
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="{{$data.Width}}px" height="{{$data.Height}}px" viewBox="-0.5 -0.5 {{$data.Width}} {{$data.Height}}">
     <defs>
-        <marker id='block' orient="auto" markerWidth='6' markerHeight='6' refX='6' refY='3'>
+        <marker id='black_block' orient="auto" markerWidth='6' markerHeight='6' refX='6' refY='3'>
         <path d='M0,0 V6 L6,3 Z' fill="black"/>
         </marker>
-        <marker id='oval' orient="auto" markerWidth='6' markerHeight='6' refX='3' refY='3'>
+        <marker id='black_oval' orient="auto" markerWidth='6' markerHeight='6' refX='3' refY='3'>
         <ellipse cx="3" cy="3" rx="2" ry="2" fill="black" />
         </marker>
-        <marker id='none' orient="auto" markerWidth='6' markerHeight='6' refX='3' refY='3'>
+        <marker id='black_none' orient="auto" markerWidth='6' markerHeight='6' refX='3' refY='3'>
         </marker>
-        <marker id='route_block' orient="auto" markerWidth='6' markerHeight='6' refX='6' refY='3'>
+        <marker id='blue_block' orient="auto" markerWidth='6' markerHeight='6' refX='6' refY='3'>
         <path d='M0,0 V6 L6,3 Z' fill="{{$data.ConnRouteredCollor}}"/>
         </marker>
-        <marker id='route_oval' orient="auto" markerWidth='6' markerHeight='6' refX='3' refY='3'>
+        <marker id='blue_oval' orient="auto" markerWidth='6' markerHeight='6' refX='3' refY='3'>
         <ellipse cx="3" cy="3" rx="2" ry="2" fill="{{$data.ConnRouteredCollor}}" />
+        </marker>
+        <marker id='blue_none' orient="auto" markerWidth='6' markerHeight='6' refX='3' refY='3'>
         </marker>
         
     </defs>
@@ -48,7 +50,7 @@
         {{ else if $data.IsType $node $data.GroupingIcon }}
                 <ellipse cx="{{$data.Add $ax ($data.Half $node.IconSize)}}" cy="{{$data.Add $ay ($data.Half $node.IconSize)}}" rx="{{$data.Half $node.IconSize}}" ry="{{$data.Half $node.IconSize}}" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" pointer-events="all"/>
         {{ else if $data.IsType $node $data.Line }}
-            <path d="{{$data.ConnectivityPoints $node}}" {{$data.SVGConnectivityStyle $node}} fill="none" stroke="{{$data.ConnectivityColor $node}}" stroke-width="2" stroke-miterlimit="10" pointer-events="stroke"/>
+            <path d="{{$data.ConnectivityPoints $node}}" {{$data.SVGConnectivityStyle $node}} fill="none" stroke-width="2" stroke-miterlimit="10" pointer-events="stroke"/>
             <text {{$data.ConnectivityLabelPos $node}} font-family="Helvetica" font-size="11"> {{$node.Label}}</text>
         {{ end }}
     {{end}}

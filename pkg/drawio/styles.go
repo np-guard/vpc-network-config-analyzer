@@ -132,6 +132,33 @@ func (stl *drawioStyles) connectPointStyle(tn TreeNodeInterface) (string, string
 	}
 	return startArrow, endArrow
 }
+func lineParameters(tn LineTreeNodeInterface) (start, end, colorName, color string, dash bool) {
+	logical := reflect.TypeOf(tn).Elem() == reflect.TypeOf(LogicalLineTreeNode{})
+	dash = logical
+
+	start, end = ovalEndEdge, ovalEndEdge
+	if !logical {
+		con := tn.(*ConnectivityTreeNode)
+		if con.directed {
+			end = errowEndEdge
+		}
+		if con.Src().IsIcon() && con.Src().(IconTreeNodeInterface).IsGroupingPoint() && !con.Src().(*GroupPointTreeNode).hasShownSquare() {
+			start = noneEndEdge
+		}
+		if con.Dst().IsIcon() && con.Dst().(IconTreeNodeInterface).IsGroupingPoint() && !con.Dst().(*GroupPointTreeNode).hasShownSquare() {
+			end = noneEndEdge
+		}
+	}
+	if logical && reflect.TypeOf(tn.Src()).Elem() == reflect.TypeOf(ResIPTreeNode{}) {
+		colorName = "blue"
+		color = connRouteredCollor
+	} else {
+		colorName = "black"
+		color = "#000000"
+	}
+	return start, end, colorName, color, dash
+
+}
 
 func (stl *drawioStyles) DrawioConnectivityStyle(tn TreeNodeInterface) string {
 	switch {
@@ -144,18 +171,13 @@ func (stl *drawioStyles) DrawioConnectivityStyle(tn TreeNodeInterface) string {
 }
 
 func (stl *drawioStyles) SVGConnectivityStyle(tn TreeNodeInterface) string {
-	startArrow, endArrow := stl.connectPointStyle(tn)
-	dash := ""
-	routePrefix := ""
-	if stl.IsLogicalLine(tn) {
-		dash = "stroke-dasharray=\"6 6\""
-	} else {
-		if tn.(*ConnectivityTreeNode).router != nil {
-			routePrefix = "route_"
-		}
+	startArrow, endArrow, colorName, color, dash := lineParameters(tn.(LineTreeNodeInterface))
+	dashStr := ""
+	if dash {
+		dashStr = "stroke-dasharray=\"6 6\""
 	}
 
-	return fmt.Sprintf("marker-start='url(#%s%s)' marker-end='url(#%s%s)' %s", routePrefix, startArrow, routePrefix, endArrow, dash)
+	return fmt.Sprintf("marker-start='url(#%s_%s)' marker-end='url(#%s_%s)' stroke=\"%s\" %s", colorName, startArrow, colorName, endArrow, color, dashStr)
 }
 
 func (stl *drawioStyles) connectivityStyle(tn TreeNodeInterface) string {
