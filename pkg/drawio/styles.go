@@ -260,47 +260,22 @@ func connectivityAbsPoints(tn TreeNodeInterface) []point {
 }
 
 func calcConnectionPoint(tn TreeNodeInterface, center, out point) point {
-	//revive:disable // these are the numbers required by drawio
 	srcX, srcY := center.X, center.Y
 	dstX, dstY := out.X, out.Y
 	dx, dy := dstX-srcX, dstY-srcY
 	srcWidth, srcHight := tn.Width(), tn.Height()
 
 	switch {
-	case dx > 0 && dy == 0:
-		return point{srcX + srcWidth/2, srcY} //4
-	case dx == 0 && dy > 0:
-		return point{srcX, srcY + srcHight/2} //8
-	case dx < 0 && dy == 0:
-		return point{srcX - srcWidth/2, srcY} //12
-	case dx == 0 && dy < 0:
-		return point{srcX, srcY - srcHight/2} //16
-	case dx > 0 && dy > 0 && srcHight*dx == srcWidth*dy:
-		return point{srcX + srcWidth/2, srcY + srcHight/2} //6
-	case dx < 0 && dy > 0 && -srcHight*dx == srcWidth*dy:
-		return point{srcX - srcWidth/2, srcY + srcHight/2} //10
-	case dx < 0 && dy < 0 && srcHight*dx == srcWidth*dy:
-		return point{srcX - srcWidth/2, srcY - srcHight/2} //14
-	case dx > 0 && dy < 0 && -srcHight*dx == srcWidth*dy:
-		return point{srcX + srcWidth/2, srcY - srcHight/2} //2
-	case dx > 0 && dy > 0 && srcHight*dx > srcWidth*dy:
-		return point{srcX + srcWidth/2, srcY + srcWidth*dy/dx/2} //5
-	case dx > 0 && dy > 0 && srcHight*dx < srcWidth*dy:
-		return point{srcX + srcHight*dx/dy/2, srcY + srcHight/2} //7
-	case dx < 0 && dy > 0 && -srcHight*dx < srcWidth*dy:
-		return point{srcX + srcHight*dx/dy/2, srcY + srcHight/2} //9
-	case dx < 0 && dy > 0 && -srcHight*dx > srcWidth*dy:
-		return point{srcX - srcWidth/2, srcY - srcWidth*dy/dx/2} //11
-	case dx < 0 && dy < 0 && srcHight*dx < srcWidth*dy:
-		return point{srcX - srcWidth/2, srcY - srcWidth*dy/dx/2} //13
-	case dx < 0 && dy < 0 && srcHight*dx > srcWidth*dy:
-		return point{srcX - srcHight*dx/dy/2, srcY - srcHight/2} //15
-	case dx > 0 && dy < 0 && -srcHight*dx > srcWidth*dy:
-		return point{srcX - srcHight*dx/dy/2, srcY - srcHight/2} //1
-	case dx > 0 && dy < 0 && -srcHight*dx < srcWidth*dy:
-		return point{srcX + srcWidth/2, srcY + srcWidth*dy/dx/2} //3
+	case dx > 0 && abs(srcHight*dx) >= abs(srcWidth*dy):
+		return point{srcX + srcWidth/2, srcY + srcWidth*dy/dx/2}
+	case dx < 0 && abs(srcHight*dx) >= abs(srcWidth*dy):
+		return point{srcX - srcWidth/2, srcY - srcWidth*dy/dx/2}
+	case dy > 0 && abs(srcHight*dx) <= abs(srcWidth*dy):
+		return point{srcX + srcHight*dx/dy/2, srcY + srcHight/2}
+	case dy < 0 && abs(srcHight*dx) <= abs(srcWidth*dy):
+		return point{srcX - srcHight*dx/dy/2, srcY - srcHight/2}
 	}
-	return point{srcX, srcY} //0
+	return point{srcX, srcY}
 }
 
 //////////////////////////////////////////////////////////////////////////////////
