@@ -55,30 +55,6 @@ var colors = map[reflect.Type]string{
 	reflect.TypeOf(GroupSubnetsSquareTreeNode{}): "#82b366",
 }
 
-func (stl *drawioStyles) tnType(tn TreeNodeInterface) int {
-	switch {
-	case tn.NotShownInDrawio():
-		return stl.Cnst.DoNotShow
-	case tn.IsSquare() && tn.(SquareTreeNodeInterface).IsGroupingSquare():
-		return stl.Cnst.GroupingSquare
-	case tn.IsSquare() && tn.(SquareTreeNodeInterface).IsGroupSubnetsSquare():
-		return stl.Cnst.GroupingSquare
-	case tn.IsSquare():
-		return stl.Cnst.IbmSquare
-	case tn.IsIcon() && tn.(IconTreeNodeInterface).IsGroupingPoint():
-		return stl.Cnst.GroupingIcon
-	case tn.IsIcon():
-		return stl.Cnst.IbmIcon
-	case tn.IsLine():
-		return stl.Cnst.Line
-	}
-	return stl.Cnst.DoNotShow
-}
-func (stl *drawioStyles) IsType(tn TreeNodeInterface, tp int) bool {
-	return stl.tnType(tn) == tp
-}
-
-
 type stylesConst struct {
 	// types
 	DoNotShow,
@@ -122,6 +98,59 @@ func newDrawioStyles(nodes []TreeNodeInterface) drawioStyles {
 	return stl
 }
 
+func (stl *drawioStyles) tnType(tn TreeNodeInterface) int {
+	switch {
+	case tn.NotShownInDrawio():
+		return stl.Cnst.DoNotShow
+	case tn.IsSquare() && tn.(SquareTreeNodeInterface).IsGroupingSquare():
+		return stl.Cnst.GroupingSquare
+	case tn.IsSquare() && tn.(SquareTreeNodeInterface).IsGroupSubnetsSquare():
+		return stl.Cnst.GroupingSquare
+	case tn.IsSquare():
+		return stl.Cnst.IbmSquare
+	case tn.IsIcon() && tn.(IconTreeNodeInterface).IsGroupingPoint():
+		return stl.Cnst.GroupingIcon
+	case tn.IsIcon():
+		return stl.Cnst.IbmIcon
+	case tn.IsLine():
+		return stl.Cnst.Line
+	}
+	return stl.Cnst.DoNotShow
+}
+
+func (stl *drawioStyles) IsType(tn TreeNodeInterface, tp int) bool {
+	return stl.tnType(tn) == tp
+}
+
+// mini icons:
+// some icons might have mini icons (ni and resIp). the rule is:
+// if there are no vsi icon in the canvas, all the ni are displayed as vsi icon, and without mini icons
+// if there is a vsi icon in the canvas, than:
+// if the ni is connected to a vsi that has only one ni, than the ni displayed as vsi icon, with an ni mini icons
+// if the ni is connected to a vsi that has more than one ni, than the ni displayed as ni icon, and without mini icons
+// same with resIp and vpe
+
+func (stl *drawioStyles) HasMiniIcon(tn TreeNodeInterface) bool {
+	return stl.canTypeHaveAMiniIcon[reflect.TypeOf(tn).Elem()] && tn.(IconTreeNodeInterface).hasMiniIcon()
+}
+
+// ////////////////////////////////////////////////////////////////////////////////////////
+func (stl *drawioStyles) Image(tn TreeNodeInterface) string {
+	if stl.canTypeHaveAMiniIcon[reflect.TypeOf(tn).Elem()] && !tn.(IconTreeNodeInterface).hasMiniIcon() {
+		return miniImages[reflect.TypeOf(tn).Elem()]
+	}
+	return images[reflect.TypeOf(tn).Elem()]
+}
+func (stl *drawioStyles) MiniImage(tn TreeNodeInterface) string {
+	return miniImages[reflect.TypeOf(tn).Elem()]
+}
+func (stl *drawioStyles) FIPImage() string {
+	return fipImage
+}
+func (stl *drawioStyles) Color(tn TreeNodeInterface) string {
+	return colors[reflect.TypeOf(tn).Elem()]
+}
+
 ////////////////////////////////////////////////////////////////////////
 
 func (stl *drawioStyles) lineParameters(tn LineTreeNodeInterface) (start, end, color string, dash bool) {
@@ -148,7 +177,6 @@ func (stl *drawioStyles) lineParameters(tn LineTreeNodeInterface) (start, end, c
 		color = stl.Cnst.Black
 	}
 	return start, end, color, dash
-
 }
 
 func (stl *drawioStyles) DrawioConnectivityStyle(tn TreeNodeInterface) string {
@@ -158,8 +186,7 @@ func (stl *drawioStyles) DrawioConnectivityStyle(tn TreeNodeInterface) string {
 	if dash {
 		dashStr = "dashed=1;"
 	}
-	connStyleFormat := "startArrow=%s;endArrow=%s;strokeColor=%s;html=1;fontSize=16;fontColor=#4376BB;strokeWidth=2;endFill=1;rounded=0;startFill=1;%s%s"
-
+	connStyleFormat := "startArrow=%s;endArrow=%s;strokeColor=%s;%s%s"
 	return fmt.Sprintf(connStyleFormat, startArrow, endArrow, color, lineConnectionPointsStyle(line), dashStr)
 }
 
@@ -174,20 +201,35 @@ func (stl *drawioStyles) SVGConnectivityStyle(tn TreeNodeInterface) string {
 		color, startArrow, color, endArrow, stl.Cnst.ColorCodes[color], dashStr)
 }
 
-func (stl *drawioStyles) ConnectivityLabelPos(tn TreeNodeInterface) string {
+func (stl *drawioStyles) SvgConnectivityLabelPos(tn TreeNodeInterface) string {
+	pos := stl.connectivityLabelPos(tn)
+	return fmt.Sprintf("x=\"%d\" y=\"%d\"", pos.X, pos.Y)
+}
+
+func (stl *drawioStyles) SvgConnectivityPoints(tn TreeNodeInterface) string {
+	points := connectivityAbsPoints(tn)
+	pointsStr := fmt.Sprintf("M %d %d", points[0].X, points[0].Y)
+	for _, point := range points[1:] {
+		pointsStr += fmt.Sprintf(" L %d %d", point.X, point.Y)
+	}
+	return pointsStr
+}
+
+func (stl *drawioStyles) connectivityLabelPos(tn TreeNodeInterface) point {
 	points := connectivityAbsPoints(tn)
 	maxDistance := 0
-	var x, y int
+	var pos point
 	for i, to := range points[1:] {
 		from := points[i]
 		distance := (from.X-to.X)*(from.X-to.X) + (from.Y-to.Y)*(from.Y-to.Y)
 		if distance > maxDistance {
-			x, y = (from.X+to.X)/2, (from.Y+to.Y)/2
+			pos = point{(from.X + to.X) / 2, (from.Y + to.Y) / 2}
 			maxDistance = distance
 		}
 	}
-	return fmt.Sprintf("x=\"%d\" y=\"%d\"", x, y)
+	return pos
 }
+
 func connectivityAbsPoints(tn TreeNodeInterface) []point {
 	line := tn.(LineTreeNodeInterface)
 	points := getLineAbsolutePoints(line)
@@ -202,19 +244,10 @@ func connectivityAbsPoints(tn TreeNodeInterface) []point {
 	} else {
 		points[0] = calcConnectionPoint(line.Src(), points[0], points[1])
 		points[len(points)-1] = calcConnectionPoint(line.Dst(), points[len(points)-1], points[len(points)-2])
-		// line.setLabel(fmt.Sprintf("%d->%d", sp, dp))
 	}
 	return points
 }
 
-func (stl *drawioStyles) ConnectivityPoints(tn TreeNodeInterface) string {
-	points := connectivityAbsPoints(tn)
-	pointsStr := fmt.Sprintf("M %d %d", points[0].X, points[0].Y)
-	for _, point := range points[1:] {
-		pointsStr += fmt.Sprintf(" L %d %d", point.X, point.Y)
-	}
-	return pointsStr
-}
 
 func calcConnectionPoint(tn TreeNodeInterface, center, out point) point {
 	//revive:disable // these are the numbers required by drawio
@@ -260,35 +293,6 @@ func calcConnectionPoint(tn TreeNodeInterface, center, out point) point {
 	return point{srcX, srcY} //0
 }
 
-// mini icons:
-// some icons might have mini icons (ni and resIp). the rule is:
-// if there are no vsi icon in the canvas, all the ni are displayed as vsi icon, and without mini icons
-// if there is a vsi icon in the canvas, than:
-// if the ni is connected to a vsi that has only one ni, than the ni displayed as vsi icon, with an ni mini icons
-// if the ni is connected to a vsi that has more than one ni, than the ni displayed as ni icon, and without mini icons
-// same with resIp and vpe
-
-func (stl *drawioStyles) HasMiniIcon(tn TreeNodeInterface) bool {
-	return stl.canTypeHaveAMiniIcon[reflect.TypeOf(tn).Elem()] && tn.(IconTreeNodeInterface).hasMiniIcon()
-}
-
-// ////////////////////////////////////////////////////////////////////////////////////////
-func (stl *drawioStyles) Image(tn TreeNodeInterface) string {
-	if stl.canTypeHaveAMiniIcon[reflect.TypeOf(tn).Elem()] && !tn.(IconTreeNodeInterface).hasMiniIcon() {
-		return miniImages[reflect.TypeOf(tn).Elem()]
-	}
-	return images[reflect.TypeOf(tn).Elem()]
-}
-func (stl *drawioStyles) MiniImage(tn TreeNodeInterface) string {
-	return miniImages[reflect.TypeOf(tn).Elem()]
-}
-
-func (stl *drawioStyles) Color(tn TreeNodeInterface) string {
-	return colors[reflect.TypeOf(tn).Elem()]
-}
-func (stl *drawioStyles) FIPImage() string {
-	return fipImage
-}
 
 //////////////////////////////////////////////////////////////////////////////////
 

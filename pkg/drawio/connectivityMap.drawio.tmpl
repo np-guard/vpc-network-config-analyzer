@@ -62,7 +62,7 @@
                 </mxCell>
 
         {{ else if $data.IsType $node $data.Cnst.Line }}
-            <mxCell id="{{$data.IDsPrefix}}-{{$node.ID}}" style="{{$data.DrawioConnectivityStyle $node}}" edge="1" parent="{{$data.IDsPrefix}}-{{$node.DrawioParent.RouterID}}" source="{{$data.IDsPrefix}}-{{ $node.SrcID}}" target="{{$data.IDsPrefix}}-{{ $node.DstID}}">        
+            <mxCell id="{{$data.IDsPrefix}}-{{$node.ID}}" style="{{$data.DrawioConnectivityStyle $node}}html=1;strokeWidth=2;endFill=1;rounded=0;startFill=1;" edge="1" parent="{{$data.IDsPrefix}}-{{$node.DrawioParent.RouterID}}" source="{{$data.IDsPrefix}}-{{ $node.SrcID}}" target="{{$data.IDsPrefix}}-{{ $node.DstID}}">        
             <mxGeometry relative="1" as="geometry">
             <Array as="points">
             {{range $point := $node.Points}}
