@@ -1,10 +1,11 @@
 package vpcmodel
 
 import (
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
-
 	"errors"
 	"fmt"
+
+	"github.com/np-guard/models/pkg/ipblocks"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 // VPCsubnetConnectivity captures allowed connectivity for subnets, considering nacl and pgw resources
@@ -63,7 +64,7 @@ func (v *VPCsubnetConnectivity) printAllowedConns() {
 	}
 }
 
-func (c *VPCConfig) ipblockToNamedResourcesInConfig(ipb *common.IPBlock, excludeExternalNodes bool) ([]VPCResourceIntf, error) {
+func (c *VPCConfig) ipblockToNamedResourcesInConfig(ipb *ipblocks.IPBlock, excludeExternalNodes bool) ([]VPCResourceIntf, error) {
 	res := []VPCResourceIntf{}
 
 	// consider subnets
@@ -71,7 +72,7 @@ func (c *VPCConfig) ipblockToNamedResourcesInConfig(ipb *common.IPBlock, exclude
 		if nodeset.Kind() != subnetKind {
 			continue
 		}
-		var subnetCidrIPB *common.IPBlock
+		var subnetCidrIPB *ipblocks.IPBlock
 		if subnetCidrIPB = nodeset.AddressRange(); subnetCidrIPB == nil {
 			return nil, errors.New("missing AddressRange for subnet")
 		}
@@ -129,7 +130,7 @@ func (c *VPCConfig) convertIPbasedToSubnetBasedResult(ipconn *IPbasedConnectivit
 }
 
 func (c *VPCConfig) subnetCidrToSubnetElem(cidr string) (NodeSet, error) {
-	cidrIPBlock, err := common.NewIPBlockFromCidr(cidr)
+	cidrIPBlock, err := ipblocks.NewIPBlockFromCidr(cidr)
 	if err != nil {
 		return nil, err
 	}

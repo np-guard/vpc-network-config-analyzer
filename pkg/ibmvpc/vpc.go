@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/np-guard/models/pkg/ipblocks"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	vpcmodel "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
@@ -87,7 +88,7 @@ type VPC struct {
 	nodes                []vpcmodel.Node
 	connectivityRules    *vpcmodel.ConnectivityResult // allowed connectivity between elements within the vpc
 	zones                map[string]*Zone
-	internalAddressRange *common.IPBlock
+	internalAddressRange *ipblocks.IPBlock
 	subnetsList          []*Subnet
 	addressPrefixes      []string
 }
@@ -106,7 +107,7 @@ func (v *VPC) Connectivity() *vpcmodel.ConnectivityResult {
 	return v.connectivityRules
 }
 
-func (v *VPC) AddressRange() *common.IPBlock {
+func (v *VPC) AddressRange() *ipblocks.IPBlock {
 	return v.internalAddressRange
 }
 
@@ -119,7 +120,7 @@ type Subnet struct {
 	nodes             []vpcmodel.Node
 	connectivityRules *vpcmodel.ConnectivityResult // allowed connectivity between elements within the subnet
 	cidr              string
-	ipblock           *common.IPBlock
+	ipblock           *ipblocks.IPBlock
 }
 
 func (s *Subnet) Zone() (*Zone, error) {
@@ -130,7 +131,7 @@ func (s *Subnet) Nodes() []vpcmodel.Node {
 	return s.nodes
 }
 
-func (s *Subnet) AddressRange() *common.IPBlock {
+func (s *Subnet) AddressRange() *ipblocks.IPBlock {
 	return s.ipblock
 }
 
@@ -156,12 +157,12 @@ func (v *Vsi) Connectivity() *vpcmodel.ConnectivityResult {
 	return v.connectivityRules
 }
 
-func (v *Vsi) AddressRange() *common.IPBlock {
+func (v *Vsi) AddressRange() *ipblocks.IPBlock {
 	return nodesAddressRange(v.nodes)
 }
 
-func nodesAddressRange(nodes []vpcmodel.Node) *common.IPBlock {
-	var res *common.IPBlock
+func nodesAddressRange(nodes []vpcmodel.Node) *ipblocks.IPBlock {
+	var res *ipblocks.IPBlock
 	for _, n := range nodes {
 		if res == nil {
 			res = n.IPBlock()
@@ -186,7 +187,7 @@ func (v *Vpe) Connectivity() *vpcmodel.ConnectivityResult {
 	return nil
 }
 
-func (v *Vpe) AddressRange() *common.IPBlock {
+func (v *Vpe) AddressRange() *ipblocks.IPBlock {
 	return nodesAddressRange(v.nodes)
 }
 
@@ -313,8 +314,8 @@ func (nl *NaclLayer) StringFilterEffect(listRulesInFilter []vpcmodel.RulesInFilt
 	return strings.Join(filtersEffectList, semicolonSeparator)
 }
 
-func (nl *NaclLayer) ReferencedIPblocks() []*common.IPBlock {
-	res := []*common.IPBlock{}
+func (nl *NaclLayer) ReferencedIPblocks() []*ipblocks.IPBlock {
+	res := []*ipblocks.IPBlock{}
 	for _, n := range nl.naclList {
 		res = append(res, n.analyzer.referencedIPblocks...)
 	}
@@ -508,8 +509,8 @@ func (sgl *SecurityGroupLayer) StringFilterEffect(listRulesInFilter []vpcmodel.R
 	return strings.Join(filtersEffectList, semicolonSeparator)
 }
 
-func (sgl *SecurityGroupLayer) ReferencedIPblocks() []*common.IPBlock {
-	res := []*common.IPBlock{}
+func (sgl *SecurityGroupLayer) ReferencedIPblocks() []*ipblocks.IPBlock {
+	res := []*ipblocks.IPBlock{}
 	for _, sg := range sgl.sgList {
 		res = append(res, sg.analyzer.referencedIPblocks...)
 	}
@@ -543,7 +544,7 @@ func (sg *SecurityGroup) rulesFilterInConnectivity(src, dst vpcmodel.Node, conn 
 }
 
 func (sg *SecurityGroup) getMemberTargetStrAddress(src, dst vpcmodel.Node,
-	isIngress bool) (memberStrAddress string, targetIPBlock *common.IPBlock) {
+	isIngress bool) (memberStrAddress string, targetIPBlock *ipblocks.IPBlock) {
 	var member, target vpcmodel.Node
 	if isIngress {
 		member, target = dst, src
@@ -641,7 +642,7 @@ type TransitGateway struct {
 
 	// availableRoutes are the published address prefixes from all connected vpcs that arrive at the TGW's table of available routes,
 	// as considered from prefix filters: map from vpc UID to its available routes in the routes table
-	availableRoutes map[string][]*common.IPBlock
+	availableRoutes map[string][]*ipblocks.IPBlock
 
 	// sourceSubnets are the subnets from the connected vpcs that can have connection to destination
 	// subnet from another vpc
