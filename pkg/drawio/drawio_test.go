@@ -64,6 +64,11 @@ func TestWithParsing(t *testing.T) {
 	if err != nil {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
 	}
+	n = createNetworkTgw()
+	err = CreateDrawioConnectivityMapFile(n, "tgws.drawio", false)
+	if err != nil {
+		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
+	}
 }
 
 func createNetwork() SquareTreeNodeInterface {
@@ -201,15 +206,15 @@ func createNetwork() SquareTreeNodeInterface {
 	c6 := NewConnectivityLineTreeNode(network, ni5b, i3, false, "c6")
 	c7 := NewConnectivityLineTreeNode(network, ni5b, i4, false, "c7")
 
-	c1.SetRouter(gw11, false)
-	c2a.SetRouter(ni5, false)
-	c2b.SetRouter(ni5, false)
-	c2c.SetRouter(ni5, true)
-	c3.SetRouter(gw21, false)
-	c4.SetRouter(gw22, false)
-	c5.SetRouter(gw22, false)
-	c6.SetRouter(gw12, false)
-	c7.SetRouter(ni5b, false)
+	c1.SetRouter(gw11)
+	c2a.SetRouter(ni5)
+	c2b.SetRouter(ni5)
+	c2c.SetRouter(ni5)
+	c3.SetRouter(gw21)
+	c4.SetRouter(gw22)
+	c5.SetRouter(gw22)
+	c6.SetRouter(gw12)
+	c7.SetRouter(ni5b)
 
 	NewConnectivityLineTreeNode(network, ni10, is2, true, "c10")
 	NewConnectivityLineTreeNode(network, ni1, is1a, true, "c11")
@@ -296,11 +301,11 @@ func createNetworkAllTypes() SquareTreeNodeInterface {
 	gw1 := NewGatewayTreeNode(zone1, "gw21")
 
 	c1 := NewConnectivityLineTreeNode(network, nie, i1, true, "gconn1")
-	c1.SetRouter(nie, false)
+	c1.SetRouter(nie)
 	NewConnectivityLineTreeNode(network, gs13, i2, true, "gconn1")
 	NewConnectivityLineTreeNode(network, gs11, gs11, true, "gconn1")
 	c2 := NewConnectivityLineTreeNode(network, gs33a, u2, true, "gconn1")
-	c2.SetRouter(gw1, false)
+	c2.SetRouter(gw1)
 	NewConnectivityLineTreeNode(network, gs33d, gs11, true, "gconn1")
 	NewConnectivityLineTreeNode(network, gs33c, gs33b, true, "gconn1")
 	return network
@@ -718,9 +723,39 @@ func createNetwork2() SquareTreeNodeInterface {
 	NewConnectivityLineTreeNode(network, i4, ni1, false, "conn1_opp")
 	NewConnectivityLineTreeNode(network, ni1, i2, false, "conn2")
 	con := NewConnectivityLineTreeNode(network, ni2, is1, false, "conn3")
-	con.SetRouter(ni2, false)
+	con.SetRouter(ni2)
 	NewConnectivityLineTreeNode(network, ni3, ni4, false, "conn4")
 	NewConnectivityLineTreeNode(network, is1, ni4, false, "conn5")
+
+	return network
+}
+
+func createNetworkTgw() SquareTreeNodeInterface {
+	network := NewNetworkTreeNode()
+	cloud := NewCloudTreeNode(network, "IBM Cloud")
+	nis := make([]IconTreeNodeInterface, 12)
+	for i := 0; i < len(nis); i++ {
+		vpc := NewVpcTreeNode(cloud, "vpc1")
+		zone := NewZoneTreeNode(vpc, "zone1")
+		subnet := NewSubnetTreeNode(zone, "subnet2", "cidr1", "acl1")
+		nis[i] = NewNITreeNode(subnet, "ni20")
+	}
+	for nCon := 2; nCon <= 4; nCon++ {
+		tgw1 := NewTransitGatewayTreeNode(cloud, "tgw1")
+		tgw2 := NewTransitGatewayTreeNode(cloud, "tgw2")
+		for j := nCon; j < nCon*2; j++ {
+			NewConnectivityLineTreeNode(network, nis[nCon-j/2], nis[nCon+j], true, "").SetRouter(tgw1)
+			NewConnectivityLineTreeNode(network, nis[nCon-j/2], nis[nCon+j/2], true, "").SetRouter(tgw2)
+		}
+	}
+	tgw1 := NewTransitGatewayTreeNode(cloud, "tgw1")
+	tgw2 := NewTransitGatewayTreeNode(cloud, "tgw2")
+	tgw3 := NewTransitGatewayTreeNode(cloud, "tgw3")
+	tgw4 := NewTransitGatewayTreeNode(cloud, "tgw3")
+	NewConnectivityLineTreeNode(network, nis[9], nis[10], true, "").SetRouter(tgw1)
+	NewConnectivityLineTreeNode(network, nis[9], nis[10], true, "").SetRouter(tgw2)
+	NewConnectivityLineTreeNode(network, nis[9], nis[10], true, "").SetRouter(tgw3)
+	NewConnectivityLineTreeNode(network, nis[9], nis[10], true, "").SetRouter(tgw4)
 
 	return network
 }
