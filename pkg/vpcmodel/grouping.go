@@ -48,7 +48,7 @@ func (g *groupingConnections) getGroupedConnLines(groupedConnLines *GroupConnLin
 	for a, aMap := range *g {
 		for _, b := range aMap {
 			var resElem *groupedConnLine
-			bGrouped := groupedConnLines.getGroupedExternalNodes(b.nodes)
+			bGrouped := getGroupedExternalNodes(b.nodes, groupedConnLines.groupedExternalNodesMap)
 			if isSrcToDst {
 				resElem = &groupedConnLine{a, bGrouped, b.commonProperties}
 			} else {
@@ -199,13 +199,14 @@ func getGroupedEndpointsElems(grouped groupedEndpointsElems,
 }
 
 // same as the previous function, for groupedExternalNodesMap
-func (g *GroupConnLines) getGroupedExternalNodes(grouped groupedExternalNodes) *groupedExternalNodes {
+func getGroupedExternalNodes(grouped groupedExternalNodes,
+	groupedExternalNodesMap map[string]*groupedExternalNodes) *groupedExternalNodes {
 	// Due to the canonical representation, grouped.String() and thus grouped.Name() will be identical
 	//  to equiv groupedExternalNodes
-	if existingGrouped, ok := g.groupedExternalNodesMap[grouped.Name()]; ok {
+	if existingGrouped, ok := groupedExternalNodesMap[grouped.Name()]; ok {
 		return existingGrouped
 	}
-	g.groupedExternalNodesMap[grouped.Name()] = &grouped
+	groupedExternalNodesMap[grouped.Name()] = &grouped
 	return &grouped
 }
 
@@ -451,16 +452,19 @@ func unifiedGroupedConnLines(oldConnLines []*groupedConnLine,
 	newGroupedLines := make([]*groupedConnLine, len(oldConnLines))
 	// go over all connections; if src/dst is not external then use groupedEndpointsElemsMap
 	for i, groupedLine := range oldConnLines {
-		newGroupedLines[i] = &groupedConnLine{unifiedGroupedElems(groupedLine.src, groupedEndpointsElemsMap),
-			unifiedGroupedElems(groupedLine.dst, groupedEndpointsElemsMap),
+		newGroupedLines[i] = &groupedConnLine{unifiedGroupedElems(groupedLine.src, groupedEndpointsElemsMap, nil, false),
+			unifiedGroupedElems(groupedLine.dst, groupedEndpointsElemsMap, nil, false),
 			groupedLine.commonProperties}
 	}
 	return newGroupedLines
 }
 
 func unifiedGroupedElems(srcOrDst EndpointElem,
-	groupedEndpointsElemsMap map[string]*groupedEndpointsElems) EndpointElem {
-	if srcOrDst.IsExternal() { // external
+	groupedEndpointsElemsMap map[string]*groupedEndpointsElems,
+	groupedExternalNodesMap map[string]*groupedExternalNodes,
+	unifyGroupedExternalNodes bool) EndpointElem {
+	// external in case external Shiri
+	if !unifyGroupedExternalNodes && srcOrDst.IsExternal() {
 		return srcOrDst
 	}
 	if _, ok := srcOrDst.(Node); ok { // vsi
