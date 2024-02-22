@@ -208,11 +208,11 @@ func vsiGroupingBySubnets(groupedConnLines *GroupConnLines,
 			res = append(res, n) // elements which are not interface nodes remain in the result as in the original input
 			continue             // skip input elements which are not a network interface node
 		}
-		subnetUid := c.getSubnetOfNode(n).UID() // get the subnet to which n belongs
-		if _, ok := subnetNameToNodes[subnetUid]; !ok {
-			subnetNameToNodes[subnetUid] = []EndpointElem{}
+		subnetUID := c.getSubnetOfNode(n).UID() // get the subnet to which n belongs
+		if _, ok := subnetNameToNodes[subnetUID]; !ok {
+			subnetNameToNodes[subnetUID] = []EndpointElem{}
 		}
-		subnetNameToNodes[subnetUid] = append(subnetNameToNodes[subnetUid], n)
+		subnetNameToNodes[subnetUID] = append(subnetNameToNodes[subnetUID], n)
 	}
 	for _, nodesList := range subnetNameToNodes {
 		if len(nodesList) == 1 { // a single network interface on subnet is just added to the result (no grouping)
