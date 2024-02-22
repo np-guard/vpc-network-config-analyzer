@@ -716,7 +716,7 @@ func addTGWbasedConfigs(tgws map[string]*TransitGateway, res map[string]*vpcmode
 			// merge vpc config to the new "combined" config, used to get conns between vpcs only
 			newConfig.Nodes = append(newConfig.Nodes, vpcConfig.Nodes...)
 			newConfig.NodeSets = append(newConfig.NodeSets, vpcConfig.NodeSets...)
-
+			newConfig.CloudName = vpcConfig.CloudName
 			// FilterResources: merge NACLLayers to a single NACLLayer object, same for sg
 			for _, fr := range vpcConfig.FilterResources {
 				switch layer := fr.(type) {
