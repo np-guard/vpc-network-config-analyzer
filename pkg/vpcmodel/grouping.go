@@ -450,14 +450,15 @@ func (g *GroupConnLines) unifiedGroupedConnLines(oldConnLines []*groupedConnLine
 	newGroupedLines := make([]*groupedConnLine, len(oldConnLines))
 	// go over all connections; if src/dst is not external then use groupedEndpointsElemsMap
 	for i, groupedLine := range oldConnLines {
-		newGroupedLines[i] = &groupedConnLine{g.unifiedGroupedElems(groupedLine.src),
-			g.unifiedGroupedElems(groupedLine.dst),
+		newGroupedLines[i] = &groupedConnLine{unifiedGroupedElems(groupedLine.src, g.groupedEndpointsElemsMap),
+			unifiedGroupedElems(groupedLine.dst, g.groupedEndpointsElemsMap),
 			groupedLine.commonProperties}
 	}
 	return newGroupedLines
 }
 
-func (g *GroupConnLines) unifiedGroupedElems(srcOrDst EndpointElem) EndpointElem {
+func unifiedGroupedElems(srcOrDst EndpointElem,
+	groupedEndpointsElemsMap map[string]*groupedEndpointsElems) EndpointElem {
 	if srcOrDst.IsExternal() { // external
 		return srcOrDst
 	}
@@ -468,7 +469,7 @@ func (g *GroupConnLines) unifiedGroupedElems(srcOrDst EndpointElem) EndpointElem
 		return srcOrDst
 	}
 	groupedEE := srcOrDst.(*groupedEndpointsElems)
-	unifiedGroupedEE := getGroupedEndpointsElems(*groupedEE, g.groupedEndpointsElemsMap)
+	unifiedGroupedEE := getGroupedEndpointsElems(*groupedEE, groupedEndpointsElemsMap)
 	return unifiedGroupedEE
 }
 
