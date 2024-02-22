@@ -134,7 +134,6 @@ func (n *InternalNode) IsPublicInternet() bool {
 type NodeSet interface {
 	VPCResourceIntf
 	Nodes() []Node
-	Connectivity() *ConnectivityResult
 	AddressRange() *ipblocks.IPBlock
 }
 

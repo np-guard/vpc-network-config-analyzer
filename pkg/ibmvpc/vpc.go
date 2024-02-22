@@ -86,7 +86,6 @@ func (n *IKSNode) Name() string {
 type VPC struct {
 	vpcmodel.VPCResource
 	nodes                []vpcmodel.Node
-	connectivityRules    *vpcmodel.ConnectivityResult // allowed connectivity between elements within the vpc
 	zones                map[string]*Zone
 	internalAddressRange *ipblocks.IPBlock
 	subnetsList          []*Subnet
@@ -103,9 +102,6 @@ func (v *VPC) getZoneByName(name string) (*Zone, error) {
 func (v *VPC) Nodes() []vpcmodel.Node {
 	return v.nodes
 }
-func (v *VPC) Connectivity() *vpcmodel.ConnectivityResult {
-	return v.connectivityRules
-}
 
 func (v *VPC) AddressRange() *ipblocks.IPBlock {
 	return v.internalAddressRange
@@ -117,10 +113,9 @@ func (v *VPC) subnets() []*Subnet {
 
 type Subnet struct {
 	vpcmodel.VPCResource
-	nodes             []vpcmodel.Node
-	connectivityRules *vpcmodel.ConnectivityResult // allowed connectivity between elements within the subnet
-	cidr              string
-	ipblock           *ipblocks.IPBlock
+	nodes   []vpcmodel.Node
+	cidr    string
+	ipblock *ipblocks.IPBlock
 }
 
 func (s *Subnet) Zone() (*Zone, error) {
@@ -135,14 +130,9 @@ func (s *Subnet) AddressRange() *ipblocks.IPBlock {
 	return s.ipblock
 }
 
-func (s *Subnet) Connectivity() *vpcmodel.ConnectivityResult {
-	return s.connectivityRules
-}
-
 type Vsi struct {
 	vpcmodel.VPCResource
-	nodes             []vpcmodel.Node
-	connectivityRules *vpcmodel.ConnectivityResult // possible rule: if has floating ip -> create connectivity to FIP, deny connectivity to PGW
+	nodes []vpcmodel.Node
 }
 
 func (v *Vsi) Zone() (*Zone, error) {
@@ -151,10 +141,6 @@ func (v *Vsi) Zone() (*Zone, error) {
 
 func (v *Vsi) Nodes() []vpcmodel.Node {
 	return v.nodes
-}
-
-func (v *Vsi) Connectivity() *vpcmodel.ConnectivityResult {
-	return v.connectivityRules
 }
 
 func (v *Vsi) AddressRange() *ipblocks.IPBlock {
@@ -181,10 +167,6 @@ type Vpe struct {
 
 func (v *Vpe) Nodes() []vpcmodel.Node {
 	return v.nodes
-}
-
-func (v *Vpe) Connectivity() *vpcmodel.ConnectivityResult {
-	return nil
 }
 
 func (v *Vpe) AddressRange() *ipblocks.IPBlock {
