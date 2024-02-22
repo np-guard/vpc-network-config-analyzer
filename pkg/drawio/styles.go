@@ -55,21 +55,21 @@ func (stl *drawioStyles) IsConnectionLine(tn TreeNodeInterface) bool {
 func (stl *drawioStyles) tnType(tn TreeNodeInterface) int {
 	switch {
 	case tn.NotShownInDrawio():
-		return stl.DoNotShow
+		return stl.Cnst.DoNotShow
 	case tn.IsSquare() && tn.(SquareTreeNodeInterface).IsGroupingSquare():
-		return stl.GroupingSquare
+		return stl.Cnst.GroupingSquare
 	case tn.IsSquare() && tn.(SquareTreeNodeInterface).IsGroupSubnetsSquare():
-		return stl.GroupingSquare
+		return stl.Cnst.GroupingSquare
 	case tn.IsSquare():
-		return stl.IbmSquare
+		return stl.Cnst.IbmSquare
 	case tn.IsIcon() && tn.(IconTreeNodeInterface).IsGroupingPoint():
-		return stl.GroupingIcon
+		return stl.Cnst.GroupingIcon
 	case tn.IsIcon():
-		return stl.IbmIcon
+		return stl.Cnst.IbmIcon
 	case tn.IsLine():
-		return stl.Line
+		return stl.Cnst.Line
 	}
-	return stl.DoNotShow
+	return stl.Cnst.DoNotShow
 }
 func (stl *drawioStyles) IsType(tn TreeNodeInterface, tp int) bool {
 	return stl.tnType(tn) == tp
@@ -90,18 +90,38 @@ var colors = map[reflect.Type]string{
 	reflect.TypeOf(GroupSubnetsSquareTreeNode{}): "#82b366",
 }
 
-type drawioStyles struct {
+type stylesConst struct {
+	// types
 	DoNotShow,
 	IbmSquare,
 	GroupingSquare,
 	IbmIcon,
 	GroupingIcon,
 	Line int
+	// colors
+	Black,
+	Blue string
+	colorCodes map[string]string
+}
+
+func newStylesConst() stylesConst {
+	cnst := stylesConst{
+		0, 1, 2, 3, 4, 5,
+		"black", "blue",
+		map[string]string{},
+	}
+	cnst.colorCodes[cnst.Black] = "#000000"
+	cnst.colorCodes[cnst.Blue] = "#007FFF"
+	return cnst
+}
+
+type drawioStyles struct {
+	Cnst                 stylesConst
 	canTypeHaveAMiniIcon map[reflect.Type]bool
 }
 
 func newDrawioStyles(nodes []TreeNodeInterface) drawioStyles {
-	stl := drawioStyles{0, 1, 2, 3, 4, 6, map[reflect.Type]bool{}}
+	stl := drawioStyles{newStylesConst(), map[reflect.Type]bool{}}
 	for _, tn := range nodes {
 		if reflect.TypeOf(tn).Elem() == reflect.TypeOf(VsiTreeNode{}) {
 			stl.canTypeHaveAMiniIcon[reflect.TypeOf(NITreeNode{})] = true
@@ -132,7 +152,7 @@ func (stl *drawioStyles) connectPointStyle(tn TreeNodeInterface) (string, string
 	}
 	return startArrow, endArrow
 }
-func lineParameters(tn LineTreeNodeInterface) (start, end, colorName, color string, dash bool) {
+func (stl *drawioStyles) lineParameters(tn LineTreeNodeInterface) (start, end, color string, dash bool) {
 	logical := reflect.TypeOf(tn).Elem() == reflect.TypeOf(LogicalLineTreeNode{})
 	dash = logical
 
@@ -149,14 +169,13 @@ func lineParameters(tn LineTreeNodeInterface) (start, end, colorName, color stri
 			end = noneEndEdge
 		}
 	}
-	if logical && reflect.TypeOf(tn.Src()).Elem() == reflect.TypeOf(ResIPTreeNode{}) {
-		colorName = "blue"
-		color = connRouteredCollor
+	public := logical && reflect.TypeOf(tn.Src()).Elem() == reflect.TypeOf(ResIPTreeNode{})
+	if public {
+		color = stl.Cnst.Blue
 	} else {
-		colorName = "black"
-		color = "#000000"
+		color = stl.Cnst.Black
 	}
-	return start, end, colorName, color, dash
+	return start, end, color, dash
 
 }
 
@@ -171,13 +190,14 @@ func (stl *drawioStyles) DrawioConnectivityStyle(tn TreeNodeInterface) string {
 }
 
 func (stl *drawioStyles) SVGConnectivityStyle(tn TreeNodeInterface) string {
-	startArrow, endArrow, colorName, color, dash := lineParameters(tn.(LineTreeNodeInterface))
+	startArrow, endArrow, color, dash := stl.lineParameters(tn.(LineTreeNodeInterface))
 	dashStr := ""
 	if dash {
 		dashStr = "stroke-dasharray=\"6 6\""
 	}
 
-	return fmt.Sprintf("marker-start='url(#%s_%s)' marker-end='url(#%s_%s)' stroke=\"%s\" %s", colorName, startArrow, colorName, endArrow, color, dashStr)
+	return fmt.Sprintf("marker-start='url(#%s_%s)' marker-end='url(#%s_%s)' stroke=\"%s\" %s",
+		color, startArrow, color, endArrow, stl.Cnst.colorCodes[color], dashStr)
 }
 
 func (stl *drawioStyles) connectivityStyle(tn TreeNodeInterface) string {
