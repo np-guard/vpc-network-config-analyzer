@@ -46,17 +46,6 @@ var images = map[reflect.Type]string{
 
 }
 
-func (stl *drawioStyles) IsIbmSquare(tn TreeNodeInterface) bool {
-	return map[reflect.Type]bool{
-		reflect.TypeOf(PublicNetworkTreeNode{}): true,
-		reflect.TypeOf(CloudTreeNode{}):         true,
-		reflect.TypeOf(VpcTreeNode{}):           true,
-		reflect.TypeOf(ZoneTreeNode{}):          true,
-		reflect.TypeOf(PartialSGTreeNode{}):     true,
-		reflect.TypeOf(SubnetTreeNode{}):        true,
-	}[reflect.TypeOf(tn).Elem()]
-}
-
 func (stl *drawioStyles) IsLogicalLine(tn TreeNodeInterface) bool {
 	return reflect.TypeOf(tn).Elem() == reflect.TypeOf(LogicalLineTreeNode{})
 }
@@ -123,6 +112,7 @@ func newDrawioStyles(nodes []TreeNodeInterface) drawioStyles {
 	}
 	return stl
 }
+
 ////////////////////////////////////////////////////////////////////////
 
 func (stl *drawioStyles) connectPointStyle(tn TreeNodeInterface) (string, string) {
@@ -143,7 +133,6 @@ func (stl *drawioStyles) connectPointStyle(tn TreeNodeInterface) (string, string
 	return startArrow, endArrow
 }
 
-
 func (stl *drawioStyles) DrawioConnectivityStyle(tn TreeNodeInterface) string {
 	switch {
 	case stl.IsConnectionLine(tn):
@@ -153,7 +142,6 @@ func (stl *drawioStyles) DrawioConnectivityStyle(tn TreeNodeInterface) string {
 	}
 	return ""
 }
-
 
 func (stl *drawioStyles) SVGConnectivityStyle(tn TreeNodeInterface) string {
 	startArrow, endArrow := stl.connectPointStyle(tn)
@@ -217,10 +205,8 @@ func connectivityAbsPoints(tn TreeNodeInterface) []point {
 			point{p.X, p.Y + iconSize},
 		}
 	} else {
-		sx, sy, _ := currentSrcConnectionPoint(line.Src(), points[0], points[1])
-		dx, dy, _ := currentSrcConnectionPoint(line.Dst(), points[len(points)-1], points[len(points)-2])
-		points[0].X, points[0].Y = sx, sy
-		points[len(points)-1].X, points[len(points)-1].Y = dx, dy
+		points[0] = calcConnectionPoint(line.Src(), points[0], points[1])
+		points[len(points)-1] = calcConnectionPoint(line.Dst(), points[len(points)-1], points[len(points)-2])
 		// line.setLabel(fmt.Sprintf("%d->%d", sp, dp))
 	}
 	return points
@@ -235,7 +221,7 @@ func (stl *drawioStyles) ConnectivityPoints(tn TreeNodeInterface) string {
 	return pointsStr
 }
 
-func currentSrcConnectionPoint(tn TreeNodeInterface, center, out point) (x, y, p int) {
+func calcConnectionPoint(tn TreeNodeInterface, center, out point) point {
 	//revive:disable // these are the numbers required by drawio
 	srcX, srcY := center.X, center.Y
 	dstX, dstY := out.X, out.Y
@@ -243,40 +229,40 @@ func currentSrcConnectionPoint(tn TreeNodeInterface, center, out point) (x, y, p
 	srcWidth, srcHight := tn.Width(), tn.Height()
 
 	switch {
-	case dx > 0 && dy == 0: //4
-		return srcX + srcWidth/2, srcY, 4
-	case dx == 0 && dy > 0: //8
-		return srcX, srcY + srcHight/2, 8
+	case dx > 0 && dy == 0:
+		return point{srcX + srcWidth/2, srcY} //4
+	case dx == 0 && dy > 0:
+		return point{srcX, srcY + srcHight/2} //8
 	case dx < 0 && dy == 0:
-		return srcX - srcWidth/2, srcY, 12
+		return point{srcX - srcWidth/2, srcY} //12
 	case dx == 0 && dy < 0:
-		return srcX, srcY - srcHight/2, 16
+		return point{srcX, srcY - srcHight/2} //16
 	case dx > 0 && dy > 0 && srcHight*dx == srcWidth*dy:
-		return srcX + srcWidth/2, srcY + srcHight/2, 6
+		return point{srcX + srcWidth/2, srcY + srcHight/2} //6
 	case dx < 0 && dy > 0 && -srcHight*dx == srcWidth*dy:
-		return srcX - srcWidth/2, srcY + srcHight/2, 10
+		return point{srcX - srcWidth/2, srcY + srcHight/2} //10
 	case dx < 0 && dy < 0 && srcHight*dx == srcWidth*dy:
-		return srcX - srcWidth/2, srcY - srcHight/2, 14
+		return point{srcX - srcWidth/2, srcY - srcHight/2} //14
 	case dx > 0 && dy < 0 && -srcHight*dx == srcWidth*dy:
-		return srcX + srcWidth/2, srcY - srcHight/2, 2
+		return point{srcX + srcWidth/2, srcY - srcHight/2} //2
 	case dx > 0 && dy > 0 && srcHight*dx > srcWidth*dy:
-		return srcX + srcWidth/2, srcY + srcWidth*dy/dx/2, 5
+		return point{srcX + srcWidth/2, srcY + srcWidth*dy/dx/2} //5
 	case dx > 0 && dy > 0 && srcHight*dx < srcWidth*dy:
-		return srcX + srcHight*dx/dy/2, srcY + srcHight/2, 7
+		return point{srcX + srcHight*dx/dy/2, srcY + srcHight/2} //7
 	case dx < 0 && dy > 0 && -srcHight*dx < srcWidth*dy:
-		return srcX + srcHight*dx/dy/2, srcY + srcHight/2, 9
+		return point{srcX + srcHight*dx/dy/2, srcY + srcHight/2} //9
 	case dx < 0 && dy > 0 && -srcHight*dx > srcWidth*dy:
-		return srcX - srcWidth/2, srcY - srcWidth*dy/dx/2, 11
+		return point{srcX - srcWidth/2, srcY - srcWidth*dy/dx/2} //11
 	case dx < 0 && dy < 0 && srcHight*dx < srcWidth*dy:
-		return srcX - srcWidth/2, srcY - srcWidth*dy/dx/2, 13
+		return point{srcX - srcWidth/2, srcY - srcWidth*dy/dx/2} //13
 	case dx < 0 && dy < 0 && srcHight*dx > srcWidth*dy:
-		return srcX - srcHight*dx/dy/2, srcY - srcHight/2, 15
+		return point{srcX - srcHight*dx/dy/2, srcY - srcHight/2} //15
 	case dx > 0 && dy < 0 && -srcHight*dx > srcWidth*dy:
-		return srcX - srcHight*dx/dy/2, srcY - srcHight/2, 1
+		return point{srcX - srcHight*dx/dy/2, srcY - srcHight/2} //1
 	case dx > 0 && dy < 0 && -srcHight*dx < srcWidth*dy:
-		return srcX + srcWidth/2, srcY + srcWidth*dy/dx/2, 3
+		return point{srcX + srcWidth/2, srcY + srcWidth*dy/dx/2} //3
 	}
-	return srcX, srcY, 0
+	return point{srcX, srcY} //0
 }
 
 // mini icons:
@@ -290,7 +276,6 @@ func currentSrcConnectionPoint(tn TreeNodeInterface, center, out point) (x, y, p
 func (stl *drawioStyles) HasMiniIcon(tn TreeNodeInterface) bool {
 	return stl.canTypeHaveAMiniIcon[reflect.TypeOf(tn).Elem()] && tn.(IconTreeNodeInterface).hasMiniIcon()
 }
-
 
 // ////////////////////////////////////////////////////////////////////////////////////////
 func (stl *drawioStyles) Image(tn TreeNodeInterface) string {
