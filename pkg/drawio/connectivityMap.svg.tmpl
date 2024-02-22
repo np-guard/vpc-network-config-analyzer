@@ -3,23 +3,16 @@
 {{ $data := .}}
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="{{$data.Width}}px" height="{{$data.Height}}px" viewBox="-0.5 -0.5 {{$data.Width}} {{$data.Height}}">
     <defs>
-        <marker id='black_block' orient="auto" markerWidth='6' markerHeight='6' refX='6' refY='3'>
-        <path d='M0,0 V6 L6,3 Z' fill="black"/>
+        {{range $color, $code := $data.Cnst.ColorCodes }}
+        <marker id='{{$color}}_block' orient="auto" markerWidth='6' markerHeight='6' refX='6' refY='3'>
+        <path d='M0,0 V6 L6,3 Z' fill="{{$code}}"/>
         </marker>
-        <marker id='black_oval' orient="auto" markerWidth='6' markerHeight='6' refX='3' refY='3'>
-        <ellipse cx="3" cy="3" rx="2" ry="2" fill="black" />
+        <marker id='{{$color}}_oval' orient="auto" markerWidth='6' markerHeight='6' refX='3' refY='3'>
+        <ellipse cx="3" cy="3" rx="2" ry="2" fill="{{$code}}" />
         </marker>
-        <marker id='black_none' orient="auto" markerWidth='6' markerHeight='6' refX='3' refY='3'>
+        <marker id='{{$color}}_none' orient="auto" markerWidth='6' markerHeight='6' refX='3' refY='3'>
         </marker>
-        <marker id='blue_block' orient="auto" markerWidth='6' markerHeight='6' refX='6' refY='3'>
-        <path d='M0,0 V6 L6,3 Z' fill="{{$data.ConnRouteredCollor}}"/>
-        </marker>
-        <marker id='blue_oval' orient="auto" markerWidth='6' markerHeight='6' refX='3' refY='3'>
-        <ellipse cx="3" cy="3" rx="2" ry="2" fill="{{$data.ConnRouteredCollor}}" />
-        </marker>
-        <marker id='blue_none' orient="auto" markerWidth='6' markerHeight='6' refX='3' refY='3'>
-        </marker>
-        
+        {{end}}
     </defs>
 <g>
     {{range $node := $data.Nodes}}

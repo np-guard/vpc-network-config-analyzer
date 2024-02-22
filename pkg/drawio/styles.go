@@ -13,11 +13,6 @@ const (
 	vpeImage   = "PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiMxMTkyZTg7fS5jbHMtMntmaWxsOiNmZmY7fS5jbHMtM3tmaWxsOm5vbmU7fTwvc3R5bGU+PC9kZWZzPjxyZWN0IGNsYXNzPSJjbHMtMSIgeD0iMC41IiB5PSIwLjUiIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIvPjxwYXRoIGlkPSJ2cGNfZ3JhZGllbnRfYm90dG9tIiBkYXRhLW5hbWU9InZwYyBncmFkaWVudCBib3R0b20iIGNsYXNzPSJjbHMtMiIgZD0iTTI3LDMxLjM4SDE4Ljg4YTEuMjcsMS4yNywwLDAsMS0xLjI2LTEuMjVWMjJoMS4yNnY4LjEzSDI3WiIvPjxwYXRoIGlkPSJ2cGNfZ3JhZGllbnRfdG9wIiBkYXRhLW5hbWU9InZwYyBncmFkaWVudCB0b3AiIGNsYXNzPSJjbHMtMiIgZD0iTTMwLjEyLDI3aDEuMjZWMTguODhhMS4yNiwxLjI2LDAsMCwwLTEuMjYtMS4yNUgyMnYxLjI1aDguMTJaIi8+PHBhdGggaWQ9ImVuZHBvaW50cyIgY2xhc3M9ImNscy0yIiBkPSJNMjkuMTIsMjguMjVsLTIuNS0yLjVBMi4yNiwyLjI2LDAsMCwwLDI3LDI0LjUsMi41MSwyLjUxLDAsMCwwLDI0LjUsMjJhMi4xOSwyLjE5LDAsMCwwLTEuMjUuMzhsLTIuNS0yLjVWMTUuNzVoLTV2NWg0LjEzbDIuNSwyLjVBMi4yNiwyLjI2LDAsMCwwLDIyLDI0LjUsMi41MSwyLjUxLDAsMCwwLDI0LjUsMjdhMi4yNiwyLjI2LDAsMCwwLDEuMjUtLjM4bDIuNSwyLjV2NC4xM2g1di01Wk0xOS41LDE5LjVIMTdWMTdoMi41Wm01LDYuMjVhMS4yNSwxLjI1LDAsMSwxLDEuMjUtMS4yNUExLjI1LDEuMjUsMCwwLDEsMjQuNSwyNS43NVpNMzIsMzJIMjkuNVYyOS41SDMyWiIvPjxyZWN0IGNsYXNzPSJjbHMtMyIgeD0iMTQuNSIgeT0iMTQuNSIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIi8+PC9zdmc+"
 	fipImage   = "PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiMxMTkyZTg7fS5jbHMtMntmaWxsOiNmZmY7fS5jbHMtM3tmaWxsOm5vbmU7fTwvc3R5bGU+PC9kZWZzPjxyZWN0IGNsYXNzPSJjbHMtMSIgeD0iMC41IiB5PSIwLjkyIiB3aWR0aD0iNDgiIGhlaWdodD0iNDcuMTYiIHJ4PSI4Ii8+PHBhdGggY2xhc3M9ImNscy0yIiBkPSJNMzAuMTIsMjEuNDNhMy4xMywzLjEzLDAsMCwwLTMuMDYsMi40NkgyMS45NGEzLjA3LDMuMDcsMCwxLDAsMCwxLjIyaDUuMTJhMy4xMiwzLjEyLDAsMSwwLDMuMDYtMy42OFptMCw0LjkxQTEuODQsMS44NCwwLDEsMSwzMiwyNC41LDEuODUsMS44NSwwLDAsMSwzMC4xMiwyNi4zNFoiLz48cmVjdCBjbGFzcz0iY2xzLTMiIHg9IjE0LjUiIHk9IjE0LjY3IiB3aWR0aD0iMjAiIGhlaWdodD0iMTkuNjUiLz48L3N2Zz4="
 
-	connStyleFormat    = "endArrow=%s;html=1;fontSize=16;fontColor=#4376BB;strokeWidth=2;endFill=1;rounded=0;startArrow=%s;%sstartFill=1;%s"
-	logicalLineStyle   = "html=1;verticalAlign=middle;startArrow=oval;startFill=1;endArrow=oval;startSize=6;strokeColor=#000000;align=center;dashed=1;strokeWidth=2;horizontal=1;labelPosition=center;verticalLabelPosition=middle;endFill=1;rounded=0;"
-	lineExitFormat     = "exitX=%v;exitY=%v;exitDx=0;exitDy=0;"
-	connRouteredCollor = "#007FFF"
-
 	ovalEndEdge  = "oval"
 	errowEndEdge = "block"
 	noneEndEdge  = "none"
@@ -45,13 +40,21 @@ var images = map[reflect.Type]string{
 	// reflect.TypeOf(EndPointTreeNode{}):        "PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiMxMTkyZTg7fS5jbHMtMntmaWxsOiNmZmY7fS5jbHMtM3tmaWxsOm5vbmU7fTwvc3R5bGU+PC9kZWZzPjxyZWN0IGNsYXNzPSJjbHMtMSIgeD0iMC41IiB5PSIwLjUiIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIvPjxwYXRoIGlkPSJ2cGNfZ3JhZGllbnRfYm90dG9tIiBkYXRhLW5hbWU9InZwYyBncmFkaWVudCBib3R0b20iIGNsYXNzPSJjbHMtMiIgZD0iTTI3LDMxLjM4SDE4Ljg4YTEuMjcsMS4yNywwLDAsMS0xLjI2LTEuMjVWMjJoMS4yNnY4LjEzSDI3WiIvPjxwYXRoIGlkPSJ2cGNfZ3JhZGllbnRfdG9wIiBkYXRhLW5hbWU9InZwYyBncmFkaWVudCB0b3AiIGNsYXNzPSJjbHMtMiIgZD0iTTMwLjEyLDI3aDEuMjZWMTguODhhMS4yNiwxLjI2LDAsMCwwLTEuMjYtMS4yNUgyMnYxLjI1aDguMTJaIi8+PHBhdGggaWQ9ImVuZHBvaW50cyIgY2xhc3M9ImNscy0yIiBkPSJNMjkuMTIsMjguMjVsLTIuNS0yLjVBMi4yNiwyLjI2LDAsMCwwLDI3LDI0LjUsMi41MSwyLjUxLDAsMCwwLDI0LjUsMjJhMi4xOSwyLjE5LDAsMCwwLTEuMjUuMzhsLTIuNS0yLjVWMTUuNzVoLTV2NWg0LjEzbDIuNSwyLjVBMi4yNiwyLjI2LDAsMCwwLDIyLDI0LjUsMi41MSwyLjUxLDAsMCwwLDI0LjUsMjdhMi4yNiwyLjI2LDAsMCwwLDEuMjUtLjM4bDIuNSwyLjV2NC4xM2g1di01Wk0xOS41LDE5LjVIMTdWMTdoMi41Wm01LDYuMjVhMS4yNSwxLjI1LDAsMSwxLDEuMjUtMS4yNUExLjI1LDEuMjUsMCwwLDEsMjQuNSwyNS43NVpNMzIsMzJIMjkuNVYyOS41SDMyWiIvPjxyZWN0IGNsYXNzPSJjbHMtMyIgeD0iMTQuNSIgeT0iMTQuNSIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIi8+PC9zdmc+",
 
 }
+var miniImages = map[reflect.Type]string{
+	reflect.TypeOf(NITreeNode{}):    niImage,
+	reflect.TypeOf(ResIPTreeNode{}): resIPImage,
+}
+var colors = map[reflect.Type]string{
+	reflect.TypeOf(PublicNetworkTreeNode{}):      "#1192E8",
+	reflect.TypeOf(CloudTreeNode{}):              "#1192E8",
+	reflect.TypeOf(VpcTreeNode{}):                "#1192E8",
+	reflect.TypeOf(ZoneTreeNode{}):               "#878d96",
+	reflect.TypeOf(SubnetTreeNode{}):             "#1192E8",
+	reflect.TypeOf(PartialSGTreeNode{}):          "#FA4D56",
+	reflect.TypeOf(GroupSquareTreeNode{}):        "#82b366",
+	reflect.TypeOf(GroupSubnetsSquareTreeNode{}): "#82b366",
+}
 
-func (stl *drawioStyles) IsLogicalLine(tn TreeNodeInterface) bool {
-	return reflect.TypeOf(tn).Elem() == reflect.TypeOf(LogicalLineTreeNode{})
-}
-func (stl *drawioStyles) IsConnectionLine(tn TreeNodeInterface) bool {
-	return reflect.TypeOf(tn).Elem() == reflect.TypeOf(ConnectivityTreeNode{})
-}
 func (stl *drawioStyles) tnType(tn TreeNodeInterface) int {
 	switch {
 	case tn.NotShownInDrawio():
@@ -75,20 +78,6 @@ func (stl *drawioStyles) IsType(tn TreeNodeInterface, tp int) bool {
 	return stl.tnType(tn) == tp
 }
 
-var miniImages = map[reflect.Type]string{
-	reflect.TypeOf(NITreeNode{}):    niImage,
-	reflect.TypeOf(ResIPTreeNode{}): resIPImage,
-}
-var colors = map[reflect.Type]string{
-	reflect.TypeOf(PublicNetworkTreeNode{}):      "#1192E8",
-	reflect.TypeOf(CloudTreeNode{}):              "#1192E8",
-	reflect.TypeOf(VpcTreeNode{}):                "#1192E8",
-	reflect.TypeOf(ZoneTreeNode{}):               "#878d96",
-	reflect.TypeOf(SubnetTreeNode{}):             "#1192E8",
-	reflect.TypeOf(PartialSGTreeNode{}):          "#FA4D56",
-	reflect.TypeOf(GroupSquareTreeNode{}):        "#82b366",
-	reflect.TypeOf(GroupSubnetsSquareTreeNode{}): "#82b366",
-}
 
 type stylesConst struct {
 	// types
@@ -101,7 +90,7 @@ type stylesConst struct {
 	// colors
 	Black,
 	Blue string
-	colorCodes map[string]string
+	ColorCodes map[string]string
 }
 
 func newStylesConst() stylesConst {
@@ -110,8 +99,8 @@ func newStylesConst() stylesConst {
 		"black", "blue",
 		map[string]string{},
 	}
-	cnst.colorCodes[cnst.Black] = "#000000"
-	cnst.colorCodes[cnst.Blue] = "#007FFF"
+	cnst.ColorCodes[cnst.Black] = "#000000"
+	cnst.ColorCodes[cnst.Blue] = "#007FFF"
 	return cnst
 }
 
@@ -135,23 +124,6 @@ func newDrawioStyles(nodes []TreeNodeInterface) drawioStyles {
 
 ////////////////////////////////////////////////////////////////////////
 
-func (stl *drawioStyles) connectPointStyle(tn TreeNodeInterface) (string, string) {
-	startArrow, endArrow := ovalEndEdge, ovalEndEdge
-	if stl.IsLogicalLine(tn) {
-		return startArrow, endArrow
-	}
-	con := tn.(*ConnectivityTreeNode)
-	if con.directed {
-		endArrow = errowEndEdge
-	}
-	if con.Src().IsIcon() && con.Src().(IconTreeNodeInterface).IsGroupingPoint() && !con.Src().(*GroupPointTreeNode).hasShownSquare() {
-		startArrow = noneEndEdge
-	}
-	if con.Dst().IsIcon() && con.Dst().(IconTreeNodeInterface).IsGroupingPoint() && !con.Dst().(*GroupPointTreeNode).hasShownSquare() {
-		endArrow = noneEndEdge
-	}
-	return startArrow, endArrow
-}
 func (stl *drawioStyles) lineParameters(tn LineTreeNodeInterface) (start, end, color string, dash bool) {
 	logical := reflect.TypeOf(tn).Elem() == reflect.TypeOf(LogicalLineTreeNode{})
 	dash = logical
@@ -180,13 +152,15 @@ func (stl *drawioStyles) lineParameters(tn LineTreeNodeInterface) (start, end, c
 }
 
 func (stl *drawioStyles) DrawioConnectivityStyle(tn TreeNodeInterface) string {
-	switch {
-	case stl.IsConnectionLine(tn):
-		return stl.connectivityStyle(tn)
-	case stl.IsLogicalLine(tn):
-		return logicalLineStyle
+	line := tn.(LineTreeNodeInterface)
+	startArrow, endArrow, color, dash := stl.lineParameters(line)
+	dashStr := ""
+	if dash {
+		dashStr = "dashed=1;"
 	}
-	return ""
+	connStyleFormat := "startArrow=%s;endArrow=%s;strokeColor=%s;html=1;fontSize=16;fontColor=#4376BB;strokeWidth=2;endFill=1;rounded=0;startFill=1;%s%s"
+
+	return fmt.Sprintf(connStyleFormat, startArrow, endArrow, color, lineConnectionPointsStyle(line), dashStr)
 }
 
 func (stl *drawioStyles) SVGConnectivityStyle(tn TreeNodeInterface) string {
@@ -197,28 +171,7 @@ func (stl *drawioStyles) SVGConnectivityStyle(tn TreeNodeInterface) string {
 	}
 
 	return fmt.Sprintf("marker-start='url(#%s_%s)' marker-end='url(#%s_%s)' stroke=\"%s\" %s",
-		color, startArrow, color, endArrow, stl.Cnst.colorCodes[color], dashStr)
-}
-
-func (stl *drawioStyles) connectivityStyle(tn TreeNodeInterface) string {
-	con := tn.(*ConnectivityTreeNode)
-	startArrow, endArrow := stl.connectPointStyle(tn)
-	strokeColor := ""
-	if con.router != nil {
-		strokeColor = "strokeColor=" + connRouteredCollor + ";"
-	}
-	return fmt.Sprintf(connStyleFormat, endArrow, startArrow, strokeColor, lineConnectionPointsStyle(con))
-}
-
-func (stl *drawioStyles) ConnectivityColor(tn TreeNodeInterface) string {
-	if stl.IsConnectionLine(tn) && tn.(*ConnectivityTreeNode).router != nil {
-		return connRouteredCollor
-	}
-	return "#000000"
-}
-
-func (stl *drawioStyles) ConnRouteredCollor() string {
-	return connRouteredCollor
+		color, startArrow, color, endArrow, stl.Cnst.ColorCodes[color], dashStr)
 }
 
 func (stl *drawioStyles) ConnectivityLabelPos(tn TreeNodeInterface) string {
@@ -342,6 +295,7 @@ func (stl *drawioStyles) FIPImage() string {
 // /////////////////////////////////////////////
 // lineConnectionPointsStyle() set the enter/exit style for a line (currntly only for the src),
 func lineConnectionPointsStyle(line LineTreeNodeInterface) string {
+	lineExitFormat := "exitX=%v;exitY=%v;exitDx=0;exitDy=0;"
 	srcConnectionPoint := line.SrcConnectionPoint()
 	if srcConnectionPoint == 0 {
 		return ""
