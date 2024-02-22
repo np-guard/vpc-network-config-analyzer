@@ -26,7 +26,6 @@ func UnifyMultiVPC(config1 map[string]*VPCConfig, nodesConn map[string]*VPCConne
 			}
 		}
 	}
-	return
 }
 
 // Go over the grouping result and set groups s.t. all semantically equiv groups have a unified reference.
