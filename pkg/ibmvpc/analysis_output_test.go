@@ -44,6 +44,7 @@ type vpcGeneralTest struct {
 	actualOutput   map[vpcmodel.OutputUseCase]string // actual output file path
 	useCases       []vpcmodel.OutputUseCase          // the list of output use cases to test
 	errPerUseCase  map[vpcmodel.OutputUseCase]error
+	resourceGroup  string // filter vpc configs by resource group
 	mode           testMode
 	grouping       bool
 	format         vpcmodel.OutFormat
@@ -74,6 +75,7 @@ const (
 	secJSONOutSuffix               = "_2nd.json"
 	drawioOutSuffix                = ".drawio"
 	archDrawioOutSuffix            = "_arch.drawio"
+	suffixResourceGroup            = "_resourceGroup_"
 )
 
 // getTestFileName returns expected file name and actual file name, for the relevant use case
@@ -82,7 +84,8 @@ func getTestFileName(testName string,
 	grouping bool,
 	format vpcmodel.OutFormat,
 	configName string,
-	allVPCs bool) (
+	allVPCs bool,
+	resourceGroup string) (
 	expectedFileName,
 	actualFileName string,
 	err error) {
@@ -115,11 +118,15 @@ func getTestFileName(testName string,
 	if grouping {
 		res += suffixOutFileWithGrouping
 	}
+	if resourceGroup != "" {
+		res += suffixResourceGroup + resourceGroup
+	}
 	suffix, suffixErr := getTestFileSuffix(format)
 	if suffixErr != nil {
 		return "", "", suffixErr
 	}
 	res += suffix
+
 	expectedFileName = res
 	actualFileName = actualOutFilePrefix + res
 	return expectedFileName, actualFileName, nil
@@ -474,6 +481,13 @@ var tests = []*vpcGeneralTest{
 		grouping:    true,
 		format:      vpcmodel.DRAWIO,
 	},
+	// resource group filtering example
+	{
+		inputConfig:   "multi_resource_groups",
+		useCases:      []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:        vpcmodel.Text,
+		resourceGroup: "ola",
+	},
 }
 
 var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
@@ -538,6 +552,7 @@ func TestUnsupportedAnalysis(t *testing.T) {
 func (tt *vpcGeneralTest) runTest(t *testing.T) {
 	// init test - set the input/output file names according to test name
 	tt.initTest()
+	fmt.Printf("%s\n", tt.resourceGroup)
 
 	// get vpcConfigs obj from parsing + analyzing input config file
 	vpcConfigs := getVPCConfigs(t, tt, true)
@@ -583,7 +598,7 @@ func getVPCConfigs(t *testing.T, tt *vpcGeneralTest, firstCfg bool) map[string]*
 		inputConfig = tt.inputConfig2nd
 	}
 	inputConfigFile := filepath.Join(getTestsDirInput(), inputConfig)
-	rc, err := ParseResourcesFromFile(inputConfigFile)
+	rc, err := ParseResourcesFromFile(inputConfigFile, tt.resourceGroup)
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
@@ -626,7 +641,7 @@ func initTestFileNames(tt *vpcGeneralTest,
 	allVPCs bool,
 	testDir string) error {
 	expectedFileName, actualFileName, err := getTestFileName(
-		tt.name, uc, tt.grouping, tt.format, vpcName, allVPCs)
+		tt.name, uc, tt.grouping, tt.format, vpcName, allVPCs, tt.resourceGroup)
 	if err != nil {
 		return err
 	}

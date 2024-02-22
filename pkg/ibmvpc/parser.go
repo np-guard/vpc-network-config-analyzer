@@ -14,9 +14,96 @@ import (
 	vpcmodel "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
+//nolint:funlen,gocyclo //styles are too long and can not be split
+func FilterByResourceGroup(rc *datamodel.ResourcesContainerModel, resourceGroup string) {
+	if resourceGroup == "" {
+		return
+	}
+
+	var filteredVpcs []*datamodel.VPC
+	for _, vpc := range rc.VpcList {
+		if *vpc.ResourceGroup.ID == resourceGroup || *vpc.ResourceGroup.Name == resourceGroup {
+			filteredVpcs = append(filteredVpcs, vpc)
+		}
+	}
+	rc.VpcList = filteredVpcs
+
+	var filteredSubnets []*datamodel.Subnet
+	for _, subnet := range rc.SubnetList {
+		if *subnet.ResourceGroup.ID == resourceGroup || *subnet.ResourceGroup.Name == resourceGroup {
+			filteredSubnets = append(filteredSubnets, subnet)
+		}
+	}
+	rc.SubnetList = filteredSubnets
+
+	var filteredPublicGWs []*datamodel.PublicGateway
+	for _, PGW := range rc.PublicGWList {
+		if *PGW.ResourceGroup.ID == resourceGroup || *PGW.ResourceGroup.Name == resourceGroup {
+			filteredPublicGWs = append(filteredPublicGWs, PGW)
+		}
+	}
+	rc.PublicGWList = filteredPublicGWs
+
+	var filteredFloatingIPs []*datamodel.FloatingIP
+	for _, floatingIP := range rc.FloatingIPList {
+		if *floatingIP.ResourceGroup.ID == resourceGroup || *floatingIP.ResourceGroup.Name == resourceGroup {
+			filteredFloatingIPs = append(filteredFloatingIPs, floatingIP)
+		}
+	}
+	rc.FloatingIPList = filteredFloatingIPs
+
+	var filteredNwACLs []*datamodel.NetworkACL
+	for _, nwACL := range rc.NetworkACLList {
+		if *nwACL.ResourceGroup.ID == resourceGroup || *nwACL.ResourceGroup.Name == resourceGroup {
+			filteredNwACLs = append(filteredNwACLs, nwACL)
+		}
+	}
+	rc.NetworkACLList = filteredNwACLs
+
+	var filteredSecurityGroups []*datamodel.SecurityGroup
+	for _, securityGroup := range rc.SecurityGroupList {
+		if *securityGroup.ResourceGroup.ID == resourceGroup || *securityGroup.ResourceGroup.Name == resourceGroup {
+			filteredSecurityGroups = append(filteredSecurityGroups, securityGroup)
+		}
+	}
+	rc.SecurityGroupList = filteredSecurityGroups
+
+	var filteredEndpointGateways []*datamodel.EndpointGateway
+	for _, endpointGateway := range rc.EndpointGWList {
+		if *endpointGateway.ResourceGroup.ID == resourceGroup || *endpointGateway.ResourceGroup.Name == resourceGroup {
+			filteredEndpointGateways = append(filteredEndpointGateways, endpointGateway)
+		}
+	}
+	rc.EndpointGWList = filteredEndpointGateways
+
+	var filteredInstances []*datamodel.Instance
+	for _, instance := range rc.InstanceList {
+		if *instance.ResourceGroup.ID == resourceGroup || *instance.ResourceGroup.Name == resourceGroup {
+			filteredInstances = append(filteredInstances, instance)
+		}
+	}
+	rc.InstanceList = filteredInstances
+
+	var filteredLoadBalancers []*datamodel.LoadBalancer
+	for _, loadBalancer := range rc.LBList {
+		if *loadBalancer.ResourceGroup.ID == resourceGroup || *loadBalancer.ResourceGroup.Name == resourceGroup {
+			filteredLoadBalancers = append(filteredLoadBalancers, loadBalancer)
+		}
+	}
+	rc.LBList = filteredLoadBalancers
+
+	var filteredTransitGateways []*datamodel.TransitGateway
+	for _, transitGateway := range rc.TransitGatewayList {
+		if *transitGateway.ResourceGroup.ID == resourceGroup {
+			filteredTransitGateways = append(filteredTransitGateways, transitGateway)
+		}
+	}
+	rc.TransitGatewayList = filteredTransitGateways
+}
+
 // ParseResourcesFromFile returns datamodel.ResourcesContainerModel object, containing the configured resources structs
 // from the input JSON file
-func ParseResourcesFromFile(fileName string) (*datamodel.ResourcesContainerModel, error) {
+func ParseResourcesFromFile(fileName, resourceGroup string) (*datamodel.ResourcesContainerModel, error) {
 	inputConfigContent, err := os.ReadFile(fileName)
 	if err != nil {
 		return nil, err
@@ -26,6 +113,8 @@ func ParseResourcesFromFile(fileName string) (*datamodel.ResourcesContainerModel
 	if err != nil {
 		return nil, err
 	}
+	FilterByResourceGroup(&config, resourceGroup)
+
 	return &config, nil
 }
 

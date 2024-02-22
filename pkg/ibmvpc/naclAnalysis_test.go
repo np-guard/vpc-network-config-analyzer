@@ -12,7 +12,7 @@ import (
 )
 
 func TestGetRules(t *testing.T) {
-	rc, err := ParseResourcesFromFile(filepath.Join(getTestsDirInput(), "input_acl_testing3.json"))
+	rc, err := ParseResourcesFromFile(filepath.Join(getTestsDirInput(), "input_acl_testing3.json"), "")
 	require.Nilf(t, err, "err: %s", err)
 	vpcConfigs, err := VPCConfigsFromResources(rc, "", false)
 	require.Nilf(t, err, "err: %s", err)

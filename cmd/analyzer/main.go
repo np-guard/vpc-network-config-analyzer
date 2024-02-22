@@ -87,7 +87,7 @@ func analysisVPCConfigs(c1, c2 map[string]*vpcmodel.VPCConfig, inArgs *InArgs, o
 }
 
 func vpcConfigsFromFile(fileName string, inArgs *InArgs) (map[string]*vpcmodel.VPCConfig, error) {
-	rc, err1 := ibmvpc.ParseResourcesFromFile(fileName)
+	rc, err1 := ibmvpc.ParseResourcesFromFile(fileName, *inArgs.ResourceGroup)
 	if err1 != nil {
 		return nil, fmt.Errorf("error parsing input vpc resources file: %w", err1)
 	}
