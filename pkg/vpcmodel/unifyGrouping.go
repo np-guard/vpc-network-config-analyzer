@@ -2,6 +2,7 @@ package vpcmodel
 
 // UnifyMultiVPC unifies multi-vpc graph for endpoints and subnets connectivity s.t.
 // each node appears once across multi-vpcs this is relevant only for DRAWIO and ARCHDRAWIO
+// in which there is a multivpc presentation
 func UnifyMultiVPC(config1, config2 map[string]*VPCConfig, nodesConn map[string]*VPCConnectivity,
 	subnetsConn map[string]*VPCsubnetConnectivity, f OutFormat) {
 	groupedEndpointsElemsMap := map[string]*groupedEndpointsElems{}
@@ -10,20 +11,29 @@ func UnifyMultiVPC(config1, config2 map[string]*VPCConfig, nodesConn map[string]
 		return
 	}
 	for vpcName := range config1 {
-		if VPCconnectivity, ok1 := nodesConn[vpcName]; ok1 {
+		if VPCconnectivity, ok := nodesConn[vpcName]; ok {
 			if len(VPCconnectivity.GroupedConnectivity.GroupedLines) > 0 {
 				VPCconnectivity.GroupedConnectivity.GroupedLines =
 					unifiedGroupedConnLines(VPCconnectivity.GroupedConnectivity.GroupedLines,
 						groupedEndpointsElemsMap, groupedExternalNodesMap, false)
 			}
-
+		}
+		if subnetConnectivity, ok := subnetsConn[vpcName]; ok {
+			if len(subnetConnectivity.GroupedConnectivity.GroupedLines) > 0 {
+				subnetConnectivity.GroupedConnectivity.GroupedLines =
+					unifiedGroupedConnLines(subnetConnectivity.GroupedConnectivity.GroupedLines,
+						groupedEndpointsElemsMap, groupedExternalNodesMap, false)
+			}
 		}
 	}
 	return
+
 }
 
-// Go over the grouping result and make sure all groups have a unified reference.
-// this is required due to the functionality treating self loops as don't cares - extendGroupingSelfLoops
+// Go over the grouping result and set groups s.t. all semantically equiv groups have a unified reference.
+// this is required for multivpc's context and at the end of the grouping in a single vpc context
+// the former is required since each vpc analysis and grouping is done separately
+// the latter is required due to the functionality treating self loops as don't cares - extendGroupingSelfLoops
 // in which both srcs and dsts are manipulated  but *GroupConnLines is not familiar
 // within the extendGroupingSelfLoops context and thus can not be done there smoothly
 func unifiedGroupedConnLines(oldConnLines []*groupedConnLine,
@@ -42,6 +52,7 @@ func unifiedGroupedConnLines(oldConnLines []*groupedConnLine,
 	return newGroupedLines
 }
 
+// unifies reference to a single element
 func unifiedGroupedElems(srcOrDst EndpointElem,
 	groupedEndpointsElemsMap map[string]*groupedEndpointsElems,
 	groupedExternalNodesMap map[string]*groupedExternalNodes,
@@ -50,10 +61,10 @@ func unifiedGroupedElems(srcOrDst EndpointElem,
 	if !unifyGroupedExternalNodes && srcOrDst.IsExternal() {
 		return srcOrDst
 	}
-	if _, ok := srcOrDst.(Node); ok { // vsi or single node external address
+	if _, ok := srcOrDst.(Node); ok { // single vsi or single node external address
 		return srcOrDst
 	}
-	if _, ok := srcOrDst.(NodeSet); ok { // subnet
+	if _, ok := srcOrDst.(NodeSet); ok { // single subnet
 		return srcOrDst
 	}
 	if groupedEE, ok := srcOrDst.(*groupedEndpointsElems); ok {
@@ -65,20 +76,6 @@ func unifiedGroupedElems(srcOrDst EndpointElem,
 		return unifiedGroupedEE
 	}
 	return srcOrDst
-}
-
-// Go over the grouping result and make sure all groups have a unified reference.
-func unifiedSingleGroupedConnLines(oldConnLines []*groupedConnLine,
-	groupedEndpointsElemsMap map[string]*groupedEndpointsElems,
-	groupedExternalNodesMap map[string]*groupedExternalNodes) []*groupedConnLine {
-	newGroupedLines := make([]*groupedConnLine, len(oldConnLines))
-	// go over all connections; if src/dst is not external then use groupedEndpointsElemsMap
-	for i, groupedLine := range oldConnLines {
-		newGroupedLines[i] = &groupedConnLine{unifiedGroupedElems(groupedLine.src, groupedEndpointsElemsMap, groupedExternalNodesMap, false),
-			unifiedGroupedElems(groupedLine.dst, groupedEndpointsElemsMap, groupedExternalNodesMap, false),
-			groupedLine.commonProperties}
-	}
-	return newGroupedLines
 }
 
 // given a groupedEndpointsElems returns an equiv item from groupedEndpointsElemsMap if exists,
