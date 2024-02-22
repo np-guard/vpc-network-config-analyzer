@@ -3,6 +3,8 @@ package drawio
 import (
 	"slices"
 	"sort"
+
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -635,13 +637,15 @@ func (ly *layoutS) setTgwLocations(cloud SquareTreeNodeInterface) {
 			continue
 		}
 		// hope we do not get here, taking the closest available:
-		var bestColAvailable int
+		bestColAvailable, _ := common.AnyMapEntry[int](availableCols)
 		bestDistance := cloud.Location().lastCol.index
-		tgwOptCol := tgwOptionalCols[tgw][0] + tgwOptionalCols[tgw][len(tgwOptionalCols[tgw])-1]/2
-		for col := range availableCols {
-			if abs(col-tgwOptCol) < bestDistance {
-				bestColAvailable = col
-				bestDistance = abs(col - tgwOptCol)
+		if len(tgwOptionalCols[tgw]) > 0 {
+			tgwOptCol := tgwOptionalCols[tgw][0] + tgwOptionalCols[tgw][len(tgwOptionalCols[tgw])-1]/2
+			for col := range availableCols {
+				if abs(col-tgwOptCol) < bestDistance {
+					bestColAvailable = col
+					bestDistance = abs(col - tgwOptCol)
+				}
 			}
 		}
 		tgw.setLocation(newCellLocation(cloud.Location().firstRow, ly.matrix.cols[bestColAvailable]))
