@@ -80,13 +80,13 @@ func newStylesConst() stylesConst {
 	return cnst
 }
 
-type drawioStyles struct {
+type templateStyles struct {
 	Cnst                 stylesConst
 	canTypeHaveAMiniIcon map[reflect.Type]bool
 }
 
-func newDrawioStyles(nodes []TreeNodeInterface) drawioStyles {
-	stl := drawioStyles{newStylesConst(), map[reflect.Type]bool{}}
+func newTemplateStyles(nodes []TreeNodeInterface) templateStyles {
+	stl := templateStyles{newStylesConst(), map[reflect.Type]bool{}}
 	for _, tn := range nodes {
 		if reflect.TypeOf(tn).Elem() == reflect.TypeOf(VsiTreeNode{}) {
 			stl.canTypeHaveAMiniIcon[reflect.TypeOf(NITreeNode{})] = true
@@ -98,7 +98,7 @@ func newDrawioStyles(nodes []TreeNodeInterface) drawioStyles {
 	return stl
 }
 
-func (stl *drawioStyles) tnType(tn TreeNodeInterface) int {
+func (stl *templateStyles) tnType(tn TreeNodeInterface) int {
 	switch {
 	case tn.NotShownInDrawio():
 		return stl.Cnst.DoNotShow
@@ -118,7 +118,7 @@ func (stl *drawioStyles) tnType(tn TreeNodeInterface) int {
 	return stl.Cnst.DoNotShow
 }
 
-func (stl *drawioStyles) IsType(tn TreeNodeInterface, tp int) bool {
+func (stl *templateStyles) IsType(tn TreeNodeInterface, tp int) bool {
 	return stl.tnType(tn) == tp
 }
 
@@ -130,30 +130,30 @@ func (stl *drawioStyles) IsType(tn TreeNodeInterface, tp int) bool {
 // if the ni is connected to a vsi that has more than one ni, than the ni displayed as ni icon, and without mini icons
 // same with resIp and vpe
 
-func (stl *drawioStyles) HasMiniIcon(tn TreeNodeInterface) bool {
+func (stl *templateStyles) HasMiniIcon(tn TreeNodeInterface) bool {
 	return stl.canTypeHaveAMiniIcon[reflect.TypeOf(tn).Elem()] && tn.(IconTreeNodeInterface).hasMiniIcon()
 }
 
 // ////////////////////////////////////////////////////////////////////////////////////////
-func (stl *drawioStyles) Image(tn TreeNodeInterface) string {
+func (stl *templateStyles) Image(tn TreeNodeInterface) string {
 	if stl.canTypeHaveAMiniIcon[reflect.TypeOf(tn).Elem()] && !tn.(IconTreeNodeInterface).hasMiniIcon() {
 		return miniImages[reflect.TypeOf(tn).Elem()]
 	}
 	return images[reflect.TypeOf(tn).Elem()]
 }
-func (stl *drawioStyles) MiniImage(tn TreeNodeInterface) string {
+func (stl *templateStyles) MiniImage(tn TreeNodeInterface) string {
 	return miniImages[reflect.TypeOf(tn).Elem()]
 }
-func (stl *drawioStyles) FIPImage() string {
+func (stl *templateStyles) FIPImage() string {
 	return fipImage
 }
-func (stl *drawioStyles) Color(tn TreeNodeInterface) string {
+func (stl *templateStyles) Color(tn TreeNodeInterface) string {
 	return colors[reflect.TypeOf(tn).Elem()]
 }
 
 ////////////////////////////////////////////////////////////////////////
 
-func (stl *drawioStyles) DrawioConnectivityStyle(tn TreeNodeInterface) string {
+func (stl *templateStyles) DrawioConnectivityStyle(tn TreeNodeInterface) string {
 	line := tn.(LineTreeNodeInterface)
 	startArrow, endArrow, color, dash := stl.lineParameters(line)
 	dashStyle := ""
@@ -169,7 +169,7 @@ func (stl *drawioStyles) DrawioConnectivityStyle(tn TreeNodeInterface) string {
 	return fmt.Sprintf("startArrow=%s;endArrow=%s;strokeColor=%s;%s%s", startArrow, endArrow, color, exitStyle, dashStyle)
 }
 
-func (stl *drawioStyles) SVGConnectivityStyle(tn TreeNodeInterface) string {
+func (stl *templateStyles) SVGConnectivityStyle(tn TreeNodeInterface) string {
 	startArrow, endArrow, color, dash := stl.lineParameters(tn.(LineTreeNodeInterface))
 	dashStyle := ""
 	if dash {
@@ -179,12 +179,12 @@ func (stl *drawioStyles) SVGConnectivityStyle(tn TreeNodeInterface) string {
 		color, startArrow, color, endArrow, stl.Cnst.ColorCodes[color], dashStyle)
 }
 
-func (stl *drawioStyles) SvgConnectivityLabelPos(tn TreeNodeInterface) string {
+func (stl *templateStyles) SvgConnectivityLabelPos(tn TreeNodeInterface) string {
 	pos := stl.connectivityLabelPos(tn)
 	return fmt.Sprintf("x=\"%d\" y=\"%d\"", pos.X, pos.Y)
 }
 
-func (stl *drawioStyles) SvgConnectivityPoints(tn TreeNodeInterface) string {
+func (stl *templateStyles) SvgConnectivityPoints(tn TreeNodeInterface) string {
 	points := connectivityAbsPoints(tn)
 	pointsStr := fmt.Sprintf("M %d %d", points[0].X, points[0].Y)
 	for _, point := range points[1:] {
@@ -192,9 +192,10 @@ func (stl *drawioStyles) SvgConnectivityPoints(tn TreeNodeInterface) string {
 	}
 	return pointsStr
 }
+
 /////////////////////////////////////////////////////////////////////////////
 
-func (stl *drawioStyles) lineParameters(tn LineTreeNodeInterface) (start, end, color string, dash bool) {
+func (stl *templateStyles) lineParameters(tn LineTreeNodeInterface) (start, end, color string, dash bool) {
 	logical := reflect.TypeOf(tn).Elem() == reflect.TypeOf(LogicalLineTreeNode{})
 	dash = logical
 
@@ -220,8 +221,7 @@ func (stl *drawioStyles) lineParameters(tn LineTreeNodeInterface) (start, end, c
 	return start, end, color, dash
 }
 
-
-func (stl *drawioStyles) connectivityLabelPos(tn TreeNodeInterface) point {
+func (stl *templateStyles) connectivityLabelPos(tn TreeNodeInterface) point {
 	points := connectivityAbsPoints(tn)
 	maxDistance := 0
 	var pos point
