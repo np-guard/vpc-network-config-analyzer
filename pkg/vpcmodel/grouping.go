@@ -229,20 +229,29 @@ func vsiOrSubnetsGroupingBySubnetsOrVsis(groupedConnLines *GroupConnLines,
 	res := []EndpointElem{}
 	subnetOrVSIToNodesOrNodeSets := map[string][]EndpointElem{} // map from subnet/vsi to its nodes/nodeSets from the input
 	for _, elem := range elemsList {
+		var subnetOrVSIUID string
+		var newElem EndpointElem
 		if groupVSI {
 			n, ok := elem.(Node)
 			if !ok {
 				res = append(res, n) // elements which are not interface nodes remain in the result as in the original input
 				continue             // skip input elements which are not a network interface node
 			}
-			subnetUid := c.getSubnetOfNode(n).UID() // get the subnet to which n belongs
-			if _, ok := subnetOrVSIToNodesOrNodeSets[subnetUid]; !ok {
-				subnetOrVSIToNodesOrNodeSets[subnetUid] = []EndpointElem{}
-			}
-			subnetOrVSIToNodesOrNodeSets[subnetUid] = append(subnetOrVSIToNodesOrNodeSets[subnetUid], n)
+			subnetOrVSIUID = c.getSubnetOfNode(n).UID() // get the subnet to which n belongs
+			newElem = n
 		} else {
-
+			n, ok := elem.(NodeSet)
+			if !ok {
+				res = append(res, n) // elements which are not subnets remain in the result as in the original input
+				continue             // skip input elements which are not a subnet nodeSet
+			}
+			subnetOrVSIUID = n.VPC().UID() // get the subnet to which n belongs
+			newElem = n
 		}
+		if _, ok := subnetOrVSIToNodesOrNodeSets[subnetOrVSIUID]; !ok {
+			subnetOrVSIToNodesOrNodeSets[subnetOrVSIUID] = []EndpointElem{}
+		}
+		subnetOrVSIToNodesOrNodeSets[subnetOrVSIUID] = append(subnetOrVSIToNodesOrNodeSets[subnetOrVSIUID], newElem)
 	}
 	for _, nodesList := range subnetOrVSIToNodesOrNodeSets {
 		if len(nodesList) == 1 { // a single network interface on subnet is just added to the result (no grouping)
