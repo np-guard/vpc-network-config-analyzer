@@ -245,7 +245,11 @@ func vsiOrSubnetsGroupingBySubnetsOrVsis(groupedConnLines *GroupConnLines,
 				res = append(res, n) // elements which are not subnets remain in the result as in the original input
 				continue             // skip input elements which are not a subnet nodeSet
 			}
-			subnetOrVSIUID = n.VPC().UID() // get the subnet to which n belongs
+			if c.IsMultipleVPCsConfig {
+				subnetOrVSIUID = n.VPC().UID() // get the VPC to which n belongs
+			} else {
+				subnetOrVSIUID = "a" // all subnets should be grouped together
+			}
 			newElem = n
 		}
 		if _, ok := subnetOrVSIToNodesOrNodeSets[subnetOrVSIUID]; !ok {
@@ -260,29 +264,6 @@ func vsiOrSubnetsGroupingBySubnetsOrVsis(groupedConnLines *GroupConnLines,
 			groupedNodes := groupedConnLines.getGroupedEndpointsElems(nodesList)
 			res = append(res, groupedNodes)
 		}
-	}
-	return res
-}
-
-// subnetGrouping returns a slice of EndpointElem objects produced from an input slice, by grouping
-// set of elements that represent subnets into a single groupedNetworkInterfaces object
-func subnetGrouping(groupedConnLines *GroupConnLines,
-	elemsList []EndpointElem) []EndpointElem {
-	res := []EndpointElem{}
-	subnetsToGroup := []EndpointElem{} // subnets to be grouped
-	for _, elem := range elemsList {
-		n, ok := elem.(NodeSet)
-		if !ok {
-			res = append(res, n) // elements which are not NodeSet  remain in the result as in the original input
-			continue             // NodeSet in the current context is a Subnet
-		}
-		subnetsToGroup = append(subnetsToGroup, n)
-	}
-	if len(subnetsToGroup) == 1 {
-		res = append(res, subnetsToGroup[0])
-	} else {
-		groupedNodes := groupedConnLines.getGroupedEndpointsElems(subnetsToGroup)
-		res = append(res, groupedNodes)
 	}
 	return res
 }
@@ -441,11 +422,7 @@ func (g *GroupConnLines) groupInternalSrcOrDst(srcGrouping, groupVsi bool) {
 			srcOrDstGroup[i] = line.getSrcOrDst(srcGrouping)
 		}
 		var groupedSrcOrDst []EndpointElem
-		if groupVsi {
-			groupedSrcOrDst = vsiOrSubnetsGroupingBySubnetsOrVsis(g, srcOrDstGroup, g.config, true)
-		} else {
-			groupedSrcOrDst = subnetGrouping(g, srcOrDstGroup)
-		}
+		groupedSrcOrDst = vsiOrSubnetsGroupingBySubnetsOrVsis(g, srcOrDstGroup, g.config, groupVsi)
 		for _, groupedSrcOrDstElem := range groupedSrcOrDst {
 			if srcGrouping {
 				res = append(res, &groupedConnLine{groupedSrcOrDstElem, linesGroup[0].dst, linesGroup[0].commonProperties})
