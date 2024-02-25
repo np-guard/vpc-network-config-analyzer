@@ -79,6 +79,13 @@ Each output line describes a difference between the configurations and contains 
 ### diff_all_subnets analysis type
 The output is very similar to the one in `diff_all_endpoints` with `vsis` replaced by `subnets`: `src` and `dst` are as in analysis `all_subnets` and the last column is `subnets-diff-info` 
 
+### explain analysis type
+Answers the query regarding `src`, `dst` and the provided `protocol` and `port` parms. 
+If the queried connection or a subset of it is allowed then a list of the enabling resources - e.g. public-gw-ky, security group sg1-ky and network ACL acl1-ky - is provided.
+If the required connection is blocked then details of the blocking resources - e.g. missing fip or blocked egress - is provided.
+In debug mode the list of the relevant (allow/deny) rules is also provided.
+      
+
 ## Build the project
 
 Make sure you have golang 1.21+ on your platform
