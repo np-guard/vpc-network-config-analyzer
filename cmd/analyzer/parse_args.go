@@ -42,6 +42,7 @@ type InArgs struct {
 	Provider              *string
 	RegionList            regionList
 	ResourceGroup         *string
+	DumpResources         *string
 }
 
 // flagHasValue indicates for each input arg if it is expected to have a value in the cli or not
@@ -65,6 +66,7 @@ var flagHasValue = map[string]bool{
 	Provider:              true,
 	RegionList:            true,
 	ResourceGroup:         true,
+	DumpResources:         true,
 }
 
 const (
@@ -88,6 +90,7 @@ const (
 	Provider              = "provider"
 	RegionList            = "region"
 	ResourceGroup         = "resource-group"
+	DumpResources         = "dump-resources"
 
 	// output formats supported
 	JSONFormat       = "json"
@@ -219,6 +222,7 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args.Provider = flagset.String(Provider, "", "Collect resources from an account in this cloud provider")
 	args.ResourceGroup = flagset.String(ResourceGroup, "", "Resource group id or name from which to collect resources")
 	flagset.Var(&args.RegionList, "region", "Cloud region from which to collect resources")
+	args.DumpResources = flagset.String(DumpResources, "", "File path to store resources collected from the cloud provider")
 
 	// calling parseCmdLine prior to flagset.Parse to ensure that excessive and unsupported arguments are handled
 	// for example, flagset.Parse() ignores input args missing the `-`
@@ -341,6 +345,10 @@ func invalidArgsConfigFile(args *InArgs, flagset *flag.FlagSet) error {
 	if *args.InputConfigFile != "" && *args.Provider != "" {
 		flagset.PrintDefaults()
 		return fmt.Errorf("error in parameters: vpc-config flag and provider flag cannot be specified together")
+	}
+	if *args.Provider == "" && *args.DumpResources != "" {
+		flagset.PrintDefaults()
+		return fmt.Errorf("error in parameters: dump-resources flag can be specified just with provider flag to save collected resources")
 	}
 
 	return nil

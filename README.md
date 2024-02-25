@@ -15,7 +15,7 @@ Usage of vpc-network-config-analyzer:
         * single_subnet  - supported with: txt
         * diff_all_endpoints  - supported with: txt, md
         * diff_all_subnets  - supported with: txt, md
-        * explain  - supported with: txt
+        * explain  - supported with: txt, debug
          (default "all_endpoints")
   -debug
         Run in debug mode
@@ -25,6 +25,8 @@ Usage of vpc-network-config-analyzer:
         Maximum destination port for connection description (default 65535)
   -dst-min-port int
         Minimum destination port for connection description (default 1)
+  -dump-resources string
+        File path to store resources collected from the cloud provider
   -format string
         Output format; must be one of:
         txt, md, json, drawio, arch_drawio, debug (default "txt")
