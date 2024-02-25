@@ -241,8 +241,8 @@ func (tn *GroupPointTreeNode) IconSize() int {
 	}
 	return 1
 }
-func (tn *GroupPointTreeNode) Height() int                      { return tn.IconSize() }
-func (tn *GroupPointTreeNode) Width() int                       { return tn.IconSize() }
+func (tn *GroupPointTreeNode) Height() int { return tn.IconSize() }
+func (tn *GroupPointTreeNode) Width() int  { return tn.IconSize() }
 
 func (tn *GroupPointTreeNode) IsGroupingPoint() bool { return true }
 func (tn *GroupPointTreeNode) hasShownSquare() bool {

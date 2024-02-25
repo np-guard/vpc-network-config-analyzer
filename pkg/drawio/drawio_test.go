@@ -51,7 +51,7 @@ func TestWithParsing(t *testing.T) {
 	NewCloudTreeNode(n2, "empty Cloud")
 	NewPublicNetworkTreeNode(n2)
 	NewCloudTreeNode(n2, "empty cloud2")
-		err = CreateDrawioConnectivityMapFile(n2, "fake3.drawio", false)
+	err = CreateDrawioConnectivityMapFile(n2, "fake3.drawio", false)
 	if err != nil {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
 	}

@@ -39,7 +39,7 @@ type TreeNodeInterface interface {
 	RouterID() uint
 	X() int
 	Y() int
-		Height() int
+	Height() int
 	Width() int
 	setXY(x, y int)
 	setWH(w, h int)
@@ -122,7 +122,7 @@ func absoluteGeometry(tn TreeNodeInterface) (x, y int) {
 	if tn.DrawioParent() == nil {
 		return tn.X(), tn.Y()
 	}
-		return tn.X() + tn.DrawioParent().Location().firstCol.x() + tn.DrawioParent().Location().xOffset,
+	return tn.X() + tn.DrawioParent().Location().firstCol.x() + tn.DrawioParent().Location().xOffset,
 		tn.Y() + tn.DrawioParent().Location().firstRow.y() + tn.DrawioParent().Location().yOffset
 }
 

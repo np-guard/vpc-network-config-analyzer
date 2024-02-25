@@ -125,6 +125,7 @@ func (stl *templateStyles) tnType(tn TreeNodeInterface) int {
 	}
 	return typeDoNotShow
 }
+
 // easier interface for the templates:
 func (stl *templateStyles) IsType(tn TreeNodeInterface, tp int) bool {
 	return stl.tnType(tn) == tp
@@ -141,7 +142,7 @@ func (stl *templateStyles) IsType(tn TreeNodeInterface, tp int) bool {
 func (stl *templateStyles) HasMiniIcon(tn TreeNodeInterface) bool {
 	return stl.canTypeHaveAMiniIcon[reflect.TypeOf(tn).Elem()] && tn.(IconTreeNodeInterface).hasMiniIcon()
 }
-func (stl *templateStyles)setCanTypeHaveAMiniIcon(nodes []TreeNodeInterface) {
+func (stl *templateStyles) setCanTypeHaveAMiniIcon(nodes []TreeNodeInterface) {
 	for _, tn := range nodes {
 		if reflect.TypeOf(tn).Elem() == reflect.TypeOf(VsiTreeNode{}) {
 			stl.canTypeHaveAMiniIcon[reflect.TypeOf(NITreeNode{})] = true
@@ -256,7 +257,7 @@ func (stl *templateStyles) lineLabelPos(tn TreeNodeInterface) point {
 	return pos
 }
 
-// lineAbsPoints() calc the absolute point of a line // relevant for svg 
+// lineAbsPoints() calc the absolute point of a line // relevant for svg
 func lineAbsPoints(tn TreeNodeInterface) []point {
 	line := tn.(LineTreeNodeInterface)
 	points := getLineAbsolutePoints(line)
@@ -265,9 +266,9 @@ func lineAbsPoints(tn TreeNodeInterface) []point {
 		p := point{points[0].X + line.Src().Width()/2, points[0].Y - iconSize/2}
 		points = []point{
 			p,
-			point{p.X + iconSize, p.Y},
-			point{p.X + iconSize, p.Y + iconSize},
-			point{p.X, p.Y + iconSize},
+			{p.X + iconSize, p.Y},
+			{p.X + iconSize, p.Y + iconSize},
+			{p.X, p.Y + iconSize},
 		}
 	} else {
 		if srcConnectionPoint := line.SrcConnectionPoint(); srcConnectionPoint != 0 {

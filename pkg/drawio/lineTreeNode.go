@@ -30,7 +30,7 @@ type LineTreeNodeInterface interface {
 	Dst() TreeNodeInterface
 	SrcID() uint
 	DstID() uint
-		Points() []point
+	Points() []point
 	setPoints([]point)
 	addPoint(x int, y int)
 	SetRouter(router IconTreeNodeInterface)
