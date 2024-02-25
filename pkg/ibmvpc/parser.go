@@ -267,7 +267,6 @@ func getSubnetsConfig(
 		} else {
 			vpcInternalAddressRange[vpcUID] = vpcInternalAddressRange[vpcUID].Union(cidrIPBlock)
 		}
-		// res[vpcUID].NodeSets = append(res[vpcUID].NodeSets, subnetNode)
 		res[vpcUID].Subnets = append(res[vpcUID].Subnets, subnetNode)
 		if err := addZone(*subnet.Zone.Name, vpcUID, res); err != nil {
 			return nil, err
@@ -461,7 +460,6 @@ func getVPCconfig(rc *datamodel.ResourcesContainerModel, res map[string]*vpcmode
 		}
 		vpcNodeSet.VPCRef = vpcNodeSet
 		newVPCConfig := NewEmptyVPCConfig()
-		//newVPCConfig.NodeSets = []vpcmodel.NodeSet{vpcNodeSet}
 		newVPCConfig.UIDToResource[vpcNodeSet.ResourceUID] = vpcNodeSet
 		newVPCConfig.VPC = vpcNodeSet
 		res[vpcNodeSet.ResourceUID] = newVPCConfig

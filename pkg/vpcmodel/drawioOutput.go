@@ -61,22 +61,23 @@ func (d *DrawioOutputFormatter) createDrawioTree() {
 
 func (d *DrawioOutputFormatter) createNodeSets() {
 	for _, vpcConfig := range d.cConfigs {
-		if !vpcConfig.IsMultipleVPCsConfig {
-			// vpc
-			if d.showResource(vpcConfig.VPC) {
-				d.gen.TreeNode(vpcConfig.VPC)
+		if vpcConfig.IsMultipleVPCsConfig {
+			continue
+		}
+		// vpc
+		if d.showResource(vpcConfig.VPC) {
+			d.gen.TreeNode(vpcConfig.VPC)
+		}
+		// subnets
+		for _, ns := range vpcConfig.Subnets {
+			if d.showResource(ns) {
+				d.gen.TreeNode(ns)
 			}
-			// subnets
-			for _, ns := range vpcConfig.Subnets {
-				if d.showResource(ns) {
-					d.gen.TreeNode(ns)
-				}
-			}
-			// nodesets(vsi, vpe)
-			for _, ns := range vpcConfig.NodeSets {
-				if d.showResource(ns) {
-					d.gen.TreeNode(ns)
-				}
+		}
+		// nodesets (vsi, vpe)
+		for _, ns := range vpcConfig.NodeSets {
+			if d.showResource(ns) {
+				d.gen.TreeNode(ns)
 			}
 		}
 	}

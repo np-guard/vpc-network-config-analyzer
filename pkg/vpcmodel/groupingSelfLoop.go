@@ -167,7 +167,7 @@ func (g *GroupConnLines) findMergeCandidates(groupingSrcOrDst map[string][]*grou
 func (g *GroupConnLines) getSubnetIfVsi(ep EndpointElem) string {
 	if isVsi, node := isEpVsi(ep); isVsi {
 		// if ep is groupedEndpointsElems of vsis then all belong to the same subnet
-		return node.Subnet().Name() //g.config.getSubnetOfNode(node).Name()
+		return node.Subnet().Name()
 	}
 	return ""
 }

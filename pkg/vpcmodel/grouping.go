@@ -222,7 +222,7 @@ func (g *groupingConnections) addPublicConnectivity(ep EndpointElem, commonProps
 // vsiGroupingBySubnets returns a slice of EndpointElem objects, by grouping set of elements that
 // represent network interface nodes from the same subnet into a single groupedNetworkInterfaces object
 func vsiGroupingBySubnets(groupedConnLines *GroupConnLines,
-	elemsList []EndpointElem, c *VPCConfig) []EndpointElem {
+	elemsList []EndpointElem) []EndpointElem {
 	res := []EndpointElem{}
 	subnetNameToNodes := map[string][]EndpointElem{} // map from subnet name to its nodes from the input
 	for _, elem := range elemsList {
@@ -231,7 +231,7 @@ func vsiGroupingBySubnets(groupedConnLines *GroupConnLines,
 			res = append(res, elem) // elements which are not interface nodes remain in the result as in the original input
 			continue                // skip input elements which are not a network interface node
 		}
-		subnetName := n.Subnet().Name() //c.getSubnetOfNode(n).Name() // get the subnet to which n belongs
+		subnetName := n.Subnet().Name() // get the subnet to which n belongs
 		if _, ok := subnetNameToNodes[subnetName]; !ok {
 			subnetNameToNodes[subnetName] = []EndpointElem{}
 		}
@@ -426,7 +426,7 @@ func (g *GroupConnLines) groupInternalSrcOrDst(srcGrouping, groupVsi bool) {
 		}
 		var groupedSrcOrDst []EndpointElem
 		if groupVsi {
-			groupedSrcOrDst = vsiGroupingBySubnets(g, srcOrDstGroup, g.config)
+			groupedSrcOrDst = vsiGroupingBySubnets(g, srcOrDstGroup)
 		} else {
 			groupedSrcOrDst = subnetGrouping(g, srcOrDstGroup)
 		}
