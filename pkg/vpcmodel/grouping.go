@@ -226,16 +226,16 @@ func vsiGroupingBySubnets(groupedConnLines *GroupConnLines,
 	res := []EndpointElem{}
 	subnetNameToNodes := map[string][]EndpointElem{} // map from subnet name to its nodes from the input
 	for _, elem := range elemsList {
-		n, ok := elem.(Node)
+		n, ok := elem.(InternalNodeIntf)
 		if !ok {
-			res = append(res, n) // elements which are not interface nodes remain in the result as in the original input
-			continue             // skip input elements which are not a network interface node
+			res = append(res, elem) // elements which are not interface nodes remain in the result as in the original input
+			continue                // skip input elements which are not a network interface node
 		}
-		subnetName := c.getSubnetOfNode(n).Name() // get the subnet to which n belongs
+		subnetName := n.Subnet().Name() //c.getSubnetOfNode(n).Name() // get the subnet to which n belongs
 		if _, ok := subnetNameToNodes[subnetName]; !ok {
 			subnetNameToNodes[subnetName] = []EndpointElem{}
 		}
-		subnetNameToNodes[subnetName] = append(subnetNameToNodes[subnetName], n)
+		subnetNameToNodes[subnetName] = append(subnetNameToNodes[subnetName], elem)
 	}
 	for _, nodesList := range subnetNameToNodes {
 		if len(nodesList) == 1 { // a single network interface on subnet is just added to the result (no grouping)
@@ -255,7 +255,7 @@ func subnetGrouping(groupedConnLines *GroupConnLines,
 	res := []EndpointElem{}
 	subnetsToGroup := []EndpointElem{} // subnets to be grouped
 	for _, elem := range elemsList {
-		n, ok := elem.(NodeSet)
+		n, ok := elem.(Subnet)
 		if !ok {
 			res = append(res, n) // elements which are not NodeSet  remain in the result as in the original input
 			continue             // NodeSet in the current context is a Subnet
@@ -378,7 +378,7 @@ func isInternalOfRequiredType(ep EndpointElem, groupVsi bool) bool {
 			return false
 		}
 	} else { // groups subnets NodeSets
-		if _, ok := ep.(NodeSet); !ok {
+		if _, ok := ep.(Subnet); !ok {
 			return false
 		}
 	}
@@ -463,7 +463,7 @@ func (g *GroupConnLines) unifiedGroupedElems(srcOrDst EndpointElem) EndpointElem
 	if _, ok := srcOrDst.(Node); ok { // vsi
 		return srcOrDst
 	}
-	if _, ok := srcOrDst.(NodeSet); ok { // subnet
+	if _, ok := srcOrDst.(Subnet); ok { // subnet
 		return srcOrDst
 	}
 	groupedEE := srcOrDst.(*groupedEndpointsElems)

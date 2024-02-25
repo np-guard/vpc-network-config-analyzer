@@ -8,9 +8,14 @@ import (
 
 // VPCConfig captures the configured resources for a VPC
 type VPCConfig struct {
+	// VPC is a reference to the relevant VPC object for which this config belongs
+	VPC VPC
+	// Subnets is a list of subnets in the VPC
+	Subnets []Subnet
 	// Nodes is the list of endpoints in the VPC, such as network interfaces, reserved IPs
+	// TOTO: also separate Nodes to internal and external nodes lists
 	Nodes []Node
-	// NodeSets is the list of resources that capture multiple nodes, such as subnets, vsis, vpc
+	// NodeSets is the list of resources that capture multiple nodes (such as VSIs)
 	NodeSets []NodeSet
 	// FilterResources is the list of resources that define filtering traffic rules, such as ACL, SG
 	FilterResources []FilterTrafficResource
@@ -19,24 +24,10 @@ type VPCConfig struct {
 	// UIDToResource is a map from resource UID to its object in the VPC
 	UIDToResource map[string]VPCResourceIntf
 	CloudName     string
-	// VPC is a reference to the relevant VPC object for which this config belongs
-	VPC NodeSet
+
 	// IsMultipleVPCsConfig is a bool indicator, when set true, it means that the VPCConfig contains resources from
 	// multiple VPCs connected to each other, and such config is relevant for reasoning about cross-vpc connectivity
 	IsMultipleVPCsConfig bool
-}
-
-// TODO: consider add this mapping to VPCConfig
-func (c *VPCConfig) getSubnetOfNode(n Node) NodeSet {
-	for _, nodeSet := range c.NodeSets {
-		if nodeSet.Kind() == subnetKind {
-			subnetNodes := nodeSet.Nodes()
-			if HasNode(subnetNodes, n) {
-				return nodeSet
-			}
-		}
-	}
-	return nil
 }
 
 func (c *VPCConfig) getFilterTrafficResourceOfKind(kind string) FilterTrafficResource {

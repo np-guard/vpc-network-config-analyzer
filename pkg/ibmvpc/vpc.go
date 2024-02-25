@@ -41,8 +41,8 @@ func zoneFromVPCResource(r vpcmodel.VPCResourceIntf) (*Zone, error) {
 type ReservedIP struct {
 	vpcmodel.VPCResource
 	vpcmodel.InternalNode
-	subnet *Subnet
-	vpe    string
+	//subnet *Subnet
+	vpe string
 }
 
 func (r *ReservedIP) Name() string {
@@ -53,8 +53,8 @@ func (r *ReservedIP) Name() string {
 type NetworkInterface struct {
 	vpcmodel.VPCResource
 	vpcmodel.InternalNode
-	vsi    string
-	subnet *Subnet
+	vsi string
+	//subnet *Subnet
 }
 
 func (ni *NetworkInterface) VsiName() string {
@@ -69,7 +69,7 @@ func (ni *NetworkInterface) Name() string {
 type IKSNode struct {
 	vpcmodel.VPCResource
 	vpcmodel.InternalNode
-	subnet *Subnet
+	//subnet *Subnet
 }
 
 func (n *IKSNode) VsiName() string {
@@ -83,6 +83,7 @@ func (n *IKSNode) Name() string {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // nodesets elements - implement vpcmodel.NodeSet interface
 
+// VPC implements vpcmodel.VPC
 type VPC struct {
 	vpcmodel.VPCResource
 	nodes                []vpcmodel.Node
@@ -90,6 +91,10 @@ type VPC struct {
 	internalAddressRange *ipblocks.IPBlock
 	subnetsList          []*Subnet
 	addressPrefixes      []string
+}
+
+func (v *VPC) AddressPrefixes() []string {
+	return v.addressPrefixes
 }
 
 func (v *VPC) getZoneByName(name string) (*Zone, error) {
@@ -111,11 +116,16 @@ func (v *VPC) subnets() []*Subnet {
 	return v.subnetsList
 }
 
+// Subnet implements vpcmodel.Subnet interface
 type Subnet struct {
 	vpcmodel.VPCResource
 	nodes   []vpcmodel.Node
 	cidr    string
 	ipblock *ipblocks.IPBlock
+}
+
+func (s *Subnet) CIDR() string {
+	return s.cidr
 }
 
 func (s *Subnet) Zone() (*Zone, error) {
@@ -343,12 +353,8 @@ func (n *NACL) GeneralConnectivityPerSubnet(subnet *Subnet) string {
 
 func subnetFromNode(node vpcmodel.Node) (subnet *Subnet, err error) {
 	switch concreteNode := node.(type) {
-	case *NetworkInterface:
-		return concreteNode.subnet, nil
-	case *IKSNode:
-		return concreteNode.subnet, nil
-	case *ReservedIP:
-		return concreteNode.subnet, nil
+	case vpcmodel.InternalNodeIntf:
+		return concreteNode.Subnet().(*Subnet), nil
 	default:
 		return nil, fmt.Errorf("cannot get subnet for node: %+v", node)
 	}

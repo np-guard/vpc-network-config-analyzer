@@ -68,16 +68,13 @@ func (c *VPCConfig) ipblockToNamedResourcesInConfig(ipb *ipblocks.IPBlock, exclu
 	res := []VPCResourceIntf{}
 
 	// consider subnets
-	for _, nodeset := range c.NodeSets {
-		if nodeset.Kind() != subnetKind {
-			continue
-		}
+	for _, subnet := range c.Subnets {
 		var subnetCidrIPB *ipblocks.IPBlock
-		if subnetCidrIPB = nodeset.AddressRange(); subnetCidrIPB == nil {
+		if subnetCidrIPB = subnet.AddressRange(); subnetCidrIPB == nil {
 			return nil, errors.New("missing AddressRange for subnet")
 		}
 		if subnetCidrIPB.ContainedIn(ipb) {
-			res = append(res, nodeset)
+			res = append(res, subnet)
 		}
 	}
 
@@ -129,33 +126,20 @@ func (c *VPCConfig) convertIPbasedToSubnetBasedResult(ipconn *IPbasedConnectivit
 	return res, nil
 }
 
-func (c *VPCConfig) subnetCidrToSubnetElem(cidr string) (NodeSet, error) {
-	cidrIPBlock, err := ipblocks.NewIPBlockFromCidr(cidr)
-	if err != nil {
-		return nil, err
-	}
-	elems, err := c.ipblockToNamedResourcesInConfig(cidrIPBlock, true)
-	if err != nil {
-		return nil, err
-	}
-	err = errors.New("unexpected res for IPblockToNamedResourcesInConfig on input subnet cidr")
-	if len(elems) != 1 {
-		return nil, err
-	}
-	if nodeSetElem, ok := elems[0].(NodeSet); ok {
-		if nodeSetElem.Kind() != subnetKind {
-			return nil, err
+func (c *VPCConfig) SubnetCidrToSubnetElem(cidr string) (Subnet, error) {
+	for _, subnet := range c.Subnets {
+		if subnet.CIDR() == cidr {
+			return subnet, nil
 		}
-		return nodeSetElem, nil
 	}
-	return nil, err
+	return nil, fmt.Errorf("could not find subnet with CIDR %s in VPC %s", cidr, c.VPC.Name())
 }
 
 func getSubnetsForPGW(c *VPCConfig, pgw RoutingResource, externalNode Node) (res []NodeSet) {
-	for _, nodeSet := range c.NodeSets {
-		conn, err := pgw.AllowedConnectivity(nodeSet, externalNode)
+	for _, subnet := range c.Subnets {
+		conn, err := pgw.AllowedConnectivity(subnet, externalNode)
 		if err == nil && conn.AllowAll {
-			res = append(res, nodeSet)
+			res = append(res, subnet)
 		}
 	}
 	return res
@@ -205,7 +189,7 @@ func (c *VPCConfig) GetSubnetsConnectivity(includePGW, grouping bool) (*VPCsubne
 	// convert to subnet-based connectivity result
 	subnetsConnectivity := map[VPCResourceIntf]*ConfigBasedConnectivityResults{}
 	for subnetCidrStr, ipBasedConnectivity := range subnetsConnectivityFromACLresources {
-		subnetNodeSet, err1 := c.subnetCidrToSubnetElem(subnetCidrStr)
+		subnetNodeSet, err1 := c.SubnetCidrToSubnetElem(subnetCidrStr)
 		if err1 != nil {
 			return nil, err1
 		}
