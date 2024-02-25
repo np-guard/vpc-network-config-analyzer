@@ -119,6 +119,9 @@ func vpcConfigsFromAccount(inArgs *InArgs) (map[string]*vpcmodel.VPCConfig, erro
 	// save collected resources in dump file
 	if *inArgs.DumpResources != "" {
 		jsonString, err := resources.ToJSONString()
+		if err != nil {
+			return nil, err
+		}
 		log.Printf("Writing to file: %s", *inArgs.DumpResources)
 
 		file, err := os.Create(*inArgs.DumpResources)
