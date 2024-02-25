@@ -48,8 +48,8 @@ type OutputGenerator struct {
 	config2        map[string]*VPCConfig // specified only when analysis is diff
 	outputGrouping bool
 	useCase        OutputUseCase
-	NodesConn      map[string]*VPCConnectivity
-	SubnetsConn    map[string]*VPCsubnetConnectivity
+	nodesConn      map[string]*VPCConnectivity
+	subnetsConn    map[string]*VPCsubnetConnectivity
 	cfgsDiff       *diffBetweenCfgs
 	explanation    *Explanation
 }
@@ -61,8 +61,8 @@ func NewOutputGenerator(c1, c2 map[string]*VPCConfig, grouping bool, uc OutputUs
 		config2:        c2,
 		outputGrouping: grouping,
 		useCase:        uc,
-		NodesConn:      map[string]*VPCConnectivity{},
-		SubnetsConn:    map[string]*VPCsubnetConnectivity{},
+		nodesConn:      map[string]*VPCConnectivity{},
+		subnetsConn:    map[string]*VPCsubnetConnectivity{},
 	}
 	if !archOnly {
 		for i := range c1 {
@@ -71,14 +71,14 @@ func NewOutputGenerator(c1, c2 map[string]*VPCConfig, grouping bool, uc OutputUs
 				if err != nil {
 					return nil, err
 				}
-				res.NodesConn[i] = nodesConn
+				res.nodesConn[i] = nodesConn
 			}
 			if uc == AllSubnets {
 				subnetsConn, err := c1[i].GetSubnetsConnectivity(true, grouping)
 				if err != nil {
 					return nil, err
 				}
-				res.SubnetsConn[i] = subnetsConn
+				res.subnetsConn[i] = subnetsConn
 			}
 			if uc == SubnetsDiff {
 				configsForDiff := &configsForDiff{c1[i], c2[i], Subnets}
@@ -106,7 +106,7 @@ func NewOutputGenerator(c1, c2 map[string]*VPCConfig, grouping bool, uc OutputUs
 			}
 		}
 	}
-	unifyMultiVPC(c1, res.NodesConn, res.SubnetsConn)
+	unifyMultiVPC(c1, res.nodesConn, res.subnetsConn)
 	return res, nil
 }
 
@@ -135,7 +135,7 @@ func (o *OutputGenerator) Generate(f OutFormat, outFile string) (string, error) 
 	default:
 		return "", errors.New("unsupported output format")
 	}
-	return formatter.WriteOutput(o.config1, o.config2, o.NodesConn, o.SubnetsConn, o.cfgsDiff,
+	return formatter.WriteOutput(o.config1, o.config2, o.nodesConn, o.subnetsConn, o.cfgsDiff,
 		outFile, o.outputGrouping, o.useCase, o.explanation)
 }
 
