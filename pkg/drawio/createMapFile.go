@@ -45,7 +45,6 @@ func (data *drawioData) IDsPrefix() string    { return idsPrefix }
 func (data *drawioData) ElementComment(tn TreeNodeInterface) string {
 	return reflect.TypeOf(tn).Elem().Name() + " " + tn.Label()
 }
-func (data *drawioData) AddF(a int, b float64) float64 { return float64(a) + b }
 func (data *drawioData) Add(a int, b int) int          { return a + b }
 func (data *drawioData) Add3(a, b, c int) int          { return a + b + c }
 func (data *drawioData) Half(a int) int                { return a / 2 }

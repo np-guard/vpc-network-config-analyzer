@@ -30,8 +30,7 @@ type LineTreeNodeInterface interface {
 	Dst() TreeNodeInterface
 	SrcID() uint
 	DstID() uint
-	setLabel(string)
-	Points() []point
+		Points() []point
 	setPoints([]point)
 	addPoint(x int, y int)
 	SetRouter(router IconTreeNodeInterface)
@@ -58,7 +57,6 @@ func (tn *abstractLineTreeNode) SrcID() uint            { return tn.src.ID() }
 func (tn *abstractLineTreeNode) DstID() uint            { return tn.dst.ID() }
 func (tn *abstractLineTreeNode) Src() TreeNodeInterface { return tn.src }
 func (tn *abstractLineTreeNode) Dst() TreeNodeInterface { return tn.dst }
-func (tn *abstractLineTreeNode) setLabel(l string){tn.name = l}
 
 func (tn *abstractLineTreeNode) DrawioParent() TreeNodeInterface {
 	if tn.router != nil {
