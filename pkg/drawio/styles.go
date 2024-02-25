@@ -153,32 +153,6 @@ func (stl *drawioStyles) Color(tn TreeNodeInterface) string {
 
 ////////////////////////////////////////////////////////////////////////
 
-func (stl *drawioStyles) lineParameters(tn LineTreeNodeInterface) (start, end, color string, dash bool) {
-	logical := reflect.TypeOf(tn).Elem() == reflect.TypeOf(LogicalLineTreeNode{})
-	dash = logical
-
-	start, end = ovalEndEdge, ovalEndEdge
-	if !logical {
-		con := tn.(*ConnectivityTreeNode)
-		if con.directed {
-			end = errowEndEdge
-		}
-		if con.Src().IsIcon() && con.Src().(IconTreeNodeInterface).IsGroupingPoint() && !con.Src().(*GroupPointTreeNode).hasShownSquare() {
-			start = noneEndEdge
-		}
-		if con.Dst().IsIcon() && con.Dst().(IconTreeNodeInterface).IsGroupingPoint() && !con.Dst().(*GroupPointTreeNode).hasShownSquare() {
-			end = noneEndEdge
-		}
-	}
-	public := logical && reflect.TypeOf(tn.Src()).Elem() == reflect.TypeOf(ResIPTreeNode{})
-	if public {
-		color = stl.Cnst.Blue
-	} else {
-		color = stl.Cnst.Black
-	}
-	return start, end, color, dash
-}
-
 func (stl *drawioStyles) DrawioConnectivityStyle(tn TreeNodeInterface) string {
 	line := tn.(LineTreeNodeInterface)
 	startArrow, endArrow, color, dash := stl.lineParameters(line)
@@ -189,7 +163,7 @@ func (stl *drawioStyles) DrawioConnectivityStyle(tn TreeNodeInterface) string {
 	exitStyle := ""
 	lineExitFormat := "exitX=%v;exitY=%v;exitDx=0;exitDy=0;"
 	if srcConnectionPoint := line.SrcConnectionPoint(); srcConnectionPoint != 0 {
-		x, y := lineConnectionPointToDrawioXY(srcConnectionPoint)
+		x, y := lineConnectionPointToXY(srcConnectionPoint)
 		exitStyle = fmt.Sprintf(lineExitFormat, x, y)
 	}
 	return fmt.Sprintf("startArrow=%s;endArrow=%s;strokeColor=%s;%s%s", startArrow, endArrow, color, exitStyle, dashStyle)
@@ -218,6 +192,34 @@ func (stl *drawioStyles) SvgConnectivityPoints(tn TreeNodeInterface) string {
 	}
 	return pointsStr
 }
+/////////////////////////////////////////////////////////////////////////////
+
+func (stl *drawioStyles) lineParameters(tn LineTreeNodeInterface) (start, end, color string, dash bool) {
+	logical := reflect.TypeOf(tn).Elem() == reflect.TypeOf(LogicalLineTreeNode{})
+	dash = logical
+
+	start, end = ovalEndEdge, ovalEndEdge
+	if !logical {
+		con := tn.(*ConnectivityTreeNode)
+		if con.directed {
+			end = errowEndEdge
+		}
+		if con.Src().IsIcon() && con.Src().(IconTreeNodeInterface).IsGroupingPoint() && !con.Src().(*GroupPointTreeNode).hasShownSquare() {
+			start = noneEndEdge
+		}
+		if con.Dst().IsIcon() && con.Dst().(IconTreeNodeInterface).IsGroupingPoint() && !con.Dst().(*GroupPointTreeNode).hasShownSquare() {
+			end = noneEndEdge
+		}
+	}
+	public := logical && reflect.TypeOf(tn.Src()).Elem() == reflect.TypeOf(ResIPTreeNode{})
+	if public {
+		color = stl.Cnst.Blue
+	} else {
+		color = stl.Cnst.Black
+	}
+	return start, end, color, dash
+}
+
 
 func (stl *drawioStyles) connectivityLabelPos(tn TreeNodeInterface) point {
 	points := connectivityAbsPoints(tn)
@@ -247,7 +249,7 @@ func connectivityAbsPoints(tn TreeNodeInterface) []point {
 		}
 	} else {
 		if srcConnectionPoint := line.SrcConnectionPoint(); srcConnectionPoint != 0 {
-			x, y := lineConnectionPointToDrawioXY(srcConnectionPoint)
+			x, y := lineConnectionPointToXY(srcConnectionPoint)
 			points[0] = point{
 				points[0].X + int(float64(line.Src().Width())*(x-0.5)),
 				points[0].Y + int(float64(line.Src().Height())*(y-0.5))}
@@ -281,7 +283,7 @@ func calcConnectionPoint(tn TreeNodeInterface, center, out point) point {
 //////////////////////////////////////////////////////////////////////////////////
 
 //nolint:gomnd // lineConnectionPoint is numerated form 1 to 16
-func lineConnectionPointToDrawioXY(connectionPoint lineConnectionPoint) (x, y float64) {
+func lineConnectionPointToXY(connectionPoint lineConnectionPoint) (x, y float64) {
 	//revive:disable // these are the numbers required by drawio
 
 	switch connectionPoint {

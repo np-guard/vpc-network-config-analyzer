@@ -11,8 +11,13 @@ import (
 //go:embed connectivityMap.drawio.tmpl
 var drawioTemplate string
 
+//go:embed connectivityMap.svg.tmpl
+var svgTemplate string
+
 type drawioData struct {
 	drawioStyles
+	Width       int
+	Height      int
 	rootID      uint
 	Nodes       []TreeNodeInterface
 	DebugPoints []debugPoint
@@ -23,6 +28,8 @@ func NewDrawioData(network SquareTreeNodeInterface) *drawioData {
 	orderedNodes := orderNodesForDrawio(allNodes)
 	return &drawioData{
 		newDrawioStyles(allNodes),
+		network.Width(),
+		network.Height(),
 		network.ID(),
 		orderedNodes,
 		network.DebugPoints(),
@@ -37,6 +44,19 @@ func (data *drawioData) RootID() uint         { return data.rootID }
 func (data *drawioData) IDsPrefix() string    { return idsPrefix }
 func (data *drawioData) ElementComment(tn TreeNodeInterface) string {
 	return reflect.TypeOf(tn).Elem().Name() + " " + tn.Label()
+}
+func (data *drawioData) AddF(a int, b float64) float64 { return float64(a) + b }
+func (data *drawioData) Add(a int, b int) int          { return a + b }
+func (data *drawioData) Add3(a, b, c int) int          { return a + b + c }
+func (data *drawioData) Half(a int) int                { return a / 2 }
+
+func (data *drawioData) AX(tn TreeNodeInterface) int {
+	x, _ := absoluteGeometry(tn)
+	return x
+}
+func (data *drawioData) AY(tn TreeNodeInterface) int {
+	_, y := absoluteGeometry(tn)
+	return y
 }
 
 // orderNodesForDrawio() sort the nodes for the drawio canvas
@@ -73,13 +93,13 @@ func orderNodesForDrawio(nodes []TreeNodeInterface) []TreeNodeInterface {
 
 func CreateDrawioConnectivityMapFile(network SquareTreeNodeInterface, outputFile string, subnetMode bool) error {
 	newLayout(network, subnetMode).layout()
-	writeDrawioFile(network, outputFile)
-	return writeSvgFile(network, outputFile+".svg")
+	writeDrawioFile(network, outputFile, "connectivityMap.drawio.tmpl", drawioTemplate)
+	return writeDrawioFile(network, outputFile+".svg", "connectivityMap.svg.tmpl", svgTemplate)
 }
 
-func writeDrawioFile(network SquareTreeNodeInterface, outputFile string) error {
+func writeDrawioFile(network SquareTreeNodeInterface, outputFile, tmplName, templ string) error {
 	data := NewDrawioData(network)
-	tmpl, err := template.New("connectivityMap.drawio.tmpl").Parse(drawioTemplate)
+	tmpl, err := template.New(tmplName).Parse(templ)
 	if err != nil {
 		return err
 	}
