@@ -55,69 +55,77 @@ var colors = map[reflect.Type]string{
 	reflect.TypeOf(GroupSubnetsSquareTreeNode{}): "#82b366",
 }
 
-type stylesConst struct {
-	// types
+const (
+	// these are types of elementas in the canvas:
+	typeDoNotShow = iota
+	typeIbmSquare
+	typeGroupingSquare
+	typeIbmIcon
+	typeGroupingIcon
+	typeLine
+)
+const (
+	// currently relevant for line colors:
+	blackColor = "black"
+	blueColor  = "blue"
+)
+
+var colorCodes = map[string]string{blackColor: "#000000", blueColor: "#007FFF"}
+
+// regular go constants can not be shared with the template, so we put them in a struct
+type stylesConsts struct {
 	DoNotShow,
 	IbmSquare,
 	GroupingSquare,
 	IbmIcon,
 	GroupingIcon,
 	Line int
-	// colors
-	Black,
-	Blue string
+	// colorCodes
 	ColorCodes map[string]string
 }
 
-func newStylesConst() stylesConst {
-	cnst := stylesConst{
-		0, 1, 2, 3, 4, 5,
-		"black", "blue",
-		map[string]string{},
+func newStylesConst() stylesConsts {
+	cnst := stylesConsts{
+		DoNotShow:      typeDoNotShow,
+		IbmSquare:      typeIbmSquare,
+		GroupingSquare: typeGroupingSquare,
+		IbmIcon:        typeIbmIcon,
+		GroupingIcon:   typeGroupingIcon,
+		Line:           typeLine,
+		ColorCodes:     colorCodes,
 	}
-	cnst.ColorCodes[cnst.Black] = "#000000"
-	cnst.ColorCodes[cnst.Blue] = "#007FFF"
 	return cnst
 }
 
 type templateStyles struct {
-	Cnst                 stylesConst
+	Cnst                 stylesConsts
 	canTypeHaveAMiniIcon map[reflect.Type]bool
 }
 
 func newTemplateStyles(nodes []TreeNodeInterface) templateStyles {
 	stl := templateStyles{newStylesConst(), map[reflect.Type]bool{}}
-	for _, tn := range nodes {
-		if reflect.TypeOf(tn).Elem() == reflect.TypeOf(VsiTreeNode{}) {
-			stl.canTypeHaveAMiniIcon[reflect.TypeOf(NITreeNode{})] = true
-		}
-		if reflect.TypeOf(tn).Elem() == reflect.TypeOf(VpeTreeNode{}) {
-			stl.canTypeHaveAMiniIcon[reflect.TypeOf(ResIPTreeNode{})] = true
-		}
-	}
+	stl.setCanTypeHaveAMiniIcon(nodes)
 	return stl
 }
 
 func (stl *templateStyles) tnType(tn TreeNodeInterface) int {
 	switch {
 	case tn.NotShownInDrawio():
-		return stl.Cnst.DoNotShow
-	case tn.IsSquare() && tn.(SquareTreeNodeInterface).IsGroupingSquare():
-		return stl.Cnst.GroupingSquare
-	case tn.IsSquare() && tn.(SquareTreeNodeInterface).IsGroupSubnetsSquare():
-		return stl.Cnst.GroupingSquare
+		return typeDoNotShow
+	case tn.IsSquare() && (tn.(SquareTreeNodeInterface).IsGroupingSquare() || tn.(SquareTreeNodeInterface).IsGroupSubnetsSquare()):
+		return typeGroupingSquare
 	case tn.IsSquare():
-		return stl.Cnst.IbmSquare
+		return typeIbmSquare
 	case tn.IsIcon() && tn.(IconTreeNodeInterface).IsGroupingPoint():
-		return stl.Cnst.GroupingIcon
+		return typeGroupingIcon
 	case tn.IsIcon():
-		return stl.Cnst.IbmIcon
+		return typeIbmIcon
 	case tn.IsLine():
-		return stl.Cnst.Line
+		return typeLine
 	}
-	return stl.Cnst.DoNotShow
+	return typeDoNotShow
 }
-
+// easier interface for the templates:
 func (stl *templateStyles) IsType(tn TreeNodeInterface, tp int) bool {
 	return stl.tnType(tn) == tp
 }
@@ -132,6 +140,16 @@ func (stl *templateStyles) IsType(tn TreeNodeInterface, tp int) bool {
 
 func (stl *templateStyles) HasMiniIcon(tn TreeNodeInterface) bool {
 	return stl.canTypeHaveAMiniIcon[reflect.TypeOf(tn).Elem()] && tn.(IconTreeNodeInterface).hasMiniIcon()
+}
+func (stl *templateStyles)setCanTypeHaveAMiniIcon(nodes []TreeNodeInterface) {
+	for _, tn := range nodes {
+		if reflect.TypeOf(tn).Elem() == reflect.TypeOf(VsiTreeNode{}) {
+			stl.canTypeHaveAMiniIcon[reflect.TypeOf(NITreeNode{})] = true
+		}
+		if reflect.TypeOf(tn).Elem() == reflect.TypeOf(VpeTreeNode{}) {
+			stl.canTypeHaveAMiniIcon[reflect.TypeOf(ResIPTreeNode{})] = true
+		}
+	}
 }
 
 // ////////////////////////////////////////////////////////////////////////////////////////
@@ -176,16 +194,16 @@ func (stl *templateStyles) SVGConnectivityStyle(tn TreeNodeInterface) string {
 		dashStyle = "stroke-dasharray=\"6 6\""
 	}
 	return fmt.Sprintf("marker-start='url(#%s_%s)' marker-end='url(#%s_%s)' stroke=\"%s\" %s",
-		color, startArrow, color, endArrow, stl.Cnst.ColorCodes[color], dashStyle)
+		color, startArrow, color, endArrow, colorCodes[color], dashStyle)
 }
 
 func (stl *templateStyles) SvgConnectivityLabelPos(tn TreeNodeInterface) string {
-	pos := stl.connectivityLabelPos(tn)
+	pos := stl.lineLabelPos(tn)
 	return fmt.Sprintf("x=\"%d\" y=\"%d\"", pos.X, pos.Y)
 }
 
 func (stl *templateStyles) SvgConnectivityPoints(tn TreeNodeInterface) string {
-	points := connectivityAbsPoints(tn)
+	points := lineAbsPoints(tn)
 	pointsStr := fmt.Sprintf("M %d %d", points[0].X, points[0].Y)
 	for _, point := range points[1:] {
 		pointsStr += fmt.Sprintf(" L %d %d", point.X, point.Y)
@@ -194,7 +212,7 @@ func (stl *templateStyles) SvgConnectivityPoints(tn TreeNodeInterface) string {
 }
 
 /////////////////////////////////////////////////////////////////////////////
-
+// lineParameters() check if the line should be dashed, blue, error...
 func (stl *templateStyles) lineParameters(tn LineTreeNodeInterface) (start, end, color string, dash bool) {
 	logical := reflect.TypeOf(tn).Elem() == reflect.TypeOf(LogicalLineTreeNode{})
 	dash = logical
@@ -212,17 +230,19 @@ func (stl *templateStyles) lineParameters(tn LineTreeNodeInterface) (start, end,
 			end = noneEndEdge
 		}
 	}
-	public := logical && reflect.TypeOf(tn.Src()).Elem() == reflect.TypeOf(ResIPTreeNode{})
+	public := logical && (reflect.TypeOf(tn.Src()).Elem() == reflect.TypeOf(ResIPTreeNode{}) || reflect.TypeOf(tn.Dst()).Elem() == reflect.TypeOf(ResIPTreeNode{}))
 	if public {
-		color = stl.Cnst.Blue
+		color = blueColor
 	} else {
-		color = stl.Cnst.Black
+		color = blackColor
 	}
 	return start, end, color, dash
 }
 
-func (stl *templateStyles) connectivityLabelPos(tn TreeNodeInterface) point {
-	points := connectivityAbsPoints(tn)
+// lineLabelPos() calc the position of the label of a line, used for svg only.
+// it put it in the middle of the longest interval of the line
+func (stl *templateStyles) lineLabelPos(tn TreeNodeInterface) point {
+	points := lineAbsPoints(tn)
 	maxDistance := 0
 	var pos point
 	for i, to := range points[1:] {
@@ -236,10 +256,12 @@ func (stl *templateStyles) connectivityLabelPos(tn TreeNodeInterface) point {
 	return pos
 }
 
-func connectivityAbsPoints(tn TreeNodeInterface) []point {
+// lineAbsPoints() calc the absolute point of a line // relevant for svg 
+func lineAbsPoints(tn TreeNodeInterface) []point {
 	line := tn.(LineTreeNodeInterface)
 	points := getLineAbsolutePoints(line)
 	if line.Src() == line.Dst() && len(points) == 2 {
+		// its a self loop, we make an ear in the left to the tn
 		p := point{points[0].X + line.Src().Width()/2, points[0].Y - iconSize/2}
 		points = []point{
 			p,
@@ -261,6 +283,8 @@ func connectivityAbsPoints(tn TreeNodeInterface) []point {
 	return points
 }
 
+// calcConnectionPoint() calculate the point that the line exit from the icon/square (or enter).
+// it relevant for svg.
 func calcConnectionPoint(tn TreeNodeInterface, center, out point) point {
 	srcX, srcY := center.X, center.Y
 	dstX, dstY := out.X, out.Y
