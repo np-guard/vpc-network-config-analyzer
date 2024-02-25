@@ -45,7 +45,7 @@ func (data *templateData) IDsPrefix() string    { return idsPrefix }
 func (data *templateData) ElementComment(tn TreeNodeInterface) string {
 	return reflect.TypeOf(tn).Elem().Name() + " " + tn.Label()
 }
-func (data *templateData) Add(a int, b int) int { return a + b }
+func (data *templateData) Add(a, b int) int     { return a + b }
 func (data *templateData) Add3(a, b, c int) int { return a + b + c }
 func (data *templateData) Half(a int) int       { return a / 2 }
 
@@ -94,7 +94,10 @@ func orderNodesForTemplate(nodes []TreeNodeInterface) []TreeNodeInterface {
 func CreateDrawioConnectivityMapFile(network SquareTreeNodeInterface, outputFile string, subnetMode bool) error {
 	newLayout(network, subnetMode).layout()
 	if true {
-		createFileFromTemplate(network, outputFile+".svg", "connectivityMap.svg.tmpl", svgTemplate)
+		err := createFileFromTemplate(network, outputFile+".svg", "connectivityMap.svg.tmpl", svgTemplate)
+		if err != nil {
+			return err
+		}
 	}
 	return createFileFromTemplate(network, outputFile, "connectivityMap.drawio.tmpl", drawioTemplate)
 }

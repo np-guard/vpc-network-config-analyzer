@@ -194,7 +194,7 @@ func (stl *templateStyles) SVGConnectivityStyle(tn TreeNodeInterface) string {
 	if dash {
 		dashStyle = "stroke-dasharray=\"6 6\""
 	}
-	return fmt.Sprintf("marker-start='url(#%s_%s)' marker-end='url(#%s_%s)' stroke=\"%s\" %s",
+	return fmt.Sprintf("marker-start='url(#%s_%s)' marker-end='url(#%s_%s)' stroke=\"%q\" %q",
 		color, startArrow, color, endArrow, colorCodes[color], dashStyle)
 }
 
@@ -212,7 +212,7 @@ func (stl *templateStyles) SvgConnectivityPoints(tn TreeNodeInterface) string {
 	return pointsStr
 }
 
-/////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////
 // lineParameters() check if the line should be dashed, blue, error...
 func (stl *templateStyles) lineParameters(tn LineTreeNodeInterface) (start, end, color string, dash bool) {
 	logical := reflect.TypeOf(tn).Elem() == reflect.TypeOf(LogicalLineTreeNode{})
