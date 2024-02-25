@@ -1,15 +1,13 @@
 package vpcmodel
 
-// UnifyMultiVPC unifies multi-vpc graph for endpoints and subnets connectivity s.t.
+// unifyMultiVPC unifies multi-vpc graph for endpoints and subnets connectivity s.t.
 // each node appears once across multi-vpcs this is relevant only for DRAWIO and ARCHDRAWIO
 // in which there is a multivpc presentation
-func UnifyMultiVPC(config1 map[string]*VPCConfig, nodesConn map[string]*VPCConnectivity,
-	subnetsConn map[string]*VPCsubnetConnectivity, f OutFormat) {
+// todo: this is actually required only for drawio, which is not accessible from the current context
+func unifyMultiVPC(config1 map[string]*VPCConfig, nodesConn map[string]*VPCConnectivity,
+	subnetsConn map[string]*VPCsubnetConnectivity) {
 	groupedEndpointsElemsMap := map[string]*groupedEndpointsElems{}
 	groupedExternalNodesMap := map[string]*groupedExternalNodes{}
-	if f != DRAWIO && f != ARCHDRAWIO {
-		return
-	}
 	for vpcName := range config1 {
 		if VPCconnectivity, ok := nodesConn[vpcName]; ok {
 			if len(VPCconnectivity.GroupedConnectivity.GroupedLines) > 0 {
