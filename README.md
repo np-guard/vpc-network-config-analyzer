@@ -79,7 +79,7 @@ Each output line describes a difference between the configurations and contains 
 ### diff_all_subnets analysis type
 The output is very similar to the one in `diff_all_endpoints` with `vsis` replaced by `subnets`: `src` and `dst` are as in analysis `all_subnets` and the last column is `subnets-diff-info` 
 
-### explain analysis type
+### `explain` analysis type
 Answers the query regarding `src`, `dst` and the provided `protocol` and `port` parms. 
 If the queried connection or a subset of it is allowed, then a list of the enabling resources is provided. Examples for enabling resources:  public-gw, security group, and network ACL.
 If the required connection is blocked then details of the blocking resources - e.g. missing fip or blocked egress - is provided.
