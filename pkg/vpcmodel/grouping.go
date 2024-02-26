@@ -219,11 +219,13 @@ func (g *groupingConnections) addPublicConnectivity(ep EndpointElem, commonProps
 	(*g)[ep][connKey].appendNode(targetNode)
 }
 
-// vsiOrSubnetsGroupingBySubnetsOrVsis returns a slice of EndpointElem objects, by grouping set of elements that
-// 1. If the grouped elements are vsis then the elements
-// represent network interface nodes from the same subnet into a single groupedNetworkInterfaces object
-// 2. If the grouped elements are subnets then the elements represent subnets from the same VPC
-// this is automatic unless VPCConfig is result of a dummy vpc built for tgw, namely IsMultipleVPCsConfig = true
+// vsiOrSubnetsGroupingBySubnetsOrVsis given *GroupConnLines, a list of EndpointElem and a bool saying whether
+// the EndpointElem represents VSIs or subnets.
+// It returns a slice of EndpointElem objects, by grouping the input set of EndpointElem into the input *GroupConnLines
+// such that
+// 1. If the grouped elements are vsis (as by the input bool) then the elements are grouped by their subnet
+// 2. If the grouped elements are subnets then the elements are grouped by their VPC, this is automatic
+// unless VPCConfig is result of a dummy vpc built for tgw, namely IsMultipleVPCsConfig = true
 func vsiOrSubnetsGroupingBySubnetsOrVsis(groupedConnLines *GroupConnLines,
 	elemsList []EndpointElem, c *VPCConfig, groupVSI bool) []EndpointElem {
 	res := []EndpointElem{}
