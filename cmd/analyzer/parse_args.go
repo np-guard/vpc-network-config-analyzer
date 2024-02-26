@@ -383,6 +383,9 @@ func errorInArgs(args *InArgs, flagset *flag.FlagSet) error {
 	if !fileForDiffSpecified && diffAnalysis {
 		return fmt.Errorf("missing parameter vpc-config-second for diff analysis %s", *args.AnalysisType)
 	}
+	if slices.Contains([]string{DRAWIOFormat, ARCHDRAWIOFormat}, *args.OutputFormat) && *args.OutputFile == "" {
+		return fmt.Errorf("for output format '%s', parameter '-output-file' must be specified", *args.OutputFormat)
+	}
 	return nil
 }
 
