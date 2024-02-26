@@ -257,7 +257,7 @@ func subnetGrouping(groupedConnLines *GroupConnLines,
 	for _, elem := range elemsList {
 		n, ok := elem.(Subnet)
 		if !ok {
-			res = append(res, n) // elements which are not NodeSet  remain in the result as in the original input
+			res = append(res, n) // elements which are not Subnets remain in the result as in the original input
 			continue             // NodeSet in the current context is a Subnet
 		}
 		subnetsToGroup = append(subnetsToGroup, n)
