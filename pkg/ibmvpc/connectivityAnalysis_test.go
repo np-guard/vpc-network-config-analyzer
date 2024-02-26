@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/np-guard/models/pkg/ipblocks"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	vpcmodel "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
@@ -62,14 +63,28 @@ var nc2 = &naclConfig{
 	subnets:      []string{"10.240.10.0/24"},
 }
 
+var nc2a = &naclConfig{
+	name:         "nacl-2-a",
+	ingressRules: getDenyAllRules(),
+	egressRules:  getAllowICMPRules(),
+	subnets:      []string{"10.240.10.0/24"},
+}
+
+var nc3a = &naclConfig{
+	name:         "nacl-3-a",
+	ingressRules: getAllowICMPRules(),
+	egressRules:  getDenyAllRules(),
+	subnets:      []string{"10.240.20.0/24"},
+}
+
 // nc3: limited egress (cannot egress outside the subnet) applied to  subnet-2 in tc1
 var nc3 = &naclConfig{
 	name:         "nacl-3",
 	ingressRules: getAllowAllRules(),
 	egressRules: []*NACLRule{
 		{
-			src:         common.NewIPBlockFromCidr("0.0.0.0/0"),
-			dst:         common.NewIPBlockFromCidr("10.240.20.0/24"),
+			src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
+			dst:         newIPBlockFromCIDROrAddressWithoutValidation("10.240.20.0/24"),
 			connections: getAllConnSet(),
 			action:      "allow",
 		},
@@ -83,8 +98,8 @@ var nc4 = &naclConfig{
 	ingressRules: getAllowAllRules(),
 	egressRules: []*NACLRule{
 		{
-			src:         common.NewIPBlockFromCidr("0.0.0.0/0"),
-			dst:         common.NewIPBlockFromCidr("0.0.0.0/0"),
+			src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
+			dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
 			connections: common.NewTCPConnectionSet(),
 			action:      "allow",
 		},
@@ -104,8 +119,8 @@ var nc5 = &naclConfig{
 	ingressRules: getAllowAllRules(),
 	egressRules: []*NACLRule{
 		{
-			src:         common.NewIPBlockFromCidr("0.0.0.0/0"),
-			dst:         common.NewIPBlockFromCidr("0.0.0.0/0"),
+			src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
+			dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
 			connections: nc5Conn(),
 			action:      "allow",
 		},
@@ -124,8 +139,8 @@ var nc6 = &naclConfig{
 	ingressRules: getAllowAllRules(),
 	egressRules: []*NACLRule{
 		{
-			src:         common.NewIPBlockFromCidr("0.0.0.0/0"),
-			dst:         common.NewIPBlockFromCidr("0.0.0.0/0"),
+			src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
+			dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
 			connections: nc6Conn(),
 			action:      "allow",
 		},
@@ -168,10 +183,29 @@ var expectedConnStrTest2 = `=================================== distributed inbo
 =================================== combined connections - short version:
 vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections *
 =================================== stateful combined connections - short version:
+vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : protocol: UDP,ICMP
 `
 
 func TestAnalyzeConnectivity2(t *testing.T) {
 	runConnectivityTest(t, tc1, []*naclConfig{nc2, nc3}, expectedConnStrTest2)
+}
+
+var expectedConnStrTest2a = `=================================== distributed inbound/outbound connections:
+10.240.10.4 => 10.240.20.4 : protocol: ICMP [inbound]
+10.240.10.4 => 10.240.20.4 : protocol: ICMP [outbound]
+10.240.20.4 => 10.240.10.4 : No Connections [inbound]
+10.240.20.4 => 10.240.10.4 : No Connections [outbound]
+=================================== combined connections:
+10.240.10.4 => 10.240.20.4 : protocol: ICMP
+10.240.20.4 => 10.240.10.4 : No Connections
+=================================== combined connections - short version:
+vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : protocol: ICMP
+=================================== stateful combined connections - short version:
+vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : protocol: ICMP
+` // ICMP is actually enabled only unidirectional in this case, but stateful analysis does not apply to ICMP
+
+func TestAnalyzeConnectivity2a(t *testing.T) {
+	runConnectivityTest(t, tc1, []*naclConfig{nc2a, nc3a}, expectedConnStrTest2a)
 }
 
 var expectedConnStrTest3 = `=================================== distributed inbound/outbound connections:
@@ -183,10 +217,10 @@ var expectedConnStrTest3 = `=================================== distributed inbo
 10.240.10.4 => 10.240.20.4 : All Connections
 10.240.20.4 => 10.240.10.4 : protocol: TCP
 =================================== combined connections - short version:
-vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections *
+vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections
 vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : protocol: TCP
 =================================== stateful combined connections - short version:
-vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : protocol: TCP
+vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections
 vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : protocol: TCP
 `
 
@@ -263,19 +297,47 @@ func createConfigFromTestConfig(tc *testNodesConfig, ncList []*naclConfig) *vpcm
 func getAllowAllRules() []*NACLRule {
 	return []*NACLRule{
 		{
-			src:         common.NewIPBlockFromCidr("0.0.0.0/0"),
-			dst:         common.NewIPBlockFromCidr("0.0.0.0/0"),
+			src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
+			dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
 			connections: getAllConnSet(),
 			action:      "allow",
 		},
 	}
 }
 
+func getDenyAllRules() []*NACLRule {
+	return []*NACLRule{
+		{
+			src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
+			dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
+			connections: getAllConnSet(),
+			action:      "deny",
+		},
+	}
+}
+
+func getAllowICMPRules() []*NACLRule {
+	return []*NACLRule{
+		{
+			src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
+			dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
+			connections: icmpConn(),
+			action:      "allow",
+		},
+	}
+}
+
+func icmpConn() *common.ConnectionSet {
+	res := common.NewConnectionSet(false)
+	res.AddICMPConnection(common.MinICMPtype, common.MaxICMPtype, common.MinICMPcode, common.MaxICMPcode)
+	return res
+}
+
 func addInterfaceNode(config *vpcmodel.VPCConfig, name, address, vsiName, subnetName string) {
 	intfNode := &NetworkInterface{
-		VPCResource: vpcmodel.VPCResource{ResourceName: name, ResourceUID: name, ResourceType: ResourceTypeNetworkInterface},
-		address:     address,
-		vsi:         vsiName,
+		VPCResource:  vpcmodel.VPCResource{ResourceName: name, ResourceUID: name, ResourceType: ResourceTypeNetworkInterface},
+		InternalNode: vpcmodel.InternalNode{AddressStr: address, IPBlockObj: newIPBlockFromCIDROrAddressWithoutValidation(address)},
+		vsi:          vsiName,
 	}
 	// add references between subnet to interface (both directions)
 	for _, subnet := range config.NodeSets {
@@ -293,6 +355,7 @@ func addSubnet(config *vpcmodel.VPCConfig, name, cidr, zone string) *Subnet {
 	subnetNode := &Subnet{
 		VPCResource: vpcmodel.VPCResource{ResourceName: name, ResourceUID: name, Zone: zone, ResourceType: ResourceTypeSubnet},
 		cidr:        cidr,
+		ipblock:     newIPBlockFromCIDROrAddressWithoutValidation(cidr),
 	}
 	config.NodeSets = append(config.NodeSets, subnetNode)
 	return subnetNode
@@ -378,4 +441,9 @@ func TestAnalyzeConnectivity(t *testing.T) {
 	connectivityStr := connectivity.DetailedString()
 	fmt.Println(connectivityStr)
 	fmt.Println("done")
+}
+
+func newIPBlockFromCIDROrAddressWithoutValidation(cidr string) *ipblocks.IPBlock {
+	res, _ := ipblocks.NewIPBlockFromCidrOrAddress(cidr)
+	return res
 }

@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+	"github.com/np-guard/models/pkg/ipblocks"
 )
 
 const (
@@ -24,7 +24,7 @@ func getVPCdestSubnetsByAdvertisedRoutes(tg *TransitGateway, vpc *VPC) (res []*S
 }
 
 func isSubnetTGWDestination(tg *TransitGateway, subnet *Subnet) bool {
-	dstIPB := common.NewIPBlockFromCidrOrAddress(subnet.cidr)
+	dstIPB := subnet.ipblock
 	// TODO: routesListPerVPC is currently restricted only to the subnet's VPC, but with
 	// overlapping address prefixes the TGW may choose available route from a different VPC
 	routesListPerVPC := tg.availableRoutes[subnet.VPCRef.UID()]
@@ -48,7 +48,7 @@ func validateAddressPrefixesExist(vpc *VPC) {
 
 // getVPCAdvertisedRoutes returns a list of IPBlock objects for vpc address prefixes matched by prefix filters,
 // thus advertised to a TGW
-func getVPCAdvertisedRoutes(tc *datamodel.TransitConnection, vpc *VPC) (res []*common.IPBlock, err error) {
+func getVPCAdvertisedRoutes(tc *datamodel.TransitConnection, vpc *VPC) (res []*ipblocks.IPBlock, err error) {
 	validateAddressPrefixesExist(vpc)
 	for _, ap := range vpc.addressPrefixes {
 		matched, err := isCIDRMatchedByPrefixFilters(ap, tc)
@@ -56,7 +56,11 @@ func getVPCAdvertisedRoutes(tc *datamodel.TransitConnection, vpc *VPC) (res []*c
 			return nil, err
 		}
 		if matched {
-			res = append(res, common.NewIPBlockFromCidr(ap))
+			apIPBlock, err := ipblocks.NewIPBlockFromCidr(ap)
+			if err != nil {
+				return nil, err
+			}
+			res = append(res, apIPBlock)
 		}
 	}
 	return res, nil
@@ -105,10 +109,12 @@ func parseActionString(action *string) (bool, error) {
 // For example, 10.0.0.0/24 le 30 will match 10.0.0.0/24 and all prefixes contained therein with a length of 30 or less.
 // (see https://packetlife.net/blog/2010/feb/1/understanding-ip-prefix-lists/ )
 
-// prefixLeGeMatch checks if a subnet cidr is matched by a given prefix with le/ge attributes
+// prefixLeGeMatch checks if a vpc's address-prefix cidr is matched by a given rule's prefix with le/ge attributes
 func prefixLeGeMatch(prefix *string, le, ge *int64, cidr string) (bool, error) {
-	prefixIPBlock := common.NewIPBlockFromCidr(*prefix)
-	cidrBlock := common.NewIPBlockFromCidr(cidr)
+	prefixIPBlock, cidrBlock, err := ipblocks.PairCIDRsToIPBlocks(*prefix, cidr)
+	if err != nil {
+		return false, err
+	}
 	subnetCIDRLen, err := cidrBlock.PrefixLength()
 	if err != nil {
 		return false, err

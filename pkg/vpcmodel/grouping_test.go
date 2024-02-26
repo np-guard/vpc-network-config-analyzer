@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/np-guard/models/pkg/ipblocks"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
 )
@@ -16,9 +17,14 @@ type mockNetIntf struct {
 	name     string
 }
 
-func (m *mockNetIntf) Cidr() string {
+func (m *mockNetIntf) CidrOrAddress() string {
 	return m.cidr
 }
+func (m *mockNetIntf) IPBlock() *ipblocks.IPBlock {
+	res, _ := ipblocks.NewIPBlockFromCidrOrAddress(m.cidr)
+	return res
+}
+
 func (m *mockNetIntf) IsInternal() bool {
 	return !m.isPublic
 }
@@ -29,7 +35,7 @@ func (m *mockNetIntf) Kind() string {
 	return "NetworkInterface"
 }
 func (m *mockNetIntf) UID() string {
-	return ""
+	return m.name
 }
 func (m *mockNetIntf) Name() string {
 	return m.name
@@ -54,7 +60,7 @@ type mockSubnet struct {
 }
 
 func (m *mockSubnet) UID() string {
-	return ""
+	return m.name
 }
 func (m *mockSubnet) Name() string {
 	return m.name
@@ -62,7 +68,7 @@ func (m *mockSubnet) Name() string {
 func (m *mockSubnet) Nodes() []Node {
 	return m.nodes
 }
-func (m *mockSubnet) AddressRange() *common.IPBlock {
+func (m *mockSubnet) AddressRange() *ipblocks.IPBlock {
 	return nil
 }
 func (m *mockSubnet) Connectivity() *ConnectivityResult {
@@ -84,12 +90,18 @@ func (m *mockSubnet) VPC() VPCResourceIntf {
 	return nil
 }
 
+func newAllConnectionsWithStateful(isStateful int) *common.ConnectionSet {
+	res := common.NewConnectionSet(true)
+	res.IsStateful = isStateful
+	return res
+}
+
 func newVPCConfigTest1() (*VPCConfig, *VPCConnectivity) {
 	res := &VPCConfig{Nodes: []Node{}}
 	res.Nodes = append(res.Nodes,
 		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1"},
-		&mockNetIntf{cidr: "1.2.3.4/22", name: "public1", isPublic: true},
-		&mockNetIntf{cidr: "8.8.8.8/32", name: "public2", isPublic: true})
+		&ExternalNetwork{CidrStr: "1.2.3.4/22", isPublicInternet: true},
+		&ExternalNetwork{CidrStr: "8.8.8.8/32", isPublicInternet: true})
 
 	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0]}})
 
@@ -103,8 +115,8 @@ func newVPCConfigTest2() (*VPCConfig, *VPCConnectivity) {
 	res := &VPCConfig{Nodes: []Node{}}
 	res.Nodes = append(res.Nodes,
 		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1"},
-		&mockNetIntf{cidr: "1.2.3.4/22", name: "public1", isPublic: true},
-		&mockNetIntf{cidr: "8.8.8.8/32", name: "public2", isPublic: true},
+		&ExternalNetwork{CidrStr: "1.2.3.4/22", isPublicInternet: true},
+		&ExternalNetwork{CidrStr: "8.8.8.8/32", isPublicInternet: true},
 		&mockNetIntf{cidr: "10.0.20.6/32", name: "vsi2"})
 
 	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0], res.Nodes[3]}})
@@ -160,18 +172,18 @@ func configStatefulGrouping() (*VPCConfig, *VPCConnectivity) {
 	res := &VPCConfig{Nodes: []Node{}}
 	res.Nodes = append(res.Nodes,
 		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1"},
-		&mockNetIntf{cidr: "1.2.3.4/22", name: "public1", isPublic: true},
-		&mockNetIntf{cidr: "8.8.8.8/32", name: "public2", isPublic: true},
+		&ExternalNetwork{CidrStr: "1.2.3.4/22", isPublicInternet: true},
+		&ExternalNetwork{CidrStr: "8.8.8.8/32", isPublicInternet: true},
 		&mockNetIntf{cidr: "10.0.20.6/32", name: "vsi2"})
 
 	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0], res.Nodes[3]}})
 
 	res1 := &VPCConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], common.NewConnectionSetWithStateful(true, common.StatefulTrue))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], common.NewConnectionSetWithStateful(true, common.StatefulTrue))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[3], res.Nodes[1], common.NewConnectionSetWithStateful(true, common.StatefulTrue))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], newAllConnectionsWithStateful(common.StatefulTrue))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], newAllConnectionsWithStateful(common.StatefulTrue))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[3], res.Nodes[1], newAllConnectionsWithStateful(common.StatefulTrue))
 	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[3], res.Nodes[2],
-		common.NewConnectionSetWithStateful(true, common.StatefulFalse))
+		newAllConnectionsWithStateful(common.StatefulFalse))
 
 	return res, res1
 }
@@ -197,9 +209,8 @@ func configIPRange() (*VPCConfig, *VPCConnectivity) {
 	res := &VPCConfig{Nodes: []Node{}}
 	res.Nodes = append(res.Nodes,
 		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1"},
-		&mockNetIntf{cidr: "1.2.3.0/24", name: "public1", isPublic: true},
-		&mockNetIntf{cidr: "1.2.4.0/24", name: "public2", isPublic: true})
-
+		&ExternalNetwork{CidrStr: "1.2.3.0/24", isPublicInternet: true},
+		&ExternalNetwork{CidrStr: "1.2.4.0/24", isPublicInternet: true})
 	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0]}})
 
 	res1 := &VPCConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}

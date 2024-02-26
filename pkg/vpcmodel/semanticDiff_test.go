@@ -95,11 +95,11 @@ func TestSimpleSubnetDiff(t *testing.T) {
 	require.Contains(t, subnet1Subtract2Str, "diff-type: removed, source: subnet1, destination: subnet2, "+
 		"config1: All Connections, config2: No Connections, subnets-diff-info: subnet1 removed")
 	require.Contains(t, subnet1Subtract2Str, "diff-type: removed, source: subnet2, destination: subnet3, "+
-		"config1: All Connections, config2: No Connections, subnets-diff-info:")
+		"config1: All Connections, config2: No Connections")
 	require.Contains(t, subnet1Subtract2Str, "diff-type: removed, source: subnet3, destination: subnet1, "+
 		"config1: All Connections, config2: No Connections, subnets-diff-info: subnet1 removed")
 	require.Contains(t, subnet1Subtract2Str, "diff-type: changed, source: subnet3, destination: subnet4, "+
-		"config1: protocol: TCP src-ports: 10-100 dst-ports: 443, config2: All Connections, subnets-diff-info:")
+		"config1: protocol: TCP src-ports: 10-100 dst-ports: 443, config2: All Connections")
 
 	cfg2Subtract1, err := subnetConfigConn2.connMissingOrChanged(subnetConfigConn1, Subnets, false)
 	if err != nil {
@@ -136,11 +136,11 @@ func TestSimpleSubnetDiffGrouping(t *testing.T) {
 	require.Contains(t, groupedPrinted, "diff-type: removed, source: subnet1, destination: subnet2, "+
 		"config1: All Connections, config2: No Connections, subnets-diff-info: subnet1 removed\n")
 	require.Contains(t, groupedPrinted, "diff-type: removed, source: subnet2, destination: subnet3, "+
-		"config1: All Connections, config2: No Connections, subnets-diff-info: \n")
+		"config1: All Connections, config2: No Connections")
 	require.Contains(t, groupedPrinted, "diff-type: removed, source: subnet3, destination: subnet1, "+
 		"config1: All Connections, config2: No Connections, subnets-diff-info: subnet1 removed\n")
 	require.Contains(t, groupedPrinted, "diff-type: changed, source: subnet3, destination: subnet4, "+
-		"config1: protocol: TCP src-ports: 10-100 dst-ports: 443, config2: All Connections, subnets-diff-info: \n")
+		"config1: protocol: TCP src-ports: 10-100 dst-ports: 443, config2: All Connections")
 	require.Contains(t, groupedPrinted, "diff-type: added, source: subnet4, destination: subnet5, config1: "+
 		"No Connections, config2: All Connections, subnets-diff-info: subnet5 added\n")
 }
@@ -209,19 +209,19 @@ func TestSimpleIPAndSubnetDiff(t *testing.T) {
 	newLines := strings.Count(cfg1SubtractCfg2Str, "\n")
 	require.Equal(t, 7, newLines)
 	require.Contains(t, cfg1SubtractCfg2Str, "diff-type: removed, source: Public Internet [250.2.4.128/25], destination: subnet2, "+
-		"config1: All Connections, config2: No Connections, subnets-diff-info:")
+		"config1: All Connections, config2: No Connections")
 	require.Contains(t, cfg1SubtractCfg2Str, "diff-type: removed, source: Public Internet [250.2.4.16/28], destination: subnet2, "+
-		"config1: All Connections, config2: No Connections, subnets-diff-info:")
+		"config1: All Connections, config2: No Connections")
 	require.Contains(t, cfg1SubtractCfg2Str, "diff-type: removed, source: Public Internet [250.2.4.32/27], destination: subnet2, "+
-		"config1: All Connections, config2: No Connections, subnets-diff-info:")
+		"config1: All Connections, config2: No Connections")
 	require.Contains(t, cfg1SubtractCfg2Str, "diff-type: removed, source: Public Internet [250.2.4.4/30], destination: subnet2, "+
-		"config1: All Connections, config2: No Connections, subnets-diff-info:")
+		"config1: All Connections, config2: No Connections")
 	require.Contains(t, cfg1SubtractCfg2Str, "diff-type: removed, source: Public Internet [250.2.4.64/26], destination: subnet2, "+
-		"config1: All Connections, config2: No Connections, subnets-diff-info:")
+		"config1: All Connections, config2: No Connections")
 	require.Contains(t, cfg1SubtractCfg2Str, "diff-type: removed, source: Public Internet [250.2.4.8/29], destination: subnet2, "+
-		"config1: All Connections, config2: No Connections, subnets-diff-info:")
+		"config1: All Connections, config2: No Connections")
 	require.Contains(t, cfg1SubtractCfg2Str, "diff-type: changed, source: subnet2, destination: Public Internet [200.2.4.0/24], "+
-		"config1: All Connections, config2: protocol: TCP src-ports: 0-1000 dst-ports: 0-443, subnets-diff-info:")
+		"config1: All Connections, config2: protocol: TCP src-ports: 0-1000 dst-ports: 0-443")
 }
 
 func TestSimpleIPAndSubnetDiffGrouping(t *testing.T) {
@@ -249,15 +249,15 @@ func TestSimpleIPAndSubnetDiffGrouping(t *testing.T) {
 	newLines := strings.Count(groupedPrinted, "\n")
 	require.Equal(t, 5, newLines)
 	require.Contains(t, groupedPrinted, "diff-type: added, source: Public Internet 1.2.3.4-1.2.3.63, "+
-		"destination: subnet1, config1: No Connections, config2: All Connections, subnets-diff-info:")
+		"destination: subnet1, config1: No Connections, config2: All Connections")
 	require.Contains(t, groupedPrinted, "diff-type: added, source: Public Internet 1.2.3.4-1.2.3.63, "+
-		"destination: subnet2, config1: No Connections, config2: All Connections, subnets-diff-info:")
+		"destination: subnet2, config1: No Connections, config2: All Connections")
 	require.Contains(t, groupedPrinted, "diff-type: added, source: subnet2, destination: Public Internet 1.2.3.4-1.2.3.63, "+
-		"config1: No Connections, config2: All Connections, subnets-diff-info:")
+		"config1: No Connections, config2: All Connections")
 	require.Contains(t, groupedPrinted, "diff-type: changed, source: subnet2, destination: Public Internet 200.2.4.0/24, "+
-		"config1: All Connections, config2: protocol: TCP src-ports: 0-1000 dst-ports: 0-443, subnets-diff-info: ")
+		"config1: All Connections, config2: protocol: TCP src-ports: 0-1000 dst-ports: 0-443")
 	require.Contains(t, groupedPrinted, "diff-type: removed, source: Public Internet 250.2.4.4-250.2.4.255, destination: subnet2, "+
-		"config1: All Connections, config2: No Connections, subnets-diff-info")
+		"config1: All Connections, config2: No Connections")
 }
 
 func configSimpleVsisDiff() (configConn1, configConn2 *configConnectivity) {
@@ -328,11 +328,11 @@ func TestSimpleVsisDiff(t *testing.T) {
 	newLines := strings.Count(cfg1SubCfg2Str, "\n")
 	require.Equal(t, 4, newLines)
 	require.Contains(t, cfg1SubCfg2Str, "diff-type: changed, source: vsi2, destination: vsi3, config1: "+
-		"protocol: TCP src-ports: 10-100 dst-ports: 443, config2: All Connections, vsis-diff-info:")
+		"protocol: TCP src-ports: 10-100 dst-ports: 443, config2: All Connections")
 	require.Contains(t, cfg1SubCfg2Str, "diff-type: removed, source: vsi0, destination: vsi1, config1: "+
 		"All Connections, config2: No Connections, vsis-diff-info: vsi0 removed")
 	require.Contains(t, cfg1SubCfg2Str, "diff-type: removed, source: vsi1, destination: vsi3, config1: "+
-		"All Connections, config2: No Connections, vsis-diff-info:")
+		"All Connections, config2: No Connections")
 
 	cfg2SubCfg1, err := alignedCfgConn2.connMissingOrChanged(alignedCfgConn1, Vsis, false)
 	if err != nil {
@@ -344,15 +344,15 @@ func TestSimpleVsisDiff(t *testing.T) {
 	newLines = strings.Count(cfg2SubCfg1Str, "\n")
 	require.Equal(t, 5, newLines)
 	require.Contains(t, cfg2SubCfg1Str, "diff-type: removed, source: vsi2, "+
-		"destination: Public Internet [1.2.3.16/28], config1: All Connections, config2: No Connections, vsis-diff-info: \n")
+		"destination: Public Internet [1.2.3.16/28], config1: All Connections, config2: No Connections")
 	require.Contains(t, cfg2SubCfg1Str, "diff-type: removed, source: vsi2, "+
-		"destination: Public Internet [1.2.3.32/27], config1: All Connections, config2: No Connections, vsis-diff-info: \n")
+		"destination: Public Internet [1.2.3.32/27], config1: All Connections, config2: No Connections")
 	require.Contains(t, cfg2SubCfg1Str, "diff-type: removed, source: vsi2, destination: Public Internet [1.2.3.4/30], "+
-		"config1: All Connections, config2: No Connections, vsis-diff-info: \n")
+		"config1: All Connections, config2: No Connections")
 	require.Contains(t, cfg2SubCfg1Str, "diff-type: removed, source: vsi2, "+
-		"destination: Public Internet [1.2.3.8/29], config1: All Connections, config2: No Connections, vsis-diff-info: \n")
+		"destination: Public Internet [1.2.3.8/29], config1: All Connections, config2: No Connections")
 	require.Contains(t, cfg2SubCfg1Str, "diff-type: removed, source: vsi3, destination: vsi4, config1: "+
-		"All Connections, config2: No Connections, vsis-diff-info: vsi4 removed\n")
+		"All Connections, config2: No Connections, vsis-diff-info: vsi4 removed")
 }
 
 func TestSimpleVsisDiffGrouping(t *testing.T) {
@@ -380,17 +380,17 @@ func TestSimpleVsisDiffGrouping(t *testing.T) {
 	newLines := strings.Count(groupedPrinted, "\n")
 	require.Equal(t, 6, newLines)
 	require.Contains(t, groupedPrinted, "diff-type: added, source: vsi2, destination: Public Internet 1.2.3.4-1.2.3.63, "+
-		"config1: No Connections, config2: All Connections, vsis-diff-info: \n")
+		"config1: No Connections, config2: All Connections")
 	require.Contains(t, groupedPrinted, "diff-type: added, source: vsi3, destination: vsi4, config1: No Connections, "+
 		"config2: All Connections, vsis-diff-info: vsi4 added\n")
 	require.Contains(t, groupedPrinted, "diff-type: changed, source: vsi2, destination: Public Internet 1.2.3.0/30, "+
-		"config1: protocol: TCP src-ports: 10-100 dst-ports: 443, config2: All Connections, vsis-diff-info: \n")
+		"config1: protocol: TCP src-ports: 10-100 dst-ports: 443, config2: All Connections")
 	require.Contains(t, groupedPrinted, "diff-type: changed, source: vsi2, destination: vsi3, "+
-		"config1: protocol: TCP src-ports: 10-100 dst-ports: 443, config2: All Connections, vsis-diff-info: \n")
+		"config1: protocol: TCP src-ports: 10-100 dst-ports: 443, config2: All Connections")
 	require.Contains(t, groupedPrinted, "diff-type: removed, source: vsi0, destination: vsi1, config1: "+
 		"All Connections, config2: No Connections, vsis-diff-info: vsi0 removed\n")
 	require.Contains(t, groupedPrinted, "diff-type: removed, source: vsi1, destination: vsi3, "+
-		"config1: All Connections, config2: No Connections, vsis-diff-info: \n")
+		"config1: All Connections, config2: No Connections")
 }
 
 func (connDiff *connectivityDiff) string(diffAnalysis diffAnalysisType, thisMinusOther bool) string {
@@ -399,10 +399,10 @@ func (connDiff *connectivityDiff) string(diffAnalysis diffAnalysisType, thisMinu
 		for dst, connDiff := range endpointConnDiff {
 			connDiff.thisMinusOther = thisMinusOther
 			conn1Str, conn2Str := conn1And2Str(connDiff)
-			diffType, endpointsDiff := diffAndEndpointsDescription(connDiff.diff, src, dst, thisMinusOther)
-			diffInfo := diffInfoStr(diffAnalysis)
+			diffType, diffInfoBody := diffAndEndpointsDescription(connDiff.diff, src, dst, thisMinusOther)
+			diffInfo := getDiffInfo(diffAnalysis, diffInfoBody)
 			printDiff := fmt.Sprintf("%v %s, source: %s, destination: %s, ", diffTypeStr, diffType, src.Name(), dst.Name())
-			printDiff += fmt.Sprintf(configsStr, conn1Str, conn2Str, diffInfo, endpointsDiff) + "\n"
+			printDiff += fmt.Sprintf(configsStr, conn1Str, conn2Str, diffInfo) + "\n"
 			strList = append(strList, printDiff)
 		}
 	}

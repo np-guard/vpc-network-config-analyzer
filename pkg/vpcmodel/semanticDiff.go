@@ -5,6 +5,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/np-guard/models/pkg/ipblocks"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
@@ -29,7 +30,7 @@ const (
 const (
 	castingNodeErr = "%s should be external node but casting to Node failed"
 	diffTypeStr    = "diff-type:"
-	configsStr     = "config1: %s, config2: %s, %s %s"
+	configsStr     = "config1: %s, config2: %s%s"
 	semicolon      = ";"
 )
 
@@ -131,13 +132,11 @@ func (c *VPCConfig) getAllowedConnectionsCombined(
 func (c *VPCConfig) getVPCResourceInfInOtherConfig(other *VPCConfig, ep VPCResourceIntf,
 	diffAnalysis diffAnalysisType) (res VPCResourceIntf, err error) {
 	if ep.IsExternal() {
-		var node Node
-		var ok bool
-		if node, ok = ep.(Node); ok {
-			nodeSameCidr := findNodeWithCidr(other.Nodes, ep.(Node).Cidr())
+		if node, ok := ep.(*ExternalNetwork); ok {
+			nodeSameCidr := findNodeWithCidr(other.Nodes, node.CidrStr)
 			return nodeSameCidr, nil
 		}
-		return nil, fmt.Errorf(castingNodeErr, node.Name())
+		return nil, fmt.Errorf(castingNodeErr, ep.Name())
 	}
 	// endpoint is a vsi or a subnet, depending on diffAnalysis value
 	if diffAnalysis == Vsis {
@@ -231,7 +230,7 @@ func getDiffType(src, srcInOther, dst, dstInOther VPCResourceIntf) DiffType {
 	return noDiff
 }
 
-func diffInfoStr(diffAnalysis diffAnalysisType) string {
+func getDiffInfoHeader(diffAnalysis diffAnalysisType) string {
 	if diffAnalysis == Subnets {
 		return "subnets-diff-info:"
 	} else if diffAnalysis == Vsis {
@@ -251,21 +250,29 @@ func conn1And2Str(connDiff *connectionDiff) (conn1Str, conn2Str string) {
 	return conn1Str, conn2Str
 }
 
-// printDiffLine print one diff line
-func printDiffLine(diffAnalysis diffAnalysisType, src, dst EndpointElem, commonProps *groupedCommonProperties) string {
-	diffType, endpointsDiff := diffAndEndpointsDescription(commonProps.connDiff.diff, src, dst, commonProps.connDiff.thisMinusOther)
+// printGroupedDiffLine print one grouped diff line
+func printGroupedDiffLine(diffAnalysis diffAnalysisType, src, dst EndpointElem, commonProps *groupedCommonProperties) string {
+	diffType, diffInfoBody := diffAndEndpointsDescription(commonProps.connDiff.diff, src, dst, commonProps.connDiff.thisMinusOther)
 	conn1Str, conn2Str := conn1And2Str(commonProps.connDiff)
-	diffInfo := diffInfoStr(diffAnalysis)
 	diffTypeStr := fmt.Sprintf("%v %s", diffTypeStr, diffType)
-	connDiffStr := fmt.Sprintf(configsStr, conn1Str, conn2Str, diffInfo, endpointsDiff)
+	diffInfo := getDiffInfo(diffAnalysis, diffInfoBody)
+	connDiffStr := fmt.Sprintf(configsStr, conn1Str, conn2Str, diffInfo)
 	printDiff := fmt.Sprintf("%s, source: %s, destination: %s, %s\n", diffTypeStr, src.Name(), dst.Name(), connDiffStr)
 	return printDiff
+}
+
+func getDiffInfo(diffAnalysis diffAnalysisType, diffInfoBody string) string {
+	if diffInfoBody == "" {
+		return ""
+	}
+	diffInfoHeader := getDiffInfoHeader(diffAnalysis)
+	return ", " + diffInfoHeader + " " + diffInfoBody
 }
 
 func (diffCfgs *diffBetweenCfgs) String() string {
 	strList := make([]string, len(diffCfgs.groupedLines))
 	for i, grouped := range diffCfgs.groupedLines {
-		strList[i] = printDiffLine(diffCfgs.diffAnalysis, grouped.src, grouped.dst, grouped.commonProperties)
+		strList[i] = printGroupedDiffLine(diffCfgs.diffAnalysis, grouped.src, grouped.dst, grouped.commonProperties)
 	}
 	sort.Strings(strList)
 	return strings.Join(strList, "")
@@ -337,7 +344,7 @@ func (confConnectivity *configConnectivity) getConnectivityWithSameIPBlocks(othe
 	if err != nil {
 		return nil, nil, err
 	}
-	disjointIPblocks := common.DisjointIPBlocks(connectivityIPBlist, otherIPBlist)
+	disjointIPblocks := ipblocks.DisjointIPBlocks(connectivityIPBlist, otherIPBlist)
 	// 2. copy configs and generates Nodes[] as per disjointIPblocks
 	err = confConnectivity.config.refineConfigExternalNodes(disjointIPblocks)
 	if err != nil {
@@ -364,7 +371,7 @@ func (confConnectivity *configConnectivity) getConnectivityWithSameIPBlocks(othe
 		&configConnectivity{otherAlignedConfig, alignedOtherConnectivity}, nil
 }
 
-func (connectivityMap *GeneralConnectivityMap) alignConnectionsGivenIPBlists(config *VPCConfig, disjointIPblocks []*common.IPBlock) (
+func (connectivityMap *GeneralConnectivityMap) alignConnectionsGivenIPBlists(config *VPCConfig, disjointIPblocks []*ipblocks.IPBlock) (
 	alignedConnectivity GeneralConnectivityMap, err error) {
 	alignedConnectivitySrc, err := connectivityMap.actualAlignSrcOrDstGivenIPBlists(config, disjointIPblocks, true)
 	if err != nil {
@@ -376,7 +383,7 @@ func (connectivityMap *GeneralConnectivityMap) alignConnectionsGivenIPBlists(con
 
 // aligned config: copies from old config everything but external nodes,
 // external nodes are resized by disjointIPblocks
-func (c *VPCConfig) refineConfigExternalNodes(disjointIPblocks []*common.IPBlock) error {
+func (c *VPCConfig) refineConfigExternalNodes(disjointIPblocks []*ipblocks.IPBlock) error {
 	// copy config
 	var err error
 	//  nodes - external addresses - are resized
@@ -384,7 +391,7 @@ func (c *VPCConfig) refineConfigExternalNodes(disjointIPblocks []*common.IPBlock
 	return err
 }
 
-func resizeNodes(oldNodes []Node, disjointIPblocks []*common.IPBlock) (newNodes []Node, err error) {
+func resizeNodes(oldNodes []Node, disjointIPblocks []*ipblocks.IPBlock) (newNodes []Node, err error) {
 	newNodes = []Node{}
 	//  range over old nodes and inside range over disjoint blocks
 	//  if a disjoint block is contained in an old oldNode - create external oldNode and add it
@@ -394,16 +401,15 @@ func resizeNodes(oldNodes []Node, disjointIPblocks []*common.IPBlock) (newNodes 
 			newNodes = append(newNodes, oldNode)
 			continue
 		}
-		nodeIPBlock, err := common.NewIPBlock(oldNode.Cidr(), nil)
-		if err != nil {
-			return nil, err
-		}
 		disjointContained := false
 		for _, disjointIPBlock := range disjointIPblocks {
-			if disjointIPBlock.ContainedIn(nodeIPBlock) {
+			if disjointIPBlock.ContainedIn(oldNode.IPBlock()) {
 				disjointContained = true
 				for _, thisCidr := range disjointIPBlock.ToCidrList() {
-					newNode := newExternalNodeForCidr(thisCidr)
+					newNode, err := newExternalNodeForCidr(thisCidr)
+					if err != nil {
+						return nil, err
+					}
 					newNodes = append(newNodes, newNode)
 				}
 			}
@@ -416,7 +422,7 @@ func resizeNodes(oldNodes []Node, disjointIPblocks []*common.IPBlock) (newNodes 
 }
 
 func (connectivityMap *GeneralConnectivityMap) actualAlignSrcOrDstGivenIPBlists(config *VPCConfig,
-	disjointIPblocks []*common.IPBlock, resizeSrc bool) (
+	disjointIPblocks []*ipblocks.IPBlock, resizeSrc bool) (
 	alignedConnectivity GeneralConnectivityMap, err error) {
 	// goes over all sources of connections in connectivity
 	// if src is external then for each IPBlock in disjointIPblocks copies dsts and connection type
@@ -438,16 +444,16 @@ func (connectivityMap *GeneralConnectivityMap) actualAlignSrcOrDstGivenIPBlists(
 			}
 			// the resizing element is external - go over all ipBlock and allocates the connection
 			// if the ipBlock is contained in the original src/dst
-			var origIPBlock *common.IPBlock
+			var origIPBlock *ipblocks.IPBlock
 			if resizeSrc {
 				if node, ok := src.(Node); ok {
-					origIPBlock, err = externalNodeToIPBlock(node)
+					origIPBlock = node.IPBlock()
 				} else {
 					return nil, fmt.Errorf(castingNodeErr, node.Name())
 				}
 			} else {
 				if node, ok := dst.(Node); ok {
-					origIPBlock, err = externalNodeToIPBlock(node)
+					origIPBlock = node.IPBlock()
 				} else {
 					return nil, fmt.Errorf(castingNodeErr, node.Name())
 				}
@@ -461,8 +467,8 @@ func (connectivityMap *GeneralConnectivityMap) actualAlignSrcOrDstGivenIPBlists(
 	return alignedConnectivity, err
 }
 
-func addIPBlockToConnectivityMap(c *VPCConfig, disjointIPblocks []*common.IPBlock,
-	origIPBlock *common.IPBlock, alignedConnectivity map[VPCResourceIntf]map[VPCResourceIntf]*common.ConnectionSet,
+func addIPBlockToConnectivityMap(c *VPCConfig, disjointIPblocks []*ipblocks.IPBlock,
+	origIPBlock *ipblocks.IPBlock, alignedConnectivity map[VPCResourceIntf]map[VPCResourceIntf]*common.ConnectionSet,
 	src, dst VPCResourceIntf, conns *common.ConnectionSet, resizeSrc bool) error {
 	for _, ipBlock := range disjointIPblocks {
 		// get ipBlock of resized index (src/dst)
@@ -495,7 +501,7 @@ func addIPBlockToConnectivityMap(c *VPCConfig, disjointIPblocks []*common.IPBloc
 // gets node with given cidr
 func findNodeWithCidr(configNodes []Node, cidr string) Node {
 	for _, node := range configNodes {
-		if node.Cidr() == cidr {
+		if node.CidrOrAddress() == cidr {
 			return node
 		}
 	}
@@ -503,7 +509,7 @@ func findNodeWithCidr(configNodes []Node, cidr string) Node {
 }
 
 // get a list of IPBlocks of the src and dst of the connections
-func (connectivityMap GeneralConnectivityMap) getIPBlocksList() (ipbList []*common.IPBlock,
+func (connectivityMap GeneralConnectivityMap) getIPBlocksList() (ipbList []*ipblocks.IPBlock,
 	myErr error) {
 	for src, endpointConns := range connectivityMap {
 		for dst, conns := range endpointConns {
@@ -512,22 +518,14 @@ func (connectivityMap GeneralConnectivityMap) getIPBlocksList() (ipbList []*comm
 			}
 			if src.IsExternal() {
 				if srcNode, ok := src.(Node); ok {
-					ipBlock, err := externalNodeToIPBlock(srcNode)
-					if err != nil {
-						return nil, err
-					}
-					ipbList = append(ipbList, ipBlock)
+					ipbList = append(ipbList, srcNode.IPBlock())
 				} else {
 					return nil, fmt.Errorf(castingNodeErr, src.Name())
 				}
 			}
 			if dst.IsExternal() {
 				if dstNode, ok := dst.(Node); ok {
-					ipBlock, err := externalNodeToIPBlock(dstNode)
-					if err != nil {
-						return nil, err
-					}
-					ipbList = append(ipbList, ipBlock)
+					ipbList = append(ipbList, dstNode.IPBlock())
 				} else {
 					return nil, fmt.Errorf(castingNodeErr, dst.Name())
 				}
@@ -535,14 +533,6 @@ func (connectivityMap GeneralConnectivityMap) getIPBlocksList() (ipbList []*comm
 		}
 	}
 	return ipbList, nil
-}
-
-func externalNodeToIPBlock(external Node) (ipBlock *common.IPBlock, err error) {
-	ipBlock, err = common.NewIPBlock(external.Cidr(), []string{})
-	if err != nil {
-		return nil, err
-	}
-	return ipBlock, nil
 }
 
 // todo: the following code finds all couples of connections that should be resized (it IPBlock)

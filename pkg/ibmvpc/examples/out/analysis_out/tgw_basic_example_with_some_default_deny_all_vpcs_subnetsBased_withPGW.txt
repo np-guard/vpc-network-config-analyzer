@@ -7,4 +7,4 @@ Subnet connectivity for VPC ky-vpc1
 Subnet connectivity for VPC ky-vpc2
 <nothing to report>
 
-connections are stateful unless marked with *
+connections are stateful (on TCP) unless marked with *

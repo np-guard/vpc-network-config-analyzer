@@ -7,6 +7,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/np-guard/cloud-resource-collector/pkg/factory"
+	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/ibmvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/version"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
@@ -60,6 +62,10 @@ func analysisVPCConfigs(c1, c2 map[string]*vpcmodel.VPCConfig, inArgs *InArgs, o
 	if *inArgs.AnalysisType == explainMode {
 		explanationArgs = vpcmodel.NewExplanationArgs(*inArgs.ESrc, *inArgs.EDst, *inArgs.EProtocol,
 			*inArgs.ESrcMinPort, *inArgs.ESrcMaxPort, *inArgs.EDstMinPort, *inArgs.EDstMaxPort)
+		// we do not support multiple vpc config, at the moment
+		if len(c1) > 1 {
+			return "", fmt.Errorf("multiple vpc config not supported for explain mode, yet")
+		}
 	}
 
 	og, err := vpcmodel.NewOutputGenerator(c1, c2,
@@ -93,6 +99,26 @@ func vpcConfigsFromFile(fileName string, inArgs *InArgs) (map[string]*vpcmodel.V
 	return vpcConfigs, nil
 }
 
+func vpcConfigsFromAccount(inArgs *InArgs) (map[string]*vpcmodel.VPCConfig, error) {
+	rc := factory.GetResourceContainer(*inArgs.Provider, inArgs.RegionList, *inArgs.ResourceGroup)
+	// Collect resources from the provider API and generate output
+	err := rc.CollectResourcesFromAPI()
+	if err != nil {
+		return nil, err
+	}
+
+	// todo: when analysis for other providers is available, select provider according to flag
+	resources, ok := rc.GetResources().(*datamodel.ResourcesContainerModel)
+	if !ok {
+		return nil, fmt.Errorf("error casting resources to *datamodel.ResourcesContainerModel type")
+	}
+	vpcConfigs, err := ibmvpc.VPCConfigsFromResources(resources, *inArgs.VPC, *inArgs.Debug)
+	if err != nil {
+		return nil, err
+	}
+	return vpcConfigs, nil
+}
+
 // The actual main function
 // Takes command-line flags and returns an error rather than exiting, so it can be more easily used in testing
 func _main(cmdlineArgs []string) error {
@@ -108,15 +134,25 @@ func _main(cmdlineArgs []string) error {
 		fmt.Printf("vpc-network-config-analyzer v%s\n", version.VersionCore)
 		return nil
 	}
-	vpcConfigs1, err2 := vpcConfigsFromFile(*inArgs.InputConfigFile, inArgs)
-	if err2 != nil {
-		return err2
+
+	var vpcConfigs1 map[string]*vpcmodel.VPCConfig
+	if *inArgs.Provider != "" {
+		vpcConfigs1, err = vpcConfigsFromAccount(inArgs)
+		if err != nil {
+			return err
+		}
+	} else {
+		vpcConfigs1, err = vpcConfigsFromFile(*inArgs.InputConfigFile, inArgs)
+		if err != nil {
+			return err
+		}
 	}
+
 	var vpcConfigs2 map[string]*vpcmodel.VPCConfig
 	if inArgs.InputSecondConfigFile != nil && *inArgs.InputSecondConfigFile != "" {
-		vpcConfigs2, err2 = vpcConfigsFromFile(*inArgs.InputSecondConfigFile, inArgs)
-		if err2 != nil {
-			return err2
+		vpcConfigs2, err = vpcConfigsFromFile(*inArgs.InputSecondConfigFile, inArgs)
+		if err != nil {
+			return err
 		}
 		// we are in diff mode, checking we have only one config per file:
 		if len(vpcConfigs1) != 1 || len(vpcConfigs2) != 1 {

@@ -34,42 +34,42 @@ var explainTests = []*vpcGeneralTest{
 	{
 		name:        "VsiToVsi1",
 		inputConfig: "sg_testing1_new",
-		ESrc:        "vsi2-ky[10.240.20.4]",
-		EDst:        "vsi3b-ky[10.240.30.4]",
+		ESrc:        "vsi2-ky",
+		EDst:        "vsi3b-ky",
 		format:      vpcmodel.Debug,
 	},
 	{
 		name:        "VsiToVsi2",
 		inputConfig: "sg_testing1_new",
-		ESrc:        "vsi2-ky[10.240.20.4]",
-		EDst:        "vsi1-ky[10.240.10.4]",
+		ESrc:        "vsi2-ky",
+		EDst:        "10.240.10.4",
 		format:      vpcmodel.Debug,
 	},
 	{
 		name:        "VsiToVsi3",
 		inputConfig: "sg_testing1_new",
-		ESrc:        "vsi3a-ky[10.240.30.5]",
-		EDst:        "vsi1-ky[10.240.10.4]",
+		ESrc:        "vsi3a-ky",
+		EDst:        "10.240.10.4",
 		format:      vpcmodel.Debug,
 	},
 	{
 		name:        "VsiToVsi4",
 		inputConfig: "sg_testing1_new",
-		ESrc:        "vsi1-ky[10.240.10.4]",
-		EDst:        "vsi2-ky[10.240.20.4]",
+		ESrc:        "10.240.10.4",
+		EDst:        "10.240.20.4",
 		format:      vpcmodel.Debug,
 	},
 	{
 		name:        "VsiToVsi5",
 		inputConfig: "sg_testing1_new",
-		ESrc:        "vsi3a-ky[10.240.30.5]",
-		EDst:        "vsi2-ky[10.240.20.4]",
+		ESrc:        "vsi3a-ky",
+		EDst:        "vsi2-ky",
 		format:      vpcmodel.Debug,
 	},
 	{
 		name:        "SimpleExternalSG1",
 		inputConfig: "sg_testing1_new",
-		ESrc:        "vsi1-ky[10.240.10.4]",
+		ESrc:        "vsi1-ky",
 		EDst:        "161.26.0.0/16",
 		format:      vpcmodel.Debug,
 	},
@@ -77,34 +77,34 @@ var explainTests = []*vpcGeneralTest{
 		name:        "SimpleExternalSG2",
 		inputConfig: "sg_testing1_new",
 		ESrc:        "161.26.0.0/16",
-		EDst:        "vsi1-ky[10.240.10.4]",
+		EDst:        "vsi1-ky",
 		format:      vpcmodel.Text,
 	},
 	{
 		name:        "SimpleExternalSG3",
 		inputConfig: "sg_testing1_new",
-		ESrc:        "vsi1-ky[10.240.10.4]",
+		ESrc:        "vsi1-ky",
 		EDst:        "161.26.0.0/32",
 		format:      vpcmodel.Debug,
 	},
 	{
 		name:        "SimpleExternalSG4",
 		inputConfig: "sg_testing1_new",
-		ESrc:        "vsi3b-ky[10.240.30.4]",
+		ESrc:        "vsi3b-ky",
 		EDst:        "161.26.0.0/32",
 		format:      vpcmodel.Text,
 	},
 	{
 		name:        "GroupingExternalSG1",
 		inputConfig: "sg_testing1_new",
-		ESrc:        "vsi1-ky[10.240.10.4]",
+		ESrc:        "10.240.10.4",
 		EDst:        "161.26.0.0/8",
 		format:      vpcmodel.Debug,
 	},
 	{
 		name:        "GroupingExternalSG1",
 		inputConfig: "sg_testing1_new",
-		ESrc:        "vsi1-ky[10.240.10.4]",
+		ESrc:        "vsi1-ky",
 		EDst:        "161.26.0.0/8",
 		format:      vpcmodel.Text,
 	},
@@ -125,7 +125,7 @@ var explainTests = []*vpcGeneralTest{
 		// the existing connection is exactly the one required by the query
 		name:        "QueryConnectionSGBasic1",
 		inputConfig: "sg_testing1_new",
-		ESrc:        "vsi1-ky[10.240.10.4]",
+		ESrc:        "vsi1-ky",
 		EDst:        "161.26.0.0/16",
 		EProtocol:   string(common.ProtocolUDP),
 		ESrcMinPort: common.MinPort,
@@ -138,7 +138,7 @@ var explainTests = []*vpcGeneralTest{
 	{
 		name:        "QueryConnectionSGBasic2",
 		inputConfig: "sg_testing1_new",
-		ESrc:        "vsi1-ky[10.240.10.4]",
+		ESrc:        "10.240.10.4",
 		EDst:        "161.26.0.0/16",
 		EProtocol:   string(common.ProtocolUDP),
 		ESrcMinPort: 10,
@@ -151,7 +151,7 @@ var explainTests = []*vpcGeneralTest{
 	{
 		name:        "QueryConnectionSGBasic3",
 		inputConfig: "sg_testing1_new",
-		ESrc:        "vsi1-ky[10.240.10.4]",
+		ESrc:        "crn:v1:staging:public:is:us-south:a/6527::vpc:a456", // crn:v1:staging:public:is:us-south:a/6527::vpc:a456 is vsi1-ky
 		EDst:        "161.26.0.0/20",
 		EProtocol:   string(common.ProtocolUDP),
 		ESrcMinPort: 10,
@@ -164,7 +164,7 @@ var explainTests = []*vpcGeneralTest{
 	{
 		name:        "QueryConnectionSGBasic4",
 		inputConfig: "sg_testing1_new",
-		ESrc:        "vsi1-ky[10.240.10.4]",
+		ESrc:        "vsi1-ky",
 		EDst:        "161.26.0.0/12",
 		EProtocol:   string(common.ProtocolUDP),
 		ESrcMinPort: 10,
@@ -177,8 +177,8 @@ var explainTests = []*vpcGeneralTest{
 	{
 		name:        "QueryConnectionSGBasic5",
 		inputConfig: "sg_testing1_new",
-		ESrc:        "vsi1-ky[10.240.10.4]",
-		EDst:        "vsi3a-ky[10.240.30.5]",
+		ESrc:        "vsi1-ky",
+		EDst:        "vsi3a-ky",
 		EProtocol:   string(common.ProtocolUDP),
 		ESrcMinPort: 10,
 		ESrcMaxPort: 100,
@@ -191,7 +191,7 @@ var explainTests = []*vpcGeneralTest{
 		name:        "QueryConnectionSGSubsetPorts",
 		inputConfig: "sg_testing1_new",
 		ESrc:        "147.235.219.206/32",
-		EDst:        "vsi2-ky[10.240.20.4]",
+		EDst:        "vsi2-ky",
 		EProtocol:   string(common.ProtocolTCP),
 		ESrcMinPort: common.MinPort,
 		ESrcMaxPort: common.MaxPort,
@@ -203,16 +203,16 @@ var explainTests = []*vpcGeneralTest{
 	{
 		name:        "QueryConnectionSGRules1",
 		inputConfig: "sg_testing1_new",
-		ESrc:        "vsi3a-ky[10.240.30.5]",
-		EDst:        "vsi1-ky[10.240.10.4]",
+		ESrc:        "vsi3a-ky",
+		EDst:        "vsi1-ky",
 		format:      vpcmodel.Debug,
 	},
 	// only a subset of the rules are relevant, protocol wise
 	{
 		name:        "QueryConnectionSGRules2",
 		inputConfig: "sg_testing1_new",
-		ESrc:        "vsi3a-ky[10.240.30.5]",
-		EDst:        "vsi1-ky[10.240.10.4]",
+		ESrc:        "vsi3a-ky",
+		EDst:        "vsi1-ky",
 		EProtocol:   string(common.ProtocolUDP),
 		ESrcMinPort: common.MinPort,
 		ESrcMaxPort: common.MaxPort,
@@ -224,8 +224,8 @@ var explainTests = []*vpcGeneralTest{
 	{
 		name:        "QueryConnectionSGRules3",
 		inputConfig: "sg_testing1_new",
-		ESrc:        "vsi3a-ky[10.240.30.5]",
-		EDst:        "vsi1-ky[10.240.10.4]",
+		ESrc:        "vsi3a-ky",
+		EDst:        "vsi1-ky",
 		EProtocol:   string(common.ProtocolTCP),
 		ESrcMinPort: common.MinPort,
 		ESrcMaxPort: common.MaxPort,
@@ -237,8 +237,8 @@ var explainTests = []*vpcGeneralTest{
 	{
 		name:        "QueryConnectionSGRules4",
 		inputConfig: "sg_testing1_new",
-		ESrc:        "vsi3a-ky[10.240.30.5]",
-		EDst:        "vsi1-ky[10.240.10.4]",
+		ESrc:        "vsi3a-ky",
+		EDst:        "vsi1-ky",
 		EProtocol:   string(common.ProtocolTCP),
 		ESrcMinPort: common.MinPort,
 		ESrcMaxPort: common.MaxPort,
@@ -250,7 +250,7 @@ var explainTests = []*vpcGeneralTest{
 	{
 		name:        "NACLExternal1",
 		inputConfig: "acl_testing3",
-		ESrc:        "vsi1-ky[10.240.10.4]",
+		ESrc:        "vsi1-ky",
 		EDst:        "161.26.0.0/16",
 		format:      vpcmodel.Debug,
 	},
@@ -258,7 +258,7 @@ var explainTests = []*vpcGeneralTest{
 	{
 		name:        "NACLExternal2",
 		inputConfig: "acl_testing3",
-		ESrc:        "vsi1-ky[10.240.10.4]",
+		ESrc:        "vsi1-ky",
 		EDst:        "100.128.0.0/32",
 		format:      vpcmodel.Debug,
 	},
@@ -267,56 +267,56 @@ var explainTests = []*vpcGeneralTest{
 		name:        "NACLExternal3",
 		inputConfig: "acl_testing3",
 		ESrc:        "100.128.0.0/32",
-		EDst:        "vsi1-ky[10.240.10.4]",
+		EDst:        "vsi1-ky",
 		format:      vpcmodel.Text,
 	},
 	{
 		name:        "NACLInternal1",
 		inputConfig: "acl_testing3",
-		ESrc:        "vsi1-ky[10.240.10.4]",
-		EDst:        "vsi2-ky[10.240.20.4]",
+		ESrc:        "vsi1-ky",
+		EDst:        "10.240.20.4",
 		format:      vpcmodel.Debug,
 	},
 	{
 		name:        "NACLInternal1",
 		inputConfig: "acl_testing3",
-		ESrc:        "vsi1-ky[10.240.10.4]",
-		EDst:        "vsi2-ky[10.240.20.4]",
+		ESrc:        "10.240.10.4",
+		EDst:        "vsi2-ky",
 		format:      vpcmodel.Text,
 	},
 	{
 		name:        "NACLInternal2",
 		inputConfig: "acl_testing3",
-		ESrc:        "vsi2-ky[10.240.20.4]",
-		EDst:        "vsi1-ky[10.240.10.4]",
+		ESrc:        "vsi2-ky",
+		EDst:        "10.240.10.4",
 		format:      vpcmodel.Debug,
 	},
 	{
 		name:        "NACLInternal3",
 		inputConfig: "acl_testing3",
-		ESrc:        "vsi1-ky[10.240.10.4]",
-		EDst:        "vsi3a-ky[10.240.30.5]",
+		ESrc:        "vsi1-ky",
+		EDst:        "vsi3a-ky",
 		format:      vpcmodel.Debug,
 	},
 	{
 		// same subnet: no actual rules in nacl, but connection enabled
 		name:        "NACLInternal4",
 		inputConfig: "acl_testing3",
-		ESrc:        "vsi3b-ky[10.240.30.6]",
-		EDst:        "vsi3a-ky[10.240.30.5]",
+		ESrc:        "vsi3b-ky",
+		EDst:        "vsi3a-ky",
 		format:      vpcmodel.Debug,
 	},
 	{
 		name:        "NACLGrouping",
 		inputConfig: "acl_testing3",
-		ESrc:        "vsi1-ky[10.240.10.4]",
+		ESrc:        "10.240.10.4",
 		EDst:        "161.26.0.0/15",
 		format:      vpcmodel.Debug,
 	},
 	{
 		name:        "NACLQueryConnection1",
 		inputConfig: "acl_testing3",
-		ESrc:        "vsi1-ky[10.240.10.4]",
+		ESrc:        "vsi1-ky",
 		EDst:        "161.26.0.0/16",
 		EProtocol:   string(common.ProtocolUDP),
 		ESrcMinPort: common.MinPort,
@@ -328,7 +328,7 @@ var explainTests = []*vpcGeneralTest{
 	{
 		name:        "NACLQueryConnection2",
 		inputConfig: "acl_testing3",
-		ESrc:        "vsi1-ky[10.240.10.4]",
+		ESrc:        "vsi1-ky",
 		EDst:        "161.26.0.0/16",
 		EProtocol:   string(common.ProtocolTCP),
 		ESrcMinPort: common.MinPort,
@@ -337,11 +337,28 @@ var explainTests = []*vpcGeneralTest{
 		EDstMaxPort: common.MaxPort,
 		format:      vpcmodel.Debug,
 	},
+	// src: one of these network interfaces, dst: internal address of 4 network interfaces
+	{
+		name:        "NACLInternalSrcTo4DstInternal",
+		inputConfig: "acl_testing3",
+		ESrc:        "vsi3b-ky",
+		EDst:        "10.240.30.4/26",
+		format:      vpcmodel.Debug,
+	},
+	// src: internal address of 5 network interfaces, dst: external address that spans rules
+	// "many to many"
+	{
+		name:        "SGInternal3SrcToExternalGroup",
+		inputConfig: "sg_testing1_new",
+		ESrc:        "10.240.30.4/24",
+		EDst:        "161.26.0.0/8",
+		format:      vpcmodel.Debug,
+	},
 	// all rules
 	{
 		name:        "NACLQueryConnectionRules2",
 		inputConfig: "acl_testing3_3rd",
-		ESrc:        "vsi1-ky[10.240.10.4]",
+		ESrc:        "vsi1-ky",
 		EDst:        "161.26.0.0/16",
 		format:      vpcmodel.Debug,
 	},
@@ -349,7 +366,7 @@ var explainTests = []*vpcGeneralTest{
 	{
 		name:        "NACLQueryConnectionRules3",
 		inputConfig: "acl_testing3_3rd",
-		ESrc:        "vsi1-ky[10.240.10.4]",
+		ESrc:        "vsi1-ky",
 		EDst:        "161.26.0.0/16",
 		EProtocol:   string(common.ProtocolTCP),
 		ESrcMinPort: common.MinPort,
@@ -362,7 +379,7 @@ var explainTests = []*vpcGeneralTest{
 	{
 		name:        "NACLQueryConnectionRules4",
 		inputConfig: "acl_testing3_3rd",
-		ESrc:        "vsi1-ky[10.240.10.4]",
+		ESrc:        "10.240.10.4/32",
 		EDst:        "161.26.0.0/16",
 		EProtocol:   string(common.ProtocolUDP),
 		ESrcMinPort: common.MinPort,
@@ -374,9 +391,22 @@ var explainTests = []*vpcGeneralTest{
 	{
 		name:        "NACLOnlyDenyNoConnQuery",
 		inputConfig: "acl_testing3_3rd",
-		ESrc:        "vsi1-ky[10.240.10.4]",
-		EDst:        "vsi2-ky[10.240.20.4]",
+		ESrc:        "vsi1-ky",
+		EDst:        "vsi2-ky",
 		EProtocol:   string(common.ProtocolICMP),
+		ESrcMinPort: common.MinPort,
+		ESrcMaxPort: common.MaxPort,
+		EDstMinPort: common.MinPort,
+		EDstMaxPort: common.MaxPort,
+		format:      vpcmodel.Debug,
+	},
+	// allow connection subset of the queried one
+	{
+		name:        "NACLQueryAllowSubset",
+		inputConfig: "acl_testing3_4th",
+		ESrc:        "vsi1-ky",
+		EDst:        "161.26.0.0/16",
+		EProtocol:   string(common.ProtocolUDP),
 		ESrcMinPort: common.MinPort,
 		ESrcMaxPort: common.MaxPort,
 		EDstMinPort: common.MinPort,
@@ -433,20 +463,27 @@ func (tt *vpcGeneralTest) runExplainTest(t *testing.T) {
 
 func TestInputValidity(t *testing.T) {
 	vpcConfig := getConfig(t, "sg_testing1_new")
-	if vpcConfig == nil {
-		require.Fail(t, "vpcConfig equals nil")
-	}
-	cidr1 := "0.0.0.0/0"
+	require.NotNil(t, vpcConfig, "vpcConfig equals nil")
+
+	cidr1 := "169.255.0.0"
 	cidr2 := "161.26.0.0/16"
-	nonExistingVSI := "vsi2-ky[10.240.10.4]"
+	cidrInternalNonAP := "10.240.10.4/16"
+	cidrAll := "0.0.0.0/0"
+	existingNif := "vsi3a-ky"
+	// should fail since two external addresses
 	_, err1 := vpcConfig.ExplainConnectivity(cidr1, cidr2, nil)
 	fmt.Println(err1.Error())
-	if err1 == nil {
-		require.Fail(t, err1.Error())
-	}
-	_, err2 := vpcConfig.ExplainConnectivity(cidr1, nonExistingVSI, nil)
+	require.NotNil(t, err1, "the test should fail since both src and dst are external")
+
+	// should fail due to a cidr containing both public internet and internal address
+	_, err2 := vpcConfig.ExplainConnectivity(cidrAll, existingNif, nil)
 	fmt.Println(err2.Error())
-	if err2 == nil {
-		require.Fail(t, err1.Error())
-	}
+	require.NotNil(t, err2, "the test should fail since src is cidr containing both public "+
+		"internet and internal address")
+
+	// should fail due to cidr containing internal address not within vpc's address prefix
+	_, err3 := vpcConfig.ExplainConnectivity(cidrInternalNonAP, existingNif, nil)
+	fmt.Println(err3.Error())
+	require.NotNil(t, err3, "the test should fail since src is cidr containing internal address "+
+		"not within vpc's AP")
 }
