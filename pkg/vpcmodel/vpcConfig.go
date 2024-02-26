@@ -17,7 +17,8 @@ type VPCConfig struct {
 	// Nodes is the list of endpoints in the VPC, such as network interfaces, reserved IPs
 	// TOTO: also separate Nodes to internal and external nodes lists
 	Nodes []Node
-	// NodeSets is the list of resources that capture multiple nodes (such as VSIs)
+	// NodeSets is the list of resources that capture multiple nodes (such as VSIs), and are not of a
+	// more specific types that embed NodeSet (such as Subnet/VPC)
 	NodeSets []NodeSet
 	// FilterResources is the list of resources that define filtering traffic rules, such as ACL, SG
 	FilterResources []FilterTrafficResource
