@@ -41,8 +41,7 @@ func zoneFromVPCResource(r vpcmodel.VPCResourceIntf) (*Zone, error) {
 type ReservedIP struct {
 	vpcmodel.VPCResource
 	vpcmodel.InternalNode
-	subnet *Subnet
-	vpe    string
+	vpe string
 }
 
 func (r *ReservedIP) Name() string {
@@ -53,8 +52,7 @@ func (r *ReservedIP) Name() string {
 type NetworkInterface struct {
 	vpcmodel.VPCResource
 	vpcmodel.InternalNode
-	vsi    string
-	subnet *Subnet
+	vsi string
 }
 
 func (ni *NetworkInterface) VsiName() string {
@@ -69,7 +67,6 @@ func (ni *NetworkInterface) Name() string {
 type IKSNode struct {
 	vpcmodel.VPCResource
 	vpcmodel.InternalNode
-	subnet *Subnet
 }
 
 func (n *IKSNode) VsiName() string {
@@ -83,14 +80,18 @@ func (n *IKSNode) Name() string {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // nodesets elements - implement vpcmodel.NodeSet interface
 
+// VPC implements vpcmodel.VPC
 type VPC struct {
 	vpcmodel.VPCResource
 	nodes                []vpcmodel.Node
-	connectivityRules    *vpcmodel.ConnectivityResult // allowed connectivity between elements within the vpc
 	zones                map[string]*Zone
 	internalAddressRange *ipblocks.IPBlock
 	subnetsList          []*Subnet
 	addressPrefixes      []string
+}
+
+func (v *VPC) AddressPrefixes() []string {
+	return v.addressPrefixes
 }
 
 func (v *VPC) getZoneByName(name string) (*Zone, error) {
@@ -103,9 +104,6 @@ func (v *VPC) getZoneByName(name string) (*Zone, error) {
 func (v *VPC) Nodes() []vpcmodel.Node {
 	return v.nodes
 }
-func (v *VPC) Connectivity() *vpcmodel.ConnectivityResult {
-	return v.connectivityRules
-}
 
 func (v *VPC) AddressRange() *ipblocks.IPBlock {
 	return v.internalAddressRange
@@ -115,12 +113,16 @@ func (v *VPC) subnets() []*Subnet {
 	return v.subnetsList
 }
 
+// Subnet implements vpcmodel.Subnet interface
 type Subnet struct {
 	vpcmodel.VPCResource
-	nodes             []vpcmodel.Node
-	connectivityRules *vpcmodel.ConnectivityResult // allowed connectivity between elements within the subnet
-	cidr              string
-	ipblock           *ipblocks.IPBlock
+	nodes   []vpcmodel.Node
+	cidr    string
+	ipblock *ipblocks.IPBlock
+}
+
+func (s *Subnet) CIDR() string {
+	return s.cidr
 }
 
 func (s *Subnet) Zone() (*Zone, error) {
@@ -135,14 +137,9 @@ func (s *Subnet) AddressRange() *ipblocks.IPBlock {
 	return s.ipblock
 }
 
-func (s *Subnet) Connectivity() *vpcmodel.ConnectivityResult {
-	return s.connectivityRules
-}
-
 type Vsi struct {
 	vpcmodel.VPCResource
-	nodes             []vpcmodel.Node
-	connectivityRules *vpcmodel.ConnectivityResult // possible rule: if has floating ip -> create connectivity to FIP, deny connectivity to PGW
+	nodes []vpcmodel.Node
 }
 
 func (v *Vsi) Zone() (*Zone, error) {
@@ -151,10 +148,6 @@ func (v *Vsi) Zone() (*Zone, error) {
 
 func (v *Vsi) Nodes() []vpcmodel.Node {
 	return v.nodes
-}
-
-func (v *Vsi) Connectivity() *vpcmodel.ConnectivityResult {
-	return v.connectivityRules
 }
 
 func (v *Vsi) AddressRange() *ipblocks.IPBlock {
@@ -181,10 +174,6 @@ type Vpe struct {
 
 func (v *Vpe) Nodes() []vpcmodel.Node {
 	return v.nodes
-}
-
-func (v *Vpe) Connectivity() *vpcmodel.ConnectivityResult {
-	return nil
 }
 
 func (v *Vpe) AddressRange() *ipblocks.IPBlock {
@@ -361,66 +350,85 @@ func (n *NACL) GeneralConnectivityPerSubnet(subnet *Subnet) string {
 
 func subnetFromNode(node vpcmodel.Node) (subnet *Subnet, err error) {
 	switch concreteNode := node.(type) {
-	case *NetworkInterface:
-		return concreteNode.subnet, nil
-	case *IKSNode:
-		return concreteNode.subnet, nil
-	case *ReservedIP:
-		return concreteNode.subnet, nil
+	case vpcmodel.InternalNodeIntf:
+		return concreteNode.Subnet().(*Subnet), nil
 	default:
 		return nil, fmt.Errorf("cannot get subnet for node: %+v", node)
 	}
 }
 
+type naclConnectivityInput struct {
+	targetNode           vpcmodel.Node
+	nodeInSubnet         vpcmodel.Node
+	subnet               *Subnet
+	subnetAffectedByNACL bool
+	targetWithinSubnet   bool
+}
+
 func (n *NACL) initConnectivityComputation(src, dst vpcmodel.Node,
-	isIngress bool) (targetNode, nodeInSubnet vpcmodel.Node, subnet *Subnet, err error) {
+	isIngress bool) (
+	connectivityInput *naclConnectivityInput,
+	err error) {
+	connectivityInput = &naclConnectivityInput{}
 	if isIngress {
-		targetNode, nodeInSubnet = src, dst
+		connectivityInput.targetNode, connectivityInput.nodeInSubnet = src, dst
 	} else {
-		targetNode, nodeInSubnet = dst, src
+		connectivityInput.targetNode, connectivityInput.nodeInSubnet = dst, src
 	}
-	subnet, err = subnetFromNode(nodeInSubnet)
-	return targetNode, nodeInSubnet, subnet, err
+	connectivityInput.subnet, err = subnetFromNode(connectivityInput.nodeInSubnet)
+	if err != nil {
+		return nil, err
+	}
+	if _, ok := n.subnets[connectivityInput.subnet.cidr]; ok {
+		connectivityInput.subnetAffectedByNACL = true
+	}
+	// checking if targetNode is internal, to save a call to ContainedIn for external nodes
+	if connectivityInput.targetNode.IsInternal() &&
+		connectivityInput.targetNode.IPBlock().ContainedIn(connectivityInput.subnet.ipblock) {
+		connectivityInput.targetWithinSubnet = true
+	}
+
+	return connectivityInput, nil
 }
 
 func (n *NACL) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*common.ConnectionSet, error) {
-	targetNode, nodeInSubnet, subnet, err := n.initConnectivityComputation(src, dst, isIngress)
+	connectivityInput, err := n.initConnectivityComputation(src, dst, isIngress)
 	if err != nil {
 		return nil, err
 	}
 	// check if the subnet of the given node is affected by this nacl
-	if _, ok := n.subnets[subnet.cidr]; !ok {
+	if !connectivityInput.subnetAffectedByNACL {
 		return vpcmodel.NoConns(), nil // not affected by current nacl
 	}
 	// TODO: differentiate between "has no effect" vs "affects with allow-all / allow-none "
-	// checking if targetNode is internal, to save a call to ContainedIn for external nodes
-	if targetNode.IsInternal() && targetNode.IPBlock().ContainedIn(subnet.ipblock) {
+	if connectivityInput.targetWithinSubnet {
 		return vpcmodel.AllConns(), nil // nacl has no control on traffic between two instances in its subnet
 	}
-	return n.analyzer.AllowedConnectivity(subnet, nodeInSubnet, targetNode, isIngress)
+	return n.analyzer.AllowedConnectivity(connectivityInput.subnet, connectivityInput.nodeInSubnet,
+		connectivityInput.targetNode, isIngress)
 }
 
 // TODO: rulesFilterInConnectivity has some duplicated code with AllowedConnectivity
 func (n *NACL) rulesFilterInConnectivity(src, dst vpcmodel.Node, conn *common.ConnectionSet,
 	isIngress bool) (tableRelevant bool, allow, deny []int, err error) {
-	targetNode, nodeInSubnet, subnet, err1 := n.initConnectivityComputation(src, dst, isIngress)
+	connectivityInput, err1 := n.initConnectivityComputation(src, dst, isIngress)
 	if err1 != nil {
 		return false, nil, nil, err1
 	}
 	// check if the subnet of the given node is affected by this nacl
-	if _, ok := n.subnets[subnet.cidr]; !ok {
+	if !connectivityInput.subnetAffectedByNACL {
 		return false, nil, nil, nil // not affected by current nacl
 	}
 	// nacl has no control on traffic between two instances in its subnet;
 	// this is marked by a rule with index -1 (ibmvpc.DummyRule)
 	// which is not printed but only signals that this filter does not block (since there are rules)
 
-	// checking if targetNode is internal, to save a call to ContainedIn for external nodes
-	if targetNode.IsInternal() && targetNode.IPBlock().ContainedIn(subnet.ipblock) {
+	if connectivityInput.targetWithinSubnet {
 		return true, []int{vpcmodel.DummyRule}, nil, nil
 	}
 	var err2 error
-	allow, deny, err2 = n.analyzer.rulesFilterInConnectivity(subnet, nodeInSubnet, targetNode, conn, isIngress)
+	allow, deny, err2 = n.analyzer.rulesFilterInConnectivity(connectivityInput.subnet, connectivityInput.nodeInSubnet,
+		connectivityInput.targetNode, conn, isIngress)
 	return true, allow, deny, err2
 }
 
