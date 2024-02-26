@@ -68,16 +68,16 @@ func analysisVPCConfigs(c1, c2 map[string]*vpcmodel.VPCConfig, inArgs *InArgs, o
 		}
 	}
 
+	outFormat := getOutputFormat(inArgs)
 	og, err := vpcmodel.NewOutputGenerator(c1, c2,
 		*inArgs.Grouping,
 		analysisTypeToUseCase(inArgs),
 		false,
-		explanationArgs)
+		explanationArgs, outFormat)
 	if err != nil {
 		return "", err
 	}
 
-	outFormat := getOutputFormat(inArgs)
 	analysisOut, err := og.Generate(outFormat, outFile)
 	if err != nil {
 		return "", fmt.Errorf(ErrorFormat, OutGenerationErr, err)
