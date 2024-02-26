@@ -83,7 +83,7 @@ The output is very similar to the one in `diff_all_endpoints` with `vsis` replac
 Answers the query regarding `src`, `dst` and the provided `protocol` and `port` cli options. 
 If the queried connection or a subset of it is allowed, then a list of the enabling resources is provided. Examples for enabling resources:  public-gw, security group, and network ACL.
 If the required connection is blocked then details of the blocking resources - e.g. missing fip or blocked egress - is provided.
-In debug mode the list of the relevant (allow/deny) rules is also provided.
+In debug output format the list of the relevant (allow/deny) rules is also provided.
       
 
 ## Build the project
