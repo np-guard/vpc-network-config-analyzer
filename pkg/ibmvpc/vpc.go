@@ -388,7 +388,7 @@ func (n *NACL) initConnectivityComputation(src, dst vpcmodel.Node,
 		connectivityInput.targetWithinSubnet = true
 	}
 
-	return connectivityInput, err
+	return connectivityInput, nil
 }
 
 func (n *NACL) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*common.ConnectionSet, error) {
