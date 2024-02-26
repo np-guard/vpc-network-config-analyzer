@@ -108,7 +108,7 @@ func NewOutputGenerator(c1, c2 map[string]*VPCConfig, grouping bool, uc OutputUs
 	}
 	// only DRAWIO has a multi vpc common presentation
 	if f == DRAWIO {
-		unifyMultiVPC(c1, res.nodesConn, res.subnetsConn)
+		unifyMultiVPC(c1, res.nodesConn, res.subnetsConn, uc)
 	}
 	return res, nil
 }
