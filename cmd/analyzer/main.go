@@ -122,7 +122,7 @@ func vpcConfigsFromAccount(inArgs *InArgs) (map[string]*vpcmodel.VPCConfig, erro
 		if err != nil {
 			return nil, err
 		}
-		log.Printf("Writing to file: %s", *inArgs.DumpResources)
+		log.Printf("Dumping collected resources to file: %s", *inArgs.DumpResources)
 
 		file, err := os.Create(*inArgs.DumpResources)
 		if err != nil {
