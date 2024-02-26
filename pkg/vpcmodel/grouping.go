@@ -245,11 +245,7 @@ func vsiOrSubnetsGroupingBySubnetsOrVsis(groupedConnLines *GroupConnLines,
 				res = append(res, n) // elements which are not subnets remain in the result as in the original input
 				continue             // skip input elements which are not a subnet nodeSet
 			}
-			if c.IsMultipleVPCsConfig {
-				subnetOrVSIUID = n.VPC().UID() // get the VPC to which n belongs
-			} else {
-				subnetOrVSIUID = "a" // all subnets should be grouped together
-			}
+			subnetOrVSIUID = n.VPC().UID() // get the VPC to which n belongs
 			newElem = n
 		}
 		if _, ok := subnetOrVSIToNodesOrNodeSets[subnetOrVSIUID]; !ok {

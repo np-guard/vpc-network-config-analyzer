@@ -208,7 +208,7 @@ func isEpVsi(ep EndpointElem) (bool, Node) {
 // if ep is a subnet or a group of subnets, gets its vpc
 // (if its a group of subnets then they all have the same vpc by grouping rule)
 func (g *GroupConnLines) getVPCUIDIfSubnet(ep EndpointElem) string {
-	if isVsi, nodeSet := isEpSubnet(ep); isVsi {
+	if isSubnet, nodeSet := isEpSubnet(ep); isSubnet {
 		// if ep is groupedEndpointsElems of vsis then all belong to the same subnet
 		return nodeSet.VPC().UID()
 	}
