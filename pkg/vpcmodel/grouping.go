@@ -417,8 +417,7 @@ func (g *GroupConnLines) groupInternalSrcOrDst(srcGrouping, groupVsi bool) {
 		for i, line := range linesGroup {
 			srcOrDstGroup[i] = line.getSrcOrDst(srcGrouping)
 		}
-		var groupedSrcOrDst []EndpointElem
-		groupedSrcOrDst = vsiOrSubnetsGroupingBySubnetsOrVsis(g, srcOrDstGroup, g.config, groupVsi)
+		groupedSrcOrDst := vsiOrSubnetsGroupingBySubnetsOrVsis(g, srcOrDstGroup, g.config, groupVsi)
 		for _, groupedSrcOrDstElem := range groupedSrcOrDst {
 			if srcGrouping {
 				res = append(res, &groupedConnLine{groupedSrcOrDstElem, linesGroup[0].dst, linesGroup[0].commonProperties})
