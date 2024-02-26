@@ -348,7 +348,7 @@ func invalidArgsConfigFile(args *InArgs, flagset *flag.FlagSet) error {
 	}
 	if *args.Provider == "" && *args.DumpResources != "" {
 		flagset.PrintDefaults()
-		return fmt.Errorf("error in parameters: dump-resources flag can be specified just with provider flag to save collected resources")
+		return fmt.Errorf("error in parameters: dump-resources flag can only be specified in combination with provider flag")
 	}
 
 	return nil
