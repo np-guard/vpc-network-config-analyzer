@@ -64,19 +64,19 @@ An input config file should be a `JSON` file produced by the [`cloud-resource-co
 
 ## Understanding the output
 
-### all_endpoints analysis type
+### `all_endpoints` analysis type
 Each output line is of the form: `src => dst : connection` , where each of `src` and `dst` is either a VPC endpoint (instance network interface) or an external CIDR, and `connection` is the set of allowed protocols and their relevant connection attributes (e.g., allowed source ports and/or destination ports for TCP/UDP).
 
-### all_subnets analysis type 
+### `all_subnets` analysis type 
 Each output line is of the form: `src => dst : connection` , where each of `src` and `dst` is either a VPC subnet or an external CIDR, and `connection` is as explained for `all_endpoints`.
 
-### single_subnet analysis type 
+### `single_subnet` analysis type 
 The output consists of sections; one section per subnet (section header is the subnet's CIDR block). Each section consists of two sub-sections: `ingressConnectivity` and `egressConnectivity`. These sections detail the allowed connectivity to/from the subnet, as configured by the subnet's NACL resource.
 
-### diff_all_endpoints analysis type
+### `diff_all_endpoints` analysis type
 Each output line describes a difference between the configurations and contains the following. `diff-type`: whether the line described an added, removed, or changed connection between the 1st config to the 2nd; `src` and `dst` as in analysis `all_endpoints` above; `config1` and `config2` describes the connections in the 1st and 2nd configurations, possibly by `no connection`. Finally, `vsis-diff-info` describes the differences in the vsis existence between the two configurations  
 
-### diff_all_subnets analysis type
+### `diff_all_subnets` analysis type
 The output is very similar to the one in `diff_all_endpoints` with `vsis` replaced by `subnets`: `src` and `dst` are as in analysis `all_subnets` and the last column is `subnets-diff-info` 
 
 ### `explain` analysis type
