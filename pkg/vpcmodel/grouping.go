@@ -221,8 +221,7 @@ func (g *groupingConnections) addPublicConnectivity(ep EndpointElem, commonProps
 
 // vsiGroupingBySubnets returns a slice of EndpointElem objects, by grouping set of elements that
 // represent network interface nodes from the same subnet into a single groupedNetworkInterfaces object
-func vsiGroupingBySubnets(groupedConnLines *GroupConnLines,
-	elemsList []EndpointElem) []EndpointElem {
+func vsiGroupingBySubnets(groupedConnLines *GroupConnLines, elemsList []EndpointElem) []EndpointElem {
 	res := []EndpointElem{}
 	subnetNameToNodes := map[string][]EndpointElem{} // map from subnet name to its nodes from the input
 	for _, elem := range elemsList {

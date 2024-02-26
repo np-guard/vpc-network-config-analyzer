@@ -126,15 +126,6 @@ func (c *VPCConfig) convertIPbasedToSubnetBasedResult(ipconn *IPbasedConnectivit
 	return res, nil
 }
 
-func (c *VPCConfig) SubnetCidrToSubnetElem(cidr string) (Subnet, error) {
-	for _, subnet := range c.Subnets {
-		if subnet.CIDR() == cidr {
-			return subnet, nil
-		}
-	}
-	return nil, fmt.Errorf("could not find subnet with CIDR %s in VPC %s", cidr, c.VPC.Name())
-}
-
 func getSubnetsForPGW(c *VPCConfig, pgw RoutingResource, externalNode Node) (res []NodeSet) {
 	for _, subnet := range c.Subnets {
 		conn, err := pgw.AllowedConnectivity(subnet, externalNode)

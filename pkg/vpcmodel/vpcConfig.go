@@ -1,6 +1,8 @@
 package vpcmodel
 
 import (
+	"fmt"
+
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 
 	"errors"
@@ -28,6 +30,15 @@ type VPCConfig struct {
 	// IsMultipleVPCsConfig is a bool indicator, when set true, it means that the VPCConfig contains resources from
 	// multiple VPCs connected to each other, and such config is relevant for reasoning about cross-vpc connectivity
 	IsMultipleVPCsConfig bool
+}
+
+func (c *VPCConfig) SubnetCidrToSubnetElem(cidr string) (Subnet, error) {
+	for _, subnet := range c.Subnets {
+		if subnet.CIDR() == cidr {
+			return subnet, nil
+		}
+	}
+	return nil, fmt.Errorf("could not find subnet with CIDR %s in VPC %s", cidr, c.VPC.Name())
 }
 
 func (c *VPCConfig) getFilterTrafficResourceOfKind(kind string) FilterTrafficResource {
