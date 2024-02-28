@@ -56,7 +56,8 @@ func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resou
 	res := map[string]*vpcmodel.VPCConfig{} // map from VPC UID to its config
 	var err error
 
-	// map to filter resources, if certain VPC, resource-group or region list to analyze is specified, skip resources configured outside that VPC
+	// map to filter resources, if certain VPC, resource-group or region list to analyze is specified,
+	// skip resources configured outside that VPC
 	shouldSkipVpcIds := filterByVpcResourceGroupAndRegions(rc, vpcID, resourceGroup, regions)
 
 	err = getVPCconfig(rc, res, shouldSkipVpcIds)

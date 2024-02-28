@@ -84,8 +84,7 @@ func getTestFileName(testName string,
 	grouping bool,
 	format vpcmodel.OutFormat,
 	configName string,
-	allVPCs bool,
-	resourceGroup string) (
+	allVPCs bool) (
 	expectedFileName,
 	actualFileName string,
 	err error) {
@@ -479,6 +478,7 @@ var tests = []*vpcGeneralTest{
 		format:      vpcmodel.DRAWIO,
 	},
 	// resource group filtering example
+	// ete-storage-project expected to be filtered out
 	{
 		inputConfig:   "multi_resource_groups",
 		useCases:      []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
@@ -486,6 +486,7 @@ var tests = []*vpcGeneralTest{
 		resourceGroup: "ola",
 	},
 	// region filtering example
+	// global-tg-ky, global-tg-zn, local-tg-ky, local-tg-zn, ky-vpc2, ky-vpc3, zn-vpc1, zn-vpc2, zn-vpc3 expected to be filtered out
 	{
 		inputConfig: "multi_regions",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
@@ -644,7 +645,7 @@ func initTestFileNames(tt *vpcGeneralTest,
 	allVPCs bool,
 	testDir string) error {
 	expectedFileName, actualFileName, err := getTestFileName(
-		tt.name, uc, tt.grouping, tt.format, vpcName, allVPCs, tt.resourceGroup)
+		tt.name, uc, tt.grouping, tt.format, vpcName, allVPCs)
 	if err != nil {
 		return err
 	}
