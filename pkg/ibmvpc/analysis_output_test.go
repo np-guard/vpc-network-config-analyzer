@@ -76,7 +76,6 @@ const (
 	secJSONOutSuffix               = "_2nd.json"
 	drawioOutSuffix                = ".drawio"
 	archDrawioOutSuffix            = "_arch.drawio"
-	suffixResourceGroup            = "_resourceGroup_"
 )
 
 // getTestFileName returns expected file name and actual file name, for the relevant use case
@@ -118,9 +117,6 @@ func getTestFileName(testName string,
 	}
 	if grouping {
 		res += suffixOutFileWithGrouping
-	}
-	if resourceGroup != "" {
-		res += suffixResourceGroup + resourceGroup
 	}
 	suffix, suffixErr := getTestFileSuffix(format)
 	if suffixErr != nil {
@@ -488,6 +484,13 @@ var tests = []*vpcGeneralTest{
 		useCases:      []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		format:        vpcmodel.Text,
 		resourceGroup: "ola",
+	},
+	// region filtering example
+	{
+		inputConfig: "multi_regions",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:      vpcmodel.Text,
+		regions:     []string{"us-east"},
 	},
 }
 

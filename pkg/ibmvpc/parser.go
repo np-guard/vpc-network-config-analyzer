@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
@@ -35,18 +36,13 @@ func filterByVpcResourceGroupAndRegions(rc *datamodel.ResourcesContainerModel, v
 	for _, vpc := range rc.VpcList {
 		if vpcID != "" && *vpc.CRN != vpcID {
 			shouldSkipVpcIds[*vpc.CRN] = true
+			continue
 		}
 		if resourceGroup != "" && *vpc.ResourceGroup.ID != resourceGroup && *vpc.ResourceGroup.Name != resourceGroup {
 			shouldSkipVpcIds[*vpc.CRN] = true
+			continue
 		}
-		inRegionList := false
-		for i := 0; i < len(regions); i++ {
-			if vpc.Region == regions[i] {
-				inRegionList = true
-				break
-			}
-		}
-		if len(regions) > 0 && !inRegionList {
+		if len(regions) > 0 && !slices.Contains(regions, vpc.Region) {
 			shouldSkipVpcIds[*vpc.CRN] = true
 		}
 	}
@@ -60,13 +56,10 @@ func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resou
 	res := map[string]*vpcmodel.VPCConfig{} // map from VPC UID to its config
 	var err error
 
+	// map to filter resources, if certain VPC, resource-group or region list to analyze is specified, skip resources configured outside that VPC
 	shouldSkipVpcIds := filterByVpcResourceGroupAndRegions(rc, vpcID, resourceGroup, regions)
-	// if certain VPC to analyze is specified, skip resources configured outside that VPC
-	var shouldSkipByVPC = func(crn string) bool {
-		return shouldSkipVpcIds[crn]
-	}
 
-	err = getVPCconfig(rc, res, shouldSkipByVPC)
+	err = getVPCconfig(rc, res, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
@@ -74,13 +67,13 @@ func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resou
 	var vpcInternalAddressRange map[string]*ipblocks.IPBlock // map from vpc name to its internal address range
 
 	subnetNameToNetIntf := map[string][]*NetworkInterface{}
-	err = getInstancesConfig(rc.InstanceList, subnetNameToNetIntf, res, shouldSkipByVPC)
+	err = getInstancesConfig(rc.InstanceList, subnetNameToNetIntf, res, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
 	// pgw can be attached to multiple subnets in the zone
 	pgwToSubnet := map[string][]*Subnet{} // map from pgw name to its attached subnet(s)
-	vpcInternalAddressRange, err = getSubnetsConfig(res, pgwToSubnet, subnetNameToNetIntf, rc, shouldSkipByVPC)
+	vpcInternalAddressRange, err = getSubnetsConfig(res, pgwToSubnet, subnetNameToNetIntf, rc, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
@@ -90,32 +83,32 @@ func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resou
 		return nil, err
 	}
 
-	err = getIKSnodesConfig(res, rc, shouldSkipByVPC)
+	err = getIKSnodesConfig(res, rc, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
 
-	err = getPgwConfig(res, rc, pgwToSubnet, shouldSkipByVPC)
+	err = getPgwConfig(res, rc, pgwToSubnet, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
 
-	err = getFipConfig(rc, res, shouldSkipByVPC)
+	err = getFipConfig(rc, res, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
 
-	err = getVPEconfig(rc, res, shouldSkipByVPC)
+	err = getVPEconfig(rc, res, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
 
-	err = getSGconfig(rc, res, shouldSkipByVPC)
+	err = getSGconfig(rc, res, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
 
-	err = getNACLconfig(rc, res, shouldSkipByVPC)
+	err = getNACLconfig(rc, res, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
@@ -191,11 +184,11 @@ func getInstancesConfig(
 	instanceList []*datamodel.Instance,
 	subnetNameToNetIntf map[string][]*NetworkInterface,
 	res map[string]*vpcmodel.VPCConfig,
-	skipByVPC func(string) bool,
+	skipByVPC map[string]bool,
 ) error {
 	for _, instance := range instanceList {
 		vpcUID := *instance.VPC.CRN
-		if skipByVPC(vpcUID) {
+		if skipByVPC[vpcUID] {
 			continue
 		}
 		vpc, err := getVPCObjectByUID(res, vpcUID)
@@ -256,14 +249,14 @@ func getSubnetsConfig(
 	pgwToSubnet map[string][]*Subnet,
 	subnetNameToNetIntf map[string][]*NetworkInterface,
 	rc *datamodel.ResourcesContainerModel,
-	skipByVPC func(string) bool,
+	skipByVPC map[string]bool,
 ) (vpcInternalAddressRange map[string]*ipblocks.IPBlock, err error) {
 	vpcInternalAddressRange = map[string]*ipblocks.IPBlock{}
 	for vpcUID := range res {
 		vpcInternalAddressRange[vpcUID] = nil
 	}
 	for _, subnet := range rc.SubnetList {
-		if skipByVPC(*subnet.VPC.CRN) {
+		if skipByVPC[*subnet.VPC.CRN] {
 			continue
 		}
 		subnetNodes := []vpcmodel.Node{}
@@ -338,10 +331,10 @@ func getPgwConfig(
 	res map[string]*vpcmodel.VPCConfig,
 	rc *datamodel.ResourcesContainerModel,
 	pgwToSubnet map[string][]*Subnet,
-	skipByVPC func(string) bool,
+	skipByVPC map[string]bool,
 ) error {
 	for _, pgw := range rc.PublicGWList {
-		if skipByVPC(*pgw.VPC.CRN) {
+		if skipByVPC[*pgw.VPC.CRN] {
 			continue
 		}
 		pgwName := *pgw.Name
@@ -386,7 +379,7 @@ func ignoreFIPWarning(fipName, details string) string {
 func getFipConfig(
 	rc *datamodel.ResourcesContainerModel,
 	res map[string]*vpcmodel.VPCConfig,
-	skipByVPC func(string) bool,
+	skipByVPC map[string]bool,
 ) error {
 	for _, fip := range rc.FloatingIPList {
 		targetIntf := fip.Target
@@ -430,7 +423,7 @@ func getFipConfig(
 		if err != nil {
 			return err
 		}
-		if skipByVPC(vpc.ResourceUID) {
+		if skipByVPC[vpc.ResourceUID] {
 			continue // skip fip because of selected vpc to analyze
 		}
 
@@ -468,9 +461,9 @@ func getVPCAddressPrefixes(vpc *datamodel.VPC) (res []string) {
 	return res
 }
 
-func getVPCconfig(rc *datamodel.ResourcesContainerModel, res map[string]*vpcmodel.VPCConfig, skipByVPC func(string) bool) error {
+func getVPCconfig(rc *datamodel.ResourcesContainerModel, res map[string]*vpcmodel.VPCConfig, skipByVPC map[string]bool) error {
 	for _, vpc := range rc.VpcList {
-		if skipByVPC(*vpc.CRN) {
+		if skipByVPC[*vpc.CRN] {
 			continue // skip vpc not specified to analyze
 		}
 		vpcName := *vpc.Name
@@ -526,12 +519,12 @@ func parseSGTargets(sgResource *SecurityGroup,
 
 func getSGconfig(rc *datamodel.ResourcesContainerModel,
 	res map[string]*vpcmodel.VPCConfig,
-	skipByVPC func(string) bool,
+	skipByVPC map[string]bool,
 ) error {
 	sgMap := map[string]map[string]*SecurityGroup{} // map from vpc uid to map from sg name to its sg object
 	sgLists := map[string][]*SecurityGroup{}
 	for _, sg := range rc.SecurityGroupList {
-		if skipByVPC(*sg.VPC.CRN) {
+		if skipByVPC[*sg.VPC.CRN] {
 			continue
 		}
 		vpcUID := *sg.VPC.CRN
@@ -585,11 +578,11 @@ func getSGconfig(rc *datamodel.ResourcesContainerModel,
 
 func getNACLconfig(rc *datamodel.ResourcesContainerModel,
 	res map[string]*vpcmodel.VPCConfig,
-	skipByVPC func(string) bool,
+	skipByVPC map[string]bool,
 ) error {
 	naclLists := map[string][]*NACL{} // map from vpc uid to its nacls
 	for _, nacl := range rc.NetworkACLList {
-		if skipByVPC(*nacl.VPC.CRN) {
+		if skipByVPC[*nacl.VPC.CRN] {
 			continue
 		}
 		naclAnalyzer, err := NewNACLAnalyzer(&nacl.NetworkACL)
@@ -818,10 +811,10 @@ func getSubnetByIPAddress(addressIPblock *ipblocks.IPBlock, c *vpcmodel.VPCConfi
 
 func getVPEconfig(rc *datamodel.ResourcesContainerModel,
 	res map[string]*vpcmodel.VPCConfig,
-	skipByVPC func(string) bool,
+	skipByVPC map[string]bool,
 ) (err error) {
 	for _, vpe := range rc.EndpointGWList {
-		if skipByVPC(*vpe.VPC.CRN) {
+		if skipByVPC[*vpe.VPC.CRN] {
 			continue
 		}
 		vpcUID := *vpe.VPC.CRN
@@ -886,7 +879,7 @@ func getSubnetByCidr(res map[string]*vpcmodel.VPCConfig, cidr string) (*Subnet, 
 
 func getIKSnodesConfig(res map[string]*vpcmodel.VPCConfig,
 	rc *datamodel.ResourcesContainerModel,
-	skipByVPC func(string) bool) error {
+	skipByVPC map[string]bool) error {
 	for _, iksNode := range rc.IKSWorkerNodes {
 		if len(iksNode.NetworkInterfaces) != 1 {
 			return errIksParsing
@@ -899,7 +892,7 @@ func getIKSnodesConfig(res map[string]*vpcmodel.VPCConfig,
 				*iksNode.ID, *iksNodeNetIntfObj.Cidr)
 			continue
 		}
-		if skipByVPC(subnet.VPC().UID()) {
+		if skipByVPC[subnet.VPC().UID()] {
 			continue
 		}
 		vpcUID := subnet.VPC().UID()
