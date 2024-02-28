@@ -16,11 +16,11 @@ const explainOut = "explain_out"
 // getConfigs returns  map[string]*vpcmodel.VPCConfig obj for the input test (config json file)
 func getConfig(t *testing.T, fileName string) *vpcmodel.VPCConfig {
 	inputConfigFile := filepath.Join(getTestsDirInput(), inputFilePrefix+fileName+jsonOutSuffix)
-	rc, err := ParseResourcesFromFile(inputConfigFile, "")
+	rc, err := ParseResourcesFromFile(inputConfigFile)
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
-	vpcConfigs, err := VPCConfigsFromResources(rc, "", false)
+	vpcConfigs, err := VPCConfigsFromResources(rc, "", "", nil, false)
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}

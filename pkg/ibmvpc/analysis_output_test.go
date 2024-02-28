@@ -44,7 +44,8 @@ type vpcGeneralTest struct {
 	actualOutput   map[vpcmodel.OutputUseCase]string // actual output file path
 	useCases       []vpcmodel.OutputUseCase          // the list of output use cases to test
 	errPerUseCase  map[vpcmodel.OutputUseCase]error
-	resourceGroup  string // filter vpc configs by resource group
+	resourceGroup  string   // filter vpc configs by resource group
+	regions        []string // filter vpc configs by region
 	mode           testMode
 	grouping       bool
 	format         vpcmodel.OutFormat
@@ -598,11 +599,11 @@ func getVPCConfigs(t *testing.T, tt *vpcGeneralTest, firstCfg bool) map[string]*
 		inputConfig = tt.inputConfig2nd
 	}
 	inputConfigFile := filepath.Join(getTestsDirInput(), inputConfig)
-	rc, err := ParseResourcesFromFile(inputConfigFile, tt.resourceGroup)
+	rc, err := ParseResourcesFromFile(inputConfigFile)
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
-	vpcConfigs, err := VPCConfigsFromResources(rc, tt.vpc, false)
+	vpcConfigs, err := VPCConfigsFromResources(rc, tt.vpc, tt.resourceGroup, tt.regions, false)
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
