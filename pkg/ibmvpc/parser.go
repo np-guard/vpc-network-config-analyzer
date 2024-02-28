@@ -1040,11 +1040,17 @@ func printConfig(c *vpcmodel.VPCConfig) {
 		switch filters := f.(type) {
 		case *NaclLayer:
 			for _, nacl := range filters.naclList {
+				if len(nacl.subnets) == 0 {
+					continue
+				}
 				fmt.Println(strings.Join([]string{nacl.ResourceType, nacl.ResourceName, nacl.UID()}, separator))
 				printNACLRules(nacl)
 			}
 		case *SecurityGroupLayer:
 			for _, sg := range filters.sgList {
+				if len(sg.members) == 0 {
+					continue
+				}
 				fmt.Println(strings.Join([]string{sg.ResourceType, sg.ResourceName, sg.UID()}, separator))
 				printSGRules(sg)
 			}

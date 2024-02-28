@@ -115,7 +115,6 @@ func (sga *SGAnalyzer) getProtocolAllRule(ruleObj *vpc1.SecurityGroupRuleSecurit
 	remote := ruleObj.Remote
 	cidr := ""
 	var target *ipblocks.IPBlock
-	// SecurityGroupRuleRemoteCIDR
 	target, cidr, err = sga.getRemoteCidr(remote)
 	if err == nil {
 		if target == nil {
@@ -198,22 +197,21 @@ func (sga *SGAnalyzer) getProtocolIcmpRule(ruleObj *vpc1.SecurityGroupRuleSecuri
 func (sga *SGAnalyzer) getSGRule(index int) (
 	ruleStr string, ruleRes *SGRule, isIngress bool, err error) {
 	rule := sga.sgResource.Rules[index]
-	if ruleObj, ok := rule.(*vpc1.SecurityGroupRuleSecurityGroupRuleProtocolAll); ok {
+	switch ruleObj := rule.(type) {
+	case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolAll:
 		ruleStr, ruleRes, isIngress, err = sga.getProtocolAllRule(ruleObj)
-	}
-	if ruleObj, ok := rule.(*vpc1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudp); ok {
+	case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudp:
 		ruleStr, ruleRes, isIngress, err = sga.getProtocolTcpudpRule(ruleObj)
-	}
-	// SecurityGroupRuleSecurityGroupRuleProtocolIcmp
-	if ruleObj, ok := rule.(*vpc1.SecurityGroupRuleSecurityGroupRuleProtocolIcmp); ok {
+	case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolIcmp:
 		ruleStr, ruleRes, isIngress, err = sga.getProtocolIcmpRule(ruleObj)
+	default:
+		return "", nil, false, fmt.Errorf("getSGRule error: unsupported type")
 	}
-	if err == nil {
-		ruleRes.index = index
-		return fmt.Sprintf("index: %d, %v", index, ruleStr), ruleRes, isIngress, nil
+	if err != nil {
+		return "", nil, false, err
 	}
-
-	return "", nil, false, fmt.Errorf("getSGRule error: unsupported type")
+	ruleRes.index = index
+	return fmt.Sprintf("index: %d, %v", index, ruleStr), ruleRes, isIngress, nil
 }
 
 func (sga *SGAnalyzer) getSGrules(sgObj *vpc1.SecurityGroup) (ingressRules, egressRules []*SGRule, err error) {
