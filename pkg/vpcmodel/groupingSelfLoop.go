@@ -177,7 +177,7 @@ func (g *GroupConnLines) findMergeCandidates(groupingSrcOrDst map[string][]*grou
 func (g *GroupConnLines) getSubnetUIDIfVsi(ep EndpointElem) string {
 	if isVsi, node := isEpVsi(ep); isVsi {
 		// if ep is groupedEndpointsElems of vsis then all belong to the same subnet
-		return g.config.getSubnetOfNode(node).UID()
+		return node.Subnet().Name()
 	}
 	return ""
 }
@@ -187,19 +187,19 @@ func (g *GroupConnLines) getSubnetUIDIfVsi(ep EndpointElem) string {
 // if the endpoint element represents a vsi or is a slice of elements the first of which represents vsi
 // then it returns <true, the vsi or the first vsi>
 // otherwise it returns <false, nil>
-func isEpVsi(ep EndpointElem) (bool, Node) {
+func isEpVsi(ep EndpointElem) (bool, InternalNodeIntf) {
 	if _, ok := ep.(*groupedEndpointsElems); ok {
 		ep1GroupedEps := ep.(*groupedEndpointsElems)
 		if node, ok := (*ep1GroupedEps)[0].(Node); ok {
 			if node.IsInternal() {
-				return true, node
+				return true, node.(InternalNodeIntf)
 			}
 		}
 		return false, nil
 	}
 	if node, ok := ep.(Node); ok {
 		if node.IsInternal() {
-			return true, node
+			return true, node.(InternalNodeIntf)
 		}
 	}
 	return false, nil

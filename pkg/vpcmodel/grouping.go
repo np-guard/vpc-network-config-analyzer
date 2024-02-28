@@ -235,15 +235,15 @@ func vsiOrSubnetsGroupingBySubnetsOrVsis(groupedConnLines *GroupConnLines,
 		var subnetOrVSIUID string
 		var newElem EndpointElem
 		if groupVSI {
-			n, ok := elem.(Node)
+			n, ok := elem.(InternalNodeIntf)
 			if !ok {
-				res = append(res, n) // elements which are not interface nodes remain in the result as in the original input
+				res = append(res, elem) // elements which are not interface nodes remain in the result as in the original input
 				continue             // skip input elements which are not a network interface node
 			}
-			subnetOrVSIUID = c.getSubnetOfNode(n).UID() // get the subnet to which n belongs
-			newElem = n
+			subnetOrVSIUID = n.Subnet().UID() // get the subnet to which n belongs
+			newElem = elem
 		} else {
-			n, ok := elem.(NodeSet)
+			n, ok := elem.(Subnet)
 			if !ok {
 				res = append(res, n) // elements which are not subnets remain in the result as in the original input
 				continue             // skip input elements which are not a subnet nodeSet
@@ -374,7 +374,7 @@ func isInternalOfRequiredType(ep EndpointElem, groupVsi bool) bool {
 			return false
 		}
 	} else { // groups subnets NodeSets
-		if _, ok := ep.(NodeSet); !ok {
+		if _, ok := ep.(Subnet); !ok {
 			return false
 		}
 	}
@@ -454,7 +454,7 @@ func (g *GroupConnLines) unifiedGroupedElems(srcOrDst EndpointElem) EndpointElem
 	if _, ok := srcOrDst.(Node); ok { // vsi
 		return srcOrDst
 	}
-	if _, ok := srcOrDst.(NodeSet); ok { // subnet
+	if _, ok := srcOrDst.(Subnet); ok { // subnet
 		return srcOrDst
 	}
 	groupedEE := srcOrDst.(*groupedEndpointsElems)
