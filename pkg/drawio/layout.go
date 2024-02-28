@@ -93,7 +93,7 @@ func (ly *layoutS) layout() {
 	ly.setGeometries()
 	ly.setRouterPoints()
 	if !ly.subnetMode {
-		newLayoutOverlap(ly.network).fixOverlapping()
+		// newLayoutOverlap(ly.network).fixOverlapping()
 	} else {
 		newSubnetLayoutOverlap(ly.network, ly.matrix).fixOverlapping()
 	}

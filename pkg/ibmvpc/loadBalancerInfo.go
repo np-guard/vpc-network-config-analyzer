@@ -5,6 +5,7 @@ import (
 
 	"github.com/IBM/vpc-go-sdk/vpcv1"
 	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
 	vpcmodel "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -30,6 +31,7 @@ type listener struct {
 
 type poolMember struct {
 	port   int64
+	address string
 	subnet *Subnet
 }
 
@@ -40,10 +42,12 @@ type pool struct {
 	members  []poolMember
 }
 
+var lb loadBalancer
+
 func parseLoadBalancers(rc *datamodel.ResourcesContainerModel, res map[string]*vpcmodel.VPCConfig) {
 	// _, vpc := common.AnyMapEntry[string, *vpcmodel.VPCConfig](res)
 	for _, lbData := range rc.LBList {
-		lb := loadBalancer{}
+		lb = loadBalancer{}
 		lb.name = *lbData.Name
 		for _, resIpData := range lbData.PrivateIps {
 			rIp := resIp{}
@@ -67,8 +71,10 @@ func parseLoadBalancers(rc *datamodel.ResourcesContainerModel, res map[string]*v
 				member.port = *memberData.Port
 				for _, subnetData := range rc.SubnetList {
 					for _, subnetResIpData := range subnetData.ReservedIps {
-						if *subnetResIpData.Address == *memberData.Target.(*vpcv1.LoadBalancerPoolMemberTarget).Address {
+						targetAddress := *memberData.Target.(*vpcv1.LoadBalancerPoolMemberTarget).Address
+						if *subnetResIpData.Address == targetAddress {
 							member.subnet, _ = getSubnetByCidr(res, *subnetData.Ipv4CIDRBlock)
+							member.address = targetAddress
 						}
 					}
 				}
@@ -108,5 +114,36 @@ func parseLoadBalancers(rc *datamodel.ResourcesContainerModel, res map[string]*v
 		}
 
 		fmt.Println(lb)
+	}
+}
+
+var marked bool
+
+func markLoadBalancer(gen *vpcmodel.DrawioGenerator) {
+	if marked {
+		return
+	}
+	marked = true
+	network := gen.Network()
+	publicNetwork := gen.PublicNetwork()
+	lbTn := drawio.NewInternetServiceTreeNode(publicNetwork, "load Balancer")
+	poolTNs := map[*pool]drawio.IconTreeNodeInterface{}
+	for _, resIp := range lb.resIPs {
+		drawio.NewConnectivityLineTreeNode(network, gen.TreeNode(resIp.subnet), lbTn, true, "interface")
+	}
+	for _, pool := range lb.pools {
+		poolTNs[pool] = drawio.NewInternetServiceTreeNode(publicNetwork, "pool "+pool.name)
+		for _,member := range pool.members{
+			drawio.NewConnectivityLineTreeNode(network, poolTNs[pool], gen.TreeNode(member.subnet), true, fmt.Sprintf("/%s:%d", member.address, member.port))
+
+		}
+	}
+	for _, listener := range lb.listeners {
+		lisTn := drawio.NewInternetServiceTreeNode(publicNetwork, "listener")
+		label := fmt.Sprintf("/%s:%d", listener.protocol, listener.port)
+		drawio.NewConnectivityLineTreeNode(network, lbTn, lisTn, true, label)
+		for _, pool := range listener.pools {
+			drawio.NewConnectivityLineTreeNode(network, lisTn, poolTNs[pool], true, "")
+		}
 	}
 }

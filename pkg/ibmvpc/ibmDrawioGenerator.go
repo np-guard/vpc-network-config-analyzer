@@ -32,6 +32,7 @@ func (s *Subnet) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.Tr
 	// todo - how to handle this error:
 	zone, _ := s.Zone()
 	zoneTn := gen.TreeNode(zone).(*drawio.ZoneTreeNode)
+	markLoadBalancer(gen)
 	return drawio.NewSubnetTreeNode(zoneTn, s.Name(), s.cidr, "")
 }
 
