@@ -1002,6 +1002,10 @@ func getVPCObjectByUID(res map[string]*vpcmodel.VPCConfig, uid string) (*VPC, er
 /********** Functions used in Debug mode ***************/
 
 func printVPCConfigs(c map[string]*vpcmodel.VPCConfig) {
+	fmt.Println("VPCs to analyze:")
+	for vpcUID, config := range c {
+		fmt.Printf("VPC UID: %s, Name: %s\n", vpcUID, config.VPC.Name())
+	}
 	printLineSection()
 	for vpcUID, config := range c {
 		fmt.Printf("config for vpc %s (vpc name: %s)\n", vpcUID, config.VPC.Name())
