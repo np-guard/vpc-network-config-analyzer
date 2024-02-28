@@ -580,6 +580,19 @@ func (cachedGrouped *cacheGroupedElements) getExistEndpointElemFromCache(
 	return nil
 }
 
+// sets pointer of an element to cachedGrouped.groupedEndpointsElemsMap
+// if exists, nil otherwise
+func (cachedGrouped *cacheGroupedElements) setGroupedExternalFromCache(
+	groupedExternal groupedExternalNodes) error {
+	// since the endpoints (external) are sorted before printed, grouped.Name() will be identical
+	// to equiv groupedEndpointsElems
+	if cachedGrouped.getExistGroupedExternalFromCache(groupedExternal) != nil {
+		return fmt.Errorf("grouped external %v already in cache", groupedExternal.Name())
+	}
+	cachedGrouped.groupedExternalNodesMap[groupedExternal.Name()] = &groupedExternal
+	return nil
+}
+
 // gets pointer of an element semantically equiv to grouped in cachedGrouped.groupedEndpointsElemsMap
 // if does not exist, insert the input into the cache
 func (cachedGrouped *cacheGroupedElements) getAndSetEndpointElemFromCache(
@@ -595,19 +608,6 @@ func (cachedGrouped *cacheGroupedElements) getAndSetEndpointElemFromCache(
 	return &groupedElem
 }
 
-// sets pointer of an element to cachedGrouped.groupedEndpointsElemsMap
-// if exists, nil otherwise
-func (cachedGrouped *cacheGroupedElements) setGroupedExternalFromCache(
-	groupedExternal groupedExternalNodes) error {
-	// since the endpoints (external) are sorted before printed, grouped.Name() will be identical
-	// to equiv groupedEndpointsElems
-	if cachedGrouped.getExistGroupedExternalFromCache(groupedExternal) != nil {
-		return fmt.Errorf("grouped external %v already in cache", groupedExternal.Name())
-	}
-	cachedGrouped.groupedExternalNodesMap[groupedExternal.Name()] = &groupedExternal
-	return nil
-}
-
 // 2. Similar to the above, functionality related to cachedGrouped.groupedExternalNodesMap
 // gets pointer of an element semantically equiv to grouped in cachedGrouped.groupedExternalNodesMap
 // if exists, nil otherwise
@@ -616,6 +616,15 @@ func (cachedGrouped *cacheGroupedElements) getExistGroupedExternalFromCache(
 	if existingGrouped, ok := cachedGrouped.groupedExternalNodesMap[grouped.Name()]; ok {
 		return existingGrouped
 	}
+	return nil
+}
+
+func (cachedGrouped *cacheGroupedElements) setEndpointElemFromCache(
+	groupedElem groupedEndpointsElems) error {
+	if cachedGrouped.getExistEndpointElemFromCache(groupedElem) != nil {
+		return fmt.Errorf("grouped element %v already in cache", groupedElem.Name())
+	}
+	cachedGrouped.groupedEndpointsElemsMap[groupedElem.Name()] = &groupedElem
 	return nil
 }
 
@@ -630,13 +639,4 @@ func (cachedGrouped *cacheGroupedElements) getAndSetGroupedExternalFromCache(
 		return nil
 	}
 	return &groupedExternal
-}
-
-func (cachedGrouped *cacheGroupedElements) setEndpointElemFromCache(
-	groupedElem groupedEndpointsElems) error {
-	if cachedGrouped.getExistEndpointElemFromCache(groupedElem) != nil {
-		return fmt.Errorf("grouped element %v already in cache", groupedElem.Name())
-	}
-	cachedGrouped.groupedEndpointsElemsMap[groupedElem.Name()] = &groupedElem
-	return nil
 }
