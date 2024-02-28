@@ -150,9 +150,9 @@ func (c *VPCConfig) getVPCResourceInfInOtherConfig(other *VPCConfig, ep VPCResou
 			}
 		}
 	} else if diffAnalysis == Subnets {
-		for _, nodeSet := range other.NodeSets {
-			if nodeSet.Name() == ep.Name() {
-				res = VPCResourceIntf(nodeSet)
+		for _, subnet := range other.Subnets {
+			if subnet.Name() == ep.Name() {
+				res = VPCResourceIntf(subnet)
 				return res, nil
 			}
 		}
