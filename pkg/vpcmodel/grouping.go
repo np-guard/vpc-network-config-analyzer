@@ -67,48 +67,44 @@ func newGroupingConnections() *groupingConnections {
 
 func newGroupConnLines(c *VPCConfig, v *VPCConnectivity,
 	grouping bool) (res *GroupConnLines, err error) {
+	initCacheGrouped := initCacheGroupedElem()
 	res = &GroupConnLines{config: c, nodesConn: v,
-		srcToDst: newGroupingConnections(),
-		dstToSrc: newGroupingConnections(),
-		cacheGrouped: cacheGroupedElements{
-			map[string]*groupedEndpointsElems{},
-			map[string]*groupedExternalNodes{}}}
+		srcToDst:     newGroupingConnections(),
+		dstToSrc:     newGroupingConnections(),
+		cacheGrouped: initCacheGrouped}
 	err = res.computeGrouping(true, grouping)
 	return res, err
 }
 
 func newGroupConnLinesSubnetConnectivity(c *VPCConfig, s *VPCsubnetConnectivity,
 	grouping bool) (res *GroupConnLines, err error) {
+	initCacheGrouped := initCacheGroupedElem()
 	res = &GroupConnLines{config: c, subnetsConn: s,
-		srcToDst: newGroupingConnections(),
-		dstToSrc: newGroupingConnections(),
-		cacheGrouped: cacheGroupedElements{
-			map[string]*groupedEndpointsElems{},
-			map[string]*groupedExternalNodes{}}}
+		srcToDst:     newGroupingConnections(),
+		dstToSrc:     newGroupingConnections(),
+		cacheGrouped: initCacheGrouped}
 	err = res.computeGrouping(false, grouping)
 	return res, err
 }
 
 func newGroupConnLinesDiff(d *diffBetweenCfgs) (res *GroupConnLines, err error) {
+	initCacheGrouped := initCacheGroupedElem()
 	res = &GroupConnLines{diff: d,
-		srcToDst: newGroupingConnections(),
-		dstToSrc: newGroupingConnections(),
-		cacheGrouped: cacheGroupedElements{
-			map[string]*groupedEndpointsElems{},
-			map[string]*groupedExternalNodes{}}}
+		srcToDst:     newGroupingConnections(),
+		dstToSrc:     newGroupingConnections(),
+		cacheGrouped: initCacheGrouped}
 	err = res.computeGroupingForDiff()
 	return res, err
 }
 
 func newGroupConnExplainability(c *VPCConfig, e *rulesAndConnDetails) (res *GroupConnLines, err error) {
+	initCacheGrouped := initCacheGroupedElem()
 	res = &GroupConnLines{
-		config:   c,
-		explain:  e,
-		srcToDst: newGroupingConnections(),
-		dstToSrc: newGroupingConnections(),
-		cacheGrouped: cacheGroupedElements{
-			map[string]*groupedEndpointsElems{},
-			map[string]*groupedExternalNodes{}}}
+		config:       c,
+		explain:      e,
+		srcToDst:     newGroupingConnections(),
+		dstToSrc:     newGroupingConnections(),
+		cacheGrouped: initCacheGrouped}
 	err = res.groupExternalAddressesForExplainability()
 	return res, err
 }
@@ -127,7 +123,7 @@ type GroupConnLines struct {
 	// 2. from unified key to groupedExternalNodes
 	// the item in the maps represents grouped vsis/subnets/external elements
 	// the cache is used to avoid duplication of identical groupedEndpointsElems
-	cacheGrouped cacheGroupedElements
+	cacheGrouped *cacheGroupedElements
 	GroupedLines []*groupedConnLine
 }
 
@@ -441,7 +437,7 @@ func (g *GroupConnLines) groupInternalSrcOrDst(srcGrouping, groupVsi bool) {
 			}
 		}
 	}
-	g.GroupedLines = unifiedGroupedConnLines(res, &g.cacheGrouped, false)
+	g.GroupedLines = unifiedGroupedConnLines(res, g.cacheGrouped, false)
 }
 
 // Go over the grouping result and set groups s.t. all semantically equiv groups have a unified reference.

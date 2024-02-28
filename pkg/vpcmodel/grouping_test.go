@@ -149,7 +149,7 @@ func TestGroupingPhase1(t *testing.T) {
 	initCacheGrouped := initCacheGroupedElem()
 	c, v := newVPCConfigTest1()
 	res := &GroupConnLines{config: c, nodesConn: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
-		cacheGrouped: *initCacheGrouped}
+		cacheGrouped: initCacheGrouped}
 	err := res.groupExternalAddresses(true)
 	require.Equal(t, err, nil)
 
@@ -164,7 +164,7 @@ func TestGroupingPhase2(t *testing.T) {
 	c, v := newVPCConfigTest2()
 	initCacheGrouped := initCacheGroupedElem()
 	res := &GroupConnLines{config: c, nodesConn: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
-		cacheGrouped: *initCacheGrouped}
+		cacheGrouped: initCacheGrouped}
 	// phase 1
 	err := res.groupExternalAddresses(true)
 	require.Equal(t, err, nil)
@@ -207,7 +207,7 @@ func TestStatefulGrouping(t *testing.T) {
 	c, v := configStatefulGrouping()
 	initCacheGrouped := initCacheGroupedElem()
 	res := &GroupConnLines{config: c, nodesConn: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
-		cacheGrouped: *initCacheGrouped}
+		cacheGrouped: initCacheGrouped}
 	err := res.groupExternalAddresses(true)
 	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(true, true)
@@ -239,7 +239,7 @@ func TestIPRange(t *testing.T) {
 	c, v := configIPRange()
 	initCacheGrouped := initCacheGroupedElem()
 	res := &GroupConnLines{config: c, nodesConn: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
-		cacheGrouped: *initCacheGrouped}
+		cacheGrouped: initCacheGrouped}
 	err := res.groupExternalAddresses(true)
 	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(true, true)
@@ -277,7 +277,7 @@ func TestSelfLoopClique(t *testing.T) {
 	c, v := configSelfLoopClique()
 	initCacheGrouped := initCacheGroupedElem()
 	res := &GroupConnLines{config: c, nodesConn: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
-		cacheGrouped: *initCacheGrouped}
+		cacheGrouped: initCacheGrouped}
 	err := res.groupExternalAddresses(true)
 	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(true, true)
@@ -317,7 +317,7 @@ func TestSelfLoopCliqueDiffSubnets(t *testing.T) {
 	c, v := configSelfLoopCliqueDiffSubnets()
 	initCacheGrouped := initCacheGroupedElem()
 	res := &GroupConnLines{config: c, nodesConn: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
-		cacheGrouped: *initCacheGrouped}
+		cacheGrouped: initCacheGrouped}
 	err := res.groupExternalAddresses(true)
 	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(true, true)
@@ -357,7 +357,7 @@ func TestSimpleSelfLoop(t *testing.T) {
 	c, v := configSimpleSelfLoop()
 	initCacheGrouped := initCacheGroupedElem()
 	res := &GroupConnLines{config: c, nodesConn: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
-		cacheGrouped: *initCacheGrouped}
+		cacheGrouped: initCacheGrouped}
 	err := res.groupExternalAddresses(true)
 	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(false, true)
@@ -408,7 +408,7 @@ func TestConfigSelfLoopCliqueLace(t *testing.T) {
 	c, v := configSelfLoopCliqueLace()
 	initCacheGrouped := initCacheGroupedElem()
 	res := &GroupConnLines{config: c, nodesConn: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
-		cacheGrouped: *initCacheGrouped}
+		cacheGrouped: initCacheGrouped}
 	err := res.groupExternalAddresses(true)
 	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(false, true)
@@ -450,7 +450,7 @@ func TestSubnetSelfLoop(t *testing.T) {
 	initCacheGrouped := initCacheGroupedElem()
 	res := &GroupConnLines{config: c, subnetsConn: s,
 		srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
-		cacheGrouped: *initCacheGrouped}
+		cacheGrouped: initCacheGrouped}
 	err := res.groupExternalAddresses(false)
 	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(false, false)
