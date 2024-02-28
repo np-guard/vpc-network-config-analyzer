@@ -227,7 +227,7 @@ func (g *groupingConnections) addPublicConnectivity(ep EndpointElem, commonProps
 // 2. If the grouped elements are subnets then the elements are grouped by their VPC, this is automatic
 // unless VPCConfig is result of a dummy vpc built for tgw, namely IsMultipleVPCsConfig = true
 func vsiOrSubnetsGroupingBySubnetsOrVsis(groupedConnLines *GroupConnLines,
-	elemsList []EndpointElem, c *VPCConfig, groupVSI bool) []EndpointElem {
+	elemsList []EndpointElem, groupVSI bool) []EndpointElem {
 	res := []EndpointElem{}
 	// map from subnet's/vsi's UID to its nodes/nodeSets from the input
 	subnetOrVSIToNodesOrNodeSets := map[string][]EndpointElem{}
@@ -238,7 +238,7 @@ func vsiOrSubnetsGroupingBySubnetsOrVsis(groupedConnLines *GroupConnLines,
 			n, ok := elem.(InternalNodeIntf)
 			if !ok {
 				res = append(res, elem) // elements which are not interface nodes remain in the result as in the original input
-				continue             // skip input elements which are not a network interface node
+				continue                // skip input elements which are not a network interface node
 			}
 			subnetOrVSIUID = n.Subnet().UID() // get the subnet to which n belongs
 			newElem = elem
@@ -370,7 +370,7 @@ func (g *GroupConnLines) appendGrouped(res []*groupedConnLine) {
 // aux func, returns true iff the EndpointElem is Node if grouping vsis or NodeSet if grouping subnets
 func isInternalOfRequiredType(ep EndpointElem, groupVsi bool) bool {
 	if groupVsi { // groups vsis Nodes
-		if _, ok := ep.(Node); !ok {
+		if _, ok := ep.(InternalNodeIntf); !ok {
 			return false
 		}
 	} else { // groups subnets NodeSets
@@ -420,7 +420,7 @@ func (g *GroupConnLines) groupInternalSrcOrDst(srcGrouping, groupVsi bool) {
 		for i, line := range linesGroup {
 			srcOrDstGroup[i] = line.getSrcOrDst(srcGrouping)
 		}
-		groupedSrcOrDst := vsiOrSubnetsGroupingBySubnetsOrVsis(g, srcOrDstGroup, g.config, groupVsi)
+		groupedSrcOrDst := vsiOrSubnetsGroupingBySubnetsOrVsis(g, srcOrDstGroup, groupVsi)
 		for _, groupedSrcOrDstElem := range groupedSrcOrDst {
 			if srcGrouping {
 				res = append(res, &groupedConnLine{groupedSrcOrDstElem, linesGroup[0].dst, linesGroup[0].commonProperties})
@@ -451,7 +451,7 @@ func (g *GroupConnLines) unifiedGroupedElems(srcOrDst EndpointElem) EndpointElem
 	if srcOrDst.IsExternal() { // external
 		return srcOrDst
 	}
-	if _, ok := srcOrDst.(Node); ok { // vsi
+	if _, ok := srcOrDst.(InternalNodeIntf); ok { // vsi
 		return srcOrDst
 	}
 	if _, ok := srcOrDst.(Subnet); ok { // subnet
