@@ -420,27 +420,3 @@ func TestConfigSelfLoopCliqueLace(t *testing.T) {
 	fmt.Println(groupingStr)
 	fmt.Println("done")
 }
-func configSubnetSelfLoop() (*VPCConfig, *VPCsubnetConnectivity) {
-	res := &VPCConfig{Nodes: []Node{}}
-	res.Nodes = append(res.Nodes,
-		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1"},
-		&mockNetIntf{cidr: "10.3.20.6/32", name: "vsi2"},
-		&mockNetIntf{cidr: "10.7.20.7/32", name: "vsi3"})
-
-	res.Subnets = append(res.Subnets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0]}},
-		&mockSubnet{"10.3.20.0/22", "subnet2", []Node{res.Nodes[1]}},
-		&mockSubnet{"10.7.20.0/22", "subnet3", []Node{res.Nodes[2]}})
-	res.Nodes[0].(*mockNetIntf).subnet = res.Subnets[0]
-	res.Nodes[1].(*mockNetIntf).subnet = res.Subnets[1]
-	res.Nodes[2].(*mockNetIntf).subnet = res.Subnets[2]
-
-	res1 := &VPCsubnetConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Subnets[0], res.Subnets[1], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Subnets[0], res.Subnets[2], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Subnets[1], res.Subnets[0], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Subnets[1], res.Subnets[2], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Subnets[2], res.Subnets[0], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Subnets[2], res.Subnets[1], common.NewConnectionSet(true))
-
-	return res, res1
-}
