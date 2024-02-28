@@ -553,7 +553,6 @@ func TestUnsupportedAnalysis(t *testing.T) {
 func (tt *vpcGeneralTest) runTest(t *testing.T) {
 	// init test - set the input/output file names according to test name
 	tt.initTest()
-	fmt.Printf("%s\n", tt.resourceGroup)
 
 	// get vpcConfigs obj from parsing + analyzing input config file
 	vpcConfigs := getVPCConfigs(t, tt, true)

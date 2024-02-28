@@ -397,9 +397,6 @@ func notSupportedYetArgs(args *InArgs) error {
 	if *args.OutputFormat == JSONFormat && *args.Grouping {
 		return fmt.Errorf("json output format is not supported with grouping")
 	}
-	if len(args.RegionList) != 0 && *args.Provider == "" {
-		return fmt.Errorf("error in parameters: resource-group and region can only be specified in combination with provider flag")
-	}
 	if *args.Provider != factory.IBM && *args.Provider != "" {
 		return fmt.Errorf("unsupported provider: %s", *args.Provider)
 	}
