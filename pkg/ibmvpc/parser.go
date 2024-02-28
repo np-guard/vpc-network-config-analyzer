@@ -104,6 +104,7 @@ func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID string
 	if err != nil {
 		return nil, err
 	}
+	parseLoadBalancers(rc, res)
 
 	if debug {
 		printVPCConfigs(res)

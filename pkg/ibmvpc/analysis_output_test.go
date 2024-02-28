@@ -164,6 +164,15 @@ func (tt *vpcGeneralTest) initTest() {
 
 var tests = []*vpcGeneralTest{
 	{
+	inputConfig: "iks_config_object",
+	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	grouping:    false,
+	format:      vpcmodel.DRAWIO,
+},
+}
+
+var tests2 = []*vpcGeneralTest{
+	{
 		inputConfig: "acl_testing5",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
 		format:      vpcmodel.MD,
