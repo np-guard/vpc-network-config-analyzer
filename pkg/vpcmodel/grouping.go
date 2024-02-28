@@ -580,32 +580,22 @@ func (cachedGrouped *cacheGroupedElements) getExistEndpointElemFromCache(
 	return nil
 }
 
-// sets pointer of an element to cachedGrouped.groupedEndpointsElemsMap
-// if exists, nil otherwise
-func (cachedGrouped *cacheGroupedElements) setGroupedExternalFromCache(
-	groupedExternal groupedExternalNodes) error {
-	// since the endpoints (external) are sorted before printed, grouped.Name() will be identical
-	// to equiv groupedEndpointsElems
-	if cachedGrouped.getExistGroupedExternalFromCache(groupedExternal) != nil {
-		return fmt.Errorf("grouped external %v already in cache", groupedExternal.Name())
-	}
-	cachedGrouped.groupedExternalNodesMap[groupedExternal.Name()] = &groupedExternal
-	return nil
-}
-
 // gets pointer of an element semantically equiv to grouped in cachedGrouped.groupedEndpointsElemsMap
-// if does not exist, insert the input into the cache
+// if does not exist, sets the input into the cache
 func (cachedGrouped *cacheGroupedElements) getAndSetEndpointElemFromCache(
 	groupedElem groupedEndpointsElems) *groupedEndpointsElems {
 	existing := cachedGrouped.getExistEndpointElemFromCache(groupedElem)
 	if existing != nil {
 		return existing
 	}
-	err := cachedGrouped.setEndpointElemFromCache(groupedElem)
-	if err != nil { // this is not a valid option, thus not adding burden of returning an error
-		return nil
-	}
+	cachedGrouped.setEndpointElemFromCache(groupedElem)
 	return &groupedElem
+}
+
+// sets pointer of an element to cachedGrouped.groupedEndpointsElemsMap
+func (cachedGrouped *cacheGroupedElements) setEndpointElemFromCache(
+	groupedElem groupedEndpointsElems) {
+	cachedGrouped.groupedEndpointsElemsMap[groupedElem.Name()] = &groupedElem
 }
 
 // 2. Similar to the above, functionality related to cachedGrouped.groupedExternalNodesMap
@@ -619,13 +609,9 @@ func (cachedGrouped *cacheGroupedElements) getExistGroupedExternalFromCache(
 	return nil
 }
 
-func (cachedGrouped *cacheGroupedElements) setEndpointElemFromCache(
-	groupedElem groupedEndpointsElems) error {
-	if cachedGrouped.getExistEndpointElemFromCache(groupedElem) != nil {
-		return fmt.Errorf("grouped element %v already in cache", groupedElem.Name())
-	}
-	cachedGrouped.groupedEndpointsElemsMap[groupedElem.Name()] = &groupedElem
-	return nil
+func (cachedGrouped *cacheGroupedElements) setGroupedExternalFromCache(
+	groupedExternal groupedExternalNodes) {
+	cachedGrouped.groupedExternalNodesMap[groupedExternal.Name()] = &groupedExternal
 }
 
 func (cachedGrouped *cacheGroupedElements) getAndSetGroupedExternalFromCache(
@@ -634,9 +620,6 @@ func (cachedGrouped *cacheGroupedElements) getAndSetGroupedExternalFromCache(
 	if existing != nil {
 		return existing
 	}
-	err := cachedGrouped.setGroupedExternalFromCache(groupedExternal)
-	if err != nil { // this is not a valid option, thus not adding burden of returning an error
-		return nil
-	}
+	cachedGrouped.setGroupedExternalFromCache(groupedExternal)
 	return &groupedExternal
 }
