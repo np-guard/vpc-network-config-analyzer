@@ -90,6 +90,8 @@ type InternalNodeIntf interface {
 	Address() string
 	// IPBlock returns the IPBlock object representing the node's IP Address
 	IPBlock() *ipblocks.IPBlock
+	// Subnet returns the subnet of the internal node
+	Subnet() Subnet
 }
 
 // InternalNode implements interface InternalNodeIntf
@@ -101,6 +103,8 @@ type InternalNode struct {
 	// since it is sufficient to have the AddressStr, and no need to represent IPBlockObj as another
 	// attribute in the JSON output.
 	IPBlockObj *ipblocks.IPBlock `json:"-"`
+	// SubnetResource is the subnet on which this node resides in
+	SubnetResource Subnet `json:"-"`
 }
 
 func (n *InternalNode) Address() string {
@@ -109,6 +113,10 @@ func (n *InternalNode) Address() string {
 
 func (n *InternalNode) IPBlock() *ipblocks.IPBlock {
 	return n.IPBlockObj
+}
+
+func (n *InternalNode) Subnet() Subnet {
+	return n.SubnetResource
 }
 
 // SetIPBlockFromAddress sets the node's IPBlockObj field from its AddressStr field.
@@ -130,12 +138,21 @@ func (n *InternalNode) IsPublicInternet() bool {
 	return false
 }
 
-// NodeSet is an element that may capture several nodes [vpc ,subnet, vsi, vpe]
+// NodeSet is an element that may capture several nodes [vsi, vpe, vpc ,subnet]
 type NodeSet interface {
 	VPCResourceIntf
 	Nodes() []Node
-	Connectivity() *ConnectivityResult
 	AddressRange() *ipblocks.IPBlock
+}
+
+type VPC interface {
+	NodeSet
+	AddressPrefixes() []string
+}
+
+type Subnet interface {
+	NodeSet
+	CIDR() string
 }
 
 // RulesType Type of rules in a given filter (e.g. specific NACL table) relevant to
