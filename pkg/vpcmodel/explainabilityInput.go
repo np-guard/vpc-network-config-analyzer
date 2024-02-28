@@ -105,8 +105,7 @@ func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node, in
 func (c *VPCConfig) getNodesOfVsi(vsi string) ([]Node, error) {
 	var nodeSetWithVsi NodeSet
 	for _, nodeSet := range c.NodeSets {
-		// todo: at the moment we consider here all NodeSets and not just vsis (e.g. also subnets)
-		//       fix once we have abstract vpc and subnets (#380)
+		// currently assuming c.NodeSets consists of VSIs or VPE
 		if nodeSet.Name() == vsi || nodeSet.UID() == vsi {
 			if nodeSetWithVsi != nil {
 				return nil, fmt.Errorf("there is more than one resource (%s, %s) with the given input string %s representing its name. "+

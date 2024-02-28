@@ -225,21 +225,20 @@ func (g *groupingConnections) addPublicConnectivity(ep EndpointElem, commonProps
 
 // vsiGroupingBySubnets returns a slice of EndpointElem objects, by grouping set of elements that
 // represent network interface nodes from the same subnet into a single groupedNetworkInterfaces object
-func vsiGroupingBySubnets(groupedConnLines *GroupConnLines,
-	elemsList []EndpointElem, c *VPCConfig) []EndpointElem {
+func vsiGroupingBySubnets(groupedConnLines *GroupConnLines, elemsList []EndpointElem) []EndpointElem {
 	res := []EndpointElem{}
 	subnetNameToNodes := map[string][]EndpointElem{} // map from subnet name to its nodes from the input
 	for _, elem := range elemsList {
-		n, ok := elem.(Node)
+		n, ok := elem.(InternalNodeIntf)
 		if !ok {
-			res = append(res, n) // elements which are not interface nodes remain in the result as in the original input
-			continue             // skip input elements which are not a network interface node
+			res = append(res, elem) // elements which are not interface nodes remain in the result as in the original input
+			continue                // skip input elements which are not a network interface node
 		}
-		subnetName := c.getSubnetOfNode(n).Name() // get the subnet to which n belongs
+		subnetName := n.Subnet().Name() // get the subnet to which n belongs
 		if _, ok := subnetNameToNodes[subnetName]; !ok {
 			subnetNameToNodes[subnetName] = []EndpointElem{}
 		}
-		subnetNameToNodes[subnetName] = append(subnetNameToNodes[subnetName], n)
+		subnetNameToNodes[subnetName] = append(subnetNameToNodes[subnetName], elem)
 	}
 	for _, nodesList := range subnetNameToNodes {
 		if len(nodesList) == 1 { // a single network interface on subnet is just added to the result (no grouping)
@@ -259,9 +258,9 @@ func subnetGrouping(groupedConnLines *GroupConnLines,
 	res := []EndpointElem{}
 	subnetsToGroup := []EndpointElem{} // subnets to be grouped
 	for _, elem := range elemsList {
-		n, ok := elem.(NodeSet)
+		n, ok := elem.(Subnet)
 		if !ok {
-			res = append(res, n) // elements which are not NodeSet  remain in the result as in the original input
+			res = append(res, n) // elements which are not Subnets remain in the result as in the original input
 			continue             // NodeSet in the current context is a Subnet
 		}
 		subnetsToGroup = append(subnetsToGroup, n)
@@ -382,7 +381,7 @@ func isInternalOfRequiredType(ep EndpointElem, groupVsi bool) bool {
 			return false
 		}
 	} else { // groups subnets NodeSets
-		if _, ok := ep.(NodeSet); !ok {
+		if _, ok := ep.(Subnet); !ok {
 			return false
 		}
 	}
@@ -430,7 +429,7 @@ func (g *GroupConnLines) groupInternalSrcOrDst(srcGrouping, groupVsi bool) {
 		}
 		var groupedSrcOrDst []EndpointElem
 		if groupVsi {
-			groupedSrcOrDst = vsiGroupingBySubnets(g, srcOrDstGroup, g.config)
+			groupedSrcOrDst = vsiGroupingBySubnets(g, srcOrDstGroup)
 		} else {
 			groupedSrcOrDst = subnetGrouping(g, srcOrDstGroup)
 		}
@@ -474,7 +473,7 @@ func unifiedGroupedElems(srcOrDst EndpointElem,
 	if _, ok := srcOrDst.(Node); ok { // single vsi or single node external address
 		return srcOrDst
 	}
-	if _, ok := srcOrDst.(NodeSet); ok { // single subnet
+	if _, ok := srcOrDst.(Subnet); ok { // subnet
 		return srcOrDst
 	}
 	if groupedEE, ok := srcOrDst.(*groupedEndpointsElems); ok {

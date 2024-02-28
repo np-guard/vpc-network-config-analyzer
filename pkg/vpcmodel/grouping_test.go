@@ -15,6 +15,7 @@ type mockNetIntf struct {
 	cidr     string
 	isPublic bool
 	name     string
+	subnet   Subnet
 }
 
 func (m *mockNetIntf) CidrOrAddress() string {
@@ -23,6 +24,12 @@ func (m *mockNetIntf) CidrOrAddress() string {
 func (m *mockNetIntf) IPBlock() *ipblocks.IPBlock {
 	res, _ := ipblocks.NewIPBlockFromCidrOrAddress(m.cidr)
 	return res
+}
+func (m *mockNetIntf) Address() string {
+	return ""
+}
+func (m *mockNetIntf) Subnet() Subnet {
+	return m.subnet
 }
 
 func (m *mockNetIntf) IsInternal() bool {
@@ -71,6 +78,9 @@ func (m *mockSubnet) Nodes() []Node {
 func (m *mockSubnet) AddressRange() *ipblocks.IPBlock {
 	return nil
 }
+func (m *mockSubnet) CIDR() string {
+	return m.cidr
+}
 func (m *mockSubnet) Connectivity() *ConnectivityResult {
 	return nil
 }
@@ -103,7 +113,8 @@ func newVPCConfigTest1() (*VPCConfig, *VPCConnectivity) {
 		&ExternalNetwork{CidrStr: "1.2.3.4/22", isPublicInternet: true},
 		&ExternalNetwork{CidrStr: "8.8.8.8/32", isPublicInternet: true})
 
-	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0]}})
+	res.Subnets = append(res.Subnets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0]}})
+	res.Nodes[0].(*mockNetIntf).subnet = res.Subnets[0]
 
 	res1 := &VPCConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
 	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], common.NewConnectionSet(true))
@@ -119,7 +130,9 @@ func newVPCConfigTest2() (*VPCConfig, *VPCConnectivity) {
 		&ExternalNetwork{CidrStr: "8.8.8.8/32", isPublicInternet: true},
 		&mockNetIntf{cidr: "10.0.20.6/32", name: "vsi2"})
 
-	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0], res.Nodes[3]}})
+	res.Subnets = append(res.Subnets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0], res.Nodes[3]}})
+	res.Nodes[0].(*mockNetIntf).subnet = res.Subnets[0]
+	res.Nodes[3].(*mockNetIntf).subnet = res.Subnets[0]
 
 	res1 := &VPCConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
 	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], common.NewConnectionSet(true))
@@ -176,7 +189,9 @@ func configStatefulGrouping() (*VPCConfig, *VPCConnectivity) {
 		&ExternalNetwork{CidrStr: "8.8.8.8/32", isPublicInternet: true},
 		&mockNetIntf{cidr: "10.0.20.6/32", name: "vsi2"})
 
-	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0], res.Nodes[3]}})
+	res.Subnets = append(res.Subnets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0], res.Nodes[3]}})
+	res.Nodes[0].(*mockNetIntf).subnet = res.Subnets[0]
+	res.Nodes[3].(*mockNetIntf).subnet = res.Subnets[0]
 
 	res1 := &VPCConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
 	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], newAllConnectionsWithStateful(common.StatefulTrue))
@@ -211,7 +226,8 @@ func configIPRange() (*VPCConfig, *VPCConnectivity) {
 		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1"},
 		&ExternalNetwork{CidrStr: "1.2.3.0/24", isPublicInternet: true},
 		&ExternalNetwork{CidrStr: "1.2.4.0/24", isPublicInternet: true})
-	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0]}})
+	res.Subnets = append(res.Subnets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0]}})
+	res.Nodes[0].(*mockNetIntf).subnet = res.Subnets[0]
 
 	res1 := &VPCConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
 	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], common.NewConnectionSet(true))
@@ -241,7 +257,10 @@ func configSelfLoopClique() (*VPCConfig, *VPCConnectivity) {
 		&mockNetIntf{cidr: "10.0.20.6/32", name: "vsi2"},
 		&mockNetIntf{cidr: "10.0.20.7/32", name: "vsi3"})
 
-	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0], res.Nodes[1], res.Nodes[2]}})
+	res.Subnets = append(res.Subnets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0], res.Nodes[1], res.Nodes[2]}})
+	res.Nodes[0].(*mockNetIntf).subnet = res.Subnets[0]
+	res.Nodes[1].(*mockNetIntf).subnet = res.Subnets[0]
+	res.Nodes[2].(*mockNetIntf).subnet = res.Subnets[0]
 
 	res1 := &VPCConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
 	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], common.NewConnectionSet(true))
@@ -277,8 +296,11 @@ func configSelfLoopCliqueDiffSubnets() (*VPCConfig, *VPCConnectivity) {
 		&mockNetIntf{cidr: "10.0.20.6/32", name: "vsi1-2"},
 		&mockNetIntf{cidr: "10.240.10.7/32", name: "vsi2-1"})
 
-	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0], res.Nodes[1]}},
+	res.Subnets = append(res.Subnets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0], res.Nodes[1]}},
 		&mockSubnet{"10.240.10.0/22", "subnet2", []Node{res.Nodes[2]}})
+	res.Nodes[0].(*mockNetIntf).subnet = res.Subnets[0]
+	res.Nodes[1].(*mockNetIntf).subnet = res.Subnets[0]
+	res.Nodes[2].(*mockNetIntf).subnet = res.Subnets[1]
 
 	res1 := &VPCConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
 	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], common.NewConnectionSet(true))
@@ -318,7 +340,10 @@ func configSimpleSelfLoop() (*VPCConfig, *VPCConnectivity) {
 		&mockNetIntf{cidr: "10.0.20.6/32", name: "vsi2"},
 		&mockNetIntf{cidr: "10.0.20.7/32", name: "vsi3"})
 
-	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0], res.Nodes[1], res.Nodes[2]}})
+	res.Subnets = append(res.Subnets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0], res.Nodes[1], res.Nodes[2]}})
+	res.Nodes[0].(*mockNetIntf).subnet = res.Subnets[0]
+	res.Nodes[1].(*mockNetIntf).subnet = res.Subnets[0]
+	res.Nodes[2].(*mockNetIntf).subnet = res.Subnets[0]
 
 	res1 := &VPCConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
 	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], common.NewConnectionSet(true))
@@ -358,8 +383,13 @@ func configSelfLoopCliqueLace() (*VPCConfig, *VPCConnectivity) {
 		&mockNetIntf{cidr: "10.0.20.7/32", name: "vsi4"},
 		&mockNetIntf{cidr: "10.0.20.7/32", name: "vsi5"})
 
-	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1",
+	res.Subnets = append(res.Subnets, &mockSubnet{"10.0.20.0/22", "subnet1",
 		[]Node{res.Nodes[0], res.Nodes[1], res.Nodes[2], res.Nodes[3], res.Nodes[4]}})
+	res.Nodes[0].(*mockNetIntf).subnet = res.Subnets[0]
+	res.Nodes[1].(*mockNetIntf).subnet = res.Subnets[0]
+	res.Nodes[2].(*mockNetIntf).subnet = res.Subnets[0]
+	res.Nodes[3].(*mockNetIntf).subnet = res.Subnets[0]
+	res.Nodes[4].(*mockNetIntf).subnet = res.Subnets[0]
 
 	res1 := &VPCConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
 	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], common.NewConnectionSet(true))
@@ -397,17 +427,20 @@ func configSubnetSelfLoop() (*VPCConfig, *VPCsubnetConnectivity) {
 		&mockNetIntf{cidr: "10.3.20.6/32", name: "vsi2"},
 		&mockNetIntf{cidr: "10.7.20.7/32", name: "vsi3"})
 
-	res.NodeSets = append(res.NodeSets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0]}},
+	res.Subnets = append(res.Subnets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0]}},
 		&mockSubnet{"10.3.20.0/22", "subnet2", []Node{res.Nodes[1]}},
 		&mockSubnet{"10.7.20.0/22", "subnet3", []Node{res.Nodes[2]}})
+	res.Nodes[0].(*mockNetIntf).subnet = res.Subnets[0]
+	res.Nodes[1].(*mockNetIntf).subnet = res.Subnets[1]
+	res.Nodes[2].(*mockNetIntf).subnet = res.Subnets[2]
 
 	res1 := &VPCsubnetConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.NodeSets[0], res.NodeSets[1], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.NodeSets[0], res.NodeSets[2], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.NodeSets[1], res.NodeSets[0], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.NodeSets[1], res.NodeSets[2], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.NodeSets[2], res.NodeSets[0], common.NewConnectionSet(true))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.NodeSets[2], res.NodeSets[1], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Subnets[0], res.Subnets[1], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Subnets[0], res.Subnets[2], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Subnets[1], res.Subnets[0], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Subnets[1], res.Subnets[2], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Subnets[2], res.Subnets[0], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Subnets[2], res.Subnets[1], common.NewConnectionSet(true))
 
 	return res, res1
 }
