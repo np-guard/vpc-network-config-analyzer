@@ -32,7 +32,7 @@ type listener struct {
 type poolMember struct {
 	port   int64
 	address string
-	subnet *Subnet
+	node *vpcmodel.Node
 }
 
 type pool struct {
@@ -69,12 +69,12 @@ func parseLoadBalancers(rc *datamodel.ResourcesContainerModel, res map[string]*v
 			for _, memberData := range poolData.Members {
 				member := poolMember{}
 				member.port = *memberData.Port
+				member.address = *memberData.Target.(*vpcv1.LoadBalancerPoolMemberTarget).Address
 				for _, subnetData := range rc.SubnetList {
-					for _, subnetResIpData := range subnetData.ReservedIps {
-						targetAddress := *memberData.Target.(*vpcv1.LoadBalancerPoolMemberTarget).Address
-						if *subnetResIpData.Address == targetAddress {
-							member.subnet, _ = getSubnetByCidr(res, *subnetData.Ipv4CIDRBlock)
-							member.address = targetAddress
+					subnet, _ := getSubnetByCidr(res, *subnetData.Ipv4CIDRBlock)
+					for _,node := range subnet.nodes{
+						if node.CidrOrAddress() == member.address{
+							member.node = &node
 						}
 					}
 				}
@@ -134,8 +134,7 @@ func markLoadBalancer(gen *vpcmodel.DrawioGenerator) {
 	for _, pool := range lb.pools {
 		poolTNs[pool] = drawio.NewInternetServiceTreeNode(publicNetwork, "pool "+pool.name)
 		for _,member := range pool.members{
-			drawio.NewConnectivityLineTreeNode(network, poolTNs[pool], gen.TreeNode(member.subnet), true, fmt.Sprintf("/%s:%d", member.address, member.port))
-
+			drawio.NewConnectivityLineTreeNode(network, poolTNs[pool], gen.TreeNode(*member.node), true, fmt.Sprintf("/%s:%d", member.address, member.port))
 		}
 	}
 	for _, listener := range lb.listeners {
