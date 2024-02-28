@@ -29,13 +29,8 @@ func ParseResourcesFromFile(fileName string) (*datamodel.ResourcesContainerModel
 	return &config, nil
 }
 
-// VPCConfigsFromResources returns a map from VPC UID (string) to its corresponding VPCConfig object,
-// containing the parsed resources in the relevant model objects
-func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resourceGroup string, regions []string, debug bool) (
-	map[string]*vpcmodel.VPCConfig, error) {
-	res := map[string]*vpcmodel.VPCConfig{} // map from VPC UID to its config
-	var err error
-
+func filterByVpcResourceGroupAndRegions(rc *datamodel.ResourcesContainerModel, vpcID, resourceGroup string,
+	regions []string) map[string]bool {
 	shouldSkipVpcIds := make(map[string]bool)
 	for _, vpc := range rc.VpcList {
 		if vpcID != "" && *vpc.CRN != vpcID {
@@ -55,7 +50,17 @@ func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resou
 			shouldSkipVpcIds[*vpc.CRN] = true
 		}
 	}
+	return shouldSkipVpcIds
+}
 
+// VPCConfigsFromResources returns a map from VPC UID (string) to its corresponding VPCConfig object,
+// containing the parsed resources in the relevant model objects
+func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resourceGroup string, regions []string, debug bool) (
+	map[string]*vpcmodel.VPCConfig, error) {
+	res := map[string]*vpcmodel.VPCConfig{} // map from VPC UID to its config
+	var err error
+
+	shouldSkipVpcIds := filterByVpcResourceGroupAndRegions(rc, vpcID, resourceGroup, regions)
 	// if certain VPC to analyze is specified, skip resources configured outside that VPC
 	var shouldSkipByVPC = func(crn string) bool {
 		return shouldSkipVpcIds[crn]
