@@ -164,11 +164,17 @@ func (tt *vpcGeneralTest) initTest() {
 
 var tests = []*vpcGeneralTest{
 	{
-	inputConfig: "iks_config_object",
-	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-	grouping:    false,
-	format:      vpcmodel.DRAWIO,
-},
+		inputConfig: "iks_config_object",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    false,
+		format:      vpcmodel.DRAWIO,
+	},
+	{
+		inputConfig: "load_balancer",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    false,
+		format:      vpcmodel.DRAWIO,
+	},
 }
 
 var tests2 = []*vpcGeneralTest{
@@ -523,7 +529,7 @@ func TestAllWithComparison(t *testing.T) {
 		}
 		tt.name = tt.inputConfig
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+			// t.Parallel()
 			tt.runTest(t)
 		})
 	}

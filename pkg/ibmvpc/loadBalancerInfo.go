@@ -47,6 +47,7 @@ var lb loadBalancer
 
 func parseLoadBalancers(rc *datamodel.ResourcesContainerModel, res map[string]*vpcmodel.VPCConfig) {
 	// _, vpc := common.AnyMapEntry[string, *vpcmodel.VPCConfig](res)
+	marked = false
 	for _, lbData := range rc.LBList {
 		lb = loadBalancer{}
 		lb.name = *lbData.Name
@@ -131,7 +132,8 @@ func markLoadBalancer(gen *vpcmodel.DrawioGenerator) {
 	lbTn := drawio.NewInternetServiceTreeNode(publicNetwork, "load Balancer")
 	poolTNs := map[*pool]drawio.IconTreeNodeInterface{}
 	for _, resIp := range lb.resIPs {
-		drawio.NewConnectivityLineTreeNode(network, gen.TreeNode(resIp.subnet), lbTn, true, "interface")
+		resIpTn := drawio.NewResIPTreeNode(gen.TreeNode(resIp.subnet).(drawio.SquareTreeNodeInterface), resIp.address)
+		drawio.NewConnectivityLineTreeNode(network, resIpTn, lbTn, true, "interface")
 	}
 	for _, pool := range lb.pools {
 		poolTNs[pool] = drawio.NewInternetServiceTreeNode(publicNetwork, "pool "+pool.name)

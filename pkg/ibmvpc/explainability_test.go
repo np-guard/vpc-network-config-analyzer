@@ -29,8 +29,9 @@ func getConfig(t *testing.T, fileName string) *vpcmodel.VPCConfig {
 	}
 	return nil
 }
-
 var explainTests = []*vpcGeneralTest{
+}
+var explainTests2 = []*vpcGeneralTest{
 	{
 		name:        "VsiToVsi1",
 		inputConfig: "sg_testing1_new",
