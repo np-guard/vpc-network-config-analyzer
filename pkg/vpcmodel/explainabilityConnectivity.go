@@ -31,9 +31,11 @@ type srcDstDetails struct {
 	egressEnabled  bool
 	// the connection between src to dst, in case the connection was not part of the query;
 	// the part of the connection relevant to the query otherwise.
-	conn                *common.ConnectionSet
-	router              RoutingResource  // the router (fip or pgw) to external network; nil if none
-	filtersExternal     map[string]bool  // filters relevant for external IP, map keys are the filters kind (NaclLayer/SecurityGroupLayer)
+	conn   *common.ConnectionSet
+	router RoutingResource // the router (fip or pgw) to external network; nil if none
+	// filters relevant for this src, dst pair; map keys are the filters kind (NaclLayer/SecurityGroupLayer)
+	filtersExternal     map[string]bool  // filters relevant for external IP (between public internal and VSIs)
+	filtersInternal     map[string]bool  // filters relevant for internal IP (between VSIs)
 	potentialAllowRules *rulesConnection // potentially enabling connection - potential given the filter is relevant
 	actualAllowRules    *rulesConnection // enabling rules effecting connection given router; e.g. NACL is not relevant for fip
 	potentialDenyRules  *rulesConnection // deny rules potentially (w.r.t. router) effecting the connection, relevant for ACL
@@ -87,7 +89,8 @@ func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.Conne
 	if err2 != nil {
 		return nil, err2
 	}
-	err3 := rulesAndDetails.computeAdditionalDetails(c)
+	rulesAndDetails.computeFilters()
+	err3 := rulesAndDetails.computeActualRules(c)
 	if err3 != nil {
 		return nil, err3
 	}
@@ -127,7 +130,7 @@ func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node,
 				return nil, err
 			}
 			rulesThisSrcDst := &srcDstDetails{src, dst, false, false, false,
-				common.NewConnectionSet(false), nil, nil, allowRules,
+				common.NewConnectionSet(false), nil, nil, nil, allowRules,
 				nil, denyRules, nil, nil}
 			rulesAndConn = append(rulesAndConn, rulesThisSrcDst)
 		}
@@ -135,15 +138,37 @@ func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node,
 	return rulesAndConn, nil
 }
 
-// computeAdditionalDetails computes, after potentialRules were computed, for each  <src, dst> :
+// computeFilters computes for each  <src, dst> :
 // 1. The routingResource
-// 2. The actual filters relevant to the src, dst given the routingResource
-// 3. from the potentialRules the actualRules (per ingress, egress) that actually enable traffic,
+// 2. The external filters relevant to the <src, dst> given the routingResource
+// 3. The internal filters relevant to the <src, dst>
+// todo: add internal filters, also to computeActualRules
+func (details *rulesAndConnDetails) computeFilters() {
+	for _, singleSrcDstDetails := range *details {
+		filtersForExternal := singleSrcDstDetails.filtersExternal
+		isInternal := singleSrcDstDetails.src.IsInternal() && singleSrcDstDetails.dst.IsInternal()
+		actualAllowIngress, ingressEnabled := computeActualRules(&singleSrcDstDetails.potentialAllowRules.ingressRules,
+			filtersForExternal, isInternal)
+		actualAllowEgress, egressEnabled := computeActualRules(&singleSrcDstDetails.potentialAllowRules.egressRules,
+			filtersForExternal, isInternal)
+		actualDenyIngress, _ := computeActualRules(&singleSrcDstDetails.potentialDenyRules.ingressRules, filtersForExternal, isInternal)
+		actualDenyEgress, _ := computeActualRules(&singleSrcDstDetails.potentialDenyRules.egressRules, filtersForExternal, isInternal)
+		actualAllow := &rulesConnection{*actualAllowIngress, *actualAllowEgress}
+		actualDeny := &rulesConnection{*actualDenyIngress, *actualDenyEgress}
+		singleSrcDstDetails.actualAllowRules = actualAllow
+		singleSrcDstDetails.ingressEnabled = ingressEnabled
+		singleSrcDstDetails.egressEnabled = egressEnabled
+		singleSrcDstDetails.actualDenyRules = actualDeny
+	}
+}
+
+// computeActualRules computes, after potentialRules and filters were computed, for each  <src, dst> :
+// 1. from the potentialRules the actualRules (per ingress, egress) that actually enable traffic,
 // considering filtersExternal (which was computed based on the RoutingResource) and removing filters
 // not relevant for the Router e.g. nacl not relevant fip
-// 4. ingressEnabled and egressEnabled: whether traffic is enabled via ingress, egress
+// 2. ingressEnabled and egressEnabled: whether traffic is enabled via ingress, egress
 
-func (details *rulesAndConnDetails) computeAdditionalDetails(c *VPCConfig) error {
+func (details *rulesAndConnDetails) computeActualRules(c *VPCConfig) error {
 	for _, singleSrcDstDetails := range *details {
 		src := singleSrcDstDetails.src
 		dst := singleSrcDstDetails.dst
