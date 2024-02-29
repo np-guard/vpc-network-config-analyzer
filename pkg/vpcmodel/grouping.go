@@ -229,7 +229,7 @@ func (g *groupingConnections) addPublicConnectivity(ep EndpointElem, commonProps
 func vsiOrSubnetsGroupingBySubnetsOrVsis(groupedConnLines *GroupConnLines,
 	elemsList []EndpointElem, groupVSI bool) []EndpointElem {
 	res := []EndpointElem{}
-	// map from subnet's/vsi's UID to its nodes/nodeSets from the input
+	// map from subnet's (vsi's) UID to its nodes (nodeSets) from the input
 	subnetOrVSIToNodesOrNodeSets := map[string][]EndpointElem{}
 	for _, elem := range elemsList {
 		var subnetOrVSIUID string
