@@ -48,7 +48,7 @@ func (g *groupingConnections) getGroupedConnLines(groupedConnLines *GroupConnLin
 	for a, aMap := range *g {
 		for _, b := range aMap {
 			var resElem *groupedConnLine
-			bGrouped := groupedConnLines.getGroupedExternalNodes(b.nodes)
+			bGrouped := groupedConnLines.cacheGrouped.getAndSetGroupedExternalFromCache(b.nodes)
 			if isSrcToDst {
 				resElem = &groupedConnLine{a, bGrouped, b.commonProperties}
 			} else {
@@ -68,10 +68,9 @@ func newGroupingConnections() *groupingConnections {
 func newGroupConnLines(c *VPCConfig, v *VPCConnectivity,
 	grouping bool) (res *GroupConnLines, err error) {
 	res = &GroupConnLines{config: c, nodesConn: v,
-		srcToDst:                 newGroupingConnections(),
-		dstToSrc:                 newGroupingConnections(),
-		groupedEndpointsElemsMap: map[string]*groupedEndpointsElems{},
-		groupedExternalNodesMap:  map[string]*groupedExternalNodes{}}
+		srcToDst:     newGroupingConnections(),
+		dstToSrc:     newGroupingConnections(),
+		cacheGrouped: newCacheGroupedElements()}
 	err = res.computeGrouping(true, grouping)
 	return res, err
 }
@@ -79,32 +78,29 @@ func newGroupConnLines(c *VPCConfig, v *VPCConnectivity,
 func newGroupConnLinesSubnetConnectivity(c *VPCConfig, s *VPCsubnetConnectivity,
 	grouping bool) (res *GroupConnLines, err error) {
 	res = &GroupConnLines{config: c, subnetsConn: s,
-		srcToDst:                 newGroupingConnections(),
-		dstToSrc:                 newGroupingConnections(),
-		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
-		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
+		srcToDst:     newGroupingConnections(),
+		dstToSrc:     newGroupingConnections(),
+		cacheGrouped: newCacheGroupedElements()}
 	err = res.computeGrouping(false, grouping)
 	return res, err
 }
 
 func newGroupConnLinesDiff(d *diffBetweenCfgs) (res *GroupConnLines, err error) {
 	res = &GroupConnLines{diff: d,
-		srcToDst:                 newGroupingConnections(),
-		dstToSrc:                 newGroupingConnections(),
-		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
-		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
+		srcToDst:     newGroupingConnections(),
+		dstToSrc:     newGroupingConnections(),
+		cacheGrouped: newCacheGroupedElements()}
 	err = res.computeGroupingForDiff()
 	return res, err
 }
 
 func newGroupConnExplainability(c *VPCConfig, e *rulesAndConnDetails) (res *GroupConnLines, err error) {
 	res = &GroupConnLines{
-		config:                   c,
-		explain:                  e,
-		srcToDst:                 newGroupingConnections(),
-		dstToSrc:                 newGroupingConnections(),
-		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
-		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
+		config:       c,
+		explain:      e,
+		srcToDst:     newGroupingConnections(),
+		dstToSrc:     newGroupingConnections(),
+		cacheGrouped: newCacheGroupedElements()}
 	err = res.groupExternalAddressesForExplainability()
 	return res, err
 }
@@ -119,13 +115,12 @@ type GroupConnLines struct {
 	explain     *rulesAndConnDetails
 	srcToDst    *groupingConnections
 	dstToSrc    *groupingConnections
-	// a map to groupedEndpointsElems used by GroupedConnLine from a unified key of such elements
-	// representing grouped vsis or grouped subnets
-	// this is to avoid duplication of identical groupedEndpointsElems
-	groupedEndpointsElemsMap map[string]*groupedEndpointsElems
-	// similarly to the above, such map to groupedExternalNodes
-	groupedExternalNodesMap map[string]*groupedExternalNodes
-	GroupedLines            []*groupedConnLine
+	// cache with two maps: 1. from unified key to groupedEndpointsElems
+	// 2. from unified key to groupedExternalNodes
+	// the item in the maps represents grouped vsis/subnets/external elements
+	// the cache is used to avoid duplication of identical groupedEndpointsElems
+	cacheGrouped *cacheGroupedElements
+	GroupedLines []*groupedConnLine
 }
 
 // EndpointElem can be Node(networkInterface) / groupedExternalNodes / groupedNetworkInterfaces / NodeSet(subnet)
@@ -185,29 +180,6 @@ func (g *groupedExternalNodes) Name() string {
 	return prefix + g.String()
 }
 
-// given a groupedEndpointsElems returns an equiv item from groupedEndpointsElemsMap if exists,
-// or adds it to groupedEndpointsElemsMap if such an item does not exist
-func (g *GroupConnLines) getGroupedEndpointsElems(grouped groupedEndpointsElems) *groupedEndpointsElems {
-	// since the endpoints (vsis/subnets) are sorted before printed, grouped.Name() will be identical
-	// to equiv groupedEndpointsElems
-	if existingGrouped, ok := g.groupedEndpointsElemsMap[grouped.Name()]; ok {
-		return existingGrouped
-	}
-	g.groupedEndpointsElemsMap[grouped.Name()] = &grouped
-	return &grouped
-}
-
-// same as the previous function, for groupedExternalNodesMap
-func (g *GroupConnLines) getGroupedExternalNodes(grouped groupedExternalNodes) *groupedExternalNodes {
-	// Due to the canonical representation, grouped.String() and thus grouped.Name() will be identical
-	//  to equiv groupedExternalNodes
-	if existingGrouped, ok := g.groupedExternalNodesMap[grouped.Name()]; ok {
-		return existingGrouped
-	}
-	g.groupedExternalNodesMap[grouped.Name()] = &grouped
-	return &grouped
-}
-
 func (g *groupingConnections) addPublicConnectivity(ep EndpointElem, commonProps *groupedCommonProperties, targetNode *ExternalNetwork) {
 	connKey := commonProps.groupingStrKey
 	if _, ok := (*g)[ep]; !ok {
@@ -240,7 +212,7 @@ func vsiGroupingBySubnets(groupedConnLines *GroupConnLines, elemsList []Endpoint
 		if len(nodesList) == 1 { // a single network interface on subnet is just added to the result (no grouping)
 			res = append(res, nodesList[0])
 		} else { // a set of network interfaces from the same subnet is grouped by groupedNetworkInterfaces object
-			groupedNodes := groupedConnLines.getGroupedEndpointsElems(nodesList)
+			groupedNodes := groupedConnLines.cacheGrouped.getAndSetEndpointElemFromCache(nodesList)
 			res = append(res, groupedNodes)
 		}
 	}
@@ -264,7 +236,7 @@ func subnetGrouping(groupedConnLines *GroupConnLines,
 	if len(subnetsToGroup) == 1 {
 		res = append(res, subnetsToGroup[0])
 	} else {
-		groupedNodes := groupedConnLines.getGroupedEndpointsElems(subnetsToGroup)
+		groupedNodes := groupedConnLines.cacheGrouped.getAndSetEndpointElemFromCache(subnetsToGroup)
 		res = append(res, groupedNodes)
 	}
 	return res
@@ -437,37 +409,50 @@ func (g *GroupConnLines) groupInternalSrcOrDst(srcGrouping, groupVsi bool) {
 			}
 		}
 	}
-	g.GroupedLines = g.unifiedGroupedConnLines(res)
+	g.GroupedLines = unifiedGroupedConnLines(res, g.cacheGrouped, false)
 }
 
-// Go over the grouping result and make sure all groups have a unified reference.
-// this is required due to the functionality treating self loops as don't cares - extendGroupingSelfLoops
+// Go over the grouping result and set groups s.t. all semantically equiv groups have a unified reference.
+// this is required for multivpc's context and at the end of the grouping in a single vpc context
+// the former is required since each vpc analysis and grouping is done separately
+// the latter is required due to the functionality treating self loops as don't cares - extendGroupingSelfLoops
 // in which both srcs and dsts are manipulated  but *GroupConnLines is not familiar
 // within the extendGroupingSelfLoops context and thus can not be done there smoothly
-func (g *GroupConnLines) unifiedGroupedConnLines(oldConnLines []*groupedConnLine) []*groupedConnLine {
+func unifiedGroupedConnLines(oldConnLines []*groupedConnLine, cacheGrouped *cacheGroupedElements,
+	unifyGroupedExternalNodes bool) []*groupedConnLine {
 	newGroupedLines := make([]*groupedConnLine, len(oldConnLines))
 	// go over all connections; if src/dst is not external then use groupedEndpointsElemsMap
 	for i, groupedLine := range oldConnLines {
-		newGroupedLines[i] = &groupedConnLine{g.unifiedGroupedElems(groupedLine.src),
-			g.unifiedGroupedElems(groupedLine.dst),
+		newGroupedLines[i] = &groupedConnLine{unifiedGroupedElems(groupedLine.src, cacheGrouped, unifyGroupedExternalNodes),
+			unifiedGroupedElems(groupedLine.dst, cacheGrouped, unifyGroupedExternalNodes),
 			groupedLine.commonProperties}
 	}
 	return newGroupedLines
 }
 
-func (g *GroupConnLines) unifiedGroupedElems(srcOrDst EndpointElem) EndpointElem {
-	if srcOrDst.IsExternal() { // external
+// unifies reference to a single element
+func unifiedGroupedElems(srcOrDst EndpointElem,
+	cachedGrouped *cacheGroupedElements,
+	unifyGroupedExternalNodes bool) EndpointElem {
+	// external in case external grouping does not need to be unifed
+	if !unifyGroupedExternalNodes && srcOrDst.IsExternal() {
 		return srcOrDst
 	}
-	if _, ok := srcOrDst.(Node); ok { // vsi
+	if _, ok := srcOrDst.(Node); ok { // single vsi or single node external address
 		return srcOrDst
 	}
 	if _, ok := srcOrDst.(Subnet); ok { // subnet
 		return srcOrDst
 	}
-	groupedEE := srcOrDst.(*groupedEndpointsElems)
-	unifiedGroupedEE := g.getGroupedEndpointsElems(*groupedEE)
-	return unifiedGroupedEE
+	if groupedEE, ok := srcOrDst.(*groupedEndpointsElems); ok {
+		unifiedGroupedEE := cachedGrouped.getAndSetEndpointElemFromCache(*groupedEE)
+		return unifiedGroupedEE
+	}
+	if groupedExternal, ok := srcOrDst.(*groupedExternalNodes); ok {
+		unifiedGroupedEE := cachedGrouped.getAndSetGroupedExternalFromCache(*groupedExternal)
+		return unifiedGroupedEE
+	}
+	return srcOrDst
 }
 
 // computeGrouping does the grouping; for vsis (all_endpoints analysis)
