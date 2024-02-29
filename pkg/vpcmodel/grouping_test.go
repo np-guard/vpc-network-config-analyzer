@@ -159,8 +159,7 @@ func newVPCConfigTest2() (*VPCConfig, *VPCConnectivity) {
 func TestGroupingPhase1(t *testing.T) {
 	c, v := newVPCConfigTest1()
 	res := &GroupConnLines{config: c, nodesConn: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
-		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
-		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
+		cacheGrouped: newCacheGroupedElements()}
 	err := res.groupExternalAddresses(true)
 	require.Equal(t, err, nil)
 
@@ -174,8 +173,7 @@ func TestGroupingPhase1(t *testing.T) {
 func TestGroupingPhase2(t *testing.T) {
 	c, v := newVPCConfigTest2()
 	res := &GroupConnLines{config: c, nodesConn: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
-		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
-		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
+		cacheGrouped: newCacheGroupedElements()}
 	// phase 1
 	err := res.groupExternalAddresses(true)
 	require.Equal(t, err, nil)
@@ -217,8 +215,7 @@ func configStatefulGrouping() (*VPCConfig, *VPCConnectivity) {
 func TestStatefulGrouping(t *testing.T) {
 	c, v := configStatefulGrouping()
 	res := &GroupConnLines{config: c, nodesConn: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
-		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
-		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
+		cacheGrouped: newCacheGroupedElements()}
 	err := res.groupExternalAddresses(true)
 	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(true, true)
@@ -249,8 +246,7 @@ func configIPRange() (*VPCConfig, *VPCConnectivity) {
 func TestIPRange(t *testing.T) {
 	c, v := configIPRange()
 	res := &GroupConnLines{config: c, nodesConn: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
-		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
-		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
+		cacheGrouped: newCacheGroupedElements()}
 	err := res.groupExternalAddresses(true)
 	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(true, true)
@@ -287,8 +283,7 @@ func configSelfLoopClique() (*VPCConfig, *VPCConnectivity) {
 func TestSelfLoopClique(t *testing.T) {
 	c, v := configSelfLoopClique()
 	res := &GroupConnLines{config: c, nodesConn: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
-		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
-		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
+		cacheGrouped: newCacheGroupedElements()}
 	err := res.groupExternalAddresses(true)
 	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(true, true)
@@ -327,8 +322,7 @@ func configSelfLoopCliqueDiffSubnets() (*VPCConfig, *VPCConnectivity) {
 func TestSelfLoopCliqueDiffSubnets(t *testing.T) {
 	c, v := configSelfLoopCliqueDiffSubnets()
 	res := &GroupConnLines{config: c, nodesConn: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
-		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
-		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
+		cacheGrouped: newCacheGroupedElements()}
 	err := res.groupExternalAddresses(true)
 	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(true, true)
@@ -367,8 +361,7 @@ func configSimpleSelfLoop() (*VPCConfig, *VPCConnectivity) {
 func TestSimpleSelfLoop(t *testing.T) {
 	c, v := configSimpleSelfLoop()
 	res := &GroupConnLines{config: c, nodesConn: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
-		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
-		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
+		cacheGrouped: newCacheGroupedElements()}
 	err := res.groupExternalAddresses(true)
 	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(false, true)
@@ -418,8 +411,7 @@ func configSelfLoopCliqueLace() (*VPCConfig, *VPCConnectivity) {
 func TestConfigSelfLoopCliqueLace(t *testing.T) {
 	c, v := configSelfLoopCliqueLace()
 	res := &GroupConnLines{config: c, nodesConn: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
-		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
-		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
+		cacheGrouped: newCacheGroupedElements()}
 	err := res.groupExternalAddresses(true)
 	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(false, true)
@@ -465,8 +457,7 @@ func TestSubnetSelfLoop(t *testing.T) {
 	c, s := configSubnetSelfLoop()
 	res := &GroupConnLines{config: c, subnetsConn: s,
 		srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
-		groupedEndpointsElemsMap: make(map[string]*groupedEndpointsElems),
-		groupedExternalNodesMap:  make(map[string]*groupedExternalNodes)}
+		cacheGrouped: newCacheGroupedElements()}
 	err := res.groupExternalAddresses(false)
 	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(false, false)
