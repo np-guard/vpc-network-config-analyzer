@@ -5,7 +5,7 @@ type cacheGroupedElements struct {
 	groupedExternalNodesMap  map[string]*groupedExternalNodes
 }
 
-func initCacheGroupedElem() *cacheGroupedElements {
+func newCacheGroupedElements() *cacheGroupedElements {
 	return &cacheGroupedElements{
 		map[string]*groupedEndpointsElems{},
 		map[string]*groupedExternalNodes{},
@@ -22,11 +22,11 @@ func unifyMultiVPC(config1 map[string]*VPCConfig, nodesConn map[string]*VPCConne
 		case AllEndpoints:
 			nodesConn[vpcUID].GroupedConnectivity.GroupedLines =
 				unifiedGroupedConnLines(nodesConn[vpcUID].GroupedConnectivity.GroupedLines,
-					initCacheGroupedElem(), true)
+					newCacheGroupedElements(), true)
 		case AllSubnets:
 			subnetsConn[vpcUID].GroupedConnectivity.GroupedLines =
 				unifiedGroupedConnLines(subnetsConn[vpcUID].GroupedConnectivity.GroupedLines,
-					initCacheGroupedElem(), true)
+					newCacheGroupedElements(), true)
 		}
 	}
 }

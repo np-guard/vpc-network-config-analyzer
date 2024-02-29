@@ -70,7 +70,7 @@ func newGroupConnLines(c *VPCConfig, v *VPCConnectivity,
 	res = &GroupConnLines{config: c, nodesConn: v,
 		srcToDst:     newGroupingConnections(),
 		dstToSrc:     newGroupingConnections(),
-		cacheGrouped: initCacheGroupedElem()}
+		cacheGrouped: newCacheGroupedElements()}
 	err = res.computeGrouping(true, grouping)
 	return res, err
 }
@@ -80,7 +80,7 @@ func newGroupConnLinesSubnetConnectivity(c *VPCConfig, s *VPCsubnetConnectivity,
 	res = &GroupConnLines{config: c, subnetsConn: s,
 		srcToDst:     newGroupingConnections(),
 		dstToSrc:     newGroupingConnections(),
-		cacheGrouped: initCacheGroupedElem()}
+		cacheGrouped: newCacheGroupedElements()}
 	err = res.computeGrouping(false, grouping)
 	return res, err
 }
@@ -89,7 +89,7 @@ func newGroupConnLinesDiff(d *diffBetweenCfgs) (res *GroupConnLines, err error) 
 	res = &GroupConnLines{diff: d,
 		srcToDst:     newGroupingConnections(),
 		dstToSrc:     newGroupingConnections(),
-		cacheGrouped: initCacheGroupedElem()}
+		cacheGrouped: newCacheGroupedElements()}
 	err = res.computeGroupingForDiff()
 	return res, err
 }
@@ -100,7 +100,7 @@ func newGroupConnExplainability(c *VPCConfig, e *rulesAndConnDetails) (res *Grou
 		explain:      e,
 		srcToDst:     newGroupingConnections(),
 		dstToSrc:     newGroupingConnections(),
-		cacheGrouped: initCacheGroupedElem()}
+		cacheGrouped: newCacheGroupedElements()}
 	err = res.groupExternalAddressesForExplainability()
 	return res, err
 }
