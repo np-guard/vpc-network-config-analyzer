@@ -67,7 +67,6 @@ func newGroupingConnections() *groupingConnections {
 
 func newGroupConnLines(c *VPCConfig, v *VPCConnectivity,
 	grouping bool) (res *GroupConnLines, err error) {
-	initCacheGrouped := initCacheGroupedElem()
 	res = &GroupConnLines{config: c, nodesConn: v,
 		srcToDst:     newGroupingConnections(),
 		dstToSrc:     newGroupingConnections(),
