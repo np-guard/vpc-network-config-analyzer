@@ -221,7 +221,7 @@ func (g *groupingConnections) addPublicConnectivity(ep EndpointElem, commonProps
 
 // vsiOrSubnetsGroupingBySubnetsOrVsis given *GroupConnLines, a list of EndpointElem and a bool saying whether
 // the EndpointElem represents VSIs or subnets.
-// It returns a slice of EndpointElem objects, by grouping the input set of EndpointElem into the input *GroupConnLines
+// It returns a slice of EndpointElem objects, by grouping the input set of EndpointElem
 // such that
 // 1. If the grouped elements are vsis (as by the input bool) then the elements are grouped by their subnet
 // 2. If the grouped elements are subnets then the elements are grouped by their VPC, this is automatic
