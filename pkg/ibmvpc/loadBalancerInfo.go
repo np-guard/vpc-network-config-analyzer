@@ -10,8 +10,9 @@ import (
 )
 
 type resIp struct {
-	id     string
-	subnet *Subnet
+	id      string
+	address string
+	subnet  *Subnet
 }
 type loadBalancer struct {
 	name      string
@@ -24,15 +25,15 @@ type loadBalancer struct {
 type listener struct {
 	portMax, portMin, port int64
 	protocol               string
-	service                string // todo
+	policies               string // todo
 	defaultPool            *pool
 	pools                  []*pool
 }
 
 type poolMember struct {
-	port   int64
+	port    int64
 	address string
-	node *vpcmodel.Node
+	node    vpcmodel.Node
 }
 
 type pool struct {
@@ -52,11 +53,12 @@ func parseLoadBalancers(rc *datamodel.ResourcesContainerModel, res map[string]*v
 		for _, resIpData := range lbData.PrivateIps {
 			rIp := resIp{}
 			rIp.id = *resIpData.ID
+			rIp.address = *resIpData.Address
 			for _, subnetData := range rc.SubnetList {
 				for _, subnetResIpData := range subnetData.ReservedIps {
 					if *subnetResIpData.ID == rIp.id {
 						rIp.subnet, _ = getSubnetByCidr(res, *subnetData.Ipv4CIDRBlock)
-					}
+											}
 				}
 			}
 			lb.resIPs = append(lb.resIPs, rIp)
@@ -72,9 +74,9 @@ func parseLoadBalancers(rc *datamodel.ResourcesContainerModel, res map[string]*v
 				member.address = *memberData.Target.(*vpcv1.LoadBalancerPoolMemberTarget).Address
 				for _, subnetData := range rc.SubnetList {
 					subnet, _ := getSubnetByCidr(res, *subnetData.Ipv4CIDRBlock)
-					for _,node := range subnet.nodes{
-						if node.CidrOrAddress() == member.address{
-							member.node = &node
+					for _, node := range subnet.nodes {
+						if node.CidrOrAddress() == member.address {
+							member.node = node
 						}
 					}
 				}
@@ -133,8 +135,9 @@ func markLoadBalancer(gen *vpcmodel.DrawioGenerator) {
 	}
 	for _, pool := range lb.pools {
 		poolTNs[pool] = drawio.NewInternetServiceTreeNode(publicNetwork, "pool "+pool.name)
-		for _,member := range pool.members{
-			drawio.NewConnectivityLineTreeNode(network, poolTNs[pool], gen.TreeNode(*member.node), true, fmt.Sprintf("/%s:%d", member.address, member.port))
+		for _, member := range pool.members {
+			memberTn := gen.TreeNode(member.node)
+			drawio.NewConnectivityLineTreeNode(network, poolTNs[pool], memberTn, true, fmt.Sprintf("/%s:%d", member.address, member.port))
 		}
 	}
 	for _, listener := range lb.listeners {
