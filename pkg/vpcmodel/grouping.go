@@ -77,33 +77,30 @@ func newGroupConnLines(c *VPCConfig, v *VPCConnectivity,
 
 func newGroupConnLinesSubnetConnectivity(c *VPCConfig, s *VPCsubnetConnectivity,
 	grouping bool) (res *GroupConnLines, err error) {
-	initCacheGrouped := initCacheGroupedElem()
 	res = &GroupConnLines{config: c, subnetsConn: s,
 		srcToDst:     newGroupingConnections(),
 		dstToSrc:     newGroupingConnections(),
-		cacheGrouped: initCacheGrouped}
+		cacheGrouped: initCacheGroupedElem()}
 	err = res.computeGrouping(false, grouping)
 	return res, err
 }
 
 func newGroupConnLinesDiff(d *diffBetweenCfgs) (res *GroupConnLines, err error) {
-	initCacheGrouped := initCacheGroupedElem()
 	res = &GroupConnLines{diff: d,
 		srcToDst:     newGroupingConnections(),
 		dstToSrc:     newGroupingConnections(),
-		cacheGrouped: initCacheGrouped}
+		cacheGrouped: initCacheGroupedElem()}
 	err = res.computeGroupingForDiff()
 	return res, err
 }
 
 func newGroupConnExplainability(c *VPCConfig, e *rulesAndConnDetails) (res *GroupConnLines, err error) {
-	initCacheGrouped := initCacheGroupedElem()
 	res = &GroupConnLines{
 		config:       c,
 		explain:      e,
 		srcToDst:     newGroupingConnections(),
 		dstToSrc:     newGroupingConnections(),
-		cacheGrouped: initCacheGrouped}
+		cacheGrouped: initCacheGroupedElem()}
 	err = res.groupExternalAddressesForExplainability()
 	return res, err
 }
