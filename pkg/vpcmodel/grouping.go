@@ -230,9 +230,9 @@ func vsiOrSubnetsGroupingBySubnetsOrVsis(groupedConnLines *GroupConnLines,
 	elemsList []EndpointElem, groupVSI bool) []EndpointElem {
 	res := []EndpointElem{}
 	// map from subnet's (vsi's) UID to its nodes (nodeSets) from the input
-	subnetOrVSIToNodesOrNodeSets := map[string][]EndpointElem{}
+	subnetOrVPCToNodesOrNodeSets := map[string][]EndpointElem{}
 	for _, elem := range elemsList {
-		var subnetOrVSIUID string
+		var subnetOrVPCUID string
 		var newElem EndpointElem
 		if groupVSI {
 			n, ok := elem.(InternalNodeIntf)
@@ -240,7 +240,7 @@ func vsiOrSubnetsGroupingBySubnetsOrVsis(groupedConnLines *GroupConnLines,
 				res = append(res, elem) // elements which are not interface nodes remain in the result as in the original input
 				continue                // skip input elements which are not a network interface node
 			}
-			subnetOrVSIUID = n.Subnet().UID() // get the subnet to which n belongs
+			subnetOrVPCUID = n.Subnet().UID() // get the subnet to which n belongs
 			newElem = elem
 		} else {
 			n, ok := elem.(Subnet)
@@ -248,15 +248,15 @@ func vsiOrSubnetsGroupingBySubnetsOrVsis(groupedConnLines *GroupConnLines,
 				res = append(res, n) // elements which are not subnets remain in the result as in the original input
 				continue             // skip input elements which are not a subnet nodeSet
 			}
-			subnetOrVSIUID = n.VPC().UID() // get the VPC to which n belongs
+			subnetOrVPCUID = n.VPC().UID() // get the VPC to which n belongs
 			newElem = n
 		}
-		if _, ok := subnetOrVSIToNodesOrNodeSets[subnetOrVSIUID]; !ok {
-			subnetOrVSIToNodesOrNodeSets[subnetOrVSIUID] = []EndpointElem{}
+		if _, ok := subnetOrVPCToNodesOrNodeSets[subnetOrVPCUID]; !ok {
+			subnetOrVPCToNodesOrNodeSets[subnetOrVPCUID] = []EndpointElem{}
 		}
-		subnetOrVSIToNodesOrNodeSets[subnetOrVSIUID] = append(subnetOrVSIToNodesOrNodeSets[subnetOrVSIUID], newElem)
+		subnetOrVPCToNodesOrNodeSets[subnetOrVPCUID] = append(subnetOrVPCToNodesOrNodeSets[subnetOrVPCUID], newElem)
 	}
-	for _, nodesList := range subnetOrVSIToNodesOrNodeSets {
+	for _, nodesList := range subnetOrVPCToNodesOrNodeSets {
 		if len(nodesList) == 1 { // a single nif on subnet or vsi on vpc is just added to the result (no grouping)
 			res = append(res, nodesList[0])
 		} else { // a set of vsis (subnets) from the same subnet (vpc) are grouped
