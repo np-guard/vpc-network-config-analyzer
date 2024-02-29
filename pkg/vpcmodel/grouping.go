@@ -257,7 +257,7 @@ func vsiOrSubnetsGroupingBySubnetsOrVsis(groupedConnLines *GroupConnLines,
 		subnetOrVPCToNodesOrNodeSets[subnetOrVPCUID] = append(subnetOrVPCToNodesOrNodeSets[subnetOrVPCUID], newElem)
 	}
 	for _, nodesList := range subnetOrVPCToNodesOrNodeSets {
-		if len(nodesList) == 1 { // a single nif on subnet or vsi on vpc is just added to the result (no grouping)
+		if len(nodesList) == 1 { // a single nif on subnet or subnet on vpc is just added to the result (no grouping)
 			res = append(res, nodesList[0])
 		} else { // a set of vsis (subnets) from the same subnet (vpc) are grouped
 			groupedNodes := groupedConnLines.getGroupedEndpointsElems(nodesList)
