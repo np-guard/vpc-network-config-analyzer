@@ -433,6 +433,12 @@ var tests = []*vpcGeneralTest{
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
 		format:      vpcmodel.Text,
 	},
+	{
+		inputConfig: "tgw_larger_example",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+		format:      vpcmodel.Text,
+		grouping:    true,
+	},
 
 	{
 		inputConfig: "tg-prefix-filters",

@@ -11,6 +11,16 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
 )
 
+type mockVPCIntf struct {
+	VPCResource
+}
+
+func (mockVPC *mockVPCIntf) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
+	return nil
+}
+
+func (mockVPC *mockVPCIntf) ShowOnSubnetMode() bool { return true }
+
 type mockNetIntf struct {
 	cidr     string
 	isPublic bool
@@ -61,6 +71,7 @@ func (m *mockNetIntf) VPC() VPCResourceIntf {
 }
 
 type mockSubnet struct {
+	vpc   VPCResourceIntf
 	cidr  string
 	name  string
 	nodes []Node
@@ -97,7 +108,7 @@ func (m *mockSubnet) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNod
 func (m *mockSubnet) IsExternal() bool       { return false }
 func (m *mockSubnet) ShowOnSubnetMode() bool { return true }
 func (m *mockSubnet) VPC() VPCResourceIntf {
-	return nil
+	return m.vpc
 }
 
 func newAllConnectionsWithStateful(isStateful int) *common.ConnectionSet {
@@ -113,7 +124,7 @@ func newVPCConfigTest1() (*VPCConfig, *VPCConnectivity) {
 		&ExternalNetwork{CidrStr: "1.2.3.4/22", isPublicInternet: true},
 		&ExternalNetwork{CidrStr: "8.8.8.8/32", isPublicInternet: true})
 
-	res.Subnets = append(res.Subnets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0]}})
+	res.Subnets = append(res.Subnets, &mockSubnet{nil, "10.0.20.0/22", "subnet1", []Node{res.Nodes[0]}})
 	res.Nodes[0].(*mockNetIntf).subnet = res.Subnets[0]
 
 	res1 := &VPCConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
@@ -130,7 +141,7 @@ func newVPCConfigTest2() (*VPCConfig, *VPCConnectivity) {
 		&ExternalNetwork{CidrStr: "8.8.8.8/32", isPublicInternet: true},
 		&mockNetIntf{cidr: "10.0.20.6/32", name: "vsi2"})
 
-	res.Subnets = append(res.Subnets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0], res.Nodes[3]}})
+	res.Subnets = append(res.Subnets, &mockSubnet{nil, "10.0.20.0/22", "subnet1", []Node{res.Nodes[0], res.Nodes[3]}})
 	res.Nodes[0].(*mockNetIntf).subnet = res.Subnets[0]
 	res.Nodes[3].(*mockNetIntf).subnet = res.Subnets[0]
 
@@ -187,7 +198,7 @@ func configStatefulGrouping() (*VPCConfig, *VPCConnectivity) {
 		&ExternalNetwork{CidrStr: "8.8.8.8/32", isPublicInternet: true},
 		&mockNetIntf{cidr: "10.0.20.6/32", name: "vsi2"})
 
-	res.Subnets = append(res.Subnets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0], res.Nodes[3]}})
+	res.Subnets = append(res.Subnets, &mockSubnet{nil, "10.0.20.0/22", "subnet1", []Node{res.Nodes[0], res.Nodes[3]}})
 	res.Nodes[0].(*mockNetIntf).subnet = res.Subnets[0]
 	res.Nodes[3].(*mockNetIntf).subnet = res.Subnets[0]
 
@@ -223,7 +234,7 @@ func configIPRange() (*VPCConfig, *VPCConnectivity) {
 		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1"},
 		&ExternalNetwork{CidrStr: "1.2.3.0/24", isPublicInternet: true},
 		&ExternalNetwork{CidrStr: "1.2.4.0/24", isPublicInternet: true})
-	res.Subnets = append(res.Subnets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0]}})
+	res.Subnets = append(res.Subnets, &mockSubnet{nil, "10.0.20.0/22", "subnet1", []Node{res.Nodes[0]}})
 	res.Nodes[0].(*mockNetIntf).subnet = res.Subnets[0]
 
 	res1 := &VPCConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
@@ -253,7 +264,7 @@ func configSelfLoopClique() (*VPCConfig, *VPCConnectivity) {
 		&mockNetIntf{cidr: "10.0.20.6/32", name: "vsi2"},
 		&mockNetIntf{cidr: "10.0.20.7/32", name: "vsi3"})
 
-	res.Subnets = append(res.Subnets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0], res.Nodes[1], res.Nodes[2]}})
+	res.Subnets = append(res.Subnets, &mockSubnet{nil, "10.0.20.0/22", "subnet1", []Node{res.Nodes[0], res.Nodes[1], res.Nodes[2]}})
 	res.Nodes[0].(*mockNetIntf).subnet = res.Subnets[0]
 	res.Nodes[1].(*mockNetIntf).subnet = res.Subnets[0]
 	res.Nodes[2].(*mockNetIntf).subnet = res.Subnets[0]
@@ -291,8 +302,8 @@ func configSelfLoopCliqueDiffSubnets() (*VPCConfig, *VPCConnectivity) {
 		&mockNetIntf{cidr: "10.0.20.6/32", name: "vsi1-2"},
 		&mockNetIntf{cidr: "10.240.10.7/32", name: "vsi2-1"})
 
-	res.Subnets = append(res.Subnets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0], res.Nodes[1]}},
-		&mockSubnet{"10.240.10.0/22", "subnet2", []Node{res.Nodes[2]}})
+	res.Subnets = append(res.Subnets, &mockSubnet{nil, "10.0.20.0/22", "subnet1", []Node{res.Nodes[0], res.Nodes[1]}},
+		&mockSubnet{nil, "10.240.10.0/22", "subnet2", []Node{res.Nodes[2]}})
 	res.Nodes[0].(*mockNetIntf).subnet = res.Subnets[0]
 	res.Nodes[1].(*mockNetIntf).subnet = res.Subnets[0]
 	res.Nodes[2].(*mockNetIntf).subnet = res.Subnets[1]
@@ -334,7 +345,7 @@ func configSimpleSelfLoop() (*VPCConfig, *VPCConnectivity) {
 		&mockNetIntf{cidr: "10.0.20.6/32", name: "vsi2"},
 		&mockNetIntf{cidr: "10.0.20.7/32", name: "vsi3"})
 
-	res.Subnets = append(res.Subnets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0], res.Nodes[1], res.Nodes[2]}})
+	res.Subnets = append(res.Subnets, &mockSubnet{nil, "10.0.20.0/22", "subnet1", []Node{res.Nodes[0], res.Nodes[1], res.Nodes[2]}})
 	res.Nodes[0].(*mockNetIntf).subnet = res.Subnets[0]
 	res.Nodes[1].(*mockNetIntf).subnet = res.Subnets[0]
 	res.Nodes[2].(*mockNetIntf).subnet = res.Subnets[0]
@@ -376,7 +387,7 @@ func configSelfLoopCliqueLace() (*VPCConfig, *VPCConnectivity) {
 		&mockNetIntf{cidr: "10.0.20.7/32", name: "vsi4"},
 		&mockNetIntf{cidr: "10.0.20.7/32", name: "vsi5"})
 
-	res.Subnets = append(res.Subnets, &mockSubnet{"10.0.20.0/22", "subnet1",
+	res.Subnets = append(res.Subnets, &mockSubnet{nil, "10.0.20.0/22", "subnet1",
 		[]Node{res.Nodes[0], res.Nodes[1], res.Nodes[2], res.Nodes[3], res.Nodes[4]}})
 	res.Nodes[0].(*mockNetIntf).subnet = res.Subnets[0]
 	res.Nodes[1].(*mockNetIntf).subnet = res.Subnets[0]
@@ -414,14 +425,19 @@ func TestConfigSelfLoopCliqueLace(t *testing.T) {
 }
 func configSubnetSelfLoop() (*VPCConfig, *VPCsubnetConnectivity) {
 	res := &VPCConfig{Nodes: []Node{}}
+	myVPC := &mockVPCIntf{VPCResource{ResourceName: "myVpc",
+		ResourceUID:  "myVpcUid",
+		ResourceType: "VPC",
+		Zone:         "myZone"}}
+
 	res.Nodes = append(res.Nodes,
 		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1"},
 		&mockNetIntf{cidr: "10.3.20.6/32", name: "vsi2"},
 		&mockNetIntf{cidr: "10.7.20.7/32", name: "vsi3"})
 
-	res.Subnets = append(res.Subnets, &mockSubnet{"10.0.20.0/22", "subnet1", []Node{res.Nodes[0]}},
-		&mockSubnet{"10.3.20.0/22", "subnet2", []Node{res.Nodes[1]}},
-		&mockSubnet{"10.7.20.0/22", "subnet3", []Node{res.Nodes[2]}})
+	res.Subnets = append(res.Subnets, &mockSubnet{myVPC, "10.0.20.0/22", "subnet1", []Node{res.Nodes[0]}},
+		&mockSubnet{myVPC, "10.3.20.0/22", "subnet2", []Node{res.Nodes[1]}},
+		&mockSubnet{myVPC, "10.7.20.0/22", "subnet3", []Node{res.Nodes[2]}})
 	res.Nodes[0].(*mockNetIntf).subnet = res.Subnets[0]
 	res.Nodes[1].(*mockNetIntf).subnet = res.Subnets[1]
 	res.Nodes[2].(*mockNetIntf).subnet = res.Subnets[2]

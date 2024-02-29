@@ -1,0 +1,32 @@
+Connectivity between VPCs connected by TGW local-tg-ky (UID: crn:578)
+subnet11-ky,subnet12-ky => subnet21-ky : All Connections
+subnet21-ky => subnet11-ky,subnet12-ky : All Connections
+subnet21-ky => subnet31-ky,subnet32-ky : All Connections
+subnet31-ky => subnet11-ky,subnet12-ky : All Connections *
+subnet31-ky,subnet32-ky => subnet21-ky : All Connections
+
+Connectivity between VPCs connected by TGW local-tg-zn (UID: crn:574)
+zn-vpc1-net1 => zn-vpc2-net1 : All Connections
+zn-vpc2-net1 => zn-vpc1-net1 : All Connections
+
+Subnet connectivity for VPC test-vpc0-ky
+subnet1-ky => Public Internet 172.217.22.46/32 : All Connections
+subnet1-ky,subnet3-ky => subnet1-ky,subnet3-ky : protocol: TCP src-ports: 1-442,444-65535 dst-ports: 443; protocol: TCP src-ports: 443
+subnet2-ky => Public Internet (all ranges) : All Connections
+
+Subnet connectivity for VPC test-vpc1-ky
+subnet11-ky,subnet12-ky => subnet11-ky,subnet12-ky : All Connections
+
+Subnet connectivity for VPC test-vpc2-ky
+<nothing to report>
+
+Subnet connectivity for VPC test-vpc3-ky
+subnet31-ky,subnet32-ky => subnet31-ky,subnet32-ky : All Connections
+
+Subnet connectivity for VPC zn-vpc1
+<nothing to report>
+
+Subnet connectivity for VPC zn-vpc2
+<nothing to report>
+
+connections are stateful (on TCP) unless marked with *

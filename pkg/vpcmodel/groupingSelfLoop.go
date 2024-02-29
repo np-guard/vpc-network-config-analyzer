@@ -76,7 +76,8 @@ func (g *GroupConnLines) groupsToBeMerged(groupingSrcOrDst map[string][]*grouped
 // gets a list of keys of groups that have the potential of being merged with the
 // self loop don't care optimization
 // a group is candidate to be merged only if it has only internal nodes
-// and if vsis then of the same subnet
+// if vsis then of the same subnet
+// and if subnets then of the same vpc
 // the latter follows from the 3rd condition described in findMergeCandidates
 // Input: <current grouping, grouping src or dst>
 // Output: <list of keys>
@@ -86,8 +87,12 @@ func (g *GroupConnLines) relevantKeysToCompare(groupingSrcOrDst map[string][]*gr
 		if lines[0].isSrcOrDstExternalNodes() {
 			continue
 		}
-		// if vsi's then the subnets must be equal; if not vsis then empty string equals empty string
-		if g.getSubnetIfVsi(lines[0].src) != g.getSubnetIfVsi(lines[0].dst) {
+		// if vsi then the subnets must be equal; if not vsis then empty string equals empty string
+		if g.getSubnetUIDIfVsi(lines[0].src) != g.getSubnetUIDIfVsi(lines[0].dst) {
+			continue
+		}
+		// if subnets then the vpc must be equal; if not subnets then empty string equals empty string
+		if g.getVPCUIDIfSubnet(lines[0].src) != g.getVPCUIDIfSubnet(lines[0].dst) {
 			continue
 		}
 		relevantKeys = append(relevantKeys, key)
@@ -116,9 +121,12 @@ func (g *GroupConnLines) findMergeCandidates(groupingSrcOrDst map[string][]*grou
 	for _, key := range relevantKeys {
 		lines := groupingSrcOrDst[key]
 		bucket := lines[0].commonProperties.groupingStrKey
-		subnetIfVsi := g.getSubnetIfVsi(lines[0].src)
-		if subnetIfVsi != "" {
-			bucket += ";" + subnetIfVsi
+		subnetIfVsiVPCIfSubnet := g.getSubnetUIDIfVsi(lines[0].src)
+		if subnetIfVsiVPCIfSubnet == "" {
+			subnetIfVsiVPCIfSubnet = g.getVPCUIDIfSubnet(lines[0].src)
+		}
+		if subnetIfVsiVPCIfSubnet != "" {
+			bucket += ";" + subnetIfVsiVPCIfSubnet
 		}
 		if _, ok := bucketToKeys[bucket]; !ok {
 			bucketToKeys[bucket] = make(map[string]struct{})
@@ -164,7 +172,9 @@ func (g *GroupConnLines) findMergeCandidates(groupingSrcOrDst map[string][]*grou
 	return keyToMergeCandidates
 }
 
-func (g *GroupConnLines) getSubnetIfVsi(ep EndpointElem) string {
+// if ep is a vsi or a group of vsis, gets its subnet
+// (if its a group of vsis then they all have the same subnet by grouping rules)
+func (g *GroupConnLines) getSubnetUIDIfVsi(ep EndpointElem) string {
 	if isVsi, node := isEpVsi(ep); isVsi {
 		// if ep is groupedEndpointsElems of vsis then all belong to the same subnet
 		return node.Subnet().Name()
@@ -191,6 +201,35 @@ func isEpVsi(ep EndpointElem) (bool, InternalNodeIntf) {
 		if node.IsInternal() {
 			return true, node.(InternalNodeIntf)
 		}
+	}
+	return false, nil
+}
+
+// if ep is a subnet or a group of subnets, gets its vpc
+// (if its a group of subnets then they all have the same vpc by grouping rule)
+func (g *GroupConnLines) getVPCUIDIfSubnet(ep EndpointElem) string {
+	if isSubnet, nodeSet := isEpSubnet(ep); isSubnet {
+		// if ep is groupedEndpointsElems of vsis then all belong to the same subnet
+		return nodeSet.VPC().UID()
+	}
+	return ""
+}
+
+// input: Endpoint
+// output: <bool, node>:
+// if the endpoint element represents a subnet or is a slice of elements the first of which represents subnet
+// then it returns <true, the subnet or the first subnet>
+// otherwise it returns <false, nil>
+func isEpSubnet(ep EndpointElem) (bool, NodeSet) {
+	if _, ok := ep.(*groupedEndpointsElems); ok {
+		ep1GroupedEps := ep.(*groupedEndpointsElems)
+		if nodeSet, ok := (*ep1GroupedEps)[0].(NodeSet); ok {
+			return true, nodeSet
+		}
+		return false, nil
+	}
+	if nodeSet, ok := ep.(NodeSet); ok {
+		return true, nodeSet
 	}
 	return false, nil
 }
