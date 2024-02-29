@@ -257,9 +257,9 @@ func vsiOrSubnetsGroupingBySubnetsOrVsis(groupedConnLines *GroupConnLines,
 		subnetOrVSIToNodesOrNodeSets[subnetOrVSIUID] = append(subnetOrVSIToNodesOrNodeSets[subnetOrVSIUID], newElem)
 	}
 	for _, nodesList := range subnetOrVSIToNodesOrNodeSets {
-		if len(nodesList) == 1 { // a single network interface on subnet is just added to the result (no grouping)
+		if len(nodesList) == 1 { // a single nif on subnet or vsi on vpc is just added to the result (no grouping)
 			res = append(res, nodesList[0])
-		} else { // a set of network interfaces from the same subnet is grouped by groupedNetworkInterfaces object
+		} else { // a set of vsis (subnets) from the same subnet (vpc) are grouped
 			groupedNodes := groupedConnLines.getGroupedEndpointsElems(nodesList)
 			res = append(res, groupedNodes)
 		}
