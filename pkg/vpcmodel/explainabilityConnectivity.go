@@ -208,18 +208,15 @@ func (details *rulesAndConnDetails) computeActualRules() error {
 func computeActualRules(rulesLayers *rulesInLayers, filters map[string]bool) (*rulesInLayers, bool) {
 	actualRules := rulesInLayers{}
 	directionEnabled := true
-	for _, filter := range filterLayers {
-		var potentialRules []RulesInFilter
-		filterIsRelevant := filters[filter]
-		if rulesInLayer, ok := (*rulesLayers)[filter]; ok {
-			potentialRules = rulesInLayer
-		}
+	for _, layer := range filterLayers {
+		filterIsRelevant := filters[layer]
+		potentialRules := (*rulesLayers)[layer]
 		// The filter blocking if it is relevant or has no allow rules
 		if filterIsRelevant && !filterHasRelevantRules(potentialRules) {
 			directionEnabled = false
 		}
 		if filterIsRelevant {
-			actualRules[filter] = potentialRules
+			actualRules[layer] = potentialRules
 		}
 	}
 	// the direction is enabled if none of the filters is blocking it
