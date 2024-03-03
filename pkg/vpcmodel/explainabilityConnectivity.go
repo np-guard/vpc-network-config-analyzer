@@ -205,23 +205,21 @@ func (details *rulesAndConnDetails) computeActualRules() error {
 }
 
 // computes actual rules relevant to the connection, as well as whether the direction is enabled
-func computeActualRules(rulesLayer *rulesInLayers, filters map[string]bool) (*rulesInLayers, bool) {
+func computeActualRules(rulesLayers *rulesInLayers, filters map[string]bool) (*rulesInLayers, bool) {
 	actualRules := rulesInLayers{}
-	filterNotBlocking := map[string]bool{}
-	for filter, potentialRules := range *rulesLayer {
-		filterIsRelevant := filters[filter]
-		if filterIsRelevant {
-			actualRules[filter] = potentialRules
-		}
-		// The filter is not blocking if it is not relevant or has allow rules
-		if !filterIsRelevant || filterHasRelevantRules(potentialRules) {
-			filterNotBlocking[filter] = true
-		}
-	}
 	directionEnabled := true
 	for _, filter := range filterLayers {
-		if !filterNotBlocking[filter] {
+		var potentialRules []RulesInFilter
+		filterIsRelevant := filters[filter]
+		if rulesInLayer, ok := (*rulesLayers)[filter]; ok {
+			potentialRules = rulesInLayer
+		}
+		// The filter blocking if it is relevant or has no allow rules
+		if filterIsRelevant && !filterHasRelevantRules(potentialRules) {
 			directionEnabled = false
+		}
+		if filterIsRelevant {
+			actualRules[filter] = potentialRules
 		}
 	}
 	// the direction is enabled if none of the filters is blocking it
