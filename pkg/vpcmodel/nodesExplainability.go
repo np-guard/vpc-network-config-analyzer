@@ -438,7 +438,7 @@ func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (conn *comm
 	if err2 != nil {
 		return nil, err2
 	}
-	if srcForConnection == nil {
+	if dstForConnection == nil {
 		return nil, fmt.Errorf(errMsg, dst.Name())
 	}
 	var ok bool

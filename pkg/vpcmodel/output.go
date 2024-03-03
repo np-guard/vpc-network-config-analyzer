@@ -55,7 +55,7 @@ type OutputGenerator struct {
 }
 
 func NewOutputGenerator(c1, c2 map[string]*VPCConfig, grouping bool, uc OutputUseCase,
-	archOnly bool, explanationArgs *ExplanationArgs) (*OutputGenerator, error) {
+	archOnly bool, explanationArgs *ExplanationArgs, f OutFormat) (*OutputGenerator, error) {
 	res := &OutputGenerator{
 		config1:        c1,
 		config2:        c2,
@@ -105,6 +105,10 @@ func NewOutputGenerator(c1, c2 map[string]*VPCConfig, grouping bool, uc OutputUs
 				res.explanation = explanation
 			}
 		}
+	}
+	// only DRAWIO has a multi vpc common presentation
+	if f == DRAWIO {
+		unifyMultiVPC(c1, res.nodesConn, res.subnetsConn, uc)
 	}
 	return res, nil
 }

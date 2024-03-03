@@ -267,7 +267,7 @@ func getSubnetsConfig(
 		} else {
 			vpcInternalAddressRange[vpcUID] = vpcInternalAddressRange[vpcUID].Union(cidrIPBlock)
 		}
-		res[vpcUID].NodeSets = append(res[vpcUID].NodeSets, subnetNode)
+		res[vpcUID].Subnets = append(res[vpcUID].Subnets, subnetNode)
 		if err := addZone(*subnet.Zone.Name, vpcUID, res); err != nil {
 			return nil, err
 		}
@@ -281,7 +281,7 @@ func getSubnetsConfig(
 		// add pointers from networkInterface to its subnet, given the current subnet created
 		if subnetInterfaces, ok := subnetNameToNetIntf[*subnet.Name]; ok {
 			for _, netIntf := range subnetInterfaces {
-				netIntf.subnet = subnetNode
+				netIntf.SubnetResource = subnetNode
 				subnetNodes = append(subnetNodes, netIntf)
 			}
 			subnetNode.nodes = subnetNodes
@@ -460,7 +460,6 @@ func getVPCconfig(rc *datamodel.ResourcesContainerModel, res map[string]*vpcmode
 		}
 		vpcNodeSet.VPCRef = vpcNodeSet
 		newVPCConfig := NewEmptyVPCConfig()
-		newVPCConfig.NodeSets = []vpcmodel.NodeSet{vpcNodeSet}
 		newVPCConfig.UIDToResource[vpcNodeSet.ResourceUID] = vpcNodeSet
 		newVPCConfig.VPC = vpcNodeSet
 		res[vpcNodeSet.ResourceUID] = newVPCConfig
@@ -716,6 +715,7 @@ func addTGWbasedConfigs(tgws map[string]*TransitGateway, res map[string]*vpcmode
 			// merge vpc config to the new "combined" config, used to get conns between vpcs only
 			newConfig.Nodes = append(newConfig.Nodes, vpcConfig.Nodes...)
 			newConfig.NodeSets = append(newConfig.NodeSets, vpcConfig.NodeSets...)
+			newConfig.Subnets = append(newConfig.Subnets, vpcConfig.Subnets...)
 			newConfig.CloudName = vpcConfig.CloudName
 			// FilterResources: merge NACLLayers to a single NACLLayer object, same for sg
 			for _, fr := range vpcConfig.FilterResources {
@@ -782,11 +782,9 @@ func addTGWbasedConfigs(tgws map[string]*TransitGateway, res map[string]*vpcmode
 }
 
 func getSubnetByIPAddress(addressIPblock *ipblocks.IPBlock, c *vpcmodel.VPCConfig) (subnet *Subnet, err error) {
-	for _, s := range c.NodeSets {
-		if s.Kind() == ResourceTypeSubnet {
-			if addressIPblock.ContainedIn(s.AddressRange()) {
-				return s.(*Subnet), nil
-			}
+	for _, s := range c.Subnets {
+		if addressIPblock.ContainedIn(s.AddressRange()) {
+			return s.(*Subnet), nil
 		}
 	}
 	return nil, fmt.Errorf("could not find matching subnet for address %s", addressIPblock.ToIPAddressString())
@@ -836,7 +834,7 @@ func getVPEconfig(rc *datamodel.ResourcesContainerModel,
 			if err != nil {
 				return err
 			}
-			rIPNode.subnet = subnet
+			rIPNode.SubnetResource = subnet
 			rIPNode.Zone = subnet.ZoneName()
 			res[vpcUID].Nodes = append(res[vpcUID].Nodes, rIPNode)
 			// TODO: make sure the address is in the subnet's reserved ips list?
@@ -853,12 +851,8 @@ func getVPEconfig(rc *datamodel.ResourcesContainerModel,
 
 func getSubnetByCidr(res map[string]*vpcmodel.VPCConfig, cidr string) (*Subnet, error) {
 	for _, config := range res {
-		for _, nodeSet := range config.NodeSets {
-			if subnet, ok := nodeSet.(*Subnet); ok {
-				if subnet.cidr == cidr {
-					return subnet, nil
-				}
-			}
+		if subnet, err := config.SubnetCidrToSubnetElem(cidr); err == nil {
+			return subnet.(*Subnet), nil
 		}
 	}
 	return nil, fmt.Errorf("could not find subnet with cidr: %s", cidr)
@@ -892,9 +886,9 @@ func getIKSnodesConfig(res map[string]*vpcmodel.VPCConfig,
 				VPCRef:       vpc,
 			},
 			InternalNode: vpcmodel.InternalNode{
-				AddressStr: *iksNodeNetIntfObj.IpAddress,
+				AddressStr:     *iksNodeNetIntfObj.IpAddress,
+				SubnetResource: subnet,
 			},
-			subnet: subnet,
 		}
 		if err := nodeObject.SetIPBlockFromAddress(); err != nil {
 			return err
@@ -908,12 +902,8 @@ func getIKSnodesConfig(res map[string]*vpcmodel.VPCConfig,
 
 func NewEmptyVPCConfig() *vpcmodel.VPCConfig {
 	return &vpcmodel.VPCConfig{
-		Nodes:            []vpcmodel.Node{},
-		NodeSets:         []vpcmodel.NodeSet{},
-		FilterResources:  []vpcmodel.FilterTrafficResource{},
-		RoutingResources: []vpcmodel.RoutingResource{},
-		UIDToResource:    map[string]vpcmodel.VPCResourceIntf{},
-		CloudName:        "IBM Cloud",
+		UIDToResource: map[string]vpcmodel.VPCResourceIntf{},
+		CloudName:     "IBM Cloud",
 	}
 }
 
@@ -1012,6 +1002,10 @@ func getVPCObjectByUID(res map[string]*vpcmodel.VPCConfig, uid string) (*VPC, er
 /********** Functions used in Debug mode ***************/
 
 func printVPCConfigs(c map[string]*vpcmodel.VPCConfig) {
+	fmt.Println("VPCs to analyze:")
+	for vpcUID, config := range c {
+		fmt.Printf("VPC UID: %s, Name: %s\n", vpcUID, config.VPC.Name())
+	}
 	printLineSection()
 	for vpcUID, config := range c {
 		fmt.Printf("config for vpc %s (vpc name: %s)\n", vpcUID, config.VPC.Name())
@@ -1033,6 +1027,10 @@ func printConfig(c *vpcmodel.VPCConfig) {
 		}
 		fmt.Println(strings.Join([]string{n.Kind(), n.CidrOrAddress(), n.Name(), n.UID()}, separator))
 	}
+	fmt.Println("Subnets:")
+	for _, n := range c.Subnets {
+		fmt.Println(strings.Join([]string{n.Kind(), n.CIDR(), n.Name(), n.UID()}, separator))
+	}
 	fmt.Println("NodeSets:")
 	for _, n := range c.NodeSets {
 		fmt.Println(strings.Join([]string{n.Kind(), n.AddressRange().ToIPRanges(), n.Name(), n.UID()}, separator))
@@ -1042,11 +1040,17 @@ func printConfig(c *vpcmodel.VPCConfig) {
 		switch filters := f.(type) {
 		case *NaclLayer:
 			for _, nacl := range filters.naclList {
+				if len(nacl.subnets) == 0 {
+					continue
+				}
 				fmt.Println(strings.Join([]string{nacl.ResourceType, nacl.ResourceName, nacl.UID()}, separator))
 				printNACLRules(nacl)
 			}
 		case *SecurityGroupLayer:
 			for _, sg := range filters.sgList {
+				if len(sg.members) == 0 {
+					continue
+				}
 				fmt.Println(strings.Join([]string{sg.ResourceType, sg.ResourceName, sg.UID()}, separator))
 				printSGRules(sg)
 			}
