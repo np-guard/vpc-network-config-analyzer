@@ -293,9 +293,6 @@ func (nl *NaclLayer) StringFilterEffect(listRulesInFilter []vpcmodel.RulesInFilt
 	for _, rulesInFilter := range listRulesInFilter {
 		nacl := nl.naclList[rulesInFilter.Filter]
 		header := getSummaryFilterEffect(networkACLStr+nacl.Name(), rulesInFilter.RulesFilterType)
-		if header == "" {
-			continue // only dummy rule - nacl not needed between two vsis of the same subnet
-		}
 		filtersEffectList = append(filtersEffectList, header)
 	}
 	return strings.Join(filtersEffectList, semicolonSeparator)
