@@ -14,9 +14,13 @@ type resIp struct {
 	address string
 	subnet  *Subnet
 }
+type pubIp struct {
+	address string
+}
 type loadBalancer struct {
 	name      string
 	resIPs    []resIp
+	pubIPs    []pubIp
 	listeners []listener
 	pools     []*pool
 	subnets   []*Subnet
@@ -51,6 +55,11 @@ func parseLoadBalancers(rc *datamodel.ResourcesContainerModel, res map[string]*v
 	for _, lbData := range rc.LBList {
 		lb = loadBalancer{}
 		lb.name = *lbData.Name
+		for _, pubIpData := range lbData.PublicIps {
+			pIp := pubIp{}
+			pIp.address = *pubIpData.Address
+			lb.pubIPs = append(lb.pubIPs, pIp)
+		}
 		for _, resIpData := range lbData.PrivateIps {
 			rIp := resIp{}
 			rIp.id = *resIpData.ID
@@ -133,7 +142,11 @@ func markLoadBalancer(gen *vpcmodel.DrawioGenerator) {
 	poolTNs := map[*pool]drawio.IconTreeNodeInterface{}
 	for _, resIp := range lb.resIPs {
 		resIpTn := drawio.NewResIPTreeNode(gen.TreeNode(resIp.subnet).(drawio.SquareTreeNodeInterface), resIp.address)
-		drawio.NewConnectivityLineTreeNode(network, resIpTn, lbTn, true, "interface")
+		drawio.NewConnectivityLineTreeNode(network, resIpTn, lbTn, true, "private")
+	}
+	for _, pIp := range lb.pubIPs {
+		pIpTn := drawio.NewInternetServiceTreeNode(publicNetwork, pIp.address)
+		drawio.NewConnectivityLineTreeNode(network, pIpTn, lbTn, true, "public")
 	}
 	for _, pool := range lb.pools {
 		poolTNs[pool] = drawio.NewInternetServiceTreeNode(publicNetwork, "pool "+pool.name)
