@@ -280,9 +280,6 @@ func (nl *NaclLayer) StringDetailsRulesOfFilter(listRulesInFilter []vpcmodel.Rul
 		nacl := nl.naclList[rulesInFilter.Filter]
 		header := getHeaderRulesType(networkACLStr+nacl.Name(), rulesInFilter.RulesFilterType) +
 			nacl.analyzer.StringRules(rulesInFilter.Rules)
-		if header == "" {
-			continue // only dummy rule - nacl not needed between two vsis of the same subnet
-		}
 		strListRulesInFilter += header
 	}
 	return strListRulesInFilter
