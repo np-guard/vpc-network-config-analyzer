@@ -7,9 +7,6 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
-const DummyRule = -1 // used so that []rules will not be empty in a certain case in which
-// there is no relevant rules, see detail explanation in computeActualRules
-
 var filterLayers = [2]string{SecurityGroupLayer, NaclLayer}
 
 // rulesInLayers contains specific rules across all layers (SGLayer/NACLLayer)
@@ -180,6 +177,7 @@ func (details *rulesAndConnDetails) computeFilters(c *VPCConfig) error {
 // 1. from the potentialRules the actualRules (per ingress, egress) that actually enable traffic,
 // considering filtersExternal (which was computed based on the RoutingResource) and removing filters
 // not relevant for the Router e.g. nacl not relevant fip
+// and considering filterInternal - removing nacl when both vsis are of the same subnets
 // 2. ingressEnabled and egressEnabled: whether traffic is enabled via ingress, egress
 func (details *rulesAndConnDetails) computeActualRules() error {
 	for _, singleSrcDstDetails := range *details {
@@ -293,8 +291,6 @@ func mergeAllowDeny(allow, deny rulesInLayers) rulesInLayers {
 				slices.Sort(mergedRules)
 				var rType RulesType
 				switch {
-				case len(mergedRules) == 1 && mergedRules[0] == DummyRule:
-					rType = OnlyDummyRule
 				case len(allowRules.Rules) > 0 && len(denyRules.Rules) > 0:
 					rType = BothAllowDeny
 				case len(allowRules.Rules) > 0:

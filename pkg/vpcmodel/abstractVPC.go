@@ -164,7 +164,6 @@ const (
 	OnlyAllow            // there are only relevant allow rules in this filter
 	OnlyDeny             // there are only relevant deny rules in this filter
 	BothAllowDeny        // there are relevant allow and deny rules in this filter
-	OnlyDummyRule        // This is used to mark a nacl table when src, dst are in the same subnet
 )
 
 // RulesInFilter for a given layer (SGLayer/NACLLayer) contains specific rules in a specific SG/NACL filter
