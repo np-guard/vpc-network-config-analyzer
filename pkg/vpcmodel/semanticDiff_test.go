@@ -41,11 +41,11 @@ func configSimpleSubnetDiff() (subnetConfigConn1, subnetConfigConn2 *configConne
 		&mockNetIntf{cidr: "10.3.20.6/32", name: "vsi1-2"},
 		&mockNetIntf{cidr: "10.7.20.7/32", name: "vsi1-3"})
 
-	cfg1.Subnets = append(cfg1.Subnets, &mockSubnet{"10.0.20.0/22", "subnet0", []Node{cfg1.Nodes[0]}},
-		&mockSubnet{"10.1.20.0/22", "subnet1", []Node{cfg1.Nodes[0]}},
-		&mockSubnet{"10.2.20.0/22", "subnet2", []Node{cfg1.Nodes[1]}})
-	cfg1.Subnets = append(cfg1.Subnets, &mockSubnet{"10.3.20.0/22", "subnet3", []Node{cfg1.Nodes[2]}},
-		&mockSubnet{"10.4.20.0/22", "subnet4", []Node{cfg1.Nodes[2]}})
+	cfg1.Subnets = append(cfg1.Subnets, &mockSubnet{nil, "10.0.20.0/22", "subnet0", []Node{cfg1.Nodes[0]}},
+		&mockSubnet{nil, "10.1.20.0/22", "subnet1", []Node{cfg1.Nodes[0]}},
+		&mockSubnet{nil, "10.2.20.0/22", "subnet2", []Node{cfg1.Nodes[1]}})
+	cfg1.Subnets = append(cfg1.Subnets, &mockSubnet{nil, "10.3.20.0/22", "subnet3", []Node{cfg1.Nodes[2]}},
+		&mockSubnet{nil, "10.4.20.0/22", "subnet4", []Node{cfg1.Nodes[2]}})
 
 	cfg2 := &VPCConfig{}
 	cfg2.Nodes = append(cfg2.Nodes,
@@ -53,10 +53,10 @@ func configSimpleSubnetDiff() (subnetConfigConn1, subnetConfigConn2 *configConne
 		&mockNetIntf{cidr: "10.7.20.6/32", name: "vsi2-2"},
 		&mockNetIntf{cidr: "10.9.20.7/32", name: "vsi2-3"},
 		&mockNetIntf{cidr: "11.4.20.6/32", name: "vsi2-4"})
-	cfg2.Subnets = append(cfg2.Subnets, &mockSubnet{"10.2.20.0/22", "subnet2", []Node{cfg2.Nodes[0]}},
-		&mockSubnet{"10.3.20.0/22", "subnet3", []Node{cfg2.Nodes[1]}},
-		&mockSubnet{"10.4.20.0/22", "subnet4", []Node{cfg2.Nodes[2]}},
-		&mockSubnet{"11.4.20.0/22", "subnet5", []Node{cfg2.Nodes[3]}})
+	cfg2.Subnets = append(cfg2.Subnets, &mockSubnet{nil, "10.2.20.0/22", "subnet2", []Node{cfg2.Nodes[0]}},
+		&mockSubnet{nil, "10.3.20.0/22", "subnet3", []Node{cfg2.Nodes[1]}},
+		&mockSubnet{nil, "10.4.20.0/22", "subnet4", []Node{cfg2.Nodes[2]}},
+		&mockSubnet{nil, "11.4.20.0/22", "subnet5", []Node{cfg2.Nodes[3]}})
 
 	connectionTCP := common.NewConnectionSet(false)
 	connectionTCP.AddTCPorUDPConn(common.ProtocolTCP, 10, 100, 443, 443)
@@ -147,16 +147,16 @@ func TestSimpleSubnetDiffGrouping(t *testing.T) {
 
 func configSimpleIPAndSubnetDiff() (subnetConfigConn1, subnetConfigConn2 *configConnectivity) {
 	cfg1 := &VPCConfig{}
-	cfg1.Subnets = append(cfg1.Subnets, &mockSubnet{"10.1.20.0/22", "subnet1", nil},
-		&mockSubnet{"10.2.20.0/22", "subnet2", nil})
+	cfg1.Subnets = append(cfg1.Subnets, &mockSubnet{nil, "10.1.20.0/22", "subnet1", nil},
+		&mockSubnet{nil, "10.2.20.0/22", "subnet2", nil})
 	cfg1.Nodes = append(cfg1.Nodes,
 		&mockNetIntf{cidr: "1.2.3.0/30", name: "public1-1", isPublic: true},
 		&mockNetIntf{cidr: "250.2.4.0/24", name: "public1-2", isPublic: true},
 		&mockNetIntf{cidr: "200.2.4.0/24", name: "public1-3", isPublic: true})
 
 	cfg2 := &VPCConfig{}
-	cfg2.Subnets = append(cfg2.Subnets, &mockSubnet{"10.1.20.0/22", "subnet1", nil},
-		&mockSubnet{"10.2.20.0/22", "subnet2", nil})
+	cfg2.Subnets = append(cfg2.Subnets, &mockSubnet{nil, "10.1.20.0/22", "subnet1", nil},
+		&mockSubnet{nil, "10.2.20.0/22", "subnet2", nil})
 	cfg2.Nodes = append(cfg2.Nodes,
 		&mockNetIntf{cidr: "1.2.3.0/26", name: "public2-1", isPublic: true},
 		&mockNetIntf{cidr: "250.2.4.0/30", name: "public2-2", isPublic: true},
@@ -269,7 +269,7 @@ func configSimpleVsisDiff() (configConn1, configConn2 *configConnectivity) {
 		&mockNetIntf{name: "vsi3", isPublic: false, cidr: ""},
 		&mockNetIntf{cidr: "1.2.3.0/30", name: "public1-1", isPublic: true})
 
-	cfg1.Subnets = append(cfg1.Subnets, &mockSubnet{"10.0.20.0/22", "subnet0", []Node{cfg1.Nodes[0], cfg1.Nodes[1],
+	cfg1.Subnets = append(cfg1.Subnets, &mockSubnet{nil, "10.0.20.0/22", "subnet0", []Node{cfg1.Nodes[0], cfg1.Nodes[1],
 		cfg1.Nodes[2], cfg1.Nodes[3]}})
 
 	cfg2 := &VPCConfig{}
@@ -280,7 +280,7 @@ func configSimpleVsisDiff() (configConn1, configConn2 *configConnectivity) {
 		&mockNetIntf{name: "vsi4", isPublic: false, cidr: ""},
 		&mockNetIntf{cidr: "1.2.3.0/26", name: "public2-1", isPublic: true})
 
-	cfg2.Subnets = append(cfg2.Subnets, &mockSubnet{"10.0.20.0/22", "subnet0", []Node{cfg2.Nodes[0], cfg2.Nodes[1],
+	cfg2.Subnets = append(cfg2.Subnets, &mockSubnet{nil, "10.0.20.0/22", "subnet0", []Node{cfg2.Nodes[0], cfg2.Nodes[1],
 		cfg2.Nodes[2], cfg2.Nodes[3]}})
 
 	connectionTCP := common.NewConnectionSet(false)

@@ -1022,6 +1022,10 @@ func getVPCObjectByUID(res map[string]*vpcmodel.VPCConfig, uid string) (*VPC, er
 /********** Functions used in Debug mode ***************/
 
 func printVPCConfigs(c map[string]*vpcmodel.VPCConfig) {
+	fmt.Println("VPCs to analyze:")
+	for vpcUID, config := range c {
+		fmt.Printf("VPC UID: %s, Name: %s\n", vpcUID, config.VPC.Name())
+	}
 	printLineSection()
 	for vpcUID, config := range c {
 		fmt.Printf("config for vpc %s (vpc name: %s)\n", vpcUID, config.VPC.Name())
@@ -1056,11 +1060,17 @@ func printConfig(c *vpcmodel.VPCConfig) {
 		switch filters := f.(type) {
 		case *NaclLayer:
 			for _, nacl := range filters.naclList {
+				if len(nacl.subnets) == 0 {
+					continue
+				}
 				fmt.Println(strings.Join([]string{nacl.ResourceType, nacl.ResourceName, nacl.UID()}, separator))
 				printNACLRules(nacl)
 			}
 		case *SecurityGroupLayer:
 			for _, sg := range filters.sgList {
+				if len(sg.members) == 0 {
+					continue
+				}
 				fmt.Println(strings.Join([]string{sg.ResourceType, sg.ResourceName, sg.UID()}, separator))
 				printSGRules(sg)
 			}
