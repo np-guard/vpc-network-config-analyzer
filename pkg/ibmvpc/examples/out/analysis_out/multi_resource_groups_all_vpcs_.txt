@@ -1,17 +1,3 @@
-Connectivity between VPCs connected by TGW global-tg-ky (UID: crn:607)
-ky-vpc1-vsi[10.240.0.4] => ky-vpc3-vsi[10.241.0.4] : All Connections
-ky-vpc3-vsi[10.241.0.4] => ky-vpc1-vsi[10.240.0.4] : All Connections
-
-Connectivity between VPCs connected by TGW global-tg-zn (UID: crn:595)
-<nothing to report>
-
-Connectivity between VPCs connected by TGW local-tg-ky (UID: crn:603)
-ky-vpc1-vsi[10.240.0.4] => ky-vpc2-vsi[10.240.64.4] : All Connections
-ky-vpc2-vsi[10.240.64.4] => ky-vpc1-vsi[10.240.0.4] : All Connections
-
-Connectivity between VPCs connected by TGW local-tg-zn (UID: crn:599)
-<nothing to report>
-
 Endpoint connectivity for VPC ky-vpc1
 Public Internet (all ranges) => ky-vpc1-vsi[10.240.0.4] : All Connections
 ky-vpc1-vsi[10.240.0.4] => Public Internet (all ranges) : All Connections

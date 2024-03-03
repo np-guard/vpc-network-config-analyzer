@@ -119,7 +119,7 @@ func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resou
 		return nil, err
 	}
 
-	tgws := getTgwObjects(rc, res)
+	tgws := getTgwObjects(rc, res, resourceGroup)
 	err = addTGWbasedConfigs(tgws, res)
 	if err != nil {
 		return nil, err
@@ -634,12 +634,28 @@ func getNACLconfig(rc *datamodel.ResourcesContainerModel,
 }
 
 func getTgwObjects(c *datamodel.ResourcesContainerModel,
-	res map[string]*vpcmodel.VPCConfig) map[string]*TransitGateway {
+	res map[string]*vpcmodel.VPCConfig, resourceGroup string) map[string]*TransitGateway {
 	tgwMap := map[string]*TransitGateway{} // collect all tgw resources
 	for _, tgwConn := range c.TransitConnectionList {
 		tgwUID := *tgwConn.TransitGateway.Crn
 		tgwName := *tgwConn.TransitGateway.Name
 		vpcUID := *tgwConn.NetworkID
+
+		// filtering by resourceGroup
+		if resourceGroup != "" {
+			shouldSkip := true
+			for _, tgw := range c.TransitGatewayList {
+				if tgwUID == *tgw.ID {
+					if *tgw.ResourceGroup.ID == resourceGroup {
+						shouldSkip = false
+					}
+					break
+				}
+			}
+			if shouldSkip {
+				continue
+			}
+		}
 		vpc, err := getVPCObjectByUID(res, vpcUID)
 		if err != nil {
 			fmt.Printf("warning: ignoring vpc that does not exist in tgw config, vpcID: %s\n", vpcUID)
