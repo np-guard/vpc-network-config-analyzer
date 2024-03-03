@@ -143,28 +143,25 @@ func (details *rulesAndConnDetails) computeFilters(c *VPCConfig) error {
 		// RoutingResources are computed by the parser for []Nodes of the VPC,
 		// finds the relevant nodes for the query's src and dst;
 		// if for src or dst no containing node was found, there is no router
-		var routingResource RoutingResource
-		var filtersForExternal map[string]bool
-		var err error
 		src := singleSrcDstDetails.src
 		dst := singleSrcDstDetails.dst
-		routingResource, _, err = c.getRoutingResource(src, dst)
-		if err != nil {
-			return err
+		if src.IsInternal() && dst.IsInternal() { // internal
+			// security group applied always between two vsis
+			singleSrcDstDetails.filtersRelevant = map[string]bool{SecurityGroupLayer: true}
+			// nacl applied between two vsis if not same subnet
+			singleSrcDstDetails.filtersRelevant[NaclLayer] =
+				src.(InternalNodeIntf).Subnet().UID() != dst.(InternalNodeIntf).Subnet().UID()
+		} else { // external
+			routingResource, _, err := c.getRoutingResource(src, dst)
+			if err != nil {
+				return err
+			}
+			if routingResource == nil {
+				continue // no router: no connections, filtersLayers non defined
+			}
+			singleSrcDstDetails.router = routingResource
+			singleSrcDstDetails.filtersRelevant = routingResource.AppliedFiltersKinds() // relevant filtersExternal
 		}
-		if routingResource != nil {
-			filtersForExternal = routingResource.AppliedFiltersKinds() // relevant filtersExternal
-		}
-		// security group applied always between two vsis
-		filtersForInternal := map[string]bool{SecurityGroupLayer: true}
-		// nacl applied between two vsis if not same subnet
-		if src.IsInternal() && dst.IsInternal() {
-			filtersForInternal[NaclLayer] = src.(InternalNodeIntf).Subnet().UID() != dst.(InternalNodeIntf).Subnet().UID()
-			singleSrcDstDetails.filtersRelevant = filtersForInternal
-		} else {
-			singleSrcDstDetails.filtersRelevant = filtersForExternal
-		}
-		singleSrcDstDetails.router = routingResource
 	}
 	return nil
 }
