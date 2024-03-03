@@ -90,16 +90,12 @@ func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.Conne
 	if err3 != nil {
 		return nil, err3
 	}
-	err4 := rulesAndDetails.computeActualRules()
-	if err4 != nil {
-		return nil, err4
-	}
-
+	rulesAndDetails.computeActualRules()
 	rulesAndDetails.computeCombinedActualRules() // combined deny and allow
 
-	groupedLines, err5 := newGroupConnExplainability(c, &rulesAndDetails)
-	if err5 != nil {
-		return nil, err5
+	groupedLines, err4 := newGroupConnExplainability(c, &rulesAndDetails)
+	if err4 != nil {
+		return nil, err4
 	}
 
 	return &Explanation{c, connQuery, &rulesAndDetails, src, dst,
@@ -179,7 +175,7 @@ func (details *rulesAndConnDetails) computeFilters(c *VPCConfig) error {
 // not relevant for the Router e.g. nacl not relevant fip
 // and considering filterInternal - removing nacl when both vsis are of the same subnets
 // 2. ingressEnabled and egressEnabled: whether traffic is enabled via ingress, egress
-func (details *rulesAndConnDetails) computeActualRules() error {
+func (details *rulesAndConnDetails) computeActualRules() {
 	for _, singleSrcDstDetails := range *details {
 		isInternal := singleSrcDstDetails.src.IsInternal() && singleSrcDstDetails.dst.IsInternal()
 		var filterSrcDst map[string]bool
@@ -201,7 +197,6 @@ func (details *rulesAndConnDetails) computeActualRules() error {
 		singleSrcDstDetails.egressEnabled = egressEnabled
 		singleSrcDstDetails.actualDenyRules = actualDeny
 	}
-	return nil
 }
 
 // computes actual rules relevant to the connection, as well as whether the direction is enabled
