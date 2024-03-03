@@ -1,7 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 {{ $data := .}}
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="{{$data.Width}}px" height="{{$data.Height}}px" viewBox="-0.5 -0.5 {{$data.Width}} {{$data.Height}}">
     <defs>
         {{range $color, $code := $data.Cnst.ColorCodes }}
         <marker id='{{$color}}_block' orient="auto" markerWidth='6' markerHeight='6' refX='6' refY='3'>
@@ -15,6 +12,10 @@
         {{end}}
     </defs>
 <g>
+     <g class="background" clickable="true" id="{{$data.SvgRootId}}" title="">
+      <rect x="0" y="0" width="{{$data.Width}}" height="{{$data.Height}}"
+     </g>
+
     {{range $node := $data.Nodes}}
         {{ $ax := $data.AX $node}}
         {{ $ay := $data.AY $node}}
@@ -22,7 +23,7 @@
             {{continue}}
         {{end}}
         <!-- {{$data.ElementComment $node}} -->
-        <g id="{{$data.SvgId $node}}">
+        <g id="{{$data.SvgId $node}}" clickable="true">
         {{if $data.IsType $node $data.Cnst.IbmSquare }}
                 <rect x="{{$ax}}" y="{{$ay}}" width="{{$node.Width}}" height="{{$node.Height}}" fill="none" stroke="{{$data.Color $node}}" pointer-events="all"/>
                 <image x="{{$data.Add $ax 18}}" y="{{$data.Add $ay 6}}" width="22" height="19.73" xlink:href="data:image/svg+xml;base64,{{$data.Image $node}}"/>
@@ -59,4 +60,3 @@
 <text text-anchor="middle" font-size="10px" x="50%" y="100%">Text is not SVG - cannot display</text>
 </a>
 </switch>
-</svg>

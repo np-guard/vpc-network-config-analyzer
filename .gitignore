@@ -25,3 +25,5 @@ pkg/drawio/*.drawio
 pkg/*/examples/*.drawio
 pkg/drawio/*.svg
 pkg/*/examples/*.svg
+pkg/drawio/*.html
+pkg/*/examples/*.html

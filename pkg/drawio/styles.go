@@ -192,9 +192,9 @@ func (stl *templateStyles) SVGConnectivityStyle(tn TreeNodeInterface) string {
 	startArrow, endArrow, color, dash := stl.lineParameters(tn.(LineTreeNodeInterface))
 	dashStyle := ""
 	if dash {
-		dashStyle = "stroke-dasharray=\"6 6\""
+		dashStyle = "stroke-dasharray='6 6'"
 	}
-	return fmt.Sprintf("marker-start='url(#%s_%s)' marker-end='url(#%s_%s)' stroke=\"%q\" %q",
+	return fmt.Sprintf("marker-start='url(#%s_%s)' marker-end='url(#%s_%s)' stroke='%s' %s",
 		color, startArrow, color, endArrow, colorCodes[color], dashStyle)
 }
 
