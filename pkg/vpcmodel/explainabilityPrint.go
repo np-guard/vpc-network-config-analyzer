@@ -37,8 +37,9 @@ func listNetworkInterfaces(nodes []Node) string {
 func (details *rulesAndConnDetails) String(c *VPCConfig, verbose bool, connQuery *common.ConnectionSet) (string, error) {
 	resStr := ""
 	for _, srcDstDetails := range *details {
-		resStr += stringExplainabilityLine(verbose, c, connQuery, srcDstDetails.src, srcDstDetails.dst, srcDstDetails.conn,
-			srcDstDetails.ingressEnabled, srcDstDetails.egressEnabled, srcDstDetails.router, srcDstDetails.actualMergedRules)
+		resStr += stringExplainabilityLine(verbose, c, srcDstDetails.filtersRelevant, connQuery,
+			srcDstDetails.src, srcDstDetails.dst, srcDstDetails.conn, srcDstDetails.ingressEnabled,
+			srcDstDetails.egressEnabled, srcDstDetails.router, srcDstDetails.actualMergedRules)
 	}
 	return resStr, nil
 }
@@ -47,7 +48,7 @@ func (explanation *Explanation) String(verbose bool) string {
 	linesStr := make([]string, len(explanation.groupedLines))
 	groupedLines := explanation.groupedLines
 	for i, line := range groupedLines {
-		linesStr[i] += stringExplainabilityLine(verbose, explanation.c, explanation.connQuery, line.src, line.dst, line.commonProperties.conn,
+		linesStr[i] += stringExplainabilityLine(verbose, explanation.c, nil, explanation.connQuery, line.src, line.dst, line.commonProperties.conn,
 			line.commonProperties.expDetails.ingressEnabled, line.commonProperties.expDetails.egressEnabled,
 			line.commonProperties.expDetails.router, line.commonProperties.expDetails.rules) +
 			"------------------------------------------------------------------------------------------------------------------------\n"
@@ -56,19 +57,20 @@ func (explanation *Explanation) String(verbose bool) string {
 	return strings.Join(linesStr, "\n") + "\n"
 }
 
-func stringExplainabilityLine(verbose bool, c *VPCConfig, connQuery *common.ConnectionSet, src, dst EndpointElem,
-	conn *common.ConnectionSet, ingressEnabled, egressEnabled bool,
+func stringExplainabilityLine(verbose bool, c *VPCConfig, filtersRelevant map[string]bool, connQuery *common.ConnectionSet,
+	src, dst EndpointElem, conn *common.ConnectionSet, ingressEnabled, egressEnabled bool,
 	router RoutingResource, rules *rulesConnection) string {
 	needEgress := !src.IsExternal()
 	needIngress := !dst.IsExternal()
 	noIngressRules := !ingressEnabled && needIngress
 	noEgressRules := !egressEnabled && needEgress
 	var routerStr, rulesStr, noConnection, resStr string
-	if router != nil && (src.IsExternal() || dst.IsExternal()) {
+	isExternal := src.IsExternal() || dst.IsExternal()
+	if router != nil && isExternal {
 		routerStr = "External traffic via " + router.Kind() + ": " + router.Name() + "\n"
 	}
-	routerFiltersHeader := routerStr + rules.getFilterEffectStr(c, needEgress, needIngress)
-	rulesStr = rules.getRuleDetailsStr(c, verbose, needEgress, needIngress)
+	routerFiltersHeader := routerStr + rules.getFilterEffectStr(c, filtersRelevant, needEgress, needIngress)
+	rulesStr = rules.getRuleDetailsStr(c, filtersRelevant, verbose, needEgress, needIngress)
 	if connQuery == nil {
 		noConnection = fmt.Sprintf("No connection between %v and %v;", src.Name(), dst.Name())
 	} else {
@@ -92,9 +94,9 @@ func stringExplainabilityLine(verbose bool, c *VPCConfig, connQuery *common.Conn
 	return resStr
 }
 
-func (rules *rulesConnection) getFilterEffectStr(c *VPCConfig, needEgress, needIngress bool) string {
-	egressRulesStr := rules.egressRules.string(c, false, false)
-	ingressRulesStr := rules.ingressRules.string(c, true, false)
+func (rules *rulesConnection) getFilterEffectStr(c *VPCConfig, filtersRelevant map[string]bool, needEgress, needIngress bool) string {
+	egressRulesStr := rules.egressRules.string(c, filtersRelevant, false, false)
+	ingressRulesStr := rules.ingressRules.string(c, filtersRelevant, true, false)
 	if needEgress && egressRulesStr != "" {
 		egressRulesStr = "Egress: " + egressRulesStr
 	}
@@ -107,12 +109,12 @@ func (rules *rulesConnection) getFilterEffectStr(c *VPCConfig, needEgress, needI
 	return egressRulesStr + ingressRulesStr
 }
 
-func (rules *rulesConnection) getRuleDetailsStr(c *VPCConfig, verbose, needEgress, needIngress bool) string {
+func (rules *rulesConnection) getRuleDetailsStr(c *VPCConfig, filtersRelevant map[string]bool, verbose, needEgress, needIngress bool) string {
 	if !verbose {
 		return ""
 	}
-	egressRulesStr := rules.egressRules.string(c, false, true)
-	ingressRulesStr := rules.ingressRules.string(c, true, true)
+	egressRulesStr := rules.egressRules.string(c, filtersRelevant, false, true)
+	ingressRulesStr := rules.ingressRules.string(c, filtersRelevant, true, true)
 	if needEgress && egressRulesStr != "" {
 		egressRulesStr = "Egress:\n" + egressRulesStr
 	}
@@ -146,8 +148,14 @@ func stringExplainabilityConnection(connQuery *common.ConnectionSet, src, dst En
 	return resStr
 }
 
+// todo:
+// 		1. Extract getting the list of filters, check commit and push
+//      2. Separate header from details and have all in one call with verbosity parm
+//      3. Add path printing when allowed and replace header in that case
+
 // prints either rulesDetails by calling StringDetailsRulesOfFilter or effect of each filter by calling StringFilterEffect
-func (rulesInLayers rulesInLayers) string(c *VPCConfig, isIngress, rulesDetails bool) string {
+func (rulesInLayers rulesInLayers) string(c *VPCConfig, filtersRelevant map[string]bool, isIngress, verbosity bool) string {
+	//fmt.Printf("getLayersToPrint isIngress %v is %+v\n", isIngress, getLayersToPrint(filtersRelevant, isIngress)) // todo tmp
 	rulesInLayersStr := ""
 	// order of presentation should be same as order of evaluation:
 	// (1) the SGs attached to the src NIF (2) the outbound rules in the ACL attached to the src NIF's subnet
@@ -167,7 +175,7 @@ func (rulesInLayers rulesInLayers) string(c *VPCConfig, isIngress, rulesDetails 
 			continue
 		}
 		if rules, ok := rulesInLayers[layer]; ok {
-			if rulesDetails {
+			if verbosity {
 				rulesInLayersStr += filter.StringDetailsRulesOfFilter(rules)
 			} else {
 				thisFilterEffectString := filter.StringFilterEffect(rules)
@@ -179,4 +187,24 @@ func (rulesInLayers rulesInLayers) string(c *VPCConfig, isIngress, rulesDetails 
 		}
 	}
 	return rulesInLayersStr
+}
+
+// gets filter Layers valid per filtersRelevant in the order they should be printed
+// order of presentation should be same as order of evaluation:
+// (1) the SGs attached to the src NIF (2) the outbound rules in the ACL attached to the src NIF's subnet
+// (3) the inbound rules in the ACL attached to the dst NIF's subnet (4) the SGs attached to the dst NIF.
+// thus, egress: security group first, ingress: nacl first
+func getLayersToPrint(filtersRelevant map[string]bool, isIngress bool) (filterLayersOrder []string) {
+	var orderedAllFiltersLayers, orderedRelevantFiltersLayers []string
+	if isIngress {
+		orderedAllFiltersLayers = []string{NaclLayer, SecurityGroupLayer}
+	} else {
+		orderedAllFiltersLayers = []string{SecurityGroupLayer, NaclLayer}
+	}
+	for _, layer := range orderedAllFiltersLayers {
+		if filtersRelevant[layer] {
+			orderedRelevantFiltersLayers = append(orderedRelevantFiltersLayers, layer)
+		}
+	}
+	return orderedRelevantFiltersLayers
 }
