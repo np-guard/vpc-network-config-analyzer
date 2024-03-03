@@ -93,7 +93,7 @@ func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.Conne
 	if err3 != nil {
 		return nil, err3
 	}
-	err4 := rulesAndDetails.computeActualRules(c)
+	err4 := rulesAndDetails.computeActualRules()
 	if err4 != nil {
 		return nil, err4
 	}
@@ -163,8 +163,15 @@ func (details *rulesAndConnDetails) computeFilters(c *VPCConfig) error {
 		if routingResource != nil {
 			filtersForExternal = routingResource.AppliedFiltersKinds() // relevant filtersExternal
 		}
+		// security group applied always between two vsis
+		filtersForInternal := map[string]bool{SecurityGroupLayer: true}
+		// nacl applied between two vsis if not same subnet
+		if src.IsInternal() && dst.IsInternal() {
+			filtersForInternal[NaclLayer] = src.(InternalNodeIntf).Subnet().UID() != dst.(InternalNodeIntf).Subnet().UID()
+		}
 		singleSrcDstDetails.router = routingResource
 		singleSrcDstDetails.filtersExternal = filtersForExternal
+		singleSrcDstDetails.filtersInternal = filtersForInternal
 	}
 	return nil
 }
@@ -174,17 +181,21 @@ func (details *rulesAndConnDetails) computeFilters(c *VPCConfig) error {
 // considering filtersExternal (which was computed based on the RoutingResource) and removing filters
 // not relevant for the Router e.g. nacl not relevant fip
 // 2. ingressEnabled and egressEnabled: whether traffic is enabled via ingress, egress
-
-func (details *rulesAndConnDetails) computeActualRules(c *VPCConfig) error {
+func (details *rulesAndConnDetails) computeActualRules() error {
 	for _, singleSrcDstDetails := range *details {
-		filtersForExternal := singleSrcDstDetails.filtersExternal
 		isInternal := singleSrcDstDetails.src.IsInternal() && singleSrcDstDetails.dst.IsInternal()
+		var filterSrcDst map[string]bool
+		if isInternal {
+			filterSrcDst = singleSrcDstDetails.filtersInternal
+		} else {
+			filterSrcDst = singleSrcDstDetails.filtersExternal
+		}
 		actualAllowIngress, ingressEnabled := computeActualRules(&singleSrcDstDetails.potentialAllowRules.ingressRules,
-			filtersForExternal, isInternal)
+			filterSrcDst)
 		actualAllowEgress, egressEnabled := computeActualRules(&singleSrcDstDetails.potentialAllowRules.egressRules,
-			filtersForExternal, isInternal)
-		actualDenyIngress, _ := computeActualRules(&singleSrcDstDetails.potentialDenyRules.ingressRules, filtersForExternal, isInternal)
-		actualDenyEgress, _ := computeActualRules(&singleSrcDstDetails.potentialDenyRules.egressRules, filtersForExternal, isInternal)
+			filterSrcDst)
+		actualDenyIngress, _ := computeActualRules(&singleSrcDstDetails.potentialDenyRules.ingressRules, filterSrcDst)
+		actualDenyEgress, _ := computeActualRules(&singleSrcDstDetails.potentialDenyRules.egressRules, filterSrcDst)
 		actualAllow := &rulesConnection{*actualAllowIngress, *actualAllowEgress}
 		actualDeny := &rulesConnection{*actualDenyIngress, *actualDenyEgress}
 		singleSrcDstDetails.actualAllowRules = actualAllow
@@ -196,24 +207,16 @@ func (details *rulesAndConnDetails) computeActualRules(c *VPCConfig) error {
 }
 
 // computes actual rules relevant to the connection, as well as whether the direction is enabled
-func computeActualRules(rulesLayer *rulesInLayers, filtersExternal map[string]bool, srcDstInternal bool) (*rulesInLayers, bool) {
+func computeActualRules(rulesLayer *rulesInLayers, filters map[string]bool) (*rulesInLayers, bool) {
 	actualRules := rulesInLayers{}
 	filterNotBlocking := map[string]bool{}
 	for filter, potentialRules := range *rulesLayer {
-		filterIsRelevant := filtersExternal[filter] || srcDstInternal
+		filterIsRelevant := filters[filter]
 		if filterIsRelevant {
 			actualRules[filter] = potentialRules
 		}
-		// The filter is not blocking if it has enabling  rules or is not required for the router
-		// Specifically, current filters are nacl and sg; if both src and dst are internal then they are both relevant.
-		// (if both are in the same subnet then the nacl analyzer will handle it correctly.)
-		// If fip is the router and one of src/dst is external then nacl is ignored.
-		if filterHasRelevantRules(potentialRules) || !filterIsRelevant {
-			// The case of two vsis of the same subnet is tricky: the nacl filter is relevant but there are no potential rules
-			// this is solved by adding a dummy rule for this case with index -1 (DummyRule),
-			// so that potentialRules here will not be empty
-			// the printing functionality ignores rules of index -1 (DummyRule)
-			// thus nacl will not be identified as a blocking filter in this case
+		// The filter is not blocking if it is not relevant or has allow rules
+		if !filterIsRelevant || filterHasRelevantRules(potentialRules) {
 			filterNotBlocking[filter] = true
 		}
 	}
