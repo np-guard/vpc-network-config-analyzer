@@ -89,17 +89,20 @@ func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.Conne
 	if err2 != nil {
 		return nil, err2
 	}
-	rulesAndDetails.computeFilters()
-	err3 := rulesAndDetails.computeActualRules(c)
+	err3 := rulesAndDetails.computeFilters(c)
 	if err3 != nil {
 		return nil, err3
+	}
+	err4 := rulesAndDetails.computeActualRules(c)
+	if err4 != nil {
+		return nil, err4
 	}
 
 	rulesAndDetails.computeCombinedActualRules() // combined deny and allow
 
-	groupedLines, err4 := newGroupConnExplainability(c, &rulesAndDetails)
-	if err4 != nil {
-		return nil, err4
+	groupedLines, err5 := newGroupConnExplainability(c, &rulesAndDetails)
+	if err5 != nil {
+		return nil, err5
 	}
 
 	return &Explanation{c, connQuery, &rulesAndDetails, src, dst,
@@ -143,23 +146,27 @@ func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node,
 // 2. The external filters relevant to the <src, dst> given the routingResource
 // 3. The internal filters relevant to the <src, dst>
 // todo: add internal filters, also to computeActualRules
-func (details *rulesAndConnDetails) computeFilters() {
+func (details *rulesAndConnDetails) computeFilters(c *VPCConfig) error {
 	for _, singleSrcDstDetails := range *details {
-		filtersForExternal := singleSrcDstDetails.filtersExternal
-		isInternal := singleSrcDstDetails.src.IsInternal() && singleSrcDstDetails.dst.IsInternal()
-		actualAllowIngress, ingressEnabled := computeActualRules(&singleSrcDstDetails.potentialAllowRules.ingressRules,
-			filtersForExternal, isInternal)
-		actualAllowEgress, egressEnabled := computeActualRules(&singleSrcDstDetails.potentialAllowRules.egressRules,
-			filtersForExternal, isInternal)
-		actualDenyIngress, _ := computeActualRules(&singleSrcDstDetails.potentialDenyRules.ingressRules, filtersForExternal, isInternal)
-		actualDenyEgress, _ := computeActualRules(&singleSrcDstDetails.potentialDenyRules.egressRules, filtersForExternal, isInternal)
-		actualAllow := &rulesConnection{*actualAllowIngress, *actualAllowEgress}
-		actualDeny := &rulesConnection{*actualDenyIngress, *actualDenyEgress}
-		singleSrcDstDetails.actualAllowRules = actualAllow
-		singleSrcDstDetails.ingressEnabled = ingressEnabled
-		singleSrcDstDetails.egressEnabled = egressEnabled
-		singleSrcDstDetails.actualDenyRules = actualDeny
+		// RoutingResources are computed by the parser for []Nodes of the VPC,
+		// finds the relevant nodes for the query's src and dst;
+		// if for src or dst no containing node was found, there is no router
+		var routingResource RoutingResource
+		var filtersForExternal map[string]bool
+		var err error
+		src := singleSrcDstDetails.src
+		dst := singleSrcDstDetails.dst
+		routingResource, _, err = c.getRoutingResource(src, dst)
+		if err != nil {
+			return err
+		}
+		if routingResource != nil {
+			filtersForExternal = routingResource.AppliedFiltersKinds() // relevant filtersExternal
+		}
+		singleSrcDstDetails.router = routingResource
+		singleSrcDstDetails.filtersExternal = filtersForExternal
 	}
+	return nil
 }
 
 // computeActualRules computes, after potentialRules and filters were computed, for each  <src, dst> :
@@ -170,25 +177,7 @@ func (details *rulesAndConnDetails) computeFilters() {
 
 func (details *rulesAndConnDetails) computeActualRules(c *VPCConfig) error {
 	for _, singleSrcDstDetails := range *details {
-		src := singleSrcDstDetails.src
-		dst := singleSrcDstDetails.dst
-		// RoutingResources are computed by the parser for []Nodes of the VPC,
-		// finds the relevant nodes for the query's src and dst;
-		// if for src or dst no containing node was found, there is no router
-		var routingResource RoutingResource
-		var filtersForExternal map[string]bool
-		var err error
-
-		routingResource, _, err = c.getRoutingResource(src, dst)
-		if err != nil {
-			return err
-		}
-		if routingResource != nil {
-			filtersForExternal = routingResource.AppliedFiltersKinds() // relevant filtersExternal
-		}
-
-		singleSrcDstDetails.router = routingResource
-		singleSrcDstDetails.filtersExternal = filtersForExternal
+		filtersForExternal := singleSrcDstDetails.filtersExternal
 		isInternal := singleSrcDstDetails.src.IsInternal() && singleSrcDstDetails.dst.IsInternal()
 		actualAllowIngress, ingressEnabled := computeActualRules(&singleSrcDstDetails.potentialAllowRules.ingressRules,
 			filtersForExternal, isInternal)
