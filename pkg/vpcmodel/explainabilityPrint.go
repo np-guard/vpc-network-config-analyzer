@@ -149,10 +149,6 @@ func stringExplainabilityConnection(connQuery *common.ConnectionSet, src, dst En
 	return resStr
 }
 
-// todo:
-// 		1. Extract getting the list of filters, check commit and push
-//      2. To header and details add path printing - use enum?
-
 // prints either rulesDetails by calling StringDetailsRulesOfFilter or effect of each filter by calling StringFilterEffect
 func (rulesInLayers rulesInLayers) string(c *VPCConfig, filtersRelevant map[string]bool, isIngress, printDetails bool) string {
 	// todo: replace string with slice and Join
