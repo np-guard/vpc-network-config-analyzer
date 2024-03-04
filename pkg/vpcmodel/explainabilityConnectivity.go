@@ -178,12 +178,12 @@ func (details *rulesAndConnDetails) computeFilters(c *VPCConfig) error {
 func (details *rulesAndConnDetails) computeActualRules() {
 	for _, singleSrcDstDetails := range *details {
 		filterRelevant := singleSrcDstDetails.filtersRelevant
-		actualAllowIngress, ingressEnabled := computeActualRules(&singleSrcDstDetails.potentialAllowRules.ingressRules,
-			filterRelevant)
-		actualAllowEgress, egressEnabled := computeActualRules(&singleSrcDstDetails.potentialAllowRules.egressRules,
-			filterRelevant)
-		actualDenyIngress, _ := computeActualRules(&singleSrcDstDetails.potentialDenyRules.ingressRules, filterRelevant)
-		actualDenyEgress, _ := computeActualRules(&singleSrcDstDetails.potentialDenyRules.egressRules, filterRelevant)
+		actualAllowIngress, ingressEnabled :=
+			computeActualRulesGivenRulesFilter(&singleSrcDstDetails.potentialAllowRules.ingressRules, filterRelevant)
+		actualAllowEgress, egressEnabled :=
+			computeActualRulesGivenRulesFilter(&singleSrcDstDetails.potentialAllowRules.egressRules, filterRelevant)
+		actualDenyIngress, _ := computeActualRulesGivenRulesFilter(&singleSrcDstDetails.potentialDenyRules.ingressRules, filterRelevant)
+		actualDenyEgress, _ := computeActualRulesGivenRulesFilter(&singleSrcDstDetails.potentialDenyRules.egressRules, filterRelevant)
 		actualAllow := &rulesConnection{*actualAllowIngress, *actualAllowEgress}
 		actualDeny := &rulesConnection{*actualDenyIngress, *actualDenyEgress}
 		singleSrcDstDetails.actualAllowRules = actualAllow
@@ -193,8 +193,9 @@ func (details *rulesAndConnDetails) computeActualRules() {
 	}
 }
 
-// computes actual rules relevant to the connection, as well as whether the direction is enabled
-func computeActualRules(rulesLayers *rulesInLayers, filters map[string]bool) (*rulesInLayers, bool) {
+// given rulesInLayers and a filter computes actual rules and whether the direction is enabled.
+// this is called separately for each direction (ingreee/egress) and allow/deny
+func computeActualRulesGivenRulesFilter(rulesLayers *rulesInLayers, filters map[string]bool) (*rulesInLayers, bool) {
 	actualRules := rulesInLayers{}
 	directionEnabled := true
 	for _, layer := range filterLayers {
