@@ -151,11 +151,11 @@ func stringExplainabilityConnection(connQuery *common.ConnectionSet, src, dst En
 
 // todo:
 // 		1. Extract getting the list of filters, check commit and push
-//      2. Separate header from details and have all in one call with verbosity parm
-//      3. Add path printing when allowed and replace header in that case
+//      2. To header and details add path printing - use enum?
 
 // prints either rulesDetails by calling StringDetailsRulesOfFilter or effect of each filter by calling StringFilterEffect
-func (rulesInLayers rulesInLayers) string(c *VPCConfig, filtersRelevant map[string]bool, isIngress, verbosity bool) string {
+func (rulesInLayers rulesInLayers) string(c *VPCConfig, filtersRelevant map[string]bool, isIngress, printDetails bool) string {
+	// todo: replace string with slice and Join
 	rulesInLayersStr := ""
 	// order of presentation should be same as order of evaluation:
 	// (1) the SGs attached to the src NIF (2) the outbound rules in the ACL attached to the src NIF's subnet
@@ -165,11 +165,10 @@ func (rulesInLayers rulesInLayers) string(c *VPCConfig, filtersRelevant map[stri
 	for _, layer := range filterLayersOrder {
 		filter := c.getFilterTrafficResourceOfKind(layer)
 		if rules, ok := rulesInLayers[layer]; ok {
-			if verbosity {
+			if printDetails {
 				rulesInLayersStr += filter.StringDetailsRulesOfFilter(rules)
 			} else {
-				thisFilterEffectString := filter.StringFilterEffect(rules)
-				if rulesInLayersStr != "" && thisFilterEffectString != "" {
+				if rulesInLayersStr != "" {
 					rulesInLayersStr += semicolon + " "
 				}
 				rulesInLayersStr += filter.StringFilterEffect(rules)
