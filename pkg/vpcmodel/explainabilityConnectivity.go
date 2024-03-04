@@ -148,11 +148,11 @@ func (details *rulesAndConnDetails) computeFilters(c *VPCConfig) error {
 		src := singleSrcDstDetails.src
 		dst := singleSrcDstDetails.dst
 		if src.IsInternal() && dst.IsInternal() { // internal
-			// security group applied always between two vsis
-			singleSrcDstDetails.filtersRelevant = map[string]bool{SecurityGroupLayer: true}
-			// nacl applied between two vsis if not same subnet
-			singleSrcDstDetails.filtersRelevant[NaclLayer] =
-				src.(InternalNodeIntf).Subnet().UID() != dst.(InternalNodeIntf).Subnet().UID()
+			var err error
+			singleSrcDstDetails.filtersRelevant, err = src.(InternalNodeIntf).AppliedFiltersKinds(dst)
+			if err != nil {
+				return err
+			}
 		} else { // external
 			routingResource, _, err := c.getRoutingResource(src, dst)
 			if err != nil {
