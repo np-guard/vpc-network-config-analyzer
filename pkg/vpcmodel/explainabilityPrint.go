@@ -96,8 +96,13 @@ func stringExplainabilityLine(verbose bool, c *VPCConfig, filtersRelevant map[st
 }
 
 func (rules *rulesConnection) getFilterEffectStr(c *VPCConfig, filtersRelevant map[string]bool, needEgress, needIngress bool) string {
-	egressRulesStr := rules.egressRules.string(c, filtersRelevant, false, false)
-	ingressRulesStr := rules.ingressRules.string(c, filtersRelevant, true, false)
+	egressRulesStr, ingressRulesStr := "", ""
+	if needEgress {
+		egressRulesStr = rules.egressRules.string(c, filtersRelevant, false, false)
+	}
+	if needIngress {
+		ingressRulesStr = rules.ingressRules.string(c, filtersRelevant, true, false)
+	}
 	if needEgress && egressRulesStr != "" {
 		egressRulesStr = "Egress: " + egressRulesStr
 	}
@@ -114,8 +119,13 @@ func (rules *rulesConnection) getRuleDetailsStr(c *VPCConfig, filtersRelevant ma
 	if !verbose {
 		return ""
 	}
-	egressRulesStr := rules.egressRules.string(c, filtersRelevant, false, true)
-	ingressRulesStr := rules.ingressRules.string(c, filtersRelevant, true, true)
+	egressRulesStr, ingressRulesStr := "", ""
+	if needEgress {
+		egressRulesStr = rules.egressRules.string(c, filtersRelevant, false, true)
+	}
+	if needIngress {
+		ingressRulesStr = rules.ingressRules.string(c, filtersRelevant, true, true)
+	}
 	if needEgress && egressRulesStr != "" {
 		egressRulesStr = "Egress:\n" + egressRulesStr
 	}
