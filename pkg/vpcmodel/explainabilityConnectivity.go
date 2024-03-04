@@ -148,7 +148,6 @@ func (details *rulesAndConnDetails) computeFilters(c *VPCConfig) error {
 		src := singleSrcDstDetails.src
 		dst := singleSrcDstDetails.dst
 		if src.IsInternal() && dst.IsInternal() { // internal
-			var err error
 			singleSrcDstDetails.filtersRelevant = src.(InternalNodeIntf).AppliedFiltersKinds(dst.(InternalNodeIntf))
 		} else { // external
 			routingResource, _, err := c.getRoutingResource(src, dst)
