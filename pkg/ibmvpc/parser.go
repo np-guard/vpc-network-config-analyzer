@@ -645,18 +645,19 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 	}
 	for _, tgwConn := range c.TransitConnectionList {
 		tgwUID := *tgwConn.TransitGateway.Crn
+		tgwID := *tgwConn.TransitGateway.ID
 		tgwName := *tgwConn.TransitGateway.Name
 		vpcUID := *tgwConn.NetworkID
 
 		// filtering by resourceGroup
 		if resourceGroup != "" {
-			if tgwResourceGroup, ok := tgwIDToRG[tgwUID]; ok {
+			if tgwResourceGroup, ok := tgwIDToRG[tgwID]; ok {
 				if tgwResourceGroup != resourceGroup {
 					continue
 				}
 			} else {
-				fmt.Printf("warning: ignoring tgw with unknown resource-group, tgwID: %s\n", tgwUID)
-				tgwIDToRG[tgwUID] = ""
+				fmt.Printf("warning: ignoring tgw with unknown resource-group, tgwID: %s\n", tgwID)
+				tgwIDToRG[tgwID] = "" // to avoid having this tgw's same warning issued again from another transitConnection
 				continue
 			}
 		}
