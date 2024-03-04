@@ -151,8 +151,7 @@ func stringExplainabilityConnection(connQuery *common.ConnectionSet, src, dst En
 
 // prints either rulesDetails by calling StringDetailsRulesOfFilter or effect of each filter by calling StringFilterEffect
 func (rulesInLayers rulesInLayers) string(c *VPCConfig, filtersRelevant map[string]bool, isIngress, printDetails bool) string {
-	// todo: replace string with slice and Join
-	rulesInLayersStr := ""
+	var strSlice []string
 	// order of presentation should be same as order of evaluation:
 	// (1) the SGs attached to the src NIF (2) the outbound rules in the ACL attached to the src NIF's subnet
 	// (3) the inbound rules in the ACL attached to the dst NIF's subnet (4) the SGs attached to the dst NIF.
@@ -161,17 +160,20 @@ func (rulesInLayers rulesInLayers) string(c *VPCConfig, filtersRelevant map[stri
 	for _, layer := range filterLayersOrder {
 		filter := c.getFilterTrafficResourceOfKind(layer)
 		if rules, ok := rulesInLayers[layer]; ok {
+			if len(rules) == 0 {
+				continue
+			}
 			if printDetails {
-				rulesInLayersStr += filter.StringDetailsRulesOfFilter(rules)
+				strSlice = append(strSlice, filter.StringDetailsRulesOfFilter(rules))
 			} else {
-				if rulesInLayersStr != "" {
-					rulesInLayersStr += semicolon + " "
-				}
-				rulesInLayersStr += filter.StringFilterEffect(rules)
+				strSlice = append(strSlice, filter.StringFilterEffect(rules))
 			}
 		}
 	}
-	return rulesInLayersStr
+	if printDetails {
+		return strings.Join(strSlice, "")
+	}
+	return strings.Join(strSlice, semicolon+" ")
 }
 
 // gets filter Layers valid per filtersRelevant in the order they should be printed
