@@ -31,8 +31,8 @@ type srcDstDetails struct {
 	conn   *common.ConnectionSet
 	router RoutingResource // the router (fip or pgw) to external network; nil if none
 	// filters relevant for this src, dst pair; map keys are the filters kind (NaclLayer/SecurityGroupLayer)
-	// for two internal nodes within same subnet, only SG layer is relevant 
-	// for external connectivity (src/dst is external) with FIP, only SG layer is relevant 
+	// for two internal nodes within same subnet, only SG layer is relevant
+	// for external connectivity (src/dst is external) with FIP, only SG layer is relevant
 	filtersRelevant     map[string]bool
 	potentialAllowRules *rulesConnection // potentially enabling connection - potential given the filter is relevant
 	actualAllowRules    *rulesConnection // enabling rules effecting connection given router; e.g. NACL is not relevant for fip
@@ -170,9 +170,10 @@ func (details *rulesAndConnDetails) computeFilters(c *VPCConfig) error {
 
 // computeActualRules computes, after potentialRules and filters were computed, for each  <src, dst> :
 // 1. from the potentialRules the actualRules (per ingress, egress) that actually enable traffic,
-// considering filtersExternal (which was computed based on the RoutingResource) and removing filters
+// considering filtersRelevant which, depending on src and dst is either derived from
+// filtersExternal - which was computed based on the RoutingResource - and removing filters
 // not relevant for the Router e.g. nacl not relevant fip
-// and considering filterInternal - removing nacl when both vsis are of the same subnets
+// or was derived from filterInternal - removing nacl when both vsis are of the same subnets
 // 2. ingressEnabled and egressEnabled: whether traffic is enabled via ingress, egress
 func (details *rulesAndConnDetails) computeActualRules() {
 	for _, singleSrcDstDetails := range *details {
