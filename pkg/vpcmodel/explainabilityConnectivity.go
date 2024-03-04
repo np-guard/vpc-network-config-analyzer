@@ -193,7 +193,7 @@ func (details *rulesAndConnDetails) computeActualRules() {
 	}
 }
 
-// given rulesInLayers and a filter computes actual rules and whether the direction is enabled.
+// given rulesInLayers and the relevant filters, computes actual rules and whether the direction is enabled.
 // this is called separately for each direction (ingreee/egress) and allow/deny
 func computeActualRulesGivenRulesFilter(rulesLayers *rulesInLayers, filters map[string]bool) (*rulesInLayers, bool) {
 	actualRules := rulesInLayers{}
