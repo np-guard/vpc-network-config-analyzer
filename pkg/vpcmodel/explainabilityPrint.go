@@ -48,8 +48,9 @@ func (explanation *Explanation) String(verbose bool) string {
 	linesStr := make([]string, len(explanation.groupedLines))
 	groupedLines := explanation.groupedLines
 	for i, line := range groupedLines {
-		linesStr[i] += stringExplainabilityLine(verbose, explanation.c, nil, explanation.connQuery, line.src, line.dst, line.commonProperties.conn,
-			line.commonProperties.expDetails.ingressEnabled, line.commonProperties.expDetails.egressEnabled,
+		linesStr[i] += stringExplainabilityLine(verbose, explanation.c, line.commonProperties.expDetails.filtersRelevant,
+			explanation.connQuery, line.src, line.dst, line.commonProperties.conn, line.commonProperties.expDetails.ingressEnabled,
+			line.commonProperties.expDetails.egressEnabled,
 			line.commonProperties.expDetails.router, line.commonProperties.expDetails.rules) +
 			"------------------------------------------------------------------------------------------------------------------------\n"
 	}
@@ -155,25 +156,14 @@ func stringExplainabilityConnection(connQuery *common.ConnectionSet, src, dst En
 
 // prints either rulesDetails by calling StringDetailsRulesOfFilter or effect of each filter by calling StringFilterEffect
 func (rulesInLayers rulesInLayers) string(c *VPCConfig, filtersRelevant map[string]bool, isIngress, verbosity bool) string {
-	//fmt.Printf("getLayersToPrint isIngress %v is %+v\n", isIngress, getLayersToPrint(filtersRelevant, isIngress)) // todo tmp
 	rulesInLayersStr := ""
 	// order of presentation should be same as order of evaluation:
 	// (1) the SGs attached to the src NIF (2) the outbound rules in the ACL attached to the src NIF's subnet
 	// (3) the inbound rules in the ACL attached to the dst NIF's subnet (4) the SGs attached to the dst NIF.
 	// thus, egress: security group first, ingress: nacl first
-	filterLayersOrder := [2]string{SecurityGroupLayer, NaclLayer}
-	if isIngress {
-		filterLayersOrder = [2]string{NaclLayer, SecurityGroupLayer}
-	}
-	if isIngress {
-		filterLayersOrder[0] = NaclLayer
-		filterLayersOrder[1] = SecurityGroupLayer
-	}
+	filterLayersOrder := getLayersToPrint(filtersRelevant, isIngress)
 	for _, layer := range filterLayersOrder {
 		filter := c.getFilterTrafficResourceOfKind(layer)
-		if filter == nil {
-			continue
-		}
 		if rules, ok := rulesInLayers[layer]; ok {
 			if verbosity {
 				rulesInLayersStr += filter.StringDetailsRulesOfFilter(rules)

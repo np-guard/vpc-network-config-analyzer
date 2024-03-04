@@ -21,12 +21,12 @@ type groupedExternalNodesInfo struct {
 }
 
 type explainDetails struct {
-	rules          *rulesConnection
-	router         RoutingResource
-	filters        map[string]bool
-	connEnabled    bool
-	ingressEnabled bool
-	egressEnabled  bool
+	rules           *rulesConnection
+	router          RoutingResource
+	filtersRelevant map[string]bool
+	connEnabled     bool
+	ingressEnabled  bool
+	egressEnabled   bool
 }
 
 type groupedCommonProperties struct {
