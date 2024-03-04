@@ -193,7 +193,8 @@ func (details *rulesAndConnDetails) computeActualRules() {
 	}
 }
 
-// given rulesInLayers and the relevant filters, computes actual rules and whether the direction is enabled.
+// given rulesInLayers and the relevant filters, computes actual rules and whether the direction is enabled,
+// given that rulesInLayers are allow rules; for deny rules this computation is meaningless and is ignored.
 // this is called separately for each direction (ingreee/egress) and allow/deny
 func computeActualRulesGivenRulesFilter(rulesLayers *rulesInLayers, filters map[string]bool) (*rulesInLayers, bool) {
 	actualRules := rulesInLayers{}
@@ -202,6 +203,7 @@ func computeActualRulesGivenRulesFilter(rulesLayers *rulesInLayers, filters map[
 		filterIsRelevant := filters[layer]
 		potentialRules := (*rulesLayers)[layer]
 		// The filter is blocking if it is relevant and has no allow rules
+		// this computation is meaningful only when rulesLayers are allow rules and is ignored otherwise
 		if filterIsRelevant && !filterHasRelevantRules(potentialRules) {
 			directionEnabled = false
 		}
