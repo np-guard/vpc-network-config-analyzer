@@ -22,6 +22,20 @@ func (data *templateData) SvgRootId() string {
 	return fmt.Sprintf("%s_%d", "top", data.rootID)
 }
 
+func nodeBasicRelations(node TreeNodeInterface) []TreeNodeInterface{
+	if node == nil {return nil}
+	return append(nodeBasicRelations(node.Parent()), node)
+}
+
+
+func nodeRelations(node TreeNodeInterface) []TreeNodeInterface{
+	res := nodeBasicRelations(node)
+	if node.IsLine(){
+		res = append(res, nodeBasicRelations(node.(LineTreeNodeInterface).Src())...)
+		res = append(res, nodeBasicRelations(node.(LineTreeNodeInterface).Dst())...)
+	}
+	return res
+}
 func (data *templateData) nodesRelations(nodes []TreeNodeInterface) map[string]map[string][]string {
 	res := map[string]map[string][]string{}
 	res[""] = map[string][]string{}
@@ -31,12 +45,11 @@ func (data *templateData) nodesRelations(nodes []TreeNodeInterface) map[string]m
 	for _, node := range nodes {
 		nId := data.SvgId(node)
 		res[nId] = map[string][]string{}
-		res[nId]["relations"] = []string{nId, data.SvgRootId()}
-		res[""]["relations"] = append(res[""]["relations"], nId)
-		p := node.Parent()
-		if p != nil {
-			res[nId]["relations"] = append(res[nId]["relations"], data.SvgId(p))
+		res[nId]["relations"] = []string{data.SvgRootId()}
+		for _, n := range nodeRelations(node){
+			res[nId]["relations"] = append(res[nId]["relations"], data.SvgId(n))
 		}
+		res[""]["relations"] = append(res[""]["relations"], nId)
 		res[nId]["highlights"] = []string{nId}
 		res[nId]["explanation"] = []string{"expl of " + node.Label()}
 
