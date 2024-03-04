@@ -655,7 +655,8 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 					continue
 				}
 			} else {
-				fmt.Printf("warning: ignoring tgw with unknown RG, tgwID: %s\n", tgwUID)
+				fmt.Printf("warning: ignoring tgw with unknown resource-group, tgwID: %s\n", tgwUID)
+				tgwIDToRG[tgwUID] = ""
 				continue
 			}
 		}
