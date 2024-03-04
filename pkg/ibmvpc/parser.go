@@ -650,8 +650,8 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 
 		// filtering by resourceGroup
 		if resourceGroup != "" {
-			if RG, ok := tgwIDToRG[tgwUID]; ok {
-				if RG != resourceGroup {
+			if tgwResourceGroup, ok := tgwIDToRG[tgwUID]; ok {
+				if tgwResourceGroup != resourceGroup {
 					continue
 				}
 			} else {
