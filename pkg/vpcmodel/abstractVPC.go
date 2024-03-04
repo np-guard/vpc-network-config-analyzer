@@ -122,7 +122,7 @@ func (n *InternalNode) Subnet() Subnet {
 	return n.SubnetResource
 }
 
-// AppliedFiltersKinds filters between two internal nodes; if otherNode not internal then error
+// AppliedFiltersKinds returns relevant filters between two internal nodes
 func (n *InternalNode) AppliedFiltersKinds(otherNode InternalNodeIntf) map[string]bool {
 	res := map[string]bool{SecurityGroupLayer: true}
 	if n.Subnet().UID() != otherNode.Subnet().UID() {
