@@ -201,7 +201,7 @@ func computeActualRulesGivenRulesFilter(rulesLayers *rulesInLayers, filters map[
 	for _, layer := range filterLayers {
 		filterIsRelevant := filters[layer]
 		potentialRules := (*rulesLayers)[layer]
-		// The filter blocking if it is relevant or has no allow rules
+		// The filter is blocking if it is relevant and has no allow rules
 		if filterIsRelevant && !filterHasRelevantRules(potentialRules) {
 			directionEnabled = false
 		}
