@@ -92,6 +92,9 @@ type InternalNodeIntf interface {
 	IPBlock() *ipblocks.IPBlock
 	// Subnet returns the subnet of the internal node
 	Subnet() Subnet
+	// AppliedFiltersKinds returns relevant filters for connectivity between internal nodes
+	//  specifically, nacl is non-relevant if me and otherNode are in the same subnet
+	AppliedFiltersKinds(otherNode InternalNodeIntf) map[string]bool
 }
 
 // InternalNode implements interface InternalNodeIntf
@@ -117,6 +120,15 @@ func (n *InternalNode) IPBlock() *ipblocks.IPBlock {
 
 func (n *InternalNode) Subnet() Subnet {
 	return n.SubnetResource
+}
+
+// AppliedFiltersKinds returns relevant filters between two internal nodes
+func (n *InternalNode) AppliedFiltersKinds(otherNode InternalNodeIntf) map[string]bool {
+	res := map[string]bool{SecurityGroupLayer: true}
+	if n.Subnet().UID() != otherNode.Subnet().UID() {
+		res[NaclLayer] = true
+	}
+	return res
 }
 
 // SetIPBlockFromAddress sets the node's IPBlockObj field from its AddressStr field.
@@ -164,7 +176,6 @@ const (
 	OnlyAllow            // there are only relevant allow rules in this filter
 	OnlyDeny             // there are only relevant deny rules in this filter
 	BothAllowDeny        // there are relevant allow and deny rules in this filter
-	OnlyDummyRule        // This is used to mark a nacl table when src, dst are in the same subnet
 )
 
 // RulesInFilter for a given layer (SGLayer/NACLLayer) contains specific rules in a specific SG/NACL filter
