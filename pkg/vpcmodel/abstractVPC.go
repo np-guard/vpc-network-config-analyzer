@@ -1,7 +1,6 @@
 package vpcmodel
 
 import (
-	"fmt"
 	"github.com/np-guard/models/pkg/ipblocks"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
@@ -95,7 +94,7 @@ type InternalNodeIntf interface {
 	Subnet() Subnet
 	// AppliedFiltersKinds filters relevant; specifically, nacl non-relevant if me and otherInternalNode
 	// of same subnet
-	AppliedFiltersKinds(otherInternalNode Node) (map[string]bool, error)
+	AppliedFiltersKinds(InternalNodeIntf) map[string]bool
 }
 
 // InternalNode implements interface InternalNodeIntf
@@ -124,16 +123,12 @@ func (n *InternalNode) Subnet() Subnet {
 }
 
 // AppliedFiltersKinds filters between two internal nodes; if otherNode not internal then error
-// todo: if otherNode is defined as InternalNode then the function becomes non useful.
-func (n *InternalNode) AppliedFiltersKinds(otherNode Node) (map[string]bool, error) {
-	if !otherNode.IsInternal() {
-		return nil, fmt.Errorf("%v not internal", otherNode.Name())
-	}
+func (n *InternalNode) AppliedFiltersKinds(otherNode InternalNodeIntf) map[string]bool {
 	res := map[string]bool{SecurityGroupLayer: true}
-	if n.Subnet().UID() != otherNode.(InternalNodeIntf).Subnet().UID() {
+	if n.Subnet().UID() != otherNode.Subnet().UID() {
 		res[NaclLayer] = true
 	}
-	return res, nil
+	return res
 }
 
 // SetIPBlockFromAddress sets the node's IPBlockObj field from its AddressStr field.

@@ -149,7 +149,7 @@ func (details *rulesAndConnDetails) computeFilters(c *VPCConfig) error {
 		dst := singleSrcDstDetails.dst
 		if src.IsInternal() && dst.IsInternal() { // internal
 			var err error
-			singleSrcDstDetails.filtersRelevant, err = src.(InternalNodeIntf).AppliedFiltersKinds(dst)
+			singleSrcDstDetails.filtersRelevant = src.(InternalNodeIntf).AppliedFiltersKinds(dst.(InternalNodeIntf))
 			if err != nil {
 				return err
 			}
