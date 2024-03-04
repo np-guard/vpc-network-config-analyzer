@@ -8,7 +8,7 @@ require (
 	github.com/np-guard/cloud-resource-collector v0.5.2
 	github.com/np-guard/models v0.1.2
 	github.com/np-guard/vpc-network-config-synthesis v0.1.0
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 )
 
 require (
