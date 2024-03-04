@@ -66,8 +66,7 @@ func stringExplainabilityLine(verbose bool, c *VPCConfig, filtersRelevant map[st
 	noIngressRules := !ingressEnabled && needIngress
 	noEgressRules := !egressEnabled && needEgress
 	var routerStr, rulesStr, noConnection, resStr string
-	isExternal := src.IsExternal() || dst.IsExternal()
-	if router != nil && isExternal {
+	if router != nil && (src.IsExternal() || dst.IsExternal()) {
 		routerStr = "External traffic via " + router.Kind() + ": " + router.Name() + "\n"
 	}
 	routerFiltersHeader := routerStr + rules.getFilterEffectStr(c, filtersRelevant, needEgress, needIngress)
