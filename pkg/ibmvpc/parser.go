@@ -636,6 +636,13 @@ func getNACLconfig(rc *datamodel.ResourcesContainerModel,
 func getTgwObjects(c *datamodel.ResourcesContainerModel,
 	res map[string]*vpcmodel.VPCConfig, resourceGroup string) map[string]*TransitGateway {
 	tgwMap := map[string]*TransitGateway{} // collect all tgw resources
+
+	tgwIDToRG := map[string]string{}
+	if resourceGroup != "" {
+		for _, tgw := range c.TransitGatewayList {
+			tgwIDToRG[*tgw.ID] = *tgw.ResourceGroup.ID
+		}
+	}
 	for _, tgwConn := range c.TransitConnectionList {
 		tgwUID := *tgwConn.TransitGateway.Crn
 		tgwName := *tgwConn.TransitGateway.Name
@@ -643,16 +650,12 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 
 		// filtering by resourceGroup
 		if resourceGroup != "" {
-			shouldSkip := true
-			for _, tgw := range c.TransitGatewayList {
-				if tgwUID == *tgw.ID {
-					if *tgw.ResourceGroup.ID == resourceGroup {
-						shouldSkip = false
-					}
-					break
+			if RG, ok := tgwIDToRG[tgwUID]; ok {
+				if RG != resourceGroup {
+					continue
 				}
-			}
-			if shouldSkip {
+			} else {
+				fmt.Printf("warning: ignoring tgw with unknown RG, tgwID: %s\n", tgwUID)
 				continue
 			}
 		}
