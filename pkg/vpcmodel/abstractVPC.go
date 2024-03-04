@@ -92,9 +92,9 @@ type InternalNodeIntf interface {
 	IPBlock() *ipblocks.IPBlock
 	// Subnet returns the subnet of the internal node
 	Subnet() Subnet
-	// AppliedFiltersKinds filters relevant; specifically, nacl non-relevant if me and otherInternalNode
-	// of same subnet
-	AppliedFiltersKinds(InternalNodeIntf) map[string]bool
+	// AppliedFiltersKinds returns relevant filters for connectivity between internal nodes
+	//  specifically, nacl is non-relevant if me and otherNode are in the same subnet
+	AppliedFiltersKinds(otherNode InternalNodeIntf) map[string]bool
 }
 
 // InternalNode implements interface InternalNodeIntf
