@@ -31,6 +31,8 @@ type srcDstDetails struct {
 	conn   *common.ConnectionSet
 	router RoutingResource // the router (fip or pgw) to external network; nil if none
 	// filters relevant for this src, dst pair; map keys are the filters kind (NaclLayer/SecurityGroupLayer)
+	// for two internal nodes within same subnet, only SG layer is relevant
+	// for external connectivity (src/dst is external) with FIP, only SG layer is relevant
 	filtersRelevant     map[string]bool
 	potentialAllowRules *rulesConnection // potentially enabling connection - potential given the filter is relevant
 	actualAllowRules    *rulesConnection // enabling rules effecting connection given router; e.g. NACL is not relevant for fip
@@ -146,11 +148,7 @@ func (details *rulesAndConnDetails) computeFilters(c *VPCConfig) error {
 		src := singleSrcDstDetails.src
 		dst := singleSrcDstDetails.dst
 		if src.IsInternal() && dst.IsInternal() { // internal
-			// security group applied always between two vsis
-			singleSrcDstDetails.filtersRelevant = map[string]bool{SecurityGroupLayer: true}
-			// nacl applied between two vsis if not same subnet
-			singleSrcDstDetails.filtersRelevant[NaclLayer] =
-				src.(InternalNodeIntf).Subnet().UID() != dst.(InternalNodeIntf).Subnet().UID()
+			singleSrcDstDetails.filtersRelevant = src.(InternalNodeIntf).AppliedFiltersKinds(dst.(InternalNodeIntf))
 		} else { // external
 			routingResource, _, err := c.getRoutingResource(src, dst)
 			if err != nil {
@@ -168,19 +166,20 @@ func (details *rulesAndConnDetails) computeFilters(c *VPCConfig) error {
 
 // computeActualRules computes, after potentialRules and filters were computed, for each  <src, dst> :
 // 1. from the potentialRules the actualRules (per ingress, egress) that actually enable traffic,
-// considering filtersExternal (which was computed based on the RoutingResource) and removing filters
+// considering filtersRelevant which, depending on src and dst is either derived from
+// filtersExternal - which was computed based on the RoutingResource - and removing filters
 // not relevant for the Router e.g. nacl not relevant fip
-// and considering filterInternal - removing nacl when both vsis are of the same subnets
+// or was derived from filterInternal - removing nacl when both vsis are of the same subnets
 // 2. ingressEnabled and egressEnabled: whether traffic is enabled via ingress, egress
 func (details *rulesAndConnDetails) computeActualRules() {
 	for _, singleSrcDstDetails := range *details {
 		filterRelevant := singleSrcDstDetails.filtersRelevant
-		actualAllowIngress, ingressEnabled := computeActualRules(&singleSrcDstDetails.potentialAllowRules.ingressRules,
-			filterRelevant)
-		actualAllowEgress, egressEnabled := computeActualRules(&singleSrcDstDetails.potentialAllowRules.egressRules,
-			filterRelevant)
-		actualDenyIngress, _ := computeActualRules(&singleSrcDstDetails.potentialDenyRules.ingressRules, filterRelevant)
-		actualDenyEgress, _ := computeActualRules(&singleSrcDstDetails.potentialDenyRules.egressRules, filterRelevant)
+		actualAllowIngress, ingressEnabled :=
+			computeActualRulesGivenRulesFilter(&singleSrcDstDetails.potentialAllowRules.ingressRules, filterRelevant)
+		actualAllowEgress, egressEnabled :=
+			computeActualRulesGivenRulesFilter(&singleSrcDstDetails.potentialAllowRules.egressRules, filterRelevant)
+		actualDenyIngress, _ := computeActualRulesGivenRulesFilter(&singleSrcDstDetails.potentialDenyRules.ingressRules, filterRelevant)
+		actualDenyEgress, _ := computeActualRulesGivenRulesFilter(&singleSrcDstDetails.potentialDenyRules.egressRules, filterRelevant)
 		actualAllow := &rulesConnection{*actualAllowIngress, *actualAllowEgress}
 		actualDeny := &rulesConnection{*actualDenyIngress, *actualDenyEgress}
 		singleSrcDstDetails.actualAllowRules = actualAllow
@@ -190,14 +189,17 @@ func (details *rulesAndConnDetails) computeActualRules() {
 	}
 }
 
-// computes actual rules relevant to the connection, as well as whether the direction is enabled
-func computeActualRules(rulesLayers *rulesInLayers, filters map[string]bool) (*rulesInLayers, bool) {
+// given rulesInLayers and the relevant filters, computes actual rules and whether the direction is enabled,
+// given that rulesInLayers are allow rules; for deny rules this computation is meaningless and is ignored.
+// this is called separately for each direction (ingreee/egress) and allow/deny
+func computeActualRulesGivenRulesFilter(rulesLayers *rulesInLayers, filters map[string]bool) (*rulesInLayers, bool) {
 	actualRules := rulesInLayers{}
 	directionEnabled := true
 	for _, layer := range filterLayers {
 		filterIsRelevant := filters[layer]
 		potentialRules := (*rulesLayers)[layer]
-		// The filter blocking if it is relevant or has no allow rules
+		// The filter is blocking if it is relevant and has no allow rules
+		// this computation is meaningful only when rulesLayers are allow rules and is ignored otherwise
 		if filterIsRelevant && !filterHasRelevantRules(potentialRules) {
 			directionEnabled = false
 		}
