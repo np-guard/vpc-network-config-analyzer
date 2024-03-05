@@ -56,6 +56,7 @@ var colors = map[reflect.Type]string{
 }
 
 type tnFamily int
+
 const (
 	// these are types of elementas in the canvas:
 	familyDoNotShow = iota
