@@ -44,6 +44,12 @@ type ReservedIP struct {
 	vpe string
 }
 
+type PrivateIP struct {
+	vpcmodel.VPCResource
+	vpcmodel.InternalNode
+	lb string
+}
+
 func (r *ReservedIP) Name() string {
 	return getNodeName(r.vpe, r.Address())
 }
@@ -182,6 +188,32 @@ func (v *Vpe) AddressRange() *ipblocks.IPBlock {
 
 // vpe is per vpc and not per zone...
 func (v *Vpe) Zone() (*Zone, error) {
+	return nil, nil
+}
+
+type LoadBalancerPool []vpcmodel.Node
+type LoadBalancerListener LoadBalancerPool 
+
+type LoadBalancer struct {
+	vpcmodel.VPCResource
+	nodes []vpcmodel.Node
+	pools []LoadBalancerPool
+	listeners []LoadBalancerListener
+}
+
+func (lb *LoadBalancer) Nodes() []vpcmodel.Node {
+	return lb.nodes
+}
+func (lb *LoadBalancer) Servers() []vpcmodel.Node {
+	return lb.nodes
+}
+
+func (lb *LoadBalancer) AddressRange() *ipblocks.IPBlock {
+	return nodesAddressRange(lb.nodes)
+}
+
+// vpe is per vpc and not per zone...
+func (lb *LoadBalancer) Zone() (*Zone, error) {
 	return nil, nil
 }
 

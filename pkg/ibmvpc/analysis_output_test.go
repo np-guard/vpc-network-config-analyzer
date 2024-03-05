@@ -175,6 +175,12 @@ var tests = []*vpcGeneralTest{
 		grouping:    false,
 		format:      vpcmodel.DRAWIO,
 	},
+	{
+		inputConfig: "load_balancer",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    false,
+		format:      vpcmodel.Text,
+	},
 }
 
 var tests2 = []*vpcGeneralTest{

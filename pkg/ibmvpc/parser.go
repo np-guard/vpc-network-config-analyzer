@@ -104,11 +104,17 @@ func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID string
 	if err != nil {
 		return nil, err
 	}
-	parseLoadBalancers(rc, res)
 
-	if debug {
-		printVPCConfigs(res)
+	err = getLoadBalancersConfig(rc, res, shouldSkipByVPC)
+	if err != nil {
+		return nil, err
 	}
+
+	// parseLoadBalancers(rc, res)
+
+	// if debug {
+	printVPCConfigs(res)
+	// }
 
 	return res, nil
 }
@@ -138,6 +144,7 @@ const (
 	ResourceTypeVPE              = "VPE"
 	ResourceTypeTGW              = "TGW"
 	ResourceTypeReservedIP       = "ReservedIP"
+	ResourceTypeLoadBalancer     = "LoadBalancer"
 )
 
 var errIksParsing = errors.New("issue parsing IKS node")
@@ -1000,6 +1007,63 @@ func getVPCObjectByUID(res map[string]*vpcmodel.VPCConfig, uid string) (*VPC, er
 	return vpc, nil
 }
 
+func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
+	res map[string]*vpcmodel.VPCConfig,
+	skipByVPC func(string) bool,
+) (err error) {
+	for _, loadBalancer := range rc.LBList {
+		vpcUID := *rc.VpcList[0].CRN //todo
+		if skipByVPC(vpcUID) {
+			continue
+		}
+		vpc, err := getVPCObjectByUID(res, vpcUID)
+		if err != nil {
+			return err
+		}
+		lbResource := &LoadBalancer{
+			VPCResource: vpcmodel.VPCResource{
+				ResourceName: *loadBalancer.Name,
+				ResourceUID:  *loadBalancer.CRN,
+				ResourceType: ResourceTypeLoadBalancer,
+				VPCRef:       vpc,
+			},
+		}
+		res[vpcUID].LoadBalancers = append(res[vpcUID].LoadBalancers, lbResource)
+		pIPList := loadBalancer.PrivateIps
+		for _, pIP := range pIPList {
+			pIPNode := &PrivateIP{
+				VPCResource: vpcmodel.VPCResource{
+					ResourceName: *pIP.Name,
+					ResourceUID:  *pIP.ID,
+					ResourceType: ResourceTypeReservedIP,
+					Zone:         "",
+					VPCRef:       vpc,
+				}, // the zone gets updated later
+				InternalNode: vpcmodel.InternalNode{
+					AddressStr: *pIP.Address,
+				},
+				lb: *loadBalancer.Name,
+			}
+			if err := pIPNode.SetIPBlockFromAddress(); err != nil {
+				return err
+			}
+			subnet, err := getSubnetByIPAddress(pIPNode.IPBlock(), res[vpcUID])
+			if err != nil {
+				return err
+			}
+			pIPNode.SubnetResource = subnet
+			pIPNode.Zone = subnet.ZoneName()
+			res[vpcUID].Nodes = append(res[vpcUID].Nodes, pIPNode)
+			// TODO: make sure the address is in the subnet's reserved ips list?
+			subnet.nodes = append(subnet.nodes, pIPNode)
+			res[vpcUID].UIDToResource[pIPNode.ResourceUID] = pIPNode
+			lbResource.nodes = append(lbResource.nodes, pIPNode)
+		}
+		res[vpcUID].UIDToResource[lbResource.ResourceUID] = lbResource
+	}
+	return nil
+}
+
 /********** Functions used in Debug mode ***************/
 
 func printVPCConfigs(c map[string]*vpcmodel.VPCConfig) {
@@ -1031,6 +1095,10 @@ func printConfig(c *vpcmodel.VPCConfig) {
 	fmt.Println("Subnets:")
 	for _, n := range c.Subnets {
 		fmt.Println(strings.Join([]string{n.Kind(), n.CIDR(), n.Name(), n.UID()}, separator))
+	}
+	fmt.Println("LoadBalancers:")
+	for _, lb := range c.LoadBalancers {
+		fmt.Println(strings.Join([]string{lb.Kind(), lb.Name(), lb.AddressRange().ToIPRanges(), lb.UID()}, separator))
 	}
 	fmt.Println("NodeSets:")
 	for _, n := range c.NodeSets {

@@ -74,6 +74,11 @@ func (d *DrawioOutputFormatter) createNodeSets() {
 				d.gen.TreeNode(ns)
 			}
 		}
+		for _, lb := range vpcConfig.LoadBalancers {
+			if d.showResource(lb) {
+				d.gen.TreeNode(lb)
+			}
+		}
 		// nodesets (vsi, vpe)
 		for _, ns := range vpcConfig.NodeSets {
 			if d.showResource(ns) {

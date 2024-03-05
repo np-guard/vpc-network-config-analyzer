@@ -166,6 +166,11 @@ type Subnet interface {
 	NodeSet
 	CIDR() string
 }
+type LoadBalancer interface{
+	NodeSet
+	Servers() []Node
+
+}
 
 // RulesType Type of rules in a given filter (e.g. specific NACL table) relevant to
 // path between src to destination
