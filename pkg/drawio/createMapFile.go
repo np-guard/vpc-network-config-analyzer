@@ -94,17 +94,17 @@ func orderNodesForTemplate(nodes []TreeNodeInterface) []TreeNodeInterface {
 func CreateDrawioConnectivityMapFile(network SquareTreeNodeInterface, outputFile string, subnetMode bool) error {
 	newLayout(network, subnetMode).layout()
 	if true {
-		err := createFileFromTemplate(network, outputFile+".svg", "connectivityMap.svg.tmpl", svgTemplate)
+		err := createFileFromTemplate(network, outputFile+".svg", svgTemplate)
 		if err != nil {
 			return err
 		}
 	}
-	return createFileFromTemplate(network, outputFile, "connectivityMap.drawio.tmpl", drawioTemplate)
+	return createFileFromTemplate(network, outputFile, drawioTemplate)
 }
 
-func createFileFromTemplate(network SquareTreeNodeInterface, outputFile, tmplName, templ string) error {
+func createFileFromTemplate(network SquareTreeNodeInterface, outputFile, templ string) error {
 	data := NewTemplateData(network)
-	tmpl, err := template.New(tmplName).Parse(templ)
+	tmpl, err := template.New("diagram").Parse(templ)
 	if err != nil {
 		return err
 	}
