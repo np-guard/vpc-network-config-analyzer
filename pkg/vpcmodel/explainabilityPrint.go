@@ -97,10 +97,10 @@ func stringExplainabilityLine(verbose bool, c *VPCConfig, filtersRelevant map[st
 func (rules *rulesConnection) getFilterEffectStr(c *VPCConfig, filtersRelevant map[string]bool, needEgress, needIngress bool) string {
 	egressRulesStr, ingressRulesStr := "", ""
 	if needEgress {
-		egressRulesStr = rules.egressRules.string(c, filtersRelevant, false, false)
+		egressRulesStr = rules.egressRules.summaryString(c, filtersRelevant, false)
 	}
 	if needIngress {
-		ingressRulesStr = rules.ingressRules.string(c, filtersRelevant, true, false)
+		ingressRulesStr = rules.ingressRules.summaryString(c, filtersRelevant, true)
 	}
 	if needEgress && egressRulesStr != "" {
 		egressRulesStr = "Egress: " + egressRulesStr
@@ -121,10 +121,10 @@ func (rules *rulesConnection) getRuleDetailsStr(c *VPCConfig, filtersRelevant ma
 	}
 	egressRulesStr, ingressRulesStr := "", ""
 	if needEgress {
-		egressRulesStr = rules.egressRules.string(c, filtersRelevant, false, true)
+		egressRulesStr = rules.egressRules.detailsString(c, filtersRelevant, false)
 	}
 	if needIngress {
-		ingressRulesStr = rules.ingressRules.string(c, filtersRelevant, true, true)
+		ingressRulesStr = rules.ingressRules.detailsString(c, filtersRelevant, true)
 	}
 	if needEgress && egressRulesStr != "" {
 		egressRulesStr = "Egress:\n" + egressRulesStr
@@ -159,29 +159,54 @@ func stringExplainabilityConnection(connQuery *common.ConnectionSet, src, dst En
 	return resStr
 }
 
-// prints either rulesDetails by calling StringDetailsRulesOfFilter or effect of each filter by calling StringFilterEffect
-func (rulesInLayers rulesInLayers) string(c *VPCConfig, filtersRelevant map[string]bool, isIngress, printDetails bool) string {
+// prints effect of each filter by calling StringFilterEffect
+func (rulesInLayers rulesInLayers) summaryString(c *VPCConfig, filtersRelevant map[string]bool, isIngress bool) string {
 	var strSlice []string
-	// order of presentation should be same as order of evaluation:
-	// (1) the SGs attached to the src NIF (2) the outbound rules in the ACL attached to the src NIF's subnet
-	// (3) the inbound rules in the ACL attached to the dst NIF's subnet (4) the SGs attached to the dst NIF.
-	// thus, egress: security group first, ingress: nacl first
-	filterLayersOrder := getLayersToPrint(filtersRelevant, isIngress)
-	for _, layer := range filterLayersOrder {
+	for _, layer := range getLayersToPrint(filtersRelevant, isIngress) {
 		filter := c.getFilterTrafficResourceOfKind(layer)
 		if rules, ok := rulesInLayers[layer]; ok {
-			if len(rules) == 0 {
-				continue
-			}
-			if printDetails {
-				strSlice = append(strSlice, filter.StringDetailsRulesOfFilter(rules))
-			} else {
-				strSlice = append(strSlice, filter.StringFilterEffect(rules))
+			thisFilter := filter.StringFilterEffect(rules)
+			if thisFilter != "" {
+				strSlice = append(strSlice, thisFilter)
 			}
 		}
 	}
-	if printDetails {
-		return strings.Join(strSlice, "")
+	return strings.Join(strSlice, semicolon+" ")
+}
+
+// in cases there *is* a connection - prints the path, e.g.
+// vsi1-ky[10.240.10.4] ->  SG sg1-ky -> subnet ... ->  ACL acl1-ky -> PublicGateway: public-gw-ky ->  Public Internet 161.26.0.0/16
+func stringExplainPath(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointElem,
+	ingressEnabled, egressEnabled bool, router RoutingResource, rules *rulesConnection) string {
+	//var sgIngress, naclIngress, sgEgress, naclEgress, subnetSrc, subnetDst string
+	//var pathSlice []string
+	return ""
+}
+
+// prints detailed list of rules that effects the (existing or non-existing) connection
+func (rulesInLayers rulesInLayers) detailsString(c *VPCConfig, filtersRelevant map[string]bool, isIngress bool) string {
+	var strSlice []string
+	for _, layer := range getLayersToPrint(filtersRelevant, isIngress) {
+		filter := c.getFilterTrafficResourceOfKind(layer)
+		if rules, ok := rulesInLayers[layer]; ok {
+			strSlice = append(strSlice, filter.StringDetailsRulesOfFilter(rules))
+		}
+	}
+	return strings.Join(strSlice, "")
+}
+
+func stringFilterEffect(filterLayer FilterTrafficResource, rules []RulesInFilter) string {
+	filtersToActionMap := filterLayer.ListFilterWithAction(rules)
+	strSlice := make([]string, len(filtersToActionMap))
+	i := 0
+	for name, effect := range filtersToActionMap {
+		effectStr := ""
+		if effect {
+			effectStr = " allows connection"
+		} else {
+			effectStr = " blocks connection"
+		}
+		strSlice[i] = filterLayer.Name() + " " + name + effectStr
 	}
 	return strings.Join(strSlice, semicolon+" ")
 }
