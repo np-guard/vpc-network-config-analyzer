@@ -8,6 +8,8 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
+const arrow = "->\n"
+
 func explainHeader(explanation *Explanation) string {
 	connStr := ""
 	if explanation.connQuery != nil {
@@ -173,8 +175,69 @@ func (rulesInLayers rulesInLayers) summaryString(c *VPCConfig, filtersRelevant m
 // vsi1-ky[10.240.10.4] ->  SG sg1-ky -> subnet ... ->  ACL acl1-ky -> PublicGateway: public-gw-ky ->  Public Internet 161.26.0.0/16
 func stringExplainPath(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointElem,
 	ingressEnabled, egressEnabled bool, router RoutingResource, rules *rulesConnection) string {
-	//var sgIngress, naclIngress, sgEgress, naclEgress, subnetSrc, subnetDst string
-	//var pathSlice []string
+	var pathSlice []string
+	pathSlice = append(pathSlice, src.Name())
+	isExternal := src.IsExternal() || dst.IsExternal()
+	egressPath := stringExplainFiltersLayersPath(c, src, filtersRelevant, rules, false, isExternal, router)
+	pathSlice = append(pathSlice, egressPath...)
+	routerBlocking := isExternal && router == nil
+	if !egressEnabled || routerBlocking {
+		return blockedPathStr(pathSlice)
+	}
+	if isExternal {
+		pathSlice = append(pathSlice, router.Kind()+" "+router.Name())
+	}
+	ingressPath := stringExplainFiltersLayersPath(c, dst, filtersRelevant, rules, true, isExternal, router)
+	pathSlice = append(pathSlice, ingressPath...)
+	if !ingressEnabled {
+		return blockedPathStr(pathSlice)
+	}
+	return strings.Join(pathSlice, arrow)
+}
+
+func stringExplainFiltersLayersPath(c *VPCConfig, node EndpointElem, filtersRelevant map[string]bool, rules *rulesConnection,
+	isIngress, isExternal bool, router RoutingResource) []string {
+	var pathSlice []string
+	layers := getLayersToPrint(filtersRelevant, isIngress)
+	for i, layer := range layers {
+		allowFiltersOfLayer := stringFilterLayerPath(c, layer, rules.egressRules[layer])
+		if len(allowFiltersOfLayer) == 0 {
+			break
+		}
+		pathSlice = append(pathSlice, allowFiltersOfLayer)
+		// got here: first layer (security group for egress nacl for ingress) allows connection,
+		// subnet is part of the path if both node are internal or this node internal and router is pgw
+		if !node.IsExternal() && (!isExternal || router.Kind() == pgwKind) &&
+			((!isIngress && layer == SecurityGroupLayer && layers[i+1] == NaclLayer) ||
+				(isIngress && layer == NaclLayer && layers[i+1] == SecurityGroupLayer)) {
+			// if !node.isExternal then node is a single internal node implementing InternalNodeIntf
+			pathSlice = append(pathSlice, node.(InternalNodeIntf).Subnet().Name())
+		}
+	}
+	return pathSlice
+}
+
+func blockedPathStr(pathSlice []string) string {
+	pathSlice = append(pathSlice, "|")
+	return strings.Join(pathSlice, arrow)
+}
+
+func stringFilterLayerPath(c *VPCConfig, filterLayerName string, rules []RulesInFilter) string {
+	filterLayer := c.getFilterTrafficResourceOfKind(filterLayerName)
+	filtersToActionMap := filterLayer.ListFilterWithAction(rules)
+	strSlice := make([]string, len(filtersToActionMap))
+	i := 0
+	for name, effect := range filtersToActionMap {
+		if !effect {
+			break
+		}
+		strSlice[i] = name
+	}
+	if len(strSlice) == 1 {
+		return filterLayer.Name() + " " + strSlice[0]
+	} else if len(strSlice) > 1 {
+		return "[" + strings.Join(strSlice, ", ") + "]"
+	}
 	return ""
 }
 
@@ -203,6 +266,7 @@ func stringFilterEffect(c *VPCConfig, filterLayerName string, rules []RulesInFil
 			effectStr = " blocks connection"
 		}
 		strSlice[i] = filterLayer.Name() + " " + name + effectStr
+		i++
 	}
 	return strings.Join(strSlice, semicolon+" ")
 }
