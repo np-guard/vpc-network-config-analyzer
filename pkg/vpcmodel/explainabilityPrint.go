@@ -161,15 +161,10 @@ func stringExplainabilityConnection(connQuery *common.ConnectionSet, src, dst En
 
 // prints effect of each filter by calling StringFilterEffect
 func (rulesInLayers rulesInLayers) summaryString(c *VPCConfig, filtersRelevant map[string]bool, isIngress bool) string {
-	var strSlice []string
-	for _, layer := range getLayersToPrint(filtersRelevant, isIngress) {
-		filter := c.getFilterTrafficResourceOfKind(layer)
-		if rules, ok := rulesInLayers[layer]; ok {
-			thisFilter := filter.StringFilterEffect(rules)
-			if thisFilter != "" {
-				strSlice = append(strSlice, thisFilter)
-			}
-		}
+	filtersLayersToPrint := getLayersToPrint(filtersRelevant, isIngress)
+	strSlice := make([]string, len(filtersLayersToPrint))
+	for i, layer := range filtersLayersToPrint {
+		strSlice[i] = stringFilterEffect(c, layer, rulesInLayers[layer])
 	}
 	return strings.Join(strSlice, semicolon+" ")
 }
@@ -195,7 +190,8 @@ func (rulesInLayers rulesInLayers) detailsString(c *VPCConfig, filtersRelevant m
 	return strings.Join(strSlice, "")
 }
 
-func stringFilterEffect(filterLayer FilterTrafficResource, rules []RulesInFilter) string {
+func stringFilterEffect(c *VPCConfig, filterLayerName string, rules []RulesInFilter) string {
+	filterLayer := c.getFilterTrafficResourceOfKind(filterLayerName)
 	filtersToActionMap := filterLayer.ListFilterWithAction(rules)
 	strSlice := make([]string, len(filtersToActionMap))
 	i := 0

@@ -198,10 +198,6 @@ type FilterTrafficResource interface {
 	// and prints the effect of each filter (e.g. security group sg1-ky allows connection)
 	// and the detailed list of relevant rules
 	StringDetailsRulesOfFilter(listRulesInFilter []RulesInFilter) string
-	// StringFilterEffect gets the same input as StringDetailsRulesOfFilter, and prints of each filter its effect
-	// (namely, it prints only the prefix printed by StringDetailsRulesOfFilter)
-	// todo: delete, should be replaced by ListFilterWithAction
-	StringFilterEffect(listRulesInFilter []RulesInFilter) string
 	// ListFilterWithAction return map from filter's name to true if it allows traffic, false otherwise
 	// to be used by explainability printing functions
 	ListFilterWithAction(listRulesInFilter []RulesInFilter) map[string]bool

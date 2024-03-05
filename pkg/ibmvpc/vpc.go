@@ -12,7 +12,6 @@ import (
 )
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////
-const semicolonSeparator = "; "
 
 func getNodeName(name, addr string) string {
 	return fmt.Sprintf("%s[%s]", name, addr)
@@ -286,16 +285,6 @@ func (nl *NaclLayer) StringDetailsRulesOfFilter(listRulesInFilter []vpcmodel.Rul
 	return strListRulesInFilter
 }
 
-func (nl *NaclLayer) StringFilterEffect(listRulesInFilter []vpcmodel.RulesInFilter) string {
-	filtersEffectList := []string{}
-	for _, rulesInFilter := range listRulesInFilter {
-		nacl := nl.naclList[rulesInFilter.Filter]
-		header := getSummaryFilterEffect(nl.Name()+" "+nacl.Name(), rulesInFilter.RulesFilterType)
-		filtersEffectList = append(filtersEffectList, header)
-	}
-	return strings.Join(filtersEffectList, semicolonSeparator)
-}
-
 func (nl *NaclLayer) ListFilterWithAction(listRulesInFilter []vpcmodel.RulesInFilter) (filters map[string]bool) {
 	filters = map[string]bool{}
 	for _, rulesInFilter := range listRulesInFilter {
@@ -324,18 +313,6 @@ func getHeaderRulesType(filter string, rType vpcmodel.RulesType) string {
 		return filter + " allows connection with the following allow and deny rules\n"
 	case vpcmodel.OnlyAllow:
 		return filter + " allows connection with the following allow rules\n"
-	default:
-		return ""
-	}
-}
-
-// todo: delete
-func getSummaryFilterEffect(filter string, rType vpcmodel.RulesType) string {
-	switch rType {
-	case vpcmodel.NoRules, vpcmodel.OnlyDeny:
-		return filter + " blocks connection"
-	case vpcmodel.BothAllowDeny, vpcmodel.OnlyAllow:
-		return filter + " allows connection"
 	default:
 		return ""
 	}
@@ -517,15 +494,6 @@ func (sgl *SecurityGroupLayer) StringDetailsRulesOfFilter(listRulesInFilter []vp
 			sg.analyzer.StringRules(rulesInFilter.Rules)
 	}
 	return strListRulesInFilter
-}
-
-func (sgl *SecurityGroupLayer) StringFilterEffect(listRulesInFilter []vpcmodel.RulesInFilter) string {
-	filtersEffectList := []string{}
-	for _, rulesInFilter := range listRulesInFilter {
-		sg := sgl.sgList[rulesInFilter.Filter]
-		filtersEffectList = append(filtersEffectList, getSummaryFilterEffect(sgl.Name()+" "+sg.Name(), rulesInFilter.RulesFilterType))
-	}
-	return strings.Join(filtersEffectList, semicolonSeparator)
 }
 
 func (sgl *SecurityGroupLayer) ListFilterWithAction(listRulesInFilter []vpcmodel.RulesInFilter) (filters map[string]bool) {
