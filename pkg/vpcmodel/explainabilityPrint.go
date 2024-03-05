@@ -114,7 +114,8 @@ func (rules *rulesConnection) getFilterEffectStr(c *VPCConfig, filtersRelevant m
 	return egressRulesStr + ingressRulesStr
 }
 
-func (rules *rulesConnection) getRuleDetailsStr(c *VPCConfig, filtersRelevant map[string]bool, verbose, needEgress, needIngress bool) string {
+func (rules *rulesConnection) getRuleDetailsStr(c *VPCConfig, filtersRelevant map[string]bool,
+	verbose, needEgress, needIngress bool) string {
 	if !verbose {
 		return ""
 	}

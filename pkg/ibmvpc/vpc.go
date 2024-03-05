@@ -14,9 +14,6 @@ import (
 // /////////////////////////////////////////////////////////////////////////////////////////////////
 const semicolonSeparator = "; "
 
-const networkACLStr = "network ACL "
-const securityGroupStr = "security group "
-
 func getNodeName(name, addr string) string {
 	return fmt.Sprintf("%s[%s]", name, addr)
 }
@@ -256,6 +253,10 @@ func (nl *NaclLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 	return allowRes, denyRes, nil
 }
 
+func (nl *NaclLayer) Name() string {
+	return "network ACL"
+}
+
 func appendToRulesInFilter(resRulesInFilter *[]vpcmodel.RulesInFilter, rules *[]int, filterIndex int, isAllow bool) {
 	var rType vpcmodel.RulesType
 	switch {
@@ -278,7 +279,7 @@ func (nl *NaclLayer) StringDetailsRulesOfFilter(listRulesInFilter []vpcmodel.Rul
 	strListRulesInFilter := ""
 	for _, rulesInFilter := range listRulesInFilter {
 		nacl := nl.naclList[rulesInFilter.Filter]
-		header := getHeaderRulesType(networkACLStr+nacl.Name(), rulesInFilter.RulesFilterType) +
+		header := getHeaderRulesType(nl.Name()+" "+nacl.Name(), rulesInFilter.RulesFilterType) +
 			nacl.analyzer.StringRules(rulesInFilter.Rules)
 		strListRulesInFilter += header
 	}
@@ -289,10 +290,20 @@ func (nl *NaclLayer) StringFilterEffect(listRulesInFilter []vpcmodel.RulesInFilt
 	filtersEffectList := []string{}
 	for _, rulesInFilter := range listRulesInFilter {
 		nacl := nl.naclList[rulesInFilter.Filter]
-		header := getSummaryFilterEffect(networkACLStr+nacl.Name(), rulesInFilter.RulesFilterType)
+		header := getSummaryFilterEffect(nl.Name()+" "+nacl.Name(), rulesInFilter.RulesFilterType)
 		filtersEffectList = append(filtersEffectList, header)
 	}
 	return strings.Join(filtersEffectList, semicolonSeparator)
+}
+
+func (nl *NaclLayer) ListFilterWithAction(listRulesInFilter []vpcmodel.RulesInFilter) (filters map[string]bool) {
+	filters = map[string]bool{}
+	for _, rulesInFilter := range listRulesInFilter {
+		nacl := nl.naclList[rulesInFilter.Filter]
+		name := nacl.Name()
+		filters[name] = getFilterAction(rulesInFilter.RulesFilterType)
+	}
+	return filters
 }
 
 func (nl *NaclLayer) ReferencedIPblocks() []*ipblocks.IPBlock {
@@ -318,6 +329,7 @@ func getHeaderRulesType(filter string, rType vpcmodel.RulesType) string {
 	}
 }
 
+// todo: delete
 func getSummaryFilterEffect(filter string, rType vpcmodel.RulesType) string {
 	switch rType {
 	case vpcmodel.NoRules, vpcmodel.OnlyDeny:
@@ -326,6 +338,16 @@ func getSummaryFilterEffect(filter string, rType vpcmodel.RulesType) string {
 		return filter + " allows connection"
 	default:
 		return ""
+	}
+}
+
+// returns true of the filter allows traffic, false if it blocks traffic
+func getFilterAction(rType vpcmodel.RulesType) bool {
+	switch rType {
+	case vpcmodel.BothAllowDeny, vpcmodel.OnlyAllow:
+		return true
+	default:
+		return false
 	}
 }
 
@@ -428,7 +450,7 @@ type SecurityGroupLayer struct {
 }
 
 func (sgl *SecurityGroupLayer) Name() string {
-	return ""
+	return "security group"
 }
 
 func (sgl *SecurityGroupLayer) ConnectivityMap() (map[string]*vpcmodel.IPbasedConnectivityResult, error) {
@@ -491,7 +513,7 @@ func (sgl *SecurityGroupLayer) StringDetailsRulesOfFilter(listRulesInFilter []vp
 	strListRulesInFilter := ""
 	for _, rulesInFilter := range listRulesInFilter {
 		sg := sgl.sgList[rulesInFilter.Filter]
-		strListRulesInFilter += getHeaderRulesType(securityGroupStr+sg.Name(), rulesInFilter.RulesFilterType) +
+		strListRulesInFilter += getHeaderRulesType(sgl.Name()+" "+sg.Name(), rulesInFilter.RulesFilterType) +
 			sg.analyzer.StringRules(rulesInFilter.Rules)
 	}
 	return strListRulesInFilter
@@ -501,9 +523,19 @@ func (sgl *SecurityGroupLayer) StringFilterEffect(listRulesInFilter []vpcmodel.R
 	filtersEffectList := []string{}
 	for _, rulesInFilter := range listRulesInFilter {
 		sg := sgl.sgList[rulesInFilter.Filter]
-		filtersEffectList = append(filtersEffectList, getSummaryFilterEffect(securityGroupStr+sg.Name(), rulesInFilter.RulesFilterType))
+		filtersEffectList = append(filtersEffectList, getSummaryFilterEffect(sgl.Name()+" "+sg.Name(), rulesInFilter.RulesFilterType))
 	}
 	return strings.Join(filtersEffectList, semicolonSeparator)
+}
+
+func (sgl *SecurityGroupLayer) ListFilterWithAction(listRulesInFilter []vpcmodel.RulesInFilter) (filters map[string]bool) {
+	filters = map[string]bool{}
+	for _, rulesInFilter := range listRulesInFilter {
+		sg := sgl.sgList[rulesInFilter.Filter]
+		name := sg.Name()
+		filters[name] = getFilterAction(rulesInFilter.RulesFilterType)
+	}
+	return filters
 }
 
 func (sgl *SecurityGroupLayer) ReferencedIPblocks() []*ipblocks.IPBlock {
