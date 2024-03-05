@@ -101,9 +101,5 @@ func (g *groupedExternalNodes) GenerateDrawioTreeNode(gen *DrawioGenerator) draw
 func (e *edgeInfo) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
 	srcTn := gen.TreeNode(e.src)
 	dstTn := gen.TreeNode(e.dst)
-	c := drawio.NewConnectivityLineTreeNode(gen.Network(), srcTn, dstTn, e.directed, e.label)
-	if !e.src.IsExternal() && !e.dst.IsExternal() {
-		c.SetNotShownInDrawio()
+	return drawio.NewConnectivityLineTreeNode(gen.Network(), srcTn, dstTn, e.directed, e.label)
 	}
-	return c
-}
