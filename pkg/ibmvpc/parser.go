@@ -119,7 +119,7 @@ func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resou
 		return nil, err
 	}
 
-	tgws := getTgwObjects(rc, res, resourceGroup)
+	tgws := getTgwObjects(rc, res, resourceGroup, regions)
 	err = addTGWbasedConfigs(tgws, res)
 	if err != nil {
 		return nil, err
@@ -633,31 +633,48 @@ func getNACLconfig(rc *datamodel.ResourcesContainerModel,
 	return nil
 }
 
-func getTgwObjects(c *datamodel.ResourcesContainerModel,
-	res map[string]*vpcmodel.VPCConfig, resourceGroup string) map[string]*TransitGateway {
-	tgwMap := map[string]*TransitGateway{} // collect all tgw resources
-
-	tgwIDToRG := map[string]string{}
-	if resourceGroup != "" {
-		for _, tgw := range c.TransitGatewayList {
-			tgwIDToRG[*tgw.ID] = *tgw.ResourceGroup.ID
-		}
+func getTgwMap(c *datamodel.ResourcesContainerModel) map[string]*datamodel.TransitGateway {
+	tgwIDToTgw := map[string]*datamodel.TransitGateway{}
+	for _, tgw := range c.TransitGatewayList {
+		tgwIDToTgw[*tgw.Crn] = tgw
 	}
+	return tgwIDToTgw
+}
+
+func getTgwObjects(c *datamodel.ResourcesContainerModel,
+	res map[string]*vpcmodel.VPCConfig, resourceGroup string, regions []string) map[string]*TransitGateway {
+	tgwMap := map[string]*TransitGateway{} // collect all tgw resources
+	tgwIDToTgw := map[string]*datamodel.TransitGateway{}
+	if resourceGroup != "" || len(regions) > 0 {
+		tgwIDToTgw = getTgwMap(c)
+	}
+
 	for _, tgwConn := range c.TransitConnectionList {
 		tgwUID := *tgwConn.TransitGateway.Crn
-		tgwID := *tgwConn.TransitGateway.ID
 		tgwName := *tgwConn.TransitGateway.Name
 		vpcUID := *tgwConn.NetworkID
 
 		// filtering by resourceGroup
 		if resourceGroup != "" {
-			if tgwResourceGroup, ok := tgwIDToRG[tgwID]; ok {
-				if tgwResourceGroup != resourceGroup {
+			if tgw, ok := tgwIDToTgw[tgwUID]; ok {
+				if tgw == nil || *tgw.ResourceGroup.ID != resourceGroup {
 					continue
 				}
 			} else {
-				fmt.Printf("warning: ignoring tgw with unknown resource-group, tgwID: %s\n", tgwID)
-				tgwIDToRG[tgwID] = "" // to avoid having this tgw's same warning issued again from another transitConnection
+				fmt.Printf("warning: ignoring tgw with unknown resource-group, tgwID: %s\n", tgwUID)
+				tgwIDToTgw[tgwUID] = nil // to avoid having this tgw's same warning issued again from another transitConnection
+				continue
+			}
+		}
+		// filtering by region
+		if len(regions) > 0 {
+			if tgw, ok := tgwIDToTgw[tgwUID]; ok {
+				if tgw == nil || !slices.Contains(regions, *tgw.Location) {
+					continue
+				}
+			} else {
+				fmt.Printf("warning: ignoring tgw with unknown region, tgwID: %s\n", tgwUID)
+				tgwIDToTgw[tgwUID] = nil // to avoid having this tgw's same warning issued again from another transitConnection
 				continue
 			}
 		}
