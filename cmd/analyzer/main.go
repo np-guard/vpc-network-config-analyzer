@@ -68,16 +68,16 @@ func analysisVPCConfigs(c1, c2 map[string]*vpcmodel.VPCConfig, inArgs *InArgs, o
 		}
 	}
 
+	outFormat := getOutputFormat(inArgs)
 	og, err := vpcmodel.NewOutputGenerator(c1, c2,
 		*inArgs.Grouping,
 		analysisTypeToUseCase(inArgs),
 		false,
-		explanationArgs)
+		explanationArgs, outFormat)
 	if err != nil {
 		return "", err
 	}
 
-	outFormat := getOutputFormat(inArgs)
 	analysisOut, err := og.Generate(outFormat, outFile)
 	if err != nil {
 		return "", fmt.Errorf(ErrorFormat, OutGenerationErr, err)
@@ -115,6 +115,24 @@ func vpcConfigsFromAccount(inArgs *InArgs) (map[string]*vpcmodel.VPCConfig, erro
 	vpcConfigs, err := ibmvpc.VPCConfigsFromResources(resources, *inArgs.VPC, *inArgs.Debug)
 	if err != nil {
 		return nil, err
+	}
+	// save collected resources in dump file
+	if *inArgs.DumpResources != "" {
+		jsonString, err := resources.ToJSONString()
+		if err != nil {
+			return nil, err
+		}
+		log.Printf("Dumping collected resources to file: %s", *inArgs.DumpResources)
+
+		file, err := os.Create(*inArgs.DumpResources)
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = file.WriteString(jsonString)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return vpcConfigs, nil
 }

@@ -7,9 +7,6 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
-const DummyRule = -1 // used so that []rules will not be empty in a certain case in which
-// there is no relevant rules, see detail explanation in computeActualRules
-
 var filterLayers = [2]string{SecurityGroupLayer, NaclLayer}
 
 // rulesInLayers contains specific rules across all layers (SGLayer/NACLLayer)
@@ -31,9 +28,12 @@ type srcDstDetails struct {
 	egressEnabled  bool
 	// the connection between src to dst, in case the connection was not part of the query;
 	// the part of the connection relevant to the query otherwise.
-	conn                *common.ConnectionSet
-	router              RoutingResource  // the router (fip or pgw) to external network; nil if none
-	filtersExternal     map[string]bool  // filters relevant for external IP, map keys are the filters kind (NaclLayer/SecurityGroupLayer)
+	conn   *common.ConnectionSet
+	router RoutingResource // the router (fip or pgw) to external network; nil if none
+	// filters relevant for this src, dst pair; map keys are the filters kind (NaclLayer/SecurityGroupLayer)
+	// for two internal nodes within same subnet, only SG layer is relevant
+	// for external connectivity (src/dst is external) with FIP, only SG layer is relevant
+	filtersRelevant     map[string]bool
 	potentialAllowRules *rulesConnection // potentially enabling connection - potential given the filter is relevant
 	actualAllowRules    *rulesConnection // enabling rules effecting connection given router; e.g. NACL is not relevant for fip
 	potentialDenyRules  *rulesConnection // deny rules potentially (w.r.t. router) effecting the connection, relevant for ACL
@@ -87,11 +87,11 @@ func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.Conne
 	if err2 != nil {
 		return nil, err2
 	}
-	err3 := rulesAndDetails.computeAdditionalDetails(c)
+	err3 := rulesAndDetails.computeFilters(c)
 	if err3 != nil {
 		return nil, err3
 	}
-
+	rulesAndDetails.computeActualRules()
 	rulesAndDetails.computeCombinedActualRules() // combined deny and allow
 
 	groupedLines, err4 := newGroupConnExplainability(c, &rulesAndDetails)
@@ -135,42 +135,51 @@ func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node,
 	return rulesAndConn, nil
 }
 
-// computeAdditionalDetails computes, after potentialRules were computed, for each  <src, dst> :
+// computeFilters computes for each  <src, dst> :
 // 1. The routingResource
-// 2. The actual filters relevant to the src, dst given the routingResource
-// 3. from the potentialRules the actualRules (per ingress, egress) that actually enable traffic,
-// considering filtersExternal (which was computed based on the RoutingResource) and removing filters
-// not relevant for the Router e.g. nacl not relevant fip
-// 4. ingressEnabled and egressEnabled: whether traffic is enabled via ingress, egress
-
-func (details *rulesAndConnDetails) computeAdditionalDetails(c *VPCConfig) error {
+// 2. The external filters relevant to the <src, dst> given the routingResource
+// 3. The internal filters relevant to the <src, dst>
+// 4. The actual relevant filter, depending on whether src xor dst is external
+func (details *rulesAndConnDetails) computeFilters(c *VPCConfig) error {
 	for _, singleSrcDstDetails := range *details {
-		src := singleSrcDstDetails.src
-		dst := singleSrcDstDetails.dst
 		// RoutingResources are computed by the parser for []Nodes of the VPC,
 		// finds the relevant nodes for the query's src and dst;
 		// if for src or dst no containing node was found, there is no router
-		var routingResource RoutingResource
-		var filtersForExternal map[string]bool
-		var err error
-
-		routingResource, _, err = c.getRoutingResource(src, dst)
-		if err != nil {
-			return err
+		src := singleSrcDstDetails.src
+		dst := singleSrcDstDetails.dst
+		if src.IsInternal() && dst.IsInternal() { // internal
+			singleSrcDstDetails.filtersRelevant = src.(InternalNodeIntf).AppliedFiltersKinds(dst.(InternalNodeIntf))
+		} else { // external
+			routingResource, _, err := c.getRoutingResource(src, dst)
+			if err != nil {
+				return err
+			}
+			if routingResource == nil {
+				continue // no router: no connections, filtersLayers non defined
+			}
+			singleSrcDstDetails.router = routingResource
+			singleSrcDstDetails.filtersRelevant = routingResource.AppliedFiltersKinds() // relevant filtersExternal
 		}
-		if routingResource != nil {
-			filtersForExternal = routingResource.AppliedFiltersKinds() // relevant filtersExternal
-		}
+	}
+	return nil
+}
 
-		singleSrcDstDetails.router = routingResource
-		singleSrcDstDetails.filtersExternal = filtersForExternal
-		isInternal := singleSrcDstDetails.src.IsInternal() && singleSrcDstDetails.dst.IsInternal()
-		actualAllowIngress, ingressEnabled := computeActualRules(&singleSrcDstDetails.potentialAllowRules.ingressRules,
-			filtersForExternal, isInternal)
-		actualAllowEgress, egressEnabled := computeActualRules(&singleSrcDstDetails.potentialAllowRules.egressRules,
-			filtersForExternal, isInternal)
-		actualDenyIngress, _ := computeActualRules(&singleSrcDstDetails.potentialDenyRules.ingressRules, filtersForExternal, isInternal)
-		actualDenyEgress, _ := computeActualRules(&singleSrcDstDetails.potentialDenyRules.egressRules, filtersForExternal, isInternal)
+// computeActualRules computes, after potentialRules and filters were computed, for each  <src, dst> :
+// 1. from the potentialRules the actualRules (per ingress, egress) that actually enable traffic,
+// considering filtersRelevant which, depending on src and dst is either derived from
+// filtersExternal - which was computed based on the RoutingResource - and removing filters
+// not relevant for the Router e.g. nacl not relevant fip
+// or was derived from filterInternal - removing nacl when both vsis are of the same subnets
+// 2. ingressEnabled and egressEnabled: whether traffic is enabled via ingress, egress
+func (details *rulesAndConnDetails) computeActualRules() {
+	for _, singleSrcDstDetails := range *details {
+		filterRelevant := singleSrcDstDetails.filtersRelevant
+		actualAllowIngress, ingressEnabled :=
+			computeActualRulesGivenRulesFilter(&singleSrcDstDetails.potentialAllowRules.ingressRules, filterRelevant)
+		actualAllowEgress, egressEnabled :=
+			computeActualRulesGivenRulesFilter(&singleSrcDstDetails.potentialAllowRules.egressRules, filterRelevant)
+		actualDenyIngress, _ := computeActualRulesGivenRulesFilter(&singleSrcDstDetails.potentialDenyRules.ingressRules, filterRelevant)
+		actualDenyEgress, _ := computeActualRulesGivenRulesFilter(&singleSrcDstDetails.potentialDenyRules.egressRules, filterRelevant)
 		actualAllow := &rulesConnection{*actualAllowIngress, *actualAllowEgress}
 		actualDeny := &rulesConnection{*actualDenyIngress, *actualDenyEgress}
 		singleSrcDstDetails.actualAllowRules = actualAllow
@@ -178,35 +187,24 @@ func (details *rulesAndConnDetails) computeAdditionalDetails(c *VPCConfig) error
 		singleSrcDstDetails.egressEnabled = egressEnabled
 		singleSrcDstDetails.actualDenyRules = actualDeny
 	}
-	return nil
 }
 
-// computes actual rules relevant to the connection, as well as whether the direction is enabled
-func computeActualRules(rulesLayer *rulesInLayers, filtersExternal map[string]bool, srcDstInternal bool) (*rulesInLayers, bool) {
+// given rulesInLayers and the relevant filters, computes actual rules and whether the direction is enabled,
+// given that rulesInLayers are allow rules; for deny rules this computation is meaningless and is ignored.
+// this is called separately for each direction (ingreee/egress) and allow/deny
+func computeActualRulesGivenRulesFilter(rulesLayers *rulesInLayers, filters map[string]bool) (*rulesInLayers, bool) {
 	actualRules := rulesInLayers{}
-	filterNotBlocking := map[string]bool{}
-	for filter, potentialRules := range *rulesLayer {
-		filterIsRelevant := filtersExternal[filter] || srcDstInternal
-		if filterIsRelevant {
-			actualRules[filter] = potentialRules
-		}
-		// The filter is not blocking if it has enabling  rules or is not required for the router
-		// Specifically, current filters are nacl and sg; if both src and dst are internal then they are both relevant.
-		// (if both are in the same subnet then the nacl analyzer will handle it correctly.)
-		// If fip is the router and one of src/dst is external then nacl is ignored.
-		if filterHasRelevantRules(potentialRules) || !filterIsRelevant {
-			// The case of two vsis of the same subnet is tricky: the nacl filter is relevant but there are no potential rules
-			// this is solved by adding a dummy rule for this case with index -1 (DummyRule),
-			// so that potentialRules here will not be empty
-			// the printing functionality ignores rules of index -1 (DummyRule)
-			// thus nacl will not be identified as a blocking filter in this case
-			filterNotBlocking[filter] = true
-		}
-	}
 	directionEnabled := true
-	for _, filter := range filterLayers {
-		if !filterNotBlocking[filter] {
+	for _, layer := range filterLayers {
+		filterIsRelevant := filters[layer]
+		potentialRules := (*rulesLayers)[layer]
+		// The filter is blocking if it is relevant and has no allow rules
+		// this computation is meaningful only when rulesLayers are allow rules and is ignored otherwise
+		if filterIsRelevant && !filterHasRelevantRules(potentialRules) {
 			directionEnabled = false
+		}
+		if filterIsRelevant {
+			actualRules[layer] = potentialRules
 		}
 	}
 	// the direction is enabled if none of the filters is blocking it
@@ -276,8 +274,6 @@ func mergeAllowDeny(allow, deny rulesInLayers) rulesInLayers {
 				slices.Sort(mergedRules)
 				var rType RulesType
 				switch {
-				case len(mergedRules) == 1 && mergedRules[0] == DummyRule:
-					rType = OnlyDummyRule
 				case len(allowRules.Rules) > 0 && len(denyRules.Rules) > 0:
 					rType = BothAllowDeny
 				case len(allowRules.Rules) > 0:
@@ -438,7 +434,7 @@ func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (conn *comm
 	if err2 != nil {
 		return nil, err2
 	}
-	if srcForConnection == nil {
+	if dstForConnection == nil {
 		return nil, fmt.Errorf(errMsg, dst.Name())
 	}
 	var ok bool

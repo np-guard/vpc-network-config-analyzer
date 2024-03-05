@@ -261,12 +261,7 @@ func runConnectivityTest(t *testing.T, tc *testNodesConfig, ncList []*naclConfig
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 func createConfigFromTestConfig(tc *testNodesConfig, ncList []*naclConfig) *vpcmodel.VPCConfig {
-	config := &vpcmodel.VPCConfig{
-		Nodes:            []vpcmodel.Node{},
-		NodeSets:         []vpcmodel.NodeSet{},
-		FilterResources:  []vpcmodel.FilterTrafficResource{},
-		RoutingResources: []vpcmodel.RoutingResource{},
-	}
+	config := &vpcmodel.VPCConfig{}
 	for name, cidr := range tc.subnets {
 		addSubnet(config, name, cidr, "z1")
 		if subnetInterfaces, ok := tc.netInterfaces[cidr]; ok {
@@ -340,10 +335,10 @@ func addInterfaceNode(config *vpcmodel.VPCConfig, name, address, vsiName, subnet
 		vsi:          vsiName,
 	}
 	// add references between subnet to interface (both directions)
-	for _, subnet := range config.NodeSets {
+	for _, subnet := range config.Subnets {
 		if subnet.Name() == subnetName {
 			subnetActual := subnet.(*Subnet)
-			intfNode.subnet = subnetActual
+			intfNode.SubnetResource = subnetActual
 			subnetActual.nodes = append(subnetActual.nodes, intfNode)
 		}
 	}
@@ -357,7 +352,7 @@ func addSubnet(config *vpcmodel.VPCConfig, name, cidr, zone string) *Subnet {
 		cidr:        cidr,
 		ipblock:     newIPBlockFromCIDROrAddressWithoutValidation(cidr),
 	}
-	config.NodeSets = append(config.NodeSets, subnetNode)
+	config.Subnets = append(config.Subnets, subnetNode)
 	return subnetNode
 }
 
@@ -404,12 +399,7 @@ func newSimpleNACLAnalyzer() *NACLAnalyzer {
 
 // simple config : 2 vsis in different subnets, nacl that allows all (for the 2 subnets), no SG layer
 func NewSimpleVPCConfig() *vpcmodel.VPCConfig {
-	config := &vpcmodel.VPCConfig{
-		Nodes:            []vpcmodel.Node{},
-		NodeSets:         []vpcmodel.NodeSet{},
-		FilterResources:  []vpcmodel.FilterTrafficResource{},
-		RoutingResources: []vpcmodel.RoutingResource{},
-	}
+	config := &vpcmodel.VPCConfig{}
 	s1 := addSubnet(config, "subnet-1", "10.240.10.0/24", "z1")
 	s2 := addSubnet(config, "subnet-2", "10.240.20.0/24", "z1")
 	addInterfaceNode(config, "intf-1", "10.240.10.4", "vsi-1", "subnet-1")

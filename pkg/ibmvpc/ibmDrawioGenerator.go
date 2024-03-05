@@ -57,16 +57,16 @@ func (nl *NaclLayer) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawi
 
 func (ni *NetworkInterface) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	return drawio.NewNITreeNode(
-		gen.TreeNode(ni.subnet).(drawio.SquareTreeNodeInterface), ni.Name())
+		gen.TreeNode(ni.Subnet()).(drawio.SquareTreeNodeInterface), ni.Name())
 }
 
 func (n *IKSNode) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	return drawio.NewNITreeNode(
-		gen.TreeNode(n.subnet).(drawio.SquareTreeNodeInterface), n.Name())
+		gen.TreeNode(n.Subnet()).(drawio.SquareTreeNodeInterface), n.Name())
 }
 func (r *ReservedIP) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	return drawio.NewResIPTreeNode(
-		gen.TreeNode(r.subnet).(drawio.SquareTreeNodeInterface), r.Name())
+		gen.TreeNode(r.Subnet()).(drawio.SquareTreeNodeInterface), r.Name())
 }
 
 func (v *Vsi) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
