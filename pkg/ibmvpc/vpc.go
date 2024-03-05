@@ -192,12 +192,11 @@ func (v *Vpe) Zone() (*Zone, error) {
 }
 
 type LoadBalancerPool []vpcmodel.Node
-type LoadBalancerListener LoadBalancerPool 
+type LoadBalancerListener []LoadBalancerPool 
 
 type LoadBalancer struct {
 	vpcmodel.VPCResource
 	nodes []vpcmodel.Node
-	pools []LoadBalancerPool
 	listeners []LoadBalancerListener
 }
 

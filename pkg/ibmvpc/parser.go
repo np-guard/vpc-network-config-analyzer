@@ -1011,7 +1011,7 @@ func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 	res map[string]*vpcmodel.VPCConfig,
 	skipByVPC func(string) bool,
 ) (err error) {
-	for _, loadBalancer := range rc.LBList {
+	for _, loadBalancerObj := range rc.LBList {
 		vpcUID := *rc.VpcList[0].CRN //todo
 		if skipByVPC(vpcUID) {
 			continue
@@ -1020,16 +1020,16 @@ func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 		if err != nil {
 			return err
 		}
-		lbResource := &LoadBalancer{
+		loadBalancer := &LoadBalancer{
 			VPCResource: vpcmodel.VPCResource{
-				ResourceName: *loadBalancer.Name,
-				ResourceUID:  *loadBalancer.CRN,
+				ResourceName: *loadBalancerObj.Name,
+				ResourceUID:  *loadBalancerObj.CRN,
 				ResourceType: ResourceTypeLoadBalancer,
 				VPCRef:       vpc,
 			},
 		}
-		res[vpcUID].LoadBalancers = append(res[vpcUID].LoadBalancers, lbResource)
-		pIPList := loadBalancer.PrivateIps
+		res[vpcUID].LoadBalancers = append(res[vpcUID].LoadBalancers, loadBalancer)
+		pIPList := loadBalancerObj.PrivateIps
 		for _, pIP := range pIPList {
 			pIPNode := &PrivateIP{
 				VPCResource: vpcmodel.VPCResource{
@@ -1042,7 +1042,7 @@ func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 				InternalNode: vpcmodel.InternalNode{
 					AddressStr: *pIP.Address,
 				},
-				lb: *loadBalancer.Name,
+				lb: *loadBalancerObj.Name,
 			}
 			if err := pIPNode.SetIPBlockFromAddress(); err != nil {
 				return err
@@ -1057,9 +1057,43 @@ func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 			// TODO: make sure the address is in the subnet's reserved ips list?
 			subnet.nodes = append(subnet.nodes, pIPNode)
 			res[vpcUID].UIDToResource[pIPNode.ResourceUID] = pIPNode
-			lbResource.nodes = append(lbResource.nodes, pIPNode)
+			loadBalancer.nodes = append(loadBalancer.nodes, pIPNode)
 		}
-		res[vpcUID].UIDToResource[lbResource.ResourceUID] = lbResource
+
+		pools := map[string]LoadBalancerPool{}
+		for _, poolObj := range loadBalancerObj.Pools {
+			pool := LoadBalancerPool{}
+			// todo:
+			// pool.id = *poolObj.ID
+			// pool.name = *poolObj.Name
+			// pool.protocol = *poolObj.Protocol
+			for _, memberObj := range poolObj.Members {
+				// todo:
+				// member.port = *memberObj.Port
+				address := *memberObj.Target.(*vpc1.LoadBalancerPoolMemberTarget).Address
+				pool = append(pool, getCertainNodes(res[vpcUID].Nodes, func(n vpcmodel.Node) bool { return n.CidrOrAddress() == address })...)
+			}
+			pools[*poolObj.ID] =  pool
+		}
+		for _, lisObj := range loadBalancerObj.Listeners {
+			lis := LoadBalancerListener{}
+			// todo:
+			// if lisObj.Port != nil {
+			// 	lis.port = *lisObj.Port
+			// }
+			// if lisObj.PortMin != nil {
+			// 	lis.portMin = *lisObj.PortMin
+			// 	lis.portMax = *lisObj.PortMax
+			// }
+			// lis.protocol = *lisObj.Protocol
+			// lis.policies = *lisObj.policies
+			lis = append(lis, pools[*lisObj.DefaultPool.ID])
+			loadBalancer.listeners = append(loadBalancer.listeners, lis)
+
+		}
+		// todo - what to do with loadBalancerObj.Subnets
+		
+		res[vpcUID].UIDToResource[loadBalancer.ResourceUID] = loadBalancer
 	}
 	return nil
 }
