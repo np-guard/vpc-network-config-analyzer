@@ -14,7 +14,7 @@ const (
 	fipImage   = "PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiMxMTkyZTg7fS5jbHMtMntmaWxsOiNmZmY7fS5jbHMtM3tmaWxsOm5vbmU7fTwvc3R5bGU+PC9kZWZzPjxyZWN0IGNsYXNzPSJjbHMtMSIgeD0iMC41IiB5PSIwLjkyIiB3aWR0aD0iNDgiIGhlaWdodD0iNDcuMTYiIHJ4PSI4Ii8+PHBhdGggY2xhc3M9ImNscy0yIiBkPSJNMzAuMTIsMjEuNDNhMy4xMywzLjEzLDAsMCwwLTMuMDYsMi40NkgyMS45NGEzLjA3LDMuMDcsMCwxLDAsMCwxLjIyaDUuMTJhMy4xMiwzLjEyLDAsMSwwLDMuMDYtMy42OFptMCw0LjkxQTEuODQsMS44NCwwLDEsMSwzMiwyNC41LDEuODUsMS44NSwwLDAsMSwzMC4xMiwyNi4zNFoiLz48cmVjdCBjbGFzcz0iY2xzLTMiIHg9IjE0LjUiIHk9IjE0LjY3IiB3aWR0aD0iMjAiIGhlaWdodD0iMTkuNjUiLz48L3N2Zz4="
 
 	ovalEndEdge  = "oval"
-	errowEndEdge = "block"
+	arrowEndEdge = "block"
 	noneEndEdge  = "none"
 )
 
@@ -55,14 +55,15 @@ var colors = map[reflect.Type]string{
 	reflect.TypeOf(GroupSubnetsSquareTreeNode{}): "#82b366",
 }
 
+type tnFamily int
 const (
 	// these are types of elementas in the canvas:
-	typeDoNotShow = iota
-	typeIbmSquare
-	typeGroupingSquare
-	typeIbmIcon
-	typeGroupingIcon
-	typeLine
+	familyDoNotShow = iota
+	familyIbmSquare
+	familyGroupingSquare
+	familyIbmIcon
+	familyGroupingIcon
+	familyLine
 )
 const (
 	// currently relevant for line colors:
@@ -79,19 +80,19 @@ type stylesConsts struct {
 	GroupingSquare,
 	IbmIcon,
 	GroupingIcon,
-	Line int
+	Line tnFamily
 	// colorCodes
 	ColorCodes map[string]string
 }
 
 func newStylesConst() stylesConsts {
 	cnst := stylesConsts{
-		DoNotShow:      typeDoNotShow,
-		IbmSquare:      typeIbmSquare,
-		GroupingSquare: typeGroupingSquare,
-		IbmIcon:        typeIbmIcon,
-		GroupingIcon:   typeGroupingIcon,
-		Line:           typeLine,
+		DoNotShow:      familyDoNotShow,
+		IbmSquare:      familyIbmSquare,
+		GroupingSquare: familyGroupingSquare,
+		IbmIcon:        familyIbmIcon,
+		GroupingIcon:   familyGroupingIcon,
+		Line:           familyLine,
 		ColorCodes:     colorCodes,
 	}
 	return cnst
@@ -108,27 +109,27 @@ func newTemplateStyles(nodes []TreeNodeInterface) templateStyles {
 	return stl
 }
 
-func (stl *templateStyles) tnType(tn TreeNodeInterface) int {
+func (stl *templateStyles) tnFamily(tn TreeNodeInterface) tnFamily {
 	switch {
 	case tn.NotShownInDrawio():
-		return typeDoNotShow
+		return familyDoNotShow
 	case tn.IsSquare() && (tn.(SquareTreeNodeInterface).IsGroupingSquare() || tn.(SquareTreeNodeInterface).IsGroupSubnetsSquare()):
-		return typeGroupingSquare
+		return familyGroupingSquare
 	case tn.IsSquare():
-		return typeIbmSquare
+		return familyIbmSquare
 	case tn.IsIcon() && tn.(IconTreeNodeInterface).IsGroupingPoint():
-		return typeGroupingIcon
+		return familyGroupingIcon
 	case tn.IsIcon():
-		return typeIbmIcon
+		return familyIbmIcon
 	case tn.IsLine():
-		return typeLine
+		return familyLine
 	}
-	return typeDoNotShow
+	return familyDoNotShow
 }
 
 // easier interface for the templates:
-func (stl *templateStyles) IsType(tn TreeNodeInterface, tp int) bool {
-	return stl.tnType(tn) == tp
+func (stl *templateStyles) IsFamily(tn TreeNodeInterface, tp tnFamily) bool {
+	return stl.tnFamily(tn) == tp
 }
 
 // mini icons:
@@ -172,7 +173,7 @@ func (stl *templateStyles) Color(tn TreeNodeInterface) string {
 
 ////////////////////////////////////////////////////////////////////////
 
-func (stl *templateStyles) DrawioConnectivityStyle(tn TreeNodeInterface) string {
+func (stl *templateStyles) DrawioLineStyle(tn TreeNodeInterface) string {
 	line := tn.(LineTreeNodeInterface)
 	startArrow, endArrow, color, dash := stl.lineParameters(line)
 	dashStyle := ""
@@ -188,22 +189,22 @@ func (stl *templateStyles) DrawioConnectivityStyle(tn TreeNodeInterface) string 
 	return fmt.Sprintf("startArrow=%s;endArrow=%s;strokeColor=%s;%s%s", startArrow, endArrow, color, exitStyle, dashStyle)
 }
 
-func (stl *templateStyles) SVGConnectivityStyle(tn TreeNodeInterface) string {
+func (stl *templateStyles) SVGLineStyle(tn TreeNodeInterface) string {
 	startArrow, endArrow, color, dash := stl.lineParameters(tn.(LineTreeNodeInterface))
 	dashStyle := ""
 	if dash {
-		dashStyle = "stroke-dasharray=\"6 6\""
+		dashStyle = "stroke-dasharray='6 6'"
 	}
-	return fmt.Sprintf("marker-start='url(#%s_%s)' marker-end='url(#%s_%s)' stroke=\"%q\" %q",
+	return fmt.Sprintf("marker-start='url(#%s_%s)' marker-end='url(#%s_%s)' stroke='%s' %s",
 		color, startArrow, color, endArrow, colorCodes[color], dashStyle)
 }
 
-func (stl *templateStyles) SvgConnectivityLabelPos(tn TreeNodeInterface) string {
+func (stl *templateStyles) SvgLineLabelPos(tn TreeNodeInterface) string {
 	pos := stl.lineLabelPos(tn)
 	return fmt.Sprintf("x=\"%d\" y=\"%d\"", pos.X, pos.Y)
 }
 
-func (stl *templateStyles) SvgConnectivityPoints(tn TreeNodeInterface) string {
+func (stl *templateStyles) SvgLinePoints(tn TreeNodeInterface) string {
 	points := lineAbsPoints(tn)
 	pointsStr := fmt.Sprintf("M %d %d", points[0].X, points[0].Y)
 	for _, point := range points[1:] {
@@ -222,7 +223,7 @@ func (stl *templateStyles) lineParameters(tn LineTreeNodeInterface) (start, end,
 	if !logical {
 		con := tn.(*ConnectivityTreeNode)
 		if con.directed {
-			end = errowEndEdge
+			end = arrowEndEdge
 		}
 		if con.Src().IsIcon() && con.Src().(IconTreeNodeInterface).IsGroupingPoint() && !con.Src().(*GroupPointTreeNode).hasShownSquare() {
 			start = noneEndEdge

@@ -14,8 +14,8 @@
     {{end}}
     {{range $node := $data.Nodes}}
     <!-- {{$data.ElementComment $node}} -->
-        {{ if $data.IsType $node $data.Cnst.DoNotShow }}
-        {{ else if $data.IsType $node $data.Cnst.IbmSquare }}
+        {{ if $data.IsFamily $node $data.Cnst.DoNotShow }}
+        {{ else if $data.IsFamily $node $data.Cnst.IbmSquare }}
                 <mxCell id="{{$data.IDsPrefix}}-{{$node.ID}}" value="" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;spacingBottom=-28;spacingTop=0;labelPosition=-100;verticalLabelPosition=top;align=center;verticalAlign=bottom;spacingLeft=9;spacing=0;expand=0;recursiveResize=0;spacingRight=0;container=1;collapsible=0;fillColor=none;strokeColor={{$data.Color $node}}" parent="{{$data.IDsPrefix}}-{{$node.DrawioParent.ID}}" vertex="1">
                 <mxGeometry width="{{$node.Width}}" height="{{$node.Height}}" x="{{$node.X}}" y="{{$node.Y}}" as="geometry"/>
                 </mxCell>
@@ -28,11 +28,11 @@
                 <mxCell id="{{$data.IDsPrefix}}-{{$node.TextID}}" value="{{$node.Label}}" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=IBM Plex Sans;fontSource=fonts%2FIBMPlexSans-Regular.woff;fontSize=14;" parent="{{$data.IDsPrefix}}-{{$node.ID}}" vertex="1">
                 <mxGeometry x="51" y="8" width="163" height="20" as="geometry" />
                 </mxCell>
-        {{ else if $data.IsType $node $data.Cnst.GroupingSquare }}
+        {{ else if $data.IsFamily $node $data.Cnst.GroupingSquare }}
                 <mxCell id="{{$data.IDsPrefix}}-{{$node.ID}}" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#82b366;strokeWidth=6;perimeterSpacing=0;arcSize=12;gradientColor=none;opacity=70;" parent="{{$data.IDsPrefix}}-{{$node.DrawioParent.ID}}" vertex="1">
                 <mxGeometry width="{{$node.Width}}" height="{{$node.Height}}" x="{{$node.X}}" y="{{$node.Y}}" as="geometry"/>
                 </mxCell>
-        {{ else if $data.IsType $node $data.Cnst.IbmIcon }}
+        {{ else if $data.IsFamily $node $data.Cnst.IbmIcon }}
             {{if $node.HasTooltip }}
                 <UserObject label="{{$node.Label}}" tooltip="{{$node.Tooltip}}" id="{{$data.IDsPrefix}}-{{$node.ID}}">
                     <mxCell style="{{$imagePrefix}}{{$data.Image $node}};{{$iconStyle}}" parent="{{$data.IDsPrefix}}-{{$node.DrawioParent.ID}}" vertex="1">
@@ -56,13 +56,13 @@
                     </mxCell>
                 {{ end }}
             {{ end }}
-        {{ else if $data.IsType $node $data.Cnst.GroupingIcon }}
+        {{ else if $data.IsFamily $node $data.Cnst.GroupingIcon }}
                 <mxCell id="{{$data.IDsPrefix}}-{{$node.ID}}" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" parent="{{$data.IDsPrefix}}-{{$node.DrawioParent.ID}}" vertex="1">
                 <mxGeometry width="{{$node.IconSize}}" height="{{$node.IconSize}}" x="{{$node.X}}" y="{{$node.Y}}" as="geometry"/>
                 </mxCell>
 
-        {{ else if $data.IsType $node $data.Cnst.Line }}
-            <mxCell id="{{$data.IDsPrefix}}-{{$node.ID}}" style="{{$data.DrawioConnectivityStyle $node}}html=1;strokeWidth=2;endFill=1;rounded=0;startFill=1;" edge="1" parent="{{$data.IDsPrefix}}-{{$node.DrawioParent.RouterID}}" source="{{$data.IDsPrefix}}-{{ $node.SrcID}}" target="{{$data.IDsPrefix}}-{{ $node.DstID}}">        
+        {{ else if $data.IsFamily $node $data.Cnst.Line }}
+            <mxCell id="{{$data.IDsPrefix}}-{{$node.ID}}" style="{{$data.DrawioLineStyle $node}}html=1;strokeWidth=2;endFill=1;rounded=0;startFill=1;" edge="1" parent="{{$data.IDsPrefix}}-{{$node.DrawioParent.RouterID}}" source="{{$data.IDsPrefix}}-{{ $node.SrcID}}" target="{{$data.IDsPrefix}}-{{ $node.DstID}}">        
             <mxGeometry relative="1" as="geometry">
             <Array as="points">
             {{range $point := $node.Points}}

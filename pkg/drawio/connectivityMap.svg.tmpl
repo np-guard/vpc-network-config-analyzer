@@ -19,16 +19,16 @@
         <!-- {{$data.ElementComment $node}} -->
         {{ $ax := $data.AX $node}}
         {{ $ay := $data.AY $node}}
-        {{ if $data.IsType $node $data.Cnst.DoNotShow }}
-        {{ else if $data.IsType $node $data.Cnst.IbmSquare }}
+        {{ if $data.IsFamily $node $data.Cnst.DoNotShow }}
+        {{ else if $data.IsFamily $node $data.Cnst.IbmSquare }}
                 <rect x="{{$ax}}" y="{{$ay}}" width="{{$node.Width}}" height="{{$node.Height}}" fill="none" stroke="{{$data.Color $node}}" pointer-events="all"/>
                 <image x="{{$data.Add $ax 18}}" y="{{$data.Add $ay 6}}" width="22" height="19.73" xlink:href="data:image/svg+xml;base64,{{$data.Image $node}}"/>
                 <rect x="{{$ax}}" y="{{$ay}}" width="7" height="37" fill="{{$data.Color $node}}" stroke="none" pointer-events="all"/>
                 <rect x="{{$data.Add $ax 51}}" y="{{$data.Add $ay 8}}" width="163" height="20" fill="none" stroke="none" pointer-events="all"/>
                 <text x="{{$data.Add $ax 53}}" y="{{$data.Add $ay 22}}" fill="rgb(0, 0, 0)" font-family="IBM Plex Sans" font-size="14px" line-height="1.2" text-align="left">{{$node.Label}}</text>
-        {{ else if $data.IsType $node $data.Cnst.GroupingSquare }}
+        {{ else if $data.IsFamily $node $data.Cnst.GroupingSquare }}
                 <rect x="{{$ax}}" y="{{$ay}}" width="{{$node.Width}}" height="{{$node.Height}}" rx="19.2" ry="19.2" fill="none" stroke="{{$data.Color $node}}" stroke-opacity="0.7" stroke-width="6" pointer-events="all"/>
-        {{ else if $data.IsType $node $data.Cnst.IbmIcon }}
+        {{ else if $data.IsFamily $node $data.Cnst.IbmIcon }}
                 <image x="{{$ax}}" y="{{$ay}}" width="{{$node.IconSize}}" height="{{$node.IconSize}}" xlink:href="data:image/svg+xml;base64,{{$data.Image $node}}"/>
                 <text fill="rgb(0, 0, 0)" font-family="IBM Plex Sans" text-anchor="middle" font-size="14px" x="{{$data.Add $ax 30}}" y="{{$data.Add $ay 73}}">{{$node.Label}}</text>
                 {{ if $data.HasMiniIcon $node }}
@@ -40,11 +40,11 @@
                         <text fill="rgb(0, 0, 0)" font-family="IBM Plex Sans" text-anchor="middle" font-size="14px" x="{{$data.Add3 $ax $data.FipXOffset 30}}" y="{{$data.Add3 $ay $data.FipYOffset 73}}">{{$node.Fip}}</text>
                     {{ end }}
                 {{ end }}
-        {{ else if $data.IsType $node $data.Cnst.GroupingIcon }}
+        {{ else if $data.IsFamily $node $data.Cnst.GroupingIcon }}
                 <ellipse cx="{{$data.Add $ax ($data.Half $node.IconSize)}}" cy="{{$data.Add $ay ($data.Half $node.IconSize)}}" rx="{{$data.Half $node.IconSize}}" ry="{{$data.Half $node.IconSize}}" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" pointer-events="all"/>
-        {{ else if $data.IsType $node $data.Cnst.Line }}
-            <path d="{{$data.SvgConnectivityPoints $node}}" {{$data.SVGConnectivityStyle $node}} fill="none" stroke-width="2" stroke-miterlimit="10" pointer-events="stroke"/>
-            <text {{$data.SvgConnectivityLabelPos $node}} font-family="Helvetica" font-size="11"> {{$node.Label}}</text>
+        {{ else if $data.IsFamily $node $data.Cnst.Line }}
+            <path d="{{$data.SvgLinePoints $node}}" {{$data.SVGLineStyle $node}} fill="none" stroke-width="2" stroke-miterlimit="10" pointer-events="stroke"/>
+            <text {{$data.SvgLineLabelPos $node}} font-family="Helvetica" font-size="11"> {{$node.Label}}</text>
         {{ end }}
     {{end}}
 
