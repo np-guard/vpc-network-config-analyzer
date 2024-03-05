@@ -261,8 +261,6 @@ func appendToRulesInFilter(resRulesInFilter *[]vpcmodel.RulesInFilter, rules *[]
 	switch {
 	case len(*rules) == 0:
 		rType = vpcmodel.NoRules
-	case len(*rules) == 1 && (*rules)[0] == vpcmodel.DummyRule:
-		rType = vpcmodel.OnlyDummyRule
 	case isAllow:
 		rType = vpcmodel.OnlyAllow
 	default: // more than 0 deny rules
@@ -282,9 +280,6 @@ func (nl *NaclLayer) StringDetailsRulesOfFilter(listRulesInFilter []vpcmodel.Rul
 		nacl := nl.naclList[rulesInFilter.Filter]
 		header := getHeaderRulesType(networkACLStr+nacl.Name(), rulesInFilter.RulesFilterType) +
 			nacl.analyzer.StringRules(rulesInFilter.Rules)
-		if header == "" {
-			continue // only dummy rule - nacl not needed between two vsis of the same subnet
-		}
 		strListRulesInFilter += header
 	}
 	return strListRulesInFilter
@@ -295,9 +290,6 @@ func (nl *NaclLayer) StringFilterEffect(listRulesInFilter []vpcmodel.RulesInFilt
 	for _, rulesInFilter := range listRulesInFilter {
 		nacl := nl.naclList[rulesInFilter.Filter]
 		header := getSummaryFilterEffect(networkACLStr+nacl.Name(), rulesInFilter.RulesFilterType)
-		if header == "" {
-			continue // only dummy rule - nacl not needed between two vsis of the same subnet
-		}
 		filtersEffectList = append(filtersEffectList, header)
 	}
 	return strings.Join(filtersEffectList, semicolonSeparator)
@@ -322,7 +314,7 @@ func getHeaderRulesType(filter string, rType vpcmodel.RulesType) string {
 	case vpcmodel.OnlyAllow:
 		return filter + " allows connection with the following allow rules\n"
 	default:
-		return "" // OnlyDummyRule
+		return ""
 	}
 }
 
@@ -333,7 +325,7 @@ func getSummaryFilterEffect(filter string, rType vpcmodel.RulesType) string {
 	case vpcmodel.BothAllowDeny, vpcmodel.OnlyAllow:
 		return filter + " allows connection"
 	default:
-		return "" // OnlyDummyRule
+		return ""
 	}
 }
 
@@ -420,11 +412,8 @@ func (n *NACL) rulesFilterInConnectivity(src, dst vpcmodel.Node, conn *common.Co
 		return false, nil, nil, nil // not affected by current nacl
 	}
 	// nacl has no control on traffic between two instances in its subnet;
-	// this is marked by a rule with index -1 (ibmvpc.DummyRule)
-	// which is not printed but only signals that this filter does not block (since there are rules)
-
 	if connectivityInput.targetWithinSubnet {
-		return true, []int{vpcmodel.DummyRule}, nil, nil
+		return false, []int{}, nil, nil
 	}
 	var err2 error
 	allow, deny, err2 = n.analyzer.rulesFilterInConnectivity(connectivityInput.subnet, connectivityInput.nodeInSubnet,
