@@ -92,9 +92,9 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 	switch {
 	case router == nil && src.IsExternal():
 		resStr += fmt.Sprintf("%v no fip and src is external (fip is required for "+
-			"outbound external connection)\n%v\n", noConnection, path)
+			"outbound external connection)\n", noConnection)
 	case router == nil && dst.IsExternal():
-		resStr += fmt.Sprintf("%v no fip/pgw and dst is external\n%v\n", noConnection, path)
+		resStr += fmt.Sprintf("%v no fip/pgw and dst is external\n", noConnection)
 	case ingressBlocking && egressBlocking:
 		resStr += fmt.Sprintf("%v connection blocked both by ingress and egress\n%v\n%v", noConnection,
 			routerFiltersHeaderPlusPath, rulesStr)
