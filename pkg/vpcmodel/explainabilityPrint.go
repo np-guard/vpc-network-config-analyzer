@@ -70,15 +70,15 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 	router RoutingResource, rules *rulesConnection) string {
 	needEgress := !src.IsExternal()
 	needIngress := !dst.IsExternal()
-	noIngressRules := !ingressEnabled && needIngress
-	noEgressRules := !egressEnabled && needEgress
+	ingressBlocking := !ingressEnabled && needIngress
+	egressBlocking := !egressEnabled && needEgress
 	var routerStr, rulesStr, noConnection, resStr string
 	if router != nil && (src.IsExternal() || dst.IsExternal()) {
 		routerStr = "External traffic via " + router.Kind() + ": " + router.Name() + "\n"
 	}
 	routerFiltersHeader := routerStr + rules.filterEffectStr(c, filtersRelevant, needEgress, needIngress)
 	routerFiltersHeader += "\nPath: " + pathStr(c, filtersRelevant, src, dst,
-		ingressEnabled, egressEnabled, router, rules)
+		ingressBlocking, egressBlocking, router, rules)
 	rulesStr = rules.ruleDetailsStr(c, filtersRelevant, verbose, needEgress, needIngress)
 	if connQuery == nil {
 		noConnection = fmt.Sprintf("No connection between %v and %v;", src.Name(), dst.Name())
@@ -91,11 +91,11 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 			"outbound external connection)\n", noConnection)
 	case router == nil && dst.IsExternal():
 		resStr += fmt.Sprintf("%v no fip/pgw and dst is external\n", noConnection)
-	case noIngressRules && noEgressRules:
+	case ingressBlocking && egressBlocking:
 		resStr += fmt.Sprintf("%v connection blocked both by ingress and egress\n%v\n%v", noConnection, routerFiltersHeader, rulesStr)
-	case noIngressRules:
+	case ingressBlocking:
 		resStr += fmt.Sprintf("%v connection blocked by ingress\n%v\n%v", noConnection, routerFiltersHeader, rulesStr)
-	case noEgressRules:
+	case egressBlocking:
 		resStr += fmt.Sprintf("%v connection blocked by egress\n%v\n%v", noConnection, routerFiltersHeader, rulesStr)
 	default: // there is a connection
 		return existingConnectionStr(connQuery, src, dst, conn, routerFiltersHeader, rulesStr)
@@ -213,14 +213,14 @@ func stringFilterEffect(c *VPCConfig, filterLayerName string, rules []RulesInFil
 // if the connection does not exist. In the latter case the path is until the first block
 // e.g.: "vsi1-ky[10.240.10.4] ->  SG sg1-ky -> subnet ... ->  ACL acl1-ky -> PublicGateway: public-gw-ky ->  Public Internet 161.26.0.0/16"
 func pathStr(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointElem,
-	ingressEnabled, egressEnabled bool, router RoutingResource, rules *rulesConnection) string {
+	ingressBlocking, egressBlocking bool, router RoutingResource, rules *rulesConnection) string {
 	var pathSlice []string
 	pathSlice = append(pathSlice, src.Name())
 	isExternal := src.IsExternal() || dst.IsExternal()
 	egressPath := pathFiltersOfIngressOrEgressStr(c, src, filtersRelevant, rules, false, isExternal, router)
 	pathSlice = append(pathSlice, egressPath...)
 	routerBlocking := isExternal && router == nil
-	if !egressEnabled || routerBlocking {
+	if egressBlocking || routerBlocking {
 		return blockedPathStr(pathSlice)
 	}
 	if isExternal {
@@ -228,7 +228,7 @@ func pathStr(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointEle
 	}
 	ingressPath := pathFiltersOfIngressOrEgressStr(c, dst, filtersRelevant, rules, true, isExternal, router)
 	pathSlice = append(pathSlice, ingressPath...)
-	if !ingressEnabled {
+	if ingressBlocking {
 		return blockedPathStr(pathSlice)
 	}
 	pathSlice = append(pathSlice, dst.Name()) // got here: full path
