@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"sort"
 	"text/template"
 )
 
@@ -64,27 +65,43 @@ func (data *templateData) AY(tn TreeNodeInterface) int {
 // 1. we put the lines at the top so they will overlap the icons
 // 2. we put the icons above the squares so we can mouse over it for tooltips
 // 3. we put the sgs and the gs in the bottom.
-// (if a sg ot a gs is above a square, it will block the the tooltip of the children of the square.)
+// (if a sg or  a gs is above a square, it will block the the tooltip of the children of the square.)
 func orderNodesForTemplate(nodes []TreeNodeInterface) []TreeNodeInterface {
-	var sg, sq, ln, ic, gs, orderedNodes []TreeNodeInterface
+	squareOrders := []SquareTreeNodeInterface{
+		&NetworkTreeNode{},
+		&PublicNetworkTreeNode{},
+		&CloudTreeNode{},
+		&VpcTreeNode{},
+		&GroupSubnetsSquareTreeNode{},
+		&ZoneTreeNode{},
+		&SubnetTreeNode{},
+		&SGTreeNode{},
+		&PartialSGTreeNode{},
+		&GroupSquareTreeNode{},
+	}
+	var ln, ic, orderedNodes []TreeNodeInterface
+	squaresBuckets := map[reflect.Type][]TreeNodeInterface{}
+	for _, t := range squareOrders {
+		squaresBuckets[reflect.TypeOf(t).Elem()] = []TreeNodeInterface{}
+	}
 	for _, tn := range nodes {
 		switch {
-		case reflect.TypeOf(tn).Elem() == reflect.TypeOf(PartialSGTreeNode{}):
-			sg = append(sg, tn)
-		case tn.IsSquare() && tn.(SquareTreeNodeInterface).IsGroupingSquare(),
-			tn.IsSquare() && tn.(SquareTreeNodeInterface).IsGroupSubnetsSquare():
-			gs = append(gs, tn)
 		case tn.IsSquare():
-			sq = append(sq, tn)
+			e := reflect.TypeOf(tn).Elem()
+			squaresBuckets[e] = append(squaresBuckets[e], tn)
 		case tn.IsIcon():
 			ic = append(ic, tn)
 		case tn.IsLine():
 			ln = append(ln, tn)
 		}
 	}
-	orderedNodes = append(orderedNodes, gs...)
-	orderedNodes = append(orderedNodes, sg...)
-	orderedNodes = append(orderedNodes, sq...)
+	gsSlice := squaresBuckets[reflect.TypeOf(&PartialSGTreeNode{}).Elem()]
+	sort.Slice(gsSlice, func(i, j int) bool {
+		return gsSlice[j].Width() >= gsSlice[j].Width()
+	})
+	for _, t := range squareOrders {
+		orderedNodes = append(orderedNodes, squaresBuckets[reflect.TypeOf(t).Elem()]...)
+	}
 	orderedNodes = append(orderedNodes, ic...)
 	orderedNodes = append(orderedNodes, ln...)
 	return orderedNodes
