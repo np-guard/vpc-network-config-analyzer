@@ -8,6 +8,12 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
+const arrow = " -> "
+const newLineTab = "\n\t"
+const space = " "
+const comma = ", "
+
+// header of txt/debug format
 func explainHeader(explanation *Explanation) string {
 	connStr := ""
 	if explanation.connQuery != nil {
@@ -85,12 +91,15 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 			"outbound external connection)\n", noConnection)
 	case router == nil && dst.IsExternal():
 		resStr += fmt.Sprintf("%v no fip/pgw and dst is external\n", noConnection)
-	case noIngressRules && noEgressRules:
-		resStr += fmt.Sprintf("%v connection blocked both by ingress and egress\n%v\n%v", noConnection, routerFiltersHeader, rulesStr)
-	case noIngressRules:
-		resStr += fmt.Sprintf("%v connection blocked by ingress\n%v\n%v", noConnection, routerFiltersHeader, rulesStr)
-	case noEgressRules:
-		resStr += fmt.Sprintf("%v connection blocked by egress\n%v\n%v", noConnection, routerFiltersHeader, rulesStr)
+	case ingressBlocking && egressBlocking:
+		resStr += fmt.Sprintf("%v connection blocked both by ingress and egress\n%v\n%v", noConnection,
+			routerFiltersHeader, rulesStr)
+	case ingressBlocking:
+		resStr += fmt.Sprintf("%v connection blocked by ingress\n%v\n%v", noConnection,
+			routerFiltersHeader, rulesStr)
+	case egressBlocking:
+		resStr += fmt.Sprintf("%v connection blocked by egress\n%v\n%v", noConnection,
+			routerFiltersHeader, rulesStr)
 	default: // there is a connection
 		return existingConnectionStr(connQuery, src, dst, conn, routerFiltersHeader, rulesStr)
 	}
