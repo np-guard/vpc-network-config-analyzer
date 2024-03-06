@@ -110,11 +110,9 @@ func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID string
 		return nil, err
 	}
 
-	// parseLoadBalancers(rc, res)
-
-	// if debug {
-	printVPCConfigs(res)
-	// }
+	if debug {
+		printVPCConfigs(res)
+	}
 
 	return res, nil
 }
@@ -1054,7 +1052,6 @@ func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 			pIPNode.SubnetResource = subnet
 			pIPNode.Zone = subnet.ZoneName()
 			res[vpcUID].Nodes = append(res[vpcUID].Nodes, pIPNode)
-			// TODO: make sure the address is in the subnet's reserved ips list?
 			subnet.nodes = append(subnet.nodes, pIPNode)
 			res[vpcUID].UIDToResource[pIPNode.ResourceUID] = pIPNode
 			loadBalancer.nodes = append(loadBalancer.nodes, pIPNode)
@@ -1064,7 +1061,6 @@ func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 		for _, poolObj := range loadBalancerObj.Pools {
 			pool := LoadBalancerPool{}
 			// todo:
-			// pool.id = *poolObj.ID
 			// pool.name = *poolObj.Name
 			// pool.protocol = *poolObj.Protocol
 			for _, memberObj := range poolObj.Members {
@@ -1073,7 +1069,7 @@ func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 				address := *memberObj.Target.(*vpc1.LoadBalancerPoolMemberTarget).Address
 				pool = append(pool, getCertainNodes(res[vpcUID].Nodes, func(n vpcmodel.Node) bool { return n.CidrOrAddress() == address })...)
 			}
-			pools[*poolObj.ID] =  pool
+			pools[*poolObj.ID] = pool
 		}
 		for _, lisObj := range loadBalancerObj.Listeners {
 			lis := LoadBalancerListener{}
@@ -1092,8 +1088,20 @@ func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 
 		}
 		// todo - what to do with loadBalancerObj.Subnets
-		
+		for _, pubIpData := range loadBalancerObj.PublicIps {
+			ipBlock, err := ipblocks.NewIPBlockFromIPAddress(*pubIpData.Address)
+			if err != nil {
+				return err
+			}
+			node, err := vpcmodel.NewExternalNode(true, ipBlock)
+			if err != nil {
+				return err
+			}
+			loadBalancer.nodes = append(loadBalancer.nodes, node)
+			res[vpcUID].Nodes = append(res[vpcUID].Nodes, node)
+		}
 		res[vpcUID].UIDToResource[loadBalancer.ResourceUID] = loadBalancer
+
 	}
 	return nil
 }
