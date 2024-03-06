@@ -11,6 +11,9 @@ func (data *templateData) SvgId(tn TreeNodeInterface) string {
 	name := reflect.TypeOf(tn).Elem().Name()[0:5]
 	return fmt.Sprintf("%s_%d", name, tn.ID())
 }
+func (data *templateData) SvgName(tn TreeNodeInterface) string {
+	return "the name of " + data.SvgId(tn)
+}
 func (data *templateData) SvgRootId() string {
 	return fmt.Sprintf("%s_%d", "top", data.rootID)
 }
@@ -45,7 +48,7 @@ func (data *templateData) nodesRelations(nodes []TreeNodeInterface) map[string]m
 		}
 		res[""]["relations"] = append(res[""]["relations"], nId)
 		res[nId]["highlights"] = []string{nId}
-		res[nId]["explanation"] = []string{"expl of " + node.Label()}
+		res[nId]["explanation"] = []string{"expl of " + data.SvgName(node)}
 
 	}
 	return res

@@ -49,7 +49,8 @@
         <!-- {{$data.ElementComment $node}} -->
         {{ $ax := $data.AX $node}}
         {{ $ay := $data.AY $node}}
-        <g id="{{$data.SvgId $node}}" clickable="true" selectable="true" title="$node.Lable">
+        <g id="{{$data.SvgId $node}}" clickable="true" selectable="true" title="{{$data.SvgName $node}}">
+        <rect x="{{$ax}}" y="{{$ay}}" width="{{$node.Width}}" height="{{$node.Height}}" fill="none" stroke="none" selection-marker="true" />
         {{if $data.IsFamily $node $data.Cnst.IbmSquare }}
                 <rect x="{{$ax}}" y="{{$ay}}" width="{{$node.Width}}" height="{{$node.Height}}" fill="none" stroke="{{$data.Color $node}}" pointer-events="all"/>
                 <image x="{{$data.Add $ax 18}}" y="{{$data.Add $ay 6}}" width="22" height="19.73" xlink:href="data:image/svg+xml;base64,{{$data.Image $node}}"/>
@@ -131,31 +132,36 @@
 
                 function selectExplPeer(event) {
                   let nodeElement = event.target;
-                                    clickFlag = true;
+                  while (nodeElement && !nodeElement.hasAttribute('selectable')) {
+                    nodeElement = nodeElement.parentNode;
+                  }
+                  const markerElement = nodeElement.querySelector('[selection-marker]')
+                  clickFlag = true;
                   setTimeout(function() {
                     // If clickFlag is still true after the timer, trigger single-click action
                     if (clickFlag) {
                       if (selectedElems.length > 1) {// reset selection
                         selectedElems.forEach((item) => {
                           item.classList.remove('selected');
-                          item.setAttribute('fill', 'none');
+                          const markerElement = item.querySelector('[selection-marker]')
+                          markerElement.setAttribute('fill', 'none');
                         });
                         selectedElems.length = 0;
                       }
                       if (nodeElement.classList.contains('selected')) {
                               // If the clicked element is already selected, deselect it
                               nodeElement.classList.remove('selected');
-                              nodeElement.setAttribute('fill', 'none');
+                              markerElement.setAttribute('fill', 'none');
                               selectedElems.splice(selectedElems.indexOf(nodeElement), 1);
                       }
                       else if (selectedElems.length < 2) {
                         // If less than 2 elements are selected, select the clicked element
                         nodeElement.classList.add('selected');
                         if (selectedElems.length === 0) {  // src
-                          nodeElement.setAttribute('fill', 'yellow');
+                          markerElement.setAttribute('fill', 'yellow');
                         }
                         else { // dst
-                          nodeElement.setAttribute('fill', '#ADD8E6');
+                          markerElement.setAttribute('fill', '#ADD8E6');
                         }
                         selectedElems.push(nodeElement);
                       }
