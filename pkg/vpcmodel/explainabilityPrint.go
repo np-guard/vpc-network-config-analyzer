@@ -83,8 +83,11 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 	if conn.IsEmpty() {
 		routerFiltersHeader = routerStr + rules.filterEffectStr(c, filtersRelevant, needEgress, needIngress) + "\n"
 	}
+	path := "Path:\n" + pathStr(c, filtersRelevant, src, dst,
+		ingressBlocking, egressBlocking, router, rules)
 	rulesStr = rules.ruleDetailsStr(c, filtersRelevant, verbose, needEgress, needIngress)
 	noConnection := noConnectionHeader(src.Name(), dst.Name(), connQuery)
+	routerFiltersHeaderPlusPath := routerFiltersHeader + path
 	switch {
 	case router == nil && src.IsExternal():
 		resStr += fmt.Sprintf("%v no fip and src is external (fip is required for "+
@@ -93,15 +96,15 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 		resStr += fmt.Sprintf("%v no fip/pgw and dst is external\n", noConnection)
 	case ingressBlocking && egressBlocking:
 		resStr += fmt.Sprintf("%v connection blocked both by ingress and egress\n%v\n%v", noConnection,
-			routerFiltersHeader, rulesStr)
+			routerFiltersHeaderPlusPath, rulesStr)
 	case ingressBlocking:
 		resStr += fmt.Sprintf("%v connection blocked by ingress\n%v\n%v", noConnection,
-			routerFiltersHeader, rulesStr)
+			routerFiltersHeaderPlusPath, rulesStr)
 	case egressBlocking:
 		resStr += fmt.Sprintf("%v connection blocked by egress\n%v\n%v", noConnection,
-			routerFiltersHeader, rulesStr)
+			routerFiltersHeaderPlusPath, rulesStr)
 	default: // there is a connection
-		return existingConnectionStr(connQuery, src, dst, conn, routerFiltersHeader, rulesStr)
+		return existingConnectionStr(connQuery, src, dst, conn, routerFiltersHeaderPlusPath, rulesStr)
 	}
 	return resStr
 }
@@ -218,6 +221,96 @@ func stringFilterEffect(c *VPCConfig, filterLayerName string, rules []RulesInFil
 		i++
 	}
 	return strings.Join(strSlice, semicolon+space)
+}
+
+// returns a string with the actual connection path; this can be either a full path from src to dst or a partial path,
+// if the connection does not exist. In the latter case the path is until the first block
+// e.g.: "vsi1-ky[10.240.10.4] ->  SG sg1-ky -> subnet ... ->  ACL acl1-ky -> PublicGateway: public-gw-ky ->  Public Internet 161.26.0.0/16"
+func pathStr(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointElem,
+	ingressBlocking, egressBlocking bool, router RoutingResource, rules *rulesConnection) string {
+	var pathSlice []string
+	pathSlice = append(pathSlice, "\t"+src.Name())
+	isExternal := src.IsExternal() || dst.IsExternal()
+	egressPath := pathFiltersOfIngressOrEgressStr(c, src, filtersRelevant, rules, false, isExternal, router)
+	pathSlice = append(pathSlice, egressPath...)
+	routerBlocking := isExternal && router == nil
+	if egressBlocking || routerBlocking {
+		return blockedPathStr(pathSlice)
+	}
+	if isExternal {
+		pathSlice = append(pathSlice, newLineTab+router.Kind()+space+router.Name())
+	}
+	ingressPath := pathFiltersOfIngressOrEgressStr(c, dst, filtersRelevant, rules, true, isExternal, router)
+	pathSlice = append(pathSlice, ingressPath...)
+	if ingressBlocking {
+		return blockedPathStr(pathSlice)
+	}
+	// got here: full path
+	if len(ingressPath) == 0 {
+		pathSlice = append(pathSlice, newLineTab+dst.Name())
+	} else {
+		pathSlice = append(pathSlice, dst.Name())
+	}
+	return strings.Join(pathSlice, arrow)
+}
+
+// terminates a path with a blocking sign, and turns from slice into a path string
+func blockedPathStr(pathSlice []string) string {
+	pathSlice = append(pathSlice, "|")
+	return strings.Join(pathSlice, arrow)
+}
+
+// returns a string with the filters (sg and nacl) part of the path above called separately for egress and for ingress
+func pathFiltersOfIngressOrEgressStr(c *VPCConfig, node EndpointElem, filtersRelevant map[string]bool, rules *rulesConnection,
+	isIngress, isExternal bool, router RoutingResource) []string {
+	pathSlice := []string{}
+	layers := getLayersToPrint(filtersRelevant, isIngress)
+	for _, layer := range layers {
+		var allowFiltersOfLayer string
+		if isIngress {
+			allowFiltersOfLayer = pathFiltersSingleLayerStr(c, layer, rules.ingressRules[layer])
+		} else {
+			allowFiltersOfLayer = pathFiltersSingleLayerStr(c, layer, rules.egressRules[layer])
+		}
+		if allowFiltersOfLayer == "" {
+			break
+		}
+		pathSlice = append(pathSlice, allowFiltersOfLayer)
+		// got here: first layer (security group for egress nacl for ingress) allows connection,
+		// subnet is part of the path if both node are internal and there are two layers - sg and nacl
+		// subnet should be added after sg in egress and after nacl in ingress
+		// or this node internal and router is pgw
+		if !node.IsExternal() && (!isExternal || router.Kind() == pgwKind) &&
+			((!isIngress && layer == SecurityGroupLayer && len(layers) > 1) ||
+				(isIngress && layer == NaclLayer && len(layers) > 1)) {
+			// if !node.isExternal then node is a single internal node implementing InternalNodeIntf
+			pathSlice = append(pathSlice, node.(InternalNodeIntf).Subnet().Name())
+		}
+	}
+	if isIngress && len(pathSlice) > 0 {
+		pathSlice[0] = newLineTab + pathSlice[0]
+	}
+	return pathSlice
+}
+
+// for a given filter layer (e.g. sg) returns a string of the allowing tables
+// (note that denying tables are excluded)
+func pathFiltersSingleLayerStr(c *VPCConfig, filterLayerName string, rules []RulesInFilter) string {
+	filterLayer := c.getFilterTrafficResourceOfKind(filterLayerName)
+	filtersToActionMap := filterLayer.ListFilterWithAction(rules)
+	strSlice := []string{}
+	for name, effect := range filtersToActionMap {
+		if !effect {
+			break
+		}
+		strSlice = append(strSlice, name)
+	}
+	if len(strSlice) == 1 {
+		return filterLayer.Name() + " " + strSlice[0]
+	} else if len(strSlice) > 1 {
+		return "[" + strings.Join(strSlice, comma) + "]"
+	}
+	return ""
 }
 
 // prints detailed list of rules that effects the (existing or non-existing) connection
