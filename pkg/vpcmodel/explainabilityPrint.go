@@ -9,6 +9,9 @@ import (
 )
 
 const arrow = " -> "
+const newLineTab = "\n\t"
+const space = " "
+const comma = ", "
 
 // header of txt/debug format
 func explainHeader(explanation *Explanation) string {
@@ -34,7 +37,7 @@ func listNetworkInterfaces(nodes []Node) string {
 	for i, node := range nodes {
 		networkInterfaces[i] = node.Name()
 	}
-	return leftParentheses + strings.Join(networkInterfaces, ", ") + rightParentheses
+	return leftParentheses + strings.Join(networkInterfaces, comma) + rightParentheses
 }
 
 // main printing function for the Explanation struct - returns a string with the explanation
@@ -193,7 +196,7 @@ func (rulesInLayers rulesInLayers) summaryFiltersStr(c *VPCConfig, filtersReleva
 	for i, layer := range filtersLayersToPrint {
 		strSlice[i] = stringFilterEffect(c, layer, rulesInLayers[layer])
 	}
-	return strings.Join(strSlice, semicolon+" ")
+	return strings.Join(strSlice, semicolon+space)
 }
 
 // for a given layer (e.g. nacl) and []RulesInFilter describing ingress/egress rules,
@@ -210,10 +213,10 @@ func stringFilterEffect(c *VPCConfig, filterLayerName string, rules []RulesInFil
 		} else {
 			effectStr = " blocks connection"
 		}
-		strSlice[i] = filterLayer.Name() + " " + name + effectStr
+		strSlice[i] = filterLayer.Name() + space + name + effectStr
 		i++
 	}
-	return strings.Join(strSlice, semicolon+" ")
+	return strings.Join(strSlice, semicolon+space)
 }
 
 // returns a string with the actual connection path; this can be either a full path from src to dst or a partial path,
@@ -231,7 +234,7 @@ func pathStr(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointEle
 		return blockedPathStr(pathSlice)
 	}
 	if isExternal {
-		pathSlice = append(pathSlice, "\n\t"+router.Kind()+" "+router.Name())
+		pathSlice = append(pathSlice, newLineTab+router.Kind()+space+router.Name())
 	}
 	ingressPath := pathFiltersOfIngressOrEgressStr(c, dst, filtersRelevant, rules, true, isExternal, router)
 	pathSlice = append(pathSlice, ingressPath...)
@@ -240,7 +243,7 @@ func pathStr(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointEle
 	}
 	// got here: full path
 	if len(ingressPath) == 0 {
-		pathSlice = append(pathSlice, "\n\t"+dst.Name())
+		pathSlice = append(pathSlice, newLineTab+dst.Name())
 	} else {
 		pathSlice = append(pathSlice, dst.Name())
 	}
@@ -256,7 +259,7 @@ func blockedPathStr(pathSlice []string) string {
 // returns a string with the filters part of the path above called separately for egress and for ingress
 func pathFiltersOfIngressOrEgressStr(c *VPCConfig, node EndpointElem, filtersRelevant map[string]bool, rules *rulesConnection,
 	isIngress, isExternal bool, router RoutingResource) []string {
-	var pathSlice []string
+	pathSlice := []string{}
 	layers := getLayersToPrint(filtersRelevant, isIngress)
 	for _, layer := range layers {
 		var allowFiltersOfLayer string
@@ -265,7 +268,7 @@ func pathFiltersOfIngressOrEgressStr(c *VPCConfig, node EndpointElem, filtersRel
 		} else {
 			allowFiltersOfLayer = pathFiltersSingleLayerStr(c, layer, rules.egressRules[layer])
 		}
-		if len(allowFiltersOfLayer) == 0 {
+		if allowFiltersOfLayer == "" {
 			break
 		}
 		pathSlice = append(pathSlice, allowFiltersOfLayer)
@@ -281,7 +284,7 @@ func pathFiltersOfIngressOrEgressStr(c *VPCConfig, node EndpointElem, filtersRel
 		}
 	}
 	if isIngress && len(pathSlice) > 0 {
-		pathSlice[0] = "\n\t" + pathSlice[0]
+		pathSlice[0] = newLineTab + pathSlice[0]
 	}
 	return pathSlice
 }
@@ -291,7 +294,7 @@ func pathFiltersOfIngressOrEgressStr(c *VPCConfig, node EndpointElem, filtersRel
 func pathFiltersSingleLayerStr(c *VPCConfig, filterLayerName string, rules []RulesInFilter) string {
 	filterLayer := c.getFilterTrafficResourceOfKind(filterLayerName)
 	filtersToActionMap := filterLayer.ListFilterWithAction(rules)
-	var strSlice []string
+	strSlice := []string{}
 	for name, effect := range filtersToActionMap {
 		if !effect {
 			break
@@ -301,7 +304,7 @@ func pathFiltersSingleLayerStr(c *VPCConfig, filterLayerName string, rules []Rul
 	if len(strSlice) == 1 {
 		return filterLayer.Name() + " " + strSlice[0]
 	} else if len(strSlice) > 1 {
-		return "[" + strings.Join(strSlice, ", ") + "]"
+		return "[" + strings.Join(strSlice, comma) + "]"
 	}
 	return ""
 }
