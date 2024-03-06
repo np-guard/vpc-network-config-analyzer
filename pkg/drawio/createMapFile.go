@@ -93,8 +93,8 @@ func orderNodesForTemplate(nodes []TreeNodeInterface) []TreeNodeInterface {
 // todo - when implementing the full html solution, need to change this interface:
 func CreateDrawioConnectivityMapFile(network SquareTreeNodeInterface, outputFile string, subnetMode bool) error {
 	newLayout(network, subnetMode).layout()
-	if false {
-		err := createFileFromTemplate(network, outputFile+".svg", svgTemplate)
+	if true {
+		err := createFileFromTemplate(network, outputFile+".html", svgTemplate)
 		if err != nil {
 			return err
 		}
