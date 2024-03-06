@@ -8,7 +8,7 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
-const arrow = "->\n"
+const arrow = " -> "
 
 // header of txt/debug format
 func explainHeader(explanation *Explanation) string {
@@ -77,8 +77,8 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 		routerStr = "External traffic via " + router.Kind() + ": " + router.Name() + "\n"
 	}
 	routerFiltersHeader := routerStr + rules.filterEffectStr(c, filtersRelevant, needEgress, needIngress)
-	//routerFiltersHeader += "\n" + pathStr(c, filtersRelevant, src, dst,
-	//	ingressEnabled, egressEnabled, router, rules)
+	routerFiltersHeader += "\nPath: " + pathStr(c, filtersRelevant, src, dst,
+		ingressEnabled, egressEnabled, router, rules)
 	rulesStr = rules.ruleDetailsStr(c, filtersRelevant, verbose, needEgress, needIngress)
 	if connQuery == nil {
 		noConnection = fmt.Sprintf("No connection between %v and %v;", src.Name(), dst.Name())
@@ -231,6 +231,7 @@ func pathStr(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointEle
 	if !ingressEnabled {
 		return blockedPathStr(pathSlice)
 	}
+	pathSlice = append(pathSlice, dst.Name()) // got here: full path
 	return strings.Join(pathSlice, arrow)
 }
 
@@ -245,17 +246,24 @@ func pathFiltersOfIngressOrEgressStr(c *VPCConfig, node EndpointElem, filtersRel
 	isIngress, isExternal bool, router RoutingResource) []string {
 	var pathSlice []string
 	layers := getLayersToPrint(filtersRelevant, isIngress)
-	for i, layer := range layers {
-		allowFiltersOfLayer := pathFiltersSingleLayerStr(c, layer, rules.egressRules[layer])
+	for _, layer := range layers {
+		var allowFiltersOfLayer string
+		if isIngress {
+			allowFiltersOfLayer = pathFiltersSingleLayerStr(c, layer, rules.ingressRules[layer])
+		} else {
+			allowFiltersOfLayer = pathFiltersSingleLayerStr(c, layer, rules.egressRules[layer])
+		}
 		if len(allowFiltersOfLayer) == 0 {
 			break
 		}
 		pathSlice = append(pathSlice, allowFiltersOfLayer)
 		// got here: first layer (security group for egress nacl for ingress) allows connection,
-		// subnet is part of the path if both node are internal or this node internal and router is pgw
+		// subnet is part of the path if both node are internal and there are two layers - sg and nacl
+		// subnet should be added after sg in egress and after nacl in ingress
+		// or this node internal and router is pgw
 		if !node.IsExternal() && (!isExternal || router.Kind() == pgwKind) &&
-			((!isIngress && layer == SecurityGroupLayer && layers[i+1] == NaclLayer) ||
-				(isIngress && layer == NaclLayer && layers[i+1] == SecurityGroupLayer)) {
+			((!isIngress && layer == SecurityGroupLayer && len(layers) > 1) ||
+				(isIngress && layer == NaclLayer && len(layers) > 1)) {
 			// if !node.isExternal then node is a single internal node implementing InternalNodeIntf
 			pathSlice = append(pathSlice, node.(InternalNodeIntf).Subnet().Name())
 		}
