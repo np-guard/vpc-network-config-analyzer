@@ -645,6 +645,7 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 	res map[string]*vpcmodel.VPCConfig, resourceGroup string, regions []string) map[string]*TransitGateway {
 	tgwMap := map[string]*TransitGateway{} // collect all tgw resources
 	tgwIDToTgw := map[string]*datamodel.TransitGateway{}
+	tgwToSkip := map[string]bool{}
 	if resourceGroup != "" || len(regions) > 0 {
 		tgwIDToTgw = getTgwMap(c)
 	}
@@ -654,27 +655,33 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 		tgwName := *tgwConn.TransitGateway.Name
 		vpcUID := *tgwConn.NetworkID
 
+		if toSkip, ok := tgwToSkip[tgwUID]; ok && toSkip {
+			continue
+		}
+
 		// filtering by resourceGroup
 		if resourceGroup != "" {
 			if tgw, ok := tgwIDToTgw[tgwUID]; ok {
-				if tgw == nil || *tgw.ResourceGroup.ID != resourceGroup {
+				if *tgw.ResourceGroup.ID != resourceGroup {
+					tgwToSkip[tgwUID] = true
 					continue
 				}
 			} else {
 				fmt.Printf("warning: ignoring tgw with unknown resource-group, tgwID: %s\n", tgwUID)
-				tgwIDToTgw[tgwUID] = nil // to avoid having this tgw's same warning issued again from another transitConnection
+				tgwToSkip[tgwUID] = true // to avoid having this tgw's same warning issued again from another transitConnection
 				continue
 			}
 		}
 		// filtering by region
 		if len(regions) > 0 {
 			if tgw, ok := tgwIDToTgw[tgwUID]; ok {
-				if tgw == nil || !slices.Contains(regions, *tgw.Location) {
+				if !slices.Contains(regions, *tgw.Location) {
+					tgwToSkip[tgwUID] = true
 					continue
 				}
 			} else {
 				fmt.Printf("warning: ignoring tgw with unknown region, tgwID: %s\n", tgwUID)
-				tgwIDToTgw[tgwUID] = nil // to avoid having this tgw's same warning issued again from another transitConnection
+				tgwToSkip[tgwUID] = true // to avoid having this tgw's same warning issued again from another transitConnection
 				continue
 			}
 		}

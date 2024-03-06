@@ -1,3 +1,11 @@
+Connectivity between VPCs connected by TGW global-tg-ky (UID: crn:607)
+ky-vpc1-vsi[10.240.0.4] => ky-vpc3-vsi[10.241.0.4] : All Connections
+ky-vpc3-vsi[10.241.0.4] => ky-vpc1-vsi[10.240.0.4] : All Connections
+
+Connectivity between VPCs connected by TGW local-tg-ky (UID: crn:603)
+ky-vpc1-vsi[10.240.0.4] => ky-vpc2-vsi[10.240.64.4] : All Connections
+ky-vpc2-vsi[10.240.64.4] => ky-vpc1-vsi[10.240.0.4] : All Connections
+
 Endpoint connectivity for VPC ete-backup-and-storage
 <nothing to report>
 
@@ -26,3 +34,9 @@ xcat-bjripp[10.248.64.7] => xc-server-01[10.248.64.8] : All Connections
 Endpoint connectivity for VPC ky-vpc1
 Public Internet (all ranges) => ky-vpc1-vsi[10.240.0.4] : All Connections
 ky-vpc1-vsi[10.240.0.4] => Public Internet (all ranges) : All Connections
+
+Endpoint connectivity for VPC ky-vpc2
+<nothing to report>
+
+Endpoint connectivity for VPC ky-vpc3
+<nothing to report>

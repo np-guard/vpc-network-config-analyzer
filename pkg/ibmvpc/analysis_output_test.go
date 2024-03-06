@@ -484,7 +484,8 @@ var tests = []*vpcGeneralTest{
 		format:      vpcmodel.DRAWIO,
 	},
 	// resource group filtering example
-	// // ete-storage-project, ete-backup-and-storage expected to be filtered out
+	// ete-storage-project and ete-backup-and-storage vpcs expected to be filtered out
+	// global-tg-ky and local-tg-ky tgws expected to be filtered out
 	{
 		inputConfig:   "multi_resource_groups",
 		useCases:      []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
@@ -492,7 +493,8 @@ var tests = []*vpcGeneralTest{
 		resourceGroup: "ola",
 	},
 	// region filtering example
-	// ky-vpc2, ky-vpc3, zn-vpc1, zn-vpc2, zn-vpc3 expected to be filtered out
+	// zn-vpc1, zn-vpc2, zn-vpc3 expected to be filtered out
+	// global-tg-zn and local-tg-zn tgws expected to be filtered out
 	{
 		inputConfig: "multi_regions",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
