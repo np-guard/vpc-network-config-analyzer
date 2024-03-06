@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+{{ $data := .}}
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="{{$data.Width}}px" height="{{$data.Height}}px" viewBox="-0.5 -0.5 {{$data.Width}} {{$data.Height}}">
+    <defs>
+        {{range $color, $code := $data.Cnst.ColorCodes }}
+        <marker id='{{$color}}_block' orient="auto" markerWidth='6' markerHeight='6' refX='6' refY='3'>
+        <path d='M0,0 V6 L6,3 Z' fill="{{$code}}"/>
+        </marker>
+        <marker id='{{$color}}_oval' orient="auto" markerWidth='6' markerHeight='6' refX='3' refY='3'>
+        <ellipse cx="3" cy="3" rx="2" ry="2" fill="{{$code}}" />
+        </marker>
+        <marker id='{{$color}}_none' orient="auto" markerWidth='6' markerHeight='6' refX='3' refY='3'>
+        </marker>
+        {{end}}
+    </defs>
+<g>
+    {{range $node := $data.Nodes}}
+        <!-- {{$data.ElementComment $node}} -->
+        {{ $ax := $data.AX $node}}
+        {{ $ay := $data.AY $node}}
+        {{ if $data.IsFamily $node $data.Cnst.DoNotShow }}
+        {{ else if $data.IsFamily $node $data.Cnst.IbmSquare }}
+                <rect x="{{$ax}}" y="{{$ay}}" width="{{$node.Width}}" height="{{$node.Height}}" fill="none" stroke="{{$data.Color $node}}" pointer-events="all"/>
+                <image x="{{$data.Add $ax 18}}" y="{{$data.Add $ay 6}}" width="22" height="19.73" xlink:href="data:image/svg+xml;base64,{{$data.Image $node}}"/>
+                <rect x="{{$ax}}" y="{{$ay}}" width="7" height="37" fill="{{$data.Color $node}}" stroke="none" pointer-events="all"/>
+                <rect x="{{$data.Add $ax 51}}" y="{{$data.Add $ay 8}}" width="163" height="20" fill="none" stroke="none" pointer-events="all"/>
+                <text x="{{$data.Add $ax 53}}" y="{{$data.Add $ay 22}}" fill="rgb(0, 0, 0)" font-family="IBM Plex Sans" font-size="14px" line-height="1.2" text-align="left">{{$node.Label}}</text>
+        {{ else if $data.IsFamily $node $data.Cnst.GroupingSquare }}
+                <rect x="{{$ax}}" y="{{$ay}}" width="{{$node.Width}}" height="{{$node.Height}}" rx="19.2" ry="19.2" fill="none" stroke="{{$data.Color $node}}" stroke-opacity="0.7" stroke-width="6" pointer-events="all"/>
+        {{ else if $data.IsFamily $node $data.Cnst.IbmIcon }}
+                <image x="{{$ax}}" y="{{$ay}}" width="{{$node.IconSize}}" height="{{$node.IconSize}}" xlink:href="data:image/svg+xml;base64,{{$data.Image $node}}"/>
+                <text fill="rgb(0, 0, 0)" font-family="IBM Plex Sans" text-anchor="middle" font-size="14px" x="{{$data.Add $ax 30}}" y="{{$data.Add $ay 73}}">{{$node.Label}}</text>
+                {{ if $data.HasMiniIcon $node }}
+                    <image x="{{$data.Add $ax $data.MiniIconXOffset}}" y="{{$data.Add $ay $data.MiniIconYOffset}}" width="{{$data.MiniIconSize}}" height="{{$data.MiniIconSize}}" xlink:href="data:image/svg+xml;base64,{{$data.MiniImage $node}}"/>
+                {{ end }}
+                {{ if $node.IsNI }}
+                    {{ if $node.HasFip  }}
+                        <image x="{{$data.Add $ax $data.FipXOffset}}" y="{{$data.Add $ay $data.FipYOffset}}" width="{{$node.IconSize}}" height="{{$node.IconSize}}" xlink:href="data:image/svg+xml;base64,{{$data.FIPImage}}"/>
+                        <text fill="rgb(0, 0, 0)" font-family="IBM Plex Sans" text-anchor="middle" font-size="14px" x="{{$data.Add3 $ax $data.FipXOffset 30}}" y="{{$data.Add3 $ay $data.FipYOffset 73}}">{{$node.Fip}}</text>
+                    {{ end }}
+                {{ end }}
+        {{ else if $data.IsFamily $node $data.Cnst.GroupingIcon }}
+                <ellipse cx="{{$data.Add $ax ($data.Half $node.IconSize)}}" cy="{{$data.Add $ay ($data.Half $node.IconSize)}}" rx="{{$data.Half $node.IconSize}}" ry="{{$data.Half $node.IconSize}}" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" pointer-events="all"/>
+        {{ else if $data.IsFamily $node $data.Cnst.Line }}
+            <path d="{{$data.SvgLinePoints $node}}" {{$data.SVGLineStyle $node}} fill="none" stroke-width="2" stroke-miterlimit="10" pointer-events="stroke"/>
+            <text {{$data.SvgLineLabelPos $node}} font-family="Helvetica" font-size="11"> {{$node.Label}}</text>
+        {{ end }}
+    {{end}}
+
+</g>
+<switch>
+<g requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"/>
+<a transform="translate(0,-5)" xlink:href="https://www.diagrams.net/doc/faq/svg-export-text-problems" target="_blank">
+<text text-anchor="middle" font-size="10px" x="50%" y="100%">Text is not SVG - cannot display</text>
+</a>
+</switch>
+</svg>
