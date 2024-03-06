@@ -80,7 +80,7 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 	if conn.IsEmpty() {
 		routerFiltersHeader = routerStr + rules.filterEffectStr(c, filtersRelevant, needEgress, needIngress) + "\n"
 	}
-	routerFiltersHeader += "Path:\n" + pathStr(c, filtersRelevant, src, dst,
+	path := "Path:\n" + pathStr(c, filtersRelevant, src, dst,
 		ingressBlocking, egressBlocking, router, rules)
 	rulesStr = rules.ruleDetailsStr(c, filtersRelevant, verbose, needEgress, needIngress)
 	if connQuery == nil {
@@ -88,20 +88,24 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 	} else {
 		noConnection = fmt.Sprintf("There is no connection \"%v\" between %v and %v;", connQuery.String(), src.Name(), dst.Name())
 	}
+	routerFiltersHeaderPlusPath := routerFiltersHeader + path
 	switch {
 	case router == nil && src.IsExternal():
 		resStr += fmt.Sprintf("%v no fip and src is external (fip is required for "+
-			"outbound external connection)\n", noConnection)
+			"outbound external connection)\n%v\n", noConnection, path)
 	case router == nil && dst.IsExternal():
-		resStr += fmt.Sprintf("%v no fip/pgw and dst is external\n", noConnection)
+		resStr += fmt.Sprintf("%v no fip/pgw and dst is external\n%v\n", noConnection, path)
 	case ingressBlocking && egressBlocking:
-		resStr += fmt.Sprintf("%v connection blocked both by ingress and egress\n%v\n%v", noConnection, routerFiltersHeader, rulesStr)
+		resStr += fmt.Sprintf("%v connection blocked both by ingress and egress\n%v\n%v", noConnection,
+			routerFiltersHeaderPlusPath, rulesStr)
 	case ingressBlocking:
-		resStr += fmt.Sprintf("%v connection blocked by ingress\n%v\n%v", noConnection, routerFiltersHeader, rulesStr)
+		resStr += fmt.Sprintf("%v connection blocked by ingress\n%v\n%v", noConnection,
+			routerFiltersHeaderPlusPath, rulesStr)
 	case egressBlocking:
-		resStr += fmt.Sprintf("%v connection blocked by egress\n%v\n%v", noConnection, routerFiltersHeader, rulesStr)
+		resStr += fmt.Sprintf("%v connection blocked by egress\n%v\n%v", noConnection,
+			routerFiltersHeaderPlusPath, rulesStr)
 	default: // there is a connection
-		return existingConnectionStr(connQuery, src, dst, conn, routerFiltersHeader, rulesStr)
+		return existingConnectionStr(connQuery, src, dst, conn, routerFiltersHeaderPlusPath, rulesStr)
 	}
 	return resStr
 }
