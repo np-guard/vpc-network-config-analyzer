@@ -77,7 +77,7 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 		routerStr = "External traffic via " + router.Kind() + ": " + router.Name() + "\n"
 	}
 	routerFiltersHeader := routerStr + rules.filterEffectStr(c, filtersRelevant, needEgress, needIngress)
-	routerFiltersHeader += "\nPath: " + pathStr(c, filtersRelevant, src, dst,
+	routerFiltersHeader += "\nPath:\n" + pathStr(c, filtersRelevant, src, dst,
 		ingressBlocking, egressBlocking, router, rules)
 	rulesStr = rules.ruleDetailsStr(c, filtersRelevant, verbose, needEgress, needIngress)
 	if connQuery == nil {
@@ -215,7 +215,7 @@ func stringFilterEffect(c *VPCConfig, filterLayerName string, rules []RulesInFil
 func pathStr(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointElem,
 	ingressBlocking, egressBlocking bool, router RoutingResource, rules *rulesConnection) string {
 	var pathSlice []string
-	pathSlice = append(pathSlice, src.Name())
+	pathSlice = append(pathSlice, "\t"+src.Name())
 	isExternal := src.IsExternal() || dst.IsExternal()
 	egressPath := pathFiltersOfIngressOrEgressStr(c, src, filtersRelevant, rules, false, isExternal, router)
 	pathSlice = append(pathSlice, egressPath...)
@@ -224,14 +224,19 @@ func pathStr(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointEle
 		return blockedPathStr(pathSlice)
 	}
 	if isExternal {
-		pathSlice = append(pathSlice, router.Kind()+" "+router.Name())
+		pathSlice = append(pathSlice, "\n\t"+router.Kind()+" "+router.Name())
 	}
 	ingressPath := pathFiltersOfIngressOrEgressStr(c, dst, filtersRelevant, rules, true, isExternal, router)
 	pathSlice = append(pathSlice, ingressPath...)
 	if ingressBlocking {
 		return blockedPathStr(pathSlice)
 	}
-	pathSlice = append(pathSlice, dst.Name()) // got here: full path
+	// got here: full path
+	if len(ingressPath) == 0 {
+		pathSlice = append(pathSlice, "\n\t"+dst.Name())
+	} else {
+		pathSlice = append(pathSlice, dst.Name())
+	}
 	return strings.Join(pathSlice, arrow)
 }
 
@@ -267,6 +272,9 @@ func pathFiltersOfIngressOrEgressStr(c *VPCConfig, node EndpointElem, filtersRel
 			// if !node.isExternal then node is a single internal node implementing InternalNodeIntf
 			pathSlice = append(pathSlice, node.(InternalNodeIntf).Subnet().Name())
 		}
+	}
+	if isIngress && len(pathSlice) > 0 {
+		pathSlice[0] = "\n\t" + pathSlice[0]
 	}
 	return pathSlice
 }
