@@ -43,6 +43,8 @@ func (tn *abstractIconTreeNode) Tooltip() string                  { return label
 func (tn *abstractIconTreeNode) IconSize() int                    { return iconSize }
 func (tn *abstractIconTreeNode) hasMiniIcon() bool                { return false }
 func (tn *abstractIconTreeNode) MiniIconID() uint                 { return tn.id + miniIconID }
+func (tn *abstractIconTreeNode) Height() int                      { return iconSize }
+func (tn *abstractIconTreeNode) Width() int                       { return iconSize }
 
 var offsets = []int{
 	0,
@@ -239,6 +241,9 @@ func (tn *GroupPointTreeNode) IconSize() int {
 	}
 	return 1
 }
+func (tn *GroupPointTreeNode) Height() int { return tn.IconSize() }
+func (tn *GroupPointTreeNode) Width() int  { return tn.IconSize() }
+
 func (tn *GroupPointTreeNode) IsGroupingPoint() bool { return true }
 func (tn *GroupPointTreeNode) hasShownSquare() bool {
 	return tn.Parent().(*GroupSquareTreeNode).visibility != connectedPoint

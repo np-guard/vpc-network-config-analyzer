@@ -106,7 +106,7 @@ func (lyO *layoutOverlap) handleGroupingLinesOverBorders() {
 		for _, gi := range []*GroupPointTreeNode{src, dst} {
 			if gi.hasShownSquare() {
 				// adding a point:
-				p := iconCenterPoint(gi)
+				p := centerPoint(gi)
 				line.addPoint(lineX, p.Y)
 			} else {
 				// the point is already on the middle of the column, just moving the point according to the number of previous lines:
@@ -137,8 +137,8 @@ func (lyO *layoutOverlap) handleLinesOverLines() {
 			if len(line1.Points()) != 0 || len(line2.Points()) != 0 {
 				continue
 			}
-			srcPoint := iconCenterPoint(line1.Src().(IconTreeNodeInterface))
-			dstPoint := iconCenterPoint(line1.Dst().(IconTreeNodeInterface))
+			srcPoint := centerPoint(line1.Src())
+			dstPoint := centerPoint(line1.Dst())
 			middlePoint := point{(srcPoint.X + dstPoint.X) / 2, (srcPoint.Y + dstPoint.Y) / 2}
 			BP := lyO.getBypassPoint(srcPoint, dstPoint, middlePoint, line1)
 			if BP != noPoint {
@@ -174,7 +174,7 @@ func (lyO *layoutOverlap) handleLinesOverIcons() {
 					// there is no overlap
 					break
 				}
-				BP := lyO.getBypassPoint(srcP, desP, iconCenterPoint(icon), line)
+				BP := lyO.getBypassPoint(srcP, desP, centerPoint(icon), line)
 				if BP == noPoint {
 					// we could not find a suitable bypass point
 					break
@@ -264,17 +264,17 @@ func (lyO *layoutOverlap) getOverlappedIcon(p1, p2 point, line LineTreeNodeInter
 
 // some methods to convert absolute point to relative, and vis versa:
 func getLineAbsolutePoints(line LineTreeNodeInterface) []point {
-	absPoints := []point{iconCenterPoint(line.Src().(IconTreeNodeInterface))}
+	absPoints := []point{centerPoint(line.Src())}
 	for _, p := range line.Points() {
 		absPoints = append(absPoints, getAbsolutePoint(line, p))
 	}
-	absPoints = append(absPoints, iconCenterPoint(line.Dst().(IconTreeNodeInterface)))
+	absPoints = append(absPoints, centerPoint(line.Dst()))
 	return absPoints
 }
 
-func iconCenterPoint(icon IconTreeNodeInterface) point {
-	ix, iy := absoluteGeometry(icon)
-	return point{ix + icon.IconSize()/2, iy + icon.IconSize()/2}
+func centerPoint(tn TreeNodeInterface) point {
+	ix, iy := absoluteGeometry(tn)
+	return point{ix + tn.Width()/2, iy + tn.Height()/2}
 }
 
 func getAbsolutePoint(line LineTreeNodeInterface, p point) point {
@@ -282,7 +282,8 @@ func getAbsolutePoint(line LineTreeNodeInterface, p point) point {
 		x, y := line.Router().absoluteRouterGeometry()
 		return point{x + p.X, y + p.Y}
 	}
-	return p
+	lpx, lpy := absoluteGeometry(line.Parent())
+	return point{lpx + p.X, lpy + p.Y}
 }
 
 func getRelativePoint(line LineTreeNodeInterface, absPoint point) point {
