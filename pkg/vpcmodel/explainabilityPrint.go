@@ -40,7 +40,7 @@ func listNetworkInterfaces(nodes []Node) string {
 	return leftParentheses + strings.Join(networkInterfaces, comma) + rightParentheses
 }
 
-// main printing function for the Explanation struct - returns a string with the explanation
+// String main printing function for the Explanation struct - returns a string with the explanation
 func (explanation *Explanation) String(verbose bool) string {
 	linesStr := make([]string, len(explanation.groupedLines))
 	groupedLines := explanation.groupedLines
@@ -55,7 +55,7 @@ func (explanation *Explanation) String(verbose bool) string {
 	return strings.Join(linesStr, "\n") + "\n"
 }
 
-// main printing function for a *rulesAndConnDetails <src, dst> line; calls explainabilityLineStr
+// main printing function for a *rulesAndConnDetails <src, dst> line (before grouping); calls explainabilityLineStr
 // used only for testing; the txt and debug output are through grouping results
 func (details *rulesAndConnDetails) String(c *VPCConfig, verbose bool, connQuery *common.ConnectionSet) (string, error) {
 	resStr := ""
@@ -117,6 +117,27 @@ func noConnectionHeader(src, dst string, connQuery *common.ConnectionSet) string
 	return fmt.Sprintf("There is no connection \"%v\" between %v and %v;", connQuery.String(), src, dst)
 }
 
+// return a string with the described existing connection and relevant details w.r.t. the potential query
+// e.g.: "Connection protocol: UDP src-ports: 1-600 dst-ports: 1-50 exists between vsi1-ky[10.240.10.4]
+// and Public Internet 161.26.0.0/16 (note that not all queried protocols/ports are allowed)"
+func existingConnectionStr(connQuery *common.ConnectionSet, src, dst EndpointElem,
+	conn *common.ConnectionSet, filtersEffectStr, rulesStr string) string {
+	resStr := ""
+	if connQuery == nil {
+		resStr = fmt.Sprintf("The following connection exists between %v and %v: %v\n", src.Name(), dst.Name(),
+			conn.String())
+	} else {
+		properSubsetConn := ""
+		if !conn.Equal(connQuery) {
+			properSubsetConn = " (note that not all queried protocols/ports are allowed)"
+		}
+		resStr = fmt.Sprintf("Connection %v exists between %v and %v%s\n", conn.String(),
+			src.Name(), dst.Name(), properSubsetConn)
+	}
+	resStr += filtersEffectStr + "\n" + rulesStr
+	return resStr
+}
+
 // returns a string with a summary of each filter (table) effect; e.g.
 // "Egress: security group sg1-ky allows connection; network ACL acl1-ky blocks connection
 // Ingress: network ACL acl3-ky allows connection; security group sg1-ky allows connection"
@@ -169,27 +190,6 @@ func (rules *rulesConnection) ruleDetailsStr(c *VPCConfig, filtersRelevant map[s
 		return "\nDetails:\n~~~~~~~~\n" + egressRulesStr + ingressRulesStr
 	}
 	return ""
-}
-
-// return a string with the described existing connection and relevant details w.r.t. the potential query
-// e.g.: "Connection protocol: UDP src-ports: 1-600 dst-ports: 1-50 exists between vsi1-ky[10.240.10.4]
-// and Public Internet 161.26.0.0/16 (note that not all queried protocols/ports are allowed)"
-func existingConnectionStr(connQuery *common.ConnectionSet, src, dst EndpointElem,
-	conn *common.ConnectionSet, filtersEffectStr, rulesStr string) string {
-	resStr := ""
-	if connQuery == nil {
-		resStr = fmt.Sprintf("The following connection exists between %v and %v: %v\n", src.Name(), dst.Name(),
-			conn.String())
-	} else {
-		properSubsetConn := ""
-		if !conn.Equal(connQuery) {
-			properSubsetConn = " (note that not all queried protocols/ports are allowed)"
-		}
-		resStr = fmt.Sprintf("Connection %v exists between %v and %v%s\n", conn.String(),
-			src.Name(), dst.Name(), properSubsetConn)
-	}
-	resStr += filtersEffectStr + "\n" + rulesStr
-	return resStr
 }
 
 // returns a string with the effect of each filter by calling StringFilterEffect
@@ -260,7 +260,7 @@ func blockedPathStr(pathSlice []string) string {
 	return strings.Join(pathSlice, arrow)
 }
 
-// returns a string with the filters part of the path above called separately for egress and for ingress
+// returns a string with the filters (sg and nacl) part of the path above called separately for egress and for ingress
 func pathFiltersOfIngressOrEgressStr(c *VPCConfig, node EndpointElem, filtersRelevant map[string]bool, rules *rulesConnection,
 	isIngress, isExternal bool, router RoutingResource) []string {
 	pathSlice := []string{}
