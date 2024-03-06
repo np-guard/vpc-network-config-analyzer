@@ -287,13 +287,12 @@ func pathFiltersOfIngressOrEgressStr(c *VPCConfig, node EndpointElem, filtersRel
 func pathFiltersSingleLayerStr(c *VPCConfig, filterLayerName string, rules []RulesInFilter) string {
 	filterLayer := c.getFilterTrafficResourceOfKind(filterLayerName)
 	filtersToActionMap := filterLayer.ListFilterWithAction(rules)
-	strSlice := make([]string, len(filtersToActionMap))
-	i := 0
+	var strSlice []string
 	for name, effect := range filtersToActionMap {
 		if !effect {
 			break
 		}
-		strSlice[i] = name
+		strSlice = append(strSlice, name)
 	}
 	if len(strSlice) == 1 {
 		return filterLayer.Name() + " " + strSlice[0]
