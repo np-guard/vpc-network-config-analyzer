@@ -75,7 +75,7 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 	needIngress := !dst.IsExternal()
 	ingressBlocking := !ingressEnabled && needIngress
 	egressBlocking := !egressEnabled && needEgress
-	var routerStr, rulesStr, noConnection, resStr string
+	var routerStr, rulesStr, resStr string
 	if router != nil && (src.IsExternal() || dst.IsExternal()) {
 		routerStr = "External traffic via " + router.Kind() + ": " + router.Name() + "\n"
 	}
@@ -86,11 +86,7 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 	path := "Path:\n" + pathStr(c, filtersRelevant, src, dst,
 		ingressBlocking, egressBlocking, router, rules)
 	rulesStr = rules.ruleDetailsStr(c, filtersRelevant, verbose, needEgress, needIngress)
-	if connQuery == nil {
-		noConnection = fmt.Sprintf("No connection between %v and %v;", src.Name(), dst.Name())
-	} else {
-		noConnection = fmt.Sprintf("There is no connection \"%v\" between %v and %v;", connQuery.String(), src.Name(), dst.Name())
-	}
+	noConnection := noConnectionHeader(src.Name(), dst.Name(), connQuery)
 	routerFiltersHeaderPlusPath := routerFiltersHeader + path
 	switch {
 	case router == nil && src.IsExternal():
@@ -111,6 +107,14 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 		return existingConnectionStr(connQuery, src, dst, conn, routerFiltersHeaderPlusPath, rulesStr)
 	}
 	return resStr
+}
+
+// returns string of header in case a connection fails to exist
+func noConnectionHeader(src, dst string, connQuery *common.ConnectionSet) string {
+	if connQuery == nil {
+		return fmt.Sprintf("No connection between %v and %v;", src, dst)
+	}
+	return fmt.Sprintf("There is no connection \"%v\" between %v and %v;", connQuery.String(), src, dst)
 }
 
 // returns a string with a summary of each filter (table) effect; e.g.
