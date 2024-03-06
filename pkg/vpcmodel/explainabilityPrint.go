@@ -10,6 +10,7 @@ import (
 
 const arrow = "->\n"
 
+// header of txt/debug format
 func explainHeader(explanation *Explanation) string {
 	connStr := ""
 	if explanation.connQuery != nil {
@@ -23,7 +24,8 @@ func explainHeader(explanation *Explanation) string {
 	return header1 + "\n" + header2 + "\n\n"
 }
 
-// in case the src/dst of a network interface given as an internal address connected to network interface
+// in case the src/dst of a network interface given as an internal address connected to network interface returns a string
+// of all relevant vsis
 func listNetworkInterfaces(nodes []Node) string {
 	if len(nodes) == 0 {
 		return ""
@@ -35,22 +37,12 @@ func listNetworkInterfaces(nodes []Node) string {
 	return leftParentheses + strings.Join(networkInterfaces, ", ") + rightParentheses
 }
 
-// prints each separately without grouping - for debug
-func (details *rulesAndConnDetails) String(c *VPCConfig, verbose bool, connQuery *common.ConnectionSet) (string, error) {
-	resStr := ""
-	for _, srcDstDetails := range *details {
-		resStr += stringExplainabilityLine(verbose, c, srcDstDetails.filtersRelevant, connQuery,
-			srcDstDetails.src, srcDstDetails.dst, srcDstDetails.conn, srcDstDetails.ingressEnabled,
-			srcDstDetails.egressEnabled, srcDstDetails.router, srcDstDetails.actualMergedRules)
-	}
-	return resStr, nil
-}
-
+// main printing function for the Explanation struct - returns a string with the explanation
 func (explanation *Explanation) String(verbose bool) string {
 	linesStr := make([]string, len(explanation.groupedLines))
 	groupedLines := explanation.groupedLines
 	for i, line := range groupedLines {
-		linesStr[i] += stringExplainabilityLine(verbose, explanation.c, line.commonProperties.expDetails.filtersRelevant,
+		linesStr[i] += explainabilityLineStr(verbose, explanation.c, line.commonProperties.expDetails.filtersRelevant,
 			explanation.connQuery, line.src, line.dst, line.commonProperties.conn, line.commonProperties.expDetails.ingressEnabled,
 			line.commonProperties.expDetails.egressEnabled,
 			line.commonProperties.expDetails.router, line.commonProperties.expDetails.rules) +
@@ -60,7 +52,20 @@ func (explanation *Explanation) String(verbose bool) string {
 	return strings.Join(linesStr, "\n") + "\n"
 }
 
-func stringExplainabilityLine(verbose bool, c *VPCConfig, filtersRelevant map[string]bool, connQuery *common.ConnectionSet,
+// main printing function for a *rulesAndConnDetails <src, dst> line; calls explainabilityLineStr
+// used only for testing; the txt and debug output are through grouping results
+func (details *rulesAndConnDetails) String(c *VPCConfig, verbose bool, connQuery *common.ConnectionSet) (string, error) {
+	resStr := ""
+	for _, srcDstDetails := range *details {
+		resStr += explainabilityLineStr(verbose, c, srcDstDetails.filtersRelevant, connQuery,
+			srcDstDetails.src, srcDstDetails.dst, srcDstDetails.conn, srcDstDetails.ingressEnabled,
+			srcDstDetails.egressEnabled, srcDstDetails.router, srcDstDetails.actualMergedRules)
+	}
+	return resStr, nil
+}
+
+// prints a single line of <src, dst>. Called either with grouping results or from the original struct before grouping
+func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[string]bool, connQuery *common.ConnectionSet,
 	src, dst EndpointElem, conn *common.ConnectionSet, ingressEnabled, egressEnabled bool,
 	router RoutingResource, rules *rulesConnection) string {
 	needEgress := !src.IsExternal()
@@ -71,8 +76,10 @@ func stringExplainabilityLine(verbose bool, c *VPCConfig, filtersRelevant map[st
 	if router != nil && (src.IsExternal() || dst.IsExternal()) {
 		routerStr = "External traffic via " + router.Kind() + ": " + router.Name() + "\n"
 	}
-	routerFiltersHeader := routerStr + rules.getFilterEffectStr(c, filtersRelevant, needEgress, needIngress)
-	rulesStr = rules.getRuleDetailsStr(c, filtersRelevant, verbose, needEgress, needIngress)
+	routerFiltersHeader := routerStr + rules.filterEffectStr(c, filtersRelevant, needEgress, needIngress)
+	//routerFiltersHeader += "\n" + pathStr(c, filtersRelevant, src, dst,
+	//	ingressEnabled, egressEnabled, router, rules)
+	rulesStr = rules.ruleDetailsStr(c, filtersRelevant, verbose, needEgress, needIngress)
 	if connQuery == nil {
 		noConnection = fmt.Sprintf("No connection between %v and %v;", src.Name(), dst.Name())
 	} else {
@@ -91,18 +98,21 @@ func stringExplainabilityLine(verbose bool, c *VPCConfig, filtersRelevant map[st
 	case noEgressRules:
 		resStr += fmt.Sprintf("%v connection blocked by egress\n%v\n%v", noConnection, routerFiltersHeader, rulesStr)
 	default: // there is a connection
-		return stringExplainabilityConnection(connQuery, src, dst, conn, routerFiltersHeader, rulesStr)
+		return existingConnectionStr(connQuery, src, dst, conn, routerFiltersHeader, rulesStr)
 	}
 	return resStr
 }
 
-func (rules *rulesConnection) getFilterEffectStr(c *VPCConfig, filtersRelevant map[string]bool, needEgress, needIngress bool) string {
+// returns a string with a summary of each filter (table) effect; e.g.
+// "Egress: security group sg1-ky allows connection; network ACL acl1-ky blocks connection
+// Ingress: network ACL acl3-ky allows connection; security group sg1-ky allows connection"
+func (rules *rulesConnection) filterEffectStr(c *VPCConfig, filtersRelevant map[string]bool, needEgress, needIngress bool) string {
 	egressRulesStr, ingressRulesStr := "", ""
 	if needEgress {
-		egressRulesStr = rules.egressRules.summaryString(c, filtersRelevant, false)
+		egressRulesStr = rules.egressRules.summaryFiltersStr(c, filtersRelevant, false)
 	}
 	if needIngress {
-		ingressRulesStr = rules.ingressRules.summaryString(c, filtersRelevant, true)
+		ingressRulesStr = rules.ingressRules.summaryFiltersStr(c, filtersRelevant, true)
 	}
 	if needEgress && egressRulesStr != "" {
 		egressRulesStr = "Egress: " + egressRulesStr
@@ -116,17 +126,21 @@ func (rules *rulesConnection) getFilterEffectStr(c *VPCConfig, filtersRelevant m
 	return egressRulesStr + ingressRulesStr
 }
 
-func (rules *rulesConnection) getRuleDetailsStr(c *VPCConfig, filtersRelevant map[string]bool,
+// returns a string with a detailed list of relevant rules; e.g.
+// "security group sg1-ky allows connection with the following allow rules
+// index: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0
+// network ACL acl1-ky blocks connection since there are no relevant allow rules"
+func (rules *rulesConnection) ruleDetailsStr(c *VPCConfig, filtersRelevant map[string]bool,
 	verbose, needEgress, needIngress bool) string {
 	if !verbose {
 		return ""
 	}
 	egressRulesStr, ingressRulesStr := "", ""
 	if needEgress {
-		egressRulesStr = rules.egressRules.detailsString(c, filtersRelevant, false)
+		egressRulesStr = rules.egressRules.rulesDetailsStr(c, filtersRelevant, false)
 	}
 	if needIngress {
-		ingressRulesStr = rules.ingressRules.detailsString(c, filtersRelevant, true)
+		ingressRulesStr = rules.ingressRules.rulesDetailsStr(c, filtersRelevant, true)
 	}
 	if needEgress && egressRulesStr != "" {
 		egressRulesStr = "Egress:\n" + egressRulesStr
@@ -143,7 +157,10 @@ func (rules *rulesConnection) getRuleDetailsStr(c *VPCConfig, filtersRelevant ma
 	return ""
 }
 
-func stringExplainabilityConnection(connQuery *common.ConnectionSet, src, dst EndpointElem,
+// return a string with the described existing connection and relevant details w.r.t. the potential query
+// e.g.: "Connection protocol: UDP src-ports: 1-600 dst-ports: 1-50 exists between vsi1-ky[10.240.10.4]
+// and Public Internet 161.26.0.0/16 (note that not all queried protocols/ports are allowed)"
+func existingConnectionStr(connQuery *common.ConnectionSet, src, dst EndpointElem,
 	conn *common.ConnectionSet, filtersEffectStr, rulesStr string) string {
 	resStr := ""
 	if connQuery == nil {
@@ -161,8 +178,9 @@ func stringExplainabilityConnection(connQuery *common.ConnectionSet, src, dst En
 	return resStr
 }
 
-// prints effect of each filter by calling StringFilterEffect
-func (rulesInLayers rulesInLayers) summaryString(c *VPCConfig, filtersRelevant map[string]bool, isIngress bool) string {
+// returns a string with the effect of each filter by calling StringFilterEffect
+// e.g. "security group sg1-ky allows connection; network ACL acl1-ky blocks connection"
+func (rulesInLayers rulesInLayers) summaryFiltersStr(c *VPCConfig, filtersRelevant map[string]bool, isIngress bool) string {
 	filtersLayersToPrint := getLayersToPrint(filtersRelevant, isIngress)
 	strSlice := make([]string, len(filtersLayersToPrint))
 	for i, layer := range filtersLayersToPrint {
@@ -171,14 +189,35 @@ func (rulesInLayers rulesInLayers) summaryString(c *VPCConfig, filtersRelevant m
 	return strings.Join(strSlice, semicolon+" ")
 }
 
-// in cases there *is* a connection - prints the path, e.g.
-// vsi1-ky[10.240.10.4] ->  SG sg1-ky -> subnet ... ->  ACL acl1-ky -> PublicGateway: public-gw-ky ->  Public Internet 161.26.0.0/16
-func stringExplainPath(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointElem,
+// for a given layer (e.g. nacl) and []RulesInFilter describing ingress/egress rules,
+// returns a string with the effect of each filter, called by summaryFiltersStr
+func stringFilterEffect(c *VPCConfig, filterLayerName string, rules []RulesInFilter) string {
+	filterLayer := c.getFilterTrafficResourceOfKind(filterLayerName)
+	filtersToActionMap := filterLayer.ListFilterWithAction(rules)
+	strSlice := make([]string, len(filtersToActionMap))
+	i := 0
+	for name, effect := range filtersToActionMap {
+		effectStr := ""
+		if effect {
+			effectStr = " allows connection"
+		} else {
+			effectStr = " blocks connection"
+		}
+		strSlice[i] = filterLayer.Name() + " " + name + effectStr
+		i++
+	}
+	return strings.Join(strSlice, semicolon+" ")
+}
+
+// returns a string with the actual connection path; this can be either a full path from src to dst or a partial path,
+// if the connection does not exist. In the latter case the path is until the first block
+// e.g.: "vsi1-ky[10.240.10.4] ->  SG sg1-ky -> subnet ... ->  ACL acl1-ky -> PublicGateway: public-gw-ky ->  Public Internet 161.26.0.0/16"
+func pathStr(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointElem,
 	ingressEnabled, egressEnabled bool, router RoutingResource, rules *rulesConnection) string {
 	var pathSlice []string
 	pathSlice = append(pathSlice, src.Name())
 	isExternal := src.IsExternal() || dst.IsExternal()
-	egressPath := stringExplainFiltersLayersPath(c, src, filtersRelevant, rules, false, isExternal, router)
+	egressPath := pathFiltersOfIngressOrEgressStr(c, src, filtersRelevant, rules, false, isExternal, router)
 	pathSlice = append(pathSlice, egressPath...)
 	routerBlocking := isExternal && router == nil
 	if !egressEnabled || routerBlocking {
@@ -187,7 +226,7 @@ func stringExplainPath(c *VPCConfig, filtersRelevant map[string]bool, src, dst E
 	if isExternal {
 		pathSlice = append(pathSlice, router.Kind()+" "+router.Name())
 	}
-	ingressPath := stringExplainFiltersLayersPath(c, dst, filtersRelevant, rules, true, isExternal, router)
+	ingressPath := pathFiltersOfIngressOrEgressStr(c, dst, filtersRelevant, rules, true, isExternal, router)
 	pathSlice = append(pathSlice, ingressPath...)
 	if !ingressEnabled {
 		return blockedPathStr(pathSlice)
@@ -195,12 +234,19 @@ func stringExplainPath(c *VPCConfig, filtersRelevant map[string]bool, src, dst E
 	return strings.Join(pathSlice, arrow)
 }
 
-func stringExplainFiltersLayersPath(c *VPCConfig, node EndpointElem, filtersRelevant map[string]bool, rules *rulesConnection,
+// terminates a path with a blocking sign, and turns from slice into a path string
+func blockedPathStr(pathSlice []string) string {
+	pathSlice = append(pathSlice, "|")
+	return strings.Join(pathSlice, arrow)
+}
+
+// returns a string with the filters part of the path above called separately for egress and for ingress
+func pathFiltersOfIngressOrEgressStr(c *VPCConfig, node EndpointElem, filtersRelevant map[string]bool, rules *rulesConnection,
 	isIngress, isExternal bool, router RoutingResource) []string {
 	var pathSlice []string
 	layers := getLayersToPrint(filtersRelevant, isIngress)
 	for i, layer := range layers {
-		allowFiltersOfLayer := stringFilterLayerPath(c, layer, rules.egressRules[layer])
+		allowFiltersOfLayer := pathFiltersSingleLayerStr(c, layer, rules.egressRules[layer])
 		if len(allowFiltersOfLayer) == 0 {
 			break
 		}
@@ -217,12 +263,9 @@ func stringExplainFiltersLayersPath(c *VPCConfig, node EndpointElem, filtersRele
 	return pathSlice
 }
 
-func blockedPathStr(pathSlice []string) string {
-	pathSlice = append(pathSlice, "|")
-	return strings.Join(pathSlice, arrow)
-}
-
-func stringFilterLayerPath(c *VPCConfig, filterLayerName string, rules []RulesInFilter) string {
+// for a given filter layer (e.g. sg) returns a string of the allowing tables
+// (note that denying tables are excluded)
+func pathFiltersSingleLayerStr(c *VPCConfig, filterLayerName string, rules []RulesInFilter) string {
 	filterLayer := c.getFilterTrafficResourceOfKind(filterLayerName)
 	filtersToActionMap := filterLayer.ListFilterWithAction(rules)
 	strSlice := make([]string, len(filtersToActionMap))
@@ -242,7 +285,7 @@ func stringFilterLayerPath(c *VPCConfig, filterLayerName string, rules []RulesIn
 }
 
 // prints detailed list of rules that effects the (existing or non-existing) connection
-func (rulesInLayers rulesInLayers) detailsString(c *VPCConfig, filtersRelevant map[string]bool, isIngress bool) string {
+func (rulesInLayers rulesInLayers) rulesDetailsStr(c *VPCConfig, filtersRelevant map[string]bool, isIngress bool) string {
 	var strSlice []string
 	for _, layer := range getLayersToPrint(filtersRelevant, isIngress) {
 		filter := c.getFilterTrafficResourceOfKind(layer)
@@ -251,24 +294,6 @@ func (rulesInLayers rulesInLayers) detailsString(c *VPCConfig, filtersRelevant m
 		}
 	}
 	return strings.Join(strSlice, "")
-}
-
-func stringFilterEffect(c *VPCConfig, filterLayerName string, rules []RulesInFilter) string {
-	filterLayer := c.getFilterTrafficResourceOfKind(filterLayerName)
-	filtersToActionMap := filterLayer.ListFilterWithAction(rules)
-	strSlice := make([]string, len(filtersToActionMap))
-	i := 0
-	for name, effect := range filtersToActionMap {
-		effectStr := ""
-		if effect {
-			effectStr = " allows connection"
-		} else {
-			effectStr = " blocks connection"
-		}
-		strSlice[i] = filterLayer.Name() + " " + name + effectStr
-		i++
-	}
-	return strings.Join(strSlice, semicolon+" ")
 }
 
 // gets filter Layers valid per filtersRelevant in the order they should be printed

@@ -546,11 +546,11 @@ func (details *srcDstDetails) explanationEncode(c *VPCConfig) string {
 	}
 	egressStr, ingressStr := "", ""
 	if len(details.actualMergedRules.egressRules) > 0 {
-		egressStr = "egress:" + details.actualMergedRules.egressRules.detailsString(c, details.filtersRelevant,
+		egressStr = "egress:" + details.actualMergedRules.egressRules.rulesDetailsStr(c, details.filtersRelevant,
 			false) + semicolon
 	}
 	if len(details.actualMergedRules.ingressRules) > 0 {
-		egressStr = "ingress:" + details.actualMergedRules.ingressRules.detailsString(c, details.filtersRelevant,
+		egressStr = "ingress:" + details.actualMergedRules.ingressRules.rulesDetailsStr(c, details.filtersRelevant,
 			true) + semicolon
 	}
 	return connStr + routingStr + egressStr + ingressStr
