@@ -95,7 +95,9 @@ func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node, in
 	// 2. cidrOrName references an ip address
 	ipBlock, err2 := ipblocks.NewIPBlockFromCidrOrAddress(cidrOrName)
 	if err2 != nil {
-		return nil, false, nil // the input is not a legal cidr or IP address
+		// the input is not a legal cidr or IP address, which in this stage means it is not a
+		// valid presentation for src/dst. Lint demands that an error is returned here
+		return nil, false, fmt.Errorf(noValidInputErr)
 	}
 	// the input is a legal cidr or IP address
 	return c.getNodesFromAddress(cidrOrName, ipBlock)
@@ -148,7 +150,7 @@ func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *ipblocks.
 	// 2.
 	if isExternal {
 		nodes, err = c.getCidrExternalNodes(inputIPBlock)
-		return nodes, false, nil
+		return nodes, false, err
 		// internal address
 	} else if isInternal {
 		// 3.
