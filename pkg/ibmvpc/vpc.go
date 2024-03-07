@@ -463,8 +463,9 @@ func (sgl *SecurityGroupLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIng
 func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 	conn *common.ConnectionSet, isIngress bool) (allowRes []vpcmodel.RulesInFilter,
 	denyRes []vpcmodel.RulesInFilter, err error) {
+	// todo: same comment in AllowedConnectivity(..)  about sg and iks nodes also relevant here
 	if connHasIKSNode(src, dst, isIngress) {
-		return nil, nil, fmt.Errorf("explainability for IKS node not supported yet")
+		return nil, nil, nil
 	}
 	for index, sg := range sgl.sgList {
 		tableRelevant, sgRules, err1 := sg.rulesFilterInConnectivity(src, dst, conn, isIngress)

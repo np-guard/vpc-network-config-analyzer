@@ -33,12 +33,14 @@ type srcDstDetails struct {
 	// filters relevant for this src, dst pair; map keys are the filters kind (NaclLayer/SecurityGroupLayer)
 	// for two internal nodes within same subnet, only SG layer is relevant
 	// for external connectivity (src/dst is external) with FIP, only SG layer is relevant
-	filtersRelevant     map[string]bool
-	potentialAllowRules *rulesConnection // potentially enabling connection - potential given the filter is relevant
-	actualAllowRules    *rulesConnection // enabling rules effecting connection given router; e.g. NACL is not relevant for fip
-	potentialDenyRules  *rulesConnection // deny rules potentially (w.r.t. router) effecting the connection, relevant for ACL
-	actualDenyRules     *rulesConnection // deny rules effecting the connection, relevant for ACL
-	actualMergedRules   *rulesConnection // rules actually effecting the connection (both allow and deny)
+	// for iks node sg is not relevant - this is the reason we need separation between ingress and egress
+	filtersRelevantIngress map[string]bool
+	filtersRelevantEgress  map[string]bool
+	potentialAllowRules    *rulesConnection // potentially enabling connection - potential given the filter is relevant
+	actualAllowRules       *rulesConnection // enabling rules effecting connection given router; e.g. NACL is not relevant for fip
+	potentialDenyRules     *rulesConnection // deny rules potentially (w.r.t. router) effecting the connection, relevant for ACL
+	actualDenyRules        *rulesConnection // deny rules effecting the connection, relevant for ACL
+	actualMergedRules      *rulesConnection // rules actually effecting the connection (both allow and deny)
 	// enabling rules implies whether ingress/egress is enabled
 	// potential rules are saved for further debugging and explanation provided to the user
 }
@@ -127,7 +129,7 @@ func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node,
 				return nil, err
 			}
 			rulesThisSrcDst := &srcDstDetails{src, dst, false, false, false,
-				common.NewConnectionSet(false), nil, nil, allowRules,
+				common.NewConnectionSet(false), nil, nil, nil, allowRules,
 				nil, denyRules, nil, nil}
 			rulesAndConn = append(rulesAndConn, rulesThisSrcDst)
 		}
@@ -148,7 +150,8 @@ func (details *rulesAndConnDetails) computeFilters(c *VPCConfig) error {
 		src := singleSrcDstDetails.src
 		dst := singleSrcDstDetails.dst
 		if src.IsInternal() && dst.IsInternal() { // internal
-			singleSrcDstDetails.filtersRelevant = src.(InternalNodeIntf).AppliedFiltersKinds(dst.(InternalNodeIntf))
+			singleSrcDstDetails.filtersRelevantIngress = src.(InternalNodeIntf).AppliedFiltersKinds(dst.(InternalNodeIntf))
+			singleSrcDstDetails.filtersRelevantEgress = src.(InternalNodeIntf).AppliedFiltersKinds(dst.(InternalNodeIntf))
 		} else { // external
 			routingResource, _, err := c.getRoutingResource(src, dst)
 			if err != nil {
@@ -158,7 +161,9 @@ func (details *rulesAndConnDetails) computeFilters(c *VPCConfig) error {
 				continue // no router: no connections, filtersLayers non defined
 			}
 			singleSrcDstDetails.router = routingResource
-			singleSrcDstDetails.filtersRelevant = routingResource.AppliedFiltersKinds() // relevant filtersExternal
+			filterRelevantWithRouter := routingResource.AppliedFiltersKinds() // relevant filtersExternal
+			singleSrcDstDetails.filtersRelevantIngress = filterRelevantWithRouter
+			singleSrcDstDetails.filtersRelevantEgress = filterRelevantWithRouter
 		}
 	}
 	return nil
@@ -173,13 +178,14 @@ func (details *rulesAndConnDetails) computeFilters(c *VPCConfig) error {
 // 2. ingressEnabled and egressEnabled: whether traffic is enabled via ingress, egress
 func (details *rulesAndConnDetails) computeActualRules() {
 	for _, singleSrcDstDetails := range *details {
-		filterRelevant := singleSrcDstDetails.filtersRelevant
+		filterRelevantIngress := singleSrcDstDetails.filtersRelevantIngress
+		filterRelevantEgress := singleSrcDstDetails.filtersRelevantEgress
 		actualAllowIngress, ingressEnabled :=
-			computeActualRulesGivenRulesFilter(&singleSrcDstDetails.potentialAllowRules.ingressRules, filterRelevant)
+			computeActualRulesGivenRulesFilter(&singleSrcDstDetails.potentialAllowRules.ingressRules, filterRelevantIngress)
 		actualAllowEgress, egressEnabled :=
-			computeActualRulesGivenRulesFilter(&singleSrcDstDetails.potentialAllowRules.egressRules, filterRelevant)
-		actualDenyIngress, _ := computeActualRulesGivenRulesFilter(&singleSrcDstDetails.potentialDenyRules.ingressRules, filterRelevant)
-		actualDenyEgress, _ := computeActualRulesGivenRulesFilter(&singleSrcDstDetails.potentialDenyRules.egressRules, filterRelevant)
+			computeActualRulesGivenRulesFilter(&singleSrcDstDetails.potentialAllowRules.egressRules, filterRelevantEgress)
+		actualDenyIngress, _ := computeActualRulesGivenRulesFilter(&singleSrcDstDetails.potentialDenyRules.ingressRules, filterRelevantIngress)
+		actualDenyEgress, _ := computeActualRulesGivenRulesFilter(&singleSrcDstDetails.potentialDenyRules.egressRules, filterRelevantEgress)
 		actualAllow := &rulesConnection{*actualAllowIngress, *actualAllowEgress}
 		actualDeny := &rulesConnection{*actualDenyIngress, *actualDenyEgress}
 		singleSrcDstDetails.actualAllowRules = actualAllow

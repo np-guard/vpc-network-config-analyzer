@@ -124,6 +124,7 @@ func (n *InternalNode) Subnet() Subnet {
 
 // AppliedFiltersKinds returns relevant filters between two internal nodes
 func (n *InternalNode) AppliedFiltersKinds(otherNode InternalNodeIntf) map[string]bool {
+	// to do use connHasIKSNode
 	res := map[string]bool{SecurityGroupLayer: true}
 	if n.Subnet().UID() != otherNode.Subnet().UID() {
 		res[NaclLayer] = true
