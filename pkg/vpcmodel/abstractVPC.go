@@ -92,9 +92,6 @@ type InternalNodeIntf interface {
 	IPBlock() *ipblocks.IPBlock
 	// Subnet returns the subnet of the internal node
 	Subnet() Subnet
-	// AppliedFiltersKinds returns relevant filters for connectivity between internal nodes
-	//  specifically, nacl is non-relevant if me and otherNode are in the same subnet
-	AppliedFiltersKinds(dstNode InternalNodeIntf, isIngress bool) map[string]bool
 }
 
 // InternalNode implements interface InternalNodeIntf
@@ -123,13 +120,18 @@ func (n *InternalNode) Subnet() Subnet {
 }
 
 // AppliedFiltersKinds returns relevant filters between two internal nodes
-func (srcNode *InternalNode) AppliedFiltersKinds(dstNode InternalNodeIntf, isIngress bool) map[string]bool {
+func (c *VPCConfig) AppliedFiltersKinds(src, dst InternalNodeIntf, isIngress bool) map[string]bool {
+	appliedFilters := map[string]bool{}
+	for _, filterLayer := range filterLayers {
+		filterKind := c.getFilterTrafficResourceOfKind(filterLayer)
+		appliedFilters[filterLayer] = filterKind.IsFilterApplied(src, dst, isIngress)
+	}
 	res := map[string]bool{SecurityGroupLayer: true}
 	// todo: this is ibmvpc internal, needs an abstraction. Perhaps define for each filter isRelevant for src, dst and impl in ibmVPC?
 	//if connHasIKSNode(srcNode, dstNode, isIngress) {
 	//
 	//}
-	if srcNode.Subnet().UID() != dstNode.Subnet().UID() {
+	if src.Subnet().UID() != dst.Subnet().UID() {
 		res[NaclLayer] = true
 	}
 	return res
@@ -208,6 +210,10 @@ type FilterTrafficResource interface {
 	ReferencedIPblocks() []*ipblocks.IPBlock
 	ConnectivityMap() (map[string]*IPbasedConnectivityResult, error)
 	GetConnectivityOutputPerEachElemSeparately() string
+	// IsFilterApplied IsFilterRelevant returns true if filter is applied on internalNodes src and dst
+	// NACL is not applied on internal nodes of the same subnet and SG is not supported for IKS node
+	// isIngress is required and used only in the latter case
+	IsFilterApplied(src, dst InternalNodeIntf, isIngress bool) bool
 }
 
 // RoutingResource routing resource enables connectivity from src to destination via that resource

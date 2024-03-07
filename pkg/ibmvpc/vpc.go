@@ -274,6 +274,10 @@ func appendToRulesInFilter(resRulesInFilter *[]vpcmodel.RulesInFilter, rules *[]
 	*resRulesInFilter = append(*resRulesInFilter, rulesInNacl)
 }
 
+func (nl *NaclLayer) IsFilterApplied(src, dst vpcmodel.InternalNodeIntf, isIngress bool) bool {
+	return src.Subnet() != dst.Subnet()
+}
+
 func (nl *NaclLayer) StringDetailsRulesOfFilter(listRulesInFilter []vpcmodel.RulesInFilter) string {
 	strListRulesInFilter := ""
 	for _, rulesInFilter := range listRulesInFilter {
@@ -441,6 +445,10 @@ func (sgl *SecurityGroupLayer) GetConnectivityOutputPerEachElemSeparately() stri
 
 func connHasIKSNode(src, dst vpcmodel.Node, isIngress bool) bool {
 	return (isIngress && dst.Kind() == ResourceTypeIKSNode) || (!isIngress && src.Kind() == ResourceTypeIKSNode)
+}
+
+func (sgl *SecurityGroupLayer) IsFilterApplied(src, dst vpcmodel.InternalNodeIntf, isIngress bool) bool {
+	return connHasIKSNode(src.(vpcmodel.Node), dst.(vpcmodel.Node), isIngress)
 }
 
 // AllowedConnectivity
