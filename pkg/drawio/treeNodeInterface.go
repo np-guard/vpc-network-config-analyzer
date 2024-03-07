@@ -99,12 +99,30 @@ func getAllNodes(tn TreeNodeInterface) []TreeNodeInterface {
 	}
 	return ret
 }
-
+// todo: reimplement the following:
 func getAllLines(tn TreeNodeInterface) (ret []LineTreeNodeInterface) {
 	nodes := getAllNodes(tn)
 	for _, n := range nodes {
 		if n.IsLine() {
 			ret = append(ret, n.(LineTreeNodeInterface))
+		}
+	}
+	return ret
+}
+func getAllSquares(tn TreeNodeInterface) (ret []TreeNodeInterface) {
+	nodes := getAllNodes(tn)
+	for _, n := range nodes {
+		if n.IsSquare() {
+			ret = append(ret, n)
+		}
+	}
+	return ret
+}
+func getAllIcons(tn TreeNodeInterface) (ret []TreeNodeInterface) {
+	nodes := getAllNodes(tn)
+	for _, n := range nodes {
+		if n.IsIcon() {
+			ret = append(ret, n)
 		}
 	}
 	return ret

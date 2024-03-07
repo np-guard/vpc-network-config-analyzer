@@ -299,12 +299,12 @@ func createNetworkAllTypes() SquareTreeNodeInterface {
 
 	c1 := NewConnectivityLineTreeNode(network, nie, i1, true, "gconn1")
 	c1.SetRouter(nie)
-	NewConnectivityLineTreeNode(network, gs13, i2, true, "gconn1")
-	NewConnectivityLineTreeNode(network, gs11, gs11, true, "gconn1")
-	c2 := NewConnectivityLineTreeNode(network, gs33a, u2, true, "gconn1")
+	NewConnectivityLineTreeNode(network, gs13, i2, true, "gconn2")
+	NewConnectivityLineTreeNode(network, gs11, gs11, true, "gconn3")
+	c2 := NewConnectivityLineTreeNode(network, gs33a, u2, true, "gconn4")
 	c2.SetRouter(gw1)
-	NewConnectivityLineTreeNode(network, gs33d, gs11, true, "gconn1")
-	NewConnectivityLineTreeNode(network, gs33c, gs33b, true, "gconn1")
+	NewConnectivityLineTreeNode(network, gs33d, gs11, true, "gconn5")
+	NewConnectivityLineTreeNode(network, gs33c, gs33b, true, "gconn6")
 	return network
 }
 

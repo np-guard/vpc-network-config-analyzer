@@ -22,19 +22,23 @@ type templateData struct {
 	rootID      uint
 	Nodes       []TreeNodeInterface
 	DebugPoints []debugPoint
+	relations   string
 }
 
 func NewTemplateData(network SquareTreeNodeInterface) *templateData {
 	allNodes := getAllNodes(network)
 	orderedNodes := orderNodesForTemplate(allNodes)
-	return &templateData{
+	data := &templateData{
 		newTemplateStyles(allNodes),
 		network.Width(),
 		network.Height(),
 		network.ID(),
 		orderedNodes,
 		network.DebugPoints(),
+		"",
 	}
+	data.setRelations()
+	return data
 }
 func (data *templateData) FipXOffset() int      { return fipXOffset }
 func (data *templateData) FipYOffset() int      { return fipYOffset }
@@ -95,10 +99,14 @@ func orderNodesForTemplate(nodes []TreeNodeInterface) []TreeNodeInterface {
 			ln = append(ln, tn)
 		}
 	}
-	gsSlice := squaresBuckets[reflect.TypeOf(&PartialSGTreeNode{}).Elem()]
-	sort.Slice(gsSlice, func(i, j int) bool {
-		return gsSlice[j].Width() >= gsSlice[j].Width()
-	})
+	for _, gSlice := range [][]TreeNodeInterface{
+		squaresBuckets[reflect.TypeOf(&GroupSquareTreeNode{}).Elem()],
+		squaresBuckets[reflect.TypeOf(&GroupSubnetsSquareTreeNode{}).Elem()],
+	} {
+		sort.Slice(gSlice, func(i, j int) bool {
+			return gSlice[i].Width() > gSlice[j].Width()
+		})
+	}
 	for _, t := range squareOrders {
 		orderedNodes = append(orderedNodes, squaresBuckets[reflect.TypeOf(t).Elem()]...)
 	}
