@@ -42,6 +42,11 @@ func (s GenericSet[T]) AsList() []T {
 	}
 	return keys
 }
+func (s GenericSet[T]) Merge(s2 GenericSet[T]) {
+	for i := range s2 {
+		s[i] = true
+	}
+}
 
 func (s GenericSet[T]) IsIntersect(s2 GenericSet[T]) bool {
 	for i := range s {

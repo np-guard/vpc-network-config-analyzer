@@ -37,7 +37,7 @@ func NewTemplateData(network SquareTreeNodeInterface) *templateData {
 		network.DebugPoints(),
 		"",
 	}
-	data.setRelations()
+	data.setRelations(network)
 	return data
 }
 func (data *templateData) FipXOffset() int      { return fipXOffset }
