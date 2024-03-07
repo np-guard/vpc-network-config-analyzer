@@ -93,10 +93,13 @@ func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node, in
 	}
 	// cidrOrName, if legal, references an address.
 	// 2. cidrOrName references an ip address
-	ipBlock, err := ipblocks.NewIPBlockFromCidrOrAddress(cidrOrName)
-	if err != nil {
-		return nil, false, err // could not find any match
+	ipBlock, err2 := ipblocks.NewIPBlockFromCidrOrAddress(cidrOrName)
+	if err2 != nil {
+		// the input is not a legal cidr or IP address, which in this stage means it is not a
+		// valid presentation for src/dst. Lint demands that an error is returned here
+		return nil, false, fmt.Errorf(noValidInputErr)
 	}
+	// the input is a legal cidr or IP address
 	return c.getNodesFromAddress(cidrOrName, ipBlock)
 }
 
@@ -121,27 +124,27 @@ func (c *VPCConfig) getNodesOfVsi(vsi string) ([]Node, error) {
 	return nodeSetWithVsi.Nodes(), nil
 }
 
-// getNodesFromAddress gets a string and IPBlock that should represent a cidr or IP
-// and returns the corresponding node(s) and a bool which is true iff ipOrCidr is an internal address
-// (and the nodes are its network interfaces). Specifically:
+// getNodesFromAddress gets a string and IPBlock that represents a cidr or IP address
+// and returns the corresponding node(s)and a bool which is true iff ipOrCidr is an internal address
+// // (and the nodes are its network interfaces). Specifically:
 //  1. If it represents a cidr which is both internal and external, returns an error
 //  2. If it presents an external address, returns external addresses nodes and false
 //  3. If it contains internal address not within the address range of the vpc's, subnets,
 //     returns an error
 //  4. If it presents an internal address, return connected network interfaces if any and true,
-//     error otherwise
+//  5. If none of the above holds, return nil
 //
 // todo: 4 - replace subnet's address range in vpc's address prefix
 func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *ipblocks.IPBlock) (nodes []Node, internalIP bool, err error) {
 	// 1.
 	_, publicInternet, err1 := getPublicInternetIPblocksList()
-	if err1 != nil {
+	if err1 != nil { // should never get here
 		return nil, false, err1
 	}
 	isExternal := !inputIPBlock.Intersection(publicInternet).Empty()
 	isInternal := !inputIPBlock.ContainedIn(publicInternet)
 	if isInternal && isExternal {
-		return nil, false, fmt.Errorf("%s contains external and internal addresses which is not supported. "+
+		return nil, false, fmt.Errorf("%s contains both external and internal addresses which is not supported. "+
 			"src, dst should be external *or* internal address", ipOrCidr)
 	}
 	// 2.
