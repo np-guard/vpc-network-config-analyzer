@@ -94,7 +94,7 @@ type InternalNodeIntf interface {
 	Subnet() Subnet
 	// AppliedFiltersKinds returns relevant filters for connectivity between internal nodes
 	//  specifically, nacl is non-relevant if me and otherNode are in the same subnet
-	AppliedFiltersKinds(otherNode InternalNodeIntf) map[string]bool
+	AppliedFiltersKinds(dstNode InternalNodeIntf, isIngress bool) map[string]bool
 }
 
 // InternalNode implements interface InternalNodeIntf
@@ -123,10 +123,13 @@ func (n *InternalNode) Subnet() Subnet {
 }
 
 // AppliedFiltersKinds returns relevant filters between two internal nodes
-func (n *InternalNode) AppliedFiltersKinds(otherNode InternalNodeIntf) map[string]bool {
-	// to do use connHasIKSNode
+func (srcNode *InternalNode) AppliedFiltersKinds(dstNode InternalNodeIntf, isIngress bool) map[string]bool {
 	res := map[string]bool{SecurityGroupLayer: true}
-	if n.Subnet().UID() != otherNode.Subnet().UID() {
+	// todo: this is ibmvpc internal, needs an abstraction. Perhaps define for each filter isRelevant for src, dst and impl in ibmVPC?
+	//if connHasIKSNode(srcNode, dstNode, isIngress) {
+	//
+	//}
+	if srcNode.Subnet().UID() != dstNode.Subnet().UID() {
 		res[NaclLayer] = true
 	}
 	return res

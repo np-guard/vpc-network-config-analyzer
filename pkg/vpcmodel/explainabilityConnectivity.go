@@ -150,8 +150,10 @@ func (details *rulesAndConnDetails) computeFilters(c *VPCConfig) error {
 		src := singleSrcDstDetails.src
 		dst := singleSrcDstDetails.dst
 		if src.IsInternal() && dst.IsInternal() { // internal
-			singleSrcDstDetails.filtersRelevantIngress = src.(InternalNodeIntf).AppliedFiltersKinds(dst.(InternalNodeIntf))
-			singleSrcDstDetails.filtersRelevantEgress = src.(InternalNodeIntf).AppliedFiltersKinds(dst.(InternalNodeIntf))
+			singleSrcDstDetails.filtersRelevantIngress =
+				src.(InternalNodeIntf).AppliedFiltersKinds(dst.(InternalNodeIntf), true)
+			singleSrcDstDetails.filtersRelevantEgress =
+				src.(InternalNodeIntf).AppliedFiltersKinds(dst.(InternalNodeIntf), false)
 		} else { // external
 			routingResource, _, err := c.getRoutingResource(src, dst)
 			if err != nil {
