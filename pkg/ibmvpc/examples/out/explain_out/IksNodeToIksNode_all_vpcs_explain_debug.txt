@@ -1,0 +1,18 @@
+Connectivity explanation between 192.168.8.4 (iks-node[192.168.8.4]) and 192.168.4.4 (iks-node[192.168.4.4])
+============================================================================================================
+
+The following connection exists between iks-node[192.168.8.4] and iks-node[192.168.4.4]: All Connections
+Egress: network ACL ky-test-private-2-others-acl allows connection
+Ingress: network ACL ky-test-private-2-others-acl allows connection
+
+Details:
+~~~~~~~~
+Egress:
+network ACL ky-test-private-2-others-acl allows connection with the following allow rules
+	index: 6, direction: outbound , src: 0.0.0.0/0 , dst: 192.168.0.0/20, conn: all, action: allow
+
+Ingress:
+network ACL ky-test-private-2-others-acl allows connection with the following allow rules
+	index: 2, direction: inbound , src: 192.168.0.0/20 , dst: 0.0.0.0/0, conn: all, action: allow
+------------------------------------------------------------------------------------------------------------------------
+
