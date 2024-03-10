@@ -448,7 +448,7 @@ func connHasIKSNode(src, dst vpcmodel.Node, isIngress bool) bool {
 }
 
 func (sgl *SecurityGroupLayer) IsFilterApplied(src, dst vpcmodel.InternalNodeIntf, isIngress bool) bool {
-	return connHasIKSNode(src.(vpcmodel.Node), dst.(vpcmodel.Node), isIngress)
+	return !connHasIKSNode(src.(vpcmodel.Node), dst.(vpcmodel.Node), isIngress)
 }
 
 // AllowedConnectivity

@@ -126,15 +126,7 @@ func (c *VPCConfig) AppliedFiltersKinds(src, dst InternalNodeIntf, isIngress boo
 		filterKind := c.getFilterTrafficResourceOfKind(filterLayer)
 		appliedFilters[filterLayer] = filterKind.IsFilterApplied(src, dst, isIngress)
 	}
-	res := map[string]bool{SecurityGroupLayer: true}
-	// todo: this is ibmvpc internal, needs an abstraction. Perhaps define for each filter isRelevant for src, dst and impl in ibmVPC?
-	//if connHasIKSNode(srcNode, dstNode, isIngress) {
-	//
-	//}
-	if src.Subnet().UID() != dst.Subnet().UID() {
-		res[NaclLayer] = true
-	}
-	return res
+	return appliedFilters
 }
 
 // SetIPBlockFromAddress sets the node's IPBlockObj field from its AddressStr field.
