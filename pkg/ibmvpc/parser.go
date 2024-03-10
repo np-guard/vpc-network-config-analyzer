@@ -655,7 +655,7 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 		tgwName := *tgwConn.TransitGateway.Name
 		vpcUID := *tgwConn.NetworkID
 
-		if toSkip, ok := tgwToSkip[tgwUID]; ok && toSkip {
+		if _, ok := tgwToSkip[tgwUID]; ok {
 			continue
 		}
 
