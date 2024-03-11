@@ -387,6 +387,12 @@ func ignoreFIPWarning(fipName, details string) string {
 	return fmt.Sprintf("warning: ignoring floatingIP %s: %s", fipName, details)
 }
 
+func warnSkippedFip(filteredOutUIDs map[string]bool, targetUID string, fip *datamodel.FloatingIP) {
+	if _, ok := filteredOutUIDs[targetUID]; !ok {
+		fmt.Printf("warning: skip fip %s - could not find attached network interface\n", *fip.Name)
+	}
+}
+
 func getFipConfig(
 	rc *datamodel.ResourcesContainerModel,
 	res map[string]*vpcmodel.VPCConfig,
@@ -427,9 +433,7 @@ func getFipConfig(
 		}
 
 		if len(srcNodes) == 0 {
-			if _, ok := filteredOutUIDs[targetUID]; !ok {
-				fmt.Printf("warning: skip fip %s - could not find attached network interface\n", *fip.Name)
-			}
+			warnSkippedFip(filteredOutUIDs, targetUID, fip)
 			continue // could not find network interface attached to configured fip -- skip that fip
 		}
 
