@@ -755,7 +755,8 @@ func (ly *layoutS) setGroupingIconLocations() {
 		case innerSquare:
 			gIcon.Location().xOffset = (gIcon.Location().firstCol.width()/2 + groupBorderWidth + groupInnerBorderWidth)
 		case connectedPoint:
-			gIcon.connectGroupedIcons()
+			gIcon.Location().xOffset = (gIcon.Location().firstCol.width()/2 + groupBorderWidth + groupInnerBorderWidth)
+		 	// gIcon.connectGroupedIcons()
 		}
 		if c == parentLocation.nextCol() {
 			// its in right to the groupSquare, so the offset is negative.

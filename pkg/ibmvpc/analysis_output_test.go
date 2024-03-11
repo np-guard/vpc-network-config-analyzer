@@ -165,9 +165,9 @@ func (tt *vpcGeneralTest) initTest() {
 var tests = []*vpcGeneralTest{
 	{
 		inputConfig: "iks_config_object",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping:    false,
-		format:      vpcmodel.DRAWIO,
+	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	grouping:    false,
+	format:      vpcmodel.DRAWIO,
 	},
 	{
 		inputConfig: "load_balancer",
@@ -177,9 +177,9 @@ var tests = []*vpcGeneralTest{
 	},
 	{
 		inputConfig: "load_balancer",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping:    false,
-		format:      vpcmodel.Text,
+	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	grouping:    false,
+	format:      vpcmodel.Text,
 	},
 }
 

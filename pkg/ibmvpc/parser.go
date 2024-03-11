@@ -105,7 +105,7 @@ func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID string
 		return nil, err
 	}
 
-	err = getLoadBalancersConfig(rc, res, shouldSkipByVPC)
+	// err = getLoadBalancersConfig(rc, res, shouldSkipByVPC)
 	if err != nil {
 		return nil, err
 	}
@@ -1069,7 +1069,7 @@ func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 				address := *memberObj.Target.(*vpc1.LoadBalancerPoolMemberTarget).Address
 				pool = append(pool, getCertainNodes(res[vpcUID].Nodes, func(n vpcmodel.Node) bool { return n.CidrOrAddress() == address })...)
 			}
-			pools[*poolObj.ID] = pool
+						pools[*poolObj.ID] = pool
 		}
 		for _, lisObj := range loadBalancerObj.Listeners {
 			lis := LoadBalancerListener{}
