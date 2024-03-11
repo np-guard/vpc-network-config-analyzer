@@ -305,10 +305,12 @@ func pathFiltersSingleLayerStr(c *VPCConfig, filterLayerName string, rules []Rul
 		}
 		strSlice = append(strSlice, name)
 	}
+	// if there are multiple SGs/NACLs effecting the path:
+	// ... -> Security Group [SG1,SG2,SG8]
 	if len(strSlice) == 1 {
 		return filterLayer.Name() + " " + strSlice[0]
 	} else if len(strSlice) > 1 {
-		return "[" + strings.Join(strSlice, comma) + "]"
+		return filterLayer.Name() + "[" + strings.Join(strSlice, comma) + "]"
 	}
 	return ""
 }
