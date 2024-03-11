@@ -15,7 +15,7 @@ func TestMain(t *testing.T) {
 		name string
 		args string
 	}{
-		{"fromZiv", "-output-file ../fromZiv.drawio -vpc-config ../../../fromZiv.json -format drawio -analysis-type all_endpoints -grouping"},
+		{"fromZiv", "-output-file ../../../fromZiv.drawio -vpc-config ../../../fromZiv.json -format drawio -analysis-type all_endpoints -grouping"},
 		// {"drawio_multi_vpc_all_subnets", "-output-file multi_vpc.drawio -vpc-config ../../pkg/ibmvpc/examples/input/input_multiple_vpcs.json -format drawio -analysis-type all_subnets"},
 		// {"drawio_multi_vpc_all_subnets_grouped", "-output-file multi_vpc_grouped.drawio -vpc-config ../../pkg/ibmvpc/examples/input/input_multiple_vpcs.json -format drawio -analysis-type all_subnets -grouping"},
 		// {"txt_multi_vpc", "-output-file multi_vpc.txt -vpc-config ../../pkg/ibmvpc/examples/input/input_multiple_vpcs.json -format txt -analysis-type all_subnets"},
