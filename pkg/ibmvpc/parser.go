@@ -54,6 +54,7 @@ func filterByVpcResourceGroupAndRegions(rc *datamodel.ResourcesContainerModel, v
 func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resourceGroup string, regions []string, debug bool) (
 	map[string]*vpcmodel.VPCConfig, error) {
 	res := map[string]*vpcmodel.VPCConfig{} // map from VPC UID to its config
+	filteredOut := map[string]bool{}        // map from networkInterface UID to its config
 	var err error
 
 	// map to filter resources, if certain VPC, resource-group or region list to analyze is specified,
@@ -68,7 +69,7 @@ func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resou
 	var vpcInternalAddressRange map[string]*ipblocks.IPBlock // map from vpc name to its internal address range
 
 	subnetNameToNetIntf := map[string][]*NetworkInterface{}
-	err = getInstancesConfig(rc.InstanceList, subnetNameToNetIntf, res, shouldSkipVpcIds)
+	err = getInstancesConfig(rc.InstanceList, subnetNameToNetIntf, res, filteredOut, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +95,7 @@ func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resou
 		return nil, err
 	}
 
-	err = getFipConfig(rc, res, shouldSkipVpcIds)
+	err = getFipConfig(rc, res, filteredOut, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
@@ -181,15 +182,24 @@ func addZone(zoneName, vpcUID string, res map[string]*vpcmodel.VPCConfig) error 
 	return nil
 }
 
+func updateFilteredOutNetworkInterfacesUIDs(instance *datamodel.Instance, filterOutUIDs map[string]bool) {
+	for j := range instance.NetworkInterfaces {
+		networkInterface := instance.NetworkInterfaces[j]
+		filterOutUIDs[*networkInterface.ID] = true
+	}
+}
+
 func getInstancesConfig(
 	instanceList []*datamodel.Instance,
 	subnetNameToNetIntf map[string][]*NetworkInterface,
 	res map[string]*vpcmodel.VPCConfig,
+	filteredOutUIDs map[string]bool,
 	skipByVPC map[string]bool,
 ) error {
 	for _, instance := range instanceList {
 		vpcUID := *instance.VPC.CRN
 		if skipByVPC[vpcUID] {
+			updateFilteredOutNetworkInterfacesUIDs(instance, filteredOutUIDs)
 			continue
 		}
 		vpc, err := getVPCObjectByUID(res, vpcUID)
@@ -380,6 +390,7 @@ func ignoreFIPWarning(fipName, details string) string {
 func getFipConfig(
 	rc *datamodel.ResourcesContainerModel,
 	res map[string]*vpcmodel.VPCConfig,
+	filteredOutUIDs map[string]bool,
 	skipByVPC map[string]bool,
 ) error {
 	for _, fip := range rc.FloatingIPList {
@@ -416,7 +427,9 @@ func getFipConfig(
 		}
 
 		if len(srcNodes) == 0 {
-			fmt.Printf("warning: skip fip %s - could not find attached network interface\n", *fip.Name)
+			if _, ok := filteredOutUIDs[targetUID]; !ok {
+				fmt.Printf("warning: skip fip %s - could not find attached network interface\n", *fip.Name)
+			}
 			continue // could not find network interface attached to configured fip -- skip that fip
 		}
 
