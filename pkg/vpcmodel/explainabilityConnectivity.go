@@ -66,9 +66,16 @@ type Explanation struct {
 	groupedLines []*groupedConnLine
 }
 
-// ExplainConnectivity given src, dst and connQuery returns a struct with all explanation details
+func ExplainConnectivity(c map[string]*VPCConfig, src, dst string, connQuery *common.ConnectionSet) (res *Explanation, err error) {
+	for i := range c {
+		return c[i].ExplainConnectivityForVPC(src, dst, connQuery)
+	}
+	return nil, nil
+}
+
+// ExplainConnectivityForVPC for a vpcConfig, given src, dst and connQuery returns a struct with all explanation details
 // nil connQuery means connection is not part of the query
-func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.ConnectionSet) (res *Explanation, err error) {
+func (c *VPCConfig) ExplainConnectivityForVPC(src, dst string, connQuery *common.ConnectionSet) (res *Explanation, err error) {
 	// we do not support multiple configs, yet
 	if c.IsMultipleVPCsConfig {
 		return nil, fmt.Errorf("multiple VPCs not supported by explain mode, yet")

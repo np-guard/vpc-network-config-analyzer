@@ -472,13 +472,13 @@ func TestInputValidity(t *testing.T) {
 	existingVsi := "vsi3a-ky"
 	nonExistingVsi := "vsi3a"
 	// should fail since two external addresses
-	_, err1 := vpcConfig.ExplainConnectivity(cidr1, cidr2, nil)
+	_, err1 := vpcConfig.ExplainConnectivityForVPC(cidr1, cidr2, nil)
 	fmt.Println(err1.Error())
 	require.NotNil(t, err1, "the test should fail since both src and dst are external")
 	require.Equal(t, err1.Error(), "both src 169.255.0.0 and dst 161.26.0.0/16 are external")
 
 	// should fail due to a cidr containing both public internet and internal address
-	_, err2 := vpcConfig.ExplainConnectivity(cidrAll, existingVsi, nil)
+	_, err2 := vpcConfig.ExplainConnectivityForVPC(cidrAll, existingVsi, nil)
 	fmt.Println(err2.Error())
 	require.NotNil(t, err2, "the test should fail since src is cidr containing both public "+
 		"internet and internal address")
@@ -486,7 +486,7 @@ func TestInputValidity(t *testing.T) {
 		"which is not supported. src, dst should be external *or* internal address")
 
 	// should fail due to cidr containing internal address not within vpc's address prefix
-	_, err3 := vpcConfig.ExplainConnectivity(existingVsi, cidrInternalNonAP, nil)
+	_, err3 := vpcConfig.ExplainConnectivityForVPC(existingVsi, cidrInternalNonAP, nil)
 	fmt.Println(err3.Error())
 	require.NotNil(t, err3, "the test should fail since src is cidr containing internal address "+
 		"not within vpc's subnets address range")
@@ -494,7 +494,7 @@ func TestInputValidity(t *testing.T) {
 		"subnets address range 10.240.10.0-10.240.10.255, 10.240.20.0-10.240.20.255, 10.240.30.0-10.240.30.255")
 
 	// should fail since vsi's name has a typo
-	_, err4 := vpcConfig.ExplainConnectivity(existingVsi, nonExistingVsi, nil)
+	_, err4 := vpcConfig.ExplainConnectivityForVPC(existingVsi, nonExistingVsi, nil)
 	fmt.Println(err4.Error())
 	require.NotNil(t, err4, "the test should fail since src non existing vsi")
 	require.Equal(t, err4.Error(), "illegal dst: does not represent an internal interface, "+

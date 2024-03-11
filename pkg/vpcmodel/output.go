@@ -12,6 +12,8 @@ import (
 
 type OutFormat int64
 
+type VpcsConfigsMap map[string]*VPCConfig
+
 const asteriskDetails = "\nconnections are stateful (on TCP) unless marked with *\n"
 
 const (
@@ -65,6 +67,14 @@ func NewOutputGenerator(c1, c2 map[string]*VPCConfig, grouping bool, uc OutputUs
 		subnetsConn:    map[string]*VPCsubnetConnectivity{},
 	}
 	if !archOnly {
+		if uc == Explain {
+			connQuery := explanationArgs.GetConnectionSet()
+			explanation, err := ExplainConnectivity(c1, explanationArgs.src, explanationArgs.dst, connQuery)
+			if err != nil {
+				return nil, err
+			}
+			res.explanation = explanation
+		}
 		for i := range c1 {
 			if uc == AllEndpoints {
 				nodesConn, err := c1[i].GetVPCNetworkConnectivity(grouping)
@@ -95,14 +105,6 @@ func NewOutputGenerator(c1, c2 map[string]*VPCConfig, grouping bool, uc OutputUs
 					return nil, err
 				}
 				res.cfgsDiff = configsDiff
-			}
-			if uc == Explain {
-				connQuery := explanationArgs.GetConnectionSet()
-				explanation, err := c1[i].ExplainConnectivity(explanationArgs.src, explanationArgs.dst, connQuery)
-				if err != nil {
-					return nil, err
-				}
-				res.explanation = explanation
 			}
 		}
 	}
