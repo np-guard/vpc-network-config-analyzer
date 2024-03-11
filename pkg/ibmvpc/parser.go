@@ -54,7 +54,7 @@ func filterByVpcResourceGroupAndRegions(rc *datamodel.ResourcesContainerModel, v
 func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resourceGroup string, regions []string, debug bool) (
 	map[string]*vpcmodel.VPCConfig, error) {
 	res := map[string]*vpcmodel.VPCConfig{} // map from VPC UID to its config
-	filteredOut := map[string]bool{}        // map from networkInterface UID to its config
+	filteredOut := map[string]bool{}        // store networkInterface UIDs filtered out by skipByVPC
 	var err error
 
 	// map to filter resources, if certain VPC, resource-group or region list to analyze is specified,
@@ -388,7 +388,7 @@ func ignoreFIPWarning(fipName, details string) string {
 }
 
 func warnSkippedFip(filteredOutUIDs map[string]bool, targetUID string, fip *datamodel.FloatingIP) {
-	if _, ok := filteredOutUIDs[targetUID]; !ok {
+	if !filteredOutUIDs[targetUID] {
 		fmt.Printf("warning: skip fip %s - could not find attached network interface\n", *fip.Name)
 	}
 }
