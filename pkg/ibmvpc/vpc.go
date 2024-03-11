@@ -252,6 +252,8 @@ func (nl *NaclLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 	return allowRes, denyRes, nil
 }
 
+// Name of NaclLayer used in printing, e.g. explainability
+// differs from Kind() which returns the const string NaclLayer used by the code
 func (nl *NaclLayer) Name() string {
 	return "network ACL"
 }
@@ -426,6 +428,8 @@ type SecurityGroupLayer struct {
 	sgList []*SecurityGroup
 }
 
+// Name of SecurityGroupLayer used in printing, e.g. explainability
+// differs from Kind() which returns the const string SecurityGroupLayer used by the code
 func (sgl *SecurityGroupLayer) Name() string {
 	return "security group"
 }
