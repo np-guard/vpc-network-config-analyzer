@@ -15,8 +15,9 @@ func explainHeader(explanation *Explanation) string {
 	}
 	srcNetworkInterfaces := listNetworkInterfaces(explanation.srcNetworkInterfacesFromIP)
 	dstNetworkInterfaces := listNetworkInterfaces(explanation.dstNetworkInterfacesFromIP)
-	header1 := fmt.Sprintf("Connectivity explanation%s between %s%s and %s%s",
-		connStr, explanation.src, srcNetworkInterfaces, explanation.dst, dstNetworkInterfaces)
+	header1 := fmt.Sprintf("Connectivity explanation%s between %s%s and %s%s within %v",
+		connStr, explanation.src, srcNetworkInterfaces, explanation.dst, dstNetworkInterfaces,
+		explanation.c.VPC.Name())
 	header2 := strings.Repeat("=", len(header1))
 	return header1 + "\n" + header2 + "\n\n"
 }

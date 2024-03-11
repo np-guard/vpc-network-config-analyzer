@@ -1,5 +1,5 @@
-Connectivity explanation for protocol: UDP src-ports: 10-100 dst-ports: 443 between crn:v1:staging:public:is:us-south:a/6527::vpc:a456 and 161.26.0.0/20
-========================================================================================================================================================
+Connectivity explanation for protocol: UDP src-ports: 10-100 dst-ports: 443 between crn:v1:staging:public:is:us-south:a/6527::vpc:a456 and 161.26.0.0/20 within test-vpc1-ky
+============================================================================================================================================================================
 
 Connection protocol: UDP src-ports: 10-100 dst-ports: 443 exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/20
 External traffic via PublicGateway: public-gw-ky

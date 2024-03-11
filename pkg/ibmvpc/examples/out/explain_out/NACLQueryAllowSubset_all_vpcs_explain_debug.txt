@@ -1,5 +1,5 @@
-Connectivity explanation for protocol: UDP between vsi1-ky and 161.26.0.0/16
-============================================================================
+Connectivity explanation for protocol: UDP between vsi1-ky and 161.26.0.0/16 within test-vpc1-ky
+================================================================================================
 
 Connection protocol: UDP src-ports: 1-600 dst-ports: 1-50 exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16 (note that not all queried protocols/ports are allowed)
 External traffic via PublicGateway: public-gw-ky
