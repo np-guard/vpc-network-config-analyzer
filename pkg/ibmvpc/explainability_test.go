@@ -402,7 +402,7 @@ var explainTests = []*vpcGeneralTest{
 	},
 	// two SGs attached to one VSI
 	{
-		name:        "TwoSGsOneVSI",
+		name:        "VsiWithTwoSgs",
 		inputConfig: "sg_testing1_new_2SGs",
 		ESrc:        "vsi3a-ky",
 		EDst:        "vsi1-ky",
