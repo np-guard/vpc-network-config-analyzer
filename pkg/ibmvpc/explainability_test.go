@@ -400,6 +400,14 @@ var explainTests = []*vpcGeneralTest{
 		EDstMaxPort: common.MaxPort,
 		format:      vpcmodel.Debug,
 	},
+	// two SGs attached to one VSI
+	{
+		name:        "TwoSGsOneVSI",
+		inputConfig: "sg_testing1_new_2SGs",
+		ESrc:        "vsi3a-ky",
+		EDst:        "vsi1-ky",
+		format:      vpcmodel.Debug,
+	},
 }
 
 func TestAll(t *testing.T) {
