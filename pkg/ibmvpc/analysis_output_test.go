@@ -44,6 +44,8 @@ type vpcGeneralTest struct {
 	actualOutput   map[vpcmodel.OutputUseCase]string // actual output file path
 	useCases       []vpcmodel.OutputUseCase          // the list of output use cases to test
 	errPerUseCase  map[vpcmodel.OutputUseCase]error
+	resourceGroup  string   // filter vpc configs by resource group
+	regions        []string // filter vpc configs by region
 	mode           testMode
 	grouping       bool
 	format         vpcmodel.OutFormat
@@ -120,6 +122,7 @@ func getTestFileName(testName string,
 		return "", "", suffixErr
 	}
 	res += suffix
+
 	expectedFileName = res
 	actualFileName = actualOutFilePrefix + res
 	return expectedFileName, actualFileName, nil
@@ -480,6 +483,24 @@ var tests = []*vpcGeneralTest{
 		grouping:    true,
 		format:      vpcmodel.DRAWIO,
 	},
+	// resource group filtering example
+	// ete-storage-project and ete-backup-and-storage vpcs expected to be filtered out
+	// global-tg-ky and local-tg-ky tgws expected to be filtered out
+	{
+		inputConfig:   "multi_resource_groups",
+		useCases:      []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:        vpcmodel.Text,
+		resourceGroup: "ola",
+	},
+	// region filtering example
+	// zn-vpc1, zn-vpc2, zn-vpc3 expected to be filtered out
+	// global-tg-zn and local-tg-zn tgws expected to be filtered out
+	{
+		inputConfig: "multi_regions",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:      vpcmodel.Text,
+		regions:     []string{"us-east"},
+	},
 }
 
 var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
@@ -593,7 +614,7 @@ func getVPCConfigs(t *testing.T, tt *vpcGeneralTest, firstCfg bool) map[string]*
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
-	vpcConfigs, err := VPCConfigsFromResources(rc, tt.vpc, false)
+	vpcConfigs, err := VPCConfigsFromResources(rc, tt.vpc, tt.resourceGroup, tt.regions, false)
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
