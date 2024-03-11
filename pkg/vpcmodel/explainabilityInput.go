@@ -11,11 +11,12 @@ const noValidInputErr = "does not represent an internal interface, an internal I
 	"a valid external IP"
 
 // todo multi vpc:
-//      1. Add config name to header
-//      2. Add a function that given an input return its node and its vpc if internal
-//      3. Given src and dst, execute on all configs. If internal found on more than one config then in both has the same vpc. if two internals there should be only one config.
-//      4. Choose the appropriate config: if two internals then the single config. If one external then choose the non-tgw (non-multivpc) one
-//      5. Execute on the chosen config
+//      1. Add config name to header (done)
+//      2. Add a function that given an input return its node if internal (already done)
+//      3. Add a framework for calling from all configs
+//      4. Given src and dst, execute on all configs. If internal found on more than one config then in both has the same vpc. if two internals there should be only one config.
+//      5. Choose the appropriate config: if two internals then the single config. If one external then choose the non-tgw (non-multivpc) one
+//      6. Execute on the chosen config
 
 type ExplanationArgs struct {
 	src        string
