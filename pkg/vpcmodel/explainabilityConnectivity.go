@@ -66,7 +66,7 @@ type Explanation struct {
 	groupedLines []*groupedConnLine
 }
 
-func ExplainConnectivity(c map[string]*VPCConfig, src, dst string, connQuery *common.ConnectionSet) (res *Explanation, err error) {
+func (c VpcsConfigsMap) ExplainConnectivity(src, dst string, connQuery *common.ConnectionSet) (res *Explanation, err error) {
 	for i := range c {
 		return c[i].ExplainConnectivityForVPC(src, dst, connQuery)
 	}
