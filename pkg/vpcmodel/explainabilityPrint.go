@@ -28,7 +28,7 @@ func explainHeader(explanation *Explanation) string {
 }
 
 // in case the src/dst of a network interface given as an internal address connected to network interface returns a string
-// of all relevant vsis
+// of all relevant nodes names
 func listNetworkInterfaces(nodes []Node) string {
 	if len(nodes) == 0 {
 		return ""
