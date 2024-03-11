@@ -204,6 +204,8 @@ type FilterTrafficResource interface {
 	ReferencedIPblocks() []*ipblocks.IPBlock
 	ConnectivityMap() (map[string]*IPbasedConnectivityResult, error)
 	GetConnectivityOutputPerEachElemSeparately() string
+	// FilterKindName used to print the name of filter layers - e.g. "security group"
+	FilterKindName() string
 }
 
 // RoutingResource routing resource enables connectivity from src to destination via that resource

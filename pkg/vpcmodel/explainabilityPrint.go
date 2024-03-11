@@ -217,7 +217,7 @@ func stringFilterEffect(c *VPCConfig, filterLayerName string, rules []RulesInFil
 		} else {
 			effectStr = " blocks connection"
 		}
-		strSlice[i] = filterLayer.Name() + space + name + effectStr
+		strSlice[i] = filterLayer.FilterKindName() + space + name + effectStr
 		i++
 	}
 	return strings.Join(strSlice, semicolon+space)
@@ -308,9 +308,9 @@ func pathFiltersSingleLayerStr(c *VPCConfig, filterLayerName string, rules []Rul
 	// if there are multiple SGs/NACLs effecting the path:
 	// ... -> Security Group [SG1,SG2,SG8]
 	if len(strSlice) == 1 {
-		return filterLayer.Name() + " " + strSlice[0]
+		return filterLayer.FilterKindName() + " " + strSlice[0]
 	} else if len(strSlice) > 1 {
-		return filterLayer.Name() + "[" + strings.Join(strSlice, comma) + "]"
+		return filterLayer.FilterKindName() + "[" + strings.Join(strSlice, comma) + "]"
 	}
 	return ""
 }

@@ -252,10 +252,14 @@ func (nl *NaclLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 	return allowRes, denyRes, nil
 }
 
-// Name of NaclLayer used in printing, e.g. explainability
+// FilterKindName of NaclLayer used in printing, e.g. explainability
 // differs from Kind() which returns the const string NaclLayer used by the code
-func (nl *NaclLayer) Name() string {
+func (nl *NaclLayer) FilterKindName() string {
 	return "network ACL"
+}
+
+func (nl *NaclLayer) Name() string {
+	return ""
 }
 
 func appendToRulesInFilter(resRulesInFilter *[]vpcmodel.RulesInFilter, rules *[]int, filterIndex int, isAllow bool) {
@@ -280,7 +284,7 @@ func (nl *NaclLayer) StringDetailsRulesOfFilter(listRulesInFilter []vpcmodel.Rul
 	strListRulesInFilter := ""
 	for _, rulesInFilter := range listRulesInFilter {
 		nacl := nl.naclList[rulesInFilter.Filter]
-		header := getHeaderRulesType(nl.Name()+" "+nacl.Name(), rulesInFilter.RulesFilterType) +
+		header := getHeaderRulesType(nl.FilterKindName()+" "+nacl.Name(), rulesInFilter.RulesFilterType) +
 			nacl.analyzer.StringRules(rulesInFilter.Rules)
 		strListRulesInFilter += header
 	}
@@ -428,10 +432,14 @@ type SecurityGroupLayer struct {
 	sgList []*SecurityGroup
 }
 
-// Name of SecurityGroupLayer used in printing, e.g. explainability
+// FilterKindName Name of SecurityGroupLayer used in printing, e.g. explainability
 // differs from Kind() which returns the const string SecurityGroupLayer used by the code
-func (sgl *SecurityGroupLayer) Name() string {
+func (sgl *SecurityGroupLayer) FilterKindName() string {
 	return "security group"
+}
+
+func (sgl *SecurityGroupLayer) Name() string {
+	return ""
 }
 
 func (sgl *SecurityGroupLayer) ConnectivityMap() (map[string]*vpcmodel.IPbasedConnectivityResult, error) {
@@ -494,7 +502,7 @@ func (sgl *SecurityGroupLayer) StringDetailsRulesOfFilter(listRulesInFilter []vp
 	strListRulesInFilter := ""
 	for _, rulesInFilter := range listRulesInFilter {
 		sg := sgl.sgList[rulesInFilter.Filter]
-		strListRulesInFilter += getHeaderRulesType(sgl.Name()+" "+sg.Name(), rulesInFilter.RulesFilterType) +
+		strListRulesInFilter += getHeaderRulesType(sgl.FilterKindName()+" "+sg.Name(), rulesInFilter.RulesFilterType) +
 			sg.analyzer.StringRules(rulesInFilter.Rules)
 	}
 	return strListRulesInFilter
