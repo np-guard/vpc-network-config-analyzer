@@ -46,8 +46,8 @@ const (
 // OutputGenerator captures one vpc config1 with its connectivity analysis results, and implements
 // the functionality to generate the analysis output in various formats, for that vpc
 type OutputGenerator struct {
-	config1        map[string]*VPCConfig
-	config2        map[string]*VPCConfig // specified only when analysis is diff
+	config1        VpcsConfigsMap
+	config2        VpcsConfigsMap // specified only when analysis is diff
 	outputGrouping bool
 	useCase        OutputUseCase
 	nodesConn      map[string]*VPCConnectivity
@@ -56,7 +56,7 @@ type OutputGenerator struct {
 	explanation    *Explanation
 }
 
-func NewOutputGenerator(c1, c2 map[string]*VPCConfig, grouping bool, uc OutputUseCase,
+func NewOutputGenerator(c1, c2 VpcsConfigsMap, grouping bool, uc OutputUseCase,
 	archOnly bool, explanationArgs *ExplanationArgs, f OutFormat) (*OutputGenerator, error) {
 	res := &OutputGenerator{
 		config1:        c1,
@@ -69,7 +69,7 @@ func NewOutputGenerator(c1, c2 map[string]*VPCConfig, grouping bool, uc OutputUs
 	if !archOnly {
 		if uc == Explain {
 			connQuery := explanationArgs.GetConnectionSet()
-			explanation, err := ExplainConnectivity(c1, explanationArgs.src, explanationArgs.dst, connQuery)
+			explanation, err := c1.ExplainConnectivity(explanationArgs.src, explanationArgs.dst, connQuery)
 			if err != nil {
 				return nil, err
 			}
@@ -155,7 +155,7 @@ type SingleVpcOutputFormatter interface {
 // OutputFormatter is an interface for formatter that handle multi vpcs.
 // implemented by serialOutputFormatter and drawioOutputFormatter
 type OutputFormatter interface {
-	WriteOutput(c1, c2 map[string]*VPCConfig, conn map[string]*VPCConnectivity,
+	WriteOutput(c1, c2 VpcsConfigsMap, conn map[string]*VPCConnectivity,
 		subnetsConn map[string]*VPCsubnetConnectivity, subnetsDiff *diffBetweenCfgs,
 		outFile string, grouping bool, uc OutputUseCase, explainStruct *Explanation) (string, error)
 }
@@ -183,7 +183,7 @@ func (of *serialOutputFormatter) createSingleVpcFormatter() SingleVpcOutputForma
 	return nil
 }
 
-func (of *serialOutputFormatter) WriteOutput(c1, c2 map[string]*VPCConfig, conns map[string]*VPCConnectivity,
+func (of *serialOutputFormatter) WriteOutput(c1, c2 VpcsConfigsMap, conns map[string]*VPCConnectivity,
 	subnetsConns map[string]*VPCsubnetConnectivity, subnetsDiff *diffBetweenCfgs,
 	outFile string, grouping bool, uc OutputUseCase, explainStruct *Explanation) (string, error) {
 	singleVPCAnalysis := uc == EndpointsDiff || uc == SubnetsDiff || uc == Explain
