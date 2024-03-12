@@ -126,7 +126,7 @@ func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resou
 		return nil, err
 	}
 
-	err = getLoadBalancersConfig(rc, res, shouldSkipByVPC)
+	err = getLoadBalancersConfig(rc, res, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
@@ -1089,11 +1089,11 @@ func getVPCObjectByUID(res map[string]*vpcmodel.VPCConfig, uid string) (*VPC, er
 
 func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 	res map[string]*vpcmodel.VPCConfig,
-	skipByVPC func(string) bool,
+	skipByVPC map[string]bool,
 ) (err error) {
 	for _, loadBalancerObj := range rc.LBList {
 		vpcUID := *rc.VpcList[0].CRN //todo
-		if skipByVPC(vpcUID) {
+		if skipByVPC[vpcUID] {
 			continue
 		}
 		vpc, err := getVPCObjectByUID(res, vpcUID)
