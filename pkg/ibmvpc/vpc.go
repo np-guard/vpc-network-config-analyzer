@@ -274,6 +274,10 @@ func appendToRulesInFilter(resRulesInFilter *[]vpcmodel.RulesInFilter, rules *[]
 	*resRulesInFilter = append(*resRulesInFilter, rulesInNacl)
 }
 
+func (nl *NaclLayer) IsFilterApplied(src, dst vpcmodel.InternalNodeIntf, isIngress bool) bool {
+	return src.Subnet() != dst.Subnet()
+}
+
 func (nl *NaclLayer) StringDetailsRulesOfFilter(listRulesInFilter []vpcmodel.RulesInFilter) string {
 	strListRulesInFilter := ""
 	for _, rulesInFilter := range listRulesInFilter {
@@ -443,6 +447,10 @@ func connHasIKSNode(src, dst vpcmodel.Node, isIngress bool) bool {
 	return (isIngress && dst.Kind() == ResourceTypeIKSNode) || (!isIngress && src.Kind() == ResourceTypeIKSNode)
 }
 
+func (sgl *SecurityGroupLayer) IsFilterApplied(src, dst vpcmodel.InternalNodeIntf, isIngress bool) bool {
+	return !connHasIKSNode(src.(vpcmodel.Node), dst.(vpcmodel.Node), isIngress)
+}
+
 // AllowedConnectivity
 // TODO: fix: is it possible that no sg applies  to the input peer? if so, should not return "no conns" when none applies
 func (sgl *SecurityGroupLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*common.ConnectionSet, error) {
@@ -463,8 +471,9 @@ func (sgl *SecurityGroupLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIng
 func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 	conn *common.ConnectionSet, isIngress bool) (allowRes []vpcmodel.RulesInFilter,
 	denyRes []vpcmodel.RulesInFilter, err error) {
+	// todo: same comment in AllowedConnectivity(..)  about sg and iks nodes also relevant here
 	if connHasIKSNode(src, dst, isIngress) {
-		return nil, nil, fmt.Errorf("explainability for IKS node not supported yet")
+		return nil, nil, nil
 	}
 	for index, sg := range sgl.sgList {
 		tableRelevant, sgRules, err1 := sg.rulesFilterInConnectivity(src, dst, conn, isIngress)

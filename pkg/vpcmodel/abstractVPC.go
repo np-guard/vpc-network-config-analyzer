@@ -92,9 +92,6 @@ type InternalNodeIntf interface {
 	IPBlock() *ipblocks.IPBlock
 	// Subnet returns the subnet of the internal node
 	Subnet() Subnet
-	// AppliedFiltersKinds returns relevant filters for connectivity between internal nodes
-	//  specifically, nacl is non-relevant if me and otherNode are in the same subnet
-	AppliedFiltersKinds(otherNode InternalNodeIntf) map[string]bool
 }
 
 // InternalNode implements interface InternalNodeIntf
@@ -123,12 +120,13 @@ func (n *InternalNode) Subnet() Subnet {
 }
 
 // AppliedFiltersKinds returns relevant filters between two internal nodes
-func (n *InternalNode) AppliedFiltersKinds(otherNode InternalNodeIntf) map[string]bool {
-	res := map[string]bool{SecurityGroupLayer: true}
-	if n.Subnet().UID() != otherNode.Subnet().UID() {
-		res[NaclLayer] = true
+func (c *VPCConfig) AppliedFiltersKinds(src, dst InternalNodeIntf, isIngress bool) map[string]bool {
+	appliedFilters := map[string]bool{}
+	for _, filterLayer := range filterLayers {
+		filterKind := c.getFilterTrafficResourceOfKind(filterLayer)
+		appliedFilters[filterLayer] = filterKind.IsFilterApplied(src, dst, isIngress)
 	}
-	return res
+	return appliedFilters
 }
 
 // SetIPBlockFromAddress sets the node's IPBlockObj field from its AddressStr field.
@@ -204,6 +202,10 @@ type FilterTrafficResource interface {
 	ReferencedIPblocks() []*ipblocks.IPBlock
 	ConnectivityMap() (map[string]*IPbasedConnectivityResult, error)
 	GetConnectivityOutputPerEachElemSeparately() string
+	// IsFilterApplied IsFilterRelevant returns true if filter is applied on internalNodes src and dst
+	// NACL is not applied on internal nodes of the same subnet and SG is not supported for IKS node
+	// isIngress is required and used only in the latter case
+	IsFilterApplied(src, dst InternalNodeIntf, isIngress bool) bool
 }
 
 // RoutingResource routing resource enables connectivity from src to destination via that resource

@@ -70,10 +70,6 @@ func (m *mockNetIntf) VPC() VPCResourceIntf {
 	return nil
 }
 
-func (m *mockNetIntf) AppliedFiltersKinds(otherNode InternalNodeIntf) map[string]bool {
-	return nil
-}
-
 type mockSubnet struct {
 	vpc   VPCResourceIntf
 	cidr  string
