@@ -49,8 +49,8 @@ const (
 // if internalNotWithinSubnet holds for one vpcConfig and there is no match in any of the configs then
 // this error is returned
 
+// todo: insert vpc context into error msgs, update test
 // todo: check error messages. Reactivate error messages tests
-// todo: insert vpc context into error msgs
 // ToDo: at the moment executing the first match. Add consistency checks and execute on the correct match
 func (c VpcsConfigsMap) getVPCConfigAndSrcDstNodes(src, dst string) (vpcConfig *VPCConfig,
 	srcNodes, dstNodes []Node, isSrcInternalIP, isDstInternalIP bool, err error) {
