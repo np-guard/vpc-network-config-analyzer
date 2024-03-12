@@ -152,19 +152,22 @@ func (d *DrawioOutputFormatter) lineRouter(line *groupedConnLine, vpcResourceNam
 
 func (d *DrawioOutputFormatter) createEdges() {
 	type edgeKey struct {
-		src    EndpointElem
-		dst    EndpointElem
+		src    drawio.TreeNodeInterface
+		dst    drawio.TreeNodeInterface
 		router drawio.IconTreeNodeInterface
 		label  string
 	}
+	tnToR := map[drawio.TreeNodeInterface]EndpointElem{}
 	isEdgeDirected := map[edgeKey]bool{}
 	for vpcResourceName, vpcConn := range d.conns {
 		for _, line := range vpcConn.GroupedLines {
 			if slices.Contains(d.edgeToIgnore, line) {
 				continue
 			}
-			src := line.src
-			dst := line.dst
+			src := d.gen.TreeNode(line.src)
+			dst := d.gen.TreeNode(line.dst)
+			tnToR[src] = line.src
+			tnToR[dst] = line.dst
 			router := d.lineRouter(line, vpcResourceName)
 			e := edgeKey{src, dst, router, line.ConnLabel()}
 			revE := edgeKey{dst, src, router, line.ConnLabel()}
@@ -177,7 +180,7 @@ func (d *DrawioOutputFormatter) createEdges() {
 		}
 	}
 	for e, directed := range isEdgeDirected {
-		ei := &edgeInfo{e.src, e.dst, e.label, directed}
+		ei := &edgeInfo{tnToR[e.src], tnToR[e.dst], e.label, directed}
 		if d.showResource(ei) {
 			cn := d.gen.TreeNode(ei).(*drawio.ConnectivityTreeNode)
 			if e.router != nil {
