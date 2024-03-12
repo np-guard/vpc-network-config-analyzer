@@ -1,7 +1,7 @@
 package vpcmodel
 
 import (
-"fmt"
+	"fmt"
 	"reflect"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
@@ -32,7 +32,7 @@ type DrawioGenerator struct {
 	publicNetwork *drawio.PublicNetworkTreeNode
 	cloud         *drawio.CloudTreeNode
 	treeNodes     map[DrawioResourceIntf]drawio.TreeNodeInterface
-EndpointElems map[common.SetAsKey]drawio.TreeNodeInterface
+	EndpointElems map[common.SetAsKey]drawio.TreeNodeInterface
 }
 
 func NewDrawioGenerator(cloudName string) *DrawioGenerator {
@@ -42,7 +42,7 @@ func NewDrawioGenerator(cloudName string) *DrawioGenerator {
 	gen.publicNetwork = drawio.NewPublicNetworkTreeNode(gen.network)
 	gen.cloud = drawio.NewCloudTreeNode(gen.network, cloudName)
 	gen.treeNodes = map[DrawioResourceIntf]drawio.TreeNodeInterface{}
-gen.EndpointElems = map[common.SetAsKey]drawio.TreeNodeInterface{}
+	gen.EndpointElems = map[common.SetAsKey]drawio.TreeNodeInterface{}
 	return gen
 }
 func (gen *DrawioGenerator) Network() *drawio.NetworkTreeNode             { return gen.network }
@@ -68,11 +68,11 @@ func (g *groupedExternalNodes) ShowOnSubnetMode() bool  { return true }
 func (e *edgeInfo) ShowOnSubnetMode() bool              { return true }
 
 func (g *groupedEndpointsElems) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
-k := common.FromList[EndpointElem](*g).AsKey()
+	k := common.FromList[EndpointElem](*g).AsKey()
 	if len(*g) == 1 {
 		return gen.TreeNode((*g)[0])
 	}
-if tn, ok := gen.EndpointElems[k]; ok {
+	if tn, ok := gen.EndpointElems[k]; ok {
 		return tn
 	}
 	if gen.TreeNode((*g)[0]).IsSquare() && gen.TreeNode((*g)[0]).(drawio.SquareTreeNodeInterface).IsSubnet() {
@@ -83,13 +83,13 @@ if tn, ok := gen.EndpointElems[k]; ok {
 		vpcTn := groupedSubnetsTNs[0].Parent().Parent().(*drawio.VpcTreeNode)
 		gen.EndpointElems[k] = drawio.GroupedSubnetsSquare(vpcTn, groupedSubnetsTNs)
 	} else {
-	groupedIconsTNs := make([]drawio.IconTreeNodeInterface, len(*g))
-	for i, node := range *g {
-		groupedIconsTNs[i] = gen.TreeNode(node).(drawio.IconTreeNodeInterface)
+		groupedIconsTNs := make([]drawio.IconTreeNodeInterface, len(*g))
+		for i, node := range *g {
+			groupedIconsTNs[i] = gen.TreeNode(node).(drawio.IconTreeNodeInterface)
+		}
+		subnetTn := groupedIconsTNs[0].Parent().(*drawio.SubnetTreeNode)
+		gen.EndpointElems[k] = drawio.NewGroupSquareTreeNode(subnetTn, groupedIconsTNs)
 	}
-	subnetTn := groupedIconsTNs[0].Parent().(*drawio.SubnetTreeNode)
-	gen.EndpointElems[k] = drawio.NewGroupSquareTreeNode(subnetTn, groupedIconsTNs)
-}
 	return gen.EndpointElems[k]
 }
 
@@ -180,8 +180,8 @@ func (d *DrawioOutputFormatter) lookForCliques() {
 		if v < 5 {
 			continue
 		}
-		l,ok := connLabels[labelKey{g[0], g[1]}]
-		if !ok{
+		l, ok := connLabels[labelKey{g[0], g[1]}]
+		if !ok {
 			continue
 		}
 		isClique := true
