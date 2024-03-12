@@ -1,7 +1,8 @@
 package vpcmodel
 
 import (
-		"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
 )
 
 // DrawioResourceIntf is the interface of all the resources that are converted to a drawio treeNodes
@@ -28,7 +29,8 @@ type DrawioGenerator struct {
 	publicNetwork *drawio.PublicNetworkTreeNode
 	cloud         *drawio.CloudTreeNode
 	treeNodes     map[DrawioResourceIntf]drawio.TreeNodeInterface
-	}
+	EndpointElems map[common.SetAsKey]drawio.TreeNodeInterface
+}
 
 func NewDrawioGenerator(cloudName string) *DrawioGenerator {
 	// creates the top of the tree node - treeNodes that does not represent a specific resource.
@@ -37,7 +39,8 @@ func NewDrawioGenerator(cloudName string) *DrawioGenerator {
 	gen.publicNetwork = drawio.NewPublicNetworkTreeNode(gen.network)
 	gen.cloud = drawio.NewCloudTreeNode(gen.network, cloudName)
 	gen.treeNodes = map[DrawioResourceIntf]drawio.TreeNodeInterface{}
-		return gen
+	gen.EndpointElems = map[common.SetAsKey]drawio.TreeNodeInterface{}
+	return gen
 }
 func (gen *DrawioGenerator) Network() *drawio.NetworkTreeNode             { return gen.network }
 func (gen *DrawioGenerator) PublicNetwork() *drawio.PublicNetworkTreeNode { return gen.publicNetwork }
@@ -62,24 +65,30 @@ func (g *groupedExternalNodes) ShowOnSubnetMode() bool  { return true }
 func (e *edgeInfo) ShowOnSubnetMode() bool              { return true }
 
 func (g *groupedEndpointsElems) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
-		if len(*g) == 1 {
+	k := common.FromList[EndpointElem](*g).AsKey()
+	if len(*g) == 1 {
 		return gen.TreeNode((*g)[0])
 	}
-		if gen.TreeNode((*g)[0]).IsSquare() && gen.TreeNode((*g)[0]).(drawio.SquareTreeNodeInterface).IsSubnet() {
+	if tn, ok := gen.EndpointElems[k]; ok {
+		return tn
+	}
+	if gen.TreeNode((*g)[0]).IsSquare() && gen.TreeNode((*g)[0]).(drawio.SquareTreeNodeInterface).IsSubnet() {
 		groupedSubnetsTNs := make([]drawio.SquareTreeNodeInterface, len(*g))
 		for i, node := range *g {
 			groupedSubnetsTNs[i] = gen.TreeNode(node).(drawio.SquareTreeNodeInterface)
 		}
 		vpcTn := groupedSubnetsTNs[0].Parent().Parent().(*drawio.VpcTreeNode)
-		return drawio.GroupedSubnetsSquare(vpcTn, groupedSubnetsTNs)
-	}
+		gen.EndpointElems[k] = drawio.GroupedSubnetsSquare(vpcTn, groupedSubnetsTNs)
+	} else {
 		groupedIconsTNs := make([]drawio.IconTreeNodeInterface, len(*g))
 		for i, node := range *g {
 			groupedIconsTNs[i] = gen.TreeNode(node).(drawio.IconTreeNodeInterface)
 		}
 		subnetTn := groupedIconsTNs[0].Parent().(*drawio.SubnetTreeNode)
-		return drawio.NewGroupSquareTreeNode(subnetTn, groupedIconsTNs)
+		gen.EndpointElems[k] = drawio.NewGroupSquareTreeNode(subnetTn, groupedIconsTNs)
 	}
+	return gen.EndpointElems[k]
+}
 
 func (g *groupedExternalNodes) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
 	if len(*g) == 1 {
@@ -99,7 +108,7 @@ func (g *groupedExternalNodes) GenerateDrawioTreeNode(gen *DrawioGenerator) draw
 }
 
 func (e *edgeInfo) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
-		srcTn := gen.TreeNode(e.src)
+	srcTn := gen.TreeNode(e.src)
 	dstTn := gen.TreeNode(e.dst)
 	return drawio.NewConnectivityLineTreeNode(gen.Network(), srcTn, dstTn, e.directed, e.label)
 }

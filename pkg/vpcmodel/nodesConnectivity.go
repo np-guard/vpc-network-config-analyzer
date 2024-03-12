@@ -88,10 +88,7 @@ func (c *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 	// iterate pairs (capturedNode, peerNode) to analyze their allowed ingress/egress conns
 	for _, peerNode := range c.Nodes {
 		// skip analysis between certain pairs of nodes
-		if capturedNode.Name() == "corncob-handball-poem-denim" && peerNode.Name() == "vsi0-test-sub[10.240.4.4]"{
-			fmt.Println("conn between " + peerNode.Name() + " and " + capturedNode.Name())
-		}
-		considerPair, err := c.shouldConsiderPairForConnectivity(capturedNode, peerNode)
+				considerPair, err := c.shouldConsiderPairForConnectivity(capturedNode, peerNode)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -163,11 +160,7 @@ func (v *VPCConnectivity) computeCombinedConnectionsPerDirection(isIngressDirect
 	for peerNode, conns := range connectivityRes.ingressOrEgressAllowedConns(isIngressDirection) {
 		src, dst := switchSrcDstNodes(!isIngressDirection, peerNode, node)
 		combinedConns := conns
-		if node.Name() == "corncob-handball-poem-denim" && peerNode.Name() == "vsi0-test-sub[10.240.4.4]"{
-			fmt.Println("conn2 between " + peerNode.Name() + " and " + node.Name())
-		}
-
-		if peerNode.IsInternal() {
+				if peerNode.IsInternal() {
 			if !isIngressDirection {
 				continue
 			}
@@ -242,19 +235,9 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections() {
 			// src and dst here are nodes, always. Thus ignoring potential error in conversion
 			srcNode := src.(Node)
 			dstNode := dst.(Node)
-			if src.Name() == "corncob-handball-poem-denim" && dst.Name() == "vsi0-test-sub[10.240.4.4]"{
-				fmt.Println("conn3 between " + src.Name() + " and " + dst.Name())
-			}
-			if dst.Name() == "corncob-handball-poem-denim" && src.Name() == "vsi0-test-sub[10.240.4.4]"{
-				fmt.Println("conn4 between " + src.Name() + " and " + dst.Name())
-			}
-	
-			// iterate pairs (src,dst) with conn as allowed connectivity, to check stateful aspect
+						// iterate pairs (src,dst) with conn as allowed connectivity, to check stateful aspect
 			if v.isConnExternalThroughFIP(srcNode, dstNode) {
-				if dst.Name() == "corncob-handball-poem-denim" && src.Name() == "vsi0-test-sub[10.240.4.4]"{
-					fmt.Println("conn5 between " + src.Name() + " and " + dst.Name())
-				}
-					// TODO: this may be ibm-specific. consider moving to ibmvpc
+									// TODO: this may be ibm-specific. consider moving to ibmvpc
 				v.AllowedConnsCombinedStateful.updateAllowedConnsMap(src, dst, conn)
 				conn.IsStateful = common.StatefulTrue
 				continue
@@ -271,11 +254,7 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections() {
 			// ConnectionWithStatefulness updates conn with IsStateful value, and returns the stateful subset
 			statefulCombinedConn := conn.ConnectionWithStatefulness(combinedDstToSrc)
 			v.AllowedConnsCombinedStateful.updateAllowedConnsMap(src, dst, statefulCombinedConn)
-			if dst.Name() == "corncob-handball-poem-denim" && src.Name() == "vsi0-test-sub[10.240.4.4]"{
-				fmt.Println("conn6 between " + src.Name() + " and " + dst.Name())
-			}
-
-		}
+					}
 	}
 }
 
