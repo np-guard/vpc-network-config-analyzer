@@ -220,6 +220,47 @@ func newVpeTreeNode(parent SquareTreeNodeInterface, name string, resIPs []TreeNo
 }
 
 // ///////////////////////////////////////////
+type LoadBalancerTreeNode struct {
+	abstractIconTreeNode
+	PrivateIps []TreeNodeInterface
+}
+
+func GroupPrivateIpsWithLoadBalancer(parent SquareTreeNodeInterface, name string, PrivateIps []TreeNodeInterface) {
+	switch {
+	case len(PrivateIps) == 1:
+		PrivateIps[0].(*PrivateIpTreeNode).setLoadBalancer(name)
+	case len(PrivateIps) > 1:
+		LoadBalancer := newLoadBalancerTreeNode(parent, name, PrivateIps)
+		for _, PrivateIp := range PrivateIps {
+			newLogicalLineTreeNode(parent, LoadBalancer, PrivateIp.(IconTreeNodeInterface))
+		}
+	}
+}
+
+func newLoadBalancerTreeNode(parent SquareTreeNodeInterface, name string, PrivateIps []TreeNodeInterface) *LoadBalancerTreeNode {
+	LoadBalancer := &LoadBalancerTreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, name), PrivateIps: PrivateIps}
+	parent.addIconTreeNode(LoadBalancer)
+	return LoadBalancer
+}
+
+type PrivateIpTreeNode struct {
+	abstractIconTreeNode
+	loadBalancer string
+}
+
+func NewPrivateIpTreeNode(parent SquareTreeNodeInterface, name string) *PrivateIpTreeNode {
+	rip := PrivateIpTreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, name)}
+	parent.addIconTreeNode(&rip)
+	return &rip
+}
+
+func (tn *PrivateIpTreeNode) setLoadBalancer(LoadBalancer string) { tn.loadBalancer = LoadBalancer }
+func (tn *PrivateIpTreeNode) hasMiniIcon() bool                   { return tn.loadBalancer != "" }
+func (tn *PrivateIpTreeNode) Label() string                       { return labels2Table([]string{tn.name, tn.loadBalancer}) }
+
+// ///////////////////////////////////////////
+
+// ///////////////////////////////////////////
 // GroupPointTreeNode is an icon for grouping, see GroupSquareTreeNode for details
 // the connection to the group will be to the group point
 // a GroupPoint is holding:

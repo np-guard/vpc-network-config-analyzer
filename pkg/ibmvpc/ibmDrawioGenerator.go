@@ -125,10 +125,10 @@ func (lb *LoadBalancer) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) dr
 		resIPs[i] = gen.TreeNode(resIP)
 	}
 	vpcTn := gen.TreeNode(lb.VPC()).(drawio.SquareTreeNodeInterface)
-	drawio.GroupResIPsWithVpe(vpcTn, lb.Name(), resIPs)
+	drawio.GroupPrivateIpsWithLoadBalancer(vpcTn, lb.Name(), resIPs)
 	return nil
 }
 func (pip *PrivateIP)  GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
-	return drawio.NewResIPTreeNode(
+	return drawio.NewPrivateIpTreeNode(
 		gen.TreeNode(pip.Subnet()).(drawio.SquareTreeNodeInterface), pip.Name())
 }
