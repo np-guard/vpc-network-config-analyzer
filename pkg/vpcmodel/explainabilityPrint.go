@@ -310,6 +310,7 @@ func pathFiltersSingleLayerStr(c *VPCConfig, filterLayerName string, rules []Rul
 	if len(strSlice) == 1 {
 		return filterLayer.FilterKindName() + " " + strSlice[0]
 	} else if len(strSlice) > 1 {
+		sort.Strings(strSlice)
 		return filterLayer.FilterKindName() + "[" + strings.Join(strSlice, comma) + "]"
 	}
 	return ""
