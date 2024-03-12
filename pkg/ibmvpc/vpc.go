@@ -252,12 +252,6 @@ func (nl *NaclLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 	return allowRes, denyRes, nil
 }
 
-// FilterKindName of NaclLayer used in printing, e.g. explainability
-// differs from Kind() which returns the const string NaclLayer used by the code
-func (nl *NaclLayer) FilterKindName() string {
-	return "network ACL"
-}
-
 func (nl *NaclLayer) Name() string {
 	return ""
 }
@@ -284,7 +278,7 @@ func (nl *NaclLayer) StringDetailsRulesOfFilter(listRulesInFilter []vpcmodel.Rul
 	strListRulesInFilter := ""
 	for _, rulesInFilter := range listRulesInFilter {
 		nacl := nl.naclList[rulesInFilter.Filter]
-		header := getHeaderRulesType(nl.FilterKindName()+" "+nacl.Name(), rulesInFilter.RulesFilterType) +
+		header := getHeaderRulesType(vpcmodel.FilterKindName(nl.Kind())+" "+nacl.Name(), rulesInFilter.RulesFilterType) +
 			nacl.analyzer.StringRules(rulesInFilter.Rules)
 		strListRulesInFilter += header
 	}
@@ -432,12 +426,6 @@ type SecurityGroupLayer struct {
 	sgList []*SecurityGroup
 }
 
-// FilterKindName Name of SecurityGroupLayer used in printing, e.g. explainability
-// differs from Kind() which returns the const string SecurityGroupLayer used by the code
-func (sgl *SecurityGroupLayer) FilterKindName() string {
-	return "security group"
-}
-
 func (sgl *SecurityGroupLayer) Name() string {
 	return ""
 }
@@ -502,7 +490,7 @@ func (sgl *SecurityGroupLayer) StringDetailsRulesOfFilter(listRulesInFilter []vp
 	strListRulesInFilter := ""
 	for _, rulesInFilter := range listRulesInFilter {
 		sg := sgl.sgList[rulesInFilter.Filter]
-		strListRulesInFilter += getHeaderRulesType(sgl.FilterKindName()+" "+sg.Name(), rulesInFilter.RulesFilterType) +
+		strListRulesInFilter += getHeaderRulesType(vpcmodel.FilterKindName(sgl.Kind())+" "+sg.Name(), rulesInFilter.RulesFilterType) +
 			sg.analyzer.StringRules(rulesInFilter.Rules)
 	}
 	return strListRulesInFilter

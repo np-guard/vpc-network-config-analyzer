@@ -217,7 +217,7 @@ func stringFilterEffect(c *VPCConfig, filterLayerName string, rules []RulesInFil
 		} else {
 			effectStr = " blocks connection"
 		}
-		strSlice[i] = filterLayer.FilterKindName() + space + name + effectStr
+		strSlice[i] = FilterKindName(filterLayerName) + space + name + effectStr
 		i++
 	}
 	return strings.Join(strSlice, semicolon+space)
@@ -293,6 +293,18 @@ func pathFiltersOfIngressOrEgressStr(c *VPCConfig, node EndpointElem, filtersRel
 	return pathSlice
 }
 
+// FilterKindName returns the name of a filter kind within filter layers - e.g. "security group".
+func FilterKindName(filterLayer string) string {
+	switch filterLayer {
+	case NaclLayer:
+		return "network ACL"
+	case SecurityGroupLayer:
+		return "security group"
+	default:
+		return ""
+	}
+}
+
 // for a given filter layer (e.g. sg) returns a string of the allowing tables
 // (note that denying tables are excluded)
 func pathFiltersSingleLayerStr(c *VPCConfig, filterLayerName string, rules []RulesInFilter) string {
@@ -308,10 +320,10 @@ func pathFiltersSingleLayerStr(c *VPCConfig, filterLayerName string, rules []Rul
 	// if there are multiple SGs/NACLs effecting the path:
 	// ... -> Security Group [SG1,SG2,SG8]
 	if len(strSlice) == 1 {
-		return filterLayer.FilterKindName() + " " + strSlice[0]
+		return FilterKindName(filterLayerName) + " " + strSlice[0]
 	} else if len(strSlice) > 1 {
 		sort.Strings(strSlice)
-		return filterLayer.FilterKindName() + "[" + strings.Join(strSlice, comma) + "]"
+		return FilterKindName(filterLayerName) + "[" + strings.Join(strSlice, comma) + "]"
 	}
 	return ""
 }
