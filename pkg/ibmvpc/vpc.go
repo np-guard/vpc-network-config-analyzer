@@ -473,11 +473,14 @@ func (sgl *SecurityGroupLayer) GetConnectivityOutputPerEachElemSeparately() stri
 func connHasIKSNode(src, dst vpcmodel.Node, isIngress bool) bool {
 	return (isIngress && dst.Kind() == ResourceTypeIKSNode) || (!isIngress && src.Kind() == ResourceTypeIKSNode)
 }
+func connHasPrivateIpNode(src, dst vpcmodel.Node, isIngress bool) bool {
+	return (isIngress && dst.Kind() == ResourceTypePrivateIP) || (!isIngress && src.Kind() == ResourceTypePrivateIP)
+}
 
 // AllowedConnectivity
 // TODO: fix: is it possible that no sg applies  to the input peer? if so, should not return "no conns" when none applies
 func (sgl *SecurityGroupLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*common.ConnectionSet, error) {
-	if connHasIKSNode(src, dst, isIngress) {
+	if connHasIKSNode(src, dst, isIngress)  || connHasPrivateIpNode(src, dst, isIngress){
 		return vpcmodel.AllConns(), nil
 	}
 	res := vpcmodel.NoConns()

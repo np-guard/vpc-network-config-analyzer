@@ -164,6 +164,7 @@ const (
 	ResourceTypeTGW              = "TGW"
 	ResourceTypeReservedIP       = "ReservedIP"
 	ResourceTypeLoadBalancer     = "LoadBalancer"
+	ResourceTypePrivateIP        = "PrivateIP"
 )
 
 var errIksParsing = errors.New("issue parsing IKS node")
@@ -1115,7 +1116,7 @@ func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 				VPCResource: vpcmodel.VPCResource{
 					ResourceName: *pIP.Name,
 					ResourceUID:  *pIP.ID,
-					ResourceType: ResourceTypeReservedIP,
+					ResourceType: ResourceTypePrivateIP,
 					Zone:         "",
 					VPCRef:       vpc,
 				}, // the zone gets updated later
@@ -1151,7 +1152,7 @@ func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 				address := *memberObj.Target.(*vpc1.LoadBalancerPoolMemberTarget).Address
 				pool = append(pool, getCertainNodes(res[vpcUID].Nodes, func(n vpcmodel.Node) bool { return n.CidrOrAddress() == address })...)
 			}
-						pools[*poolObj.ID] = pool
+			pools[*poolObj.ID] = pool
 		}
 		for _, lisObj := range loadBalancerObj.Listeners {
 			lis := LoadBalancerListener{}

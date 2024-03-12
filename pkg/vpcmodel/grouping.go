@@ -250,7 +250,7 @@ func (g *GroupConnLines) groupExternalAddresses(vsi bool) error {
 	res := []*groupedConnLine{}
 	for src, nodeConns := range allowedConnsCombined {
 		for dst, conns := range nodeConns {
-			if !conns.IsEmpty() {
+						if !conns.IsEmpty() {
 				err := g.addLineToExternalGrouping(&res, src, dst,
 					&groupedCommonProperties{conn: conns, groupingStrKey: conns.EnhancedString()})
 				if err != nil {

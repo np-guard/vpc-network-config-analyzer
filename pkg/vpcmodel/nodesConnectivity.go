@@ -53,7 +53,7 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping bool) (res *VPCConnectivi
 	}
 	res.computeAllowedConnsCombined()
 	res.computeAllowedStatefulConnections()
-	res.GroupedConnectivity, err = newGroupConnLines(c, res, grouping)
+		res.GroupedConnectivity, err = newGroupConnLines(c, res, grouping)
 	return res, err
 }
 
