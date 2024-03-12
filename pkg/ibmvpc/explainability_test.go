@@ -20,7 +20,7 @@ func getConfig(t *testing.T, fileName string) *vpcmodel.VPCConfig {
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
-	vpcConfigs, err := VPCConfigsFromResources(rc, "", false)
+	vpcConfigs, err := VPCConfigsFromResources(rc, "", "", nil, false)
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
