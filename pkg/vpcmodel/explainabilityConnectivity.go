@@ -67,23 +67,18 @@ type Explanation struct {
 }
 
 func (c VpcsConfigsMap) ExplainConnectivity(src, dst string, connQuery *common.ConnectionSet) (res *Explanation, err error) {
-	for i := range c {
-		return c[i].ExplainConnectivityForVPC(src, dst, connQuery)
-	}
-	return nil, nil
-}
-
-// ExplainConnectivityForVPC for a vpcConfig, given src, dst and connQuery returns a struct with all explanation details
-// nil connQuery means connection is not part of the query
-func (c *VPCConfig) ExplainConnectivityForVPC(src, dst string, connQuery *common.ConnectionSet) (res *Explanation, err error) {
-	// we do not support multiple configs, yet
-	if c.IsMultipleVPCsConfig {
-		return nil, fmt.Errorf("multiple VPCs not supported by explain mode, yet")
-	}
-	srcNodes, dstNodes, isSrcInternalIP, isDstInternalIP, err := c.srcDstInputToNodes(src, dst)
+	vpcConfig, srcNodes, dstNodes, isSrcInternalIP, isDstInternalIP, err := c.getVPCConfigAndSrcDstNodes(src, dst)
 	if err != nil {
 		return nil, err
 	}
+	return vpcConfig.explainConnectivityForVPC(src, dst, srcNodes, dstNodes, isSrcInternalIP, isDstInternalIP, connQuery)
+}
+
+// explainConnectivityForVPC for a vpcConfig, given src, dst and connQuery returns a struct with all explanation details
+// nil connQuery means connection is not part of the query
+func (c *VPCConfig) explainConnectivityForVPC(src, dst string, srcNodes, dstNodes []Node, isSrcInternalIP, isDstInternalIP bool,
+	connQuery *common.ConnectionSet) (res *Explanation, err error) {
+	// we do not support multiple configs, yet
 	rulesAndDetails, err1 := c.computeExplainRules(srcNodes, dstNodes, connQuery)
 	if err1 != nil {
 		return nil, err1
