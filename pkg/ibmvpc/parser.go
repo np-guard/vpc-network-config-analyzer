@@ -49,11 +49,20 @@ func filterByVpcResourceGroupAndRegions(rc *datamodel.ResourcesContainerModel, v
 	return shouldSkipVpcIds
 }
 
+func vpcIDToRegion(rc *datamodel.ResourcesContainerModel) map[string]string {
+	vpcIDTORegion := make(map[string]string)
+	for _, vpc := range rc.VpcList {
+		vpcIDTORegion[*vpc.CRN] = vpc.Region
+	}
+	return vpcIDTORegion
+}
+
 // VPCConfigsFromResources returns a map from VPC UID (string) to its corresponding VPCConfig object,
 // containing the parsed resources in the relevant model objects
 func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resourceGroup string, regions []string, debug bool) (
 	map[string]*vpcmodel.VPCConfig, error) {
 	res := map[string]*vpcmodel.VPCConfig{} // map from VPC UID to its config
+	vpcIDToRegionMap := vpcIDToRegion(rc)   // map from vpc UID to its region
 	filteredOut := map[string]bool{}        // store networkInterface UIDs filtered out by skipByVPC
 	var err error
 
@@ -69,13 +78,13 @@ func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resou
 	var vpcInternalAddressRange map[string]*ipblocks.IPBlock // map from vpc name to its internal address range
 
 	subnetNameToNetIntf := map[string][]*NetworkInterface{}
-	err = getInstancesConfig(rc.InstanceList, subnetNameToNetIntf, res, filteredOut, shouldSkipVpcIds)
+	err = getInstancesConfig(rc.InstanceList, subnetNameToNetIntf, res, filteredOut, shouldSkipVpcIds, vpcIDToRegionMap)
 	if err != nil {
 		return nil, err
 	}
 	// pgw can be attached to multiple subnets in the zone
 	pgwToSubnet := map[string][]*Subnet{} // map from pgw name to its attached subnet(s)
-	vpcInternalAddressRange, err = getSubnetsConfig(res, pgwToSubnet, subnetNameToNetIntf, rc, shouldSkipVpcIds)
+	vpcInternalAddressRange, err = getSubnetsConfig(res, pgwToSubnet, subnetNameToNetIntf, rc, shouldSkipVpcIds, vpcIDToRegionMap)
 	if err != nil {
 		return nil, err
 	}
@@ -85,32 +94,32 @@ func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resou
 		return nil, err
 	}
 
-	err = getIKSnodesConfig(res, rc, shouldSkipVpcIds)
+	err = getIKSnodesConfig(res, rc, shouldSkipVpcIds, vpcIDToRegionMap)
 	if err != nil {
 		return nil, err
 	}
 
-	err = getPgwConfig(res, rc, pgwToSubnet, shouldSkipVpcIds)
+	err = getPgwConfig(res, rc, pgwToSubnet, shouldSkipVpcIds, vpcIDToRegionMap)
 	if err != nil {
 		return nil, err
 	}
 
-	err = getFipConfig(rc, res, filteredOut, shouldSkipVpcIds)
+	err = getFipConfig(rc, res, filteredOut, shouldSkipVpcIds, vpcIDToRegionMap)
 	if err != nil {
 		return nil, err
 	}
 
-	err = getVPEconfig(rc, res, shouldSkipVpcIds)
+	err = getVPEconfig(rc, res, shouldSkipVpcIds, vpcIDToRegionMap)
 	if err != nil {
 		return nil, err
 	}
 
-	err = getSGconfig(rc, res, shouldSkipVpcIds)
+	err = getSGconfig(rc, res, shouldSkipVpcIds, vpcIDToRegionMap)
 	if err != nil {
 		return nil, err
 	}
 
-	err = getNACLconfig(rc, res, shouldSkipVpcIds)
+	err = getNACLconfig(rc, res, shouldSkipVpcIds, vpcIDToRegionMap)
 	if err != nil {
 		return nil, err
 	}
@@ -195,6 +204,7 @@ func getInstancesConfig(
 	res map[string]*vpcmodel.VPCConfig,
 	filteredOutUIDs map[string]bool,
 	skipByVPC map[string]bool,
+	vpcIDToRegionMap map[string]string,
 ) error {
 	for _, instance := range instanceList {
 		vpcUID := *instance.VPC.CRN
@@ -213,6 +223,7 @@ func getInstancesConfig(
 				Zone:         *instance.Zone.Name,
 				ResourceType: ResourceTypeVSI,
 				VPCRef:       vpc,
+				Region:       vpcIDToRegionMap[vpcUID],
 			},
 			nodes: []vpcmodel.Node{},
 		}
@@ -232,6 +243,7 @@ func getInstancesConfig(
 					ResourceType: ResourceTypeNetworkInterface,
 					Zone:         *instance.Zone.Name,
 					VPCRef:       vpc,
+					Region:       vpcIDToRegionMap[vpcUID],
 				},
 				InternalNode: vpcmodel.InternalNode{
 					AddressStr: *netintf.PrimaryIP.Address,
@@ -261,6 +273,7 @@ func getSubnetsConfig(
 	subnetNameToNetIntf map[string][]*NetworkInterface,
 	rc *datamodel.ResourcesContainerModel,
 	skipByVPC map[string]bool,
+	vpcIDToRegionMap map[string]string,
 ) (vpcInternalAddressRange map[string]*ipblocks.IPBlock, err error) {
 	vpcInternalAddressRange = map[string]*ipblocks.IPBlock{}
 	for vpcUID := range res {
@@ -283,6 +296,7 @@ func getSubnetsConfig(
 				Zone:         *subnet.Zone.Name,
 				ResourceType: ResourceTypeSubnet,
 				VPCRef:       vpc,
+				Region:       vpcIDToRegionMap[vpcUID],
 			},
 			cidr: *subnet.Ipv4CIDRBlock,
 		}
@@ -343,6 +357,7 @@ func getPgwConfig(
 	rc *datamodel.ResourcesContainerModel,
 	pgwToSubnet map[string][]*Subnet,
 	skipByVPC map[string]bool,
+	vpcIDToRegionMap map[string]string,
 ) error {
 	for _, pgw := range rc.PublicGWList {
 		if skipByVPC[*pgw.VPC.CRN] {
@@ -366,6 +381,7 @@ func getPgwConfig(
 				Zone:         *pgw.Zone.Name,
 				ResourceType: ResourceTypePublicGateway,
 				VPCRef:       vpc,
+				Region:       vpcIDToRegionMap[vpcUID],
 			},
 			cidr:       "",
 			src:        srcNodes,
@@ -398,6 +414,7 @@ func getFipConfig(
 	res map[string]*vpcmodel.VPCConfig,
 	filteredOutUIDs map[string]bool,
 	skipByVPC map[string]bool,
+	vpcIDToRegionMap map[string]string,
 ) error {
 	for _, fip := range rc.FloatingIPList {
 		targetIntf := fip.Target
@@ -452,6 +469,7 @@ func getFipConfig(
 				Zone:         *fip.Zone.Name,
 				ResourceType: ResourceTypeFloatingIP,
 				VPCRef:       vpc,
+				Region:       vpcIDToRegionMap[vpcUID],
 			},
 			cidr: *fip.Address, src: srcNodes}
 		res[vpcUID].RoutingResources = append(res[vpcUID].RoutingResources, routerFip)
@@ -490,6 +508,7 @@ func getVPCconfig(rc *datamodel.ResourcesContainerModel, res map[string]*vpcmode
 				ResourceName: vpcName,
 				ResourceUID:  *vpc.CRN,
 				ResourceType: ResourceTypeVPC,
+				Region:       vpc.Region,
 			},
 			nodes:           []vpcmodel.Node{},
 			zones:           map[string]*Zone{},
@@ -538,6 +557,7 @@ func parseSGTargets(sgResource *SecurityGroup,
 func getSGconfig(rc *datamodel.ResourcesContainerModel,
 	res map[string]*vpcmodel.VPCConfig,
 	skipByVPC map[string]bool,
+	vpcIDToRegionMap map[string]string,
 ) error {
 	sgMap := map[string]map[string]*SecurityGroup{} // map from vpc uid to map from sg name to its sg object
 	sgLists := map[string][]*SecurityGroup{}
@@ -557,6 +577,7 @@ func getSGconfig(rc *datamodel.ResourcesContainerModel,
 				ResourceUID:  *sg.CRN,
 				ResourceType: ResourceTypeSG,
 				VPCRef:       vpc,
+				Region:       vpcIDToRegionMap[vpcUID],
 			},
 			analyzer: NewSGAnalyzer(&sg.SecurityGroup), members: map[string]vpcmodel.Node{},
 		}
@@ -576,6 +597,7 @@ func getSGconfig(rc *datamodel.ResourcesContainerModel,
 			VPCResource: vpcmodel.VPCResource{
 				ResourceType: vpcmodel.SecurityGroupLayer,
 				VPCRef:       vpc,
+				Region:       vpcIDToRegionMap[vpcUID],
 			},
 			sgList: sgListInstance}
 		res[vpcUID].FilterResources = append(res[vpcUID].FilterResources, sgLayer)
@@ -597,6 +619,7 @@ func getSGconfig(rc *datamodel.ResourcesContainerModel,
 func getNACLconfig(rc *datamodel.ResourcesContainerModel,
 	res map[string]*vpcmodel.VPCConfig,
 	skipByVPC map[string]bool,
+	vpcIDToRegionMap map[string]string,
 ) error {
 	naclLists := map[string][]*NACL{} // map from vpc uid to its nacls
 	for _, nacl := range rc.NetworkACLList {
@@ -619,6 +642,7 @@ func getNACLconfig(rc *datamodel.ResourcesContainerModel,
 				ResourceUID:  *nacl.CRN,
 				ResourceType: ResourceTypeNACL,
 				VPCRef:       vpc,
+				Region:       vpcIDToRegionMap[vpcUID],
 			},
 			analyzer: naclAnalyzer, subnets: map[string]*Subnet{}}
 		naclLists[vpcUID] = append(naclLists[vpcUID], naclResource)
@@ -643,6 +667,7 @@ func getNACLconfig(rc *datamodel.ResourcesContainerModel,
 			VPCResource: vpcmodel.VPCResource{
 				ResourceType: vpcmodel.NaclLayer,
 				VPCRef:       vpc,
+				Region:       vpcIDToRegionMap[vpcUID],
 			},
 			naclList: naclLists[vpcUID]}
 		res[vpcUID].FilterResources = append(res[vpcUID].FilterResources, naclLayer)
@@ -690,9 +715,11 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 			}
 		}
 		// filtering by region
+		region := ""
 		if len(regions) > 0 {
 			if tgw, ok := tgwIDToTgw[tgwUID]; ok {
-				if !slices.Contains(regions, *tgw.Location) {
+				region = *tgw.Location
+				if !slices.Contains(regions, region) {
 					tgwToSkip[tgwUID] = true
 					continue
 				}
@@ -713,6 +740,7 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 					ResourceName: tgwName,
 					ResourceUID:  tgwUID,
 					ResourceType: ResourceTypeTGW,
+					Region:       region,
 				},
 				vpcs:            []*VPC{vpc},
 				availableRoutes: map[string][]*ipblocks.IPBlock{},
@@ -847,6 +875,7 @@ func addTGWbasedConfigs(tgws map[string]*TransitGateway, res map[string]*vpcmode
 				ResourceName: vpcPrefix + tgw.ResourceName,
 				ResourceUID:  vpcPrefix + tgw.ResourceUID,
 				ResourceType: ResourceTypeVPC,
+				Region:       tgw.Region,
 			},
 			internalAddressRange: vpcsAddressRanges,
 			nodes:                internalNodes,
@@ -875,6 +904,7 @@ func getSubnetByIPAddress(addressIPblock *ipblocks.IPBlock, c *vpcmodel.VPCConfi
 func getVPEconfig(rc *datamodel.ResourcesContainerModel,
 	res map[string]*vpcmodel.VPCConfig,
 	skipByVPC map[string]bool,
+	vpcIDToRegionMap map[string]string,
 ) (err error) {
 	for _, vpe := range rc.EndpointGWList {
 		if skipByVPC[*vpe.VPC.CRN] {
@@ -891,6 +921,7 @@ func getVPEconfig(rc *datamodel.ResourcesContainerModel,
 				ResourceUID:  *vpe.CRN,
 				ResourceType: ResourceTypeVPE,
 				VPCRef:       vpc,
+				Region:       vpcIDToRegionMap[vpcUID],
 			},
 		}
 		res[vpcUID].NodeSets = append(res[vpcUID].NodeSets, vpeResource)
@@ -903,6 +934,7 @@ func getVPEconfig(rc *datamodel.ResourcesContainerModel,
 					ResourceType: ResourceTypeReservedIP,
 					Zone:         "",
 					VPCRef:       vpc,
+					Region:       vpcIDToRegionMap[vpcUID],
 				}, // the zone gets updated later
 				InternalNode: vpcmodel.InternalNode{
 					AddressStr: *rIP.Address,
@@ -942,7 +974,8 @@ func getSubnetByCidr(res map[string]*vpcmodel.VPCConfig, cidr string) (*Subnet, 
 
 func getIKSnodesConfig(res map[string]*vpcmodel.VPCConfig,
 	rc *datamodel.ResourcesContainerModel,
-	skipByVPC map[string]bool) error {
+	skipByVPC map[string]bool,
+	vpcIDToRegionMap map[string]string) error {
 	for _, iksNode := range rc.IKSWorkerNodes {
 		if len(iksNode.NetworkInterfaces) != 1 {
 			return errIksParsing
@@ -966,6 +999,7 @@ func getIKSnodesConfig(res map[string]*vpcmodel.VPCConfig,
 				ResourceUID:  *iksNode.ID,
 				ResourceType: ResourceTypeIKSNode,
 				VPCRef:       vpc,
+				Region:       vpcIDToRegionMap[vpcUID],
 			},
 			InternalNode: vpcmodel.InternalNode{
 				AddressStr:     *iksNodeNetIntfObj.IpAddress,

@@ -28,6 +28,7 @@ type VPCResource struct {
 	ResourceUID  string
 	ResourceType string
 	Zone         string
+	Region       string
 	// the VPC to which this resource belongs to
 	VPCRef VPCResourceIntf `json:"-"`
 }
