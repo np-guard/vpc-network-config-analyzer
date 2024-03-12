@@ -2,7 +2,8 @@ package vpcmodel
 
 import (
 	"errors"
-	
+	"slices"
+
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
 )
@@ -32,7 +33,9 @@ type DrawioOutputFormatter struct {
 	nodeRouters     map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface
 	multiVpcRouters map[string]drawio.IconTreeNodeInterface
 	uc              OutputUseCase
-	}
+	edgeToIgnore    []*groupedConnLine
+	cliques         map[common.SetAsKey]EndpointElem
+}
 
 func (d *DrawioOutputFormatter) init(cConfigs map[string]*VPCConfig, conns map[string]*GroupConnLines, uc OutputUseCase) {
 	d.cConfigs = cConfigs
@@ -44,10 +47,14 @@ func (d *DrawioOutputFormatter) init(cConfigs map[string]*VPCConfig, conns map[s
 	d.gen = NewDrawioGenerator(cloudName)
 	d.nodeRouters = map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface{}
 	d.multiVpcRouters = map[string]drawio.IconTreeNodeInterface{}
-	}
+	d.edgeToIgnore = []*groupedConnLine{}
+	d.cliques = map[common.SetAsKey]EndpointElem{}
+
+}
 
 func (d *DrawioOutputFormatter) createDrawioTree() {
-		d.createNodeSets()
+	d.lookForCliques()
+	d.createNodeSets()
 	if d.uc != AllSubnets {
 		// todo - support filters on subnet mode
 		d.createNodes()
@@ -153,7 +160,10 @@ func (d *DrawioOutputFormatter) createEdges() {
 	isEdgeDirected := map[edgeKey]bool{}
 	for vpcResourceName, vpcConn := range d.conns {
 		for _, line := range vpcConn.GroupedLines {
-						src := line.src
+			if slices.Contains(d.edgeToIgnore, line) {
+				continue
+			}
+			src := line.src
 			dst := line.dst
 			router := d.lineRouter(line, vpcResourceName)
 			e := edgeKey{src, dst, router, line.ConnLabel()}
