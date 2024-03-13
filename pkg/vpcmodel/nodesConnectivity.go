@@ -53,7 +53,7 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping bool) (res *VPCConnectivi
 	}
 	res.computeAllowedConnsCombined()
 	res.computeAllowedStatefulConnections()
-		res.GroupedConnectivity, err = newGroupConnLines(c, res, grouping)
+	res.GroupedConnectivity, err = newGroupConnLines(c, res, grouping)
 	return res, err
 }
 
@@ -88,7 +88,7 @@ func (c *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 	// iterate pairs (capturedNode, peerNode) to analyze their allowed ingress/egress conns
 	for _, peerNode := range c.Nodes {
 		// skip analysis between certain pairs of nodes
-				considerPair, err := c.shouldConsiderPairForConnectivity(capturedNode, peerNode)
+		considerPair, err := c.shouldConsiderPairForConnectivity(capturedNode, peerNode)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -160,7 +160,7 @@ func (v *VPCConnectivity) computeCombinedConnectionsPerDirection(isIngressDirect
 	for peerNode, conns := range connectivityRes.ingressOrEgressAllowedConns(isIngressDirection) {
 		src, dst := switchSrcDstNodes(!isIngressDirection, peerNode, node)
 		combinedConns := conns
-				if peerNode.IsInternal() {
+		if peerNode.IsInternal() {
 			if !isIngressDirection {
 				continue
 			}
@@ -235,9 +235,9 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections() {
 			// src and dst here are nodes, always. Thus ignoring potential error in conversion
 			srcNode := src.(Node)
 			dstNode := dst.(Node)
-						// iterate pairs (src,dst) with conn as allowed connectivity, to check stateful aspect
+			// iterate pairs (src,dst) with conn as allowed connectivity, to check stateful aspect
 			if v.isConnExternalThroughFIP(srcNode, dstNode) {
-									// TODO: this may be ibm-specific. consider moving to ibmvpc
+				// TODO: this may be ibm-specific. consider moving to ibmvpc
 				v.AllowedConnsCombinedStateful.updateAllowedConnsMap(src, dst, conn)
 				conn.IsStateful = common.StatefulTrue
 				continue
@@ -254,7 +254,7 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections() {
 			// ConnectionWithStatefulness updates conn with IsStateful value, and returns the stateful subset
 			statefulCombinedConn := conn.ConnectionWithStatefulness(combinedDstToSrc)
 			v.AllowedConnsCombinedStateful.updateAllowedConnsMap(src, dst, statefulCombinedConn)
-					}
+		}
 	}
 }
 

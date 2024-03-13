@@ -105,6 +105,11 @@ func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resou
 		return nil, err
 	}
 
+	err = getLoadBalancersConfig(rc, res, shouldSkipVpcIds)
+	if err != nil {
+		return nil, err
+	}
+
 	err = getSGconfig(rc, res, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
@@ -126,11 +131,6 @@ func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resou
 		return nil, err
 	}
 
-	err = getLoadBalancersConfig(rc, res, shouldSkipVpcIds)
-	if err != nil {
-		return nil, err
-	}
-
 	if debug {
 		printVPCConfigs(res)
 	}
@@ -145,6 +145,7 @@ const (
 	outbound                     = "outbound"
 	networkInterfaceResourceType = "network_interface" // used as the type within api objects (e.g. SecurityGroup.Targets.ResourceType)
 	vpeResourceType              = "endpoint_gateway"  // used as the type within api objects (e.g. SecurityGroup.Targets.ResourceType)
+	loadBalancerResourceType     = "load_balancer"     // used as the type within api objects (e.g. SecurityGroup.Targets.ResourceType)
 	cidrSeparator                = ", "
 	linesSeparator               = "---------------------"
 )
@@ -534,6 +535,14 @@ func parseSGTargets(sgResource *SecurityGroup,
 					vpeObj := vpe.(*Vpe)
 					for _, n := range vpeObj.nodes {
 						nIP := n.(*ReservedIP)
+						sgResource.members[nIP.Address()] = n
+					}
+				}
+			} else if targetType == loadBalancerResourceType {
+				if lb, ok := c.UIDToResource[*targetIntfRef.CRN]; ok {
+					lbObj := lb.(*LoadBalancer)
+					for _, n := range lbObj.nodes {
+						nIP := n.(*PrivateIP)
 						sgResource.members[nIP.Address()] = n
 					}
 				}
@@ -1171,18 +1180,18 @@ func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 
 		}
 		// todo - what to do with loadBalancerObj.Subnets
-		for _, pubIpData := range loadBalancerObj.PublicIps {
-			ipBlock, err := ipblocks.NewIPBlockFromIPAddress(*pubIpData.Address)
-			if err != nil {
-				return err
-			}
-			node, err := vpcmodel.NewExternalNode(true, ipBlock)
-			if err != nil {
-				return err
-			}
-			loadBalancer.nodes = append(loadBalancer.nodes, node)
-			res[vpcUID].Nodes = append(res[vpcUID].Nodes, node)
-		}
+		// for _, pubIpData := range loadBalancerObj.PublicIps {
+		// 	ipBlock, err := ipblocks.NewIPBlockFromIPAddress(*pubIpData.Address)
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// 	node, err := vpcmodel.NewExternalNode(true, ipBlock)
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// 	loadBalancer.nodes = append(loadBalancer.nodes, node)
+		// 	res[vpcUID].Nodes = append(res[vpcUID].Nodes, node)
+		// }
 		res[vpcUID].UIDToResource[loadBalancer.ResourceUID] = loadBalancer
 
 	}
