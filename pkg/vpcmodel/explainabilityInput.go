@@ -63,8 +63,8 @@ func (configsMap VpcsConfigsMap) getVPCConfigAndSrcDstNodes(src, dst string) (vp
 	configsWithSrcDstNode := map[string]srcAndDstNodes{}
 	for i := range configsMap {
 		if configsMap[i].IsMultipleVPCsConfig {
-			return
-		} // todo: tmp until we add support in tgw
+			continue // todo: tmp until we add support in tgw
+		}
 		var errType int
 		srcNodes, dstNodes, isSrcDstInternalIP, errType, err = configsMap[i].srcDstInputToNodes(src, dst)
 		if err != nil {
@@ -82,29 +82,28 @@ func (configsMap VpcsConfigsMap) getVPCConfigAndSrcDstNodes(src, dst string) (vp
 				isSrcDstInternalIP}
 		}
 	}
-	if len(configsWithSrcDstNode) == 0 {
-		// no match: internalNotWithinSubnetsAddr err has priority over noValidInputErr
-		if errMsgInternalNotWithinSubnet != nil {
-			err = errMsgInternalNotWithinSubnet
-		} else {
-			err = errMsgNoValidInput
-		}
-		return nil, nil, nil, noInternalIP, err
-	}
 	// single match: return it
 	if len(configsWithSrcDstNode) == 1 {
 		for i, val := range configsWithSrcDstNode {
 			return configsMap[i], val.srcNodes, val.dstNodes, val.isSrcDstInternalIP, nil
 		}
 	}
-	// src and dst found in more than one VPC configs - error
-	var matchConfigs []string
-	for i := range configsWithSrcDstNode {
-		matchConfigs = append(matchConfigs, i)
+	if len(configsWithSrcDstNode) == 0 {
+		// no match: internalNotWithinSubnetsAddr err has priority over noValidInputErr
+		if errMsgInternalNotWithinSubnet != nil {
+			return nil, nil, nil, noInternalIP, errMsgInternalNotWithinSubnet
+		}
+		return nil, nil, nil, noInternalIP, errMsgNoValidInput
 	}
-
+	// len(configsWithSrcDstNode) > 1: src and dst found in more than one VPC configs - error
+	matchConfigs := make([]string, len(configsWithSrcDstNode))
+	i := 0
+	for configName := range configsWithSrcDstNode {
+		matchConfigs[i] = configName
+		i++
+	}
 	return nil, nil, nil, noInternalIP,
-		fmt.Errorf(fmt.Sprintf("src: %s and dst: %s found in more than one config: %s",
+		fmt.Errorf("%s", fmt.Sprintf("src: %s and dst: %s found in more than one config: %s",
 			src, dst, strings.Join(matchConfigs, ",")))
 }
 
