@@ -21,11 +21,12 @@ type groupedExternalNodesInfo struct {
 }
 
 type explainDetails struct {
-	rules          *rulesConnection
-	router         RoutingResource
-	connEnabled    bool
-	ingressEnabled bool
-	egressEnabled  bool
+	rules           *rulesConnection
+	router          RoutingResource
+	filtersRelevant map[string]bool
+	connEnabled     bool
+	ingressEnabled  bool
+	egressEnabled   bool
 }
 
 type groupedCommonProperties struct {
@@ -296,8 +297,8 @@ func (g *GroupConnLines) groupExternalAddressesForExplainability() error {
 	var res []*groupedConnLine
 	for _, details := range *g.explain {
 		groupingStrKey := details.explanationEncode(g.config)
-		expDetails := &explainDetails{details.actualMergedRules, details.router, details.connEnabled,
-			details.ingressEnabled, details.egressEnabled}
+		expDetails := &explainDetails{details.actualMergedRules, details.router, details.filtersRelevant,
+			details.connEnabled, details.ingressEnabled, details.egressEnabled}
 		err := g.addLineToExternalGrouping(&res, details.src, details.dst,
 			&groupedCommonProperties{conn: details.conn, expDetails: expDetails,
 				groupingStrKey: groupingStrKey})
@@ -545,10 +546,12 @@ func (details *srcDstDetails) explanationEncode(c *VPCConfig) string {
 	}
 	egressStr, ingressStr := "", ""
 	if len(details.actualMergedRules.egressRules) > 0 {
-		egressStr = "egress:" + details.actualMergedRules.egressRules.string(c, false, true) + semicolon
+		egressStr = "egress:" + details.actualMergedRules.egressRules.rulesDetailsStr(c, details.filtersRelevant,
+			false) + semicolon
 	}
 	if len(details.actualMergedRules.ingressRules) > 0 {
-		egressStr = "ingress:" + details.actualMergedRules.ingressRules.string(c, true, true) + semicolon
+		egressStr = "ingress:" + details.actualMergedRules.ingressRules.rulesDetailsStr(c, details.filtersRelevant,
+			true) + semicolon
 	}
 	return connStr + routingStr + egressStr + ingressStr
 }

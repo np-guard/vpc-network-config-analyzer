@@ -2,8 +2,9 @@ Connectivity explanation between vsi2-ky and vsi3b-ky within test-vpc1-ky
 =========================================================================
 
 The following connection exists between vsi2-ky[10.240.20.4] and vsi3b-ky[10.240.30.4]: protocol: TCP
-Egress: security group sg2-ky allows connection; network ACL acl2-ky allows connection
-Ingress: network ACL acl3-ky allows connection; security group sg2-ky allows connection
+Path:
+	vsi2-ky[10.240.20.4] -> security group sg2-ky -> subnet2-ky -> network ACL acl2-ky -> 
+	network ACL acl3-ky -> subnet3-ky -> security group sg2-ky -> vsi3b-ky[10.240.30.4]
 
 Details:
 ~~~~~~~~

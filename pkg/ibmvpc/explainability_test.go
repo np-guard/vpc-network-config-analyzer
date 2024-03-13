@@ -20,7 +20,7 @@ func getConfig(t *testing.T, fileName string) vpcmodel.VpcsConfigsMap {
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
-	vpcConfigs, err := VPCConfigsFromResources(rc, "", false)
+	vpcConfigs, err := VPCConfigsFromResources(rc, "", "", nil, false)
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
@@ -105,19 +105,6 @@ var explainTests = []*vpcGeneralTest{
 		EDst:        "161.26.0.0/8",
 		format:      vpcmodel.Text,
 	},
-	//todo: now that external and internal IPs are treated differently, deffer cidrAll test to the time we properly support internal IP #305
-	/*{
-		name:        "GroupingExternalSG2",
-		inputConfig: "sg_testing1_new",
-		ESrc:        "vsi2-ky[10.240.20.4]",
-		EDst:        "0.0.0.0/0",
-	},
-	{
-		name:        "GroupingExternalSG3",
-		inputConfig: "sg_testing1_new",
-		ESrc:        "0.0.0.0/0",
-		EDst:        "vsi2-ky[10.240.20.4]",
-	},*/
 	{
 		// the existing connection is exactly the one required by the query
 		name:        "QueryConnectionSGBasic1",
@@ -408,6 +395,14 @@ var explainTests = []*vpcGeneralTest{
 		ESrcMaxPort: common.MaxPort,
 		EDstMinPort: common.MinPort,
 		EDstMaxPort: common.MaxPort,
+		format:      vpcmodel.Debug,
+	},
+	// two SGs attached to one VSI
+	{
+		name:        "VsiWithTwoSgs",
+		inputConfig: "sg_testing1_new_2SGs",
+		ESrc:        "vsi3a-ky",
+		EDst:        "vsi1-ky",
 		format:      vpcmodel.Debug,
 	},
 }
