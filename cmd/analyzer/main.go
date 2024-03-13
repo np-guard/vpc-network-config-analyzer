@@ -62,10 +62,6 @@ func analysisVPCConfigs(c1, c2 map[string]*vpcmodel.VPCConfig, inArgs *InArgs, o
 	if *inArgs.AnalysisType == explainMode {
 		explanationArgs = vpcmodel.NewExplanationArgs(*inArgs.ESrc, *inArgs.EDst, *inArgs.EProtocol,
 			*inArgs.ESrcMinPort, *inArgs.ESrcMaxPort, *inArgs.EDstMinPort, *inArgs.EDstMaxPort)
-		// we do not support multiple vpc config, at the moment
-		if len(c1) > 1 {
-			return "", fmt.Errorf("multiple vpc config not supported for explain mode, yet")
-		}
 	}
 
 	outFormat := getOutputFormat(inArgs)
