@@ -68,22 +68,15 @@ func (c VpcsConfigsMap) getVPCConfigAndSrcDstNodes(src, dst string) (vpcConfig *
 			case internalNotWithinSubnetsAddr:
 				errMsgInternalNotWithinSubnet = err
 			case noValidInputErr:
-				if srcNodes == nil {
-					errMsgNoValidInput = fmt.Errorf("src %s %s", src, err.Error())
-				} else { // dstNodes == nil
-					errMsgNoValidInput = fmt.Errorf("dst %s %s", src, err.Error())
-				}
-
+				errMsgNoValidInput = err
 			}
 		}
 		if srcNodes != nil && dstNodes != nil { // todo: tmp. needs to add consistency check and choose the correct vpcConfig
 			return c[i], srcNodes, dstNodes, isSrcInternalIP, isDstInternalIP, nil
 		}
-		if errType == internalNotWithinSubnetsAddr {
-			errMsgInternalNotWithinSubnet = err
-		}
 	}
-	if errMsgInternalNotWithinSubnet != nil { // this err holds for one vpcConfig and no other match then err is returned
+	// no match: internalNotWithinSubnetsAddr err has priority over noValidInputErr
+	if errMsgInternalNotWithinSubnet != nil {
 		err = errMsgInternalNotWithinSubnet
 	} else {
 		err = errMsgNoValidInput
