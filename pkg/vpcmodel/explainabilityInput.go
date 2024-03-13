@@ -68,7 +68,7 @@ func (configsMap VpcsConfigsMap) getVPCConfigAndSrcDstNodes(src, dst string) (vp
 	configsWithSrcDstNode := map[string]srcAndDstNodes{}
 	for i := range configsMap {
 		if configsMap[i].IsMultipleVPCsConfig {
-			return
+			continue
 		} // todo: tmp until we add support in tgw
 		var errType int
 		srcNodes, dstNodes, isSrcDstInternalIP, errType, err = configsMap[i].srcDstInputToNodes(src, dst)
