@@ -34,7 +34,7 @@
                 {{ if $data.HasMiniIcon $node }}
                     <image x="{{$data.Add $ax $data.MiniIconXOffset}}" y="{{$data.Add $ay $data.MiniIconYOffset}}" width="{{$data.MiniIconSize}}" height="{{$data.MiniIconSize}}" xlink:href="data:image/svg+xml;base64,{{$data.MiniImage $node}}"/>
                 {{ end }}
-                {{ if $node.IsNI }}
+                {{ if $node.CanHaveFIP }}
                     {{ if $node.HasFip  }}
                         <image x="{{$data.Add $ax $data.FipXOffset}}" y="{{$data.Add $ay $data.FipYOffset}}" width="{{$node.IconSize}}" height="{{$node.IconSize}}" xlink:href="data:image/svg+xml;base64,{{$data.FIPImage}}"/>
                         <text fill="rgb(0, 0, 0)" font-family="IBM Plex Sans" text-anchor="middle" font-size="14px" x="{{$data.Add3 $ax $data.FipXOffset 30}}" y="{{$data.Add3 $ay $data.FipYOffset 73}}">{{$node.Fip}}</text>

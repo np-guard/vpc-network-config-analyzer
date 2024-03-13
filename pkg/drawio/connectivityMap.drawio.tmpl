@@ -49,7 +49,7 @@
                 <mxGeometry x="{{$data.MiniIconXOffset}}" y="{{$data.MiniIconYOffset}}" width="{{$data.MiniIconSize}}" height="{{$data.MiniIconSize}}" as="geometry"/>
                 </mxCell>
             {{ end }}
-            {{ if $node.IsNI }}
+            {{ if $node.CanHaveFIP }}
                 {{ if $node.HasFip  }}
                     <mxCell id="{{$data.IDsPrefix}}-{{$node.FipID}}" value="{{$node.Fip}}" style="{{$imagePrefix}}{{$data.FIPImage}};{{$iconStyle}}" parent="{{$data.IDsPrefix}}-{{$node.ID}}" vertex="1">
                     <mxGeometry x="{{$data.FipXOffset}}" y="{{$data.FipYOffset}}" width="{{$node.IconSize}}" height="{{$node.IconSize}}" as="geometry"/>

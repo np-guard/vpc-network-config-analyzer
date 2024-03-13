@@ -8,7 +8,7 @@ type IconTreeNodeInterface interface {
 	setSG(SquareTreeNodeInterface)
 	allocateNewRouteOffset() int
 	IsVSI() bool
-	IsNI() bool
+	CanHaveFIP() bool
 	IsGroupingPoint() bool
 	SetTooltip(tooltip []string)
 	HasTooltip() bool
@@ -18,7 +18,13 @@ type IconTreeNodeInterface interface {
 	IconSize() int
 	hasMiniIcon() bool
 }
-
+type CanHaveFIPTreeNode interface {
+	SetFIP(fip string)
+	Fip() string
+	FipID() uint
+	HasFip() bool
+	RouterID() uint
+}
 type abstractIconTreeNode struct {
 	abstractTreeNode
 	nRouterOffset int
@@ -35,7 +41,7 @@ func (tn *abstractIconTreeNode) setSG(sg SquareTreeNodeInterface) { tn.sg = sg }
 func (tn *abstractIconTreeNode) IsIcon() bool                     { return true }
 func (tn *abstractIconTreeNode) IsVSI() bool                      { return false }
 func (tn *abstractIconTreeNode) IsGateway() bool                  { return false }
-func (tn *abstractIconTreeNode) IsNI() bool                       { return false }
+func (tn *abstractIconTreeNode) CanHaveFIP() bool                 { return false }
 func (tn *abstractIconTreeNode) IsGroupingPoint() bool            { return false }
 func (tn *abstractIconTreeNode) SetTooltip(tooltip []string)      { tn.tooltip = tooltip }
 func (tn *abstractIconTreeNode) HasTooltip() bool                 { return len(tn.tooltip) > 0 }
@@ -89,14 +95,14 @@ func NewNITreeNode(parent SquareTreeNodeInterface, name string) *NITreeNode {
 	return &ni
 }
 
-func (tn *NITreeNode) FipID() uint       { return tn.id + niFipID }
 func (tn *NITreeNode) setVsi(vsi string) { tn.vsi = vsi }
 func (tn *NITreeNode) hasMiniIcon() bool { return tn.vsi != "" }
 func (tn *NITreeNode) SetFIP(fip string) { tn.floatingIP = fip }
 func (tn *NITreeNode) Fip() string       { return tn.floatingIP }
+func (tn *NITreeNode) FipID() uint       { return tn.id + fipID }
 func (tn *NITreeNode) HasFip() bool      { return tn.Fip() != "" }
 func (tn *NITreeNode) RouterID() uint    { return tn.FipID() }
-func (tn *NITreeNode) IsNI() bool        { return true }
+func (tn *NITreeNode) CanHaveFIP() bool  { return true }
 func (tn *NITreeNode) Label() string     { return labels2Table([]string{tn.name, tn.vsi}) }
 
 func (tn *NITreeNode) absoluteRouterGeometry() (x, y int) {
@@ -246,6 +252,7 @@ func newLoadBalancerTreeNode(parent SquareTreeNodeInterface, name string, Privat
 type PrivateIpTreeNode struct {
 	abstractIconTreeNode
 	loadBalancer string
+	floatingIP   string
 }
 
 func NewPrivateIpTreeNode(parent SquareTreeNodeInterface, name string) *PrivateIpTreeNode {
@@ -257,6 +264,16 @@ func NewPrivateIpTreeNode(parent SquareTreeNodeInterface, name string) *PrivateI
 func (tn *PrivateIpTreeNode) setLoadBalancer(LoadBalancer string) { tn.loadBalancer = LoadBalancer }
 func (tn *PrivateIpTreeNode) hasMiniIcon() bool                   { return tn.loadBalancer != "" }
 func (tn *PrivateIpTreeNode) Label() string                       { return labels2Table([]string{tn.name, tn.loadBalancer}) }
+func (tn *PrivateIpTreeNode) SetFIP(fip string)                   { tn.floatingIP = fip }
+func (tn *PrivateIpTreeNode) Fip() string                         { return tn.floatingIP }
+func (tn *PrivateIpTreeNode) FipID() uint                         { return tn.id + fipID }
+func (tn *PrivateIpTreeNode) HasFip() bool                        { return tn.Fip() != "" }
+func (tn *PrivateIpTreeNode) RouterID() uint                      { return tn.FipID() }
+func (tn *PrivateIpTreeNode) CanHaveFIP() bool                    { return true }
+func (tn *PrivateIpTreeNode) absoluteRouterGeometry() (x, y int) {
+	x, y = absoluteGeometry(tn)
+	return x + fipXOffset, y + fipYOffset
+}
 
 // ///////////////////////////////////////////
 

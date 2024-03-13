@@ -1180,18 +1180,21 @@ func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 
 		}
 		// todo - what to do with loadBalancerObj.Subnets
-		// for _, pubIpData := range loadBalancerObj.PublicIps {
-		// 	ipBlock, err := ipblocks.NewIPBlockFromIPAddress(*pubIpData.Address)
-		// 	if err != nil {
-		// 		return err
-		// 	}
-		// 	node, err := vpcmodel.NewExternalNode(true, ipBlock)
-		// 	if err != nil {
-		// 		return err
-		// 	}
-		// 	loadBalancer.nodes = append(loadBalancer.nodes, node)
-		// 	res[vpcUID].Nodes = append(res[vpcUID].Nodes, node)
-		// }
+
+		for i, pubIpData := range loadBalancerObj.PublicIps {
+			pip := loadBalancer.nodes[i]
+			routerFip := &FloatingIP{
+				VPCResource: vpcmodel.VPCResource{
+					ResourceName: pip.Name()+"-fip",
+					ResourceUID:  pip.UID()+"-fip",
+					Zone:         pip.ZoneName(),
+					ResourceType: ResourceTypeFloatingIP,
+					VPCRef:       vpc,
+				},
+				cidr: *pubIpData.Address, src: []vpcmodel.Node{pip}}
+			res[vpcUID].RoutingResources = append(res[vpcUID].RoutingResources, routerFip)
+			res[vpcUID].UIDToResource[routerFip.ResourceUID] = routerFip
+		}
 		res[vpcUID].UIDToResource[loadBalancer.ResourceUID] = loadBalancer
 
 	}

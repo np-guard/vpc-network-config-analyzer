@@ -19,7 +19,7 @@ func (pgw *PublicGateway) ShowOnSubnetMode() bool      { return true }
 func (fip *FloatingIP) ShowOnSubnetMode() bool         { return false }
 func (tgw *TransitGateway) ShowOnSubnetMode() bool     { return true }
 func (lb *LoadBalancer) ShowOnSubnetMode() bool        { return true }
-func (pip *PrivateIP) ShowOnSubnetMode() bool        { return true }
+func (pip *PrivateIP) ShowOnSubnetMode() bool          { return true }
 
 // implementations of the GenerateDrawioTreeNode() for resource defined in ibmvpc:
 func (v *VPC) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
@@ -107,9 +107,9 @@ func (pgw *PublicGateway) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) 
 
 func (fip *FloatingIP) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	// todo - what if r.Src() is not at size of one?
-	nitn := gen.TreeNode(fip.Sources()[0]).(*drawio.NITreeNode)
-	nitn.SetFIP(fip.Name())
-	return nitn
+	itn := gen.TreeNode(fip.Sources()[0]).(drawio.CanHaveFIPTreeNode)
+	itn.SetFIP(fip.Name())
+	return itn.(drawio.TreeNodeInterface)
 }
 
 func (tgw *TransitGateway) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
@@ -127,7 +127,7 @@ func (lb *LoadBalancer) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) dr
 	drawio.GroupPrivateIpsWithLoadBalancer(vpcTn, lb.Name(), resIPs)
 	return nil
 }
-func (pip *PrivateIP)  GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
+func (pip *PrivateIP) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	return drawio.NewPrivateIpTreeNode(
 		gen.TreeNode(pip.Subnet()).(drawio.SquareTreeNodeInterface), pip.Name())
 }

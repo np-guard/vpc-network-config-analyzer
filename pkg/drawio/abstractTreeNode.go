@@ -6,7 +6,7 @@ const (
 	minID      = 100
 	nextIDStep = 10
 	miniIconID = 1
-	niFipID    = 2
+	fipID      = 2
 	textID     = 3
 	tagID      = 4
 	decoreID   = 5
