@@ -42,6 +42,7 @@ const (
 
 const noValidInputMsg = "does not represent an internal interface, an internal IP with network interface or " +
 	"a valid external IP"
+const strPrint = "%s"
 
 //
 // getVPCConfigAndSrcDstNodes given src, dst names returns the config in which the exaplainability analysis of these
@@ -61,16 +62,16 @@ func (configsMap VpcsConfigsMap) getVPCConfigAndSrcDstNodes(src, dst string) (vp
 		isSrcDstInternalIP int
 	}
 	configsWithSrcDstNode := map[string]srcAndDstNodes{}
-	for cfgId := range configsMap {
-		if configsMap[cfgId].IsMultipleVPCsConfig {
+	for cfgID := range configsMap {
+		if configsMap[cfgID].IsMultipleVPCsConfig {
 			continue // todo: tmp until we add support in tgw
 		}
 		var errType int
-		srcNodes, dstNodes, isSrcDstInternalIP, errType, err = configsMap[cfgId].srcDstInputToNodes(src, dst)
+		srcNodes, dstNodes, isSrcDstInternalIP, errType, err = configsMap[cfgID].srcDstInputToNodes(src, dst)
 		if err != nil {
 			switch errType {
 			case exitNowErr:
-				return configsMap[cfgId], nil, nil, noInternalIP, err
+				return configsMap[cfgID], nil, nil, noInternalIP, err
 			case internalNotWithinSubnetsAddr:
 				errMsgInternalNotWithinSubnet = err
 			case noValidInputErr:
@@ -78,14 +79,14 @@ func (configsMap VpcsConfigsMap) getVPCConfigAndSrcDstNodes(src, dst string) (vp
 			}
 		}
 		if srcNodes != nil && dstNodes != nil {
-			configsWithSrcDstNode[cfgId] = srcAndDstNodes{srcNodes, dstNodes,
+			configsWithSrcDstNode[cfgID] = srcAndDstNodes{srcNodes, dstNodes,
 				isSrcDstInternalIP}
 		}
 	}
 	// single match: return it
 	if len(configsWithSrcDstNode) == 1 {
-		for cfgId, val := range configsWithSrcDstNode {
-			return configsMap[cfgId], val.srcNodes, val.dstNodes, val.isSrcDstInternalIP, nil
+		for cfgID, val := range configsWithSrcDstNode {
+			return configsMap[cfgID], val.srcNodes, val.dstNodes, val.isSrcDstInternalIP, nil
 		}
 	}
 	if len(configsWithSrcDstNode) == 0 {
@@ -98,12 +99,12 @@ func (configsMap VpcsConfigsMap) getVPCConfigAndSrcDstNodes(src, dst string) (vp
 	// len(configsWithSrcDstNode) > 1: src and dst found in more than one VPC configs - error
 	matchConfigs := make([]string, len(configsWithSrcDstNode))
 	i := 0
-	for cfgId := range configsWithSrcDstNode {
-		matchConfigs[i] = configsMap[cfgId].VPC.Name()
+	for cfgID := range configsWithSrcDstNode {
+		matchConfigs[i] = configsMap[cfgID].VPC.Name()
 		i++
 	}
 	return nil, nil, nil, noInternalIP,
-		fmt.Errorf("%s", fmt.Sprintf("src: %s and dst: %s found in more than one config: %s",
+		fmt.Errorf(strPrint, fmt.Sprintf("src: %s and dst: %s found in more than one config: %s",
 			src, dst, strings.Join(matchConfigs, ",")))
 }
 
@@ -190,7 +191,8 @@ func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node, in
 	if err2 != nil {
 		// the input is not a legal cidr or IP address, which in this stage means it is not a
 		// valid presentation for src/dst. Lint demands that an error is returned here
-		return nil, false, noValidInputErr, fmt.Errorf(fmt.Sprintf("%s %s", cidrOrName, noValidInputMsg))
+		return nil, false, noValidInputErr,
+			fmt.Errorf(strPrint, fmt.Sprintf("%s %s", cidrOrName, noValidInputMsg))
 	}
 	// the input is a legal cidr or IP address
 	return c.getNodesFromAddress(cidrOrName, ipBlock)
