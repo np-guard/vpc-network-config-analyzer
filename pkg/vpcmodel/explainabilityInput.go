@@ -2,6 +2,7 @@ package vpcmodel
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/np-guard/models/pkg/ipblocks"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
@@ -44,18 +45,12 @@ const noValidInputMsg = "does not represent an internal interface, an internal I
 
 //
 // getVPCConfigAndSrcDstNodes given src, dst names returns the config in which the exaplainability analysis of these
-// should be done and the Nodes for src and dst
-// If src/dst are found in more than one config then configs should agree on their internal/external property
-// If src/dst is internal and is found in more than one VCPConfig then in all configs it must have the same VPC()
-// If one of src and dst are is internal and the other external then they both must reside in exactly one vpcConfig with
-// IsMultipleVPCsConfig = false - which is the returned config
-// If both src and dst are internal then only one config may contain both of them - which is the returned config
-// if any of the above fails to hold then an error message is returned
-// in addition, the following errors, if detected in one of the configs, are relevant in the multiVPC context
-// both src and dst are external; src or dst are not unique in a config; src or dst contains both external and internal addr;
-// src or dst are within subnets range but not connected to a VSI
-// if internalNotWithinSubnet holds for one vpcConfig and there is no match in any of the configs then
-// this error is returned
+// should be done and the Nodes for src and dst.
+// At most one config should contain src and dst:
+// If one (src or dst) is internal and the other is external or both are internal of the same VPC then the containing VPC
+// is the VPC relevant to the explainanility analysis
+// todo If src is of one VPC and dst of another, the multiVPC VPCConfig containing both of them is the relevant for explainability,
+//      if one exists. Otherwise there is no connection
 
 func (configsMap VpcsConfigsMap) getVPCConfigAndSrcDstNodes(src, dst string) (vpcConfig *VPCConfig,
 	srcNodes, dstNodes []Node, isSrcDstInternalIP int, err error) {
@@ -102,8 +97,15 @@ func (configsMap VpcsConfigsMap) getVPCConfigAndSrcDstNodes(src, dst string) (vp
 			return configsMap[i], val.srcNodes, val.dstNodes, val.isSrcDstInternalIP, nil
 		}
 	}
-	// todo add consistency checks and execute on the correct match
-	return nil, nil, nil, noInternalIP, err
+	// src and dst found in more than one VPC configs - error
+	var matchConfigs []string
+	for i := range configsWithSrcDstNode {
+		matchConfigs = append(matchConfigs, i)
+	}
+
+	return nil, nil, nil, noInternalIP,
+		fmt.Errorf(fmt.Sprintf("src: %s and dst: %s found in more than one config: %s",
+			src, dst, strings.Join(matchConfigs, ",")))
 }
 
 // GetConnectionSet TODO: handle also input ICMP properties (type, code) as input args
