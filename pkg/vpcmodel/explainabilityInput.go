@@ -177,9 +177,9 @@ func (c *VPCConfig) getNodesOfVsi(vsi string) ([]Node, error, int) {
 		// currently assuming c.NodeSets consists of VSIs or VPE
 		if nodeSet.Name() == vsi || nodeSet.UID() == vsi {
 			if nodeSetWithVsi != nil {
-				return nil, fmt.Errorf("there is more than one resource (%s, %s) with the given input string %s representing its name. "+
+				return nil, fmt.Errorf("in %s there is more than one resource (%s, %s) with the given input string %s representing its name. "+
 					"can not determine which resource to analyze. consider using unique names or use input UID instead",
-					nodeSetWithVsi.UID(), nodeSet.UID(), vsi), exitNowErr
+					c.VPC.Name(), nodeSetWithVsi.UID(), nodeSet.UID(), vsi), exitNowErr
 			}
 			nodeSetWithVsi = nodeSet
 		}
@@ -227,15 +227,15 @@ func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *ipblocks.
 		// 3.
 		vpcAP := c.VPC.AddressRange()
 		if !inputIPBlock.ContainedIn(vpcAP) {
-			return nil, false, fmt.Errorf("internal address %s not within the vpc's subnets address range %s",
-				inputIPBlock.ToIPRanges(), vpcAP.ToIPRanges()), internalNotWithinSubnetsAddr
+			return nil, false, fmt.Errorf("internal address %s not within the vpc %s subnets address range %s",
+				c.VPC.Name(), inputIPBlock.ToIPRanges(), vpcAP.ToIPRanges()), internalNotWithinSubnetsAddr
 		}
 		// 4.
 		networkInterfaces := c.getNodesWithinInternalAddress(inputIPBlock)
 		// a given internal address within subnets' addr should have vsi connected to it
 		if len(networkInterfaces) == 0 {
 			return nil, true,
-				fmt.Errorf("no network interfaces are connected to %s", ipOrCidr), exitNowErr
+				fmt.Errorf("no network interfaces are connected to %s in %s", ipOrCidr, c.VPC.Name()), exitNowErr
 		}
 		return networkInterfaces, true, nil, noErr
 	}
