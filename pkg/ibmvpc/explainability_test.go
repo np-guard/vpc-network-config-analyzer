@@ -527,6 +527,6 @@ func TestInputValidity(t *testing.T) {
 	_, err5 := vpcConfig.ExplainConnectivity(existingVsi, nonExistingVsi, nil)
 	fmt.Println(err5.Error())
 	require.NotNil(t, err5, "the test should fail since src non existing vsi")
-	require.Equal(t, "illegal dst: does not represent an internal interface, "+
+	require.Equal(t, "illegal dst: vsi3a does not represent an internal interface, "+
 		"an internal IP with network interface or a valid external IP", err5.Error())
 }
