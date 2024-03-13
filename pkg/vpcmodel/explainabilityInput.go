@@ -57,39 +57,53 @@ const noValidInputMsg = "does not represent an internal interface, an internal I
 // if internalNotWithinSubnet holds for one vpcConfig and there is no match in any of the configs then
 // this error is returned
 
-// todo: insert vpc context into error msgs, update test
-// todo: check error messages. Reactivate error messages tests
-// ToDo: at the moment executing the first match. Add consistency checks and execute on the correct match
-func (c VpcsConfigsMap) getVPCConfigAndSrcDstNodes(src, dst string) (vpcConfig *VPCConfig,
+func (configsMap VpcsConfigsMap) getVPCConfigAndSrcDstNodes(src, dst string) (vpcConfig *VPCConfig,
 	srcNodes, dstNodes []Node, isSrcDstInternalIP int, err error) {
 	var errMsgInternalNotWithinSubnet, errMsgNoValidInput error
-	for i := range c {
-		if c[i].IsMultipleVPCsConfig {
+	type srcAndDstNodes struct {
+		srcNodes           []Node
+		dstNodes           []Node
+		isSrcDstInternalIP int
+	}
+	configsWithSrcDstNode := map[string]srcAndDstNodes{}
+	for i := range configsMap {
+		if configsMap[i].IsMultipleVPCsConfig {
 			return
 		} // todo: tmp until we add support in tgw
 		var errType int
-		srcNodes, dstNodes, isSrcDstInternalIP, errType, err = c[i].srcDstInputToNodes(src, dst)
+		srcNodes, dstNodes, isSrcDstInternalIP, errType, err = configsMap[i].srcDstInputToNodes(src, dst)
 		if err != nil {
 			switch errType {
 			case exitNowErr:
-				return c[i], nil, nil, noInternalIP, err
+				return configsMap[i], nil, nil, noInternalIP, err
 			case internalNotWithinSubnetsAddr:
 				errMsgInternalNotWithinSubnet = err
 			case noValidInputErr:
 				errMsgNoValidInput = err
 			}
 		}
-		if srcNodes != nil && dstNodes != nil { // todo: tmp. needs to add consistency check and choose the correct vpcConfig
-			return c[i], srcNodes, dstNodes, isSrcDstInternalIP, nil
+		if srcNodes != nil && dstNodes != nil {
+			configsWithSrcDstNode[i] = srcAndDstNodes{srcNodes, dstNodes,
+				isSrcDstInternalIP}
 		}
 	}
-	// no match: internalNotWithinSubnetsAddr err has priority over noValidInputErr
-	if errMsgInternalNotWithinSubnet != nil {
-		err = errMsgInternalNotWithinSubnet
-	} else {
-		err = errMsgNoValidInput
+	if len(configsWithSrcDstNode) == 0 {
+		// no match: internalNotWithinSubnetsAddr err has priority over noValidInputErr
+		if errMsgInternalNotWithinSubnet != nil {
+			err = errMsgInternalNotWithinSubnet
+		} else {
+			err = errMsgNoValidInput
+		}
+		return nil, nil, nil, noInternalIP, err
 	}
-	return nil, nil, nil, isSrcDstInternalIP, err
+	// single match: return it
+	if len(configsWithSrcDstNode) == 1 {
+		for i, val := range configsWithSrcDstNode {
+			return configsMap[i], val.srcNodes, val.dstNodes, val.isSrcDstInternalIP, nil
+		}
+	}
+	// todo add consistency checks and execute on the correct match
+	return nil, nil, nil, noInternalIP, err
 }
 
 // GetConnectionSet TODO: handle also input ICMP properties (type, code) as input args
