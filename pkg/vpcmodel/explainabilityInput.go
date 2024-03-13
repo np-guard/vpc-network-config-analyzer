@@ -2,6 +2,7 @@ package vpcmodel
 
 import (
 	"fmt"
+
 	"github.com/np-guard/models/pkg/ipblocks"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
@@ -188,7 +189,7 @@ func (c *VPCConfig) getNodesOfVsi(vsi string) ([]Node, int, error) {
 		// currently assuming c.NodeSets consists of VSIs or VPE
 		if nodeSet.Name() == vsi || nodeSet.UID() == vsi {
 			if nodeSetWithVsi != nil {
-				return nil, exitNowErr, fmt.Errorf("in %s there is more than one resource (%s, %s) with the given input string %s representing its name. "+
+				return nil, exitNowErr, fmt.Errorf("in %s there is more than one resource (%s, %s) with the given input string %s. "+
 					"can not determine which resource to analyze. consider using unique names or use input UID instead",
 					c.VPC.Name(), nodeSetWithVsi.UID(), nodeSet.UID(), vsi)
 			}
@@ -229,11 +230,11 @@ func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *ipblocks.
 	// 2.
 	if isExternal {
 		nodes, errType, err = c.getCidrExternalNodes(inputIPBlock)
-		if err1 != nil { // should never get here. If still gets here - severe error, quit with err msg
-			return nil, false, exitNowErr, err
-		} else {
-			return nodes, false, noErr, nil
+		if err1 != nil { // should never get here.
+			return nil, false, errType, err
 		}
+		return nodes, false, noErr, nil
+
 		// internal address
 	} else if isInternal {
 		// 3.
