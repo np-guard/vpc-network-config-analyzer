@@ -6,9 +6,6 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
-const noValidInputMsg = "does not represent an internal interface, an internal IP with network interface or " +
-	"a valid external IP"
-
 type ExplanationArgs struct {
 	src        string
 	dst        string
@@ -34,6 +31,16 @@ const (
 	noValidInputErr              // string does not represent a valid input w.r.t. this config - wait as above
 )
 
+const (
+	noInternalIP        = iota // nor src neither dst were given as internal IP
+	srcInternalIP              // only src was given as internal ip
+	dstInternalIP              // only dst was given as internal ip
+	srcAndDstInternalIP        // both src and dst given as internal ip
+)
+
+const noValidInputMsg = "does not represent an internal interface, an internal IP with network interface or " +
+	"a valid external IP"
+
 //
 // getVPCConfigAndSrcDstNodes given src, dst names returns the config in which the exaplainability analysis of these
 // should be done and the Nodes for src and dst
@@ -53,18 +60,18 @@ const (
 // todo: check error messages. Reactivate error messages tests
 // ToDo: at the moment executing the first match. Add consistency checks and execute on the correct match
 func (c VpcsConfigsMap) getVPCConfigAndSrcDstNodes(src, dst string) (vpcConfig *VPCConfig,
-	srcNodes, dstNodes []Node, isSrcInternalIP, isDstInternalIP bool, err error) {
+	srcNodes, dstNodes []Node, isSrcDstInternalIP int, err error) {
 	var errMsgInternalNotWithinSubnet, errMsgNoValidInput error
 	for i := range c {
 		if c[i].IsMultipleVPCsConfig {
 			return
 		} // todo: tmp until we add support in tgw
 		var errType int
-		srcNodes, dstNodes, isSrcInternalIP, isDstInternalIP, err, errType = c[i].srcDstInputToNodes(src, dst)
+		srcNodes, dstNodes, isSrcDstInternalIP, err, errType = c[i].srcDstInputToNodes(src, dst)
 		if err != nil {
 			switch errType {
 			case exitNowErr:
-				return c[i], nil, nil, false, false, err
+				return c[i], nil, nil, noInternalIP, err
 			case internalNotWithinSubnetsAddr:
 				errMsgInternalNotWithinSubnet = err
 			case noValidInputErr:
@@ -72,7 +79,7 @@ func (c VpcsConfigsMap) getVPCConfigAndSrcDstNodes(src, dst string) (vpcConfig *
 			}
 		}
 		if srcNodes != nil && dstNodes != nil { // todo: tmp. needs to add consistency check and choose the correct vpcConfig
-			return c[i], srcNodes, dstNodes, isSrcInternalIP, isDstInternalIP, nil
+			return c[i], srcNodes, dstNodes, isSrcDstInternalIP, nil
 		}
 	}
 	// no match: internalNotWithinSubnetsAddr err has priority over noValidInputErr
@@ -81,7 +88,7 @@ func (c VpcsConfigsMap) getVPCConfigAndSrcDstNodes(src, dst string) (vpcConfig *
 	} else {
 		err = errMsgNoValidInput
 	}
-	return nil, nil, nil, false, false, err
+	return nil, nil, nil, isSrcDstInternalIP, err
 }
 
 // GetConnectionSet TODO: handle also input ICMP properties (type, code) as input args
@@ -108,21 +115,32 @@ func (e *ExplanationArgs) GetConnectionSet() *common.ConnectionSet {
 // 2. Internal IP address or cidr; in this case we consider the vsis in that address range
 // 3. external IP address or cidr
 func (c *VPCConfig) srcDstInputToNodes(srcName, dstName string) (srcNodes, dstNodes []Node,
-	isSrcInternalIP, isDstInternalIP bool, err error, errType int) {
+	isSrcDstInternalIP int, err error, errType int) {
+	var isSrcInternalIP, isDstInternalIP bool
 	srcNodes, isSrcInternalIP, err, errType = c.getSrcOrDstInputNode(srcName, "src")
 	if err != nil {
-		return nil, nil, false, false, err, errType
+		return nil, nil, noInternalIP, err, errType
 	}
 	dstNodes, isDstInternalIP, err, errType = c.getSrcOrDstInputNode(dstName, "dst")
 	if err != nil {
-		return nil, nil, false, false, err, errType
+		return nil, nil, noInternalIP, err, errType
 	}
 	// only one of src/dst can be external; there could be multiple nodes only if external
 	if !srcNodes[0].IsInternal() && !dstNodes[0].IsInternal() {
-		return nil, nil, false, false,
+		return nil, nil, noInternalIP,
 			fmt.Errorf("both src %v and dst %v are external", srcName, dstName), exitNowErr
 	}
-	return srcNodes, dstNodes, isSrcInternalIP, isDstInternalIP, nil, noErr
+	switch {
+	case isSrcInternalIP && isDstInternalIP:
+		isSrcDstInternalIP = srcAndDstInternalIP
+	case isSrcInternalIP:
+		isSrcDstInternalIP = srcInternalIP
+	case isDstInternalIP:
+		isSrcDstInternalIP = dstInternalIP
+	default:
+		isSrcDstInternalIP = noInternalIP
+	}
+	return srcNodes, dstNodes, isSrcDstInternalIP, nil, noErr
 }
 
 func (c *VPCConfig) getSrcOrDstInputNode(name, srcOrDst string) (nodes []Node,
