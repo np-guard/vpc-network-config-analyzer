@@ -44,9 +44,10 @@ type ExternalNetwork struct {
 	ipblock          *ipblocks.IPBlock
 }
 
-func (exn *ExternalNetwork) UID() string      { return exn.Name() }
-func (exn *ExternalNetwork) ZoneName() string { return "" }
-func (exn *ExternalNetwork) IsExternal() bool { return true }
+func (exn *ExternalNetwork) UID() string        { return exn.Name() }
+func (exn *ExternalNetwork) ZoneName() string   { return "" }
+func (exn *ExternalNetwork) RegionName() string { return "" }
+func (exn *ExternalNetwork) IsExternal() bool   { return true }
 
 func (exn *ExternalNetwork) CidrOrAddress() string {
 	return exn.CidrStr

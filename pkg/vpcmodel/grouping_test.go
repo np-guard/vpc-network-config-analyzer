@@ -60,6 +60,9 @@ func (m *mockNetIntf) Name() string {
 func (m *mockNetIntf) ZoneName() string {
 	return ""
 }
+func (m *mockNetIntf) RegionName() string {
+	return ""
+}
 func (m *mockNetIntf) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
 	return nil
 }
@@ -104,6 +107,9 @@ func (m *mockSubnet) Kind() string {
 	return "Subnet"
 }
 func (m *mockSubnet) ZoneName() string {
+	return ""
+}
+func (m *mockSubnet) RegionName() string {
 	return ""
 }
 func (m *mockSubnet) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
