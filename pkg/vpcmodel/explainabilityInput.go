@@ -227,8 +227,8 @@ func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *ipblocks.
 		// 3.
 		vpcAP := c.VPC.AddressRange()
 		if !inputIPBlock.ContainedIn(vpcAP) {
-			return nil, false, fmt.Errorf("internal address %s not within the vpc %s subnets address range %s",
-				c.VPC.Name(), inputIPBlock.ToIPRanges(), vpcAP.ToIPRanges()), internalNotWithinSubnetsAddr
+			return nil, false, fmt.Errorf("internal address %s not within the vpc %s subnets' address range %s",
+				inputIPBlock.ToIPRanges(), c.VPC.Name(), vpcAP.ToIPRanges()), internalNotWithinSubnetsAddr
 		}
 		// 4.
 		networkInterfaces := c.getNodesWithinInternalAddress(inputIPBlock)
