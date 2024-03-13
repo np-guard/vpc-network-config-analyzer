@@ -522,6 +522,12 @@ var tests2 = []*vpcGeneralTest{
 		format:      vpcmodel.Text,
 		regions:     []string{"us-east"},
 	},
+	{
+		inputConfig: "load_balancer",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.DRAWIO,
+	},
 }
 
 var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
