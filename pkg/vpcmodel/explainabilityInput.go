@@ -61,16 +61,16 @@ func (configsMap VpcsConfigsMap) getVPCConfigAndSrcDstNodes(src, dst string) (vp
 		isSrcDstInternalIP int
 	}
 	configsWithSrcDstNode := map[string]srcAndDstNodes{}
-	for i := range configsMap {
-		if configsMap[i].IsMultipleVPCsConfig {
+	for cfgName := range configsMap {
+		if configsMap[cfgName].IsMultipleVPCsConfig {
 			continue // todo: tmp until we add support in tgw
 		}
 		var errType int
-		srcNodes, dstNodes, isSrcDstInternalIP, errType, err = configsMap[i].srcDstInputToNodes(src, dst)
+		srcNodes, dstNodes, isSrcDstInternalIP, errType, err = configsMap[cfgName].srcDstInputToNodes(src, dst)
 		if err != nil {
 			switch errType {
 			case exitNowErr:
-				return configsMap[i], nil, nil, noInternalIP, err
+				return configsMap[cfgName], nil, nil, noInternalIP, err
 			case internalNotWithinSubnetsAddr:
 				errMsgInternalNotWithinSubnet = err
 			case noValidInputErr:
@@ -78,14 +78,14 @@ func (configsMap VpcsConfigsMap) getVPCConfigAndSrcDstNodes(src, dst string) (vp
 			}
 		}
 		if srcNodes != nil && dstNodes != nil {
-			configsWithSrcDstNode[i] = srcAndDstNodes{srcNodes, dstNodes,
+			configsWithSrcDstNode[cfgName] = srcAndDstNodes{srcNodes, dstNodes,
 				isSrcDstInternalIP}
 		}
 	}
 	// single match: return it
 	if len(configsWithSrcDstNode) == 1 {
-		for i, val := range configsWithSrcDstNode {
-			return configsMap[i], val.srcNodes, val.dstNodes, val.isSrcDstInternalIP, nil
+		for cfgName, val := range configsWithSrcDstNode {
+			return configsMap[cfgName], val.srcNodes, val.dstNodes, val.isSrcDstInternalIP, nil
 		}
 	}
 	if len(configsWithSrcDstNode) == 0 {
@@ -98,8 +98,8 @@ func (configsMap VpcsConfigsMap) getVPCConfigAndSrcDstNodes(src, dst string) (vp
 	// len(configsWithSrcDstNode) > 1: src and dst found in more than one VPC configs - error
 	matchConfigs := make([]string, len(configsWithSrcDstNode))
 	i := 0
-	for configName := range configsWithSrcDstNode {
-		matchConfigs[i] = configName
+	for cfgName := range configsWithSrcDstNode {
+		matchConfigs[i] = cfgName
 		i++
 	}
 	return nil, nil, nil, noInternalIP,

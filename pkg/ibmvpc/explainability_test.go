@@ -405,6 +405,31 @@ var explainTests = []*vpcGeneralTest{
 		EDst:        "vsi1-ky",
 		format:      vpcmodel.Debug,
 	},
+	// the following three tests are within a single VPC in a multiVPC context
+	// 2 vsi connection
+	{
+		name:        "multiVPCVsiToVsi",
+		inputConfig: "tgw_larger_example",
+		ESrc:        "vsi31-ky",
+		EDst:        "vsi32-ky",
+		format:      vpcmodel.Debug,
+	},
+	// vsi to external connection
+	{
+		name:        "multiVPCVsiToExternal",
+		inputConfig: "tgw_larger_example",
+		ESrc:        "vsi1-ky",
+		EDst:        "172.217.22.46/32",
+		format:      vpcmodel.Debug,
+	},
+	// vsi to external missing router
+	{
+		name:        "multiVPCVsiToExternalMissingRouter",
+		inputConfig: "tgw_larger_example",
+		ESrc:        "vsi11-ky",
+		EDst:        "172.217.22.46/32",
+		format:      vpcmodel.Debug,
+	},
 }
 
 func TestAll(t *testing.T) {
