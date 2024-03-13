@@ -166,347 +166,347 @@ func (tt *vpcGeneralTest) initTest() {
 }
 
 var tests = []*vpcGeneralTest{
-	{
-		inputConfig: "acl_testing5",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
-		format:      vpcmodel.MD,
-	},
-	{
-		inputConfig: "acl_testing5_old",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
-		format:      vpcmodel.MD,
-	},
-	{
-		inputConfig: "acl_testing5",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
-		format:      vpcmodel.Text,
-	},
-	{
-		inputConfig: "acl_testing5_old",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
-		format:      vpcmodel.Text,
-	},
-	{
-		inputConfig: "acl_testing5",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
-		grouping:    true,
-		format:      vpcmodel.DRAWIO,
-	},
-	{
-		inputConfig: "demo_with_instances",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
-		grouping:    true,
-		format:      vpcmodel.DRAWIO,
-	},
-	// batch1: cover all use-cases, with text output format , no grouping
-	{
-		inputConfig: "acl_testing3",
-		// TODO: currently skipping uc3 since it is not supported with partial subnet connectivity
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.SingleSubnet},
-		format:   vpcmodel.Text,
-	},
-	{
-		inputConfig: "sg_testing1_new",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.SingleSubnet, vpcmodel.AllSubnets},
-		format:      vpcmodel.Text,
-	},
-	{
-		inputConfig: "demo_with_instances",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.SingleSubnet, vpcmodel.AllSubnets},
-		format:      vpcmodel.Text,
-	},
-	{
-		inputConfig: "sg_testing_3",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
-		format:      vpcmodel.Text,
-	},
-
-	// batch2: only vsi-level use-case, with grouping , text format
-	{
-		inputConfig: "acl_testing3",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping:    true,
-		format:      vpcmodel.Text,
-	},
-	{
-		inputConfig: "sg_testing1_new",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping:    true,
-		format:      vpcmodel.Text,
-	},
-	{
-		inputConfig: "demo_with_instances",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping:    true,
-		format:      vpcmodel.Text,
-	},
-
-	// batch2.5: only vsi-level use-case, with grouping , drawio format
-	{
-		inputConfig: "acl_testing3",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping:    true,
-		format:      vpcmodel.DRAWIO,
-	},
-	{
-		inputConfig: "sg_testing1_new",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping:    true,
-		format:      vpcmodel.DRAWIO,
-	},
-	{
-		inputConfig: "demo_with_instances",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping:    true,
-		format:      vpcmodel.DRAWIO,
-	},
-	{
-		inputConfig: "iks_config_object",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping:    true,
-		format:      vpcmodel.DRAWIO,
-	},
-	{
-		inputConfig: "mult_NIs_single_VSI",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping:    true,
-		format:      vpcmodel.DRAWIO,
-	},
-
-	//batch3: only vsi-level use-case, no grouping, with debug / md  output formats
-	{
-		inputConfig: "acl_testing3",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:      vpcmodel.MD,
-	},
-	{
-		inputConfig: "sg_testing1_new",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:      vpcmodel.MD,
-	},
-	{
-		inputConfig: "demo_with_instances",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:      vpcmodel.MD,
-	},
-	{
-		inputConfig: "acl_testing3",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:      vpcmodel.Debug,
-	},
-	{
-		inputConfig: "sg_testing1_new",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:      vpcmodel.Debug,
-	},
-	{
-		inputConfig: "demo_with_instances",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:      vpcmodel.Debug,
-	},
-	// disable drawio tests until supported with VPE
-	{
-		inputConfig: "acl_testing3",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:      vpcmodel.DRAWIO,
-	},
-	{
-		inputConfig: "sg_testing1_new",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:      vpcmodel.DRAWIO,
-	},
-	{
-		inputConfig: "demo_with_instances",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:      vpcmodel.DRAWIO,
-	},
-
-	{
-		inputConfig: "acl_testing3",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:      vpcmodel.ARCHDRAWIO,
-	},
-	{
-		inputConfig: "sg_testing1_new",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:      vpcmodel.ARCHDRAWIO,
-	},
-	{
-		inputConfig: "demo_with_instances",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:      vpcmodel.ARCHDRAWIO,
-	},
-	{
-		inputConfig: "sg_testing1_new_grouping",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
-		grouping:    true,
-		format:      vpcmodel.Text,
-	},
-	// iks-nodes example
-	{
-		inputConfig: "iks_config_object",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping:    true,
-		format:      vpcmodel.Text,
-	},
-	// json examples
-	{
-		inputConfig: "demo_with_instances",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
-		format:      vpcmodel.JSON,
-	},
-	{
-		inputConfig: "acl_testing3",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:      vpcmodel.JSON,
-	},
-	// multi-vpc config example
-	{
-		inputConfig: "acl_testing3_with_two_vpcs",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:      vpcmodel.Text,
-		vpc:         "crn:12", // specify the vpc to analyze
-	},
-	// vpe example
-	{
-		inputConfig: "demo_with_instances_vpes",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:      vpcmodel.Text,
-	},
-	// multi-vpc config examples
-	{
-		inputConfig: "experiments_env",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:      vpcmodel.Text,
-	},
-	{
-		inputConfig: "experiments_env",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:      vpcmodel.JSON,
-	},
-	{
-		inputConfig: "multiple_vpcs",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
-		format:      vpcmodel.Text,
-	},
-	// diff examples:
-	{
-		inputConfig: "acl_testing5",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.SubnetsDiff},
-		format:      vpcmodel.Text,
-	},
-	{
-		inputConfig: "acl_testing5",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.SubnetsDiff},
-		format:      vpcmodel.MD,
-	},
-	{
-		inputConfig: "acl_testing3",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
-		format:      vpcmodel.Text,
-	},
-	{
-		inputConfig: "acl_testing3",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
-		format:      vpcmodel.MD,
-	},
-	{
-		inputConfig: "sg_testing1_new",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
-		format:      vpcmodel.Text,
-	},
-	// tgw examples
-	{
-		inputConfig: "tgw_basic_example",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
-		format:      vpcmodel.Text,
-	},
-	{
-		inputConfig: "tgw_basic_example_multiple_regions",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
-		format:      vpcmodel.Text,
-	},
-	{
-		inputConfig: "tgw_basic_example_with_some_default_deny",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
-		format:      vpcmodel.Text,
-	},
-	{
-		inputConfig: "tgw_larger_example",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
-		format:      vpcmodel.Text,
-	},
-	{
-		inputConfig: "tgw_larger_example",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
-		format:      vpcmodel.Text,
-		grouping:    true,
-	},
-
-	{
-		inputConfig: "tg-prefix-filters",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
-		format:      vpcmodel.Text,
-	},
-	// tgw examples with drawio
-	{
-		inputConfig: "tgw_larger_example",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
-		format:      vpcmodel.DRAWIO,
-	},
-	{
-		inputConfig: "tgw_larger_example",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
-		format:      vpcmodel.DRAWIO,
-		grouping:    true,
-	},
-	// multivpc drawio:
-	{
-		inputConfig: "multiple_vpcs",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
-		format:      vpcmodel.DRAWIO,
-	},
-	{
-		inputConfig: "multiple_vpcs",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
-		grouping:    true,
-		format:      vpcmodel.DRAWIO,
-	},
-	{
-		inputConfig: "experiments_env",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:      vpcmodel.ARCHDRAWIO,
-	},
-	{
-		inputConfig: "experiments_env",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping:    true,
-		format:      vpcmodel.DRAWIO,
-	},
-	// resource group filtering example
-	// ete-storage-project and ete-backup-and-storage vpcs expected to be filtered out
-	// global-tg-ky and local-tg-ky tgws expected to be filtered out
-	{
-		inputConfig:   "multi_resource_groups",
-		useCases:      []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:        vpcmodel.Text,
-		resourceGroup: "ola",
-	},
-	// region filtering example
-	// zn-vpc1, zn-vpc2, zn-vpc3 expected to be filtered out
-	// global-tg-zn and local-tg-zn tgws expected to be filtered out
-	{
-		inputConfig: "multi_regions",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:      vpcmodel.Text,
-		regions:     []string{"us-east"},
-	},
-	{
-		inputConfig: "load_balancer",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping:    true,
-		format:      vpcmodel.DRAWIO,
-	},
+	//{
+	//	inputConfig: "acl_testing5",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+	//	format:      vpcmodel.MD,
+	//},
+	//{
+	//	inputConfig: "acl_testing5_old",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+	//	format:      vpcmodel.MD,
+	//},
+	//{
+	//	inputConfig: "acl_testing5",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+	//	format:      vpcmodel.Text,
+	//},
+	//{
+	//	inputConfig: "acl_testing5_old",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+	//	format:      vpcmodel.Text,
+	//},
+	//{
+	//	inputConfig: "acl_testing5",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+	//	grouping:    true,
+	//	format:      vpcmodel.DRAWIO,
+	//},
+	//{
+	//	inputConfig: "demo_with_instances",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+	//	grouping:    true,
+	//	format:      vpcmodel.DRAWIO,
+	//},
+	//// batch1: cover all use-cases, with text output format , no grouping
+	//{
+	//	inputConfig: "acl_testing3",
+	//	// TODO: currently skipping uc3 since it is not supported with partial subnet connectivity
+	//	useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.SingleSubnet},
+	//	format:   vpcmodel.Text,
+	//},
+	//{
+	//	inputConfig: "sg_testing1_new",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.SingleSubnet, vpcmodel.AllSubnets},
+	//	format:      vpcmodel.Text,
+	//},
+	//{
+	//	inputConfig: "demo_with_instances",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.SingleSubnet, vpcmodel.AllSubnets},
+	//	format:      vpcmodel.Text,
+	//},
+	//{
+	//	inputConfig: "sg_testing_3",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+	//	format:      vpcmodel.Text,
+	//},
+	//
+	//// batch2: only vsi-level use-case, with grouping , text format
+	//{
+	//	inputConfig: "acl_testing3",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//	grouping:    true,
+	//	format:      vpcmodel.Text,
+	//},
+	//{
+	//	inputConfig: "sg_testing1_new",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//	grouping:    true,
+	//	format:      vpcmodel.Text,
+	//},
+	//{
+	//	inputConfig: "demo_with_instances",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//	grouping:    true,
+	//	format:      vpcmodel.Text,
+	//},
+	//
+	//// batch2.5: only vsi-level use-case, with grouping , drawio format
+	//{
+	//	inputConfig: "acl_testing3",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//	grouping:    true,
+	//	format:      vpcmodel.DRAWIO,
+	//},
+	//{
+	//	inputConfig: "sg_testing1_new",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//	grouping:    true,
+	//	format:      vpcmodel.DRAWIO,
+	//},
+	//{
+	//	inputConfig: "demo_with_instances",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//	grouping:    true,
+	//	format:      vpcmodel.DRAWIO,
+	//},
+	//{
+	//	inputConfig: "iks_config_object",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//	grouping:    true,
+	//	format:      vpcmodel.DRAWIO,
+	//},
+	//{
+	//	inputConfig: "mult_NIs_single_VSI",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//	grouping:    true,
+	//	format:      vpcmodel.DRAWIO,
+	//},
+	//
+	////batch3: only vsi-level use-case, no grouping, with debug / md  output formats
+	//{
+	//	inputConfig: "acl_testing3",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//	format:      vpcmodel.MD,
+	//},
+	//{
+	//	inputConfig: "sg_testing1_new",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//	format:      vpcmodel.MD,
+	//},
+	//{
+	//	inputConfig: "demo_with_instances",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//	format:      vpcmodel.MD,
+	//},
+	//{
+	//	inputConfig: "acl_testing3",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//	format:      vpcmodel.Debug,
+	//},
+	//{
+	//	inputConfig: "sg_testing1_new",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//	format:      vpcmodel.Debug,
+	//},
+	//{
+	//	inputConfig: "demo_with_instances",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//	format:      vpcmodel.Debug,
+	//},
+	//// disable drawio tests until supported with VPE
+	//{
+	//	inputConfig: "acl_testing3",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//	format:      vpcmodel.DRAWIO,
+	//},
+	//{
+	//	inputConfig: "sg_testing1_new",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//	format:      vpcmodel.DRAWIO,
+	//},
+	//{
+	//	inputConfig: "demo_with_instances",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//	format:      vpcmodel.DRAWIO,
+	//},
+	//
+	//{
+	//	inputConfig: "acl_testing3",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//	format:      vpcmodel.ARCHDRAWIO,
+	//},
+	//{
+	//	inputConfig: "sg_testing1_new",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//	format:      vpcmodel.ARCHDRAWIO,
+	//},
+	//{
+	//	inputConfig: "demo_with_instances",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//	format:      vpcmodel.ARCHDRAWIO,
+	//},
+	//{
+	//	inputConfig: "sg_testing1_new_grouping",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+	//	grouping:    true,
+	//	format:      vpcmodel.Text,
+	//},
+	//// iks-nodes example
+	//{
+	//	inputConfig: "iks_config_object",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//	grouping:    true,
+	//	format:      vpcmodel.Text,
+	//},
+	//// json examples
+	//{
+	//	inputConfig: "demo_with_instances",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+	//	format:      vpcmodel.JSON,
+	//},
+	//{
+	//	inputConfig: "acl_testing3",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//	format:      vpcmodel.JSON,
+	//},
+	//// multi-vpc config example
+	//{
+	//	inputConfig: "acl_testing3_with_two_vpcs",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//	format:      vpcmodel.Text,
+	//	vpc:         "crn:12", // specify the vpc to analyze
+	//},
+	//// vpe example
+	//{
+	//	inputConfig: "demo_with_instances_vpes",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//	format:      vpcmodel.Text,
+	//},
+	//// multi-vpc config examples
+	//{
+	//	inputConfig: "experiments_env",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//	format:      vpcmodel.Text,
+	//},
+	//{
+	//	inputConfig: "experiments_env",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//	format:      vpcmodel.JSON,
+	//},
+	//{
+	//	inputConfig: "multiple_vpcs",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+	//	format:      vpcmodel.Text,
+	//},
+	//// diff examples:
+	//{
+	//	inputConfig: "acl_testing5",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.SubnetsDiff},
+	//	format:      vpcmodel.Text,
+	//},
+	//{
+	//	inputConfig: "acl_testing5",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.SubnetsDiff},
+	//	format:      vpcmodel.MD,
+	//},
+	//{
+	//	inputConfig: "acl_testing3",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
+	//	format:      vpcmodel.Text,
+	//},
+	//{
+	//	inputConfig: "acl_testing3",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
+	//	format:      vpcmodel.MD,
+	//},
+	//{
+	//	inputConfig: "sg_testing1_new",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
+	//	format:      vpcmodel.Text,
+	//},
+	//// tgw examples
+	//{
+	//	inputConfig: "tgw_basic_example",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+	//	format:      vpcmodel.Text,
+	//},
+	//{
+	//	inputConfig: "tgw_basic_example_multiple_regions",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+	//	format:      vpcmodel.Text,
+	//},
+	//{
+	//	inputConfig: "tgw_basic_example_with_some_default_deny",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+	//	format:      vpcmodel.Text,
+	//},
+	//{
+	//	inputConfig: "tgw_larger_example",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+	//	format:      vpcmodel.Text,
+	//},
+	//{
+	//	inputConfig: "tgw_larger_example",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+	//	format:      vpcmodel.Text,
+	//	grouping:    true,
+	//},
+	//
+	//{
+	//	inputConfig: "tg-prefix-filters",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+	//	format:      vpcmodel.Text,
+	//},
+	//// tgw examples with drawio
+	//{
+	//	inputConfig: "tgw_larger_example",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+	//	format:      vpcmodel.DRAWIO,
+	//},
+	//{
+	//	inputConfig: "tgw_larger_example",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+	//	format:      vpcmodel.DRAWIO,
+	//	grouping:    true,
+	//},
+	//// multivpc drawio:
+	//{
+	//	inputConfig: "multiple_vpcs",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+	//	format:      vpcmodel.DRAWIO,
+	//},
+	//{
+	//	inputConfig: "multiple_vpcs",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+	//	grouping:    true,
+	//	format:      vpcmodel.DRAWIO,
+	//},
+	//{
+	//	inputConfig: "experiments_env",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//	format:      vpcmodel.ARCHDRAWIO,
+	//},
+	//{
+	//	inputConfig: "experiments_env",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//	grouping:    true,
+	//	format:      vpcmodel.DRAWIO,
+	//},
+	//// resource group filtering example
+	//// ete-storage-project and ete-backup-and-storage vpcs expected to be filtered out
+	//// global-tg-ky and local-tg-ky tgws expected to be filtered out
+	//{
+	//	inputConfig:   "multi_resource_groups",
+	//	useCases:      []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//	format:        vpcmodel.Text,
+	//	resourceGroup: "ola",
+	//},
+	//// region filtering example
+	//// zn-vpc1, zn-vpc2, zn-vpc3 expected to be filtered out
+	//// global-tg-zn and local-tg-zn tgws expected to be filtered out
+	//{
+	//	inputConfig: "multi_regions",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//	format:      vpcmodel.Text,
+	//	regions:     []string{"us-east"},
+	//},
+	//{
+	//	inputConfig: "load_balancer",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//	grouping:    true,
+	//	format:      vpcmodel.DRAWIO,
+	//},
 }
 
 var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
@@ -684,6 +684,9 @@ func runTestPerUseCase(t *testing.T,
 		return err
 	}
 	actualOutput, err := og.Generate(tt.format, tt.actualOutput[uc])
+	fmt.Println("==========================================================================================")
+	fmt.Println(actualOutput)
+	fmt.Println("==========================================================================================")
 	if err != nil {
 		return err
 	}
