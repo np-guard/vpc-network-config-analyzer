@@ -401,6 +401,7 @@ var explainTests = []*vpcGeneralTest{
 		format:      vpcmodel.Debug,
 	},
 	// two SGs attached to one VSI
+	// todo: tmp commentout
 	{
 		name:        "VsiWithTwoSgs",
 		inputConfig: "sg_testing1_new_2SGs",
