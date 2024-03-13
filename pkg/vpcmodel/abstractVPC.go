@@ -166,11 +166,9 @@ type Subnet interface {
 	NodeSet
 	CIDR() string
 }
-type LoadBalancer interface{
-	NodeSet
-	Servers() []Node
 
-}
+// todo: elaborate - get list of servers, expandability,...
+type LoadBalancer NodeSet
 
 // RulesType Type of rules in a given filter (e.g. specific NACL table) relevant to
 // path between src to destination

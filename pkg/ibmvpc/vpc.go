@@ -203,10 +203,6 @@ type LoadBalancer struct {
 func (lb *LoadBalancer) Nodes() []vpcmodel.Node {
 	return lb.nodes
 }
-func (lb *LoadBalancer) Servers() []vpcmodel.Node {
-	return lb.nodes
-}
-
 func (lb *LoadBalancer) AddressRange() *ipblocks.IPBlock {
 	return nodesAddressRange(lb.nodes)
 }
