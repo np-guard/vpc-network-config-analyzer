@@ -18,8 +18,8 @@ func (v *Vpe) ShowOnSubnetMode() bool                  { return false }
 func (pgw *PublicGateway) ShowOnSubnetMode() bool      { return true }
 func (fip *FloatingIP) ShowOnSubnetMode() bool         { return false }
 func (tgw *TransitGateway) ShowOnSubnetMode() bool     { return true }
-func (lb *LoadBalancer) ShowOnSubnetMode() bool        { return true }
-func (pip *PrivateIP) ShowOnSubnetMode() bool          { return true }
+func (lb *LoadBalancer) ShowOnSubnetMode() bool        { return false }
+func (pip *PrivateIP) ShowOnSubnetMode() bool          { return false }
 
 // implementations of the GenerateDrawioTreeNode() for resource defined in ibmvpc:
 func (v *VPC) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {

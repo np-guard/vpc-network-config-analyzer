@@ -211,7 +211,7 @@ func (lb *LoadBalancer) AddressRange() *ipblocks.IPBlock {
 	return nodesAddressRange(lb.nodes)
 }
 
-// vpe is per vpc and not per zone...
+// lb is per vpc and not per zone...
 func (lb *LoadBalancer) Zone() (*Zone, error) {
 	return nil, nil
 }

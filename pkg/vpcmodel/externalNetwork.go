@@ -99,7 +99,7 @@ func getPublicInternetIPblocksList() (internetIPblocksList []*ipblocks.IPBlock, 
 	return ipStringsToIPblocks(publicInternetAddressList)
 }
 
-func NewExternalNode(isPublicInternet bool, ipb *ipblocks.IPBlock) (Node, error) {
+func newExternalNode(isPublicInternet bool, ipb *ipblocks.IPBlock) (Node, error) {
 	cidrsList := ipb.ToCidrList()
 	if len(cidrsList) > 1 {
 		return nil, errors.New("newExternalNode: input ip-block should be of a single CIDR")
@@ -147,7 +147,7 @@ func GetExternalNetworkNodes(disjointRefExternalIPBlocks []*ipblocks.IPBlock) ([
 			if err != nil {
 				return nil, err
 			}
-			newNode, err := NewExternalNode(isPublicInternet, nodeIPBlock)
+			newNode, err := newExternalNode(isPublicInternet, nodeIPBlock)
 			if err != nil {
 				return nil, err
 			}

@@ -195,7 +195,7 @@ func (c *VPCConfig) getCidrExternalNodes(inputIPBlock *ipblocks.IPBlock) (cidrNo
 	cidrNodes = []Node{}
 	for _, block := range disjointBlocks {
 		if block.ContainedIn(inputIPBlock) {
-			node, err1 := NewExternalNode(true, block)
+			node, err1 := newExternalNode(true, block)
 			if err1 != nil {
 				return nil, err1
 			}

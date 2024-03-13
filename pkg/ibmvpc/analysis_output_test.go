@@ -568,7 +568,7 @@ func TestAllWithComparison(t *testing.T) {
 		}
 		tt.name = tt.inputConfig
 		t.Run(tt.name, func(t *testing.T) {
-			// t.Parallel()
+			t.Parallel()
 			tt.runTest(t)
 		})
 	}
