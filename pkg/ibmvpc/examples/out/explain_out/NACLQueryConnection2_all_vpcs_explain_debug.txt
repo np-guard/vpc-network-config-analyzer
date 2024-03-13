@@ -4,6 +4,8 @@ Connectivity explanation for protocol: TCP between vsi1-ky and 161.26.0.0/16 wit
 There is no connection "protocol: TCP" between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16; connection blocked by egress
 External traffic via PublicGateway: public-gw-ky
 Egress: security group sg1-ky allows connection; network ACL acl1-ky blocks connection
+Path:
+	vsi1-ky[10.240.10.4] -> security group sg1-ky -> subnet1-ky -> |
 
 Details:
 ~~~~~~~~

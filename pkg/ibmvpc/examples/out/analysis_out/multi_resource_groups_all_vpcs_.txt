@@ -1,0 +1,24 @@
+Connectivity between VPCs connected by TGW global-tg-zn (UID: crn:595)
+<nothing to report>
+
+Connectivity between VPCs connected by TGW local-tg-zn (UID: crn:599)
+<nothing to report>
+
+Endpoint connectivity for VPC ky-vpc1
+Public Internet (all ranges) => ky-vpc1-vsi[10.240.0.4] : All Connections
+ky-vpc1-vsi[10.240.0.4] => Public Internet (all ranges) : All Connections
+
+Endpoint connectivity for VPC ky-vpc2
+<nothing to report>
+
+Endpoint connectivity for VPC ky-vpc3
+<nothing to report>
+
+Endpoint connectivity for VPC zn-vpc1
+<nothing to report>
+
+Endpoint connectivity for VPC zn-vpc2
+<nothing to report>
+
+Endpoint connectivity for VPC zn-vpc3
+<nothing to report>
