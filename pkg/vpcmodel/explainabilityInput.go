@@ -61,16 +61,16 @@ func (configsMap VpcsConfigsMap) getVPCConfigAndSrcDstNodes(src, dst string) (vp
 		isSrcDstInternalIP int
 	}
 	configsWithSrcDstNode := map[string]srcAndDstNodes{}
-	for cfgName := range configsMap {
-		if configsMap[cfgName].IsMultipleVPCsConfig {
+	for cfgId := range configsMap {
+		if configsMap[cfgId].IsMultipleVPCsConfig {
 			continue // todo: tmp until we add support in tgw
 		}
 		var errType int
-		srcNodes, dstNodes, isSrcDstInternalIP, errType, err = configsMap[cfgName].srcDstInputToNodes(src, dst)
+		srcNodes, dstNodes, isSrcDstInternalIP, errType, err = configsMap[cfgId].srcDstInputToNodes(src, dst)
 		if err != nil {
 			switch errType {
 			case exitNowErr:
-				return configsMap[cfgName], nil, nil, noInternalIP, err
+				return configsMap[cfgId], nil, nil, noInternalIP, err
 			case internalNotWithinSubnetsAddr:
 				errMsgInternalNotWithinSubnet = err
 			case noValidInputErr:
@@ -78,14 +78,14 @@ func (configsMap VpcsConfigsMap) getVPCConfigAndSrcDstNodes(src, dst string) (vp
 			}
 		}
 		if srcNodes != nil && dstNodes != nil {
-			configsWithSrcDstNode[cfgName] = srcAndDstNodes{srcNodes, dstNodes,
+			configsWithSrcDstNode[cfgId] = srcAndDstNodes{srcNodes, dstNodes,
 				isSrcDstInternalIP}
 		}
 	}
 	// single match: return it
 	if len(configsWithSrcDstNode) == 1 {
-		for cfgName, val := range configsWithSrcDstNode {
-			return configsMap[cfgName], val.srcNodes, val.dstNodes, val.isSrcDstInternalIP, nil
+		for cfgId, val := range configsWithSrcDstNode {
+			return configsMap[cfgId], val.srcNodes, val.dstNodes, val.isSrcDstInternalIP, nil
 		}
 	}
 	if len(configsWithSrcDstNode) == 0 {
@@ -98,8 +98,8 @@ func (configsMap VpcsConfigsMap) getVPCConfigAndSrcDstNodes(src, dst string) (vp
 	// len(configsWithSrcDstNode) > 1: src and dst found in more than one VPC configs - error
 	matchConfigs := make([]string, len(configsWithSrcDstNode))
 	i := 0
-	for cfgName := range configsWithSrcDstNode {
-		matchConfigs[i] = cfgName
+	for cfgId := range configsWithSrcDstNode {
+		matchConfigs[i] = configsMap[cfgId].VPC.Name()
 		i++
 	}
 	return nil, nil, nil, noInternalIP,
