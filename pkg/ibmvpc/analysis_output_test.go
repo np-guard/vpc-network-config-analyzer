@@ -175,7 +175,7 @@ var tests = []*vpcGeneralTest{
 	{
 		inputConfig: "load_balancer",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping:    true,
+		grouping:    false,
 		format:      vpcmodel.DRAWIO,
 	},
 	// {

@@ -59,6 +59,15 @@ func (s GenericSet[T]) IsIntersect(s2 GenericSet[T]) bool {
 	return false
 }
 
+func (s GenericSet[T]) IsSubset(s2 GenericSet[T]) bool {
+	for i := range s2 {
+		if !(s)[i] {
+			return false
+		}
+	}
+	return true
+}
+
 // /////////////////////////////////////////////////////////////////
 // AnyMapEntry() return an arbitrary (not random) entry of a map.
 // Needed for cases we do not care which entry.

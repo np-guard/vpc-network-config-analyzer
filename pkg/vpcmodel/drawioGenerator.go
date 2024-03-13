@@ -214,9 +214,8 @@ func (d *DrawioOutputFormatter) lookForCliques() {
 			if reflect.TypeOf((dsts)[0]).Elem() == reflect.TypeOf(groupedEndpointsElems{}) {
 				dsts = []EndpointElem(*(dsts)[0].(*groupedEndpointsElems))
 			}
-			lk := common.FromList[EndpointElem](append(dsts, srcs...)).AsKey()
-			for ck, _ := range d.cliques {
-				if lk == ck {
+			for cl, _ := range d.cliques {
+				if common.FromList[EndpointElem](groups[cl]).IsSubset(common.FromList[EndpointElem](append(dsts, srcs...)) ){
 					d.edgeToIgnore = append(d.edgeToIgnore, line)
 				}
 			}
