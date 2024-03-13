@@ -190,7 +190,7 @@ func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node, in
 	if err2 != nil {
 		// the input is not a legal cidr or IP address, which in this stage means it is not a
 		// valid presentation for src/dst. Lint demands that an error is returned here
-		return nil, false, noValidInputErr, fmt.Errorf(noValidInputMsg)
+		return nil, false, noValidInputErr, fmt.Errorf(fmt.Sprintf("%s %s", cidrOrName, noValidInputMsg))
 	}
 	// the input is a legal cidr or IP address
 	return c.getNodesFromAddress(cidrOrName, ipBlock)
