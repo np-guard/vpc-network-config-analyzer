@@ -1098,16 +1098,46 @@ func getVPCObjectByUID(res map[string]*vpcmodel.VPCConfig, uid string) (*VPC, er
 	return vpc, nil
 }
 
-func getLoadBalancerVpcUID(rc *datamodel.ResourcesContainerModel, loadBalancerObj *datamodel.LoadBalancer) (string, error) {
-	// somehow the load balancer does not have info on the vpc,
-	// getting the vpc from one of the subnets:
-	aSubnetUID := *loadBalancerObj.Subnets[0].CRN
-	for _, subnet := range rc.SubnetList {
-		if aSubnetUID == *subnet.CRN {
-			return *subnet.VPC.CRN, nil
+// ////////////////////////////////////////////////////////////////
+// Load Balancer Parsing:
+func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
+	res map[string]*vpcmodel.VPCConfig,
+	skipByVPC map[string]bool,
+) (err error) {
+	for _, loadBalancerObj := range rc.LBList {
+		if !checkLoadBalancerValidity(loadBalancerObj) {
+			continue
 		}
+		vpcUID, err := getLoadBalancerVpcUID(rc, loadBalancerObj)
+		if err != nil {
+			return err
+		}
+		if skipByVPC[vpcUID] {
+			continue
+		}
+		vpc, err := getVPCObjectByUID(res, vpcUID)
+		if err != nil {
+			return err
+		}
+		loadBalancer := &LoadBalancer{
+			VPCResource: vpcmodel.VPCResource{
+				ResourceName: *loadBalancerObj.Name,
+				ResourceUID:  *loadBalancerObj.CRN,
+				ResourceType: ResourceTypeLoadBalancer,
+				VPCRef:       vpc,
+			},
+		}
+
+		loadBalancer.listeners = getLoadBalancerServer(res, loadBalancerObj, vpcUID)
+		privateIPs, err := getLoadBalancerIPs(res, loadBalancerObj, vpcUID, vpc)
+		if err != nil {
+			return err
+		}
+		loadBalancer.nodes = privateIPs
+		res[vpcUID].UIDToResource[loadBalancer.ResourceUID] = loadBalancer
+		res[vpcUID].LoadBalancers = append(res[vpcUID].LoadBalancers, loadBalancer)
 	}
-	return "", fmt.Errorf("VPC missing from config of loadBalancer %s", *loadBalancerObj.Name)
+	return nil
 }
 
 // todo - handle this cases and remove this method:
@@ -1133,6 +1163,20 @@ func checkLoadBalancerValidity(loadBalancerObj *datamodel.LoadBalancer) bool {
 	return true
 }
 
+func getLoadBalancerVpcUID(rc *datamodel.ResourcesContainerModel, loadBalancerObj *datamodel.LoadBalancer) (string, error) {
+	// somehow the load balancer does not have info on the vpc,
+	// getting the vpc from one of the subnets:
+	aSubnetUID := *loadBalancerObj.Subnets[0].CRN
+	for _, subnet := range rc.SubnetList {
+		if aSubnetUID == *subnet.CRN {
+			return *subnet.VPC.CRN, nil
+		}
+	}
+	return "", fmt.Errorf("VPC missing from config of loadBalancer %s", *loadBalancerObj.Name)
+}
+
+// getLoadBalancerServer() parse and return all the servers.
+// currently as a list of listeners, TBD
 func getLoadBalancerServer(res map[string]*vpcmodel.VPCConfig,
 	loadBalancerObj *datamodel.LoadBalancer,
 	vpcUID string) []LoadBalancerListener {
@@ -1173,7 +1217,11 @@ func getLoadBalancerServer(res map[string]*vpcmodel.VPCConfig,
 	return listeners
 }
 
-func getLoadBalancerPrivateIPs(res map[string]*vpcmodel.VPCConfig,
+// ///////////////////////////////////////////////////////////
+// getLoadBalancerIPs() parse the private Ips (should be one or two)
+// create public IPs ase routers of the private IPs
+// returns the private IPs nodes
+func getLoadBalancerIPs(res map[string]*vpcmodel.VPCConfig,
 	loadBalancerObj *datamodel.LoadBalancer,
 	vpcUID string, vpc *VPC) ([]vpcmodel.Node, error) {
 	privateIPs := []vpcmodel.Node{}
@@ -1228,46 +1276,6 @@ func getLoadBalancerPrivateIPs(res map[string]*vpcmodel.VPCConfig,
 		}
 	}
 	return privateIPs, nil
-}
-
-func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
-	res map[string]*vpcmodel.VPCConfig,
-	skipByVPC map[string]bool,
-) (err error) {
-	for _, loadBalancerObj := range rc.LBList {
-		if !checkLoadBalancerValidity(loadBalancerObj) {
-			continue
-		}
-		vpcUID, err := getLoadBalancerVpcUID(rc, loadBalancerObj)
-		if err != nil {
-			return err
-		}
-		if skipByVPC[vpcUID] {
-			continue
-		}
-		vpc, err := getVPCObjectByUID(res, vpcUID)
-		if err != nil {
-			return err
-		}
-		loadBalancer := &LoadBalancer{
-			VPCResource: vpcmodel.VPCResource{
-				ResourceName: *loadBalancerObj.Name,
-				ResourceUID:  *loadBalancerObj.CRN,
-				ResourceType: ResourceTypeLoadBalancer,
-				VPCRef:       vpc,
-			},
-		}
-
-		loadBalancer.listeners = getLoadBalancerServer(res, loadBalancerObj, vpcUID)
-		privateIPs, err := getLoadBalancerPrivateIPs(res, loadBalancerObj, vpcUID, vpc)
-		if err != nil {
-			return err
-		}
-		loadBalancer.nodes = privateIPs
-		res[vpcUID].UIDToResource[loadBalancer.ResourceUID] = loadBalancer
-		res[vpcUID].LoadBalancers = append(res[vpcUID].LoadBalancers, loadBalancer)
-	}
-	return nil
 }
 
 /********** Functions used in Debug mode ***************/
