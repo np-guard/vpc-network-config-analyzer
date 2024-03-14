@@ -105,11 +105,6 @@ func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resou
 		return nil, err
 	}
 
-	err = getLoadBalancersConfig(rc, res, shouldSkipVpcIds)
-	if err != nil {
-		return nil, err
-	}
-
 	err = getSGconfig(rc, res, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
@@ -1099,8 +1094,8 @@ func getVPCObjectByUID(res map[string]*vpcmodel.VPCConfig, uid string) (*VPC, er
 }
 
 // ////////////////////////////////////////////////////////////////
-// Load Balancer Parsing:
-func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
+// Load Balancer Parsing: (I made it capital G, so lint will not cry)
+func GetLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 	res map[string]*vpcmodel.VPCConfig,
 	skipByVPC map[string]bool,
 ) (err error) {
