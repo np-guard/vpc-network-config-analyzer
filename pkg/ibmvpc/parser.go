@@ -104,7 +104,7 @@ func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resou
 	if err != nil {
 		return nil, err
 	}
-	
+
 	if false {
 		err = getLoadBalancersConfig(rc, res, shouldSkipVpcIds)
 		if err != nil {

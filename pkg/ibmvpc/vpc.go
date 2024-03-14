@@ -187,10 +187,11 @@ func (v *Vpe) AddressRange() *ipblocks.IPBlock {
 func (v *Vpe) Zone() (*Zone, error) {
 	return nil, nil
 }
+
 ////////////////////////////////////////////
-// Load Balancer 
+// Load Balancer
 // the nodes are the private IPs
-// the listeners holds the pools that holds the backend servers  
+// the listeners holds the pools that holds the backend servers
 // todo - implement more...
 type LoadBalancerPool []vpcmodel.Node
 type LoadBalancerListener []LoadBalancerPool

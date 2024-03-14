@@ -233,49 +233,49 @@ func newVpeTreeNode(parent SquareTreeNodeInterface, name string, resIPs []TreeNo
 // ///////////////////////////////////////////
 type LoadBalancerTreeNode struct {
 	abstractIconTreeNode
-	PrivateIps []TreeNodeInterface
+	PrivateIPs []TreeNodeInterface
 }
 
-func GroupPrivateIpsWithLoadBalancer(parent SquareTreeNodeInterface, name string, PrivateIps []TreeNodeInterface) {
+func GroupPrivateIPsWithLoadBalancer(parent SquareTreeNodeInterface, name string, privateIPs []TreeNodeInterface) {
 	switch {
-	case len(PrivateIps) == 1:
-		PrivateIps[0].(*PrivateIpTreeNode).setLoadBalancer(name)
-	case len(PrivateIps) > 1:
-		LoadBalancer := newLoadBalancerTreeNode(parent, name, PrivateIps)
-		for _, PrivateIp := range PrivateIps {
-			newLogicalLineTreeNode(parent, LoadBalancer, PrivateIp.(IconTreeNodeInterface))
+	case len(privateIPs) == 1:
+		privateIPs[0].(*PrivateIPTreeNode).setLoadBalancer(name)
+	case len(privateIPs) > 1:
+		LoadBalancer := newLoadBalancerTreeNode(parent, name, privateIPs)
+		for _, PrivateIP := range privateIPs {
+			newLogicalLineTreeNode(parent, LoadBalancer, PrivateIP.(IconTreeNodeInterface))
 		}
 	}
 }
 
-func newLoadBalancerTreeNode(parent SquareTreeNodeInterface, name string, PrivateIps []TreeNodeInterface) *LoadBalancerTreeNode {
-	LoadBalancer := &LoadBalancerTreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, name), PrivateIps: PrivateIps}
+func newLoadBalancerTreeNode(parent SquareTreeNodeInterface, name string, privateIPs []TreeNodeInterface) *LoadBalancerTreeNode {
+	LoadBalancer := &LoadBalancerTreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, name), PrivateIPs: privateIPs}
 	parent.addIconTreeNode(LoadBalancer)
 	return LoadBalancer
 }
 
-type PrivateIpTreeNode struct {
+type PrivateIPTreeNode struct {
 	abstractIconTreeNode
 	loadBalancer string
 	floatingIP   string
 }
 
-func NewPrivateIpTreeNode(parent SquareTreeNodeInterface, name string) *PrivateIpTreeNode {
-	rip := PrivateIpTreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, name)}
+func NewPrivateIPTreeNode(parent SquareTreeNodeInterface, name string) *PrivateIPTreeNode {
+	rip := PrivateIPTreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, name)}
 	parent.addIconTreeNode(&rip)
 	return &rip
 }
 
-func (tn *PrivateIpTreeNode) setLoadBalancer(LoadBalancer string) { tn.loadBalancer = LoadBalancer }
-func (tn *PrivateIpTreeNode) hasMiniIcon() bool                   { return tn.loadBalancer != "" }
-func (tn *PrivateIpTreeNode) Label() string                       { return labels2Table([]string{tn.name, tn.loadBalancer}) }
-func (tn *PrivateIpTreeNode) SetFIP(fip string)                   { tn.floatingIP = fip }
-func (tn *PrivateIpTreeNode) Fip() string                         { return tn.floatingIP }
-func (tn *PrivateIpTreeNode) FipID() uint                         { return tn.id + fipID }
-func (tn *PrivateIpTreeNode) HasFip() bool                        { return tn.Fip() != "" }
-func (tn *PrivateIpTreeNode) RouterID() uint                      { return tn.FipID() }
-func (tn *PrivateIpTreeNode) CanHaveFIP() bool                    { return true }
-func (tn *PrivateIpTreeNode) absoluteRouterGeometry() (x, y int) {
+func (tn *PrivateIPTreeNode) setLoadBalancer(loadBalancer string) { tn.loadBalancer = loadBalancer }
+func (tn *PrivateIPTreeNode) hasMiniIcon() bool                   { return tn.loadBalancer != "" }
+func (tn *PrivateIPTreeNode) Label() string                       { return labels2Table([]string{tn.name, tn.loadBalancer}) }
+func (tn *PrivateIPTreeNode) SetFIP(fip string)                   { tn.floatingIP = fip }
+func (tn *PrivateIPTreeNode) Fip() string                         { return tn.floatingIP }
+func (tn *PrivateIPTreeNode) FipID() uint                         { return tn.id + fipID }
+func (tn *PrivateIPTreeNode) HasFip() bool                        { return tn.Fip() != "" }
+func (tn *PrivateIPTreeNode) RouterID() uint                      { return tn.FipID() }
+func (tn *PrivateIPTreeNode) CanHaveFIP() bool                    { return true }
+func (tn *PrivateIPTreeNode) absoluteRouterGeometry() (x, y int) {
 	x, y = absoluteGeometry(tn)
 	return x + fipXOffset, y + fipYOffset
 }
