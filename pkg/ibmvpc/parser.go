@@ -694,7 +694,7 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 
 		// filtering by resourceGroup
 		if resourceGroup != "" {
-			if ok {
+			if ok { // if there is a transit gateway in the config file
 				if *tgw.ResourceGroup.ID != resourceGroup {
 					tgwToSkip[tgwUID] = true
 					continue
@@ -708,7 +708,7 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 
 		// filtering by region
 		if len(regions) > 0 {
-			if ok {
+			if ok { // if there is a transit gateway in the config file
 				if !slices.Contains(regions, *tgw.Location) {
 					tgwToSkip[tgwUID] = true
 					continue
@@ -725,16 +725,20 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 			continue
 		}
 		if _, ok := tgwMap[tgwUID]; !ok {
+			region := ""
+			if ok { // if there is a transit gateway in the config file
+				region = *tgw.Location
+			}
 			tgw := &TransitGateway{
 				VPCResource: vpcmodel.VPCResource{
 					ResourceName: tgwName,
 					ResourceUID:  tgwUID,
 					ResourceType: ResourceTypeTGW,
-					Region:       *tgw.Location,
+					Region:       region,
 				},
 				vpcs:            []*VPC{vpc},
 				availableRoutes: map[string][]*ipblocks.IPBlock{},
-				region:          regionToStruct(*tgw.Location, regionToStructMap),
+				region:          regionToStruct(region, regionToStructMap),
 			}
 			tgwMap[tgwUID] = tgw
 		} else {
