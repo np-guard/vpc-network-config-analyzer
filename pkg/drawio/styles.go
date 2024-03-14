@@ -227,12 +227,15 @@ func (stl *templateStyles) SvgLinePoints(tn TreeNodeInterface) string {
 func (stl *templateStyles) lineParameters(tn LineTreeNodeInterface) (start, end, color string, dash bool) {
 	logical := reflect.TypeOf(tn).Elem() == reflect.TypeOf(LogicalLineTreeNode{})
 	dash = logical
-
-	start, end = ovalEndEdge, ovalEndEdge
-	if !logical {
+	if logical {
+		color = blueColor
+		start, end = ovalEndEdge, ovalEndEdge
+	} else {
+		color = blackColor
 		con := tn.(*ConnectivityTreeNode)
+		start, end = arrowEndEdge, arrowEndEdge
 		if con.directed {
-			end = arrowEndEdge
+			start = ovalEndEdge
 		}
 		if con.Src().IsIcon() && con.Src().(IconTreeNodeInterface).IsGroupingPoint() && !con.Src().(*GroupPointTreeNode).hasShownSquare() {
 			start = noneEndEdge
@@ -240,12 +243,6 @@ func (stl *templateStyles) lineParameters(tn LineTreeNodeInterface) (start, end,
 		if con.Dst().IsIcon() && con.Dst().(IconTreeNodeInterface).IsGroupingPoint() && !con.Dst().(*GroupPointTreeNode).hasShownSquare() {
 			end = noneEndEdge
 		}
-	}
-	public := logical && (reflect.TypeOf(tn.Src()).Elem() == reflect.TypeOf(ResIPTreeNode{}) || reflect.TypeOf(tn.Dst()).Elem() == reflect.TypeOf(ResIPTreeNode{}))
-	if public {
-		color = blueColor
-	} else {
-		color = blackColor
 	}
 	return start, end, color, dash
 }
