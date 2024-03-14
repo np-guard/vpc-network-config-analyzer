@@ -2,6 +2,7 @@ package vpcmodel
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/np-guard/models/pkg/ipblocks"
@@ -115,6 +116,7 @@ func (configsMap VpcsConfigsMap) getVPCConfigAndSrcDstNodes(src, dst string) (vp
 		matchConfigs[i] = configsMap[cfgID].VPC.Name()
 		i++
 	}
+	sort.Strings(matchConfigs)
 	return nil, nil, nil, noInternalIP,
 		fmt.Errorf(strPrint, fmt.Sprintf("src: %s and dst: %s found in more than one config: %s",
 			src, dst, strings.Join(matchConfigs, ",")))
