@@ -427,6 +427,65 @@ func TestConfigSelfLoopCliqueLace(t *testing.T) {
 	fmt.Println(groupingStr)
 	fmt.Println("done")
 }
+
+func configSelfLoop5Clique() (*VPCConfig, *VPCConnectivity) {
+	res := &VPCConfig{Nodes: []Node{}}
+	res.Nodes = append(res.Nodes,
+		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1"},
+		&mockNetIntf{cidr: "10.0.20.6/32", name: "vsi2"},
+		&mockNetIntf{cidr: "10.0.20.7/32", name: "vsi3"},
+		&mockNetIntf{cidr: "10.0.20.7/32", name: "vsi4"},
+		&mockNetIntf{cidr: "10.0.20.7/32", name: "vsi5"})
+
+	res.Subnets = append(res.Subnets, &mockSubnet{nil, "10.0.20.0/22", "subnet1",
+		[]Node{res.Nodes[0], res.Nodes[1], res.Nodes[2], res.Nodes[3], res.Nodes[4]}})
+	res.Nodes[0].(*mockNetIntf).subnet = res.Subnets[0]
+	res.Nodes[1].(*mockNetIntf).subnet = res.Subnets[0]
+	res.Nodes[2].(*mockNetIntf).subnet = res.Subnets[0]
+	res.Nodes[3].(*mockNetIntf).subnet = res.Subnets[0]
+	res.Nodes[4].(*mockNetIntf).subnet = res.Subnets[0]
+
+	res1 := &VPCConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[3], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[4], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[1], res.Nodes[0], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[1], res.Nodes[2], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[1], res.Nodes[3], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[1], res.Nodes[4], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[2], res.Nodes[0], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[2], res.Nodes[1], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[2], res.Nodes[3], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[2], res.Nodes[4], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[3], res.Nodes[0], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[3], res.Nodes[1], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[3], res.Nodes[2], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[3], res.Nodes[4], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[4], res.Nodes[0], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[4], res.Nodes[1], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[4], res.Nodes[2], common.NewConnectionSet(true))
+	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[4], res.Nodes[3], common.NewConnectionSet(true))
+
+	return res, res1
+}
+
+func TestConfigSelfLoop5Clique(t *testing.T) {
+	c, v := configSelfLoop5Clique()
+	res := &GroupConnLines{config: c, nodesConn: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
+		cacheGrouped: newCacheGroupedElements()}
+	err := res.groupExternalAddresses(true)
+	require.Equal(t, err, nil)
+	res.groupInternalSrcOrDst(false, true)
+	res.groupInternalSrcOrDst(true, true)
+	groupingStr := res.String()
+	//require.Equal(t, "vsi1,vsi2 => vsi1,vsi2,vsi3 : All Connections\n"+
+	//	"vsi3 => vsi1,vsi2,vsi4 : All Connections\n"+
+	//	"vsi4 => vsi5 : All Connections\n", groupingStr)
+	fmt.Println(groupingStr)
+	fmt.Println("done")
+}
+
 func configSubnetSelfLoop() (*VPCConfig, *VPCsubnetConnectivity) {
 	res := &VPCConfig{Nodes: []Node{}}
 	myVPC := &mockVPCIntf{VPCResource{ResourceName: "myVpc",
