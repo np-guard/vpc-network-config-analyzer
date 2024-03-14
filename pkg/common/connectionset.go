@@ -142,7 +142,7 @@ func (conn *ConnectionSet) Copy() *ConnectionSet {
 }
 
 func (conn *ConnectionSet) Intersection(other *ConnectionSet) *ConnectionSet {
-	if other == nil || other.AllowAll {
+	if other.AllowAll {
 		return conn.Copy()
 	}
 	if conn.AllowAll {
