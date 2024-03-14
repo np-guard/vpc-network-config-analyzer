@@ -1106,6 +1106,10 @@ func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 		if skipByVPC[vpcUID] {
 			continue
 		}
+		if len(loadBalancerObj.Subnets) > 2 {
+			fmt.Printf("warning: Ignoring Load Balancer %s, it has more than two subnets\n", *loadBalancerObj.Name)
+			continue
+		}
 		vpc, err := getVPCObjectByUID(res, vpcUID)
 		if err != nil {
 			return err
@@ -1147,7 +1151,7 @@ func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 			subnet.nodes = append(subnet.nodes, pIPNode)
 			res[vpcUID].UIDToResource[pIPNode.ResourceUID] = pIPNode
 			loadBalancer.nodes = append(loadBalancer.nodes, pIPNode)
-			if len(loadBalancerObj.Subnets) == 1{
+			if len(loadBalancerObj.Subnets) == 1 {
 				break
 			}
 		}
