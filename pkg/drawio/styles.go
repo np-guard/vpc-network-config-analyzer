@@ -219,10 +219,10 @@ func (stl *templateStyles) SvgLinePoints(tn TreeNodeInterface) string {
 func (stl *templateStyles) lineParameters(tn LineTreeNodeInterface) (start, end, color string, dash bool) {
 	logical := reflect.TypeOf(tn).Elem() == reflect.TypeOf(LogicalLineTreeNode{})
 	dash = logical
-	if logical{
+	if logical {
 		color = blueColor
 		start, end = ovalEndEdge, ovalEndEdge
-	}else{
+	} else {
 		color = blackColor
 		con := tn.(*ConnectivityTreeNode)
 		start, end = arrowEndEdge, arrowEndEdge
