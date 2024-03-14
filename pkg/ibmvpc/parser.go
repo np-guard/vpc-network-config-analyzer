@@ -105,12 +105,10 @@ func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resou
 		return nil, err
 	}
 
-	if false {
-		err = getLoadBalancersConfig(rc, res, shouldSkipVpcIds)
-		if err != nil {
-			return nil, err
-		}
-	}
+	// err = getLoadBalancersConfig(rc, res, shouldSkipVpcIds)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	err = getSGconfig(rc, res, shouldSkipVpcIds)
 	if err != nil {
@@ -1209,20 +1207,19 @@ func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 				lis = append(lis, pool)
 			}
 			loadBalancer.listeners = append(loadBalancer.listeners, lis)
-
 		}
 		// if the load balancer have public Ips, we attach every private ip a floating ip
-		for i, pubIpData := range loadBalancerObj.PublicIps {
-			privateIp := loadBalancer.nodes[i]
+		for i, publicIPData := range loadBalancerObj.PublicIps {
+			privateIP := loadBalancer.nodes[i]
 			routerFip := &FloatingIP{
 				VPCResource: vpcmodel.VPCResource{
-					ResourceName: privateIp.Name() + "-fip",
-					ResourceUID:  privateIp.UID() + "-fip",
-					Zone:         privateIp.ZoneName(),
+					ResourceName: "fip-name-of-" + privateIP.Name(),
+					ResourceUID:  "fip-uid-of-" + privateIP.UID(),
+					Zone:         privateIP.ZoneName(),
 					ResourceType: ResourceTypeFloatingIP,
 					VPCRef:       vpc,
 				},
-				cidr: *pubIpData.Address, src: []vpcmodel.Node{privateIp}}
+				cidr: *publicIPData.Address, src: []vpcmodel.Node{privateIP}}
 			res[vpcUID].RoutingResources = append(res[vpcUID].RoutingResources, routerFip)
 			res[vpcUID].UIDToResource[routerFip.ResourceUID] = routerFip
 		}
