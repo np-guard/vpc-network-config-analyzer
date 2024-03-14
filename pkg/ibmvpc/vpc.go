@@ -21,11 +21,7 @@ type Region struct {
 	name string
 }
 
-var (
-	regionToStructMap = make(map[string]*Region)
-)
-
-func regionToStruct(regionName string) *Region {
+func regionToStruct(regionName string, regionToStructMap map[string]*Region) *Region {
 	regionPointer, ok := regionToStructMap[regionName]
 
 	if !ok {

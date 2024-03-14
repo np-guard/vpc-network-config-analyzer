@@ -53,15 +53,16 @@ func filterByVpcResourceGroupAndRegions(rc *datamodel.ResourcesContainerModel, v
 // containing the parsed resources in the relevant model objects
 func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resourceGroup string, regions []string, debug bool) (
 	map[string]*vpcmodel.VPCConfig, error) {
-	res := map[string]*vpcmodel.VPCConfig{} // map from VPC UID to its config
-	filteredOut := map[string]bool{}        // store networkInterface UIDs filtered out by skipByVPC
+	res := map[string]*vpcmodel.VPCConfig{}       // map from VPC UID to its config
+	filteredOut := map[string]bool{}              // store networkInterface UIDs filtered out by skipByVPC
+	regionToStructMap := make(map[string]*Region) // map for caching Region objects
 	var err error
 
 	// map to filter resources, if certain VPC, resource-group or region list to analyze is specified,
 	// skip resources configured outside that VPC
 	shouldSkipVpcIds := filterByVpcResourceGroupAndRegions(rc, vpcID, resourceGroup, regions)
 
-	err = getVPCconfig(rc, res, shouldSkipVpcIds)
+	err = getVPCconfig(rc, res, shouldSkipVpcIds, regionToStructMap)
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +121,7 @@ func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resou
 		return nil, err
 	}
 
-	tgws := getTgwObjects(rc, res, resourceGroup, regions)
+	tgws := getTgwObjects(rc, res, resourceGroup, regions, regionToStructMap)
 	err = addTGWbasedConfigs(tgws, res)
 	if err != nil {
 		return nil, err
@@ -484,7 +485,10 @@ func getVPCAddressPrefixes(vpc *datamodel.VPC) (res []string) {
 	return res
 }
 
-func getVPCconfig(rc *datamodel.ResourcesContainerModel, res map[string]*vpcmodel.VPCConfig, skipByVPC map[string]bool) error {
+func getVPCconfig(rc *datamodel.ResourcesContainerModel,
+	res map[string]*vpcmodel.VPCConfig,
+	skipByVPC map[string]bool,
+	regionToStructMap map[string]*Region) error {
 	for _, vpc := range rc.VpcList {
 		if skipByVPC[*vpc.CRN] {
 			continue // skip vpc not specified to analyze
@@ -500,7 +504,7 @@ func getVPCconfig(rc *datamodel.ResourcesContainerModel, res map[string]*vpcmode
 			nodes:           []vpcmodel.Node{},
 			zones:           map[string]*Zone{},
 			addressPrefixes: getVPCAddressPrefixes(vpc),
-			region:          regionToStruct(vpc.Region),
+			region:          regionToStruct(vpc.Region, regionToStructMap),
 		}
 		vpcNodeSet.VPCRef = vpcNodeSet
 		newVPCConfig := NewEmptyVPCConfig()
@@ -670,13 +674,13 @@ func getTgwMap(c *datamodel.ResourcesContainerModel) map[string]*datamodel.Trans
 }
 
 func getTgwObjects(c *datamodel.ResourcesContainerModel,
-	res map[string]*vpcmodel.VPCConfig, resourceGroup string, regions []string) map[string]*TransitGateway {
+	res map[string]*vpcmodel.VPCConfig,
+	resourceGroup string,
+	regions []string,
+	regionToStructMap map[string]*Region) map[string]*TransitGateway {
 	tgwMap := map[string]*TransitGateway{} // collect all tgw resources
-	tgwIDToTgw := map[string]*datamodel.TransitGateway{}
 	tgwToSkip := map[string]bool{}
-	if resourceGroup != "" || len(regions) > 0 {
-		tgwIDToTgw = getTgwMap(c)
-	}
+	tgwIDToTgw := getTgwMap(c)
 
 	for _, tgwConn := range c.TransitConnectionList {
 		tgwUID := *tgwConn.TransitGateway.Crn
@@ -686,10 +690,11 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 		if _, ok := tgwToSkip[tgwUID]; ok {
 			continue
 		}
+		tgw, ok := tgwIDToTgw[tgwUID]
 
 		// filtering by resourceGroup
 		if resourceGroup != "" {
-			if tgw, ok := tgwIDToTgw[tgwUID]; ok {
+			if ok {
 				if *tgw.ResourceGroup.ID != resourceGroup {
 					tgwToSkip[tgwUID] = true
 					continue
@@ -700,12 +705,11 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 				continue
 			}
 		}
+
 		// filtering by region
-		region := ""
 		if len(regions) > 0 {
-			if tgw, ok := tgwIDToTgw[tgwUID]; ok {
-				region = *tgw.Location
-				if !slices.Contains(regions, region) {
+			if ok {
+				if !slices.Contains(regions, *tgw.Location) {
 					tgwToSkip[tgwUID] = true
 					continue
 				}
@@ -726,11 +730,11 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 					ResourceName: tgwName,
 					ResourceUID:  tgwUID,
 					ResourceType: ResourceTypeTGW,
-					Region:       region,
+					Region:       *tgw.Location,
 				},
 				vpcs:            []*VPC{vpc},
 				availableRoutes: map[string][]*ipblocks.IPBlock{},
-				region:          &Region{name: region},
+				region:          regionToStruct(*tgw.Location, regionToStructMap),
 			}
 			tgwMap[tgwUID] = tgw
 		} else {
