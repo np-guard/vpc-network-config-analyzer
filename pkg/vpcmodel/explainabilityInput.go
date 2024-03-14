@@ -54,16 +54,16 @@ const strPrint = "%s"
 // if such tgw exists; otherwise the src and dst are not connected
 
 // error handling: the src and dst are being searched for within the context of each vpcConfig.
-// if not found, then it is due to one of the following which holds for src/dst:
-// 1. Src/dst is an internal address not within subnet's of the VPC
-// 2. Src/dst is an internal address within subnet's if the VPC but not connected to a vsi
+// if not found, then it is due to one of the following:
+// 1. Src/dst is an internal address not within subnets of the VPC
+// 2. Src/dst is an internal address within subnets of the VPC but not connected to a vsi
 // 3. Both src and dst are external address
 // 4. Src/dst is a Cidr that contains both internal and external address
-// 5. Src/dst does not present a legal IP address, a legal CIDR or a VSI name
+// 5. Src/dst does not present a legal IP address, a legal CIDR or a vsi name (vsi of the vpc)
 // errors 2-4, although detected within a specific VPCContext, are relevant in the multi-vpc
-// context and as such results in a return with the error message.
+// context and as such results in an immediate return with the error message.
 // errors 1 and 5 may occur in one vpcConfig while there is still a match to src and dst in another one
-// thus, if no match is found and one of the configs had error 1, this is the error we return with
+// thus, if no match found and one of the configs had error 1, this is the error we return with
 // otherwise, we return with error 5
 // * error 2 - currently we do not support intersecting subnets address space
 func (configsMap VpcsConfigsMap) getVPCConfigAndSrcDstNodes(src, dst string) (vpcConfig *VPCConfig,
@@ -140,7 +140,7 @@ func (e *ExplanationArgs) GetConnectionSet() *common.ConnectionSet {
 	return connection
 }
 
-// given src and dst input finds the []nodes they represent
+// given src and dst input and a VPCConfigs finds the []nodes they represent in the config
 // src/dst may refer to:
 // 1. VSI by UID or name; in this case we consider the network interfaces of the VSI
 // 2. Internal IP address or cidr; in this case we consider the vsis in that address range
@@ -174,6 +174,8 @@ func (c *VPCConfig) srcDstInputToNodes(srcName, dstName string) (srcNodes, dstNo
 	return srcNodes, dstNodes, isSrcDstInternalIP, noErr, nil
 }
 
+// given a VPCConfig and a string looks for the VSI/Internal IP/External address it presents,
+// as described above
 func (c *VPCConfig) getSrcOrDstInputNode(name, srcOrDst string) (nodes []Node,
 	internalIP bool, errType int, err error) {
 	outNodes, isInternalIP, errType1, err1 := c.getNodesFromInputString(name)
@@ -186,9 +188,9 @@ func (c *VPCConfig) getSrcOrDstInputNode(name, srcOrDst string) (nodes []Node,
 	return outNodes, isInternalIP, noErr, nil
 }
 
-// given a string cidrOrName representing a vsi or internal/external cidr/address returns the
-// corresponding node(s) and a bool which is true iff cidrOrName is an internal address
-// (and the nodes are its network interfaces)
+// given a VPCConfig and a string cidrOrName representing a vsi or internal/external
+// cidr/address returns the corresponding node(s) and a bool which is true iff
+// cidrOrName is an internal address (and the nodes are its network interfaces)
 func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node, internalIP bool,
 	errType int, err error) {
 	// 1. cidrOrName references vsi
@@ -235,7 +237,7 @@ func (c *VPCConfig) getNodesOfVsi(vsi string) ([]Node, int, error) {
 
 // getNodesFromAddress gets a string and IPBlock that represents a cidr or IP address
 // and returns the corresponding node(s)and a bool which is true iff ipOrCidr is an internal address
-// // (and the nodes are its network interfaces). Specifically:
+// (and the nodes are its network interfaces). Specifically:
 //  1. If it represents a cidr which is both internal and external, returns an error
 //  2. If it presents an external address, returns external addresses nodes and false
 //  3. If it contains internal address not within the address range of the vpc's, subnets,
