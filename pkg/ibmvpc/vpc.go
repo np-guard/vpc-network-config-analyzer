@@ -40,6 +40,10 @@ type ReservedIP struct {
 	vpe string
 }
 
+func (r *ReservedIP) Name() string {
+	return getNodeName(r.vpe, r.Address())
+}
+
 // ReservedIP implements vpcmodel.Node interface
 type PrivateIP struct {
 	vpcmodel.VPCResource
@@ -47,8 +51,8 @@ type PrivateIP struct {
 	loadBalancer string
 }
 
-func (r *ReservedIP) Name() string {
-	return getNodeName(r.vpe, r.Address())
+func (pip *PrivateIP) Name() string {
+	return getNodeName(pip.loadBalancer, pip.Address())
 }
 
 // NetworkInterface implements vpcmodel.Node interface
@@ -207,6 +211,9 @@ func (lb *LoadBalancer) Nodes() []vpcmodel.Node {
 }
 func (lb *LoadBalancer) AddressRange() *ipblocks.IPBlock {
 	return nodesAddressRange(lb.nodes)
+}
+func (lb *LoadBalancer) NLis() int {
+	return len(lb.listeners)
 }
 
 // lb is per vpc and not per zone...
