@@ -2,7 +2,6 @@ package vpcmodel
 
 import (
 	"errors"
-	"slices"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
@@ -33,8 +32,6 @@ type DrawioOutputFormatter struct {
 	nodeRouters     map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface
 	multiVpcRouters map[string]drawio.IconTreeNodeInterface
 	uc              OutputUseCase
-	edgeToIgnore    []*groupedConnLine
-	cliques         map[common.SetAsKey]EndpointElem
 }
 
 func (d *DrawioOutputFormatter) init(cConfigs map[string]*VPCConfig, conns map[string]*GroupConnLines, uc OutputUseCase) {
@@ -47,13 +44,9 @@ func (d *DrawioOutputFormatter) init(cConfigs map[string]*VPCConfig, conns map[s
 	d.gen = NewDrawioGenerator(cloudName)
 	d.nodeRouters = map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface{}
 	d.multiVpcRouters = map[string]drawio.IconTreeNodeInterface{}
-	d.edgeToIgnore = []*groupedConnLine{}
-	d.cliques = map[common.SetAsKey]EndpointElem{}
-
 }
 
 func (d *DrawioOutputFormatter) createDrawioTree() {
-	d.lookForCliques()
 	d.createNodeSets()
 	if d.uc != AllSubnets {
 		// todo - support filters on subnet mode
@@ -152,22 +145,16 @@ func (d *DrawioOutputFormatter) lineRouter(line *groupedConnLine, vpcResourceNam
 
 func (d *DrawioOutputFormatter) createEdges() {
 	type edgeKey struct {
-		src    drawio.TreeNodeInterface
-		dst    drawio.TreeNodeInterface
+		src    EndpointElem
+		dst    EndpointElem
 		router drawio.IconTreeNodeInterface
 		label  string
 	}
-	tnToR := map[drawio.TreeNodeInterface]EndpointElem{}
 	isEdgeDirected := map[edgeKey]bool{}
 	for vpcResourceName, vpcConn := range d.conns {
 		for _, line := range vpcConn.GroupedLines {
-			if slices.Contains(d.edgeToIgnore, line) {
-				continue
-			}
-			src := d.gen.TreeNode(line.src)
-			dst := d.gen.TreeNode(line.dst)
-			tnToR[src] = line.src
-			tnToR[dst] = line.dst
+			src := line.src
+			dst := line.dst
 			router := d.lineRouter(line, vpcResourceName)
 			e := edgeKey{src, dst, router, line.ConnLabel()}
 			revE := edgeKey{dst, src, router, line.ConnLabel()}
@@ -180,7 +167,7 @@ func (d *DrawioOutputFormatter) createEdges() {
 		}
 	}
 	for e, directed := range isEdgeDirected {
-		ei := &edgeInfo{tnToR[e.src], tnToR[e.dst], e.label, directed}
+		ei := &edgeInfo{e.src, e.dst, e.label, directed}
 		if d.showResource(ei) {
 			cn := d.gen.TreeNode(ei).(*drawio.ConnectivityTreeNode)
 			if e.router != nil {
