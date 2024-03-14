@@ -500,7 +500,7 @@
                         "crn": "crn:84",
                         "href": "href:85",
                         "id": "id:86",
-                        "name": "iks-cjsal64w0g8rl335fso0",
+                        "name": "iks-cja1",
                         "resource_type": "endpoint_gateway"
                     }
                 },
@@ -873,7 +873,7 @@
                         "crn": "crn:84",
                         "href": "href:85",
                         "id": "id:86",
-                        "name": "iks-cjsal64w0g8rl335fso0",
+                        "name": "iks-cja1",
                         "resource_type": "endpoint_gateway"
                     }
                 },
@@ -1222,7 +1222,7 @@
                         "crn": "crn:84",
                         "href": "href:85",
                         "id": "id:86",
-                        "name": "iks-cjsal64w0g8rl335fso0",
+                        "name": "iks-cja1",
                         "resource_type": "endpoint_gateway"
                     }
                 },
@@ -2502,7 +2502,7 @@
                 {
                     "href": "href:85",
                     "id": "id:86",
-                    "name": "iks-cjsal64w0g8rl335fso0",
+                    "name": "iks-cja1",
                     "resource_type": "endpoint_gateway",
                     "crn": "crn:84"
                 },
@@ -3072,7 +3072,7 @@
             ],
             "lifecycle_reasons": null,
             "lifecycle_state": "stable",
-            "name": "iks-cjsal64w0g8rl335fso0",
+            "name": "iks-cja1",
             "resource_group": {
                 "href": "href:18",
                 "id": "id:19",
