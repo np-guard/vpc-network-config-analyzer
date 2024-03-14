@@ -1120,7 +1120,7 @@ func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 		}
 		res[vpcUID].LoadBalancers = append(res[vpcUID].LoadBalancers, loadBalancer)
 		pIPList := loadBalancerObj.PrivateIps
-		for i, pIP := range pIPList {
+		for _, pIP := range pIPList {
 			pIPNode := &PrivateIP{
 				VPCResource: vpcmodel.VPCResource{
 					ResourceName: *pIP.Name,
@@ -1141,21 +1141,15 @@ func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 			if err != nil {
 				return err
 			}
-			if i == 1 {
-				firstSubnet, err := getSubnetByIPAddress(loadBalancer.nodes[0].IPBlock(), res[vpcUID])
-				if err != nil {
-					return err
-				}
-				if subnet == firstSubnet {
-					break
-				}
-			}
 			pIPNode.SubnetResource = subnet
 			pIPNode.Zone = subnet.ZoneName()
 			res[vpcUID].Nodes = append(res[vpcUID].Nodes, pIPNode)
 			subnet.nodes = append(subnet.nodes, pIPNode)
 			res[vpcUID].UIDToResource[pIPNode.ResourceUID] = pIPNode
 			loadBalancer.nodes = append(loadBalancer.nodes, pIPNode)
+			if len(loadBalancerObj.Subnets) == 1{
+				break
+			}
 		}
 
 		pools := map[string]LoadBalancerPool{}
