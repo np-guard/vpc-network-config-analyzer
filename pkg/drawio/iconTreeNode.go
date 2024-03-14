@@ -18,6 +18,11 @@ type IconTreeNodeInterface interface {
 	IconSize() int
 	hasMiniIcon() bool
 }
+
+// (1). both NI and load Balancer PrivateIPs can have a floating IP:
+// (2). both NIs ResIp and PrivateIPs are grouped by logical connection.
+// Todo: for both (1) and (2), we need to make a smart inheritance, to remove duplicate code
+// (for now I did minimal changes, for easier code review)
 type CanHaveFIPTreeNode interface {
 	SetFIP(fip string)
 	Fip() string

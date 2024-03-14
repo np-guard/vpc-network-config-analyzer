@@ -1156,7 +1156,7 @@ func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 				InternalNode: vpcmodel.InternalNode{
 					AddressStr: *pIP.Address,
 				},
-				lb: *loadBalancerObj.Name,
+				loadBalancer: *loadBalancerObj.Name,
 			}
 			if err := pIPNode.SetIPBlockFromAddress(); err != nil {
 				return err

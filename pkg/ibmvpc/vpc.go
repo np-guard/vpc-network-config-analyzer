@@ -40,10 +40,11 @@ type ReservedIP struct {
 	vpe string
 }
 
+// ReservedIP implements vpcmodel.Node interface
 type PrivateIP struct {
 	vpcmodel.VPCResource
 	vpcmodel.InternalNode
-	lb string
+	loadBalancer string
 }
 
 func (r *ReservedIP) Name() string {
@@ -186,13 +187,15 @@ func (v *Vpe) AddressRange() *ipblocks.IPBlock {
 func (v *Vpe) Zone() (*Zone, error) {
 	return nil, nil
 }
-
+////////////////////////////////////////////
+// Load Balancer 
+// todo - implement more...
 type LoadBalancerPool []vpcmodel.Node
-type LoadBalancerListener []LoadBalancerPool 
+type LoadBalancerListener []LoadBalancerPool
 
 type LoadBalancer struct {
 	vpcmodel.VPCResource
-	nodes []vpcmodel.Node
+	nodes     []vpcmodel.Node
 	listeners []LoadBalancerListener
 }
 
