@@ -192,14 +192,14 @@ func (g *groupingConnections) addPublicConnectivity(ep EndpointElem, commonProps
 	(*g)[ep][connKey].appendNode(targetNode)
 }
 
-// vsiOrSubnetsGroupingBySubnetsOrVsis given *GroupConnLines, a list of EndpointElem and a bool saying whether
+// vsiOrSubnetsGroupingBySubnetsOrVpc given *GroupConnLines, a list of EndpointElem and a bool saying whether
 // the EndpointElem represents VSIs or subnets.
 // It returns a slice of EndpointElem objects, by grouping the input set of EndpointElem
 // such that
 // 1. If the grouped elements are vsis (as by the input bool) then the elements are grouped by their subnet
 // 2. If the grouped elements are subnets then the elements are grouped by their VPC, this is automatic
 // unless VPCConfig is result of a dummy vpc built for tgw, namely IsMultipleVPCsConfig = true
-func vsiOrSubnetsGroupingBySubnetsOrVsis(groupedConnLines *GroupConnLines,
+func vsiOrSubnetsGroupingBySubnetsOrVpc(groupedConnLines *GroupConnLines,
 	elemsList []EndpointElem, groupVSI bool) []EndpointElem {
 	res := []EndpointElem{}
 	// map from subnet's (vpc's) UID to its vsis-nodes (subnets-nodesets) from the input
@@ -393,7 +393,7 @@ func (g *GroupConnLines) groupInternalSrcOrDst(srcGrouping, groupVsi bool) {
 		for i, line := range linesGroup {
 			srcOrDstGroup[i] = line.getSrcOrDst(srcGrouping)
 		}
-		groupedSrcOrDst := vsiOrSubnetsGroupingBySubnetsOrVsis(g, srcOrDstGroup, groupVsi)
+		groupedSrcOrDst := vsiOrSubnetsGroupingBySubnetsOrVpc(g, srcOrDstGroup, groupVsi)
 		for _, groupedSrcOrDstElem := range groupedSrcOrDst {
 			if srcGrouping {
 				res = append(res, &groupedConnLine{groupedSrcOrDstElem, linesGroup[0].dst, linesGroup[0].commonProperties})
