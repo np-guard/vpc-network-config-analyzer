@@ -40,19 +40,31 @@ const (
 	srcAndDstInternalIP        // both src and dst given as internal ip
 )
 
-const noValidInputMsg = "does not represent an internal interface, an internal IP with network interface or " +
-	"a valid external IP"
+const noValidInputMsg = "does not represent a legal IP address, a legal CIDR or a VSI name"
 const strPrint = "%s"
 
-//
 // getVPCConfigAndSrcDstNodes given src, dst names returns the config in which the exaplainability analysis of these
 // should be done and the Nodes for src and dst.
-// At most one config should contain src and dst:
-// If one (src or dst) is internal and the other is external or both are internal of the same VPC then the containing VPC
-// is the VPC relevant to the explainanility analysis
-// todo If src is of one VPC and dst of another, the multiVPC VPCConfig containing both of them is the relevant for explainability,
-//      if one exists. Otherwise there is no connection
 
+// At most one config should contain src and dst, and this is the config returned:
+// If both src and dst are internal of the same vpc then this vpcConfig is returned
+// If one is internal and the other is external the vpcConfig of the internal is returned
+// ToDo If both internal but of different VPCs then the relevant vpcConfig is the dummy one created for the tgw connecting them,
+// if such tgw exists; otherwise the src and dst are not connected
+
+// error handling: the src and dst are being searched for within the context of each vpcConfig.
+// if not found, then it is due to one of the following which holds for src/dst:
+// 1. Src/dst is an internal address not within subnet's of the VPC
+// 2. Src/dst is an internal address within subnet's if the VPC but not connected to a vsi
+// 3. Both src and dst are external address
+// 4. Src/dst is a Cidr that contains both internal and external address
+// 5. Src/dst does not present a legal IP address, a legal CIDR or a VSI name
+// errors 2-4, although detected within a specific VPCContext, are relevant in the multi-vpc
+// context and as such results in a return with the error message.
+// errors 1 and 5 may occur in one vpcConfig while there is still a match to src and dst in another one
+// thus, if no match is found and one of the configs had error 1, this is the error we return with
+// otherwise, we return with error 5
+// * error 2 - currently we do not support intersecting subnets address space
 func (configsMap VpcsConfigsMap) getVPCConfigAndSrcDstNodes(src, dst string) (vpcConfig *VPCConfig,
 	srcNodes, dstNodes []Node, isSrcDstInternalIP int, err error) {
 	var errMsgInternalNotWithinSubnet, errMsgNoValidInput error

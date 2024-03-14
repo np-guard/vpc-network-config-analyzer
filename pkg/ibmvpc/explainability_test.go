@@ -527,8 +527,7 @@ func TestInputValidity(t *testing.T) {
 	_, err5 := vpcConfigSg1.ExplainConnectivity(existingVsi, nonExistingVsi, nil)
 	fmt.Println(err5.Error())
 	require.NotNil(t, err5, "the test should fail since src non existing vsi")
-	require.Equal(t, "illegal dst: vsi3a does not represent an internal interface, "+
-		"an internal IP with network interface or a valid external IP", err5.Error())
+	require.Equal(t, "illegal dst: vsi3a does not represent a legal IP address, a legal CIDR or a VSI name", err5.Error())
 
 	vpcConfigMultiVpcDupNames := getConfig(t, "tgw_larger_example_dup_names")
 	dupSrcVsi := "vsi1-ky"
