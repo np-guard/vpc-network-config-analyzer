@@ -189,6 +189,8 @@ func (v *Vpe) Zone() (*Zone, error) {
 }
 ////////////////////////////////////////////
 // Load Balancer 
+// the nodes are the private IPs
+// the listeners holds the pools that holds the backend servers  
 // todo - implement more...
 type LoadBalancerPool []vpcmodel.Node
 type LoadBalancerListener []LoadBalancerPool
