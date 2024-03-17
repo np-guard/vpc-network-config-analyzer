@@ -49,12 +49,10 @@
                 <mxGeometry x="{{$data.MiniIconXOffset}}" y="{{$data.MiniIconYOffset}}" width="{{$data.MiniIconSize}}" height="{{$data.MiniIconSize}}" as="geometry"/>
                 </mxCell>
             {{ end }}
-            {{ if $node.CanHaveFIP }}
-                {{ if $node.HasFip  }}
-                    <mxCell id="{{$data.IDsPrefix}}-{{$node.FipID}}" value="{{$node.Fip}}" style="{{$imagePrefix}}{{$data.FIPImage}};{{$iconStyle}}" parent="{{$data.IDsPrefix}}-{{$node.ID}}" vertex="1">
-                    <mxGeometry x="{{$data.FipXOffset}}" y="{{$data.FipYOffset}}" width="{{$node.IconSize}}" height="{{$node.IconSize}}" as="geometry"/>
-                    </mxCell>
-                {{ end }}
+            {{ if $node.HasFip  }}
+                <mxCell id="{{$data.IDsPrefix}}-{{$node.FipID}}" value="{{$node.Fip}}" style="{{$imagePrefix}}{{$data.FIPImage}};{{$iconStyle}}" parent="{{$data.IDsPrefix}}-{{$node.ID}}" vertex="1">
+                <mxGeometry x="{{$data.FipXOffset}}" y="{{$data.FipYOffset}}" width="{{$node.IconSize}}" height="{{$node.IconSize}}" as="geometry"/>
+                </mxCell>
             {{ end }}
         {{ else if $data.IsFamily $node $data.Cnst.GroupingIcon }}
                 <mxCell id="{{$data.IDsPrefix}}-{{$node.ID}}" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" parent="{{$data.IDsPrefix}}-{{$node.DrawioParent.ID}}" vertex="1">
