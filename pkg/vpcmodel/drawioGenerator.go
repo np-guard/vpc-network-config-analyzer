@@ -1,6 +1,9 @@
 package vpcmodel
 
 import (
+	"fmt"
+
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
 )
 
@@ -28,6 +31,7 @@ type DrawioGenerator struct {
 	publicNetwork *drawio.PublicNetworkTreeNode
 	cloud         *drawio.CloudTreeNode
 	treeNodes     map[DrawioResourceIntf]drawio.TreeNodeInterface
+	EndpointElems map[common.SetAsKey]*groupedEndpointsElems
 }
 
 func NewDrawioGenerator(cloudName string) *DrawioGenerator {
@@ -37,6 +41,7 @@ func NewDrawioGenerator(cloudName string) *DrawioGenerator {
 	gen.publicNetwork = drawio.NewPublicNetworkTreeNode(gen.network)
 	gen.cloud = drawio.NewCloudTreeNode(gen.network, cloudName)
 	gen.treeNodes = map[DrawioResourceIntf]drawio.TreeNodeInterface{}
+	gen.EndpointElems = map[common.SetAsKey]*groupedEndpointsElems{}
 	return gen
 }
 func (gen *DrawioGenerator) Network() *drawio.NetworkTreeNode             { return gen.network }
@@ -65,6 +70,12 @@ func (g *groupedEndpointsElems) GenerateDrawioTreeNode(gen *DrawioGenerator) dra
 	if len(*g) == 1 {
 		return gen.TreeNode((*g)[0])
 	}
+	k := common.FromList[EndpointElem](*g).AsKey()
+	if g2, ok := gen.EndpointElems[k]; ok {
+		fmt.Printf("both %p and %p have the same members - %s\n", g, g2, k)
+		return gen.TreeNode(g2)
+	}
+	gen.EndpointElems[k] = g
 	if gen.TreeNode((*g)[0]).IsSquare() && gen.TreeNode((*g)[0]).(drawio.SquareTreeNodeInterface).IsSubnet() {
 		groupedSubnetsTNs := make([]drawio.SquareTreeNodeInterface, len(*g))
 		for i, node := range *g {
