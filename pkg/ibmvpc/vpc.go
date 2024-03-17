@@ -21,16 +21,6 @@ type Region struct {
 	name string
 }
 
-func regionToStruct(regionName string, regionToStructMap map[string]*Region) *Region {
-	regionPointer, ok := regionToStructMap[regionName]
-
-	if !ok {
-		regionToStructMap[regionName] = &Region{name: regionName}
-		return regionToStructMap[regionName]
-	}
-	return regionPointer
-}
-
 type Zone struct {
 	name string
 	vpc  *VPC
