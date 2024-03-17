@@ -29,7 +29,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="{{$data.Width}}px" height="{{$data.Height}}px" viewBox="0.00 0.00 {{$data.Width}} {{$data.Height}}">
     <defs>
         {{range $color, $code := $data.Cnst.ColorCodes }}
-        <marker id='{{$color}}_block' orient="auto" markerWidth='6' markerHeight='6' refX='6' refY='3'>
+        <marker id='start_{{$color}}_block' orient="auto" markerWidth='6' markerHeight='6' refX='0' refY='3'>
+        <path d='M6,0 V6 L0,3 Z' fill="{{$code}}"/>
+        </marker>
+        <marker id='end_{{$color}}_block' orient="auto" markerWidth='6' markerHeight='6' refX='6' refY='3'>
         <path d='M0,0 V6 L6,3 Z' fill="{{$code}}"/>
         </marker>
         <marker id='{{$color}}_oval' orient="auto" markerWidth='6' markerHeight='6' refX='3' refY='3'>
