@@ -357,9 +357,7 @@ func (g *GroupConnLines) groupInternalSrcOrDst(srcGrouping, groupVsi bool) {
 		}
 		// grouping vsis/subnets to be grouped
 		elementsToGroup := []EndpointElem{}
-		for _, elem := range srcOrDstGroup {
-			elementsToGroup = append(elementsToGroup, elem)
-		}
+		elementsToGroup = append(elementsToGroup, srcOrDstGroup...)
 		groupedNodes := g.cacheGrouped.getAndSetEndpointElemFromCache(elementsToGroup)
 		if srcGrouping {
 			res = append(res, &groupedConnLine{groupedNodes, linesGroup[0].dst, linesGroup[0].commonProperties})
