@@ -251,6 +251,24 @@ func vsiOrSubnetsGroupingBySubnetsOrVpc(groupedConnLines *GroupConnLines,
 	return res
 }
 
+// endpointsGrouping returns a slice of EndpointElem objects produced from an input slice, by grouping
+// set of elements that represent subnets into a single groupedNetworkInterfaces object
+func endpointsGrouping(groupedConnLines *GroupConnLines,
+	elemsList []EndpointElem) []EndpointElem {
+	res := []EndpointElem{}
+	elementsToGroup := []EndpointElem{} // subnets to be grouped
+	for _, elem := range elemsList {
+		elementsToGroup = append(elementsToGroup, elem)
+	}
+	if len(elementsToGroup) == 1 {
+		res = append(res, elementsToGroup[0])
+	} else {
+		groupedNodes := groupedConnLines.cacheGrouped.getAndSetEndpointElemFromCache(elementsToGroup)
+		res = append(res, groupedNodes)
+	}
+	return res
+}
+
 // group public internet ranges for vsis/subnets connectivity lines
 func (g *GroupConnLines) groupExternalAddresses(vsi bool) error {
 	var allowedConnsCombined GeneralConnectivityMap
@@ -373,18 +391,19 @@ func (g *GroupConnLines) groupLinesByKey(srcGrouping, groupVsi bool) (res []*gro
 	groupingSrcOrDst = map[string][]*groupedConnLine{}
 	// populate map groupingSrcOrDst
 	for _, line := range g.GroupedLines {
-		srcOrDst, dstOrSrc := line.getSrcOrDst(srcGrouping), line.getSrcOrDst(!srcGrouping)
-		if !isInternalOfRequiredType(srcOrDst, groupVsi) {
+		grpTarget, grpIndex := line.getSrcOrDst(srcGrouping), line.getSrcOrDst(!srcGrouping)
+		if !isInternalOfRequiredType(grpTarget, groupVsi) {
 			res = append(res, line)
 			continue
 		}
-		key := getKeyOfGroupConnLines(dstOrSrc, line.commonProperties.groupingStrKey)
+		key := getKeyOfGroupConnLines(grpIndex, grpTarget, line.commonProperties.groupingStrKey)
 		if _, ok := groupingSrcOrDst[key]; !ok {
 			groupingSrcOrDst[key] = []*groupedConnLine{}
 		}
 		groupingSrcOrDst[key] = append(groupingSrcOrDst[key], line)
 	}
 	newGroupingSrcOrDst := g.extendGroupingSelfLoops(groupingSrcOrDst, srcGrouping)
+
 	return res, newGroupingSrcOrDst
 }
 
@@ -398,13 +417,11 @@ func (g *GroupConnLines) groupInternalSrcOrDst(srcGrouping, groupVsi bool) {
 
 	// update g.groupedLines based on groupingSrcOrDst
 	for _, linesGroup := range groupingSrcOrDst {
-		// if linesGroup.Src contains set of interfaces from the same subnet => group to one line with those interfaces
-		// else, keep separated lines
 		srcOrDstGroup := make([]EndpointElem, len(linesGroup))
 		for i, line := range linesGroup {
 			srcOrDstGroup[i] = line.getSrcOrDst(srcGrouping)
 		}
-		groupedSrcOrDst := vsiOrSubnetsGroupingBySubnetsOrVpc(g, srcOrDstGroup, groupVsi)
+		groupedSrcOrDst := endpointsGrouping(g, srcOrDstGroup)
 		for _, groupedSrcOrDstElem := range groupedSrcOrDst {
 			if srcGrouping {
 				res = append(res, &groupedConnLine{groupedSrcOrDstElem, linesGroup[0].dst, linesGroup[0].commonProperties})

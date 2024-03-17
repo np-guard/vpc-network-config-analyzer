@@ -500,7 +500,7 @@
                         "crn": "crn:84",
                         "href": "href:85",
                         "id": "id:86",
-                        "name": "iks-cja1",
+                        "name": "iks-clique2",
                         "resource_type": "endpoint_gateway"
                     }
                 },
@@ -518,7 +518,7 @@
                         "crn": "crn:89",
                         "href": "href:90",
                         "id": "id:91",
-                        "name": "iks-registry-a",
+                        "name": "iks-clique5",
                         "resource_type": "endpoint_gateway"
                     }
                 },
@@ -536,7 +536,7 @@
                         "crn": "crn:94",
                         "href": "href:95",
                         "id": "id:96",
-                        "name": "iks-clusterid:3",
+                        "name": "iks-clique3",
                         "resource_type": "endpoint_gateway"
                     }
                 },
@@ -554,7 +554,7 @@
                         "crn": "crn:99",
                         "href": "href:100",
                         "id": "id:101",
-                        "name": "iks-api-a",
+                        "name": "iks-clique1",
                         "resource_type": "endpoint_gateway"
                     }
                 },
@@ -668,7 +668,7 @@
                         "crn": "crn:126",
                         "href": "href:127",
                         "id": "id:128",
-                        "name": "iks-cnh",
+                        "name": "iks-clique4",
                         "resource_type": "endpoint_gateway"
                     }
                 },
@@ -825,7 +825,7 @@
                         "crn": "crn:89",
                         "href": "href:90",
                         "id": "id:91",
-                        "name": "iks-registry-a",
+                        "name": "iks-clique5",
                         "resource_type": "endpoint_gateway"
                     }
                 },
@@ -873,7 +873,7 @@
                         "crn": "crn:84",
                         "href": "href:85",
                         "id": "id:86",
-                        "name": "iks-cja1",
+                        "name": "iks-clique2",
                         "resource_type": "endpoint_gateway"
                     }
                 },
@@ -906,7 +906,7 @@
                         "crn": "crn:94",
                         "href": "href:95",
                         "id": "id:96",
-                        "name": "iks-clusterid:3",
+                        "name": "iks-clique3",
                         "resource_type": "endpoint_gateway"
                     }
                 },
@@ -942,7 +942,7 @@
                         "crn": "crn:99",
                         "href": "href:100",
                         "id": "id:101",
-                        "name": "iks-api-a",
+                        "name": "iks-clique1",
                         "resource_type": "endpoint_gateway"
                     }
                 },
@@ -1020,7 +1020,7 @@
                         "crn": "crn:126",
                         "href": "href:127",
                         "id": "id:128",
-                        "name": "iks-cnh",
+                        "name": "iks-clique4",
                         "resource_type": "endpoint_gateway"
                     }
                 },
@@ -1222,7 +1222,7 @@
                         "crn": "crn:84",
                         "href": "href:85",
                         "id": "id:86",
-                        "name": "iks-cja1",
+                        "name": "iks-clique2",
                         "resource_type": "endpoint_gateway"
                     }
                 },
@@ -1285,7 +1285,7 @@
                         "crn": "crn:94",
                         "href": "href:95",
                         "id": "id:96",
-                        "name": "iks-clusterid:3",
+                        "name": "iks-clique3",
                         "resource_type": "endpoint_gateway"
                     }
                 },
@@ -1303,7 +1303,7 @@
                         "crn": "crn:89",
                         "href": "href:90",
                         "id": "id:91",
-                        "name": "iks-registry-a",
+                        "name": "iks-clique5",
                         "resource_type": "endpoint_gateway"
                     }
                 },
@@ -1339,7 +1339,7 @@
                         "crn": "crn:99",
                         "href": "href:100",
                         "id": "id:101",
-                        "name": "iks-api-a",
+                        "name": "iks-clique1",
                         "resource_type": "endpoint_gateway"
                     }
                 },
@@ -1372,7 +1372,7 @@
                         "crn": "crn:126",
                         "href": "href:127",
                         "id": "id:128",
-                        "name": "iks-cnh",
+                        "name": "iks-clique4",
                         "resource_type": "endpoint_gateway"
                     }
                 },
@@ -2502,35 +2502,35 @@
                 {
                     "href": "href:85",
                     "id": "id:86",
-                    "name": "iks-cja1",
+                    "name": "iks-clique2",
                     "resource_type": "endpoint_gateway",
                     "crn": "crn:84"
                 },
                 {
                     "href": "href:95",
                     "id": "id:96",
-                    "name": "iks-clusterid:3",
+                    "name": "iks-clique3",
                     "resource_type": "endpoint_gateway",
                     "crn": "crn:94"
                 },
                 {
                     "href": "href:90",
                     "id": "id:91",
-                    "name": "iks-registry-a",
+                    "name": "iks-clique5",
                     "resource_type": "endpoint_gateway",
                     "crn": "crn:89"
                 },
                 {
                     "href": "href:100",
                     "id": "id:101",
-                    "name": "iks-api-a",
+                    "name": "iks-clique1",
                     "resource_type": "endpoint_gateway",
                     "crn": "crn:99"
                 },
                 {
                     "href": "href:127",
                     "id": "id:128",
-                    "name": "iks-cnh",
+                    "name": "iks-clique4",
                     "resource_type": "endpoint_gateway",
                     "crn": "crn:126"
                 },
@@ -3008,7 +3008,7 @@
             ],
             "lifecycle_reasons": null,
             "lifecycle_state": "stable",
-            "name": "iks-cnh",
+            "name": "iks-clique4",
             "resource_group": {
                 "href": "href:18",
                 "id": "id:19",
@@ -3072,7 +3072,7 @@
             ],
             "lifecycle_reasons": null,
             "lifecycle_state": "stable",
-            "name": "iks-cja1",
+            "name": "iks-clique2",
             "resource_group": {
                 "href": "href:18",
                 "id": "id:19",
@@ -3136,7 +3136,7 @@
             ],
             "lifecycle_reasons": null,
             "lifecycle_state": "stable",
-            "name": "iks-api-a",
+            "name": "iks-clique1",
             "resource_group": {
                 "href": "href:18",
                 "id": "id:19",
@@ -3200,7 +3200,7 @@
             ],
             "lifecycle_reasons": null,
             "lifecycle_state": "stable",
-            "name": "iks-clusterid:3",
+            "name": "iks-clique3",
             "resource_group": {
                 "href": "href:18",
                 "id": "id:19",
@@ -3264,7 +3264,7 @@
             ],
             "lifecycle_reasons": null,
             "lifecycle_state": "stable",
-            "name": "iks-registry-a",
+            "name": "iks-clique5",
             "resource_group": {
                 "href": "href:18",
                 "id": "id:19",
