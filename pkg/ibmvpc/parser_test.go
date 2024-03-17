@@ -11,12 +11,20 @@ import (
 )
 
 func TestVPCResourceModelRegion(t *testing.T) {
-	rc, err := ParseResourcesFromFile(filepath.Join(getTestsDirInput(), "input_experiments_env.json"))
+	rc, err := ParseResourcesFromFile(filepath.Join(getTestsDirInput(), "input_multi_regions.json"))
 	require.Nilf(t, err, "err: %s", err)
-	vpcConfigs, err := VPCConfigsFromResources(rc, "", "", nil, false)
+
+	vpcConfigs := make(map[string]*vpcmodel.VPCConfig)
+	regionToStructMap := make(map[string]*Region)
+	err = getVPCconfig(rc, vpcConfigs, nil, regionToStructMap)
 	require.Nilf(t, err, "err: %s", err)
-	vpcConfig := vpcConfigs["crn:17"]
-	require.Equal(t, vpcConfig.VPC.RegionName(), "us-south")
+
+	vpcConfig := vpcConfigs["crn:41"]
+	require.Equal(t, vpcConfig.VPC.(*VPC).Region().name, "us-east")
+
+	tgws := getTgwObjects(rc, vpcConfigs, "", nil, regionToStructMap)
+	tgw := tgws["crn:595"]
+	require.Equal(t, tgw.Region().name, "us-south")
 }
 
 func TestRegionMethodVPC(t *testing.T) {
@@ -62,7 +70,9 @@ func TestGetRegionByName(t *testing.T) {
 	getRegionByName("us-east", regionToStructMap)
 	getRegionByName("us-east", regionToStructMap)
 	getRegionByName("us-east", regionToStructMap)
+	getRegionByName("", regionToStructMap)
 
-	require.Equal(t, len(regionToStructMap), 2)
+	require.Equal(t, len(regionToStructMap), 3)
 	require.Equal(t, getRegionByName("us-south", regionToStructMap), getRegionByName("us-south", regionToStructMap))
+	require.Equal(t, getRegionByName("us-east", regionToStructMap).name, getRegionByName("us-east", regionToStructMap).name)
 }
