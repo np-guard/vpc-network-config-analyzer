@@ -192,6 +192,17 @@ func (g *groupingConnections) addPublicConnectivity(ep EndpointElem, commonProps
 	(*g)[ep][connKey].appendNode(targetNode)
 }
 
+// given an endpoint of type Node representing a VSI
+// or representing a subnet of type Nodeset, returns the UID of the VSI's
+// subnet in the former case or of the subnet's VPC is the latter.
+func getSubnetOrVPCUID(ep EndpointElem) string {
+	subnetIfVsiVPCIfSubnet := getSubnetUIDIfVsi(ep)
+	if subnetIfVsiVPCIfSubnet == "" {
+		subnetIfVsiVPCIfSubnet = getVPCUIDIfSubnet(ep)
+	}
+	return subnetIfVsiVPCIfSubnet
+}
+
 // vsiOrSubnetsGroupingBySubnetsOrVpc given *GroupConnLines, a list of EndpointElem and a bool saying whether
 // the EndpointElem represents VSIs or subnets.
 // It returns a slice of EndpointElem objects, by grouping the input set of EndpointElem
@@ -378,7 +389,7 @@ func (g *GroupConnLines) groupLinesByKey(srcGrouping, groupVsi bool) (res []*gro
 }
 
 func getKeyOfGroupConnLines(ep EndpointElem, connection string) string {
-	return ep.Name() + commaSeparator + connection
+	return ep.Name() + commaSeparator + connection + commaSeparator + getSubnetOrVPCUID(ep)
 }
 
 // assuming the  g.groupedLines was already initialized by previous step groupExternalAddresses()
