@@ -203,54 +203,6 @@ func getSubnetOrVPCUID(ep EndpointElem) string {
 	return subnetIfVsiVPCIfSubnet
 }
 
-// vsiOrSubnetsGroupingBySubnetsOrVpc given *GroupConnLines, a list of EndpointElem and a bool saying whether
-// the EndpointElem represents VSIs or subnets.
-// It returns a slice of EndpointElem objects, by grouping the input set of EndpointElem
-// such that
-// 1. If the grouped elements are vsis (as by the input bool) then the elements are grouped by their subnet
-// 2. If the grouped elements are subnets then the elements are grouped by their VPC, this is automatic
-// unless VPCConfig is result of a dummy vpc built for tgw, namely IsMultipleVPCsConfig = true
-func vsiOrSubnetsGroupingBySubnetsOrVpc(groupedConnLines *GroupConnLines,
-	elemsList []EndpointElem, groupVSI bool) []EndpointElem {
-	res := []EndpointElem{}
-	// map from subnet's (vpc's) UID to its vsis-nodes (subnets-nodesets) from the input
-	subnetOrVPCToNodesOrNodeSets := map[string][]EndpointElem{}
-	for _, elem := range elemsList {
-		var subnetOrVPCUID string
-		var newElem EndpointElem
-		if groupVSI {
-			n, ok := elem.(InternalNodeIntf)
-			if !ok {
-				res = append(res, elem) // elements which are not interface nodes remain in the result as in the original input
-				continue                // skip input elements which are not a network interface node
-			}
-			subnetOrVPCUID = n.Subnet().UID() // get the subnet to which n belongs
-			newElem = elem
-		} else {
-			n, ok := elem.(Subnet)
-			if !ok {
-				res = append(res, n) // elements which are not subnets remain in the result as in the original input
-				continue             // skip input elements which are not a subnet nodeSet
-			}
-			subnetOrVPCUID = n.VPC().UID() // get the VPC to which n belongs
-			newElem = n
-		}
-		if _, ok := subnetOrVPCToNodesOrNodeSets[subnetOrVPCUID]; !ok {
-			subnetOrVPCToNodesOrNodeSets[subnetOrVPCUID] = []EndpointElem{}
-		}
-		subnetOrVPCToNodesOrNodeSets[subnetOrVPCUID] = append(subnetOrVPCToNodesOrNodeSets[subnetOrVPCUID], newElem)
-	}
-	for _, nodesList := range subnetOrVPCToNodesOrNodeSets {
-		if len(nodesList) == 1 { // a single nif on subnet or subnet on vpc is just added to the result (no grouping)
-			res = append(res, nodesList[0])
-		} else { // a set of network interfaces from the same subnet is grouped by groupedNetworkInterfaces object
-			groupedNodes := groupedConnLines.cacheGrouped.getAndSetEndpointElemFromCache(nodesList)
-			res = append(res, groupedNodes)
-		}
-	}
-	return res
-}
-
 // endpointsGrouping returns a slice of EndpointElem objects produced from an input slice, by grouping
 // set of elements that represent subnets into a single groupedNetworkInterfaces object
 func endpointsGrouping(groupedConnLines *GroupConnLines,
@@ -260,12 +212,8 @@ func endpointsGrouping(groupedConnLines *GroupConnLines,
 	for _, elem := range elemsList {
 		elementsToGroup = append(elementsToGroup, elem)
 	}
-	if len(elementsToGroup) == 1 {
-		res = append(res, elementsToGroup[0])
-	} else {
-		groupedNodes := groupedConnLines.cacheGrouped.getAndSetEndpointElemFromCache(elementsToGroup)
-		res = append(res, groupedNodes)
-	}
+	groupedNodes := groupedConnLines.cacheGrouped.getAndSetEndpointElemFromCache(elementsToGroup)
+	res = append(res, groupedNodes)
 	return res
 }
 
