@@ -370,12 +370,10 @@ func (g *GroupConnLines) groupInternalSrcOrDst(srcGrouping, groupVsi bool) {
 			srcOrDstGroup[i] = line.getSrcOrDst(srcGrouping)
 		}
 		groupedSrcOrDst := endpointsGrouping(g, srcOrDstGroup)
-		for _, groupedSrcOrDstElem := range groupedSrcOrDst {
-			if srcGrouping {
-				res = append(res, &groupedConnLine{groupedSrcOrDstElem, linesGroup[0].dst, linesGroup[0].commonProperties})
-			} else {
-				res = append(res, &groupedConnLine{linesGroup[0].src, groupedSrcOrDstElem, linesGroup[0].commonProperties})
-			}
+		if srcGrouping {
+			res = append(res, &groupedConnLine{groupedSrcOrDst[0], linesGroup[0].dst, linesGroup[0].commonProperties})
+		} else {
+			res = append(res, &groupedConnLine{linesGroup[0].src, groupedSrcOrDst[0], linesGroup[0].commonProperties})
 		}
 	}
 	g.GroupedLines = unifiedGroupedConnLines(res, g.cacheGrouped, false)
