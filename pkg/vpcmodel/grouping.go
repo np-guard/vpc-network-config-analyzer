@@ -192,9 +192,9 @@ func (g *groupingConnections) addPublicConnectivity(ep EndpointElem, commonProps
 	(*g)[ep][connKey].appendNode(targetNode)
 }
 
-// given an endpoint of type Node representing a VSI
-// or representing a subnet of type Nodeset, returns the UID of the VSI's
-// subnet in the former case or of the subnet's VPC is the latter.
+// given an endpoint representing a VSI or a subnet
+// returns the UID of the vsi's subnet in the former case or of
+// the subnet's VPC is the latter.
 func getSubnetOrVPCUID(ep EndpointElem) string {
 	subnetIfVsiVPCIfSubnet := getSubnetUIDIfVsi(ep)
 	if subnetIfVsiVPCIfSubnet == "" {
