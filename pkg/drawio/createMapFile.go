@@ -23,6 +23,7 @@ type templateData struct {
 	Nodes       []TreeNodeInterface
 	DebugPoints []debugPoint
 	relations   string
+	IsHtml      bool
 }
 
 func NewTemplateData(network SquareTreeNodeInterface) *templateData {
@@ -36,6 +37,7 @@ func NewTemplateData(network SquareTreeNodeInterface) *templateData {
 		orderedNodes,
 		network.DebugPoints(),
 		"",
+		true,
 	}
 	data.setRelations(network)
 	return data
@@ -118,17 +120,22 @@ func orderNodesForTemplate(nodes []TreeNodeInterface) []TreeNodeInterface {
 // todo - when implementing the full html solution, need to change this interface:
 func CreateDrawioConnectivityMapFile(network SquareTreeNodeInterface, outputFile string, subnetMode bool) error {
 	newLayout(network, subnetMode).layout()
+	data := NewTemplateData(network)
 	if true {
-		err := createFileFromTemplate(network, outputFile+".html", svgTemplate)
+		err := createFileFromTemplate(data, outputFile+".html", svgTemplate)
+		if err != nil {
+			return err
+		}
+		data.IsHtml = false
+		err = createFileFromTemplate(data, outputFile+".svg", svgTemplate)
 		if err != nil {
 			return err
 		}
 	}
-	return createFileFromTemplate(network, outputFile, drawioTemplate)
+	return createFileFromTemplate(data, outputFile, drawioTemplate)
 }
 
-func createFileFromTemplate(network SquareTreeNodeInterface, outputFile, templ string) error {
-	data := NewTemplateData(network)
+func createFileFromTemplate(data *templateData, outputFile, templ string) error {
 	tmpl, err := template.New("diagram").Parse(templ)
 	if err != nil {
 		return err
