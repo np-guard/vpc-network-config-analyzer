@@ -21,7 +21,7 @@ func (tgw *TransitGateway) ShowOnSubnetMode() bool     { return true }
 
 // implementations of the GenerateDrawioTreeNode() for resource defined in ibmvpc:
 func (v *VPC) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
-	return drawio.NewVpcTreeNode(gen.Cloud(), v.Name())
+	return drawio.NewVpcTreeNode(gen.Region(), v.Name())
 }
 func (z *Zone) IsExternal() bool { return false }
 func (z *Zone) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
@@ -111,5 +111,5 @@ func (fip *FloatingIP) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) dra
 }
 
 func (tgw *TransitGateway) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
-	return drawio.NewTransitGatewayTreeNode(gen.Cloud(), tgw.Name())
+	return drawio.NewTransitGatewayTreeNode(gen.Region(), tgw.Name())
 }
