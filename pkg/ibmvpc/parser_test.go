@@ -4,9 +4,10 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/np-guard/models/pkg/ipblocks"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
-	"github.com/stretchr/testify/require"
 )
 
 func TestVPCResourceModelRegion(t *testing.T) {
