@@ -203,18 +203,6 @@ func getSubnetOrVPCUID(ep EndpointElem) string {
 	return subnetIfVsiVPCIfSubnet
 }
 
-// endpointsGrouping returns a slice of EndpointElem objects produced from an input slice, by grouping
-// set of elements that represent subnets into a single groupedNetworkInterfaces object
-func endpointsGrouping(groupedConnLines *GroupConnLines,
-	elemsList []EndpointElem) *groupedEndpointsElems {
-	elementsToGroup := []EndpointElem{} // subnets to be grouped
-	for _, elem := range elemsList {
-		elementsToGroup = append(elementsToGroup, elem)
-	}
-	groupedNodes := groupedConnLines.cacheGrouped.getAndSetEndpointElemFromCache(elementsToGroup)
-	return groupedNodes
-}
-
 // group public internet ranges for vsis/subnets connectivity lines
 func (g *GroupConnLines) groupExternalAddresses(vsi bool) error {
 	var allowedConnsCombined GeneralConnectivityMap
@@ -367,11 +355,16 @@ func (g *GroupConnLines) groupInternalSrcOrDst(srcGrouping, groupVsi bool) {
 		for i, line := range linesGroup {
 			srcOrDstGroup[i] = line.getSrcOrDst(srcGrouping)
 		}
-		groupedSrcOrDst := endpointsGrouping(g, srcOrDstGroup)
+		// grouping vsis/subnets to be grouped
+		elementsToGroup := []EndpointElem{}
+		for _, elem := range srcOrDstGroup {
+			elementsToGroup = append(elementsToGroup, elem)
+		}
+		groupedNodes := g.cacheGrouped.getAndSetEndpointElemFromCache(elementsToGroup)
 		if srcGrouping {
-			res = append(res, &groupedConnLine{groupedSrcOrDst, linesGroup[0].dst, linesGroup[0].commonProperties})
+			res = append(res, &groupedConnLine{groupedNodes, linesGroup[0].dst, linesGroup[0].commonProperties})
 		} else {
-			res = append(res, &groupedConnLine{linesGroup[0].src, groupedSrcOrDst, linesGroup[0].commonProperties})
+			res = append(res, &groupedConnLine{linesGroup[0].src, groupedNodes, linesGroup[0].commonProperties})
 		}
 	}
 	g.GroupedLines = unifiedGroupedConnLines(res, g.cacheGrouped, false)
