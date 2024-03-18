@@ -101,11 +101,12 @@ func (c *VPCConfig) explainConnectivityForVPC(src, dst string, srcNodes, dstNode
 		return nil, err4
 	}
 
+	// isSrcInternalIP/isDstInternalIP: if src/dst given as internal address, also prints the relevant vsi names
+	isSrcInternalIP := isSrcDstInternalIP == srcInternalIP || isSrcDstInternalIP == srcAndDstInternalIP
+	isDstInternalIP := isSrcDstInternalIP == dstInternalIP || isSrcDstInternalIP == srcAndDstInternalIP
 	return &Explanation{c, connQuery, &rulesAndDetails, src, dst,
-		getNetworkInterfacesFromIP(
-			isSrcDstInternalIP == srcInternalIP || isSrcDstInternalIP == srcAndDstInternalIP, srcNodes),
-		getNetworkInterfacesFromIP(
-			isSrcDstInternalIP == dstInternalIP || isSrcDstInternalIP == srcAndDstInternalIP, dstNodes),
+		getNetworkInterfacesFromIP(isSrcInternalIP, srcNodes),
+		getNetworkInterfacesFromIP(isDstInternalIP, dstNodes),
 		groupedLines.GroupedLines}, nil
 }
 
