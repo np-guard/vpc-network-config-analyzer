@@ -5,8 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
-
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+	"slices"
 )
 
 func (data *templateData) SvgId(tn TreeNodeInterface) string {
@@ -26,82 +25,93 @@ func nodeParents(node TreeNodeInterface) []TreeNodeInterface {
 	}
 	return append(nodeParents(node.Parent()), node)
 }
-func lineRelation(multiLine []TreeNodeInterface) (res, srcs, dsts []TreeNodeInterface, router TreeNodeInterface) {
-	for _, line := range multiLine {
-		src := line.(LineTreeNodeInterface).Src()
-		dst := line.(LineTreeNodeInterface).Dst()
-		if src.IsIcon() && src.(IconTreeNodeInterface).IsGroupingPoint() {
-			src = src.Parent()
-		}
-		if dst.IsIcon() && dst.(IconTreeNodeInterface).IsGroupingPoint() {
-			dst = dst.Parent()
-		}
-		router = line.(LineTreeNodeInterface).Router()
-		res = append(res, line)
-		res = append(res, nodeParents(src)...)
-		res = append(res, nodeParents(dst)...)
-		if router != nil {
-			res = append(res, router)
-		}
-		for _, node := range []TreeNodeInterface{src, dst} {
-			if node.IsSquare() {
-				res = append(res, getAllIcons(node)...)
-				res = append(res, getAllSquares(node)...)
-			}
-		}
-		srcs = append(srcs, src)
-		dsts = append(dsts, dst)
-		srcs = append(srcs, getAllIcons(src)...)
-		dsts = append(dsts, getAllSquares(src)...)
+
+func lineRelation2(info *lineInfo) []TreeNodeInterface {
+	res := []TreeNodeInterface{info.mainLine}
+	res = append(res, nodeParents(info.src)...)
+	res = append(res, nodeParents(info.dst)...)
+	if info.router != nil {
+		res = append(res, info.router)
 	}
-	return res, srcs, dsts, router
+	for _, node := range []TreeNodeInterface{info.src, info.dst} {
+		res = append(res, getAllIcons(node)...)
+		res = append(res, getAllSquares(node)...)
+	}
+	if info.srcGroupingPoint != nil {
+		res = append(res, info.srcGroupingPoint)
+	}
+	if info.dstGroupingPoint != nil {
+		res = append(res, info.dstGroupingPoint)
+	}
+	for _, l := range info.srcGroupingLines {
+		res = append(res, l)
+		res = append(res, getAllIcons(l.Src())...)
+		res = append(res, getAllSquares(l.Src())...)
+	}
+	for _, l := range info.dstGroupingLines {
+		res = append(res, l)
+		res = append(res, getAllIcons(l.Dst())...)
+		res = append(res, getAllSquares(l.Dst())...)
+	}
+	return res
 }
 
-func nodesRelations(network TreeNodeInterface) map[TreeNodeInterface][]TreeNodeInterface {
+type lineInfo struct {
+	mainLine                           LineTreeNodeInterface
+	src, dst                           TreeNodeInterface
+	router                             TreeNodeInterface
+	srcGroupingLines, dstGroupingLines []LineTreeNodeInterface
+	srcGroupingPoint, dstGroupingPoint TreeNodeInterface
+}
+
+func getLineInfo(line LineTreeNodeInterface) *lineInfo {
+	src := line.Src()
+	dst := line.Dst()
+	router := line.Router()
+
+	srcIsGP := src.IsIcon() && src.(IconTreeNodeInterface).IsGroupingPoint()
+	dstIsGP := dst.IsIcon() && dst.(IconTreeNodeInterface).IsGroupingPoint()
+	switch {
+	case !srcIsGP && !dstIsGP:
+		return &lineInfo{line, src, dst, router, nil, nil, nil, nil}
+	case srcIsGP && dstIsGP:
+		return &lineInfo{line, src.Parent(), dst.Parent(), router,
+			src.(*GroupPointTreeNode).groupedIconsConns,
+			dst.(*GroupPointTreeNode).groupedIconsConns,
+			src, dst}
+	case srcIsGP && !slices.Contains(src.(*GroupPointTreeNode).groupedIconsConns, line):
+		return &lineInfo{line, src.Parent(), dst, router,
+			src.(*GroupPointTreeNode).groupedIconsConns,
+			nil,
+			src, nil}
+	case dstIsGP && !slices.Contains(dst.(*GroupPointTreeNode).groupedIconsConns, line):
+		return &lineInfo{line, src, dst.Parent(), router,
+			nil,
+			dst.(*GroupPointTreeNode).groupedIconsConns,
+			nil, dst}
+
+	}
+	return nil
+}
+
+func tnRelations(network TreeNodeInterface) map[TreeNodeInterface][]TreeNodeInterface {
 	res := map[TreeNodeInterface][]TreeNodeInterface{}
+	// all parents of the nodes
 	for _, node := range getAllNodes(network) {
 		res[node] = nodeParents(node)
 	}
-	multiLines := map[TreeNodeInterface]common.GenericSet[TreeNodeInterface]{}
+
 	for _, line := range getAllLines(network) {
-		for _, node := range []TreeNodeInterface{line.Src(), line.Dst()} {
-			if node.IsIcon() && node.(IconTreeNodeInterface).IsGroupingPoint() {
-				multiLines[node] = common.GenericSet[TreeNodeInterface]{}
-			}
+		info := getLineInfo(line)
+		if info == nil {
+			continue
 		}
-	}
-	for _, line := range getAllLines(network) {
-		srcIsGP := line.Src().IsIcon() && line.Src().(IconTreeNodeInterface).IsGroupingPoint()
-		dstIsGP := line.Dst().IsIcon() && line.Dst().(IconTreeNodeInterface).IsGroupingPoint()
-		if srcIsGP {
-			multiLines[line.Src()][line] = true
-		}
-		if dstIsGP {
-			multiLines[line.Dst()][line] = true
-		}
-		if !srcIsGP && !dstIsGP {
-			multiLines[line] = common.GenericSet[TreeNodeInterface]{line: true}
-		}
-	}
-	for _, line := range getAllLines(network) {
-		if line.Src().IsIcon() && line.Src().(IconTreeNodeInterface).IsGroupingPoint() &&
-			line.Dst().IsIcon() && line.Dst().(IconTreeNodeInterface).IsGroupingPoint() {
-				multiLines[line.Src()].Merge(multiLines[line.Dst()])
-			delete(multiLines, line.Dst())
+		all := lineRelation2(info)
+		for _, i := range all {
+			res[i] = append(res[i], all...)
 		}
 	}
 
-	for _, multiLine := range multiLines {
-		lineRelations, srcs, dsts, router := lineRelation(multiLine.AsList())
-		all := append(multiLine.AsList(), srcs...)
-		all = append(all, dsts...)
-		if router != nil {
-			all = append(all, router)
-		}
-		for _, i := range all {
-			res[i] = append(res[i], lineRelations...)
-		}
-	}
 	for _, node := range getAllSquares(network) {
 		res[node] = append(res[node], getAllIcons(node)...)
 		res[node] = append(res[node], getAllSquares(node)...)
@@ -110,7 +120,7 @@ func nodesRelations(network TreeNodeInterface) map[TreeNodeInterface][]TreeNodeI
 }
 
 func (data *templateData) nodesRelations(network TreeNodeInterface) map[string]map[string][]string {
-	rel := nodesRelations(network)
+	rel := tnRelations(network)
 	res := map[string]map[string][]string{}
 	res[""] = map[string][]string{}
 	res[""]["relations"] = []string{data.SvgRootId()}
