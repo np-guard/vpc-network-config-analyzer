@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"reflect"
 	"slices"
+
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 func (data *templateData) SvgId(tn TreeNodeInterface) string {
@@ -114,6 +116,9 @@ func tnRelations(network TreeNodeInterface) map[TreeNodeInterface][]TreeNodeInte
 	for _, node := range getAllSquares(network) {
 		res[node] = append(res[node], getAllIcons(node)...)
 		res[node] = append(res[node], getAllSquares(node)...)
+	}
+	for n,r := range res{
+		res[n] = common.FromList[TreeNodeInterface](r).AsList()
 	}
 	return res
 }
