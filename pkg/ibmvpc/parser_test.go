@@ -76,5 +76,5 @@ func TestGetRegionByName(t *testing.T) {
 	region1 := getRegionByName("us-south", regionToStructMap)
 	region2 := getRegionByName("us-south", regionToStructMap)
 	require.Equal(t, region1, region2)
-	require.Equal(t, region1 == region2, true)
+	require.True(t, region1 == region2)
 }
