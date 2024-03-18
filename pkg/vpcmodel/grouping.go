@@ -517,7 +517,7 @@ func (g *groupedExternalNodes) String() string {
 	if err != nil {
 		return ""
 	}
-	// 2. Union all IPBlocks in a single one; its interval will be the cidr blocks or ranges that should be printed, after all possible merges
+	// 2. Union all IPBlocks in a single one; its intervals will be the cidr blocks or ranges that should be printed, after all possible merges
 	unionBlock := ipblock.New()
 	for _, ipBlock := range ipbList {
 		unionBlock = unionBlock.Union(ipBlock)
