@@ -263,7 +263,7 @@ func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *ipblocks.
 	// 2.
 	if isExternal {
 		nodes, errType, err = c.getCidrExternalNodes(inputIPBlock)
-		if err1 != nil { // should never get here.
+		if err != nil { // should never get here.
 			return nil, false, errType, err
 		}
 		return nodes, false, noErr, nil
