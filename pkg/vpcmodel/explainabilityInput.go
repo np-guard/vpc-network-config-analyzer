@@ -67,7 +67,7 @@ const strPrint = "%s"
 // thus, if no match found and one of the configs had error 1, this is the error we return with
 // otherwise, we return with error 5
 // * error 2 - currently we do not support intersecting subnets address space
-func (configsMap VpcsConfigsMap) getVPCConfigAndSrcDstNodes(src, dst string) (vpcConfig *VPCConfig,
+func (configsMap MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string) (vpcConfig *VPCConfig,
 	srcNodes, dstNodes []Node, isSrcDstInternalIP int, err error) {
 	var errMsgInternalNotWithinSubnet, errMsgNoValidInput error
 	type srcAndDstNodes struct {

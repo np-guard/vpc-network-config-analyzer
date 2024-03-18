@@ -66,7 +66,7 @@ type Explanation struct {
 	groupedLines []*groupedConnLine
 }
 
-func (configsMap VpcsConfigsMap) ExplainConnectivity(src, dst string, connQuery *common.ConnectionSet) (res *Explanation, err error) {
+func (configsMap MultipleVPCConfigs) ExplainConnectivity(src, dst string, connQuery *common.ConnectionSet) (res *Explanation, err error) {
 	vpcConfig, srcNodes, dstNodes, isSrcDstInternalIP, err := configsMap.getVPCConfigAndSrcDstNodes(src, dst)
 	if err != nil {
 		return nil, err

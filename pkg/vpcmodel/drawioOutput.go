@@ -26,7 +26,7 @@ func (e *edgeInfo) IsExternal() bool {
 // 3. create the edges from the map we created in stage (1). also sets the routers to the edges
 
 type DrawioOutputFormatter struct {
-	cConfigs        VpcsConfigsMap
+	cConfigs        MultipleVPCConfigs
 	conns           map[string]*GroupConnLines
 	gen             *DrawioGenerator
 	nodeRouters     map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface
@@ -34,7 +34,7 @@ type DrawioOutputFormatter struct {
 	uc              OutputUseCase
 }
 
-func (d *DrawioOutputFormatter) init(cConfigs VpcsConfigsMap, conns map[string]*GroupConnLines, uc OutputUseCase) {
+func (d *DrawioOutputFormatter) init(cConfigs MultipleVPCConfigs, conns map[string]*GroupConnLines, uc OutputUseCase) {
 	d.cConfigs = cConfigs
 	d.conns = conns
 	d.uc = uc
@@ -176,7 +176,7 @@ func (d *DrawioOutputFormatter) showResource(res DrawioResourceIntf) bool {
 	return d.uc != AllSubnets || res.ShowOnSubnetMode()
 }
 
-func (d *DrawioOutputFormatter) WriteOutput(c1, c2 VpcsConfigsMap,
+func (d *DrawioOutputFormatter) WriteOutput(c1, c2 MultipleVPCConfigs,
 	conn map[string]*VPCConnectivity,
 	subnetsConn map[string]*VPCsubnetConnectivity,
 	cfgsDiff *diffBetweenCfgs,
@@ -192,7 +192,7 @@ func (d *DrawioOutputFormatter) WriteOutput(c1, c2 VpcsConfigsMap,
 		}
 		d.init(c1, gConn, uc)
 	case AllSubnets:
-		gConfigs := VpcsConfigsMap{}
+		gConfigs := MultipleVPCConfigs{}
 		gConn := map[string]*GroupConnLines{}
 		if subnetsConn != nil {
 			for name, vpcConn := range subnetsConn {
@@ -219,7 +219,7 @@ type ArchDrawioOutputFormatter struct {
 	DrawioOutputFormatter
 }
 
-func (d *ArchDrawioOutputFormatter) WriteOutput(c1, c2 VpcsConfigsMap,
+func (d *ArchDrawioOutputFormatter) WriteOutput(c1, c2 MultipleVPCConfigs,
 	conn map[string]*VPCConnectivity,
 	subnetsConn map[string]*VPCsubnetConnectivity,
 	cfgsDiff *diffBetweenCfgs,

@@ -15,7 +15,7 @@ func newCacheGroupedElements() *cacheGroupedElements {
 // unifyMultiVPC unifies multi-vpc graph for endpoints and subnets connectivity s.t.
 // each node appears once across multi-vpcs this is relevant only for DRAWIO
 // in which there is a multivpc presentation
-func unifyMultiVPC(config1 VpcsConfigsMap, nodesConn map[string]*VPCConnectivity,
+func unifyMultiVPC(config1 MultipleVPCConfigs, nodesConn map[string]*VPCConnectivity,
 	subnetsConn map[string]*VPCsubnetConnectivity, uc OutputUseCase) {
 	for vpcUID := range config1 {
 		switch uc {
