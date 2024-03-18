@@ -43,7 +43,6 @@ const (
 )
 
 const noValidInputMsg = "does not represent a legal IP address, a legal CIDR or a VSI name"
-const strPrint = "%s"
 
 // getVPCConfigAndSrcDstNodes given src, dst names returns the config in which the exaplainability analysis of these
 // should be done and the Nodes for src and dst.
@@ -116,8 +115,8 @@ func (configsMap MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string)
 		}
 		sort.Strings(matchConfigs)
 		return nil, nil, nil, noInternalIP,
-			fmt.Errorf(strPrint, fmt.Sprintf("src: %s and dst: %s found in more than one config: %s",
-				src, dst, strings.Join(matchConfigs, ",")))
+			fmt.Errorf("src: %s and dst: %s found in more than one config: %s",
+				src, dst, strings.Join(matchConfigs, ","))
 	}
 	return nil, nil, nil, noInternalIP, nil
 }
@@ -208,7 +207,7 @@ func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node, in
 		// the input is not a legal cidr or IP address, which in this stage means it is not a
 		// valid presentation for src/dst. Lint demands that an error is returned here
 		return nil, false, noValidInputErr,
-			fmt.Errorf(strPrint, fmt.Sprintf("%s %s", cidrOrName, noValidInputMsg))
+			fmt.Errorf("%s %s", cidrOrName, noValidInputMsg)
 	}
 	// the input is a legal cidr or IP address
 	return c.getNodesFromAddress(cidrOrName, ipBlock)
