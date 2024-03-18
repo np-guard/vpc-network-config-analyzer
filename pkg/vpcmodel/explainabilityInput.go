@@ -203,7 +203,7 @@ func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node, in
 	case 2: // vpc name specified
 		prefixVPC = cidrOrNameSlice[0]
 		suffixNameOrCidr = cidrOrNameSlice[1]
-	default: //> 1, address
+	default: // > 1, address
 		suffixNameOrCidr = cidrOrName
 	}
 	// 1. cidrOrName references vsi
