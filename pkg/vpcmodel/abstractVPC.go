@@ -17,6 +17,7 @@ type VPCResourceIntf interface {
 	ZoneName() string
 	Kind() string
 	VPC() VPCResourceIntf // the VPC to which this resource belongs to
+	RegionName() string
 
 	DrawioResourceIntf
 }
@@ -28,6 +29,7 @@ type VPCResource struct {
 	ResourceUID  string
 	ResourceType string
 	Zone         string
+	Region       string
 	// the VPC to which this resource belongs to
 	VPCRef VPCResourceIntf `json:"-"`
 }
@@ -53,6 +55,10 @@ func (n *VPCResource) IsExternal() bool {
 
 func (n *VPCResource) VPC() VPCResourceIntf {
 	return n.VPCRef
+}
+
+func (n *VPCResource) RegionName() string {
+	return n.Region
 }
 
 func (n *VPCResource) NameAndUID() string {

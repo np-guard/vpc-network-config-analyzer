@@ -367,13 +367,14 @@ func (sga *SGAnalyzer) ingressOrEgressConnectivity(isIngress bool) (res *Connect
 
 // StringRules returns a string with the details of the specified rules
 func (sga *SGAnalyzer) StringRules(rules []int) string {
-	var strRules string
-	for _, ruleIndex := range rules {
+	strRulesSlice := make([]string, len(rules))
+	for i, ruleIndex := range rules {
 		strRule, _, _, err := sga.getSGRule(ruleIndex)
 		if err != nil {
 			return ""
 		}
-		strRules += "\t" + strRule
+		strRulesSlice[i] = "\t" + strRule
 	}
-	return strRules
+	sort.Strings(strRulesSlice)
+	return strings.Join(strRulesSlice, "")
 }

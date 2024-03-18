@@ -17,6 +17,10 @@ func getNodeName(name, addr string) string {
 	return fmt.Sprintf("%s[%s]", name, addr)
 }
 
+type Region struct {
+	name string
+}
+
 type Zone struct {
 	name string
 	vpc  *VPC
@@ -95,6 +99,11 @@ type VPC struct {
 	internalAddressRange *ipblocks.IPBlock
 	subnetsList          []*Subnet
 	addressPrefixes      []string
+	region               *Region
+}
+
+func (v *VPC) Region() *Region {
+	return v.region
 }
 
 func (v *VPC) AddressPrefixes() []string {
@@ -691,6 +700,8 @@ type TransitGateway struct {
 
 	sourceNodes []vpcmodel.Node
 	destNodes   []vpcmodel.Node
+
+	region *Region
 }
 
 func (tgw *TransitGateway) addSourceAndDestNodes() {
@@ -700,6 +711,10 @@ func (tgw *TransitGateway) addSourceAndDestNodes() {
 	for _, subnet := range tgw.destSubnets {
 		tgw.destNodes = append(tgw.destNodes, subnet.Nodes()...)
 	}
+}
+
+func (tgw *TransitGateway) Region() *Region {
+	return tgw.region
 }
 
 func (tgw *TransitGateway) Sources() (res []vpcmodel.Node) {
