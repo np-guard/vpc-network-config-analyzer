@@ -26,7 +26,7 @@ func nodeParents(node TreeNodeInterface) []TreeNodeInterface {
 	return append(nodeParents(node.Parent()), node)
 }
 
-func lineRelation2(info *lineInfo) []TreeNodeInterface {
+func lineRelation(info *lineInfo) []TreeNodeInterface {
 	res := []TreeNodeInterface{info.mainLine}
 	res = append(res, nodeParents(info.src)...)
 	res = append(res, nodeParents(info.dst)...)
@@ -89,7 +89,6 @@ func getLineInfo(line LineTreeNodeInterface) *lineInfo {
 			nil,
 			dst.(*GroupPointTreeNode).groupedIconsConns,
 			nil, dst}
-
 	}
 	return nil
 }
@@ -106,9 +105,9 @@ func tnRelations(network TreeNodeInterface) map[TreeNodeInterface][]TreeNodeInte
 		if info == nil {
 			continue
 		}
-		all := lineRelation2(info)
-		for _, i := range all {
-			res[i] = append(res[i], all...)
+		lineRelations := lineRelation(info)
+		for _, i := range lineRelations {
+			res[i] = append(res[i], lineRelations...)
 		}
 	}
 
