@@ -1,5 +1,5 @@
-Connectivity explanation between vsi1-ky and 172.217.22.46/32 within test-vpc0-ky
-=================================================================================
+Connectivity explanation between test-vpc0-ky.vsi1-ky and 172.217.22.46/32 within test-vpc0-ky
+==============================================================================================
 
 The following connection exists between vsi1-ky[10.240.1.4] and Public Internet 172.217.22.46/32: All Connections
 Path:

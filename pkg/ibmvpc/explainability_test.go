@@ -418,7 +418,7 @@ var explainTests = []*vpcGeneralTest{
 	{
 		name:        "multiVPCVsiToExternal",
 		inputConfig: "tgw_larger_example",
-		ESrc:        "vsi1-ky",
+		ESrc:        "test-vpc0-ky.vsi1-ky",
 		EDst:        "172.217.22.46/32",
 		format:      vpcmodel.Debug,
 	},
