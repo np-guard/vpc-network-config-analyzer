@@ -27,6 +27,7 @@ func (e *ExplanationArgs) Dst() string {
 	return e.dst
 }
 
+// consts for managing errors from the single vpc context in the global, multi-vpc, context.
 const (
 	noErr                        = iota
 	exitNowErr                   // exit now with the error (do not wait until we go over all vpcs)
@@ -96,30 +97,29 @@ func (configsMap VpcsConfigsMap) getVPCConfigAndSrcDstNodes(src, dst string) (vp
 				isSrcDstInternalIP}
 		}
 	}
-	// single match: return it
-	if len(configsWithSrcDstNode) == 1 {
+	switch len(configsWithSrcDstNode) {
+	case 1: // single match: return it
 		for cfgID, val := range configsWithSrcDstNode {
 			return configsMap[cfgID], val.srcNodes, val.dstNodes, val.isSrcDstInternalIP, nil
 		}
-	}
-	if len(configsWithSrcDstNode) == 0 {
-		// no match: internalNotWithinSubnetsAddr err has priority over noValidInputErr
+	case 0: // no match: internalNotWithinSubnetsAddr err has priority over noValidInputErr
 		if errMsgInternalNotWithinSubnet != nil {
 			return nil, nil, nil, noInternalIP, errMsgInternalNotWithinSubnet
 		}
 		return nil, nil, nil, noInternalIP, errMsgNoValidInput
+	default: // len(configsWithSrcDstNode) > 1: src and dst found in more than one VPC configs - error
+		matchConfigs := make([]string, len(configsWithSrcDstNode))
+		i := 0
+		for cfgID := range configsWithSrcDstNode {
+			matchConfigs[i] = configsMap[cfgID].VPC.Name()
+			i++
+		}
+		sort.Strings(matchConfigs)
+		return nil, nil, nil, noInternalIP,
+			fmt.Errorf(strPrint, fmt.Sprintf("src: %s and dst: %s found in more than one config: %s",
+				src, dst, strings.Join(matchConfigs, ",")))
 	}
-	// len(configsWithSrcDstNode) > 1: src and dst found in more than one VPC configs - error
-	matchConfigs := make([]string, len(configsWithSrcDstNode))
-	i := 0
-	for cfgID := range configsWithSrcDstNode {
-		matchConfigs[i] = configsMap[cfgID].VPC.Name()
-		i++
-	}
-	sort.Strings(matchConfigs)
-	return nil, nil, nil, noInternalIP,
-		fmt.Errorf(strPrint, fmt.Sprintf("src: %s and dst: %s found in more than one config: %s",
-			src, dst, strings.Join(matchConfigs, ",")))
+	return nil, nil, nil, noInternalIP, nil
 }
 
 // GetConnectionSet TODO: handle also input ICMP properties (type, code) as input args
