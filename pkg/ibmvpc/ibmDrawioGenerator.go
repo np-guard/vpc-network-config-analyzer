@@ -5,7 +5,7 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
-func (r *Region) ShowOnSubnetMode() bool                  { return true }
+func (r *Region) ShowOnSubnetMode() bool               { return true }
 func (v *VPC) ShowOnSubnetMode() bool                  { return true }
 func (z *Zone) ShowOnSubnetMode() bool                 { return true }
 func (s *Subnet) ShowOnSubnetMode() bool               { return true }
