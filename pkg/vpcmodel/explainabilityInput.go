@@ -3,7 +3,8 @@ package vpcmodel
 import (
 	"fmt"
 
-	"github.com/np-guard/models/pkg/ipblocks"
+	"github.com/np-guard/models/pkg/ipblock"
+
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
@@ -93,7 +94,7 @@ func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node, in
 	}
 	// cidrOrName, if legal, references an address.
 	// 2. cidrOrName references an ip address
-	ipBlock, err2 := ipblocks.NewIPBlockFromCidrOrAddress(cidrOrName)
+	ipBlock, err2 := ipblock.FromCidrOrAddress(cidrOrName)
 	if err2 != nil {
 		// the input is not a legal cidr or IP address, which in this stage means it is not a
 		// valid presentation for src/dst. Lint demands that an error is returned here
@@ -135,13 +136,13 @@ func (c *VPCConfig) getNodesOfVsi(vsi string) ([]Node, error) {
 //  5. If none of the above holds, return nil
 //
 // todo: 4 - replace subnet's address range in vpc's address prefix
-func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *ipblocks.IPBlock) (nodes []Node, internalIP bool, err error) {
+func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *ipblock.IPBlock) (nodes []Node, internalIP bool, err error) {
 	// 1.
 	_, publicInternet, err1 := getPublicInternetIPblocksList()
 	if err1 != nil { // should never get here
 		return nil, false, err1
 	}
-	isExternal := !inputIPBlock.Intersection(publicInternet).Empty()
+	isExternal := !inputIPBlock.Intersect(publicInternet).IsEmpty()
 	isInternal := !inputIPBlock.ContainedIn(publicInternet)
 	if isInternal && isExternal {
 		return nil, false, fmt.Errorf("%s contains both external and internal addresses which is not supported. "+
@@ -180,9 +181,9 @@ func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *ipblocks.
 //  1. Calculate the IP blocks of the nodes N
 //  2. Calculate from N and the cidr block, disjoint IP blocks
 //  3. Return the nodes created from each block from 2 contained in the input cidr
-func (c *VPCConfig) getCidrExternalNodes(inputIPBlock *ipblocks.IPBlock) (cidrNodes []Node, err error) {
+func (c *VPCConfig) getCidrExternalNodes(inputIPBlock *ipblock.IPBlock) (cidrNodes []Node, err error) {
 	// 1.
-	vpcConfigNodesExternalBlock := []*ipblocks.IPBlock{}
+	vpcConfigNodesExternalBlock := []*ipblock.IPBlock{}
 	for _, node := range c.Nodes {
 		if node.IsInternal() {
 			continue
@@ -190,7 +191,7 @@ func (c *VPCConfig) getCidrExternalNodes(inputIPBlock *ipblocks.IPBlock) (cidrNo
 		vpcConfigNodesExternalBlock = append(vpcConfigNodesExternalBlock, node.IPBlock())
 	}
 	// 2.
-	disjointBlocks := ipblocks.DisjointIPBlocks([]*ipblocks.IPBlock{inputIPBlock}, vpcConfigNodesExternalBlock)
+	disjointBlocks := ipblock.DisjointIPBlocks([]*ipblock.IPBlock{inputIPBlock}, vpcConfigNodesExternalBlock)
 	// 3.
 	cidrNodes = []Node{}
 	for _, block := range disjointBlocks {
@@ -207,7 +208,7 @@ func (c *VPCConfig) getCidrExternalNodes(inputIPBlock *ipblocks.IPBlock) (cidrNo
 
 // getNodesWithinInternalAddress gets input IPBlock
 // and returns the list of all internal nodes (should be VSI) within address
-func (c *VPCConfig) getNodesWithinInternalAddress(inputIPBlock *ipblocks.IPBlock) (networkInterfaceNodes []Node) {
+func (c *VPCConfig) getNodesWithinInternalAddress(inputIPBlock *ipblock.IPBlock) (networkInterfaceNodes []Node) {
 	networkInterfaceNodes = []Node{}
 	for _, node := range c.Nodes {
 		if node.IsInternal() && node.IPBlock().ContainedIn(inputIPBlock) {

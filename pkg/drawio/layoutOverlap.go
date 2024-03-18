@@ -150,7 +150,7 @@ func (lyO *layoutOverlap) handleLinesOverLines() {
 
 // handleLinesOverIcons() - handle lines that overlap icons:
 //  1. we basically create a new list of points, a mix of the line old points, and the new bypass points.
-//  2. each line is being split to intervals - the intervals are basically a list of the points of the line,
+//  2. each line is being split to interval - the interval are basically a list of the points of the line,
 //     plus the src and the dst of the line.
 //     an interval is the basically a two sequential points.
 //  3. for each interval, if there is an icon that is overlapped by the interval, than we add a bypass point between those points.
