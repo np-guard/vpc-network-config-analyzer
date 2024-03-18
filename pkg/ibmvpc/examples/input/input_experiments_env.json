@@ -61,6 +61,7 @@
             },
             "resource_type": "vpc",
             "status": "available",
+            "region": "us-south",
             "tags": []
         },
         {
@@ -124,6 +125,7 @@
             },
             "resource_type": "vpc",
             "status": "available",
+            "region": "us-south",
             "tags": []
         }
     ],
