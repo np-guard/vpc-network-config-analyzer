@@ -13,7 +13,7 @@ import (
 
 const explainOut = "explain_out"
 
-// getConfigs returns  map[string]*vpcmodel.VPCConfig obj for the input test (config json file)
+// getConfigs returns  vpcmodel.MultipleVPCConfigs obj for the input test (config json file)
 func getConfig(t *testing.T, fileName string) vpcmodel.MultipleVPCConfigs {
 	inputConfigFile := filepath.Join(getTestsDirInput(), inputFilePrefix+fileName+jsonOutSuffix)
 	rc, err := ParseResourcesFromFile(inputConfigFile)
