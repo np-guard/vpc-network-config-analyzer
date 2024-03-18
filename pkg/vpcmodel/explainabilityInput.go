@@ -30,7 +30,7 @@ func (e *ExplanationArgs) Dst() string {
 // consts for managing errors from the single vpc context in the global, multi-vpc, context.
 const (
 	noErr                        = iota
-	exitNowErr                   // exit now with the error (do not wait until we go over all vpcs)
+	fatalErr                     // fatal error that implies immediate termination (do not wait until we go over all vpcs)
 	internalNotWithinSubnetsAddr // internal address with not within vpc config's subnet addr - wait until we go over all vpcs
 	noValidInputErr              // string does not represent a valid input w.r.t. this config - wait as above
 )
@@ -83,7 +83,7 @@ func (configsMap MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string)
 		srcNodes, dstNodes, isSrcDstInternalIP, errType, err = configsMap[cfgID].srcDstInputToNodes(src, dst)
 		if err != nil {
 			switch errType {
-			case exitNowErr:
+			case fatalErr:
 				return configsMap[cfgID], nil, nil, noInternalIP, err
 			case internalNotWithinSubnetsAddr:
 				errMsgInternalNotWithinSubnet = err
@@ -157,7 +157,7 @@ func (c *VPCConfig) srcDstInputToNodes(srcName, dstName string) (srcNodes, dstNo
 	}
 	// only one of src/dst can be external; there could be multiple nodes only if external
 	if !srcNodes[0].IsInternal() && !dstNodes[0].IsInternal() {
-		return nil, nil, noInternalIP, exitNowErr,
+		return nil, nil, noInternalIP, fatalErr,
 			fmt.Errorf("both src %v and dst %v are external", srcName, dstName)
 	}
 	switch {
@@ -221,7 +221,7 @@ func (c *VPCConfig) getNodesOfVsi(vsi string) ([]Node, int, error) {
 		// currently assuming c.NodeSets consists of VSIs or VPE
 		if nodeSet.Name() == vsi || nodeSet.UID() == vsi {
 			if nodeSetWithVsi != nil {
-				return nil, exitNowErr, fmt.Errorf("in %s there is more than one resource (%s, %s) with the given input string %s. "+
+				return nil, fatalErr, fmt.Errorf("in %s there is more than one resource (%s, %s) with the given input string %s. "+
 					"can not determine which resource to analyze. consider using unique names or use input UID instead",
 					c.VPC.Name(), nodeSetWithVsi.UID(), nodeSet.UID(), vsi)
 			}
@@ -250,12 +250,12 @@ func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *ipblocks.
 	// 1.
 	_, publicInternet, err1 := getPublicInternetIPblocksList()
 	if err1 != nil { // should never get here. If still gets here - severe error, quit with err msg
-		return nil, false, exitNowErr, err1
+		return nil, false, fatalErr, err1
 	}
 	isExternal := !inputIPBlock.Intersection(publicInternet).Empty()
 	isInternal := !inputIPBlock.ContainedIn(publicInternet)
 	if isInternal && isExternal {
-		return nil, false, exitNowErr,
+		return nil, false, fatalErr,
 			fmt.Errorf("%s contains both external and internal addresses which is not supported. "+
 				"src, dst should be external *or* internal address", ipOrCidr)
 	}
@@ -280,7 +280,7 @@ func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *ipblocks.
 		networkInterfaces := c.getNodesWithinInternalAddress(inputIPBlock)
 		// a given internal address within subnets' addr should have vsi connected to it
 		if len(networkInterfaces) == 0 {
-			return nil, true, exitNowErr,
+			return nil, true, fatalErr,
 				fmt.Errorf("no network interfaces are connected to %s in %s", ipOrCidr, c.VPC.Name())
 		}
 		return networkInterfaces, true, noErr, nil
@@ -315,7 +315,7 @@ func (c *VPCConfig) getCidrExternalNodes(inputIPBlock *ipblocks.IPBlock) (cidrNo
 		if block.ContainedIn(inputIPBlock) {
 			node, err1 := newExternalNode(true, block)
 			if err1 != nil {
-				return nil, exitNowErr, err1 // Should never get here. If still does - severe bug, exit with err
+				return nil, fatalErr, err1 // Should never get here. If still does - severe bug, exit with err
 			}
 			cidrNodes = append(cidrNodes, node)
 		}
