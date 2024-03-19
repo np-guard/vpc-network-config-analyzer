@@ -19,7 +19,7 @@ import (
 
 	"github.com/np-guard/models/pkg/hypercube"
 	"github.com/np-guard/models/pkg/interval"
-	spec "github.com/np-guard/models/pkg/model"
+	"github.com/np-guard/models/pkg/spec"
 )
 
 type ProtocolStr string
