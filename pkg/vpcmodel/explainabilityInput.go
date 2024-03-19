@@ -28,12 +28,13 @@ func (e *ExplanationArgs) Dst() string {
 }
 
 // consts for managing errors from the single vpc context in the global, multi-vpc, context.
+// error are prioritized: the larger the error, the higher its severity
 const (
 	noErr                        = iota
-	fatalErr                     // fatal error that implies immediate termination (do not wait until we go over all vpcs)
-	internalNotWithinSubnetsAddr // internal address with not within vpc config's subnet addr - wait until we go over all vpcs
+	noValidInputErr              // string does not represent a valid input w.r.t. this config - wait until we go over all vpcs
 	internalNoConnectedVSI       // internal address is within vpc config's subnet addr but not connected to vsi
-	noValidInputErr              // string does not represent a valid input w.r.t. this config - wait as above
+	internalNotWithinSubnetsAddr // internal address with not within vpc config's subnet addr - wait until we go over all vpcs
+	fatalErr                     // fatal error that implies immediate termination (do not wait until we go over all vpcs)
 )
 
 const noValidInputMsg = "does not represent a legal IP address, a legal CIDR or a VSI name"
@@ -150,15 +151,23 @@ func (c *VPCConfig) srcDstInputToNodes(srcName, dstName string, isMultiVPCConfig
 	dstNodes []Node, isSrcDstInternalIP srcDstInternalAddr, errType int, err error) {
 	var isSrcInternalIP, isDstInternalIP bool
 	noInternalIP := srcDstInternalAddr{false, false}
-	srcNodes, isSrcInternalIP, errType, err = c.getSrcOrDstInputNode(srcName, "src", isMultiVPCConfig)
-	if err != nil {
-		return nil, nil, noInternalIP, errType, err
+	var errSrc, errDst error
+	var errSrcType, errDstType int
+	srcNodes, isSrcInternalIP, errSrcType, errSrc = c.getSrcOrDstInputNode(srcName, "src", isMultiVPCConfig)
+	dstNodes, isDstInternalIP, errDstType, errDst = c.getSrcOrDstInputNode(dstName, "dst", isMultiVPCConfig)
+	switch {
+	case errSrcType > errDstType: // src's error is of severity larger than dst's error;
+		// this implies src has an error (dst may have an error and may not have an error)
+		return nil, nil, noInternalIP, errSrcType, errSrc
+	case errDstType > errSrcType: // same as above src <-> dst
+		return nil, nil, noInternalIP, errDstType, errDst
+	default: // both of the same severity, could be no error
+		if errSrc != nil { // if an error, prioritize src
+			return nil, nil, noInternalIP, errSrcType, errSrc
+		}
 	}
-	dstNodes, isDstInternalIP, errType, err = c.getSrcOrDstInputNode(dstName, "dst", isMultiVPCConfig)
-	if err != nil {
-		return nil, nil, noInternalIP, errType, err
-	}
-	// only one of src/dst can be external; there could be multiple nodes only if external
+	// both src and dst are legal
+	// only one of src/dst may be external; there could be multiple nodes only if external
 	if !srcNodes[0].IsInternal() && !dstNodes[0].IsInternal() {
 		return nil, nil, noInternalIP, fatalErr,
 			fmt.Errorf("both src %v and dst %v are external", srcName, dstName)
