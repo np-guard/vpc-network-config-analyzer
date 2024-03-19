@@ -574,8 +574,7 @@ func TestInputValidityMultipleVPCContext(t *testing.T) {
 	require.Equal(t, "illegal src: no network interfaces are connected to 10.240.64.7 in any of the VPCs", err4.Error())
 	fmt.Println()
 
-	// should fail since vsi's name has a typo
-	// todo: fix error in error message
+	// should fail since dst vsi's name has a typo
 	_, err5 := vpcConfigMultiVpc.ExplainConnectivity(existingVsi, nonExistingVsi, nil)
 	fmt.Println(err5.Error())
 	require.NotNil(t, err5, "the test should fail since dst non existing vsi")
@@ -587,7 +586,7 @@ func TestInputValidityMultipleVPCContext(t *testing.T) {
 	// should fail since these vsis exists in two vpcs configs
 	_, err6 := vpcConfigMultiVpcDupNames.ExplainConnectivity(dupSrcVsi, dupDstVsi, nil)
 	fmt.Println(err6.Error())
-	require.NotNil(t, err6, "the test should fail since the src dst vsis exists in two vpcs configs")
+	require.NotNil(t, err6, "the test should fail since the src and dst vsis exists in two vpcs configs")
 	require.Equal(t, "src: vsi1-ky and dst: vsi2-ky found in more than one config: test-vpc0-ky,test-vpc1-ky",
 		err6.Error())
 }
