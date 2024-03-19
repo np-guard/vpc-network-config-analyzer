@@ -46,6 +46,12 @@ type srcDstInternalAddr struct {
 	dst bool
 }
 
+type srcAndDstNodes struct {
+	srcNodes           []Node
+	dstNodes           []Node
+	isSrcDstInternalIP srcDstInternalAddr
+}
+
 // getVPCConfigAndSrcDstNodes given src, dst names returns the config in which the exaplainability analysis of these
 // should be done and the Nodes for src and dst as well as whether src or dst was given as the internal address of
 // a vsi (which effects the output)
@@ -68,11 +74,6 @@ func (configsMap MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string)
 	srcNodes, dstNodes []Node, isSrcDstInternalIP srcDstInternalAddr, err error) {
 	var errMsgInternalNotWithinSubnet, errMsgInternalNoConnectedVSI, errMsgNoValidSrc, errMsgNoValidDst error
 	var srcFoundSomeCfg, dstFoundSomeCfg bool
-	type srcAndDstNodes struct {
-		srcNodes           []Node
-		dstNodes           []Node
-		isSrcDstInternalIP srcDstInternalAddr
-	}
 	noInternalIP := srcDstInternalAddr{false, false}
 	configsWithSrcDstNode := map[string]srcAndDstNodes{}
 	for cfgID := range configsMap {
@@ -127,18 +128,24 @@ func (configsMap MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string)
 			}
 		}
 	default: // len(configsWithSrcDstNode) > 1: src and dst found in more than one VPC configs - error
-		matchConfigs := make([]string, len(configsWithSrcDstNode))
-		i := 0
-		for cfgID := range configsWithSrcDstNode {
-			matchConfigs[i] = configsMap[cfgID].VPC.Name()
-			i++
-		}
-		sort.Strings(matchConfigs)
-		return nil, nil, nil, noInternalIP,
-			fmt.Errorf("src: %s and dst: %s found in more than one config: %s",
-				src, dst, strings.Join(matchConfigs, ","))
+		return configsMap.matchMoreThanOneCfgErr(src, dst, configsWithSrcDstNode)
 	}
 	return nil, nil, nil, noInternalIP, nil
+}
+
+func (configsMap MultipleVPCConfigs) matchMoreThanOneCfgErr(src, dst string,
+	configsWithSrcDstNode map[string]srcAndDstNodes) (vpcConfig *VPCConfig,
+	srcNodes, dstNodes []Node, isSrcDstInternalIP srcDstInternalAddr, err error) {
+	matchConfigs := make([]string, len(configsWithSrcDstNode))
+	i := 0
+	for cfgID := range configsWithSrcDstNode {
+		matchConfigs[i] = configsMap[cfgID].VPC.Name()
+		i++
+	}
+	sort.Strings(matchConfigs)
+	return nil, nil, nil, srcDstInternalAddr{false, false},
+		fmt.Errorf("src: %s and dst: %s found in more than one config: %s",
+			src, dst, strings.Join(matchConfigs, ","))
 }
 
 // GetConnectionSet TODO: handle also input ICMP properties (type, code) as input args
