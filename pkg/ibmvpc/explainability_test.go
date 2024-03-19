@@ -540,7 +540,7 @@ func TestInputValidityMultipleVPCContext(t *testing.T) {
 	existingVsi := "vsi11-ky"
 	cidrInternalNonAP := "10.240.10.4/16"
 	internalIPNotVsi := "10.240.64.7"
-	nonExistingVsi := "vsi11"
+	nonExistingVsi := "vsi3a"
 	// should fail since two external addresses
 	_, err1 := vpcConfigMultiVpc.ExplainConnectivity(cidr1, cidr2, nil)
 	fmt.Println(err1.Error())
@@ -578,7 +578,7 @@ func TestInputValidityMultipleVPCContext(t *testing.T) {
 	_, err5 := vpcConfigMultiVpc.ExplainConnectivity(existingVsi, nonExistingVsi, nil)
 	fmt.Println(err5.Error())
 	require.NotNil(t, err5, "the test should fail since dst non existing vsi")
-	//require.Equal(t, "illegal dst: vsi3a does not represent a legal IP address, a legal CIDR or a VSI name", err5.Error())
+	require.Equal(t, "illegal dst: vsi3a does not represent a legal IP address, a legal CIDR or a VSI name", err5.Error())
 	fmt.Println()
 
 	// src does not exist, dst is an internal address not connected to a vsi. should prioritize the dst error
