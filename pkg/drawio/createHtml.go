@@ -16,33 +16,28 @@ func nodeParents(node TreeNodeInterface) []TreeNodeInterface {
 	}
 	return append(nodeParents(node.Parent()), node)
 }
+func nodeSubTree(node TreeNodeInterface) []TreeNodeInterface {
+	return append(getAllSquares(node), getAllIcons(node)...)
+}
 
 func lineRelation(info *lineInfo) []TreeNodeInterface {
 	res := []TreeNodeInterface{info.mainLine}
-	res = append(res, nodeParents(info.src)...)
-	res = append(res, nodeParents(info.dst)...)
-	if info.router != nil {
-		res = append(res, info.router)
-	}
 	for _, node := range []TreeNodeInterface{info.src, info.dst} {
-		res = append(res, getAllIcons(node)...)
-		res = append(res, getAllSquares(node)...)
+		res = append(res, nodeParents(node)...)
+		res = append(res, nodeSubTree(node)...)
 	}
-	if info.srcGroupingPoint != nil {
-		res = append(res, info.srcGroupingPoint)
-	}
-	if info.dstGroupingPoint != nil {
-		res = append(res, info.dstGroupingPoint)
+	for _, node := range []TreeNodeInterface{info.router, info.srcGroupingPoint, info.dstGroupingPoint} {
+		if node != nil {
+			res = append(res, node)
+		}
 	}
 	for _, l := range info.srcGroupingLines {
 		res = append(res, l)
-		res = append(res, getAllIcons(l.Src())...)
-		res = append(res, getAllSquares(l.Src())...)
+		res = append(res, nodeSubTree(l.Src())...)
 	}
 	for _, l := range info.dstGroupingLines {
 		res = append(res, l)
-		res = append(res, getAllIcons(l.Dst())...)
-		res = append(res, getAllSquares(l.Dst())...)
+		res = append(res, nodeSubTree(l.Dst())...)
 	}
 	return res
 }
@@ -99,8 +94,7 @@ func tnRelations(network TreeNodeInterface) map[TreeNodeInterface][]TreeNodeInte
 	}
 
 	for _, node := range getAllSquares(network) {
-		res[node] = append(res[node], getAllIcons(node)...)
-		res[node] = append(res[node], getAllSquares(node)...)
+		res[node] = append(res[node], nodeSubTree(node)...)
 	}
 	for n, r := range res {
 		res[n] = common.FromList[TreeNodeInterface](r).AsList()
