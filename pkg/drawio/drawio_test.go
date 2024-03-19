@@ -76,8 +76,8 @@ func createNetwork() SquareTreeNodeInterface {
 	i2 := NewInternetTreeNode(publicNetwork, "i2")
 	i3 := NewInternetTreeNode(publicNetwork, "i3")
 	i4 := NewUserTreeNode(publicNetwork, "i4")
-
-	vpc1 := NewVpcTreeNode(cloud, "vpc1")
+	region := NewRegionTreeNode(cloud, "north")
+	vpc1 := NewVpcTreeNode(region, "vpc1")
 	zone11 := NewZoneTreeNode(vpc1, "zone1")
 
 	gw11 := NewGatewayTreeNode(zone11, "gw11")
@@ -117,8 +117,10 @@ func createNetwork() SquareTreeNodeInterface {
 	ni5b.setVsi("svi3")
 	ni5b.SetFIP("fip2")
 
-	NewVpcTreeNode(cloud, "empty vpc")
-	vpc2 := NewVpcTreeNode(cloud, "vpc2")
+	region1 := NewRegionTreeNode(cloud, "north")
+	region2 := NewRegionTreeNode(cloud, "south")
+	NewVpcTreeNode(region1, "empty vpc")
+	vpc2 := NewVpcTreeNode(region2, "vpc2")
 	zone21 := NewZoneTreeNode(vpc2, "zone21")
 	sg21 := NewSGTreeNode(vpc2, "sg21")
 
@@ -239,7 +241,8 @@ func createNetworkAllTypes() SquareTreeNodeInterface {
 	publicNetwork := NewPublicNetworkTreeNode(network)
 
 	cloud1 := NewCloudTreeNode(network, "IBM Cloud")
-	vpc1 := NewVpcTreeNode(cloud1, "vpc1")
+	region := NewRegionTreeNode(cloud1, "north")
+	vpc1 := NewVpcTreeNode(region, "vpc1")
 	sg := NewSGTreeNode(vpc1, "sg33")
 	zone1 := NewZoneTreeNode(vpc1, "zone1")
 	subnet11 := NewSubnetTreeNode(zone1, "subnet1", "cidr1", "acl1")
@@ -533,7 +536,8 @@ func createNetworkSubnetGroupingGeneric(groupsIndexes []groupIndexes) (
 	}
 	vpcs := make([]*VpcTreeNode, maxVpcIndex+1)
 	for i := 0; i <= maxVpcIndex; i++ {
-		vpcs[i] = NewVpcTreeNode(cloud1, fmt.Sprintf("vpc%d", i))
+		region := NewRegionTreeNode(cloud1, fmt.Sprintf("north%d", i))
+		vpcs[i] = NewVpcTreeNode(region, fmt.Sprintf("vpc%d", i))
 	}
 	for i := 0; i <= maxZoneIndex; i++ {
 		createZone(zones, vpcs[zoneIndexToVpcIndex[i]], maxSubnetIndex+1, fmt.Sprintf("z%d", i))
@@ -555,7 +559,8 @@ func createNetworkGrouping() SquareTreeNodeInterface {
 	publicNetwork := NewPublicNetworkTreeNode(network)
 
 	cloud1 := NewCloudTreeNode(network, "IBM Cloud")
-	vpc1 := NewVpcTreeNode(cloud1, "vpc1")
+	region := NewRegionTreeNode(cloud1, "north")
+	vpc1 := NewVpcTreeNode(region, "vpc1")
 	zone1 := NewZoneTreeNode(vpc1, "zone1")
 	subnet11 := NewSubnetTreeNode(zone1, "subnet1", "cidr1", "acl1")
 	groupedNis11 := []IconTreeNodeInterface{
@@ -674,13 +679,15 @@ func createNetwork2() SquareTreeNodeInterface {
 	i4 := NewUserTreeNode(publicNetwork, "User4")
 	i2.SetTooltip([]string{"this is Internet2 tool tip", "with lines"})
 	i4.SetTooltip([]string{"this is User4 tool tip", "with lines"})
-	vpc1 := NewVpcTreeNode(cloud1, "vpc1")
+	region1 := NewRegionTreeNode(cloud1, "north")
+	vpc1 := NewVpcTreeNode(region1, "vpc1")
 	zone1 := NewZoneTreeNode(vpc1, "zone1")
 
-	vpc2 := NewVpcTreeNode(cloud2, "vpc1")
+	region2 := NewRegionTreeNode(cloud2, "north")
+	vpc2 := NewVpcTreeNode(region2, "vpc1")
 	zone2 := NewZoneTreeNode(vpc2, "zone1")
 	subnet2 := NewSubnetTreeNode(zone2, "subnet2", "cidr1", "acl1")
-	NewVpcTreeNode(cloud2, "vpc3")
+	NewVpcTreeNode(region2, "vpc3")
 	ni20 := NewNITreeNode(subnet2, "ni20")
 	ni20.SetTooltip([]string{"this is ni20 tool tip", "with lines"})
 	NewConnectivityLineTreeNode(network, ni20, i4, false, "conn20")
@@ -730,25 +737,26 @@ func createNetwork2() SquareTreeNodeInterface {
 func createNetworkTgw() SquareTreeNodeInterface {
 	network := NewNetworkTreeNode()
 	cloud := NewCloudTreeNode(network, "IBM Cloud")
+	region := NewRegionTreeNode(cloud, "north")
 	nis := make([]IconTreeNodeInterface, 12)
 	for i := 0; i < len(nis); i++ {
-		vpc := NewVpcTreeNode(cloud, "vpc1")
+		vpc := NewVpcTreeNode(region, "vpc1")
 		zone := NewZoneTreeNode(vpc, "zone1")
 		subnet := NewSubnetTreeNode(zone, "subnet2", "cidr1", "acl1")
 		nis[i] = NewNITreeNode(subnet, "ni20")
 	}
 	for nCon := 2; nCon <= 4; nCon++ {
-		tgw1 := NewTransitGatewayTreeNode(cloud, "tgw1")
-		tgw2 := NewTransitGatewayTreeNode(cloud, "tgw2")
+		tgw1 := NewTransitGatewayTreeNode(region, "tgw1")
+		tgw2 := NewTransitGatewayTreeNode(region, "tgw2")
 		for j := nCon; j < nCon*2; j++ {
 			NewConnectivityLineTreeNode(network, nis[nCon-j/2], nis[nCon+j], true, "").SetRouter(tgw1)
 			NewConnectivityLineTreeNode(network, nis[nCon-j/2], nis[nCon+j/2], true, "").SetRouter(tgw2)
 		}
 	}
-	tgw1 := NewTransitGatewayTreeNode(cloud, "tgw1")
-	tgw2 := NewTransitGatewayTreeNode(cloud, "tgw2")
-	tgw3 := NewTransitGatewayTreeNode(cloud, "tgw3")
-	tgw4 := NewTransitGatewayTreeNode(cloud, "tgw3")
+	tgw1 := NewTransitGatewayTreeNode(region, "tgw1")
+	tgw2 := NewTransitGatewayTreeNode(region, "tgw2")
+	tgw3 := NewTransitGatewayTreeNode(region, "tgw3")
+	tgw4 := NewTransitGatewayTreeNode(region, "tgw3")
 	NewConnectivityLineTreeNode(network, nis[9], nis[10], true, "").SetRouter(tgw1)
 	NewConnectivityLineTreeNode(network, nis[9], nis[10], true, "").SetRouter(tgw2)
 	NewConnectivityLineTreeNode(network, nis[9], nis[10], true, "").SetRouter(tgw3)
