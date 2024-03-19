@@ -158,18 +158,18 @@ func (c *VPCConfig) srcDstInputToNodes(srcName, dstName string, isMultiVPCConfig
 	switch {
 	case errSrcType > errDstType: // src's error is of severity larger than dst's error;
 		// this implies src has an error (dst may have an error and may not have an error)
-		return nil, nil, noInternalIP, errSrcType, errSrc
+		return srcNodes, dstNodes, noInternalIP, errSrcType, errSrc
 	case errDstType > errSrcType: // same as above src <-> dst
-		return nil, nil, noInternalIP, errDstType, errDst
+		return srcNodes, dstNodes, noInternalIP, errDstType, errDst
 	default: // both of the same severity, could be no error
 		if errSrc != nil { // if an error, prioritize src
-			return nil, nil, noInternalIP, errSrcType, errSrc
+			return srcNodes, dstNodes, noInternalIP, errSrcType, errSrc
 		}
 	}
 	// both src and dst are legal
 	// only one of src/dst may be external; there could be multiple nodes only if external
 	if !srcNodes[0].IsInternal() && !dstNodes[0].IsInternal() {
-		return nil, nil, noInternalIP, fatalErr,
+		return srcNodes, dstNodes, noInternalIP, fatalErr,
 			fmt.Errorf("both src %v and dst %v are external", srcName, dstName)
 	}
 	return srcNodes, dstNodes, srcDstInternalAddr{isSrcInternalIP, isDstInternalIP}, noErr, nil
