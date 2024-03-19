@@ -36,14 +36,14 @@ const (
 	noValidInputErr              // string does not represent a valid input w.r.t. this config - wait as above
 )
 
-const (
-	noInternalIP        = iota // nor src neither dst were given as internal IP
-	srcInternalIP              // only src was given as internal ip
-	dstInternalIP              // only dst was given as internal ip
-	srcAndDstInternalIP        // both src and dst given as internal ip
-)
-
 const noValidInputMsg = "does not represent a legal IP address, a legal CIDR or a VSI name"
+
+// was src/dst input provided as internal address of a vsi? this is required info since
+// if this is the case then in the output the relevant detected vsis are printed
+type srcDstInternalAddr struct {
+	src bool
+	dst bool
+}
 
 // getVPCConfigAndSrcDstNodes given src, dst names returns the config in which the exaplainability analysis of these
 // should be done and the Nodes for src and dst as well as whether src or dst was given as the internal address of
@@ -64,13 +64,14 @@ const noValidInputMsg = "does not represent a legal IP address, a legal CIDR or 
 // errors 1, 2 and 5 may occur in one vpcConfig while there is still a match to src and dst in another one
 // if no match found error 2 > error 1 > error 5
 func (configsMap MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string) (vpcConfig *VPCConfig,
-	srcNodes, dstNodes []Node, isSrcDstInternalIP int, err error) {
+	srcNodes, dstNodes []Node, isSrcDstInternalIP srcDstInternalAddr, err error) {
 	var errMsgInternalNotWithinSubnet, errMsgInternalNoConnectedVSI, errMsgNoValidInput error
 	type srcAndDstNodes struct {
 		srcNodes           []Node
 		dstNodes           []Node
-		isSrcDstInternalIP int
+		isSrcDstInternalIP srcDstInternalAddr
 	}
+	noInternalIP := srcDstInternalAddr{false, false}
 	configsWithSrcDstNode := map[string]srcAndDstNodes{}
 	for cfgID := range configsMap {
 		if configsMap[cfgID].IsMultipleVPCsConfig {
@@ -90,8 +91,7 @@ func (configsMap MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string)
 				errMsgNoValidInput = err
 			}
 		} else {
-			configsWithSrcDstNode[cfgID] = srcAndDstNodes{srcNodes, dstNodes,
-				isSrcDstInternalIP}
+			configsWithSrcDstNode[cfgID] = srcAndDstNodes{srcNodes, dstNodes, isSrcDstInternalIP}
 		}
 	}
 	switch len(configsWithSrcDstNode) {
@@ -147,8 +147,9 @@ func (e *ExplanationArgs) GetConnectionSet() *common.ConnectionSet {
 // 2. Internal IP address or cidr; in this case we consider the vsis in that address range
 // 3. external IP address or cidr
 func (c *VPCConfig) srcDstInputToNodes(srcName, dstName string) (srcNodes, dstNodes []Node,
-	isSrcDstInternalIP int, errType int, err error) {
+	isSrcDstInternalIP srcDstInternalAddr, errType int, err error) {
 	var isSrcInternalIP, isDstInternalIP bool
+	noInternalIP := srcDstInternalAddr{false, false}
 	srcNodes, isSrcInternalIP, errType, err = c.getSrcOrDstInputNode(srcName, "src")
 	if err != nil {
 		return nil, nil, noInternalIP, errType, err
@@ -162,17 +163,7 @@ func (c *VPCConfig) srcDstInputToNodes(srcName, dstName string) (srcNodes, dstNo
 		return nil, nil, noInternalIP, fatalErr,
 			fmt.Errorf("both src %v and dst %v are external", srcName, dstName)
 	}
-	switch {
-	case isSrcInternalIP && isDstInternalIP:
-		isSrcDstInternalIP = srcAndDstInternalIP
-	case isSrcInternalIP:
-		isSrcDstInternalIP = srcInternalIP
-	case isDstInternalIP:
-		isSrcDstInternalIP = dstInternalIP
-	default:
-		isSrcDstInternalIP = noInternalIP
-	}
-	return srcNodes, dstNodes, isSrcDstInternalIP, noErr, nil
+	return srcNodes, dstNodes, srcDstInternalAddr{isSrcInternalIP, isDstInternalIP}, noErr, nil
 }
 
 // given a VPCConfig and a string looks for the VSI/Internal IP/External address it presents,

@@ -76,7 +76,7 @@ func (configsMap MultipleVPCConfigs) ExplainConnectivity(src, dst string, connQu
 
 // explainConnectivityForVPC for a vpcConfig, given src, dst and connQuery returns a struct with all explanation details
 // nil connQuery means connection is not part of the query
-func (c *VPCConfig) explainConnectivityForVPC(src, dst string, srcNodes, dstNodes []Node, isSrcDstInternalIP int,
+func (c *VPCConfig) explainConnectivityForVPC(src, dst string, srcNodes, dstNodes []Node, isSrcDstInternalIP srcDstInternalAddr,
 	connQuery *common.ConnectionSet) (res *Explanation, err error) {
 	// we do not support multiple configs, yet
 	rulesAndDetails, err1 := c.computeExplainRules(srcNodes, dstNodes, connQuery)
@@ -101,12 +101,9 @@ func (c *VPCConfig) explainConnectivityForVPC(src, dst string, srcNodes, dstNode
 		return nil, err4
 	}
 
-	// isSrcInternalIP/isDstInternalIP: if src/dst given as internal address, also prints the relevant vsi names
-	isSrcInternalIP := isSrcDstInternalIP == srcInternalIP || isSrcDstInternalIP == srcAndDstInternalIP
-	isDstInternalIP := isSrcDstInternalIP == dstInternalIP || isSrcDstInternalIP == srcAndDstInternalIP
 	return &Explanation{c, connQuery, &rulesAndDetails, src, dst,
-		getNetworkInterfacesFromIP(isSrcInternalIP, srcNodes),
-		getNetworkInterfacesFromIP(isDstInternalIP, dstNodes),
+		getNetworkInterfacesFromIP(isSrcDstInternalIP.src, srcNodes),
+		getNetworkInterfacesFromIP(isSrcDstInternalIP.dst, dstNodes),
 		groupedLines.GroupedLines}, nil
 }
 
