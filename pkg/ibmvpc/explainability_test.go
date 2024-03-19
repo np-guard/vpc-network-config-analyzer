@@ -510,7 +510,7 @@ func TestInputValiditySingleVPCContext(t *testing.T) {
 	fmt.Println(err3.Error())
 	require.NotNil(t, err3, "the test should fail since src is cidr containing internal address "+
 		"not within vpc's subnets address range")
-	require.Equal(t, "illegal dst: internal address 10.240.0.0-10.240.255.255 not within the vpc "+
+	require.Equal(t, "illegal dst: internal address 10.240.10.4/16 not within the vpc "+
 		"test-vpc1-ky subnets' address range 10.240.10.0-10.240.10.255, 10.240.20.0-10.240.20.255, 10.240.30.0-10.240.30.255",
 		err3.Error())
 	fmt.Println()
@@ -526,7 +526,7 @@ func TestInputValiditySingleVPCContext(t *testing.T) {
 	// should fail since vsi's name has a typo
 	_, err5 := vpcConfigSg1.ExplainConnectivity(existingVsi, nonExistingVsi, nil)
 	fmt.Println(err5.Error())
-	require.NotNil(t, err5, "the test should fail since src non existing vsi")
+	require.NotNil(t, err5, "the test should fail since dst non existing vsi")
 	require.Equal(t, "illegal dst: vsi3a does not represent a legal IP address, a legal CIDR or a VSI name", err5.Error())
 }
 
