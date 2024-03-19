@@ -270,22 +270,21 @@ func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *ipblocks.
 				return nil, false, internalNotWithinSubnetsAddr,
 					fmt.Errorf("%s the vpc %s subnets' address range %s",
 						errMsgPrefix, c.VPC.Name(), vpcAP.ToIPRanges())
-			} else {
-				return nil, false, internalNotWithinSubnetsAddr,
-					fmt.Errorf("%s any of the VPC's subnets' address range",
-						errMsgPrefix)
 			}
+			return nil, false, internalNotWithinSubnetsAddr,
+				fmt.Errorf("%s any of the VPC's subnets' address range", errMsgPrefix)
 		}
-		// 4.
-		networkInterfaces := c.getNodesWithinInternalAddress(inputIPBlock)
-		// a given internal address within subnets' addr should have vsi connected to it
-		if len(networkInterfaces) == 0 {
-			return nil, true, fatalErr,
-				fmt.Errorf("no network interfaces are connected to %s in %s", ipOrCidr, c.VPC.Name())
-		}
-		return networkInterfaces, true, noErr, nil
 	}
-	return nil, false, noErr, nil
+	// 4.
+	networkInterfaces := c.getNodesWithinInternalAddress(inputIPBlock)
+	// a given internal address within subnets' addr should have vsi connected to it
+	if len(networkInterfaces) == 0 {
+		if !isMultiVPCConfig {
+			return nil, true, fatalErr, fmt.Errorf("no network interfaces are connected to %s in %s", ipOrCidr, c.VPC.Name())
+		}
+		return nil, true, fatalErr, fmt.Errorf("no network interfaces are connected to %s in any of the VPCs", ipOrCidr)
+	}
+	return networkInterfaces, true, noErr, nil
 }
 
 // given input IPBlock, gets (disjoint) external nodes I s.t.:

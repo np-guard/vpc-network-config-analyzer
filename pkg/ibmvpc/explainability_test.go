@@ -571,8 +571,7 @@ func TestInputValidityMultipleVPCContext(t *testing.T) {
 	fmt.Println(err4.Error())
 	require.NotNil(t, err4, "the test should fail since dst is an internal address within subnet's "+
 		"address range not connected to a VSI")
-	// todo: fix error message
-	//require.Equal(t, "illegal src: no network interfaces are connected to 10.240.10.5 in test-vpc1-ky", err4.Error())
+	require.Equal(t, "illegal src: no network interfaces are connected to 10.240.64.7 in any of the VPCs", err4.Error())
 	fmt.Println()
 
 	// should fail since vsi's name has a typo
