@@ -49,11 +49,8 @@ const noValidInputMsg = "does not represent a legal IP address, a legal CIDR or 
 // should be done and the Nodes for src and dst as well as whether src or dst was given as the internal address of
 // a vsi (which effects the output)
 
-// At most one config should contain src and dst, and this is the config returned:
-// If both src and dst are internal of the same vpc then this vpcConfig is returned
-// If one is internal and the other is external the vpcConfig of the internal is returned
-// ToDo If both internal but of different VPCs then the relevant vpcConfig is the dummy one created for the tgw connecting them,
-// if such tgw exists; otherwise the src and dst are not connected
+// At most one config should contain src and dst, and this is the config returned
+
 // error handling: the src and dst are being searched for within the context of each vpcConfig.
 // if not found, then it is due to one of the following:
 // 1. Src/dst is an internal address not within subnets of the VPC
