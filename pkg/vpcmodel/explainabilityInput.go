@@ -78,7 +78,7 @@ func (configsMap MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string)
 			continue // todo: tmp until we add support in tgw
 		}
 		var errType int
-		srcNodes, dstNodes, isSrcDstInternalIP, errType, err = configsMap[cfgID].srcDstInputToNodes(src, dst)
+		srcNodes, dstNodes, isSrcDstInternalIP, errType, err = configsMap[cfgID].srcDstInputToNodes(src, dst, len(configsMap) > 1)
 		if err != nil {
 			switch errType {
 			case fatalErr:
@@ -146,15 +146,15 @@ func (e *ExplanationArgs) GetConnectionSet() *common.ConnectionSet {
 // 1. VSI by UID or name; in this case we consider the network interfaces of the VSI
 // 2. Internal IP address or cidr; in this case we consider the vsis in that address range
 // 3. external IP address or cidr
-func (c *VPCConfig) srcDstInputToNodes(srcName, dstName string) (srcNodes, dstNodes []Node,
-	isSrcDstInternalIP srcDstInternalAddr, errType int, err error) {
+func (c *VPCConfig) srcDstInputToNodes(srcName, dstName string, isMultiVPCConfig bool) (srcNodes,
+	dstNodes []Node, isSrcDstInternalIP srcDstInternalAddr, errType int, err error) {
 	var isSrcInternalIP, isDstInternalIP bool
 	noInternalIP := srcDstInternalAddr{false, false}
-	srcNodes, isSrcInternalIP, errType, err = c.getSrcOrDstInputNode(srcName, "src")
+	srcNodes, isSrcInternalIP, errType, err = c.getSrcOrDstInputNode(srcName, "src", isMultiVPCConfig)
 	if err != nil {
 		return nil, nil, noInternalIP, errType, err
 	}
-	dstNodes, isDstInternalIP, errType, err = c.getSrcOrDstInputNode(dstName, "dst")
+	dstNodes, isDstInternalIP, errType, err = c.getSrcOrDstInputNode(dstName, "dst", isMultiVPCConfig)
 	if err != nil {
 		return nil, nil, noInternalIP, errType, err
 	}
@@ -168,9 +168,9 @@ func (c *VPCConfig) srcDstInputToNodes(srcName, dstName string) (srcNodes, dstNo
 
 // given a VPCConfig and a string looks for the VSI/Internal IP/External address it presents,
 // as described above
-func (c *VPCConfig) getSrcOrDstInputNode(name, srcOrDst string) (nodes []Node,
+func (c *VPCConfig) getSrcOrDstInputNode(name, srcOrDst string, isMultiVPCConfig bool) (nodes []Node,
 	internalIP bool, errType int, err error) {
-	outNodes, isInternalIP, errType1, err1 := c.getNodesFromInputString(name)
+	outNodes, isInternalIP, errType1, err1 := c.getNodesFromInputString(name, isMultiVPCConfig)
 	if err1 != nil {
 		return nil, false, errType1, fmt.Errorf("illegal %v: %v", srcOrDst, err1.Error())
 	}
@@ -183,8 +183,8 @@ func (c *VPCConfig) getSrcOrDstInputNode(name, srcOrDst string) (nodes []Node,
 // given a VPCConfig and a string cidrOrName representing a vsi or internal/external
 // cidr/address returns the corresponding node(s) and a bool which is true iff
 // cidrOrName is an internal address (and the nodes are its network interfaces)
-func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node, internalIP bool,
-	errType int, err error) {
+func (c *VPCConfig) getNodesFromInputString(cidrOrName string, isMultiVPCConfig bool) (nodes []Node,
+	internalIP bool, errType int, err error) {
 	// 1. cidrOrName references vsi
 	vsi, errType1, err1 := c.getNodesOfVsi(cidrOrName)
 	if err1 != nil {
@@ -203,7 +203,7 @@ func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node, in
 			fmt.Errorf("%s %s", cidrOrName, noValidInputMsg)
 	}
 	// the input is a legal cidr or IP address
-	return c.getNodesFromAddress(cidrOrName, ipBlock)
+	return c.getNodesFromAddress(cidrOrName, ipBlock, isMultiVPCConfig)
 }
 
 // getNodesOfVsi gets a string name or UID of VSI, and
@@ -238,7 +238,7 @@ func (c *VPCConfig) getNodesOfVsi(vsi string) ([]Node, int, error) {
 //  5. If none of the above holds, return nil
 //
 // todo: 4 - replace subnet's address range in vpc's address prefix
-func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *ipblocks.IPBlock) (nodes []Node,
+func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *ipblocks.IPBlock, isMultiVPCConfig bool) (nodes []Node,
 	internalIP bool, errType int, err error) {
 	// 1.
 	_, publicInternet, err1 := getPublicInternetIPblocksList()
@@ -265,9 +265,16 @@ func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *ipblocks.
 		// 3.
 		vpcAP := c.VPC.AddressRange()
 		if !inputIPBlock.ContainedIn(vpcAP) {
-			return nil, false, internalNotWithinSubnetsAddr,
-				fmt.Errorf("internal address %s not within the vpc %s subnets' address range %s",
-					ipOrCidr, c.VPC.Name(), vpcAP.ToIPRanges())
+			errMsgPrefix := fmt.Sprintf("internal address %s not within", ipOrCidr)
+			if !isMultiVPCConfig {
+				return nil, false, internalNotWithinSubnetsAddr,
+					fmt.Errorf("%s the vpc %s subnets' address range %s",
+						errMsgPrefix, c.VPC.Name(), vpcAP.ToIPRanges())
+			} else {
+				return nil, false, internalNotWithinSubnetsAddr,
+					fmt.Errorf("%s any of the VPC's subnets' address range",
+						errMsgPrefix)
+			}
 		}
 		// 4.
 		networkInterfaces := c.getNodesWithinInternalAddress(inputIPBlock)

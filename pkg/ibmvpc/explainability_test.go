@@ -562,10 +562,8 @@ func TestInputValidityMultipleVPCContext(t *testing.T) {
 	fmt.Println(err3.Error())
 	require.NotNil(t, err3, "the test should fail since src is cidr containing internal address "+
 		"not within vpc's subnets address range")
-	// todo: fix error message of not within address range
-	//require.Equal(t, "illegal dst: internal address 10.240.0.0-10.240.255.255 not within the vpc "+
-	//	"test-vpc1-ky subnets' address range 10.240.10.0-10.240.10.255, 10.240.20.0-10.240.20.255, 10.240.30.0-10.240.30.255",
-	//	err3.Error())
+	require.Equal(t, "illegal dst: internal address 10.240.10.4/16 not within any of the VPC's subnets' address range",
+		err3.Error())
 	fmt.Println()
 
 	// should fail since internal address not connected to vsi
