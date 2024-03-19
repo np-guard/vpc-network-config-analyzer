@@ -418,7 +418,7 @@ var explainTests = []*vpcGeneralTest{
 	{
 		name:        "multiVPCVsiToExternal",
 		inputConfig: "tgw_larger_example",
-		ESrc:        "test-vpc0-ky.vsi1-ky",
+		ESrc:        "test-vpc0-ky/vsi1-ky",
 		EDst:        "172.217.22.46/32",
 		format:      vpcmodel.Debug,
 	},
@@ -488,7 +488,7 @@ func TestInputValidity(t *testing.T) {
 	internalIPNotVsi := "10.240.10.5"
 	cidrAll := "0.0.0.0/0"
 	existingVsi := "vsi3a-ky"
-	existingVsiWrongVpc := "test-vpc0-ky.vsi3a-ky"
+	existingVsiWrongVpc := "test-vpc0-ky/vsi3a-ky"
 	nonExistingVsi := "vsi3a"
 	// should fail since two external addresses
 	_, err1 := vpcConfigSg1.ExplainConnectivity(cidr1, cidr2, nil)
@@ -535,7 +535,7 @@ func TestInputValidity(t *testing.T) {
 	_, err6 := vpcConfigSg1.ExplainConnectivity(existingVsiWrongVpc, cidr1, nil)
 	fmt.Println(err6.Error())
 	require.NotNil(t, err6, "the test should fail since the src vsi given with wrong vpc")
-	require.Equal(t, "illegal src: test-vpc0-ky.vsi3a-ky does not represent a legal IP address, a legal CIDR or a VSI name",
+	require.Equal(t, "illegal src: test-vpc0-ky/vsi3a-ky does not represent a legal IP address, a legal CIDR or a VSI name",
 		err6.Error())
 
 	vpcConfigMultiVpcDupNames := getConfig(t, "tgw_larger_example_dup_names")

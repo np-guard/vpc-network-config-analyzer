@@ -47,7 +47,7 @@ const noValidInputMsg = "does not represent a legal IP address, a legal CIDR or 
 // getVPCConfigAndSrcDstNodes given src, dst names returns the config in which the exaplainability analysis of these
 // should be done and the Nodes for src and dst.
 
-// src and dst when referring to a vsi *name* may be prefixes with their vpc name to solve ambiguity
+// src and dst when referring to a vsi *name* may be prefixes "/" with their vpc name to solve ambiguity
 // if such prefix is missing then a match in any vpc is valid
 // At most one config should contain src and dst, and this is the config returned:
 // If both src and dst are internal of the same vpc then this vpcConfig is returned
@@ -194,20 +194,8 @@ func (c *VPCConfig) getSrcOrDstInputNode(name, srcOrDst string) (nodes []Node,
 // cidrOrName is an internal address (and the nodes are its network interfaces)
 func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node, internalIP bool,
 	errType int, err error) {
-	// cidrOrName may be prefixed by vpc name
-	var prefixVPC, suffixNameOrCidr string
-	cidrOrNameSlice := strings.Split(cidrOrName, ".")
-	switch len(cidrOrNameSlice) {
-	case 1: // vpc name not specified
-		suffixNameOrCidr = cidrOrName
-	case 2: // vpc name specified
-		prefixVPC = cidrOrNameSlice[0]
-		suffixNameOrCidr = cidrOrNameSlice[1]
-	default: // > 1, address
-		suffixNameOrCidr = cidrOrName
-	}
 	// 1. cidrOrName references vsi
-	vsi, errType1, err1 := c.getNodesOfVsi(prefixVPC, suffixNameOrCidr)
+	vsi, errType1, err1 := c.getNodesOfVsi(cidrOrName)
 	if err1 != nil {
 		return nil, false, errType1, err1
 	}
@@ -224,21 +212,34 @@ func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node, in
 			fmt.Errorf("%s %s", cidrOrName, noValidInputMsg)
 	}
 	// the input is a legal cidr or IP address
-	return c.getNodesFromAddress(suffixNameOrCidr, ipBlock)
+	return c.getNodesFromAddress(cidrOrName, ipBlock)
 }
 
 // getNodesOfVsi gets a string name or UID of VSI, and
 // returns the list of all nodes within this vsi
-func (c *VPCConfig) getNodesOfVsi(vpc, vsi string) ([]Node, int, error) {
+func (c *VPCConfig) getNodesOfVsi(name string) ([]Node, int, error) {
 	var nodeSetWithVsi NodeSet
+	// vsi name may be prefixed by vpc name
+	var vpc, vsi string
+	uid := name // uid specified - vpc prefix is not relevant and uid may contain "/"
+	cidrOrNameSlice := strings.Split(name, "/")
+	switch len(cidrOrNameSlice) {
+	case 1: // vpc name not specified
+		vsi = name
+	case 2: // vpc name specified
+		vpc = cidrOrNameSlice[0]
+		vsi = cidrOrNameSlice[1]
+	default: // > 1, address
+		vsi = name
+	}
 	for _, nodeSet := range c.NodeSets {
 		// currently assuming c.NodeSets consists of VSIs or VPE
-		if (vpc == "" || nodeSet.VPC().Name() == vpc) && // if vpc is specified, equality must hold
-			(nodeSet.Name() == vsi || nodeSet.UID() == vsi) {
+		if (vpc == "" || nodeSet.VPC().Name() == vpc) && nodeSet.Name() == vsi || // if vpc of vsi specified, equality must hold
+			nodeSet.UID() == uid {
 			if nodeSetWithVsi != nil {
 				return nil, fatalErr, fmt.Errorf("in %s there is more than one resource (%s, %s) with the given input string %s. "+
 					"can not determine which resource to analyze. consider using unique names or use input UID instead",
-					c.VPC.Name(), nodeSetWithVsi.UID(), nodeSet.UID(), vsi)
+					c.VPC.Name(), nodeSetWithVsi.UID(), nodeSet.UID(), name)
 			}
 			nodeSetWithVsi = nodeSet
 		}
