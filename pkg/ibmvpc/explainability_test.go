@@ -536,11 +536,11 @@ func TestInputValidityMultipleVPCContext(t *testing.T) {
 
 	cidr1 := "169.255.0.0"
 	cidr2 := "161.26.0.0/16"
-	//cidrInternalNonAP := "10.240.10.4/16"
-	//internalIPNotVsi := "10.240.10.5"
 	cidrAll := "0.0.0.0/0"
 	existingVsi := "vsi11-ky"
-	//nonExistingVsi := "vsi3a"
+	cidrInternalNonAP := "10.240.10.4/16"
+	internalIPNotVsi := "10.240.64.7"
+	nonExistingVsi := "vsi11"
 	// should fail since two external addresses
 	_, err1 := vpcConfigMultiVpc.ExplainConnectivity(cidr1, cidr2, nil)
 	fmt.Println(err1.Error())
@@ -557,28 +557,31 @@ func TestInputValidityMultipleVPCContext(t *testing.T) {
 		"which is not supported. src, dst should be external *or* internal address", err2.Error())
 	fmt.Println()
 
-	//// should fail due to cidr containing internal address not within vpc's address prefix
-	//_, err3 := vpcConfigSg1.ExplainConnectivity(existingVsi, cidrInternalNonAP, nil)
-	//fmt.Println(err3.Error())
-	//require.NotNil(t, err3, "the test should fail since src is cidr containing internal address "+
-	//	"not within vpc's subnets address range")
+	// should fail due to src cidr containing internal address not within vpc's address prefix
+	_, err3 := vpcConfigMultiVpc.ExplainConnectivity(existingVsi, cidrInternalNonAP, nil)
+	fmt.Println(err3.Error())
+	require.NotNil(t, err3, "the test should fail since src is cidr containing internal address "+
+		"not within vpc's subnets address range")
+	// todo: fix error message of not within address range
 	//require.Equal(t, "illegal dst: internal address 10.240.0.0-10.240.255.255 not within the vpc "+
 	//	"test-vpc1-ky subnets' address range 10.240.10.0-10.240.10.255, 10.240.20.0-10.240.20.255, 10.240.30.0-10.240.30.255",
 	//	err3.Error())
-	//fmt.Println()
-	//
-	//// should fail since internal address not connected to vsi
-	//_, err4 := vpcConfigSg1.ExplainConnectivity(internalIPNotVsi, existingVsi, nil)
-	//fmt.Println(err4.Error())
-	//require.NotNil(t, err4, "the test should fail since dst is an internal address within subnet's "+
-	//	"address range not connected to a VSI")
+	fmt.Println()
+
+	// should fail since internal address not connected to vsi
+	_, err4 := vpcConfigMultiVpc.ExplainConnectivity(internalIPNotVsi, existingVsi, nil)
+	fmt.Println(err4.Error())
+	require.NotNil(t, err4, "the test should fail since dst is an internal address within subnet's "+
+		"address range not connected to a VSI")
+	// todo: fix error message
 	//require.Equal(t, "illegal src: no network interfaces are connected to 10.240.10.5 in test-vpc1-ky", err4.Error())
-	//fmt.Println()
-	//
-	//// should fail since vsi's name has a typo
-	//_, err5 := vpcConfigSg1.ExplainConnectivity(existingVsi, nonExistingVsi, nil)
-	//fmt.Println(err5.Error())
-	//require.NotNil(t, err5, "the test should fail since src non existing vsi")
+	fmt.Println()
+
+	// should fail since vsi's name has a typo
+	// todo: fix error in error message
+	_, err5 := vpcConfigMultiVpc.ExplainConnectivity(existingVsi, nonExistingVsi, nil)
+	fmt.Println(err5.Error())
+	require.NotNil(t, err5, "the test should fail since dst non existing vsi")
 	//require.Equal(t, "illegal dst: vsi3a does not represent a legal IP address, a legal CIDR or a VSI name", err5.Error())
 
 	vpcConfigMultiVpcDupNames := getConfig(t, "tgw_larger_example_dup_names")
