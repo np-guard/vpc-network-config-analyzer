@@ -17,13 +17,14 @@ var svgTemplate string
 
 type templateData struct {
 	templateStyles
-	Width       int
-	Height      int
-	rootID      uint
-	Nodes       []TreeNodeInterface
-	DebugPoints []debugPoint
-	relations   string
-	IsHtml      bool
+	Width        int
+	Height       int
+	rootID       uint
+	Nodes        []TreeNodeInterface
+	DebugPoints  []debugPoint
+	Relations    string
+	Explanations []explanationEntry
+	IsHtml       bool
 }
 
 func NewTemplateData(network SquareTreeNodeInterface) *templateData {
@@ -37,9 +38,13 @@ func NewTemplateData(network SquareTreeNodeInterface) *templateData {
 		orderedNodes,
 		network.DebugPoints(),
 		"",
+		[]explanationEntry{},
 		true,
 	}
-	data.setRelations(network)
+	if data.IsHtml {
+		data.setNodesRelations(network)
+		data.setNodesExplanations(network)
+	}
 	return data
 }
 func (data *templateData) FipXOffset() int      { return fipXOffset }

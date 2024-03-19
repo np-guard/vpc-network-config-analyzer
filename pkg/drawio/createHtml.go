@@ -20,28 +20,6 @@ func nodeSubTree(node TreeNodeInterface) []TreeNodeInterface {
 	return append(getAllSquares(node), getAllIcons(node)...)
 }
 
-func lineRelation(info *lineInfo) []TreeNodeInterface {
-	res := []TreeNodeInterface{info.mainLine}
-	for _, node := range []TreeNodeInterface{info.src, info.dst} {
-		res = append(res, nodeParents(node)...)
-		res = append(res, nodeSubTree(node)...)
-	}
-	for _, node := range []TreeNodeInterface{info.router, info.srcGroupingPoint, info.dstGroupingPoint} {
-		if node != nil {
-			res = append(res, node)
-		}
-	}
-	for _, l := range info.srcGroupingLines {
-		res = append(res, l)
-		res = append(res, nodeSubTree(l.Src())...)
-	}
-	for _, l := range info.dstGroupingLines {
-		res = append(res, l)
-		res = append(res, nodeSubTree(l.Dst())...)
-	}
-	return res
-}
-
 type lineInfo struct {
 	mainLine                           LineTreeNodeInterface
 	src, dst                           TreeNodeInterface
@@ -75,6 +53,28 @@ func getLineInfo(line LineTreeNodeInterface) *lineInfo {
 	return info
 }
 
+func lineRelation(info *lineInfo) []TreeNodeInterface {
+	res := []TreeNodeInterface{info.mainLine}
+	for _, node := range []TreeNodeInterface{info.src, info.dst} {
+		res = append(res, nodeParents(node)...)
+		res = append(res, nodeSubTree(node)...)
+	}
+	for _, node := range []TreeNodeInterface{info.router, info.srcGroupingPoint, info.dstGroupingPoint} {
+		if node != nil {
+			res = append(res, node)
+		}
+	}
+	for _, l := range info.srcGroupingLines {
+		res = append(res, l)
+		res = append(res, nodeSubTree(l.Src())...)
+	}
+	for _, l := range info.dstGroupingLines {
+		res = append(res, l)
+		res = append(res, nodeSubTree(l.Dst())...)
+	}
+	return res
+}
+
 func tnRelations(network TreeNodeInterface) map[TreeNodeInterface][]TreeNodeInterface {
 	res := map[TreeNodeInterface][]TreeNodeInterface{}
 	// all parents of the nodes
@@ -104,7 +104,7 @@ func tnRelations(network TreeNodeInterface) map[TreeNodeInterface][]TreeNodeInte
 
 /////////////////////////////////////////////////////////////////////////////
 
-func (data *templateData) nodesRelations(network TreeNodeInterface) map[string]map[string][]string {
+func (data *templateData) setNodesRelations(network TreeNodeInterface) {
 	rel := tnRelations(network)
 	res := map[string]map[string][]string{}
 	res[""] = map[string][]string{}
@@ -123,7 +123,22 @@ func (data *templateData) nodesRelations(network TreeNodeInterface) map[string]m
 		res[nId]["explanation"] = []string{"expl of " + data.SvgName(node)}
 
 	}
-	return res
+	b, _ := json.Marshal(res)
+	data.Relations = string(b)
+}
+
+
+// ///////////////////////////////////////////////////////////////////////////
+type explanationEntry struct {
+	Src, Dst, Text string
+}
+func (data *templateData) setNodesExplanations(network TreeNodeInterface) {
+	for _, src := range data.Nodes {
+		for _, dst := range data.Nodes {
+			data.Explanations = append(data.Explanations, explanationEntry{data.SvgId(src), data.SvgId(dst),
+				 "explanation of " + data.SvgName(src) + "to" + data.SvgName(dst)})
+		}
+	}
 }
 
 func (data *templateData) SvgId(tn TreeNodeInterface) string {
@@ -135,17 +150,4 @@ func (data *templateData) SvgName(tn TreeNodeInterface) string {
 }
 func (data *templateData) SvgRootId() string {
 	return fmt.Sprintf("%s_%d", "top", data.rootID)
-}
-
-///////////////////////////////////////////////
-
-func (data *templateData) setRelations(network TreeNodeInterface) {
-	b, _ := json.Marshal(data.nodesRelations(network))
-	data.relations = string(b)
-}
-func (data *templateData) Relations() string {
-	return data.relations
-}
-func (data *templateData) Entries() string {
-	return ""
 }

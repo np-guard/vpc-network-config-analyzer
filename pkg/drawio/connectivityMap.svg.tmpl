@@ -95,7 +95,15 @@
 </switch>
 {{if $data.IsHtml}}
     <script type="text/xml">
-     <![CDATA[<data>{{$data.Entries}}</data>]]>
+    <![CDATA[<data>
+    {{range $explain := $data.Explanations}}
+        <entry dst="{{$explain.Dst}}" src="{{$explain.Src}}">
+            <text>
+            {{$explain.Text}}
+            </text>
+        </entry>
+     {{end}}
+     </data>]]>
     </script>
    </svg>
   </div>
@@ -178,35 +186,25 @@
                         explainExplainText = selectSrcText
                       }
                       else if (selectedElems.length == 1) {
-                        const src = selectedElems[0].getAttribute('title');
-                        explainText = 'SOURCE node is <span style="background-color: yellow;">'+src+'</span>'
+                        const src_name = selectedElems[0].getAttribute('title');
+                        explainText = 'SOURCE node is <span style="background-color: yellow;">'+src_name+'</span>'
                         explainExplainText =  selectDstText;
                       }
                       else {
-                        const src = selectedElems[0].getAttribute('title');
-                        const dst = selectedElems[1].getAttribute('title');
+                        const src = selectedElems[0].getAttribute('id');
+                        const dst = selectedElems[1].getAttribute('id');
+                        const src_name = selectedElems[0].getAttribute('title');
+                        const dst_name = selectedElems[1].getAttribute('title');
                         const entry = xmlDoc.querySelector("entry[src='"+src+"'][dst='"+dst+"']");
                         if (entry) {
-                          // color the src and dst names
-                          let expl_text = entry.textContent;
-                          let srcMatch = expl_text.match(/\(src\)([^\s]+)/);
-                          let dstMatch = expl_text.match(/\(dst\)([^\s]+)/);
-                          if (srcMatch) {
-                            let srcText = srcMatch[1]
-                            let srcReplacement = '<span style="background-color: yellow;">'+srcText+'</span>'
-                            expl_text = expl_text.replace(srcText, srcReplacement);
-                          }
-                          if (dstMatch) {
-                            dstMatch = dstMatch[1]
-                            let dstReplacement = '<span style="background-color: #ADD8E6;">'+dstMatch+'</span>'
-                            expl_text = expl_text.replace(dstMatch, dstReplacement);
-                          }
+							explainTitle = 'Configurations affecting the connectivity between <span style="background-color: yellow;">'+src_name+'</span> and <span style="background-color: #ADD8E6;">'+dst_name+'</span>:\n' 
 
-                          explainText = expl_text;
+                          // color the src and dst names
+                          explainText = explainTitle + entry.textContent;
                         }
                         else {
-                          explainText = 'Did not find entry of <span style="background-color: yellow;">'+src+'</span>'+
-                          ' and <span style="background-color: #ADD8E6;"> '+dst + '</span>';
+                          explainText = 'Did not find entry of <span style="background-color: yellow;">'+src_name+'</span>'+
+                          ' and <span style="background-color: #ADD8E6;"> '+dst_name + '</span>';
                         }
                         explainExplainText = reselectSrcText
                       }
