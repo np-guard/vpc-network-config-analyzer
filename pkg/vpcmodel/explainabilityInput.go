@@ -54,7 +54,6 @@ const noValidInputMsg = "does not represent a legal IP address, a legal CIDR or 
 // If one is internal and the other is external the vpcConfig of the internal is returned
 // ToDo If both internal but of different VPCs then the relevant vpcConfig is the dummy one created for the tgw connecting them,
 // if such tgw exists; otherwise the src and dst are not connected
-
 // error handling: the src and dst are being searched for within the context of each vpcConfig.
 // if not found, then it is due to one of the following:
 // 1. Src/dst is an internal address not within subnets of the VPC
