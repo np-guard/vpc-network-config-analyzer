@@ -46,7 +46,8 @@ const (
 const noValidInputMsg = "does not represent a legal IP address, a legal CIDR or a VSI name"
 
 // getVPCConfigAndSrcDstNodes given src, dst names returns the config in which the exaplainability analysis of these
-// should be done and the Nodes for src and dst.
+// should be done and the Nodes for src and dst as well as whether src or dst was given as the internal address of
+// a vsi (which effects the output)
 
 // At most one config should contain src and dst, and this is the config returned:
 // If both src and dst are internal of the same vpc then this vpcConfig is returned
