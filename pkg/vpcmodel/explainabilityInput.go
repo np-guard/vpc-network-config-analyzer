@@ -110,29 +110,40 @@ func (configsMap MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string)
 		for cfgID, val := range configsWithSrcDstNode {
 			return configsMap[cfgID], val.srcNodes, val.dstNodes, val.isSrcDstInternalIP, nil
 		}
-	case 0: // no match: internalNoConnectedVSI > internalNotWithinSubnetsAddr > noValidInputErr
-		switch {
-		case errMsgInternalNoConnectedVSI != nil:
-			return nil, nil, nil, noInternalIP, errMsgInternalNoConnectedVSI
-		case errMsgInternalNotWithinSubnet != nil:
-			return nil, nil, nil, noInternalIP, errMsgInternalNotWithinSubnet
-		default:
-			// prioritize err msg for an input (src/dst) not found in any cfg; if both prioritize src err msg
-			switch {
-			case !srcFoundSomeCfg:
-				return nil, nil, nil, noInternalIP, errMsgNoValidSrc
-			case !dstFoundSomeCfg:
-				return nil, nil, nil, noInternalIP, errMsgNoValidDst
-			default: // src found some cfg, dst found some cfg but not in the same cfg
-				return nil, nil, nil, noInternalIP, errMsgNoValidSrc
-			}
-		}
+	case 0:
+		return noMatchErr(srcFoundSomeCfg, dstFoundSomeCfg, errMsgInternalNoConnectedVSI, errMsgInternalNotWithinSubnet,
+			errMsgNoValidSrc, errMsgNoValidDst)
 	default: // len(configsWithSrcDstNode) > 1: src and dst found in more than one VPC configs - error
 		return configsMap.matchMoreThanOneCfgErr(src, dst, configsWithSrcDstNode)
 	}
 	return nil, nil, nil, noInternalIP, nil
 }
 
+// no match for both src and dst in any of the cfgs: internalNoConnectedVSI > internalNotWithinSubnetsAddr > noValidInputEr
+// prioritize err msg for an input (src/dst) not found in any cfg; if both prioritize src err msg
+func noMatchErr(srcFoundSomeCfg, dstFoundSomeCfg bool, errMsgInternalNoConnectedVSI, errMsgInternalNotWithinSubnet,
+	errMsgNoValidSrc, errMsgNoValidDst error) (vpcConfig *VPCConfig,
+	srcNodes, dstNodes []Node, isSrcDstInternalIP srcDstInternalAddr, err error) {
+	noInternalIP := srcDstInternalAddr{false, false}
+	switch {
+	case errMsgInternalNoConnectedVSI != nil:
+		return nil, nil, nil, noInternalIP, errMsgInternalNoConnectedVSI
+	case errMsgInternalNotWithinSubnet != nil:
+		return nil, nil, nil, noInternalIP, errMsgInternalNotWithinSubnet
+	default:
+		// prioritize err msg for an input (src/dst) not found in any cfg; if both prioritize src err msg
+		switch {
+		case !srcFoundSomeCfg:
+			return nil, nil, nil, noInternalIP, errMsgNoValidSrc
+		case !dstFoundSomeCfg:
+			return nil, nil, nil, noInternalIP, errMsgNoValidDst
+		default: // src found some cfg, dst found some cfg but not in the same cfg
+			return nil, nil, nil, noInternalIP, errMsgNoValidSrc
+		}
+	}
+}
+
+// match for both src and dst in more than one cfg
 func (configsMap MultipleVPCConfigs) matchMoreThanOneCfgErr(src, dst string,
 	configsWithSrcDstNode map[string]srcAndDstNodes) (vpcConfig *VPCConfig,
 	srcNodes, dstNodes []Node, isSrcDstInternalIP srcDstInternalAddr, err error) {
