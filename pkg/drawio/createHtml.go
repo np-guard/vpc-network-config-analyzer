@@ -136,7 +136,7 @@ func (data *templateData) setNodesExplanations(network TreeNodeInterface) {
 	for _, src := range data.Nodes {
 		for _, dst := range data.Nodes {
 			data.Explanations = append(data.Explanations, explanationEntry{data.SvgId(src), data.SvgId(dst),
-				 "explanation of " + data.SvgName(src) + "to" + data.SvgName(dst)})
+				 "explanation of " + data.SvgName(src) + " to " + data.SvgName(dst)})
 		}
 	}
 }
@@ -146,7 +146,7 @@ func (data *templateData) SvgId(tn TreeNodeInterface) string {
 	return fmt.Sprintf("%s_%d", name, tn.ID())
 }
 func (data *templateData) SvgName(tn TreeNodeInterface) string {
-	return "the name of " + data.SvgId(tn)
+	return "the_name_of_" + data.SvgId(tn)
 }
 func (data *templateData) SvgRootId() string {
 	return fmt.Sprintf("%s_%d", "top", data.rootID)
