@@ -88,8 +88,7 @@ func (configsMap MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string)
 			case noValidInputErr:
 				errMsgNoValidInput = err
 			}
-		}
-		if srcNodes != nil && dstNodes != nil {
+		} else {
 			configsWithSrcDstNode[cfgID] = srcAndDstNodes{srcNodes, dstNodes,
 				isSrcDstInternalIP}
 		}
