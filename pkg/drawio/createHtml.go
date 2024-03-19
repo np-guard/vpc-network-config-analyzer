@@ -10,17 +10,6 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
-func (data *templateData) SvgId(tn TreeNodeInterface) string {
-	name := reflect.TypeOf(tn).Elem().Name()[0:5]
-	return fmt.Sprintf("%s_%d", name, tn.ID())
-}
-func (data *templateData) SvgName(tn TreeNodeInterface) string {
-	return "the name of " + data.SvgId(tn)
-}
-func (data *templateData) SvgRootId() string {
-	return fmt.Sprintf("%s_%d", "top", data.rootID)
-}
-
 func nodeParents(node TreeNodeInterface) []TreeNodeInterface {
 	if node == nil {
 		return nil
@@ -69,30 +58,26 @@ type lineInfo struct {
 func getLineInfo(line LineTreeNodeInterface) *lineInfo {
 	src := line.Src()
 	dst := line.Dst()
-	router := line.Router()
+	info := &lineInfo{line, src, dst, line.Router(), nil, nil, nil, nil}
 
 	srcIsGP := src.IsIcon() && src.(IconTreeNodeInterface).IsGroupingPoint()
 	dstIsGP := dst.IsIcon() && dst.(IconTreeNodeInterface).IsGroupingPoint()
-	switch {
-	case !srcIsGP && !dstIsGP:
-		return &lineInfo{line, src, dst, router, nil, nil, nil, nil}
-	case srcIsGP && dstIsGP:
-		return &lineInfo{line, src.Parent(), dst.Parent(), router,
-			src.(*GroupPointTreeNode).groupedIconsConns,
-			dst.(*GroupPointTreeNode).groupedIconsConns,
-			src, dst}
-	case srcIsGP && !slices.Contains(src.(*GroupPointTreeNode).groupedIconsConns, line):
-		return &lineInfo{line, src.Parent(), dst, router,
-			src.(*GroupPointTreeNode).groupedIconsConns,
-			nil,
-			src, nil}
-	case dstIsGP && !slices.Contains(dst.(*GroupPointTreeNode).groupedIconsConns, line):
-		return &lineInfo{line, src, dst.Parent(), router,
-			nil,
-			dst.(*GroupPointTreeNode).groupedIconsConns,
-			nil, dst}
+
+	if srcIsGP && slices.Contains(src.(*GroupPointTreeNode).groupedIconsConns, line) ||
+		dstIsGP && slices.Contains(dst.(*GroupPointTreeNode).groupedIconsConns, line) {
+		return nil
 	}
-	return nil
+	if srcIsGP {
+		info.src = src.Parent()
+		info.srcGroupingLines = src.(*GroupPointTreeNode).groupedIconsConns
+		info.srcGroupingPoint = src
+	}
+	if dstIsGP {
+		info.dst = dst.Parent()
+		info.dstGroupingLines = dst.(*GroupPointTreeNode).groupedIconsConns
+		info.dstGroupingPoint = dst
+	}
+	return info
 }
 
 func tnRelations(network TreeNodeInterface) map[TreeNodeInterface][]TreeNodeInterface {
@@ -108,8 +93,8 @@ func tnRelations(network TreeNodeInterface) map[TreeNodeInterface][]TreeNodeInte
 			continue
 		}
 		lineRelations := lineRelation(info)
-		for _, i := range lineRelations {
-			res[i] = append(res[i], lineRelations...)
+		for _, relatedTn := range lineRelations {
+			res[relatedTn] = append(res[relatedTn], lineRelations...)
 		}
 	}
 
@@ -117,11 +102,13 @@ func tnRelations(network TreeNodeInterface) map[TreeNodeInterface][]TreeNodeInte
 		res[node] = append(res[node], getAllIcons(node)...)
 		res[node] = append(res[node], getAllSquares(node)...)
 	}
-	for n,r := range res{
+	for n, r := range res {
 		res[n] = common.FromList[TreeNodeInterface](r).AsList()
 	}
 	return res
 }
+
+/////////////////////////////////////////////////////////////////////////////
 
 func (data *templateData) nodesRelations(network TreeNodeInterface) map[string]map[string][]string {
 	rel := tnRelations(network)
@@ -144,6 +131,20 @@ func (data *templateData) nodesRelations(network TreeNodeInterface) map[string]m
 	}
 	return res
 }
+
+func (data *templateData) SvgId(tn TreeNodeInterface) string {
+	name := reflect.TypeOf(tn).Elem().Name()[0:5]
+	return fmt.Sprintf("%s_%d", name, tn.ID())
+}
+func (data *templateData) SvgName(tn TreeNodeInterface) string {
+	return "the name of " + data.SvgId(tn)
+}
+func (data *templateData) SvgRootId() string {
+	return fmt.Sprintf("%s_%d", "top", data.rootID)
+}
+
+///////////////////////////////////////////////
+
 func (data *templateData) setRelations(network TreeNodeInterface) {
 	b, _ := json.Marshal(data.nodesRelations(network))
 	data.relations = string(b)
