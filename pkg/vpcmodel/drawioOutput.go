@@ -159,7 +159,9 @@ func (d *DrawioOutputFormatter) createEdges() {
 				if g, ok := e.(*groupedEndpointsElems); ok {
 					k := common.FromList[EndpointElem](*g).AsKey()
 					if g2, ok := elg[k]; ok {
-						fmt.Printf("pointer %p of %s and pointer %p of the same %s  \n", g, g.Name(), g2, g2.Name())
+						if g != g2 {
+							fmt.Printf("pointer %p of %s and pointer %p of the same %s  \n", g, g.Name(), g2, g2.Name())
+						}
 					}
 					elg[k] = g
 
