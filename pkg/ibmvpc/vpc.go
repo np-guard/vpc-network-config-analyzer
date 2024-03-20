@@ -219,7 +219,7 @@ type LoadBalancer struct {
 func (lb *LoadBalancer) Nodes() []vpcmodel.Node {
 	return lb.nodes
 }
-func (lb *LoadBalancer) AddressRange() *ipblocks.IPBlock {
+func (lb *LoadBalancer) AddressRange() *ipblock.IPBlock {
 	return nodesAddressRange(lb.nodes)
 }
 func (lb *LoadBalancer) NLis() int {
