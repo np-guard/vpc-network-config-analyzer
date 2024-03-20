@@ -523,12 +523,11 @@ func TestInputValiditySingleVPCContext(t *testing.T) {
 	require.Equal(t, "illegal src: no network interfaces are connected to 10.240.10.5 in test-vpc1-ky", err4.Error())
 	fmt.Println()
 
-	// should fail since vsi's name prefixed with the wrong vpc
+	// should fail since vsi's name has a typo
 	_, err5 := vpcConfigSg1.ExplainConnectivity(existingVsi, nonExistingVsi, nil)
 	fmt.Println(err5.Error())
 	require.NotNil(t, err5, "the test should fail since dst non existing vsi")
 	require.Equal(t, "illegal dst: vsi3a does not represent a legal IP address, a legal CIDR or a VSI name", err5.Error())
-	fmt.Println()
 }
 
 func TestInputValidityMultipleVPCContext(t *testing.T) {
