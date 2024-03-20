@@ -74,17 +74,16 @@ func lineRelation(info *lineInfo) []TreeNodeInterface {
 	}
 	return res
 }
-func sgRelation(sgTn *SGTreeNode)[]TreeNodeInterface{
-	
-	res := []TreeNodeInterface{}
-	for _, psgTn := range sgTn.partialSgs{
-		res =append(res, psgTn)
+func sgRelation(sgTn *SGTreeNode) (psg, icons []TreeNodeInterface) {
+	for _, psgTn := range sgTn.partialSgs {
+		psg = append(psg, psgTn)
 	}
-	for _, icon := range sgTn.elements{
-			res =append(res, icon)
-		}
-	return res
+	for _, icon := range sgTn.elements {
+		icons = append(icons, icon)
+	}
+	return psg, icons
 }
+
 func tnRelations(network TreeNodeInterface) map[TreeNodeInterface][]TreeNodeInterface {
 	res := map[TreeNodeInterface][]TreeNodeInterface{}
 	// all parents of the nodes
@@ -105,12 +104,17 @@ func tnRelations(network TreeNodeInterface) map[TreeNodeInterface][]TreeNodeInte
 
 	for _, node := range getAllSquares(network) {
 		res[node] = append(res[node], nodeSubTree(node)...)
-		if sgTn, ok := node.(*SGTreeNode); ok{
-			sgRelations := sgRelation(sgTn)
-			for _, relatedTn := range sgRelations {
-				res[relatedTn] = append(res[relatedTn], sgRelations...)
+		if sgTn, ok := node.(*SGTreeNode); ok {
+			sgSquares, sgIcons := sgRelation(sgTn)
+			for _, i := range sgIcons {
+				res[i] = append(res[i], sgSquares...)
 			}
-	
+			for _, s := range sgSquares {
+				for _, i := range sgIcons {
+					res[s] = append(res[s], res[i]...)
+				}
+			}
+
 		}
 	}
 	for n, r := range res {
@@ -144,16 +148,16 @@ func (data *templateData) setNodesRelations(network TreeNodeInterface) {
 	data.Relations = string(b)
 }
 
-
 // ///////////////////////////////////////////////////////////////////////////
 type explanationEntry struct {
 	Src, Dst, Text string
 }
+
 func (data *templateData) setNodesExplanations(network TreeNodeInterface) {
 	for _, src := range data.Nodes {
 		for _, dst := range data.Nodes {
 			data.Explanations = append(data.Explanations, explanationEntry{data.SvgId(src), data.SvgId(dst),
-				 "explanation of " + data.SvgName(src) + " to " + data.SvgName(dst)})
+				"explanation of " + data.SvgName(src) + " to " + data.SvgName(dst)})
 		}
 	}
 }
