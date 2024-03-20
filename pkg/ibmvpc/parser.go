@@ -11,8 +11,9 @@ import (
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
 
 	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
-	"github.com/np-guard/models/pkg/ipblocks"
-	vpcmodel "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
+	"github.com/np-guard/models/pkg/ipblock"
+
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
 // ParseResourcesFromFile returns datamodel.ResourcesContainerModel object, containing the configured resources structs
@@ -77,7 +78,7 @@ func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resou
 		return nil, err
 	}
 
-	var vpcInternalAddressRange map[string]*ipblocks.IPBlock // map from vpc name to its internal address range
+	var vpcInternalAddressRange map[string]*ipblock.IPBlock // map from vpc name to its internal address range
 
 	subnetNameToNetIntf := map[string][]*NetworkInterface{}
 	err = getInstancesConfig(rc.InstanceList, subnetNameToNetIntf, res, filteredOut, shouldSkipVpcIds)
@@ -277,8 +278,8 @@ func getSubnetsConfig(
 	subnetNameToNetIntf map[string][]*NetworkInterface,
 	rc *datamodel.ResourcesContainerModel,
 	skipByVPC map[string]bool,
-) (vpcInternalAddressRange map[string]*ipblocks.IPBlock, err error) {
-	vpcInternalAddressRange = map[string]*ipblocks.IPBlock{}
+) (vpcInternalAddressRange map[string]*ipblock.IPBlock, err error) {
+	vpcInternalAddressRange = map[string]*ipblock.IPBlock{}
 	for vpcUID := range res {
 		vpcInternalAddressRange[vpcUID] = nil
 	}
@@ -304,7 +305,7 @@ func getSubnetsConfig(
 			cidr: *subnet.Ipv4CIDRBlock,
 		}
 
-		cidrIPBlock, err := ipblocks.NewIPBlockFromCidr(subnetNode.cidr)
+		cidrIPBlock, err := ipblock.FromCidr(subnetNode.cidr)
 		if err != nil {
 			return nil, err
 		}
@@ -574,7 +575,8 @@ func getSGconfig(rc *datamodel.ResourcesContainerModel,
 ) error {
 	sgMap := map[string]map[string]*SecurityGroup{} // map from vpc uid to map from sg name to its sg object
 	sgLists := map[string][]*SecurityGroup{}
-	for _, sg := range rc.SecurityGroupList {
+	for i := range rc.SecurityGroupList {
+		sg := rc.SecurityGroupList[i]
 		if skipByVPC[*sg.VPC.CRN] {
 			continue
 		}
@@ -634,7 +636,8 @@ func getNACLconfig(rc *datamodel.ResourcesContainerModel,
 	skipByVPC map[string]bool,
 ) error {
 	naclLists := map[string][]*NACL{} // map from vpc uid to its nacls
-	for _, nacl := range rc.NetworkACLList {
+	for i := range rc.NetworkACLList {
+		nacl := rc.NetworkACLList[i]
 		if skipByVPC[*nacl.VPC.CRN] {
 			continue
 		}
@@ -759,7 +762,7 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 					Region:       region,
 				},
 				vpcs:            []*VPC{vpc},
-				availableRoutes: map[string][]*ipblocks.IPBlock{},
+				availableRoutes: map[string][]*ipblock.IPBlock{},
 				region:          getRegionByName(region, regionToStructMap),
 			}
 			tgwMap[tgwUID] = tgw
@@ -786,12 +789,12 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 // validateVPCsAddressPrefixesForTGW checks that all VPCs address prefixes (connected by TGW) are disjoint,
 // returns error if address prefixes are missing or overlapping
 func validateVPCsAddressPrefixesForTGW(vpcsList []*VPC) (err error) {
-	ipBlocksForAP := make([]*ipblocks.IPBlock, len(vpcsList))
+	ipBlocksForAP := make([]*ipblock.IPBlock, len(vpcsList))
 	for i, vpc := range vpcsList {
 		if len(vpc.addressPrefixes) == 0 {
 			return fmt.Errorf("TGW analysis requires all VPCs have configured address prefixes, but this is missing for vpc %s", vpc.NameAndUID())
 		}
-		ipBlocksForAP[i], err = ipblocks.NewIPBlockFromCidrList(vpc.addressPrefixes)
+		ipBlocksForAP[i], err = ipblock.FromCidrList(vpc.addressPrefixes)
 		if err != nil {
 			return err
 		}
@@ -800,7 +803,7 @@ func validateVPCsAddressPrefixesForTGW(vpcsList []*VPC) (err error) {
 	// validate disjoint address prefixes for each VPCs pair
 	for i1 := range ipBlocksForAP {
 		for i2 := range ipBlocksForAP[i1+1:] {
-			if !ipBlocksForAP[i1].Intersection(ipBlocksForAP[i1+1:][i2]).Empty() {
+			if !ipBlocksForAP[i1].Intersect(ipBlocksForAP[i1+1:][i2]).IsEmpty() {
 				return fmt.Errorf("TGW analysis requires all VPCs have disjoint address prefixes, but found intersecting ones for vpcs %s, %s",
 					vpcsList[i1].NameAndUID(), vpcsList[i1+1:][i2].NameAndUID())
 			}
@@ -831,7 +834,7 @@ func addTGWbasedConfigs(tgws map[string]*TransitGateway, res map[string]*vpcmode
 			UIDToResource:        map[string]vpcmodel.VPCResourceIntf{},
 			IsMultipleVPCsConfig: true,
 		}
-		var vpcsAddressRanges *ipblocks.IPBlock // collect all internal address ranges of involved VPCs
+		var vpcsAddressRanges *ipblock.IPBlock // collect all internal address ranges of involved VPCs
 		nacls := &NaclLayer{VPCResource: vpcmodel.VPCResource{ResourceType: vpcmodel.NaclLayer}}
 		sgs := &SecurityGroupLayer{VPCResource: vpcmodel.VPCResource{ResourceType: vpcmodel.SecurityGroupLayer}}
 		for _, vpc := range tgw.vpcs { // iterate the involved VPCs -- all of them are connected (all to all)
@@ -867,8 +870,8 @@ func addTGWbasedConfigs(tgws map[string]*TransitGateway, res map[string]*vpcmode
 				vpcsAddressRanges = vpcConfig.VPC.(*VPC).internalAddressRange
 			} else {
 				// currently supporting only disjoint address ranges for the connected VPCs
-				intersection := vpcsAddressRanges.Intersection(vpcConfig.VPC.(*VPC).internalAddressRange)
-				if !intersection.Empty() {
+				intersection := vpcsAddressRanges.Intersect(vpcConfig.VPC.(*VPC).internalAddressRange)
+				if !intersection.IsEmpty() {
 					fmt.Printf("warning: ignoring TGW %s, as currently not supporting connected VPCs with overlapping address ranges\n",
 						tgw.ResourceName)
 					continue
@@ -909,7 +912,7 @@ func addTGWbasedConfigs(tgws map[string]*TransitGateway, res map[string]*vpcmode
 	return nil
 }
 
-func getSubnetByIPAddress(addressIPblock *ipblocks.IPBlock, c *vpcmodel.VPCConfig) (subnet *Subnet, err error) {
+func getSubnetByIPAddress(addressIPblock *ipblock.IPBlock, c *vpcmodel.VPCConfig) (subnet *Subnet, err error) {
 	for _, s := range c.Subnets {
 		if addressIPblock.ContainedIn(s.AddressRange()) {
 			return s.(*Subnet), nil
@@ -1039,7 +1042,7 @@ func NewEmptyVPCConfig() *vpcmodel.VPCConfig {
 }
 
 // filter VPCs with empty address ranges, then add for remaining VPCs the external nodes
-func filterVPCSAndAddExternalNodes(vpcInternalAddressRange map[string]*ipblocks.IPBlock, res map[string]*vpcmodel.VPCConfig) error {
+func filterVPCSAndAddExternalNodes(vpcInternalAddressRange map[string]*ipblock.IPBlock, res map[string]*vpcmodel.VPCConfig) error {
 	for vpcUID, vpcConfig := range res {
 		if vpcInternalAddressRange[vpcUID] == nil {
 			fmt.Printf("Ignoring VPC %s, no subnets found for this VPC\n", vpcUID)
@@ -1054,7 +1057,7 @@ func filterVPCSAndAddExternalNodes(vpcInternalAddressRange map[string]*ipblocks.
 	return nil
 }
 
-func updateVPCSAddressRanges(vpcInternalAddressRange map[string]*ipblocks.IPBlock,
+func updateVPCSAddressRanges(vpcInternalAddressRange map[string]*ipblock.IPBlock,
 	vpcsMap map[string]*vpcmodel.VPCConfig) error {
 	// assign to each vpc object its internal address range, as inferred from its subnets
 	for vpcUID, addressRange := range vpcInternalAddressRange {
@@ -1068,7 +1071,7 @@ func updateVPCSAddressRanges(vpcInternalAddressRange map[string]*ipblocks.IPBloc
 	return nil
 }
 
-func handlePublicInternetNodes(res *vpcmodel.VPCConfig, vpcInternalAddressRange *ipblocks.IPBlock) error {
+func handlePublicInternetNodes(res *vpcmodel.VPCConfig, vpcInternalAddressRange *ipblock.IPBlock) error {
 	externalNodes, err := addExternalNodes(res, vpcInternalAddressRange)
 	if err != nil {
 		return err
@@ -1091,13 +1094,13 @@ func handlePublicInternetNodes(res *vpcmodel.VPCConfig, vpcInternalAddressRange 
 	return nil
 }
 
-func addExternalNodes(config *vpcmodel.VPCConfig, vpcInternalAddressRange *ipblocks.IPBlock) ([]vpcmodel.Node, error) {
-	ipBlocks := []*ipblocks.IPBlock{}
+func addExternalNodes(config *vpcmodel.VPCConfig, vpcInternalAddressRange *ipblock.IPBlock) ([]vpcmodel.Node, error) {
+	ipBlocks := []*ipblock.IPBlock{}
 	for _, f := range config.FilterResources {
 		ipBlocks = append(ipBlocks, f.ReferencedIPblocks()...)
 	}
 
-	externalRefIPBlocks := []*ipblocks.IPBlock{}
+	externalRefIPBlocks := []*ipblock.IPBlock{}
 	for _, ipBlock := range ipBlocks {
 		if ipBlock.ContainedIn(vpcInternalAddressRange) {
 			continue
@@ -1105,7 +1108,7 @@ func addExternalNodes(config *vpcmodel.VPCConfig, vpcInternalAddressRange *ipblo
 		externalRefIPBlocks = append(externalRefIPBlocks, ipBlock.Subtract(vpcInternalAddressRange))
 	}
 
-	disjointRefExternalIPBlocks := ipblocks.DisjointIPBlocks(externalRefIPBlocks, []*ipblocks.IPBlock{})
+	disjointRefExternalIPBlocks := ipblock.DisjointIPBlocks(externalRefIPBlocks, []*ipblock.IPBlock{})
 
 	externalNodes, err := vpcmodel.GetExternalNetworkNodes(disjointRefExternalIPBlocks)
 	if err != nil {

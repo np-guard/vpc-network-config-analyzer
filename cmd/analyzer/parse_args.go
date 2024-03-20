@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/np-guard/cloud-resource-collector/pkg/factory"
+
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
