@@ -74,7 +74,17 @@ func lineRelation(info *lineInfo) []TreeNodeInterface {
 	}
 	return res
 }
-
+func sgRelation(sgTn *SGTreeNode)[]TreeNodeInterface{
+	
+	res := []TreeNodeInterface{}
+	for _, psgTn := range sgTn.partialSgs{
+		res =append(res, psgTn)
+	}
+	for _, icon := range sgTn.elements{
+			res =append(res, icon)
+		}
+	return res
+}
 func tnRelations(network TreeNodeInterface) map[TreeNodeInterface][]TreeNodeInterface {
 	res := map[TreeNodeInterface][]TreeNodeInterface{}
 	// all parents of the nodes
@@ -95,6 +105,13 @@ func tnRelations(network TreeNodeInterface) map[TreeNodeInterface][]TreeNodeInte
 
 	for _, node := range getAllSquares(network) {
 		res[node] = append(res[node], nodeSubTree(node)...)
+		if sgTn, ok := node.(*SGTreeNode); ok{
+			sgRelations := sgRelation(sgTn)
+			for _, relatedTn := range sgRelations {
+				res[relatedTn] = append(res[relatedTn], sgRelations...)
+			}
+	
+		}
 	}
 	for n, r := range res {
 		res[n] = common.FromList[TreeNodeInterface](r).AsList()
