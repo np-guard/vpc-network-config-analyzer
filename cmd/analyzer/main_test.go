@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 // TODO: this file need to be rewritten
@@ -82,5 +84,52 @@ func removeGeneratedFiles() {
 		if err := os.Remove(f); err != nil {
 			panic(err)
 		}
+	}
+}
+
+func TestCommandsFailExecute(t *testing.T) {
+	tests := []struct {
+		name                  string
+		args                  []string
+		expectedErrorContains string
+	}{
+		{
+			name:                  "bad_flag_syntax",
+			args:                  []string{"-output-file", "out.txt", "vpc-config", "../../pkg/ibmvpc/examples/input/input_multi_resource_groups.json"},
+			expectedErrorContains: "bad flag syntax",
+		},
+		{
+			name:                  "missing_arg_flag",
+			args:                  []string{"-output-file", "out.txt", "-vpc-config"},
+			expectedErrorContains: "flag needs an argument",
+		},
+		{
+			name:                  "vpc_config_or_provider_not_specified",
+			args:                  []string{"-output-file", "out.txt"},
+			expectedErrorContains: "vpc-config flag or provider flag must be specified",
+		},
+		{
+			name:                  "wrong_analysis_type_format",
+			args:                  []string{"-vpc-config", "../../pkg/ibmvpc/examples/input/input_multi_resource_groups.json", "-analysis-type", "single_subnet", "-format", "md"},
+			expectedErrorContains: "wrong output format 'md' for analysis type 'single_subnet';",
+		},
+		{
+			name:                  "src_and_dst_not_specified_for_explain_mode",
+			args:                  []string{"-vpc-config", "../../pkg/ibmvpc/examples/input/input_multi_resource_groups.json", "-analysis-type", "explain"},
+			expectedErrorContains: "please specify src and dst network_interface / external ip you want to explain connectivity for",
+		},
+		{
+			name:                  "missing_sec_vpc_config_for_diff_analysis",
+			args:                  []string{"-vpc-config", "../../pkg/ibmvpc/examples/input/input_multi_resource_groups.json", "-analysis-type", "diff_all_endpoints"},
+			expectedErrorContains: "missing parameter vpc-config-second for diff analysis",
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			err := _main(tt.args)
+			require.Contains(t, err.Error(), tt.expectedErrorContains,
+				"error mismatch for test %q, actual: %q, expected contains: %q", tt.name, err.Error(), tt.expectedErrorContains)
+		})
 	}
 }
