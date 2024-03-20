@@ -63,8 +63,8 @@ func filterByVpcResourceGroupAndRegions(rc *datamodel.ResourcesContainerModel, v
 // VPCConfigsFromResources returns a map from VPC UID (string) to its corresponding VPCConfig object,
 // containing the parsed resources in the relevant model objects
 func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resourceGroup string, regions []string, debug bool) (
-	map[string]*vpcmodel.VPCConfig, error) {
-	res := map[string]*vpcmodel.VPCConfig{}       // map from VPC UID to its config
+	vpcmodel.MultipleVPCConfigs, error) {
+	res := vpcmodel.MultipleVPCConfigs{}          // map from VPC UID to its config
 	filteredOut := map[string]bool{}              // store networkInterface UIDs filtered out by skipByVPC
 	regionToStructMap := make(map[string]*Region) // map for caching Region objects
 	var err error
@@ -183,7 +183,7 @@ func getCertainNodes(allNodes []vpcmodel.Node, shouldTakeNode func(vpcmodel.Node
 	return
 }
 
-func addZone(zoneName, vpcUID string, res map[string]*vpcmodel.VPCConfig) error {
+func addZone(zoneName, vpcUID string, res vpcmodel.MultipleVPCConfigs) error {
 	vpc, err := getVPCObjectByUID(res, vpcUID)
 	if err != nil {
 		return err
@@ -204,7 +204,7 @@ func updateFilteredOutNetworkInterfacesUIDs(instance *datamodel.Instance, filter
 func getInstancesConfig(
 	instanceList []*datamodel.Instance,
 	subnetNameToNetIntf map[string][]*NetworkInterface,
-	res map[string]*vpcmodel.VPCConfig,
+	res vpcmodel.MultipleVPCConfigs,
 	filteredOutUIDs map[string]bool,
 	skipByVPC map[string]bool,
 ) error {
@@ -270,7 +270,7 @@ func getInstancesConfig(
 }
 
 func getSubnetsConfig(
-	res map[string]*vpcmodel.VPCConfig,
+	res vpcmodel.MultipleVPCConfigs,
 	pgwToSubnet map[string][]*Subnet,
 	subnetNameToNetIntf map[string][]*NetworkInterface,
 	rc *datamodel.ResourcesContainerModel,
@@ -354,7 +354,7 @@ func getSubnetsCidrs(subnets []*Subnet) []string {
 }
 
 func getPgwConfig(
-	res map[string]*vpcmodel.VPCConfig,
+	res vpcmodel.MultipleVPCConfigs,
 	rc *datamodel.ResourcesContainerModel,
 	pgwToSubnet map[string][]*Subnet,
 	skipByVPC map[string]bool,
@@ -411,7 +411,7 @@ func warnSkippedFip(filteredOutUIDs map[string]bool, targetUID string, fip *data
 
 func getFipConfig(
 	rc *datamodel.ResourcesContainerModel,
-	res map[string]*vpcmodel.VPCConfig,
+	res vpcmodel.MultipleVPCConfigs,
 	filteredOutUIDs map[string]bool,
 	skipByVPC map[string]bool,
 ) error {
@@ -497,7 +497,7 @@ func getVPCAddressPrefixes(vpc *datamodel.VPC) (res []string) {
 }
 
 func getVPCconfig(rc *datamodel.ResourcesContainerModel,
-	res map[string]*vpcmodel.VPCConfig,
+	res vpcmodel.MultipleVPCConfigs,
 	skipByVPC map[string]bool,
 	regionToStructMap map[string]*Region) error {
 	for _, vpc := range rc.VpcList {
@@ -558,7 +558,7 @@ func parseSGTargets(sgResource *SecurityGroup,
 }
 
 func getSGconfig(rc *datamodel.ResourcesContainerModel,
-	res map[string]*vpcmodel.VPCConfig,
+	res vpcmodel.MultipleVPCConfigs,
 	skipByVPC map[string]bool,
 ) error {
 	sgMap := map[string]map[string]*SecurityGroup{} // map from vpc uid to map from sg name to its sg object
@@ -620,7 +620,7 @@ func getSGconfig(rc *datamodel.ResourcesContainerModel,
 }
 
 func getNACLconfig(rc *datamodel.ResourcesContainerModel,
-	res map[string]*vpcmodel.VPCConfig,
+	res vpcmodel.MultipleVPCConfigs,
 	skipByVPC map[string]bool,
 ) error {
 	naclLists := map[string][]*NACL{} // map from vpc uid to its nacls
@@ -687,7 +687,7 @@ func getTgwMap(c *datamodel.ResourcesContainerModel) map[string]*datamodel.Trans
 }
 
 func getTgwObjects(c *datamodel.ResourcesContainerModel,
-	res map[string]*vpcmodel.VPCConfig,
+	res vpcmodel.MultipleVPCConfigs,
 	resourceGroup string,
 	regions []string,
 	regionToStructMap map[string]*Region) map[string]*TransitGateway {
@@ -805,7 +805,7 @@ func validateVPCsAddressPrefixesForTGW(vpcsList []*VPC) (err error) {
 // currently assuming only all-to-all connectivity is configured
 // in the analysis, such a config should only focus on connections cross-vpcs
 // should make sure that the internal address ranges per all connected vpcs are disjoint
-func addTGWbasedConfigs(tgws map[string]*TransitGateway, res map[string]*vpcmodel.VPCConfig) error {
+func addTGWbasedConfigs(tgws map[string]*TransitGateway, res vpcmodel.MultipleVPCConfigs) error {
 	for _, tgw := range tgws {
 		if len(tgw.vpcs) <= 1 {
 			// skip tgw if it does not connect between at least 2 vpcs
@@ -910,7 +910,7 @@ func getSubnetByIPAddress(addressIPblock *ipblock.IPBlock, c *vpcmodel.VPCConfig
 }
 
 func getVPEconfig(rc *datamodel.ResourcesContainerModel,
-	res map[string]*vpcmodel.VPCConfig,
+	res vpcmodel.MultipleVPCConfigs,
 	skipByVPC map[string]bool,
 ) (err error) {
 	for _, vpe := range rc.EndpointGWList {
@@ -970,7 +970,7 @@ func getVPEconfig(rc *datamodel.ResourcesContainerModel,
 	return nil
 }
 
-func getSubnetByCidr(res map[string]*vpcmodel.VPCConfig, cidr string) (*Subnet, error) {
+func getSubnetByCidr(res vpcmodel.MultipleVPCConfigs, cidr string) (*Subnet, error) {
 	for _, config := range res {
 		if subnet, err := config.SubnetCidrToSubnetElem(cidr); err == nil {
 			return subnet.(*Subnet), nil
@@ -979,7 +979,7 @@ func getSubnetByCidr(res map[string]*vpcmodel.VPCConfig, cidr string) (*Subnet, 
 	return nil, fmt.Errorf("could not find subnet with cidr: %s", cidr)
 }
 
-func getIKSnodesConfig(res map[string]*vpcmodel.VPCConfig,
+func getIKSnodesConfig(res vpcmodel.MultipleVPCConfigs,
 	rc *datamodel.ResourcesContainerModel,
 	skipByVPC map[string]bool) error {
 	for _, iksNode := range rc.IKSWorkerNodes {
@@ -1109,7 +1109,7 @@ func addExternalNodes(config *vpcmodel.VPCConfig, vpcInternalAddressRange *ipblo
 	return externalNodes, nil
 }
 
-func getVPCObjectByUID(res map[string]*vpcmodel.VPCConfig, uid string) (*VPC, error) {
+func getVPCObjectByUID(res vpcmodel.MultipleVPCConfigs, uid string) (*VPC, error) {
 	vpcConfig, ok := res[uid]
 	if !ok {
 		return nil, fmt.Errorf("missing VPC resource of uid %s", uid)
@@ -1123,7 +1123,7 @@ func getVPCObjectByUID(res map[string]*vpcmodel.VPCConfig, uid string) (*VPC, er
 
 /********** Functions used in Debug mode ***************/
 
-func printVPCConfigs(c map[string]*vpcmodel.VPCConfig) {
+func printVPCConfigs(c vpcmodel.MultipleVPCConfigs) {
 	fmt.Println("VPCs to analyze:")
 	for vpcUID, config := range c {
 		fmt.Printf("VPC UID: %s, Name: %s\n", vpcUID, config.VPC.Name())
