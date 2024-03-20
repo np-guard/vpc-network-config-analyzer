@@ -4,7 +4,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/np-guard/models/pkg/ipblocks"
+	"github.com/np-guard/models/pkg/ipblock"
+
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
@@ -64,12 +65,12 @@ func (v *VPCsubnetConnectivity) printAllowedConns() {
 	}
 }
 
-func (c *VPCConfig) ipblockToNamedResourcesInConfig(ipb *ipblocks.IPBlock, excludeExternalNodes bool) ([]VPCResourceIntf, error) {
+func (c *VPCConfig) ipblockToNamedResourcesInConfig(ipb *ipblock.IPBlock, excludeExternalNodes bool) ([]VPCResourceIntf, error) {
 	res := []VPCResourceIntf{}
 
 	// consider subnets
 	for _, subnet := range c.Subnets {
-		var subnetCidrIPB *ipblocks.IPBlock
+		var subnetCidrIPB *ipblock.IPBlock
 		if subnetCidrIPB = subnet.AddressRange(); subnetCidrIPB == nil {
 			return nil, errors.New("missing AddressRange for subnet")
 		}
