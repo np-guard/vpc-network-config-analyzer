@@ -174,6 +174,24 @@ func (d *DrawioOutputFormatter) createEdges() {
 	}
 }
 func (d *DrawioOutputFormatter) createExplanations() {
+	type expKey struct {
+		src, dst EndpointElem
+	}
+	expl := map[expKey]string{}
+	for _, vpcConfig := range d.cConfigs {
+		if !vpcConfig.IsMultipleVPCsConfig {
+			for _, src := range vpcConfig.Nodes {
+				if !src.IsExternal() && d.showResource(src) {
+					for _, dst := range vpcConfig.Nodes {
+						if !dst.IsExternal() && d.showResource(dst) {
+							expl[expKey{src, dst}] =
+								"No Connectivity from " + src.Name() + " to " + dst.Name()
+						}
+					}
+				}
+			}
+		}
+	}
 	for _, vpcConn := range d.conns {
 		for _, line := range vpcConn.GroupedLines {
 			srcs := []EndpointElem{line.src}
@@ -186,13 +204,14 @@ func (d *DrawioOutputFormatter) createExplanations() {
 			}
 			for _, src := range srcs {
 				for _, dst := range dsts {
-
-					// Todo: get real explanation
-					d.explanations = append(d.explanations, drawio.ExplanationEntry{d.gen.TreeNode(src), d.gen.TreeNode(dst),
-						"Connectivity from " + src.Name() + " to " + dst.Name() + " is under " + line.ConnLabel()})
+					expl[expKey{src, dst}] = "Connectivity from " + src.Name() + " to " + dst.Name() + " is under " + line.ConnLabel()
 				}
 			}
 		}
+	}
+
+	for k, e := range expl {
+		d.explanations = append(d.explanations, drawio.ExplanationEntry{d.gen.TreeNode(k.src), d.gen.TreeNode(k.dst), e})
 	}
 }
 
