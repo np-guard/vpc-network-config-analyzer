@@ -207,7 +207,7 @@ func (d *DrawioOutputFormatter) createExplanations() {
 			}
 			for _, src := range srcs {
 				for _, dst := range dsts {
-					explanations[expKey{src, dst}] = "Connectivity from " + src.Name() + " to " + dst.Name() + " is under " + line.ConnLabel()
+					explanations[expKey{src, dst}] = line.String()
 				}
 			}
 		}

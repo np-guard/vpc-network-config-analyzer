@@ -7,6 +7,8 @@ import (
 	"reflect"
 	"sort"
 	"text/template"
+
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 //go:embed connectivityMap.drawio.tmpl
@@ -24,7 +26,8 @@ type templateData struct {
 	DebugPoints  []debugPoint
 	Relations    string
 	Explanations []ExplanationEntry
-	IsHtml       bool
+	clickable  common.GenericSet[TreeNodeInterface]
+	IsHtml bool
 }
 
 func NewTemplateData(network SquareTreeNodeInterface, explanations []ExplanationEntry) *templateData {
@@ -39,10 +42,12 @@ func NewTemplateData(network SquareTreeNodeInterface, explanations []Explanation
 		network.DebugPoints(),
 		"",
 		explanations,
+		common.GenericSet[TreeNodeInterface]{},
 		true,
 	}
 	if data.IsHtml {
 		data.setNodesRelations(network)
+		data.setClickable()
 	}
 	return data
 }

@@ -141,13 +141,19 @@ func (data *templateData) setNodesRelations(network TreeNodeInterface) {
 		}
 		res[""]["relations"] = append(res[""]["relations"], nId)
 		res[nId]["highlights"] = []string{nId}
-		res[nId]["explanation"] = []string{"expl of " + data.SvgName(node)}
+		res[nId]["explanation"] = []string{"Connectivity graph of " + data.SvgName(node)}
 
 	}
 	b, _ := json.Marshal(res)
 	data.Relations = string(b)
 }
 
+func (data *templateData) setClickable(){
+	for _, e := range data.Explanations{
+		data.clickable[e.Src] = true  
+		data.clickable[e.Dst] = true  
+	}
+}
 // ///////////////////////////////////////////////////////////////////////////
 type ExplanationEntry struct {
 	Src, Dst TreeNodeInterface
@@ -163,4 +169,7 @@ func (data *templateData) SvgName(tn TreeNodeInterface) string {
 }
 func (data *templateData) SvgRootId() string {
 	return fmt.Sprintf("%s_%d", "top", data.rootID)
+}
+func (data *templateData) Clickable(tn TreeNodeInterface) bool {
+	return data.clickable[tn]
 }
