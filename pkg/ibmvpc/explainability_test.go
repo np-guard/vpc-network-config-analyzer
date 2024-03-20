@@ -13,8 +13,8 @@ import (
 
 const explainOut = "explain_out"
 
-// getConfigs returns  map[string]*vpcmodel.VPCConfig obj for the input test (config json file)
-func getConfig(t *testing.T, fileName string) *vpcmodel.VPCConfig {
+// getConfigs returns  vpcmodel.MultipleVPCConfigs obj for the input test (config json file)
+func getConfig(t *testing.T, fileName string) vpcmodel.MultipleVPCConfigs {
 	inputConfigFile := filepath.Join(getTestsDirInput(), inputFilePrefix+fileName+jsonOutSuffix)
 	rc, err := ParseResourcesFromFile(inputConfigFile)
 	if err != nil {
@@ -24,10 +24,7 @@ func getConfig(t *testing.T, fileName string) *vpcmodel.VPCConfig {
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
-	for _, vpcConfig := range vpcConfigs {
-		return vpcConfig
-	}
-	return nil
+	return vpcConfigs
 }
 
 var explainTests = []*vpcGeneralTest{
@@ -408,6 +405,31 @@ var explainTests = []*vpcGeneralTest{
 		EDst:        "vsi1-ky",
 		format:      vpcmodel.Debug,
 	},
+	// the following three tests are within a single VPC in a multiVPC context
+	// 2 vsi connection
+	{
+		name:        "multiVPCVsiToVsi",
+		inputConfig: "tgw_larger_example",
+		ESrc:        "vsi31-ky",
+		EDst:        "vsi32-ky",
+		format:      vpcmodel.Debug,
+	},
+	// vsi to external connection
+	{
+		name:        "multiVPCVsiToExternal",
+		inputConfig: "tgw_larger_example",
+		ESrc:        "test-vpc0-ky/vsi1-ky",
+		EDst:        "172.217.22.46/32",
+		format:      vpcmodel.Debug,
+	},
+	// vsi to external missing router
+	{
+		name:        "multiVPCVsiToExternalMissingRouter",
+		inputConfig: "tgw_larger_example",
+		ESrc:        "vsi11-ky",
+		EDst:        "172.217.22.46/32",
+		format:      vpcmodel.Debug,
+	},
 }
 
 func TestAll(t *testing.T) {
@@ -456,42 +478,144 @@ func (tt *vpcGeneralTest) runExplainTest(t *testing.T) {
 	}
 }
 
-func TestInputValidity(t *testing.T) {
-	vpcConfig := getConfig(t, "sg_testing1_new")
-	require.NotNil(t, vpcConfig, "vpcConfig equals nil")
+func TestInputValiditySingleVPCContext(t *testing.T) {
+	vpcConfigSg1 := getConfig(t, "sg_testing1_new")
+	require.NotNil(t, vpcConfigSg1, "vpcConfigSg1 equals nil")
 
 	cidr1 := "169.255.0.0"
 	cidr2 := "161.26.0.0/16"
 	cidrInternalNonAP := "10.240.10.4/16"
+	internalIPNotVsi := "10.240.10.5"
 	cidrAll := "0.0.0.0/0"
 	existingVsi := "vsi3a-ky"
 	nonExistingVsi := "vsi3a"
 	// should fail since two external addresses
-	_, err1 := vpcConfig.ExplainConnectivity(cidr1, cidr2, nil)
+	_, err1 := vpcConfigSg1.ExplainConnectivity(cidr1, cidr2, nil)
 	fmt.Println(err1.Error())
 	require.NotNil(t, err1, "the test should fail since both src and dst are external")
-	require.Equal(t, err1.Error(), "both src 169.255.0.0 and dst 161.26.0.0/16 are external")
+	require.Equal(t, "both src 169.255.0.0 and dst 161.26.0.0/16 are external", err1.Error())
+	fmt.Println()
 
 	// should fail due to a cidr containing both public internet and internal address
-	_, err2 := vpcConfig.ExplainConnectivity(cidrAll, existingVsi, nil)
+	_, err2 := vpcConfigSg1.ExplainConnectivity(cidrAll, existingVsi, nil)
 	fmt.Println(err2.Error())
 	require.NotNil(t, err2, "the test should fail since src is cidr containing both public "+
 		"internet and internal address")
-	require.Equal(t, err2.Error(), "illegal src: 0.0.0.0/0 contains both external and internal addresses "+
-		"which is not supported. src, dst should be external *or* internal address")
+	require.Equal(t, "illegal src: 0.0.0.0/0 contains both external and internal addresses "+
+		"which is not supported. src, dst should be external *or* internal address", err2.Error())
+	fmt.Println()
 
 	// should fail due to cidr containing internal address not within vpc's address prefix
-	_, err3 := vpcConfig.ExplainConnectivity(existingVsi, cidrInternalNonAP, nil)
+	_, err3 := vpcConfigSg1.ExplainConnectivity(existingVsi, cidrInternalNonAP, nil)
 	fmt.Println(err3.Error())
 	require.NotNil(t, err3, "the test should fail since src is cidr containing internal address "+
 		"not within vpc's subnets address range")
-	require.Equal(t, err3.Error(), "illegal dst: internal address 10.240.0.0-10.240.255.255 not within the vpc's "+
-		"subnets address range 10.240.10.0-10.240.10.255, 10.240.20.0-10.240.20.255, 10.240.30.0-10.240.30.255")
+	require.Equal(t, "illegal dst: internal address 10.240.10.4/16 not within the vpc "+
+		"test-vpc1-ky subnets' address range 10.240.10.0-10.240.10.255, 10.240.20.0-10.240.20.255, 10.240.30.0-10.240.30.255",
+		err3.Error())
+	fmt.Println()
+
+	// should fail since internal address not connected to vsi
+	_, err4 := vpcConfigSg1.ExplainConnectivity(internalIPNotVsi, existingVsi, nil)
+	fmt.Println(err4.Error())
+	require.NotNil(t, err4, "the test should fail since dst is an internal address within subnet's "+
+		"address range not connected to a VSI")
+	require.Equal(t, "illegal src: no network interfaces are connected to 10.240.10.5 in test-vpc1-ky", err4.Error())
+	fmt.Println()
 
 	// should fail since vsi's name has a typo
-	_, err4 := vpcConfig.ExplainConnectivity(existingVsi, nonExistingVsi, nil)
+	_, err5 := vpcConfigSg1.ExplainConnectivity(existingVsi, nonExistingVsi, nil)
+	fmt.Println(err5.Error())
+	require.NotNil(t, err5, "the test should fail since dst non existing vsi")
+	require.Equal(t, "illegal dst: vsi3a does not represent a legal IP address, a legal CIDR or a VSI name", err5.Error())
+}
+
+func TestInputValidityMultipleVPCContext(t *testing.T) {
+	vpcConfigMultiVpc := getConfig(t, "tgw_larger_example")
+	require.NotNil(t, vpcConfigMultiVpc, "vpcConfigMultiVpc equals nil")
+
+	cidr1 := "169.255.0.0"
+	cidr2 := "161.26.0.0/16"
+	cidrAll := "0.0.0.0/0"
+	existingVsi := "vsi11-ky"
+	cidrInternalNonAP := "10.240.10.4/16"
+	internalIPNotVsi := "10.240.64.7"
+	nonExistingVsi := "vsi3a"
+	// should fail since two external addresses
+	_, err1 := vpcConfigMultiVpc.ExplainConnectivity(cidr1, cidr2, nil)
+	fmt.Println(err1.Error())
+	require.NotNil(t, err1, "the test should fail since both src and dst are external")
+	require.Equal(t, "both src 169.255.0.0 and dst 161.26.0.0/16 are external", err1.Error())
+	fmt.Println()
+
+	// should fail due to a cidr containing both public internet and internal address
+	_, err2 := vpcConfigMultiVpc.ExplainConnectivity(cidrAll, existingVsi, nil)
+	fmt.Println(err2.Error())
+	require.NotNil(t, err2, "the test should fail since src is cidr containing both public "+
+		"internet and internal address")
+	require.Equal(t, "illegal src: 0.0.0.0/0 contains both external and internal addresses "+
+		"which is not supported. src, dst should be external *or* internal address", err2.Error())
+	fmt.Println()
+
+	// should fail due to src cidr containing internal address not within vpc's address prefix
+	_, err3 := vpcConfigMultiVpc.ExplainConnectivity(existingVsi, cidrInternalNonAP, nil)
+	fmt.Println(err3.Error())
+	require.NotNil(t, err3, "the test should fail since src is cidr containing internal address "+
+		"not within vpc's subnets address range")
+	require.Equal(t, "illegal dst: internal address 10.240.10.4/16 not within any of the VPC's subnets' address range",
+		err3.Error())
+	fmt.Println()
+
+	// should fail since internal address not connected to vsi
+	_, err4 := vpcConfigMultiVpc.ExplainConnectivity(internalIPNotVsi, existingVsi, nil)
 	fmt.Println(err4.Error())
-	require.NotNil(t, err4, "the test should fail since src non existing vsi")
-	require.Equal(t, err4.Error(), "illegal dst: does not represent an internal interface, "+
-		"an internal IP with network interface or a valid external IP")
+	require.NotNil(t, err4, "the test should fail since dst is an internal address within subnet's "+
+		"address range not connected to a VSI")
+	require.Equal(t, "illegal src: no network interfaces are connected to 10.240.64.7 in any of the VPCs", err4.Error())
+	fmt.Println()
+
+	// should fail since dst vsi's name has a typo
+	_, err5 := vpcConfigMultiVpc.ExplainConnectivity(existingVsi, nonExistingVsi, nil)
+	fmt.Println(err5.Error())
+	require.NotNil(t, err5, "the test should fail since dst non existing vsi")
+	require.Equal(t, "illegal dst: vsi3a does not represent a legal IP address, a legal CIDR or a VSI name", err5.Error())
+	fmt.Println()
+
+	// should fail since src vsi's name has a typo
+	_, err6 := vpcConfigMultiVpc.ExplainConnectivity(nonExistingVsi, existingVsi, nil)
+	fmt.Println(err6.Error())
+	require.NotNil(t, err6, "the test should fail since src non existing vsi")
+	require.Equal(t, "illegal src: vsi3a does not represent a legal IP address, a legal CIDR or a VSI name", err6.Error())
+	fmt.Println()
+
+	// should fail since src and dst vsi's name has a typo - err msg should be about src
+	_, err7 := vpcConfigMultiVpc.ExplainConnectivity(nonExistingVsi, nonExistingVsi, nil)
+	fmt.Println(err7.Error())
+	require.NotNil(t, err7, "the test should fail since src and dst non existing vsi")
+	require.Equal(t, "illegal src: vsi3a does not represent a legal IP address, a legal CIDR or a VSI name", err7.Error())
+	fmt.Println()
+
+	// src does not exist, dst is an internal address not connected to a vsi. should prioritize the dst error
+	_, err8 := vpcConfigMultiVpc.ExplainConnectivity(nonExistingVsi, internalIPNotVsi, nil)
+	fmt.Println(err8.Error())
+	require.NotNil(t, err8, "the test should fail since dst non connected to vsi; src not found general error")
+	require.Equal(t, "illegal dst: no network interfaces are connected to 10.240.64.7 in any of the VPCs", err8.Error())
+	fmt.Println()
+
+	// should fail since vsi's name prefixed with the wrong vpc
+	existingVsiWrongVpc := "test-vpc1-ky/vsi3a-ky"
+	_, err9 := vpcConfigMultiVpc.ExplainConnectivity(cidr1, existingVsiWrongVpc, nil)
+	fmt.Println(err9.Error())
+	require.NotNil(t, err9, "the test should fail since the src vsi given with wrong vpc")
+	require.Equal(t, "illegal dst: test-vpc1-ky/vsi3a-ky does not represent a legal IP address, a legal CIDR or a VSI name", err9.Error())
+
+	vpcConfigMultiVpcDupNames := getConfig(t, "tgw_larger_example_dup_names")
+	dupSrcVsi := "vsi1-ky"
+	dupDstVsi := "vsi2-ky"
+	// should fail since these vsis exists in two vpcs configs
+	_, err10 := vpcConfigMultiVpcDupNames.ExplainConnectivity(dupSrcVsi, dupDstVsi, nil)
+	fmt.Println(err10.Error())
+	require.NotNil(t, err10, "the test should fail since the src and dst vsis exists in two vpcs configs")
+	require.Equal(t, "src: vsi1-ky and dst: vsi2-ky found in more than one config: test-vpc0-ky,test-vpc1-ky",
+		err10.Error())
 }

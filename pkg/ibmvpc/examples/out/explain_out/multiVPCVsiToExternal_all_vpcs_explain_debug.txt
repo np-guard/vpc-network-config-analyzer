@@ -1,0 +1,18 @@
+Connectivity explanation between test-vpc0-ky/vsi1-ky and 172.217.22.46/32 within test-vpc0-ky
+==============================================================================================
+
+The following connection exists between vsi1-ky[10.240.1.4] and Public Internet 172.217.22.46/32: All Connections
+Path:
+	vsi1-ky[10.240.1.4] -> security group sg1-ky -> subnet1-ky -> network ACL acl1-ky -> 
+	PublicGateway public-gw1-ky -> 
+	Public Internet 172.217.22.46/32
+
+Details:
+~~~~~~~~
+Egress:
+security group sg1-ky allows connection with the following allow rules
+	index: 1, direction: outbound, protocol: all, cidr: 0.0.0.0/0
+network ACL acl1-ky allows connection with the following allow rules
+	index: 0, direction: outbound , src: 10.240.1.0/24 , dst: 172.217.22.46/32, conn: all, action: allow
+------------------------------------------------------------------------------------------------------------------------
+
