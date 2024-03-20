@@ -176,11 +176,22 @@ func (d *DrawioOutputFormatter) createEdges() {
 func (d *DrawioOutputFormatter) createExplanations() {
 	for _, vpcConn := range d.conns {
 		for _, line := range vpcConn.GroupedLines {
-			src := line.src
-			dst := line.dst
-			// Todo: get real explanation
-			d.explanations = append(d.explanations, drawio.ExplanationEntry{d.gen.TreeNode(src), d.gen.TreeNode(dst),
-				"explanation of " + src.Name() + " to " + dst.Name()})
+			srcs := []EndpointElem{line.src}
+			dsts := []EndpointElem{line.dst}
+			if srcList, ok := line.src.(*groupedEndpointsElems); ok {
+				srcs = *srcList
+			}
+			if dstList, ok := line.dst.(*groupedEndpointsElems); ok {
+				dsts = *dstList
+			}
+			for _, src := range srcs {
+				for _, dst := range dsts {
+
+					// Todo: get real explanation
+					d.explanations = append(d.explanations, drawio.ExplanationEntry{d.gen.TreeNode(src), d.gen.TreeNode(dst),
+						"Connectivity from " + src.Name() + " to " + dst.Name() + " is under " + line.ConnLabel()})
+				}
+			}
 		}
 	}
 }
