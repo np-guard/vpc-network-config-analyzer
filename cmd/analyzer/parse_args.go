@@ -152,7 +152,8 @@ var supportedAnalysisTypesList = []string{
 	explainMode,
 }
 
-const srcDstUsage = "endpoint for explanation; can be specified as a VSI name/CRN or an internal/external IP-address/CIDR"
+const srcDstUsage = "endpoint for explanation; can be specified as a VSI name/CRN or an internal/external IP-address/CIDR" +
+	"VSI name can be specified as <vsi-name> or  <vpc-name>/<vsi-name>"
 
 func getSupportedAnalysisTypesMapString() string {
 	valuesList := make([]string, len(supportedAnalysisTypesList)+1)
