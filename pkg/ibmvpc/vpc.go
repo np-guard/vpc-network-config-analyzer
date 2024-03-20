@@ -596,6 +596,10 @@ func (fip *FloatingIP) AppliedFiltersKinds() map[string]bool {
 	return map[string]bool{vpcmodel.SecurityGroupLayer: true}
 }
 
+func (fip *FloatingIP) CIDR() string {
+	return fip.cidr
+}
+
 type PublicGateway struct {
 	vpcmodel.VPCResource
 	cidr         string
@@ -615,6 +619,9 @@ func (pgw *PublicGateway) Sources() []vpcmodel.Node {
 }
 func (pgw *PublicGateway) Destinations() []vpcmodel.Node {
 	return pgw.destinations
+}
+func (pgw *PublicGateway) CIDR() string {
+	return ""
 }
 
 func (pgw *PublicGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*common.ConnectionSet, error) {
@@ -682,6 +689,9 @@ func (tgw *TransitGateway) Sources() (res []vpcmodel.Node) {
 }
 func (tgw *TransitGateway) Destinations() (res []vpcmodel.Node) {
 	return tgw.destNodes
+}
+func (tgw *TransitGateway) CIDR() string {
+	return ""
 }
 
 func (tgw *TransitGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*common.ConnectionSet, error) {
