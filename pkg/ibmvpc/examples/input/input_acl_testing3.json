@@ -1904,6 +1904,7 @@
             },
             "resource_type": "vpc",
             "status": "available",
+            "region": "us-south",
             "tags": []
         }
     ]
