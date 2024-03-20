@@ -72,7 +72,7 @@ func (g *groupedEndpointsElems) GenerateDrawioTreeNode(gen *DrawioGenerator) dra
 	}
 	k := common.FromList[EndpointElem](*g).AsKey()
 	if g2, ok := gen.EndpointElems[k]; ok {
-		fmt.Printf("both %p and %p have the same members - %s\n", g, g2, k)
+		fmt.Printf("pointer %p of %s and pointer %p of the same %s  \n", g, g.Name(), g2, g2.Name())
 		return gen.TreeNode(g2)
 	}
 	gen.EndpointElems[k] = g

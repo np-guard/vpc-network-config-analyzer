@@ -2,6 +2,7 @@ package vpcmodel
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
@@ -146,6 +147,27 @@ func (d *DrawioOutputFormatter) createEdges() {
 		label  string
 	}
 	isEdgeDirected := map[edgeKey]bool{}
+
+	// for shiri:
+	fmt.Println("createEdges")
+	elg := map[common.SetAsKey]*groupedEndpointsElems{}
+	for _, vpcConn := range d.conns {
+		for _, line := range vpcConn.GroupedLines {
+			src := line.src
+			dst := line.dst
+			for _, e := range []EndpointElem{src, dst} {
+				if g, ok := e.(*groupedEndpointsElems); ok {
+					k := common.FromList[EndpointElem](*g).AsKey()
+					if g2, ok := elg[k]; ok {
+						fmt.Printf("pointer %p of %s and pointer %p of the same %s  \n", g, g.Name(), g2, g2.Name())
+					}
+					elg[k] = g
+
+				}
+			}
+		}
+	}
+	fmt.Println("end test print")
 	for vpcResourceName, vpcConn := range d.conns {
 		for _, line := range vpcConn.GroupedLines {
 			src := line.src
@@ -186,6 +208,7 @@ func (d *DrawioOutputFormatter) WriteOutput(c1, c2 map[string]*VPCConfig,
 	explanation *Explanation) (string, error) {
 	switch uc {
 	case AllEndpoints:
+		// todo here Shiri
 		gConn := map[string]*GroupConnLines{}
 		for name, vpcConn := range conn {
 			gConn[name] = vpcConn.GroupedConnectivity
