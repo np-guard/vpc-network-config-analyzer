@@ -268,8 +268,6 @@ func (c *VPCConfig) getNodesOfVsi(name string) ([]Node, int, error) {
 	case 2: // vpc name specified
 		vpc = cidrOrNameSlice[0]
 		vsi = cidrOrNameSlice[1]
-	default: // > 1, address
-		vsi = name
 	}
 	for _, nodeSet := range c.NodeSets {
 		// currently assuming c.NodeSets consists of VSIs or VPE
