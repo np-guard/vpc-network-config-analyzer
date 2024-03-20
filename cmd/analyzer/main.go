@@ -9,6 +9,7 @@ import (
 
 	"github.com/np-guard/cloud-resource-collector/pkg/factory"
 	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
+
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/ibmvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/version"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
@@ -57,15 +58,11 @@ func analysisTypeToUseCase(inArgs *InArgs) vpcmodel.OutputUseCase {
 	return vpcmodel.AllEndpoints
 }
 
-func analysisVPCConfigs(c1, c2 map[string]*vpcmodel.VPCConfig, inArgs *InArgs, outFile string) (string, error) {
+func analysisVPCConfigs(c1, c2 vpcmodel.MultipleVPCConfigs, inArgs *InArgs, outFile string) (string, error) {
 	var explanationArgs *vpcmodel.ExplanationArgs
 	if *inArgs.AnalysisType == explainMode {
 		explanationArgs = vpcmodel.NewExplanationArgs(*inArgs.ESrc, *inArgs.EDst, *inArgs.EProtocol,
 			*inArgs.ESrcMinPort, *inArgs.ESrcMaxPort, *inArgs.EDstMinPort, *inArgs.EDstMaxPort)
-		// we do not support multiple vpc config, at the moment
-		if len(c1) > 1 {
-			return "", fmt.Errorf("multiple vpc config not supported for explain mode, yet")
-		}
 	}
 
 	outFormat := getOutputFormat(inArgs)
@@ -86,7 +83,7 @@ func analysisVPCConfigs(c1, c2 map[string]*vpcmodel.VPCConfig, inArgs *InArgs, o
 	return analysisOut, nil
 }
 
-func vpcConfigsFromFile(fileName string, inArgs *InArgs) (map[string]*vpcmodel.VPCConfig, error) {
+func vpcConfigsFromFile(fileName string, inArgs *InArgs) (vpcmodel.MultipleVPCConfigs, error) {
 	rc, err1 := ibmvpc.ParseResourcesFromFile(fileName)
 	if err1 != nil {
 		return nil, fmt.Errorf("error parsing input vpc resources file: %w", err1)
@@ -99,7 +96,7 @@ func vpcConfigsFromFile(fileName string, inArgs *InArgs) (map[string]*vpcmodel.V
 	return vpcConfigs, nil
 }
 
-func vpcConfigsFromAccount(inArgs *InArgs) (map[string]*vpcmodel.VPCConfig, error) {
+func vpcConfigsFromAccount(inArgs *InArgs) (vpcmodel.MultipleVPCConfigs, error) {
 	rc := factory.GetResourceContainer(*inArgs.Provider, inArgs.RegionList, *inArgs.ResourceGroup)
 	// Collect resources from the provider API and generate output
 	err := rc.CollectResourcesFromAPI()
@@ -153,7 +150,7 @@ func _main(cmdlineArgs []string) error {
 		return nil
 	}
 
-	var vpcConfigs1 map[string]*vpcmodel.VPCConfig
+	var vpcConfigs1 vpcmodel.MultipleVPCConfigs
 	if *inArgs.Provider != "" {
 		vpcConfigs1, err = vpcConfigsFromAccount(inArgs)
 		if err != nil {
@@ -166,7 +163,7 @@ func _main(cmdlineArgs []string) error {
 		}
 	}
 
-	var vpcConfigs2 map[string]*vpcmodel.VPCConfig
+	var vpcConfigs2 vpcmodel.MultipleVPCConfigs
 	if inArgs.InputSecondConfigFile != nil && *inArgs.InputSecondConfigFile != "" {
 		vpcConfigs2, err = vpcConfigsFromFile(*inArgs.InputSecondConfigFile, inArgs)
 		if err != nil {

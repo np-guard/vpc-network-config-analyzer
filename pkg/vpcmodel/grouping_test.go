@@ -6,7 +6,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/np-guard/models/pkg/ipblocks"
+	"github.com/np-guard/models/pkg/ipblock"
+
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
 )
@@ -31,8 +32,8 @@ type mockNetIntf struct {
 func (m *mockNetIntf) CidrOrAddress() string {
 	return m.cidr
 }
-func (m *mockNetIntf) IPBlock() *ipblocks.IPBlock {
-	res, _ := ipblocks.NewIPBlockFromCidrOrAddress(m.cidr)
+func (m *mockNetIntf) IPBlock() *ipblock.IPBlock {
+	res, _ := ipblock.FromCidrOrAddress(m.cidr)
 	return res
 }
 func (m *mockNetIntf) Address() string {
@@ -58,6 +59,9 @@ func (m *mockNetIntf) Name() string {
 	return m.name
 }
 func (m *mockNetIntf) ZoneName() string {
+	return ""
+}
+func (m *mockNetIntf) RegionName() string {
 	return ""
 }
 func (m *mockNetIntf) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
@@ -90,7 +94,7 @@ func (m *mockSubnet) Name() string {
 func (m *mockSubnet) Nodes() []Node {
 	return m.nodes
 }
-func (m *mockSubnet) AddressRange() *ipblocks.IPBlock {
+func (m *mockSubnet) AddressRange() *ipblock.IPBlock {
 	return nil
 }
 func (m *mockSubnet) CIDR() string {
@@ -104,6 +108,9 @@ func (m *mockSubnet) Kind() string {
 	return "Subnet"
 }
 func (m *mockSubnet) ZoneName() string {
+	return ""
+}
+func (m *mockSubnet) RegionName() string {
 	return ""
 }
 func (m *mockSubnet) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {

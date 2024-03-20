@@ -6,15 +6,20 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/np-guard/models/pkg/ipblocks"
+	"github.com/np-guard/models/pkg/ipblock"
+
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
-	vpcmodel "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////
 
 func getNodeName(name, addr string) string {
 	return fmt.Sprintf("%s[%s]", name, addr)
+}
+
+type Region struct {
+	name string
 }
 
 type Zone struct {
@@ -81,9 +86,14 @@ type VPC struct {
 	vpcmodel.VPCResource
 	nodes                []vpcmodel.Node
 	zones                map[string]*Zone
-	internalAddressRange *ipblocks.IPBlock
+	internalAddressRange *ipblock.IPBlock
 	subnetsList          []*Subnet
 	addressPrefixes      []string
+	region               *Region
+}
+
+func (v *VPC) Region() *Region {
+	return v.region
 }
 
 func (v *VPC) AddressPrefixes() []string {
@@ -101,7 +111,7 @@ func (v *VPC) Nodes() []vpcmodel.Node {
 	return v.nodes
 }
 
-func (v *VPC) AddressRange() *ipblocks.IPBlock {
+func (v *VPC) AddressRange() *ipblock.IPBlock {
 	return v.internalAddressRange
 }
 
@@ -114,7 +124,7 @@ type Subnet struct {
 	vpcmodel.VPCResource
 	nodes   []vpcmodel.Node
 	cidr    string
-	ipblock *ipblocks.IPBlock
+	ipblock *ipblock.IPBlock
 }
 
 func (s *Subnet) CIDR() string {
@@ -129,7 +139,7 @@ func (s *Subnet) Nodes() []vpcmodel.Node {
 	return s.nodes
 }
 
-func (s *Subnet) AddressRange() *ipblocks.IPBlock {
+func (s *Subnet) AddressRange() *ipblock.IPBlock {
 	return s.ipblock
 }
 
@@ -146,12 +156,12 @@ func (v *Vsi) Nodes() []vpcmodel.Node {
 	return v.nodes
 }
 
-func (v *Vsi) AddressRange() *ipblocks.IPBlock {
+func (v *Vsi) AddressRange() *ipblock.IPBlock {
 	return nodesAddressRange(v.nodes)
 }
 
-func nodesAddressRange(nodes []vpcmodel.Node) *ipblocks.IPBlock {
-	var res *ipblocks.IPBlock
+func nodesAddressRange(nodes []vpcmodel.Node) *ipblock.IPBlock {
+	var res *ipblock.IPBlock
 	for _, n := range nodes {
 		if res == nil {
 			res = n.IPBlock()
@@ -172,7 +182,7 @@ func (v *Vpe) Nodes() []vpcmodel.Node {
 	return v.nodes
 }
 
-func (v *Vpe) AddressRange() *ipblocks.IPBlock {
+func (v *Vpe) AddressRange() *ipblock.IPBlock {
 	return nodesAddressRange(v.nodes)
 }
 
@@ -295,8 +305,8 @@ func (nl *NaclLayer) ListFilterWithAction(listRulesInFilter []vpcmodel.RulesInFi
 	return filters
 }
 
-func (nl *NaclLayer) ReferencedIPblocks() []*ipblocks.IPBlock {
-	res := []*ipblocks.IPBlock{}
+func (nl *NaclLayer) ReferencedIPblocks() []*ipblock.IPBlock {
+	res := []*ipblock.IPBlock{}
 	for _, n := range nl.naclList {
 		res = append(res, n.analyzer.referencedIPblocks...)
 	}
@@ -506,8 +516,8 @@ func (sgl *SecurityGroupLayer) ListFilterWithAction(listRulesInFilter []vpcmodel
 	return filters
 }
 
-func (sgl *SecurityGroupLayer) ReferencedIPblocks() []*ipblocks.IPBlock {
-	res := []*ipblocks.IPBlock{}
+func (sgl *SecurityGroupLayer) ReferencedIPblocks() []*ipblock.IPBlock {
+	res := []*ipblock.IPBlock{}
 	for _, sg := range sgl.sgList {
 		res = append(res, sg.analyzer.referencedIPblocks...)
 	}
@@ -541,7 +551,7 @@ func (sg *SecurityGroup) rulesFilterInConnectivity(src, dst vpcmodel.Node, conn 
 }
 
 func (sg *SecurityGroup) getMemberTargetStrAddress(src, dst vpcmodel.Node,
-	isIngress bool) (memberStrAddress string, targetIPBlock *ipblocks.IPBlock) {
+	isIngress bool) (memberStrAddress string, targetIPBlock *ipblock.IPBlock) {
 	var member, target vpcmodel.Node
 	if isIngress {
 		member, target = dst, src
@@ -558,7 +568,7 @@ func (sg *SecurityGroup) getMemberTargetStrAddress(src, dst vpcmodel.Node,
 
 type FloatingIP struct {
 	vpcmodel.VPCResource
-	cidr         string
+	cidr         string // todo: this is actually not cidr but external IP. Rename?
 	src          []vpcmodel.Node
 	destinations []vpcmodel.Node
 }
@@ -587,6 +597,10 @@ func (fip *FloatingIP) AppliedFiltersKinds() map[string]bool {
 	return map[string]bool{vpcmodel.SecurityGroupLayer: true}
 }
 
+func (fip *FloatingIP) ExternalIP() string {
+	return fip.cidr
+}
+
 type PublicGateway struct {
 	vpcmodel.VPCResource
 	cidr         string
@@ -606,6 +620,9 @@ func (pgw *PublicGateway) Sources() []vpcmodel.Node {
 }
 func (pgw *PublicGateway) Destinations() []vpcmodel.Node {
 	return pgw.destinations
+}
+func (pgw *PublicGateway) ExternalIP() string {
+	return ""
 }
 
 func (pgw *PublicGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*common.ConnectionSet, error) {
@@ -639,7 +656,7 @@ type TransitGateway struct {
 
 	// availableRoutes are the published address prefixes from all connected vpcs that arrive at the TGW's table of available routes,
 	// as considered from prefix filters: map from vpc UID to its available routes in the routes table
-	availableRoutes map[string][]*ipblocks.IPBlock
+	availableRoutes map[string][]*ipblock.IPBlock
 
 	// sourceSubnets are the subnets from the connected vpcs that can have connection to destination
 	// subnet from another vpc
@@ -651,6 +668,8 @@ type TransitGateway struct {
 
 	sourceNodes []vpcmodel.Node
 	destNodes   []vpcmodel.Node
+
+	region *Region
 }
 
 func (tgw *TransitGateway) addSourceAndDestNodes() {
@@ -662,11 +681,18 @@ func (tgw *TransitGateway) addSourceAndDestNodes() {
 	}
 }
 
+func (tgw *TransitGateway) Region() *Region {
+	return tgw.region
+}
+
 func (tgw *TransitGateway) Sources() (res []vpcmodel.Node) {
 	return tgw.sourceNodes
 }
 func (tgw *TransitGateway) Destinations() (res []vpcmodel.Node) {
 	return tgw.destNodes
+}
+func (tgw *TransitGateway) ExternalIP() string {
+	return ""
 }
 
 func (tgw *TransitGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*common.ConnectionSet, error) {

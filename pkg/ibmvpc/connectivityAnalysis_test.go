@@ -6,9 +6,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/np-guard/models/pkg/ipblocks"
+	"github.com/np-guard/models/pkg/ipblock"
+
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
-	vpcmodel "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
 /* basic unit-tests  for vpc connectivity analysis
@@ -433,7 +434,7 @@ func TestAnalyzeConnectivity(t *testing.T) {
 	fmt.Println("done")
 }
 
-func newIPBlockFromCIDROrAddressWithoutValidation(cidr string) *ipblocks.IPBlock {
-	res, _ := ipblocks.NewIPBlockFromCidrOrAddress(cidr)
+func newIPBlockFromCIDROrAddressWithoutValidation(cidr string) *ipblock.IPBlock {
+	res, _ := ipblock.FromCidrOrAddress(cidr)
 	return res
 }

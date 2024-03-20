@@ -580,7 +580,7 @@ func (tt *vpcGeneralTest) runTest(t *testing.T) {
 
 	// get vpcConfigs obj from parsing + analyzing input config file
 	vpcConfigs := getVPCConfigs(t, tt, true)
-	var vpcConfigs2nd map[string]*vpcmodel.VPCConfig
+	var vpcConfigs2nd vpcmodel.MultipleVPCConfigs
 	diffUseCase := false
 	explainUseCase := false
 	for _, useCase := range tt.useCases {
@@ -613,8 +613,8 @@ func (tt *vpcGeneralTest) runTest(t *testing.T) {
 	}
 }
 
-// getVPCConfigs returns  map[string]*vpcmodel.VPCConfig obj for the input test (config json file)
-func getVPCConfigs(t *testing.T, tt *vpcGeneralTest, firstCfg bool) map[string]*vpcmodel.VPCConfig {
+// getVPCConfigs returns  vpcmodel.MultipleVPCConfigs obj for the input test (config json file)
+func getVPCConfigs(t *testing.T, tt *vpcGeneralTest, firstCfg bool) vpcmodel.MultipleVPCConfigs {
 	var inputConfig string
 	if firstCfg {
 		inputConfig = tt.inputConfig
@@ -677,7 +677,7 @@ func initTestFileNames(tt *vpcGeneralTest,
 // runTestPerUseCase runs the connectivity analysis for the required use case and compares/generates the output
 func runTestPerUseCase(t *testing.T,
 	tt *vpcGeneralTest,
-	c1, c2 map[string]*vpcmodel.VPCConfig,
+	c1, c2 vpcmodel.MultipleVPCConfigs,
 	uc vpcmodel.OutputUseCase,
 	mode testMode,
 	outDir string,
