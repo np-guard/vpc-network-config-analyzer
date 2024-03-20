@@ -205,7 +205,7 @@ func (v *Vpe) Zone() (*Zone, error) {
 // //////////////////////////////////////////
 // Load Balancer
 // the nodes are the private IPs
-// the listeners holds the pools that holds the backend servers
+// for now the listeners holds the pools that holds the backend servers
 // todo - implement more...
 type LoadBalancerPool []vpcmodel.Node
 type LoadBalancerListener []LoadBalancerPool
@@ -222,7 +222,10 @@ func (lb *LoadBalancer) Nodes() []vpcmodel.Node {
 func (lb *LoadBalancer) AddressRange() *ipblock.IPBlock {
 	return nodesAddressRange(lb.nodes)
 }
-func (lb *LoadBalancer) NLis() int {
+
+// we do not need this func, for now it is here since the linter warn that lb.listeners are not in use
+// todo - remove:
+func (lb *LoadBalancer) NListeners() int {
 	return len(lb.listeners)
 }
 
