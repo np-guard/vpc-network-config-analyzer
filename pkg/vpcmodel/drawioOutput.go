@@ -177,15 +177,18 @@ func (d *DrawioOutputFormatter) createExplanations() {
 	type expKey struct {
 		src, dst EndpointElem
 	}
-	expl := map[expKey]string{}
-	for _, vpcConfig := range d.cConfigs {
-		if !vpcConfig.IsMultipleVPCsConfig {
-			for _, src := range vpcConfig.Nodes {
+	explanations := map[expKey]string{}
+	for _, vpcConfig1 := range d.cConfigs {
+		if !vpcConfig1.IsMultipleVPCsConfig {
+			for _, src := range vpcConfig1.Nodes {
 				if !src.IsExternal() && d.showResource(src) {
-					for _, dst := range vpcConfig.Nodes {
-						if !dst.IsExternal() && d.showResource(dst) {
-							expl[expKey{src, dst}] =
-								"No Connectivity from " + src.Name() + " to " + dst.Name()
+					for _, vpcConfig2 := range d.cConfigs {
+						if !vpcConfig2.IsMultipleVPCsConfig {
+							for _, dst := range vpcConfig2.Nodes {
+								if !dst.IsExternal() && d.showResource(dst) {
+									explanations[expKey{src, dst}] = "No Connectivity from " + src.Name() + " to " + dst.Name()
+								}
+							}
 						}
 					}
 				}
@@ -204,13 +207,13 @@ func (d *DrawioOutputFormatter) createExplanations() {
 			}
 			for _, src := range srcs {
 				for _, dst := range dsts {
-					expl[expKey{src, dst}] = "Connectivity from " + src.Name() + " to " + dst.Name() + " is under " + line.ConnLabel()
+					explanations[expKey{src, dst}] = "Connectivity from " + src.Name() + " to " + dst.Name() + " is under " + line.ConnLabel()
 				}
 			}
 		}
 	}
 
-	for k, e := range expl {
+	for k, e := range explanations {
 		d.explanations = append(d.explanations, drawio.ExplanationEntry{d.gen.TreeNode(k.src), d.gen.TreeNode(k.dst), e})
 	}
 }
