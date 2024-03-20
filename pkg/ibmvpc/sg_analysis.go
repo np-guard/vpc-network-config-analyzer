@@ -8,9 +8,10 @@ import (
 
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
 
-	"github.com/np-guard/models/pkg/ipblocks"
+	"github.com/np-guard/models/pkg/ipblock"
+
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
-	vpcmodel "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
 type SGAnalyzer struct {
@@ -22,7 +23,7 @@ type SGAnalyzer struct {
 	ingressConnectivity *ConnectivityResult
 	egressConnectivity  *ConnectivityResult
 	sgMap               map[string]*SecurityGroup
-	referencedIPblocks  []*ipblocks.IPBlock
+	referencedIPblocks  []*ipblock.IPBlock
 }
 
 func NewSGAnalyzer(sg *vpc1.SecurityGroup) *SGAnalyzer {
@@ -48,10 +49,10 @@ func getAllConnSet() *common.ConnectionSet {
 	return common.NewConnectionSet(true)
 }
 
-func (sga *SGAnalyzer) getRemoteCidr(remote vpc1.SecurityGroupRuleRemoteIntf) (*ipblocks.IPBlock, string, error) {
+func (sga *SGAnalyzer) getRemoteCidr(remote vpc1.SecurityGroupRuleRemoteIntf) (*ipblock.IPBlock, string, error) {
 	// TODO: on actual run from SG example, the type of remoteObj is SecurityGroupRuleRemote and not SecurityGroupRuleRemoteCIDR,
 	// even if cidr is defined
-	var target *ipblocks.IPBlock
+	var target *ipblock.IPBlock
 	var cidr string
 	var cidrRes string
 	var err error
@@ -65,23 +66,23 @@ func (sga *SGAnalyzer) getRemoteCidr(remote vpc1.SecurityGroupRuleRemoteIntf) (*
 		switch {
 		case remoteObj.CIDRBlock != nil:
 			cidr = *remoteObj.CIDRBlock
-			target, err = ipblocks.NewIPBlockFromCidr(cidr)
+			target, err = ipblock.FromCidr(cidr)
 			if err != nil {
 				return nil, "", err
 			}
 			cidrRes = target.ToCidrList()[0]
 		case remoteObj.Address != nil:
 			address := *remoteObj.Address
-			target, err = ipblocks.NewIPBlockFromIPAddress(address)
+			target, err = ipblock.FromIPAddress(address)
 			if err != nil {
 				return nil, "", err
 			}
 			cidrRes = target.ToCidrList()[0]
 		case remoteObj.Name != nil:
 			if remoteSg, ok := sga.sgMap[*remoteObj.Name]; ok {
-				resIPBlock := &ipblocks.IPBlock{}
+				resIPBlock := ipblock.New()
 				for member := range remoteSg.members {
-					memberIPBlock, err := ipblocks.NewIPBlockFromIPAddress(member)
+					memberIPBlock, err := ipblock.FromIPAddress(member)
 					if err != nil {
 						return nil, "", err
 					}
@@ -114,7 +115,7 @@ func (sga *SGAnalyzer) getProtocolAllRule(ruleObj *vpc1.SecurityGroupRuleSecurit
 	protocol := *ruleObj.Protocol
 	remote := ruleObj.Remote
 	cidr := ""
-	var target *ipblocks.IPBlock
+	var target *ipblock.IPBlock
 	target, cidr, err = sga.getRemoteCidr(remote)
 	if err == nil {
 		if target == nil {
@@ -134,7 +135,7 @@ func (sga *SGAnalyzer) getProtocolTcpudpRule(ruleObj *vpc1.SecurityGroupRuleSecu
 	isIngress = isIngressRule(ruleObj.Direction)
 	remote := ruleObj.Remote
 	cidr := ""
-	var target *ipblocks.IPBlock
+	var target *ipblock.IPBlock
 	target, cidr, err = sga.getRemoteCidr(remote)
 	if err != nil {
 		return "", nil, false, err
@@ -180,7 +181,7 @@ func (sga *SGAnalyzer) getProtocolIcmpRule(ruleObj *vpc1.SecurityGroupRuleSecuri
 	isIngress = isIngressRule(ruleObj.Direction)
 	cidr := ""
 	remote := ruleObj.Remote
-	var target *ipblocks.IPBlock
+	var target *ipblock.IPBlock
 	target, cidr, err = sga.getRemoteCidr(remote)
 	if err != nil {
 		return "", nil, false, err
@@ -235,7 +236,7 @@ func (sga *SGAnalyzer) getSGrules(sgObj *vpc1.SecurityGroup) (ingressRules, egre
 }
 
 type SGRule struct {
-	target      *ipblocks.IPBlock
+	target      *ipblock.IPBlock
 	connections *common.ConnectionSet
 	index       int // index of original rule in *vpc1.SecurityGroup.Rules
 }
@@ -250,15 +251,15 @@ func (cr *ConnectivityResult) string() string {
 }
 
 func AnalyzeSGRules(rules []*SGRule, isIngress bool) *ConnectivityResult {
-	targets := []*ipblocks.IPBlock{}
+	targets := []*ipblock.IPBlock{}
 	for i := range rules {
 		if rules[i].target != nil {
 			targets = append(targets, rules[i].target)
 		}
 	}
-	disjointTargets := ipblocks.DisjointIPBlocks(targets, []*ipblocks.IPBlock{ipblocks.GetCidrAll()})
-	res := &ConnectivityResult{isIngress: isIngress, allowedConns: map[*ipblocks.IPBlock]*common.ConnectionSet{},
-		allowRules: map[*ipblocks.IPBlock][]int{}}
+	disjointTargets := ipblock.DisjointIPBlocks(targets, []*ipblock.IPBlock{ipblock.GetCidrAll()})
+	res := &ConnectivityResult{isIngress: isIngress, allowedConns: map[*ipblock.IPBlock]*common.ConnectionSet{},
+		allowRules: map[*ipblock.IPBlock][]int{}}
 	for i := range disjointTargets {
 		res.allowedConns[disjointTargets[i]] = getEmptyConnSet()
 		res.allowRules[disjointTargets[i]] = []int{}
@@ -305,13 +306,13 @@ func (sga *SGAnalyzer) areSGRulesDefault() bool {
 	if len(egressRuleCidrs) != 1 {
 		return false
 	}
-	if egressRuleCidrs[0] == ipblocks.CidrAll && egressRule.connections.AllowAll {
+	if egressRuleCidrs[0] == ipblock.CidrAll && egressRule.connections.AllowAll {
 		return true
 	}
 	return false
 }
 
-func (sga *SGAnalyzer) AllowedConnectivity(target *ipblocks.IPBlock, isIngress bool) *common.ConnectionSet {
+func (sga *SGAnalyzer) AllowedConnectivity(target *ipblock.IPBlock, isIngress bool) *common.ConnectionSet {
 	analyzedConns := sga.ingressOrEgressConnectivity(isIngress)
 	for definedTarget, conn := range analyzedConns.allowedConns {
 		if target.ContainedIn(definedTarget) {
@@ -326,7 +327,7 @@ func (sga *SGAnalyzer) AllowedConnectivity(target *ipblocks.IPBlock, isIngress b
 //  2. If connection is part of the query: is the required connection contained in the existing connection?
 //     if it does, then the contributing rules are detected: rules that intersect the required connection
 //     otherwise, the answer to the query is "no" and nil is returned
-func (sga *SGAnalyzer) rulesFilterInConnectivity(target *ipblocks.IPBlock, connQuery *common.ConnectionSet, isIngress bool) ([]int, error) {
+func (sga *SGAnalyzer) rulesFilterInConnectivity(target *ipblock.IPBlock, connQuery *common.ConnectionSet, isIngress bool) ([]int, error) {
 	analyzedConns := sga.ingressOrEgressConnectivity(isIngress)
 	for definedTarget, rules := range analyzedConns.allowRules {
 		if target.ContainedIn(definedTarget) {
