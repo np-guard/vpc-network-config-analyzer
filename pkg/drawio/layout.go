@@ -52,9 +52,10 @@ const (
 	vsiOneRowYOffset   = 90
 	vsiMultiRowYOffset = subnetHeight / 2
 
-	// network -> cloud -> vpc -> zone -> subnets
-	networkToSubnetDepth = 4
-	cloudToSubnetDepth   = 3
+	// network -> cloud -> region -> vpc -> zone -> subnets
+	networkToSubnetDepth = 5
+	cloudToSubnetDepth   = 4
+	regionToSubnetDepth  = 3
 	vpcToSubnetDepth     = 2
 	zoneToSubnetDepth    = 1
 )
@@ -279,29 +280,35 @@ func (ly *layoutS) layoutSubnetsIcons() {
 	colIndex := 0
 	for _, cloud := range ly.network.(*NetworkTreeNode).clouds {
 		ly.setDefaultLocation(cloud, 0, colIndex)
-		for _, vpc := range cloud.(*CloudTreeNode).vpcs {
-			ly.setDefaultLocation(vpc, 0, colIndex)
-			for _, zone := range vpc.(*VpcTreeNode).zones {
-				rowIndex := 0
-				ly.setDefaultLocation(zone, rowIndex, colIndex)
-				for _, subnet := range zone.(*ZoneTreeNode).subnets {
-					ly.setDefaultLocation(subnet, rowIndex, colIndex)
-					calcGroupsVisibility(subnet)
-					groups := getSubnetIconsOrder(subnet)
-					for _, group := range groups {
-						rowIndex, colIndex = ly.layoutGroupIcons(group, rowIndex, colIndex)
+		for _, region := range cloud.(*CloudTreeNode).regions {
+			ly.setDefaultLocation(region, 0, colIndex)
+			for _, vpc := range region.(*RegionTreeNode).vpcs {
+				ly.setDefaultLocation(vpc, 0, colIndex)
+				for _, zone := range vpc.(*VpcTreeNode).zones {
+					rowIndex := 0
+					ly.setDefaultLocation(zone, rowIndex, colIndex)
+					for _, subnet := range zone.(*ZoneTreeNode).subnets {
+						ly.setDefaultLocation(subnet, rowIndex, colIndex)
+						calcGroupsVisibility(subnet)
+						groups := getSubnetIconsOrder(subnet)
+						for _, group := range groups {
+							rowIndex, colIndex = ly.layoutGroupIcons(group, rowIndex, colIndex)
+						}
+						if rowIndex == subnet.Location().firstRow.index {
+							rowIndex++
+						}
 					}
-					if rowIndex == subnet.Location().firstRow.index {
-						rowIndex++
-					}
+					colIndex++
 				}
-				colIndex++
+				if vpc.(*VpcTreeNode).zones == nil {
+					colIndex++
+				}
 			}
-			if vpc.(*VpcTreeNode).zones == nil {
+			if region.(*RegionTreeNode).vpcs == nil {
 				colIndex++
 			}
 		}
-		if cloud.(*CloudTreeNode).vpcs == nil {
+		if cloud.(*CloudTreeNode).regions == nil {
 			colIndex++
 		}
 	}
@@ -325,20 +332,22 @@ func (ly *layoutS) setSubnetsLocations(subnetMatrix [][]TreeNodeInterface, zones
 	}
 	ly.setDefaultLocation(ly.network, 0, 0)
 	for _, cloud := range ly.network.(*NetworkTreeNode).clouds {
-		for _, vpc := range cloud.(*CloudTreeNode).vpcs {
-			for _, zone := range vpc.(*VpcTreeNode).zones {
-				if _, ok := zonesCol[zone]; !ok {
-					zonesCol[zone] = len(zonesCol)
-				}
-				rowIndex := 0
-				for _, subnet := range zone.(*ZoneTreeNode).subnets {
-					if !locatedSubnets[subnet] {
-						a := len(subnetMatrix)
-						for rowIndex < a && zonesCol[zone] < len(subnetMatrix[rowIndex]) && subnetMatrix[rowIndex][zonesCol[zone]] != nil {
+		for _, region := range cloud.(*CloudTreeNode).regions {
+			for _, vpc := range region.(*RegionTreeNode).vpcs {
+				for _, zone := range vpc.(*VpcTreeNode).zones {
+					if _, ok := zonesCol[zone]; !ok {
+						zonesCol[zone] = len(zonesCol)
+					}
+					rowIndex := 0
+					for _, subnet := range zone.(*ZoneTreeNode).subnets {
+						if !locatedSubnets[subnet] {
+							a := len(subnetMatrix)
+							for rowIndex < a && zonesCol[zone] < len(subnetMatrix[rowIndex]) && subnetMatrix[rowIndex][zonesCol[zone]] != nil {
+								rowIndex++
+							}
+							ly.setDefaultLocation(subnet, rowIndex, zonesCol[zone])
 							rowIndex++
 						}
-						ly.setDefaultLocation(subnet, rowIndex, zonesCol[zone])
-						rowIndex++
 					}
 				}
 			}
@@ -417,35 +426,37 @@ func (ly *layoutS) setGroupedSubnetsOffset() {
 // PartialSGTreeNode can not have more than one row. and can have only cell that contains icons that belong to the SG
 func (ly *layoutS) setSGLocations() {
 	for _, cloud := range ly.network.(*NetworkTreeNode).clouds {
-		for _, vpc := range cloud.(*CloudTreeNode).vpcs {
-			for _, sg := range vpc.(*VpcTreeNode).sgs {
-				if len(sg.IconTreeNodes()) == 0 {
-					continue
-				}
-				sgLocation := mergeLocations(locations(getAllNodes(sg)))
-				sgIconsIndexes := map[[2]int]bool{}
-				for _, icon := range sg.IconTreeNodes() {
-					sgIconsIndexes[[2]int{icon.Location().firstRow.index, icon.Location().firstCol.index}] = true
-				}
-				for ri := sgLocation.firstRow.index; ri <= sgLocation.lastRow.index; ri++ {
-					var currentLocation *Location = nil
-					// we run also on the next column index, to create the last PartialSGTreeNode
-					for ci := sgLocation.firstCol.index; ci <= sgLocation.lastCol.index+1; ci++ {
-						isSGCell := sgIconsIndexes[[2]int{ri, ci}]
-						switch {
-						case currentLocation == nil && isSGCell:
-							currentLocation = newCellLocation(ly.matrix.rows[ri], ly.matrix.cols[ci])
-						case currentLocation != nil && isSGCell:
-							currentLocation.lastCol = ly.matrix.cols[ci]
-						case currentLocation != nil && !isSGCell:
-							psg := newPartialSGTreeNode(sg.(*SGTreeNode))
-							currentLocation.xOffset = borderWidth
-							currentLocation.yOffset = borderWidth
-							currentLocation.xEndOffset = borderWidth
-							currentLocation.yEndOffset = borderWidth
+		for _, region := range cloud.(*CloudTreeNode).regions {
+			for _, vpc := range region.(*RegionTreeNode).vpcs {
+				for _, sg := range vpc.(*VpcTreeNode).sgs {
+					if len(sg.IconTreeNodes()) == 0 {
+						continue
+					}
+					sgLocation := mergeLocations(locations(getAllNodes(sg)))
+					sgIconsIndexes := map[[2]int]bool{}
+					for _, icon := range sg.IconTreeNodes() {
+						sgIconsIndexes[[2]int{icon.Location().firstRow.index, icon.Location().firstCol.index}] = true
+					}
+					for ri := sgLocation.firstRow.index; ri <= sgLocation.lastRow.index; ri++ {
+						var currentLocation *Location = nil
+						// we run also on the next column index, to create the last PartialSGTreeNode
+						for ci := sgLocation.firstCol.index; ci <= sgLocation.lastCol.index+1; ci++ {
+							isSGCell := sgIconsIndexes[[2]int{ri, ci}]
+							switch {
+							case currentLocation == nil && isSGCell:
+								currentLocation = newCellLocation(ly.matrix.rows[ri], ly.matrix.cols[ci])
+							case currentLocation != nil && isSGCell:
+								currentLocation.lastCol = ly.matrix.cols[ci]
+							case currentLocation != nil && !isSGCell:
+								psg := newPartialSGTreeNode(sg.(*SGTreeNode))
+								currentLocation.xOffset = borderWidth
+								currentLocation.yOffset = borderWidth
+								currentLocation.xEndOffset = borderWidth
+								currentLocation.yEndOffset = borderWidth
 
-							psg.setLocation(currentLocation)
-							currentLocation = nil
+								psg.setLocation(currentLocation)
+								currentLocation = nil
+							}
 						}
 					}
 				}
@@ -512,20 +523,23 @@ func resolveSquareLocation(tn SquareTreeNodeInterface, internalBorders int, addE
 func (ly *layoutS) setSquaresLocations() {
 	for _, cloud := range ly.network.(*NetworkTreeNode).clouds {
 		resolveSquareLocation(cloud, cloudToSubnetDepth, true)
-		for _, vpc := range cloud.(*CloudTreeNode).vpcs {
-			resolveSquareLocation(vpc, vpcToSubnetDepth, true)
-			for _, zone := range vpc.(*VpcTreeNode).zones {
-				resolveSquareLocation(zone, zoneToSubnetDepth, true)
-				for _, subnet := range zone.(*ZoneTreeNode).subnets {
-					resolveSquareLocation(subnet, 0, true)
-					for _, groupSquare := range subnet.(*SubnetTreeNode).groupSquares {
-						resolveSquareLocation(groupSquare, 0, false)
-						setGroupSquareOffsets(groupSquare)
+		for _, region := range cloud.(*CloudTreeNode).regions {
+			resolveSquareLocation(region, regionToSubnetDepth, true)
+			for _, vpc := range region.(*RegionTreeNode).vpcs {
+				resolveSquareLocation(vpc, vpcToSubnetDepth, true)
+				for _, zone := range vpc.(*VpcTreeNode).zones {
+					resolveSquareLocation(zone, zoneToSubnetDepth, true)
+					for _, subnet := range zone.(*ZoneTreeNode).subnets {
+						resolveSquareLocation(subnet, 0, true)
+						for _, groupSquare := range subnet.(*SubnetTreeNode).groupSquares {
+							resolveSquareLocation(groupSquare, 0, false)
+							setGroupSquareOffsets(groupSquare)
+						}
 					}
 				}
-			}
-			for _, groupSubnetsSquare := range vpc.(*VpcTreeNode).groupSubnetsSquares {
-				resolveSquareLocation(groupSubnetsSquare, 0, false)
+				for _, groupSubnetsSquare := range vpc.(*VpcTreeNode).groupSubnetsSquares {
+					resolveSquareLocation(groupSubnetsSquare, 0, false)
+				}
 			}
 		}
 	}
@@ -610,13 +624,13 @@ func (ly *layoutS) setIconsLocationsOnTop(square SquareTreeNodeInterface) {
 //        a. routers by the tgw
 //        b. both src and dst are on the left/right to the col.
 
-func (ly *layoutS) setTgwLocations(cloud SquareTreeNodeInterface) {
-	tgws := slices.Clone(cloud.IconTreeNodes())
+func (ly *layoutS) setTgwLocations(region SquareTreeNodeInterface) {
+	tgws := slices.Clone(region.IconTreeNodes())
 	if len(tgws) == 0 {
 		return
 	}
-	tgwOptionalCols, availableCols := ly.calcTgwOptionalCols(cloud)
-	cloud.Location().firstRow.setHeight(iconSpace)
+	tgwOptionalCols, availableCols := ly.calcTgwOptionalCols(region)
+	region.Location().firstRow.setHeight(iconSpace)
 	// we want to choose for the tgw with less options:
 	sort.Slice(tgws, func(i, j int) bool {
 		return len(tgwOptionalCols[tgws[i]]) < len(tgwOptionalCols[tgws[j]])
@@ -626,7 +640,7 @@ func (ly *layoutS) setTgwLocations(cloud SquareTreeNodeInterface) {
 		tgwOptionalCols[tgw] = append(tgwOptionalCols[tgw][1:], tgwOptionalCols[tgw][0])
 		for _, ci := range tgwOptionalCols[tgw] {
 			if availableCols[ci] {
-				tgw.setLocation(newCellLocation(cloud.Location().firstRow, ly.matrix.cols[ci]))
+				tgw.setLocation(newCellLocation(region.Location().firstRow, ly.matrix.cols[ci]))
 				delete(availableCols, ci)
 				break
 			}
@@ -638,7 +652,7 @@ func (ly *layoutS) setTgwLocations(cloud SquareTreeNodeInterface) {
 		}
 		// hope we do not get here, taking the closest available:
 		bestColAvailable, _ := common.AnyMapEntry[int](availableCols)
-		bestDistance := cloud.Location().lastCol.index
+		bestDistance := region.Location().lastCol.index
 		if len(tgwOptionalCols[tgw]) > 0 {
 			tgwOptCol := tgwOptionalCols[tgw][0] + tgwOptionalCols[tgw][len(tgwOptionalCols[tgw])-1]/2
 			for col := range availableCols {
@@ -648,7 +662,7 @@ func (ly *layoutS) setTgwLocations(cloud SquareTreeNodeInterface) {
 				}
 			}
 		}
-		tgw.setLocation(newCellLocation(cloud.Location().firstRow, ly.matrix.cols[bestColAvailable]))
+		tgw.setLocation(newCellLocation(region.Location().firstRow, ly.matrix.cols[bestColAvailable]))
 		delete(availableCols, bestColAvailable)
 	}
 }
@@ -806,13 +820,15 @@ func setZoneIconsLocations(zone SquareTreeNodeInterface) {
 
 func (ly *layoutS) setIconsLocations() {
 	for _, cloud := range ly.network.(*NetworkTreeNode).clouds {
-		for _, vpc := range cloud.(*CloudTreeNode).vpcs {
-			for _, zone := range vpc.(*VpcTreeNode).zones {
-				setZoneIconsLocations(zone)
+		for _, region := range cloud.(*CloudTreeNode).regions {
+			for _, vpc := range region.(*RegionTreeNode).vpcs {
+				for _, zone := range vpc.(*VpcTreeNode).zones {
+					setZoneIconsLocations(zone)
+				}
+				ly.setIconsLocationsOnTop(vpc)
 			}
-			ly.setIconsLocationsOnTop(vpc)
+			ly.setTgwLocations(region)
 		}
-		ly.setTgwLocations(cloud)
 	}
 	ly.setPublicNetworkIconsLocations()
 	ly.setGroupingIconLocations()

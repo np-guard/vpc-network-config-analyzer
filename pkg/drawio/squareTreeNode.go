@@ -113,7 +113,7 @@ func (tn *PublicNetworkTreeNode) NotShownInDrawio() bool { return len(tn.IconTre
 // ////////////////////////////////////////////////////////////////
 type CloudTreeNode struct {
 	abstractSquareTreeNode
-	vpcs []SquareTreeNodeInterface
+	regions []SquareTreeNodeInterface
 }
 
 func NewCloudTreeNode(parent *NetworkTreeNode, name string) *CloudTreeNode {
@@ -122,6 +122,21 @@ func NewCloudTreeNode(parent *NetworkTreeNode, name string) *CloudTreeNode {
 	return &cloud
 }
 func (tn *CloudTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
+	return tn.regions, tn.elements, tn.connections
+}
+
+// ////////////////////////////////////////////////////////////////
+type RegionTreeNode struct {
+	abstractSquareTreeNode
+	vpcs []SquareTreeNodeInterface
+}
+
+func NewRegionTreeNode(parent *CloudTreeNode, name string) *RegionTreeNode {
+	region := RegionTreeNode{abstractSquareTreeNode: newAbstractSquareTreeNode(parent, name)}
+	parent.regions = append(parent.regions, &region)
+	return &region
+}
+func (tn *RegionTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
 	return tn.vpcs, tn.elements, tn.connections
 }
 
@@ -133,7 +148,7 @@ type VpcTreeNode struct {
 	groupSubnetsSquares []SquareTreeNodeInterface
 }
 
-func NewVpcTreeNode(parent *CloudTreeNode, name string) *VpcTreeNode {
+func NewVpcTreeNode(parent *RegionTreeNode, name string) *VpcTreeNode {
 	vpc := VpcTreeNode{abstractSquareTreeNode: newAbstractSquareTreeNode(parent, name)}
 	parent.vpcs = append(parent.vpcs, &vpc)
 	return &vpc

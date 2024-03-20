@@ -160,10 +160,8 @@ github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e h1:fD57ERR4JtEqsWb
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
 github.com/np-guard/cloud-resource-collector v0.5.2 h1:2lr14jj/Vd/0dZSrxkUofgMGMroa0b/ESn+G+WR9xHQ=
 github.com/np-guard/cloud-resource-collector v0.5.2/go.mod h1:dtgXdQ81SnERxv37OxULwPU2v4fhPQOWpG7ABIq8YNw=
-github.com/np-guard/models v0.1.2 h1:5zouSb2QST4hbtvkK1z0TLvS654EHoKL8+2H5N+pyMs=
-github.com/np-guard/models v0.1.2/go.mod h1:QZ+PP5Zo65UJJAwsQPyzXu5c9GQvjmHOJNNGEXu7i0w=
-github.com/np-guard/vpc-network-config-synthesis v0.1.0 h1:yAKR2w4TXcs4ir12dQwoglIll/AeQfFNcLH0NGCQIFc=
-github.com/np-guard/vpc-network-config-synthesis v0.1.0/go.mod h1:wQkZxRT4t8Ut0YwOOyIbZzVP8578sy6RvLoUngSUAeI=
+github.com/np-guard/models v0.2.1 h1:OdFYQuMqxqaizkwVXlVJahIIYpwu/Z69ndWDHek1iIo=
+github.com/np-guard/models v0.2.1/go.mod h1:mqE2Irf8r+7HWh8fII0fWbWyQRMHGEo2SgSLN/6VKs8=
 github.com/nxadm/tail v1.4.4/go.mod h1:kenIhsEOeOJmVchQTgglprH7qJGnHDVpk1VPCcaMI8A=
 github.com/nxadm/tail v1.4.8 h1:nPr65rt6Y5JFSKQO7qToXr7pePgD6Gwiw05lkbyAQTE=
 github.com/nxadm/tail v1.4.8/go.mod h1:+ncqLTQzXmGhMZNUePPaPqPvBxHAIsmXswZKocGu+AU=
@@ -228,8 +226,6 @@ golang.org/x/crypto v0.0.0-20210921155107-089bfa567519/go.mod h1:GvvjBRRGRdwPK5y
 golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d/go.mod h1:IxCIyHEi3zRg3s0A5j5BB6A9Jmi73HwBIUl50j+osU4=
 golang.org/x/crypto v0.18.0 h1:PGVlW0xEltQnzFZ55hkuX5+KLyrMYhHld1YHO4AKcdc=
 golang.org/x/crypto v0.18.0/go.mod h1:R0j02AL6hcrfOiy9T4ZYp/rcWeMxM3L6QYxlOuEG1mg=
-golang.org/x/exp v0.0.0-20230905200255-921286631fa9 h1:GoHiUyI/Tp2nVkLI2mCxVkOjsbSXD66ic0XW0js0R9g=
-golang.org/x/exp v0.0.0-20230905200255-921286631fa9/go.mod h1:S2oDrQGGwySpoQPVqRShND87VCbxmc6bL1Yd2oYrm6k=
 golang.org/x/mod v0.3.0/go.mod h1:s0Qsj1ACt9ePp/hMypM3fl4fZqREWJwdYDEqhRiZZUA=
 golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4/go.mod h1:jJ57K6gSWd91VN4djpZkiMVwK6gcyfeH4XE8wZrZaV4=
 golang.org/x/net v0.0.0-20180906233101-161cd47e91fd/go.mod h1:mL1N/T3taQHkDXs73rZJwtUhF3w3ftmwwsq0BUmARs4=
