@@ -97,7 +97,7 @@
     <script type="text/xml">
     <![CDATA[<data>
     {{range $explain := $data.Explanations}}
-        <entry dst="{{$explain.Dst}}" src="{{$explain.Src}}">
+        <entry dst="{{$data.SvgId $explain.Dst}}" src="{{$data.SvgId $explain.Src}}">
             <text>
             {{$explain.Text}}
             </text>

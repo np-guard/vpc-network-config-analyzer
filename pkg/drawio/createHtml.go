@@ -149,17 +149,9 @@ func (data *templateData) setNodesRelations(network TreeNodeInterface) {
 }
 
 // ///////////////////////////////////////////////////////////////////////////
-type explanationEntry struct {
-	Src, Dst, Text string
-}
-
-func (data *templateData) setNodesExplanations(network TreeNodeInterface) {
-	for _, src := range data.Nodes {
-		for _, dst := range data.Nodes {
-			data.Explanations = append(data.Explanations, explanationEntry{data.SvgId(src), data.SvgId(dst),
-				"explanation of " + data.SvgName(src) + " to " + data.SvgName(dst)})
-		}
-	}
+type ExplanationEntry struct {
+	Src, Dst TreeNodeInterface
+	Text     string
 }
 
 func (data *templateData) SvgId(tn TreeNodeInterface) string {

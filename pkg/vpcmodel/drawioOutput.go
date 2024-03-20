@@ -32,6 +32,7 @@ type DrawioOutputFormatter struct {
 	nodeRouters     map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface
 	multiVpcRouters map[string]drawio.IconTreeNodeInterface
 	uc              OutputUseCase
+	explanations    []drawio.ExplanationEntry
 }
 
 func (d *DrawioOutputFormatter) init(cConfigs map[string]*VPCConfig, conns map[string]*GroupConnLines, uc OutputUseCase) {
@@ -57,6 +58,7 @@ func (d *DrawioOutputFormatter) createDrawioTree() {
 	if d.conns != nil {
 		d.createEdges()
 	}
+	d.createExplanations()
 }
 
 func (d *DrawioOutputFormatter) createNodeSets() {
@@ -171,6 +173,17 @@ func (d *DrawioOutputFormatter) createEdges() {
 		}
 	}
 }
+func (d *DrawioOutputFormatter) createExplanations() {
+	for _, vpcConn := range d.conns {
+		for _, line := range vpcConn.GroupedLines {
+			src := line.src
+			dst := line.dst
+			// Todo: get real explanation
+			d.explanations = append(d.explanations, drawio.ExplanationEntry{d.gen.TreeNode(src), d.gen.TreeNode(dst),
+				"explanation of " + src.Name() + " to " + dst.Name()})
+		}
+	}
+}
 
 func (d *DrawioOutputFormatter) showResource(res DrawioResourceIntf) bool {
 	return d.uc != AllSubnets || res.ShowOnSubnetMode()
@@ -207,7 +220,7 @@ func (d *DrawioOutputFormatter) WriteOutput(c1, c2 map[string]*VPCConfig,
 		return "", errors.New("use case is not currently supported for draw.io format")
 	}
 	d.createDrawioTree()
-	return "", drawio.CreateDrawioConnectivityMapFile(d.gen.Network(), outFile, d.uc == AllSubnets)
+	return "", drawio.CreateDrawioConnectivityMapFile(d.gen.Network(), outFile, d.uc == AllSubnets, d.explanations)
 }
 
 // /////////////////////////////////////////////////////////////////
