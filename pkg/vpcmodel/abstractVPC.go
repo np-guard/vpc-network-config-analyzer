@@ -221,4 +221,5 @@ type RoutingResource interface {
 	Destinations() []Node
 	AllowedConnectivity(src, dst VPCResourceIntf) (*common.ConnectionSet, error)
 	AppliedFiltersKinds() map[string]bool
+	ExternalIP() string // ExternalIP of fip, empty string for other resources
 }
