@@ -152,7 +152,7 @@ var supportedAnalysisTypesList = []string{
 }
 
 const srcDstUsage = "endpoint for explanation; can be specified as a VSI name/CRN or an internal/external IP-address/CIDR" +
-	"in multivpc context ambiguity in VSI names can be resolves by prefixing the VPC name with /"
+	"VSI name can be specified as <vsi-name> or  <vpc-name>/<vsi-name>"
 
 func getSupportedAnalysisTypesMapString() string {
 	valuesList := make([]string, len(supportedAnalysisTypesList)+1)
