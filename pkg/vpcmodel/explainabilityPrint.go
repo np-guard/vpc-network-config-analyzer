@@ -241,7 +241,7 @@ func pathStr(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointEle
 		routerStr := newLineTab + router.Kind() + space + router.Name()
 		// router is fip - add its cidr
 		if router.Kind() == fipRouter {
-			routerStr += space + router.CIDR()
+			routerStr += space + router.ExternalIP()
 		}
 		pathSlice = append(pathSlice, routerStr)
 	}

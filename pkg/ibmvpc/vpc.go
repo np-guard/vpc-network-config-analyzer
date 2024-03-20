@@ -567,7 +567,7 @@ func (sg *SecurityGroup) getMemberTargetStrAddress(src, dst vpcmodel.Node,
 
 type FloatingIP struct {
 	vpcmodel.VPCResource
-	cidr         string
+	cidr         string // todo: this is actually not cidr but external IP. Rename?
 	src          []vpcmodel.Node
 	destinations []vpcmodel.Node
 }
@@ -596,7 +596,7 @@ func (fip *FloatingIP) AppliedFiltersKinds() map[string]bool {
 	return map[string]bool{vpcmodel.SecurityGroupLayer: true}
 }
 
-func (fip *FloatingIP) CIDR() string {
+func (fip *FloatingIP) ExternalIP() string {
 	return fip.cidr
 }
 
@@ -620,7 +620,7 @@ func (pgw *PublicGateway) Sources() []vpcmodel.Node {
 func (pgw *PublicGateway) Destinations() []vpcmodel.Node {
 	return pgw.destinations
 }
-func (pgw *PublicGateway) CIDR() string {
+func (pgw *PublicGateway) ExternalIP() string {
 	return ""
 }
 
@@ -690,7 +690,7 @@ func (tgw *TransitGateway) Sources() (res []vpcmodel.Node) {
 func (tgw *TransitGateway) Destinations() (res []vpcmodel.Node) {
 	return tgw.destNodes
 }
-func (tgw *TransitGateway) CIDR() string {
+func (tgw *TransitGateway) ExternalIP() string {
 	return ""
 }
 
