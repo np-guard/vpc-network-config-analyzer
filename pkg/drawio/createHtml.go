@@ -131,7 +131,7 @@ func (data *templateData) setNodesRelations(network TreeNodeInterface) {
 	res[""] = map[string][]string{}
 	res[""]["relations"] = []string{data.SvgRootId()}
 	res[""]["highlights"] = []string{""}
-	res[""]["explanation"] = []string{"expl of All"}
+	res[""]["explanation"] = []string{""}
 	for _, node := range data.Nodes {
 		nId := data.SvgId(node)
 		res[nId] = map[string][]string{}
@@ -161,11 +161,13 @@ type ExplanationEntry struct {
 }
 
 func (data *templateData) SvgId(tn TreeNodeInterface) string {
-	name := reflect.TypeOf(tn).Elem().Name()[0:5]
-	return fmt.Sprintf("%s_%d", name, tn.ID())
+	tnType := reflect.TypeOf(tn).Elem().Name()[0:5]
+	return fmt.Sprintf("%s_%d", tnType, tn.ID())
 }
 func (data *templateData) SvgName(tn TreeNodeInterface) string {
-	return "the_name_of_" + data.SvgId(tn)
+	// todo: get the resource type
+	tnType := reflect.TypeOf(tn).Elem().Name()[0:5]
+	return fmt.Sprintf("%s(%s)",tn.Label(), tnType)
 }
 func (data *templateData) SvgRootId() string {
 	return fmt.Sprintf("%s_%d", "top", data.rootID)

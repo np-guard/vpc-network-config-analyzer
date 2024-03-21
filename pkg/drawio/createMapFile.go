@@ -26,8 +26,8 @@ type templateData struct {
 	DebugPoints  []debugPoint
 	Relations    string
 	Explanations []ExplanationEntry
-	clickable  common.GenericSet[TreeNodeInterface]
-	IsHtml bool
+	clickable    common.GenericSet[TreeNodeInterface]
+	IsHtml       bool
 }
 
 func NewTemplateData(network SquareTreeNodeInterface, explanations []ExplanationEntry) *templateData {

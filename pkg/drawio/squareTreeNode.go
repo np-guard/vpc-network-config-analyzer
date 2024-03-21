@@ -290,8 +290,8 @@ func (tn *GroupSquareTreeNode) IsGroupingSquare() bool { return true }
 func (tn *GroupSquareTreeNode) NotShownInDrawio() bool {
 	return tn.visibility == theSubnet || tn.visibility == connectedPoint
 }
-func NewGroupSquareTreeNode(parent *SubnetTreeNode, groupedIcons []IconTreeNodeInterface) *GroupSquareTreeNode {
-	gs := GroupSquareTreeNode{newAbstractSquareTreeNode(parent, ""), groupedIcons, connectedPoint}
+func NewGroupSquareTreeNode(parent *SubnetTreeNode, groupedIcons []IconTreeNodeInterface, name string) *GroupSquareTreeNode {
+	gs := GroupSquareTreeNode{newAbstractSquareTreeNode(parent, name), groupedIcons, connectedPoint}
 	parent.groupSquares = append(parent.groupSquares, &gs)
 	return &gs
 }

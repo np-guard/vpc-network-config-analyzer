@@ -264,8 +264,8 @@ func createNetworkAllTypes() SquareTreeNodeInterface {
 	groupedNis11 := []IconTreeNodeInterface{nia, ripb}
 	groupedNis13 := []IconTreeNodeInterface{nic, nid}
 	nie.SetFIP("fip")
-	gs11 := NewGroupSquareTreeNode(subnet11, groupedNis11)
-	gs13 := NewGroupSquareTreeNode(subnet13, groupedNis13)
+	gs11 := NewGroupSquareTreeNode(subnet11, groupedNis11, "groupedNis11")
+	gs13 := NewGroupSquareTreeNode(subnet13, groupedNis13, "groupedNis13")
 
 	i1 := NewInternetTreeNode(publicNetwork, "Internet2")
 	i2 := NewInternetTreeNode(publicNetwork, "Internet2")
@@ -294,10 +294,10 @@ func createNetworkAllTypes() SquareTreeNodeInterface {
 	groupedNis33b := []IconTreeNodeInterface{ni33a, rip33b}
 	groupedNis33c := []IconTreeNodeInterface{ni33a, rip33b, ni33c}
 	groupedNis33d := []IconTreeNodeInterface{ni33c, ni33e}
-	gs33a := NewGroupSquareTreeNode(subnet33, groupedNis33a)
-	gs33b := NewGroupSquareTreeNode(subnet33, groupedNis33b)
-	gs33c := NewGroupSquareTreeNode(subnet33, groupedNis33c)
-	gs33d := NewGroupSquareTreeNode(subnet33, groupedNis33d)
+	gs33a := NewGroupSquareTreeNode(subnet33, groupedNis33a, "groupedNis33a")
+	gs33b := NewGroupSquareTreeNode(subnet33, groupedNis33b, "groupedNis33b")
+	gs33c := NewGroupSquareTreeNode(subnet33, groupedNis33c, "groupedNis33c")
+	gs33d := NewGroupSquareTreeNode(subnet33, groupedNis33d, "groupedNis33d")
 	gw1 := NewGatewayTreeNode(zone1, "gw21")
 
 	c1 := NewConnectivityLineTreeNode(network, nie, i1, true, "gconn1")
@@ -642,18 +642,18 @@ func createNetworkGrouping() SquareTreeNodeInterface {
 	}
 	i2 := NewInternetTreeNode(publicNetwork, "Internet2")
 
-	gs13 := NewGroupSquareTreeNode(subnet13, groupedNis13)
-	gs32 := NewGroupSquareTreeNode(subnet32, groupedNis32)
-	gs33a := NewGroupSquareTreeNode(subnet33, groupedNis33a)
-	gs33b := NewGroupSquareTreeNode(subnet33, groupedNis33b)
-	gs33c := NewGroupSquareTreeNode(subnet33, groupedNis33c)
-	gs33d := NewGroupSquareTreeNode(subnet33, groupedNis33d)
-	gs33e := NewGroupSquareTreeNode(subnet33, groupedNis33e)
-	gs33f := NewGroupSquareTreeNode(subnet33, groupedNis33f)
-	gs33g := NewGroupSquareTreeNode(subnet33, groupedNis33g)
-	gs23 := NewGroupSquareTreeNode(subnet23, groupedNis23)
-	gs31 := NewGroupSquareTreeNode(subnet31, groupedNis31)
-	gs11 := NewGroupSquareTreeNode(subnet11, groupedNis11)
+	gs13 := NewGroupSquareTreeNode(subnet13, groupedNis13, "groupedNis13")
+	gs32 := NewGroupSquareTreeNode(subnet32, groupedNis32, "groupedNis32")
+	gs33a := NewGroupSquareTreeNode(subnet33, groupedNis33a, "groupedNis33a")
+	gs33b := NewGroupSquareTreeNode(subnet33, groupedNis33b, "groupedNis33b")
+	gs33c := NewGroupSquareTreeNode(subnet33, groupedNis33c, "groupedNis33c")
+	gs33d := NewGroupSquareTreeNode(subnet33, groupedNis33d, "groupedNis33d")
+	gs33e := NewGroupSquareTreeNode(subnet33, groupedNis33e, "groupedNis33e")
+	gs33f := NewGroupSquareTreeNode(subnet33, groupedNis33f, "groupedNis33f")
+	gs33g := NewGroupSquareTreeNode(subnet33, groupedNis33g, "groupedNis33g")
+	gs23 := NewGroupSquareTreeNode(subnet23, groupedNis23, "groupedNis23")
+	gs31 := NewGroupSquareTreeNode(subnet31, groupedNis31, "groupedNis31")
+	gs11 := NewGroupSquareTreeNode(subnet11, groupedNis11, "groupedNis11")
 
 	NewConnectivityLineTreeNode(network, gs13, gs32, true, "gconn1")
 	NewConnectivityLineTreeNode(network, gs33a, i2, false, "gconn2")
