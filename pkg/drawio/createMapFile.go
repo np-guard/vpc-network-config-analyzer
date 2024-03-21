@@ -86,6 +86,7 @@ func orderNodesForTemplate(nodes []TreeNodeInterface) []TreeNodeInterface {
 		&NetworkTreeNode{},
 		&PublicNetworkTreeNode{},
 		&CloudTreeNode{},
+		&RegionTreeNode{},
 		&VpcTreeNode{},
 		&GroupSubnetsSquareTreeNode{},
 		&ZoneTreeNode{},
