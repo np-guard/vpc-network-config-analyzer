@@ -60,7 +60,7 @@ func (cachedGrouped *cacheGroupedElements) getAndSetEndpointElemFromCache(
 		return existing
 	}
 	cachedGrouped.setEndpointElemFromCache(groupedElem)
-	return &groupedElem
+	return groupedElem
 }
 
 // sets pointer of an element to cachedGrouped.groupedEndpointsElemsMap
