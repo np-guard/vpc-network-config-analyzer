@@ -3060,10 +3060,10 @@
                 },
                 "conn": [
                     {
-                        "protocol": "ICMP"
+                        "protocol": "UDP"
                     },
                     {
-                        "protocol": "UDP"
+                        "protocol": "ICMP"
                     }
                 ],
                 "unidirectional_conn": [
@@ -6291,10 +6291,10 @@
                 },
                 "conn": [
                     {
-                        "protocol": "ICMP"
+                        "protocol": "UDP"
                     },
                     {
-                        "protocol": "UDP"
+                        "protocol": "ICMP"
                     }
                 ],
                 "unidirectional_conn": [
@@ -6391,10 +6391,10 @@
                 },
                 "conn": [
                     {
-                        "protocol": "ICMP"
+                        "protocol": "UDP"
                     },
                     {
-                        "protocol": "UDP"
+                        "protocol": "ICMP"
                     }
                 ],
                 "unidirectional_conn": [
@@ -6491,10 +6491,10 @@
                 },
                 "conn": [
                     {
-                        "protocol": "ICMP"
+                        "protocol": "UDP"
                     },
                     {
-                        "protocol": "UDP"
+                        "protocol": "ICMP"
                     }
                 ],
                 "unidirectional_conn": [
