@@ -9,7 +9,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
-	"github.com/np-guard/models/pkg/ipblocks"
+	"github.com/np-guard/models/pkg/ipblock"
+
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -212,7 +213,7 @@ func (tt *tgwTest) runTest(t *testing.T) {
 	for _, r := range availableRoutes {
 		fmt.Printf("%s\n", r.ToCidrList())
 	}
-	availableRoutesMap := map[string][]*ipblocks.IPBlock{tt.vpc.UID(): availableRoutes}
+	availableRoutesMap := map[string][]*ipblock.IPBlock{tt.vpc.UID(): availableRoutes}
 	permittedSubnets := getVPCdestSubnetsByAdvertisedRoutes(&TransitGateway{availableRoutes: availableRoutesMap}, tt.vpc)
 	require.Nil(t, err)
 	for _, subnet := range tt.vpc.subnetsList {

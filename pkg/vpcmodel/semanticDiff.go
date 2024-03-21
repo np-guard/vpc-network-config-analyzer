@@ -5,7 +5,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/np-guard/models/pkg/ipblocks"
+	"github.com/np-guard/models/pkg/ipblock"
+
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
@@ -344,7 +345,7 @@ func (confConnectivity *configConnectivity) getConnectivityWithSameIPBlocks(othe
 	if err != nil {
 		return nil, nil, err
 	}
-	disjointIPblocks := ipblocks.DisjointIPBlocks(connectivityIPBlist, otherIPBlist)
+	disjointIPblocks := ipblock.DisjointIPBlocks(connectivityIPBlist, otherIPBlist)
 	// 2. copy configs and generates Nodes[] as per disjointIPblocks
 	err = confConnectivity.config.refineConfigExternalNodes(disjointIPblocks)
 	if err != nil {
@@ -371,7 +372,7 @@ func (confConnectivity *configConnectivity) getConnectivityWithSameIPBlocks(othe
 		&configConnectivity{otherAlignedConfig, alignedOtherConnectivity}, nil
 }
 
-func (connectivityMap *GeneralConnectivityMap) alignConnectionsGivenIPBlists(config *VPCConfig, disjointIPblocks []*ipblocks.IPBlock) (
+func (connectivityMap *GeneralConnectivityMap) alignConnectionsGivenIPBlists(config *VPCConfig, disjointIPblocks []*ipblock.IPBlock) (
 	alignedConnectivity GeneralConnectivityMap, err error) {
 	alignedConnectivitySrc, err := connectivityMap.actualAlignSrcOrDstGivenIPBlists(config, disjointIPblocks, true)
 	if err != nil {
@@ -383,7 +384,7 @@ func (connectivityMap *GeneralConnectivityMap) alignConnectionsGivenIPBlists(con
 
 // aligned config: copies from old config everything but external nodes,
 // external nodes are resized by disjointIPblocks
-func (c *VPCConfig) refineConfigExternalNodes(disjointIPblocks []*ipblocks.IPBlock) error {
+func (c *VPCConfig) refineConfigExternalNodes(disjointIPblocks []*ipblock.IPBlock) error {
 	// copy config
 	var err error
 	//  nodes - external addresses - are resized
@@ -391,7 +392,7 @@ func (c *VPCConfig) refineConfigExternalNodes(disjointIPblocks []*ipblocks.IPBlo
 	return err
 }
 
-func resizeNodes(oldNodes []Node, disjointIPblocks []*ipblocks.IPBlock) (newNodes []Node, err error) {
+func resizeNodes(oldNodes []Node, disjointIPblocks []*ipblock.IPBlock) (newNodes []Node, err error) {
 	newNodes = []Node{}
 	//  range over old nodes and inside range over disjoint blocks
 	//  if a disjoint block is contained in an old oldNode - create external oldNode and add it
@@ -422,7 +423,7 @@ func resizeNodes(oldNodes []Node, disjointIPblocks []*ipblocks.IPBlock) (newNode
 }
 
 func (connectivityMap *GeneralConnectivityMap) actualAlignSrcOrDstGivenIPBlists(config *VPCConfig,
-	disjointIPblocks []*ipblocks.IPBlock, resizeSrc bool) (
+	disjointIPblocks []*ipblock.IPBlock, resizeSrc bool) (
 	alignedConnectivity GeneralConnectivityMap, err error) {
 	// goes over all sources of connections in connectivity
 	// if src is external then for each IPBlock in disjointIPblocks copies dsts and connection type
@@ -444,7 +445,7 @@ func (connectivityMap *GeneralConnectivityMap) actualAlignSrcOrDstGivenIPBlists(
 			}
 			// the resizing element is external - go over all ipBlock and allocates the connection
 			// if the ipBlock is contained in the original src/dst
-			var origIPBlock *ipblocks.IPBlock
+			var origIPBlock *ipblock.IPBlock
 			if resizeSrc {
 				if node, ok := src.(Node); ok {
 					origIPBlock = node.IPBlock()
@@ -467,8 +468,8 @@ func (connectivityMap *GeneralConnectivityMap) actualAlignSrcOrDstGivenIPBlists(
 	return alignedConnectivity, err
 }
 
-func addIPBlockToConnectivityMap(c *VPCConfig, disjointIPblocks []*ipblocks.IPBlock,
-	origIPBlock *ipblocks.IPBlock, alignedConnectivity map[VPCResourceIntf]map[VPCResourceIntf]*common.ConnectionSet,
+func addIPBlockToConnectivityMap(c *VPCConfig, disjointIPblocks []*ipblock.IPBlock,
+	origIPBlock *ipblock.IPBlock, alignedConnectivity map[VPCResourceIntf]map[VPCResourceIntf]*common.ConnectionSet,
 	src, dst VPCResourceIntf, conns *common.ConnectionSet, resizeSrc bool) error {
 	for _, ipBlock := range disjointIPblocks {
 		// get ipBlock of resized index (src/dst)
@@ -509,7 +510,7 @@ func findNodeWithCidr(configNodes []Node, cidr string) Node {
 }
 
 // get a list of IPBlocks of the src and dst of the connections
-func (connectivityMap GeneralConnectivityMap) getIPBlocksList() (ipbList []*ipblocks.IPBlock,
+func (connectivityMap GeneralConnectivityMap) getIPBlocksList() (ipbList []*ipblock.IPBlock,
 	myErr error) {
 	for src, endpointConns := range connectivityMap {
 		for dst, conns := range endpointConns {

@@ -66,17 +66,19 @@ type Explanation struct {
 	groupedLines []*groupedConnLine
 }
 
-// ExplainConnectivity given src, dst and connQuery returns a struct with all explanation details
-// nil connQuery means connection is not part of the query
-func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.ConnectionSet) (res *Explanation, err error) {
-	// we do not support multiple configs, yet
-	if c.IsMultipleVPCsConfig {
-		return nil, fmt.Errorf("multiple VPCs not supported by explain mode, yet")
-	}
-	srcNodes, dstNodes, isSrcInternalIP, isDstInternalIP, err := c.srcDstInputToNodes(src, dst)
+func (configsMap MultipleVPCConfigs) ExplainConnectivity(src, dst string, connQuery *common.ConnectionSet) (res *Explanation, err error) {
+	vpcConfig, srcNodes, dstNodes, isSrcDstInternalIP, err := configsMap.getVPCConfigAndSrcDstNodes(src, dst)
 	if err != nil {
 		return nil, err
 	}
+	return vpcConfig.explainConnectivityForVPC(src, dst, srcNodes, dstNodes, isSrcDstInternalIP, connQuery)
+}
+
+// explainConnectivityForVPC for a vpcConfig, given src, dst and connQuery returns a struct with all explanation details
+// nil connQuery means connection is not part of the query
+func (c *VPCConfig) explainConnectivityForVPC(src, dst string, srcNodes, dstNodes []Node, isSrcDstInternalIP srcDstInternalAddr,
+	connQuery *common.ConnectionSet) (res *Explanation, err error) {
+	// we do not support multiple configs, yet
 	rulesAndDetails, err1 := c.computeExplainRules(srcNodes, dstNodes, connQuery)
 	if err1 != nil {
 		return nil, err1
@@ -100,8 +102,8 @@ func (c *VPCConfig) ExplainConnectivity(src, dst string, connQuery *common.Conne
 	}
 
 	return &Explanation{c, connQuery, &rulesAndDetails, src, dst,
-		getNetworkInterfacesFromIP(isSrcInternalIP, srcNodes),
-		getNetworkInterfacesFromIP(isDstInternalIP, dstNodes),
+		getNetworkInterfacesFromIP(isSrcDstInternalIP.src, srcNodes),
+		getNetworkInterfacesFromIP(isSrcDstInternalIP.dst, dstNodes),
 		groupedLines.GroupedLines}, nil
 }
 
@@ -175,11 +177,11 @@ func (details *rulesAndConnDetails) computeActualRules() {
 	for _, singleSrcDstDetails := range *details {
 		filterRelevant := singleSrcDstDetails.filtersRelevant
 		actualAllowIngress, ingressEnabled :=
-			computeActualRulesGivenRulesFilter(&singleSrcDstDetails.potentialAllowRules.ingressRules, filterRelevant)
+			computeActualRulesGivenRulesFilter(singleSrcDstDetails.potentialAllowRules.ingressRules, filterRelevant)
 		actualAllowEgress, egressEnabled :=
-			computeActualRulesGivenRulesFilter(&singleSrcDstDetails.potentialAllowRules.egressRules, filterRelevant)
-		actualDenyIngress, _ := computeActualRulesGivenRulesFilter(&singleSrcDstDetails.potentialDenyRules.ingressRules, filterRelevant)
-		actualDenyEgress, _ := computeActualRulesGivenRulesFilter(&singleSrcDstDetails.potentialDenyRules.egressRules, filterRelevant)
+			computeActualRulesGivenRulesFilter(singleSrcDstDetails.potentialAllowRules.egressRules, filterRelevant)
+		actualDenyIngress, _ := computeActualRulesGivenRulesFilter(singleSrcDstDetails.potentialDenyRules.ingressRules, filterRelevant)
+		actualDenyEgress, _ := computeActualRulesGivenRulesFilter(singleSrcDstDetails.potentialDenyRules.egressRules, filterRelevant)
 		actualAllow := &rulesConnection{*actualAllowIngress, *actualAllowEgress}
 		actualDeny := &rulesConnection{*actualDenyIngress, *actualDenyEgress}
 		singleSrcDstDetails.actualAllowRules = actualAllow
@@ -191,13 +193,13 @@ func (details *rulesAndConnDetails) computeActualRules() {
 
 // given rulesInLayers and the relevant filters, computes actual rules and whether the direction is enabled,
 // given that rulesInLayers are allow rules; for deny rules this computation is meaningless and is ignored.
-// this is called separately for each direction (ingreee/egress) and allow/deny
-func computeActualRulesGivenRulesFilter(rulesLayers *rulesInLayers, filters map[string]bool) (*rulesInLayers, bool) {
+// this is called separately for each direction (ingress/egress) and allow/deny
+func computeActualRulesGivenRulesFilter(rulesLayers rulesInLayers, filters map[string]bool) (*rulesInLayers, bool) {
 	actualRules := rulesInLayers{}
 	directionEnabled := true
 	for _, layer := range filterLayers {
 		filterIsRelevant := filters[layer]
-		potentialRules := (*rulesLayers)[layer]
+		potentialRules := rulesLayers[layer]
 		// The filter is blocking if it is relevant and has no allow rules
 		// this computation is meaningful only when rulesLayers are allow rules and is ignored otherwise
 		if filterIsRelevant && !filterHasRelevantRules(potentialRules) {

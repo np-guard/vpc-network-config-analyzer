@@ -1,6 +1,6 @@
 package common
 
-import "github.com/np-guard/models/pkg/hypercubes"
+import "github.com/np-guard/models/pkg/hypercube"
 
 const (
 	// StatefulUnknown is the default value for a ConnectionSet object,
@@ -75,12 +75,12 @@ func (conn *ConnectionSet) switchSrcDstPortsOnTCP() *ConnectionSet {
 		srcPorts := cube[srcPort]
 		dstPorts := cube[dstPort]
 		// if the entire domain is enabled by both src and dst no need to switch
-		if !srcPorts.Equal(*getDimensionDomain(srcPort)) || !dstPorts.Equal(*getDimensionDomain(dstPort)) {
+		if !srcPorts.Equal(getDimensionDomain(srcPort)) || !dstPorts.Equal(getDimensionDomain(dstPort)) {
 			newCube := copyCube(cube)
 			newCube[srcPort], newCube[dstPort] = newCube[dstPort], newCube[srcPort]
-			res.connectionProperties = res.connectionProperties.Union(hypercubes.CreateFromCube(newCube))
+			res.connectionProperties = res.connectionProperties.Union(hypercube.FromCube(newCube))
 		} else {
-			res.connectionProperties = res.connectionProperties.Union(hypercubes.CreateFromCube(cube))
+			res.connectionProperties = res.connectionProperties.Union(hypercube.FromCube(cube))
 		}
 	}
 	return res
