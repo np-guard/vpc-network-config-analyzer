@@ -399,9 +399,7 @@ func mergeGivenList(oldGroupingSrcOrDst map[string][]*groupedConnLine, srcGroupi
 	toMergeKeys []string) (newKey string, newGroupedConnLine []*groupedConnLine) {
 	epsInNewKey, _, _ := listOfUniqueEndpoints(oldGroupingSrcOrDst, srcGrouping, toMergeKeys)
 	epsInNewLines, conn, commonPros := listOfUniqueEndpoints(oldGroupingSrcOrDst, !srcGrouping, toMergeKeys)
-	var epItemForKey EndpointElem
 	for _, epInLineValue := range epsInNewLines {
-		epItemForKey = epInLineValue
 		if srcGrouping {
 			newGroupedConnLine = append(newGroupedConnLine, &groupedConnLine{epInLineValue, &epsInNewKey, commonPros})
 		} else {
@@ -409,6 +407,6 @@ func mergeGivenList(oldGroupingSrcOrDst map[string][]*groupedConnLine, srcGroupi
 		}
 	}
 	// all grouped items have the same subnets (if vsi) or vpc (if subnets), so any would do for the key
-	newKey = getKeyOfGroupConnLines(&epsInNewKey, epItemForKey, conn)
+	newKey = getKeyOfGroupConnLines(&epsInNewKey, epsInNewLines[0], conn)
 	return
 }
