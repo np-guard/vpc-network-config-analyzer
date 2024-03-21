@@ -17,19 +17,20 @@ func newCacheGroupedElements() *cacheGroupedElements {
 // in which there is a multivpc presentation
 func unifyMultiVPC(config1 MultipleVPCConfigs, nodesConn map[string]*VPCConnectivity,
 	subnetsConn map[string]*VPCsubnetConnectivity, uc OutputUseCase) {
+	cache := newCacheGroupedElements()
 	for vpcUID := range config1 {
 		switch uc {
 		case AllEndpoints:
 			if nodesConn[vpcUID] != nil {
 				nodesConn[vpcUID].GroupedConnectivity.GroupedLines =
 					unifiedGroupedConnLines(nodesConn[vpcUID].GroupedConnectivity.GroupedLines,
-						newCacheGroupedElements(), true)
+						cache, true)
 			}
 		case AllSubnets:
 			if subnetsConn[vpcUID] != nil {
 				subnetsConn[vpcUID].GroupedConnectivity.GroupedLines =
 					unifiedGroupedConnLines(subnetsConn[vpcUID].GroupedConnectivity.GroupedLines,
-						newCacheGroupedElements(), true)
+						cache, true)
 			}
 		}
 	}
