@@ -230,14 +230,9 @@ type LoadBalancerTreeNode struct {
 }
 
 func GroupPrivateIPsWithLoadBalancer(parent SquareTreeNodeInterface, name string, privateIPs []TreeNodeInterface) {
-	switch {
-	case len(privateIPs) == 1:
-		privateIPs[0].(*PrivateIPTreeNode).setLoadBalancer(name)
-	case len(privateIPs) > 1:
-		LoadBalancer := newLoadBalancerTreeNode(parent, name, privateIPs)
-		for _, PrivateIP := range privateIPs {
-			newLogicalLineTreeNode(parent, LoadBalancer, PrivateIP.(IconTreeNodeInterface))
-		}
+	LoadBalancer := newLoadBalancerTreeNode(parent, name, privateIPs)
+	for _, PrivateIP := range privateIPs {
+		newLogicalLineTreeNode(parent, LoadBalancer, PrivateIP.(IconTreeNodeInterface))
 	}
 }
 
@@ -249,7 +244,6 @@ func newLoadBalancerTreeNode(parent SquareTreeNodeInterface, name string, privat
 
 type PrivateIPTreeNode struct {
 	abstractIconTreeNode
-	loadBalancer string
 }
 
 func NewPrivateIPTreeNode(parent SquareTreeNodeInterface, name string) *PrivateIPTreeNode {
@@ -258,10 +252,7 @@ func NewPrivateIPTreeNode(parent SquareTreeNodeInterface, name string) *PrivateI
 	return &rip
 }
 
-func (tn *PrivateIPTreeNode) setLoadBalancer(loadBalancer string) { tn.loadBalancer = loadBalancer }
-func (tn *PrivateIPTreeNode) hasMiniIcon() bool                   { return tn.loadBalancer != "" }
-func (tn *PrivateIPTreeNode) Label() string                       { return labels2Table([]string{tn.name, tn.loadBalancer}) }
-func (tn *PrivateIPTreeNode) RouterID() uint                      { return tn.FipID() }
+func (tn *PrivateIPTreeNode) RouterID() uint { return tn.FipID() }
 
 // ///////////////////////////////////////////
 

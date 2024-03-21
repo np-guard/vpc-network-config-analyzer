@@ -116,7 +116,11 @@ func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resou
 	if err != nil {
 		return nil, err
 	}
-
+	// todo - do we need to run the load balancer at the right place?
+	// err = GetLoadBalancersConfig(rc, res, shouldSkipVpcIds)
+	// if err != nil {
+	// 	return nil, err
+	// }
 	err = getSGconfig(rc, res, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
