@@ -7,9 +7,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/ipblock"
-
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 func TestGetRules(t *testing.T) {
@@ -110,14 +109,14 @@ func TestGetAllowedXgressConnections(t *testing.T) {
 		naclRules     []*NACLRule
 		src           []string
 		dst           []string
-		expectedConns []*common.ConnectionSet
+		expectedConns []*connection.Set
 	}{
 		{
 			testName:      "a",
 			naclRules:     rulesTest1,
 			src:           []string{"1.1.1.1/32", "1.2.3.4/32", "1.2.3.4/32"},
 			dst:           []string{"10.0.0.0/24", "10.0.0.1/32", "10.0.0.0/32"},
-			expectedConns: []*common.ConnectionSet{getAllConnSet(), getEmptyConnSet(), getAllConnSet()},
+			expectedConns: []*connection.Set{getAllConnSet(), getEmptyConnSet(), getAllConnSet()},
 		},
 	}
 

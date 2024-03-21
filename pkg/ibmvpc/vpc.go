@@ -6,9 +6,9 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/ipblock"
 
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -232,8 +232,8 @@ func (nl *NaclLayer) GetConnectivityOutputPerEachElemSeparately() string {
 	return strings.Join(res, "\n")
 }
 
-func (nl *NaclLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*common.ConnectionSet, error) {
-	res := vpcmodel.NoConns()
+func (nl *NaclLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*connection.Set, error) {
+	res := connection.None()
 	for _, nacl := range nl.naclList {
 		naclConn, err := nacl.AllowedConnectivity(src, dst, isIngress)
 		if err != nil {
@@ -246,7 +246,7 @@ func (nl *NaclLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool)
 
 // RulesInConnectivity list of NACL rules contributing to the connectivity
 func (nl *NaclLayer) RulesInConnectivity(src, dst vpcmodel.Node,
-	conn *common.ConnectionSet, isIngress bool) (allowRes []vpcmodel.RulesInFilter,
+	conn *connection.Set, isIngress bool) (allowRes []vpcmodel.RulesInFilter,
 	denyRes []vpcmodel.RulesInFilter, err error) {
 	for index, nacl := range nl.naclList {
 		tableRelevant, allowRules, denyRules, err1 := nacl.rulesFilterInConnectivity(src, dst, conn, isIngress)
@@ -392,25 +392,25 @@ func (n *NACL) initConnectivityComputation(src, dst vpcmodel.Node,
 	return connectivityInput, nil
 }
 
-func (n *NACL) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*common.ConnectionSet, error) {
+func (n *NACL) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*connection.Set, error) {
 	connectivityInput, err := n.initConnectivityComputation(src, dst, isIngress)
 	if err != nil {
 		return nil, err
 	}
 	// check if the subnet of the given node is affected by this nacl
 	if !connectivityInput.subnetAffectedByNACL {
-		return vpcmodel.NoConns(), nil // not affected by current nacl
+		return connection.None(), nil // not affected by current nacl
 	}
 	// TODO: differentiate between "has no effect" vs "affects with allow-all / allow-none "
 	if connectivityInput.targetWithinSubnet {
-		return vpcmodel.AllConns(), nil // nacl has no control on traffic between two instances in its subnet
+		return connection.All(), nil // nacl has no control on traffic between two instances in its subnet
 	}
 	return n.analyzer.AllowedConnectivity(connectivityInput.subnet, connectivityInput.nodeInSubnet,
 		connectivityInput.targetNode, isIngress)
 }
 
 // TODO: rulesFilterInConnectivity has some duplicated code with AllowedConnectivity
-func (n *NACL) rulesFilterInConnectivity(src, dst vpcmodel.Node, conn *common.ConnectionSet,
+func (n *NACL) rulesFilterInConnectivity(src, dst vpcmodel.Node, conn *connection.Set,
 	isIngress bool) (tableRelevant bool, allow, deny []int, err error) {
 	connectivityInput, err1 := n.initConnectivityComputation(src, dst, isIngress)
 	if err1 != nil {
@@ -454,11 +454,11 @@ func connHasIKSNode(src, dst vpcmodel.Node, isIngress bool) bool {
 
 // AllowedConnectivity
 // TODO: fix: is it possible that no sg applies  to the input peer? if so, should not return "no conns" when none applies
-func (sgl *SecurityGroupLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*common.ConnectionSet, error) {
+func (sgl *SecurityGroupLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*connection.Set, error) {
 	if connHasIKSNode(src, dst, isIngress) {
-		return vpcmodel.AllConns(), nil
+		return connection.All(), nil
 	}
-	res := vpcmodel.NoConns()
+	res := connection.None()
 	for _, sg := range sgl.sgList {
 		sgConn := sg.AllowedConnectivity(src, dst, isIngress)
 		res = res.Union(sgConn)
@@ -470,7 +470,7 @@ func (sgl *SecurityGroupLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIng
 // or between src and dst of connection conn if conn specified
 // denyRules not relevant here - returns nil
 func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
-	conn *common.ConnectionSet, isIngress bool) (allowRes []vpcmodel.RulesInFilter,
+	conn *connection.Set, isIngress bool) (allowRes []vpcmodel.RulesInFilter,
 	denyRes []vpcmodel.RulesInFilter, err error) {
 	if connHasIKSNode(src, dst, isIngress) {
 		return nil, nil, fmt.Errorf("explainability for IKS node not supported yet")
@@ -531,16 +531,16 @@ type SecurityGroup struct {
 	members map[string]vpcmodel.Node
 }
 
-func (sg *SecurityGroup) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *common.ConnectionSet {
+func (sg *SecurityGroup) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *connection.Set {
 	memberStrAddress, targetIPBlock := sg.getMemberTargetStrAddress(src, dst, isIngress)
 	if _, ok := sg.members[memberStrAddress]; !ok {
-		return vpcmodel.NoConns() // connectivity not affected by this SG resource - input node is not its member
+		return connection.None() // connectivity not affected by this SG resource - input node is not its member
 	}
 	return sg.analyzer.AllowedConnectivity(targetIPBlock, isIngress)
 }
 
 // rulesFilterInConnectivity list of SG rules contributing to the connectivity
-func (sg *SecurityGroup) rulesFilterInConnectivity(src, dst vpcmodel.Node, conn *common.ConnectionSet,
+func (sg *SecurityGroup) rulesFilterInConnectivity(src, dst vpcmodel.Node, conn *connection.Set,
 	isIngress bool) (tableRelevant bool, rules []int, err error) {
 	memberStrAddress, targetIPBlock := sg.getMemberTargetStrAddress(src, dst, isIngress)
 	if _, ok := sg.members[memberStrAddress]; !ok {
@@ -580,15 +580,15 @@ func (fip *FloatingIP) Destinations() []vpcmodel.Node {
 	return fip.destinations
 }
 
-func (fip *FloatingIP) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*common.ConnectionSet, error) {
+func (fip *FloatingIP) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*connection.Set, error) {
 	if areNodes, src1, dst1 := isNodesPair(src, dst); areNodes {
 		if vpcmodel.HasNode(fip.Sources(), src1) && dst1.IsExternal() {
-			return vpcmodel.AllConns(), nil
+			return connection.All(), nil
 		}
 		if vpcmodel.HasNode(fip.Sources(), dst1) && src1.IsExternal() {
-			return vpcmodel.AllConns(), nil
+			return connection.All(), nil
 		}
-		return vpcmodel.NoConns(), nil
+		return connection.None(), nil
 	}
 	return nil, errors.New("FloatingIP.AllowedConnectivity unexpected src/dst types")
 }
@@ -625,20 +625,20 @@ func (pgw *PublicGateway) ExternalIP() string {
 	return ""
 }
 
-func (pgw *PublicGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*common.ConnectionSet, error) {
+func (pgw *PublicGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*connection.Set, error) {
 	if areNodes, src1, dst1 := isNodesPair(src, dst); areNodes {
 		if vpcmodel.HasNode(pgw.Sources(), src1) && dst1.IsExternal() {
-			return vpcmodel.AllConns(), nil
+			return connection.All(), nil
 		}
-		return vpcmodel.NoConns(), nil
+		return connection.None(), nil
 	}
 	if src.Kind() == ResourceTypeSubnet {
 		srcSubnet := src.(*Subnet)
 		if dstNode, ok := dst.(vpcmodel.Node); ok {
 			if dstNode.IsExternal() && hasSubnet(pgw.srcSubnets, srcSubnet) {
-				return vpcmodel.AllConns(), nil
+				return connection.All(), nil
 			}
-			return vpcmodel.NoConns(), nil
+			return connection.None(), nil
 		}
 	}
 	return nil, errors.New("unexpected src/dst input types")
@@ -695,18 +695,18 @@ func (tgw *TransitGateway) ExternalIP() string {
 	return ""
 }
 
-func (tgw *TransitGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*common.ConnectionSet, error) {
+func (tgw *TransitGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*connection.Set, error) {
 	if areNodes, src1, dst1 := isNodesPair(src, dst); areNodes {
 		if vpcmodel.HasNode(tgw.sourceNodes, src1) && vpcmodel.HasNode(tgw.destNodes, dst1) {
-			return vpcmodel.AllConns(), nil
+			return connection.All(), nil
 		}
-		return vpcmodel.NoConns(), nil
+		return connection.None(), nil
 	}
 	if areSubnets, src1, dst1 := isSubnetsPair(src, dst); areSubnets {
 		if hasSubnet(tgw.sourceSubnets, src1) && hasSubnet(tgw.destSubnets, dst1) {
-			return vpcmodel.AllConns(), nil
+			return connection.All(), nil
 		}
-		return vpcmodel.NoConns(), nil
+		return connection.None(), nil
 	}
 
 	return nil, errors.New("TransitGateway.AllowedConnectivity() expected src and dst to be two nodes or two subnets")

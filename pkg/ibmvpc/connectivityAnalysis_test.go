@@ -6,9 +6,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netp"
 
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -101,17 +102,15 @@ var nc4 = &naclConfig{
 		{
 			src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
 			dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
-			connections: common.NewTCPConnectionSet(),
+			connections: connection.TCPorUDPConnection(netp.ProtocolStringTCP, netp.MinPort, netp.MaxPort, netp.MinPort, netp.MaxPort),
 			action:      "allow",
 		},
 	},
 	subnets: []string{"10.240.20.0/24"},
 }
 
-func nc5Conn() *common.ConnectionSet {
-	res := common.NewConnectionSet(false)
-	res.AddTCPorUDPConn(common.ProtocolTCP, 10, 100, 443, 443)
-	return res
+func nc5Conn() *connection.Set {
+	return connection.TCPorUDPConnection(netp.ProtocolStringTCP, 10, 100, 443, 443)
 }
 
 // nc5 - applied to subnet-1, limited egress (certain TCP ports allowed)
@@ -129,10 +128,8 @@ var nc5 = &naclConfig{
 	subnets: []string{"10.240.10.0/24"},
 }
 
-func nc6Conn() *common.ConnectionSet {
-	res := common.NewConnectionSet(false)
-	res.AddTCPorUDPConn(common.ProtocolTCP, 443, 443, 10, 100)
-	return res
+func nc6Conn() *connection.Set {
+	return connection.TCPorUDPConnection(netp.ProtocolStringTCP, 443, 443, 10, 100)
 }
 
 var nc6 = &naclConfig{
@@ -184,7 +181,7 @@ var expectedConnStrTest2 = `=================================== distributed inbo
 =================================== combined connections - short version:
 vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections *
 =================================== stateful combined connections - short version:
-vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : protocol: UDP,ICMP
+vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : protocol: ICMP,UDP
 `
 
 func TestAnalyzeConnectivity2(t *testing.T) {
@@ -323,10 +320,10 @@ func getAllowICMPRules() []*NACLRule {
 	}
 }
 
-func icmpConn() *common.ConnectionSet {
-	res := common.NewConnectionSet(false)
-	res.AddICMPConnection(common.MinICMPtype, common.MaxICMPtype, common.MinICMPcode, common.MaxICMPcode)
-	return res
+func icmpConn() *connection.Set {
+	return connection.ICMPConnection(
+		connection.MinICMPType, connection.MaxICMPType,
+		connection.MinICMPCode, connection.MaxICMPCode)
 }
 
 func addInterfaceNode(config *vpcmodel.VPCConfig, name, address, vsiName, subnetName string) {
