@@ -42,6 +42,13 @@ func (s GenericSet[T]) AsList() []T {
 	}
 	return keys
 }
+func FromList[T comparable](L []T) GenericSet[T] {
+	s := GenericSet[T]{}
+	for _, e := range L {
+		s[e] = true
+	}
+	return s
+}
 
 func (s GenericSet[T]) IsIntersect(s2 GenericSet[T]) bool {
 	for i := range s {
