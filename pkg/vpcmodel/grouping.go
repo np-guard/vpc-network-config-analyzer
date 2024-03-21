@@ -234,7 +234,9 @@ func vsiOrSubnetsGroupingBySubnetsOrVsis(groupedConnLines *GroupConnLines,
 		if len(nodesList) == 1 { // a single nif on subnet or subnet on vpc is just added to the result (no grouping)
 			res = append(res, nodesList[0])
 		} else { // a set of network interfaces from the same subnet is grouped by groupedNetworkInterfaces object
-			groupedNodes := groupedConnLines.cacheGrouped.getAndSetEndpointElemFromCache(nodesList)
+			var groupedEndpoints groupedEndpointsElems
+			groupedEndpoints = nodesList
+			groupedNodes := groupedConnLines.cacheGrouped.getAndSetEndpointElemFromCache(&groupedEndpoints)
 			res = append(res, groupedNodes)
 		}
 	}
@@ -439,7 +441,7 @@ func unifiedGroupedElems(srcOrDst EndpointElem,
 		return srcOrDst
 	}
 	if groupedEE, ok := srcOrDst.(*groupedEndpointsElems); ok {
-		unifiedGroupedEE := cachedGrouped.getAndSetEndpointElemFromCache(*groupedEE)
+		unifiedGroupedEE := cachedGrouped.getAndSetEndpointElemFromCache(groupedEE)
 		return unifiedGroupedEE
 	}
 	if groupedExternal, ok := srcOrDst.(*groupedExternalNodes); ok {
