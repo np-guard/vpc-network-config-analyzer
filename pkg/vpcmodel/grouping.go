@@ -196,11 +196,11 @@ func (g *groupingConnections) addPublicConnectivity(ep EndpointElem, commonProps
 // returns the UID of the vsi's subnet in the former case or of
 // the subnet's VPC is the latter.
 func getSubnetOrVPCUID(ep EndpointElem) string {
-	subnetIfVsiVPCIfSubnet := getSubnetUIDIfVsi(ep)
-	if subnetIfVsiVPCIfSubnet == "" {
-		subnetIfVsiVPCIfSubnet = getVPCUIDIfSubnet(ep)
+	UID := getSubnetUIDIfVsi(ep)
+	if UID == "" {
+		UID = getVPCUIDIfSubnet(ep)
 	}
-	return subnetIfVsiVPCIfSubnet
+	return UID
 }
 
 // group public internet ranges for vsis/subnets connectivity lines
@@ -356,9 +356,7 @@ func (g *GroupConnLines) groupInternalSrcOrDst(srcGrouping, groupVsi bool) {
 			srcOrDstGroup[i] = line.getSrcOrDst(srcGrouping)
 		}
 		// grouping vsis/subnets to be grouped
-		elementsToGroup := []EndpointElem{}
-		elementsToGroup = append(elementsToGroup, srcOrDstGroup...)
-		groupedNodes := g.cacheGrouped.getAndSetEndpointElemFromCache(elementsToGroup)
+		groupedNodes := g.cacheGrouped.getAndSetEndpointElemFromCache(srcOrDstGroup)
 		if srcGrouping {
 			res = append(res, &groupedConnLine{groupedNodes, linesGroup[0].dst, linesGroup[0].commonProperties})
 		} else {
