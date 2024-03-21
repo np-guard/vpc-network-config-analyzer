@@ -44,6 +44,8 @@ type TreeNodeInterface interface {
 	setXY(x, y int)
 	setWH(w, h int)
 	Label() string
+	Kind() string
+	SetKind(string)
 
 	DrawioParent() TreeNodeInterface
 	Parent() TreeNodeInterface
@@ -99,6 +101,7 @@ func getAllNodes(tn TreeNodeInterface) []TreeNodeInterface {
 	}
 	return ret
 }
+
 // todo: reimplement the following:
 func getAllLines(tn TreeNodeInterface) (ret []LineTreeNodeInterface) {
 	nodes := getAllNodes(tn)

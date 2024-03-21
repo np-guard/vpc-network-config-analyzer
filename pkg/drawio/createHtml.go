@@ -165,9 +165,7 @@ func (data *templateData) SvgId(tn TreeNodeInterface) string {
 	return fmt.Sprintf("%s_%d", tnType, tn.ID())
 }
 func (data *templateData) SvgName(tn TreeNodeInterface) string {
-	// todo: get the resource type
-	tnType := reflect.TypeOf(tn).Elem().Name()[0:5]
-	return fmt.Sprintf("%s(%s)",tn.Label(), tnType)
+	return fmt.Sprintf("%s(%s)",tn.Label(), tn.Kind())
 }
 func (data *templateData) SvgRootId() string {
 	return fmt.Sprintf("%s_%d", "top", data.rootID)

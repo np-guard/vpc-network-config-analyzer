@@ -160,16 +160,19 @@ type VsiTreeNode struct {
 	nis []TreeNodeInterface
 }
 
-func GroupNIsWithVSI(parent SquareTreeNodeInterface, name string, nis []TreeNodeInterface) {
+func GroupNIsWithVSI(parent SquareTreeNodeInterface, name string, nis []TreeNodeInterface) TreeNodeInterface{
 	switch {
 	case len(nis) == 1:
 		nis[0].(*NITreeNode).setVsi(name)
+		return nis[0]
 	case len(nis) > 1:
 		vsi := newVsiTreeNode(parent, name, nis)
 		for _, ni := range nis {
 			newLogicalLineTreeNode(parent, vsi, ni.(IconTreeNodeInterface))
 		}
+		return vsi
 	}
+	return nil
 }
 
 func newVsiTreeNode(parent SquareTreeNodeInterface, name string, nis []TreeNodeInterface) *VsiTreeNode {
@@ -201,16 +204,19 @@ type VpeTreeNode struct {
 	resIPs []TreeNodeInterface
 }
 
-func GroupResIPsWithVpe(parent SquareTreeNodeInterface, name string, resIPs []TreeNodeInterface) {
+func GroupResIPsWithVpe(parent SquareTreeNodeInterface, name string, resIPs []TreeNodeInterface) TreeNodeInterface{
 	switch {
 	case len(resIPs) == 1:
 		resIPs[0].(*ResIPTreeNode).setVpe(name)
+		return resIPs[0]
 	case len(resIPs) > 1:
 		vpe := newVpeTreeNode(parent, name, resIPs)
 		for _, resIP := range resIPs {
 			newLogicalLineTreeNode(parent, vpe, resIP.(IconTreeNodeInterface))
 		}
+		return vpe
 	}
+	return nil
 }
 
 func newVpeTreeNode(parent SquareTreeNodeInterface, name string, resIPs []TreeNodeInterface) *VpeTreeNode {

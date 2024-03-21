@@ -20,6 +20,10 @@ func (pgw *PublicGateway) ShowOnSubnetMode() bool      { return true }
 func (fip *FloatingIP) ShowOnSubnetMode() bool         { return false }
 func (tgw *TransitGateway) ShowOnSubnetMode() bool     { return true }
 
+// for DrawioResourceIntf that are not VPCResourceIntf, we implement Kind():
+func (r *Region) Kind() string { return "Cloud" }
+func (z *Zone) Kind() string   { return "Zone" }
+
 // implementations of the GenerateDrawioTreeNode() for resource defined in ibmvpc:
 func (r *Region) IsExternal() bool { return false }
 func (r *Region) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
@@ -85,8 +89,7 @@ func (v *Vsi) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeN
 	// todo - how to handle this error:
 	zone, _ := v.Zone()
 	zoneTn := gen.TreeNode(zone).(*drawio.ZoneTreeNode)
-	drawio.GroupNIsWithVSI(zoneTn, v.Name(), vsiNIs)
-	return nil
+	return drawio.GroupNIsWithVSI(zoneTn, v.Name(), vsiNIs)
 }
 
 func (v *Vpe) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
@@ -98,8 +101,7 @@ func (v *Vpe) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeN
 		resIPs[i] = gen.TreeNode(resIP)
 	}
 	vpcTn := gen.TreeNode(v.VPC()).(drawio.SquareTreeNodeInterface)
-	drawio.GroupResIPsWithVpe(vpcTn, v.Name(), resIPs)
-	return nil
+	return drawio.GroupResIPsWithVpe(vpcTn, v.Name(), resIPs)
 }
 
 func (pgw *PublicGateway) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {

@@ -24,6 +24,7 @@ type abstractTreeNode struct {
 	parent            TreeNodeInterface
 	location          *Location
 	doNotShowInDrawio bool
+	kind              string
 }
 
 func (tn *abstractTreeNode) Label() string { return tn.name }
@@ -36,6 +37,9 @@ func labels2Table(labels []string) string {
 	}
 	return strings.Join(labels2, "&#xa;")
 }
+func (tn *abstractTreeNode) Kind() string        { return tn.kind }
+func (tn *abstractTreeNode) SetKind(kind string) { tn.kind = kind }
+
 func (tn *abstractTreeNode) ID() uint       { return tn.id }
 func (tn *abstractTreeNode) TextID() uint   { return tn.id + textID }
 func (tn *abstractTreeNode) X() int         { return tn.x }
