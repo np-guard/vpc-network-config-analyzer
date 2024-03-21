@@ -20,13 +20,17 @@ func unifyMultiVPC(config1 MultipleVPCConfigs, nodesConn map[string]*VPCConnecti
 	for vpcUID := range config1 {
 		switch uc {
 		case AllEndpoints:
-			nodesConn[vpcUID].GroupedConnectivity.GroupedLines =
-				unifiedGroupedConnLines(nodesConn[vpcUID].GroupedConnectivity.GroupedLines,
-					newCacheGroupedElements(), true)
+			if nodesConn[vpcUID] != nil {
+				nodesConn[vpcUID].GroupedConnectivity.GroupedLines =
+					unifiedGroupedConnLines(nodesConn[vpcUID].GroupedConnectivity.GroupedLines,
+						newCacheGroupedElements(), true)
+			}
 		case AllSubnets:
-			subnetsConn[vpcUID].GroupedConnectivity.GroupedLines =
-				unifiedGroupedConnLines(subnetsConn[vpcUID].GroupedConnectivity.GroupedLines,
-					newCacheGroupedElements(), true)
+			if subnetsConn[vpcUID] != nil {
+				subnetsConn[vpcUID].GroupedConnectivity.GroupedLines =
+					unifiedGroupedConnLines(subnetsConn[vpcUID].GroupedConnectivity.GroupedLines,
+						newCacheGroupedElements(), true)
+			}
 		}
 	}
 }
