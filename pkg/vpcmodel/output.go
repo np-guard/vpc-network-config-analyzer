@@ -111,28 +111,32 @@ func NewOutputGenerator(c1, c2 MultipleVPCConfigs, grouping bool, uc OutputUseCa
 	// only DRAWIO has a multi vpc common presentation
 	if f == DRAWIO {
 		unifyMultiVPC(c1, res.nodesConn, res.subnetsConn, uc)
-		fmt.Println("NewOutputGenerator after unifyMultiVPC")
-		elg := map[common.SetAsKey]*groupedEndpointsElems{}
-		for _, vpcConn := range res.nodesConn {
-			for _, line := range vpcConn.GroupedConnectivity.GroupedLines {
-				src := line.src
-				dst := line.dst
-				for _, e := range []EndpointElem{src, dst} {
-					if g, ok := e.(*groupedEndpointsElems); ok {
-						k := common.FromList[EndpointElem](*g).AsKey()
-						if g2, ok := elg[k]; ok {
-							if g != g2 {
-								fmt.Printf("pointer %p of %s and pointer %p of the same %s  \n", g, g.Name(), g2, g2.Name())
-							}
+	}
+	return res, nil
+}
+
+// UnificationDebugPrint used by testing to test unification
+func (o *OutputGenerator) UnificationDebugPrint() string {
+	outString := ""
+	elg := map[common.SetAsKey]*groupedEndpointsElems{}
+	for _, vpcConn := range o.nodesConn {
+		for _, line := range vpcConn.GroupedConnectivity.GroupedLines {
+			src := line.src
+			dst := line.dst
+			for _, e := range []EndpointElem{src, dst} {
+				if g, ok := e.(*groupedEndpointsElems); ok {
+					k := common.FromList[EndpointElem](*g).AsKey()
+					if g2, ok := elg[k]; ok {
+						if g != g2 {
+							outString += fmt.Sprintf("pointer %p of %s and pointer %p of the same %s  \n", g, g.Name(), g2, g2.Name())
 						}
-						elg[k] = g
 					}
+					elg[k] = g
 				}
 			}
 		}
-		fmt.Println("end double pointers print")
 	}
-	return res, nil
+	return outString
 }
 
 // SingleAnalysisOutput captures output per connectivity analysis of a single VPC,  or per semantic diff between 2 VPCs
