@@ -982,8 +982,8 @@ func getSubnetByCidr(res vpcmodel.MultipleVPCConfigs, cidr string) (*Subnet, err
 func getIKSnodesConfig(res vpcmodel.MultipleVPCConfigs,
 	rc *datamodel.ResourcesContainerModel,
 	skipByVPC map[string]bool) error {
-	for _, IKSCluster := range rc.IKSClusters {
-		for _, iksNode := range IKSCluster.WorkerNodes {
+	for _, iksCluster := range rc.IKSClusters {
+		for _, iksNode := range iksCluster.WorkerNodes {
 			if len(iksNode.NetworkInterfaces) != 1 {
 				return errIksParsing
 			}
