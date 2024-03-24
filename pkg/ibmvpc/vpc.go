@@ -497,13 +497,14 @@ func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 }
 
 func (sgl *SecurityGroupLayer) StringDetailsRulesOfFilter(listRulesInFilter []vpcmodel.RulesInFilter) string {
-	strListRulesInFilter := ""
-	for _, rulesInFilter := range listRulesInFilter {
+	listRulesInFilterSlice := make([]string, len(listRulesInFilter))
+	for i, rulesInFilter := range listRulesInFilter {
 		sg := sgl.sgList[rulesInFilter.Filter]
-		strListRulesInFilter += getHeaderRulesType(vpcmodel.FilterKindName(sgl.Kind())+" "+sg.Name(), rulesInFilter.RulesFilterType) +
+		listRulesInFilterSlice[i] = getHeaderRulesType(vpcmodel.FilterKindName(sgl.Kind())+" "+sg.Name(), rulesInFilter.RulesFilterType) +
 			sg.analyzer.StringRules(rulesInFilter.Rules)
 	}
-	return strListRulesInFilter
+	sort.Strings(listRulesInFilterSlice)
+	return strings.Join(listRulesInFilterSlice, "")
 }
 
 func (sgl *SecurityGroupLayer) ListFilterWithAction(listRulesInFilter []vpcmodel.RulesInFilter) (filters map[string]bool) {
