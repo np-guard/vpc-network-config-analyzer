@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"slices"
 
+	"github.com/np-guard/models/pkg/connection"
+
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
@@ -28,7 +30,7 @@ type srcDstDetails struct {
 	egressEnabled  bool
 	// the connection between src to dst, in case the connection was not part of the query;
 	// the part of the connection relevant to the query otherwise.
-	conn   *common.ConnectionSet
+	conn   *connection.Set
 	router RoutingResource // the router (fip or pgw) to external network; nil if none
 	// filters relevant for this src, dst pair; map keys are the filters kind (NaclLayer/SecurityGroupLayer)
 	// for two internal nodes within same subnet, only SG layer is relevant
@@ -52,7 +54,7 @@ func NewExplanationArgs(src, dst, protocol string, srcMinPort, srcMaxPort, dstMi
 
 type Explanation struct {
 	c               *VPCConfig
-	connQuery       *common.ConnectionSet
+	connQuery       *connection.Set
 	rulesAndDetails *rulesAndConnDetails // rules and more details for a single src->dst
 	src             string
 	dst             string
@@ -66,7 +68,7 @@ type Explanation struct {
 	groupedLines []*groupedConnLine
 }
 
-func (configsMap MultipleVPCConfigs) ExplainConnectivity(src, dst string, connQuery *common.ConnectionSet) (res *Explanation, err error) {
+func (configsMap MultipleVPCConfigs) ExplainConnectivity(src, dst string, connQuery *connection.Set) (res *Explanation, err error) {
 	vpcConfig, srcNodes, dstNodes, isSrcDstInternalIP, err := configsMap.getVPCConfigAndSrcDstNodes(src, dst)
 	if err != nil {
 		return nil, err
@@ -77,7 +79,7 @@ func (configsMap MultipleVPCConfigs) ExplainConnectivity(src, dst string, connQu
 // explainConnectivityForVPC for a vpcConfig, given src, dst and connQuery returns a struct with all explanation details
 // nil connQuery means connection is not part of the query
 func (c *VPCConfig) explainConnectivityForVPC(src, dst string, srcNodes, dstNodes []Node, isSrcDstInternalIP srcDstInternalAddr,
-	connQuery *common.ConnectionSet) (res *Explanation, err error) {
+	connQuery *connection.Set) (res *Explanation, err error) {
 	// we do not support multiple configs, yet
 	rulesAndDetails, err1 := c.computeExplainRules(srcNodes, dstNodes, connQuery)
 	if err1 != nil {
@@ -116,7 +118,7 @@ func getNetworkInterfacesFromIP(isInputInternalIP bool, nodes []Node) []Node {
 
 // computeExplainRules computes the egress and ingress rules contributing to the (existing or missing) connection <src, dst>
 func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node,
-	conn *common.ConnectionSet) (rulesAndConn rulesAndConnDetails, err error) {
+	conn *connection.Set) (rulesAndConn rulesAndConnDetails, err error) {
 	// the size is not known in this stage due to the corner case in which we have the same node both in srcNodes and dstNodes
 	rulesAndConn = rulesAndConnDetails{}
 	for _, src := range srcNodes {
@@ -129,7 +131,7 @@ func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node,
 				return nil, err
 			}
 			rulesThisSrcDst := &srcDstDetails{src, dst, false, false, false,
-				common.NewConnectionSet(false), nil, nil, allowRules,
+				connection.None(), nil, nil, allowRules,
 				nil, denyRules, nil, nil}
 			rulesAndConn = append(rulesAndConn, rulesThisSrcDst)
 		}
@@ -322,7 +324,7 @@ func addIndexesOfFilters(indexes intSet, rulesInLayer []RulesInFilter) {
 }
 
 func (c *VPCConfig) getFiltersRulesBetweenNodesPerDirectionAndLayer(
-	src, dst Node, conn *common.ConnectionSet, isIngress bool, layer string) (allowRules *[]RulesInFilter,
+	src, dst Node, conn *connection.Set, isIngress bool, layer string) (allowRules *[]RulesInFilter,
 	denyRules *[]RulesInFilter, err error) {
 	filter := c.getFilterTrafficResourceOfKind(layer)
 	if filter == nil {
@@ -336,7 +338,7 @@ func (c *VPCConfig) getFiltersRulesBetweenNodesPerDirectionAndLayer(
 }
 
 func (c *VPCConfig) getRulesOfConnection(src, dst Node,
-	conn *common.ConnectionSet) (allowRulesOfConnection, denyRulesOfConnection *rulesConnection, err error) {
+	conn *connection.Set) (allowRulesOfConnection, denyRulesOfConnection *rulesConnection, err error) {
 	ingressAllowPerLayer, egressAllowPerLayer := rulesInLayers{}, rulesInLayers{}
 	ingressDenyPerLayer, egressDenyPerLayer := rulesInLayers{}, rulesInLayers{}
 	for _, layer := range filterLayers {
@@ -400,7 +402,7 @@ func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
 // if conn specified in the query then the relevant connection is their intersection
 // todo: connectivity is computed for the entire network, even though we need only for specific src, dst pairs
 // this is seems the time spent here should be neglectable, not worth the effort of adding dedicated code
-func (details *rulesAndConnDetails) computeConnections(c *VPCConfig, connQuery *common.ConnectionSet) error {
+func (details *rulesAndConnDetails) computeConnections(c *VPCConfig, connQuery *connection.Set) error {
 	connectivity, err := c.GetVPCNetworkConnectivity(false) // computes connectivity
 	if err != nil {
 		return err
@@ -411,7 +413,7 @@ func (details *rulesAndConnDetails) computeConnections(c *VPCConfig, connQuery *
 			return err
 		}
 		if connQuery != nil { // connection is part of the query
-			srcDstDetails.conn = conn.Intersection(connQuery)
+			srcDstDetails.conn = conn.Intersect(connQuery)
 		} else {
 			srcDstDetails.conn = conn
 		}
@@ -423,7 +425,7 @@ func (details *rulesAndConnDetails) computeConnections(c *VPCConfig, connQuery *
 // given that there is a connection between src to dst, gets it
 // if src or dst is a node then the node is from getCidrExternalNodes,
 // thus there is a node in VPCConfig that either equal to or contains it.
-func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (conn *common.ConnectionSet, err error) {
+func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (conn *connection.Set, err error) {
 	srcForConnection, err1 := c.getContainingConfigNode(src)
 	if err1 != nil {
 		return nil, err1

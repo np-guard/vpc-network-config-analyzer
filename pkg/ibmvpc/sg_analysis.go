@@ -8,10 +8,8 @@ import (
 
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
 
+	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/ipblock"
-
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
 type SGAnalyzer struct {
@@ -41,12 +39,12 @@ func isIngressRule(direction *string) bool {
 	return false
 }
 
-func getEmptyConnSet() *common.ConnectionSet {
-	return common.NewConnectionSet(false)
+func getEmptyConnSet() *connection.Set {
+	return connection.None()
 }
 
-func getAllConnSet() *common.ConnectionSet {
-	return common.NewConnectionSet(true)
+func getAllConnSet() *connection.Set {
+	return connection.All()
 }
 
 func (sga *SGAnalyzer) getRemoteCidr(remote vpc1.SecurityGroupRuleRemoteIntf) (*ipblock.IPBlock, string, error) {
@@ -141,16 +139,16 @@ func (sga *SGAnalyzer) getProtocolTcpudpRule(ruleObj *vpc1.SecurityGroupRuleSecu
 		return "", nil, false, err
 	}
 
-	dstPortMin := getProperty(ruleObj.PortMin, common.MinPort)
-	dstPortMax := getProperty(ruleObj.PortMax, common.MaxPort)
+	dstPortMin := getProperty(ruleObj.PortMin, connection.MinPort)
+	dstPortMax := getProperty(ruleObj.PortMax, connection.MaxPort)
 	dstPorts := fmt.Sprintf("%d-%d", dstPortMin, dstPortMax)
 	connStr := fmt.Sprintf("protocol: %s,  dstPorts: %s", *ruleObj.Protocol, dstPorts)
 	ruleStr = getRuleStr(direction, connStr, cidr)
 	ruleRes = &SGRule{
 		// TODO: src ports can be considered here?
 		connections: getTCPUDPConns(*ruleObj.Protocol,
-			common.MinPort,
-			common.MaxPort,
+			connection.MinPort,
+			connection.MaxPort,
 			dstPortMin,
 			dstPortMax,
 		),
@@ -163,36 +161,29 @@ func getRuleStr(direction, connStr, cidr string) string {
 	return fmt.Sprintf("direction: %s,  conns: %s, cidr: %s\n", direction, connStr, cidr)
 }
 
-func getICMPconn(icmpType, icmpCode *int64) (connsRes *common.ConnectionSet, icmpConnStr string) {
-	conns := common.NewConnectionSet(false)
-	typeMin := getProperty(icmpType, common.MinICMPtype)
-	typeMax := getProperty(icmpType, common.MaxICMPtype)
-	codeMin := getProperty(icmpCode, common.MinICMPcode)
-	codeMax := getProperty(icmpCode, common.MaxICMPcode)
-
-	conns.AddICMPConnection(typeMin, typeMax, codeMin, codeMax)
-	icmpConnStr = conns.String()
-	return conns, icmpConnStr
+func getICMPconn(icmpType, icmpCode *int64) *connection.Set {
+	typeMin := getProperty(icmpType, connection.MinICMPType)
+	typeMax := getProperty(icmpType, connection.MaxICMPType)
+	codeMin := getProperty(icmpCode, connection.MinICMPCode)
+	codeMax := getProperty(icmpCode, connection.MaxICMPCode)
+	return connection.ICMPConnection(typeMin, typeMax, codeMin, codeMax)
 }
 
 func (sga *SGAnalyzer) getProtocolIcmpRule(ruleObj *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolIcmp) (
 	ruleStr string, ruleRes *SGRule, isIngress bool, err error) {
-	direction := *ruleObj.Direction
-	isIngress = isIngressRule(ruleObj.Direction)
-	cidr := ""
-	remote := ruleObj.Remote
-	var target *ipblock.IPBlock
-	target, cidr, err = sga.getRemoteCidr(remote)
+	target, cidr, err := sga.getRemoteCidr(ruleObj.Remote)
 	if err != nil {
-		return "", nil, false, err
+		return
 	}
-	conns, icmpTypeStr := getICMPconn(ruleObj.Type, ruleObj.Code)
-	connStr := fmt.Sprintf("protocol: %s,  icmpType: %s", *ruleObj.Protocol, icmpTypeStr)
-	ruleStr = getRuleStr(direction, connStr, cidr)
-	ruleRes = &SGRule{}
-	ruleRes.connections = conns
-	ruleRes.target = target
-	return ruleStr, ruleRes, isIngress, nil
+	conns := getICMPconn(ruleObj.Type, ruleObj.Code)
+	connStr := fmt.Sprintf("protocol: %s,  icmpType: %s", *ruleObj.Protocol, conns)
+	ruleStr = getRuleStr(*ruleObj.Direction, connStr, cidr)
+	ruleRes = &SGRule{
+		connections: conns,
+		target:      target,
+	}
+	isIngress = isIngressRule(ruleObj.Direction)
+	return
 }
 
 func (sga *SGAnalyzer) getSGRule(index int) (
@@ -237,7 +228,7 @@ func (sga *SGAnalyzer) getSGrules(sgObj *vpc1.SecurityGroup) (ingressRules, egre
 
 type SGRule struct {
 	target      *ipblock.IPBlock
-	connections *common.ConnectionSet
+	connections *connection.Set
 	index       int // index of original rule in *vpc1.SecurityGroup.Rules
 }
 
@@ -258,7 +249,7 @@ func AnalyzeSGRules(rules []*SGRule, isIngress bool) *ConnectivityResult {
 		}
 	}
 	disjointTargets := ipblock.DisjointIPBlocks(targets, []*ipblock.IPBlock{ipblock.GetCidrAll()})
-	res := &ConnectivityResult{isIngress: isIngress, allowedConns: map[*ipblock.IPBlock]*common.ConnectionSet{},
+	res := &ConnectivityResult{isIngress: isIngress, allowedConns: map[*ipblock.IPBlock]*connection.Set{},
 		allowRules: map[*ipblock.IPBlock][]int{}}
 	for i := range disjointTargets {
 		res.allowedConns[disjointTargets[i]] = getEmptyConnSet()
@@ -306,20 +297,20 @@ func (sga *SGAnalyzer) areSGRulesDefault() bool {
 	if len(egressRuleCidrs) != 1 {
 		return false
 	}
-	if egressRuleCidrs[0] == ipblock.CidrAll && egressRule.connections.AllowAll {
+	if egressRuleCidrs[0] == ipblock.CidrAll && egressRule.connections.IsAll() {
 		return true
 	}
 	return false
 }
 
-func (sga *SGAnalyzer) AllowedConnectivity(target *ipblock.IPBlock, isIngress bool) *common.ConnectionSet {
+func (sga *SGAnalyzer) AllowedConnectivity(target *ipblock.IPBlock, isIngress bool) *connection.Set {
 	analyzedConns := sga.ingressOrEgressConnectivity(isIngress)
 	for definedTarget, conn := range analyzedConns.allowedConns {
 		if target.ContainedIn(definedTarget) {
 			return conn
 		}
 	}
-	return vpcmodel.NoConns()
+	return connection.None()
 }
 
 // rulesFilterInConnectivity list of SG rules contributing to the connectivity, if the required connection exists
@@ -327,7 +318,7 @@ func (sga *SGAnalyzer) AllowedConnectivity(target *ipblock.IPBlock, isIngress bo
 //  2. If connection is part of the query: is the required connection contained in the existing connection?
 //     if it does, then the contributing rules are detected: rules that intersect the required connection
 //     otherwise, the answer to the query is "no" and nil is returned
-func (sga *SGAnalyzer) rulesFilterInConnectivity(target *ipblock.IPBlock, connQuery *common.ConnectionSet, isIngress bool) ([]int, error) {
+func (sga *SGAnalyzer) rulesFilterInConnectivity(target *ipblock.IPBlock, connQuery *connection.Set, isIngress bool) ([]int, error) {
 	analyzedConns := sga.ingressOrEgressConnectivity(isIngress)
 	for definedTarget, rules := range analyzedConns.allowRules {
 		if target.ContainedIn(definedTarget) {
@@ -338,7 +329,7 @@ func (sga *SGAnalyzer) rulesFilterInConnectivity(target *ipblock.IPBlock, connQu
 			// the required connection - conn - should intersect with the existing connection
 			// Namely, connection for the required protocol exists (one can query a single protocol)
 			// on a nonempty set of the subnets
-			intersectConn := connQuery.Intersection(analyzedConns.allowedConns[definedTarget])
+			intersectConn := connQuery.Intersect(analyzedConns.allowedConns[definedTarget])
 			if intersectConn.IsEmpty() {
 				return nil, nil
 			}
@@ -349,10 +340,10 @@ func (sga *SGAnalyzer) rulesFilterInConnectivity(target *ipblock.IPBlock, connQu
 }
 
 // given a list of rules and a connection, return the sublist of rules that contributes to the connection
-func (sga *SGAnalyzer) getRulesRelevantConn(rules []int, conn *common.ConnectionSet) ([]int, error) {
+func (sga *SGAnalyzer) getRulesRelevantConn(rules []int, conn *connection.Set) ([]int, error) {
 	relevantRules := []int{}
 	for _, rule := range append(sga.ingressRules, sga.egressRules...) {
-		if slices.Contains(rules, rule.index) && !conn.Intersection(rule.connections).IsEmpty() {
+		if slices.Contains(rules, rule.index) && !conn.Intersect(rule.connections).IsEmpty() {
 			relevantRules = append(relevantRules, rule.index)
 		}
 	}

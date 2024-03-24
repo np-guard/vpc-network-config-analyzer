@@ -8,9 +8,10 @@ import (
 
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
 
+	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netp"
 
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -59,24 +60,22 @@ func getProperty(p *int64, defaultP int64) int64 {
 	return *p
 }
 
-func getTCPUDPConns(p string, srcPortMin, srcPortMax, dstPortMin, dstPortMax int64) *common.ConnectionSet {
-	conns := common.NewConnectionSet(false)
-	protocol := common.ProtocolUDP
+func getTCPUDPConns(p string, srcPortMin, srcPortMax, dstPortMin, dstPortMax int64) *connection.Set {
+	protocol := netp.ProtocolStringUDP
 	if p == protocolTCP {
-		protocol = common.ProtocolTCP
+		protocol = netp.ProtocolStringTCP
 	}
-	conns.AddTCPorUDPConn(protocol, srcPortMin, srcPortMax, dstPortMin, dstPortMax)
-	return conns
+	return connection.TCPorUDPConnection(protocol, srcPortMin, srcPortMax, dstPortMin, dstPortMax)
 }
 
 func (na *NACLAnalyzer) getNACLRule(index int) (ruleStr string, ruleRes *NACLRule, isIngress bool, err error) {
-	var conns *common.ConnectionSet
+	var conns *connection.Set
 	var direction, src, dst, action string
 	var connStr string
 	rule := na.naclResource.Rules[index]
 	switch ruleObj := rule.(type) {
 	case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolAll:
-		conns = common.NewConnectionSet(true)
+		conns = connection.All()
 		connStr = *ruleObj.Protocol
 		direction = *ruleObj.Direction
 		src = *ruleObj.Source
@@ -84,10 +83,10 @@ func (na *NACLAnalyzer) getNACLRule(index int) (ruleStr string, ruleRes *NACLRul
 		action = *ruleObj.Action
 	case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolTcpudp:
 		conns = getTCPUDPConns(*ruleObj.Protocol,
-			getProperty(ruleObj.SourcePortMin, common.MinPort),
-			getProperty(ruleObj.SourcePortMax, common.MaxPort),
-			getProperty(ruleObj.DestinationPortMin, common.MinPort),
-			getProperty(ruleObj.DestinationPortMax, common.MaxPort),
+			getProperty(ruleObj.SourcePortMin, connection.MinPort),
+			getProperty(ruleObj.SourcePortMax, connection.MaxPort),
+			getProperty(ruleObj.DestinationPortMin, connection.MinPort),
+			getProperty(ruleObj.DestinationPortMax, connection.MaxPort),
 		)
 		srcPorts := getPortsStr(*ruleObj.SourcePortMin, *ruleObj.SourcePortMax)
 		dstPorts := getPortsStr(*ruleObj.DestinationPortMin, *ruleObj.DestinationPortMax)
@@ -97,7 +96,7 @@ func (na *NACLAnalyzer) getNACLRule(index int) (ruleStr string, ruleRes *NACLRul
 		dst = *ruleObj.Destination
 		action = *ruleObj.Action
 	case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolIcmp:
-		conns, _ = getICMPconn(ruleObj.Type, ruleObj.Code)
+		conns = getICMPconn(ruleObj.Type, ruleObj.Code)
 		connStr = fmt.Sprintf("protocol: %s", *ruleObj.Protocol)
 		direction = *ruleObj.Direction
 		src = *ruleObj.Source
@@ -122,7 +121,7 @@ func (na *NACLAnalyzer) getNACLRule(index int) (ruleStr string, ruleRes *NACLRul
 type NACLRule struct {
 	src         *ipblock.IPBlock
 	dst         *ipblock.IPBlock
-	connections *common.ConnectionSet
+	connections *connection.Set
 	action      string
 	index       int // index of original rule in *vpc1.NetworkACL
 	// add ingress/egress ?
@@ -155,9 +154,9 @@ func (na *NACLAnalyzer) dumpNACLrules() string {
 // get the allowed connections, the relevant allow rules and relevant deny rules
 func getAllowedXgressConnections(rules []*NACLRule, src, subnetCidr *ipblock.IPBlock,
 	disjointPeers []*ipblock.IPBlock, isIngress bool,
-) (allowedXgress, deniedXgress map[string]*common.ConnectionSet, allowRules, denyRules map[string][]int) {
-	allowedXgress = map[string]*common.ConnectionSet{}
-	deniedXgress = map[string]*common.ConnectionSet{}
+) (allowedXgress, deniedXgress map[string]*connection.Set, allowRules, denyRules map[string][]int) {
+	allowedXgress = map[string]*connection.Set{}
+	deniedXgress = map[string]*connection.Set{}
 	allowRules = map[string][]int{}
 	denyRules = map[string][]int{}
 	for _, cidr := range disjointPeers {
@@ -280,7 +279,7 @@ func AnalyzeNACLRulesPerDisjointTargets(
 	return res
 }
 
-func updateAllowDeny(allow, isIngress bool, xgressConn map[string]*common.ConnectionSet, rules map[string][]int,
+func updateAllowDeny(allow, isIngress bool, xgressConn map[string]*connection.Set, rules map[string][]int,
 	srcIngDstEgr *ipblock.IPBlock, res map[string]*ConnectivityResult) {
 	for dstIngSrcEg, conn := range xgressConn {
 		if dstIngSrcEgIPBlock, err := ipblock.FromIPRangeStr(dstIngSrcEg); err == nil {
@@ -302,8 +301,8 @@ func updateAllowDeny(allow, isIngress bool, xgressConn map[string]*common.Connec
 func initConnectivityResult(connectivityMap map[string]*ConnectivityResult, indxToinit string, isIngress bool) {
 	if _, ok := connectivityMap[indxToinit]; !ok {
 		connectivityMap[indxToinit] = &ConnectivityResult{isIngress: isIngress,
-			allowedConns: map[*ipblock.IPBlock]*common.ConnectionSet{}, allowRules: map[*ipblock.IPBlock][]int{},
-			deniedConns: map[*ipblock.IPBlock]*common.ConnectionSet{}, denyRules: map[*ipblock.IPBlock][]int{}}
+			allowedConns: map[*ipblock.IPBlock]*connection.Set{}, allowRules: map[*ipblock.IPBlock][]int{},
+			deniedConns: map[*ipblock.IPBlock]*connection.Set{}, denyRules: map[*ipblock.IPBlock][]int{}}
 	}
 }
 
@@ -343,8 +342,8 @@ func (na *NACLAnalyzer) AnalyzeNACLRules(rules []*NACLRule, subnet *ipblock.IPBl
 ) (string, *ConnectivityResult) {
 	res := []string{}
 	connResult := &ConnectivityResult{isIngress: isIngress}
-	connResult.allowedConns = map[*ipblock.IPBlock]*common.ConnectionSet{}
-	connResult.deniedConns = map[*ipblock.IPBlock]*common.ConnectionSet{}
+	connResult.allowedConns = map[*ipblock.IPBlock]*connection.Set{}
+	connResult.deniedConns = map[*ipblock.IPBlock]*connection.Set{}
 	if subnetDisjointTarget == nil {
 		connResult = nil
 	}
@@ -469,7 +468,7 @@ const notFoundMsg = "isIngress: %t , target %s, subnetCidr: %s, inSubentCidr %s,
 // AllowedConnectivity returns set of allowed connections given src/dst and direction
 // if the input subnet was not yet analyzed, it first adds its analysis to saved results
 func (na *NACLAnalyzer) AllowedConnectivity(subnet *Subnet, nodeInSubnet, targetNode vpcmodel.Node, isIngress bool) (
-	*common.ConnectionSet, error) {
+	*connection.Set, error) {
 	// add analysis of the given subnet
 	// analyzes per subnet disjoint cidrs (it is not necessarily entire subnet cidr)
 	targetIPblock := targetNode.IPBlock()
@@ -498,7 +497,7 @@ func (na *NACLAnalyzer) AllowedConnectivity(subnet *Subnet, nodeInSubnet, target
 // if the input subnet was not yet analyzed, it first adds its analysis to saved results
 func (na *NACLAnalyzer) rulesFilterInConnectivity(subnet *Subnet,
 	nodeInSubnet, targetNode vpcmodel.Node,
-	connQuery *common.ConnectionSet,
+	connQuery *connection.Set,
 	isIngress bool) (
 	allow, deny []int, err error) {
 	// add analysis of the given subnet
@@ -540,11 +539,11 @@ func (na *NACLAnalyzer) rulesFilterInConnectivity(subnet *Subnet,
 // given a list of allow and deny rules and a connection,
 // return the allow and deny sublists of rules that contributes to the connection
 func (na *NACLAnalyzer) getRulesRelevantConn(rules []int,
-	connQuery *common.ConnectionSet) (allowRelevant, denyRelevant []int, err error) {
+	connQuery *connection.Set) (allowRelevant, denyRelevant []int, err error) {
 	allowRelevant, denyRelevant = []int{}, []int{}
-	curConn := common.NewConnectionSet(false)
+	curConn := connection.None()
 	for _, rule := range append(na.ingressRules, na.egressRules...) {
-		if !slices.Contains(rules, rule.index) || connQuery.Intersection(rule.connections).IsEmpty() {
+		if !slices.Contains(rules, rule.index) || connQuery.Intersect(rule.connections).IsEmpty() {
 			continue
 		}
 		curConn = curConn.Union(rule.connections)
@@ -553,10 +552,7 @@ func (na *NACLAnalyzer) getRulesRelevantConn(rules []int,
 		} else if rule.action == DENY {
 			denyRelevant = append(denyRelevant, rule.index)
 		}
-		contains, err := connQuery.ContainedIn(curConn)
-		if err != nil {
-			return nil, nil, err
-		}
+		contains := connQuery.ContainedIn(curConn)
 		if contains {
 			// if the required connQuery is contained in connections thus far, lower priority rules not relevant
 			return allowRelevant, denyRelevant, nil

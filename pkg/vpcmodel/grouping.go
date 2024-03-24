@@ -5,9 +5,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/ipblock"
-
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 const commaSeparator = ","
@@ -31,7 +30,7 @@ type explainDetails struct {
 }
 
 type groupedCommonProperties struct {
-	conn       *common.ConnectionSet
+	conn       *connection.Set
 	connDiff   *connectionDiff
 	expDetails *explainDetails
 	// groupingStrKey is the key by which the grouping is done:
@@ -143,7 +142,7 @@ func (g *groupedConnLine) String() string {
 }
 
 func (g *groupedConnLine) ConnLabel() string {
-	if g.commonProperties.conn.AllowAll {
+	if g.commonProperties.conn.IsAll() {
 		return ""
 	}
 	return g.commonProperties.groupingStrKey
@@ -342,8 +341,9 @@ func (g *GroupConnLines) groupLinesByKey(srcGrouping, groupVsi bool) (res []*gro
 	return res, newGroupingSrcOrDst
 }
 
-func getKeyOfGroupConnLines(grpIndex, grpTarget EndpointElem, connection string) string {
-	return grpIndex.Name() + commaSeparator + connection + commaSeparator + getSubnetOrVPCUID(grpTarget)
+func getKeyOfGroupConnLines(grpIndex, grpTarget EndpointElem, connectionString string) string {
+	return grpIndex.Name() + commaSeparator + connectionString +
+		commaSeparator + getSubnetOrVPCUID(grpTarget)
 }
 
 // assuming the  g.groupedLines was already initialized by previous step groupExternalAddresses()
@@ -451,7 +451,7 @@ func (g *GroupConnLines) String() string {
 func (g *GroupConnLines) hasStatelessConns() bool {
 	hasStatelessConns := false
 	for _, line := range g.GroupedLines {
-		if line.commonProperties.conn.IsStateful == common.StatefulFalse {
+		if line.commonProperties.conn.IsStateful == connection.StatefulFalse {
 			hasStatelessConns = true
 			break
 		}

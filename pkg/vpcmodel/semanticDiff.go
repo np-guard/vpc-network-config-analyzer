@@ -5,9 +5,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/ipblock"
-
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 type DiffType = int
@@ -36,8 +35,8 @@ const (
 )
 
 type connectionDiff struct {
-	conn1          *common.ConnectionSet
-	conn2          *common.ConnectionSet
+	conn1          *connection.Set
+	conn2          *connection.Set
 	diff           DiffType
 	thisMinusOther bool
 }
@@ -284,9 +283,9 @@ func (diffCfgs *diffBetweenCfgs) hasStatelessConns() bool {
 	hasStatelessConns := false
 	for _, grouped := range diffCfgs.groupedLines {
 		if (grouped.commonProperties.connDiff.conn1 != nil &&
-			grouped.commonProperties.connDiff.conn1.IsStateful == common.StatefulFalse) ||
+			grouped.commonProperties.connDiff.conn1.IsStateful == connection.StatefulFalse) ||
 			(grouped.commonProperties.connDiff.conn2 != nil &&
-				grouped.commonProperties.connDiff.conn2.IsStateful == common.StatefulFalse) {
+				grouped.commonProperties.connDiff.conn2.IsStateful == connection.StatefulFalse) {
 			hasStatelessConns = true
 			break
 		}
@@ -295,9 +294,9 @@ func (diffCfgs *diffBetweenCfgs) hasStatelessConns() bool {
 }
 
 // prints connection for the above string(..) where the connection could be empty
-func connStr(conn *common.ConnectionSet) string {
+func connStr(conn *connection.Set) string {
 	if conn == nil {
-		return common.NoConnections
+		return connection.NoConnections
 	}
 	return conn.EnhancedString()
 }
@@ -429,7 +428,7 @@ func (connectivityMap *GeneralConnectivityMap) actualAlignSrcOrDstGivenIPBlists(
 	// if src is external then for each IPBlock in disjointIPblocks copies dsts and connection type
 	// otherwise just copies as is
 	err = nil
-	alignedConnectivity = map[VPCResourceIntf]map[VPCResourceIntf]*common.ConnectionSet{}
+	alignedConnectivity = map[VPCResourceIntf]map[VPCResourceIntf]*connection.Set{}
 	for src, endpointConns := range *connectivityMap {
 		for dst, conns := range endpointConns {
 			if conns.IsEmpty() {
@@ -438,7 +437,7 @@ func (connectivityMap *GeneralConnectivityMap) actualAlignSrcOrDstGivenIPBlists(
 			// the resizing element is not external - copy as is
 			if (resizeSrc && !src.IsExternal()) || (!resizeSrc && !dst.IsExternal()) {
 				if _, ok := alignedConnectivity[src]; !ok {
-					alignedConnectivity[src] = map[VPCResourceIntf]*common.ConnectionSet{}
+					alignedConnectivity[src] = map[VPCResourceIntf]*connection.Set{}
 				}
 				alignedConnectivity[src][dst] = conns
 				continue
@@ -469,8 +468,8 @@ func (connectivityMap *GeneralConnectivityMap) actualAlignSrcOrDstGivenIPBlists(
 }
 
 func addIPBlockToConnectivityMap(c *VPCConfig, disjointIPblocks []*ipblock.IPBlock,
-	origIPBlock *ipblock.IPBlock, alignedConnectivity map[VPCResourceIntf]map[VPCResourceIntf]*common.ConnectionSet,
-	src, dst VPCResourceIntf, conns *common.ConnectionSet, resizeSrc bool) error {
+	origIPBlock *ipblock.IPBlock, alignedConnectivity map[VPCResourceIntf]map[VPCResourceIntf]*connection.Set,
+	src, dst VPCResourceIntf, conns *connection.Set, resizeSrc bool) error {
 	for _, ipBlock := range disjointIPblocks {
 		// get ipBlock of resized index (src/dst)
 		if !ipBlock.ContainedIn(origIPBlock) { // ipBlock not relevant here
@@ -485,12 +484,12 @@ func addIPBlockToConnectivityMap(c *VPCConfig, disjointIPblocks []*ipblock.IPBlo
 			}
 			if resizeSrc {
 				if _, ok := alignedConnectivity[nodeOfCidr]; !ok {
-					alignedConnectivity[nodeOfCidr] = map[VPCResourceIntf]*common.ConnectionSet{}
+					alignedConnectivity[nodeOfCidr] = map[VPCResourceIntf]*connection.Set{}
 				}
 				alignedConnectivity[nodeOfCidr][dst] = conns
 			} else {
 				if _, ok := alignedConnectivity[src]; !ok {
-					alignedConnectivity[src] = map[VPCResourceIntf]*common.ConnectionSet{}
+					alignedConnectivity[src] = map[VPCResourceIntf]*connection.Set{}
 				}
 				alignedConnectivity[src][nodeOfCidr] = conns
 			}
@@ -628,7 +627,7 @@ func (connectivityMap GeneralConnectivityMap) getIPBlocksList() (ipbList []*ipbl
 //	if err != nil {
 //		return false, err
 //	}
-//	if !myIPBlock.Equal(otherIPBlock) && !myIPBlock.Intersection(otherIPBlock).Empty() {
+//	if !myIPBlock.Equal(otherIPBlock) && !myIPBlock.Intersect(otherIPBlock).Empty() {
 //		return true, nil
 //	}
 //	return false, nil
@@ -637,7 +636,7 @@ func (connectivityMap GeneralConnectivityMap) getIPBlocksList() (ipbList []*ipbl
 //// todo: instead of adding functionality to grouping, I plan to have more generic connectivity items that will be grouped
 ////       encode the cfgsDiff into this generic item as well as the other entities we are grouping
 ////       and then decode in the printing
-////       the idea is to use instead of *common.ConnectionSet in the grouped entity a string which will encode the connection
+////       the idea is to use instead of *connection.Set in the grouped entity a string which will encode the connection
 ////       and also the diff where relevant
 ////       this will requires some rewriting in the existing grouping functionality and the way it provides
 ////       service to subnetsConnectivity and nodesConnectivity
