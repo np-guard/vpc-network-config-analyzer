@@ -115,30 +115,6 @@ func NewOutputGenerator(c1, c2 MultipleVPCConfigs, grouping bool, uc OutputUseCa
 	return res, nil
 }
 
-// UnificationDebugPrint used by testing to test unification
-func (o *OutputGenerator) UnificationDebugPrint() string {
-	outString := ""
-	elg := map[common.SetAsKey]*groupedEndpointsElems{}
-	for _, vpcConn := range o.nodesConn {
-		for _, line := range vpcConn.GroupedConnectivity.GroupedLines {
-			src := line.src
-			dst := line.dst
-			for _, e := range []EndpointElem{src, dst} {
-				if g, ok := e.(*groupedEndpointsElems); ok {
-					k := common.FromList[EndpointElem](*g).AsKey()
-					if g2, ok := elg[k]; ok {
-						if g != g2 {
-							outString += fmt.Sprintf("pointer %p of %s and pointer %p of the same %s  \n", g, g.Name(), g2, g2.Name())
-						}
-					}
-					elg[k] = g
-				}
-			}
-		}
-	}
-	return outString
-}
-
 // SingleAnalysisOutput captures output per connectivity analysis of a single VPC,  or per semantic diff between 2 VPCs
 // in the former case VPC2Name will be empty
 type SingleAnalysisOutput struct {

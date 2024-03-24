@@ -1,5 +1,10 @@
 package vpcmodel
 
+import (
+	"fmt"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+)
+
 type cacheGroupedElements struct {
 	groupedEndpointsElemsMap map[string]*groupedEndpointsElems
 	groupedExternalNodesMap  map[string]*groupedExternalNodes
@@ -93,4 +98,28 @@ func (cachedGrouped *cacheGroupedElements) getAndSetGroupedExternalFromCache(
 	}
 	cachedGrouped.setGroupedExternalFromCache(groupedExternal)
 	return &groupedExternal
+}
+
+// UnificationDebugPrint used by testing to test unification
+func (o *OutputGenerator) UnificationDebugPrint() string {
+	outString := ""
+	elg := map[common.SetAsKey]*groupedEndpointsElems{}
+	for _, vpcConn := range o.nodesConn {
+		for _, line := range vpcConn.GroupedConnectivity.GroupedLines {
+			src := line.src
+			dst := line.dst
+			for _, e := range []EndpointElem{src, dst} {
+				if g, ok := e.(*groupedEndpointsElems); ok {
+					k := common.FromList[EndpointElem](*g).AsKey()
+					if g2, ok := elg[k]; ok {
+						if g != g2 {
+							outString += fmt.Sprintf("pointer %p of %s and pointer %p of the same %s  \n", g, g.Name(), g2, g2.Name())
+						}
+					}
+					elg[k] = g
+				}
+			}
+		}
+	}
+	return outString
 }
