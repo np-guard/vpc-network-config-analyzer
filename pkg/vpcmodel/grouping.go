@@ -341,9 +341,19 @@ func (g *GroupConnLines) groupLinesByKey(srcGrouping, groupVsi bool) (res []*gro
 	return res, newGroupingSrcOrDst
 }
 
+// grouping by:
+// 1. Name of indexed endpoint (see #412) and its connection
+// 2. We do not want to group together vsis from different subnets for vsis analyais
+// or subnets of different vpcs for subnets analysis; thus the grouping is also by subnets/vpcs
+// of grouping targets
+// e.g. :
+// v2 => v3
+// v2 => v3
+// can be grouped to
+// v1, v2 => v3 given that v1, v2 share the same subnet
 func getKeyOfGroupConnLines(grpIndex, grpTarget EndpointElem, connectionString string) string {
-	return grpIndex.Name() + commaSeparator + connectionString +
-		commaSeparator + getSubnetOrVPCUID(grpTarget)
+	keyComponents := []string{grpIndex.Name(), connectionString, getSubnetOrVPCUID(grpTarget)}
+	return strings.Join(keyComponents, ";")
 }
 
 // assuming the  g.groupedLines was already initialized by previous step groupExternalAddresses()
