@@ -4460,870 +4460,909 @@
     ],
     "transit_connections": null,
     "transit_gateways": null,
-    "iks_worker_nodes": [
+    "iks_clusters": [
         {
-            "flavor": "bx2.4x16",
-            "health": {
-                "message": "Ready",
-                "state": "normal"
+            "caCertRotationStatus": {
+                "actionCompletedDate": "",
+                "actionTriggerDate": "",
+                "status": ""
             },
-            "id": "id:580",
-            "kubeVersion": {
-                "actual": "1.28.7_1548",
-                "desired": "1.28.7_1548",
-                "eos": "",
-                "masterEOS": "",
-                "target": "1.28.7_1548"
+            "createdDate": "2024-03-21T13:03:37+0000",
+            "datacenter": "dal10",
+            "entitlement": "",
+            "etcdPort": "",
+            "id": "clusterid:1",
+            "imageSecurityEnabled": false,
+            "ingress": {
+                "hostname": "vpccluster-fbf9b85b8723ac0e93a97b2497e37901-0000.us-south.containers.appdomain.cloud",
+                "message": "Some Ingress components are in a warning state. To view the state of your Ingress components, run `ibmcloud ks ingress status-report get`.",
+                "secretName": "vpccluster-fbf9b85b8723ac0e93a97b2497e37901-0000",
+                "status": "warning"
             },
-            "lifecycle": {
-                "actualState": "deployed",
-                "desiredState": "deployed",
-                "message": "",
-                "messageDate": "",
-                "messageDetails": "",
-                "messageDetailsDate": "",
-                "pendingOperation": "",
-                "reasonForDelete": ""
-            },
-            "location": "us-east-1",
-            "networkInterfaces": [
+            "isPaid": true,
+            "location": "Dallas",
+            "masterKubeVersion": "1.29.2_1528",
+            "masterURL": "https://c108.us-south.containers.cloud.ibm.com:30112",
+            "multiAzCapable": true,
+            "name": "vpc_cluster",
+            "podSubnet": "172.17.0.0/18",
+            "provider": "vpc-gen2",
+            "region": "us-south",
+            "resourceGroup": "16504898eefb4e56b0a644176122c602",
+            "resourceGroupName": "policy-as-code",
+            "serviceSubnet": "172.21.0.0/16",
+            "state": "normal",
+            "status": "All Workers Normal",
+            "targetVersion": "1.29.2_1528",
+            "type": "kubernetes",
+            "versionEOS": "",
+            "workerCount": 9,
+            "WorkerNodes": [
                 {
-                    "cidr": "10.241.0.0/24",
-                    "ipAddress": "10.241.0.15",
-                    "primary": true,
-                    "subnetID": "id:195"
-                }
-            ],
-            "poolID": "cnhl85aw0oueicsiqtk0-b5c0f87",
-            "poolName": "default"
-        },
-        {
-            "flavor": "bx2.4x16",
-            "health": {
-                "message": "Ready",
-                "state": "normal"
-            },
-            "id": "id:581",
-            "kubeVersion": {
-                "actual": "1.28.7_1548",
-                "desired": "1.28.7_1548",
-                "eos": "",
-                "masterEOS": "",
-                "target": "1.28.7_1548"
-            },
-            "lifecycle": {
-                "actualState": "deployed",
-                "desiredState": "deployed",
-                "message": "",
-                "messageDate": "",
-                "messageDetails": "",
-                "messageDetailsDate": "",
-                "pendingOperation": "",
-                "reasonForDelete": ""
-            },
-            "location": "us-east-3",
-            "networkInterfaces": [
+                    "flavor": "bx2.4x16",
+                    "health": {
+                        "message": "Ready",
+                        "state": "normal"
+                    },
+                    "id": "id:580",
+                    "kubeVersion": {
+                        "actual": "1.28.7_1548",
+                        "desired": "1.28.7_1548",
+                        "eos": "",
+                        "masterEOS": "",
+                        "target": "1.28.7_1548"
+                    },
+                    "lifecycle": {
+                        "actualState": "deployed",
+                        "desiredState": "deployed",
+                        "message": "",
+                        "messageDate": "",
+                        "messageDetails": "",
+                        "messageDetailsDate": "",
+                        "pendingOperation": "",
+                        "reasonForDelete": ""
+                    },
+                    "location": "us-east-1",
+                    "networkInterfaces": [
+                        {
+                            "cidr": "10.241.0.0/24",
+                            "ipAddress": "10.241.0.15",
+                            "primary": true,
+                            "subnetID": "id:195"
+                        }
+                    ],
+                    "poolID": "cnhl85aw0oueicsiqtk0-b5c0f87",
+                    "poolName": "default"
+                },
                 {
-                    "cidr": "10.241.128.0/24",
-                    "ipAddress": "10.241.128.15",
-                    "primary": true,
-                    "subnetID": "id:141"
-                }
-            ],
-            "poolID": "cnhl85aw0oueicsiqtk0-b5c0f87",
-            "poolName": "default"
-        },
-        {
-            "flavor": "bx2.4x16",
-            "health": {
-                "message": "Ready",
-                "state": "normal"
-            },
-            "id": "id:582",
-            "kubeVersion": {
-                "actual": "1.28.7_1548",
-                "desired": "1.28.7_1548",
-                "eos": "",
-                "masterEOS": "",
-                "target": "1.28.7_1548"
-            },
-            "lifecycle": {
-                "actualState": "deployed",
-                "desiredState": "deployed",
-                "message": "",
-                "messageDate": "",
-                "messageDetails": "",
-                "messageDetailsDate": "",
-                "pendingOperation": "",
-                "reasonForDelete": ""
-            },
-            "location": "us-east-2",
-            "networkInterfaces": [
+                    "flavor": "bx2.4x16",
+                    "health": {
+                        "message": "Ready",
+                        "state": "normal"
+                    },
+                    "id": "id:581",
+                    "kubeVersion": {
+                        "actual": "1.28.7_1548",
+                        "desired": "1.28.7_1548",
+                        "eos": "",
+                        "masterEOS": "",
+                        "target": "1.28.7_1548"
+                    },
+                    "lifecycle": {
+                        "actualState": "deployed",
+                        "desiredState": "deployed",
+                        "message": "",
+                        "messageDate": "",
+                        "messageDetails": "",
+                        "messageDetailsDate": "",
+                        "pendingOperation": "",
+                        "reasonForDelete": ""
+                    },
+                    "location": "us-east-3",
+                    "networkInterfaces": [
+                        {
+                            "cidr": "10.241.128.0/24",
+                            "ipAddress": "10.241.128.15",
+                            "primary": true,
+                            "subnetID": "id:141"
+                        }
+                    ],
+                    "poolID": "cnhl85aw0oueicsiqtk0-b5c0f87",
+                    "poolName": "default"
+                },
                 {
-                    "cidr": "10.241.64.0/24",
-                    "ipAddress": "10.241.64.16",
-                    "primary": true,
-                    "subnetID": "id:61"
-                }
-            ],
-            "poolID": "cnhl85aw0oueicsiqtk0-b5c0f87",
-            "poolName": "default"
-        },
-        {
-            "flavor": "bx2.4x16",
-            "health": {
-                "message": "Ready",
-                "state": "normal"
-            },
-            "id": "id:583",
-            "kubeVersion": {
-                "actual": "1.28.7_1548",
-                "desired": "1.28.7_1548",
-                "eos": "",
-                "masterEOS": "",
-                "target": "1.28.7_1548"
-            },
-            "lifecycle": {
-                "actualState": "deployed",
-                "desiredState": "deployed",
-                "message": "",
-                "messageDate": "",
-                "messageDetails": "",
-                "messageDetailsDate": "",
-                "pendingOperation": "",
-                "reasonForDelete": ""
-            },
-            "location": "us-east-1",
-            "networkInterfaces": [
+                    "flavor": "bx2.4x16",
+                    "health": {
+                        "message": "Ready",
+                        "state": "normal"
+                    },
+                    "id": "id:582",
+                    "kubeVersion": {
+                        "actual": "1.28.7_1548",
+                        "desired": "1.28.7_1548",
+                        "eos": "",
+                        "masterEOS": "",
+                        "target": "1.28.7_1548"
+                    },
+                    "lifecycle": {
+                        "actualState": "deployed",
+                        "desiredState": "deployed",
+                        "message": "",
+                        "messageDate": "",
+                        "messageDetails": "",
+                        "messageDetailsDate": "",
+                        "pendingOperation": "",
+                        "reasonForDelete": ""
+                    },
+                    "location": "us-east-2",
+                    "networkInterfaces": [
+                        {
+                            "cidr": "10.241.64.0/24",
+                            "ipAddress": "10.241.64.16",
+                            "primary": true,
+                            "subnetID": "id:61"
+                        }
+                    ],
+                    "poolID": "cnhl85aw0oueicsiqtk0-b5c0f87",
+                    "poolName": "default"
+                },
                 {
-                    "cidr": "10.241.0.0/24",
-                    "ipAddress": "10.241.0.17",
-                    "primary": true,
-                    "subnetID": "id:195"
-                }
-            ],
-            "poolID": "cnhl85aw0oueicsiqtk0-b5c0f87",
-            "poolName": "default"
-        },
-        {
-            "flavor": "bx2.4x16",
-            "health": {
-                "message": "Ready",
-                "state": "normal"
-            },
-            "id": "id:584",
-            "kubeVersion": {
-                "actual": "1.28.7_1548",
-                "desired": "1.28.7_1548",
-                "eos": "",
-                "masterEOS": "",
-                "target": "1.28.7_1548"
-            },
-            "lifecycle": {
-                "actualState": "deployed",
-                "desiredState": "deployed",
-                "message": "",
-                "messageDate": "",
-                "messageDetails": "",
-                "messageDetailsDate": "",
-                "pendingOperation": "",
-                "reasonForDelete": ""
-            },
-            "location": "us-east-2",
-            "networkInterfaces": [
+                    "flavor": "bx2.4x16",
+                    "health": {
+                        "message": "Ready",
+                        "state": "normal"
+                    },
+                    "id": "id:583",
+                    "kubeVersion": {
+                        "actual": "1.28.7_1548",
+                        "desired": "1.28.7_1548",
+                        "eos": "",
+                        "masterEOS": "",
+                        "target": "1.28.7_1548"
+                    },
+                    "lifecycle": {
+                        "actualState": "deployed",
+                        "desiredState": "deployed",
+                        "message": "",
+                        "messageDate": "",
+                        "messageDetails": "",
+                        "messageDetailsDate": "",
+                        "pendingOperation": "",
+                        "reasonForDelete": ""
+                    },
+                    "location": "us-east-1",
+                    "networkInterfaces": [
+                        {
+                            "cidr": "10.241.0.0/24",
+                            "ipAddress": "10.241.0.17",
+                            "primary": true,
+                            "subnetID": "id:195"
+                        }
+                    ],
+                    "poolID": "cnhl85aw0oueicsiqtk0-b5c0f87",
+                    "poolName": "default"
+                },
                 {
-                    "cidr": "10.241.64.0/24",
-                    "ipAddress": "10.241.64.19",
-                    "primary": true,
-                    "subnetID": "id:61"
-                }
-            ],
-            "poolID": "cnhl85aw0oueicsiqtk0-b5c0f87",
-            "poolName": "default"
-        },
-        {
-            "flavor": "bx2.4x16",
-            "health": {
-                "message": "Ready",
-                "state": "normal"
-            },
-            "id": "id:585",
-            "kubeVersion": {
-                "actual": "1.28.7_1548",
-                "desired": "1.28.7_1548",
-                "eos": "",
-                "masterEOS": "",
-                "target": "1.28.7_1548"
-            },
-            "lifecycle": {
-                "actualState": "deployed",
-                "desiredState": "deployed",
-                "message": "",
-                "messageDate": "",
-                "messageDetails": "",
-                "messageDetailsDate": "",
-                "pendingOperation": "",
-                "reasonForDelete": ""
-            },
-            "location": "us-east-3",
-            "networkInterfaces": [
+                    "flavor": "bx2.4x16",
+                    "health": {
+                        "message": "Ready",
+                        "state": "normal"
+                    },
+                    "id": "id:584",
+                    "kubeVersion": {
+                        "actual": "1.28.7_1548",
+                        "desired": "1.28.7_1548",
+                        "eos": "",
+                        "masterEOS": "",
+                        "target": "1.28.7_1548"
+                    },
+                    "lifecycle": {
+                        "actualState": "deployed",
+                        "desiredState": "deployed",
+                        "message": "",
+                        "messageDate": "",
+                        "messageDetails": "",
+                        "messageDetailsDate": "",
+                        "pendingOperation": "",
+                        "reasonForDelete": ""
+                    },
+                    "location": "us-east-2",
+                    "networkInterfaces": [
+                        {
+                            "cidr": "10.241.64.0/24",
+                            "ipAddress": "10.241.64.19",
+                            "primary": true,
+                            "subnetID": "id:61"
+                        }
+                    ],
+                    "poolID": "cnhl85aw0oueicsiqtk0-b5c0f87",
+                    "poolName": "default"
+                },
                 {
-                    "cidr": "10.241.128.0/24",
-                    "ipAddress": "10.241.128.18",
-                    "primary": true,
-                    "subnetID": "id:141"
-                }
-            ],
-            "poolID": "cnhl85aw0oueicsiqtk0-b5c0f87",
-            "poolName": "default"
-        },
-        {
-            "flavor": "bx2.4x16",
-            "health": {
-                "message": "Ready",
-                "state": "normal"
-            },
-            "id": "id:586",
-            "kubeVersion": {
-                "actual": "4.14.11_1547_openshift",
-                "desired": "4.14.11_1547_openshift",
-                "eos": "",
-                "masterEOS": "",
-                "target": "4.14.13_1553_openshift"
-            },
-            "lifecycle": {
-                "actualState": "deployed",
-                "desiredState": "deployed",
-                "message": "",
-                "messageDate": "",
-                "messageDetails": "",
-                "messageDetailsDate": "",
-                "pendingOperation": "",
-                "reasonForDelete": ""
-            },
-            "location": "us-east-1",
-            "networkInterfaces": [
+                    "flavor": "bx2.4x16",
+                    "health": {
+                        "message": "Ready",
+                        "state": "normal"
+                    },
+                    "id": "id:585",
+                    "kubeVersion": {
+                        "actual": "1.28.7_1548",
+                        "desired": "1.28.7_1548",
+                        "eos": "",
+                        "masterEOS": "",
+                        "target": "1.28.7_1548"
+                    },
+                    "lifecycle": {
+                        "actualState": "deployed",
+                        "desiredState": "deployed",
+                        "message": "",
+                        "messageDate": "",
+                        "messageDetails": "",
+                        "messageDetailsDate": "",
+                        "pendingOperation": "",
+                        "reasonForDelete": ""
+                    },
+                    "location": "us-east-3",
+                    "networkInterfaces": [
+                        {
+                            "cidr": "10.241.128.0/24",
+                            "ipAddress": "10.241.128.18",
+                            "primary": true,
+                            "subnetID": "id:141"
+                        }
+                    ],
+                    "poolID": "cnhl85aw0oueicsiqtk0-b5c0f87",
+                    "poolName": "default"
+                },
                 {
-                    "cidr": "10.241.0.0/24",
-                    "ipAddress": "10.241.0.4",
-                    "primary": true,
-                    "subnetID": "id:195"
-                }
-            ],
-            "poolID": "cjsal64w0g8rl335fso0-2b61204",
-            "poolName": "default"
-        },
-        {
-            "flavor": "bx2.4x16",
-            "health": {
-                "message": "Ready",
-                "state": "normal"
-            },
-            "id": "id:587",
-            "kubeVersion": {
-                "actual": "4.14.11_1547_openshift",
-                "desired": "4.14.11_1547_openshift",
-                "eos": "",
-                "masterEOS": "",
-                "target": "4.14.13_1553_openshift"
-            },
-            "lifecycle": {
-                "actualState": "deployed",
-                "desiredState": "deployed",
-                "message": "",
-                "messageDate": "",
-                "messageDetails": "",
-                "messageDetailsDate": "",
-                "pendingOperation": "",
-                "reasonForDelete": ""
-            },
-            "location": "us-east-1",
-            "networkInterfaces": [
+                    "flavor": "bx2.4x16",
+                    "health": {
+                        "message": "Ready",
+                        "state": "normal"
+                    },
+                    "id": "id:586",
+                    "kubeVersion": {
+                        "actual": "4.14.11_1547_openshift",
+                        "desired": "4.14.11_1547_openshift",
+                        "eos": "",
+                        "masterEOS": "",
+                        "target": "4.14.13_1553_openshift"
+                    },
+                    "lifecycle": {
+                        "actualState": "deployed",
+                        "desiredState": "deployed",
+                        "message": "",
+                        "messageDate": "",
+                        "messageDetails": "",
+                        "messageDetailsDate": "",
+                        "pendingOperation": "",
+                        "reasonForDelete": ""
+                    },
+                    "location": "us-east-1",
+                    "networkInterfaces": [
+                        {
+                            "cidr": "10.241.0.0/24",
+                            "ipAddress": "10.241.0.4",
+                            "primary": true,
+                            "subnetID": "id:195"
+                        }
+                    ],
+                    "poolID": "cjsal64w0g8rl335fso0-2b61204",
+                    "poolName": "default"
+                },
                 {
-                    "cidr": "10.241.0.0/24",
-                    "ipAddress": "10.241.0.5",
-                    "primary": true,
-                    "subnetID": "id:195"
-                }
-            ],
-            "poolID": "cjsal64w0g8rl335fso0-2b61204",
-            "poolName": "default"
-        },
-        {
-            "flavor": "bx2.4x16",
-            "health": {
-                "message": "Ready",
-                "state": "normal"
-            },
-            "id": "id:588",
-            "kubeVersion": {
-                "actual": "4.14.11_1547_openshift",
-                "desired": "4.14.11_1547_openshift",
-                "eos": "",
-                "masterEOS": "",
-                "target": "4.14.13_1553_openshift"
-            },
-            "lifecycle": {
-                "actualState": "deployed",
-                "desiredState": "deployed",
-                "message": "",
-                "messageDate": "",
-                "messageDetails": "",
-                "messageDetailsDate": "",
-                "pendingOperation": "",
-                "reasonForDelete": ""
-            },
-            "location": "us-east-1",
-            "networkInterfaces": [
+                    "flavor": "bx2.4x16",
+                    "health": {
+                        "message": "Ready",
+                        "state": "normal"
+                    },
+                    "id": "id:587",
+                    "kubeVersion": {
+                        "actual": "4.14.11_1547_openshift",
+                        "desired": "4.14.11_1547_openshift",
+                        "eos": "",
+                        "masterEOS": "",
+                        "target": "4.14.13_1553_openshift"
+                    },
+                    "lifecycle": {
+                        "actualState": "deployed",
+                        "desiredState": "deployed",
+                        "message": "",
+                        "messageDate": "",
+                        "messageDetails": "",
+                        "messageDetailsDate": "",
+                        "pendingOperation": "",
+                        "reasonForDelete": ""
+                    },
+                    "location": "us-east-1",
+                    "networkInterfaces": [
+                        {
+                            "cidr": "10.241.0.0/24",
+                            "ipAddress": "10.241.0.5",
+                            "primary": true,
+                            "subnetID": "id:195"
+                        }
+                    ],
+                    "poolID": "cjsal64w0g8rl335fso0-2b61204",
+                    "poolName": "default"
+                },
                 {
-                    "cidr": "10.241.0.0/24",
-                    "ipAddress": "10.241.0.6",
-                    "primary": true,
-                    "subnetID": "id:195"
-                }
-            ],
-            "poolID": "cjsal64w0g8rl335fso0-2b61204",
-            "poolName": "default"
-        },
-        {
-            "flavor": "bx2.4x16",
-            "health": {
-                "message": "Ready",
-                "state": "normal"
-            },
-            "id": "id:589",
-            "kubeVersion": {
-                "actual": "4.14.11_1547_openshift",
-                "desired": "4.14.11_1547_openshift",
-                "eos": "",
-                "masterEOS": "",
-                "target": "4.14.13_1553_openshift"
-            },
-            "lifecycle": {
-                "actualState": "deployed",
-                "desiredState": "deployed",
-                "message": "",
-                "messageDate": "",
-                "messageDetails": "",
-                "messageDetailsDate": "",
-                "pendingOperation": "",
-                "reasonForDelete": ""
-            },
-            "location": "us-east-2",
-            "networkInterfaces": [
+                    "flavor": "bx2.4x16",
+                    "health": {
+                        "message": "Ready",
+                        "state": "normal"
+                    },
+                    "id": "id:588",
+                    "kubeVersion": {
+                        "actual": "4.14.11_1547_openshift",
+                        "desired": "4.14.11_1547_openshift",
+                        "eos": "",
+                        "masterEOS": "",
+                        "target": "4.14.13_1553_openshift"
+                    },
+                    "lifecycle": {
+                        "actualState": "deployed",
+                        "desiredState": "deployed",
+                        "message": "",
+                        "messageDate": "",
+                        "messageDetails": "",
+                        "messageDetailsDate": "",
+                        "pendingOperation": "",
+                        "reasonForDelete": ""
+                    },
+                    "location": "us-east-1",
+                    "networkInterfaces": [
+                        {
+                            "cidr": "10.241.0.0/24",
+                            "ipAddress": "10.241.0.6",
+                            "primary": true,
+                            "subnetID": "id:195"
+                        }
+                    ],
+                    "poolID": "cjsal64w0g8rl335fso0-2b61204",
+                    "poolName": "default"
+                },
                 {
-                    "cidr": "10.241.64.0/24",
-                    "ipAddress": "10.241.64.6",
-                    "primary": true,
-                    "subnetID": "id:61"
-                }
-            ],
-            "poolID": "cjsal64w0g8rl335fso0-2b61204",
-            "poolName": "default"
-        },
-        {
-            "flavor": "bx2.4x16",
-            "health": {
-                "message": "Ready",
-                "state": "normal"
-            },
-            "id": "id:590",
-            "kubeVersion": {
-                "actual": "4.14.11_1547_openshift",
-                "desired": "4.14.11_1547_openshift",
-                "eos": "",
-                "masterEOS": "",
-                "target": "4.14.13_1553_openshift"
-            },
-            "lifecycle": {
-                "actualState": "deployed",
-                "desiredState": "deployed",
-                "message": "",
-                "messageDate": "",
-                "messageDetails": "",
-                "messageDetailsDate": "",
-                "pendingOperation": "",
-                "reasonForDelete": ""
-            },
-            "location": "us-east-2",
-            "networkInterfaces": [
+                    "flavor": "bx2.4x16",
+                    "health": {
+                        "message": "Ready",
+                        "state": "normal"
+                    },
+                    "id": "id:589",
+                    "kubeVersion": {
+                        "actual": "4.14.11_1547_openshift",
+                        "desired": "4.14.11_1547_openshift",
+                        "eos": "",
+                        "masterEOS": "",
+                        "target": "4.14.13_1553_openshift"
+                    },
+                    "lifecycle": {
+                        "actualState": "deployed",
+                        "desiredState": "deployed",
+                        "message": "",
+                        "messageDate": "",
+                        "messageDetails": "",
+                        "messageDetailsDate": "",
+                        "pendingOperation": "",
+                        "reasonForDelete": ""
+                    },
+                    "location": "us-east-2",
+                    "networkInterfaces": [
+                        {
+                            "cidr": "10.241.64.0/24",
+                            "ipAddress": "10.241.64.6",
+                            "primary": true,
+                            "subnetID": "id:61"
+                        }
+                    ],
+                    "poolID": "cjsal64w0g8rl335fso0-2b61204",
+                    "poolName": "default"
+                },
                 {
-                    "cidr": "10.241.64.0/24",
-                    "ipAddress": "10.241.64.4",
-                    "primary": true,
-                    "subnetID": "id:61"
-                }
-            ],
-            "poolID": "cjsal64w0g8rl335fso0-2b61204",
-            "poolName": "default"
-        },
-        {
-            "flavor": "bx2.4x16",
-            "health": {
-                "message": "Ready",
-                "state": "normal"
-            },
-            "id": "id:591",
-            "kubeVersion": {
-                "actual": "4.14.11_1547_openshift",
-                "desired": "4.14.11_1547_openshift",
-                "eos": "",
-                "masterEOS": "",
-                "target": "4.14.13_1553_openshift"
-            },
-            "lifecycle": {
-                "actualState": "deployed",
-                "desiredState": "deployed",
-                "message": "",
-                "messageDate": "",
-                "messageDetails": "",
-                "messageDetailsDate": "",
-                "pendingOperation": "",
-                "reasonForDelete": ""
-            },
-            "location": "us-east-2",
-            "networkInterfaces": [
+                    "flavor": "bx2.4x16",
+                    "health": {
+                        "message": "Ready",
+                        "state": "normal"
+                    },
+                    "id": "id:590",
+                    "kubeVersion": {
+                        "actual": "4.14.11_1547_openshift",
+                        "desired": "4.14.11_1547_openshift",
+                        "eos": "",
+                        "masterEOS": "",
+                        "target": "4.14.13_1553_openshift"
+                    },
+                    "lifecycle": {
+                        "actualState": "deployed",
+                        "desiredState": "deployed",
+                        "message": "",
+                        "messageDate": "",
+                        "messageDetails": "",
+                        "messageDetailsDate": "",
+                        "pendingOperation": "",
+                        "reasonForDelete": ""
+                    },
+                    "location": "us-east-2",
+                    "networkInterfaces": [
+                        {
+                            "cidr": "10.241.64.0/24",
+                            "ipAddress": "10.241.64.4",
+                            "primary": true,
+                            "subnetID": "id:61"
+                        }
+                    ],
+                    "poolID": "cjsal64w0g8rl335fso0-2b61204",
+                    "poolName": "default"
+                },
                 {
-                    "cidr": "10.241.64.0/24",
-                    "ipAddress": "10.241.64.5",
-                    "primary": true,
-                    "subnetID": "id:61"
-                }
-            ],
-            "poolID": "cjsal64w0g8rl335fso0-2b61204",
-            "poolName": "default"
-        },
-        {
-            "flavor": "bx2.4x16",
-            "health": {
-                "message": "Ready",
-                "state": "normal"
-            },
-            "id": "id:592",
-            "kubeVersion": {
-                "actual": "4.14.11_1547_openshift",
-                "desired": "4.14.11_1547_openshift",
-                "eos": "",
-                "masterEOS": "",
-                "target": "4.14.13_1553_openshift"
-            },
-            "lifecycle": {
-                "actualState": "deployed",
-                "desiredState": "deployed",
-                "message": "",
-                "messageDate": "",
-                "messageDetails": "",
-                "messageDetailsDate": "",
-                "pendingOperation": "",
-                "reasonForDelete": ""
-            },
-            "location": "us-east-3",
-            "networkInterfaces": [
+                    "flavor": "bx2.4x16",
+                    "health": {
+                        "message": "Ready",
+                        "state": "normal"
+                    },
+                    "id": "id:591",
+                    "kubeVersion": {
+                        "actual": "4.14.11_1547_openshift",
+                        "desired": "4.14.11_1547_openshift",
+                        "eos": "",
+                        "masterEOS": "",
+                        "target": "4.14.13_1553_openshift"
+                    },
+                    "lifecycle": {
+                        "actualState": "deployed",
+                        "desiredState": "deployed",
+                        "message": "",
+                        "messageDate": "",
+                        "messageDetails": "",
+                        "messageDetailsDate": "",
+                        "pendingOperation": "",
+                        "reasonForDelete": ""
+                    },
+                    "location": "us-east-2",
+                    "networkInterfaces": [
+                        {
+                            "cidr": "10.241.64.0/24",
+                            "ipAddress": "10.241.64.5",
+                            "primary": true,
+                            "subnetID": "id:61"
+                        }
+                    ],
+                    "poolID": "cjsal64w0g8rl335fso0-2b61204",
+                    "poolName": "default"
+                },
                 {
-                    "cidr": "10.241.128.0/24",
-                    "ipAddress": "10.241.128.5",
-                    "primary": true,
-                    "subnetID": "id:141"
-                }
-            ],
-            "poolID": "cjsal64w0g8rl335fso0-2b61204",
-            "poolName": "default"
-        },
-        {
-            "flavor": "bx2.4x16",
-            "health": {
-                "message": "Ready",
-                "state": "normal"
-            },
-            "id": "id:593",
-            "kubeVersion": {
-                "actual": "4.14.11_1547_openshift",
-                "desired": "4.14.11_1547_openshift",
-                "eos": "",
-                "masterEOS": "",
-                "target": "4.14.13_1553_openshift"
-            },
-            "lifecycle": {
-                "actualState": "deployed",
-                "desiredState": "deployed",
-                "message": "",
-                "messageDate": "",
-                "messageDetails": "",
-                "messageDetailsDate": "",
-                "pendingOperation": "",
-                "reasonForDelete": ""
-            },
-            "location": "us-east-3",
-            "networkInterfaces": [
+                    "flavor": "bx2.4x16",
+                    "health": {
+                        "message": "Ready",
+                        "state": "normal"
+                    },
+                    "id": "id:592",
+                    "kubeVersion": {
+                        "actual": "4.14.11_1547_openshift",
+                        "desired": "4.14.11_1547_openshift",
+                        "eos": "",
+                        "masterEOS": "",
+                        "target": "4.14.13_1553_openshift"
+                    },
+                    "lifecycle": {
+                        "actualState": "deployed",
+                        "desiredState": "deployed",
+                        "message": "",
+                        "messageDate": "",
+                        "messageDetails": "",
+                        "messageDetailsDate": "",
+                        "pendingOperation": "",
+                        "reasonForDelete": ""
+                    },
+                    "location": "us-east-3",
+                    "networkInterfaces": [
+                        {
+                            "cidr": "10.241.128.0/24",
+                            "ipAddress": "10.241.128.5",
+                            "primary": true,
+                            "subnetID": "id:141"
+                        }
+                    ],
+                    "poolID": "cjsal64w0g8rl335fso0-2b61204",
+                    "poolName": "default"
+                },
                 {
-                    "cidr": "10.241.128.0/24",
-                    "ipAddress": "10.241.128.8",
-                    "primary": true,
-                    "subnetID": "id:141"
-                }
-            ],
-            "poolID": "cjsal64w0g8rl335fso0-2b61204",
-            "poolName": "default"
-        },
-        {
-            "flavor": "bx2.4x16",
-            "health": {
-                "message": "Ready",
-                "state": "normal"
-            },
-            "id": "id:594",
-            "kubeVersion": {
-                "actual": "4.14.11_1547_openshift",
-                "desired": "4.14.11_1547_openshift",
-                "eos": "",
-                "masterEOS": "",
-                "target": "4.14.13_1553_openshift"
-            },
-            "lifecycle": {
-                "actualState": "deployed",
-                "desiredState": "deployed",
-                "message": "",
-                "messageDate": "",
-                "messageDetails": "",
-                "messageDetailsDate": "",
-                "pendingOperation": "",
-                "reasonForDelete": ""
-            },
-            "location": "us-east-3",
-            "networkInterfaces": [
+                    "flavor": "bx2.4x16",
+                    "health": {
+                        "message": "Ready",
+                        "state": "normal"
+                    },
+                    "id": "id:593",
+                    "kubeVersion": {
+                        "actual": "4.14.11_1547_openshift",
+                        "desired": "4.14.11_1547_openshift",
+                        "eos": "",
+                        "masterEOS": "",
+                        "target": "4.14.13_1553_openshift"
+                    },
+                    "lifecycle": {
+                        "actualState": "deployed",
+                        "desiredState": "deployed",
+                        "message": "",
+                        "messageDate": "",
+                        "messageDetails": "",
+                        "messageDetailsDate": "",
+                        "pendingOperation": "",
+                        "reasonForDelete": ""
+                    },
+                    "location": "us-east-3",
+                    "networkInterfaces": [
+                        {
+                            "cidr": "10.241.128.0/24",
+                            "ipAddress": "10.241.128.8",
+                            "primary": true,
+                            "subnetID": "id:141"
+                        }
+                    ],
+                    "poolID": "cjsal64w0g8rl335fso0-2b61204",
+                    "poolName": "default"
+                },
                 {
-                    "cidr": "10.241.128.0/24",
-                    "ipAddress": "10.241.128.6",
-                    "primary": true,
-                    "subnetID": "id:141"
-                }
-            ],
-            "poolID": "cjsal64w0g8rl335fso0-2b61204",
-            "poolName": "default"
-        },
-        {
-            "flavor": "bx2.4x16",
-            "health": {
-                "message": "Ready",
-                "state": "normal"
-            },
-            "id": "id:595",
-            "kubeVersion": {
-                "actual": "4.14.11_1547_openshift",
-                "desired": "4.14.11_1547_openshift",
-                "eos": "",
-                "masterEOS": "",
-                "target": "4.14.13_1553_openshift"
-            },
-            "lifecycle": {
-                "actualState": "deployed",
-                "desiredState": "deployed",
-                "message": "",
-                "messageDate": "",
-                "messageDetails": "",
-                "messageDetailsDate": "",
-                "pendingOperation": "",
-                "reasonForDelete": ""
-            },
-            "location": "us-east-1",
-            "networkInterfaces": [
+                    "flavor": "bx2.4x16",
+                    "health": {
+                        "message": "Ready",
+                        "state": "normal"
+                    },
+                    "id": "id:594",
+                    "kubeVersion": {
+                        "actual": "4.14.11_1547_openshift",
+                        "desired": "4.14.11_1547_openshift",
+                        "eos": "",
+                        "masterEOS": "",
+                        "target": "4.14.13_1553_openshift"
+                    },
+                    "lifecycle": {
+                        "actualState": "deployed",
+                        "desiredState": "deployed",
+                        "message": "",
+                        "messageDate": "",
+                        "messageDetails": "",
+                        "messageDetailsDate": "",
+                        "pendingOperation": "",
+                        "reasonForDelete": ""
+                    },
+                    "location": "us-east-3",
+                    "networkInterfaces": [
+                        {
+                            "cidr": "10.241.128.0/24",
+                            "ipAddress": "10.241.128.6",
+                            "primary": true,
+                            "subnetID": "id:141"
+                        }
+                    ],
+                    "poolID": "cjsal64w0g8rl335fso0-2b61204",
+                    "poolName": "default"
+                },
                 {
-                    "cidr": "10.241.0.0/24",
-                    "ipAddress": "10.241.0.10",
-                    "primary": true,
-                    "subnetID": "id:195"
-                }
-            ],
-            "poolID": "clusterid:3-e972dbf",
-            "poolName": "default"
-        },
-        {
-            "flavor": "bx2.4x16",
-            "health": {
-                "message": "Ready",
-                "state": "normal"
-            },
-            "id": "id:596",
-            "kubeVersion": {
-                "actual": "4.14.11_1547_openshift",
-                "desired": "4.14.11_1547_openshift",
-                "eos": "",
-                "masterEOS": "",
-                "target": "4.14.13_1553_openshift"
-            },
-            "lifecycle": {
-                "actualState": "deployed",
-                "desiredState": "deployed",
-                "message": "",
-                "messageDate": "",
-                "messageDetails": "",
-                "messageDetailsDate": "",
-                "pendingOperation": "",
-                "reasonForDelete": ""
-            },
-            "location": "us-east-1",
-            "networkInterfaces": [
+                    "flavor": "bx2.4x16",
+                    "health": {
+                        "message": "Ready",
+                        "state": "normal"
+                    },
+                    "id": "id:595",
+                    "kubeVersion": {
+                        "actual": "4.14.11_1547_openshift",
+                        "desired": "4.14.11_1547_openshift",
+                        "eos": "",
+                        "masterEOS": "",
+                        "target": "4.14.13_1553_openshift"
+                    },
+                    "lifecycle": {
+                        "actualState": "deployed",
+                        "desiredState": "deployed",
+                        "message": "",
+                        "messageDate": "",
+                        "messageDetails": "",
+                        "messageDetailsDate": "",
+                        "pendingOperation": "",
+                        "reasonForDelete": ""
+                    },
+                    "location": "us-east-1",
+                    "networkInterfaces": [
+                        {
+                            "cidr": "10.241.0.0/24",
+                            "ipAddress": "10.241.0.10",
+                            "primary": true,
+                            "subnetID": "id:195"
+                        }
+                    ],
+                    "poolID": "clusterid:3-e972dbf",
+                    "poolName": "default"
+                },
                 {
-                    "cidr": "10.241.0.0/24",
-                    "ipAddress": "10.241.0.8",
-                    "primary": true,
-                    "subnetID": "id:195"
-                }
-            ],
-            "poolID": "clusterid:3-e972dbf",
-            "poolName": "default"
-        },
-        {
-            "flavor": "bx2.4x16",
-            "health": {
-                "message": "Ready",
-                "state": "normal"
-            },
-            "id": "id:597",
-            "kubeVersion": {
-                "actual": "4.14.11_1547_openshift",
-                "desired": "4.14.11_1547_openshift",
-                "eos": "",
-                "masterEOS": "",
-                "target": "4.14.13_1553_openshift"
-            },
-            "lifecycle": {
-                "actualState": "deployed",
-                "desiredState": "deployed",
-                "message": "",
-                "messageDate": "",
-                "messageDetails": "",
-                "messageDetailsDate": "",
-                "pendingOperation": "",
-                "reasonForDelete": ""
-            },
-            "location": "us-east-1",
-            "networkInterfaces": [
+                    "flavor": "bx2.4x16",
+                    "health": {
+                        "message": "Ready",
+                        "state": "normal"
+                    },
+                    "id": "id:596",
+                    "kubeVersion": {
+                        "actual": "4.14.11_1547_openshift",
+                        "desired": "4.14.11_1547_openshift",
+                        "eos": "",
+                        "masterEOS": "",
+                        "target": "4.14.13_1553_openshift"
+                    },
+                    "lifecycle": {
+                        "actualState": "deployed",
+                        "desiredState": "deployed",
+                        "message": "",
+                        "messageDate": "",
+                        "messageDetails": "",
+                        "messageDetailsDate": "",
+                        "pendingOperation": "",
+                        "reasonForDelete": ""
+                    },
+                    "location": "us-east-1",
+                    "networkInterfaces": [
+                        {
+                            "cidr": "10.241.0.0/24",
+                            "ipAddress": "10.241.0.8",
+                            "primary": true,
+                            "subnetID": "id:195"
+                        }
+                    ],
+                    "poolID": "clusterid:3-e972dbf",
+                    "poolName": "default"
+                },
                 {
-                    "cidr": "10.241.0.0/24",
-                    "ipAddress": "10.241.0.9",
-                    "primary": true,
-                    "subnetID": "id:195"
-                }
-            ],
-            "poolID": "clusterid:3-e972dbf",
-            "poolName": "default"
-        },
-        {
-            "flavor": "bx2.4x16",
-            "health": {
-                "message": "Ready",
-                "state": "normal"
-            },
-            "id": "id:598",
-            "kubeVersion": {
-                "actual": "4.14.11_1547_openshift",
-                "desired": "4.14.11_1547_openshift",
-                "eos": "",
-                "masterEOS": "",
-                "target": "4.14.13_1553_openshift"
-            },
-            "lifecycle": {
-                "actualState": "deployed",
-                "desiredState": "deployed",
-                "message": "",
-                "messageDate": "",
-                "messageDetails": "",
-                "messageDetailsDate": "",
-                "pendingOperation": "",
-                "reasonForDelete": ""
-            },
-            "location": "us-east-3",
-            "networkInterfaces": [
+                    "flavor": "bx2.4x16",
+                    "health": {
+                        "message": "Ready",
+                        "state": "normal"
+                    },
+                    "id": "id:597",
+                    "kubeVersion": {
+                        "actual": "4.14.11_1547_openshift",
+                        "desired": "4.14.11_1547_openshift",
+                        "eos": "",
+                        "masterEOS": "",
+                        "target": "4.14.13_1553_openshift"
+                    },
+                    "lifecycle": {
+                        "actualState": "deployed",
+                        "desiredState": "deployed",
+                        "message": "",
+                        "messageDate": "",
+                        "messageDetails": "",
+                        "messageDetailsDate": "",
+                        "pendingOperation": "",
+                        "reasonForDelete": ""
+                    },
+                    "location": "us-east-1",
+                    "networkInterfaces": [
+                        {
+                            "cidr": "10.241.0.0/24",
+                            "ipAddress": "10.241.0.9",
+                            "primary": true,
+                            "subnetID": "id:195"
+                        }
+                    ],
+                    "poolID": "clusterid:3-e972dbf",
+                    "poolName": "default"
+                },
                 {
-                    "cidr": "10.241.128.0/24",
-                    "ipAddress": "10.241.128.13",
-                    "primary": true,
-                    "subnetID": "id:141"
-                }
-            ],
-            "poolID": "clusterid:3-e972dbf",
-            "poolName": "default"
-        },
-        {
-            "flavor": "bx2.4x16",
-            "health": {
-                "message": "Ready",
-                "state": "normal"
-            },
-            "id": "id:599",
-            "kubeVersion": {
-                "actual": "4.14.11_1547_openshift",
-                "desired": "4.14.11_1547_openshift",
-                "eos": "",
-                "masterEOS": "",
-                "target": "4.14.13_1553_openshift"
-            },
-            "lifecycle": {
-                "actualState": "deployed",
-                "desiredState": "deployed",
-                "message": "",
-                "messageDate": "",
-                "messageDetails": "",
-                "messageDetailsDate": "",
-                "pendingOperation": "",
-                "reasonForDelete": ""
-            },
-            "location": "us-east-3",
-            "networkInterfaces": [
+                    "flavor": "bx2.4x16",
+                    "health": {
+                        "message": "Ready",
+                        "state": "normal"
+                    },
+                    "id": "id:598",
+                    "kubeVersion": {
+                        "actual": "4.14.11_1547_openshift",
+                        "desired": "4.14.11_1547_openshift",
+                        "eos": "",
+                        "masterEOS": "",
+                        "target": "4.14.13_1553_openshift"
+                    },
+                    "lifecycle": {
+                        "actualState": "deployed",
+                        "desiredState": "deployed",
+                        "message": "",
+                        "messageDate": "",
+                        "messageDetails": "",
+                        "messageDetailsDate": "",
+                        "pendingOperation": "",
+                        "reasonForDelete": ""
+                    },
+                    "location": "us-east-3",
+                    "networkInterfaces": [
+                        {
+                            "cidr": "10.241.128.0/24",
+                            "ipAddress": "10.241.128.13",
+                            "primary": true,
+                            "subnetID": "id:141"
+                        }
+                    ],
+                    "poolID": "clusterid:3-e972dbf",
+                    "poolName": "default"
+                },
                 {
-                    "cidr": "10.241.128.0/24",
-                    "ipAddress": "10.241.128.12",
-                    "primary": true,
-                    "subnetID": "id:141"
-                }
-            ],
-            "poolID": "clusterid:3-e972dbf",
-            "poolName": "default"
-        },
-        {
-            "flavor": "bx2.4x16",
-            "health": {
-                "message": "Ready",
-                "state": "normal"
-            },
-            "id": "id:600",
-            "kubeVersion": {
-                "actual": "4.14.11_1547_openshift",
-                "desired": "4.14.11_1547_openshift",
-                "eos": "",
-                "masterEOS": "",
-                "target": "4.14.13_1553_openshift"
-            },
-            "lifecycle": {
-                "actualState": "deployed",
-                "desiredState": "deployed",
-                "message": "",
-                "messageDate": "",
-                "messageDetails": "",
-                "messageDetailsDate": "",
-                "pendingOperation": "",
-                "reasonForDelete": ""
-            },
-            "location": "us-east-3",
-            "networkInterfaces": [
+                    "flavor": "bx2.4x16",
+                    "health": {
+                        "message": "Ready",
+                        "state": "normal"
+                    },
+                    "id": "id:599",
+                    "kubeVersion": {
+                        "actual": "4.14.11_1547_openshift",
+                        "desired": "4.14.11_1547_openshift",
+                        "eos": "",
+                        "masterEOS": "",
+                        "target": "4.14.13_1553_openshift"
+                    },
+                    "lifecycle": {
+                        "actualState": "deployed",
+                        "desiredState": "deployed",
+                        "message": "",
+                        "messageDate": "",
+                        "messageDetails": "",
+                        "messageDetailsDate": "",
+                        "pendingOperation": "",
+                        "reasonForDelete": ""
+                    },
+                    "location": "us-east-3",
+                    "networkInterfaces": [
+                        {
+                            "cidr": "10.241.128.0/24",
+                            "ipAddress": "10.241.128.12",
+                            "primary": true,
+                            "subnetID": "id:141"
+                        }
+                    ],
+                    "poolID": "clusterid:3-e972dbf",
+                    "poolName": "default"
+                },
                 {
-                    "cidr": "10.241.128.0/24",
-                    "ipAddress": "10.241.128.14",
-                    "primary": true,
-                    "subnetID": "id:141"
-                }
-            ],
-            "poolID": "clusterid:3-e972dbf",
-            "poolName": "default"
-        },
-        {
-            "flavor": "bx2.4x16",
-            "health": {
-                "message": "Ready",
-                "state": "normal"
-            },
-            "id": "id:601",
-            "kubeVersion": {
-                "actual": "4.14.11_1547_openshift",
-                "desired": "4.14.11_1547_openshift",
-                "eos": "",
-                "masterEOS": "",
-                "target": "4.14.13_1553_openshift"
-            },
-            "lifecycle": {
-                "actualState": "deployed",
-                "desiredState": "deployed",
-                "message": "",
-                "messageDate": "",
-                "messageDetails": "",
-                "messageDetailsDate": "",
-                "pendingOperation": "",
-                "reasonForDelete": ""
-            },
-            "location": "us-east-2",
-            "networkInterfaces": [
+                    "flavor": "bx2.4x16",
+                    "health": {
+                        "message": "Ready",
+                        "state": "normal"
+                    },
+                    "id": "id:600",
+                    "kubeVersion": {
+                        "actual": "4.14.11_1547_openshift",
+                        "desired": "4.14.11_1547_openshift",
+                        "eos": "",
+                        "masterEOS": "",
+                        "target": "4.14.13_1553_openshift"
+                    },
+                    "lifecycle": {
+                        "actualState": "deployed",
+                        "desiredState": "deployed",
+                        "message": "",
+                        "messageDate": "",
+                        "messageDetails": "",
+                        "messageDetailsDate": "",
+                        "pendingOperation": "",
+                        "reasonForDelete": ""
+                    },
+                    "location": "us-east-3",
+                    "networkInterfaces": [
+                        {
+                            "cidr": "10.241.128.0/24",
+                            "ipAddress": "10.241.128.14",
+                            "primary": true,
+                            "subnetID": "id:141"
+                        }
+                    ],
+                    "poolID": "clusterid:3-e972dbf",
+                    "poolName": "default"
+                },
                 {
-                    "cidr": "10.241.64.0/24",
-                    "ipAddress": "10.241.64.15",
-                    "primary": true,
-                    "subnetID": "id:61"
-                }
-            ],
-            "poolID": "clusterid:3-e972dbf",
-            "poolName": "default"
-        },
-        {
-            "flavor": "bx2.4x16",
-            "health": {
-                "message": "Ready",
-                "state": "normal"
-            },
-            "id": "id:602",
-            "kubeVersion": {
-                "actual": "4.14.11_1547_openshift",
-                "desired": "4.14.11_1547_openshift",
-                "eos": "",
-                "masterEOS": "",
-                "target": "4.14.13_1553_openshift"
-            },
-            "lifecycle": {
-                "actualState": "deployed",
-                "desiredState": "deployed",
-                "message": "",
-                "messageDate": "",
-                "messageDetails": "",
-                "messageDetailsDate": "",
-                "pendingOperation": "",
-                "reasonForDelete": ""
-            },
-            "location": "us-east-2",
-            "networkInterfaces": [
+                    "flavor": "bx2.4x16",
+                    "health": {
+                        "message": "Ready",
+                        "state": "normal"
+                    },
+                    "id": "id:601",
+                    "kubeVersion": {
+                        "actual": "4.14.11_1547_openshift",
+                        "desired": "4.14.11_1547_openshift",
+                        "eos": "",
+                        "masterEOS": "",
+                        "target": "4.14.13_1553_openshift"
+                    },
+                    "lifecycle": {
+                        "actualState": "deployed",
+                        "desiredState": "deployed",
+                        "message": "",
+                        "messageDate": "",
+                        "messageDetails": "",
+                        "messageDetailsDate": "",
+                        "pendingOperation": "",
+                        "reasonForDelete": ""
+                    },
+                    "location": "us-east-2",
+                    "networkInterfaces": [
+                        {
+                            "cidr": "10.241.64.0/24",
+                            "ipAddress": "10.241.64.15",
+                            "primary": true,
+                            "subnetID": "id:61"
+                        }
+                    ],
+                    "poolID": "clusterid:3-e972dbf",
+                    "poolName": "default"
+                },
                 {
-                    "cidr": "10.241.64.0/24",
-                    "ipAddress": "10.241.64.14",
-                    "primary": true,
-                    "subnetID": "id:61"
-                }
-            ],
-            "poolID": "clusterid:3-e972dbf",
-            "poolName": "default"
-        },
-        {
-            "flavor": "bx2.4x16",
-            "health": {
-                "message": "Ready",
-                "state": "normal"
-            },
-            "id": "id:603",
-            "kubeVersion": {
-                "actual": "4.14.11_1547_openshift",
-                "desired": "4.14.11_1547_openshift",
-                "eos": "",
-                "masterEOS": "",
-                "target": "4.14.13_1553_openshift"
-            },
-            "lifecycle": {
-                "actualState": "deployed",
-                "desiredState": "deployed",
-                "message": "",
-                "messageDate": "",
-                "messageDetails": "",
-                "messageDetailsDate": "",
-                "pendingOperation": "",
-                "reasonForDelete": ""
-            },
-            "location": "us-east-2",
-            "networkInterfaces": [
+                    "flavor": "bx2.4x16",
+                    "health": {
+                        "message": "Ready",
+                        "state": "normal"
+                    },
+                    "id": "id:602",
+                    "kubeVersion": {
+                        "actual": "4.14.11_1547_openshift",
+                        "desired": "4.14.11_1547_openshift",
+                        "eos": "",
+                        "masterEOS": "",
+                        "target": "4.14.13_1553_openshift"
+                    },
+                    "lifecycle": {
+                        "actualState": "deployed",
+                        "desiredState": "deployed",
+                        "message": "",
+                        "messageDate": "",
+                        "messageDetails": "",
+                        "messageDetailsDate": "",
+                        "pendingOperation": "",
+                        "reasonForDelete": ""
+                    },
+                    "location": "us-east-2",
+                    "networkInterfaces": [
+                        {
+                            "cidr": "10.241.64.0/24",
+                            "ipAddress": "10.241.64.14",
+                            "primary": true,
+                            "subnetID": "id:61"
+                        }
+                    ],
+                    "poolID": "clusterid:3-e972dbf",
+                    "poolName": "default"
+                },
                 {
-                    "cidr": "10.241.64.0/24",
-                    "ipAddress": "10.241.64.13",
-                    "primary": true,
-                    "subnetID": "id:61"
+                    "flavor": "bx2.4x16",
+                    "health": {
+                        "message": "Ready",
+                        "state": "normal"
+                    },
+                    "id": "id:603",
+                    "kubeVersion": {
+                        "actual": "4.14.11_1547_openshift",
+                        "desired": "4.14.11_1547_openshift",
+                        "eos": "",
+                        "masterEOS": "",
+                        "target": "4.14.13_1553_openshift"
+                    },
+                    "lifecycle": {
+                        "actualState": "deployed",
+                        "desiredState": "deployed",
+                        "message": "",
+                        "messageDate": "",
+                        "messageDetails": "",
+                        "messageDetailsDate": "",
+                        "pendingOperation": "",
+                        "reasonForDelete": ""
+                    },
+                    "location": "us-east-2",
+                    "networkInterfaces": [
+                        {
+                            "cidr": "10.241.64.0/24",
+                            "ipAddress": "10.241.64.13",
+                            "primary": true,
+                            "subnetID": "id:61"
+                        }
+                    ],
+                    "poolID": "clusterid:3-e972dbf",
+                    "poolName": "default"
                 }
-            ],
-            "poolID": "clusterid:3-e972dbf",
-            "poolName": "default"
+            ]
         }
     ],
     "collector_version": "0.5.2"
