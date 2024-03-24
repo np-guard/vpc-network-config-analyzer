@@ -126,7 +126,7 @@ func (g *GroupConnLines) findMergeCandidates(groupingSrcOrDst map[string][]*grou
 			subnetIfVsiVPCIfSubnet = getVPCUIDIfSubnet(lines[0].src)
 		}
 		if subnetIfVsiVPCIfSubnet != "" {
-			bucket += ";" + subnetIfVsiVPCIfSubnet
+			bucket += semicolon + subnetIfVsiVPCIfSubnet
 		}
 		if _, ok := bucketToKeys[bucket]; !ok {
 			bucketToKeys[bucket] = make(map[string]struct{})

@@ -353,7 +353,7 @@ func (g *GroupConnLines) groupLinesByKey(srcGrouping, groupVsi bool) (res []*gro
 // v1, v2 => v3 given that v1, v2 share the same subnet
 func getKeyOfGroupConnLines(grpIndex, grpTarget EndpointElem, connectionString string) string {
 	keyComponents := []string{grpIndex.Name(), connectionString, getSubnetOrVPCUID(grpTarget)}
-	return strings.Join(keyComponents, ";")
+	return strings.Join(keyComponents, semicolon)
 }
 
 // assuming the  g.groupedLines was already initialized by previous step groupExternalAddresses()
