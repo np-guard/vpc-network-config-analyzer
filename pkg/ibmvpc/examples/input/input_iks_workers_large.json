@@ -493,14 +493,14 @@
                     "href": "href:82",
                     "id": "id:83",
                     "lifecycle_state": "stable",
-                    "name": "iks-useast2-cjsal64w0g8rl335fso0-ef9",
+                    "name": "iks-useast2-clusterid:2-ef9",
                     "owner": "user",
                     "resource_type": "subnet_reserved_ip",
                     "target": {
                         "crn": "crn:84",
                         "href": "href:85",
                         "id": "id:86",
-                        "name": "iks-cjsal64w0g8rl335fso0",
+                        "name": "iks-clusterid:2",
                         "resource_type": "endpoint_gateway"
                     }
                 },
@@ -590,7 +590,7 @@
                         "crn": "crn:109",
                         "href": "href:110",
                         "id": "id:111",
-                        "name": "kube-cjsal64w0g8rl335fso0-83951794fa034062a2b4ebbfcb647e3b",
+                        "name": "kube-clusterid:2-83951794fa034062a2b4ebbfcb647e3b",
                         "resource_type": "load_balancer"
                     }
                 },
@@ -661,14 +661,14 @@
                     "href": "href:124",
                     "id": "id:125",
                     "lifecycle_state": "stable",
-                    "name": "iks-useast2-cnhl85aw0oueicsiqtk0-fd2",
+                    "name": "iks-useast2-clusterid:1-fd2",
                     "owner": "user",
                     "resource_type": "subnet_reserved_ip",
                     "target": {
                         "crn": "crn:126",
                         "href": "href:127",
                         "id": "id:128",
-                        "name": "iks-cnhl85aw0oueicsiqtk0",
+                        "name": "iks-clusterid:1",
                         "resource_type": "endpoint_gateway"
                     }
                 },
@@ -686,7 +686,7 @@
                         "crn": "crn:131",
                         "href": "href:132",
                         "id": "id:133",
-                        "name": "kube-cnhl85aw0oueicsiqtk0-1f88ede1db264aab9b79429787ad27e3",
+                        "name": "kube-clusterid:1-1f88ede1db264aab9b79429787ad27e3",
                         "resource_type": "load_balancer"
                     }
                 },
@@ -866,14 +866,14 @@
                     "href": "href:161",
                     "id": "id:162",
                     "lifecycle_state": "stable",
-                    "name": "iks-useast3-cjsal64w0g8rl335fso0-6be",
+                    "name": "iks-useast3-clusterid:2-6be",
                     "owner": "user",
                     "resource_type": "subnet_reserved_ip",
                     "target": {
                         "crn": "crn:84",
                         "href": "href:85",
                         "id": "id:86",
-                        "name": "iks-cjsal64w0g8rl335fso0",
+                        "name": "iks-clusterid:2",
                         "resource_type": "endpoint_gateway"
                     }
                 },
@@ -924,7 +924,7 @@
                         "crn": "crn:109",
                         "href": "href:110",
                         "id": "id:111",
-                        "name": "kube-cjsal64w0g8rl335fso0-83951794fa034062a2b4ebbfcb647e3b",
+                        "name": "kube-clusterid:2-83951794fa034062a2b4ebbfcb647e3b",
                         "resource_type": "load_balancer"
                     }
                 },
@@ -1013,14 +1013,14 @@
                     "href": "href:184",
                     "id": "id:185",
                     "lifecycle_state": "stable",
-                    "name": "iks-useast3-cnhl85aw0oueicsiqtk0-820",
+                    "name": "iks-useast3-clusterid:1-820",
                     "owner": "user",
                     "resource_type": "subnet_reserved_ip",
                     "target": {
                         "crn": "crn:126",
                         "href": "href:127",
                         "id": "id:128",
-                        "name": "iks-cnhl85aw0oueicsiqtk0",
+                        "name": "iks-clusterid:1",
                         "resource_type": "endpoint_gateway"
                     }
                 },
@@ -1038,7 +1038,7 @@
                         "crn": "crn:131",
                         "href": "href:132",
                         "id": "id:133",
-                        "name": "kube-cnhl85aw0oueicsiqtk0-1f88ede1db264aab9b79429787ad27e3",
+                        "name": "kube-clusterid:1-1f88ede1db264aab9b79429787ad27e3",
                         "resource_type": "load_balancer"
                     }
                 },
@@ -1215,14 +1215,14 @@
                     "href": "href:216",
                     "id": "id:217",
                     "lifecycle_state": "stable",
-                    "name": "iks-useast1-cjsal64w0g8rl335fso0-8b0",
+                    "name": "iks-useast1-clusterid:2-8b0",
                     "owner": "user",
                     "resource_type": "subnet_reserved_ip",
                     "target": {
                         "crn": "crn:84",
                         "href": "href:85",
                         "id": "id:86",
-                        "name": "iks-cjsal64w0g8rl335fso0",
+                        "name": "iks-clusterid:2",
                         "resource_type": "endpoint_gateway"
                     }
                 },
@@ -1365,14 +1365,14 @@
                     "href": "href:238",
                     "id": "id:239",
                     "lifecycle_state": "stable",
-                    "name": "iks-useast1-cnhl85aw0oueicsiqtk0-9a0",
+                    "name": "iks-useast1-clusterid:1-9a0",
                     "owner": "user",
                     "resource_type": "subnet_reserved_ip",
                     "target": {
                         "crn": "crn:126",
                         "href": "href:127",
                         "id": "id:128",
-                        "name": "iks-cnhl85aw0oueicsiqtk0",
+                        "name": "iks-clusterid:1",
                         "resource_type": "endpoint_gateway"
                     }
                 },
@@ -1798,7 +1798,7 @@
             "crn": "crn:270",
             "href": "href:271",
             "id": "id:272",
-            "name": "kube-cnhl85aw0oueicsiqtk0",
+            "name": "kube-clusterid:1",
             "resource_group": {
                 "href": "href:18",
                 "id": "id:19",
@@ -1889,7 +1889,7 @@
                         "crn": "crn:270",
                         "href": "href:271",
                         "id": "id:272",
-                        "name": "kube-cnhl85aw0oueicsiqtk0"
+                        "name": "kube-clusterid:1"
                     },
                     "protocol": "all"
                 },
@@ -1902,7 +1902,7 @@
                         "crn": "crn:270",
                         "href": "href:271",
                         "id": "id:272",
-                        "name": "kube-cnhl85aw0oueicsiqtk0"
+                        "name": "kube-clusterid:1"
                     },
                     "protocol": "all"
                 },
@@ -2502,7 +2502,7 @@
                 {
                     "href": "href:85",
                     "id": "id:86",
-                    "name": "iks-cjsal64w0g8rl335fso0",
+                    "name": "iks-clusterid:2",
                     "resource_type": "endpoint_gateway",
                     "crn": "crn:84"
                 },
@@ -2530,7 +2530,7 @@
                 {
                     "href": "href:127",
                     "id": "id:128",
-                    "name": "iks-cnhl85aw0oueicsiqtk0",
+                    "name": "iks-clusterid:1",
                     "resource_type": "endpoint_gateway",
                     "crn": "crn:126"
                 },
@@ -2544,14 +2544,14 @@
                 {
                     "href": "href:132",
                     "id": "id:133",
-                    "name": "kube-cnhl85aw0oueicsiqtk0-1f88ede1db264aab9b79429787ad27e3",
+                    "name": "kube-clusterid:1-1f88ede1db264aab9b79429787ad27e3",
                     "resource_type": "load_balancer",
                     "crn": "crn:131"
                 },
                 {
                     "href": "href:110",
                     "id": "id:111",
-                    "name": "kube-cjsal64w0g8rl335fso0-83951794fa034062a2b4ebbfcb647e3b",
+                    "name": "kube-clusterid:2-83951794fa034062a2b4ebbfcb647e3b",
                     "resource_type": "load_balancer",
                     "crn": "crn:109"
                 }
@@ -2570,7 +2570,7 @@
             "crn": "crn:389",
             "href": "href:390",
             "id": "id:391",
-            "name": "kube-cjsal64w0g8rl335fso0",
+            "name": "kube-clusterid:2",
             "resource_group": {
                 "href": "href:18",
                 "id": "id:19",
@@ -2661,7 +2661,7 @@
                         "crn": "crn:389",
                         "href": "href:390",
                         "id": "id:391",
-                        "name": "kube-cjsal64w0g8rl335fso0"
+                        "name": "kube-clusterid:2"
                     },
                     "protocol": "all"
                 },
@@ -2674,7 +2674,7 @@
                         "crn": "crn:389",
                         "href": "href:390",
                         "id": "id:391",
-                        "name": "kube-cjsal64w0g8rl335fso0"
+                        "name": "kube-clusterid:2"
                     },
                     "protocol": "all"
                 },
@@ -2988,27 +2988,27 @@
                     "address": "10.241.0.16",
                     "href": "href:238",
                     "id": "id:239",
-                    "name": "iks-useast1-cnhl85aw0oueicsiqtk0-9a0",
+                    "name": "iks-useast1-clusterid:1-9a0",
                     "resource_type": "subnet_reserved_ip"
                 },
                 {
                     "address": "10.241.128.16",
                     "href": "href:184",
                     "id": "id:185",
-                    "name": "iks-useast3-cnhl85aw0oueicsiqtk0-820",
+                    "name": "iks-useast3-clusterid:1-820",
                     "resource_type": "subnet_reserved_ip"
                 },
                 {
                     "address": "10.241.64.17",
                     "href": "href:124",
                     "id": "id:125",
-                    "name": "iks-useast2-cnhl85aw0oueicsiqtk0-fd2",
+                    "name": "iks-useast2-clusterid:1-fd2",
                     "resource_type": "subnet_reserved_ip"
                 }
             ],
             "lifecycle_reasons": null,
             "lifecycle_state": "stable",
-            "name": "iks-cnhl85aw0oueicsiqtk0",
+            "name": "iks-clusterid:1",
             "resource_group": {
                 "href": "href:18",
                 "id": "id:19",
@@ -3023,9 +3023,9 @@
                     "name": "kube-r014-ff10dabc-30e3-4559-b756-11842d2591aa"
                 }
             ],
-            "service_endpoint": "cnhl85aw0oueicsiqtk0.vpe.private.us-east.containers.cloud.ibm.com",
+            "service_endpoint": "clusterid:1.vpe.private.us-east.containers.cloud.ibm.com",
             "service_endpoints": [
-                "cnhl85aw0oueicsiqtk0.vpe.private.us-east.containers.cloud.ibm.com"
+                "clusterid:1.vpe.private.us-east.containers.cloud.ibm.com"
             ],
             "target": {
                 "crn": "crn:454",
@@ -3052,27 +3052,27 @@
                     "address": "10.241.128.7",
                     "href": "href:161",
                     "id": "id:162",
-                    "name": "iks-useast3-cjsal64w0g8rl335fso0-6be",
+                    "name": "iks-useast3-clusterid:2-6be",
                     "resource_type": "subnet_reserved_ip"
                 },
                 {
                     "address": "10.241.64.7",
                     "href": "href:82",
                     "id": "id:83",
-                    "name": "iks-useast2-cjsal64w0g8rl335fso0-ef9",
+                    "name": "iks-useast2-clusterid:2-ef9",
                     "resource_type": "subnet_reserved_ip"
                 },
                 {
                     "address": "10.241.0.7",
                     "href": "href:216",
                     "id": "id:217",
-                    "name": "iks-useast1-cjsal64w0g8rl335fso0-8b0",
+                    "name": "iks-useast1-clusterid:2-8b0",
                     "resource_type": "subnet_reserved_ip"
                 }
             ],
             "lifecycle_reasons": null,
             "lifecycle_state": "stable",
-            "name": "iks-cjsal64w0g8rl335fso0",
+            "name": "iks-clusterid:2",
             "resource_group": {
                 "href": "href:18",
                 "id": "id:19",
@@ -3087,9 +3087,9 @@
                     "name": "kube-r014-ff10dabc-30e3-4559-b756-11842d2591aa"
                 }
             ],
-            "service_endpoint": "cjsal64w0g8rl335fso0.vpe.private.us-east.containers.cloud.ibm.com",
+            "service_endpoint": "clusterid:2.vpe.private.us-east.containers.cloud.ibm.com",
             "service_endpoints": [
-                "cjsal64w0g8rl335fso0.vpe.private.us-east.containers.cloud.ibm.com"
+                "clusterid:2.vpe.private.us-east.containers.cloud.ibm.com"
             ],
             "target": {
                 "crn": "crn:455",
@@ -3776,7 +3776,7 @@
                     "active": false
                 }
             },
-            "name": "kube-cnhl85aw0oueicsiqtk0-1f88ede1db264aab9b79429787ad27e3",
+            "name": "kube-clusterid:1-1f88ede1db264aab9b79429787ad27e3",
             "operating_status": "online",
             "private_ips": [
                 {
@@ -4087,7 +4087,7 @@
                     "active": false
                 }
             },
-            "name": "kube-cjsal64w0g8rl335fso0-83951794fa034062a2b4ebbfcb647e3b",
+            "name": "kube-clusterid:2-83951794fa034062a2b4ebbfcb647e3b",
             "operating_status": "online",
             "private_ips": [
                 {
@@ -4474,21 +4474,21 @@
             "id": "clusterid:1",
             "imageSecurityEnabled": false,
             "ingress": {
-                "hostname": "vpccluster-fbf9b85b8723ac0e93a97b2497e37901-0000.us-south.containers.appdomain.cloud",
+                "hostname": "dnjolalaolaola",
                 "message": "Some Ingress components are in a warning state. To view the state of your Ingress components, run `ibmcloud ks ingress status-report get`.",
-                "secretName": "vpccluster-fbf9b85b8723ac0e93a97b2497e37901-0000",
+                "secretName": "olala",
                 "status": "warning"
             },
             "isPaid": true,
             "location": "Dallas",
             "masterKubeVersion": "1.29.2_1528",
-            "masterURL": "https://c108.us-south.containers.cloud.ibm.com:30112",
+            "masterURL": "https://ola22.com",
             "multiAzCapable": true,
             "name": "vpc_cluster",
             "podSubnet": "172.17.0.0/18",
             "provider": "vpc-gen2",
             "region": "us-south",
-            "resourceGroup": "16504898eefb4e56b0a644176122c602",
+            "resourceGroup": "ola",
             "resourceGroupName": "policy-as-code",
             "serviceSubnet": "172.21.0.0/16",
             "state": "normal",
@@ -4496,7 +4496,7 @@
             "targetVersion": "1.29.2_1528",
             "type": "kubernetes",
             "versionEOS": "",
-            "workerCount": 24,
+            "workerCount": 6,
             "WorkerNodes": [
                 {
                     "flavor": "bx2.4x16",
@@ -4531,7 +4531,7 @@
                             "subnetID": "id:195"
                         }
                     ],
-                    "poolID": "cnhl85aw0oueicsiqtk0-b5c0f87",
+                    "poolID": "clusterid:1-kansd",
                     "poolName": "default"
                 },
                 {
@@ -4567,7 +4567,7 @@
                             "subnetID": "id:141"
                         }
                     ],
-                    "poolID": "cnhl85aw0oueicsiqtk0-b5c0f87",
+                    "poolID": "clusterid:1-xjkcn",
                     "poolName": "default"
                 },
                 {
@@ -4603,7 +4603,7 @@
                             "subnetID": "id:61"
                         }
                     ],
-                    "poolID": "cnhl85aw0oueicsiqtk0-b5c0f87",
+                    "poolID": "clusterid:1-lksd",
                     "poolName": "default"
                 },
                 {
@@ -4639,7 +4639,7 @@
                             "subnetID": "id:195"
                         }
                     ],
-                    "poolID": "cnhl85aw0oueicsiqtk0-b5c0f87",
+                    "poolID": "clusterid:1-oiju9ew",
                     "poolName": "default"
                 },
                 {
@@ -4675,7 +4675,7 @@
                             "subnetID": "id:61"
                         }
                     ],
-                    "poolID": "cnhl85aw0oueicsiqtk0-b5c0f87",
+                    "poolID": "clusterid:1-e823",
                     "poolName": "default"
                 },
                 {
@@ -4711,9 +4711,48 @@
                             "subnetID": "id:141"
                         }
                     ],
-                    "poolID": "cnhl85aw0oueicsiqtk0-b5c0f87",
+                    "poolID": "clusterid:1-id93",
                     "poolName": "default"
-                },
+                }
+            ]
+        },
+        {
+            "caCertRotationStatus": {
+                "actionCompletedDate": "",
+                "actionTriggerDate": "",
+                "status": ""
+            },
+            "createdDate": "2024-03-21T13:03:37+0000",
+            "datacenter": "dal10",
+            "entitlement": "",
+            "etcdPort": "",
+            "id": "clusterid:1",
+            "imageSecurityEnabled": false,
+            "ingress": {
+                "hostname": "dnjsoacolaola",
+                "message": "Some Ingress components are in a warning state. To view the state of your Ingress components, run `ibmcloud ks ingress status-report get`.",
+                "secretName": "olala123",
+                "status": "warning"
+            },
+            "isPaid": true,
+            "location": "Dallas",
+            "masterKubeVersion": "1.29.2_1528",
+            "masterURL": "https://ola.com",
+            "multiAzCapable": true,
+            "name": "vpc_cluster",
+            "podSubnet": "172.17.0.0/18",
+            "provider": "vpc-gen2",
+            "region": "us-south",
+            "resourceGroup": "ola",
+            "resourceGroupName": "policy-as-code",
+            "serviceSubnet": "172.21.0.0/16",
+            "state": "normal",
+            "status": "All Workers Normal",
+            "targetVersion": "1.29.2_1528",
+            "type": "kubernetes",
+            "versionEOS": "",
+            "workerCount": 9,
+            "WorkerNodes": [
                 {
                     "flavor": "bx2.4x16",
                     "health": {
@@ -4747,7 +4786,7 @@
                             "subnetID": "id:195"
                         }
                     ],
-                    "poolID": "cjsal64w0g8rl335fso0-2b61204",
+                    "poolID": "clusterid:2-iend3",
                     "poolName": "default"
                 },
                 {
@@ -4783,7 +4822,7 @@
                             "subnetID": "id:195"
                         }
                     ],
-                    "poolID": "cjsal64w0g8rl335fso0-2b61204",
+                    "poolID": "clusterid:2-3idh",
                     "poolName": "default"
                 },
                 {
@@ -4819,7 +4858,7 @@
                             "subnetID": "id:195"
                         }
                     ],
-                    "poolID": "cjsal64w0g8rl335fso0-2b61204",
+                    "poolID": "clusterid:2-90j",
                     "poolName": "default"
                 },
                 {
@@ -4855,7 +4894,7 @@
                             "subnetID": "id:61"
                         }
                     ],
-                    "poolID": "cjsal64w0g8rl335fso0-2b61204",
+                    "poolID": "clusterid:2-def8743i",
                     "poolName": "default"
                 },
                 {
@@ -4891,7 +4930,7 @@
                             "subnetID": "id:61"
                         }
                     ],
-                    "poolID": "cjsal64w0g8rl335fso0-2b61204",
+                    "poolID": "clusterid:2-3ej9",
                     "poolName": "default"
                 },
                 {
@@ -4927,7 +4966,7 @@
                             "subnetID": "id:61"
                         }
                     ],
-                    "poolID": "cjsal64w0g8rl335fso0-2b61204",
+                    "poolID": "clusterid:2-k9j8h7g",
                     "poolName": "default"
                 },
                 {
@@ -4963,7 +5002,7 @@
                             "subnetID": "id:141"
                         }
                     ],
-                    "poolID": "cjsal64w0g8rl335fso0-2b61204",
+                    "poolID": "clusterid:2-3s4dft",
                     "poolName": "default"
                 },
                 {
@@ -4999,7 +5038,7 @@
                             "subnetID": "id:141"
                         }
                     ],
-                    "poolID": "cjsal64w0g8rl335fso0-2b61204",
+                    "poolID": "clusterid:2-nbhyt",
                     "poolName": "default"
                 },
                 {
@@ -5035,9 +5074,48 @@
                             "subnetID": "id:141"
                         }
                     ],
-                    "poolID": "cjsal64w0g8rl335fso0-2b61204",
+                    "poolID": "clusterid:2-987g",
                     "poolName": "default"
-                },
+                }
+            ]
+        },
+        {
+            "caCertRotationStatus": {
+                "actionCompletedDate": "",
+                "actionTriggerDate": "",
+                "status": ""
+            },
+            "createdDate": "2024-03-21T13:03:37+0000",
+            "datacenter": "dal10",
+            "entitlement": "",
+            "etcdPort": "",
+            "id": "clusterid:3",
+            "imageSecurityEnabled": false,
+            "ingress": {
+                "hostname": "dnjsckjjkmlodncolaola",
+                "message": "Some Ingress components are in a warning state. To view the state of your Ingress components, run `ibmcloud ks ingress status-report get`.",
+                "secretName": "jhkihiu",
+                "status": "warning"
+            },
+            "isPaid": true,
+            "location": "Dallas",
+            "masterKubeVersion": "1.29.2_1528",
+            "masterURL": "https://olala.com",
+            "multiAzCapable": true,
+            "name": "vpc_cluster",
+            "podSubnet": "172.17.0.0/18",
+            "provider": "vpc-gen2",
+            "region": "us-south",
+            "resourceGroup": "ola",
+            "resourceGroupName": "policy-as-code",
+            "serviceSubnet": "172.21.0.0/16",
+            "state": "normal",
+            "status": "All Workers Normal",
+            "targetVersion": "1.29.2_1528",
+            "type": "kubernetes",
+            "versionEOS": "",
+            "workerCount": 9,
+            "WorkerNodes": [
                 {
                     "flavor": "bx2.4x16",
                     "health": {
@@ -5071,7 +5149,7 @@
                             "subnetID": "id:195"
                         }
                     ],
-                    "poolID": "clusterid:3-e972dbf",
+                    "poolID": "clusterid:3-8uijk",
                     "poolName": "default"
                 },
                 {
@@ -5107,7 +5185,7 @@
                             "subnetID": "id:195"
                         }
                     ],
-                    "poolID": "clusterid:3-e972dbf",
+                    "poolID": "clusterid:3-8ihnj",
                     "poolName": "default"
                 },
                 {
@@ -5143,7 +5221,7 @@
                             "subnetID": "id:195"
                         }
                     ],
-                    "poolID": "clusterid:3-e972dbf",
+                    "poolID": "clusterid:3-4d5fyg",
                     "poolName": "default"
                 },
                 {
@@ -5179,7 +5257,7 @@
                             "subnetID": "id:141"
                         }
                     ],
-                    "poolID": "clusterid:3-e972dbf",
+                    "poolID": "clusterid:3-f56g7h8j",
                     "poolName": "default"
                 },
                 {
@@ -5215,7 +5293,7 @@
                             "subnetID": "id:141"
                         }
                     ],
-                    "poolID": "clusterid:3-e972dbf",
+                    "poolID": "clusterid:3-9yt",
                     "poolName": "default"
                 },
                 {
@@ -5251,7 +5329,7 @@
                             "subnetID": "id:141"
                         }
                     ],
-                    "poolID": "clusterid:3-e972dbf",
+                    "poolID": "clusterid:3-34d5f6",
                     "poolName": "default"
                 },
                 {
@@ -5287,7 +5365,7 @@
                             "subnetID": "id:61"
                         }
                     ],
-                    "poolID": "clusterid:3-e972dbf",
+                    "poolID": "clusterid:3-jhvcxjn",
                     "poolName": "default"
                 },
                 {
@@ -5323,7 +5401,7 @@
                             "subnetID": "id:61"
                         }
                     ],
-                    "poolID": "clusterid:3-e972dbf",
+                    "poolID": "clusterid:3-09uihnjk",
                     "poolName": "default"
                 },
                 {
@@ -5359,7 +5437,7 @@
                             "subnetID": "id:61"
                         }
                     ],
-                    "poolID": "clusterid:3-e972dbf",
+                    "poolID": "clusterid:3-xdfcvg",
                     "poolName": "default"
                 }
             ]

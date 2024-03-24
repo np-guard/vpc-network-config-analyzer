@@ -2211,7 +2211,7 @@
             "crn": "crn:284",
             "href": "href:285",
             "id": "id:286",
-            "name": "kube-ciui60sd0qqbef35up90",
+            "name": "kube-clusterid:1",
             "resource_group": {
                 "href": "href:15",
                 "id": "id:16",
@@ -3074,21 +3074,21 @@
             "id": "clusterid:1",
             "imageSecurityEnabled": false,
             "ingress": {
-                "hostname": "vpccluster-fbf9b85b8723ac0e93a97b2497e37901-0000.us-south.containers.appdomain.cloud",
+                "hostname": "dnjsckjdscodncolaola",
                 "message": "Some Ingress components are in a warning state. To view the state of your Ingress components, run `ibmcloud ks ingress status-report get`.",
-                "secretName": "vpccluster-fbf9b85b8723ac0e93a97b2497e37901-0000",
+                "secretName": "kdnscvdsa-0000",
                 "status": "warning"
             },
             "isPaid": true,
             "location": "Dallas",
             "masterKubeVersion": "1.29.2_1528",
-            "masterURL": "https://c108.us-south.containers.cloud.ibm.com:30112",
+            "masterURL": "https://ola.com",
             "multiAzCapable": true,
             "name": "vpc_cluster",
             "podSubnet": "172.17.0.0/18",
             "provider": "vpc-gen2",
             "region": "us-south",
-            "resourceGroup": "16504898eefb4e56b0a644176122c602",
+            "resourceGroup": "olala",
             "resourceGroupName": "policy-as-code",
             "serviceSubnet": "172.21.0.0/16",
             "state": "normal",
@@ -3131,7 +3131,7 @@
                             "subnetID": "id:115"
                         }
                     ],
-                    "poolID": "ciui60sd0qqbef35up90-87aeca0",
+                    "poolID": "clusterid:1-ola3242",
                     "poolName": "default"
                 },
                 {
@@ -3167,7 +3167,7 @@
                             "subnetID": "id:207"
                         }
                     ],
-                    "poolID": "ciui60sd0qqbef35up90-87aeca0",
+                    "poolID": "clusterid:1-ola767i8",
                     "poolName": "default"
                 },
                 {
@@ -3203,7 +3203,7 @@
                             "subnetID": "id:181"
                         }
                     ],
-                    "poolID": "ciui60sd0qqbef35up90-87aeca0",
+                    "poolID": "clusterid:1-ola78679",
                     "poolName": "default"
                 },
                 {
@@ -3239,7 +3239,7 @@
                             "subnetID": "id:99"
                         }
                     ],
-                    "poolID": "ciui60sd0qqbef35up90-4972239",
+                    "poolID": "clusterid:1-ruif389",
                     "poolName": "private_vpc_pool_ky"
                 },
                 {
@@ -3275,7 +3275,7 @@
                             "subnetID": "id:139"
                         }
                     ],
-                    "poolID": "ciui60sd0qqbef35up90-4972239",
+                    "poolID": "clusterid:1-ljdewu",
                     "poolName": "private_vpc_pool_ky"
                 },
                 {
@@ -3311,7 +3311,7 @@
                             "subnetID": "id:67"
                         }
                     ],
-                    "poolID": "ciui60sd0qqbef35up90-4972239",
+                    "poolID": "clusterid:1-uihfer",
                     "poolName": "private_vpc_pool_ky"
                 },
                 {
@@ -3347,7 +3347,7 @@
                             "subnetID": "id:19"
                         }
                     ],
-                    "poolID": "ciui60sd0qqbef35up90-03a1052",
+                    "poolID": "clusterid:1-8743",
                     "poolName": "transit_vpc_pool_ky"
                 },
                 {
@@ -3383,7 +3383,7 @@
                             "subnetID": "id:51"
                         }
                     ],
-                    "poolID": "ciui60sd0qqbef35up90-03a1052",
+                    "poolID": "clusterid:1-doifh9843",
                     "poolName": "transit_vpc_pool_ky"
                 },
                 {
@@ -3419,7 +3419,7 @@
                             "subnetID": "id:35"
                         }
                     ],
-                    "poolID": "ciui60sd0qqbef35up90-03a1052",
+                    "poolID": "clusterid:1-kdsnf93",
                     "poolName": "transit_vpc_pool_ky"
                 }
             ]
