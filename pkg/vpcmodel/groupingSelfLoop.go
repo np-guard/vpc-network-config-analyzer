@@ -87,12 +87,8 @@ func (g *GroupConnLines) relevantKeysToCompare(groupingSrcOrDst map[string][]*gr
 		if lines[0].isSrcOrDstExternalNodes() {
 			continue
 		}
-		// if vsi then the subnets must be equal; if not vsis then empty string equals empty string
-		if getSubnetUIDIfVsi(lines[0].src) != getSubnetUIDIfVsi(lines[0].dst) {
-			continue
-		}
-		// if subnets then the vpc must be equal; if not subnets then empty string equals empty string
-		if getVPCUIDIfSubnet(lines[0].src) != getVPCUIDIfSubnet(lines[0].dst) {
+		// if vsi then the subnets of src and dst must be equal; similarly if subnet then vpcs must be equal
+		if getSubnetOrVPCUID(lines[0].src) != getSubnetOrVPCUID(lines[0].dst) {
 			continue
 		}
 		relevantKeys = append(relevantKeys, key)
@@ -121,13 +117,8 @@ func (g *GroupConnLines) findMergeCandidates(groupingSrcOrDst map[string][]*grou
 	for _, key := range relevantKeys {
 		lines := groupingSrcOrDst[key]
 		bucket := lines[0].commonProperties.groupingStrKey
-		subnetIfVsiVPCIfSubnet := getSubnetUIDIfVsi(lines[0].src)
-		if subnetIfVsiVPCIfSubnet == "" {
-			subnetIfVsiVPCIfSubnet = getVPCUIDIfSubnet(lines[0].src)
-		}
-		if subnetIfVsiVPCIfSubnet != "" {
-			bucket += semicolon + subnetIfVsiVPCIfSubnet
-		}
+		subnetIfVsiVPCIfSubnet := getSubnetOrVPCUID(lines[0].src)
+		bucket += semicolon + subnetIfVsiVPCIfSubnet
 		if _, ok := bucketToKeys[bucket]; !ok {
 			bucketToKeys[bucket] = make(map[string]struct{})
 		}
@@ -182,6 +173,16 @@ func getSubnetUIDIfVsi(ep EndpointElem) string {
 	return ""
 }
 
+// if ep is a subnet or a group of subnets, gets its vpc
+// (if its a group of subnets then they all have the same vpc by grouping rule)
+func getVPCUIDIfSubnet(ep EndpointElem) string {
+	if isSubnet, nodeSet := isEpSubnet(ep); isSubnet {
+		// if ep is groupedEndpointsElems of vsis then all belong to the same subnet
+		return nodeSet.VPC().UID()
+	}
+	return ""
+}
+
 // input: Endpoint
 // output: <bool, node>:
 // if the endpoint element represents a vsi or is a slice of elements the first of which represents vsi
@@ -203,16 +204,6 @@ func isEpVsi(ep EndpointElem) (bool, InternalNodeIntf) {
 		}
 	}
 	return false, nil
-}
-
-// if ep is a subnet or a group of subnets, gets its vpc
-// (if its a group of subnets then they all have the same vpc by grouping rule)
-func getVPCUIDIfSubnet(ep EndpointElem) string {
-	if isSubnet, nodeSet := isEpSubnet(ep); isSubnet {
-		// if ep is groupedEndpointsElems of vsis then all belong to the same subnet
-		return nodeSet.VPC().UID()
-	}
-	return ""
 }
 
 // input: Endpoint
