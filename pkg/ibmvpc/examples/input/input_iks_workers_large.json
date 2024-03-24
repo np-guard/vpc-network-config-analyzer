@@ -4496,7 +4496,7 @@
             "targetVersion": "1.29.2_1528",
             "type": "kubernetes",
             "versionEOS": "",
-            "workerCount": 9,
+            "workerCount": 24,
             "WorkerNodes": [
                 {
                     "flavor": "bx2.4x16",
