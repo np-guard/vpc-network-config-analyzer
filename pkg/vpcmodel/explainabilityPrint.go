@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+	"github.com/np-guard/models/pkg/connection"
 )
 
 const arrow = " -> "
@@ -58,7 +58,7 @@ func (explanation *Explanation) String(verbose bool) string {
 
 // main printing function for a *rulesAndConnDetails <src, dst> line (before grouping); calls explainabilityLineStr
 // used only for testing; the txt and debug output are through grouping results
-func (details *rulesAndConnDetails) String(c *VPCConfig, verbose bool, connQuery *common.ConnectionSet) (string, error) {
+func (details *rulesAndConnDetails) String(c *VPCConfig, verbose bool, connQuery *connection.Set) (string, error) {
 	resStr := ""
 	for _, srcDstDetails := range *details {
 		resStr += explainabilityLineStr(verbose, c, srcDstDetails.filtersRelevant, connQuery,
@@ -69,8 +69,8 @@ func (details *rulesAndConnDetails) String(c *VPCConfig, verbose bool, connQuery
 }
 
 // prints a single line of <src, dst>. Called either with grouping results or from the original struct before grouping
-func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[string]bool, connQuery *common.ConnectionSet,
-	src, dst EndpointElem, conn *common.ConnectionSet, ingressEnabled, egressEnabled bool,
+func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[string]bool, connQuery *connection.Set,
+	src, dst EndpointElem, conn *connection.Set, ingressEnabled, egressEnabled bool,
 	router RoutingResource, rules *rulesConnection) string {
 	needEgress := !src.IsExternal()
 	needIngress := !dst.IsExternal()
@@ -111,7 +111,7 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 }
 
 // returns string of header in case a connection fails to exist
-func noConnectionHeader(src, dst string, connQuery *common.ConnectionSet) string {
+func noConnectionHeader(src, dst string, connQuery *connection.Set) string {
 	if connQuery == nil {
 		return fmt.Sprintf("No connection between %v and %v;", src, dst)
 	}
@@ -121,8 +121,8 @@ func noConnectionHeader(src, dst string, connQuery *common.ConnectionSet) string
 // return a string with the described existing connection and relevant details w.r.t. the potential query
 // e.g.: "Connection protocol: UDP src-ports: 1-600 dst-ports: 1-50 exists between vsi1-ky[10.240.10.4]
 // and Public Internet 161.26.0.0/16 (note that not all queried protocols/ports are allowed)"
-func existingConnectionStr(connQuery *common.ConnectionSet, src, dst EndpointElem,
-	conn *common.ConnectionSet, filtersEffectStr, rulesStr string) string {
+func existingConnectionStr(connQuery *connection.Set, src, dst EndpointElem,
+	conn *connection.Set, filtersEffectStr, rulesStr string) string {
 	resStr := ""
 	if connQuery == nil {
 		resStr = fmt.Sprintf("The following connection exists between %v and %v: %v\n", src.Name(), dst.Name(),
