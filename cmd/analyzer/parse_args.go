@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/np-guard/cloud-resource-collector/pkg/factory"
-
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+	"github.com/np-guard/models/pkg/connection"
+	"github.com/np-guard/models/pkg/netp"
 )
 
 type regionList []string
@@ -217,10 +217,10 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args.ESrc = flagset.String(ESrc, "", "Source "+srcDstUsage)
 	args.EDst = flagset.String(EDst, "", "Destination "+srcDstUsage)
 	args.EProtocol = flagset.String(EProtocol, "", "Protocol for connection description")
-	args.ESrcMinPort = flagset.Int64(ESrcMinPort, common.MinPort, "Minimum source port for connection description")
-	args.ESrcMaxPort = flagset.Int64(ESrcMaxPort, common.MaxPort, "Maximum source port for connection description")
-	args.EDstMinPort = flagset.Int64(EDstMinPort, common.MinPort, "Minimum destination port for connection description")
-	args.EDstMaxPort = flagset.Int64(EDstMaxPort, common.MaxPort, "Maximum destination port for connection description")
+	args.ESrcMinPort = flagset.Int64(ESrcMinPort, connection.MinPort, "Minimum source port for connection description")
+	args.ESrcMaxPort = flagset.Int64(ESrcMaxPort, connection.MaxPort, "Maximum source port for connection description")
+	args.EDstMinPort = flagset.Int64(EDstMinPort, connection.MinPort, "Minimum destination port for connection description")
+	args.EDstMaxPort = flagset.Int64(EDstMaxPort, connection.MaxPort, "Maximum destination port for connection description")
 	args.Provider = flagset.String(Provider, "", "Collect resources from an account in this cloud provider")
 	args.ResourceGroup = flagset.String(ResourceGroup, "", "Resource group id or name from which to collect resources")
 	flagset.Var(&args.RegionList, "region", "Cloud region from which to collect resources")
@@ -275,7 +275,7 @@ func wereExplainParamsSpecified(flagset *flag.FlagSet, flagNames []string) bool 
 }
 
 func PortInRange(port int64) bool {
-	if port > common.MaxPort || port < common.MinPort {
+	if port > connection.MaxPort || port < connection.MinPort {
 		return false
 	}
 
@@ -303,7 +303,7 @@ func validRangeConnectionExplainMode(args *InArgs) error {
 	if !PortInRange(*args.ESrcMinPort) || !PortInRange(*args.ESrcMaxPort) ||
 		!PortInRange(*args.EDstMinPort) || !PortInRange(*args.EDstMaxPort) {
 		return fmt.Errorf("%s, %s, %s and %s must be in ranges [%d, %d]",
-			ESrcMinPort, ESrcMaxPort, EDstMinPort, EDstMaxPort, common.MinPort, common.MaxPort)
+			ESrcMinPort, ESrcMaxPort, EDstMinPort, EDstMaxPort, connection.MinPort, connection.MaxPort)
 	}
 
 	return nil
@@ -331,7 +331,9 @@ func invalidArgsExplainMode(args *InArgs, flagset *flag.FlagSet) error {
 	}
 
 	protocol := strings.ToUpper(*args.EProtocol)
-	if protocol != string(common.ProtocolTCP) && protocol != string(common.ProtocolUDP) && protocol != string(common.ProtocolICMP) {
+	if protocol != string(netp.ProtocolStringTCP) &&
+		protocol != string(netp.ProtocolStringUDP) &&
+		protocol != string(netp.ProtocolStringICMP) {
 		return fmt.Errorf("wrong connection description protocol '%s'; must be one of: 'TCP, UDP, ICMP'", protocol)
 	}
 	args.EProtocol = &protocol

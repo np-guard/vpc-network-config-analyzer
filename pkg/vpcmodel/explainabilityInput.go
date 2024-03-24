@@ -5,9 +5,9 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/ipblock"
-
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+	"github.com/np-guard/models/pkg/netp"
 )
 
 type ExplanationArgs struct {
@@ -166,20 +166,19 @@ func (configsMap MultipleVPCConfigs) matchMoreThanOneCfgErr(src, dst string,
 
 // GetConnectionSet TODO: handle also input ICMP properties (type, code) as input args
 // translates explanation args to a connection set
-func (e *ExplanationArgs) GetConnectionSet() *common.ConnectionSet {
+func (e *ExplanationArgs) GetConnectionSet() *connection.Set {
 	if e.protocol == "" {
 		return nil
 	}
-	connection := common.NewConnectionSet(false)
-	if common.ProtocolStr(e.protocol) == common.ProtocolICMP {
-		connection.AddICMPConnection(common.MinICMPtype, common.MaxICMPtype,
-			common.MinICMPcode, common.MaxICMPcode)
-	} else {
-		connection.AddTCPorUDPConn(common.ProtocolStr(e.protocol), e.srcMinPort,
-			e.srcMaxPort, e.dstMinPort, e.dstMaxPort)
+	switch p := netp.ProtocolString(e.protocol); p {
+	case netp.ProtocolStringICMP:
+		return connection.ICMPConnection(
+			connection.MinICMPType, connection.MaxICMPType,
+			connection.MinICMPCode, connection.MaxICMPCode)
+	default:
+		return connection.TCPorUDPConnection(p,
+			e.srcMinPort, e.srcMaxPort, e.dstMinPort, e.dstMaxPort)
 	}
-
-	return connection
 }
 
 // given src and dst input and a VPCConfigs finds the []nodes they represent in the config

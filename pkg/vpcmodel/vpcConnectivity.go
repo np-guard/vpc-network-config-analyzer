@@ -1,9 +1,8 @@
 package vpcmodel
 
 import (
+	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/ipblock"
-
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 // VPCConnectivity holds detailed representation of allowed connectivity considering all resources in a vpc config1 instance
@@ -42,11 +41,11 @@ type VPCConnectivity struct {
 // The ConnectivityResult holds the allowed ingress and egress connections (to/from the associated node)
 // with other Node objects and the connection attributes for each such node
 type ConnectivityResult struct {
-	IngressAllowedConns map[Node]*common.ConnectionSet
-	EgressAllowedConns  map[Node]*common.ConnectionSet
+	IngressAllowedConns map[Node]*connection.Set
+	EgressAllowedConns  map[Node]*connection.Set
 }
 
-func (cr *ConnectivityResult) ingressOrEgressAllowedConns(isIngress bool) map[Node]*common.ConnectionSet {
+func (cr *ConnectivityResult) ingressOrEgressAllowedConns(isIngress bool) map[Node]*connection.Set {
 	if isIngress {
 		return cr.IngressAllowedConns
 	}
@@ -57,21 +56,21 @@ func (cr *ConnectivityResult) ingressOrEgressAllowedConns(isIngress bool) map[No
 // It is associated with a subnet when analyzing connectivity of subnets based on NACL resources
 // (see func (nl *NaclLayer) ConnectivityMap() )
 type IPbasedConnectivityResult struct {
-	IngressAllowedConns map[*ipblock.IPBlock]*common.ConnectionSet
-	EgressAllowedConns  map[*ipblock.IPBlock]*common.ConnectionSet
+	IngressAllowedConns map[*ipblock.IPBlock]*connection.Set
+	EgressAllowedConns  map[*ipblock.IPBlock]*connection.Set
 }
 
 // ConfigBasedConnectivityResults is used to capture allowed connectivity to/from elements in the vpc config1 (subnets / external ip-blocks)
 // It is associated with a subnet when analyzing connectivity of subnets based on NACL resources
 type ConfigBasedConnectivityResults struct {
-	IngressAllowedConns map[VPCResourceIntf]*common.ConnectionSet
-	EgressAllowedConns  map[VPCResourceIntf]*common.ConnectionSet
+	IngressAllowedConns map[VPCResourceIntf]*connection.Set
+	EgressAllowedConns  map[VPCResourceIntf]*connection.Set
 }
 
 func NewConfigBasedConnectivityResults() *ConfigBasedConnectivityResults {
 	return &ConfigBasedConnectivityResults{
-		IngressAllowedConns: map[VPCResourceIntf]*common.ConnectionSet{},
-		EgressAllowedConns:  map[VPCResourceIntf]*common.ConnectionSet{},
+		IngressAllowedConns: map[VPCResourceIntf]*connection.Set{},
+		EgressAllowedConns:  map[VPCResourceIntf]*connection.Set{},
 	}
 }
 
@@ -99,7 +98,7 @@ func (v *VPCConnectivity) SplitAllowedConnsToUnidirectionalAndBidirectional() (
 	return bidirectional, unidirectional
 }
 
-func (connectivityMap GeneralConnectivityMap) getAllowedConnForPair(src, dst VPCResourceIntf) *common.ConnectionSet {
+func (connectivityMap GeneralConnectivityMap) getAllowedConnForPair(src, dst VPCResourceIntf) *connection.Set {
 	if connsMap, ok := connectivityMap[src]; ok {
 		if conn, ok := connsMap[dst]; ok {
 			return conn

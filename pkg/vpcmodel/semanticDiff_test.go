@@ -8,7 +8,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+	"github.com/np-guard/models/pkg/connection"
+	"github.com/np-guard/models/pkg/netp"
 )
 
 // simple diff:
@@ -58,20 +59,19 @@ func configSimpleSubnetDiff() (subnetConfigConn1, subnetConfigConn2 *configConne
 		&mockSubnet{nil, "10.4.20.0/22", "subnet4", []Node{cfg2.Nodes[2]}},
 		&mockSubnet{nil, "11.4.20.0/22", "subnet5", []Node{cfg2.Nodes[3]}})
 
-	connectionTCP := common.NewConnectionSet(false)
-	connectionTCP.AddTCPorUDPConn(common.ProtocolTCP, 10, 100, 443, 443)
+	connectionTCP := connection.TCPorUDPConnection(netp.ProtocolStringTCP, 10, 100, 443, 443)
 	subnetConnMap1 := &VPCsubnetConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
-	subnetConnMap1.AllowedConnsCombined.updateAllowedConnsMap(cfg1.Subnets[0], cfg1.Subnets[1], common.NewConnectionSet(true))
-	subnetConnMap1.AllowedConnsCombined.updateAllowedConnsMap(cfg1.Subnets[1], cfg1.Subnets[2], common.NewConnectionSet(true))
-	subnetConnMap1.AllowedConnsCombined.updateAllowedConnsMap(cfg1.Subnets[3], cfg1.Subnets[1], common.NewConnectionSet(true))
-	subnetConnMap1.AllowedConnsCombined.updateAllowedConnsMap(cfg1.Subnets[2], cfg1.Subnets[3], common.NewConnectionSet(true))
-	subnetConnMap1.AllowedConnsCombined.updateAllowedConnsMap(cfg1.Subnets[3], cfg1.Subnets[2], common.NewConnectionSet(true))
+	subnetConnMap1.AllowedConnsCombined.updateAllowedConnsMap(cfg1.Subnets[0], cfg1.Subnets[1], connection.All())
+	subnetConnMap1.AllowedConnsCombined.updateAllowedConnsMap(cfg1.Subnets[1], cfg1.Subnets[2], connection.All())
+	subnetConnMap1.AllowedConnsCombined.updateAllowedConnsMap(cfg1.Subnets[3], cfg1.Subnets[1], connection.All())
+	subnetConnMap1.AllowedConnsCombined.updateAllowedConnsMap(cfg1.Subnets[2], cfg1.Subnets[3], connection.All())
+	subnetConnMap1.AllowedConnsCombined.updateAllowedConnsMap(cfg1.Subnets[3], cfg1.Subnets[2], connection.All())
 	subnetConnMap1.AllowedConnsCombined.updateAllowedConnsMap(cfg1.Subnets[3], cfg1.Subnets[4], connectionTCP)
 
 	subnetConnMap2 := &VPCsubnetConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
-	subnetConnMap2.AllowedConnsCombined.updateAllowedConnsMap(cfg2.Subnets[1], cfg2.Subnets[0], common.NewConnectionSet(true))
-	subnetConnMap2.AllowedConnsCombined.updateAllowedConnsMap(cfg2.Subnets[1], cfg2.Subnets[2], common.NewConnectionSet(true))
-	subnetConnMap2.AllowedConnsCombined.updateAllowedConnsMap(cfg2.Subnets[2], cfg2.Subnets[3], common.NewConnectionSet(true))
+	subnetConnMap2.AllowedConnsCombined.updateAllowedConnsMap(cfg2.Subnets[1], cfg2.Subnets[0], connection.All())
+	subnetConnMap2.AllowedConnsCombined.updateAllowedConnsMap(cfg2.Subnets[1], cfg2.Subnets[2], connection.All())
+	subnetConnMap2.AllowedConnsCombined.updateAllowedConnsMap(cfg2.Subnets[2], cfg2.Subnets[3], connection.All())
 
 	subnetConfigConn1 = &configConnectivity{cfg1, subnetConnMap1.AllowedConnsCombined}
 	subnetConfigConn2 = &configConnectivity{cfg2, subnetConnMap2.AllowedConnsCombined}
@@ -168,19 +168,18 @@ func configSimpleIPAndSubnetDiff() (subnetConfigConn1, subnetConfigConn2 *config
 	// <public1-1, subnet2> 			 and 		<public2-1, subnet2> are comparable
 	// <public1-1, subnet1> 			 and 		<public2-1, subnet1> are comparable
 	subnetConnMap1 := &VPCsubnetConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
-	subnetConnMap1.AllowedConnsCombined.updateAllowedConnsMap(cfg1.Nodes[0], cfg1.Subnets[0], common.NewConnectionSet(true))
-	subnetConnMap1.AllowedConnsCombined.updateAllowedConnsMap(cfg1.Nodes[0], cfg1.Subnets[1], common.NewConnectionSet(true))
-	subnetConnMap1.AllowedConnsCombined.updateAllowedConnsMap(cfg1.Nodes[1], cfg1.Subnets[1], common.NewConnectionSet(true))
-	subnetConnMap1.AllowedConnsCombined.updateAllowedConnsMap(cfg1.Subnets[1], cfg1.Nodes[0], common.NewConnectionSet(true))
-	subnetConnMap1.AllowedConnsCombined.updateAllowedConnsMap(cfg1.Subnets[1], cfg1.Nodes[2], common.NewConnectionSet(true))
+	subnetConnMap1.AllowedConnsCombined.updateAllowedConnsMap(cfg1.Nodes[0], cfg1.Subnets[0], connection.All())
+	subnetConnMap1.AllowedConnsCombined.updateAllowedConnsMap(cfg1.Nodes[0], cfg1.Subnets[1], connection.All())
+	subnetConnMap1.AllowedConnsCombined.updateAllowedConnsMap(cfg1.Nodes[1], cfg1.Subnets[1], connection.All())
+	subnetConnMap1.AllowedConnsCombined.updateAllowedConnsMap(cfg1.Subnets[1], cfg1.Nodes[0], connection.All())
+	subnetConnMap1.AllowedConnsCombined.updateAllowedConnsMap(cfg1.Subnets[1], cfg1.Nodes[2], connection.All())
 
 	subnetConnMap2 := &VPCsubnetConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
-	subnetConnMap2.AllowedConnsCombined.updateAllowedConnsMap(cfg2.Nodes[0], cfg2.Subnets[0], common.NewConnectionSet(true))
-	subnetConnMap2.AllowedConnsCombined.updateAllowedConnsMap(cfg2.Nodes[0], cfg2.Subnets[1], common.NewConnectionSet(true))
-	subnetConnMap2.AllowedConnsCombined.updateAllowedConnsMap(cfg2.Nodes[1], cfg2.Subnets[1], common.NewConnectionSet(true))
-	subnetConnMap2.AllowedConnsCombined.updateAllowedConnsMap(cfg2.Subnets[1], cfg2.Nodes[0], common.NewConnectionSet(true))
-	connectionTCP := common.NewConnectionSet(false)
-	connectionTCP.AddTCPorUDPConn(common.ProtocolTCP, 0, 1000, 0, 443)
+	subnetConnMap2.AllowedConnsCombined.updateAllowedConnsMap(cfg2.Nodes[0], cfg2.Subnets[0], connection.All())
+	subnetConnMap2.AllowedConnsCombined.updateAllowedConnsMap(cfg2.Nodes[0], cfg2.Subnets[1], connection.All())
+	subnetConnMap2.AllowedConnsCombined.updateAllowedConnsMap(cfg2.Nodes[1], cfg2.Subnets[1], connection.All())
+	subnetConnMap2.AllowedConnsCombined.updateAllowedConnsMap(cfg2.Subnets[1], cfg2.Nodes[0], connection.All())
+	connectionTCP := connection.TCPorUDPConnection(netp.ProtocolStringTCP, 0, 1000, 0, 443)
 	subnetConnMap2.AllowedConnsCombined.updateAllowedConnsMap(cfg2.Subnets[1], cfg2.Nodes[2], connectionTCP)
 
 	subnetConfigConn1 = &configConnectivity{cfg1, subnetConnMap1.AllowedConnsCombined}
@@ -283,22 +282,21 @@ func configSimpleVsisDiff() (configConn1, configConn2 *configConnectivity) {
 	cfg2.Subnets = append(cfg2.Subnets, &mockSubnet{nil, "10.0.20.0/22", "subnet0", []Node{cfg2.Nodes[0], cfg2.Nodes[1],
 		cfg2.Nodes[2], cfg2.Nodes[3]}})
 
-	connectionTCP := common.NewConnectionSet(false)
-	connectionTCP.AddTCPorUDPConn(common.ProtocolTCP, 10, 100, 443, 443)
+	connectionTCP := connection.TCPorUDPConnection(netp.ProtocolStringTCP, 10, 100, 443, 443)
 	cfg1Conn := &VPCConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
-	cfg1Conn.AllowedConnsCombined.updateAllowedConnsMap(cfg1.Nodes[0], cfg1.Nodes[1], common.NewConnectionSet(true))
-	cfg1Conn.AllowedConnsCombined.updateAllowedConnsMap(cfg1.Nodes[1], cfg1.Nodes[2], common.NewConnectionSet(true))
-	cfg1Conn.AllowedConnsCombined.updateAllowedConnsMap(cfg1.Nodes[1], cfg1.Nodes[3], common.NewConnectionSet(true))
+	cfg1Conn.AllowedConnsCombined.updateAllowedConnsMap(cfg1.Nodes[0], cfg1.Nodes[1], connection.All())
+	cfg1Conn.AllowedConnsCombined.updateAllowedConnsMap(cfg1.Nodes[1], cfg1.Nodes[2], connection.All())
+	cfg1Conn.AllowedConnsCombined.updateAllowedConnsMap(cfg1.Nodes[1], cfg1.Nodes[3], connection.All())
 	cfg1Conn.AllowedConnsCombined.updateAllowedConnsMap(cfg1.Nodes[2], cfg1.Nodes[3], connectionTCP)
 	cfg1Conn.AllowedConnsCombined.updateAllowedConnsMap(cfg1.Nodes[2], cfg1.Nodes[4], connectionTCP)
 
 	cfg2Conn := &VPCConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
 	// 1st connections is identical to these in cfg1; the 2nd one differs in the conn type, the 3rd one has a dst that
 	// does not exist in cfg1
-	cfg2Conn.AllowedConnsCombined.updateAllowedConnsMap(cfg2.Nodes[0], cfg2.Nodes[1], common.NewConnectionSet(true))
-	cfg2Conn.AllowedConnsCombined.updateAllowedConnsMap(cfg2.Nodes[1], cfg2.Nodes[2], common.NewConnectionSet(true))
-	cfg2Conn.AllowedConnsCombined.updateAllowedConnsMap(cfg2.Nodes[2], cfg2.Nodes[3], common.NewConnectionSet(true))
-	cfg2Conn.AllowedConnsCombined.updateAllowedConnsMap(cfg2.Nodes[1], cfg2.Nodes[4], common.NewConnectionSet(true))
+	cfg2Conn.AllowedConnsCombined.updateAllowedConnsMap(cfg2.Nodes[0], cfg2.Nodes[1], connection.All())
+	cfg2Conn.AllowedConnsCombined.updateAllowedConnsMap(cfg2.Nodes[1], cfg2.Nodes[2], connection.All())
+	cfg2Conn.AllowedConnsCombined.updateAllowedConnsMap(cfg2.Nodes[2], cfg2.Nodes[3], connection.All())
+	cfg2Conn.AllowedConnsCombined.updateAllowedConnsMap(cfg2.Nodes[1], cfg2.Nodes[4], connection.All())
 
 	configConn1 = &configConnectivity{cfg1, cfg1Conn.AllowedConnsCombined}
 	configConn2 = &configConnectivity{cfg2, cfg2Conn.AllowedConnsCombined}
