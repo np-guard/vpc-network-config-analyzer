@@ -82,11 +82,7 @@ func (na *NACLAnalyzer) getNACLRule(index int) (ruleStr string, ruleRes *NACLRul
 		dst = *ruleObj.Destination
 		action = *ruleObj.Action
 	case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolTcpudp:
-		protocol := netp.ProtocolStringUDP
-		if *ruleObj.Protocol == protocolTCP {
-			protocol = netp.ProtocolStringTCP
-		}
-		conns = connection.TCPorUDPConnection(protocol,
+		conns = getTCPUDPConns(*ruleObj.Protocol,
 			getProperty(ruleObj.SourcePortMin, connection.MinPort),
 			getProperty(ruleObj.SourcePortMax, connection.MaxPort),
 			getProperty(ruleObj.DestinationPortMin, connection.MinPort),

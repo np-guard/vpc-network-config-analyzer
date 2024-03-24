@@ -8,6 +8,7 @@ import (
 
 	"github.com/np-guard/cloud-resource-collector/pkg/factory"
 	"github.com/np-guard/models/pkg/connection"
+	"github.com/np-guard/models/pkg/netp"
 )
 
 type regionList []string
@@ -330,7 +331,9 @@ func invalidArgsExplainMode(args *InArgs, flagset *flag.FlagSet) error {
 	}
 
 	protocol := strings.ToUpper(*args.EProtocol)
-	if protocol != "TCP" && protocol != "UDP" && protocol != "ICMP" {
+	if protocol != string(netp.ProtocolStringTCP) &&
+		protocol != string(netp.ProtocolStringUDP) &&
+		protocol != string(netp.ProtocolStringICMP) {
 		return fmt.Errorf("wrong connection description protocol '%s'; must be one of: 'TCP, UDP, ICMP'", protocol)
 	}
 	args.EProtocol = &protocol
