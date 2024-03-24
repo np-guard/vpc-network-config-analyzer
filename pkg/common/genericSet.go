@@ -42,6 +42,7 @@ func (s GenericSet[T]) AsList() []T {
 	}
 	return keys
 }
+
 func FromList[T comparable](l []T) GenericSet[T] {
 	s := GenericSet[T]{}
 	for _, e := range l {
