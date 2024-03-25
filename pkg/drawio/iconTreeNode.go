@@ -235,17 +235,18 @@ type LoadBalancerTreeNode struct {
 	PrivateIPs []TreeNodeInterface
 }
 
-func GroupPrivateIPsWithLoadBalancer(parent SquareTreeNodeInterface, name string, privateIPs []TreeNodeInterface) {
-	LoadBalancer := newLoadBalancerTreeNode(parent, name, privateIPs)
-	for _, PrivateIP := range privateIPs {
-		newLogicalLineTreeNode(parent, LoadBalancer, PrivateIP.(IconTreeNodeInterface))
+func GroupPrivateIPsWithLoadBalancer(parent SquareTreeNodeInterface, name string, privateIPs []TreeNodeInterface) *LoadBalancerTreeNode{
+	loadBalancer := newLoadBalancerTreeNode(parent, name, privateIPs)
+	for _, privateIP := range privateIPs {
+		newLogicalLineTreeNode(parent, loadBalancer, privateIP.(IconTreeNodeInterface))
 	}
+	return loadBalancer
 }
 
 func newLoadBalancerTreeNode(parent SquareTreeNodeInterface, name string, privateIPs []TreeNodeInterface) *LoadBalancerTreeNode {
-	LoadBalancer := &LoadBalancerTreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, name), PrivateIPs: privateIPs}
-	parent.addIconTreeNode(LoadBalancer)
-	return LoadBalancer
+	loadBalancer := &LoadBalancerTreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, name), PrivateIPs: privateIPs}
+	parent.addIconTreeNode(loadBalancer)
+	return loadBalancer
 }
 
 type PrivateIPTreeNode struct {
