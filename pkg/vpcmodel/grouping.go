@@ -192,53 +192,15 @@ func (g *groupingConnections) addPublicConnectivity(ep EndpointElem, commonProps
 	(*g)[ep][connKey].appendNode(targetNode)
 }
 
-// vsiOrSubnetsGroupingBySubnetsOrVsis given *GroupConnLines, a list of EndpointElem and a bool saying whether
-// the EndpointElem represents VSIs or subnets.
-// It returns a slice of EndpointElem objects, by grouping the input set of EndpointElem
-// such that
-// 1. If the grouped elements are vsis (as by the input bool) then the elements are grouped by their subnet
-// 2. If the grouped elements are subnets then the elements are grouped by their VPC, this is automatic
-// unless VPCConfig is result of a dummy vpc built for tgw, namely IsMultipleVPCsConfig = true
-func vsiOrSubnetsGroupingBySubnetsOrVsis(groupedConnLines *GroupConnLines,
-	elemsList []EndpointElem, groupVSI bool) []EndpointElem {
-	res := []EndpointElem{}
-	// map from subnet's (vpc's) UID to its vsis-nodes (subnets-nodesets) from the input
-	subnetOrVPCToNodesOrNodeSets := map[string][]EndpointElem{}
-	for _, elem := range elemsList {
-		var subnetOrVPCUID string
-		var newElem EndpointElem
-		if groupVSI {
-			n, ok := elem.(InternalNodeIntf)
-			if !ok {
-				res = append(res, elem) // elements which are not interface nodes remain in the result as in the original input
-				continue                // skip input elements which are not a network interface node
-			}
-			subnetOrVPCUID = n.Subnet().UID() // get the subnet to which n belongs
-			newElem = elem
-		} else {
-			n, ok := elem.(Subnet)
-			if !ok {
-				res = append(res, n) // elements which are not subnets remain in the result as in the original input
-				continue             // skip input elements which are not a subnet nodeSet
-			}
-			subnetOrVPCUID = n.VPC().UID() // get the VPC to which n belongs
-			newElem = n
-		}
-		if _, ok := subnetOrVPCToNodesOrNodeSets[subnetOrVPCUID]; !ok {
-			subnetOrVPCToNodesOrNodeSets[subnetOrVPCUID] = []EndpointElem{}
-		}
-		subnetOrVPCToNodesOrNodeSets[subnetOrVPCUID] = append(subnetOrVPCToNodesOrNodeSets[subnetOrVPCUID], newElem)
+// given an endpoint representing a VSI or a subnet
+// returns the UID of the vsi's subnet in the former case or of
+// the subnet's VPC is the latter.
+func getSubnetOrVPCUID(ep EndpointElem) string {
+	UID := getSubnetUIDIfVsi(ep)
+	if UID == "" {
+		UID = getVPCUIDIfSubnet(ep)
 	}
-	for _, nodesList := range subnetOrVPCToNodesOrNodeSets {
-		if len(nodesList) == 1 { // a single nif on subnet or subnet on vpc is just added to the result (no grouping)
-			res = append(res, nodesList[0])
-		} else { // a set of network interfaces from the same subnet is grouped by groupedNetworkInterfaces object
-			groupedEndpoints := groupedEndpointsElems(nodesList)
-			groupedNodes := groupedConnLines.cacheGrouped.getAndSetEndpointElemFromCache(&groupedEndpoints)
-			res = append(res, groupedNodes)
-		}
-	}
-	return res
+	return UID
 }
 
 // group public internet ranges for vsis/subnets connectivity lines
@@ -363,44 +325,53 @@ func (g *GroupConnLines) groupLinesByKey(srcGrouping, groupVsi bool) (res []*gro
 	groupingSrcOrDst = map[string][]*groupedConnLine{}
 	// populate map groupingSrcOrDst
 	for _, line := range g.GroupedLines {
-		srcOrDst, dstOrSrc := line.getSrcOrDst(srcGrouping), line.getSrcOrDst(!srcGrouping)
-		if !isInternalOfRequiredType(srcOrDst, groupVsi) {
+		grpTarget, grpIndex := line.getSrcOrDst(srcGrouping), line.getSrcOrDst(!srcGrouping)
+		if !isInternalOfRequiredType(grpTarget, groupVsi) {
 			res = append(res, line)
 			continue
 		}
-		key := getKeyOfGroupConnLines(dstOrSrc, line.commonProperties.groupingStrKey)
+		key := getKeyOfGroupConnLines(grpIndex, grpTarget, line.commonProperties.groupingStrKey)
 		if _, ok := groupingSrcOrDst[key]; !ok {
 			groupingSrcOrDst[key] = []*groupedConnLine{}
 		}
 		groupingSrcOrDst[key] = append(groupingSrcOrDst[key], line)
 	}
 	newGroupingSrcOrDst := g.extendGroupingSelfLoops(groupingSrcOrDst, srcGrouping)
+
 	return res, newGroupingSrcOrDst
 }
 
-func getKeyOfGroupConnLines(ep EndpointElem, connectionString string) string {
-	return ep.Name() + commaSeparator + connectionString
+// grouping by:
+// 1. Name of indexed endpoint (see #412) and its connection
+// 2. We do not want to group together vsis from different subnets for vsis analyais
+// or subnets of different vpcs for subnets analysis; thus the grouping is also by subnets/vpcs
+// of grouping targets
+// e.g. :
+// v2 => v3
+// v2 => v3
+// can be grouped to
+// v1, v2 => v3 given that v1, v2 share the same subnet
+func getKeyOfGroupConnLines(grpIndex, grpTarget EndpointElem, connectionString string) string {
+	keyComponents := []string{grpIndex.Name(), connectionString, getSubnetOrVPCUID(grpTarget)}
+	return strings.Join(keyComponents, semicolon)
 }
 
 // assuming the  g.groupedLines was already initialized by previous step groupExternalAddresses()
 func (g *GroupConnLines) groupInternalSrcOrDst(srcGrouping, groupVsi bool) {
 	res, groupingSrcOrDst := g.groupLinesByKey(srcGrouping, groupVsi)
 
-	// update g.groupedLines based on groupingSrcOrDst
+	// actual grouping vsis/subnets to be grouped
 	for _, linesGroup := range groupingSrcOrDst {
-		// if linesGroup.Src contains set of interfaces from the same subnet => group to one line with those interfaces
-		// else, keep separated lines
-		srcOrDstGroup := make([]EndpointElem, len(linesGroup))
+		nodesList := make([]EndpointElem, len(linesGroup))
 		for i, line := range linesGroup {
-			srcOrDstGroup[i] = line.getSrcOrDst(srcGrouping)
+			nodesList[i] = line.getSrcOrDst(srcGrouping)
 		}
-		groupedSrcOrDst := vsiOrSubnetsGroupingBySubnetsOrVsis(g, srcOrDstGroup, groupVsi)
-		for _, groupedSrcOrDstElem := range groupedSrcOrDst {
-			if srcGrouping {
-				res = append(res, &groupedConnLine{groupedSrcOrDstElem, linesGroup[0].dst, linesGroup[0].commonProperties})
-			} else {
-				res = append(res, &groupedConnLine{linesGroup[0].src, groupedSrcOrDstElem, linesGroup[0].commonProperties})
-			}
+		groupedEndpoints := groupedEndpointsElems(nodesList)
+		groupedNodes := g.cacheGrouped.getAndSetEndpointElemFromCache(&groupedEndpoints)
+		if srcGrouping {
+			res = append(res, &groupedConnLine{groupedNodes, linesGroup[0].dst, linesGroup[0].commonProperties})
+		} else {
+			res = append(res, &groupedConnLine{linesGroup[0].src, groupedNodes, linesGroup[0].commonProperties})
 		}
 	}
 	g.GroupedLines = unifiedGroupedConnLines(res, g.cacheGrouped, false)

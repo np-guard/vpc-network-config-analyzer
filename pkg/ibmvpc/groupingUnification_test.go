@@ -21,6 +21,6 @@ func TestGroupingUnification(t *testing.T) {
 	require.Nil(t, err, "NewOutputGenerator should not have an error")
 
 	nonUnifiedPointers := og.UnificationDebugPrint()
-	fmt.Println("nonUnifiedPointers is", nonUnifiedPointers)
+	fmt.Println("nonUnifiedPointers are:", nonUnifiedPointers)
 	require.Equal(t, "", nonUnifiedPointers, "each group should have a single reference")
 }
