@@ -173,6 +173,10 @@ type Subnet interface {
 	CIDR() string
 }
 
+// LoadBalancer is elaboration of a NodeSet - the nodes are the private IPs of the load balancer
+// todo: elaborate more - get list of servers, expandability,...
+type LoadBalancer NodeSet
+
 // RulesType Type of rules in a given filter (e.g. specific NACL table) relevant to
 // path between src to destination
 type RulesType int
