@@ -848,14 +848,14 @@
                     "href": "href:130",
                     "id": "id:131",
                     "lifecycle_state": "stable",
-                    "name": "iks-ussouth1-ciui60sd0qqbef35up90-1a4",
+                    "name": "iks-ussouth1-clusterid:1-1a4",
                     "owner": "user",
                     "resource_type": "subnet_reserved_ip",
                     "target": {
                         "crn": "crn:132",
                         "href": "href:133",
                         "id": "id:134",
-                        "name": "iks-ciui60sd0qqbef35up90",
+                        "name": "iks-clusterid:1",
                         "resource_type": "endpoint_gateway"
                     }
                 },
@@ -1299,14 +1299,14 @@
                     "href": "href:196",
                     "id": "id:197",
                     "lifecycle_state": "stable",
-                    "name": "iks-ussouth2-ciui60sd0qqbef35up90-ef6",
+                    "name": "iks-ussouth2-clusterid:1-ef6",
                     "owner": "user",
                     "resource_type": "subnet_reserved_ip",
                     "target": {
                         "crn": "crn:132",
                         "href": "href:133",
                         "id": "id:134",
-                        "name": "iks-ciui60sd0qqbef35up90",
+                        "name": "iks-clusterid:1",
                         "resource_type": "endpoint_gateway"
                     }
                 },
@@ -1324,7 +1324,7 @@
                         "crn": "crn:200",
                         "href": "href:201",
                         "id": "id:202",
-                        "name": "kube-ciui60sd0qqbef35up90-8fdd1d0a2ce34deba99d0f885451b1ca",
+                        "name": "kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca",
                         "resource_type": "load_balancer"
                     }
                 },
@@ -1456,14 +1456,14 @@
                     "href": "href:222",
                     "id": "id:223",
                     "lifecycle_state": "stable",
-                    "name": "iks-ussouth3-ciui60sd0qqbef35up90-7f1",
+                    "name": "iks-ussouth3-clusterid:1-7f1",
                     "owner": "user",
                     "resource_type": "subnet_reserved_ip",
                     "target": {
                         "crn": "crn:132",
                         "href": "href:133",
                         "id": "id:134",
-                        "name": "iks-ciui60sd0qqbef35up90",
+                        "name": "iks-clusterid:1",
                         "resource_type": "endpoint_gateway"
                     }
                 },
@@ -1481,7 +1481,7 @@
                         "crn": "crn:200",
                         "href": "href:201",
                         "id": "id:202",
-                        "name": "kube-ciui60sd0qqbef35up90-8fdd1d0a2ce34deba99d0f885451b1ca",
+                        "name": "kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca",
                         "resource_type": "load_balancer"
                     }
                 },
@@ -2185,14 +2185,14 @@
                 {
                     "href": "href:133",
                     "id": "id:134",
-                    "name": "iks-ciui60sd0qqbef35up90",
+                    "name": "iks-clusterid:1",
                     "resource_type": "endpoint_gateway",
                     "crn": "crn:132"
                 },
                 {
                     "href": "href:201",
                     "id": "id:202",
-                    "name": "kube-ciui60sd0qqbef35up90-8fdd1d0a2ce34deba99d0f885451b1ca",
+                    "name": "kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca",
                     "resource_type": "load_balancer",
                     "crn": "crn:200"
                 }
@@ -2302,7 +2302,7 @@
                         "crn": "crn:284",
                         "href": "href:285",
                         "id": "id:286",
-                        "name": "kube-ciui60sd0qqbef35up90"
+                        "name": "kube-clusterid:1"
                     },
                     "protocol": "all"
                 },
@@ -2315,7 +2315,7 @@
                         "crn": "crn:284",
                         "href": "href:285",
                         "id": "id:286",
-                        "name": "kube-ciui60sd0qqbef35up90"
+                        "name": "kube-clusterid:1"
                     },
                     "protocol": "all"
                 },
@@ -2471,26 +2471,26 @@
                     "address": "192.168.32.5",
                     "href": "href:130",
                     "id": "id:131",
-                    "name": "iks-ussouth1-ciui60sd0qqbef35up90-1a4",
+                    "name": "iks-ussouth1-clusterid:1-1a4",
                     "resource_type": "subnet_reserved_ip"
                 },
                 {
                     "address": "192.168.36.5",
                     "href": "href:196",
                     "id": "id:197",
-                    "name": "iks-ussouth2-ciui60sd0qqbef35up90-ef6",
+                    "name": "iks-ussouth2-clusterid:1-ef6",
                     "resource_type": "subnet_reserved_ip"
                 },
                 {
                     "address": "192.168.40.5",
                     "href": "href:222",
                     "id": "id:223",
-                    "name": "iks-ussouth3-ciui60sd0qqbef35up90-7f1",
+                    "name": "iks-ussouth3-clusterid:1-7f1",
                     "resource_type": "subnet_reserved_ip"
                 }
             ],
             "lifecycle_state": "stable",
-            "name": "iks-ciui60sd0qqbef35up90",
+            "name": "iks-clusterid:1",
             "resource_group": {
                 "href": "href:15",
                 "id": "id:16",
@@ -2505,9 +2505,9 @@
                     "name": "kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57"
                 }
             ],
-            "service_endpoint": "ciui60sd0qqbef35up90.vpe.private.us-south.containers.cloud.ibm.com",
+            "service_endpoint": "clusterid:1.vpe.private.us-south.containers.cloud.ibm.com",
             "service_endpoints": [
-                "ciui60sd0qqbef35up90.vpe.private.us-south.containers.cloud.ibm.com"
+                "clusterid:1.vpe.private.us-south.containers.cloud.ibm.com"
             ],
             "target": {
                 "crn": "crn:323",
@@ -2647,7 +2647,7 @@
                     "active": false
                 }
             },
-            "name": "kube-ciui60sd0qqbef35up90-8fdd1d0a2ce34deba99d0f885451b1ca",
+            "name": "kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca",
             "operating_status": "online",
             "private_ips": [
                 {
