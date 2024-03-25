@@ -1,12 +1,12 @@
 package vpcmodel
 
-import "github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+import "github.com/np-guard/models/pkg/connection"
 
-type GeneralConnectivityMap map[VPCResourceIntf]map[VPCResourceIntf]*common.ConnectionSet
+type GeneralConnectivityMap map[VPCResourceIntf]map[VPCResourceIntf]*connection.Set
 
-func (connectivityMap GeneralConnectivityMap) updateAllowedConnsMap(src, dst VPCResourceIntf, conn *common.ConnectionSet) {
+func (connectivityMap GeneralConnectivityMap) updateAllowedConnsMap(src, dst VPCResourceIntf, conn *connection.Set) {
 	if _, ok := connectivityMap[src]; !ok {
-		connectivityMap[src] = map[VPCResourceIntf]*common.ConnectionSet{}
+		connectivityMap[src] = map[VPCResourceIntf]*connection.Set{}
 	}
 	connectivityMap[src][dst] = conn
 }

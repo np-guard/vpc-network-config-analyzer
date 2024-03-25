@@ -87,12 +87,8 @@ func (g *GroupConnLines) relevantKeysToCompare(groupingSrcOrDst map[string][]*gr
 		if lines[0].isSrcOrDstExternalNodes() {
 			continue
 		}
-		// if vsi then the subnets must be equal; if not vsis then empty string equals empty string
-		if g.getSubnetUIDIfVsi(lines[0].src) != g.getSubnetUIDIfVsi(lines[0].dst) {
-			continue
-		}
-		// if subnets then the vpc must be equal; if not subnets then empty string equals empty string
-		if g.getVPCUIDIfSubnet(lines[0].src) != g.getVPCUIDIfSubnet(lines[0].dst) {
+		// if vsi then the subnets of src and dst must be equal; similarly if subnet then vpcs must be equal
+		if getSubnetOrVPCUID(lines[0].src) != getSubnetOrVPCUID(lines[0].dst) {
 			continue
 		}
 		relevantKeys = append(relevantKeys, key)
@@ -121,13 +117,8 @@ func (g *GroupConnLines) findMergeCandidates(groupingSrcOrDst map[string][]*grou
 	for _, key := range relevantKeys {
 		lines := groupingSrcOrDst[key]
 		bucket := lines[0].commonProperties.groupingStrKey
-		subnetIfVsiVPCIfSubnet := g.getSubnetUIDIfVsi(lines[0].src)
-		if subnetIfVsiVPCIfSubnet == "" {
-			subnetIfVsiVPCIfSubnet = g.getVPCUIDIfSubnet(lines[0].src)
-		}
-		if subnetIfVsiVPCIfSubnet != "" {
-			bucket += ";" + subnetIfVsiVPCIfSubnet
-		}
+		subnetIfVsiVPCIfSubnet := getSubnetOrVPCUID(lines[0].src)
+		bucket += semicolon + subnetIfVsiVPCIfSubnet
 		if _, ok := bucketToKeys[bucket]; !ok {
 			bucketToKeys[bucket] = make(map[string]struct{})
 		}
@@ -174,10 +165,20 @@ func (g *GroupConnLines) findMergeCandidates(groupingSrcOrDst map[string][]*grou
 
 // if ep is a vsi or a group of vsis, gets its subnet
 // (if its a group of vsis then they all have the same subnet by grouping rules)
-func (g *GroupConnLines) getSubnetUIDIfVsi(ep EndpointElem) string {
+func getSubnetUIDIfVsi(ep EndpointElem) string {
 	if isVsi, node := isEpVsi(ep); isVsi {
 		// if ep is groupedEndpointsElems of vsis then all belong to the same subnet
-		return node.Subnet().Name()
+		return node.Subnet().UID()
+	}
+	return ""
+}
+
+// if ep is a subnet or a group of subnets, gets its vpc
+// (if its a group of subnets then they all have the same vpc by grouping rule)
+func getVPCUIDIfSubnet(ep EndpointElem) string {
+	if isSubnet, nodeSet := isEpSubnet(ep); isSubnet {
+		// if ep is groupedEndpointsElems of vsis then all belong to the same subnet
+		return nodeSet.VPC().UID()
 	}
 	return ""
 }
@@ -203,16 +204,6 @@ func isEpVsi(ep EndpointElem) (bool, InternalNodeIntf) {
 		}
 	}
 	return false, nil
-}
-
-// if ep is a subnet or a group of subnets, gets its vpc
-// (if its a group of subnets then they all have the same vpc by grouping rule)
-func (g *GroupConnLines) getVPCUIDIfSubnet(ep EndpointElem) string {
-	if isSubnet, nodeSet := isEpSubnet(ep); isSubnet {
-		// if ep is groupedEndpointsElems of vsis then all belong to the same subnet
-		return nodeSet.VPC().UID()
-	}
-	return ""
 }
 
 // input: Endpoint
@@ -406,6 +397,7 @@ func mergeGivenList(oldGroupingSrcOrDst map[string][]*groupedConnLine, srcGroupi
 			newGroupedConnLine = append(newGroupedConnLine, &groupedConnLine{&epsInNewKey, epInLineValue, commonPros})
 		}
 	}
-	newKey = getKeyOfGroupConnLines(&epsInNewKey, conn)
+	// all grouped items have the same subnets (if vsi) or vpc (if subnets), so any would do for the key
+	newKey = getKeyOfGroupConnLines(&epsInNewKey, epsInNewLines[0], conn)
 	return
 }

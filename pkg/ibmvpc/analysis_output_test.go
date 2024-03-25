@@ -11,6 +11,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/np-guard/models/pkg/netp"
+
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -52,7 +54,7 @@ type vpcGeneralTest struct {
 	vpc            string
 	ESrc           string
 	EDst           string
-	EProtocol      string
+	EProtocol      netp.ProtocolString
 	ESrcMinPort    int64
 	ESrcMaxPort    int64
 	EDstMinPort    int64
@@ -507,6 +509,12 @@ var tests = []*vpcGeneralTest{
 		grouping:    true,
 		format:      vpcmodel.DRAWIO,
 	},
+	{
+		inputConfig: "iks_workers_large_shorter_names",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.Text,
+	},
 }
 
 var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
@@ -593,7 +601,7 @@ func (tt *vpcGeneralTest) runTest(t *testing.T) {
 
 	var explanationArgs *vpcmodel.ExplanationArgs
 	if explainUseCase {
-		explanationArgs = vpcmodel.NewExplanationArgs(tt.ESrc, tt.EDst, tt.EProtocol,
+		explanationArgs = vpcmodel.NewExplanationArgs(tt.ESrc, tt.EDst, string(tt.EProtocol),
 			tt.ESrcMinPort, tt.ESrcMaxPort, tt.EDstMinPort, tt.EDstMaxPort)
 	}
 
@@ -707,8 +715,8 @@ func compareTextualResult(expected, actual string) {
 		fmt.Printf("compareTextualResult: error writing actual/expected output to files: %s, %s \n", err1, err2)
 	}
 
-	expectedLines := strings.Split(expected, "\n")
-	actualLines := strings.Split(actual, "\n")
+	expectedLines := strings.Split(strings.ReplaceAll(expected, "\r", ""), "\n")
+	actualLines := strings.Split(strings.ReplaceAll(actual, "\r", ""), "\n")
 	if len(expectedLines) != len(actualLines) {
 		fmt.Printf("different number of lines: %d of expected, %d of actual", len(expectedLines), len(actualLines))
 		return
