@@ -5,7 +5,7 @@ import (
 	"errors"
 	"sort"
 
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+	"github.com/np-guard/models/pkg/connection"
 )
 
 type JSONoutputFormatter struct {
@@ -41,8 +41,8 @@ func (j *JSONoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 type connLine struct {
 	Src                EndpointElem       `json:"src"`
 	Dst                EndpointElem       `json:"dst"`
-	Conn               common.ConnDetails `json:"conn"`
-	UnidirectionalConn common.ConnDetails `json:"unidirectional_conn,omitempty"`
+	Conn               connection.Details `json:"conn"`
+	UnidirectionalConn connection.Details `json:"unidirectional_conn,omitempty"`
 }
 
 type diffLine struct {
@@ -50,8 +50,8 @@ type diffLine struct {
 	DstChange string             `json:"dst_change"`
 	Src       EndpointElem       `json:"src"`
 	Dst       EndpointElem       `json:"dst"`
-	Conn1     common.ConnDetails `json:"conn1"`
-	Conn2     common.ConnDetails `json:"conn2"`
+	Conn1     connection.Details `json:"conn1"`
+	Conn2     connection.Details `json:"conn2"`
 }
 
 func sortConnLines(connLines []connLine) {
@@ -79,10 +79,10 @@ func getConnLines(conn *VPCConnectivity) []connLine {
 			unidirectionalConn := unidirectional.getAllowedConnForPair(src, dst)
 			bidirectionalConn := bidirectional.getAllowedConnForPair(src, dst)
 			if !unidirectionalConn.IsEmpty() {
-				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: common.ConnToJSONRep(bidirectionalConn),
-					UnidirectionalConn: common.ConnToJSONRep(unidirectionalConn)})
+				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: connection.ToJSON(bidirectionalConn),
+					UnidirectionalConn: connection.ToJSON(unidirectionalConn)})
 			} else {
-				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: common.ConnToJSONRep(conn)})
+				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: connection.ToJSON(conn)})
 			}
 		}
 	}
@@ -116,7 +116,7 @@ func getConnLinesForSubnetsConnectivity(conn *VPCsubnetConnectivity) []connLine 
 			connLines = append(connLines, connLine{
 				Src:  src,
 				Dst:  dst,
-				Conn: common.ConnToJSONRep(conns),
+				Conn: connection.ToJSON(conns),
 			})
 		}
 	}
@@ -163,7 +163,7 @@ func getDirectionalDiffLines(connectDiff connectivityDiff) []diffLine {
 				diffDstStr = getDiffDstOther(connDiff.diff)
 			}
 			diffLines = append(diffLines, diffLine{diffSrcStr, diffDstStr,
-				src, dst, common.ConnToJSONRep(connDiff.conn1), common.ConnToJSONRep(connDiff.conn2)})
+				src, dst, connection.ToJSON(connDiff.conn1), connection.ToJSON(connDiff.conn2)})
 		}
 	}
 

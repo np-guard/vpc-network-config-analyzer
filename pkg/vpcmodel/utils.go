@@ -1,13 +1,15 @@
 package vpcmodel
 
-import "github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+import (
+	"github.com/np-guard/models/pkg/connection"
+)
 
-func AllConns() *common.ConnectionSet {
-	return common.NewConnectionSet(true)
+func AllConns() *connection.Set {
+	return connection.All()
 }
 
-func NoConns() *common.ConnectionSet {
-	return common.NewConnectionSet(false)
+func NoConns() *connection.Set {
+	return connection.None()
 }
 
 func HasNode(listNodes []Node, node Node) bool {

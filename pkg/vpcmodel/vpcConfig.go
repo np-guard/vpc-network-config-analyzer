@@ -3,9 +3,9 @@ package vpcmodel
 import (
 	"fmt"
 
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
-
 	"errors"
+
+	"github.com/np-guard/models/pkg/connection"
 )
 
 // VPCConfig captures the configured resources for a VPC
@@ -76,7 +76,7 @@ func (c *VPCConfig) shouldConsiderPairForConnectivity(r1, r2 VPCResourceIntf) (b
 // getRoutingResource: gets the routing resource and its conn; currently the conn is either all or none
 // node is associated with either a pgw or a fip;
 // if the relevant network interface has both the parser will keep only the fip.
-func (c *VPCConfig) getRoutingResource(src, dst Node) (RoutingResource, *common.ConnectionSet, error) {
+func (c *VPCConfig) getRoutingResource(src, dst Node) (RoutingResource, *connection.Set, error) {
 	for _, router := range c.RoutingResources {
 		routerConnRes, err := router.AllowedConnectivity(src, dst)
 		if err != nil {

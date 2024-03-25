@@ -1,9 +1,8 @@
 package vpcmodel
 
 import (
+	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/ipblock"
-
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 const (
@@ -201,10 +200,10 @@ type RulesInFilter struct {
 type FilterTrafficResource interface {
 	VPCResourceIntf
 	// AllowedConnectivity computes the connectivity from src Node to dst Node considering this filterTraffic resource
-	AllowedConnectivity(src, dst Node, isIngress bool) (*common.ConnectionSet, error)
+	AllowedConnectivity(src, dst Node, isIngress bool) (*connection.Set, error)
 	// RulesInConnectivity computes the list of rules of a given filter that contributes to the connection between src and dst
 	// if conn is also given the above is per connection
-	RulesInConnectivity(src, dst Node, conn *common.ConnectionSet, isIngress bool) ([]RulesInFilter, []RulesInFilter, error)
+	RulesInConnectivity(src, dst Node, conn *connection.Set, isIngress bool) ([]RulesInFilter, []RulesInFilter, error)
 	// StringDetailsRulesOfFilter gets, for a specific filter (sg/nacl), a struct with relevant rules in it,
 	// and prints the effect of each filter (e.g. security group sg1-ky allows connection)
 	// and the detailed list of relevant rules
@@ -223,7 +222,7 @@ type RoutingResource interface {
 	VPCResourceIntf
 	Sources() []Node
 	Destinations() []Node
-	AllowedConnectivity(src, dst VPCResourceIntf) (*common.ConnectionSet, error)
+	AllowedConnectivity(src, dst VPCResourceIntf) (*connection.Set, error)
 	AppliedFiltersKinds() map[string]bool
 	ExternalIP() string // ExternalIP of fip, empty string for other resources
 }
