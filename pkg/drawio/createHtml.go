@@ -4,7 +4,6 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
-	"reflect"
 	"slices"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
@@ -129,15 +128,15 @@ func (data *templateData) setNodesRelations(network TreeNodeInterface) {
 	rel := tnRelations(network)
 	res := map[string]map[string][]string{}
 	res[""] = map[string][]string{}
-	res[""]["relations"] = []string{data.SvgRootId()}
+	res[""]["relations"] = []string{fmt.Sprintf("%d", data.RootID())}
 	res[""]["highlights"] = []string{""}
 	res[""]["explanation"] = []string{""}
 	for _, node := range data.Nodes {
-		nId := data.SvgId(node)
+		nId := fmt.Sprintf("%d", node.ID())
 		res[nId] = map[string][]string{}
-		res[nId]["relations"] = []string{data.SvgRootId()}
+		res[nId]["relations"] = []string{fmt.Sprintf("%d", data.RootID())}
 		for _, n := range rel[node] {
-			res[nId]["relations"] = append(res[nId]["relations"], data.SvgId(n))
+			res[nId]["relations"] = append(res[nId]["relations"], fmt.Sprintf("%d", n.ID()))
 		}
 		res[""]["relations"] = append(res[""]["relations"], nId)
 		res[nId]["highlights"] = []string{nId}
@@ -160,15 +159,8 @@ type ExplanationEntry struct {
 	Text     string
 }
 
-func (data *templateData) SvgId(tn TreeNodeInterface) string {
-	tnType := reflect.TypeOf(tn).Elem().Name()[0:5]
-	return fmt.Sprintf("%s_%d", tnType, tn.ID())
-}
 func (data *templateData) SvgName(tn TreeNodeInterface) string {
-	return fmt.Sprintf("%s(%s)",tn.Label(), tn.Kind())
-}
-func (data *templateData) SvgRootId() string {
-	return fmt.Sprintf("%s_%d", "top", data.rootID)
+	return fmt.Sprintf("%s (%s)",tn.Label(), tn.Kind())
 }
 func (data *templateData) Clickable(tn TreeNodeInterface) bool {
 	return data.clickable[tn]
