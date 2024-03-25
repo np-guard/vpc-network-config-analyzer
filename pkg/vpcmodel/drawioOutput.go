@@ -32,7 +32,6 @@ type DrawioOutputFormatter struct {
 	nodeRouters     map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface
 	multiVpcRouters map[string]drawio.IconTreeNodeInterface
 	uc              OutputUseCase
-	explanations    []drawio.ExplanationEntry
 }
 
 func (d *DrawioOutputFormatter) init(cConfigs MultipleVPCConfigs, conns map[string]*GroupConnLines, uc OutputUseCase) {
@@ -178,7 +177,7 @@ func (d *DrawioOutputFormatter) createEdges() {
 		}
 	}
 }
-func (d *DrawioOutputFormatter) createExplanations() {
+func (d *DrawioOutputFormatter) createExplanations() []drawio.ExplanationEntry{
 	type expKey struct {
 		src, dst EndpointElem
 	}
@@ -218,9 +217,11 @@ func (d *DrawioOutputFormatter) createExplanations() {
 		}
 	}
 
+	explanationsList := []drawio.ExplanationEntry{}
 	for k, e := range explanations {
-		d.explanations = append(d.explanations, drawio.ExplanationEntry{d.gen.TreeNode(k.src), d.gen.TreeNode(k.dst), e})
+		explanationsList = append(explanationsList, drawio.ExplanationEntry{d.gen.TreeNode(k.src), d.gen.TreeNode(k.dst), e})
 	}
+	return explanationsList
 }
 
 func (d *DrawioOutputFormatter) showResource(res DrawioResourceIntf) bool {
@@ -258,7 +259,7 @@ func (d *DrawioOutputFormatter) WriteOutput(c1, c2 MultipleVPCConfigs,
 		return "", errors.New("use case is not currently supported for draw.io format")
 	}
 	d.createDrawioTree()
-	return "", drawio.CreateDrawioConnectivityMapFile(d.gen.Network(), outFile, d.uc == AllSubnets, d.explanations)
+	return "", drawio.CreateDrawioConnectivityMapFile(d.gen.Network(), outFile, d.uc == AllSubnets, d.createExplanations())
 }
 
 // /////////////////////////////////////////////////////////////////
