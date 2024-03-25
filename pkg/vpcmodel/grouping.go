@@ -360,14 +360,14 @@ func getKeyOfGroupConnLines(grpIndex, grpTarget EndpointElem, connectionString s
 func (g *GroupConnLines) groupInternalSrcOrDst(srcGrouping, groupVsi bool) {
 	res, groupingSrcOrDst := g.groupLinesByKey(srcGrouping, groupVsi)
 
-	// update g.groupedLines based on groupingSrcOrDst
+	// actual grouping vsis/subnets to be grouped
 	for _, linesGroup := range groupingSrcOrDst {
-		srcOrDstGroup := make([]EndpointElem, len(linesGroup))
+		nodesList := make([]EndpointElem, len(linesGroup))
 		for i, line := range linesGroup {
-			srcOrDstGroup[i] = line.getSrcOrDst(srcGrouping)
+			nodesList[i] = line.getSrcOrDst(srcGrouping)
 		}
-		// grouping vsis/subnets to be grouped
-		groupedNodes := g.cacheGrouped.getAndSetEndpointElemFromCache(srcOrDstGroup)
+		groupedEndpoints := groupedEndpointsElems(nodesList)
+		groupedNodes := g.cacheGrouped.getAndSetEndpointElemFromCache(&groupedEndpoints)
 		if srcGrouping {
 			res = append(res, &groupedConnLine{groupedNodes, linesGroup[0].dst, linesGroup[0].commonProperties})
 		} else {
@@ -410,7 +410,7 @@ func unifiedGroupedElems(srcOrDst EndpointElem,
 		return srcOrDst
 	}
 	if groupedEE, ok := srcOrDst.(*groupedEndpointsElems); ok {
-		unifiedGroupedEE := cachedGrouped.getAndSetEndpointElemFromCache(*groupedEE)
+		unifiedGroupedEE := cachedGrouped.getAndSetEndpointElemFromCache(groupedEE)
 		return unifiedGroupedEE
 	}
 	if groupedExternal, ok := srcOrDst.(*groupedExternalNodes); ok {
