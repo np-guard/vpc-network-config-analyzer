@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"slices"
+	"strconv"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
@@ -127,21 +128,15 @@ func tnRelations(network TreeNodeInterface) map[TreeNodeInterface][]TreeNodeInte
 func (data *templateData) setNodesRelations(network TreeNodeInterface) {
 	rel := tnRelations(network)
 	res := map[string]map[string][]string{}
-	res[""] = map[string][]string{}
-	res[""]["relations"] = []string{fmt.Sprintf("%d", data.RootID())}
-	res[""]["highlights"] = []string{""}
-	res[""]["explanation"] = []string{""}
 	for _, node := range data.Nodes {
-		nId := fmt.Sprintf("%d", node.ID())
+		nId := strconv.Itoa(int(node.ID()))
 		res[nId] = map[string][]string{}
-		res[nId]["relations"] = []string{fmt.Sprintf("%d", data.RootID())}
+		res[nId]["relations"] = []string{strconv.Itoa(int(data.RootID()))}
 		for _, n := range rel[node] {
-			res[nId]["relations"] = append(res[nId]["relations"], fmt.Sprintf("%d", n.ID()))
+			res[nId]["relations"] = append(res[nId]["relations"], strconv.Itoa(int(n.ID())))
 		}
-		res[""]["relations"] = append(res[""]["relations"], nId)
 		res[nId]["highlights"] = []string{nId}
 		res[nId]["explanation"] = []string{"Connectivity graph of " + data.SvgName(node)}
-
 	}
 	b, _ := json.Marshal(res)
 	data.Relations = string(b)
