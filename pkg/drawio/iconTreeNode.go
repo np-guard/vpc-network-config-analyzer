@@ -8,7 +8,6 @@ type IconTreeNodeInterface interface {
 	setSG(SquareTreeNodeInterface)
 	allocateNewRouteOffset() int
 	IsVSI() bool
-	IsNI() bool
 	IsGroupingPoint() bool
 	SetTooltip(tooltip []string)
 	HasTooltip() bool
@@ -17,13 +16,22 @@ type IconTreeNodeInterface interface {
 	absoluteRouterGeometry() (int, int)
 	IconSize() int
 	hasMiniIcon() bool
+	HasFip() bool
+	SetFIP(fip string)
+	Fip() string
+	FipID() uint
 }
+
+// both NIs ResIp and PrivateIPs are grouped by logical connection.
+// Todo: we need to make inheritance, to remove duplicate code
+// (for now I did minimal changes, for easier code review)
 
 type abstractIconTreeNode struct {
 	abstractTreeNode
 	nRouterOffset int
 	sg            SquareTreeNodeInterface
 	tooltip       []string
+	floatingIP    string
 }
 
 func newAbstractIconTreeNode(parent SquareTreeNodeInterface, name string) abstractIconTreeNode {
@@ -35,7 +43,6 @@ func (tn *abstractIconTreeNode) setSG(sg SquareTreeNodeInterface) { tn.sg = sg }
 func (tn *abstractIconTreeNode) IsIcon() bool                     { return true }
 func (tn *abstractIconTreeNode) IsVSI() bool                      { return false }
 func (tn *abstractIconTreeNode) IsGateway() bool                  { return false }
-func (tn *abstractIconTreeNode) IsNI() bool                       { return false }
 func (tn *abstractIconTreeNode) IsGroupingPoint() bool            { return false }
 func (tn *abstractIconTreeNode) SetTooltip(tooltip []string)      { tn.tooltip = tooltip }
 func (tn *abstractIconTreeNode) HasTooltip() bool                 { return len(tn.tooltip) > 0 }
@@ -45,6 +52,10 @@ func (tn *abstractIconTreeNode) hasMiniIcon() bool                { return false
 func (tn *abstractIconTreeNode) MiniIconID() uint                 { return tn.id + miniIconID }
 func (tn *abstractIconTreeNode) Height() int                      { return iconSize }
 func (tn *abstractIconTreeNode) Width() int                       { return iconSize }
+func (tn *abstractIconTreeNode) HasFip() bool                     { return tn.Fip() != "" }
+func (tn *abstractIconTreeNode) SetFIP(fip string)                { tn.floatingIP = fip }
+func (tn *abstractIconTreeNode) Fip() string                      { return tn.floatingIP }
+func (tn *abstractIconTreeNode) FipID() uint                      { return tn.id + fipID }
 
 var offsets = []int{
 	0,
@@ -73,14 +84,17 @@ func calculateIconGeometry(tn IconTreeNodeInterface) {
 	tn.setXY(x, y)
 }
 func (tn *abstractIconTreeNode) absoluteRouterGeometry() (x, y int) {
-	return absoluteGeometry(tn)
+	x, y = absoluteGeometry(tn)
+	if tn.HasFip() {
+		x, y = x+fipXOffset, y+fipYOffset
+	}
+	return x, y
 }
 
 // ///////////////////////////////////////////
 type NITreeNode struct {
 	abstractIconTreeNode
-	floatingIP string
-	vsi        string
+	vsi string
 }
 
 func NewNITreeNode(parent SquareTreeNodeInterface, name string) *NITreeNode {
@@ -89,20 +103,10 @@ func NewNITreeNode(parent SquareTreeNodeInterface, name string) *NITreeNode {
 	return &ni
 }
 
-func (tn *NITreeNode) FipID() uint       { return tn.id + niFipID }
 func (tn *NITreeNode) setVsi(vsi string) { tn.vsi = vsi }
 func (tn *NITreeNode) hasMiniIcon() bool { return tn.vsi != "" }
-func (tn *NITreeNode) SetFIP(fip string) { tn.floatingIP = fip }
-func (tn *NITreeNode) Fip() string       { return tn.floatingIP }
-func (tn *NITreeNode) HasFip() bool      { return tn.Fip() != "" }
 func (tn *NITreeNode) RouterID() uint    { return tn.FipID() }
-func (tn *NITreeNode) IsNI() bool        { return true }
 func (tn *NITreeNode) Label() string     { return labels2Table([]string{tn.name, tn.vsi}) }
-
-func (tn *NITreeNode) absoluteRouterGeometry() (x, y int) {
-	x, y = absoluteGeometry(tn)
-	return x + fipXOffset, y + fipYOffset
-}
 
 // ///////////////////////////////////////////
 type ResIPTreeNode struct {
@@ -224,6 +228,39 @@ func newVpeTreeNode(parent SquareTreeNodeInterface, name string, resIPs []TreeNo
 	parent.addIconTreeNode(vpe)
 	return vpe
 }
+
+// ///////////////////////////////////////////
+type LoadBalancerTreeNode struct {
+	abstractIconTreeNode
+	PrivateIPs []TreeNodeInterface
+}
+
+func GroupPrivateIPsWithLoadBalancer(parent SquareTreeNodeInterface, name string, privateIPs []TreeNodeInterface) {
+	LoadBalancer := newLoadBalancerTreeNode(parent, name, privateIPs)
+	for _, PrivateIP := range privateIPs {
+		newLogicalLineTreeNode(parent, LoadBalancer, PrivateIP.(IconTreeNodeInterface))
+	}
+}
+
+func newLoadBalancerTreeNode(parent SquareTreeNodeInterface, name string, privateIPs []TreeNodeInterface) *LoadBalancerTreeNode {
+	LoadBalancer := &LoadBalancerTreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, name), PrivateIPs: privateIPs}
+	parent.addIconTreeNode(LoadBalancer)
+	return LoadBalancer
+}
+
+type PrivateIPTreeNode struct {
+	abstractIconTreeNode
+}
+
+func NewPrivateIPTreeNode(parent SquareTreeNodeInterface, name string) *PrivateIPTreeNode {
+	rip := PrivateIPTreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, name)}
+	parent.addIconTreeNode(&rip)
+	return &rip
+}
+
+func (tn *PrivateIPTreeNode) RouterID() uint { return tn.FipID() }
+
+// ///////////////////////////////////////////
 
 // ///////////////////////////////////////////
 // GroupPointTreeNode is an icon for grouping, see GroupSquareTreeNode for details
