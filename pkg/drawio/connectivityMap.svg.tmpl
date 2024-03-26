@@ -68,7 +68,9 @@
                 <rect x="{{$ax}}" y="{{$ay}}" width="{{$node.Width}}" height="{{$node.Height}}" rx="19.2" ry="19.2" fill="none" stroke="{{$data.Color $node}}" stroke-opacity="0.7" stroke-width="6" pointer-events="all"/>
         {{ else if $data.IsFamily $node $data.Cnst.IbmIcon }}
                 <image x="{{$ax}}" y="{{$ay}}" width="{{$node.IconSize}}" height="{{$node.IconSize}}" xlink:href="data:image/svg+xml;base64,{{$data.Image $node}}"/>
-                <text fill="rgb(0, 0, 0)" font-family="IBM Plex Sans" text-anchor="middle" font-size="14px" x="{{$data.Add $ax 30}}" y="{{$data.Add $ay 73}}">{{$data.SvgLabel $node}}</text>
+                <foreignObject  x="{{$data.Add $ax 0}}" y="{{$data.Add $ay 40}}" width="200" height="100">
+          				<p xmlns="http://www.w3.org/1999/xhtml" fill="rgb(0, 0, 0)" font-family="IBM Plex Sans" text-anchor="middle" font-size="14px">{{$data.SvgLabel $node}}</p>
+				        </foreignObject >
                 {{ if $data.HasMiniIcon $node }}
                     <image x="{{$data.Add $ax $data.MiniIconXOffset}}" y="{{$data.Add $ay $data.MiniIconYOffset}}" width="{{$data.MiniIconSize}}" height="{{$data.MiniIconSize}}" xlink:href="data:image/svg+xml;base64,{{$data.MiniImage $node}}"/>
                 {{ end }}
