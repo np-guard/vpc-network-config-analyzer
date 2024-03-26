@@ -11,6 +11,11 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
+const (
+	drawioTableSep = "&#xa;"
+	SvgTableSep    = "<br/>"
+)
+
 //go:embed connectivityMap.drawio.tmpl
 var drawioTemplate string
 
@@ -59,7 +64,7 @@ func (data *templateData) MiniIconSize() int    { return miniIconSize }
 func (data *templateData) RootID() uint         { return data.rootID }
 func (data *templateData) IDsPrefix() string    { return idsPrefix }
 func (data *templateData) ElementComment(tn TreeNodeInterface) string {
-	return reflect.TypeOf(tn).Elem().Name() + " " + tn.Label()
+	return reflect.TypeOf(tn).Elem().Name() + " " + treeNodeName(tn)
 }
 func (data *templateData) Add(a, b int) int     { return a + b }
 func (data *templateData) Add3(a, b, c int) int { return a + b + c }

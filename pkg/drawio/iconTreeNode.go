@@ -46,7 +46,7 @@ func (tn *abstractIconTreeNode) IsGateway() bool                  { return false
 func (tn *abstractIconTreeNode) IsGroupingPoint() bool            { return false }
 func (tn *abstractIconTreeNode) SetTooltip(tooltip []string)      { tn.tooltip = tooltip }
 func (tn *abstractIconTreeNode) HasTooltip() bool                 { return len(tn.tooltip) > 0 }
-func (tn *abstractIconTreeNode) Tooltip() string                  { return labels2Table(tn.tooltip) }
+func (tn *abstractIconTreeNode) Tooltip() string                  { return joinLabels(tn.tooltip, drawioTableSep) }
 func (tn *abstractIconTreeNode) IconSize() int                    { return iconSize }
 func (tn *abstractIconTreeNode) hasMiniIcon() bool                { return false }
 func (tn *abstractIconTreeNode) MiniIconID() uint                 { return tn.id + miniIconID }
@@ -106,7 +106,7 @@ func NewNITreeNode(parent SquareTreeNodeInterface, name string) *NITreeNode {
 func (tn *NITreeNode) setVsi(vsi string) { tn.vsi = vsi }
 func (tn *NITreeNode) hasMiniIcon() bool { return tn.vsi != "" }
 func (tn *NITreeNode) RouterID() uint    { return tn.FipID() }
-func (tn *NITreeNode) Label() string     { return labels2Table([]string{tn.name, tn.vsi}) }
+func (tn *NITreeNode) Labels() []string  { return []string{tn.name, tn.vsi} }
 
 // ///////////////////////////////////////////
 type ResIPTreeNode struct {
@@ -122,7 +122,7 @@ func NewResIPTreeNode(parent SquareTreeNodeInterface, name string) *ResIPTreeNod
 
 func (tn *ResIPTreeNode) setVpe(vpe string) { tn.vpe = vpe }
 func (tn *ResIPTreeNode) hasMiniIcon() bool { return tn.vpe != "" }
-func (tn *ResIPTreeNode) Label() string     { return labels2Table([]string{tn.name, tn.vpe}) }
+func (tn *ResIPTreeNode) Labels() []string  { return []string{tn.name, tn.vpe} }
 
 // ///////////////////////////////////////////
 type GatewayTreeNode struct {
@@ -164,7 +164,7 @@ type VsiTreeNode struct {
 	nis []TreeNodeInterface
 }
 
-func GroupNIsWithVSI(parent SquareTreeNodeInterface, name string, nis []TreeNodeInterface) TreeNodeInterface{
+func GroupNIsWithVSI(parent SquareTreeNodeInterface, name string, nis []TreeNodeInterface) TreeNodeInterface {
 	switch {
 	case len(nis) == 1:
 		nis[0].(*NITreeNode).setVsi(name)
@@ -208,7 +208,7 @@ type VpeTreeNode struct {
 	resIPs []TreeNodeInterface
 }
 
-func GroupResIPsWithVpe(parent SquareTreeNodeInterface, name string, resIPs []TreeNodeInterface) TreeNodeInterface{
+func GroupResIPsWithVpe(parent SquareTreeNodeInterface, name string, resIPs []TreeNodeInterface) TreeNodeInterface {
 	switch {
 	case len(resIPs) == 1:
 		resIPs[0].(*ResIPTreeNode).setVpe(name)
@@ -235,7 +235,7 @@ type LoadBalancerTreeNode struct {
 	PrivateIPs []TreeNodeInterface
 }
 
-func GroupPrivateIPsWithLoadBalancer(parent SquareTreeNodeInterface, name string, privateIPs []TreeNodeInterface) *LoadBalancerTreeNode{
+func GroupPrivateIPsWithLoadBalancer(parent SquareTreeNodeInterface, name string, privateIPs []TreeNodeInterface) *LoadBalancerTreeNode {
 	loadBalancer := newLoadBalancerTreeNode(parent, name, privateIPs)
 	for _, privateIP := range privateIPs {
 		newLogicalLineTreeNode(parent, loadBalancer, privateIP.(IconTreeNodeInterface))

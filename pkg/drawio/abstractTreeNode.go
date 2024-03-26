@@ -1,7 +1,5 @@
 package drawio
 
-import "strings"
-
 const (
 	minID      = 100
 	nextIDStep = 10
@@ -27,16 +25,7 @@ type abstractTreeNode struct {
 	kind              string
 }
 
-func (tn *abstractTreeNode) Label() string { return tn.name }
-func labels2Table(labels []string) string {
-	labels2 := []string{}
-	for _, l := range labels {
-		if l != "" {
-			labels2 = append(labels2, l)
-		}
-	}
-	return strings.Join(labels2, "&#xa;")
-}
+func (tn *abstractTreeNode) Labels() []string { return []string{tn.name} }
 func (tn *abstractTreeNode) Kind() string        { return tn.kind }
 func (tn *abstractTreeNode) SetKind(kind string) { tn.kind = kind }
 

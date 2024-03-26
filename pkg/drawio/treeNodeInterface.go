@@ -1,5 +1,7 @@
 package drawio
 
+import "strings"
+
 /////////////////////////////////////////////////////////////
 // the drawio has three kinds of elements:
 // 1. squares (vpcs, zones, sgs, subnets...)
@@ -43,7 +45,7 @@ type TreeNodeInterface interface {
 	Width() int
 	setXY(x, y int)
 	setWH(w, h int)
-	Label() string
+	Labels() []string
 	Kind() string
 	SetKind(string)
 
@@ -147,6 +149,20 @@ func absoluteGeometry(tn TreeNodeInterface) (x, y int) {
 		tn.Y() + tn.DrawioParent().Location().firstRow.y() + tn.DrawioParent().Location().yOffset
 }
 
+func joinLabels(labels []string, sep string) string {
+	labels2 := []string{}
+	for _, l := range labels {
+		if l != "" {
+			labels2 = append(labels2, l)
+		}
+	}
+	return strings.Join(labels2, sep)
+}
+
+func treeNodeName(tn TreeNodeInterface) string {
+	return joinLabels(tn.Labels(), ",")
+}
+
 // uncomment writeAsJson() treeNodeAsMap() for debug of a treeNode
 
 // func treeNodeAsMap(tn TreeNodeInterface) map[string]interface{} {
@@ -164,7 +180,7 @@ func absoluteGeometry(tn TreeNodeInterface) (x, y int) {
 // 	for _, s := range lines {
 // 		lns = append(lns, treeNodeAsMap(s))
 // 	}
-// 	res["name"] = tn.Label()
+// 	res["name"] = tn.Labels()
 // 	res["squares"] = sqs
 // 	res["icons"] = ics
 // 	res["lines"] = lns

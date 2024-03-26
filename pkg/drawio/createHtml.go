@@ -142,12 +142,13 @@ func (data *templateData) setNodesRelations(network TreeNodeInterface) {
 	data.Relations = string(b)
 }
 
-func (data *templateData) setClickable(){
-	for _, e := range data.Explanations{
-		data.clickable[e.Src] = true  
-		data.clickable[e.Dst] = true  
+func (data *templateData) setClickable() {
+	for _, e := range data.Explanations {
+		data.clickable[e.Src] = true
+		data.clickable[e.Dst] = true
 	}
 }
+
 // ///////////////////////////////////////////////////////////////////////////
 type ExplanationEntry struct {
 	Src, Dst TreeNodeInterface
@@ -155,7 +156,13 @@ type ExplanationEntry struct {
 }
 
 func (data *templateData) SvgName(tn TreeNodeInterface) string {
-	return fmt.Sprintf("%s (%s)",tn.Label(), tn.Kind())
+	return fmt.Sprintf("%s (%s)", treeNodeName(tn), tn.Kind())
+}
+func (data *templateData) SvgLabel(tn TreeNodeInterface) string {
+	return joinLabels(tn.Labels(), SvgTableSep)
+}
+func (data *templateData) DrawioLabel(tn TreeNodeInterface) string {
+	return joinLabels(tn.Labels(), drawioTableSep)
 }
 func (data *templateData) Clickable(tn TreeNodeInterface) bool {
 	return data.clickable[tn]

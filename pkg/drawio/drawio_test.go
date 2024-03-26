@@ -53,7 +53,8 @@ func TestWithParsing(t *testing.T) {
 	NewCloudTreeNode(n2, "empty cloud2")
 	region := NewRegionTreeNode(cloud, "north")
 	vpc1 := NewVpcTreeNode(region, "vpc1")
-	NewZoneTreeNode(vpc1, "zone1")
+	z := NewZoneTreeNode(vpc1, "zone1")
+	NewSubnetTreeNode(z, "sub1", "cidr", "acl1")
 	err = CreateDrawioConnectivityMapFile(n2, "fake3.drawio", false, nil)
 	if err != nil {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
@@ -463,7 +464,7 @@ func createNetworkSubnetGroupingOverlapping() SquareTreeNodeInterface {
 		{(*zones)[1][2], groups[3]},
 	}
 	for i, conn := range conns {
-		NewConnectivityLineTreeNode(n, conn[0], conn[1], true, fmt.Sprintf("gconn%d %s->%s", i, conn[0].Label(), conn[1].Label()))
+		NewConnectivityLineTreeNode(n, conn[0], conn[1], true, fmt.Sprintf("gconn%d %s->%s", i, treeNodeName(conn[0]), treeNodeName(conn[1])))
 	}
 	return n
 }
@@ -513,7 +514,7 @@ func createNetworkSubnetGroupingGroupInGroup() SquareTreeNodeInterface {
 		{groups[5], (*zones)[4][4]},
 	}
 	for i, conn := range conns {
-		NewConnectivityLineTreeNode(n, conn[0], conn[1], true, fmt.Sprintf("gconn%d %s->%s", i, conn[0].Label(), conn[1].Label()))
+		NewConnectivityLineTreeNode(n, conn[0], conn[1], true, fmt.Sprintf("gconn%d %s->%s", i, treeNodeName(conn[0]), treeNodeName(conn[1])))
 	}
 	return n
 }
@@ -551,8 +552,8 @@ func createNetworkSubnetGroupingGeneric(groupsIndexes []groupIndexes) (
 	}
 
 	for _, gr := range groups {
-		i1 := NewInternetTreeNode(publicNetwork, "I "+gr.Label())
-		NewConnectivityLineTreeNode(network, gr, i1, true, "gconn "+gr.Label())
+		i1 := NewInternetTreeNode(publicNetwork, "I "+treeNodeName(gr))
+		NewConnectivityLineTreeNode(network, gr, i1, true, "gconn "+treeNodeName(gr))
 	}
 	return network, groups, zones
 }
