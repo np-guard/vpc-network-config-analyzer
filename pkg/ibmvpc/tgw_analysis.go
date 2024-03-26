@@ -130,3 +130,7 @@ func prefixLeGeMatch(prefix *string, le, ge *int64, cidr string) (bool, error) {
 		return cidrBlock.ContainedIn(prefixIPBlock) && subnetCIDRLen >= *ge && subnetCIDRLen <= *le, nil
 	}
 }
+
+// todo: getPf that gets (*TransitGatewayConnectionPrefixFilterReference, indx) and returns str with Ge (if applicable), Le (if applicable)
+//       and Prefix (always), and then attach it to indx
+//       then add indx to calculation - see how

@@ -671,6 +671,22 @@ type TransitGateway struct {
 	destNodes   []vpcmodel.Node
 
 	region *Region
+
+	// the following structs are used by explainability
+
+	// maps each AP of each VPC to the prefix that determines its connectivity status w.r.t. the tgw (allow/deny)
+	// specifically, the map is from VPC UID to a map between the ap's ipBlock to the index of the matching prefix
+	// that determines its status;
+	// this struct can be though of as the "explain" parallel of availableRoutes; note that it also lists deny prefixes
+	vpcAPsPrefixes map[string]map[*ipblock.IPBlock]int
+
+	// maps each *Subnet of the vpc to the prefix that determines its tgw status when the dest is in the subnet
+	// this struct can be though of as the "explain" parallel of destSubnets though it contains all Subnets,
+	// and not only the allow ones
+	destSubnetsPrefixes map[*Subnet]int
+
+	// similar to the above, with Nodes. Note that Nodes here are always internal and contained in the above Subnets
+	destNodesPrefixes map[vpcmodel.Node]int
 }
 
 func (tgw *TransitGateway) addSourceAndDestNodes() {
