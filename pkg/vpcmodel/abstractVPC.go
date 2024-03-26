@@ -221,4 +221,7 @@ type RoutingResource interface {
 	AllowedConnectivity(src, dst VPCResourceIntf) (*connection.Set, error)
 	AppliedFiltersKinds() map[string]bool
 	ExternalIP() string // ExternalIP of fip, empty string for other resources
+	// RelevantPrefixes for tgw: index of prefix that determines status (allow/deny)
+	// w.r.t. src/dst. Non-relevant for fip and pgw, returns always -1
+	RelevantPrefixes(src, dst VPCResourceIntf) (int, error)
 }

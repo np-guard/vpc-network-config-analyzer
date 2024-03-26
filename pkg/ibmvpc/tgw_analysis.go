@@ -2,7 +2,7 @@ package ibmvpc
 
 import (
 	"errors"
-
+	"fmt"
 	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
 	"github.com/np-guard/models/pkg/ipblock"
 )
@@ -75,7 +75,7 @@ func isCIDRMatchedByPrefixFilters(cidr string, tc *datamodel.TransitConnection) 
 	pfDefault := tc.PrefixFiltersDefault
 
 	// TODO: currently assuming subnet cidrs are the advertised routes to the TGW, matched against the prefix filters
-	// TOTO: currently ignoring the "Before" field of each PrefixFilter, since assuming the array is ordered
+	// TODO: currently ignoring the "Before" field of each PrefixFilter, since assuming the array is ordered
 	// iterate by order the array of prefix route filters
 	for _, pf := range pfList {
 		match, err := prefixLeGeMatch(pf.Prefix, pf.Le, pf.Ge, cidr)
@@ -131,6 +131,81 @@ func prefixLeGeMatch(prefix *string, le, ge *int64, cidr string) (bool, error) {
 	}
 }
 
-// todo: getPf that gets (*TransitGatewayConnectionPrefixFilterReference, indx) and returns str with Ge (if applicable), Le (if applicable)
-//       and Prefix (always), and then attach it to indx
-//       then add indx to calculation - see how
+// the following functions are related to explainability structs
+
+// gets a map from address prefixes of the vpc to matching prefix of tgw, if any
+func getVpcApsPrefixes(tc *datamodel.TransitConnection, vpc *VPC) (res map[*ipblock.IPBlock]int, err error) {
+	validateAddressPrefixesExist(vpc) // todo tmp WA copied from getVPCAdvertisedRoutes so that this func is self contained
+	res = map[*ipblock.IPBlock]int{}
+	for _, ap := range vpc.addressPrefixes {
+		apIPBlock, err1 := ipblock.FromCidr(ap)
+		if err1 != nil {
+			return nil, err1
+		}
+		prefixIndex, err2 := getCIDRPrefixFilter(ap, tc)
+		if err2 != nil {
+			return nil, err2
+		}
+		if prefixIndex != -1 {
+			res[apIPBlock] = prefixIndex
+		}
+	}
+	return res, nil
+}
+
+// gets for a cidr the tgw's prefix's index that matches it, -1 if non match
+func getCIDRPrefixFilter(cidr string, tc *datamodel.TransitConnection) (int, error) {
+	// TODO: currently assuming subnet cidrs are the advertised routes to the TGW, matched against the prefix filters
+	// TODO: currently ignoring the "Before" field of each PrefixFilter, since assuming the array is ordered
+	// iterate by order the array of prefix route filters
+	for i, pf := range tc.PrefixFilters {
+		match, err := prefixLeGeMatch(pf.Prefix, pf.Le, pf.Ge, cidr)
+		if err != nil {
+			return -1, err
+		}
+		if match {
+			return i, nil
+		}
+	}
+	// no match by pfList -- use default
+	return -1, nil
+}
+
+// gets a string description of prefix indexed "index" from TransitConnection tc
+func prefixByIndexStr(tc *datamodel.TransitConnection, prefixIndex int) (string, error) {
+	// Array of prefix route filters for a transit gateway connection. This is order dependent with those first in the
+	// array being applied first, and those at the end of the array is applied last, or just before the default.
+	if prefixIndex == -1 { // default
+		actionName, err := actionNameStr(tc.PrefixFiltersDefault)
+		if err != nil {
+			return "", nil
+		}
+		return "default prefix with " + actionName, nil
+	}
+
+	prefixFilter := tc.PrefixFilters[prefixIndex]
+	actionName, err := actionNameStr(prefixFilter.Action)
+	if err != nil {
+		return "", nil
+	}
+	resStr := fmt.Sprintf("index: %v, action: %s", prefixIndex, actionName)
+	if prefixFilter.Ge != nil {
+		resStr += fmt.Sprintf(", Ge: %v", *prefixFilter.Ge)
+	}
+	if prefixFilter.Le != nil {
+		resStr += fmt.Sprintf("Le: %v", *prefixFilter.Le)
+	}
+	return resStr, nil
+}
+
+// for an action of type *string as stored in *datamodel.TransitConnection returns allow/deny
+func actionNameStr(action *string) (string, error) {
+	actionBool, err := parseActionString(action)
+	if err != nil {
+		return "", err
+	}
+	if actionBool {
+		return "allow", nil
+	}
+	return "deny", nil
+}

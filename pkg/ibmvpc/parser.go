@@ -749,9 +749,12 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 					ResourceType: ResourceTypeTGW,
 					Region:       region,
 				},
-				vpcs:            []*VPC{vpc},
-				availableRoutes: map[string][]*ipblock.IPBlock{},
-				region:          getRegionByName(region, regionToStructMap),
+				vpcs:                []*VPC{vpc},
+				availableRoutes:     map[string][]*ipblock.IPBlock{},
+				vpcApsPrefixes:      map[string]map[*ipblock.IPBlock]int{},
+				destSubnetsPrefixes: map[*Subnet]int{},
+				destNodesPrefixes:   map[vpcmodel.Node]int{},
+				region:              getRegionByName(region, regionToStructMap),
 			}
 			tgwMap[tgwUID] = tgw
 		} else {
@@ -769,7 +772,18 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 			// TGW's destSubnets contains subnets from its connected VPCs which are contained within routes from its table
 			tgwMap[tgwUID].destSubnets = append(tgwMap[tgwUID].destSubnets, getVPCdestSubnetsByAdvertisedRoutes(tgwMap[tgwUID], vpc)...)
 			tgwMap[tgwUID].addSourceAndDestNodes()
+
+			//// todo: uncomment and verify
+			//// explainability related computation
+			//// vpcApsPrefixes is a map from the vpc's ap to the index of the (non default) prefix that matches it, if any
+			//vpcApsPrefixes, _ := getVpcApsPrefixes(tgwConn, vpc) // if getVPCAdvertisedRoutes completed without an error, so would getVpcApsPrefixes
+			//maps.Copy(tgwMap[tgwUID].vpcApsPrefixes, map[string]map[*ipblock.IPBlock]int{vpcUID: vpcApsPrefixes})
+			//// updates destSubnetsPrefixes - a map from the vpc's subnets to the index of the (non default) prefix that matches it, if any
+			//tgwMap[tgwUID].updateDestSubnetsPrefixes(vpc)
+			//// updates destNodesPrefixes - a map from vpc's Nodes to the index of the (non default) prefix that matches it, if any
+			//tgwMap[tgwUID].addDestNodesPrefixes()
 		}
+
 	}
 	return tgwMap
 }
