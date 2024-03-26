@@ -49,7 +49,7 @@ func (g *groupingConnections) getGroupedConnLines(groupedConnLines *GroupConnLin
 	for a, aMap := range *g {
 		for _, b := range aMap {
 			var resElem *groupedConnLine
-			bGrouped := groupedConnLines.cacheGrouped.getAndSetGroupedExternalFromCache(b.nodes)
+			bGrouped := groupedConnLines.cacheGrouped.getAndSetGroupedExternalFromCache(&b.nodes)
 			if isSrcToDst {
 				resElem = &groupedConnLine{a, bGrouped, b.commonProperties}
 			} else {
@@ -414,7 +414,7 @@ func unifiedGroupedElems(srcOrDst EndpointElem,
 		return unifiedGroupedEE
 	}
 	if groupedExternal, ok := srcOrDst.(*groupedExternalNodes); ok {
-		unifiedGroupedEE := cachedGrouped.getAndSetGroupedExternalFromCache(*groupedExternal)
+		unifiedGroupedEE := cachedGrouped.getAndSetGroupedExternalFromCache(groupedExternal)
 		return unifiedGroupedEE
 	}
 	return srcOrDst
