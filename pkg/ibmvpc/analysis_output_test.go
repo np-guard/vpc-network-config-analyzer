@@ -510,7 +510,7 @@ var tests = []*vpcGeneralTest{
 		format:      vpcmodel.DRAWIO,
 	},
 	{
-		inputConfig: "iks_workers_large_shorter_names",
+		inputConfig: "iks_workers_large",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		grouping:    true,
 		format:      vpcmodel.Text,
