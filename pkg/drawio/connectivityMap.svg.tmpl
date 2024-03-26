@@ -54,7 +54,7 @@
         <!-- {{$data.ElementComment $node}} -->
         {{ $ax := $data.AX $node}}
         {{ $ay := $data.AY $node}}
-        <g id="{{$node.ID}}" clickable="true" selectable="{{$data.Clickable $node}}" title="{{$data.SvgName $node}}">
+        <g id="{{$node.ID}}" clickable="true" selectable="{{$data.Clickable $node}}" title="{{$data.NodeName $node}}">
         <rect x="{{$data.Add $ax -3}}" y="{{$data.Add $ay -3 }}" width="{{$data.Add $node.Width 6}}" height="{{$data.Add $node.Height 6}}" fill="none" stroke="none" stroke-width="6" selection-marker="true" />
         {{if $data.IsFamily $node $data.Cnst.IbmSquare }}
                 <rect x="{{$ax}}" y="{{$ay}}" width="{{$node.Width}}" height="{{$node.Height}}" fill="none" stroke="{{$data.Color $node}}" pointer-events="all"/>

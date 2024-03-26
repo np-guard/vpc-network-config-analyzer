@@ -3,7 +3,6 @@ package drawio
 import (
 	_ "embed"
 	"encoding/json"
-	"fmt"
 	"slices"
 	"strconv"
 
@@ -136,7 +135,7 @@ func (data *templateData) setNodesRelations(network TreeNodeInterface) {
 			res[nId]["relations"] = append(res[nId]["relations"], strconv.Itoa(int(n.ID())))
 		}
 		res[nId]["highlights"] = []string{nId}
-		res[nId]["explanation"] = []string{"Connectivity graph of " + data.SvgName(node)}
+		res[nId]["explanation"] = []string{"Connectivity graph of " + data.NodeName(node)}
 	}
 	b, _ := json.Marshal(res)
 	data.Relations = string(b)
@@ -150,20 +149,3 @@ func (data *templateData) setClickable() {
 }
 
 // ///////////////////////////////////////////////////////////////////////////
-type ExplanationEntry struct {
-	Src, Dst TreeNodeInterface
-	Text     string
-}
-
-func (data *templateData) SvgName(tn TreeNodeInterface) string {
-	return fmt.Sprintf("%s (%s)", treeNodeName(tn), tn.Kind())
-}
-func (data *templateData) SvgLabel(tn TreeNodeInterface) string {
-	return joinLabels(tn.Labels(), SvgTableSep)
-}
-func (data *templateData) DrawioLabel(tn TreeNodeInterface) string {
-	return joinLabels(tn.Labels(), drawioTableSep)
-}
-func (data *templateData) Clickable(tn TreeNodeInterface) bool {
-	return data.clickable[tn]
-}
