@@ -92,7 +92,7 @@ func (c *VPCConfig) explainConnectivityForVPC(src, dst string, srcNodes, dstNode
 	if err2 != nil {
 		return nil, err2
 	}
-	err3 := rulesAndDetails.computeFilters(c)
+	err3 := rulesAndDetails.computeRoutersAndFilters(c)
 	if err3 != nil {
 		return nil, err3
 	}
@@ -140,12 +140,12 @@ func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node,
 	return rulesAndConn, nil
 }
 
-// computeFilters computes for each  <src, dst> :
-// 1. The routingResource
+// computeRoutersAndFilters computes for each  <src, dst> :
+// 1. The external routingResource
 // 2. The external filters relevant to the <src, dst> given the routingResource
 // 3. The internal filters relevant to the <src, dst>
 // 4. The actual relevant filter, depending on whether src xor dst is external
-func (details *rulesAndConnDetails) computeFilters(c *VPCConfig) error {
+func (details *rulesAndConnDetails) computeRoutersAndFilters(c *VPCConfig) error {
 	for _, singleSrcDstDetails := range *details {
 		// RoutingResources are computed by the parser for []Nodes of the VPC,
 		// finds the relevant nodes for the query's src and dst;
