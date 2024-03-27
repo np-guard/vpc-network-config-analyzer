@@ -3,6 +3,7 @@ package drawio
 import (
 	_ "embed"
 	"encoding/json"
+	"fmt"
 	"slices"
 	"strconv"
 
@@ -126,6 +127,24 @@ func tnRelations(network TreeNodeInterface) map[TreeNodeInterface][]TreeNodeInte
 		res[n] = common.FromList[TreeNodeInterface](r).AsList()
 	}
 	return res
+}
+func (data *templateData)setNodesNames(network TreeNodeInterface) {
+	// all parents of the nodes
+	for _, tn := range getAllNodes(network) {
+		data.svgNames[tn] = fmt.Sprintf("%s:%s",tn.Kind(), treeNodeName(tn))
+	}
+
+	for _, line := range getAllLines(network) {
+		info := getLineInfo(line)
+		if info == nil {
+			continue
+		}
+		for _, tn := range append(info.dstGroupingLines, info.srcGroupingLines...) {
+			data.svgNames[tn] = data.svgNames[line]
+		}
+		data.svgNames[info.srcGroupingPoint] = data.svgNames[line]
+		data.svgNames[info.dstGroupingPoint] = data.svgNames[line]
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////

@@ -35,6 +35,7 @@ type templateData struct {
 	Relations    string
 	Explanations []ExplanationEntry
 	clickable    map[TreeNodeInterface]bool
+	svgNames    map[TreeNodeInterface]string
 	IsHtml bool
 }
 
@@ -51,9 +52,11 @@ func newTemplateData(network SquareTreeNodeInterface, explanations []Explanation
 		"",
 		explanations,
 		map[TreeNodeInterface]bool{},
+		map[TreeNodeInterface]string{},
 		interactive,
 	}
 	if interactive {
+		data.setNodesNames(network)
 		data.setNodesRelations(network)
 		for _, e := range data.Explanations {
 			data.clickable[e.Src] = true
@@ -73,7 +76,7 @@ func (data *templateData) ElementComment(tn TreeNodeInterface) string {
 	return reflect.TypeOf(tn).Elem().Name() + " " + treeNodeName(tn)
 }
 func (data *templateData) NodeName(tn TreeNodeInterface) string {
-	return fmt.Sprintf("%s (%s)", treeNodeName(tn), tn.Kind())
+	return data.svgNames[tn]
 }
 func (data *templateData) SvgLabel(tn TreeNodeInterface) string {
 	return joinLabels(tn.labels(), SvgTableSep)
