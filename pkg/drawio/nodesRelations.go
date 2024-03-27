@@ -128,6 +128,9 @@ func tnRelations(network TreeNodeInterface) map[TreeNodeInterface][]TreeNodeInte
 	}
 	return res
 }
+
+/////////////////////////////////////////////////////////////////////////////
+
 func (data *templateData)setNodesNames(network TreeNodeInterface) {
 	// all parents of the nodes
 	for _, tn := range getAllNodes(network) {
@@ -147,7 +150,6 @@ func (data *templateData)setNodesNames(network TreeNodeInterface) {
 	}
 }
 
-/////////////////////////////////////////////////////////////////////////////
 
 func (data *templateData) setNodesRelations(network TreeNodeInterface) {
 	rel := tnRelations(network)
@@ -159,7 +161,7 @@ func (data *templateData) setNodesRelations(network TreeNodeInterface) {
 		for _, n := range rel[node] {
 			res[nId]["relations"] = append(res[nId]["relations"], strconv.Itoa(int(n.ID())))
 		}
-		res[nId]["explanation"] = []string{"Connectivity graph of " + data.NodeName(node)}
+		res[nId]["graphExplanation"] = []string{"Connectivity graph of " + data.NodeName(node)}
 	}
 	b, _ := json.Marshal(res)
 	data.Relations = string(b)
