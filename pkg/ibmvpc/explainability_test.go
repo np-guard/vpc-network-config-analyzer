@@ -618,6 +618,7 @@ func TestInputValidityMultipleVPCContext(t *testing.T) {
 	_, err10 := vpcConfigMultiVpcDupNames.ExplainConnectivity(dupSrcVsi, dupDstVsi, nil)
 	fmt.Println(err10.Error())
 	require.NotNil(t, err10, "the test should fail since the src and dst vsis exists in two vpcs configs")
-	require.Equal(t, "src: vsi1-ky and dst: vsi2-ky found in more than one config: test-vpc0-ky,test-vpc1-ky",
+	require.Equal(t, "illegal src: in combined-vpc-local-tg-ky there is more than one resource (crn:551, crn:488) with the given input string vsi1-ky. "+
+		"can not determine which resource to analyze. consider using unique names or use input UID instead",
 		err10.Error())
 }
