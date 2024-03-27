@@ -46,10 +46,10 @@ func (explanation *Explanation) String(verbose bool) string {
 	linesStr := make([]string, len(explanation.groupedLines))
 	groupedLines := explanation.groupedLines
 	for i, line := range groupedLines {
-		linesStr[i] += explainabilityLineStr(verbose, explanation.c, line.commonProperties.expDetails.filtersRelevant,
-			explanation.connQuery, line.src, line.dst, line.commonProperties.conn, line.commonProperties.expDetails.ingressEnabled,
-			line.commonProperties.expDetails.egressEnabled,
-			line.commonProperties.expDetails.externalRouter, line.commonProperties.expDetails.rules) +
+		explainDetails := line.commonProperties.expDetails
+		linesStr[i] += explainabilityLineStr(verbose, explanation.c, explainDetails.filtersRelevant,
+			explanation.connQuery, line.src, line.dst, line.commonProperties.conn, explainDetails.ingressEnabled,
+			explainDetails.egressEnabled, explainDetails.externalRouter, explainDetails.tgwRouter, explainDetails.rules) +
 			"------------------------------------------------------------------------------------------------------------------------\n"
 	}
 	sort.Strings(linesStr)
@@ -63,7 +63,8 @@ func (details *rulesAndConnDetails) String(c *VPCConfig, verbose bool, connQuery
 	for _, srcDstDetails := range *details {
 		resStr += explainabilityLineStr(verbose, c, srcDstDetails.filtersRelevant, connQuery,
 			srcDstDetails.src, srcDstDetails.dst, srcDstDetails.conn, srcDstDetails.ingressEnabled,
-			srcDstDetails.egressEnabled, srcDstDetails.externalRouter, srcDstDetails.actualMergedRules)
+			srcDstDetails.egressEnabled, srcDstDetails.externalRouter, srcDstDetails.tgwRouter,
+			srcDstDetails.actualMergedRules)
 	}
 	return resStr, nil
 }
@@ -71,29 +72,29 @@ func (details *rulesAndConnDetails) String(c *VPCConfig, verbose bool, connQuery
 // prints a single line of <src, dst>. Called either with grouping results or from the original struct before grouping
 func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[string]bool, connQuery *connection.Set,
 	src, dst EndpointElem, conn *connection.Set, ingressEnabled, egressEnabled bool,
-	router RoutingResource, rules *rulesConnection) string {
+	externalRouter, tgwRouter RoutingResource, rules *rulesConnection) string {
 	needEgress := !src.IsExternal()
 	needIngress := !dst.IsExternal()
 	ingressBlocking := !ingressEnabled && needIngress
 	egressBlocking := !egressEnabled && needEgress
 	var routerStr, rulesStr, resStr string
-	if router != nil && (src.IsExternal() || dst.IsExternal()) {
-		routerStr = "External traffic via " + router.Kind() + ": " + router.Name() + "\n"
+	if externalRouter != nil && (src.IsExternal() || dst.IsExternal()) {
+		routerStr = "External traffic via " + externalRouter.Kind() + ": " + externalRouter.Name() + "\n"
 	}
 	var routerFiltersHeader string
 	if conn.IsEmpty() {
 		routerFiltersHeader = routerStr + rules.filterEffectStr(c, filtersRelevant, needEgress, needIngress) + "\n"
 	}
 	path := "Path:\n" + pathStr(c, filtersRelevant, src, dst,
-		ingressBlocking, egressBlocking, router, rules)
+		ingressBlocking, egressBlocking, externalRouter, rules)
 	rulesStr = rules.ruleDetailsStr(c, filtersRelevant, verbose, needEgress, needIngress)
 	noConnection := noConnectionHeader(src.Name(), dst.Name(), connQuery)
 	routerFiltersHeaderPlusPath := routerFiltersHeader + path
 	switch {
-	case router == nil && src.IsExternal():
+	case externalRouter == nil && src.IsExternal():
 		resStr += fmt.Sprintf("%v no fip and src is external (fip is required for "+
 			"outbound external connection)\n", noConnection)
-	case router == nil && dst.IsExternal():
+	case externalRouter == nil && dst.IsExternal():
 		resStr += fmt.Sprintf("%v no fip/pgw and dst is external\n", noConnection)
 	case ingressBlocking && egressBlocking:
 		resStr += fmt.Sprintf("%v connection blocked both by ingress and egress\n%v\n%v", noConnection,
