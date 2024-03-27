@@ -16,7 +16,13 @@ func nodeParents(node TreeNodeInterface) []TreeNodeInterface {
 	return append(nodeParents(node.Parent()), node)
 }
 func nodeSubTree(node TreeNodeInterface) []TreeNodeInterface {
-	return append(getAllSquares(node), getAllIcons(node)...)
+	nodes := getAllSquares(node)
+	for _,icon := range getAllIcons(node){
+		if !icon.(IconTreeNodeInterface).IsGroupingPoint(){
+			nodes = append(nodes, icon)
+		}
+	}
+	return nodes
 }
 
 type lineInfo struct {

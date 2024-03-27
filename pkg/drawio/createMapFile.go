@@ -35,6 +35,7 @@ type templateData struct {
 	Relations    string
 	Explanations []ExplanationEntry
 	clickable    map[TreeNodeInterface]bool
+	IsHtml bool
 }
 
 func newTemplateData(network SquareTreeNodeInterface, explanations []ExplanationEntry, interactive bool) *templateData {
@@ -50,6 +51,7 @@ func newTemplateData(network SquareTreeNodeInterface, explanations []Explanation
 		"",
 		explanations,
 		map[TreeNodeInterface]bool{},
+		interactive,
 	}
 	if interactive {
 		data.setNodesRelations(network)
