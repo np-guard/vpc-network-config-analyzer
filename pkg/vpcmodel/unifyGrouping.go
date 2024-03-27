@@ -79,7 +79,7 @@ func (cachedGrouped *cacheGroupedElements) setEndpointElemFromCache(
 // gets pointer of an element semantically equiv to grouped in cachedGrouped.groupedExternalNodesMap
 // if exists, nil otherwise
 func (cachedGrouped *cacheGroupedElements) getExistGroupedExternalFromCache(
-	grouped groupedExternalNodes) *groupedExternalNodes {
+	grouped *groupedExternalNodes) *groupedExternalNodes {
 	if existingGrouped, ok := cachedGrouped.groupedExternalNodesMap[grouped.Name()]; ok {
 		return existingGrouped
 	}
@@ -87,18 +87,18 @@ func (cachedGrouped *cacheGroupedElements) getExistGroupedExternalFromCache(
 }
 
 func (cachedGrouped *cacheGroupedElements) setGroupedExternalFromCache(
-	groupedExternal groupedExternalNodes) {
-	cachedGrouped.groupedExternalNodesMap[groupedExternal.Name()] = &groupedExternal
+	groupedExternal *groupedExternalNodes) {
+	cachedGrouped.groupedExternalNodesMap[groupedExternal.Name()] = groupedExternal
 }
 
 func (cachedGrouped *cacheGroupedElements) getAndSetGroupedExternalFromCache(
-	groupedExternal groupedExternalNodes) *groupedExternalNodes {
+	groupedExternal *groupedExternalNodes) *groupedExternalNodes {
 	existing := cachedGrouped.getExistGroupedExternalFromCache(groupedExternal)
 	if existing != nil {
 		return existing
 	}
 	cachedGrouped.setGroupedExternalFromCache(groupedExternal)
-	return &groupedExternal
+	return groupedExternal
 }
 
 // UnificationDebugPrint used by testing to test unification
