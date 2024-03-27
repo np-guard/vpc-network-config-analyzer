@@ -224,5 +224,5 @@ type RoutingResource interface {
 	// StringPrefixDetails returns a string with the prefix that determines the tgw related routing
 	// between src and dst; if non tgw relevant to <src, dst> returns an empty string
 	// Non-relevant for fip and pgw, returns always an empty string
-	StringPrefixDetails(src, dst VPCResourceIntf) (string, error)
+	StringPrefixDetails(src, dst Node) (string, error)
 }

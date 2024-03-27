@@ -77,7 +77,7 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 	needIngress := !dst.IsExternal()
 	ingressBlocking := !ingressEnabled && needIngress
 	egressBlocking := !egressEnabled && needEgress
-	var externalRouterStr, rulesStr, resStr string
+	var externalRouterStr, tgwRouterFilterStr, rulesStr, resStr string
 	if externalRouter != nil && (src.IsExternal() || dst.IsExternal()) {
 		externalRouterStr = "External traffic via " + externalRouter.Kind() + ": " + externalRouter.Name() + "\n"
 	}
@@ -87,6 +87,11 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 	}
 	path := "Path:\n" + pathStr(c, filtersRelevant, src, dst,
 		ingressBlocking, egressBlocking, externalRouter, rules)
+	if tgwRouter != nil {
+		// if there is a non nil transit gateway then src and dst are vsis, and implement Node
+		tgwRouterFilterStr, _ = tgwRouter.StringPrefixDetails(src.(Node), dst.(Node))
+		tgwRouterFilterStr = "transit gateway " + tgwRouter.Name() + "prefix:\n\t" + tgwRouterFilterStr
+	}
 	rulesStr = rules.ruleDetailsStr(c, filtersRelevant, verbose, needEgress, needIngress)
 	noConnection := noConnectionHeader(src.Name(), dst.Name(), connQuery)
 	routerFiltersHeaderPlusPath := routerFiltersHeader + path
@@ -106,7 +111,7 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 		resStr += fmt.Sprintf("%v connection blocked by egress\n%v\n%v", noConnection,
 			routerFiltersHeaderPlusPath, rulesStr)
 	default: // there is a connection
-		return existingConnectionStr(connQuery, src, dst, conn, routerFiltersHeaderPlusPath, rulesStr)
+		return existingConnectionStr(connQuery, src, dst, conn, routerFiltersHeaderPlusPath, tgwRouterFilterStr, rulesStr)
 	}
 	return resStr
 }
@@ -123,21 +128,21 @@ func noConnectionHeader(src, dst string, connQuery *connection.Set) string {
 // e.g.: "Connection protocol: UDP src-ports: 1-600 dst-ports: 1-50 exists between vsi1-ky[10.240.10.4]
 // and Public Internet 161.26.0.0/16 (note that not all queried protocols/ports are allowed)"
 func existingConnectionStr(connQuery *connection.Set, src, dst EndpointElem,
-	conn *connection.Set, filtersEffectStr, rulesStr string) string {
-	resStr := ""
+	conn *connection.Set, filtersEffectStr, tgwRouterFilterStr, rulesStr string) string {
+	resComponents := []string{}
 	if connQuery == nil {
-		resStr = fmt.Sprintf("The following connection exists between %v and %v: %v\n", src.Name(), dst.Name(),
-			conn.String())
+		resComponents = append(resComponents, fmt.Sprintf("The following connection exists between %v and %v: %v", src.Name(), dst.Name(),
+			conn.String()))
 	} else {
 		properSubsetConn := ""
 		if !conn.Equal(connQuery) {
 			properSubsetConn = " (note that not all queried protocols/ports are allowed)"
 		}
-		resStr = fmt.Sprintf("Connection %v exists between %v and %v%s\n", conn.String(),
-			src.Name(), dst.Name(), properSubsetConn)
+		resComponents = append(resComponents, fmt.Sprintf("Connection %v exists between %v and %v%s", conn.String(),
+			src.Name(), dst.Name(), properSubsetConn))
 	}
-	resStr += filtersEffectStr + "\n" + rulesStr
-	return resStr
+	resComponents = append(resComponents, filtersEffectStr, rulesStr)
+	return strings.Join(resComponents, "\n")
 }
 
 // returns a string with a summary of each filter (table) effect; e.g.

@@ -793,27 +793,26 @@ func (tgw *TransitGateway) prefixByIndexStr(prefixIndex int) (string, error) {
 	return resStr, nil
 }
 
-func (tgw *TransitGateway) StringPrefixDetails(src, dst vpcmodel.VPCResourceIntf) (string, error) {
-	if areNodes, src1, dst1 := isNodesPair(src, dst); areNodes {
-		if vpcmodel.HasNode(tgw.sourceNodes, src1) &&
-			vpcmodel.HasNode(tgw.destNodes, dst1) { // <src, dst> routed by tgw
-			for dst2, prefixIndex := range tgw.destNodesPrefixes {
-				if dst2.UID() == dst1.UID() { // there is a specific prefix
-					return tgw.prefixByIndexStr(prefixIndex)
-				}
-				return tgw.prefixDefaultStr() // no specific index, use default
+func (tgw *TransitGateway) StringPrefixDetails(src, dst vpcmodel.Node) (string, error) {
+	if vpcmodel.HasNode(tgw.sourceNodes, src) &&
+		vpcmodel.HasNode(tgw.destNodes, dst) { // <src, dst> routed by tgw
+		for dst2, prefixIndex := range tgw.destNodesPrefixes {
+			if dst2.UID() == dst.UID() { // there is a specific prefix
+				return tgw.prefixByIndexStr(prefixIndex)
 			}
+			return tgw.prefixDefaultStr() // no specific index, use default
 		}
+
 		return "", errors.New(fmt.Sprintf("np-guard error: TransitGateway.RelevantPrefixes() failed to find prefix match to Node %s", dst.Name()))
 	}
 	return "", errors.New("TransitGateway.RelevantPrefixes() expected src and dst to be two nodes")
 }
 
-func (fip *FloatingIP) StringPrefixDetails(src, dst vpcmodel.VPCResourceIntf) (string, error) {
+func (fip *FloatingIP) StringPrefixDetails(src, dst vpcmodel.Node) (string, error) {
 	return "", nil
 }
 
-func (pgw *PublicGateway) StringPrefixDetails(src, dst vpcmodel.VPCResourceIntf) (string, error) {
+func (pgw *PublicGateway) StringPrefixDetails(src, dst vpcmodel.Node) (string, error) {
 	return "", nil
 }
 
