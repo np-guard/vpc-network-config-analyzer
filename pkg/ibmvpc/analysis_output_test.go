@@ -167,7 +167,7 @@ func (tt *vpcGeneralTest) initTest() {
 	}
 }
 
-var tests2 = []*vpcGeneralTest{
+var tests = []*vpcGeneralTest{
 	{
 		inputConfig: "load_balancer",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
@@ -175,7 +175,7 @@ var tests2 = []*vpcGeneralTest{
 		format:      vpcmodel.DRAWIO,
 	},
 }
-var tests = []*vpcGeneralTest{
+var tests2 = []*vpcGeneralTest{
 	{
 		inputConfig: "acl_testing5",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},

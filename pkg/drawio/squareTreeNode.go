@@ -214,7 +214,9 @@ func (tn *PartialSGTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNo
 func (tn *PartialSGTreeNode) DrawioParent() TreeNodeInterface {
 	return tn.Parent().Parent()
 }
-
+func (tn *PartialSGTreeNode) Kind() string{
+	return tn.parent.Kind()
+}
 /////////////////////////////////////////////////////////////////////////
 
 type SubnetTreeNode struct {

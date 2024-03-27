@@ -10,6 +10,7 @@ func (v *VPC) ShowOnSubnetMode() bool                  { return true }
 func (z *Zone) ShowOnSubnetMode() bool                 { return true }
 func (s *Subnet) ShowOnSubnetMode() bool               { return true }
 func (sgl *SecurityGroupLayer) ShowOnSubnetMode() bool { return false }
+func (sg *SecurityGroup) ShowOnSubnetMode() bool      { return false }
 func (nl *NaclLayer) ShowOnSubnetMode() bool           { return true }
 func (ni *NetworkInterface) ShowOnSubnetMode() bool    { return false }
 func (n *IKSNode) ShowOnSubnetMode() bool              { return false }
@@ -48,11 +49,15 @@ func (s *Subnet) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.Tr
 }
 
 func (sgl *SecurityGroupLayer) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
-	tn := drawio.NewSGTreeNode(gen.TreeNode(sgl.VPC()).(*drawio.VpcTreeNode), sgl.Name())
 	for _, sg := range sgl.sgList {
-		for _, member := range sg.members {
-			tn.AddIcon(gen.TreeNode(member).(drawio.IconTreeNodeInterface))
-		}
+		gen.TreeNode(sg)
+	}
+	return nil
+}
+func (sg *SecurityGroup) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
+	tn := drawio.NewSGTreeNode(gen.TreeNode(sg.VPC()).(*drawio.VpcTreeNode), sg.Name())
+	for _, member := range sg.members {
+		tn.AddIcon(gen.TreeNode(member).(drawio.IconTreeNodeInterface))
 	}
 	return tn
 }
