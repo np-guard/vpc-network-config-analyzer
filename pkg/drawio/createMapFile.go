@@ -57,7 +57,10 @@ func NewTemplateData(network SquareTreeNodeInterface, explanations []Explanation
 	}
 	if data.IsHtml {
 		data.setNodesRelations(network)
-		data.setClickable()
+		for _, e := range data.Explanations {
+			data.clickable[e.Src] = true
+			data.clickable[e.Dst] = true
+		}
 	}
 	return data
 }

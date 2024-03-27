@@ -141,11 +141,3 @@ func (data *templateData) setNodesRelations(network TreeNodeInterface) {
 	data.Relations = string(b)
 }
 
-func (data *templateData) setClickable() {
-	for _, e := range data.Explanations {
-		data.clickable[e.Src] = true
-		data.clickable[e.Dst] = true
-	}
-}
-
-// ///////////////////////////////////////////////////////////////////////////
