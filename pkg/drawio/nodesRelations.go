@@ -140,7 +140,6 @@ func (data *templateData) setNodesRelations(network TreeNodeInterface) {
 		for _, n := range rel[node] {
 			res[nId]["relations"] = append(res[nId]["relations"], strconv.Itoa(int(n.ID())))
 		}
-		res[nId]["highlights"] = []string{nId}
 		res[nId]["explanation"] = []string{"Connectivity graph of " + data.NodeName(node)}
 	}
 	b, _ := json.Marshal(res)

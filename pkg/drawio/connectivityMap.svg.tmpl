@@ -247,19 +247,12 @@
                 function hideWithoutRelation(element) {
                     const clickedId = element.id;
                     const relatedIds = jsObject[clickedId].relations;
-                    const highlightIds = jsObject[clickedId].highlights;
                     clickableElements.forEach(el => {
                         if (relatedIds.includes(el.id) || findSelected(el)) {
                           el.style.display = ''; // Show the element
                         }
                         if (!relatedIds.includes(el.id) && el.id !== clickedId && !findSelected(el)) {
                           el.style.display = 'none'; // Hide the element
-                        }
-                        if (highlightIds.includes(el.id)) {
-                          el.style.strokeWidth = '2px'; // highlight the element
-                        }
-                        else {
-                          el.style.strokeWidth = '1px'; // dont highlight the element
                         }
                     });
                 }
