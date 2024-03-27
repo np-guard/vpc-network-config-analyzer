@@ -7,8 +7,6 @@ import (
 	"reflect"
 	"sort"
 	"text/template"
-
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 const (
@@ -36,12 +34,10 @@ type templateData struct {
 	DebugPoints  []debugPoint
 	Relations    string
 	Explanations []ExplanationEntry
-	clickable    common.GenericSet[TreeNodeInterface]
-	// todo - get rid of IsHtml
-	IsHtml       bool
+	clickable    map[TreeNodeInterface]bool
 }
 
-func NewTemplateData(network SquareTreeNodeInterface, explanations []ExplanationEntry) *templateData {
+func newTemplateData(network SquareTreeNodeInterface, explanations []ExplanationEntry, interactive bool) *templateData {
 	allNodes := getAllNodes(network)
 	orderedNodes := orderNodesForTemplate(allNodes)
 	data := &templateData{
@@ -53,10 +49,9 @@ func NewTemplateData(network SquareTreeNodeInterface, explanations []Explanation
 		network.DebugPoints(),
 		"",
 		explanations,
-		common.GenericSet[TreeNodeInterface]{},
-		true,
+		map[TreeNodeInterface]bool{},
 	}
-	if data.IsHtml {
+	if interactive {
 		data.setNodesRelations(network)
 		for _, e := range data.Explanations {
 			data.clickable[e.Src] = true
@@ -101,13 +96,14 @@ func (data *templateData) AY(tn TreeNodeInterface) int {
 	return y
 }
 
-// orderNodesForTemplate() sort the nodes for the drawio/svg canvas
-// the order in the drawio/svg canvas are set by the order in the drawio/svg file
+// orderNodesForTemplate() sort the nodes for the drawio/svg/html canvas
+// the order in the canvas are set by the order in the drawio/svg/html file
 // (the last in the file will be on top in the canvas)
+// for clicking on a node, it must not be behind another node
 // 1. we put the lines at the top so they will overlap the icons
-// 2. we put the icons above the squares so we can mouse over it for tooltips
-// 3. we put the sgs and the gs in the bottom.
-// (if a sg or  a gs is above a square, it will block the the tooltip of the children of the square.)
+// 2. we put the icons above the squares
+// 3. we bucket sort the squares, and order them by parent-child order
+// 4. we also sort the groupSquare by size
 func orderNodesForTemplate(nodes []TreeNodeInterface) []TreeNodeInterface {
 	squareOrders := []SquareTreeNodeInterface{
 		&NetworkTreeNode{},
@@ -122,7 +118,7 @@ func orderNodesForTemplate(nodes []TreeNodeInterface) []TreeNodeInterface {
 		&PartialSGTreeNode{},
 		&GroupSquareTreeNode{},
 	}
-	var ln, ic, orderedNodes []TreeNodeInterface
+	var lines, icons, orderedNodes []TreeNodeInterface
 	squaresBuckets := map[reflect.Type][]TreeNodeInterface{}
 	for _, t := range squareOrders {
 		squaresBuckets[reflect.TypeOf(t).Elem()] = []TreeNodeInterface{}
@@ -133,37 +129,37 @@ func orderNodesForTemplate(nodes []TreeNodeInterface) []TreeNodeInterface {
 			e := reflect.TypeOf(tn).Elem()
 			squaresBuckets[e] = append(squaresBuckets[e], tn)
 		case tn.IsIcon():
-			ic = append(ic, tn)
+			icons = append(icons, tn)
 		case tn.IsLine():
-			ln = append(ln, tn)
+			lines = append(lines, tn)
 		}
 	}
-	for _, gSlice := range [][]TreeNodeInterface{
-		squaresBuckets[reflect.TypeOf(&GroupSquareTreeNode{}).Elem()],
-		squaresBuckets[reflect.TypeOf(&GroupSubnetsSquareTreeNode{}).Elem()],
+	for _, square := range []SquareTreeNodeInterface{
+		&GroupSquareTreeNode{},
+		&GroupSubnetsSquareTreeNode{},
 	} {
-		sort.Slice(gSlice, func(i, j int) bool {
-			return gSlice[i].Width() > gSlice[j].Width()
+		nodes := squaresBuckets[reflect.TypeOf(square).Elem()]
+		sort.Slice(nodes, func(i, j int) bool {
+			return nodes[i].Width() > nodes[j].Width()
 		})
 	}
 	for _, t := range squareOrders {
 		orderedNodes = append(orderedNodes, squaresBuckets[reflect.TypeOf(t).Elem()]...)
 	}
-	orderedNodes = append(orderedNodes, ic...)
-	orderedNodes = append(orderedNodes, ln...)
+	orderedNodes = append(orderedNodes, icons...)
+	orderedNodes = append(orderedNodes, lines...)
 	return orderedNodes
 }
 
 // todo - when implementing the full html solution, need to change this interface:
 func CreateDrawioConnectivityMapFile(network SquareTreeNodeInterface, outputFile string, subnetMode bool, explanations []ExplanationEntry) error {
 	newLayout(network, subnetMode).layout()
-	data := NewTemplateData(network, explanations)
+	data := newTemplateData(network, explanations, true)
 	if true {
 		err := createFileFromTemplate(data, outputFile+".html", svgTemplate)
 		if err != nil {
 			return err
 		}
-		data.IsHtml = false
 		err = createFileFromTemplate(data, outputFile+".svg", svgTemplate)
 		if err != nil {
 			return err
