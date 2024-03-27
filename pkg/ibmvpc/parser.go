@@ -744,6 +744,7 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 				region = *tgwFromConfig.Location
 			}
 			tgw := &TransitGateway{
+				tgwResource: tgwConn,
 				VPCResource: vpcmodel.VPCResource{
 					ResourceName: tgwName,
 					ResourceUID:  tgwUID,

@@ -6,9 +6,9 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
 	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/ipblock"
-
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -650,6 +650,8 @@ func (pgw *PublicGateway) AppliedFiltersKinds() map[string]bool {
 }
 
 type TransitGateway struct {
+	tgwResource *datamodel.TransitConnection
+
 	vpcmodel.VPCResource
 
 	// vpcs are the VPCs connected by a TGW
@@ -760,26 +762,59 @@ func (tgw *TransitGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf
 	return nil, errors.New("TransitGateway.AllowedConnectivity() expected src and dst to be two nodes or two subnets")
 }
 
-func (tgw *TransitGateway) RelevantPrefixes(src, dst vpcmodel.VPCResourceIntf) (int, error) {
+// gets a string description of prefix indexed "index" from TransitGateway tgw
+func (tgw *TransitGateway) prefixDefaultStr() (string, error) {
+	actionName, err := actionNameStr(tgw.tgwResource.PrefixFiltersDefault)
+	if err != nil {
+		return "", err
+	}
+	return "default prefix with " + actionName, nil
+}
+
+func (tgw *TransitGateway) prefixByIndexStr(prefixIndex int) (string, error) {
+	// Array of prefix route filters for a transit gateway connection. This is order dependent with those first in the
+	// array being applied first, and those at the end of the array is applied last, or just before the default.
+	if len(tgw.tgwResource.PrefixFilters) < prefixIndex+1 {
+		return "", errors.New(fmt.Sprintf("np-guard error: prefix index %d does not exists in %s",
+			prefixIndex, tgw.Name()))
+	}
+	prefixFilter := tgw.tgwResource.PrefixFilters[prefixIndex]
+	actionName, err := actionNameStr(prefixFilter.Action)
+	if err != nil {
+		return "", err
+	}
+	resStr := fmt.Sprintf("index: %v, action: %s", prefixIndex, actionName)
+	if prefixFilter.Ge != nil {
+		resStr += fmt.Sprintf(", Ge: %v", *prefixFilter.Ge)
+	}
+	if prefixFilter.Le != nil {
+		resStr += fmt.Sprintf("Le: %v", *prefixFilter.Le)
+	}
+	return resStr, nil
+}
+
+func (tgw *TransitGateway) StringPrefixDetails(src, dst vpcmodel.VPCResourceIntf) (string, error) {
 	if areNodes, src1, dst1 := isNodesPair(src, dst); areNodes {
-		if vpcmodel.HasNode(tgw.sourceNodes, src1) {
+		if vpcmodel.HasNode(tgw.sourceNodes, src1) &&
+			vpcmodel.HasNode(tgw.destNodes, dst1) { // <src, dst> routed by tgw
 			for dst2, prefixIndex := range tgw.destNodesPrefixes {
-				if dst2.UID() == dst1.UID() {
-					return prefixIndex, nil
+				if dst2.UID() == dst1.UID() { // there is a specific prefix
+					return tgw.prefixByIndexStr(prefixIndex)
 				}
+				return tgw.prefixDefaultStr() // no specific index, use default
 			}
 		}
-		return -1, errors.New(fmt.Sprintf("np-guard error: TransitGateway.RelevantPrefixes() failed to find prefix match to Node %s", dst.Name()))
+		return "", errors.New(fmt.Sprintf("np-guard error: TransitGateway.RelevantPrefixes() failed to find prefix match to Node %s", dst.Name()))
 	}
-	return -1, errors.New("TransitGateway.RelevantPrefixes() expected src and dst to be two nodes")
+	return "", errors.New("TransitGateway.RelevantPrefixes() expected src and dst to be two nodes")
 }
 
-func (fip *FloatingIP) RelevantPrefixes(src, dst vpcmodel.VPCResourceIntf) (int, error) {
-	return -1, nil
+func (fip *FloatingIP) StringPrefixDetails(src, dst vpcmodel.VPCResourceIntf) (string, error) {
+	return "", nil
 }
 
-func (pgw *PublicGateway) RelevantPrefixes(src, dst vpcmodel.VPCResourceIntf) (int, error) {
-	return -1, nil
+func (pgw *PublicGateway) StringPrefixDetails(src, dst vpcmodel.VPCResourceIntf) (string, error) {
+	return "", nil
 }
 
 // todo: currently not used

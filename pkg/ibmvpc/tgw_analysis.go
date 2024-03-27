@@ -2,7 +2,7 @@ package ibmvpc
 
 import (
 	"errors"
-	"fmt"
+
 	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
 	"github.com/np-guard/models/pkg/ipblock"
 )
@@ -169,33 +169,6 @@ func getCIDRPrefixFilter(cidr string, tc *datamodel.TransitConnection) (int, err
 	}
 	// no match by pfList -- use default
 	return -1, nil
-}
-
-// gets a string description of prefix indexed "index" from TransitConnection tc
-func prefixByIndexStr(tc *datamodel.TransitConnection, prefixIndex int) (string, error) {
-	// Array of prefix route filters for a transit gateway connection. This is order dependent with those first in the
-	// array being applied first, and those at the end of the array is applied last, or just before the default.
-	if prefixIndex == -1 { // default
-		actionName, err := actionNameStr(tc.PrefixFiltersDefault)
-		if err != nil {
-			return "", nil
-		}
-		return "default prefix with " + actionName, nil
-	}
-
-	prefixFilter := tc.PrefixFilters[prefixIndex]
-	actionName, err := actionNameStr(prefixFilter.Action)
-	if err != nil {
-		return "", nil
-	}
-	resStr := fmt.Sprintf("index: %v, action: %s", prefixIndex, actionName)
-	if prefixFilter.Ge != nil {
-		resStr += fmt.Sprintf(", Ge: %v", *prefixFilter.Ge)
-	}
-	if prefixFilter.Le != nil {
-		resStr += fmt.Sprintf("Le: %v", *prefixFilter.Le)
-	}
-	return resStr, nil
 }
 
 // for an action of type *string as stored in *datamodel.TransitConnection returns allow/deny
