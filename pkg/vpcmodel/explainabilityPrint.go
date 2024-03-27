@@ -63,7 +63,7 @@ func (details *rulesAndConnDetails) String(c *VPCConfig, verbose bool, connQuery
 	for _, srcDstDetails := range *details {
 		resStr += explainabilityLineStr(verbose, c, srcDstDetails.filtersRelevant, connQuery,
 			srcDstDetails.src, srcDstDetails.dst, srcDstDetails.conn, srcDstDetails.ingressEnabled,
-			srcDstDetails.egressEnabled, srcDstDetails.router, srcDstDetails.actualMergedRules)
+			srcDstDetails.egressEnabled, srcDstDetails.externalRouter, srcDstDetails.actualMergedRules)
 	}
 	return resStr, nil
 }
@@ -240,7 +240,7 @@ func pathStr(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointEle
 	}
 	if isExternal {
 		routerStr := newLineTab + router.Kind() + space + router.Name()
-		// router is fip - add its cidr
+		// externalRouter is fip - add its cidr
 		if router.Kind() == fipRouter {
 			routerStr += space + router.ExternalIP()
 		}
@@ -285,7 +285,7 @@ func pathFiltersOfIngressOrEgressStr(c *VPCConfig, node EndpointElem, filtersRel
 		// got here: first layer (security group for egress nacl for ingress) allows connection,
 		// subnet is part of the path if both node are internal and there are two layers - sg and nacl
 		// subnet should be added after sg in egress and after nacl in ingress
-		// or this node internal and router is pgw
+		// or this node internal and externalRouter is pgw
 		if !node.IsExternal() && (!isExternal || router.Kind() == pgwKind) &&
 			((!isIngress && layer == SecurityGroupLayer && len(layers) > 1) ||
 				(isIngress && layer == NaclLayer && len(layers) > 1)) {

@@ -30,15 +30,15 @@ type srcDstDetails struct {
 	egressEnabled  bool
 	// the connection between src to dst, in case the connection was not part of the query;
 	// the part of the connection relevant to the query otherwise.
-	conn   *connection.Set
-	router RoutingResource // the router (fip or pgw) to external network; nil if none
+	conn           *connection.Set
+	externalRouter RoutingResource // the router (fip or pgw) to external network; nil if none
 	// filters relevant for this src, dst pair; map keys are the filters kind (NaclLayer/SecurityGroupLayer)
 	// for two internal nodes within same subnet, only SG layer is relevant
 	// for external connectivity (src/dst is external) with FIP, only SG layer is relevant
 	filtersRelevant     map[string]bool
 	potentialAllowRules *rulesConnection // potentially enabling connection - potential given the filter is relevant
-	actualAllowRules    *rulesConnection // enabling rules effecting connection given router; e.g. NACL is not relevant for fip
-	potentialDenyRules  *rulesConnection // deny rules potentially (w.r.t. router) effecting the connection, relevant for ACL
+	actualAllowRules    *rulesConnection // enabling rules effecting connection given externalRouter; e.g. NACL is not relevant for fip
+	potentialDenyRules  *rulesConnection // deny rules potentially (w.r.t. externalRouter) effecting the connection, relevant for ACL
 	actualDenyRules     *rulesConnection // deny rules effecting the connection, relevant for ACL
 	actualMergedRules   *rulesConnection // rules actually effecting the connection (both allow and deny)
 	// enabling rules implies whether ingress/egress is enabled
@@ -148,7 +148,7 @@ func (details *rulesAndConnDetails) computeFilters(c *VPCConfig) error {
 	for _, singleSrcDstDetails := range *details {
 		// RoutingResources are computed by the parser for []Nodes of the VPC,
 		// finds the relevant nodes for the query's src and dst;
-		// if for src or dst no containing node was found, there is no router
+		// if for src or dst no containing node was found, there is no externalRouter
 		src := singleSrcDstDetails.src
 		dst := singleSrcDstDetails.dst
 		if src.IsInternal() && dst.IsInternal() { // internal
@@ -159,9 +159,9 @@ func (details *rulesAndConnDetails) computeFilters(c *VPCConfig) error {
 				return err
 			}
 			if routingResource == nil {
-				continue // no router: no connections, filtersLayers non defined
+				continue // no externalRouter: no connections, filtersLayers non defined
 			}
-			singleSrcDstDetails.router = routingResource
+			singleSrcDstDetails.externalRouter = routingResource
 			singleSrcDstDetails.filtersRelevant = routingResource.AppliedFiltersKinds() // relevant filtersExternal
 		}
 	}

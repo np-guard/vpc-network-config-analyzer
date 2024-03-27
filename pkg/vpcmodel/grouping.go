@@ -260,7 +260,7 @@ func (g *GroupConnLines) groupExternalAddressesForExplainability() error {
 	var res []*groupedConnLine
 	for _, details := range *g.explain {
 		groupingStrKey := details.explanationEncode(g.config)
-		expDetails := &explainDetails{details.actualMergedRules, details.router, details.filtersRelevant,
+		expDetails := &explainDetails{details.actualMergedRules, details.externalRouter, details.filtersRelevant,
 			details.connEnabled, details.ingressEnabled, details.egressEnabled}
 		err := g.addLineToExternalGrouping(&res, details.src, details.dst,
 			&groupedCommonProperties{conn: details.conn, expDetails: expDetails,
@@ -513,8 +513,8 @@ func connDiffEncode(src, dst VPCResourceIntf, connDiff *connectionDiff) string {
 func (details *srcDstDetails) explanationEncode(c *VPCConfig) string {
 	connStr := details.conn.String() + semicolon
 	routingStr := ""
-	if details.router != nil {
-		routingStr = details.router.Name() + ";"
+	if details.externalRouter != nil {
+		routingStr = details.externalRouter.Name() + ";"
 	}
 	egressStr, ingressStr := "", ""
 	if len(details.actualMergedRules.egressRules) > 0 {
