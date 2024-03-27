@@ -141,29 +141,33 @@ func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node,
 }
 
 // computeRoutersAndFilters computes for each  <src, dst> :
-// 1. The external routingResource
-// 2. The external filters relevant to the <src, dst> given the routingResource
+// 1. The tgw routingResource, if exists
+// 2. The external routingResource, if exists
+// Note that at most one of the routingResource exists for any <src, dst>
+// 2. The external filters relevant to the <src, dst> given the external routingResource
 // 3. The internal filters relevant to the <src, dst>
 // 4. The actual relevant filter, depending on whether src xor dst is external
-func (details *rulesAndConnDetails) computeRoutersAndFilters(c *VPCConfig) error {
+func (details *rulesAndConnDetails) computeRoutersAndFilters(c *VPCConfig) (err error) {
 	for _, singleSrcDstDetails := range *details {
 		// RoutingResources are computed by the parser for []Nodes of the VPC,
-		// finds the relevant nodes for the query's src and dst;
-		// if for src or dst no containing node was found, there is no externalRouter
 		src := singleSrcDstDetails.src
 		dst := singleSrcDstDetails.dst
-		if src.IsInternal() && dst.IsInternal() { // internal
-			singleSrcDstDetails.filtersRelevant = src.(InternalNodeIntf).AppliedFiltersKinds(dst.(InternalNodeIntf))
-		} else { // external
-			routingResource, _, err := c.getRoutingResource(src, dst)
+		if src.IsInternal() && dst.IsInternal() { // internal (including cross vpcs)
+			singleSrcDstDetails.tgwRouter, _, err = c.getRoutingResource(src, dst)
 			if err != nil {
 				return err
 			}
-			if routingResource == nil {
+			singleSrcDstDetails.filtersRelevant = src.(InternalNodeIntf).AppliedFiltersKinds(dst.(InternalNodeIntf))
+		} else { // external
+			externalRouter, _, err := c.getRoutingResource(src, dst)
+			if err != nil {
+				return err
+			}
+			if externalRouter == nil {
 				continue // no externalRouter: no connections, filtersLayers non defined
 			}
-			singleSrcDstDetails.externalRouter = routingResource
-			singleSrcDstDetails.filtersRelevant = routingResource.AppliedFiltersKinds() // relevant filtersExternal
+			singleSrcDstDetails.externalRouter = externalRouter
+			singleSrcDstDetails.filtersRelevant = externalRouter.AppliedFiltersKinds() // relevant filtersExternal
 		}
 	}
 	return nil
