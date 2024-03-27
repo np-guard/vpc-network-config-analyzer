@@ -45,7 +45,7 @@ type TreeNodeInterface interface {
 	Width() int
 	setXY(x, y int)
 	setWH(w, h int)
-	Labels() []string
+	labels() []string
 	Kind() string
 	SetKind(string)
 
@@ -160,7 +160,7 @@ func joinLabels(labels []string, sep string) string {
 }
 
 func treeNodeName(tn TreeNodeInterface) string {
-	return joinLabels(tn.Labels(), ",")
+	return joinLabels(tn.labels(), ",")
 }
 
 // uncomment writeAsJson() treeNodeAsMap() for debug of a treeNode
@@ -180,7 +180,7 @@ func treeNodeName(tn TreeNodeInterface) string {
 // 	for _, s := range lines {
 // 		lns = append(lns, treeNodeAsMap(s))
 // 	}
-// 	res["name"] = tn.Labels()
+// 	res["name"] = tn.labels()
 // 	res["squares"] = sqs
 // 	res["icons"] = ics
 // 	res["lines"] = lns

@@ -37,6 +37,7 @@ type templateData struct {
 	Relations    string
 	Explanations []ExplanationEntry
 	clickable    common.GenericSet[TreeNodeInterface]
+	// todo - get rid of IsHtml
 	IsHtml       bool
 }
 
@@ -78,10 +79,10 @@ func (data *templateData) NodeName(tn TreeNodeInterface) string {
 	return fmt.Sprintf("%s (%s)", treeNodeName(tn), tn.Kind())
 }
 func (data *templateData) SvgLabel(tn TreeNodeInterface) string {
-	return joinLabels(tn.Labels(), SvgTableSep)
+	return joinLabels(tn.labels(), SvgTableSep)
 }
 func (data *templateData) DrawioLabel(tn TreeNodeInterface) string {
-	return joinLabels(tn.Labels(), drawioTableSep)
+	return joinLabels(tn.labels(), drawioTableSep)
 }
 func (data *templateData) Clickable(tn TreeNodeInterface) bool {
 	return data.clickable[tn]

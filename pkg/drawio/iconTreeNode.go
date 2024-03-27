@@ -106,7 +106,7 @@ func NewNITreeNode(parent SquareTreeNodeInterface, name string) *NITreeNode {
 func (tn *NITreeNode) setVsi(vsi string) { tn.vsi = vsi }
 func (tn *NITreeNode) hasMiniIcon() bool { return tn.vsi != "" }
 func (tn *NITreeNode) RouterID() uint    { return tn.FipID() }
-func (tn *NITreeNode) Labels() []string  { return []string{tn.name, tn.vsi} }
+func (tn *NITreeNode) labels() []string  { return []string{tn.name, tn.vsi} }
 
 // ///////////////////////////////////////////
 type ResIPTreeNode struct {
@@ -122,7 +122,7 @@ func NewResIPTreeNode(parent SquareTreeNodeInterface, name string) *ResIPTreeNod
 
 func (tn *ResIPTreeNode) setVpe(vpe string) { tn.vpe = vpe }
 func (tn *ResIPTreeNode) hasMiniIcon() bool { return tn.vpe != "" }
-func (tn *ResIPTreeNode) Labels() []string  { return []string{tn.name, tn.vpe} }
+func (tn *ResIPTreeNode) labels() []string  { return []string{tn.name, tn.vpe} }
 
 // ///////////////////////////////////////////
 type GatewayTreeNode struct {

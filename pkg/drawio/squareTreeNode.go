@@ -233,7 +233,7 @@ func NewSubnetTreeNode(parent *ZoneTreeNode, name, cidr, acl string) *SubnetTree
 func (tn *SubnetTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
 	return tn.groupSquares, tn.elements, tn.connections
 }
-func (tn *SubnetTreeNode) Labels() []string {
+func (tn *SubnetTreeNode) labels() []string {
 	return []string{tn.name, tn.cidr, tn.acl}
 }
 func (tn *SubnetTreeNode) IsSubnet() bool { return true }

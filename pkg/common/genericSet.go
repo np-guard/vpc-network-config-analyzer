@@ -42,15 +42,10 @@ func (s GenericSet[T]) AsList() []T {
 	}
 	return keys
 }
-func (s GenericSet[T]) Merge(s2 GenericSet[T]) {
-	for i := range s2 {
-		s[i] = true
-	}
-}
 
-func FromList[T comparable](L []T) GenericSet[T] {
+func FromList[T comparable](l []T) GenericSet[T] {
 	s := GenericSet[T]{}
-	for _, e := range L {
+	for _, e := range l {
 		s[e] = true
 	}
 	return s

@@ -57,7 +57,6 @@ func (d *DrawioOutputFormatter) createDrawioTree() {
 	if d.conns != nil {
 		d.createEdges()
 	}
-	d.createExplanations()
 }
 
 func (d *DrawioOutputFormatter) createNodeSets() {
