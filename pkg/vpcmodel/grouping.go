@@ -22,7 +22,7 @@ type groupedExternalNodesInfo struct {
 
 type explainDetails struct {
 	rules           *rulesConnection
-	router          RoutingResource
+	externalRouter  RoutingResource
 	filtersRelevant map[string]bool
 	connEnabled     bool
 	ingressEnabled  bool

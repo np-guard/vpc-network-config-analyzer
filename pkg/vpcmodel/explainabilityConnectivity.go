@@ -31,7 +31,8 @@ type srcDstDetails struct {
 	// the connection between src to dst, in case the connection was not part of the query;
 	// the part of the connection relevant to the query otherwise.
 	conn           *connection.Set
-	externalRouter RoutingResource // the router (fip or pgw) to external network; nil if none
+	externalRouter RoutingResource // the router (fip or pgw) to external network; nil if none or not relevant
+	tgwRouter      RoutingResource // the tgw router between src and dst from different VPCs; nil if none or not relevant
 	// filters relevant for this src, dst pair; map keys are the filters kind (NaclLayer/SecurityGroupLayer)
 	// for two internal nodes within same subnet, only SG layer is relevant
 	// for external connectivity (src/dst is external) with FIP, only SG layer is relevant
@@ -131,7 +132,7 @@ func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node,
 				return nil, err
 			}
 			rulesThisSrcDst := &srcDstDetails{src, dst, false, false, false,
-				connection.None(), nil, nil, allowRules,
+				connection.None(), nil, nil, nil, allowRules,
 				nil, denyRules, nil, nil}
 			rulesAndConn = append(rulesAndConn, rulesThisSrcDst)
 		}

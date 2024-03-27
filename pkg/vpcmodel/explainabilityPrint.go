@@ -49,7 +49,7 @@ func (explanation *Explanation) String(verbose bool) string {
 		linesStr[i] += explainabilityLineStr(verbose, explanation.c, line.commonProperties.expDetails.filtersRelevant,
 			explanation.connQuery, line.src, line.dst, line.commonProperties.conn, line.commonProperties.expDetails.ingressEnabled,
 			line.commonProperties.expDetails.egressEnabled,
-			line.commonProperties.expDetails.router, line.commonProperties.expDetails.rules) +
+			line.commonProperties.expDetails.externalRouter, line.commonProperties.expDetails.rules) +
 			"------------------------------------------------------------------------------------------------------------------------\n"
 	}
 	sort.Strings(linesStr)
