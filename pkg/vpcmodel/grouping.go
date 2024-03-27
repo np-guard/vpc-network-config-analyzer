@@ -23,6 +23,7 @@ type groupedExternalNodesInfo struct {
 type explainDetails struct {
 	rules           *rulesConnection
 	externalRouter  RoutingResource
+	tgwRouter       RoutingResource
 	filtersRelevant map[string]bool
 	connEnabled     bool
 	ingressEnabled  bool
@@ -260,8 +261,10 @@ func (g *GroupConnLines) groupExternalAddressesForExplainability() error {
 	var res []*groupedConnLine
 	for _, details := range *g.explain {
 		groupingStrKey := details.explanationEncode(g.config)
-		expDetails := &explainDetails{details.actualMergedRules, details.externalRouter, details.filtersRelevant,
-			details.connEnabled, details.ingressEnabled, details.egressEnabled}
+		expDetails := &explainDetails{details.actualMergedRules,
+			details.externalRouter, details.tgwRouter,
+			details.filtersRelevant, details.connEnabled,
+			details.ingressEnabled, details.egressEnabled}
 		err := g.addLineToExternalGrouping(&res, details.src, details.dst,
 			&groupedCommonProperties{conn: details.conn, expDetails: expDetails,
 				groupingStrKey: groupingStrKey})
@@ -511,19 +514,22 @@ func connDiffEncode(src, dst VPCResourceIntf, connDiff *connectionDiff) string {
 
 // encodes rulesConnection for grouping
 func (details *srcDstDetails) explanationEncode(c *VPCConfig) string {
-	connStr := details.conn.String() + semicolon
-	routingStr := ""
+	encodeComponents := []string{}
+	encodeComponents = append(encodeComponents, details.conn.String())
 	if details.externalRouter != nil {
-		routingStr = details.externalRouter.Name() + ";"
+		encodeComponents = append(encodeComponents, details.externalRouter.Name())
 	}
-	egressStr, ingressStr := "", ""
+	if details.tgwRouter != nil {
+		encodeComponents = append(encodeComponents, details.tgwRouter.Name())
+	}
 	if len(details.actualMergedRules.egressRules) > 0 {
-		egressStr = "egress:" + details.actualMergedRules.egressRules.rulesDetailsStr(c, details.filtersRelevant,
-			false) + semicolon
+		encodeComponents = append(encodeComponents, "egress:"+
+			details.actualMergedRules.egressRules.rulesDetailsStr(c, details.filtersRelevant, false))
 	}
 	if len(details.actualMergedRules.ingressRules) > 0 {
-		egressStr = "ingress:" + details.actualMergedRules.ingressRules.rulesDetailsStr(c, details.filtersRelevant,
-			true) + semicolon
+		encodeComponents = append(encodeComponents, "ingress:"+
+			details.actualMergedRules.ingressRules.rulesDetailsStr(c, details.filtersRelevant, true))
 	}
-	return connStr + routingStr + egressStr + ingressStr
+
+	return strings.Join(encodeComponents, ";")
 }

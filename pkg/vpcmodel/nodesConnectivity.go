@@ -111,7 +111,11 @@ func (c *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 			var allowedConnsBetweenCapturedAndPeerNode *connection.Set
 			if c.IsMultipleVPCsConfig {
 				// in case of cross-vpc connectivity, do need a router (tgw) enabling this connection
-				_, allowedConnsBetweenCapturedAndPeerNode, err = c.getRoutingResource(src, dst)
+				var transitGateway RoutingResource // todo: tmp
+				transitGateway, allowedConnsBetweenCapturedAndPeerNode, err = c.getRoutingResource(src, dst)
+				if transitGateway != nil {
+					fmt.Println("transitGateway:", transitGateway.Name())
+				}
 				if err != nil {
 					return nil, nil, err
 				}
