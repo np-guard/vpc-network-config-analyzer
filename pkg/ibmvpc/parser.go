@@ -998,42 +998,44 @@ func getSubnetByCidr(res vpcmodel.MultipleVPCConfigs, cidr string) (*Subnet, err
 func getIKSnodesConfig(res vpcmodel.MultipleVPCConfigs,
 	rc *datamodel.ResourcesContainerModel,
 	skipByVPC map[string]bool) error {
-	for _, iksNode := range rc.IKSWorkerNodes {
-		if len(iksNode.NetworkInterfaces) != 1 {
-			return errIksParsing
-		}
-		iksNodeNetIntfObj := iksNode.NetworkInterfaces[0]
+	for _, iksCluster := range rc.IKSClusters {
+		for _, iksNode := range iksCluster.WorkerNodes {
+			if len(iksNode.NetworkInterfaces) != 1 {
+				return errIksParsing
+			}
+			iksNodeNetIntfObj := iksNode.NetworkInterfaces[0]
 
-		subnet, err := getSubnetByCidr(res, *iksNodeNetIntfObj.Cidr)
-		if err != nil {
-			fmt.Printf("warning: ignoring iksNode with ID %s (could not find subnet with iksNode's CIDR: %s)\n",
-				*iksNode.ID, *iksNodeNetIntfObj.Cidr)
-			continue
+			subnet, err := getSubnetByCidr(res, *iksNodeNetIntfObj.Cidr)
+			if err != nil {
+				fmt.Printf("warning: ignoring iksNode with ID %s (could not find subnet with iksNode's CIDR: %s)\n",
+					*iksNode.ID, *iksNodeNetIntfObj.Cidr)
+				continue
+			}
+			if skipByVPC[subnet.VPC().UID()] {
+				continue
+			}
+			vpcUID := subnet.VPC().UID()
+			vpc := subnet.VPC()
+			nodeObject := &IKSNode{
+				VPCResource: vpcmodel.VPCResource{
+					ResourceName: "iks-node",
+					ResourceUID:  *iksNode.ID,
+					ResourceType: ResourceTypeIKSNode,
+					VPCRef:       vpc,
+					Region:       vpc.RegionName(),
+				},
+				InternalNode: vpcmodel.InternalNode{
+					AddressStr:     *iksNodeNetIntfObj.IpAddress,
+					SubnetResource: subnet,
+				},
+			}
+			if err := nodeObject.SetIPBlockFromAddress(); err != nil {
+				return err
+			}
+			res[vpcUID].Nodes = append(res[vpcUID].Nodes, nodeObject)
+			// attach the node to the subnet
+			subnet.nodes = append(subnet.nodes, nodeObject)
 		}
-		if skipByVPC[subnet.VPC().UID()] {
-			continue
-		}
-		vpcUID := subnet.VPC().UID()
-		vpc := subnet.VPC()
-		nodeObject := &IKSNode{
-			VPCResource: vpcmodel.VPCResource{
-				ResourceName: "iks-node",
-				ResourceUID:  *iksNode.ID,
-				ResourceType: ResourceTypeIKSNode,
-				VPCRef:       vpc,
-				Region:       vpc.RegionName(),
-			},
-			InternalNode: vpcmodel.InternalNode{
-				AddressStr:     *iksNodeNetIntfObj.IpAddress,
-				SubnetResource: subnet,
-			},
-		}
-		if err := nodeObject.SetIPBlockFromAddress(); err != nil {
-			return err
-		}
-		res[vpcUID].Nodes = append(res[vpcUID].Nodes, nodeObject)
-		// attach the node to the subnet
-		subnet.nodes = append(subnet.nodes, nodeObject)
 	}
 	return nil
 }
