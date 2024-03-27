@@ -77,13 +77,13 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 	needIngress := !dst.IsExternal()
 	ingressBlocking := !ingressEnabled && needIngress
 	egressBlocking := !egressEnabled && needEgress
-	var routerStr, rulesStr, resStr string
+	var externalRouterStr, rulesStr, resStr string
 	if externalRouter != nil && (src.IsExternal() || dst.IsExternal()) {
-		routerStr = "External traffic via " + externalRouter.Kind() + ": " + externalRouter.Name() + "\n"
+		externalRouterStr = "External traffic via " + externalRouter.Kind() + ": " + externalRouter.Name() + "\n"
 	}
 	var routerFiltersHeader string
 	if conn.IsEmpty() {
-		routerFiltersHeader = routerStr + rules.filterEffectStr(c, filtersRelevant, needEgress, needIngress) + "\n"
+		routerFiltersHeader = externalRouterStr + rules.filterEffectStr(c, filtersRelevant, needEgress, needIngress) + "\n"
 	}
 	path := "Path:\n" + pathStr(c, filtersRelevant, src, dst,
 		ingressBlocking, egressBlocking, externalRouter, rules)
