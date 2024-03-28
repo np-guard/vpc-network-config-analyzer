@@ -731,7 +731,7 @@ func prefixDefaultStr(tc *datamodel.TransitConnection) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return "default prefix with " + actionName, nil
+	return fmt.Sprintf("default prefix of %s with %s", *tc.Name, actionName), nil
 }
 
 func (tgw *TransitGateway) tgwPrefixStr(prefix tgwPrefix) (string, error) {
