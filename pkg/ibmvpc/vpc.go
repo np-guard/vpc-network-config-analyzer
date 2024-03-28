@@ -752,11 +752,12 @@ func (tgw *TransitGateway) tgwPrefixStr(prefix tgwPrefix) (string, error) {
 	resStr := fmt.Sprintf("transit-gateway: %s, transit-connection: %s, index: %v, action: %s",
 		tgw.Name(), *prefix.tc.Name, prefix.index, actionName)
 	if prefixFilter.Ge != nil {
-		resStr += fmt.Sprintf(", Ge: %v", *prefixFilter.Ge)
+		resStr += fmt.Sprintf(", ge: %v", *prefixFilter.Ge)
 	}
 	if prefixFilter.Le != nil {
-		resStr += fmt.Sprintf("Le: %v", *prefixFilter.Le)
+		resStr += fmt.Sprintf(", le: %v", *prefixFilter.Le)
 	}
+	resStr += fmt.Sprintf(", prefix: %s", *prefixFilter.Prefix)
 	return resStr, nil
 }
 
