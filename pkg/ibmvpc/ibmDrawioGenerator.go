@@ -10,7 +10,7 @@ func (v *VPC) ShowOnSubnetMode() bool                  { return true }
 func (z *Zone) ShowOnSubnetMode() bool                 { return true }
 func (s *Subnet) ShowOnSubnetMode() bool               { return true }
 func (sgl *SecurityGroupLayer) ShowOnSubnetMode() bool { return false }
-func (sg *SecurityGroup) ShowOnSubnetMode() bool      { return false }
+func (sg *SecurityGroup) ShowOnSubnetMode() bool       { return false }
 func (nl *NaclLayer) ShowOnSubnetMode() bool           { return true }
 func (ni *NetworkInterface) ShowOnSubnetMode() bool    { return false }
 func (n *IKSNode) ShowOnSubnetMode() bool              { return false }

@@ -81,7 +81,6 @@ func sgTreeNodes(sgTn *SGTreeNode) (psg, icons []TreeNodeInterface) {
 	return psg, icons
 }
 
-
 // lineInfo is a struct with all the treeNodes representing a grouping line:
 // for example, for a connection  A,B -> C,D wi will can have the following on the canvas:
 // A->gp1, B->gp1, gp1->gp2, gp2->C, gp2->D
@@ -161,7 +160,7 @@ func tnRelations(network TreeNodeInterface) map[TreeNodeInterface][]TreeNodeInte
 		if info == nil {
 			continue
 		}
-		// each node related to a line get all the other nodes: 
+		// each node related to a line get all the other nodes:
 		lineRelations := lineRelation(info)
 		for _, relatedTn := range lineRelations {
 			res[relatedTn] = append(res[relatedTn], lineRelations...)

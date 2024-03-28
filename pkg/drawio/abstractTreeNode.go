@@ -25,7 +25,7 @@ type abstractTreeNode struct {
 	kind              string
 }
 
-func (tn *abstractTreeNode) labels() []string { return []string{tn.name} }
+func (tn *abstractTreeNode) labels() []string    { return []string{tn.name} }
 func (tn *abstractTreeNode) Kind() string        { return tn.kind }
 func (tn *abstractTreeNode) SetKind(kind string) { tn.kind = kind }
 

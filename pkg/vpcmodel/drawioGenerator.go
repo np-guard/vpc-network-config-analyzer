@@ -47,7 +47,7 @@ func (gen *DrawioGenerator) Cloud() *drawio.CloudTreeNode                 { retu
 func (gen *DrawioGenerator) TreeNode(res DrawioResourceIntf) drawio.TreeNodeInterface {
 	if gen.treeNodes[res] == nil {
 		gen.treeNodes[res] = res.GenerateDrawioTreeNode(gen)
-		if gen.treeNodes[res] != nil && gen.treeNodes[res].Kind() == ""{
+		if gen.treeNodes[res] != nil && gen.treeNodes[res].Kind() == "" {
 			gen.treeNodes[res].SetKind(res.Kind())
 		}
 	}

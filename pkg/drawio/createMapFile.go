@@ -13,12 +13,15 @@ const (
 	drawioTableSep = "&#xa;"
 	SvgTableSep    = "<br/>"
 )
+
 type FileFormat int64
+
 const (
 	FileDRAWIO FileFormat = iota
 	FileSVG
 	FileHTML
 )
+
 //go:embed connectivityMap.drawio.tmpl
 var drawioTemplate string
 
@@ -27,9 +30,10 @@ var svgTemplate string
 
 var formatsTemplate = map[FileFormat]string{
 	FileDRAWIO: drawioTemplate,
-	FileSVG: svgTemplate,
-	FileHTML: svgTemplate,
+	FileSVG:    svgTemplate,
+	FileHTML:   svgTemplate,
 }
+
 type ExplanationEntry struct {
 	Src, Dst TreeNodeInterface
 	Text     string
@@ -45,8 +49,8 @@ type templateData struct {
 	Relations    string
 	Explanations []ExplanationEntry
 	clickable    map[TreeNodeInterface]bool
-	svgNames    map[TreeNodeInterface]string
-	IsHtml bool
+	svgNames     map[TreeNodeInterface]string
+	IsHtml       bool
 }
 
 func newTemplateData(network SquareTreeNodeInterface, explanations []ExplanationEntry, interactive bool) *templateData {
@@ -89,10 +93,10 @@ func (data *templateData) NodeName(tn TreeNodeInterface) string {
 	return data.svgNames[tn]
 }
 func (data *templateData) SvgLabel(tn TreeNodeInterface) string {
-	if tn.IsSquare() && len(tn.labels()) ==1{
+	if tn.IsSquare() && len(tn.labels()) == 1 {
 		// this case is for vertical aliment fo the square name, I failed to do it at the html
 		return SvgTableSep + joinLabels(tn.labels(), SvgTableSep)
-	} 
+	}
 	return joinLabels(tn.labels(), SvgTableSep)
 }
 func (data *templateData) DrawioLabel(tn TreeNodeInterface) string {
@@ -171,7 +175,7 @@ func orderNodesForTemplate(nodes []TreeNodeInterface) []TreeNodeInterface {
 }
 
 // todo - when implementing the full html solution, need to change this interface:
-func CreateDrawioConnectivityMapFile(network SquareTreeNodeInterface, outputFile string, subnetMode bool,format FileFormat, explanations []ExplanationEntry) error {
+func CreateDrawioConnectivityMapFile(network SquareTreeNodeInterface, outputFile string, subnetMode bool, format FileFormat, explanations []ExplanationEntry) error {
 	newLayout(network, subnetMode).layout()
 	data := newTemplateData(network, explanations, format == FileHTML)
 	return createFileFromTemplate(data, outputFile, formatsTemplate[format])
