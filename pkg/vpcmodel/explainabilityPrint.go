@@ -89,16 +89,14 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 	if tgwRouter != nil { // given that there is a tgw router, computes the connection it allows
 		// an error here will pop up earlier, when computing connections
 		_, tgwConnection, _ = c.getRoutingResource(src.(Node), dst.(Node)) // tgw exists - src, dst are internal
-	}
-	path := "Path:\n" + pathStr(c, filtersRelevant, src, dst,
-		ingressBlocking, egressBlocking, externalRouter, tgwRouter, tgwConnection, rules)
-	if tgwRouter != nil {
 		// if there is a non nil transit gateway then src and dst are vsis, and implement Node
 		tgwRouterFilterStr, _ = tgwRouter.StringPrefixDetails(src.(Node), dst.(Node))
 		tgwRouterFilterStr = fmt.Sprintf("vpc %s to vpc %s routing:\n%s\n\n",
 			src.(InternalNodeIntf).Subnet().VPC().Name(),
 			dst.(InternalNodeIntf).Subnet().VPC().Name(), tgwRouterFilterStr)
 	}
+	path := "Path:\n" + pathStr(c, filtersRelevant, src, dst,
+		ingressBlocking, egressBlocking, externalRouter, tgwRouter, tgwConnection, rules)
 	rulesStr = rules.ruleDetailsStr(c, filtersRelevant, needEgress, needIngress)
 	if verbose {
 		details = "\nDetails:\n~~~~~~~~\n" + tgwRouterFilterStr + rulesStr
@@ -266,7 +264,7 @@ func pathStr(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointEle
 	externalRouterBlocking := isExternal && externalRouter == nil
 	needTgwRouter := tgwRouterRequired(src, dst)
 	tgwRouterMissing := needTgwRouter && tgwRouter == nil
-	if egressBlocking || externalRouterBlocking || tgwRouterMissing {
+	if egressBlocking || externalRouterBlocking {
 		return blockedPathStr(pathSlice)
 	}
 	if isExternal {
@@ -278,6 +276,9 @@ func pathStr(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointEle
 		pathSlice = append(pathSlice, externalRouterStr)
 	} else if needTgwRouter { // src and dst are internal and there is a tgw Router
 		pathSlice = append(pathSlice, newLineTab+src.(InternalNodeIntf).Subnet().VPC().Name())
+		if tgwRouterMissing {
+			return blockedPathStr(pathSlice)
+		}
 		pathSlice = append(pathSlice, tgwRouter.Kind()+space+tgwRouter.Name())
 		if tgwConnection.IsEmpty() { // tgw denys connection
 			return blockedPathStr(pathSlice)
