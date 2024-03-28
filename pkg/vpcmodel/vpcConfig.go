@@ -72,7 +72,7 @@ func (c *VPCConfig) shouldConsiderPairForConnectivity(r1, r2 VPCResourceIntf) (b
 }
 
 // getRoutingResource: gets the routing resource and its conn; currently the conn is either all or none
-// node is associated with either a pgw or a fip;
+// node is associated with either a pgw or a fip or a tgw
 // if the relevant network interface has both the parser will keep only the fip.
 func (c *VPCConfig) getRoutingResource(src, dst Node) (RoutingResource, *connection.Set, error) {
 	for _, router := range c.RoutingResources {
@@ -80,7 +80,9 @@ func (c *VPCConfig) getRoutingResource(src, dst Node) (RoutingResource, *connect
 		if err != nil {
 			return nil, nil, err
 		}
-		if !routerConnRes.IsEmpty() { // connection is allowed through router resource
+		if routerConnRes == nil { // routing resource not defined for src, dst
+			continue
+		} else if !routerConnRes.IsEmpty() {
 			return router, routerConnRes, nil
 		}
 	}

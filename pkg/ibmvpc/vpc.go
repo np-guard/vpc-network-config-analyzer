@@ -589,7 +589,7 @@ func (fip *FloatingIP) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*
 		if vpcmodel.HasNode(fip.Sources(), dst1) && src1.IsExternal() {
 			return connection.All(), nil
 		}
-		return connection.None(), nil
+		return nil, nil // no fip defined
 	}
 	return nil, errors.New("FloatingIP.AllowedConnectivity unexpected src/dst types")
 }
@@ -713,7 +713,13 @@ func (tgw *TransitGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf
 		if vpcmodel.HasNode(tgw.sourceNodes, src1) && vpcmodel.HasNode(tgw.destNodes, dst1) {
 			return connection.All(), nil
 		}
-		return connection.None(), nil
+		// no tgw connection can be since there is no tgw router defined between the vpcs, or because there is one
+		// that denys traffic for the specific src and dst. In the first case we return nil and in the second connection.None()
+		prefix := tgw.prefixOfSrcDst(src.(vpcmodel.Node), dst.(vpcmodel.Node))
+		if prefix == nil { // no transit gateway defined
+			return nil, nil
+		}
+		return connection.None(), nil // transit gateway defined but denys traffic
 	}
 	if areSubnets, src1, dst1 := isSubnetsPair(src, dst); areSubnets {
 		if hasSubnet(tgw.sourceSubnets, src1) && hasSubnet(tgw.destSubnets, dst1) {
@@ -766,17 +772,22 @@ func (tgw *TransitGateway) tgwPrefixStr(prefix tgwPrefix) (string, error) {
 }
 
 func (tgw *TransitGateway) StringPrefixDetails(src, dst vpcmodel.Node) (string, error) {
+	prefix := tgw.prefixOfSrcDst(src, dst)
+	return tgw.tgwPrefixStr(*prefix)
+}
+
+func (tgw *TransitGateway) prefixOfSrcDst(src, dst vpcmodel.Node) *tgwPrefix {
 	if vpcmodel.HasNode(tgw.sourceNodes, src) &&
 		vpcmodel.HasNode(tgw.destNodes, dst) { // <src, dst> routed by tgw
 		// given that source and dst are in the tgw, the relevant prefix is determined
 		// by match of the ap the dest's node is in (including default)
 		for routeCIDR, prefix := range tgw.vpcApsPrefixes[dst.VPC().UID()] {
 			if dst.IPBlock().ContainedIn(routeCIDR) {
-				return tgw.tgwPrefixStr(prefix)
+				return &prefix
 			}
 		}
 	}
-	return "", errors.New("TransitGateway.RelevantPrefixes() expected src and dst to be two nodes")
+	return nil
 }
 
 func (fip *FloatingIP) StringPrefixDetails(src, dst vpcmodel.Node) (string, error) {
