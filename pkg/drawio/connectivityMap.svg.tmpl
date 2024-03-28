@@ -60,9 +60,8 @@
                 <rect x="{{$ax}}" y="{{$ay}}" width="{{$node.Width}}" height="{{$node.Height}}" fill="none" stroke="{{$data.Color $node}}" pointer-events="all"/>
                 <image x="{{$data.Add $ax 18}}" y="{{$data.Add $ay 6}}" width="22" height="19.73" xlink:href="data:image/svg+xml;base64,{{$data.Image $node}}"/>
                 <rect x="{{$ax}}" y="{{$ay}}" width="7" height="37" fill="{{$data.Color $node}}" stroke="none" pointer-events="all"/>
-                <rect x="{{$data.Add $ax 51}}" y="{{$data.Add $ay 8}}" width="163" height="20" fill="none" stroke="none" pointer-events="all"/>
-                <foreignObject  x="{{$data.Add $ax 53}}" y="{{$data.Add $ay -15}}" width="200" height="100">
-          				<p xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; font-size: 14px; font-family: &quot;IBM Plex Sans&quot;; color: rgb(0, 0, 0); line-height: 0.9; pointer-events: all; white-space: normal; overflow-wrap: normal;">{{$data.SvgLabel $node}}</p>
+                <foreignObject  x="{{$data.Add $ax 53}}" y="{{$data.Add $ay -15}}" width="200" height="50">
+          				<p xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; font-size: 14px; font-family: &quot;IBM Plex Sans&quot; color: rgb(0, 0, 0); line-height: 0.9; pointer-events: all; white-space: normal; overflow-wrap: normal;">{{$data.SvgLabel $node}}</p>
 				        </foreignObject >
         {{ else if $data.IsFamily $node $data.Cnst.GroupingSquare }}
                 <rect x="{{$ax}}" y="{{$ay}}" width="{{$node.Width}}" height="{{$node.Height}}" rx="19.2" ry="19.2" fill="none" stroke="{{$data.Color $node}}" stroke-opacity="0.7" stroke-width="6" pointer-events="all"/>
@@ -198,7 +197,7 @@
                         const dst_name = selectedElems[1].getAttribute('title');
                         const entry = xmlDoc.querySelector("entry[src='"+src+"'][dst='"+dst+"']");
                         if (entry) {
-							explainTitle = 'Configurations affecting the connectivity between <span style="background-color: yellow;">'+src_name+'</span> and <span style="background-color: #ADD8E6;">'+dst_name+'</span>:\n' 
+							            explainTitle = 'Configurations affecting the connectivity between <span style="background-color: yellow;">'+src_name+'</span> and <span style="background-color: #ADD8E6;">'+dst_name+'</span>:\n' 
 
                           // color the src and dst names
                           explainText = explainTitle + entry.textContent;

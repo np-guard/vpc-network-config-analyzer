@@ -89,6 +89,10 @@ func (data *templateData) NodeName(tn TreeNodeInterface) string {
 	return data.svgNames[tn]
 }
 func (data *templateData) SvgLabel(tn TreeNodeInterface) string {
+	if tn.IsSquare() && len(tn.labels()) ==1{
+		// this case is for vertical aliment fo the square name, I failed to do it at the html
+		return SvgTableSep + joinLabels(tn.labels(), SvgTableSep)
+	} 
 	return joinLabels(tn.labels(), SvgTableSep)
 }
 func (data *templateData) DrawioLabel(tn TreeNodeInterface) string {
