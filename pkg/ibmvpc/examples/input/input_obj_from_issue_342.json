@@ -3435,6 +3435,6 @@
     "load_balancers": [],
     "transit_connections": null,
     "transit_gateways": null,
-    "iks_worker_nodes": [],
+    "iks_clusters": [],
     "collector_version": "0.5.1"
 }
