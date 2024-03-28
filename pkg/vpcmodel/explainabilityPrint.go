@@ -90,7 +90,9 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 	if tgwRouter != nil {
 		// if there is a non nil transit gateway then src and dst are vsis, and implement Node
 		tgwRouterFilterStr, _ = tgwRouter.StringPrefixDetails(src.(Node), dst.(Node))
-		tgwRouterFilterStr = "transit gateway " + tgwRouter.Name() + "prefix:\n\t" + tgwRouterFilterStr + "\n"
+		tgwRouterFilterStr = fmt.Sprintf("vpc %s to vpc %s routing:\n%s\n\n",
+			src.(InternalNodeIntf).Subnet().VPC().Name(),
+			dst.(InternalNodeIntf).Subnet().VPC().Name(), tgwRouterFilterStr)
 	}
 	rulesStr = rules.ruleDetailsStr(c, filtersRelevant, needEgress, needIngress)
 	if verbose {

@@ -749,7 +749,8 @@ func (tgw *TransitGateway) tgwPrefixStr(prefix tgwPrefix) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	resStr := fmt.Sprintf("index: %v, action: %s", prefix.index, actionName)
+	resStr := fmt.Sprintf("transit-gateway: %s, transit-connection: %s, index: %v, action: %s",
+		tgw.Name(), *prefix.tc.Name, prefix.index, actionName)
 	if prefixFilter.Ge != nil {
 		resStr += fmt.Sprintf(", Ge: %v", *prefixFilter.Ge)
 	}
@@ -766,11 +767,7 @@ func (tgw *TransitGateway) StringPrefixDetails(src, dst vpcmodel.Node) (string, 
 		// by match of the ap the dest's node is in (including default)
 		for routeCIDR, prefix := range tgw.vpcApsPrefixes[dst.VPC().UID()] {
 			if dst.IPBlock().ContainedIn(routeCIDR) {
-				fmt.Printf("found a match of %v => %v dst.IPBlock() %+v "+ // todo: tmp, remove printing
-					"cidr %+v:\n\t%s tc: %s index %d\n", src.Name(), dst.Name(), dst.IPBlock().ListToPrint(), routeCIDR.ListToPrint(),
-					tgw.Name(), *prefix.tc.Name, prefix.index)
 				return tgw.tgwPrefixStr(prefix)
-				continue
 			}
 		}
 	}
