@@ -177,7 +177,7 @@ func (configsMap MultipleVPCConfigs) matchMoreThanOneCfg(src, dst string,
 		sort.Strings(matchConfigs)
 		return nil, nil, nil, srcDstInternalAddr{false, false},
 			fmt.Errorf("src: %s and dst: %s found in several configs, "+
-				"and it is impossible to determine between them. Please add the name of the config to the src/dst name."+
+				"and it is impossible to determine between them. Please add the name of the config to the src/dst name. "+
 				"Configs in which src and dst was found in: %s",
 				src, dst, strings.Join(matchConfigs, ","))
 	}

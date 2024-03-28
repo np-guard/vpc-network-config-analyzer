@@ -611,14 +611,22 @@ func TestInputValidityMultipleVPCContext(t *testing.T) {
 	require.NotNil(t, err9, "the test should fail since the src vsi given with wrong vpc")
 	require.Equal(t, "illegal dst: test-vpc1-ky/vsi3a-ky does not represent a legal IP address, a legal CIDR or a VSI name", err9.Error())
 
-	vpcConfigMultiVpcDupNames := getConfig(t, "tgw_larger_example_dup_names")
+	vpcConfigTgwDupNames := getConfig(t, "tgw_larger_example_dup_names")
 	dupSrcVsi := "vsi1-ky"
 	dupDstVsi := "vsi2-ky"
-	// should fail since these vsis exists in two vpcs configs
-	_, err10 := vpcConfigMultiVpcDupNames.ExplainConnectivity(dupSrcVsi, dupDstVsi, nil)
+	// should fail since vsi name exists for two different resources in one vpcConfig
+	_, err10 := vpcConfigTgwDupNames.ExplainConnectivity(dupSrcVsi, dupDstVsi, nil)
 	fmt.Println(err10.Error())
-	require.NotNil(t, err10, "the test should fail since the src and dst vsis exists in two vpcs configs")
+	require.NotNil(t, err10, "the test should fail since the src name exists twice")
 	require.Equal(t, "illegal src: in combined-vpc-local-tg-ky there is more than one resource (crn:551, crn:488) with the given input string vsi1-ky. "+
 		"can not determine which resource to analyze. consider using unique names or use input UID instead",
 		err10.Error())
+	vpcConfigMultiVpcDupNames := getConfig(t, "multiVpc_larger_example_dup_names")
+	// should fail since these vsis exists in two vpcs configs
+	_, err11 := vpcConfigMultiVpcDupNames.ExplainConnectivity(dupSrcVsi, dupDstVsi, nil)
+	fmt.Println(err11.Error())
+	require.NotNil(t, err11, "the test should fail since the src and dst vsis exists in two vpcs configs")
+	require.Equal(t, "src: vsi1-ky and dst: vsi2-ky found in several configs, and it is impossible to determine between them. "+
+		"Please add the name of the config to the src/dst name. Configs in which src and dst was found in: test-vpc0-ky,test-vpc1-ky",
+		err11.Error())
 }
