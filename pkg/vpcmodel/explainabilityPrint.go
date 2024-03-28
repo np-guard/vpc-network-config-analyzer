@@ -85,8 +85,13 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 	if conn.IsEmpty() {
 		routerFiltersHeader = externalRouterStr + rules.filterEffectStr(c, filtersRelevant, needEgress, needIngress) + "\n"
 	}
+	var tgwConnection *connection.Set
+	if tgwRouter != nil { // given that there is a tgw router, computes the connection it allows
+		// an error here will pop up earlier, when computing connections
+		_, tgwConnection, _ = c.getRoutingResource(src.(Node), dst.(Node)) // tgw exists - src, dst are internal
+	}
 	path := "Path:\n" + pathStr(c, filtersRelevant, src, dst,
-		ingressBlocking, egressBlocking, externalRouter, rules)
+		ingressBlocking, egressBlocking, externalRouter, tgwRouter, tgwConnection, rules)
 	if tgwRouter != nil {
 		// if there is a non nil transit gateway then src and dst are vsis, and implement Node
 		tgwRouterFilterStr, _ = tgwRouter.StringPrefixDetails(src.(Node), dst.(Node))
@@ -101,6 +106,12 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 	noConnection := noConnectionHeader(src.Name(), dst.Name(), connQuery)
 	routerFiltersHeaderPlusPath := routerFiltersHeader + path
 	switch {
+	case tgwRouterRequired(src, dst) && tgwRouter == nil:
+		resStr += fmt.Sprintf("%v connection blocked since src, dst of different VPCs but no transit gateway is defined"+
+			"\n%v\n%v", noConnection, routerFiltersHeaderPlusPath, details)
+	case tgwRouterRequired(src, dst) && tgwRouter != nil && tgwConnection.IsEmpty():
+		resStr += fmt.Sprintf("%v connection blocked since transit gateway denys route between src and dst"+
+			"\n%v\n%v", noConnection, routerFiltersHeaderPlusPath, details)
 	case externalRouter == nil && src.IsExternal():
 		resStr += fmt.Sprintf("%v no fip and src is external (fip is required for "+
 			"outbound external connection)\n", noConnection)
@@ -119,6 +130,15 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 		return existingConnectionStr(connQuery, src, dst, conn, routerFiltersHeaderPlusPath, details)
 	}
 	return resStr
+}
+
+func tgwRouterRequired(src, dst EndpointElem) bool {
+	if src.IsExternal() || dst.IsExternal() {
+		return false
+	}
+	// both internal
+	return src.(InternalNodeIntf).Subnet().VPC().UID() !=
+		dst.(InternalNodeIntf).Subnet().VPC().UID()
 }
 
 // returns string of header in case a connection fails to exist
@@ -236,25 +256,35 @@ func stringFilterEffect(c *VPCConfig, filterLayerName string, rules []RulesInFil
 // if the connection does not exist. In the latter case the path is until the first block
 // e.g.: "vsi1-ky[10.240.10.4] ->  SG sg1-ky -> subnet ... ->  ACL acl1-ky -> PublicGateway: public-gw-ky ->  Public Internet 161.26.0.0/16"
 func pathStr(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointElem,
-	ingressBlocking, egressBlocking bool, router RoutingResource, rules *rulesConnection) string {
+	ingressBlocking, egressBlocking bool, externalRouter, tgwRouter RoutingResource, tgwConnection *connection.Set,
+	rules *rulesConnection) string {
 	var pathSlice []string
 	pathSlice = append(pathSlice, "\t"+src.Name())
 	isExternal := src.IsExternal() || dst.IsExternal()
-	egressPath := pathFiltersOfIngressOrEgressStr(c, src, filtersRelevant, rules, false, isExternal, router)
+	egressPath := pathFiltersOfIngressOrEgressStr(c, src, filtersRelevant, rules, false, isExternal, externalRouter)
 	pathSlice = append(pathSlice, egressPath...)
-	routerBlocking := isExternal && router == nil
-	if egressBlocking || routerBlocking {
+	externalRouterBlocking := isExternal && externalRouter == nil
+	needTgwRouter := tgwRouterRequired(src, dst)
+	tgwRouterMissing := needTgwRouter && tgwRouter == nil
+	if egressBlocking || externalRouterBlocking || tgwRouterMissing {
 		return blockedPathStr(pathSlice)
 	}
 	if isExternal {
-		routerStr := newLineTab + router.Kind() + space + router.Name()
+		externalRouterStr := newLineTab + externalRouter.Kind() + space + externalRouter.Name()
 		// externalRouter is fip - add its cidr
-		if router.Kind() == fipRouter {
-			routerStr += space + router.ExternalIP()
+		if externalRouter.Kind() == fipRouter {
+			externalRouterStr += space + externalRouter.ExternalIP()
 		}
-		pathSlice = append(pathSlice, routerStr)
+		pathSlice = append(pathSlice, externalRouterStr)
+	} else if needTgwRouter { // src and dst are internal and there is a tgw Router
+		pathSlice = append(pathSlice, newLineTab+src.(InternalNodeIntf).Subnet().VPC().Name())
+		pathSlice = append(pathSlice, tgwRouter.Kind()+space+tgwRouter.Name())
+		if tgwConnection.IsEmpty() { // tgw denys connection
+			return blockedPathStr(pathSlice)
+		}
+		pathSlice = append(pathSlice, dst.(InternalNodeIntf).Subnet().VPC().Name())
 	}
-	ingressPath := pathFiltersOfIngressOrEgressStr(c, dst, filtersRelevant, rules, true, isExternal, router)
+	ingressPath := pathFiltersOfIngressOrEgressStr(c, dst, filtersRelevant, rules, true, isExternal, externalRouter)
 	pathSlice = append(pathSlice, ingressPath...)
 	if ingressBlocking {
 		return blockedPathStr(pathSlice)

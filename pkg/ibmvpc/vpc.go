@@ -731,14 +731,19 @@ func prefixDefaultStr(tc *datamodel.TransitConnection) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("default prefix of %s with %s", *tc.Name, actionName), nil
+	return fmt.Sprintf(" default prefix,  action: %s", actionName), nil
 }
 
 func (tgw *TransitGateway) tgwPrefixStr(prefix tgwPrefix) (string, error) {
 	// Array of prefix route filters for a transit gateway connection. This is order dependent with those first in the
 	// array being applied first, and those at the end of the array is applied last, or just before the default.
+	resStr := fmt.Sprintf("transit-gateway: %s, transit-connection: %s", tgw.Name(), *prefix.tc.Name)
 	if prefix.index == -1 { // default
-		return prefixDefaultStr(prefix.tc)
+		defaultStr, err := prefixDefaultStr(prefix.tc)
+		if err != nil {
+			return "", nil
+		}
+		return resStr + defaultStr, nil
 	}
 	if len(prefix.tc.PrefixFilters) < prefix.index+1 {
 		return "", errors.New(fmt.Sprintf("np-guard error: prefix index %d does not exists in transit connection %s of transit gateway %s",
@@ -749,8 +754,7 @@ func (tgw *TransitGateway) tgwPrefixStr(prefix tgwPrefix) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	resStr := fmt.Sprintf("transit-gateway: %s, transit-connection: %s, index: %v, action: %s",
-		tgw.Name(), *prefix.tc.Name, prefix.index, actionName)
+	resStr += fmt.Sprintf("index: %v, action: %s", prefix.index, actionName)
 	if prefixFilter.Ge != nil {
 		resStr += fmt.Sprintf(", ge: %v", *prefixFilter.Ge)
 	}
