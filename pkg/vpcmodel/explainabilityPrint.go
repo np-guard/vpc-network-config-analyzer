@@ -94,8 +94,7 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 	}
 	rulesStr = rules.ruleDetailsStr(c, filtersRelevant, needEgress, needIngress)
 	if verbose {
-		//details := "\nDetails:\n~~~~~~~~\n" + tgwRouterFilterStr + rulesStr
-		details = "\nDetails:\n~~~~~~~~\n" + rulesStr
+		details = "\nDetails:\n~~~~~~~~\n" + tgwRouterFilterStr + rulesStr
 	}
 	noConnection := noConnectionHeader(src.Name(), dst.Name(), connQuery)
 	routerFiltersHeaderPlusPath := routerFiltersHeader + path
