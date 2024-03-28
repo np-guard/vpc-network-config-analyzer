@@ -1031,7 +1031,7 @@ func addIKSNodeAsSGTarget(sg *datamodel.SecurityGroup, iksCluster *datamodel.IKS
 		return
 	}
 	// this sg should not have any targets
-	var targets []vpc1.SecurityGroupTargetReferenceIntf
+	targets := make([]vpc1.SecurityGroupTargetReferenceIntf, 0)
 	for _, iksNode := range iksCluster.WorkerNodes {
 		target := new(vpc1.SecurityGroupTargetReference)
 		target.ID = iksNode.ID
