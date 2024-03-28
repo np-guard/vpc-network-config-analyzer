@@ -183,27 +183,35 @@ func (d *DrawioOutputFormatter) createEdges() {
 	}
 }
 
-//createExplanations() to be reimplement with real Shiri work
+// createExplanations() to be reimplement with real Shiri work
 func (d *DrawioOutputFormatter) createExplanations() []drawio.ExplanationEntry {
 	type expKey struct {
 		src, dst EndpointElem
 	}
-	explanations := map[expKey]string{}
+	subnetMode := d.uc == AllSubnets
+	allEndpoints := []EndpointElem{}
 	for _, vpcConfig1 := range d.cConfigs {
 		if !vpcConfig1.IsMultipleVPCsConfig {
-			for _, src := range vpcConfig1.Nodes {
-				if !src.IsExternal() && d.showResource(src) {
-					for _, vpcConfig2 := range d.cConfigs {
-						if !vpcConfig2.IsMultipleVPCsConfig {
-							for _, dst := range vpcConfig2.Nodes {
-								if !dst.IsExternal() && d.showResource(dst) {
-									explanations[expKey{src, dst}] = "No Connectivity from " + src.Name() + " to " + dst.Name()
-								}
-							}
-						}
+			if !subnetMode {
+				for _, n := range vpcConfig1.Nodes {
+					if !n.IsExternal() && d.showResource(n) {
+						allEndpoints = append(allEndpoints, n)
 					}
 				}
+			} else {
+				for _, s := range vpcConfig1.Subnets {
+					if !s.IsExternal() && d.showResource(s) {
+						allEndpoints = append(allEndpoints, s)
+					}
+				}
+
 			}
+		}
+	}
+	explanations := map[expKey]string{}
+	for _, src := range allEndpoints {
+		for _, dst := range allEndpoints {
+			explanations[expKey{src, dst}] = "No Connectivity from " + src.Name() + " to " + dst.Name()
 		}
 	}
 	for _, vpcConn := range d.conns {
