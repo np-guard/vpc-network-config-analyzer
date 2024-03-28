@@ -181,44 +181,6 @@ func (tt *vpcGeneralTest) initTest() {
 
 var tests = []*vpcGeneralTest{
 	{
-		inputConfig: "load_balancer",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping:    true,
-		format:      vpcmodel.DRAWIO,
-	},
-	{
-		inputConfig: "load_balancer",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping:    true,
-		format:      vpcmodel.SVG,
-	},
-	{
-		inputConfig: "load_balancer",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping:    true,
-		format:      vpcmodel.HTML,
-	},
-	{
-		inputConfig: "load_balancer",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping:    true,
-		format:      vpcmodel.ARCHDRAWIO,
-	},
-	{
-		inputConfig: "load_balancer",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping:    true,
-		format:      vpcmodel.ARCHSVG,
-	},
-	{
-		inputConfig: "load_balancer",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping:    true,
-		format:      vpcmodel.ARCHHTML,
-	},
-}
-var tests2 = []*vpcGeneralTest{
-	{
 		inputConfig: "acl_testing5",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
 		format:      vpcmodel.MD,
@@ -555,21 +517,33 @@ var tests2 = []*vpcGeneralTest{
 	},
 	{
 		inputConfig: "load_balancer",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
 		grouping:    true,
 		format:      vpcmodel.DRAWIO,
 	},
 	{
 		inputConfig: "iks_workers_large_shorter_names",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
 		grouping:    true,
 		format:      vpcmodel.Text,
 	},
 	{
 		inputConfig: "iks_workers_large_shorter_names",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping:    true,
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+		grouping:    false,
 		format:      vpcmodel.DRAWIO,
+	},
+	{
+		inputConfig: "iks_workers_large_shorter_names",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+		grouping:    true,
+		format:      vpcmodel.HTML,
+	},
+	{
+		inputConfig: "iks_workers_large_shorter_names",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+		grouping:    true,
+		format:      vpcmodel.ARCHSVG,
 	},
 }
 

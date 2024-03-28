@@ -182,6 +182,8 @@ func (d *DrawioOutputFormatter) createEdges() {
 		}
 	}
 }
+
+//createExplanations() to be reimplement with real Shiri work
 func (d *DrawioOutputFormatter) createExplanations() []drawio.ExplanationEntry {
 	type expKey struct {
 		src, dst EndpointElem
