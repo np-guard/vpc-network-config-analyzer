@@ -157,6 +157,7 @@ const (
 	networkInterfaceResourceType = "network_interface" // used as the type within api objects (e.g. SecurityGroup.Targets.ResourceType)
 	vpeResourceType              = "endpoint_gateway"  // used as the type within api objects (e.g. SecurityGroup.Targets.ResourceType)
 	loadBalancerResourceType     = "load_balancer"     // used as the type within api objects (e.g. SecurityGroup.Targets.ResourceType)
+	iksNodeResourceType          = "iks_node"          // used as the type within api objects (e.g. SecurityGroup.Targets.ResourceType)
 	cidrSeparator                = ", "
 	linesSeparator               = "---------------------"
 )
@@ -566,6 +567,12 @@ func parseSGTargets(sgResource *SecurityGroup,
 					for _, n := range lbObj.nodes {
 						nIP := n.(*PrivateIP)
 						sgResource.members[nIP.Address()] = n
+					}
+				}
+			case iksNodeResourceType:
+				if intfNode, ok := c.UIDToResource[*targetIntfRef.ID]; ok {
+					if intfNodeObj, ok := intfNode.(*IKSNode); ok {
+						sgResource.members[intfNodeObj.Address()] = intfNodeObj
 					}
 				}
 			}
@@ -995,11 +1002,54 @@ func getSubnetByCidr(res vpcmodel.MultipleVPCConfigs, cidr string) (*Subnet, err
 	return nil, fmt.Errorf("could not find subnet with cidr: %s", cidr)
 }
 
+func findSGWithClusterName(rc *datamodel.ResourcesContainerModel, clusterID string) *datamodel.SecurityGroup {
+	for _, sg := range rc.SecurityGroupList {
+		if *sg.Name == "kube-"+clusterID {
+			return sg
+		}
+	}
+	return nil
+}
+
+func findDefaultSGForVpc(rc *datamodel.ResourcesContainerModel, vpcUID string) *datamodel.SecurityGroup {
+	for _, vpc := range rc.VpcList {
+		if *vpc.CRN != vpcUID {
+			continue
+		}
+		sgCRN := vpc.DefaultSecurityGroup.CRN
+		for _, sg := range rc.SecurityGroupList {
+			if *sg.CRN == *sgCRN {
+				return sg
+			}
+		}
+	}
+	return nil
+}
+
+func addIKSNodeAsSGTarget(sg *datamodel.SecurityGroup, iksCluster *datamodel.IKSCluster) {
+	if sg == nil {
+		return
+	}
+	// this sg should not have any targets
+	var targets []vpc1.SecurityGroupTargetReferenceIntf
+	for _, iksNode := range iksCluster.WorkerNodes {
+		target := new(vpc1.SecurityGroupTargetReference)
+		target.ID = iksNode.ID
+		resourceType := new(string)
+		*resourceType = iksNodeResourceType
+		target.ResourceType = resourceType
+		targets = append(targets, vpc1.SecurityGroupTargetReferenceIntf(target))
+	}
+	sg.Targets = targets
+}
+
 func getIKSnodesConfig(res vpcmodel.MultipleVPCConfigs,
 	rc *datamodel.ResourcesContainerModel,
 	skipByVPC map[string]bool) error {
 	for _, iksCluster := range rc.IKSClusters {
-		for _, iksNode := range iksCluster.WorkerNodes {
+		sg := findSGWithClusterName(rc, *iksCluster.ID)
+		var defaultSG *datamodel.SecurityGroup
+		for i, iksNode := range iksCluster.WorkerNodes {
 			if len(iksNode.NetworkInterfaces) != 1 {
 				return errIksParsing
 			}
@@ -1015,6 +1065,10 @@ func getIKSnodesConfig(res vpcmodel.MultipleVPCConfigs,
 				continue
 			}
 			vpcUID := subnet.VPC().UID()
+			if i == 0 {
+				// first iksNode
+				defaultSG = findDefaultSGForVpc(rc, vpcUID)
+			}
 			vpc := subnet.VPC()
 			nodeObject := &IKSNode{
 				VPCResource: vpcmodel.VPCResource{
@@ -1029,6 +1083,9 @@ func getIKSnodesConfig(res vpcmodel.MultipleVPCConfigs,
 					SubnetResource: subnet,
 				},
 			}
+			res[vpcUID].UIDToResource[nodeObject.ResourceUID] = nodeObject
+			addIKSNodeAsSGTarget(sg, iksCluster)
+			addIKSNodeAsSGTarget(defaultSG, iksCluster)
 			if err := nodeObject.SetIPBlockFromAddress(); err != nil {
 				return err
 			}
