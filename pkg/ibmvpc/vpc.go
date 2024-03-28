@@ -674,22 +674,11 @@ type TransitGateway struct {
 
 	region *Region
 
-	// the following structs are used by explainability
-
 	// maps APs of each VPC to the prefix that determines its connectivity status w.r.t. the tgw (allow/deny)
-	// if non default
-	// specifically, the map is from VPC UID to a map between the ap's ipBlock to the index of the matching prefix
+	// if non default. Specifically, the map is from VPC UID to a map between the ap's ipBlock to the index of the matching prefix
 	// that determines its status;
 	// this struct can be though of as the "explain" parallel of availableRoutes; note that it also lists deny prefixes
 	vpcApsPrefixes map[string]map[*ipblock.IPBlock]int
-
-	// maps each *Subnet of the vpc to the prefix that determines its tgw status, if non default, when the dest is in the subnet
-	// this struct can be though of as the "explain" parallel of destSubnets though it contains all Subnets with a matched prefix,
-	// and not only allow ones
-	destSubnetsPrefixes map[*Subnet]int
-
-	// similar to the above, with Nodes. Note that Nodes here are always internal and contained in the above Subnets
-	destNodesPrefixes map[vpcmodel.Node]int
 }
 
 func (tgw *TransitGateway) addSourceAndDestNodes() {
@@ -699,36 +688,6 @@ func (tgw *TransitGateway) addSourceAndDestNodes() {
 	for _, subnet := range tgw.destSubnets {
 		tgw.destNodes = append(tgw.destNodes, subnet.Nodes()...)
 	}
-}
-
-func (tgw *TransitGateway) addDestNodesPrefixes() {
-	for subnet, prefixIndex := range tgw.destSubnetsPrefixes {
-		for _, node := range subnet.Nodes() {
-			tgw.destNodesPrefixes[node] = prefixIndex
-		}
-	}
-}
-
-// getVpcDestSubnetsPrefixes returns a map from *Subnet to index of matching prefixes, if any
-// based on vpcApsPrefixes
-func (tg *TransitGateway) updateDestSubnetsPrefixes(vpc *VPC) {
-	for _, subnet := range vpc.subnets() {
-		if prefixIndex := tg.getSubnetTGWPrefixIndex(subnet); prefixIndex != -1 {
-			tg.destSubnetsPrefixes[subnet] = prefixIndex
-		}
-	}
-}
-
-func (tg *TransitGateway) getSubnetTGWPrefixIndex(subnet *Subnet) int {
-	subnetIPB := subnet.ipblock
-	// TODO: routesListPerVPC is currently restricted only to the subnet's VPC, but with
-	// overlapping address prefixes the TGW may choose available route from a different VPC
-	for routeCIDR, prefixIndex := range tg.vpcApsPrefixes[subnet.VPCRef.UID()] {
-		if subnetIPB.ContainedIn(routeCIDR) {
-			return prefixIndex
-		}
-	}
-	return -1
 }
 
 func (tgw *TransitGateway) Region() *Region {
@@ -796,14 +755,15 @@ func (tgw *TransitGateway) prefixByIndexStr(prefixIndex int) (string, error) {
 func (tgw *TransitGateway) StringPrefixDetails(src, dst vpcmodel.Node) (string, error) {
 	if vpcmodel.HasNode(tgw.sourceNodes, src) &&
 		vpcmodel.HasNode(tgw.destNodes, dst) { // <src, dst> routed by tgw
-		for dst2, prefixIndex := range tgw.destNodesPrefixes {
-			if dst2.UID() == dst.UID() { // there is a specific prefix
+		// given that source and dst are in the tgw, the relevant prefix is determined
+		// by match of the ap the dest's node is in
+		for routeCIDR, prefixIndex := range tgw.vpcApsPrefixes[dst.VPC().UID()] {
+			if dst.IPBlock().ContainedIn(routeCIDR) {
 				return tgw.prefixByIndexStr(prefixIndex)
+				continue
 			}
-			return tgw.prefixDefaultStr() // no specific index, use default
 		}
-
-		return "", errors.New(fmt.Sprintf("np-guard error: TransitGateway.RelevantPrefixes() failed to find prefix match to Node %s", dst.Name()))
+		return tgw.prefixDefaultStr() // no specific index, use default
 	}
 	return "", errors.New("TransitGateway.RelevantPrefixes() expected src and dst to be two nodes")
 }

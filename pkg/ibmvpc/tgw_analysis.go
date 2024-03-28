@@ -138,15 +138,15 @@ func getVpcApsPrefixes(tc *datamodel.TransitConnection, vpc *VPC) (res map[*ipbl
 	validateAddressPrefixesExist(vpc) // todo tmp WA copied from getVPCAdvertisedRoutes so that this func is self contained
 	res = map[*ipblock.IPBlock]int{}
 	for _, ap := range vpc.addressPrefixes {
-		apIPBlock, err1 := ipblock.FromCidr(ap)
+		prefixIndex, err1 := getCIDRPrefixFilter(ap, tc)
 		if err1 != nil {
 			return nil, err1
 		}
-		prefixIndex, err2 := getCIDRPrefixFilter(ap, tc)
-		if err2 != nil {
-			return nil, err2
-		}
 		if prefixIndex != -1 {
+			apIPBlock, err2 := ipblock.FromCidr(ap)
+			if err2 != nil {
+				return nil, err2
+			}
 			res[apIPBlock] = prefixIndex
 		}
 	}
