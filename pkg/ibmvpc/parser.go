@@ -744,7 +744,6 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 				region = *tgwFromConfig.Location
 			}
 			tgw := &TransitGateway{
-				tgwResource: tgwConn,
 				VPCResource: vpcmodel.VPCResource{
 					ResourceName: tgwName,
 					ResourceUID:  tgwUID,
@@ -753,7 +752,7 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 				},
 				vpcs:            []*VPC{vpc},
 				availableRoutes: map[string][]*ipblock.IPBlock{},
-				vpcApsPrefixes:  map[string]map[*ipblock.IPBlock]int{},
+				vpcApsPrefixes:  map[string]map[*ipblock.IPBlock]tgwPrefix{},
 				region:          getRegionByName(region, regionToStructMap),
 			}
 			tgwMap[tgwUID] = tgw
@@ -774,9 +773,9 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 			tgwMap[tgwUID].addSourceAndDestNodes()
 
 			// explainability related computation
-			// vpcApsPrefixes is a map from the vpc's ap to the index of the (non default) prefix that matches it, if any
+			// vpcApsPrefixes is a map from the vpc's ap to the index of the prefix that matches it, -1 for default if no match
 			vpcApsPrefixes, _ := getVpcApsPrefixes(tgwConn, vpc) // if getVPCAdvertisedRoutes completed without an error, so would getVpcApsPrefixes
-			maps.Copy(tgwMap[tgwUID].vpcApsPrefixes, map[string]map[*ipblock.IPBlock]int{vpcUID: vpcApsPrefixes})
+			maps.Copy(tgwMap[tgwUID].vpcApsPrefixes, map[string]map[*ipblock.IPBlock]tgwPrefix{vpcUID: vpcApsPrefixes})
 		}
 
 	}

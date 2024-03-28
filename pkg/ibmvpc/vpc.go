@@ -649,9 +649,13 @@ func (pgw *PublicGateway) AppliedFiltersKinds() map[string]bool {
 	return map[string]bool{vpcmodel.NaclLayer: true, vpcmodel.SecurityGroupLayer: true}
 }
 
-type TransitGateway struct {
-	tgwResource *datamodel.TransitConnection
+// a tgw prefix for explain
+type tgwPrefix struct {
+	tc    *datamodel.TransitConnection
+	index int
+}
 
+type TransitGateway struct {
 	vpcmodel.VPCResource
 
 	// vpcs are the VPCs connected by a TGW
@@ -678,7 +682,7 @@ type TransitGateway struct {
 	// if non default. Specifically, the map is from VPC UID to a map between the ap's ipBlock to the index of the matching prefix
 	// that determines its status;
 	// this struct can be though of as the "explain" parallel of availableRoutes; note that it also lists deny prefixes
-	vpcApsPrefixes map[string]map[*ipblock.IPBlock]int
+	vpcApsPrefixes map[string]map[*ipblock.IPBlock]tgwPrefix
 }
 
 func (tgw *TransitGateway) addSourceAndDestNodes() {
@@ -722,27 +726,30 @@ func (tgw *TransitGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf
 }
 
 // gets a string description of prefix indexed "index" from TransitGateway tgw
-func (tgw *TransitGateway) prefixDefaultStr() (string, error) {
-	actionName, err := actionNameStr(tgw.tgwResource.PrefixFiltersDefault)
+func prefixDefaultStr(tc *datamodel.TransitConnection) (string, error) {
+	actionName, err := actionNameStr(tc.PrefixFiltersDefault)
 	if err != nil {
 		return "", err
 	}
 	return "default prefix with " + actionName, nil
 }
 
-func (tgw *TransitGateway) prefixByIndexStr(prefixIndex int) (string, error) {
+func (tgw *TransitGateway) tgwPrefixStr(prefix tgwPrefix) (string, error) {
 	// Array of prefix route filters for a transit gateway connection. This is order dependent with those first in the
 	// array being applied first, and those at the end of the array is applied last, or just before the default.
-	if len(tgw.tgwResource.PrefixFilters) < prefixIndex+1 {
-		return "", errors.New(fmt.Sprintf("np-guard error: prefix index %d does not exists in %s",
-			prefixIndex, tgw.Name()))
+	if prefix.index == -1 { // default
+		return prefixDefaultStr(prefix.tc)
 	}
-	prefixFilter := tgw.tgwResource.PrefixFilters[prefixIndex]
+	if len(prefix.tc.PrefixFilters) < prefix.index+1 {
+		return "", errors.New(fmt.Sprintf("np-guard error: prefix index %d does not exists in transit connection %s of transit gateway %s",
+			prefix.index, *prefix.tc.Name, tgw.Name()))
+	}
+	prefixFilter := prefix.tc.PrefixFilters[prefix.index]
 	actionName, err := actionNameStr(prefixFilter.Action)
 	if err != nil {
 		return "", err
 	}
-	resStr := fmt.Sprintf("index: %v, action: %s", prefixIndex, actionName)
+	resStr := fmt.Sprintf("index: %v, action: %s", prefix.index, actionName)
 	if prefixFilter.Ge != nil {
 		resStr += fmt.Sprintf(", Ge: %v", *prefixFilter.Ge)
 	}
@@ -756,14 +763,16 @@ func (tgw *TransitGateway) StringPrefixDetails(src, dst vpcmodel.Node) (string, 
 	if vpcmodel.HasNode(tgw.sourceNodes, src) &&
 		vpcmodel.HasNode(tgw.destNodes, dst) { // <src, dst> routed by tgw
 		// given that source and dst are in the tgw, the relevant prefix is determined
-		// by match of the ap the dest's node is in
-		for routeCIDR, prefixIndex := range tgw.vpcApsPrefixes[dst.VPC().UID()] {
+		// by match of the ap the dest's node is in (including default)
+		for routeCIDR, prefix := range tgw.vpcApsPrefixes[dst.VPC().UID()] {
 			if dst.IPBlock().ContainedIn(routeCIDR) {
-				return tgw.prefixByIndexStr(prefixIndex)
+				fmt.Printf("found a match of %v => %v dst.IPBlock() %+v "+ // todo: tmp, remove printing
+					"cidr %+v:\n\t%s tc: %s index %d\n", src.Name(), dst.Name(), dst.IPBlock().ListToPrint(), routeCIDR.ListToPrint(),
+					tgw.Name(), *prefix.tc.Name, prefix.index)
+				return tgw.tgwPrefixStr(prefix)
 				continue
 			}
 		}
-		return tgw.prefixDefaultStr() // no specific index, use default
 	}
 	return "", errors.New("TransitGateway.RelevantPrefixes() expected src and dst to be two nodes")
 }
