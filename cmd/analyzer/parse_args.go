@@ -99,6 +99,10 @@ const (
 	MDFormat         = "md"
 	DRAWIOFormat     = "drawio"
 	ARCHDRAWIOFormat = "arch_drawio"
+	SVGFormat        = "svg"
+	ARCHSVGFormat    = "arch_svg"
+	HTMLFormat       = "html"
+	ARCHHTMLFormat   = "arch_html"
 	DEBUGFormat      = "debug"
 
 	// connectivity analysis types supported
@@ -113,19 +117,10 @@ const (
 	separator = ", "
 )
 
-var supportedOutputFormatsMap = map[string]bool{
-	JSONFormat:       true,
-	TEXTFormat:       true,
-	MDFormat:         true,
-	DRAWIOFormat:     true,
-	ARCHDRAWIOFormat: true,
-	DEBUGFormat:      true,
-}
-
 // supportedAnalysisTypesMap is a map from analysis type to its list of supported output formats
 var supportedAnalysisTypesMap = map[string][]string{
-	allEndpoints:     {TEXTFormat, MDFormat, JSONFormat, DRAWIOFormat, ARCHDRAWIOFormat, DEBUGFormat},
-	allSubnets:       {TEXTFormat, MDFormat, JSONFormat, DRAWIOFormat, ARCHDRAWIOFormat},
+	allEndpoints:     {TEXTFormat, MDFormat, JSONFormat, DRAWIOFormat, ARCHDRAWIOFormat, SVGFormat, ARCHSVGFormat, HTMLFormat, ARCHHTMLFormat, DEBUGFormat},
+	allSubnets:       {TEXTFormat, MDFormat, JSONFormat, DRAWIOFormat, ARCHDRAWIOFormat, SVGFormat, ARCHSVGFormat, HTMLFormat, ARCHHTMLFormat},
 	singleSubnet:     {TEXTFormat},
 	allEndpointsDiff: {TEXTFormat, MDFormat},
 	allSubnetsDiff:   {TEXTFormat, MDFormat},
@@ -139,6 +134,10 @@ var supportedOutputFormatsList = []string{
 	JSONFormat,
 	DRAWIOFormat,
 	ARCHDRAWIOFormat,
+	SVGFormat,
+	ARCHSVGFormat,
+	HTMLFormat,
+	ARCHHTMLFormat,
 	DEBUGFormat,
 }
 
@@ -368,7 +367,7 @@ func errorInArgs(args *InArgs, flagset *flag.FlagSet) error {
 		return fmt.Errorf("wrong analysis type '%s'; must be one of: '%s'",
 			*args.AnalysisType, strings.Join(supportedAnalysisTypesList, separator))
 	}
-	if !supportedOutputFormatsMap[*args.OutputFormat] {
+	if !slices.Contains(supportedOutputFormatsList, *args.OutputFormat) {
 		flagset.PrintDefaults()
 		return fmt.Errorf("wrong output format '%s'; must be one of: '%s'",
 			*args.OutputFormat, strings.Join(supportedOutputFormatsList, separator))
@@ -387,7 +386,7 @@ func errorInArgs(args *InArgs, flagset *flag.FlagSet) error {
 	if !fileForDiffSpecified && diffAnalysis {
 		return fmt.Errorf("missing parameter vpc-config-second for diff analysis %s", *args.AnalysisType)
 	}
-	if slices.Contains([]string{DRAWIOFormat, ARCHDRAWIOFormat}, *args.OutputFormat) && *args.OutputFile == "" {
+	if slices.Contains([]string{DRAWIOFormat, ARCHDRAWIOFormat, SVGFormat, ARCHSVGFormat, HTMLFormat, ARCHHTMLFormat}, *args.OutputFormat) && *args.OutputFile == "" {
 		return fmt.Errorf("for output format '%s', parameter '-output-file' must be specified", *args.OutputFormat)
 	}
 	return nil

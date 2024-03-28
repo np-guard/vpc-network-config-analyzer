@@ -13,13 +13,23 @@ const (
 	drawioTableSep = "&#xa;"
 	SvgTableSep    = "<br/>"
 )
-
+type FileFormat int64
+const (
+	FileDRAWIO FileFormat = iota
+	FileSVG
+	FileHTML
+)
 //go:embed connectivityMap.drawio.tmpl
 var drawioTemplate string
 
 //go:embed connectivityMap.svg.tmpl
 var svgTemplate string
 
+var formatsTemplate = map[FileFormat]string{
+	FileDRAWIO: drawioTemplate,
+	FileSVG: svgTemplate,
+	FileHTML: svgTemplate,
+}
 type ExplanationEntry struct {
 	Src, Dst TreeNodeInterface
 	Text     string
@@ -157,20 +167,10 @@ func orderNodesForTemplate(nodes []TreeNodeInterface) []TreeNodeInterface {
 }
 
 // todo - when implementing the full html solution, need to change this interface:
-func CreateDrawioConnectivityMapFile(network SquareTreeNodeInterface, outputFile string, subnetMode bool, explanations []ExplanationEntry) error {
+func CreateDrawioConnectivityMapFile(network SquareTreeNodeInterface, outputFile string, subnetMode bool,format FileFormat, explanations []ExplanationEntry) error {
 	newLayout(network, subnetMode).layout()
-	data := newTemplateData(network, explanations, true)
-	if true {
-		err := createFileFromTemplate(data, outputFile+".html", svgTemplate)
-		if err != nil {
-			return err
-		}
-		err = createFileFromTemplate(data, outputFile+".svg", svgTemplate)
-		if err != nil {
-			return err
-		}
-	}
-	return createFileFromTemplate(data, outputFile, drawioTemplate)
+	data := newTemplateData(network, explanations, format == FileHTML)
+	return createFileFromTemplate(data, outputFile, formatsTemplate[format])
 }
 
 func createFileFromTemplate(data *templateData, outputFile, templ string) error {

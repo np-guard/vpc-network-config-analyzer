@@ -8,42 +8,42 @@ import (
 
 func TestWithParsing(t *testing.T) {
 	n := createNetwork()
-	err := CreateDrawioConnectivityMapFile(n, "fake.drawio", false, nil)
+	err := CreateDrawioConnectivityMapFile(n, "fake.drawio", false,FileDRAWIO, nil)
 	if err != nil {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
 	}
 	n = createNetwork2()
-	err = CreateDrawioConnectivityMapFile(n, "fake2.drawio", false, nil)
+	err = CreateDrawioConnectivityMapFile(n, "fake2.drawio", false,FileDRAWIO, nil)
 	if err != nil {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
 	}
 	n = createNetworkGrouping()
-	err = CreateDrawioConnectivityMapFile(n, "grouping.drawio", false, nil)
+	err = CreateDrawioConnectivityMapFile(n, "grouping.drawio", false,FileDRAWIO, nil)
 	if err != nil {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
 	}
 	n = createNetworkSubnetGrouping()
-	err = CreateDrawioConnectivityMapFile(n, "subnetGrouping.drawio", true, nil)
+	err = CreateDrawioConnectivityMapFile(n, "subnetGrouping.drawio", true,FileDRAWIO, nil)
 	if err != nil {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
 	}
 	n = createNetworkSubnetGroupingBug()
-	err = CreateDrawioConnectivityMapFile(n, "subnetGroupingBug.drawio", true, nil)
+	err = CreateDrawioConnectivityMapFile(n, "subnetGroupingBug.drawio", true,FileDRAWIO, nil)
 	if err != nil {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
 	}
 	n = createNetworkSubnetGroupingMultiVpc()
-	err = CreateDrawioConnectivityMapFile(n, "subnetGroupingMultiVpc.drawio", true, nil)
+	err = CreateDrawioConnectivityMapFile(n, "subnetGroupingMultiVpc.drawio", true,FileDRAWIO, nil)
 	if err != nil {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
 	}
 	n = createNetworkSubnetGroupingOverlapping()
-	err = CreateDrawioConnectivityMapFile(n, "subnetGroupingOverlapping.drawio", true, nil)
+	err = CreateDrawioConnectivityMapFile(n, "subnetGroupingOverlapping.drawio", true,FileDRAWIO, nil)
 	if err != nil {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
 	}
 	n = createNetworkSubnetGroupingGroupInGroup()
-	err = CreateDrawioConnectivityMapFile(n, "subnetGroupingGroupInGroup.drawio", true, nil)
+	err = CreateDrawioConnectivityMapFile(n, "subnetGroupingGroupInGroup.drawio", true,FileDRAWIO, nil)
 	if err != nil {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
 	}
@@ -55,18 +55,18 @@ func TestWithParsing(t *testing.T) {
 	vpc1 := NewVpcTreeNode(region, "vpc1")
 	z := NewZoneTreeNode(vpc1, "zone1")
 	NewSubnetTreeNode(z, "sub1", "cidr", "acl1")
-	err = CreateDrawioConnectivityMapFile(n2, "fake3.drawio", false, nil)
+	err = CreateDrawioConnectivityMapFile(n2, "fake3.drawio", false,FileDRAWIO, nil)
 	if err != nil {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
 	}
 
 	n = createNetworkAllTypes()
-	err = CreateDrawioConnectivityMapFile(n, "all.drawio", false, nil)
+	err = CreateDrawioConnectivityMapFile(n, "all.drawio", false,FileDRAWIO, nil)
 	if err != nil {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
 	}
 	n = createNetworkTgw()
-	err = CreateDrawioConnectivityMapFile(n, "tgws.drawio", false, nil)
+	err = CreateDrawioConnectivityMapFile(n, "tgws.drawio", false,FileDRAWIO, nil)
 	if err != nil {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
 	}

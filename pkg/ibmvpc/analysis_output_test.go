@@ -78,6 +78,10 @@ const (
 	secJSONOutSuffix               = "_2nd.json"
 	drawioOutSuffix                = ".drawio"
 	archDrawioOutSuffix            = "_arch.drawio"
+	svgOutSuffix                   = ".svg"
+	archSvgOutSuffix               = "_arch.svg"
+	htmlOutSuffix                  = ".html"
+	archHtmlOutSuffix              = "_arch.html"
 )
 
 // getTestFileName returns expected file name and actual file name, for the relevant use case
@@ -144,6 +148,14 @@ func getTestFileSuffix(format vpcmodel.OutFormat) (suffix string, err error) {
 		return drawioOutSuffix, nil
 	case vpcmodel.ARCHDRAWIO:
 		return archDrawioOutSuffix, nil
+	case vpcmodel.SVG:
+		return svgOutSuffix, nil
+	case vpcmodel.ARCHSVG:
+		return archSvgOutSuffix, nil
+	case vpcmodel.HTML:
+		return htmlOutSuffix, nil
+	case vpcmodel.ARCHHTML:
+		return archHtmlOutSuffix, nil
 	default:
 		return "", errors.New("unexpected out format")
 	}
@@ -173,6 +185,36 @@ var tests = []*vpcGeneralTest{
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		grouping:    true,
 		format:      vpcmodel.DRAWIO,
+	},
+	{
+		inputConfig: "load_balancer",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.SVG,
+	},
+	{
+		inputConfig: "load_balancer",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.HTML,
+	},
+	{
+		inputConfig: "load_balancer",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.ARCHDRAWIO,
+	},
+	{
+		inputConfig: "load_balancer",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.ARCHSVG,
+	},
+	{
+		inputConfig: "load_balancer",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.ARCHHTML,
 	},
 }
 var tests2 = []*vpcGeneralTest{
@@ -531,7 +573,14 @@ var tests2 = []*vpcGeneralTest{
 	},
 }
 
-var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
+var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{
+	vpcmodel.DRAWIO:     true,
+	vpcmodel.ARCHDRAWIO: true,
+	vpcmodel.SVG:        true,
+	vpcmodel.ARCHSVG:    true,
+	vpcmodel.HTML:       true,
+	vpcmodel.ARCHHTML:   true,
+}
 
 // uncomment the function below to run for updating the expected output
 /*

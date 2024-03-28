@@ -32,8 +32,16 @@ type DrawioOutputFormatter struct {
 	nodeRouters     map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface
 	multiVpcRouters map[string]drawio.IconTreeNodeInterface
 	uc              OutputUseCase
+	outFormat       OutFormat
 }
 
+func newDrawioOutputFormatter(outFormat OutFormat) *DrawioOutputFormatter {
+	d := DrawioOutputFormatter{}
+	d.outFormat = outFormat
+	d.nodeRouters = map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface{}
+	d.multiVpcRouters = map[string]drawio.IconTreeNodeInterface{}
+	return &d
+}
 func (d *DrawioOutputFormatter) init(cConfigs MultipleVPCConfigs, conns map[string]*GroupConnLines, uc OutputUseCase) {
 	d.cConfigs = cConfigs
 	d.conns = conns
@@ -42,8 +50,6 @@ func (d *DrawioOutputFormatter) init(cConfigs MultipleVPCConfigs, conns map[stri
 	_, aVpcConfig := common.AnyMapEntry(cConfigs)
 	cloudName := aVpcConfig.CloudName
 	d.gen = NewDrawioGenerator(cloudName)
-	d.nodeRouters = map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface{}
-	d.multiVpcRouters = map[string]drawio.IconTreeNodeInterface{}
 }
 
 func (d *DrawioOutputFormatter) createDrawioTree() {
@@ -176,7 +182,7 @@ func (d *DrawioOutputFormatter) createEdges() {
 		}
 	}
 }
-func (d *DrawioOutputFormatter) createExplanations() []drawio.ExplanationEntry{
+func (d *DrawioOutputFormatter) createExplanations() []drawio.ExplanationEntry {
 	type expKey struct {
 		src, dst EndpointElem
 	}
@@ -227,6 +233,18 @@ func (d *DrawioOutputFormatter) showResource(res DrawioResourceIntf) bool {
 	return d.uc != AllSubnets || res.ShowOnSubnetMode()
 }
 
+func (d *DrawioOutputFormatter) drawioFormat() drawio.FileFormat {
+	switch d.outFormat {
+	case DRAWIO, ARCHDRAWIO:
+		return drawio.FileDRAWIO
+	case SVG, ARCHSVG:
+		return drawio.FileSVG
+	case HTML, ARCHHTML:
+		return drawio.FileHTML
+	}
+	return drawio.FileDRAWIO
+}
+
 func (d *DrawioOutputFormatter) WriteOutput(c1, c2 MultipleVPCConfigs,
 	conn map[string]*VPCConnectivity,
 	subnetsConn map[string]*VPCsubnetConnectivity,
@@ -258,7 +276,7 @@ func (d *DrawioOutputFormatter) WriteOutput(c1, c2 MultipleVPCConfigs,
 		return "", errors.New("use case is not currently supported for draw.io format")
 	}
 	d.createDrawioTree()
-	return "", drawio.CreateDrawioConnectivityMapFile(d.gen.Network(), outFile, d.uc == AllSubnets, d.createExplanations())
+	return "", drawio.CreateDrawioConnectivityMapFile(d.gen.Network(), outFile, d.uc == AllSubnets, d.drawioFormat(), d.createExplanations())
 }
 
 // /////////////////////////////////////////////////////////////////
@@ -270,6 +288,9 @@ type ArchDrawioOutputFormatter struct {
 	DrawioOutputFormatter
 }
 
+func newArchDrawioOutputFormatter(outFormat OutFormat) *ArchDrawioOutputFormatter {
+	return &ArchDrawioOutputFormatter{*newDrawioOutputFormatter(outFormat)}
+}
 func (d *ArchDrawioOutputFormatter) WriteOutput(c1, c2 MultipleVPCConfigs,
 	conn map[string]*VPCConnectivity,
 	subnetsConn map[string]*VPCsubnetConnectivity,
