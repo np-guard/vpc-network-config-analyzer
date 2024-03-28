@@ -1030,17 +1030,14 @@ func addIKSNodeAsSGTarget(sg *datamodel.SecurityGroup, iksCluster *datamodel.IKS
 	if sg == nil {
 		return
 	}
-	// this sg should not have any targets
-	targets := make([]vpc1.SecurityGroupTargetReferenceIntf, 0)
 	for _, iksNode := range iksCluster.WorkerNodes {
 		target := new(vpc1.SecurityGroupTargetReference)
 		target.ID = iksNode.ID
 		resourceType := new(string)
 		*resourceType = iksNodeResourceType
 		target.ResourceType = resourceType
-		targets = append(targets, vpc1.SecurityGroupTargetReferenceIntf(target))
+		sg.Targets = append(sg.Targets, vpc1.SecurityGroupTargetReferenceIntf(target))
 	}
-	sg.Targets = targets
 }
 
 func getIKSnodesConfig(res vpcmodel.MultipleVPCConfigs,
