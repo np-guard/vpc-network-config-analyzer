@@ -766,17 +766,22 @@ func (tgw *TransitGateway) tgwPrefixStr(prefix tgwPrefix) (string, error) {
 }
 
 func (tgw *TransitGateway) StringPrefixDetails(src, dst vpcmodel.Node) (string, error) {
+	prefix := tgw.prefixOfSrcDst(src, dst)
+	return tgw.tgwPrefixStr(*prefix)
+}
+
+func (tgw *TransitGateway) prefixOfSrcDst(src, dst vpcmodel.Node) *tgwPrefix {
 	if vpcmodel.HasNode(tgw.sourceNodes, src) &&
 		vpcmodel.HasNode(tgw.destNodes, dst) { // <src, dst> routed by tgw
 		// given that source and dst are in the tgw, the relevant prefix is determined
 		// by match of the ap the dest's node is in (including default)
 		for routeCIDR, prefix := range tgw.vpcApsPrefixes[dst.VPC().UID()] {
 			if dst.IPBlock().ContainedIn(routeCIDR) {
-				return tgw.tgwPrefixStr(prefix)
+				return &prefix
 			}
 		}
 	}
-	return "", errors.New("TransitGateway.RelevantPrefixes() expected src and dst to be two nodes")
+	return nil
 }
 
 func (fip *FloatingIP) StringPrefixDetails(src, dst vpcmodel.Node) (string, error) {
