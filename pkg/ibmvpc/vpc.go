@@ -713,7 +713,7 @@ func (tgw *TransitGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf
 		if vpcmodel.HasNode(tgw.sourceNodes, src1) && vpcmodel.HasNode(tgw.destNodes, dst1) {
 			return connection.All(), nil
 		}
-		// no tgw connection can be since there is no tgw router defined between the vpcs, or because there is one
+		// no tgw connection can be either due to tgw router defined between the vpcs, or due to a connection
 		// that denys traffic for the specific src and dst. In the first case we return nil and in the second connection.None()
 		prefix := tgw.prefixOfSrcDst(src.(vpcmodel.Node), dst.(vpcmodel.Node))
 		if prefix == nil { // no transit gateway defined

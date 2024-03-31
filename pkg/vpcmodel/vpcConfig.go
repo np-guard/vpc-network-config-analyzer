@@ -82,7 +82,7 @@ func (c *VPCConfig) getRoutingResource(src, dst Node) (RoutingResource, *connect
 		}
 		if routerConnRes == nil { // routing resource not defined for src, dst
 			continue
-		} else if !routerConnRes.IsEmpty() {
+		} else {
 			return router, routerConnRes, nil
 		}
 	}
