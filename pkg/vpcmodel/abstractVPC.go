@@ -218,8 +218,6 @@ type RoutingResource interface {
 	VPCResourceIntf
 	Sources() []Node
 	Destinations() []Node
-	// AllowedConnectivity between src and dst returns nil if there is no RoutingResource defined, and the allowed connection
-	// (which may be empty) otherwise
 	AllowedConnectivity(src, dst VPCResourceIntf) (*connection.Set, error)
 	AppliedFiltersKinds() map[string]bool
 	ExternalIP() string // ExternalIP of fip, empty string for other resources
