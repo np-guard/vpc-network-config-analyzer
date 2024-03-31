@@ -151,7 +151,6 @@ func (d *DrawioOutputFormatter) lineRouter(line *groupedConnLine, vpcResourceNam
 			}
 		}
 		return d.nodeRouters[d.gen.TreeNode((*group)[0])]
-
 	}
 	return nil
 }
