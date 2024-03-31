@@ -498,9 +498,6 @@ func connHasIKSNode(src, dst vpcmodel.Node, isIngress bool) bool {
 // AllowedConnectivity
 // TODO: fix: is it possible that no sg applies  to the input peer? if so, should not return "no conns" when none applies
 func (sgl *SecurityGroupLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*connection.Set, error) {
-	if connHasIKSNode(src, dst, isIngress) {
-		return connection.All(), nil
-	}
 	res := connection.None()
 	for _, sg := range sgl.sgList {
 		sgConn := sg.AllowedConnectivity(src, dst, isIngress)
