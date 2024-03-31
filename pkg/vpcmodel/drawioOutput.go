@@ -145,12 +145,13 @@ func (d *DrawioOutputFormatter) lineRouter(line *groupedConnLine, vpcResourceNam
 		return nil
 	}
 	if group, ok := routeredEP.(*groupedEndpointsElems); ok {
+		firstRouter := d.nodeRouters[d.gen.TreeNode((*group)[0])]
 		for _, node := range *group {
-			if d.nodeRouters[d.gen.TreeNode(node)] != d.nodeRouters[d.gen.TreeNode((*group)[0])] {
+			if d.nodeRouters[d.gen.TreeNode(node)] != firstRouter {
 				return nil
 			}
 		}
-		return d.nodeRouters[d.gen.TreeNode((*group)[0])]
+		return firstRouter
 	}
 	return nil
 }
