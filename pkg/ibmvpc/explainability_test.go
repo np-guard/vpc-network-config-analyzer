@@ -432,6 +432,43 @@ var explainTests = []*vpcGeneralTest{
 		EDst:        "172.217.22.46/32",
 		format:      vpcmodel.Debug,
 	},
+	// tests for routing between vpcs:
+	// connection enabled by specific allow prefix // todo: verify
+	{
+		name:        "tgwEnabledSpecificFilter",
+		inputConfig: "tg-prefix-filters",
+		ESrc:        "ky-vsi1-subnet20",
+		EDst:        "ky-vsi0-subnet2",
+		format:      vpcmodel.Debug,
+	},
+	// connection enabled by default tgw definition (2 examples from 2 different input files, one debug format)
+	// todo: verify
+	{
+		name:        "tgwEnableDefaultFilter",
+		inputConfig: "tg-prefix-filters",
+		ESrc:        "ky-vsi0-subnet5",
+		EDst:        "ky-vsi0-subnet11",
+		format:      vpcmodel.Debug,
+	},
+	// todo: add example from input_tgw_larger_example
+	// connection disabled by specific deny prefix
+	// todo: seems this does not work at the moment; says there is no router defined though there is a deny prefix
+	{
+		name:        "tgwDisabledDenyFilter",
+		inputConfig: "tg-prefix-filters",
+		ESrc:        "ky-vsi0-subnet5",
+		EDst:        "ky-vsi0-subnet11",
+		format:      vpcmodel.Debug,
+	},
+	// connection disabled by lack of tgw
+	// todo: verify
+	{
+		name:        "tgwDisabledNoTgwDefined",
+		inputConfig: "tg-prefix-filters",
+		ESrc:        "ky-vsi1-subnet20",
+		EDst:        "ky-vsi0-subnet0",
+		format:      vpcmodel.Debug,
+	},
 }
 
 func TestAll(t *testing.T) {

@@ -1,0 +1,27 @@
+Connectivity explanation between ky-vsi0-subnet5 and ky-vsi0-subnet11 within combined-vpc-local-tg-ky
+=====================================================================================================
+
+The following connection exists between ky-vsi0-subnet5[10.240.9.4] and ky-vsi0-subnet11[10.240.80.4]: All Connections
+Path:
+	ky-vsi0-subnet5[10.240.9.4] -> security group sg1-ky -> subnet5 -> network ACL acl3-ky -> 
+	test-vpc0-ky -> TGW local-tg-ky -> test-vpc1-ky -> 
+	network ACL acl11-ky -> subnet11 -> security group sg11-ky -> ky-vsi0-subnet11[10.240.80.4]
+
+Details:
+~~~~~~~~
+vpc test-vpc0-ky to vpc test-vpc1-ky routing:
+transit-gateway: local-tg-ky, transit-connection: tg_connection1 default prefix,  action: allow
+
+Egress:
+security group sg1-ky allows connection with the following allow rules
+	index: 1, direction: outbound, protocol: all, cidr: 0.0.0.0/0
+network ACL acl3-ky allows connection with the following allow rules
+	index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+
+Ingress:
+network ACL acl11-ky allows connection with the following allow rules
+	index: 2, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+security group sg11-ky allows connection with the following allow rules
+	index: 1, direction: inbound, protocol: all, cidr: 0.0.0.0/0
+------------------------------------------------------------------------------------------------------------------------
+
