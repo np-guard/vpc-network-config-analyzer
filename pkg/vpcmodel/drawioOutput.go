@@ -135,18 +135,22 @@ func (d *DrawioOutputFormatter) lineRouter(line *groupedConnLine, vpcResourceNam
 	if d.cConfigs[vpcResourceName].IsMultipleVPCsConfig {
 		return d.multiVpcRouters[vpcResourceName]
 	}
-	var routeredNode EndpointElem
+	var routeredEP EndpointElem
 	switch {
 	case line.dst.IsExternal():
-		routeredNode = line.src
+		routeredEP = line.src
 	case line.src.IsExternal():
-		routeredNode = line.dst
+		routeredEP = line.dst
 	default:
 		return nil
 	}
-	if _, ok := routeredNode.(*groupedEndpointsElems); ok {
-		routeredNode = (*routeredNode.(*groupedEndpointsElems))[0]
-		return d.nodeRouters[d.gen.TreeNode(routeredNode)]
+	if group, ok := routeredEP.(*groupedEndpointsElems); ok {
+		for _, node := range *group {
+			if d.nodeRouters[d.gen.TreeNode(node)] != d.nodeRouters[d.gen.TreeNode((*group)[0])] {
+				return nil
+			}
+		}
+		return d.nodeRouters[d.gen.TreeNode((*group)[0])]
 
 	}
 	return nil
