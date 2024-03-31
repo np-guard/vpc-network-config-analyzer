@@ -433,7 +433,7 @@ var explainTests = []*vpcGeneralTest{
 		format:      vpcmodel.Debug,
 	},
 	// tests for routing between vpcs:
-	// connection enabled by specific allow prefix // todo: verify
+	// connection enabled by specific allow prefix
 	{
 		name:        "tgwEnabledSpecificFilter",
 		inputConfig: "tg-prefix-filters",
