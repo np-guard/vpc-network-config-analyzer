@@ -594,6 +594,14 @@ func (fip *FloatingIP) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*
 	return nil, errors.New("FloatingIP.AllowedConnectivity unexpected src/dst types")
 }
 
+func (fip *FloatingIP) RouterDefined(src, dst vpcmodel.Node) bool {
+	if (vpcmodel.HasNode(fip.Sources(), src) && dst.IsExternal()) ||
+		(vpcmodel.HasNode(fip.Sources(), dst) && src.IsExternal()) {
+		return true
+	}
+	return false
+}
+
 func (fip *FloatingIP) AppliedFiltersKinds() map[string]bool {
 	return map[string]bool{vpcmodel.SecurityGroupLayer: true}
 }
@@ -643,6 +651,13 @@ func (pgw *PublicGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf)
 		}
 	}
 	return nil, errors.New("unexpected src/dst input types")
+}
+
+func (pgw *PublicGateway) RouterDefined(src, dst vpcmodel.Node) bool {
+	if vpcmodel.HasNode(pgw.Sources(), src) && dst.IsExternal() {
+		return true
+	}
+	return false
 }
 
 func (pgw *PublicGateway) AppliedFiltersKinds() map[string]bool {
@@ -723,6 +738,13 @@ func (tgw *TransitGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf
 	}
 
 	return nil, errors.New("TransitGateway.AllowedConnectivity() expected src and dst to be two nodes or two subnets")
+}
+
+func (tgw *TransitGateway) RouterDefined(src, dst vpcmodel.Node) bool {
+	if vpcmodel.HasNode(tgw.sourceNodes, src) && vpcmodel.HasNode(tgw.destNodes, dst) {
+		return true
+	}
+	return false
 }
 
 // gets a string description of prefix indexed "index" from TransitGateway tgw

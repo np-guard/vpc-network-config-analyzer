@@ -218,11 +218,12 @@ type RoutingResource interface {
 	VPCResourceIntf
 	Sources() []Node
 	Destinations() []Node
-	// AllowedConnectivity between src and dst returns nil if there is no RoutingResource defined, and the allowed connection
-	// (which may be empty) otherwise
 	AllowedConnectivity(src, dst VPCResourceIntf) (*connection.Set, error)
 	AppliedFiltersKinds() map[string]bool
 	ExternalIP() string // ExternalIP of fip, empty string for other resources
+	// RouterDefined is this router defined for src and dst? while fip, pgw are defined for src, dst iff they enable traffic
+	// tgw may be defined for src, dst and deny traffic
+	RouterDefined(src, dst Node) bool
 	// StringPrefixDetails returns a string with the prefix that determines the tgw related routing
 	// between src and dst; if non tgw relevant to <src, dst> returns an empty string
 	// Non-relevant for fip and pgw, returns always an empty string
