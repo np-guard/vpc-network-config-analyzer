@@ -50,7 +50,7 @@ type templateData struct {
 	Explanations []ExplanationEntry
 	clickable    map[TreeNodeInterface]bool
 	svgNames     map[TreeNodeInterface]string
-	IsHtml       bool
+	IsHTML       bool
 }
 
 func newTemplateData(network SquareTreeNodeInterface, explanations []ExplanationEntry, interactive bool) *templateData {
@@ -174,8 +174,9 @@ func orderNodesForTemplate(nodes []TreeNodeInterface) []TreeNodeInterface {
 	return orderedNodes
 }
 
-// todo - when implementing the full html solution, need to change this interface:
-func CreateDrawioConnectivityMapFile(network SquareTreeNodeInterface, outputFile string, subnetMode bool, format FileFormat, explanations []ExplanationEntry) error {
+func CreateDrawioConnectivityMapFile(
+	network SquareTreeNodeInterface, outputFile string, subnetMode bool,
+	format FileFormat, explanations []ExplanationEntry) error {
 	newLayout(network, subnetMode).layout()
 	data := newTemplateData(network, explanations, format == FileHTML)
 	return createFileFromTemplate(data, outputFile, formatsTemplate[format])

@@ -119,8 +119,12 @@ const (
 
 // supportedAnalysisTypesMap is a map from analysis type to its list of supported output formats
 var supportedAnalysisTypesMap = map[string][]string{
-	allEndpoints:     {TEXTFormat, MDFormat, JSONFormat, DRAWIOFormat, ARCHDRAWIOFormat, SVGFormat, ARCHSVGFormat, HTMLFormat, ARCHHTMLFormat, DEBUGFormat},
-	allSubnets:       {TEXTFormat, MDFormat, JSONFormat, DRAWIOFormat, ARCHDRAWIOFormat, SVGFormat, ARCHSVGFormat, HTMLFormat, ARCHHTMLFormat},
+	allEndpoints: {
+		TEXTFormat, MDFormat, JSONFormat, DRAWIOFormat, ARCHDRAWIOFormat,
+		SVGFormat, ARCHSVGFormat, HTMLFormat, ARCHHTMLFormat, DEBUGFormat},
+	allSubnets: {
+		TEXTFormat, MDFormat, JSONFormat, DRAWIOFormat, ARCHDRAWIOFormat,
+		SVGFormat, ARCHSVGFormat, HTMLFormat, ARCHHTMLFormat},
 	singleSubnet:     {TEXTFormat},
 	allEndpointsDiff: {TEXTFormat, MDFormat},
 	allSubnetsDiff:   {TEXTFormat, MDFormat},
@@ -386,7 +390,8 @@ func errorInArgs(args *InArgs, flagset *flag.FlagSet) error {
 	if !fileForDiffSpecified && diffAnalysis {
 		return fmt.Errorf("missing parameter vpc-config-second for diff analysis %s", *args.AnalysisType)
 	}
-	if slices.Contains([]string{DRAWIOFormat, ARCHDRAWIOFormat, SVGFormat, ARCHSVGFormat, HTMLFormat, ARCHHTMLFormat}, *args.OutputFormat) && *args.OutputFile == "" {
+	graphicFormats := []string{DRAWIOFormat, ARCHDRAWIOFormat, SVGFormat, ARCHSVGFormat, HTMLFormat, ARCHHTMLFormat}
+	if slices.Contains(graphicFormats, *args.OutputFormat) && *args.OutputFile == "" {
 		return fmt.Errorf("for output format '%s', parameter '-output-file' must be specified", *args.OutputFormat)
 	}
 	return nil

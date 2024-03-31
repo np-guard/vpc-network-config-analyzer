@@ -18,13 +18,14 @@ func (data *templateData) setNodesRelations(network TreeNodeInterface) {
 	rel := tnRelations(network)
 	res := map[string]map[string][]string{}
 	for _, node := range data.Nodes {
-		nId := strconv.Itoa(int(node.ID()))
-		res[nId] = map[string][]string{}
-		res[nId]["relations"] = []string{strconv.Itoa(int(data.RootID()))}
+		nodeID := strconv.Itoa(int(node.ID()))
+		res[nodeID] = map[string][]string{}
+		nodeRelations := []string{strconv.Itoa(int(data.RootID()))}
 		for _, n := range rel[node] {
-			res[nId]["relations"] = append(res[nId]["relations"], strconv.Itoa(int(n.ID())))
+			nodeRelations = append(nodeRelations, strconv.Itoa(int(n.ID())))
 		}
-		res[nId]["graphExplanation"] = []string{"Connectivity graph of " + data.NodeName(node)}
+		res[nodeID]["relations"] = nodeRelations
+		res[nodeID]["graphExplanation"] = []string{"Connectivity graph of " + data.NodeName(node)}
 	}
 	b, _ := json.Marshal(res)
 	data.Relations = string(b)

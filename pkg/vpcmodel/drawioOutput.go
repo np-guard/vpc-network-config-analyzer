@@ -183,32 +183,13 @@ func (d *DrawioOutputFormatter) createEdges() {
 	}
 }
 
-// createExplanations() to be reimplement with real Shiri work
+// explainableEndpoints() createExplanations() to be reimplement with real Shiri work
 func (d *DrawioOutputFormatter) createExplanations() []drawio.ExplanationEntry {
 	type expKey struct {
 		src, dst EndpointElem
 	}
-	subnetMode := d.uc == AllSubnets
-	allEndpoints := []EndpointElem{}
-	for _, vpcConfig1 := range d.cConfigs {
-		if !vpcConfig1.IsMultipleVPCsConfig {
-			if !subnetMode {
-				for _, n := range vpcConfig1.Nodes {
-					if !n.IsExternal() && d.showResource(n) {
-						allEndpoints = append(allEndpoints, n)
-					}
-				}
-			} else {
-				for _, s := range vpcConfig1.Subnets {
-					if !s.IsExternal() && d.showResource(s) {
-						allEndpoints = append(allEndpoints, s)
-					}
-				}
-
-			}
-		}
-	}
 	explanations := map[expKey]string{}
+	allEndpoints := d.explainableEndpoints()
 	for _, src := range allEndpoints {
 		for _, dst := range allEndpoints {
 			explanations[expKey{src, dst}] = "No Connectivity from " + src.Name() + " to " + dst.Name()
@@ -231,12 +212,34 @@ func (d *DrawioOutputFormatter) createExplanations() []drawio.ExplanationEntry {
 			}
 		}
 	}
-
 	explanationsList := []drawio.ExplanationEntry{}
 	for k, e := range explanations {
-		explanationsList = append(explanationsList, drawio.ExplanationEntry{d.gen.TreeNode(k.src), d.gen.TreeNode(k.dst), e})
+		explanationsList = append(explanationsList, drawio.ExplanationEntry{Src: d.gen.TreeNode(k.src), Dst: d.gen.TreeNode(k.dst), Text: e})
 	}
 	return explanationsList
+}
+
+func (d *DrawioOutputFormatter) explainableEndpoints() []EndpointElem {
+	subnetMode := d.uc == AllSubnets
+	allEndpoints := []EndpointElem{}
+	for _, vpcConfig1 := range d.cConfigs {
+		if !vpcConfig1.IsMultipleVPCsConfig {
+			if !subnetMode {
+				for _, n := range vpcConfig1.Nodes {
+					if !n.IsExternal() && d.showResource(n) {
+						allEndpoints = append(allEndpoints, n)
+					}
+				}
+			} else {
+				for _, s := range vpcConfig1.Subnets {
+					if !s.IsExternal() && d.showResource(s) {
+						allEndpoints = append(allEndpoints, s)
+					}
+				}
+			}
+		}
+	}
+	return allEndpoints
 }
 
 func (d *DrawioOutputFormatter) showResource(res DrawioResourceIntf) bool {

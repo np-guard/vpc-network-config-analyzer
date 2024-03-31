@@ -81,7 +81,7 @@ const (
 	svgOutSuffix                   = ".svg"
 	archSvgOutSuffix               = "_arch.svg"
 	htmlOutSuffix                  = ".html"
-	archHtmlOutSuffix              = "_arch.html"
+	archHTMLOutSuffix              = "_arch.html"
 )
 
 // getTestFileName returns expected file name and actual file name, for the relevant use case
@@ -155,7 +155,7 @@ func getTestFileSuffix(format vpcmodel.OutFormat) (suffix string, err error) {
 	case vpcmodel.HTML:
 		return htmlOutSuffix, nil
 	case vpcmodel.ARCHHTML:
-		return archHtmlOutSuffix, nil
+		return archHTMLOutSuffix, nil
 	default:
 		return "", errors.New("unexpected out format")
 	}

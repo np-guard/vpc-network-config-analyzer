@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 {{ $data := .}}
-{{if $data.IsHtml}}
+{{if $data.IsHTML}}
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -93,7 +93,7 @@
 <text text-anchor="middle" font-size="10px" x="50%" y="100%">Text is not SVG - cannot display</text>
 </a>
 </switch>
-{{if $data.IsHtml}}
+{{if $data.IsHTML}}
     <script type="text/xml">
     <![CDATA[<data>
     {{range $explain := $data.Explanations}}
