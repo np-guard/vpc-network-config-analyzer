@@ -776,7 +776,7 @@ func (tgw *TransitGateway) tgwPrefixStr(prefix tgwPrefix) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	resStr += fmt.Sprintf("index: %v, action: %s", prefix.index, actionName)
+	resStr += fmt.Sprintf(", index: %v, action: %s", prefix.index, actionName)
 	if prefixFilter.Ge != nil {
 		resStr += fmt.Sprintf(", ge: %v", *prefixFilter.Ge)
 	}
