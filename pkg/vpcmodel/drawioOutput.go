@@ -132,13 +132,22 @@ func (d *DrawioOutputFormatter) createRouters() {
 }
 
 func (d *DrawioOutputFormatter) lineRouter(line *groupedConnLine, vpcResourceName string) drawio.IconTreeNodeInterface {
-	switch {
-	case d.cConfigs[vpcResourceName].IsMultipleVPCsConfig:
+	if d.cConfigs[vpcResourceName].IsMultipleVPCsConfig {
 		return d.multiVpcRouters[vpcResourceName]
+	}
+	var routeredNode EndpointElem
+	switch {
 	case line.dst.IsExternal():
-		return d.nodeRouters[d.gen.TreeNode(line.src)]
+		routeredNode = line.src
 	case line.src.IsExternal():
-		return d.nodeRouters[d.gen.TreeNode(line.dst)]
+		routeredNode = line.dst
+	default:
+		return nil
+	}
+	if _, ok := routeredNode.(*groupedEndpointsElems); ok {
+		routeredNode = (*routeredNode.(*groupedEndpointsElems))[0]
+		return d.nodeRouters[d.gen.TreeNode(routeredNode)]
+
 	}
 	return nil
 }
