@@ -1018,9 +1018,9 @@ func findDefaultSGForVpc(rc *datamodel.ResourcesContainerModel, vpcUID string) *
 		if *vpc.CRN != vpcUID {
 			continue
 		}
-		DefaultSgCRN := vpc.DefaultSecurityGroup.CRN
+		defaultSgCRN := vpc.DefaultSecurityGroup.CRN
 		for _, sg := range rc.SecurityGroupList {
-			if *sg.CRN == *DefaultSgCRN {
+			if *sg.CRN == *defaultSgCRN {
 				return sg
 			}
 		}
