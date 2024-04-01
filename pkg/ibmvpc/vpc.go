@@ -741,7 +741,11 @@ func (tgw *TransitGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf
 }
 
 func (tgw *TransitGateway) RouterDefined(src, dst vpcmodel.Node) bool {
-	if vpcmodel.HasNode(tgw.sourceNodes, src) && vpcmodel.HasNode(tgw.destNodes, dst) {
+	// destination node has a transit gateway connection iff a prefix (possibly default) is defined for it
+	dstNodeHasTgw := tgw.prefixOfSrcDst(src, dst) != nil
+	//fmt.Printf("RouterDefined for %s => %s\n\tvpcmodel.HasNode(tgw.sourceNodes, src) gets %v, dstNodeHasTgw gets %v\n",
+	//	src.Name(), dst.Name(), vpcmodel.HasNode(tgw.sourceNodes, src), dstNodeHasTgw)
+	if vpcmodel.HasNode(tgw.sourceNodes, src) && dstNodeHasTgw {
 		return true
 	}
 	return false
@@ -793,10 +797,10 @@ func (tgw *TransitGateway) StringPrefixDetails(src, dst vpcmodel.Node) (string, 
 }
 
 func (tgw *TransitGateway) prefixOfSrcDst(src, dst vpcmodel.Node) *tgwPrefix {
-	if vpcmodel.HasNode(tgw.sourceNodes, src) &&
-		vpcmodel.HasNode(tgw.destNodes, dst) { // <src, dst> routed by tgw
-		// given that source and dst are in the tgw, the relevant prefix is determined
-		// by match of the ap the dest's node is in (including default)
+	// <src, dst> routed by tgw given that source is in the tgw,
+	// and there is a prefix defined for the dst,
+	// the relevant prefix is determined by match of the ap the dest's node is in (including default)
+	if vpcmodel.HasNode(tgw.sourceNodes, src) {
 		for routeCIDR, prefix := range tgw.vpcApsPrefixes[dst.VPC().UID()] {
 			if dst.IPBlock().ContainedIn(routeCIDR) {
 				return &prefix

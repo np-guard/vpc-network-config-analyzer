@@ -105,10 +105,10 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 	routerFiltersHeaderPlusPath := routerFiltersHeader + path
 	switch {
 	case tgwRouterRequired(src, dst) && tgwRouter == nil:
-		resStr += fmt.Sprintf("%v connection blocked since src, dst of different VPCs but no transit gateway is defined"+
+		resStr += fmt.Sprintf("%v\nconnection blocked since src, dst of different VPCs but no transit gateway is defined"+
 			"\n%v\n%v", noConnection, routerFiltersHeaderPlusPath, details)
 	case tgwRouterRequired(src, dst) && tgwRouter != nil && tgwConnection.IsEmpty():
-		resStr += fmt.Sprintf("%v connection blocked since transit gateway denys route between src and dst"+
+		resStr += fmt.Sprintf("%v\nconnection blocked since transit gateway denys route between src and dst"+
 			"\n%v\n%v", noConnection, routerFiltersHeaderPlusPath, details)
 	case externalRouter == nil && src.IsExternal():
 		resStr += fmt.Sprintf("%v no fip and src is external (fip is required for "+
