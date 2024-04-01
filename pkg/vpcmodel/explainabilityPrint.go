@@ -91,6 +91,8 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 		_, tgwConnection, _ = c.getRoutingResource(src.(Node), dst.(Node)) // tgw exists - src, dst are internal
 		// if there is a non nil transit gateway then src and dst are vsis, and implement Node
 		tgwRouterFilterStr, _ = tgwRouter.StringPrefixDetails(src.(Node), dst.(Node))
+		// todo tgwRouterFilterStr: separate to debug format and not debug.
+		//      Add relevant tgw text to routerFiltersHeader
 		tgwRouterFilterStr = fmt.Sprintf("vpc %s to vpc %s routing:\n%s\n\n",
 			src.(InternalNodeIntf).Subnet().VPC().Name(),
 			dst.(InternalNodeIntf).Subnet().VPC().Name(), tgwRouterFilterStr)
