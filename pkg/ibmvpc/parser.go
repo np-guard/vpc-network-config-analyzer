@@ -1042,6 +1042,8 @@ func addIKSNodesAsSGTarget(sg *datamodel.SecurityGroup, iksCluster *datamodel.IK
 	}
 }
 
+// assuming getIKSnodesConfig is called before getSGconfig,
+// because it updates the input SG targets with missing IKS nodes, if there are such
 func getIKSnodesConfig(res vpcmodel.MultipleVPCConfigs,
 	rc *datamodel.ResourcesContainerModel,
 	skipByVPC map[string]bool) error {
@@ -1065,7 +1067,7 @@ func getIKSnodesConfig(res vpcmodel.MultipleVPCConfigs,
 			}
 			vpcUID := subnet.VPC().UID()
 			if i == 0 {
-				// first iksNode
+				// first iksNode - assuming all cluster nodes are in the same vpc, thus sufficient to check vpc of the first node
 				defaultSG = findDefaultSGForVpc(rc, vpcUID)
 			}
 			vpc := subnet.VPC()
