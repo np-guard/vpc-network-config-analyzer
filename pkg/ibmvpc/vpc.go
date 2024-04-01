@@ -791,9 +791,19 @@ func (tgw *TransitGateway) tgwPrefixStr(prefix tgwPrefix) (string, error) {
 	return resStr, nil
 }
 
-func (tgw *TransitGateway) StringPrefixDetails(src, dst vpcmodel.Node) (string, error) {
+func (tgw *TransitGateway) StringPrefixDetails(src, dst vpcmodel.Node, verbose bool) (string, error) {
 	prefix := tgw.prefixOfSrcDst(src, dst)
-	return tgw.tgwPrefixStr(*prefix)
+	if verbose {
+		return tgw.tgwPrefixStr(*prefix)
+	}
+	transitEnablesConn := vpcmodel.HasNode(tgw.sourceNodes, src) && vpcmodel.HasNode(tgw.destNodes, dst)
+	shortStr := fmt.Sprintf("transit-connection %s of transit-gateway %s ", tgw.Name(), *prefix.tc.Name)
+	if transitEnablesConn {
+		shortStr += "allows connection"
+	} else {
+		shortStr += "denys connections"
+	}
+	return "", nil
 }
 
 func (tgw *TransitGateway) prefixOfSrcDst(src, dst vpcmodel.Node) *tgwPrefix {
@@ -810,11 +820,11 @@ func (tgw *TransitGateway) prefixOfSrcDst(src, dst vpcmodel.Node) *tgwPrefix {
 	return nil
 }
 
-func (fip *FloatingIP) StringPrefixDetails(src, dst vpcmodel.Node) (string, error) {
+func (fip *FloatingIP) StringPrefixDetails(src, dst vpcmodel.Node, verbose bool) (string, error) {
 	return "", nil
 }
 
-func (pgw *PublicGateway) StringPrefixDetails(src, dst vpcmodel.Node) (string, error) {
+func (pgw *PublicGateway) StringPrefixDetails(src, dst vpcmodel.Node, verbose bool) (string, error) {
 	return "", nil
 }
 

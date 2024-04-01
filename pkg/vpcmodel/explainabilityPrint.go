@@ -77,34 +77,34 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 	needIngress := !dst.IsExternal()
 	ingressBlocking := !ingressEnabled && needIngress
 	egressBlocking := !egressEnabled && needEgress
-	var externalRouterStr, tgwRouterFilterStr, rulesStr, details, resStr string
+	var externalRouterHeader, tgwRouterFilterHeader, header,
+		tgwRouterFilterDetails, rulesDetails, details, resStr string
 	if externalRouter != nil && (src.IsExternal() || dst.IsExternal()) {
-		externalRouterStr = "External traffic via " + externalRouter.Kind() + ": " + externalRouter.Name() + "\n"
-	}
-	var routerFiltersHeader string
-	if conn.IsEmpty() {
-		routerFiltersHeader = externalRouterStr + rules.filterEffectStr(c, filtersRelevant, needEgress, needIngress) + "\n"
+		externalRouterHeader = "External traffic via " + externalRouter.Kind() + ": " + externalRouter.Name() + "\n"
 	}
 	var tgwConnection *connection.Set
 	if tgwRouter != nil { // given that there is a tgw router, computes the connection it allows
 		// an error here will pop up earlier, when computing connections
 		_, tgwConnection, _ = c.getRoutingResource(src.(Node), dst.(Node)) // tgw exists - src, dst are internal
 		// if there is a non nil transit gateway then src and dst are vsis, and implement Node
-		tgwRouterFilterStr, _ = tgwRouter.StringPrefixDetails(src.(Node), dst.(Node))
-		// todo tgwRouterFilterStr: separate to debug format and not debug.
-		//      Add relevant tgw text to routerFiltersHeader
-		tgwRouterFilterStr = fmt.Sprintf("vpc %s to vpc %s routing:\n%s\n\n",
+		tgwRouterFilterDetails, _ = tgwRouter.StringPrefixDetails(src.(Node), dst.(Node), true)
+		tgwRouterFilterDetails = fmt.Sprintf("vpc %s to vpc %s routing:\n%s\n\n",
 			src.(InternalNodeIntf).Subnet().VPC().Name(),
-			dst.(InternalNodeIntf).Subnet().VPC().Name(), tgwRouterFilterStr)
+			dst.(InternalNodeIntf).Subnet().VPC().Name(), tgwRouterFilterDetails)
+		tgwRouterFilterHeader, _ = tgwRouter.StringPrefixDetails(src.(Node), dst.(Node), false)
+	}
+	if conn.IsEmpty() {
+		header = externalRouterHeader + rules.filterEffectStr(c, filtersRelevant, needEgress, needIngress) + "\n" +
+			tgwRouterFilterHeader
 	}
 	path := "Path:\n" + pathStr(c, filtersRelevant, src, dst,
 		ingressBlocking, egressBlocking, externalRouter, tgwRouter, tgwConnection, rules)
-	rulesStr = rules.ruleDetailsStr(c, filtersRelevant, needEgress, needIngress)
+	rulesDetails = rules.ruleDetailsStr(c, filtersRelevant, needEgress, needIngress)
 	if verbose {
-		details = "\nDetails:\n~~~~~~~~\n" + tgwRouterFilterStr + rulesStr
+		details = "\nDetails:\n~~~~~~~~\n" + tgwRouterFilterDetails + rulesDetails
 	}
 	noConnection := noConnectionHeader(src.Name(), dst.Name(), connQuery)
-	routerFiltersHeaderPlusPath := routerFiltersHeader + path
+	routerFiltersHeaderPlusPath := header + path
 	switch {
 	case tgwRouterRequired(src, dst) && tgwRouter == nil:
 		resStr += fmt.Sprintf("%v\nconnection blocked since src, dst of different VPCs but no transit gateway is defined"+
