@@ -442,7 +442,6 @@ var explainTests = []*vpcGeneralTest{
 		format:      vpcmodel.Debug,
 	},
 	// connection enabled by default tgw definition (2 examples from 2 different input files, one debug format)
-	// todo: verify
 	{
 		name:        "tgwEnableDefaultFilter",
 		inputConfig: "tg-prefix-filters",
@@ -450,7 +449,7 @@ var explainTests = []*vpcGeneralTest{
 		EDst:        "ky-vsi0-subnet11",
 		format:      vpcmodel.Debug,
 	},
-	// todo: add example from input_tgw_larger_example
+	// todo: add example from input_tgw_larger_example no debug print
 	// connection disabled by specific deny prefix
 	// todo: seems this does not work at the moment; says there is no router defined though there is a deny prefix
 	{
