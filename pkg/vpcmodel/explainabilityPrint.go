@@ -92,10 +92,10 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 			src.(InternalNodeIntf).Subnet().VPC().Name(),
 			dst.(InternalNodeIntf).Subnet().VPC().Name(), tgwRouterFilterDetails)
 		tgwRouterFilterHeader, _ = tgwRouter.StringPrefixDetails(src.(Node), dst.(Node), false)
+		tgwRouterFilterHeader += "\n"
 	}
 	if conn.IsEmpty() {
-		header = externalRouterHeader + rules.filterEffectStr(c, filtersRelevant, needEgress, needIngress) + "\n" +
-			tgwRouterFilterHeader
+		header = externalRouterHeader + tgwRouterFilterHeader + rules.filterEffectStr(c, filtersRelevant, needEgress, needIngress) + "\n"
 	}
 	path := "Path:\n" + pathStr(c, filtersRelevant, src, dst,
 		ingressBlocking, egressBlocking, externalRouter, tgwRouter, tgwConnection, rules)

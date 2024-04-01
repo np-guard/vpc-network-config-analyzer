@@ -464,6 +464,7 @@ var explainTests = []*vpcGeneralTest{
 		EDst:        "ky-vsi0-subnet0",  // test-vpc0-ky
 		format:      vpcmodel.Debug,
 	},
+	// todo: add the above example wo debug
 	{
 		name:        "tgwAnotherExampleEnabledConn",
 		inputConfig: "tg-prefix-filters",
