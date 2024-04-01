@@ -157,9 +157,11 @@ const (
 	networkInterfaceResourceType = "network_interface" // used as the type within api objects (e.g. SecurityGroup.Targets.ResourceType)
 	vpeResourceType              = "endpoint_gateway"  // used as the type within api objects (e.g. SecurityGroup.Targets.ResourceType)
 	loadBalancerResourceType     = "load_balancer"     // used as the type within api objects (e.g. SecurityGroup.Targets.ResourceType)
-	iksNodeResourceType          = "iks_node"          // used as the type within api objects (e.g. SecurityGroup.Targets.ResourceType)
-	cidrSeparator                = ", "
-	linesSeparator               = "---------------------"
+	// iksNodeResourceType is not actually used from input api objects, but is added by the parser to SGs with targets
+	// that should be added with iks nodes
+	iksNodeResourceType = "iks_node" // used as the type within api objects (e.g. SecurityGroup.Targets.ResourceType)
+	cidrSeparator       = ", "
+	linesSeparator      = "---------------------"
 )
 
 // Resource types const strings, used in the generated resources of this pkg
@@ -1016,9 +1018,9 @@ func findDefaultSGForVpc(rc *datamodel.ResourcesContainerModel, vpcUID string) *
 		if *vpc.CRN != vpcUID {
 			continue
 		}
-		sgCRN := vpc.DefaultSecurityGroup.CRN
+		DefaultSgCRN := vpc.DefaultSecurityGroup.CRN
 		for _, sg := range rc.SecurityGroupList {
-			if *sg.CRN == *sgCRN {
+			if *sg.CRN == *DefaultSgCRN {
 				return sg
 			}
 		}
@@ -1031,12 +1033,12 @@ func addIKSNodeAsSGTarget(sg *datamodel.SecurityGroup, iksCluster *datamodel.IKS
 		return
 	}
 	for _, iksNode := range iksCluster.WorkerNodes {
-		target := new(vpc1.SecurityGroupTargetReference)
-		target.ID = iksNode.ID
-		resourceType := new(string)
-		*resourceType = iksNodeResourceType
-		target.ResourceType = resourceType
-		sg.Targets = append(sg.Targets, vpc1.SecurityGroupTargetReferenceIntf(target))
+		resourceType := iksNodeResourceType
+		target := &vpc1.SecurityGroupTargetReference{
+			ID:           iksNode.ID,
+			ResourceType: &resourceType,
+		}
+		sg.Targets = append(sg.Targets, target)
 	}
 }
 
@@ -1081,6 +1083,7 @@ func getIKSnodesConfig(res vpcmodel.MultipleVPCConfigs,
 				},
 			}
 			res[vpcUID].UIDToResource[nodeObject.ResourceUID] = nodeObject
+			// adding the IKS node as target of its relevant SGs (the input config object is missing those targets)
 			addIKSNodeAsSGTarget(sg, iksCluster)
 			addIKSNodeAsSGTarget(defaultSG, iksCluster)
 			if err := nodeObject.SetIPBlockFromAddress(); err != nil {
