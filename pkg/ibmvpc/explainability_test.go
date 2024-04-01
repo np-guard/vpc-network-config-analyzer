@@ -458,14 +458,13 @@ var explainTests = []*vpcGeneralTest{
 		EDst:        "ky-vsi0-subnet0",  // test-vpc0-ky
 		format:      vpcmodel.Debug,
 	},
-	//// todo: verify
-	//{
-	//	name:        "tgwNotSureWhatTheResultCheck",
-	//	inputConfig: "tg-prefix-filters",
-	//	ESrc:        "ky-vsi0-subnet5",
-	//	EDst:        "ky-vsi0-subnet11",
-	//	format:      vpcmodel.Debug,
-	//},
+	{
+		name:        "tgwAnotherExampleEnabledConn",
+		inputConfig: "tg-prefix-filters",
+		ESrc:        "ky-vsi0-subnet5",
+		EDst:        "ky-vsi0-subnet11",
+		format:      vpcmodel.Debug,
+	},
 	// connection disabled by lack of tgw
 	// todo: two examples of disabled due to lack of tgw
 	// todo: enable after https://github.com/np-guard/vpc-network-config-analyzer/issues/489
