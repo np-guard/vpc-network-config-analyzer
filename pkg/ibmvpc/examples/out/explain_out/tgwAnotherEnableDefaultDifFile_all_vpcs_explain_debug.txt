@@ -1,0 +1,27 @@
+Connectivity explanation between vsi11-ky and vsi21a-ky within combined-vpc-local-tg-ky
+=======================================================================================
+
+The following connection exists between vsi11-ky[10.240.11.4] and vsi21a-ky[10.240.64.4]: All Connections
+Path:
+	vsi11-ky[10.240.11.4] -> security group sg11-ky -> subnet11-ky -> network ACL acl11-ky -> 
+	test-vpc1-ky -> TGW local-tg-ky -> test-vpc2-ky -> 
+	network ACL acl21-ky -> subnet21-ky -> security group sg21-ky -> vsi21a-ky[10.240.64.4]
+
+Details:
+~~~~~~~~
+vpc test-vpc1-ky to vpc test-vpc2-ky routing:
+transit-gateway: local-tg-ky, transit-connection: tg_connection2 default prefix,  action: allow
+
+Egress:
+security group sg11-ky allows connection with the following allow rules
+	index: 1, direction: outbound, protocol: all, cidr: 0.0.0.0/0
+network ACL acl11-ky allows connection with the following allow rules
+	index: 2, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+
+Ingress:
+network ACL acl21-ky allows connection with the following allow rules
+	index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+security group sg21-ky allows connection with the following allow rules
+	index: 0, direction: inbound, protocol: all, cidr: 0.0.0.0/0
+------------------------------------------------------------------------------------------------------------------------
+

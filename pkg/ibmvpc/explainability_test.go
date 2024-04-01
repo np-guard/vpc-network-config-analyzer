@@ -449,7 +449,13 @@ var explainTests = []*vpcGeneralTest{
 		EDst:        "ky-vsi0-subnet11",
 		format:      vpcmodel.Debug,
 	},
-	// todo: add example from input_tgw_larger_example with default printer no debug print
+	{
+		name:        "tgwAnotherEnableDefaultDifFile",
+		inputConfig: "tgw_larger_example",
+		ESrc:        "vsi11-ky",
+		EDst:        "vsi21a-ky",
+		format:      vpcmodel.Debug,
+	},
 	// connection disabled by specific deny prefix
 	{
 		name:        "tgwDisabledDenyPrefix",
