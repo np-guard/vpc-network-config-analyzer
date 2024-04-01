@@ -1028,7 +1028,7 @@ func findDefaultSGForVpc(rc *datamodel.ResourcesContainerModel, vpcUID string) *
 	return nil
 }
 
-func addIKSNodeAsSGTarget(sg *datamodel.SecurityGroup, iksCluster *datamodel.IKSCluster) {
+func addIKSNodesAsSGTarget(sg *datamodel.SecurityGroup, iksCluster *datamodel.IKSCluster) {
 	if sg == nil {
 		return
 	}
@@ -1083,9 +1083,6 @@ func getIKSnodesConfig(res vpcmodel.MultipleVPCConfigs,
 				},
 			}
 			res[vpcUID].UIDToResource[nodeObject.ResourceUID] = nodeObject
-			// adding the IKS node as target of its relevant SGs (the input config object is missing those targets)
-			addIKSNodeAsSGTarget(sg, iksCluster)
-			addIKSNodeAsSGTarget(defaultSG, iksCluster)
 			if err := nodeObject.SetIPBlockFromAddress(); err != nil {
 				return err
 			}
@@ -1093,6 +1090,9 @@ func getIKSnodesConfig(res vpcmodel.MultipleVPCConfigs,
 			// attach the node to the subnet
 			subnet.nodes = append(subnet.nodes, nodeObject)
 		}
+		// adding the IKS nodes as target of its relevant SGs (the input config object is missing those targets)
+		addIKSNodesAsSGTarget(sg, iksCluster)
+		addIKSNodesAsSGTarget(defaultSG, iksCluster)
 	}
 	return nil
 }
