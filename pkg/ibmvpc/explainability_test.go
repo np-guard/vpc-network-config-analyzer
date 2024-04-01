@@ -469,7 +469,7 @@ var explainTests = []*vpcGeneralTest{
 		inputConfig: "tg-prefix-filters",
 		ESrc:        "ky-vsi0-subnet5",
 		EDst:        "ky-vsi0-subnet11",
-		format:      vpcmodel.Debug,
+		format:      vpcmodel.Text,
 	},
 	// connection disabled by lack of tgw
 	// todo: two examples of disabled due to lack of tgw
