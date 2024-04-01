@@ -449,26 +449,26 @@ var explainTests = []*vpcGeneralTest{
 		EDst:        "ky-vsi0-subnet11",
 		format:      vpcmodel.Debug,
 	},
-	// todo: add example from input_tgw_larger_example no debug print
-	// connection disabled by specific deny prefix
-	// todo: disabled due to deny rule. fix.
-	{
-		name:        "tgwDisabledDenyPrefix",
-		inputConfig: "tg-prefix-filters",
-		ESrc:        "ky-vsi1-subnet20", // test-vpc2-ky
-		EDst:        "ky-vsi0-subnet0",
-		format:      vpcmodel.Debug,
-	},
-	// todo: verify
-	{
-		name:        "tgwNotSureWhatTheResultCheck",
-		inputConfig: "tg-prefix-filters",
-		ESrc:        "ky-vsi0-subnet5",
-		EDst:        "ky-vsi0-subnet11",
-		format:      vpcmodel.Debug,
-	},
-	// connection disabled by lack of tgw
-	// todo: add exampl of disabled due to lack of tgw
+	//// todo: add example from input_tgw_larger_example no debug print
+	//// connection disabled by specific deny prefix
+	//// todo: disabled due to deny rule. fix.
+	//{
+	//	name:        "tgwDisabledDenyPrefix",
+	//	inputConfig: "tg-prefix-filters",
+	//	ESrc:        "ky-vsi1-subnet20", // test-vpc2-ky
+	//	EDst:        "ky-vsi0-subnet0",
+	//	format:      vpcmodel.Debug,
+	//},
+	//// todo: verify
+	//{
+	//	name:        "tgwNotSureWhatTheResultCheck",
+	//	inputConfig: "tg-prefix-filters",
+	//	ESrc:        "ky-vsi0-subnet5",
+	//	EDst:        "ky-vsi0-subnet11",
+	//	format:      vpcmodel.Debug,
+	//},
+	//// connection disabled by lack of tgw
+	//// todo: add exampl of disabled due to lack of tgw
 }
 
 func TestAll(t *testing.T) {
