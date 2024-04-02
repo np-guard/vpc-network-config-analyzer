@@ -12,6 +12,7 @@ const arrow = " -> "
 const newLineTab = "\n\t"
 const space = " "
 const comma = ", "
+const doubleNL = "\n%v\n%v"
 
 // header of txt/debug format
 func explainHeader(explanation *Explanation) string {
@@ -127,10 +128,10 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 	switch {
 	case tgwRouterRequired(src, dst) && tgwRouter == nil:
 		resStr += fmt.Sprintf("%v\nconnection blocked since src, dst of different VPCs but no transit gateway is defined"+
-			"\n%v\n%v", noConnection, headerPlusPath, details)
+			doubleNL, noConnection, headerPlusPath, details)
 	case tgwRouterRequired(src, dst) && tgwRouter != nil && tgwConnection.IsEmpty():
 		resStr += fmt.Sprintf("%v\nconnection blocked since transit gateway denys route between src and dst"+
-			"\n%v\n%v", noConnection, headerPlusPath, details)
+			doubleNL, noConnection, headerPlusPath, details)
 	case externalRouter == nil && src.IsExternal():
 		resStr += fmt.Sprintf("%v no fip and src is external (fip is required for "+
 			"outbound external connection)\n", noConnection)

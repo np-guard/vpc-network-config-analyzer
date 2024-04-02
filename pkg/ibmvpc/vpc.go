@@ -765,7 +765,7 @@ func (tgw *TransitGateway) tgwPrefixStr(prefix tgwPrefix) (string, error) {
 	if prefix.index == -1 { // default
 		defaultStr, err := prefixDefaultStr(prefix.tc)
 		if err != nil {
-			return "", nil
+			return "", err
 		}
 		return resStr + defaultStr, nil
 	}
