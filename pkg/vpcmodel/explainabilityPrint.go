@@ -12,7 +12,10 @@ const arrow = " -> "
 const newLineTab = "\n\t"
 const space = " "
 const comma = ", "
-const doubleNL = "\n%v\n%v"
+const newLine = "\n"
+const doubleNL = "\n\n"
+const doubleNLWithVars = "\n%v\n%v"
+const emptyString = ""
 
 // header of txt/debug format
 func explainHeader(explanation *Explanation) string {
@@ -26,14 +29,14 @@ func explainHeader(explanation *Explanation) string {
 		connStr, explanation.src, srcNetworkInterfaces, explanation.dst, dstNetworkInterfaces,
 		explanation.c.VPC.Name())
 	header2 := strings.Repeat("=", len(header1))
-	return header1 + "\n" + header2 + "\n\n"
+	return header1 + newLine + header2 + doubleNL
 }
 
 // in case the src/dst of a network interface given as an internal address connected to network interface returns a string
 // of all relevant nodes names
 func listNetworkInterfaces(nodes []Node) string {
 	if len(nodes) == 0 {
-		return ""
+		return emptyString
 	}
 	networkInterfaces := make([]string, len(nodes))
 	for i, node := range nodes {
@@ -54,7 +57,7 @@ func (explanation *Explanation) String(verbose bool) string {
 			"------------------------------------------------------------------------------------------------------------------------\n"
 	}
 	sort.Strings(linesStr)
-	return strings.Join(linesStr, "\n") + "\n"
+	return strings.Join(linesStr, newLine) + newLine
 }
 
 // main printing function for a *rulesAndConnDetails <src, dst> line (before grouping); calls explainabilityLineStr
@@ -100,7 +103,7 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 	var externalRouterHeader, tgwRouterFilterHeader, resourceEffectHeader,
 		tgwRouterFilterDetails, rulesDetails, details, resStr string
 	if externalRouter != nil && (src.IsExternal() || dst.IsExternal()) {
-		externalRouterHeader = "External traffic via " + externalRouter.Kind() + ": " + externalRouter.Name() + "\n"
+		externalRouterHeader = "External traffic via " + externalRouter.Kind() + ": " + externalRouter.Name() + newLine
 	}
 	var tgwConnection *connection.Set
 	if tgwRouter != nil { // given that there is a tgw router, computes the connection it allows
@@ -109,16 +112,16 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 		// if there is a non nil transit gateway then src and dst are vsis, and implement Node
 		tgwRouterFilterDetails, _ = tgwRouter.StringPrefixDetails(src.(Node), dst.(Node), true)
 		tgwRouterFilterHeader, _ = tgwRouter.StringPrefixDetails(src.(Node), dst.(Node), false)
-		tgwRouterFilterHeader += "\n"
+		tgwRouterFilterHeader += newLine
 	}
-	noConnection := noConnectionHeader(src.Name(), dst.Name(), connQuery) + "\n" // noConnection is the 1 above when no connection
+	noConnection := noConnectionHeader(src.Name(), dst.Name(), connQuery) + newLine // noConnection is the 1 above when no connection
 	// resourceEffectHeader is "2" above
 	resourceEffectHeader = externalRouterHeader + tgwRouterFilterHeader +
-		rules.filterEffectStr(c, filtersRelevant, needEgress, needIngress) + "\n\n"
+		rules.filterEffectStr(c, filtersRelevant, needEgress, needIngress) + doubleNL
 
 	// path in "3" above
 	path := "Path:\n" + pathStr(c, filtersRelevant, src, dst,
-		ingressBlocking, egressBlocking, externalRouter, tgwRouter, tgwConnection, rules) + "\n"
+		ingressBlocking, egressBlocking, externalRouter, tgwRouter, tgwConnection, rules) + newLine
 	// details is "4" above
 	rulesDetails = rules.ruleDetailsStr(c, filtersRelevant, needEgress, needIngress)
 	if verbose {
@@ -128,10 +131,10 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 	switch {
 	case tgwRouterRequired(src, dst) && tgwRouter == nil:
 		resStr += fmt.Sprintf("%v\nconnection blocked since src, dst of different VPCs but no transit gateway is defined"+
-			doubleNL, noConnection, headerPlusPath, details)
+			doubleNLWithVars, noConnection, headerPlusPath, details)
 	case tgwRouterRequired(src, dst) && tgwRouter != nil && tgwConnection.IsEmpty():
 		resStr += fmt.Sprintf("%v\nconnection blocked since transit gateway denys route between src and dst"+
-			doubleNL, noConnection, headerPlusPath, details)
+			doubleNLWithVars, noConnection, headerPlusPath, details)
 	case externalRouter == nil && src.IsExternal():
 		resStr += fmt.Sprintf("%v no fip and src is external (fip is required for "+
 			"outbound external connection)\n", noConnection)
@@ -187,7 +190,7 @@ func existingConnectionStr(connQuery *connection.Set, src, dst EndpointElem,
 			src.Name(), dst.Name(), properSubsetConn))
 	}
 	resComponents = append(resComponents, path, details)
-	return strings.Join(resComponents, "\n")
+	return strings.Join(resComponents, newLine)
 }
 
 // returns a string with a summary of each filter (table) effect; e.g.
@@ -201,14 +204,14 @@ func (rules *rulesConnection) filterEffectStr(c *VPCConfig, filtersRelevant map[
 	if needIngress {
 		ingressRulesStr = rules.ingressRules.summaryFiltersStr(c, filtersRelevant, true)
 	}
-	if needEgress && egressRulesStr != "" {
+	if needEgress && egressRulesStr != emptyString {
 		egressRulesStr = "Egress: " + egressRulesStr
 	}
-	if needIngress && ingressRulesStr != "" {
+	if needIngress && ingressRulesStr != emptyString {
 		ingressRulesStr = "Ingress: " + ingressRulesStr
 	}
-	if egressRulesStr != "" && ingressRulesStr != "" {
-		return egressRulesStr + "\n" + ingressRulesStr
+	if egressRulesStr != emptyString && ingressRulesStr != emptyString {
+		return egressRulesStr + newLine + ingressRulesStr
 	}
 	return egressRulesStr + ingressRulesStr
 }
@@ -226,19 +229,19 @@ func (rules *rulesConnection) ruleDetailsStr(c *VPCConfig, filtersRelevant map[s
 	if needIngress {
 		ingressRulesStr = rules.ingressRules.rulesDetailsStr(c, filtersRelevant, true)
 	}
-	if needEgress && egressRulesStr != "" {
+	if needEgress && egressRulesStr != emptyString {
 		egressRulesStr = "Egress:\n" + egressRulesStr
 	}
-	if needIngress && ingressRulesStr != "" {
+	if needIngress && ingressRulesStr != emptyString {
 		ingressRulesStr = "Ingress:\n" + ingressRulesStr
-		if needEgress && egressRulesStr != "" {
-			egressRulesStr += "\n"
+		if needEgress && egressRulesStr != emptyString {
+			egressRulesStr += newLine
 		}
 	}
-	if egressRulesStr != "" || ingressRulesStr != "" {
+	if egressRulesStr != emptyString || ingressRulesStr != emptyString {
 		return egressRulesStr + ingressRulesStr
 	}
-	return ""
+	return emptyString
 }
 
 // returns a string with the effect of each filter by calling StringFilterEffect
@@ -339,7 +342,7 @@ func pathFiltersOfIngressOrEgressStr(c *VPCConfig, node EndpointElem, filtersRel
 		} else {
 			allowFiltersOfLayer = pathFiltersSingleLayerStr(c, layer, rules.egressRules[layer])
 		}
-		if allowFiltersOfLayer == "" {
+		if allowFiltersOfLayer == emptyString {
 			break
 		}
 		pathSlice = append(pathSlice, allowFiltersOfLayer)
@@ -368,7 +371,7 @@ func FilterKindName(filterLayer string) string {
 	case SecurityGroupLayer:
 		return "security group"
 	default:
-		return ""
+		return emptyString
 	}
 }
 
@@ -392,7 +395,7 @@ func pathFiltersSingleLayerStr(c *VPCConfig, filterLayerName string, rules []Rul
 		sort.Strings(strSlice)
 		return FilterKindName(filterLayerName) + "[" + strings.Join(strSlice, comma) + "]"
 	}
-	return ""
+	return emptyString
 }
 
 // prints detailed list of rules that effects the (existing or non-existing) connection
@@ -404,7 +407,7 @@ func (rulesInLayers rulesInLayers) rulesDetailsStr(c *VPCConfig, filtersRelevant
 			strSlice = append(strSlice, filter.StringDetailsRulesOfFilter(rules))
 		}
 	}
-	return strings.Join(strSlice, "")
+	return strings.Join(strSlice, emptyString)
 }
 
 // gets filter Layers valid per filtersRelevant in the order they should be printed
