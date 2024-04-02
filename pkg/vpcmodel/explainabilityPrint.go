@@ -106,14 +106,7 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 		externalRouterHeader = "External traffic via " + externalRouter.Kind() + ": " + externalRouter.Name() + newLine
 	}
 	var tgwConnection *connection.Set
-	if tgwRouter != nil { // given that there is a tgw router, computes the connection it allows
-		// an error here will pop up earlier, when computing connections
-		_, tgwConnection, _ = c.getRoutingResource(src.(Node), dst.(Node)) // tgw exists - src, dst are internal
-		// if there is a non nil transit gateway then src and dst are vsis, and implement Node
-		tgwRouterFilterDetails, _ = tgwRouter.StringPrefixDetails(src.(Node), dst.(Node), true)
-		tgwRouterFilterHeader, _ = tgwRouter.StringPrefixDetails(src.(Node), dst.(Node), false)
-		tgwRouterFilterHeader += newLine
-	}
+	tgwConnection, tgwRouterFilterHeader, tgwRouterFilterDetails = tgwRouterDetails(c, tgwRouter, src, dst)
 	noConnection := noConnectionHeader(src.Name(), dst.Name(), connQuery) + newLine // noConnection is the 1 above when no connection
 	// resourceEffectHeader is "2" above
 	resourceEffectHeader = externalRouterHeader + tgwRouterFilterHeader +
@@ -153,6 +146,20 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 		return existingConnectionStr(connQuery, src, dst, conn, path, details)
 	}
 	return resStr
+}
+
+func tgwRouterDetails(c *VPCConfig, tgwRouter RoutingResource, src, dst EndpointElem) (tgwConnection *connection.Set,
+	tgwRouterFilterHeader, tgwRouterFilterDetails string) {
+	if tgwRouter != nil {
+		// an error here will pop up earlier, when computing connections
+		_, tgwConnection, _ := c.getRoutingResource(src.(Node), dst.(Node)) // tgw exists - src, dst are internal
+		// if there is a non nil transit gateway then src and dst are vsis, and implement Node
+		tgwRouterFilterHeader, _ := tgwRouter.StringPrefixDetails(src.(Node), dst.(Node), false)
+		tgwRouterFilterHeader += newLine
+		tgwRouterFilterDetails, _ := tgwRouter.StringPrefixDetails(src.(Node), dst.(Node), true)
+		return tgwConnection, tgwRouterFilterHeader, tgwRouterFilterDetails
+	}
+	return nil, emptyString, emptyString
 }
 
 func tgwRouterRequired(src, dst EndpointElem) bool {
