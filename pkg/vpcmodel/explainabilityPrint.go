@@ -120,6 +120,14 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 	if verbose {
 		details = "\nDetails:\n~~~~~~~~\n" + tgwRouterFilterDetails + rulesDetails
 	}
+	return explainPerCaseStr(src, dst, externalRouter, tgwRouter, connQuery, conn, tgwConnection, ingressBlocking, egressBlocking,
+		noConnection, resourceEffectHeader, path, details)
+}
+
+// after all data is gathered, generates the actual string to be printed
+func explainPerCaseStr(src, dst EndpointElem, externalRouter, tgwRouter RoutingResource,
+	connQuery, conn, tgwConnection *connection.Set, ingressBlocking, egressBlocking bool,
+	noConnection, resourceEffectHeader, path, details string) string {
 	headerPlusPath := resourceEffectHeader + path
 	switch {
 	case tgwRouterRequired(src, dst) && tgwRouter == nil:
@@ -145,7 +153,6 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 	default: // there is a connection
 		return existingConnectionStr(connQuery, src, dst, conn, path, details)
 	}
-	return emptyString
 }
 
 func tgwRouterDetails(c *VPCConfig, tgwRouter RoutingResource, src, dst EndpointElem) (tgwConnection *connection.Set,
