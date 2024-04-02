@@ -454,7 +454,7 @@ var explainTests = []*vpcGeneralTest{
 		inputConfig: "tgw_larger_example",
 		ESrc:        "vsi11-ky",
 		EDst:        "vsi21a-ky",
-		format:      vpcmodel.Debug,
+		format:      vpcmodel.Text,
 	},
 	// connection disabled by specific deny prefix
 	{
@@ -463,6 +463,13 @@ var explainTests = []*vpcGeneralTest{
 		ESrc:        "ky-vsi1-subnet20", // test-vpc2-ky
 		EDst:        "ky-vsi0-subnet0",  // test-vpc0-ky
 		format:      vpcmodel.Debug,
+	},
+	{
+		name:        "tgwDisabledDenyPrefix",
+		inputConfig: "tg-prefix-filters",
+		ESrc:        "ky-vsi1-subnet20", // test-vpc2-ky
+		EDst:        "ky-vsi0-subnet0",  // test-vpc0-ky
+		format:      vpcmodel.Text,
 	},
 	// todo: add the above example wo debug
 	{
