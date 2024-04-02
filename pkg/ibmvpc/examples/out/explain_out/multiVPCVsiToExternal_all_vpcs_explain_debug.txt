@@ -2,10 +2,12 @@ Connectivity explanation between test-vpc0-ky/vsi1-ky and 172.217.22.46/32 withi
 ==============================================================================================
 
 The following connection exists between vsi1-ky[10.240.1.4] and Public Internet 172.217.22.46/32: All Connections
+
 Path:
 	vsi1-ky[10.240.1.4] -> security group sg1-ky -> subnet1-ky -> network ACL acl1-ky -> 
 	PublicGateway public-gw1-ky -> 
 	Public Internet 172.217.22.46/32
+
 
 Details:
 ~~~~~~~~

@@ -2,10 +2,12 @@ Connectivity explanation between ky-vsi1-subnet20 and ky-vsi0-subnet2 within com
 =====================================================================================================
 
 The following connection exists between ky-vsi1-subnet20[10.240.128.5] and ky-vsi0-subnet2[10.240.4.4]: All Connections
+
 Path:
 	ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> subnet20 -> network ACL acl21-ky -> 
 	test-vpc2-ky -> TGW local-tg-ky -> test-vpc0-ky -> 
 	network ACL acl2-ky -> subnet2 -> security group sg1-ky -> ky-vsi0-subnet2[10.240.4.4]
+
 
 Details:
 ~~~~~~~~

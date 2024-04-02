@@ -110,13 +110,13 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 		tgwRouterFilterHeader, _ = tgwRouter.StringPrefixDetails(src.(Node), dst.(Node), false)
 		tgwRouterFilterHeader += "\n"
 	}
-	noConnection := noConnectionHeader(src.Name(), dst.Name(), connQuery) // noConnection is the 1 above when no connection
+	noConnection := noConnectionHeader(src.Name(), dst.Name(), connQuery) + "\n" // noConnection is the 1 above when no connection
 	// resourceEffectHeader is "2" above
-	resourceEffectHeader = externalRouterHeader + tgwRouterFilterHeader + rules.filterEffectStr(c, filtersRelevant, needEgress, needIngress) + "\n"
+	resourceEffectHeader = externalRouterHeader + tgwRouterFilterHeader + rules.filterEffectStr(c, filtersRelevant, needEgress, needIngress) + "\n\n"
 
 	// path in "3" above
 	path := "Path:\n" + pathStr(c, filtersRelevant, src, dst,
-		ingressBlocking, egressBlocking, externalRouter, tgwRouter, tgwConnection, rules)
+		ingressBlocking, egressBlocking, externalRouter, tgwRouter, tgwConnection, rules) + "\n"
 	// details is "4" above
 	rulesDetails = rules.ruleDetailsStr(c, filtersRelevant, needEgress, needIngress)
 	if verbose {
@@ -174,7 +174,7 @@ func existingConnectionStr(connQuery *connection.Set, src, dst EndpointElem,
 	resComponents := []string{}
 	// Computing the header, "1" described in explainabilityLineStr
 	if connQuery == nil {
-		resComponents = append(resComponents, fmt.Sprintf("The following connection exists between %v and %v: %v", src.Name(), dst.Name(),
+		resComponents = append(resComponents, fmt.Sprintf("The following connection exists between %v and %v: %v\n", src.Name(), dst.Name(),
 			conn.String()))
 	} else {
 		properSubsetConn := ""

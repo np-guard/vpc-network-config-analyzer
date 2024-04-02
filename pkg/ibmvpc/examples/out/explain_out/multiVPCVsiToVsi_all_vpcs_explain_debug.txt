@@ -2,9 +2,11 @@ Connectivity explanation between vsi31-ky and vsi32-ky within test-vpc3-ky
 ==========================================================================
 
 The following connection exists between vsi31-ky[10.240.31.4] and vsi32-ky[10.240.128.4]: All Connections
+
 Path:
 	vsi31-ky[10.240.31.4] -> security group sg31-ky -> subnet31-ky -> network ACL acl31-ky -> 
 	network ACL acl31-ky -> subnet32-ky -> security group sg31-ky -> vsi32-ky[10.240.128.4]
+
 
 Details:
 ~~~~~~~~

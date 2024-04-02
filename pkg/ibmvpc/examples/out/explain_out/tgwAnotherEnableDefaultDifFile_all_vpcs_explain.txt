@@ -2,9 +2,11 @@ Connectivity explanation between vsi11-ky and vsi21a-ky within combined-vpc-loca
 =======================================================================================
 
 The following connection exists between vsi11-ky[10.240.11.4] and vsi21a-ky[10.240.64.4]: All Connections
+
 Path:
 	vsi11-ky[10.240.11.4] -> security group sg11-ky -> subnet11-ky -> network ACL acl11-ky -> 
 	test-vpc1-ky -> TGW local-tg-ky -> test-vpc2-ky -> 
 	network ACL acl21-ky -> subnet21-ky -> security group sg21-ky -> vsi21a-ky[10.240.64.4]
+
 ------------------------------------------------------------------------------------------------------------------------
 
