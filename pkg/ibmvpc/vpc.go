@@ -743,8 +743,6 @@ func (tgw *TransitGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf
 func (tgw *TransitGateway) RouterDefined(src, dst vpcmodel.Node) bool {
 	// destination node has a transit gateway connection iff a prefix (possibly default) is defined for it
 	dstNodeHasTgw := tgw.prefixOfSrcDst(src, dst) != nil
-	//fmt.Printf("RouterDefined for %s => %s\n\tvpcmodel.HasNode(tgw.sourceNodes, src) gets %v, dstNodeHasTgw gets %v\n",
-	//	src.Name(), dst.Name(), vpcmodel.HasNode(tgw.sourceNodes, src), dstNodeHasTgw)
 	if vpcmodel.HasNode(tgw.sourceNodes, src) && dstNodeHasTgw {
 		return true
 	}
@@ -772,8 +770,8 @@ func (tgw *TransitGateway) tgwPrefixStr(prefix tgwPrefix) (string, error) {
 		return resStr + defaultStr, nil
 	}
 	if len(prefix.tc.PrefixFilters) < prefix.index+1 {
-		return "", errors.New(fmt.Sprintf("np-guard error: prefix index %d does not exists in transit connection %s of transit gateway %s",
-			prefix.index, *prefix.tc.Name, tgw.Name()))
+		return "", fmt.Errorf("np-guard error: prefix index %d does not exists in transit connection %s of transit gateway %s",
+			prefix.index, *prefix.tc.Name, tgw.Name())
 	}
 	prefixFilter := prefix.tc.PrefixFilters[prefix.index]
 	actionName, err := actionNameStr(prefixFilter.Action)

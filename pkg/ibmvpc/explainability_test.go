@@ -482,20 +482,20 @@ var explainTests = []*vpcGeneralTest{
 	// connection disabled by lack of tgw
 	// todo: two examples of disabled due to lack of tgw
 	// todo: enable after https://github.com/np-guard/vpc-network-config-analyzer/issues/489
-	//{
+	// {
 	//	name:        "multiVPCSameNamesCrossVPC",
 	//	inputConfig: "multiVpc_larger_example_dup_names",
 	//	ESrc:        "10.240.3.5",  // vsi3a of test-vpc0-ky
 	//	EDst:        "10.240.12.4", // vsi2 of test-vpc1-ky
 	//	format:      vpcmodel.Debug,
-	//},
-	//{
+	// },
+	// {
 	//	name:        "multiVPCSameNamesCrossVPC",
 	//	inputConfig: "multiVpc_larger_example_dup_names",
 	//	ESrc:        "test-vpc0-ky/vsi1-ky",
 	//	EDst:        "test-vpc1-ky/vsi1-ky",
 	//	format:      vpcmodel.Debug,
-	//},
+	// },
 }
 
 func TestAll(t *testing.T) {
@@ -682,7 +682,8 @@ func TestInputValidityMultipleVPCContext(t *testing.T) {
 	_, err10 := vpcConfigTgwDupNames.ExplainConnectivity(dupSrcVsi, dupDstVsi, nil)
 	fmt.Println(err10.Error())
 	require.NotNil(t, err10, "the test should fail since the src name exists twice")
-	require.Equal(t, "illegal src: in combined-vpc-local-tg-ky there is more than one resource (crn:551, crn:488) with the given input string vsi1-ky. "+
+	require.Equal(t, "illegal src: in combined-vpc-local-tg-ky there is more than one resource "+
+		"(crn:551, crn:488) with the given input string vsi1-ky. "+
 		"can not determine which resource to analyze. consider using unique names or use input UID instead",
 		err10.Error())
 	vpcConfigMultiVpcDupNames := getConfig(t, "multiVpc_larger_example_dup_names")

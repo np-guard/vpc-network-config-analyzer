@@ -158,10 +158,10 @@ func (configsMap MultipleVPCConfigs) matchMoreThanOneCfg(src, dst string,
 	srcNodes, dstNodes []Node, isSrcDstInternalIP srcDstInternalAddr, err error) {
 	singleVpcMatched := ""
 	moreThanOneSingleVpc := false
-	for vpcUid := range configsWithSrcDstNode {
-		if !configsMap[vpcUid].IsMultipleVPCsConfig {
+	for vpcUID := range configsWithSrcDstNode {
+		if !configsMap[vpcUID].IsMultipleVPCsConfig {
 			if singleVpcMatched == "" {
-				singleVpcMatched = vpcUid
+				singleVpcMatched = vpcUID
 			} else {
 				moreThanOneSingleVpc = true
 			}

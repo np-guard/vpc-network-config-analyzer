@@ -777,7 +777,6 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 			vpcApsPrefixes, _ := getVpcApsPrefixes(tgwConn, vpc) // if getVPCAdvertisedRoutes completed without an error, so would getVpcApsPrefixes
 			maps.Copy(tgwMap[tgwUID].vpcApsPrefixes, map[string]map[*ipblock.IPBlock]tgwPrefix{vpcUID: vpcApsPrefixes})
 		}
-
 	}
 	return tgwMap
 }

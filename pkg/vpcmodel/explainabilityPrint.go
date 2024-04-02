@@ -112,7 +112,8 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 	}
 	noConnection := noConnectionHeader(src.Name(), dst.Name(), connQuery) + "\n" // noConnection is the 1 above when no connection
 	// resourceEffectHeader is "2" above
-	resourceEffectHeader = externalRouterHeader + tgwRouterFilterHeader + rules.filterEffectStr(c, filtersRelevant, needEgress, needIngress) + "\n\n"
+	resourceEffectHeader = externalRouterHeader + tgwRouterFilterHeader +
+		rules.filterEffectStr(c, filtersRelevant, needEgress, needIngress) + "\n\n"
 
 	// path in "3" above
 	path := "Path:\n" + pathStr(c, filtersRelevant, src, dst,
