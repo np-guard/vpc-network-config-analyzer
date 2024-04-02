@@ -114,12 +114,13 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 		tgwRouterFilterHeader += "\n"
 	}
 	noConnection := noConnectionHeader(src.Name(), dst.Name(), connQuery) // noConnection is the 1 above when no connection
-	if conn.IsEmpty() {                                                   // resourceEffectHeader is 2 above when no connection
-		resourceEffectHeader = externalRouterHeader + tgwRouterFilterHeader + rules.filterEffectStr(c, filtersRelevant, needEgress, needIngress) + "\n"
-	}
-	// path in 3 above
+	// resourceEffectHeader is "2" above
+	resourceEffectHeader = externalRouterHeader + tgwRouterFilterHeader + rules.filterEffectStr(c, filtersRelevant, needEgress, needIngress) + "\n"
+
+	// path in "3" above
 	path := "Path:\n" + pathStr(c, filtersRelevant, src, dst,
 		ingressBlocking, egressBlocking, externalRouter, tgwRouter, tgwConnection, rules)
+	// details is "4" above
 	rulesDetails = rules.ruleDetailsStr(c, filtersRelevant, needEgress, needIngress)
 	if verbose {
 		details = "\nDetails:\n~~~~~~~~\n" + tgwRouterFilterDetails + rulesDetails
@@ -147,7 +148,7 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 		resStr += fmt.Sprintf("%v connection blocked by egress\n%v\n%v", noConnection,
 			headerPlusPath, details)
 	default: // there is a connection
-		return existingConnectionStr(connQuery, src, dst, conn, headerPlusPath, details)
+		return existingConnectionStr(connQuery, src, dst, conn, path, details)
 	}
 	return resStr
 }
@@ -169,12 +170,12 @@ func noConnectionHeader(src, dst string, connQuery *connection.Set) string {
 	return fmt.Sprintf("There is no connection \"%v\" between %v and %v;", connQuery.String(), src, dst)
 }
 
-// return a string with the described existing connection and relevant details w.r.t. the potential query
-// e.g.: "Connection protocol: UDP src-ports: 1-600 dst-ports: 1-50 exists between vsi1-ky[10.240.10.4]
-// and Public Internet 161.26.0.0/16 (note that not all queried protocols/ports are allowed)"
+// printing when connection exists.
+// computing "1" when there is a connection and adding to it already computed "2" and "3" as described in explainabilityLineStr
 func existingConnectionStr(connQuery *connection.Set, src, dst EndpointElem,
-	conn *connection.Set, filtersEffectStr, details string) string {
+	conn *connection.Set, path, details string) string {
 	resComponents := []string{}
+	// Computing the header, "1" described in explainabilityLineStr
 	if connQuery == nil {
 		resComponents = append(resComponents, fmt.Sprintf("The following connection exists between %v and %v: %v", src.Name(), dst.Name(),
 			conn.String()))
@@ -186,7 +187,7 @@ func existingConnectionStr(connQuery *connection.Set, src, dst EndpointElem,
 		resComponents = append(resComponents, fmt.Sprintf("Connection %v exists between %v and %v%s", conn.String(),
 			src.Name(), dst.Name(), properSubsetConn))
 	}
-	resComponents = append(resComponents, filtersEffectStr, details)
+	resComponents = append(resComponents, path, details)
 	return strings.Join(resComponents, "\n")
 }
 
