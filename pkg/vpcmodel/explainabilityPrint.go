@@ -96,7 +96,7 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 	needIngress := !dst.IsExternal()
 	ingressBlocking := !ingressEnabled && needIngress
 	egressBlocking := !egressEnabled && needEgress
-	var externalRouterHeader, tgwRouterFilterHeader, header,
+	var externalRouterHeader, tgwRouterFilterHeader, resourceEffectHeader,
 		tgwRouterFilterDetails, rulesDetails, details, resStr string
 	if externalRouter != nil && (src.IsExternal() || dst.IsExternal()) {
 		externalRouterHeader = "External traffic via " + externalRouter.Kind() + ": " + externalRouter.Name() + "\n"
@@ -113,17 +113,18 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 		tgwRouterFilterHeader, _ = tgwRouter.StringPrefixDetails(src.(Node), dst.(Node), false)
 		tgwRouterFilterHeader += "\n"
 	}
-	if conn.IsEmpty() {
-		header = externalRouterHeader + tgwRouterFilterHeader + rules.filterEffectStr(c, filtersRelevant, needEgress, needIngress) + "\n"
+	noConnection := noConnectionHeader(src.Name(), dst.Name(), connQuery) // noConnection is the 1 above when no connection
+	if conn.IsEmpty() {                                                   // resourceEffectHeader is 2 above when no connection
+		resourceEffectHeader = externalRouterHeader + tgwRouterFilterHeader + rules.filterEffectStr(c, filtersRelevant, needEgress, needIngress) + "\n"
 	}
+	// path in 3 above
 	path := "Path:\n" + pathStr(c, filtersRelevant, src, dst,
 		ingressBlocking, egressBlocking, externalRouter, tgwRouter, tgwConnection, rules)
 	rulesDetails = rules.ruleDetailsStr(c, filtersRelevant, needEgress, needIngress)
 	if verbose {
 		details = "\nDetails:\n~~~~~~~~\n" + tgwRouterFilterDetails + rulesDetails
 	}
-	noConnection := noConnectionHeader(src.Name(), dst.Name(), connQuery)
-	headerPlusPath := header + path
+	headerPlusPath := resourceEffectHeader + path
 	switch {
 	case tgwRouterRequired(src, dst) && tgwRouter == nil:
 		resStr += fmt.Sprintf("%v\nconnection blocked since src, dst of different VPCs but no transit gateway is defined"+
