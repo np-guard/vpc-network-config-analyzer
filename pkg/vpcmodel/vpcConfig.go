@@ -14,6 +14,8 @@ type VPCConfig struct {
 	VPC VPC
 	// Subnets is a list of subnets in the VPC
 	Subnets []Subnet
+	// LoadBalancers is a list of loadBalancers in the VPC
+	LoadBalancers []LoadBalancer
 	// Nodes is the list of endpoints in the VPC, such as network interfaces, reserved IPs
 	// TODO: also separate Nodes to internal and external nodes lists
 	Nodes []Node

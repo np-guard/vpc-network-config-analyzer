@@ -2285,6 +2285,6 @@
         }
     ],
     "load_balancers": [],
-    "iks_worker_nodes": [],
+    "iks_clusters": [],
     "iks_worker_pools": []
 }

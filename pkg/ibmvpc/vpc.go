@@ -49,6 +49,17 @@ func (r *ReservedIP) Name() string {
 	return getNodeName(r.vpe, r.Address())
 }
 
+// ReservedIP implements vpcmodel.Node interface
+type PrivateIP struct {
+	vpcmodel.VPCResource
+	vpcmodel.InternalNode
+	loadBalancer string
+}
+
+func (pip *PrivateIP) Name() string {
+	return getNodeName(pip.loadBalancer, pip.Address())
+}
+
 // NetworkInterface implements vpcmodel.Node interface
 type NetworkInterface struct {
 	vpcmodel.VPCResource
@@ -188,6 +199,38 @@ func (v *Vpe) AddressRange() *ipblock.IPBlock {
 
 // vpe is per vpc and not per zone...
 func (v *Vpe) Zone() (*Zone, error) {
+	return nil, nil
+}
+
+// //////////////////////////////////////////
+// Load Balancer
+// the nodes are the private IPs
+// for now the listeners holds the pools that holds the backend servers
+// todo - implement more...
+type LoadBalancerPool []vpcmodel.Node
+type LoadBalancerListener []LoadBalancerPool
+
+type LoadBalancer struct {
+	vpcmodel.VPCResource
+	nodes     []vpcmodel.Node
+	listeners []LoadBalancerListener
+}
+
+func (lb *LoadBalancer) Nodes() []vpcmodel.Node {
+	return lb.nodes
+}
+func (lb *LoadBalancer) AddressRange() *ipblock.IPBlock {
+	return nodesAddressRange(lb.nodes)
+}
+
+// we do not need this func, for now it is here since the linter warn that lb.listeners are not in use
+// todo - remove:
+func (lb *LoadBalancer) NListeners() int {
+	return len(lb.listeners)
+}
+
+// lb is per vpc and not per zone...
+func (lb *LoadBalancer) Zone() (*Zone, error) {
 	return nil, nil
 }
 
@@ -455,9 +498,6 @@ func connHasIKSNode(src, dst vpcmodel.Node, isIngress bool) bool {
 // AllowedConnectivity
 // TODO: fix: is it possible that no sg applies  to the input peer? if so, should not return "no conns" when none applies
 func (sgl *SecurityGroupLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*connection.Set, error) {
-	if connHasIKSNode(src, dst, isIngress) {
-		return connection.All(), nil
-	}
 	res := connection.None()
 	for _, sg := range sgl.sgList {
 		sgConn := sg.AllowedConnectivity(src, dst, isIngress)

@@ -115,9 +115,9 @@ func canShareCell(i1, i2 IconTreeNodeInterface) bool {
 		return true
 	case i1.SG() != i2.SG():
 		return false
-	case i1.IsNI() && i1.(*NITreeNode).HasFip():
+	case i1.HasFip():
 		return false
-	case i2.IsNI() && i2.(*NITreeNode).HasFip():
+	case i2.HasFip():
 		return false
 	}
 	return true
