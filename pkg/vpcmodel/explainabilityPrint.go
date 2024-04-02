@@ -101,7 +101,7 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 	ingressBlocking := !ingressEnabled && needIngress
 	egressBlocking := !egressEnabled && needEgress
 	var externalRouterHeader, tgwRouterFilterHeader, resourceEffectHeader,
-		tgwRouterFilterDetails, rulesDetails, details, resStr string
+		tgwRouterFilterDetails, rulesDetails, details string
 	if externalRouter != nil && (src.IsExternal() || dst.IsExternal()) {
 		externalRouterHeader = "External traffic via " + externalRouter.Kind() + ": " + externalRouter.Name() + newLine
 	}
@@ -123,29 +123,29 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 	headerPlusPath := resourceEffectHeader + path
 	switch {
 	case tgwRouterRequired(src, dst) && tgwRouter == nil:
-		resStr += fmt.Sprintf("%v\nconnection blocked since src, dst of different VPCs but no transit gateway is defined"+
+		return fmt.Sprintf("%v\nconnection blocked since src, dst of different VPCs but no transit gateway is defined"+
 			doubleNLWithVars, noConnection, headerPlusPath, details)
 	case tgwRouterRequired(src, dst) && tgwRouter != nil && tgwConnection.IsEmpty():
-		resStr += fmt.Sprintf("%v\nconnection blocked since transit gateway denys route between src and dst"+
+		return fmt.Sprintf("%v\nconnection blocked since transit gateway denys route between src and dst"+
 			doubleNLWithVars, noConnection, headerPlusPath, details)
 	case externalRouter == nil && src.IsExternal():
-		resStr += fmt.Sprintf("%v no fip and src is external (fip is required for "+
+		return fmt.Sprintf("%v no fip and src is external (fip is required for "+
 			"outbound external connection)\n", noConnection)
 	case externalRouter == nil && dst.IsExternal():
-		resStr += fmt.Sprintf("%v no fip/pgw and dst is external\n", noConnection)
+		return fmt.Sprintf("%v no fip/pgw and dst is external\n", noConnection)
 	case ingressBlocking && egressBlocking:
-		resStr += fmt.Sprintf("%v connection blocked both by ingress and egress\n%v\n%v", noConnection,
+		return fmt.Sprintf("%v connection blocked both by ingress and egress\n%v\n%v", noConnection,
 			headerPlusPath, details)
 	case ingressBlocking:
-		resStr += fmt.Sprintf("%v connection blocked by ingress\n%v\n%v", noConnection,
+		return fmt.Sprintf("%v connection blocked by ingress\n%v\n%v", noConnection,
 			headerPlusPath, details)
 	case egressBlocking:
-		resStr += fmt.Sprintf("%v connection blocked by egress\n%v\n%v", noConnection,
+		return fmt.Sprintf("%v connection blocked by egress\n%v\n%v", noConnection,
 			headerPlusPath, details)
 	default: // there is a connection
 		return existingConnectionStr(connQuery, src, dst, conn, path, details)
 	}
-	return resStr
+	return emptyString
 }
 
 func tgwRouterDetails(c *VPCConfig, tgwRouter RoutingResource, src, dst EndpointElem) (tgwConnection *connection.Set,
