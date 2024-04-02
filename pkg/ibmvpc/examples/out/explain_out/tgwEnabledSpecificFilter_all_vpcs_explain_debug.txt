@@ -9,8 +9,8 @@ Path:
 
 Details:
 ~~~~~~~~
-vpc test-vpc2-ky to vpc test-vpc0-ky routing:
-transit-gateway: local-tg-ky, transit-connection: tg_connection0, index: 0, action: allow, prefix: 10.240.4.0/22
+transit gateway local-tg-ky allows connection with the following prefix
+	transit-connection: tg_connection0, index: 0, action: allow, prefix: 10.240.4.0/22
 
 Egress:
 security group sg21-ky allows connection with the following allow rules

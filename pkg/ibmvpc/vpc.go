@@ -763,7 +763,7 @@ func prefixDefaultStr(tc *datamodel.TransitConnection) (string, error) {
 func (tgw *TransitGateway) tgwPrefixStr(prefix tgwPrefix) (string, error) {
 	// Array of prefix route filters for a transit gateway connection. This is order dependent with those first in the
 	// array being applied first, and those at the end of the array is applied last, or just before the default.
-	resStr := fmt.Sprintf("transit-gateway: %s, transit-connection: %s", tgw.Name(), *prefix.tc.Name)
+	resStr := fmt.Sprintf("transit-connection: %s", *prefix.tc.Name)
 	if prefix.index == -1 { // default
 		defaultStr, err := prefixDefaultStr(prefix.tc)
 		if err != nil {
@@ -799,9 +799,12 @@ func (tgw *TransitGateway) StringPrefixDetails(src, dst vpcmodel.Node, verbose b
 		if err != nil {
 			return "", err
 		}
-		return fmt.Sprintf("vpc %s to vpc %s routing:\n%s\n\n",
-			src.(vpcmodel.InternalNodeIntf).Subnet().VPC().Name(),
-			dst.(vpcmodel.InternalNodeIntf).Subnet().VPC().Name(), tgwRouterFilterDetails), nil
+		action := "blocks"
+		if transitEnablesConn {
+			action = "allows"
+		}
+		return fmt.Sprintf("transit gateway %s %s connection with the following prefix\n\t%s\n\n",
+			tgw.Name(), action, tgwRouterFilterDetails), nil
 	}
 	noVerboseStr := fmt.Sprintf("cross-vpc-connection: transit-connection %s of transit-gateway %s ", tgw.Name(), *prefix.tc.Name)
 	if transitEnablesConn {
