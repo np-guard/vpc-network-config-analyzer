@@ -793,10 +793,16 @@ func (tgw *TransitGateway) tgwPrefixStr(prefix tgwPrefix) (string, error) {
 
 func (tgw *TransitGateway) StringPrefixDetails(src, dst vpcmodel.Node, verbose bool) (string, error) {
 	prefix := tgw.prefixOfSrcDst(src, dst)
-	if verbose {
-		return tgw.tgwPrefixStr(*prefix)
-	}
 	transitEnablesConn := vpcmodel.HasNode(tgw.sourceNodes, src) && vpcmodel.HasNode(tgw.destNodes, dst)
+	if verbose {
+		tgwRouterFilterDetails, err := tgw.tgwPrefixStr(*prefix)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("vpc %s to vpc %s routing:\n%s\n\n",
+			src.(vpcmodel.InternalNodeIntf).Subnet().VPC().Name(),
+			dst.(vpcmodel.InternalNodeIntf).Subnet().VPC().Name(), tgwRouterFilterDetails), nil
+	}
 	noVerboseStr := fmt.Sprintf("cross-vpc-connection: transit-connection %s of transit-gateway %s ", tgw.Name(), *prefix.tc.Name)
 	if transitEnablesConn {
 		return noVerboseStr + "allows connection", nil
