@@ -70,6 +70,25 @@ func (details *rulesAndConnDetails) String(c *VPCConfig, verbose bool, connQuery
 }
 
 // prints a single line of <src, dst>. Called either with grouping results or from the original struct before grouping
+// The printing contains 4 sections:
+// 1. Header describing the query and whether there is a connection. E.g.:
+// * The following connection exists between ky-vsi0-subnet5[10.240.9.4] and ky-vsi0-subnet11[10.240.80.4]: All Connections
+// * No connection between ky-vsi1-subnet20[10.240.128.5] and ky-vsi0-subnet0[10.240.0.5];
+// 2. List of all the different resources effecting the connection and the effect of each. E.g.:
+// cross-vpc-connection: transit-connection local-tg-ky of transit-gateway tg_connection0 denys connection
+// Egress: security group sg21-ky allows connection; network ACL acl21-ky allows connection
+// Ingress: network ACL acl1-ky allows connection; security group sg1-ky allows connection
+// 3. Connection path description. E.g.:
+//	ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> subnet20 -> network ACL acl21-ky ->
+//	test-vpc2-ky -> TGW local-tg-ky -> |
+// 4. Details of enabling and disabling rules/prefixes, including details of each rule
+//
+// 1 and 3 are printed always
+// 2 is printed only when the connection is blocked. It is redundant when the entire path ("3") is printed. When
+// the connection is blocked and only part of the path is printed then 2 is printed so that the relevant information
+// is provided regardless of where the is blocking
+// 4 is printed only in debug mode
+
 func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[string]bool, connQuery *connection.Set,
 	src, dst EndpointElem, conn *connection.Set, ingressEnabled, egressEnabled bool,
 	externalRouter, tgwRouter RoutingResource, rules *rulesConnection) string {
