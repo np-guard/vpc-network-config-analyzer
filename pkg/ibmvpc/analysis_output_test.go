@@ -515,6 +515,13 @@ var tests = []*vpcGeneralTest{
 		grouping:    true,
 		format:      vpcmodel.Text,
 	},
+	// grouping test of identical names different names that should not be grouped
+	{
+		inputConfig: "tgw_basic_example_dup_subnet_names",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		grouping:    true,
+		format:      vpcmodel.Text,
+	},
 }
 
 var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
