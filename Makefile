@@ -23,4 +23,7 @@ build:
 
 test:
 	@echo -- $@ --
-	go test ./... -v -cover -coverprofile analyzer.coverprofile
+	 go test ./... -v -coverpkg=./... -coverprofile analyzer.coverprofile
+
+coverage:
+	go tool cover -html="analyzer.coverprofile"
