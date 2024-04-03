@@ -829,6 +829,18 @@ func (tgw *TransitGateway) tgwPrefixStr(prefix tgwPrefix) (string, error) {
 	return resStr, nil
 }
 
+// for an action of type *string as stored in *datamodel.TransitConnection returns allow/deny
+func actionNameStr(action *string) (string, error) {
+	actionBool, err := parseActionString(action)
+	if err != nil {
+		return "", err
+	}
+	if actionBool {
+		return "allow", nil
+	}
+	return "deny", nil
+}
+
 func (tgw *TransitGateway) StringPrefixDetails(src, dst vpcmodel.Node, verbose bool) (string, error) {
 	prefix := tgw.prefixOfSrcDst(src, dst)
 	transitEnablesConn := vpcmodel.HasNode(tgw.sourceNodes, src) && vpcmodel.HasNode(tgw.destNodes, dst)

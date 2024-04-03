@@ -168,15 +168,3 @@ func getCIDRPrefixFilter(cidr string, tc *datamodel.TransitConnection) (int, err
 	// no match by pfList -- use default
 	return -1, nil
 }
-
-// for an action of type *string as stored in *datamodel.TransitConnection returns allow/deny
-func actionNameStr(action *string) (string, error) {
-	actionBool, err := parseActionString(action)
-	if err != nil {
-		return "", err
-	}
-	if actionBool {
-		return "allow", nil
-	}
-	return "deny", nil
-}
