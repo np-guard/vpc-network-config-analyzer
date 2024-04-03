@@ -215,6 +215,7 @@ func getSubnetOrVPCUID(ep EndpointElem) string {
 }
 
 // group public internet ranges for vsis/subnets connectivity lines
+// internal (vsi/subnets) are added as is
 func (g *GroupConnLines) groupExternalAddresses(vsi bool) error {
 	var allowedConnsCombined GeneralConnectivityMap
 	if vsi {
@@ -328,7 +329,7 @@ func isInternalOfRequiredType(ep EndpointElem, groupVsi bool) bool {
 	return true
 }
 
-// groups src/targets for either Vsis or Subnets
+// groups src/targets for either Vsis UIDs or Subnets UIDs
 func (g *GroupConnLines) groupLinesByKey(srcGrouping, groupVsi bool) (res []*groupedConnLine,
 	groupingSrcOrDst map[string][]*groupedConnLine) {
 	res = []*groupedConnLine{}

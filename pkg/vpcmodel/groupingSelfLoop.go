@@ -100,7 +100,7 @@ func (g *GroupConnLines) relevantKeysToCompare(groupingSrcOrDst map[string][]*gr
 // where n is the number of nodes.
 // a couple of []*GroupedConnLine is candidate to be merged only if:
 //  1. They are of the same connection
-//  2. If vsis, of the same subnet
+//  2. If vsis, of the same subnet, if subnets of the same vpc
 //  3. The src (dst) in one group is a singleton contained in the dst (src) in the other
 //     in one pass on groupingSrcOrDst we prepare a map between each key to the keys that are candidates to be merged with it.
 //     Before the grouping there are at most O(n^2) lines of src -> dst
