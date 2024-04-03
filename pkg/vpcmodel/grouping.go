@@ -127,6 +127,7 @@ type GroupConnLines struct {
 // EndpointElem can be Node(networkInterface) / groupedExternalNodes / groupedNetworkInterfaces / NodeSet(subnet)
 type EndpointElem interface {
 	Name() string
+	UID() string
 	IsExternal() bool
 	DrawioResourceIntf
 }
@@ -161,6 +162,10 @@ func (g *groupedEndpointsElems) Name() string {
 	return listEndpointElemStr(*g, EndpointElem.Name)
 }
 
+func (g *groupedEndpointsElems) UID() string {
+	return listEndpointElemStr(*g, EndpointElem.UID)
+}
+
 func (g *groupedEndpointsElems) IsExternal() bool {
 	return false
 }
@@ -179,6 +184,12 @@ func (g *groupedExternalNodes) Name() string {
 		return prefix + "(all ranges)"
 	}
 	return prefix + g.String()
+}
+
+// UID of externalNetwork returns Name, so uses here the same functionality.
+// This is since UID for externalNodes is not defined and Name() is actually unique,
+func (g *groupedExternalNodes) UID() string {
+	return g.Name()
 }
 
 func (g *groupingConnections) addPublicConnectivity(ep EndpointElem, commonProps *groupedCommonProperties, targetNode *ExternalNetwork) {
