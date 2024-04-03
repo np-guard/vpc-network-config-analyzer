@@ -363,7 +363,7 @@ func (g *GroupConnLines) groupLinesByKey(srcGrouping, groupVsi bool) (res []*gro
 // can be grouped to
 // v1, v2 => v3 given that v1, v2 share the same subnet
 func getKeyOfGroupConnLines(grpIndex, grpTarget EndpointElem, connectionString string) string {
-	keyComponents := []string{grpIndex.Name(), connectionString, getSubnetOrVPCUID(grpTarget)}
+	keyComponents := []string{grpIndex.UID(), connectionString, getSubnetOrVPCUID(grpTarget)}
 	return strings.Join(keyComponents, semicolon)
 }
 
@@ -525,7 +525,7 @@ func (details *srcDstDetails) explanationEncode(c *VPCConfig) string {
 	connStr := details.conn.String() + semicolon
 	routingStr := ""
 	if details.router != nil {
-		routingStr = details.router.Name() + ";"
+		routingStr = details.router.UID() + ";"
 	}
 	egressStr, ingressStr := "", ""
 	if len(details.actualMergedRules.egressRules) > 0 {
