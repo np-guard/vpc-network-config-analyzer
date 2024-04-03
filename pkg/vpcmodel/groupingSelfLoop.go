@@ -125,12 +125,12 @@ func (g *GroupConnLines) findMergeCandidates(groupingSrcOrDst map[string][]*grou
 	}
 
 	keyToMergeCandidates := make(map[string]map[string]struct{})
-	// 2. in each bucket finds for each key the candidates to be merged, in two stages
+	// 2. in each bucket finds for each key the candidates to be merged:
+	//    for a group g_1 s.t. the non-grouped (a.k.a. index) src/dst is a singleton,
+	//    finds all groups in which the grouped (a.k.a. value) dst/src contains the singleton
 	for _, keysInBucket := range bucketToKeys {
 		singletonsInBucket := make(map[string]string)
-		//    2.1 for a group g_1 s.t. the non-grouped src/dst is a singleton,
-		//        all groups in which the grouped dst/src contains the singleton
-		//        2.1.1 finds for each bucket all singletons
+		//  2.1 finds for each bucket all singletons
 		for key := range keysInBucket {
 			lines := groupingSrcOrDst[key]
 			elemsInKey := elemInKeys(!srcGrouping, *lines[0])
@@ -140,8 +140,8 @@ func (g *GroupConnLines) findMergeCandidates(groupingSrcOrDst map[string][]*grou
 			singleton := elemsInKey[0]
 			singletonsInBucket[singleton] = key
 		}
-		//   2.1.2 finds for each singleton candidates: groups with that singleton
-		//    stores the candidates in keyToMergeCandidates
+		//  2.1.2 finds for each singleton candidates: groups with that singleton
+		//   stores the candidates in keyToMergeCandidates
 		for key := range keysInBucket {
 			itemsInGroup := keyToGroupedSets[key]
 			for item := range itemsInGroup {
