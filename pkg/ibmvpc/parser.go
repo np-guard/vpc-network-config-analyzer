@@ -531,8 +531,8 @@ func getVPCAddressPrefixes(vpc *datamodel.VPC) (res []string) {
 	return res
 }
 
-func newVPC(name, uid, region string, ap []string, regionToStructMap map[string]*Region) *VPC {
-	vpcNodeSet := &VPC{
+func newVPC(name, uid, region string, ap []string, regionToStructMap map[string]*Region) (vpcNodeSet *VPC, err error) {
+	vpcNodeSet = &VPC{
 		VPCResource: vpcmodel.VPCResource{
 			ResourceName: name,
 			ResourceUID:  uid,
@@ -545,9 +545,12 @@ func newVPC(name, uid, region string, ap []string, regionToStructMap map[string]
 		region:          getRegionByName(region, regionToStructMap),
 	}
 
-	vpcNodeSet.addressPrefixesIPBlock, _ = ipblock.FromCidrList(ap)
+	vpcNodeSet.addressPrefixesIPBlock, err = ipblock.FromCidrList(ap)
+	if err != nil {
+		return nil, err
+	}
 	vpcNodeSet.VPCRef = vpcNodeSet
-	return vpcNodeSet
+	return vpcNodeSet, nil
 }
 
 func getVPCconfig(rc *datamodel.ResourcesContainerModel,
@@ -559,7 +562,10 @@ func getVPCconfig(rc *datamodel.ResourcesContainerModel,
 			continue // skip vpc not specified to analyze
 		}
 
-		vpcNodeSet := newVPC(*vpc.Name, *vpc.CRN, vpc.Region, getVPCAddressPrefixes(vpc), regionToStructMap)
+		vpcNodeSet, err := newVPC(*vpc.Name, *vpc.CRN, vpc.Region, getVPCAddressPrefixes(vpc), regionToStructMap)
+		if err != nil {
+			return err
+		}
 		newVPCConfig := NewEmptyVPCConfig()
 		newVPCConfig.UIDToResource[vpcNodeSet.ResourceUID] = vpcNodeSet
 		newVPCConfig.VPC = vpcNodeSet
