@@ -95,12 +95,14 @@ func (n *IKSNode) Name() string {
 // VPC implements vpcmodel.VPC
 type VPC struct {
 	vpcmodel.VPCResource
-	nodes                []vpcmodel.Node
-	zones                map[string]*Zone
-	internalAddressRange *ipblock.IPBlock
-	subnetsList          []*Subnet
-	addressPrefixes      []string
-	region               *Region
+	nodes []vpcmodel.Node
+	zones map[string]*Zone
+	// internalAddressRange is the union of all the vpc's subnets' CIDRs
+	internalAddressRange   *ipblock.IPBlock
+	subnetsList            []*Subnet
+	addressPrefixes        []string
+	addressPrefixesIPBlock *ipblock.IPBlock
+	region                 *Region
 }
 
 func (v *VPC) Region() *Region {
