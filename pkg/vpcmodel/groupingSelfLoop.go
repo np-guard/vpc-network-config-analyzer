@@ -233,7 +233,7 @@ func createGroupingSets(groupingSrcOrDst map[string][]*groupedConnLine, srcGroup
 		mySet := make(map[string]struct{})
 		for _, line := range groupedConnLine {
 			srcOrDst := line.getSrcOrDst(srcGrouping)
-			mySet[srcOrDst.Name()] = struct{}{}
+			mySet[srcOrDst.UID()] = struct{}{}
 		}
 		keyToGroupedSets[key] = mySet
 	}
@@ -262,7 +262,7 @@ func isDeltaOfGroupedLinesZero(srcGrouping bool, groupedConnLine1, groupedConnLi
 // in its key
 func elemInKeys(srcGrouping bool, groupedLine groupedConnLine) []string {
 	srcOrDst := groupedLine.getSrcOrDst(srcGrouping)
-	return strings.Split(srcOrDst.Name(), commaSeparator)
+	return strings.Split(srcOrDst.UID(), commaSeparator)
 }
 
 // computes the distance  between two GroupedConnLine as defined in the beginning of the file
@@ -279,7 +279,7 @@ func setMinusSet(srcGrouping bool, groupedLine groupedConnLine, set1, set2 map[s
 	// since any EndpointElement is connected to itself
 	if len(elemInKeys(srcGrouping, groupedLine)) == 1 {
 		keyOfGrouped2 := groupedLine.getSrcOrDst(!srcGrouping) // all non-grouping items are the same in a groupedConnLine
-		delete(minusResult, keyOfGrouped2.Name())              // if keyOfGrouped2.Name() does not exist in minusResult then this is no-op
+		delete(minusResult, keyOfGrouped2.UID())               // if keyOfGrouped2.UID() does not exist in minusResult then this is no-op
 	}
 	return minusResult
 }
