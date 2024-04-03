@@ -76,8 +76,7 @@ func (g *GroupConnLines) groupsToBeMerged(groupingSrcOrDst map[string][]*grouped
 // gets a list of keys of groups that have the potential of being merged with the
 // self loop don't care optimization
 // a group is candidate to be merged only if it has only internal nodes
-// if vsis then of the same subnet
-// and if subnets then of the same vpc
+// if vsis then src and dst of the same subnet and if subnets then src and dst of the same vpc
 // the latter follows from the 3rd condition described in findMergeCandidates
 // Input: <current grouping, grouping src or dst>
 // Output: <list of keys>
