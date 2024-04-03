@@ -1,5 +1,6 @@
 REPOSITORY := github.com/np-guard/vpc-network-config-analyzer
 EXE:=vpcanalyzer
+COVERAGE:=analyzer.coverprofile
 
 mod: go.mod
 	@echo -- $@ --
@@ -23,7 +24,7 @@ build:
 
 test:
 	@echo -- $@ --
-	 go test ./... -v -coverpkg=./... -coverprofile analyzer.coverprofile
+	 go test ./... -v -coverpkg=./... -coverprofile $(COVERAGE)
 
 coverage:
-	go tool cover -html="analyzer.coverprofile"
+	go tool cover -html="$(COVERAGE)"
