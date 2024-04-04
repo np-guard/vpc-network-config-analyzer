@@ -11,6 +11,7 @@ import (
 	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/ibmvpc"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/version"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
@@ -175,6 +176,17 @@ func vpcConfigsFromAccount(inArgs *InArgs) (vpcmodel.MultipleVPCConfigs, error) 
 	return vpcConfigs, nil
 }
 
+// returns verbosity level based on the -q and -v switches
+func getVerbosity(args *InArgs) logging.Verbosity {
+	verbosity := logging.MediumVerbosity
+	if *args.Quiet {
+		verbosity = logging.LowVerbosity
+	} else if *args.Verbose {
+		verbosity = logging.HighVerbosity
+	}
+	return verbosity
+}
+
 // The actual main function
 // Takes command-line flags and returns an error rather than exiting, so it can be more easily used in testing
 func _main(cmdlineArgs []string) error {
@@ -185,6 +197,9 @@ func _main(cmdlineArgs []string) error {
 	if err != nil {
 		return fmt.Errorf(ErrorFormat, ParsingErr, err)
 	}
+
+	// initializes a thread-safe singleton logger
+	logging.Init(getVerbosity(inArgs))
 
 	if *inArgs.Version {
 		fmt.Printf("vpc-network-config-analyzer v%s\n", version.VersionCore)
