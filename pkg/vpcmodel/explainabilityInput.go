@@ -178,11 +178,11 @@ func (configsMap MultipleVPCConfigs) matchMoreThanOneSingleVpcCfgError(src, dst 
 		matchConfigsStr := configsMap.listNamesGivenSrcDstMap(configsWithSrcDstNodeSingleVpc)
 		errorMsg := errorMsgPrefix + " single " + errorMsgSuffix
 		return fmt.Errorf(errorMsg, src, dst, matchConfigsStr)
-	} else { // no single vpc config, more than one multivpc config - not supported yet
-		matchConfigsStr := configsMap.listNamesGivenSrcDstMap(configsWithSrcDstNodeMultiVpc)
-		errorMsg := errorMsgPrefix + " multi " + errorMsgSuffix
-		return fmt.Errorf(errorMsg, src, dst, matchConfigsStr)
 	}
+	// no single vpc config, more than one multivpc config - not supported yet
+	matchConfigsStr := configsMap.listNamesGivenSrcDstMap(configsWithSrcDstNodeMultiVpc)
+	errorMsg := errorMsgPrefix + " multi " + errorMsgSuffix
+	return fmt.Errorf(errorMsg, src, dst, matchConfigsStr)
 }
 
 func (configsMap MultipleVPCConfigs) listNamesGivenSrcDstMap(configsWithSrcDstNode map[string]srcAndDstNodes) string {
