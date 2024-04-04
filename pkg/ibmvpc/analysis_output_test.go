@@ -51,7 +51,7 @@ type vpcGeneralTest struct {
 	mode           testMode
 	grouping       bool
 	format         vpcmodel.OutFormat
-	vpc            string
+	vpcList        []string
 	ESrc           string
 	EDst           string
 	EProtocol      netp.ProtocolString
@@ -367,7 +367,13 @@ var tests = []*vpcGeneralTest{
 		inputConfig: "acl_testing3_with_two_vpcs",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		format:      vpcmodel.Text,
-		vpc:         "crn:12", // specify the vpc to analyze
+		vpcList:     []string{"crn:12"}, // specify the vpc to analyze
+	},
+	{
+		inputConfig: "experiments_env_specifying_two_vpcs",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:      vpcmodel.Text,
+		vpcList:     []string{"crn:1", "crn:17"}, // specify the vpcs to analyze
 	},
 	// vpe example
 	{
@@ -635,7 +641,7 @@ func getVPCConfigs(t *testing.T, tt *vpcGeneralTest, firstCfg bool) vpcmodel.Mul
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
-	vpcConfigs, err := VPCConfigsFromResources(rc, tt.vpc, tt.resourceGroup, tt.regions, false)
+	vpcConfigs, err := VPCConfigsFromResources(rc, tt.vpcList, tt.resourceGroup, tt.regions, false)
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}

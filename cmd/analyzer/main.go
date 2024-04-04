@@ -84,12 +84,13 @@ func analysisVPCConfigs(c1, c2 vpcmodel.MultipleVPCConfigs, inArgs *InArgs, outF
 }
 
 func vpcConfigsFromFile(fileName string, inArgs *InArgs) (vpcmodel.MultipleVPCConfigs, error) {
+	println(len(inArgs.VPCList))
 	rc, err1 := ibmvpc.ParseResourcesFromFile(fileName)
 	if err1 != nil {
 		return nil, fmt.Errorf("error parsing input vpc resources file: %w", err1)
 	}
 
-	vpcConfigs, err2 := ibmvpc.VPCConfigsFromResources(rc, *inArgs.VPC, *inArgs.ResourceGroup, inArgs.RegionList, *inArgs.Debug)
+	vpcConfigs, err2 := ibmvpc.VPCConfigsFromResources(rc, inArgs.VPCList, *inArgs.ResourceGroup, inArgs.RegionList, *inArgs.Debug)
 	if err2 != nil {
 		return nil, fmt.Errorf(ErrorFormat, InGenerationErr, err2)
 	}
@@ -109,7 +110,7 @@ func vpcConfigsFromAccount(inArgs *InArgs) (vpcmodel.MultipleVPCConfigs, error) 
 	if !ok {
 		return nil, fmt.Errorf("error casting resources to *datamodel.ResourcesContainerModel type")
 	}
-	vpcConfigs, err := ibmvpc.VPCConfigsFromResources(resources, *inArgs.VPC, *inArgs.ResourceGroup, inArgs.RegionList, *inArgs.Debug)
+	vpcConfigs, err := ibmvpc.VPCConfigsFromResources(resources, inArgs.VPCList, *inArgs.ResourceGroup, inArgs.RegionList, *inArgs.Debug)
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +150,6 @@ func _main(cmdlineArgs []string) error {
 		fmt.Printf("vpc-network-config-analyzer v%s\n", version.VersionCore)
 		return nil
 	}
-
 	var vpcConfigs1 vpcmodel.MultipleVPCConfigs
 	if *inArgs.Provider != "" {
 		vpcConfigs1, err = vpcConfigsFromAccount(inArgs)

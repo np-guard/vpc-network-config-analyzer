@@ -12,12 +12,22 @@ import (
 )
 
 type regionList []string
+type vpcList []string
 
 func (dp *regionList) String() string {
 	return fmt.Sprintln(*dp)
 }
 
 func (dp *regionList) Set(region string) error {
+	*dp = append(*dp, region)
+	return nil
+}
+
+func (dp *vpcList) String() string {
+	return fmt.Sprintln(*dp)
+}
+
+func (dp *vpcList) Set(region string) error {
 	*dp = append(*dp, region)
 	return nil
 }
@@ -30,7 +40,7 @@ type InArgs struct {
 	OutputFormat          *string
 	AnalysisType          *string
 	Grouping              *bool
-	VPC                   *string
+	VPCList               vpcList
 	Debug                 *bool
 	Version               *bool
 	ESrc                  *string
@@ -54,7 +64,7 @@ var flagHasValue = map[string]bool{
 	OutputFormat:          true,
 	AnalysisType:          true,
 	Grouping:              false,
-	VPC:                   true,
+	VPCList:               true,
 	Debug:                 false,
 	Version:               false,
 	ESrc:                  true,
@@ -78,7 +88,7 @@ const (
 	OutputFormat          = "format"
 	AnalysisType          = "analysis-type"
 	Grouping              = "grouping"
-	VPC                   = "vpc"
+	VPCList               = "vpc"
 	Debug                 = "debug"
 	Version               = "version"
 	ESrc                  = "src"
@@ -211,7 +221,7 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 		"Supported analysis types:\n"+getSupportedAnalysisTypesMapString())
 	args.Grouping = flagset.Bool(Grouping, false, "Whether to group together src/dst entries with identical connectivity\n"+
 		"Does not support single_subnet, diff_all_endpoints and diff_all_subnets analysis-types and json output format")
-	args.VPC = flagset.String(VPC, "", "CRN of the VPC to analyze")
+	flagset.Var(&args.VPCList, VPCList, "CRNs of the VPCs to analyze")
 	args.Debug = flagset.Bool(Debug, false, "Run in debug mode")
 	args.Version = flagset.Bool(Version, false, "Prints the release version number")
 	args.ESrc = flagset.String(ESrc, "", "Source "+srcDstUsage)
@@ -223,7 +233,7 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args.EDstMaxPort = flagset.Int64(EDstMaxPort, connection.MaxPort, "Maximum destination port for connection description")
 	args.Provider = flagset.String(Provider, "", "Collect resources from an account in this cloud provider")
 	args.ResourceGroup = flagset.String(ResourceGroup, "", "Resource group id or name from which to collect resources")
-	flagset.Var(&args.RegionList, "region", "Cloud region from which to collect resources")
+	flagset.Var(&args.RegionList, RegionList, "Cloud region from which to collect resources")
 	args.DumpResources = flagset.String(DumpResources, "", "File path to store resources collected from the cloud provider")
 
 	// calling parseCmdLine prior to flagset.Parse to ensure that excessive and unsupported arguments are handled
