@@ -652,6 +652,10 @@ func (fip *FloatingIP) ExternalIP() string {
 	return fip.cidr
 }
 
+func (fip *FloatingIP) StringPrefixDetails(src, dst vpcmodel.Node, verbose bool) (string, error) {
+	return "", nil
+}
+
 type PublicGateway struct {
 	vpcmodel.VPCResource
 	cidr         string
@@ -704,6 +708,10 @@ func (pgw *PublicGateway) RouterDefined(src, dst vpcmodel.Node) bool {
 
 func (pgw *PublicGateway) AppliedFiltersKinds() map[string]bool {
 	return map[string]bool{vpcmodel.NaclLayer: true, vpcmodel.SecurityGroupLayer: true}
+}
+
+func (pgw *PublicGateway) StringPrefixDetails(src, dst vpcmodel.Node, verbose bool) (string, error) {
+	return "", nil
 }
 
 // a tgw prefix for explain
@@ -877,14 +885,6 @@ func (tgw *TransitGateway) prefixOfSrcDst(src, dst vpcmodel.Node) *tgwPrefix {
 		}
 	}
 	return nil
-}
-
-func (fip *FloatingIP) StringPrefixDetails(src, dst vpcmodel.Node, verbose bool) (string, error) {
-	return "", nil
-}
-
-func (pgw *PublicGateway) StringPrefixDetails(src, dst vpcmodel.Node, verbose bool) (string, error) {
-	return "", nil
 }
 
 // todo: currently not used
