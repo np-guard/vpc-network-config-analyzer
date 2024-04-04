@@ -693,6 +693,6 @@ func TestInputValidityMultipleVPCContext(t *testing.T) {
 	require.NotNil(t, err11, "the test should fail since the src and dst vsis exists in two vpcs configs")
 	require.Equal(t, "src: vsi1-ky and dst: vsi2-ky found in more than one single vpcs configs, "+
 		"and it is impossible to determine between them. Please add the name of the config to the src/dst name. "+
-		"Single vpc configs in which src and dst were found in: test-vpc0-ky,test-vpc1-ky",
+		"Vpc configs in which src and dst were found in: test-vpc0-ky,test-vpc1-ky",
 		err11.Error())
 }

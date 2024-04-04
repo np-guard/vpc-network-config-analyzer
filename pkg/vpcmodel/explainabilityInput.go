@@ -134,9 +134,10 @@ func (configsMap MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string)
 		for cfgID, val := range configsWithSrcDstNodeSingleVpc {
 			return configsMap[cfgID], val.srcNodes, val.dstNodes, val.isSrcDstInternalIP, nil
 		}
-	default: // len(configsWithSrcDstNodeSingleVpc) > 1: error
+	default: // len(configsWithSrcDstNodeSingleVpc) > 1 ||
+		// len(configsWithSrcDstNodeSingleVpc) == 0 && len(configsWithSrcDstNodeMultiVpc)>1 error
 		return nil, nil, nil, noInternalIP,
-			configsMap.matchMoreThanOneSingleVpcCfgError(src, dst, configsWithSrcDstNodeSingleVpc)
+			configsMap.matchMoreThanOneSingleVpcCfgError(src, dst, configsWithSrcDstNodeSingleVpc, configsWithSrcDstNodeMultiVpc)
 	}
 	return nil, nil, nil, noInternalIP, nil
 }
@@ -165,23 +166,35 @@ func noMatchErr(srcFoundSomeCfg, dstFoundSomeCfg bool, errMsgInternalNoConnected
 	}
 }
 
-// src, dst found in more than one config: if exactly one config with IsMultipleVPCsConfig
-// then src, dst of the same vpc in this is the config in which the analysis should be done.
-// otherwise error
+// src, dst found in more than one config error:
+// more than one match of single config or
+// non match of single config and more than one match of multiple config
 func (configsMap MultipleVPCConfigs) matchMoreThanOneSingleVpcCfgError(src, dst string,
-	configsWithSrcDstNodeSingleVpc map[string]srcAndDstNodes) error {
+	configsWithSrcDstNodeSingleVpc, configsWithSrcDstNodeMultiVpc map[string]srcAndDstNodes) error {
+	errorMsgPrefix := "src: %s and dst: %s found in more than one"
+	errorMsgSuffix := "vpcs configs, and it is impossible to determine between them. " +
+		"Please add the name of the config to the src/dst name. Vpc configs in which src and dst were found in: %s"
+	if len(configsWithSrcDstNodeSingleVpc) > 1 { // more than single vpc config
+		matchConfigsStr := configsMap.listNamesGivenSrcDstMap(configsWithSrcDstNodeSingleVpc)
+		errorMsg := errorMsgPrefix + " single " + errorMsgSuffix
+		return fmt.Errorf(errorMsg, src, dst, matchConfigsStr)
+	} else { // no single vpc config, more than one multivpc config - not supported yet
+		matchConfigsStr := configsMap.listNamesGivenSrcDstMap(configsWithSrcDstNodeMultiVpc)
+		errorMsg := errorMsgPrefix + " multi " + errorMsgSuffix
+		return fmt.Errorf(errorMsg, src, dst, matchConfigsStr)
+	}
+}
+
+func (configsMap MultipleVPCConfigs) listNamesGivenSrcDstMap(configsWithSrcDstNode map[string]srcAndDstNodes) string {
 	i := 0
-	matchConfigs := make([]string, len(configsWithSrcDstNodeSingleVpc))
-	for vpcUID := range configsWithSrcDstNodeSingleVpc {
-		// the vsis are in more than one multiVPC config; lists all the configs it is in for the error msg
+	matchConfigs := make([]string, len(configsWithSrcDstNode))
+	for vpcUID := range configsWithSrcDstNode {
+		// the vsis are in more than one config; lists all the configs it is in for the error msg
 		matchConfigs[i] = configsMap[vpcUID].VPC.Name()
 		i++
 	}
 	sort.Strings(matchConfigs)
-	return fmt.Errorf("src: %s and dst: %s found in more than one single vpcs configs, "+
-		"and it is impossible to determine between them. Please add the name of the config to the src/dst name. "+
-		"Single vpc configs in which src and dst were found in: %s",
-		src, dst, strings.Join(matchConfigs, ","))
+	return strings.Join(matchConfigs, ",")
 }
 
 // GetConnectionSet TODO: handle also input ICMP properties (type, code) as input args
