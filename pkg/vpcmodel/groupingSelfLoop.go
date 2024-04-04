@@ -76,8 +76,7 @@ func (g *GroupConnLines) groupsToBeMerged(groupingSrcOrDst map[string][]*grouped
 // gets a list of keys of groups that have the potential of being merged with the
 // self loop don't care optimization
 // a group is candidate to be merged only if it has only internal nodes
-// if vsis then of the same subnet
-// and if subnets then of the same vpc
+// if vsis then src and dst of the same subnet and if subnets then src and dst of the same vpc
 // the latter follows from the 3rd condition described in findMergeCandidates
 // Input: <current grouping, grouping src or dst>
 // Output: <list of keys>
@@ -100,7 +99,7 @@ func (g *GroupConnLines) relevantKeysToCompare(groupingSrcOrDst map[string][]*gr
 // where n is the number of nodes.
 // a couple of []*GroupedConnLine is candidate to be merged only if:
 //  1. They are of the same connection
-//  2. If vsis, of the same subnet
+//  2. If vsis, of the same subnet, if subnets of the same vpc
 //  3. The src (dst) in one group is a singleton contained in the dst (src) in the other
 //     in one pass on groupingSrcOrDst we prepare a map between each key to the keys that are candidates to be merged with it.
 //     Before the grouping there are at most O(n^2) lines of src -> dst
@@ -126,12 +125,12 @@ func (g *GroupConnLines) findMergeCandidates(groupingSrcOrDst map[string][]*grou
 	}
 
 	keyToMergeCandidates := make(map[string]map[string]struct{})
-	// 2. in each bucket finds for each key the candidates to be merged, in two stages
+	// 2. in each bucket finds for each key the candidates to be merged:
+	//    for a group g_1 s.t. the non-grouped (a.k.a. index) src/dst is a singleton,
+	//    finds all groups in which the grouped (a.k.a. value) dst/src contains the singleton
 	for _, keysInBucket := range bucketToKeys {
 		singletonsInBucket := make(map[string]string)
-		//    2.1 for a group g_1 s.t. the non-grouped src/dst is a singleton,
-		//        all groups in which the grouped dst/src contains the singleton
-		//        2.1.1 finds for each bucket all singletons
+		//  2.1 finds for each bucket all singletons
 		for key := range keysInBucket {
 			lines := groupingSrcOrDst[key]
 			elemsInKey := elemInKeys(!srcGrouping, *lines[0])
@@ -141,8 +140,8 @@ func (g *GroupConnLines) findMergeCandidates(groupingSrcOrDst map[string][]*grou
 			singleton := elemsInKey[0]
 			singletonsInBucket[singleton] = key
 		}
-		//   2.1.2 finds for each singleton candidates: groups with that singleton
-		//    stores the candidates in keyToMergeCandidates
+		//  2.1.2 finds for each singleton candidates: groups with that singleton
+		//   stores the candidates in keyToMergeCandidates
 		for key := range keysInBucket {
 			itemsInGroup := keyToGroupedSets[key]
 			for item := range itemsInGroup {
@@ -234,7 +233,7 @@ func createGroupingSets(groupingSrcOrDst map[string][]*groupedConnLine, srcGroup
 		mySet := make(map[string]struct{})
 		for _, line := range groupedConnLine {
 			srcOrDst := line.getSrcOrDst(srcGrouping)
-			mySet[srcOrDst.Name()] = struct{}{}
+			mySet[srcOrDst.UID()] = struct{}{}
 		}
 		keyToGroupedSets[key] = mySet
 	}
@@ -263,7 +262,7 @@ func isDeltaOfGroupedLinesZero(srcGrouping bool, groupedConnLine1, groupedConnLi
 // in its key
 func elemInKeys(srcGrouping bool, groupedLine groupedConnLine) []string {
 	srcOrDst := groupedLine.getSrcOrDst(srcGrouping)
-	return strings.Split(srcOrDst.Name(), commaSeparator)
+	return strings.Split(srcOrDst.UID(), commaSeparator)
 }
 
 // computes the distance  between two GroupedConnLine as defined in the beginning of the file
@@ -280,7 +279,7 @@ func setMinusSet(srcGrouping bool, groupedLine groupedConnLine, set1, set2 map[s
 	// since any EndpointElement is connected to itself
 	if len(elemInKeys(srcGrouping, groupedLine)) == 1 {
 		keyOfGrouped2 := groupedLine.getSrcOrDst(!srcGrouping) // all non-grouping items are the same in a groupedConnLine
-		delete(minusResult, keyOfGrouped2.Name())              // if keyOfGrouped2.Name() does not exist in minusResult then this is no-op
+		delete(minusResult, keyOfGrouped2.UID())               // if keyOfGrouped2.UID() does not exist in minusResult then this is no-op
 	}
 	return minusResult
 }
@@ -367,15 +366,15 @@ func listOfUniqueEndpoints(oldGroupingSrcOrDst map[string][]*groupedConnLine, sr
 			}
 			if _, isSliceEndpoints := endPointInKey.(*groupedEndpointsElems); isSliceEndpoints {
 				for _, endpoint := range *endPointInKey.(*groupedEndpointsElems) {
-					if _, ok := setOfNames[endpoint.Name()]; !ok { // was endpoint added already?
+					if _, ok := setOfNames[endpoint.UID()]; !ok { // was endpoint added already?
 						listOfEndpoints = append(listOfEndpoints, endpoint)
-						setOfNames[endpoint.Name()] = struct{}{}
+						setOfNames[endpoint.UID()] = struct{}{}
 					}
 				}
 			} else { // endpoint is Node or NodeSet
-				if _, ok := setOfNames[endPointInKey.Name()]; !ok { // was endpoint added already?
+				if _, ok := setOfNames[endPointInKey.UID()]; !ok { // was endpoint added already?
 					listOfEndpoints = append(listOfEndpoints, endPointInKey)
-					setOfNames[endPointInKey.Name()] = struct{}{}
+					setOfNames[endPointInKey.UID()] = struct{}{}
 				}
 			}
 		}
