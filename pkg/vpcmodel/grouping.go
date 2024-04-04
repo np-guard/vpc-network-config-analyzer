@@ -23,7 +23,7 @@ type groupedExternalNodesInfo struct {
 type explainDetails struct {
 	rules           *rulesConnection
 	externalRouter  RoutingResource
-	tgwRouter       RoutingResource
+	crossVpcRouter  RoutingResource
 	filtersRelevant map[string]bool
 	connEnabled     bool
 	ingressEnabled  bool
@@ -274,7 +274,7 @@ func (g *GroupConnLines) groupExternalAddressesForExplainability() error {
 	for _, details := range *g.explain {
 		groupingStrKey := details.explanationEncode(g.config)
 		expDetails := &explainDetails{details.actualMergedRules,
-			details.externalRouter, details.tgwRouter,
+			details.externalRouter, details.crossVpcRouter,
 			details.filtersRelevant, details.connEnabled,
 			details.ingressEnabled, details.egressEnabled}
 		err := g.addLineToExternalGrouping(&res, details.src, details.dst,
@@ -531,8 +531,8 @@ func (details *srcDstDetails) explanationEncode(c *VPCConfig) string {
 	if details.externalRouter != nil {
 		encodeComponents = append(encodeComponents, details.externalRouter.UID())
 	}
-	if details.tgwRouter != nil {
-		encodeComponents = append(encodeComponents, details.tgwRouter.UID())
+	if details.crossVpcRouter != nil {
+		encodeComponents = append(encodeComponents, details.crossVpcRouter.UID())
 	}
 	if len(details.actualMergedRules.egressRules) > 0 {
 		encodeComponents = append(encodeComponents, "egress:"+

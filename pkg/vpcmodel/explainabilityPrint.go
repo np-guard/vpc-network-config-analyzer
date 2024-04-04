@@ -53,7 +53,7 @@ func (explanation *Explanation) String(verbose bool) string {
 		explainDetails := line.commonProperties.expDetails
 		linesStr[i] += explainabilityLineStr(verbose, explanation.c, explainDetails.filtersRelevant,
 			explanation.connQuery, line.src, line.dst, line.commonProperties.conn, explainDetails.ingressEnabled,
-			explainDetails.egressEnabled, explainDetails.externalRouter, explainDetails.tgwRouter, explainDetails.rules) +
+			explainDetails.egressEnabled, explainDetails.externalRouter, explainDetails.crossVpcRouter, explainDetails.rules) +
 			"------------------------------------------------------------------------------------------------------------------------\n"
 	}
 	sort.Strings(linesStr)
@@ -67,7 +67,7 @@ func (details *rulesAndConnDetails) String(c *VPCConfig, verbose bool, connQuery
 	for _, srcDstDetails := range *details {
 		resStr += explainabilityLineStr(verbose, c, srcDstDetails.filtersRelevant, connQuery,
 			srcDstDetails.src, srcDstDetails.dst, srcDstDetails.conn, srcDstDetails.ingressEnabled,
-			srcDstDetails.egressEnabled, srcDstDetails.externalRouter, srcDstDetails.tgwRouter,
+			srcDstDetails.egressEnabled, srcDstDetails.externalRouter, srcDstDetails.crossVpcRouter,
 			srcDstDetails.actualMergedRules)
 	}
 	return resStr, nil
@@ -95,45 +95,45 @@ func (details *rulesAndConnDetails) String(c *VPCConfig, verbose bool, connQuery
 
 func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[string]bool, connQuery *connection.Set,
 	src, dst EndpointElem, conn *connection.Set, ingressEnabled, egressEnabled bool,
-	externalRouter, tgwRouter RoutingResource, rules *rulesConnection) string {
+	externalRouter, crossVpcRouter RoutingResource, rules *rulesConnection) string {
 	needEgress := !src.IsExternal()
 	needIngress := !dst.IsExternal()
 	ingressBlocking := !ingressEnabled && needIngress
 	egressBlocking := !egressEnabled && needEgress
-	var externalRouterHeader, tgwRouterFilterHeader, resourceEffectHeader,
-		tgwRouterFilterDetails, rulesDetails, details string
+	var externalRouterHeader, crossRouterFilterHeader, resourceEffectHeader,
+		crossRouterFilterDetails, rulesDetails, details string
 	if externalRouter != nil && (src.IsExternal() || dst.IsExternal()) {
 		externalRouterHeader = "External traffic via " + externalRouter.Kind() + ": " + externalRouter.Name() + newLine
 	}
-	var tgwConnection *connection.Set
-	tgwConnection, tgwRouterFilterHeader, tgwRouterFilterDetails = tgwRouterDetails(c, tgwRouter, src, dst)
+	var crossVpcConnection *connection.Set
+	crossVpcConnection, crossRouterFilterHeader, crossRouterFilterDetails = crossRouterDetails(c, crossVpcRouter, src, dst)
 	noConnection := noConnectionHeader(src.Name(), dst.Name(), connQuery) + newLine // noConnection is the 1 above when no connection
 	// resourceEffectHeader is "2" above
-	resourceEffectHeader = externalRouterHeader + tgwRouterFilterHeader +
+	resourceEffectHeader = externalRouterHeader + crossRouterFilterHeader +
 		rules.filterEffectStr(c, filtersRelevant, needEgress, needIngress) + doubleNL
 
 	// path in "3" above
 	path := "Path:\n" + pathStr(c, filtersRelevant, src, dst,
-		ingressBlocking, egressBlocking, externalRouter, tgwRouter, tgwConnection, rules) + newLine
+		ingressBlocking, egressBlocking, externalRouter, crossVpcRouter, crossVpcConnection, rules) + newLine
 	// details is "4" above
 	rulesDetails = rules.ruleDetailsStr(c, filtersRelevant, needEgress, needIngress)
 	if verbose {
-		details = "\nDetails:\n~~~~~~~~\n" + tgwRouterFilterDetails + rulesDetails
+		details = "\nDetails:\n~~~~~~~~\n" + crossRouterFilterDetails + rulesDetails
 	}
-	return explainPerCaseStr(src, dst, externalRouter, tgwRouter, connQuery, conn, tgwConnection, ingressBlocking, egressBlocking,
+	return explainPerCaseStr(src, dst, externalRouter, crossVpcRouter, connQuery, conn, crossVpcConnection, ingressBlocking, egressBlocking,
 		noConnection, resourceEffectHeader, path, details)
 }
 
 // after all data is gathered, generates the actual string to be printed
-func explainPerCaseStr(src, dst EndpointElem, externalRouter, tgwRouter RoutingResource,
-	connQuery, conn, tgwConnection *connection.Set, ingressBlocking, egressBlocking bool,
+func explainPerCaseStr(src, dst EndpointElem, externalRouter, crossVpcRouter RoutingResource,
+	connQuery, conn, crossVpcConnection *connection.Set, ingressBlocking, egressBlocking bool,
 	noConnection, resourceEffectHeader, path, details string) string {
 	headerPlusPath := resourceEffectHeader + path
 	switch {
-	case tgwRouterRequired(src, dst) && tgwRouter == nil:
+	case crossVpcRouterRequired(src, dst) && crossVpcRouter == nil:
 		return fmt.Sprintf("%v\nconnection blocked since src, dst of different VPCs but no transit gateway is defined"+
 			doubleNLWithVars, noConnection, headerPlusPath, details)
-	case tgwRouterRequired(src, dst) && tgwRouter != nil && tgwConnection.IsEmpty():
+	case crossVpcRouterRequired(src, dst) && crossVpcRouter != nil && crossVpcConnection.IsEmpty():
 		return fmt.Sprintf("%v\nconnection blocked since transit gateway denys route between src and dst"+
 			doubleNLWithVars, noConnection, headerPlusPath, details)
 	case externalRouter == nil && src.IsExternal():
@@ -155,21 +155,21 @@ func explainPerCaseStr(src, dst EndpointElem, externalRouter, tgwRouter RoutingR
 	}
 }
 
-func tgwRouterDetails(c *VPCConfig, tgwRouter RoutingResource, src, dst EndpointElem) (tgwConnection *connection.Set,
-	tgwRouterFilterHeader, tgwRouterFilterDetails string) {
-	if tgwRouter != nil {
+func crossRouterDetails(c *VPCConfig, crossVpcRouter RoutingResource, src, dst EndpointElem) (crossVpcConnection *connection.Set,
+	crossVpcRouterFilterHeader, crossVpcFilterDetails string) {
+	if crossVpcRouter != nil {
 		// an error here will pop up earlier, when computing connections
-		_, tgwConnection, _ := c.getRoutingResource(src.(Node), dst.(Node)) // tgw exists - src, dst are internal
+		_, crossVpcConnection, _ := c.getRoutingResource(src.(Node), dst.(Node)) // crossVpc Router (tgw) exists - src, dst are internal
 		// if there is a non nil transit gateway then src and dst are vsis, and implement Node
-		tgwRouterFilterHeader, _ := tgwRouter.StringPrefixDetails(src.(Node), dst.(Node), false)
-		tgwRouterFilterHeader += newLine
-		tgwRouterFilterDetails, _ := tgwRouter.StringPrefixDetails(src.(Node), dst.(Node), true)
-		return tgwConnection, tgwRouterFilterHeader, tgwRouterFilterDetails
+		crossVpcFilterHeader, _ := crossVpcRouter.StringPrefixDetails(src.(Node), dst.(Node), false)
+		crossVpcFilterHeader += newLine
+		crossVpcFilterDetails, _ := crossVpcRouter.StringPrefixDetails(src.(Node), dst.(Node), true)
+		return crossVpcConnection, crossVpcFilterHeader, crossVpcFilterDetails
 	}
 	return nil, emptyString, emptyString
 }
 
-func tgwRouterRequired(src, dst EndpointElem) bool {
+func crossVpcRouterRequired(src, dst EndpointElem) bool {
 	if src.IsExternal() || dst.IsExternal() {
 		return false
 	}
@@ -293,7 +293,7 @@ func stringFilterEffect(c *VPCConfig, filterLayerName string, rules []RulesInFil
 // if the connection does not exist. In the latter case the path is until the first block
 // e.g.: "vsi1-ky[10.240.10.4] ->  SG sg1-ky -> subnet ... ->  ACL acl1-ky -> PublicGateway: public-gw-ky ->  Public Internet 161.26.0.0/16"
 func pathStr(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointElem,
-	ingressBlocking, egressBlocking bool, externalRouter, tgwRouter RoutingResource, tgwConnection *connection.Set,
+	ingressBlocking, egressBlocking bool, externalRouter, crossVpcRouter RoutingResource, crossVpcConnection *connection.Set,
 	rules *rulesConnection) string {
 	var pathSlice []string
 	pathSlice = append(pathSlice, "\t"+src.Name())
@@ -301,8 +301,8 @@ func pathStr(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointEle
 	egressPath := pathFiltersOfIngressOrEgressStr(c, src, filtersRelevant, rules, false, isExternal, externalRouter)
 	pathSlice = append(pathSlice, egressPath...)
 	externalRouterBlocking := isExternal && externalRouter == nil
-	needTgwRouter := tgwRouterRequired(src, dst)
-	tgwRouterMissing := needTgwRouter && tgwRouter == nil
+	needCrossVpcRouter := crossVpcRouterRequired(src, dst)
+	crossVpcRouterMissing := needCrossVpcRouter && crossVpcRouter == nil
 	if egressBlocking || externalRouterBlocking {
 		return blockedPathStr(pathSlice)
 	}
@@ -313,13 +313,13 @@ func pathStr(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointEle
 			externalRouterStr += space + externalRouter.ExternalIP()
 		}
 		pathSlice = append(pathSlice, externalRouterStr)
-	} else if needTgwRouter { // src and dst are internal and there is a tgw Router
+	} else if needCrossVpcRouter { // src and dst are internal and there is a cross vpc Router
 		pathSlice = append(pathSlice, newLineTab+src.(InternalNodeIntf).Subnet().VPC().Name())
-		if tgwRouterMissing {
+		if crossVpcRouterMissing {
 			return blockedPathStr(pathSlice)
 		}
-		pathSlice = append(pathSlice, tgwRouter.Kind()+space+tgwRouter.Name())
-		if tgwConnection.IsEmpty() { // tgw denys connection
+		pathSlice = append(pathSlice, crossVpcRouter.Kind()+space+crossVpcRouter.Name())
+		if crossVpcConnection.IsEmpty() { // cross vpc (tgw) denys connection
 			return blockedPathStr(pathSlice)
 		}
 		pathSlice = append(pathSlice, dst.(InternalNodeIntf).Subnet().VPC().Name())

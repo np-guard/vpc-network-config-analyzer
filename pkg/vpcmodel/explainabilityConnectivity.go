@@ -32,7 +32,7 @@ type srcDstDetails struct {
 	// the part of the connection relevant to the query otherwise.
 	conn           *connection.Set
 	externalRouter RoutingResource // the router (fip or pgw) to external network; nil if none or not relevant
-	tgwRouter      RoutingResource // the tgw router between src and dst from different VPCs; nil if none or not relevant
+	crossVpcRouter RoutingResource // the (currently only tgw) router between src and dst from different VPCs; nil if none or not relevant
 	// filters relevant for this src, dst pair; map keys are the filters kind (NaclLayer/SecurityGroupLayer)
 	// for two internal nodes within same subnet, only SG layer is relevant
 	// for external connectivity (src/dst is external) with FIP, only SG layer is relevant
@@ -153,7 +153,7 @@ func (details *rulesAndConnDetails) computeRoutersAndFilters(c *VPCConfig) (err 
 		src := singleSrcDstDetails.src
 		dst := singleSrcDstDetails.dst
 		if src.IsInternal() && dst.IsInternal() { // internal (including cross vpcs)
-			singleSrcDstDetails.tgwRouter, _, err = c.getRoutingResource(src, dst)
+			singleSrcDstDetails.crossVpcRouter, _, err = c.getRoutingResource(src, dst)
 			if err != nil {
 				return err
 			}
