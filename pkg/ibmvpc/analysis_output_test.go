@@ -515,7 +515,7 @@ var tests = []*vpcGeneralTest{
 		grouping:    true,
 		format:      vpcmodel.Text,
 	},
-	// grouping test of identical names different resources and thus different UIDs that should not be grouped
+	// grouping test of identical names different resources and thus different UIDs that should not be merged
 	{
 		inputConfig: "sg_testing1_new_dup_subnets_names",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
