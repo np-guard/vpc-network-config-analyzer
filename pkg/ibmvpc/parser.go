@@ -1240,7 +1240,6 @@ func setSubnetsFreeAddresses(rc *datamodel.ResourcesContainerModel,
 	res map[string]*vpcmodel.VPCConfig) map[vpcmodel.Subnet]*ipblock.IPBlock {
 	subnetsFreeAddresses := map[vpcmodel.Subnet]*ipblock.IPBlock{}
 	for _, subnetObj := range rc.SubnetList {
-		// vpc := getVPCObjectByUID(res, *subnetObj.VPC.CRN)
 		subnet := res[*subnetObj.VPC.CRN].UIDToResource[*subnetObj.CRN].(vpcmodel.Subnet)
 		b, _ := ipblock.FromCidr(subnet.CIDR())
 		for _, reserevedIp := range subnetObj.ReservedIps {
@@ -1386,7 +1385,7 @@ func getLoadBalancerIPs(res map[string]*vpcmodel.VPCConfig,
 	loadBalancerObj *datamodel.LoadBalancer,
 	vpcUID string, vpc *VPC,
 	subnetsFreeAddresses map[vpcmodel.Subnet]*ipblock.IPBlock) ([]vpcmodel.Node, error) {
-	subnetsWithPrivateIPs := map[*Subnet]int{}
+	subnetsWithPrivateIPs := map[vpcmodel.Subnet]int{}
 	for i, pIP := range loadBalancerObj.PrivateIps {
 		add, err := ipblock.FromIPAddress(*pIP.Address)
 		if err != nil {
