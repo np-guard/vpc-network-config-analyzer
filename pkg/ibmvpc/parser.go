@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"maps"
 	"os"
 	"slices"
 	"strings"
@@ -837,8 +836,9 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 
 			// explainability related computation
 			// vpcApsPrefixes is a map from the vpc's ap to the index of the prefix that matches it, -1 for default if no match
-			vpcApsPrefixes, _ := getVpcApsPrefixes(tgwConn, vpc) // if getVPCAdvertisedRoutes completed without an error, so would getVpcApsPrefixes
-			maps.Copy(tgwMap[tgwUID].vpcApsPrefixes, map[string]map[*ipblock.IPBlock]tgwPrefix{vpcUID: vpcApsPrefixes})
+			// if getVPCAdvertisedRoutes completed without an error, so would getVpcApsPrefixes
+			vpcApsPrefixes, _ := getVpcApsPrefixes(tgwConn, vpc)
+			tgwMap[tgwUID].vpcApsPrefixes[vpcUID] = vpcApsPrefixes
 		}
 	}
 	return tgwMap
