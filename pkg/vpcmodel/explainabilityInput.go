@@ -55,7 +55,7 @@ type srcAndDstNodes struct {
 	isSrcDstInternalIP srcDstInternalAddr
 }
 
-// processExplainInput given src, dst names returns the config in which the exaplainability analysis of these
+// getVPCConfigAndSrcDstNodes given src, dst names returns the config in which the exaplainability analysis of these
 // should be done and the Nodes for src and dst as well as whether src or dst was given as the internal address of
 // a vsi (which effects the output)
 // src and dst when referring to a vsi *name* may be prefixed with the vpc name with the deliminator "/" to solve ambiguity
@@ -80,7 +80,9 @@ type srcAndDstNodes struct {
 // errors 4 to 6  may occur in one vpcConfig while there is still a match to src and dst in another one
 // if no match found then errors 4 to 6 are in increasing severity. that is, 6>5>4
 // error 7 is detected within global context and is relevant only if none of the 1-6 errors occurred
-func (configsMap MultipleVPCConfigs) processExplainInput(src, dst string) (vpcConfig *VPCConfig,
+//
+//nolint:gocyclo // better not split into two function
+func (configsMap MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string) (vpcConfig *VPCConfig,
 	srcNodes, dstNodes []Node, isSrcDstInternalIP srcDstInternalAddr, err error) {
 	var errMsgInternalNotWithinSubnet, errMsgInternalNoConnectedVSI, errMsgNoValidSrc, errMsgNoValidDst error
 	var srcFoundSomeCfg, dstFoundSomeCfg bool
@@ -116,18 +118,11 @@ func (configsMap MultipleVPCConfigs) processExplainInput(src, dst string) (vpcCo
 			}
 		}
 	}
-	// no match, error
-	if len(configsWithSrcDstNodeSingleVpc)+len(configsWithSrcDstNodeMultiVpc) == 0 {
+	switch {
+	// no match
+	case len(configsWithSrcDstNodeSingleVpc) == 0 && len(configsWithSrcDstNodeMultiVpc) == 0:
 		return noMatchErr(srcFoundSomeCfg, dstFoundSomeCfg, errMsgInternalNoConnectedVSI, errMsgInternalNotWithinSubnet,
 			errMsgNoValidSrc, errMsgNoValidDst)
-	}
-	return configsMap.getVPCConfigAndSrcDstNodes(src, dst, configsWithSrcDstNodeSingleVpc, configsWithSrcDstNodeMultiVpc)
-}
-
-func (configsMap MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string,
-	configsWithSrcDstNodeSingleVpc, configsWithSrcDstNodeMultiVpc map[string]srcAndDstNodes) (vpcConfig *VPCConfig,
-	srcNodes, dstNodes []Node, isSrcDstInternalIP srcDstInternalAddr, err error) {
-	switch {
 	// single match, of a multi vpc config: return it
 	case len(configsWithSrcDstNodeSingleVpc) == 0 && len(configsWithSrcDstNodeMultiVpc) == 1:
 		for cfgID, val := range configsWithSrcDstNodeMultiVpc {
@@ -140,10 +135,10 @@ func (configsMap MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string,
 			return configsMap[cfgID], val.srcNodes, val.dstNodes, val.isSrcDstInternalIP, nil
 		}
 	default: // len(configsWithSrcDstNodeSingleVpc) > 1: error
-		return nil, nil, nil, srcDstInternalAddr{false, false},
+		return nil, nil, nil, noInternalIP,
 			configsMap.matchMoreThanOneSingleVpcCfgError(src, dst, configsWithSrcDstNodeSingleVpc)
 	}
-	return nil, nil, nil, srcDstInternalAddr{false, false}, nil
+	return nil, nil, nil, noInternalIP, nil
 }
 
 // no match for both src and dst in any of the cfgs: internalNoConnectedVSI > internalNotWithinSubnetsAddr > noValidInputEr
