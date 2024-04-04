@@ -1236,12 +1236,38 @@ func getVPCObjectByUID(res vpcmodel.MultipleVPCConfigs, uid string) (*VPC, error
 	return vpc, nil
 }
 
+func setSubnetsFreeAddresses(rc *datamodel.ResourcesContainerModel,
+	res map[string]*vpcmodel.VPCConfig) map[vpcmodel.Subnet]*ipblock.IPBlock {
+	subnetsFreeAddresses := map[vpcmodel.Subnet]*ipblock.IPBlock{}
+	for _, subnetObj := range rc.SubnetList {
+		// vpc := getVPCObjectByUID(res, *subnetObj.VPC.CRN)
+		subnet := res[*subnetObj.VPC.CRN].UIDToResource[*subnetObj.CRN].(vpcmodel.Subnet)
+		b, _ := ipblock.FromCidr(subnet.CIDR())
+		for _, reserevedIp := range subnetObj.ReservedIps {
+			b2, _ := ipblock.FromIPAddress(*reserevedIp.Address)
+			b = b.Subtract(b2)
+		}
+		subnetsFreeAddresses[subnet] = b
+	}
+	return subnetsFreeAddresses
+}
+
+func allocSubnetFreeAddress(subnetsFreeAddresses map[vpcmodel.Subnet]*ipblock.IPBlock, subnet vpcmodel.Subnet) string {
+	add := subnetsFreeAddresses[subnet].ToIPRanges()
+	add = strings.Split(add, ",")[0]
+	add = strings.Split(add, "-")[0]
+	b2, _ := ipblock.FromIPAddress(add)
+	subnetsFreeAddresses[subnet] = subnetsFreeAddresses[subnet].Subtract(b2)
+	return add
+}
+
 // ////////////////////////////////////////////////////////////////
 // Load Balancer Parsing: (I made it capital G, so lint will not cry)
 func GetLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 	res map[string]*vpcmodel.VPCConfig,
 	skipByVPC map[string]bool,
 ) (err error) {
+	subnetsFreeAddresses := setSubnetsFreeAddresses(rc, res)
 	for _, loadBalancerObj := range rc.LBList {
 		if !checkLoadBalancerValidity(loadBalancerObj) {
 			continue
@@ -1267,7 +1293,7 @@ func GetLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 		}
 
 		loadBalancer.listeners = getLoadBalancerServer(res, loadBalancerObj, vpcUID)
-		privateIPs, err := getLoadBalancerIPs(res, loadBalancerObj, vpcUID, vpc)
+		privateIPs, err := getLoadBalancerIPs(res, loadBalancerObj, vpcUID, vpc, subnetsFreeAddresses)
 		if err != nil {
 			return err
 		}
@@ -1283,10 +1309,7 @@ func checkLoadBalancerValidity(loadBalancerObj *datamodel.LoadBalancer) bool {
 	// todo - in case of more than two subnets, two subnets are chosen arbitrary
 	// we do not know which subnets will be chosen to be in the config file.
 	// in such case, the connectivity report is not representing the user configuration.
-	if len(loadBalancerObj.Subnets) > 2 {
-		fmt.Printf("warning: Ignoring Load Balancer %s, it has more than two subnets\n", *loadBalancerObj.Name)
-		return false
-	}
+
 	// todo: handle different numbers of private and public ip
 	if len(loadBalancerObj.PrivateIps) != 2 {
 		fmt.Printf("warning: Ignoring Load Balancer %s, it has %d private IPs (currently only 2 are supported)\n",
@@ -1361,7 +1384,8 @@ func getLoadBalancerServer(res map[string]*vpcmodel.VPCConfig,
 // returns the private IPs nodes
 func getLoadBalancerIPs(res map[string]*vpcmodel.VPCConfig,
 	loadBalancerObj *datamodel.LoadBalancer,
-	vpcUID string, vpc *VPC) ([]vpcmodel.Node, error) {
+	vpcUID string, vpc *VPC,
+	subnetsFreeAddresses map[vpcmodel.Subnet]*ipblock.IPBlock) ([]vpcmodel.Node, error) {
 	subnetsWithPrivateIPs := map[*Subnet]int{}
 	for i, pIP := range loadBalancerObj.PrivateIps {
 		add, err := ipblock.FromIPAddress(*pIP.Address)
@@ -1385,8 +1409,15 @@ func getLoadBalancerIPs(res map[string]*vpcmodel.VPCConfig,
 			if len(loadBalancerObj.PublicIps) > 0 {
 				publicAddress = *loadBalancerObj.PublicIps[pipIndex].Address
 			}
+			fmt.Printf("%s and %s at %s\n", address, publicAddress, subnet.CIDR())
 		} else {
-			continue
+			name = "pip-name-of-" + subnet.Name()
+			id = "pip-uid-of-" + subnet.UID() + *loadBalancerObj.ID
+			address = allocSubnetFreeAddress(subnetsFreeAddresses,subnet)
+			if len(loadBalancerObj.PublicIps) > 0 {
+				//todo:
+				publicAddress = *loadBalancerObj.PublicIps[0].Address
+			}
 		}
 		privateIP := &PrivateIP{
 			VPCResource: vpcmodel.VPCResource{
@@ -1400,7 +1431,7 @@ func getLoadBalancerIPs(res map[string]*vpcmodel.VPCConfig,
 				AddressStr: address,
 			},
 			loadBalancer: *loadBalancerObj.Name,
-			original: original,
+			original:     original,
 		}
 		if err := privateIP.SetIPBlockFromAddress(); err != nil {
 			return nil, err
