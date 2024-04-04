@@ -54,6 +54,7 @@ type PrivateIP struct {
 	vpcmodel.VPCResource
 	vpcmodel.InternalNode
 	loadBalancer string
+	original bool
 }
 
 func (pip *PrivateIP) Name() string {
