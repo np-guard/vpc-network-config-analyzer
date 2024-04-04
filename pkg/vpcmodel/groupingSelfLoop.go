@@ -366,15 +366,15 @@ func listOfUniqueEndpoints(oldGroupingSrcOrDst map[string][]*groupedConnLine, sr
 			}
 			if _, isSliceEndpoints := endPointInKey.(*groupedEndpointsElems); isSliceEndpoints {
 				for _, endpoint := range *endPointInKey.(*groupedEndpointsElems) {
-					if _, ok := setOfNames[endpoint.Name()]; !ok { // was endpoint added already?
+					if _, ok := setOfNames[endpoint.UID()]; !ok { // was endpoint added already?
 						listOfEndpoints = append(listOfEndpoints, endpoint)
-						setOfNames[endpoint.Name()] = struct{}{}
+						setOfNames[endpoint.UID()] = struct{}{}
 					}
 				}
 			} else { // endpoint is Node or NodeSet
-				if _, ok := setOfNames[endPointInKey.Name()]; !ok { // was endpoint added already?
+				if _, ok := setOfNames[endPointInKey.UID()]; !ok { // was endpoint added already?
 					listOfEndpoints = append(listOfEndpoints, endPointInKey)
-					setOfNames[endPointInKey.Name()] = struct{}{}
+					setOfNames[endPointInKey.UID()] = struct{}{}
 				}
 			}
 		}
