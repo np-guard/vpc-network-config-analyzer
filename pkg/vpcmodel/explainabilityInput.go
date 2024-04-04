@@ -120,7 +120,7 @@ func (configsMap MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string)
 	case 0:
 		return noMatchErr(srcFoundSomeCfg, dstFoundSomeCfg, errMsgInternalNoConnectedVSI, errMsgInternalNotWithinSubnet,
 			errMsgNoValidSrc, errMsgNoValidDst)
-	default: // len(configsWithSrcDstNode) > 1: src and dst found in more than one VPC configs - error
+	default: // len(configsWithSrcDstNode) > 1: src and dst found in more than one VPC configs
 		return configsMap.matchMoreThanOneCfg(src, dst, configsWithSrcDstNode)
 	}
 	return nil, nil, nil, noInternalIP, nil
@@ -168,6 +168,7 @@ func (configsMap MultipleVPCConfigs) matchMoreThanOneCfg(src, dst string,
 		}
 	}
 	if singleVpcMatched == "" || moreThanOneSingleVpc {
+		// the vsis are in more than one multiVPC config; lists all the configs it is in for the error msg
 		matchConfigs := make([]string, len(configsWithSrcDstNode))
 		i := 0
 		for cfgID := range configsWithSrcDstNode {
