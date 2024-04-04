@@ -20,7 +20,7 @@ Usage of vpc-network-config-analyzer:
   -debug
         Run in debug mode
   -dst string
-        Destination endpoint for explanation; can be specified as a VSI name/CRN or an internal/external IP-address/CIDR
+        Destination endpoint for explanation; can be specified as a VSI name/CRN or an internal/external IP-address/CIDRVSI name can be specified as <vsi-name> or  <vpc-name>/<vsi-name>
   -dst-max-port int
         Maximum destination port for connection description (default 65535)
   -dst-min-port int
@@ -44,15 +44,15 @@ Usage of vpc-network-config-analyzer:
   -resource-group string
         Resource group id or name from which to collect resources
   -src string
-        Source endpoint for explanation; can be specified as a VSI name/CRN or an internal/external IP-address/CIDR
+        Source endpoint for explanation; can be specified as a VSI name/CRN or an internal/external IP-address/CIDRVSI name can be specified as <vsi-name> or  <vpc-name>/<vsi-name>
   -src-max-port int
         Maximum source port for connection description (default 65535)
   -src-min-port int
         Minimum source port for connection description (default 1)
   -version
         Prints the release version number
-  -vpc string
-        CRN of the VPC to analyze
+  -vpc value
+        CRNs of the VPCs to analyze
   -vpc-config string
         Required. File path to input config
   -vpc-config-second string
