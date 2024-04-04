@@ -211,6 +211,28 @@ func updateFilteredOutNetworkInterfacesUIDs(instance *datamodel.Instance, filter
 	}
 }
 
+func newNetworkInterface(name, uid, zone, address, vsi string, vpc vpcmodel.VPCResourceIntf) (*NetworkInterface, error) {
+	intfNode := &NetworkInterface{
+		VPCResource: vpcmodel.VPCResource{
+			ResourceName: name,
+			ResourceUID:  uid,
+			ResourceType: ResourceTypeNetworkInterface,
+			Zone:         zone,
+			VPCRef:       vpc,
+			Region:       vpc.RegionName(),
+		},
+		InternalNode: vpcmodel.InternalNode{
+			AddressStr: address,
+		},
+		vsi: vsi,
+	}
+
+	if err := intfNode.SetIPBlockFromAddress(); err != nil {
+		return nil, err
+	}
+	return intfNode, nil
+}
+
 func getInstancesConfig(
 	instanceList []*datamodel.Instance,
 	subnetNameToNetIntf map[string][]*NetworkInterface,
@@ -248,22 +270,8 @@ func getInstancesConfig(
 		for j := range instance.NetworkInterfaces {
 			netintf := instance.NetworkInterfaces[j]
 			// netintf has no CRN, thus using its ID for ResourceUID
-			intfNode := &NetworkInterface{
-				VPCResource: vpcmodel.VPCResource{
-					ResourceName: *netintf.Name,
-					ResourceUID:  *netintf.ID,
-					ResourceType: ResourceTypeNetworkInterface,
-					Zone:         *instance.Zone.Name,
-					VPCRef:       vpc,
-					Region:       vpc.RegionName(),
-				},
-				InternalNode: vpcmodel.InternalNode{
-					AddressStr: *netintf.PrimaryIP.Address,
-				},
-				vsi: *instance.Name,
-			}
-
-			if err := intfNode.SetIPBlockFromAddress(); err != nil {
+			intfNode, err := newNetworkInterface(*netintf.Name, *netintf.ID, *instance.Zone.Name, *netintf.PrimaryIP.Address, *instance.Name, vpc)
+			if err != nil {
 				return err
 			}
 			res[vpcUID].Nodes = append(res[vpcUID].Nodes, intfNode)
@@ -277,6 +285,27 @@ func getInstancesConfig(
 		}
 	}
 	return nil
+}
+
+func newSubnet(name, uid, zone, cidr string, vpc vpcmodel.VPCResourceIntf) (*Subnet, error) {
+	subnetNode := &Subnet{
+		VPCResource: vpcmodel.VPCResource{
+			ResourceName: name,
+			ResourceUID:  uid,
+			Zone:         zone,
+			ResourceType: ResourceTypeSubnet,
+			VPCRef:       vpc,
+			Region:       vpc.RegionName(),
+		},
+		cidr: cidr,
+	}
+
+	cidrIPBlock, err := ipblock.FromCidr(subnetNode.cidr)
+	if err != nil {
+		return nil, err
+	}
+	subnetNode.ipblock = cidrIPBlock
+	return subnetNode, nil
 }
 
 func getSubnetsConfig(
@@ -300,27 +329,15 @@ func getSubnetsConfig(
 		if err != nil {
 			return nil, err
 		}
-		subnetNode := &Subnet{
-			VPCResource: vpcmodel.VPCResource{
-				ResourceName: *subnet.Name,
-				ResourceUID:  *subnet.CRN,
-				Zone:         *subnet.Zone.Name,
-				ResourceType: ResourceTypeSubnet,
-				VPCRef:       vpc,
-				Region:       vpc.RegionName(),
-			},
-			cidr: *subnet.Ipv4CIDRBlock,
-		}
 
-		cidrIPBlock, err := ipblock.FromCidr(subnetNode.cidr)
+		subnetNode, err := newSubnet(*subnet.Name, *subnet.CRN, *subnet.Zone.Name, *subnet.Ipv4CIDRBlock, vpc)
 		if err != nil {
 			return nil, err
 		}
-		subnetNode.ipblock = cidrIPBlock
 		if vpcInternalAddressRange[vpcUID] == nil {
-			vpcInternalAddressRange[vpcUID] = cidrIPBlock
+			vpcInternalAddressRange[vpcUID] = subnetNode.ipblock
 		} else {
-			vpcInternalAddressRange[vpcUID] = vpcInternalAddressRange[vpcUID].Union(cidrIPBlock)
+			vpcInternalAddressRange[vpcUID] = vpcInternalAddressRange[vpcUID].Union(subnetNode.ipblock)
 		}
 		res[vpcUID].Subnets = append(res[vpcUID].Subnets, subnetNode)
 		if err := addZone(*subnet.Zone.Name, vpcUID, res); err != nil {
@@ -363,6 +380,24 @@ func getSubnetsCidrs(subnets []*Subnet) []string {
 	return res
 }
 
+func newPGW(pgwName, pgwCRN, pgwZone string, pgwToSubnet map[string][]*Subnet, vpc *VPC) *PublicGateway {
+	srcNodes := getSubnetsNodes(pgwToSubnet[pgwName])
+	return &PublicGateway{
+		VPCResource: vpcmodel.VPCResource{
+			ResourceName: pgwName,
+			ResourceUID:  pgwCRN,
+			Zone:         pgwZone,
+			ResourceType: ResourceTypePublicGateway,
+			VPCRef:       vpc,
+		},
+		cidr:       "",
+		src:        srcNodes,
+		srcSubnets: pgwToSubnet[pgwName],
+		subnetCidr: getSubnetsCidrs(pgwToSubnet[pgwName]),
+		vpc:        vpc,
+	} // TODO: get cidr from fip of the pgw
+}
+
 func getPgwConfig(
 	res vpcmodel.MultipleVPCConfigs,
 	rc *datamodel.ResourcesContainerModel,
@@ -378,27 +413,12 @@ func getPgwConfig(
 			fmt.Printf("warning: public gateway %s does not have any attached subnet, ignoring this pgw\n", pgwName)
 			continue
 		}
-		srcNodes := getSubnetsNodes(pgwToSubnet[pgwName])
 		vpcUID := *pgw.VPC.CRN
 		vpc, err := getVPCObjectByUID(res, vpcUID)
 		if err != nil {
 			return err
 		}
-		routerPgw := &PublicGateway{
-			VPCResource: vpcmodel.VPCResource{
-				ResourceName: *pgw.Name,
-				ResourceUID:  *pgw.CRN,
-				Zone:         *pgw.Zone.Name,
-				ResourceType: ResourceTypePublicGateway,
-				VPCRef:       vpc,
-				Region:       vpc.RegionName(),
-			},
-			cidr:       "",
-			src:        srcNodes,
-			srcSubnets: pgwToSubnet[pgwName],
-			subnetCidr: getSubnetsCidrs(pgwToSubnet[pgwName]),
-			vpc:        vpc,
-		} // TODO: get cidr from fip of the pgw
+		routerPgw := newPGW(*pgw.Name, *pgw.CRN, *pgw.Zone.Name, pgwToSubnet, vpc)
 		res[vpcUID].RoutingResources = append(res[vpcUID].RoutingResources, routerPgw)
 		res[vpcUID].UIDToResource[routerPgw.ResourceUID] = routerPgw
 		err = addZone(*pgw.Zone.Name, vpcUID, res)
@@ -416,6 +436,20 @@ func ignoreFIPWarning(fipName, details string) string {
 func warnSkippedFip(filteredOutUIDs map[string]bool, targetUID string, fip *datamodel.FloatingIP) {
 	if !filteredOutUIDs[targetUID] {
 		fmt.Printf("warning: skip fip %s - could not find attached network interface\n", *fip.Name)
+	}
+}
+
+func newFIP(fipName, fipCRN, fipZone, fipAddress string, vpc *VPC, srcNodes []vpcmodel.Node) *FloatingIP {
+	return &FloatingIP{
+		VPCResource: vpcmodel.VPCResource{
+			ResourceName: fipName,
+			ResourceUID:  fipCRN,
+			Zone:         fipZone,
+			ResourceType: ResourceTypeFloatingIP,
+			VPCRef:       vpc,
+			Region:       vpc.RegionName(),
+		},
+		cidr: fipAddress, src: srcNodes,
 	}
 }
 
@@ -471,16 +505,7 @@ func getFipConfig(
 			continue // skip fip because of selected vpc to analyze
 		}
 
-		routerFip := &FloatingIP{
-			VPCResource: vpcmodel.VPCResource{
-				ResourceName: *fip.Name,
-				ResourceUID:  *fip.CRN,
-				Zone:         *fip.Zone.Name,
-				ResourceType: ResourceTypeFloatingIP,
-				VPCRef:       vpc,
-				Region:       vpc.RegionName(),
-			},
-			cidr: *fip.Address, src: srcNodes}
+		routerFip := newFIP(*fip.Name, *fip.CRN, *fip.Zone.Name, *fip.Address, vpc, srcNodes)
 		res[vpcUID].RoutingResources = append(res[vpcUID].RoutingResources, routerFip)
 		res[vpcUID].UIDToResource[routerFip.ResourceUID] = routerFip
 
@@ -506,6 +531,28 @@ func getVPCAddressPrefixes(vpc *datamodel.VPC) (res []string) {
 	return res
 }
 
+func newVPC(name, uid, region string, ap []string, regionToStructMap map[string]*Region) (vpcNodeSet *VPC, err error) {
+	vpcNodeSet = &VPC{
+		VPCResource: vpcmodel.VPCResource{
+			ResourceName: name,
+			ResourceUID:  uid,
+			ResourceType: ResourceTypeVPC,
+			Region:       region,
+		},
+		nodes:           []vpcmodel.Node{},
+		zones:           map[string]*Zone{},
+		addressPrefixes: ap,
+		region:          getRegionByName(region, regionToStructMap),
+	}
+
+	vpcNodeSet.addressPrefixesIPBlock, err = ipblock.FromCidrList(ap)
+	if err != nil {
+		return nil, err
+	}
+	vpcNodeSet.VPCRef = vpcNodeSet
+	return vpcNodeSet, nil
+}
+
 func getVPCconfig(rc *datamodel.ResourcesContainerModel,
 	res vpcmodel.MultipleVPCConfigs,
 	skipByVPC map[string]bool,
@@ -514,20 +561,11 @@ func getVPCconfig(rc *datamodel.ResourcesContainerModel,
 		if skipByVPC[*vpc.CRN] {
 			continue // skip vpc not specified to analyze
 		}
-		vpcName := *vpc.Name
-		vpcNodeSet := &VPC{
-			VPCResource: vpcmodel.VPCResource{
-				ResourceName: vpcName,
-				ResourceUID:  *vpc.CRN,
-				ResourceType: ResourceTypeVPC,
-				Region:       vpc.Region,
-			},
-			nodes:           []vpcmodel.Node{},
-			zones:           map[string]*Zone{},
-			addressPrefixes: getVPCAddressPrefixes(vpc),
-			region:          getRegionByName(vpc.Region, regionToStructMap),
+
+		vpcNodeSet, err := newVPC(*vpc.Name, *vpc.CRN, vpc.Region, getVPCAddressPrefixes(vpc), regionToStructMap)
+		if err != nil {
+			return err
 		}
-		vpcNodeSet.VPCRef = vpcNodeSet
 		newVPCConfig := NewEmptyVPCConfig()
 		newVPCConfig.UIDToResource[vpcNodeSet.ResourceUID] = vpcNodeSet
 		newVPCConfig.VPC = vpcNodeSet
