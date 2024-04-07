@@ -193,7 +193,7 @@ func (configsMap MultipleVPCConfigs) listNamesCfg(configsWithSrcDstNode map[stri
 		i++
 	}
 	sort.Strings(matchConfigs)
-	return strings.Join(matchConfigs, ", ")
+	return strings.Join(matchConfigs, comma)
 }
 
 // returns list of tgw in vpcs of configsWithSrcDstNodeMultiVpc
@@ -212,7 +212,7 @@ func (configsMap MultipleVPCConfigs) listNamesCrossVpcRouters(
 		i++
 	}
 	sort.Strings(crossVpcRouters)
-	return strings.Join(crossVpcRouters, ", "), nil
+	return strings.Join(crossVpcRouters, comma), nil
 }
 
 // GetConnectionSet TODO: handle also input ICMP properties (type, code) as input args
