@@ -487,6 +487,14 @@ var explainTests = []*vpcGeneralTest{
 		EDst:        "vsi31-ky", // test-vpc3-ky
 		format:      vpcmodel.Debug,
 	},
+	{
+		name:        "multiVPCSameNamesCrossVPC",
+		inputConfig: "multiVpc_larger_example_dup_names",
+		ESrc:        "test-vpc0-ky/vsi1-ky",
+		EDst:        "test-vpc1-ky/vsi1-ky",
+		format:      vpcmodel.Debug,
+	},
+	// todo: fix and uncomment
 	//{
 	//	name:        "multiVPCSameNamesCrossVPC",
 	//	inputConfig: "multiVpc_larger_example_dup_names",
