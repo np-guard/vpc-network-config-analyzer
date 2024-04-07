@@ -31,11 +31,11 @@ func (e *ExplanationArgs) Dst() string {
 // consts for managing errors from the single vpc context in the global, multi-vpc, context.
 // error are prioritized: the larger the error, the higher its severity
 const (
-	noErr                        = iota
-	noValidInputErr              // string does not represent a valid input w.r.t. this config - wait until we go over all vpcs
-	internalNoConnectedVSI       // internal address is within vpc config's subnet addr but not connected to vsi
-	internalNotWithinSubnetsAddr // internal address with not within vpc config's subnet addr - wait until we go over all vpcs
-	fatalErr                     // fatal error that implies immediate termination (do not wait until we go over all vpcs)
+	noErr                       = iota
+	noValidInputErr             // string does not represent a valid input w.r.t. this config - wait until we go over all vpcs
+	internalNoConnectedVSI      // internal address is within vpc config's subnet addr but not connected to vsi
+	internalNotWithinAddrPrefix // internal address with not within vpc config's address prefix - wait until we go over all vpcs
+	fatalErr                    // fatal error that implies immediate termination (do not wait until we go over all vpcs)
 )
 
 const noValidInputMsg = "does not represent a legal IP address, a legal CIDR or a VSI name"
@@ -97,7 +97,7 @@ func (configsMap MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string)
 			switch {
 			case errType == fatalErr:
 				return configsMap[cfgID], nil, nil, noInternalIP, err
-			case errType == internalNotWithinSubnetsAddr:
+			case errType == internalNotWithinAddrPrefix:
 				errMsgInternalNotWithinSubnet = err
 			case errType == internalNoConnectedVSI:
 				errMsgInternalNoConnectedVSI = err
@@ -124,7 +124,7 @@ func (configsMap MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string)
 	return nil, nil, nil, noInternalIP, nil
 }
 
-// no match for both src and dst in any of the cfgs: internalNoConnectedVSI > internalNotWithinSubnetsAddr > noValidInputEr
+// no match for both src and dst in any of the cfgs: internalNoConnectedVSI > internalNotWithinAddrPrefix > noValidInputEr
 // prioritize err msg for an input (src/dst) not found in any cfg; if both prioritize src err msg
 func noMatchErr(srcFoundSomeCfg, dstFoundSomeCfg bool, errMsgInternalNoConnectedVSI, errMsgInternalNotWithinSubnet,
 	errMsgNoValidSrc, errMsgNoValidDst error) (vpcConfig *VPCConfig,
@@ -327,12 +327,12 @@ func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *ipblock.I
 		if !inputIPBlock.ContainedIn(vpcAP) {
 			errMsgPrefix := fmt.Sprintf("internal address %s not within", ipOrCidr)
 			if !isMultiVPCConfig {
-				return nil, false, internalNotWithinSubnetsAddr,
-					fmt.Errorf("%s the vpc %s subnets' address range %s",
+				return nil, false, internalNotWithinAddrPrefix,
+					fmt.Errorf("%s the vpc's %s address prefix %s",
 						errMsgPrefix, c.VPC.Name(), vpcAP.ToIPRanges())
 			}
-			return nil, false, internalNotWithinSubnetsAddr,
-				fmt.Errorf("%s any of the VPC's subnets' address range", errMsgPrefix)
+			return nil, false, internalNotWithinAddrPrefix,
+				fmt.Errorf("%s any of the VPC's address prefix", errMsgPrefix)
 		}
 	}
 	// 4.
