@@ -25,9 +25,12 @@ func explainHeader(explanation *Explanation) string {
 	}
 	srcNetworkInterfaces := listNetworkInterfaces(explanation.srcNetworkInterfacesFromIP)
 	dstNetworkInterfaces := listNetworkInterfaces(explanation.dstNetworkInterfacesFromIP)
-	header1 := fmt.Sprintf("Connectivity explanation%s between %s%s and %s%s within %v",
-		connStr, explanation.src, srcNetworkInterfaces, explanation.dst, dstNetworkInterfaces,
-		explanation.c.VPC.Name())
+	header1 := fmt.Sprintf("Connectivity explanation%s between %s%s and %s%s",
+		connStr, explanation.src, srcNetworkInterfaces, explanation.dst, dstNetworkInterfaces)
+	// communication within a single vpc
+	if explanation.c != nil && !explanation.c.IsMultipleVPCsConfig {
+		header1 += fmt.Sprintf(" within %v", explanation.c.VPC.Name())
+	}
 	header2 := strings.Repeat("=", len(header1))
 	return header1 + newLine + header2 + doubleNL
 }
@@ -47,6 +50,9 @@ func listNetworkInterfaces(nodes []Node) string {
 
 // String main printing function for the Explanation struct - returns a string with the explanation
 func (explanation *Explanation) String(verbose bool) string {
+	if explanation.c == nil { // no VPCConfig - missing cross-VPC router (tgw)
+		return explainMissingCrossVpcRouter(explanation.src, explanation.dst, explanation.connQuery)
+	}
 	linesStr := make([]string, len(explanation.groupedLines))
 	groupedLines := explanation.groupedLines
 	for i, line := range groupedLines {
@@ -71,6 +77,13 @@ func (details *rulesAndConnDetails) String(c *VPCConfig, verbose bool, connQuery
 			srcDstDetails.actualMergedRules)
 	}
 	return resStr, nil
+}
+
+// missing cross vpc router
+// in this case there is no *VPCConfig we can work with, so this case is treated separately
+func explainMissingCrossVpcRouter(src, dst string, connQuery *connection.Set) string {
+	return fmt.Sprintf("%v\nconnection blocked since src and dst of different VPCs with no transit gateway in between",
+		noConnectionHeader(src, dst, connQuery)+newLine)
 }
 
 // prints a single line of <src, dst>. Called either with grouping results or from the original struct before grouping
@@ -130,9 +143,6 @@ func explainPerCaseStr(src, dst EndpointElem, externalRouter, crossVpcRouter Rou
 	noConnection, resourceEffectHeader, path, details string) string {
 	headerPlusPath := resourceEffectHeader + path
 	switch {
-	case crossVpcRouterRequired(src, dst) && crossVpcRouter == nil:
-		return fmt.Sprintf("%v\nconnection blocked since src, dst of different VPCs but no transit gateway is defined"+
-			doubleNLWithVars, noConnection, headerPlusPath, details)
 	case crossVpcRouterRequired(src, dst) && crossVpcRouter != nil && crossVpcConnection.IsEmpty():
 		return fmt.Sprintf("%v\nconnection blocked since transit gateway denys route between src and dst"+
 			doubleNLWithVars, noConnection, headerPlusPath, details)

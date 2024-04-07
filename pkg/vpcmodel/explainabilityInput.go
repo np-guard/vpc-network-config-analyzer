@@ -160,8 +160,8 @@ func noMatchErr(srcFoundSomeCfg, dstFoundSomeCfg bool, errMsgInternalNoConnected
 			return nil, nil, nil, noInternalIP, errMsgNoValidSrc
 		case !dstFoundSomeCfg:
 			return nil, nil, nil, noInternalIP, errMsgNoValidDst
-		default: // src found some cfg, dst found some cfg but not in the same cfg
-			return nil, nil, nil, noInternalIP, errMsgNoValidSrc
+		default: // src found some cfg, dst found some cfg but not in the same cfg: input valid (missing tgw)
+			return nil, nil, nil, noInternalIP, nil
 		}
 	}
 }
