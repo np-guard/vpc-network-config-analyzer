@@ -142,27 +142,27 @@ func (configsMap MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string)
 	return nil, nil, nil, noInternalIP, nil
 }
 
-// no match for both src and dst in any of the cfgs: internalNoConnectedVSI > internalNotWithinSubnetsAddr > noValidInputEr
+// no match for both src and dst in any of the cfgs:
+// valid input but no cross vpc router > internalNoConnectedVSI > internalNotWithinSubnetsAddr > noValidInputEr
 // prioritize err msg for an input (src/dst) not found in any cfg; if both prioritize src err msg
 func noMatchErr(srcFoundSomeCfg, dstFoundSomeCfg bool, errMsgInternalNoConnectedVSI, errMsgInternalNotWithinSubnet,
 	errMsgNoValidSrc, errMsgNoValidDst error) (vpcConfig *VPCConfig,
 	srcNodes, dstNodes []Node, isSrcDstInternalIP srcDstInternalAddr, err error) {
 	noInternalIP := srcDstInternalAddr{false, false}
 	switch {
+	// src found some cfg, dst found some cfg but not in the same cfg: input valid (missing tgw)
+	case srcFoundSomeCfg && dstFoundSomeCfg:
+		return nil, nil, nil, noInternalIP, nil
 	case errMsgInternalNoConnectedVSI != nil:
 		return nil, nil, nil, noInternalIP, errMsgInternalNoConnectedVSI
 	case errMsgInternalNotWithinSubnet != nil:
 		return nil, nil, nil, noInternalIP, errMsgInternalNotWithinSubnet
+	case !srcFoundSomeCfg:
+		return nil, nil, nil, noInternalIP, errMsgNoValidSrc
+	case !dstFoundSomeCfg:
+		return nil, nil, nil, noInternalIP, errMsgNoValidDst
 	default:
-		// prioritize err msg for an input (src/dst) not found in any cfg; if both prioritize src err msg
-		switch {
-		case !srcFoundSomeCfg:
-			return nil, nil, nil, noInternalIP, errMsgNoValidSrc
-		case !dstFoundSomeCfg:
-			return nil, nil, nil, noInternalIP, errMsgNoValidDst
-		default: // src found some cfg, dst found some cfg but not in the same cfg: input valid (missing tgw)
-			return nil, nil, nil, noInternalIP, nil
-		}
+		return nil, nil, nil, noInternalIP, errMsgNoValidSrc
 	}
 }
 
