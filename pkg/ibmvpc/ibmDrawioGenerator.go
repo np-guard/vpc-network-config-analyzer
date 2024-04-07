@@ -59,7 +59,7 @@ func (sg *SecurityGroup) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) d
 	// creating the SG treeNodes:
 	tn := drawio.NewSGTreeNode(gen.TreeNode(sg.VPC()).(*drawio.VpcTreeNode), sg.Name())
 	for _, member := range sg.members {
-		// every SG memeber is added as an icon treeNode to the SG treeNode:
+		// every SG member is added as an icon treeNode to the SG treeNode:
 		tn.AddIcon(gen.TreeNode(member).(drawio.IconTreeNodeInterface))
 	}
 	return tn
