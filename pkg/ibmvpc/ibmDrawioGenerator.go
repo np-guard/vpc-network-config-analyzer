@@ -50,13 +50,16 @@ func (s *Subnet) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.Tr
 
 func (sgl *SecurityGroupLayer) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	for _, sg := range sgl.sgList {
+		// creating the SGs TreeNodes:
 		gen.TreeNode(sg)
 	}
 	return nil
 }
 func (sg *SecurityGroup) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
+	// creating the SG treeNodes:
 	tn := drawio.NewSGTreeNode(gen.TreeNode(sg.VPC()).(*drawio.VpcTreeNode), sg.Name())
 	for _, member := range sg.members {
+		// every SG memeber is added as an icon treeNode to the SG treeNode:
 		tn.AddIcon(gen.TreeNode(member).(drawio.IconTreeNodeInterface))
 	}
 	return tn

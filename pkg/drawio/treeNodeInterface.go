@@ -150,13 +150,13 @@ func absoluteGeometry(tn TreeNodeInterface) (x, y int) {
 }
 
 func joinLabels(labels []string, sep string) string {
-	labels2 := []string{}
+	labelsToJoin := []string{}
 	for _, l := range labels {
 		if l != "" {
-			labels2 = append(labels2, l)
+			labelsToJoin = append(labelsToJoin, l)
 		}
 	}
-	return strings.Join(labels2, sep)
+	return strings.Join(labelsToJoin, sep)
 }
 
 func treeNodeName(tn TreeNodeInterface) string {
