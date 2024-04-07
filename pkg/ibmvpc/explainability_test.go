@@ -495,13 +495,13 @@ var explainTests = []*vpcGeneralTest{
 		format:      vpcmodel.Debug,
 	},
 	// todo: fix and uncomment
-	//{
+	// {
 	//	name:        "multiVPCSameNamesCrossVPC",
 	//	inputConfig: "multiVpc_larger_example_dup_names",
 	//	ESrc:        "10.240.3.5",  // vsi3a of test-vpc0-ky
 	//	EDst:        "10.240.12.4", // vsi2 of test-vpc1-ky
 	//	format:      vpcmodel.Debug,
-	//},
+	// },
 }
 
 func TestAll(t *testing.T) {
