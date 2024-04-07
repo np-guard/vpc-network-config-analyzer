@@ -12,7 +12,7 @@ import (
 )
 
 type regionList []string
-type vpcList []string
+type inputConfigFileList []string
 
 func (dp *regionList) String() string {
 	return fmt.Sprintln(*dp)
@@ -23,24 +23,24 @@ func (dp *regionList) Set(region string) error {
 	return nil
 }
 
-func (dp *vpcList) String() string {
+func (dp *inputConfigFileList) String() string {
 	return fmt.Sprintln(*dp)
 }
 
-func (dp *vpcList) Set(region string) error {
+func (dp *inputConfigFileList) Set(region string) error {
 	*dp = append(*dp, region)
 	return nil
 }
 
 // InArgs contains the input arguments for the analyzer
 type InArgs struct {
-	InputConfigFile       *string
+	InputConfigFileList   inputConfigFileList
 	InputSecondConfigFile *string
 	OutputFile            *string
 	OutputFormat          *string
 	AnalysisType          *string
 	Grouping              *bool
-	VPCList               vpcList
+	VPC                   *string
 	Debug                 *bool
 	Version               *bool
 	ESrc                  *string
@@ -58,13 +58,13 @@ type InArgs struct {
 
 // flagHasValue indicates for each input arg if it is expected to have a value in the cli or not
 var flagHasValue = map[string]bool{
-	InputConfigFile:       true,
+	InputConfigFileList:   true,
 	InputSecondConfigFile: true,
 	OutputFile:            true,
 	OutputFormat:          true,
 	AnalysisType:          true,
 	Grouping:              false,
-	VPCList:               true,
+	VPC:                   true,
 	Debug:                 false,
 	Version:               false,
 	ESrc:                  true,
@@ -82,13 +82,13 @@ var flagHasValue = map[string]bool{
 
 const (
 	// flags
-	InputConfigFile       = "vpc-config"
+	InputConfigFileList   = "vpc-config"
 	InputSecondConfigFile = "vpc-config-second"
 	OutputFile            = "output-file"
 	OutputFormat          = "format"
 	AnalysisType          = "analysis-type"
 	Grouping              = "grouping"
-	VPCList               = "vpc"
+	VPC                   = "vpc"
 	Debug                 = "debug"
 	Version               = "version"
 	ESrc                  = "src"
@@ -211,7 +211,7 @@ func parseCmdLine(cmdlineArgs []string) error {
 func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args := InArgs{}
 	flagset := flag.NewFlagSet("vpc-network-config-analyzer", flag.ContinueOnError)
-	args.InputConfigFile = flagset.String(InputConfigFile, "", "Required. File path to input config")
+	flagset.Var(&args.InputConfigFileList, InputConfigFileList, "Required. File path to input config")
 	args.InputSecondConfigFile = flagset.String(InputSecondConfigFile, "", "File path to the 2nd input config; "+
 		"relevant only for analysis-type diff_all_endpoints and for diff_all_subnets")
 	args.OutputFile = flagset.String(OutputFile, "", "File path to store results")
@@ -221,7 +221,7 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 		"Supported analysis types:\n"+getSupportedAnalysisTypesMapString())
 	args.Grouping = flagset.Bool(Grouping, false, "Whether to group together src/dst entries with identical connectivity\n"+
 		"Does not support single_subnet, diff_all_endpoints and diff_all_subnets analysis-types and json output format")
-	flagset.Var(&args.VPCList, VPCList, "CRNs of the VPCs to analyze")
+	args.VPC = flagset.String(VPC, "", "CRNs of the VPCs to analyze")
 	args.Debug = flagset.Bool(Debug, false, "Run in debug mode")
 	args.Version = flagset.Bool(Version, false, "Prints the release version number")
 	args.ESrc = flagset.String(ESrc, "", "Source "+srcDstUsage)
@@ -352,11 +352,11 @@ func invalidArgsExplainMode(args *InArgs, flagset *flag.FlagSet) error {
 }
 
 func invalidArgsConfigFile(args *InArgs, flagset *flag.FlagSet) error {
-	if !*args.Version && (args.InputConfigFile == nil || *args.InputConfigFile == "") && (args.Provider == nil || *args.Provider == "") {
+	if !*args.Version && len(args.InputConfigFileList) == 0 && (args.Provider == nil || *args.Provider == "") {
 		flagset.PrintDefaults()
 		return fmt.Errorf("missing parameter: either vpc-config flag or provider flag must be specified")
 	}
-	if *args.InputConfigFile != "" && *args.Provider != "" {
+	if len(args.InputConfigFileList) == 0 && *args.Provider != "" {
 		flagset.PrintDefaults()
 		return fmt.Errorf("error in parameters: vpc-config flag and provider flag cannot be specified together")
 	}

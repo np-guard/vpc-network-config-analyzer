@@ -41,12 +41,13 @@ func getRegionByName(regionName string, regionToStructMap map[string]*Region) *R
 	return regionPointer
 }
 
-func filterByVpcResourceGroupAndRegions(rc *datamodel.ResourcesContainerModel, vpcIDs []string, resourceGroup string,
+func filterByVpcResourceGroupAndRegions(rc *datamodel.ResourcesContainerModel, vpcID, resourceGroup string,
 	regions []string) map[string]bool {
 	shouldSkipVpcIds := make(map[string]bool)
 	for _, vpc := range rc.VpcList {
-		if len(vpcIDs) > 0 && !slices.Contains(vpcIDs, *vpc.CRN) {
+		if vpcID != "" && *vpc.CRN != vpcID {
 			shouldSkipVpcIds[*vpc.CRN] = true
+			continue
 		}
 		if resourceGroup != "" && *vpc.ResourceGroup.ID != resourceGroup && *vpc.ResourceGroup.Name != resourceGroup {
 			shouldSkipVpcIds[*vpc.CRN] = true
@@ -61,7 +62,7 @@ func filterByVpcResourceGroupAndRegions(rc *datamodel.ResourcesContainerModel, v
 
 // VPCConfigsFromResources returns a map from VPC UID (string) to its corresponding VPCConfig object,
 // containing the parsed resources in the relevant model objects
-func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcIDs []string, resourceGroup string, regions []string, debug bool) (
+func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resourceGroup string, regions []string, debug bool) (
 	vpcmodel.MultipleVPCConfigs, error) {
 	res := vpcmodel.MultipleVPCConfigs{}          // map from VPC UID to its config
 	filteredOut := map[string]bool{}              // store networkInterface UIDs filtered out by skipByVPC
@@ -70,7 +71,7 @@ func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcIDs []str
 
 	// map to filter resources, if certain VPC, resource-group or region list to analyze is specified,
 	// skip resources configured outside that VPC
-	shouldSkipVpcIds := filterByVpcResourceGroupAndRegions(rc, vpcIDs, resourceGroup, regions)
+	shouldSkipVpcIds := filterByVpcResourceGroupAndRegions(rc, vpcID, resourceGroup, regions)
 
 	err = getVPCconfig(rc, res, shouldSkipVpcIds, regionToStructMap)
 	if err != nil {

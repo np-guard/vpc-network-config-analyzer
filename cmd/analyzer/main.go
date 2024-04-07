@@ -83,14 +83,32 @@ func analysisVPCConfigs(c1, c2 vpcmodel.MultipleVPCConfigs, inArgs *InArgs, outF
 	return analysisOut, nil
 }
 
-func vpcConfigsFromFile(fileName string, inArgs *InArgs) (vpcmodel.MultipleVPCConfigs, error) {
-	println(len(inArgs.VPCList))
-	rc, err1 := ibmvpc.ParseResourcesFromFile(fileName)
-	if err1 != nil {
-		return nil, fmt.Errorf("error parsing input vpc resources file: %w", err1)
-	}
+func mergeResourcesContainers(rc1, rc2 *datamodel.ResourcesContainerModel) {
+	rc1.VpcList = append(rc1.VpcList, rc2.VpcList...)
+	rc1.SubnetList = append(rc1.SubnetList, rc2.SubnetList...)
+	rc1.PublicGWList = append(rc1.PublicGWList, rc2.PublicGWList...)
+	rc1.FloatingIPList = append(rc1.FloatingIPList, rc2.FloatingIPList...)
+	rc1.NetworkACLList = append(rc1.NetworkACLList, rc2.NetworkACLList...)
+	rc1.SecurityGroupList = append(rc1.SecurityGroupList, rc2.SecurityGroupList...)
+	rc1.EndpointGWList = append(rc1.EndpointGWList, rc2.EndpointGWList...)
+	rc1.InstanceList = append(rc1.InstanceList, rc2.InstanceList...)
+	rc1.RoutingTableList = append(rc1.RoutingTableList, rc2.RoutingTableList...)
+	rc1.LBList = append(rc1.LBList, rc2.LBList...)
+	rc1.TransitConnectionList = append(rc1.TransitConnectionList, rc2.TransitConnectionList...)
+	rc1.TransitGatewayList = append(rc1.TransitGatewayList, rc2.TransitGatewayList...)
+	rc1.IKSClusters = append(rc1.IKSClusters, rc2.IKSClusters...)
+}
 
-	vpcConfigs, err2 := ibmvpc.VPCConfigsFromResources(rc, inArgs.VPCList, *inArgs.ResourceGroup, inArgs.RegionList, *inArgs.Debug)
+func vpcConfigsFromFile(fileNames []string, inArgs *InArgs) (vpcmodel.MultipleVPCConfigs, error) {
+	mergedRC := datamodel.ResourcesContainerModel{}
+	for _, file := range fileNames {
+		rc, err1 := ibmvpc.ParseResourcesFromFile(file)
+		if err1 != nil {
+			return nil, fmt.Errorf("error parsing input vpc resources file: %w", err1)
+		}
+		mergeResourcesContainers(&mergedRC, rc)
+	}
+	vpcConfigs, err2 := ibmvpc.VPCConfigsFromResources(&mergedRC, *inArgs.VPC, *inArgs.ResourceGroup, inArgs.RegionList, *inArgs.Debug)
 	if err2 != nil {
 		return nil, fmt.Errorf(ErrorFormat, InGenerationErr, err2)
 	}
@@ -110,7 +128,7 @@ func vpcConfigsFromAccount(inArgs *InArgs) (vpcmodel.MultipleVPCConfigs, error) 
 	if !ok {
 		return nil, fmt.Errorf("error casting resources to *datamodel.ResourcesContainerModel type")
 	}
-	vpcConfigs, err := ibmvpc.VPCConfigsFromResources(resources, inArgs.VPCList, *inArgs.ResourceGroup, inArgs.RegionList, *inArgs.Debug)
+	vpcConfigs, err := ibmvpc.VPCConfigsFromResources(resources, *inArgs.VPC, *inArgs.ResourceGroup, inArgs.RegionList, *inArgs.Debug)
 	if err != nil {
 		return nil, err
 	}
@@ -150,6 +168,7 @@ func _main(cmdlineArgs []string) error {
 		fmt.Printf("vpc-network-config-analyzer v%s\n", version.VersionCore)
 		return nil
 	}
+
 	var vpcConfigs1 vpcmodel.MultipleVPCConfigs
 	if *inArgs.Provider != "" {
 		vpcConfigs1, err = vpcConfigsFromAccount(inArgs)
@@ -157,7 +176,7 @@ func _main(cmdlineArgs []string) error {
 			return err
 		}
 	} else {
-		vpcConfigs1, err = vpcConfigsFromFile(*inArgs.InputConfigFile, inArgs)
+		vpcConfigs1, err = vpcConfigsFromFile(inArgs.InputConfigFileList, inArgs)
 		if err != nil {
 			return err
 		}
@@ -165,7 +184,7 @@ func _main(cmdlineArgs []string) error {
 
 	var vpcConfigs2 vpcmodel.MultipleVPCConfigs
 	if inArgs.InputSecondConfigFile != nil && *inArgs.InputSecondConfigFile != "" {
-		vpcConfigs2, err = vpcConfigsFromFile(*inArgs.InputSecondConfigFile, inArgs)
+		vpcConfigs2, err = vpcConfigsFromFile([]string{*inArgs.InputSecondConfigFile}, inArgs)
 		if err != nil {
 			return err
 		}

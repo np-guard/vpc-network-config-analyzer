@@ -139,6 +139,11 @@ func TestMain(t *testing.T) {
 			name: "txt_region_filter_multi_regions",
 			args: "-output-file multi_regions_region_filter.txt -vpc-config ../../pkg/ibmvpc/examples/input/input_multi_regions.json -format txt -region us-east",
 		},
+		// multi vpc configs input
+		{
+			name: "multi_vpc_configs",
+			args: "-output-file multi_vpc_configs.txt -vpc-config ../../pkg/ibmvpc/examples/input/input_acl_testing3.json -vpc-config ../../pkg/ibmvpc/examples/input/input_sg_testing_3.json",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
