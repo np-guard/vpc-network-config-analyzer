@@ -82,7 +82,7 @@ func (details *rulesAndConnDetails) String(c *VPCConfig, verbose bool, connQuery
 // missing cross vpc router
 // in this case there is no *VPCConfig we can work with, so this case is treated separately
 func explainMissingCrossVpcRouter(src, dst string, connQuery *connection.Set) string {
-	return fmt.Sprintf("%v\nconnection blocked since src and dst of different VPCs with no transit gateway in between",
+	return fmt.Sprintf("%vconnection blocked since source and destination in different VPCs with no transit gateway in-between",
 		noConnectionHeader(src, dst, connQuery)+newLine)
 }
 

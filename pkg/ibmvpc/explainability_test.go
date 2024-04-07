@@ -479,23 +479,28 @@ var explainTests = []*vpcGeneralTest{
 		EDst:        "ky-vsi0-subnet11",
 		format:      vpcmodel.Text,
 	},
-	// connection disabled by lack of tgw
-	// todo: two examples of disabled due to lack of tgw
-	// todo: enable after https://github.com/np-guard/vpc-network-config-analyzer/issues/489
-	// {
+	// connection disabled by lack of cross-vpc router (tgw)
+	{
+		name:        "multiVPCNoCrossVPCRouter",
+		inputConfig: "multiVpc_larger_example_dup_names",
+		ESrc:        "vsi1-ky",  // test-vpc0-ky
+		EDst:        "vsi31-ky", // test-vpc3-ky
+		format:      vpcmodel.Debug,
+	},
+	//{
 	//	name:        "multiVPCSameNamesCrossVPC",
 	//	inputConfig: "multiVpc_larger_example_dup_names",
 	//	ESrc:        "10.240.3.5",  // vsi3a of test-vpc0-ky
 	//	EDst:        "10.240.12.4", // vsi2 of test-vpc1-ky
 	//	format:      vpcmodel.Debug,
-	// },
-	// {
+	//},
+	//{
 	//	name:        "multiVPCSameNamesCrossVPC",
 	//	inputConfig: "multiVpc_larger_example_dup_names",
 	//	ESrc:        "test-vpc0-ky/vsi1-ky",
 	//	EDst:        "test-vpc1-ky/vsi1-ky",
 	//	format:      vpcmodel.Debug,
-	// },
+	//},
 }
 
 func TestAll(t *testing.T) {
