@@ -328,11 +328,11 @@ func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *ipblock.I
 			errMsgPrefix := fmt.Sprintf("internal address %s not within", ipOrCidr)
 			if !isMultiVPCConfig {
 				return nil, false, internalNotWithinAddrPrefix,
-					fmt.Errorf("%s the vpc's %s address prefix %s",
+					fmt.Errorf("%s the vpc's %s address prefixes %s",
 						errMsgPrefix, c.VPC.Name(), vpcAP.ToIPRanges())
 			}
 			return nil, false, internalNotWithinAddrPrefix,
-				fmt.Errorf("%s any of the VPC's address prefix", errMsgPrefix)
+				fmt.Errorf("%s any of the VPC's address prefixes", errMsgPrefix)
 		}
 	}
 	// 4.

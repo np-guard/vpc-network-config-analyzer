@@ -511,17 +511,17 @@ func TestInputValiditySingleVPCContext(t *testing.T) {
 	_, err3 := vpcConfigSg1.ExplainConnectivity(existingVsi, cidrInternalNonAP, nil)
 	fmt.Println(err3.Error())
 	require.NotNil(t, err3, "the test should fail since src is cidr containing internal address "+
-		"not within vpc's subnets address range")
-	require.Equal(t, "illegal dst: internal address 10.240.10.4/16 not within the vpc "+
-		"test-vpc1-ky subnets' address range 10.240.10.0-10.240.10.255, 10.240.20.0-10.240.20.255, 10.240.30.0-10.240.30.255",
+		"not within vpc's address prefixes")
+	require.Equal(t, "illegal dst: internal address 10.240.10.4/16 not within the vpc's test-vpc1-ky "+
+		"address prefixes 10.240.10.0-10.240.10.255, 10.240.20.0-10.240.20.255, 10.240.30.0-10.240.30.255",
 		err3.Error())
 	fmt.Println()
 
 	// should fail since internal address not connected to vsi
 	_, err4 := vpcConfigSg1.ExplainConnectivity(internalIPNotVsi, existingVsi, nil)
 	fmt.Println(err4.Error())
-	require.NotNil(t, err4, "the test should fail since dst is an internal address within subnet's "+
-		"address range not connected to a VSI")
+	require.NotNil(t, err4, "the test should fail since dst is an internal address within VPC's address "+
+		"prefix not connected to a VSI")
 	require.Equal(t, "illegal src: no network interfaces are connected to 10.240.10.5 in test-vpc1-ky", err4.Error())
 	fmt.Println()
 
@@ -563,8 +563,8 @@ func TestInputValidityMultipleVPCContext(t *testing.T) {
 	_, err3 := vpcConfigMultiVpc.ExplainConnectivity(existingVsi, cidrInternalNonAP, nil)
 	fmt.Println(err3.Error())
 	require.NotNil(t, err3, "the test should fail since src is cidr containing internal address "+
-		"not within vpc's subnets address range")
-	require.Equal(t, "illegal dst: internal address 10.240.10.4/16 not within any of the VPC's subnets' address range",
+		"not within vpc's address prefixes")
+	require.Equal(t, "illegal dst: internal address 10.240.10.4/16 not within any of the VPC's address prefixes",
 		err3.Error())
 	fmt.Println()
 
