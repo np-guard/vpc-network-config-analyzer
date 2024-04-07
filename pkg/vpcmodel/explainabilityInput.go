@@ -171,21 +171,16 @@ func noMatchErr(srcFoundSomeCfg, dstFoundSomeCfg bool, errMsgInternalNoConnected
 // non match of single config and more than one match of multiple config
 func (configsMap MultipleVPCConfigs) matchMoreThanOneSingleVpcCfgError(src, dst string,
 	configsWithSrcDstNodeSingleVpc, configsWithSrcDstNodeMultiVpc map[string]srcAndDstNodes) error {
-	errorMsgPrefix := "src: %s and dst: %s found in more than one"
-	errorMsgSuffix := "vpcs configs, and it is impossible to determine between them. " +
-		"Please add the name of the config to the src/dst name. Vpc configs in which src and dst were found in: %s"
 	if len(configsWithSrcDstNodeSingleVpc) > 1 { // more than single vpc config
-		matchConfigsStr := configsMap.listNamesGivenSrcDstMap(configsWithSrcDstNodeSingleVpc)
-		errorMsg := errorMsgPrefix + " single " + errorMsgSuffix
-		return fmt.Errorf(errorMsg, src, dst, matchConfigsStr)
+		matchConfigsStr := configsMap.listNamesCfgMap(configsWithSrcDstNodeSingleVpc)
+		return fmt.Errorf("vsis %s and %s found in more than one vpc config - %s - "+
+			"please add the name of the config to the src/dst name", src, dst, matchConfigsStr)
 	}
-	// no single vpc config, more than one multivpc config - not supported yet
-	matchConfigsStr := configsMap.listNamesGivenSrcDstMap(configsWithSrcDstNodeMultiVpc)
-	errorMsg := errorMsgPrefix + " multi " + errorMsgSuffix
-	return fmt.Errorf(errorMsg, src, dst, matchConfigsStr)
+	errorMsg := "todo: get names of tgws"
+	return fmt.Errorf(errorMsg)
 }
 
-func (configsMap MultipleVPCConfigs) listNamesGivenSrcDstMap(configsWithSrcDstNode map[string]srcAndDstNodes) string {
+func (configsMap MultipleVPCConfigs) listNamesCfgMap(configsWithSrcDstNode map[string]srcAndDstNodes) string {
 	i := 0
 	matchConfigs := make([]string, len(configsWithSrcDstNode))
 	for vpcUID := range configsWithSrcDstNode {
@@ -194,7 +189,7 @@ func (configsMap MultipleVPCConfigs) listNamesGivenSrcDstMap(configsWithSrcDstNo
 		i++
 	}
 	sort.Strings(matchConfigs)
-	return strings.Join(matchConfigs, ",")
+	return strings.Join(matchConfigs, ", ")
 }
 
 // GetConnectionSet TODO: handle also input ICMP properties (type, code) as input args

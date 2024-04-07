@@ -691,8 +691,7 @@ func TestInputValidityMultipleVPCContext(t *testing.T) {
 	_, err11 := vpcConfigMultiVpcDupNames.ExplainConnectivity(dupSrcVsi, dupDstVsi, nil)
 	fmt.Println(err11.Error())
 	require.NotNil(t, err11, "the test should fail since the src and dst vsis exists in two vpcs configs")
-	require.Equal(t, "src: vsi1-ky and dst: vsi2-ky found in more than one single vpcs configs, "+
-		"and it is impossible to determine between them. Please add the name of the config to the src/dst name. "+
-		"Vpc configs in which src and dst were found in: test-vpc0-ky,test-vpc1-ky",
+	require.Equal(t, "vsis vsi1-ky and vsi2-ky found in more than one vpc config "+
+		"- test-vpc0-ky, test-vpc1-ky - please add the name of the config to the src/dst name",
 		err11.Error())
 }
