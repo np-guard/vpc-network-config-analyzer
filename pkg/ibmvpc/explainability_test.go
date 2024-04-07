@@ -502,13 +502,6 @@ var explainTests = []*vpcGeneralTest{
 	//	EDst:        "10.240.12.4", // vsi2 of test-vpc1-ky
 	//	format:      vpcmodel.Debug,
 	//},
-	//{
-	//	name:        "multiVPCSameNamesCrossVPC",
-	//	inputConfig: "multiVpc_larger_example_dup_names",
-	//	ESrc:        "test-vpc0-ky/vsi1-ky",
-	//	EDst:        "test-vpc1-ky/vsi1-ky",
-	//	format:      vpcmodel.Debug,
-	//},
 }
 
 func TestAll(t *testing.T) {
