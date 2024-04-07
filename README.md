@@ -51,10 +51,10 @@ Usage of vpc-network-config-analyzer:
         Minimum source port for connection description (default 1)
   -version
         Prints the release version number
-  -vpc value
+  -vpc string
         CRNs of the VPCs to analyze
-  -vpc-config string
-        Required. File path to input config
+  -vpc-config value
+        Required. File paths to input configs
   -vpc-config-second string
         File path to the 2nd input config; relevant only for analysis-type diff_all_endpoints and for diff_all_subnets
 
