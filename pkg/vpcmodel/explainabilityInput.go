@@ -172,15 +172,19 @@ func noMatchErr(srcFoundSomeCfg, dstFoundSomeCfg bool, errMsgInternalNoConnected
 func (configsMap MultipleVPCConfigs) matchMoreThanOneSingleVpcCfgError(src, dst string,
 	configsWithSrcDstNodeSingleVpc, configsWithSrcDstNodeMultiVpc map[string]srcAndDstNodes) error {
 	if len(configsWithSrcDstNodeSingleVpc) > 1 { // more than single vpc config
-		matchConfigsStr := configsMap.listNamesCfgMap(configsWithSrcDstNodeSingleVpc)
+		matchConfigsStr := configsMap.listNamesCfg(configsWithSrcDstNodeSingleVpc)
 		return fmt.Errorf("vsis %s and %s found in more than one vpc config - %s - "+
 			"please add the name of the config to the src/dst name", src, dst, matchConfigsStr)
 	}
-	errorMsg := "todo: get names of tgws"
-	return fmt.Errorf(errorMsg)
+	listNamesCrossVpcRouters, err := configsMap.listNamesCrossVpcRouters((configsWithSrcDstNodeMultiVpc))
+	if err != nil {
+		return err
+	}
+	return fmt.Errorf("src %s and dst %s connected by more than one transit-gateway - %s - "+
+		"this usecase is not supported, yet", src, dst, listNamesCrossVpcRouters)
 }
 
-func (configsMap MultipleVPCConfigs) listNamesCfgMap(configsWithSrcDstNode map[string]srcAndDstNodes) string {
+func (configsMap MultipleVPCConfigs) listNamesCfg(configsWithSrcDstNode map[string]srcAndDstNodes) string {
 	i := 0
 	matchConfigs := make([]string, len(configsWithSrcDstNode))
 	for vpcUID := range configsWithSrcDstNode {
@@ -190,6 +194,25 @@ func (configsMap MultipleVPCConfigs) listNamesCfgMap(configsWithSrcDstNode map[s
 	}
 	sort.Strings(matchConfigs)
 	return strings.Join(matchConfigs, ", ")
+}
+
+// returns list of tgw in vpcs of configsWithSrcDstNodeMultiVpc
+// since the map is of multi-vpc configs (IsMultipleVPCsConfig true) each must have a cross-vpc router (tgw)
+func (configsMap MultipleVPCConfigs) listNamesCrossVpcRouters(
+	configsWithSrcDstNode map[string]srcAndDstNodes) (string, error) {
+	i := 0
+	crossVpcRouters := make([]string, len(configsWithSrcDstNode))
+	for vpcUID := range configsWithSrcDstNode {
+		routingResources := configsMap[vpcUID].RoutingResources
+		if len(routingResources) != 1 {
+			return "", fmt.Errorf("np-guard error: multi-vpc config %s should have a single routing resource, "+
+				"but has %v routing resources", configsMap[vpcUID].VPC.Name(), len(routingResources))
+		}
+		crossVpcRouters[i] = routingResources[0].Name()
+		i++
+	}
+	sort.Strings(crossVpcRouters)
+	return strings.Join(crossVpcRouters, ", "), nil
 }
 
 // GetConnectionSet TODO: handle also input ICMP properties (type, code) as input args
