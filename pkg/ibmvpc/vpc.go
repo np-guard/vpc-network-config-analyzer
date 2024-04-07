@@ -54,7 +54,7 @@ type PrivateIP struct {
 	vpcmodel.VPCResource
 	vpcmodel.InternalNode
 	loadBalancer string
-	original bool
+	original     bool
 }
 
 func (pip *PrivateIP) Name() string {
@@ -224,6 +224,11 @@ func (lb *LoadBalancer) Nodes() []vpcmodel.Node {
 }
 func (lb *LoadBalancer) AddressRange() *ipblock.IPBlock {
 	return nodesAddressRange(lb.nodes)
+}
+func (lb *LoadBalancer)AllowConnectivity(src, dst vpcmodel.Node) bool {
+	_, srcIsPIP := src.(*PrivateIP)
+	_, dstIsPIP := dst.(*PrivateIP)
+	return !srcIsPIP || !dstIsPIP
 }
 
 // we do not need this func, for now it is here since the linter warn that lb.listeners are not in use

@@ -73,6 +73,18 @@ func (c *VPCConfig) shouldConsiderPairForConnectivity(r1, r2 VPCResourceIntf) (b
 	return true, nil
 }
 
+// todo:
+// 1. AllowConnectivity() can be static?!
+// 2. grouping is better without this analysis
+func (c *VPCConfig) shouldConsiderPairWithLBConnectivity(r1, r2 Node) bool {
+	for _, lb := range c.LoadBalancers{
+		if !lb.AllowConnectivity(r1,r2){
+			return false
+		}
+	}
+	return true
+}
+
 // getRoutingResource: gets the routing resource and its conn; currently the conn is either all or none
 // node is associated with either a pgw or a fip;
 // if the relevant network interface has both the parser will keep only the fip.

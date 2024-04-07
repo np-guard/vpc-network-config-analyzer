@@ -95,6 +95,9 @@ func (c *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 		if !considerPair {
 			continue
 		}
+		if !c.shouldConsiderPairWithLBConnectivity(capturedNode, peerNode) {
+			continue
+		}
 		src, dst := switchSrcDstNodes(!isIngress, peerNode, capturedNode)
 
 		// first compute connectivity per layer of filters resources
