@@ -537,6 +537,13 @@ var tests2 = []*vpcGeneralTest{
 		grouping:    true,
 		format:      vpcmodel.DRAWIO,
 	},
+	// grouping test of identical names different resources and thus different UIDs that should not be merged
+	{
+		inputConfig: "sg_testing1_new_dup_subnets_names",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		grouping:    true,
+		format:      vpcmodel.Text,
+	},
 }
 
 var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
