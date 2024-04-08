@@ -639,11 +639,8 @@ func (fip *FloatingIP) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*
 }
 
 func (fip *FloatingIP) RouterDefined(src, dst vpcmodel.Node) bool {
-	if (vpcmodel.HasNode(fip.Sources(), src) && dst.IsExternal()) ||
-		(vpcmodel.HasNode(fip.Sources(), dst) && src.IsExternal()) {
-		return true
-	}
-	return false
+	return (vpcmodel.HasNode(fip.Sources(), src) && dst.IsExternal()) ||
+		(vpcmodel.HasNode(fip.Sources(), dst) && src.IsExternal())
 }
 
 func (fip *FloatingIP) AppliedFiltersKinds() map[string]bool {
@@ -702,10 +699,7 @@ func (pgw *PublicGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf)
 }
 
 func (pgw *PublicGateway) RouterDefined(src, dst vpcmodel.Node) bool {
-	if vpcmodel.HasNode(pgw.Sources(), src) && dst.IsExternal() {
-		return true
-	}
-	return false
+	return  vpcmodel.HasNode(pgw.Sources(), src) && dst.IsExternal()
 }
 
 func (pgw *PublicGateway) AppliedFiltersKinds() map[string]bool {
@@ -718,8 +712,8 @@ func (pgw *PublicGateway) StringPrefixDetails(src, dst vpcmodel.Node, verbose bo
 
 // a tgw prefix filter (for explainability)
 type tgwPrefixFilter struct {
-	tc    *datamodel.TransitConnection
-	index int
+	tc    *datamodel.TransitConnection // the TransitConnection  where this filter is defined 
+	index int  // the index of this prefix filter within the TransitConnection's filters list 
 }
 
 type TransitGateway struct {
@@ -793,12 +787,9 @@ func (tgw *TransitGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf
 }
 
 func (tgw *TransitGateway) RouterDefined(src, dst vpcmodel.Node) bool {
-	// destination node has a transit gateway connection iff a prefix (possibly default) is defined for it
+	// destination node has a transit gateway connection iff a prefix filter (possibly default) is defined for it
 	dstNodeHasTgw := tgw.prefixOfSrcDst(src, dst) != nil
-	if vpcmodel.HasNode(tgw.sourceNodes, src) && dstNodeHasTgw {
-		return true
-	}
-	return false
+	return vpcmodel.HasNode(tgw.sourceNodes, src) && dstNodeHasTgw
 }
 
 // gets a string description of prefix indexed "index" from TransitGateway tgw
@@ -877,8 +868,8 @@ func (tgw *TransitGateway) StringPrefixDetails(src, dst vpcmodel.Node, verbose b
 
 func (tgw *TransitGateway) prefixOfSrcDst(src, dst vpcmodel.Node) *tgwPrefixFilter {
 	// <src, dst> routed by tgw given that source is in the tgw,
-	// and there is a prefix defined for the dst,
-	// the relevant prefix is determined by match of the ap the dest's node is in (including default)
+	// and there is a prefix filter defined for the dst,
+	// the relevant prefix filter is determined by match of the ap the dest's node is in (including default)
 	if vpcmodel.HasNode(tgw.sourceNodes, src) {
 		for routeCIDR, prefix := range tgw.vpcApsPrefixes[dst.VPC().UID()] {
 			if dst.IPBlock().ContainedIn(routeCIDR) {
