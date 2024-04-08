@@ -14,6 +14,8 @@ import (
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////
 
+const minusOne = -1
+
 func getNodeName(name, addr string) string {
 	return fmt.Sprintf("%s[%s]", name, addr)
 }
@@ -812,7 +814,7 @@ func (tgw *TransitGateway) tgwPrefixStr(prefix tgwPrefixFilter) (string, error) 
 	// Array of prefix route filters for a transit gateway connection. This is order dependent with those first in the
 	// array being applied first, and those at the end of the array is applied last, or just before the default.
 	resStr := fmt.Sprintf("transit-connection: %s", *prefix.tc.Name)
-	if prefix.index == -1 { // default
+	if prefix.index == minusOne { // default
 		defaultStr, err := prefixDefaultStr(prefix.tc)
 		if err != nil {
 			return "", err

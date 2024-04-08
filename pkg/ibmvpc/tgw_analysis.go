@@ -159,12 +159,12 @@ func getCIDRPrefixFilter(cidr string, tc *datamodel.TransitConnection) (int, err
 	for i, pf := range tc.PrefixFilters {
 		match, err := prefixLeGeMatch(pf.Prefix, pf.Le, pf.Ge, cidr)
 		if err != nil {
-			return -1, err
+			return minusOne, err
 		}
 		if match {
 			return i, nil
 		}
 	}
 	// no match by pfList -- use default
-	return -1, nil
+	return minusOne, nil
 }
