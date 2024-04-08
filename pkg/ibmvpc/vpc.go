@@ -870,7 +870,7 @@ func (tgw *TransitGateway) StringPrefixDetails(src, dst vpcmodel.Node, verbose b
 	if transitEnablesConn {
 		return noVerboseStr + "allows connection", nil
 	}
-	return noVerboseStr + "denys connection", nil
+	return noVerboseStr + "denies connection", nil
 }
 
 func (tgw *TransitGateway) prefixOfSrcDst(src, dst vpcmodel.Node) *tgwPrefix {
