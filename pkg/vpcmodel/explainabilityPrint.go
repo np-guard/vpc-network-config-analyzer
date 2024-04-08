@@ -73,7 +73,7 @@ func (details *rulesAndConnDetails) String(c *VPCConfig, verbose bool, connQuery
 	return resStr, nil
 }
 
-// prints a single line of <src, dst>. Called either with grouping results or from the original struct before grouping
+// prints a single line of <src, dst>. Called either with grouping results or with the original struct before grouping
 // The printing contains 4 sections:
 // 1. Header describing the query and whether there is a connection. E.g.:
 // * The following connection exists between ky-vsi0-subnet5[10.240.9.4] and ky-vsi0-subnet11[10.240.80.4]: All Connections
