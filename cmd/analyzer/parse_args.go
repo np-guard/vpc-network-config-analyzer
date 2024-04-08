@@ -12,19 +12,30 @@ import (
 )
 
 type regionList []string
+type inputConfigFileList []string
 
-func (dp *regionList) String() string {
-	return fmt.Sprintln(*dp)
+// these functions are required, these types implement the interface flag.Value
+func (rg *regionList) String() string {
+	return fmt.Sprintln(*rg)
 }
 
-func (dp *regionList) Set(region string) error {
-	*dp = append(*dp, region)
+func (rg *regionList) Set(region string) error {
+	*rg = append(*rg, region)
+	return nil
+}
+
+func (c *inputConfigFileList) String() string {
+	return fmt.Sprintln(*c)
+}
+
+func (c *inputConfigFileList) Set(configFile string) error {
+	*c = append(*c, configFile)
 	return nil
 }
 
 // InArgs contains the input arguments for the analyzer
 type InArgs struct {
-	InputConfigFile       *string
+	InputConfigFileList   inputConfigFileList
 	InputSecondConfigFile *string
 	OutputFile            *string
 	OutputFormat          *string
@@ -48,7 +59,7 @@ type InArgs struct {
 
 // flagHasValue indicates for each input arg if it is expected to have a value in the cli or not
 var flagHasValue = map[string]bool{
-	InputConfigFile:       true,
+	InputConfigFileList:   true,
 	InputSecondConfigFile: true,
 	OutputFile:            true,
 	OutputFormat:          true,
@@ -72,7 +83,7 @@ var flagHasValue = map[string]bool{
 
 const (
 	// flags
-	InputConfigFile       = "vpc-config"
+	InputConfigFileList   = "vpc-config"
 	InputSecondConfigFile = "vpc-config-second"
 	OutputFile            = "output-file"
 	OutputFormat          = "format"
@@ -152,7 +163,7 @@ var supportedAnalysisTypesList = []string{
 	explainMode,
 }
 
-const srcDstUsage = "endpoint for explanation; can be specified as a VSI name/CRN or an internal/external IP-address/CIDR" +
+const srcDstUsage = "endpoint for explanation; can be specified as a VSI name/CRN or an internal/external IP-address/CIDR;\n" +
 	"VSI name can be specified as <vsi-name> or  <vpc-name>/<vsi-name>"
 
 func getSupportedAnalysisTypesMapString() string {
@@ -201,7 +212,7 @@ func parseCmdLine(cmdlineArgs []string) error {
 func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args := InArgs{}
 	flagset := flag.NewFlagSet("vpc-network-config-analyzer", flag.ContinueOnError)
-	args.InputConfigFile = flagset.String(InputConfigFile, "", "Required. File path to input config")
+	flagset.Var(&args.InputConfigFileList, InputConfigFileList, "Required. File paths to input configs, can pass multiple config files")
 	args.InputSecondConfigFile = flagset.String(InputSecondConfigFile, "", "File path to the 2nd input config; "+
 		"relevant only for analysis-type diff_all_endpoints and for diff_all_subnets")
 	args.OutputFile = flagset.String(OutputFile, "", "File path to store results")
@@ -223,7 +234,7 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args.EDstMaxPort = flagset.Int64(EDstMaxPort, connection.MaxPort, "Maximum destination port for connection description")
 	args.Provider = flagset.String(Provider, "", "Collect resources from an account in this cloud provider")
 	args.ResourceGroup = flagset.String(ResourceGroup, "", "Resource group id or name from which to collect resources")
-	flagset.Var(&args.RegionList, "region", "Cloud region from which to collect resources")
+	flagset.Var(&args.RegionList, RegionList, "Cloud region from which to collect resources, can pass multiple regions")
 	args.DumpResources = flagset.String(DumpResources, "", "File path to store resources collected from the cloud provider")
 
 	// calling parseCmdLine prior to flagset.Parse to ensure that excessive and unsupported arguments are handled
@@ -342,11 +353,11 @@ func invalidArgsExplainMode(args *InArgs, flagset *flag.FlagSet) error {
 }
 
 func invalidArgsConfigFile(args *InArgs, flagset *flag.FlagSet) error {
-	if !*args.Version && (args.InputConfigFile == nil || *args.InputConfigFile == "") && (args.Provider == nil || *args.Provider == "") {
+	if !*args.Version && len(args.InputConfigFileList) == 0 && (args.Provider == nil || *args.Provider == "") {
 		flagset.PrintDefaults()
 		return fmt.Errorf("missing parameter: either vpc-config flag or provider flag must be specified")
 	}
-	if *args.InputConfigFile != "" && *args.Provider != "" {
+	if len(args.InputConfigFileList) > 0 && *args.Provider != "" {
 		flagset.PrintDefaults()
 		return fmt.Errorf("error in parameters: vpc-config flag and provider flag cannot be specified together")
 	}

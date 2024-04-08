@@ -39,7 +39,8 @@ const (
 )
 
 type vpcGeneralTest struct {
-	name           string                            // test name
+	name string // test name
+	// todo: support multiple configs input
 	inputConfig    string                            // name (relative path) of input config file (json)
 	inputConfig2nd string                            // 2nd input file for diff
 	expectedOutput map[vpcmodel.OutputUseCase]string // expected output file path
