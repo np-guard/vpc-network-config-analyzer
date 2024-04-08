@@ -56,7 +56,7 @@ Usage of vpc-network-config-analyzer:
   -vpc string
         CRN of the VPC to analyze
   -vpc-config value
-        Required. File paths to input configs, can pass multiple configs
+        Required. File paths to input configs, can pass multiple config files
   -vpc-config-second string
         File path to the 2nd input config; relevant only for analysis-type diff_all_endpoints and for diff_all_subnets
 
