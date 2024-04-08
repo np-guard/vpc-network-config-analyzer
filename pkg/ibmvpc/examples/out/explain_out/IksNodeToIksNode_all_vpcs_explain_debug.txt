@@ -1,0 +1,31 @@
+Connectivity explanation between 192.168.8.4 (iks-node[192.168.8.4]) and 192.168.4.4 (iks-node[192.168.4.4]) within ky-test-vpc
+===============================================================================================================================
+
+The following connection exists between iks-node[192.168.8.4] and iks-node[192.168.4.4]: All Connections
+Path:
+	iks-node[192.168.8.4] -> security group[kube-clusterid:1, ky-test-default-sg] -> ky-test-private-subnet-3 -> network ACL ky-test-private-2-others-acl -> 
+	network ACL ky-test-private-2-others-acl -> ky-test-private-subnet-2 -> security group[kube-clusterid:1, ky-test-default-sg] -> iks-node[192.168.4.4]
+
+Details:
+~~~~~~~~
+Egress:
+security group kube-clusterid:1 allows connection with the following allow rules
+	index: 8, direction: outbound, protocol: all, cidr: 192.168.0.4/32,192.168.4.4/32,192.168.8.4/32,192.168.16.4/32,192.168.20.4/32,192.168.24.4/32,192.168.32.4/32,192.168.36.4/32,192.168.40.4/32
+security group ky-test-default-sg allows connection with the following allow rules
+	index: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0
+network ACL ky-test-private-2-others-acl allows connection with the following allow rules
+	index: 6, direction: outbound , src: 0.0.0.0/0 , dst: 192.168.0.0/20, conn: all, action: allow
+
+Ingress:
+network ACL ky-test-private-2-others-acl allows connection with the following allow rules
+	index: 2, direction: inbound , src: 192.168.0.0/20 , dst: 0.0.0.0/0, conn: all, action: allow
+security group kube-clusterid:1 allows connection with the following allow rules
+	index: 3, direction: inbound,  conns: protocol: tcp,  dstPorts: 30000-32767, cidr: 0.0.0.0/0
+	index: 4, direction: inbound,  conns: protocol: udp,  dstPorts: 30000-32767, cidr: 0.0.0.0/0
+	index: 6, direction: inbound,  conns: protocol: icmp,  icmpType: protocol: ICMP icmp-type: 8, cidr: 0.0.0.0/0
+	index: 7, direction: inbound, protocol: all, cidr: 192.168.0.4/32,192.168.4.4/32,192.168.8.4/32,192.168.16.4/32,192.168.20.4/32,192.168.24.4/32,192.168.32.4/32,192.168.36.4/32,192.168.40.4/32
+security group ky-test-default-sg allows connection with the following allow rules
+	index: 1, direction: inbound, protocol: all, cidr: 192.168.0.4/32,192.168.4.4/32,192.168.8.4/32,192.168.16.4/32,192.168.20.4/32,192.168.24.4/32,192.168.32.4/32,192.168.36.4/32,192.168.40.4/32
+	index: 2, direction: inbound, protocol: all, cidr: 0.0.0.0/0
+------------------------------------------------------------------------------------------------------------------------
+
