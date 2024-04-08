@@ -789,10 +789,7 @@ func (tgw *TransitGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf
 func (tgw *TransitGateway) RouterDefined(src, dst vpcmodel.Node) bool {
 	// destination node has a transit gateway connection iff a prefix filter (possibly default) is defined for it
 	dstNodeHasTgw := tgw.prefixOfSrcDst(src, dst) != nil
-	if vpcmodel.HasNode(tgw.sourceNodes, src) && dstNodeHasTgw {
-		return true
-	}
-	return false
+	return vpcmodel.HasNode(tgw.sourceNodes, src) && dstNodeHasTgw
 }
 
 // gets a string description of prefix indexed "index" from TransitGateway tgw
