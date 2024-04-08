@@ -699,7 +699,7 @@ func (pgw *PublicGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf)
 }
 
 func (pgw *PublicGateway) RouterDefined(src, dst vpcmodel.Node) bool {
-	return  vpcmodel.HasNode(pgw.Sources(), src) && dst.IsExternal()
+	return vpcmodel.HasNode(pgw.Sources(), src) && dst.IsExternal()
 }
 
 func (pgw *PublicGateway) AppliedFiltersKinds() map[string]bool {
@@ -712,8 +712,8 @@ func (pgw *PublicGateway) StringPrefixDetails(src, dst vpcmodel.Node, verbose bo
 
 // a tgw prefix filter (for explainability)
 type tgwPrefixFilter struct {
-	tc    *datamodel.TransitConnection // the TransitConnection  where this filter is defined 
-	index int  // the index of this prefix filter within the TransitConnection's filters list 
+	tc    *datamodel.TransitConnection // the TransitConnection  where this filter is defined
+	index int                          // the index of this prefix filter within the TransitConnection's filters list
 }
 
 type TransitGateway struct {
