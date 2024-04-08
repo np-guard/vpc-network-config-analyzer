@@ -134,7 +134,7 @@ func explainPerCaseStr(src, dst EndpointElem, externalRouter, crossVpcRouter Rou
 		return fmt.Sprintf("%v\nconnection blocked since src, dst of different VPCs but no transit gateway is defined"+
 			doubleNLWithVars, noConnection, headerPlusPath, details)
 	case crossVpcRouterRequired(src, dst) && crossVpcRouter != nil && crossVpcConnection.IsEmpty():
-		return fmt.Sprintf("%v\nconnection blocked since transit gateway denys route between src and dst"+
+		return fmt.Sprintf("%v\nconnection blocked since transit gateway denies route between src and dst"+
 			doubleNLWithVars, noConnection, headerPlusPath, details)
 	case externalRouter == nil && src.IsExternal():
 		return fmt.Sprintf("%v no fip and src is external (fip is required for "+
