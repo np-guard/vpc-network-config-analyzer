@@ -868,7 +868,7 @@ func (tgw *TransitGateway) StringPrefixDetails(src, dst vpcmodel.Node, verbose b
 
 func (tgw *TransitGateway) prefixOfSrcDst(src, dst vpcmodel.Node) *tgwPrefixFilter {
 	// <src, dst> routed by tgw given that source is in the tgw,
-	// and there is a prefix defined for the dst,
+	// and there is a prefix filter defined for the dst,
 	// the relevant prefix is determined by match of the ap the dest's node is in (including default)
 	if vpcmodel.HasNode(tgw.sourceNodes, src) {
 		for routeCIDR, prefix := range tgw.vpcApsPrefixes[dst.VPC().UID()] {
