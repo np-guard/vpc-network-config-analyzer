@@ -79,7 +79,7 @@ func (details *rulesAndConnDetails) String(c *VPCConfig, verbose bool, connQuery
 // * The following connection exists between ky-vsi0-subnet5[10.240.9.4] and ky-vsi0-subnet11[10.240.80.4]: All Connections
 // * No connection between ky-vsi1-subnet20[10.240.128.5] and ky-vsi0-subnet0[10.240.0.5];
 // 2. List of all the different resources effecting the connection and the effect of each. E.g.:
-// cross-vpc-connection: transit-connection local-tg-ky of transit-gateway tg_connection0 denys connection
+// cross-vpc-connection: transit-connection tg_connection0 of transit-gateway local-tg-ky denys connection
 // Egress: security group sg21-ky allows connection; network ACL acl21-ky allows connection
 // Ingress: network ACL acl1-ky allows connection; security group sg1-ky allows connection
 // 3. Connection path description. E.g.:

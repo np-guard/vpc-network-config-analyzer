@@ -866,7 +866,7 @@ func (tgw *TransitGateway) StringPrefixDetails(src, dst vpcmodel.Node, verbose b
 		return fmt.Sprintf("transit gateway %s %s connection with the following prefix\n\t%s\n\n",
 			tgw.Name(), action, tgwRouterFilterDetails), nil
 	}
-	noVerboseStr := fmt.Sprintf("cross-vpc-connection: transit-connection %s of transit-gateway %s ", tgw.Name(), *prefix.tc.Name)
+	noVerboseStr := fmt.Sprintf("cross-vpc-connection: transit-connection %s of transit-gateway %s ", *prefix.tc.Name, tgw.Name())
 	if transitEnablesConn {
 		return noVerboseStr + "allows connection", nil
 	}
