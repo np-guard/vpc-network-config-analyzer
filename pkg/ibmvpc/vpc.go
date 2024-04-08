@@ -639,11 +639,8 @@ func (fip *FloatingIP) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*
 }
 
 func (fip *FloatingIP) RouterDefined(src, dst vpcmodel.Node) bool {
-	if (vpcmodel.HasNode(fip.Sources(), src) && dst.IsExternal()) ||
-		(vpcmodel.HasNode(fip.Sources(), dst) && src.IsExternal()) {
-		return true
-	}
-	return false
+	return (vpcmodel.HasNode(fip.Sources(), src) && dst.IsExternal()) ||
+		(vpcmodel.HasNode(fip.Sources(), dst) && src.IsExternal())
 }
 
 func (fip *FloatingIP) AppliedFiltersKinds() map[string]bool {
