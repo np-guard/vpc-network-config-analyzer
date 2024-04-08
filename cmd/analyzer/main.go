@@ -85,10 +85,10 @@ func analysisVPCConfigs(c1, c2 vpcmodel.MultipleVPCConfigs, inArgs *InArgs, outF
 
 func mergeResourcesContainers(rc1, rc2 *datamodel.ResourcesContainerModel) (*datamodel.ResourcesContainerModel, error) {
 	if rc2 == nil && rc1 != nil {
-		return rc2, nil
+		return rc1, nil
 	}
 	if rc2 != nil && rc1 == nil {
-		return rc1, nil
+		return rc2, nil
 	}
 	if rc2 == nil && rc1 == nil {
 		return nil, fmt.Errorf("error merging input vpc resources files")
