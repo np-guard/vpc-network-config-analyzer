@@ -83,7 +83,7 @@ func sgTreeNodes(sgTn *SGTreeNode) (psg, icons []TreeNodeInterface) {
 }
 
 // lineInfo is a struct with all the treeNodes representing a grouping line:
-// for example, for a connection  A,B -> C,D wi will can have the following on the canvas:
+// for example, for a connection  A,B -> C,D we will have the following on the canvas:
 // A->gp1, B->gp1, gp1->gp2, gp2->C, gp2->D
 // we have a groupSquares for [A,B] and [C,D], these are hold as src and dst.
 // (notice that A,B,C,D are not stored here)
@@ -119,7 +119,8 @@ func getLineInfo(line LineTreeNodeInterface) *lineInfo {
 		info.dstGroupingLines = dst.(*GroupPointTreeNode).groupedIconsConns
 		info.dstGroupingPoint = dst
 	}
-	// if both src and dst are not grouping point, its just a regular line
+	// if both src and dst are not grouping point, its just a regular line, wo any grouping.
+	// in this case, the info struct contains only: line, src, dst, and router.
 	return info
 }
 

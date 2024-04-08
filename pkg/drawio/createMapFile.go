@@ -143,9 +143,6 @@ func orderNodesForTemplate(nodes []TreeNodeInterface) []TreeNodeInterface {
 	}
 	var lines, icons, orderedNodes []TreeNodeInterface
 	squaresBuckets := map[reflect.Type][]TreeNodeInterface{}
-	for _, t := range squareOrders {
-		squaresBuckets[reflect.TypeOf(t).Elem()] = []TreeNodeInterface{}
-	}
 	for _, tn := range nodes {
 		switch {
 		case tn.IsSquare():

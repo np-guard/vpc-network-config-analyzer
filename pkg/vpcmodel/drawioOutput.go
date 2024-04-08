@@ -212,9 +212,11 @@ func (d *DrawioOutputFormatter) createExplanations() []drawio.ExplanationEntry {
 			}
 		}
 	}
-	explanationsList := []drawio.ExplanationEntry{}
+	explanationsList := make([]drawio.ExplanationEntry, len(explanations))
+	i := 0
 	for k, e := range explanations {
-		explanationsList = append(explanationsList, drawio.ExplanationEntry{Src: d.gen.TreeNode(k.src), Dst: d.gen.TreeNode(k.dst), Text: e})
+		explanationsList[i] = drawio.ExplanationEntry{Src: d.gen.TreeNode(k.src), Dst: d.gen.TreeNode(k.dst), Text: e}
+		i++
 	}
 	return explanationsList
 }
@@ -232,7 +234,7 @@ func (d *DrawioOutputFormatter) explainableEndpoints() []EndpointElem {
 				}
 			} else {
 				for _, s := range vpcConfig1.Subnets {
-					if !s.IsExternal() && d.showResource(s) {
+					if d.showResource(s) {
 						allEndpoints = append(allEndpoints, s)
 					}
 				}

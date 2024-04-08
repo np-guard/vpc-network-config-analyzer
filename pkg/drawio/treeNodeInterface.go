@@ -1,6 +1,9 @@
 package drawio
 
-import "strings"
+import (
+	"slices"
+	"strings"
+)
 
 /////////////////////////////////////////////////////////////
 // the drawio has three kinds of elements:
@@ -150,12 +153,8 @@ func absoluteGeometry(tn TreeNodeInterface) (x, y int) {
 }
 
 func joinLabels(labels []string, sep string) string {
-	labelsToJoin := []string{}
-	for _, l := range labels {
-		if l != "" {
-			labelsToJoin = append(labelsToJoin, l)
-		}
-	}
+	labelsToJoin := slices.Clone(labels)
+	labelsToJoin = slices.DeleteFunc(labelsToJoin, func(s string) bool { return s == "" })
 	return strings.Join(labelsToJoin, sep)
 }
 
