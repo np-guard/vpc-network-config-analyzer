@@ -62,7 +62,6 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping bool) (res *VPCConnectivi
 }
 func abstractNodeSet(nodesConn *VPCConnectivity, ns NodeSet) {
 	// AllowedConns:= GeneralConnectivityMap{}
-	abstractNode := ns.Nodes()[0]
 	for src, nodeConns := range nodesConn.AllowedConnsCombined {
 		for dst, conns := range nodeConns {
 			srcNode, srcIsNode := src.(Node)
@@ -72,11 +71,16 @@ func abstractNodeSet(nodesConn *VPCConnectivity, ns NodeSet) {
 			if (!srcInSet && !dstInSet) || conns.IsEmpty() {
 				continue
 			}
-			if srcInSet && src != abstractNode{
+			if srcInSet || dstInSet{
 				delete(nodesConn.AllowedConnsCombined[src],dst)
-			}
-			if dstInSet && dst != abstractNode{
-				delete(nodesConn.AllowedConnsCombined[src],dst)
+				if srcInSet{
+					if _, ok := nodesConn.AllowedConnsCombined[ns]; !ok{
+						nodesConn.AllowedConnsCombined[ns] = map[VPCResourceIntf]*connection.Set{}
+					}
+						nodesConn.AllowedConnsCombined[ns][dst] = conns
+				}else{
+					nodesConn.AllowedConnsCombined[src][ns] = conns
+				}
 			}
 		}
 	}
