@@ -83,7 +83,16 @@ func analysisVPCConfigs(c1, c2 vpcmodel.MultipleVPCConfigs, inArgs *InArgs, outF
 	return analysisOut, nil
 }
 
-func mergeResourcesContainers(rc1, rc2 *datamodel.ResourcesContainerModel) {
+func mergeResourcesContainers(rc1, rc2 *datamodel.ResourcesContainerModel) (*datamodel.ResourcesContainerModel, error) {
+	if rc2 == nil && rc1 != nil {
+		return rc2, nil
+	}
+	if rc2 != nil && rc1 == nil {
+		return rc1, nil
+	}
+	if rc2 == nil && rc1 == nil {
+		return nil, fmt.Errorf("error merging input vpc resources files")
+	}
 	rc1.VpcList = append(rc1.VpcList, rc2.VpcList...)
 	rc1.SubnetList = append(rc1.SubnetList, rc2.SubnetList...)
 	rc1.PublicGWList = append(rc1.PublicGWList, rc2.PublicGWList...)
@@ -97,22 +106,21 @@ func mergeResourcesContainers(rc1, rc2 *datamodel.ResourcesContainerModel) {
 	rc1.TransitConnectionList = append(rc1.TransitConnectionList, rc2.TransitConnectionList...)
 	rc1.TransitGatewayList = append(rc1.TransitGatewayList, rc2.TransitGatewayList...)
 	rc1.IKSClusters = append(rc1.IKSClusters, rc2.IKSClusters...)
+
+	return rc1, nil
 }
 
 func vpcConfigsFromFiles(fileNames []string, inArgs *InArgs) (vpcmodel.MultipleVPCConfigs, error) {
-	mergedRC, err1 := ibmvpc.ParseResourcesFromFile(fileNames[0])
-	if err1 != nil {
-		return nil, fmt.Errorf("error parsing input vpc resources file: %w", err1)
-	}
-	for i, file := range fileNames {
-		if i == 0 {
-			continue
-		}
+	var mergedRC *datamodel.ResourcesContainerModel
+	for _, file := range fileNames {
 		rc, err1 := ibmvpc.ParseResourcesFromFile(file)
 		if err1 != nil {
 			return nil, fmt.Errorf("error parsing input vpc resources file: %w", err1)
 		}
-		mergeResourcesContainers(mergedRC, rc)
+		mergedRC, err1 = mergeResourcesContainers(mergedRC, rc)
+		if err1 != nil {
+			return nil, err1
+		}
 	}
 	vpcConfigs, err2 := ibmvpc.VPCConfigsFromResources(mergedRC, *inArgs.VPC, *inArgs.ResourceGroup, inArgs.RegionList, *inArgs.Debug)
 	if err2 != nil {
