@@ -160,8 +160,8 @@ func TestMain(t *testing.T) {
 func TestMainWithExpectedOut(t *testing.T) {
 	tests := []struct {
 		name    string
-		args    string
-		outFile string
+		args    string // must include output-file arg
+		outFile string // must be as in the command line arg output-file
 	}{
 		// multi vpc configs input
 		{
