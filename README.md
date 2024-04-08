@@ -41,7 +41,7 @@ Usage of vpc-network-config-analyzer:
   -provider string
         Collect resources from an account in this cloud provider
   -region value
-        Cloud region from which to collect resources
+        Cloud region from which to collect resources, can pass multiple regions
   -resource-group string
         Resource group id or name from which to collect resources
   -src string
@@ -56,7 +56,7 @@ Usage of vpc-network-config-analyzer:
   -vpc string
         CRN of the VPC to analyze
   -vpc-config value
-        Required. File paths to input configs
+        Required. File paths to input configs, can pass multiple configs
   -vpc-config-second string
         File path to the 2nd input config; relevant only for analysis-type diff_all_endpoints and for diff_all_subnets
 

@@ -212,7 +212,7 @@ func parseCmdLine(cmdlineArgs []string) error {
 func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args := InArgs{}
 	flagset := flag.NewFlagSet("vpc-network-config-analyzer", flag.ContinueOnError)
-	flagset.Var(&args.InputConfigFileList, InputConfigFileList, "Required. File paths to input configs")
+	flagset.Var(&args.InputConfigFileList, InputConfigFileList, "Required. File paths to input configs, can pass multiple configs")
 	args.InputSecondConfigFile = flagset.String(InputSecondConfigFile, "", "File path to the 2nd input config; "+
 		"relevant only for analysis-type diff_all_endpoints and for diff_all_subnets")
 	args.OutputFile = flagset.String(OutputFile, "", "File path to store results")
@@ -234,7 +234,7 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args.EDstMaxPort = flagset.Int64(EDstMaxPort, connection.MaxPort, "Maximum destination port for connection description")
 	args.Provider = flagset.String(Provider, "", "Collect resources from an account in this cloud provider")
 	args.ResourceGroup = flagset.String(ResourceGroup, "", "Resource group id or name from which to collect resources")
-	flagset.Var(&args.RegionList, RegionList, "Cloud region from which to collect resources")
+	flagset.Var(&args.RegionList, RegionList, "Cloud region from which to collect resources, can pass multiple regions")
 	args.DumpResources = flagset.String(DumpResources, "", "File path to store resources collected from the cloud provider")
 
 	// calling parseCmdLine prior to flagset.Parse to ensure that excessive and unsupported arguments are handled
