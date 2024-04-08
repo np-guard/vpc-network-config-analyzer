@@ -221,7 +221,7 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 		"Supported analysis types:\n"+getSupportedAnalysisTypesMapString())
 	args.Grouping = flagset.Bool(Grouping, false, "Whether to group together src/dst entries with identical connectivity\n"+
 		"Does not support single_subnet, diff_all_endpoints and diff_all_subnets analysis-types and json output format")
-	args.VPC = flagset.String(VPC, "", "CRNs of the VPCs to analyze")
+	args.VPC = flagset.String(VPC, "", "CRN of the VPC to analyze")
 	args.Debug = flagset.Bool(Debug, false, "Run in debug mode")
 	args.Version = flagset.Bool(Version, false, "Prints the release version number")
 	args.ESrc = flagset.String(ESrc, "", "Source "+srcDstUsage)

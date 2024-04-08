@@ -52,7 +52,7 @@ Usage of vpc-network-config-analyzer:
   -version
         Prints the release version number
   -vpc string
-        CRNs of the VPCs to analyze
+        CRN of the VPC to analyze
   -vpc-config value
         Required. File paths to input configs
   -vpc-config-second string
