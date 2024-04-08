@@ -53,12 +53,12 @@ func (r *ReservedIP) Name() string {
 type PrivateIP struct {
 	vpcmodel.VPCResource
 	vpcmodel.InternalNode
-	loadBalancer string
+	loadBalancer *LoadBalancer
 	original     bool
 }
 
 func (pip *PrivateIP) Name() string {
-	return getNodeName(pip.loadBalancer, pip.Address())
+	return getNodeName(pip.loadBalancer.Name(), pip.Address())
 }
 
 // NetworkInterface implements vpcmodel.Node interface

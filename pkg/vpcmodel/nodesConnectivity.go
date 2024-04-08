@@ -2,6 +2,7 @@ package vpcmodel
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 
@@ -53,8 +54,32 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping bool) (res *VPCConnectivi
 	}
 	res.computeAllowedConnsCombined()
 	res.computeAllowedStatefulConnections()
+	for _, lb := range c.LoadBalancers{
+		abstractNodeSet(res, lb)
+	}
 	res.GroupedConnectivity, err = newGroupConnLines(c, res, grouping)
 	return res, err
+}
+func abstractNodeSet(nodesConn *VPCConnectivity, ns NodeSet) {
+	// AllowedConns:= GeneralConnectivityMap{}
+	abstractNode := ns.Nodes()[0]
+	for src, nodeConns := range nodesConn.AllowedConnsCombined {
+		for dst, conns := range nodeConns {
+			srcNode, srcIsNode := src.(Node)
+			dstNode, dstIsNode := dst.(Node)
+			srcInSet  := srcIsNode && slices.Contains(ns.Nodes(), srcNode)
+			dstInSet  := dstIsNode && slices.Contains(ns.Nodes(), dstNode)
+			if (!srcInSet && !dstInSet) || conns.IsEmpty() {
+				continue
+			}
+			if srcInSet && src != abstractNode{
+				delete(nodesConn.AllowedConnsCombined[src],dst)
+			}
+			if dstInSet && dst != abstractNode{
+				delete(nodesConn.AllowedConnsCombined[src],dst)
+			}
+		}
+	}
 }
 
 func (c *VPCConfig) getFiltersAllowedConnsBetweenNodesPerDirectionAndLayer(

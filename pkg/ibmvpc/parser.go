@@ -1288,7 +1288,7 @@ func GetLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 		}
 
 		loadBalancer.listeners = getLoadBalancerServer(res, loadBalancerObj, vpcUID)
-		privateIPs, err := getLoadBalancerIPs(res, loadBalancerObj, vpcUID, vpc, subnetsFreeAddresses)
+		privateIPs, err := getLoadBalancerIPs(res, loadBalancerObj,loadBalancer, vpcUID, vpc, subnetsFreeAddresses)
 		if err != nil {
 			return err
 		}
@@ -1359,6 +1359,7 @@ func getLoadBalancerServer(res map[string]*vpcmodel.VPCConfig,
 // returns the private IPs nodes
 func getLoadBalancerIPs(res map[string]*vpcmodel.VPCConfig,
 	loadBalancerObj *datamodel.LoadBalancer,
+	loadBalancer *LoadBalancer,
 	vpcUID string, vpc *VPC,
 	subnetsFreeAddresses map[vpcmodel.Subnet]*ipblock.IPBlock) ([]vpcmodel.Node, error) {
 	subnetsWithPrivateIPs := map[vpcmodel.Subnet]int{}
@@ -1402,7 +1403,7 @@ func getLoadBalancerIPs(res map[string]*vpcmodel.VPCConfig,
 			InternalNode: vpcmodel.InternalNode{
 				AddressStr: address,
 			},
-			loadBalancer: *loadBalancerObj.Name,
+			loadBalancer: loadBalancer,
 			original:     original,
 		}
 		if err := privateIP.SetIPBlockFromAddress(); err != nil {
