@@ -714,7 +714,7 @@ func (pgw *PublicGateway) StringPrefixDetails(src, dst vpcmodel.Node, verbose bo
 	return "", nil
 }
 
-// a tgw prefix for explain
+// a tgw prefix filter (for explainability)
 type tgwPrefix struct {
 	tc    *datamodel.TransitConnection
 	index int
@@ -870,7 +870,7 @@ func (tgw *TransitGateway) StringPrefixDetails(src, dst vpcmodel.Node, verbose b
 	if transitEnablesConn {
 		return noVerboseStr + "allows connection", nil
 	}
-	return noVerboseStr + "denys connection", nil
+	return noVerboseStr + "denies connection", nil
 }
 
 func (tgw *TransitGateway) prefixOfSrcDst(src, dst vpcmodel.Node) *tgwPrefix {
