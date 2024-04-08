@@ -702,10 +702,7 @@ func (pgw *PublicGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf)
 }
 
 func (pgw *PublicGateway) RouterDefined(src, dst vpcmodel.Node) bool {
-	if vpcmodel.HasNode(pgw.Sources(), src) && dst.IsExternal() {
-		return true
-	}
-	return false
+	return  vpcmodel.HasNode(pgw.Sources(), src) && dst.IsExternal()
 }
 
 func (pgw *PublicGateway) AppliedFiltersKinds() map[string]bool {
