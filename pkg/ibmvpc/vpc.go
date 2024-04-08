@@ -718,7 +718,7 @@ func (pgw *PublicGateway) StringPrefixDetails(src, dst vpcmodel.Node, verbose bo
 
 // a tgw prefix filter (for explainability)
 type tgwPrefixFilter struct {
-	tc    *datamodel.TransitConnection
+	tc    *datamodel.TransitConnection // the TransitConnection  where this filter is defined 
 	index int
 }
 
