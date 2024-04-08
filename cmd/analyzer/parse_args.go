@@ -14,21 +14,22 @@ import (
 type regionList []string
 type inputConfigFileList []string
 
-func (dp *regionList) String() string {
-	return fmt.Sprintln(*dp)
+// these functions are required, these types implement the interface flag.Value
+func (rg *regionList) String() string {
+	return fmt.Sprintln(*rg)
 }
 
-func (dp *regionList) Set(region string) error {
-	*dp = append(*dp, region)
+func (rg *regionList) Set(region string) error {
+	*rg = append(*rg, region)
 	return nil
 }
 
-func (dp *inputConfigFileList) String() string {
-	return fmt.Sprintln(*dp)
+func (c *inputConfigFileList) String() string {
+	return fmt.Sprintln(*c)
 }
 
-func (dp *inputConfigFileList) Set(region string) error {
-	*dp = append(*dp, region)
+func (c *inputConfigFileList) Set(configFile string) error {
+	*c = append(*c, configFile)
 	return nil
 }
 
@@ -162,7 +163,7 @@ var supportedAnalysisTypesList = []string{
 	explainMode,
 }
 
-const srcDstUsage = "endpoint for explanation; can be specified as a VSI name/CRN or an internal/external IP-address/CIDR" +
+const srcDstUsage = "endpoint for explanation; can be specified as a VSI name/CRN or an internal/external IP-address/CIDR;\n" +
 	"VSI name can be specified as <vsi-name> or  <vpc-name>/<vsi-name>"
 
 func getSupportedAnalysisTypesMapString() string {
@@ -356,7 +357,7 @@ func invalidArgsConfigFile(args *InArgs, flagset *flag.FlagSet) error {
 		flagset.PrintDefaults()
 		return fmt.Errorf("missing parameter: either vpc-config flag or provider flag must be specified")
 	}
-	if len(args.InputConfigFileList) == 0 && *args.Provider != "" {
+	if len(args.InputConfigFileList) > 0 && *args.Provider != "" {
 		flagset.PrintDefaults()
 		return fmt.Errorf("error in parameters: vpc-config flag and provider flag cannot be specified together")
 	}

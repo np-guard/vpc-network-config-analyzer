@@ -99,16 +99,22 @@ func mergeResourcesContainers(rc1, rc2 *datamodel.ResourcesContainerModel) {
 	rc1.IKSClusters = append(rc1.IKSClusters, rc2.IKSClusters...)
 }
 
-func vpcConfigsFromFile(fileNames []string, inArgs *InArgs) (vpcmodel.MultipleVPCConfigs, error) {
-	mergedRC := datamodel.ResourcesContainerModel{}
-	for _, file := range fileNames {
+func vpcConfigsFromFiles(fileNames []string, inArgs *InArgs) (vpcmodel.MultipleVPCConfigs, error) {
+	mergedRC, err1 := ibmvpc.ParseResourcesFromFile(fileNames[0])
+	if err1 != nil {
+		return nil, fmt.Errorf("error parsing input vpc resources file: %w", err1)
+	}
+	for i, file := range fileNames {
+		if i == 0 {
+			continue
+		}
 		rc, err1 := ibmvpc.ParseResourcesFromFile(file)
 		if err1 != nil {
 			return nil, fmt.Errorf("error parsing input vpc resources file: %w", err1)
 		}
-		mergeResourcesContainers(&mergedRC, rc)
+		mergeResourcesContainers(mergedRC, rc)
 	}
-	vpcConfigs, err2 := ibmvpc.VPCConfigsFromResources(&mergedRC, *inArgs.VPC, *inArgs.ResourceGroup, inArgs.RegionList, *inArgs.Debug)
+	vpcConfigs, err2 := ibmvpc.VPCConfigsFromResources(mergedRC, *inArgs.VPC, *inArgs.ResourceGroup, inArgs.RegionList, *inArgs.Debug)
 	if err2 != nil {
 		return nil, fmt.Errorf(ErrorFormat, InGenerationErr, err2)
 	}
@@ -176,7 +182,7 @@ func _main(cmdlineArgs []string) error {
 			return err
 		}
 	} else {
-		vpcConfigs1, err = vpcConfigsFromFile(inArgs.InputConfigFileList, inArgs)
+		vpcConfigs1, err = vpcConfigsFromFiles(inArgs.InputConfigFileList, inArgs)
 		if err != nil {
 			return err
 		}
@@ -184,7 +190,7 @@ func _main(cmdlineArgs []string) error {
 
 	var vpcConfigs2 vpcmodel.MultipleVPCConfigs
 	if inArgs.InputSecondConfigFile != nil && *inArgs.InputSecondConfigFile != "" {
-		vpcConfigs2, err = vpcConfigsFromFile([]string{*inArgs.InputSecondConfigFile}, inArgs)
+		vpcConfigs2, err = vpcConfigsFromFiles([]string{*inArgs.InputSecondConfigFile}, inArgs)
 		if err != nil {
 			return err
 		}
