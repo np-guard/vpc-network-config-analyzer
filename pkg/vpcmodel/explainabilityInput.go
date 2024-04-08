@@ -119,50 +119,54 @@ func (configsMap MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string)
 		}
 	}
 	switch {
-	// no match
+	// no match: no single vpc config or multi vpc config in which a match for both src and dst was found
+	// this can be either a result of input error, or of src and dst of different vpc that are not connected via cross-vpc router
 	case len(configsWithSrcDstNodeSingleVpc) == 0 && len(configsWithSrcDstNodeMultiVpc) == 0:
-		return noMatchErr(srcFoundSomeCfg, dstFoundSomeCfg, errMsgInternalNoConnectedVSI, errMsgInternalNotWithinSubnet,
+		return noConfigMatchSrcDst(srcFoundSomeCfg, dstFoundSomeCfg, errMsgInternalNoConnectedVSI, errMsgInternalNotWithinSubnet,
 			errMsgNoValidSrc, errMsgNoValidDst)
-	// single match, of a multi vpc config: return it
+	// single config in which both src and dst were found, and the matched config is a multi vpc config: returns the matched config
 	case len(configsWithSrcDstNodeSingleVpc) == 0 && len(configsWithSrcDstNodeMultiVpc) == 1:
 		for cfgID, val := range configsWithSrcDstNodeMultiVpc {
 			return configsMap[cfgID], val.srcNodes, val.dstNodes, val.isSrcDstInternalIP, nil
 		}
-	// Single match of single vpc config, return it. Note that in this case there could be also matches in a
-	// multi vpc config that contains this vpc.
+	// Src and dst were found in a exactly one single-vpc config. Its likely src and dst were also found in
+	// multi-vpc configs (in each such config that connects their vpc to another one).
+	// In this case the relevant config for analysis is the single vpc config, which is the returned config
 	case len(configsWithSrcDstNodeSingleVpc) == 1:
 		for cfgID, val := range configsWithSrcDstNodeSingleVpc {
 			return configsMap[cfgID], val.srcNodes, val.dstNodes, val.isSrcDstInternalIP, nil
 		}
-	default: // len(configsWithSrcDstNodeSingleVpc) > 1 ||
-		// len(configsWithSrcDstNodeSingleVpc) == 0 && len(configsWithSrcDstNodeMultiVpc)>1 error
+	// both src and dst found in *more than one* single-vpc config or
+	// in no single-vpc config and more than one multi-vpc config. In both cases it is impossible to determine
+	// what is the config in which the analysis should be done
+	default:
 		return nil, nil, nil, noInternalIP,
 			configsMap.matchMoreThanOneSingleVpcCfgError(src, dst, configsWithSrcDstNodeSingleVpc, configsWithSrcDstNodeMultiVpc)
 	}
 	return nil, nil, nil, noInternalIP, nil
 }
 
-// no match for both src and dst in any of the cfgs: internalNoConnectedVSI > internalNotWithinSubnetsAddr > noValidInputEr
-// prioritize err msg for an input (src/dst) not found in any cfg; if both prioritize src err msg
-func noMatchErr(srcFoundSomeCfg, dstFoundSomeCfg bool, errMsgInternalNoConnectedVSI, errMsgInternalNotWithinSubnet,
+// no match for both src and dst in any of the cfgs:
+// this can be either a result of input error, or of src and dst of different vpc that are not connected via cross-vpc router
+// prioritizes cases and possible errors as follows:
+// valid input but no cross vpc router > errMsgInternalNoConnectedVSI > errMsgInternalNotWithinSubnet >
+// errMsgNoValidSrc > errMsgNoValidDst
+func noConfigMatchSrcDst(srcFoundSomeCfg, dstFoundSomeCfg bool, errMsgInternalNoConnectedVSI, errMsgInternalNotWithinSubnet,
 	errMsgNoValidSrc, errMsgNoValidDst error) (vpcConfig *VPCConfig,
 	srcNodes, dstNodes []Node, isSrcDstInternalIP srcDstInternalAddr, err error) {
 	noInternalIP := srcDstInternalAddr{false, false}
 	switch {
+	// src found some cfg, dst found some cfg but not in the same cfg: input valid (missing tgw)
+	case srcFoundSomeCfg && dstFoundSomeCfg:
+		return nil, nil, nil, noInternalIP, nil
 	case errMsgInternalNoConnectedVSI != nil:
 		return nil, nil, nil, noInternalIP, errMsgInternalNoConnectedVSI
 	case errMsgInternalNotWithinSubnet != nil:
 		return nil, nil, nil, noInternalIP, errMsgInternalNotWithinSubnet
-	default:
-		// prioritize err msg for an input (src/dst) not found in any cfg; if both prioritize src err msg
-		switch {
-		case !srcFoundSomeCfg:
-			return nil, nil, nil, noInternalIP, errMsgNoValidSrc
-		case !dstFoundSomeCfg:
-			return nil, nil, nil, noInternalIP, errMsgNoValidDst
-		default: // src found some cfg, dst found some cfg but not in the same cfg
-			return nil, nil, nil, noInternalIP, errMsgNoValidSrc
-		}
+	case !srcFoundSomeCfg:
+		return nil, nil, nil, noInternalIP, errMsgNoValidSrc
+	default: // !dstFoundSomeCfg:
+		return nil, nil, nil, noInternalIP, errMsgNoValidDst
 	}
 }
 
