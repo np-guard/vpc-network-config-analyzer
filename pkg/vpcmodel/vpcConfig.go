@@ -87,8 +87,8 @@ func (c *VPCConfig) getRoutingResource(src, dst Node) (RoutingResource, *connect
 			return router, routerConnRes, nil
 		}
 		// There is no connection defined for src, dst with the current router. Is it because the current router is
-		// not defined/not relevant for src, dst or is it because the current router is defined by denys traffic?
-		// the latter is a possibility only for tgw and in this case we return
+		// not defined/not relevant for src, dst or is it because the current router is defined but denies traffic?
+		// the latter is a possibility only for tgw and in this case we return the router object
 		if router.RouterDefined(src, dst) {
 			return router, NoConns(), nil
 		}
