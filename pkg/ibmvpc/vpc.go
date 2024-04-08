@@ -715,7 +715,7 @@ func (pgw *PublicGateway) StringPrefixDetails(src, dst vpcmodel.Node, verbose bo
 }
 
 // a tgw prefix filter (for explainability)
-type tgwPrefix struct {
+type tgwPrefixFilter struct {
 	tc    *datamodel.TransitConnection
 	index int
 }
@@ -747,7 +747,7 @@ type TransitGateway struct {
 	// if non default. Specifically, the map is from VPC UID to a map between the ap's ipBlock to the index of the matching prefix
 	// that determines its status;
 	// this struct can be though of as the "explain" parallel of availableRoutes; note that it also lists deny prefixes
-	vpcApsPrefixes map[string]map[*ipblock.IPBlock]tgwPrefix
+	vpcApsPrefixes map[string]map[*ipblock.IPBlock]tgwPrefixFilter
 }
 
 func (tgw *TransitGateway) addSourceAndDestNodes() {
@@ -808,7 +808,7 @@ func prefixDefaultStr(tc *datamodel.TransitConnection) (string, error) {
 	return fmt.Sprintf(" default prefix,  action: %s", actionName), nil
 }
 
-func (tgw *TransitGateway) tgwPrefixStr(prefix tgwPrefix) (string, error) {
+func (tgw *TransitGateway) tgwPrefixStr(prefix tgwPrefixFilter) (string, error) {
 	// Array of prefix route filters for a transit gateway connection. This is order dependent with those first in the
 	// array being applied first, and those at the end of the array is applied last, or just before the default.
 	resStr := fmt.Sprintf("transit-connection: %s", *prefix.tc.Name)
@@ -873,7 +873,7 @@ func (tgw *TransitGateway) StringPrefixDetails(src, dst vpcmodel.Node, verbose b
 	return noVerboseStr + "denies connection", nil
 }
 
-func (tgw *TransitGateway) prefixOfSrcDst(src, dst vpcmodel.Node) *tgwPrefix {
+func (tgw *TransitGateway) prefixOfSrcDst(src, dst vpcmodel.Node) *tgwPrefixFilter {
 	// <src, dst> routed by tgw given that source is in the tgw,
 	// and there is a prefix defined for the dst,
 	// the relevant prefix is determined by match of the ap the dest's node is in (including default)

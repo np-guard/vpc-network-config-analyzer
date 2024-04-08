@@ -134,9 +134,9 @@ func prefixLeGeMatch(prefix *string, le, ge *int64, cidr string) (bool, error) {
 // the following functions are related to explainability structs
 
 // gets a map from address prefixes of the vpc to matching prefix of tgw, if any
-func getVpcApsPrefixes(tc *datamodel.TransitConnection, vpc *VPC) (res map[*ipblock.IPBlock]tgwPrefix, err error) {
+func getVpcApsPrefixes(tc *datamodel.TransitConnection, vpc *VPC) (res map[*ipblock.IPBlock]tgwPrefixFilter, err error) {
 	validateAddressPrefixesExist(vpc) // todo tmp WA copied from getVPCAdvertisedRoutes so that this func is self contained
-	res = map[*ipblock.IPBlock]tgwPrefix{}
+	res = map[*ipblock.IPBlock]tgwPrefixFilter{}
 	for _, ap := range vpc.addressPrefixes {
 		prefixIndex, err1 := getCIDRPrefixFilter(ap, tc)
 		if err1 != nil {
@@ -146,7 +146,7 @@ func getVpcApsPrefixes(tc *datamodel.TransitConnection, vpc *VPC) (res map[*ipbl
 		if err2 != nil {
 			return nil, err2
 		}
-		res[apIPBlock] = tgwPrefix{tc, prefixIndex}
+		res[apIPBlock] = tgwPrefixFilter{tc, prefixIndex}
 	}
 	return res, nil
 }
