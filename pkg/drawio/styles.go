@@ -200,7 +200,7 @@ func (stl *templateStyles) SVGLineStyle(tn TreeNodeInterface) string {
 	if dash {
 		dashStyle = "stroke-dasharray='6 6'"
 	}
-	return fmt.Sprintf("marker-start='url(#%s_%s)' marker-end='url(#%s_%s)' stroke='%s' %s",
+	return fmt.Sprintf("marker-start='url(#start_%s_%s)' marker-end='url(#end_%s_%s)' stroke='%s' %s",
 		color, startArrow, color, endArrow, colorCodes[color], dashStyle)
 }
 

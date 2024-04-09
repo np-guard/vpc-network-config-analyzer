@@ -1,10 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 {{ $data := .}}
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="{{$data.Width}}px" height="{{$data.Height}}px" viewBox="-0.5 -0.5 {{$data.Width}} {{$data.Height}}">
+{{if $data.IsHTML}}
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="ncegraph"/>
+    <title>
+    NCA Graph
+    </title>
+    <style>
+    #selectionBox {
+                    width: 1400px;
+                    height: 300px;
+                    border: 1px solid black;
+                    margin: 10px;
+                    padding: 5px;
+                }
+    </style>
+    <script>
+    const jsObject = {{$data.Relations}}
+    </script>
+    </head>
+    <body>
+    <div id="graph-container">
+{{end}}
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="{{$data.Width}}px" height="{{$data.Height}}px" viewBox="0.00 0.00 {{$data.Width}} {{$data.Height}}">
     <defs>
         {{range $color, $code := $data.Cnst.ColorCodes }}
-        <marker id='{{$color}}_block' orient="auto" markerWidth='6' markerHeight='6' refX='6' refY='3'>
+        <marker id='start_{{$color}}_block' orient="auto" markerWidth='6' markerHeight='6' refX='0' refY='3'>
+        <path d='M6,0 V6 L0,3 Z' fill="{{$code}}"/>
+        </marker>
+        <marker id='end_{{$color}}_block' orient="auto" markerWidth='6' markerHeight='6' refX='6' refY='3'>
         <path d='M0,0 V6 L6,3 Z' fill="{{$code}}"/>
         </marker>
         <marker id='{{$color}}_oval' orient="auto" markerWidth='6' markerHeight='6' refX='3' refY='3'>
@@ -15,22 +43,33 @@
         {{end}}
     </defs>
 <g>
+     <g class="background" clickable="true" id="{{$data.RootID}}" title="" >
+      <rect x="0" y="0" width="{{$data.Width}}" height="{{$data.Height}}" fill="white" />
+     </g>
+
     {{range $node := $data.Nodes}}
+        {{ if $data.IsFamily $node $data.Cnst.DoNotShow }}
+            {{continue}}
+        {{end}}
         <!-- {{$data.ElementComment $node}} -->
         {{ $ax := $data.AX $node}}
         {{ $ay := $data.AY $node}}
-        {{ if $data.IsFamily $node $data.Cnst.DoNotShow }}
-        {{ else if $data.IsFamily $node $data.Cnst.IbmSquare }}
+        <g id="{{$node.ID}}" clickable="true" selectable="{{$data.Clickable $node}}" title="{{$data.NodeName $node}}">
+        <rect x="{{$data.Add $ax -3}}" y="{{$data.Add $ay -3 }}" width="{{$data.Add $node.Width 6}}" height="{{$data.Add $node.Height 6}}" fill="none" stroke="none" stroke-width="6" selection-marker="true" />
+        {{if $data.IsFamily $node $data.Cnst.IbmSquare }}
                 <rect x="{{$ax}}" y="{{$ay}}" width="{{$node.Width}}" height="{{$node.Height}}" fill="none" stroke="{{$data.Color $node}}" pointer-events="all"/>
                 <image x="{{$data.Add $ax 18}}" y="{{$data.Add $ay 6}}" width="22" height="19.73" xlink:href="data:image/svg+xml;base64,{{$data.Image $node}}"/>
                 <rect x="{{$ax}}" y="{{$ay}}" width="7" height="37" fill="{{$data.Color $node}}" stroke="none" pointer-events="all"/>
-                <rect x="{{$data.Add $ax 51}}" y="{{$data.Add $ay 8}}" width="163" height="20" fill="none" stroke="none" pointer-events="all"/>
-                <text x="{{$data.Add $ax 53}}" y="{{$data.Add $ay 22}}" fill="rgb(0, 0, 0)" font-family="IBM Plex Sans" font-size="14px" line-height="1.2" text-align="left">{{$node.Label}}</text>
+                <foreignObject  x="{{$data.Add $ax 53}}" y="{{$data.Add $ay -15}}" width="200" height="50">
+          				<p xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; font-size: 14px; font-family: &quot;IBM Plex Sans&quot; color: rgb(0, 0, 0); line-height: 0.9; pointer-events: all; white-space: normal; overflow-wrap: normal;">{{$data.SvgLabel $node}}</p>
+				        </foreignObject >
         {{ else if $data.IsFamily $node $data.Cnst.GroupingSquare }}
                 <rect x="{{$ax}}" y="{{$ay}}" width="{{$node.Width}}" height="{{$node.Height}}" rx="19.2" ry="19.2" fill="none" stroke="{{$data.Color $node}}" stroke-opacity="0.7" stroke-width="6" pointer-events="all"/>
         {{ else if $data.IsFamily $node $data.Cnst.IbmIcon }}
                 <image x="{{$ax}}" y="{{$ay}}" width="{{$node.IconSize}}" height="{{$node.IconSize}}" xlink:href="data:image/svg+xml;base64,{{$data.Image $node}}"/>
-                <text fill="rgb(0, 0, 0)" font-family="IBM Plex Sans" text-anchor="middle" font-size="14px" x="{{$data.Add $ax 30}}" y="{{$data.Add $ay 73}}">{{$node.Label}}</text>
+                <foreignObject  x="{{$data.Add $ax 0}}" y="{{$data.Add $ay 40}}" width="200" height="50">
+          				<p xmlns="http://www.w3.org/1999/xhtml" fill="rgb(0, 0, 0)" font-family="IBM Plex Sans" text-anchor="middle" font-size="14px">{{$data.SvgLabel $node}}</p>
+				        </foreignObject >
                 {{ if $data.HasMiniIcon $node }}
                     <image x="{{$data.Add $ax $data.MiniIconXOffset}}" y="{{$data.Add $ay $data.MiniIconYOffset}}" width="{{$data.MiniIconSize}}" height="{{$data.MiniIconSize}}" xlink:href="data:image/svg+xml;base64,{{$data.MiniImage $node}}"/>
                 {{ end }}
@@ -42,8 +81,9 @@
                 <ellipse cx="{{$data.Add $ax ($data.Half $node.IconSize)}}" cy="{{$data.Add $ay ($data.Half $node.IconSize)}}" rx="{{$data.Half $node.IconSize}}" ry="{{$data.Half $node.IconSize}}" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" pointer-events="all"/>
         {{ else if $data.IsFamily $node $data.Cnst.Line }}
             <path d="{{$data.SvgLinePoints $node}}" {{$data.SVGLineStyle $node}} fill="none" stroke-width="2" stroke-miterlimit="10" pointer-events="stroke"/>
-            <text {{$data.SvgLineLabelPos $node}} font-family="Helvetica" font-size="11"> {{$node.Label}}</text>
+            <text {{$data.SvgLineLabelPos $node}} font-family="Helvetica" font-size="11"> {{$data.SvgLabel $node}}</text>
         {{ end }}
+        </g>
     {{end}}
 
 </g>
@@ -53,4 +93,215 @@
 <text text-anchor="middle" font-size="10px" x="50%" y="100%">Text is not SVG - cannot display</text>
 </a>
 </switch>
-</svg>
+{{if $data.IsHTML}}
+    <script type="text/xml">
+    <![CDATA[<data>
+    {{range $explain := $data.Explanations}}
+        <entry dst="{{$explain.Dst.ID}}" src="{{$explain.Src.ID}}">
+            <text>
+            {{$explain.Text}}
+            </text>
+        </entry>
+     {{end}}
+     </data>]]>
+    </script>
+   </svg>
+  </div>
+  <pre id="selectionBox">Please select the SOURCE node</pre>
+  <script>
+                const selectableElems = document.querySelectorAll('[selectable="true"]');
+                var selectedElems = [];
+                const mainTitleText = 'Application connectivity graph'
+                const doFilterExplainText = 'For filtering, Double-click on a node/edge/legend item'
+                const unFilterExplainText = 'For unfiltering, Double-click on the background'
+                const textSeparator = '\n---------------------------------------------------------------------------------\n\n'
+                const selectSrcText = 'For connectivity explanation, Click the SOURCE node'
+                const selectDstText =  'Click the DESTINATION node'
+                const reselectSrcText = 'For another connectivity explanation, Click the SOURCE node'
+
+                var filterText = mainTitleText
+                var filterExplainText = doFilterExplainText
+                var explainText = ''
+                var explainExplainText = selectSrcText
+                const selectionBox = document.getElementById('selectionBox');
+                const clickableElements = document.querySelectorAll('[clickable="true"]');
+
+                const xmlData = document.querySelector('script[type="text/xml"]').textContent;
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlData, 'text/xml');
+
+                // find title text element
+                let svg = document.querySelector('svg');
+                
+                setAllText()
+                let clickFlag = false;
+
+                function setAllText(){
+                    selectionBox.innerHTML =
+                        '\n<span style="color: maroon; font-size: 20px; ">'+filterText+'</span>' +'\n\n'+
+                        '<span style="color: deepPink; font-size: 14px; ">'+filterExplainText+'</span>'+
+                        textSeparator +
+                        explainText + '\n'+
+                        '<span style="color: deepPink; font-size: 14px; ">'+explainExplainText+'</span>\n'
+                }
+
+                function selectExplPeer(event) {
+                  let nodeElement = event.target;
+                  while (nodeElement && !nodeElement.hasAttribute('selectable')) {
+                    nodeElement = nodeElement.parentNode;
+                  }
+                  const markerElement = nodeElement.querySelector('[selection-marker]')
+                  clickFlag = true;
+                  setTimeout(function() {
+                    // If clickFlag is still true after the timer, trigger single-click action
+                    if (clickFlag) {
+                      if (selectedElems.length > 1) {// reset selection
+                        selectedElems.forEach((item) => {
+                          item.classList.remove('selected');
+                          const markerElement = item.querySelector('[selection-marker]')
+                          markerElement.setAttribute('stroke', 'none');
+                        });
+                        selectedElems.length = 0;
+                      }
+                      if (nodeElement.classList.contains('selected')) {
+                              // If the clicked element is already selected, deselect it
+                              nodeElement.classList.remove('selected');
+                              markerElement.setAttribute('stroke', 'none');
+                              selectedElems.splice(selectedElems.indexOf(nodeElement), 1);
+                      }
+                      else if (selectedElems.length < 2) {
+                        // If less than 2 elements are selected, select the clicked element
+                        nodeElement.classList.add('selected');
+                        if (selectedElems.length === 0) {  // src
+                          markerElement.setAttribute('stroke', 'yellow');
+                        }
+                        else { // dst
+                          markerElement.setAttribute('stroke', '#ADD8E6');
+                        }
+                        selectedElems.push(nodeElement);
+                      }
+                      // Update the selection box with the names of the selected circles
+                      if (selectedElems.length == 0) {
+                        explainText = ''
+                        explainExplainText = selectSrcText
+                      }
+                      else if (selectedElems.length == 1) {
+                        const src_name = selectedElems[0].getAttribute('title');
+                        explainText = 'SOURCE node is <span style="background-color: yellow;">'+src_name+'</span>'
+                        explainExplainText =  selectDstText;
+                      }
+                      else {
+                        const src = selectedElems[0].getAttribute('id');
+                        const dst = selectedElems[1].getAttribute('id');
+                        const src_name = selectedElems[0].getAttribute('title');
+                        const dst_name = selectedElems[1].getAttribute('title');
+                        const entry = xmlDoc.querySelector("entry[src='"+src+"'][dst='"+dst+"']");
+                        if (entry) {
+							            explainTitle = 'Configurations affecting the connectivity between <span style="background-color: yellow;">'+src_name+'</span> and <span style="background-color: #ADD8E6;">'+dst_name+'</span>:\n' 
+
+                          // color the src and dst names
+                          explainText = explainTitle + entry.textContent;
+                        }
+                        else {
+                          explainText = 'Did not find entry of <span style="background-color: yellow;">'+src_name+'</span>'+
+                          ' and <span style="background-color: #ADD8E6;"> '+dst_name + '</span>';
+                        }
+                        explainExplainText = reselectSrcText
+                      }
+                    setAllText()
+                    }
+                    clickFlag = false; // Reset clickFlag
+                  }, 250);
+                }
+
+                function addSelectedListeners() {
+                    selectableElems.forEach(el => {
+                      el.addEventListener('click', (event) => selectExplPeer(event));
+                    });
+                  }
+
+                  function findSelected(element){
+                  console.log(element);
+                  if (element.classList.contains('selected')) {
+                    return true
+                  }
+                  let nodes = element.querySelectorAll('.node');
+                  // Iterate over nodes
+                  for(let i = 0; i < nodes.length; i++) {
+                    // Check if "selected" attribute is present
+                    if(nodes[i].classList.contains('selected')) {
+                      return true;
+                    }
+                  }
+                  return false;
+                }
+
+                function updateTitleText(element) {
+                  const clickedId = element.id;
+                  filterText = jsObject[clickedId].graphExplanation.join('\n')
+                  filterExplainText = unFilterExplainText
+                  setAllText()
+                }
+
+                function hideWithoutRelation(element) {
+                    const clickedId = element.id;
+                    const relatedIds = jsObject[clickedId].relations;
+                    clickableElements.forEach(el => {
+                        if (relatedIds.includes(el.id) || findSelected(el)) {
+                          el.style.display = ''; // Show the element
+                        }
+                        if (!relatedIds.includes(el.id) && el.id !== clickedId && !findSelected(el)) {
+                          el.style.display = 'none'; // Hide the element
+                        }
+                    });
+                }
+
+                function showAllElements() {
+                    clickableElements.forEach(el => {
+                      el.style.strokeWidth = '1px'; // highlight the element
+                      el.style.display = ''; // Show the element
+                    });
+                }
+
+                function addDbClickListeners() {
+                    // const clickableElements = document.querySelectorAll('[clickable="true"]');
+                    clickableElements.forEach(el => {
+                      if (el.classList.contains('background')) { // Check if the event target is the SVG background
+                        el.addEventListener('dblclick', function() {
+                          showAllElements();
+                          clearSelection(); // dbclick sellects the text it was clicked on, its annoying...
+                          filterText = mainTitleText
+                          filterExplainText = doFilterExplainText
+                          setAllText()
+                        });
+                      }
+                      else {
+                        el.addEventListener('dblclick', function() {
+                            clickFlag = false
+                            hideWithoutRelation(el);
+                            updateTitleText(el)
+                            clearSelection();
+                          });
+                      }
+                    });
+                }
+
+                function clearSelection() {
+                  if (window.getSelection) {
+                    window.getSelection().removeAllRanges(); // For most modern browsers
+                  } else if (document.selection && document.selection.empty) {
+                    document.selection.empty(); // For older IE versions (<= IE 9)
+                  }
+                }
+
+                document.addEventListener('DOMContentLoaded', function() {
+                    addDbClickListeners();
+                    addSelectedListeners();
+                });
+
+  </script>
+ </body>
+</html>
+{{else}}
+   </svg>
+{{end}}
