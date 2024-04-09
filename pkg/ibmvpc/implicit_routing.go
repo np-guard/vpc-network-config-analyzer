@@ -31,12 +31,12 @@ If no match is found, the packet is dropped.
 This behavior can be avoided with a custom routing table default route with an action of drop.
 */
 type systemImplicitRT struct {
-	vpc    *VPC
-	config *config
+	vpc    *VPC // parent VPC
+	config *systemRTConfig
 	// TODO: should be per zone in vpc
 }
 
-type config struct {
+type systemRTConfig struct {
 	tgwList []*TransitGateway
 	fipList []*FloatingIP
 	pgwList []*PublicGateway
@@ -64,25 +64,25 @@ func pgwHasSource(src vpcmodel.Node, pgw *PublicGateway) bool {
 
 // getPath returns a path from src to dst if such exists, or nil otherwise
 // TODO: src should be InternalNodeIntf, but it does not implement VPCResourceIntf
-func (rt *systemImplicitRT) getPath(src vpcmodel.Node, dest *ipblock.IPBlock) path {
+func (rt *systemImplicitRT) getPath(src vpcmodel.Node, dest *ipblock.IPBlock) vpcmodel.Path {
 	// TODO: split dest by disjoint ip-blocks of the vpc-config (the known destinations ip-blocks)
 
 	if dest.ContainedIn(rt.vpc.addressPrefixesIPBlock) {
 		// direct connection
-		return []*endpoint{{vpcResource: src}, {ipBlock: dest}}
+		return []*vpcmodel.Endpoint{{VpcResource: src}, {IPBlock: dest}}
 	}
 
 	if isDestPublicInternet(dest) {
 		for _, fip := range rt.config.fipList {
 			if fipHasSource(src, fip) {
 				// path through fip
-				return []*endpoint{{vpcResource: src}, {vpcResource: fip}, {ipBlock: dest}}
+				return []*vpcmodel.Endpoint{{VpcResource: src}, {VpcResource: fip}, {IPBlock: dest}}
 			}
 		}
 		for _, pgw := range rt.config.pgwList {
 			if pgwHasSource(src, pgw) {
 				// path through pgw
-				return []*endpoint{{vpcResource: src}, {vpcResource: pgw}, {ipBlock: dest}}
+				return []*vpcmodel.Endpoint{{VpcResource: src}, {VpcResource: pgw}, {IPBlock: dest}}
 			}
 		}
 		// no path to public internet from src node
@@ -107,7 +107,7 @@ func (rt *systemImplicitRT) getPath(src vpcmodel.Node, dest *ipblock.IPBlock) pa
 			for _, prefix := range availablePrefixes {
 				if dest.ContainedIn(prefix) {
 					// path through tgw
-					return []*endpoint{{vpcResource: src}, {vpcResource: tgw}, {ipBlock: dest}}
+					return []*vpcmodel.Endpoint{{VpcResource: src}, {VpcResource: tgw}, {IPBlock: dest}}
 				}
 			}
 		}
