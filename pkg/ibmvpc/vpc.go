@@ -744,10 +744,10 @@ type TransitGateway struct {
 
 	region *Region
 
-	// maps APs of each VPC to the prefix filter that determines its connectivity status w.r.t. the tgw (allow/deny)
-	// if non default. Specifically, the map is from VPC UID to a map between the ap's ipBlock to the index of the matching prefix
-	// filter that determines its status;
-	// this struct can be though of as the "explain" parallel of availableRoutes; note that it also lists deny prefixes
+	// maps each VPC to a struct listing for each of its address prefix details of the filter prefix determining its behavior w.r.t.
+	// the tgw. Specifically, these details include the specific transit connection and the index of the matching
+	// (allow/deny) filter prefix rule if exists, or -1 if the behavior is determined by the specified default of the transit connection
+	// this struct can be though of as the "explain" parallel of availableRoutes; note that unlike availableRoutes it also lists deny prefixes
 	vpcApsPrefixes map[string][]IPBlockPrefixFilter
 }
 
