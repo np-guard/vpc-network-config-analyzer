@@ -79,6 +79,10 @@ const (
 	secJSONOutSuffix               = "_2nd.json"
 	drawioOutSuffix                = ".drawio"
 	archDrawioOutSuffix            = "_arch.drawio"
+	svgOutSuffix                   = ".svg"
+	archSvgOutSuffix               = "_arch.svg"
+	htmlOutSuffix                  = ".html"
+	archHTMLOutSuffix              = "_arch.html"
 )
 
 // getTestFileName returns expected file name and actual file name, for the relevant use case
@@ -145,6 +149,14 @@ func getTestFileSuffix(format vpcmodel.OutFormat) (suffix string, err error) {
 		return drawioOutSuffix, nil
 	case vpcmodel.ARCHDRAWIO:
 		return archDrawioOutSuffix, nil
+	case vpcmodel.SVG:
+		return svgOutSuffix, nil
+	case vpcmodel.ARCHSVG:
+		return archSvgOutSuffix, nil
+	case vpcmodel.HTML:
+		return htmlOutSuffix, nil
+	case vpcmodel.ARCHHTML:
+		return archHTMLOutSuffix, nil
 	default:
 		return "", errors.New("unexpected out format")
 	}
@@ -505,16 +517,34 @@ var tests = []*vpcGeneralTest{
 		regions:     []string{"us-east"},
 	},
 	{
-		inputConfig: "load_balancer",
+		inputConfig: "iks_workers_large",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.Text,
+	},
+	{
+		inputConfig: "load_balancer",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
 		grouping:    true,
 		format:      vpcmodel.DRAWIO,
 	},
 	{
 		inputConfig: "iks_workers_large",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+		grouping:    false,
+		format:      vpcmodel.DRAWIO,
+	},
+	{
+		inputConfig: "iks_workers_large",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+		grouping:    true,
+		format:      vpcmodel.HTML,
+	},
+	{
+		inputConfig: "iks_workers_large",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		grouping:    true,
-		format:      vpcmodel.Text,
+		format:      vpcmodel.ARCHSVG,
 	},
 	// grouping test of identical names different resources and thus different UIDs that should not be merged
 	{
@@ -525,7 +555,14 @@ var tests = []*vpcGeneralTest{
 	},
 }
 
-var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
+var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{
+	vpcmodel.DRAWIO:     true,
+	vpcmodel.ARCHDRAWIO: true,
+	vpcmodel.SVG:        true,
+	vpcmodel.ARCHSVG:    true,
+	vpcmodel.HTML:       true,
+	vpcmodel.ARCHHTML:   true,
+}
 
 // uncomment the function below to run for updating the expected output
 /*

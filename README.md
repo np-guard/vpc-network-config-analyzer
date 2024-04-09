@@ -30,7 +30,7 @@ Usage of vpc-network-config-analyzer:
         File path to store resources collected from the cloud provider
   -format string
         Output format; must be one of:
-        txt, md, json, drawio, arch_drawio, debug (default "txt")
+        txt, md, json, drawio, arch_drawio, svg, arch_svg, html, arch_html, debug (default "txt")
   -grouping
         Whether to group together src/dst entries with identical connectivity
         Does not support single_subnet, diff_all_endpoints and diff_all_subnets analysis-types and json output format

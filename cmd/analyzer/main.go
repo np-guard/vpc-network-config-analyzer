@@ -34,6 +34,14 @@ func getOutputFormat(inArgs *InArgs) vpcmodel.OutFormat {
 		return vpcmodel.DRAWIO
 	case ARCHDRAWIOFormat:
 		return vpcmodel.ARCHDRAWIO
+	case SVGFormat:
+		return vpcmodel.SVG
+	case ARCHSVGFormat:
+		return vpcmodel.ARCHSVG
+	case HTMLFormat:
+		return vpcmodel.HTML
+	case ARCHHTMLFormat:
+		return vpcmodel.ARCHHTML
 	case DEBUGFormat:
 		return vpcmodel.Debug
 	}
