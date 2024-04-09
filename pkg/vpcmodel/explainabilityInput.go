@@ -301,7 +301,7 @@ func (c *VPCConfig) getNodesOfVsi(name string) ([]Node, int, error) {
 func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *ipblock.IPBlock, isMultiVPCConfig bool) (nodes []Node,
 	internalIP bool, errType int, err error) {
 	// 1.
-	_, publicInternet, err1 := getPublicInternetIPblocksList()
+	_, publicInternet, err1 := GetPublicInternetIPblocksList()
 	if err1 != nil { // should never get here. If still gets here - severe error, quit with err msg
 		return nil, false, fatalErr, err1
 	}
