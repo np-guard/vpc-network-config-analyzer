@@ -71,7 +71,7 @@ func getVPCAdvertisedRoutes(tc *datamodel.TransitConnection, vpc *VPC) (advertis
 
 // gets for a given address prefix the matching prefix filter index and its action (allow = true/deny = false)
 // if there is no specific prefix filter then gets the default defined behavior
-func getCIDRMatchedByPrefixFilters(cidr string, tc *datamodel.TransitConnection) (int, bool, error) {
+func getCIDRMatchedByPrefixFilters(cidr string, tc *datamodel.TransitConnection) (prefixIndex int, action bool, err error) {
 	// Array of prefix route filters for a transit gateway connection. This is order dependent with those first in the
 	// array being applied first, and those at the end of the array is applied last, or just before the default.
 	pfList := tc.PrefixFilters
@@ -82,18 +82,18 @@ func getCIDRMatchedByPrefixFilters(cidr string, tc *datamodel.TransitConnection)
 	// TODO: currently assuming subnet cidrs are the advertised routes to the TGW, matched against the prefix filters
 	// TODO: currently ignoring the "Before" field of each PrefixFilter, since assuming the array is ordered
 	// iterate by order the array of prefix route filters
-	for i, pf := range pfList {
+	for prefixIndex, pf := range pfList {
 		match, err := prefixLeGeMatch(pf.Prefix, pf.Le, pf.Ge, cidr)
 		if err != nil {
 			return minusOne, false, err
 		}
 		if match {
-			action, err := parseActionString(pf.Action)
-			return i, action, err
+			action, err = parseActionString(pf.Action)
+			return prefixIndex, action, err
 		}
 	}
 	// no match by pfList -- use default
-	action, err := parseActionString(pfDefault)
+	action, err = parseActionString(pfDefault)
 	return minusOne, action, err
 }
 
