@@ -54,36 +54,59 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping bool) (res *VPCConnectivi
 	}
 	res.computeAllowedConnsCombined()
 	res.computeAllowedStatefulConnections()
-	for _, lb := range c.LoadBalancers{
+	for _, lb := range c.LoadBalancers {
 		abstractNodeSet(res, lb)
 	}
 	res.GroupedConnectivity, err = newGroupConnLines(c, res, grouping)
 	return res, err
 }
-func abstractNodeSet(nodesConn *VPCConnectivity, ns NodeSet) {
-	// AllowedConns:= GeneralConnectivityMap{}
+func abstractNodeSet(nodesConn *VPCConnectivity, nodeSet NodeSet) {
+
+	results := GeneralConnectivityMap{}
+	nodeSetToNodeSet := GeneralConnectivityMap{}
+	dstFromNodeSet := GeneralConnectivityMap{}
+	srcToNodeSet := GeneralConnectivityMap{}
 	for src, nodeConns := range nodesConn.AllowedConnsCombined {
 		for dst, conns := range nodeConns {
 			srcNode, srcIsNode := src.(Node)
 			dstNode, dstIsNode := dst.(Node)
-			srcInSet  := srcIsNode && slices.Contains(ns.Nodes(), srcNode)
-			dstInSet  := dstIsNode && slices.Contains(ns.Nodes(), dstNode)
-			if (!srcInSet && !dstInSet) || conns.IsEmpty() {
-				continue
-			}
-			if srcInSet || dstInSet{
-				delete(nodesConn.AllowedConnsCombined[src],dst)
-				if srcInSet{
-					if _, ok := nodesConn.AllowedConnsCombined[ns]; !ok{
-						nodesConn.AllowedConnsCombined[ns] = map[VPCResourceIntf]*connection.Set{}
-					}
-						nodesConn.AllowedConnsCombined[ns][dst] = conns
-				}else{
-					nodesConn.AllowedConnsCombined[src][ns] = conns
-				}
+			srcInSet := srcIsNode && slices.Contains(nodeSet.Nodes(), srcNode)
+			dstInSet := dstIsNode && slices.Contains(nodeSet.Nodes(), dstNode)
+			switch {
+			case !srcInSet && !dstInSet || conns.IsEmpty():
+				results.updateAllowedConnsMap(src, dst, conns)
+			case srcInSet && dstInSet:
+				nodeSetToNodeSet.updateAllowedConnsMap(src, dst, conns)
+			case !srcInSet && dstInSet:
+				srcToNodeSet.updateAllowedConnsMap(src, dst, conns.Copy())
+			case srcInSet && !dstInSet:
+				dstFromNodeSet.updateAllowedConnsMap(dst, src, conns)
 			}
 		}
 	}
+	allConns := connection.None()
+	for _, nodeConns := range nodeSetToNodeSet {
+		for _, conns := range nodeConns {
+			allConns = conns.Union(conns)
+		}
+	}
+	results.updateAllowedConnsMap(nodeSet, nodeSet, allConns)
+
+	for src, nodeConns := range srcToNodeSet {
+		allConns := connection.None()
+		for _, conns := range nodeConns {
+			allConns = conns.Union(conns)
+		}
+		results.updateAllowedConnsMap(src, nodeSet, allConns)
+	}
+	for dst, nodeConns := range srcToNodeSet {
+		allConns := connection.None()
+		for _, conns := range nodeConns {
+			allConns = conns.Union(conns)
+		}
+		results.updateAllowedConnsMap(nodeSet, dst, allConns)
+	}
+	nodesConn.AllowedConnsCombined = results
 }
 
 func (c *VPCConfig) getFiltersAllowedConnsBetweenNodesPerDirectionAndLayer(
