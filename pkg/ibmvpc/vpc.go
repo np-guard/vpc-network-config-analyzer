@@ -716,6 +716,11 @@ type tgwPrefixFilter struct {
 	index int                          // the index of this prefix filter within the TransitConnection's filters list
 }
 
+type IPBlockPrefixFilter struct {
+	IPBlock      *ipblock.IPBlock
+	prefixFilter tgwPrefixFilter
+}
+
 type TransitGateway struct {
 	vpcmodel.VPCResource
 
@@ -739,11 +744,11 @@ type TransitGateway struct {
 
 	region *Region
 
-	// maps APs of each VPC to the prefix that determines its connectivity status w.r.t. the tgw (allow/deny)
+	// maps APs of each VPC to the prefix filter that determines its connectivity status w.r.t. the tgw (allow/deny)
 	// if non default. Specifically, the map is from VPC UID to a map between the ap's ipBlock to the index of the matching prefix
-	// that determines its status;
+	// filter that determines its status;
 	// this struct can be though of as the "explain" parallel of availableRoutes; note that it also lists deny prefixes
-	vpcApsPrefixes map[string]map[*ipblock.IPBlock]tgwPrefixFilter
+	vpcApsPrefixes map[string][]IPBlockPrefixFilter
 }
 
 func (tgw *TransitGateway) addSourceAndDestNodes() {
@@ -869,18 +874,18 @@ func (tgw *TransitGateway) StringPrefixDetails(src, dst vpcmodel.Node, verbose b
 func (tgw *TransitGateway) prefixOfSrcDst(src, dst vpcmodel.Node) *tgwPrefixFilter {
 	// <src, dst> routed by tgw given that source is in the tgw,
 	// and there is a prefix filter defined for the dst,
-	// the relevant prefix filter is determined by match of the ap the dest's node is in (including default)
+	// the relevant prefix filter is determined by match of the Address prefix the dest's node is in (including default)
 	if vpcmodel.HasNode(tgw.sourceNodes, src) {
-		for routeCIDR, prefix := range tgw.vpcApsPrefixes[dst.VPC().UID()] {
-			if dst.IPBlock().ContainedIn(routeCIDR) {
-				return &prefix
+		for _, singleIPBlockPrefix := range tgw.vpcApsPrefixes[dst.VPC().UID()] {
+			if dst.IPBlock().ContainedIn(singleIPBlockPrefix.IPBlock) {
+				return &singleIPBlockPrefix.prefixFilter
 			}
 		}
 	}
 	return nil
 }
 
-// todo: currently not used
+// AppliedFiltersKinds todo: currently not used
 func (tgw *TransitGateway) AppliedFiltersKinds() map[string]bool {
 	return map[string]bool{vpcmodel.NaclLayer: true, vpcmodel.SecurityGroupLayer: true}
 }
