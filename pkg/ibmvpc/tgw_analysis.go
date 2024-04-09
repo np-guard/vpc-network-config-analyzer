@@ -2,7 +2,6 @@ package ibmvpc
 
 import (
 	"errors"
-
 	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
 	"github.com/np-guard/models/pkg/ipblock"
 )
@@ -48,25 +47,31 @@ func validateAddressPrefixesExist(vpc *VPC) {
 
 // getVPCAdvertisedRoutes returns a list of IPBlock objects for vpc address prefixes matched by prefix filters,
 // thus advertised to a TGW
-func getVPCAdvertisedRoutes(tc *datamodel.TransitConnection, vpc *VPC) (res []*ipblock.IPBlock, err error) {
+func getVPCAdvertisedRoutes(tc *datamodel.TransitConnection, vpc *VPC) (advertisedRoutesRes []*ipblock.IPBlock,
+	vpcApsPrefixesRes []IPBlockPrefixFilter, err error) {
 	validateAddressPrefixesExist(vpc)
-	for _, ap := range vpc.addressPrefixes {
-		matched, err := isCIDRMatchedByPrefixFilters(ap, tc)
+	vpcApsPrefixesRes = make([]IPBlockPrefixFilter, len(vpc.addressPrefixes))
+	for i, ap := range vpc.addressPrefixes {
+		prefixIndex, matched, err := getCIDRMatchedByPrefixFilters(ap, tc)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
+		apIPBlock, err := ipblock.FromCidr(ap)
+		if err != nil {
+			return nil, nil, err
+		}
+		// advertisedRoutesRes contains only address prefixes with allowing action
 		if matched {
-			apIPBlock, err := ipblock.FromCidr(ap)
-			if err != nil {
-				return nil, err
-			}
-			res = append(res, apIPBlock)
+			advertisedRoutesRes = append(advertisedRoutesRes, apIPBlock)
 		}
+		vpcApsPrefixesRes[i] = IPBlockPrefixFilter{apIPBlock, tgwPrefixFilter{tc, prefixIndex}}
 	}
-	return res, nil
+	return advertisedRoutesRes, vpcApsPrefixesRes, nil
 }
 
-func isCIDRMatchedByPrefixFilters(cidr string, tc *datamodel.TransitConnection) (bool, error) {
+// gets for a given address prefix the matching prefix filter index and its action (allow = true/deny = false)
+// if there is no specific prefix filter then gets the default defined behavior
+func getCIDRMatchedByPrefixFilters(cidr string, tc *datamodel.TransitConnection) (int, bool, error) {
 	// Array of prefix route filters for a transit gateway connection. This is order dependent with those first in the
 	// array being applied first, and those at the end of the array is applied last, or just before the default.
 	pfList := tc.PrefixFilters
@@ -77,17 +82,19 @@ func isCIDRMatchedByPrefixFilters(cidr string, tc *datamodel.TransitConnection) 
 	// TODO: currently assuming subnet cidrs are the advertised routes to the TGW, matched against the prefix filters
 	// TODO: currently ignoring the "Before" field of each PrefixFilter, since assuming the array is ordered
 	// iterate by order the array of prefix route filters
-	for _, pf := range pfList {
+	for i, pf := range pfList {
 		match, err := prefixLeGeMatch(pf.Prefix, pf.Le, pf.Ge, cidr)
 		if err != nil {
-			return false, err
+			return minusOne, false, err
 		}
 		if match {
-			return parseActionString(pf.Action)
+			action, err := parseActionString(pf.Action)
+			return i, action, err
 		}
 	}
 	// no match by pfList -- use default
-	return parseActionString(pfDefault)
+	action, err := parseActionString(pfDefault)
+	return minusOne, action, err
 }
 
 func parseActionString(action *string) (bool, error) {
@@ -129,42 +136,4 @@ func prefixLeGeMatch(prefix *string, le, ge *int64, cidr string) (bool, error) {
 	default:
 		return cidrBlock.ContainedIn(prefixIPBlock) && subnetCIDRLen >= *ge && subnetCIDRLen <= *le, nil
 	}
-}
-
-// the following functions are related to explainability structs
-
-// gets a map from address prefixes of the vpc to matching prefix of tgw, if any
-func getVpcApsPrefixes(tc *datamodel.TransitConnection, vpc *VPC) (res []IPBlockPrefixFilter, err error) {
-	validateAddressPrefixesExist(vpc) // todo tmp WA copied from getVPCAdvertisedRoutes so that this func is self contained
-	res = make([]IPBlockPrefixFilter, len(vpc.addressPrefixes))
-	for i, ap := range vpc.addressPrefixes {
-		prefixIndex, err1 := getCIDRPrefixFilter(ap, tc)
-		if err1 != nil {
-			return nil, err1
-		}
-		apIPBlock, err2 := ipblock.FromCidr(ap)
-		if err2 != nil {
-			return nil, err2
-		}
-		res[i] = IPBlockPrefixFilter{apIPBlock, tgwPrefixFilter{tc, prefixIndex}}
-	}
-	return res, nil
-}
-
-// gets for a cidr the tgw's prefix's index that matches it, -1 if non match
-func getCIDRPrefixFilter(cidr string, tc *datamodel.TransitConnection) (int, error) {
-	// TODO: currently assuming subnet cidrs are the advertised routes to the TGW, matched against the prefix filters
-	// TODO: currently ignoring the "Before" field of each PrefixFilter, since assuming the array is ordered
-	// iterate by order the array of prefix route filters
-	for i, pf := range tc.PrefixFilters {
-		match, err := prefixLeGeMatch(pf.Prefix, pf.Le, pf.Ge, cidr)
-		if err != nil {
-			return minusOne, err
-		}
-		if match {
-			return i, nil
-		}
-	}
-	// no match by pfList -- use default
-	return minusOne, nil
 }

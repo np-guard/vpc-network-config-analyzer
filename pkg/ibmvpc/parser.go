@@ -822,7 +822,7 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 			tgwMap[tgwUID].vpcs = append(tgwMap[tgwUID].vpcs, vpc)
 		}
 
-		advertisedRoutes, err := getVPCAdvertisedRoutes(tgwConn, vpc)
+		advertisedRoutes, vpcApsPrefixes, err := getVPCAdvertisedRoutes(tgwConn, vpc)
 		if err != nil {
 			fmt.Printf("warning: ignoring prefix filters, vpcID: %s, tgwID: %s, err is: %s\n", vpcUID, tgwUID, err.Error())
 		} else {
@@ -834,10 +834,8 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 			tgwMap[tgwUID].destSubnets = append(tgwMap[tgwUID].destSubnets, getVPCdestSubnetsByAdvertisedRoutes(tgwMap[tgwUID], vpc)...)
 			tgwMap[tgwUID].addSourceAndDestNodes()
 
-			// explainability related computation
+			// explainability related struct initialization
 			// vpcApsPrefixes is a map from the vpc's ap to the index of the prefix that matches it, -1 for default if no match
-			// if getVPCAdvertisedRoutes completed without an error, so would getVpcApsPrefixes
-			vpcApsPrefixes, _ := getVpcApsPrefixes(tgwConn, vpc)
 			tgwMap[tgwUID].vpcApsPrefixes[vpcUID] = vpcApsPrefixes
 		}
 	}
