@@ -5,7 +5,21 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"sort"
 	"text/template"
+)
+
+const (
+	drawioTableSep = "&#xa;"
+	SvgTableSep    = "<br/>"
+)
+
+type FileFormat int64
+
+const (
+	FileDRAWIO FileFormat = iota
+	FileSVG
+	FileHTML
 )
 
 //go:embed connectivityMap.drawio.tmpl
@@ -14,26 +28,56 @@ var drawioTemplate string
 //go:embed connectivityMap.svg.tmpl
 var svgTemplate string
 
-type templateData struct {
-	templateStyles
-	Width       int
-	Height      int
-	rootID      uint
-	Nodes       []TreeNodeInterface
-	DebugPoints []debugPoint
+var formatsTemplate = map[FileFormat]string{
+	FileDRAWIO: drawioTemplate,
+	FileSVG:    svgTemplate,
+	FileHTML:   svgTemplate,
 }
 
-func NewTemplateData(network SquareTreeNodeInterface) *templateData {
+type ExplanationEntry struct {
+	Src, Dst TreeNodeInterface
+	Text     string
+}
+
+type templateData struct {
+	templateStyles
+	Width        int
+	Height       int
+	rootID       uint
+	Nodes        []TreeNodeInterface
+	DebugPoints  []debugPoint
+	Relations    string
+	Explanations []ExplanationEntry
+	clickable    map[TreeNodeInterface]bool
+	svgNames     map[TreeNodeInterface]string
+	IsHTML       bool
+}
+
+func newTemplateData(network SquareTreeNodeInterface, explanations []ExplanationEntry, interactive bool) *templateData {
 	allNodes := getAllNodes(network)
 	orderedNodes := orderNodesForTemplate(allNodes)
-	return &templateData{
+	data := &templateData{
 		newTemplateStyles(allNodes),
 		network.Width(),
 		network.Height(),
 		network.ID(),
 		orderedNodes,
 		network.DebugPoints(),
+		"",
+		explanations,
+		map[TreeNodeInterface]bool{},
+		map[TreeNodeInterface]string{},
+		interactive,
 	}
+	if interactive {
+		data.setNodesNames(network)
+		data.setNodesRelations(network)
+		for _, e := range data.Explanations {
+			data.clickable[e.Src] = true
+			data.clickable[e.Dst] = true
+		}
+	}
+	return data
 }
 func (data *templateData) FipXOffset() int      { return fipXOffset }
 func (data *templateData) FipYOffset() int      { return fipYOffset }
@@ -43,8 +87,25 @@ func (data *templateData) MiniIconSize() int    { return miniIconSize }
 func (data *templateData) RootID() uint         { return data.rootID }
 func (data *templateData) IDsPrefix() string    { return idsPrefix }
 func (data *templateData) ElementComment(tn TreeNodeInterface) string {
-	return reflect.TypeOf(tn).Elem().Name() + " " + tn.Label()
+	return reflect.TypeOf(tn).Elem().Name() + " " + treeNodeName(tn)
 }
+func (data *templateData) NodeName(tn TreeNodeInterface) string {
+	return data.svgNames[tn]
+}
+func (data *templateData) SvgLabel(tn TreeNodeInterface) string {
+	if tn.IsSquare() && len(tn.labels()) == 1 {
+		// this case is for vertical aliment fo the square name, I failed to do it at the html
+		return SvgTableSep + joinLabels(tn.labels(), SvgTableSep)
+	}
+	return joinLabels(tn.labels(), SvgTableSep)
+}
+func (data *templateData) DrawioLabel(tn TreeNodeInterface) string {
+	return joinLabels(tn.labels(), drawioTableSep)
+}
+func (data *templateData) Clickable(tn TreeNodeInterface) bool {
+	return data.clickable[tn]
+}
+
 func (data *templateData) Add(a, b int) int     { return a + b }
 func (data *templateData) Add3(a, b, c int) int { return a + b + c }
 func (data *templateData) Half(a int) int       { return a / 2 }
@@ -58,52 +119,67 @@ func (data *templateData) AY(tn TreeNodeInterface) int {
 	return y
 }
 
-// orderNodesForTemplate() sort the nodes for the drawio/svg canvas
-// the order in the drawio/svg canvas are set by the order in the drawio/svg file
+// orderNodesForTemplate() sort the nodes for the drawio/svg/html canvas
+// the order in the canvas are set by the order in the drawio/svg/html file
 // (the last in the file will be on top in the canvas)
+// for clicking on a node, it must not be behind another node
 // 1. we put the lines at the top so they will overlap the icons
-// 2. we put the icons above the squares so we can mouse over it for tooltips
-// 3. we put the sgs and the gs in the bottom.
-// (if a sg ot a gs is above a square, it will block the the tooltip of the children of the square.)
+// 2. we put the icons above the squares
+// 3. we bucket sort the squares, and order them by parent-child order
+// 4. we also sort the groupSquare by size
 func orderNodesForTemplate(nodes []TreeNodeInterface) []TreeNodeInterface {
-	var sg, sq, ln, ic, gs, orderedNodes []TreeNodeInterface
+	squareOrders := []SquareTreeNodeInterface{
+		&NetworkTreeNode{},
+		&PublicNetworkTreeNode{},
+		&CloudTreeNode{},
+		&RegionTreeNode{},
+		&VpcTreeNode{},
+		&GroupSubnetsSquareTreeNode{},
+		&ZoneTreeNode{},
+		&SubnetTreeNode{},
+		&SGTreeNode{},
+		&PartialSGTreeNode{},
+		&GroupSquareTreeNode{},
+	}
+	var lines, icons, orderedNodes []TreeNodeInterface
+	squaresBuckets := map[reflect.Type][]TreeNodeInterface{}
 	for _, tn := range nodes {
 		switch {
-		case reflect.TypeOf(tn).Elem() == reflect.TypeOf(PartialSGTreeNode{}):
-			sg = append(sg, tn)
-		case tn.IsSquare() && tn.(SquareTreeNodeInterface).IsGroupingSquare(),
-			tn.IsSquare() && tn.(SquareTreeNodeInterface).IsGroupSubnetsSquare():
-			gs = append(gs, tn)
 		case tn.IsSquare():
-			sq = append(sq, tn)
+			e := reflect.TypeOf(tn).Elem()
+			squaresBuckets[e] = append(squaresBuckets[e], tn)
 		case tn.IsIcon():
-			ic = append(ic, tn)
+			icons = append(icons, tn)
 		case tn.IsLine():
-			ln = append(ln, tn)
+			lines = append(lines, tn)
 		}
 	}
-	orderedNodes = append(orderedNodes, gs...)
-	orderedNodes = append(orderedNodes, sg...)
-	orderedNodes = append(orderedNodes, sq...)
-	orderedNodes = append(orderedNodes, ic...)
-	orderedNodes = append(orderedNodes, ln...)
+	for _, square := range []SquareTreeNodeInterface{
+		&GroupSquareTreeNode{},
+		&GroupSubnetsSquareTreeNode{},
+	} {
+		nodes := squaresBuckets[reflect.TypeOf(square).Elem()]
+		sort.Slice(nodes, func(i, j int) bool {
+			return nodes[i].Width() > nodes[j].Width()
+		})
+	}
+	for _, t := range squareOrders {
+		orderedNodes = append(orderedNodes, squaresBuckets[reflect.TypeOf(t).Elem()]...)
+	}
+	orderedNodes = append(orderedNodes, icons...)
+	orderedNodes = append(orderedNodes, lines...)
 	return orderedNodes
 }
 
-// todo - when implementing the full html solution, need to change this interface:
-func CreateDrawioConnectivityMapFile(network SquareTreeNodeInterface, outputFile string, subnetMode bool) error {
+func CreateDrawioConnectivityMapFile(
+	network SquareTreeNodeInterface, outputFile string, subnetMode bool,
+	format FileFormat, explanations []ExplanationEntry) error {
 	newLayout(network, subnetMode).layout()
-	if false {
-		err := createFileFromTemplate(network, outputFile+".svg", svgTemplate)
-		if err != nil {
-			return err
-		}
-	}
-	return createFileFromTemplate(network, outputFile, drawioTemplate)
+	data := newTemplateData(network, explanations, format == FileHTML)
+	return createFileFromTemplate(data, outputFile, formatsTemplate[format])
 }
 
-func createFileFromTemplate(network SquareTreeNodeInterface, outputFile, templ string) error {
-	data := NewTemplateData(network)
+func createFileFromTemplate(data *templateData, outputFile, templ string) error {
 	tmpl, err := template.New("diagram").Parse(templ)
 	if err != nil {
 		return err

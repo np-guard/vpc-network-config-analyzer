@@ -1,5 +1,10 @@
 package drawio
 
+import (
+	"slices"
+	"strings"
+)
+
 /////////////////////////////////////////////////////////////
 // the drawio has three kinds of elements:
 // 1. squares (vpcs, zones, sgs, subnets...)
@@ -43,7 +48,9 @@ type TreeNodeInterface interface {
 	Width() int
 	setXY(x, y int)
 	setWH(w, h int)
-	Label() string
+	labels() []string
+	Kind() string
+	SetKind(string)
 
 	DrawioParent() TreeNodeInterface
 	Parent() TreeNodeInterface
@@ -100,11 +107,30 @@ func getAllNodes(tn TreeNodeInterface) []TreeNodeInterface {
 	return ret
 }
 
+// todo: reimplement the following:
 func getAllLines(tn TreeNodeInterface) (ret []LineTreeNodeInterface) {
 	nodes := getAllNodes(tn)
 	for _, n := range nodes {
 		if n.IsLine() {
 			ret = append(ret, n.(LineTreeNodeInterface))
+		}
+	}
+	return ret
+}
+func getAllSquares(tn TreeNodeInterface) (ret []TreeNodeInterface) {
+	nodes := getAllNodes(tn)
+	for _, n := range nodes {
+		if n.IsSquare() {
+			ret = append(ret, n)
+		}
+	}
+	return ret
+}
+func getAllIcons(tn TreeNodeInterface) (ret []TreeNodeInterface) {
+	nodes := getAllNodes(tn)
+	for _, n := range nodes {
+		if n.IsIcon() {
+			ret = append(ret, n)
 		}
 	}
 	return ret
@@ -126,6 +152,16 @@ func absoluteGeometry(tn TreeNodeInterface) (x, y int) {
 		tn.Y() + tn.DrawioParent().Location().firstRow.y() + tn.DrawioParent().Location().yOffset
 }
 
+func joinLabels(labels []string, sep string) string {
+	labelsToJoin := slices.Clone(labels)
+	labelsToJoin = slices.DeleteFunc(labelsToJoin, func(s string) bool { return s == "" })
+	return strings.Join(labelsToJoin, sep)
+}
+
+func treeNodeName(tn TreeNodeInterface) string {
+	return joinLabels(tn.labels(), ",")
+}
+
 // uncomment writeAsJson() treeNodeAsMap() for debug of a treeNode
 
 // func treeNodeAsMap(tn TreeNodeInterface) map[string]interface{} {
@@ -143,7 +179,7 @@ func absoluteGeometry(tn TreeNodeInterface) (x, y int) {
 // 	for _, s := range lines {
 // 		lns = append(lns, treeNodeAsMap(s))
 // 	}
-// 	res["name"] = tn.Label()
+// 	res["name"] = tn.labels()
 // 	res["squares"] = sqs
 // 	res["icons"] = ics
 // 	res["lines"] = lns
