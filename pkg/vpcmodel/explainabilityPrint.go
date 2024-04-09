@@ -165,7 +165,6 @@ func crossRouterDetails(c *VPCConfig, crossVpcRouter RoutingResource, src, dst E
 		_, crossVpcConnection, _ := c.getRoutingResource(src.(Node), dst.(Node)) // crossVpc Router (tgw) exists - src, dst are internal
 		// if there is a non nil transit gateway then src and dst are vsis, and implement Node
 		crossVpcFilterHeader, _ := crossVpcRouter.StringPrefixDetails(src.(Node), dst.(Node), false)
-		crossVpcFilterHeader += newLine
 		crossVpcFilterDetails, _ := crossVpcRouter.StringPrefixDetails(src.(Node), dst.(Node), true)
 		return crossVpcConnection, crossVpcFilterHeader, crossVpcFilterDetails
 	}
@@ -244,13 +243,10 @@ func (rules *rulesConnection) ruleDetailsStr(c *VPCConfig, filtersRelevant map[s
 		ingressRulesStr = rules.ingressRules.rulesDetailsStr(c, filtersRelevant, true)
 	}
 	if needEgress && egressRulesStr != emptyString {
-		egressRulesStr = "Egress:\n" + egressRulesStr
+		egressRulesStr = "Egress:\n" + egressRulesStr + newLine
 	}
 	if needIngress && ingressRulesStr != emptyString {
-		ingressRulesStr = "Ingress:\n" + ingressRulesStr
-		if needEgress && egressRulesStr != emptyString {
-			egressRulesStr += newLine
-		}
+		ingressRulesStr = "Ingress:\n" + ingressRulesStr + newLine
 	}
 	if egressRulesStr != emptyString || ingressRulesStr != emptyString {
 		return egressRulesStr + ingressRulesStr

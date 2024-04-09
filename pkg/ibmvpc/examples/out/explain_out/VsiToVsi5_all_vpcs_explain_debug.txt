@@ -25,5 +25,6 @@ Ingress:
 network ACL acl2-ky allows connection with the following allow rules
 	index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 security group sg2-ky blocks connection since there are no relevant allow rules
+
 ------------------------------------------------------------------------------------------------------------------------
 

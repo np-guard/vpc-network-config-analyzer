@@ -21,5 +21,6 @@ network ACL acl1-ky allows connection with the following allow rules
 	index: 4, direction: inbound , src: 10.240.20.0/24 , dst: 10.240.10.0/24, conn: all, action: allow
 security group sg1-ky allows connection with the following allow rules
 	index: 1, direction: inbound, protocol: all, cidr: 0.0.0.0/0
+
 ------------------------------------------------------------------------------------------------------------------------
 

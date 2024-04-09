@@ -15,6 +15,7 @@ import (
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 const minusOne = -1
+const newline = "\n"
 
 func getNodeName(name, addr string) string {
 	return fmt.Sprintf("%s[%s]", name, addr)
@@ -866,9 +867,9 @@ func (tgw *TransitGateway) StringPrefixDetails(src, dst vpcmodel.Node, verbose b
 	}
 	noVerboseStr := fmt.Sprintf("cross-vpc-connection: transit-connection %s of transit-gateway %s ", *prefix.tc.Name, tgw.Name())
 	if transitEnablesConn {
-		return noVerboseStr + "allows connection", nil
+		return noVerboseStr + "allows connection" + newline, nil
 	}
-	return noVerboseStr + "denies connection", nil
+	return noVerboseStr + "denies connection" + newline, nil
 }
 
 func (tgw *TransitGateway) prefixOfSrcDst(src, dst vpcmodel.Node) *tgwPrefixFilter {
