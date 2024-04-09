@@ -213,8 +213,8 @@ func existingConnectionStr(connQuery *connection.Set, src, dst EndpointElem,
 // returns a string with a summary of each filter (table) effect; e.g.
 // "Egress: security group sg1-ky allows connection; network ACL acl1-ky blocks connection
 // Ingress: network ACL acl3-ky allows connection; security group sg1-ky allows connection"
-func (rules *rulesConnection) filterEffectStr(c *VPCConfig, filtersRelevant map[string]bool, needEgress, needIngress bool) (string, string) {
-	egressRulesHeader, ingressRulesHeader := "", ""
+func (rules *rulesConnection) filterEffectStr(c *VPCConfig, filtersRelevant map[string]bool, needEgress,
+	needIngress bool) (egressRulesHeader, ingressRulesHeader string) {
 	if needEgress {
 		egressRulesHeader = rules.egressRules.summaryFiltersStr(c, filtersRelevant, false)
 	}
