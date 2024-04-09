@@ -26,7 +26,7 @@ type endpoint struct {
 type nextHopEntry struct {
 	nextHop  *ipblock.IPBlock // the next hop address
 	origDest *ipblock.IPBlock // the original destination
-	rt       *routingTable    // the routing table from which this next hop was determined
+	// rt       *routingTable    // the routing table from which this next hop was determined
 }
 
 const pathConnector string = " -> "

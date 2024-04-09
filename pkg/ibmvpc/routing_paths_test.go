@@ -25,6 +25,9 @@ func (tt *testPath) run(t *testing.T) {
 	}
 	if len(tt.otherPath) > 0 {
 		require.Equal(t, tt.otherPathEqual, tt.p.equal(tt.otherPath))
+		require.True(t, !tt.otherPath.empty())
+	} else {
+		require.True(t, tt.otherPath.empty())
 	}
 }
 
