@@ -107,10 +107,13 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 	}
 	var crossVpcConnection *connection.Set
 	crossVpcConnection, crossRouterFilterHeader, crossRouterFilterDetails = crossRouterDetails(c, crossVpcRouter, src, dst)
-	noConnection := noConnectionHeader(src.Name(), dst.Name(), connQuery) + newLine // noConnection is the 1 above when no connection
+	// noConnection is the 1 above when no connection
+	noConnection := noConnectionHeader(src.Name(), dst.Name(), connQuery) + newLine
+
 	// resourceEffectHeader is "2" above
-	resourceEffectHeader = externalRouterHeader + crossRouterFilterHeader +
-		rules.filterEffectStr(c, filtersRelevant, needEgress, needIngress) + doubleNL
+	egressRulesHeader, ingressRulesHeader := rules.filterEffectStr(c, filtersRelevant, needEgress, needIngress)
+	resourceEffectHeader = externalRouterHeader + egressRulesHeader + crossRouterFilterHeader +
+		ingressRulesHeader + newLine
 
 	// path in "3" above
 	path := "Path:\n" + pathStr(c, filtersRelevant, src, dst,
@@ -210,24 +213,21 @@ func existingConnectionStr(connQuery *connection.Set, src, dst EndpointElem,
 // returns a string with a summary of each filter (table) effect; e.g.
 // "Egress: security group sg1-ky allows connection; network ACL acl1-ky blocks connection
 // Ingress: network ACL acl3-ky allows connection; security group sg1-ky allows connection"
-func (rules *rulesConnection) filterEffectStr(c *VPCConfig, filtersRelevant map[string]bool, needEgress, needIngress bool) string {
-	egressRulesStr, ingressRulesStr := "", ""
+func (rules *rulesConnection) filterEffectStr(c *VPCConfig, filtersRelevant map[string]bool, needEgress, needIngress bool) (string, string) {
+	egressRulesHeader, ingressRulesHeader := "", ""
 	if needEgress {
-		egressRulesStr = rules.egressRules.summaryFiltersStr(c, filtersRelevant, false)
+		egressRulesHeader = rules.egressRules.summaryFiltersStr(c, filtersRelevant, false)
 	}
 	if needIngress {
-		ingressRulesStr = rules.ingressRules.summaryFiltersStr(c, filtersRelevant, true)
+		ingressRulesHeader = rules.ingressRules.summaryFiltersStr(c, filtersRelevant, true)
 	}
-	if needEgress && egressRulesStr != emptyString {
-		egressRulesStr = "Egress: " + egressRulesStr
+	if needEgress && egressRulesHeader != emptyString {
+		egressRulesHeader = "Egress: " + egressRulesHeader + newLine
 	}
-	if needIngress && ingressRulesStr != emptyString {
-		ingressRulesStr = "Ingress: " + ingressRulesStr
+	if needIngress && ingressRulesHeader != emptyString {
+		ingressRulesHeader = "Ingress: " + ingressRulesHeader + newLine
 	}
-	if egressRulesStr != emptyString && ingressRulesStr != emptyString {
-		return egressRulesStr + newLine + ingressRulesStr
-	}
-	return egressRulesStr + ingressRulesStr
+	return egressRulesHeader, ingressRulesHeader
 }
 
 // returns a string with a detailed list of relevant rules; e.g.
