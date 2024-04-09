@@ -185,13 +185,13 @@ var tests = []*vpcGeneralTest{
 		inputConfig: "iks_workers_large",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		grouping:    true,
-		format:      vpcmodel.DRAWIO,
+		format:      vpcmodel.HTML,
 	},
 	{
 		inputConfig: "load_balancer",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		grouping:    true,
-		format:      vpcmodel.DRAWIO,
+		format:      vpcmodel.HTML,
 	},
 
 }
