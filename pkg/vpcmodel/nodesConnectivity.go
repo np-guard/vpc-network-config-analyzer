@@ -60,9 +60,10 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping bool) (res *VPCConnectivi
 	res.GroupedConnectivity, err = newGroupConnLines(c, res, grouping)
 	return res, err
 }
+
 ////////////////////////////////////////////////////////////////////
 
-func sortByNodeSet(nodesConn GeneralConnectivityMap, nodeSet NodeSet) (	srcToDst ,nodeSetToNodeSet ,dstFromNodeSet,srcToNodeSet  GeneralConnectivityMap){
+func sortByNodeSet(nodesConn GeneralConnectivityMap, nodeSet NodeSet) (srcToDst, nodeSetToNodeSet, dstFromNodeSet, srcToNodeSet GeneralConnectivityMap) {
 	srcToDst = GeneralConnectivityMap{}
 	nodeSetToNodeSet = GeneralConnectivityMap{}
 	dstFromNodeSet = GeneralConnectivityMap{}
@@ -85,34 +86,44 @@ func sortByNodeSet(nodesConn GeneralConnectivityMap, nodeSet NodeSet) (	srcToDst
 			}
 		}
 	}
-return srcToDst ,nodeSetToNodeSet ,dstFromNodeSet,srcToNodeSet
+	return srcToDst, nodeSetToNodeSet, dstFromNodeSet, srcToNodeSet
 }
 
-func abstractNodeSet(nodesConn GeneralConnectivityMap, nodeSet NodeSet) GeneralConnectivityMap{
-	result ,nodeSetToNodeSet ,dstFromNodeSet,srcToNodeSet := sortByNodeSet(nodesConn,nodeSet)
+func mergeWithNodeSet(srcToDst, nodeSetToNodeSet, dstFromNodeSet, srcToNodeSet GeneralConnectivityMap, nodeSet NodeSet)  GeneralConnectivityMap{
+	res := GeneralConnectivityMap{}
+	for src, nodeConns := range srcToDst {
+		for dst, conns := range nodeConns {
+			res.updateAllowedConnsMap(src, dst, conns)
+		}
+	}
+
 	allConns := connection.None()
 	for _, nodeConns := range nodeSetToNodeSet {
 		for _, conns := range nodeConns {
 			allConns = conns.Union(conns)
 		}
 	}
-	result.updateAllowedConnsMap(nodeSet, nodeSet, allConns)
+	res.updateAllowedConnsMap(nodeSet, nodeSet, allConns)
 
 	for src, nodeConns := range srcToNodeSet {
 		allConns := connection.None()
 		for _, conns := range nodeConns {
 			allConns = conns.Union(conns)
 		}
-		result.updateAllowedConnsMap(src, nodeSet, allConns)
+		res.updateAllowedConnsMap(src, nodeSet, allConns)
 	}
 	for dst, nodeConns := range dstFromNodeSet {
 		allConns := connection.None()
 		for _, conns := range nodeConns {
 			allConns = conns.Union(conns)
 		}
-		result.updateAllowedConnsMap(nodeSet, dst, allConns)
+		res.updateAllowedConnsMap(nodeSet, dst, allConns)
 	}
-	return result
+	return res
+}
+func abstractNodeSet(nodesConn GeneralConnectivityMap, nodeSet NodeSet) GeneralConnectivityMap {
+	srcToDst, nodeSetToNodeSet, dstFromNodeSet, srcToNodeSet := sortByNodeSet(nodesConn, nodeSet)
+	return mergeWithNodeSet(srcToDst, nodeSetToNodeSet, dstFromNodeSet, srcToNodeSet, nodeSet)
 }
 
 func (c *VPCConfig) getFiltersAllowedConnsBetweenNodesPerDirectionAndLayer(
