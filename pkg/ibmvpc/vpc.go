@@ -844,9 +844,9 @@ func actionNameStr(action *string) (string, error) {
 		return "", err
 	}
 	if actionBool {
-		return "allow", nil
+		return permitAction, nil
 	}
-	return "deny", nil
+	return denyAction, nil
 }
 
 func (tgw *TransitGateway) StringPrefixDetails(src, dst vpcmodel.Node, verbose bool) (string, error) {

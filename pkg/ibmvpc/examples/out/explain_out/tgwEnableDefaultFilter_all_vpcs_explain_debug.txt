@@ -12,7 +12,7 @@ Path:
 Details:
 ~~~~~~~~
 transit gateway local-tg-ky allows connection with the following prefix
-	transit-connection: tg_connection1 default prefix,  action: allow
+	transit-connection: tg_connection1 default prefix,  action: permit
 
 Egress:
 security group sg1-ky allows connection with the following allow rules
