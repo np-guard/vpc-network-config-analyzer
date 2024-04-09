@@ -2,6 +2,7 @@ package ibmvpc
 
 import (
 	"errors"
+
 	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
 	"github.com/np-guard/models/pkg/ipblock"
 )
@@ -83,9 +84,9 @@ func getCIDRMatchedByPrefixFilters(cidr string, tc *datamodel.TransitConnection)
 	// TODO: currently ignoring the "Before" field of each PrefixFilter, since assuming the array is ordered
 	// iterate by order the array of prefix route filters
 	for prefixIndex, pf := range pfList {
-		match, err := prefixLeGeMatch(pf.Prefix, pf.Le, pf.Ge, cidr)
-		if err != nil {
-			return minusOne, false, err
+		match, err1 := prefixLeGeMatch(pf.Prefix, pf.Le, pf.Ge, cidr)
+		if err1 != nil {
+			return minusOne, false, err1
 		}
 		if match {
 			action, err = parseActionString(pf.Action)
