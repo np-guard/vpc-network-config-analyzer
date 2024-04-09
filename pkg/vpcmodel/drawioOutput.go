@@ -123,7 +123,7 @@ func (d *DrawioOutputFormatter) createRouters() {
 		for _, r := range vpcConfig.RoutingResources {
 			if d.showResource(r) {
 				rTn := d.gen.TreeNode(r)
-				if rTn == nil{
+				if rTn == nil {
 					continue
 				}
 				if vpcConfig.IsMultipleVPCsConfig {
@@ -218,10 +218,13 @@ func (d *DrawioOutputFormatter) createExplanations() []drawio.ExplanationEntry {
 	explanationsList := make([]drawio.ExplanationEntry, len(explanations))
 	i := 0
 	for k, e := range explanations {
-		explanationsList[i] = drawio.ExplanationEntry{Src: d.gen.TreeNode(k.src), Dst: d.gen.TreeNode(k.dst), Text: e}
-		i++
+		if d.gen.TreeNode(k.src) != nil && d.gen.TreeNode(k.dst) != nil {
+			explanationsList[i] = drawio.ExplanationEntry{Src: d.gen.TreeNode(k.src), Dst: d.gen.TreeNode(k.dst), Text: e}
+			i++
+		}
 	}
-	return explanationsList
+
+	return explanationsList[0:i]
 }
 
 func (d *DrawioOutputFormatter) explainableEndpoints() []EndpointElem {
