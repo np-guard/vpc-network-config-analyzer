@@ -11,14 +11,14 @@ Path:
 
 Details:
 ~~~~~~~~
-transit gateway local-tg-ky allows connection with the following prefix
-	transit-connection: tg_connection0, index: 0, action: permit, prefix: 10.240.4.0/22
-
 Egress:
 security group sg21-ky allows connection with the following allow rules
 	index: 1, direction: outbound, protocol: all, cidr: 0.0.0.0/0
 network ACL acl21-ky allows connection with the following allow rules
 	index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+
+transit gateway local-tg-ky allows connection with the following prefix
+	transit-connection: tg_connection0, index: 0, action: permit, prefix: 10.240.4.0/22
 
 Ingress:
 network ACL acl2-ky allows connection with the following allow rules
