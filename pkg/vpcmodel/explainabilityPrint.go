@@ -221,6 +221,7 @@ func stringFilterEffect(c *VPCConfig, filterLayerName string, rules []RulesInFil
 		strSlice[i] = FilterKindName(filterLayerName) + space + name + effectStr
 		i++
 	}
+	sort.Strings(strSlice)
 	return strings.Join(strSlice, semicolon+space)
 }
 
