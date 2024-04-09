@@ -10,6 +10,7 @@ func (v *VPC) ShowOnSubnetMode() bool                  { return true }
 func (z *Zone) ShowOnSubnetMode() bool                 { return true }
 func (s *Subnet) ShowOnSubnetMode() bool               { return true }
 func (sgl *SecurityGroupLayer) ShowOnSubnetMode() bool { return false }
+func (sg *SecurityGroup) ShowOnSubnetMode() bool       { return false }
 func (nl *NaclLayer) ShowOnSubnetMode() bool           { return true }
 func (ni *NetworkInterface) ShowOnSubnetMode() bool    { return false }
 func (n *IKSNode) ShowOnSubnetMode() bool              { return false }
@@ -21,6 +22,10 @@ func (fip *FloatingIP) ShowOnSubnetMode() bool         { return false }
 func (tgw *TransitGateway) ShowOnSubnetMode() bool     { return true }
 func (lb *LoadBalancer) ShowOnSubnetMode() bool        { return false }
 func (pip *PrivateIP) ShowOnSubnetMode() bool          { return false }
+
+// for DrawioResourceIntf that are not VPCResourceIntf, we implement Kind():
+func (r *Region) Kind() string { return "Cloud" }
+func (z *Zone) Kind() string   { return "Zone" }
 
 // implementations of the GenerateDrawioTreeNode() for resource defined in ibmvpc:
 func (r *Region) IsExternal() bool { return false }
@@ -44,11 +49,18 @@ func (s *Subnet) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.Tr
 }
 
 func (sgl *SecurityGroupLayer) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
-	tn := drawio.NewSGTreeNode(gen.TreeNode(sgl.VPC()).(*drawio.VpcTreeNode), sgl.Name())
 	for _, sg := range sgl.sgList {
-		for _, member := range sg.members {
-			tn.AddIcon(gen.TreeNode(member).(drawio.IconTreeNodeInterface))
-		}
+		// creating the SGs TreeNodes:
+		gen.TreeNode(sg)
+	}
+	return nil
+}
+func (sg *SecurityGroup) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
+	// creating the SG treeNodes:
+	tn := drawio.NewSGTreeNode(gen.TreeNode(sg.VPC()).(*drawio.VpcTreeNode), sg.Name())
+	for _, member := range sg.members {
+		// every SG member is added as an icon treeNode to the SG treeNode:
+		tn.AddIcon(gen.TreeNode(member).(drawio.IconTreeNodeInterface))
 	}
 	return tn
 }
@@ -87,8 +99,7 @@ func (v *Vsi) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeN
 	// todo - how to handle this error:
 	zone, _ := v.Zone()
 	zoneTn := gen.TreeNode(zone).(*drawio.ZoneTreeNode)
-	drawio.GroupNIsWithVSI(zoneTn, v.Name(), vsiNIs)
-	return nil
+	return drawio.GroupNIsWithVSI(zoneTn, v.Name(), vsiNIs)
 }
 
 func (v *Vpe) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
@@ -100,8 +111,7 @@ func (v *Vpe) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeN
 		resIPs[i] = gen.TreeNode(resIP)
 	}
 	vpcTn := gen.TreeNode(v.VPC()).(drawio.SquareTreeNodeInterface)
-	drawio.GroupResIPsWithVpe(vpcTn, v.Name(), resIPs)
-	return nil
+	return drawio.GroupResIPsWithVpe(vpcTn, v.Name(), resIPs)
 }
 
 func (pgw *PublicGateway) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
@@ -130,8 +140,7 @@ func (lb *LoadBalancer) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) dr
 		resIPs[i] = gen.TreeNode(resIP)
 	}
 	vpcTn := gen.TreeNode(lb.VPC()).(drawio.SquareTreeNodeInterface)
-	drawio.GroupPrivateIPsWithLoadBalancer(vpcTn, lb.Name(), resIPs)
-	return nil
+	return drawio.GroupPrivateIPsWithLoadBalancer(vpcTn, lb.Name(), resIPs)
 }
 func (pip *PrivateIP) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	return drawio.NewPrivateIPTreeNode(

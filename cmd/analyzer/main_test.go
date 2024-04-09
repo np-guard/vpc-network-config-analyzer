@@ -11,6 +11,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const expectedOutDir = "expected_out/"
+
 // TODO: this file need to be rewritten
 func TestMain(t *testing.T) {
 	tests := []struct {
@@ -139,6 +141,11 @@ func TestMain(t *testing.T) {
 			name: "txt_region_filter_multi_regions",
 			args: "-output-file multi_regions_region_filter.txt -vpc-config ../../pkg/ibmvpc/examples/input/input_multi_regions.json -format txt -region us-east",
 		},
+		// multi vpc configs input
+		{
+			name: "multi_vpc_configs",
+			args: "-output-file multi_vpc_configs.txt -vpc-config ../../pkg/ibmvpc/examples/input/input_acl_testing3.json -vpc-config ../../pkg/ibmvpc/examples/input/input_sg_testing_3.json",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -148,6 +155,47 @@ func TestMain(t *testing.T) {
 		})
 	}
 	removeGeneratedFiles()
+}
+
+func TestMainWithExpectedOut(t *testing.T) {
+	tests := []struct {
+		name    string
+		args    string // must include output-file arg
+		outFile string // must be as in the command line arg output-file
+	}{
+		// multi vpc configs input
+		{
+			name:    "multi_vpc_configs",
+			args:    "-output-file multi_vpc_configs.txt -vpc-config ../../pkg/ibmvpc/examples/input/input_acl_testing3.json -vpc-config ../../pkg/ibmvpc/examples/input/input_sg_testing_3.json",
+			outFile: "multi_vpc_configs.txt",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := _main(strings.Split(tt.args, " ")); err != nil {
+				t.Errorf("_main(), name %s, error = %v", tt.name, err)
+			}
+			expectedOutput, err := os.ReadFile(expectedOutDir + tt.outFile)
+			if err != nil {
+				t.Fatalf("err: %s", err)
+			}
+			expectedOutputStr := string(expectedOutput)
+			actualOutput, err := os.ReadFile(tt.outFile)
+			if err != nil {
+				t.Fatalf("err: %s", err)
+			}
+			actualOutputStr := string(actualOutput)
+			if cleanStr(expectedOutputStr) != cleanStr(actualOutputStr) {
+				t.Fatalf("output mismatch expected-vs-actual on test name: %s", tt.name)
+			}
+		})
+	}
+	removeGeneratedFiles()
+}
+
+// comparison should be insensitive to line comparators; cleaning strings from line comparators
+func cleanStr(str string) string {
+	return strings.ReplaceAll(strings.ReplaceAll(str, "/n", ""), "\r", "")
 }
 
 func removeGeneratedFiles() {
