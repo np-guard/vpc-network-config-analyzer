@@ -815,6 +815,7 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 				},
 				vpcs:            []*VPC{vpc},
 				availableRoutes: map[string][]*ipblock.IPBlock{},
+				vpcsAPToFilters: map[string][]IPBlockPrefixFilter{},
 				region:          getRegionByName(region, regionToStructMap),
 			}
 			tgwMap[tgwUID] = tgw
@@ -822,7 +823,7 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 			tgwMap[tgwUID].vpcs = append(tgwMap[tgwUID].vpcs, vpc)
 		}
 
-		advertisedRoutes, err := getVPCAdvertisedRoutes(tgwConn, vpc)
+		advertisedRoutes, vpcApsPrefixes, err := getVPCAdvertisedRoutes(tgwConn, vpc)
 		if err != nil {
 			logging.Warnf("ignoring prefix filters, vpcID: %s, tgwID: %s, err is: %s\n", vpcUID, tgwUID, err.Error())
 		} else {
@@ -833,6 +834,9 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 			// TGW's destSubnets contains subnets from its connected VPCs which are contained within routes from its table
 			tgwMap[tgwUID].destSubnets = append(tgwMap[tgwUID].destSubnets, getVPCdestSubnetsByAdvertisedRoutes(tgwMap[tgwUID], vpc)...)
 			tgwMap[tgwUID].addSourceAndDestNodes()
+
+			// explainability related struct initialization
+			tgwMap[tgwUID].vpcsAPToFilters[vpcUID] = vpcApsPrefixes
 		}
 	}
 	return tgwMap

@@ -7,6 +7,7 @@ Path:
 	PublicGateway public-gw-ky -> 
 	Public Internet 161.26.0.0/16
 
+
 Details:
 ~~~~~~~~
 Egress:
@@ -14,13 +15,17 @@ security group sg1-ky allows connection with the following allow rules
 	index: 2, direction: outbound,  conns: protocol: udp,  dstPorts: 1-65535, cidr: 161.26.0.0/16
 network ACL acl1-ky allows connection with the following allow rules
 	index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+
 ------------------------------------------------------------------------------------------------------------------------
 
-There is no connection "protocol: UDP src-ports: 10-100 dst-ports: 443" between vsi1-ky[10.240.10.4] and Public Internet 161.16.0.0-161.25.255.255,161.27.0.0-161.31.255.255; connection blocked by egress
+There is no connection "protocol: UDP src-ports: 10-100 dst-ports: 443" between vsi1-ky[10.240.10.4] and Public Internet 161.16.0.0-161.25.255.255,161.27.0.0-161.31.255.255;
+ connection blocked by egress
 External traffic via PublicGateway: public-gw-ky
 Egress: security group sg1-ky blocks connection; network ACL acl1-ky allows connection
+
 Path:
 	vsi1-ky[10.240.10.4] -> |
+
 
 Details:
 ~~~~~~~~
@@ -28,5 +33,6 @@ Egress:
 security group sg1-ky blocks connection since there are no relevant allow rules
 network ACL acl1-ky allows connection with the following allow rules
 	index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+
 ------------------------------------------------------------------------------------------------------------------------
 
