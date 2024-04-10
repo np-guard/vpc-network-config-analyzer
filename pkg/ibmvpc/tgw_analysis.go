@@ -71,7 +71,7 @@ func getVPCAdvertisedRoutes(tc *datamodel.TransitConnection, vpc *VPC) (advertis
 }
 
 // return for a given address-prefix (input cidr) the matching prefix-filter index and its action (allow = true/deny = false)
-// if there is no specific prefix filter then gets the default defined behavior
+// if there is no specific prefix filter then gets the details of the configured default prefix filter
 func getCIDRMatchedByPrefixFilters(cidr string, tc *datamodel.TransitConnection) (prefixIndex int, action bool, err error) {
 	// Array of prefix route filters for a transit gateway connection. This is order dependent with those first in the
 	// array being applied first, and those at the end of the array is applied last, or just before the default.
