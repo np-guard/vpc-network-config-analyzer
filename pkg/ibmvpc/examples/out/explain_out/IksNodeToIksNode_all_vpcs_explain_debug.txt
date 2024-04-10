@@ -29,3 +29,4 @@ security group ky-test-default-sg allows connection with the following allow rul
 	index: 2, direction: inbound, protocol: all, cidr: 0.0.0.0/0
 ------------------------------------------------------------------------------------------------------------------------
 
+* Analysis of the connectivity of cluster worker nodes is under the assumption that the only security groups applied to them are the VPC default and the IKS generated SG
