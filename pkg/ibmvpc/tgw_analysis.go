@@ -55,7 +55,7 @@ func getVPCAdvertisedRoutes(tc *datamodel.TransitConnection, vpc *VPC) (advertis
 	validateAddressPrefixesExist(vpc)
 	vpcApsPrefixesRes = make([]IPBlockPrefixFilter, len(vpc.addressPrefixes))
 	for i, ap := range vpc.addressPrefixes {
-		filterIndex, matched, err := getMatchedFilterIndexAndAction(ap, tc)
+		filterIndex, isPermitAction, err := getMatchedFilterIndexAndAction(ap, tc)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -64,7 +64,7 @@ func getVPCAdvertisedRoutes(tc *datamodel.TransitConnection, vpc *VPC) (advertis
 			return nil, nil, err
 		}
 		// advertisedRoutesRes contains only address prefixes with allowing action
-		if matched {
+		if isPermitAction {
 			advertisedRoutesRes = append(advertisedRoutesRes, apIPBlock)
 		}
 		vpcApsPrefixesRes[i] = IPBlockPrefixFilter{apIPBlock, tgwPrefixFilter{tc, filterIndex}}
