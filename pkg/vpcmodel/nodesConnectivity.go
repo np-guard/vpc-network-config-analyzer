@@ -88,6 +88,30 @@ func sortByNodeSet(nodesConn GeneralConnectivityMap, nodeSet NodeSet) (srcToDst,
 	}
 	return srcToDst, nodeSetToNodeSet, dstFromNodeSet, srcToNodeSet
 }
+func diagnoseConnectivity(connMap GeneralConnectivityMap, isIngress bool) {
+	for node1, nodeConns := range connMap {
+		allConns := map[string][]VPCResourceIntf{}
+		for node2, conns := range nodeConns {
+			// todo - is string unique?
+			allConns[conns.String()] = append(allConns[conns.String()], node2)
+		}
+		if len(allConns) > 1 {
+			fmt.Printf(" node %s has different access %s the nodeSet:\n", node1.Name(), map[bool]string{false:"from", true:"to"}[isIngress] )
+			for conn, nodes := range allConns{
+				if !isIngress{
+					fmt.Printf("%s -> ", node1.Name())
+				}
+				for _, n := range nodes{
+					fmt.Printf("%s,", n.Name())
+				}
+				if isIngress{
+					fmt.Printf(" -> %s", node1.Name())
+				}
+				fmt.Printf(" %s\n", conn)
+			}
+		}
+	}
+}
 
 func mergeWithNodeSet(srcToDst, nodeSetToNodeSet, dstFromNodeSet, srcToNodeSet GeneralConnectivityMap, nodeSet NodeSet) GeneralConnectivityMap {
 	res := GeneralConnectivityMap{}
@@ -97,7 +121,7 @@ func mergeWithNodeSet(srcToDst, nodeSetToNodeSet, dstFromNodeSet, srcToNodeSet G
 		}
 	}
 
-	allConns := connection.None()
+	allConns := NoConns()
 	for _, nodeConns := range nodeSetToNodeSet {
 		for _, conns := range nodeConns {
 			allConns = conns.Union(conns)
@@ -106,14 +130,14 @@ func mergeWithNodeSet(srcToDst, nodeSetToNodeSet, dstFromNodeSet, srcToNodeSet G
 	res.updateAllowedConnsMap(nodeSet, nodeSet, allConns)
 
 	for src, nodeConns := range srcToNodeSet {
-		allConns := connection.None()
+		allConns := NoConns()
 		for _, conns := range nodeConns {
 			allConns = conns.Union(conns)
 		}
 		res.updateAllowedConnsMap(src, nodeSet, allConns)
 	}
 	for dst, nodeConns := range dstFromNodeSet {
-		allConns := connection.None()
+		allConns := NoConns()
 		for _, conns := range nodeConns {
 			allConns = conns.Union(conns)
 		}
@@ -121,8 +145,12 @@ func mergeWithNodeSet(srcToDst, nodeSetToNodeSet, dstFromNodeSet, srcToNodeSet G
 	}
 	return res
 }
+
 func abstractNodeSet(nodesConn GeneralConnectivityMap, nodeSet NodeSet) GeneralConnectivityMap {
 	srcToDst, nodeSetToNodeSet, dstFromNodeSet, srcToNodeSet := sortByNodeSet(nodesConn, nodeSet)
+	diagnoseConnectivity(dstFromNodeSet, false)
+	diagnoseConnectivity(srcToNodeSet,true)
+	diagnoseConnectivity(nodeSetToNodeSet,true)
 	return mergeWithNodeSet(srcToDst, nodeSetToNodeSet, dstFromNodeSet, srcToNodeSet, nodeSet)
 }
 
@@ -168,7 +196,7 @@ func (c *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 		if !c.shouldConsiderPairWithLBConnectivity(src, dst) {
 			allLayersRes[peerNode] = NoConns()
 			continue
-	}
+		}
 
 		// first compute connectivity per layer of filters resources
 		filterLayers := []string{NaclLayer, SecurityGroupLayer}
