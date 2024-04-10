@@ -718,9 +718,10 @@ type tgwPrefixFilter struct {
 	                                        // value -1  refers to the default prefix filter 
 }
 
+// IPBlockPrefixFilter  captures for a certain addres-prefix, the details of its matching prefix-filter
 type IPBlockPrefixFilter struct {
-	IPBlock      *ipblock.IPBlock
-	prefixFilter tgwPrefixFilter
+	IPBlock      *ipblock.IPBlock // the IPBlock of the addres-prefix 
+	prefixFilter tgwPrefixFilter // the matching tgw prefix filter for this address-prefix 
 }
 
 type TransitGateway struct {
