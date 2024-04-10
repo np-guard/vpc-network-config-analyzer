@@ -209,7 +209,7 @@ func existingConnectionStr(connQuery *connection.Set, src, dst EndpointElem,
 	return strings.Join(resComponents, newLine)
 }
 
-// returns a string with a summary of each filter (table) effect; e.g.
+// returns a couple of strings of an egress, ingress summary of each filter (table) effect; e.g.
 // "Egress: security group sg1-ky allows connection; network ACL acl1-ky blocks connection
 // Ingress: network ACL acl3-ky allows connection; security group sg1-ky allows connection"
 func (rules *rulesConnection) filterEffectStr(c *VPCConfig, filtersRelevant map[string]bool, needEgress,
@@ -229,7 +229,7 @@ func (rules *rulesConnection) filterEffectStr(c *VPCConfig, filtersRelevant map[
 	return egressRulesHeader, ingressRulesHeader
 }
 
-// returns a string with a detailed list of relevant rules; e.g.
+// returns a couple of strings of an egress, ingress detailed list of relevant rules; e.g.
 // "security group sg1-ky allows connection with the following allow rules
 // index: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0
 // network ACL acl1-ky blocks connection since there are no relevant allow rules"
