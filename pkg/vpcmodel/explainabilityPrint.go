@@ -63,7 +63,7 @@ func (explanation *Explanation) String(verbose bool) string {
 	return strings.Join(linesStr, newLine) + newLine
 }
 
-// prints a single line of explaination for externalAddress grouped <src, dst>
+// prints a single line of explanation for externalAddress grouped <src, dst>
 // The printing contains 4 sections:
 // 1. Header describing the query and whether there is a connection. E.g.:
 // * The following connection exists between ky-vsi0-subnet5[10.240.9.4] and ky-vsi0-subnet11[10.240.80.4]: All Connections
@@ -87,10 +87,10 @@ func (explanation *Explanation) String(verbose bool) string {
 //
 //	explanation.connQuery, line.src, line.dst, line.commonProperties.conn, explainDetails.ingressEnabled,
 //	explainDetails.egressEnabled, explainDetails.externalRouter, explainDetails.crossVpcRouter, explainDetails.rules
-func (groupedLine *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connection.Set, verbose bool) string {
-	expDetails := groupedLine.commonProperties.expDetails
-	filtersRelevant := groupedLine.commonProperties.expDetails.filtersRelevant
-	src, dst := groupedLine.src, groupedLine.dst
+func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connection.Set, verbose bool) string {
+	expDetails := g.commonProperties.expDetails
+	filtersRelevant := g.commonProperties.expDetails.filtersRelevant
+	src, dst := g.src, g.dst
 	needEgress := !src.IsExternal()
 	needIngress := !dst.IsExternal()
 	ingressBlocking := !expDetails.ingressEnabled && needIngress
@@ -120,7 +120,7 @@ func (groupedLine *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuer
 	if verbose {
 		details = "\nDetails:\n~~~~~~~~\n" + egressRulesDetails + crossRouterFilterDetails + ingressRulesDetails
 	}
-	return explainPerCaseStr(src, dst, externalRouter, crossVpcRouter, connQuery, groupedLine.commonProperties.conn, crossVpcConnection, ingressBlocking, egressBlocking,
+	return explainPerCaseStr(src, dst, externalRouter, crossVpcRouter, connQuery, g.commonProperties.conn, crossVpcConnection, ingressBlocking, egressBlocking,
 		noConnection, resourceEffectHeader, path, details)
 }
 
