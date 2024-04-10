@@ -3,6 +3,7 @@ package ibmvpc
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 
@@ -225,16 +226,18 @@ func (lb *LoadBalancer) Nodes() []vpcmodel.Node {
 func (lb *LoadBalancer) AddressRange() *ipblock.IPBlock {
 	return nodesAddressRange(lb.nodes)
 }
-func (lb *LoadBalancer)AllowConnectivity(src, dst vpcmodel.Node) bool {
-	_, srcIsPIP := src.(*PrivateIP)
-	_, dstIsPIP := dst.(*PrivateIP)
-	return !srcIsPIP || !dstIsPIP
+func (lb *LoadBalancer) DennyConnectivity(src, dst vpcmodel.Node) bool {
+	return slices.Contains(lb.Nodes(), src) && !slices.Contains(lb.members(), dst)
 }
 
-// we do not need this func, for now it is here since the linter warn that lb.listeners are not in use
-// todo - remove:
-func (lb *LoadBalancer) NListeners() int {
-	return len(lb.listeners)
+func (lb *LoadBalancer) members() []vpcmodel.Node {
+	res := []vpcmodel.Node{}
+	for _, l := range lb.listeners {
+		for _, p := range l {
+			res = append(res, p...)
+		}
+	}
+	return res
 }
 
 // lb is per vpc and not per zone...

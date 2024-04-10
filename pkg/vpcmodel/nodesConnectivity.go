@@ -89,7 +89,7 @@ func sortByNodeSet(nodesConn GeneralConnectivityMap, nodeSet NodeSet) (srcToDst,
 	return srcToDst, nodeSetToNodeSet, dstFromNodeSet, srcToNodeSet
 }
 
-func mergeWithNodeSet(srcToDst, nodeSetToNodeSet, dstFromNodeSet, srcToNodeSet GeneralConnectivityMap, nodeSet NodeSet)  GeneralConnectivityMap{
+func mergeWithNodeSet(srcToDst, nodeSetToNodeSet, dstFromNodeSet, srcToNodeSet GeneralConnectivityMap, nodeSet NodeSet) GeneralConnectivityMap {
 	res := GeneralConnectivityMap{}
 	for src, nodeConns := range srcToDst {
 		for dst, conns := range nodeConns {
@@ -164,10 +164,11 @@ func (c *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 		if !considerPair {
 			continue
 		}
-		if !c.shouldConsiderPairWithLBConnectivity(capturedNode, peerNode) {
-			continue
-		}
 		src, dst := switchSrcDstNodes(!isIngress, peerNode, capturedNode)
+		if !c.shouldConsiderPairWithLBConnectivity(src, dst) {
+			allLayersRes[peerNode] = NoConns()
+			continue
+	}
 
 		// first compute connectivity per layer of filters resources
 		filterLayers := []string{NaclLayer, SecurityGroupLayer}

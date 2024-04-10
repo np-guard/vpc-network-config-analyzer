@@ -73,12 +73,9 @@ func (c *VPCConfig) shouldConsiderPairForConnectivity(r1, r2 VPCResourceIntf) (b
 	return true, nil
 }
 
-// todo:
-// 1. AllowConnectivity() can be static?!
-// 2. grouping is better without this analysis
 func (c *VPCConfig) shouldConsiderPairWithLBConnectivity(r1, r2 Node) bool {
-	for _, lb := range c.LoadBalancers{
-		if !lb.AllowConnectivity(r1,r2){
+	for _, lb := range c.LoadBalancers {
+		if lb.DennyConnectivity(r1, r2) {
 			return false
 		}
 	}
