@@ -54,7 +54,7 @@ func getVPCAdvertisedRoutes(tc *datamodel.TransitConnection, vpc *VPC) (advertis
 	validateAddressPrefixesExist(vpc)
 	vpcApsPrefixesRes = make([]IPBlockPrefixFilter, len(vpc.addressPrefixes))
 	for i, ap := range vpc.addressPrefixes {
-		prefixIndex, matched, err := getCIDRMatchedByPrefixFilters(ap, tc)
+		filterIndex, matched, err := getCIDRMatchedByPrefixFilters(ap, tc)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -66,14 +66,15 @@ func getVPCAdvertisedRoutes(tc *datamodel.TransitConnection, vpc *VPC) (advertis
 		if matched {
 			advertisedRoutesRes = append(advertisedRoutesRes, apIPBlock)
 		}
-		vpcApsPrefixesRes[i] = IPBlockPrefixFilter{apIPBlock, tgwPrefixFilter{tc, prefixIndex}}
+		vpcApsPrefixesRes[i] = IPBlockPrefixFilter{apIPBlock, tgwPrefixFilter{tc, filterIndex}}
 	}
 	return advertisedRoutesRes, vpcApsPrefixesRes, nil
 }
 
 // return for a given address-prefix (input cidr) the matching prefix-filter index and its action (allow = true/deny = false)
 // if there is no specific prefix filter then gets the details of the configured default prefix filter
-func getCIDRMatchedByPrefixFilters(cidr string, tc *datamodel.TransitConnection) (prefixIndex int, action bool, err error) {
+func getCIDRMatchedByPrefixFilters(cidr string, tc *datamodel.TransitConnection) (returnedFilterIndex int,
+	action bool, err error) {
 	// Array of prefix route filters for a transit gateway connection. This is order dependent with those first in the
 	// array being applied first, and those at the end of the array is applied last, or just before the default.
 	pfList := tc.PrefixFilters
@@ -83,14 +84,14 @@ func getCIDRMatchedByPrefixFilters(cidr string, tc *datamodel.TransitConnection)
 
 	// TODO: currently ignoring the "Before" field of each PrefixFilter, since assuming the array is ordered
 	// iterate by order the array of prefix route filters
-	for prefixIndex, pf := range pfList {
+	for filterIndex, pf := range pfList {
 		match, err1 := prefixLeGeMatch(pf.Prefix, pf.Le, pf.Ge, cidr)
 		if err1 != nil {
 			return minusOne, false, err1
 		}
 		if match {
 			action, err = parseActionString(pf.Action)
-			return prefixIndex, action, err
+			return filterIndex, action, err
 		}
 	}
 	// no match by pfList -- use default
