@@ -432,6 +432,54 @@ var explainTests = []*vpcGeneralTest{
 		EDst:        "172.217.22.46/32",
 		format:      vpcmodel.Debug,
 	},
+	// tests for routing between vpcs:
+	// connection enabled by specific allow prefix
+	{
+		name:        "tgwEnabledSpecificFilter",
+		inputConfig: "tg-prefix-filters",
+		ESrc:        "ky-vsi1-subnet20",
+		EDst:        "ky-vsi0-subnet2",
+		format:      vpcmodel.Debug,
+	},
+	// connection enabled by default tgw definition (2 examples from 2 different input files, one debug format)
+	{
+		name:        "tgwEnableDefaultFilter",
+		inputConfig: "tg-prefix-filters",
+		ESrc:        "ky-vsi0-subnet5",
+		EDst:        "ky-vsi0-subnet11",
+		format:      vpcmodel.Debug,
+	},
+	{
+		name:        "tgwAnotherEnableDefaultDifFile",
+		inputConfig: "tgw_larger_example",
+		ESrc:        "vsi11-ky",
+		EDst:        "vsi21a-ky",
+		format:      vpcmodel.Text,
+	},
+	// connection disabled by specific deny prefix
+	{
+		name:        "tgwDisabledDenyPrefix",
+		inputConfig: "tg-prefix-filters",
+		ESrc:        "ky-vsi1-subnet20", // test-vpc2-ky
+		EDst:        "ky-vsi0-subnet0",  // test-vpc0-ky
+		format:      vpcmodel.Debug,
+	},
+	{
+		name:        "tgwDisabledDenyPrefix",
+		inputConfig: "tg-prefix-filters",
+		ESrc:        "ky-vsi1-subnet20", // test-vpc2-ky
+		EDst:        "ky-vsi0-subnet0",  // test-vpc0-ky
+		format:      vpcmodel.Text,
+	},
+	// todo: add the above example wo debug
+	{
+		name:        "tgwAnotherExampleEnabledConn",
+		inputConfig: "tg-prefix-filters",
+		ESrc:        "ky-vsi0-subnet5",
+		EDst:        "ky-vsi0-subnet11",
+		format:      vpcmodel.Text,
+	},
+
 	// iks-node to iks-node
 	{
 		name:        "IksNodeToIksNode",
@@ -645,13 +693,23 @@ func TestInputValidityMultipleVPCContext(t *testing.T) {
 	require.NotNil(t, err9, "the test should fail since the src vsi given with wrong vpc")
 	require.Equal(t, "illegal dst: test-vpc1-ky/vsi3a-ky does not represent a legal IP address, a legal CIDR or a VSI name", err9.Error())
 
-	vpcConfigMultiVpcDupNames := getConfig(t, "tgw_larger_example_dup_names")
+	vpcConfigTgwDupNames := getConfig(t, "tgw_larger_example_dup_names")
 	dupSrcVsi := "vsi1-ky"
 	dupDstVsi := "vsi2-ky"
-	// should fail since these vsis exists in two vpcs configs
-	_, err10 := vpcConfigMultiVpcDupNames.ExplainConnectivity(dupSrcVsi, dupDstVsi, nil)
+	// should fail since vsi name exists for two different resources in one vpcConfig
+	_, err10 := vpcConfigTgwDupNames.ExplainConnectivity(dupSrcVsi, dupDstVsi, nil)
 	fmt.Println(err10.Error())
-	require.NotNil(t, err10, "the test should fail since the src and dst vsis exists in two vpcs configs")
-	require.Equal(t, "src: vsi1-ky and dst: vsi2-ky found in more than one config: test-vpc0-ky,test-vpc1-ky",
+	require.NotNil(t, err10, "the test should fail since the src name exists twice")
+	require.Equal(t, "illegal src: in combined-vpc-local-tg-ky there is more than one resource "+
+		"(crn:551, crn:488) with the given input string vsi1-ky. "+
+		"can not determine which resource to analyze. consider using unique names or use input UID instead",
 		err10.Error())
+	vpcConfigMultiVpcDupNames := getConfig(t, "multiVpc_larger_example_dup_names")
+	// should fail since these vsis exists in two vpcs configs
+	_, err11 := vpcConfigMultiVpcDupNames.ExplainConnectivity(dupSrcVsi, dupDstVsi, nil)
+	fmt.Println(err11.Error())
+	require.NotNil(t, err11, "the test should fail since the src and dst vsis exists in two vpcs configs")
+	require.Equal(t, "vsis vsi1-ky and vsi2-ky found in more than one vpc config "+
+		"- test-vpc0-ky, test-vpc1-ky - please add the name of the config to the src/dst name",
+		err11.Error())
 }
