@@ -6,7 +6,7 @@ require (
 	github.com/IBM/networking-go-sdk v0.45.0
 	github.com/IBM/vpc-go-sdk v0.50.0
 	github.com/np-guard/cloud-resource-collector v0.10.0
-	github.com/np-guard/models v0.3.0
+	github.com/np-guard/models v0.3.1
 	github.com/stretchr/testify v1.9.0
 )
 
