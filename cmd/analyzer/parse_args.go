@@ -55,6 +55,8 @@ type InArgs struct {
 	RegionList            regionList
 	ResourceGroup         *string
 	DumpResources         *string
+	Quiet                 *bool
+	Verbose               *bool
 }
 
 // flagHasValue indicates for each input arg if it is expected to have a value in the cli or not
@@ -79,6 +81,8 @@ var flagHasValue = map[string]bool{
 	RegionList:            true,
 	ResourceGroup:         true,
 	DumpResources:         true,
+	Quiet:                 false,
+	Verbose:               false,
 }
 
 const (
@@ -103,6 +107,8 @@ const (
 	RegionList            = "region"
 	ResourceGroup         = "resource-group"
 	DumpResources         = "dump-resources"
+	Quiet                 = "quiet"
+	Verbose               = "verbose"
 
 	// output formats supported
 	JSONFormat       = "json"
@@ -239,6 +245,8 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args.ResourceGroup = flagset.String(ResourceGroup, "", "Resource group id or name from which to collect resources")
 	flagset.Var(&args.RegionList, RegionList, "Cloud region from which to collect resources, can pass multiple regions")
 	args.DumpResources = flagset.String(DumpResources, "", "File path to store resources collected from the cloud provider")
+	args.Quiet = flagset.Bool(Quiet, false, "Runs quietly, reports only severe errors and results")
+	args.Verbose = flagset.Bool(Verbose, false, "Runs with more informative messages printed to log")
 
 	// calling parseCmdLine prior to flagset.Parse to ensure that excessive and unsupported arguments are handled
 	// for example, flagset.Parse() ignores input args missing the `-`
@@ -376,6 +384,10 @@ func errorInArgs(args *InArgs, flagset *flag.FlagSet) error {
 	err := invalidArgsConfigFile(args, flagset)
 	if err != nil {
 		return err
+	}
+	if *args.Verbose && *args.Quiet {
+		flagset.PrintDefaults()
+		return fmt.Errorf("error in parameters: verbose flag and quiet flag cannot be specified together")
 	}
 	if _, ok := supportedAnalysisTypesMap[*args.AnalysisType]; !ok {
 		flagset.PrintDefaults()
