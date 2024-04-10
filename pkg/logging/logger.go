@@ -60,9 +60,7 @@ func Debugf(format string, o ...interface{}) {
 // Infof writes an informative message to the log (only if DefaultLogger verbosity is set to HighVerbosity)
 func Infof(format string, o ...interface{}) {
 	if logger.verbosity == HighVerbosity {
-		pc, _, _, _ := runtime.Caller(1)
-		details := runtime.FuncForPC(pc)
-		logger.l.Printf("INFO	%s	%s", details.Name(), fmt.Sprintf(format, o...))
+		logger.l.Printf("INFO	%s", fmt.Sprintf(format, o...))
 	}
 }
 
