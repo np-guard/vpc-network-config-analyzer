@@ -11,6 +11,7 @@ const (
 	permitAction = "permit"
 	denyAction   = "deny"
 )
+const defaultPrefixFilter = -1
 
 // getVPCdestSubnetsByAdvertisedRoutes returns a slice of subnets from vpc, which can be destinations of the
 // transit gateway tg, based on its available routes (as determined by prefix filters and matched address prefixes)
@@ -54,7 +55,7 @@ func getVPCAdvertisedRoutes(tc *datamodel.TransitConnection, vpc *VPC) (advertis
 	validateAddressPrefixesExist(vpc)
 	vpcApsPrefixesRes = make([]IPBlockPrefixFilter, len(vpc.addressPrefixes))
 	for i, ap := range vpc.addressPrefixes {
-		filterIndex, matched, err := getCIDRMatchedByPrefixFilters(ap, tc)
+		filterIndex, matched, err := getMatchedFilterIndexAndAction(ap, tc)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -73,7 +74,7 @@ func getVPCAdvertisedRoutes(tc *datamodel.TransitConnection, vpc *VPC) (advertis
 
 // return for a given address-prefix (input cidr) the matching prefix-filter index and its action (allow = true/deny = false)
 // if there is no specific prefix filter then gets the details of the configured default prefix filter
-func getCIDRMatchedByPrefixFilters(cidr string, tc *datamodel.TransitConnection) (returnedFilterIndex int,
+func getMatchedFilterIndexAndAction(cidr string, tc *datamodel.TransitConnection) (returnedFilterIndex int,
 	action bool, err error) {
 	// Array of prefix route filters for a transit gateway connection. This is order dependent with those first in the
 	// array being applied first, and those at the end of the array is applied last, or just before the default.
@@ -87,7 +88,7 @@ func getCIDRMatchedByPrefixFilters(cidr string, tc *datamodel.TransitConnection)
 	for filterIndex, pf := range pfList {
 		match, err1 := prefixLeGeMatch(pf.Prefix, pf.Le, pf.Ge, cidr)
 		if err1 != nil {
-			return minusOne, false, err1
+			return defaultPrefixFilter, false, err1
 		}
 		if match {
 			action, err = parseActionString(pf.Action)
@@ -96,7 +97,7 @@ func getCIDRMatchedByPrefixFilters(cidr string, tc *datamodel.TransitConnection)
 	}
 	// no match by pfList -- use default
 	action, err = parseActionString(pfDefault)
-	return minusOne, action, err
+	return defaultPrefixFilter, action, err
 }
 
 func parseActionString(action *string) (bool, error) {
