@@ -46,7 +46,7 @@ func (tn *abstractIconTreeNode) IsGateway() bool                  { return false
 func (tn *abstractIconTreeNode) IsGroupingPoint() bool            { return false }
 func (tn *abstractIconTreeNode) SetTooltip(tooltip []string)      { tn.tooltip = tooltip }
 func (tn *abstractIconTreeNode) HasTooltip() bool                 { return len(tn.tooltip) > 0 }
-func (tn *abstractIconTreeNode) Tooltip() string                  { return labels2Table(tn.tooltip) }
+func (tn *abstractIconTreeNode) Tooltip() string                  { return joinLabels(tn.tooltip, drawioTableSep) }
 func (tn *abstractIconTreeNode) IconSize() int                    { return iconSize }
 func (tn *abstractIconTreeNode) hasMiniIcon() bool                { return false }
 func (tn *abstractIconTreeNode) MiniIconID() uint                 { return tn.id + miniIconID }
@@ -106,7 +106,7 @@ func NewNITreeNode(parent SquareTreeNodeInterface, name string) *NITreeNode {
 func (tn *NITreeNode) setVsi(vsi string) { tn.vsi = vsi }
 func (tn *NITreeNode) hasMiniIcon() bool { return tn.vsi != "" }
 func (tn *NITreeNode) RouterID() uint    { return tn.FipID() }
-func (tn *NITreeNode) Label() string     { return labels2Table([]string{tn.name, tn.vsi}) }
+func (tn *NITreeNode) labels() []string  { return []string{tn.name, tn.vsi} }
 
 // ///////////////////////////////////////////
 type ResIPTreeNode struct {
@@ -122,7 +122,7 @@ func NewResIPTreeNode(parent SquareTreeNodeInterface, name string) *ResIPTreeNod
 
 func (tn *ResIPTreeNode) setVpe(vpe string) { tn.vpe = vpe }
 func (tn *ResIPTreeNode) hasMiniIcon() bool { return tn.vpe != "" }
-func (tn *ResIPTreeNode) Label() string     { return labels2Table([]string{tn.name, tn.vpe}) }
+func (tn *ResIPTreeNode) labels() []string  { return []string{tn.name, tn.vpe} }
 
 // ///////////////////////////////////////////
 type GatewayTreeNode struct {
@@ -164,16 +164,19 @@ type VsiTreeNode struct {
 	nis []TreeNodeInterface
 }
 
-func GroupNIsWithVSI(parent SquareTreeNodeInterface, name string, nis []TreeNodeInterface) {
+func GroupNIsWithVSI(parent SquareTreeNodeInterface, name string, nis []TreeNodeInterface) TreeNodeInterface {
 	switch {
 	case len(nis) == 1:
 		nis[0].(*NITreeNode).setVsi(name)
+		return nis[0]
 	case len(nis) > 1:
 		vsi := newVsiTreeNode(parent, name, nis)
 		for _, ni := range nis {
 			newLogicalLineTreeNode(parent, vsi, ni.(IconTreeNodeInterface))
 		}
+		return vsi
 	}
+	return nil
 }
 
 func newVsiTreeNode(parent SquareTreeNodeInterface, name string, nis []TreeNodeInterface) *VsiTreeNode {
@@ -205,16 +208,19 @@ type VpeTreeNode struct {
 	resIPs []TreeNodeInterface
 }
 
-func GroupResIPsWithVpe(parent SquareTreeNodeInterface, name string, resIPs []TreeNodeInterface) {
+func GroupResIPsWithVpe(parent SquareTreeNodeInterface, name string, resIPs []TreeNodeInterface) TreeNodeInterface {
 	switch {
 	case len(resIPs) == 1:
 		resIPs[0].(*ResIPTreeNode).setVpe(name)
+		return resIPs[0]
 	case len(resIPs) > 1:
 		vpe := newVpeTreeNode(parent, name, resIPs)
 		for _, resIP := range resIPs {
 			newLogicalLineTreeNode(parent, vpe, resIP.(IconTreeNodeInterface))
 		}
+		return vpe
 	}
+	return nil
 }
 
 func newVpeTreeNode(parent SquareTreeNodeInterface, name string, resIPs []TreeNodeInterface) *VpeTreeNode {
@@ -229,17 +235,18 @@ type LoadBalancerTreeNode struct {
 	PrivateIPs []TreeNodeInterface
 }
 
-func GroupPrivateIPsWithLoadBalancer(parent SquareTreeNodeInterface, name string, privateIPs []TreeNodeInterface) {
-	LoadBalancer := newLoadBalancerTreeNode(parent, name, privateIPs)
-	for _, PrivateIP := range privateIPs {
-		newLogicalLineTreeNode(parent, LoadBalancer, PrivateIP.(IconTreeNodeInterface))
+func GroupPrivateIPsWithLoadBalancer(parent SquareTreeNodeInterface, name string, privateIPs []TreeNodeInterface) *LoadBalancerTreeNode {
+	loadBalancer := newLoadBalancerTreeNode(parent, name, privateIPs)
+	for _, privateIP := range privateIPs {
+		newLogicalLineTreeNode(parent, loadBalancer, privateIP.(IconTreeNodeInterface))
 	}
+	return loadBalancer
 }
 
 func newLoadBalancerTreeNode(parent SquareTreeNodeInterface, name string, privateIPs []TreeNodeInterface) *LoadBalancerTreeNode {
-	LoadBalancer := &LoadBalancerTreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, name), PrivateIPs: privateIPs}
-	parent.addIconTreeNode(LoadBalancer)
-	return LoadBalancer
+	loadBalancer := &LoadBalancerTreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, name), PrivateIPs: privateIPs}
+	parent.addIconTreeNode(loadBalancer)
+	return loadBalancer
 }
 
 type PrivateIPTreeNode struct {

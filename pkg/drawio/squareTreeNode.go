@@ -214,6 +214,9 @@ func (tn *PartialSGTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNo
 func (tn *PartialSGTreeNode) DrawioParent() TreeNodeInterface {
 	return tn.Parent().Parent()
 }
+func (tn *PartialSGTreeNode) Kind() string {
+	return tn.parent.Kind()
+}
 
 /////////////////////////////////////////////////////////////////////////
 
@@ -233,8 +236,8 @@ func NewSubnetTreeNode(parent *ZoneTreeNode, name, cidr, acl string) *SubnetTree
 func (tn *SubnetTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
 	return tn.groupSquares, tn.elements, tn.connections
 }
-func (tn *SubnetTreeNode) Label() string {
-	return labels2Table([]string{tn.name, tn.cidr, tn.acl})
+func (tn *SubnetTreeNode) labels() []string {
+	return []string{tn.name, tn.cidr, tn.acl}
 }
 func (tn *SubnetTreeNode) IsSubnet() bool { return true }
 func (tn *SubnetTreeNode) SetACL(acl string) {
@@ -290,8 +293,8 @@ func (tn *GroupSquareTreeNode) IsGroupingSquare() bool { return true }
 func (tn *GroupSquareTreeNode) NotShownInDrawio() bool {
 	return tn.visibility == theSubnet || tn.visibility == connectedPoint
 }
-func NewGroupSquareTreeNode(parent *SubnetTreeNode, groupedIcons []IconTreeNodeInterface) *GroupSquareTreeNode {
-	gs := GroupSquareTreeNode{newAbstractSquareTreeNode(parent, ""), groupedIcons, connectedPoint}
+func NewGroupSquareTreeNode(parent *SubnetTreeNode, groupedIcons []IconTreeNodeInterface, name string) *GroupSquareTreeNode {
+	gs := GroupSquareTreeNode{newAbstractSquareTreeNode(parent, name), groupedIcons, connectedPoint}
 	parent.groupSquares = append(parent.groupSquares, &gs)
 	return &gs
 }

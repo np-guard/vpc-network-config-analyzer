@@ -8,61 +8,65 @@ import (
 
 func TestWithParsing(t *testing.T) {
 	n := createNetwork()
-	err := CreateDrawioConnectivityMapFile(n, "fake.drawio", false)
+	err := CreateDrawioConnectivityMapFile(n, "fake.drawio", false, FileDRAWIO, nil)
 	if err != nil {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
 	}
 	n = createNetwork2()
-	err = CreateDrawioConnectivityMapFile(n, "fake2.drawio", false)
+	err = CreateDrawioConnectivityMapFile(n, "fake2.drawio", false, FileDRAWIO, nil)
 	if err != nil {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
 	}
 	n = createNetworkGrouping()
-	err = CreateDrawioConnectivityMapFile(n, "grouping.drawio", false)
+	err = CreateDrawioConnectivityMapFile(n, "grouping.drawio", false, FileDRAWIO, nil)
 	if err != nil {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
 	}
 	n = createNetworkSubnetGrouping()
-	err = CreateDrawioConnectivityMapFile(n, "subnetGrouping.drawio", true)
+	err = CreateDrawioConnectivityMapFile(n, "subnetGrouping.drawio", true, FileDRAWIO, nil)
 	if err != nil {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
 	}
 	n = createNetworkSubnetGroupingBug()
-	err = CreateDrawioConnectivityMapFile(n, "subnetGroupingBug.drawio", true)
+	err = CreateDrawioConnectivityMapFile(n, "subnetGroupingBug.drawio", true, FileDRAWIO, nil)
 	if err != nil {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
 	}
 	n = createNetworkSubnetGroupingMultiVpc()
-	err = CreateDrawioConnectivityMapFile(n, "subnetGroupingMultiVpc.drawio", true)
+	err = CreateDrawioConnectivityMapFile(n, "subnetGroupingMultiVpc.drawio", true, FileDRAWIO, nil)
 	if err != nil {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
 	}
 	n = createNetworkSubnetGroupingOverlapping()
-	err = CreateDrawioConnectivityMapFile(n, "subnetGroupingOverlapping.drawio", true)
+	err = CreateDrawioConnectivityMapFile(n, "subnetGroupingOverlapping.drawio", true, FileDRAWIO, nil)
 	if err != nil {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
 	}
 	n = createNetworkSubnetGroupingGroupInGroup()
-	err = CreateDrawioConnectivityMapFile(n, "subnetGroupingGroupInGroup.drawio", true)
+	err = CreateDrawioConnectivityMapFile(n, "subnetGroupingGroupInGroup.drawio", true, FileDRAWIO, nil)
 	if err != nil {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
 	}
 	n2 := NewNetworkTreeNode()
-	NewCloudTreeNode(n2, "empty Cloud")
+	cloud := NewCloudTreeNode(n2, "Cloud")
 	NewPublicNetworkTreeNode(n2)
 	NewCloudTreeNode(n2, "empty cloud2")
-	err = CreateDrawioConnectivityMapFile(n2, "fake3.drawio", false)
+	region := NewRegionTreeNode(cloud, "north")
+	vpc1 := NewVpcTreeNode(region, "vpc1")
+	z := NewZoneTreeNode(vpc1, "zone1")
+	NewSubnetTreeNode(z, "sub1", "cidr", "acl1")
+	err = CreateDrawioConnectivityMapFile(n2, "fake3.drawio", false, FileDRAWIO, nil)
 	if err != nil {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
 	}
 
 	n = createNetworkAllTypes()
-	err = CreateDrawioConnectivityMapFile(n, "all.drawio", false)
+	err = CreateDrawioConnectivityMapFile(n, "all.drawio", false, FileDRAWIO, nil)
 	if err != nil {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
 	}
 	n = createNetworkTgw()
-	err = CreateDrawioConnectivityMapFile(n, "tgws.drawio", false)
+	err = CreateDrawioConnectivityMapFile(n, "tgws.drawio", false, FileDRAWIO, nil)
 	if err != nil {
 		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
 	}
@@ -264,8 +268,8 @@ func createNetworkAllTypes() SquareTreeNodeInterface {
 	groupedNis11 := []IconTreeNodeInterface{nia, ripb}
 	groupedNis13 := []IconTreeNodeInterface{nic, nid}
 	nie.SetFIP("fip")
-	gs11 := NewGroupSquareTreeNode(subnet11, groupedNis11)
-	gs13 := NewGroupSquareTreeNode(subnet13, groupedNis13)
+	gs11 := NewGroupSquareTreeNode(subnet11, groupedNis11, "groupedNis11")
+	gs13 := NewGroupSquareTreeNode(subnet13, groupedNis13, "groupedNis13")
 
 	i1 := NewInternetTreeNode(publicNetwork, "Internet2")
 	i2 := NewInternetTreeNode(publicNetwork, "Internet2")
@@ -294,20 +298,20 @@ func createNetworkAllTypes() SquareTreeNodeInterface {
 	groupedNis33b := []IconTreeNodeInterface{ni33a, rip33b}
 	groupedNis33c := []IconTreeNodeInterface{ni33a, rip33b, ni33c}
 	groupedNis33d := []IconTreeNodeInterface{ni33c, ni33e}
-	gs33a := NewGroupSquareTreeNode(subnet33, groupedNis33a)
-	gs33b := NewGroupSquareTreeNode(subnet33, groupedNis33b)
-	gs33c := NewGroupSquareTreeNode(subnet33, groupedNis33c)
-	gs33d := NewGroupSquareTreeNode(subnet33, groupedNis33d)
+	gs33a := NewGroupSquareTreeNode(subnet33, groupedNis33a, "groupedNis33a")
+	gs33b := NewGroupSquareTreeNode(subnet33, groupedNis33b, "groupedNis33b")
+	gs33c := NewGroupSquareTreeNode(subnet33, groupedNis33c, "groupedNis33c")
+	gs33d := NewGroupSquareTreeNode(subnet33, groupedNis33d, "groupedNis33d")
 	gw1 := NewGatewayTreeNode(zone1, "gw21")
 
 	c1 := NewConnectivityLineTreeNode(network, nie, i1, true, "gconn1")
 	c1.SetRouter(nie)
-	NewConnectivityLineTreeNode(network, gs13, i2, true, "gconn1")
-	NewConnectivityLineTreeNode(network, gs11, gs11, true, "gconn1")
-	c2 := NewConnectivityLineTreeNode(network, gs33a, u2, true, "gconn1")
+	NewConnectivityLineTreeNode(network, gs13, i2, true, "gconn2")
+	NewConnectivityLineTreeNode(network, gs11, gs11, true, "gconn3")
+	c2 := NewConnectivityLineTreeNode(network, gs33a, u2, true, "gconn4")
 	c2.SetRouter(gw1)
-	NewConnectivityLineTreeNode(network, gs33d, gs11, true, "gconn1")
-	NewConnectivityLineTreeNode(network, gs33c, gs33b, true, "gconn1")
+	NewConnectivityLineTreeNode(network, gs33d, gs11, true, "gconn5")
+	NewConnectivityLineTreeNode(network, gs33c, gs33b, true, "gconn6")
 	return network
 }
 
@@ -460,7 +464,7 @@ func createNetworkSubnetGroupingOverlapping() SquareTreeNodeInterface {
 		{(*zones)[1][2], groups[3]},
 	}
 	for i, conn := range conns {
-		NewConnectivityLineTreeNode(n, conn[0], conn[1], true, fmt.Sprintf("gconn%d %s->%s", i, conn[0].Label(), conn[1].Label()))
+		NewConnectivityLineTreeNode(n, conn[0], conn[1], true, fmt.Sprintf("gconn%d %s->%s", i, treeNodeName(conn[0]), treeNodeName(conn[1])))
 	}
 	return n
 }
@@ -510,7 +514,7 @@ func createNetworkSubnetGroupingGroupInGroup() SquareTreeNodeInterface {
 		{groups[5], (*zones)[4][4]},
 	}
 	for i, conn := range conns {
-		NewConnectivityLineTreeNode(n, conn[0], conn[1], true, fmt.Sprintf("gconn%d %s->%s", i, conn[0].Label(), conn[1].Label()))
+		NewConnectivityLineTreeNode(n, conn[0], conn[1], true, fmt.Sprintf("gconn%d %s->%s", i, treeNodeName(conn[0]), treeNodeName(conn[1])))
 	}
 	return n
 }
@@ -548,8 +552,8 @@ func createNetworkSubnetGroupingGeneric(groupsIndexes []groupIndexes) (
 	}
 
 	for _, gr := range groups {
-		i1 := NewInternetTreeNode(publicNetwork, "I "+gr.Label())
-		NewConnectivityLineTreeNode(network, gr, i1, true, "gconn "+gr.Label())
+		i1 := NewInternetTreeNode(publicNetwork, "I "+treeNodeName(gr))
+		NewConnectivityLineTreeNode(network, gr, i1, true, "gconn "+treeNodeName(gr))
 	}
 	return network, groups, zones
 }
@@ -642,18 +646,18 @@ func createNetworkGrouping() SquareTreeNodeInterface {
 	}
 	i2 := NewInternetTreeNode(publicNetwork, "Internet2")
 
-	gs13 := NewGroupSquareTreeNode(subnet13, groupedNis13)
-	gs32 := NewGroupSquareTreeNode(subnet32, groupedNis32)
-	gs33a := NewGroupSquareTreeNode(subnet33, groupedNis33a)
-	gs33b := NewGroupSquareTreeNode(subnet33, groupedNis33b)
-	gs33c := NewGroupSquareTreeNode(subnet33, groupedNis33c)
-	gs33d := NewGroupSquareTreeNode(subnet33, groupedNis33d)
-	gs33e := NewGroupSquareTreeNode(subnet33, groupedNis33e)
-	gs33f := NewGroupSquareTreeNode(subnet33, groupedNis33f)
-	gs33g := NewGroupSquareTreeNode(subnet33, groupedNis33g)
-	gs23 := NewGroupSquareTreeNode(subnet23, groupedNis23)
-	gs31 := NewGroupSquareTreeNode(subnet31, groupedNis31)
-	gs11 := NewGroupSquareTreeNode(subnet11, groupedNis11)
+	gs13 := NewGroupSquareTreeNode(subnet13, groupedNis13, "groupedNis13")
+	gs32 := NewGroupSquareTreeNode(subnet32, groupedNis32, "groupedNis32")
+	gs33a := NewGroupSquareTreeNode(subnet33, groupedNis33a, "groupedNis33a")
+	gs33b := NewGroupSquareTreeNode(subnet33, groupedNis33b, "groupedNis33b")
+	gs33c := NewGroupSquareTreeNode(subnet33, groupedNis33c, "groupedNis33c")
+	gs33d := NewGroupSquareTreeNode(subnet33, groupedNis33d, "groupedNis33d")
+	gs33e := NewGroupSquareTreeNode(subnet33, groupedNis33e, "groupedNis33e")
+	gs33f := NewGroupSquareTreeNode(subnet33, groupedNis33f, "groupedNis33f")
+	gs33g := NewGroupSquareTreeNode(subnet33, groupedNis33g, "groupedNis33g")
+	gs23 := NewGroupSquareTreeNode(subnet23, groupedNis23, "groupedNis23")
+	gs31 := NewGroupSquareTreeNode(subnet31, groupedNis31, "groupedNis31")
+	gs11 := NewGroupSquareTreeNode(subnet11, groupedNis11, "groupedNis11")
 
 	NewConnectivityLineTreeNode(network, gs13, gs32, true, "gconn1")
 	NewConnectivityLineTreeNode(network, gs33a, i2, false, "gconn2")

@@ -127,6 +127,7 @@ type GroupConnLines struct {
 // EndpointElem can be Node(networkInterface) / groupedExternalNodes / groupedNetworkInterfaces / NodeSet(subnet)
 type EndpointElem interface {
 	Name() string
+	UID() string
 	IsExternal() bool
 	DrawioResourceIntf
 }
@@ -161,6 +162,10 @@ func (g *groupedEndpointsElems) Name() string {
 	return listEndpointElemStr(*g, EndpointElem.Name)
 }
 
+func (g *groupedEndpointsElems) UID() string {
+	return listEndpointElemStr(*g, EndpointElem.UID)
+}
+
 func (g *groupedEndpointsElems) IsExternal() bool {
 	return false
 }
@@ -179,6 +184,12 @@ func (g *groupedExternalNodes) Name() string {
 		return prefix + "(all ranges)"
 	}
 	return prefix + g.String()
+}
+
+// UID of externalNetwork returns Name, so uses here the same functionality.
+// This is since UID for externalNodes is not defined and Name() is actually unique,
+func (g *groupedExternalNodes) UID() string {
+	return g.Name()
 }
 
 func (g *groupingConnections) addPublicConnectivity(ep EndpointElem, commonProps *groupedCommonProperties, targetNode *ExternalNetwork) {
@@ -204,6 +215,7 @@ func getSubnetOrVPCUID(ep EndpointElem) string {
 }
 
 // group public internet ranges for vsis/subnets connectivity lines
+// internal (vsi/subnets) are added as is
 func (g *GroupConnLines) groupExternalAddresses(vsi bool) error {
 	var allowedConnsCombined GeneralConnectivityMap
 	if vsi {
@@ -317,7 +329,7 @@ func isInternalOfRequiredType(ep EndpointElem, groupVsi bool) bool {
 	return true
 }
 
-// groups src/targets for either Vsis or Subnets
+// groups src/targets for either Vsis UIDs or Subnets UIDs
 func (g *GroupConnLines) groupLinesByKey(srcGrouping, groupVsi bool) (res []*groupedConnLine,
 	groupingSrcOrDst map[string][]*groupedConnLine) {
 	res = []*groupedConnLine{}
@@ -352,7 +364,7 @@ func (g *GroupConnLines) groupLinesByKey(srcGrouping, groupVsi bool) (res []*gro
 // can be grouped to
 // v1, v2 => v3 given that v1, v2 share the same subnet
 func getKeyOfGroupConnLines(grpIndex, grpTarget EndpointElem, connectionString string) string {
-	keyComponents := []string{grpIndex.Name(), connectionString, getSubnetOrVPCUID(grpTarget)}
+	keyComponents := []string{grpIndex.UID(), connectionString, getSubnetOrVPCUID(grpTarget)}
 	return strings.Join(keyComponents, semicolon)
 }
 
@@ -514,7 +526,7 @@ func (details *srcDstDetails) explanationEncode(c *VPCConfig) string {
 	connStr := details.conn.String() + semicolon
 	routingStr := ""
 	if details.router != nil {
-		routingStr = details.router.Name() + ";"
+		routingStr = details.router.UID() + ";"
 	}
 	egressStr, ingressStr := "", ""
 	if len(details.actualMergedRules.egressRules) > 0 {
