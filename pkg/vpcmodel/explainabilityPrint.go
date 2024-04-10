@@ -120,14 +120,17 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 	if verbose {
 		details = "\nDetails:\n~~~~~~~~\n" + egressRulesDetails + crossRouterFilterDetails + ingressRulesDetails
 	}
-	return explainPerCaseStr(src, dst, externalRouter, crossVpcRouter, connQuery, g.commonProperties.conn, crossVpcConnection, ingressBlocking, egressBlocking,
+	return g.explainPerCaseStr(src, dst, connQuery, crossVpcConnection, ingressBlocking, egressBlocking,
 		noConnection, resourceEffectHeader, path, details)
 }
 
 // after all data is gathered, generates the actual string to be printed
-func explainPerCaseStr(src, dst EndpointElem, externalRouter, crossVpcRouter RoutingResource,
-	connQuery, conn, crossVpcConnection *connection.Set, ingressBlocking, egressBlocking bool,
+func (g *groupedConnLine) explainPerCaseStr(src, dst EndpointElem,
+	connQuery, crossVpcConnection *connection.Set, ingressBlocking, egressBlocking bool,
 	noConnection, resourceEffectHeader, path, details string) string {
+	conn := g.commonProperties.conn
+	externalRouter, crossVpcRouter := g.commonProperties.expDetails.externalRouter,
+		g.commonProperties.expDetails.crossVpcRouter
 	headerPlusPath := resourceEffectHeader + path
 	switch {
 	case crossVpcRouterRequired(src, dst) && crossVpcRouter == nil:
