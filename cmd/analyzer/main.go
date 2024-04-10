@@ -176,7 +176,7 @@ func vpcConfigsFromAccount(inArgs *InArgs) (vpcmodel.MultipleVPCConfigs, error) 
 	return vpcConfigs, nil
 }
 
-// returns verbosity level based on the -q and -v switches
+// returns verbosity level based on the -quiet and -verbose switches
 func getVerbosity(args *InArgs) logging.Verbosity {
 	verbosity := logging.MediumVerbosity
 	if *args.Quiet {
