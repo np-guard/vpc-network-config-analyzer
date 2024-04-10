@@ -80,7 +80,6 @@ func getCIDRMatchedByPrefixFilters(cidr string, tc *datamodel.TransitConnection)
 	// Default setting of permit or deny which applies to any routes that don't match a specified filter.
 	pfDefault := tc.PrefixFiltersDefault
 
-	// TODO: currently assuming subnet cidrs are the advertised routes to the TGW, matched against the prefix filters
 	// TODO: currently ignoring the "Before" field of each PrefixFilter, since assuming the array is ordered
 	// iterate by order the array of prefix route filters
 	for prefixIndex, pf := range pfList {
