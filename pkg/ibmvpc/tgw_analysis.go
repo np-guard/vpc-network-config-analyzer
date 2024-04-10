@@ -46,8 +46,8 @@ func validateAddressPrefixesExist(vpc *VPC) {
 	}
 }
 
-// getVPCAdvertisedRoutes returns a list of IPBlock objects for vpc address prefixes matched by prefix filters,
-// thus advertised to a TGW
+// getVPCAdvertisedRoutes returns a list of IPBlock objects for vpc address prefixes matched by prefix filters (with permit action),
+// thus advertised to a TGW. It also returns list of IPBlockPrefixFilter objects, with details per address prefix of the matched prefix filter 
 func getVPCAdvertisedRoutes(tc *datamodel.TransitConnection, vpc *VPC) (advertisedRoutesRes []*ipblock.IPBlock,
 	vpcApsPrefixesRes []IPBlockPrefixFilter, err error) {
 	validateAddressPrefixesExist(vpc)
@@ -70,8 +70,8 @@ func getVPCAdvertisedRoutes(tc *datamodel.TransitConnection, vpc *VPC) (advertis
 	return advertisedRoutesRes, vpcApsPrefixesRes, nil
 }
 
-// gets for a given address prefix the matching prefix filter index and its action (allow = true/deny = false)
-// if there is no specific prefix filter then gets the default defined behavior
+// return for a given address-prefix (input cidr) the matching prefix-filter index and its action (allow = true/deny = false)
+// if there is no specific prefix filter then gets the details of the configured default prefix filter
 func getCIDRMatchedByPrefixFilters(cidr string, tc *datamodel.TransitConnection) (prefixIndex int, action bool, err error) {
 	// Array of prefix route filters for a transit gateway connection. This is order dependent with those first in the
 	// array being applied first, and those at the end of the array is applied last, or just before the default.
@@ -89,7 +89,7 @@ func getCIDRMatchedByPrefixFilters(cidr string, tc *datamodel.TransitConnection)
 		}
 		if match {
 			action, err = parseActionString(pf.Action)
-			return prefixIndex, action, err
+			return prefixIndex, action, nil
 		}
 	}
 	// no match by pfList -- use default

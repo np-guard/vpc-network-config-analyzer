@@ -835,7 +835,6 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 			tgwMap[tgwUID].addSourceAndDestNodes()
 
 			// explainability related struct initialization
-			// vpcApsPrefixes is a map from the vpc's ap to the index of the prefix that matches it, -1 for default if no match
 			tgwMap[tgwUID].vpcsAPToFilters[vpcUID] = vpcApsPrefixes
 		}
 	}
