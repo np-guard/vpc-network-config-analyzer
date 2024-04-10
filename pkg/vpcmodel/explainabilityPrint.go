@@ -299,8 +299,7 @@ func pathStr(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointEle
 	egressPath := pathFiltersOfIngressOrEgressStr(c, src, filtersRelevant, rules, false, isExternal, externalRouter)
 	pathSlice = append(pathSlice, egressPath...)
 	externalRouterBlocking := isExternal && externalRouter == nil
-	needCrossVpcRouter := crossVpcRouterRequired(src, dst)
-	crossVpcRouterMissing := needCrossVpcRouter && crossVpcRouter == nil
+	crossVpcRouterInPath := crossVpcRouterRequired(src, dst) // if cross-vpc router needed but missing, will not get here
 	if egressBlocking || externalRouterBlocking {
 		return blockedPathStr(pathSlice)
 	}
@@ -311,12 +310,8 @@ func pathStr(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointEle
 			externalRouterStr += space + externalRouter.ExternalIP()
 		}
 		pathSlice = append(pathSlice, externalRouterStr)
-	} else if needCrossVpcRouter { // src and dst are internal and there is a cross vpc Router
-		pathSlice = append(pathSlice, newLineTab+src.(InternalNodeIntf).Subnet().VPC().Name())
-		if crossVpcRouterMissing {
-			return blockedPathStr(pathSlice)
-		}
-		pathSlice = append(pathSlice, crossVpcRouter.Kind()+space+crossVpcRouter.Name())
+	} else if crossVpcRouterInPath { // src and dst are internal and there is a cross vpc Router
+		pathSlice = append(pathSlice, newLineTab+src.(InternalNodeIntf).Subnet().VPC().Name(), crossVpcRouter.Kind()+space+crossVpcRouter.Name())
 		if crossVpcConnection.IsEmpty() { // cross vpc (tgw) denys connection
 			return blockedPathStr(pathSlice)
 		}
