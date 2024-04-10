@@ -7,10 +7,12 @@ Path:
 	FloatingIP floating-ip-ky 52.118.184.123 -> 
 	security group sg2-ky -> vsi2-ky[10.240.20.4]
 
+
 Details:
 ~~~~~~~~
 Ingress:
 security group sg2-ky allows connection with the following allow rules
 	index: 2, direction: inbound,  conns: protocol: tcp,  dstPorts: 22-22, cidr: 147.235.219.206/32
+
 ------------------------------------------------------------------------------------------------------------------------
 

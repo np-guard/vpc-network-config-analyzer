@@ -2,10 +2,12 @@ Connectivity explanation between vsi3b-ky and 10.240.30.4/26 (vsi3a-ky[10.240.30
 ===========================================================================================================================================================================================
 
 The following connection exists between vsi3b-ky[10.240.30.6] and db-endpoint-gateway-ky[10.240.30.7]: All Connections
+
 Path:
 	vsi3b-ky[10.240.30.6] -> security group sg1-ky -> 
 	security group sg1-ky -> db-endpoint-gateway-ky[10.240.30.7]
 
+
 Details:
 ~~~~~~~~
 Egress:
@@ -15,13 +17,16 @@ security group sg1-ky allows connection with the following allow rules
 Ingress:
 security group sg1-ky allows connection with the following allow rules
 	index: 1, direction: inbound, protocol: all, cidr: 0.0.0.0/0
+
 ------------------------------------------------------------------------------------------------------------------------
 
 The following connection exists between vsi3b-ky[10.240.30.6] and vsi3a-ky[10.240.30.5]: All Connections
+
 Path:
 	vsi3b-ky[10.240.30.6] -> security group sg1-ky -> 
 	security group sg1-ky -> vsi3a-ky[10.240.30.5]
 
+
 Details:
 ~~~~~~~~
 Egress:
@@ -31,13 +36,16 @@ security group sg1-ky allows connection with the following allow rules
 Ingress:
 security group sg1-ky allows connection with the following allow rules
 	index: 1, direction: inbound, protocol: all, cidr: 0.0.0.0/0
+
 ------------------------------------------------------------------------------------------------------------------------
 
 The following connection exists between vsi3b-ky[10.240.30.6] and vsi3c-ky[10.240.30.4]: All Connections
+
 Path:
 	vsi3b-ky[10.240.30.6] -> security group sg1-ky -> 
 	security group sg1-ky -> vsi3c-ky[10.240.30.4]
 
+
 Details:
 ~~~~~~~~
 Egress:
@@ -47,5 +55,6 @@ security group sg1-ky allows connection with the following allow rules
 Ingress:
 security group sg1-ky allows connection with the following allow rules
 	index: 1, direction: inbound, protocol: all, cidr: 0.0.0.0/0
+
 ------------------------------------------------------------------------------------------------------------------------
 

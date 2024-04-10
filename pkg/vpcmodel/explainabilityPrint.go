@@ -12,6 +12,10 @@ const arrow = " -> "
 const newLineTab = "\n\t"
 const space = " "
 const comma = ", "
+const newLine = "\n"
+const doubleNL = "\n\n"
+const doubleNLWithVars = "\n%v\n%v"
+const emptyString = ""
 
 // header of txt/debug format
 func explainHeader(explanation *Explanation) string {
@@ -25,14 +29,14 @@ func explainHeader(explanation *Explanation) string {
 		connStr, explanation.src, srcNetworkInterfaces, explanation.dst, dstNetworkInterfaces,
 		explanation.c.VPC.Name())
 	header2 := strings.Repeat("=", len(header1))
-	return header1 + "\n" + header2 + "\n\n"
+	return header1 + newLine + header2 + doubleNL
 }
 
 // in case the src/dst of a network interface given as an internal address connected to network interface returns a string
 // of all relevant nodes names
 func listNetworkInterfaces(nodes []Node) string {
 	if len(nodes) == 0 {
-		return ""
+		return emptyString
 	}
 	networkInterfaces := make([]string, len(nodes))
 	for i, node := range nodes {
@@ -46,14 +50,14 @@ func (explanation *Explanation) String(verbose bool) string {
 	linesStr := make([]string, len(explanation.groupedLines))
 	groupedLines := explanation.groupedLines
 	for i, line := range groupedLines {
-		linesStr[i] += explainabilityLineStr(verbose, explanation.c, line.commonProperties.expDetails.filtersRelevant,
-			explanation.connQuery, line.src, line.dst, line.commonProperties.conn, line.commonProperties.expDetails.ingressEnabled,
-			line.commonProperties.expDetails.egressEnabled,
-			line.commonProperties.expDetails.router, line.commonProperties.expDetails.rules) +
+		explainDetails := line.commonProperties.expDetails
+		linesStr[i] += explainabilityLineStr(verbose, explanation.c, explainDetails.filtersRelevant,
+			explanation.connQuery, line.src, line.dst, line.commonProperties.conn, explainDetails.ingressEnabled,
+			explainDetails.egressEnabled, explainDetails.externalRouter, explainDetails.crossVpcRouter, explainDetails.rules) +
 			"------------------------------------------------------------------------------------------------------------------------\n"
 	}
 	sort.Strings(linesStr)
-	return strings.Join(linesStr, "\n") + "\n"
+	return strings.Join(linesStr, newLine) + newLine
 }
 
 // main printing function for a *rulesAndConnDetails <src, dst> line (before grouping); calls explainabilityLineStr
@@ -63,51 +67,117 @@ func (details *rulesAndConnDetails) String(c *VPCConfig, verbose bool, connQuery
 	for _, srcDstDetails := range *details {
 		resStr += explainabilityLineStr(verbose, c, srcDstDetails.filtersRelevant, connQuery,
 			srcDstDetails.src, srcDstDetails.dst, srcDstDetails.conn, srcDstDetails.ingressEnabled,
-			srcDstDetails.egressEnabled, srcDstDetails.router, srcDstDetails.actualMergedRules)
+			srcDstDetails.egressEnabled, srcDstDetails.externalRouter, srcDstDetails.crossVpcRouter,
+			srcDstDetails.actualMergedRules)
 	}
 	return resStr, nil
 }
 
-// prints a single line of <src, dst>. Called either with grouping results or from the original struct before grouping
+// prints a single line of <src, dst>. Called either with grouping results or with the original struct before grouping
+// The printing contains 4 sections:
+// 1. Header describing the query and whether there is a connection. E.g.:
+// * The following connection exists between ky-vsi0-subnet5[10.240.9.4] and ky-vsi0-subnet11[10.240.80.4]: All Connections
+// * No connection between ky-vsi1-subnet20[10.240.128.5] and ky-vsi0-subnet0[10.240.0.5];
+// 2. List of all the different resources effecting the connection and the effect of each. E.g.:
+// cross-vpc-connection: transit-connection tg_connection0 of transit-gateway local-tg-ky denys connection
+// Egress: security group sg21-ky allows connection; network ACL acl21-ky allows connection
+// Ingress: network ACL acl1-ky allows connection; security group sg1-ky allows connection
+// 3. Connection path description. E.g.:
+//	ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> subnet20 -> network ACL acl21-ky ->
+//	test-vpc2-ky -> TGW local-tg-ky -> |
+// 4. Details of enabling and disabling rules/prefixes, including details of each rule
+//
+// 1 and 3 are printed always
+// 2 is printed only when the connection is blocked. It is redundant when the entire path ("3") is printed. When
+// the connection is blocked and only part of the path is printed then 2 is printed so that the relevant information
+// is provided regardless of where the is blocking
+// 4 is printed only in debug mode
+
 func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[string]bool, connQuery *connection.Set,
 	src, dst EndpointElem, conn *connection.Set, ingressEnabled, egressEnabled bool,
-	router RoutingResource, rules *rulesConnection) string {
+	externalRouter, crossVpcRouter RoutingResource, rules *rulesConnection) string {
 	needEgress := !src.IsExternal()
 	needIngress := !dst.IsExternal()
 	ingressBlocking := !ingressEnabled && needIngress
 	egressBlocking := !egressEnabled && needEgress
-	var routerStr, rulesStr, resStr string
-	if router != nil && (src.IsExternal() || dst.IsExternal()) {
-		routerStr = "External traffic via " + router.Kind() + ": " + router.Name() + "\n"
+	var externalRouterHeader, crossRouterFilterHeader, resourceEffectHeader,
+		crossRouterFilterDetails, details string
+	if externalRouter != nil && (src.IsExternal() || dst.IsExternal()) {
+		externalRouterHeader = "External traffic via " + externalRouter.Kind() + ": " + externalRouter.Name() + newLine
 	}
-	var routerFiltersHeader string
-	if conn.IsEmpty() {
-		routerFiltersHeader = routerStr + rules.filterEffectStr(c, filtersRelevant, needEgress, needIngress) + "\n"
-	}
+	var crossVpcConnection *connection.Set
+	crossVpcConnection, crossRouterFilterHeader, crossRouterFilterDetails = crossRouterDetails(c, crossVpcRouter, src, dst)
+	// noConnection is the 1 above when no connection
+	noConnection := noConnectionHeader(src.Name(), dst.Name(), connQuery) + newLine
+
+	// resourceEffectHeader is "2" above
+	egressRulesHeader, ingressRulesHeader := rules.filterEffectStr(c, filtersRelevant, needEgress, needIngress)
+	resourceEffectHeader = externalRouterHeader + egressRulesHeader + crossRouterFilterHeader +
+		ingressRulesHeader + newLine
+
+	// path in "3" above
 	path := "Path:\n" + pathStr(c, filtersRelevant, src, dst,
-		ingressBlocking, egressBlocking, router, rules)
-	rulesStr = rules.ruleDetailsStr(c, filtersRelevant, verbose, needEgress, needIngress)
-	noConnection := noConnectionHeader(src.Name(), dst.Name(), connQuery)
-	routerFiltersHeaderPlusPath := routerFiltersHeader + path
-	switch {
-	case router == nil && src.IsExternal():
-		resStr += fmt.Sprintf("%v no fip and src is external (fip is required for "+
-			"outbound external connection)\n", noConnection)
-	case router == nil && dst.IsExternal():
-		resStr += fmt.Sprintf("%v no fip/pgw and dst is external\n", noConnection)
-	case ingressBlocking && egressBlocking:
-		resStr += fmt.Sprintf("%v connection blocked both by ingress and egress\n%v\n%v", noConnection,
-			routerFiltersHeaderPlusPath, rulesStr)
-	case ingressBlocking:
-		resStr += fmt.Sprintf("%v connection blocked by ingress\n%v\n%v", noConnection,
-			routerFiltersHeaderPlusPath, rulesStr)
-	case egressBlocking:
-		resStr += fmt.Sprintf("%v connection blocked by egress\n%v\n%v", noConnection,
-			routerFiltersHeaderPlusPath, rulesStr)
-	default: // there is a connection
-		return existingConnectionStr(connQuery, src, dst, conn, routerFiltersHeaderPlusPath, rulesStr)
+		ingressBlocking, egressBlocking, externalRouter, crossVpcRouter, crossVpcConnection, rules) + newLine
+	// details is "4" above
+	egressRulesDetails, ingressRulesDetails := rules.ruleDetailsStr(c, filtersRelevant, needEgress, needIngress)
+	if verbose {
+		details = "\nDetails:\n~~~~~~~~\n" + egressRulesDetails + crossRouterFilterDetails + ingressRulesDetails
 	}
-	return resStr
+	return explainPerCaseStr(src, dst, externalRouter, crossVpcRouter, connQuery, conn, crossVpcConnection, ingressBlocking, egressBlocking,
+		noConnection, resourceEffectHeader, path, details)
+}
+
+// after all data is gathered, generates the actual string to be printed
+func explainPerCaseStr(src, dst EndpointElem, externalRouter, crossVpcRouter RoutingResource,
+	connQuery, conn, crossVpcConnection *connection.Set, ingressBlocking, egressBlocking bool,
+	noConnection, resourceEffectHeader, path, details string) string {
+	headerPlusPath := resourceEffectHeader + path
+	switch {
+	case crossVpcRouterRequired(src, dst) && crossVpcRouter == nil:
+		return fmt.Sprintf("%v\nconnection blocked since src, dst of different VPCs but no transit gateway is defined"+
+			doubleNLWithVars, noConnection, headerPlusPath, details)
+	case crossVpcRouterRequired(src, dst) && crossVpcRouter != nil && crossVpcConnection.IsEmpty():
+		return fmt.Sprintf("%v\nconnection blocked since transit gateway denies route between src and dst"+
+			doubleNLWithVars, noConnection, headerPlusPath, details)
+	case externalRouter == nil && src.IsExternal():
+		return fmt.Sprintf("%v no fip and src is external (fip is required for "+
+			"outbound external connection)\n", noConnection)
+	case externalRouter == nil && dst.IsExternal():
+		return fmt.Sprintf("%v no fip/pgw and dst is external\n", noConnection)
+	case ingressBlocking && egressBlocking:
+		return fmt.Sprintf("%v connection blocked both by ingress and egress\n%v\n%v", noConnection,
+			headerPlusPath, details)
+	case ingressBlocking:
+		return fmt.Sprintf("%v connection blocked by ingress\n%v\n%v", noConnection,
+			headerPlusPath, details)
+	case egressBlocking:
+		return fmt.Sprintf("%v connection blocked by egress\n%v\n%v", noConnection,
+			headerPlusPath, details)
+	default: // there is a connection
+		return existingConnectionStr(connQuery, src, dst, conn, path, details)
+	}
+}
+
+func crossRouterDetails(c *VPCConfig, crossVpcRouter RoutingResource, src, dst EndpointElem) (crossVpcConnection *connection.Set,
+	crossVpcRouterFilterHeader, crossVpcFilterDetails string) {
+	if crossVpcRouter != nil {
+		// an error here will pop up earlier, when computing connections
+		_, crossVpcConnection, _ := c.getRoutingResource(src.(Node), dst.(Node)) // crossVpc Router (tgw) exists - src, dst are internal
+		// if there is a non nil transit gateway then src and dst are vsis, and implement Node
+		crossVpcFilterHeader, _ := crossVpcRouter.StringPrefixDetails(src.(Node), dst.(Node), false)
+		crossVpcFilterDetails, _ := crossVpcRouter.StringPrefixDetails(src.(Node), dst.(Node), true)
+		return crossVpcConnection, crossVpcFilterHeader, crossVpcFilterDetails
+	}
+	return nil, emptyString, emptyString
+}
+
+func crossVpcRouterRequired(src, dst EndpointElem) bool {
+	if src.IsExternal() || dst.IsExternal() {
+		return false
+	}
+	// both internal
+	return src.(InternalNodeIntf).Subnet().VPC().UID() !=
+		dst.(InternalNodeIntf).Subnet().VPC().UID()
 }
 
 // returns string of header in case a connection fails to exist
@@ -118,79 +188,66 @@ func noConnectionHeader(src, dst string, connQuery *connection.Set) string {
 	return fmt.Sprintf("There is no connection \"%v\" between %v and %v;", connQuery.String(), src, dst)
 }
 
-// return a string with the described existing connection and relevant details w.r.t. the potential query
-// e.g.: "Connection protocol: UDP src-ports: 1-600 dst-ports: 1-50 exists between vsi1-ky[10.240.10.4]
-// and Public Internet 161.26.0.0/16 (note that not all queried protocols/ports are allowed)"
+// printing when connection exists.
+// computing "1" when there is a connection and adding to it already computed "2" and "3" as described in explainabilityLineStr
 func existingConnectionStr(connQuery *connection.Set, src, dst EndpointElem,
-	conn *connection.Set, filtersEffectStr, rulesStr string) string {
-	resStr := ""
+	conn *connection.Set, path, details string) string {
+	resComponents := []string{}
+	// Computing the header, "1" described in explainabilityLineStr
 	if connQuery == nil {
-		resStr = fmt.Sprintf("The following connection exists between %v and %v: %v\n", src.Name(), dst.Name(),
-			conn.String())
+		resComponents = append(resComponents, fmt.Sprintf("The following connection exists between %v and %v: %v\n", src.Name(), dst.Name(),
+			conn.String()))
 	} else {
 		properSubsetConn := ""
 		if !conn.Equal(connQuery) {
 			properSubsetConn = " (note that not all queried protocols/ports are allowed)"
 		}
-		resStr = fmt.Sprintf("Connection %v exists between %v and %v%s\n", conn.String(),
-			src.Name(), dst.Name(), properSubsetConn)
+		resComponents = append(resComponents, fmt.Sprintf("Connection %v exists between %v and %v%s", conn.String(),
+			src.Name(), dst.Name(), properSubsetConn))
 	}
-	resStr += filtersEffectStr + "\n" + rulesStr
-	return resStr
+	resComponents = append(resComponents, path, details)
+	return strings.Join(resComponents, newLine)
 }
 
-// returns a string with a summary of each filter (table) effect; e.g.
+// returns a couple of strings of an egress, ingress summary of each filter (table) effect; e.g.
 // "Egress: security group sg1-ky allows connection; network ACL acl1-ky blocks connection
 // Ingress: network ACL acl3-ky allows connection; security group sg1-ky allows connection"
-func (rules *rulesConnection) filterEffectStr(c *VPCConfig, filtersRelevant map[string]bool, needEgress, needIngress bool) string {
-	egressRulesStr, ingressRulesStr := "", ""
+func (rules *rulesConnection) filterEffectStr(c *VPCConfig, filtersRelevant map[string]bool, needEgress,
+	needIngress bool) (egressRulesHeader, ingressRulesHeader string) {
 	if needEgress {
-		egressRulesStr = rules.egressRules.summaryFiltersStr(c, filtersRelevant, false)
+		egressRulesHeader = rules.egressRules.summaryFiltersStr(c, filtersRelevant, false)
 	}
 	if needIngress {
-		ingressRulesStr = rules.ingressRules.summaryFiltersStr(c, filtersRelevant, true)
+		ingressRulesHeader = rules.ingressRules.summaryFiltersStr(c, filtersRelevant, true)
 	}
-	if needEgress && egressRulesStr != "" {
-		egressRulesStr = "Egress: " + egressRulesStr
+	if needEgress && egressRulesHeader != emptyString {
+		egressRulesHeader = "Egress: " + egressRulesHeader + newLine
 	}
-	if needIngress && ingressRulesStr != "" {
-		ingressRulesStr = "Ingress: " + ingressRulesStr
+	if needIngress && ingressRulesHeader != emptyString {
+		ingressRulesHeader = "Ingress: " + ingressRulesHeader + newLine
 	}
-	if egressRulesStr != "" && ingressRulesStr != "" {
-		return egressRulesStr + "\n" + ingressRulesStr
-	}
-	return egressRulesStr + ingressRulesStr
+	return egressRulesHeader, ingressRulesHeader
 }
 
-// returns a string with a detailed list of relevant rules; e.g.
+// returns a couple of strings of an egress, ingress detailed list of relevant rules; e.g.
 // "security group sg1-ky allows connection with the following allow rules
 // index: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0
 // network ACL acl1-ky blocks connection since there are no relevant allow rules"
 func (rules *rulesConnection) ruleDetailsStr(c *VPCConfig, filtersRelevant map[string]bool,
-	verbose, needEgress, needIngress bool) string {
-	if !verbose {
-		return ""
-	}
-	egressRulesStr, ingressRulesStr := "", ""
+	needEgress, needIngress bool) (egressRulesDetails, ingressRulesDetails string) {
 	if needEgress {
-		egressRulesStr = rules.egressRules.rulesDetailsStr(c, filtersRelevant, false)
+		egressRulesDetails = rules.egressRules.rulesDetailsStr(c, filtersRelevant, false)
 	}
 	if needIngress {
-		ingressRulesStr = rules.ingressRules.rulesDetailsStr(c, filtersRelevant, true)
+		ingressRulesDetails = rules.ingressRules.rulesDetailsStr(c, filtersRelevant, true)
 	}
-	if needEgress && egressRulesStr != "" {
-		egressRulesStr = "Egress:\n" + egressRulesStr
+	if needEgress && egressRulesDetails != emptyString {
+		egressRulesDetails = "Egress:\n" + egressRulesDetails + newLine
 	}
-	if needIngress && ingressRulesStr != "" {
-		ingressRulesStr = "Ingress:\n" + ingressRulesStr
-		if needEgress && egressRulesStr != "" {
-			egressRulesStr += "\n"
-		}
+	if needIngress && ingressRulesDetails != emptyString {
+		ingressRulesDetails = "Ingress:\n" + ingressRulesDetails + newLine
 	}
-	if egressRulesStr != "" || ingressRulesStr != "" {
-		return "\nDetails:\n~~~~~~~~\n" + egressRulesStr + ingressRulesStr
-	}
-	return ""
+	return egressRulesDetails, ingressRulesDetails
 }
 
 // returns a string with the effect of each filter by calling StringFilterEffect
@@ -228,25 +285,38 @@ func stringFilterEffect(c *VPCConfig, filterLayerName string, rules []RulesInFil
 // if the connection does not exist. In the latter case the path is until the first block
 // e.g.: "vsi1-ky[10.240.10.4] ->  SG sg1-ky -> subnet ... ->  ACL acl1-ky -> PublicGateway: public-gw-ky ->  Public Internet 161.26.0.0/16"
 func pathStr(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointElem,
-	ingressBlocking, egressBlocking bool, router RoutingResource, rules *rulesConnection) string {
+	ingressBlocking, egressBlocking bool, externalRouter, crossVpcRouter RoutingResource, crossVpcConnection *connection.Set,
+	rules *rulesConnection) string {
 	var pathSlice []string
 	pathSlice = append(pathSlice, "\t"+src.Name())
 	isExternal := src.IsExternal() || dst.IsExternal()
-	egressPath := pathFiltersOfIngressOrEgressStr(c, src, filtersRelevant, rules, false, isExternal, router)
+	egressPath := pathFiltersOfIngressOrEgressStr(c, src, filtersRelevant, rules, false, isExternal, externalRouter)
 	pathSlice = append(pathSlice, egressPath...)
-	routerBlocking := isExternal && router == nil
-	if egressBlocking || routerBlocking {
+	externalRouterBlocking := isExternal && externalRouter == nil
+	needCrossVpcRouter := crossVpcRouterRequired(src, dst)
+	crossVpcRouterMissing := needCrossVpcRouter && crossVpcRouter == nil
+	if egressBlocking || externalRouterBlocking {
 		return blockedPathStr(pathSlice)
 	}
 	if isExternal {
-		routerStr := newLineTab + router.Kind() + space + router.Name()
-		// router is fip - add its cidr
-		if router.Kind() == fipRouter {
-			routerStr += space + router.ExternalIP()
+		externalRouterStr := newLineTab + externalRouter.Kind() + space + externalRouter.Name()
+		// externalRouter is fip - add its cidr
+		if externalRouter.Kind() == fipRouter {
+			externalRouterStr += space + externalRouter.ExternalIP()
 		}
-		pathSlice = append(pathSlice, routerStr)
+		pathSlice = append(pathSlice, externalRouterStr)
+	} else if needCrossVpcRouter { // src and dst are internal and there is a cross vpc Router
+		pathSlice = append(pathSlice, newLineTab+src.(InternalNodeIntf).Subnet().VPC().Name())
+		if crossVpcRouterMissing {
+			return blockedPathStr(pathSlice)
+		}
+		pathSlice = append(pathSlice, crossVpcRouter.Kind()+space+crossVpcRouter.Name())
+		if crossVpcConnection.IsEmpty() { // cross vpc (tgw) denys connection
+			return blockedPathStr(pathSlice)
+		}
+		pathSlice = append(pathSlice, dst.(InternalNodeIntf).Subnet().VPC().Name())
 	}
-	ingressPath := pathFiltersOfIngressOrEgressStr(c, dst, filtersRelevant, rules, true, isExternal, router)
+	ingressPath := pathFiltersOfIngressOrEgressStr(c, dst, filtersRelevant, rules, true, isExternal, externalRouter)
 	pathSlice = append(pathSlice, ingressPath...)
 	if ingressBlocking {
 		return blockedPathStr(pathSlice)
@@ -278,14 +348,14 @@ func pathFiltersOfIngressOrEgressStr(c *VPCConfig, node EndpointElem, filtersRel
 		} else {
 			allowFiltersOfLayer = pathFiltersSingleLayerStr(c, layer, rules.egressRules[layer])
 		}
-		if allowFiltersOfLayer == "" {
+		if allowFiltersOfLayer == emptyString {
 			break
 		}
 		pathSlice = append(pathSlice, allowFiltersOfLayer)
 		// got here: first layer (security group for egress nacl for ingress) allows connection,
 		// subnet is part of the path if both node are internal and there are two layers - sg and nacl
 		// subnet should be added after sg in egress and after nacl in ingress
-		// or this node internal and router is pgw
+		// or this node internal and externalRouter is pgw
 		if !node.IsExternal() && (!isExternal || router.Kind() == pgwKind) &&
 			((!isIngress && layer == SecurityGroupLayer && len(layers) > 1) ||
 				(isIngress && layer == NaclLayer && len(layers) > 1)) {
@@ -307,7 +377,7 @@ func FilterKindName(filterLayer string) string {
 	case SecurityGroupLayer:
 		return "security group"
 	default:
-		return ""
+		return emptyString
 	}
 }
 
@@ -331,7 +401,7 @@ func pathFiltersSingleLayerStr(c *VPCConfig, filterLayerName string, rules []Rul
 		sort.Strings(strSlice)
 		return FilterKindName(filterLayerName) + "[" + strings.Join(strSlice, comma) + "]"
 	}
-	return ""
+	return emptyString
 }
 
 // prints detailed list of rules that effects the (existing or non-existing) connection
@@ -343,7 +413,7 @@ func (rulesInLayers rulesInLayers) rulesDetailsStr(c *VPCConfig, filtersRelevant
 			strSlice = append(strSlice, filter.StringDetailsRulesOfFilter(rules))
 		}
 	}
-	return strings.Join(strSlice, "")
+	return strings.Join(strSlice, emptyString)
 }
 
 // gets filter Layers valid per filtersRelevant in the order they should be printed
