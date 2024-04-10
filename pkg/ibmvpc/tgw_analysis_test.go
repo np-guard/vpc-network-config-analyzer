@@ -1,3 +1,9 @@
+/*
+Copyright 2023- IBM Inc. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
 package ibmvpc
 
 import (
@@ -209,7 +215,7 @@ var tgwTests = []tgwTest{
 }
 
 func (tt *tgwTest) runTest(t *testing.T) {
-	availableRoutes, err := getVPCAdvertisedRoutes(tt.tc, tt.vpc)
+	availableRoutes, _, err := getVPCAdvertisedRoutes(tt.tc, tt.vpc)
 	for _, r := range availableRoutes {
 		fmt.Printf("%s\n", r.ToCidrList())
 	}

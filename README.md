@@ -10,8 +10,8 @@ $ ./bin/vpcanalyzer -h
 Usage of vpc-network-config-analyzer:
   -analysis-type string
         Supported analysis types:
-        * all_endpoints  - supported with: txt, md, json, drawio, arch_drawio, debug
-        * all_subnets  - supported with: txt, md, json, drawio, arch_drawio
+        * all_endpoints  - supported with: txt, md, json, drawio, arch_drawio, svg, arch_svg, html, arch_html, debug
+        * all_subnets  - supported with: txt, md, json, drawio, arch_drawio, svg, arch_svg, html, arch_html
         * single_subnet  - supported with: txt
         * diff_all_endpoints  - supported with: txt, md
         * diff_all_subnets  - supported with: txt, md
@@ -40,6 +40,8 @@ Usage of vpc-network-config-analyzer:
         Protocol for connection description
   -provider string
         Collect resources from an account in this cloud provider
+  -quiet
+        Runs quietly, reports only severe errors and results
   -region value
         Cloud region from which to collect resources, can pass multiple regions
   -resource-group string
@@ -51,6 +53,8 @@ Usage of vpc-network-config-analyzer:
         Maximum source port for connection description (default 65535)
   -src-min-port int
         Minimum source port for connection description (default 1)
+  -verbose
+        Runs with more informative messages printed to log
   -version
         Prints the release version number
   -vpc string
@@ -60,7 +64,7 @@ Usage of vpc-network-config-analyzer:
   -vpc-config-second string
         File path to the 2nd input config; relevant only for analysis-type diff_all_endpoints and for diff_all_subnets
 
-  
+
 ```
 
 ### Input config files

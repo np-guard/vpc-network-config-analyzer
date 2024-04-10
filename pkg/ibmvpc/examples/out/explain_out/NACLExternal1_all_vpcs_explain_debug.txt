@@ -2,10 +2,12 @@ Connectivity explanation between vsi1-ky and 161.26.0.0/16 within test-vpc1-ky
 ==============================================================================
 
 The following connection exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16: protocol: UDP
+
 Path:
 	vsi1-ky[10.240.10.4] -> security group sg1-ky -> subnet1-ky -> network ACL acl1-ky -> 
 	PublicGateway public-gw-ky -> 
 	Public Internet 161.26.0.0/16
+
 
 Details:
 ~~~~~~~~
@@ -14,5 +16,6 @@ security group sg1-ky allows connection with the following allow rules
 	index: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0
 network ACL acl1-ky allows connection with the following allow rules
 	index: 1, direction: outbound , src: 10.240.10.0/24 , dst: 161.26.0.0/16, conn: protocol: udp, srcPorts: 1-65535, dstPorts: 1-65535, action: allow
+
 ------------------------------------------------------------------------------------------------------------------------
 

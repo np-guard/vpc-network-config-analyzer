@@ -2,9 +2,11 @@ Connectivity explanation between vsi2-ky and 10.240.10.4 (vsi1-ky[10.240.10.4]) 
 ===================================================================================================
 
 The following connection exists between vsi2-ky[10.240.20.4] and vsi1-ky[10.240.10.4]: All Connections
+
 Path:
 	vsi2-ky[10.240.20.4] -> security group sg1-ky -> subnet2-ky -> network ACL acl2-ky -> 
 	network ACL acl1-ky -> subnet1-ky -> security group sg1-ky -> vsi1-ky[10.240.10.4]
+
 
 Details:
 ~~~~~~~~
@@ -19,5 +21,6 @@ network ACL acl1-ky allows connection with the following allow rules
 	index: 4, direction: inbound , src: 10.240.20.0/24 , dst: 10.240.10.0/24, conn: all, action: allow
 security group sg1-ky allows connection with the following allow rules
 	index: 1, direction: inbound, protocol: all, cidr: 0.0.0.0/0
+
 ------------------------------------------------------------------------------------------------------------------------
 
