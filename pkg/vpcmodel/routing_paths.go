@@ -63,7 +63,7 @@ func (e *Endpoint) string() string {
 	case e.VpcResource != nil:
 		return fmt.Sprintf("%s - %s", e.VpcResource.Kind(), e.VpcResource.Name())
 	case e.IPBlock != nil:
-		return ipBlockString(e.IPBlock)
+		return e.IPBlock.String()
 	case e.NextHop != nil:
 		return e.NextHop.string()
 	}
@@ -91,18 +91,11 @@ func (e *Endpoint) equal(otherEndpoint *Endpoint) bool {
 }
 
 func (n *NextHopEntry) string() string {
-	return fmt.Sprintf("nextHop: %s [origDest: %s]", ipBlockString(n.NextHop), ipBlockString(n.OrigDest))
+	return fmt.Sprintf("nextHop: %s [origDest: %s]", n.NextHop.String(), n.OrigDest.String())
 }
 
 func (n *NextHopEntry) equal(other *NextHopEntry) bool {
 	return n.NextHop.Equal(other.NextHop) &&
 		n.OrigDest.Equal(other.OrigDest)
 	// TODO: add comparison of rt ?
-}
-
-func ipBlockString(ipb *ipblock.IPBlock) string {
-	if ipAddress := ipb.ToIPAddressString(); ipAddress != "" {
-		return ipAddress
-	}
-	return ipb.ToCidrListString()
 }
