@@ -1,3 +1,9 @@
+/*
+Copyright 2023- IBM Inc. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
 package ibmvpc
 
 import (
@@ -40,6 +46,21 @@ type systemRTConfig struct {
 	tgwList []*TransitGateway
 	fipList []*FloatingIP
 	pgwList []*PublicGateway
+}
+
+func systemRTConfigFromVPCConfig(vpcConfig *vpcmodel.VPCConfig) *systemRTConfig {
+	res := &systemRTConfig{}
+	for _, router := range vpcConfig.RoutingResources {
+		switch router.Kind() {
+		case ResourceTypeTGW:
+			res.tgwList = append(res.tgwList, router.(*TransitGateway))
+		case ResourceTypePublicGateway:
+			res.pgwList = append(res.pgwList, router.(*PublicGateway))
+		case ResourceTypeFloatingIP:
+			res.fipList = append(res.fipList, router.(*FloatingIP))
+		}
+	}
+	return res
 }
 
 func isDestPublicInternet(dest *ipblock.IPBlock) bool {
