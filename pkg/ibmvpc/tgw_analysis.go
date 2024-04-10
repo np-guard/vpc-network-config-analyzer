@@ -90,7 +90,7 @@ func getCIDRMatchedByPrefixFilters(cidr string, tc *datamodel.TransitConnection)
 		}
 		if match {
 			action, err = parseActionString(pf.Action)
-			return prefixIndex, action, err
+			return prefixIndex, action, nil
 		}
 	}
 	// no match by pfList -- use default
