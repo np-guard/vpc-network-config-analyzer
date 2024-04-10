@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"log"
 	"slices"
-	"sort"
-	"strings"
 
 	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
@@ -14,15 +12,13 @@ import (
 // RTAnalyzer analyzes routing in a certain vpc config
 type RTAnalyzer struct {
 	vpcConfig     *vpcmodel.VPCConfig
-	egressRT      []*egressRoutingTable
-	ingressRT     *ingressRoutingTable
+	ingressRT     []*ingressRoutingTable
 	subnetUIDToRT map[string]*egressRoutingTable
 }
 
-func newRTAnalyzer(vpcConfig *vpcmodel.VPCConfig, egressRT []*egressRoutingTable, ingressRT *ingressRoutingTable) *RTAnalyzer {
+func newRTAnalyzer(vpcConfig *vpcmodel.VPCConfig, egressRT []*egressRoutingTable, ingressRT []*ingressRoutingTable) *RTAnalyzer {
 	res := &RTAnalyzer{
 		vpcConfig:     vpcConfig,
-		egressRT:      egressRT,
 		ingressRT:     ingressRT,
 		subnetUIDToRT: map[string]*egressRoutingTable{},
 	}
@@ -92,6 +88,8 @@ const (
 
 	drop // Drops the packet.
 
+	delegateVPC
+
 	/*
 		Delegate-VPC - Delegates to the system's built-in routes, ignoring internet-bound routes. Required if the VPC uses non-RFC-1918 addresses
 		 and also has public connectivity
@@ -148,7 +146,7 @@ type route struct {
 	destPrefixLen  int64
 }
 
-func newRoute(name, dest, nextHop string, action action, prio int) (res *route) {
+func newRoute(name, dest, nextHop string, action action, prio int) (res *route, err error) {
 	res = &route{
 		name:        name,
 		destination: dest,
@@ -157,48 +155,22 @@ func newRoute(name, dest, nextHop string, action action, prio int) (res *route) 
 		priority:    prio,
 	}
 
-	var err error
 	res.destIPBlock, err = ipblock.FromCidr(dest)
 	if err != nil {
-		log.Panicf("invalid dest CIDR: %e", err)
+		return nil, err
 	}
 	res.destPrefixLen, err = res.destIPBlock.PrefixLength()
 	if err != nil {
-		log.Panicf("PrefixLength err: %e", err)
+		return nil, err
 	}
 	if action == deliver { // next hop relevant only for 'deliver' action
 		res.nextHopIPBlock, err = ipblock.FromCidrOrAddress(nextHop)
 		if err != nil {
-			log.Panicf("invalid next-hop CIDR: %e", err)
+			return nil, err
 		}
 	}
 
-	return res
-}
-
-func configFromVPCConfig(vpcConfig *vpcmodel.VPCConfig) *systemRTConfig {
-	res := &systemRTConfig{}
-	for _, router := range vpcConfig.RoutingResources {
-		switch router.Kind() {
-		case ResourceTypeTGW:
-			res.tgwList = append(res.tgwList, router.(*TransitGateway))
-		case ResourceTypePublicGateway:
-			res.pgwList = append(res.pgwList, router.(*PublicGateway))
-		case ResourceTypeFloatingIP:
-			res.fipList = append(res.fipList, router.(*FloatingIP))
-		}
-	}
-	return res
-}
-
-func newRoutingTable(routes []*route, vpcConfig *vpcmodel.VPCConfig, vpc *VPC) *routingTable {
-	if vpcConfig == nil {
-		vpcConfig = &vpcmodel.VPCConfig{}
-	}
-	res := &routingTable{routesList: routes}
-	res.computeDisjointRouting()
-	res.implicitRT = &systemImplicitRT{vpc: vpc, config: configFromVPCConfig(vpcConfig)}
-	return res
+	return res, nil
 }
 
 type routingTable struct {
@@ -218,22 +190,16 @@ type routingTable struct {
 	implicitRT *systemImplicitRT
 }
 
-func (rt *routingTable) disjointRoutingStr() string {
-	lines := []string{}
-	for dest, nextHop := range rt.nextHops {
-		lines = append(lines, fmt.Sprintf("%s -> %s", dest.ToIPRanges(), nextHop.ToIPAddressString()))
+func newRoutingTable(routes []*route, implicitRT *systemImplicitRT) (*routingTable, error) {
+	res := &routingTable{routesList: routes}
+	if err := res.computeDisjointRouting(); err != nil {
+		return nil, err
 	}
-	for _, droppedDest := range rt.droppedDestinations.ToCidrList() {
-		lines = append(lines, fmt.Sprintf("%s -> drop", droppedDest))
-	}
-	for _, delegatedDest := range rt.delegatedDestinations.ToCidrList() {
-		lines = append(lines, fmt.Sprintf("%s -> delegate", delegatedDest))
-	}
-	slices.Sort(lines)
-	return strings.Join(lines, "\n")
+	res.implicitRT = implicitRT
+	return res, nil
 }
 
-func (rt *routingTable) computeRoutingForDisjointDest(disjointDest *ipblock.IPBlock) {
+func (rt *routingTable) computeRoutingForDisjointDest(disjointDest *ipblock.IPBlock) error {
 	// find the relevant rule from the sorted list of rules
 	for _, routeRule := range rt.routesList {
 		if disjointDest.ContainedIn(routeRule.destIPBlock) {
@@ -242,18 +208,51 @@ func (rt *routingTable) computeRoutingForDisjointDest(disjointDest *ipblock.IPBl
 			case deliver:
 				rt.nextHops[disjointDest] = routeRule.nextHopIPBlock
 				log.Default().Printf("set next hop for %s as %s\n", disjointDest.ToIPRanges(), routeRule.nextHop)
-				return // skip next rules, move to the next disjoint dest
+				return nil // skip next rules, move to the next disjoint dest
 			case drop:
 				rt.droppedDestinations = rt.droppedDestinations.Union(disjointDest)
 				log.Default().Printf("set %s as drop\n", disjointDest.ToIPRanges())
-				return // skip next rules, move to the next disjoint dest
+				return nil // skip next rules, move to the next disjoint dest
 			case delegate:
 				rt.delegatedDestinations = rt.delegatedDestinations.Union(disjointDest)
 				log.Default().Printf("set %s as delegate\n", disjointDest.ToIPRanges())
-				return // skip next rules, move to the next disjoint dest
+				return nil // skip next rules, move to the next disjoint dest
+			case delegateVPC:
+				return fmt.Errorf("action delegate-vpc is not supported, cannot compute routing")
 			}
 		}
 	}
+	return nil
+}
+
+// TODO: handle ECMP routing
+func (rt *routingTable) computeDisjointRouting() error {
+	rt.nextHops = map[*ipblock.IPBlock]*ipblock.IPBlock{}
+	rt.droppedDestinations = ipblock.New()
+	rt.delegatedDestinations = ipblock.New()
+	// sort routes list by prefix length, then by priority
+	slices.SortFunc(rt.routesList, func(a, b *route) int {
+		if a.destPrefixLen > b.destPrefixLen {
+			return -1
+		}
+		if a.destPrefixLen == b.destPrefixLen && a.priority < b.priority {
+			return -1
+		}
+		return 1
+	})
+
+	destIPBlocks := []*ipblock.IPBlock{}
+	for _, route := range rt.routesList {
+		destIPBlocks = append(destIPBlocks, route.destIPBlock)
+	}
+	disjointDestinations := ipblock.DisjointIPBlocks(destIPBlocks, destIPBlocks)
+	for _, disjointDest := range disjointDestinations {
+		log.Default().Printf("disjoint dest: %s\n", disjointDest.ToIPRanges())
+		if err := rt.computeRoutingForDisjointDest(disjointDest); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (rt *routingTable) getPath(src vpcmodel.Node, dest *ipblock.IPBlock) vpcmodel.Path {
@@ -274,32 +273,6 @@ func (rt *routingTable) getPath(src vpcmodel.Node, dest *ipblock.IPBlock) vpcmod
 	}
 	// implicit delegate
 	return rt.implicitRT.getPath(src, dest)
-}
-
-// TODO: handle ECMP routing
-func (rt *routingTable) computeDisjointRouting() {
-	rt.nextHops = map[*ipblock.IPBlock]*ipblock.IPBlock{}
-	rt.droppedDestinations = ipblock.New()
-	rt.delegatedDestinations = ipblock.New()
-	// sort routes list by prefix length, then by priority
-	sort.Slice(rt.routesList, func(i, j int) bool {
-		if rt.routesList[i].destPrefixLen > rt.routesList[j].destPrefixLen {
-			return true
-		}
-		if rt.routesList[i].destPrefixLen == rt.routesList[j].destPrefixLen {
-			return rt.routesList[i].priority < rt.routesList[j].priority
-		}
-		return false
-	})
-	destIPBlocks := []*ipblock.IPBlock{}
-	for _, route := range rt.routesList {
-		destIPBlocks = append(destIPBlocks, route.destIPBlock)
-	}
-	disjointDestinations := ipblock.DisjointIPBlocks(destIPBlocks, destIPBlocks)
-	for _, disjointDest := range disjointDestinations {
-		log.Default().Printf("disjoint dest: %s\n", disjointDest.ToIPRanges())
-		rt.computeRoutingForDisjointDest(disjointDest)
-	}
 }
 
 /*

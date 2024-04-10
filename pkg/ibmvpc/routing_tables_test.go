@@ -17,18 +17,39 @@ type testDisjointRouting struct {
 	expectedRoutingOutput string
 }
 
+func (rt *routingTable) disjointRoutingStr() string {
+	lines := []string{}
+	for dest, nextHop := range rt.nextHops {
+		lines = append(lines, fmt.Sprintf("%s -> %s", dest.ToIPRanges(), nextHop.ToIPAddressString()))
+	}
+	for _, droppedDest := range rt.droppedDestinations.ToCidrList() {
+		lines = append(lines, fmt.Sprintf("%s -> drop", droppedDest))
+	}
+	for _, delegatedDest := range rt.delegatedDestinations.ToCidrList() {
+		lines = append(lines, fmt.Sprintf("%s -> delegate", delegatedDest))
+	}
+	slices.Sort(lines)
+	return strings.Join(lines, "\n")
+}
+
 func (test *testDisjointRouting) run(t *testing.T) {
-	rt := newRoutingTable(test.routesList, nil, nil)
+	rt, err := newRoutingTable(test.routesList, nil)
+	require.Nil(t, err)
 	require.Equal(t, test.expectedRoutingOutput, rt.disjointRoutingStr())
+}
+
+func newRouteNoErr(name, dest, nextHop string, action action, prio int) *route {
+	res, _ := newRoute(name, dest, nextHop, action, prio)
+	return res
 }
 
 var disjointRoutingTests = []*testDisjointRouting{
 	{
 		testName: "routing splits range to delegate and deliver",
 		routesList: []*route{
-			newRoute("r1", "10.10.0.0/16", "", delegate, 2),
-			newRoute("r2", "10.11.0.0/16", "", delegate, 2),
-			newRoute("r3", "0.0.0.0/0", "10.10.1.5", deliver, 2), // cidrs from r1,r2 not determined by this route
+			newRouteNoErr("r1", "10.10.0.0/16", "", delegate, 2),
+			newRouteNoErr("r2", "10.11.0.0/16", "", delegate, 2),
+			newRouteNoErr("r3", "0.0.0.0/0", "10.10.1.5", deliver, 2), // cidrs from r1,r2 not determined by this route
 		},
 		expectedRoutingOutput: `0.0.0.0-10.9.255.255 -> 10.10.1.5
 10.10.0.0/15 -> delegate
@@ -38,10 +59,10 @@ var disjointRoutingTests = []*testDisjointRouting{
 	{
 		testName: "test higher priority takes effect on same dest cidr: deliver instead of delegate",
 		routesList: []*route{
-			newRoute("r1", "10.10.0.0/16", "", delegate, 2),
-			newRoute("r2", "10.11.0.0/16", "", delegate, 2),
-			newRoute("r4", "10.11.0.0/16", "10.10.1.5", deliver, 1), // higher priority over r2
-			newRoute("r3", "0.0.0.0/0", "10.10.1.5", deliver, 2),
+			newRouteNoErr("r1", "10.10.0.0/16", "", delegate, 2),
+			newRouteNoErr("r2", "10.11.0.0/16", "", delegate, 2),
+			newRouteNoErr("r4", "10.11.0.0/16", "10.10.1.5", deliver, 1), // higher priority over r2
+			newRouteNoErr("r3", "0.0.0.0/0", "10.10.1.5", deliver, 2),
 		},
 		expectedRoutingOutput: `0.0.0.0-10.9.255.255 -> 10.10.1.5
 10.10.0.0/16 -> delegate
@@ -52,10 +73,10 @@ var disjointRoutingTests = []*testDisjointRouting{
 	{
 		testName: "test lower priority does not effect on same dest cidr: delegate instead of deliver",
 		routesList: []*route{
-			newRoute("r1", "10.10.0.0/16", "", delegate, 2),
-			newRoute("r2", "10.11.0.0/16", "", delegate, 2),
-			newRoute("r4", "10.11.0.0/16", "10.10.1.5", deliver, 3), // lower priority than r2
-			newRoute("r3", "0.0.0.0/0", "10.10.1.5", deliver, 2),
+			newRouteNoErr("r1", "10.10.0.0/16", "", delegate, 2),
+			newRouteNoErr("r2", "10.11.0.0/16", "", delegate, 2),
+			newRouteNoErr("r4", "10.11.0.0/16", "10.10.1.5", deliver, 3), // lower priority than r2
+			newRouteNoErr("r3", "0.0.0.0/0", "10.10.1.5", deliver, 2),
 		},
 		expectedRoutingOutput: `0.0.0.0-10.9.255.255 -> 10.10.1.5
 10.10.0.0/15 -> delegate
@@ -65,10 +86,10 @@ var disjointRoutingTests = []*testDisjointRouting{
 	{
 		testName: "test redundant route, more specific cidrs take effect: delegate instead of deliver",
 		routesList: []*route{
-			newRoute("r1", "10.10.0.0/16", "", delegate, 2),
-			newRoute("r2", "10.11.0.0/16", "", delegate, 2),
-			newRoute("r4", "10.10.0.0/15", "10.10.1.5", deliver, 2), // redundant route, more specific cidrs in r1, r2
-			newRoute("r3", "0.0.0.0/0", "10.10.1.5", deliver, 2),
+			newRouteNoErr("r1", "10.10.0.0/16", "", delegate, 2),
+			newRouteNoErr("r2", "10.11.0.0/16", "", delegate, 2),
+			newRouteNoErr("r4", "10.10.0.0/15", "10.10.1.5", deliver, 2), // redundant route, more specific cidrs in r1, r2
+			newRouteNoErr("r3", "0.0.0.0/0", "10.10.1.5", deliver, 2),
 		},
 		expectedRoutingOutput: `0.0.0.0-10.9.255.255 -> 10.10.1.5
 10.10.0.0/15 -> delegate
@@ -164,9 +185,9 @@ var emptyRoutesAllSubnets = &routesPerSubnets{
 }
 
 var routes1 = []*route{
-	newRoute("r1", "0.0.0.0/0", "10.10.1.5", deliver, 2),
-	newRoute("r2", "10.10.0.0/16", "", delegate, 2),
-	newRoute("r3", "10.11.0.0/16", "", delegate, 2),
+	newRouteNoErr("r1", "0.0.0.0/0", "10.10.1.5", deliver, 2),
+	newRouteNoErr("r2", "10.10.0.0/16", "", delegate, 2),
+	newRouteNoErr("r3", "10.11.0.0/16", "", delegate, 2),
 }
 
 var routes1PartialSubnets = &routesPerSubnets{
@@ -180,7 +201,10 @@ func newEgressRTFromRoutes(rps *routesPerSubnets, config *vpcmodel.VPCConfig, vp
 	res := []*egressRoutingTable{}
 	for subnetsKey, routes := range rps.routesMap {
 		egressRT := &egressRoutingTable{}
-		egressRT.routingTable = *newRoutingTable(routes, config, vpc)
+		implicitRT := &systemImplicitRT{vpc: vpc, config: systemRTConfigFromVPCConfig(config)}
+		if rt, err := newRoutingTable(routes, implicitRT); err == nil {
+			egressRT.routingTable = *rt
+		}
 		egressRT.vpc = vpc
 		egressRT.subnets = subnetsKeyToSubnets(subnetsKey, config)
 		res = append(res, egressRT)
