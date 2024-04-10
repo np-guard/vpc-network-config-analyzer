@@ -280,9 +280,6 @@ func (c *VPCConfig) getSrcOrDstInputNode(name, srcOrDst string, isMultiVPCConfig
 	if err1 != nil {
 		return nil, false, errType1, fmt.Errorf("illegal %v: %v", srcOrDst, err1.Error())
 	}
-	if len(outNodes) == 0 {
-		return nil, false, noValidInputErr, fmt.Errorf(noValidInputMsg)
-	}
 	return outNodes, isInternalIP, noErr, nil
 }
 
