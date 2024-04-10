@@ -814,7 +814,7 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 				},
 				vpcs:            []*VPC{vpc},
 				availableRoutes: map[string][]*ipblock.IPBlock{},
-				vpcApsPrefixes:  map[string][]IPBlockPrefixFilter{},
+				vpcsAPToFilters: map[string][]IPBlockPrefixFilter{},
 				region:          getRegionByName(region, regionToStructMap),
 			}
 			tgwMap[tgwUID] = tgw
@@ -836,7 +836,7 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 
 			// explainability related struct initialization
 			// vpcApsPrefixes is a map from the vpc's ap to the index of the prefix that matches it, -1 for default if no match
-			tgwMap[tgwUID].vpcApsPrefixes[vpcUID] = vpcApsPrefixes
+			tgwMap[tgwUID].vpcsAPToFilters[vpcUID] = vpcApsPrefixes
 		}
 	}
 	return tgwMap

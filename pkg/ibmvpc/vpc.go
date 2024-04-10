@@ -745,11 +745,11 @@ type TransitGateway struct {
 
 	region *Region
 
-	// maps each VPC to a struct listing for each of its address prefix details of the filter prefix determining its behavior w.r.t.
-	// the tgw. Specifically, these details include the specific transit connection and the index of the matching
-	// (allow/deny) filter prefix rule if exists, or -1 if the behavior is determined by the specified default of the transit connection
+	// maps each VPC UID to a slice - listing for each of its AP (as IPBlock) details of the matching filter
+	// Specifically, these details include the specific transit connection and the index of the matching
+	// filter if exists (index "-1" is for default )
 	// this struct can be though of as the "explain" parallel of availableRoutes; note that unlike availableRoutes it also lists deny prefixes
-	vpcApsPrefixes map[string][]IPBlockPrefixFilter
+	vpcsAPToFilters map[string][]IPBlockPrefixFilter
 }
 
 func (tgw *TransitGateway) addSourceAndDestNodes() {
@@ -877,7 +877,7 @@ func (tgw *TransitGateway) prefixOfSrcDst(src, dst vpcmodel.Node) *tgwPrefixFilt
 	// and there is a prefix filter defined for the dst,
 	// the relevant prefix filter is determined by match of the Address prefix the dest's node is in (including default)
 	if vpcmodel.HasNode(tgw.sourceNodes, src) {
-		for _, singleIPBlockPrefix := range tgw.vpcApsPrefixes[dst.VPC().UID()] {
+		for _, singleIPBlockPrefix := range tgw.vpcsAPToFilters[dst.VPC().UID()] {
 			if dst.IPBlock().ContainedIn(singleIPBlockPrefix.IPBlock) {
 				return &singleIPBlockPrefix.prefixFilter
 			}
