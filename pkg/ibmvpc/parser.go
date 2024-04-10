@@ -19,6 +19,7 @@ import (
 	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
 	"github.com/np-guard/models/pkg/ipblock"
 
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -416,7 +417,7 @@ func getPgwConfig(
 		}
 		pgwName := *pgw.Name
 		if _, ok := pgwToSubnet[pgwName]; !ok {
-			fmt.Printf("warning: public gateway %s does not have any attached subnet, ignoring this pgw\n", pgwName)
+			logging.Warnf("public gateway %s does not have any attached subnet, ignoring this pgw\n", pgwName)
 			continue
 		}
 		vpcUID := *pgw.VPC.CRN
@@ -436,12 +437,12 @@ func getPgwConfig(
 }
 
 func ignoreFIPWarning(fipName, details string) string {
-	return fmt.Sprintf("warning: ignoring floatingIP %s: %s", fipName, details)
+	return fmt.Sprintf("ignoring floatingIP %s: %s", fipName, details)
 }
 
 func warnSkippedFip(filteredOutUIDs map[string]bool, targetUID string, fip *datamodel.FloatingIP) {
 	if !filteredOutUIDs[targetUID] {
-		fmt.Printf("warning: skip fip %s - could not find attached network interface\n", *fip.Name)
+		logging.Warnf("skip fip %s - could not find attached network interface\n", *fip.Name)
 	}
 }
 
@@ -473,14 +474,14 @@ func getFipConfig(
 			targetUID = *target.ID
 		case *vpc1.FloatingIPTarget:
 			if *target.ResourceType != networkInterfaceResourceType {
-				fmt.Println(ignoreFIPWarning(*fip.Name,
+				logging.Warnf(ignoreFIPWarning(*fip.Name,
 					fmt.Sprintf("target.ResourceType %s is not supported (only networkInterfaceResourceType supported)",
 						*target.ResourceType)))
 				continue
 			}
 			targetUID = *target.ID
 		default:
-			fmt.Println(ignoreFIPWarning(*fip.Name, "target (FloatingIPTargetIntf) is not of the expected type"))
+			logging.Warnf(ignoreFIPWarning(*fip.Name, "target (FloatingIPTargetIntf) is not of the expected type"))
 			continue
 		}
 
@@ -782,7 +783,7 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 					continue
 				}
 			} else {
-				fmt.Printf("warning: ignoring tgw with unknown resource-group, tgwID: %s\n", tgwUID)
+				logging.Warnf("ignoring tgw with unknown resource-group, tgwID: %s\n", tgwUID)
 				tgwToSkip[tgwUID] = true // to avoid having this tgw's same warning issued again from another transitConnection
 				continue
 			}
@@ -796,14 +797,14 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 					continue
 				}
 			} else {
-				fmt.Printf("warning: ignoring tgw with unknown region, tgwID: %s\n", tgwUID)
+				logging.Warnf("ignoring tgw with unknown region, tgwID: %s\n", tgwUID)
 				tgwToSkip[tgwUID] = true // to avoid having this tgw's same warning issued again from another transitConnection
 				continue
 			}
 		}
 		vpc, err := getVPCObjectByUID(res, vpcUID)
 		if err != nil {
-			fmt.Printf("warning: ignoring vpc that does not exist in tgw config, vpcID: %s\n", vpcUID)
+			logging.Warnf("ignoring vpc that does not exist in tgw config, vpcID: %s\n", vpcUID)
 			continue
 		}
 		if _, ok := tgwMap[tgwUID]; !ok {
@@ -830,7 +831,7 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 
 		advertisedRoutes, vpcApsPrefixes, err := getVPCAdvertisedRoutes(tgwConn, vpc)
 		if err != nil {
-			fmt.Printf("warning: ignoring prefix filters, vpcID: %s, tgwID: %s, err is: %s\n", vpcUID, tgwUID, err.Error())
+			logging.Warnf("ignoring prefix filters, vpcID: %s, tgwID: %s, err is: %s\n", vpcUID, tgwUID, err.Error())
 		} else {
 			// availableRoutes are the address prefixes from this VPC reaching to the TGW's routes table
 			tgwMap[tgwUID].availableRoutes[vpcUID] = append(tgwMap[tgwUID].availableRoutes[vpcUID], advertisedRoutes...)
@@ -882,13 +883,13 @@ func addTGWbasedConfigs(tgws map[string]*TransitGateway, res vpcmodel.MultipleVP
 	for _, tgw := range tgws {
 		if len(tgw.vpcs) <= 1 {
 			// skip tgw if it does not connect between at least 2 vpcs
-			fmt.Printf("skipping TGW %s, as it is not connected to at least 2 VPCs\n", tgw.NameAndUID())
+			logging.Warnf("skipping TGW %s, as it is not connected to at least 2 VPCs\n", tgw.NameAndUID())
 			continue
 		}
 		// TODO: for now, the analysis supports only disjoint VPCs address prefixes
 		// consider adding support for overlapping address prefixes with conflict resolution logic
 		if err := validateVPCsAddressPrefixesForTGW(tgw.vpcs); err != nil {
-			fmt.Printf("skipping TGW %s: %s\n", tgw.NameAndUID(), err.Error())
+			logging.Warnf("skipping TGW %s: %s\n", tgw.NameAndUID(), err.Error())
 			continue
 		}
 		newConfig := &vpcmodel.VPCConfig{
@@ -933,7 +934,7 @@ func addTGWbasedConfigs(tgws map[string]*TransitGateway, res vpcmodel.MultipleVP
 				// currently supporting only disjoint address ranges for the connected VPCs
 				intersection := vpcsAddressRanges.Intersect(vpcConfig.VPC.(*VPC).internalAddressRange)
 				if !intersection.IsEmpty() {
-					fmt.Printf("warning: ignoring TGW %s, as currently not supporting connected VPCs with overlapping address ranges\n",
+					logging.Warnf("ignoring TGW %s, as currently not supporting connected VPCs with overlapping address ranges\n",
 						tgw.ResourceName)
 					continue
 				}
@@ -1106,7 +1107,7 @@ func getIKSnodesConfig(res vpcmodel.MultipleVPCConfigs,
 
 			subnet, err := getSubnetByCidr(res, *iksNodeNetIntfObj.Cidr)
 			if err != nil {
-				fmt.Printf("warning: ignoring iksNode with ID %s (could not find subnet with iksNode's CIDR: %s)\n",
+				logging.Warnf("ignoring iksNode with ID %s (could not find subnet with iksNode's CIDR: %s)\n",
 					*iksNode.ID, *iksNodeNetIntfObj.Cidr)
 				continue
 			}
@@ -1158,7 +1159,7 @@ func NewEmptyVPCConfig() *vpcmodel.VPCConfig {
 func filterVPCSAndAddExternalNodes(vpcInternalAddressRange map[string]*ipblock.IPBlock, res map[string]*vpcmodel.VPCConfig) error {
 	for vpcUID, vpcConfig := range res {
 		if vpcInternalAddressRange[vpcUID] == nil {
-			fmt.Printf("Ignoring VPC %s, no subnets found for this VPC\n", vpcUID)
+			logging.Warnf("Ignoring VPC %s, no subnets found for this VPC\n", vpcUID)
 			delete(res, vpcUID)
 			continue
 		}
@@ -1294,17 +1295,17 @@ func checkLoadBalancerValidity(loadBalancerObj *datamodel.LoadBalancer) bool {
 	// we do not know which subnets will be chosen to be in the config file.
 	// in such case, the connectivity report is not representing the user configuration.
 	if len(loadBalancerObj.Subnets) > 2 {
-		fmt.Printf("warning: Ignoring Load Balancer %s, it has more than two subnets\n", *loadBalancerObj.Name)
+		logging.Warnf("Ignoring Load Balancer %s, it has more than two subnets\n", *loadBalancerObj.Name)
 		return false
 	}
 	// todo: handle different numbers of private and public ip
 	if len(loadBalancerObj.PrivateIps) != 2 {
-		fmt.Printf("warning: Ignoring Load Balancer %s, it has %d private IPs (currently only 2 are supported)\n",
+		logging.Warnf("Ignoring Load Balancer %s, it has %d private IPs (currently only 2 are supported)\n",
 			*loadBalancerObj.Name, len(loadBalancerObj.PrivateIps))
 		return false
 	}
 	if len(loadBalancerObj.PublicIps) != 2 && len(loadBalancerObj.PublicIps) != 0 {
-		fmt.Printf("warning: Ignoring Load Balancer %s, it has %d private IPs (currently only two or zero are supported)\n",
+		logging.Warnf("Ignoring Load Balancer %s, it has %d private IPs (currently only two or zero are supported)\n",
 			*loadBalancerObj.Name, len(loadBalancerObj.PublicIps))
 		return false
 	}
