@@ -1,3 +1,9 @@
+/*
+Copyright 2023- IBM Inc. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
 package drawio
 
 // the drawio allow us to set the point in which the line will enter/exit the dst/src.
