@@ -431,7 +431,7 @@ func getPgwConfig(
 }
 
 func ignoreFIPWarning(fipName, details string) string {
-	return fmt.Sprintf("warning: ignoring floatingIP %s: %s", fipName, details)
+	return fmt.Sprintf("ignoring floatingIP %s: %s", fipName, details)
 }
 
 func warnSkippedFip(filteredOutUIDs map[string]bool, targetUID string, fip *datamodel.FloatingIP) {

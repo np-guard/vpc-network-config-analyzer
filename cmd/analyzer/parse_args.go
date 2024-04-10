@@ -385,6 +385,10 @@ func errorInArgs(args *InArgs, flagset *flag.FlagSet) error {
 	if err != nil {
 		return err
 	}
+	if *args.Verbose && *args.Quiet {
+		flagset.PrintDefaults()
+		return fmt.Errorf("error in parameters: verbose flag and quiet flag cannot be specified together")
+	}
 	if _, ok := supportedAnalysisTypesMap[*args.AnalysisType]; !ok {
 		flagset.PrintDefaults()
 		return fmt.Errorf("wrong analysis type '%s'; must be one of: '%s'",
