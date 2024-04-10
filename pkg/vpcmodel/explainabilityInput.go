@@ -157,6 +157,7 @@ func (configsMap MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string)
 // prioritizes cases and possible errors as follows:
 // valid input but no cross vpc router > errMsgInternalNoConnectedVSI > errMsgInternalNotWithinSubnet >
 // errMsgNoValidSrc > errMsgNoValidDst
+// this function was tested manually; having a dedicated test for it is too much work w.r.t its simplicity
 func noConfigMatchSrcDst(srcFoundSomeCfg, dstFoundSomeCfg bool, errMsgInternalNoConnectedVSI, errMsgInternalNotWithinSubnet,
 	errMsgNoValidSrc, errMsgNoValidDst error) (vpcConfig *VPCConfig,
 	srcNodes, dstNodes []Node, isSrcDstInternalIP srcDstInternalAddr, err error) {
