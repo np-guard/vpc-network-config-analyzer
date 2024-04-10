@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"slices"
 	"sort"
 	"strings"
 
@@ -23,6 +24,10 @@ const (
 	CSV
 	DRAWIO
 	ARCHDRAWIO
+	SVG
+	ARCHSVG
+	HTML
+	ARCHHTML
 	Debug // extended txt format with more details
 )
 
@@ -66,7 +71,9 @@ func NewOutputGenerator(c1, c2 MultipleVPCConfigs, grouping bool, uc OutputUseCa
 		nodesConn:      map[string]*VPCConnectivity{},
 		subnetsConn:    map[string]*VPCsubnetConnectivity{},
 	}
-	if !archOnly {
+	graphicFormat := slices.Contains([]OutFormat{DRAWIO, ARCHDRAWIO, SVG, ARCHSVG, HTML, ARCHHTML}, f)
+	archOnlyFormat := slices.Contains([]OutFormat{ARCHDRAWIO, ARCHSVG, ARCHHTML}, f)
+	if !archOnlyFormat {
 		if uc == Explain {
 			connQuery := explanationArgs.GetConnectionSet()
 			explanation, err := c1.ExplainConnectivity(explanationArgs.src, explanationArgs.dst, connQuery)
@@ -108,8 +115,8 @@ func NewOutputGenerator(c1, c2 MultipleVPCConfigs, grouping bool, uc OutputUseCa
 			}
 		}
 	}
-	// only DRAWIO has a multi vpc common presentation
-	if f == DRAWIO {
+	// only Graphic formats has a multi vpc common presentation
+	if graphicFormat {
 		unifyMultiVPC(c1, res.nodesConn, res.subnetsConn, uc)
 	}
 	return res, nil
@@ -133,10 +140,10 @@ func (o *OutputGenerator) Generate(f OutFormat, outFile string) (string, error) 
 	switch f {
 	case JSON, Text, MD, Debug:
 		formatter = &serialOutputFormatter{f}
-	case DRAWIO:
-		formatter = &DrawioOutputFormatter{}
-	case ARCHDRAWIO:
-		formatter = &ArchDrawioOutputFormatter{}
+	case DRAWIO, SVG, HTML:
+		formatter = newDrawioOutputFormatter(f)
+	case ARCHDRAWIO, ARCHSVG, ARCHHTML:
+		formatter = newArchDrawioOutputFormatter(f)
 	default:
 		return "", errors.New("unsupported output format")
 	}

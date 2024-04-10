@@ -9,6 +9,7 @@ type DrawioResourceIntf interface {
 	GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface
 	IsExternal() bool
 	ShowOnSubnetMode() bool
+	Kind() string
 }
 
 // DrawioGenerator is the struct that generate the drawio tree.
@@ -46,6 +47,9 @@ func (gen *DrawioGenerator) Cloud() *drawio.CloudTreeNode                 { retu
 func (gen *DrawioGenerator) TreeNode(res DrawioResourceIntf) drawio.TreeNodeInterface {
 	if gen.treeNodes[res] == nil {
 		gen.treeNodes[res] = res.GenerateDrawioTreeNode(gen)
+		if gen.treeNodes[res] != nil && gen.treeNodes[res].Kind() == "" {
+			gen.treeNodes[res].SetKind(res.Kind())
+		}
 	}
 	return gen.treeNodes[res]
 }
@@ -60,6 +64,11 @@ func (exn *ExternalNetwork) ShowOnSubnetMode() bool     { return true }
 func (g *groupedEndpointsElems) ShowOnSubnetMode() bool { return true }
 func (g *groupedExternalNodes) ShowOnSubnetMode() bool  { return true }
 func (e *edgeInfo) ShowOnSubnetMode() bool              { return true }
+
+// for DrawioResourceIntf that are not VPCResourceIntf, we implement Kind():
+func (g *groupedEndpointsElems) Kind() string { return "Group of Nodes" }
+func (g *groupedExternalNodes) Kind() string  { return "External IPs" }
+func (e *edgeInfo) Kind() string              { return "Connection" }
 
 func (g *groupedEndpointsElems) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
 	if len(*g) == 1 {
@@ -78,7 +87,7 @@ func (g *groupedEndpointsElems) GenerateDrawioTreeNode(gen *DrawioGenerator) dra
 		groupedIconsTNs[i] = gen.TreeNode(node).(drawio.IconTreeNodeInterface)
 	}
 	subnetTn := groupedIconsTNs[0].Parent().(*drawio.SubnetTreeNode)
-	return drawio.NewGroupSquareTreeNode(subnetTn, groupedIconsTNs)
+	return drawio.NewGroupSquareTreeNode(subnetTn, groupedIconsTNs, g.Name())
 }
 
 func (g *groupedExternalNodes) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
