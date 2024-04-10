@@ -70,14 +70,3 @@ func Warnf(format string, o ...interface{}) {
 		logger.l.Printf("WARN	%s", fmt.Sprintf(format, o...))
 	}
 }
-
-// ReturnError writes an error message to the log (only if DefaultLogger verbosity is set to HighVerbosity)
-// and returns the error message
-func ReturnErrorf(format string, o ...interface{}) error {
-	if logger.verbosity == HighVerbosity {
-		pc, _, _, _ := runtime.Caller(1)
-		details := runtime.FuncForPC(pc)
-		logger.l.Printf("ERROR	%s:	%s", details.Name(), fmt.Sprintf(format, o...))
-	}
-	return fmt.Errorf(format, o...)
-}
