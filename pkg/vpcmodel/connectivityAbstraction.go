@@ -44,29 +44,31 @@ func splitConnectivityByNodeSet(nodesConn GeneralConnectivityMap, nodeSet NodeSe
 	}
 	return OtherToOther, nodeSetToNodeSet, OtherFromNodeSet, OtherToNodeSet
 }
-func diagnoseConnectivityAbstraction(connMap GeneralConnectivityMap, isIngress bool) {
+func diagnoseConnectivityAbstraction(connMap GeneralConnectivityMap, isIngress bool) string{
+	res := ""
 	for node1, nodeConns := range connMap {
 		allConns := map[string][]VPCResourceIntf{}
-		for node2, conns := range nodeConns {
+		for node2, conn := range nodeConns {
 			// todo - is string unique?
-			allConns[conns.String()] = append(allConns[conns.String()], node2)
+			allConns[conn.String()] = append(allConns[conn.String()], node2)
 		}
 		if len(allConns) > 1 {
-			fmt.Printf(" node %s has different access %s the nodeSet:\n", node1.Name(), map[bool]string{false: "from", true: "to"}[isIngress])
+			res += fmt.Sprintf(" node %s has different access %s the nodeSet:\n", node1.Name(), map[bool]string{false: "from", true: "to"}[isIngress])
 			for conn, nodes := range allConns {
 				if !isIngress {
-					fmt.Printf("%s -> ", node1.Name())
+					res += fmt.Sprintf("%s -> ", node1.Name())
 				}
 				for _, n := range nodes {
-					fmt.Printf("%s,", n.Name())
+					res += fmt.Sprintf("%s,", n.Name())
 				}
 				if isIngress {
-					fmt.Printf(" -> %s", node1.Name())
+					res += fmt.Sprintf(" -> %s", node1.Name())
 				}
-				fmt.Printf(" %s\n", conn)
+				res += fmt.Sprintf(" %s\n", conn)
 			}
 		}
 	}
+	return res
 }
 
 func mergeConnectivityWithNodeSetAbstraction(otherToOther, nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet GeneralConnectivityMap, nodeSet NodeSet) GeneralConnectivityMap {

@@ -194,6 +194,12 @@ var tests = []*vpcGeneralTest{
 		format:      vpcmodel.HTML,
 	},
 	{
+		inputConfig: "lb_policies",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.HTML,
+	},
+	{
 		inputConfig: "load_balancer",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		grouping:    true,

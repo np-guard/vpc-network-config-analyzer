@@ -1328,8 +1328,7 @@ func getLoadBalancerServer(res map[string]*vpcmodel.VPCConfig,
 	vpcUID string) []LoadBalancerListener {
 	pools := map[string]LoadBalancerPool{}
 	listeners := []LoadBalancerListener{}
-	for poolIndex := range loadBalancerObj.Pools {
-		poolObj := loadBalancerObj.Pools[poolIndex]
+	for _, poolObj := range loadBalancerObj.Pools {
 		pool := LoadBalancerPool{}
 		// todo: handle pools currently we just collect them
 		// pool.name = *poolObj.Name
@@ -1354,7 +1353,13 @@ func getLoadBalancerServer(res map[string]*vpcmodel.VPCConfig,
 		// 	lis.portMax = *lisObj.PortMax
 		// }
 		// lis.protocol = *lisObj.Protocol
-		// lis.policies = *lisObj.policies
+		for _, policy:= range listenerObj.Policies{
+			if pool, ok := pools[*policy.Target.(*vpc1.LoadBalancerListenerPolicyTarget).ID]; ok {
+				// todo  - handle rules:
+				//rules := policy.Rules
+				listener = append(listener, pool)
+			}	
+		}
 		if pool, ok := pools[*listenerObj.DefaultPool.ID]; ok {
 			listener = append(listener, pool)
 		}
