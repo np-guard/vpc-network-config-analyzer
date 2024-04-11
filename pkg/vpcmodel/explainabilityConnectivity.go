@@ -88,7 +88,7 @@ func (configsMap MultipleVPCConfigs) ExplainConnectivity(src, dst string, connQu
 	if vpcConfig == nil && err == nil {
 		// No error and also no matching vpc config for both src and dst: missing cross-vpc router.
 		// No VPCConfig to work with in this case, thus, this case is treated separately
-		return &Explanation{nil, connQuery, nil, src, dst, nil, nil, nil}, nil
+		return &Explanation{nil, connQuery, nil, src, dst, nil, nil, false, nil}, nil
 	}
 	return vpcConfig.explainConnectivityForVPC(src, dst, srcNodes, dstNodes, isSrcDstInternalIP, connQuery)
 }
