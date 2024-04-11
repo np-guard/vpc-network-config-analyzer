@@ -1,3 +1,9 @@
+/*
+Copyright 2023- IBM Inc. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
 package vpcmodel
 
 import (
@@ -141,13 +147,26 @@ func (d *DrawioOutputFormatter) createRouters() {
 }
 
 func (d *DrawioOutputFormatter) lineRouter(line *groupedConnLine, vpcResourceName string) drawio.IconTreeNodeInterface {
-	switch {
-	case d.cConfigs[vpcResourceName].IsMultipleVPCsConfig:
+	if d.cConfigs[vpcResourceName].IsMultipleVPCsConfig {
 		return d.multiVpcRouters[vpcResourceName]
+	}
+	var routeredEP EndpointElem
+	switch {
 	case line.dst.IsExternal():
-		return d.nodeRouters[d.gen.TreeNode(line.src)]
+		routeredEP = line.src
 	case line.src.IsExternal():
-		return d.nodeRouters[d.gen.TreeNode(line.dst)]
+		routeredEP = line.dst
+	default:
+		return nil
+	}
+	if group, ok := routeredEP.(*groupedEndpointsElems); ok {
+		firstRouter := d.nodeRouters[d.gen.TreeNode((*group)[0])]
+		for _, node := range *group {
+			if d.nodeRouters[d.gen.TreeNode(node)] != firstRouter {
+				return nil
+			}
+		}
+		return firstRouter
 	}
 	return nil
 }

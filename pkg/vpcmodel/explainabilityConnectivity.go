@@ -1,3 +1,9 @@
+/*
+Copyright 2023- IBM Inc. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
 package vpcmodel
 
 import (
@@ -30,15 +36,16 @@ type srcDstDetails struct {
 	egressEnabled  bool
 	// the connection between src to dst, in case the connection was not part of the query;
 	// the part of the connection relevant to the query otherwise.
-	conn   *connection.Set
-	router RoutingResource // the router (fip or pgw) to external network; nil if none
+	conn           *connection.Set
+	externalRouter RoutingResource // the router (fip or pgw) to external network; nil if none or not relevant
+	crossVpcRouter RoutingResource // the (currently only tgw) router between src and dst from different VPCs; nil if none or not relevant
 	// filters relevant for this src, dst pair; map keys are the filters kind (NaclLayer/SecurityGroupLayer)
 	// for two internal nodes within same subnet, only SG layer is relevant
 	// for external connectivity (src/dst is external) with FIP, only SG layer is relevant
 	filtersRelevant     map[string]bool
 	potentialAllowRules *rulesConnection // potentially enabling connection - potential given the filter is relevant
-	actualAllowRules    *rulesConnection // enabling rules effecting connection given router; e.g. NACL is not relevant for fip
-	potentialDenyRules  *rulesConnection // deny rules potentially (w.r.t. router) effecting the connection, relevant for ACL
+	actualAllowRules    *rulesConnection // enabling rules effecting connection given externalRouter; e.g. NACL is not relevant for fip
+	potentialDenyRules  *rulesConnection // deny rules potentially (w.r.t. externalRouter) effecting the connection, relevant for ACL
 	actualDenyRules     *rulesConnection // deny rules effecting the connection, relevant for ACL
 	actualMergedRules   *rulesConnection // rules actually effecting the connection (both allow and deny)
 	// enabling rules implies whether ingress/egress is enabled
@@ -91,7 +98,7 @@ func (c *VPCConfig) explainConnectivityForVPC(src, dst string, srcNodes, dstNode
 	if err2 != nil {
 		return nil, err2
 	}
-	err3 := rulesAndDetails.computeFilters(c)
+	err3 := rulesAndDetails.computeRoutersAndFilters(c)
 	if err3 != nil {
 		return nil, err3
 	}
@@ -131,7 +138,7 @@ func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node,
 				return nil, err
 			}
 			rulesThisSrcDst := &srcDstDetails{src, dst, false, false, false,
-				connection.None(), nil, nil, allowRules,
+				connection.None(), nil, nil, nil, allowRules,
 				nil, denyRules, nil, nil}
 			rulesAndConn = append(rulesAndConn, rulesThisSrcDst)
 		}
@@ -139,30 +146,34 @@ func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node,
 	return rulesAndConn, nil
 }
 
-// computeFilters computes for each  <src, dst> :
-// 1. The routingResource
-// 2. The external filters relevant to the <src, dst> given the routingResource
+// computeRoutersAndFilters computes for each  <src, dst> :
+// 1. The tgw routingResource, if exists
+// 2. The external routingResource, if exists
+// Note that at most one of the routingResource exists for any <src, dst>
+// 2. The external filters relevant to the <src, dst> given the external routingResource
 // 3. The internal filters relevant to the <src, dst>
 // 4. The actual relevant filter, depending on whether src xor dst is external
-func (details *rulesAndConnDetails) computeFilters(c *VPCConfig) error {
+func (details *rulesAndConnDetails) computeRoutersAndFilters(c *VPCConfig) (err error) {
 	for _, singleSrcDstDetails := range *details {
 		// RoutingResources are computed by the parser for []Nodes of the VPC,
-		// finds the relevant nodes for the query's src and dst;
-		// if for src or dst no containing node was found, there is no router
 		src := singleSrcDstDetails.src
 		dst := singleSrcDstDetails.dst
-		if src.IsInternal() && dst.IsInternal() { // internal
-			singleSrcDstDetails.filtersRelevant = src.(InternalNodeIntf).AppliedFiltersKinds(dst.(InternalNodeIntf))
-		} else { // external
-			routingResource, _, err := c.getRoutingResource(src, dst)
+		if src.IsInternal() && dst.IsInternal() { // internal (including cross vpcs)
+			singleSrcDstDetails.crossVpcRouter, _, err = c.getRoutingResource(src, dst)
 			if err != nil {
 				return err
 			}
-			if routingResource == nil {
-				continue // no router: no connections, filtersLayers non defined
+			singleSrcDstDetails.filtersRelevant = src.(InternalNodeIntf).AppliedFiltersKinds(dst.(InternalNodeIntf))
+		} else { // external
+			externalRouter, _, err := c.getRoutingResource(src, dst)
+			if err != nil {
+				return err
 			}
-			singleSrcDstDetails.router = routingResource
-			singleSrcDstDetails.filtersRelevant = routingResource.AppliedFiltersKinds() // relevant filtersExternal
+			if externalRouter == nil {
+				continue // no externalRouter: no connections, filtersLayers non defined
+			}
+			singleSrcDstDetails.externalRouter = externalRouter
+			singleSrcDstDetails.filtersRelevant = externalRouter.AppliedFiltersKinds() // relevant filtersExternal
 		}
 	}
 	return nil

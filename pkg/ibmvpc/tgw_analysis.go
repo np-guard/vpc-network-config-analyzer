@@ -1,3 +1,9 @@
+/*
+Copyright 2023- IBM Inc. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
 package ibmvpc
 
 import (
@@ -11,6 +17,7 @@ const (
 	permitAction = "permit"
 	denyAction   = "deny"
 )
+const defaultPrefixFilter = -1
 
 // getVPCdestSubnetsByAdvertisedRoutes returns a slice of subnets from vpc, which can be destinations of the
 // transit gateway tg, based on its available routes (as determined by prefix filters and matched address prefixes)
@@ -46,27 +53,35 @@ func validateAddressPrefixesExist(vpc *VPC) {
 	}
 }
 
-// getVPCAdvertisedRoutes returns a list of IPBlock objects for vpc address prefixes matched by prefix filters,
-// thus advertised to a TGW
-func getVPCAdvertisedRoutes(tc *datamodel.TransitConnection, vpc *VPC) (res []*ipblock.IPBlock, err error) {
+// getVPCAdvertisedRoutes returns a list of IPBlock objects for vpc address prefixes matched by prefix filters (with permit action),
+// thus advertised to a TGW.
+// It also returns list of IPBlockPrefixFilter objects, with details per address prefix of the matched prefix filter
+func getVPCAdvertisedRoutes(tc *datamodel.TransitConnection, vpc *VPC) (advertisedRoutesRes []*ipblock.IPBlock,
+	vpcApsPrefixesRes []IPBlockPrefixFilter, err error) {
 	validateAddressPrefixesExist(vpc)
-	for _, ap := range vpc.addressPrefixes {
-		matched, err := isCIDRMatchedByPrefixFilters(ap, tc)
+	vpcApsPrefixesRes = make([]IPBlockPrefixFilter, len(vpc.addressPrefixes))
+	for i, ap := range vpc.addressPrefixes {
+		filterIndex, isPermitAction, err := getMatchedFilterIndexAndAction(ap, tc)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
-		if matched {
-			apIPBlock, err := ipblock.FromCidr(ap)
-			if err != nil {
-				return nil, err
-			}
-			res = append(res, apIPBlock)
+		apIPBlock, err := ipblock.FromCidr(ap)
+		if err != nil {
+			return nil, nil, err
 		}
+		// advertisedRoutesRes contains only address prefixes with allowing action
+		if isPermitAction {
+			advertisedRoutesRes = append(advertisedRoutesRes, apIPBlock)
+		}
+		vpcApsPrefixesRes[i] = IPBlockPrefixFilter{apIPBlock, tgwPrefixFilter{tc, filterIndex}}
 	}
-	return res, nil
+	return advertisedRoutesRes, vpcApsPrefixesRes, nil
 }
 
-func isCIDRMatchedByPrefixFilters(cidr string, tc *datamodel.TransitConnection) (bool, error) {
+// return for a given address-prefix (input cidr) the matching prefix-filter index and its action (allow = true/deny = false)
+// if there is no specific prefix filter then gets the details of the configured default prefix filter
+func getMatchedFilterIndexAndAction(cidr string, tc *datamodel.TransitConnection) (returnedFilterIndex int,
+	action bool, err error) {
 	// Array of prefix route filters for a transit gateway connection. This is order dependent with those first in the
 	// array being applied first, and those at the end of the array is applied last, or just before the default.
 	pfList := tc.PrefixFilters
@@ -74,20 +89,21 @@ func isCIDRMatchedByPrefixFilters(cidr string, tc *datamodel.TransitConnection) 
 	// Default setting of permit or deny which applies to any routes that don't match a specified filter.
 	pfDefault := tc.PrefixFiltersDefault
 
-	// TODO: currently assuming subnet cidrs are the advertised routes to the TGW, matched against the prefix filters
-	// TOTO: currently ignoring the "Before" field of each PrefixFilter, since assuming the array is ordered
+	// TODO: currently ignoring the "Before" field of each PrefixFilter, since assuming the array is ordered
 	// iterate by order the array of prefix route filters
-	for _, pf := range pfList {
-		match, err := prefixLeGeMatch(pf.Prefix, pf.Le, pf.Ge, cidr)
-		if err != nil {
-			return false, err
+	for filterIndex, pf := range pfList {
+		match, err1 := prefixLeGeMatch(pf.Prefix, pf.Le, pf.Ge, cidr)
+		if err1 != nil {
+			return defaultPrefixFilter, false, err1
 		}
 		if match {
-			return parseActionString(pf.Action)
+			action, err = parseActionString(pf.Action)
+			return filterIndex, action, err
 		}
 	}
 	// no match by pfList -- use default
-	return parseActionString(pfDefault)
+	action, err = parseActionString(pfDefault)
+	return defaultPrefixFilter, action, err
 }
 
 func parseActionString(action *string) (bool, error) {

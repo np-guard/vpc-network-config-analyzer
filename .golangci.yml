@@ -18,6 +18,14 @@ linters-settings:
       - style
   gocyclo:
     min-complexity: 15
+  goheader:
+    values:
+      const:
+        COMPANY: IBM Inc.
+    template: |-
+      Copyright 2023- {{ COMPANY }} All Rights Reserved.
+
+      SPDX-License-Identifier: Apache-2.0
   goimports:
     local-prefixes: github.com/np-guard
   gomnd:
@@ -80,6 +88,7 @@ linters:
     - gocritic
     - gocyclo
     - gofmt
+    - goheader
     - goimports
     - gomnd
     - gomoddirectives

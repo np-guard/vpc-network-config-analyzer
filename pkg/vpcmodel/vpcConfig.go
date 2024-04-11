@@ -1,3 +1,9 @@
+/*
+Copyright 2023- IBM Inc. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
 package vpcmodel
 
 import (
@@ -83,7 +89,8 @@ func (c *VPCConfig) shouldConsiderPairWithLBConnectivity(r1, r2 Node) bool {
 }
 
 // getRoutingResource: gets the routing resource and its conn; currently the conn is either all or none
-// node is associated with either a pgw or a fip;
+// may refer to external routing or to routing between vpcs
+// node is associated with either a pgw or a fip for external router;
 // if the relevant network interface has both the parser will keep only the fip.
 func (c *VPCConfig) getRoutingResource(src, dst Node) (RoutingResource, *connection.Set, error) {
 	for _, router := range c.RoutingResources {
@@ -93,6 +100,12 @@ func (c *VPCConfig) getRoutingResource(src, dst Node) (RoutingResource, *connect
 		}
 		if !routerConnRes.IsEmpty() { // connection is allowed through router resource
 			return router, routerConnRes, nil
+		}
+		// There is no connection defined for src, dst with the current router. Is it because the current router is
+		// not defined/not relevant for src, dst or is it because the current router is defined but denies traffic?
+		// the latter is a possibility only for tgw and in this case we return the router object
+		if router.RouterDefined(src, dst) {
+			return router, NoConns(), nil
 		}
 	}
 	return nil, NoConns(), nil

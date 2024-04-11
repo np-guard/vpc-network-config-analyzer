@@ -1,3 +1,9 @@
+/*
+Copyright 2023- IBM Inc. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
 package vpcmodel
 
 import (
@@ -95,7 +101,7 @@ func ipStringsToIPblocks(ipList []string) (ipbList []*ipblock.IPBlock, unionIPbl
 	return ipbList, unionIPblock, nil
 }
 
-func getPublicInternetIPblocksList() (internetIPblocksList []*ipblock.IPBlock, allInternetRagnes *ipblock.IPBlock, err error) {
+func GetPublicInternetIPblocksList() (internetIPblocksList []*ipblock.IPBlock, allInternetRagnes *ipblock.IPBlock, err error) {
 	publicInternetAddressList := getPublicInternetAddressList()
 	return ipStringsToIPblocks(publicInternetAddressList)
 }
@@ -128,7 +134,7 @@ func newExternalNodeForCidr(cidr string) (Node, error) {
 
 func GetExternalNetworkNodes(disjointRefExternalIPBlocks []*ipblock.IPBlock) ([]Node, error) {
 	res := []Node{}
-	internetIPblocks, allInternetRagnes, err := getPublicInternetIPblocksList()
+	internetIPblocks, allInternetRagnes, err := GetPublicInternetIPblocksList()
 	if err != nil {
 		return nil, err
 	}
@@ -168,7 +174,7 @@ func isEntirePublicInternetRange(nodes []*ExternalNetwork) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	_, allInternetRagnes, err := getPublicInternetIPblocksList()
+	_, allInternetRagnes, err := GetPublicInternetIPblocksList()
 	if err != nil {
 		return false, err
 	}
