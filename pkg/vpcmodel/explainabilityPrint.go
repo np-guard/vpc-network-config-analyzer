@@ -69,7 +69,6 @@ func (explanation *Explanation) String(verbose bool) string {
 	return strings.Join(linesStr, newLine) + newLine
 }
 
-
 // missing cross vpc router
 // in this case there is no *VPCConfig we can work with, so this case is treated separately
 func explainMissingCrossVpcRouter(src, dst string, connQuery *connection.Set) string {
@@ -86,21 +85,16 @@ func explainMissingCrossVpcRouter(src, dst string, connQuery *connection.Set) st
 // cross-vpc-connection: transit-connection tg_connection0 of transit-gateway local-tg-ky denys connection
 // Egress: security group sg21-ky allows connection; network ACL acl21-ky allows connection
 // Ingress: network ACL acl1-ky allows connection; security group sg1-ky allows connection
-// 3. Connection path description. E.g.:
-//	ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> subnet20 -> network ACL acl21-ky ->
-//	test-vpc2-ky -> TGW local-tg-ky -> |
-// 4. Details of enabling and disabling rules/prefixes, including details of each rule
+//  3. Connection path description. E.g.:
+//     ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> subnet20 -> network ACL acl21-ky ->
+//     test-vpc2-ky -> TGW local-tg-ky -> |
+//  4. Details of enabling and disabling rules/prefixes, including details of each rule
 //
 // 1 and 3 are printed always
 // 2 is printed only when the connection is blocked. It is redundant when the entire path ("3") is printed. When
 // the connection is blocked and only part of the path is printed then 2 is printed so that the relevant information
 // is provided regardless of where the is blocking
 // 4 is printed only in debug mode
-
-// explainDetails.filtersRelevant,
-//
-//	explanation.connQuery, line.src, line.dst, line.commonProperties.conn, explainDetails.ingressEnabled,
-//	explainDetails.egressEnabled, explainDetails.externalRouter, explainDetails.crossVpcRouter, explainDetails.rules
 func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connection.Set, verbose bool) string {
 	expDetails := g.commonProperties.expDetails
 	filtersRelevant := g.commonProperties.expDetails.filtersRelevant
