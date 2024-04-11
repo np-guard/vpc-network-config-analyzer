@@ -60,7 +60,12 @@ func (explanation *Explanation) String(verbose bool) string {
 			"------------------------------------------------------------------------------------------------------------------------\n"
 	}
 	sort.Strings(linesStr)
-	return strings.Join(linesStr, newLine) + newLine
+	iksNodeComment := ""
+	if explanation.hasIksNode {
+		iksNodeComment = "* Analysis of the connectivity of cluster worker nodes is under the assumption that the " +
+			"only security groups applied to them are the VPC default and the IKS generated SG\n"
+	}
+	return strings.Join(linesStr, newLine) + newLine + iksNodeComment
 }
 
 // prints a single line of explanation for externalAddress grouped <src, dst>
@@ -278,6 +283,7 @@ func stringFilterEffect(c *VPCConfig, filterLayerName string, rules []RulesInFil
 		strSlice[i] = FilterKindName(filterLayerName) + space + name + effectStr
 		i++
 	}
+	sort.Strings(strSlice)
 	return strings.Join(strSlice, semicolon+space)
 }
 
