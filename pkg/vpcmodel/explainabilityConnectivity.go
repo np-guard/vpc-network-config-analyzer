@@ -258,15 +258,17 @@ func (details *rulesAndConnDetails) computeCombinedActualRules() {
 func mergeAllowDeny(allow, deny rulesInLayers) rulesInLayers {
 	allowDenyMerged := rulesInLayers{}
 	for _, layer := range filterLayers {
-		allowForLayer, ok1 := allow[layer]
-		denyForLayer, ok2 := deny[layer]
+		allowForLayer := allow[layer]
+		denyForLayer := deny[layer]
+		actualAllow := len(allowForLayer) > 0
+		actualDeny := len(denyForLayer) > 0
 		switch {
-		case ok1 && ok2:
+		case actualAllow && actualDeny:
 			// do nothing (merge will be right after the switch)
-		case ok1: // layer relevant only for allow
+		case actualAllow: // layer relevant only for allow
 			allowDenyMerged[layer] = allowForLayer
 			continue
-		case ok2: // layer relevant only for deny
+		case actualDeny: // layer relevant only for deny
 			allowDenyMerged[layer] = denyForLayer
 			continue
 		default: // no rules in this layer
@@ -281,32 +283,24 @@ func mergeAllowDeny(allow, deny rulesInLayers) rulesInLayers {
 		for filterIndex := range allIndexes {
 			allowRules := allowRulesMap[filterIndex]
 			denyRules := denyRulesMap[filterIndex]
-			// only one of them can be nil if we got here
+			mergedRules := []int{}
+			// todo: once we update to go.1.22 use slices.Concat
+			mergedRules = append(mergedRules, allowRules.Rules...)
+			mergedRules = append(mergedRules, denyRules.Rules...)
+			slices.Sort(mergedRules)
+			var rType RulesType
 			switch {
-			case denyRules == nil:
-				mergedRulesInLayer = append(mergedRulesInLayer, *allowRules)
-			case allowRules == nil:
-				mergedRulesInLayer = append(mergedRulesInLayer, *denyRules)
-			default: // none nil, merge
-				mergedRules := []int{}
-				// todo: once we update to go.1.22 use slices.Concat
-				mergedRules = append(mergedRules, allowRules.Rules...)
-				mergedRules = append(mergedRules, denyRules.Rules...)
-				slices.Sort(mergedRules)
-				var rType RulesType
-				switch {
-				case len(allowRules.Rules) > 0 && len(denyRules.Rules) > 0:
-					rType = BothAllowDeny
-				case len(allowRules.Rules) > 0:
-					rType = OnlyAllow
-				case len(denyRules.Rules) > 0:
-					rType = OnlyDeny
-				default: // no rules
-					rType = NoRules
-				}
-				mergedRulesInFilter := RulesInFilter{Filter: filterIndex, Rules: mergedRules, RulesFilterType: rType}
-				mergedRulesInLayer = append(mergedRulesInLayer, mergedRulesInFilter)
+			case len(allowRules.Rules) > 0 && len(denyRules.Rules) > 0:
+				rType = BothAllowDeny
+			case len(allowRules.Rules) > 0:
+				rType = OnlyAllow
+			case len(denyRules.Rules) > 0:
+				rType = OnlyDeny
+			default: // no rules
+				rType = NoRules
 			}
+			mergedRulesInFilter := RulesInFilter{Filter: filterIndex, Rules: mergedRules, RulesFilterType: rType}
+			mergedRulesInLayer = append(mergedRulesInLayer, mergedRulesInFilter)
 		}
 		allowDenyMerged[layer] = mergedRulesInLayer
 	}
