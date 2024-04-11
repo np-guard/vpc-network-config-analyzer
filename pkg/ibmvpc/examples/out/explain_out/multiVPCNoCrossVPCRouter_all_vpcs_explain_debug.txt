@@ -1,0 +1,5 @@
+Connectivity explanation between vsi1-ky and vsi31-ky
+=====================================================
+
+No connection between vsi1-ky and vsi31-ky;
+connection blocked since source and destination in different VPCs with no transit gateway in-between

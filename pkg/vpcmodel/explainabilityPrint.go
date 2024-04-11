@@ -31,9 +31,12 @@ func explainHeader(explanation *Explanation) string {
 	}
 	srcNetworkInterfaces := listNetworkInterfaces(explanation.srcNetworkInterfacesFromIP)
 	dstNetworkInterfaces := listNetworkInterfaces(explanation.dstNetworkInterfacesFromIP)
-	header1 := fmt.Sprintf("Connectivity explanation%s between %s%s and %s%s within %v",
-		connStr, explanation.src, srcNetworkInterfaces, explanation.dst, dstNetworkInterfaces,
-		explanation.c.VPC.Name())
+	header1 := fmt.Sprintf("Connectivity explanation%s between %s%s and %s%s",
+		connStr, explanation.src, srcNetworkInterfaces, explanation.dst, dstNetworkInterfaces)
+	// communication within a single vpc
+	if explanation.c != nil && !explanation.c.IsMultipleVPCsConfig {
+		header1 += fmt.Sprintf(" within %v", explanation.c.VPC.Name())
+	}
 	header2 := strings.Repeat("=", len(header1))
 	return header1 + newLine + header2 + doubleNL
 }
@@ -53,6 +56,9 @@ func listNetworkInterfaces(nodes []Node) string {
 
 // String main printing function for the Explanation struct - returns a string with the explanation
 func (explanation *Explanation) String(verbose bool) string {
+	if explanation.c == nil { // no VPCConfig - missing cross-VPC router (tgw)
+		return explainMissingCrossVpcRouter(explanation.src, explanation.dst, explanation.connQuery)
+	}
 	linesStr := make([]string, len(explanation.groupedLines))
 	groupedLines := explanation.groupedLines
 	for i, groupedLine := range groupedLines {
@@ -60,7 +66,19 @@ func (explanation *Explanation) String(verbose bool) string {
 			"------------------------------------------------------------------------------------------------------------------------\n"
 	}
 	sort.Strings(linesStr)
-	return strings.Join(linesStr, newLine) + newLine
+	iksNodeComment := ""
+	if explanation.hasIksNode {
+		iksNodeComment = "* Analysis of the connectivity of cluster worker nodes is under the assumption that the " +
+			"only security groups applied to them are the VPC default and the IKS generated SG\n"
+	}
+	return strings.Join(linesStr, newLine) + newLine + iksNodeComment
+}
+
+// missing cross vpc router
+// in this case there is no *VPCConfig we can work with, so this case is treated separately
+func explainMissingCrossVpcRouter(src, dst string, connQuery *connection.Set) string {
+	return fmt.Sprintf("%vconnection blocked since source and destination in different VPCs with no transit gateway in-between",
+		noConnectionHeader(src, dst, connQuery)+newLine)
 }
 
 // prints a single line of explanation for externalAddress grouped <src, dst>
@@ -72,21 +90,16 @@ func (explanation *Explanation) String(verbose bool) string {
 // cross-vpc-connection: transit-connection tg_connection0 of transit-gateway local-tg-ky denys connection
 // Egress: security group sg21-ky allows connection; network ACL acl21-ky allows connection
 // Ingress: network ACL acl1-ky allows connection; security group sg1-ky allows connection
-// 3. Connection path description. E.g.:
-//	ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> subnet20 -> network ACL acl21-ky ->
-//	test-vpc2-ky -> TGW local-tg-ky -> |
-// 4. Details of enabling and disabling rules/prefixes, including details of each rule
+//  3. Connection path description. E.g.:
+//     ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> subnet20 -> network ACL acl21-ky ->
+//     test-vpc2-ky -> TGW local-tg-ky -> |
+//  4. Details of enabling and disabling rules/prefixes, including details of each rule
 //
 // 1 and 3 are printed always
 // 2 is printed only when the connection is blocked. It is redundant when the entire path ("3") is printed. When
 // the connection is blocked and only part of the path is printed then 2 is printed so that the relevant information
 // is provided regardless of where the is blocking
 // 4 is printed only in debug mode
-
-// explainDetails.filtersRelevant,
-//
-//	explanation.connQuery, line.src, line.dst, line.commonProperties.conn, explainDetails.ingressEnabled,
-//	explainDetails.egressEnabled, explainDetails.externalRouter, explainDetails.crossVpcRouter, explainDetails.rules
 func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connection.Set, verbose bool) string {
 	expDetails := g.commonProperties.expDetails
 	filtersRelevant := g.commonProperties.expDetails.filtersRelevant
@@ -133,9 +146,6 @@ func (g *groupedConnLine) explainPerCaseStr(src, dst EndpointElem,
 		g.commonProperties.expDetails.crossVpcRouter
 	headerPlusPath := resourceEffectHeader + path
 	switch {
-	case crossVpcRouterRequired(src, dst) && crossVpcRouter == nil:
-		return fmt.Sprintf("%v\nconnection blocked since src, dst of different VPCs but no transit gateway is defined"+
-			doubleNLWithVars, noConnection, headerPlusPath, details)
 	case crossVpcRouterRequired(src, dst) && crossVpcRouter != nil && crossVpcConnection.IsEmpty():
 		return fmt.Sprintf("%v\nconnection blocked since transit gateway denies route between src and dst"+
 			doubleNLWithVars, noConnection, headerPlusPath, details)
@@ -278,6 +288,7 @@ func stringFilterEffect(c *VPCConfig, filterLayerName string, rules []RulesInFil
 		strSlice[i] = FilterKindName(filterLayerName) + space + name + effectStr
 		i++
 	}
+	sort.Strings(strSlice)
 	return strings.Join(strSlice, semicolon+space)
 }
 

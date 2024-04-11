@@ -477,7 +477,6 @@ var explainTests = []*vpcGeneralTest{
 		EDst:        "ky-vsi0-subnet0",  // test-vpc0-ky
 		format:      vpcmodel.Text,
 	},
-	// todo: add the above example wo debug
 	{
 		name:        "tgwAnotherExampleEnabledConn",
 		inputConfig: "tg-prefix-filters",
@@ -485,23 +484,63 @@ var explainTests = []*vpcGeneralTest{
 		EDst:        "ky-vsi0-subnet11",
 		format:      vpcmodel.Text,
 	},
-	// connection disabled by lack of tgw
-	// todo: two examples of disabled due to lack of tgw
-	// todo: enable after https://github.com/np-guard/vpc-network-config-analyzer/issues/489
-	// {
-	//	name:        "multiVPCSameNamesCrossVPC",
-	//	inputConfig: "multiVpc_larger_example_dup_names",
-	//	ESrc:        "10.240.3.5",  // vsi3a of test-vpc0-ky
-	//	EDst:        "10.240.12.4", // vsi2 of test-vpc1-ky
-	//	format:      vpcmodel.Debug,
-	// },
-	// {
-	//	name:        "multiVPCSameNamesCrossVPC",
-	//	inputConfig: "multiVpc_larger_example_dup_names",
-	//	ESrc:        "test-vpc0-ky/vsi1-ky",
-	//	EDst:        "test-vpc1-ky/vsi1-ky",
-	//	format:      vpcmodel.Debug,
-	// },
+	// connection disabled by lack of cross-vpc router (tgw)
+	{
+		name:        "multiVPCNoCrossVPCRouter",
+		inputConfig: "multiVpc_larger_example_dup_names",
+		ESrc:        "vsi1-ky",  // test-vpc0-ky
+		EDst:        "vsi31-ky", // test-vpc3-ky
+		format:      vpcmodel.Debug,
+	},
+	{
+		name:        "multiVPCSameNamesCrossVPCNoTgw",
+		inputConfig: "multiVpc_larger_example_dup_names",
+		ESrc:        "test-vpc0-ky/vsi1-ky",
+		EDst:        "test-vpc1-ky/vsi1-ky",
+		format:      vpcmodel.Debug,
+	},
+	{
+		name:        "multiVPCSameNamesCrossVPCByAddrNoTgw",
+		inputConfig: "multiVpc_larger_example_dup_names",
+		ESrc:        "10.240.3.5",  // vsi3a of test-vpc0-ky
+		EDst:        "10.240.12.4", // vsi2 of test-vpc1-ky
+		format:      vpcmodel.Debug,
+	},
+
+	// iks-node to iks-node
+	{
+		name:        "IksNodeToIksNode",
+		inputConfig: "iks_config_object",
+		ESrc:        "192.168.8.4",
+		EDst:        "192.168.4.4",
+		format:      vpcmodel.Debug,
+	},
+	// vpe to iks-node, not all rules relevant
+	{
+		name:        "vpeToIksNodeSubsetRules",
+		inputConfig: "iks_config_object",
+		ESrc:        "192.168.40.5",
+		EDst:        "192.168.0.4",
+		EProtocol:   netp.ProtocolStringTCP,
+		ESrcMinPort: connection.MinPort,
+		ESrcMaxPort: connection.MaxPort,
+		EDstMinPort: connection.MinPort,
+		EDstMaxPort: connection.MaxPort,
+		format:      vpcmodel.Debug,
+	},
+	// iks-node no connection (specific protocol)
+	{
+		name:        "vpeToIksNodeNoProtocolConn",
+		inputConfig: "iks_config_object",
+		ESrc:        "192.168.40.5",
+		EDst:        "192.168.0.4",
+		EProtocol:   netp.ProtocolStringICMP,
+		ESrcMinPort: connection.MinPort,
+		ESrcMaxPort: connection.MaxPort,
+		EDstMinPort: connection.MinPort,
+		EDstMaxPort: connection.MaxPort,
+		format:      vpcmodel.Debug,
+	},
 }
 
 func TestAll(t *testing.T) {

@@ -1,0 +1,5 @@
+Connectivity explanation between test-vpc0-ky/vsi1-ky and test-vpc1-ky/vsi1-ky
+==============================================================================
+
+No connection between test-vpc0-ky/vsi1-ky and test-vpc1-ky/vsi1-ky;
+connection blocked since source and destination in different VPCs with no transit gateway in-between
