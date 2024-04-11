@@ -17,6 +17,8 @@ import (
 
 var filterLayers = [2]string{SecurityGroupLayer, NaclLayer}
 
+const ResourceTypeIKSNode = "IKSNodeNetworkInterface"
+
 // rulesInLayers contains specific rules across all layers (SGLayer/NACLLayer)
 // it maps from the layer name to the list of rules
 type rulesInLayers map[string][]RulesInFilter
@@ -69,6 +71,9 @@ type Explanation struct {
 	// this information should be handy; otherwise empty (slice of size 0)
 	srcNetworkInterfacesFromIP []Node
 	dstNetworkInterfacesFromIP []Node
+	// (Current) Analysis of the connectivity of cluster worker nodes is under the assumption that the only security
+	// groups applied to them are the VPC default and the IKS generated SG; this comment needs to be added if src or dst is an IKS node
+	hasIksNode bool
 	// grouped connectivity result:
 	// grouping common explanation lines with common src/dst (internal node) and different dst/src (external node)
 	// [required due to computation with disjoint ip-blocks]
@@ -114,11 +119,12 @@ func (c *VPCConfig) explainConnectivityForVPC(src, dst string, srcNodes, dstNode
 	if err4 != nil {
 		return nil, err4
 	}
-
+	// the user has to be notified regarding an assumption we make about IKSNode's security group
+	hasIksNode := srcNodes[0].Kind() == ResourceTypeIKSNode || dstNodes[0].Kind() == ResourceTypeIKSNode
 	return &Explanation{c, connQuery, &rulesAndDetails, src, dst,
 		getNetworkInterfacesFromIP(isSrcDstInternalIP.src, srcNodes),
 		getNetworkInterfacesFromIP(isSrcDstInternalIP.dst, dstNodes),
-		groupedLines.GroupedLines}, nil
+		hasIksNode, groupedLines.GroupedLines}, nil
 }
 
 func getNetworkInterfacesFromIP(isInputInternalIP bool, nodes []Node) []Node {

@@ -506,6 +506,41 @@ var explainTests = []*vpcGeneralTest{
 		EDst:        "10.240.12.4", // vsi2 of test-vpc1-ky
 		format:      vpcmodel.Debug,
 	},
+
+	// iks-node to iks-node
+	{
+		name:        "IksNodeToIksNode",
+		inputConfig: "iks_config_object",
+		ESrc:        "192.168.8.4",
+		EDst:        "192.168.4.4",
+		format:      vpcmodel.Debug,
+	},
+	// vpe to iks-node, not all rules relevant
+	{
+		name:        "vpeToIksNodeSubsetRules",
+		inputConfig: "iks_config_object",
+		ESrc:        "192.168.40.5",
+		EDst:        "192.168.0.4",
+		EProtocol:   netp.ProtocolStringTCP,
+		ESrcMinPort: connection.MinPort,
+		ESrcMaxPort: connection.MaxPort,
+		EDstMinPort: connection.MinPort,
+		EDstMaxPort: connection.MaxPort,
+		format:      vpcmodel.Debug,
+	},
+	// iks-node no connection (specific protocol)
+	{
+		name:        "vpeToIksNodeNoProtocolConn",
+		inputConfig: "iks_config_object",
+		ESrc:        "192.168.40.5",
+		EDst:        "192.168.0.4",
+		EProtocol:   netp.ProtocolStringICMP,
+		ESrcMinPort: connection.MinPort,
+		ESrcMaxPort: connection.MaxPort,
+		EDstMinPort: connection.MinPort,
+		EDstMaxPort: connection.MaxPort,
+		format:      vpcmodel.Debug,
+	},
 }
 
 func TestAll(t *testing.T) {

@@ -501,10 +501,6 @@ func (sgl *SecurityGroupLayer) GetConnectivityOutputPerEachElemSeparately() stri
 	return ""
 }
 
-func connHasIKSNode(src, dst vpcmodel.Node, isIngress bool) bool {
-	return (isIngress && dst.Kind() == ResourceTypeIKSNode) || (!isIngress && src.Kind() == ResourceTypeIKSNode)
-}
-
 // AllowedConnectivity
 // TODO: fix: is it possible that no sg applies  to the input peer? if so, should not return "no conns" when none applies
 func (sgl *SecurityGroupLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*connection.Set, error) {
@@ -522,9 +518,6 @@ func (sgl *SecurityGroupLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIng
 func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 	conn *connection.Set, isIngress bool) (allowRes []vpcmodel.RulesInFilter,
 	denyRes []vpcmodel.RulesInFilter, err error) {
-	if connHasIKSNode(src, dst, isIngress) {
-		return nil, nil, fmt.Errorf("explainability for IKS node not supported yet")
-	}
 	for index, sg := range sgl.sgList {
 		tableRelevant, sgRules, err1 := sg.rulesFilterInConnectivity(src, dst, conn, isIngress)
 		if err1 != nil {
