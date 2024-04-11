@@ -17,6 +17,8 @@ import (
 
 var filterLayers = [2]string{SecurityGroupLayer, NaclLayer}
 
+const ResourceTypeIKSNode = "IKSNodeNetworkInterface"
+
 // rulesInLayers contains specific rules across all layers (SGLayer/NACLLayer)
 // it maps from the layer name to the list of rules
 type rulesInLayers map[string][]RulesInFilter
@@ -69,6 +71,9 @@ type Explanation struct {
 	// this information should be handy; otherwise empty (slice of size 0)
 	srcNetworkInterfacesFromIP []Node
 	dstNetworkInterfacesFromIP []Node
+	// (Current) Analysis of the connectivity of cluster worker nodes is under the assumption that the only security
+	// groups applied to them are the VPC default and the IKS generated SG; this comment needs to be added if src or dst is an IKS node
+	hasIksNode bool
 	// grouped connectivity result:
 	// grouping common explanation lines with common src/dst (internal node) and different dst/src (external node)
 	// [required due to computation with disjoint ip-blocks]
@@ -79,6 +84,11 @@ func (configsMap MultipleVPCConfigs) ExplainConnectivity(src, dst string, connQu
 	vpcConfig, srcNodes, dstNodes, isSrcDstInternalIP, err := configsMap.getVPCConfigAndSrcDstNodes(src, dst)
 	if err != nil {
 		return nil, err
+	}
+	if vpcConfig == nil && err == nil {
+		// No error and also no matching vpc config for both src and dst: missing cross-vpc router.
+		// No VPCConfig to work with in this case, thus, this case is treated separately
+		return &Explanation{nil, connQuery, nil, src, dst, nil, nil, false, nil}, nil
 	}
 	return vpcConfig.explainConnectivityForVPC(src, dst, srcNodes, dstNodes, isSrcDstInternalIP, connQuery)
 }
@@ -109,11 +119,12 @@ func (c *VPCConfig) explainConnectivityForVPC(src, dst string, srcNodes, dstNode
 	if err4 != nil {
 		return nil, err4
 	}
-
+	// the user has to be notified regarding an assumption we make about IKSNode's security group
+	hasIksNode := srcNodes[0].Kind() == ResourceTypeIKSNode || dstNodes[0].Kind() == ResourceTypeIKSNode
 	return &Explanation{c, connQuery, &rulesAndDetails, src, dst,
 		getNetworkInterfacesFromIP(isSrcDstInternalIP.src, srcNodes),
 		getNetworkInterfacesFromIP(isSrcDstInternalIP.dst, dstNodes),
-		groupedLines.GroupedLines}, nil
+		hasIksNode, groupedLines.GroupedLines}, nil
 }
 
 func getNetworkInterfacesFromIP(isInputInternalIP bool, nodes []Node) []Node {
@@ -252,15 +263,17 @@ func (details *rulesAndConnDetails) computeCombinedActualRules() {
 func mergeAllowDeny(allow, deny rulesInLayers) rulesInLayers {
 	allowDenyMerged := rulesInLayers{}
 	for _, layer := range filterLayers {
-		allowForLayer, ok1 := allow[layer]
-		denyForLayer, ok2 := deny[layer]
+		allowForLayer := allow[layer]
+		denyForLayer := deny[layer]
+		actualAllow := len(allowForLayer) > 0
+		actualDeny := len(denyForLayer) > 0
 		switch {
-		case ok1 && ok2:
+		case actualAllow && actualDeny:
 			// do nothing (merge will be right after the switch)
-		case ok1: // layer relevant only for allow
+		case actualAllow: // layer relevant only for allow
 			allowDenyMerged[layer] = allowForLayer
 			continue
-		case ok2: // layer relevant only for deny
+		case actualDeny: // layer relevant only for deny
 			allowDenyMerged[layer] = denyForLayer
 			continue
 		default: // no rules in this layer
@@ -275,32 +288,24 @@ func mergeAllowDeny(allow, deny rulesInLayers) rulesInLayers {
 		for filterIndex := range allIndexes {
 			allowRules := allowRulesMap[filterIndex]
 			denyRules := denyRulesMap[filterIndex]
-			// only one of them can be nil if we got here
+			mergedRules := []int{}
+			// todo: once we update to go.1.22 use slices.Concat
+			mergedRules = append(mergedRules, allowRules.Rules...)
+			mergedRules = append(mergedRules, denyRules.Rules...)
+			slices.Sort(mergedRules)
+			var rType RulesType
 			switch {
-			case denyRules == nil:
-				mergedRulesInLayer = append(mergedRulesInLayer, *allowRules)
-			case allowRules == nil:
-				mergedRulesInLayer = append(mergedRulesInLayer, *denyRules)
-			default: // none nil, merge
-				mergedRules := []int{}
-				// todo: once we update to go.1.22 use slices.Concat
-				mergedRules = append(mergedRules, allowRules.Rules...)
-				mergedRules = append(mergedRules, denyRules.Rules...)
-				slices.Sort(mergedRules)
-				var rType RulesType
-				switch {
-				case len(allowRules.Rules) > 0 && len(denyRules.Rules) > 0:
-					rType = BothAllowDeny
-				case len(allowRules.Rules) > 0:
-					rType = OnlyAllow
-				case len(denyRules.Rules) > 0:
-					rType = OnlyDeny
-				default: // no rules
-					rType = NoRules
-				}
-				mergedRulesInFilter := RulesInFilter{Filter: filterIndex, Rules: mergedRules, RulesFilterType: rType}
-				mergedRulesInLayer = append(mergedRulesInLayer, mergedRulesInFilter)
+			case len(allowRules.Rules) > 0 && len(denyRules.Rules) > 0:
+				rType = BothAllowDeny
+			case len(allowRules.Rules) > 0:
+				rType = OnlyAllow
+			case len(denyRules.Rules) > 0:
+				rType = OnlyDeny
+			default: // no rules
+				rType = NoRules
 			}
+			mergedRulesInFilter := RulesInFilter{Filter: filterIndex, Rules: mergedRules, RulesFilterType: rType}
+			mergedRulesInLayer = append(mergedRulesInLayer, mergedRulesInFilter)
 		}
 		allowDenyMerged[layer] = mergedRulesInLayer
 	}

@@ -752,7 +752,7 @@ func (ly *layoutS) setGroupingIconLocations() {
 		r *row
 		c *col
 	}
-	iconsInCell := map[cell]int{}
+	iconsInCell := map[cell][]IconTreeNodeInterface{}
 	for _, tn := range getAllNodes(ly.network) {
 		if !tn.IsIcon() || !tn.(IconTreeNodeInterface).IsGroupingPoint() {
 			continue
@@ -765,8 +765,7 @@ func (ly *layoutS) setGroupingIconLocations() {
 		r, c := calcGroupingIconLocation(parentLocation, colleagueParentLocation)
 
 		gIcon.setLocation(newCellLocation(r, c))
-		gIcon.Location().yOffset = groupedIconsDistance * iconsInCell[cell{r, c}]
-		iconsInCell[cell{r, c}]++
+		iconsInCell[cell{r, c}] = append(iconsInCell[cell{r, c}], gIcon)
 		switch parent.visibility {
 		case theSubnet:
 			gIcon.Location().xOffset = gIcon.Location().firstCol.width() / 2
@@ -780,6 +779,12 @@ func (ly *layoutS) setGroupingIconLocations() {
 		if c == parentLocation.nextCol() {
 			// its in right to the groupSquare, so the offset is negative.
 			gIcon.Location().xOffset = -gIcon.Location().xOffset
+		}
+	}
+	// set the y offset according to the number of icons in the cell:
+	for cell, cellIcons := range iconsInCell {
+		for i, gIcon := range cellIcons {
+			gIcon.Location().yOffset = cell.r.height() * (2*i - len(cellIcons) + 1) / (len(cellIcons) + 1) / 2
 		}
 	}
 }

@@ -31,9 +31,12 @@ func explainHeader(explanation *Explanation) string {
 	}
 	srcNetworkInterfaces := listNetworkInterfaces(explanation.srcNetworkInterfacesFromIP)
 	dstNetworkInterfaces := listNetworkInterfaces(explanation.dstNetworkInterfacesFromIP)
-	header1 := fmt.Sprintf("Connectivity explanation%s between %s%s and %s%s within %v",
-		connStr, explanation.src, srcNetworkInterfaces, explanation.dst, dstNetworkInterfaces,
-		explanation.c.VPC.Name())
+	header1 := fmt.Sprintf("Connectivity explanation%s between %s%s and %s%s",
+		connStr, explanation.src, srcNetworkInterfaces, explanation.dst, dstNetworkInterfaces)
+	// communication within a single vpc
+	if explanation.c != nil && !explanation.c.IsMultipleVPCsConfig {
+		header1 += fmt.Sprintf(" within %v", explanation.c.VPC.Name())
+	}
 	header2 := strings.Repeat("=", len(header1))
 	return header1 + newLine + header2 + doubleNL
 }
@@ -53,33 +56,32 @@ func listNetworkInterfaces(nodes []Node) string {
 
 // String main printing function for the Explanation struct - returns a string with the explanation
 func (explanation *Explanation) String(verbose bool) string {
+	if explanation.c == nil { // no VPCConfig - missing cross-VPC router (tgw)
+		return explainMissingCrossVpcRouter(explanation.src, explanation.dst, explanation.connQuery)
+	}
 	linesStr := make([]string, len(explanation.groupedLines))
 	groupedLines := explanation.groupedLines
-	for i, line := range groupedLines {
-		explainDetails := line.commonProperties.expDetails
-		linesStr[i] += explainabilityLineStr(verbose, explanation.c, explainDetails.filtersRelevant,
-			explanation.connQuery, line.src, line.dst, line.commonProperties.conn, explainDetails.ingressEnabled,
-			explainDetails.egressEnabled, explainDetails.externalRouter, explainDetails.crossVpcRouter, explainDetails.rules) +
+	for i, groupedLine := range groupedLines {
+		linesStr[i] += groupedLine.explainabilityLineStr(explanation.c, explanation.connQuery, verbose) +
 			"------------------------------------------------------------------------------------------------------------------------\n"
 	}
 	sort.Strings(linesStr)
-	return strings.Join(linesStr, newLine) + newLine
-}
-
-// main printing function for a *rulesAndConnDetails <src, dst> line (before grouping); calls explainabilityLineStr
-// used only for testing; the txt and debug output are through grouping results
-func (details *rulesAndConnDetails) String(c *VPCConfig, verbose bool, connQuery *connection.Set) (string, error) {
-	resStr := ""
-	for _, srcDstDetails := range *details {
-		resStr += explainabilityLineStr(verbose, c, srcDstDetails.filtersRelevant, connQuery,
-			srcDstDetails.src, srcDstDetails.dst, srcDstDetails.conn, srcDstDetails.ingressEnabled,
-			srcDstDetails.egressEnabled, srcDstDetails.externalRouter, srcDstDetails.crossVpcRouter,
-			srcDstDetails.actualMergedRules)
+	iksNodeComment := ""
+	if explanation.hasIksNode {
+		iksNodeComment = "* Analysis of the connectivity of cluster worker nodes is under the assumption that the " +
+			"only security groups applied to them are the VPC default and the IKS generated SG\n"
 	}
-	return resStr, nil
+	return strings.Join(linesStr, newLine) + newLine + iksNodeComment
 }
 
-// prints a single line of <src, dst>. Called either with grouping results or with the original struct before grouping
+// missing cross vpc router
+// in this case there is no *VPCConfig we can work with, so this case is treated separately
+func explainMissingCrossVpcRouter(src, dst string, connQuery *connection.Set) string {
+	return fmt.Sprintf("%vconnection blocked since source and destination in different VPCs with no transit gateway in-between",
+		noConnectionHeader(src, dst, connQuery)+newLine)
+}
+
+// prints a single line of explanation for externalAddress grouped <src, dst>
 // The printing contains 4 sections:
 // 1. Header describing the query and whether there is a connection. E.g.:
 // * The following connection exists between ky-vsi0-subnet5[10.240.9.4] and ky-vsi0-subnet11[10.240.80.4]: All Connections
@@ -88,26 +90,27 @@ func (details *rulesAndConnDetails) String(c *VPCConfig, verbose bool, connQuery
 // cross-vpc-connection: transit-connection tg_connection0 of transit-gateway local-tg-ky denys connection
 // Egress: security group sg21-ky allows connection; network ACL acl21-ky allows connection
 // Ingress: network ACL acl1-ky allows connection; security group sg1-ky allows connection
-// 3. Connection path description. E.g.:
-//	ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> subnet20 -> network ACL acl21-ky ->
-//	test-vpc2-ky -> TGW local-tg-ky -> |
-// 4. Details of enabling and disabling rules/prefixes, including details of each rule
+//  3. Connection path description. E.g.:
+//     ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> subnet20 -> network ACL acl21-ky ->
+//     test-vpc2-ky -> TGW local-tg-ky -> |
+//  4. Details of enabling and disabling rules/prefixes, including details of each rule
 //
 // 1 and 3 are printed always
 // 2 is printed only when the connection is blocked. It is redundant when the entire path ("3") is printed. When
 // the connection is blocked and only part of the path is printed then 2 is printed so that the relevant information
 // is provided regardless of where the is blocking
 // 4 is printed only in debug mode
-
-func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[string]bool, connQuery *connection.Set,
-	src, dst EndpointElem, conn *connection.Set, ingressEnabled, egressEnabled bool,
-	externalRouter, crossVpcRouter RoutingResource, rules *rulesConnection) string {
+func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connection.Set, verbose bool) string {
+	expDetails := g.commonProperties.expDetails
+	filtersRelevant := g.commonProperties.expDetails.filtersRelevant
+	src, dst := g.src, g.dst
 	needEgress := !src.IsExternal()
 	needIngress := !dst.IsExternal()
-	ingressBlocking := !ingressEnabled && needIngress
-	egressBlocking := !egressEnabled && needEgress
+	ingressBlocking := !expDetails.ingressEnabled && needIngress
+	egressBlocking := !expDetails.egressEnabled && needEgress
 	var externalRouterHeader, crossRouterFilterHeader, resourceEffectHeader,
 		crossRouterFilterDetails, details string
+	externalRouter, crossVpcRouter := expDetails.externalRouter, expDetails.crossVpcRouter
 	if externalRouter != nil && (src.IsExternal() || dst.IsExternal()) {
 		externalRouterHeader = "External traffic via " + externalRouter.Kind() + ": " + externalRouter.Name() + newLine
 	}
@@ -117,6 +120,7 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 	noConnection := noConnectionHeader(src.Name(), dst.Name(), connQuery) + newLine
 
 	// resourceEffectHeader is "2" above
+	rules := expDetails.rules
 	egressRulesHeader, ingressRulesHeader := rules.filterEffectStr(c, filtersRelevant, needEgress, needIngress)
 	resourceEffectHeader = externalRouterHeader + egressRulesHeader + crossRouterFilterHeader +
 		ingressRulesHeader + newLine
@@ -129,19 +133,19 @@ func explainabilityLineStr(verbose bool, c *VPCConfig, filtersRelevant map[strin
 	if verbose {
 		details = "\nDetails:\n~~~~~~~~\n" + egressRulesDetails + crossRouterFilterDetails + ingressRulesDetails
 	}
-	return explainPerCaseStr(src, dst, externalRouter, crossVpcRouter, connQuery, conn, crossVpcConnection, ingressBlocking, egressBlocking,
+	return g.explainPerCaseStr(src, dst, connQuery, crossVpcConnection, ingressBlocking, egressBlocking,
 		noConnection, resourceEffectHeader, path, details)
 }
 
 // after all data is gathered, generates the actual string to be printed
-func explainPerCaseStr(src, dst EndpointElem, externalRouter, crossVpcRouter RoutingResource,
-	connQuery, conn, crossVpcConnection *connection.Set, ingressBlocking, egressBlocking bool,
+func (g *groupedConnLine) explainPerCaseStr(src, dst EndpointElem,
+	connQuery, crossVpcConnection *connection.Set, ingressBlocking, egressBlocking bool,
 	noConnection, resourceEffectHeader, path, details string) string {
+	conn := g.commonProperties.conn
+	externalRouter, crossVpcRouter := g.commonProperties.expDetails.externalRouter,
+		g.commonProperties.expDetails.crossVpcRouter
 	headerPlusPath := resourceEffectHeader + path
 	switch {
-	case crossVpcRouterRequired(src, dst) && crossVpcRouter == nil:
-		return fmt.Sprintf("%v\nconnection blocked since src, dst of different VPCs but no transit gateway is defined"+
-			doubleNLWithVars, noConnection, headerPlusPath, details)
 	case crossVpcRouterRequired(src, dst) && crossVpcRouter != nil && crossVpcConnection.IsEmpty():
 		return fmt.Sprintf("%v\nconnection blocked since transit gateway denies route between src and dst"+
 			doubleNLWithVars, noConnection, headerPlusPath, details)
@@ -284,6 +288,7 @@ func stringFilterEffect(c *VPCConfig, filterLayerName string, rules []RulesInFil
 		strSlice[i] = FilterKindName(filterLayerName) + space + name + effectStr
 		i++
 	}
+	sort.Strings(strSlice)
 	return strings.Join(strSlice, semicolon+space)
 }
 
@@ -299,8 +304,7 @@ func pathStr(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointEle
 	egressPath := pathFiltersOfIngressOrEgressStr(c, src, filtersRelevant, rules, false, isExternal, externalRouter)
 	pathSlice = append(pathSlice, egressPath...)
 	externalRouterBlocking := isExternal && externalRouter == nil
-	needCrossVpcRouter := crossVpcRouterRequired(src, dst)
-	crossVpcRouterMissing := needCrossVpcRouter && crossVpcRouter == nil
+	crossVpcRouterInPath := crossVpcRouterRequired(src, dst) // if cross-vpc router needed but missing, will not get here
 	if egressBlocking || externalRouterBlocking {
 		return blockedPathStr(pathSlice)
 	}
@@ -311,12 +315,8 @@ func pathStr(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointEle
 			externalRouterStr += space + externalRouter.ExternalIP()
 		}
 		pathSlice = append(pathSlice, externalRouterStr)
-	} else if needCrossVpcRouter { // src and dst are internal and there is a cross vpc Router
-		pathSlice = append(pathSlice, newLineTab+src.(InternalNodeIntf).Subnet().VPC().Name())
-		if crossVpcRouterMissing {
-			return blockedPathStr(pathSlice)
-		}
-		pathSlice = append(pathSlice, crossVpcRouter.Kind()+space+crossVpcRouter.Name())
+	} else if crossVpcRouterInPath { // src and dst are internal and there is a cross vpc Router
+		pathSlice = append(pathSlice, newLineTab+src.(InternalNodeIntf).Subnet().VPC().Name(), crossVpcRouter.Kind()+space+crossVpcRouter.Name())
 		if crossVpcConnection.IsEmpty() { // cross vpc (tgw) denys connection
 			return blockedPathStr(pathSlice)
 		}
