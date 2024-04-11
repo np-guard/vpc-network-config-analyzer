@@ -197,10 +197,8 @@ func (tn *SGTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInter
 	return tn.partialSgs, tn.elements, tn.connections
 }
 func (tn *SGTreeNode) AddIcon(icon IconTreeNodeInterface) {
-	if icon != nil {
-		tn.addIconTreeNode(icon)
-		icon.setSG(tn)
-	}
+	tn.addIconTreeNode(icon)
+	icon.setSG(tn)
 }
 
 func (tn *SGTreeNode) NotShownInDrawio() bool { return true }

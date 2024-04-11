@@ -8,7 +8,6 @@ package vpcmodel
 
 import (
 	"fmt"
-	"slices"
 	"sort"
 	"strings"
 
@@ -61,103 +60,19 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping bool) (res *VPCConnectivi
 	res.computeAllowedConnsCombined()
 	res.computeAllowedStatefulConnections()
 	for _, lb := range c.LoadBalancers {
-		res.AllowedConnsCombined = abstractNodeSet(res.AllowedConnsCombined, lb)
+		res.AllowedConnsCombined = nodeSetConnectivityAbstraction(res.AllowedConnsCombined, lb)
 	}
 	res.GroupedConnectivity, err = newGroupConnLines(c, res, grouping)
 	return res, err
 }
 
-////////////////////////////////////////////////////////////////////
-
-func sortByNodeSet(nodesConn GeneralConnectivityMap, nodeSet NodeSet) (srcToDst, nodeSetToNodeSet, dstFromNodeSet, srcToNodeSet GeneralConnectivityMap) {
-	srcToDst = GeneralConnectivityMap{}
-	nodeSetToNodeSet = GeneralConnectivityMap{}
-	dstFromNodeSet = GeneralConnectivityMap{}
-	srcToNodeSet = GeneralConnectivityMap{}
-	for src, nodeConns := range nodesConn {
-		for dst, conns := range nodeConns {
-			srcNode, srcIsNode := src.(Node)
-			dstNode, dstIsNode := dst.(Node)
-			srcInSet := srcIsNode && slices.Contains(nodeSet.Nodes(), srcNode)
-			dstInSet := dstIsNode && slices.Contains(nodeSet.Nodes(), dstNode)
-			switch {
-			case !srcInSet && !dstInSet || conns.IsEmpty():
-				srcToDst.updateAllowedConnsMap(src, dst, conns)
-			case srcInSet && dstInSet:
-				nodeSetToNodeSet.updateAllowedConnsMap(src, dst, conns)
-			case !srcInSet && dstInSet:
-				srcToNodeSet.updateAllowedConnsMap(src, dst, conns.Copy())
-			case srcInSet && !dstInSet:
-				dstFromNodeSet.updateAllowedConnsMap(dst, src, conns)
-			}
+func (c *VPCConfig) allowedWithLBConnectivity(src, dst Node) bool {
+	for _, lb := range c.LoadBalancers {
+		if lb.DennyConnectivity(src, dst) {
+			return false
 		}
 	}
-	return srcToDst, nodeSetToNodeSet, dstFromNodeSet, srcToNodeSet
-}
-func diagnoseConnectivity(connMap GeneralConnectivityMap, isIngress bool) {
-	for node1, nodeConns := range connMap {
-		allConns := map[string][]VPCResourceIntf{}
-		for node2, conns := range nodeConns {
-			// todo - is string unique?
-			allConns[conns.String()] = append(allConns[conns.String()], node2)
-		}
-		if len(allConns) > 1 {
-			fmt.Printf(" node %s has different access %s the nodeSet:\n", node1.Name(), map[bool]string{false:"from", true:"to"}[isIngress] )
-			for conn, nodes := range allConns{
-				if !isIngress{
-					fmt.Printf("%s -> ", node1.Name())
-				}
-				for _, n := range nodes{
-					fmt.Printf("%s,", n.Name())
-				}
-				if isIngress{
-					fmt.Printf(" -> %s", node1.Name())
-				}
-				fmt.Printf(" %s\n", conn)
-			}
-		}
-	}
-}
-
-func mergeWithNodeSet(srcToDst, nodeSetToNodeSet, dstFromNodeSet, srcToNodeSet GeneralConnectivityMap, nodeSet NodeSet) GeneralConnectivityMap {
-	res := GeneralConnectivityMap{}
-	for src, nodeConns := range srcToDst {
-		for dst, conns := range nodeConns {
-			res.updateAllowedConnsMap(src, dst, conns)
-		}
-	}
-
-	allConns := NoConns()
-	for _, nodeConns := range nodeSetToNodeSet {
-		for _, conns := range nodeConns {
-			allConns = conns.Union(conns)
-		}
-	}
-	res.updateAllowedConnsMap(nodeSet, nodeSet, allConns)
-
-	for src, nodeConns := range srcToNodeSet {
-		allConns := NoConns()
-		for _, conns := range nodeConns {
-			allConns = conns.Union(conns)
-		}
-		res.updateAllowedConnsMap(src, nodeSet, allConns)
-	}
-	for dst, nodeConns := range dstFromNodeSet {
-		allConns := NoConns()
-		for _, conns := range nodeConns {
-			allConns = conns.Union(conns)
-		}
-		res.updateAllowedConnsMap(nodeSet, dst, allConns)
-	}
-	return res
-}
-
-func abstractNodeSet(nodesConn GeneralConnectivityMap, nodeSet NodeSet) GeneralConnectivityMap {
-	srcToDst, nodeSetToNodeSet, dstFromNodeSet, srcToNodeSet := sortByNodeSet(nodesConn, nodeSet)
-	diagnoseConnectivity(dstFromNodeSet, false)
-	diagnoseConnectivity(srcToNodeSet,true)
-	diagnoseConnectivity(nodeSetToNodeSet,true)
-	return mergeWithNodeSet(srcToDst, nodeSetToNodeSet, dstFromNodeSet, srcToNodeSet, nodeSet)
+	return true
 }
 
 func (c *VPCConfig) getFiltersAllowedConnsBetweenNodesPerDirectionAndLayer(
@@ -199,7 +114,7 @@ func (c *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 			continue
 		}
 		src, dst := switchSrcDstNodes(!isIngress, peerNode, capturedNode)
-		if !c.shouldConsiderPairWithLBConnectivity(src, dst) {
+		if !c.allowedWithLBConnectivity(src, dst) {
 			allLayersRes[peerNode] = NoConns()
 			continue
 		}

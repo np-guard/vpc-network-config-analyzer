@@ -79,15 +79,6 @@ func (c *VPCConfig) shouldConsiderPairForConnectivity(r1, r2 VPCResourceIntf) (b
 	return true, nil
 }
 
-func (c *VPCConfig) shouldConsiderPairWithLBConnectivity(r1, r2 Node) bool {
-	for _, lb := range c.LoadBalancers {
-		if lb.DennyConnectivity(r1, r2) {
-			return false
-		}
-	}
-	return true
-}
-
 // getRoutingResource: gets the routing resource and its conn; currently the conn is either all or none
 // may refer to external routing or to routing between vpcs
 // node is associated with either a pgw or a fip for external router;

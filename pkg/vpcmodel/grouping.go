@@ -131,7 +131,7 @@ type GroupConnLines struct {
 	GroupedLines []*groupedConnLine
 }
 
-// EndpointElem can be Node(networkInterface) / groupedExternalNodes / groupedEndpointsElems / NodeSet(subnet)
+// EndpointElem can be Node(networkInterface) / groupedExternalNodes / groupedNetworkInterfaces / NodeSet(subnet)
 type EndpointElem interface {
 	Name() string
 	UID() string
