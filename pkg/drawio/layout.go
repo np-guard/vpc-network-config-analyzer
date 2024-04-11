@@ -781,12 +781,12 @@ func (ly *layoutS) setGroupingIconLocations() {
 			gIcon.Location().xOffset = -gIcon.Location().xOffset
 		}
 	}
+	// set the y offset according to the number of icons in the cell:
 	for cell, cellIcons := range iconsInCell {
 		for i, gIcon := range cellIcons {
 			gIcon.Location().yOffset = cell.r.height() * (2*i - len(cellIcons) + 1) / (len(cellIcons) + 1) / 2
 		}
 	}
-
 }
 
 // ////////////////////////////////////////////////////////////////////////////////////////
