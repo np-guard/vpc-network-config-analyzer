@@ -986,6 +986,9 @@
                     "id": "id:125",
                     "ip_version": "ipv4",
                     "protocol": "all",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "0.0.0.0/0"
                     }
@@ -1033,6 +1036,9 @@
                     "id": "id:129",
                     "ip_version": "ipv4",
                     "protocol": "all",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "0.0.0.0/0"
                     }
@@ -1073,6 +1079,9 @@
                     "id": "id:139",
                     "ip_version": "ipv4",
                     "protocol": "all",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "0.0.0.0/0"
                     }
@@ -1083,6 +1092,9 @@
                     "id": "id:141",
                     "ip_version": "ipv4",
                     "protocol": "all",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "0.0.0.0/0"
                     }
@@ -1129,6 +1141,9 @@
                     "id": "id:158",
                     "ip_version": "ipv4",
                     "protocol": "all",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "0.0.0.0/0"
                     }
@@ -1139,6 +1154,9 @@
                     "id": "id:160",
                     "ip_version": "ipv4",
                     "protocol": "all",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "crn": "crn:154",
                         "href": "href:155",
