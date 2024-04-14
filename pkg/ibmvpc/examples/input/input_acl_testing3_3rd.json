@@ -1317,6 +1317,9 @@
                     "id": "id:152",
                     "ip_version": "ipv4",
                     "protocol": "all",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "0.0.0.0/0"
                     }
@@ -1327,6 +1330,9 @@
                     "id": "id:154",
                     "ip_version": "ipv4",
                     "protocol": "all",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "0.0.0.0/0"
                     }
@@ -1398,6 +1404,9 @@
                     "id": "id:159",
                     "ip_version": "ipv4",
                     "protocol": "all",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "0.0.0.0/0"
                     }
@@ -1408,6 +1417,9 @@
                     "id": "id:161",
                     "ip_version": "ipv4",
                     "protocol": "all",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "crn": "crn:155",
                         "href": "href:156",

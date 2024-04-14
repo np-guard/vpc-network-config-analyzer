@@ -1837,6 +1837,9 @@
                     "href": "href:280",
                     "id": "id:281",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "161.26.0.0/16"
                     },
@@ -1847,6 +1850,9 @@
                     "href": "href:282",
                     "id": "id:283",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "166.8.0.0/14"
                     },
@@ -1857,6 +1863,9 @@
                     "href": "href:284",
                     "id": "id:285",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "172.17.128.0/18"
                     },
@@ -1867,6 +1876,9 @@
                     "href": "href:286",
                     "id": "id:287",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "0.0.0.0/0"
                     },
@@ -1879,6 +1891,9 @@
                     "href": "href:288",
                     "id": "id:289",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "0.0.0.0/0"
                     },
@@ -1891,6 +1906,9 @@
                     "href": "href:290",
                     "id": "id:291",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "172.17.128.0/18"
                     },
@@ -1901,6 +1919,9 @@
                     "href": "href:292",
                     "id": "id:293",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "0.0.0.0/0"
                     },
@@ -1912,6 +1933,9 @@
                     "href": "href:294",
                     "id": "id:295",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "crn": "crn:277",
                         "href": "href:278",
@@ -1925,6 +1949,9 @@
                     "href": "href:296",
                     "id": "id:297",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "crn": "crn:277",
                         "href": "href:278",
@@ -1938,6 +1965,9 @@
                     "href": "href:298",
                     "id": "id:299",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.0.16"
                     },
@@ -1950,6 +1980,9 @@
                     "href": "href:300",
                     "id": "id:301",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.0.16"
                     },
@@ -1962,6 +1995,9 @@
                     "href": "href:302",
                     "id": "id:303",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.64.17"
                     },
@@ -1974,6 +2010,9 @@
                     "href": "href:304",
                     "id": "id:305",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.64.17"
                     },
@@ -1986,6 +2025,9 @@
                     "href": "href:306",
                     "id": "id:307",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.128.16"
                     },
@@ -1998,6 +2040,9 @@
                     "href": "href:308",
                     "id": "id:309",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.128.16"
                     },
@@ -2010,6 +2055,9 @@
                     "href": "href:310",
                     "id": "id:311",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.0.14"
                     },
@@ -2022,6 +2070,9 @@
                     "href": "href:312",
                     "id": "id:313",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.64.10"
                     },
@@ -2034,6 +2085,9 @@
                     "href": "href:314",
                     "id": "id:315",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.128.11"
                     },
@@ -2046,6 +2100,9 @@
                     "href": "href:316",
                     "id": "id:317",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.0.12"
                     },
@@ -2058,6 +2115,9 @@
                     "href": "href:318",
                     "id": "id:319",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.0.12"
                     },
@@ -2070,6 +2130,9 @@
                     "href": "href:320",
                     "id": "id:321",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.64.8"
                     },
@@ -2082,6 +2145,9 @@
                     "href": "href:322",
                     "id": "id:323",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.64.8"
                     },
@@ -2094,6 +2160,9 @@
                     "href": "href:324",
                     "id": "id:325",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.128.4"
                     },
@@ -2106,6 +2175,9 @@
                     "href": "href:326",
                     "id": "id:327",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.128.4"
                     },
@@ -2141,6 +2213,9 @@
                     "href": "href:331",
                     "id": "id:332",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "161.26.0.0/16"
                     },
@@ -2151,6 +2226,9 @@
                     "href": "href:333",
                     "id": "id:334",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "166.8.0.0/14"
                     },
@@ -2161,6 +2239,9 @@
                     "href": "href:335",
                     "id": "id:336",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "172.17.64.0/18"
                     },
@@ -2171,6 +2252,9 @@
                     "href": "href:337",
                     "id": "id:338",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "0.0.0.0/0"
                     },
@@ -2183,6 +2267,9 @@
                     "href": "href:339",
                     "id": "id:340",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "0.0.0.0/0"
                     },
@@ -2195,6 +2282,9 @@
                     "href": "href:341",
                     "id": "id:342",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "172.17.64.0/18"
                     },
@@ -2205,6 +2295,9 @@
                     "href": "href:343",
                     "id": "id:344",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "0.0.0.0/0"
                     },
@@ -2216,6 +2309,9 @@
                     "href": "href:345",
                     "id": "id:346",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "crn": "crn:328",
                         "href": "href:329",
@@ -2229,6 +2325,9 @@
                     "href": "href:347",
                     "id": "id:348",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "crn": "crn:328",
                         "href": "href:329",
@@ -2242,6 +2341,9 @@
                     "href": "href:349",
                     "id": "id:350",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.0.11"
                     },
@@ -2254,6 +2356,9 @@
                     "href": "href:351",
                     "id": "id:352",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.0.11"
                     },
@@ -2266,6 +2371,9 @@
                     "href": "href:353",
                     "id": "id:354",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.64.9"
                     },
@@ -2278,6 +2386,9 @@
                     "href": "href:355",
                     "id": "id:356",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.64.9"
                     },
@@ -2290,6 +2401,9 @@
                     "href": "href:357",
                     "id": "id:358",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.128.9"
                     },
@@ -2302,6 +2416,9 @@
                     "href": "href:359",
                     "id": "id:360",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.128.9"
                     },
@@ -2314,6 +2431,9 @@
                     "href": "href:361",
                     "id": "id:362",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.0.14"
                     },
@@ -2326,6 +2446,9 @@
                     "href": "href:363",
                     "id": "id:364",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.64.10"
                     },
@@ -2338,6 +2461,9 @@
                     "href": "href:365",
                     "id": "id:366",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.128.11"
                     },
@@ -2350,6 +2476,9 @@
                     "href": "href:367",
                     "id": "id:368",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.0.11"
                     },
@@ -2362,6 +2491,9 @@
                     "href": "href:369",
                     "id": "id:370",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.64.9"
                     },
@@ -2374,6 +2506,9 @@
                     "href": "href:371",
                     "id": "id:372",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.128.9"
                     },
@@ -2386,6 +2521,9 @@
                     "href": "href:373",
                     "id": "id:374",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.0.12"
                     },
@@ -2398,6 +2536,9 @@
                     "href": "href:375",
                     "id": "id:376",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.0.12"
                     },
@@ -2410,6 +2551,9 @@
                     "href": "href:377",
                     "id": "id:378",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.64.8"
                     },
@@ -2422,6 +2566,9 @@
                     "href": "href:379",
                     "id": "id:380",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.64.8"
                     },
@@ -2434,6 +2581,9 @@
                     "href": "href:381",
                     "id": "id:382",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.128.4"
                     },
@@ -2446,6 +2596,9 @@
                     "href": "href:383",
                     "id": "id:384",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.128.4"
                     },
@@ -2481,6 +2634,9 @@
                     "href": "href:388",
                     "id": "id:389",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "0.0.0.0/0"
                     },
@@ -2493,6 +2649,9 @@
                     "href": "href:390",
                     "id": "id:391",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "0.0.0.0/0"
                     },
@@ -2505,6 +2664,9 @@
                     "href": "href:392",
                     "id": "id:393",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "0.0.0.0/0"
                     },
@@ -2517,6 +2679,9 @@
                     "href": "href:394",
                     "id": "id:395",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "0.0.0.0/0"
                     },
@@ -2609,6 +2774,9 @@
                     "href": "href:399",
                     "id": "id:400",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "161.26.0.0/16"
                     },
@@ -2619,6 +2787,9 @@
                     "href": "href:401",
                     "id": "id:402",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "166.8.0.0/14"
                     },
@@ -2629,6 +2800,9 @@
                     "href": "href:403",
                     "id": "id:404",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "172.17.0.0/18"
                     },
@@ -2639,6 +2813,9 @@
                     "href": "href:405",
                     "id": "id:406",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "0.0.0.0/0"
                     },
@@ -2651,6 +2828,9 @@
                     "href": "href:407",
                     "id": "id:408",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "0.0.0.0/0"
                     },
@@ -2663,6 +2843,9 @@
                     "href": "href:409",
                     "id": "id:410",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "172.17.0.0/18"
                     },
@@ -2673,6 +2856,9 @@
                     "href": "href:411",
                     "id": "id:412",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "0.0.0.0/0"
                     },
@@ -2684,6 +2870,9 @@
                     "href": "href:413",
                     "id": "id:414",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "crn": "crn:396",
                         "href": "href:397",
@@ -2697,6 +2886,9 @@
                     "href": "href:415",
                     "id": "id:416",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "crn": "crn:396",
                         "href": "href:397",
@@ -2710,6 +2902,9 @@
                     "href": "href:417",
                     "id": "id:418",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.0.7"
                     },
@@ -2722,6 +2917,9 @@
                     "href": "href:419",
                     "id": "id:420",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.0.7"
                     },
@@ -2734,6 +2932,9 @@
                     "href": "href:421",
                     "id": "id:422",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.64.7"
                     },
@@ -2746,6 +2947,9 @@
                     "href": "href:423",
                     "id": "id:424",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.64.7"
                     },
@@ -2758,6 +2962,9 @@
                     "href": "href:425",
                     "id": "id:426",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.128.7"
                     },
@@ -2770,6 +2977,9 @@
                     "href": "href:427",
                     "id": "id:428",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.128.7"
                     },
@@ -2782,6 +2992,9 @@
                     "href": "href:429",
                     "id": "id:430",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.0.7"
                     },
@@ -2794,6 +3007,9 @@
                     "href": "href:431",
                     "id": "id:432",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.64.7"
                     },
@@ -2806,6 +3022,9 @@
                     "href": "href:433",
                     "id": "id:434",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.128.7"
                     },
@@ -2818,6 +3037,9 @@
                     "href": "href:435",
                     "id": "id:436",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.0.14"
                     },
@@ -2830,6 +3052,9 @@
                     "href": "href:437",
                     "id": "id:438",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.64.10"
                     },
@@ -2842,6 +3067,9 @@
                     "href": "href:439",
                     "id": "id:440",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.128.11"
                     },
@@ -2854,6 +3082,9 @@
                     "href": "href:441",
                     "id": "id:442",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.0.12"
                     },
@@ -2866,6 +3097,9 @@
                     "href": "href:443",
                     "id": "id:444",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.0.12"
                     },
@@ -2878,6 +3112,9 @@
                     "href": "href:445",
                     "id": "id:446",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.64.8"
                     },
@@ -2890,6 +3127,9 @@
                     "href": "href:447",
                     "id": "id:448",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.64.8"
                     },
@@ -2902,6 +3142,9 @@
                     "href": "href:449",
                     "id": "id:450",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.128.4"
                     },
@@ -2914,6 +3157,9 @@
                     "href": "href:451",
                     "id": "id:452",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "10.241.128.4"
                     },
@@ -2949,6 +3195,9 @@
                     "href": "href:453",
                     "id": "id:454",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "0.0.0.0/0"
                     },
@@ -2959,6 +3208,9 @@
                     "href": "href:455",
                     "id": "id:456",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "crn": "crn:13",
                         "href": "href:14",
@@ -2972,6 +3224,9 @@
                     "href": "href:457",
                     "id": "id:458",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "0.0.0.0/0"
                     },
@@ -2984,6 +3239,9 @@
                     "href": "href:459",
                     "id": "id:460",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "0.0.0.0/0"
                     },
@@ -3018,6 +3276,9 @@
                     "href": "href:461",
                     "id": "id:462",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "0.0.0.0/0"
                     },
@@ -3028,6 +3289,9 @@
                     "href": "href:463",
                     "id": "id:464",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "crn": "crn:35",
                         "href": "href:36",
@@ -3041,6 +3305,9 @@
                     "href": "href:465",
                     "id": "id:466",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "0.0.0.0/0"
                     },
@@ -3053,6 +3320,9 @@
                     "href": "href:467",
                     "id": "id:468",
                     "ip_version": "ipv4",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "0.0.0.0/0"
                     },
