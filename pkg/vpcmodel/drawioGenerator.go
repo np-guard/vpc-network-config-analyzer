@@ -35,20 +35,23 @@ type DrawioGenerator struct {
 	publicNetwork *drawio.PublicNetworkTreeNode
 	cloud         *drawio.CloudTreeNode
 	treeNodes     map[DrawioResourceIntf]drawio.TreeNodeInterface
+	lbAbstraction bool
 }
 
-func NewDrawioGenerator(cloudName string) *DrawioGenerator {
+func NewDrawioGenerator(cloudName string, lbAbstraction bool) *DrawioGenerator {
 	// creates the top of the tree node - treeNodes that does not represent a specific resource.
 	gen := &DrawioGenerator{}
 	gen.network = drawio.NewNetworkTreeNode()
 	gen.publicNetwork = drawio.NewPublicNetworkTreeNode(gen.network)
 	gen.cloud = drawio.NewCloudTreeNode(gen.network, cloudName)
 	gen.treeNodes = map[DrawioResourceIntf]drawio.TreeNodeInterface{}
+	gen.lbAbstraction = lbAbstraction
 	return gen
 }
 func (gen *DrawioGenerator) Network() *drawio.NetworkTreeNode             { return gen.network }
 func (gen *DrawioGenerator) PublicNetwork() *drawio.PublicNetworkTreeNode { return gen.publicNetwork }
 func (gen *DrawioGenerator) Cloud() *drawio.CloudTreeNode                 { return gen.cloud }
+func (gen *DrawioGenerator) LBAbstraction() bool                          { return gen.lbAbstraction }
 
 func (gen *DrawioGenerator) TreeNode(res DrawioResourceIntf) drawio.TreeNodeInterface {
 	if gen.treeNodes[res] == nil {

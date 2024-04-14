@@ -419,7 +419,7 @@ func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
 // todo: connectivity is computed for the entire network, even though we need only for specific src, dst pairs
 // this is seems the time spent here should be neglectable, not worth the effort of adding dedicated code
 func (details *rulesAndConnDetails) computeConnections(c *VPCConfig, connQuery *connection.Set) error {
-	connectivity, err := c.GetVPCNetworkConnectivity(false) // computes connectivity
+	connectivity, err := c.GetVPCNetworkConnectivity(false,false) // computes connectivity
 	if err != nil {
 		return err
 	}

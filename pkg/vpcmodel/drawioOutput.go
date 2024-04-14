@@ -39,13 +39,15 @@ type DrawioOutputFormatter struct {
 	multiVpcRouters map[string]drawio.IconTreeNodeInterface
 	uc              OutputUseCase
 	outFormat       OutFormat
+	lbAbstraction bool
 }
 
-func newDrawioOutputFormatter(outFormat OutFormat) *DrawioOutputFormatter {
+func newDrawioOutputFormatter(outFormat OutFormat, lbAbstraction bool) *DrawioOutputFormatter {
 	d := DrawioOutputFormatter{}
 	d.outFormat = outFormat
 	d.nodeRouters = map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface{}
 	d.multiVpcRouters = map[string]drawio.IconTreeNodeInterface{}
+	d.lbAbstraction = lbAbstraction
 	return &d
 }
 func (d *DrawioOutputFormatter) init(cConfigs MultipleVPCConfigs, conns map[string]*GroupConnLines, uc OutputUseCase) {
@@ -55,7 +57,7 @@ func (d *DrawioOutputFormatter) init(cConfigs MultipleVPCConfigs, conns map[stri
 	// just take the cloud name from one of the configs
 	_, aVpcConfig := common.AnyMapEntry(cConfigs)
 	cloudName := aVpcConfig.CloudName
-	d.gen = NewDrawioGenerator(cloudName)
+	d.gen = NewDrawioGenerator(cloudName, d.lbAbstraction)
 }
 
 func (d *DrawioOutputFormatter) createDrawioTree() {
@@ -328,8 +330,8 @@ type ArchDrawioOutputFormatter struct {
 	DrawioOutputFormatter
 }
 
-func newArchDrawioOutputFormatter(outFormat OutFormat) *ArchDrawioOutputFormatter {
-	return &ArchDrawioOutputFormatter{*newDrawioOutputFormatter(outFormat)}
+func newArchDrawioOutputFormatter(outFormat OutFormat, lbAbstraction bool) *ArchDrawioOutputFormatter {
+	return &ArchDrawioOutputFormatter{*newDrawioOutputFormatter(outFormat,lbAbstraction)}
 }
 func (d *ArchDrawioOutputFormatter) WriteOutput(c1, c2 MultipleVPCConfigs,
 	conn map[string]*VPCConnectivity,
