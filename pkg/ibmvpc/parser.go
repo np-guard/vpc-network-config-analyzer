@@ -1298,7 +1298,7 @@ func GetLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 		}
 
 		loadBalancer.listeners = getLoadBalancerServer(res, loadBalancerObj, vpcUID)
-		privateIPs, err := getLoadBalancerIPs(res, loadBalancerObj,loadBalancer, vpcUID, vpc, subnetsFreeAddresses)
+		privateIPs, err := getLoadBalancerIPs(res, loadBalancerObj, loadBalancer, vpcUID, vpc, subnetsFreeAddresses)
 		if err != nil {
 			return err
 		}
@@ -1353,12 +1353,12 @@ func getLoadBalancerServer(res map[string]*vpcmodel.VPCConfig,
 		// 	lis.portMax = *lisObj.PortMax
 		// }
 		// lis.protocol = *lisObj.Protocol
-		for _, policy:= range listenerObj.Policies{
+		for _, policy := range listenerObj.Policies {
 			if pool, ok := pools[*policy.Target.(*vpc1.LoadBalancerListenerPolicyTarget).ID]; ok {
 				// todo  - handle rules:
 				//rules := policy.Rules
 				listener = append(listener, pool)
-			}	
+			}
 		}
 		if pool, ok := pools[*listenerObj.DefaultPool.ID]; ok {
 			listener = append(listener, pool)
@@ -1405,7 +1405,9 @@ func getLoadBalancerIPs(res map[string]*vpcmodel.VPCConfig,
 			name = "pip-name-of-" + subnet.Name() + "-" + *loadBalancerObj.Name
 			id = "pip-uid-of-" + subnet.UID() + *loadBalancerObj.ID
 			address = allocSubnetFreeAddress(subnetsFreeAddresses, subnet)
-			publicAddress = *loadBalancerObj.PublicIps[0].Address
+			if hasPublicAddress {
+				publicAddress = *loadBalancerObj.PublicIps[0].Address
+			}
 		}
 		privateIP := &PrivateIP{
 			VPCResource: vpcmodel.VPCResource{

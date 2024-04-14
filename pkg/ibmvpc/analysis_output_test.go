@@ -194,6 +194,18 @@ var tests = []*vpcGeneralTest{
 		format:      vpcmodel.HTML,
 	},
 	{
+		inputConfig: "lb_bad_practice",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.HTML,
+	},
+	{
+		inputConfig: "iks_w_lb",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.HTML,
+	},
+	{
 		inputConfig: "lb_policies",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		grouping:    true,

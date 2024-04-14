@@ -11,6 +11,25 @@ import (
 	"slices"
 )
 
+// the idea of connectivity abstraction of a nodeSet:
+// consider nodeSet NS[N0, N1, N2, N3...]
+// we assume that for every node N,  if we have the connection  N->n0
+// than we also have the connections N->N1, N->N2, N->N3 ...
+// (aka the abstraction assumption)
+// so we replace all these connection with one connection: N->NS.
+
+// the abstraction steps are:
+// 1. splitting the connectivity to for groups:
+//      otherToOther:     connections of <node not in the nodeSet>  ->  <node not in the nodeSet>
+//      nodeSetToNodeSet: connections of <node     in the nodeSet>  ->  <node     in the nodeSet>
+//      otherFromNodeSet: connections of <node     in the nodeSet>  ->  <node not in the nodeSet>
+//      otherToNodeSet:   connections of <node not in the nodeSet>  ->  <node     in the nodeSet>
+// 2. for the last three groups, we check the abstraction assumption holds 
+// 3. we do the abstraction (even if the abstraction assumption does not hold):
+// the connectivity of N->NS is union of all of N->N1, N->N2, N->N3 ...
+// todo: what to do if the abstraction assumption does not hold?
+
+
 func nodeSetConnectivityAbstraction(nodesConn GeneralConnectivityMap, nodeSet NodeSet) GeneralConnectivityMap {
 	otherToOther, nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet := splitConnectivityByNodeSet(nodesConn, nodeSet)
 	diagnoseConnectivityAbstraction(otherFromNodeSet, false)
@@ -18,6 +37,11 @@ func nodeSetConnectivityAbstraction(nodesConn GeneralConnectivityMap, nodeSet No
 	diagnoseConnectivityAbstraction(nodeSetToNodeSet, true)
 	return mergeConnectivityWithNodeSetAbstraction(otherToOther, nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet, nodeSet)
 }
+
+// splitConnectivityByNodeSet() split the connectivity to the four groups
+// each group is kept as GeneralConnectivityMap.
+// usually, GeneralConnectivityMap is a map form src to dst.
+// however, the third group is hold as a map from dst to src.
 
 func splitConnectivityByNodeSet(nodesConn GeneralConnectivityMap, nodeSet NodeSet) (OtherToOther, nodeSetToNodeSet, OtherFromNodeSet, OtherToNodeSet GeneralConnectivityMap) {
 	OtherToOther = GeneralConnectivityMap{}
@@ -44,6 +68,12 @@ func splitConnectivityByNodeSet(nodesConn GeneralConnectivityMap, nodeSet NodeSe
 	}
 	return OtherToOther, nodeSetToNodeSet, OtherFromNodeSet, OtherToNodeSet
 }
+
+// diagnoseConnectivityAbstraction() checks if the abstraction assumption holds
+// it does it on each group separately. 
+// for no it return a string
+// todo: - how to report this string? what format? 
+
 func diagnoseConnectivityAbstraction(connMap GeneralConnectivityMap, isIngress bool) string{
 	res := ""
 	for node1, nodeConns := range connMap {
@@ -68,38 +98,47 @@ func diagnoseConnectivityAbstraction(connMap GeneralConnectivityMap, isIngress b
 			}
 		}
 	}
+	if res != ""{
+		fmt.Println(res)
+	}
 	return res
 }
 
+// mergeConnectivityWithNodeSetAbstraction() merge the four groups, while abstracting the connections
 func mergeConnectivityWithNodeSetAbstraction(otherToOther, nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet GeneralConnectivityMap, nodeSet NodeSet) GeneralConnectivityMap {
+	// first make a copy of otherToOther, to be the result:
 	res := GeneralConnectivityMap{}
 	for src, nodeConns := range otherToOther {
 		for dst, conns := range nodeConns {
 			res.updateAllowedConnsMap(src, dst, conns)
 		}
 	}
-
+	// all the connections inside the nodeSet are union to one connectivity, added to the result:
 	allConns := NoConns()
 	for _, nodeConns := range nodeSetToNodeSet {
 		for _, conns := range nodeConns {
-			allConns = conns.Union(conns)
+			allConns = allConns.Union(conns)
 		}
 	}
 	res.updateAllowedConnsMap(nodeSet, nodeSet, allConns)
 
-	for src, nodeConns := range otherToNodeSet {
-		allConns := NoConns()
-		for _, conns := range nodeConns {
-			allConns = conns.Union(conns)
-		}
-		res.updateAllowedConnsMap(src, nodeSet, allConns)
-	}
+	// all connection from the nodeSet to a node, are union and added to the result:
 	for dst, nodeConns := range otherFromNodeSet {
 		allConns := NoConns()
 		for _, conns := range nodeConns {
-			allConns = conns.Union(conns)
+			allConns = allConns.Union(conns)
 		}
 		res.updateAllowedConnsMap(nodeSet, dst, allConns)
 	}
+
+	// all connection from a node to the nodeSet, are union and added to the result:
+	for src, nodeConns := range otherToNodeSet {
+		allConns := NoConns()
+		for _, conns := range nodeConns {
+			allConns = allConns.Union(conns)
+		}
+		res.updateAllowedConnsMap(src, nodeSet, allConns)
+	}
+
 	return res
 }
