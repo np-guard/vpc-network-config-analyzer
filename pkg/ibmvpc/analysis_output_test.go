@@ -229,7 +229,6 @@ var tests = []*vpcGeneralTest{
 		grouping:    true,
 		format:      vpcmodel.Debug,
 	},
-
 }
 
 var tests2 = []*vpcGeneralTest{

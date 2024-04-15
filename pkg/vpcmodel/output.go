@@ -149,9 +149,9 @@ func (o *OutputGenerator) Generate(f OutFormat, outFile string) (string, error) 
 	case JSON, Text, MD, Debug:
 		formatter = &serialOutputFormatter{f}
 	case DRAWIO, SVG, HTML:
-		formatter = newDrawioOutputFormatter(f,o.lbAbstraction)
+		formatter = newDrawioOutputFormatter(f, o.lbAbstraction)
 	case ARCHDRAWIO, ARCHSVG, ARCHHTML:
-		formatter = newArchDrawioOutputFormatter(f,o.lbAbstraction)
+		formatter = newArchDrawioOutputFormatter(f, o.lbAbstraction)
 	default:
 		return "", errors.New("unsupported output format")
 	}

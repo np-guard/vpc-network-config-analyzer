@@ -39,7 +39,7 @@ type DrawioOutputFormatter struct {
 	multiVpcRouters map[string]drawio.IconTreeNodeInterface
 	uc              OutputUseCase
 	outFormat       OutFormat
-	lbAbstraction bool
+	lbAbstraction   bool
 }
 
 func newDrawioOutputFormatter(outFormat OutFormat, lbAbstraction bool) *DrawioOutputFormatter {
@@ -331,7 +331,7 @@ type ArchDrawioOutputFormatter struct {
 }
 
 func newArchDrawioOutputFormatter(outFormat OutFormat, lbAbstraction bool) *ArchDrawioOutputFormatter {
-	return &ArchDrawioOutputFormatter{*newDrawioOutputFormatter(outFormat,lbAbstraction)}
+	return &ArchDrawioOutputFormatter{*newDrawioOutputFormatter(outFormat, lbAbstraction)}
 }
 func (d *ArchDrawioOutputFormatter) WriteOutput(c1, c2 MultipleVPCConfigs,
 	conn map[string]*VPCConnectivity,
