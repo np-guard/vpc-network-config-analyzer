@@ -95,13 +95,13 @@ func checkConnectivityAbstractionValidity(connMap GeneralConnectivityMap, nodeSe
 			}
 			for conn, nodes := range allConns {
 				res += "    "
-				if !isIngress {
+				if isIngress {
 					res += fmt.Sprintf("%s -> ", node1.Name())
 				}
 				for _, n := range nodes {
 					res += fmt.Sprintf("%s,", n.Name())
 				}
-				if isIngress {
+				if !isIngress {
 					res += fmt.Sprintf(" -> %s", node1.Name())
 				}
 				res += fmt.Sprintf(" %s\n", conn)
