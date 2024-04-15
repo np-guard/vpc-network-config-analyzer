@@ -80,6 +80,7 @@ type Explanation struct {
 	groupedLines []*groupedConnLine
 }
 
+// ExplainConnectivity Explain connectivity of a single <src, dst> couple given by the user
 func (configsMap MultipleVPCConfigs) ExplainConnectivity(src, dst string, connQuery *connection.Set) (res *Explanation, err error) {
 	vpcConfig, srcNodes, dstNodes, isSrcDstInternalIP, err := configsMap.getVPCConfigAndSrcDstNodes(src, dst)
 	if err != nil {
@@ -88,15 +89,16 @@ func (configsMap MultipleVPCConfigs) ExplainConnectivity(src, dst string, connQu
 	if vpcConfig == nil && err == nil {
 		// No error and also no matching vpc config for both src and dst: missing cross-vpc router.
 		// No VPCConfig to work with in this case, thus, this case is treated separately
-		return &Explanation{nil, connQuery, nil, src, dst, nil, nil, false, nil}, nil
+		return &Explanation{nil, connQuery, nil, src, dst,
+			nil, nil, false, nil}, nil
 	}
-	return vpcConfig.explainConnectivityForVPC(src, dst, srcNodes, dstNodes, isSrcDstInternalIP, connQuery)
+	return vpcConfig.explainConnectivityForVPC(src, dst, srcNodes, dstNodes, isSrcDstInternalIP, connQuery, nil)
 }
 
 // explainConnectivityForVPC for a vpcConfig, given src, dst and connQuery returns a struct with all explanation details
 // nil connQuery means connection is not part of the query
 func (c *VPCConfig) explainConnectivityForVPC(src, dst string, srcNodes, dstNodes []Node, isSrcDstInternalIP srcDstInternalAddr,
-	connQuery *connection.Set) (res *Explanation, err error) {
+	connQuery *connection.Set, connectivity *VPCConnectivity) (res *Explanation, err error) {
 	// we do not support multiple configs, yet
 	rulesAndDetails, err1 := c.computeExplainRules(srcNodes, dstNodes, connQuery)
 	if err1 != nil {
@@ -104,7 +106,8 @@ func (c *VPCConfig) explainConnectivityForVPC(src, dst string, srcNodes, dstNode
 	}
 	// finds connEnabled and the existing connection between src and dst if connQuery nil,
 	// otherwise the part of the connection intersecting connQuery
-	err2 := rulesAndDetails.computeConnections(c, connQuery)
+	// if we are in multi-explanation mode then *VPCConnectivity was already computed
+	err2 := rulesAndDetails.computeConnections(c, connQuery, connectivity)
 	if err2 != nil {
 		return nil, err2
 	}
@@ -418,10 +421,13 @@ func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
 // if conn specified in the query then the relevant connection is their intersection
 // todo: connectivity is computed for the entire network, even though we need only for specific src, dst pairs
 // this is seems the time spent here should be neglectable, not worth the effort of adding dedicated code
-func (details *rulesAndConnDetails) computeConnections(c *VPCConfig, connQuery *connection.Set) error {
-	connectivity, err := c.GetVPCNetworkConnectivity(false) // computes connectivity
-	if err != nil {
-		return err
+func (details *rulesAndConnDetails) computeConnections(c *VPCConfig,
+	connQuery *connection.Set, connectivity *VPCConnectivity) (err error) {
+	if connectivity == nil {
+		connectivity, err = c.GetVPCNetworkConnectivity(false) // computes connectivity
+		if err != nil {
+			return err
+		}
 	}
 	for _, srcDstDetails := range *details {
 		conn, err := connectivity.getConnection(c, srcDstDetails.src, srcDstDetails.dst)
