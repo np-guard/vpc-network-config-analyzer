@@ -70,7 +70,7 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping, lbAbstraction bool) (res
 
 func (c *VPCConfig) allowedWithLBConnectivity(src, dst Node) bool {
 	for _, lb := range c.LoadBalancers {
-		if lb.DennyConnectivity(src, dst) {
+		if !lb.AllowConnectivity(src, dst) {
 			return false
 		}
 	}

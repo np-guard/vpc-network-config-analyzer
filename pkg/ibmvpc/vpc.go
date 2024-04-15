@@ -234,8 +234,11 @@ func (lb *LoadBalancer) Nodes() []vpcmodel.Node {
 func (lb *LoadBalancer) AddressRange() *ipblock.IPBlock {
 	return nodesAddressRange(lb.nodes)
 }
-func (lb *LoadBalancer) DennyConnectivity(src, dst vpcmodel.Node) bool {
-	return slices.Contains(lb.Nodes(), src) && !slices.Contains(lb.members(), dst)
+
+// AllowConnectivity() - check if lb allow connection from src to dst
+// currently only a boolean function, will be elaborated when parsing policies rules
+func (lb *LoadBalancer) AllowConnectivity(src, dst vpcmodel.Node) bool {
+	return !slices.Contains(lb.Nodes(), src) || slices.Contains(lb.members(), dst)
 }
 
 func (lb *LoadBalancer) members() []vpcmodel.Node {

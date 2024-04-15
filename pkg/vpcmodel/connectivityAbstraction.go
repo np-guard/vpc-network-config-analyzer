@@ -11,12 +11,12 @@ import (
 	"slices"
 )
 
-// the idea of connectivity abstraction of a nodeSet:
+// connectivity abstraction of a nodeSet:
 // consider nodeSet NS[N0, N1, N2, N3...]
-// we assume that for every node N,  if we have the connection  N->n0
-// than we also have the connections N->N1, N->N2, N->N3 ...
-// (aka the abstraction assumption)
-// so we replace all these connection with one connection: N->NS.
+// we assume that for every node N,  if we have the connection  N->N0
+// then we also have the connections N->N1, N->N2, N->N3 ...
+// we will call it the abstraction assumption
+// so we replace all these connections with one connection: N->NS.
 
 // the abstraction steps are:
 // 1. splitting the connectivity to for groups:
@@ -25,7 +25,7 @@ import (
 //      otherFromNodeSet: connections of   <node     in the nodeSet>  ->  <node not in the nodeSet>
 //      otherToNodeSet:   connections of   <node not in the nodeSet>  ->  <node     in the nodeSet>
 // 2. for the last three groups, we check the abstraction assumption holds
-// 3. we do the abstraction (even if the abstraction assumption does not hold):
+// 3. we do the abstraction ( for now, even if the abstraction assumption does not hold):
 // the connectivity of N->NS is union of all of N->N1, N->N2, N->N3 ...
 // todo: what to do if the abstraction assumption does not hold?
 
@@ -108,10 +108,10 @@ func checkConnectivityAbstractionValidity(connMap GeneralConnectivityMap, nodeSe
 			}
 		}
 	}
-	if res != "" {
-		fmt.Println("--------------------------------------------------------------")
-		fmt.Println(res)
-	}
+	// if res != "" {
+	// 	fmt.Println("--------------------------------------------------------------")
+	// 	fmt.Println(res)
+	// }
 	return res
 }
 
