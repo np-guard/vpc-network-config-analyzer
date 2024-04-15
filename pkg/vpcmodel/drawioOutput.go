@@ -203,6 +203,9 @@ func (d *DrawioOutputFormatter) createEdges() {
 }
 
 func (d *DrawioOutputFormatter) createExplanations() []drawio.ExplanationEntry {
+	if d.outFormat != HTML{
+		return nil
+	}
 	allEndpoints := map[EndpointElem]*VPCConfig{}
 	multiVpcEndpoints := map[EndpointElem]map[EndpointElem]*VPCConfig{}
 	allExternal := map[EndpointElem]bool{}
@@ -268,9 +271,7 @@ func (d *DrawioOutputFormatter) createExplanations() []drawio.ExplanationEntry {
 		}
 	}
 	expRes, _ := MultiExplain(exp)
-	l := len(allEndpoints) + len(allExternal)
-	l= l*l
-	explanationsList := make([]drawio.ExplanationEntry, l)
+	explanationsList := make([]drawio.ExplanationEntry, len(expRes))
 	for i, e := range expRes {
 		explanationsList[i] = drawio.ExplanationEntry{Src: d.gen.TreeNode(exp[i].src), Dst: d.gen.TreeNode(exp[i].dst), Text: e.String(true)}
 	}
