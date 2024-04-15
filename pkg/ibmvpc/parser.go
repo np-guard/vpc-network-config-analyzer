@@ -1282,6 +1282,9 @@ func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 	res map[string]*vpcmodel.VPCConfig,
 	skipByVPC map[string]bool,
 ) (err error) {
+	if len(rc.LBList) == 0 {
+		return
+	}
 	subnetsFreeAddresses := getSubnetsFreeAddresses(rc, res)
 	for _, loadBalancerObj := range rc.LBList {
 		vpcUID, err := getLoadBalancerVpcUID(rc, loadBalancerObj)
