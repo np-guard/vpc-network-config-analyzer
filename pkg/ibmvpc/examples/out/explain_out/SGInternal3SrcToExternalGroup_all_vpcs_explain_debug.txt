@@ -2,14 +2,14 @@ Connectivity explanation between 10.240.30.4/24 (vsi3a-ky[10.240.30.5], vsi3b-ky
 ========================================================================================================================================================================
 
 No connection between db-endpoint-gateway-ky[10.240.30.6] and Public Internet 161.0.0.0/8;
- no fip/pgw and dst is external
+no fip/pgw and dst is external
 ------------------------------------------------------------------------------------------------------------------------
 
 No connection between vsi3a-ky[10.240.30.5] and Public Internet 161.0.0.0/8;
- no fip/pgw and dst is external
+no fip/pgw and dst is external
 ------------------------------------------------------------------------------------------------------------------------
 
 No connection between vsi3b-ky[10.240.30.4] and Public Internet 161.0.0.0/8;
- no fip/pgw and dst is external
+no fip/pgw and dst is external
 ------------------------------------------------------------------------------------------------------------------------
 

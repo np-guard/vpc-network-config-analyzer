@@ -147,21 +147,21 @@ func (g *groupedConnLine) explainPerCaseStr(src, dst EndpointElem,
 	headerPlusPath := resourceEffectHeader + path
 	switch {
 	case crossVpcRouterRequired(src, dst) && crossVpcRouter != nil && crossVpcConnection.IsEmpty():
-		return fmt.Sprintf("%v\nconnection blocked since transit gateway denies route between src and dst"+
-			doubleNLWithVars, noConnection, headerPlusPath, details)
+		return fmt.Sprintf("%vconnection blocked since transit gateway denies route between "+
+			"src and dst\n\n%v\n%v", noConnection, headerPlusPath, details)
 	case externalRouter == nil && src.IsExternal():
-		return fmt.Sprintf("%v no fip and src is external (fip is required for "+
+		return fmt.Sprintf("%vno fip and src is external (fip is required for "+
 			"outbound external connection)\n", noConnection)
 	case externalRouter == nil && dst.IsExternal():
-		return fmt.Sprintf("%v no fip/pgw and dst is external\n", noConnection)
+		return fmt.Sprintf("%vno fip/pgw and dst is external\n", noConnection)
 	case ingressBlocking && egressBlocking:
-		return fmt.Sprintf("%v connection blocked both by ingress and egress\n%v\n%v", noConnection,
+		return fmt.Sprintf("%vconnection blocked both by ingress and egress\n\n%v\n%v", noConnection,
 			headerPlusPath, details)
 	case ingressBlocking:
-		return fmt.Sprintf("%v connection blocked by ingress\n%v\n%v", noConnection,
+		return fmt.Sprintf("%vconnection blocked by ingress\n\n%v\n%v", noConnection,
 			headerPlusPath, details)
 	case egressBlocking:
-		return fmt.Sprintf("%v connection blocked by egress\n%v\n%v", noConnection,
+		return fmt.Sprintf("%vconnection blocked by egress\n\n%v\n%v", noConnection,
 			headerPlusPath, details)
 	default: // there is a connection
 		return existingConnectionStr(connQuery, src, dst, conn, path, details)
