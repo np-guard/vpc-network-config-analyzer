@@ -20,7 +20,7 @@ const space = " "
 const comma = ", "
 const newLine = "\n"
 const doubleNL = "\n\n"
-const doubleNLWithVars = "\n%v\n%v"
+const tripleNLVars = "\n\n%s\n%s"
 const emptyString = ""
 
 // header of txt/debug format
@@ -147,21 +147,21 @@ func (g *groupedConnLine) explainPerCaseStr(src, dst EndpointElem,
 	headerPlusPath := resourceEffectHeader + path
 	switch {
 	case crossVpcRouterRequired(src, dst) && crossVpcRouter != nil && crossVpcConnection.IsEmpty():
-		return fmt.Sprintf("%vconnection blocked since transit gateway denies route between "+
-			"src and dst\n\n%v\n%v", noConnection, headerPlusPath, details)
+		return fmt.Sprintf("%vconnection blocked since transit gateway denies route between src and dst"+tripleNLVars,
+			noConnection, headerPlusPath, details)
 	case externalRouter == nil && src.IsExternal():
 		return fmt.Sprintf("%vno fip and src is external (fip is required for "+
 			"outbound external connection)\n", noConnection)
 	case externalRouter == nil && dst.IsExternal():
 		return fmt.Sprintf("%vno fip/pgw and dst is external\n", noConnection)
 	case ingressBlocking && egressBlocking:
-		return fmt.Sprintf("%vconnection blocked both by ingress and egress\n\n%v\n%v", noConnection,
+		return fmt.Sprintf("%vconnection blocked both by ingress and egress"+tripleNLVars, noConnection,
 			headerPlusPath, details)
 	case ingressBlocking:
-		return fmt.Sprintf("%vconnection blocked by ingress\n\n%v\n%v", noConnection,
+		return fmt.Sprintf("%vconnection blocked by ingress"+tripleNLVars, noConnection,
 			headerPlusPath, details)
 	case egressBlocking:
-		return fmt.Sprintf("%vconnection blocked by egress\n\n%v\n%v", noConnection,
+		return fmt.Sprintf("%vconnection blocked by egress"+tripleNLVars, noConnection,
 			headerPlusPath, details)
 	default: // there is a connection
 		return existingConnectionStr(connQuery, src, dst, conn, path, details)
