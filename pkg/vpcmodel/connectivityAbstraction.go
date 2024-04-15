@@ -20,21 +20,20 @@ import (
 
 // the abstraction steps are:
 // 1. splitting the connectivity to for groups:
-//      otherToOther:     connections of <node not in the nodeSet>  ->  <node not in the nodeSet>
-//      nodeSetToNodeSet: connections of <node     in the nodeSet>  ->  <node     in the nodeSet>
-//      otherFromNodeSet: connections of <node     in the nodeSet>  ->  <node not in the nodeSet>
-//      otherToNodeSet:   connections of <node not in the nodeSet>  ->  <node     in the nodeSet>
-// 2. for the last three groups, we check the abstraction assumption holds 
+//      otherToOther:     connections of   <node not in the nodeSet>  ->  <node not in the nodeSet>
+//      nodeSetToNodeSet: connections of   <node     in the nodeSet>  ->  <node     in the nodeSet>
+//      otherFromNodeSet: connections of   <node     in the nodeSet>  ->  <node not in the nodeSet>
+//      otherToNodeSet:   connections of   <node not in the nodeSet>  ->  <node     in the nodeSet>
+// 2. for the last three groups, we check the abstraction assumption holds
 // 3. we do the abstraction (even if the abstraction assumption does not hold):
 // the connectivity of N->NS is union of all of N->N1, N->N2, N->N3 ...
 // todo: what to do if the abstraction assumption does not hold?
 
-
 func nodeSetConnectivityAbstraction(nodesConn GeneralConnectivityMap, nodeSet NodeSet) GeneralConnectivityMap {
 	otherToOther, nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet := splitConnectivityByNodeSet(nodesConn, nodeSet)
-	diagnoseConnectivityAbstraction(otherFromNodeSet, false)
-	diagnoseConnectivityAbstraction(otherToNodeSet, true)
-	diagnoseConnectivityAbstraction(nodeSetToNodeSet, true)
+	checkConnectivityAbstractionValidity(otherFromNodeSet, nodeSet, false)
+	checkConnectivityAbstractionValidity(otherToNodeSet, nodeSet, true)
+	checkConnectivityAbstractionValidity(nodeSetToNodeSet, nodeSet, true)
 	return mergeConnectivityWithNodeSetAbstraction(otherToOther, nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet, nodeSet)
 }
 
@@ -70,11 +69,11 @@ func splitConnectivityByNodeSet(nodesConn GeneralConnectivityMap, nodeSet NodeSe
 }
 
 // diagnoseConnectivityAbstraction() checks if the abstraction assumption holds
-// it does it on each group separately. 
-// for no it return a string
-// todo: - how to report this string? what format? 
+// it does it on each group separately.
+// for now it return a string
+// todo: - how to report this string? what format?
 
-func diagnoseConnectivityAbstraction(connMap GeneralConnectivityMap, isIngress bool) string{
+func checkConnectivityAbstractionValidity(connMap GeneralConnectivityMap, nodeSet NodeSet, isIngress bool) string {
 	res := ""
 	for node1, nodeConns := range connMap {
 		allConns := map[string][]VPCResourceIntf{}
@@ -82,9 +81,20 @@ func diagnoseConnectivityAbstraction(connMap GeneralConnectivityMap, isIngress b
 			// todo - is string unique?
 			allConns[conn.String()] = append(allConns[conn.String()], node2)
 		}
-		if len(allConns) > 1 {
-			res += fmt.Sprintf(" node %s has different access %s the nodeSet:\n", node1.Name(), map[bool]string{false: "from", true: "to"}[isIngress])
+		if len(allConns) > 1 || len(nodeConns) != len(nodeSet.Nodes()) {
+			directionAdjective := map[bool]string{false: "from", true: "to"}[isIngress]
+			res += fmt.Sprintf("node %s has different access %s %s:\n", node1.Name(), directionAdjective, nodeSet.Name())
+			if len(nodeConns) != len(nodeSet.Nodes()) {
+				res += fmt.Sprintf("    it has no access %s ", directionAdjective)
+				for _, node2 := range nodeSet.Nodes() {
+					if _, ok := nodeConns[node2]; !ok {
+						res += fmt.Sprintf("%s, ", node2.Name())
+					}
+				}
+				res += "\n"
+			}
 			for conn, nodes := range allConns {
+				res += "    "
 				if !isIngress {
 					res += fmt.Sprintf("%s -> ", node1.Name())
 				}
@@ -98,7 +108,8 @@ func diagnoseConnectivityAbstraction(connMap GeneralConnectivityMap, isIngress b
 			}
 		}
 	}
-	if res != ""{
+	if res != "" {
+		fmt.Println("--------------------------------------------------------------")
 		fmt.Println(res)
 	}
 	return res
