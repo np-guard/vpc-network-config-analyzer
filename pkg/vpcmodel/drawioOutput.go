@@ -202,65 +202,79 @@ func (d *DrawioOutputFormatter) createEdges() {
 	}
 }
 
-// explainableEndpoints() createExplanations() to be reimplement with real Shiri work
 func (d *DrawioOutputFormatter) createExplanations() []drawio.ExplanationEntry {
-	type expKey struct {
-		src, dst EndpointElem
-	}
-	explanations := map[expKey]string{}
-	allEndpoints := d.explainableEndpoints()
-	for _, src := range allEndpoints {
-		for _, dst := range allEndpoints {
-			explanations[expKey{src, dst}] = "No Connectivity from " + src.Name() + " to " + dst.Name()
+	allEndpoints := map[EndpointElem]*VPCConfig{}
+	multiVpcEndpoints := map[EndpointElem]map[EndpointElem]*VPCConfig{}
+	allExternal := map[EndpointElem]bool{}
+	for _, vpcConfig := range d.cConfigs {
+		if !vpcConfig.IsMultipleVPCsConfig {
+			for _, n := range vpcConfig.Nodes {
+				if !n.IsExternal() && d.showResource(n) {
+					allEndpoints[n] = vpcConfig
+				}
+			}
 		}
 	}
 	for _, vpcConn := range d.conns {
 		for _, line := range vpcConn.GroupedLines {
-			srcs := []EndpointElem{line.src}
-			dsts := []EndpointElem{line.dst}
-			if srcList, ok := line.src.(*groupedEndpointsElems); ok {
-				srcs = *srcList
+			if eSrc, ok := line.src.(*ExternalNetwork); ok {
+				allExternal[eSrc] = true
 			}
-			if dstList, ok := line.dst.(*groupedEndpointsElems); ok {
-				dsts = *dstList
+			if eDst, ok := line.dst.(*ExternalNetwork); ok {
+				allExternal[eDst] = true
 			}
-			for _, src := range srcs {
-				for _, dst := range dsts {
-					explanations[expKey{src, dst}] = line.String()
+		}
+	}
+	for vpcName, vpcConfig := range d.cConfigs {
+		if vpcConfig.IsMultipleVPCsConfig {
+			vpcConn := d.conns[vpcName]
+			for _, line := range vpcConn.GroupedLines {
+				srcs := []EndpointElem{line.src}
+				dsts := []EndpointElem{line.dst}
+				if srcList, ok := line.src.(*groupedEndpointsElems); ok {
+					srcs = *srcList
+				}
+				if dstList, ok := line.dst.(*groupedEndpointsElems); ok {
+					dsts = *dstList
+				}
+				for _, src := range srcs {
+					for _, dst := range dsts {
+						if _, ok := multiVpcEndpoints[src]; !ok{
+							multiVpcEndpoints[src] = map[EndpointElem]*VPCConfig{}
+						}
+						multiVpcEndpoints[src][dst] = vpcConfig
+					}
 				}
 			}
 		}
 	}
-	explanationsList := make([]drawio.ExplanationEntry, len(explanations))
-	i := 0
-	for k, e := range explanations {
-		explanationsList[i] = drawio.ExplanationEntry{Src: d.gen.TreeNode(k.src), Dst: d.gen.TreeNode(k.dst), Text: e}
-		i++
+
+	exp := []srcDstEndPoint{}
+	for src, srcConfig := range allEndpoints {
+		for dst, dstConfig := range allEndpoints {
+			var vpcConfig *VPCConfig
+			if multiVpcConfig, ok := multiVpcEndpoints[src][dst]; ok {
+				vpcConfig = multiVpcConfig
+			} else if srcConfig == dstConfig {
+				vpcConfig = srcConfig
+			}else{
+				continue
+			}
+			exp = append(exp, srcDstEndPoint{vpcConfig, src, dst})
+		}
+		for external := range allExternal {
+			exp = append(exp, srcDstEndPoint{srcConfig, src, external})
+			exp = append(exp, srcDstEndPoint{srcConfig, external, src})
+		}
+	}
+	expRes, _ := MultiExplain(exp)
+	l := len(allEndpoints) + len(allExternal)
+	l= l*l
+	explanationsList := make([]drawio.ExplanationEntry, l)
+	for i, e := range expRes {
+		explanationsList[i] = drawio.ExplanationEntry{Src: d.gen.TreeNode(exp[i].src), Dst: d.gen.TreeNode(exp[i].dst), Text: e.String(true)}
 	}
 	return explanationsList
-}
-
-func (d *DrawioOutputFormatter) explainableEndpoints() []EndpointElem {
-	subnetMode := d.uc == AllSubnets
-	allEndpoints := []EndpointElem{}
-	for _, vpcConfig1 := range d.cConfigs {
-		if !vpcConfig1.IsMultipleVPCsConfig {
-			if !subnetMode {
-				for _, n := range vpcConfig1.Nodes {
-					if !n.IsExternal() && d.showResource(n) {
-						allEndpoints = append(allEndpoints, n)
-					}
-				}
-			} else {
-				for _, s := range vpcConfig1.Subnets {
-					if d.showResource(s) {
-						allEndpoints = append(allEndpoints, s)
-					}
-				}
-			}
-		}
-	}
-	return allEndpoints
 }
 
 func (d *DrawioOutputFormatter) showResource(res DrawioResourceIntf) bool {

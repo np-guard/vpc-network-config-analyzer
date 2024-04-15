@@ -11,7 +11,7 @@ type srcDstEndPoint struct {
 // MultiExplain multi-explanation mode: given a slice of <VPCConfig, Endpoint, Endpoint> such that each Endpoint is either
 // a vsi or grouped external addresses of the given config, returns a corresponding slice of [] *Explanation
 func MultiExplain(srcDstCouples []srcDstEndPoint) (multiExplanation []*Explanation, err error) {
-	multiExplanation = []*Explanation{}
+	multiExplanation = make([]*Explanation, len(srcDstCouples))
 	vpcsConnects := map[string]*VPCConnectivity{}
 	for i, v := range srcDstCouples {
 		srcNodes, errSrc := getNodesFromEndpoint(v.src)
