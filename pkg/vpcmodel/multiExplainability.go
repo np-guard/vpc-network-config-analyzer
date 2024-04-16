@@ -18,8 +18,9 @@ type extendedExplain struct {
 	explain *Explanation
 	err     error
 }
-func (e *extendedExplain)String() string{
-	if e.err != nil{
+
+func (e *extendedExplain) String() string {
+	if e.err != nil {
 		return e.err.Error()
 	}
 	return e.explain.String(true)
@@ -29,7 +30,6 @@ func (e *extendedExplain)String() string{
 // a vsi or grouped external addresses of the given config, returns []extendedExplain where item i provides explaination to input i
 func MultiExplain(srcDstCouples []srcDstEndPoint, vpcConns map[string]*VPCConnectivity) []extendedExplain {
 	multiExplanation := make([]extendedExplain, len(srcDstCouples))
-	vpcsConnects := map[string]*VPCConnectivity{}
 	for i, v := range srcDstCouples {
 		emptyExplain := &Explanation{nil, nil, nil, v.src.Name(), v.dst.Name(),
 			nil, nil, false, nil}
@@ -50,10 +50,10 @@ func MultiExplain(srcDstCouples []srcDstEndPoint, vpcConns map[string]*VPCConnec
 		}
 		var connectivity *VPCConnectivity
 		var ok bool
-		if connectivity, ok = vpcsConnects[v.c.VPC.Name()]; !ok {
-			//todo:
-			connectivity, _ = v.c.GetVPCNetworkConnectivity(false) // computes connectivity
-			vpcsConnects[v.c.VPC.Name()] = connectivity
+		if connectivity, ok = vpcConns[v.c.VPC.Name()]; !ok {
+			errConn := fmt.Errorf("npGuard eror: missing connectivity computation for %v in MultiExplain", v.c.VPC.Name())
+			multiExplanation[i] = extendedExplain{emptyExplain, errConn}
+			continue
 		}
 		explain, errExplain := v.c.explainConnectivityForVPC(v.src.Name(), v.dst.Name(), srcNodes, dstNodes,
 			srcDstInternalAddr{false, false}, nil, connectivity)
