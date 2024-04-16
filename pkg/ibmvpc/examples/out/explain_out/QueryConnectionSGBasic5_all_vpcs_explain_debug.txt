@@ -2,7 +2,8 @@ Connectivity explanation for protocol: UDP src-ports: 10-100 dst-ports: 443 betw
 ============================================================================================================================
 
 There is no connection "protocol: UDP src-ports: 10-100 dst-ports: 443" between vsi1-ky[10.240.10.4] and vsi3a-ky[10.240.30.5];
- connection blocked both by ingress and egress
+connection blocked both by ingress and egress
+
 Egress: security group sg1-ky blocks connection; network ACL acl1-ky allows connection
 Ingress: network ACL acl3-ky allows connection; security group sg3-ky blocks connection
 
