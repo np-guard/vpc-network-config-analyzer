@@ -10,9 +10,11 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 	"github.com/stretchr/testify/require"
+
+	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
+
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
 func TestSGRule(t *testing.T) {
