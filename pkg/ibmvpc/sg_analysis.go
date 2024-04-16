@@ -181,14 +181,13 @@ func (sga *SGAnalyzer) getProtocolAllRule(ruleObj *vpc1.SecurityGroupRuleSecurit
 	ruleRes.local = local
 	ruleRes.connections = getAllConnSet()
 	return ruleStr, ruleRes, isIngress, nil
-
 }
 
 func (sga *SGAnalyzer) getProtocolTcpudpRule(ruleObj *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudp) (
 	ruleStr string, ruleRes *SGRule, isIngress bool, err error) {
 	direction := *ruleObj.Direction
 	isIngress = isIngressRule(ruleObj.Direction)
-	target, cidr, err := sga.getRemoteCidr(ruleObj.Remote)
+	target, remoteCidr, err := sga.getRemoteCidr(ruleObj.Remote)
 	if err != nil {
 		return "", nil, false, err
 	}
@@ -200,7 +199,7 @@ func (sga *SGAnalyzer) getProtocolTcpudpRule(ruleObj *vpc1.SecurityGroupRuleSecu
 	dstPortMax := getProperty(ruleObj.PortMax, connection.MaxPort)
 	dstPorts := fmt.Sprintf("%d-%d", dstPortMin, dstPortMax)
 	connStr := fmt.Sprintf("protocol: %s,  dstPorts: %s", *ruleObj.Protocol, dstPorts)
-	ruleStr = getRuleStr(direction, connStr, cidr, localCidr)
+	ruleStr = getRuleStr(direction, connStr, remoteCidr, localCidr)
 	ruleRes = &SGRule{
 		// TODO: src ports can be considered here?
 		connections: getTCPUDPConns(*ruleObj.Protocol,
@@ -215,8 +214,8 @@ func (sga *SGAnalyzer) getProtocolTcpudpRule(ruleObj *vpc1.SecurityGroupRuleSecu
 	return ruleStr, ruleRes, isIngress, nil
 }
 
-func getRuleStr(direction, connStr, cidr string, localCidr string) string {
-	return fmt.Sprintf("direction: %s,  conns: %s, cidr: %s, localCidr: %s\n", direction, connStr, cidr, localCidr)
+func getRuleStr(direction, connStr, remoteCidr, localCidr string) string {
+	return fmt.Sprintf("direction: %s,  conns: %s, remoteCidr: %s, localCidr: %s\n", direction, connStr, remoteCidr, localCidr)
 }
 
 func getICMPconn(icmpType, icmpCode *int64) *connection.Set {
@@ -229,7 +228,7 @@ func getICMPconn(icmpType, icmpCode *int64) *connection.Set {
 
 func (sga *SGAnalyzer) getProtocolIcmpRule(ruleObj *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolIcmp) (
 	ruleStr string, ruleRes *SGRule, isIngress bool, err error) {
-	target, cidr, err := sga.getRemoteCidr(ruleObj.Remote)
+	target, remoteCidr, err := sga.getRemoteCidr(ruleObj.Remote)
 	if err != nil {
 		return
 	}
@@ -239,7 +238,7 @@ func (sga *SGAnalyzer) getProtocolIcmpRule(ruleObj *vpc1.SecurityGroupRuleSecuri
 	}
 	conns := getICMPconn(ruleObj.Type, ruleObj.Code)
 	connStr := fmt.Sprintf("protocol: %s,  icmpType: %s", *ruleObj.Protocol, conns)
-	ruleStr = getRuleStr(*ruleObj.Direction, connStr, cidr, localCidr)
+	ruleStr = getRuleStr(*ruleObj.Direction, connStr, remoteCidr, localCidr)
 	ruleRes = &SGRule{
 		connections: conns,
 		target:      target,

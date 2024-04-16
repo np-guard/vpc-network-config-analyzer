@@ -13,7 +13,7 @@ Details:
 ~~~~~~~~
 Egress:
 security group sg1-ky allows connection with the following allow rules
-	index: 1, direction: outbound, protocol: all, cidr: 0.0.0.0/0
+	index: 1, direction: outbound, protocol: all, remoteCidr: 0.0.0.0/0, localCidr: 0.0.0.0/0
 network ACL acl3-ky allows connection with the following allow rules
 	index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 
@@ -24,7 +24,7 @@ Ingress:
 network ACL acl11-ky allows connection with the following allow rules
 	index: 2, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 security group sg11-ky allows connection with the following allow rules
-	index: 1, direction: inbound, protocol: all, cidr: 0.0.0.0/0
+	index: 1, direction: inbound, protocol: all, remoteCidr: 0.0.0.0/0, localCidr: 0.0.0.0/0
 
 ------------------------------------------------------------------------------------------------------------------------
 
