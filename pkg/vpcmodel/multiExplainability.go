@@ -52,7 +52,7 @@ func MultiExplain(srcDstCouples []srcDstEndPoint) []extendedExplain {
 		explain, errExplain := v.c.explainConnectivityForVPC(v.src.Name(), v.dst.Name(), srcNodes, dstNodes,
 			srcDstInternalAddr{false, false}, nil, connectivity)
 		if errExplain != nil {
-			//todo:
+			multiExplanation[i] = extendedExplain{emptyExplain, errExplain}
 			continue
 		}
 		multiExplanation[i] = extendedExplain{explain, nil}
