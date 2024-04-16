@@ -2,7 +2,8 @@ Connectivity explanation between vsi1-ky and 100.128.0.0/32 within test-vpc1-ky
 ===============================================================================
 
 No connection between vsi1-ky[10.240.10.4] and Public Internet 100.128.0.0/32;
- connection blocked by egress
+connection blocked by egress
+
 External traffic via PublicGateway: public-gw-ky
 Egress: security group sg1-ky allows connection; network ACL acl1-ky blocks connection
 
