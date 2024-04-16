@@ -8,7 +8,6 @@ package vpcmodel
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
@@ -207,29 +206,30 @@ func (d *DrawioOutputFormatter) createExplanations() []drawio.ExplanationEntry {
 	if d.outFormat != HTML {
 		return nil
 	}
-	exp := createExplanationsInput(d.cConfigs, d.conns)
-	expRes, err := MultiExplain(exp)
-	fmt.Print(err)
-	explanationsList := make([]drawio.ExplanationEntry, len(expRes))
+	explanationsInput := createExplanationsInput(d.cConfigs, d.conns)
+	explanations, _ := MultiExplain(explanationsInput)
+	explanationsTests := make([]drawio.ExplanationEntry, len(explanations))
 	j :=0
-	for i, e := range expRes {
-		if d.showResource(exp[i].src) && d.showResource(exp[i].dst) {
-			explanationsList[j] = drawio.ExplanationEntry{Src: d.gen.TreeNode(exp[i].src), Dst: d.gen.TreeNode(exp[i].dst), Text: e.String(true)}
+	for i, e := range explanations {
+		if d.showResource(explanationsInput[i].src) && d.showResource(explanationsInput[i].dst) {
+			explanationsTests[j] = drawio.ExplanationEntry{Src: d.gen.TreeNode(explanationsInput[i].src), Dst: d.gen.TreeNode(explanationsInput[i].dst), Text: e.String(true)}
 			j++
+		}else{
+
 		}
 	}
-	return explanationsList[0:j]
+	return explanationsTests[0:j]
 }
 
 func createExplanationsInput(cConfigs MultipleVPCConfigs, conns map[string]*GroupConnLines) []srcDstEndPoint {
 	multiVpcEndpoints := map[EndpointElem]map[EndpointElem]*VPCConfig{}
-	allExternal := map[EndpointElem]bool{}
-	allEndpoints := map[EndpointElem]*VPCConfig{}
+	externalNodes := map[EndpointElem]bool{}
+	internalNodes := map[EndpointElem]*VPCConfig{}
 	for _, vpcConfig := range cConfigs {
 		if !vpcConfig.IsMultipleVPCsConfig {
 			for _, n := range vpcConfig.Nodes {
 				if !n.IsExternal() {
-					allEndpoints[n] = vpcConfig
+					internalNodes[n] = vpcConfig
 				}
 			}
 		}
@@ -237,10 +237,10 @@ func createExplanationsInput(cConfigs MultipleVPCConfigs, conns map[string]*Grou
 	for _, vpcConn := range conns {
 		for _, line := range vpcConn.GroupedLines {
 			if eSrc, ok := line.src.(*groupedExternalNodes); ok {
-				allExternal[eSrc] = true
+				externalNodes[eSrc] = true
 			}
 			if eDst, ok := line.dst.(*groupedExternalNodes); ok {
-				allExternal[eDst] = true
+				externalNodes[eDst] = true
 			}
 		}
 	}
@@ -268,23 +268,23 @@ func createExplanationsInput(cConfigs MultipleVPCConfigs, conns map[string]*Grou
 		}
 	}
 
-	exp := []srcDstEndPoint{}
-	for src, srcConfig := range allEndpoints {
-		for dst, dstConfig := range allEndpoints {
+	explanationsInput := []srcDstEndPoint{}
+	for src, srcConfig := range internalNodes {
+		for dst, dstConfig := range internalNodes {
 			var vpcConfig *VPCConfig
 			if multiVpcConfig, ok := multiVpcEndpoints[src][dst]; ok {
 				vpcConfig = multiVpcConfig
 			} else if srcConfig == dstConfig {
 				vpcConfig = srcConfig
 			}
-			exp = append(exp, srcDstEndPoint{vpcConfig, src, dst})
+			explanationsInput = append(explanationsInput, srcDstEndPoint{vpcConfig, src, dst})
 		}
-		for external := range allExternal {
-			exp = append(exp, srcDstEndPoint{srcConfig, src, external})
-			exp = append(exp, srcDstEndPoint{srcConfig, external, src})
+		for external := range externalNodes {
+			explanationsInput = append(explanationsInput, srcDstEndPoint{srcConfig, src, external})
+			explanationsInput = append(explanationsInput, srcDstEndPoint{srcConfig, external, src})
 		}
 	}
-	return exp
+	return explanationsInput
 }
 
 func (d *DrawioOutputFormatter) showResource(res DrawioResourceIntf) bool {
