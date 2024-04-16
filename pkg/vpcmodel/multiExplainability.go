@@ -18,6 +18,12 @@ type extendedExplain struct {
 	explain *Explanation
 	err     error
 }
+func (e *extendedExplain)String() string{
+	if e.err != nil{
+		return e.err.Error()
+	}
+	return e.explain.String(true)
+}
 
 // MultiExplain multi-explanation mode: given a slice of <VPCConfig, Endpoint, Endpoint> such that each Endpoint is either
 // a vsi or grouped external addresses of the given config, returns []extendedExplain where item i provides explaination to input i

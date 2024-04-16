@@ -8,6 +8,7 @@ package vpcmodel
 
 import (
 	"errors"
+	"slices"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
@@ -34,7 +35,7 @@ func (e *edgeInfo) IsExternal() bool {
 type DrawioOutputFormatter struct {
 	cConfigs        MultipleVPCConfigs
 	vpcConns        map[string]*VPCConnectivity
-	gConns           map[string]*GroupConnLines
+	gConns          map[string]*GroupConnLines
 	gen             *DrawioGenerator
 	nodeRouters     map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface
 	multiVpcRouters map[string]drawio.IconTreeNodeInterface
@@ -209,16 +210,16 @@ func (d *DrawioOutputFormatter) createExplanations() []drawio.ExplanationEntry {
 		return nil
 	}
 	explanationsInput := createMultiExplanationsInput(d.cConfigs, d.gConns)
+	explanationsInput = slices.DeleteFunc(explanationsInput, func(e srcDstEndPoint) bool {
+		return !d.showResource(e.src) || !d.showResource(e.dst)
+	})
+
 	explanations := MultiExplain(explanationsInput, d.vpcConns)
 	explanationsTests := make([]drawio.ExplanationEntry, len(explanations))
-	j := 0
 	for i, e := range explanations {
-		if d.showResource(explanationsInput[i].src) && d.showResource(explanationsInput[i].dst) {
-			explanationsTests[j] = drawio.ExplanationEntry{Src: d.gen.TreeNode(explanationsInput[i].src), Dst: d.gen.TreeNode(explanationsInput[i].dst), Text: e.explain.String(true)}
-			j++
-		}
+		explanationsTests[i] = drawio.ExplanationEntry{Src: d.gen.TreeNode(explanationsInput[i].src), Dst: d.gen.TreeNode(explanationsInput[i].dst), Text: e.String()}
 	}
-	return explanationsTests[0:j]
+	return explanationsTests
 }
 
 func (d *DrawioOutputFormatter) showResource(res DrawioResourceIntf) bool {
