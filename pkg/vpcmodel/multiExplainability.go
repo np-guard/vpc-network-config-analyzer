@@ -14,25 +14,33 @@ type srcDstEndPoint struct {
 	dst EndpointElem
 }
 
+type extendedExplain struct {
+	explain *Explanation
+	err     error
+}
+
 // MultiExplain multi-explanation mode: given a slice of <VPCConfig, Endpoint, Endpoint> such that each Endpoint is either
-// a vsi or grouped external addresses of the given config, returns a corresponding slice of [] *Explanation
-func MultiExplain(srcDstCouples []srcDstEndPoint) (multiExplanation []*Explanation, err error) {
-	multiExplanation = make([]*Explanation, len(srcDstCouples))
+// a vsi or grouped external addresses of the given config, returns []extendedExplain where item i provides explaination to input i
+func MultiExplain(srcDstCouples []srcDstEndPoint) (multiExplaination []extendedExplain, err error) {
+	multiExplaination = make([]extendedExplain, len(srcDstCouples))
 	vpcsConnects := map[string]*VPCConnectivity{}
 	for i, v := range srcDstCouples {
+		emptyExplain := &Explanation{nil, nil, nil, v.src.Name(), v.dst.Name(),
+			nil, nil, false, nil}
 		if v.c == nil {
 			// no vpc config implies missing cross-vpc router between src and dst which are not in the same VPC
-			multiExplanation[i] = &Explanation{nil, nil, nil, v.src.Name(), v.dst.Name(),
-				nil, nil, false, nil}
+			multiExplaination[i] = extendedExplain{emptyExplain, nil}
 			continue
 		}
 		srcNodes, errSrc := getNodesFromEndpoint(v.src)
 		if errSrc != nil {
-			return nil, errSrc
+			multiExplaination[i] = extendedExplain{emptyExplain, errSrc}
+			continue
 		}
 		dstNodes, errDst := getNodesFromEndpoint(v.dst)
-		if errDst != nil {
-			return nil, errDst
+		if errSrc != nil {
+			multiExplaination[i] = extendedExplain{emptyExplain, errDst}
+			continue
 		}
 		var connectivity *VPCConnectivity
 		var ok bool
@@ -48,9 +56,9 @@ func MultiExplain(srcDstCouples []srcDstEndPoint) (multiExplanation []*Explanati
 		if errExplain != nil {
 			return nil, errExplain
 		}
-		multiExplanation[i] = explain
+		multiExplaination[i] = extendedExplain{explain, nil}
 	}
-	return multiExplanation, nil
+	return multiExplaination, nil
 }
 
 // given an Endpoint, return []Node which is either:
