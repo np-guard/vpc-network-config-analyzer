@@ -15,14 +15,14 @@ Details:
 ~~~~~~~~
 Egress:
 security group sg1-ky allows connection with the following allow rules
-	index: 0, direction: outbound, protocol: all, remoteCidr: 0.0.0.0/0, localCidr: 0.0.0.0/0
+	index: 0, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
 network ACL acl1-ky blocks connection since there are no relevant allow rules
 
 Ingress:
 network ACL acl3-ky allows connection with the following allow rules
 	index: 2, direction: inbound , src: 10.240.10.0/24 , dst: 0.0.0.0/0, conn: all, action: allow
 security group sg1-ky allows connection with the following allow rules
-	index: 1, direction: inbound, protocol: all, remoteCidr: 0.0.0.0/0, localCidr: 0.0.0.0/0
+	index: 1, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
 
 ------------------------------------------------------------------------------------------------------------------------
 
