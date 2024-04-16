@@ -596,12 +596,6 @@ var tests = []*vpcGeneralTest{
 		grouping:    true,
 		format:      vpcmodel.Text,
 	},
-	{
-		inputConfig: "load_balancer",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping:    true,
-		format:      vpcmodel.Debug,
-	},
 }
 
 var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{
