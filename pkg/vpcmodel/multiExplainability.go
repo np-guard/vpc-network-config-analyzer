@@ -21,7 +21,7 @@ type extendedExplain struct {
 
 // MultiExplain multi-explanation mode: given a slice of <VPCConfig, Endpoint, Endpoint> such that each Endpoint is either
 // a vsi or grouped external addresses of the given config, returns []extendedExplain where item i provides explaination to input i
-func MultiExplain(srcDstCouples []srcDstEndPoint) []extendedExplain {
+func MultiExplain(srcDstCouples []srcDstEndPoint, vpcConns map[string]*VPCConnectivity) []extendedExplain {
 	multiExplanation := make([]extendedExplain, len(srcDstCouples))
 	vpcsConnects := map[string]*VPCConnectivity{}
 	for i, v := range srcDstCouples {

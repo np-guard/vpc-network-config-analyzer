@@ -33,7 +33,8 @@ func (e *edgeInfo) IsExternal() bool {
 
 type DrawioOutputFormatter struct {
 	cConfigs        MultipleVPCConfigs
-	conns           map[string]*GroupConnLines
+	vpcConns        map[string]*VPCConnectivity
+	gConns           map[string]*GroupConnLines
 	gen             *DrawioGenerator
 	nodeRouters     map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface
 	multiVpcRouters map[string]drawio.IconTreeNodeInterface
@@ -48,9 +49,10 @@ func newDrawioOutputFormatter(outFormat OutFormat) *DrawioOutputFormatter {
 	d.multiVpcRouters = map[string]drawio.IconTreeNodeInterface{}
 	return &d
 }
-func (d *DrawioOutputFormatter) init(cConfigs MultipleVPCConfigs, conns map[string]*GroupConnLines, uc OutputUseCase) {
+func (d *DrawioOutputFormatter) init(cConfigs MultipleVPCConfigs, vpcConns map[string]*VPCConnectivity, gConns map[string]*GroupConnLines, uc OutputUseCase) {
 	d.cConfigs = cConfigs
-	d.conns = conns
+	d.vpcConns = vpcConns
+	d.gConns = gConns
 	d.uc = uc
 	// just take the cloud name from one of the configs
 	_, aVpcConfig := common.AnyMapEntry(cConfigs)
@@ -66,7 +68,7 @@ func (d *DrawioOutputFormatter) createDrawioTree() {
 		d.createFilters()
 	}
 	d.createRouters()
-	if d.conns != nil {
+	if d.gConns != nil {
 		d.createEdges()
 	}
 }
@@ -176,7 +178,7 @@ func (d *DrawioOutputFormatter) createEdges() {
 		label  string
 	}
 	isEdgeDirected := map[edgeKey]bool{}
-	for vpcResourceName, vpcConn := range d.conns {
+	for vpcResourceName, vpcConn := range d.gConns {
 		for _, line := range vpcConn.GroupedLines {
 			src := line.src
 			dst := line.dst
@@ -206,8 +208,8 @@ func (d *DrawioOutputFormatter) createExplanations() []drawio.ExplanationEntry {
 	if d.outFormat != HTML {
 		return nil
 	}
-	explanationsInput := createMultiExplanationsInput(d.cConfigs, d.conns)
-	explanations := MultiExplain(explanationsInput)
+	explanationsInput := createMultiExplanationsInput(d.cConfigs, d.gConns)
+	explanations := MultiExplain(explanationsInput, d.vpcConns)
 	explanationsTests := make([]drawio.ExplanationEntry, len(explanations))
 	j := 0
 	for i, e := range explanations {
@@ -249,7 +251,7 @@ func (d *DrawioOutputFormatter) WriteOutput(c1, c2 MultipleVPCConfigs,
 		for name, vpcConn := range conn {
 			gConn[name] = vpcConn.GroupedConnectivity
 		}
-		d.init(c1, gConn, uc)
+		d.init(c1, conn, gConn, uc)
 	case AllSubnets:
 		gConfigs := MultipleVPCConfigs{}
 		gConn := map[string]*GroupConnLines{}
@@ -261,7 +263,7 @@ func (d *DrawioOutputFormatter) WriteOutput(c1, c2 MultipleVPCConfigs,
 		} else {
 			gConfigs = c1
 		}
-		d.init(gConfigs, gConn, uc)
+		d.init(gConfigs, conn, gConn, uc)
 	default:
 		return "", errors.New("use case is not currently supported for draw.io format")
 	}
