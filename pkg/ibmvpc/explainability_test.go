@@ -740,3 +740,23 @@ func TestInputValidityMultipleVPCContext(t *testing.T) {
 		"- test-vpc0-ky, test-vpc1-ky - please add the name of the config to the src/dst name",
 		err11.Error())
 }
+
+func TestMultiExplainability(t *testing.T) {
+	vpcsConfig := getConfig(t, "tgw_larger_example")
+	require.NotNil(t, vpcsConfig, "vpcsConfig equals nil")
+	nodesConn := make(map[string]*vpcmodel.VPCConnectivity)
+	groupedConns := make(map[string]*vpcmodel.GroupConnLines)
+	for i := range vpcsConfig {
+		thisConn, err := vpcsConfig[i].GetVPCNetworkConnectivity(false)
+		if err != nil {
+			fmt.Printf(err.Error())
+		}
+		require.Nil(t, err)
+		nodesConn[i] = thisConn
+	}
+	inputMultiExplain := vpcmodel.CreateMultiExplanationsInput(vpcsConfig, groupedConns)
+	multiExplain := vpcmodel.MultiExplain(inputMultiExplain, nodesConn)
+	for _, explain := range multiExplain {
+		fmt.Println(explain.String())
+	}
+}

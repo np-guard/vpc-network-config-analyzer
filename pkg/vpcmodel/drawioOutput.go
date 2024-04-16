@@ -209,7 +209,7 @@ func (d *DrawioOutputFormatter) createExplanations() []drawio.ExplanationEntry {
 	if d.outFormat != HTML {
 		return nil
 	}
-	explanationsInput := createMultiExplanationsInput(d.cConfigs, d.gConns)
+	explanationsInput := CreateMultiExplanationsInput(d.cConfigs, d.gConns)
 	explanationsInput = slices.DeleteFunc(explanationsInput, func(e srcDstEndPoint) bool {
 		return !d.showResource(e.src) || !d.showResource(e.dst)
 	})

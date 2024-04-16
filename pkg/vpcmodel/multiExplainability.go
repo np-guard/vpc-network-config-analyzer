@@ -84,7 +84,9 @@ func getNodesFromEndpoint(endpoint EndpointElem) ([]Node, error) {
 	return nil, fmt.Errorf("np-Guard error: %v not of type InternalNodeIntf or groupedExternalNodes", endpoint.Name())
 }
 
-func createMultiExplanationsInput(cConfigs MultipleVPCConfigs, conns map[string]*GroupConnLines) []srcDstEndPoint {
+// CreateMultiExplanationsInput given configs and results of connectivity analysis, generates input
+// in the format required by MultiExplain
+func CreateMultiExplanationsInput(cConfigs MultipleVPCConfigs, conns map[string]*GroupConnLines) []srcDstEndPoint {
 	multiVpcEndpoints := map[EndpointElem]map[EndpointElem]*VPCConfig{}
 	externalNodes := map[EndpointElem]bool{}
 	internalNodes := map[EndpointElem]*VPCConfig{}
