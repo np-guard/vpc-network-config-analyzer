@@ -24,14 +24,15 @@ func MultiExplain(srcDstCouples []srcDstEndPoint) (multiExplanation []*Explanati
 			// no vpc config implies missing cross-vpc router between src and dst which are not in the same VPC
 			multiExplanation[i] = &Explanation{nil, nil, nil, v.src.Name(), v.dst.Name(),
 				nil, nil, false, nil}
+			continue
 		}
 		srcNodes, errSrc := getNodesFromEndpoint(v.src)
 		if errSrc != nil {
 			return nil, errSrc
 		}
-		dstNodes, errDst := getNodesFromEndpoint(v.src)
+		dstNodes, errDst := getNodesFromEndpoint(v.dst)
 		if errDst != nil {
-			return nil, errSrc
+			return nil, errDst
 		}
 		var connectivity *VPCConnectivity
 		var ok bool

@@ -227,6 +227,23 @@ var tests = []*vpcGeneralTest{
 		format:   vpcmodel.Text,
 	},
 	{
+		inputConfig: "acl_testing3",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:   vpcmodel.HTML,
+	},
+	{
+		inputConfig: "acl_testing3",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping: true,
+		format:   vpcmodel.HTML,
+	},
+	{
+		inputConfig: "tg-prefix-filters",
+		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping: true,
+		format:   vpcmodel.HTML,
+	},
+	{
 		inputConfig: "sg_testing1_new",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.SingleSubnet, vpcmodel.AllSubnets},
 		format:      vpcmodel.Text,
