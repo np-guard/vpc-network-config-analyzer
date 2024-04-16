@@ -207,30 +207,33 @@ func (d *DrawioOutputFormatter) createExplanations() []drawio.ExplanationEntry {
 	if d.outFormat != HTML {
 		return nil
 	}
+	exp := createExplanationsInput(d.cConfigs, d.conns)
+	expRes, err := MultiExplain(exp)
+	fmt.Print(err)
+	explanationsList := make([]drawio.ExplanationEntry, len(expRes))
+	j :=0
+	for i, e := range expRes {
+		if d.showResource(exp[i].src) && d.showResource(exp[i].dst) {
+			explanationsList[j] = drawio.ExplanationEntry{Src: d.gen.TreeNode(exp[i].src), Dst: d.gen.TreeNode(exp[i].dst), Text: e.String(true)}
+			j++
+		}
+	}
+	return explanationsList[0:j]
+}
+
+func createExplanationsInput(cConfigs MultipleVPCConfigs, conns map[string]*GroupConnLines) []srcDstEndPoint {
+	multiVpcEndpoints := map[EndpointElem]map[EndpointElem]*VPCConfig{}
+	allExternal := map[EndpointElem]bool{}
 	allEndpoints := map[EndpointElem]*VPCConfig{}
-	for _, vpcConfig := range d.cConfigs {
+	for _, vpcConfig := range cConfigs {
 		if !vpcConfig.IsMultipleVPCsConfig {
 			for _, n := range vpcConfig.Nodes {
-				if !n.IsExternal() && d.showResource(n) {
+				if !n.IsExternal() {
 					allEndpoints[n] = vpcConfig
 				}
 			}
 		}
 	}
-	exp := createExplanationsInput(d.cConfigs, d.conns, allEndpoints)
-	expRes, err := MultiExplain(exp)
-	fmt.Print(err)
-	explanationsList := make([]drawio.ExplanationEntry, len(expRes))
-	for i, e := range expRes {
-		explanationsList[i] = drawio.ExplanationEntry{Src: d.gen.TreeNode(exp[i].src), Dst: d.gen.TreeNode(exp[i].dst), Text: e.String(true)}
-	}
-	return explanationsList
-}
-
-func createExplanationsInput(cConfigs MultipleVPCConfigs, conns map[string]*GroupConnLines,
-	allEndpoints map[EndpointElem]*VPCConfig) []srcDstEndPoint {
-	multiVpcEndpoints := map[EndpointElem]map[EndpointElem]*VPCConfig{}
-	allExternal := map[EndpointElem]bool{}
 	for _, vpcConn := range conns {
 		for _, line := range vpcConn.GroupedLines {
 			if eSrc, ok := line.src.(*groupedExternalNodes); ok {
@@ -273,7 +276,7 @@ func createExplanationsInput(cConfigs MultipleVPCConfigs, conns map[string]*Grou
 				vpcConfig = multiVpcConfig
 			} else if srcConfig == dstConfig {
 				vpcConfig = srcConfig
-			} 
+			}
 			exp = append(exp, srcDstEndPoint{vpcConfig, src, dst})
 		}
 		for external := range allExternal {
