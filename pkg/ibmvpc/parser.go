@@ -69,6 +69,7 @@ func filterByVpcResourceGroupAndRegions(rc *datamodel.ResourcesContainerModel, v
 
 // VPCConfigsFromResources returns a map from VPC UID (string) to its corresponding VPCConfig object,
 // containing the parsed resources in the relevant model objects
+//nolint: funlen
 func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resourceGroup string, regions []string, debug bool) (
 	vpcmodel.MultipleVPCConfigs, error) {
 	res := vpcmodel.MultipleVPCConfigs{}          // map from VPC UID to its config
@@ -1259,8 +1260,8 @@ func getSubnetsFreeAddresses(rc *datamodel.ResourcesContainerModel,
 	for _, subnetObj := range rc.SubnetList {
 		subnet := res[*subnetObj.VPC.CRN].UIDToResource[*subnetObj.CRN].(vpcmodel.Subnet)
 		b, _ := ipblock.FromCidr(subnet.CIDR())
-		for _, reservedIp := range subnetObj.ReservedIps {
-			b2, _ := ipblock.FromIPAddress(*reservedIp.Address)
+		for _, reservedIP := range subnetObj.ReservedIps {
+			b2, _ := ipblock.FromIPAddress(*reservedIP.Address)
 			b = b.Subtract(b2)
 		}
 		subnetsFreeAddresses[subnet] = b
@@ -1281,9 +1282,9 @@ func allocSubnetFreeAddress(subnetsFreeAddresses map[vpcmodel.Subnet]*ipblock.IP
 func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 	res map[string]*vpcmodel.VPCConfig,
 	skipByVPC map[string]bool,
-) (err error) {
+) error {
 	if len(rc.LBList) == 0 {
-		return
+		return nil
 	}
 	subnetsFreeAddresses := getSubnetsFreeAddresses(rc, res)
 	for _, loadBalancerObj := range rc.LBList {
@@ -1338,7 +1339,8 @@ func getLoadBalancerServer(res map[string]*vpcmodel.VPCConfig,
 	vpcUID string) []LoadBalancerListener {
 	pools := map[string]LoadBalancerPool{}
 	listeners := []LoadBalancerListener{}
-	for _, poolObj := range loadBalancerObj.Pools {
+	for poolIndex := range loadBalancerObj.Pools {
+		poolObj := loadBalancerObj.Pools[poolIndex]
 		pool := LoadBalancerPool{}
 		// todo: handle pools currently we just collect them
 		// pool.name = *poolObj.Name
@@ -1366,7 +1368,7 @@ func getLoadBalancerServer(res map[string]*vpcmodel.VPCConfig,
 		for _, policy := range listenerObj.Policies {
 			if pool, ok := pools[*policy.Target.(*vpc1.LoadBalancerListenerPolicyTarget).ID]; ok {
 				// todo  - handle rules:
-				//rules := policy.Rules
+				// rules := policy.Rules
 				listener = append(listener, pool)
 			}
 		}

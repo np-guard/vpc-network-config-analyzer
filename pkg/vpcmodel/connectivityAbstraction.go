@@ -42,11 +42,12 @@ func nodeSetConnectivityAbstraction(nodesConn GeneralConnectivityMap, nodeSet No
 // usually, GeneralConnectivityMap is a map form src to dst.
 // however, the third group is hold as a map from dst to src.
 
-func splitConnectivityByNodeSet(nodesConn GeneralConnectivityMap, nodeSet NodeSet) (OtherToOther, nodeSetToNodeSet, OtherFromNodeSet, OtherToNodeSet GeneralConnectivityMap) {
-	OtherToOther = GeneralConnectivityMap{}
+func splitConnectivityByNodeSet(nodesConn GeneralConnectivityMap, nodeSet NodeSet) (
+	otherToOther, nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet GeneralConnectivityMap) {
+	otherToOther = GeneralConnectivityMap{}
 	nodeSetToNodeSet = GeneralConnectivityMap{}
-	OtherFromNodeSet = GeneralConnectivityMap{}
-	OtherToNodeSet = GeneralConnectivityMap{}
+	otherFromNodeSet = GeneralConnectivityMap{}
+	otherToNodeSet = GeneralConnectivityMap{}
 	for src, nodeConns := range nodesConn {
 		for dst, conns := range nodeConns {
 			srcNode, srcIsNode := src.(Node)
@@ -55,30 +56,29 @@ func splitConnectivityByNodeSet(nodesConn GeneralConnectivityMap, nodeSet NodeSe
 			dstInSet := dstIsNode && slices.Contains(nodeSet.Nodes(), dstNode)
 			switch {
 			case (!srcInSet && !dstInSet) || conns.IsEmpty():
-				OtherToOther.updateAllowedConnsMap(src, dst, conns)
+				otherToOther.updateAllowedConnsMap(src, dst, conns)
 			case srcInSet && dstInSet:
 				nodeSetToNodeSet.updateAllowedConnsMap(src, dst, conns)
 			case !srcInSet && dstInSet:
-				OtherToNodeSet.updateAllowedConnsMap(src, dst, conns.Copy())
+				otherToNodeSet.updateAllowedConnsMap(src, dst, conns.Copy())
 			case srcInSet && !dstInSet:
-				OtherFromNodeSet.updateAllowedConnsMap(dst, src, conns)
+				otherFromNodeSet.updateAllowedConnsMap(dst, src, conns)
 			}
 		}
 	}
-	return OtherToOther, nodeSetToNodeSet, OtherFromNodeSet, OtherToNodeSet
+	return otherToOther, nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet
 }
 
 // checkConnectivityAbstractionValidity() checks if the abstraction assumption holds
 // it does it on each group separately.
-// for now it return a string
+// for now it creates a string
 // todo: - how to report this string? what format?
 
-func checkConnectivityAbstractionValidity(connMap GeneralConnectivityMap, nodeSet NodeSet, isIngress bool) string {
+func checkConnectivityAbstractionValidity(connMap GeneralConnectivityMap, nodeSet NodeSet, isIngress bool) {
 	res := ""
 	for node1, nodeConns := range connMap {
 		allConns := map[string][]VPCResourceIntf{}
 		for node2, conn := range nodeConns {
-			// todo - is string unique?
 			allConns[conn.String()] = append(allConns[conn.String()], node2)
 		}
 		if len(allConns) > 1 || len(nodeConns) != len(nodeSet.Nodes()) {
@@ -108,15 +108,12 @@ func checkConnectivityAbstractionValidity(connMap GeneralConnectivityMap, nodeSe
 			}
 		}
 	}
-	// if res != "" {
-	// 	fmt.Println("--------------------------------------------------------------")
-	// 	fmt.Println(res)
-	// }
-	return res
 }
 
 // mergeConnectivityWithNodeSetAbstraction() merge the four groups, while abstracting the connections
-func mergeConnectivityWithNodeSetAbstraction(otherToOther, nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet GeneralConnectivityMap, nodeSet NodeSet) GeneralConnectivityMap {
+func mergeConnectivityWithNodeSetAbstraction(
+	otherToOther, nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet GeneralConnectivityMap,
+	nodeSet NodeSet) GeneralConnectivityMap {
 	// first make a copy of otherToOther, to be the result:
 	res := GeneralConnectivityMap{}
 	for src, nodeConns := range otherToOther {
