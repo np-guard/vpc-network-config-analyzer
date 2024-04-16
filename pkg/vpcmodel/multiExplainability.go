@@ -21,44 +21,43 @@ type extendedExplain struct {
 
 // MultiExplain multi-explanation mode: given a slice of <VPCConfig, Endpoint, Endpoint> such that each Endpoint is either
 // a vsi or grouped external addresses of the given config, returns []extendedExplain where item i provides explaination to input i
-func MultiExplain(srcDstCouples []srcDstEndPoint) (multiExplaination []extendedExplain, err error) {
-	multiExplaination = make([]extendedExplain, len(srcDstCouples))
+func MultiExplain(srcDstCouples []srcDstEndPoint) []extendedExplain {
+	multiExplanation := make([]extendedExplain, len(srcDstCouples))
 	vpcsConnects := map[string]*VPCConnectivity{}
 	for i, v := range srcDstCouples {
 		emptyExplain := &Explanation{nil, nil, nil, v.src.Name(), v.dst.Name(),
 			nil, nil, false, nil}
 		if v.c == nil {
 			// no vpc config implies missing cross-vpc router between src and dst which are not in the same VPC
-			multiExplaination[i] = extendedExplain{emptyExplain, nil}
+			multiExplanation[i] = extendedExplain{emptyExplain, nil}
 			continue
 		}
 		srcNodes, errSrc := getNodesFromEndpoint(v.src)
 		if errSrc != nil {
-			multiExplaination[i] = extendedExplain{emptyExplain, errSrc}
+			multiExplanation[i] = extendedExplain{emptyExplain, errSrc}
 			continue
 		}
 		dstNodes, errDst := getNodesFromEndpoint(v.dst)
 		if errSrc != nil {
-			multiExplaination[i] = extendedExplain{emptyExplain, errDst}
+			multiExplanation[i] = extendedExplain{emptyExplain, errDst}
 			continue
 		}
 		var connectivity *VPCConnectivity
 		var ok bool
 		if connectivity, ok = vpcsConnects[v.c.VPC.Name()]; !ok {
-			connectivity, err = v.c.GetVPCNetworkConnectivity(false) // computes connectivity
-			if err != nil {
-				return nil, err
-			}
+			//todo:
+			connectivity, _ = v.c.GetVPCNetworkConnectivity(false) // computes connectivity
 			vpcsConnects[v.c.VPC.Name()] = connectivity
 		}
 		explain, errExplain := v.c.explainConnectivityForVPC(v.src.Name(), v.dst.Name(), srcNodes, dstNodes,
 			srcDstInternalAddr{false, false}, nil, connectivity)
 		if errExplain != nil {
-			return nil, errExplain
+			//todo:
+			continue
 		}
-		multiExplaination[i] = extendedExplain{explain, nil}
+		multiExplanation[i] = extendedExplain{explain, nil}
 	}
-	return multiExplaination, nil
+	return multiExplanation
 }
 
 // given an Endpoint, return []Node which is either:
@@ -77,4 +76,69 @@ func getNodesFromEndpoint(endpoint EndpointElem) ([]Node, error) {
 		return externalNodes, nil
 	}
 	return nil, fmt.Errorf("np-Guard error: %v not of type InternalNodeIntf or groupedExternalNodes", endpoint.Name())
+}
+
+func createMultiExplanationsInput(cConfigs MultipleVPCConfigs, conns map[string]*GroupConnLines) []srcDstEndPoint {
+	multiVpcEndpoints := map[EndpointElem]map[EndpointElem]*VPCConfig{}
+	externalNodes := map[EndpointElem]bool{}
+	internalNodes := map[EndpointElem]*VPCConfig{}
+	for _, vpcConfig := range cConfigs {
+		if !vpcConfig.IsMultipleVPCsConfig {
+			for _, n := range vpcConfig.Nodes {
+				if !n.IsExternal() {
+					internalNodes[n] = vpcConfig
+				}
+			}
+		}
+	}
+	for _, vpcConn := range conns {
+		for _, line := range vpcConn.GroupedLines {
+			if eSrc, ok := line.src.(*groupedExternalNodes); ok {
+				externalNodes[eSrc] = true
+			}
+			if eDst, ok := line.dst.(*groupedExternalNodes); ok {
+				externalNodes[eDst] = true
+			}
+		}
+	}
+	for vpcName, vpcConfig := range cConfigs {
+		if vpcConfig.IsMultipleVPCsConfig {
+			vpcConn := conns[vpcName]
+			for _, line := range vpcConn.GroupedLines {
+				srcs := []EndpointElem{line.src}
+				dsts := []EndpointElem{line.dst}
+				if srcList, ok := line.src.(*groupedEndpointsElems); ok {
+					srcs = *srcList
+				}
+				if dstList, ok := line.dst.(*groupedEndpointsElems); ok {
+					dsts = *dstList
+				}
+				for _, src := range srcs {
+					for _, dst := range dsts {
+						if _, ok := multiVpcEndpoints[src]; !ok {
+							multiVpcEndpoints[src] = map[EndpointElem]*VPCConfig{}
+						}
+						multiVpcEndpoints[src][dst] = vpcConfig
+					}
+				}
+			}
+		}
+	}
+	explanationsInput := []srcDstEndPoint{}
+	for src, srcConfig := range internalNodes {
+		for dst, dstConfig := range internalNodes {
+			var vpcConfig *VPCConfig
+			if multiVpcConfig, ok := multiVpcEndpoints[src][dst]; ok {
+				vpcConfig = multiVpcConfig
+			} else if srcConfig == dstConfig {
+				vpcConfig = srcConfig
+			}
+			explanationsInput = append(explanationsInput, srcDstEndPoint{vpcConfig, src, dst})
+		}
+		for external := range externalNodes {
+			explanationsInput = append(explanationsInput, srcDstEndPoint{srcConfig, src, external})
+			explanationsInput = append(explanationsInput, srcDstEndPoint{srcConfig, external, src})
+		}
+	}
+	return explanationsInput
 }
