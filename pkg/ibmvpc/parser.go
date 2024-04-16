@@ -1423,7 +1423,7 @@ func getLoadBalancerIPs(res map[string]*vpcmodel.VPCConfig,
 			id = "pip-uid-of-" + subnet.UID() + *loadBalancerObj.ID
 			address = allocSubnetFreeAddress(subnetsFreeAddresses, subnet)
 			if hasPublicAddress {
-				// todo - can we use this address? what are the fip address are used for?
+				// todo - for now we always abstract the LB, so we can use this address
 				publicAddress = *loadBalancerObj.PublicIps[0].Address
 			}
 		}

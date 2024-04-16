@@ -68,7 +68,7 @@ func splitConnectivityByNodeSet(nodesConn GeneralConnectivityMap, nodeSet NodeSe
 	return OtherToOther, nodeSetToNodeSet, OtherFromNodeSet, OtherToNodeSet
 }
 
-// diagnoseConnectivityAbstraction() checks if the abstraction assumption holds
+// checkConnectivityAbstractionValidity() checks if the abstraction assumption holds
 // it does it on each group separately.
 // for now it return a string
 // todo: - how to report this string? what format?
