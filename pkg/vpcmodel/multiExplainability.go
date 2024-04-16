@@ -50,8 +50,8 @@ func MultiExplain(srcDstCouples []srcDstEndPoint, vpcConns map[string]*VPCConnec
 		}
 		var connectivity *VPCConnectivity
 		var ok bool
-		if connectivity, ok = vpcConns[v.c.VPC.Name()]; !ok {
-			errConn := fmt.Errorf("npGuard eror: missing connectivity computation for %v in MultiExplain", v.c.VPC.Name())
+		if connectivity, ok = vpcConns[v.c.VPC.UID()]; !ok {
+			errConn := fmt.Errorf("npGuard eror: missing connectivity computation for %v %v in MultiExplain", v.c.VPC.UID(), v.c.VPC.Name())
 			multiExplanation[i] = extendedExplain{emptyExplain, errConn}
 			continue
 		}

@@ -744,14 +744,15 @@ func TestInputValidityMultipleVPCContext(t *testing.T) {
 func TestMultiExplainability(t *testing.T) {
 	vpcsConfig := getConfig(t, "tgw_larger_example")
 	require.NotNil(t, vpcsConfig, "vpcsConfig equals nil")
-	nodesConn := make(map[string]*vpcmodel.VPCConnectivity)
 	groupedConns := make(map[string]*vpcmodel.GroupConnLines)
+	nodesConn := make(map[string]*vpcmodel.VPCConnectivity)
 	for i := range vpcsConfig {
 		thisConn, err := vpcsConfig[i].GetVPCNetworkConnectivity(false)
 		if err != nil {
 			fmt.Printf(err.Error())
 		}
 		require.Nil(t, err)
+		groupedConns[i] = thisConn.GroupedConnectivity
 		nodesConn[i] = thisConn
 	}
 	inputMultiExplain := vpcmodel.CreateMultiExplanationsInput(vpcsConfig, groupedConns)
