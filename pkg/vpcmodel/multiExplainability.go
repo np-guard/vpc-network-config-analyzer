@@ -14,6 +14,11 @@ func MultiExplain(srcDstCouples []srcDstEndPoint) (multiExplanation []*Explanati
 	multiExplanation = make([]*Explanation, len(srcDstCouples))
 	vpcsConnects := map[string]*VPCConnectivity{}
 	for i, v := range srcDstCouples {
+		if v.c == nil {
+			// no vpc config implies missing cross-vpc router between src and dst which are not in the same VPC
+			multiExplanation[i] = &Explanation{nil, nil, nil, v.src.Name(), v.dst.Name(),
+				nil, nil, false, nil}
+		}
 		srcNodes, errSrc := getNodesFromEndpoint(v.src)
 		if errSrc != nil {
 			return nil, errSrc
