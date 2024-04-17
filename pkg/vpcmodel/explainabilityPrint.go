@@ -27,19 +27,21 @@ const emptyString = ""
 func explainHeader(explanation *Explanation) string {
 	srcNetworkInterfaces := listNetworkInterfaces(explanation.srcNetworkInterfacesFromIP)
 	dstNetworkInterfaces := listNetworkInterfaces(explanation.dstNetworkInterfacesFromIP)
-	header1 := fmt.Sprintf("Explaining connectivity from %s%s to %s%s%s",
-		explanation.src, srcNetworkInterfaces, explanation.dst, dstNetworkInterfaces, connQueryHeader(explanation.connQuery))
+	singleVpcContext := ""
 	// communication within a single vpc
 	if explanation.c != nil && !explanation.c.IsMultipleVPCsConfig {
-		header1 += fmt.Sprintf(" within %v", explanation.c.VPC.Name())
+		singleVpcContext = fmt.Sprintf(" within %v", explanation.c.VPC.Name())
 	}
+	header1 := fmt.Sprintf("Explaining connectivity from %s%s to %s%s%s%s",
+		explanation.src, srcNetworkInterfaces, explanation.dst, dstNetworkInterfaces, singleVpcContext,
+		connQueryHeader(explanation.connQuery))
 	header2 := strings.Repeat("=", len(header1))
 	return header1 + newLine + header2 + doubleNL
 }
 
 func connQueryHeader(connQuery *connection.Set) string {
 	if connQuery != nil {
-		return " using " + connQuery.String()
+		return " using \"" + connQuery.String() + "\""
 	}
 	return ""
 }
@@ -212,8 +214,8 @@ func existingConnectionStr(connQuery *connection.Set, src, dst EndpointElem,
 		if !conn.Equal(connQuery) {
 			properSubsetConn = "(note that not all queried protocols/ports are allowed)"
 		}
-		resComponents = append(resComponents, fmt.Sprintf("Connection from %v to %v using %v\n%s",
-			src.Name(), dst.Name(), conn.String(), properSubsetConn))
+		resComponents = append(resComponents, fmt.Sprintf("Connection from %s to %s%s\n%s",
+			src.Name(), dst.Name(), connQueryHeader(connQuery), properSubsetConn))
 	}
 	resComponents = append(resComponents, path, details)
 	return strings.Join(resComponents, newLine)
