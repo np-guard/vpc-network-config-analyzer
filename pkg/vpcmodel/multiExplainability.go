@@ -26,6 +26,13 @@ func (e *extendedExplain) String() string {
 	return e.explain.String(true)
 }
 
+func (e *extendedExplain) Error() string {
+	if e.err != nil {
+		return e.err.Error()
+	}
+	return ""
+}
+
 // MultiExplain multi-explanation mode: given a slice of <VPCConfig, Endpoint, Endpoint> such that each Endpoint is either
 // a vsi or grouped external addresses of the given config, returns []extendedExplain where item i provides explaination to input i
 func MultiExplain(srcDstCouples []srcDstEndPoint, vpcConns map[string]*VPCConnectivity) []extendedExplain {

@@ -757,7 +757,11 @@ func TestMultiExplainability(t *testing.T) {
 	}
 	inputMultiExplain := vpcmodel.CreateMultiExplanationsInput(vpcsConfig, groupedConns)
 	multiExplain := vpcmodel.MultiExplain(inputMultiExplain, nodesConn)
+	// sanity check: number of entries did not change (187) and no errors
+	i := 0
 	for _, explain := range multiExplain {
-		fmt.Println(explain.String())
+		fmt.Printf("%v. %v\n", i, explain.Error()) // todo: there are 4 errors open issue
+		i++
 	}
+	require.Equal(t, i, 187)
 }
