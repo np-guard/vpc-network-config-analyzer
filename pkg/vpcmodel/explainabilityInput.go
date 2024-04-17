@@ -361,7 +361,7 @@ func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *ipblock.I
 	isInternal := !inputIPBlock.ContainedIn(publicInternet)
 	if isInternal && isExternal {
 		return nil, false, fatalErr,
-			fmt.Errorf("%s contains both external and internal IP addresses which is not supported. "+
+			fmt.Errorf("%s contains both external and internal IP addresses, which is not supported. "+
 				"src, dst should be external *or* internal address", ipOrCidr)
 	}
 	// 2.
