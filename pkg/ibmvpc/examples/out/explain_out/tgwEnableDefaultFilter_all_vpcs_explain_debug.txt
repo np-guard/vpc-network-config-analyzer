@@ -1,5 +1,5 @@
-Connectivity explanation between ky-vsi0-subnet5 and ky-vsi0-subnet11
-=====================================================================
+Explaining connectivity from ky-vsi0-subnet5 and ky-vsi0-subnet11
+=================================================================
 
 The following connection exists between ky-vsi0-subnet5[10.240.9.4] and ky-vsi0-subnet11[10.240.80.4]: All Connections
 

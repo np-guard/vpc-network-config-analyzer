@@ -1,5 +1,5 @@
-Connectivity explanation for protocol: ICMP between 192.168.40.5 (iks-clusterid:1[192.168.40.5]) and 192.168.0.4 (iks-node[192.168.0.4]) within ky-test-vpc
-===========================================================================================================================================================
+Explaining connectivity for protocol: ICMP from 192.168.40.5 (iks-clusterid:1[192.168.40.5]) and 192.168.0.4 (iks-node[192.168.0.4]) within ky-test-vpc
+=======================================================================================================================================================
 
 There is no connection "protocol: ICMP" between iks-clusterid:1[192.168.40.5] and iks-node[192.168.0.4];
 connection blocked by egress

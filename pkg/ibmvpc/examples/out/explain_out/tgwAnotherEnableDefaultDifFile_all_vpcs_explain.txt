@@ -1,5 +1,5 @@
-Connectivity explanation between vsi11-ky and vsi21a-ky
-=======================================================
+Explaining connectivity from vsi11-ky and vsi21a-ky
+===================================================
 
 The following connection exists between vsi11-ky[10.240.11.4] and vsi21a-ky[10.240.64.4]: All Connections
 

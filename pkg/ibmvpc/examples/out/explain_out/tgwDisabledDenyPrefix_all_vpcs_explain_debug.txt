@@ -1,8 +1,8 @@
-Connectivity explanation between ky-vsi1-subnet20 and ky-vsi0-subnet0
-=====================================================================
+Explaining connectivity from ky-vsi1-subnet20 and ky-vsi0-subnet0
+=================================================================
 
-No connection between ky-vsi1-subnet20[10.240.128.5] and ky-vsi0-subnet0[10.240.0.5];
-connection blocked since transit gateway denies route between src and dst
+No connectivity from ky-vsi1-subnet20[10.240.128.5] and ky-vsi0-subnet0[10.240.0.5];
+All connections will be blocked since transit gateway denies route from source to destination
 
 Egress: security group sg21-ky allows connection; network ACL acl21-ky allows connection
 cross-vpc-connection: transit-connection tg_connection0 of transit-gateway local-tg-ky denies connection

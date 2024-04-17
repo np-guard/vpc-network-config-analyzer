@@ -1,7 +1,7 @@
-Connectivity explanation between vsi3b-ky and 161.26.0.0/32 within test-vpc1-ky
-===============================================================================
+Explaining connectivity from vsi3b-ky and 161.26.0.0/32 within test-vpc1-ky
+===========================================================================
 
-No connection between vsi3b-ky[10.240.30.4] and Public Internet 161.26.0.0/32;
+No connectivity from vsi3b-ky[10.240.30.4] and Public Internet 161.26.0.0/32;
 no fip/pgw and dst is external
 ------------------------------------------------------------------------------------------------------------------------
 

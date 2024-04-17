@@ -1,5 +1,5 @@
-Connectivity explanation for protocol: TCP between 192.168.40.5 (iks-clusterid:1[192.168.40.5]) and 192.168.0.4 (iks-node[192.168.0.4]) within ky-test-vpc
-==========================================================================================================================================================
+Explaining connectivity for protocol: TCP from 192.168.40.5 (iks-clusterid:1[192.168.40.5]) and 192.168.0.4 (iks-node[192.168.0.4]) within ky-test-vpc
+======================================================================================================================================================
 
 Connection protocol: TCP dst-ports: 30000-32767 exists between iks-clusterid:1[192.168.40.5] and iks-node[192.168.0.4] (note that not all queried protocols/ports are allowed)
 Path:

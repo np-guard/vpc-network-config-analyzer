@@ -1,7 +1,7 @@
-Connectivity explanation between vsi3a-ky and vsi2-ky within test-vpc1-ky
-=========================================================================
+Explaining connectivity from vsi3a-ky and vsi2-ky within test-vpc1-ky
+=====================================================================
 
-No connection between vsi3a-ky[10.240.30.5] and vsi2-ky[10.240.20.4];
+No connectivity from vsi3a-ky[10.240.30.5] and vsi2-ky[10.240.20.4];
 connection blocked by ingress
 
 Egress: security group sg3-ky allows connection; network ACL acl3-ky allows connection

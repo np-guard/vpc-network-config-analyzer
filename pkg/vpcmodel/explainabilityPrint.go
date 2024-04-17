@@ -31,7 +31,7 @@ func explainHeader(explanation *Explanation) string {
 	}
 	srcNetworkInterfaces := listNetworkInterfaces(explanation.srcNetworkInterfacesFromIP)
 	dstNetworkInterfaces := listNetworkInterfaces(explanation.dstNetworkInterfacesFromIP)
-	header1 := fmt.Sprintf("Connectivity explanation%s between %s%s and %s%s",
+	header1 := fmt.Sprintf("Explaining connectivity%s from %s%s and %s%s",
 		connStr, explanation.src, srcNetworkInterfaces, explanation.dst, dstNetworkInterfaces)
 	// communication within a single vpc
 	if explanation.c != nil && !explanation.c.IsMultipleVPCsConfig {
@@ -77,7 +77,7 @@ func (explanation *Explanation) String(verbose bool) string {
 // missing cross vpc router
 // in this case there is no *VPCConfig we can work with, so this case is treated separately
 func explainMissingCrossVpcRouter(src, dst string, connQuery *connection.Set) string {
-	return fmt.Sprintf("%vconnection blocked since source and destination in different VPCs with no transit gateway in-between",
+	return fmt.Sprintf("%vAll connections will be blocked since source and destination in different VPCs with no transit gateway in-between",
 		noConnectionHeader(src, dst, connQuery)+newLine)
 }
 
@@ -85,7 +85,7 @@ func explainMissingCrossVpcRouter(src, dst string, connQuery *connection.Set) st
 // The printing contains 4 sections:
 // 1. Header describing the query and whether there is a connection. E.g.:
 // * The following connection exists between ky-vsi0-subnet5[10.240.9.4] and ky-vsi0-subnet11[10.240.80.4]: All Connections
-// * No connection between ky-vsi1-subnet20[10.240.128.5] and ky-vsi0-subnet0[10.240.0.5];
+// * No connectivity from ky-vsi1-subnet20[10.240.128.5] and ky-vsi0-subnet0[10.240.0.5];
 // 2. List of all the different resources effecting the connection and the effect of each. E.g.:
 // cross-vpc-connection: transit-connection tg_connection0 of transit-gateway local-tg-ky denys connection
 // Egress: security group sg21-ky allows connection; network ACL acl21-ky allows connection
@@ -147,7 +147,7 @@ func (g *groupedConnLine) explainPerCaseStr(src, dst EndpointElem,
 	headerPlusPath := resourceEffectHeader + path
 	switch {
 	case crossVpcRouterRequired(src, dst) && crossVpcRouter != nil && crossVpcConnection.IsEmpty():
-		return fmt.Sprintf("%vconnection blocked since transit gateway denies route between src and dst"+tripleNLVars,
+		return fmt.Sprintf("%vAll connections will be blocked since transit gateway denies route from source to destination"+tripleNLVars,
 			noConnection, headerPlusPath, details)
 	case externalRouter == nil && src.IsExternal():
 		return fmt.Sprintf("%vno fip and src is external (fip is required for "+
@@ -193,7 +193,7 @@ func crossVpcRouterRequired(src, dst EndpointElem) bool {
 // returns string of header in case a connection fails to exist
 func noConnectionHeader(src, dst string, connQuery *connection.Set) string {
 	if connQuery == nil {
-		return fmt.Sprintf("No connection between %v and %v;", src, dst)
+		return fmt.Sprintf("No connectivity from %v and %v;", src, dst)
 	}
 	return fmt.Sprintf("There is no connection \"%v\" between %v and %v;", connQuery.String(), src, dst)
 }
