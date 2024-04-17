@@ -19,7 +19,7 @@ network ACL acl1-ky allows connection with the following allow rules
 
 ------------------------------------------------------------------------------------------------------------------------
 
-No connectivity from vsi1-ky[10.240.10.4] to Public Internet 161.27.0.0/16;
+No connections are allowed from vsi1-ky[10.240.10.4] to Public Internet 161.27.0.0/16;
 connection blocked by egress
 
 External traffic via PublicGateway: public-gw-ky

@@ -1,5 +1,5 @@
-Explaining connectivity for protocol: TCP dst-ports: 10-30 from 147.235.219.206/32 to vsi2-ky within test-vpc1-ky
-=================================================================================================================
+Explaining connectivity from 147.235.219.206/32 to vsi2-ky using protocol: TCP dst-ports: 10-30 within test-vpc1-ky
+===================================================================================================================
 
 Connection from Public Internet 147.235.219.206/32 to vsi2-ky[10.240.20.4] using protocol: TCP dst-ports: 22
 (note that not all queried protocols/ports are allowed)
