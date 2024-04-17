@@ -1,5 +1,5 @@
-Explaining connectivity for protocol: UDP src-ports: 10-100 dst-ports: 443 from vsi1-ky and 161.26.0.0/12 within test-vpc1-ky
-=============================================================================================================================
+Explaining connectivity for protocol: UDP src-ports: 10-100 dst-ports: 443 from vsi1-ky to 161.26.0.0/12 within test-vpc1-ky
+============================================================================================================================
 
 Connection protocol: UDP src-ports: 10-100 dst-ports: 443 exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/16
 Path:
@@ -18,7 +18,7 @@ network ACL acl1-ky allows connection with the following allow rules
 
 ------------------------------------------------------------------------------------------------------------------------
 
-There is no connection "protocol: UDP src-ports: 10-100 dst-ports: 443" between vsi1-ky[10.240.10.4] and Public Internet 161.16.0.0-161.25.255.255,161.27.0.0-161.31.255.255;
+No connectivity "protocol: UDP src-ports: 10-100 dst-ports: 443" from vsi1-ky[10.240.10.4] to Public Internet 161.16.0.0-161.25.255.255,161.27.0.0-161.31.255.255;
 connection blocked by egress
 
 External traffic via PublicGateway: public-gw-ky

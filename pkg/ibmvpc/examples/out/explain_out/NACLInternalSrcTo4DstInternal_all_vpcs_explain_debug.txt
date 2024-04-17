@@ -1,7 +1,7 @@
-Explaining connectivity from vsi3b-ky and 10.240.30.4/26 (vsi3a-ky[10.240.30.5], vsi3c-ky[10.240.30.4], vsi3b-ky[10.240.30.6], db-endpoint-gateway-ky[10.240.30.7]) within test-vpc1-ky
-=======================================================================================================================================================================================
+Explaining connectivity from vsi3b-ky to 10.240.30.4/26 (vsi3a-ky[10.240.30.5], vsi3c-ky[10.240.30.4], vsi3b-ky[10.240.30.6], db-endpoint-gateway-ky[10.240.30.7]) within test-vpc1-ky
+======================================================================================================================================================================================
 
-The following connection exists between vsi3b-ky[10.240.30.6] and db-endpoint-gateway-ky[10.240.30.7]: All Connections
+Allowed connections from vsi3b-ky[10.240.30.6] to db-endpoint-gateway-ky[10.240.30.7]: All Connections
 
 Path:
 	vsi3b-ky[10.240.30.6] -> security group sg1-ky -> 
@@ -20,7 +20,7 @@ security group sg1-ky allows connection with the following allow rules
 
 ------------------------------------------------------------------------------------------------------------------------
 
-The following connection exists between vsi3b-ky[10.240.30.6] and vsi3a-ky[10.240.30.5]: All Connections
+Allowed connections from vsi3b-ky[10.240.30.6] to vsi3a-ky[10.240.30.5]: All Connections
 
 Path:
 	vsi3b-ky[10.240.30.6] -> security group sg1-ky -> 
@@ -39,7 +39,7 @@ security group sg1-ky allows connection with the following allow rules
 
 ------------------------------------------------------------------------------------------------------------------------
 
-The following connection exists between vsi3b-ky[10.240.30.6] and vsi3c-ky[10.240.30.4]: All Connections
+Allowed connections from vsi3b-ky[10.240.30.6] to vsi3c-ky[10.240.30.4]: All Connections
 
 Path:
 	vsi3b-ky[10.240.30.6] -> security group sg1-ky -> 

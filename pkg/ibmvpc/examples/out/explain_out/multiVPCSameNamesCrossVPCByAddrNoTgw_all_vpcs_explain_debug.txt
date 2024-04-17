@@ -1,5 +1,5 @@
-Explaining connectivity from 10.240.3.5 and 10.240.12.4
-=======================================================
+Explaining connectivity from 10.240.3.5 to 10.240.12.4
+======================================================
 
-No connectivity from 10.240.3.5 and 10.240.12.4;
-All connections will be blocked since source and destination in different VPCs with no transit gateway in-between
+No connectivity from 10.240.3.5 to 10.240.12.4;
+All connections will be blocked since source and destination are in different VPCs with no transit gateway to connect them

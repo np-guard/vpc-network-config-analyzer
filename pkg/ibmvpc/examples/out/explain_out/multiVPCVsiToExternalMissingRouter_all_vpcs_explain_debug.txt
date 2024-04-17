@@ -1,7 +1,7 @@
-Explaining connectivity from vsi11-ky and 172.217.22.46/32 within test-vpc1-ky
-==============================================================================
+Explaining connectivity from vsi11-ky to 172.217.22.46/32 within test-vpc1-ky
+=============================================================================
 
-No connectivity from vsi11-ky[10.240.11.4] and Public Internet 172.217.22.46/32;
+No connectivity from vsi11-ky[10.240.11.4] to Public Internet 172.217.22.46/32;
 no fip/pgw and dst is external
 ------------------------------------------------------------------------------------------------------------------------
 
