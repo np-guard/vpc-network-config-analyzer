@@ -43,7 +43,7 @@ const (
 	fatalErr                     // fatal error that implies immediate termination (do not wait until we go over all vpcs)
 )
 
-const noValidInputMsg = "is not a legal IP address, CIDR, or VSI name"
+const noValidInputMsg = "is not a legal IP address, CIDR, or endpoint name"
 
 const deliminator = "/"
 
