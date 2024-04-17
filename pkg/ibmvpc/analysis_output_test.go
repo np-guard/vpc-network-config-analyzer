@@ -228,20 +228,20 @@ var tests = []*vpcGeneralTest{
 	},
 	{
 		inputConfig: "acl_testing3",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:   vpcmodel.HTML,
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:      vpcmodel.HTML,
 	},
 	{
 		inputConfig: "acl_testing3",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping: true,
-		format:   vpcmodel.HTML,
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.HTML,
 	},
 	{
 		inputConfig: "tg-prefix-filters",
-		useCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping: true,
-		format:   vpcmodel.HTML,
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.HTML,
 	},
 	{
 		inputConfig: "sg_testing1_new",
