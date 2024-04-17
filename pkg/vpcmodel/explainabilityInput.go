@@ -43,7 +43,7 @@ const (
 	fatalErr                     // fatal error that implies immediate termination (do not wait until we go over all vpcs)
 )
 
-const noValidInputMsg = "does not represent a legal IP address, a legal CIDR or a VSI name"
+const noValidInputMsg = "is not a legal IP address, CIDR, or endpoint name"
 
 const deliminator = "/"
 
@@ -70,13 +70,12 @@ type srcAndDstNodes struct {
 // if such tgw exists; otherwise the src and dst are not connected
 // error handling: the src and dst are being searched for within the context of each vpcConfig.
 // if not found, then it is due to one of the following:
-// 1. Both src and dst are external address
-// 2. Src/dst is a Cidr that contains both internal and external address
-// 3. Src/dst represents two different vsis in a certain config. This can be due to multiVpc context
-// 4. Src/dst is an internal address within subnets of the VPC but not connected to a vsi
-// 5. Src/dst does not present a legal IP address, a legal CIDR or a vsi name (vsi of the vpc)
-// 6. Src/dst is an internal address not within subnets of the VPC
-// 7. Src/dst found in two difference (single) vpc configs
+// 1. Both src and dst are external IP addresses
+// 2. Src/dst is a CIDR that contains both internal and external IP addresses
+// 3. Src/dst matches more than one VSI. Use VPC-name prefixes or CRNs
+// 4. Src/dst is an IP address within one of the given subnets, but is not connected to a VSI
+// 5. Src/dst is not a legal IP address, CIDR, or VSI name
+// 6. Src/dst is a VPC IP address, but not within any subnet
 // errors 1, 2 and 3, although detected within a specific VPCContext, are relevant in the multi-vpc
 // context and as such results in an immediate return with the error message (fatal error).
 // error 3 can be interpreted as a non-fatal error in the multiVPC context, but is treated as fatal since
@@ -86,7 +85,6 @@ type srcAndDstNodes struct {
 // subnet's cidr but there is no connected vsi then the error is fatal
 // errors 5 and 6  may occur in one vpcConfig while there is still a match to src and dst in another one
 // if no match found then errors 4 to 6 are in increasing severity. that is, 6>5>4
-// error 7 is detected within global context and is relevant only if none of the 1-6 errors occurred
 //
 //nolint:gocyclo // better not split into two function
 func (configsMap MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string) (vpcConfig *VPCConfig,
@@ -267,7 +265,7 @@ func (c *VPCConfig) srcDstInputToNodes(srcName, dstName string, isMultiVPCConfig
 	// only one of src/dst may be external; there could be multiple nodes only if external
 	if !srcNodes[0].IsInternal() && !dstNodes[0].IsInternal() {
 		return srcNodes, dstNodes, noInternalIP, fatalErr,
-			fmt.Errorf("both src %v and dst %v are external", srcName, dstName)
+			fmt.Errorf("both src %v and dst %v are external IP addresses", srcName, dstName)
 	}
 	return srcNodes, dstNodes, srcDstInternalAddr{isSrcInternalIP, isDstInternalIP}, noErr, nil
 }
@@ -325,13 +323,12 @@ func (c *VPCConfig) getNodesOfVsi(name string) ([]Node, int, error) {
 		vsi = cidrOrNameSlice[1]
 	}
 	for _, nodeSet := range c.NodeSets {
-		// currently assuming c.NodeSets consists of VSIs or VPE
+		// currently, assuming c.NodeSets consists of VSIs or VPE
 		if (vpc == "" || nodeSet.VPC().Name() == vpc) && nodeSet.Name() == vsi || // if vpc of vsi specified, equality must hold
 			nodeSet.UID() == uid {
 			if nodeSetWithVsi != nil {
-				return nil, fatalErr, fmt.Errorf("in %s there is more than one resource (%s, %s) with the given input string %s. "+
-					"can not determine which resource to analyze. consider using unique names or use input UID instead",
-					c.VPC.Name(), nodeSetWithVsi.UID(), nodeSet.UID(), name)
+				return nil, fatalErr, fmt.Errorf("%s matches more than one resource "+
+					"(%s, %s). Use VPC-name prefixes or CRNs", name, nodeSetWithVsi.UID(), nodeSet.UID())
 			}
 			nodeSetWithVsi = nodeSet
 		}
@@ -364,7 +361,7 @@ func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *ipblock.I
 	isInternal := !inputIPBlock.ContainedIn(publicInternet)
 	if isInternal && isExternal {
 		return nil, false, fatalErr,
-			fmt.Errorf("%s contains both external and internal addresses which is not supported. "+
+			fmt.Errorf("%s contains both external and internal IP addresses, which is not supported. "+
 				"src, dst should be external *or* internal address", ipOrCidr)
 	}
 	// 2.
