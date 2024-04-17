@@ -604,7 +604,7 @@ func TestInputValiditySingleVPCContext(t *testing.T) {
 	_, err1 := vpcConfigSg1.ExplainConnectivity(cidr1, cidr2, nil)
 	fmt.Println(err1.Error())
 	require.NotNil(t, err1, "the test should fail since both src and dst are external")
-	require.Equal(t, "both src 169.255.0.0 and dst 161.26.0.0/16 are external", err1.Error())
+	require.Equal(t, "both src 169.255.0.0 and dst 161.26.0.0/16 are external IP addresses", err1.Error())
 	fmt.Println()
 
 	// should fail due to a cidr containing both public internet and internal address
@@ -612,7 +612,7 @@ func TestInputValiditySingleVPCContext(t *testing.T) {
 	fmt.Println(err2.Error())
 	require.NotNil(t, err2, "the test should fail since src is cidr containing both public "+
 		"internet and internal address")
-	require.Equal(t, "illegal src: 0.0.0.0/0 contains both external and internal addresses "+
+	require.Equal(t, "illegal src: 0.0.0.0/0 contains both external and internal IP addresses "+
 		"which is not supported. src, dst should be external *or* internal address", err2.Error())
 	fmt.Println()
 
@@ -638,7 +638,7 @@ func TestInputValiditySingleVPCContext(t *testing.T) {
 	_, err5 := vpcConfigSg1.ExplainConnectivity(existingVsi, nonExistingVsi, nil)
 	fmt.Println(err5.Error())
 	require.NotNil(t, err5, "the test should fail since dst non existing vsi")
-	require.Equal(t, "illegal dst: vsi3a does not represent a legal IP address, a legal CIDR or a VSI name", err5.Error())
+	require.Equal(t, "illegal dst: vsi3a is not a legal IP address, CIDR, or VSI name", err5.Error())
 }
 
 func TestInputValidityMultipleVPCContext(t *testing.T) {
@@ -656,7 +656,7 @@ func TestInputValidityMultipleVPCContext(t *testing.T) {
 	_, err1 := vpcConfigMultiVpc.ExplainConnectivity(cidr1, cidr2, nil)
 	fmt.Println(err1.Error())
 	require.NotNil(t, err1, "the test should fail since both src and dst are external")
-	require.Equal(t, "both src 169.255.0.0 and dst 161.26.0.0/16 are external", err1.Error())
+	require.Equal(t, "both src 169.255.0.0 and dst 161.26.0.0/16 are external IP addresses", err1.Error())
 	fmt.Println()
 
 	// should fail due to a cidr containing both public internet and internal address
@@ -664,7 +664,7 @@ func TestInputValidityMultipleVPCContext(t *testing.T) {
 	fmt.Println(err2.Error())
 	require.NotNil(t, err2, "the test should fail since src is cidr containing both public "+
 		"internet and internal address")
-	require.Equal(t, "illegal src: 0.0.0.0/0 contains both external and internal addresses "+
+	require.Equal(t, "illegal src: 0.0.0.0/0 contains both external and internal IP addresses "+
 		"which is not supported. src, dst should be external *or* internal address", err2.Error())
 	fmt.Println()
 
@@ -689,21 +689,21 @@ func TestInputValidityMultipleVPCContext(t *testing.T) {
 	_, err5 := vpcConfigMultiVpc.ExplainConnectivity(existingVsi, nonExistingVsi, nil)
 	fmt.Println(err5.Error())
 	require.NotNil(t, err5, "the test should fail since dst non existing vsi")
-	require.Equal(t, "illegal dst: vsi3a does not represent a legal IP address, a legal CIDR or a VSI name", err5.Error())
+	require.Equal(t, "illegal dst: vsi3a is not a legal IP address, CIDR, or VSI name", err5.Error())
 	fmt.Println()
 
 	// should fail since src vsi's name has a typo
 	_, err6 := vpcConfigMultiVpc.ExplainConnectivity(nonExistingVsi, existingVsi, nil)
 	fmt.Println(err6.Error())
 	require.NotNil(t, err6, "the test should fail since src non existing vsi")
-	require.Equal(t, "illegal src: vsi3a does not represent a legal IP address, a legal CIDR or a VSI name", err6.Error())
+	require.Equal(t, "illegal src: vsi3a is not a legal IP address, CIDR, or VSI name", err6.Error())
 	fmt.Println()
 
 	// should fail since src and dst vsi's name has a typo - err msg should be about src
 	_, err7 := vpcConfigMultiVpc.ExplainConnectivity(nonExistingVsi, nonExistingVsi, nil)
 	fmt.Println(err7.Error())
 	require.NotNil(t, err7, "the test should fail since src and dst non existing vsi")
-	require.Equal(t, "illegal src: vsi3a does not represent a legal IP address, a legal CIDR or a VSI name", err7.Error())
+	require.Equal(t, "illegal src: vsi3a is not a legal IP address, CIDR, or VSI name", err7.Error())
 	fmt.Println()
 
 	// src does not exist, dst is an internal address not connected to a vsi. should prioritize the dst error
@@ -718,7 +718,7 @@ func TestInputValidityMultipleVPCContext(t *testing.T) {
 	_, err9 := vpcConfigMultiVpc.ExplainConnectivity(cidr1, existingVsiWrongVpc, nil)
 	fmt.Println(err9.Error())
 	require.NotNil(t, err9, "the test should fail since the src vsi given with wrong vpc")
-	require.Equal(t, "illegal dst: test-vpc1-ky/vsi3a-ky does not represent a legal IP address, a legal CIDR or a VSI name", err9.Error())
+	require.Equal(t, "illegal dst: test-vpc1-ky/vsi3a-ky is not a legal IP address, CIDR, or VSI name", err9.Error())
 
 	vpcConfigTgwDupNames := getConfig(t, "tgw_larger_example_dup_names")
 	dupSrcVsi := "vsi1-ky"
@@ -727,9 +727,7 @@ func TestInputValidityMultipleVPCContext(t *testing.T) {
 	_, err10 := vpcConfigTgwDupNames.ExplainConnectivity(dupSrcVsi, dupDstVsi, nil)
 	fmt.Println(err10.Error())
 	require.NotNil(t, err10, "the test should fail since the src name exists twice")
-	require.Equal(t, "illegal src: in combined-vpc-local-tg-ky there is more than one resource "+
-		"(crn:551, crn:488) with the given input string vsi1-ky. "+
-		"can not determine which resource to analyze. consider using unique names or use input UID instead",
+	require.Equal(t, "illegal src: vsi1-ky matches more than one resource (crn:551, crn:488). use VPC-name prefixes or CRNs",
 		err10.Error())
 	vpcConfigMultiVpcDupNames := getConfig(t, "multiVpc_larger_example_dup_names")
 	// should fail since these vsis exists in two vpcs configs
