@@ -94,10 +94,16 @@ func TestSGRule(t *testing.T) {
 		},
 		analyzer: NewSGAnalyzer(&sg.SecurityGroup), members: map[string]vpcmodel.Node{},
 	}
-	ruleStr, _, _, err := sgResource.analyzer.getSGRule(0)
+	ruleStr, sgRule, _, err := sgResource.analyzer.getSGRule(0)
 	require.Nil(t, err)
+	require.Equal(t, sgRule.target.String(), "0.0.0.0/0")
+	require.Equal(t, sgRule.local.String(), "0.0.0.0/0")
+	require.Equal(t, sgRule.index, 0)
 	require.Equal(t, ruleStr, "index: 0, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0\n")
-	ruleStr, _, _, err = sgResource.analyzer.getSGRule(1)
+	ruleStr, sgRule, _, err = sgResource.analyzer.getSGRule(1)
 	require.Nil(t, err)
+	require.Equal(t, sgRule.target.String(), "0.0.0.0/0")
+	require.Equal(t, sgRule.local.String(), "10.240.10.0")
+	require.Equal(t, sgRule.index, 1)
 	require.Equal(t, ruleStr, "index: 1, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 10.240.10.0/32\n")
 }
