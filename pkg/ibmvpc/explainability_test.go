@@ -749,7 +749,7 @@ func TestMultiExplainability(t *testing.T) {
 	for i := range vpcsConfig {
 		thisConn, err := vpcsConfig[i].GetVPCNetworkConnectivity(false)
 		if err != nil {
-			fmt.Printf(err.Error())
+			fmt.Printf("%v. %s", i, err.Error())
 		}
 		require.Nil(t, err)
 		groupedConns[i] = thisConn.GroupedConnectivity
@@ -762,6 +762,7 @@ func TestMultiExplainability(t *testing.T) {
 	for _, explain := range multiExplain {
 		if explain.Error() != "" {
 			// todo: issues with 172.128.0.0/9 https://github.com/np-guard/vpc-network-config-analyzer/issues/535
+			//       after the issue is solved add sanity that no error
 			fmt.Printf("%v. %v\n", i, explain.Error())
 		}
 		i++
