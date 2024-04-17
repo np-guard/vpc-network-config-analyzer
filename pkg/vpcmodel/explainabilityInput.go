@@ -328,7 +328,7 @@ func (c *VPCConfig) getNodesOfVsi(name string) ([]Node, int, error) {
 			nodeSet.UID() == uid {
 			if nodeSetWithVsi != nil {
 				return nil, fatalErr, fmt.Errorf("%s matches more than one resource "+
-					"(%s, %s). use VPC-name prefixes or CRNs", name, nodeSetWithVsi.UID(), nodeSet.UID())
+					"(%s, %s). Use VPC-name prefixes or CRNs", name, nodeSetWithVsi.UID(), nodeSet.UID())
 			}
 			nodeSetWithVsi = nodeSet
 		}
