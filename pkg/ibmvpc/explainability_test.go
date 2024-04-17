@@ -760,7 +760,10 @@ func TestMultiExplainability(t *testing.T) {
 	// sanity check: number of entries did not change (187) and no errors
 	i := 0
 	for _, explain := range multiExplain {
-		fmt.Printf("%v. %v\n", i, explain.Error()) // todo: there are 4 errors open issue
+		if explain.Error() != "" {
+			// todo: issues with 172.128.0.0/9
+			fmt.Printf("%v. %v\n", i, explain.Error())
+		}
 		i++
 	}
 	require.Equal(t, i, 187)
