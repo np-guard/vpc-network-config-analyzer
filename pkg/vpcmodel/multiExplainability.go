@@ -27,7 +27,7 @@ func (e *explainOutputEntry) String() string {
 }
 
 // MultiExplain multi-explanation mode: given a slice of <VPCConfig, Endpoint, Endpoint> such that each Endpoint is either
-// a vsi or grouped external addresses of the given config, returns []explainOutputEntry where item i provides explaination to input i
+// a vsi or grouped external addresses of the given config, returns []explainOutputEntry where item i provides explanation to input i
 func MultiExplain(srcDstCouples []explainInputEntry, vpcConns map[string]*VPCConnectivity) []explainOutputEntry {
 	multiExplanation := make([]explainOutputEntry, len(srcDstCouples))
 	for i, v := range srcDstCouples {
@@ -93,10 +93,30 @@ func getNodesFromEndpoint(endpoint EndpointElem) ([]Node, error) {
 // (4) src and dst are internal nodes from different vpcs and has a multivpc connection: {src,dst,multiVpcConfig}
 // (5) src and dst are internal nodes from different vpcs and has no connection:         {src,dst,nil}
 func CreateMultiExplanationsInput(cConfigs MultipleVPCConfigs, conns map[string]*GroupConnLines) []explainInputEntry {
-	internalNodes := map[EndpointElem]*VPCConfig{}
-	externalNodes := map[EndpointElem]bool{}
-	multiVpcConnections := map[EndpointElem]map[EndpointElem]*VPCConfig{}
-	// collect all the internal nodes:
+	internalNodes, externalNodes := collectNodesForExplanation(cConfigs, conns)
+	multiVpcConnections := collectMultiConnectionsForExplanation(cConfigs, conns)
+	explanationsInput := []explainInputEntry{}
+	for src, srcConfig := range internalNodes {
+		for dst, dstConfig := range internalNodes {
+			var vpcConfig *VPCConfig
+			if multiVpcConfig, ok := multiVpcConnections[src][dst]; ok {
+				vpcConfig = multiVpcConfig // input of case (4)
+			} else if srcConfig == dstConfig {
+				vpcConfig = srcConfig // input of case (1)
+			} // else - input of case (5)
+			explanationsInput = append(explanationsInput, explainInputEntry{vpcConfig, src, dst})
+		}
+		for external := range externalNodes {
+			explanationsInput = append(explanationsInput, explainInputEntry{srcConfig, src, external}) // input of case (2)
+			explanationsInput = append(explanationsInput, explainInputEntry{srcConfig, external, src}) // input of case (3)
+		}
+	}
+	return explanationsInput
+}
+
+func collectNodesForExplanation(cConfigs MultipleVPCConfigs, conns map[string]*GroupConnLines) (internalNodes map[EndpointElem]*VPCConfig, externalNodes map[EndpointElem]bool) {
+	internalNodes = map[EndpointElem]*VPCConfig{}
+	externalNodes = map[EndpointElem]bool{}
 	for _, vpcConfig := range cConfigs {
 		if !vpcConfig.IsMultipleVPCsConfig {
 			for _, n := range vpcConfig.Nodes {
@@ -106,7 +126,7 @@ func CreateMultiExplanationsInput(cConfigs MultipleVPCConfigs, conns map[string]
 			}
 		}
 	}
-	// collect all the external nodes:
+	// we collect only external nodes with connections:
 	for _, vpcConn := range conns {
 		for _, line := range vpcConn.GroupedLines {
 			if eSrc, ok := line.src.(*groupedExternalNodes); ok {
@@ -117,7 +137,12 @@ func CreateMultiExplanationsInput(cConfigs MultipleVPCConfigs, conns map[string]
 			}
 		}
 	}
-	// collect all the multi vpc connections:
+	return internalNodes, externalNodes
+}
+
+func collectMultiConnectionsForExplanation(cConfigs MultipleVPCConfigs, conns map[string]*GroupConnLines) map[EndpointElem]map[EndpointElem]*VPCConfig {
+
+	multiVpcConnections := map[EndpointElem]map[EndpointElem]*VPCConfig{}
 	for vpcName, vpcConfig := range cConfigs {
 		if vpcConfig.IsMultipleVPCsConfig {
 			vpcConn := conns[vpcName]
@@ -141,21 +166,5 @@ func CreateMultiExplanationsInput(cConfigs MultipleVPCConfigs, conns map[string]
 			}
 		}
 	}
-	explanationsInput := []explainInputEntry{}
-	for src, srcConfig := range internalNodes {
-		for dst, dstConfig := range internalNodes {
-			var vpcConfig *VPCConfig
-			if multiVpcConfig, ok := multiVpcConnections[src][dst]; ok {
-				vpcConfig = multiVpcConfig // input of case (4)
-			} else if srcConfig == dstConfig {
-				vpcConfig = srcConfig // input of case (1)
-			} // else - input of case (4)
-			explanationsInput = append(explanationsInput, explainInputEntry{vpcConfig, src, dst})
-		}
-		for external := range externalNodes {
-			explanationsInput = append(explanationsInput, explainInputEntry{srcConfig, src, external}) // input of case (2)
-			explanationsInput = append(explanationsInput, explainInputEntry{srcConfig, external, src}) // input of case (3)
-		}
-	}
-	return explanationsInput
+	return multiVpcConnections
 }

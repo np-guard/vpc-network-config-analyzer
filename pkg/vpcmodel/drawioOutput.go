@@ -50,7 +50,11 @@ func newDrawioOutputFormatter(outFormat OutFormat) *DrawioOutputFormatter {
 	d.multiVpcRouters = map[string]drawio.IconTreeNodeInterface{}
 	return &d
 }
-func (d *DrawioOutputFormatter) init(cConfigs MultipleVPCConfigs, vpcConns map[string]*VPCConnectivity, gConns map[string]*GroupConnLines, uc OutputUseCase) {
+func (d *DrawioOutputFormatter) init(
+	cConfigs MultipleVPCConfigs,
+	vpcConns map[string]*VPCConnectivity,
+	gConns map[string]*GroupConnLines,
+	uc OutputUseCase) {
 	d.cConfigs = cConfigs
 	d.vpcConns = vpcConns
 	d.gConns = gConns
@@ -207,7 +211,7 @@ func (d *DrawioOutputFormatter) createEdges() {
 
 // createExplanations() create explanations for every pairs of nodes to be display on the canvas
 func (d *DrawioOutputFormatter) createExplanations() []drawio.ExplanationEntry {
-	if d.outFormat != HTML {
+	if d.outFormat != HTML || d.uc != AllEndpoints {
 		return nil
 	}
 	explanationsInput := CreateMultiExplanationsInput(d.cConfigs, d.gConns)
@@ -219,7 +223,10 @@ func (d *DrawioOutputFormatter) createExplanations() []drawio.ExplanationEntry {
 	explanations := MultiExplain(explanationsInput, d.vpcConns)
 	explanationsTests := make([]drawio.ExplanationEntry, len(explanations))
 	for i, e := range explanations {
-		explanationsTests[i] = drawio.ExplanationEntry{Src: d.gen.TreeNode(explanationsInput[i].src), Dst: d.gen.TreeNode(explanationsInput[i].dst), Text: e.String()}
+		explanationsTests[i] = drawio.ExplanationEntry{
+			Src:  d.gen.TreeNode(explanationsInput[i].src),
+			Dst:  d.gen.TreeNode(explanationsInput[i].dst),
+			Text: e.String()}
 	}
 	return explanationsTests
 }
