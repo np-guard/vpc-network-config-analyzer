@@ -114,14 +114,16 @@ func CreateMultiExplanationsInput(cConfigs MultipleVPCConfigs, conns map[string]
 			explanationsInput = append(explanationsInput, explainInputEntry{vpcConfig, src, dst})
 		}
 		for external := range externalNodes {
-			explanationsInput = append(explanationsInput, explainInputEntry{srcConfig, src, external}) // input of case (2)
-			explanationsInput = append(explanationsInput, explainInputEntry{srcConfig, external, src}) // input of case (3)
+			explanationsInput = append(explanationsInput,
+				explainInputEntry{srcConfig, src, external}, // input of case (2)
+				explainInputEntry{srcConfig, external, src}) // input of case (3)
 		}
 	}
 	return explanationsInput
 }
 
-func collectNodesForExplanation(cConfigs MultipleVPCConfigs, conns map[string]*GroupConnLines) (internalNodes map[EndpointElem]*VPCConfig, externalNodes map[EndpointElem]bool) {
+func collectNodesForExplanation(cConfigs MultipleVPCConfigs, conns map[string]*GroupConnLines) (
+	internalNodes map[EndpointElem]*VPCConfig, externalNodes map[EndpointElem]bool) {
 	internalNodes = map[EndpointElem]*VPCConfig{}
 	externalNodes = map[EndpointElem]bool{}
 	for _, vpcConfig := range cConfigs {
@@ -147,8 +149,8 @@ func collectNodesForExplanation(cConfigs MultipleVPCConfigs, conns map[string]*G
 	return internalNodes, externalNodes
 }
 
-func collectMultiConnectionsForExplanation(cConfigs MultipleVPCConfigs, conns map[string]*GroupConnLines) map[EndpointElem]map[EndpointElem]*VPCConfig {
-
+func collectMultiConnectionsForExplanation(
+	cConfigs MultipleVPCConfigs, conns map[string]*GroupConnLines) map[EndpointElem]map[EndpointElem]*VPCConfig {
 	multiVpcConnections := map[EndpointElem]map[EndpointElem]*VPCConfig{}
 	for vpcName, vpcConfig := range cConfigs {
 		if vpcConfig.IsMultipleVPCsConfig {
