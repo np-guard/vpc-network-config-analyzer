@@ -761,7 +761,7 @@ func TestMultiExplainability(t *testing.T) {
 	i := 0
 	for _, explain := range multiExplain {
 		if explain.Error() != "" {
-			// todo: issues with 172.128.0.0/9
+			// todo: issues with 172.128.0.0/9 https://github.com/np-guard/vpc-network-config-analyzer/issues/535
 			fmt.Printf("%v. %v\n", i, explain.Error())
 		}
 		i++
