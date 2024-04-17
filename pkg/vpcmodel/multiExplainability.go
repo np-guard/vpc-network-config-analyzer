@@ -85,7 +85,7 @@ func getNodesFromEndpoint(endpoint EndpointElem) ([]Node, error) {
 }
 
 // CreateMultiExplanationsInput() given configs and results of connectivity analysis, generates input
-// in the format required by MultiExplain 
+// in the format required by MultiExplain
 // it creates the explainInputEntry of all the following cases:
 // (1) src and dst are internal nodes from the same vpc:                                 {src,dst,vpcConfig}
 // (2) src is internal and dst is external:                                              {src,dst,srcVpcConfig}
@@ -149,7 +149,7 @@ func CreateMultiExplanationsInput(cConfigs MultipleVPCConfigs, conns map[string]
 				vpcConfig = multiVpcConfig // input of case (4)
 			} else if srcConfig == dstConfig {
 				vpcConfig = srcConfig // input of case (1)
-			}// else - input of case (4)
+			} // else - input of case (4)
 			explanationsInput = append(explanationsInput, explainInputEntry{vpcConfig, src, dst})
 		}
 		for external := range externalNodes {

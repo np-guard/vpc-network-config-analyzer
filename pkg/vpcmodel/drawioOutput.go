@@ -204,6 +204,7 @@ func (d *DrawioOutputFormatter) createEdges() {
 		}
 	}
 }
+
 // createExplanations() create explanations for every pairs of nodes to be display on the canvas
 func (d *DrawioOutputFormatter) createExplanations() []drawio.ExplanationEntry {
 	if d.outFormat != HTML {
