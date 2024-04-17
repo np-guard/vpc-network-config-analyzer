@@ -52,7 +52,7 @@ func MultiExplain(srcDstCouples []explainInputEntry, vpcConns map[string]*VPCCon
 			continue
 		}
 		dstNodes, errDst := getNodesFromEndpoint(v.dst)
-		if errSrc != nil {
+		if errDst != nil {
 			multiExplanation[i] = explainOutputEntry{emptyExplain, errDst}
 			continue
 		}

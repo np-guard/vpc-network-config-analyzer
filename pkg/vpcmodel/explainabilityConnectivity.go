@@ -92,7 +92,11 @@ func (configsMap MultipleVPCConfigs) ExplainConnectivity(src, dst string, connQu
 		return &Explanation{nil, connQuery, nil, src, dst,
 			nil, nil, false, nil}, nil
 	}
-	return vpcConfig.explainConnectivityForVPC(src, dst, srcNodes, dstNodes, isSrcDstInternalIP, connQuery, nil)
+	connectivity, err1 := vpcConfig.GetVPCNetworkConnectivity(false) // computes connectivity
+	if err1 != nil {
+		return nil, err1
+	}
+	return vpcConfig.explainConnectivityForVPC(src, dst, srcNodes, dstNodes, isSrcDstInternalIP, connQuery, connectivity)
 }
 
 // explainConnectivityForVPC for a vpcConfig, given src, dst and connQuery returns a struct with all explanation details
@@ -423,12 +427,6 @@ func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
 // this is seems the time spent here should be neglectable, not worth the effort of adding dedicated code
 func (details *rulesAndConnDetails) computeConnections(c *VPCConfig,
 	connQuery *connection.Set, connectivity *VPCConnectivity) (err error) {
-	if connectivity == nil {
-		connectivity, err = c.GetVPCNetworkConnectivity(false) // computes connectivity
-		if err != nil {
-			return err
-		}
-	}
 	for _, srcDstDetails := range *details {
 		conn, err := connectivity.getConnection(c, srcDstDetails.src, srcDstDetails.dst)
 		if err != nil {
