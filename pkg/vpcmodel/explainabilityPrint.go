@@ -210,10 +210,10 @@ func existingConnectionStr(connQuery *connection.Set, src, dst EndpointElem,
 	} else {
 		properSubsetConn := ""
 		if !conn.Equal(connQuery) {
-			properSubsetConn = " (note that not all queried protocols/ports are allowed)"
+			properSubsetConn = "(note that not all queried protocols/ports are allowed)"
 		}
-		resComponents = append(resComponents, fmt.Sprintf("Connection %v exists between %v and %v%s", conn.String(),
-			src.Name(), dst.Name(), properSubsetConn))
+		resComponents = append(resComponents, fmt.Sprintf("Connection from %v to %v using %v\n%s",
+			src.Name(), dst.Name(), conn.String(), properSubsetConn))
 	}
 	resComponents = append(resComponents, path, details)
 	return strings.Join(resComponents, newLine)
