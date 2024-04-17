@@ -204,13 +204,14 @@ func (d *DrawioOutputFormatter) createEdges() {
 		}
 	}
 }
-
+// createExplanations() create explanations for every pairs of nodes to be display on the canvas
 func (d *DrawioOutputFormatter) createExplanations() []drawio.ExplanationEntry {
 	if d.outFormat != HTML {
 		return nil
 	}
 	explanationsInput := CreateMultiExplanationsInput(d.cConfigs, d.gConns)
-	explanationsInput = slices.DeleteFunc(explanationsInput, func(e srcDstEndPoint) bool {
+	// remove all the entries that are not shown on the canvas:
+	explanationsInput = slices.DeleteFunc(explanationsInput, func(e explainInputEntry) bool {
 		return !d.showResource(e.src) || !d.showResource(e.dst)
 	})
 
