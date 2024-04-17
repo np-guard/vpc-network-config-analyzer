@@ -986,6 +986,9 @@
                     "id": "id:125",
                     "ip_version": "ipv4",
                     "protocol": "all",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "0.0.0.0/0"
                     }
@@ -996,6 +999,9 @@
                     "id": "id:127",
                     "ip_version": "ipv4",
                     "protocol": "all",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "10.240.30.0/24"
                     }
@@ -1043,6 +1049,9 @@
                     "id": "id:129",
                     "ip_version": "ipv4",
                     "protocol": "icmp",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "142.0.0.0/7"
                     }
@@ -1053,6 +1062,9 @@
                     "id": "id:131",
                     "ip_version": "ipv4",
                     "protocol": "all",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "crn": "crn:45",
                         "href": "href:46",
@@ -1068,6 +1080,9 @@
                     "port_max": 65535,
                     "port_min": 1,
                     "protocol": "udp",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "161.26.0.0/16"
                     }
@@ -1078,6 +1093,9 @@
                     "id": "id:135",
                     "ip_version": "ipv4",
                     "protocol": "all",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "crn": "crn:61",
                         "href": "href:62",
@@ -1091,6 +1109,9 @@
                     "id": "id:137",
                     "ip_version": "ipv4",
                     "protocol": "all",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "crn": "crn:8",
                         "href": "href:9",
@@ -1134,6 +1155,9 @@
                     "id": "id:139",
                     "ip_version": "ipv4",
                     "protocol": "all",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "10.240.20.0/24"
                     }
@@ -1144,6 +1168,9 @@
                     "id": "id:141",
                     "ip_version": "ipv4",
                     "protocol": "all",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "10.240.10.0/24"
                     }
@@ -1156,6 +1183,9 @@
                     "port_max": 22,
                     "port_min": 22,
                     "protocol": "tcp",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "address": "147.235.219.206"
                     }
@@ -1166,6 +1196,9 @@
                     "id": "id:145",
                     "ip_version": "ipv4",
                     "protocol": "icmp",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "142.0.0.0/8"
                     }
@@ -1176,6 +1209,9 @@
                     "id": "id:147",
                     "ip_version": "ipv4",
                     "protocol": "all",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "crn": "crn:45",
                         "href": "href:46",
@@ -1189,6 +1225,9 @@
                     "id": "id:149",
                     "ip_version": "ipv4",
                     "protocol": "all",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "10.240.30.0/24"
                     }
@@ -1201,6 +1240,9 @@
                     "port_max": 65535,
                     "port_min": 1,
                     "protocol": "tcp",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "crn": "crn:61",
                         "href": "href:62",
@@ -1216,6 +1258,9 @@
                     "port_max": 65535,
                     "port_min": 1,
                     "protocol": "tcp",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "crn": "crn:61",
                         "href": "href:62",
@@ -1265,6 +1310,9 @@
                     "id": "id:158",
                     "ip_version": "ipv4",
                     "protocol": "all",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "cidr_block": "0.0.0.0/0"
                     }
@@ -1275,6 +1323,9 @@
                     "id": "id:160",
                     "ip_version": "ipv4",
                     "protocol": "all",
+                    "local": {
+                        "cidr_block": "0.0.0.0/0"
+                    },
                     "remote": {
                         "crn": "crn:154",
                         "href": "href:155",
