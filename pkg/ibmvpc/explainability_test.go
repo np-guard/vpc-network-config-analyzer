@@ -740,7 +740,7 @@ func TestInputValidityMultipleVPCContext(t *testing.T) {
 		err11.Error())
 }
 
-// sanity check: no error and expected number of explaination elements
+// sanity check: no error and expected number of explanation elements
 func TestMultiExplainSanity(t *testing.T) {
 	vpcsConfig := getConfig(t, "tgw_larger_example")
 	require.NotNil(t, vpcsConfig, "vpcsConfig equals nil")
