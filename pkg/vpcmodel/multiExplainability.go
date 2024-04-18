@@ -14,7 +14,6 @@ type explainInputEntry struct {
 	dst EndpointElem
 }
 
-//nolint:errname //this struct it not an error type (and you lint people are sick!!!)
 type explainOutputEntry struct {
 	explain *Explanation
 	err     error
