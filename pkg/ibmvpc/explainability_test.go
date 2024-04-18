@@ -761,5 +761,5 @@ func TestMultiExplainability(t *testing.T) {
 		require.Equal(t, "", explain.Error())
 		i++
 	}
-	require.Equal(t, i, 187)
+	require.Equal(t, i, len(inputMultiExplain))
 }
