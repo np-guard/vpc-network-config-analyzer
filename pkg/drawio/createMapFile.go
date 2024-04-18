@@ -117,7 +117,9 @@ func (data *templateData) SvgShortLabel(tn TreeNodeInterface) string {
 	// so, instead of creating a short version, we edit the long version here:
 	label := data.SvgLabel(tn)
 	label = strings.ReplaceAll(label, "protocol:", "")
-	label = strings.ReplaceAll(label, "-ports:", "")
+	if !strings.Contains(label, "src-ports:") {
+		label = strings.ReplaceAll(label, "dst-ports:", "")
+	}
 	if len(label) > maxConnLabelSize {
 		return label[0:maxConnLabelSize-len(threeDots)] + threeDots
 	}

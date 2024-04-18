@@ -118,9 +118,9 @@
   <script>
                 const selectableElems = document.querySelectorAll('[selectable="true"]');
                 var selectedElems = [];
-                const mainTitleText = 'Application connectivity graph'
-                const doFilterExplainText = 'For filtering, Double-click on any item'
-                const unFilterExplainText = 'For unfiltering, Double-click on the background'
+                const mainTitleText = 'VPC connectivity graph'
+                const doFilterExplainText = 'Double-click an item to filter-out unrelated entities'
+                const unFilterExplainText = 'Double-click the background to cancel filtering'
                 const textSeparator = '\n---------------------------------------------------------------------------------\n\n'
                 const selectSrcText = 'For connectivity explanation, Click the SOURCE node'
                 const selectDstText =  'Click the DESTINATION node, And see destination toolTip '
@@ -130,7 +130,7 @@
                 var filterExplainText = doFilterExplainText
                 var explainText = ''
                 var explainExplainText = selectSrcText
-                var savesdTooltip = ''
+                var savedTooltip = ''
                 const selectionBox = document.getElementById('selectionBox');
                 const clickableElements = document.querySelectorAll('[clickable="true"]');
 
@@ -164,7 +164,7 @@
                     // If clickFlag is still true after the timer, trigger single-click action
                     if (clickFlag) {
                       if (selectedElems.length > 1) {// reset selection
-                      selectedElems[1].getElementsByTagName("title")[0].textContent = savesdTooltip
+                      selectedElems[1].getElementsByTagName("title")[0].textContent = savedTooltip
                         selectedElems.forEach((item) => {
                           item.classList.remove('selected');
                           const markerElement = item.querySelector('[selection-marker]')
@@ -205,20 +205,18 @@
                         const src_name = selectedElems[0].getAttribute('title');
                         const dst_name = selectedElems[1].getAttribute('title');
                         const entry = xmlDoc.querySelector("entry[src='"+src+"'][dst='"+dst+"']");
+                        savedTooltip = selectedElems[1].getElementsByTagName("title")[0].textContent
                         if (entry) {
 							            explainTitle = 'Configurations affecting the connectivity between <span style="background-color: yellow;">'+src_name+'</span> and <span style="background-color: #ADD8E6;">'+dst_name+'</span>:\n' 
 
                           // color the src and dst names
                           explainText = explainTitle + entry.textContent;
-                          toolTip = entry.textContent
+               						selectedElems[1].getElementsByTagName("title")[0].textContent = entry.textContent
                         }
                         else {
                           explainText = 'Did not find entry of <span style="background-color: yellow;">'+src_name+'</span>'+
                           ' and <span style="background-color: #ADD8E6;"> '+dst_name + '</span>';
-              						toolTip= 'Did not find entry of '+src_name+ '->' + dst_name
                         }
-                        savesdTooltip = selectedElems[1].getElementsByTagName("title")[0].textContent
-             						selectedElems[1].getElementsByTagName("title")[0].textContent = toolTip
                         explainExplainText = reselectSrcText
                       }
                     setAllText()
