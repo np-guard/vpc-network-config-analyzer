@@ -12,6 +12,7 @@ import (
 	"os"
 	"reflect"
 	"sort"
+	"strings"
 	"text/template"
 )
 
@@ -105,6 +106,26 @@ func (data *templateData) SvgLabel(tn TreeNodeInterface) string {
 	}
 	return joinLabels(tn.labels(), SvgTableSep)
 }
+
+const (
+	maxConnLabelSize = 8
+	threeDots        = "..."
+)
+
+func (data *templateData) SvgShortLabel(tn TreeNodeInterface) string {
+	// the connection label is created in another package,
+	// so, instead of creating a short version, we edit the long version here:
+	label := data.SvgLabel(tn)
+	label = strings.ReplaceAll(label, "protocol:", "")
+	if !strings.Contains(label, "src-ports:") {
+		label = strings.ReplaceAll(label, "dst-ports:", "")
+	}
+	if len(label) > maxConnLabelSize {
+		return label[0:maxConnLabelSize-len(threeDots)] + threeDots
+	}
+	return label
+}
+
 func (data *templateData) DrawioLabel(tn TreeNodeInterface) string {
 	return joinLabels(tn.labels(), drawioTableSep)
 }
