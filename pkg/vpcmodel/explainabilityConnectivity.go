@@ -109,7 +109,6 @@ func (c *VPCConfig) explainConnectivityForVPC(src, dst string, srcNodes, dstNode
 	}
 	// finds connEnabled and the existing connection between src and dst if connQuery nil,
 	// otherwise the part of the connection intersecting connQuery
-	// if we are in multi-explanation mode then *VPCConnectivity was already computed
 	err2 := rulesAndDetails.computeConnections(c, connQuery, connectivity)
 	if err2 != nil {
 		return nil, err2
