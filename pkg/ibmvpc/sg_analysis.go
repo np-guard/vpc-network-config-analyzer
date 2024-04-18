@@ -53,6 +53,7 @@ func getAllConnSet() *connection.Set {
 	return connection.All()
 }
 
+// getIPBlockResult gets an cidr, address or name of the remote/local rule object, and returns it's IPBlock
 func (sga *SGAnalyzer) getIPBlockResult(cidr, address, name *string) (*ipblock.IPBlock, string, error) {
 	var ipBlock *ipblock.IPBlock
 	var cidrRes string
@@ -90,6 +91,7 @@ func (sga *SGAnalyzer) getIPBlockResult(cidr, address, name *string) (*ipblock.I
 	return ipBlock, cidrRes, nil
 }
 
+// getRemoteCidr gets remote rule object interface and returns it's IPBlock
 func (sga *SGAnalyzer) getRemoteCidr(remote vpc1.SecurityGroupRuleRemoteIntf) (*ipblock.IPBlock, string, error) {
 	// TODO: on actual run from SG example, the type of remoteObj is SecurityGroupRuleRemote and not SecurityGroupRuleRemoteCIDR,
 	// even if cidr is defined
@@ -120,6 +122,7 @@ func (sga *SGAnalyzer) getRemoteCidr(remote vpc1.SecurityGroupRuleRemoteIntf) (*
 	return target, cidrRes, nil
 }
 
+// getRemoteCidr gets local rule object interface and returns it's IPBlock
 func (sga *SGAnalyzer) getLocalCidr(local vpc1.SecurityGroupRuleLocalIntf) (*ipblock.IPBlock, string, error) {
 	var localIP *ipblock.IPBlock
 	var cidrRes string
