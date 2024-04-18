@@ -171,9 +171,9 @@ func collectNodesForExplanation(cConfigs MultipleVPCConfigs, conns map[string]*G
 func collectMultiConnectionsForExplanation(
 	cConfigs MultipleVPCConfigs, conns map[string]*VPCConnectivity) map[EndpointElem]map[EndpointElem]*VPCConfig {
 	multiVpcConnections := map[EndpointElem]map[EndpointElem]*VPCConfig{}
-	for vpcUid, vpcConfig := range cConfigs {
+	for vpcUID, vpcConfig := range cConfigs {
 		if vpcConfig.IsMultipleVPCsConfig {
-			for src, dsts := range conns[vpcUid].AllowedConnsCombined {
+			for src, dsts := range conns[vpcUID].AllowedConnsCombined {
 				for dst := range dsts {
 					if _, ok := multiVpcConnections[src]; !ok {
 						multiVpcConnections[src] = map[EndpointElem]*VPCConfig{}
