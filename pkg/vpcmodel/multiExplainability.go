@@ -38,8 +38,10 @@ func (e *explainOutputEntry) EntryError() string {
 func MultiExplain(srcDstCouples []explainInputEntry, vpcConns map[string]*VPCConnectivity) []explainOutputEntry {
 	multiExplanation := make([]explainOutputEntry, len(srcDstCouples))
 	for i, v := range srcDstCouples {
-		emptyExplain := &Explanation{nil, nil, nil, v.src.Name(), v.dst.Name(),
-			nil, nil, false, nil}
+		emptyExplain := &Explanation{
+			src: v.src.Name(),
+			dst: v.dst.Name(),
+		}
 		if v.c == nil {
 			// no vpc config implies missing cross-vpc router between src and dst which are not in the same VPC
 			multiExplanation[i] = explainOutputEntry{emptyExplain, nil}
@@ -73,7 +75,7 @@ func MultiExplain(srcDstCouples []explainInputEntry, vpcConns map[string]*VPCCon
 	return multiExplanation
 }
 
-// given an Endpoint, return []Node which is either:
+// given an EndpointElem, return []Node which is either:
 // 1. A single Node representing a VSI if the endpoints consists a single vsi
 // 2. A number of Nodes, each representing an external address, if the endpoint is groupedExternalNodes
 // if the endpoint is neither, returns error
