@@ -80,7 +80,7 @@ type Explanation struct {
 	groupedLines []*groupedConnLine
 }
 
-// ExplainConnectivity Explain connectivity of a single <src, dst> couple given by the user
+// ExplainConnectivity returns Explanation object, that explains connectivity of a single <src, dst> couple given by the user
 func (configsMap MultipleVPCConfigs) ExplainConnectivity(src, dst string, connQuery *connection.Set) (res *Explanation, err error) {
 	vpcConfig, srcNodes, dstNodes, isSrcDstInternalIP, err := configsMap.getVPCConfigAndSrcDstNodes(src, dst)
 	if err != nil {
