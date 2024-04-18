@@ -104,9 +104,12 @@ func (c *VPCConfig) getNodesFromEndpoint(endpoint EndpointElem) ([]Node, error) 
 // (3) dst is internal and src is external:                                              {src,dst,dstVpcConfig}
 // (4) src and dst are internal nodes from different vpcs and has a multivpc connection: {src,dst,multiVpcConfig}
 // (5) src and dst are internal nodes from different vpcs and has no connection:         {src,dst,nil}
-func CreateMultiExplanationsInput(cConfigs MultipleVPCConfigs, conns map[string]*GroupConnLines) []explainInputEntry {
-	internalNodes, externalNodes := collectNodesForExplanation(cConfigs, conns)
-	multiVpcConnections := collectMultiConnectionsForExplanation(cConfigs, conns)
+func CreateMultiExplanationsInput(
+	cConfigs MultipleVPCConfigs,
+	vpcConns map[string]*VPCConnectivity,
+	gConns map[string]*GroupConnLines) []explainInputEntry {
+	internalNodes, externalNodes := collectNodesForExplanation(cConfigs, gConns)
+	multiVpcConnections := collectMultiConnectionsForExplanation(cConfigs, vpcConns)
 	explanationsInput := []explainInputEntry{}
 	for src, srcConfig := range internalNodes {
 		for dst, dstConfig := range internalNodes {
@@ -155,27 +158,16 @@ func collectNodesForExplanation(cConfigs MultipleVPCConfigs, conns map[string]*G
 }
 
 func collectMultiConnectionsForExplanation(
-	cConfigs MultipleVPCConfigs, conns map[string]*GroupConnLines) map[EndpointElem]map[EndpointElem]*VPCConfig {
+	cConfigs MultipleVPCConfigs, conns map[string]*VPCConnectivity) map[EndpointElem]map[EndpointElem]*VPCConfig {
 	multiVpcConnections := map[EndpointElem]map[EndpointElem]*VPCConfig{}
 	for vpcName, vpcConfig := range cConfigs {
 		if vpcConfig.IsMultipleVPCsConfig {
-			vpcConn := conns[vpcName]
-			for _, line := range vpcConn.GroupedLines {
-				srcs := []EndpointElem{line.src}
-				dsts := []EndpointElem{line.dst}
-				if srcList, ok := line.src.(*groupedEndpointsElems); ok {
-					srcs = *srcList
-				}
-				if dstList, ok := line.dst.(*groupedEndpointsElems); ok {
-					dsts = *dstList
-				}
-				for _, src := range srcs {
-					for _, dst := range dsts {
-						if _, ok := multiVpcConnections[src]; !ok {
-							multiVpcConnections[src] = map[EndpointElem]*VPCConfig{}
-						}
-						multiVpcConnections[src][dst] = vpcConfig
+			for src, dsts := range conns[vpcName].AllowedConnsCombined {
+				for dst := range dsts {
+					if _, ok := multiVpcConnections[src]; !ok {
+						multiVpcConnections[src] = map[EndpointElem]*VPCConfig{}
 					}
+					multiVpcConnections[src][dst] = vpcConfig
 				}
 			}
 		}

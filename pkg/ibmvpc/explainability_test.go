@@ -755,7 +755,7 @@ func TestMultiExplainSanity(t *testing.T) {
 		groupedConns[i] = thisConn.GroupedConnectivity
 		nodesConn[i] = thisConn
 	}
-	inputMultiExplain := vpcmodel.CreateMultiExplanationsInput(vpcsConfig, groupedConns)
+	inputMultiExplain := vpcmodel.CreateMultiExplanationsInput(vpcsConfig, nodesConn, groupedConns)
 	multiExplain := vpcmodel.MultiExplain(inputMultiExplain, nodesConn)
 	i := 0
 	for _, explain := range multiExplain {
@@ -779,7 +779,7 @@ func TestMultiExplainabilityOutput(t *testing.T) {
 		groupedConns[i] = thisConn.GroupedConnectivity
 		nodesConn[i] = thisConn
 	}
-	inputMultiExplain := vpcmodel.CreateMultiExplanationsInput(vpcsConfig, groupedConns)
+	inputMultiExplain := vpcmodel.CreateMultiExplanationsInput(vpcsConfig, nodesConn, groupedConns)
 	multiExplain := vpcmodel.MultiExplain(inputMultiExplain, nodesConn)
 	outputSlice := make([]string, len(multiExplain))
 	for i, explain := range multiExplain {
