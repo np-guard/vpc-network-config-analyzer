@@ -85,11 +85,11 @@ func (c *VPCConfig) getNodesFromEndpoint(endpoint EndpointElem) ([]Node, error) 
 		externalNodes := []Node{}
 		for _, e := range *n {
 			// gets external nodes from e as explained in getCidrExternalNodes
-			disjiontNodes, _, err := c.getCidrExternalNodes(e.ipblock)
+			disjointNodes, _, err := c.getCidrExternalNodes(e.ipblock)
 			if err != nil {
 				return nil, err
 			}
-			externalNodes = append(externalNodes, disjiontNodes...)
+			externalNodes = append(externalNodes, disjointNodes...)
 		}
 		return externalNodes, nil
 	}
