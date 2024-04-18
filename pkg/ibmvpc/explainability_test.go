@@ -760,11 +760,7 @@ func TestMultiExplainability(t *testing.T) {
 	// sanity check: number of entries did not change (187) and no errors
 	i := 0
 	for _, explain := range multiExplain {
-		if explain.Error() != "" {
-			// todo: issues with 172.128.0.0/9 https://github.com/np-guard/vpc-network-config-analyzer/issues/535
-			//       after the issue is solved add sanity that no error
-			fmt.Printf("%v. %v\n", i, explain.Error())
-		}
+		require.Equal(t, "", explain.Error())
 		i++
 	}
 	require.Equal(t, i, 187)

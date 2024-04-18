@@ -46,12 +46,12 @@ func MultiExplain(srcDstCouples []explainInputEntry, vpcConns map[string]*VPCCon
 			multiExplanation[i] = explainOutputEntry{emptyExplain, nil}
 			continue
 		}
-		srcNodes, errSrc := getNodesFromEndpoint(v.src)
+		srcNodes, errSrc := v.c.getNodesFromEndpoint(v.src)
 		if errSrc != nil {
 			multiExplanation[i] = explainOutputEntry{emptyExplain, errSrc}
 			continue
 		}
-		dstNodes, errDst := getNodesFromEndpoint(v.dst)
+		dstNodes, errDst := v.c.getNodesFromEndpoint(v.dst)
 		if errDst != nil {
 			multiExplanation[i] = explainOutputEntry{emptyExplain, errDst}
 			continue
@@ -78,21 +78,27 @@ func MultiExplain(srcDstCouples []explainInputEntry, vpcConns map[string]*VPCCon
 // 1. A single Node representing a VSI if the endpoints consists a single vsi
 // 2. A number of Nodes, each representing an external address, if the endpoint is groupedExternalNodes
 // if the endpoint is neither, returns error
-func getNodesFromEndpoint(endpoint EndpointElem) ([]Node, error) {
+func (c *VPCConfig) getNodesFromEndpoint(endpoint EndpointElem) ([]Node, error) {
 	switch n := endpoint.(type) {
 	case InternalNodeIntf:
 		return []Node{endpoint.(Node)}, nil
 	case *groupedExternalNodes:
-		externalNodes := make([]Node, len(*n))
-		for i, e := range *n {
-			externalNodes[i] = e
+		externalNodes := []Node{}
+		for _, e := range *n {
+			// gets external nodes from e as explained in getCidrExternalNodes
+			disjiontNodes, _, err := c.getCidrExternalNodes(e.ipblock)
+			if err != nil {
+				return nil, err
+			}
+			externalNodes = append(externalNodes, disjiontNodes...)
+			// 	nodes, errType, err = c.getCidrExternalNodes(inputIPBlock)
 		}
 		return externalNodes, nil
 	}
 	return nil, fmt.Errorf("np-Guard error: %v not of type InternalNodeIntf or groupedExternalNodes", endpoint.Name())
 }
 
-// CreateMultiExplanationsInput() given configs and results of connectivity analysis, generates input
+// CreateMultiExplanationsInput given configs and results of connectivity analysis, generates input
 // in the format required by MultiExplain
 // it creates the explainInputEntry of all the following cases:
 // (1) src and dst are internal nodes from the same vpc:                                 {src,dst,vpcConfig}
