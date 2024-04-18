@@ -27,7 +27,7 @@ func (e *explainOutputEntry) String() string {
 	return e.explain.String(true)
 }
 
-func (e *explainOutputEntry) Error() string {
+func (e *explainOutputEntry) EntryError() string {
 	if e.err != nil {
 		return e.err.Error()
 	}
