@@ -53,25 +53,25 @@ func getAllConnSet() *connection.Set {
 	return connection.All()
 }
 
-func (sga *SGAnalyzer) getIPBlockResult(cidr, address, name string) (*ipblock.IPBlock, string, error) {
+func (sga *SGAnalyzer) getIPBlockResult(cidr, address, name *string) (*ipblock.IPBlock, string, error) {
 	var ipBlock *ipblock.IPBlock
 	var cidrRes string
 	var err error
 	switch {
-	case cidr != "":
-		ipBlock, err = ipblock.FromCidr(cidr)
+	case cidr != nil:
+		ipBlock, err = ipblock.FromCidr(*cidr)
 		if err != nil {
 			return nil, "", err
 		}
 		cidrRes = ipBlock.ToCidrList()[0]
-	case address != "":
-		ipBlock, err = ipblock.FromIPAddress(address)
+	case address != nil:
+		ipBlock, err = ipblock.FromIPAddress(*address)
 		if err != nil {
 			return nil, "", err
 		}
 		cidrRes = ipBlock.ToCidrList()[0]
-	case name != "":
-		if sg, ok := sga.sgMap[name]; ok {
+	case name != nil:
+		if sg, ok := sga.sgMap[*name]; ok {
 			resIPBlock := ipblock.New()
 			for member := range sg.members {
 				memberIPBlock, err := ipblock.FromIPAddress(member)
@@ -103,7 +103,7 @@ func (sga *SGAnalyzer) getRemoteCidr(remote vpc1.SecurityGroupRuleRemoteIntf) (*
 	// how can infer type of remote from this object?
 	// can also be Address or CRN or ...
 	if remoteObj, ok := remote.(*vpc1.SecurityGroupRuleRemote); ok {
-		target, cidrRes, err = sga.getIPBlockResult(*remoteObj.CIDRBlock, *remoteObj.Address, *remoteObj.Name)
+		target, cidrRes, err = sga.getIPBlockResult(remoteObj.CIDRBlock, remoteObj.Address, remoteObj.Name)
 		if err != nil {
 			return nil, "", err
 		}
@@ -125,7 +125,7 @@ func (sga *SGAnalyzer) getLocalCidr(local vpc1.SecurityGroupRuleLocalIntf) (*ipb
 	var cidrRes string
 	var err error
 	if localObj, ok := local.(*vpc1.SecurityGroupRuleLocal); ok {
-		localIP, cidrRes, err = sga.getIPBlockResult(*localObj.CIDRBlock, *localObj.Address, "")
+		localIP, cidrRes, err = sga.getIPBlockResult(localObj.CIDRBlock, localObj.Address, nil)
 		if err != nil {
 			return nil, "", err
 		}
@@ -155,12 +155,6 @@ func (sga *SGAnalyzer) getProtocolAllRule(ruleObj *vpc1.SecurityGroupRuleSecurit
 	local, localCidr, err = sga.getLocalCidr(ruleObj.Local)
 	if err != nil {
 		return "", nil, false, err
-	}
-	if target == nil {
-		return "", nil, false, fmt.Errorf("getSGRule error: empty target in rule %+v", ruleObj)
-	}
-	if local == nil {
-		return "", nil, false, fmt.Errorf("getSGRule error: empty local in rule %+v", ruleObj)
 	}
 	connStr := fmt.Sprintf("protocol: %s", protocol)
 	ruleStr = getRuleStr(direction, connStr, remoteCidr, localCidr)
