@@ -1,7 +1,7 @@
 Explaining connectivity from 10.240.10.4/32 (vsi1-ky[10.240.10.4]) to 161.26.0.0/16 within test-vpc1-ky using "protocol: UDP"
 =============================================================================================================================
 
-Connection are allowed from vsi1-ky[10.240.10.4] to Public Internet 161.26.0.0/16 using "protocol: UDP"
+Connections are allowed from vsi1-ky[10.240.10.4] to Public Internet 161.26.0.0/16 using "protocol: UDP"
 
 Path:
 	vsi1-ky[10.240.10.4] -> security group sg1-ky -> subnet1-ky -> network ACL acl1-ky -> 
