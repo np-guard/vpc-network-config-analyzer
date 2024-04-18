@@ -37,34 +37,34 @@ func (e *explainOutputEntry) EntryError() string {
 // a vsi or grouped external addresses of the given config, returns []explainOutputEntry where item i provides explanation to input i
 func MultiExplain(srcDstCouples []explainInputEntry, vpcConns map[string]*VPCConnectivity) []explainOutputEntry {
 	multiExplanation := make([]explainOutputEntry, len(srcDstCouples))
-	for i, v := range srcDstCouples {
+	for i, srcDstCouple := range srcDstCouples {
 		emptyExplain := &Explanation{
-			src: v.src.Name(),
-			dst: v.dst.Name(),
+			src: srcDstCouple.src.Name(),
+			dst: srcDstCouple.dst.Name(),
 		}
-		if v.c == nil {
+		if srcDstCouple.c == nil {
 			// no vpc config implies missing cross-vpc router between src and dst which are not in the same VPC
 			multiExplanation[i] = explainOutputEntry{emptyExplain, nil}
 			continue
 		}
-		srcNodes, errSrc := v.c.getNodesFromEndpoint(v.src)
+		srcNodes, errSrc := srcDstCouple.c.getNodesFromEndpoint(srcDstCouple.src)
 		if errSrc != nil {
 			multiExplanation[i] = explainOutputEntry{emptyExplain, errSrc}
 			continue
 		}
-		dstNodes, errDst := v.c.getNodesFromEndpoint(v.dst)
+		dstNodes, errDst := srcDstCouple.c.getNodesFromEndpoint(srcDstCouple.dst)
 		if errDst != nil {
 			multiExplanation[i] = explainOutputEntry{emptyExplain, errDst}
 			continue
 		}
 		var connectivity *VPCConnectivity
 		var ok bool
-		if connectivity, ok = vpcConns[v.c.VPC.UID()]; !ok {
-			errConn := fmt.Errorf("npGuard eror: missing connectivity computation for %v %v in MultiExplain", v.c.VPC.UID(), v.c.VPC.Name())
+		if connectivity, ok = vpcConns[srcDstCouple.c.VPC.UID()]; !ok {
+			errConn := fmt.Errorf("npGuard eror: missing connectivity computation for %v %v in MultiExplain", srcDstCouple.c.VPC.UID(), srcDstCouple.c.VPC.Name())
 			multiExplanation[i] = explainOutputEntry{emptyExplain, errConn}
 			continue
 		}
-		explain, errExplain := v.c.explainConnectivityForVPC(v.src.Name(), v.dst.Name(), srcNodes, dstNodes,
+		explain, errExplain := srcDstCouple.c.explainConnectivityForVPC(srcDstCouple.src.Name(), srcDstCouple.dst.Name(), srcNodes, dstNodes,
 			srcDstInternalAddr{false, false}, nil, connectivity)
 		if errExplain != nil {
 			multiExplanation[i] = explainOutputEntry{emptyExplain, errExplain}
