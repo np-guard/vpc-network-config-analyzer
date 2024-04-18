@@ -9,6 +9,7 @@ package ibmvpc
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -739,7 +740,8 @@ func TestInputValidityMultipleVPCContext(t *testing.T) {
 		err11.Error())
 }
 
-func TestMultiExplainability(t *testing.T) {
+// sanity check: no error and expected number of explaination elements
+func TestMultiExplainabilitySanity(t *testing.T) {
 	vpcsConfig := getConfig(t, "tgw_larger_example")
 	require.NotNil(t, vpcsConfig, "vpcsConfig equals nil")
 	groupedConns := make(map[string]*vpcmodel.GroupConnLines)
@@ -755,11 +757,44 @@ func TestMultiExplainability(t *testing.T) {
 	}
 	inputMultiExplain := vpcmodel.CreateMultiExplanationsInput(vpcsConfig, groupedConns)
 	multiExplain := vpcmodel.MultiExplain(inputMultiExplain, nodesConn)
-	// sanity check: number of entries did not change (187) and no errors
 	i := 0
 	for _, explain := range multiExplain {
 		require.Equal(t, "", explain.Error())
 		i++
 	}
 	require.Equal(t, i, len(inputMultiExplain))
+}
+
+func TestMultiExplainabilityOutput(t *testing.T) {
+	vpcsConfig := getConfig(t, "tgw_basic_example")
+	require.NotNil(t, vpcsConfig, "vpcsConfig equals nil")
+	groupedConns := make(map[string]*vpcmodel.GroupConnLines)
+	nodesConn := make(map[string]*vpcmodel.VPCConnectivity)
+	for i := range vpcsConfig {
+		thisConn, err := vpcsConfig[i].GetVPCNetworkConnectivity(false)
+		if err != nil {
+			fmt.Printf("%v. %s", i, err.Error())
+		}
+		require.Nil(t, err)
+		groupedConns[i] = thisConn.GroupedConnectivity
+		nodesConn[i] = thisConn
+	}
+	inputMultiExplain := vpcmodel.CreateMultiExplanationsInput(vpcsConfig, groupedConns)
+	multiExplain := vpcmodel.MultiExplain(inputMultiExplain, nodesConn)
+	outputSlice := make([]string, len(multiExplain))
+	for i, explain := range multiExplain {
+		require.Equal(t, "", explain.Error())
+		outputSlice[i] = explain.String()
+	}
+	outputString := strings.Join(outputSlice, "")
+	require.Contains(t, outputString, "No connection between Public Internet (all ranges) and ky-vpc2-vsi[10.240.64.5];\n"+
+		"no fip and src is external (fip is required for outbound external connection)", "no connection external src entry")
+	require.Contains(t, outputString, "No connection between ky-vpc2-vsi[10.240.64.5] and Public Internet (all ranges);\n"+
+		"no fip/pgw and dst is external", "no connection external dst entry")
+	require.Contains(t, outputString, "ky-vpc1-vsi[10.240.0.5] -> security group ky-vpc1-sg -> ky-vpc1-net1 -> network ACL ky-vpc1-acl1 ->",
+		"connection vsi to vsi")
+	require.Contains(t, outputString, "ky-vpc1 -> TGW local-tg-ky -> ky-vpc2 ->", "connection vsi to vsi")
+	require.Contains(t, outputString, "network ACL ky-vpc2-acl1 -> ky-vpc2-net1 -> security group ky-vpc2-sg -> ky-vpc2-vsi[10.240.64.5]",
+		"connection vsi to vsi")
+	fmt.Println("\n\n", outputString)
 }
