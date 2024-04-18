@@ -25,20 +25,25 @@ const emptyString = ""
 
 // header of txt/debug format
 func explainHeader(explanation *Explanation) string {
-	connStr := ""
-	if explanation.connQuery != nil {
-		connStr = " for " + explanation.connQuery.String()
-	}
 	srcNetworkInterfaces := listNetworkInterfaces(explanation.srcNetworkInterfacesFromIP)
 	dstNetworkInterfaces := listNetworkInterfaces(explanation.dstNetworkInterfacesFromIP)
-	header1 := fmt.Sprintf("Connectivity explanation%s between %s%s and %s%s",
-		connStr, explanation.src, srcNetworkInterfaces, explanation.dst, dstNetworkInterfaces)
+	singleVpcContext := ""
 	// communication within a single vpc
 	if explanation.c != nil && !explanation.c.IsMultipleVPCsConfig {
-		header1 += fmt.Sprintf(" within %v", explanation.c.VPC.Name())
+		singleVpcContext = fmt.Sprintf(" within %v", explanation.c.VPC.Name())
 	}
+	header1 := fmt.Sprintf("Explaining connectivity from %s%s to %s%s%s%s",
+		explanation.src, srcNetworkInterfaces, explanation.dst, dstNetworkInterfaces, singleVpcContext,
+		connHeader(explanation.connQuery))
 	header2 := strings.Repeat("=", len(header1))
 	return header1 + newLine + header2 + doubleNL
+}
+
+func connHeader(connQuery *connection.Set) string {
+	if connQuery != nil {
+		return " using \"" + connQuery.String() + "\""
+	}
+	return ""
 }
 
 // in case the src/dst of a network interface given as an internal address connected to network interface returns a string
@@ -77,15 +82,15 @@ func (explanation *Explanation) String(verbose bool) string {
 // missing cross vpc router
 // in this case there is no *VPCConfig we can work with, so this case is treated separately
 func explainMissingCrossVpcRouter(src, dst string, connQuery *connection.Set) string {
-	return fmt.Sprintf("%vconnection blocked since source and destination in different VPCs with no transit gateway in-between",
-		noConnectionHeader(src, dst, connQuery)+newLine)
+	return fmt.Sprintf("%vAll connections will be blocked since source and destination are in different VPCs with no transit gateway to "+
+		"connect them", noConnectionHeader(src, dst, connQuery)+newLine)
 }
 
 // prints a single line of explanation for externalAddress grouped <src, dst>
 // The printing contains 4 sections:
 // 1. Header describing the query and whether there is a connection. E.g.:
-// * The following connection exists between ky-vsi0-subnet5[10.240.9.4] and ky-vsi0-subnet11[10.240.80.4]: All Connections
-// * No connection between ky-vsi1-subnet20[10.240.128.5] and ky-vsi0-subnet0[10.240.0.5];
+// * Allowed connections from ky-vsi0-subnet5[10.240.9.4] to ky-vsi0-subnet11[10.240.80.4]: All Connections
+// * No connections are allowed from ky-vsi1-subnet20[10.240.128.5] to ky-vsi0-subnet0[10.240.0.5];
 // 2. List of all the different resources effecting the connection and the effect of each. E.g.:
 // cross-vpc-connection: transit-connection tg_connection0 of transit-gateway local-tg-ky denys connection
 // Egress: security group sg21-ky allows connection; network ACL acl21-ky allows connection
@@ -147,7 +152,7 @@ func (g *groupedConnLine) explainPerCaseStr(src, dst EndpointElem,
 	headerPlusPath := resourceEffectHeader + path
 	switch {
 	case crossVpcRouterRequired(src, dst) && crossVpcRouter != nil && crossVpcConnection.IsEmpty():
-		return fmt.Sprintf("%vconnection blocked since transit gateway denies route between src and dst"+tripleNLVars,
+		return fmt.Sprintf("%vAll connections will be blocked since transit gateway denies route from source to destination"+tripleNLVars,
 			noConnection, headerPlusPath, details)
 	case externalRouter == nil && src.IsExternal():
 		return fmt.Sprintf("%vno fip and src is external (fip is required for "+
@@ -192,10 +197,7 @@ func crossVpcRouterRequired(src, dst EndpointElem) bool {
 
 // returns string of header in case a connection fails to exist
 func noConnectionHeader(src, dst string, connQuery *connection.Set) string {
-	if connQuery == nil {
-		return fmt.Sprintf("No connection between %v and %v;", src, dst)
-	}
-	return fmt.Sprintf("There is no connection \"%v\" between %v and %v;", connQuery.String(), src, dst)
+	return fmt.Sprintf("No connections are allowed from %s to %s%s;", src, dst, connHeader(connQuery))
 }
 
 // printing when connection exists.
@@ -205,15 +207,15 @@ func existingConnectionStr(connQuery *connection.Set, src, dst EndpointElem,
 	resComponents := []string{}
 	// Computing the header, "1" described in explainabilityLineStr
 	if connQuery == nil {
-		resComponents = append(resComponents, fmt.Sprintf("The following connection exists between %v and %v: %v\n", src.Name(), dst.Name(),
+		resComponents = append(resComponents, fmt.Sprintf("Allowed connections from %v to %v: %v\n", src.Name(), dst.Name(),
 			conn.String()))
 	} else {
 		properSubsetConn := ""
 		if !conn.Equal(connQuery) {
-			properSubsetConn = " (note that not all queried protocols/ports are allowed)"
+			properSubsetConn = "(note that not all queried protocols/ports are allowed)\n"
 		}
-		resComponents = append(resComponents, fmt.Sprintf("Connection %v exists between %v and %v%s", conn.String(),
-			src.Name(), dst.Name(), properSubsetConn))
+		resComponents = append(resComponents, fmt.Sprintf("Connections are allowed from %s to %s%s\n%s",
+			src.Name(), dst.Name(), connHeader(conn), properSubsetConn))
 	}
 	resComponents = append(resComponents, path, details)
 	return strings.Join(resComponents, newLine)
