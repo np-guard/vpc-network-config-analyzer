@@ -86,7 +86,9 @@
                 <ellipse cx="{{$data.Add $ax ($data.Half $node.IconSize)}}" cy="{{$data.Add $ay ($data.Half $node.IconSize)}}" rx="{{$data.Half $node.IconSize}}" ry="{{$data.Half $node.IconSize}}" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" pointer-events="all"/>
         {{ else if $data.IsFamily $node $data.Cnst.Line }}
             <path d="{{$data.SvgLinePoints $node}}" {{$data.SVGLineStyle $node}} fill="none" stroke-width="2" stroke-miterlimit="10" pointer-events="stroke"/>
-            <text {{$data.SvgLineLabelPos $node}} font-family="Helvetica" font-size="11"> {{$data.SvgLabel $node}}</text>
+            <text {{$data.SvgLineLabelPos $node}} font-family="Helvetica" font-size="11"> {{$data.SvgShortLabel $node}}</text>
+            <title>{{$data.SvgLabel $node}}</title>
+
         {{ end }}
         </g>
     {{end}}
