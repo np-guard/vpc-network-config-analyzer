@@ -212,7 +212,7 @@ func existingConnectionStr(connQuery *connection.Set, src, dst EndpointElem,
 	} else {
 		properSubsetConn := ""
 		if !conn.Equal(connQuery) {
-			properSubsetConn = "(note that not all queried protocols/ports are allowed)"
+			properSubsetConn = "(note that not all queried protocols/ports are allowed)\n"
 		}
 		resComponents = append(resComponents, fmt.Sprintf("Connection are allowed from %s to %s%s\n%s",
 			src.Name(), dst.Name(), connHeader(conn), properSubsetConn))
