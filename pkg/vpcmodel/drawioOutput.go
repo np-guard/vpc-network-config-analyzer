@@ -214,7 +214,7 @@ func (d *DrawioOutputFormatter) createExplanations() []drawio.ExplanationEntry {
 	if d.outFormat != HTML || d.uc != AllEndpoints {
 		return nil
 	}
-	explanationsInput := CreateMultiExplanationsInput(d.cConfigs, d.gConns)
+	explanationsInput := CreateMultiExplanationsInput(d.cConfigs, d.vpcConns, d.gConns)
 	// remove all the entries that are not shown on the canvas:
 	explanationsInput = slices.DeleteFunc(explanationsInput, func(e explainInputEntry) bool {
 		return !d.showResource(e.src) || !d.showResource(e.dst)
