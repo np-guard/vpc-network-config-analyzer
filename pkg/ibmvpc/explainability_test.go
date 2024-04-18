@@ -741,7 +741,7 @@ func TestInputValidityMultipleVPCContext(t *testing.T) {
 }
 
 // sanity check: no error and expected number of explaination elements
-func TestMultiExplainabilitySanity(t *testing.T) {
+func TestMultiExplainSanity(t *testing.T) {
 	vpcsConfig := getConfig(t, "tgw_larger_example")
 	require.NotNil(t, vpcsConfig, "vpcsConfig equals nil")
 	groupedConns := make(map[string]*vpcmodel.GroupConnLines)
