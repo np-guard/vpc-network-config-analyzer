@@ -7,7 +7,7 @@
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="ncegraph"/>
     <title>
-    NCA Graph
+    VPC Connectivity Diagram
     </title>
     <style>
     #selectionBox {
@@ -66,8 +66,13 @@
         {{ else if $data.IsFamily $node $data.Cnst.GroupingSquare }}
                 <rect x="{{$ax}}" y="{{$ay}}" width="{{$node.Width}}" height="{{$node.Height}}" rx="19.2" ry="19.2" fill="none" stroke="{{$data.Color $node}}" stroke-opacity="0.7" stroke-width="6" pointer-events="all"/>
         {{ else if $data.IsFamily $node $data.Cnst.IbmIcon }}
+                {{ $xTextOffset := -30 }}
+                {{ if $node.HasFip  }}
+                    {{ $xTextOffset = 0 }}
+                {{end}}
+                <title></title>
                 <image x="{{$ax}}" y="{{$ay}}" width="{{$node.IconSize}}" height="{{$node.IconSize}}" xlink:href="data:image/svg+xml;base64,{{$data.Image $node}}"/>
-                <foreignObject  x="{{$data.Add $ax 0}}" y="{{$data.Add $ay 40}}" width="200" height="50">
+                <foreignObject  x="{{$data.Add $ax $xTextOffset}}" y="{{$data.Add $ay 40}}" width="120" height="70">
           				<p xmlns="http://www.w3.org/1999/xhtml" fill="rgb(0, 0, 0)" font-family="IBM Plex Sans" text-anchor="middle" font-size="14px">{{$data.SvgLabel $node}}</p>
 				        </foreignObject >
                 {{ if $data.HasMiniIcon $node }}
@@ -81,7 +86,9 @@
                 <ellipse cx="{{$data.Add $ax ($data.Half $node.IconSize)}}" cy="{{$data.Add $ay ($data.Half $node.IconSize)}}" rx="{{$data.Half $node.IconSize}}" ry="{{$data.Half $node.IconSize}}" fill="rgb(255, 255, 255)" stroke="rgb(0, 0, 0)" pointer-events="all"/>
         {{ else if $data.IsFamily $node $data.Cnst.Line }}
             <path d="{{$data.SvgLinePoints $node}}" {{$data.SVGLineStyle $node}} fill="none" stroke-width="2" stroke-miterlimit="10" pointer-events="stroke"/>
-            <text {{$data.SvgLineLabelPos $node}} font-family="Helvetica" font-size="11"> {{$data.SvgLabel $node}}</text>
+            <text {{$data.SvgLineLabelPos $node}} font-family="Helvetica" font-size="11"> {{$data.SvgShortLabel $node}}</text>
+            <title>{{$data.SvgLabel $node}}</title>
+
         {{ end }}
         </g>
     {{end}}
@@ -99,7 +106,7 @@
     {{range $explain := $data.Explanations}}
         <entry dst="{{$explain.Dst.ID}}" src="{{$explain.Src.ID}}">
             <text>
-            {{$explain.Text}}
+{{$explain.Text}}
             </text>
         </entry>
      {{end}}
@@ -111,18 +118,19 @@
   <script>
                 const selectableElems = document.querySelectorAll('[selectable="true"]');
                 var selectedElems = [];
-                const mainTitleText = 'Application connectivity graph'
-                const doFilterExplainText = 'For filtering, Double-click on a node/edge/legend item'
-                const unFilterExplainText = 'For unfiltering, Double-click on the background'
+                const mainTitleText = 'VPC connectivity graph'
+                const doFilterExplainText = 'Double-click an item to filter-out unrelated entities'
+                const unFilterExplainText = 'Double-click the background to cancel filtering'
                 const textSeparator = '\n---------------------------------------------------------------------------------\n\n'
                 const selectSrcText = 'For connectivity explanation, Click the SOURCE node'
-                const selectDstText =  'Click the DESTINATION node'
+                const selectDstText =  'Click the DESTINATION node, And see destination toolTip '
                 const reselectSrcText = 'For another connectivity explanation, Click the SOURCE node'
 
                 var filterText = mainTitleText
                 var filterExplainText = doFilterExplainText
                 var explainText = ''
                 var explainExplainText = selectSrcText
+                var savedTooltip = ''
                 const selectionBox = document.getElementById('selectionBox');
                 const clickableElements = document.querySelectorAll('[clickable="true"]');
 
@@ -156,6 +164,7 @@
                     // If clickFlag is still true after the timer, trigger single-click action
                     if (clickFlag) {
                       if (selectedElems.length > 1) {// reset selection
+                      selectedElems[1].getElementsByTagName("title")[0].textContent = savedTooltip
                         selectedElems.forEach((item) => {
                           item.classList.remove('selected');
                           const markerElement = item.querySelector('[selection-marker]')
@@ -196,11 +205,13 @@
                         const src_name = selectedElems[0].getAttribute('title');
                         const dst_name = selectedElems[1].getAttribute('title');
                         const entry = xmlDoc.querySelector("entry[src='"+src+"'][dst='"+dst+"']");
+                        savedTooltip = selectedElems[1].getElementsByTagName("title")[0].textContent
                         if (entry) {
 							            explainTitle = 'Configurations affecting the connectivity between <span style="background-color: yellow;">'+src_name+'</span> and <span style="background-color: #ADD8E6;">'+dst_name+'</span>:\n' 
 
                           // color the src and dst names
                           explainText = explainTitle + entry.textContent;
+               						selectedElems[1].getElementsByTagName("title")[0].textContent = entry.textContent
                         }
                         else {
                           explainText = 'Did not find entry of <span style="background-color: yellow;">'+src_name+'</span>'+
