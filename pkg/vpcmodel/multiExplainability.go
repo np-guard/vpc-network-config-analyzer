@@ -38,8 +38,10 @@ func (e *explainOutputEntry) Error() string {
 func MultiExplain(srcDstCouples []explainInputEntry, vpcConns map[string]*VPCConnectivity) []explainOutputEntry {
 	multiExplanation := make([]explainOutputEntry, len(srcDstCouples))
 	for i, v := range srcDstCouples {
-		emptyExplain := &Explanation{nil, nil, nil, v.src.Name(), v.dst.Name(),
-			nil, nil, false, nil}
+		emptyExplain := &Explanation{
+			src: v.src.Name(),
+			dst: v.dst.Name(),
+		}
 		if v.c == nil {
 			// no vpc config implies missing cross-vpc router between src and dst which are not in the same VPC
 			multiExplanation[i] = explainOutputEntry{emptyExplain, nil}
