@@ -8,6 +8,7 @@ package vpcmodel
 
 import (
 	"fmt"
+
 	"github.com/np-guard/models/pkg/ipblock"
 )
 
