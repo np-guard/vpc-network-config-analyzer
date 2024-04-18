@@ -1,7 +1,7 @@
-Connectivity explanation between vsi1-ky and 161.26.0.0/32 within test-vpc1-ky
-==============================================================================
+Explaining connectivity from vsi1-ky to 161.26.0.0/32 within test-vpc1-ky
+=========================================================================
 
-The following connection exists between vsi1-ky[10.240.10.4] and Public Internet 161.26.0.0/32: protocol: UDP
+Allowed connections from vsi1-ky[10.240.10.4] to Public Internet 161.26.0.0/32: protocol: UDP
 
 Path:
 	vsi1-ky[10.240.10.4] -> security group sg1-ky -> subnet1-ky -> network ACL acl1-ky -> 

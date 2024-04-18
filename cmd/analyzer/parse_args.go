@@ -330,8 +330,8 @@ func validRangeConnectionExplainMode(args *InArgs) error {
 
 	if !PortInRange(*args.ESrcMinPort) || !PortInRange(*args.ESrcMaxPort) ||
 		!PortInRange(*args.EDstMinPort) || !PortInRange(*args.EDstMaxPort) {
-		return fmt.Errorf("%s, %s, %s and %s must be in ranges [%d, %d]",
-			ESrcMinPort, ESrcMaxPort, EDstMinPort, EDstMaxPort, connection.MinPort, connection.MaxPort)
+		return fmt.Errorf("port number must be in between %d, %d, inclusive",
+			connection.MinPort, connection.MaxPort)
 	}
 
 	return nil
@@ -362,7 +362,7 @@ func invalidArgsExplainMode(args *InArgs, flagset *flag.FlagSet) error {
 	if protocol != string(netp.ProtocolStringTCP) &&
 		protocol != string(netp.ProtocolStringUDP) &&
 		protocol != string(netp.ProtocolStringICMP) {
-		return fmt.Errorf("wrong connection description protocol '%s'; must be one of: 'TCP, UDP, ICMP'", protocol)
+		return fmt.Errorf("protocol must be one of: 'TCP, UDP, ICMP'")
 	}
 	args.EProtocol = &protocol
 
