@@ -34,12 +34,12 @@ func explainHeader(explanation *Explanation) string {
 	}
 	header1 := fmt.Sprintf("Explaining connectivity from %s%s to %s%s%s%s",
 		explanation.src, srcNetworkInterfaces, explanation.dst, dstNetworkInterfaces, singleVpcContext,
-		connQueryHeader(explanation.connQuery))
+		connHeader(explanation.connQuery))
 	header2 := strings.Repeat("=", len(header1))
 	return header1 + newLine + header2 + doubleNL
 }
 
-func connQueryHeader(connQuery *connection.Set) string {
+func connHeader(connQuery *connection.Set) string {
 	if connQuery != nil {
 		return " using \"" + connQuery.String() + "\""
 	}
@@ -197,7 +197,7 @@ func crossVpcRouterRequired(src, dst EndpointElem) bool {
 
 // returns string of header in case a connection fails to exist
 func noConnectionHeader(src, dst string, connQuery *connection.Set) string {
-	return fmt.Sprintf("No connections are allowed from %s to %s%s;", src, dst, connQueryHeader(connQuery))
+	return fmt.Sprintf("No connections are allowed from %s to %s%s;", src, dst, connHeader(connQuery))
 }
 
 // printing when connection exists.
@@ -214,8 +214,8 @@ func existingConnectionStr(connQuery *connection.Set, src, dst EndpointElem,
 		if !conn.Equal(connQuery) {
 			properSubsetConn = "(note that not all queried protocols/ports are allowed)"
 		}
-		resComponents = append(resComponents, fmt.Sprintf("Connection from %s to %s%s\n%s",
-			src.Name(), dst.Name(), connQueryHeader(connQuery), properSubsetConn))
+		resComponents = append(resComponents, fmt.Sprintf("Connection are allowed from %s to %s%s\n%s",
+			src.Name(), dst.Name(), connHeader(conn), properSubsetConn))
 	}
 	resComponents = append(resComponents, path, details)
 	return strings.Join(resComponents, newLine)

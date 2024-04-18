@@ -1,7 +1,7 @@
 Explaining connectivity from 192.168.40.5 (iks-clusterid:1[192.168.40.5]) to 192.168.0.4 (iks-node[192.168.0.4]) within ky-test-vpc using "protocol: TCP"
 =========================================================================================================================================================
 
-Connection from iks-clusterid:1[192.168.40.5] to iks-node[192.168.0.4] using "protocol: TCP"
+Connection are allowed from iks-clusterid:1[192.168.40.5] to iks-node[192.168.0.4] using "protocol: TCP dst-ports: 30000-32767"
 (note that not all queried protocols/ports are allowed)
 Path:
 	iks-clusterid:1[192.168.40.5] -> security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 -> ky-test-edge-subnet-3 -> network ACL ky-test-edge-acl -> 

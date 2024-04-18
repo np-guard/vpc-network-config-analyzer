@@ -1,7 +1,7 @@
 Explaining connectivity from vsi3a-ky to vsi1-ky within test-vpc1-ky using "protocol: TCP dst-ports: 50-54"
 ===========================================================================================================
 
-Connection from vsi3a-ky[10.240.30.5] to vsi1-ky[10.240.10.4] using "protocol: TCP dst-ports: 50-54"
+Connection are allowed from vsi3a-ky[10.240.30.5] to vsi1-ky[10.240.10.4] using "protocol: TCP dst-ports: 50-54"
 
 Path:
 	vsi3a-ky[10.240.30.5] -> security group sg3-ky -> subnet3-ky -> network ACL acl3-ky -> 
