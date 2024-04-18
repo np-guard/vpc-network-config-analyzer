@@ -106,18 +106,20 @@ func (data *templateData) SvgLabel(tn TreeNodeInterface) string {
 	}
 	return joinLabels(tn.labels(), SvgTableSep)
 }
-const(
+
+const (
 	maxConnLabelSize = 8
-	threeDots = "..."
+	threeDots        = "..."
 )
+
 func (data *templateData) SvgShortLabel(tn TreeNodeInterface) string {
 	// the connection label is created in another package,
 	// so, instead of creating a short version, we edit the long version here:
 	label := data.SvgLabel(tn)
 	label = strings.ReplaceAll(label, "protocol:", "")
 	label = strings.ReplaceAll(label, "-ports:", "")
-	if len(label) > maxConnLabelSize{
-		return label[0:maxConnLabelSize - len(threeDots)] + threeDots
+	if len(label) > maxConnLabelSize {
+		return label[0:maxConnLabelSize-len(threeDots)] + threeDots
 	}
 	return label
 }
