@@ -741,8 +741,32 @@ func TestInputValidityMultipleVPCContext(t *testing.T) {
 }
 
 // sanity check: no error and expected number of explanation elements
-func TestMultiExplainSanity(t *testing.T) {
+func TestMultiExplainSanity1(t *testing.T) {
 	vpcsConfig := getConfig(t, "tgw_larger_example")
+	require.NotNil(t, vpcsConfig, "vpcsConfig equals nil")
+	groupedConns := make(map[string]*vpcmodel.GroupConnLines)
+	nodesConn := make(map[string]*vpcmodel.VPCConnectivity)
+	for i := range vpcsConfig {
+		thisConn, err := vpcsConfig[i].GetVPCNetworkConnectivity(false)
+		if err != nil {
+			fmt.Printf("%v. %s", i, err.Error())
+		}
+		require.Nil(t, err)
+		groupedConns[i] = thisConn.GroupedConnectivity
+		nodesConn[i] = thisConn
+	}
+	inputMultiExplain := vpcmodel.CreateMultiExplanationsInput(vpcsConfig, nodesConn, groupedConns)
+	multiExplain := vpcmodel.MultiExplain(inputMultiExplain, nodesConn)
+	i := 0
+	for _, explain := range multiExplain {
+		require.Equal(t, "", explain.EntryError())
+		i++
+	}
+	require.Equal(t, i, len(inputMultiExplain))
+}
+
+func TestMultiExplainSanity2(t *testing.T) {
+	vpcsConfig := getConfig(t, "acl_testing3")
 	require.NotNil(t, vpcsConfig, "vpcsConfig equals nil")
 	groupedConns := make(map[string]*vpcmodel.GroupConnLines)
 	nodesConn := make(map[string]*vpcmodel.VPCConnectivity)

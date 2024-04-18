@@ -6,7 +6,10 @@ SPDX-License-Identifier: Apache-2.0
 
 package vpcmodel
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/np-guard/models/pkg/ipblock"
+)
 
 type explainInputEntry struct {
 	c   *VPCConfig
@@ -85,16 +88,20 @@ func (c *VPCConfig) getNodesFromEndpoint(endpoint EndpointElem) ([]Node, error) 
 	case InternalNodeIntf:
 		return []Node{endpoint.(Node)}, nil
 	case *groupedExternalNodes:
-		externalNodes := []Node{}
+		var externalIP *ipblock.IPBlock
 		for _, e := range *n {
-			// gets external nodes from e as explained in getCidrExternalNodes
-			disjointNodes, _, err := c.getCidrExternalNodes(e.ipblock)
-			if err != nil {
-				return nil, err
+			if externalIP == nil {
+				externalIP = e.ipblock
+			} else {
+				externalIP = externalIP.Union(e.ipblock)
 			}
-			externalNodes = append(externalNodes, disjointNodes...)
 		}
-		return externalNodes, nil
+		// gets external nodes from e as explained in getCidrExternalNodes
+		disjointNodes, _, err := c.getCidrExternalNodes(externalIP)
+		if err != nil {
+			return nil, err
+		}
+		return disjointNodes, nil
 	}
 	return nil, fmt.Errorf("np-Guard error: %v not of type InternalNodeIntf or groupedExternalNodes", endpoint.Name())
 }
