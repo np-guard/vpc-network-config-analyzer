@@ -759,7 +759,7 @@ func TestMultiExplainSanity(t *testing.T) {
 	multiExplain := vpcmodel.MultiExplain(inputMultiExplain, nodesConn)
 	i := 0
 	for _, explain := range multiExplain {
-		require.Equal(t, "", explain.Error())
+		require.Equal(t, "", explain.EntryError())
 		i++
 	}
 	require.Equal(t, i, len(inputMultiExplain))
@@ -783,7 +783,7 @@ func TestMultiExplainabilityOutput(t *testing.T) {
 	multiExplain := vpcmodel.MultiExplain(inputMultiExplain, nodesConn)
 	outputSlice := make([]string, len(multiExplain))
 	for i, explain := range multiExplain {
-		require.Equal(t, "", explain.Error())
+		require.Equal(t, "", explain.EntryError())
 		outputSlice[i] = explain.String()
 	}
 	outputString := strings.Join(outputSlice, "")

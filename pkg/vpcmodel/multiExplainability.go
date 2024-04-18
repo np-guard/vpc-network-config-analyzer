@@ -26,7 +26,7 @@ func (e *explainOutputEntry) String() string {
 	return e.explain.String(true)
 }
 
-func (e *explainOutputEntry) Error() string {
+func (e *explainOutputEntry) EntryError() string {
 	if e.err != nil {
 		return e.err.Error()
 	}
@@ -37,32 +37,35 @@ func (e *explainOutputEntry) Error() string {
 // a vsi or grouped external addresses of the given config, returns []explainOutputEntry where item i provides explanation to input i
 func MultiExplain(srcDstCouples []explainInputEntry, vpcConns map[string]*VPCConnectivity) []explainOutputEntry {
 	multiExplanation := make([]explainOutputEntry, len(srcDstCouples))
-	for i, v := range srcDstCouples {
-		emptyExplain := &Explanation{nil, nil, nil, v.src.Name(), v.dst.Name(),
-			nil, nil, false, nil}
-		if v.c == nil {
+	for i, srcDstCouple := range srcDstCouples {
+		emptyExplain := &Explanation{
+			src: srcDstCouple.src.Name(),
+			dst: srcDstCouple.dst.Name(),
+		}
+		if srcDstCouple.c == nil {
 			// no vpc config implies missing cross-vpc router between src and dst which are not in the same VPC
 			multiExplanation[i] = explainOutputEntry{emptyExplain, nil}
 			continue
 		}
-		srcNodes, errSrc := v.c.getNodesFromEndpoint(v.src)
+		srcNodes, errSrc := srcDstCouple.c.getNodesFromEndpoint(srcDstCouple.src)
 		if errSrc != nil {
 			multiExplanation[i] = explainOutputEntry{emptyExplain, errSrc}
 			continue
 		}
-		dstNodes, errDst := v.c.getNodesFromEndpoint(v.dst)
+		dstNodes, errDst := srcDstCouple.c.getNodesFromEndpoint(srcDstCouple.dst)
 		if errDst != nil {
 			multiExplanation[i] = explainOutputEntry{emptyExplain, errDst}
 			continue
 		}
 		var connectivity *VPCConnectivity
 		var ok bool
-		if connectivity, ok = vpcConns[v.c.VPC.UID()]; !ok {
-			errConn := fmt.Errorf("npGuard eror: missing connectivity computation for %v %v in MultiExplain", v.c.VPC.UID(), v.c.VPC.Name())
+		if connectivity, ok = vpcConns[srcDstCouple.c.VPC.UID()]; !ok {
+			errConn := fmt.Errorf("npGuard eror: missing connectivity computation for %v %v in MultiExplain",
+				srcDstCouple.c.VPC.UID(), srcDstCouple.c.VPC.Name())
 			multiExplanation[i] = explainOutputEntry{emptyExplain, errConn}
 			continue
 		}
-		explain, errExplain := v.c.explainConnectivityForVPC(v.src.Name(), v.dst.Name(), srcNodes, dstNodes,
+		explain, errExplain := srcDstCouple.c.explainConnectivityForVPC(srcDstCouple.src.Name(), srcDstCouple.dst.Name(), srcNodes, dstNodes,
 			srcDstInternalAddr{false, false}, nil, connectivity)
 		if errExplain != nil {
 			multiExplanation[i] = explainOutputEntry{emptyExplain, errExplain}
@@ -73,7 +76,7 @@ func MultiExplain(srcDstCouples []explainInputEntry, vpcConns map[string]*VPCCon
 	return multiExplanation
 }
 
-// given an Endpoint, return []Node which is either:
+// given an EndpointElem, return []Node which is either:
 // 1. A single Node representing a VSI if the endpoints consists a single vsi
 // 2. A number of Nodes, each representing an external address, if the endpoint is groupedExternalNodes
 // if the endpoint is neither, returns error
@@ -85,11 +88,11 @@ func (c *VPCConfig) getNodesFromEndpoint(endpoint EndpointElem) ([]Node, error) 
 		externalNodes := []Node{}
 		for _, e := range *n {
 			// gets external nodes from e as explained in getCidrExternalNodes
-			disjiontNodes, _, err := c.getCidrExternalNodes(e.ipblock)
+			disjointNodes, _, err := c.getCidrExternalNodes(e.ipblock)
 			if err != nil {
 				return nil, err
 			}
-			externalNodes = append(externalNodes, disjiontNodes...)
+			externalNodes = append(externalNodes, disjointNodes...)
 		}
 		return externalNodes, nil
 	}
