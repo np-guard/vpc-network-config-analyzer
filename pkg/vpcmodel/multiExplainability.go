@@ -91,7 +91,6 @@ func (c *VPCConfig) getNodesFromEndpoint(endpoint EndpointElem) ([]Node, error) 
 				return nil, err
 			}
 			externalNodes = append(externalNodes, disjiontNodes...)
-			// 	nodes, errType, err = c.getCidrExternalNodes(inputIPBlock)
 		}
 		return externalNodes, nil
 	}
