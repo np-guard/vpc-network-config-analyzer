@@ -89,13 +89,9 @@ func (c *VPCConfig) getNodesFromEndpoint(endpoint EndpointElem) ([]Node, error) 
 	case InternalNodeIntf:
 		return []Node{endpoint.(Node)}, nil
 	case *groupedExternalNodes:
-		var externalIP *ipblock.IPBlock
+		var externalIP = ipblock.New()
 		for _, e := range *n {
-			if externalIP == nil {
-				externalIP = e.ipblock
-			} else {
-				externalIP = externalIP.Union(e.ipblock)
-			}
+			externalIP = externalIP.Union(e.ipblock)
 		}
 		// gets external nodes from e as explained in getCidrExternalNodes
 		disjointNodes, _, err := c.getCidrExternalNodes(externalIP)
