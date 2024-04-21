@@ -727,7 +727,9 @@ func TestInputValidityMultipleVPCContext(t *testing.T) {
 	_, err10 := vpcConfigTgwDupNames.ExplainConnectivity(dupSrcVsi, dupDstVsi, nil)
 	fmt.Println(err10.Error())
 	require.NotNil(t, err10, "the test should fail since the src name exists twice")
-	require.Equal(t, "illegal src: vsi1-ky matches more than one resource. Use VPC-name prefixes or CRNs.\nCRNs of matching resources:\n\tcrn:551\n\tcrn:488",
+	require.Equal(t, "illegal src: ambiguity - the configuration contains multiple resources named vsi1-ky, "+
+		"try using CRNs or the VPC name to scope resources: vpc-name/instance-name"+
+		"\nCRNs of matching resources:\n\tcrn:551\n\tcrn:488",
 		err10.Error())
 	vpcConfigMultiVpcDupNames := getConfig(t, "multiVpc_larger_example_dup_names")
 	// should fail since these vsis exists in two vpcs configs
