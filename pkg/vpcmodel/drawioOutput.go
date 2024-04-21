@@ -222,7 +222,8 @@ func (d *DrawioOutputFormatter) createExplanations() []drawio.ExplanationEntry {
 	explanationsInput := CreateMultiExplanationsInput(d.cConfigs, d.vpcConns, d.gConns)
 	// remove all the entries that are not shown on the canvas:
 	explanationsInput = slices.DeleteFunc(explanationsInput, func(e explainInputEntry) bool {
-		return !d.showResource(e.src) || !d.showResource(e.dst)
+		return !d.showResource(e.src) || !d.showResource(e.dst) ||
+		d.gen.TreeNode(e.src) == nil || d.gen.TreeNode(e.dst) == nil
 	})
 
 	explanations := MultiExplain(explanationsInput, d.vpcConns)
