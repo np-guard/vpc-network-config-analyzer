@@ -327,8 +327,9 @@ func (c *VPCConfig) getNodesOfVsi(name string) ([]Node, int, error) {
 		if (vpc == "" || nodeSet.VPC().Name() == vpc) && nodeSet.Name() == vsi || // if vpc of vsi specified, equality must hold
 			nodeSet.UID() == uid {
 			if nodeSetWithVsi != nil {
-				return nil, fatalErr, fmt.Errorf("%s matches more than one resource "+
-					"(%s, %s). Use VPC-name prefixes or CRNs", name, nodeSetWithVsi.UID(), nodeSet.UID())
+				return nil, fatalErr, fmt.Errorf("%s matches more than one resource."+
+					" Use VPC-name prefixes or CRNs.\nCRNs of matching resources:"+
+					"\n\t%s\n\t%s", name, nodeSetWithVsi.UID(), nodeSet.UID())
 			}
 			nodeSetWithVsi = nodeSet
 		}
