@@ -70,21 +70,22 @@ type srcAndDstNodes struct {
 // if such tgw exists; otherwise the src and dst are not connected
 // error handling: the src and dst are being searched for within the context of each vpcConfig.
 // if not found, then it is due to one of the following:
-// 1. Both src and dst are external IP addresses
-// 2. Src/dst is a CIDR that contains both internal and external IP addresses
-// 3. Src/dst matches more than one VSI. Use VPC-name prefixes or CRNs
-// 4. Src/dst is an IP address within one of the given subnets, but is not connected to a VSI
-// 5. Src/dst is not a legal IP address, CIDR, or VSI name
-// 6. Src/dst is a VPC IP address, but not within any subnet
-// errors 1, 2 and 3, although detected within a specific VPCContext, are relevant in the multi-vpc
+// 1. src identical to dst
+// 2. Both src and dst are external IP addresses
+// 3. Src/dst is a CIDR that contains both internal and external IP addresses
+// 4. Src/dst matches more than one VSI. Use VPC-name prefixes or CRNs
+// 5. Src/dst is an IP address within one of the given subnets, but is not connected to a VSI
+// 6. Src/dst is not a legal IP address, CIDR, or VSI name
+// 7. Src/dst is a VPC IP address, but not within any subnet
+// errors 1-4, although detected within a specific VPCContext, are relevant in the multi-vpc
 // context and as such results in an immediate return with the error message (fatal error).
-// error 3 can be interpreted as a non-fatal error in the multiVPC context, but is treated as fatal since
+// error 4 can be interpreted as a non-fatal error in the multiVPC context, but is treated as fatal since
 // it is much safer, in case there are vsis with identical names cross vpc, to specify explicitly which is the relevant vpc
 // for each vsi
-// error 4 is fatal since we currently support disjoint subnets cidrs in between vpcs; thus, if an address is within a specific
+// error 5 is fatal since we currently support disjoint subnets cidrs in between vpcs; thus, if an address is within a specific
 // subnet's cidr but there is no connected vsi then the error is fatal
-// errors 5 and 6  may occur in one vpcConfig while there is still a match to src and dst in another one
-// if no match found then errors 4 to 6 are in increasing severity. that is, 6>5>4
+// errors 6 and 7  may occur in one vpcConfig while there is still a match to src and dst in another one
+// if no match found then errors 5 to 7 are in increasing severity. that is, 7>6>5
 //
 //nolint:gocyclo // better not split into two function
 func (configsMap MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string) (vpcConfig *VPCConfig,
@@ -92,6 +93,9 @@ func (configsMap MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string)
 	var errMsgInternalNotWithinSubnet, errMsgNoValidSrc, errMsgNoValidDst error
 	var srcFoundSomeCfg, dstFoundSomeCfg bool
 	noInternalIP := srcDstInternalAddr{false, false}
+	if unifyInput(src) == unifyInput(dst) {
+		return nil, nil, nil, noInternalIP, fmt.Errorf("specified src and dst are equal")
+	}
 	configsWithSrcDstNodeSingleVpc, configsWithSrcDstNodeMultiVpc := map[string]srcAndDstNodes{}, map[string]srcAndDstNodes{}
 	for cfgID := range configsMap {
 		var errType int
@@ -147,6 +151,10 @@ func (configsMap MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string)
 			configsMap.matchMoreThanOneSingleVpcCfgError(src, dst, configsWithSrcDstNodeSingleVpc, configsWithSrcDstNodeMultiVpc)
 	}
 	return nil, nil, nil, noInternalIP, nil
+}
+
+func unifyInput(str string) string {
+	return strings.TrimSuffix(str, "/32")
 }
 
 // no match for both src and dst in any of the cfgs:

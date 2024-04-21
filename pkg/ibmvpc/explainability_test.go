@@ -640,6 +640,12 @@ func TestInputValiditySingleVPCContext(t *testing.T) {
 	fmt.Println(err5.Error())
 	require.NotNil(t, err5, "the test should fail since dst non existing vsi")
 	require.Equal(t, "illegal dst: vsi3a is not a legal IP address, CIDR, or endpoint name", err5.Error())
+
+	// should fail since src and dst are identical
+	_, err6 := vpcConfigSg1.ExplainConnectivity("10.240.10.4/32", "10.240.10.4", nil)
+	fmt.Println(err6.Error())
+	require.NotNil(t, err6, "the test should fail src and dst are equal")
+	require.Equal(t, "specified src and dst are equal", err6.Error())
 }
 
 func TestInputValidityMultipleVPCContext(t *testing.T) {
@@ -701,7 +707,7 @@ func TestInputValidityMultipleVPCContext(t *testing.T) {
 	fmt.Println()
 
 	// should fail since src and dst vsi's name has a typo - err msg should be about src
-	_, err7 := vpcConfigMultiVpc.ExplainConnectivity(nonExistingVsi, nonExistingVsi, nil)
+	_, err7 := vpcConfigMultiVpc.ExplainConnectivity(nonExistingVsi, existingVsi, nil)
 	fmt.Println(err7.Error())
 	require.NotNil(t, err7, "the test should fail since src and dst non existing vsi")
 	require.Equal(t, "illegal src: vsi3a is not a legal IP address, CIDR, or endpoint name", err7.Error())
