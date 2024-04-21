@@ -93,7 +93,7 @@ func (configsMap MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string)
 	var errMsgInternalNotWithinSubnet, errMsgNoValidSrc, errMsgNoValidDst error
 	var srcFoundSomeCfg, dstFoundSomeCfg bool
 	noInternalIP := srcDstInternalAddr{false, false}
-	if strings.TrimSuffix(src, "/32") == strings.TrimSuffix(dst, "/32") {
+	if unifyInput(src) == unifyInput(dst) {
 		return nil, nil, nil, noInternalIP, fmt.Errorf("specified src and dst are equal")
 	}
 	configsWithSrcDstNodeSingleVpc, configsWithSrcDstNodeMultiVpc := map[string]srcAndDstNodes{}, map[string]srcAndDstNodes{}
@@ -151,6 +151,10 @@ func (configsMap MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string)
 			configsMap.matchMoreThanOneSingleVpcCfgError(src, dst, configsWithSrcDstNodeSingleVpc, configsWithSrcDstNodeMultiVpc)
 	}
 	return nil, nil, nil, noInternalIP, nil
+}
+
+func unifyInput(str string) string {
+	return strings.TrimSuffix(str, "/32")
 }
 
 // no match for both src and dst in any of the cfgs:
