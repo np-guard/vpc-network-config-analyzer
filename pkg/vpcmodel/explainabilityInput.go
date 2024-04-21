@@ -181,7 +181,7 @@ func (configsMap MultipleVPCConfigs) matchMoreThanOneSingleVpcCfgError(src, dst 
 		return fmt.Errorf("vsis %s and %s found in more than one vpc config - %s - "+
 			"please add the name of the config to the src/dst name", src, dst, matchConfigsStr)
 	}
-	listNamesCrossVpcRouters, err := configsMap.listNamesCrossVpcRouters((configsWithSrcDstNodeMultiVpc))
+	listNamesCrossVpcRouters, err := configsMap.listNamesCrossVpcRouters(configsWithSrcDstNodeMultiVpc)
 	if err != nil {
 		return err
 	}
