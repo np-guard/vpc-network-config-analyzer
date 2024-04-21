@@ -185,8 +185,8 @@ func (configsMap MultipleVPCConfigs) matchMoreThanOneSingleVpcCfgError(src, dst 
 	if err != nil {
 		return err
 	}
-	return fmt.Errorf("src %s and dst %s connected by more than one transit-gateway - %s - "+
-		"this usecase is not supported, yet", src, dst, listNamesCrossVpcRouters)
+	return fmt.Errorf("the src and dst are in separate VPCs connected by multiple transit gateways (%s). "+
+		"This scenario is currently not supported", listNamesCrossVpcRouters)
 }
 
 func (configsMap MultipleVPCConfigs) listNamesCfg(configsWithSrcDstNode map[string]srcAndDstNodes) string {
