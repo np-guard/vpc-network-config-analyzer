@@ -8,6 +8,7 @@ package vpcmodel
 
 import (
 	"errors"
+	"slices"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
@@ -33,7 +34,8 @@ func (e *edgeInfo) IsExternal() bool {
 
 type DrawioOutputFormatter struct {
 	cConfigs        MultipleVPCConfigs
-	conns           map[string]*GroupConnLines
+	vpcConns        map[string]*VPCConnectivity
+	gConns          map[string]*GroupConnLines
 	gen             *DrawioGenerator
 	nodeRouters     map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface
 	multiVpcRouters map[string]drawio.IconTreeNodeInterface
@@ -50,9 +52,14 @@ func newDrawioOutputFormatter(outFormat OutFormat, lbAbstraction bool) *DrawioOu
 	d.lbAbstraction = lbAbstraction
 	return &d
 }
-func (d *DrawioOutputFormatter) init(cConfigs MultipleVPCConfigs, conns map[string]*GroupConnLines, uc OutputUseCase) {
+func (d *DrawioOutputFormatter) init(
+	cConfigs MultipleVPCConfigs,
+	vpcConns map[string]*VPCConnectivity,
+	gConns map[string]*GroupConnLines,
+	uc OutputUseCase) {
 	d.cConfigs = cConfigs
-	d.conns = conns
+	d.vpcConns = vpcConns
+	d.gConns = gConns
 	d.uc = uc
 	// just take the cloud name from one of the configs
 	_, aVpcConfig := common.AnyMapEntry(cConfigs)
@@ -68,7 +75,7 @@ func (d *DrawioOutputFormatter) createDrawioTree() {
 		d.createFilters()
 	}
 	d.createRouters()
-	if d.conns != nil {
+	if d.gConns != nil {
 		d.createEdges()
 	}
 }
@@ -181,7 +188,7 @@ func (d *DrawioOutputFormatter) createEdges() {
 		label  string
 	}
 	isEdgeDirected := map[edgeKey]bool{}
-	for vpcResourceName, vpcConn := range d.conns {
+	for vpcResourceName, vpcConn := range d.gConns {
 		for _, line := range vpcConn.GroupedLines {
 			src := line.src
 			dst := line.dst
@@ -207,68 +214,26 @@ func (d *DrawioOutputFormatter) createEdges() {
 	}
 }
 
-// explainableEndpoints() createExplanations() to be reimplement with real Shiri work
+// createExplanations() create explanations for every pairs of nodes to be display on the canvas
 func (d *DrawioOutputFormatter) createExplanations() []drawio.ExplanationEntry {
-	type expKey struct {
-		src, dst EndpointElem
+	if d.outFormat != HTML || d.uc != AllEndpoints {
+		return nil
 	}
-	explanations := map[expKey]string{}
-	allEndpoints := d.explainableEndpoints()
-	for _, src := range allEndpoints {
-		for _, dst := range allEndpoints {
-			explanations[expKey{src, dst}] = "No Connectivity from " + src.Name() + " to " + dst.Name()
-		}
-	}
-	for _, vpcConn := range d.conns {
-		for _, line := range vpcConn.GroupedLines {
-			srcs := []EndpointElem{line.src}
-			dsts := []EndpointElem{line.dst}
-			if srcList, ok := line.src.(*groupedEndpointsElems); ok {
-				srcs = *srcList
-			}
-			if dstList, ok := line.dst.(*groupedEndpointsElems); ok {
-				dsts = *dstList
-			}
-			for _, src := range srcs {
-				for _, dst := range dsts {
-					explanations[expKey{src, dst}] = line.String()
-				}
-			}
-		}
-	}
-	explanationsList := make([]drawio.ExplanationEntry, len(explanations))
-	i := 0
-	for k, e := range explanations {
-		if d.gen.TreeNode(k.src) != nil && d.gen.TreeNode(k.dst) != nil {
-			explanationsList[i] = drawio.ExplanationEntry{Src: d.gen.TreeNode(k.src), Dst: d.gen.TreeNode(k.dst), Text: e}
-			i++
-		}
-	}
+	explanationsInput := CreateMultiExplanationsInput(d.cConfigs, d.vpcConns, d.gConns)
+	// remove all the entries that are not shown on the canvas:
+	explanationsInput = slices.DeleteFunc(explanationsInput, func(e explainInputEntry) bool {
+		return !d.showResource(e.src) || !d.showResource(e.dst)
+	})
 
-	return explanationsList[0:i]
-}
-
-func (d *DrawioOutputFormatter) explainableEndpoints() []EndpointElem {
-	subnetMode := d.uc == AllSubnets
-	allEndpoints := []EndpointElem{}
-	for _, vpcConfig1 := range d.cConfigs {
-		if !vpcConfig1.IsMultipleVPCsConfig {
-			if !subnetMode {
-				for _, n := range vpcConfig1.Nodes {
-					if !n.IsExternal() && d.showResource(n) {
-						allEndpoints = append(allEndpoints, n)
-					}
-				}
-			} else {
-				for _, s := range vpcConfig1.Subnets {
-					if d.showResource(s) {
-						allEndpoints = append(allEndpoints, s)
-					}
-				}
-			}
-		}
+	explanations := MultiExplain(explanationsInput, d.vpcConns)
+	explanationsTests := make([]drawio.ExplanationEntry, len(explanations))
+	for i, e := range explanations {
+		explanationsTests[i] = drawio.ExplanationEntry{
+			Src:  d.gen.TreeNode(explanationsInput[i].src),
+			Dst:  d.gen.TreeNode(explanationsInput[i].dst),
+			Text: e.String()}
 	}
-	return allEndpoints
+	return explanationsTests
 }
 
 func (d *DrawioOutputFormatter) showResource(res DrawioResourceIntf) bool {
@@ -301,7 +266,7 @@ func (d *DrawioOutputFormatter) WriteOutput(c1, c2 MultipleVPCConfigs,
 		for name, vpcConn := range conn {
 			gConn[name] = vpcConn.GroupedConnectivity
 		}
-		d.init(c1, gConn, uc)
+		d.init(c1, conn, gConn, uc)
 	case AllSubnets:
 		gConfigs := MultipleVPCConfigs{}
 		gConn := map[string]*GroupConnLines{}
@@ -313,7 +278,7 @@ func (d *DrawioOutputFormatter) WriteOutput(c1, c2 MultipleVPCConfigs,
 		} else {
 			gConfigs = c1
 		}
-		d.init(gConfigs, gConn, uc)
+		d.init(gConfigs, conn, gConn, uc)
 	default:
 		return "", errors.New("use case is not currently supported for draw.io format")
 	}
