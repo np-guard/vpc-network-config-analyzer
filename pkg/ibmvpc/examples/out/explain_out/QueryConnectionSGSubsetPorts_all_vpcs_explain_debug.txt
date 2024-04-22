@@ -14,7 +14,7 @@ Details:
 ~~~~~~~~
 Ingress:
 security group sg2-ky allows connection with the following allow rules
-	index: 2, direction: inbound,  conns: protocol: tcp,  dstPorts: 22-22, cidr: 147.235.219.206/32
+	index: 2, direction: inbound,  conns: protocol: tcp,  dstPorts: 22-22, remote: 147.235.219.206/32, local: 0.0.0.0/0
 
 ------------------------------------------------------------------------------------------------------------------------
 
