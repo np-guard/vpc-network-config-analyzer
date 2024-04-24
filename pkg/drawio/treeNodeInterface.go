@@ -9,6 +9,8 @@ package drawio
 import (
 	"slices"
 	"strings"
+
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 /////////////////////////////////////////////////////////////
@@ -88,29 +90,27 @@ func setGeometry(tn TreeNodeInterface) {
 // /////////////////////////////////////////////////////////////////////
 // getAllNodes() - return all the nodes in the sub tree
 func getAllNodes(tn TreeNodeInterface) []TreeNodeInterface {
-	childrenSet := map[TreeNodeInterface]bool{}
 	squares, icons, lines := tn.children()
-	for _, s := range squares {
-		childrenSet[s] = true
+
+	children := make([]TreeNodeInterface,len(squares) + len(icons) + len(lines))
+	for i, square := range squares {
+		children[i] = square
 	}
-	for _, i := range icons {
-		childrenSet[i] = true
+	for i, icon := range icons {
+		children[len(squares) + i] = icon
 	}
-	for _, l := range lines {
-		childrenSet[l] = true
+	for i, line := range lines {
+		children[len(squares) + len(icons) + i] = line
 	}
-	for child := range childrenSet {
+	res := slices.Clone(children)
+	for _, child := range children {
 		sub := getAllNodes(child)
-		for _, s := range sub {
-			childrenSet[s] = true
-		}
+		res = append(res, sub...)
+
 	}
-	childrenSet[tn] = true
-	ret := []TreeNodeInterface{}
-	for c := range childrenSet {
-		ret = append(ret, c)
-	}
-	return ret
+	res = append(res, tn)
+	res = common.FromList(res).AsList()
+	return res
 }
 
 // todo: reimplement the following:
