@@ -16,9 +16,9 @@ Details:
 ~~~~~~~~
 Egress:
 security group sg3-ky allows connection with the following allow rules
-	index: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0
-	index: 2, direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, cidr: 0.0.0.0/0
-	index: 3, direction: outbound,  conns: protocol: tcp,  dstPorts: 100-200, cidr: 0.0.0.0/0
+	index: 0, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+	index: 2, direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, remote: 0.0.0.0/0, local: 0.0.0.0/0
+	index: 3, direction: outbound,  conns: protocol: tcp,  dstPorts: 100-200, remote: 0.0.0.0/0, local: 0.0.0.0/0
 network ACL acl3-ky allows connection with the following allow rules
 	index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 
