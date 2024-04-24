@@ -734,7 +734,9 @@ func TestInputValidityMultipleVPCContext(t *testing.T) {
 	_, err10 := vpcConfigTgwDupNames.ExplainConnectivity(dupSrcVsi, dupDstVsi, nil)
 	fmt.Println(err10.Error())
 	require.NotNil(t, err10, "the test should fail since the src name exists twice")
-	require.Equal(t, "illegal src: vsi1-ky matches more than one resource (crn:551, crn:488). Use VPC-name prefixes or CRNs",
+	require.Equal(t, "illegal src: ambiguity - the configuration contains multiple resources named vsi1-ky, "+
+		"try using CRNs or the VPC name to scope resources: vpc-name/instance-name"+
+		"\nCRNs of matching resources:\n\tcrn:551\n\tcrn:488",
 		err10.Error())
 	vpcConfigMultiVpcDupNames := getConfig(t, "multiVpc_larger_example_dup_names")
 	// should fail since these vsis exists in two vpcs configs
@@ -820,7 +822,7 @@ func TestMultiExplainabilityOutput(t *testing.T) {
 	require.Contains(t, outputString, "No connections are allowed from Public Internet (all ranges) to ky-vpc2-vsi[10.240.64.5];\n"+
 		"no fip and src is external (fip is required for outbound external connection)", "no connection external src entry")
 	require.Contains(t, outputString, "No connections are allowed from ky-vpc2-vsi[10.240.64.5] to Public Internet (all ranges);\n"+
-		"no fip/pgw and dst is external", "no connection external dst entry")
+		"\tThe dst is external but there is no Floating IP or Public Gateway connecting to public internet", "no connection external dst entry")
 	require.Contains(t, outputString, "ky-vpc1-vsi[10.240.0.5] -> security group ky-vpc1-sg -> ky-vpc1-net1 -> network ACL ky-vpc1-acl1 ->",
 		"connection vsi to vsi")
 	require.Contains(t, outputString, "ky-vpc1 -> TGW local-tg-ky -> ky-vpc2 ->", "connection vsi to vsi")
