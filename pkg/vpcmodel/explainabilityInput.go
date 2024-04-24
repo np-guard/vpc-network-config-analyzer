@@ -189,12 +189,12 @@ func (configsMap MultipleVPCConfigs) matchMoreThanOneSingleVpcCfgError(src, dst 
 		return fmt.Errorf("vsis %s and %s found in more than one vpc config - %s - "+
 			"please add the name of the config to the src/dst name", src, dst, matchConfigsStr)
 	}
-	listNamesCrossVpcRouters, err := configsMap.listNamesCrossVpcRouters((configsWithSrcDstNodeMultiVpc))
+	listNamesCrossVpcRouters, err := configsMap.listNamesCrossVpcRouters(configsWithSrcDstNodeMultiVpc)
 	if err != nil {
 		return err
 	}
-	return fmt.Errorf("src %s and dst %s connected by more than one transit-gateway - %s - "+
-		"this usecase is not supported, yet", src, dst, listNamesCrossVpcRouters)
+	return fmt.Errorf("the src and dst are in separate VPCs connected by multiple transit gateways (%s). "+
+		"This scenario is currently not supported", listNamesCrossVpcRouters)
 }
 
 func (configsMap MultipleVPCConfigs) listNamesCfg(configsWithSrcDstNode map[string]srcAndDstNodes) string {
@@ -335,8 +335,9 @@ func (c *VPCConfig) getNodesOfVsi(name string) ([]Node, int, error) {
 		if (vpc == "" || nodeSet.VPC().Name() == vpc) && nodeSet.Name() == vsi || // if vpc of vsi specified, equality must hold
 			nodeSet.UID() == uid {
 			if nodeSetWithVsi != nil {
-				return nil, fatalErr, fmt.Errorf("%s matches more than one resource "+
-					"(%s, %s). Use VPC-name prefixes or CRNs", name, nodeSetWithVsi.UID(), nodeSet.UID())
+				return nil, fatalErr, fmt.Errorf("ambiguity - the configuration contains multiple resources named %s, "+
+					"try using CRNs or the VPC name to scope resources: vpc-name/instance-name"+
+					"\nCRNs of matching resources:\n\t%s\n\t%s", name, nodeSetWithVsi.UID(), nodeSet.UID())
 			}
 			nodeSetWithVsi = nodeSet
 		}
