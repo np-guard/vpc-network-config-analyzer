@@ -158,7 +158,8 @@ func (g *groupedConnLine) explainPerCaseStr(src, dst EndpointElem,
 		return fmt.Sprintf("%vno fip and src is external (fip is required for "+
 			"outbound external connection)\n", noConnection)
 	case externalRouter == nil && dst.IsExternal():
-		return fmt.Sprintf("%vno fip/pgw and dst is external\n", noConnection)
+		return fmt.Sprintf("%v\tThe dst is external but there is no Floating IP or Public Gateway connecting to public internet\n",
+			noConnection)
 	case ingressBlocking && egressBlocking:
 		return fmt.Sprintf("%vconnection blocked both by ingress and egress"+tripleNLVars, noConnection,
 			headerPlusPath, details)
