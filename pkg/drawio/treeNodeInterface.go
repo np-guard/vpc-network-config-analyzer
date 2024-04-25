@@ -89,81 +89,71 @@ func setGeometry(tn TreeNodeInterface) {
 
 // /////////////////////////////////////////////////////////////////////
 // getAllNodes() - return all the nodes in the sub tree
-type nodesFilter int
 
-const (
-	allNodes = iota
-	allSquares
-	allIcons
-	allLines
-)
-
-func upcast[T TreeNodeInterface](p []T) []TreeNodeInterface {
-	ret := make([]TreeNodeInterface, len(p))
-	for i, q := range p {
-		ret[i] = TreeNodeInterface(q)
+func joinTnSlices[T1, T2, T3 TreeNodeInterface](p1 []T1, p2 []T2, p3 []T3) []TreeNodeInterface {
+	ret := make([]TreeNodeInterface, len(p1)+len(p2)+len(p3))
+	for i, q := range p1 {
+		ret[i] = q
 	}
-	return ret
-}
-func downcast[T TreeNodeInterface](p []TreeNodeInterface) []T {
-	ret := make([]T, len(p))
-	for i, q := range p {
-		ret[i] = q.(T)
+	for i, q := range p2 {
+		ret[len(p1)+i] = q
+	}
+	for i, q := range p3 {
+		ret[len(p1)+len(p2)+i] = q
 	}
 	return ret
 }
 
-func getFilteredNodes(tn TreeNodeInterface, filter nodesFilter) []TreeNodeInterface {
+func getNodesTN(tn TreeNodeInterface) ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
 	squares, icons, lines := tn.children()
 
-	children := append(upcast(squares), upcast(icons)...)
-	children = append(children, upcast(lines)...)
-	var res []TreeNodeInterface
-	switch filter {
-	case allNodes:
-		res = slices.Clone(children)
-	case allSquares:
-		res = upcast(squares)
-	case allIcons:
-		res = upcast(icons)
-	case allLines:
-		res = upcast(lines)
+	for _, child := range joinTnSlices(squares, icons, lines) {
+		subSquares, subIcons, subLines := getNodesTN(child)
+		squares = append(squares, subSquares...)
+		icons = append(icons, subIcons...)
+		lines = append(lines, subLines...)
 	}
-	for _, child := range children {
-		sub := getFilteredNodes(child, filter)
-		res = append(res, sub...)
+	switch {
+	case tn.IsSquare():
+		squares = append(squares, tn.(SquareTreeNodeInterface))
+	case tn.IsIcon():
+		icons = append(icons, tn.(IconTreeNodeInterface))
+	case tn.IsLine():
+		lines = append(lines, tn.(LineTreeNodeInterface))
 
 	}
-	if filter == allNodes ||
-		filter == allSquares && tn.IsSquare() ||
-		filter == allIcons && tn.IsIcon() ||
-		filter == allLines && tn.IsLine() {
-		res = append(res, tn)
-	}
-	res = common.FromList(res).AsList()
-	return res
+	return common.FromList(squares).AsList(),
+		common.FromList(icons).AsList(),
+		common.FromList(lines).AsList()
+
 }
 
 func getAllNodes(tn TreeNodeInterface) []TreeNodeInterface {
-	return getFilteredNodes(tn, allNodes)
+	return joinTnSlices(getNodesTN(tn))
 }
 func getAllSquares(tn TreeNodeInterface) []TreeNodeInterface {
-	return getFilteredNodes(tn, allSquares)
+	squares, _, _ := getNodesTN(tn)
+	return joinTnSlices(squares, []IconTreeNodeInterface{}, []LineTreeNodeInterface{})
 }
 func getAllIcons(tn TreeNodeInterface) []TreeNodeInterface {
-	return getFilteredNodes(tn, allIcons)
+	_, icons, _ := getNodesTN(tn)
+	return joinTnSlices([]SquareTreeNodeInterface{},icons, []LineTreeNodeInterface{})
 }
 func getAllLines(tn TreeNodeInterface) []TreeNodeInterface {
-	return getFilteredNodes(tn, allLines)
+	_, _, lines := getNodesTN(tn)
+	return joinTnSlices([]SquareTreeNodeInterface{}, []IconTreeNodeInterface{}, lines)
 }
 func getAllSquaresTN(tn TreeNodeInterface) (ret []SquareTreeNodeInterface) {
-	return downcast[SquareTreeNodeInterface](getAllSquares(tn))
-}
-func getAllLinesTN(tn TreeNodeInterface) (ret []LineTreeNodeInterface) {
-	return downcast[LineTreeNodeInterface](getAllLines(tn))
+	squares, _, _ := getNodesTN(tn)
+	return squares
 }
 func getAllIconsTN(tn TreeNodeInterface) (ret []IconTreeNodeInterface) {
-	return downcast[IconTreeNodeInterface](getAllIcons(tn))
+	_, icons, _ := getNodesTN(tn)
+	return icons
+}
+func getAllLinesTN(tn TreeNodeInterface) (ret []LineTreeNodeInterface) {
+	_, _, lines := getNodesTN(tn)
+	return lines
 }
 
 func locations(tns []TreeNodeInterface) []*Location {
