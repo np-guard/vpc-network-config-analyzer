@@ -688,7 +688,7 @@ func (ly *layoutS) calcTgwOptionalCols(cloud SquareTreeNodeInterface) (
 	}
 	// each tgw has a MinCol and a maxCol. (the optional cols of the tgw are in this range).
 	// we iterate over the lines, and update these values:
-	for _, line := range getAllLines(ly.network) {
+	for _, line := range getAllLinesTN(ly.network) {
 		tgw := line.Router()
 		if _, ok := tgwMinCol[tgw]; ok {
 			srcLocation := line.Src().Parent().Location()
@@ -851,7 +851,7 @@ func (ly *layoutS) setGeometries() {
 	}
 }
 func (ly *layoutS) setRouterPoints() {
-	for _, tn := range getAllLines(ly.network) {
+	for _, tn := range getAllLinesTN(ly.network) {
 		tn.setRouterPoints()
 	}
 }

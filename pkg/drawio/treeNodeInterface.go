@@ -87,14 +87,6 @@ func setGeometry(tn TreeNodeInterface) {
 	}
 }
 
-func upcast[T TreeNodeInterface](p []T) []TreeNodeInterface {
-	ret := make([]TreeNodeInterface, len(p))
-	for i, q := range p {
-		ret[i] = TreeNodeInterface(q)
-	}
-	return ret
-}
-
 // /////////////////////////////////////////////////////////////////////
 // getAllNodes() - return all the nodes in the sub tree
 type nodesFilter int
@@ -105,6 +97,21 @@ const (
 	allIcons
 	allLines
 )
+
+func upcast[T TreeNodeInterface](p []T) []TreeNodeInterface {
+	ret := make([]TreeNodeInterface, len(p))
+	for i, q := range p {
+		ret[i] = TreeNodeInterface(q)
+	}
+	return ret
+}
+func downcast[T TreeNodeInterface](p []TreeNodeInterface) []T {
+	ret := make([]T, len(p))
+	for i, q := range p {
+		ret[i] = q.(T)
+	}
+	return ret
+}
 
 func getFilteredNodes(tn TreeNodeInterface, filter nodesFilter) []TreeNodeInterface {
 	squares, icons, lines := tn.children()
@@ -146,14 +153,14 @@ func getAllSquares(tn TreeNodeInterface) []TreeNodeInterface {
 func getAllIcons(tn TreeNodeInterface) []TreeNodeInterface {
 	return getFilteredNodes(tn, allIcons)
 }
-func getAllLines(tn TreeNodeInterface) (ret []LineTreeNodeInterface) {
-	nodes := getAllNodes(tn)
-	for _, n := range nodes {
-		if n.IsLine() {
-			ret = append(ret, n.(LineTreeNodeInterface))
-		}
-	}
-	return ret
+func getAllLines(tn TreeNodeInterface) []TreeNodeInterface {
+	return getFilteredNodes(tn, allLines)
+}
+func getAllLinesTN(tn TreeNodeInterface) (ret []LineTreeNodeInterface) {
+	return downcast[LineTreeNodeInterface](getAllLines(tn))
+}
+func getAllIconsTN(tn TreeNodeInterface) (ret []IconTreeNodeInterface) {
+	return downcast[IconTreeNodeInterface](getAllIcons(tn))
 }
 
 func locations(tns []TreeNodeInterface) []*Location {
