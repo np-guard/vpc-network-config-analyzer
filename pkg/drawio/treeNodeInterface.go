@@ -90,7 +90,7 @@ func setGeometry(tn TreeNodeInterface) {
 // /////////////////////////////////////////////////////////////////////
 // getAllNodes() - return all the nodes in the sub tree
 
-func joinTnSlices[T1, T2, T3 TreeNodeInterface](p1 []T1, p2 []T2, p3 []T3) []TreeNodeInterface {
+func joinTnSlices(p1 []SquareTreeNodeInterface, p2 []IconTreeNodeInterface, p3 []LineTreeNodeInterface) []TreeNodeInterface {
 	ret := make([]TreeNodeInterface, len(p1)+len(p2)+len(p3))
 	for i, q := range p1 {
 		ret[i] = q
@@ -133,15 +133,15 @@ func getAllNodes(tn TreeNodeInterface) []TreeNodeInterface {
 }
 func getAllSquares(tn TreeNodeInterface) []TreeNodeInterface {
 	squares, _, _ := getNodesTN(tn)
-	return joinTnSlices(squares, []IconTreeNodeInterface{}, []LineTreeNodeInterface{})
+	return joinTnSlices(squares, nil, nil)
 }
 func getAllIcons(tn TreeNodeInterface) []TreeNodeInterface {
 	_, icons, _ := getNodesTN(tn)
-	return joinTnSlices([]SquareTreeNodeInterface{},icons, []LineTreeNodeInterface{})
+	return joinTnSlices(nil,icons, nil)
 }
 func getAllLines(tn TreeNodeInterface) []TreeNodeInterface {
 	_, _, lines := getNodesTN(tn)
-	return joinTnSlices([]SquareTreeNodeInterface{}, []IconTreeNodeInterface{}, lines)
+	return joinTnSlices(nil, nil, lines)
 }
 func getAllSquaresTN(tn TreeNodeInterface) (ret []SquareTreeNodeInterface) {
 	squares, _, _ := getNodesTN(tn)
