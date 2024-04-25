@@ -175,7 +175,7 @@ func tnRelations(network TreeNodeInterface) map[TreeNodeInterface][]TreeNodeInte
 		}
 	}
 
-	for _, node := range getAllSquaresAsTNs(network) {
+	for _, node := range getAllSquares(network) {
 		// all squares gets the subtree
 		res[node] = append(res[node], nodeSubTree(node)...)
 		if sgTn, ok := node.(*SGTreeNode); ok {
