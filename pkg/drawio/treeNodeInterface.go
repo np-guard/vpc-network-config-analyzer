@@ -106,10 +106,6 @@ const (
 	allLines
 )
 
-func getAllNodes(tn TreeNodeInterface) []TreeNodeInterface {
-	return getFilteredNodes(tn, allNodes)
-}
-
 func getFilteredNodes(tn TreeNodeInterface, filter nodesFilter) []TreeNodeInterface {
 	squares, icons, lines := tn.children()
 
@@ -131,35 +127,30 @@ func getFilteredNodes(tn TreeNodeInterface, filter nodesFilter) []TreeNodeInterf
 		res = append(res, sub...)
 
 	}
-	res = append(res, tn)
+	if filter == allNodes ||
+		filter == allSquares && tn.IsSquare() ||
+		filter == allIcons && tn.IsIcon() ||
+		filter == allLines && tn.IsLine() {
+		res = append(res, tn)
+	}
 	res = common.FromList(res).AsList()
 	return res
 }
 
-// todo: reimplement the following:
+func getAllNodes(tn TreeNodeInterface) []TreeNodeInterface {
+	return getFilteredNodes(tn, allNodes)
+}
+func getAllSquares(tn TreeNodeInterface) []TreeNodeInterface {
+	return getFilteredNodes(tn, allSquares)
+}
+func getAllIcons(tn TreeNodeInterface) []TreeNodeInterface {
+	return getFilteredNodes(tn, allIcons)
+}
 func getAllLines(tn TreeNodeInterface) (ret []LineTreeNodeInterface) {
 	nodes := getAllNodes(tn)
 	for _, n := range nodes {
 		if n.IsLine() {
 			ret = append(ret, n.(LineTreeNodeInterface))
-		}
-	}
-	return ret
-}
-func getAllSquares(tn TreeNodeInterface) (ret []TreeNodeInterface) {
-	nodes := getAllNodes(tn)
-	for _, n := range nodes {
-		if n.IsSquare() {
-			ret = append(ret, n)
-		}
-	}
-	return ret
-}
-func getAllIcons(tn TreeNodeInterface) (ret []TreeNodeInterface) {
-	nodes := getAllNodes(tn)
-	for _, n := range nodes {
-		if n.IsIcon() {
-			ret = append(ret, n)
 		}
 	}
 	return ret
