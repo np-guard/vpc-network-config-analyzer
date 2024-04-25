@@ -577,20 +577,22 @@ type SecurityGroup struct {
 
 func (sg *SecurityGroup) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *connection.Set {
 	memberStrAddress, targetIPBlock := sg.getMemberTargetStrAddress(src, dst, isIngress)
+	_, localIPBlock := sg.getMemberTargetStrAddress(src, dst, !isIngress)
 	if _, ok := sg.members[memberStrAddress]; !ok {
 		return connection.None() // connectivity not affected by this SG resource - input node is not its member
 	}
-	return sg.analyzer.AllowedConnectivity(targetIPBlock, isIngress)
+	return sg.analyzer.AllowedConnectivity(targetIPBlock, localIPBlock, isIngress)
 }
 
 // rulesFilterInConnectivity list of SG rules contributing to the connectivity
 func (sg *SecurityGroup) rulesFilterInConnectivity(src, dst vpcmodel.Node, conn *connection.Set,
 	isIngress bool) (tableRelevant bool, rules []int, err error) {
 	memberStrAddress, targetIPBlock := sg.getMemberTargetStrAddress(src, dst, isIngress)
+	_, localIPBlock := sg.getMemberTargetStrAddress(src, dst, !isIngress)
 	if _, ok := sg.members[memberStrAddress]; !ok {
 		return false, nil, nil // connectivity not affected by this SG resource - input node is not its member
 	}
-	rules, err = sg.analyzer.rulesFilterInConnectivity(targetIPBlock, conn, isIngress)
+	rules, err = sg.analyzer.rulesFilterInConnectivity(targetIPBlock, localIPBlock, conn, isIngress)
 	return true, rules, err
 }
 
