@@ -92,15 +92,15 @@ func setGeometry(tn TreeNodeInterface) {
 func getAllNodes(tn TreeNodeInterface) []TreeNodeInterface {
 	squares, icons, lines := tn.children()
 
-	children := make([]TreeNodeInterface,len(squares) + len(icons) + len(lines))
+	children := make([]TreeNodeInterface, len(squares)+len(icons)+len(lines))
 	for i, square := range squares {
 		children[i] = square
 	}
 	for i, icon := range icons {
-		children[len(squares) + i] = icon
+		children[len(squares)+i] = icon
 	}
 	for i, line := range lines {
-		children[len(squares) + len(icons) + i] = line
+		children[len(squares)+len(icons)+i] = line
 	}
 	res := slices.Clone(children)
 	for _, child := range children {
