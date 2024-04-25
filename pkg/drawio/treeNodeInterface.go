@@ -88,25 +88,46 @@ func setGeometry(tn TreeNodeInterface) {
 }
 
 func upcast[T TreeNodeInterface](p []T) []TreeNodeInterface {
-	ret := []TreeNodeInterface{}
-
-	for _, q := range p {
-		val := TreeNodeInterface(q)
-		ret = append(ret, val)
+	ret := make([]TreeNodeInterface, len(p))
+	for i, q := range p {
+		ret[i] = TreeNodeInterface(q)
 	}
-
 	return ret
 }
 
 // /////////////////////////////////////////////////////////////////////
 // getAllNodes() - return all the nodes in the sub tree
+type nodesFilter int
+
+const (
+	allNodes = iota
+	allSquares
+	allIcons
+	allLines
+)
+
 func getAllNodes(tn TreeNodeInterface) []TreeNodeInterface {
+	return getFilteredNodes(tn, allNodes)
+}
+
+func getFilteredNodes(tn TreeNodeInterface, filter nodesFilter) []TreeNodeInterface {
 	squares, icons, lines := tn.children()
+
 	children := append(upcast(squares), upcast(icons)...)
 	children = append(children, upcast(lines)...)
-	res := slices.Clone(children)
+	var res []TreeNodeInterface
+	switch filter {
+	case allNodes:
+		res = slices.Clone(children)
+	case allSquares:
+		res = upcast(squares)
+	case allIcons:
+		res = upcast(icons)
+	case allLines:
+		res = upcast(lines)
+	}
 	for _, child := range children {
-		sub := getAllNodes(child)
+		sub := getFilteredNodes(child, filter)
 		res = append(res, sub...)
 
 	}
