@@ -87,21 +87,23 @@ func setGeometry(tn TreeNodeInterface) {
 	}
 }
 
+func upcast[T TreeNodeInterface](p []T) []TreeNodeInterface {
+	ret := []TreeNodeInterface{}
+
+	for _, q := range p {
+		val := TreeNodeInterface(q)
+		ret = append(ret, val)
+	}
+
+	return ret
+}
+
 // /////////////////////////////////////////////////////////////////////
 // getAllNodes() - return all the nodes in the sub tree
 func getAllNodes(tn TreeNodeInterface) []TreeNodeInterface {
 	squares, icons, lines := tn.children()
-
-	children := make([]TreeNodeInterface, len(squares)+len(icons)+len(lines))
-	for i, square := range squares {
-		children[i] = square
-	}
-	for i, icon := range icons {
-		children[len(squares)+i] = icon
-	}
-	for i, line := range lines {
-		children[len(squares)+len(icons)+i] = line
-	}
+	children := append(upcast(squares), upcast(icons)...)
+	children = append(children, upcast(lines)...)
 	res := slices.Clone(children)
 	for _, child := range children {
 		sub := getAllNodes(child)
