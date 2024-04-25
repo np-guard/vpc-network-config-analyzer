@@ -156,6 +156,9 @@ func getAllIcons(tn TreeNodeInterface) []TreeNodeInterface {
 func getAllLines(tn TreeNodeInterface) []TreeNodeInterface {
 	return getFilteredNodes(tn, allLines)
 }
+func getAllSquaresTN(tn TreeNodeInterface) (ret []SquareTreeNodeInterface) {
+	return downcast[SquareTreeNodeInterface](getAllSquares(tn))
+}
 func getAllLinesTN(tn TreeNodeInterface) (ret []LineTreeNodeInterface) {
 	return downcast[LineTreeNodeInterface](getAllLines(tn))
 }
