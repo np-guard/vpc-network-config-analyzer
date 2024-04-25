@@ -373,7 +373,7 @@ func (ly *layoutS) setSubnetsLocations(subnetMatrix [][]TreeNodeInterface, zones
 
 func (ly *layoutS) resolveGroupedSubnetsOverlap() {
 	allSubnetsSquares := map[*GroupSubnetsSquareTreeNode]bool{}
-	for _, tn := range getAllSquaresTN(ly.network) {
+	for _, tn := range getAllSquares(ly.network) {
 		if !tn.NotShownInDrawio() && tn.IsGroupSubnetsSquare() {
 			allSubnetsSquares[tn.(*GroupSubnetsSquareTreeNode)] = true
 		}
@@ -407,7 +407,7 @@ func (ly *layoutS) resolveGroupedSubnetsOverlap() {
 
 // since we do not have subnet icons, we set the subnets smaller and the GroupSubnetsSquare bigger
 func (ly *layoutS) setGroupedSubnetsOffset() {
-	for _, tn := range getAllSquaresTN(ly.network) {
+	for _, tn := range getAllSquares(ly.network) {
 		switch {
 		case tn.NotShownInDrawio():
 		case tn.IsSubnet():
@@ -437,7 +437,7 @@ func (ly *layoutS) setSGLocations() {
 					if len(sg.IconTreeNodes()) == 0 {
 						continue
 					}
-					sgLocation := mergeLocations(locations(getAllIcons(sg)))
+					sgLocation := mergeLocations(locations(getAllIconsAsTNs(sg)))
 					sgIconsIndexes := map[[2]int]bool{}
 					for _, icon := range sg.IconTreeNodes() {
 						sgIconsIndexes[[2]int{icon.Location().firstRow.index, icon.Location().firstCol.index}] = true
@@ -687,7 +687,7 @@ func (ly *layoutS) calcTgwOptionalCols(cloud SquareTreeNodeInterface) (
 	}
 	// each tgw has a MinCol and a maxCol. (the optional cols of the tgw are in this range).
 	// we iterate over the lines, and update these values:
-	for _, line := range getAllLinesTN(ly.network) {
+	for _, line := range getAllLines(ly.network) {
 		tgw := line.Router()
 		if _, ok := tgwMinCol[tgw]; ok {
 			srcLocation := line.Src().Parent().Location()
@@ -752,7 +752,7 @@ func (ly *layoutS) setGroupingIconLocations() {
 		c *col
 	}
 	iconsInCell := map[cell][]IconTreeNodeInterface{}
-	for _, tn := range getAllIconsTN(ly.network) {
+	for _, tn := range getAllIcons(ly.network) {
 		if !tn.IsGroupingPoint() {
 			continue
 		}
@@ -850,7 +850,7 @@ func (ly *layoutS) setGeometries() {
 	}
 }
 func (ly *layoutS) setRouterPoints() {
-	for _, tn := range getAllLinesTN(ly.network) {
+	for _, tn := range getAllLines(ly.network) {
 		tn.setRouterPoints()
 	}
 }

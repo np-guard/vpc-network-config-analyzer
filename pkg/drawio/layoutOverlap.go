@@ -73,7 +73,7 @@ func (lyO *layoutOverlap) fixOverlapping() {
 
 // setIconsMap() update the cells of the matrix with icons positions:
 func (lyO *layoutOverlap) setIconsMap() {
-	for _, tn := range getAllIconsTN(lyO.network) {
+	for _, tn := range getAllIcons(lyO.network) {
 		x, y := absoluteGeometry(tn)
 		for ox := x; ox <= x+tn.IconSize(); ox += minSize {
 			for oy := y; oy <= y+tn.IconSize(); oy += minSize {
@@ -88,7 +88,7 @@ func (lyO *layoutOverlap) setIconsMap() {
 func (lyO *layoutOverlap) handleGroupingLinesOverBorders() {
 	// we count how many lines are already on the column, so they wont overlap each other:
 	linesOnCol := map[*col]int{}
-	for _, line := range getAllLinesTN(lyO.network) {
+	for _, line := range getAllLines(lyO.network) {
 		if !line.Src().(IconTreeNodeInterface).IsGroupingPoint() || !line.Dst().(IconTreeNodeInterface).IsGroupingPoint() {
 			continue
 		}
@@ -118,7 +118,7 @@ func (lyO *layoutOverlap) handleGroupingLinesOverBorders() {
 
 // handleLinesOverLines() - find pairs of overlapping lines, and add point to one of them
 func (lyO *layoutOverlap) handleLinesOverLines() {
-	lines := getAllLinesTN(lyO.network)
+	lines := getAllLines(lyO.network)
 	for i1 := range lines {
 		for i2 := i1 + 1; i2 < len(lines); i2++ {
 			line1 := lines[i1]
@@ -148,7 +148,7 @@ func (lyO *layoutOverlap) handleLinesOverLines() {
 //  3. for each interval, if there is an icon that is overlapped by the interval, than we add a bypass point between those points.
 //  4. the new bypass point might create new overlapping, in that case, we will add a new bypass point, and so on...
 func (lyO *layoutOverlap) handleLinesOverIcons() {
-	for _, line := range getAllLinesTN(lyO.network) {
+	for _, line := range getAllLines(lyO.network) {
 		newLinePoint := []point{}
 		oldLinePoints := line.Points()
 		absPoints := getLineAbsolutePoints(line)

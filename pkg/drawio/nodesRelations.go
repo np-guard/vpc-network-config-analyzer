@@ -44,7 +44,7 @@ func (data *templateData) setNodesNames(network TreeNodeInterface) {
 		data.svgNames[tn] = fmt.Sprintf("%s:%s", tn.Kind(), treeNodeName(tn))
 	}
 	// for a grouped line, all its lines and grouping icons get the same name:
-	for _, line := range getAllLinesTN(network) {
+	for _, line := range getAllLines(network) {
 		info := getLineInfo(line)
 		if info == nil {
 			continue
@@ -67,8 +67,8 @@ func nodeParents(node TreeNodeInterface) []TreeNodeInterface {
 
 // nodeSubTree() - return the subtree - basically, all the subtree of a square is presented with the square
 func nodeSubTree(node TreeNodeInterface) []TreeNodeInterface {
-	nodes := getAllSquares(node)
-	for _, icon := range getAllIconsTN(node) {
+	nodes := getAllSquaresAsTNs(node)
+	for _, icon := range getAllIcons(node) {
 		if !icon.IsGroupingPoint() {
 			nodes = append(nodes, icon)
 		}
@@ -163,7 +163,7 @@ func tnRelations(network TreeNodeInterface) map[TreeNodeInterface][]TreeNodeInte
 		res[node] = nodeParents(node)
 	}
 	// handle lines:
-	for _, line := range getAllLinesTN(network) {
+	for _, line := range getAllLines(network) {
 		info := getLineInfo(line)
 		if info == nil {
 			continue
@@ -175,7 +175,7 @@ func tnRelations(network TreeNodeInterface) map[TreeNodeInterface][]TreeNodeInte
 		}
 	}
 
-	for _, node := range getAllSquares(network) {
+	for _, node := range getAllSquaresAsTNs(network) {
 		// all squares gets the subtree
 		res[node] = append(res[node], nodeSubTree(node)...)
 		if sgTn, ok := node.(*SGTreeNode); ok {

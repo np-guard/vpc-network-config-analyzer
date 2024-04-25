@@ -49,7 +49,7 @@ func (lyO *subnetLayoutOverlap) setIndexes(m *layoutMatrix) {
 // fixOverlapping() is the main func for handling overlapping.
 // it iterate over the lines, find and simultaneously issues of both kinds
 func (lyO *subnetLayoutOverlap) fixOverlapping() {
-	allLines := getAllLinesTN(lyO.network)
+	allLines := getAllLines(lyO.network)
 	for i1, l1 := range allLines {
 		if notNeedFixing(l1) {
 			continue

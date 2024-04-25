@@ -168,9 +168,9 @@ func orderNodesForTemplate(network SquareTreeNodeInterface) []TreeNodeInterface 
 		&GroupSquareTreeNode{},
 	}
 	squaresBuckets := map[reflect.Type][]TreeNodeInterface{}
-	for _, tn := range getAllSquares(network) {
-			e := reflect.TypeOf(tn).Elem()
-			squaresBuckets[e] = append(squaresBuckets[e], tn)
+	for _, tn := range getAllSquaresAsTNs(network) {
+		e := reflect.TypeOf(tn).Elem()
+		squaresBuckets[e] = append(squaresBuckets[e], tn)
 	}
 	for _, square := range []SquareTreeNodeInterface{
 		&GroupSquareTreeNode{},
@@ -185,8 +185,8 @@ func orderNodesForTemplate(network SquareTreeNodeInterface) []TreeNodeInterface 
 	for _, t := range squareOrders {
 		orderedNodes = append(orderedNodes, squaresBuckets[reflect.TypeOf(t).Elem()]...)
 	}
-	orderedNodes = append(orderedNodes, getAllIcons(network)...)
-	orderedNodes = append(orderedNodes, getAllLines(network)...)
+	orderedNodes = append(orderedNodes, getAllIconsAsTNs(network)...)
+	orderedNodes = append(orderedNodes, getAllLinesAsTNs(network)...)
 	return orderedNodes
 }
 

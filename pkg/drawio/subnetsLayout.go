@@ -277,7 +277,7 @@ func (ly *subnetsLayout) sortSubnets() map[TreeNodeInterface]groupTnSet {
 
 func (ly *subnetsLayout) groupsTreeNodes() groupTnSet {
 	allGroups := groupTnSet{}
-	for _, tn := range getAllSquaresTN(ly.network) {
+	for _, tn := range getAllSquares(ly.network) {
 		if tn.IsGroupSubnetsSquare() {
 			allGroups[tn] = true
 		}
@@ -734,7 +734,7 @@ func (ly *subnetsLayout) createNewGroupsTreeNodes() {
 }
 
 func (ly *subnetsLayout) createNewLinesTreeNodes() {
-	for _, con := range getAllLinesTN(ly.network) {
+	for _, con := range getAllLines(ly.network) {
 		srcTn, dstTn := con.Src(), con.Dst()
 		if !srcTn.NotShownInDrawio() && !dstTn.NotShownInDrawio() {
 			continue
