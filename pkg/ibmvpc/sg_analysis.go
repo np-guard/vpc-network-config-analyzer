@@ -317,7 +317,7 @@ func AnalyzeSGRules(rules []*SGRule, isIngress bool) *ConnectivityResult {
 	return res
 }
 
-func mapAndAnalyzeSGRules(rules []*SGRule, isIngress bool, ConnectivityMap *map[*ipblock.IPBlock]*ConnectivityResult) {
+func mapAndAnalyzeSGRules(rules []*SGRule, isIngress bool, connectivityMap map[*ipblock.IPBlock]*ConnectivityResult) {
 	Locals := []*ipblock.IPBlock{}
 	for i := range rules {
 		if rules[i].local != nil {
@@ -326,7 +326,7 @@ func mapAndAnalyzeSGRules(rules []*SGRule, isIngress bool, ConnectivityMap *map[
 	}
 	disjointLocals := ipblock.DisjointIPBlocks(Locals, []*ipblock.IPBlock{ipblock.GetCidrAll()})
 	for i := range disjointLocals {
-		(*ConnectivityMap)[disjointLocals[i]] = AnalyzeSGRules(rules, isIngress)
+		connectivityMap[disjointLocals[i]] = AnalyzeSGRules(rules, isIngress)
 	}
 }
 
@@ -341,8 +341,8 @@ func (sga *SGAnalyzer) prepareAnalyzer(sgMap map[string]*SecurityGroup, currentS
 	}
 	sga.ingressConnectivityMap = make(map[*ipblock.IPBlock]*ConnectivityResult)
 	sga.egressConnectivityMap = make(map[*ipblock.IPBlock]*ConnectivityResult)
-	mapAndAnalyzeSGRules(sga.ingressRules, true, &sga.ingressConnectivityMap)
-	mapAndAnalyzeSGRules(sga.egressRules, false, &sga.egressConnectivityMap)
+	mapAndAnalyzeSGRules(sga.ingressRules, true, sga.ingressConnectivityMap)
+	mapAndAnalyzeSGRules(sga.egressRules, false, sga.egressConnectivityMap)
 	sga.isDefault = sga.areSGRulesDefault()
 	return nil
 }
@@ -365,7 +365,7 @@ func (sga *SGAnalyzer) areSGRulesDefault() bool {
 	return false
 }
 
-func (sga *SGAnalyzer) AllowedConnectivity(target *ipblock.IPBlock, local *ipblock.IPBlock, isIngress bool) *connection.Set {
+func (sga *SGAnalyzer) AllowedConnectivity(target, local *ipblock.IPBlock, isIngress bool) *connection.Set {
 	analyzedConnsMap := sga.ingressOrEgressConnectivity(isIngress)
 	for definedLocal, analyzedConns := range analyzedConnsMap {
 		if local.ContainedIn(definedLocal) {
@@ -385,7 +385,7 @@ func (sga *SGAnalyzer) AllowedConnectivity(target *ipblock.IPBlock, local *ipblo
 //  2. If connection is part of the query: is the required connection contained in the existing connection?
 //     if it does, then the contributing rules are detected: rules that intersect the required connection
 //     otherwise, the answer to the query is "no" and nil is returned
-func (sga *SGAnalyzer) rulesFilterInConnectivity(target *ipblock.IPBlock, local *ipblock.IPBlock, connQuery *connection.Set, isIngress bool) ([]int, error) {
+func (sga *SGAnalyzer) rulesFilterInConnectivity(target, local *ipblock.IPBlock, connQuery *connection.Set, isIngress bool) ([]int, error) {
 	analyzedConnsMap := sga.ingressOrEgressConnectivity(isIngress)
 	for definedLocal, analyzedConns := range analyzedConnsMap {
 		if local.ContainedIn(definedLocal) {
