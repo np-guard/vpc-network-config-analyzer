@@ -13,14 +13,14 @@ import (
 	"testing"
 )
 
-func createFileFromNetwork(network SquareTreeNodeInterface, fileName string, subnetMode bool,format FileFormat){
+func createFileFromNetwork(network SquareTreeNodeInterface, fileName string, subnetMode bool, format FileFormat) {
 	res, err := CreateDrawioConnectivityMap(network, subnetMode, format, nil)
 	if err != nil {
-		fmt.Printf("Error when calling CreateDrawioConnectivityMap() for file %s:\n%s\n",fileName, err)
+		fmt.Printf("Error when calling CreateDrawioConnectivityMap() for file %s:\n%s\n", fileName, err)
 	}
 	err = os.WriteFile(fileName, []byte(res), 0o600)
 	if err != nil {
-		fmt.Printf("Error when calling WriteFile for file %s:\n%s\n",fileName, err)
+		fmt.Printf("Error when calling WriteFile for file %s:\n%s\n", fileName, err)
 	}
 }
 func TestWithParsing(t *testing.T) {
