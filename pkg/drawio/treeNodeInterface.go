@@ -90,7 +90,10 @@ func setGeometry(tn TreeNodeInterface) {
 // /////////////////////////////////////////////////////////////////////
 // getSubTreeNodes() - return all the nodes in the sub tree
 
-func getSubTreeNodes(tn TreeNodeInterface) (squares []SquareTreeNodeInterface, icons []IconTreeNodeInterface, lines []LineTreeNodeInterface) {
+func getSubTreeNodes(tn TreeNodeInterface) (
+	squares []SquareTreeNodeInterface,
+	icons []IconTreeNodeInterface,
+	lines []LineTreeNodeInterface) {
 	squares, icons, lines = tn.children()
 	for _, child := range joinTnsLists(squares, icons, lines) {
 		subSquares, subIcons, subLines := getSubTreeNodes(child)
@@ -105,7 +108,6 @@ func getSubTreeNodes(tn TreeNodeInterface) (squares []SquareTreeNodeInterface, i
 		icons = append(icons, tn.(IconTreeNodeInterface))
 	case tn.IsLine():
 		lines = append(lines, tn.(LineTreeNodeInterface))
-
 	}
 	// remove duplications:
 	squares = common.FromList(squares).AsList()
