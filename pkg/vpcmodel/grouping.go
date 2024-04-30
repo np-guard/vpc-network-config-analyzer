@@ -140,6 +140,11 @@ type EndpointElem interface {
 	DrawioResourceIntf
 }
 
+type extenedEndpointElem struct {
+	ep     EndpointElem
+	config *VPCConfig
+}
+
 type groupedConnLine struct {
 	src              EndpointElem
 	dst              EndpointElem
@@ -171,7 +176,10 @@ func (g *groupedEndpointsElems) Name() string {
 }
 
 func (g *groupedEndpointsElems) ExtendedName(c *VPCConfig) string {
-	prefix := VPCPrefixMulti(c)
+	prefix := ""
+	if vpcResource, ok := (*g)[0].(VPCResourceIntf); ok {
+		prefix = VPCPrefixMulti(c, vpcResource.VPC().Name())
+	}
 	if len(*g) > 1 {
 		return prefix + "[" + g.Name() + "]"
 	}

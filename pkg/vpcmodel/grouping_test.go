@@ -64,6 +64,9 @@ func (m *mockNetIntf) UID() string {
 func (m *mockNetIntf) Name() string {
 	return m.name
 }
+func (m *mockNetIntf) ExtendedName(c *VPCConfig) string {
+	return VPCPrefixMulti(c, m.subnet.VPC().Name()) + m.name
+}
 func (m *mockNetIntf) ZoneName() string {
 	return ""
 }
@@ -96,6 +99,9 @@ func (m *mockSubnet) UID() string {
 }
 func (m *mockSubnet) Name() string {
 	return m.name
+}
+func (m *mockSubnet) ExtendedName(c *VPCConfig) string {
+	return VPCPrefixMulti(c, m.VPC().Name()) + m.name
 }
 func (m *mockSubnet) Nodes() []Node {
 	return m.nodes
