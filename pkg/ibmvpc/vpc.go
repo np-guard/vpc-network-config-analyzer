@@ -57,7 +57,11 @@ func (r *ReservedIP) Name() string {
 	return getNodeName(r.vpe, r.Address())
 }
 
-// ReservedIP implements vpcmodel.Node interface
+func (r *ReservedIP) ExtendedName(c *vpcmodel.VPCConfig) string {
+	return vpcmodel.VPCPrefixMulti(c, r.VPC().Name()) + getNodeName(r.vpe, r.Address())
+}
+
+// PrivateIP implements vpcmodel.Node interface
 type PrivateIP struct {
 	vpcmodel.VPCResource
 	vpcmodel.InternalNode
@@ -66,6 +70,10 @@ type PrivateIP struct {
 
 func (pip *PrivateIP) Name() string {
 	return getNodeName(pip.loadBalancer, pip.Address())
+}
+
+func (pip *PrivateIP) ExtendedName(c *vpcmodel.VPCConfig) string {
+	return vpcmodel.VPCPrefixMulti(c, pip.VPC().Name()) + getNodeName(pip.loadBalancer, pip.Address())
 }
 
 // NetworkInterface implements vpcmodel.Node interface
@@ -83,6 +91,10 @@ func (ni *NetworkInterface) Name() string {
 	return getNodeName(ni.vsi, ni.Address())
 }
 
+func (ni *NetworkInterface) ExtendedName(c *vpcmodel.VPCConfig) string {
+	return vpcmodel.VPCPrefixMulti(c, ni.VPC().Name()) + getNodeName(ni.vsi, ni.Address())
+}
+
 // IKSNode implements vpcmodel.Node interface
 type IKSNode struct {
 	vpcmodel.VPCResource
@@ -95,6 +107,10 @@ func (n *IKSNode) VsiName() string {
 
 func (n *IKSNode) Name() string {
 	return getNodeName(n.ResourceName, n.Address())
+}
+
+func (n *IKSNode) ExtendedName(c *vpcmodel.VPCConfig) string {
+	return vpcmodel.VPCPrefixMulti(c, n.VPC().Name()) + getNodeName(n.ResourceName, n.Address())
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -319,6 +335,10 @@ func (nl *NaclLayer) Name() string {
 	return ""
 }
 
+func (nl *NaclLayer) ExtendedName(config *vpcmodel.VPCConfig) string {
+	return ""
+}
+
 func appendToRulesInFilter(resRulesInFilter *[]vpcmodel.RulesInFilter, rules *[]int, filterIndex int, isAllow bool) {
 	var rType vpcmodel.RulesType
 	switch {
@@ -490,6 +510,10 @@ type SecurityGroupLayer struct {
 }
 
 func (sgl *SecurityGroupLayer) Name() string {
+	return ""
+}
+
+func (sgl *SecurityGroupLayer) ExtendedName(config *vpcmodel.VPCConfig) string {
 	return ""
 }
 
