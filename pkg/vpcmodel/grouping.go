@@ -36,8 +36,14 @@ type explainDetails struct {
 	egressEnabled   bool
 }
 
+type configs struct {
+	src *VPCConfig
+	dst *VPCConfig
+}
+
 type groupedCommonProperties struct {
 	conn       *connection.Set
+	vpcConfigs configs
 	connDiff   *connectionDiff
 	expDetails *explainDetails
 	// groupingStrKey is the key by which the grouping is done:
@@ -138,11 +144,6 @@ type EndpointElem interface {
 	UID() string
 	IsExternal() bool
 	DrawioResourceIntf
-}
-
-type extenedEndpointElem struct {
-	ep     EndpointElem
-	config *VPCConfig
 }
 
 type groupedConnLine struct {
