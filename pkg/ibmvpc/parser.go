@@ -1271,6 +1271,7 @@ func getSubnetsFreeAddresses(rc *datamodel.ResourcesContainerModel,
 }
 
 func allocSubnetFreeAddress(subnetsFreeAddresses map[vpcmodel.Subnet]*ipblock.IPBlock, subnet vpcmodel.Subnet) string {
+	// todo - get the first free address using ipblock interface:
 	firstRange := subnetsFreeAddresses[subnet].Split()[0].ToIPRanges()
 	address := strings.Split(firstRange, "-")[0]
 	addressBlock, _ := ipblock.FromIPAddress(address)
@@ -1407,6 +1408,7 @@ func getLoadBalancerIPs(res map[string]*vpcmodel.VPCConfig,
 		subnetsWithPrivateIPs[subnet] = i
 	}
 	privateIPs := []vpcmodel.Node{}
+	// we assume that if one private IP has a public IP, than all private IPs have public IP:
 	hasPublicAddress := len(loadBalancerObj.PublicIps) > 0
 	for _, subnetObj := range loadBalancerObj.Subnets {
 		subnet := res[vpcUID].UIDToResource[*subnetObj.CRN].(*Subnet)
@@ -1426,7 +1428,9 @@ func getLoadBalancerIPs(res map[string]*vpcmodel.VPCConfig,
 			id = "pip-uid-of-" + subnet.UID() + *loadBalancerObj.ID
 			address = allocSubnetFreeAddress(subnetsFreeAddresses, subnet)
 			if hasPublicAddress {
-				// todo - for now we always abstract the LB, so we can use this address
+				// todo - for now we always abstract the LB.
+				// with LB abstraction, it does not matter what is the public address
+				// so we can just use this address:
 				publicAddress = *loadBalancerObj.PublicIps[0].Address
 			}
 		}
