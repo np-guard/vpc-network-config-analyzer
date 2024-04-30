@@ -67,6 +67,10 @@ func (exn *ExternalNetwork) Name() string {
 	return exn.ResourceType + " [" + exn.CidrStr + "]"
 }
 
+func (exn *ExternalNetwork) ExtendedName(c *VPCConfig) string {
+	return exn.Name()
+}
+
 func (exn *ExternalNetwork) IsInternal() bool {
 	return false
 }

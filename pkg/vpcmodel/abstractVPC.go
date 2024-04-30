@@ -20,6 +20,7 @@ const (
 type VPCResourceIntf interface {
 	UID() string
 	Name() string
+	ExtendedName(*VPCConfig) string
 	ZoneName() string
 	Kind() string
 	VPC() VPCResourceIntf // the VPC to which this resource belongs to
@@ -40,8 +41,20 @@ type VPCResource struct {
 	VPCRef VPCResourceIntf `json:"-"`
 }
 
+func ExtendedName(c *VPCConfig, n *VPCResource) string {
+	name := ""
+	if c.IsMultipleVPCsConfig {
+		name = c.VPC.Name() + "/"
+	}
+	return name + n.Name()
+}
+
 func (n *VPCResource) Name() string {
 	return n.ResourceName
+}
+
+func (n *VPCResource) ExtendedName(c *VPCConfig) string {
+	return ExtendedName(c, n)
 }
 
 func (n *VPCResource) UID() string {
