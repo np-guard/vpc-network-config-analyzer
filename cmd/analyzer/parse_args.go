@@ -41,8 +41,8 @@ func (c *inputConfigFileList) Set(configFile string) error {
 
 // InArgs contains the input arguments for the analyzer
 type InArgs struct {
-	InputConfigFileList   inputConfigFileList
-	InputSecondConfigFile *string
+	InputConfigFileList   []string
+	InputSecondConfigFile string
 	OutputFile            *string
 	OutputFormat          *string
 	AnalysisType          *string
@@ -61,8 +61,8 @@ type InArgs struct {
 	RegionList            regionList
 	ResourceGroup         *string
 	DumpResources         *string
-	Quiet                 *bool
-	Verbose               *bool
+	Quiet                 bool
+	Verbose               bool
 }
 
 // flagHasValue indicates for each input arg if it is expected to have a value in the cli or not
@@ -75,7 +75,6 @@ var flagHasValue = map[string]bool{
 	Grouping:              false,
 	VPC:                   true,
 	Debug:                 false,
-	Version:               false,
 	ESrc:                  true,
 	EDst:                  true,
 	EProtocol:             true,
@@ -101,7 +100,6 @@ const (
 	Grouping              = "grouping"
 	VPC                   = "vpc"
 	Debug                 = "debug"
-	Version               = "version"
 	ESrc                  = "src"
 	EDst                  = "dst"
 	EProtocol             = "protocol"
@@ -227,9 +225,9 @@ func parseCmdLine(cmdlineArgs []string) error {
 func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args := InArgs{}
 	flagset := flag.NewFlagSet("vpc-network-config-analyzer", flag.ContinueOnError)
-	flagset.Var(&args.InputConfigFileList, InputConfigFileList, "Required. File paths to input configs, can pass multiple config files")
-	args.InputSecondConfigFile = flagset.String(InputSecondConfigFile, "", "File path to the 2nd input config; "+
-		"relevant only for analysis-type diff_all_endpoints and for diff_all_subnets")
+	//flagset.Var(&args.InputConfigFileList, InputConfigFileList, "Required. File paths to input configs, can pass multiple config files")
+	//args.InputSecondConfigFile = flagset.String(InputSecondConfigFile, "", "File path to the 2nd input config; "+
+	//	"relevant only for analysis-type diff_all_endpoints and for diff_all_subnets")
 	args.OutputFile = flagset.String(OutputFile, "", "File path to store results")
 	args.OutputFormat = flagset.String(OutputFormat, TEXTFormat,
 		"Output format; must be one of:\n"+strings.Join(supportedOutputFormatsList, separator))
@@ -239,7 +237,6 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 		"Does not support single_subnet, diff_all_endpoints and diff_all_subnets analysis-types and json output format")
 	args.VPC = flagset.String(VPC, "", "CRN of the VPC to analyze")
 	args.Debug = flagset.Bool(Debug, false, "Run in debug mode")
-	args.Version = flagset.Bool(Version, false, "Prints the release version number")
 	args.ESrc = flagset.String(ESrc, "", "Source "+srcDstUsage)
 	args.EDst = flagset.String(EDst, "", "Destination "+srcDstUsage)
 	args.EProtocol = flagset.String(EProtocol, "", "Protocol for connection description")
@@ -251,8 +248,6 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args.ResourceGroup = flagset.String(ResourceGroup, "", "Resource group id or name from which to collect resources")
 	flagset.Var(&args.RegionList, RegionList, "Cloud region from which to collect resources, can pass multiple regions")
 	args.DumpResources = flagset.String(DumpResources, "", "File path to store resources collected from the cloud provider")
-	args.Quiet = flagset.Bool(Quiet, false, "Runs quietly, reports only severe errors and results")
-	args.Verbose = flagset.Bool(Verbose, false, "Runs with more informative messages printed to log")
 
 	// calling parseCmdLine prior to flagset.Parse to ensure that excessive and unsupported arguments are handled
 	// for example, flagset.Parse() ignores input args missing the `-`
@@ -391,7 +386,7 @@ func errorInArgs(args *InArgs, flagset *flag.FlagSet) error {
 	if err != nil {
 		return err
 	}
-	if *args.Verbose && *args.Quiet {
+	if args.Verbose && args.Quiet {
 		flagset.PrintDefaults()
 		return fmt.Errorf("error in parameters: verbose flag and quiet flag cannot be specified together")
 	}
@@ -411,10 +406,10 @@ func errorInArgs(args *InArgs, flagset *flag.FlagSet) error {
 			*args.OutputFormat, *args.AnalysisType, strings.Join(supportedAnalysisTypesMap[*args.AnalysisType], separator))
 	}
 	diffAnalysis := *args.AnalysisType == allEndpointsDiff || *args.AnalysisType == allSubnetsDiff
-	fileForDiffSpecified := args.InputSecondConfigFile != nil && *args.InputSecondConfigFile != ""
+	fileForDiffSpecified := args.InputSecondConfigFile != ""
 	if fileForDiffSpecified && !diffAnalysis {
 		return fmt.Errorf("wrong analysis type %s for 2nd file (%v) specified for diff",
-			*args.AnalysisType, *args.InputSecondConfigFile)
+			*args.AnalysisType, args.InputSecondConfigFile)
 	}
 	if !fileForDiffSpecified && diffAnalysis {
 		return fmt.Errorf("missing parameter vpc-config-second for diff analysis %s", *args.AnalysisType)

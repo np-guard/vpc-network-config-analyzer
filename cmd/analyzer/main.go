@@ -15,6 +15,7 @@ import (
 
 	"github.com/np-guard/cloud-resource-collector/pkg/factory"
 	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
+	"github.com/spf13/cobra"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/ibmvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
@@ -185,9 +186,9 @@ func vpcConfigsFromAccount(inArgs *InArgs) (vpcmodel.MultipleVPCConfigs, error) 
 // returns verbosity level based on the -quiet and -verbose switches
 func getVerbosity(args *InArgs) logging.Verbosity {
 	verbosity := logging.MediumVerbosity
-	if *args.Quiet {
+	if args.Quiet {
 		verbosity = logging.LowVerbosity
-	} else if *args.Verbose {
+	} else if args.Verbose {
 		verbosity = logging.HighVerbosity
 	}
 	return verbosity
@@ -207,11 +208,6 @@ func _main(cmdlineArgs []string) error {
 	// initializes a thread-safe singleton logger
 	logging.Init(getVerbosity(inArgs))
 
-	if *inArgs.Version {
-		fmt.Printf("vpc-network-config-analyzer v%s\n", version.VersionCore)
-		return nil
-	}
-
 	var vpcConfigs1 vpcmodel.MultipleVPCConfigs
 	if *inArgs.Provider != "" {
 		vpcConfigs1, err = vpcConfigsFromAccount(inArgs)
@@ -226,8 +222,8 @@ func _main(cmdlineArgs []string) error {
 	}
 
 	var vpcConfigs2 vpcmodel.MultipleVPCConfigs
-	if inArgs.InputSecondConfigFile != nil && *inArgs.InputSecondConfigFile != "" {
-		vpcConfigs2, err = vpcConfigsFromFiles([]string{*inArgs.InputSecondConfigFile}, inArgs)
+	if inArgs.InputSecondConfigFile != "" {
+		vpcConfigs2, err = vpcConfigsFromFiles([]string{inArgs.InputSecondConfigFile}, inArgs)
 		if err != nil {
 			return err
 		}
@@ -251,7 +247,23 @@ func _main(cmdlineArgs []string) error {
 }
 
 func main() {
-	err := _main(os.Args[1:])
+	var args InArgs
+
+	rootCmd := &cobra.Command{
+		Use:     "vpcanalyzer",
+		Short:   "vpcanalyzer is a CLI that analyzes network connectivity in VPCs",
+		Long:    `vpcanalyzer is a command-line tool to analyze VPC connectivity, based on its configuration.`,
+		Version: version.VersionCore,
+	}
+
+	rootCmd.PersistentFlags().StringArrayVarP(&args.InputConfigFileList, "vpc-config", "c", nil, "File paths to input configs, can pass multiple config files")
+	rootCmd.PersistentFlags().BoolVarP(&args.Quiet, "quiet", "q", false, "Runs quietly, reports only severe errors and results")
+	rootCmd.PersistentFlags().BoolVarP(&args.Verbose, "verbose", "v", false, "Runs with more informative messages printed to log")
+	rootCmd.MarkFlagsMutuallyExclusive("quiet", "verbose")
+
+	rootCmd.AddCommand(NewDiffCommand(&args))
+
+	err := rootCmd.Execute()
 	if err != nil {
 		log.Fatalf("%v. exiting...", err)
 	}
