@@ -41,12 +41,11 @@ type VPCResource struct {
 	VPCRef VPCResourceIntf `json:"-"`
 }
 
-func ExtendedName(c *VPCConfig, n *VPCResource) string {
-	name := ""
+func VPCPrefixMulti(c *VPCConfig) string {
 	if c.IsMultipleVPCsConfig {
-		name = c.VPC.Name() + "/"
+		return c.VPC.Name() + "/"
 	}
-	return name + n.Name()
+	return ""
 }
 
 func (n *VPCResource) Name() string {
@@ -54,7 +53,7 @@ func (n *VPCResource) Name() string {
 }
 
 func (n *VPCResource) ExtendedName(c *VPCConfig) string {
-	return ExtendedName(c, n)
+	return VPCPrefixMulti(c) + n.Name()
 }
 
 func (n *VPCResource) UID() string {

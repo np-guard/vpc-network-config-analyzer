@@ -134,6 +134,7 @@ type GroupConnLines struct {
 // EndpointElem can be Node(networkInterface) / groupedExternalNodes / groupedNetworkInterfaces / NodeSet(subnet)
 type EndpointElem interface {
 	Name() string
+	ExtendedName(*VPCConfig) string
 	UID() string
 	IsExternal() bool
 	DrawioResourceIntf
@@ -169,6 +170,14 @@ func (g *groupedEndpointsElems) Name() string {
 	return listEndpointElemStr(*g, EndpointElem.Name)
 }
 
+func (g *groupedEndpointsElems) ExtendedName(c *VPCConfig) string {
+	prefix := VPCPrefixMulti(c)
+	if len(*g) > 1 {
+		return prefix + "[" + g.Name() + "]"
+	}
+	return g.Name()
+}
+
 func (g *groupedEndpointsElems) UID() string {
 	return listEndpointElemStr(*g, EndpointElem.UID)
 }
@@ -191,6 +200,10 @@ func (g *groupedExternalNodes) Name() string {
 		return prefix + "(all ranges)"
 	}
 	return prefix + g.String()
+}
+
+func (g *groupedExternalNodes) ExtendedName(c *VPCConfig) string {
+	return g.Name()
 }
 
 // UID of externalNetwork returns Name, so uses here the same functionality.
