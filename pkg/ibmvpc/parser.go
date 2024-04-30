@@ -1271,7 +1271,7 @@ func getSubnetsFreeAddresses(rc *datamodel.ResourcesContainerModel,
 }
 
 func allocSubnetFreeAddress(subnetsFreeAddresses map[vpcmodel.Subnet]*ipblock.IPBlock, subnet vpcmodel.Subnet) string {
-	// todo - get the first free address using ipblock interface:
+	// todo - get the first free address using ipblock interface + check error:
 	firstRange := subnetsFreeAddresses[subnet].Split()[0].ToIPRanges()
 	address := strings.Split(firstRange, "-")[0]
 	addressBlock, _ := ipblock.FromIPAddress(address)
