@@ -326,7 +326,14 @@ func mapAndAnalyzeSGRules(rules []*SGRule, isIngress bool, connectivityMap map[*
 	}
 	disjointLocals := ipblock.DisjointIPBlocks(Locals, []*ipblock.IPBlock{ipblock.GetCidrAll()})
 	for i := range disjointLocals {
-		connectivityMap[disjointLocals[i]] = AnalyzeSGRules(rules, isIngress)
+		relevantRules := []*SGRule{}
+		for j := range rules {
+			if disjointLocals[i].ContainedIn(rules[j].local) {
+				relevantRules = append(relevantRules, rules[j])
+			}
+		}
+		// check if we already called AnalyzeSGRules with the same relevantRules
+		connectivityMap[disjointLocals[i]] = AnalyzeSGRules(relevantRules, isIngress)
 	}
 }
 

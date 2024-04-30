@@ -13,6 +13,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
+	"github.com/np-guard/models/pkg/connection"
+	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netp"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
@@ -106,4 +109,73 @@ func TestSGRule(t *testing.T) {
 	require.Equal(t, sgRule.local.String(), "10.240.10.0")
 	require.Equal(t, sgRule.index, 1)
 	require.Equal(t, ruleStr, "index: 1, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 10.240.10.0/32\n")
+}
+
+func TestNoLocalField(t *testing.T) {
+	cidr1t, _ := ipblock.FromCidrOrAddress("10.250.10.1")
+	cidr2t, _ := ipblock.FromCidrOrAddress("10.250.10.0/30")
+
+	rulesTest1 := []*SGRule{
+		{
+			target:      cidr1t,
+			connections: connection.TCPorUDPConnection(netp.ProtocolString("UDP"), 5, 87, 10, 3245),
+			index:       1,
+			local:       ipblock.GetCidrAll(),
+		},
+		{
+			target:      cidr2t,
+			connections: connection.TCPorUDPConnection(netp.ProtocolString("TCP"), 1, 100, 5, 1000),
+			index:       2,
+			local:       ipblock.GetCidrAll(),
+		},
+	}
+
+	egressConnectivityMap := make(map[*ipblock.IPBlock]*ConnectivityResult)
+	mapAndAnalyzeSGRules(rulesTest1, false, egressConnectivityMap)
+	for _, CR := range egressConnectivityMap {
+		stringCR := CR.string()
+		require.Equal(t, stringCR, "remote: 0.0.0.0-10.250.9.255, conn: No Connections\n"+
+			"remote: 10.250.10.0-10.250.10.0, conn: protocol: TCP src-ports: 1-100 dst-ports: 5-1000\n"+
+			"remote: 10.250.10.1-10.250.10.1, conn: protocol: TCP src-ports: 1-100 dst-ports: 5-1000; protocol: UDP src-ports: 5-87 dst-ports: 10-3245\n"+
+			"remote: 10.250.10.2-10.250.10.3, conn: protocol: TCP src-ports: 1-100 dst-ports: 5-1000\n"+
+			"remote: 10.250.10.4-255.255.255.255, conn: No Connections")
+	}
+}
+
+func TestLocalField(t *testing.T) {
+	cidr1, _ := ipblock.FromCidrOrAddress("10.240.10.1")
+	cidr2, _ := ipblock.FromCidrOrAddress("10.240.10.0/30")
+	cidr1t, _ := ipblock.FromCidrOrAddress("10.250.10.1")
+	cidr2t, _ := ipblock.FromCidrOrAddress("10.250.10.0/30")
+
+	rulesTest1 := []*SGRule{
+		{
+			target:      cidr1t,
+			connections: connection.TCPorUDPConnection(netp.ProtocolString("UDP"), 5, 87, 10, 3245),
+			index:       1,
+			local:       cidr1,
+		},
+		{
+			target:      cidr2t,
+			connections: connection.TCPorUDPConnection(netp.ProtocolString("TCP"), 1, 100, 5, 1000),
+			index:       2,
+			local:       cidr2,
+		},
+	}
+
+	egressConnectivityMap := make(map[*ipblock.IPBlock]*ConnectivityResult)
+	mapAndAnalyzeSGRules(rulesTest1, false, egressConnectivityMap)
+	fullString := ""
+	for _, CR := range egressConnectivityMap {
+		fullString += CR.string()
+	}
+	require.Equal(t, fullString, "remote: 0.0.0.0-10.250.9.255, conn: No Connections\n"+
+		"remote: 10.250.10.0-10.250.10.0, conn: protocol: TCP src-ports: 1-100 dst-ports: 5-1000\n"+
+		"remote: 10.250.10.1-10.250.10.1, conn: protocol: TCP src-ports: 1-100 dst-ports: 5-1000; protocol: UDP src-ports: 5-87 dst-ports: 10-3245\n"+
+		"remote: 10.250.10.2-10.250.10.3, conn: protocol: TCP src-ports: 1-100 dst-ports: 5-1000\n"+
+		"remote: 10.250.10.4-255.255.255.255, conn: No Connectionsremote: 0.0.0.0-10.250.9.255, conn: No Connections\n"+
+		"remote: 10.250.10.0-10.250.10.3, conn: protocol: TCP src-ports: 1-100 dst-ports: 5-1000\n"+
+		"remote: 10.250.10.4-255.255.255.255, conn: No Connectionsremote: 0.0.0.0-10.250.9.255, conn: No Connections\n"+
+		"remote: 10.250.10.0-10.250.10.3, conn: protocol: TCP src-ports: 1-100 dst-ports: 5-1000\n"+
+		"remote: 10.250.10.4-255.255.255.255, conn: No Connectionsremote: 0.0.0.0-255.255.255.255, conn: No Connectionsremote: 0.0.0.0-255.255.255.255, conn: No Connections")
 }
