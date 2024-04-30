@@ -7,9 +7,8 @@ SPDX-License-Identifier: Apache-2.0
 package drawio
 
 import (
+	"bytes"
 	_ "embed"
-	"fmt"
-	"os"
 	"reflect"
 	"sort"
 	"strings"
@@ -190,29 +189,17 @@ func orderNodesForTemplate(network SquareTreeNodeInterface) []TreeNodeInterface 
 	return orderedNodes
 }
 
-func CreateDrawioConnectivityMapFile(
-	network SquareTreeNodeInterface, outputFile string, subnetMode bool,
-	format FileFormat, explanations []ExplanationEntry) error {
+func CreateDrawioConnectivityMap(
+	network SquareTreeNodeInterface, subnetMode bool,
+	format FileFormat, explanations []ExplanationEntry) (string, error) {
 	newLayout(network, subnetMode).layout()
 	data := newTemplateData(network, explanations, format == FileHTML)
-	return createFileFromTemplate(data, outputFile, formatsTemplate[format])
-}
+	tmpl, err := template.New("diagram").Parse(formatsTemplate[format])
+	if err != nil {
+		return "", err
+	}
+	oBuffer := bytes.NewBufferString("")
+	err = tmpl.Execute(oBuffer, data)
 
-func createFileFromTemplate(data *templateData, outputFile, templ string) error {
-	tmpl, err := template.New("diagram").Parse(templ)
-	if err != nil {
-		return err
-	}
-	fo, err := os.Create(outputFile)
-	if err != nil {
-		return err
-	}
-	// close fo on exit and check for its returned error
-	defer func() {
-		if closeErr := fo.Close(); closeErr != nil {
-			fmt.Println("Error when closing:", closeErr)
-		}
-	}()
-	err = tmpl.Execute(fo, data)
-	return err
+	return oBuffer.String(), err
 }
