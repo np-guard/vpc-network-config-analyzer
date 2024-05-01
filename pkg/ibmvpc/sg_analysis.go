@@ -150,8 +150,8 @@ func (sga *SGAnalyzer) getProtocolAllRule(ruleObj *vpc1.SecurityGroupRuleSecurit
 	isIngress = isIngressRule(ruleObj.Direction)
 	protocol := *ruleObj.Protocol
 	remoteCidr, localCidr := "", ""
-	var target, local *ipblock.IPBlock
-	target, remoteCidr, err = sga.getRemoteCidr(ruleObj.Remote)
+	var remote, local *ipblock.IPBlock
+	remote, remoteCidr, err = sga.getRemoteCidr(ruleObj.Remote)
 	if err != nil {
 		return "", nil, false, err
 	}
@@ -161,7 +161,7 @@ func (sga *SGAnalyzer) getProtocolAllRule(ruleObj *vpc1.SecurityGroupRuleSecurit
 	}
 	connStr := fmt.Sprintf("protocol: %s", protocol)
 	ruleStr = getRuleStr(direction, connStr, remoteCidr, localCidr)
-	ruleRes.target = target
+	ruleRes.remote = remote
 	ruleRes.local = local
 	ruleRes.connections = getAllConnSet()
 	return ruleStr, ruleRes, isIngress, nil
@@ -171,7 +171,7 @@ func (sga *SGAnalyzer) getProtocolTcpudpRule(ruleObj *vpc1.SecurityGroupRuleSecu
 	ruleStr string, ruleRes *SGRule, isIngress bool, err error) {
 	direction := *ruleObj.Direction
 	isIngress = isIngressRule(ruleObj.Direction)
-	target, remoteCidr, err := sga.getRemoteCidr(ruleObj.Remote)
+	remote, remoteCidr, err := sga.getRemoteCidr(ruleObj.Remote)
 	if err != nil {
 		return "", nil, false, err
 	}
@@ -192,7 +192,7 @@ func (sga *SGAnalyzer) getProtocolTcpudpRule(ruleObj *vpc1.SecurityGroupRuleSecu
 			dstPortMin,
 			dstPortMax,
 		),
-		target: target,
+		remote: remote,
 		local:  local,
 	}
 	return ruleStr, ruleRes, isIngress, nil
@@ -212,7 +212,7 @@ func getICMPconn(icmpType, icmpCode *int64) *connection.Set {
 
 func (sga *SGAnalyzer) getProtocolIcmpRule(ruleObj *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolIcmp) (
 	ruleStr string, ruleRes *SGRule, isIngress bool, err error) {
-	target, remoteCidr, err := sga.getRemoteCidr(ruleObj.Remote)
+	remote, remoteCidr, err := sga.getRemoteCidr(ruleObj.Remote)
 	if err != nil {
 		return
 	}
@@ -225,7 +225,7 @@ func (sga *SGAnalyzer) getProtocolIcmpRule(ruleObj *vpc1.SecurityGroupRuleSecuri
 	ruleStr = getRuleStr(*ruleObj.Direction, connStr, remoteCidr, localCidr)
 	ruleRes = &SGRule{
 		connections: conns,
-		target:      target,
+		remote:      remote,
 		local:       local,
 	}
 	isIngress = isIngressRule(ruleObj.Direction)
@@ -273,7 +273,7 @@ func (sga *SGAnalyzer) getSGrules(sgObj *vpc1.SecurityGroup) (ingressRules, egre
 }
 
 type SGRule struct {
-	target      *ipblock.IPBlock
+	remote      *ipblock.IPBlock
 	connections *connection.Set
 	index       int // index of original rule in *vpc1.SecurityGroup.Rules
 	local       *ipblock.IPBlock
@@ -291,8 +291,8 @@ func (cr *ConnectivityResult) string() string {
 func AnalyzeSGRules(rules []*SGRule, isIngress bool) *ConnectivityResult {
 	targets := []*ipblock.IPBlock{}
 	for i := range rules {
-		if rules[i].target != nil {
-			targets = append(targets, rules[i].target)
+		if rules[i].remote != nil {
+			targets = append(targets, rules[i].remote)
 		}
 	}
 	disjointTargets := ipblock.DisjointIPBlocks(targets, []*ipblock.IPBlock{ipblock.GetCidrAll()})
@@ -304,7 +304,7 @@ func AnalyzeSGRules(rules []*SGRule, isIngress bool) *ConnectivityResult {
 	}
 	for i := range rules {
 		rule := rules[i]
-		target := rule.target
+		target := rule.remote
 		conn := rule.connections
 		for disjointTarget := range res.allowedConns {
 			if disjointTarget.ContainedIn(target) {
@@ -334,13 +334,13 @@ func (sga *SGAnalyzer) prepareAnalyzer(sgMap map[string]*SecurityGroup, currentS
 
 // areSGRulesDefault are the rules equal to the default rules,
 // defined as "deny all inbound traffic and permit all outbound traffic"
-// namely, no inbound rules and a single outbound rule with target 0.0.0.0/0
+// namely, no inbound rules and a single outbound rule with remote 0.0.0.0/0
 func (sga *SGAnalyzer) areSGRulesDefault() bool {
 	if len(sga.ingressRules) > 0 || len(sga.egressRules) != 1 {
 		return false
 	}
 	egressRule := sga.egressRules[0]
-	egressRuleCidrs := egressRule.target.ToCidrList()
+	egressRuleCidrs := egressRule.remote.ToCidrList()
 	if len(egressRuleCidrs) != 1 {
 		return false
 	}
