@@ -1251,7 +1251,9 @@ func getVPCObjectByUID(res vpcmodel.MultipleVPCConfigs, uid string) (*VPC, error
 // ///////////////////////////////////////////////////////////////////////
 // getSubnetsFreeAddresses() and allocSubnetFreeAddress() are needed for load balancer parsing.
 // when a load balancer is created, Private IPs are not created in all the load balancer subnets.
-//  however, we wants to create one private IP for all the subnets.
+//
+//	however, we wants to create one private IP for all the subnets.
+//
 // to create a private IP which does not exist in the config, we need an unused address.
 // getSubnetsFreeAddresses() collect all the free address of all subnets
 // allocSubnetFreeAddress() allocate a new address for a subnet
