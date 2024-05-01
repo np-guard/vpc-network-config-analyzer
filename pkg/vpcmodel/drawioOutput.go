@@ -67,11 +67,8 @@ func (d *DrawioOutputFormatter) init(
 
 func (d *DrawioOutputFormatter) createDrawioTree() {
 	d.createNodeSets()
-	if d.uc != AllSubnets {
-		// todo - support filters on subnet mode
-		d.createNodes()
-		d.createFilters()
-	}
+	d.createNodes()
+	d.createFilters()
 	d.createRouters()
 	if d.gConns != nil {
 		d.createEdges()
