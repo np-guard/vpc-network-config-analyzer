@@ -161,8 +161,8 @@ func (sga *SGAnalyzer) getProtocolAllRule(ruleObj *vpc1.SecurityGroupRuleSecurit
 	}
 	connStr := fmt.Sprintf("protocol: %s", protocol)
 	ruleStr = getRuleStr(direction, connStr, remoteCidr, localCidr)
-	ruleRes.remote = remote
-	ruleRes.local = local
+	ruleRes.remote = ruleTarget{remote, ""}
+	ruleRes.local = ruleTarget{local, ""}
 	ruleRes.connections = getAllConnSet()
 	return ruleStr, ruleRes, isIngress, nil
 }
@@ -192,8 +192,8 @@ func (sga *SGAnalyzer) getProtocolTcpudpRule(ruleObj *vpc1.SecurityGroupRuleSecu
 			dstPortMin,
 			dstPortMax,
 		),
-		remote: remote,
-		local:  local,
+		remote: ruleTarget{remote, ""},
+		local:  ruleTarget{local, ""},
 	}
 	return ruleStr, ruleRes, isIngress, nil
 }
@@ -225,8 +225,8 @@ func (sga *SGAnalyzer) getProtocolIcmpRule(ruleObj *vpc1.SecurityGroupRuleSecuri
 	ruleStr = getRuleStr(*ruleObj.Direction, connStr, remoteCidr, localCidr)
 	ruleRes = &SGRule{
 		connections: conns,
-		remote:      remote,
-		local:       local,
+		remote:      ruleTarget{remote, ""},
+		local:       ruleTarget{local, ""},
 	}
 	isIngress = isIngressRule(ruleObj.Direction)
 	return
@@ -272,11 +272,16 @@ func (sga *SGAnalyzer) getSGrules(sgObj *vpc1.SecurityGroup) (ingressRules, egre
 	return ingressRules, egressRules, nil
 }
 
+type ruleTarget struct {
+	cidr   *ipblock.IPBlock
+	sgName string // target specified is SG
+}
+
 type SGRule struct {
-	remote      *ipblock.IPBlock
+	remote      ruleTarget
 	connections *connection.Set
 	index       int // index of original rule in *vpc1.SecurityGroup.Rules
-	local       *ipblock.IPBlock
+	local       ruleTarget
 }
 
 func (cr *ConnectivityResult) string() string {
@@ -291,8 +296,8 @@ func (cr *ConnectivityResult) string() string {
 func AnalyzeSGRules(rules []*SGRule, isIngress bool) *ConnectivityResult {
 	targets := []*ipblock.IPBlock{}
 	for i := range rules {
-		if rules[i].remote != nil {
-			targets = append(targets, rules[i].remote)
+		if rules[i].remote.cidr != nil {
+			targets = append(targets, rules[i].remote.cidr)
 		}
 	}
 	disjointTargets := ipblock.DisjointIPBlocks(targets, []*ipblock.IPBlock{ipblock.GetCidrAll()})
@@ -307,7 +312,7 @@ func AnalyzeSGRules(rules []*SGRule, isIngress bool) *ConnectivityResult {
 		target := rule.remote
 		conn := rule.connections
 		for disjointTarget := range res.allowedConns {
-			if disjointTarget.ContainedIn(target) {
+			if disjointTarget.ContainedIn(target.cidr) {
 				res.allowedConns[disjointTarget] = res.allowedConns[disjointTarget].Union(conn)
 				res.allowRules[disjointTarget] = append(res.allowRules[disjointTarget], rule.index)
 			}
@@ -340,7 +345,7 @@ func (sga *SGAnalyzer) areSGRulesDefault() bool {
 		return false
 	}
 	egressRule := sga.egressRules[0]
-	egressRuleCidrs := egressRule.remote.ToCidrList()
+	egressRuleCidrs := egressRule.remote.cidr.ToCidrList()
 	if len(egressRuleCidrs) != 1 {
 		return false
 	}
