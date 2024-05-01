@@ -146,8 +146,8 @@ type groupedConnLine struct {
 	commonProperties *groupedCommonProperties // holds the common conn/diff properties
 }
 
-func (g *groupedConnLine) String() string {
-	return g.src.Name() + " => " + g.dst.Name() + " : " + g.commonProperties.groupingStrKey
+func (g *groupedConnLine) String(c *VPCConfig) string {
+	return g.src.ExtendedName(c) + " => " + g.dst.ExtendedName(c) + " : " + g.commonProperties.groupingStrKey
 }
 
 func (g *groupedConnLine) ConnLabel() string {
@@ -175,10 +175,11 @@ func (g *groupedEndpointsElems) ExtendedName(c *VPCConfig) string {
 	if vpcResource, ok := (*g)[0].(VPCResourceIntf); ok {
 		prefix = VPCPrefixMulti(c, vpcResource.VPC().Name())
 	}
-	if len(*g) > 1 {
+	// add the vpc prefix only once for grouped elements which are always of the same VPC
+	if prefix != "" && len(*g) > 1 {
 		return prefix + "[" + g.Name() + "]"
 	}
-	return g.Name()
+	return prefix + g.Name()
 }
 
 func (g *groupedEndpointsElems) UID() string {
@@ -482,13 +483,13 @@ func (g *GroupConnLines) computeGroupingForDiff() error {
 }
 
 // get the grouped connectivity output
-func (g *GroupConnLines) String() string {
+func (g *GroupConnLines) String(c *VPCConfig) string {
 	if len(g.GroupedLines) == 0 {
 		return "<nothing to report>\n"
 	}
 	linesStr := make([]string, len(g.GroupedLines))
 	for i, line := range g.GroupedLines {
-		linesStr[i] = line.String()
+		linesStr[i] = line.String(c)
 	}
 	sort.Strings(linesStr)
 	return strings.Join(linesStr, "\n") + "\n"
