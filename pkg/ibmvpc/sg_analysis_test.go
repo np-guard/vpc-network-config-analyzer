@@ -172,13 +172,13 @@ func TestLocalField(t *testing.T) {
 	}
 	require.Equal(t, fullString, "remote: 0.0.0.0-10.250.9.255, conn: No Connections\n"+
 		"remote: 10.250.10.0-10.250.10.0, conn: protocol: TCP src-ports: 1-100 dst-ports: 5-1000\n"+
-		"remote: 10.250.10.1-10.250.10.1, conn: protocol: TCP src-ports: 1-100 dst-ports: 5-1000;"+
-		" protocol: UDP src-ports: 5-87 dst-ports: 10-3245\n"+
-		"remote: 10.250.10.2-10.250.10.3, conn: protocol: TCP src-ports: 1-100 dst-ports: 5-1000\n"+
-		"remote: 10.250.10.4-255.255.255.255, conn: No Connectionsremote: 0.0.0.0-10.250.9.255, conn: No Connections\n"+
-		"remote: 10.250.10.0-10.250.10.3, conn: protocol: TCP src-ports: 1-100 dst-ports: 5-1000\n"+
-		"remote: 10.250.10.4-255.255.255.255, conn: No Connectionsremote: 0.0.0.0-10.250.9.255, conn: No Connections\n"+
-		"remote: 10.250.10.0-10.250.10.3, conn: protocol: TCP src-ports: 1-100 dst-ports: 5-1000\n"+
-		"remote: 10.250.10.4-255.255.255.255, conn: No Connectionsremote: 0.0.0.0-255.255.255.255,"+
-		" conn: No Connectionsremote: 0.0.0.0-255.255.255.255, conn: No Connections")
+		"remote: 10.250.10.1-10.250.10.1, conn: protocol: TCP src-ports: 1-100 dst-ports: 5-1000; "+
+		"protocol: UDP src-ports: 5-87 dst-ports: 10-3245\nremote: 10.250.10.2-10.250.10.3, conn: "+
+		"protocol: TCP src-ports: 1-100 dst-ports: 5-1000\nremote: 10.250.10.4-255.255.255.255, "+
+		"conn: No Connectionsremote: 0.0.0.0-10.250.9.255, conn: No Connections\nremote: 10.250.10.0-10.250.10.3,"+
+		" conn: protocol: TCP src-ports: 1-100 dst-ports: 5-1000\nremote: 10.250.10.4-255.255.255.255, conn: No Connections"+
+		"remote: 0.0.0.0-10.250.9.255, conn: No Connections\nremote: 10.250.10.0-10.250.10.3, "+
+		"conn: protocol: TCP src-ports: 1-100 dst-ports: 5-1000\nremote: 10.250.10.4-255.255.255.255, "+
+		"conn: No Connectionsremote: 0.0.0.0-255.255.255.255, conn: No Connectionsremote: "+
+		"0.0.0.0-255.255.255.255, conn: No Connections")
 }
