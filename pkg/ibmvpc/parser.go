@@ -1250,8 +1250,8 @@ func getVPCObjectByUID(res vpcmodel.MultipleVPCConfigs, uid string) (*VPC, error
 
 // ///////////////////////////////////////////////////////////////////////
 // getSubnetsFreeAddresses() and allocSubnetFreeAddress() are needed for load balancer parsing.
-// when a load balancer is created only two privateIPs are created in two of the LB subnets.
-// the two subnets are chosen arbitrary, however, we create a private IP for all the subnets.
+// when a load balancer is created, Private IPs are not created in all the load balancer subnets.
+//  however, we wants to create one private IP for all the subnets.
 // to create a private IP which does not exist in the config, we need an unused address.
 // getSubnetsFreeAddresses() collect all the free address of all subnets
 // allocSubnetFreeAddress() allocate a new address for a subnet
@@ -1260,6 +1260,7 @@ func getSubnetsFreeAddresses(rc *datamodel.ResourcesContainerModel,
 	subnetsFreeAddresses := map[vpcmodel.Subnet]*ipblock.IPBlock{}
 	for _, subnetObj := range rc.SubnetList {
 		subnet := res[*subnetObj.VPC.CRN].UIDToResource[*subnetObj.CRN].(vpcmodel.Subnet)
+		// todo - handle these errors. can a subnet has no cidr? what do we do?
 		b, _ := ipblock.FromCidr(subnet.CIDR())
 		for _, reservedIP := range subnetObj.ReservedIps {
 			b2, _ := ipblock.FromIPAddress(*reservedIP.Address)
@@ -1323,7 +1324,7 @@ func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 }
 
 func getLoadBalancerVpcUID(rc *datamodel.ResourcesContainerModel, loadBalancerObj *datamodel.LoadBalancer) (string, error) {
-	// somehow the load balancer does not have info on the vpc,
+	// somehow the API info of the load balancer does not have info on the vpc,
 	// getting the vpc from one of the subnets:
 	aSubnetUID := *loadBalancerObj.Subnets[0].CRN
 	for _, subnet := range rc.SubnetList {
@@ -1384,8 +1385,8 @@ func getLoadBalancerServer(res map[string]*vpcmodel.VPCConfig,
 
 // ///////////////////////////////////////////////////////////
 // getLoadBalancerIPs() parse the private Ips
-// when a load balancer is created only two privateIPs are created at the config. in two of the LB subnets.
-// these two subnets are chosen arbitrary.
+// when a load balancer is created, not all its subnets get privateIPs.
+// sone subnets are chosen (arbitrary?) and only they have privateIPs.
 // however, we create a private IP for all the subnets.
 // create public IPs as routers of the private IPs
 // returns the private IPs nodes
@@ -1394,7 +1395,7 @@ func getLoadBalancerIPs(res map[string]*vpcmodel.VPCConfig,
 	loadBalancer *LoadBalancer,
 	vpcUID string, vpc *VPC,
 	subnetsFreeAddresses map[vpcmodel.Subnet]*ipblock.IPBlock) ([]vpcmodel.Node, error) {
-	// first we collect  the two subnets that has private IPs
+	// first we collect  the subnets that has private IPs:
 	subnetsWithPrivateIPs := map[vpcmodel.Subnet]int{}
 	for i, pIP := range loadBalancerObj.PrivateIps {
 		add, err := ipblock.FromIPAddress(*pIP.Address)
