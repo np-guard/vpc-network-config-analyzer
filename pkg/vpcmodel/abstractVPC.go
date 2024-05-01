@@ -181,7 +181,10 @@ type Subnet interface {
 
 // LoadBalancer is elaboration of a NodeSet - the nodes are the private IPs of the load balancer
 // todo: elaborate more - get list of servers, expandability,...
-type LoadBalancer NodeSet
+type LoadBalancer interface {
+	NodeSet
+	AllowConnectivity(src, dst Node) bool
+}
 
 // RulesType Type of rules in a given filter (e.g. specific NACL table) relevant to
 // path between src to destination

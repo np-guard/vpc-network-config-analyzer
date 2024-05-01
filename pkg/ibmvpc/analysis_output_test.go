@@ -555,12 +555,6 @@ var tests2 = []*vpcGeneralTest{
 		format:      vpcmodel.Text,
 	},
 	{
-		inputConfig: "load_balancer",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
-		grouping:    true,
-		format:      vpcmodel.DRAWIO,
-	},
-	{
 		inputConfig: "iks_workers_large",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
 		grouping:    false,
@@ -578,10 +572,53 @@ var tests2 = []*vpcGeneralTest{
 		grouping:    true,
 		format:      vpcmodel.ARCHSVG,
 	},
+	{
+		inputConfig: "iks_workers_large",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.DRAWIO,
+	},
 	// grouping test of identical names different resources and thus different UIDs that should not be merged
 	{
 		inputConfig: "sg_testing1_new_dup_subnets_names",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		grouping:    true,
+		format:      vpcmodel.Text,
+	},
+	{
+		inputConfig: "iks_workers_large",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.HTML,
+	},
+	// LB examples:
+	{
+		inputConfig: "lb_bad_practice",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.HTML,
+	},
+	{
+		inputConfig: "iks_w_lb",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.HTML,
+	},
+	{
+		inputConfig: "lb_policies",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.HTML,
+	},
+	{
+		inputConfig: "load_balancer",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.HTML,
+	},
+	{
+		inputConfig: "load_balancer",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		grouping:    true,
 		format:      vpcmodel.Text,
 	},

@@ -9,6 +9,7 @@ package ibmvpc
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 
@@ -61,11 +62,12 @@ func (r *ReservedIP) Name() string {
 type PrivateIP struct {
 	vpcmodel.VPCResource
 	vpcmodel.InternalNode
-	loadBalancer string
+	loadBalancer *LoadBalancer
+	original     bool
 }
 
 func (pip *PrivateIP) Name() string {
-	return getNodeName(pip.loadBalancer, pip.Address())
+	return getNodeName(pip.loadBalancer.Name(), pip.Address())
 }
 
 // NetworkInterface implements vpcmodel.Node interface
@@ -233,10 +235,20 @@ func (lb *LoadBalancer) AddressRange() *ipblock.IPBlock {
 	return nodesAddressRange(lb.nodes)
 }
 
-// we do not need this func, for now it is here since the linter warn that lb.listeners are not in use
-// todo - remove:
-func (lb *LoadBalancer) NListeners() int {
-	return len(lb.listeners)
+// AllowConnectivity() - check if lb allow connection from src to dst
+// currently only a boolean function, will be elaborated when parsing policies rules
+func (lb *LoadBalancer) AllowConnectivity(src, dst vpcmodel.Node) bool {
+	return !slices.Contains(lb.Nodes(), src) || slices.Contains(lb.members(), dst)
+}
+
+func (lb *LoadBalancer) members() []vpcmodel.Node {
+	res := []vpcmodel.Node{}
+	for _, l := range lb.listeners {
+		for _, p := range l {
+			res = append(res, p...)
+		}
+	}
+	return res
 }
 
 // lb is per vpc and not per zone...

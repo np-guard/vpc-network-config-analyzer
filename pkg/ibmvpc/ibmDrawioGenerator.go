@@ -66,7 +66,9 @@ func (sg *SecurityGroup) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) d
 	tn := drawio.NewSGTreeNode(gen.TreeNode(sg.VPC()).(*drawio.VpcTreeNode), sg.Name())
 	for _, member := range sg.members {
 		// every SG member is added as an icon treeNode to the SG treeNode:
-		tn.AddIcon(gen.TreeNode(member).(drawio.IconTreeNodeInterface))
+		if mTn := gen.TreeNode(member); mTn != nil {
+			tn.AddIcon(mTn.(drawio.IconTreeNodeInterface))
+		}
 	}
 	return tn
 }
@@ -129,8 +131,10 @@ func (pgw *PublicGateway) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) 
 
 func (fip *FloatingIP) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	// todo - what if r.Src() is not at size of one?
-	itn := gen.TreeNode(fip.Sources()[0]).(drawio.IconTreeNodeInterface)
-	itn.SetFIP(fip.Name())
+	itn := gen.TreeNode(fip.Sources()[0])
+	if itn != nil {
+		itn.(drawio.IconTreeNodeInterface).SetFIP(fip.Name())
+	}
 	return itn
 }
 
@@ -141,14 +145,19 @@ func (lb *LoadBalancer) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) dr
 	if len(lb.Nodes()) == 0 {
 		return nil
 	}
-	resIPs := make([]drawio.TreeNodeInterface, len(lb.Nodes()))
-	for i, resIP := range lb.Nodes() {
-		resIPs[i] = gen.TreeNode(resIP)
+	privateIPs := []drawio.TreeNodeInterface{}
+	for _, privateIP := range lb.Nodes() {
+		if ipTn := gen.TreeNode(privateIP); ipTn != nil {
+			privateIPs = append(privateIPs, ipTn)
+		}
 	}
 	vpcTn := gen.TreeNode(lb.VPC()).(drawio.SquareTreeNodeInterface)
-	return drawio.GroupPrivateIPsWithLoadBalancer(vpcTn, lb.Name(), resIPs)
+	return drawio.GroupPrivateIPsWithLoadBalancer(vpcTn, lb.Name(), privateIPs)
 }
 func (pip *PrivateIP) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
+	if gen.LBAbstraction() {
+		return nil
+	}
 	return drawio.NewPrivateIPTreeNode(
 		gen.TreeNode(pip.Subnet()).(drawio.SquareTreeNodeInterface), pip.Name())
 }
