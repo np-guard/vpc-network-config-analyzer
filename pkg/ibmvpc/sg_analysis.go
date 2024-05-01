@@ -294,13 +294,13 @@ func (cr *ConnectivityResult) string() string {
 }
 
 func AnalyzeSGRules(rules []*SGRule, isIngress bool) *ConnectivityResult {
-	targets := []*ipblock.IPBlock{}
+	remotes := []*ipblock.IPBlock{}
 	for i := range rules {
 		if rules[i].remote.cidr != nil {
-			targets = append(targets, rules[i].remote.cidr)
+			remotes = append(remotes, rules[i].remote.cidr)
 		}
 	}
-	disjointTargets := ipblock.DisjointIPBlocks(targets, []*ipblock.IPBlock{ipblock.GetCidrAll()})
+	disjointTargets := ipblock.DisjointIPBlocks(remotes, []*ipblock.IPBlock{ipblock.GetCidrAll()})
 	res := &ConnectivityResult{isIngress: isIngress, allowedConns: map[*ipblock.IPBlock]*connection.Set{},
 		allowRules: map[*ipblock.IPBlock][]int{}}
 	for i := range disjointTargets {
@@ -309,10 +309,10 @@ func AnalyzeSGRules(rules []*SGRule, isIngress bool) *ConnectivityResult {
 	}
 	for i := range rules {
 		rule := rules[i]
-		target := rule.remote
+		remote := rule.remote
 		conn := rule.connections
 		for disjointTarget := range res.allowedConns {
-			if disjointTarget.ContainedIn(target.cidr) {
+			if disjointTarget.ContainedIn(remote.cidr) {
 				res.allowedConns[disjointTarget] = res.allowedConns[disjointTarget].Union(conn)
 				res.allowRules[disjointTarget] = append(res.allowRules[disjointTarget], rule.index)
 			}
