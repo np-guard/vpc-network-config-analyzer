@@ -163,7 +163,7 @@ func (sga *SGAnalyzer) getProtocolAllRule(ruleObj *vpc1.SecurityGroupRuleSecurit
 		return "", nil, false, err
 	}
 	connStr := fmt.Sprintf("protocol: %s", protocol)
-	ruleStr = getRuleStr(direction, connStr, remoteCidr, localCidr)
+	ruleStr = getRuleStr(direction, connStr, remoteCidr, remoteSGName, localCidr)
 	ruleRes.remote = ruleTarget{remote, remoteSGName}
 	ruleRes.local = ruleTarget{local, ""}
 	ruleRes.connections = getAllConnSet()
@@ -186,7 +186,7 @@ func (sga *SGAnalyzer) getProtocolTcpudpRule(ruleObj *vpc1.SecurityGroupRuleSecu
 	dstPortMax := getProperty(ruleObj.PortMax, connection.MaxPort)
 	dstPorts := fmt.Sprintf("%d-%d", dstPortMin, dstPortMax)
 	connStr := fmt.Sprintf("protocol: %s,  dstPorts: %s", *ruleObj.Protocol, dstPorts)
-	ruleStr = getRuleStr(direction, connStr, remoteCidr, localCidr)
+	ruleStr = getRuleStr(direction, connStr, remoteCidr, remoteSGName, localCidr)
 	ruleRes = &SGRule{
 		// TODO: src ports can be considered here?
 		connections: getTCPUDPConns(*ruleObj.Protocol,
@@ -201,8 +201,12 @@ func (sga *SGAnalyzer) getProtocolTcpudpRule(ruleObj *vpc1.SecurityGroupRuleSecu
 	return ruleStr, ruleRes, isIngress, nil
 }
 
-func getRuleStr(direction, connStr, remoteCidr, localCidr string) string {
-	return fmt.Sprintf("direction: %s,  conns: %s, remote: %s, local: %s\n", direction, connStr, remoteCidr, localCidr)
+func getRuleStr(direction, connStr, remoteCidr, remoteSGName, localCidr string) string {
+	remoteSGStr := remoteCidr
+	if remoteSGName != "" {
+		remoteSGStr = remoteSGName + " (" + remoteCidr + ")"
+	}
+	return fmt.Sprintf("direction: %s,  conns: %s, remote: %s, local: %s\n", direction, connStr, remoteSGStr, localCidr)
 }
 
 func getICMPconn(icmpType, icmpCode *int64) *connection.Set {
@@ -225,7 +229,7 @@ func (sga *SGAnalyzer) getProtocolIcmpRule(ruleObj *vpc1.SecurityGroupRuleSecuri
 	}
 	conns := getICMPconn(ruleObj.Type, ruleObj.Code)
 	connStr := fmt.Sprintf("protocol: %s,  icmpType: %s", *ruleObj.Protocol, conns)
-	ruleStr = getRuleStr(*ruleObj.Direction, connStr, remoteCidr, localCidr)
+	ruleStr = getRuleStr(*ruleObj.Direction, connStr, remoteCidr, remoteSGName, localCidr)
 	ruleRes = &SGRule{
 		connections: conns,
 		remote:      ruleTarget{remote, remoteSGName},
