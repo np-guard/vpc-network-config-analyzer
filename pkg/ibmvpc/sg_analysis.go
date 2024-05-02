@@ -16,6 +16,7 @@ import (
 
 	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 type SGAnalyzer struct {
@@ -325,6 +326,7 @@ func mapAndAnalyzeSGRules(rules []*SGRule, isIngress bool, connectivityMap map[*
 		}
 	}
 	disjointLocals := ipblock.DisjointIPBlocks(Locals, []*ipblock.IPBlock{ipblock.GetCidrAll()})
+	KeysToConnectivityResult := map[common.SetAsKey]*ConnectivityResult{}
 	for i := range disjointLocals {
 		relevantRules := []*SGRule{}
 		for j := range rules {
@@ -333,7 +335,14 @@ func mapAndAnalyzeSGRules(rules []*SGRule, isIngress bool, connectivityMap map[*
 			}
 		}
 		// check if we already called AnalyzeSGRules with the same relevantRules
-		connectivityMap[disjointLocals[i]] = AnalyzeSGRules(relevantRules, isIngress)
+		rulesKeys := common.FromList(relevantRules)
+		key := rulesKeys.AsKey()
+		if _, ok := KeysToConnectivityResult[key]; !ok {
+			connectivityMap[disjointLocals[i]] = AnalyzeSGRules(relevantRules, isIngress)
+			KeysToConnectivityResult[key] = connectivityMap[disjointLocals[i]]
+		} else {
+			connectivityMap[disjointLocals[i]] = KeysToConnectivityResult[key]
+		}
 	}
 }
 
