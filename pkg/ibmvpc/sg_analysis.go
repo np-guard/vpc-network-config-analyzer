@@ -92,12 +92,10 @@ func (sga *SGAnalyzer) getIPBlockResult(cidr, address, name *string) (*ipblock.I
 }
 
 // getRemoteCidr gets remote rule object interface and returns it's IPBlock
-func (sga *SGAnalyzer) getRemoteCidr(remote vpc1.SecurityGroupRuleRemoteIntf) (*ipblock.IPBlock, string, string, error) {
+func (sga *SGAnalyzer) getRemoteCidr(remote vpc1.SecurityGroupRuleRemoteIntf) (target *ipblock.IPBlock,
+	cidrRes string, remoteSGName string, err error) {
 	// TODO: on actual run from SG example, the type of remoteObj is SecurityGroupRuleRemote and not SecurityGroupRuleRemoteCIDR,
 	// even if cidr is defined
-	var target *ipblock.IPBlock
-	var cidrRes, remoteSGName string
-	var err error
 	//TODO: handle other remote types:
 	// SecurityGroupRuleRemoteIP
 	// SecurityGroupRuleRemoteSecurityGroupReference
