@@ -1392,7 +1392,7 @@ func getLoadBalancerServer(res map[string]*vpcmodel.VPCConfig,
 // ///////////////////////////////////////////////////////////
 // getLoadBalancerIPs() parse the private Ips
 // when a load balancer is created, not all its subnets get privateIPs.
-// some subnets are chosen (arbitrary?) and only they have privateIPs.
+// some subnets are chosen (arbitrary?) and only these are assigned privateIPs.
 // however, we create a private IP for all the subnets.
 // See https://github.com/np-guard/vpc-network-config-analyzer/issues/560
 // create public IPs as routers of the private IPs
