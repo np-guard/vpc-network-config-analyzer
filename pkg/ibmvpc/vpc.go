@@ -58,7 +58,7 @@ func (r *ReservedIP) Name() string {
 }
 
 func (r *ReservedIP) ExtendedName(c *vpcmodel.VPCConfig) string {
-	return vpcmodel.VPCPrefixMulti(c, r.VPC().Name()) + getNodeName(r.vpe, r.Address())
+	return r.ExtendedPrefix(c) + getNodeName(r.vpe, r.Address())
 }
 
 // PrivateIP implements vpcmodel.Node interface
@@ -73,7 +73,7 @@ func (pip *PrivateIP) Name() string {
 }
 
 func (pip *PrivateIP) ExtendedName(c *vpcmodel.VPCConfig) string {
-	return vpcmodel.VPCPrefixMulti(c, pip.VPC().Name()) + getNodeName(pip.loadBalancer, pip.Address())
+	return pip.ExtendedPrefix(c) + getNodeName(pip.loadBalancer, pip.Address())
 }
 
 // NetworkInterface implements vpcmodel.Node interface
@@ -92,7 +92,7 @@ func (ni *NetworkInterface) Name() string {
 }
 
 func (ni *NetworkInterface) ExtendedName(c *vpcmodel.VPCConfig) string {
-	return vpcmodel.VPCPrefixMulti(c, ni.VPC().Name()) + getNodeName(ni.vsi, ni.Address())
+	return ni.ExtendedPrefix(c) + getNodeName(ni.vsi, ni.Address())
 }
 
 // IKSNode implements vpcmodel.Node interface
@@ -110,7 +110,7 @@ func (n *IKSNode) Name() string {
 }
 
 func (n *IKSNode) ExtendedName(c *vpcmodel.VPCConfig) string {
-	return vpcmodel.VPCPrefixMulti(c, n.VPC().Name()) + getNodeName(n.ResourceName, n.Address())
+	return n.ExtendedPrefix(c) + getNodeName(n.ResourceName, n.Address())
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

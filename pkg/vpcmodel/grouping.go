@@ -177,7 +177,7 @@ func (g *groupedEndpointsElems) ExtendedName(c *VPCConfig) string {
 	prefix := ""
 	if vpcResource, ok := (*g)[0].(VPCResourceIntf); ok {
 		// should never fail; yet not adding an error
-		prefix = VPCPrefixMulti(c, vpcResource.VPC().Name())
+		prefix = vpcResource.ExtendedPrefix(c)
 	}
 	// add the vpc prefix only once for grouped elements which are always of the same VPC
 	if prefix != "" && len(*g) > 1 {
