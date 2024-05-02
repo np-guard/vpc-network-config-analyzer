@@ -7,6 +7,8 @@ SPDX-License-Identifier: Apache-2.0
 package main
 
 import (
+	"strings"
+
 	"github.com/spf13/cobra"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/version"
@@ -19,11 +21,12 @@ const (
 	rgFlag        = "resource-group"
 	vpcFlag       = "vpc"
 
-	outputFileFlag = "output-file"
-	dumpFlag       = "dump-resources"
-	quietFlag      = "quiet"
-	verboseFlag    = "verbose"
-	debugFlag      = "debug"
+	outputFileFlag   = "output-file"
+	outputFormatFlag = "format"
+	dumpFlag         = "dump-resources"
+	quietFlag        = "quiet"
+	verboseFlag      = "verbose"
+	debugFlag        = "debug"
 )
 
 func NewRootCommand(args *InArgs) *cobra.Command {
@@ -46,6 +49,7 @@ func NewRootCommand(args *InArgs) *cobra.Command {
 	rootCmd.PersistentFlags().StringVar(&args.VPC, vpcFlag, "", "CRN of the VPC to analyze")
 
 	rootCmd.PersistentFlags().StringVar(&args.OutputFile, outputFileFlag, "", "file path to store results")
+	rootCmd.PersistentFlags().VarP(&args.OutputFormat, outputFormatFlag, "o", "output format; must be one of:\n"+strings.Join(allFormats, separator))
 
 	rootCmd.PersistentFlags().BoolVarP(&args.Quiet, quietFlag, "q", false, "runs quietly, reports only severe errors and results")
 	rootCmd.PersistentFlags().BoolVarP(&args.Verbose, verboseFlag, "v", false, "runs with more informative messages printed to log")

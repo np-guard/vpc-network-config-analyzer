@@ -7,7 +7,11 @@ SPDX-License-Identifier: Apache-2.0
 package main
 
 import (
-	"github.com/np-guard/models/pkg/connection"
+	"fmt"
+	"slices"
+	"strings"
+
+	"github.com/np-guard/models/pkg/netp"
 	"github.com/spf13/cobra"
 )
 
@@ -24,6 +28,26 @@ const (
 		"VSI name can be specified as <vsi-name> or  <vpc-name>/<vsi-name>"
 )
 
+type protocolSetting netp.ProtocolString
+
+func (ps *protocolSetting) String() string {
+	return string(*ps)
+}
+
+func (ps *protocolSetting) Set(v string) error {
+	allowedProtocols := []string{string(netp.ProtocolStringICMP), string(netp.ProtocolStringTCP), string(netp.ProtocolStringUDP)}
+	v = strings.ToUpper(v)
+	if slices.Contains(allowedProtocols, v) {
+		*ps = protocolSetting(v)
+		return nil
+	}
+	return fmt.Errorf(`must be one of %s`, strings.Join(allowedProtocols, ", "))
+}
+
+func (ps *protocolSetting) Type() string {
+	return "string"
+}
+
 func NewExplainCommand(args *InArgs) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "explain",
@@ -36,11 +60,11 @@ func NewExplainCommand(args *InArgs) *cobra.Command {
 
 	cmd.Flags().StringVar(&args.ESrc, srcFlag, "", "source "+srcDstUsage)
 	cmd.Flags().StringVar(&args.EDst, dstFlag, "", "destination "+srcDstUsage)
-	cmd.Flags().StringVar(&args.EProtocol, protocolFlag, "", "protocol for connection description")
-	cmd.Flags().Int64Var(&args.ESrcMinPort, srcMinPortFlag, connection.MinPort, "minimum source port for connection description")
-	cmd.Flags().Int64Var(&args.ESrcMaxPort, srcMaxPortFlag, connection.MaxPort, "maximum source port for connection description")
-	cmd.Flags().Int64Var(&args.EDstMinPort, dstMinPortFlag, connection.MinPort, "minimum destination port for connection description")
-	cmd.Flags().Int64Var(&args.EDstMaxPort, dstMaxPortFlag, connection.MaxPort, "maximum destination port for connection description")
+	cmd.Flags().Var(&args.EProtocol, protocolFlag, "protocol for connection description")
+	cmd.Flags().Int64Var(&args.ESrcMinPort, srcMinPortFlag, netp.MinPort, "minimum source port for connection description")
+	cmd.Flags().Int64Var(&args.ESrcMaxPort, srcMaxPortFlag, netp.MaxPort, "maximum source port for connection description")
+	cmd.Flags().Int64Var(&args.EDstMinPort, dstMinPortFlag, netp.MinPort, "minimum destination port for connection description")
+	cmd.Flags().Int64Var(&args.EDstMaxPort, dstMaxPortFlag, netp.MaxPort, "maximum destination port for connection description")
 
 	cmd.MarkFlagRequired(srcFlag)
 	cmd.MarkFlagRequired(dstFlag)

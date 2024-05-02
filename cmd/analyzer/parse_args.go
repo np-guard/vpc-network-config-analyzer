@@ -14,7 +14,6 @@ import (
 
 	"github.com/np-guard/cloud-resource-collector/pkg/factory"
 	"github.com/np-guard/models/pkg/connection"
-	"github.com/np-guard/models/pkg/netp"
 )
 
 // InArgs contains the input arguments for the analyzer
@@ -22,7 +21,7 @@ type InArgs struct {
 	InputConfigFileList   []string
 	InputSecondConfigFile string
 	OutputFile            string
-	OutputFormat          *string
+	OutputFormat          formatSetting
 	AnalysisType          *string
 	Grouping              bool
 	VPC                   string
@@ -30,7 +29,7 @@ type InArgs struct {
 	Version               *bool
 	ESrc                  string
 	EDst                  string
-	EProtocol             string
+	EProtocol             protocolSetting
 	ESrcMinPort           int64
 	ESrcMaxPort           int64
 	EDstMinPort           int64
@@ -202,8 +201,8 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	//args.InputSecondConfigFile = flagset.String(InputSecondConfigFile, "", "File path to the 2nd input config; "+
 	//	"relevant only for analysis-type diff_all_endpoints and for diff_all_subnets")
 	//args.OutputFile = flagset.String(OutputFile, "", "File path to store results")
-	args.OutputFormat = flagset.String(OutputFormat, TEXTFormat,
-		"Output format; must be one of:\n"+strings.Join(supportedOutputFormatsList, separator))
+	// args.OutputFormat = flagset.String(OutputFormat, TEXTFormat,
+	//	"Output format; must be one of:\n"+strings.Join(supportedOutputFormatsList, separator))
 	args.AnalysisType = flagset.String(AnalysisType, allEndpoints,
 		"Supported analysis types:\n"+getSupportedAnalysisTypesMapString())
 	//	args.Grouping = flagset.Bool(Grouping, false, "Whether to group together src/dst entries with identical connectivity\n"+
@@ -313,14 +312,6 @@ func invalidArgsExplainMode(args *InArgs, flagset *flag.FlagSet) error {
 		return nil
 	}
 
-	protocol := strings.ToUpper(args.EProtocol)
-	if protocol != string(netp.ProtocolStringTCP) &&
-		protocol != string(netp.ProtocolStringUDP) &&
-		protocol != string(netp.ProtocolStringICMP) {
-		return fmt.Errorf("protocol must be one of: 'TCP, UDP, ICMP'")
-	}
-	args.EProtocol = protocol
-
 	return validRangeConnectionExplainMode(args)
 }
 
@@ -330,28 +321,10 @@ func errorInArgs(args *InArgs, flagset *flag.FlagSet) error {
 		return fmt.Errorf("wrong analysis type '%s'; must be one of: '%s'",
 			*args.AnalysisType, strings.Join(supportedAnalysisTypesList, separator))
 	}
-	if !slices.Contains(supportedOutputFormatsList, *args.OutputFormat) {
-		flagset.PrintDefaults()
-		return fmt.Errorf("wrong output format '%s'; must be one of: '%s'",
-			*args.OutputFormat, strings.Join(supportedOutputFormatsList, separator))
-	}
-	if !slices.Contains(supportedAnalysisTypesMap[*args.AnalysisType], *args.OutputFormat) {
+	if !slices.Contains(supportedAnalysisTypesMap[*args.AnalysisType], string(args.OutputFormat)) {
 		flagset.PrintDefaults()
 		return fmt.Errorf("wrong output format '%s' for analysis type '%s'; must be one of: %s",
-			*args.OutputFormat, *args.AnalysisType, strings.Join(supportedAnalysisTypesMap[*args.AnalysisType], separator))
-	}
-	diffAnalysis := *args.AnalysisType == allEndpointsDiff || *args.AnalysisType == allSubnetsDiff
-	fileForDiffSpecified := args.InputSecondConfigFile != ""
-	if fileForDiffSpecified && !diffAnalysis {
-		return fmt.Errorf("wrong analysis type %s for 2nd file (%v) specified for diff",
-			*args.AnalysisType, args.InputSecondConfigFile)
-	}
-	if !fileForDiffSpecified && diffAnalysis {
-		return fmt.Errorf("missing parameter vpc-config-second for diff analysis %s", *args.AnalysisType)
-	}
-	graphicFormats := []string{DRAWIOFormat, ARCHDRAWIOFormat, SVGFormat, ARCHSVGFormat, HTMLFormat, ARCHHTMLFormat}
-	if slices.Contains(graphicFormats, *args.OutputFormat) && args.OutputFile == "" {
-		return fmt.Errorf("for output format '%s', parameter '-output-file' must be specified", *args.OutputFormat)
+			args.OutputFormat, *args.AnalysisType, strings.Join(supportedAnalysisTypesMap[*args.AnalysisType], separator))
 	}
 	return nil
 }
@@ -361,7 +334,7 @@ func notSupportedYetArgs(args *InArgs) error {
 	if (*args.AnalysisType == singleSubnet || diffAnalysis) && args.Grouping {
 		return fmt.Errorf("currently %s analysis type does not support grouping", *args.AnalysisType)
 	}
-	if *args.OutputFormat == JSONFormat && args.Grouping {
+	if args.OutputFormat == JSONFormat && args.Grouping {
 		return fmt.Errorf("json output format is not supported with grouping")
 	}
 	if args.Provider != factory.IBM && args.Provider != "" {

@@ -8,6 +8,8 @@ package main
 
 import "github.com/spf13/cobra"
 
+const secondConfigFlag = "vpc-config-second"
+
 func NewDiffCommand(args *InArgs) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "diff",
@@ -19,7 +21,8 @@ func NewDiffCommand(args *InArgs) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&args.InputSecondConfigFile, "vpc-config-second", "", "file path to the 2nd input config")
+	cmd.Flags().StringVar(&args.InputSecondConfigFile, secondConfigFlag, "", "file path to the 2nd input config")
+	cmd.MarkFlagRequired(secondConfigFlag)
 
 	return cmd
 }

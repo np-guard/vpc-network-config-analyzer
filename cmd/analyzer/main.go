@@ -28,32 +28,6 @@ const (
 	ErrorFormat      = "%s %w"
 )
 
-func getOutputFormat(inArgs *InArgs) vpcmodel.OutFormat {
-	switch *inArgs.OutputFormat {
-	case TEXTFormat:
-		return vpcmodel.Text
-	case MDFormat:
-		return vpcmodel.MD
-	case JSONFormat:
-		return vpcmodel.JSON
-	case DRAWIOFormat:
-		return vpcmodel.DRAWIO
-	case ARCHDRAWIOFormat:
-		return vpcmodel.ARCHDRAWIO
-	case SVGFormat:
-		return vpcmodel.SVG
-	case ARCHSVGFormat:
-		return vpcmodel.ARCHSVG
-	case HTMLFormat:
-		return vpcmodel.HTML
-	case ARCHHTMLFormat:
-		return vpcmodel.ARCHHTML
-	case DEBUGFormat:
-		return vpcmodel.Debug
-	}
-	return vpcmodel.Text
-}
-
 func analysisTypeToUseCase(inArgs *InArgs) vpcmodel.OutputUseCase {
 	switch *inArgs.AnalysisType {
 	case allEndpoints:
@@ -75,11 +49,11 @@ func analysisTypeToUseCase(inArgs *InArgs) vpcmodel.OutputUseCase {
 func analysisVPCConfigs(c1, c2 vpcmodel.MultipleVPCConfigs, inArgs *InArgs, outFile string) (string, error) {
 	var explanationArgs *vpcmodel.ExplanationArgs
 	if *inArgs.AnalysisType == explainMode {
-		explanationArgs = vpcmodel.NewExplanationArgs(inArgs.ESrc, inArgs.EDst, inArgs.EProtocol,
+		explanationArgs = vpcmodel.NewExplanationArgs(inArgs.ESrc, inArgs.EDst, string(inArgs.EProtocol),
 			inArgs.ESrcMinPort, inArgs.ESrcMaxPort, inArgs.EDstMinPort, inArgs.EDstMaxPort)
 	}
 
-	outFormat := getOutputFormat(inArgs)
+	outFormat := inArgs.OutputFormat.ToModelFormat()
 	og, err := vpcmodel.NewOutputGenerator(c1, c2,
 		inArgs.Grouping,
 		analysisTypeToUseCase(inArgs),
