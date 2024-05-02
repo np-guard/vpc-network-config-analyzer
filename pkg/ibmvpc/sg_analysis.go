@@ -92,11 +92,11 @@ func (sga *SGAnalyzer) getIPBlockResult(cidr, address, name *string) (*ipblock.I
 }
 
 // getRemoteCidr gets remote rule object interface and returns it's IPBlock
-func (sga *SGAnalyzer) getRemoteCidr(remote vpc1.SecurityGroupRuleRemoteIntf) (*ipblock.IPBlock, string, error) {
+func (sga *SGAnalyzer) getRemoteCidr(remote vpc1.SecurityGroupRuleRemoteIntf) (*ipblock.IPBlock, string, string, error) {
 	// TODO: on actual run from SG example, the type of remoteObj is SecurityGroupRuleRemote and not SecurityGroupRuleRemoteCIDR,
 	// even if cidr is defined
 	var target *ipblock.IPBlock
-	var cidrRes string
+	var cidrRes, remoteSGName string
 	var err error
 	//TODO: handle other remote types:
 	// SecurityGroupRuleRemoteIP
@@ -107,19 +107,22 @@ func (sga *SGAnalyzer) getRemoteCidr(remote vpc1.SecurityGroupRuleRemoteIntf) (*
 	if remoteObj, ok := remote.(*vpc1.SecurityGroupRuleRemote); ok {
 		target, cidrRes, err = sga.getIPBlockResult(remoteObj.CIDRBlock, remoteObj.Address, remoteObj.Name)
 		if err != nil {
-			return nil, "", err
+			return nil, "", "", err
 		}
-
+		if remoteObj.Name != nil {
+			remoteSGName = *remoteObj.Name
+		}
 		if target == nil || cidrRes == "" {
-			return target, cidrRes, fmt.Errorf("sg error: getRemoteCidr returns empty result. remoteObj: %+v", remoteObj)
+			return target, cidrRes, remoteSGName, fmt.Errorf("sg error: getRemoteCidr returns empty result. remoteObj: %+v", remoteObj)
 		}
 	}
 	if target == nil || cidrRes == "" {
-		return target, cidrRes, fmt.Errorf("sg error: getRemoteCidr returns empty result. could not convert remoteObj to expected type ")
+		return target, cidrRes, remoteSGName,
+			fmt.Errorf("sg error: getRemoteCidr returns empty result. could not convert remoteObj to expected type ")
 	}
 
 	sga.referencedIPblocks = append(sga.referencedIPblocks, target.Split()...)
-	return target, cidrRes, nil
+	return target, cidrRes, remoteSGName, nil
 }
 
 // getRemoteCidr gets local rule object interface and returns it's IPBlock
@@ -149,9 +152,9 @@ func (sga *SGAnalyzer) getProtocolAllRule(ruleObj *vpc1.SecurityGroupRuleSecurit
 	direction := *ruleObj.Direction
 	isIngress = isIngressRule(ruleObj.Direction)
 	protocol := *ruleObj.Protocol
-	remoteCidr, localCidr := "", ""
+	remoteCidr, localCidr, remoteSGName := "", "", ""
 	var remote, local *ipblock.IPBlock
-	remote, remoteCidr, err = sga.getRemoteCidr(ruleObj.Remote)
+	remote, remoteCidr, remoteSGName, err = sga.getRemoteCidr(ruleObj.Remote)
 	if err != nil {
 		return "", nil, false, err
 	}
@@ -161,7 +164,7 @@ func (sga *SGAnalyzer) getProtocolAllRule(ruleObj *vpc1.SecurityGroupRuleSecurit
 	}
 	connStr := fmt.Sprintf("protocol: %s", protocol)
 	ruleStr = getRuleStr(direction, connStr, remoteCidr, localCidr)
-	ruleRes.remote = ruleTarget{remote, ""}
+	ruleRes.remote = ruleTarget{remote, remoteSGName}
 	ruleRes.local = ruleTarget{local, ""}
 	ruleRes.connections = getAllConnSet()
 	return ruleStr, ruleRes, isIngress, nil
@@ -171,7 +174,7 @@ func (sga *SGAnalyzer) getProtocolTcpudpRule(ruleObj *vpc1.SecurityGroupRuleSecu
 	ruleStr string, ruleRes *SGRule, isIngress bool, err error) {
 	direction := *ruleObj.Direction
 	isIngress = isIngressRule(ruleObj.Direction)
-	remote, remoteCidr, err := sga.getRemoteCidr(ruleObj.Remote)
+	remote, remoteCidr, remoteSGName, err := sga.getRemoteCidr(ruleObj.Remote)
 	if err != nil {
 		return "", nil, false, err
 	}
@@ -192,7 +195,7 @@ func (sga *SGAnalyzer) getProtocolTcpudpRule(ruleObj *vpc1.SecurityGroupRuleSecu
 			dstPortMin,
 			dstPortMax,
 		),
-		remote: ruleTarget{remote, ""},
+		remote: ruleTarget{remote, remoteSGName},
 		local:  ruleTarget{local, ""},
 	}
 	return ruleStr, ruleRes, isIngress, nil
@@ -212,7 +215,7 @@ func getICMPconn(icmpType, icmpCode *int64) *connection.Set {
 
 func (sga *SGAnalyzer) getProtocolIcmpRule(ruleObj *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolIcmp) (
 	ruleStr string, ruleRes *SGRule, isIngress bool, err error) {
-	remote, remoteCidr, err := sga.getRemoteCidr(ruleObj.Remote)
+	remote, remoteCidr, remoteSGName, err := sga.getRemoteCidr(ruleObj.Remote)
 	if err != nil {
 		return
 	}
@@ -225,7 +228,7 @@ func (sga *SGAnalyzer) getProtocolIcmpRule(ruleObj *vpc1.SecurityGroupRuleSecuri
 	ruleStr = getRuleStr(*ruleObj.Direction, connStr, remoteCidr, localCidr)
 	ruleRes = &SGRule{
 		connections: conns,
-		remote:      ruleTarget{remote, ""},
+		remote:      ruleTarget{remote, remoteSGName},
 		local:       ruleTarget{local, ""},
 	}
 	isIngress = isIngressRule(ruleObj.Direction)
