@@ -17,50 +17,28 @@ import (
 	"github.com/np-guard/models/pkg/netp"
 )
 
-type regionList []string
-type inputConfigFileList []string
-
-// these functions are required, these types implement the interface flag.Value
-func (rg *regionList) String() string {
-	return fmt.Sprintln(*rg)
-}
-
-func (rg *regionList) Set(region string) error {
-	*rg = append(*rg, region)
-	return nil
-}
-
-func (c *inputConfigFileList) String() string {
-	return fmt.Sprintln(*c)
-}
-
-func (c *inputConfigFileList) Set(configFile string) error {
-	*c = append(*c, configFile)
-	return nil
-}
-
 // InArgs contains the input arguments for the analyzer
 type InArgs struct {
 	InputConfigFileList   []string
 	InputSecondConfigFile string
-	OutputFile            *string
+	OutputFile            string
 	OutputFormat          *string
 	AnalysisType          *string
-	Grouping              *bool
-	VPC                   *string
-	Debug                 *bool
+	Grouping              bool
+	VPC                   string
+	Debug                 bool
 	Version               *bool
-	ESrc                  *string
-	EDst                  *string
-	EProtocol             *string
-	ESrcMinPort           *int64
-	ESrcMaxPort           *int64
-	EDstMinPort           *int64
-	EDstMaxPort           *int64
-	Provider              *string
-	RegionList            regionList
-	ResourceGroup         *string
-	DumpResources         *string
+	ESrc                  string
+	EDst                  string
+	EProtocol             string
+	ESrcMinPort           int64
+	ESrcMaxPort           int64
+	EDstMinPort           int64
+	EDstMaxPort           int64
+	Provider              string
+	RegionList            []string
+	ResourceGroup         string
+	DumpResources         string
 	Quiet                 bool
 	Verbose               bool
 }
@@ -72,7 +50,6 @@ var flagHasValue = map[string]bool{
 	OutputFile:            true,
 	OutputFormat:          true,
 	AnalysisType:          true,
-	Grouping:              false,
 	VPC:                   true,
 	Debug:                 false,
 	ESrc:                  true,
@@ -97,7 +74,6 @@ const (
 	OutputFile            = "output-file"
 	OutputFormat          = "format"
 	AnalysisType          = "analysis-type"
-	Grouping              = "grouping"
 	VPC                   = "vpc"
 	Debug                 = "debug"
 	ESrc                  = "src"
@@ -176,9 +152,6 @@ var supportedAnalysisTypesList = []string{
 	explainMode,
 }
 
-const srcDstUsage = "endpoint for explanation; can be specified as a VSI name/CRN or an internal/external IP-address/CIDR;\n" +
-	"VSI name can be specified as <vsi-name> or  <vpc-name>/<vsi-name>"
-
 func getSupportedAnalysisTypesMapString() string {
 	valuesList := make([]string, len(supportedAnalysisTypesList)+1)
 	i := 0
@@ -228,26 +201,26 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	//flagset.Var(&args.InputConfigFileList, InputConfigFileList, "Required. File paths to input configs, can pass multiple config files")
 	//args.InputSecondConfigFile = flagset.String(InputSecondConfigFile, "", "File path to the 2nd input config; "+
 	//	"relevant only for analysis-type diff_all_endpoints and for diff_all_subnets")
-	args.OutputFile = flagset.String(OutputFile, "", "File path to store results")
+	//args.OutputFile = flagset.String(OutputFile, "", "File path to store results")
 	args.OutputFormat = flagset.String(OutputFormat, TEXTFormat,
 		"Output format; must be one of:\n"+strings.Join(supportedOutputFormatsList, separator))
 	args.AnalysisType = flagset.String(AnalysisType, allEndpoints,
 		"Supported analysis types:\n"+getSupportedAnalysisTypesMapString())
-	args.Grouping = flagset.Bool(Grouping, false, "Whether to group together src/dst entries with identical connectivity\n"+
-		"Does not support single_subnet, diff_all_endpoints and diff_all_subnets analysis-types and json output format")
-	args.VPC = flagset.String(VPC, "", "CRN of the VPC to analyze")
-	args.Debug = flagset.Bool(Debug, false, "Run in debug mode")
-	args.ESrc = flagset.String(ESrc, "", "Source "+srcDstUsage)
-	args.EDst = flagset.String(EDst, "", "Destination "+srcDstUsage)
-	args.EProtocol = flagset.String(EProtocol, "", "Protocol for connection description")
-	args.ESrcMinPort = flagset.Int64(ESrcMinPort, connection.MinPort, "Minimum source port for connection description")
-	args.ESrcMaxPort = flagset.Int64(ESrcMaxPort, connection.MaxPort, "Maximum source port for connection description")
-	args.EDstMinPort = flagset.Int64(EDstMinPort, connection.MinPort, "Minimum destination port for connection description")
-	args.EDstMaxPort = flagset.Int64(EDstMaxPort, connection.MaxPort, "Maximum destination port for connection description")
-	args.Provider = flagset.String(Provider, "", "Collect resources from an account in this cloud provider")
-	args.ResourceGroup = flagset.String(ResourceGroup, "", "Resource group id or name from which to collect resources")
-	flagset.Var(&args.RegionList, RegionList, "Cloud region from which to collect resources, can pass multiple regions")
-	args.DumpResources = flagset.String(DumpResources, "", "File path to store resources collected from the cloud provider")
+	//	args.Grouping = flagset.Bool(Grouping, false, "Whether to group together src/dst entries with identical connectivity\n"+
+	//		"Does not support single_subnet, diff_all_endpoints and diff_all_subnets analysis-types and json output format")
+	//args.VPC = flagset.String(VPC, "", "CRN of the VPC to analyze")
+	//args.Debug = flagset.Bool(Debug, false, "Run in debug mode")
+	// args.ESrc = flagset.String(ESrc, "", "Source "+srcDstUsage)
+	// args.EDst = flagset.String(EDst, "", "Destination "+srcDstUsage)
+	// args.EProtocol = flagset.String(EProtocol, "", "Protocol for connection description")
+	// args.ESrcMinPort = flagset.Int64(ESrcMinPort, connection.MinPort, "Minimum source port for connection description")
+	// args.ESrcMaxPort = flagset.Int64(ESrcMaxPort, connection.MaxPort, "Maximum source port for connection description")
+	// args.EDstMinPort = flagset.Int64(EDstMinPort, connection.MinPort, "Minimum destination port for connection description")
+	// args.EDstMaxPort = flagset.Int64(EDstMaxPort, connection.MaxPort, "Maximum destination port for connection description")
+	//	args.Provider = flagset.String(Provider, "", "Collect resources from an account in this cloud provider")
+	//args.ResourceGroup = flagset.String(ResourceGroup, "", "Resource group id or name from which to collect resources")
+	//flagset.Var(&args.RegionList, RegionList, "Cloud region from which to collect resources, can pass multiple regions")
+	// args.DumpResources = flagset.String(DumpResources, "", "File path to store resources collected from the cloud provider")
 
 	// calling parseCmdLine prior to flagset.Parse to ensure that excessive and unsupported arguments are handled
 	// for example, flagset.Parse() ignores input args missing the `-`
@@ -314,17 +287,17 @@ func minMaxValidity(minPort, maxPort int64, minPortName, maxPortName string) err
 }
 
 func validRangeConnectionExplainMode(args *InArgs) error {
-	err := minMaxValidity(*args.ESrcMinPort, *args.ESrcMaxPort, ESrcMinPort, ESrcMaxPort)
+	err := minMaxValidity(args.ESrcMinPort, args.ESrcMaxPort, ESrcMinPort, ESrcMaxPort)
 	if err != nil {
 		return err
 	}
-	err = minMaxValidity(*args.EDstMinPort, *args.EDstMaxPort, EDstMinPort, EDstMaxPort)
+	err = minMaxValidity(args.EDstMinPort, args.EDstMaxPort, EDstMinPort, EDstMaxPort)
 	if err != nil {
 		return err
 	}
 
-	if !PortInRange(*args.ESrcMinPort) || !PortInRange(*args.ESrcMaxPort) ||
-		!PortInRange(*args.EDstMinPort) || !PortInRange(*args.EDstMaxPort) {
+	if !PortInRange(args.ESrcMinPort) || !PortInRange(args.ESrcMaxPort) ||
+		!PortInRange(args.EDstMinPort) || !PortInRange(args.EDstMaxPort) {
 		return fmt.Errorf("port number must be in between %d, %d, inclusive",
 			connection.MinPort, connection.MaxPort)
 	}
@@ -333,63 +306,25 @@ func validRangeConnectionExplainMode(args *InArgs) error {
 }
 
 func invalidArgsExplainMode(args *InArgs, flagset *flag.FlagSet) error {
-	if *args.AnalysisType != explainMode {
-		if wereExplainParamsSpecified(flagset, []string{ESrc, EDst, EProtocol, ESrcMinPort, ESrcMaxPort, EDstMinPort, EDstMaxPort, explainMode}) {
-			return fmt.Errorf("explainability related params %s, %s, %s, %s, %s, %s and %s"+
-				"can be specified only in explain mode: analysis-type equals %s",
-				ESrc, EDst, EProtocol, ESrcMinPort, ESrcMaxPort, EDstMinPort, EDstMaxPort, explainMode)
-		}
-		return nil
-	}
-
-	if *args.ESrc == "" || *args.EDst == "" {
-		return fmt.Errorf("please specify %s and %s network_interface / external ip you want to explain connectivity for", ESrc, EDst)
-	}
-
-	if *args.EProtocol == "" {
+	if args.EProtocol == "" {
 		if wereExplainParamsSpecified(flagset, []string{EProtocol, ESrcMinPort, ESrcMaxPort, EDstMinPort, EDstMaxPort, explainMode}) {
 			return fmt.Errorf("protocol must be specified when querying a specific connection")
 		}
 		return nil
 	}
 
-	protocol := strings.ToUpper(*args.EProtocol)
+	protocol := strings.ToUpper(args.EProtocol)
 	if protocol != string(netp.ProtocolStringTCP) &&
 		protocol != string(netp.ProtocolStringUDP) &&
 		protocol != string(netp.ProtocolStringICMP) {
 		return fmt.Errorf("protocol must be one of: 'TCP, UDP, ICMP'")
 	}
-	args.EProtocol = &protocol
+	args.EProtocol = protocol
 
 	return validRangeConnectionExplainMode(args)
 }
 
-func invalidArgsConfigFile(args *InArgs, flagset *flag.FlagSet) error {
-	if !*args.Version && len(args.InputConfigFileList) == 0 && (args.Provider == nil || *args.Provider == "") {
-		flagset.PrintDefaults()
-		return fmt.Errorf("missing parameter: either vpc-config flag or provider flag must be specified")
-	}
-	if len(args.InputConfigFileList) > 0 && *args.Provider != "" {
-		flagset.PrintDefaults()
-		return fmt.Errorf("error in parameters: vpc-config flag and provider flag cannot be specified together")
-	}
-	if *args.Provider == "" && *args.DumpResources != "" {
-		flagset.PrintDefaults()
-		return fmt.Errorf("error in parameters: dump-resources flag can only be specified in combination with provider flag")
-	}
-
-	return nil
-}
-
 func errorInArgs(args *InArgs, flagset *flag.FlagSet) error {
-	err := invalidArgsConfigFile(args, flagset)
-	if err != nil {
-		return err
-	}
-	if args.Verbose && args.Quiet {
-		flagset.PrintDefaults()
-		return fmt.Errorf("error in parameters: verbose flag and quiet flag cannot be specified together")
-	}
 	if _, ok := supportedAnalysisTypesMap[*args.AnalysisType]; !ok {
 		flagset.PrintDefaults()
 		return fmt.Errorf("wrong analysis type '%s'; must be one of: '%s'",
@@ -415,7 +350,7 @@ func errorInArgs(args *InArgs, flagset *flag.FlagSet) error {
 		return fmt.Errorf("missing parameter vpc-config-second for diff analysis %s", *args.AnalysisType)
 	}
 	graphicFormats := []string{DRAWIOFormat, ARCHDRAWIOFormat, SVGFormat, ARCHSVGFormat, HTMLFormat, ARCHHTMLFormat}
-	if slices.Contains(graphicFormats, *args.OutputFormat) && *args.OutputFile == "" {
+	if slices.Contains(graphicFormats, *args.OutputFormat) && args.OutputFile == "" {
 		return fmt.Errorf("for output format '%s', parameter '-output-file' must be specified", *args.OutputFormat)
 	}
 	return nil
@@ -423,14 +358,14 @@ func errorInArgs(args *InArgs, flagset *flag.FlagSet) error {
 
 func notSupportedYetArgs(args *InArgs) error {
 	diffAnalysis := *args.AnalysisType == allEndpointsDiff || *args.AnalysisType == allSubnetsDiff
-	if (*args.AnalysisType == singleSubnet || diffAnalysis) && *args.Grouping {
+	if (*args.AnalysisType == singleSubnet || diffAnalysis) && args.Grouping {
 		return fmt.Errorf("currently %s analysis type does not support grouping", *args.AnalysisType)
 	}
-	if *args.OutputFormat == JSONFormat && *args.Grouping {
+	if *args.OutputFormat == JSONFormat && args.Grouping {
 		return fmt.Errorf("json output format is not supported with grouping")
 	}
-	if *args.Provider != factory.IBM && *args.Provider != "" {
-		return fmt.Errorf("unsupported provider: %s", *args.Provider)
+	if args.Provider != factory.IBM && args.Provider != "" {
+		return fmt.Errorf("unsupported provider: %s", args.Provider)
 	}
 	return nil
 }

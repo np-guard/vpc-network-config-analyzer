@@ -15,11 +15,9 @@ import (
 
 	"github.com/np-guard/cloud-resource-collector/pkg/factory"
 	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
-	"github.com/spf13/cobra"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/ibmvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/version"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -77,13 +75,13 @@ func analysisTypeToUseCase(inArgs *InArgs) vpcmodel.OutputUseCase {
 func analysisVPCConfigs(c1, c2 vpcmodel.MultipleVPCConfigs, inArgs *InArgs, outFile string) (string, error) {
 	var explanationArgs *vpcmodel.ExplanationArgs
 	if *inArgs.AnalysisType == explainMode {
-		explanationArgs = vpcmodel.NewExplanationArgs(*inArgs.ESrc, *inArgs.EDst, *inArgs.EProtocol,
-			*inArgs.ESrcMinPort, *inArgs.ESrcMaxPort, *inArgs.EDstMinPort, *inArgs.EDstMaxPort)
+		explanationArgs = vpcmodel.NewExplanationArgs(inArgs.ESrc, inArgs.EDst, inArgs.EProtocol,
+			inArgs.ESrcMinPort, inArgs.ESrcMaxPort, inArgs.EDstMinPort, inArgs.EDstMaxPort)
 	}
 
 	outFormat := getOutputFormat(inArgs)
 	og, err := vpcmodel.NewOutputGenerator(c1, c2,
-		*inArgs.Grouping,
+		inArgs.Grouping,
 		analysisTypeToUseCase(inArgs),
 		false,
 		explanationArgs, outFormat)
@@ -138,7 +136,7 @@ func vpcConfigsFromFiles(fileNames []string, inArgs *InArgs) (vpcmodel.MultipleV
 			return nil, err1
 		}
 	}
-	vpcConfigs, err2 := ibmvpc.VPCConfigsFromResources(mergedRC, *inArgs.VPC, *inArgs.ResourceGroup, inArgs.RegionList, *inArgs.Debug)
+	vpcConfigs, err2 := ibmvpc.VPCConfigsFromResources(mergedRC, inArgs.VPC, inArgs.ResourceGroup, inArgs.RegionList, inArgs.Debug)
 	if err2 != nil {
 		return nil, fmt.Errorf(ErrorFormat, InGenerationErr, err2)
 	}
@@ -146,7 +144,7 @@ func vpcConfigsFromFiles(fileNames []string, inArgs *InArgs) (vpcmodel.MultipleV
 }
 
 func vpcConfigsFromAccount(inArgs *InArgs) (vpcmodel.MultipleVPCConfigs, error) {
-	rc := factory.GetResourceContainer(*inArgs.Provider, inArgs.RegionList, *inArgs.ResourceGroup)
+	rc := factory.GetResourceContainer(inArgs.Provider, inArgs.RegionList, inArgs.ResourceGroup)
 	// Collect resources from the provider API and generate output
 	err := rc.CollectResourcesFromAPI()
 	if err != nil {
@@ -158,19 +156,19 @@ func vpcConfigsFromAccount(inArgs *InArgs) (vpcmodel.MultipleVPCConfigs, error) 
 	if !ok {
 		return nil, fmt.Errorf("error casting resources to *datamodel.ResourcesContainerModel type")
 	}
-	vpcConfigs, err := ibmvpc.VPCConfigsFromResources(resources, *inArgs.VPC, *inArgs.ResourceGroup, inArgs.RegionList, *inArgs.Debug)
+	vpcConfigs, err := ibmvpc.VPCConfigsFromResources(resources, inArgs.VPC, inArgs.ResourceGroup, inArgs.RegionList, inArgs.Debug)
 	if err != nil {
 		return nil, err
 	}
 	// save collected resources in dump file
-	if *inArgs.DumpResources != "" {
+	if inArgs.DumpResources != "" {
 		jsonString, err := resources.ToJSONString()
 		if err != nil {
 			return nil, err
 		}
-		log.Printf("Dumping collected resources to file: %s", *inArgs.DumpResources)
+		log.Printf("Dumping collected resources to file: %s", inArgs.DumpResources)
 
-		file, err := os.Create(*inArgs.DumpResources)
+		file, err := os.Create(inArgs.DumpResources)
 		if err != nil {
 			return nil, err
 		}
@@ -209,7 +207,7 @@ func _main(cmdlineArgs []string) error {
 	logging.Init(getVerbosity(inArgs))
 
 	var vpcConfigs1 vpcmodel.MultipleVPCConfigs
-	if *inArgs.Provider != "" {
+	if inArgs.Provider != "" {
 		vpcConfigs1, err = vpcConfigsFromAccount(inArgs)
 		if err != nil {
 			return err
@@ -234,8 +232,8 @@ func _main(cmdlineArgs []string) error {
 		}
 	}
 	outFile := ""
-	if inArgs.OutputFile != nil {
-		outFile = *inArgs.OutputFile
+	if inArgs.OutputFile != "" {
+		outFile = inArgs.OutputFile
 	}
 	vpcAnalysisOutput, err2 := analysisVPCConfigs(vpcConfigs1, vpcConfigs2, inArgs, outFile)
 	if err2 != nil {
@@ -249,19 +247,7 @@ func _main(cmdlineArgs []string) error {
 func main() {
 	var args InArgs
 
-	rootCmd := &cobra.Command{
-		Use:     "vpcanalyzer",
-		Short:   "vpcanalyzer is a CLI that analyzes network connectivity in VPCs",
-		Long:    `vpcanalyzer is a command-line tool to analyze VPC connectivity, based on its configuration.`,
-		Version: version.VersionCore,
-	}
-
-	rootCmd.PersistentFlags().StringArrayVarP(&args.InputConfigFileList, "vpc-config", "c", nil, "File paths to input configs, can pass multiple config files")
-	rootCmd.PersistentFlags().BoolVarP(&args.Quiet, "quiet", "q", false, "Runs quietly, reports only severe errors and results")
-	rootCmd.PersistentFlags().BoolVarP(&args.Verbose, "verbose", "v", false, "Runs with more informative messages printed to log")
-	rootCmd.MarkFlagsMutuallyExclusive("quiet", "verbose")
-
-	rootCmd.AddCommand(NewDiffCommand(&args))
+	rootCmd := NewRootCommand(&args)
 
 	err := rootCmd.Execute()
 	if err != nil {
