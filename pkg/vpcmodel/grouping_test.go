@@ -104,7 +104,7 @@ func (m *mockSubnet) Name() string {
 	return m.name
 }
 func (m *mockSubnet) ExtendedName(c *VPCConfig) string {
-	return m.ExtendedName(c) + m.name
+	return m.ExtendedPrefix(c) + m.name
 }
 func (m *mockSubnet) ExtendedPrefix(c *VPCConfig) string {
 	return ""
