@@ -1252,9 +1252,10 @@ func getVPCObjectByUID(res vpcmodel.MultipleVPCConfigs, uid string) (*VPC, error
 // getSubnetsFreeAddresses() and allocSubnetFreeAddress() are needed for load balancer parsing.
 // when a load balancer is created, Private IPs are not created in all the load balancer subnets.
 //
-//	however, we wants to create one private IP for all the subnets.
+//	however, we want to create one private IP for all the subnets.
 //
 // to create a private IP which does not exist in the config, we need an unused address.
+// See https://github.com/np-guard/vpc-network-config-analyzer/issues/560
 // getSubnetsFreeAddresses() collect all the free address of all subnets
 // allocSubnetFreeAddress() allocate a new address for a subnet
 func getSubnetsFreeAddresses(rc *datamodel.ResourcesContainerModel,
@@ -1262,8 +1263,9 @@ func getSubnetsFreeAddresses(rc *datamodel.ResourcesContainerModel,
 	subnetsFreeAddresses := map[vpcmodel.Subnet]*ipblock.IPBlock{}
 	for _, subnetObj := range rc.SubnetList {
 		subnet := res[*subnetObj.VPC.CRN].UIDToResource[*subnetObj.CRN].(vpcmodel.Subnet)
-		// todo - handle these errors. can a subnet has no cidr? what do we do?
+		// todo - handle these errors. can a subnet have no cidr? if so, what do we do?
 		b, _ := ipblock.FromCidr(subnet.CIDR())
+		// all the allocated IPs are at subnetObj.ReservedIps. (did not find documentation, it is what we experiment)
 		for _, reservedIP := range subnetObj.ReservedIps {
 			b2, _ := ipblock.FromIPAddress(*reservedIP.Address)
 			b = b.Subtract(b2)
@@ -1326,7 +1328,7 @@ func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 }
 
 func getLoadBalancerVpcUID(rc *datamodel.ResourcesContainerModel, loadBalancerObj *datamodel.LoadBalancer) (string, error) {
-	// somehow the API info of the load balancer does not have info on the vpc,
+	// the API info of the load balancer does not have info on the vpc,
 	// getting the vpc from one of the subnets:
 	aSubnetUID := *loadBalancerObj.Subnets[0].CRN
 	for _, subnet := range rc.SubnetList {
@@ -1377,6 +1379,8 @@ func getLoadBalancerServer(res map[string]*vpcmodel.VPCConfig,
 				listener = append(listener, pool)
 			}
 		}
+		// we also add the default pool, if exist.
+		// for now, the default pool is handled as all other pools. it might change after handling policies
 		if pool, ok := pools[*listenerObj.DefaultPool.ID]; ok {
 			listener = append(listener, pool)
 		}
@@ -1388,8 +1392,9 @@ func getLoadBalancerServer(res map[string]*vpcmodel.VPCConfig,
 // ///////////////////////////////////////////////////////////
 // getLoadBalancerIPs() parse the private Ips
 // when a load balancer is created, not all its subnets get privateIPs.
-// sone subnets are chosen (arbitrary?) and only they have privateIPs.
+// some subnets are chosen (arbitrary?) and only they have privateIPs.
 // however, we create a private IP for all the subnets.
+// See https://github.com/np-guard/vpc-network-config-analyzer/issues/560
 // create public IPs as routers of the private IPs
 // returns the private IPs nodes
 func getLoadBalancerIPs(res map[string]*vpcmodel.VPCConfig,

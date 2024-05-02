@@ -217,7 +217,7 @@ func (v *Vpe) Zone() (*Zone, error) {
 // //////////////////////////////////////////
 // Load Balancer
 // the nodes are the private IPs
-// for now the listeners holds the pools that holds the backend servers (aka pool members)
+// for now the listeners hold the pools that holds the backend servers (aka pool members)
 // todo - implement more...
 type LoadBalancerPool []vpcmodel.Node
 type LoadBalancerListener []LoadBalancerPool
@@ -242,7 +242,7 @@ func (lb *LoadBalancer) AllowConnectivity(src, dst vpcmodel.Node) bool {
 	return !slices.Contains(lb.Nodes(), src) || slices.Contains(lb.members(), dst)
 }
 
-// for now the listeners holds the pools that holds the backend servers (aka pool members)
+// for now the listeners hold the pools that holds the backend servers (aka pool members)
 func (lb *LoadBalancer) members() []vpcmodel.Node {
 	res := []vpcmodel.Node{}
 	for _, l := range lb.listeners {
