@@ -214,7 +214,7 @@ func (v *Vpe) Zone() (*Zone, error) {
 	return nil, nil
 }
 
-// //////////////////////////////////////////
+// LoadBalancerPool //////////////////////////////////////////
 // Load Balancer
 // the nodes are the private IPs
 // for now the listeners hold the pools that holds the backend servers (aka pool members)
