@@ -47,6 +47,8 @@ const noValidInputMsg = "is not a legal IP address, CIDR, or endpoint name"
 
 const deliminator = "/"
 
+const two = 2
+
 // was src/dst input provided as internal address of a vsi? this is required info since
 // if this is the case then in the output the relevant detected vsis are printed
 type srcDstInternalAddr struct {
@@ -326,7 +328,7 @@ func (c *VPCConfig) getNodesOfVsi(name string) ([]Node, int, error) {
 	switch len(cidrOrNameSlice) {
 	case 1: // vpc name not specified
 		vsi = name
-	case 2: // vpc name specified
+	case two: // vpc name specified
 		vpc = cidrOrNameSlice[0]
 		vsi = cidrOrNameSlice[1]
 	}
