@@ -92,7 +92,7 @@ func (ni *NetworkInterface) Name() string {
 }
 
 func (ni *NetworkInterface) ExtendedName(c *vpcmodel.VPCConfig) string {
-	return ni.ExtendedPrefix(c) + getNodeName(ni.vsi, ni.Address())
+	return ni.ExtendedPrefix(c) + ni.Name()
 }
 
 // IKSNode implements vpcmodel.Node interface
