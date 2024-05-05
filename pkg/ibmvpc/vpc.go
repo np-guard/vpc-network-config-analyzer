@@ -235,10 +235,10 @@ func (lb *LoadBalancer) AddressRange() *ipblock.IPBlock {
 	return nodesAddressRange(lb.nodes)
 }
 
-// DennyConnectivity() - check if lb denny connection from src to dst
+// DennyConnectivity - check if lb denny connection from src to dst
 // currently only a boolean function, will be elaborated when parsing policies rules
 func (lb *LoadBalancer) DennyConnectivity(src, dst vpcmodel.Node) bool {
-	// currently we do not allow connections from privateIP to a destination that is not a pool member
+	// currently, we do not allow connections from privateIP to a destination that is not a pool member
 	return slices.Contains(lb.Nodes(), src) && !slices.Contains(lb.members(), dst)
 }
 
