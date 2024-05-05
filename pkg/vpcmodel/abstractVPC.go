@@ -20,7 +20,9 @@ const (
 type VPCResourceIntf interface {
 	UID() string
 	Name() string
+	// ExtendedName Name, name prefixed with vpc in multi-vpc context, name otherwise
 	ExtendedName(*VPCConfig) string
+	// ExtendedPrefix vpc name with deliminator in multi-vpc context, empty string otherwise
 	ExtendedPrefix(config *VPCConfig) string
 	ZoneName() string
 	Kind() string
