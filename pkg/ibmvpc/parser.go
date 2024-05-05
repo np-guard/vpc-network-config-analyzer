@@ -1266,6 +1266,7 @@ func getSubnetsFreeAddresses(rc *datamodel.ResourcesContainerModel,
 		// todo - handle these errors. can a subnet have no cidr? if so, what do we do?
 		b, _ := ipblock.FromCidr(subnet.CIDR())
 		// all the allocated IPs are at subnetObj.ReservedIps. (did not find documentation, it is what we experiment)
+		// see https://github.com/np-guard/vpc-network-config-analyzer/issues/566
 		for _, reservedIP := range subnetObj.ReservedIps {
 			b2, _ := ipblock.FromIPAddress(*reservedIP.Address)
 			b = b.Subtract(b2)

@@ -214,7 +214,7 @@ func (v *Vpe) Zone() (*Zone, error) {
 	return nil, nil
 }
 
-// //////////////////////////////////////////
+// LoadBalancerPool //////////////////////////////////////////
 // Load Balancer
 // the nodes are the private IPs
 // for now the listeners hold the pools that holds the backend servers (aka pool members)
@@ -235,10 +235,10 @@ func (lb *LoadBalancer) AddressRange() *ipblock.IPBlock {
 	return nodesAddressRange(lb.nodes)
 }
 
-// AllowConnectivity() - check if lb allow connection from src to dst
+// AllowConnectivity - check if lb allow connection from src to dst
 // currently only a boolean function, will be elaborated when parsing policies rules
 func (lb *LoadBalancer) AllowConnectivity(src, dst vpcmodel.Node) bool {
-	// currently we do not allow connections from privateIP to a destination that is not a pool member
+	// currently, we do not allow connections from privateIP to a destination that is not a pool member
 	return !slices.Contains(lb.Nodes(), src) || slices.Contains(lb.members(), dst)
 }
 
