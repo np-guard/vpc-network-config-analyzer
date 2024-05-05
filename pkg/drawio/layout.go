@@ -786,7 +786,7 @@ func (ly *layoutS) setGroupingIconLocations() {
 	// set the y offset according to the number of icons in the cell:
 	for cell, cellIcons := range iconsInCell {
 		for i, gIcon := range cellIcons {
-			gIcon.Location().yOffset = cell.r.height() * (2*i - len(cellIcons) + 1) / (len(cellIcons) + 1) / 2
+			gIcon.Location().yOffset = cell.r.height() * (two*i - len(cellIcons) + 1) / (len(cellIcons) + 1) / two
 		}
 	}
 }
@@ -818,7 +818,7 @@ func setZoneIconsLocations(zone SquareTreeNodeInterface) {
 				// we take the first subnet, and put the vis icon below it, and also give it an xOffset
 				vpcLocation := icon.(*VsiTreeNode).nis[0].Parent().Location()
 				location := newCellLocation(vpcLocation.nextRow(), vpcLocation.firstCol)
-				location.xOffset = subnetWidth/2 - iconSize/2
+				location.xOffset = subnetWidth/two - iconSize/two
 				vsiIcon.setLocation(location)
 			}
 		} else if icon.IsGateway() {
@@ -826,7 +826,7 @@ func setZoneIconsLocations(zone SquareTreeNodeInterface) {
 			row := zone.Location().firstRow
 			zone.Location().firstRow.setHeight(iconSpace)
 			icon.setLocation(newCellLocation(row, col))
-			icon.Location().xOffset -= subnetWidth/2 - iconSize/2
+			icon.Location().xOffset -= subnetWidth/two - iconSize/two
 		}
 	}
 }
