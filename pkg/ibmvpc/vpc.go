@@ -58,7 +58,7 @@ func (r *ReservedIP) Name() string {
 }
 
 func (r *ReservedIP) ExtendedName(c *vpcmodel.VPCConfig) string {
-	return r.ExtendedPrefix(c) + getNodeName(r.vpe, r.Address())
+	return r.ExtendedPrefix(c) + r.Name()
 }
 
 // PrivateIP implements vpcmodel.Node interface
