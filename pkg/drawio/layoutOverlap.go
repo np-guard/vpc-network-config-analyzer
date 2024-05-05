@@ -304,13 +304,6 @@ func getRelativePoint(line LineTreeNodeInterface, absPoint point) point {
 
 // the most common line in stackoverflow:
 // "There is no built-in function for  <....> in golang, but it’s simple to write your own"
-// func max(a, b int) int {
-// 	if a > b {
-// 		return a
-// 	}
-// 	return b
-// }
-
 func abs(a int) int {
 	if a > 0 {
 		return a

@@ -64,6 +64,8 @@ const (
 	regionToSubnetDepth  = 3
 	vpcToSubnetDepth     = 2
 	zoneToSubnetDepth    = 1
+
+	two = 2
 )
 
 type layoutS struct {
@@ -581,7 +583,7 @@ func (ly *layoutS) setPublicNetworkIconsLocations() {
 	pn.Location().firstCol.setWidth(iconSpace * iconsPerRow)
 	for iconIndex, icon := range icons {
 		icon.setLocation(newCellLocation(rows[iconIndex/iconsPerRow], pn.Location().firstCol))
-		icon.Location().xOffset = iconSpace*(iconIndex%iconsPerRow) - (iconSpace*(iconsPerRow-1))/2
+		icon.Location().xOffset = iconSpace*(iconIndex%iconsPerRow) - (iconSpace*(iconsPerRow-1))/two
 	}
 }
 
@@ -613,7 +615,7 @@ func (ly *layoutS) setIconsLocationsOnTop(square SquareTreeNodeInterface) {
 	}
 	for iconIndex, icon := range icons {
 		icon.setLocation(newCellLocation(square.Location().firstRow, cols[iconIndex/iconsPerCol]))
-		icon.Location().yOffset = iconSpace*(iconIndex%iconsPerCol) - (iconSpace*(iconsPerCol-1))/2
+		icon.Location().yOffset = iconSpace*(iconIndex%iconsPerCol) - (iconSpace*(iconsPerCol-1))/two
 	}
 }
 
@@ -660,7 +662,7 @@ func (ly *layoutS) setTgwLocations(region SquareTreeNodeInterface) {
 		bestColAvailable, _ := common.AnyMapEntry[int](availableCols)
 		bestDistance := region.Location().lastCol.index
 		if len(tgwOptionalCols[tgw]) > 0 {
-			tgwOptCol := tgwOptionalCols[tgw][0] + tgwOptionalCols[tgw][len(tgwOptionalCols[tgw])-1]/2
+			tgwOptCol := tgwOptionalCols[tgw][0] + tgwOptionalCols[tgw][len(tgwOptionalCols[tgw])-1]/two
 			for col := range availableCols {
 				if abs(col-tgwOptCol) < bestDistance {
 					bestColAvailable = col
@@ -768,11 +770,11 @@ func (ly *layoutS) setGroupingIconLocations() {
 		iconsInCell[cell{r, c}] = append(iconsInCell[cell{r, c}], gIcon)
 		switch parent.visibility {
 		case theSubnet:
-			gIcon.Location().xOffset = gIcon.Location().firstCol.width() / 2
+			gIcon.Location().xOffset = gIcon.Location().firstCol.width() / two
 		case square:
-			gIcon.Location().xOffset = (gIcon.Location().firstCol.width()/2 + groupBorderWidth)
+			gIcon.Location().xOffset = gIcon.Location().firstCol.width()/two + groupBorderWidth
 		case innerSquare:
-			gIcon.Location().xOffset = (gIcon.Location().firstCol.width()/2 + groupBorderWidth + groupInnerBorderWidth)
+			gIcon.Location().xOffset = gIcon.Location().firstCol.width()/two + groupBorderWidth + groupInnerBorderWidth
 		case connectedPoint:
 			gIcon.connectGroupedIcons()
 		}
