@@ -163,7 +163,7 @@ func (sga *SGAnalyzer) getProtocolAllRule(ruleObj *vpc1.SecurityGroupRuleSecurit
 	connStr := fmt.Sprintf("protocol: %s", protocol)
 	ruleStr = getRuleStr(direction, connStr, remoteCidr, remoteSGName, localCidr)
 	ruleRes.remote = ruleTarget{remote, remoteSGName}
-	ruleRes.local = ruleTarget{local, ""}
+	ruleRes.local = local
 	ruleRes.connections = getAllConnSet()
 	return ruleStr, ruleRes, isIngress, nil
 }
@@ -194,7 +194,7 @@ func (sga *SGAnalyzer) getProtocolTcpudpRule(ruleObj *vpc1.SecurityGroupRuleSecu
 			dstPortMax,
 		),
 		remote: ruleTarget{remote, remoteSGName},
-		local:  ruleTarget{local, ""},
+		local:  local,
 	}
 	return ruleStr, ruleRes, isIngress, nil
 }
@@ -231,7 +231,7 @@ func (sga *SGAnalyzer) getProtocolIcmpRule(ruleObj *vpc1.SecurityGroupRuleSecuri
 	ruleRes = &SGRule{
 		connections: conns,
 		remote:      ruleTarget{remote, remoteSGName},
-		local:       ruleTarget{local, ""},
+		local:       local,
 	}
 	isIngress = isIngressRule(ruleObj.Direction)
 	return
@@ -286,7 +286,7 @@ type SGRule struct {
 	remote      ruleTarget
 	connections *connection.Set
 	index       int // index of original rule in *vpc1.SecurityGroup.Rules
-	local       ruleTarget
+	local       *ipblock.IPBlock
 }
 
 func (cr *ConnectivityResult) string() string {
