@@ -40,7 +40,8 @@ func nodeSetConnectivityAbstraction(nodesConn GeneralConnectivityMap, nodeSet No
 // splitConnectivityByNodeSet() split the connectivity to the four groups
 // each group is kept as GeneralConnectivityMap.
 // usually, GeneralConnectivityMap is a map form src to dst.
-// however, the third group is hold as a map from dst to src.
+// however, the third group is hold as a map from dst to src (and therefore called otherFromNodeSet and not nodeSetToOther)
+// see the reason on mergeConnectivityWithNodeSetAbstraction()
 
 func splitConnectivityByNodeSet(nodesConn GeneralConnectivityMap, nodeSet NodeSet) (
 	otherToOther, nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet GeneralConnectivityMap) {
@@ -59,10 +60,10 @@ func splitConnectivityByNodeSet(nodesConn GeneralConnectivityMap, nodeSet NodeSe
 				otherToOther.updateAllowedConnsMap(src, dst, conns)
 			case srcInSet && dstInSet:
 				nodeSetToNodeSet.updateAllowedConnsMap(src, dst, conns)
-			case !srcInSet && dstInSet:
-				otherToNodeSet.updateAllowedConnsMap(src, dst, conns.Copy())
 			case srcInSet && !dstInSet:
 				otherFromNodeSet.updateAllowedConnsMap(dst, src, conns)
+			case !srcInSet && dstInSet:
+				otherToNodeSet.updateAllowedConnsMap(src, dst, conns.Copy())
 			}
 		}
 	}
@@ -73,6 +74,7 @@ func splitConnectivityByNodeSet(nodesConn GeneralConnectivityMap, nodeSet NodeSe
 // it does it on each group separately.
 // for now it creates a string
 // todo: - how to report this string? what format?
+// for now, No need to CR it, we do not do anything with the result
 
 func checkConnectivityAbstractionValidity(connMap GeneralConnectivityMap, nodeSet NodeSet, isIngress bool) {
 	res := ""
@@ -121,16 +123,21 @@ func mergeConnectivityWithNodeSetAbstraction(
 			res.updateAllowedConnsMap(src, dst, conns)
 		}
 	}
-	// all the connections inside the nodeSet are union to one connectivity, added to the result:
+	// all the connections inside the nodeSet are union to *only* one connectivity:
 	allConns := NoConns()
 	for _, nodeConns := range nodeSetToNodeSet {
 		for _, conns := range nodeConns {
 			allConns = allConns.Union(conns)
 		}
 	}
+	// adding to the result
 	res.updateAllowedConnsMap(nodeSet, nodeSet, allConns)
 
 	// all connection from the nodeSet to a node, are union and added to the result:
+	// please notice: we need to handle separately every node that is outside the NodeSet, 
+	// therefore, we want to have a loop on every node that is outside the nodeSet.
+	// so, the outer loop should run over the nodes that is outside the nodeSet.
+	// this is why this group is from dst to src.
 	for dst, nodeConns := range otherFromNodeSet {
 		allConns := NoConns()
 		for _, conns := range nodeConns {
