@@ -138,16 +138,16 @@ func addPointOutsideSquares(line LineTreeNodeInterface) {
 		if src.ID() > dst.ID() {
 			offset = -offset
 		}
-		if max(src.Width()/2, dst.Width()/2) > max(src.Height()/2, dst.Height()/2) {
+		if max(src.Width(), dst.Width()) > max(src.Height(), dst.Height()) {
 			// width is bigger then hight, we choose a point below the center, outside both squares:
-			y = midY + max(src.Height()/2, dst.Height()/2) + subnetHeight/2
+			y = midY + max(src.Height(), dst.Height())/2 + subnetHeight/2
 			x = midX
 			line.addPoint(x-minSize+offset, y)
 			line.addPoint(x+minSize+offset, y)
 		} else {
 			// hight is bigger then width, we choose a point right to the center, outside both squares:
 			y = midY
-			x = midX + max(src.Width()/2, dst.Width()/2) + subnetWidth/2
+			x = midX + max(src.Width(), dst.Width())/2 + subnetWidth/2
 			line.addPoint(x, y-minSize+offset)
 			line.addPoint(x, y+minSize+offset)
 		}
@@ -155,10 +155,10 @@ func addPointOutsideSquares(line LineTreeNodeInterface) {
 	case abs(dX) < minSize:
 		// centers are one bellow each other, will take a point at the right to both squares
 		y = midY
-		x = midX + max(src.Width()/2, dst.Width()/2) + subnetWidth/2
+		x = midX + max(src.Width(), dst.Width())/2 + subnetWidth/2
 	case abs(dY) < minSize:
 		// centers are one right each other, will take a point at the below both squares
-		y = midY + max(src.Height()/2, dst.Height()/2) + subnetHeight/2
+		y = midY + max(src.Height(), dst.Height())/2 + subnetHeight/2
 		x = midX
 	default:
 		// we collect a list of potential points on the second line, and choose the closest of them
