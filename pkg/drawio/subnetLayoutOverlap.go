@@ -304,6 +304,6 @@ func (lyO *subnetLayoutOverlap) tnCenter(tn TreeNodeInterface) (x, y int) {
 }
 func (lyO *subnetLayoutOverlap) tnSize(tn TreeNodeInterface) (x, y int) {
 	l := tn.Location()
-	return (lyO.xIndexes[l.lastCol] - lyO.xIndexes[l.firstCol] + 1) * 2,
-		(lyO.yIndexes[l.lastRow] - lyO.yIndexes[l.firstRow] + 1) * 2
+	return (lyO.xIndexes[l.lastCol] - lyO.xIndexes[l.firstCol] + 1) * two,
+		(lyO.yIndexes[l.lastRow] - lyO.yIndexes[l.firstRow] + 1) * two
 }
