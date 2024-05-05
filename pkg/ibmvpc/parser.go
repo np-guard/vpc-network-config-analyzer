@@ -1379,7 +1379,7 @@ func getLoadBalancerServer(res map[string]*vpcmodel.VPCConfig,
 				listener = append(listener, pool)
 			}
 		}
-		// we also add the default pool, if exist.
+		// we also add the default pool, if exists.
 		// for now, the default pool is handled as all other pools. it might change after handling policies
 		if pool, ok := pools[*listenerObj.DefaultPool.ID]; ok {
 			listener = append(listener, pool)
