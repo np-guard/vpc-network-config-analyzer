@@ -249,7 +249,7 @@ func (lyO *subnetLayoutOverlap) changeLineSrcPoint(l LineTreeNodeInterface) {
 // if connection point is not set, drawio draw the line between the centers of the squares
 // the calc is too complicated to document, but it works.
 
-//nolint:gocyclo,gomnd // its just a big case, values of lineConnectionPoint are 1 to 16.
+//nolint:gocyclo,mnd // its just a big case, values of lineConnectionPoint are 1 to 16.
 func (lyO *subnetLayoutOverlap) currentSrcConnectionPoint(l LineTreeNodeInterface) lineConnectionPoint {
 	//revive:disable // these are the numbers required by drawio
 	srcX1, srcY1 := lyO.tnCenter(l.Src())
