@@ -22,6 +22,7 @@ const (
 	ovalEndEdge  = "oval"
 	arrowEndEdge = "block"
 	noneEndEdge  = "none"
+	half         = 0.5
 )
 
 var images = map[reflect.Type]string{
@@ -283,8 +284,8 @@ func lineAbsPoints(tn TreeNodeInterface) []point {
 		if srcConnectionPoint := line.SrcConnectionPoint(); srcConnectionPoint != 0 {
 			x, y := lineConnectionPointToXY(srcConnectionPoint)
 			points[0] = point{
-				points[0].X + int(float64(line.Src().Width())*(x-0.5)),
-				points[0].Y + int(float64(line.Src().Height())*(y-0.5))}
+				points[0].X + int(float64(line.Src().Width())*(x-half)),
+				points[0].Y + int(float64(line.Src().Height())*(y-half))}
 		} else {
 			points[0] = calcConnectionPoint(line.Src(), points[0], points[1])
 		}
