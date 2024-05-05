@@ -73,7 +73,7 @@ func (pip *PrivateIP) Name() string {
 }
 
 func (pip *PrivateIP) ExtendedName(c *vpcmodel.VPCConfig) string {
-	return pip.ExtendedPrefix(c) + getNodeName(pip.loadBalancer, pip.Address())
+	return pip.ExtendedPrefix(c) + pip.Name()
 }
 
 // NetworkInterface implements vpcmodel.Node interface
