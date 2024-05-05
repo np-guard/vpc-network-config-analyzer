@@ -110,7 +110,7 @@ func (n *IKSNode) Name() string {
 }
 
 func (n *IKSNode) ExtendedName(c *vpcmodel.VPCConfig) string {
-	return n.ExtendedPrefix(c) + getNodeName(n.ResourceName, n.Address())
+	return n.ExtendedPrefix(c) + n.Name()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
