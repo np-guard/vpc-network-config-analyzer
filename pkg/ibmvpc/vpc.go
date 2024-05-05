@@ -335,10 +335,6 @@ func (nl *NaclLayer) Name() string {
 	return ""
 }
 
-func (nl *NaclLayer) ExtendedName(config *vpcmodel.VPCConfig) string {
-	return ""
-}
-
 func appendToRulesInFilter(resRulesInFilter *[]vpcmodel.RulesInFilter, rules *[]int, filterIndex int, isAllow bool) {
 	var rType vpcmodel.RulesType
 	switch {
@@ -510,10 +506,6 @@ type SecurityGroupLayer struct {
 }
 
 func (sgl *SecurityGroupLayer) Name() string {
-	return ""
-}
-
-func (sgl *SecurityGroupLayer) ExtendedName(config *vpcmodel.VPCConfig) string {
 	return ""
 }
 
