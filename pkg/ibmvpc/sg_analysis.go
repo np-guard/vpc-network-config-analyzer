@@ -319,14 +319,14 @@ func AnalyzeSGRules(rules []*SGRule, isIngress bool) *ConnectivityResult {
 }
 
 func mapAndAnalyzeSGRules(rules []*SGRule, isIngress bool, connectivityMap map[*ipblock.IPBlock]*ConnectivityResult) {
-	Locals := []*ipblock.IPBlock{}
+	locals := []*ipblock.IPBlock{}
 	for i := range rules {
 		if rules[i].local != nil {
-			Locals = append(Locals, rules[i].local)
+			locals = append(locals, rules[i].local)
 		}
 	}
-	disjointLocals := ipblock.DisjointIPBlocks(Locals, []*ipblock.IPBlock{ipblock.GetCidrAll()})
-	KeysToConnectivityResult := map[common.SetAsKey]*ConnectivityResult{}
+	disjointLocals := ipblock.DisjointIPBlocks(locals, []*ipblock.IPBlock{ipblock.GetCidrAll()})
+	keysToConnectivityResult := map[common.SetAsKey]*ConnectivityResult{}
 	for i := range disjointLocals {
 		relevantRules := []*SGRule{}
 		for j := range rules {
@@ -334,14 +334,15 @@ func mapAndAnalyzeSGRules(rules []*SGRule, isIngress bool, connectivityMap map[*
 				relevantRules = append(relevantRules, rules[j])
 			}
 		}
+		connectivityMap[disjointLocals[i]] = AnalyzeSGRules(relevantRules, isIngress)
 		// check if we already called AnalyzeSGRules with the same relevantRules
 		rulesKeys := common.FromList(relevantRules)
 		key := rulesKeys.AsKey()
-		if _, ok := KeysToConnectivityResult[key]; !ok {
+		if _, ok := keysToConnectivityResult[key]; !ok {
 			connectivityMap[disjointLocals[i]] = AnalyzeSGRules(relevantRules, isIngress)
-			KeysToConnectivityResult[key] = connectivityMap[disjointLocals[i]]
+			keysToConnectivityResult[key] = connectivityMap[disjointLocals[i]]
 		} else {
-			connectivityMap[disjointLocals[i]] = KeysToConnectivityResult[key]
+			connectivityMap[disjointLocals[i]] = keysToConnectivityResult[key]
 		}
 	}
 }

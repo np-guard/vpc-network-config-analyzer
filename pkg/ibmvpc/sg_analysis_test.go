@@ -112,21 +112,18 @@ func TestSGRule(t *testing.T) {
 }
 
 func TestNoLocalField(t *testing.T) {
-	cidr1t, _ := ipblock.FromCidrOrAddress("10.250.10.1")
-	cidr2t, _ := ipblock.FromCidrOrAddress("10.250.10.0/30")
-
 	c1 := connection.TCPorUDPConnection(netp.ProtocolString("UDP"), 5, 87, 10, 3245)
 	c2 := connection.TCPorUDPConnection(netp.ProtocolString("TCP"), 1, 100, 5, 1000)
 
 	rulesTest1 := []*SGRule{
 		{
-			target:      cidr1t,
+			target:      newIPBlockFromCIDROrAddressWithoutValidation("10.250.10.1"),
 			connections: c1,
 			index:       1,
 			local:       ipblock.GetCidrAll(),
 		},
 		{
-			target:      cidr2t,
+			target:      newIPBlockFromCIDROrAddressWithoutValidation("10.250.10.0/30"),
 			connections: c2,
 			index:       2,
 			local:       ipblock.GetCidrAll(),
@@ -139,9 +136,9 @@ func TestNoLocalField(t *testing.T) {
 
 	egressConnectivityMap := make(map[*ipblock.IPBlock]*ConnectivityResult)
 	mapAndAnalyzeSGRules(rulesTest1, false, egressConnectivityMap)
-	require.Equal(t, len(egressConnectivityMap), 1)
-	for _, CR := range egressConnectivityMap {
-		for remote, conn := range CR.allowedConns {
+	require.Equal(t, len(egressConnectivityMap), 1) // expecting size 1 because locals are only "0.0.0.0/0" in this example
+	for _, connectivityResult := range egressConnectivityMap {
+		for remote, conn := range connectivityResult.allowedConns {
 			if target1.ContainedIn(remote) || target2.ContainedIn(remote) {
 				require.True(t, conn.Equal(c2))
 			}
@@ -153,36 +150,34 @@ func TestNoLocalField(t *testing.T) {
 }
 
 func TestLocalField(t *testing.T) {
-	cidr1, _ := ipblock.FromCidrOrAddress("10.240.10.1")
-	cidr2, _ := ipblock.FromCidrOrAddress("10.240.10.0/30")
-	cidr1t, _ := ipblock.FromCidrOrAddress("10.250.10.1")
-	cidr2t, _ := ipblock.FromCidrOrAddress("10.250.10.0/30")
-
 	c1 := connection.TCPorUDPConnection(netp.ProtocolString("UDP"), 5, 87, 10, 3245)
 	c2 := connection.TCPorUDPConnection(netp.ProtocolString("TCP"), 1, 100, 5, 1000)
 
 	rulesTest1 := []*SGRule{
 		{
-			target:      cidr1t,
+			target:      newIPBlockFromCIDROrAddressWithoutValidation("10.250.10.1"),
 			connections: c1,
 			index:       1,
-			local:       cidr1,
+			local:       newIPBlockFromCIDROrAddressWithoutValidation("10.240.10.1"),
 		},
 		{
-			target:      cidr2t,
+			target:      newIPBlockFromCIDROrAddressWithoutValidation("10.250.10.0/30"),
 			connections: c2,
 			index:       2,
-			local:       cidr2,
+			local:       newIPBlockFromCIDROrAddressWithoutValidation("10.240.10.0/30"),
 		},
 	}
 
-	member1, _ := ipblock.FromCidrOrAddress("10.240.10.0")
-	member2, _ := ipblock.FromCidrOrAddress("10.240.10.2")
-	member3, _ := ipblock.FromCidrOrAddress("10.240.10.1")
+	cidr2 := newIPBlockFromCIDROrAddressWithoutValidation("10.240.10.0/30")
+	cidr2t := newIPBlockFromCIDROrAddressWithoutValidation("10.250.10.0/30")
 
-	target1, _ := ipblock.FromCidrOrAddress("10.250.10.0")
-	target2, _ := ipblock.FromCidrOrAddress("10.250.10.2")
-	target3, _ := ipblock.FromCidrOrAddress("10.250.10.1")
+	member1 := newIPBlockFromCIDROrAddressWithoutValidation("10.240.10.0")
+	member2 := newIPBlockFromCIDROrAddressWithoutValidation("10.240.10.2")
+	member3 := newIPBlockFromCIDROrAddressWithoutValidation("10.240.10.1")
+
+	target1 := newIPBlockFromCIDROrAddressWithoutValidation("10.250.10.0")
+	target2 := newIPBlockFromCIDROrAddressWithoutValidation("10.250.10.2")
+	target3 := newIPBlockFromCIDROrAddressWithoutValidation("10.250.10.1")
 
 	egressConnectivityMap := make(map[*ipblock.IPBlock]*ConnectivityResult)
 	mapAndAnalyzeSGRules(rulesTest1, false, egressConnectivityMap)
@@ -207,4 +202,39 @@ func TestLocalField(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestCaching(t *testing.T) {
+	c1 := connection.TCPorUDPConnection(netp.ProtocolString("UDP"), 5, 87, 10, 3245)
+	c2 := connection.TCPorUDPConnection(netp.ProtocolString("TCP"), 1, 100, 5, 1000)
+
+	rulesTest1 := []*SGRule{
+		{
+			target:      newIPBlockFromCIDROrAddressWithoutValidation("10.250.10.1"),
+			connections: c1,
+			index:       1,
+			local:       newIPBlockFromCIDROrAddressWithoutValidation("10.240.10.1"),
+		},
+		{
+			target:      newIPBlockFromCIDROrAddressWithoutValidation("10.250.10.0/30"),
+			connections: c2,
+			index:       2,
+			local:       newIPBlockFromCIDROrAddressWithoutValidation("10.240.10.0/30"),
+		},
+	}
+
+	egressConnectivityMap := make(map[*ipblock.IPBlock]*ConnectivityResult)
+	mapAndAnalyzeSGRules(rulesTest1, false, egressConnectivityMap)
+
+	// in this example we should get the same ConnectivityResult for both IPBlock 10.240.10.0 and 10.240.10.2-10.240.10.3
+	var connectivityResult1, connectivityResult2 *ConnectivityResult
+	for local, connectivityResult := range egressConnectivityMap {
+		if local.Equal(newIPBlockFromCIDROrAddressWithoutValidation("10.240.10.0")) {
+			connectivityResult1 = connectivityResult
+		}
+		if local.Equal(newIPBlockFromCIDROrAddressWithoutValidation("10.240.10.2/31")) {
+			connectivityResult2 = connectivityResult
+		}
+	}
+	require.True(t, connectivityResult1 == connectivityResult2)
 }
