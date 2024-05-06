@@ -7,12 +7,11 @@ SPDX-License-Identifier: Apache-2.0
 package vpcmodel
 
 import (
-	"fmt"
 	"slices"
 )
 
 // given a nodeSet NS[n0, n1, n2, n3...]
-// we assume the "abstraction assumption": 
+// we assume the "abstraction assumption":
 // for every node n,  a connection  n->n0 implies the connections n->n1, n->n2, n->n3 ...
 // the abstraction replaces the above n->ni connections with the single connection: n->NS.
 // The same abstraction is done in the other direction
@@ -24,16 +23,16 @@ import (
 //      otherFromNodeSet: connections of   <node     in the nodeSet>  ->  <node not in the nodeSet>
 //      otherToNodeSet:   connections of   <node not in the nodeSet>  ->  <node     in the nodeSet>
 // 2. for the last three groups, we verify that the abstraction assumption holds
-//     todo: this check is not complete in code yet, and currently we ignore its result 
+//     todo: this check is not complete in code yet, and currently we ignore its result
 // 3. we do the abstraction (for this PR, even if the abstraction assumption does not hold):
 //    the connectivity of n->NS is union of all of n->n1, n->n2, n->n3
 //    todo: what to do if the abstraction assumption does not hold?
 
 func nodeSetConnectivityAbstraction(nodesConn GeneralConnectivityMap, nodeSet NodeSet) GeneralConnectivityMap {
 	otherToOther, nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet := partitionConnectivityByNodeSet(nodesConn, nodeSet)
-	checkConnectivityAbstractionValidity(otherFromNodeSet, nodeSet, false)
-	checkConnectivityAbstractionValidity(otherToNodeSet, nodeSet, true)
-	checkConnectivityAbstractionValidity(nodeSetToNodeSet, nodeSet, true)
+	// checkConnectivityAbstractionValidity(otherFromNodeSet, nodeSet, false)
+	// checkConnectivityAbstractionValidity(otherToNodeSet, nodeSet, true)
+	// checkConnectivityAbstractionValidity(nodeSetToNodeSet, nodeSet, true)
 	return mergeConnectivityWithNodeSetAbstraction(otherToOther, nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet, nodeSet)
 }
 
@@ -76,41 +75,41 @@ func partitionConnectivityByNodeSet(nodesConn GeneralConnectivityMap, nodeSet No
 // todo: - how to report this string? what format?
 // for now, No need to CR it, we do not do anything with the result
 
-func checkConnectivityAbstractionValidity(connMap GeneralConnectivityMap, nodeSet NodeSet, isIngress bool) {
-	res := ""
-	for node1, nodeConns := range connMap {
-		allConns := map[string][]VPCResourceIntf{}
-		for node2, conn := range nodeConns {
-			allConns[conn.String()] = append(allConns[conn.String()], node2)
-		}
-		if len(allConns) > 1 || len(nodeConns) != len(nodeSet.Nodes()) {
-			directionAdjective := map[bool]string{false: "from", true: "to"}[isIngress]
-			res += fmt.Sprintf("node %s has different access %s %s:\n", node1.Name(), directionAdjective, nodeSet.Name())
-			if len(nodeConns) != len(nodeSet.Nodes()) {
-				res += fmt.Sprintf("    it has no access %s ", directionAdjective)
-				for _, node2 := range nodeSet.Nodes() {
-					if _, ok := nodeConns[node2]; !ok {
-						res += fmt.Sprintf("%s, ", node2.Name())
-					}
-				}
-				res += "\n"
-			}
-			for conn, nodes := range allConns {
-				res += "    "
-				if isIngress {
-					res += fmt.Sprintf("%s -> ", node1.Name())
-				}
-				for _, n := range nodes {
-					res += fmt.Sprintf("%s,", n.Name())
-				}
-				if !isIngress {
-					res += fmt.Sprintf(" -> %s", node1.Name())
-				}
-				res += fmt.Sprintf(" %s\n", conn)
-			}
-		}
-	}
-}
+// func checkConnectivityAbstractionValidity(connMap GeneralConnectivityMap, nodeSet NodeSet, isIngress bool) {
+// 	res := ""
+// 	for node1, nodeConns := range connMap {
+// 		allConns := map[string][]VPCResourceIntf{}
+// 		for node2, conn := range nodeConns {
+// 			allConns[conn.String()] = append(allConns[conn.String()], node2)
+// 		}
+// 		if len(allConns) > 1 || len(nodeConns) != len(nodeSet.Nodes()) {
+// 			directionAdjective := map[bool]string{false: "from", true: "to"}[isIngress]
+// 			res += fmt.Sprintf("node %s has different access %s %s:\n", node1.Name(), directionAdjective, nodeSet.Name())
+// 			if len(nodeConns) != len(nodeSet.Nodes()) {
+// 				res += fmt.Sprintf("    it has no access %s ", directionAdjective)
+// 				for _, node2 := range nodeSet.Nodes() {
+// 					if _, ok := nodeConns[node2]; !ok {
+// 						res += fmt.Sprintf("%s, ", node2.Name())
+// 					}
+// 				}
+// 				res += "\n"
+// 			}
+// 			for conn, nodes := range allConns {
+// 				res += "    "
+// 				if isIngress {
+// 					res += fmt.Sprintf("%s -> ", node1.Name())
+// 				}
+// 				for _, n := range nodes {
+// 					res += fmt.Sprintf("%s,", n.Name())
+// 				}
+// 				if !isIngress {
+// 					res += fmt.Sprintf(" -> %s", node1.Name())
+// 				}
+// 				res += fmt.Sprintf(" %s\n", conn)
+// 			}
+// 		}
+// 	}
+// }
 
 // mergeConnectivityWithNodeSetAbstraction() merge the four groups, while abstracting the connections
 func mergeConnectivityWithNodeSetAbstraction(
@@ -134,7 +133,7 @@ func mergeConnectivityWithNodeSetAbstraction(
 	res.updateAllowedConnsMap(nodeSet, nodeSet, allConns)
 
 	// all connection from the nodeSet to a node, are merged and added to the result:
-	// please note: we need to handle separately each node that is not in the NodeSet, 
+	// please note: we need to handle separately each node that is not in the NodeSet,
 	// therefore, we want to have a loop on every node that is not in the nodeSet.
 	// so, the outer loop should run over the nodes not in the nodeSet.
 	// hence, this group is from dst to src.
