@@ -28,6 +28,7 @@ import (
 //    the connectivity of n->NS is union of all of n->n1, n->n2, n->n3
 //    todo: what to do if the abstraction assumption does not hold?
 
+//nolint:gocritic // for now, we comment out the check calls
 func nodeSetConnectivityAbstraction(nodesConn GeneralConnectivityMap, nodeSet NodeSet) GeneralConnectivityMap {
 	otherToOther, nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet := partitionConnectivityByNodeSet(nodesConn, nodeSet)
 	// checkConnectivityAbstractionValidity(otherFromNodeSet, nodeSet, false)
