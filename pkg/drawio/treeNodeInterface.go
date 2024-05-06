@@ -94,8 +94,7 @@ func getSubTreeNodes(tn TreeNodeInterface) (
 	squares []SquareTreeNodeInterface,
 	icons []IconTreeNodeInterface,
 	lines []LineTreeNodeInterface) {
-	squares, icons, lines = tn.children()
-	for _, child := range joinTnsLists(squares, icons, lines) {
+	for _, child := range joinTnsLists(tn.children()) {
 		subSquares, subIcons, subLines := getSubTreeNodes(child)
 		squares = append(squares, subSquares...)
 		icons = append(icons, subIcons...)
