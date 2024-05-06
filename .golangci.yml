@@ -5,7 +5,7 @@ linters-settings:
     lines: 100
     statements: 50
   gci:
-    local-prefixes: github.com/np-guard
+    prefix: github.com/np-guard
   goconst:
     min-len: 2
     min-occurrences: 2
@@ -35,7 +35,7 @@ linters-settings:
       ignored-functions: strings.SplitN
 
   govet:
-    check-shadowing: true
+    shadow: true
   lll:
     line-length: 140
   misspell:
