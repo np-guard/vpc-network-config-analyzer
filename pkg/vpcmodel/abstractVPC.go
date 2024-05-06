@@ -25,7 +25,7 @@ type VPCResourceIntf interface {
 	// note this method is relevant only for Node and Subnet objects.
 	// note it adds the prefix only for input config that has multiple VPCs context. 
 	ExtendedName(*VPCConfig) string
-	// ExtendedPrefix vpc name with deliminator in multi-vpc context, empty string otherwise
+	// ExtendedPrefix returns the prefix to be added for ExtendedName, given the input config 
 	ExtendedPrefix(config *VPCConfig) string
 	ZoneName() string
 	Kind() string
