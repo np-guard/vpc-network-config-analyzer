@@ -3,7 +3,7 @@ Copyright 2023- IBM Inc. All Rights Reserved.
 
 SPDX-License-Identifier: Apache-2.0
 */
-
+//nolint:lll // styles are too long and can not be split
 package ibmvpc
 
 import (
