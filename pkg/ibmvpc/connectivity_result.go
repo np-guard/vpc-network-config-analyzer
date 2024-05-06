@@ -24,14 +24,13 @@ type ConnectivityResult struct {
 	denyRules   map[*ipblock.IPBlock][]int           // indexes of deny rules relevant to this connectivity
 }
 
-func (cr *ConnectivityResult) Equal(other *ConnectivityResult) bool {
-	if cr.isIngress != other.isIngress || len(cr.allowedConns) != len(other.allowedConns) || len(cr.allowRules) != len(other.allowRules) ||
-		len(cr.deniedConns) != len(other.deniedConns) || len(cr.denyRules) != len(other.denyRules) {
+func equalConns(conns1, conns2 map[*ipblock.IPBlock]*connection.Set) bool {
+	if len(conns1) != len(conns2) {
 		return false
 	}
-	for ip, conn := range cr.allowedConns {
-		for otherIp, otherConn := range other.allowedConns {
-			if ip.Equal(otherIp) {
+	for ip, conn := range conns1 {
+		for otherIP, otherConn := range conns2 {
+			if ip.Equal(otherIP) {
 				if !conn.Equal(otherConn) {
 					return false
 				}
@@ -39,29 +38,16 @@ func (cr *ConnectivityResult) Equal(other *ConnectivityResult) bool {
 			}
 		}
 	}
-	for ip, indexes := range cr.allowRules {
-		for otherIp, otherIndexes := range other.allowRules {
-			if ip.Equal(otherIp) {
-				if !reflect.DeepEqual(indexes, otherIndexes) {
-					return false
-				}
-				break
-			}
-		}
+	return true
+}
+
+func equalRules(rules1, rules2 map[*ipblock.IPBlock][]int) bool {
+	if len(rules1) != len(rules2) {
+		return false
 	}
-	for ip, conn := range cr.deniedConns {
-		for otherIp, otherConn := range other.deniedConns {
-			if ip.Equal(otherIp) {
-				if !conn.Equal(otherConn) {
-					return false
-				}
-				break
-			}
-		}
-	}
-	for ip, indexes := range cr.denyRules {
-		for otherIp, otherIndexes := range other.denyRules {
-			if ip.Equal(otherIp) {
+	for ip, indexes := range rules1 {
+		for otherIP, otherIndexes := range rules2 {
+			if ip.Equal(otherIP) {
 				if !reflect.DeepEqual(indexes, otherIndexes) {
 					return false
 				}
@@ -70,4 +56,14 @@ func (cr *ConnectivityResult) Equal(other *ConnectivityResult) bool {
 		}
 	}
 	return true
+}
+
+func (cr *ConnectivityResult) Equal(other *ConnectivityResult) bool {
+	if cr.isIngress != other.isIngress {
+		return false
+	}
+	return equalConns(cr.allowedConns, other.allowedConns) &&
+		equalConns(cr.deniedConns, other.deniedConns) &&
+		equalRules(cr.allowRules, other.allowRules) &&
+		equalRules(cr.denyRules, other.denyRules)
 }

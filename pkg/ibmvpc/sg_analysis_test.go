@@ -116,11 +116,17 @@ type sgTest struct {
 	name                    string
 	rules                   []*SGRule
 	isIngress               bool
+	conns                   []*connection.Set
 	expectedConnectivityMap map[*ipblock.IPBlock]*ConnectivityResult
 }
 
 func fromIPRangeStrWithoutValidation(ipRange string) *ipblock.IPBlock {
 	ip, _ := ipblock.FromIPRangeStr(ipRange)
+	return ip
+}
+
+func fromIPAddressStrWithoutValidation(ipAddress string) *ipblock.IPBlock {
+	ip, _ := ipblock.FromIPAddress(ipAddress)
 	return ip
 }
 
@@ -146,18 +152,18 @@ var sgTests = []sgTest{
 			ipblock.GetCidrAll(): {
 				isIngress: false,
 				allowedConns: map[*ipblock.IPBlock]*connection.Set{
-					fromIPRangeStrWithoutValidation("10.250.10.0-10.250.10.0"):     connection.TCPorUDPConnection(netp.ProtocolString("TCP"), 1, 100, 5, 1000),
+					fromIPAddressStrWithoutValidation("10.250.10.0"):               connection.TCPorUDPConnection(netp.ProtocolString("TCP"), 1, 100, 5, 1000),
 					fromIPRangeStrWithoutValidation("10.250.10.2-10.250.10.3"):     connection.TCPorUDPConnection(netp.ProtocolString("TCP"), 1, 100, 5, 1000),
 					fromIPRangeStrWithoutValidation("0.0.0.0-10.250.9.255"):        connection.None(),
 					fromIPRangeStrWithoutValidation("10.250.10.4-255.255.255.255"): connection.None(),
-					fromIPRangeStrWithoutValidation("10.250.10.1-10.250.10.1"):     connection.TCPorUDPConnection(netp.ProtocolString("TCP"), 1, 100, 5, 1000).Union(connection.TCPorUDPConnection(netp.ProtocolString("UDP"), 5, 87, 10, 3245)),
+					fromIPAddressStrWithoutValidation("10.250.10.1"):               connection.TCPorUDPConnection(netp.ProtocolString("TCP"), 1, 100, 5, 1000).Union(connection.TCPorUDPConnection(netp.ProtocolString("UDP"), 5, 87, 10, 3245)),
 				},
 				allowRules: map[*ipblock.IPBlock][]int{
-					fromIPRangeStrWithoutValidation("10.250.10.0-10.250.10.0"):     {2},
+					fromIPAddressStrWithoutValidation("10.250.10.0"):               {2},
 					fromIPRangeStrWithoutValidation("10.250.10.2-10.250.10.3"):     {2},
 					fromIPRangeStrWithoutValidation("0.0.0.0-10.250.9.255"):        {},
 					fromIPRangeStrWithoutValidation("10.250.10.4-255.255.255.255"): {},
-					fromIPRangeStrWithoutValidation("10.250.10.1-10.250.10.1"):     {1, 2},
+					fromIPAddressStrWithoutValidation("10.250.10.1"):               {1, 2},
 				},
 				deniedConns: map[*ipblock.IPBlock]*connection.Set{},
 				denyRules:   map[*ipblock.IPBlock][]int{},
@@ -193,27 +199,27 @@ var sgTests = []sgTest{
 				deniedConns: map[*ipblock.IPBlock]*connection.Set{},
 				denyRules:   map[*ipblock.IPBlock][]int{},
 			},
-			fromIPRangeStrWithoutValidation("10.240.10.1-10.240.10.1"): {
+			fromIPAddressStrWithoutValidation("10.240.10.1"): {
 				isIngress: false,
 				allowedConns: map[*ipblock.IPBlock]*connection.Set{
-					fromIPRangeStrWithoutValidation("10.250.10.0-10.250.10.0"):     connection.TCPorUDPConnection(netp.ProtocolString("TCP"), 1, 100, 5, 1000),
+					fromIPAddressStrWithoutValidation("10.250.10.0"):               connection.TCPorUDPConnection(netp.ProtocolString("TCP"), 1, 100, 5, 1000),
 					fromIPRangeStrWithoutValidation("10.250.10.2-10.250.10.3"):     connection.TCPorUDPConnection(netp.ProtocolString("TCP"), 1, 100, 5, 1000),
 					fromIPRangeStrWithoutValidation("0.0.0.0-10.250.9.255"):        connection.None(),
 					fromIPRangeStrWithoutValidation("10.250.10.4-255.255.255.255"): connection.None(),
-					fromIPRangeStrWithoutValidation("10.250.10.1-10.250.10.1"): connection.TCPorUDPConnection(netp.ProtocolString("TCP"), 1, 100, 5, 1000).Union(
+					fromIPAddressStrWithoutValidation("10.250.10.1"): connection.TCPorUDPConnection(netp.ProtocolString("TCP"), 1, 100, 5, 1000).Union(
 						connection.TCPorUDPConnection(netp.ProtocolString("UDP"), 5, 87, 10, 3245)),
 				},
 				allowRules: map[*ipblock.IPBlock][]int{
-					fromIPRangeStrWithoutValidation("10.250.10.0-10.250.10.0"):     {2},
+					fromIPAddressStrWithoutValidation("10.250.10.0"):               {2},
 					fromIPRangeStrWithoutValidation("10.250.10.2-10.250.10.3"):     {2},
 					fromIPRangeStrWithoutValidation("0.0.0.0-10.250.9.255"):        {},
 					fromIPRangeStrWithoutValidation("10.250.10.4-255.255.255.255"): {},
-					fromIPRangeStrWithoutValidation("10.250.10.1-10.250.10.1"):     {1, 2},
+					fromIPAddressStrWithoutValidation("10.250.10.1"):               {1, 2},
 				},
 				deniedConns: map[*ipblock.IPBlock]*connection.Set{},
 				denyRules:   map[*ipblock.IPBlock][]int{},
 			},
-			fromIPRangeStrWithoutValidation("10.240.10.0-10.240.10.0"): {
+			fromIPAddressStrWithoutValidation("10.240.10.0"): {
 				isIngress: false,
 				allowedConns: map[*ipblock.IPBlock]*connection.Set{
 					fromIPRangeStrWithoutValidation("10.250.10.0-10.250.10.3"):     connection.TCPorUDPConnection(netp.ProtocolString("TCP"), 1, 100, 5, 1000),
@@ -263,8 +269,8 @@ func (tt *sgTest) runTest(t *testing.T) {
 	mapAndAnalyzeSGRules(tt.rules, false, connectivityMap)
 	require.Equal(t, len(connectivityMap), len(tt.expectedConnectivityMap))
 	for ip, connectivityResult := range connectivityMap {
-		for expectedIp, expectedConnectivityResult := range tt.expectedConnectivityMap {
-			if ip.Equal(expectedIp) {
+		for expectedIP, expectedConnectivityResult := range tt.expectedConnectivityMap {
+			if ip.Equal(expectedIP) {
 				require.True(t, connectivityResult.Equal(expectedConnectivityResult))
 				break
 			}
@@ -275,8 +281,10 @@ func (tt *sgTest) runTest(t *testing.T) {
 func TestMapAndAnalyzeSGRules(t *testing.T) {
 	for testIdx := range sgTests {
 		tt := sgTests[testIdx]
-
-		tt.runTest(t)
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			tt.runTest(t)
+		})
 	}
 	fmt.Println("done")
 }
