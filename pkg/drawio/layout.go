@@ -373,8 +373,8 @@ func (ly *layoutS) setSubnetsLocations(subnetMatrix [][]TreeNodeInterface, zones
 
 func (ly *layoutS) resolveGroupedSubnetsOverlap() {
 	allSubnetsSquares := map[*GroupSubnetsSquareTreeNode]bool{}
-	for _, tn := range getAllNodes(ly.network) {
-		if !tn.NotShownInDrawio() && tn.IsSquare() && tn.(SquareTreeNodeInterface).IsGroupSubnetsSquare() {
+	for _, tn := range getAllSquares(ly.network) {
+		if !tn.NotShownInDrawio() && tn.IsGroupSubnetsSquare() {
 			allSubnetsSquares[tn.(*GroupSubnetsSquareTreeNode)] = true
 		}
 	}
@@ -407,17 +407,16 @@ func (ly *layoutS) resolveGroupedSubnetsOverlap() {
 
 // since we do not have subnet icons, we set the subnets smaller and the GroupSubnetsSquare bigger
 func (ly *layoutS) setGroupedSubnetsOffset() {
-	for _, tn := range getAllNodes(ly.network) {
+	for _, tn := range getAllSquares(ly.network) {
 		switch {
 		case tn.NotShownInDrawio():
-		case !tn.IsSquare():
-		case tn.(SquareTreeNodeInterface).IsSubnet():
+		case tn.IsSubnet():
 			tn.Location().xOffset = borderWidth
 			tn.Location().yOffset = borderWidth
 			tn.Location().xEndOffset = borderWidth
 			tn.Location().yEndOffset = borderWidth
 
-		case tn.(SquareTreeNodeInterface).IsGroupSubnetsSquare():
+		case tn.IsGroupSubnetsSquare():
 			tn.Location().xOffset = -groupBorderWidth
 			tn.Location().yOffset = -groupBorderWidth
 			tn.Location().xEndOffset = -groupBorderWidth
@@ -438,7 +437,7 @@ func (ly *layoutS) setSGLocations() {
 					if len(sg.IconTreeNodes()) == 0 {
 						continue
 					}
-					sgLocation := mergeLocations(locations(getAllNodes(sg)))
+					sgLocation := mergeLocations(locations(getAllIconsAsTNs(sg)))
 					sgIconsIndexes := map[[2]int]bool{}
 					for _, icon := range sg.IconTreeNodes() {
 						sgIconsIndexes[[2]int{icon.Location().firstRow.index, icon.Location().firstCol.index}] = true
@@ -753,8 +752,8 @@ func (ly *layoutS) setGroupingIconLocations() {
 		c *col
 	}
 	iconsInCell := map[cell][]IconTreeNodeInterface{}
-	for _, tn := range getAllNodes(ly.network) {
-		if !tn.IsIcon() || !tn.(IconTreeNodeInterface).IsGroupingPoint() {
+	for _, tn := range getAllIcons(ly.network) {
+		if !tn.IsGroupingPoint() {
 			continue
 		}
 		gIcon := tn.(*GroupPointTreeNode)
