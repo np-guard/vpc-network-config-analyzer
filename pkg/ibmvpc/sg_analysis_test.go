@@ -129,13 +129,13 @@ var sgTests = []sgTest{
 		name: "noLocalField",
 		rules: []*SGRule{
 			{
-				target:      newIPBlockFromCIDROrAddressWithoutValidation("10.250.10.1"),
+				remote:      ruleTarget{sgName: "ola", cidr: newIPBlockFromCIDROrAddressWithoutValidation("10.250.10.1")},
 				connections: connection.TCPorUDPConnection(netp.ProtocolString("UDP"), 5, 87, 10, 3245),
 				index:       1,
 				local:       ipblock.GetCidrAll(),
 			},
 			{
-				target:      newIPBlockFromCIDROrAddressWithoutValidation("10.250.10.0/30"),
+				remote:      ruleTarget{sgName: "ola", cidr: newIPBlockFromCIDROrAddressWithoutValidation("10.250.10.0/30")},
 				connections: connection.TCPorUDPConnection(netp.ProtocolString("TCP"), 1, 100, 5, 1000),
 				index:       2,
 				local:       ipblock.GetCidrAll(),
@@ -168,13 +168,13 @@ var sgTests = []sgTest{
 		name: "localField",
 		rules: []*SGRule{
 			{
-				target:      newIPBlockFromCIDROrAddressWithoutValidation("10.250.10.1"),
+				remote:      ruleTarget{sgName: "ola", cidr: newIPBlockFromCIDROrAddressWithoutValidation("10.250.10.1")},
 				connections: connection.TCPorUDPConnection(netp.ProtocolString("UDP"), 5, 87, 10, 3245),
 				index:       1,
 				local:       newIPBlockFromCIDROrAddressWithoutValidation("10.240.10.1"),
 			},
 			{
-				target:      newIPBlockFromCIDROrAddressWithoutValidation("10.250.10.0/30"),
+				remote:      ruleTarget{sgName: "ola", cidr: newIPBlockFromCIDROrAddressWithoutValidation("10.250.10.0/30")},
 				connections: connection.TCPorUDPConnection(netp.ProtocolString("TCP"), 1, 100, 5, 1000),
 				index:       2,
 				local:       newIPBlockFromCIDROrAddressWithoutValidation("10.240.10.0/30"),
@@ -288,13 +288,13 @@ func TestCaching(t *testing.T) {
 
 	rulesTest1 := []*SGRule{
 		{
-			target:      newIPBlockFromCIDROrAddressWithoutValidation("10.250.10.1"),
+			remote:      ruleTarget{sgName: "ola", cidr: newIPBlockFromCIDROrAddressWithoutValidation("10.250.10.1")},
 			connections: c1,
 			index:       1,
 			local:       newIPBlockFromCIDROrAddressWithoutValidation("10.240.10.1"),
 		},
 		{
-			target:      newIPBlockFromCIDROrAddressWithoutValidation("10.250.10.0/30"),
+			remote:      ruleTarget{sgName: "ola", cidr: newIPBlockFromCIDROrAddressWithoutValidation("10.250.10.0/30")},
 			connections: c2,
 			index:       2,
 			local:       newIPBlockFromCIDROrAddressWithoutValidation("10.240.10.0/30"),
