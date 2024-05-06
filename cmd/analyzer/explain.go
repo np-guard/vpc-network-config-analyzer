@@ -11,6 +11,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/netp"
 	"github.com/spf13/cobra"
 )
@@ -41,7 +42,7 @@ func (ps *protocolSetting) Set(v string) error {
 		*ps = protocolSetting(v)
 		return nil
 	}
-	return fmt.Errorf(`must be one of %s`, strings.Join(allowedProtocols, ", "))
+	return fmt.Errorf(`must be one of [%s]`, strings.Join(allowedProtocols, ", "))
 }
 
 func (ps *protocolSetting) Type() string {
@@ -53,6 +54,12 @@ func NewExplainCommand(args *InArgs) *cobra.Command {
 		Use:   "explain",
 		Short: "Explain connectivity between two endpoints",
 		Long:  `explains how the given cloud configuration affects connectivity between two endpoints`,
+		Args: func(cmd *cobra.Command, args []string) error {
+			return cobra.NoArgs(cmd, args)
+		},
+		PreRunE: func(cmd *cobra.Command, _ []string) error {
+			return validateArgs(cmd, args)
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return nil
 		},
@@ -70,4 +77,54 @@ func NewExplainCommand(args *InArgs) *cobra.Command {
 	cmd.MarkFlagRequired(dstFlag)
 
 	return cmd
+}
+
+func PortInRange(port int64) bool {
+	if port > connection.MaxPort || port < connection.MinPort {
+		return false
+	}
+
+	return true
+}
+
+func minMaxValidity(minPort, maxPort int64, minPortName, maxPortName string) error {
+	if minPort > maxPort {
+		return fmt.Errorf("%s %d must not be larger than %s %d", minPortName, minPort, maxPortName, maxPort)
+	}
+
+	return nil
+}
+
+func flagSet(cmd *cobra.Command, flagName string) bool {
+	flag := cmd.Flags().Lookup(flagName)
+	if flag == nil {
+		return false
+	}
+	return flag.Changed
+}
+
+func validateArgs(cmd *cobra.Command, args *InArgs) error {
+	if args.EProtocol == "" {
+		if flagSet(cmd, srcMinPortFlag) || flagSet(cmd, srcMaxPortFlag) ||
+			flagSet(cmd, dstMinPortFlag) || flagSet(cmd, dstMaxPortFlag) {
+			return fmt.Errorf("protocol must be specified when specifying ports")
+		}
+	}
+
+	err := minMaxValidity(args.ESrcMinPort, args.ESrcMaxPort, ESrcMinPort, ESrcMaxPort)
+	if err != nil {
+		return err
+	}
+	err = minMaxValidity(args.EDstMinPort, args.EDstMaxPort, EDstMinPort, EDstMaxPort)
+	if err != nil {
+		return err
+	}
+
+	if !PortInRange(args.ESrcMinPort) || !PortInRange(args.ESrcMaxPort) ||
+		!PortInRange(args.EDstMinPort) || !PortInRange(args.EDstMaxPort) {
+		return fmt.Errorf("port number must be in between %d, %d, inclusive",
+			connection.MinPort, connection.MaxPort)
+	}
+
+	return nil
 }

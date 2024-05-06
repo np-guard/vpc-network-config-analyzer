@@ -31,14 +31,17 @@ const (
 
 func NewRootCommand(args *InArgs) *cobra.Command {
 	rootCmd := &cobra.Command{
-		Use:     "vpcanalyzer",
-		Short:   "vpcanalyzer is a CLI that analyzes network connectivity in VPCs",
-		Long:    `vpcanalyzer is a command-line tool to analyze VPC connectivity, based on its configuration.`,
+		Use:   "vpcanalyzer",
+		Short: "vpcanalyzer is a CLI that analyzes network connectivity in VPCs",
+		Long:  `vpcanalyzer is a command-line tool to analyze VPC connectivity, based on its configuration.`,
+		Args: func(cmd *cobra.Command, args []string) error {
+			return cobra.NoArgs(cmd, args)
+		},
 		Version: version.VersionCore,
 	}
 
 	rootCmd.PersistentFlags().StringArrayVarP(&args.InputConfigFileList, vpcConfigFlag, "c", nil, "file paths to input configs, can pass multiple config files")
-	rootCmd.PersistentFlags().StringVarP(&args.Provider, providerFlag, "p", "", "collect resources from an account in this cloud provider")
+	rootCmd.PersistentFlags().VarP(&args.Provider, providerFlag, "p", "collect resources from an account in this cloud provider")
 	rootCmd.PersistentFlags().StringVar(&args.DumpResources, dumpFlag, "", "file path to store resources collected from the cloud provider")
 	rootCmd.MarkFlagsOneRequired(vpcConfigFlag, providerFlag)
 	rootCmd.MarkFlagsMutuallyExclusive(vpcConfigFlag, providerFlag)

@@ -11,9 +11,6 @@ import (
 	"fmt"
 	"slices"
 	"strings"
-
-	"github.com/np-guard/cloud-resource-collector/pkg/factory"
-	"github.com/np-guard/models/pkg/connection"
 )
 
 // InArgs contains the input arguments for the analyzer
@@ -34,36 +31,12 @@ type InArgs struct {
 	ESrcMaxPort           int64
 	EDstMinPort           int64
 	EDstMaxPort           int64
-	Provider              string
+	Provider              provider
 	RegionList            []string
 	ResourceGroup         string
 	DumpResources         string
 	Quiet                 bool
 	Verbose               bool
-}
-
-// flagHasValue indicates for each input arg if it is expected to have a value in the cli or not
-var flagHasValue = map[string]bool{
-	InputConfigFileList:   true,
-	InputSecondConfigFile: true,
-	OutputFile:            true,
-	OutputFormat:          true,
-	AnalysisType:          true,
-	VPC:                   true,
-	Debug:                 false,
-	ESrc:                  true,
-	EDst:                  true,
-	EProtocol:             true,
-	ESrcMinPort:           true,
-	ESrcMaxPort:           true,
-	EDstMinPort:           true,
-	EDstMaxPort:           true,
-	Provider:              true,
-	RegionList:            true,
-	ResourceGroup:         true,
-	DumpResources:         true,
-	Quiet:                 false,
-	Verbose:               false,
 }
 
 const (
@@ -147,39 +120,6 @@ func getSupportedAnalysisTypesMapString() string {
 	return strings.Join(valuesList, "\n")
 }
 
-// parseCmdLine checks if unsupported arguments were passed
-func parseCmdLine(cmdlineArgs []string) error {
-	argIsFlag := true
-	for _, arg := range cmdlineArgs {
-		if argIsFlag {
-			if arg == "-h" || arg == "--h" || arg == "-help" || arg == "--help" {
-				continue
-			}
-			if arg[0] == '-' {
-				key := arg[1:]
-				if key == "" {
-					return fmt.Errorf("bad syntax: %s", arg)
-				}
-				if arg[1] == '-' {
-					key = arg[2:]
-				}
-				if val, ok := flagHasValue[key]; ok {
-					if val {
-						argIsFlag = false
-					}
-				} else {
-					return fmt.Errorf("flag not supported: %s", arg)
-				}
-			} else {
-				return fmt.Errorf("bad flag syntax: %s", arg)
-			}
-		} else {
-			argIsFlag = true
-		}
-	}
-	return nil
-}
-
 func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args := InArgs{}
 	flagset := flag.NewFlagSet("vpc-network-config-analyzer", flag.ContinueOnError)
@@ -207,14 +147,7 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	//flagset.Var(&args.RegionList, RegionList, "Cloud region from which to collect resources, can pass multiple regions")
 	// args.DumpResources = flagset.String(DumpResources, "", "File path to store resources collected from the cloud provider")
 
-	// calling parseCmdLine prior to flagset.Parse to ensure that excessive and unsupported arguments are handled
-	// for example, flagset.Parse() ignores input args missing the `-`
-	err := parseCmdLine(cmdlineArgs)
-	if err != nil {
-		return nil, err
-	}
-
-	err = flagset.Parse(cmdlineArgs)
+	err := flagset.Parse(cmdlineArgs)
 	if err != nil {
 		return nil, err
 	}
@@ -226,79 +159,8 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = invalidArgsExplainMode(&args, flagset)
-	if err != nil {
-		return nil, err
-	}
 
 	return &args, nil
-}
-
-func wasFlagSpecified(name string, flagset *flag.FlagSet) bool {
-	found := false
-	flagset.Visit(func(f *flag.Flag) {
-		if f.Name == name {
-			found = true
-		}
-	})
-	return found
-}
-
-func wereExplainParamsSpecified(flagset *flag.FlagSet, flagNames []string) bool {
-	specified := false
-	for i := 0; i < len(flagNames); i++ {
-		if wasFlagSpecified(flagNames[i], flagset) {
-			specified = true
-		}
-	}
-
-	return specified
-}
-
-func PortInRange(port int64) bool {
-	if port > connection.MaxPort || port < connection.MinPort {
-		return false
-	}
-
-	return true
-}
-
-func minMaxValidity(minPort, maxPort int64, minPortName, maxPortName string) error {
-	if minPort > maxPort {
-		return fmt.Errorf("%s %d must not be larger than %s %d", minPortName, minPort, maxPortName, maxPort)
-	}
-
-	return nil
-}
-
-func validRangeConnectionExplainMode(args *InArgs) error {
-	err := minMaxValidity(args.ESrcMinPort, args.ESrcMaxPort, ESrcMinPort, ESrcMaxPort)
-	if err != nil {
-		return err
-	}
-	err = minMaxValidity(args.EDstMinPort, args.EDstMaxPort, EDstMinPort, EDstMaxPort)
-	if err != nil {
-		return err
-	}
-
-	if !PortInRange(args.ESrcMinPort) || !PortInRange(args.ESrcMaxPort) ||
-		!PortInRange(args.EDstMinPort) || !PortInRange(args.EDstMaxPort) {
-		return fmt.Errorf("port number must be in between %d, %d, inclusive",
-			connection.MinPort, connection.MaxPort)
-	}
-
-	return nil
-}
-
-func invalidArgsExplainMode(args *InArgs, flagset *flag.FlagSet) error {
-	if args.EProtocol == "" {
-		if wereExplainParamsSpecified(flagset, []string{EProtocol, ESrcMinPort, ESrcMaxPort, EDstMinPort, EDstMaxPort, explainMode}) {
-			return fmt.Errorf("protocol must be specified when querying a specific connection")
-		}
-		return nil
-	}
-
-	return validRangeConnectionExplainMode(args)
 }
 
 func errorInArgs(args *InArgs, flagset *flag.FlagSet) error {
@@ -322,9 +184,6 @@ func notSupportedYetArgs(args *InArgs) error {
 	}
 	if args.OutputFormat == JSONFormat && args.Grouping {
 		return fmt.Errorf("json output format is not supported with grouping")
-	}
-	if args.Provider != factory.IBM && args.Provider != "" {
-		return fmt.Errorf("unsupported provider: %s", args.Provider)
 	}
 	return nil
 }

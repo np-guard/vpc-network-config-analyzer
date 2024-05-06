@@ -13,6 +13,9 @@ func NewReportCommand(args *InArgs) *cobra.Command {
 		Use:   "report",
 		Short: "Report VPC connectivity as implied by the given cloud config",
 		Long:  `reports VPC connectivity as implied by the given cloud configuration`,
+		Args: func(cmd *cobra.Command, args []string) error {
+			return cobra.NoArgs(cmd, args)
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return nil
 		},

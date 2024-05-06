@@ -52,7 +52,7 @@ func (fs *formatSetting) Set(v string) error {
 		*fs = formatSetting(v)
 		return nil
 	}
-	return fmt.Errorf(`must be one of %s`, strings.Join(allFormats, ", "))
+	return fmt.Errorf(`must be one of [%s]`, strings.Join(allFormats, ", "))
 }
 
 func (fs *formatSetting) Type() string {

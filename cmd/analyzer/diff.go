@@ -16,6 +16,9 @@ func NewDiffCommand(args *InArgs) *cobra.Command {
 		Short: "Diff connectivity postures as implied by two VPC configs",
 		Long: `reports changes in connectivity (modified, added and removed connections)
 		between two VPC configurations`,
+		Args: func(cmd *cobra.Command, args []string) error {
+			return cobra.NoArgs(cmd, args)
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return nil
 		},
