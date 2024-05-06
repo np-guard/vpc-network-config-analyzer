@@ -19,7 +19,7 @@ type InArgs struct {
 	InputSecondConfigFile string
 	OutputFile            string
 	OutputFormat          formatSetting
-	AnalysisType          *string
+	AnalysisType          string
 	Grouping              bool
 	VPC                   string
 	Debug                 bool
@@ -40,28 +40,6 @@ type InArgs struct {
 }
 
 const (
-	// flags
-	InputConfigFileList   = "vpc-config"
-	InputSecondConfigFile = "vpc-config-second"
-	OutputFile            = "output-file"
-	OutputFormat          = "format"
-	AnalysisType          = "analysis-type"
-	VPC                   = "vpc"
-	Debug                 = "debug"
-	ESrc                  = "src"
-	EDst                  = "dst"
-	EProtocol             = "protocol"
-	ESrcMinPort           = "src-min-port"
-	ESrcMaxPort           = "src-max-port"
-	EDstMinPort           = "dst-min-port"
-	EDstMaxPort           = "dst-max-port"
-	Provider              = "provider"
-	RegionList            = "region"
-	ResourceGroup         = "resource-group"
-	DumpResources         = "dump-resources"
-	Quiet                 = "quiet"
-	Verbose               = "verbose"
-
 	// output formats supported
 	JSONFormat       = "json"
 	TEXTFormat       = "txt"
@@ -123,39 +101,7 @@ func getSupportedAnalysisTypesMapString() string {
 func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 	args := InArgs{}
 	flagset := flag.NewFlagSet("vpc-network-config-analyzer", flag.ContinueOnError)
-	//flagset.Var(&args.InputConfigFileList, InputConfigFileList, "Required. File paths to input configs, can pass multiple config files")
-	//args.InputSecondConfigFile = flagset.String(InputSecondConfigFile, "", "File path to the 2nd input config; "+
-	//	"relevant only for analysis-type diff_all_endpoints and for diff_all_subnets")
-	//args.OutputFile = flagset.String(OutputFile, "", "File path to store results")
-	// args.OutputFormat = flagset.String(OutputFormat, TEXTFormat,
-	//	"Output format; must be one of:\n"+strings.Join(supportedOutputFormatsList, separator))
-	args.AnalysisType = flagset.String(AnalysisType, allEndpoints,
-		"Supported analysis types:\n"+getSupportedAnalysisTypesMapString())
-	//	args.Grouping = flagset.Bool(Grouping, false, "Whether to group together src/dst entries with identical connectivity\n"+
-	//		"Does not support single_subnet, diff_all_endpoints and diff_all_subnets analysis-types and json output format")
-	//args.VPC = flagset.String(VPC, "", "CRN of the VPC to analyze")
-	//args.Debug = flagset.Bool(Debug, false, "Run in debug mode")
-	// args.ESrc = flagset.String(ESrc, "", "Source "+srcDstUsage)
-	// args.EDst = flagset.String(EDst, "", "Destination "+srcDstUsage)
-	// args.EProtocol = flagset.String(EProtocol, "", "Protocol for connection description")
-	// args.ESrcMinPort = flagset.Int64(ESrcMinPort, connection.MinPort, "Minimum source port for connection description")
-	// args.ESrcMaxPort = flagset.Int64(ESrcMaxPort, connection.MaxPort, "Maximum source port for connection description")
-	// args.EDstMinPort = flagset.Int64(EDstMinPort, connection.MinPort, "Minimum destination port for connection description")
-	// args.EDstMaxPort = flagset.Int64(EDstMaxPort, connection.MaxPort, "Maximum destination port for connection description")
-	//	args.Provider = flagset.String(Provider, "", "Collect resources from an account in this cloud provider")
-	//args.ResourceGroup = flagset.String(ResourceGroup, "", "Resource group id or name from which to collect resources")
-	//flagset.Var(&args.RegionList, RegionList, "Cloud region from which to collect resources, can pass multiple regions")
-	// args.DumpResources = flagset.String(DumpResources, "", "File path to store resources collected from the cloud provider")
-
-	err := flagset.Parse(cmdlineArgs)
-	if err != nil {
-		return nil, err
-	}
-	err = errorInArgs(&args, flagset)
-	if err != nil {
-		return nil, err
-	}
-	err = notSupportedYetArgs(&args)
+	err := errorInArgs(&args, flagset)
 	if err != nil {
 		return nil, err
 	}
@@ -164,26 +110,10 @@ func ParseInArgs(cmdlineArgs []string) (*InArgs, error) {
 }
 
 func errorInArgs(args *InArgs, flagset *flag.FlagSet) error {
-	if _, ok := supportedAnalysisTypesMap[*args.AnalysisType]; !ok {
-		flagset.PrintDefaults()
-		return fmt.Errorf("wrong analysis type '%s'; must be one of: '%s'",
-			*args.AnalysisType, strings.Join(supportedAnalysisTypesList, separator))
-	}
-	if !slices.Contains(supportedAnalysisTypesMap[*args.AnalysisType], string(args.OutputFormat)) {
+	if !slices.Contains(supportedAnalysisTypesMap[args.AnalysisType], string(args.OutputFormat)) {
 		flagset.PrintDefaults()
 		return fmt.Errorf("wrong output format '%s' for analysis type '%s'; must be one of: %s",
-			args.OutputFormat, *args.AnalysisType, strings.Join(supportedAnalysisTypesMap[*args.AnalysisType], separator))
-	}
-	return nil
-}
-
-func notSupportedYetArgs(args *InArgs) error {
-	diffAnalysis := *args.AnalysisType == allEndpointsDiff || *args.AnalysisType == allSubnetsDiff
-	if (*args.AnalysisType == singleSubnet || diffAnalysis) && args.Grouping {
-		return fmt.Errorf("currently %s analysis type does not support grouping", *args.AnalysisType)
-	}
-	if args.OutputFormat == JSONFormat && args.Grouping {
-		return fmt.Errorf("json output format is not supported with grouping")
+			args.OutputFormat, args.AnalysisType, strings.Join(supportedAnalysisTypesMap[args.AnalysisType], separator))
 	}
 	return nil
 }

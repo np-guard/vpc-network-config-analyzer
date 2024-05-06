@@ -7,8 +7,6 @@ SPDX-License-Identifier: Apache-2.0
 package main
 
 import (
-	"errors"
-	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -29,7 +27,7 @@ const (
 )
 
 func analysisTypeToUseCase(inArgs *InArgs) vpcmodel.OutputUseCase {
-	switch *inArgs.AnalysisType {
+	switch inArgs.AnalysisType {
 	case allEndpoints:
 		return vpcmodel.AllEndpoints
 	case singleSubnet:
@@ -48,7 +46,7 @@ func analysisTypeToUseCase(inArgs *InArgs) vpcmodel.OutputUseCase {
 
 func analysisVPCConfigs(c1, c2 vpcmodel.MultipleVPCConfigs, inArgs *InArgs, outFile string) (string, error) {
 	var explanationArgs *vpcmodel.ExplanationArgs
-	if *inArgs.AnalysisType == explainMode {
+	if inArgs.AnalysisType == explainMode {
 		explanationArgs = vpcmodel.NewExplanationArgs(inArgs.ESrc, inArgs.EDst, string(inArgs.EProtocol),
 			inArgs.ESrcMinPort, inArgs.ESrcMaxPort, inArgs.EDstMinPort, inArgs.EDstMaxPort)
 	}
@@ -166,21 +164,12 @@ func getVerbosity(args *InArgs) logging.Verbosity {
 	return verbosity
 }
 
-// The actual main function
-// Takes command-line flags and returns an error rather than exiting, so it can be more easily used in testing
-func _main(cmdlineArgs []string) error {
-	inArgs, err := ParseInArgs(cmdlineArgs)
-	if errors.Is(err, flag.ErrHelp) {
-		return nil
-	}
-	if err != nil {
-		return fmt.Errorf(ErrorFormat, ParsingErr, err)
-	}
-
+func analyze(inArgs *InArgs) error {
 	// initializes a thread-safe singleton logger
 	logging.Init(getVerbosity(inArgs))
 
 	var vpcConfigs1 vpcmodel.MultipleVPCConfigs
+	var err error
 	if inArgs.Provider != "" {
 		vpcConfigs1, err = vpcConfigsFromAccount(inArgs)
 		if err != nil {
@@ -202,7 +191,7 @@ func _main(cmdlineArgs []string) error {
 		// we are in diff mode, checking we have only one config per file:
 		if len(vpcConfigs1) != 1 || len(vpcConfigs2) != 1 {
 			return fmt.Errorf("for diff mode %v a single configuration should be provided "+
-				"for both -vpc-config and -vpc-config-second", *inArgs.AnalysisType)
+				"for both -vpc-config and -vpc-config-second", inArgs.AnalysisType)
 		}
 	}
 	outFile := ""
@@ -218,12 +207,22 @@ func _main(cmdlineArgs []string) error {
 	return nil
 }
 
-func main() {
-	var args InArgs
+// The actual main function
+// Takes command-line flags and returns an error rather than exiting, so it can be more easily used in testing
+func _main(cmdlineArgs []string) error {
+	inArgs := &InArgs{}
 
-	rootCmd := NewRootCommand(&args)
-
+	rootCmd := NewRootCommand(inArgs)
+	rootCmd.SetArgs(cmdlineArgs)
 	err := rootCmd.Execute()
+	if err != nil {
+		return fmt.Errorf(ErrorFormat, ParsingErr, err)
+	}
+	return nil
+}
+
+func main() {
+	err := _main(os.Args[1:])
 	if err != nil {
 		log.Fatalf("%v. exiting...", err)
 	}

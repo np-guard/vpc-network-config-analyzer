@@ -60,8 +60,9 @@ func NewExplainCommand(args *InArgs) *cobra.Command {
 		PreRunE: func(cmd *cobra.Command, _ []string) error {
 			return validateArgs(cmd, args)
 		},
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return nil
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			args.AnalysisType = explainMode
+			return analyze(args)
 		},
 	}
 
@@ -111,11 +112,11 @@ func validateArgs(cmd *cobra.Command, args *InArgs) error {
 		}
 	}
 
-	err := minMaxValidity(args.ESrcMinPort, args.ESrcMaxPort, ESrcMinPort, ESrcMaxPort)
+	err := minMaxValidity(args.ESrcMinPort, args.ESrcMaxPort, srcMinPortFlag, srcMaxPortFlag)
 	if err != nil {
 		return err
 	}
-	err = minMaxValidity(args.EDstMinPort, args.EDstMaxPort, EDstMinPort, EDstMaxPort)
+	err = minMaxValidity(args.EDstMinPort, args.EDstMaxPort, dstMinPortFlag, dstMaxPortFlag)
 	if err != nil {
 		return err
 	}
