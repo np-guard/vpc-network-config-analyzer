@@ -14,12 +14,51 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 type OutFormat int64
 
-type MultipleVPCConfigs map[string]*VPCConfig
+
+type MultipleVPCConfigs interface{
+	Vpcs() map[string]*VPCConfig
+	Vpc(name string) *VPCConfig
+	theVpc() *VPCConfig
+	theName() string
+	ExplainConnectivity(src, dst string, connQuery *connection.Set) (res *Explanation, err error)
+	cloudName() string
+	AddVpc(name string, vpc *VPCConfig)
+}
+func NewMultipleVPCConfigs() *MultipleVPCConfigsStruct{
+	return &MultipleVPCConfigsStruct{map[string]*VPCConfig{}, ""}
+}
+type MultipleVPCConfigsStruct struct{
+	vpcs map[string]*VPCConfig
+	clodeName string
+}
+
+func (c *MultipleVPCConfigsStruct) Vpcs() map[string]*VPCConfig{
+	return c.vpcs
+}
+func (c *MultipleVPCConfigsStruct) AddVpc(name string, vpc *VPCConfig) {
+	c.vpcs[name] = vpc
+}
+func (c *MultipleVPCConfigsStruct) Vpc(name string) *VPCConfig{
+	return c.vpcs[name]
+}
+func (c *MultipleVPCConfigsStruct) theVpc() *VPCConfig{
+	_, v := common.AnyMapEntry(c.vpcs)
+	return v
+}
+func (c *MultipleVPCConfigsStruct) theName() string{
+	n, _ := common.AnyMapEntry(c.vpcs)
+	return n
+}
+func (c *MultipleVPCConfigsStruct) cloudName() string{
+	return c.clodeName
+}
+
 
 const asteriskDetails = "\nconnections are stateful (on TCP) unless marked with *\n"
 
@@ -88,23 +127,23 @@ func NewOutputGenerator(c1, c2 MultipleVPCConfigs, grouping bool, uc OutputUseCa
 			}
 			res.explanation = explanation
 		}
-		for i := range c1 {
+		for i := range c1.Vpcs() {
 			if uc == AllEndpoints {
-				nodesConn, err := c1[i].GetVPCNetworkConnectivity(grouping)
+				nodesConn, err := c1.Vpc(i).GetVPCNetworkConnectivity(grouping)
 				if err != nil {
 					return nil, err
 				}
 				res.nodesConn[i] = nodesConn
 			}
 			if uc == AllSubnets {
-				subnetsConn, err := c1[i].GetSubnetsConnectivity(true, grouping)
+				subnetsConn, err := c1.Vpc(i).GetSubnetsConnectivity(true, grouping)
 				if err != nil {
 					return nil, err
 				}
 				res.subnetsConn[i] = subnetsConn
 			}
 			if uc == SubnetsDiff {
-				configsForDiff := &configsForDiff{c1[i], c2[i], Subnets}
+				configsForDiff := &configsForDiff{c1.Vpc(i), c2.Vpc(i), Subnets}
 				configsDiff, err := configsForDiff.GetDiff()
 				if err != nil {
 					return nil, err
@@ -112,7 +151,7 @@ func NewOutputGenerator(c1, c2 MultipleVPCConfigs, grouping bool, uc OutputUseCa
 				res.cfgsDiff = configsDiff
 			}
 			if uc == EndpointsDiff {
-				configsForDiff := &configsForDiff{c1[i], c2[i], Vsis}
+				configsForDiff := &configsForDiff{c1.Vpc(i), c2.Vpc(i), Vsis}
 				configsDiff, err := configsForDiff.GetDiff()
 				if err != nil {
 					return nil, err
@@ -201,11 +240,11 @@ func (of *serialOutputFormatter) WriteOutput(c1, c2 MultipleVPCConfigs, conns ma
 	outFile string, grouping bool, uc OutputUseCase, explainStruct *Explanation) (string, error) {
 	singleVPCAnalysis := uc == EndpointsDiff || uc == SubnetsDiff || uc == Explain
 	if !singleVPCAnalysis {
-		outputPerVPC := make([]*SingleAnalysisOutput, len(c1))
+		outputPerVPC := make([]*SingleAnalysisOutput, len(c1.Vpcs()))
 		i := 0
-		for name := range c1 {
+		for name := range c1.Vpcs() {
 			vpcAnalysisOutput, err2 :=
-				of.createSingleVpcFormatter().WriteOutput(c1[name], nil, conns[name], subnetsConns[name],
+				of.createSingleVpcFormatter().WriteOutput(c1.Vpc(name), nil, conns[name], subnetsConns[name],
 					subnetsDiff, "", grouping, uc, explainStruct)
 			if err2 != nil {
 				return "", err2
@@ -216,9 +255,13 @@ func (of *serialOutputFormatter) WriteOutput(c1, c2 MultipleVPCConfigs, conns ma
 		return of.AggregateVPCsOutput(outputPerVPC, uc, outFile)
 	}
 	// its diff or explain mode, we have only one vpc on each map:
-	name, _ := common.AnyMapEntry(c1)
+	name := c1.theName()
+	var toCompare *VPCConfig
+	if c2 != nil{
+		toCompare = c2.theVpc()
+	}
 	vpcAnalysisOutput, err2 :=
-		of.createSingleVpcFormatter().WriteOutput(c1[name], c2[name], conns[name], subnetsConns[name],
+		of.createSingleVpcFormatter().WriteOutput(c1.theVpc(), toCompare, conns[name], subnetsConns[name],
 			subnetsDiff, "", grouping, uc, explainStruct)
 	if err2 != nil {
 		return "", err2

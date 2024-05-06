@@ -10,7 +10,6 @@ import (
 	"errors"
 	"slices"
 
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
 )
 
@@ -59,10 +58,7 @@ func (d *DrawioOutputFormatter) init(
 	d.vpcConns = vpcConns
 	d.gConns = gConns
 	d.uc = uc
-	// just take the cloud name from one of the configs
-	_, aVpcConfig := common.AnyMapEntry(cConfigs)
-	cloudName := aVpcConfig.CloudName
-	d.gen = NewDrawioGenerator(cloudName)
+	d.gen = NewDrawioGenerator(cConfigs.cloudName())
 }
 
 func (d *DrawioOutputFormatter) createDrawioTree() {
@@ -79,7 +75,7 @@ func (d *DrawioOutputFormatter) createDrawioTree() {
 }
 
 func (d *DrawioOutputFormatter) createNodeSets() {
-	for _, vpcConfig := range d.cConfigs {
+	for _, vpcConfig := range d.cConfigs.Vpcs() {
 		if vpcConfig.IsMultipleVPCsConfig {
 			continue
 		}
@@ -108,7 +104,7 @@ func (d *DrawioOutputFormatter) createNodeSets() {
 }
 
 func (d *DrawioOutputFormatter) createNodes() {
-	for _, vpcConfig := range d.cConfigs {
+	for _, vpcConfig := range d.cConfigs.Vpcs() {
 		if !vpcConfig.IsMultipleVPCsConfig {
 			for _, n := range vpcConfig.Nodes {
 				if !n.IsExternal() && d.showResource(n) {
@@ -120,7 +116,7 @@ func (d *DrawioOutputFormatter) createNodes() {
 }
 
 func (d *DrawioOutputFormatter) createFilters() {
-	for _, vpcConfig := range d.cConfigs {
+	for _, vpcConfig := range d.cConfigs.Vpcs() {
 		if !vpcConfig.IsMultipleVPCsConfig {
 			for _, fl := range vpcConfig.FilterResources {
 				if d.showResource(fl) {
@@ -132,7 +128,7 @@ func (d *DrawioOutputFormatter) createFilters() {
 }
 
 func (d *DrawioOutputFormatter) createRouters() {
-	for vpcResourceName, vpcConfig := range d.cConfigs {
+	for vpcResourceName, vpcConfig := range d.cConfigs.Vpcs() {
 		for _, r := range vpcConfig.RoutingResources {
 			if d.showResource(r) {
 				rTn := d.gen.TreeNode(r)
@@ -151,7 +147,7 @@ func (d *DrawioOutputFormatter) createRouters() {
 }
 
 func (d *DrawioOutputFormatter) lineRouter(line *groupedConnLine, vpcResourceName string) drawio.IconTreeNodeInterface {
-	if d.cConfigs[vpcResourceName].IsMultipleVPCsConfig {
+	if d.cConfigs.Vpc(vpcResourceName).IsMultipleVPCsConfig {
 		return d.multiVpcRouters[vpcResourceName]
 	}
 	var routeredEP EndpointElem
@@ -263,12 +259,12 @@ func (d *DrawioOutputFormatter) WriteOutput(c1, c2 MultipleVPCConfigs,
 		}
 		d.init(c1, conn, gConn, uc)
 	case AllSubnets:
-		gConfigs := MultipleVPCConfigs{}
+		var gConfigs MultipleVPCConfigs = NewMultipleVPCConfigs()
 		gConn := map[string]*GroupConnLines{}
 		if subnetsConn != nil {
 			for name, vpcConn := range subnetsConn {
 				gConn[name] = vpcConn.GroupedConnectivity
-				gConfigs[name] = vpcConn.VPCConfig
+				gConfigs.AddVpc(name, vpcConn.VPCConfig)
 			}
 		} else {
 			gConfigs = c1

@@ -141,7 +141,7 @@ func collectNodesForExplanation(cConfigs MultipleVPCConfigs, conns map[string]*G
 	internalNodes map[EndpointElem]*VPCConfig, externalNodes map[EndpointElem]bool) {
 	internalNodes = map[EndpointElem]*VPCConfig{}
 	externalNodes = map[EndpointElem]bool{}
-	for _, vpcConfig := range cConfigs {
+	for _, vpcConfig := range cConfigs.Vpcs() {
 		if !vpcConfig.IsMultipleVPCsConfig {
 			for _, n := range vpcConfig.Nodes {
 				if !n.IsExternal() {
@@ -167,7 +167,7 @@ func collectNodesForExplanation(cConfigs MultipleVPCConfigs, conns map[string]*G
 func collectMultiConnectionsForExplanation(
 	cConfigs MultipleVPCConfigs, conns map[string]*VPCConnectivity) map[EndpointElem]map[EndpointElem]*VPCConfig {
 	multiVpcConnections := map[EndpointElem]map[EndpointElem]*VPCConfig{}
-	for vpcUID, vpcConfig := range cConfigs {
+	for vpcUID, vpcConfig := range cConfigs.Vpcs() {
 		if vpcConfig.IsMultipleVPCsConfig {
 			for src, dsts := range conns[vpcUID].AllowedConnsCombined {
 				for dst := range dsts {

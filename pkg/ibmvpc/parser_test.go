@@ -21,12 +21,12 @@ func TestVPCResourceModelRegion(t *testing.T) {
 	rc, err := ParseResourcesFromFile(filepath.Join(getTestsDirInput(), "input_multi_regions.json"))
 	require.Nilf(t, err, "err: %s", err)
 
-	vpcConfigs := make(map[string]*vpcmodel.VPCConfig)
+	vpcConfigs := vpcmodel.NewMultipleVPCConfigs()
 	regionToStructMap := make(map[string]*Region)
 	err = getVPCconfig(rc, vpcConfigs, nil, regionToStructMap)
 	require.Nilf(t, err, "err: %s", err)
 
-	vpcConfig := vpcConfigs["crn:41"]
+	vpcConfig := vpcConfigs.Vpc("crn:41")
 	require.Equal(t, vpcConfig.VPC.(*VPC).Region().name, "us-east")
 
 	tgws := getTgwObjects(rc, vpcConfigs, "", nil, regionToStructMap)
