@@ -69,10 +69,10 @@ func (t *TextOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	// get output by analysis type
 	switch uc {
 	case AllEndpoints:
-		out += conn.GroupedConnectivity.String()
+		out += conn.GroupedConnectivity.String(c1)
 		hasStatelessConns = conn.GroupedConnectivity.hasStatelessConns()
 	case AllSubnets:
-		out += subnetsConn.GroupedConnectivity.String()
+		out += subnetsConn.GroupedConnectivity.String(c1)
 		hasStatelessConns = subnetsConn.GroupedConnectivity.hasStatelessConns()
 	case SingleSubnet:
 		out += c1.GetConnectivityOutputPerEachSubnetSeparately()

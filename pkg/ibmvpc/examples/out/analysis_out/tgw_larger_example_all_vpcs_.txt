@@ -1,28 +1,28 @@
 Connectivity between VPCs connected by TGW local-tg-ky (UID: crn:578)
-vsi11-ky[10.240.11.4] => vsi21a-ky[10.240.64.4] : All Connections
-vsi11-ky[10.240.11.4] => vsi21b-ky[10.240.64.5] : All Connections
-vsi11-ky[10.240.11.4] => vsi21c-ky[10.240.64.6] : All Connections
-vsi12-ky[10.240.12.4] => vsi21a-ky[10.240.64.4] : All Connections
-vsi12-ky[10.240.12.4] => vsi21b-ky[10.240.64.5] : All Connections
-vsi12-ky[10.240.12.4] => vsi21c-ky[10.240.64.6] : All Connections
-vsi21a-ky[10.240.64.4] => vsi11-ky[10.240.11.4] : All Connections
-vsi21a-ky[10.240.64.4] => vsi12-ky[10.240.12.4] : All Connections
-vsi21a-ky[10.240.64.4] => vsi31-ky[10.240.31.4] : All Connections
-vsi21a-ky[10.240.64.4] => vsi32-ky[10.240.128.4] : All Connections
-vsi21b-ky[10.240.64.5] => vsi11-ky[10.240.11.4] : All Connections
-vsi21b-ky[10.240.64.5] => vsi12-ky[10.240.12.4] : All Connections
-vsi21b-ky[10.240.64.5] => vsi31-ky[10.240.31.4] : All Connections
-vsi21b-ky[10.240.64.5] => vsi32-ky[10.240.128.4] : All Connections
-vsi21c-ky[10.240.64.6] => vsi11-ky[10.240.11.4] : All Connections
-vsi21c-ky[10.240.64.6] => vsi12-ky[10.240.12.4] : All Connections
-vsi21c-ky[10.240.64.6] => vsi31-ky[10.240.31.4] : All Connections
-vsi31-ky[10.240.31.4] => vsi11-ky[10.240.11.4] : All Connections *
-vsi31-ky[10.240.31.4] => vsi12-ky[10.240.12.4] : All Connections *
-vsi31-ky[10.240.31.4] => vsi21a-ky[10.240.64.4] : All Connections
-vsi31-ky[10.240.31.4] => vsi21b-ky[10.240.64.5] : All Connections
-vsi31-ky[10.240.31.4] => vsi21c-ky[10.240.64.6] : All Connections
-vsi32-ky[10.240.128.4] => vsi21a-ky[10.240.64.4] : All Connections
-vsi32-ky[10.240.128.4] => vsi21b-ky[10.240.64.5] : All Connections
+test-vpc1-ky/vsi11-ky[10.240.11.4] => test-vpc2-ky/vsi21a-ky[10.240.64.4] : All Connections
+test-vpc1-ky/vsi11-ky[10.240.11.4] => test-vpc2-ky/vsi21b-ky[10.240.64.5] : All Connections
+test-vpc1-ky/vsi11-ky[10.240.11.4] => test-vpc2-ky/vsi21c-ky[10.240.64.6] : All Connections
+test-vpc1-ky/vsi12-ky[10.240.12.4] => test-vpc2-ky/vsi21a-ky[10.240.64.4] : All Connections
+test-vpc1-ky/vsi12-ky[10.240.12.4] => test-vpc2-ky/vsi21b-ky[10.240.64.5] : All Connections
+test-vpc1-ky/vsi12-ky[10.240.12.4] => test-vpc2-ky/vsi21c-ky[10.240.64.6] : All Connections
+test-vpc2-ky/vsi21a-ky[10.240.64.4] => test-vpc1-ky/vsi11-ky[10.240.11.4] : All Connections
+test-vpc2-ky/vsi21a-ky[10.240.64.4] => test-vpc1-ky/vsi12-ky[10.240.12.4] : All Connections
+test-vpc2-ky/vsi21a-ky[10.240.64.4] => test-vpc3-ky/vsi31-ky[10.240.31.4] : All Connections
+test-vpc2-ky/vsi21a-ky[10.240.64.4] => test-vpc3-ky/vsi32-ky[10.240.128.4] : All Connections
+test-vpc2-ky/vsi21b-ky[10.240.64.5] => test-vpc1-ky/vsi11-ky[10.240.11.4] : All Connections
+test-vpc2-ky/vsi21b-ky[10.240.64.5] => test-vpc1-ky/vsi12-ky[10.240.12.4] : All Connections
+test-vpc2-ky/vsi21b-ky[10.240.64.5] => test-vpc3-ky/vsi31-ky[10.240.31.4] : All Connections
+test-vpc2-ky/vsi21b-ky[10.240.64.5] => test-vpc3-ky/vsi32-ky[10.240.128.4] : All Connections
+test-vpc2-ky/vsi21c-ky[10.240.64.6] => test-vpc1-ky/vsi11-ky[10.240.11.4] : All Connections
+test-vpc2-ky/vsi21c-ky[10.240.64.6] => test-vpc1-ky/vsi12-ky[10.240.12.4] : All Connections
+test-vpc2-ky/vsi21c-ky[10.240.64.6] => test-vpc3-ky/vsi31-ky[10.240.31.4] : All Connections
+test-vpc3-ky/vsi31-ky[10.240.31.4] => test-vpc1-ky/vsi11-ky[10.240.11.4] : All Connections *
+test-vpc3-ky/vsi31-ky[10.240.31.4] => test-vpc1-ky/vsi12-ky[10.240.12.4] : All Connections *
+test-vpc3-ky/vsi31-ky[10.240.31.4] => test-vpc2-ky/vsi21a-ky[10.240.64.4] : All Connections
+test-vpc3-ky/vsi31-ky[10.240.31.4] => test-vpc2-ky/vsi21b-ky[10.240.64.5] : All Connections
+test-vpc3-ky/vsi31-ky[10.240.31.4] => test-vpc2-ky/vsi21c-ky[10.240.64.6] : All Connections
+test-vpc3-ky/vsi32-ky[10.240.128.4] => test-vpc2-ky/vsi21a-ky[10.240.64.4] : All Connections
+test-vpc3-ky/vsi32-ky[10.240.128.4] => test-vpc2-ky/vsi21b-ky[10.240.64.5] : All Connections
 
 Connectivity between VPCs connected by TGW local-tg-zn (UID: crn:574)
 <nothing to report>

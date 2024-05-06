@@ -73,14 +73,11 @@ func (lyO *layoutOverlap) fixOverlapping() {
 
 // setIconsMap() update the cells of the matrix with icons positions:
 func (lyO *layoutOverlap) setIconsMap() {
-	for _, tn := range getAllNodes(lyO.network) {
-		if tn.IsIcon() {
-			itn := tn.(IconTreeNodeInterface)
-			x, y := absoluteGeometry(tn)
-			for ox := x; ox <= x+itn.IconSize(); ox += minSize {
-				for oy := y; oy <= y+itn.IconSize(); oy += minSize {
-					lyO.cell(ox, oy).icon = itn
-				}
+	for _, tn := range getAllIcons(lyO.network) {
+		x, y := absoluteGeometry(tn)
+		for ox := x; ox <= x+tn.IconSize(); ox += minSize {
+			for oy := y; oy <= y+tn.IconSize(); oy += minSize {
+				lyO.cell(ox, oy).icon = tn
 			}
 		}
 	}
@@ -89,14 +86,9 @@ func (lyO *layoutOverlap) setIconsMap() {
 // handleGroupingLinesOverBorders() add points to the connectivity line in cases the line is on the square border
 // (relevant for lines between two grouping point which share the same column)
 func (lyO *layoutOverlap) handleGroupingLinesOverBorders() {
-	nodes := getAllNodes(lyO.network)
 	// we count how many lines are already on the column, so they wont overlap each other:
 	linesOnCol := map[*col]int{}
-	for _, n := range nodes {
-		if !n.IsLine() {
-			continue
-		}
-		line := n.(LineTreeNodeInterface)
+	for _, line := range getAllLines(lyO.network) {
 		if !line.Src().(IconTreeNodeInterface).IsGroupingPoint() || !line.Dst().(IconTreeNodeInterface).IsGroupingPoint() {
 			continue
 		}
@@ -126,17 +118,11 @@ func (lyO *layoutOverlap) handleGroupingLinesOverBorders() {
 
 // handleLinesOverLines() - find pairs of overlapping lines, and add point to one of them
 func (lyO *layoutOverlap) handleLinesOverLines() {
-	nodes := getAllNodes(lyO.network)
-	for i1 := range nodes {
-		if !nodes[i1].IsLine() {
-			continue
-		}
-		for i2 := i1 + 1; i2 < len(nodes); i2++ {
-			if !nodes[i2].IsLine() {
-				continue
-			}
-			line1 := nodes[i1].(LineTreeNodeInterface)
-			line2 := nodes[i2].(LineTreeNodeInterface)
+	lines := getAllLines(lyO.network)
+	for i1 := range lines {
+		for i2 := i1 + 1; i2 < len(lines); i2++ {
+			line1 := lines[i1]
+			line2 := lines[i2]
 			if line1.Src() != line2.Dst() || line1.Dst() != line2.Src() {
 				continue
 			}
@@ -162,11 +148,7 @@ func (lyO *layoutOverlap) handleLinesOverLines() {
 //  3. for each interval, if there is an icon that is overlapped by the interval, than we add a bypass point between those points.
 //  4. the new bypass point might create new overlapping, in that case, we will add a new bypass point, and so on...
 func (lyO *layoutOverlap) handleLinesOverIcons() {
-	for _, tn := range getAllNodes(lyO.network) {
-		if !tn.IsLine() {
-			continue
-		}
-		line := tn.(LineTreeNodeInterface)
+	for _, line := range getAllLines(lyO.network) {
 		newLinePoint := []point{}
 		oldLinePoints := line.Points()
 		absPoints := getLineAbsolutePoints(line)

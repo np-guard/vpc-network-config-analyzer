@@ -1,18 +1,18 @@
 Connectivity between VPCs connected by TGW local-tg-ky (UID: crn:578)
-subnet11-ky => subnet21-ky : All Connections
-subnet12-ky => subnet21-ky : All Connections
-subnet21-ky => subnet11-ky : All Connections
-subnet21-ky => subnet12-ky : All Connections
-subnet21-ky => subnet31-ky : All Connections
-subnet21-ky => subnet32-ky : All Connections
-subnet31-ky => subnet11-ky : All Connections *
-subnet31-ky => subnet12-ky : All Connections *
-subnet31-ky => subnet21-ky : All Connections
-subnet32-ky => subnet21-ky : All Connections
+test-vpc1-ky/subnet11-ky => test-vpc2-ky/subnet21-ky : All Connections
+test-vpc1-ky/subnet12-ky => test-vpc2-ky/subnet21-ky : All Connections
+test-vpc2-ky/subnet21-ky => test-vpc1-ky/subnet11-ky : All Connections
+test-vpc2-ky/subnet21-ky => test-vpc1-ky/subnet12-ky : All Connections
+test-vpc2-ky/subnet21-ky => test-vpc3-ky/subnet31-ky : All Connections
+test-vpc2-ky/subnet21-ky => test-vpc3-ky/subnet32-ky : All Connections
+test-vpc3-ky/subnet31-ky => test-vpc1-ky/subnet11-ky : All Connections *
+test-vpc3-ky/subnet31-ky => test-vpc1-ky/subnet12-ky : All Connections *
+test-vpc3-ky/subnet31-ky => test-vpc2-ky/subnet21-ky : All Connections
+test-vpc3-ky/subnet32-ky => test-vpc2-ky/subnet21-ky : All Connections
 
 Connectivity between VPCs connected by TGW local-tg-zn (UID: crn:574)
-zn-vpc1-net1 => zn-vpc2-net1 : All Connections
-zn-vpc2-net1 => zn-vpc1-net1 : All Connections
+zn-vpc1/zn-vpc1-net1 => zn-vpc2/zn-vpc2-net1 : All Connections
+zn-vpc2/zn-vpc2-net1 => zn-vpc1/zn-vpc1-net1 : All Connections
 
 Subnet connectivity for VPC test-vpc0-ky
 subnet1-ky => Public Internet 172.217.22.46/32 : All Connections
