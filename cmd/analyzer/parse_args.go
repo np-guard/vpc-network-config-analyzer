@@ -127,20 +127,6 @@ var supportedAnalysisTypesMap = map[string][]string{
 	explainMode:      {TEXTFormat, DEBUGFormat},
 }
 
-// supportedOutputFormatsList is an ordered list of supported output formats (usage details presented in this order)
-var supportedOutputFormatsList = []string{
-	TEXTFormat,
-	MDFormat,
-	JSONFormat,
-	DRAWIOFormat,
-	ARCHDRAWIOFormat,
-	SVGFormat,
-	ARCHSVGFormat,
-	HTMLFormat,
-	ARCHHTMLFormat,
-	DEBUGFormat,
-}
-
 // supportedAnalysisTypesList is an ordered list of supported analysis types (usage details presented in this order)
 var supportedAnalysisTypesList = []string{
 	allEndpoints,
