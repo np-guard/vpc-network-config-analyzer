@@ -124,10 +124,10 @@ func addPointOutsideSquares(line LineTreeNodeInterface) {
 	src, dst := line.Src().(SquareTreeNodeInterface), line.Dst().(SquareTreeNodeInterface)
 	xSrc, ySrc := absoluteGeometry(src)
 	xDst, yDst := absoluteGeometry(dst)
-	xSrc, ySrc = xSrc+src.Width()/two, ySrc+src.Height()/two
-	xDst, yDst = xDst+dst.Width()/two, yDst+dst.Height()/two
+	xSrc, ySrc = xSrc+src.Width()/2, ySrc+src.Height()/2
+	xDst, yDst = xDst+dst.Width()/2, yDst+dst.Height()/2
 	dX, dY := xDst-xSrc, yDst-ySrc
-	midX, midY := (xDst+xSrc)/two, (yDst+ySrc)/two
+	midX, midY := (xDst+xSrc)/2, (yDst+ySrc)/2
 	x, y := 0, 0
 	switch {
 	case abs(dY) < minSize && abs(dX) < minSize:
@@ -138,16 +138,16 @@ func addPointOutsideSquares(line LineTreeNodeInterface) {
 		if src.ID() > dst.ID() {
 			offset = -offset
 		}
-		if max(src.Width(), dst.Width()) > max(src.Height(), dst.Height()) {
+		if max(src.Width()/2, dst.Width()/2) > max(src.Height()/2, dst.Height()/2) {
 			// width is bigger then hight, we choose a point below the center, outside both squares:
-			y = midY + max(src.Height(), dst.Height())/two + subnetHeight/two
+			y = midY + max(src.Height()/2, dst.Height()/2) + subnetHeight/2
 			x = midX
 			line.addPoint(x-minSize+offset, y)
 			line.addPoint(x+minSize+offset, y)
 		} else {
 			// hight is bigger then width, we choose a point right to the center, outside both squares:
 			y = midY
-			x = midX + max(src.Width(), dst.Width())/two + subnetWidth/two
+			x = midX + max(src.Width()/2, dst.Width()/2) + subnetWidth/2
 			line.addPoint(x, y-minSize+offset)
 			line.addPoint(x, y+minSize+offset)
 		}
@@ -155,26 +155,26 @@ func addPointOutsideSquares(line LineTreeNodeInterface) {
 	case abs(dX) < minSize:
 		// centers are one bellow each other, will take a point at the right to both squares
 		y = midY
-		x = midX + max(src.Width(), dst.Width())/two + subnetWidth/two
+		x = midX + max(src.Width()/2, dst.Width()/2) + subnetWidth/2
 	case abs(dY) < minSize:
 		// centers are one right each other, will take a point at the below both squares
-		y = midY + max(src.Height(), dst.Height())/two + subnetHeight/two
+		y = midY + max(src.Height()/2, dst.Height()/2) + subnetHeight/2
 		x = midX
 	default:
 		// we collect a list of potential points on the second line, and choose the closest of them
 		// list of potential Xs:
 		potentialXs := []int{
-			midX + src.Width()/two + subnetWidth/two,
-			midX + dst.Width()/two + subnetWidth/two,
-			midX - src.Width()/two - subnetWidth/two,
-			midX - dst.Width()/two - subnetWidth/two,
+			midX + src.Width()/2 + subnetWidth/2,
+			midX + dst.Width()/2 + subnetWidth/2,
+			midX - src.Width()/2 - subnetWidth/2,
+			midX - dst.Width()/2 - subnetWidth/2,
 		}
 		// list of potential Ys:
 		potentialYs := []int{
-			midY + src.Height()/two + subnetHeight/two,
-			midY + dst.Height()/two + subnetHeight/two,
-			midY - src.Height()/two - subnetHeight/two,
-			midY - dst.Height()/two - subnetHeight/two,
+			midY + src.Height()/2 + subnetHeight/2,
+			midY + dst.Height()/2 + subnetHeight/2,
+			midY - src.Height()/2 - subnetHeight/2,
+			midY - dst.Height()/2 - subnetHeight/2,
 		}
 		// foreach potential X/Y, calculate its X/Y:
 		// we know that for two points on a line (y2-y1) = gradient*(x2-x1)
@@ -304,6 +304,6 @@ func (lyO *subnetLayoutOverlap) tnCenter(tn TreeNodeInterface) (x, y int) {
 }
 func (lyO *subnetLayoutOverlap) tnSize(tn TreeNodeInterface) (x, y int) {
 	l := tn.Location()
-	return (lyO.xIndexes[l.lastCol] - lyO.xIndexes[l.firstCol] + 1) * two,
-		(lyO.yIndexes[l.lastRow] - lyO.yIndexes[l.firstRow] + 1) * two
+	return (lyO.xIndexes[l.lastCol] - lyO.xIndexes[l.firstCol] + 1) * 2,
+		(lyO.yIndexes[l.lastRow] - lyO.yIndexes[l.firstRow] + 1) * 2
 }

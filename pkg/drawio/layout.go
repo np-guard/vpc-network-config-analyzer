@@ -64,8 +64,6 @@ const (
 	regionToSubnetDepth  = 3
 	vpcToSubnetDepth     = 2
 	zoneToSubnetDepth    = 1
-
-	two = 2
 )
 
 type layoutS struct {
@@ -583,7 +581,7 @@ func (ly *layoutS) setPublicNetworkIconsLocations() {
 	pn.Location().firstCol.setWidth(iconSpace * iconsPerRow)
 	for iconIndex, icon := range icons {
 		icon.setLocation(newCellLocation(rows[iconIndex/iconsPerRow], pn.Location().firstCol))
-		icon.Location().xOffset = iconSpace*(iconIndex%iconsPerRow) - (iconSpace*(iconsPerRow-1))/two
+		icon.Location().xOffset = iconSpace*(iconIndex%iconsPerRow) - (iconSpace*(iconsPerRow-1))/2
 	}
 }
 
@@ -615,7 +613,7 @@ func (ly *layoutS) setIconsLocationsOnTop(square SquareTreeNodeInterface) {
 	}
 	for iconIndex, icon := range icons {
 		icon.setLocation(newCellLocation(square.Location().firstRow, cols[iconIndex/iconsPerCol]))
-		icon.Location().yOffset = iconSpace*(iconIndex%iconsPerCol) - (iconSpace*(iconsPerCol-1))/two
+		icon.Location().yOffset = iconSpace*(iconIndex%iconsPerCol) - (iconSpace*(iconsPerCol-1))/2
 	}
 }
 
@@ -662,7 +660,7 @@ func (ly *layoutS) setTgwLocations(region SquareTreeNodeInterface) {
 		bestColAvailable, _ := common.AnyMapEntry[int](availableCols)
 		bestDistance := region.Location().lastCol.index
 		if len(tgwOptionalCols[tgw]) > 0 {
-			tgwOptCol := tgwOptionalCols[tgw][0] + tgwOptionalCols[tgw][len(tgwOptionalCols[tgw])-1]/two
+			tgwOptCol := tgwOptionalCols[tgw][0] + tgwOptionalCols[tgw][len(tgwOptionalCols[tgw])-1]/2
 			for col := range availableCols {
 				if abs(col-tgwOptCol) < bestDistance {
 					bestColAvailable = col
@@ -770,11 +768,11 @@ func (ly *layoutS) setGroupingIconLocations() {
 		iconsInCell[cell{r, c}] = append(iconsInCell[cell{r, c}], gIcon)
 		switch parent.visibility {
 		case theSubnet:
-			gIcon.Location().xOffset = gIcon.Location().firstCol.width() / two
+			gIcon.Location().xOffset = gIcon.Location().firstCol.width() / 2
 		case square:
-			gIcon.Location().xOffset = gIcon.Location().firstCol.width()/two + groupBorderWidth
+			gIcon.Location().xOffset = (gIcon.Location().firstCol.width()/2 + groupBorderWidth)
 		case innerSquare:
-			gIcon.Location().xOffset = gIcon.Location().firstCol.width()/two + groupBorderWidth + groupInnerBorderWidth
+			gIcon.Location().xOffset = (gIcon.Location().firstCol.width()/2 + groupBorderWidth + groupInnerBorderWidth)
 		case connectedPoint:
 			gIcon.connectGroupedIcons()
 		}
@@ -786,7 +784,7 @@ func (ly *layoutS) setGroupingIconLocations() {
 	// set the y offset according to the number of icons in the cell:
 	for cell, cellIcons := range iconsInCell {
 		for i, gIcon := range cellIcons {
-			gIcon.Location().yOffset = cell.r.height() * (two*i - len(cellIcons) + 1) / (len(cellIcons) + 1) / two
+			gIcon.Location().yOffset = cell.r.height() * (2*i - len(cellIcons) + 1) / (len(cellIcons) + 1) / 2
 		}
 	}
 }
@@ -818,7 +816,7 @@ func setZoneIconsLocations(zone SquareTreeNodeInterface) {
 				// we take the first subnet, and put the vis icon below it, and also give it an xOffset
 				vpcLocation := icon.(*VsiTreeNode).nis[0].Parent().Location()
 				location := newCellLocation(vpcLocation.nextRow(), vpcLocation.firstCol)
-				location.xOffset = subnetWidth/two - iconSize/two
+				location.xOffset = subnetWidth/2 - iconSize/2
 				vsiIcon.setLocation(location)
 			}
 		} else if icon.IsGateway() {
@@ -826,7 +824,7 @@ func setZoneIconsLocations(zone SquareTreeNodeInterface) {
 			row := zone.Location().firstRow
 			zone.Location().firstRow.setHeight(iconSpace)
 			icon.setLocation(newCellLocation(row, col))
-			icon.Location().xOffset -= subnetWidth/two - iconSize/two
+			icon.Location().xOffset -= subnetWidth/2 - iconSize/2
 		}
 	}
 }

@@ -134,7 +134,7 @@ func (data *templateData) Clickable(tn TreeNodeInterface) bool {
 
 func (data *templateData) Add(a, b int) int     { return a + b }
 func (data *templateData) Add3(a, b, c int) int { return a + b + c }
-func (data *templateData) Half(a int) int       { return a / two }
+func (data *templateData) Half(a int) int       { return a / 2 }
 
 func (data *templateData) AX(tn TreeNodeInterface) int {
 	x, _ := absoluteGeometry(tn)

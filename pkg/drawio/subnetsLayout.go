@@ -487,7 +487,7 @@ func (ly *subnetsLayout) calcZoneOrder() {
 			zoneOrder = append([]TreeNodeInterface{zoneToAdd}, zoneOrder...)
 		}
 
-		if len(zoneOrder) > two {
+		if len(zoneOrder) > 2 {
 			if addToRight == 1 {
 				delete(zonesScores, zoneOrder[len(zoneOrder)-2])
 			} else {

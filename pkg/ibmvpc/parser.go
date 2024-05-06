@@ -1294,18 +1294,17 @@ func checkLoadBalancerValidity(loadBalancerObj *datamodel.LoadBalancer) bool {
 	// todo - in case of more than two subnets, two subnets are chosen arbitrary
 	// we do not know which subnets will be chosen to be in the config file.
 	// in such case, the connectivity report is not representing the user configuration.
-	nPIP := 2
-	if len(loadBalancerObj.Subnets) > nPIP {
+	if len(loadBalancerObj.Subnets) > 2 {
 		logging.Warnf("Ignoring Load Balancer %s, it has more than two subnets\n", *loadBalancerObj.Name)
 		return false
 	}
 	// todo: handle different numbers of private and public ip
-	if len(loadBalancerObj.PrivateIps) != nPIP {
+	if len(loadBalancerObj.PrivateIps) != 2 {
 		logging.Warnf("Ignoring Load Balancer %s, it has %d private IPs (currently only 2 are supported)\n",
 			*loadBalancerObj.Name, len(loadBalancerObj.PrivateIps))
 		return false
 	}
-	if len(loadBalancerObj.PublicIps) != nPIP && len(loadBalancerObj.PublicIps) != 0 {
+	if len(loadBalancerObj.PublicIps) != 2 && len(loadBalancerObj.PublicIps) != 0 {
 		logging.Warnf("Ignoring Load Balancer %s, it has %d private IPs (currently only two or zero are supported)\n",
 			*loadBalancerObj.Name, len(loadBalancerObj.PublicIps))
 		return false
