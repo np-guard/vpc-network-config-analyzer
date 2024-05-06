@@ -116,7 +116,6 @@ type sgTest struct {
 	name                    string
 	rules                   []*SGRule
 	isIngress               bool
-	conns                   []*connection.Set
 	expectedConnectivityMap map[*ipblock.IPBlock]*ConnectivityResult
 }
 
