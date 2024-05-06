@@ -183,7 +183,7 @@ type Subnet interface {
 // todo: elaborate more - get list of servers, expandability,...
 type LoadBalancer interface {
 	NodeSet
-	DennyConnectivity(src, dst Node) bool
+	DenyConnectivity(src, dst Node) bool
 }
 
 // RulesType Type of rules in a given filter (e.g. specific NACL table) relevant to

@@ -11,39 +11,39 @@ import (
 	"slices"
 )
 
-// connectivity abstraction of a nodeSet:
-// consider nodeSet NS[N0, N1, N2, N3...]
-// we assume that for every node N,  if we have the connection  N->N0
-// then we also have the connections N->N1, N->N2, N->N3 ...
-// we will call it the abstraction assumption
-// so we replace all these connections with one connection: N->NS.
+// given a nodeSet NS[n0, n1, n2, n3...]
+// we assume the "abstraction assumption": 
+// for every node n,  a connection  n->n0 implies the connections n->n1, n->n2, n->n3 ...
+// the abstraction replaces the above n->ni connections with the single connection: n->NS.
+// The same abstraction is done in the other direction
 
 // the abstraction steps are:
-// 1. splitting the connectivity to for groups:
+// 1. partition the connectivity to four disjoint groups as follows:
 //      otherToOther:     connections of   <node not in the nodeSet>  ->  <node not in the nodeSet>
 //      nodeSetToNodeSet: connections of   <node     in the nodeSet>  ->  <node     in the nodeSet>
 //      otherFromNodeSet: connections of   <node     in the nodeSet>  ->  <node not in the nodeSet>
 //      otherToNodeSet:   connections of   <node not in the nodeSet>  ->  <node     in the nodeSet>
-// 2. for the last three groups, we check the abstraction assumption holds
-// 3. we do the abstraction ( for now, even if the abstraction assumption does not hold):
-// the connectivity of N->NS is union of all of N->N1, N->N2, N->N3 ...
-// todo: what to do if the abstraction assumption does not hold?
+// 2. for the last three groups, we verify that the abstraction assumption holds
+//     todo: this check is not complete in code yet, and currently we ignore its result 
+// 3. we do the abstraction (for this PR, even if the abstraction assumption does not hold):
+//    the connectivity of n->NS is union of all of n->n1, n->n2, n->n3
+//    todo: what to do if the abstraction assumption does not hold?
 
 func nodeSetConnectivityAbstraction(nodesConn GeneralConnectivityMap, nodeSet NodeSet) GeneralConnectivityMap {
-	otherToOther, nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet := splitConnectivityByNodeSet(nodesConn, nodeSet)
+	otherToOther, nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet := partitionConnectivityByNodeSet(nodesConn, nodeSet)
 	checkConnectivityAbstractionValidity(otherFromNodeSet, nodeSet, false)
 	checkConnectivityAbstractionValidity(otherToNodeSet, nodeSet, true)
 	checkConnectivityAbstractionValidity(nodeSetToNodeSet, nodeSet, true)
 	return mergeConnectivityWithNodeSetAbstraction(otherToOther, nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet, nodeSet)
 }
 
-// splitConnectivityByNodeSet() split the connectivity to the four groups
+// partitionConnectivityByNodeSet() par the connectivity to the four groups
 // each group is kept as GeneralConnectivityMap.
 // usually, GeneralConnectivityMap is a map form src to dst.
 // however, the third group is hold as a map from dst to src (and therefore called otherFromNodeSet and not nodeSetToOther)
 // see the reason on mergeConnectivityWithNodeSetAbstraction()
 
-func splitConnectivityByNodeSet(nodesConn GeneralConnectivityMap, nodeSet NodeSet) (
+func partitionConnectivityByNodeSet(nodesConn GeneralConnectivityMap, nodeSet NodeSet) (
 	otherToOther, nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet GeneralConnectivityMap) {
 	otherToOther = GeneralConnectivityMap{}
 	nodeSetToNodeSet = GeneralConnectivityMap{}
@@ -123,7 +123,7 @@ func mergeConnectivityWithNodeSetAbstraction(
 			res.updateAllowedConnsMap(src, dst, conns)
 		}
 	}
-	// all the connections inside the nodeSet are union to *only* one connectivity:
+	// all the connections with the nodeSet are merged to *only* one connectivity, which is the union of all separate connections:
 	allConns := NoConns()
 	for _, nodeConns := range nodeSetToNodeSet {
 		for _, conns := range nodeConns {
@@ -133,11 +133,11 @@ func mergeConnectivityWithNodeSetAbstraction(
 	// adding to the result
 	res.updateAllowedConnsMap(nodeSet, nodeSet, allConns)
 
-	// all connection from the nodeSet to a node, are union and added to the result:
-	// please notice: we need to handle separately every node that is outside the NodeSet, 
-	// therefore, we want to have a loop on every node that is outside the nodeSet.
-	// so, the outer loop should run over the nodes that is outside the nodeSet.
-	// this is why this group is from dst to src.
+	// all connection from the nodeSet to a node, are merged and added to the result:
+	// please note: we need to handle separately each node that is not in the NodeSet, 
+	// therefore, we want to have a loop on every node that is not in the nodeSet.
+	// so, the outer loop should run over the nodes not in the nodeSet.
+	// hence, this group is from dst to src.
 	for dst, nodeConns := range otherFromNodeSet {
 		allConns := NoConns()
 		for _, conns := range nodeConns {
