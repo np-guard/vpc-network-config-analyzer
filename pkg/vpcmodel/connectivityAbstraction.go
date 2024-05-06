@@ -63,7 +63,7 @@ func partitionConnectivityByNodeSet(nodesConn GeneralConnectivityMap, nodeSet No
 			case srcInSet && !dstInSet:
 				otherFromNodeSet.updateAllowedConnsMap(dst, src, conns)
 			case !srcInSet && dstInSet:
-				otherToNodeSet.updateAllowedConnsMap(src, dst, conns.Copy())
+				otherToNodeSet.updateAllowedConnsMap(src, dst, conns)
 			}
 		}
 	}
