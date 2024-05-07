@@ -228,7 +228,7 @@ type FilterTrafficResource interface {
 	// RulesInConnectivity computes the list of rules of a given filter that contributes to the connection between src and dst
 	// if conn is also given the above is per connection
 	RulesInConnectivity(src, dst Node, conn *connection.Set, isIngress bool) ([]RulesInFilter, []RulesInFilter, error)
-	// StringDetailsRulesOfFilter gets, for a specific filter (sg/nacl), a struct with relevant rules in it,
+	// StringDetailsOfRules gets, for a specific filter (sg/nacl), a struct with relevant rules in it,
 	// and prints the effect of each filter (e.g. security group sg1-ky allows connection)
 	// and the detailed list of relevant rules
 	// todo: replace by StringDetailsOfRules to rulesBasedResources interface
