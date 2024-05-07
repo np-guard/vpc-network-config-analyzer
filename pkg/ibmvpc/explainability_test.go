@@ -583,7 +583,7 @@ func (tt *vpcGeneralTest) runExplainTest(t *testing.T) {
 		tt.ESrcMinPort, tt.ESrcMaxPort, tt.EDstMinPort, tt.EDstMaxPort)
 
 	// generate actual output for all use cases specified for this test
-	err := runTestPerUseCase(t, tt, vpcConfigs, nil, vpcmodel.Explain, tt.mode, explainOut, explanationArgs)
+	err := runTestPerUseCase(t, tt, vpcConfigs, vpcmodel.Explain, tt.mode, explainOut, explanationArgs)
 	require.Equal(t, tt.errPerUseCase[vpcmodel.Explain], err, "comparing actual err to expected err")
 	for uc, outFile := range tt.actualOutput {
 		fmt.Printf("test %s use-case %d - generated output file: %s\n", tt.name, uc, outFile)

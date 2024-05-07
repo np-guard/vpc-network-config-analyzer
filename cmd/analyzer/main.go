@@ -73,7 +73,7 @@ func analysisTypeToUseCase(inArgs *InArgs) vpcmodel.OutputUseCase {
 	return vpcmodel.AllEndpoints
 }
 
-func analysisVPCConfigs(c1, c2 vpcmodel.MultipleVPCConfigs, inArgs *InArgs, outFile string) (string, error) {
+func analysisVPCConfigs(c1 vpcmodel.MultipleVPCConfigs, inArgs *InArgs, outFile string) (string, error) {
 	var explanationArgs *vpcmodel.ExplanationArgs
 	if *inArgs.AnalysisType == explainMode {
 		explanationArgs = vpcmodel.NewExplanationArgs(*inArgs.ESrc, *inArgs.EDst, *inArgs.EProtocol,
@@ -81,7 +81,7 @@ func analysisVPCConfigs(c1, c2 vpcmodel.MultipleVPCConfigs, inArgs *InArgs, outF
 	}
 
 	outFormat := getOutputFormat(inArgs)
-	og, err := vpcmodel.NewOutputGenerator(c1, c2,
+	og, err := vpcmodel.NewOutputGenerator(c1,
 		*inArgs.Grouping,
 		analysisTypeToUseCase(inArgs),
 		false,
@@ -225,9 +225,8 @@ func _main(cmdlineArgs []string) error {
 		}
 	}
 
-	var vpcConfigs2 vpcmodel.MultipleVPCConfigs
 	if inArgs.InputSecondConfigFile != nil && *inArgs.InputSecondConfigFile != "" {
-		vpcConfigs2, err = vpcConfigsFromFiles([]string{*inArgs.InputSecondConfigFile}, inArgs)
+		vpcConfigs2, err := vpcConfigsFromFiles([]string{*inArgs.InputSecondConfigFile}, inArgs)
 		if err != nil {
 			return err
 		}
@@ -236,12 +235,13 @@ func _main(cmdlineArgs []string) error {
 			return fmt.Errorf("for diff mode %v a single configuration should be provided "+
 				"for both -vpc-config and -vpc-config-second", *inArgs.AnalysisType)
 		}
+		vpcConfigs1.SetToCompareVpc(vpcConfigs2.TheVpc())
 	}
 	outFile := ""
 	if inArgs.OutputFile != nil {
 		outFile = *inArgs.OutputFile
 	}
-	vpcAnalysisOutput, err2 := analysisVPCConfigs(vpcConfigs1, vpcConfigs2, inArgs, outFile)
+	vpcAnalysisOutput, err2 := analysisVPCConfigs(vpcConfigs1, inArgs, outFile)
 	if err2 != nil {
 		return err2
 	}

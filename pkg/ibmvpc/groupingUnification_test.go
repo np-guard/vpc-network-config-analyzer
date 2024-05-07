@@ -19,7 +19,7 @@ func TestGroupingUnification(t *testing.T) {
 	vpcConfigMultiVpc := getConfig(t, "tgw_larger_example")
 	require.NotNil(t, vpcConfigMultiVpc, "vpcConfigMultiVpc equals nil")
 
-	og, err := vpcmodel.NewOutputGenerator(vpcConfigMultiVpc, nil, true,
+	og, err := vpcmodel.NewOutputGenerator(vpcConfigMultiVpc, true,
 		vpcmodel.AllEndpoints, false, nil, vpcmodel.DRAWIO)
 	if err != nil {
 		fmt.Println(err.Error())

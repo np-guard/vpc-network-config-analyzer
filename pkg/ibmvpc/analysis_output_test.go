@@ -663,6 +663,7 @@ func (tt *vpcGeneralTest) runTest(t *testing.T) {
 	}
 	if diffUseCase {
 		vpcConfigs2nd = getVPCConfigs(t, tt, false)
+		vpcConfigs.SetToCompareVpc(vpcConfigs2nd.TheVpc())
 	} else { // inputConfig2nd should be ignored if not diffUseCase
 		tt.inputConfig2nd = ""
 	}
@@ -675,7 +676,7 @@ func (tt *vpcGeneralTest) runTest(t *testing.T) {
 
 	// generate actual output for all use cases specified for this test
 	for _, uc := range tt.useCases {
-		err := runTestPerUseCase(t, tt, vpcConfigs, vpcConfigs2nd, uc, tt.mode, analysisOut, explanationArgs)
+		err := runTestPerUseCase(t, tt, vpcConfigs, uc, tt.mode, analysisOut, explanationArgs)
 		require.Equal(t, tt.errPerUseCase[uc], err, "comparing actual err to expected err")
 	}
 	for uc, outFile := range tt.actualOutput {
@@ -747,7 +748,7 @@ func initTestFileNames(tt *vpcGeneralTest,
 // runTestPerUseCase runs the connectivity analysis for the required use case and compares/generates the output
 func runTestPerUseCase(t *testing.T,
 	tt *vpcGeneralTest,
-	c1, c2 vpcmodel.MultipleVPCConfigs,
+	c1 vpcmodel.MultipleVPCConfigs,
 	uc vpcmodel.OutputUseCase,
 	mode testMode,
 	outDir string,
@@ -755,7 +756,7 @@ func runTestPerUseCase(t *testing.T,
 	if err := initTestFileNames(tt, uc, "", true, outDir); err != nil {
 		return err
 	}
-	og, err := vpcmodel.NewOutputGenerator(c1, c2, tt.grouping, uc, tt.format == vpcmodel.ARCHDRAWIO, explanationArgs, tt.format)
+	og, err := vpcmodel.NewOutputGenerator(c1, tt.grouping, uc, tt.format == vpcmodel.ARCHDRAWIO, explanationArgs, tt.format)
 	if err != nil {
 		return err
 	}

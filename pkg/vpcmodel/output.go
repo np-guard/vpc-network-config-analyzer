@@ -24,21 +24,24 @@ type MultipleVPCConfigs interface {
 	Vpcs() map[string]*VPCConfig
 	Vpc(name string) *VPCConfig
 	HasVpc(name string) bool
-	theVpc() *VPCConfig
+	TheVpc() *VPCConfig
+	toCompareVpc() *VPCConfig
+	SetToCompareVpc(vpc *VPCConfig)
 	theName() string
 	ExplainConnectivity(src, dst string, connQuery *connection.Set) (res *Explanation, err error)
-	cloudName() string
+	CloudName() string
 	AddVpc(name string, vpc *VPCConfig)
 	RemoveVpc(name string)
 }
 
 func NewMultipleVPCConfigs(cloudName string) *MultipleVPCConfigsStruct {
-	return &MultipleVPCConfigsStruct{map[string]*VPCConfig{}, cloudName}
+	return &MultipleVPCConfigsStruct{map[string]*VPCConfig{}, nil, cloudName}
 }
 
 type MultipleVPCConfigsStruct struct {
-	vpcs      map[string]*VPCConfig
-	clodeName string
+	vpcs       map[string]*VPCConfig
+	toCompare  *VPCConfig
+	cloudeName string
 }
 
 func (c *MultipleVPCConfigsStruct) Vpcs() map[string]*VPCConfig {
@@ -48,7 +51,7 @@ func (c *MultipleVPCConfigsStruct) AddVpc(name string, vpc *VPCConfig) {
 	c.vpcs[name] = vpc
 }
 func (c *MultipleVPCConfigsStruct) RemoveVpc(name string) {
-	delete(c.vpcs,name)
+	delete(c.vpcs, name)
 }
 func (c *MultipleVPCConfigsStruct) Vpc(name string) *VPCConfig {
 	return c.vpcs[name]
@@ -57,16 +60,22 @@ func (c *MultipleVPCConfigsStruct) HasVpc(name string) bool {
 	_, ok := c.vpcs[name]
 	return ok
 }
-func (c *MultipleVPCConfigsStruct) theVpc() *VPCConfig {
+func (c *MultipleVPCConfigsStruct) TheVpc() *VPCConfig {
 	_, v := common.AnyMapEntry(c.vpcs)
 	return v
+}
+func (c *MultipleVPCConfigsStruct) toCompareVpc() *VPCConfig {
+	return c.toCompare
+}
+func (c *MultipleVPCConfigsStruct) SetToCompareVpc(vpc *VPCConfig) {
+	c.toCompare = vpc
 }
 func (c *MultipleVPCConfigsStruct) theName() string {
 	n, _ := common.AnyMapEntry(c.vpcs)
 	return n
 }
-func (c *MultipleVPCConfigsStruct) cloudName() string {
-	return c.clodeName
+func (c *MultipleVPCConfigsStruct) CloudName() string {
+	return c.cloudeName
 }
 
 const asteriskDetails = "\nconnections are stateful (on TCP) unless marked with *\n"
@@ -106,7 +115,6 @@ const (
 // the functionality to generate the analysis output in various formats, for that vpc
 type OutputGenerator struct {
 	config1        MultipleVPCConfigs
-	config2        MultipleVPCConfigs // specified only when analysis is diff
 	outputGrouping bool
 	useCase        OutputUseCase
 	nodesConn      map[string]*VPCConnectivity
@@ -115,11 +123,10 @@ type OutputGenerator struct {
 	explanation    *Explanation
 }
 
-func NewOutputGenerator(c1, c2 MultipleVPCConfigs, grouping bool, uc OutputUseCase,
+func NewOutputGenerator(c1 MultipleVPCConfigs, grouping bool, uc OutputUseCase,
 	archOnly bool, explanationArgs *ExplanationArgs, f OutFormat) (*OutputGenerator, error) {
 	res := &OutputGenerator{
 		config1:        c1,
-		config2:        c2,
 		outputGrouping: grouping,
 		useCase:        uc,
 		nodesConn:      map[string]*VPCConnectivity{},
@@ -152,7 +159,7 @@ func NewOutputGenerator(c1, c2 MultipleVPCConfigs, grouping bool, uc OutputUseCa
 				res.subnetsConn[i] = subnetsConn
 			}
 			if uc == SubnetsDiff {
-				configsForDiff := &configsForDiff{vpcConfig, c2.Vpc(i), Subnets}
+				configsForDiff := &configsForDiff{vpcConfig, c1.toCompareVpc(), Subnets}
 				configsDiff, err := configsForDiff.GetDiff()
 				if err != nil {
 					return nil, err
@@ -160,7 +167,7 @@ func NewOutputGenerator(c1, c2 MultipleVPCConfigs, grouping bool, uc OutputUseCa
 				res.cfgsDiff = configsDiff
 			}
 			if uc == EndpointsDiff {
-				configsForDiff := &configsForDiff{vpcConfig, c2.Vpc(i), Vsis}
+				configsForDiff := &configsForDiff{vpcConfig, c1.toCompareVpc(), Vsis}
 				configsDiff, err := configsForDiff.GetDiff()
 				if err != nil {
 					return nil, err
@@ -201,7 +208,7 @@ func (o *OutputGenerator) Generate(f OutFormat, outFile string) (string, error) 
 	default:
 		return "", errors.New("unsupported output format")
 	}
-	return formatter.WriteOutput(o.config1, o.config2, o.nodesConn, o.subnetsConn, o.cfgsDiff,
+	return formatter.WriteOutput(o.config1, o.nodesConn, o.subnetsConn, o.cfgsDiff,
 		outFile, o.outputGrouping, o.useCase, o.explanation)
 }
 
@@ -216,7 +223,7 @@ type SingleVpcOutputFormatter interface {
 // OutputFormatter is an interface for formatter that handle multi vpcs.
 // implemented by serialOutputFormatter and drawioOutputFormatter
 type OutputFormatter interface {
-	WriteOutput(c1, c2 MultipleVPCConfigs, conn map[string]*VPCConnectivity,
+	WriteOutput(c1 MultipleVPCConfigs, conn map[string]*VPCConnectivity,
 		subnetsConn map[string]*VPCsubnetConnectivity, subnetsDiff *diffBetweenCfgs,
 		outFile string, grouping bool, uc OutputUseCase, explainStruct *Explanation) (string, error)
 }
@@ -244,7 +251,7 @@ func (of *serialOutputFormatter) createSingleVpcFormatter() SingleVpcOutputForma
 	return nil
 }
 
-func (of *serialOutputFormatter) WriteOutput(c1, c2 MultipleVPCConfigs, conns map[string]*VPCConnectivity,
+func (of *serialOutputFormatter) WriteOutput(c1 MultipleVPCConfigs, conns map[string]*VPCConnectivity,
 	subnetsConns map[string]*VPCsubnetConnectivity, subnetsDiff *diffBetweenCfgs,
 	outFile string, grouping bool, uc OutputUseCase, explainStruct *Explanation) (string, error) {
 	singleVPCAnalysis := uc == EndpointsDiff || uc == SubnetsDiff || uc == Explain
@@ -265,12 +272,8 @@ func (of *serialOutputFormatter) WriteOutput(c1, c2 MultipleVPCConfigs, conns ma
 	}
 	// its diff or explain mode, we have only one vpc on each map:
 	name := c1.theName()
-	var toCompare *VPCConfig
-	if c2 != nil {
-		toCompare = c2.theVpc()
-	}
 	vpcAnalysisOutput, err2 :=
-		of.createSingleVpcFormatter().WriteOutput(c1.theVpc(), toCompare, conns[name], subnetsConns[name],
+		of.createSingleVpcFormatter().WriteOutput(c1.TheVpc(), c1.toCompareVpc(), conns[name], subnetsConns[name],
 			subnetsDiff, "", grouping, uc, explainStruct)
 	if err2 != nil {
 		return "", err2

@@ -58,7 +58,7 @@ func (d *DrawioOutputFormatter) init(
 	d.vpcConns = vpcConns
 	d.gConns = gConns
 	d.uc = uc
-	d.gen = NewDrawioGenerator(cConfigs.cloudName())
+	d.gen = NewDrawioGenerator(cConfigs.CloudName())
 }
 
 func (d *DrawioOutputFormatter) createDrawioTree() {
@@ -243,7 +243,7 @@ func (d *DrawioOutputFormatter) drawioFormat() drawio.FileFormat {
 	return drawio.FileDRAWIO
 }
 
-func (d *DrawioOutputFormatter) WriteOutput(c1, c2 MultipleVPCConfigs,
+func (d *DrawioOutputFormatter) WriteOutput(c1 MultipleVPCConfigs,
 	conn map[string]*VPCConnectivity,
 	subnetsConn map[string]*VPCsubnetConnectivity,
 	cfgsDiff *diffBetweenCfgs,
@@ -259,7 +259,7 @@ func (d *DrawioOutputFormatter) WriteOutput(c1, c2 MultipleVPCConfigs,
 		}
 		d.init(c1, conn, gConn, uc)
 	case AllSubnets:
-		var gConfigs MultipleVPCConfigs = NewMultipleVPCConfigs(c1.cloudName())
+		var gConfigs MultipleVPCConfigs = NewMultipleVPCConfigs(c1.CloudName())
 		gConn := map[string]*GroupConnLines{}
 		if subnetsConn != nil {
 			for name, vpcConn := range subnetsConn {
@@ -293,7 +293,7 @@ type ArchDrawioOutputFormatter struct {
 func newArchDrawioOutputFormatter(outFormat OutFormat) *ArchDrawioOutputFormatter {
 	return &ArchDrawioOutputFormatter{*newDrawioOutputFormatter(outFormat)}
 }
-func (d *ArchDrawioOutputFormatter) WriteOutput(c1, c2 MultipleVPCConfigs,
+func (d *ArchDrawioOutputFormatter) WriteOutput(c1 MultipleVPCConfigs,
 	conn map[string]*VPCConnectivity,
 	subnetsConn map[string]*VPCsubnetConnectivity,
 	cfgsDiff *diffBetweenCfgs,
@@ -301,5 +301,5 @@ func (d *ArchDrawioOutputFormatter) WriteOutput(c1, c2 MultipleVPCConfigs,
 	grouping bool,
 	uc OutputUseCase,
 	explanation *Explanation) (string, error) {
-	return d.DrawioOutputFormatter.WriteOutput(c1, c2, nil, nil, nil, outFile, grouping, uc, explanation)
+	return d.DrawioOutputFormatter.WriteOutput(c1, nil, nil, nil, outFile, grouping, uc, explanation)
 }
