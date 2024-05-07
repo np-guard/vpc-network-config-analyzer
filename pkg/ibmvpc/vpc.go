@@ -670,6 +670,10 @@ func (fip *FloatingIP) StringPrefixDetails(src, dst vpcmodel.Node, verbose bool)
 	return "", nil
 }
 
+func (fip *FloatingIP) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInFilter) string {
+	return ""
+}
+
 type PublicGateway struct {
 	vpcmodel.VPCResource
 	cidr         string
@@ -725,6 +729,11 @@ func (pgw *PublicGateway) StringPrefixDetails(src, dst vpcmodel.Node, verbose bo
 	return "", nil
 }
 
+func (pgw *PublicGateway) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInFilter) string {
+	return ""
+}
+
+// todo: remove
 // a tgw prefix filter (for explainability)
 type tgwPrefixFilter struct {
 	tc    *datamodel.TransitConnection // the TransitConnection  where this filter is defined
@@ -732,6 +741,7 @@ type tgwPrefixFilter struct {
 	// value -1  refers to the default prefix filter
 }
 
+// todo: remove
 // IPBlockPrefixFilter  captures for a certain address-prefix, the details of its matching prefix-filter
 type IPBlockPrefixFilter struct {
 	IPBlock      *ipblock.IPBlock // the IPBlock of the address-prefix
@@ -768,13 +778,13 @@ type TransitGateway struct {
 	// Specifically, these details include the specific transit connection and the index of the matching
 	// filter if exists (index "-1" is for default )
 	// this struct can be though of as the "explain" parallel of availableRoutes; note that unlike availableRoutes it also lists deny prefixes
-	vpcsAPToFilters map[string][]IPBlockPrefixFilter
+	vpcsAPToFiltersOld map[string][]IPBlockPrefixFilter
 
 	// maps each VPC UID to the details of the matching filters
 	// these details includes map of each relevant IPBlock to the transit connection (its index in the TgwLayer)
 	// and the index of the matching filter in the transit connection if exists (index "-1" is for default )
 	// this struct can be though of as the "explain" parallel of availableRoutes; note that unlike availableRoutes it also lists deny prefixes
-	vpcsAPToFilterAlternative map[string]map[*ipblock.IPBlock]vpcmodel.RulesInFilter
+	vpcsAPToPrefixRules map[string]map[*ipblock.IPBlock]vpcmodel.RulesInFilter
 }
 
 func (tgw *TransitGateway) addSourceAndDestNodes() {
@@ -897,12 +907,17 @@ func (tgw *TransitGateway) StringPrefixDetails(src, dst vpcmodel.Node, verbose b
 	return noVerboseStr + "denies connection" + newline, nil
 }
 
+// StringDetailsOfRules todo: implement, replace StringPrefixDetails
+func (tgw *TransitGateway) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInFilter) string {
+	return ""
+}
+
 func (tgw *TransitGateway) prefixOfSrcDst(src, dst vpcmodel.Node) *tgwPrefixFilter {
 	// <src, dst> routed by tgw given that source is in the tgw,
 	// and there is a prefix filter defined for the dst,
 	// the relevant prefix filter is determined by match of the Address prefix the dest's node is in (including default)
 	if vpcmodel.HasNode(tgw.sourceNodes, src) {
-		for _, singleIPBlockPrefix := range tgw.vpcsAPToFilters[dst.VPC().UID()] {
+		for _, singleIPBlockPrefix := range tgw.vpcsAPToFiltersOld[dst.VPC().UID()] {
 			if dst.IPBlock().ContainedIn(singleIPBlockPrefix.IPBlock) {
 				return &singleIPBlockPrefix.prefixFilter
 			}

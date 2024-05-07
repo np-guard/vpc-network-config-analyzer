@@ -819,10 +819,10 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 					ResourceType: ResourceTypeTGW,
 					Region:       region,
 				},
-				vpcs:            []*VPC{vpc},
-				availableRoutes: map[string][]*ipblock.IPBlock{},
-				vpcsAPToFilters: map[string][]IPBlockPrefixFilter{},
-				region:          getRegionByName(region, regionToStructMap),
+				vpcs:               []*VPC{vpc},
+				availableRoutes:    map[string][]*ipblock.IPBlock{},
+				vpcsAPToFiltersOld: map[string][]IPBlockPrefixFilter{},
+				region:             getRegionByName(region, regionToStructMap),
 			}
 			tgwMap[tgwUID] = tgw
 		} else {
@@ -842,7 +842,7 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 			tgwMap[tgwUID].addSourceAndDestNodes()
 
 			// explainability related struct initialization
-			tgwMap[tgwUID].vpcsAPToFilters[vpcUID] = vpcApsPrefixes // todo vpcsAPToFilterAlternative
+			tgwMap[tgwUID].vpcsAPToFiltersOld[vpcUID] = vpcApsPrefixes // todo vpcsAPToFilterAlternative
 		}
 	}
 	return tgwMap
