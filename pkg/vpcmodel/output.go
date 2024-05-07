@@ -132,23 +132,23 @@ func NewOutputGenerator(c1, c2 MultipleVPCConfigs, grouping bool, uc OutputUseCa
 			}
 			res.explanation = explanation
 		}
-		for i := range c1.Vpcs() {
+		for i, vpcConfig := range c1.Vpcs() {
 			if uc == AllEndpoints {
-				nodesConn, err := c1.Vpc(i).GetVPCNetworkConnectivity(grouping)
+				nodesConn, err := vpcConfig.GetVPCNetworkConnectivity(grouping)
 				if err != nil {
 					return nil, err
 				}
 				res.nodesConn[i] = nodesConn
 			}
 			if uc == AllSubnets {
-				subnetsConn, err := c1.Vpc(i).GetSubnetsConnectivity(true, grouping)
+				subnetsConn, err := vpcConfig.GetSubnetsConnectivity(true, grouping)
 				if err != nil {
 					return nil, err
 				}
 				res.subnetsConn[i] = subnetsConn
 			}
 			if uc == SubnetsDiff {
-				configsForDiff := &configsForDiff{c1.Vpc(i), c2.Vpc(i), Subnets}
+				configsForDiff := &configsForDiff{vpcConfig, c2.Vpc(i), Subnets}
 				configsDiff, err := configsForDiff.GetDiff()
 				if err != nil {
 					return nil, err
@@ -156,7 +156,7 @@ func NewOutputGenerator(c1, c2 MultipleVPCConfigs, grouping bool, uc OutputUseCa
 				res.cfgsDiff = configsDiff
 			}
 			if uc == EndpointsDiff {
-				configsForDiff := &configsForDiff{c1.Vpc(i), c2.Vpc(i), Vsis}
+				configsForDiff := &configsForDiff{vpcConfig, c2.Vpc(i), Vsis}
 				configsDiff, err := configsForDiff.GetDiff()
 				if err != nil {
 					return nil, err
@@ -247,9 +247,9 @@ func (of *serialOutputFormatter) WriteOutput(c1, c2 MultipleVPCConfigs, conns ma
 	if !singleVPCAnalysis {
 		outputPerVPC := make([]*SingleAnalysisOutput, len(c1.Vpcs()))
 		i := 0
-		for name := range c1.Vpcs() {
+		for name, vpcConfig := range c1.Vpcs() {
 			vpcAnalysisOutput, err2 :=
-				of.createSingleVpcFormatter().WriteOutput(c1.Vpc(name), nil, conns[name], subnetsConns[name],
+				of.createSingleVpcFormatter().WriteOutput(vpcConfig, nil, conns[name], subnetsConns[name],
 					subnetsDiff, "", grouping, uc, explainStruct)
 			if err2 != nil {
 				return "", err2
