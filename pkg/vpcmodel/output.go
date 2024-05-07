@@ -13,11 +13,9 @@ import (
 	"slices"
 	"sort"
 	"strings"
-
 )
 
 type OutFormat int64
-
 
 const asteriskDetails = "\nconnections are stateful (on TCP) unless marked with *\n"
 
@@ -100,7 +98,7 @@ func NewOutputGenerator(c1 MultipleVPCConfigs, grouping bool, uc OutputUseCase,
 				res.subnetsConn[i] = subnetsConn
 			}
 			if uc == SubnetsDiff {
-				configsForDiff := &configsForDiff{vpcConfig, c1.toCompareVpc(), Subnets}
+				configsForDiff := &configsForDiff{vpcConfig, c1.toCompareVpc(i), Subnets}
 				configsDiff, err := configsForDiff.GetDiff()
 				if err != nil {
 					return nil, err
@@ -108,7 +106,7 @@ func NewOutputGenerator(c1 MultipleVPCConfigs, grouping bool, uc OutputUseCase,
 				res.cfgsDiff = configsDiff
 			}
 			if uc == EndpointsDiff {
-				configsForDiff := &configsForDiff{vpcConfig, c1.toCompareVpc(), Vsis}
+				configsForDiff := &configsForDiff{vpcConfig, c1.toCompareVpc(i), Vsis}
 				configsDiff, err := configsForDiff.GetDiff()
 				if err != nil {
 					return nil, err
@@ -211,15 +209,17 @@ func (of *serialOutputFormatter) WriteOutput(c1 MultipleVPCConfigs, conns map[st
 		}
 		return of.AggregateVPCsOutput(outputPerVPC, uc, outFile)
 	}
-	// its diff or explain mode, we have only one vpc on each map:
-	name := c1.theName()
-	vpcAnalysisOutput, err2 :=
-		of.createSingleVpcFormatter().WriteOutput(c1.TheVpc(), c1.toCompareVpc(), conns[name], subnetsConns[name],
-			subnetsDiff, "", grouping, uc, explainStruct)
-	if err2 != nil {
-		return "", err2
+	for name, vpcConfig := range c1.Vpcs() {
+		vpcAnalysisOutput, err2 :=
+			of.createSingleVpcFormatter().WriteOutput(vpcConfig, c1.toCompareVpc(name), conns[name], subnetsConns[name],
+				subnetsDiff, "", grouping, uc, explainStruct)
+		if err2 != nil {
+			return "", err2
+		}
+		// its diff or explain mode, we have only one vpc on each map:
+		return of.WriteDiffOrExplainOutput(vpcAnalysisOutput, uc, outFile)
 	}
-	return of.WriteDiffOrExplainOutput(vpcAnalysisOutput, uc, outFile)
+	return "", nil
 }
 
 func WriteToFile(content, fileName string) (string, error) {

@@ -235,7 +235,7 @@ func _main(cmdlineArgs []string) error {
 			return fmt.Errorf("for diff mode %v a single configuration should be provided "+
 				"for both -vpc-config and -vpc-config-second", *inArgs.AnalysisType)
 		}
-		vpcConfigs1.SetToCompareVpc(vpcConfigs2.TheVpc())
+		vpcConfigs1.SetToCompareVpc(vpcConfigs2)
 	}
 	outFile := ""
 	if inArgs.OutputFile != nil {

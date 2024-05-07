@@ -12,7 +12,6 @@ import (
 	"errors"
 
 	"github.com/np-guard/models/pkg/connection"
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 // VPCConfig captures the configured resources for a VPC
@@ -102,27 +101,25 @@ func (c *VPCConfig) getRoutingResource(src, dst Node) (RoutingResource, *connect
 	return nil, NoConns(), nil
 }
 
-///////////////////////////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////////////////////
 type MultipleVPCConfigs interface {
 	Vpcs() map[string]*VPCConfig
 	AddVpc(name string, vpc *VPCConfig)
 	RemoveVpc(name string)
 	Vpc(name string) *VPCConfig
 	HasVpc(name string) bool
-	TheVpc() *VPCConfig
-	toCompareVpc() *VPCConfig
-	SetToCompareVpc(vpc *VPCConfig)
-	theName() string
+	toCompareVpc(name string) *VPCConfig
+	SetToCompareVpc(toCompare MultipleVPCConfigs)
 	CloudName() string
 	ExplainConnectivity(src, dst string, connQuery *connection.Set) (res *Explanation, err error)
 }
 
-
 type MultipleVPCConfigsStruct struct {
 	vpcs       map[string]*VPCConfig
-	toCompare  *VPCConfig
-	cloudeName string
+	toCompare  map[string]*VPCConfig
+	cloudName string
 }
+
 func NewMultipleVPCConfigs(cloudName string) *MultipleVPCConfigsStruct {
 	return &MultipleVPCConfigsStruct{map[string]*VPCConfig{}, nil, cloudName}
 }
@@ -143,20 +140,12 @@ func (c *MultipleVPCConfigsStruct) HasVpc(name string) bool {
 	_, ok := c.vpcs[name]
 	return ok
 }
-func (c *MultipleVPCConfigsStruct) TheVpc() *VPCConfig {
-	_, v := common.AnyMapEntry(c.vpcs)
-	return v
+func (c *MultipleVPCConfigsStruct) toCompareVpc(name string) *VPCConfig {
+	return c.toCompare[name]
 }
-func (c *MultipleVPCConfigsStruct) toCompareVpc() *VPCConfig {
-	return c.toCompare
-}
-func (c *MultipleVPCConfigsStruct) SetToCompareVpc(vpc *VPCConfig) {
-	c.toCompare = vpc
-}
-func (c *MultipleVPCConfigsStruct) theName() string {
-	n, _ := common.AnyMapEntry(c.vpcs)
-	return n
+func (c *MultipleVPCConfigsStruct) SetToCompareVpc(toCompare MultipleVPCConfigs) {
+	c.toCompare = toCompare.Vpcs()
 }
 func (c *MultipleVPCConfigsStruct) CloudName() string {
-	return c.cloudeName
+	return c.cloudName
 }
