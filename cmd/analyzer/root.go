@@ -31,12 +31,9 @@ const (
 
 func NewRootCommand(args *InArgs) *cobra.Command {
 	rootCmd := &cobra.Command{
-		Use:   "vpcanalyzer",
-		Short: "vpcanalyzer is a CLI that analyzes network connectivity in VPCs",
-		Long:  `vpcanalyzer is a command-line tool to analyze VPC connectivity, based on cloud configuration.`,
-		Args: func(cmd *cobra.Command, args []string) error {
-			return cobra.NoArgs(cmd, args)
-		},
+		Use:     "vpcanalyzer",
+		Short:   "vpcanalyzer is a CLI that analyzes network connectivity in VPCs",
+		Long:    `vpcanalyzer is a command-line tool to analyze VPC connectivity, based on cloud configuration.`,
 		Version: version.VersionCore,
 	}
 

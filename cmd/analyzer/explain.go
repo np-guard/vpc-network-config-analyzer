@@ -54,11 +54,9 @@ func NewExplainCommand(args *InArgs) *cobra.Command {
 		Use:   "explain",
 		Short: "Explain connectivity between two endpoints",
 		Long:  `explains how the given cloud configuration affects connectivity between two endpoints`,
-		Args: func(cmd *cobra.Command, args []string) error {
-			return cobra.NoArgs(cmd, args)
-		},
+		Args:  cobra.NoArgs,
 		PreRunE: func(cmd *cobra.Command, _ []string) error {
-			return validateArgs(cmd, args)
+			return validateFlags(cmd, args)
 		},
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			args.AnalysisType = explainMode
@@ -104,7 +102,7 @@ func flagSet(cmd *cobra.Command, flagName string) bool {
 	return flag.Changed
 }
 
-func validateArgs(cmd *cobra.Command, args *InArgs) error {
+func validateFlags(cmd *cobra.Command, args *InArgs) error {
 	if args.EProtocol == "" {
 		if flagSet(cmd, srcMinPortFlag) || flagSet(cmd, srcMaxPortFlag) ||
 			flagSet(cmd, dstMinPortFlag) || flagSet(cmd, dstMaxPortFlag) {
