@@ -32,7 +32,7 @@ func (e *edgeInfo) IsExternal() bool {
 // 3. create the edges from the map we created in stage (1). also sets the routers to the edges
 
 type DrawioOutputFormatter struct {
-	cConfigs        MultipleVPCConfigs
+	cConfigs        *MultipleVPCConfigs
 	vpcConns        map[string]*VPCConnectivity
 	gConns          map[string]*GroupConnLines
 	gen             *DrawioGenerator
@@ -50,7 +50,7 @@ func newDrawioOutputFormatter(outFormat OutFormat) *DrawioOutputFormatter {
 	return &d
 }
 func (d *DrawioOutputFormatter) init(
-	cConfigs MultipleVPCConfigs,
+	cConfigs *MultipleVPCConfigs,
 	vpcConns map[string]*VPCConnectivity,
 	gConns map[string]*GroupConnLines,
 	uc OutputUseCase) {
@@ -243,7 +243,7 @@ func (d *DrawioOutputFormatter) drawioFormat() drawio.FileFormat {
 	return drawio.FileDRAWIO
 }
 
-func (d *DrawioOutputFormatter) WriteOutput(c1 MultipleVPCConfigs,
+func (d *DrawioOutputFormatter) WriteOutput(c1 *MultipleVPCConfigs,
 	conn map[string]*VPCConnectivity,
 	subnetsConn map[string]*VPCsubnetConnectivity,
 	cfgsDiff *diffBetweenCfgs,
@@ -259,7 +259,7 @@ func (d *DrawioOutputFormatter) WriteOutput(c1 MultipleVPCConfigs,
 		}
 		d.init(c1, conn, gConn, uc)
 	case AllSubnets:
-		var gConfigs MultipleVPCConfigs = NewMultipleVPCConfigs(c1.CloudName())
+		var gConfigs *MultipleVPCConfigs = NewMultipleVPCConfigs(c1.CloudName())
 		gConn := map[string]*GroupConnLines{}
 		if subnetsConn != nil {
 			for name, vpcConn := range subnetsConn {
@@ -293,7 +293,7 @@ type ArchDrawioOutputFormatter struct {
 func newArchDrawioOutputFormatter(outFormat OutFormat) *ArchDrawioOutputFormatter {
 	return &ArchDrawioOutputFormatter{*newDrawioOutputFormatter(outFormat)}
 }
-func (d *ArchDrawioOutputFormatter) WriteOutput(c1 MultipleVPCConfigs,
+func (d *ArchDrawioOutputFormatter) WriteOutput(c1 *MultipleVPCConfigs,
 	conn map[string]*VPCConnectivity,
 	subnetsConn map[string]*VPCsubnetConnectivity,
 	cfgsDiff *diffBetweenCfgs,

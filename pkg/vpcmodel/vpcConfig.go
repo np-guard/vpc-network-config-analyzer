@@ -102,50 +102,39 @@ func (c *VPCConfig) getRoutingResource(src, dst Node) (RoutingResource, *connect
 }
 
 // /////////////////////////////////////////////////////////////////////////////////
-type MultipleVPCConfigs interface {
-	Vpcs() map[string]*VPCConfig
-	AddVpc(name string, vpc *VPCConfig)
-	RemoveVpc(name string)
-	Vpc(name string) *VPCConfig
-	HasVpc(name string) bool
-	toCompareVpc(name string) *VPCConfig
-	SetToCompareVpc(toCompare MultipleVPCConfigs)
-	CloudName() string
-	ExplainConnectivity(src, dst string, connQuery *connection.Set) (res *Explanation, err error)
-}
 
-type MultipleVPCConfigsStruct struct {
+type MultipleVPCConfigs struct {
 	vpcs       map[string]*VPCConfig
 	toCompare  map[string]*VPCConfig
 	cloudName string
 }
 
-func NewMultipleVPCConfigs(cloudName string) *MultipleVPCConfigsStruct {
-	return &MultipleVPCConfigsStruct{map[string]*VPCConfig{}, nil, cloudName}
+func NewMultipleVPCConfigs(cloudName string) *MultipleVPCConfigs {
+	return &MultipleVPCConfigs{map[string]*VPCConfig{}, nil, cloudName}
 }
 
-func (c *MultipleVPCConfigsStruct) Vpcs() map[string]*VPCConfig {
+func (c *MultipleVPCConfigs) Vpcs() map[string]*VPCConfig {
 	return c.vpcs
 }
-func (c *MultipleVPCConfigsStruct) AddVpc(name string, vpc *VPCConfig) {
+func (c *MultipleVPCConfigs) AddVpc(name string, vpc *VPCConfig) {
 	c.vpcs[name] = vpc
 }
-func (c *MultipleVPCConfigsStruct) RemoveVpc(name string) {
+func (c *MultipleVPCConfigs) RemoveVpc(name string) {
 	delete(c.vpcs, name)
 }
-func (c *MultipleVPCConfigsStruct) Vpc(name string) *VPCConfig {
+func (c *MultipleVPCConfigs) Vpc(name string) *VPCConfig {
 	return c.vpcs[name]
 }
-func (c *MultipleVPCConfigsStruct) HasVpc(name string) bool {
+func (c *MultipleVPCConfigs) HasVpc(name string) bool {
 	_, ok := c.vpcs[name]
 	return ok
 }
-func (c *MultipleVPCConfigsStruct) toCompareVpc(name string) *VPCConfig {
+func (c *MultipleVPCConfigs) toCompareVpc(name string) *VPCConfig {
 	return c.toCompare[name]
 }
-func (c *MultipleVPCConfigsStruct) SetToCompareVpc(toCompare MultipleVPCConfigs) {
+func (c *MultipleVPCConfigs) SetToCompareVpc(toCompare *MultipleVPCConfigs) {
 	c.toCompare = toCompare.Vpcs()
 }
-func (c *MultipleVPCConfigsStruct) CloudName() string {
+func (c *MultipleVPCConfigs) CloudName() string {
 	return c.cloudName
 }

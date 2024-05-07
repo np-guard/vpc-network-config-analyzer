@@ -73,7 +73,7 @@ func analysisTypeToUseCase(inArgs *InArgs) vpcmodel.OutputUseCase {
 	return vpcmodel.AllEndpoints
 }
 
-func analysisVPCConfigs(c1 vpcmodel.MultipleVPCConfigs, inArgs *InArgs, outFile string) (string, error) {
+func analysisVPCConfigs(c1 *vpcmodel.MultipleVPCConfigs, inArgs *InArgs, outFile string) (string, error) {
 	var explanationArgs *vpcmodel.ExplanationArgs
 	if *inArgs.AnalysisType == explainMode {
 		explanationArgs = vpcmodel.NewExplanationArgs(*inArgs.ESrc, *inArgs.EDst, *inArgs.EProtocol,
@@ -125,7 +125,7 @@ func mergeResourcesContainers(rc1, rc2 *datamodel.ResourcesContainerModel) (*dat
 	return rc1, nil
 }
 
-func vpcConfigsFromFiles(fileNames []string, inArgs *InArgs) (vpcmodel.MultipleVPCConfigs, error) {
+func vpcConfigsFromFiles(fileNames []string, inArgs *InArgs) (*vpcmodel.MultipleVPCConfigs, error) {
 	var mergedRC *datamodel.ResourcesContainerModel
 	for _, file := range fileNames {
 		rc, err1 := ibmvpc.ParseResourcesFromFile(file)
@@ -144,7 +144,7 @@ func vpcConfigsFromFiles(fileNames []string, inArgs *InArgs) (vpcmodel.MultipleV
 	return vpcConfigs, nil
 }
 
-func vpcConfigsFromAccount(inArgs *InArgs) (vpcmodel.MultipleVPCConfigs, error) {
+func vpcConfigsFromAccount(inArgs *InArgs) (*vpcmodel.MultipleVPCConfigs, error) {
 	rc := factory.GetResourceContainer(*inArgs.Provider, inArgs.RegionList, *inArgs.ResourceGroup)
 	// Collect resources from the provider API and generate output
 	err := rc.CollectResourcesFromAPI()
@@ -212,7 +212,7 @@ func _main(cmdlineArgs []string) error {
 		return nil
 	}
 
-	var vpcConfigs1 vpcmodel.MultipleVPCConfigs
+	var vpcConfigs1 *vpcmodel.MultipleVPCConfigs
 	if *inArgs.Provider != "" {
 		vpcConfigs1, err = vpcConfigsFromAccount(inArgs)
 		if err != nil {

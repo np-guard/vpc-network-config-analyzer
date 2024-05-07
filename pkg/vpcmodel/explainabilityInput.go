@@ -88,7 +88,7 @@ type srcAndDstNodes struct {
 // if no match found then errors 5 to 7 are in increasing severity. that is, 7>6>5
 //
 //nolint:gocyclo // better not split into two function
-func (configsMap *MultipleVPCConfigsStruct) getVPCConfigAndSrcDstNodes(src, dst string) (vpcConfig *VPCConfig,
+func (configsMap *MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string) (vpcConfig *VPCConfig,
 	srcNodes, dstNodes []Node, isSrcDstInternalIP srcDstInternalAddr, err error) {
 	var errMsgInternalNotWithinSubnet, errMsgNoValidSrc, errMsgNoValidDst error
 	var srcFoundSomeCfg, dstFoundSomeCfg bool
@@ -182,7 +182,7 @@ func noConfigMatchSrcDst(srcFoundSomeCfg, dstFoundSomeCfg bool, errMsgInternalNo
 // src, dst found in more than one config error:
 // more than one match of single config or
 // non match of single config and more than one match of multiple config
-func (configsMap *MultipleVPCConfigsStruct) matchMoreThanOneSingleVpcCfgError(src, dst string,
+func (configsMap *MultipleVPCConfigs) matchMoreThanOneSingleVpcCfgError(src, dst string,
 	configsWithSrcDstNodeSingleVpc, configsWithSrcDstNodeMultiVpc map[string]srcAndDstNodes) error {
 	if len(configsWithSrcDstNodeSingleVpc) > 1 { // more than single vpc config
 		matchConfigsStr := configsMap.listNamesCfg(configsWithSrcDstNodeSingleVpc)
@@ -197,7 +197,7 @@ func (configsMap *MultipleVPCConfigsStruct) matchMoreThanOneSingleVpcCfgError(sr
 		"This scenario is currently not supported", listNamesCrossVpcRouters)
 }
 
-func (configsMap *MultipleVPCConfigsStruct) listNamesCfg(configsWithSrcDstNode map[string]srcAndDstNodes) string {
+func (configsMap *MultipleVPCConfigs) listNamesCfg(configsWithSrcDstNode map[string]srcAndDstNodes) string {
 	i := 0
 	matchConfigs := make([]string, len(configsWithSrcDstNode))
 	for vpcUID := range configsWithSrcDstNode {
@@ -211,7 +211,7 @@ func (configsMap *MultipleVPCConfigsStruct) listNamesCfg(configsWithSrcDstNode m
 
 // returns list of tgw in vpcs of configsWithSrcDstNodeMultiVpc
 // since the map is of multi-vpc configs (IsMultipleVPCsConfig true) each must have a cross-vpc router (tgw)
-func (configsMap *MultipleVPCConfigsStruct) listNamesCrossVpcRouters(
+func (configsMap *MultipleVPCConfigs) listNamesCrossVpcRouters(
 	configsWithSrcDstNode map[string]srcAndDstNodes) (string, error) {
 	i := 0
 	crossVpcRouters := make([]string, len(configsWithSrcDstNode))
