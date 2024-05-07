@@ -56,6 +56,7 @@ func validateAddressPrefixesExist(vpc *VPC) {
 // getVPCAdvertisedRoutes returns a list of IPBlock objects for vpc address prefixes matched by prefix filters (with permit action),
 // thus advertised to a TGW.
 // It also returns list of IPBlockPrefixFilter objects, with details per address prefix of the matched prefix filter
+// todo vpcsAPToFilterAlternative
 func getVPCAdvertisedRoutes(tc *datamodel.TransitConnection, vpc *VPC) (advertisedRoutesRes []*ipblock.IPBlock,
 	vpcApsPrefixesRes []IPBlockPrefixFilter, err error) {
 	validateAddressPrefixesExist(vpc)
@@ -73,6 +74,7 @@ func getVPCAdvertisedRoutes(tc *datamodel.TransitConnection, vpc *VPC) (advertis
 		if isPermitAction {
 			advertisedRoutesRes = append(advertisedRoutesRes, apIPBlock)
 		}
+		// todo vpcsAPToFilterAlternative use index
 		vpcApsPrefixesRes[i] = IPBlockPrefixFilter{apIPBlock, tgwPrefixFilter{tc, filterIndex}}
 	}
 	return advertisedRoutesRes, vpcApsPrefixesRes, nil

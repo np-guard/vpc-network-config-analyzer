@@ -842,7 +842,7 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 			tgwMap[tgwUID].addSourceAndDestNodes()
 
 			// explainability related struct initialization
-			tgwMap[tgwUID].vpcsAPToFilters[vpcUID] = vpcApsPrefixes
+			tgwMap[tgwUID].vpcsAPToFilters[vpcUID] = vpcApsPrefixes // todo vpcsAPToFilterAlternative
 		}
 	}
 	return tgwMap

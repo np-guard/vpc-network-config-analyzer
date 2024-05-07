@@ -231,9 +231,11 @@ type FilterTrafficResource interface {
 	// StringDetailsRulesOfFilter gets, for a specific filter (sg/nacl), a struct with relevant rules in it,
 	// and prints the effect of each filter (e.g. security group sg1-ky allows connection)
 	// and the detailed list of relevant rules
+	// todo:move to rulesBasedResources interface
 	StringDetailsRulesOfFilter(listRulesInFilter []RulesInFilter) string
 	// ListFilterWithAction return map from filter's name to true if it allows traffic, false otherwise
 	// to be used by explainability printing functions
+	// todo:move to rulesBasedResources interface
 	ListFilterWithAction(listRulesInFilter []RulesInFilter) map[string]bool
 	ReferencedIPblocks() []*ipblock.IPBlock
 	ConnectivityMap() (map[string]*IPbasedConnectivityResult, error)
@@ -255,5 +257,16 @@ type RoutingResource interface {
 	// StringPrefixDetails returns a string with the prefix that determines the tgw related routing
 	// between src and dst; if non tgw relevant to <src, dst> returns an empty string
 	// Non-relevant for fip and pgw, returns always an empty string
+	// todo: remove, replace by StringDetailsRulesOfFilter in rulesBasedResources
 	StringPrefixDetails(src, dst Node, verbose bool) (string, error)
+}
+
+type rulesBasedResources interface {
+	// StringDetailsRulesOfFilter gets, for a specific resource (sg/nacl/tgw), a struct with relevant rules in it,
+	// and prints the effect of each resource (e.g. security group sg1-ky allows connection)
+	// and the detailed list of relevant rules
+	StringDetailsRulesOfFilter(listRulesInFilter []RulesInFilter) string
+	// ListFilterWithAction return map from resource's name to true if it allows traffic, false otherwise
+	// to be used by explainability printing functions
+	ListFilterWithAction(listRulesInFilter []RulesInFilter) map[string]bool
 }

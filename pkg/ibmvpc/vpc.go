@@ -725,6 +725,11 @@ func (pgw *PublicGateway) StringPrefixDetails(src, dst vpcmodel.Node, verbose bo
 	return "", nil
 }
 
+type TgwLayer struct {
+	vpcmodel.VPCResource
+	tgwConnList []*datamodel.TransitConnection
+}
+
 // a tgw prefix filter (for explainability)
 type tgwPrefixFilter struct {
 	tc    *datamodel.TransitConnection // the TransitConnection  where this filter is defined
@@ -766,6 +771,12 @@ type TransitGateway struct {
 	// filter if exists (index "-1" is for default )
 	// this struct can be though of as the "explain" parallel of availableRoutes; note that unlike availableRoutes it also lists deny prefixes
 	vpcsAPToFilters map[string][]IPBlockPrefixFilter
+
+	// maps each VPC UID to the details of the matching filters
+	// these details includes map of each relevant IPBlock to the transit connection (its index in the TgwLayer)
+	// and the index of the matching filter in the transit connection if exists (index "-1" is for default )
+	// this struct can be though of as the "explain" parallel of availableRoutes; note that unlike availableRoutes it also lists deny prefixes
+	vpcsAPToFilterAlternative map[string]map[*ipblock.IPBlock]vpcmodel.RulesInFilter
 }
 
 func (tgw *TransitGateway) addSourceAndDestNodes() {
