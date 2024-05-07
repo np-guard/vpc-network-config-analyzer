@@ -419,7 +419,7 @@ func (rulesInLayers rulesInLayers) rulesDetailsStr(c *VPCConfig, filtersRelevant
 	for _, layer := range getLayersToPrint(filtersRelevant, isIngress) {
 		filter := c.getFilterTrafficResourceOfKind(layer)
 		if rules, ok := rulesInLayers[layer]; ok {
-			strSlice = append(strSlice, filter.StringDetailsRulesOfFilter(rules))
+			strSlice = append(strSlice, filter.StringDetailsOfRules(rules))
 		}
 	}
 	return strings.Join(strSlice, emptyString)
