@@ -20,45 +20,50 @@ import (
 
 type OutFormat int64
 
-
-type MultipleVPCConfigs interface{
+type MultipleVPCConfigs interface {
 	Vpcs() map[string]*VPCConfig
 	Vpc(name string) *VPCConfig
+	HasVpc(name string) bool
 	theVpc() *VPCConfig
 	theName() string
 	ExplainConnectivity(src, dst string, connQuery *connection.Set) (res *Explanation, err error)
 	cloudName() string
 	AddVpc(name string, vpc *VPCConfig)
 }
-func NewMultipleVPCConfigs() *MultipleVPCConfigsStruct{
+
+func NewMultipleVPCConfigs() *MultipleVPCConfigsStruct {
 	return &MultipleVPCConfigsStruct{map[string]*VPCConfig{}, ""}
 }
-type MultipleVPCConfigsStruct struct{
-	vpcs map[string]*VPCConfig
+
+type MultipleVPCConfigsStruct struct {
+	vpcs      map[string]*VPCConfig
 	clodeName string
 }
 
-func (c *MultipleVPCConfigsStruct) Vpcs() map[string]*VPCConfig{
+func (c *MultipleVPCConfigsStruct) Vpcs() map[string]*VPCConfig {
 	return c.vpcs
 }
 func (c *MultipleVPCConfigsStruct) AddVpc(name string, vpc *VPCConfig) {
 	c.vpcs[name] = vpc
 }
-func (c *MultipleVPCConfigsStruct) Vpc(name string) *VPCConfig{
+func (c *MultipleVPCConfigsStruct) Vpc(name string) *VPCConfig {
 	return c.vpcs[name]
 }
-func (c *MultipleVPCConfigsStruct) theVpc() *VPCConfig{
+func (c *MultipleVPCConfigsStruct) HasVpc(name string) bool {
+	_, ok := c.vpcs[name]
+	return ok
+}
+func (c *MultipleVPCConfigsStruct) theVpc() *VPCConfig {
 	_, v := common.AnyMapEntry(c.vpcs)
 	return v
 }
-func (c *MultipleVPCConfigsStruct) theName() string{
+func (c *MultipleVPCConfigsStruct) theName() string {
 	n, _ := common.AnyMapEntry(c.vpcs)
 	return n
 }
-func (c *MultipleVPCConfigsStruct) cloudName() string{
+func (c *MultipleVPCConfigsStruct) cloudName() string {
 	return c.clodeName
 }
-
 
 const asteriskDetails = "\nconnections are stateful (on TCP) unless marked with *\n"
 
@@ -257,7 +262,7 @@ func (of *serialOutputFormatter) WriteOutput(c1, c2 MultipleVPCConfigs, conns ma
 	// its diff or explain mode, we have only one vpc on each map:
 	name := c1.theName()
 	var toCompare *VPCConfig
-	if c2 != nil{
+	if c2 != nil {
 		toCompare = c2.theVpc()
 	}
 	vpcAnalysisOutput, err2 :=
