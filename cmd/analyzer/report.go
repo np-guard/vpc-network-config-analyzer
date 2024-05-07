@@ -26,19 +26,18 @@ func NewReportCommand(args *InArgs) *cobra.Command {
 			}
 			return nil
 		},
-		Run: func(_ *cobra.Command, _ []string) {},
 	}
 
 	cmd.PersistentFlags().BoolVarP(&args.Grouping, "grouping", "g", false, "whether to group together endpoints sharing the same connectivity")
 
-	cmd.AddCommand(NewEndpointsCommand(args))
-	cmd.AddCommand(NewSubnetsCommand(args))
-	cmd.AddCommand(NewSingleSubnetCommand(args))
+	cmd.AddCommand(newReportEndpointsCommand(args))
+	cmd.AddCommand(newReportSubnetsCommand(args))
+	cmd.AddCommand(newReportSingleSubnetCommand(args))
 
 	return cmd
 }
 
-func NewEndpointsCommand(args *InArgs) *cobra.Command {
+func newReportEndpointsCommand(args *InArgs) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "endpoints",
 		Short: "Report VPC connectivity between endpoints",
@@ -54,7 +53,7 @@ func NewEndpointsCommand(args *InArgs) *cobra.Command {
 	return cmd
 }
 
-func NewSubnetsCommand(args *InArgs) *cobra.Command {
+func newReportSubnetsCommand(args *InArgs) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "subnets",
 		Short: "Report VPC connectivity between subnets",
@@ -70,7 +69,7 @@ func NewSubnetsCommand(args *InArgs) *cobra.Command {
 	return cmd
 }
 
-func NewSingleSubnetCommand(args *InArgs) *cobra.Command {
+func newReportSingleSubnetCommand(args *InArgs) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "singleSubnet",
 		Short: "Report VPC connectivity per subnet",
