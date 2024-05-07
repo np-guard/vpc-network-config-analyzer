@@ -1160,7 +1160,7 @@ func filterVPCSAndAddExternalNodes(vpcInternalAddressRange map[string]*ipblock.I
 	for vpcUID, vpcConfig := range res.Vpcs() {
 		if vpcInternalAddressRange[vpcUID] == nil {
 			logging.Warnf("Ignoring VPC %s, no subnets found for this VPC\n", vpcUID)
-			delete(res.Vpcs(), vpcUID)
+			res.RemoveVpc(vpcUID)
 			continue
 		}
 		err := handlePublicInternetNodes(vpcConfig, vpcInternalAddressRange[vpcUID])

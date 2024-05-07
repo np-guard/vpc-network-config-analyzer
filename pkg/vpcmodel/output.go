@@ -29,6 +29,7 @@ type MultipleVPCConfigs interface {
 	ExplainConnectivity(src, dst string, connQuery *connection.Set) (res *Explanation, err error)
 	cloudName() string
 	AddVpc(name string, vpc *VPCConfig)
+	RemoveVpc(name string)
 }
 
 func NewMultipleVPCConfigs(cloudName string) *MultipleVPCConfigsStruct {
@@ -45,6 +46,9 @@ func (c *MultipleVPCConfigsStruct) Vpcs() map[string]*VPCConfig {
 }
 func (c *MultipleVPCConfigsStruct) AddVpc(name string, vpc *VPCConfig) {
 	c.vpcs[name] = vpc
+}
+func (c *MultipleVPCConfigsStruct) RemoveVpc(name string) {
+	delete(c.vpcs,name)
 }
 func (c *MultipleVPCConfigsStruct) Vpc(name string) *VPCConfig {
 	return c.vpcs[name]
