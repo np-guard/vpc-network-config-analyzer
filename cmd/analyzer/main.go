@@ -73,7 +73,7 @@ func analysisTypeToUseCase(inArgs *InArgs) vpcmodel.OutputUseCase {
 	return vpcmodel.AllEndpoints
 }
 
-func analysisVPCConfigs(c1 *vpcmodel.MultipleVPCConfigs, inArgs *InArgs, outFile string) (string, error) {
+func analysisVPCConfigs(cConfigs *vpcmodel.MultipleVPCConfigs, inArgs *InArgs, outFile string) (string, error) {
 	var explanationArgs *vpcmodel.ExplanationArgs
 	if *inArgs.AnalysisType == explainMode {
 		explanationArgs = vpcmodel.NewExplanationArgs(*inArgs.ESrc, *inArgs.EDst, *inArgs.EProtocol,
@@ -81,7 +81,7 @@ func analysisVPCConfigs(c1 *vpcmodel.MultipleVPCConfigs, inArgs *InArgs, outFile
 	}
 
 	outFormat := getOutputFormat(inArgs)
-	og, err := vpcmodel.NewOutputGenerator(c1,
+	og, err := vpcmodel.NewOutputGenerator(cConfigs,
 		*inArgs.Grouping,
 		analysisTypeToUseCase(inArgs),
 		false,

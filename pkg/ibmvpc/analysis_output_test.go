@@ -748,7 +748,7 @@ func initTestFileNames(tt *vpcGeneralTest,
 // runTestPerUseCase runs the connectivity analysis for the required use case and compares/generates the output
 func runTestPerUseCase(t *testing.T,
 	tt *vpcGeneralTest,
-	c1 *vpcmodel.MultipleVPCConfigs,
+	cConfigs *vpcmodel.MultipleVPCConfigs,
 	uc vpcmodel.OutputUseCase,
 	mode testMode,
 	outDir string,
@@ -756,7 +756,7 @@ func runTestPerUseCase(t *testing.T,
 	if err := initTestFileNames(tt, uc, "", true, outDir); err != nil {
 		return err
 	}
-	og, err := vpcmodel.NewOutputGenerator(c1, tt.grouping, uc, tt.format == vpcmodel.ARCHDRAWIO, explanationArgs, tt.format)
+	og, err := vpcmodel.NewOutputGenerator(cConfigs, tt.grouping, uc, tt.format == vpcmodel.ARCHDRAWIO, explanationArgs, tt.format)
 	if err != nil {
 		return err
 	}
