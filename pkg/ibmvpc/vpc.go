@@ -925,6 +925,7 @@ func (tgw *TransitGateway) StringDetailsOfRules(listRulesInFilter []vpcmodel.Rul
 	return ""
 }
 
+// todo: dst may not be contained in any prefix
 func (tgw *TransitGateway) prefixOfSrcDst(src, dst vpcmodel.Node) *tgwPrefixFilter {
 	// <src, dst> routed by tgw given that source is in the tgw,
 	// and there is a prefix filter defined for the dst,
