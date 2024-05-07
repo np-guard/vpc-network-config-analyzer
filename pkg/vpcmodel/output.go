@@ -31,8 +31,8 @@ type MultipleVPCConfigs interface {
 	AddVpc(name string, vpc *VPCConfig)
 }
 
-func NewMultipleVPCConfigs() *MultipleVPCConfigsStruct {
-	return &MultipleVPCConfigsStruct{map[string]*VPCConfig{}, ""}
+func NewMultipleVPCConfigs(cloudName string) *MultipleVPCConfigsStruct {
+	return &MultipleVPCConfigsStruct{map[string]*VPCConfig{}, cloudName}
 }
 
 type MultipleVPCConfigsStruct struct {

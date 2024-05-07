@@ -259,7 +259,7 @@ func (d *DrawioOutputFormatter) WriteOutput(c1, c2 MultipleVPCConfigs,
 		}
 		d.init(c1, conn, gConn, uc)
 	case AllSubnets:
-		var gConfigs MultipleVPCConfigs = NewMultipleVPCConfigs()
+		var gConfigs MultipleVPCConfigs = NewMultipleVPCConfigs(c1.cloudName())
 		gConn := map[string]*GroupConnLines{}
 		if subnetsConn != nil {
 			for name, vpcConn := range subnetsConn {

@@ -71,7 +71,7 @@ func filterByVpcResourceGroupAndRegions(rc *datamodel.ResourcesContainerModel, v
 // containing the parsed resources in the relevant model objects
 func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resourceGroup string, regions []string, debug bool) (
 	vpcmodel.MultipleVPCConfigs, error) {
-	res := vpcmodel.NewMultipleVPCConfigs()          // map from VPC UID to its config
+	res := vpcmodel.NewMultipleVPCConfigs("IBM Cloud")          // map from VPC UID to its config
 	filteredOut := map[string]bool{}              // store networkInterface UIDs filtered out by skipByVPC
 	regionToStructMap := make(map[string]*Region) // map for caching Region objects
 	var err error
@@ -909,7 +909,6 @@ func addTGWbasedConfigs(tgws map[string]*TransitGateway, res vpcmodel.MultipleVP
 			newConfig.Nodes = append(newConfig.Nodes, vpcConfig.Nodes...)
 			newConfig.NodeSets = append(newConfig.NodeSets, vpcConfig.NodeSets...)
 			newConfig.Subnets = append(newConfig.Subnets, vpcConfig.Subnets...)
-			newConfig.CloudName = vpcConfig.CloudName
 			// FilterResources: merge NACLLayers to a single NACLLayer object, same for sg
 			for _, fr := range vpcConfig.FilterResources {
 				switch layer := fr.(type) {
@@ -1153,7 +1152,6 @@ func getIKSnodesConfig(res vpcmodel.MultipleVPCConfigs,
 func NewEmptyVPCConfig() *vpcmodel.VPCConfig {
 	return &vpcmodel.VPCConfig{
 		UIDToResource: map[string]vpcmodel.VPCResourceIntf{},
-		CloudName:     "IBM Cloud",
 	}
 }
 

@@ -34,7 +34,6 @@ type VPCConfig struct {
 	RoutingResources []RoutingResource
 	// UIDToResource is a map from resource UID to its object in the VPC
 	UIDToResource map[string]VPCResourceIntf
-	CloudName     string
 
 	// IsMultipleVPCsConfig is a bool indicator, when set true, it means that the VPCConfig contains resources from
 	// multiple VPCs connected to each other, and such config is relevant for reasoning about cross-vpc connectivity
