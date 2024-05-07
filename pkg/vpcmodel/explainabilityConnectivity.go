@@ -21,7 +21,7 @@ const ResourceTypeIKSNode = "IKSNodeNetworkInterface"
 
 // rulesInLayers contains specific rules across all layers (SGLayer/NACLLayer)
 // it maps from the layer name to the list of rules
-type rulesInLayers map[string][]RulesInFilter
+type rulesInLayers map[string][]RulesInTable
 
 // rulesConnection contains the rules enabling a connection
 type rulesConnection struct {
@@ -41,6 +41,7 @@ type srcDstDetails struct {
 	conn           *connection.Set
 	externalRouter RoutingResource // the router (fip or pgw) to external network; nil if none or not relevant
 	crossVpcRouter RoutingResource // the (currently only tgw) router between src and dst from different VPCs; nil if none or not relevant
+	//crossVpcRules  RulesInTable    // cross vpc (only tgw at the moment) prefix rules effecting the connection (or lack of)
 	// filters relevant for this src, dst pair; map keys are the filters kind (NaclLayer/SecurityGroupLayer)
 	// for two internal nodes within same subnet, only SG layer is relevant
 	// for external connectivity (src/dst is external) with FIP, only SG layer is relevant
@@ -243,7 +244,7 @@ func computeActualRulesGivenRulesFilter(rulesLayers rulesInLayers, filters map[s
 }
 
 // returns true if filter contains rules
-func filterHasRelevantRules(rulesInFilter []RulesInFilter) bool {
+func filterHasRelevantRules(rulesInFilter []RulesInTable) bool {
 	for _, rulesFilter := range rulesInFilter {
 		if len(rulesFilter.Rules) > 0 {
 			return true
@@ -284,10 +285,10 @@ func mergeAllowDeny(allow, deny rulesInLayers) rulesInLayers {
 		default: // no rules in this layer
 			continue
 		}
-		mergedRulesInLayer := []RulesInFilter{} // both deny and allow in layer
+		mergedRulesInLayer := []RulesInTable{} // both deny and allow in layer
 		// gets all indexes, both allow and deny, of a layer (e.g. indexes of nacls)
 		allIndexes := getAllIndexesForFilter(allowForLayer, denyForLayer)
-		// translates []RulesInFilter to a map for access efficiency
+		// translates []RulesInTable to a map for access efficiency
 		allowRulesMap := rulesInLayerToMap(allowForLayer)
 		denyRulesMap := rulesInLayerToMap(denyForLayer)
 		for filterIndex := range allIndexes {
@@ -309,7 +310,7 @@ func mergeAllowDeny(allow, deny rulesInLayers) rulesInLayers {
 			default: // no rules
 				rType = NoRules
 			}
-			mergedRulesInFilter := RulesInFilter{Table: filterIndex, Rules: mergedRules, RulesFilterType: rType}
+			mergedRulesInFilter := RulesInTable{Table: filterIndex, Rules: mergedRules, RulesFilterType: rType}
 			mergedRulesInLayer = append(mergedRulesInLayer, mergedRulesInFilter)
 		}
 		allowDenyMerged[layer] = mergedRulesInLayer
@@ -320,7 +321,7 @@ func mergeAllowDeny(allow, deny rulesInLayers) rulesInLayers {
 type intSet = common.GenericSet[int]
 
 // allow and deny in layer: gets all indexes of a layer (e.g. indexes of nacls)
-func getAllIndexesForFilter(allowForLayer, denyForLayer []RulesInFilter) (indexes intSet) {
+func getAllIndexesForFilter(allowForLayer, denyForLayer []RulesInTable) (indexes intSet) {
 	indexes = intSet{}
 	addIndexesOfFilters(indexes, allowForLayer)
 	addIndexesOfFilters(indexes, denyForLayer)
@@ -328,8 +329,8 @@ func getAllIndexesForFilter(allowForLayer, denyForLayer []RulesInFilter) (indexe
 }
 
 // translates rulesInLayer into a map from filter's index to the rules indexes
-func rulesInLayerToMap(rulesInLayer []RulesInFilter) map[int]*RulesInFilter {
-	mapFilterRules := map[int]*RulesInFilter{}
+func rulesInLayerToMap(rulesInLayer []RulesInTable) map[int]*RulesInTable {
+	mapFilterRules := map[int]*RulesInTable{}
 	for _, rulesInFilter := range rulesInLayer {
 		thisRulesInFilter := rulesInFilter // to make lint happy
 		// do not reference an address of a loop value
@@ -338,15 +339,15 @@ func rulesInLayerToMap(rulesInLayer []RulesInFilter) map[int]*RulesInFilter {
 	return mapFilterRules
 }
 
-func addIndexesOfFilters(indexes intSet, rulesInLayer []RulesInFilter) {
+func addIndexesOfFilters(indexes intSet, rulesInLayer []RulesInTable) {
 	for _, rulesInFilter := range rulesInLayer {
 		indexes[rulesInFilter.Table] = true
 	}
 }
 
 func (c *VPCConfig) getFiltersRulesBetweenNodesPerDirectionAndLayer(
-	src, dst Node, conn *connection.Set, isIngress bool, layer string) (allowRules *[]RulesInFilter,
-	denyRules *[]RulesInFilter, err error) {
+	src, dst Node, conn *connection.Set, isIngress bool, layer string) (allowRules *[]RulesInTable,
+	denyRules *[]RulesInTable, err error) {
 	filter := c.getFilterTrafficResourceOfKind(layer)
 	if filter == nil {
 		return nil, nil, fmt.Errorf("layer %v not found in configuration", layer)
@@ -388,7 +389,7 @@ func (c *VPCConfig) getRulesOfConnection(src, dst Node,
 	return allowRulesOfConnection, denyRulesOfConnection, nil
 }
 
-func (rulesInLayers rulesInLayers) updateRulesPerLayerIfNonEmpty(layer string, rulesFilter *[]RulesInFilter) {
+func (rulesInLayers rulesInLayers) updateRulesPerLayerIfNonEmpty(layer string, rulesFilter *[]RulesInTable) {
 	if len(*rulesFilter) > 0 {
 		rulesInLayers[layer] = *rulesFilter
 	}

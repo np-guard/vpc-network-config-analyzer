@@ -315,8 +315,8 @@ func (nl *NaclLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool)
 
 // RulesInConnectivity list of NACL rules contributing to the connectivity
 func (nl *NaclLayer) RulesInConnectivity(src, dst vpcmodel.Node,
-	conn *connection.Set, isIngress bool) (allowRes []vpcmodel.RulesInFilter,
-	denyRes []vpcmodel.RulesInFilter, err error) {
+	conn *connection.Set, isIngress bool) (allowRes []vpcmodel.RulesInTable,
+	denyRes []vpcmodel.RulesInTable, err error) {
 	for index, nacl := range nl.naclList {
 		tableRelevant, allowRules, denyRules, err1 := nacl.rulesFilterInConnectivity(src, dst, conn, isIngress)
 		if err1 != nil {
@@ -335,7 +335,7 @@ func (nl *NaclLayer) Name() string {
 	return ""
 }
 
-func appendToRulesInFilter(resRulesInFilter *[]vpcmodel.RulesInFilter, rules *[]int, filterIndex int, isAllow bool) {
+func appendToRulesInFilter(resRulesInFilter *[]vpcmodel.RulesInTable, rules *[]int, filterIndex int, isAllow bool) {
 	var rType vpcmodel.RulesType
 	switch {
 	case len(*rules) == 0:
@@ -345,7 +345,7 @@ func appendToRulesInFilter(resRulesInFilter *[]vpcmodel.RulesInFilter, rules *[]
 	default: // more than 0 deny rules
 		rType = vpcmodel.OnlyDeny
 	}
-	rulesInNacl := vpcmodel.RulesInFilter{
+	rulesInNacl := vpcmodel.RulesInTable{
 		Table:           filterIndex,
 		Rules:           *rules,
 		RulesFilterType: rType,
@@ -353,7 +353,7 @@ func appendToRulesInFilter(resRulesInFilter *[]vpcmodel.RulesInFilter, rules *[]
 	*resRulesInFilter = append(*resRulesInFilter, rulesInNacl)
 }
 
-func (nl *NaclLayer) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInFilter) string {
+func (nl *NaclLayer) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInTable) string {
 	strListRulesInFilter := ""
 	for _, rulesInFilter := range listRulesInFilter {
 		nacl := nl.naclList[rulesInFilter.Table]
@@ -364,7 +364,7 @@ func (nl *NaclLayer) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInFi
 	return strListRulesInFilter
 }
 
-func (nl *NaclLayer) ListFilterWithAction(listRulesInFilter []vpcmodel.RulesInFilter) (filters map[string]bool) {
+func (nl *NaclLayer) ListFilterWithAction(listRulesInFilter []vpcmodel.RulesInTable) (filters map[string]bool) {
 	filters = map[string]bool{}
 	for _, rulesInFilter := range listRulesInFilter {
 		nacl := nl.naclList[rulesInFilter.Table]
@@ -532,8 +532,8 @@ func (sgl *SecurityGroupLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIng
 // or between src and dst of connection conn if conn specified
 // denyRules not relevant here - returns nil
 func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
-	conn *connection.Set, isIngress bool) (allowRes []vpcmodel.RulesInFilter,
-	denyRes []vpcmodel.RulesInFilter, err error) {
+	conn *connection.Set, isIngress bool) (allowRes []vpcmodel.RulesInTable,
+	denyRes []vpcmodel.RulesInTable, err error) {
 	for index, sg := range sgl.sgList {
 		tableRelevant, sgRules, err1 := sg.rulesFilterInConnectivity(src, dst, conn, isIngress)
 		if err1 != nil {
@@ -544,7 +544,7 @@ func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 			if len(sgRules) == 0 {
 				rType = vpcmodel.NoRules
 			}
-			rulesInSg := vpcmodel.RulesInFilter{
+			rulesInSg := vpcmodel.RulesInTable{
 				Table:           index,
 				Rules:           sgRules,
 				RulesFilterType: rType,
@@ -555,7 +555,7 @@ func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 	return allowRes, nil, nil
 }
 
-func (sgl *SecurityGroupLayer) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInFilter) string {
+func (sgl *SecurityGroupLayer) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInTable) string {
 	listRulesInFilterSlice := make([]string, len(listRulesInFilter))
 	for i, rulesInFilter := range listRulesInFilter {
 		sg := sgl.sgList[rulesInFilter.Table]
@@ -566,7 +566,7 @@ func (sgl *SecurityGroupLayer) StringDetailsOfRules(listRulesInFilter []vpcmodel
 	return strings.Join(listRulesInFilterSlice, "")
 }
 
-func (sgl *SecurityGroupLayer) ListFilterWithAction(listRulesInFilter []vpcmodel.RulesInFilter) (filters map[string]bool) {
+func (sgl *SecurityGroupLayer) ListFilterWithAction(listRulesInFilter []vpcmodel.RulesInTable) (filters map[string]bool) {
 	filters = map[string]bool{}
 	for _, rulesInFilter := range listRulesInFilter {
 		sg := sgl.sgList[rulesInFilter.Table]
@@ -670,7 +670,11 @@ func (fip *FloatingIP) StringPrefixDetails(src, dst vpcmodel.Node, verbose bool)
 	return "", nil
 }
 
-func (fip *FloatingIP) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInFilter) string {
+func (fip *FloatingIP) RulesInConnectivity(src, dst vpcmodel.Node, conn *connection.Set) ([]vpcmodel.RulesInTable, error) {
+	return nil, nil
+}
+
+func (fip *FloatingIP) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInTable) string {
 	return ""
 }
 
@@ -729,7 +733,11 @@ func (pgw *PublicGateway) StringPrefixDetails(src, dst vpcmodel.Node, verbose bo
 	return "", nil
 }
 
-func (pgw *PublicGateway) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInFilter) string {
+func (pgw *PublicGateway) RulesInConnectivity(src, dst vpcmodel.Node, conn *connection.Set) ([]vpcmodel.RulesInTable, error) {
+	return nil, nil
+}
+
+func (pgw *PublicGateway) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInTable) string {
 	return ""
 }
 
@@ -784,7 +792,7 @@ type TransitGateway struct {
 	// these details includes map of each relevant IPBlock to the transit connection (its index in the TgwLayer)
 	// and the index of the matching filter in the transit connection if exists (index "-1" is for default )
 	// this struct can be though of as the "explain" parallel of availableRoutes; note that unlike availableRoutes it also lists deny prefixes
-	vpcsAPToPrefixRules map[string]map[*ipblock.IPBlock]vpcmodel.RulesInFilter
+	vpcsAPToPrefixRules map[string]map[*ipblock.IPBlock]vpcmodel.RulesInTable
 }
 
 func (tgw *TransitGateway) addSourceAndDestNodes() {
@@ -885,6 +893,10 @@ func actionNameStr(action *string) (string, error) {
 	return denyAction, nil
 }
 
+func (tgw *TransitGateway) RulesInConnectivity(src, dst vpcmodel.Node, conn *connection.Set) ([]vpcmodel.RulesInTable, error) {
+	return nil, nil
+}
+
 func (tgw *TransitGateway) StringPrefixDetails(src, dst vpcmodel.Node, verbose bool) (string, error) {
 	prefix := tgw.prefixOfSrcDst(src, dst)
 	transitEnablesConn := vpcmodel.HasNode(tgw.sourceNodes, src) && vpcmodel.HasNode(tgw.destNodes, dst)
@@ -908,7 +920,7 @@ func (tgw *TransitGateway) StringPrefixDetails(src, dst vpcmodel.Node, verbose b
 }
 
 // StringDetailsOfRules todo: implement, replace StringPrefixDetails
-func (tgw *TransitGateway) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInFilter) string {
+func (tgw *TransitGateway) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInTable) string {
 	return ""
 }
 

@@ -274,9 +274,9 @@ func (rulesInLayers rulesInLayers) summaryFiltersStr(c *VPCConfig, filtersReleva
 	return strings.Join(strSlice, semicolon+space)
 }
 
-// for a given layer (e.g. nacl) and []RulesInFilter describing ingress/egress rules,
+// for a given layer (e.g. nacl) and []RulesInTable describing ingress/egress rules,
 // returns a string with the effect of each filter, called by summaryFiltersStr
-func stringFilterEffect(c *VPCConfig, filterLayerName string, rules []RulesInFilter) string {
+func stringFilterEffect(c *VPCConfig, filterLayerName string, rules []RulesInTable) string {
 	filterLayer := c.getFilterTrafficResourceOfKind(filterLayerName)
 	filtersToActionMap := filterLayer.ListFilterWithAction(rules)
 	strSlice := make([]string, len(filtersToActionMap))
@@ -392,7 +392,7 @@ func FilterKindName(filterLayer string) string {
 
 // for a given filter layer (e.g. sg) returns a string of the allowing tables
 // (note that denying tables are excluded)
-func pathFiltersSingleLayerStr(c *VPCConfig, filterLayerName string, rules []RulesInFilter) string {
+func pathFiltersSingleLayerStr(c *VPCConfig, filterLayerName string, rules []RulesInTable) string {
 	filterLayer := c.getFilterTrafficResourceOfKind(filterLayerName)
 	filtersToActionMap := filterLayer.ListFilterWithAction(rules)
 	strSlice := []string{}

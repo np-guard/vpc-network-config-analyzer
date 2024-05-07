@@ -824,7 +824,7 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 				vpcs:                []*VPC{vpc},
 				availableRoutes:     map[string][]*ipblock.IPBlock{},
 				vpcsAPToFiltersOld:  map[string][]IPBlockPrefixFilter{},
-				vpcsAPToPrefixRules: map[string]map[*ipblock.IPBlock]vpcmodel.RulesInFilter{},
+				vpcsAPToPrefixRules: map[string]map[*ipblock.IPBlock]vpcmodel.RulesInTable{},
 				region:              getRegionByName(region, regionToStructMap),
 			}
 			tgwMap[tgwUID] = tgw
