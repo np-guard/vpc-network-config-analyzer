@@ -670,7 +670,7 @@ func (fip *FloatingIP) StringPrefixDetails(src, dst vpcmodel.Node, verbose bool)
 	return "", nil
 }
 
-func (fip *FloatingIP) RulesInConnectivity(src, dst vpcmodel.Node, conn *connection.Set) ([]vpcmodel.RulesInTable, error) {
+func (fip *FloatingIP) RulesInConnectivity(src, dst vpcmodel.Node) ([]vpcmodel.RulesInTable, error) {
 	return nil, nil
 }
 
@@ -733,7 +733,7 @@ func (pgw *PublicGateway) StringPrefixDetails(src, dst vpcmodel.Node, verbose bo
 	return "", nil
 }
 
-func (pgw *PublicGateway) RulesInConnectivity(src, dst vpcmodel.Node, conn *connection.Set) ([]vpcmodel.RulesInTable, error) {
+func (pgw *PublicGateway) RulesInConnectivity(src, dst vpcmodel.Node) ([]vpcmodel.RulesInTable, error) {
 	return nil, nil
 }
 
@@ -893,7 +893,8 @@ func actionNameStr(action *string) (string, error) {
 	return denyAction, nil
 }
 
-func (tgw *TransitGateway) RulesInConnectivity(src, dst vpcmodel.Node, conn *connection.Set) ([]vpcmodel.RulesInTable, error) {
+// todo: implement
+func (tgw *TransitGateway) RulesInConnectivity(src, dst vpcmodel.Node) ([]vpcmodel.RulesInTable, error) {
 	return nil, nil
 }
 

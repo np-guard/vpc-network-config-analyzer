@@ -845,7 +845,9 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 			tgwMap[tgwUID].addSourceAndDestNodes()
 
 			// explainability related struct initialization
-			tgwMap[tgwUID].vpcsAPToPrefixRules[vpcUID] = vpcAPToPrefixRules
+			for ipB, rulesInTable := range vpcAPToPrefixRules {
+				tgwMap[tgwUID].vpcsAPToPrefixRules[vpcUID][ipB] = rulesInTable
+			}
 			tgwMap[tgwUID].vpcsAPToFiltersOld[vpcUID] = vpcApsPrefixesOld // todo remove
 		}
 	}

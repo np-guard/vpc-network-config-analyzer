@@ -41,7 +41,9 @@ type srcDstDetails struct {
 	conn           *connection.Set
 	externalRouter RoutingResource // the router (fip or pgw) to external network; nil if none or not relevant
 	crossVpcRouter RoutingResource // the (currently only tgw) router between src and dst from different VPCs; nil if none or not relevant
-	//crossVpcRules  RulesInTable    // cross vpc (only tgw at the moment) prefix rules effecting the connection (or lack of)
+	crossVpcRules  []RulesInTable  // cross vpc (only tgw at the moment) prefix rules effecting the connection (or lack of)
+	// there could be more than one connection effecting the connection since src/dst cidr's may contain more than one AP
+
 	// filters relevant for this src, dst pair; map keys are the filters kind (NaclLayer/SecurityGroupLayer)
 	// for two internal nodes within same subnet, only SG layer is relevant
 	// for external connectivity (src/dst is external) with FIP, only SG layer is relevant
@@ -154,9 +156,7 @@ func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node,
 			if err != nil {
 				return nil, err
 			}
-			rulesThisSrcDst := &srcDstDetails{src, dst, false, false, false,
-				connection.None(), nil, nil, nil, allowRules,
-				nil, denyRules, nil, nil}
+			rulesThisSrcDst := &srcDstDetails{src: src, dst: dst, conn: connection.None(), potentialAllowRules: allowRules, potentialDenyRules: denyRules}
 			rulesAndConn = append(rulesAndConn, rulesThisSrcDst)
 		}
 	}
@@ -179,6 +179,12 @@ func (details *rulesAndConnDetails) computeRoutersAndFilters(c *VPCConfig) (err 
 			singleSrcDstDetails.crossVpcRouter, _, err = c.getRoutingResource(src, dst)
 			if err != nil {
 				return err
+			}
+			if singleSrcDstDetails.crossVpcRouter != nil {
+				singleSrcDstDetails.crossVpcRules, err = singleSrcDstDetails.crossVpcRouter.RulesInConnectivity(src, dst)
+				if err != nil {
+					return err
+				}
 			}
 			singleSrcDstDetails.filtersRelevant = src.(InternalNodeIntf).AppliedFiltersKinds(dst.(InternalNodeIntf))
 		} else { // external

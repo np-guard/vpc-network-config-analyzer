@@ -250,7 +250,7 @@ type RoutingResource interface {
 	Sources() []Node
 	Destinations() []Node
 	AllowedConnectivity(src, dst VPCResourceIntf) (*connection.Set, error)
-	RulesInConnectivity(src, dst Node, conn *connection.Set) ([]RulesInTable, error)
+	RulesInConnectivity(src, dst Node) ([]RulesInTable, error)
 	AppliedFiltersKinds() map[string]bool
 	ExternalIP() string // ExternalIP of fip, empty string for other resources
 	// RouterDefined is this router defined for src and dst? while fip, pgw are defined for src, dst iff they enable traffic
