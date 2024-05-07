@@ -16,7 +16,7 @@ import (
 )
 
 func TestGroupingUnification(t *testing.T) {
-	vpcConfigMultiVpc := getConfig(t, "tgw_larger_example")
+	vpcConfigMultiVpc := getConfig(t, "iks_workers_large")
 	require.NotNil(t, vpcConfigMultiVpc, "vpcConfigMultiVpc equals nil")
 
 	og, err := vpcmodel.NewOutputGenerator(vpcConfigMultiVpc, true,

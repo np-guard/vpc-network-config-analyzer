@@ -1,6 +1,6 @@
 Connectivity between VPCs connected by TGW local-tg-ky (UID: crn:161)
-ky-vpc1-vsi[10.240.0.5] => ky-vpc2-vsi[10.240.64.5] : All Connections
-ky-vpc2-vsi[10.240.64.5] => ky-vpc1-vsi[10.240.0.5] : All Connections
+ky-vpc1/ky-vpc1-vsi[10.240.0.5] => ky-vpc2/ky-vpc2-vsi[10.240.64.5] : All Connections
+ky-vpc2/ky-vpc2-vsi[10.240.64.5] => ky-vpc1/ky-vpc1-vsi[10.240.0.5] : All Connections
 
 Endpoint connectivity for VPC ky-vpc1
 Public Internet (all ranges) => ky-vpc1-vsi[10.240.0.5] : All Connections

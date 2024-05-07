@@ -9,6 +9,8 @@ package drawio
 import (
 	"slices"
 	"strings"
+
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 /////////////////////////////////////////////////////////////
@@ -86,61 +88,75 @@ func setGeometry(tn TreeNodeInterface) {
 }
 
 // /////////////////////////////////////////////////////////////////////
-// getAllNodes() - return all the nodes in the sub tree
+// getSubTreeNodes() - return all the nodes in the sub tree
+
+func getSubTreeNodes(tn TreeNodeInterface) (
+	squares []SquareTreeNodeInterface,
+	icons []IconTreeNodeInterface,
+	lines []LineTreeNodeInterface) {
+	for _, child := range joinTnsLists(tn.children()) {
+		subSquares, subIcons, subLines := getSubTreeNodes(child)
+		squares = append(squares, subSquares...)
+		icons = append(icons, subIcons...)
+		lines = append(lines, subLines...)
+	}
+	switch {
+	case tn.IsSquare():
+		squares = append(squares, tn.(SquareTreeNodeInterface))
+	case tn.IsIcon():
+		icons = append(icons, tn.(IconTreeNodeInterface))
+	case tn.IsLine():
+		lines = append(lines, tn.(LineTreeNodeInterface))
+	}
+	// remove duplications:
+	squares = common.FromList(squares).AsList()
+	icons = common.FromList(icons).AsList()
+	lines = common.FromList(lines).AsList()
+	return squares, icons, lines
+}
+
+// functions getAll* are convenient interface for getSubTreeNodes()
 func getAllNodes(tn TreeNodeInterface) []TreeNodeInterface {
-	childrenSet := map[TreeNodeInterface]bool{}
-	squares, icons, lines := tn.children()
-	for _, s := range squares {
-		childrenSet[s] = true
+	return joinTnsLists(getSubTreeNodes(tn))
+}
+func getAllSquares(tn TreeNodeInterface) []SquareTreeNodeInterface {
+	squares, _, _ := getSubTreeNodes(tn)
+	return squares
+}
+func getAllIcons(tn TreeNodeInterface) []IconTreeNodeInterface {
+	_, icons, _ := getSubTreeNodes(tn)
+	return icons
+}
+func getAllLines(tn TreeNodeInterface) []LineTreeNodeInterface {
+	_, _, lines := getSubTreeNodes(tn)
+	return lines
+}
+
+func getAllSquaresAsTNs(tn TreeNodeInterface) []TreeNodeInterface {
+	return joinTnsLists(getAllSquares(tn), nil, nil)
+}
+func getAllIconsAsTNs(tn TreeNodeInterface) []TreeNodeInterface {
+	return joinTnsLists(nil, getAllIcons(tn), nil)
+}
+func getAllLinesAsTNs(tn TreeNodeInterface) []TreeNodeInterface {
+	return joinTnsLists(nil, nil, getAllLines(tn))
+}
+
+func joinTnsLists(squares []SquareTreeNodeInterface, icons []IconTreeNodeInterface, lines []LineTreeNodeInterface) []TreeNodeInterface {
+	ret := make([]TreeNodeInterface, len(squares)+len(icons)+len(lines))
+	for i, square := range squares {
+		ret[i] = square
 	}
-	for _, i := range icons {
-		childrenSet[i] = true
+	for i, icon := range icons {
+		ret[len(squares)+i] = icon
 	}
-	for _, l := range lines {
-		childrenSet[l] = true
-	}
-	for child := range childrenSet {
-		sub := getAllNodes(child)
-		for _, s := range sub {
-			childrenSet[s] = true
-		}
-	}
-	childrenSet[tn] = true
-	ret := []TreeNodeInterface{}
-	for c := range childrenSet {
-		ret = append(ret, c)
+	for i, line := range lines {
+		ret[len(squares)+len(icons)+i] = line
 	}
 	return ret
 }
 
-// todo: reimplement the following:
-func getAllLines(tn TreeNodeInterface) (ret []LineTreeNodeInterface) {
-	nodes := getAllNodes(tn)
-	for _, n := range nodes {
-		if n.IsLine() {
-			ret = append(ret, n.(LineTreeNodeInterface))
-		}
-	}
-	return ret
-}
-func getAllSquares(tn TreeNodeInterface) (ret []TreeNodeInterface) {
-	nodes := getAllNodes(tn)
-	for _, n := range nodes {
-		if n.IsSquare() {
-			ret = append(ret, n)
-		}
-	}
-	return ret
-}
-func getAllIcons(tn TreeNodeInterface) (ret []TreeNodeInterface) {
-	nodes := getAllNodes(tn)
-	for _, n := range nodes {
-		if n.IsIcon() {
-			ret = append(ret, n)
-		}
-	}
-	return ret
-}
+////////////////////////////////////////////////////////////////////////////
 
 func locations(tns []TreeNodeInterface) []*Location {
 	locations := []*Location{}

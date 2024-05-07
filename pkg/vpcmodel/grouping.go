@@ -134,6 +134,7 @@ type GroupConnLines struct {
 // EndpointElem can be Node(networkInterface) / groupedExternalNodes / groupedNetworkInterfaces / NodeSet(subnet)
 type EndpointElem interface {
 	Name() string
+	ExtendedName(*VPCConfig) string
 	UID() string
 	IsExternal() bool
 	DrawioResourceIntf
@@ -145,8 +146,8 @@ type groupedConnLine struct {
 	commonProperties *groupedCommonProperties // holds the common conn/diff properties
 }
 
-func (g *groupedConnLine) String() string {
-	return g.src.Name() + " => " + g.dst.Name() + " : " + g.commonProperties.groupingStrKey
+func (g *groupedConnLine) String(c *VPCConfig) string {
+	return g.src.ExtendedName(c) + " => " + g.dst.ExtendedName(c) + " : " + g.commonProperties.groupingStrKey
 }
 
 func (g *groupedConnLine) ConnLabel() string {
@@ -167,6 +168,22 @@ type groupedEndpointsElems []EndpointElem
 
 func (g *groupedEndpointsElems) Name() string {
 	return listEndpointElemStr(*g, EndpointElem.Name)
+}
+
+func (g *groupedEndpointsElems) ExtendedName(c *VPCConfig) string {
+	if !c.IsMultipleVPCsConfig { // this if is so that in relevant unittest we can avoid creating a vpc
+		return g.Name()
+	}
+	prefix := ""
+	if vpcResource, ok := (*g)[0].(VPCResourceIntf); ok {
+		// should never fail; yet not adding an error
+		prefix = vpcResource.ExtendedPrefix(c)
+	}
+	// add the vpc prefix only once for grouped elements which are always of the same VPC
+	if prefix != "" && len(*g) > 1 {
+		return prefix + "[" + g.Name() + "]"
+	}
+	return prefix + g.Name()
 }
 
 func (g *groupedEndpointsElems) UID() string {
@@ -191,6 +208,10 @@ func (g *groupedExternalNodes) Name() string {
 		return prefix + "(all ranges)"
 	}
 	return prefix + g.String()
+}
+
+func (g *groupedExternalNodes) ExtendedName(c *VPCConfig) string {
+	return g.Name()
 }
 
 // UID of externalNetwork returns Name, so uses here the same functionality.
@@ -466,13 +487,13 @@ func (g *GroupConnLines) computeGroupingForDiff() error {
 }
 
 // get the grouped connectivity output
-func (g *GroupConnLines) String() string {
+func (g *GroupConnLines) String(c *VPCConfig) string {
 	if len(g.GroupedLines) == 0 {
 		return "<nothing to report>\n"
 	}
 	linesStr := make([]string, len(g.GroupedLines))
 	for i, line := range g.GroupedLines {
-		linesStr[i] = line.String()
+		linesStr[i] = line.String(c)
 	}
 	sort.Strings(linesStr)
 	return strings.Join(linesStr, "\n") + "\n"
