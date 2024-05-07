@@ -259,8 +259,13 @@ type RoutingResource interface {
 	// Non-relevant for fip and pgw, returns always an empty string
 	// todo: remove, replace by StringDetailsOfRules in rulesBasedResources
 	StringPrefixDetails(src, dst Node, verbose bool) (string, error)
+	// StringDetailsOfRules todo: 1st stage implementing here
+	StringDetailsOfRules(listRulesInFilter []RulesInFilter) string
 }
 
+// todo: interface that captures all rule based resources
+// todo (currently with explainability functionality)
+// todo move common functionality here from FilterTrafficResource and RoutingResource
 type rulesBasedResources interface {
 	// StringDetailsOfRules gets, for a specific resource (sg/nacl/tgw), a struct with relevant rules in it,
 	// and prints the effect of each resource (e.g. security group sg1-ky allows connection)

@@ -725,11 +725,6 @@ func (pgw *PublicGateway) StringPrefixDetails(src, dst vpcmodel.Node, verbose bo
 	return "", nil
 }
 
-type TgwLayer struct {
-	vpcmodel.VPCResource
-	tgwConnList []*datamodel.TransitConnection
-}
-
 // a tgw prefix filter (for explainability)
 type tgwPrefixFilter struct {
 	tc    *datamodel.TransitConnection // the TransitConnection  where this filter is defined
@@ -748,6 +743,9 @@ type TransitGateway struct {
 
 	// vpcs are the VPCs connected by a TGW
 	vpcs []*VPC
+
+	// list of transit connections of the tgw
+	tgwConnList []*datamodel.TransitConnection
 
 	// availableRoutes are the published address prefixes from all connected vpcs that arrive at the TGW's table of available routes,
 	// as considered from prefix filters: map from vpc UID to its available routes in the routes table
