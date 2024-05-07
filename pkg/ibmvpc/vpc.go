@@ -346,7 +346,7 @@ func appendToRulesInFilter(resRulesInFilter *[]vpcmodel.RulesInFilter, rules *[]
 		rType = vpcmodel.OnlyDeny
 	}
 	rulesInNacl := vpcmodel.RulesInFilter{
-		Filter:          filterIndex,
+		Table:           filterIndex,
 		Rules:           *rules,
 		RulesFilterType: rType,
 	}
@@ -356,7 +356,7 @@ func appendToRulesInFilter(resRulesInFilter *[]vpcmodel.RulesInFilter, rules *[]
 func (nl *NaclLayer) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInFilter) string {
 	strListRulesInFilter := ""
 	for _, rulesInFilter := range listRulesInFilter {
-		nacl := nl.naclList[rulesInFilter.Filter]
+		nacl := nl.naclList[rulesInFilter.Table]
 		header := getHeaderRulesType(vpcmodel.FilterKindName(nl.Kind())+" "+nacl.Name(), rulesInFilter.RulesFilterType) +
 			nacl.analyzer.StringRules(rulesInFilter.Rules)
 		strListRulesInFilter += header
@@ -367,7 +367,7 @@ func (nl *NaclLayer) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInFi
 func (nl *NaclLayer) ListFilterWithAction(listRulesInFilter []vpcmodel.RulesInFilter) (filters map[string]bool) {
 	filters = map[string]bool{}
 	for _, rulesInFilter := range listRulesInFilter {
-		nacl := nl.naclList[rulesInFilter.Filter]
+		nacl := nl.naclList[rulesInFilter.Table]
 		name := nacl.Name()
 		filters[name] = getFilterAction(rulesInFilter.RulesFilterType)
 	}
@@ -545,7 +545,7 @@ func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 				rType = vpcmodel.NoRules
 			}
 			rulesInSg := vpcmodel.RulesInFilter{
-				Filter:          index,
+				Table:           index,
 				Rules:           sgRules,
 				RulesFilterType: rType,
 			}
@@ -558,7 +558,7 @@ func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 func (sgl *SecurityGroupLayer) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInFilter) string {
 	listRulesInFilterSlice := make([]string, len(listRulesInFilter))
 	for i, rulesInFilter := range listRulesInFilter {
-		sg := sgl.sgList[rulesInFilter.Filter]
+		sg := sgl.sgList[rulesInFilter.Table]
 		listRulesInFilterSlice[i] = getHeaderRulesType(vpcmodel.FilterKindName(sgl.Kind())+" "+sg.Name(), rulesInFilter.RulesFilterType) +
 			sg.analyzer.StringRules(rulesInFilter.Rules)
 	}
@@ -569,7 +569,7 @@ func (sgl *SecurityGroupLayer) StringDetailsOfRules(listRulesInFilter []vpcmodel
 func (sgl *SecurityGroupLayer) ListFilterWithAction(listRulesInFilter []vpcmodel.RulesInFilter) (filters map[string]bool) {
 	filters = map[string]bool{}
 	for _, rulesInFilter := range listRulesInFilter {
-		sg := sgl.sgList[rulesInFilter.Filter]
+		sg := sgl.sgList[rulesInFilter.Table]
 		name := sg.Name()
 		filters[name] = getFilterAction(rulesInFilter.RulesFilterType)
 	}

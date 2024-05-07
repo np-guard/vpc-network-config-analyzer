@@ -212,11 +212,12 @@ const (
 	BothAllowDeny        // there are relevant allow and deny rules in this filter
 )
 
-// RulesInFilter for a given layer (SGLayer/NACLLayer) contains specific rules in a specific SG/NACL filter
+// RulesInFilter for a given layer (SGLayer/NACLLayer) or transit gateway contains
+// index of the SG/NACL/transit gateway filter and the indexes of the rules within it
 type RulesInFilter struct {
 	// todo: is the assumption that the set of rules will always be kept in a list a valid one?
-	Filter          int   // sg/nacl index in sgList/naclList in the relevant layer SGLayer/NACLLayer/..
-	Rules           []int // list of indexes of rules in the sg/nacl
+	Table           int   // sg/nacl/transit connection index in sgList/naclList/tgwConnList
+	Rules           []int // list of indexes of rules in the sg/nacl/transit connection
 	RulesFilterType RulesType
 }
 
