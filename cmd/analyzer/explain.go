@@ -13,6 +13,7 @@ import (
 
 	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/netp"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 	"github.com/spf13/cobra"
 )
 
@@ -29,6 +30,8 @@ const (
 		"VSI name can be specified as <vsi-name> or  <vpc-name>/<vsi-name>"
 )
 
+var supportedExplainFormats = []string{string(textFormat), string(debugFormat)}
+
 type protocolSetting netp.ProtocolString
 
 func (ps *protocolSetting) String() string {
@@ -42,7 +45,7 @@ func (ps *protocolSetting) Set(v string) error {
 		*ps = protocolSetting(v)
 		return nil
 	}
-	return fmt.Errorf(`must be one of [%s]`, strings.Join(allowedProtocols, ", "))
+	return fmt.Errorf("must be one of [%s]", strings.Join(allowedProtocols, separator))
 }
 
 func (ps *protocolSetting) Type() string {
@@ -56,10 +59,10 @@ func NewExplainCommand(args *InArgs) *cobra.Command {
 		Long:  `explains how the given cloud configuration affects connectivity between two endpoints`,
 		Args:  cobra.NoArgs,
 		PreRunE: func(cmd *cobra.Command, _ []string) error {
-			return validateFlags(cmd, args)
+			return validateExplainFlags(cmd, args)
 		},
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			args.AnalysisType = explainMode
+			args.AnalysisType = vpcmodel.Explain
 			return analyze(args)
 		},
 	}
@@ -78,7 +81,7 @@ func NewExplainCommand(args *InArgs) *cobra.Command {
 	return cmd
 }
 
-func PortInRange(port int64) bool {
+func portInRange(port int64) bool {
 	if port > connection.MaxPort || port < connection.MinPort {
 		return false
 	}
@@ -102,7 +105,11 @@ func flagSet(cmd *cobra.Command, flagName string) bool {
 	return flag.Changed
 }
 
-func validateFlags(cmd *cobra.Command, args *InArgs) error {
+func validateExplainFlags(cmd *cobra.Command, args *InArgs) error {
+	if !slices.Contains(supportedExplainFormats, string(args.OutputFormat)) {
+		return fmt.Errorf("output format for explain must be one of [%s]", strings.Join(supportedExplainFormats, separator))
+	}
+
 	if args.EProtocol == "" {
 		if flagSet(cmd, srcMinPortFlag) || flagSet(cmd, srcMaxPortFlag) ||
 			flagSet(cmd, dstMinPortFlag) || flagSet(cmd, dstMaxPortFlag) {
@@ -119,8 +126,8 @@ func validateFlags(cmd *cobra.Command, args *InArgs) error {
 		return err
 	}
 
-	if !PortInRange(args.ESrcMinPort) || !PortInRange(args.ESrcMaxPort) ||
-		!PortInRange(args.EDstMinPort) || !PortInRange(args.EDstMaxPort) {
+	if !portInRange(args.ESrcMinPort) || !portInRange(args.ESrcMaxPort) ||
+		!portInRange(args.EDstMinPort) || !portInRange(args.EDstMaxPort) {
 		return fmt.Errorf("port number must be in between %d, %d, inclusive",
 			connection.MinPort, connection.MaxPort)
 	}

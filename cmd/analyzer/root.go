@@ -14,6 +14,8 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/version"
 )
 
+// TODO: handle default format (should be txt)
+
 const (
 	vpcConfigFlag = "vpc-config"
 	providerFlag  = "provider"

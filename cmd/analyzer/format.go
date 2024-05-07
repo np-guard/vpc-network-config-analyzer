@@ -52,7 +52,7 @@ func (fs *formatSetting) Set(v string) error {
 		*fs = formatSetting(v)
 		return nil
 	}
-	return fmt.Errorf(`must be one of [%s]`, strings.Join(allFormats, ", "))
+	return fmt.Errorf("must be one of [%s]", strings.Join(allFormats, separator))
 }
 
 func (fs *formatSetting) Type() string {
@@ -61,25 +61,25 @@ func (fs *formatSetting) Type() string {
 
 func (fs *formatSetting) ToModelFormat() vpcmodel.OutFormat {
 	switch *fs {
-	case TEXTFormat:
+	case textFormat:
 		return vpcmodel.Text
-	case MDFormat:
+	case mdFormat:
 		return vpcmodel.MD
-	case JSONFormat:
+	case jsonFormat:
 		return vpcmodel.JSON
-	case DRAWIOFormat:
+	case drawioFormat:
 		return vpcmodel.DRAWIO
-	case ARCHDRAWIOFormat:
+	case archDrawioFormat:
 		return vpcmodel.ARCHDRAWIO
-	case SVGFormat:
+	case svgFormat:
 		return vpcmodel.SVG
-	case ARCHSVGFormat:
+	case archSVGFormat:
 		return vpcmodel.ARCHSVG
-	case HTMLFormat:
+	case htmlFormat:
 		return vpcmodel.HTML
-	case ARCHHTMLFormat:
+	case archHtmlFormat:
 		return vpcmodel.ARCHHTML
-	case DEBUGFormat:
+	case debugFormat:
 		return vpcmodel.Debug
 	}
 	return vpcmodel.Text

@@ -9,6 +9,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 	"github.com/spf13/cobra"
 )
 
@@ -41,7 +42,7 @@ func newReportEndpointsCommand(args *InArgs) *cobra.Command {
 		Long:  `reports VPC connectivity between endpoints as implied by the given cloud configuration`,
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			args.AnalysisType = allEndpoints
+			args.AnalysisType = vpcmodel.AllEndpoints
 			return analyze(args)
 		},
 	}
@@ -55,7 +56,7 @@ func newReportSubnetsCommand(args *InArgs) *cobra.Command {
 		Long:  `reports VPC connectivity between subnets as implied by the given cloud configuration`,
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			args.AnalysisType = allSubnets
+			args.AnalysisType = vpcmodel.AllSubnets
 			return analyze(args)
 		},
 	}
@@ -64,7 +65,7 @@ func newReportSubnetsCommand(args *InArgs) *cobra.Command {
 
 func newReportSingleSubnetCommand(args *InArgs) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "singleSubnet",
+		Use:   "single-subnet",
 		Short: "Report VPC connectivity per subnet",
 		Long:  `reports VPC connectivity per subnet as implied by the given cloud configuration`,
 		Args:  cobra.NoArgs,
@@ -72,7 +73,10 @@ func newReportSingleSubnetCommand(args *InArgs) *cobra.Command {
 			if args.Grouping {
 				return fmt.Errorf("currently single-subnet analysis type does not support grouping")
 			}
-			args.AnalysisType = singleSubnet
+			if args.OutputFormat != textFormat {
+				return fmt.Errorf("currently single-subnet analysis type only supports text format")
+			}
+			args.AnalysisType = vpcmodel.SingleSubnet
 			return analyze(args)
 		},
 	}

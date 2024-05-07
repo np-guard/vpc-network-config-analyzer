@@ -26,27 +26,9 @@ const (
 	ErrorFormat      = "%s %w"
 )
 
-func analysisTypeToUseCase(inArgs *InArgs) vpcmodel.OutputUseCase {
-	switch inArgs.AnalysisType {
-	case allEndpoints:
-		return vpcmodel.AllEndpoints
-	case singleSubnet:
-		return vpcmodel.SingleSubnet
-	case allSubnets:
-		return vpcmodel.AllSubnets
-	case allSubnetsDiff:
-		return vpcmodel.SubnetsDiff
-	case allEndpointsDiff:
-		return vpcmodel.EndpointsDiff
-	case explainMode:
-		return vpcmodel.Explain
-	}
-	return vpcmodel.AllEndpoints
-}
-
 func analysisVPCConfigs(c1, c2 vpcmodel.MultipleVPCConfigs, inArgs *InArgs, outFile string) (string, error) {
 	var explanationArgs *vpcmodel.ExplanationArgs
-	if inArgs.AnalysisType == explainMode {
+	if inArgs.AnalysisType == vpcmodel.Explain {
 		explanationArgs = vpcmodel.NewExplanationArgs(inArgs.ESrc, inArgs.EDst, string(inArgs.EProtocol),
 			inArgs.ESrcMinPort, inArgs.ESrcMaxPort, inArgs.EDstMinPort, inArgs.EDstMaxPort)
 	}
@@ -54,7 +36,7 @@ func analysisVPCConfigs(c1, c2 vpcmodel.MultipleVPCConfigs, inArgs *InArgs, outF
 	outFormat := inArgs.OutputFormat.ToModelFormat()
 	og, err := vpcmodel.NewOutputGenerator(c1, c2,
 		inArgs.Grouping,
-		analysisTypeToUseCase(inArgs),
+		inArgs.AnalysisType,
 		false,
 		explanationArgs, outFormat)
 	if err != nil {
