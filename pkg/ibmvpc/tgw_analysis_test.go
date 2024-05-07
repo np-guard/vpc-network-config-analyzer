@@ -215,7 +215,7 @@ var tgwTests = []tgwTest{
 }
 
 func (tt *tgwTest) runTest(t *testing.T) {
-	availableRoutes, _, err := getVPCAdvertisedRoutes(tt.tc, tt.vpc)
+	availableRoutes, _, _, err := getVPCAdvertisedRoutes(tt.tc, 0, tt.vpc)
 	for _, r := range availableRoutes {
 		fmt.Printf("%s\n", r.ToCidrList())
 	}

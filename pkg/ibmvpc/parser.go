@@ -765,7 +765,9 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 	tgwToSkip := map[string]bool{}
 	tgwIDToTgw := getTgwMap(c)
 
-	for _, tgwConn := range c.TransitConnectionList {
+	tgwConnList := make([]*datamodel.TransitConnection, len(c.TransitConnectionList))
+	for i, tgwConn := range c.TransitConnectionList {
+		tgwConnList[i] = tgwConn
 		tgwUID := *tgwConn.TransitGateway.Crn
 		tgwName := *tgwConn.TransitGateway.Name
 		vpcUID := *tgwConn.NetworkID
@@ -819,17 +821,18 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 					ResourceType: ResourceTypeTGW,
 					Region:       region,
 				},
-				vpcs:               []*VPC{vpc},
-				availableRoutes:    map[string][]*ipblock.IPBlock{},
-				vpcsAPToFiltersOld: map[string][]IPBlockPrefixFilter{},
-				region:             getRegionByName(region, regionToStructMap),
+				vpcs:                []*VPC{vpc},
+				availableRoutes:     map[string][]*ipblock.IPBlock{},
+				vpcsAPToFiltersOld:  map[string][]IPBlockPrefixFilter{},
+				vpcsAPToPrefixRules: map[string]map[*ipblock.IPBlock]vpcmodel.RulesInFilter{},
+				region:              getRegionByName(region, regionToStructMap),
 			}
 			tgwMap[tgwUID] = tgw
 		} else {
 			tgwMap[tgwUID].vpcs = append(tgwMap[tgwUID].vpcs, vpc)
 		}
 
-		advertisedRoutes, vpcApsPrefixes, err := getVPCAdvertisedRoutes(tgwConn, vpc)
+		advertisedRoutes, vpcApsPrefixesOld, vpcAPToPrefixRules, err := getVPCAdvertisedRoutes(tgwConn, i, vpc)
 		if err != nil {
 			logging.Warnf("ignoring prefix filters, vpcID: %s, tgwID: %s, err is: %s\n", vpcUID, tgwUID, err.Error())
 		} else {
@@ -842,7 +845,8 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 			tgwMap[tgwUID].addSourceAndDestNodes()
 
 			// explainability related struct initialization
-			tgwMap[tgwUID].vpcsAPToFiltersOld[vpcUID] = vpcApsPrefixes // todo vpcsAPToFilterAlternative
+			tgwMap[tgwUID].vpcsAPToPrefixRules[vpcUID] = vpcAPToPrefixRules
+			tgwMap[tgwUID].vpcsAPToFiltersOld[vpcUID] = vpcApsPrefixesOld // todo remove
 		}
 	}
 	return tgwMap
