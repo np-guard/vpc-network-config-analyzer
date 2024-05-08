@@ -37,10 +37,6 @@ func TestMain(t *testing.T) {
 			name: "txt_multi_vpc",
 			args: "report subnets --output-file multi_vpc.txt --vpc-config ../../pkg/ibmvpc/examples/input/input_multiple_vpcs.json -otxt",
 		},
-		/*{
-			name: "json_diff_acl_testing5",
-			args: "--output-file acl_testing5_diff.json --vpc-config ../../pkg/ibmvpc/examples/input/input_acl_testing5.json --vpc-config-second ../../pkg/ibmvpc/examples/input_acl_testing5_2nd.json --format json -analysis-type diff_all_subnets",
-		},*/
 
 		// diff analysis_type
 		{
@@ -131,11 +127,11 @@ func TestMain(t *testing.T) {
 		// read from account // need to export api-key first
 		/*{
 			name: "read_from_account_mode",
-			args: "--output-file account.txt -provider ibm -resource-group ola",
+			args: "report endpoints --output-file account.txt --provider ibm --resource-group ola",
 		},
 		{
 			name: "read_from_account_mode_dump_resources",
-			args: "--output-file account.txt -provider ibm -dump-resources account_resources_file.json",
+			args: "report endpoints --output-file account.txt --provider ibm --dump-resources account_resources_file.json",
 		},*/
 
 		// resource group and region filter
