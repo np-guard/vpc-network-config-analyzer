@@ -147,12 +147,29 @@ func getVerbosity(args *subcmds.InArgs) logging.Verbosity {
 	return verbosity
 }
 
-func analyze(inArgs *subcmds.InArgs) error {
+// The actual main function
+// Takes command-line flags and returns an error rather than exiting, so it can be more easily used in testing
+func _main(cmdlineArgs []string) error {
+	inArgs := &subcmds.InArgs{AnalysisType: vpcmodel.InvalidUseCase}
+
+	rootCmd := subcmds.NewRootCommand(inArgs)
+	rootCmd.SetArgs(cmdlineArgs)
+	err := rootCmd.Execute()
+	if err != nil {
+		return fmt.Errorf(ErrorFormat, ParsingErr, err)
+	}
+	if inArgs.AnalysisType == vpcmodel.InvalidUseCase {
+		// TODO: the below check is not good enough - doesn't cover cases like "vpcanalyzer report --help"
+		if subcmds.FlagSet(rootCmd, "help") || subcmds.FlagSet(rootCmd, "version") {
+			return nil
+		}
+		return fmt.Errorf("command is missing or not available")
+	}
+
 	// initializes a thread-safe singleton logger
 	logging.Init(getVerbosity(inArgs))
 
 	var vpcConfigs1 vpcmodel.MultipleVPCConfigs
-	var err error
 	if inArgs.Provider != "" {
 		vpcConfigs1, err = vpcConfigsFromAccount(inArgs)
 		if err != nil {
@@ -188,27 +205,6 @@ func analyze(inArgs *subcmds.InArgs) error {
 	fmt.Println(vpcAnalysisOutput)
 
 	return nil
-}
-
-// The actual main function
-// Takes command-line flags and returns an error rather than exiting, so it can be more easily used in testing
-func _main(cmdlineArgs []string) error {
-	inArgs := &subcmds.InArgs{AnalysisType: vpcmodel.InvalidUseCase}
-
-	rootCmd := subcmds.NewRootCommand(inArgs)
-	rootCmd.SetArgs(cmdlineArgs)
-	err := rootCmd.Execute()
-	if err != nil {
-		return fmt.Errorf(ErrorFormat, ParsingErr, err)
-	}
-	if inArgs.AnalysisType == vpcmodel.InvalidUseCase {
-		// TODO: the below check is not good enough - doesn't cover cases like "vpcanalyzer report --help"
-		if subcmds.FlagSet(rootCmd, "help") || subcmds.FlagSet(rootCmd, "version") {
-			return nil
-		}
-		return fmt.Errorf("command is missing or not available")
-	}
-	return analyze(inArgs)
 }
 
 func main() {
