@@ -33,13 +33,13 @@ func TestWithParsing(t *testing.T) {
 	n = createNetworkSubnetGrouping()
 	createFileFromNetwork(n, "subnetGrouping.drawio", true, FileDRAWIO)
 	n = createNetworkSubnetGroupingBug()
-	createFileFromNetwork(n, "subnetGroupingBug.drawio", true, FileSVG)
+	createFileFromNetwork(n, "subnetGroupingBug.svg", true, FileSVG)
 	n = createNetworkSubnetGroupingMultiVpc()
-	createFileFromNetwork(n, "subnetGroupingMultiVpc.drawio", true, FileHTML)
+	createFileFromNetwork(n, "subnetGroupingMultiVpc.html", true, FileHTML)
 	n = createNetworkSubnetGroupingOverlapping()
 	createFileFromNetwork(n, "subnetGroupingOverlapping.drawio", true, FileDRAWIO)
 	n = createNetworkSubnetGroupingGroupInGroup()
-	createFileFromNetwork(n, "subnetGroupingGroupInGroup.drawio", true, FileHTML)
+	createFileFromNetwork(n, "subnetGroupingGroupInGroup.html", true, FileHTML)
 	n2 := NewNetworkTreeNode()
 	cloud := NewCloudTreeNode(n2, "Cloud")
 	NewPublicNetworkTreeNode(n2)
@@ -54,6 +54,9 @@ func TestWithParsing(t *testing.T) {
 	createFileFromNetwork(n, "all.drawio", false, FileDRAWIO)
 	n = createNetworkTgw()
 	createFileFromNetwork(n, "tgws.drawio", false, FileDRAWIO)
+	n = createNetworkMultiSG()
+	createFileFromNetwork(n, "multiSG.html", false, FileHTML)
+	
 }
 
 func createNetwork() SquareTreeNodeInterface {
@@ -721,6 +724,44 @@ func createNetwork2() SquareTreeNodeInterface {
 
 	return network
 }
+
+
+func createNetworkMultiSG() SquareTreeNodeInterface {
+	network := NewNetworkTreeNode()
+	NewCloudTreeNode(network, "empty Cloud")
+	cloud2 := NewCloudTreeNode(network, "IBM Cloud2")
+
+	region2 := NewRegionTreeNode(cloud2, "north")
+	vpc2 := NewVpcTreeNode(region2, "vpc2")
+	zone2 := NewZoneTreeNode(vpc2, "zone1")
+	NewVpcTreeNode(region2, "vpc3")
+	sg1 := NewSGTreeNode(vpc2, "sg1")
+	sg2 := NewSGTreeNode(vpc2, "sg2")
+	sg3 := NewSGTreeNode(vpc2, "sg2")
+
+	subnet1 := NewSubnetTreeNode(zone2, "subnet1", "ip", "key")
+
+	ni1 := NewNITreeNode(subnet1, "ni1")
+	ni2 := NewNITreeNode(subnet1, "ni2")
+	ni3 := NewNITreeNode(subnet1, "ni3")
+	ni4 := NewNITreeNode(subnet1, "ni4")
+	ni5 := NewNITreeNode(subnet1, "ni5")
+	sg1.AddIcon(ni1)
+	sg1.AddIcon(ni2)
+	sg1.AddIcon(ni3)
+	sg1.AddIcon(ni4)
+	sg1.AddIcon(ni5)
+
+
+	sg2.AddIcon(ni1)
+	sg2.AddIcon(ni2)
+
+	sg3.AddIcon(ni4)
+	sg3.AddIcon(ni5)
+
+	return network
+}
+
 
 func createNetworkTgw() SquareTreeNodeInterface {
 	network := NewNetworkTreeNode()
