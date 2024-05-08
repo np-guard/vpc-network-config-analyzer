@@ -27,7 +27,7 @@ const (
 	ErrorFormat      = "%s %w"
 )
 
-func analysisVPCConfigs(c1, c2 vpcmodel.MultipleVPCConfigs, inArgs *subcmds.InArgs, outFile string) (string, error) {
+func analysisVPCConfigs(c1, c2 vpcmodel.MultipleVPCConfigs, inArgs *subcmds.InArgs) (string, error) {
 	var explanationArgs *vpcmodel.ExplanationArgs
 	if inArgs.AnalysisType == vpcmodel.Explain {
 		explanationArgs = vpcmodel.NewExplanationArgs(inArgs.ESrc, inArgs.EDst, string(inArgs.EProtocol),
@@ -44,7 +44,7 @@ func analysisVPCConfigs(c1, c2 vpcmodel.MultipleVPCConfigs, inArgs *subcmds.InAr
 		return "", err
 	}
 
-	analysisOut, err := og.Generate(outFormat, outFile)
+	analysisOut, err := og.Generate(outFormat, inArgs.OutputFile)
 	if err != nil {
 		return "", fmt.Errorf(ErrorFormat, OutGenerationErr, err)
 	}
@@ -194,13 +194,10 @@ func _main(cmdlineArgs []string) error {
 				"for both -vpc-config and -vpc-config-second", inArgs.AnalysisType)
 		}
 	}
-	outFile := ""
-	if inArgs.OutputFile != "" {
-		outFile = inArgs.OutputFile
-	}
-	vpcAnalysisOutput, err2 := analysisVPCConfigs(vpcConfigs1, vpcConfigs2, inArgs, outFile)
-	if err2 != nil {
-		return err2
+
+	vpcAnalysisOutput, err := analysisVPCConfigs(vpcConfigs1, vpcConfigs2, inArgs)
+	if err != nil {
+		return err
 	}
 	fmt.Println(vpcAnalysisOutput)
 
