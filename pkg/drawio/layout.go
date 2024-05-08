@@ -433,11 +433,11 @@ func (ly *layoutS) setSGLocations() {
 	for _, cloud := range ly.network.(*NetworkTreeNode).clouds {
 		for _, region := range cloud.(*CloudTreeNode).regions {
 			for _, vpc := range region.(*RegionTreeNode).vpcs {
-				iconsToSGList :=  sortIconsToSGList(vpc.(*VpcTreeNode).sgs)
-				for icons, sgs := range iconsToSGList {
-					sgLocation := mergeLocations(locations(*icons))
+				multiSGs := sortToMultiSGs(vpc.(*VpcTreeNode).sgs)
+				for _, multiSG := range multiSGs {
+					sgLocation := mergeLocations(locations(multiSG.icons))
 					sgIconsIndexes := map[[2]int]bool{}
-					for _, icon := range *icons {
+					for _, icon := range multiSG.icons {
 						sgIconsIndexes[[2]int{icon.Location().firstRow.index, icon.Location().firstCol.index}] = true
 					}
 					for ri := sgLocation.firstRow.index; ri <= sgLocation.lastRow.index; ri++ {
@@ -451,7 +451,7 @@ func (ly *layoutS) setSGLocations() {
 							case currentLocation != nil && isSGCell:
 								currentLocation.lastCol = ly.matrix.cols[ci]
 							case currentLocation != nil && !isSGCell:
-								psg := newPartialSGTreeNode(sgs)
+								psg := newPartialSGTreeNode(multiSG.sgs)
 								currentLocation.xOffset = borderWidth
 								currentLocation.yOffset = borderWidth
 								currentLocation.xEndOffset = borderWidth
@@ -467,7 +467,13 @@ func (ly *layoutS) setSGLocations() {
 		}
 	}
 }
-func sortIconsToSGList(sgs []SquareTreeNodeInterface) map[*[]TreeNodeInterface][]*SGTreeNode{
+
+type multiSG struct {
+	sgs   []*SGTreeNode
+	icons []TreeNodeInterface
+}
+
+func sortToMultiSGs(sgs []SquareTreeNodeInterface) []multiSG {
 	iconToSGs := map[IconTreeNodeInterface]common.GenericSet[*SGTreeNode]{}
 	for _, sg := range sgs {
 		for _, icon := range sg.IconTreeNodes() {
@@ -478,18 +484,17 @@ func sortIconsToSGList(sgs []SquareTreeNodeInterface) map[*[]TreeNodeInterface][
 		}
 	}
 	sgsKeyToIcons := map[setAsKey][]TreeNodeInterface{}
-	sgsKeyToSGs := map[setAsKey]common.GenericSet[*SGTreeNode]{}
+	sgsKeyToSGs := map[setAsKey][]*SGTreeNode{}
 	for icon, sgs := range iconToSGs {
-		sgsKeyToIcons[sgs.AsKey()] = append(sgsKeyToIcons[sgs.AsKey()], icon)
-		sgsKeyToSGs[sgs.AsKey()] = sgs
+		key := sgs.AsKey()
+		sgsKeyToIcons[key] = append(sgsKeyToIcons[key], icon)
+		sgsKeyToSGs[key] = sgs.AsList()
 	}
-	iconsToSGList := map[*[]TreeNodeInterface][]*SGTreeNode{}
-	for key := range sgsKeyToIcons{
-		icons := sgsKeyToIcons[key]
-		sgs := sgsKeyToSGs[key].AsList()
-		iconsToSGList[&icons] = sgs
+	multiSGs := []multiSG{}
+	for key := range sgsKeyToIcons {
+		multiSGs = append(multiSGs, multiSG{sgsKeyToSGs[key], sgsKeyToIcons[key]})
 	}
-	return iconsToSGList
+	return multiSGs
 }
 
 // ///////////////////////////////////////////////////////////
