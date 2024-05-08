@@ -88,7 +88,7 @@ func pgwHasSource(src vpcmodel.Node, pgw *PublicGateway) bool {
 func (rt *systemImplicitRT) getPath(src vpcmodel.Node, dest *ipblock.IPBlock) vpcmodel.Path {
 	// TODO: split dest by disjoint ip-blocks of the vpc-config (the known destinations ip-blocks)
 
-	if dest.ContainedIn(rt.vpc.addressPrefixesIPBlock) {
+	if dest.ContainedIn(rt.vpc.AddressPrefixes()) {
 		// direct connection
 		return []*vpcmodel.Endpoint{{VpcResource: src}, {IPBlock: dest}}
 	}
