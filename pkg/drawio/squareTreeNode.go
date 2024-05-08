@@ -207,10 +207,11 @@ func (tn *SGTreeNode) NotShownInDrawio() bool { return true }
 
 type PartialSGTreeNode struct {
 	abstractSquareTreeNode
+	parents []*SGTreeNode
 }
 
 func newPartialSGTreeNode(parents []*SGTreeNode) *PartialSGTreeNode {
-	psg := PartialSGTreeNode{newAbstractSquareTreeNode(parents[0], parents[0].name)}
+	psg := PartialSGTreeNode{newAbstractSquareTreeNode(parents[0], ""), parents}
 	parents[0].partialSgs = append(parents[0].partialSgs, &psg)
 	return &psg
 }
@@ -219,6 +220,13 @@ func (tn *PartialSGTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNo
 }
 func (tn *PartialSGTreeNode) DrawioParent() TreeNodeInterface {
 	return tn.Parent().Parent()
+}
+func (tn *PartialSGTreeNode) labels() []string {
+	labels := []string{}
+	for _,parent := range tn.parents{
+		labels = append(labels, parent.name)
+	}
+	return labels
 }
 
 func (tn *PartialSGTreeNode) Kind() string {
