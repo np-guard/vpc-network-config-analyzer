@@ -837,7 +837,7 @@ func (tgw *TransitGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf
 
 func (tgw *TransitGateway) RouterDefined(src, dst vpcmodel.Node) bool {
 	// destination node has a transit gateway connection iff a prefix filter (possibly default) is defined for it
-	dstNodeHasTgw := tgw.prefixOfSrcDst(src, dst) != nil
+	dstNodeHasTgw := tgw.prefixesOfSrcDst(src, dst) != nil
 	return vpcmodel.HasNode(tgw.sourceNodes, src) && dstNodeHasTgw
 }
 
@@ -899,10 +899,10 @@ func (tgw *TransitGateway) RulesInConnectivity(src, dst vpcmodel.Node) ([]vpcmod
 }
 
 func (tgw *TransitGateway) StringPrefixDetails(src, dst vpcmodel.Node, verbose bool) (string, error) {
-	prefix := tgw.prefixOfSrcDst(src, dst)
+	prefixes := tgw.prefixesOfSrcDst(src, dst)
 	transitEnablesConn := vpcmodel.HasNode(tgw.sourceNodes, src) && vpcmodel.HasNode(tgw.destNodes, dst)
 	if verbose {
-		tgwRouterFilterDetails, err := tgw.tgwPrefixStr(*prefix)
+		tgwRouterFilterDetails, err := tgw.tgwPrefixStr(*prefixes[0]) // todo tmp
 		if err != nil {
 			return "", err
 		}
@@ -913,7 +913,7 @@ func (tgw *TransitGateway) StringPrefixDetails(src, dst vpcmodel.Node, verbose b
 		return fmt.Sprintf("transit gateway %s %s connection with the following prefix\n\t%s\n\n",
 			tgw.Name(), action, tgwRouterFilterDetails), nil
 	}
-	noVerboseStr := fmt.Sprintf("cross-vpc-connection: transit-connection %s of transit-gateway %s ", *prefix.tc.Name, tgw.Name())
+	noVerboseStr := fmt.Sprintf("cross-vpc-connection: transit-connection %s of transit-gateway %s ", *(prefixes[0]).tc.Name, tgw.Name()) // todo tmp
 	if transitEnablesConn {
 		return noVerboseStr + "allows connection" + newline, nil
 	}
@@ -925,19 +925,19 @@ func (tgw *TransitGateway) StringDetailsOfRules(listRulesInFilter []vpcmodel.Rul
 	return ""
 }
 
-// todo: dst may not be contained in any prefix
-func (tgw *TransitGateway) prefixOfSrcDst(src, dst vpcmodel.Node) *tgwPrefixFilter {
+func (tgw *TransitGateway) prefixesOfSrcDst(src, dst vpcmodel.Node) []*tgwPrefixFilter {
 	// <src, dst> routed by tgw given that source is in the tgw,
 	// and there is a prefix filter defined for the dst,
 	// the relevant prefix filter is determined by match of the Address prefix the dest's node is in (including default)
+	prefixes := []*tgwPrefixFilter{}
 	if vpcmodel.HasNode(tgw.sourceNodes, src) {
 		for _, singleIPBlockPrefix := range tgw.vpcsAPToFiltersOld[dst.VPC().UID()] {
 			if dst.IPBlock().ContainedIn(singleIPBlockPrefix.IPBlock) {
-				return &singleIPBlockPrefix.prefixFilter
+				prefixes = append(prefixes, &singleIPBlockPrefix.prefixFilter)
 			}
 		}
 	}
-	return nil
+	return prefixes
 }
 
 // AppliedFiltersKinds todo: currently not used
