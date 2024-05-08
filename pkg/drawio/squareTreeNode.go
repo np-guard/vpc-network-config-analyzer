@@ -211,15 +211,14 @@ type PartialSGTreeNode struct {
 }
 
 func newPartialSGTreeNode(parents []*SGTreeNode) *PartialSGTreeNode {
-	psg := PartialSGTreeNode{newAbstractSquareTreeNode(parents[0], ""), parents}
-	parents[0].partialSgs = append(parents[0].partialSgs, &psg)
+	psg := PartialSGTreeNode{newAbstractSquareTreeNode(parents[0].Parent(), ""), parents}
+	for _,parent := range parents{
+		parent.partialSgs = append(parent.partialSgs, &psg)
+	}
 	return &psg
 }
 func (tn *PartialSGTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
 	return nil, tn.elements, tn.connections
-}
-func (tn *PartialSGTreeNode) DrawioParent() TreeNodeInterface {
-	return tn.Parent().Parent()
 }
 func (tn *PartialSGTreeNode) labels() []string {
 	labels := []string{}
@@ -230,7 +229,7 @@ func (tn *PartialSGTreeNode) labels() []string {
 }
 
 func (tn *PartialSGTreeNode) Kind() string {
-	return tn.parent.Kind()
+	return tn.parents[0].Kind()
 }
 
 /////////////////////////////////////////////////////////////////////////

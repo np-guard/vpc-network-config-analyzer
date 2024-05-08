@@ -728,36 +728,53 @@ func createNetwork2() SquareTreeNodeInterface {
 
 func createNetworkMultiSG() SquareTreeNodeInterface {
 	network := NewNetworkTreeNode()
-	NewCloudTreeNode(network, "empty Cloud")
 	cloud2 := NewCloudTreeNode(network, "IBM Cloud2")
 
 	region2 := NewRegionTreeNode(cloud2, "north")
 	vpc2 := NewVpcTreeNode(region2, "vpc2")
-	zone2 := NewZoneTreeNode(vpc2, "zone1")
-	NewVpcTreeNode(region2, "vpc3")
+	zone1 := NewZoneTreeNode(vpc2, "zone1")
+	zone2 := NewZoneTreeNode(vpc2, "zone2")
 	sg1 := NewSGTreeNode(vpc2, "sg1")
 	sg2 := NewSGTreeNode(vpc2, "sg2")
-	sg3 := NewSGTreeNode(vpc2, "sg2")
+	sg3 := NewSGTreeNode(vpc2, "sg3")
 
-	subnet1 := NewSubnetTreeNode(zone2, "subnet1", "ip", "key")
+	subnet1 := NewSubnetTreeNode(zone1, "subnet1", "ip", "key")
+	subnet2 := NewSubnetTreeNode(zone2, "subnet2", "ip", "key")
 
-	ni1 := NewNITreeNode(subnet1, "ni1")
-	ni2 := NewNITreeNode(subnet1, "ni2")
-	ni3 := NewNITreeNode(subnet1, "ni3")
-	ni4 := NewNITreeNode(subnet1, "ni4")
-	ni5 := NewNITreeNode(subnet1, "ni5")
-	sg1.AddIcon(ni1)
-	sg1.AddIcon(ni2)
-	sg1.AddIcon(ni3)
-	sg1.AddIcon(ni4)
-	sg1.AddIcon(ni5)
+	ni11 := NewNITreeNode(subnet1, "ni11")
+	ni12 := NewNITreeNode(subnet1, "ni12")
+	ni13 := NewNITreeNode(subnet1, "ni13")
+	ni14 := NewNITreeNode(subnet1, "ni14")
+	ni15 := NewNITreeNode(subnet1, "ni15")
+
+	ni21 := NewNITreeNode(subnet2, "ni21")
+	ni22 := NewNITreeNode(subnet2, "ni22")
+	ni23 := NewNITreeNode(subnet2, "ni23")
 
 
-	sg2.AddIcon(ni1)
-	sg2.AddIcon(ni2)
+	sg1.AddIcon(ni11)
+	sg2.AddIcon(ni11)
 
-	sg3.AddIcon(ni4)
-	sg3.AddIcon(ni5)
+	sg1.AddIcon(ni12)
+	sg2.AddIcon(ni12)
+
+	sg1.AddIcon(ni21)
+	sg2.AddIcon(ni21)
+
+	sg1.AddIcon(ni13)
+
+	sg1.AddIcon(ni22)
+
+	sg1.AddIcon(ni14)
+	sg3.AddIcon(ni14)
+
+	sg1.AddIcon(ni15)
+	sg3.AddIcon(ni15)
+
+	sg1.AddIcon(ni23)
+	sg3.AddIcon(ni23)
+
+
 
 	return network
 }
