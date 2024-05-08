@@ -88,7 +88,7 @@ type srcAndDstNodes struct {
 // if no match found then errors 5 to 7 are in increasing severity. that is, 7>6>5
 //
 //nolint:gocyclo // better not split into two function
-func (configsMap *MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string) (vpcConfig *VPCConfig,
+func (c *MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string) (vpcConfig *VPCConfig,
 	srcNodes, dstNodes []Node, isSrcDstInternalIP srcDstInternalAddr, err error) {
 	var errMsgInternalNotWithinSubnet, errMsgNoValidSrc, errMsgNoValidDst error
 	var srcFoundSomeCfg, dstFoundSomeCfg bool
@@ -97,9 +97,10 @@ func (configsMap *MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string
 		return nil, nil, nil, noInternalIP, fmt.Errorf("specified src and dst are equal")
 	}
 	configsWithSrcDstNodeSingleVpc, configsWithSrcDstNodeMultiVpc := map[string]srcAndDstNodes{}, map[string]srcAndDstNodes{}
-	for cfgID := range configsMap.Configs() {
+	for cfgID := range c.Configs() {
 		var errType int
-		srcNodes, dstNodes, isSrcDstInternalIP, errType, err = configsMap.Config(cfgID).srcDstInputToNodes(src, dst, len(configsMap.Configs()) > 1)
+		srcNodes, dstNodes, isSrcDstInternalIP, errType, err =
+			c.Config(cfgID).srcDstInputToNodes(src, dst, len(c.Configs()) > 1)
 		if srcNodes != nil {
 			srcFoundSomeCfg = true
 		}
@@ -109,7 +110,7 @@ func (configsMap *MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string
 		if err != nil {
 			switch {
 			case errType == fatalErr:
-				return configsMap.Config(cfgID), nil, nil, noInternalIP, err
+				return c.Config(cfgID), nil, nil, noInternalIP, err
 			case errType == internalNotWithinSubnetsAddr:
 				errMsgInternalNotWithinSubnet = err
 			case errType == noValidInputErr && srcNodes == nil:
@@ -118,7 +119,7 @@ func (configsMap *MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string
 				errMsgNoValidDst = err
 			}
 		} else {
-			if configsMap.Config(cfgID).IsMultipleVPCsConfig {
+			if c.Config(cfgID).IsMultipleVPCsConfig {
 				configsWithSrcDstNodeMultiVpc[cfgID] = srcAndDstNodes{srcNodes, dstNodes, isSrcDstInternalIP}
 			} else {
 				configsWithSrcDstNodeSingleVpc[cfgID] = srcAndDstNodes{srcNodes, dstNodes, isSrcDstInternalIP}
@@ -134,21 +135,21 @@ func (configsMap *MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string
 	// single config in which both src and dst were found, and the matched config is a multi vpc config: returns the matched config
 	case len(configsWithSrcDstNodeSingleVpc) == 0 && len(configsWithSrcDstNodeMultiVpc) == 1:
 		for cfgID, val := range configsWithSrcDstNodeMultiVpc {
-			return configsMap.Config(cfgID), val.srcNodes, val.dstNodes, val.isSrcDstInternalIP, nil
+			return c.Config(cfgID), val.srcNodes, val.dstNodes, val.isSrcDstInternalIP, nil
 		}
 	// Src and dst were found in a exactly one single-vpc config. Its likely src and dst were also found in
 	// multi-vpc configs (in each such config that connects their vpc to another one).
 	// In this case the relevant config for analysis is the single vpc config, which is the returned config
 	case len(configsWithSrcDstNodeSingleVpc) == 1:
 		for cfgID, val := range configsWithSrcDstNodeSingleVpc {
-			return configsMap.Config(cfgID), val.srcNodes, val.dstNodes, val.isSrcDstInternalIP, nil
+			return c.Config(cfgID), val.srcNodes, val.dstNodes, val.isSrcDstInternalIP, nil
 		}
 	// both src and dst found in *more than one* single-vpc config or
 	// in no single-vpc config and more than one multi-vpc config. In both cases it is impossible to determine
 	// what is the config in which the analysis should be done
 	default:
 		return nil, nil, nil, noInternalIP,
-			configsMap.matchMoreThanOneSingleVpcCfgError(src, dst, configsWithSrcDstNodeSingleVpc, configsWithSrcDstNodeMultiVpc)
+			c.matchMoreThanOneSingleVpcCfgError(src, dst, configsWithSrcDstNodeSingleVpc, configsWithSrcDstNodeMultiVpc)
 	}
 	return nil, nil, nil, noInternalIP, nil
 }
@@ -182,14 +183,14 @@ func noConfigMatchSrcDst(srcFoundSomeCfg, dstFoundSomeCfg bool, errMsgInternalNo
 // src, dst found in more than one config error:
 // more than one match of single config or
 // non match of single config and more than one match of multiple config
-func (configsMap *MultipleVPCConfigs) matchMoreThanOneSingleVpcCfgError(src, dst string,
+func (c *MultipleVPCConfigs) matchMoreThanOneSingleVpcCfgError(src, dst string,
 	configsWithSrcDstNodeSingleVpc, configsWithSrcDstNodeMultiVpc map[string]srcAndDstNodes) error {
 	if len(configsWithSrcDstNodeSingleVpc) > 1 { // more than single vpc config
-		matchConfigsStr := configsMap.listNamesCfg(configsWithSrcDstNodeSingleVpc)
+		matchConfigsStr := c.listNamesCfg(configsWithSrcDstNodeSingleVpc)
 		return fmt.Errorf("vsis %s and %s found in more than one vpc config - %s - "+
 			"please add the name of the config to the src/dst name", src, dst, matchConfigsStr)
 	}
-	listNamesCrossVpcRouters, err := configsMap.listNamesCrossVpcRouters(configsWithSrcDstNodeMultiVpc)
+	listNamesCrossVpcRouters, err := c.listNamesCrossVpcRouters(configsWithSrcDstNodeMultiVpc)
 	if err != nil {
 		return err
 	}
@@ -197,12 +198,12 @@ func (configsMap *MultipleVPCConfigs) matchMoreThanOneSingleVpcCfgError(src, dst
 		"This scenario is currently not supported", listNamesCrossVpcRouters)
 }
 
-func (configsMap *MultipleVPCConfigs) listNamesCfg(configsWithSrcDstNode map[string]srcAndDstNodes) string {
+func (c *MultipleVPCConfigs) listNamesCfg(configsWithSrcDstNode map[string]srcAndDstNodes) string {
 	i := 0
 	matchConfigs := make([]string, len(configsWithSrcDstNode))
 	for vpcUID := range configsWithSrcDstNode {
 		// the vsis are in more than one config; lists all the configs it is in for the error msg
-		matchConfigs[i] = configsMap.Config(vpcUID).VPC.Name()
+		matchConfigs[i] = c.Config(vpcUID).VPC.Name()
 		i++
 	}
 	sort.Strings(matchConfigs)
@@ -211,15 +212,15 @@ func (configsMap *MultipleVPCConfigs) listNamesCfg(configsWithSrcDstNode map[str
 
 // returns list of tgw in vpcs of configsWithSrcDstNodeMultiVpc
 // since the map is of multi-vpc configs (IsMultipleVPCsConfig true) each must have a cross-vpc router (tgw)
-func (configsMap *MultipleVPCConfigs) listNamesCrossVpcRouters(
+func (c *MultipleVPCConfigs) listNamesCrossVpcRouters(
 	configsWithSrcDstNode map[string]srcAndDstNodes) (string, error) {
 	i := 0
 	crossVpcRouters := make([]string, len(configsWithSrcDstNode))
 	for vpcUID := range configsWithSrcDstNode {
-		routingResources := configsMap.Config(vpcUID).RoutingResources
+		routingResources := c.Config(vpcUID).RoutingResources
 		if len(routingResources) != 1 {
 			return "", fmt.Errorf("np-guard error: multi-vpc config %s should have a single routing resource, "+
-				"but has %v routing resources", configsMap.Config(vpcUID).VPC.Name(), len(routingResources))
+				"but has %v routing resources", c.Config(vpcUID).VPC.Name(), len(routingResources))
 		}
 		crossVpcRouters[i] = routingResources[0].Name()
 		i++
