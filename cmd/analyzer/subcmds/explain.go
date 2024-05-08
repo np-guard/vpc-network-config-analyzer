@@ -33,7 +33,7 @@ func NewExplainCommand(args *InArgs) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "explain",
 		Short: "Explain connectivity between two endpoints",
-		Long:  `explains how the given cloud configuration affects connectivity between two endpoints`,
+		Long:  `Explain how the given cloud configuration affects connectivity between two endpoints`,
 		Args:  cobra.NoArgs,
 		PreRunE: func(cmd *cobra.Command, _ []string) error {
 			return validateExplainFlags(cmd, args)
@@ -54,6 +54,7 @@ func NewExplainCommand(args *InArgs) *cobra.Command {
 
 	cmd.MarkFlagRequired(srcFlag)
 	cmd.MarkFlagRequired(dstFlag)
+	cmd.Flags().SortFlags = false
 
 	return cmd
 }

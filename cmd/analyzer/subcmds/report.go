@@ -18,7 +18,7 @@ func NewReportCommand(args *InArgs) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "report",
 		Short: "Report VPC connectivity as implied by the given cloud config",
-		Long:  `reports VPC connectivity as implied by the given cloud configuration`,
+		Long:  `Report VPC connectivity as implied by the given cloud configuration`,
 		PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
 			if args.Grouping && args.OutputFormat == jsonFormat {
 				return fmt.Errorf("json output format is not supported with grouping")

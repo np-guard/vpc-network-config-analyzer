@@ -18,7 +18,7 @@ func NewDiffCommand(args *InArgs) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "diff",
 		Short: "Diff connectivity postures as implied by two VPC configs",
-		Long: `reports changes in connectivity (modified, added and removed connections)
+		Long: `Report changes in connectivity (modified, added and removed connections)
 		between two VPC configurations`,
 		PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
 			return validateFormatForMode("diff", []formatSetting{textFormat, mdFormat}, args)
