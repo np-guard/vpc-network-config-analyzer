@@ -193,13 +193,16 @@ func analyze(inArgs *subcmds.InArgs) error {
 // The actual main function
 // Takes command-line flags and returns an error rather than exiting, so it can be more easily used in testing
 func _main(cmdlineArgs []string) error {
-	inArgs := &subcmds.InArgs{}
+	inArgs := &subcmds.InArgs{AnalysisType: vpcmodel.InvalidUseCase}
 
 	rootCmd := subcmds.NewRootCommand(inArgs)
 	rootCmd.SetArgs(cmdlineArgs)
 	err := rootCmd.Execute()
 	if err != nil {
 		return fmt.Errorf(ErrorFormat, ParsingErr, err)
+	}
+	if inArgs.AnalysisType == vpcmodel.InvalidUseCase {
+		return nil // flags are ok, but no analysis mode set (e.g., when running with "-h")
 	}
 	return analyze(inArgs)
 }

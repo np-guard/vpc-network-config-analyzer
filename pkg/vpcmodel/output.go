@@ -45,7 +45,8 @@ type OutputUseCase int
 
 // ToDo SM: subnets connectivity "only nacl" relevant to diff?
 const (
-	AllEndpoints    OutputUseCase = iota // connectivity between network interfaces and external ip-blocks
+	InvalidUseCase  OutputUseCase = iota // A place holder for an illegal value
+	AllEndpoints                         // connectivity between network interfaces and external ip-blocks
 	SingleSubnet                         // connectivity per single subnet with nacl
 	AllSubnets                           // connectivity between subnets (consider nacl + pgw)
 	AllSubnetsNoPGW                      // connectivity between subnets (consider nacl only)
