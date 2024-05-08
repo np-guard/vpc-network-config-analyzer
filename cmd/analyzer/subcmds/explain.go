@@ -75,7 +75,7 @@ func minMaxValidity(minPort, maxPort int64, minPortName, maxPortName string) err
 	return nil
 }
 
-func flagSet(cmd *cobra.Command, flagName string) bool {
+func FlagSet(cmd *cobra.Command, flagName string) bool {
 	flag := cmd.Flags().Lookup(flagName)
 	if flag == nil {
 		return false
@@ -90,8 +90,8 @@ func validateExplainFlags(cmd *cobra.Command, args *InArgs) error {
 	}
 
 	if args.EProtocol == "" {
-		if flagSet(cmd, srcMinPortFlag) || flagSet(cmd, srcMaxPortFlag) ||
-			flagSet(cmd, dstMinPortFlag) || flagSet(cmd, dstMaxPortFlag) {
+		if FlagSet(cmd, srcMinPortFlag) || FlagSet(cmd, srcMaxPortFlag) ||
+			FlagSet(cmd, dstMinPortFlag) || FlagSet(cmd, dstMaxPortFlag) {
 			return fmt.Errorf("protocol must be specified when specifying ports")
 		}
 	}
