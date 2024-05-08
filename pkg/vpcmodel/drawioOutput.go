@@ -75,7 +75,7 @@ func (d *DrawioOutputFormatter) createDrawioTree() {
 }
 
 func (d *DrawioOutputFormatter) createNodeSets() {
-	for _, vpcConfig := range d.cConfigs.Vpcs() {
+	for _, vpcConfig := range d.cConfigs.Configs() {
 		if vpcConfig.IsMultipleVPCsConfig {
 			continue
 		}
@@ -104,7 +104,7 @@ func (d *DrawioOutputFormatter) createNodeSets() {
 }
 
 func (d *DrawioOutputFormatter) createNodes() {
-	for _, vpcConfig := range d.cConfigs.Vpcs() {
+	for _, vpcConfig := range d.cConfigs.Configs() {
 		if !vpcConfig.IsMultipleVPCsConfig {
 			for _, n := range vpcConfig.Nodes {
 				if !n.IsExternal() && d.showResource(n) {
@@ -116,7 +116,7 @@ func (d *DrawioOutputFormatter) createNodes() {
 }
 
 func (d *DrawioOutputFormatter) createFilters() {
-	for _, vpcConfig := range d.cConfigs.Vpcs() {
+	for _, vpcConfig := range d.cConfigs.Configs() {
 		if !vpcConfig.IsMultipleVPCsConfig {
 			for _, fl := range vpcConfig.FilterResources {
 				if d.showResource(fl) {
@@ -128,7 +128,7 @@ func (d *DrawioOutputFormatter) createFilters() {
 }
 
 func (d *DrawioOutputFormatter) createRouters() {
-	for vpcResourceName, vpcConfig := range d.cConfigs.Vpcs() {
+	for vpcResourceName, vpcConfig := range d.cConfigs.Configs() {
 		for _, r := range vpcConfig.RoutingResources {
 			if d.showResource(r) {
 				rTn := d.gen.TreeNode(r)
@@ -147,7 +147,7 @@ func (d *DrawioOutputFormatter) createRouters() {
 }
 
 func (d *DrawioOutputFormatter) lineRouter(line *groupedConnLine, vpcResourceName string) drawio.IconTreeNodeInterface {
-	if d.cConfigs.Vpc(vpcResourceName).IsMultipleVPCsConfig {
+	if d.cConfigs.Config(vpcResourceName).IsMultipleVPCsConfig {
 		return d.multiVpcRouters[vpcResourceName]
 	}
 	var routeredEP EndpointElem
@@ -264,7 +264,7 @@ func (d *DrawioOutputFormatter) WriteOutput(cConfigs *MultipleVPCConfigs,
 		if subnetsConn != nil {
 			for name, vpcConn := range subnetsConn {
 				gConn[name] = vpcConn.GroupedConnectivity
-				gConfigs.AddVpc(name, vpcConn.VPCConfig)
+				gConfigs.AddConfig(name, vpcConn.VPCConfig)
 			}
 		} else {
 			gConfigs = cConfigs

@@ -663,7 +663,7 @@ func (tt *vpcGeneralTest) runTest(t *testing.T) {
 	}
 	if diffUseCase {
 		vpcConfigs2nd = getVPCConfigs(t, tt, false)
-		vpcConfigs.SetToCompareVpc(vpcConfigs2nd)
+		vpcConfigs.SetConfigsToCompare(vpcConfigs2nd)
 	} else { // inputConfig2nd should be ignored if not diffUseCase
 		tt.inputConfig2nd = ""
 	}

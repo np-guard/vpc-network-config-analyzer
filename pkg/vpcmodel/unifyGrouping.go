@@ -30,7 +30,7 @@ func newCacheGroupedElements() *cacheGroupedElements {
 func unifyMultiVPC(config1 *MultipleVPCConfigs, nodesConn map[string]*VPCConnectivity,
 	subnetsConn map[string]*VPCsubnetConnectivity, uc OutputUseCase) {
 	cache := newCacheGroupedElements()
-	for vpcUID := range config1.Vpcs() {
+	for vpcUID := range config1.Configs() {
 		switch uc {
 		case AllEndpoints:
 			if nodesConn[vpcUID] != nil {

@@ -104,36 +104,36 @@ func (c *VPCConfig) getRoutingResource(src, dst Node) (RoutingResource, *connect
 // /////////////////////////////////////////////////////////////////////////////////
 
 type MultipleVPCConfigs struct {
-	vpcs       map[string]*VPCConfig
-	toCompare  map[string]*VPCConfig
-	cloudName string
+	configs          map[string]*VPCConfig
+	toCompareConfigs map[string]*VPCConfig
+	cloudName        string
 }
 
 func NewMultipleVPCConfigs(cloudName string) *MultipleVPCConfigs {
 	return &MultipleVPCConfigs{map[string]*VPCConfig{}, nil, cloudName}
 }
 
-func (c *MultipleVPCConfigs) Vpcs() map[string]*VPCConfig {
-	return c.vpcs
+func (c *MultipleVPCConfigs) Configs() map[string]*VPCConfig {
+	return c.configs
 }
-func (c *MultipleVPCConfigs) AddVpc(name string, vpc *VPCConfig) {
-	c.vpcs[name] = vpc
+func (c *MultipleVPCConfigs) AddConfig(name string, config *VPCConfig) {
+	c.configs[name] = config
 }
-func (c *MultipleVPCConfigs) RemoveVpc(name string) {
-	delete(c.vpcs, name)
+func (c *MultipleVPCConfigs) RemoveConfig(name string) {
+	delete(c.configs, name)
 }
-func (c *MultipleVPCConfigs) Vpc(name string) *VPCConfig {
-	return c.vpcs[name]
+func (c *MultipleVPCConfigs) Config(name string) *VPCConfig {
+	return c.configs[name]
 }
-func (c *MultipleVPCConfigs) HasVpc(name string) bool {
-	_, ok := c.vpcs[name]
+func (c *MultipleVPCConfigs) HasConfig(name string) bool {
+	_, ok := c.configs[name]
 	return ok
 }
-func (c *MultipleVPCConfigs) toCompareVpc(name string) *VPCConfig {
-	return c.toCompare[name]
+func (c *MultipleVPCConfigs) ConfigToCompare(name string) *VPCConfig {
+	return c.toCompareConfigs[name]
 }
-func (c *MultipleVPCConfigs) SetToCompareVpc(toCompare *MultipleVPCConfigs) {
-	c.toCompare = toCompare.Vpcs()
+func (c *MultipleVPCConfigs) SetConfigsToCompare(toCompare *MultipleVPCConfigs) {
+	c.toCompareConfigs = toCompare.Configs()
 }
 func (c *MultipleVPCConfigs) CloudName() string {
 	return c.cloudName

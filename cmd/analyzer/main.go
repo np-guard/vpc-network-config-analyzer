@@ -231,11 +231,11 @@ func _main(cmdlineArgs []string) error {
 			return err
 		}
 		// we are in diff mode, checking we have only one config per file:
-		if len(vpcConfigs1.Vpcs()) != 1 || len(vpcConfigs2.Vpcs()) != 1 {
+		if len(vpcConfigs1.Configs()) != 1 || len(vpcConfigs2.Configs()) != 1 {
 			return fmt.Errorf("for diff mode %v a single configuration should be provided "+
 				"for both -vpc-config and -vpc-config-second", *inArgs.AnalysisType)
 		}
-		vpcConfigs1.SetToCompareVpc(vpcConfigs2)
+		vpcConfigs1.SetConfigsToCompare(vpcConfigs2)
 	}
 	outFile := ""
 	if inArgs.OutputFile != nil {

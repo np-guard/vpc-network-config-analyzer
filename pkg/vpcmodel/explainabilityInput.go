@@ -97,9 +97,9 @@ func (configsMap *MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string
 		return nil, nil, nil, noInternalIP, fmt.Errorf("specified src and dst are equal")
 	}
 	configsWithSrcDstNodeSingleVpc, configsWithSrcDstNodeMultiVpc := map[string]srcAndDstNodes{}, map[string]srcAndDstNodes{}
-	for cfgID := range configsMap.Vpcs() {
+	for cfgID := range configsMap.Configs() {
 		var errType int
-		srcNodes, dstNodes, isSrcDstInternalIP, errType, err = configsMap.Vpc(cfgID).srcDstInputToNodes(src, dst, len(configsMap.Vpcs()) > 1)
+		srcNodes, dstNodes, isSrcDstInternalIP, errType, err = configsMap.Config(cfgID).srcDstInputToNodes(src, dst, len(configsMap.Configs()) > 1)
 		if srcNodes != nil {
 			srcFoundSomeCfg = true
 		}
@@ -109,7 +109,7 @@ func (configsMap *MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string
 		if err != nil {
 			switch {
 			case errType == fatalErr:
-				return configsMap.Vpc(cfgID), nil, nil, noInternalIP, err
+				return configsMap.Config(cfgID), nil, nil, noInternalIP, err
 			case errType == internalNotWithinSubnetsAddr:
 				errMsgInternalNotWithinSubnet = err
 			case errType == noValidInputErr && srcNodes == nil:
@@ -118,7 +118,7 @@ func (configsMap *MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string
 				errMsgNoValidDst = err
 			}
 		} else {
-			if configsMap.Vpc(cfgID).IsMultipleVPCsConfig {
+			if configsMap.Config(cfgID).IsMultipleVPCsConfig {
 				configsWithSrcDstNodeMultiVpc[cfgID] = srcAndDstNodes{srcNodes, dstNodes, isSrcDstInternalIP}
 			} else {
 				configsWithSrcDstNodeSingleVpc[cfgID] = srcAndDstNodes{srcNodes, dstNodes, isSrcDstInternalIP}
@@ -134,14 +134,14 @@ func (configsMap *MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string
 	// single config in which both src and dst were found, and the matched config is a multi vpc config: returns the matched config
 	case len(configsWithSrcDstNodeSingleVpc) == 0 && len(configsWithSrcDstNodeMultiVpc) == 1:
 		for cfgID, val := range configsWithSrcDstNodeMultiVpc {
-			return configsMap.Vpc(cfgID), val.srcNodes, val.dstNodes, val.isSrcDstInternalIP, nil
+			return configsMap.Config(cfgID), val.srcNodes, val.dstNodes, val.isSrcDstInternalIP, nil
 		}
 	// Src and dst were found in a exactly one single-vpc config. Its likely src and dst were also found in
 	// multi-vpc configs (in each such config that connects their vpc to another one).
 	// In this case the relevant config for analysis is the single vpc config, which is the returned config
 	case len(configsWithSrcDstNodeSingleVpc) == 1:
 		for cfgID, val := range configsWithSrcDstNodeSingleVpc {
-			return configsMap.Vpc(cfgID), val.srcNodes, val.dstNodes, val.isSrcDstInternalIP, nil
+			return configsMap.Config(cfgID), val.srcNodes, val.dstNodes, val.isSrcDstInternalIP, nil
 		}
 	// both src and dst found in *more than one* single-vpc config or
 	// in no single-vpc config and more than one multi-vpc config. In both cases it is impossible to determine
@@ -202,7 +202,7 @@ func (configsMap *MultipleVPCConfigs) listNamesCfg(configsWithSrcDstNode map[str
 	matchConfigs := make([]string, len(configsWithSrcDstNode))
 	for vpcUID := range configsWithSrcDstNode {
 		// the vsis are in more than one config; lists all the configs it is in for the error msg
-		matchConfigs[i] = configsMap.Vpc(vpcUID).VPC.Name()
+		matchConfigs[i] = configsMap.Config(vpcUID).VPC.Name()
 		i++
 	}
 	sort.Strings(matchConfigs)
@@ -216,10 +216,10 @@ func (configsMap *MultipleVPCConfigs) listNamesCrossVpcRouters(
 	i := 0
 	crossVpcRouters := make([]string, len(configsWithSrcDstNode))
 	for vpcUID := range configsWithSrcDstNode {
-		routingResources := configsMap.Vpc(vpcUID).RoutingResources
+		routingResources := configsMap.Config(vpcUID).RoutingResources
 		if len(routingResources) != 1 {
 			return "", fmt.Errorf("np-guard error: multi-vpc config %s should have a single routing resource, "+
-				"but has %v routing resources", configsMap.Vpc(vpcUID).VPC.Name(), len(routingResources))
+				"but has %v routing resources", configsMap.Config(vpcUID).VPC.Name(), len(routingResources))
 		}
 		crossVpcRouters[i] = routingResources[0].Name()
 		i++
