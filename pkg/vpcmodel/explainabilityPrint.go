@@ -25,8 +25,8 @@ const emptyString = ""
 
 // header of txt/debug format
 func explainHeader(explanation *Explanation) string {
-	srcNetworkInterfaces := listNetworkInterfaces(explanation.srcNetworkInterfacesFromIP)
-	dstNetworkInterfaces := listNetworkInterfaces(explanation.dstNetworkInterfacesFromIP)
+	srcNetworkInterfaces := listNetworkInterfaces(explanation.c, explanation.srcNetworkInterfacesFromIP)
+	dstNetworkInterfaces := listNetworkInterfaces(explanation.c, explanation.dstNetworkInterfacesFromIP)
 	singleVpcContext := ""
 	// communication within a single vpc
 	if explanation.c != nil && !explanation.c.IsMultipleVPCsConfig {
@@ -48,13 +48,13 @@ func connHeader(connQuery *connection.Set) string {
 
 // in case the src/dst of a network interface given as an internal address connected to network interface returns a string
 // of all relevant nodes names
-func listNetworkInterfaces(nodes []Node) string {
+func listNetworkInterfaces(c *VPCConfig, nodes []Node) string {
 	if len(nodes) == 0 {
 		return emptyString
 	}
 	networkInterfaces := make([]string, len(nodes))
 	for i, node := range nodes {
-		networkInterfaces[i] = node.Name()
+		networkInterfaces[i] = node.ExtendedName(c)
 	}
 	return leftParentheses + strings.Join(networkInterfaces, comma) + rightParentheses
 }
@@ -122,7 +122,7 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 	var crossVpcConnection *connection.Set
 	crossVpcConnection, crossRouterFilterHeader, crossRouterFilterDetails = crossRouterDetails(c, crossVpcRouter, src, dst)
 	// noConnection is the 1 above when no connection
-	noConnection := noConnectionHeader(src.Name(), dst.Name(), connQuery) + newLine
+	noConnection := noConnectionHeader(src.ExtendedName(c), dst.ExtendedName(c), connQuery) + newLine
 
 	// resourceEffectHeader is "2" above
 	rules := expDetails.rules
@@ -138,12 +138,12 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 	if verbose {
 		details = "\nDetails:\n~~~~~~~~\n" + egressRulesDetails + crossRouterFilterDetails + ingressRulesDetails
 	}
-	return g.explainPerCaseStr(src, dst, connQuery, crossVpcConnection, ingressBlocking, egressBlocking,
+	return g.explainPerCaseStr(c, src, dst, connQuery, crossVpcConnection, ingressBlocking, egressBlocking,
 		noConnection, resourceEffectHeader, path, details)
 }
 
 // after all data is gathered, generates the actual string to be printed
-func (g *groupedConnLine) explainPerCaseStr(src, dst EndpointElem,
+func (g *groupedConnLine) explainPerCaseStr(c *VPCConfig, src, dst EndpointElem,
 	connQuery, crossVpcConnection *connection.Set, ingressBlocking, egressBlocking bool,
 	noConnection, resourceEffectHeader, path, details string) string {
 	conn := g.commonProperties.conn
@@ -158,7 +158,8 @@ func (g *groupedConnLine) explainPerCaseStr(src, dst EndpointElem,
 		return fmt.Sprintf("%vno fip and src is external (fip is required for "+
 			"outbound external connection)\n", noConnection)
 	case externalRouter == nil && dst.IsExternal():
-		return fmt.Sprintf("%vno fip/pgw and dst is external\n", noConnection)
+		return fmt.Sprintf("%v\tThe dst is external but there is no Floating IP or Public Gateway connecting to public internet\n",
+			noConnection)
 	case ingressBlocking && egressBlocking:
 		return fmt.Sprintf("%vconnection blocked both by ingress and egress"+tripleNLVars, noConnection,
 			headerPlusPath, details)
@@ -169,7 +170,7 @@ func (g *groupedConnLine) explainPerCaseStr(src, dst EndpointElem,
 		return fmt.Sprintf("%vconnection blocked by egress"+tripleNLVars, noConnection,
 			headerPlusPath, details)
 	default: // there is a connection
-		return existingConnectionStr(connQuery, src, dst, conn, path, details)
+		return existingConnectionStr(c, connQuery, src, dst, conn, path, details)
 	}
 }
 
@@ -202,12 +203,12 @@ func noConnectionHeader(src, dst string, connQuery *connection.Set) string {
 
 // printing when connection exists.
 // computing "1" when there is a connection and adding to it already computed "2" and "3" as described in explainabilityLineStr
-func existingConnectionStr(connQuery *connection.Set, src, dst EndpointElem,
+func existingConnectionStr(c *VPCConfig, connQuery *connection.Set, src, dst EndpointElem,
 	conn *connection.Set, path, details string) string {
 	resComponents := []string{}
 	// Computing the header, "1" described in explainabilityLineStr
 	if connQuery == nil {
-		resComponents = append(resComponents, fmt.Sprintf("Allowed connections from %v to %v: %v\n", src.Name(), dst.Name(),
+		resComponents = append(resComponents, fmt.Sprintf("Allowed connections from %v to %v: %v\n", src.ExtendedName(c), dst.ExtendedName(c),
 			conn.String()))
 	} else {
 		properSubsetConn := ""
@@ -215,7 +216,7 @@ func existingConnectionStr(connQuery *connection.Set, src, dst EndpointElem,
 			properSubsetConn = "(note that not all queried protocols/ports are allowed)\n"
 		}
 		resComponents = append(resComponents, fmt.Sprintf("Connections are allowed from %s to %s%s\n%s",
-			src.Name(), dst.Name(), connHeader(conn), properSubsetConn))
+			src.ExtendedName(c), dst.ExtendedName(c), connHeader(conn), properSubsetConn))
 	}
 	resComponents = append(resComponents, path, details)
 	return strings.Join(resComponents, newLine)

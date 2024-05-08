@@ -1,20 +1,20 @@
 module github.com/np-guard/vpc-network-config-analyzer
 
-go 1.21.6
+go 1.22.2
 
 require (
-	github.com/IBM/networking-go-sdk v0.45.0
+	github.com/IBM/networking-go-sdk v0.46.1
 	github.com/IBM/vpc-go-sdk v0.50.0
-	github.com/np-guard/cloud-resource-collector v0.10.1
-	github.com/np-guard/models v0.3.1
+	github.com/np-guard/cloud-resource-collector v0.10.2
+	github.com/np-guard/models v0.3.2
 	github.com/spf13/cobra v1.8.0
 	github.com/stretchr/testify v1.9.0
 )
 
 require (
 	github.com/IBM-Cloud/container-services-go-sdk v0.0.0-20230118060037-101bda076037 // indirect
-	github.com/IBM/go-sdk-core/v5 v5.16.4 // indirect
-	github.com/IBM/platform-services-go-sdk v0.62.2 // indirect
+	github.com/IBM/go-sdk-core/v5 v5.17.0 // indirect
+	github.com/IBM/platform-services-go-sdk v0.62.10 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.26.1 // indirect
 	github.com/aws/aws-sdk-go-v2/config v1.27.11 // indirect
@@ -36,7 +36,7 @@ require (
 	github.com/go-openapi/strfmt v0.22.1 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/go-playground/validator/v10 v10.18.0 // indirect
+	github.com/go-playground/validator/v10 v10.19.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.5 // indirect

@@ -9,50 +9,37 @@ package drawio
 import (
 	_ "embed"
 	"fmt"
+	"os"
 	"testing"
 )
 
+func createFileFromNetwork(network SquareTreeNodeInterface, fileName string, subnetMode bool, format FileFormat) {
+	res, err := CreateDrawioConnectivityMap(network, subnetMode, format, nil)
+	if err != nil {
+		fmt.Printf("Error when calling CreateDrawioConnectivityMap() for file %s:\n%s\n", fileName, err)
+	}
+	err = os.WriteFile(fileName, []byte(res), 0o600)
+	if err != nil {
+		fmt.Printf("Error when calling WriteFile for file %s:\n%s\n", fileName, err)
+	}
+}
 func TestWithParsing(t *testing.T) {
 	n := createNetwork()
-	err := CreateDrawioConnectivityMapFile(n, "fake.drawio", false, FileDRAWIO, nil)
-	if err != nil {
-		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
-	}
+	createFileFromNetwork(n, "fake.drawio", false, FileDRAWIO)
 	n = createNetwork2()
-	err = CreateDrawioConnectivityMapFile(n, "fake2.drawio", false, FileDRAWIO, nil)
-	if err != nil {
-		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
-	}
+	createFileFromNetwork(n, "fake2.drawio", false, FileDRAWIO)
 	n = createNetworkGrouping()
-	err = CreateDrawioConnectivityMapFile(n, "grouping.drawio", false, FileDRAWIO, nil)
-	if err != nil {
-		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
-	}
+	createFileFromNetwork(n, "grouping.drawio", false, FileDRAWIO)
 	n = createNetworkSubnetGrouping()
-	err = CreateDrawioConnectivityMapFile(n, "subnetGrouping.drawio", true, FileDRAWIO, nil)
-	if err != nil {
-		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
-	}
+	createFileFromNetwork(n, "subnetGrouping.drawio", true, FileDRAWIO)
 	n = createNetworkSubnetGroupingBug()
-	err = CreateDrawioConnectivityMapFile(n, "subnetGroupingBug.drawio", true, FileDRAWIO, nil)
-	if err != nil {
-		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
-	}
+	createFileFromNetwork(n, "subnetGroupingBug.drawio", true, FileSVG)
 	n = createNetworkSubnetGroupingMultiVpc()
-	err = CreateDrawioConnectivityMapFile(n, "subnetGroupingMultiVpc.drawio", true, FileDRAWIO, nil)
-	if err != nil {
-		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
-	}
+	createFileFromNetwork(n, "subnetGroupingMultiVpc.drawio", true, FileHTML)
 	n = createNetworkSubnetGroupingOverlapping()
-	err = CreateDrawioConnectivityMapFile(n, "subnetGroupingOverlapping.drawio", true, FileDRAWIO, nil)
-	if err != nil {
-		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
-	}
+	createFileFromNetwork(n, "subnetGroupingOverlapping.drawio", true, FileDRAWIO)
 	n = createNetworkSubnetGroupingGroupInGroup()
-	err = CreateDrawioConnectivityMapFile(n, "subnetGroupingGroupInGroup.drawio", true, FileDRAWIO, nil)
-	if err != nil {
-		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
-	}
+	createFileFromNetwork(n, "subnetGroupingGroupInGroup.drawio", true, FileHTML)
 	n2 := NewNetworkTreeNode()
 	cloud := NewCloudTreeNode(n2, "Cloud")
 	NewPublicNetworkTreeNode(n2)
@@ -61,21 +48,12 @@ func TestWithParsing(t *testing.T) {
 	vpc1 := NewVpcTreeNode(region, "vpc1")
 	z := NewZoneTreeNode(vpc1, "zone1")
 	NewSubnetTreeNode(z, "sub1", "cidr", "acl1")
-	err = CreateDrawioConnectivityMapFile(n2, "fake3.drawio", false, FileDRAWIO, nil)
-	if err != nil {
-		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
-	}
+	createFileFromNetwork(n2, "fake3.drawio", false, FileDRAWIO)
 
 	n = createNetworkAllTypes()
-	err = CreateDrawioConnectivityMapFile(n, "all.drawio", false, FileDRAWIO, nil)
-	if err != nil {
-		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
-	}
+	createFileFromNetwork(n, "all.drawio", false, FileDRAWIO)
 	n = createNetworkTgw()
-	err = CreateDrawioConnectivityMapFile(n, "tgws.drawio", false, FileDRAWIO, nil)
-	if err != nil {
-		fmt.Println("Error when calling CreateDrawioConnectivityMapFile():", err)
-	}
+	createFileFromNetwork(n, "tgws.drawio", false, FileDRAWIO)
 }
 
 func createNetwork() SquareTreeNodeInterface {

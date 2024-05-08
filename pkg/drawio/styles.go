@@ -316,7 +316,7 @@ func calcConnectionPoint(tn TreeNodeInterface, center, out point) point {
 
 //////////////////////////////////////////////////////////////////////////////////
 
-//nolint:gomnd // lineConnectionPoint is numerated form 1 to 16
+//nolint:mnd // lineConnectionPoint is numerated form 1 to 16
 func lineConnectionPointToXY(connectionPoint lineConnectionPoint) (x, y float64) {
 	//revive:disable // these are the numbers required by drawio
 

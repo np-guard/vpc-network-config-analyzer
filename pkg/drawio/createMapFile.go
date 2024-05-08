@@ -7,9 +7,8 @@ SPDX-License-Identifier: Apache-2.0
 package drawio
 
 import (
+	"bytes"
 	_ "embed"
-	"fmt"
-	"os"
 	"reflect"
 	"sort"
 	"strings"
@@ -61,10 +60,9 @@ type templateData struct {
 }
 
 func newTemplateData(network SquareTreeNodeInterface, explanations []ExplanationEntry, interactive bool) *templateData {
-	allNodes := getAllNodes(network)
-	orderedNodes := orderNodesForTemplate(allNodes)
+	orderedNodes := orderNodesForTemplate(network)
 	data := &templateData{
-		newTemplateStyles(allNodes),
+		newTemplateStyles(orderedNodes),
 		network.Width(),
 		network.Height(),
 		network.ID(),
@@ -154,7 +152,7 @@ func (data *templateData) AY(tn TreeNodeInterface) int {
 // 2. we put the icons above the squares
 // 3. we bucket sort the squares, and order them by parent-child order
 // 4. we also sort the groupSquare by size
-func orderNodesForTemplate(nodes []TreeNodeInterface) []TreeNodeInterface {
+func orderNodesForTemplate(network SquareTreeNodeInterface) []TreeNodeInterface {
 	squareOrders := []SquareTreeNodeInterface{
 		&NetworkTreeNode{},
 		&PublicNetworkTreeNode{},
@@ -168,18 +166,10 @@ func orderNodesForTemplate(nodes []TreeNodeInterface) []TreeNodeInterface {
 		&PartialSGTreeNode{},
 		&GroupSquareTreeNode{},
 	}
-	var lines, icons, orderedNodes []TreeNodeInterface
 	squaresBuckets := map[reflect.Type][]TreeNodeInterface{}
-	for _, tn := range nodes {
-		switch {
-		case tn.IsSquare():
-			e := reflect.TypeOf(tn).Elem()
-			squaresBuckets[e] = append(squaresBuckets[e], tn)
-		case tn.IsIcon():
-			icons = append(icons, tn)
-		case tn.IsLine():
-			lines = append(lines, tn)
-		}
+	for _, tn := range getAllSquaresAsTNs(network) {
+		e := reflect.TypeOf(tn).Elem()
+		squaresBuckets[e] = append(squaresBuckets[e], tn)
 	}
 	for _, square := range []SquareTreeNodeInterface{
 		&GroupSquareTreeNode{},
@@ -190,37 +180,26 @@ func orderNodesForTemplate(nodes []TreeNodeInterface) []TreeNodeInterface {
 			return nodes[i].Width() > nodes[j].Width()
 		})
 	}
+	orderedNodes := []TreeNodeInterface{}
 	for _, t := range squareOrders {
 		orderedNodes = append(orderedNodes, squaresBuckets[reflect.TypeOf(t).Elem()]...)
 	}
-	orderedNodes = append(orderedNodes, icons...)
-	orderedNodes = append(orderedNodes, lines...)
+	orderedNodes = append(orderedNodes, getAllIconsAsTNs(network)...)
+	orderedNodes = append(orderedNodes, getAllLinesAsTNs(network)...)
 	return orderedNodes
 }
 
-func CreateDrawioConnectivityMapFile(
-	network SquareTreeNodeInterface, outputFile string, subnetMode bool,
-	format FileFormat, explanations []ExplanationEntry) error {
+func CreateDrawioConnectivityMap(
+	network SquareTreeNodeInterface, subnetMode bool,
+	format FileFormat, explanations []ExplanationEntry) (string, error) {
 	newLayout(network, subnetMode).layout()
 	data := newTemplateData(network, explanations, format == FileHTML)
-	return createFileFromTemplate(data, outputFile, formatsTemplate[format])
-}
+	tmpl, err := template.New("diagram").Parse(formatsTemplate[format])
+	if err != nil {
+		return "", err
+	}
+	oBuffer := bytes.NewBufferString("")
+	err = tmpl.Execute(oBuffer, data)
 
-func createFileFromTemplate(data *templateData, outputFile, templ string) error {
-	tmpl, err := template.New("diagram").Parse(templ)
-	if err != nil {
-		return err
-	}
-	fo, err := os.Create(outputFile)
-	if err != nil {
-		return err
-	}
-	// close fo on exit and check for its returned error
-	defer func() {
-		if closeErr := fo.Close(); closeErr != nil {
-			fmt.Println("Error when closing:", closeErr)
-		}
-	}()
-	err = tmpl.Execute(fo, data)
-	return err
+	return oBuffer.String(), err
 }

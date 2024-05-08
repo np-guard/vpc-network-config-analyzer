@@ -57,7 +57,11 @@ func (r *ReservedIP) Name() string {
 	return getNodeName(r.vpe, r.Address())
 }
 
-// ReservedIP implements vpcmodel.Node interface
+func (r *ReservedIP) ExtendedName(c *vpcmodel.VPCConfig) string {
+	return r.ExtendedPrefix(c) + r.Name()
+}
+
+// PrivateIP implements vpcmodel.Node interface
 type PrivateIP struct {
 	vpcmodel.VPCResource
 	vpcmodel.InternalNode
@@ -66,6 +70,10 @@ type PrivateIP struct {
 
 func (pip *PrivateIP) Name() string {
 	return getNodeName(pip.loadBalancer, pip.Address())
+}
+
+func (pip *PrivateIP) ExtendedName(c *vpcmodel.VPCConfig) string {
+	return pip.ExtendedPrefix(c) + pip.Name()
 }
 
 // NetworkInterface implements vpcmodel.Node interface
@@ -83,6 +91,10 @@ func (ni *NetworkInterface) Name() string {
 	return getNodeName(ni.vsi, ni.Address())
 }
 
+func (ni *NetworkInterface) ExtendedName(c *vpcmodel.VPCConfig) string {
+	return ni.ExtendedPrefix(c) + ni.Name()
+}
+
 // IKSNode implements vpcmodel.Node interface
 type IKSNode struct {
 	vpcmodel.VPCResource
@@ -95,6 +107,10 @@ func (n *IKSNode) VsiName() string {
 
 func (n *IKSNode) Name() string {
 	return getNodeName(n.ResourceName, n.Address())
+}
+
+func (n *IKSNode) ExtendedName(c *vpcmodel.VPCConfig) string {
+	return n.ExtendedPrefix(c) + n.Name()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
