@@ -15,18 +15,19 @@ import (
 const secondConfigFlag = "vpc-config-second"
 
 func NewDiffCommand(args *InArgs) *cobra.Command {
+	const diffCmd = "diff"
 	cmd := &cobra.Command{
-		Use:   "diff",
+		Use:   diffCmd,
 		Short: "Diff connectivity postures as implied by two VPC configs",
 		Long: `Report changes in connectivity (modified, added and removed connections)
 		between two VPC configurations`,
 		PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
-			return validateFormatForMode("diff", []formatSetting{textFormat, mdFormat}, args)
+			return validateFormatForMode(diffCmd, []formatSetting{textFormat, mdFormat}, args)
 		},
 	}
 
 	cmd.PersistentFlags().StringVar(&args.InputSecondConfigFile, secondConfigFlag, "", "file path to the 2nd input config")
-	cmd.MarkPersistentFlagRequired(secondConfigFlag)
+	_ = cmd.MarkPersistentFlagRequired(secondConfigFlag)
 
 	cmd.AddCommand(newDiffEndpointsCommand(args))
 	cmd.AddCommand(newDiffSubnetsCommand(args))

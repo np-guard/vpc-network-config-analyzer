@@ -25,8 +25,10 @@ const (
 	svgFormat        formatSetting = "svg"
 	archSVGFormat    formatSetting = "arch_svg"
 	htmlFormat       formatSetting = "html"
-	archHtmlFormat   formatSetting = "arch_html"
+	archHTMLFormat   formatSetting = "arch_html"
 	debugFormat      formatSetting = "debug"
+
+	stringType = "string"
 )
 
 var allFormats = []string{
@@ -38,7 +40,7 @@ var allFormats = []string{
 	string(svgFormat),
 	string(archSVGFormat),
 	string(htmlFormat),
-	string(archHtmlFormat),
+	string(archHTMLFormat),
 	string(debugFormat),
 }
 
@@ -52,11 +54,11 @@ func (fs *formatSetting) Set(v string) error {
 		*fs = formatSetting(v)
 		return nil
 	}
-	return fmt.Errorf(mustBeOneOf(allFormats))
+	return fmt.Errorf("%s", mustBeOneOf(allFormats))
 }
 
 func (fs *formatSetting) Type() string {
-	return "string"
+	return stringType
 }
 
 func toStringArray(fs []formatSetting) []string {
@@ -85,7 +87,7 @@ func (fs *formatSetting) ToModelFormat() vpcmodel.OutFormat {
 		return vpcmodel.ARCHSVG
 	case htmlFormat:
 		return vpcmodel.HTML
-	case archHtmlFormat:
+	case archHTMLFormat:
 		return vpcmodel.ARCHHTML
 	case debugFormat:
 		return vpcmodel.Debug

@@ -9,9 +9,10 @@ package subcmds
 import (
 	"fmt"
 
+	"github.com/spf13/cobra"
+
 	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/netp"
-	"github.com/spf13/cobra"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
@@ -52,8 +53,8 @@ func NewExplainCommand(args *InArgs) *cobra.Command {
 	cmd.Flags().Int64Var(&args.EDstMinPort, dstMinPortFlag, netp.MinPort, "minimum destination port for connection description")
 	cmd.Flags().Int64Var(&args.EDstMaxPort, dstMaxPortFlag, netp.MaxPort, "maximum destination port for connection description")
 
-	cmd.MarkFlagRequired(srcFlag)
-	cmd.MarkFlagRequired(dstFlag)
+	_ = cmd.MarkFlagRequired(srcFlag)
+	_ = cmd.MarkFlagRequired(dstFlag)
 	cmd.Flags().SortFlags = false
 
 	return cmd
@@ -84,7 +85,7 @@ func FlagSet(cmd *cobra.Command, flagName string) bool {
 }
 
 func validateExplainFlags(cmd *cobra.Command, args *InArgs) error {
-	err := validateFormatForMode("explain", []formatSetting{textFormat, debugFormat}, args)
+	err := validateFormatForMode(cmd.Use, []formatSetting{textFormat, debugFormat}, args)
 	if err != nil {
 		return err
 	}

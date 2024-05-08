@@ -30,9 +30,9 @@ func (p *provider) Set(v string) error {
 		*p = provider(v)
 		return nil
 	}
-	return fmt.Errorf(mustBeOneOf(allProviders))
+	return fmt.Errorf("%s", mustBeOneOf(allProviders))
 }
 
 func (p *provider) Type() string {
-	return "string"
+	return stringType
 }

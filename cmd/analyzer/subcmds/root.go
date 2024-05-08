@@ -65,14 +65,16 @@ func NewRootCommand(args *InArgs) *cobra.Command {
 		Version: version.VersionCore,
 	}
 
-	rootCmd.PersistentFlags().StringArrayVarP(&args.InputConfigFileList, vpcConfigFlag, "c", nil, "file paths to input configs, can pass multiple config files")
+	rootCmd.PersistentFlags().StringArrayVarP(&args.InputConfigFileList, vpcConfigFlag, "c", nil,
+		"file paths to input configs, can pass multiple config files")
 	rootCmd.PersistentFlags().VarP(&args.Provider, providerFlag, "p", "collect resources from an account in this cloud provider")
 	rootCmd.PersistentFlags().StringVar(&args.DumpResources, dumpFlag, "", "file path to store resources collected from the cloud provider")
 	rootCmd.MarkFlagsOneRequired(vpcConfigFlag, providerFlag)
 	rootCmd.MarkFlagsMutuallyExclusive(vpcConfigFlag, providerFlag)
 	rootCmd.MarkFlagsMutuallyExclusive(vpcConfigFlag, dumpFlag)
 
-	rootCmd.PersistentFlags().StringArrayVarP(&args.RegionList, regionFlag, "r", nil, "cloud region from which to collect resources, can pass multiple regions")
+	rootCmd.PersistentFlags().StringArrayVarP(&args.RegionList, regionFlag, "r", nil,
+		"cloud region from which to collect resources, can pass multiple regions")
 	rootCmd.PersistentFlags().StringVar(&args.ResourceGroup, rgFlag, "", "resource group id or name from which to collect resources")
 	rootCmd.PersistentFlags().StringVar(&args.VPC, vpcFlag, "", "CRN of the VPC to analyze")
 

@@ -27,9 +27,9 @@ func (ps *protocolSetting) Set(v string) error {
 		*ps = protocolSetting(v)
 		return nil
 	}
-	return fmt.Errorf(mustBeOneOf(allowedProtocols))
+	return fmt.Errorf("%s", mustBeOneOf(allowedProtocols))
 }
 
 func (ps *protocolSetting) Type() string {
-	return "string"
+	return stringType
 }
