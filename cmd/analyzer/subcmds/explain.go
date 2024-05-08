@@ -43,7 +43,7 @@ func (ps *protocolSetting) Set(v string) error {
 		*ps = protocolSetting(v)
 		return nil
 	}
-	return fmt.Errorf("must be one of [%s]", strings.Join(allowedProtocols, separator))
+	return fmt.Errorf(mustBeOneOf(allowedProtocols))
 }
 
 func (ps *protocolSetting) Type() string {

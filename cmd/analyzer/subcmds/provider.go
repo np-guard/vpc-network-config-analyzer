@@ -30,7 +30,7 @@ func (p *provider) Set(v string) error {
 		*p = provider(v)
 		return nil
 	}
-	return fmt.Errorf("must be one of [%s]", strings.Join(allProviders, separator))
+	return fmt.Errorf(mustBeOneOf(allProviders))
 }
 
 func (p *provider) Type() string {

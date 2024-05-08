@@ -33,5 +33,3 @@ type InArgs struct {
 	Quiet                 bool
 	Verbose               bool
 }
-
-const separator = ", "

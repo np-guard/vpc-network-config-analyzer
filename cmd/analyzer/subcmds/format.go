@@ -52,7 +52,7 @@ func (fs *formatSetting) Set(v string) error {
 		*fs = formatSetting(v)
 		return nil
 	}
-	return fmt.Errorf("must be one of [%s]", strings.Join(allFormats, separator))
+	return fmt.Errorf(mustBeOneOf(allFormats))
 }
 
 func (fs *formatSetting) Type() string {
@@ -94,8 +94,11 @@ func (fs *formatSetting) ToModelFormat() vpcmodel.OutFormat {
 }
 
 func validateFormatForMode(mode string, supportedFormats []formatSetting, args *InArgs) error {
+	if args.OutputFormat == "" {
+		args.OutputFormat = textFormat
+	}
 	if !slices.Contains(supportedFormats, args.OutputFormat) {
-		return fmt.Errorf("output format for %s must be one of [%s]", mode, strings.Join(toStringArray(supportedFormats), separator))
+		return fmt.Errorf("output format for %s %s", mode, mustBeOneOf(toStringArray(supportedFormats)))
 	}
 	return nil
 }

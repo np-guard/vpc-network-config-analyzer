@@ -7,14 +7,13 @@ SPDX-License-Identifier: Apache-2.0
 package subcmds
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/spf13/cobra"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/version"
 )
-
-// TODO: handle default format (should be txt)
 
 const (
 	vpcConfigFlag = "vpc-config"
@@ -51,7 +50,7 @@ func NewRootCommand(args *InArgs) *cobra.Command {
 	rootCmd.PersistentFlags().StringVar(&args.VPC, vpcFlag, "", "CRN of the VPC to analyze")
 
 	rootCmd.PersistentFlags().StringVar(&args.OutputFile, outputFileFlag, "", "file path to store results")
-	rootCmd.PersistentFlags().VarP(&args.OutputFormat, outputFormatFlag, "o", "output format; must be one of:\n"+strings.Join(allFormats, separator))
+	rootCmd.PersistentFlags().VarP(&args.OutputFormat, outputFormatFlag, "o", "output format; "+mustBeOneOf(allFormats))
 
 	rootCmd.PersistentFlags().BoolVarP(&args.Quiet, quietFlag, "q", false, "runs quietly, reports only severe errors and results")
 	rootCmd.PersistentFlags().BoolVarP(&args.Verbose, verboseFlag, "v", false, "runs with more informative messages printed to log")
@@ -65,4 +64,8 @@ func NewRootCommand(args *InArgs) *cobra.Command {
 	rootCmd.AddCommand(NewDiffCommand(args))
 	rootCmd.AddCommand(NewExplainCommand(args))
 	return rootCmd
+}
+
+func mustBeOneOf(values []string) string {
+	return fmt.Sprintf("must be one of [%s]", strings.Join(values, ", "))
 }
