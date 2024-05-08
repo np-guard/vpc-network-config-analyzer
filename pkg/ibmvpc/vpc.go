@@ -837,7 +837,7 @@ func (tgw *TransitGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf
 
 func (tgw *TransitGateway) RouterDefined(src, dst vpcmodel.Node) bool {
 	// destination node has a transit gateway connection iff a prefix filter (possibly default) is defined for it
-	dstNodeHasTgw := tgw.prefixesOfSrcDst(src, dst) != nil
+	dstNodeHasTgw := tgw.prefixesOfSrcDstOld(src, dst) != nil
 	return vpcmodel.HasNode(tgw.sourceNodes, src) && dstNodeHasTgw
 }
 
@@ -893,13 +893,26 @@ func actionNameStr(action *string) (string, error) {
 	return denyAction, nil
 }
 
-// todo: implement
+// RulesInConnectivity returns the prefix filters relevant for <src, dst>. Since src/dst could be a cidr,
+// there could be more than one relevant prefix filter (in a single transit connection)
 func (tgw *TransitGateway) RulesInConnectivity(src, dst vpcmodel.Node) ([]vpcmodel.RulesInTable, error) {
-	return nil, nil
+	// <src, dst> routed by tgw given that source is in the tgw,
+	// and there is a prefix filter defined for the dst,
+	// the relevant prefix filters are determined by match of the Address prefix the dest's node is in (including default)
+	prefixFilters := []vpcmodel.RulesInTable{}
+	if vpcmodel.HasNode(tgw.sourceNodes, src) {
+		for ipBlock, transitConnectionPrefixes := range tgw.vpcsAPToPrefixRules[dst.VPC().UID()] {
+			if !dst.IPBlock().Intersect(ipBlock).IsEmpty() {
+				prefixFilters = append(prefixFilters, transitConnectionPrefixes)
+			}
+		}
+	}
+	return prefixFilters, nil
 }
 
+// todo: delete
 func (tgw *TransitGateway) StringPrefixDetails(src, dst vpcmodel.Node, verbose bool) (string, error) {
-	prefixes := tgw.prefixesOfSrcDst(src, dst)
+	prefixes := tgw.prefixesOfSrcDstOld(src, dst)
 	transitEnablesConn := vpcmodel.HasNode(tgw.sourceNodes, src) && vpcmodel.HasNode(tgw.destNodes, dst)
 	if verbose {
 		tgwRouterFilterDetails, err := tgw.tgwPrefixStr(*prefixes[0]) // todo tmp
@@ -925,7 +938,8 @@ func (tgw *TransitGateway) StringDetailsOfRules(listRulesInFilter []vpcmodel.Rul
 	return ""
 }
 
-func (tgw *TransitGateway) prefixesOfSrcDst(src, dst vpcmodel.Node) []*tgwPrefixFilter {
+// todo: delete
+func (tgw *TransitGateway) prefixesOfSrcDstOld(src, dst vpcmodel.Node) []*tgwPrefixFilter {
 	// <src, dst> routed by tgw given that source is in the tgw,
 	// and there is a prefix filter defined for the dst,
 	// the relevant prefix filter is determined by match of the Address prefix the dest's node is in (including default)
