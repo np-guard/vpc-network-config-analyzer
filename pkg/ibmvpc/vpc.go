@@ -674,8 +674,9 @@ func (fip *FloatingIP) RulesInConnectivity(src, dst vpcmodel.Node) []vpcmodel.Ru
 	return nil
 }
 
-func (fip *FloatingIP) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInTable) string {
-	return ""
+func (fip *FloatingIP) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInTable,
+	verbose bool) (string, error) {
+	return "", nil
 }
 
 type PublicGateway struct {
@@ -737,8 +738,9 @@ func (pgw *PublicGateway) RulesInConnectivity(src, dst vpcmodel.Node) []vpcmodel
 	return nil
 }
 
-func (pgw *PublicGateway) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInTable) string {
-	return ""
+func (pgw *PublicGateway) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInTable,
+	verbose bool) (string, error) {
+	return "", nil
 }
 
 // todo: remove
@@ -934,8 +936,8 @@ func (tgw *TransitGateway) StringPrefixDetails(src, dst vpcmodel.Node, verbose b
 }
 
 // StringDetailsOfRules todo: implement, replace StringPrefixDetails
-func (tgw *TransitGateway) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInTable) string {
-	return ""
+func (tgw *TransitGateway) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInTable, verbose bool) (string, error) {
+	return "", nil
 }
 
 // todo: delete

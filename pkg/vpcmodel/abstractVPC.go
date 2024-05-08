@@ -262,7 +262,7 @@ type RoutingResource interface {
 	// todo: remove, replace by StringDetailsOfRules in rulesBasedResources
 	StringPrefixDetails(src, dst Node, verbose bool) (string, error)
 	// StringDetailsOfRules todo: 1st stage implementing here
-	StringDetailsOfRules(listRulesInFilter []RulesInTable) string
+	StringDetailsOfRules(listRulesInFilter []RulesInTable, verbose bool) (string, error)
 }
 
 // todo: interface that captures all rule based resources
