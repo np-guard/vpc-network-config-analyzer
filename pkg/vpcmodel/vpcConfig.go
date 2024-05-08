@@ -102,7 +102,9 @@ func (c *VPCConfig) getRoutingResource(src, dst Node) (RoutingResource, *connect
 }
 
 // /////////////////////////////////////////////////////////////////////////////////
-
+// MultipleVPCConfigs - a struct of all the configs.
+// when elaborating multivpc support, we might change this struct
+// so, please do not access the fields directly, use get/set methods
 type MultipleVPCConfigs struct {
 	configs          map[string]*VPCConfig
 	toCompareConfigs map[string]*VPCConfig

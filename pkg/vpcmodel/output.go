@@ -53,7 +53,7 @@ const (
 // OutputGenerator captures one vpc config1 with its connectivity analysis results, and implements
 // the functionality to generate the analysis output in various formats, for that vpc
 type OutputGenerator struct {
-	config1        *MultipleVPCConfigs
+	configs        *MultipleVPCConfigs
 	outputGrouping bool
 	useCase        OutputUseCase
 	nodesConn      map[string]*VPCConnectivity
@@ -65,7 +65,7 @@ type OutputGenerator struct {
 func NewOutputGenerator(cConfigs *MultipleVPCConfigs, grouping bool, uc OutputUseCase,
 	archOnly bool, explanationArgs *ExplanationArgs, f OutFormat) (*OutputGenerator, error) {
 	res := &OutputGenerator{
-		config1:        cConfigs,
+		configs:        cConfigs,
 		outputGrouping: grouping,
 		useCase:        uc,
 		nodesConn:      map[string]*VPCConnectivity{},
@@ -147,7 +147,7 @@ func (o *OutputGenerator) Generate(f OutFormat, outFile string) (string, error) 
 	default:
 		return "", errors.New("unsupported output format")
 	}
-	return formatter.WriteOutput(o.config1, o.nodesConn, o.subnetsConn, o.cfgsDiff,
+	return formatter.WriteOutput(o.configs, o.nodesConn, o.subnetsConn, o.cfgsDiff,
 		outFile, o.outputGrouping, o.useCase, o.explanation)
 }
 
