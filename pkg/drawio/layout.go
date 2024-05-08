@@ -433,7 +433,7 @@ func (ly *layoutS) setSGLocations() {
 	for _, cloud := range ly.network.(*NetworkTreeNode).clouds {
 		for _, region := range cloud.(*CloudTreeNode).regions {
 			for _, vpc := range region.(*RegionTreeNode).vpcs {
-				multiSGs := sortToMultiSGs(vpc.(*VpcTreeNode).sgs)
+				multiSGs := calcMultiSGs(vpc.(*VpcTreeNode).sgs)
 				for _, multiSG := range multiSGs {
 					sgLocation := mergeLocations(locations(multiSG.icons))
 					sgIconsIndexes := map[[2]int]bool{}
@@ -468,12 +468,14 @@ func (ly *layoutS) setSGLocations() {
 	}
 }
 
+// multiSG is a list of icons that have the same list of SGs
 type multiSG struct {
 	sgs   []*SGTreeNode
 	icons []TreeNodeInterface
 }
 
-func sortToMultiSGs(sgs []SquareTreeNodeInterface) []multiSG {
+func calcMultiSGs(sgs []SquareTreeNodeInterface) []multiSG {
+	//for every icon, get all its SGs:
 	iconToSGs := map[IconTreeNodeInterface]common.GenericSet[*SGTreeNode]{}
 	for _, sg := range sgs {
 		for _, icon := range sg.IconTreeNodes() {
@@ -483,16 +485,18 @@ func sortToMultiSGs(sgs []SquareTreeNodeInterface) []multiSG {
 			iconToSGs[icon][sg.(*SGTreeNode)] = true
 		}
 	}
-	sgsKeyToIcons := map[setAsKey][]TreeNodeInterface{}
-	sgsKeyToSGs := map[setAsKey][]*SGTreeNode{}
+	// got each multiSG, get the list of icons, and list of SGs:
+	multiSGKeyToIcons := map[setAsKey][]TreeNodeInterface{}
+	multiSGKeyToSGs := map[setAsKey][]*SGTreeNode{}
 	for icon, sgs := range iconToSGs {
-		key := sgs.AsKey()
-		sgsKeyToIcons[key] = append(sgsKeyToIcons[key], icon)
-		sgsKeyToSGs[key] = sgs.AsList()
+		multiSGKey := sgs.AsKey()
+		multiSGKeyToIcons[multiSGKey] = append(multiSGKeyToIcons[multiSGKey], icon)
+		multiSGKeyToSGs[multiSGKey] = sgs.AsList()
 	}
+	// create the multiSGs:
 	multiSGs := []multiSG{}
-	for key := range sgsKeyToIcons {
-		multiSGs = append(multiSGs, multiSG{sgsKeyToSGs[key], sgsKeyToIcons[key]})
+	for multiSGKey := range multiSGKeyToIcons {
+		multiSGs = append(multiSGs, multiSG{multiSGKeyToSGs[multiSGKey], multiSGKeyToIcons[multiSGKey]})
 	}
 	return multiSGs
 }
