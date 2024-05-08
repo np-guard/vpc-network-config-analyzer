@@ -433,29 +433,11 @@ func (ly *layoutS) setSGLocations() {
 	for _, cloud := range ly.network.(*NetworkTreeNode).clouds {
 		for _, region := range cloud.(*CloudTreeNode).regions {
 			for _, vpc := range region.(*RegionTreeNode).vpcs {
-				iconToSGs := map[IconTreeNodeInterface]common.GenericSet[*SGTreeNode]{}
-				for _, sg := range vpc.(*VpcTreeNode).sgs {
-					for _, icon := range sg.IconTreeNodes() {
-						if _, ok := iconToSGs[icon]; !ok{
-							iconToSGs[icon] = common.GenericSet[*SGTreeNode]{}
-						}
-						iconToSGs[icon][sg.(*SGTreeNode)] = true
-					}
-				}
-				sgsToIcons := map[setAsKey]common.GenericSet[TreeNodeInterface]{}
-				keyToSGs := map[setAsKey]common.GenericSet[*SGTreeNode]{}
-				for icon, sgs := range iconToSGs{
-					if _, ok := sgsToIcons[sgs.AsKey()]; !ok{
-						sgsToIcons[sgs.AsKey()] = common.GenericSet[TreeNodeInterface]{}
-					}
-				sgsToIcons[sgs.AsKey()][icon] = true
-					keyToSGs[sgs.AsKey()] = sgs
-				}
-				for sgsKey, iconsSet := range sgsToIcons {
-					icons := iconsSet.AsList()
-					sgLocation := mergeLocations(locations(icons))
+				iconsToSGList :=  sortIconsToSGList(vpc.(*VpcTreeNode).sgs)
+				for icons, sgs := range iconsToSGList {
+					sgLocation := mergeLocations(locations(*icons))
 					sgIconsIndexes := map[[2]int]bool{}
-					for _, icon := range icons {
+					for _, icon := range *icons {
 						sgIconsIndexes[[2]int{icon.Location().firstRow.index, icon.Location().firstCol.index}] = true
 					}
 					for ri := sgLocation.firstRow.index; ri <= sgLocation.lastRow.index; ri++ {
@@ -469,7 +451,7 @@ func (ly *layoutS) setSGLocations() {
 							case currentLocation != nil && isSGCell:
 								currentLocation.lastCol = ly.matrix.cols[ci]
 							case currentLocation != nil && !isSGCell:
-								psg := newPartialSGTreeNode(keyToSGs[sgsKey].AsList())
+								psg := newPartialSGTreeNode(sgs)
 								currentLocation.xOffset = borderWidth
 								currentLocation.yOffset = borderWidth
 								currentLocation.xEndOffset = borderWidth
@@ -484,6 +466,30 @@ func (ly *layoutS) setSGLocations() {
 			}
 		}
 	}
+}
+func sortIconsToSGList(sgs []SquareTreeNodeInterface) map[*[]TreeNodeInterface][]*SGTreeNode{
+	iconToSGs := map[IconTreeNodeInterface]common.GenericSet[*SGTreeNode]{}
+	for _, sg := range sgs {
+		for _, icon := range sg.IconTreeNodes() {
+			if _, ok := iconToSGs[icon]; !ok {
+				iconToSGs[icon] = common.GenericSet[*SGTreeNode]{}
+			}
+			iconToSGs[icon][sg.(*SGTreeNode)] = true
+		}
+	}
+	sgsKeyToIcons := map[setAsKey][]TreeNodeInterface{}
+	sgsKeyToSGs := map[setAsKey]common.GenericSet[*SGTreeNode]{}
+	for icon, sgs := range iconToSGs {
+		sgsKeyToIcons[sgs.AsKey()] = append(sgsKeyToIcons[sgs.AsKey()], icon)
+		sgsKeyToSGs[sgs.AsKey()] = sgs
+	}
+	iconsToSGList := map[*[]TreeNodeInterface][]*SGTreeNode{}
+	for key := range sgsKeyToIcons{
+		icons := sgsKeyToIcons[key]
+		sgs := sgsKeyToSGs[key].AsList()
+		iconsToSGList[&icons] = sgs
+	}
+	return iconsToSGList
 }
 
 // ///////////////////////////////////////////////////////////
