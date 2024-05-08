@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/version"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
 const (
@@ -29,6 +30,32 @@ const (
 	verboseFlag      = "verbose"
 	debugFlag        = "debug"
 )
+
+// InArgs contains the input arguments for the analyzer
+type InArgs struct {
+	InputConfigFileList   []string
+	InputSecondConfigFile string
+	OutputFile            string
+	OutputFormat          formatSetting
+	AnalysisType          vpcmodel.OutputUseCase
+	Grouping              bool
+	VPC                   string
+	Debug                 bool
+	Version               *bool
+	ESrc                  string
+	EDst                  string
+	EProtocol             protocolSetting
+	ESrcMinPort           int64
+	ESrcMaxPort           int64
+	EDstMinPort           int64
+	EDstMaxPort           int64
+	Provider              provider
+	RegionList            []string
+	ResourceGroup         string
+	DumpResources         string
+	Quiet                 bool
+	Verbose               bool
+}
 
 func NewRootCommand(args *InArgs) *cobra.Command {
 	rootCmd := &cobra.Command{

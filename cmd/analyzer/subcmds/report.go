@@ -9,8 +9,9 @@ package subcmds
 import (
 	"fmt"
 
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 	"github.com/spf13/cobra"
+
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
 func NewReportCommand(args *InArgs) *cobra.Command {
