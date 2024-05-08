@@ -35,7 +35,7 @@ func NewDiffCommand(args *InArgs) *cobra.Command {
 }
 
 func newDiffEndpointsCommand(args *InArgs) *cobra.Command {
-	cmd := &cobra.Command{
+	return &cobra.Command{
 		Use:   "endpoints",
 		Short: "Diff connectivity between endpoints",
 		Long:  `reports changes in endpoint connectivity between two VPC configurations`,
@@ -45,11 +45,10 @@ func newDiffEndpointsCommand(args *InArgs) *cobra.Command {
 			return nil
 		},
 	}
-	return cmd
 }
 
 func newDiffSubnetsCommand(args *InArgs) *cobra.Command {
-	cmd := &cobra.Command{
+	return &cobra.Command{
 		Use:   "subnets",
 		Short: "Diff connectivity between subnets",
 		Long:  `reports changes in subnet connectivity between two VPC configurations`,
@@ -59,5 +58,4 @@ func newDiffSubnetsCommand(args *InArgs) *cobra.Command {
 			return nil
 		},
 	}
-	return cmd
 }

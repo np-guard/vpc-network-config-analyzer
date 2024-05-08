@@ -36,7 +36,7 @@ func NewReportCommand(args *InArgs) *cobra.Command {
 }
 
 func newReportEndpointsCommand(args *InArgs) *cobra.Command {
-	cmd := &cobra.Command{
+	return &cobra.Command{
 		Use:   "endpoints",
 		Short: "Report VPC connectivity between endpoints",
 		Long:  `reports VPC connectivity between endpoints as implied by the given cloud configuration`,
@@ -46,11 +46,10 @@ func newReportEndpointsCommand(args *InArgs) *cobra.Command {
 			return nil
 		},
 	}
-	return cmd
 }
 
 func newReportSubnetsCommand(args *InArgs) *cobra.Command {
-	cmd := &cobra.Command{
+	return &cobra.Command{
 		Use:   "subnets",
 		Short: "Report VPC connectivity between subnets",
 		Long:  `reports VPC connectivity between subnets as implied by the given cloud configuration`,
@@ -60,11 +59,10 @@ func newReportSubnetsCommand(args *InArgs) *cobra.Command {
 			return nil
 		},
 	}
-	return cmd
 }
 
 func newReportSingleSubnetCommand(args *InArgs) *cobra.Command {
-	cmd := &cobra.Command{
+	return &cobra.Command{
 		Use:   "single-subnet",
 		Short: "Report VPC connectivity per subnet",
 		Long:  `reports VPC connectivity per subnet as implied by the given cloud configuration`,
@@ -80,5 +78,4 @@ func newReportSingleSubnetCommand(args *InArgs) *cobra.Command {
 			return nil
 		},
 	}
-	return cmd
 }

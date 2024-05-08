@@ -8,8 +8,6 @@ package subcmds
 
 import (
 	"fmt"
-	"slices"
-	"strings"
 
 	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/netp"
@@ -29,26 +27,6 @@ const (
 	srcDstUsage = "endpoint for explanation; can be specified as a VSI name/CRN or an internal/external IP-address/CIDR;\n" +
 		"VSI name can be specified as <vsi-name> or  <vpc-name>/<vsi-name>"
 )
-
-type protocolSetting netp.ProtocolString
-
-func (ps *protocolSetting) String() string {
-	return string(*ps)
-}
-
-func (ps *protocolSetting) Set(v string) error {
-	allowedProtocols := []string{string(netp.ProtocolStringICMP), string(netp.ProtocolStringTCP), string(netp.ProtocolStringUDP)}
-	v = strings.ToUpper(v)
-	if slices.Contains(allowedProtocols, v) {
-		*ps = protocolSetting(v)
-		return nil
-	}
-	return fmt.Errorf(mustBeOneOf(allowedProtocols))
-}
-
-func (ps *protocolSetting) Type() string {
-	return "string"
-}
 
 func NewExplainCommand(args *InArgs) *cobra.Command {
 	cmd := &cobra.Command{
