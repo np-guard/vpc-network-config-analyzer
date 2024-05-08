@@ -198,7 +198,7 @@ func (tn *SGTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInter
 }
 func (tn *SGTreeNode) AddIcon(icon IconTreeNodeInterface) {
 	tn.addIconTreeNode(icon)
-	icon.setSG(tn)
+	icon.addSG(tn)
 }
 
 func (tn *SGTreeNode) NotShownInDrawio() bool { return true }
@@ -212,7 +212,7 @@ type PartialSGTreeNode struct {
 
 func newPartialSGTreeNode(sgs []*SGTreeNode) *PartialSGTreeNode {
 	psg := PartialSGTreeNode{newAbstractSquareTreeNode(sgs[0].Parent(), ""), sgs}
-	for _,sg := range sgs{
+	for _, sg := range sgs {
 		sg.partialSgs = append(sg.partialSgs, &psg)
 	}
 	return &psg
@@ -222,7 +222,7 @@ func (tn *PartialSGTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNo
 }
 func (tn *PartialSGTreeNode) labels() []string {
 	labels := []string{}
-	for _,sg := range tn.sgs{
+	for _, sg := range tn.sgs {
 		labels = append(labels, sg.name)
 	}
 	return labels
