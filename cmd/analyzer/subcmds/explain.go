@@ -4,7 +4,7 @@ Copyright 2023- IBM Inc. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 */
 
-package main
+package subcmds
 
 import (
 	"fmt"
@@ -61,7 +61,7 @@ func NewExplainCommand(args *InArgs) *cobra.Command {
 		},
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			args.AnalysisType = vpcmodel.Explain
-			return analyze(args)
+			return nil
 		},
 	}
 

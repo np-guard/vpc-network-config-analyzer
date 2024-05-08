@@ -4,7 +4,7 @@ Copyright 2023- IBM Inc. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 */
 
-package main
+package subcmds
 
 import (
 	"fmt"
@@ -43,7 +43,7 @@ func newReportEndpointsCommand(args *InArgs) *cobra.Command {
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			args.AnalysisType = vpcmodel.AllEndpoints
-			return analyze(args)
+			return nil
 		},
 	}
 	return cmd
@@ -57,7 +57,7 @@ func newReportSubnetsCommand(args *InArgs) *cobra.Command {
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			args.AnalysisType = vpcmodel.AllSubnets
-			return analyze(args)
+			return nil
 		},
 	}
 	return cmd
@@ -77,7 +77,7 @@ func newReportSingleSubnetCommand(args *InArgs) *cobra.Command {
 				return err
 			}
 			args.AnalysisType = vpcmodel.SingleSubnet
-			return analyze(args)
+			return nil
 		},
 	}
 	return cmd

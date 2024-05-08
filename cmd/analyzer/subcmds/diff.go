@@ -4,7 +4,7 @@ Copyright 2023- IBM Inc. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 */
 
-package main
+package subcmds
 
 import (
 	"github.com/spf13/cobra"
@@ -42,7 +42,7 @@ func newDiffEndpointsCommand(args *InArgs) *cobra.Command {
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			args.AnalysisType = vpcmodel.EndpointsDiff
-			return analyze(args)
+			return nil
 		},
 	}
 	return cmd
@@ -56,7 +56,7 @@ func newDiffSubnetsCommand(args *InArgs) *cobra.Command {
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			args.AnalysisType = vpcmodel.SubnetsDiff
-			return analyze(args)
+			return nil
 		},
 	}
 	return cmd

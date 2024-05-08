@@ -14,6 +14,7 @@ import (
 	"github.com/np-guard/cloud-resource-collector/pkg/factory"
 	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
 
+	"github.com/np-guard/vpc-network-config-analyzer/cmd/analyzer/subcmds"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/ibmvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
@@ -26,7 +27,7 @@ const (
 	ErrorFormat      = "%s %w"
 )
 
-func analysisVPCConfigs(c1, c2 vpcmodel.MultipleVPCConfigs, inArgs *InArgs, outFile string) (string, error) {
+func analysisVPCConfigs(c1, c2 vpcmodel.MultipleVPCConfigs, inArgs *subcmds.InArgs, outFile string) (string, error) {
 	var explanationArgs *vpcmodel.ExplanationArgs
 	if inArgs.AnalysisType == vpcmodel.Explain {
 		explanationArgs = vpcmodel.NewExplanationArgs(inArgs.ESrc, inArgs.EDst, string(inArgs.EProtocol),
@@ -78,7 +79,7 @@ func mergeResourcesContainers(rc1, rc2 *datamodel.ResourcesContainerModel) (*dat
 	return rc1, nil
 }
 
-func vpcConfigsFromFiles(fileNames []string, inArgs *InArgs) (vpcmodel.MultipleVPCConfigs, error) {
+func vpcConfigsFromFiles(fileNames []string, inArgs *subcmds.InArgs) (vpcmodel.MultipleVPCConfigs, error) {
 	var mergedRC *datamodel.ResourcesContainerModel
 	for _, file := range fileNames {
 		rc, err1 := ibmvpc.ParseResourcesFromFile(file)
@@ -97,7 +98,7 @@ func vpcConfigsFromFiles(fileNames []string, inArgs *InArgs) (vpcmodel.MultipleV
 	return vpcConfigs, nil
 }
 
-func vpcConfigsFromAccount(inArgs *InArgs) (vpcmodel.MultipleVPCConfigs, error) {
+func vpcConfigsFromAccount(inArgs *subcmds.InArgs) (vpcmodel.MultipleVPCConfigs, error) {
 	rc := factory.GetResourceContainer(string(inArgs.Provider), inArgs.RegionList, inArgs.ResourceGroup)
 	// Collect resources from the provider API and generate output
 	err := rc.CollectResourcesFromAPI()
@@ -136,7 +137,7 @@ func vpcConfigsFromAccount(inArgs *InArgs) (vpcmodel.MultipleVPCConfigs, error) 
 }
 
 // returns verbosity level based on the -quiet and -verbose switches
-func getVerbosity(args *InArgs) logging.Verbosity {
+func getVerbosity(args *subcmds.InArgs) logging.Verbosity {
 	verbosity := logging.MediumVerbosity
 	if args.Quiet {
 		verbosity = logging.LowVerbosity
@@ -146,7 +147,7 @@ func getVerbosity(args *InArgs) logging.Verbosity {
 	return verbosity
 }
 
-func analyze(inArgs *InArgs) error {
+func analyze(inArgs *subcmds.InArgs) error {
 	// initializes a thread-safe singleton logger
 	logging.Init(getVerbosity(inArgs))
 
@@ -192,15 +193,15 @@ func analyze(inArgs *InArgs) error {
 // The actual main function
 // Takes command-line flags and returns an error rather than exiting, so it can be more easily used in testing
 func _main(cmdlineArgs []string) error {
-	inArgs := &InArgs{}
+	inArgs := &subcmds.InArgs{}
 
-	rootCmd := NewRootCommand(inArgs)
+	rootCmd := subcmds.NewRootCommand(inArgs)
 	rootCmd.SetArgs(cmdlineArgs)
 	err := rootCmd.Execute()
 	if err != nil {
 		return fmt.Errorf(ErrorFormat, ParsingErr, err)
 	}
-	return nil
+	return analyze(inArgs)
 }
 
 func main() {
