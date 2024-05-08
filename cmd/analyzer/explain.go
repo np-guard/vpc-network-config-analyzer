@@ -30,8 +30,6 @@ const (
 		"VSI name can be specified as <vsi-name> or  <vpc-name>/<vsi-name>"
 )
 
-var supportedExplainFormats = []string{string(textFormat), string(debugFormat)}
-
 type protocolSetting netp.ProtocolString
 
 func (ps *protocolSetting) String() string {
@@ -106,8 +104,9 @@ func flagSet(cmd *cobra.Command, flagName string) bool {
 }
 
 func validateExplainFlags(cmd *cobra.Command, args *InArgs) error {
-	if !slices.Contains(supportedExplainFormats, string(args.OutputFormat)) {
-		return fmt.Errorf("output format for explain must be one of [%s]", strings.Join(supportedExplainFormats, separator))
+	err := validateFormatForMode("explain", []formatSetting{textFormat, debugFormat}, args)
+	if err != nil {
+		return err
 	}
 
 	if args.EProtocol == "" {
@@ -117,7 +116,7 @@ func validateExplainFlags(cmd *cobra.Command, args *InArgs) error {
 		}
 	}
 
-	err := minMaxValidity(args.ESrcMinPort, args.ESrcMaxPort, srcMinPortFlag, srcMaxPortFlag)
+	err = minMaxValidity(args.ESrcMinPort, args.ESrcMaxPort, srcMinPortFlag, srcMaxPortFlag)
 	if err != nil {
 		return err
 	}

@@ -73,8 +73,8 @@ func newReportSingleSubnetCommand(args *InArgs) *cobra.Command {
 			if args.Grouping {
 				return fmt.Errorf("currently single-subnet analysis type does not support grouping")
 			}
-			if args.OutputFormat != textFormat {
-				return fmt.Errorf("currently single-subnet analysis type only supports text format")
+			if err := validateFormatForMode("single-subnet", []formatSetting{textFormat}, args); err != nil {
+				return err
 			}
 			args.AnalysisType = vpcmodel.SingleSubnet
 			return analyze(args)

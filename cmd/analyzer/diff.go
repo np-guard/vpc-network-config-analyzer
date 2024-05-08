@@ -7,18 +7,12 @@ SPDX-License-Identifier: Apache-2.0
 package main
 
 import (
-	"fmt"
-	"slices"
-	"strings"
-
 	"github.com/spf13/cobra"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
 const secondConfigFlag = "vpc-config-second"
-
-var supportedDiffFormats = []string{string(textFormat), string(mdFormat)}
 
 func NewDiffCommand(args *InArgs) *cobra.Command {
 	cmd := &cobra.Command{
@@ -27,10 +21,7 @@ func NewDiffCommand(args *InArgs) *cobra.Command {
 		Long: `reports changes in connectivity (modified, added and removed connections)
 		between two VPC configurations`,
 		PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
-			if !slices.Contains(supportedDiffFormats, string(args.OutputFormat)) {
-				return fmt.Errorf("output format for diff must be one of [%s]", strings.Join(supportedDiffFormats, separator))
-			}
-			return nil
+			return validateFormatForMode("diff", []formatSetting{textFormat, mdFormat}, args)
 		},
 	}
 

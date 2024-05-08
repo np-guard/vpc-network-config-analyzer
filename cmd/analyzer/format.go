@@ -59,6 +59,14 @@ func (fs *formatSetting) Type() string {
 	return "string"
 }
 
+func toStringArray(fs []formatSetting) []string {
+	ret := make([]string, len(fs))
+	for i := range fs {
+		ret[i] = string(fs[i])
+	}
+	return ret
+}
+
 func (fs *formatSetting) ToModelFormat() vpcmodel.OutFormat {
 	switch *fs {
 	case textFormat:
@@ -83,4 +91,11 @@ func (fs *formatSetting) ToModelFormat() vpcmodel.OutFormat {
 		return vpcmodel.Debug
 	}
 	return vpcmodel.Text
+}
+
+func validateFormatForMode(mode string, supportedFormats []formatSetting, args *InArgs) error {
+	if !slices.Contains(supportedFormats, args.OutputFormat) {
+		return fmt.Errorf("output format for %s must be one of [%s]", mode, strings.Join(toStringArray(supportedFormats), separator))
+	}
+	return nil
 }
