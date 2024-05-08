@@ -670,8 +670,8 @@ func (fip *FloatingIP) StringPrefixDetails(src, dst vpcmodel.Node, verbose bool)
 	return "", nil
 }
 
-func (fip *FloatingIP) RulesInConnectivity(src, dst vpcmodel.Node) ([]vpcmodel.RulesInTable, error) {
-	return nil, nil
+func (fip *FloatingIP) RulesInConnectivity(src, dst vpcmodel.Node) []vpcmodel.RulesInTable {
+	return nil
 }
 
 func (fip *FloatingIP) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInTable) string {
@@ -733,8 +733,8 @@ func (pgw *PublicGateway) StringPrefixDetails(src, dst vpcmodel.Node, verbose bo
 	return "", nil
 }
 
-func (pgw *PublicGateway) RulesInConnectivity(src, dst vpcmodel.Node) ([]vpcmodel.RulesInTable, error) {
-	return nil, nil
+func (pgw *PublicGateway) RulesInConnectivity(src, dst vpcmodel.Node) []vpcmodel.RulesInTable {
+	return nil
 }
 
 func (pgw *PublicGateway) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInTable) string {
@@ -837,7 +837,7 @@ func (tgw *TransitGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf
 
 func (tgw *TransitGateway) RouterDefined(src, dst vpcmodel.Node) bool {
 	// destination node has a transit gateway connection iff a prefix filter (possibly default) is defined for it
-	dstNodeHasTgw := tgw.prefixesOfSrcDstOld(src, dst) != nil
+	dstNodeHasTgw := len(tgw.RulesInConnectivity(src, dst)) > 0
 	return vpcmodel.HasNode(tgw.sourceNodes, src) && dstNodeHasTgw
 }
 
@@ -895,7 +895,7 @@ func actionNameStr(action *string) (string, error) {
 
 // RulesInConnectivity returns the prefix filters relevant for <src, dst>. Since src/dst could be a cidr,
 // there could be more than one relevant prefix filter (in a single transit connection)
-func (tgw *TransitGateway) RulesInConnectivity(src, dst vpcmodel.Node) ([]vpcmodel.RulesInTable, error) {
+func (tgw *TransitGateway) RulesInConnectivity(src, dst vpcmodel.Node) []vpcmodel.RulesInTable {
 	// <src, dst> routed by tgw given that source is in the tgw,
 	// and there is a prefix filter defined for the dst,
 	// the relevant prefix filters are determined by match of the Address prefix the dest's node is in (including default)
@@ -907,7 +907,7 @@ func (tgw *TransitGateway) RulesInConnectivity(src, dst vpcmodel.Node) ([]vpcmod
 			}
 		}
 	}
-	return prefixFilters, nil
+	return prefixFilters
 }
 
 // todo: delete

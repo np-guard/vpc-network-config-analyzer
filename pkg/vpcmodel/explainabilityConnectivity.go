@@ -181,10 +181,7 @@ func (details *rulesAndConnDetails) computeRoutersAndFilters(c *VPCConfig) (err 
 				return err
 			}
 			if singleSrcDstDetails.crossVpcRouter != nil {
-				singleSrcDstDetails.crossVpcRules, err = singleSrcDstDetails.crossVpcRouter.RulesInConnectivity(src, dst)
-				if err != nil {
-					return err
-				}
+				singleSrcDstDetails.crossVpcRules = singleSrcDstDetails.crossVpcRouter.RulesInConnectivity(src, dst)
 			}
 			singleSrcDstDetails.filtersRelevant = src.(InternalNodeIntf).AppliedFiltersKinds(dst.(InternalNodeIntf))
 		} else { // external
