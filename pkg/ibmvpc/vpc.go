@@ -873,6 +873,8 @@ func (tgw *TransitGateway) RulesInConnectivity(src, dst vpcmodel.Node) []vpcmode
 	// and there is a prefix filter defined for the dst,
 	// the relevant prefix filters are determined by match of the Address prefix the dest's node is in (including default)
 	prefixFilters := []vpcmodel.RulesInTable{}
+	// todo: here I need to rearrange []vpcmodel.RulesInTable so that there will be a single entry for each transit connection
+	//       have a map from transit connection to vpcmodel.RulesInTable and aggregate
 	if vpcmodel.HasNode(tgw.sourceNodes, src) {
 		for ipBlock, transitConnectionPrefixes := range tgw.vpcsAPToPrefixRules[dst.VPC().UID()] {
 			if !dst.IPBlock().Intersect(ipBlock).IsEmpty() {
@@ -887,10 +889,10 @@ func (tgw *TransitGateway) StringDetailsOfRules(listRulesInTransitConns []vpcmod
 	strRes := []string{}
 	for _, prefixesInTransitConn := range listRulesInTransitConns {
 		transitConn := tgw.tgwConnList[prefixesInTransitConn.Table]
-		for _, prefixInTransConnIndx := range prefixesInTransitConn.Rules {
-			thisPrefixStr := ""
-			tgwRouterFilterDetails, actionName, err := tgw.tgwPrefixStr(transitConn, prefixInTransConnIndx)
-			if verbose {
+		if verbose {
+			for _, prefixInTransConnIndx := range prefixesInTransitConn.Rules {
+				thisPrefixStr := ""
+				tgwRouterFilterDetails, actionName, err := tgw.tgwPrefixStr(transitConn, prefixInTransConnIndx)
 				if err != nil {
 					return "", err
 				}
@@ -902,16 +904,22 @@ func (tgw *TransitGateway) StringDetailsOfRules(listRulesInTransitConns []vpcmod
 				}
 				thisPrefixStr = fmt.Sprintf("transit gateway %s %s connection with the following prefix\n\t%s\n",
 					tgw.Name(), action, tgwRouterFilterDetails)
-			} else {
+				strRes = append(strRes, thisPrefixStr)
+			}
+		} else {
+			{
+				thisConnectionStr := ""
 				// todo: this is verbose. Change to non verbose with a single line per transit gateway
 				noVerboseStr := fmt.Sprintf("cross-vpc-connection: transit-connection %s of transit-gateway %s ", *transitConn.Name, tgw.Name())
-				if actionName == permitAction {
-					thisPrefixStr = noVerboseStr + "allows connection"
-				} else {
-					thisPrefixStr = noVerboseStr + "denies connection"
+				if prefixesInTransitConn.RulesFilterType == vpcmodel.OnlyAllow {
+					thisConnectionStr = noVerboseStr + "allows connection"
+				} else if prefixesInTransitConn.RulesFilterType == vpcmodel.OnlyDeny {
+					thisConnectionStr = noVerboseStr + "denies connection"
+				} else if prefixesInTransitConn.RulesFilterType == vpcmodel.BothAllowDeny {
+					thisConnectionStr = noVerboseStr + "partly allows connection"
 				}
+				strRes = append(strRes, thisConnectionStr)
 			}
-			strRes = append(strRes, thisPrefixStr)
 		}
 	}
 	sort.Strings(strRes)
