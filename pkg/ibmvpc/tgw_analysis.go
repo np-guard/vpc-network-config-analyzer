@@ -82,7 +82,7 @@ func getVPCAdvertisedRoutes(tc *datamodel.TransitConnection, tcIndex int, vpc *V
 		vpcAPToPrefixRules[apIPBlock] = vpcmodel.RulesInTable{Table: tcIndex, Rules: []int{filterIndex}, RulesFilterType: ruleType}
 		vpcApsPrefixesRes[i] = IPBlockPrefixFilter{apIPBlock, tgwPrefixFilter{tc, filterIndex}}
 	}
-	return advertisedRoutesRes, vpcApsPrefixesRes, nil, nil
+	return advertisedRoutesRes, vpcApsPrefixesRes, vpcAPToPrefixRules, nil
 }
 
 // return for a given address-prefix (input cidr) the matching prefix-filter index and its action (allow = true/deny = false)

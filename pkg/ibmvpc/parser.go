@@ -846,6 +846,9 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 
 			// explainability related struct initialization
 			for ipB, rulesInTable := range vpcAPToPrefixRules {
+				if _, ok := tgwMap[tgwUID].vpcsAPToPrefixRules[vpcUID]; !ok {
+					tgwMap[tgwUID].vpcsAPToPrefixRules[vpcUID] = map[*ipblock.IPBlock]vpcmodel.RulesInTable{}
+				}
 				tgwMap[tgwUID].vpcsAPToPrefixRules[vpcUID][ipB] = rulesInTable
 			}
 			tgwMap[tgwUID].vpcsAPToFiltersOld[vpcUID] = vpcApsPrefixesOld // todo remove
