@@ -58,31 +58,28 @@ func validateAddressPrefixesExist(vpc *VPC) {
 // thus advertised to a TGW.
 // It also returns list of IPBlockPrefixFilter objects, with details per address prefix of the matched prefix filter
 func getVPCAdvertisedRoutes(tc *datamodel.TransitConnection, tcIndex int, vpc *VPC) (advertisedRoutesRes []*ipblock.IPBlock,
-	vpcApsPrefixesRes []IPBlockPrefixFilter, // todo remove
 	vpcAPToPrefixRules map[*ipblock.IPBlock]vpcmodel.RulesInTable, err error) {
 	validateAddressPrefixesExist(vpc)
-	vpcApsPrefixesRes = make([]IPBlockPrefixFilter, len(vpc.addressPrefixes))
 	vpcAPToPrefixRules = map[*ipblock.IPBlock]vpcmodel.RulesInTable{}
-	for i, ap := range vpc.addressPrefixes {
+	for _, ap := range vpc.addressPrefixes {
 		filterIndex, isPermitAction, err := getMatchedFilterIndexAndAction(ap, tc)
 		if err != nil {
-			return nil, nil, nil, err
+			return nil, nil, err
 		}
 		apIPBlock, err := ipblock.FromCidr(ap)
 		if err != nil {
-			return nil, nil, nil, err
+			return nil, nil, err
 		}
 		// advertisedRoutesRes contains only address prefixes with allowing action
 		var ruleType vpcmodel.RulesType = vpcmodel.OnlyAllow
 		if isPermitAction {
-			advertisedRoutesRes = append(advertisedRoutesRes, apIPBlock) // todo remove
+			advertisedRoutesRes = append(advertisedRoutesRes, apIPBlock)
 		} else {
 			ruleType = vpcmodel.OnlyDeny
 		}
 		vpcAPToPrefixRules[apIPBlock] = vpcmodel.RulesInTable{Table: tcIndex, Rules: []int{filterIndex}, RulesFilterType: ruleType}
-		vpcApsPrefixesRes[i] = IPBlockPrefixFilter{apIPBlock, tgwPrefixFilter{tc, filterIndex}}
 	}
-	return advertisedRoutesRes, vpcApsPrefixesRes, vpcAPToPrefixRules, nil
+	return advertisedRoutesRes, vpcAPToPrefixRules, nil
 }
 
 // return for a given address-prefix (input cidr) the matching prefix-filter index and its action (allow = true/deny = false)

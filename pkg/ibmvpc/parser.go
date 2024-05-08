@@ -824,7 +824,6 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 				vpcs:                []*VPC{vpc},
 				tgwConnList:         tgwConnList,
 				availableRoutes:     map[string][]*ipblock.IPBlock{},
-				vpcsAPToFiltersOld:  map[string][]IPBlockPrefixFilter{},
 				vpcsAPToPrefixRules: map[string]map[*ipblock.IPBlock]vpcmodel.RulesInTable{},
 				region:              getRegionByName(region, regionToStructMap),
 			}
@@ -833,7 +832,7 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 			tgwMap[tgwUID].vpcs = append(tgwMap[tgwUID].vpcs, vpc)
 		}
 
-		advertisedRoutes, vpcApsPrefixesOld, vpcAPToPrefixRules, err := getVPCAdvertisedRoutes(tgwConn, i, vpc)
+		advertisedRoutes, vpcAPToPrefixRules, err := getVPCAdvertisedRoutes(tgwConn, i, vpc)
 		if err != nil {
 			logging.Warnf("ignoring prefix filters, vpcID: %s, tgwID: %s, err is: %s\n", vpcUID, tgwUID, err.Error())
 		} else {
@@ -852,7 +851,6 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 				}
 				tgwMap[tgwUID].vpcsAPToPrefixRules[vpcUID][ipB] = rulesInTable
 			}
-			tgwMap[tgwUID].vpcsAPToFiltersOld[vpcUID] = vpcApsPrefixesOld // todo remove
 		}
 	}
 	return tgwMap
