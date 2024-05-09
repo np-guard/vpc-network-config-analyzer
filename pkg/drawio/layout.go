@@ -468,6 +468,7 @@ func (ly *layoutS) setSGLocations() {
 		}
 	}
 }
+
 // sortIconsBySGs() sort all the icons by their SGs
 // return a list of lists of icons - all the icons in one list have the same sg
 func sortIconsBySGs(sgs []SquareTreeNodeInterface) [][]TreeNodeInterface {
@@ -480,7 +481,7 @@ func sortIconsBySGs(sgs []SquareTreeNodeInterface) [][]TreeNodeInterface {
 	icons = common.FromList(icons).AsList()
 	// get the icons list for every group of sgs:
 	sgsToIcons := map[setAsKey][]TreeNodeInterface{}
-	for _, icon := range  icons{
+	for _, icon := range icons {
 		sgsAsKey := icon.SGs().AsKey()
 		sgsToIcons[sgsAsKey] = append(sgsToIcons[sgsAsKey], icon)
 	}

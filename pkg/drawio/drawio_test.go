@@ -56,7 +56,7 @@ func TestWithParsing(t *testing.T) {
 	createFileFromNetwork(n, "tgws.drawio", false, FileDRAWIO)
 	n = createNetworkMultiSG()
 	createFileFromNetwork(n, "multiSG.html", false, FileHTML)
-	
+
 }
 
 func createNetwork() SquareTreeNodeInterface {
@@ -725,7 +725,6 @@ func createNetwork2() SquareTreeNodeInterface {
 	return network
 }
 
-
 func createNetworkMultiSG() SquareTreeNodeInterface {
 	network := NewNetworkTreeNode()
 	cloud2 := NewCloudTreeNode(network, "IBM Cloud2")
@@ -750,7 +749,6 @@ func createNetworkMultiSG() SquareTreeNodeInterface {
 	ni21 := NewNITreeNode(subnet2, "ni21")
 	ni22 := NewNITreeNode(subnet2, "ni22")
 	ni23 := NewNITreeNode(subnet2, "ni23")
-
 
 	sg1.AddIcon(ni11)
 	sg2.AddIcon(ni11)
@@ -777,11 +775,8 @@ func createNetworkMultiSG() SquareTreeNodeInterface {
 	sg1.AddIcon(ni23)
 	sg3.AddIcon(ni23)
 
-
-
 	return network
 }
-
 
 func createNetworkTgw() SquareTreeNodeInterface {
 	network := NewNetworkTreeNode()

@@ -81,7 +81,6 @@ func AnyMapEntry[K comparable, V any](m map[K]V) (k K, v V) {
 	return k, v
 }
 
-
 func MapValues[K comparable, V any](m map[K]V) []V {
 	vals := make([]V, len(m))
 	i := 0
