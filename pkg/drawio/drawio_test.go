@@ -56,7 +56,6 @@ func TestWithParsing(t *testing.T) {
 	createFileFromNetwork(n, "tgws.drawio", false, FileDRAWIO)
 	n = createNetworkMultiSG()
 	createFileFromNetwork(n, "multiSG.html", false, FileHTML)
-
 }
 
 func createNetwork() SquareTreeNodeInterface {
