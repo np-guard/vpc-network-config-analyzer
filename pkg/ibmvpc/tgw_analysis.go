@@ -8,10 +8,10 @@ package ibmvpc
 
 import (
 	"errors"
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 
 	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
 	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
 const (

@@ -265,7 +265,7 @@ type RoutingResource interface {
 // todo: interface that captures all rule based resources
 // todo (currently with explainability functionality)
 // todo move common functionality here from FilterTrafficResource and RoutingResource
-//type rulesBasedResources interface {
+// type rulesBasedResources interface {
 //	// StringDetailsOfRules gets, for a specific resource (sg/nacl/tgw), a struct with relevant rules in it,
 //	// and prints the effect of each resource (e.g. security group sg1-ky allows connection)
 //	// and the detailed list of relevant rules
@@ -273,4 +273,4 @@ type RoutingResource interface {
 //	// ListFilterWithAction return map from resource's name to true if it allows traffic, false otherwise
 //	// to be used by explainability printing functions
 //	ListFilterWithAction(listRulesInFilter []RulesInTable) map[string]bool
-//}
+// }

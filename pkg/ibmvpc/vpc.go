@@ -20,8 +20,6 @@ import (
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-const newline = "\n"
-
 func getNodeName(name, addr string) string {
 	return fmt.Sprintf("%s[%s]", name, addr)
 }
@@ -815,6 +813,8 @@ func (tgw *TransitGateway) RouterDefined(src, dst vpcmodel.Node) bool {
 }
 
 // gets a string description of prefix indexed "index" from TransitGateway tgw
+//
+//nolint:gocritic // no need to name return values. too short
 func prefixDefaultStr(tc *datamodel.TransitConnection) (string, string, error) {
 	actionName, err := actionNameStr(tc.PrefixFiltersDefault)
 	if err != nil {
@@ -823,10 +823,11 @@ func prefixDefaultStr(tc *datamodel.TransitConnection) (string, string, error) {
 	return fmt.Sprintf(" default prefix,  action: %s", actionName), actionName, nil
 }
 
-func (tgw *TransitGateway) tgwPrefixStr(tc *datamodel.TransitConnection, prefixIndx int) (string, string, error) {
+func (tgw *TransitGateway) tgwPrefixStr(tc *datamodel.TransitConnection,
+	prefixIndx int) (resStr, actionName string, err error) {
 	// Array of prefix route filters for a transit gateway connection. This is order dependent with those first in the
 	// array being applied first, and those at the end of the array is applied last, or just before the default.
-	resStr := fmt.Sprintf("transit-connection: %s", *tc.Name)
+	resStr = fmt.Sprintf("transit-connection: %s", *tc.Name)
 	if prefixIndx == defaultPrefixFilter { // default
 		defaultStr, actionName, err := prefixDefaultStr(tc)
 		if err != nil {
@@ -839,7 +840,7 @@ func (tgw *TransitGateway) tgwPrefixStr(tc *datamodel.TransitConnection, prefixI
 			prefixIndx, *tc.Name, tgw.Name())
 	}
 	prefixFilter := tc.PrefixFilters[prefixIndx]
-	actionName, err := actionNameStr(prefixFilter.Action)
+	actionName, err = actionNameStr(prefixFilter.Action)
 	if err != nil {
 		return "", "", err
 	}
@@ -868,6 +869,8 @@ func actionNameStr(action *string) (string, error) {
 
 // RulesInConnectivity returns the prefix filters relevant for <src, dst>. Since src/dst could be a cidr,
 // there could be more than one relevant prefix filter (in a single transit connection)
+// todo: currently "more than one" is not possible since src/dst must be within a given subnet.
+// todo This will be relevant only once we allow src/dst to span over vpcs
 func (tgw *TransitGateway) RulesInConnectivity(src, dst vpcmodel.Node) []vpcmodel.RulesInTable {
 	// <src, dst> routed by tgw given that source is in the tgw,
 	// and there is a prefix filter defined for the dst,
@@ -932,13 +935,13 @@ func (tgw *TransitGateway) StringDetailsOfRules(listRulesInTransitConns []vpcmod
 		} else {
 			{
 				thisConnectionStr := ""
-				// todo: this is verbose. Change to non verbose with a single line per transit gateway
 				noVerboseStr := fmt.Sprintf("cross-vpc-connection: transit-connection %s of transit-gateway %s ", *transitConn.Name, tgw.Name())
-				if prefixesInTransitConn.RulesFilterType == vpcmodel.OnlyAllow {
+				switch prefixesInTransitConn.RulesFilterType {
+				case vpcmodel.OnlyAllow:
 					thisConnectionStr = noVerboseStr + "allows connection"
-				} else if prefixesInTransitConn.RulesFilterType == vpcmodel.OnlyDeny {
+				case vpcmodel.OnlyDeny:
 					thisConnectionStr = noVerboseStr + "denies connection"
-				} else if prefixesInTransitConn.RulesFilterType == vpcmodel.BothAllowDeny {
+				case vpcmodel.BothAllowDeny:
 					thisConnectionStr = noVerboseStr + "partly allows connection"
 				}
 				strRes = append(strRes, thisConnectionStr)
