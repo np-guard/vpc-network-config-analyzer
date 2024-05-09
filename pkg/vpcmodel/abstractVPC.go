@@ -189,7 +189,7 @@ type NodeSet interface {
 
 type VPC interface {
 	NodeSet
-	AddressPrefixes() []string
+	AddressPrefixes() *ipblock.IPBlock
 }
 
 type Subnet interface {
