@@ -754,9 +754,11 @@ func createNetworkMultiSG() SquareTreeNodeInterface {
 
 	sg1.AddIcon(ni11)
 	sg2.AddIcon(ni11)
+	sg3.AddIcon(ni11)
 
 	sg1.AddIcon(ni12)
 	sg2.AddIcon(ni12)
+	sg3.AddIcon(ni12)
 
 	sg1.AddIcon(ni21)
 	sg2.AddIcon(ni21)

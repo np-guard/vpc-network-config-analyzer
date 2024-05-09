@@ -433,8 +433,8 @@ func (ly *layoutS) setSGLocations() {
 	for _, cloud := range ly.network.(*NetworkTreeNode).clouds {
 		for _, region := range cloud.(*CloudTreeNode).regions {
 			for _, vpc := range region.(*RegionTreeNode).vpcs {
-				sgsIconsLists := sortIconsBySGs(vpc.(*VpcTreeNode).sgs)
-				for _, icons := range sgsIconsLists {
+				iconsLists := sortIconsBySGs(vpc.(*VpcTreeNode).sgs)
+				for _, icons := range iconsLists {
 					sgLocation := mergeLocations(locations(icons))
 					sgIconsIndexes := map[[2]int]bool{}
 					for _, icon := range icons {
