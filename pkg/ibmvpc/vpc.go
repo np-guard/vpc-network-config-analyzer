@@ -872,17 +872,40 @@ func (tgw *TransitGateway) RulesInConnectivity(src, dst vpcmodel.Node) []vpcmode
 	// <src, dst> routed by tgw given that source is in the tgw,
 	// and there is a prefix filter defined for the dst,
 	// the relevant prefix filters are determined by match of the Address prefix the dest's node is in (including default)
-	prefixFilters := []vpcmodel.RulesInTable{}
-	// todo: here I need to rearrange []vpcmodel.RulesInTable so that there will be a single entry for each transit connection
-	//       have a map from transit connection to vpcmodel.RulesInTable and aggregate
+
+	// vpcsAPToPrefixRules[dst.VPC().UID()] maps from disjoint IPs to RulesInTable
+	// In RulesInTable there is an entry per transit connection; since there could be more than one disjoint IP mapped
+	// to the same transit connection we need to merge the maps from disjoint IPs per transit connection
+	// 1. Collect RulesInTable per transit connection
+	trCnToRulesInTable := map[int][]vpcmodel.RulesInTable{}
 	if vpcmodel.HasNode(tgw.sourceNodes, src) {
-		for ipBlock, transitConnectionPrefixes := range tgw.vpcsAPToPrefixRules[dst.VPC().UID()] {
+		for ipBlock, trCnPrefixes := range tgw.vpcsAPToPrefixRules[dst.VPC().UID()] {
 			if !dst.IPBlock().Intersect(ipBlock).IsEmpty() {
-				prefixFilters = append(prefixFilters, transitConnectionPrefixes)
+				if _, ok := trCnToRulesInTable[trCnPrefixes.Table]; !ok {
+					trCnToRulesInTable[trCnPrefixes.Table] = []vpcmodel.RulesInTable{}
+				}
+				trCnToRulesInTable[trCnPrefixes.Table] = append(trCnToRulesInTable[trCnPrefixes.Table],
+					trCnPrefixes)
 			}
 		}
 	}
-	return prefixFilters
+	aggregatedRes := []vpcmodel.RulesInTable{}
+	// 2. Aggregates RulesInTable per transit connection
+	for trCn, trCnRulesInTable := range trCnToRulesInTable {
+		prefixesTrCn := vpcmodel.RulesInTable{Table: trCn, Rules: []int{}, RulesFilterType: vpcmodel.NoRules}
+		for _, prefixEntry := range trCnRulesInTable {
+			prefixesTrCn.Rules = append(prefixesTrCn.Rules, prefixEntry.Rules...)
+			if prefixesTrCn.RulesFilterType == vpcmodel.NoRules { // first time
+				prefixesTrCn.RulesFilterType = prefixEntry.RulesFilterType
+			} else if prefixesTrCn.RulesFilterType != vpcmodel.BothAllowDeny &&
+				prefixesTrCn.RulesFilterType != prefixEntry.RulesFilterType {
+				// one is OnlyDeny and the other OnlyAllow
+				prefixesTrCn.RulesFilterType = vpcmodel.BothAllowDeny
+			}
+			aggregatedRes = append(aggregatedRes, prefixesTrCn)
+		}
+	}
+	return aggregatedRes
 }
 
 func (tgw *TransitGateway) StringDetailsOfRules(listRulesInTransitConns []vpcmodel.RulesInTable, verbose bool) (string, error) {
