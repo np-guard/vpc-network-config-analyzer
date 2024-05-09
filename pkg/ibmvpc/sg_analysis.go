@@ -25,8 +25,8 @@ type SGAnalyzer struct {
 	egressRules  []*SGRule
 	// rules are the default ones; that is, no rules were specified manually
 	isDefault              bool
-	ingressConnectivityMap map[*ipblock.IPBlock]*ConnectivityResult
-	egressConnectivityMap  map[*ipblock.IPBlock]*ConnectivityResult
+	ingressConnectivityMap ConnectivityResultMap
+	egressConnectivityMap  ConnectivityResultMap
 	sgMap                  map[string]*SecurityGroup
 	referencedIPblocks     []*ipblock.IPBlock
 }
@@ -328,7 +328,7 @@ func AnalyzeSGRules(rules []*SGRule, isIngress bool) *ConnectivityResult {
 	return res
 }
 
-func mapAndAnalyzeSGRules(rules []*SGRule, isIngress bool, connectivityMap map[*ipblock.IPBlock]*ConnectivityResult) {
+func mapAndAnalyzeSGRules(rules []*SGRule, isIngress bool, connectivityMap ConnectivityResultMap) {
 	locals := []*ipblock.IPBlock{}
 	for i := range rules {
 		if rules[i].local != nil {
@@ -366,8 +366,8 @@ func (sga *SGAnalyzer) prepareAnalyzer(sgMap map[string]*SecurityGroup, currentS
 	if sga.ingressRules, sga.egressRules, err = sga.getSGrules(sga.sgResource); err != nil {
 		return err
 	}
-	sga.ingressConnectivityMap = make(map[*ipblock.IPBlock]*ConnectivityResult)
-	sga.egressConnectivityMap = make(map[*ipblock.IPBlock]*ConnectivityResult)
+	sga.ingressConnectivityMap = make(ConnectivityResultMap)
+	sga.egressConnectivityMap = make(ConnectivityResultMap)
 	mapAndAnalyzeSGRules(sga.ingressRules, true, sga.ingressConnectivityMap)
 	mapAndAnalyzeSGRules(sga.egressRules, false, sga.egressConnectivityMap)
 	sga.isDefault = sga.areSGRulesDefault()
@@ -448,7 +448,7 @@ func (sga *SGAnalyzer) getRulesRelevantConn(rules []int, conn *connection.Set) (
 	return relevantRules, nil
 }
 
-func (sga *SGAnalyzer) ingressOrEgressConnectivity(isIngress bool) map[*ipblock.IPBlock]*ConnectivityResult {
+func (sga *SGAnalyzer) ingressOrEgressConnectivity(isIngress bool) ConnectivityResultMap {
 	if isIngress {
 		return sga.ingressConnectivityMap
 	}

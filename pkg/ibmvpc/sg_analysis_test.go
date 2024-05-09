@@ -116,7 +116,7 @@ type sgTest struct {
 	name                    string
 	rules                   []*SGRule
 	isIngress               bool
-	expectedConnectivityMap map[*ipblock.IPBlock]*ConnectivityResult
+	expectedConnectivityMap ConnectivityResultMap
 }
 
 func fromIPRangeStrWithoutValidation(ipRange string) *ipblock.IPBlock {
@@ -131,7 +131,7 @@ func fromIPAddressStrWithoutValidation(ipAddress string) *ipblock.IPBlock {
 
 var sgTests = []sgTest{
 	{
-		name: "noLocalField",
+		name: "local_field_is_all_ip_range", // (local as 0.0.0.0/0 is default for old config with local field not enabled)
 		rules: []*SGRule{
 			{
 				remote:      ruleTarget{sgName: "ola", cidr: newIPBlockFromCIDROrAddressWithoutValidation("10.250.10.1")},
@@ -170,7 +170,7 @@ var sgTests = []sgTest{
 		},
 	},
 	{
-		name: "localField",
+		name: "local_field_in_rules_is_not_all_range", // a more interesting case of local field with effect on connectivity
 		rules: []*SGRule{
 			{
 				remote:      ruleTarget{sgName: "ola", cidr: newIPBlockFromCIDROrAddressWithoutValidation("10.250.10.1")},
@@ -264,17 +264,9 @@ var sgTests = []sgTest{
 }
 
 func (tt *sgTest) runTest(t *testing.T) {
-	connectivityMap := make(map[*ipblock.IPBlock]*ConnectivityResult)
+	connectivityMap := make(ConnectivityResultMap)
 	mapAndAnalyzeSGRules(tt.rules, false, connectivityMap)
-	require.Equal(t, len(connectivityMap), len(tt.expectedConnectivityMap))
-	for ip, connectivityResult := range connectivityMap {
-		for expectedIP, expectedConnectivityResult := range tt.expectedConnectivityMap {
-			if ip.Equal(expectedIP) {
-				require.True(t, connectivityResult.Equal(expectedConnectivityResult))
-				break
-			}
-		}
-	}
+	require.True(t, connectivityMap.Equal(&tt.expectedConnectivityMap))
 }
 
 func TestMapAndAnalyzeSGRules(t *testing.T) {
@@ -321,5 +313,5 @@ func TestCaching(t *testing.T) {
 			connectivityResult2 = connectivityResult
 		}
 	}
-	require.True(t, connectivityResult1 == connectivityResult2)
+	require.True(t, connectivityResult1 == connectivityResult2) // compare pointers-- to make sure that caching worked
 }

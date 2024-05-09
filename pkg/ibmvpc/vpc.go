@@ -592,8 +592,8 @@ type SecurityGroup struct {
 }
 
 func (sg *SecurityGroup) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *connection.Set {
-	memberIPBlock, targetIPBlock := sg.getMemberTargetStrAddress(src, dst, isIngress)
-	if _, ok := sg.members[memberIPBlock.ToIPAddressString()]; !ok {
+	memberIPBlock, targetIPBlock, memberStrAddress := sg.getMemberTargetStrAddress(src, dst, isIngress)
+	if _, ok := sg.members[memberStrAddress]; !ok {
 		return connection.None() // connectivity not affected by this SG resource - input node is not its member
 	}
 	return sg.analyzer.AllowedConnectivity(targetIPBlock, memberIPBlock, isIngress)
@@ -602,8 +602,8 @@ func (sg *SecurityGroup) AllowedConnectivity(src, dst vpcmodel.Node, isIngress b
 // rulesFilterInConnectivity list of SG rules contributing to the connectivity
 func (sg *SecurityGroup) rulesFilterInConnectivity(src, dst vpcmodel.Node, conn *connection.Set,
 	isIngress bool) (tableRelevant bool, rules []int, err error) {
-	memberIPBlock, targetIPBlock := sg.getMemberTargetStrAddress(src, dst, isIngress)
-	if _, ok := sg.members[memberIPBlock.ToIPAddressString()]; !ok {
+	memberIPBlock, targetIPBlock, memberStrAddress := sg.getMemberTargetStrAddress(src, dst, isIngress)
+	if _, ok := sg.members[memberStrAddress]; !ok {
 		return false, nil, nil // connectivity not affected by this SG resource - input node is not its member
 	}
 	rules, err = sg.analyzer.rulesFilterInConnectivity(targetIPBlock, memberIPBlock, conn, isIngress)
@@ -611,7 +611,7 @@ func (sg *SecurityGroup) rulesFilterInConnectivity(src, dst vpcmodel.Node, conn 
 }
 
 func (sg *SecurityGroup) getMemberTargetStrAddress(src, dst vpcmodel.Node,
-	isIngress bool) (memberStrAddress, targetIPBlock *ipblock.IPBlock) {
+	isIngress bool) (memberIPBlock, targetIPBlock *ipblock.IPBlock, memberStrAddress string) {
 	var member, target vpcmodel.Node
 	if isIngress {
 		member, target = dst, src
@@ -619,7 +619,7 @@ func (sg *SecurityGroup) getMemberTargetStrAddress(src, dst vpcmodel.Node,
 		member, target = src, dst
 	}
 	// TODO: member is expected to be internal node (validate?) [could use member.(vpcmodel.InternalNodeIntf).Address()]
-	return member.IPBlock(), target.IPBlock()
+	return member.IPBlock(), target.IPBlock(), member.CidrOrAddress()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
