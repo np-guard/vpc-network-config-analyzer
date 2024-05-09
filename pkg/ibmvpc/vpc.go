@@ -131,8 +131,8 @@ func (v *VPC) Region() *Region {
 	return v.region
 }
 
-func (v *VPC) AddressPrefixes() []string {
-	return v.addressPrefixes
+func (v *VPC) AddressPrefixes() *ipblock.IPBlock {
+	return v.addressPrefixesIPBlock
 }
 
 func (v *VPC) getZoneByName(name string) (*Zone, error) {
