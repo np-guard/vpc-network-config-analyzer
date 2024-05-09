@@ -433,10 +433,9 @@ func (ly *layoutS) setSGLocations() {
 	for _, cloud := range ly.network.(*NetworkTreeNode).clouds {
 		for _, region := range cloud.(*CloudTreeNode).regions {
 			for _, vpc := range region.(*RegionTreeNode).vpcs {
-				sgsIconsLists := calcSGsIconsLists(vpc.(*VpcTreeNode).sgs)
+				sgsIconsLists := sortIconsBySGs(vpc.(*VpcTreeNode).sgs)
 				for _, icons := range sgsIconsLists {
 					sgLocation := mergeLocations(locations(icons))
-					sgs := icons[0].(IconTreeNodeInterface).SGs().AsList()
 					sgIconsIndexes := map[[2]int]bool{}
 					for _, icon := range icons {
 						sgIconsIndexes[[2]int{icon.Location().firstRow.index, icon.Location().firstCol.index}] = true
@@ -452,6 +451,7 @@ func (ly *layoutS) setSGLocations() {
 							case currentLocation != nil && isSGCell:
 								currentLocation.lastCol = ly.matrix.cols[ci]
 							case currentLocation != nil && !isSGCell:
+								sgs := icons[0].(IconTreeNodeInterface).SGs().AsList()
 								psg := newPartialSGTreeNode(sgs)
 								currentLocation.xOffset = borderWidth
 								currentLocation.yOffset = borderWidth
@@ -468,27 +468,24 @@ func (ly *layoutS) setSGLocations() {
 		}
 	}
 }
-
-func calcSGsIconsLists(sgs []SquareTreeNodeInterface) [][]TreeNodeInterface {
-	//get set of all relevant icons:
-	icons := common.GenericSet[IconTreeNodeInterface]{}
+// sortIconsBySGs() sort all the icons by their SGs
+// return a list of lists of icons - all the icons in one list have the same sg
+func sortIconsBySGs(sgs []SquareTreeNodeInterface) [][]TreeNodeInterface {
+	//get all relevant icons:
+	icons := []IconTreeNodeInterface{}
 	for _, sg := range sgs {
-		for _, icon := range sg.IconTreeNodes() {
-			icons[icon] = true
-		}
+		icons = append(icons, sg.IconTreeNodes()...)
 	}
+	// remove duplicates
+	icons = common.FromList(icons).AsList()
 	// get the icons list for every group of sgs:
 	sgsToIcons := map[setAsKey][]TreeNodeInterface{}
-	for icon := range icons {
-		sgsKey := icon.SGs().AsKey()
-		sgsToIcons[sgsKey] = append(sgsToIcons[sgsKey], icon)
+	for _, icon := range  icons{
+		sgsAsKey := icon.SGs().AsKey()
+		sgsToIcons[sgsAsKey] = append(sgsToIcons[sgsAsKey], icon)
 	}
-	// covert to list of icon lists:
-	sgsIconsLists := [][]TreeNodeInterface{}
-	for _, icons := range sgsToIcons {
-		sgsIconsLists = append(sgsIconsLists, icons)
-	}
-	return sgsIconsLists
+	// covert to list:
+	return common.MapValues(sgsToIcons)
 }
 
 // ///////////////////////////////////////////////////////////
