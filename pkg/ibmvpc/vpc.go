@@ -344,9 +344,9 @@ func appendToRulesInFilter(resRulesInFilter *[]vpcmodel.RulesInTable, rules *[]i
 		rType = vpcmodel.OnlyDeny
 	}
 	rulesInNacl := vpcmodel.RulesInTable{
-		Table:           filterIndex,
-		Rules:           *rules,
-		RulesFilterType: rType,
+		Table:       filterIndex,
+		Rules:       *rules,
+		RulesOfType: rType,
 	}
 	*resRulesInFilter = append(*resRulesInFilter, rulesInNacl)
 }
@@ -355,7 +355,7 @@ func (nl *NaclLayer) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInTa
 	strListRulesInFilter := ""
 	for _, rulesInFilter := range listRulesInFilter {
 		nacl := nl.naclList[rulesInFilter.Table]
-		header := getHeaderRulesType(vpcmodel.FilterKindName(nl.Kind())+" "+nacl.Name(), rulesInFilter.RulesFilterType) +
+		header := getHeaderRulesType(vpcmodel.FilterKindName(nl.Kind())+" "+nacl.Name(), rulesInFilter.RulesOfType) +
 			nacl.analyzer.StringRules(rulesInFilter.Rules)
 		strListRulesInFilter += header
 	}
@@ -367,7 +367,7 @@ func (nl *NaclLayer) ListFilterWithAction(listRulesInFilter []vpcmodel.RulesInTa
 	for _, rulesInFilter := range listRulesInFilter {
 		nacl := nl.naclList[rulesInFilter.Table]
 		name := nacl.Name()
-		filters[name] = getFilterAction(rulesInFilter.RulesFilterType)
+		filters[name] = getFilterAction(rulesInFilter.RulesOfType)
 	}
 	return filters
 }
@@ -543,9 +543,9 @@ func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 				rType = vpcmodel.NoRules
 			}
 			rulesInSg := vpcmodel.RulesInTable{
-				Table:           index,
-				Rules:           sgRules,
-				RulesFilterType: rType,
+				Table:       index,
+				Rules:       sgRules,
+				RulesOfType: rType,
 			}
 			allowRes = append(allowRes, rulesInSg)
 		}
@@ -557,7 +557,7 @@ func (sgl *SecurityGroupLayer) StringDetailsOfRules(listRulesInFilter []vpcmodel
 	listRulesInFilterSlice := make([]string, len(listRulesInFilter))
 	for i, rulesInFilter := range listRulesInFilter {
 		sg := sgl.sgList[rulesInFilter.Table]
-		listRulesInFilterSlice[i] = getHeaderRulesType(vpcmodel.FilterKindName(sgl.Kind())+" "+sg.Name(), rulesInFilter.RulesFilterType) +
+		listRulesInFilterSlice[i] = getHeaderRulesType(vpcmodel.FilterKindName(sgl.Kind())+" "+sg.Name(), rulesInFilter.RulesOfType) +
 			sg.analyzer.StringRules(rulesInFilter.Rules)
 	}
 	sort.Strings(listRulesInFilterSlice)
@@ -569,7 +569,7 @@ func (sgl *SecurityGroupLayer) ListFilterWithAction(listRulesInFilter []vpcmodel
 	for _, rulesInFilter := range listRulesInFilter {
 		sg := sgl.sgList[rulesInFilter.Table]
 		name := sg.Name()
-		filters[name] = getFilterAction(rulesInFilter.RulesFilterType)
+		filters[name] = getFilterAction(rulesInFilter.RulesOfType)
 	}
 	return filters
 }
@@ -895,15 +895,15 @@ func (tgw *TransitGateway) RulesInConnectivity(src, dst vpcmodel.Node) []vpcmode
 	aggregatedRes := []vpcmodel.RulesInTable{}
 	// 2. Aggregates RulesInTable per transit connection
 	for trCn, trCnRulesInTable := range trCnToRulesInTable {
-		prefixesTrCn := vpcmodel.RulesInTable{Table: trCn, Rules: []int{}, RulesFilterType: vpcmodel.NoRules}
+		prefixesTrCn := vpcmodel.RulesInTable{Table: trCn, Rules: []int{}, RulesOfType: vpcmodel.NoRules}
 		for _, prefixEntry := range trCnRulesInTable {
 			prefixesTrCn.Rules = append(prefixesTrCn.Rules, prefixEntry.Rules...)
-			if prefixesTrCn.RulesFilterType == vpcmodel.NoRules { // first time
-				prefixesTrCn.RulesFilterType = prefixEntry.RulesFilterType
-			} else if prefixesTrCn.RulesFilterType != vpcmodel.BothAllowDeny &&
-				prefixesTrCn.RulesFilterType != prefixEntry.RulesFilterType {
+			if prefixesTrCn.RulesOfType == vpcmodel.NoRules { // first time
+				prefixesTrCn.RulesOfType = prefixEntry.RulesOfType
+			} else if prefixesTrCn.RulesOfType != vpcmodel.BothAllowDeny &&
+				prefixesTrCn.RulesOfType != prefixEntry.RulesOfType {
 				// one is OnlyDeny and the other OnlyAllow
-				prefixesTrCn.RulesFilterType = vpcmodel.BothAllowDeny
+				prefixesTrCn.RulesOfType = vpcmodel.BothAllowDeny
 			}
 			aggregatedRes = append(aggregatedRes, prefixesTrCn)
 		}
@@ -936,7 +936,7 @@ func (tgw *TransitGateway) StringDetailsOfRules(listRulesInTransitConns []vpcmod
 			{
 				thisConnectionStr := ""
 				noVerboseStr := fmt.Sprintf("cross-vpc-connection: transit-connection %s of transit-gateway %s ", *transitConn.Name, tgw.Name())
-				switch prefixesInTransitConn.RulesFilterType {
+				switch prefixesInTransitConn.RulesOfType {
 				case vpcmodel.OnlyAllow:
 					thisConnectionStr = noVerboseStr + "allows connection"
 				case vpcmodel.OnlyDeny:
