@@ -102,9 +102,9 @@ func (c *VPCConfig) getRoutingResource(src, dst Node) (RoutingResource, *connect
 }
 
 // /////////////////////////////////////////////////////////////////////////////////
-// MultipleVPCConfigs - a struct of all the configs.
-// when elaborating multivpc support, we might change this struct
-// so, please do not access the fields directly, use get/set methods
+// MultipleVPCConfigs  struct of all the configs.
+// Once multivpc support is elaborating , the struct may change
+// thus, please use get/set methods to access the structs; avoid direct access
 type MultipleVPCConfigs struct {
 	configs          map[string]*VPCConfig
 	toCompareConfigs map[string]*VPCConfig
@@ -118,7 +118,7 @@ func NewMultipleVPCConfigs(cloudName string) *MultipleVPCConfigs {
 func (c *MultipleVPCConfigs) Configs() map[string]*VPCConfig {
 	return c.configs
 }
-func (c *MultipleVPCConfigs) AddConfig(name string, config *VPCConfig) {
+func (c *MultipleVPCConfigs) SetConfig(name string, config *VPCConfig) {
 	c.configs[name] = config
 }
 func (c *MultipleVPCConfigs) RemoveConfig(name string) {
@@ -134,8 +134,8 @@ func (c *MultipleVPCConfigs) HasConfig(name string) bool {
 func (c *MultipleVPCConfigs) ConfigToCompare(name string) *VPCConfig {
 	return c.toCompareConfigs[name]
 }
-func (c *MultipleVPCConfigs) SetConfigsToCompare(toCompare *MultipleVPCConfigs) {
-	c.toCompareConfigs = toCompare.Configs()
+func (c *MultipleVPCConfigs) SetConfigsToCompare(toCompare map[string]*VPCConfig) {
+	c.toCompareConfigs = toCompare
 }
 func (c *MultipleVPCConfigs) CloudName() string {
 	return c.cloudName

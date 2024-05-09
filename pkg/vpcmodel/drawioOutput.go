@@ -264,7 +264,7 @@ func (d *DrawioOutputFormatter) WriteOutput(cConfigs *MultipleVPCConfigs,
 		if subnetsConn != nil {
 			for name, vpcConn := range subnetsConn {
 				gConn[name] = vpcConn.GroupedConnectivity
-				gConfigs.AddConfig(name, vpcConn.VPCConfig)
+				gConfigs.SetConfig(name, vpcConn.VPCConfig)
 			}
 		} else {
 			gConfigs = cConfigs

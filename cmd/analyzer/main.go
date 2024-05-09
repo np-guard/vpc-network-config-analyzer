@@ -212,36 +212,36 @@ func _main(cmdlineArgs []string) error {
 		return nil
 	}
 
-	var vpcConfigs1 *vpcmodel.MultipleVPCConfigs
+	var vpcConfigs *vpcmodel.MultipleVPCConfigs
 	if *inArgs.Provider != "" {
-		vpcConfigs1, err = vpcConfigsFromAccount(inArgs)
+		vpcConfigs, err = vpcConfigsFromAccount(inArgs)
 		if err != nil {
 			return err
 		}
 	} else {
-		vpcConfigs1, err = vpcConfigsFromFiles(inArgs.InputConfigFileList, inArgs)
+		vpcConfigs, err = vpcConfigsFromFiles(inArgs.InputConfigFileList, inArgs)
 		if err != nil {
 			return err
 		}
 	}
 
 	if inArgs.InputSecondConfigFile != nil && *inArgs.InputSecondConfigFile != "" {
-		vpcConfigs2, err := vpcConfigsFromFiles([]string{*inArgs.InputSecondConfigFile}, inArgs)
+		vpcConfigsToCompare, err := vpcConfigsFromFiles([]string{*inArgs.InputSecondConfigFile}, inArgs)
 		if err != nil {
 			return err
 		}
 		// we are in diff mode, checking we have only one config per file:
-		if len(vpcConfigs1.Configs()) != 1 || len(vpcConfigs2.Configs()) != 1 {
+		if len(vpcConfigs.Configs()) != 1 || len(vpcConfigsToCompare.Configs()) != 1 {
 			return fmt.Errorf("for diff mode %v a single configuration should be provided "+
 				"for both -vpc-config and -vpc-config-second", *inArgs.AnalysisType)
 		}
-		vpcConfigs1.SetConfigsToCompare(vpcConfigs2)
+		vpcConfigs.SetConfigsToCompare(vpcConfigsToCompare.Configs())
 	}
 	outFile := ""
 	if inArgs.OutputFile != nil {
 		outFile = *inArgs.OutputFile
 	}
-	vpcAnalysisOutput, err2 := analysisVPCConfigs(vpcConfigs1, inArgs, outFile)
+	vpcAnalysisOutput, err2 := analysisVPCConfigs(vpcConfigs, inArgs, outFile)
 	if err2 != nil {
 		return err2
 	}

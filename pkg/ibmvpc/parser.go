@@ -577,7 +577,7 @@ func getVPCconfig(rc *datamodel.ResourcesContainerModel,
 		newVPCConfig := NewEmptyVPCConfig()
 		newVPCConfig.UIDToResource[vpcNodeSet.ResourceUID] = vpcNodeSet
 		newVPCConfig.VPC = vpcNodeSet
-		res.AddConfig(vpcNodeSet.ResourceUID, newVPCConfig)
+		res.SetConfig(vpcNodeSet.ResourceUID, newVPCConfig)
 	}
 	if len(res.Configs()) == 0 {
 		return errors.New("could not find any VPC to analyze")
@@ -969,7 +969,7 @@ func addTGWbasedConfigs(tgws map[string]*TransitGateway, res *vpcmodel.MultipleV
 		newConfig.FilterResources = []vpcmodel.FilterTrafficResource{nacls, sgs}
 		newConfig.RoutingResources = []vpcmodel.RoutingResource{tgw}
 
-		res.AddConfig(newConfig.VPC.UID(), newConfig)
+		res.SetConfig(newConfig.VPC.UID(), newConfig)
 	}
 	return nil
 }
