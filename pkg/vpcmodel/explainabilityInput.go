@@ -74,7 +74,7 @@ type srcAndDstNodes struct {
 // 2. Both src and dst are external IP addresses
 // 3. Src/dst is a CIDR that contains both internal and external IP addresses
 // 4. Src/dst matches more than one VSI. Use VPC-name prefixes or CRNs
-// 5. Src/dst is an IP address within one of the given subnets, but is not connected to a VSI
+// 5. Src/dst is an IP address within the VPC's subnets, but is not connected to a VSI
 // 6. Src/dst is not a legal IP address, CIDR, or VSI name
 // 7. Src/dst is a VPC IP address, but not within any subnet
 // errors 1-4, although detected within a specific VPCContext, are relevant in the multi-vpc
