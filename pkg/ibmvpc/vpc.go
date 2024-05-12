@@ -69,7 +69,7 @@ type PrivateIP struct {
 	loadBalancer *LoadBalancer
 	// Since not all the LB balancer has a private IP, we create fake Private IPs at the subnets that do not have one.
 	// original - does the private IP was originally at the config file, or it is a fake one
-	original     bool
+	original bool
 }
 
 func (pip *PrivateIP) Name() string {

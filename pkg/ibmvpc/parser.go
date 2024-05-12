@@ -1444,18 +1444,18 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 		var subnetRes vpcmodel.VPCResourceIntf
 		var subnet *Subnet
 		var ok bool
-		if subnetRes, ok = vpcConfig.UIDToResource[*subnetObj.CRN]; !ok{
+		if subnetRes, ok = vpcConfig.UIDToResource[*subnetObj.CRN]; !ok {
 			return nil, fmt.Errorf("subnet %s of load balancer %s is missing from config of vpc %s",
-			*subnetObj.Name,
-			 *loadBalancerObj.Name,
-			 vpcConfig.VPC.Name(),
+				*subnetObj.Name,
+				*loadBalancerObj.Name,
+				vpcConfig.VPC.Name(),
 			)
 
 		}
-		if subnet, ok = subnetRes.(*Subnet); !ok{
+		if subnet, ok = subnetRes.(*Subnet); !ok {
 			return nil, fmt.Errorf("subnet %s of load balancer %s is is not a SubnetResource",
-			*subnetObj.Name,
-			 *loadBalancerObj.Name,
+				*subnetObj.Name,
+				*loadBalancerObj.Name,
 			)
 		}
 		// first get name, id, address, publicAddress:
