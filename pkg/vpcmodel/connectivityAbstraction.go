@@ -37,7 +37,7 @@ func nodeSetConnectivityAbstraction(nodesConn GeneralConnectivityMap, nodeSet No
 	return mergeConnectivityWithNodeSetAbstraction(otherToOther, nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet, nodeSet)
 }
 
-// partitionConnectivityByNodeSet() par the connectivity to the four groups
+// partitionConnectivityByNodeSet() returns partitions from the connectivity to the four groups
 // each group is kept as GeneralConnectivityMap.
 // usually, GeneralConnectivityMap is a map form src to dst.
 // however, the third group is hold as a map from dst to src (and therefore called otherFromNodeSet and not nodeSetToOther)

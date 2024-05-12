@@ -984,6 +984,23 @@ func getSubnetByIPAddress(addressIPblock *ipblock.IPBlock, c *vpcmodel.VPCConfig
 	return nil, fmt.Errorf("could not find matching subnet for address %s", addressIPblock.ToIPAddressString())
 }
 
+func getSubnetFromObject(subnetObj vpc1.SubnetReference, vpcConfig *vpcmodel.VPCConfig) (subnet *Subnet, err error) {
+	var subnetRes vpcmodel.VPCResourceIntf
+	var ok bool
+	if subnetRes, ok = vpcConfig.UIDToResource[*subnetObj.CRN]; !ok {
+		return nil, fmt.Errorf("subnet %s is missing from config of vpc %s",
+			*subnetObj.Name,
+			vpcConfig.VPC.Name(),
+		)
+	}
+	if subnet, ok = subnetRes.(*Subnet); !ok {
+		return nil, fmt.Errorf("subnet %s is is not a SubnetResource",
+			*subnetObj.Name,
+		)
+	}
+	return subnet, nil
+}
+
 func getVPEconfig(rc *datamodel.ResourcesContainerModel,
 	res vpcmodel.MultipleVPCConfigs,
 	skipByVPC map[string]bool,
@@ -1290,7 +1307,7 @@ func allocSubnetFreeAddress(subnetsFreeAddresses map[string]*ipblock.IPBlock, su
 	address := subnetsFreeAddresses[subnetCRN].FirstIPAddress()
 	addressBlock, err := ipblock.FromIPAddress(address)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 	subnetsFreeAddresses[subnetCRN] = subnetsFreeAddresses[subnetCRN].Subtract(addressBlock)
 	return address, nil
@@ -1334,8 +1351,8 @@ func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 			},
 		}
 
-		loadBalancer.listeners = getLoadBalancerServer(vpcConfig, loadBalancerObj, vpcUID)
-		privateIPs, err := getLoadBalancerIPs(vpcConfig, loadBalancerObj, loadBalancer, vpcUID, vpc, subnetsFreeAddresses)
+		loadBalancer.listeners = getLoadBalancerServer(vpcConfig, loadBalancerObj)
+		privateIPs, err := getLoadBalancerIPs(vpcConfig, loadBalancerObj, loadBalancer, vpc, subnetsFreeAddresses)
 		if err != nil {
 			return err
 		}
@@ -1364,8 +1381,7 @@ func getLoadBalancerVpcUID(rc *datamodel.ResourcesContainerModel, loadBalancerOb
 // getLoadBalancerServer() parse and return all the servers.
 // currently as a list of listeners, TBD
 func getLoadBalancerServer(vpcConfig *vpcmodel.VPCConfig,
-	loadBalancerObj *datamodel.LoadBalancer,
-	vpcUID string) []LoadBalancerListener {
+	loadBalancerObj *datamodel.LoadBalancer) []LoadBalancerListener {
 	pools := map[string]LoadBalancerPool{}
 	listeners := []LoadBalancerListener{}
 	for poolIndex := range loadBalancerObj.Pools {
@@ -1422,7 +1438,7 @@ func getLoadBalancerServer(vpcConfig *vpcmodel.VPCConfig,
 func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 	loadBalancerObj *datamodel.LoadBalancer,
 	loadBalancer *LoadBalancer,
-	vpcUID string, vpc *VPC,
+	vpc *VPC,
 	subnetsFreeAddresses map[string]*ipblock.IPBlock) ([]vpcmodel.Node, error) {
 	// first we collect  the subnets that has private IPs:
 	subnetsWithPrivateIPs := map[vpcmodel.Subnet]int{}
@@ -1441,22 +1457,9 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 	// we assume that if one private IP has a public IP, then all private IPs have public IP:
 	hasPublicAddress := len(loadBalancerObj.PublicIps) > 0
 	for _, subnetObj := range loadBalancerObj.Subnets {
-		var subnetRes vpcmodel.VPCResourceIntf
-		var subnet *Subnet
-		var ok bool
-		if subnetRes, ok = vpcConfig.UIDToResource[*subnetObj.CRN]; !ok {
-			return nil, fmt.Errorf("subnet %s of load balancer %s is missing from config of vpc %s",
-				*subnetObj.Name,
-				*loadBalancerObj.Name,
-				vpcConfig.VPC.Name(),
-			)
-
-		}
-		if subnet, ok = subnetRes.(*Subnet); !ok {
-			return nil, fmt.Errorf("subnet %s of load balancer %s is is not a SubnetResource",
-				*subnetObj.Name,
-				*loadBalancerObj.Name,
-			)
+		subnet, err := getSubnetFromObject(subnetObj, vpcConfig)
+		if err != nil {
+			return nil, err
 		}
 		// first get name, id, address, publicAddress:
 		var name, id, address, publicAddress string
