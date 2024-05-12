@@ -201,6 +201,7 @@ type Subnet interface {
 // todo: elaborate more - get list of servers, expandability,...
 type LoadBalancer interface {
 	NodeSet
+	// DenyConnectivity() - check if the lb denies connection from src to dst
 	DenyConnectivity(src, dst Node) bool
 }
 

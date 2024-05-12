@@ -67,6 +67,8 @@ type PrivateIP struct {
 	vpcmodel.VPCResource
 	vpcmodel.InternalNode
 	loadBalancer *LoadBalancer
+	// Since not all the LB balancer has a private IP, we create fake Private IPs at the subnets that do not have one.
+	// original - does the private IP was originally at the config file, or it is a fake one
 	original     bool
 }
 
@@ -251,7 +253,7 @@ func (lb *LoadBalancer) AddressRange() *ipblock.IPBlock {
 	return nodesAddressRange(lb.nodes)
 }
 
-// DenyConnectivity - check if lb deny connection from src to dst
+// DenyConnectivity - check if lb denies connection from src to dst
 // currently only a boolean function, will be elaborated when parsing policies rules
 func (lb *LoadBalancer) DenyConnectivity(src, dst vpcmodel.Node) bool {
 	// currently, we do not allow connections from privateIP to a destination that is not a pool member
