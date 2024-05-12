@@ -20,7 +20,7 @@ import (
 // (1) compute AllowedConns (map[Node]*ConnectivityResult) : ingress or egress allowed conns separately
 // (2) compute AllowedConnsCombined (map[Node]map[Node]*connection.Set) : allowed conns considering both ingress and egress directions
 // (3) compute AllowedConnsCombinedStateful : stateful allowed connections, for which connection in reverse direction is also allowed
-// (4) if lbAbstraction required - abstract each lb separately 
+// (4) if lbAbstraction required - abstract each lb separately
 // (5) if grouping required - compute grouping of connectivity results
 func (c *VPCConfig) GetVPCNetworkConnectivity(grouping, lbAbstraction bool) (res *VPCConnectivity, err error) {
 	res = &VPCConnectivity{
