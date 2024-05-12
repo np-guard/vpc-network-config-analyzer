@@ -1258,26 +1258,35 @@ func getVPCObjectByUID(res vpcmodel.MultipleVPCConfigs, uid string) (*VPC, error
 // See https://github.com/np-guard/vpc-network-config-analyzer/issues/560
 // getSubnetsFreeAddresses() collect all the free address of all subnets
 // allocSubnetFreeAddress() allocate a new address for a subnet
-func getSubnetsFreeAddresses(rc *datamodel.ResourcesContainerModel) map[string]*ipblock.IPBlock {
+func getSubnetsFreeAddresses(rc *datamodel.ResourcesContainerModel) (map[string]*ipblock.IPBlock, error) {
 	subnetsFreeAddresses := map[string]*ipblock.IPBlock{}
 	for _, subnetObj := range rc.SubnetList {
-		b, _ := ipblock.FromCidr(*subnetObj.Ipv4CIDRBlock)
+		b, err := ipblock.FromCidr(*subnetObj.Ipv4CIDRBlock)
+		if err != nil {
+			return nil, err
+		}
 		// all the allocated IPs are at subnetObj.ReservedIps. (did not find documentation, it is what we experiment)
 		// see https://github.com/np-guard/vpc-network-config-analyzer/issues/566
 		for _, reservedIP := range subnetObj.ReservedIps {
-			b2, _ := ipblock.FromIPAddress(*reservedIP.Address)
+			b2, err := ipblock.FromIPAddress(*reservedIP.Address)
+			if err != nil {
+				return nil, err
+			}
 			b = b.Subtract(b2)
 		}
 		subnetsFreeAddresses[*subnetObj.CRN] = b
 	}
-	return subnetsFreeAddresses
+	return subnetsFreeAddresses, nil
 }
 
-func allocSubnetFreeAddress(subnetsFreeAddresses map[string]*ipblock.IPBlock, subnetCRN string) string {
+func allocSubnetFreeAddress(subnetsFreeAddresses map[string]*ipblock.IPBlock, subnetCRN string) (string, error) {
 	address := subnetsFreeAddresses[subnetCRN].FirstIPAddress()
-	addressBlock, _ := ipblock.FromIPAddress(address)
+	addressBlock, err := ipblock.FromIPAddress(address)
+	if err != nil {
+		return "", nil
+	}
 	subnetsFreeAddresses[subnetCRN] = subnetsFreeAddresses[subnetCRN].Subtract(addressBlock)
-	return address
+	return address, nil
 }
 
 // ////////////////////////////////////////////////////////////////
@@ -1289,7 +1298,10 @@ func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 	if len(rc.LBList) == 0 {
 		return nil
 	}
-	subnetsFreeAddresses := getSubnetsFreeAddresses(rc)
+	subnetsFreeAddresses, err := getSubnetsFreeAddresses(rc)
+	if err != nil {
+		return err
+	}
 	for _, loadBalancerObj := range rc.LBList {
 		vpcUID, err := getLoadBalancerVpcUID(rc, loadBalancerObj)
 		if err != nil {
@@ -1401,11 +1413,11 @@ func getLoadBalancerIPs(res map[string]*vpcmodel.VPCConfig,
 	// first we collect  the subnets that has private IPs:
 	subnetsWithPrivateIPs := map[vpcmodel.Subnet]int{}
 	for i, pIP := range loadBalancerObj.PrivateIps {
-		add, err := ipblock.FromIPAddress(*pIP.Address)
+		address, err := ipblock.FromIPAddress(*pIP.Address)
 		if err != nil {
 			return nil, err
 		}
-		subnet, err := getSubnetByIPAddress(add, res[vpcUID])
+		subnet, err := getSubnetByIPAddress(address, res[vpcUID])
 		if err != nil {
 			return nil, err
 		}
@@ -1430,7 +1442,11 @@ func getLoadBalancerIPs(res map[string]*vpcmodel.VPCConfig,
 			// subnet does not have a private IP, we create unique ip info
 			name = "pip-name-of-" + subnet.Name() + "-" + *loadBalancerObj.Name
 			id = "pip-uid-of-" + subnet.UID() + *loadBalancerObj.ID
-			address = allocSubnetFreeAddress(subnetsFreeAddresses, *subnetObj.CRN)
+			var err error
+			address, err = allocSubnetFreeAddress(subnetsFreeAddresses, *subnetObj.CRN)
+			if err != nil {
+				return nil, err
+			}
 			if hasPublicAddress {
 				// todo - for now we always abstract the LB.
 				// with LB abstraction, it does not matter what is the public address
