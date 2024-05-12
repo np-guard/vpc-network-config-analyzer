@@ -1236,10 +1236,17 @@ func addExternalNodes(config *vpcmodel.VPCConfig, vpcInternalAddressRange *ipblo
 	return externalNodes, nil
 }
 
-func getVPCObjectByUID(res vpcmodel.MultipleVPCConfigs, uid string) (*VPC, error) {
+func getVPCconfigByUID(res vpcmodel.MultipleVPCConfigs, uid string) (*vpcmodel.VPCConfig, error) {
 	vpcConfig, ok := res[uid]
 	if !ok {
 		return nil, fmt.Errorf("missing VPC resource of uid %s", uid)
+	}
+	return vpcConfig, nil
+}
+func getVPCObjectByUID(res vpcmodel.MultipleVPCConfigs, uid string) (*VPC, error) {
+	vpcConfig, err := getVPCconfigByUID(res, uid)
+	if err != nil {
+		return nil, err
 	}
 	vpc, ok := vpcConfig.VPC.(*VPC)
 	if !ok {
@@ -1310,6 +1317,10 @@ func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 		if skipByVPC[vpcUID] {
 			continue
 		}
+		vpcConfig, err := getVPCconfigByUID(res, vpcUID)
+		if err != nil {
+			return err
+		}
 		vpc, err := getVPCObjectByUID(res, vpcUID)
 		if err != nil {
 			return err
@@ -1323,14 +1334,14 @@ func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 			},
 		}
 
-		loadBalancer.listeners = getLoadBalancerServer(res, loadBalancerObj, vpcUID)
-		privateIPs, err := getLoadBalancerIPs(res, loadBalancerObj, loadBalancer, vpcUID, vpc, subnetsFreeAddresses)
+		loadBalancer.listeners = getLoadBalancerServer(vpcConfig, loadBalancerObj, vpcUID)
+		privateIPs, err := getLoadBalancerIPs(vpcConfig, loadBalancerObj, loadBalancer, vpcUID, vpc, subnetsFreeAddresses)
 		if err != nil {
 			return err
 		}
 		loadBalancer.nodes = privateIPs
-		res[vpcUID].UIDToResource[loadBalancer.ResourceUID] = loadBalancer
-		res[vpcUID].LoadBalancers = append(res[vpcUID].LoadBalancers, loadBalancer)
+		vpcConfig.UIDToResource[loadBalancer.ResourceUID] = loadBalancer
+		vpcConfig.LoadBalancers = append(vpcConfig.LoadBalancers, loadBalancer)
 	}
 	return nil
 }
@@ -1338,6 +1349,9 @@ func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 func getLoadBalancerVpcUID(rc *datamodel.ResourcesContainerModel, loadBalancerObj *datamodel.LoadBalancer) (string, error) {
 	// the API info of the load balancer does not have info on the vpc,
 	// getting the vpc from one of the subnets:
+	if len(loadBalancerObj.Subnets) == 0 {
+		return "", fmt.Errorf("LoadBalancer %s has no subnets", *loadBalancerObj.Name)
+	}
 	aSubnetUID := *loadBalancerObj.Subnets[0].CRN
 	for _, subnet := range rc.SubnetList {
 		if aSubnetUID == *subnet.CRN {
@@ -1349,7 +1363,7 @@ func getLoadBalancerVpcUID(rc *datamodel.ResourcesContainerModel, loadBalancerOb
 
 // getLoadBalancerServer() parse and return all the servers.
 // currently as a list of listeners, TBD
-func getLoadBalancerServer(res map[string]*vpcmodel.VPCConfig,
+func getLoadBalancerServer(vpcConfig *vpcmodel.VPCConfig,
 	loadBalancerObj *datamodel.LoadBalancer,
 	vpcUID string) []LoadBalancerListener {
 	pools := map[string]LoadBalancerPool{}
@@ -1364,7 +1378,7 @@ func getLoadBalancerServer(res map[string]*vpcmodel.VPCConfig,
 			// todo handle the ports:
 			// member.port = *memberObj.Port
 			address := *memberObj.Target.(*vpc1.LoadBalancerPoolMemberTarget).Address
-			pool = append(pool, getCertainNodes(res[vpcUID].Nodes, func(n vpcmodel.Node) bool { return n.CidrOrAddress() == address })...)
+			pool = append(pool, getCertainNodes(vpcConfig.Nodes, func(n vpcmodel.Node) bool { return n.CidrOrAddress() == address })...)
 		}
 		pools[*poolObj.ID] = pool
 	}
@@ -1405,7 +1419,7 @@ func getLoadBalancerServer(res map[string]*vpcmodel.VPCConfig,
 // See https://github.com/np-guard/vpc-network-config-analyzer/issues/560
 // create public IPs as routers of the private IPs
 // returns the private IPs nodes
-func getLoadBalancerIPs(res map[string]*vpcmodel.VPCConfig,
+func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 	loadBalancerObj *datamodel.LoadBalancer,
 	loadBalancer *LoadBalancer,
 	vpcUID string, vpc *VPC,
@@ -1417,17 +1431,33 @@ func getLoadBalancerIPs(res map[string]*vpcmodel.VPCConfig,
 		if err != nil {
 			return nil, err
 		}
-		subnet, err := getSubnetByIPAddress(address, res[vpcUID])
+		subnet, err := getSubnetByIPAddress(address, vpcConfig)
 		if err != nil {
 			return nil, err
 		}
 		subnetsWithPrivateIPs[subnet] = i
 	}
 	privateIPs := []vpcmodel.Node{}
-	// we assume that if one private IP has a public IP, than all private IPs have public IP:
+	// we assume that if one private IP has a public IP, then all private IPs have public IP:
 	hasPublicAddress := len(loadBalancerObj.PublicIps) > 0
 	for _, subnetObj := range loadBalancerObj.Subnets {
-		subnet := res[vpcUID].UIDToResource[*subnetObj.CRN].(*Subnet)
+		var subnetRes vpcmodel.VPCResourceIntf
+		var subnet *Subnet
+		var ok bool
+		if subnetRes, ok = vpcConfig.UIDToResource[*subnetObj.CRN]; !ok{
+			return nil, fmt.Errorf("subnet %s of load balancer %s is missing from config of vpc %s",
+			*subnetObj.Name,
+			 *loadBalancerObj.Name,
+			 vpcConfig.VPC.Name(),
+			)
+
+		}
+		if subnet, ok = subnetRes.(*Subnet); !ok{
+			return nil, fmt.Errorf("subnet %s of load balancer %s is is not a SubnetResource",
+			*subnetObj.Name,
+			 *loadBalancerObj.Name,
+			)
+		}
 		// first get name, id, address, publicAddress:
 		var name, id, address, publicAddress string
 		pipIndex, original := subnetsWithPrivateIPs[subnet]
@@ -1473,9 +1503,9 @@ func getLoadBalancerIPs(res map[string]*vpcmodel.VPCConfig,
 		}
 		privateIP.SubnetResource = subnet
 		privateIP.Zone = subnet.ZoneName()
-		res[vpcUID].Nodes = append(res[vpcUID].Nodes, privateIP)
+		vpcConfig.Nodes = append(vpcConfig.Nodes, privateIP)
 		subnet.nodes = append(subnet.nodes, privateIP)
-		res[vpcUID].UIDToResource[privateIP.ResourceUID] = privateIP
+		vpcConfig.UIDToResource[privateIP.ResourceUID] = privateIP
 		privateIPs = append(privateIPs, privateIP)
 		// if the load balancer have public Ips, we attach every private ip a floating ip
 		if hasPublicAddress {
@@ -1488,8 +1518,8 @@ func getLoadBalancerIPs(res map[string]*vpcmodel.VPCConfig,
 					VPCRef:       vpc,
 				},
 				cidr: publicAddress, src: []vpcmodel.Node{privateIP}}
-			res[vpcUID].RoutingResources = append(res[vpcUID].RoutingResources, routerFip)
-			res[vpcUID].UIDToResource[routerFip.ResourceUID] = routerFip
+			vpcConfig.RoutingResources = append(vpcConfig.RoutingResources, routerFip)
+			vpcConfig.UIDToResource[routerFip.ResourceUID] = routerFip
 		}
 	}
 	return privateIPs, nil
