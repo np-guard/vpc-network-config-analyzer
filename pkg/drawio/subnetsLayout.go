@@ -52,13 +52,13 @@ type miniGroupDataS struct {
 
 // ///////////////////////////////////////////////////////////////////
 // groupsDataS is the struct representing a group.
-// they are creating if the first step, when sorting the miniGroups to groups.
+// they are created in the first step, when sorting the miniGroups to groups.
 // some more are created when groups are split to smaller group
 // /////////////////////////////////////////////////////////////////
 type groupDataS struct {
 	// miniGroups - set of the miniGroups of the group
-	// subnets - set of all the subnets  of the group
 	miniGroups miniGroupSet
+	// subnets - set of all the subnets  of the group
 	subnets    subnetSet
 	// treeNode - the relevant treeNode of the group, for most groups we already have a treeNode, for new groups, we create a new treeNode
 	treeNode TreeNodeInterface
