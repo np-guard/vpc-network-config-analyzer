@@ -57,9 +57,9 @@ type miniGroupDataS struct {
 // /////////////////////////////////////////////////////////////////
 type groupDataS struct {
 	// miniGroups - set of the miniGroups of the group
-	miniGroups miniGroupSet
 	// subnets - set of all the subnets  of the group
-	subnets subnetSet
+	miniGroups miniGroupSet
+	subnets    subnetSet
 	// treeNode - the relevant treeNode of the group, for most groups we already have a treeNode, for new groups, we create a new treeNode
 	treeNode TreeNodeInterface
 	// children - the children in the tree of groups
@@ -650,44 +650,36 @@ func (ly *subnetsLayout) layoutGroup(group *groupDataS, parentFirstRow int) {
 }
 
 func (ly *subnetsLayout) calcGroupLayoutBorders(group *groupDataS, parentFirstRow int) (minZoneCol, maxZoneCol, firstRow int) {
-	miniGroupsPerZone := make([]int, len(ly.miniGroupsMatrix[0]))
+	rowsNeededPerZone := make([]int, len(ly.miniGroupsMatrix[0]))
 	for mg := range group.miniGroups {
-		miniGroupsPerZone[ly.zonesCol[mg.zone]]++
+		rowsNeededPerZone[ly.zonesCol[mg.zone]]++
 	}
-	for minZoneCol = 0; ; minZoneCol++ {
-		if miniGroupsPerZone[minZoneCol] > 0 {
-			break
-		}
+	for ; rowsNeededPerZone[minZoneCol] == 0; minZoneCol++ {
 	}
-	for maxZoneCol = len(ly.miniGroupsMatrix[0]) - 1; ; maxZoneCol-- {
-		if miniGroupsPerZone[maxZoneCol] > 0 {
-			break
-		}
+	for maxZoneCol = len(ly.miniGroupsMatrix[0]) - 1; rowsNeededPerZone[maxZoneCol] == 0; maxZoneCol-- {
 	}
 	rowsNeeded := 0
-	for _, nRows := range miniGroupsPerZone {
+	for _, nRows := range rowsNeededPerZone {
 		rowsNeeded = max(rowsNeeded, nRows)
 	}
-	takenRows := make([]bool, len(ly.miniGroupsMatrix))
+	nonFreeRows := make([]bool, len(ly.miniGroupsMatrix))
 	for rIndex := 0; rIndex < len(ly.miniGroupsMatrix); rIndex++ {
 		for cIndex := minZoneCol; cIndex <= maxZoneCol; cIndex++ {
 			if ly.miniGroupsMatrix[rIndex][cIndex] != nil {
-				takenRows[rIndex] = true
+				nonFreeRows[rIndex] = true
 				break
 			}
 		}
 	}
 
 	for firstRow = parentFirstRow; firstRow < len(ly.miniGroupsMatrix); firstRow++ {
-		ok := true
-		for rIndex := 0; rIndex < rowsNeeded; rIndex++ {
-			if takenRows[firstRow+rIndex] {
-				firstRow = firstRow + rIndex + 1
-				ok = false
+		var rIndex int
+		for rIndex = 0; rIndex < rowsNeeded; rIndex++ {
+			if nonFreeRows[firstRow+rIndex] {
 				break
 			}
 		}
-		if ok {
+		if rIndex == rowsNeeded{
 			break
 		}
 	}
