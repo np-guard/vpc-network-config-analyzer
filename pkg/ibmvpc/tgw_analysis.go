@@ -56,7 +56,10 @@ func validateAddressPrefixesExist(vpc *VPC) {
 
 // getVPCAdvertisedRoutes returns a list of IPBlock objects for vpc address prefixes matched by prefix filters (with permit action),
 // thus advertised to a TGW.
-// It also returns list of IPBlockPrefixFilter objects, with details per address prefix of the matched prefix filter
+// It also returns map from IPBlockPrefixFilter objects details to RulesInTable with index of the transit connection
+// and index(es) of the prefix rules within the connection that determines the connection between src and dst
+// todo after we fix https://github.com/np-guard/vpc-network-config-analyzer/issues/576 then there could be more than
+// todo one prefix for <src, dst>
 func getVPCAdvertisedRoutes(tc *datamodel.TransitConnection, tcIndex int, vpc *VPC) (advertisedRoutesRes []*ipblock.IPBlock,
 	vpcAPToPrefixRules map[*ipblock.IPBlock]vpcmodel.RulesInTable, err error) {
 	validateAddressPrefixesExist(vpc)

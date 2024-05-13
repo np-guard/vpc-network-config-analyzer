@@ -871,6 +871,7 @@ func actionNameStr(action *string) (string, error) {
 // there could be more than one relevant prefix filter (in a single transit connection)
 // todo: currently "more than one" is not possible since src/dst must be within a given subnet.
 // todo This will be relevant only once we allow src/dst to span over vpcs
+// todo https://github.com/np-guard/vpc-network-config-analyzer/issues/576
 func (tgw *TransitGateway) RulesInConnectivity(src, dst vpcmodel.Node) []vpcmodel.RulesInTable {
 	// <src, dst> routed by tgw given that source is in the tgw,
 	// and there is a prefix filter defined for the dst,
@@ -894,6 +895,10 @@ func (tgw *TransitGateway) RulesInConnectivity(src, dst vpcmodel.Node) []vpcmode
 	}
 	aggregatedRes := []vpcmodel.RulesInTable{}
 	// 2. Aggregates RulesInTable per transit connection
+	// trCnPrefixes is from "atomic" IPBlocks, each has exactly one prefix filter of transit connection
+	// that determines its relevant routing.
+	// However, once https://github.com/np-guard/vpc-network-config-analyzer/issues/576 is solved then
+	// there could be few "atomic" IPBlocks relevant for <src, dst>, possibly one allow and one deny
 	for trCn, trCnRulesInTable := range trCnToRulesInTable {
 		prefixesTrCn := vpcmodel.RulesInTable{Table: trCn, Rules: []int{}, RulesOfType: vpcmodel.NoRules}
 		for _, prefixEntry := range trCnRulesInTable {
