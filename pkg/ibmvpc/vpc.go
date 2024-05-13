@@ -739,7 +739,7 @@ type TransitGateway struct {
 	// vpcs are the VPCs connected by a TGW
 	vpcs []*VPC
 
-	// list of transit connections of the tgw
+	// list of all transit connections (not only those relevant to <src, dst>)
 	tgwConnList []*datamodel.TransitConnection
 
 	// availableRoutes are the published address prefixes from all connected vpcs that arrive at the TGW's table of available routes,
