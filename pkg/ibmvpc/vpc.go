@@ -760,7 +760,7 @@ type TransitGateway struct {
 	region *Region
 
 	// maps each VPC UID to the details of the matching filters
-	// these details includes map of each relevant IPBlock to the transit connection (its index in the TgwLayer)
+	// these details includes map of each relevant IPBlock to the transit connection (its index in the tgwConnList)
 	// and the index of the matching filter in the transit connection if exists (index "-1" is for default )
 	// this struct can be though of as the "explain" parallel of availableRoutes; note that unlike availableRoutes it also lists deny prefixes
 	vpcsAPToPrefixRules map[string]map[*ipblock.IPBlock]vpcmodel.RulesInTable
