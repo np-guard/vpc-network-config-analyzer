@@ -649,37 +649,43 @@ func (ly *subnetsLayout) layoutGroup(group *groupDataS, parentFirstRow int) {
 	}
 }
 
+// calcGroupLayoutBorders() finds a free square in the matrix the the group can fit into
 func (ly *subnetsLayout) calcGroupLayoutBorders(group *groupDataS, parentFirstRow int) (minZoneCol, maxZoneCol, firstRow int) {
 	rowsNeededPerZone := make([]int, len(ly.miniGroupsMatrix[0]))
 	for mg := range group.miniGroups {
 		rowsNeededPerZone[ly.zonesCol[mg.zone]]++
 	}
+	// calc the min and the max col:
 	for ; rowsNeededPerZone[minZoneCol] == 0; minZoneCol++ {
 	}
 	for maxZoneCol = len(ly.miniGroupsMatrix[0]) - 1; rowsNeededPerZone[maxZoneCol] == 0; maxZoneCol-- {
 	}
 	rowsNeeded := 0
+	// calc how many rows are needed:
 	for _, nRows := range rowsNeededPerZone {
 		rowsNeeded = max(rowsNeeded, nRows)
 	}
-	nonFreeRows := make([]bool, len(ly.miniGroupsMatrix))
+	// calc which rows are available:
+	nonAvailableRows := make([]bool, len(ly.miniGroupsMatrix))
 	for rIndex := 0; rIndex < len(ly.miniGroupsMatrix); rIndex++ {
 		for cIndex := minZoneCol; cIndex <= maxZoneCol; cIndex++ {
 			if ly.miniGroupsMatrix[rIndex][cIndex] != nil {
-				nonFreeRows[rIndex] = true
+				nonAvailableRows[rIndex] = true
 				break
 			}
 		}
 	}
-
+	// find a square that fits:
 	for firstRow = parentFirstRow; firstRow < len(ly.miniGroupsMatrix); firstRow++ {
 		var rIndex int
 		for rIndex = 0; rIndex < rowsNeeded; rIndex++ {
-			if nonFreeRows[firstRow+rIndex] {
+			if nonAvailableRows[firstRow+rIndex] {
+				// the square that start at firstRow does not fit
 				break
 			}
 		}
-		if rIndex == rowsNeeded{
+		if rIndex == rowsNeeded {
+			// the square that start at firstRow fits
 			break
 		}
 	}
