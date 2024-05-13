@@ -765,9 +765,8 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 	tgwToSkip := map[string]bool{}
 	tgwIDToTgw := getTgwMap(c)
 
-	tgwConnList := make([]*datamodel.TransitConnection, len(c.TransitConnectionList))
+	tgwConnList := slices.Clone(c.TransitConnectionList)
 	for i, tgwConn := range c.TransitConnectionList {
-		tgwConnList[i] = tgwConn
 		tgwUID := *tgwConn.TransitGateway.Crn
 		tgwName := *tgwConn.TransitGateway.Name
 		vpcUID := *tgwConn.NetworkID
