@@ -921,40 +921,56 @@ func (tgw *TransitGateway) StringDetailsOfRules(listRulesInTransitConns []vpcmod
 	for _, prefixesInTransitConn := range listRulesInTransitConns {
 		transitConn := tgw.tgwConnList[prefixesInTransitConn.Table]
 		if verbose {
-			for _, prefixInTransConnIndx := range prefixesInTransitConn.Rules {
-				thisPrefixStr := ""
-				tgwRouterFilterDetails, actionName, err := tgw.tgwPrefixStr(transitConn, prefixInTransConnIndx)
-				if err != nil {
-					return "", err
-				}
-				action := ""
-				if actionName == permitAction {
-					action = "allows"
-				} else {
-					action = "blocks"
-				}
-				thisPrefixStr = fmt.Sprintf("transit gateway %s %s connection with the following prefix\n\t%s\n",
-					tgw.Name(), action, tgwRouterFilterDetails)
-				strRes = append(strRes, thisPrefixStr)
+			verboseStr, err := tgw.stringPrefixFiltersVerbose(transitConn, prefixesInTransitConn)
+			if err != nil {
+				return "", err
 			}
+			strRes = append(strRes, verboseStr...)
 		} else {
-			{
-				thisConnectionStr := ""
-				noVerboseStr := fmt.Sprintf("cross-vpc-connection: transit-connection %s of transit-gateway %s ", *transitConn.Name, tgw.Name())
-				switch prefixesInTransitConn.RulesOfType {
-				case vpcmodel.OnlyAllow:
-					thisConnectionStr = noVerboseStr + "allows connection"
-				case vpcmodel.OnlyDeny:
-					thisConnectionStr = noVerboseStr + "denies connection"
-				case vpcmodel.BothAllowDeny:
-					thisConnectionStr = noVerboseStr + "partly allows connection"
-				}
-				strRes = append(strRes, thisConnectionStr)
-			}
+			strRes = append(strRes, tgw.stringPrefixFiltersNoVerbose(transitConn, prefixesInTransitConn.RulesOfType))
 		}
 	}
 	sort.Strings(strRes)
 	return strings.Join(strRes, "\n") + "\n", nil
+}
+
+// given a transit connection and a list of relevant prefixes in the connections, prints the relevant prefixes details
+func (tgw *TransitGateway) stringPrefixFiltersVerbose(transitConn *datamodel.TransitConnection,
+	prefixesInTransitConn vpcmodel.RulesInTable) ([]string, error) {
+	strRes := []string{}
+	for _, prefixInTransConnIndx := range prefixesInTransitConn.Rules {
+		thisPrefixStr := ""
+		tgwRouterFilterDetails, actionName, err := tgw.tgwPrefixStr(transitConn, prefixInTransConnIndx)
+		if err != nil {
+			return nil, err
+		}
+		action := ""
+		if actionName == permitAction {
+			action = "allows"
+		} else {
+			action = "blocks"
+		}
+		thisPrefixStr = fmt.Sprintf("transit gateway %s %s connection with the following prefix\n\t%s\n",
+			tgw.Name(), action, tgwRouterFilterDetails)
+		strRes = append(strRes, thisPrefixStr)
+	}
+	return strRes, nil
+}
+
+// given a transit connection and the effect (onlyAllow/onlyDeny/Both) of this transit gateway on queried <src, dst> ,
+// prints a matching non-verbose header
+func (tgw *TransitGateway) stringPrefixFiltersNoVerbose(transitConn *datamodel.TransitConnection,
+	rulesType vpcmodel.RulesType) string {
+	noVerboseStr := fmt.Sprintf("cross-vpc-connection: transit-connection %s of transit-gateway %s ", *transitConn.Name, tgw.Name())
+	switch rulesType {
+	case vpcmodel.OnlyAllow:
+		return noVerboseStr + "allows connection"
+	case vpcmodel.OnlyDeny:
+		return noVerboseStr + "denies connection"
+	case vpcmodel.BothAllowDeny:
+		return noVerboseStr + "partly allows connection"
+	}
+	return "" // should never get here
 }
 
 // AppliedFiltersKinds todo: currently not used
