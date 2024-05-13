@@ -187,17 +187,6 @@ var sgTests = []sgTest{
 		},
 		isIngress: false,
 		expectedConnectivityMap: map[*ipblock.IPBlock]*ConnectivityResult{
-			fromIPRangeStrWithoutValidation("10.240.10.4-255.255.255.255"): {
-				isIngress: false,
-				allowedConns: map[*ipblock.IPBlock]*connection.Set{
-					ipblock.GetCidrAll(): connection.None(),
-				},
-				allowRules: map[*ipblock.IPBlock][]int{
-					ipblock.GetCidrAll(): {},
-				},
-				deniedConns: map[*ipblock.IPBlock]*connection.Set{},
-				denyRules:   map[*ipblock.IPBlock][]int{},
-			},
 			fromIPAddressStrWithoutValidation("10.240.10.1"): {
 				isIngress: false,
 				allowedConns: map[*ipblock.IPBlock]*connection.Set{
@@ -248,24 +237,24 @@ var sgTests = []sgTest{
 				deniedConns: map[*ipblock.IPBlock]*connection.Set{},
 				denyRules:   map[*ipblock.IPBlock][]int{},
 			},
-			fromIPRangeStrWithoutValidation("0.0.0.0-10.240.9.255"): {
-				isIngress: false,
-				allowedConns: map[*ipblock.IPBlock]*connection.Set{
-					ipblock.GetCidrAll(): connection.None(),
-				},
-				allowRules: map[*ipblock.IPBlock][]int{
-					ipblock.GetCidrAll(): {},
-				},
-				deniedConns: map[*ipblock.IPBlock]*connection.Set{},
-				denyRules:   map[*ipblock.IPBlock][]int{},
-			},
 		},
 	},
 }
 
 func (tt *sgTest) runTest(t *testing.T) {
 	connectivityMap := make(ConnectivityResultMap)
-	mapAndAnalyzeSGRules(tt.rules, false, connectivityMap)
+	var endpoint1 = &NetworkInterface{InternalNode: vpcmodel.InternalNode{
+		AddressStr: "10.240.10.1",
+	}}
+	var endpoint2 = &NetworkInterface{InternalNode: vpcmodel.InternalNode{
+		AddressStr: "10.240.10.2",
+	}}
+	var endpoint3 = &NetworkInterface{InternalNode: vpcmodel.InternalNode{
+		AddressStr: "10.240.10.0",
+	}}
+
+	sg := SecurityGroup{members: map[string]vpcmodel.Node{"10.240.10.1": endpoint1, "10.240.10.2": endpoint2, "10.240.10.0": endpoint3}}
+	mapAndAnalyzeSGRules(tt.rules, false, connectivityMap, &sg)
 	require.True(t, connectivityMap.Equal(&tt.expectedConnectivityMap))
 }
 
@@ -284,6 +273,11 @@ func TestCaching(t *testing.T) {
 	// test to check caching in mapAndAnalyzeSGRules
 	c1 := connection.TCPorUDPConnection(netp.ProtocolString("UDP"), 5, 87, 10, 3245)
 	c2 := connection.TCPorUDPConnection(netp.ProtocolString("TCP"), 1, 100, 5, 1000)
+	var endpoint1 = &NetworkInterface{InternalNode: vpcmodel.InternalNode{
+		AddressStr: "10.240.10.1",
+	}}
+
+	sg := SecurityGroup{members: map[string]vpcmodel.Node{"10.240.10.1": endpoint1}}
 
 	rulesTest1 := []*SGRule{
 		{
@@ -301,7 +295,7 @@ func TestCaching(t *testing.T) {
 	}
 
 	egressConnectivityMap := make(map[*ipblock.IPBlock]*ConnectivityResult)
-	mapAndAnalyzeSGRules(rulesTest1, false, egressConnectivityMap)
+	mapAndAnalyzeSGRules(rulesTest1, false, egressConnectivityMap, &sg)
 
 	// in this example we should get the same ConnectivityResult for both IPBlock 10.240.10.0 and 10.240.10.2-10.240.10.3
 	var connectivityResult1, connectivityResult2 *ConnectivityResult

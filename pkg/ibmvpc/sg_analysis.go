@@ -328,7 +328,7 @@ func AnalyzeSGRules(rules []*SGRule, isIngress bool) *ConnectivityResult {
 	return res
 }
 
-func mapAndAnalyzeSGRules(rules []*SGRule, isIngress bool, connectivityMap ConnectivityResultMap) {
+func mapAndAnalyzeSGRules(rules []*SGRule, isIngress bool, connectivityMap ConnectivityResultMap, currentSg *SecurityGroup) {
 	locals := []*ipblock.IPBlock{}
 	for i := range rules {
 		if rules[i].local != nil {
@@ -338,6 +338,21 @@ func mapAndAnalyzeSGRules(rules []*SGRule, isIngress bool, connectivityMap Conne
 	disjointLocals := ipblock.DisjointIPBlocks(locals, []*ipblock.IPBlock{ipblock.GetCidrAll()})
 	keysToConnectivityResult := map[common.SetAsKey]*ConnectivityResult{}
 	for i := range disjointLocals {
+		localContainsMember := false
+		for member := range currentSg.members {
+			memberIPBlock, err := ipblock.FromIPAddress(member)
+			if err != nil {
+				return
+			}
+			if memberIPBlock.ContainedIn(disjointLocals[i]) {
+				localContainsMember = true
+				break
+			}
+		}
+		if !localContainsMember {
+			continue
+		}
+
 		relevantRules := []*SGRule{}
 		for j := range rules {
 			if disjointLocals[i].ContainedIn(rules[j].local) {
@@ -368,8 +383,8 @@ func (sga *SGAnalyzer) prepareAnalyzer(sgMap map[string]*SecurityGroup, currentS
 	}
 	sga.ingressConnectivityMap = make(ConnectivityResultMap)
 	sga.egressConnectivityMap = make(ConnectivityResultMap)
-	mapAndAnalyzeSGRules(sga.ingressRules, true, sga.ingressConnectivityMap)
-	mapAndAnalyzeSGRules(sga.egressRules, false, sga.egressConnectivityMap)
+	mapAndAnalyzeSGRules(sga.ingressRules, true, sga.ingressConnectivityMap, currentSg)
+	mapAndAnalyzeSGRules(sga.egressRules, false, sga.egressConnectivityMap, currentSg)
 	sga.isDefault = sga.areSGRulesDefault()
 	return nil
 }
