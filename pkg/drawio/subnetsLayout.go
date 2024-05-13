@@ -59,7 +59,7 @@ type groupDataS struct {
 	// miniGroups - set of the miniGroups of the group
 	miniGroups miniGroupSet
 	// subnets - set of all the subnets  of the group
-	subnets    subnetSet
+	subnets subnetSet
 	// treeNode - the relevant treeNode of the group, for most groups we already have a treeNode, for new groups, we create a new treeNode
 	treeNode TreeNodeInterface
 	// children - the children in the tree of groups
@@ -650,21 +650,45 @@ func (ly *subnetsLayout) layoutGroup(group *groupDataS, parentFirstRow int) {
 }
 
 func (ly *subnetsLayout) calcGroupLayoutBorders(group *groupDataS, parentFirstRow int) (minZoneCol, maxZoneCol, firstRow int) {
-	minZoneCol, maxZoneCol = len(ly.zonesCol), -1
+	miniGroupsPerZone := make([]int, len(ly.miniGroupsMatrix[0]))
 	for mg := range group.miniGroups {
-		if minZoneCol > ly.zonesCol[mg.zone] {
-			minZoneCol = ly.zonesCol[mg.zone]
-		}
-		if maxZoneCol < ly.zonesCol[mg.zone] {
-			maxZoneCol = ly.zonesCol[mg.zone]
+		miniGroupsPerZone[ly.zonesCol[mg.zone]]++
+	}
+	for minZoneCol = 0; ; minZoneCol++ {
+		if miniGroupsPerZone[minZoneCol] > 0 {
+			break
 		}
 	}
-	firstRow = parentFirstRow
-	for rIndex := firstRow; rIndex < len(ly.miniGroupsMatrix); rIndex++ {
+	for maxZoneCol = len(ly.miniGroupsMatrix[0]) - 1; ; maxZoneCol-- {
+		if miniGroupsPerZone[maxZoneCol] > 0 {
+			break
+		}
+	}
+	rowsNeeded := 0
+	for _, nRows := range miniGroupsPerZone {
+		rowsNeeded = max(rowsNeeded, nRows)
+	}
+	takenRows := make([]bool, len(ly.miniGroupsMatrix))
+	for rIndex := 0; rIndex < len(ly.miniGroupsMatrix); rIndex++ {
 		for cIndex := minZoneCol; cIndex <= maxZoneCol; cIndex++ {
 			if ly.miniGroupsMatrix[rIndex][cIndex] != nil {
-				firstRow = rIndex + 1
+				takenRows[rIndex] = true
+				break
 			}
+		}
+	}
+
+	for firstRow = parentFirstRow; firstRow < len(ly.miniGroupsMatrix); firstRow++ {
+		ok := true
+		for rIndex := 0; rIndex < rowsNeeded; rIndex++ {
+			if takenRows[firstRow+rIndex] {
+				firstRow = firstRow + rIndex + 1
+				ok = false
+				break
+			}
+		}
+		if ok {
+			break
 		}
 	}
 	return minZoneCol, maxZoneCol, firstRow
