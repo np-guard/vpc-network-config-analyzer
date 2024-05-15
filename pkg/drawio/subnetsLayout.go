@@ -609,7 +609,7 @@ func (ly *subnetsLayout) createMatrixes() {
 // 5. calc the last group.
 // 6. fill the square [firstRow-lastRow, minCol-maxCol] with a fake miniGroups, as space holders
 func (ly *subnetsLayout) layoutGroup(group *groupDataS, parentFirstRow int) {
-	if len(group.miniGroups) == 0{
+	if len(group.miniGroups) == 0 {
 		return
 	}
 	childrenOrder := group.children.AsList()
