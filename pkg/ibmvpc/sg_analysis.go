@@ -338,19 +338,12 @@ func mapAndAnalyzeSGRules(rules []*SGRule, isIngress bool, currentSg *SecurityGr
 	}
 	disjointLocals := ipblock.DisjointIPBlocks(locals, []*ipblock.IPBlock{ipblock.GetCidrAll()})
 	keysToConnectivityResult := map[common.SetAsKey]*ConnectivityResult{}
+	unifiedMembersIPBlock, err := currentSg.UnifiedMembersIPBlock()
+	if err != nil {
+		return nil
+	}
 	for i := range disjointLocals {
-		localContainsMember := false
-		for member := range currentSg.members {
-			memberIPBlock, err := ipblock.FromIPAddress(member)
-			if err != nil {
-				return connectivityMap
-			}
-			if memberIPBlock.ContainedIn(disjointLocals[i]) {
-				localContainsMember = true
-				break
-			}
-		}
-		if !localContainsMember {
+		if disjointLocals[i].Intersect(unifiedMembersIPBlock).IsEmpty() {
 			continue
 		}
 		relevantRules := []*SGRule{}
