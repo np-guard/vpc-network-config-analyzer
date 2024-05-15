@@ -649,16 +649,16 @@ func (ly *subnetsLayout) layoutGroup(group *groupDataS, parentFirstRow int) {
 	}
 }
 
-// calcGroupLayoutBorders() finds a free square in the matrix the the group can fit into
+// calcGroupLayoutBorders() finds a free square in the matrix that the group can fit into
 func (ly *subnetsLayout) calcGroupLayoutBorders(group *groupDataS, parentFirstRow int) (minZoneCol, maxZoneCol, firstRow int) {
-	rowsNeededPerZone := make([]int, len(ly.miniGroupsMatrix[0]))
+	rowsNeededPerZone := make([]int, len(ly.zonesCol))
 	for mg := range group.miniGroups {
 		rowsNeededPerZone[ly.zonesCol[mg.zone]]++
 	}
 	// calc the min and the max col:
 	for ; rowsNeededPerZone[minZoneCol] == 0; minZoneCol++ {
 	}
-	for maxZoneCol = len(ly.miniGroupsMatrix[0]) - 1; rowsNeededPerZone[maxZoneCol] == 0; maxZoneCol-- {
+	for maxZoneCol = len(ly.zonesCol) - 1; rowsNeededPerZone[maxZoneCol] == 0; maxZoneCol-- {
 	}
 	rowsNeeded := 0
 	// calc how many rows are needed:
