@@ -27,9 +27,7 @@ func TestWithParsing(t *testing.T) {
 	n := createNetwork()
 	createFileFromNetwork(n, "fake.drawio", false, FileDRAWIO)
 	n = createNetworkSubnets()
-	if false {
-		createFileFromNetwork(n, "fakeSubnets.drawio", true, FileDRAWIO)
-	}
+	createFileFromNetwork(n, "fakeSubnets.drawio", true, FileDRAWIO)
 	n = createNetwork2()
 	createFileFromNetwork(n, "fake2.drawio", false, FileDRAWIO)
 	n = createNetworkGrouping()

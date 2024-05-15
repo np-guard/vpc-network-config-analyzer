@@ -25,10 +25,10 @@ func TestMain(t *testing.T) {
 		name string
 		args string
 	}{
-		// {
-		// 	name: "drawio_multi_vpc_all_subnets",
-		// 	args: "-output-file multi_vpc.drawio -vpc-config ../../pkg/ibmvpc/examples/input/input_multiple_vpcs.json -format drawio -analysis-type all_subnets",
-		// },
+		{
+			name: "drawio_multi_vpc_all_subnets",
+			args: "-output-file multi_vpc.drawio -vpc-config ../../pkg/ibmvpc/examples/input/input_multiple_vpcs.json -format drawio -analysis-type all_subnets",
+		},
 		{
 			name: "drawio_multi_vpc_all_subnets_grouped",
 			args: "-output-file multi_vpc_grouped.drawio -vpc-config ../../pkg/ibmvpc/examples/input/input_multiple_vpcs.json -format drawio -analysis-type all_subnets -grouping",
