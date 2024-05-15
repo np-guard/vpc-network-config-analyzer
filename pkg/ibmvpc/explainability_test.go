@@ -596,7 +596,7 @@ func TestInputValiditySingleVPCContext(t *testing.T) {
 
 	cidr1 := "169.255.0.0"
 	cidr2 := "161.26.0.0/16"
-	cidrInternalNonAP := "10.240.10.4/16"
+	cidrInternalNoEP := "10.240.40.0/24"
 	internalIPNotVsi := "10.240.10.5"
 	cidrAll := "0.0.0.0/0"
 	existingVsi := "vsi3a-ky"
@@ -618,19 +618,16 @@ func TestInputValiditySingleVPCContext(t *testing.T) {
 	fmt.Println()
 
 	// should fail due to cidr containing internal address not within vpc's address prefix
-	_, err3 := vpcConfigSg1.ExplainConnectivity(existingVsi, cidrInternalNonAP, nil)
+	_, err3 := vpcConfigSg1.ExplainConnectivity(existingVsi, cidrInternalNoEP, nil)
 	fmt.Println(err3.Error())
-	require.NotNil(t, err3, "the test should fail since src is cidr containing internal address "+
-		"not within vpc's subnets address range")
-	require.Equal(t, "illegal dst: internal address 10.240.10.4/16 not within the vpc "+
-		"test-vpc1-ky subnets' address range 10.240.10.0-10.240.10.255, 10.240.20.0-10.240.20.255, 10.240.30.0-10.240.30.255",
-		err3.Error())
+	require.NotNil(t, err3, "the test should fail since src is cidr with no ep connected to it")
+	require.Equal(t, "illegal dst: no network interfaces are connected to 10.240.40.0/24", err3.Error())
 	fmt.Println()
 
 	// should fail since internal address not connected to vsi
 	_, err4 := vpcConfigSg1.ExplainConnectivity(internalIPNotVsi, existingVsi, nil)
 	fmt.Println(err4.Error())
-	require.NotNil(t, err4, "the test should fail since dst is an internal address  not connected to a VSI")
+	require.NotNil(t, err4, "the test should fail since dst is an internal address  not connected to any ep")
 	require.Equal(t, "illegal src: no network interfaces are connected to 10.240.10.5", err4.Error())
 	fmt.Println()
 
