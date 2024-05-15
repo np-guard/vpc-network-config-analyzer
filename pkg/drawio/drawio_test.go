@@ -24,38 +24,40 @@ func createFileFromNetwork(network SquareTreeNodeInterface, fileName string, sub
 	}
 }
 func TestWithParsing(t *testing.T) {
-	// n := createNetwork()
-	// createFileFromNetwork(n, "fake.drawio", false, FileDRAWIO)
-	n := createNetworkSubnets()
-	createFileFromNetwork(n, "fakeSubnets.drawio", true, FileDRAWIO)
-	// n = createNetwork2()
-	// createFileFromNetwork(n, "fake2.drawio", false, FileDRAWIO)
-	// n = createNetworkGrouping()
-	// createFileFromNetwork(n, "grouping.drawio", false, FileDRAWIO)
-	// n = createNetworkSubnetGrouping()
-	// createFileFromNetwork(n, "subnetGrouping.drawio", true, FileDRAWIO)
-	// n = createNetworkSubnetGroupingBug()
-	// createFileFromNetwork(n, "subnetGroupingBug.drawio", true, FileSVG)
-	// n = createNetworkSubnetGroupingMultiVpc()
-	// createFileFromNetwork(n, "subnetGroupingMultiVpc.drawio", true, FileHTML)
-	// n = createNetworkSubnetGroupingOverlapping()
-	// createFileFromNetwork(n, "subnetGroupingOverlapping.drawio", true, FileDRAWIO)
-	// n = createNetworkSubnetGroupingGroupInGroup()
-	// createFileFromNetwork(n, "subnetGroupingGroupInGroup.drawio", true, FileHTML)
-	// n2 := NewNetworkTreeNode()
-	// cloud := NewCloudTreeNode(n2, "Cloud")
-	// NewPublicNetworkTreeNode(n2)
-	// NewCloudTreeNode(n2, "empty cloud2")
-	// region := NewRegionTreeNode(cloud, "north")
-	// vpc1 := NewVpcTreeNode(region, "vpc1")
-	// z := NewZoneTreeNode(vpc1, "zone1")
-	// NewSubnetTreeNode(z, "sub1", "cidr", "acl1")
-	// createFileFromNetwork(n2, "fake3.drawio", false, FileDRAWIO)
+	n := createNetwork()
+	createFileFromNetwork(n, "fake.drawio", false, FileDRAWIO)
+	n = createNetworkSubnets()
+	if false {
+		createFileFromNetwork(n, "fakeSubnets.drawio", true, FileDRAWIO)
+	}
+	n = createNetwork2()
+	createFileFromNetwork(n, "fake2.drawio", false, FileDRAWIO)
+	n = createNetworkGrouping()
+	createFileFromNetwork(n, "grouping.drawio", false, FileDRAWIO)
+	n = createNetworkSubnetGrouping()
+	createFileFromNetwork(n, "subnetGrouping.drawio", true, FileDRAWIO)
+	n = createNetworkSubnetGroupingBug()
+	createFileFromNetwork(n, "subnetGroupingBug.drawio", true, FileSVG)
+	n = createNetworkSubnetGroupingMultiVpc()
+	createFileFromNetwork(n, "subnetGroupingMultiVpc.drawio", true, FileHTML)
+	n = createNetworkSubnetGroupingOverlapping()
+	createFileFromNetwork(n, "subnetGroupingOverlapping.drawio", true, FileDRAWIO)
+	n = createNetworkSubnetGroupingGroupInGroup()
+	createFileFromNetwork(n, "subnetGroupingGroupInGroup.drawio", true, FileHTML)
+	n2 := NewNetworkTreeNode()
+	cloud := NewCloudTreeNode(n2, "Cloud")
+	NewPublicNetworkTreeNode(n2)
+	NewCloudTreeNode(n2, "empty cloud2")
+	region := NewRegionTreeNode(cloud, "north")
+	vpc1 := NewVpcTreeNode(region, "vpc1")
+	z := NewZoneTreeNode(vpc1, "zone1")
+	NewSubnetTreeNode(z, "sub1", "cidr", "acl1")
+	createFileFromNetwork(n2, "fake3.drawio", false, FileDRAWIO)
 
-	// n = createNetworkAllTypes()
-	// createFileFromNetwork(n, "all.drawio", false, FileDRAWIO)
-	// n = createNetworkTgw()
-	// createFileFromNetwork(n, "tgws.drawio", false, FileDRAWIO)
+	n = createNetworkAllTypes()
+	createFileFromNetwork(n, "all.drawio", false, FileDRAWIO)
+	n = createNetworkTgw()
+	createFileFromNetwork(n, "tgws.drawio", false, FileDRAWIO)
 }
 
 func createNetwork() SquareTreeNodeInterface {
@@ -226,7 +228,6 @@ func createNetwork() SquareTreeNodeInterface {
 	return network
 }
 
-
 func createNetworkSubnets() SquareTreeNodeInterface {
 	network := NewNetworkTreeNode()
 	cloud := NewCloudTreeNode(network, "IBM Cloud")
@@ -240,8 +241,6 @@ func createNetworkSubnets() SquareTreeNodeInterface {
 	zone11 := NewZoneTreeNode(vpc1, "zone1")
 
 	subnet111 := NewSubnetTreeNode(zone11, "subnet111", "ip", "key")
-
-
 
 	zone12 := NewZoneTreeNode(vpc1, "zone12")
 	subnet112 := NewSubnetTreeNode(zone11, "subnet112", "ip", "key")
@@ -261,9 +260,7 @@ func createNetworkSubnets() SquareTreeNodeInterface {
 	subnet222 := NewSubnetTreeNode(zone22, "subnet222", "ip", "key")
 	subnet231 := NewSubnetTreeNode(zone23, "subnet231", "ip", "key")
 
-
 	is2 := NewInternetServiceTreeNode(vpc2, "is2")
-
 
 	NewConnectivityLineTreeNode(network, subnet111, is2, true, "c10")
 	NewConnectivityLineTreeNode(network, subnet112, i1, true, "c11")
@@ -276,9 +273,6 @@ func createNetworkSubnets() SquareTreeNodeInterface {
 
 	return network
 }
-
-
-
 
 func createNetworkAllTypes() SquareTreeNodeInterface {
 	network := NewNetworkTreeNode()
