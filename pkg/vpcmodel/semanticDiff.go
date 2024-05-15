@@ -124,7 +124,7 @@ func (c *VPCConfig) getAllowedConnectionsCombined(
 		}
 		return subnetsConn.AllowedConnsCombined, err
 	} else if diffAnalysis == Vsis {
-		connectivity1, err := c.GetVPCNetworkConnectivity(false)
+		connectivity1, err := c.GetVPCNetworkConnectivity(false, false)
 		if err != nil {
 			return nil, err
 		}
