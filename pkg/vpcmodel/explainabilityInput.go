@@ -200,8 +200,8 @@ func (configsMap MultipleVPCConfigs) matchMoreThanOneSingleVpcCfgError(src, dst 
 	if len(configsWithSrcDstNodeSingleVpc) > 1 { // more than single vpc config
 		matchConfigsStr := configsMap.listNamesCfg(configsWithSrcDstNodeSingleVpc)
 		return fmt.Errorf("%s and %s found in more than one vpc config - %s - "+
-			"please add the name of the vpc to the src/dst name in case of name ambiguity,"+
-			"or give cidr of a single VPC in case of APs ambiguity", src, dst, matchConfigsStr)
+			"please add the name of the vpc to the src/dst name in case of name ambiguity, "+
+			"and avoid cidrs that spams more than one vpc", src, dst, matchConfigsStr)
 	}
 	listNamesCrossVpcRouters, err := configsMap.listNamesCrossVpcRouters(configsWithSrcDstNodeMultiVpc)
 	if err != nil {
