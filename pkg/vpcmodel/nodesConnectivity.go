@@ -20,8 +20,9 @@ import (
 // (1) compute AllowedConns (map[Node]*ConnectivityResult) : ingress or egress allowed conns separately
 // (2) compute AllowedConnsCombined (map[Node]map[Node]*connection.Set) : allowed conns considering both ingress and egress directions
 // (3) compute AllowedConnsCombinedStateful : stateful allowed connections, for which connection in reverse direction is also allowed
-// (4) if grouping required - compute grouping of connectivity results
-func (c *VPCConfig) GetVPCNetworkConnectivity(grouping bool) (res *VPCConnectivity, err error) {
+// (4) if lbAbstraction required - abstract each lb separately
+// (5) if grouping required - compute grouping of connectivity results
+func (c *VPCConfig) GetVPCNetworkConnectivity(grouping, lbAbstraction bool) (res *VPCConnectivity, err error) {
 	res = &VPCConnectivity{
 		AllowedConns:         map[Node]*ConnectivityResult{},
 		AllowedConnsPerLayer: map[Node]map[string]*ConnectivityResult{},
@@ -59,8 +60,22 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping bool) (res *VPCConnectivi
 	}
 	res.computeAllowedConnsCombined()
 	res.computeAllowedStatefulConnections()
+	if lbAbstraction {
+		for _, lb := range c.LoadBalancers {
+			res.AllowedConnsCombined = nodeSetConnectivityAbstraction(res.AllowedConnsCombined, lb)
+		}
+	}
 	res.GroupedConnectivity, err = newGroupConnLines(c, res, grouping)
 	return res, err
+}
+
+func (c *VPCConfig) deniedWithLBConnectivity(src, dst Node) bool {
+	for _, lb := range c.LoadBalancers {
+		if lb.DenyConnectivity(src, dst) {
+			return true
+		}
+	}
+	return false
 }
 
 func (c *VPCConfig) getFiltersAllowedConnsBetweenNodesPerDirectionAndLayer(
@@ -102,6 +117,10 @@ func (c *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 			continue
 		}
 		src, dst := switchSrcDstNodes(!isIngress, peerNode, capturedNode)
+		if c.deniedWithLBConnectivity(src, dst) {
+			allLayersRes[peerNode] = NoConns()
+			continue
+		}
 
 		// first compute connectivity per layer of filters resources
 		filterLayers := []string{NaclLayer, SecurityGroupLayer}
