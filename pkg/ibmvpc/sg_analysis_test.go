@@ -242,7 +242,6 @@ var sgTests = []sgTest{
 }
 
 func (tt *sgTest) runTest(t *testing.T) {
-	connectivityMap := make(ConnectivityResultMap)
 	var endpoint1 = &NetworkInterface{InternalNode: vpcmodel.InternalNode{
 		AddressStr: "10.240.10.1",
 	}}
@@ -254,8 +253,8 @@ func (tt *sgTest) runTest(t *testing.T) {
 	}}
 
 	sg := SecurityGroup{members: map[string]vpcmodel.Node{"10.240.10.1": endpoint1, "10.240.10.2": endpoint2, "10.240.10.0": endpoint3}}
-	mapAndAnalyzeSGRules(tt.rules, false, connectivityMap, &sg)
-	require.True(t, connectivityMap.Equal(&tt.expectedConnectivityMap))
+	connectivityMap := mapAndAnalyzeSGRules(tt.rules, false, &sg)
+	require.True(t, connectivityMap.Equal(tt.expectedConnectivityMap))
 }
 
 func TestMapAndAnalyzeSGRules(t *testing.T) {
@@ -294,8 +293,7 @@ func TestCaching(t *testing.T) {
 		},
 	}
 
-	egressConnectivityMap := make(map[*ipblock.IPBlock]*ConnectivityResult)
-	mapAndAnalyzeSGRules(rulesTest1, false, egressConnectivityMap, &sg)
+	egressConnectivityMap := mapAndAnalyzeSGRules(rulesTest1, false, &sg)
 
 	// in this example we should get the same ConnectivityResult for both IPBlock 10.240.10.0 and 10.240.10.2-10.240.10.3
 	var connectivityResult1, connectivityResult2 *ConnectivityResult

@@ -328,7 +328,8 @@ func AnalyzeSGRules(rules []*SGRule, isIngress bool) *ConnectivityResult {
 	return res
 }
 
-func mapAndAnalyzeSGRules(rules []*SGRule, isIngress bool, connectivityMap ConnectivityResultMap, currentSg *SecurityGroup) {
+func mapAndAnalyzeSGRules(rules []*SGRule, isIngress bool, currentSg *SecurityGroup) (connectivityMap ConnectivityResultMap) {
+	connectivityMap = make(ConnectivityResultMap)
 	locals := []*ipblock.IPBlock{}
 	for i := range rules {
 		if rules[i].local != nil {
@@ -342,7 +343,7 @@ func mapAndAnalyzeSGRules(rules []*SGRule, isIngress bool, connectivityMap Conne
 		for member := range currentSg.members {
 			memberIPBlock, err := ipblock.FromIPAddress(member)
 			if err != nil {
-				return
+				return connectivityMap
 			}
 			if memberIPBlock.ContainedIn(disjointLocals[i]) {
 				localContainsMember = true
@@ -352,7 +353,6 @@ func mapAndAnalyzeSGRules(rules []*SGRule, isIngress bool, connectivityMap Conne
 		if !localContainsMember {
 			continue
 		}
-
 		relevantRules := []*SGRule{}
 		for j := range rules {
 			if disjointLocals[i].ContainedIn(rules[j].local) {
@@ -370,6 +370,7 @@ func mapAndAnalyzeSGRules(rules []*SGRule, isIngress bool, connectivityMap Conne
 			connectivityMap[disjointLocals[i]] = keysToConnectivityResult[key]
 		}
 	}
+	return connectivityMap
 }
 
 func (sga *SGAnalyzer) prepareAnalyzer(sgMap map[string]*SecurityGroup, currentSg *SecurityGroup) error {
@@ -381,10 +382,8 @@ func (sga *SGAnalyzer) prepareAnalyzer(sgMap map[string]*SecurityGroup, currentS
 	if sga.ingressRules, sga.egressRules, err = sga.getSGrules(sga.sgResource); err != nil {
 		return err
 	}
-	sga.ingressConnectivityMap = make(ConnectivityResultMap)
-	sga.egressConnectivityMap = make(ConnectivityResultMap)
-	mapAndAnalyzeSGRules(sga.ingressRules, true, sga.ingressConnectivityMap, currentSg)
-	mapAndAnalyzeSGRules(sga.egressRules, false, sga.egressConnectivityMap, currentSg)
+	sga.ingressConnectivityMap = mapAndAnalyzeSGRules(sga.ingressRules, true, currentSg)
+	sga.egressConnectivityMap = mapAndAnalyzeSGRules(sga.egressRules, false, currentSg)
 	sga.isDefault = sga.areSGRulesDefault()
 	return nil
 }

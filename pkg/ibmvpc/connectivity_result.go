@@ -14,6 +14,7 @@ import (
 	"github.com/np-guard/models/pkg/ipblock"
 )
 
+// ConnectivityResultMap is a map from IPBlock to ConnectivityResult, used to map disjointLocals IPBlocks to ConnectivityResult
 type ConnectivityResultMap map[*ipblock.IPBlock]*ConnectivityResult
 
 // ConnectivityResult is built on disjoint ip-blocks for targets of all relevant sg/nacl results
@@ -27,29 +28,35 @@ type ConnectivityResult struct {
 	denyRules   map[*ipblock.IPBlock][]int           // indexes of deny rules relevant to this connectivity
 }
 
-func equalConns(conns1, conns2 map[*ipblock.IPBlock]*connection.Set) bool {
-	if len(conns1) != len(conns2) {
+func equalKeys[T any](first, second map[*ipblock.IPBlock]T) bool {
+	if len(first) != len(second) {
 		return false
 	}
-	keys1 := make([]string, 0, len(conns1))
-	for i := range conns1 {
-		keys1 = append(keys1, i.String())
+	keys1 := make([]string, len(first))
+	i := 0
+	for ipBlock := range first {
+		keys1[i] = ipBlock.String()
+		i += 1
 	}
+	i = 0
 	sort.Strings(keys1)
-	keys2 := make([]string, 0, len(conns2))
-	for i := range conns2 {
-		keys2 = append(keys2, i.String())
+	keys2 := make([]string, len(second))
+	for ipBlock := range second {
+		keys2[i] = ipBlock.String()
+		i += 1
 	}
 	sort.Strings(keys2)
 	// compare the concatenation result to validate equality of keys sets
-	for i := 0; i < len(keys1); i++ {
-		if keys1[i] != keys2[i] {
-			return false
-		}
+	return reflect.DeepEqual(keys1, keys2)
+}
+
+func equalConns(conns1, conns2 map[*ipblock.IPBlock]*connection.Set) bool {
+	if !equalKeys(conns1, conns2) {
+		return false
 	}
-	for ip, conn := range conns1 {
-		for otherIP, otherConn := range conns2 {
-			if ip.Equal(otherIP) {
+	for ipBlock, conn := range conns1 {
+		for otherIPBlock, otherConn := range conns2 {
+			if ipBlock.Equal(otherIPBlock) {
 				if !conn.Equal(otherConn) {
 					return false
 				}
@@ -61,28 +68,14 @@ func equalConns(conns1, conns2 map[*ipblock.IPBlock]*connection.Set) bool {
 }
 
 func equalRules(rules1, rules2 map[*ipblock.IPBlock][]int) bool {
-	if len(rules1) != len(rules2) {
+	if !equalKeys(rules1, rules2) {
 		return false
 	}
-	keys1 := make([]string, 0, len(rules1))
-	for i := range rules1 {
-		keys1 = append(keys1, i.String())
-	}
-	sort.Strings(keys1)
-	keys2 := make([]string, 0, len(rules2))
-	for i := range rules2 {
-		keys2 = append(keys2, i.String())
-	}
-	sort.Strings(keys2)
-	// compare the concatenation result to validate equality of keys sets
-	for i := 0; i < len(keys1); i++ {
-		if keys1[i] != keys2[i] {
-			return false
-		}
-	}
-	for ip, indexes := range rules1 {
-		for otherIP, otherIndexes := range rules2 {
-			if ip.Equal(otherIP) {
+	for ipBlock, indexes := range rules1 {
+		for otherIPBlock, otherIndexes := range rules2 {
+			if ipBlock.Equal(otherIPBlock) {
+				sort.Ints(indexes)
+				sort.Ints(otherIndexes)
 				if !reflect.DeepEqual(indexes, otherIndexes) {
 					return false
 				}
@@ -103,13 +96,13 @@ func (cr *ConnectivityResult) Equal(other *ConnectivityResult) bool {
 		equalRules(cr.denyRules, other.denyRules)
 }
 
-func (cr *ConnectivityResultMap) Equal(other *ConnectivityResultMap) bool {
-	if len(*cr) != len(*other) {
+func (cr ConnectivityResultMap) Equal(other ConnectivityResultMap) bool {
+	if !equalKeys(cr, other) {
 		return false
 	}
-	for ip, connectivityResult := range *cr {
-		for expectedIP, expectedConnectivityResult := range *other {
-			if ip.Equal(expectedIP) {
+	for ipBlock, connectivityResult := range cr {
+		for otherIPBlock, expectedConnectivityResult := range other {
+			if ipBlock.Equal(otherIPBlock) {
 				if !connectivityResult.Equal(expectedConnectivityResult) {
 					return false
 				}
