@@ -630,9 +630,8 @@ func TestInputValiditySingleVPCContext(t *testing.T) {
 	// should fail since internal address not connected to vsi
 	_, err4 := vpcConfigSg1.ExplainConnectivity(internalIPNotVsi, existingVsi, nil)
 	fmt.Println(err4.Error())
-	require.NotNil(t, err4, "the test should fail since dst is an internal address within subnet's "+
-		"address range not connected to a VSI")
-	require.Equal(t, "illegal src: no network interfaces are connected to 10.240.10.5 in test-vpc1-ky", err4.Error())
+	require.NotNil(t, err4, "the test should fail since dst is an internal address  not connected to a VSI")
+	require.Equal(t, "illegal src: no network interfaces are connected to 10.240.10.5", err4.Error())
 	fmt.Println()
 
 	// should fail since vsi's name has a typo
