@@ -61,6 +61,7 @@ type OutputGenerator struct {
 	config1        MultipleVPCConfigs
 	config2        MultipleVPCConfigs // specified only when analysis is diff
 	outputGrouping bool
+	lbAbstraction  bool
 	useCase        OutputUseCase
 	nodesConn      map[string]*VPCConnectivity
 	subnetsConn    map[string]*VPCsubnetConnectivity
@@ -70,10 +71,15 @@ type OutputGenerator struct {
 
 func NewOutputGenerator(c1, c2 MultipleVPCConfigs, grouping bool, uc OutputUseCase,
 	archOnly bool, explanationArgs *ExplanationArgs, f OutFormat) (*OutputGenerator, error) {
+	// todo -  for now, we always abstract lb.
+	// 1. should it be a user input?
+	// 2. if not abstracting, make sure we do present only the original private IP
+	lbAbstraction := true
 	res := &OutputGenerator{
 		config1:        c1,
 		config2:        c2,
 		outputGrouping: grouping,
+		lbAbstraction:  lbAbstraction,
 		useCase:        uc,
 		nodesConn:      map[string]*VPCConnectivity{},
 		subnetsConn:    map[string]*VPCsubnetConnectivity{},
@@ -91,7 +97,7 @@ func NewOutputGenerator(c1, c2 MultipleVPCConfigs, grouping bool, uc OutputUseCa
 		}
 		for i := range c1 {
 			if uc == AllEndpoints {
-				nodesConn, err := c1[i].GetVPCNetworkConnectivity(grouping)
+				nodesConn, err := c1[i].GetVPCNetworkConnectivity(grouping, res.lbAbstraction)
 				if err != nil {
 					return nil, err
 				}
@@ -148,9 +154,9 @@ func (o *OutputGenerator) Generate(f OutFormat, outFile string) (string, error) 
 	case JSON, Text, MD, Debug:
 		formatter = &serialOutputFormatter{f}
 	case DRAWIO, SVG, HTML:
-		formatter = newDrawioOutputFormatter(f)
+		formatter = newDrawioOutputFormatter(f, o.lbAbstraction)
 	case ARCHDRAWIO, ARCHSVG, ARCHHTML:
-		formatter = newArchDrawioOutputFormatter(f)
+		formatter = newArchDrawioOutputFormatter(f, o.lbAbstraction)
 	default:
 		return "", errors.New("unsupported output format")
 	}

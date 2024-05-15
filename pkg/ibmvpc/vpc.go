@@ -9,6 +9,7 @@ package ibmvpc
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 
@@ -65,11 +66,14 @@ func (r *ReservedIP) ExtendedName(c *vpcmodel.VPCConfig) string {
 type PrivateIP struct {
 	vpcmodel.VPCResource
 	vpcmodel.InternalNode
-	loadBalancer string
+	loadBalancer *LoadBalancer
+	// Since not all the LB balancer has a private IP, we create fake Private IPs at the subnets that do not have one.
+	// original - does the private IP was originally at the config file, or it is a fake one
+	original bool
 }
 
 func (pip *PrivateIP) Name() string {
-	return getNodeName(pip.loadBalancer, pip.Address())
+	return getNodeName(pip.loadBalancer.Name(), pip.Address())
 }
 
 func (pip *PrivateIP) ExtendedName(c *vpcmodel.VPCConfig) string {
@@ -133,8 +137,8 @@ func (v *VPC) Region() *Region {
 	return v.region
 }
 
-func (v *VPC) AddressPrefixes() []string {
-	return v.addressPrefixes
+func (v *VPC) AddressPrefixes() *ipblock.IPBlock {
+	return v.addressPrefixesIPBlock
 }
 
 func (v *VPC) getZoneByName(name string) (*Zone, error) {
@@ -228,10 +232,10 @@ func (v *Vpe) Zone() (*Zone, error) {
 	return nil, nil
 }
 
-// //////////////////////////////////////////
+// LoadBalancerPool //////////////////////////////////////////
 // Load Balancer
 // the nodes are the private IPs
-// for now the listeners holds the pools that holds the backend servers
+// for now the listeners hold the pools that holds the backend servers (aka pool members)
 // todo - implement more...
 type LoadBalancerPool []vpcmodel.Node
 type LoadBalancerListener []LoadBalancerPool
@@ -249,10 +253,22 @@ func (lb *LoadBalancer) AddressRange() *ipblock.IPBlock {
 	return nodesAddressRange(lb.nodes)
 }
 
-// we do not need this func, for now it is here since the linter warn that lb.listeners are not in use
-// todo - remove:
-func (lb *LoadBalancer) NListeners() int {
-	return len(lb.listeners)
+// DenyConnectivity - check if lb denies connection from src to dst
+// currently only a boolean function, will be elaborated when parsing policies rules
+func (lb *LoadBalancer) DenyConnectivity(src, dst vpcmodel.Node) bool {
+	// currently, we do not allow connections from privateIP to a destination that is not a pool member
+	return slices.Contains(lb.Nodes(), src) && !slices.Contains(lb.members(), dst)
+}
+
+// for now the listeners hold the pools that holds the backend servers (aka pool members)
+func (lb *LoadBalancer) members() []vpcmodel.Node {
+	res := []vpcmodel.Node{}
+	for _, l := range lb.listeners {
+		for _, pool := range l {
+			res = append(res, pool...)
+		}
+	}
+	return res
 }
 
 // lb is per vpc and not per zone...
