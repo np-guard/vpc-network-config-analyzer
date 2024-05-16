@@ -28,24 +28,23 @@ type ConnectivityResult struct {
 	denyRules   map[*ipblock.IPBlock][]int           // indexes of deny rules relevant to this connectivity
 }
 
+func storeAndSortKeys[T any](m map[*ipblock.IPBlock]T) []string {
+	keys := make([]string, len(m))
+	i := 0
+	for ipBlock := range m {
+		keys[i] = ipBlock.String()
+		i += 1
+	}
+	sort.Strings(keys)
+	return keys
+}
+
 func equalKeys[T any](first, second map[*ipblock.IPBlock]T) bool {
 	if len(first) != len(second) {
 		return false
 	}
-	keys1 := make([]string, len(first))
-	i := 0
-	for ipBlock := range first {
-		keys1[i] = ipBlock.String()
-		i += 1
-	}
-	i = 0
-	sort.Strings(keys1)
-	keys2 := make([]string, len(second))
-	for ipBlock := range second {
-		keys2[i] = ipBlock.String()
-		i += 1
-	}
-	sort.Strings(keys2)
+	keys1 := storeAndSortKeys(first)
+	keys2 := storeAndSortKeys(second)
 	// compare the concatenation result to validate equality of keys sets
 	return reflect.DeepEqual(keys1, keys2)
 }

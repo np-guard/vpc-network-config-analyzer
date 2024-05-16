@@ -244,12 +244,15 @@ var sgTests = []sgTest{
 func (tt *sgTest) runTest(t *testing.T) {
 	var endpoint1 = &NetworkInterface{InternalNode: vpcmodel.InternalNode{
 		AddressStr: "10.240.10.1",
+		IPBlockObj: fromIPAddressStrWithoutValidation("10.240.10.1"),
 	}}
 	var endpoint2 = &NetworkInterface{InternalNode: vpcmodel.InternalNode{
 		AddressStr: "10.240.10.2",
+		IPBlockObj: fromIPAddressStrWithoutValidation("10.240.10.2"),
 	}}
 	var endpoint3 = &NetworkInterface{InternalNode: vpcmodel.InternalNode{
 		AddressStr: "10.240.10.0",
+		IPBlockObj: fromIPAddressStrWithoutValidation("10.240.10.0"),
 	}}
 
 	sg := SecurityGroup{members: map[string]vpcmodel.Node{"10.240.10.1": endpoint1, "10.240.10.2": endpoint2, "10.240.10.0": endpoint3}}

@@ -616,17 +616,13 @@ func (sg *SecurityGroup) AllowedConnectivity(src, dst vpcmodel.Node, isIngress b
 }
 
 // unifiedMembersIPBlock returns an *IPBlock object with union of all members IPBlock
-func (sg *SecurityGroup) UnifiedMembersIPBlock() (unifiedMembersIPBlock *ipblock.IPBlock, err error) {
+func (sg *SecurityGroup) unifiedMembersIPBlock() (unifiedMembersIPBlock *ipblock.IPBlock) {
 	unifiedMembersIPBlock = ipblock.New()
-	for member := range sg.members {
-		memberIPBlock, err := ipblock.FromIPAddress(member)
-		if err != nil {
-			return nil, err
-		}
-		unifiedMembersIPBlock = unifiedMembersIPBlock.Union(memberIPBlock)
+	for _, memberNode := range sg.members {
+		unifiedMembersIPBlock = unifiedMembersIPBlock.Union(memberNode.IPBlock())
 	}
 
-	return unifiedMembersIPBlock, nil
+	return unifiedMembersIPBlock
 }
 
 // rulesFilterInConnectivity list of SG rules contributing to the connectivity
