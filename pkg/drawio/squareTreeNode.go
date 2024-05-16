@@ -224,8 +224,8 @@ func (tn *PartialSGTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNo
 }
 func (tn *PartialSGTreeNode) labels() []string {
 	labels := make([]string, len(tn.sgs))
-	for _, sg := range tn.sgs {
-		labels = append(labels, sg.name)
+	for i, sg := range tn.sgs {
+		labels[i] = sg.name
 	}
 	return labels
 }
