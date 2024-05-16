@@ -943,7 +943,7 @@ func (tgw *TransitGateway) stringPrefixFiltersVerbose(transitConn *datamodel.Tra
 	return strRes, nil
 }
 
-// given a transit connection and the effect (onlyDeny/Both) of this transit gateway on queried <src, dst> ,
+// given a transit connection and the effect (onlyDeny/onlyAllow) of this transit gateway on queried <src, dst> ,
 // prints a matching non-verbose header
 func (tgw *TransitGateway) stringPrefixFiltersNoVerbose(transitConn *datamodel.TransitConnection,
 	rulesType vpcmodel.RulesType) string {
