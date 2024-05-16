@@ -27,13 +27,14 @@ const (
 	ErrorFormat      = "%s %w"
 )
 
-func analysisVPCConfigs(cConfigs *vpcmodel.MultipleVPCConfigs, inArgs *InArgs) (string, error) {
+func analysisVPCConfigs(cConfigs *vpcmodel.MultipleVPCConfigs, inArgs *subcmds.InArgs) (string, error) {
 	var explanationArgs *vpcmodel.ExplanationArgs
 	if inArgs.AnalysisType == vpcmodel.Explain {
 		explanationArgs = vpcmodel.NewExplanationArgs(inArgs.ESrc, inArgs.EDst, string(inArgs.EProtocol),
 			inArgs.ESrcMinPort, inArgs.ESrcMaxPort, inArgs.EDstMinPort, inArgs.EDstMaxPort)
 	}
 
+	outFormat := inArgs.OutputFormat.ToModelFormat()
 	og, err := vpcmodel.NewOutputGenerator(cConfigs,
 		inArgs.Grouping,
 		inArgs.AnalysisType,
@@ -78,7 +79,7 @@ func mergeResourcesContainers(rc1, rc2 *datamodel.ResourcesContainerModel) (*dat
 	return rc1, nil
 }
 
-func vpcConfigsFromFiles(fileNames []string, inArgs *InArgs) (*vpcmodel.MultipleVPCConfigs, error) {
+func vpcConfigsFromFiles(fileNames []string, inArgs *subcmds.InArgs) (*vpcmodel.MultipleVPCConfigs, error) {
 	var mergedRC *datamodel.ResourcesContainerModel
 	for _, file := range fileNames {
 		rc, err1 := ibmvpc.ParseResourcesFromFile(file)
@@ -97,8 +98,8 @@ func vpcConfigsFromFiles(fileNames []string, inArgs *InArgs) (*vpcmodel.Multiple
 	return vpcConfigs, nil
 }
 
-func vpcConfigsFromAccount(inArgs *InArgs) (*vpcmodel.MultipleVPCConfigs, error) {
-  rc := factory.GetResourceContainer(string(inArgs.Provider), inArgs.RegionList, inArgs.ResourceGroup)
+func vpcConfigsFromAccount(inArgs *subcmds.InArgs) (*vpcmodel.MultipleVPCConfigs, error) {
+	rc := factory.GetResourceContainer(string(inArgs.Provider), inArgs.RegionList, inArgs.ResourceGroup)
 	// Collect resources from the provider API and generate output
 	err := rc.CollectResourcesFromAPI()
 	if err != nil {
@@ -182,7 +183,7 @@ func _main(cmdlineArgs []string) error {
 	}
 
 	if inArgs.InputSecondConfigFile != "" {
-		vpcConfigsToCompare, err := vpcConfigsFromFiles([]string{*inArgs.InputSecondConfigFile}, inArgs)
+		vpcConfigsToCompare, err := vpcConfigsFromFiles([]string{inArgs.InputSecondConfigFile}, inArgs)
 		if err != nil {
 			return err
 		}
