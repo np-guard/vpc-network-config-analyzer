@@ -277,6 +277,7 @@ func TestCaching(t *testing.T) {
 	c2 := connection.TCPorUDPConnection(netp.ProtocolString("TCP"), 1, 100, 5, 1000)
 	var endpoint1 = &NetworkInterface{InternalNode: vpcmodel.InternalNode{
 		AddressStr: "10.240.10.1",
+		IPBlockObj: fromIPAddressStrWithoutValidation("10.240.10.1"),
 	}}
 
 	sg := SecurityGroup{members: map[string]vpcmodel.Node{"10.240.10.1": endpoint1}}
