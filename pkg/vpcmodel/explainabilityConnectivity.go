@@ -81,8 +81,8 @@ type Explanation struct {
 }
 
 // ExplainConnectivity returns Explanation object, that explains connectivity of a single <src, dst> couple given by the user
-func (configsMap MultipleVPCConfigs) ExplainConnectivity(src, dst string, connQuery *connection.Set) (res *Explanation, err error) {
-	vpcConfig, srcNodes, dstNodes, isSrcDstInternalIP, err := configsMap.getVPCConfigAndSrcDstNodes(src, dst)
+func (c *MultipleVPCConfigs) ExplainConnectivity(src, dst string, connQuery *connection.Set) (res *Explanation, err error) {
+	vpcConfig, srcNodes, dstNodes, isSrcDstInternalIP, err := c.getVPCConfigAndSrcDstNodes(src, dst)
 	if err != nil {
 		return nil, err
 	}

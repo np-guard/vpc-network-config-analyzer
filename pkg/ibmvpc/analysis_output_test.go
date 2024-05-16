@@ -687,7 +687,7 @@ func (tt *vpcGeneralTest) runTest(t *testing.T) {
 
 	// get vpcConfigs obj from parsing + analyzing input config file
 	vpcConfigs := getVPCConfigs(t, tt, true)
-	var vpcConfigs2nd vpcmodel.MultipleVPCConfigs
+	var vpcConfigs2nd *vpcmodel.MultipleVPCConfigs
 	diffUseCase := false
 	explainUseCase := false
 	for _, useCase := range tt.useCases {
@@ -700,6 +700,7 @@ func (tt *vpcGeneralTest) runTest(t *testing.T) {
 	}
 	if diffUseCase {
 		vpcConfigs2nd = getVPCConfigs(t, tt, false)
+		vpcConfigs.SetConfigsToCompare(vpcConfigs2nd.Configs())
 	} else { // inputConfig2nd should be ignored if not diffUseCase
 		tt.inputConfig2nd = ""
 	}
@@ -712,7 +713,7 @@ func (tt *vpcGeneralTest) runTest(t *testing.T) {
 
 	// generate actual output for all use cases specified for this test
 	for _, uc := range tt.useCases {
-		err := runTestPerUseCase(t, tt, vpcConfigs, vpcConfigs2nd, uc, tt.mode, analysisOut, explanationArgs)
+		err := runTestPerUseCase(t, tt, vpcConfigs, uc, tt.mode, analysisOut, explanationArgs)
 		require.Equal(t, tt.errPerUseCase[uc], err, "comparing actual err to expected err")
 	}
 	for uc, outFile := range tt.actualOutput {
@@ -720,8 +721,8 @@ func (tt *vpcGeneralTest) runTest(t *testing.T) {
 	}
 }
 
-// getVPCConfigs returns  vpcmodel.MultipleVPCConfigs obj for the input test (config json file)
-func getVPCConfigs(t *testing.T, tt *vpcGeneralTest, firstCfg bool) vpcmodel.MultipleVPCConfigs {
+// getVPCConfigs returns  *vpcmodel.MultipleVPCConfigs obj for the input test (config json file)
+func getVPCConfigs(t *testing.T, tt *vpcGeneralTest, firstCfg bool) *vpcmodel.MultipleVPCConfigs {
 	var inputConfig string
 	if firstCfg {
 		inputConfig = tt.inputConfig
@@ -784,7 +785,7 @@ func initTestFileNames(tt *vpcGeneralTest,
 // runTestPerUseCase runs the connectivity analysis for the required use case and compares/generates the output
 func runTestPerUseCase(t *testing.T,
 	tt *vpcGeneralTest,
-	c1, c2 vpcmodel.MultipleVPCConfigs,
+	cConfigs *vpcmodel.MultipleVPCConfigs,
 	uc vpcmodel.OutputUseCase,
 	mode testMode,
 	outDir string,
@@ -792,7 +793,7 @@ func runTestPerUseCase(t *testing.T,
 	if err := initTestFileNames(tt, uc, "", true, outDir); err != nil {
 		return err
 	}
-	og, err := vpcmodel.NewOutputGenerator(c1, c2, tt.grouping, uc, tt.format == vpcmodel.ARCHDRAWIO, explanationArgs, tt.format)
+	og, err := vpcmodel.NewOutputGenerator(cConfigs, tt.grouping, uc, tt.format == vpcmodel.ARCHDRAWIO, explanationArgs, tt.format)
 	if err != nil {
 		return err
 	}

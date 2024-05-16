@@ -34,7 +34,6 @@ type VPCConfig struct {
 	RoutingResources []RoutingResource
 	// UIDToResource is a map from resource UID to its object in the VPC
 	UIDToResource map[string]VPCResourceIntf
-	CloudName     string
 
 	// IsMultipleVPCsConfig is a bool indicator, when set true, it means that the VPCConfig contains resources from
 	// multiple VPCs connected to each other, and such config is relevant for reasoning about cross-vpc connectivity
@@ -100,4 +99,44 @@ func (c *VPCConfig) getRoutingResource(src, dst Node) (RoutingResource, *connect
 		}
 	}
 	return nil, NoConns(), nil
+}
+
+// /////////////////////////////////////////////////////////////////////////////////
+// MultipleVPCConfigs  struct of all the configs.
+// Once multivpc support is elaborating , the struct may change
+// thus, please use get/set methods to access the structs; avoid direct access
+type MultipleVPCConfigs struct {
+	configs          map[string]*VPCConfig // a map from the vpc resource uid to the vpc config
+	toCompareConfigs map[string]*VPCConfig // a map from the vpc resource uid to the vpc config that we want to compare
+	cloudName        string
+}
+
+func NewMultipleVPCConfigs(cloudName string) *MultipleVPCConfigs {
+	return &MultipleVPCConfigs{map[string]*VPCConfig{}, nil, cloudName}
+}
+
+func (c *MultipleVPCConfigs) Configs() map[string]*VPCConfig {
+	return c.configs
+}
+func (c *MultipleVPCConfigs) SetConfig(uid string, config *VPCConfig) {
+	c.configs[uid] = config
+}
+func (c *MultipleVPCConfigs) RemoveConfig(uid string) {
+	delete(c.configs, uid)
+}
+func (c *MultipleVPCConfigs) Config(uid string) *VPCConfig {
+	return c.configs[uid]
+}
+func (c *MultipleVPCConfigs) HasConfig(uid string) bool {
+	_, ok := c.configs[uid]
+	return ok
+}
+func (c *MultipleVPCConfigs) ConfigToCompare(uid string) *VPCConfig {
+	return c.toCompareConfigs[uid]
+}
+func (c *MultipleVPCConfigs) SetConfigsToCompare(toCompare map[string]*VPCConfig) {
+	c.toCompareConfigs = toCompare
+}
+func (c *MultipleVPCConfigs) CloudName() string {
+	return c.cloudName
 }
