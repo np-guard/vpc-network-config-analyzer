@@ -198,30 +198,44 @@ func (tn *SGTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInter
 }
 func (tn *SGTreeNode) AddIcon(icon IconTreeNodeInterface) {
 	tn.addIconTreeNode(icon)
-	icon.setSG(tn)
+	icon.addSG(tn)
 }
 
 func (tn *SGTreeNode) NotShownInDrawio() bool { return true }
 
-///////////////////////////////////////////////////////////////////////
-
+// /////////////////////////////////////////////////////////////////////
+// PartialSGTreeNode is the actual square of security group on the canvas
+// PartialSGTreeNode represent one or more security groups
+// for layout reasons, a security group can be represented by more than one PartialSGTreeNode
 type PartialSGTreeNode struct {
 	abstractSquareTreeNode
+	sgs []*SGTreeNode
 }
 
-func newPartialSGTreeNode(parent *SGTreeNode) *PartialSGTreeNode {
-	psg := PartialSGTreeNode{newAbstractSquareTreeNode(parent, parent.name)}
-	parent.partialSgs = append(parent.partialSgs, &psg)
+func newPartialSGTreeNode(sgs []*SGTreeNode) *PartialSGTreeNode {
+	psg := PartialSGTreeNode{newAbstractSquareTreeNode(sgs[0].Parent(), ""), sgs}
+	for _, sg := range sgs {
+		sg.partialSgs = append(sg.partialSgs, &psg)
+	}
 	return &psg
 }
 func (tn *PartialSGTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNodeInterface, []LineTreeNodeInterface) {
 	return nil, tn.elements, tn.connections
 }
-func (tn *PartialSGTreeNode) DrawioParent() TreeNodeInterface {
-	return tn.Parent().Parent()
+func (tn *PartialSGTreeNode) labels() []string {
+	labels := make([]string, len(tn.sgs))
+	for i, sg := range tn.sgs {
+		labels[i] = sg.name
+	}
+	return labels
 }
+
 func (tn *PartialSGTreeNode) Kind() string {
-	return tn.parent.Kind()
+	kind := tn.sgs[0].Kind()
+	if len(tn.sgs) > 1 {
+		kind += "s"
+	}
+	return kind
 }
 
 /////////////////////////////////////////////////////////////////////////
