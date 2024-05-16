@@ -17,8 +17,8 @@ security group sg1-ky allows connection with the following allow rules
 network ACL acl3-ky allows connection with the following allow rules
 	index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 
-transit gateway local-tg-ky allows connection with the following prefix
-	transit-connection: tg_connection1 default prefix,  action: permit
+transit gateway local-tg-ky allows connection via transit connection tg_connection1 with the following prefixes
+	default prefix,  action: permit
 
 Ingress:
 network ACL acl11-ky allows connection with the following allow rules

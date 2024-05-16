@@ -836,14 +836,13 @@ func prefixDefaultStr(tc *datamodel.TransitConnection) (string, string, error) {
 	if err != nil {
 		return "", "", err
 	}
-	return fmt.Sprintf(" default prefix,  action: %s", actionName), actionName, nil
+	return fmt.Sprintf("default prefix,  action: %s", actionName), actionName, nil
 }
 
 func (tgw *TransitGateway) tgwPrefixStr(tc *datamodel.TransitConnection,
 	prefixIndx int) (resStr, actionName string, err error) {
 	// Array of prefix route filters for a transit gateway connection. This is order dependent with those first in the
 	// array being applied first, and those at the end of the array is applied last, or just before the default.
-	resStr = fmt.Sprintf("transit-connection: %s", *tc.Name)
 	if prefixIndx == defaultPrefixFilter { // default
 		defaultStr, actionName, err := prefixDefaultStr(tc)
 		if err != nil {
@@ -860,7 +859,7 @@ func (tgw *TransitGateway) tgwPrefixStr(tc *datamodel.TransitConnection,
 	if err != nil {
 		return "", "", err
 	}
-	resStr += fmt.Sprintf(", index: %v, action: %s", prefixIndx, actionName)
+	resStr += fmt.Sprintf("index: %v, action: %s", prefixIndx, actionName)
 	if prefixFilter.Ge != nil {
 		resStr += fmt.Sprintf(", ge: %v", *prefixFilter.Ge)
 	}
@@ -966,8 +965,8 @@ func (tgw *TransitGateway) stringPrefixFiltersVerbose(transitConn *datamodel.Tra
 		} else {
 			action = "blocks"
 		}
-		thisPrefixStr = fmt.Sprintf("transit gateway %s %s connection with the following prefix\n\t%s\n",
-			tgw.Name(), action, tgwRouterFilterDetails)
+		thisPrefixStr = fmt.Sprintf("transit gateway %s %s connection via transit connection %s "+
+			"with the following prefixes\n\t%s\n", tgw.Name(), action, *transitConn.Name, tgwRouterFilterDetails)
 		strRes = append(strRes, thisPrefixStr)
 	}
 	return strRes, nil
