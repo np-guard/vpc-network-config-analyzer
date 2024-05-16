@@ -382,7 +382,7 @@ func (ly *layoutS) getSquaresCols(zonesCol map[TreeNodeInterface]int) map[TreeNo
 		}
 	}
 	setCol(ly.network)
-	for tn, _ := range tree {
+	for tn, _ := range tnCol {
 		if zone, ok := tn.(*ZoneTreeNode); ok {
 			for _, subnet := range zone.subnets {
 				tnCol[subnet] = tnCol[zone]

@@ -24,7 +24,8 @@ func createFileFromNetwork(network SquareTreeNodeInterface, fileName string, sub
 	}
 }
 func TestWithParsing(t *testing.T) {
-	n := createNetwork()
+	var n SquareTreeNodeInterface
+	n = createNetwork()
 	createFileFromNetwork(n, "fake.drawio", false, FileDRAWIO)
 	n = createNetworkSubnets()
 	createFileFromNetwork(n, "fakeSubnets.drawio", true, FileDRAWIO)
