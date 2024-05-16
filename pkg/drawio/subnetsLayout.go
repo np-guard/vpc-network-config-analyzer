@@ -52,7 +52,7 @@ type miniGroupDataS struct {
 
 // ///////////////////////////////////////////////////////////////////
 // groupsDataS is the struct representing a group.
-// they are creating if the first step, when sorting the miniGroups to groups.
+// they are created in the first step, when sorting the miniGroups to groups.
 // some more are created when groups are split to smaller group
 // /////////////////////////////////////////////////////////////////
 type groupDataS struct {
@@ -609,6 +609,9 @@ func (ly *subnetsLayout) createMatrixes() {
 // 5. calc the last group.
 // 6. fill the square [firstRow-lastRow, minCol-maxCol] with a fake miniGroups, as space holders
 func (ly *subnetsLayout) layoutGroup(group *groupDataS, parentFirstRow int) {
+	if len(group.miniGroups) == 0 {
+		return
+	}
 	childrenOrder := group.children.AsList()
 	sort.Slice(childrenOrder, func(i, j int) bool {
 		return len(childrenOrder[i].miniGroups) > len(childrenOrder[j].miniGroups)
@@ -649,22 +652,44 @@ func (ly *subnetsLayout) layoutGroup(group *groupDataS, parentFirstRow int) {
 	}
 }
 
+// calcGroupLayoutBorders() finds a free square in the matrix that the group can fit into
 func (ly *subnetsLayout) calcGroupLayoutBorders(group *groupDataS, parentFirstRow int) (minZoneCol, maxZoneCol, firstRow int) {
-	minZoneCol, maxZoneCol = len(ly.zonesCol), -1
+	rowsNeededPerZone := make([]int, len(ly.zonesCol))
 	for mg := range group.miniGroups {
-		if minZoneCol > ly.zonesCol[mg.zone] {
-			minZoneCol = ly.zonesCol[mg.zone]
-		}
-		if maxZoneCol < ly.zonesCol[mg.zone] {
-			maxZoneCol = ly.zonesCol[mg.zone]
-		}
+		rowsNeededPerZone[ly.zonesCol[mg.zone]]++
 	}
-	firstRow = parentFirstRow
-	for rIndex := firstRow; rIndex < len(ly.miniGroupsMatrix); rIndex++ {
+	// calc the min and the max col:
+	for ; rowsNeededPerZone[minZoneCol] == 0; minZoneCol++ {
+	}
+	for maxZoneCol = len(ly.zonesCol) - 1; rowsNeededPerZone[maxZoneCol] == 0; maxZoneCol-- {
+	}
+	rowsNeeded := 0
+	// calc how many rows are needed:
+	for _, nRows := range rowsNeededPerZone {
+		rowsNeeded = max(rowsNeeded, nRows)
+	}
+	// calc which rows are available:
+	nonAvailableRows := make([]bool, len(ly.miniGroupsMatrix))
+	for rIndex := 0; rIndex < len(ly.miniGroupsMatrix); rIndex++ {
 		for cIndex := minZoneCol; cIndex <= maxZoneCol; cIndex++ {
 			if ly.miniGroupsMatrix[rIndex][cIndex] != nil {
-				firstRow = rIndex + 1
+				nonAvailableRows[rIndex] = true
+				break
 			}
+		}
+	}
+	// find a square that fits:
+	for firstRow = parentFirstRow; firstRow < len(ly.miniGroupsMatrix); firstRow++ {
+		var rIndex int
+		for rIndex = 0; rIndex < rowsNeeded; rIndex++ {
+			if nonAvailableRows[firstRow+rIndex] {
+				// the square that start at firstRow does not fit
+				break
+			}
+		}
+		if rIndex == rowsNeeded {
+			// the square that start at firstRow fits
+			break
 		}
 	}
 	return minZoneCol, maxZoneCol, firstRow
