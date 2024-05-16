@@ -323,8 +323,8 @@ func (ly *layoutS) layoutSubnetsIcons() {
 func (ly *layoutS) layoutSubnets() {
 	sly := newSubnetsLayout(ly.network)
 	sly.layout()
-	ly.getSquaresCols(sly.zonesCol)
-	ly.setSubnetsLocations(sly.subnetMatrix, sly.zonesCol)
+	cols := ly.getSquaresCols(sly.zonesCol)
+	ly.setSubnetsLocations(sly.subnetMatrix, cols)
 }
 
 func (ly *layoutS) getSquaresCols(zonesCol map[TreeNodeInterface]int) map[TreeNodeInterface]int {
@@ -382,35 +382,47 @@ func (ly *layoutS) getSquaresCols(zonesCol map[TreeNodeInterface]int) map[TreeNo
 		}
 	}
 	setCol(ly.network)
+	for tn, _ := range tree {
+		if zone, ok := tn.(*ZoneTreeNode); ok {
+			for _, subnet := range zone.subnets {
+				tnCol[subnet] = tnCol[zone]
+			}
+		}
+	}
+
 	return tnCol
 }
 
-func (ly *layoutS) setSubnetsLocations(subnetMatrix [][]TreeNodeInterface, zonesCol map[TreeNodeInterface]int) {
+func (ly *layoutS) setSubnetsLocations(subnetMatrix [][]TreeNodeInterface, tnCols map[TreeNodeInterface]int) {
 	locatedSubnets := map[TreeNodeInterface]bool{}
+	colToMatrixCol := map[int]int{}
 	for ri, row := range subnetMatrix {
 		for ci, s := range row {
 			if s != nil && s != fakeSubnet {
-				ly.setDefaultLocation(s.(SquareTreeNodeInterface), ri, ci)
+				ly.setDefaultLocation(s.(SquareTreeNodeInterface), ri, tnCols[s])
+				colToMatrixCol[tnCols[s]] = ci
 				locatedSubnets[s] = true
 			}
 		}
 	}
 	ly.setDefaultLocation(ly.network, 0, 0)
 	for _, cloud := range ly.network.(*NetworkTreeNode).clouds {
+		ly.setDefaultLocation(cloud, 0, tnCols[cloud])
 		for _, region := range cloud.(*CloudTreeNode).regions {
+			ly.setDefaultLocation(region, 0, tnCols[region])
 			for _, vpc := range region.(*RegionTreeNode).vpcs {
+				ly.setDefaultLocation(vpc, 0, tnCols[vpc])
 				for _, zone := range vpc.(*VpcTreeNode).zones {
-					if _, ok := zonesCol[zone]; !ok {
-						zonesCol[zone] = len(zonesCol)
-					}
+					ly.setDefaultLocation(zone, 0, tnCols[zone])
 					rowIndex := 0
 					for _, subnet := range zone.(*ZoneTreeNode).subnets {
 						if !locatedSubnets[subnet] {
-							a := len(subnetMatrix)
-							for rowIndex < a && zonesCol[zone] < len(subnetMatrix[rowIndex]) && subnetMatrix[rowIndex][zonesCol[zone]] != nil {
+							for rowIndex < len(subnetMatrix) &&
+								colToMatrixCol[tnCols[zone]] < len(subnetMatrix[rowIndex]) &&
+								subnetMatrix[rowIndex][colToMatrixCol[tnCols[zone]]] != nil {
 								rowIndex++
 							}
-							ly.setDefaultLocation(subnet, rowIndex, zonesCol[zone])
+							ly.setDefaultLocation(subnet, rowIndex, tnCols[zone])
 							rowIndex++
 						}
 					}
