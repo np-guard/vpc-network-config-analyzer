@@ -22,7 +22,7 @@ func TestGetRules(t *testing.T) {
 	require.Nilf(t, err, "err: %s", err)
 	vpcConfigs, err := VPCConfigsFromResources(rc, "", "", nil, false)
 	require.Nilf(t, err, "err: %s", err)
-	for _, config := range vpcConfigs {
+	for _, config := range vpcConfigs.Configs() {
 		for _, f := range config.FilterResources {
 			if naclLayer, ok := f.(*NaclLayer); ok {
 				for _, nacl := range naclLayer.naclList {

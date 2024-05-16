@@ -27,15 +27,14 @@ const (
 	ErrorFormat      = "%s %w"
 )
 
-func analysisVPCConfigs(c1, c2 vpcmodel.MultipleVPCConfigs, inArgs *subcmds.InArgs) (string, error) {
+func analysisVPCConfigs(cConfigs *vpcmodel.MultipleVPCConfigs, inArgs *InArgs) (string, error) {
 	var explanationArgs *vpcmodel.ExplanationArgs
 	if inArgs.AnalysisType == vpcmodel.Explain {
 		explanationArgs = vpcmodel.NewExplanationArgs(inArgs.ESrc, inArgs.EDst, string(inArgs.EProtocol),
 			inArgs.ESrcMinPort, inArgs.ESrcMaxPort, inArgs.EDstMinPort, inArgs.EDstMaxPort)
 	}
 
-	outFormat := inArgs.OutputFormat.ToModelFormat()
-	og, err := vpcmodel.NewOutputGenerator(c1, c2,
+	og, err := vpcmodel.NewOutputGenerator(cConfigs,
 		inArgs.Grouping,
 		inArgs.AnalysisType,
 		false,
@@ -79,7 +78,7 @@ func mergeResourcesContainers(rc1, rc2 *datamodel.ResourcesContainerModel) (*dat
 	return rc1, nil
 }
 
-func vpcConfigsFromFiles(fileNames []string, inArgs *subcmds.InArgs) (vpcmodel.MultipleVPCConfigs, error) {
+func vpcConfigsFromFiles(fileNames []string, inArgs *InArgs) (*vpcmodel.MultipleVPCConfigs, error) {
 	var mergedRC *datamodel.ResourcesContainerModel
 	for _, file := range fileNames {
 		rc, err1 := ibmvpc.ParseResourcesFromFile(file)
@@ -98,8 +97,8 @@ func vpcConfigsFromFiles(fileNames []string, inArgs *subcmds.InArgs) (vpcmodel.M
 	return vpcConfigs, nil
 }
 
-func vpcConfigsFromAccount(inArgs *subcmds.InArgs) (vpcmodel.MultipleVPCConfigs, error) {
-	rc := factory.GetResourceContainer(string(inArgs.Provider), inArgs.RegionList, inArgs.ResourceGroup)
+func vpcConfigsFromAccount(inArgs *InArgs) (*vpcmodel.MultipleVPCConfigs, error) {
+  rc := factory.GetResourceContainer(string(inArgs.Provider), inArgs.RegionList, inArgs.ResourceGroup)
 	// Collect resources from the provider API and generate output
 	err := rc.CollectResourcesFromAPI()
 	if err != nil {
@@ -169,33 +168,32 @@ func _main(cmdlineArgs []string) error {
 	// initializes a thread-safe singleton logger
 	logging.Init(getVerbosity(inArgs))
 
-	var vpcConfigs1 vpcmodel.MultipleVPCConfigs
+	var vpcConfigs *vpcmodel.MultipleVPCConfigs
 	if inArgs.Provider != "" {
-		vpcConfigs1, err = vpcConfigsFromAccount(inArgs)
+		vpcConfigs, err = vpcConfigsFromAccount(inArgs)
 		if err != nil {
 			return err
 		}
 	} else {
-		vpcConfigs1, err = vpcConfigsFromFiles(inArgs.InputConfigFileList, inArgs)
+		vpcConfigs, err = vpcConfigsFromFiles(inArgs.InputConfigFileList, inArgs)
 		if err != nil {
 			return err
 		}
 	}
 
-	var vpcConfigs2 vpcmodel.MultipleVPCConfigs
 	if inArgs.InputSecondConfigFile != "" {
-		vpcConfigs2, err = vpcConfigsFromFiles([]string{inArgs.InputSecondConfigFile}, inArgs)
+		vpcConfigsToCompare, err := vpcConfigsFromFiles([]string{*inArgs.InputSecondConfigFile}, inArgs)
 		if err != nil {
 			return err
 		}
 		// we are in diff mode, checking we have only one config per file:
-		if len(vpcConfigs1) != 1 || len(vpcConfigs2) != 1 {
+		if len(vpcConfigs.Configs()) != 1 || len(vpcConfigsToCompare.Configs()) != 1 {
 			return fmt.Errorf("for diff mode %v a single configuration should be provided "+
 				"for both -vpc-config and -vpc-config-second", inArgs.AnalysisType)
 		}
+		vpcConfigs.SetConfigsToCompare(vpcConfigsToCompare.Configs())
 	}
-
-	vpcAnalysisOutput, err := analysisVPCConfigs(vpcConfigs1, vpcConfigs2, inArgs)
+	vpcAnalysisOutput, err := analysisVPCConfigs(vpcConfigs, inArgs)
 	if err != nil {
 		return err
 	}

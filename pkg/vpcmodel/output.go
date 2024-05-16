@@ -13,13 +13,9 @@ import (
 	"slices"
 	"sort"
 	"strings"
-
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 type OutFormat int64
-
-type MultipleVPCConfigs map[string]*VPCConfig
 
 const asteriskDetails = "\nconnections are stateful (on TCP) unless marked with *\n"
 
@@ -58,8 +54,7 @@ const (
 // OutputGenerator captures one vpc config1 with its connectivity analysis results, and implements
 // the functionality to generate the analysis output in various formats, for that vpc
 type OutputGenerator struct {
-	config1        MultipleVPCConfigs
-	config2        MultipleVPCConfigs // specified only when analysis is diff
+	configs        *MultipleVPCConfigs
 	outputGrouping bool
 	lbAbstraction  bool
 	useCase        OutputUseCase
@@ -69,15 +64,14 @@ type OutputGenerator struct {
 	explanation    *Explanation
 }
 
-func NewOutputGenerator(c1, c2 MultipleVPCConfigs, grouping bool, uc OutputUseCase,
+func NewOutputGenerator(cConfigs *MultipleVPCConfigs, grouping bool, uc OutputUseCase,
 	archOnly bool, explanationArgs *ExplanationArgs, f OutFormat) (*OutputGenerator, error) {
 	// todo -  for now, we always abstract lb.
 	// 1. should it be a user input?
 	// 2. if not abstracting, make sure we do present only the original private IP
 	lbAbstraction := true
 	res := &OutputGenerator{
-		config1:        c1,
-		config2:        c2,
+		configs:        cConfigs,
 		outputGrouping: grouping,
 		lbAbstraction:  lbAbstraction,
 		useCase:        uc,
@@ -89,29 +83,29 @@ func NewOutputGenerator(c1, c2 MultipleVPCConfigs, grouping bool, uc OutputUseCa
 	if !archOnlyFormat {
 		if uc == Explain {
 			connQuery := explanationArgs.GetConnectionSet()
-			explanation, err := c1.ExplainConnectivity(explanationArgs.src, explanationArgs.dst, connQuery)
+			explanation, err := cConfigs.ExplainConnectivity(explanationArgs.src, explanationArgs.dst, connQuery)
 			if err != nil {
 				return nil, err
 			}
 			res.explanation = explanation
 		}
-		for i := range c1 {
+		for i, vpcConfig := range cConfigs.Configs() {
 			if uc == AllEndpoints {
-				nodesConn, err := c1[i].GetVPCNetworkConnectivity(grouping, res.lbAbstraction)
+				nodesConn, err := vpcConfig.GetVPCNetworkConnectivity(grouping, res.lbAbstraction)
 				if err != nil {
 					return nil, err
 				}
 				res.nodesConn[i] = nodesConn
 			}
 			if uc == AllSubnets {
-				subnetsConn, err := c1[i].GetSubnetsConnectivity(true, grouping)
+				subnetsConn, err := vpcConfig.GetSubnetsConnectivity(true, grouping)
 				if err != nil {
 					return nil, err
 				}
 				res.subnetsConn[i] = subnetsConn
 			}
 			if uc == SubnetsDiff {
-				configsForDiff := &configsForDiff{c1[i], c2[i], Subnets}
+				configsForDiff := &configsForDiff{vpcConfig, cConfigs.ConfigToCompare(i), Subnets}
 				configsDiff, err := configsForDiff.GetDiff()
 				if err != nil {
 					return nil, err
@@ -119,7 +113,7 @@ func NewOutputGenerator(c1, c2 MultipleVPCConfigs, grouping bool, uc OutputUseCa
 				res.cfgsDiff = configsDiff
 			}
 			if uc == EndpointsDiff {
-				configsForDiff := &configsForDiff{c1[i], c2[i], Vsis}
+				configsForDiff := &configsForDiff{vpcConfig, cConfigs.ConfigToCompare(i), Vsis}
 				configsDiff, err := configsForDiff.GetDiff()
 				if err != nil {
 					return nil, err
@@ -130,7 +124,7 @@ func NewOutputGenerator(c1, c2 MultipleVPCConfigs, grouping bool, uc OutputUseCa
 	}
 	// only Graphic formats has a multi vpc common presentation
 	if graphicFormat {
-		unifyMultiVPC(c1, res.nodesConn, res.subnetsConn, uc)
+		unifyMultiVPC(cConfigs, res.nodesConn, res.subnetsConn, uc)
 	}
 	return res, nil
 }
@@ -160,7 +154,7 @@ func (o *OutputGenerator) Generate(f OutFormat, outFile string) (string, error) 
 	default:
 		return "", errors.New("unsupported output format")
 	}
-	return formatter.WriteOutput(o.config1, o.config2, o.nodesConn, o.subnetsConn, o.cfgsDiff,
+	return formatter.WriteOutput(o.configs, o.nodesConn, o.subnetsConn, o.cfgsDiff,
 		outFile, o.outputGrouping, o.useCase, o.explanation)
 }
 
@@ -175,7 +169,7 @@ type SingleVpcOutputFormatter interface {
 // OutputFormatter is an interface for formatter that handle multi vpcs.
 // implemented by serialOutputFormatter and drawioOutputFormatter
 type OutputFormatter interface {
-	WriteOutput(c1, c2 MultipleVPCConfigs, conn map[string]*VPCConnectivity,
+	WriteOutput(cConfigs *MultipleVPCConfigs, conn map[string]*VPCConnectivity,
 		subnetsConn map[string]*VPCsubnetConnectivity, subnetsDiff *diffBetweenCfgs,
 		outFile string, grouping bool, uc OutputUseCase, explainStruct *Explanation) (string, error)
 }
@@ -203,16 +197,16 @@ func (of *serialOutputFormatter) createSingleVpcFormatter() SingleVpcOutputForma
 	return nil
 }
 
-func (of *serialOutputFormatter) WriteOutput(c1, c2 MultipleVPCConfigs, conns map[string]*VPCConnectivity,
+func (of *serialOutputFormatter) WriteOutput(cConfigs *MultipleVPCConfigs, conns map[string]*VPCConnectivity,
 	subnetsConns map[string]*VPCsubnetConnectivity, subnetsDiff *diffBetweenCfgs,
 	outFile string, grouping bool, uc OutputUseCase, explainStruct *Explanation) (string, error) {
 	singleVPCAnalysis := uc == EndpointsDiff || uc == SubnetsDiff || uc == Explain
 	if !singleVPCAnalysis {
-		outputPerVPC := make([]*SingleAnalysisOutput, len(c1))
+		outputPerVPC := make([]*SingleAnalysisOutput, len(cConfigs.Configs()))
 		i := 0
-		for name := range c1 {
+		for uid, vpcConfig := range cConfigs.Configs() {
 			vpcAnalysisOutput, err2 :=
-				of.createSingleVpcFormatter().WriteOutput(c1[name], nil, conns[name], subnetsConns[name],
+				of.createSingleVpcFormatter().WriteOutput(vpcConfig, nil, conns[uid], subnetsConns[uid],
 					subnetsDiff, "", grouping, uc, explainStruct)
 			if err2 != nil {
 				return "", err2
@@ -222,15 +216,17 @@ func (of *serialOutputFormatter) WriteOutput(c1, c2 MultipleVPCConfigs, conns ma
 		}
 		return of.AggregateVPCsOutput(outputPerVPC, uc, outFile)
 	}
-	// its diff or explain mode, we have only one vpc on each map:
-	name, _ := common.AnyMapEntry(c1)
-	vpcAnalysisOutput, err2 :=
-		of.createSingleVpcFormatter().WriteOutput(c1[name], c2[name], conns[name], subnetsConns[name],
-			subnetsDiff, "", grouping, uc, explainStruct)
-	if err2 != nil {
-		return "", err2
+	for uid, vpcConfig := range cConfigs.Configs() {
+		vpcAnalysisOutput, err2 :=
+			of.createSingleVpcFormatter().WriteOutput(vpcConfig, cConfigs.ConfigToCompare(uid), conns[uid], subnetsConns[uid],
+				subnetsDiff, "", grouping, uc, explainStruct)
+		if err2 != nil {
+			return "", err2
+		}
+		// its diff or explain mode, we have only one vpc on each map:
+		return of.WriteDiffOrExplainOutput(vpcAnalysisOutput, uc, outFile)
 	}
-	return of.WriteDiffOrExplainOutput(vpcAnalysisOutput, uc, outFile)
+	return "", nil
 }
 
 func WriteToFile(content, fileName string) (string, error) {
