@@ -27,130 +27,126 @@ func TestMain(t *testing.T) {
 	}{
 		{
 			name: "drawio_multi_vpc_all_subnets",
-			args: "-output-file multi_vpc.drawio -vpc-config ../../pkg/ibmvpc/examples/input/input_multiple_vpcs.json -format drawio -analysis-type all_subnets",
+			args: "report subnets --output-file multi_vpc.drawio --vpc-config ../../pkg/ibmvpc/examples/input/input_multiple_vpcs.json -o drawio",
 		},
 		{
 			name: "drawio_multi_vpc_all_subnets_grouped",
-			args: "-output-file multi_vpc_grouped.drawio -vpc-config ../../pkg/ibmvpc/examples/input/input_multiple_vpcs.json -format drawio -analysis-type all_subnets -grouping",
+			args: "report subnets --output-file multi_vpc_grouped.drawio -c ../../pkg/ibmvpc/examples/input/input_multiple_vpcs.json -o=drawio --grouping",
 		},
 		{
 			name: "txt_multi_vpc",
-			args: "-output-file multi_vpc.txt -vpc-config ../../pkg/ibmvpc/examples/input/input_multiple_vpcs.json -format txt -analysis-type all_subnets",
+			args: "report subnets --output-file multi_vpc.txt --vpc-config ../../pkg/ibmvpc/examples/input/input_multiple_vpcs.json -otxt",
 		},
-		/*{
-			name: "json_diff_acl_testing5",
-			args: "-output-file acl_testing5_diff.json -vpc-config ../../pkg/ibmvpc/examples/input/input_acl_testing5.json -vpc-config-second ../../pkg/ibmvpc/examples/input_acl_testing5_2nd.json -format json -analysis-type diff_all_subnets",
-		},*/
 
 		// diff analysis_type
 		{
 			name: "txt_diff_acl_testing5",
-			args: "-output-file acl_testing5_diff.txt -vpc-config ../../pkg/ibmvpc/examples/input/input_acl_testing5.json -vpc-config-second ../../pkg/ibmvpc/examples/input/input_acl_testing5_2nd.json -format txt -analysis-type diff_all_subnets",
+			args: "diff subnets --output-file acl_testing5_diff.txt -c ../../pkg/ibmvpc/examples/input/input_acl_testing5.json --vpc-config-second ../../pkg/ibmvpc/examples/input/input_acl_testing5_2nd.json --format txt",
 		},
 		{
 			name: "txt_diff_acl_testing3",
-			args: "-output-file acl_testing3_diff.txt -vpc-config ../../pkg/ibmvpc/examples/input/input_acl_testing3.json -vpc-config-second ../../pkg/ibmvpc/examples/input/input_acl_testing3_2nd.json -format txt -analysis-type diff_all_endpoints",
+			args: "diff endpoints --output-file acl_testing3_diff.txt --vpc-config ../../pkg/ibmvpc/examples/input/input_acl_testing3.json --vpc-config-second ../../pkg/ibmvpc/examples/input/input_acl_testing3_2nd.json --format txt",
 		},
 		{
 			name: "md_diff_acl_testing5",
-			args: "-output-file acl_testing5_diff.md -vpc-config ../../pkg/ibmvpc/examples/input/input_acl_testing5.json -vpc-config-second ../../pkg/ibmvpc/examples/input/input_acl_testing5_2nd.json -format md -analysis-type diff_all_subnets",
+			args: "diff subnets --output-file acl_testing5_diff.md --vpc-config ../../pkg/ibmvpc/examples/input/input_acl_testing5.json --vpc-config-second ../../pkg/ibmvpc/examples/input/input_acl_testing5_2nd.json --format md",
 		},
 		{
 			name: "md_diff_acl_testing3",
-			args: "-output-file acl_testing3_diff.md -vpc-config ../../pkg/ibmvpc/examples/input/input_acl_testing3.json -vpc-config-second ../../pkg/ibmvpc/examples/input/input_acl_testing3_2nd.json -format md -analysis-type diff_all_endpoints",
+			args: "diff endpoints --output-file acl_testing3_diff.md --vpc-config ../../pkg/ibmvpc/examples/input/input_acl_testing3.json --vpc-config-second ../../pkg/ibmvpc/examples/input/input_acl_testing3_2nd.json --format md",
 		},
 
 		// all_subnets analysis_type
 		{
 			name: "txt_all_subnets_342",
-			args: "-output-file 342_all_subnets.txt -vpc-config ../../pkg/ibmvpc/examples/input/input_obj_from_issue_342.json -format txt -analysis-type all_subnets",
+			args: "report subnets --output-file 342_all_subnets.txt -c ../../pkg/ibmvpc/examples/input/input_obj_from_issue_342.json --format txt",
 		},
 		{
 			name: "txt_all_subnets_acl_testing5",
-			args: "-output-file acl_testing5_all_subnets.txt -vpc-config ../../pkg/ibmvpc/examples/input/input_acl_testing5.json -format txt -analysis-type all_subnets",
+			args: "report subnets --output-file acl_testing5_all_subnets.txt -c ../../pkg/ibmvpc/examples/input/input_acl_testing5.json --format txt",
 		},
 		{
 			name: "md_all_subnets_acl_testing5",
-			args: "-output-file acl_testing5_all_subnets.md -vpc-config ../../pkg/ibmvpc/examples/input/input_acl_testing5.json -format md -analysis-type all_subnets",
+			args: "report subnets --output-file acl_testing5_all_subnets.md -c ../../pkg/ibmvpc/examples/input/input_acl_testing5.json --format md",
 		},
 		{
 			name: "json_all_subnets_acl_testing5",
-			args: "-output-file acl_testing5_all_subnets.json -vpc-config ../../pkg/ibmvpc/examples/input/input_acl_testing5.json -format json -analysis-type all_subnets",
+			args: "report subnets --output-file acl_testing5_all_subnets.json -c ../../pkg/ibmvpc/examples/input/input_acl_testing5.json --format json",
 		},
 
 		// all_endpoints analysis_type
 		{
 			name: "txt_all_endpoints_acl_testing5",
-			args: "-output-file acl_testing5_all_endpoints.txt -vpc-config ../../pkg/ibmvpc/examples/input/input_acl_testing5.json -format txt -analysis-type all_endpoints",
+			args: "report endpoints --output-file acl_testing5_all_endpoints.txt -c ../../pkg/ibmvpc/examples/input/input_acl_testing5.json --format txt",
 		},
 		{
 			name: "md_all_endpoints_acl_testing5",
-			args: "-output-file acl_testing5_all_endpoints.md -vpc-config ../../pkg/ibmvpc/examples/input/input_acl_testing5.json -format md -analysis-type all_endpoints",
+			args: "report endpoints --output-file acl_testing5_all_endpoints.md -c ../../pkg/ibmvpc/examples/input/input_acl_testing5.json --format md",
 		},
 		{
 			name: "json_all_endpoints_acl_testing5",
-			args: "-output-file acl_testing5_all_endpoints.json -vpc-config ../../pkg/ibmvpc/examples/input/input_acl_testing5.json -format json -analysis-type all_endpoints",
+			args: "report endpoints --output-file acl_testing5_all_endpoints.json -c ../../pkg/ibmvpc/examples/input/input_acl_testing5.json --format json",
 		},
 		{
 			name: "debug_all_endpoints_acl_testing5",
-			args: "-output-file acl_testing5_all_endpoints.txt -vpc-config ../../pkg/ibmvpc/examples/input/input_acl_testing5.json -format debug -analysis-type all_endpoints",
+			args: "report endpoints --output-file acl_testing5_all_endpoints.txt -c ../../pkg/ibmvpc/examples/input/input_acl_testing5.json --format debug",
 		},
 
 		// single_subnet analysis_type
 		{
 			name: "txt_single_subnet_acl_testing5",
-			args: "-output-file acl_testing5_single_subnet.txt -vpc-config ../../pkg/ibmvpc/examples/input/input_acl_testing5.json -format txt -analysis-type single_subnet",
+			args: "report single-subnet --output-file acl_testing5_single_subnet.txt -c ../../pkg/ibmvpc/examples/input/input_acl_testing5.json --format txt",
 		},
 
 		// explain_mode analysis_type
 		{
 			name: "txt_explain_acl_testing3",
-			args: "-output-file acl_testing3_explain.txt -vpc-config ../../pkg/ibmvpc/examples/input/input_acl_testing3.json -format txt -analysis-type explain -src 10.240.10.4 -dst vsi2-ky",
+			args: "explain --output-file acl_testing3_explain.txt -c ../../pkg/ibmvpc/examples/input/input_acl_testing3.json --format txt --src 10.240.10.4 --dst vsi2-ky",
 		},
 		{
 			name: "debug_explain_acl_testing3",
-			args: "-output-file acl_testing3_explain_debug.txt -vpc-config ../../pkg/ibmvpc/examples/input/input_acl_testing3.json -format txt -analysis-type explain -src vsi2-ky -dst 10.240.10.4",
+			args: "explain --output-file acl_testing3_explain_debug.txt -c ../../pkg/ibmvpc/examples/input/input_acl_testing3.json --format txt --src vsi2-ky --dst 10.240.10.4",
 		},
 		{
 			name: "txt_explain_acl_testing3_3rd",
-			args: "-output-file acl_testing3_3rd_explain.txt -vpc-config ../../pkg/ibmvpc/examples/input/input_acl_testing3_3rd.json -format txt -analysis-type explain -src vsi1-ky -dst 161.26.0.0/16 -protocol tcp -src-min-port 5 -src-max-port 4398",
+			args: "explain --output-file acl_testing3_3rd_explain.txt -c ../../pkg/ibmvpc/examples/input/input_acl_testing3_3rd.json --format txt --src vsi1-ky --dst 161.26.0.0/16 --protocol tcp --src-min-port 5 --src-max-port 4398",
 		},
 
 		// specific vpc
 		{
 			name: "txt_specific_vpc_acl_testing3_with_two_vpcs",
-			args: "-output-file specific_vpc_acl_testing3_with_two_vpcs.txt -vpc-config ../../pkg/ibmvpc/examples/input/input_acl_testing3_with_two_vpcs.json -format txt -vpc crn:12",
+			args: "report endpoints --output-file specific_vpc_acl_testing3_with_two_vpcs.txt -c ../../pkg/ibmvpc/examples/input/input_acl_testing3_with_two_vpcs.json --format txt --vpc crn:12",
 		},
 
 		// version
 		{
 			name: "version",
-			args: "-output-file version.txt -version",
+			args: "--output-file version.txt --version",
 		},
 
 		// read from account // need to export api-key first
 		/*{
 			name: "read_from_account_mode",
-			args: "-output-file account.txt -provider ibm -resource-group ola",
+			args: "report endpoints --output-file account.txt --provider ibm --resource-group ola",
 		},
 		{
 			name: "read_from_account_mode_dump_resources",
-			args: "-output-file account.txt -provider ibm -dump-resources account_resources_file.json",
+			args: "report endpoints --output-file account.txt --provider ibm --dump-resources account_resources_file.json",
 		},*/
 
 		// resource group and region filter
 		{
 			name: "txt_resource_group_filter_multi_resource_groups",
-			args: "-output-file multi_resource_groups_resource_group_filter.txt -vpc-config ../../pkg/ibmvpc/examples/input/input_multi_resource_groups.json -format txt -resource-group ola",
+			args: "report endpoints --output-file multi_resource_groups_resource_group_filter.txt -c ../../pkg/ibmvpc/examples/input/input_multi_resource_groups.json --format txt --resource-group ola",
 		},
 		{
 			name: "txt_region_filter_multi_regions",
-			args: "-output-file multi_regions_region_filter.txt -vpc-config ../../pkg/ibmvpc/examples/input/input_multi_regions.json -format txt -region us-east",
+			args: "report endpoints --output-file multi_regions_region_filter.txt -c ../../pkg/ibmvpc/examples/input/input_multi_regions.json --format txt --region us-east",
 		},
 		// multi vpc configs input
 		{
 			name: "multi_vpc_configs",
-			args: "-output-file multi_vpc_configs.txt -vpc-config ../../pkg/ibmvpc/examples/input/input_acl_testing3.json -vpc-config ../../pkg/ibmvpc/examples/input/input_sg_testing_3.json",
+			args: "report endpoints --output-file multi_vpc_configs.txt -c ../../pkg/ibmvpc/examples/input/input_acl_testing3.json -c ../../pkg/ibmvpc/examples/input/input_sg_testing_3.json",
 		},
 	}
 	for _, tt := range tests {
@@ -172,7 +168,7 @@ func TestMainWithExpectedOut(t *testing.T) {
 		// multi vpc configs input
 		{
 			name:    "multi_vpc_configs",
-			args:    "-output-file multi_vpc_configs.txt -vpc-config ../../pkg/ibmvpc/examples/input/input_acl_testing3.json -vpc-config ../../pkg/ibmvpc/examples/input/input_sg_testing_3.json",
+			args:    "report endpoints --output-file multi_vpc_configs.txt --vpc-config ../../pkg/ibmvpc/examples/input/input_acl_testing3.json --vpc-config ../../pkg/ibmvpc/examples/input/input_sg_testing_3.json",
 			outFile: "multi_vpc_configs.txt",
 		},
 	}
@@ -227,33 +223,33 @@ func TestCommandsFailExecute(t *testing.T) {
 	}{
 		{
 			name:                  "bad_flag_syntax",
-			args:                  []string{"-output-file", "out.txt", "vpc-config", "../../pkg/ibmvpc/examples/input/input_multi_resource_groups.json"},
-			expectedErrorContains: "bad flag syntax",
+			args:                  []string{"report", "endpoints", "--output-file", "out.txt", "vpc-config", "../../pkg/ibmvpc/examples/input/input_multi_resource_groups.json"},
+			expectedErrorContains: "unknown command",
 		},
 		{
 			name:                  "missing_arg_flag",
-			args:                  []string{"-output-file", "out.txt", "-vpc-config"},
+			args:                  []string{"report", "endpoints", "--output-file", "out.txt", "--vpc-config"},
 			expectedErrorContains: "flag needs an argument",
 		},
 		{
 			name:                  "vpc_config_or_provider_not_specified",
-			args:                  []string{"-output-file", "out.txt"},
-			expectedErrorContains: "vpc-config flag or provider flag must be specified",
+			args:                  []string{"report", "endpoints", "--output-file", "out.txt"},
+			expectedErrorContains: "at least one of the flags in the group",
 		},
 		{
 			name:                  "wrong_analysis_type_format",
-			args:                  []string{"-vpc-config", "../../pkg/ibmvpc/examples/input/input_multi_resource_groups.json", "-analysis-type", "single_subnet", "-format", "md"},
-			expectedErrorContains: "wrong output format 'md' for analysis type 'single_subnet';",
+			args:                  []string{"report", "single-subnet", "--vpc-config", "../../pkg/ibmvpc/examples/input/input_multi_resource_groups.json", "--format", "md"},
+			expectedErrorContains: "output format for single-subnet must be one of [txt]",
 		},
 		{
 			name:                  "src_and_dst_not_specified_for_explain_mode",
-			args:                  []string{"-vpc-config", "../../pkg/ibmvpc/examples/input/input_multi_resource_groups.json", "-analysis-type", "explain"},
-			expectedErrorContains: "please specify src and dst network_interface / external ip you want to explain connectivity for",
+			args:                  []string{"explain", "--vpc-config", "../../pkg/ibmvpc/examples/input/input_multi_resource_groups.json"},
+			expectedErrorContains: "required flag(s) \"src\", \"dst\" not set",
 		},
 		{
 			name:                  "missing_sec_vpc_config_for_diff_analysis",
-			args:                  []string{"-vpc-config", "../../pkg/ibmvpc/examples/input/input_multi_resource_groups.json", "-analysis-type", "diff_all_endpoints"},
-			expectedErrorContains: "missing parameter vpc-config-second for diff analysis",
+			args:                  []string{"diff", "subnets", "--vpc-config", "../../pkg/ibmvpc/examples/input/input_multi_resource_groups.json"},
+			expectedErrorContains: "required flag(s) \"vpc-config-second\" not set",
 		},
 	}
 	for _, tt := range tests {
