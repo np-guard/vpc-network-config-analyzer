@@ -40,15 +40,10 @@ func TestWithParsing(t *testing.T) {
 	createFileFromNetwork(n, "subnetGroupingOverlapping.drawio", true, FileDRAWIO)
 	n = createNetworkSubnetGroupingGroupInGroup()
 	createFileFromNetwork(n, "subnetGroupingGroupInGroup.drawio", true, FileHTML)
-	n2 := NewNetworkTreeNode()
-	cloud := NewCloudTreeNode(n2, "Cloud")
-	NewPublicNetworkTreeNode(n2)
-	NewCloudTreeNode(n2, "empty cloud2")
-	region := NewRegionTreeNode(cloud, "north")
-	vpc1 := NewVpcTreeNode(region, "vpc1")
-	z := NewZoneTreeNode(vpc1, "zone1")
-	NewSubnetTreeNode(z, "sub1", "cidr", "acl1")
-	createFileFromNetwork(n2, "fake3.drawio", false, FileDRAWIO)
+	n= createEmptyNetwork()
+	createFileFromNetwork(n, "empty.drawio", false, FileDRAWIO)
+	n= createEmptyNetwork()
+	createFileFromNetwork(n, "emptySubnets.drawio", true, FileDRAWIO)
 
 	n = createNetworkAllTypes()
 	createFileFromNetwork(n, "all.drawio", false, FileDRAWIO)
@@ -750,5 +745,17 @@ func createNetworkTgw() SquareTreeNodeInterface {
 	NewConnectivityLineTreeNode(network, nis[9], nis[10], true, "").SetRouter(tgw3)
 	NewConnectivityLineTreeNode(network, nis[9], nis[10], true, "").SetRouter(tgw4)
 
+	return network
+}
+
+func createEmptyNetwork() SquareTreeNodeInterface {
+	network := NewNetworkTreeNode()
+	cloud := NewCloudTreeNode(network, "Cloud")
+	NewPublicNetworkTreeNode(network)
+	NewCloudTreeNode(network, "empty cloud2")
+	region := NewRegionTreeNode(cloud, "north")
+	vpc1 := NewVpcTreeNode(region, "vpc1")
+	z := NewZoneTreeNode(vpc1, "zone1")
+	NewSubnetTreeNode(z, "sub1", "cidr", "acl1")
 	return network
 }
