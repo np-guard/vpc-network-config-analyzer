@@ -130,7 +130,7 @@ func (d *DrawioOutputFormatter) createFilters() {
 }
 
 func (d *DrawioOutputFormatter) createRouters() {
-	for vpcResourceName, vpcConfig := range d.cConfigs.Configs() {
+	for vpcResourceID, vpcConfig := range d.cConfigs.Configs() {
 		for _, r := range vpcConfig.RoutingResources {
 			if d.showResource(r) {
 				rTn := d.gen.TreeNode(r)
@@ -138,7 +138,7 @@ func (d *DrawioOutputFormatter) createRouters() {
 					continue
 				}
 				if vpcConfig.IsMultipleVPCsConfig {
-					d.multiVpcRouters[vpcResourceName] = rTn.(drawio.IconTreeNodeInterface)
+					d.multiVpcRouters[vpcResourceID] = rTn.(drawio.IconTreeNodeInterface)
 				} else {
 					for _, ni := range r.Sources() {
 						if d.showResource(ni) {
@@ -151,9 +151,9 @@ func (d *DrawioOutputFormatter) createRouters() {
 	}
 }
 
-func (d *DrawioOutputFormatter) lineRouter(line *groupedConnLine, vpcResourceName string) drawio.IconTreeNodeInterface {
-	if d.cConfigs.Config(vpcResourceName).IsMultipleVPCsConfig {
-		return d.multiVpcRouters[vpcResourceName]
+func (d *DrawioOutputFormatter) lineRouter(line *groupedConnLine, vpcResourceID string) drawio.IconTreeNodeInterface {
+	if d.cConfigs.Config(vpcResourceID).IsMultipleVPCsConfig {
+		return d.multiVpcRouters[vpcResourceID]
 	}
 	var routeredEP EndpointElem
 	switch {
@@ -184,11 +184,11 @@ func (d *DrawioOutputFormatter) createEdges() {
 		label  string
 	}
 	isEdgeDirected := map[edgeKey]bool{}
-	for vpcResourceName, vpcConn := range d.gConns {
+	for vpcResourceID, vpcConn := range d.gConns {
 		for _, line := range vpcConn.GroupedLines {
 			src := line.src
 			dst := line.dst
-			router := d.lineRouter(line, vpcResourceName)
+			router := d.lineRouter(line, vpcResourceID)
 			e := edgeKey{src, dst, router, line.ConnLabel()}
 			revE := edgeKey{dst, src, router, line.ConnLabel()}
 			_, revExist := isEdgeDirected[revE]
@@ -260,17 +260,17 @@ func (d *DrawioOutputFormatter) WriteOutput(cConfigs *MultipleVPCConfigs,
 	switch uc {
 	case AllEndpoints:
 		gConn := map[string]*GroupConnLines{}
-		for name, vpcConn := range conn {
-			gConn[name] = vpcConn.GroupedConnectivity
+		for id, vpcConn := range conn {
+			gConn[id] = vpcConn.GroupedConnectivity
 		}
 		d.init(cConfigs, conn, gConn, uc)
 	case AllSubnets:
 		gConfigs := NewMultipleVPCConfigs(cConfigs.CloudName())
 		gConn := map[string]*GroupConnLines{}
 		if subnetsConn != nil {
-			for name, vpcConn := range subnetsConn {
-				gConn[name] = vpcConn.GroupedConnectivity
-				gConfigs.SetConfig(name, vpcConn.VPCConfig)
+			for id, vpcConn := range subnetsConn {
+				gConn[id] = vpcConn.GroupedConnectivity
+				gConfigs.SetConfig(id, vpcConn.VPCConfig)
 			}
 		} else {
 			gConfigs = cConfigs

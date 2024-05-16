@@ -203,9 +203,9 @@ func (of *serialOutputFormatter) WriteOutput(cConfigs *MultipleVPCConfigs, conns
 	if !singleVPCAnalysis {
 		outputPerVPC := make([]*SingleAnalysisOutput, len(cConfigs.Configs()))
 		i := 0
-		for name, vpcConfig := range cConfigs.Configs() {
+		for uid, vpcConfig := range cConfigs.Configs() {
 			vpcAnalysisOutput, err2 :=
-				of.createSingleVpcFormatter().WriteOutput(vpcConfig, nil, conns[name], subnetsConns[name],
+				of.createSingleVpcFormatter().WriteOutput(vpcConfig, nil, conns[uid], subnetsConns[uid],
 					subnetsDiff, "", grouping, uc, explainStruct)
 			if err2 != nil {
 				return "", err2
@@ -215,9 +215,9 @@ func (of *serialOutputFormatter) WriteOutput(cConfigs *MultipleVPCConfigs, conns
 		}
 		return of.AggregateVPCsOutput(outputPerVPC, uc, outFile)
 	}
-	for name, vpcConfig := range cConfigs.Configs() {
+	for uid, vpcConfig := range cConfigs.Configs() {
 		vpcAnalysisOutput, err2 :=
-			of.createSingleVpcFormatter().WriteOutput(vpcConfig, cConfigs.ConfigToCompare(name), conns[name], subnetsConns[name],
+			of.createSingleVpcFormatter().WriteOutput(vpcConfig, cConfigs.ConfigToCompare(uid), conns[uid], subnetsConns[uid],
 				subnetsDiff, "", grouping, uc, explainStruct)
 		if err2 != nil {
 			return "", err2
