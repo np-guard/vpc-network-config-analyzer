@@ -11,7 +11,7 @@ Examples for enabling resources:  public-gateway, security group, and network AC
 
 If the required connection is blocked, then details of the blocking resources is provided. For example, a missing Floating-IP may block traffic to public Internet, a Network ACL rule may block specific ingress/egress traffic.
 
-In output format is set to `debug`, the list of the relevant (allow/deny) rules is also provided.
+Setting the output format to `debug`, adds a section with a list of all relevant allow/deny rules.
 
 ```
 vpcanalyzer explain [flags]
