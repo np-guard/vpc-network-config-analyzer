@@ -2,13 +2,15 @@
 Diff connectivity postures as implied by two VPC configs
 
 ### Synopsis
-List changes in connectivity (modified, added and removed connections) between two VPC configurations. Each output line describes a difference between the configurations and contains the following fields.
+List changes in connectivity (modified, added and removed connections) between two VPC configurations. The first configuration is specified using the `--vpc-config` option, or alternatively using the `--provider` option. The second configuration is specified using the `--vpc-config-second` option.
+
+Each output line describes a difference between the configurations and contains the following fields.
 * `diff-type` - whether the described connection was added, removed, or changed from the first config to the second.
 * `src` and `dst` - connection source and connection destination. These may be either network interfaces or subnets, depending on the subcommand (see below).
 * `config1` and `config2` - the allowed connections in the 1st and 2nd configuration, respectively. `no connection` is a possible value in either field.
 * `diff-info` - whether `src` or `dst` were added or removed from the first config to the second.
 
-Run `vpcanalyzer report` with one of the following subcommands, affecting report granularity.
+Run `vpcanalyzer diff` with one of the following subcommands, affecting report granularity.
 * **`vpcanalyzer diff endpoints`** - diff connectivity in the level of VPC endpoints (network interfaces).
 * **`vpcanalyzer diff subnets`** - diff connectivity in the level of subnets.
 

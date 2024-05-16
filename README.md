@@ -34,8 +34,8 @@ Output format is set using the `--format` flag. The following formats are availa
 * `txt` - a human readable text output
 * `json` - a machine readable JSON output
 * `md` - markdown format
-* `drawio` - a [drawio](draw.io) diagram showing VPC elements and their connectivity
-* `arch_drawio` - a [drawio](draw.io) diagram showing VPC elements without their connectivity
+* `drawio` - a [drawio](http://draw.io) diagram showing VPC elements and their connectivity
+* `arch_drawio` - a [drawio](http://draw.io) diagram showing VPC elements without their connectivity
 * `svg` - an [SVG](https://en.wikipedia.org/wiki/SVG) diagram showing VPC elements and their connectivity
 * `arch_svg` - an [SVG](https://en.wikipedia.org/wiki/SVG) diagram showing VPC elements without their connectivity
 * `html` - an interactive html page showing a diagram of the VPC elements and their connectivity. Double clicking en element
