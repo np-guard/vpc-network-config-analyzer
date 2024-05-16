@@ -40,13 +40,15 @@ type DrawioOutputFormatter struct {
 	multiVpcRouters map[string]drawio.IconTreeNodeInterface
 	uc              OutputUseCase
 	outFormat       OutFormat
+	lbAbstraction   bool
 }
 
-func newDrawioOutputFormatter(outFormat OutFormat) *DrawioOutputFormatter {
+func newDrawioOutputFormatter(outFormat OutFormat, lbAbstraction bool) *DrawioOutputFormatter {
 	d := DrawioOutputFormatter{}
 	d.outFormat = outFormat
 	d.nodeRouters = map[drawio.TreeNodeInterface]drawio.IconTreeNodeInterface{}
 	d.multiVpcRouters = map[string]drawio.IconTreeNodeInterface{}
+	d.lbAbstraction = lbAbstraction
 	return &d
 }
 func (d *DrawioOutputFormatter) init(
@@ -58,7 +60,7 @@ func (d *DrawioOutputFormatter) init(
 	d.vpcConns = vpcConns
 	d.gConns = gConns
 	d.uc = uc
-	d.gen = NewDrawioGenerator(cConfigs.CloudName())
+	d.gen = NewDrawioGenerator(cConfigs.CloudName(), d.lbAbstraction)
 }
 
 func (d *DrawioOutputFormatter) createDrawioTree() {
@@ -132,6 +134,9 @@ func (d *DrawioOutputFormatter) createRouters() {
 		for _, r := range vpcConfig.RoutingResources {
 			if d.showResource(r) {
 				rTn := d.gen.TreeNode(r)
+				if rTn == nil {
+					continue
+				}
 				if vpcConfig.IsMultipleVPCsConfig {
 					d.multiVpcRouters[vpcResourceName] = rTn.(drawio.IconTreeNodeInterface)
 				} else {
@@ -213,7 +218,8 @@ func (d *DrawioOutputFormatter) createExplanations() []drawio.ExplanationEntry {
 	explanationsInput := CreateMultiExplanationsInput(d.cConfigs, d.vpcConns, d.gConns)
 	// remove all the entries that are not shown on the canvas:
 	explanationsInput = slices.DeleteFunc(explanationsInput, func(e explainInputEntry) bool {
-		return !d.showResource(e.src) || !d.showResource(e.dst)
+		return !d.showResource(e.src) || !d.showResource(e.dst) ||
+			d.gen.TreeNode(e.src) == nil || d.gen.TreeNode(e.dst) == nil
 	})
 
 	explanations := MultiExplain(explanationsInput, d.vpcConns)
@@ -290,8 +296,8 @@ type ArchDrawioOutputFormatter struct {
 	DrawioOutputFormatter
 }
 
-func newArchDrawioOutputFormatter(outFormat OutFormat) *ArchDrawioOutputFormatter {
-	return &ArchDrawioOutputFormatter{*newDrawioOutputFormatter(outFormat)}
+func newArchDrawioOutputFormatter(outFormat OutFormat, lbAbstraction bool) *ArchDrawioOutputFormatter {
+	return &ArchDrawioOutputFormatter{*newDrawioOutputFormatter(outFormat, lbAbstraction)}
 }
 func (d *ArchDrawioOutputFormatter) WriteOutput(cConfigs *MultipleVPCConfigs,
 	conn map[string]*VPCConnectivity,
