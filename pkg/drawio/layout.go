@@ -326,6 +326,10 @@ func (ly *layoutS) layoutSubnets() {
 	ly.setSubnetsLocations(sly.subnetMatrix, sly.zonesCol)
 }
 
+func (ly *layoutS) getSquaresCols(zonesCol map[TreeNodeInterface]int){
+	
+}
+
 func (ly *layoutS) setSubnetsLocations(subnetMatrix [][]TreeNodeInterface, zonesCol map[TreeNodeInterface]int) {
 	locatedSubnets := map[TreeNodeInterface]bool{}
 	for ri, row := range subnetMatrix {
