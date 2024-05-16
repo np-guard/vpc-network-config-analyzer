@@ -920,7 +920,7 @@ func (tgw *TransitGateway) StringDetailsOfRules(listRulesInTransitConns []vpcmod
 	return strings.Join(strRes, "\n") + "\n", nil
 }
 
-// given a transit connection and a list of relevant prefixes in the connections, prints the relevant prefixes details
+// given a transit connection and a list of the relevant prefix in the connections, prints the relevant prefix details
 func (tgw *TransitGateway) stringPrefixFiltersVerbose(transitConn *datamodel.TransitConnection,
 	prefixesInTransitConn vpcmodel.RulesInTable) ([]string, error) {
 	strRes := []string{}
@@ -937,7 +937,7 @@ func (tgw *TransitGateway) stringPrefixFiltersVerbose(transitConn *datamodel.Tra
 			action = "blocks"
 		}
 		thisPrefixStr = fmt.Sprintf("transit gateway %s %s connection via transit connection %s "+
-			"with the following prefixes\n\t%s\n", tgw.Name(), action, *transitConn.Name, tgwRouterFilterDetails)
+			"with the following prefix\n\t%s\n", tgw.Name(), action, *transitConn.Name, tgwRouterFilterDetails)
 		strRes = append(strRes, thisPrefixStr)
 	}
 	return strRes, nil
