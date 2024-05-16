@@ -26,6 +26,8 @@ func createFileFromNetwork(network SquareTreeNodeInterface, fileName string, sub
 func TestWithParsing(t *testing.T) {
 	n := createNetwork()
 	createFileFromNetwork(n, "fake.drawio", false, FileDRAWIO)
+	n = createNetworkSubnets()
+	createFileFromNetwork(n, "fakeSubnets.drawio", true, FileDRAWIO)
 	n = createNetwork2()
 	createFileFromNetwork(n, "fake2.drawio", false, FileDRAWIO)
 	n = createNetworkGrouping()
@@ -222,6 +224,49 @@ func createNetwork() SquareTreeNodeInterface {
 	NewConnectivityLineTreeNode(network, ni26, ni27, true, "c17")
 	NewConnectivityLineTreeNode(network, ni28, ni26, true, "c18")
 	NewConnectivityLineTreeNode(network, ni22, ni28, true, "c19")
+
+	return network
+}
+
+func createNetworkSubnets() SquareTreeNodeInterface {
+	network := NewNetworkTreeNode()
+	cloud := NewCloudTreeNode(network, "IBM Cloud")
+	publicNetwork := NewPublicNetworkTreeNode(network)
+	i1 := NewInternetTreeNode(publicNetwork, "i1")
+	i2 := NewInternetTreeNode(publicNetwork, "i2")
+	i3 := NewInternetTreeNode(publicNetwork, "i3")
+	i4 := NewUserTreeNode(publicNetwork, "i4")
+	region := NewRegionTreeNode(cloud, "north")
+	vpc1 := NewVpcTreeNode(region, "vpc1")
+	zone11 := NewZoneTreeNode(vpc1, "zone1")
+
+	subnet111 := NewSubnetTreeNode(zone11, "subnet111", "ip", "key")
+
+	zone12 := NewZoneTreeNode(vpc1, "zone12")
+	subnet112 := NewSubnetTreeNode(zone11, "subnet112", "ip", "key")
+	subnet121 := NewSubnetTreeNode(zone12, "subnet121", "ip", "key")
+	region2 := NewRegionTreeNode(cloud, "south")
+	vpc2 := NewVpcTreeNode(region2, "vpc2")
+	zone21 := NewZoneTreeNode(vpc2, "zone21")
+	subnet211 := NewSubnetTreeNode(zone21, "subnet211", "ip", "key")
+
+	zone22 := NewZoneTreeNode(vpc2, "zone22")
+	zone23 := NewZoneTreeNode(vpc2, "zone23")
+	subnet221 := NewSubnetTreeNode(zone22, "subnet221", "ip", "key")
+	NewSubnetTreeNode(zone22, "empty subnet", "ip", "key")
+	subnet222 := NewSubnetTreeNode(zone22, "subnet222", "ip", "key")
+	subnet231 := NewSubnetTreeNode(zone23, "subnet231", "ip", "key")
+
+	is2 := NewInternetServiceTreeNode(vpc2, "is2")
+
+	NewConnectivityLineTreeNode(network, subnet111, is2, true, "c10")
+	NewConnectivityLineTreeNode(network, subnet112, i1, true, "c11")
+	NewConnectivityLineTreeNode(network, subnet121, i1, true, "c11")
+	NewConnectivityLineTreeNode(network, subnet211, i2, true, "c11")
+	NewConnectivityLineTreeNode(network, subnet221, i3, true, "c11")
+	NewConnectivityLineTreeNode(network, subnet222, i4, true, "c11")
+
+	NewConnectivityLineTreeNode(network, subnet231, i4, true, "c12")
 
 	return network
 }
