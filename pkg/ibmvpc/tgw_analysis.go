@@ -59,7 +59,8 @@ func validateAddressPrefixesExist(vpc *VPC) {
 // It also returns map from IPBlockPrefixFilter objects details to RulesInTable with index of the transit connection
 // and index of the prefix rules within the connection that determines the connection between src and dst
 // Note that there is always a single prefix filter that determines the route (allow/deny) for each address prefix
-// (could be the default)
+// (could be the default); this is since each atomic src/dst is an endpoint and since
+// prefix filter rules do not include protocol or ports (unlike nacls and sgs)
 func getVPCAdvertisedRoutes(tc *datamodel.TransitConnection, tcIndex int, vpc *VPC) (advertisedRoutesRes []*ipblock.IPBlock,
 	vpcAPToPrefixRules map[*ipblock.IPBlock]vpcmodel.RulesInTable, err error) {
 	validateAddressPrefixesExist(vpc)

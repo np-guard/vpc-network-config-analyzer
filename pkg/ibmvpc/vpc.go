@@ -887,6 +887,7 @@ func actionNameStr(action *string) (string, error) {
 // (in a single transit connection)
 // However, each src/dst maps to a set of endpoints (Nodes) and the query is for the Cartesian product of these.
 // Specifically, this functionality is between <src, dst> where each is a single endpoint (single IP addr)
+// and prefix filter rules do not include protocol or ports (unlike nacls and sgs)
 // Thus, for each such <src, dst> there is a single prefix filter
 func (tgw *TransitGateway) RulesInConnectivity(src, dst vpcmodel.Node) []vpcmodel.RulesInTable {
 	// <src, dst> routed by tgw given that source is in the tgw, and there is a prefix filter defined for the dst,
