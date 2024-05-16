@@ -6,12 +6,13 @@ SPDX-License-Identifier: Apache-2.0
 
 package drawio
 
+import "github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+
 type IconTreeNodeInterface interface {
 	TreeNodeInterface
 	RouterID() uint
-	// TODO - support multi GSs
-	SG() SquareTreeNodeInterface
-	setSG(SquareTreeNodeInterface)
+	SGs() common.GenericSet[*SGTreeNode]
+	addSG(*SGTreeNode)
 	allocateNewRouteOffset() int
 	IsVSI() bool
 	IsGroupingPoint() bool
@@ -35,33 +36,35 @@ type IconTreeNodeInterface interface {
 type abstractIconTreeNode struct {
 	abstractTreeNode
 	nRouterOffset int
-	sg            SquareTreeNodeInterface
+	sgs           common.GenericSet[*SGTreeNode]
 	tooltip       []string
 	floatingIP    string
 }
 
 func newAbstractIconTreeNode(parent SquareTreeNodeInterface, name string) abstractIconTreeNode {
-	return abstractIconTreeNode{abstractTreeNode: newAbstractTreeNode(parent, name)}
+	return abstractIconTreeNode{
+		abstractTreeNode: newAbstractTreeNode(parent, name),
+		sgs:              common.GenericSet[*SGTreeNode]{}}
 }
 
-func (tn *abstractIconTreeNode) SG() SquareTreeNodeInterface      { return tn.sg }
-func (tn *abstractIconTreeNode) setSG(sg SquareTreeNodeInterface) { tn.sg = sg }
-func (tn *abstractIconTreeNode) IsIcon() bool                     { return true }
-func (tn *abstractIconTreeNode) IsVSI() bool                      { return false }
-func (tn *abstractIconTreeNode) IsGateway() bool                  { return false }
-func (tn *abstractIconTreeNode) IsGroupingPoint() bool            { return false }
-func (tn *abstractIconTreeNode) SetTooltip(tooltip []string)      { tn.tooltip = tooltip }
-func (tn *abstractIconTreeNode) HasTooltip() bool                 { return len(tn.tooltip) > 0 }
-func (tn *abstractIconTreeNode) Tooltip() string                  { return joinLabels(tn.tooltip, drawioTableSep) }
-func (tn *abstractIconTreeNode) IconSize() int                    { return iconSize }
-func (tn *abstractIconTreeNode) hasMiniIcon() bool                { return false }
-func (tn *abstractIconTreeNode) MiniIconID() uint                 { return tn.id + miniIconID }
-func (tn *abstractIconTreeNode) Height() int                      { return iconSize }
-func (tn *abstractIconTreeNode) Width() int                       { return iconSize }
-func (tn *abstractIconTreeNode) HasFip() bool                     { return tn.Fip() != "" }
-func (tn *abstractIconTreeNode) SetFIP(fip string)                { tn.floatingIP = fip }
-func (tn *abstractIconTreeNode) Fip() string                      { return tn.floatingIP }
-func (tn *abstractIconTreeNode) FipID() uint                      { return tn.id + fipID }
+func (tn *abstractIconTreeNode) SGs() common.GenericSet[*SGTreeNode] { return tn.sgs }
+func (tn *abstractIconTreeNode) addSG(sg *SGTreeNode)                { tn.sgs[sg] = true }
+func (tn *abstractIconTreeNode) IsIcon() bool                        { return true }
+func (tn *abstractIconTreeNode) IsVSI() bool                         { return false }
+func (tn *abstractIconTreeNode) IsGateway() bool                     { return false }
+func (tn *abstractIconTreeNode) IsGroupingPoint() bool               { return false }
+func (tn *abstractIconTreeNode) SetTooltip(tooltip []string)         { tn.tooltip = tooltip }
+func (tn *abstractIconTreeNode) HasTooltip() bool                    { return len(tn.tooltip) > 0 }
+func (tn *abstractIconTreeNode) Tooltip() string                     { return joinLabels(tn.tooltip, drawioTableSep) }
+func (tn *abstractIconTreeNode) IconSize() int                       { return iconSize }
+func (tn *abstractIconTreeNode) hasMiniIcon() bool                   { return false }
+func (tn *abstractIconTreeNode) MiniIconID() uint                    { return tn.id + miniIconID }
+func (tn *abstractIconTreeNode) Height() int                         { return iconSize }
+func (tn *abstractIconTreeNode) Width() int                          { return iconSize }
+func (tn *abstractIconTreeNode) HasFip() bool                        { return tn.Fip() != "" }
+func (tn *abstractIconTreeNode) SetFIP(fip string)                   { tn.floatingIP = fip }
+func (tn *abstractIconTreeNode) Fip() string                         { return tn.floatingIP }
+func (tn *abstractIconTreeNode) FipID() uint                         { return tn.id + fipID }
 
 var offsets = []int{
 	0,
