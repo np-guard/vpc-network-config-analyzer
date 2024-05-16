@@ -162,9 +162,9 @@ func orderNodesForTemplate(network SquareTreeNodeInterface) []TreeNodeInterface 
 		&GroupSubnetsSquareTreeNode{},
 		&ZoneTreeNode{},
 		&SubnetTreeNode{},
+		&GroupSquareTreeNode{},
 		&SGTreeNode{},
 		&PartialSGTreeNode{},
-		&GroupSquareTreeNode{},
 	}
 	squaresBuckets := map[reflect.Type][]TreeNodeInterface{}
 	for _, tn := range getAllSquaresAsTNs(network) {

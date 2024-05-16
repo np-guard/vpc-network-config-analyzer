@@ -33,13 +33,13 @@ func TestWithParsing(t *testing.T) {
 	n = createNetworkSubnetGrouping()
 	createFileFromNetwork(n, "subnetGrouping.drawio", true, FileDRAWIO)
 	n = createNetworkSubnetGroupingBug()
-	createFileFromNetwork(n, "subnetGroupingBug.drawio", true, FileSVG)
+	createFileFromNetwork(n, "subnetGroupingBug.svg", true, FileSVG)
 	n = createNetworkSubnetGroupingMultiVpc()
-	createFileFromNetwork(n, "subnetGroupingMultiVpc.drawio", true, FileHTML)
+	createFileFromNetwork(n, "subnetGroupingMultiVpc.html", true, FileHTML)
 	n = createNetworkSubnetGroupingOverlapping()
 	createFileFromNetwork(n, "subnetGroupingOverlapping.drawio", true, FileDRAWIO)
 	n = createNetworkSubnetGroupingGroupInGroup()
-	createFileFromNetwork(n, "subnetGroupingGroupInGroup.drawio", true, FileHTML)
+	createFileFromNetwork(n, "subnetGroupingGroupInGroup.html", true, FileHTML)
 	n2 := NewNetworkTreeNode()
 	cloud := NewCloudTreeNode(n2, "Cloud")
 	NewPublicNetworkTreeNode(n2)
@@ -54,6 +54,8 @@ func TestWithParsing(t *testing.T) {
 	createFileFromNetwork(n, "all.drawio", false, FileDRAWIO)
 	n = createNetworkTgw()
 	createFileFromNetwork(n, "tgws.drawio", false, FileDRAWIO)
+	n = createNetworkMultiSG()
+	createFileFromNetwork(n, "multiSG.html", false, FileHTML)
 }
 
 func createNetwork() SquareTreeNodeInterface {
@@ -718,6 +720,59 @@ func createNetwork2() SquareTreeNodeInterface {
 	con.SetRouter(ni2)
 	NewConnectivityLineTreeNode(network, ni3, ni4, false, "conn4")
 	NewConnectivityLineTreeNode(network, is1, ni4, false, "conn5")
+
+	return network
+}
+
+func createNetworkMultiSG() SquareTreeNodeInterface {
+	network := NewNetworkTreeNode()
+	cloud2 := NewCloudTreeNode(network, "IBM Cloud2")
+
+	region2 := NewRegionTreeNode(cloud2, "north")
+	vpc2 := NewVpcTreeNode(region2, "vpc2")
+	zone1 := NewZoneTreeNode(vpc2, "zone1")
+	zone2 := NewZoneTreeNode(vpc2, "zone2")
+	sg1 := NewSGTreeNode(vpc2, "sg1")
+	sg2 := NewSGTreeNode(vpc2, "sg2")
+	sg3 := NewSGTreeNode(vpc2, "sg3")
+
+	subnet1 := NewSubnetTreeNode(zone1, "subnet1", "ip", "key")
+	subnet2 := NewSubnetTreeNode(zone2, "subnet2", "ip", "key")
+
+	ni11 := NewNITreeNode(subnet1, "ni11")
+	ni12 := NewNITreeNode(subnet1, "ni12")
+	ni13 := NewNITreeNode(subnet1, "ni13")
+	ni14 := NewNITreeNode(subnet1, "ni14")
+	ni15 := NewNITreeNode(subnet1, "ni15")
+
+	ni21 := NewNITreeNode(subnet2, "ni21")
+	ni22 := NewNITreeNode(subnet2, "ni22")
+	ni23 := NewNITreeNode(subnet2, "ni23")
+
+	sg1.AddIcon(ni11)
+	sg2.AddIcon(ni11)
+	sg3.AddIcon(ni11)
+
+	sg1.AddIcon(ni12)
+	sg2.AddIcon(ni12)
+	sg3.AddIcon(ni12)
+
+	sg1.AddIcon(ni21)
+	sg2.AddIcon(ni21)
+
+	sg1.AddIcon(ni13)
+
+	sg2.AddIcon(ni22)
+	sg3.AddIcon(ni22)
+
+	sg1.AddIcon(ni14)
+	sg3.AddIcon(ni14)
+
+	sg1.AddIcon(ni15)
+	sg3.AddIcon(ni15)
+
+	sg1.AddIcon(ni23)
+	sg3.AddIcon(ni23)
 
 	return network
 }
