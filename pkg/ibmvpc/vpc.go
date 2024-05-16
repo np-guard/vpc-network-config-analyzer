@@ -882,53 +882,24 @@ func actionNameStr(action *string) (string, error) {
 	return denyAction, nil
 }
 
-// RulesInConnectivity returns the prefix filters relevant for <src, dst>. Since src/dst could be a cidr,
-// there could be more than one relevant prefix filter (in a single transit connection)
-// todo: currently "more than one" is not possible since src/dst must be within a given subnet.
-// todo This will be relevant only once we allow src/dst to span over vpcs
-// todo https://github.com/np-guard/vpc-network-config-analyzer/issues/576
+// RulesInConnectivity returns the prefix filters relevant for <src, dst>.
+// src/dst could be a cidr, so for a single <src,dst> query there could be more than one relevant prefix filter
+// (in a single transit connection)
+// However, each src/dst maps to a set of endpoints (Nodes) and the query is for the Cartesian product of these.
+// Specifically, this functionality is between <src, dst> where each is a single endpoint (single IP addr)
+// Thus, for each such <src, dst> there is a single prefix filter
 func (tgw *TransitGateway) RulesInConnectivity(src, dst vpcmodel.Node) []vpcmodel.RulesInTable {
-	// <src, dst> routed by tgw given that source is in the tgw,
-	// and there is a prefix filter defined for the dst,
-	// the relevant prefix filters are determined by match of the Address prefix the dest's node is in (including default)
-
-	// vpcsAPToPrefixRules[dst.VPC().UID()] maps from disjoint IPs to RulesInTable
-	// In RulesInTable there is an entry per transit connection; since there could be more than one disjoint IP mapped
-	// to the same transit connection we need to merge the maps from disjoint IPs per transit connection
-	// 1. Collect RulesInTable per transit connection
-	trCnToRulesInTable := map[int][]vpcmodel.RulesInTable{}
+	// <src, dst> routed by tgw given that source is in the tgw, and there is a prefix filter defined for the dst,
+	// the relevant prefix filter is determined by match of the Address prefix the dest's node is in (including default)
+	// Note, again, that for each (src, dst vpcmodel.Node) there is a single prefix filter
 	if vpcmodel.HasNode(tgw.sourceNodes, src) {
-		for ipBlock, trCnPrefixes := range tgw.vpcsAPToPrefixRules[dst.VPC().UID()] {
+		for ipBlock, transitConnectionPrefixes := range tgw.vpcsAPToPrefixRules[dst.VPC().UID()] {
 			if !dst.IPBlock().Intersect(ipBlock).IsEmpty() {
-				if _, ok := trCnToRulesInTable[trCnPrefixes.Table]; !ok {
-					trCnToRulesInTable[trCnPrefixes.Table] = []vpcmodel.RulesInTable{}
-				}
-				trCnToRulesInTable[trCnPrefixes.Table] = append(trCnToRulesInTable[trCnPrefixes.Table],
-					trCnPrefixes)
+				return []vpcmodel.RulesInTable{transitConnectionPrefixes}
 			}
 		}
 	}
-	aggregatedRes := []vpcmodel.RulesInTable{}
-	// 2. Aggregates RulesInTable per transit connection
-	// trCnPrefixes is from "atomic" IPBlocks, each has exactly one prefix filter of transit connection
-	// that determines its relevant routing.
-	// However, once https://github.com/np-guard/vpc-network-config-analyzer/issues/576 is solved then
-	// there could be few "atomic" IPBlocks relevant for <src, dst>, possibly one allow and one deny
-	for trCn, trCnRulesInTable := range trCnToRulesInTable {
-		prefixesTrCn := vpcmodel.RulesInTable{Table: trCn, Rules: []int{}, RulesOfType: vpcmodel.NoRules}
-		for _, prefixEntry := range trCnRulesInTable {
-			prefixesTrCn.Rules = append(prefixesTrCn.Rules, prefixEntry.Rules...)
-			if prefixesTrCn.RulesOfType == vpcmodel.NoRules { // first time
-				prefixesTrCn.RulesOfType = prefixEntry.RulesOfType
-			} else if prefixesTrCn.RulesOfType != vpcmodel.BothAllowDeny &&
-				prefixesTrCn.RulesOfType != prefixEntry.RulesOfType {
-				// one is OnlyDeny and the other OnlyAllow
-				prefixesTrCn.RulesOfType = vpcmodel.BothAllowDeny
-			}
-			aggregatedRes = append(aggregatedRes, prefixesTrCn)
-		}
-	}
-	return aggregatedRes
+	return nil // should never get here
 }
 
 func (tgw *TransitGateway) StringDetailsOfRules(listRulesInTransitConns []vpcmodel.RulesInTable, verbose bool) (string, error) {
