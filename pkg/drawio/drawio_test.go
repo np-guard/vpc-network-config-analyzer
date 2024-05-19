@@ -862,10 +862,10 @@ func createEmptySquaresNetwork() SquareTreeNodeInterface {
 	z111 := NewZoneTreeNode(vpc11, "zone111")
 	NewZoneTreeNode(vpc11, "empty zone113")
 	z112 := NewZoneTreeNode(vpc11, "zone112")
-	NewSubnetTreeNode(z111, "sub1111", "cidr", "acl1")
-	s1112 := NewSubnetTreeNode(z111, "sub1112", "cidr", "acl1")
-	NewSubnetTreeNode(z112, "sub1121", "cidr", "acl1")
-	s1122 := NewSubnetTreeNode(z112, "sub1122", "cidr", "acl1")
+	NewSubnetTreeNode(z111, "sub1111", "cidr", "acl1111")
+	s1112 := NewSubnetTreeNode(z111, "sub1112", "cidr", "acl1112")
+	NewSubnetTreeNode(z112, "sub1121", "cidr", "acl1121")
+	s1122 := NewSubnetTreeNode(z112, "sub1122", "cidr", "acl1122")
 	GroupedSubnetsSquare(vpc11, []SquareTreeNodeInterface{s1112,s1122})
 
 	region2 := NewRegionTreeNode(cloud, "east") 
@@ -874,9 +874,9 @@ func createEmptySquaresNetwork() SquareTreeNodeInterface {
 	NewZoneTreeNode(vpc21, "empty zone112")
 	z211 := NewZoneTreeNode(vpc21, "zone211")
 	NewZoneTreeNode(vpc21, "empty zone113")
-	NewSubnetTreeNode(z211, "sub2121", "cidr", "acl1")
-	NewSubnetTreeNode(z211, "sub2121", "cidr", "acl1")
-	NewSubnetTreeNode(z211, "sub2121", "cidr", "acl1")
+	NewSubnetTreeNode(z211, "sub2121", "cidr", "acl2121")
+	NewSubnetTreeNode(z211, "sub2122", "cidr", "acl2122")
+	NewSubnetTreeNode(z211, "sub2123", "cidr", "acl2123")
 
 	return network
 }

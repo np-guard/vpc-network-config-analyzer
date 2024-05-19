@@ -323,11 +323,11 @@ func (ly *layoutS) layoutSubnetsIcons() {
 func (ly *layoutS) layoutSubnets() {
 	sly := newSubnetsLayout(ly.network)
 	sly.layout()
-	cols := ly.getSquaresCols(sly.zonesCol)
-	ly.setSubnetsLocations(sly.subnetMatrix, cols)
+	allSquaresMatrix := ly.getSquaresCols(sly.subnetMatrix, sly.zonesCol)
+	ly.setSubnetsLocations(allSquaresMatrix)
 }
 
-func (ly *layoutS) getSquaresCols(zonesCol map[TreeNodeInterface]int) map[TreeNodeInterface]int {
+func (ly *layoutS) getSquaresCols(subnetMatrix [][]TreeNodeInterface, zonesCol map[TreeNodeInterface]int) [][]TreeNodeInterface {
 	tree := map[TreeNodeInterface][]SquareTreeNodeInterface{}
 	tree[ly.network] = slices.Clone(ly.network.(*NetworkTreeNode).clouds)
 	for _, cloud := range ly.network.(*NetworkTreeNode).clouds {
@@ -388,49 +388,48 @@ func (ly *layoutS) getSquaresCols(zonesCol map[TreeNodeInterface]int) map[TreeNo
 			}
 		}
 	}
+	oldColToNew := map[int]int{}
+	for tn, col := range zonesCol {
+		oldColToNew[col] = tnCol[tn]
+	}
 
-	return tnCol
-}
-
-func (ly *layoutS) setSubnetsLocations(subnetMatrix [][]TreeNodeInterface, tnCols map[TreeNodeInterface]int) {
+	allSquaresMatrix := make([][]TreeNodeInterface, len(subnetMatrix)+colIndex) //todo
+	for i := range allSquaresMatrix {
+		allSquaresMatrix[i] = make([]TreeNodeInterface, colIndex)
+	}
 	locatedSubnets := map[TreeNodeInterface]bool{}
-	colToMatrixCol := map[int]int{}
 	for ri, row := range subnetMatrix {
 		for ci, s := range row {
-			if s != nil && s != fakeSubnet {
-				ly.setDefaultLocation(s.(SquareTreeNodeInterface), ri, tnCols[s])
-				colToMatrixCol[tnCols[s]] = ci
-				locatedSubnets[s] = true
-			}
+			allSquaresMatrix[ri][oldColToNew[ci]] = s
+			locatedSubnets[s] = true
 		}
 	}
-	ly.setDefaultLocation(ly.network, 0, 0)
-	for _, cloud := range ly.network.(*NetworkTreeNode).clouds {
-		ly.setDefaultLocation(cloud, 0, tnCols[cloud])
-		for _, region := range cloud.(*CloudTreeNode).regions {
-			ly.setDefaultLocation(region, 0, tnCols[region])
-			for _, vpc := range region.(*RegionTreeNode).vpcs {
-				ly.setDefaultLocation(vpc, 0, tnCols[vpc])
-				for _, zone := range vpc.(*VpcTreeNode).zones {
-					ly.setDefaultLocation(zone, 0, tnCols[zone])
-					rowIndex := 0
-					if zoneMatrixCol, ok := colToMatrixCol[tnCols[zone]]; !ok {
-						for _, subnet := range zone.(*ZoneTreeNode).subnets {
-							ly.setDefaultLocation(subnet, rowIndex, tnCols[zone])
-							rowIndex++
-						}
-					} else {
-						for _, subnet := range zone.(*ZoneTreeNode).subnets {
-							if !locatedSubnets[subnet] {
-								for rowIndex < len(subnetMatrix) && subnetMatrix[rowIndex][zoneMatrixCol] != nil {
-									rowIndex++
-								}
-								ly.setDefaultLocation(subnet, rowIndex, tnCols[zone])
-								rowIndex++
-							}
-						}
+	for tn, _ := range tnCol {
+		if _, ok := tn.(*SubnetTreeNode); ok {
+		} else if zone, ok := tn.(*ZoneTreeNode); ok && len(zone.subnets) > 0 {
+			rowIndex := 0
+			for _, subnet := range zone.subnets {
+				if !locatedSubnets[subnet] {
+					for allSquaresMatrix[rowIndex][tnCol[subnet]] != nil {
+						rowIndex++
 					}
+					allSquaresMatrix[rowIndex][tnCol[subnet]] = subnet
+					rowIndex++
 				}
+			}
+		} else if len(tree[tn]) == 0 {
+			allSquaresMatrix[0][tnCol[tn]] = tn
+		}
+
+	}
+	return allSquaresMatrix
+}
+
+func (ly *layoutS) setSubnetsLocations(squaresMatrix [][]TreeNodeInterface) {
+	for ri, row := range squaresMatrix {
+		for ci, s := range row {
+			if s != nil {
+				ly.setDefaultLocation(s.(SquareTreeNodeInterface), ri, ci)
 			}
 		}
 	}
