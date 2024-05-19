@@ -605,7 +605,6 @@ func (ly *subnetsLayout) createMatrixes() {
 	for i := range ly.squaresMatrix {
 		ly.squaresMatrix[i] = make([]TreeNodeInterface, nSquares)
 	}
-
 }
 
 // /////////////////////////////////////////////////////////////////////////
@@ -845,7 +844,6 @@ func (ly *subnetsLayout) canShowGroup(group *groupDataS) bool {
 // 2. create the squares matrix - based on the subnet matrix and the squares columns.
 
 func (ly *subnetsLayout) setSquaresMatrix() {
-
 	squaresCol := ly.squaresCol()
 	ly.calcSquareMatrix(squaresCol)
 }
@@ -885,6 +883,7 @@ func (ly *subnetsLayout) networkToGenericTree() map[TreeNodeInterface][]SquareTr
 // 2. for nodes that does not have zones, set maxCol to be the highest
 // 3. for each node, sort its children by maxCol - nodes that does not have zones will go to the end
 func (ly *subnetsLayout) sortTreeAsInCanvas(tree map[TreeNodeInterface][]SquareTreeNodeInterface) {
+	// calc maxCol:
 	maxCol := map[TreeNodeInterface]int{}
 	maxCol[ly.network] = 0
 	for _, children := range tree {
@@ -895,7 +894,7 @@ func (ly *subnetsLayout) sortTreeAsInCanvas(tree map[TreeNodeInterface][]SquareT
 	for zone, col := range ly.zonesCol {
 		maxCol[zone] = col
 	}
-
+	// recursive call get the maxCol of each node:
 	var setMax func(tn TreeNodeInterface)
 	setMax = func(tn TreeNodeInterface) {
 		for _, child := range tree[tn] {
@@ -904,17 +903,18 @@ func (ly *subnetsLayout) sortTreeAsInCanvas(tree map[TreeNodeInterface][]SquareT
 		}
 	}
 	setMax(ly.network)
+	// those whom have -1 does not have zones - giving them the highest number, so sort will send them to the end
 	maxColOnTree := maxCol[ly.network]
 	for tn, val := range maxCol {
 		if val == -1 {
 			maxCol[tn] = maxColOnTree + 1
 		}
 	}
+	// sorting children:
 	for tn := range tree {
 		sort.Slice(tree[tn], func(i, j int) bool {
 			return maxCol[tree[tn][i]] < maxCol[tree[tn][j]]
 		})
-
 	}
 }
 
@@ -924,7 +924,6 @@ func (ly *subnetsLayout) calcColsFromTree(tree map[TreeNodeInterface][]SquareTre
 	colIndex := 0
 	var setCol func(tn TreeNodeInterface)
 	setCol = func(tn TreeNodeInterface) {
-
 		for _, child := range tree[tn] {
 			setCol(child)
 		}
@@ -935,19 +934,18 @@ func (ly *subnetsLayout) calcColsFromTree(tree map[TreeNodeInterface][]SquareTre
 	}
 	setCol(ly.network)
 	return squaresCol
-
 }
 
 // calcSquareMatrix() creates the squares matrix - based on the subnet matrix and the squares columns.
 func (ly *subnetsLayout) calcSquareMatrix(squaresCol map[TreeNodeInterface]int) {
-	oldColToNew := map[int]int{}
+	subnetMatrixColToSquareMatrix := map[int]int{}
 	for tn, col := range ly.zonesCol {
-		oldColToNew[col] = squaresCol[tn]
+		subnetMatrixColToSquareMatrix[col] = squaresCol[tn]
 	}
 	locatedSubnets := map[TreeNodeInterface]bool{}
 	for ri, row := range ly.subnetMatrix {
 		for ci, s := range row {
-			ly.squaresMatrix[ri][oldColToNew[ci]] = s
+			ly.squaresMatrix[ri][subnetMatrixColToSquareMatrix[ci]] = s
 			locatedSubnets[s] = true
 		}
 	}
