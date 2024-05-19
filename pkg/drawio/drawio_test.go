@@ -43,9 +43,9 @@ func TestWithParsing(t *testing.T) {
 	createFileFromNetwork(n, "subnetGroupingOverlapping.drawio", true, FileDRAWIO)
 	n = createNetworkSubnetGroupingGroupInGroup()
 	createFileFromNetwork(n, "subnetGroupingGroupInGroup.html", true, FileHTML)
-	n= createEmptySquaresNetwork()
+	n = createEmptySquaresNetwork()
 	createFileFromNetwork(n, "empty.drawio", false, FileDRAWIO)
-	n= createEmptySquaresNetwork()
+	n = createEmptySquaresNetwork()
 	createFileFromNetwork(n, "emptySubnets.drawio", true, FileDRAWIO)
 
 	n = createNetworkAllTypes()
@@ -866,9 +866,9 @@ func createEmptySquaresNetwork() SquareTreeNodeInterface {
 	s1112 := NewSubnetTreeNode(z111, "sub1112", "cidr", "acl1112")
 	NewSubnetTreeNode(z112, "sub1121", "cidr", "acl1121")
 	s1122 := NewSubnetTreeNode(z112, "sub1122", "cidr", "acl1122")
-	GroupedSubnetsSquare(vpc11, []SquareTreeNodeInterface{s1112,s1122})
+	GroupedSubnetsSquare(vpc11, []SquareTreeNodeInterface{s1112, s1122})
 
-	region2 := NewRegionTreeNode(cloud, "east") 
+	region2 := NewRegionTreeNode(cloud, "east")
 	vpc21 := NewVpcTreeNode(region2, "vpc21")
 	NewVpcTreeNode(region, "empty vpc12")
 	NewZoneTreeNode(vpc21, "empty zone112")

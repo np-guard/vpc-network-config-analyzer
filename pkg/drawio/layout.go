@@ -332,8 +332,6 @@ func (ly *layoutS) layoutSubnets() {
 	}
 }
 
-
-
 ////////////////////////////////////////////////////////////////////
 // resolveGroupedSubnetsOverlap() handles overlapping GroupSubnetsSquare.
 // it makes sure that the borders of two squares will not overlap each other.

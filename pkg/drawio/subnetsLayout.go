@@ -840,7 +840,7 @@ func (ly *subnetsLayout) canShowGroup(group *groupDataS) bool {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // after creating the subnet matrix, we still need to locate squares that goes not have subnets, and subnets that are not in groups
 // setSquaresMatrix() output a matrix with all the squares that does not have children.
-// two main phases in setSquaresMatrix(): 
+// two main phases in setSquaresMatrix():
 // 1. calculate the column of each squares
 // 2. create the squares matrix - based on the subnet matrix and the squares columns.
 
@@ -855,7 +855,7 @@ func (ly *subnetsLayout) setSquaresMatrix() {
 // the phases:
 // 1. convert the network tree to a generic tree (so it is easier to work with).
 // 2. sort the tree by the canvas - the children of each node in the tree is sorted by the order that they should be on the canvas.
-// 3. iterate recursively over the sorted tree, for each squares that does not have children - set its column 
+// 3. iterate recursively over the sorted tree, for each squares that does not have children - set its column
 
 func (ly *subnetsLayout) squaresCol() map[TreeNodeInterface]int {
 	tree := ly.networkToGenericTree()
@@ -877,6 +877,7 @@ func (ly *subnetsLayout) networkToGenericTree() map[TreeNodeInterface][]SquareTr
 	}
 	return tree
 }
+
 // sortTreeAsInCanvas() sort the tree as the squares should be on canvas
 // the input of sortTreeAsInCanvas() is the zonesCol - the column that was already calculate for the zone
 // the phases:
@@ -909,14 +910,15 @@ func (ly *subnetsLayout) sortTreeAsInCanvas(tree map[TreeNodeInterface][]SquareT
 			maxCol[tn] = maxColOnTree + 1
 		}
 	}
-	for tn, _ := range tree {
+	for tn := range tree {
 		sort.Slice(tree[tn], func(i, j int) bool {
 			return maxCol[tree[tn][i]] < maxCol[tree[tn][j]]
 		})
 
 	}
 }
-// calcColsFromTree() iterate recursively over the sorted tree, for each squares that does not have children - set its column 
+
+// calcColsFromTree() iterate recursively over the sorted tree, for each squares that does not have children - set its column
 func (ly *subnetsLayout) calcColsFromTree(tree map[TreeNodeInterface][]SquareTreeNodeInterface) map[TreeNodeInterface]int {
 	squaresCol := map[TreeNodeInterface]int{}
 	colIndex := 0
@@ -936,7 +938,6 @@ func (ly *subnetsLayout) calcColsFromTree(tree map[TreeNodeInterface][]SquareTre
 
 }
 
-
 // calcSquareMatrix() creates the squares matrix - based on the subnet matrix and the squares columns.
 func (ly *subnetsLayout) calcSquareMatrix(squaresCol map[TreeNodeInterface]int) {
 	oldColToNew := map[int]int{}
@@ -950,7 +951,7 @@ func (ly *subnetsLayout) calcSquareMatrix(squaresCol map[TreeNodeInterface]int) 
 			locatedSubnets[s] = true
 		}
 	}
-	for tn, _ := range squaresCol {
+	for tn := range squaresCol {
 		if zone, ok := tn.(*ZoneTreeNode); ok && len(zone.subnets) > 0 {
 			rowIndex := 0
 			for _, subnet := range zone.subnets {
