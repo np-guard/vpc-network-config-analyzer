@@ -8,6 +8,7 @@ package drawio
 
 import (
 	"maps"
+	"slices"
 	"sort"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
@@ -134,6 +135,7 @@ type subnetsLayout struct {
 	miniGroups        miniGroupSet
 	miniGroupsMatrix  [][]*miniGroupDataS
 	subnetMatrix      [][]TreeNodeInterface
+	squaresMatrix     [][]TreeNodeInterface
 	subnetsIndexes    map[TreeNodeInterface]indexes
 	zonesCol          map[TreeNodeInterface]int
 	treeNodesToGroups map[TreeNodeInterface]*groupDataS
@@ -161,6 +163,7 @@ func (ly *subnetsLayout) layout() {
 	ly.layoutGroups()
 	// create the new treeNodes:
 	ly.createNewTreeNodes()
+	ly.setSquaresMatrix()
 }
 
 // //////////////////////////////////////////////////////////
@@ -596,6 +599,12 @@ func (ly *subnetsLayout) createMatrixes() {
 	for i := range ly.subnetMatrix {
 		ly.subnetMatrix[i] = make([]TreeNodeInterface, len(ly.zonesCol))
 	}
+	nSquares := len(getAllSquares(ly.network))
+	ly.squaresMatrix = make([][]TreeNodeInterface, nSquares)
+	for i := range ly.squaresMatrix {
+		ly.squaresMatrix[i] = make([]TreeNodeInterface, nSquares)
+	}
+
 }
 
 // /////////////////////////////////////////////////////////////////////////
@@ -825,4 +834,99 @@ func (ly *subnetsLayout) canShowGroup(group *groupDataS) bool {
 	}
 
 	return nSubnets == len(group.subnets)
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+func (ly *subnetsLayout) setSquaresMatrix() {
+	tree := map[TreeNodeInterface][]SquareTreeNodeInterface{}
+	tree[ly.network] = slices.Clone(ly.network.(*NetworkTreeNode).clouds)
+	for _, cloud := range ly.network.(*NetworkTreeNode).clouds {
+		tree[cloud] = slices.Clone(cloud.(*CloudTreeNode).regions)
+		for _, region := range cloud.(*CloudTreeNode).regions {
+			tree[region] = slices.Clone(region.(*RegionTreeNode).vpcs)
+			for _, vpc := range region.(*RegionTreeNode).vpcs {
+				tree[vpc] = slices.Clone(vpc.(*VpcTreeNode).zones)
+			}
+		}
+	}
+	maxCol := map[TreeNodeInterface]int{}
+	maxCol[ly.network] = 0
+	for _, children := range tree {
+		for _, child := range children {
+			maxCol[child] = -1
+		}
+	}
+	for zone, col := range ly.zonesCol {
+		maxCol[zone] = col
+	}
+
+	var setMax func(tn TreeNodeInterface)
+	setMax = func(tn TreeNodeInterface) {
+		for _, child := range tree[tn] {
+			setMax(child)
+			maxCol[tn] = max(maxCol[tn], maxCol[child])
+		}
+	}
+	setMax(ly.network)
+	for tn, val := range maxCol {
+		if val == -1 {
+			maxCol[tn] = maxCol[ly.network] + 1
+		}
+	}
+	tnCol := map[TreeNodeInterface]int{}
+	colIndex := 0
+	var setCol func(tn TreeNodeInterface)
+	setCol = func(tn TreeNodeInterface) {
+		sortedChildren := slices.Clone(tree[tn])
+		sort.Slice(sortedChildren, func(i, j int) bool {
+			return maxCol[sortedChildren[i]] < maxCol[sortedChildren[j]]
+		})
+
+		for _, child := range sortedChildren {
+			setCol(child)
+		}
+		if len(tree[tn]) == 0 {
+			tnCol[tn] = colIndex
+			colIndex++
+		}
+	}
+	setCol(ly.network)
+	for tn, _ := range tnCol {
+		if zone, ok := tn.(*ZoneTreeNode); ok {
+			for _, subnet := range zone.subnets {
+				tnCol[subnet] = tnCol[zone]
+			}
+		}
+	}
+	oldColToNew := map[int]int{}
+	for tn, col := range ly.zonesCol {
+		oldColToNew[col] = tnCol[tn]
+	}
+
+	locatedSubnets := map[TreeNodeInterface]bool{}
+	for ri, row := range ly.subnetMatrix {
+		for ci, s := range row {
+			ly.squaresMatrix[ri][oldColToNew[ci]] = s
+			locatedSubnets[s] = true
+		}
+	}
+	for tn, _ := range tnCol {
+		if _, ok := tn.(*SubnetTreeNode); ok {
+		} else if zone, ok := tn.(*ZoneTreeNode); ok && len(zone.subnets) > 0 {
+			rowIndex := 0
+			for _, subnet := range zone.subnets {
+				if !locatedSubnets[subnet] {
+					for ly.squaresMatrix[rowIndex][tnCol[subnet]] != nil {
+						rowIndex++
+					}
+					ly.squaresMatrix[rowIndex][tnCol[subnet]] = subnet
+					rowIndex++
+				}
+			}
+		} else if len(tree[tn]) == 0 {
+			ly.squaresMatrix[0][tnCol[tn]] = tn
+		}
+
+	}
 }
