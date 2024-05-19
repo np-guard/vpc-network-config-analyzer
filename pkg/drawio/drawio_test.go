@@ -43,9 +43,9 @@ func TestWithParsing(t *testing.T) {
 	createFileFromNetwork(n, "subnetGroupingOverlapping.drawio", true, FileDRAWIO)
 	n = createNetworkSubnetGroupingGroupInGroup()
 	createFileFromNetwork(n, "subnetGroupingGroupInGroup.html", true, FileHTML)
-	n= createEmptyNetwork()
+	n= createEmptySquaresNetwork()
 	createFileFromNetwork(n, "empty.drawio", false, FileDRAWIO)
-	n= createEmptyNetwork()
+	n= createEmptySquaresNetwork()
 	createFileFromNetwork(n, "emptySubnets.drawio", true, FileDRAWIO)
 
 	n = createNetworkAllTypes()
@@ -849,14 +849,35 @@ func createNetworkTgw() SquareTreeNodeInterface {
 	return network
 }
 
-func createEmptyNetwork() SquareTreeNodeInterface {
+func createEmptySquaresNetwork() SquareTreeNodeInterface {
 	network := NewNetworkTreeNode()
 	cloud := NewCloudTreeNode(network, "Cloud")
 	NewPublicNetworkTreeNode(network)
-	NewCloudTreeNode(network, "empty cloud2")
+	NewCloudTreeNode(network, "empty cloud")
 	region := NewRegionTreeNode(cloud, "north")
-	vpc1 := NewVpcTreeNode(region, "vpc1")
-	z := NewZoneTreeNode(vpc1, "zone1")
-	NewSubnetTreeNode(z, "sub1", "cidr", "acl1")
+	NewRegionTreeNode(cloud, "empty south")
+	vpc11 := NewVpcTreeNode(region, "vpc11")
+	NewVpcTreeNode(region, "empty vpc12")
+	NewZoneTreeNode(vpc11, "empty zone112")
+	z111 := NewZoneTreeNode(vpc11, "zone111")
+	NewZoneTreeNode(vpc11, "empty zone113")
+	z112 := NewZoneTreeNode(vpc11, "zone112")
+	NewSubnetTreeNode(z111, "sub1111", "cidr", "acl1")
+	s1112 := NewSubnetTreeNode(z111, "sub1112", "cidr", "acl1")
+	NewSubnetTreeNode(z112, "sub1121", "cidr", "acl1")
+	s1122 := NewSubnetTreeNode(z112, "sub1122", "cidr", "acl1")
+	GroupedSubnetsSquare(vpc11, []SquareTreeNodeInterface{s1112,s1122})
+
+
+	// region2 := NewRegionTreeNode(cloud, "east") 
+	// vpc21 := NewVpcTreeNode(region2, "vpc21")
+	// NewVpcTreeNode(region, "empty vpc12")
+	// NewZoneTreeNode(vpc21, "empty zone112")
+	// z211 := NewZoneTreeNode(vpc21, "zone211")
+	// NewZoneTreeNode(vpc21, "empty zone113")
+	// NewSubnetTreeNode(z211, "sub2121", "cidr", "acl1")
+	// NewSubnetTreeNode(z211, "sub2121", "cidr", "acl1")
+	// NewSubnetTreeNode(z211, "sub2121", "cidr", "acl1")
+
 	return network
 }
