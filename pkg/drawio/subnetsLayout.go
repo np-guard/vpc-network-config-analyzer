@@ -840,8 +840,7 @@ func (ly *subnetsLayout) canShowGroup(group *groupDataS) bool {
 
 func (ly *subnetsLayout) setSquaresMatrix() {
 
-	tree := ly.genericTree()
-	squaresCol := ly.squaresCol(tree)
+	squaresCol := ly.squaresCol()
 	oldColToNew := map[int]int{}
 	for tn, col := range ly.zonesCol {
 		oldColToNew[col] = squaresCol[tn]
@@ -866,10 +865,9 @@ func (ly *subnetsLayout) setSquaresMatrix() {
 					rowIndex++
 				}
 			}
-		} else if len(tree[tn]) == 0 {
+		} else{
 			ly.squaresMatrix[0][squaresCol[tn]] = tn
 		}
-
 	}
 }
 
@@ -889,7 +887,8 @@ func (ly *subnetsLayout) genericTree() map[TreeNodeInterface][]SquareTreeNodeInt
 	return tree
 }
 
-func (ly *subnetsLayout)squaresCol(tree map[TreeNodeInterface][]SquareTreeNodeInterface) map[TreeNodeInterface]int{
+func (ly *subnetsLayout)squaresCol() map[TreeNodeInterface]int{
+	tree := ly.genericTree()
 	maxCol := map[TreeNodeInterface]int{}
 	maxCol[ly.network] = 0
 	for _, children := range tree {
@@ -909,9 +908,10 @@ func (ly *subnetsLayout)squaresCol(tree map[TreeNodeInterface][]SquareTreeNodeIn
 		}
 	}
 	setMax(ly.network)
+	nextCol := maxCol[ly.network] + 1
 	for tn, val := range maxCol {
 		if val == -1 {
-			maxCol[tn] = maxCol[ly.network] + 1
+			maxCol[tn] = nextCol
 		}
 	}
 	squaresCol := map[TreeNodeInterface]int{}
