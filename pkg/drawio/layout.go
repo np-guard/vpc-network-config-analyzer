@@ -352,10 +352,9 @@ func (ly *layoutS) getSquaresCols(zonesCol map[TreeNodeInterface]int) map[TreeNo
 
 	var setMax func(tn TreeNodeInterface)
 	setMax = func(tn TreeNodeInterface) {
-		tnMax := maxCol[tn]
 		for _, child := range tree[tn] {
 			setMax(child)
-			tnMax = max(tnMax, maxCol[child])
+			maxCol[tn] = max(maxCol[tn], maxCol[child])
 		}
 	}
 	setMax(ly.network)
