@@ -841,6 +841,86 @@ func (ly *subnetsLayout) canShowGroup(group *groupDataS) bool {
 func (ly *subnetsLayout) setSquaresMatrix() {
 
 	squaresCol := ly.squaresCol()
+	ly.calcSquareMatrix(squaresCol)
+}
+////////////////////////////////////////////////////////////////////
+
+func (ly *subnetsLayout)squaresCol() map[TreeNodeInterface]int{
+	tree := ly.genericTree()
+	ly.sortTree(tree)
+	return ly.calcClosFromTree(tree)
+}
+
+
+func (ly *subnetsLayout) genericTree() map[TreeNodeInterface][]SquareTreeNodeInterface{
+	tree := map[TreeNodeInterface][]SquareTreeNodeInterface{}
+	tree[ly.network] = slices.Clone(ly.network.(*NetworkTreeNode).clouds)
+	for _, cloud := range ly.network.(*NetworkTreeNode).clouds {
+		tree[cloud] = slices.Clone(cloud.(*CloudTreeNode).regions)
+		for _, region := range cloud.(*CloudTreeNode).regions {
+			tree[region] = slices.Clone(region.(*RegionTreeNode).vpcs)
+			for _, vpc := range region.(*RegionTreeNode).vpcs {
+				tree[vpc] = slices.Clone(vpc.(*VpcTreeNode).zones)
+			}
+		}
+	}
+	return tree
+}
+
+func (ly *subnetsLayout) sortTree(tree map[TreeNodeInterface][]SquareTreeNodeInterface){
+	maxCol := map[TreeNodeInterface]int{}
+	maxCol[ly.network] = 0
+	for _, children := range tree {
+		for _, child := range children {
+			maxCol[child] = -1
+		}
+	}
+	for zone, col := range ly.zonesCol {
+		maxCol[zone] = col
+	}
+
+	var setMax func(tn TreeNodeInterface)
+	setMax = func(tn TreeNodeInterface) {
+		for _, child := range tree[tn] {
+			setMax(child)
+			maxCol[tn] = max(maxCol[tn], maxCol[child])
+		}
+	}
+	setMax(ly.network)
+	nextCol := maxCol[ly.network] + 1
+	for tn, val := range maxCol {
+		if val == -1 {
+			maxCol[tn] = nextCol
+		}
+	}
+	for tn, _ := range tree{
+		sort.Slice(tree[tn], func(i, j int) bool {
+			return maxCol[tree[tn][i]] < maxCol[tree[tn][j]]
+		})
+
+	}
+}
+
+func (ly *subnetsLayout)calcClosFromTree(tree map[TreeNodeInterface][]SquareTreeNodeInterface)map[TreeNodeInterface]int{
+	squaresCol := map[TreeNodeInterface]int{}
+	colIndex := 0
+	var setCol func(tn TreeNodeInterface)
+	setCol = func(tn TreeNodeInterface) {
+
+		for _, child := range tree[tn] {
+			setCol(child)
+		}
+		if len(tree[tn]) == 0 {
+			squaresCol[tn] = colIndex
+			colIndex++
+		}
+	}
+	setCol(ly.network)
+	return squaresCol
+
+}
+
+func (ly *subnetsLayout)calcSquareMatrix(squaresCol map[TreeNodeInterface]int){
 	oldColToNew := map[int]int{}
 	for tn, col := range ly.zonesCol {
 		oldColToNew[col] = squaresCol[tn]
@@ -868,68 +948,4 @@ func (ly *subnetsLayout) setSquaresMatrix() {
 			ly.squaresMatrix[0][squaresCol[tn]] = tn
 		}
 	}
-}
-
-
-func (ly *subnetsLayout) genericTree() map[TreeNodeInterface][]SquareTreeNodeInterface{
-	tree := map[TreeNodeInterface][]SquareTreeNodeInterface{}
-	tree[ly.network] = slices.Clone(ly.network.(*NetworkTreeNode).clouds)
-	for _, cloud := range ly.network.(*NetworkTreeNode).clouds {
-		tree[cloud] = slices.Clone(cloud.(*CloudTreeNode).regions)
-		for _, region := range cloud.(*CloudTreeNode).regions {
-			tree[region] = slices.Clone(region.(*RegionTreeNode).vpcs)
-			for _, vpc := range region.(*RegionTreeNode).vpcs {
-				tree[vpc] = slices.Clone(vpc.(*VpcTreeNode).zones)
-			}
-		}
-	}
-	return tree
-}
-
-func (ly *subnetsLayout)squaresCol() map[TreeNodeInterface]int{
-	tree := ly.genericTree()
-	maxCol := map[TreeNodeInterface]int{}
-	maxCol[ly.network] = 0
-	for _, children := range tree {
-		for _, child := range children {
-			maxCol[child] = -1
-		}
-	}
-	for zone, col := range ly.zonesCol {
-		maxCol[zone] = col
-	}
-
-	var setMax func(tn TreeNodeInterface)
-	setMax = func(tn TreeNodeInterface) {
-		for _, child := range tree[tn] {
-			setMax(child)
-			maxCol[tn] = max(maxCol[tn], maxCol[child])
-		}
-	}
-	setMax(ly.network)
-	nextCol := maxCol[ly.network] + 1
-	for tn, val := range maxCol {
-		if val == -1 {
-			maxCol[tn] = nextCol
-		}
-	}
-	squaresCol := map[TreeNodeInterface]int{}
-	colIndex := 0
-	var setCol func(tn TreeNodeInterface)
-	setCol = func(tn TreeNodeInterface) {
-		sortedChildren := slices.Clone(tree[tn])
-		sort.Slice(sortedChildren, func(i, j int) bool {
-			return maxCol[sortedChildren[i]] < maxCol[sortedChildren[j]]
-		})
-
-		for _, child := range sortedChildren {
-			setCol(child)
-		}
-		if len(tree[tn]) == 0 {
-			squaresCol[tn] = colIndex
-			colIndex++
-		}
-	}
-	setCol(ly.network)
-	return squaresCol
 }
