@@ -414,15 +414,20 @@ func (ly *layoutS) setSubnetsLocations(subnetMatrix [][]TreeNodeInterface, tnCol
 				for _, zone := range vpc.(*VpcTreeNode).zones {
 					ly.setDefaultLocation(zone, 0, tnCols[zone])
 					rowIndex := 0
-					for _, subnet := range zone.(*ZoneTreeNode).subnets {
-						if !locatedSubnets[subnet] {
-							for rowIndex < len(subnetMatrix) &&
-								colToMatrixCol[tnCols[zone]] < len(subnetMatrix[rowIndex]) &&
-								subnetMatrix[rowIndex][colToMatrixCol[tnCols[zone]]] != nil {
-								rowIndex++
-							}
+					if zoneMatrixCol, ok := colToMatrixCol[tnCols[zone]]; !ok {
+						for _, subnet := range zone.(*ZoneTreeNode).subnets {
 							ly.setDefaultLocation(subnet, rowIndex, tnCols[zone])
 							rowIndex++
+						}
+					} else {
+						for _, subnet := range zone.(*ZoneTreeNode).subnets {
+							if !locatedSubnets[subnet] {
+								for rowIndex < len(subnetMatrix) && subnetMatrix[rowIndex][zoneMatrixCol] != nil {
+									rowIndex++
+								}
+								ly.setDefaultLocation(subnet, rowIndex, tnCols[zone])
+								rowIndex++
+							}
 						}
 					}
 				}
