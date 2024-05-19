@@ -853,15 +853,14 @@ func (ly *subnetsLayout) setSquaresMatrix() {
 		}
 	}
 	for tn, _ := range squaresCol {
-		if _, ok := tn.(*SubnetTreeNode); ok {
-		} else if zone, ok := tn.(*ZoneTreeNode); ok && len(zone.subnets) > 0 {
+		if zone, ok := tn.(*ZoneTreeNode); ok && len(zone.subnets) > 0 {
 			rowIndex := 0
 			for _, subnet := range zone.subnets {
 				if !locatedSubnets[subnet] {
-					for ly.squaresMatrix[rowIndex][squaresCol[subnet]] != nil {
+					for ly.squaresMatrix[rowIndex][squaresCol[subnet.Parent()]] != nil {
 						rowIndex++
 					}
-					ly.squaresMatrix[rowIndex][squaresCol[subnet]] = subnet
+					ly.squaresMatrix[rowIndex][squaresCol[subnet.Parent()]] = subnet
 					rowIndex++
 				}
 			}
@@ -932,12 +931,5 @@ func (ly *subnetsLayout)squaresCol() map[TreeNodeInterface]int{
 		}
 	}
 	setCol(ly.network)
-	for tn, _ := range squaresCol {
-		if zone, ok := tn.(*ZoneTreeNode); ok {
-			for _, subnet := range zone.subnets {
-				squaresCol[subnet] = squaresCol[zone]
-			}
-		}
-	}
 	return squaresCol
 }
