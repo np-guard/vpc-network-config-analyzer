@@ -839,6 +839,42 @@ func (ly *subnetsLayout) canShowGroup(group *groupDataS) bool {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func (ly *subnetsLayout) setSquaresMatrix() {
+
+	tree := ly.genericTree()
+	squaresCol := ly.squaresCol(tree)
+	oldColToNew := map[int]int{}
+	for tn, col := range ly.zonesCol {
+		oldColToNew[col] = squaresCol[tn]
+	}
+	locatedSubnets := map[TreeNodeInterface]bool{}
+	for ri, row := range ly.subnetMatrix {
+		for ci, s := range row {
+			ly.squaresMatrix[ri][oldColToNew[ci]] = s
+			locatedSubnets[s] = true
+		}
+	}
+	for tn, _ := range squaresCol {
+		if _, ok := tn.(*SubnetTreeNode); ok {
+		} else if zone, ok := tn.(*ZoneTreeNode); ok && len(zone.subnets) > 0 {
+			rowIndex := 0
+			for _, subnet := range zone.subnets {
+				if !locatedSubnets[subnet] {
+					for ly.squaresMatrix[rowIndex][squaresCol[subnet]] != nil {
+						rowIndex++
+					}
+					ly.squaresMatrix[rowIndex][squaresCol[subnet]] = subnet
+					rowIndex++
+				}
+			}
+		} else if len(tree[tn]) == 0 {
+			ly.squaresMatrix[0][squaresCol[tn]] = tn
+		}
+
+	}
+}
+
+
+func (ly *subnetsLayout) genericTree() map[TreeNodeInterface][]SquareTreeNodeInterface{
 	tree := map[TreeNodeInterface][]SquareTreeNodeInterface{}
 	tree[ly.network] = slices.Clone(ly.network.(*NetworkTreeNode).clouds)
 	for _, cloud := range ly.network.(*NetworkTreeNode).clouds {
@@ -850,6 +886,10 @@ func (ly *subnetsLayout) setSquaresMatrix() {
 			}
 		}
 	}
+	return tree
+}
+
+func (ly *subnetsLayout)squaresCol(tree map[TreeNodeInterface][]SquareTreeNodeInterface) map[TreeNodeInterface]int{
 	maxCol := map[TreeNodeInterface]int{}
 	maxCol[ly.network] = 0
 	for _, children := range tree {
@@ -874,7 +914,7 @@ func (ly *subnetsLayout) setSquaresMatrix() {
 			maxCol[tn] = maxCol[ly.network] + 1
 		}
 	}
-	tnCol := map[TreeNodeInterface]int{}
+	squaresCol := map[TreeNodeInterface]int{}
 	colIndex := 0
 	var setCol func(tn TreeNodeInterface)
 	setCol = func(tn TreeNodeInterface) {
@@ -887,46 +927,17 @@ func (ly *subnetsLayout) setSquaresMatrix() {
 			setCol(child)
 		}
 		if len(tree[tn]) == 0 {
-			tnCol[tn] = colIndex
+			squaresCol[tn] = colIndex
 			colIndex++
 		}
 	}
 	setCol(ly.network)
-	for tn, _ := range tnCol {
+	for tn, _ := range squaresCol {
 		if zone, ok := tn.(*ZoneTreeNode); ok {
 			for _, subnet := range zone.subnets {
-				tnCol[subnet] = tnCol[zone]
+				squaresCol[subnet] = squaresCol[zone]
 			}
 		}
 	}
-	oldColToNew := map[int]int{}
-	for tn, col := range ly.zonesCol {
-		oldColToNew[col] = tnCol[tn]
-	}
-
-	locatedSubnets := map[TreeNodeInterface]bool{}
-	for ri, row := range ly.subnetMatrix {
-		for ci, s := range row {
-			ly.squaresMatrix[ri][oldColToNew[ci]] = s
-			locatedSubnets[s] = true
-		}
-	}
-	for tn, _ := range tnCol {
-		if _, ok := tn.(*SubnetTreeNode); ok {
-		} else if zone, ok := tn.(*ZoneTreeNode); ok && len(zone.subnets) > 0 {
-			rowIndex := 0
-			for _, subnet := range zone.subnets {
-				if !locatedSubnets[subnet] {
-					for ly.squaresMatrix[rowIndex][tnCol[subnet]] != nil {
-						rowIndex++
-					}
-					ly.squaresMatrix[rowIndex][tnCol[subnet]] = subnet
-					rowIndex++
-				}
-			}
-		} else if len(tree[tn]) == 0 {
-			ly.squaresMatrix[0][tnCol[tn]] = tn
-		}
-
-	}
+	return squaresCol
 }

@@ -323,12 +323,7 @@ func (ly *layoutS) layoutSubnetsIcons() {
 func (ly *layoutS) layoutSubnets() {
 	sly := newSubnetsLayout(ly.network)
 	sly.layout()
-	ly.setSubnetsLocations(sly.squaresMatrix)
-}
-
-
-func (ly *layoutS) setSubnetsLocations(squaresMatrix [][]TreeNodeInterface) {
-	for ri, row := range squaresMatrix {
+	for ri, row := range sly.squaresMatrix {
 		for ci, s := range row {
 			if s != nil {
 				ly.setDefaultLocation(s.(SquareTreeNodeInterface), ri, ci)
@@ -336,6 +331,8 @@ func (ly *layoutS) setSubnetsLocations(squaresMatrix [][]TreeNodeInterface) {
 		}
 	}
 }
+
+
 
 ////////////////////////////////////////////////////////////////////
 // resolveGroupedSubnetsOverlap() handles overlapping GroupSubnetsSquare.
