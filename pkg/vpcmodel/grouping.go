@@ -30,6 +30,7 @@ type explainDetails struct {
 	rules           *rulesConnection
 	externalRouter  RoutingResource
 	crossVpcRouter  RoutingResource
+	crossVpcRules   []RulesInTable
 	filtersRelevant map[string]bool
 	connEnabled     bool
 	ingressEnabled  bool
@@ -302,8 +303,8 @@ func (g *GroupConnLines) groupExternalAddressesForExplainability() error {
 		groupingStrKey := details.explanationEncode(g.config)
 		expDetails := &explainDetails{details.actualMergedRules,
 			details.externalRouter, details.crossVpcRouter,
-			details.filtersRelevant, details.connEnabled,
-			details.ingressEnabled, details.egressEnabled}
+			details.crossVpcRules, details.filtersRelevant,
+			details.connEnabled, details.ingressEnabled, details.egressEnabled}
 		err := g.addLineToExternalGrouping(&res, details.src, details.dst,
 			&groupedCommonProperties{conn: details.conn, expDetails: expDetails,
 				groupingStrKey: groupingStrKey})

@@ -603,7 +603,7 @@ var tests = []*vpcGeneralTest{
 	},
 	{
 		inputConfig: "load_balancer",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
 		grouping:    true,
 		format:      vpcmodel.HTML,
 	},
