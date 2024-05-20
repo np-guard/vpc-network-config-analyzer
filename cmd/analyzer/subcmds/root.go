@@ -59,7 +59,9 @@ type InArgs struct {
 	VpcConfigs            *vpcmodel.MultipleVPCConfigs
 }
 
-func NewRootCommand(args *InArgs) *cobra.Command {
+func NewRootCommand() *cobra.Command {
+	args := &InArgs{AnalysisType: vpcmodel.InvalidUseCase}
+
 	rootCmd := &cobra.Command{
 		Use:     "vpcanalyzer",
 		Short:   "vpcanalyzer is a CLI that analyzes network connectivity in VPCs",

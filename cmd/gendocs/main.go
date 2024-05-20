@@ -15,9 +15,7 @@ import (
 )
 
 func main() {
-	inArgs := &subcmds.InArgs{}
-
-	cmd := subcmds.NewRootCommand(inArgs)
+	cmd := subcmds.NewRootCommand()
 	cmd.DisableAutoGenTag = true
 
 	err := doc.GenMarkdownTree(cmd, ".")

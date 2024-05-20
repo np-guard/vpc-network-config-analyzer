@@ -11,15 +11,12 @@ import (
 	"os"
 
 	"github.com/np-guard/vpc-network-config-analyzer/cmd/analyzer/subcmds"
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
 // The actual main function
 // Takes command-line flags and returns an error rather than exiting, so it can be more easily used in testing
 func _main(cmdlineArgs []string) error {
-	inArgs := &subcmds.InArgs{AnalysisType: vpcmodel.InvalidUseCase}
-
-	rootCmd := subcmds.NewRootCommand(inArgs)
+	rootCmd := subcmds.NewRootCommand()
 	rootCmd.SetArgs(cmdlineArgs)
 	return rootCmd.Execute()
 }
