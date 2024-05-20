@@ -75,7 +75,11 @@ func NewRootCommand(args *InArgs) *cobra.Command {
 			logging.Init(verbosity) // initializes a thread-safe singleton logger
 		},
 		PersistentPostRunE: func(_ *cobra.Command, _ []string) error {
-			return buildConfigs(args)
+			err := buildConfigs(args)
+			if err != nil {
+				return err
+			}
+			return analysisVPCConfigs(args)
 		},
 	}
 
