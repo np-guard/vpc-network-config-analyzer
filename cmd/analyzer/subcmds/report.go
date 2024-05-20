@@ -67,15 +67,14 @@ func newReportSingleSubnetCommand(args *inArgs) *cobra.Command {
 		Short: "Report VPC connectivity per subnet",
 		Long:  `reports VPC connectivity per subnet as implied by the given cloud configuration`,
 		Args:  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, _ []string) error {
+		PreRunE: func(cmd *cobra.Command, _ []string) error {
 			if args.grouping {
 				return fmt.Errorf("currently single-subnet analysis type does not support grouping")
 			}
-			if err := validateFormatForMode(SingleSubnetCmd, []formatSetting{textFormat}, args); err != nil {
-				return err
-			}
+			return validateFormatForMode(SingleSubnetCmd, []formatSetting{textFormat}, args)
+		},
+		Run: func(cmd *cobra.Command, _ []string) {
 			args.analysisType = vpcmodel.SingleSubnet
-			return nil
 		},
 	}
 }

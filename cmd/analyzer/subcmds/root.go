@@ -4,6 +4,15 @@ Copyright 2023- IBM Inc. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 */
 
+//	package subcmds defines vpcanalyzer's subcommands, their flags and their behavior.
+//
+// We use the various Run methods of cobra.Command as follows (order corresponds to execution order).
+// 1. PersistentPreRun (root) - initialize logger
+// 2. PersistentPreRunE/PreRunE (subcommands and subsubcommands) - check flag validity
+// 3. Run (subcommands and subsubcommands) - set analysis mode
+// 4. PersistentPostRunE (root) - build vpc-configs and call the analyzer with parsed flag values
+//
+// This order prevents code duplication - all common code is in root; subcommand-specific code is in its subcommand
 package subcmds
 
 import (
