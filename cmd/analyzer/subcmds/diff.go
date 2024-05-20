@@ -14,7 +14,7 @@ import (
 
 const secondConfigFlag = "vpc-config-second"
 
-func NewDiffCommand(args *InArgs) *cobra.Command {
+func NewDiffCommand(args *inArgs) *cobra.Command {
 	const diffCmd = "diff"
 	cmd := &cobra.Command{
 		Use:   diffCmd,
@@ -26,7 +26,7 @@ func NewDiffCommand(args *InArgs) *cobra.Command {
 		},
 	}
 
-	cmd.PersistentFlags().StringVar(&args.InputSecondConfigFile, secondConfigFlag, "", "file path to the 2nd input config")
+	cmd.PersistentFlags().StringVar(&args.inputSecondConfigFile, secondConfigFlag, "", "file path to the 2nd input config")
 	_ = cmd.MarkPersistentFlagRequired(secondConfigFlag)
 
 	cmd.AddCommand(newDiffEndpointsCommand(args))
@@ -35,28 +35,26 @@ func NewDiffCommand(args *InArgs) *cobra.Command {
 	return cmd
 }
 
-func newDiffEndpointsCommand(args *InArgs) *cobra.Command {
+func newDiffEndpointsCommand(args *inArgs) *cobra.Command {
 	return &cobra.Command{
 		Use:   "endpoints",
 		Short: "Diff connectivity between endpoints",
 		Long:  `reports changes in endpoint connectivity between two VPC configurations`,
 		Args:  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, _ []string) error {
-			args.AnalysisType = vpcmodel.EndpointsDiff
-			return nil
+		Run: func(cmd *cobra.Command, _ []string) {
+			args.analysisType = vpcmodel.EndpointsDiff
 		},
 	}
 }
 
-func newDiffSubnetsCommand(args *InArgs) *cobra.Command {
+func newDiffSubnetsCommand(args *inArgs) *cobra.Command {
 	return &cobra.Command{
 		Use:   "subnets",
 		Short: "Diff connectivity between subnets",
 		Long:  `reports changes in subnet connectivity between two VPC configurations`,
 		Args:  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, _ []string) error {
-			args.AnalysisType = vpcmodel.SubnetsDiff
-			return nil
+		Run: func(cmd *cobra.Command, _ []string) {
+			args.analysisType = vpcmodel.SubnetsDiff
 		},
 	}
 }

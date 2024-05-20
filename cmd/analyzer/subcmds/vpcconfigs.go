@@ -49,7 +49,7 @@ func mergeResourcesContainers(rc1, rc2 *datamodel.ResourcesContainerModel) (*dat
 	return rc1, nil
 }
 
-func vpcConfigsFromFiles(fileNames []string, inArgs *InArgs) (*vpcmodel.MultipleVPCConfigs, error) {
+func vpcConfigsFromFiles(fileNames []string, inArgs *inArgs) (*vpcmodel.MultipleVPCConfigs, error) {
 	var mergedRC *datamodel.ResourcesContainerModel
 	for _, file := range fileNames {
 		rc, err1 := ibmvpc.ParseResourcesFromFile(file)
@@ -61,15 +61,15 @@ func vpcConfigsFromFiles(fileNames []string, inArgs *InArgs) (*vpcmodel.Multiple
 			return nil, err1
 		}
 	}
-	vpcConfigs, err2 := ibmvpc.VPCConfigsFromResources(mergedRC, inArgs.VPC, inArgs.ResourceGroup, inArgs.RegionList, inArgs.Debug)
+	vpcConfigs, err2 := ibmvpc.VPCConfigsFromResources(mergedRC, inArgs.vpc, inArgs.resourceGroup, inArgs.regionList, inArgs.debug)
 	if err2 != nil {
 		return nil, fmt.Errorf(errorFormat, inGenerationErr, err2)
 	}
 	return vpcConfigs, nil
 }
 
-func vpcConfigsFromAccount(inArgs *InArgs) (*vpcmodel.MultipleVPCConfigs, error) {
-	rc := factory.GetResourceContainer(string(inArgs.Provider), inArgs.RegionList, inArgs.ResourceGroup)
+func vpcConfigsFromAccount(inArgs *inArgs) (*vpcmodel.MultipleVPCConfigs, error) {
+	rc := factory.GetResourceContainer(string(inArgs.provider), inArgs.regionList, inArgs.resourceGroup)
 	// Collect resources from the provider API and generate output
 	err := rc.CollectResourcesFromAPI()
 	if err != nil {
@@ -81,19 +81,19 @@ func vpcConfigsFromAccount(inArgs *InArgs) (*vpcmodel.MultipleVPCConfigs, error)
 	if !ok {
 		return nil, fmt.Errorf("error casting resources to *datamodel.ResourcesContainerModel type")
 	}
-	vpcConfigs, err := ibmvpc.VPCConfigsFromResources(resources, inArgs.VPC, inArgs.ResourceGroup, inArgs.RegionList, inArgs.Debug)
+	vpcConfigs, err := ibmvpc.VPCConfigsFromResources(resources, inArgs.vpc, inArgs.resourceGroup, inArgs.regionList, inArgs.debug)
 	if err != nil {
 		return nil, err
 	}
 	// save collected resources in dump file
-	if inArgs.DumpResources != "" {
+	if inArgs.dumpResources != "" {
 		jsonString, err := resources.ToJSONString()
 		if err != nil {
 			return nil, err
 		}
-		log.Printf("Dumping collected resources to file: %s", inArgs.DumpResources)
+		log.Printf("Dumping collected resources to file: %s", inArgs.dumpResources)
 
-		file, err := os.Create(inArgs.DumpResources)
+		file, err := os.Create(inArgs.dumpResources)
 		if err != nil {
 			return nil, err
 		}
@@ -106,31 +106,31 @@ func vpcConfigsFromAccount(inArgs *InArgs) (*vpcmodel.MultipleVPCConfigs, error)
 	return vpcConfigs, nil
 }
 
-func buildConfigs(inArgs *InArgs) error {
+func buildConfigs(inArgs *inArgs) error {
 	var err error
-	if inArgs.Provider != "" {
-		inArgs.VpcConfigs, err = vpcConfigsFromAccount(inArgs)
+	if inArgs.provider != "" {
+		inArgs.vpcConfigs, err = vpcConfigsFromAccount(inArgs)
 		if err != nil {
 			return err
 		}
 	} else {
-		inArgs.VpcConfigs, err = vpcConfigsFromFiles(inArgs.InputConfigFileList, inArgs)
+		inArgs.vpcConfigs, err = vpcConfigsFromFiles(inArgs.inputConfigFileList, inArgs)
 		if err != nil {
 			return err
 		}
 	}
 
-	if inArgs.InputSecondConfigFile != "" {
-		vpcConfigsToCompare, err := vpcConfigsFromFiles([]string{inArgs.InputSecondConfigFile}, inArgs)
+	if inArgs.inputSecondConfigFile != "" {
+		vpcConfigsToCompare, err := vpcConfigsFromFiles([]string{inArgs.inputSecondConfigFile}, inArgs)
 		if err != nil {
 			return err
 		}
 		// we are in diff mode, checking we have only one config per file:
-		if len(inArgs.VpcConfigs.Configs()) != 1 || len(vpcConfigsToCompare.Configs()) != 1 {
+		if len(inArgs.vpcConfigs.Configs()) != 1 || len(vpcConfigsToCompare.Configs()) != 1 {
 			return fmt.Errorf("for diff mode %v a single configuration should be provided "+
-				"for both -vpc-config and -vpc-config-second", inArgs.AnalysisType)
+				"for both -vpc-config and -vpc-config-second", inArgs.analysisType)
 		}
-		inArgs.VpcConfigs.SetConfigsToCompare(vpcConfigsToCompare.Configs())
+		inArgs.vpcConfigs.SetConfigsToCompare(vpcConfigsToCompare.Configs())
 	}
 
 	return nil
