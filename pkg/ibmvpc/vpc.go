@@ -948,7 +948,7 @@ func (tgw *TransitGateway) stringPrefixFiltersVerbose(transitConn *datamodel.Tra
 			action = "blocks"
 		}
 		thisPrefixStr = fmt.Sprintf("transit gateway %s %s connection via transit connection %s "+
-			"with the following prefix\n\t%s\n", tgw.Name(), action, *transitConn.Name, tgwRouterFilterDetails)
+			"with the following prefix filter\n\t%s\n", tgw.Name(), action, *transitConn.Name, tgwRouterFilterDetails)
 		strRes = append(strRes, thisPrefixStr)
 	}
 	return strRes, nil

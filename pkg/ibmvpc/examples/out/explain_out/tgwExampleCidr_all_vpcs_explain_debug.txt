@@ -17,7 +17,7 @@ security group sg21-ky allows connection with the following allow rules
 network ACL acl21-ky allows connection with the following allow rules
 	index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 
-transit gateway local-tg-ky allows connection via transit connection tg_connection0 with the following prefix
+transit gateway local-tg-ky allows connection via transit connection tg_connection0 with the following prefix filter
 	index: 0, action: permit, prefix: 10.240.4.0/22
 
 Ingress:
@@ -44,7 +44,7 @@ security group sg21-ky allows connection with the following allow rules
 network ACL acl21-ky allows connection with the following allow rules
 	index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 
-transit gateway local-tg-ky allows connection via transit connection tg_connection0 with the following prefix
+transit gateway local-tg-ky allows connection via transit connection tg_connection0 with the following prefix filter
 	index: 0, action: permit, prefix: 10.240.4.0/22
 
 Ingress:
@@ -71,7 +71,7 @@ security group sg21-ky allows connection with the following allow rules
 network ACL acl21-ky allows connection with the following allow rules
 	index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 
-transit gateway local-tg-ky allows connection via transit connection tg_connection0 with the following prefix
+transit gateway local-tg-ky allows connection via transit connection tg_connection0 with the following prefix filter
 	index: 0, action: permit, prefix: 10.240.4.0/22
 
 Ingress:
@@ -98,7 +98,7 @@ security group sg21-ky allows connection with the following allow rules
 network ACL acl21-ky allows connection with the following allow rules
 	index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 
-transit gateway local-tg-ky allows connection via transit connection tg_connection0 with the following prefix
+transit gateway local-tg-ky allows connection via transit connection tg_connection0 with the following prefix filter
 	index: 0, action: permit, prefix: 10.240.4.0/22
 
 Ingress:
@@ -129,7 +129,7 @@ security group sg21-ky allows connection with the following allow rules
 network ACL acl21-ky allows connection with the following allow rules
 	index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 
-transit gateway local-tg-ky blocks connection via transit connection tg_connection0 with the following prefix
+transit gateway local-tg-ky blocks connection via transit connection tg_connection0 with the following prefix filter
 	index: 1, action: deny, ge: 22, le: 23, prefix: 10.240.0.0/21
 
 Ingress:
@@ -160,7 +160,7 @@ security group sg21-ky allows connection with the following allow rules
 network ACL acl21-ky allows connection with the following allow rules
 	index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 
-transit gateway local-tg-ky blocks connection via transit connection tg_connection0 with the following prefix
+transit gateway local-tg-ky blocks connection via transit connection tg_connection0 with the following prefix filter
 	index: 1, action: deny, ge: 22, le: 23, prefix: 10.240.0.0/21
 
 Ingress:
@@ -191,7 +191,7 @@ security group sg21-ky allows connection with the following allow rules
 network ACL acl21-ky allows connection with the following allow rules
 	index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 
-transit gateway local-tg-ky blocks connection via transit connection tg_connection0 with the following prefix
+transit gateway local-tg-ky blocks connection via transit connection tg_connection0 with the following prefix filter
 	index: 1, action: deny, ge: 22, le: 23, prefix: 10.240.0.0/21
 
 Ingress:
@@ -222,7 +222,7 @@ security group sg21-ky allows connection with the following allow rules
 network ACL acl21-ky allows connection with the following allow rules
 	index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 
-transit gateway local-tg-ky blocks connection via transit connection tg_connection0 with the following prefix
+transit gateway local-tg-ky blocks connection via transit connection tg_connection0 with the following prefix filter
 	index: 1, action: deny, ge: 22, le: 23, prefix: 10.240.0.0/21
 
 Ingress:
