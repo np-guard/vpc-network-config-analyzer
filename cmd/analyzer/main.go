@@ -16,7 +16,6 @@ import (
 
 	"github.com/np-guard/vpc-network-config-analyzer/cmd/analyzer/subcmds"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/ibmvpc"
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -136,17 +135,6 @@ func vpcConfigsFromAccount(inArgs *subcmds.InArgs) (*vpcmodel.MultipleVPCConfigs
 	return vpcConfigs, nil
 }
 
-// returns verbosity level based on the -quiet and -verbose switches
-func getVerbosity(args *subcmds.InArgs) logging.Verbosity {
-	verbosity := logging.MediumVerbosity
-	if args.Quiet {
-		verbosity = logging.LowVerbosity
-	} else if args.Verbose {
-		verbosity = logging.HighVerbosity
-	}
-	return verbosity
-}
-
 // The actual main function
 // Takes command-line flags and returns an error rather than exiting, so it can be more easily used in testing
 func _main(cmdlineArgs []string) error {
@@ -165,9 +153,6 @@ func _main(cmdlineArgs []string) error {
 		}
 		return fmt.Errorf("command is missing or not available")
 	}
-
-	// initializes a thread-safe singleton logger
-	logging.Init(getVerbosity(inArgs))
 
 	var vpcConfigs *vpcmodel.MultipleVPCConfigs
 	if inArgs.Provider != "" {

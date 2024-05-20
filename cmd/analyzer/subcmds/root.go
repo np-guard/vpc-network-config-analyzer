@@ -12,6 +12,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/version"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
@@ -63,6 +64,15 @@ func NewRootCommand(args *InArgs) *cobra.Command {
 		Short:   "vpcanalyzer is a CLI that analyzes network connectivity in VPCs",
 		Long:    `vpcanalyzer analyzes VPC connectivity as set by the given cloud configuration.`,
 		Version: version.VersionCore,
+		PersistentPreRun: func(_ *cobra.Command, _ []string) {
+			verbosity := logging.MediumVerbosity
+			if args.Quiet {
+				verbosity = logging.LowVerbosity
+			} else if args.Verbose {
+				verbosity = logging.HighVerbosity
+			}
+			logging.Init(verbosity) // initializes a thread-safe singleton logger
+		},
 	}
 
 	rootCmd.PersistentFlags().StringArrayVarP(&args.InputConfigFileList, vpcConfigFlag, "c", nil,
@@ -94,6 +104,8 @@ func NewRootCommand(args *InArgs) *cobra.Command {
 	rootCmd.AddCommand(NewExplainCommand(args))
 	rootCmd.CompletionOptions.HiddenDefaultCmd = true
 	rootCmd.SetHelpCommand(&cobra.Command{Hidden: true}) // disable help command. should use --help flag instead
+
+	cobra.EnableTraverseRunHooks = true
 
 	return rootCmd
 }
