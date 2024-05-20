@@ -21,8 +21,6 @@ import (
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-const newline = "\n"
-
 func getNodeName(name, addr string) string {
 	return fmt.Sprintf("%s[%s]", name, addr)
 }
@@ -335,8 +333,8 @@ func (nl *NaclLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool)
 
 // RulesInConnectivity list of NACL rules contributing to the connectivity
 func (nl *NaclLayer) RulesInConnectivity(src, dst vpcmodel.Node,
-	conn *connection.Set, isIngress bool) (allowRes []vpcmodel.RulesInFilter,
-	denyRes []vpcmodel.RulesInFilter, err error) {
+	conn *connection.Set, isIngress bool) (allowRes []vpcmodel.RulesInTable,
+	denyRes []vpcmodel.RulesInTable, err error) {
 	for index, nacl := range nl.naclList {
 		tableRelevant, allowRules, denyRules, err1 := nacl.rulesFilterInConnectivity(src, dst, conn, isIngress)
 		if err1 != nil {
@@ -355,7 +353,7 @@ func (nl *NaclLayer) Name() string {
 	return ""
 }
 
-func appendToRulesInFilter(resRulesInFilter *[]vpcmodel.RulesInFilter, rules *[]int, filterIndex int, isAllow bool) {
+func appendToRulesInFilter(resRulesInFilter *[]vpcmodel.RulesInTable, rules *[]int, filterIndex int, isAllow bool) {
 	var rType vpcmodel.RulesType
 	switch {
 	case len(*rules) == 0:
@@ -365,31 +363,31 @@ func appendToRulesInFilter(resRulesInFilter *[]vpcmodel.RulesInFilter, rules *[]
 	default: // more than 0 deny rules
 		rType = vpcmodel.OnlyDeny
 	}
-	rulesInNacl := vpcmodel.RulesInFilter{
-		Filter:          filterIndex,
-		Rules:           *rules,
-		RulesFilterType: rType,
+	rulesInNacl := vpcmodel.RulesInTable{
+		Table:       filterIndex,
+		Rules:       *rules,
+		RulesOfType: rType,
 	}
 	*resRulesInFilter = append(*resRulesInFilter, rulesInNacl)
 }
 
-func (nl *NaclLayer) StringDetailsRulesOfFilter(listRulesInFilter []vpcmodel.RulesInFilter) string {
+func (nl *NaclLayer) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInTable) string {
 	strListRulesInFilter := ""
 	for _, rulesInFilter := range listRulesInFilter {
-		nacl := nl.naclList[rulesInFilter.Filter]
-		header := getHeaderRulesType(vpcmodel.FilterKindName(nl.Kind())+" "+nacl.Name(), rulesInFilter.RulesFilterType) +
+		nacl := nl.naclList[rulesInFilter.Table]
+		header := getHeaderRulesType(vpcmodel.FilterKindName(nl.Kind())+" "+nacl.Name(), rulesInFilter.RulesOfType) +
 			nacl.analyzer.StringRules(rulesInFilter.Rules)
 		strListRulesInFilter += header
 	}
 	return strListRulesInFilter
 }
 
-func (nl *NaclLayer) ListFilterWithAction(listRulesInFilter []vpcmodel.RulesInFilter) (filters map[string]bool) {
+func (nl *NaclLayer) ListFilterWithAction(listRulesInFilter []vpcmodel.RulesInTable) (filters map[string]bool) {
 	filters = map[string]bool{}
 	for _, rulesInFilter := range listRulesInFilter {
-		nacl := nl.naclList[rulesInFilter.Filter]
+		nacl := nl.naclList[rulesInFilter.Table]
 		name := nacl.Name()
-		filters[name] = getFilterAction(rulesInFilter.RulesFilterType)
+		filters[name] = getFilterAction(rulesInFilter.RulesOfType)
 	}
 	return filters
 }
@@ -552,8 +550,8 @@ func (sgl *SecurityGroupLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIng
 // or between src and dst of connection conn if conn specified
 // denyRules not relevant here - returns nil
 func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
-	conn *connection.Set, isIngress bool) (allowRes []vpcmodel.RulesInFilter,
-	denyRes []vpcmodel.RulesInFilter, err error) {
+	conn *connection.Set, isIngress bool) (allowRes []vpcmodel.RulesInTable,
+	denyRes []vpcmodel.RulesInTable, err error) {
 	for index, sg := range sgl.sgList {
 		tableRelevant, sgRules, err1 := sg.rulesFilterInConnectivity(src, dst, conn, isIngress)
 		if err1 != nil {
@@ -564,10 +562,10 @@ func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 			if len(sgRules) == 0 {
 				rType = vpcmodel.NoRules
 			}
-			rulesInSg := vpcmodel.RulesInFilter{
-				Filter:          index,
-				Rules:           sgRules,
-				RulesFilterType: rType,
+			rulesInSg := vpcmodel.RulesInTable{
+				Table:       index,
+				Rules:       sgRules,
+				RulesOfType: rType,
 			}
 			allowRes = append(allowRes, rulesInSg)
 		}
@@ -575,23 +573,23 @@ func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 	return allowRes, nil, nil
 }
 
-func (sgl *SecurityGroupLayer) StringDetailsRulesOfFilter(listRulesInFilter []vpcmodel.RulesInFilter) string {
+func (sgl *SecurityGroupLayer) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInTable) string {
 	listRulesInFilterSlice := make([]string, len(listRulesInFilter))
 	for i, rulesInFilter := range listRulesInFilter {
-		sg := sgl.sgList[rulesInFilter.Filter]
-		listRulesInFilterSlice[i] = getHeaderRulesType(vpcmodel.FilterKindName(sgl.Kind())+" "+sg.Name(), rulesInFilter.RulesFilterType) +
+		sg := sgl.sgList[rulesInFilter.Table]
+		listRulesInFilterSlice[i] = getHeaderRulesType(vpcmodel.FilterKindName(sgl.Kind())+" "+sg.Name(), rulesInFilter.RulesOfType) +
 			sg.analyzer.StringRules(rulesInFilter.Rules)
 	}
 	sort.Strings(listRulesInFilterSlice)
 	return strings.Join(listRulesInFilterSlice, "")
 }
 
-func (sgl *SecurityGroupLayer) ListFilterWithAction(listRulesInFilter []vpcmodel.RulesInFilter) (filters map[string]bool) {
+func (sgl *SecurityGroupLayer) ListFilterWithAction(listRulesInFilter []vpcmodel.RulesInTable) (filters map[string]bool) {
 	filters = map[string]bool{}
 	for _, rulesInFilter := range listRulesInFilter {
-		sg := sgl.sgList[rulesInFilter.Filter]
+		sg := sgl.sgList[rulesInFilter.Table]
 		name := sg.Name()
-		filters[name] = getFilterAction(rulesInFilter.RulesFilterType)
+		filters[name] = getFilterAction(rulesInFilter.RulesOfType)
 	}
 	return filters
 }
@@ -696,7 +694,12 @@ func (fip *FloatingIP) ExternalIP() string {
 	return fip.cidr
 }
 
-func (fip *FloatingIP) StringPrefixDetails(src, dst vpcmodel.Node, verbose bool) (string, error) {
+func (fip *FloatingIP) RulesInConnectivity(src, dst vpcmodel.Node) []vpcmodel.RulesInTable {
+	return nil
+}
+
+func (fip *FloatingIP) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInTable,
+	verbose bool) (string, error) {
 	return "", nil
 }
 
@@ -751,21 +754,13 @@ func (pgw *PublicGateway) AppliedFiltersKinds() map[string]bool {
 	return map[string]bool{vpcmodel.NaclLayer: true, vpcmodel.SecurityGroupLayer: true}
 }
 
-func (pgw *PublicGateway) StringPrefixDetails(src, dst vpcmodel.Node, verbose bool) (string, error) {
+func (pgw *PublicGateway) RulesInConnectivity(src, dst vpcmodel.Node) []vpcmodel.RulesInTable {
+	return nil
+}
+
+func (pgw *PublicGateway) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInTable,
+	verbose bool) (string, error) {
 	return "", nil
-}
-
-// a tgw prefix filter (for explainability)
-type tgwPrefixFilter struct {
-	tc    *datamodel.TransitConnection // the TransitConnection  where this filter is defined
-	index int                          // the index of this prefix filter within the TransitConnection's filters list
-	// value -1  refers to the default prefix filter
-}
-
-// IPBlockPrefixFilter  captures for a certain address-prefix, the details of its matching prefix-filter
-type IPBlockPrefixFilter struct {
-	IPBlock      *ipblock.IPBlock // the IPBlock of the address-prefix
-	prefixFilter tgwPrefixFilter  // the matching tgw prefix filter for this address-prefix
 }
 
 type TransitGateway struct {
@@ -773,6 +768,9 @@ type TransitGateway struct {
 
 	// vpcs are the VPCs connected by a TGW
 	vpcs []*VPC
+
+	// list of all transit connections (not only those relevant to this TransitGateway)
+	tgwConnList []*datamodel.TransitConnection
 
 	// availableRoutes are the published address prefixes from all connected vpcs that arrive at the TGW's table of available routes,
 	// as considered from prefix filters: map from vpc UID to its available routes in the routes table
@@ -791,11 +789,11 @@ type TransitGateway struct {
 
 	region *Region
 
-	// maps each VPC UID to a slice - listing for each of its AP (as IPBlock) details of the matching filter
-	// Specifically, these details include the specific transit connection and the index of the matching
-	// filter if exists (index "-1" is for default )
+	// maps each VPC UID to the details of the matching filters
+	// these details includes map of each relevant IPBlock to the transit connection (its index in the tgwConnList)
+	// and the index of the matching filter in the transit connection if exists (index "-1" is for default )
 	// this struct can be though of as the "explain" parallel of availableRoutes; note that unlike availableRoutes it also lists deny prefixes
-	vpcsAPToFilters map[string][]IPBlockPrefixFilter
+	vpcsAPToPrefixRules map[string]map[*ipblock.IPBlock]vpcmodel.RulesInTable
 }
 
 func (tgw *TransitGateway) addSourceAndDestNodes() {
@@ -840,40 +838,42 @@ func (tgw *TransitGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf
 
 func (tgw *TransitGateway) RouterDefined(src, dst vpcmodel.Node) bool {
 	// destination node has a transit gateway connection iff a prefix filter (possibly default) is defined for it
-	dstNodeHasTgw := tgw.prefixOfSrcDst(src, dst) != nil
+	dstNodeHasTgw := len(tgw.RulesInConnectivity(src, dst)) > 0
 	return vpcmodel.HasNode(tgw.sourceNodes, src) && dstNodeHasTgw
 }
 
 // gets a string description of prefix indexed "index" from TransitGateway tgw
-func prefixDefaultStr(tc *datamodel.TransitConnection) (string, error) {
+//
+//nolint:gocritic // no need to name return values. too short
+func prefixDefaultStr(tc *datamodel.TransitConnection) (string, string, error) {
 	actionName, err := actionNameStr(tc.PrefixFiltersDefault)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
-	return fmt.Sprintf(" default prefix,  action: %s", actionName), nil
+	return fmt.Sprintf("default prefix,  action: %s", actionName), actionName, nil
 }
 
-func (tgw *TransitGateway) tgwPrefixStr(prefix tgwPrefixFilter) (string, error) {
+func (tgw *TransitGateway) tgwPrefixStr(tc *datamodel.TransitConnection,
+	prefixIndx int) (resStr, actionName string, err error) {
 	// Array of prefix route filters for a transit gateway connection. This is order dependent with those first in the
 	// array being applied first, and those at the end of the array is applied last, or just before the default.
-	resStr := fmt.Sprintf("transit-connection: %s", *prefix.tc.Name)
-	if prefix.index == defaultPrefixFilter { // default
-		defaultStr, err := prefixDefaultStr(prefix.tc)
+	if prefixIndx == defaultPrefixFilter { // default
+		defaultStr, actionName, err := prefixDefaultStr(tc)
 		if err != nil {
-			return "", err
+			return "", "", err
 		}
-		return resStr + defaultStr, nil
+		return resStr + defaultStr, actionName, nil
 	}
-	if len(prefix.tc.PrefixFilters) < prefix.index+1 {
-		return "", fmt.Errorf("np-guard error: prefix index %d does not exists in transit connection %s of transit gateway %s",
-			prefix.index, *prefix.tc.Name, tgw.Name())
+	if len(tc.PrefixFilters) < prefixIndx+1 {
+		return "", "", fmt.Errorf("np-guard error: prefix index %d does not exists in transit connection %s of transit gateway %s",
+			prefixIndx, *tc.Name, tgw.Name())
 	}
-	prefixFilter := prefix.tc.PrefixFilters[prefix.index]
-	actionName, err := actionNameStr(prefixFilter.Action)
+	prefixFilter := tc.PrefixFilters[prefixIndx]
+	actionName, err = actionNameStr(prefixFilter.Action)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
-	resStr += fmt.Sprintf(", index: %v, action: %s", prefix.index, actionName)
+	resStr += fmt.Sprintf("index: %v, action: %s", prefixIndx, actionName)
 	if prefixFilter.Ge != nil {
 		resStr += fmt.Sprintf(", ge: %v", *prefixFilter.Ge)
 	}
@@ -881,7 +881,7 @@ func (tgw *TransitGateway) tgwPrefixStr(prefix tgwPrefixFilter) (string, error) 
 		resStr += fmt.Sprintf(", le: %v", *prefixFilter.Le)
 	}
 	resStr += fmt.Sprintf(", prefix: %s", *prefixFilter.Prefix)
-	return resStr, nil
+	return resStr, actionName, nil
 }
 
 // for an action of type *string as stored in *datamodel.TransitConnection returns allow/deny
@@ -896,40 +896,80 @@ func actionNameStr(action *string) (string, error) {
 	return denyAction, nil
 }
 
-func (tgw *TransitGateway) StringPrefixDetails(src, dst vpcmodel.Node, verbose bool) (string, error) {
-	prefix := tgw.prefixOfSrcDst(src, dst)
-	transitEnablesConn := vpcmodel.HasNode(tgw.sourceNodes, src) && vpcmodel.HasNode(tgw.destNodes, dst)
-	if verbose {
-		tgwRouterFilterDetails, err := tgw.tgwPrefixStr(*prefix)
-		if err != nil {
-			return "", err
-		}
-		action := "blocks"
-		if transitEnablesConn {
-			action = "allows"
-		}
-		return fmt.Sprintf("transit gateway %s %s connection with the following prefix\n\t%s\n\n",
-			tgw.Name(), action, tgwRouterFilterDetails), nil
-	}
-	noVerboseStr := fmt.Sprintf("cross-vpc-connection: transit-connection %s of transit-gateway %s ", *prefix.tc.Name, tgw.Name())
-	if transitEnablesConn {
-		return noVerboseStr + "allows connection" + newline, nil
-	}
-	return noVerboseStr + "denies connection" + newline, nil
-}
-
-func (tgw *TransitGateway) prefixOfSrcDst(src, dst vpcmodel.Node) *tgwPrefixFilter {
-	// <src, dst> routed by tgw given that source is in the tgw,
-	// and there is a prefix filter defined for the dst,
+// RulesInConnectivity returns the prefix filters relevant for <src, dst>.
+// src/dst could be a cidr, so for a single <src,dst> query there could be more than one relevant prefix filter
+// (in a single transit connection)
+// However, each src/dst maps to a set of endpoints (Nodes) and the query is for the Cartesian product of these.
+// Specifically, this functionality is between <src, dst> where each is a single endpoint (single IP addr)
+// and prefix filter rules do not include protocol or ports (unlike nacls and sgs)
+// Thus, for each such <src, dst> there is a single prefix filter
+func (tgw *TransitGateway) RulesInConnectivity(src, dst vpcmodel.Node) []vpcmodel.RulesInTable {
+	// <src, dst> routed by tgw given that source is in the tgw, and there is a prefix filter defined for the dst,
 	// the relevant prefix filter is determined by match of the Address prefix the dest's node is in (including default)
+	// Note, again, that for each (src, dst vpcmodel.Node) there is a single prefix filter
 	if vpcmodel.HasNode(tgw.sourceNodes, src) {
-		for _, singleIPBlockPrefix := range tgw.vpcsAPToFilters[dst.VPC().UID()] {
-			if dst.IPBlock().ContainedIn(singleIPBlockPrefix.IPBlock) {
-				return &singleIPBlockPrefix.prefixFilter
+		for ipBlock, transitConnectionPrefixes := range tgw.vpcsAPToPrefixRules[dst.VPC().UID()] {
+			if !dst.IPBlock().Intersect(ipBlock).IsEmpty() {
+				return []vpcmodel.RulesInTable{transitConnectionPrefixes}
 			}
 		}
 	}
-	return nil
+	return nil // should never get here
+}
+
+func (tgw *TransitGateway) StringDetailsOfRules(listRulesInTransitConns []vpcmodel.RulesInTable, verbose bool) (string, error) {
+	strRes := []string{}
+	for _, prefixesInTransitConn := range listRulesInTransitConns {
+		transitConn := tgw.tgwConnList[prefixesInTransitConn.Table]
+		if verbose {
+			verboseStr, err := tgw.stringPrefixFiltersVerbose(transitConn, prefixesInTransitConn)
+			if err != nil {
+				return "", err
+			}
+			strRes = append(strRes, verboseStr...)
+		} else {
+			strRes = append(strRes, tgw.stringPrefixFiltersNoVerbose(transitConn, prefixesInTransitConn.RulesOfType))
+		}
+	}
+	sort.Strings(strRes)
+	return strings.Join(strRes, "\n") + "\n", nil
+}
+
+// given a transit connection and a list of the relevant prefix in the connections, prints the relevant prefix details
+func (tgw *TransitGateway) stringPrefixFiltersVerbose(transitConn *datamodel.TransitConnection,
+	prefixesInTransitConn vpcmodel.RulesInTable) ([]string, error) {
+	strRes := []string{}
+	for _, prefixInTransConnIndx := range prefixesInTransitConn.Rules {
+		thisPrefixStr := ""
+		tgwRouterFilterDetails, actionName, err := tgw.tgwPrefixStr(transitConn, prefixInTransConnIndx)
+		if err != nil {
+			return nil, err
+		}
+		action := ""
+		if actionName == permitAction {
+			action = "allows"
+		} else {
+			action = "blocks"
+		}
+		thisPrefixStr = fmt.Sprintf("transit gateway %s %s connection via transit connection %s "+
+			"with the following prefix filter\n\t%s\n", tgw.Name(), action, *transitConn.Name, tgwRouterFilterDetails)
+		strRes = append(strRes, thisPrefixStr)
+	}
+	return strRes, nil
+}
+
+// given a transit connection and the effect (onlyDeny/onlyAllow) of this transit gateway on queried <src, dst> ,
+// prints a matching non-verbose header
+func (tgw *TransitGateway) stringPrefixFiltersNoVerbose(transitConn *datamodel.TransitConnection,
+	rulesType vpcmodel.RulesType) string {
+	noVerboseStr := fmt.Sprintf("cross-vpc-connection: transit-connection %s of transit-gateway %s ", *transitConn.Name, tgw.Name())
+	switch rulesType {
+	case vpcmodel.OnlyAllow:
+		return noVerboseStr + "allows connection"
+	case vpcmodel.OnlyDeny:
+		return noVerboseStr + "denies connection"
+	}
+	return "" // should never get here
 }
 
 // AppliedFiltersKinds todo: currently not used
