@@ -112,7 +112,7 @@ func (c *VPCConfig) getNodesFromEndpoint(endpoint EndpointElem) ([]Node, error) 
 // (4) src and dst are internal nodes from different vpcs and has a multivpc connection: {src,dst,multiVpcConfig}
 // (5) src and dst are internal nodes from different vpcs and has no connection:         {src,dst,nil}
 func CreateMultiExplanationsInput(
-	cConfigs MultipleVPCConfigs,
+	cConfigs *MultipleVPCConfigs,
 	vpcConns map[string]*VPCConnectivity,
 	gConns map[string]*GroupConnLines) []explainInputEntry {
 	internalNodes, externalNodes := collectNodesForExplanation(cConfigs, gConns)
@@ -137,11 +137,11 @@ func CreateMultiExplanationsInput(
 	return explanationsInput
 }
 
-func collectNodesForExplanation(cConfigs MultipleVPCConfigs, conns map[string]*GroupConnLines) (
+func collectNodesForExplanation(cConfigs *MultipleVPCConfigs, conns map[string]*GroupConnLines) (
 	internalNodes map[EndpointElem]*VPCConfig, externalNodes map[EndpointElem]bool) {
 	internalNodes = map[EndpointElem]*VPCConfig{}
 	externalNodes = map[EndpointElem]bool{}
-	for _, vpcConfig := range cConfigs {
+	for _, vpcConfig := range cConfigs.Configs() {
 		if !vpcConfig.IsMultipleVPCsConfig {
 			for _, n := range vpcConfig.Nodes {
 				if !n.IsExternal() {
@@ -165,9 +165,9 @@ func collectNodesForExplanation(cConfigs MultipleVPCConfigs, conns map[string]*G
 }
 
 func collectMultiConnectionsForExplanation(
-	cConfigs MultipleVPCConfigs, conns map[string]*VPCConnectivity) map[EndpointElem]map[EndpointElem]*VPCConfig {
+	cConfigs *MultipleVPCConfigs, conns map[string]*VPCConnectivity) map[EndpointElem]map[EndpointElem]*VPCConfig {
 	multiVpcConnections := map[EndpointElem]map[EndpointElem]*VPCConfig{}
-	for vpcUID, vpcConfig := range cConfigs {
+	for vpcUID, vpcConfig := range cConfigs.Configs() {
 		if vpcConfig.IsMultipleVPCsConfig {
 			for src, dsts := range conns[vpcUID].AllowedConnsCombined {
 				for dst := range dsts {

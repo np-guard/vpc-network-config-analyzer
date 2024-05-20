@@ -13,7 +13,7 @@ Details:
 Egress:
 security group sg2-ky allows connection with the following allow rules
 	index: 5, direction: outbound,  conns: protocol: all, remote: 10.240.30.0/24, local: 0.0.0.0/0
-	index: 6, direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, remote: 10.240.20.4/32,10.240.30.4/32, local: 0.0.0.0/0
+	index: 6, direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, remote: sg2-ky (10.240.20.4/32,10.240.30.4/32), local: 0.0.0.0/0
 network ACL acl2-ky allows connection with the following allow rules
 	index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 
@@ -21,7 +21,7 @@ Ingress:
 network ACL acl3-ky allows connection with the following allow rules
 	index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 security group sg2-ky allows connection with the following allow rules
-	index: 7, direction: inbound,  conns: protocol: tcp,  dstPorts: 1-65535, remote: 10.240.20.4/32,10.240.30.4/32, local: 0.0.0.0/0
+	index: 7, direction: inbound,  conns: protocol: tcp,  dstPorts: 1-65535, remote: sg2-ky (10.240.20.4/32,10.240.30.4/32), local: 0.0.0.0/0
 
 ------------------------------------------------------------------------------------------------------------------------
 

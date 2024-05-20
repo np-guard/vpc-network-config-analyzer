@@ -20,7 +20,8 @@ import (
 // (1) compute AllowedConns (map[Node]*ConnectivityResult) : ingress or egress allowed conns separately
 // (2) compute AllowedConnsCombined (map[Node]map[Node]*connection.Set) : allowed conns considering both ingress and egress directions
 // (3) compute AllowedConnsCombinedStateful : stateful allowed connections, for which connection in reverse direction is also allowed
-// (4) if grouping required - compute grouping of connectivity results
+// (4) if lbAbstraction required - abstract each lb separately
+// (5) if grouping required - compute grouping of connectivity results
 func (c *VPCConfig) GetVPCNetworkConnectivity(grouping, lbAbstraction bool) (res *VPCConnectivity, err error) {
 	res = &VPCConnectivity{
 		AllowedConns:         map[Node]*ConnectivityResult{},
@@ -68,13 +69,13 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping, lbAbstraction bool) (res
 	return res, err
 }
 
-func (c *VPCConfig) allowedWithLBConnectivity(src, dst Node) bool {
+func (c *VPCConfig) deniedWithLBConnectivity(src, dst Node) bool {
 	for _, lb := range c.LoadBalancers {
-		if !lb.AllowConnectivity(src, dst) {
-			return false
+		if lb.DenyConnectivity(src, dst) {
+			return true
 		}
 	}
-	return true
+	return false
 }
 
 func (c *VPCConfig) getFiltersAllowedConnsBetweenNodesPerDirectionAndLayer(
@@ -116,7 +117,7 @@ func (c *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 			continue
 		}
 		src, dst := switchSrcDstNodes(!isIngress, peerNode, capturedNode)
-		if !c.allowedWithLBConnectivity(src, dst) {
+		if c.deniedWithLBConnectivity(src, dst) {
 			allLayersRes[peerNode] = NoConns()
 			continue
 		}

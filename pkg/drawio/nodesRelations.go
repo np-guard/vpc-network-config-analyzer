@@ -67,9 +67,9 @@ func nodeParents(node TreeNodeInterface) []TreeNodeInterface {
 
 // nodeSubTree() - return the subtree - basically, all the subtree of a square is presented with the square
 func nodeSubTree(node TreeNodeInterface) []TreeNodeInterface {
-	nodes := getAllSquares(node)
+	nodes := getAllSquaresAsTNs(node)
 	for _, icon := range getAllIcons(node) {
-		if !icon.(IconTreeNodeInterface).IsGroupingPoint() {
+		if !icon.IsGroupingPoint() {
 			nodes = append(nodes, icon)
 		}
 	}

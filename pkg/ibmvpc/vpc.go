@@ -58,16 +58,26 @@ func (r *ReservedIP) Name() string {
 	return getNodeName(r.vpe, r.Address())
 }
 
-// ReservedIP implements vpcmodel.Node interface
+func (r *ReservedIP) ExtendedName(c *vpcmodel.VPCConfig) string {
+	return r.ExtendedPrefix(c) + r.Name()
+}
+
+// PrivateIP implements vpcmodel.Node interface
 type PrivateIP struct {
 	vpcmodel.VPCResource
 	vpcmodel.InternalNode
 	loadBalancer *LoadBalancer
-	original     bool
+	// Since not all the LB balancer has a private IP, we create fake Private IPs at the subnets that do not have one.
+	// original - does the private IP was originally at the config file, or it is a fake one
+	original bool
 }
 
 func (pip *PrivateIP) Name() string {
 	return getNodeName(pip.loadBalancer.Name(), pip.Address())
+}
+
+func (pip *PrivateIP) ExtendedName(c *vpcmodel.VPCConfig) string {
+	return pip.ExtendedPrefix(c) + pip.Name()
 }
 
 // NetworkInterface implements vpcmodel.Node interface
@@ -85,6 +95,10 @@ func (ni *NetworkInterface) Name() string {
 	return getNodeName(ni.vsi, ni.Address())
 }
 
+func (ni *NetworkInterface) ExtendedName(c *vpcmodel.VPCConfig) string {
+	return ni.ExtendedPrefix(c) + ni.Name()
+}
+
 // IKSNode implements vpcmodel.Node interface
 type IKSNode struct {
 	vpcmodel.VPCResource
@@ -97,6 +111,10 @@ func (n *IKSNode) VsiName() string {
 
 func (n *IKSNode) Name() string {
 	return getNodeName(n.ResourceName, n.Address())
+}
+
+func (n *IKSNode) ExtendedName(c *vpcmodel.VPCConfig) string {
+	return n.ExtendedPrefix(c) + n.Name()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -119,8 +137,8 @@ func (v *VPC) Region() *Region {
 	return v.region
 }
 
-func (v *VPC) AddressPrefixes() []string {
-	return v.addressPrefixes
+func (v *VPC) AddressPrefixes() *ipblock.IPBlock {
+	return v.addressPrefixesIPBlock
 }
 
 func (v *VPC) getZoneByName(name string) (*Zone, error) {
@@ -214,10 +232,10 @@ func (v *Vpe) Zone() (*Zone, error) {
 	return nil, nil
 }
 
-// //////////////////////////////////////////
+// LoadBalancerPool //////////////////////////////////////////
 // Load Balancer
 // the nodes are the private IPs
-// for now the listeners holds the pools that holds the backend servers
+// for now the listeners hold the pools that holds the backend servers (aka pool members)
 // todo - implement more...
 type LoadBalancerPool []vpcmodel.Node
 type LoadBalancerListener []LoadBalancerPool
@@ -235,17 +253,19 @@ func (lb *LoadBalancer) AddressRange() *ipblock.IPBlock {
 	return nodesAddressRange(lb.nodes)
 }
 
-// AllowConnectivity() - check if lb allow connection from src to dst
+// DenyConnectivity - check if lb denies connection from src to dst
 // currently only a boolean function, will be elaborated when parsing policies rules
-func (lb *LoadBalancer) AllowConnectivity(src, dst vpcmodel.Node) bool {
-	return !slices.Contains(lb.Nodes(), src) || slices.Contains(lb.members(), dst)
+func (lb *LoadBalancer) DenyConnectivity(src, dst vpcmodel.Node) bool {
+	// currently, we do not allow connections from privateIP to a destination that is not a pool member
+	return slices.Contains(lb.Nodes(), src) && !slices.Contains(lb.members(), dst)
 }
 
+// for now the listeners hold the pools that holds the backend servers (aka pool members)
 func (lb *LoadBalancer) members() []vpcmodel.Node {
 	res := []vpcmodel.Node{}
 	for _, l := range lb.listeners {
-		for _, p := range l {
-			res = append(res, p...)
+		for _, pool := range l {
+			res = append(res, pool...)
 		}
 	}
 	return res
@@ -588,26 +608,36 @@ type SecurityGroup struct {
 }
 
 func (sg *SecurityGroup) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *connection.Set {
-	memberStrAddress, targetIPBlock := sg.getMemberTargetStrAddress(src, dst, isIngress)
+	memberIPBlock, targetIPBlock, memberStrAddress := sg.getMemberTargetStrAddress(src, dst, isIngress)
 	if _, ok := sg.members[memberStrAddress]; !ok {
 		return connection.None() // connectivity not affected by this SG resource - input node is not its member
 	}
-	return sg.analyzer.AllowedConnectivity(targetIPBlock, isIngress)
+	return sg.analyzer.AllowedConnectivity(targetIPBlock, memberIPBlock, isIngress)
+}
+
+// unifiedMembersIPBlock returns an *IPBlock object with union of all members IPBlock
+func (sg *SecurityGroup) unifiedMembersIPBlock() (unifiedMembersIPBlock *ipblock.IPBlock) {
+	unifiedMembersIPBlock = ipblock.New()
+	for _, memberNode := range sg.members {
+		unifiedMembersIPBlock = unifiedMembersIPBlock.Union(memberNode.IPBlock())
+	}
+
+	return unifiedMembersIPBlock
 }
 
 // rulesFilterInConnectivity list of SG rules contributing to the connectivity
 func (sg *SecurityGroup) rulesFilterInConnectivity(src, dst vpcmodel.Node, conn *connection.Set,
 	isIngress bool) (tableRelevant bool, rules []int, err error) {
-	memberStrAddress, targetIPBlock := sg.getMemberTargetStrAddress(src, dst, isIngress)
+	memberIPBlock, targetIPBlock, memberStrAddress := sg.getMemberTargetStrAddress(src, dst, isIngress)
 	if _, ok := sg.members[memberStrAddress]; !ok {
 		return false, nil, nil // connectivity not affected by this SG resource - input node is not its member
 	}
-	rules, err = sg.analyzer.rulesFilterInConnectivity(targetIPBlock, conn, isIngress)
+	rules, err = sg.analyzer.rulesFilterInConnectivity(targetIPBlock, memberIPBlock, conn, isIngress)
 	return true, rules, err
 }
 
 func (sg *SecurityGroup) getMemberTargetStrAddress(src, dst vpcmodel.Node,
-	isIngress bool) (memberStrAddress string, targetIPBlock *ipblock.IPBlock) {
+	isIngress bool) (memberIPBlock, targetIPBlock *ipblock.IPBlock, memberStrAddress string) {
 	var member, target vpcmodel.Node
 	if isIngress {
 		member, target = dst, src
@@ -615,7 +645,7 @@ func (sg *SecurityGroup) getMemberTargetStrAddress(src, dst vpcmodel.Node,
 		member, target = src, dst
 	}
 	// TODO: member is expected to be internal node (validate?) [could use member.(vpcmodel.InternalNodeIntf).Address()]
-	return member.CidrOrAddress(), target.IPBlock()
+	return member.IPBlock(), target.IPBlock(), member.CidrOrAddress()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
