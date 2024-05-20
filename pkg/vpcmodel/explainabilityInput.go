@@ -39,7 +39,7 @@ func (e *ExplanationArgs) Dst() string {
 const (
 	noErr                        = iota
 	noValidInputErr              // string does not represent a valid input w.r.t. this config - wait until we go over all vpcs
-	internalNotWithinSubnetsAddr // internal address with not within vpc config's subnet addr - wait until we go over all vpcs
+	internalNoConnectedEndpoints // internal address not connected to any of the VPC's eps - wait until we go over all vpcs
 	fatalErr                     // fatal error that implies immediate termination (do not wait until we go over all vpcs)
 )
 
@@ -48,7 +48,7 @@ const noValidInputMsg = "is not a legal IP address, CIDR, or endpoint name"
 const deliminator = "/"
 
 // was src/dst input provided as internal address of a vsi? this is required info since
-// if this is the case then in the output the relevant detected vsis are printed
+// if this is the case then in the output the relevant detected VSIs' names are printed
 type srcDstInternalAddr struct {
 	src bool
 	dst bool
@@ -60,37 +60,49 @@ type srcAndDstNodes struct {
 	isSrcDstInternalIP srcDstInternalAddr
 }
 
-// getVPCConfigAndSrcDstNodes given src, dst names returns the config in which the exaplainability analysis of these
-// should be done and the Nodes for src and dst as well as whether src or dst was given as the internal address of
-// a vsi (which effects the output)
-// src and dst when referring to a vsi *name* may be prefixed with the vpc name with the deliminator "/" to solve ambiguity
-// if such prefix is missing then a match in any vpc is valid
-// At most one config should contain src and dst, and this is the config returned:
-// If one is internal and the other is external the vpcConfig of the internal is returned
-// if such tgw exists; otherwise the src and dst are not connected
+// getVPCConfigAndSrcDstNodes given src, dst in string returns the config in which the exaplainability analysis of these
+// should be done and the Nodes for src and dst. It also returns whether src and/or dst was given as the internal address of
+// a vsi - which effects the output.
+// src/dst when referring to a vsi *name* may be prefixed with the vpc name with the deliminator "/" to solve ambiguity
+// If such prefix is missing then a match in any vpc is valid.
+// At most one config should contain both src and dst, and this is the config returned:
+// * If one is internal and the other is external the vpcConfig of the internal is returned
+// * If both are internal then at most one VPC should contain both:
+// ** If both internals are in the same VPC then the config of that VPC contains both and will be returned
+// ** If the two internals are of different VPCs then the mutli-VPC of the tgw that connects the two VPC contains both
+// this is the vpcConfig that will be returned, if such tgw exists; if such a tgw does not exist the src and dst are not connected
+// At this stage, we do not support the following:
+// 1. two tgw connects src and dst;
+// 2. src and/or dst has VSI(s) in more than one VPC
+
 // error handling: the src and dst are being searched for within the context of each vpcConfig.
-// if not found, then it is due to one of the following:
+// if no match found, then it is due to one of the following errors:
 // 1. src identical to dst
 // 2. Both src and dst are external IP addresses
 // 3. Src/dst is a CIDR that contains both internal and external IP addresses
-// 4. Src/dst matches more than one VSI. Use VPC-name prefixes or CRNs
-// 5. Src/dst is an IP address within one of the given subnets, but is not connected to a VSI
-// 6. Src/dst is not a legal IP address, CIDR, or VSI name
-// 7. Src/dst is a VPC IP address, but not within any subnet
-// errors 1-4, although detected within a specific VPCContext, are relevant in the multi-vpc
+// 4. Src/dst matches more than one EP. Use VPC-name prefixes or CRNs
+// 5. Src/dst is an internal address not connected to any endpoint
+// 6. Src/dst is not a legal endpoint name and is not a legal IP address
+// errors 1-4, although detected within a specific VPC Context, are relevant in the multi-vpc
 // context and as such results in an immediate return with the error message (fatal error).
 // error 4 can be interpreted as a non-fatal error in the multiVPC context, but is treated as fatal since
-// it is much safer, in case there are vsis with identical names cross vpc, to specify explicitly which is the relevant vpc
-// for each vsi
-// error 5 is fatal since we currently support disjoint subnets cidrs in between vpcs; thus, if an address is within a specific
-// subnet's cidr but there is no connected vsi then the error is fatal
-// errors 6 and 7  may occur in one vpcConfig while there is still a match to src and dst in another one
-// if no match found then errors 5 to 7 are in increasing severity. that is, 7>6>5
+// it is much safer, in case there are EPs with identical names cross VPC, to specify explicitly which is the relevant VPC for each EP
+// error 5 is not fatal since a given cidr may overlap APs of more than one VPC but have EPs only in one VPC
+// similarly, error 6 may occur in one vpcConfig while there is still a match to src and dst in another one
 //
+// More than one match found is also considered an error. It can be due to one of the following:
+// 1. src and dst are of different VPCs and are connected by more than one tgw
+// 2. src and dst are internal address containing VSIs in more than one VPC
+// 3. src (dst) is internal containing VSIs in more than one VPC and dst (src) is external
+// neither are supported in this stage
+// todo: note that there could be cases in which src/dst are internal address that contains EPs of more than one VPC
+//       which will not result in an error. E.g., src is a vsi of VPC1 and dst is an internal address of VPC1 and VPC2.
+//       in this case explainability analysis will be done for VPC1
+
 //nolint:gocyclo // better not split into two function
 func (c *MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string) (vpcConfig *VPCConfig,
 	srcNodes, dstNodes []Node, isSrcDstInternalIP srcDstInternalAddr, err error) {
-	var errMsgInternalNotWithinSubnet, errMsgNoValidSrc, errMsgNoValidDst error
+	var errMsgInternalNoEP, errMsgNoValidSrc, errMsgNoValidDst error
 	var srcFoundSomeCfg, dstFoundSomeCfg bool
 	noInternalIP := srcDstInternalAddr{false, false}
 	if unifyInput(src) == unifyInput(dst) {
@@ -99,8 +111,7 @@ func (c *MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string) (vpcCon
 	configsWithSrcDstNodeSingleVpc, configsWithSrcDstNodeMultiVpc := map[string]srcAndDstNodes{}, map[string]srcAndDstNodes{}
 	for cfgID := range c.Configs() {
 		var errType int
-		srcNodes, dstNodes, isSrcDstInternalIP, errType, err =
-			c.Config(cfgID).srcDstInputToNodes(src, dst, len(c.Configs()) > 1)
+		srcNodes, dstNodes, isSrcDstInternalIP, errType, err = c.Config(cfgID).srcDstInputToNodes(src, dst)
 		if srcNodes != nil {
 			srcFoundSomeCfg = true
 		}
@@ -111,8 +122,8 @@ func (c *MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string) (vpcCon
 			switch {
 			case errType == fatalErr:
 				return c.Config(cfgID), nil, nil, noInternalIP, err
-			case errType == internalNotWithinSubnetsAddr:
-				errMsgInternalNotWithinSubnet = err
+			case errType == internalNoConnectedEndpoints:
+				errMsgInternalNoEP = err
 			case errType == noValidInputErr && srcNodes == nil:
 				errMsgNoValidSrc = err
 			case errType == noValidInputErr: // srcNodes != nil, dstNodes == nil
@@ -130,7 +141,7 @@ func (c *MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string) (vpcCon
 	// no match: no single vpc config or multi vpc config in which a match for both src and dst was found
 	// this can be either a result of input error, or of src and dst of different vpc that are not connected via cross-vpc router
 	case len(configsWithSrcDstNodeSingleVpc) == 0 && len(configsWithSrcDstNodeMultiVpc) == 0:
-		return noConfigMatchSrcDst(srcFoundSomeCfg, dstFoundSomeCfg, errMsgInternalNotWithinSubnet,
+		return noConfigMatchSrcDst(srcFoundSomeCfg, dstFoundSomeCfg, errMsgInternalNoEP,
 			errMsgNoValidSrc, errMsgNoValidDst)
 	// single config in which both src and dst were found, and the matched config is a multi vpc config: returns the matched config
 	case len(configsWithSrcDstNodeSingleVpc) == 0 && len(configsWithSrcDstNodeMultiVpc) == 1:
@@ -161,18 +172,19 @@ func unifyInput(str string) string {
 // no match for both src and dst in any of the cfgs:
 // this can be either a result of input error, or of src and dst of different vpc that are not connected via cross-vpc router
 // prioritizes cases and possible errors as follows:
-// valid input but no cross vpc router >  errMsgInternalNotWithinSubnet > errMsgNoValidSrc > errMsgNoValidDst
+// valid input but no cross vpc router >  errMsgInternalNoEP > errMsgNoValidSrc > errMsgNoValidDst
 // this function was tested manually; having a dedicated test for it is too much work w.r.t its simplicity
-func noConfigMatchSrcDst(srcFoundSomeCfg, dstFoundSomeCfg bool, errMsgInternalNotWithinSubnet,
+func noConfigMatchSrcDst(srcFoundSomeCfg, dstFoundSomeCfg bool, errMsgInternalNoEP,
 	errMsgNoValidSrc, errMsgNoValidDst error) (vpcConfig *VPCConfig,
 	srcNodes, dstNodes []Node, isSrcDstInternalIP srcDstInternalAddr, err error) {
 	noInternalIP := srcDstInternalAddr{false, false}
 	switch {
 	// src found some cfg, dst found some cfg but not in the same cfg: input valid (missing tgw)
+	// this is not considered an error - the output will explain the src, dst are not connected via cross-vpc router
 	case srcFoundSomeCfg && dstFoundSomeCfg:
 		return nil, nil, nil, noInternalIP, nil
-	case errMsgInternalNotWithinSubnet != nil:
-		return nil, nil, nil, noInternalIP, errMsgInternalNotWithinSubnet
+	case errMsgInternalNoEP != nil:
+		return nil, nil, nil, noInternalIP, errMsgInternalNoEP
 	case !srcFoundSomeCfg:
 		return nil, nil, nil, noInternalIP, errMsgNoValidSrc
 	default: // !dstFoundSomeCfg:
@@ -187,8 +199,9 @@ func (c *MultipleVPCConfigs) matchMoreThanOneSingleVpcCfgError(src, dst string,
 	configsWithSrcDstNodeSingleVpc, configsWithSrcDstNodeMultiVpc map[string]srcAndDstNodes) error {
 	if len(configsWithSrcDstNodeSingleVpc) > 1 { // more than single vpc config
 		matchConfigsStr := c.listNamesCfg(configsWithSrcDstNodeSingleVpc)
-		return fmt.Errorf("vsis %s and %s found in more than one vpc config - %s - "+
-			"please add the name of the config to the src/dst name", src, dst, matchConfigsStr)
+		return fmt.Errorf("%s and %s found in more than one vpc config - %s - "+
+			"please add the name of the vpc to the src/dst name in case of name ambiguity, "+
+			"and avoid cidrs that spams more than one vpc", src, dst, matchConfigsStr)
 	}
 	listNamesCrossVpcRouters, err := c.listNamesCrossVpcRouters(configsWithSrcDstNodeMultiVpc)
 	if err != nil {
@@ -249,16 +262,16 @@ func (e *ExplanationArgs) GetConnectionSet() *connection.Set {
 // given src and dst input and a VPCConfigs finds the []nodes they represent in the config
 // src/dst may refer to:
 // 1. VSI by UID or name; in this case we consider the network interfaces of the VSI
-// 2. Internal IP address or cidr; in this case we consider the vsis in that address range
+// 2. Internal IP address or cidr; in this case we consider the VSIs in that address range
 // 3. external IP address or cidr
-func (c *VPCConfig) srcDstInputToNodes(srcName, dstName string, isMultiVPCConfig bool) (srcNodes,
+func (c *VPCConfig) srcDstInputToNodes(srcName, dstName string) (srcNodes,
 	dstNodes []Node, isSrcDstInternalIP srcDstInternalAddr, errType int, err error) {
 	var isSrcInternalIP, isDstInternalIP bool
 	noInternalIP := srcDstInternalAddr{false, false}
 	var errSrc, errDst error
 	var errSrcType, errDstType int
-	srcNodes, isSrcInternalIP, errSrcType, errSrc = c.getSrcOrDstInputNode(srcName, "src", isMultiVPCConfig)
-	dstNodes, isDstInternalIP, errDstType, errDst = c.getSrcOrDstInputNode(dstName, "dst", isMultiVPCConfig)
+	srcNodes, isSrcInternalIP, errSrcType, errSrc = c.getSrcOrDstInputNode(srcName, "src")
+	dstNodes, isDstInternalIP, errDstType, errDst = c.getSrcOrDstInputNode(dstName, "dst")
 	switch {
 	case errSrcType > errDstType: // src's error is of severity larger than dst's error;
 		// this implies src has an error (dst may have an error and may not have an error)
@@ -281,9 +294,9 @@ func (c *VPCConfig) srcDstInputToNodes(srcName, dstName string, isMultiVPCConfig
 
 // given a VPCConfig and a string looks for the VSI/Internal IP/External address it presents,
 // as described above
-func (c *VPCConfig) getSrcOrDstInputNode(name, srcOrDst string, isMultiVPCConfig bool) (nodes []Node,
+func (c *VPCConfig) getSrcOrDstInputNode(name, srcOrDst string) (nodes []Node,
 	internalIP bool, errType int, err error) {
-	outNodes, isInternalIP, errType1, err1 := c.getNodesFromInputString(name, isMultiVPCConfig)
+	outNodes, isInternalIP, errType1, err1 := c.getNodesFromInputString(name)
 	if err1 != nil {
 		return nil, false, errType1, fmt.Errorf("illegal %v: %v", srcOrDst, err1.Error())
 	}
@@ -292,8 +305,8 @@ func (c *VPCConfig) getSrcOrDstInputNode(name, srcOrDst string, isMultiVPCConfig
 
 // given a VPCConfig and a string cidrOrName representing a vsi or internal/external
 // cidr/address returns the corresponding node(s) and a bool which is true iff
-// cidrOrName is an internal address (and the nodes are its network interfaces)
-func (c *VPCConfig) getNodesFromInputString(cidrOrName string, isMultiVPCConfig bool) (nodes []Node,
+// cidrOrName is an internal address and the nodes are its network interfaces
+func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node,
 	internalIP bool, errType int, err error) {
 	// 1. cidrOrName references vsi
 	vsi, errType1, err1 := c.getNodesOfVsi(cidrOrName)
@@ -313,7 +326,7 @@ func (c *VPCConfig) getNodesFromInputString(cidrOrName string, isMultiVPCConfig 
 			fmt.Errorf("%s %s", cidrOrName, noValidInputMsg)
 	}
 	// the input is a legal cidr or IP address
-	return c.getNodesFromAddress(cidrOrName, ipBlock, isMultiVPCConfig)
+	return c.getNodesFromAddress(cidrOrName, ipBlock)
 }
 
 // getNodesOfVsi gets a string name or UID of VSI, and
@@ -350,17 +363,15 @@ func (c *VPCConfig) getNodesOfVsi(name string) ([]Node, int, error) {
 }
 
 // getNodesFromAddress gets a string and IPBlock that represents a cidr or IP address
-// and returns the corresponding node(s)and a bool which is true iff ipOrCidr is an internal address
-// (and the nodes are its network interfaces). Specifically:
+// and returns the corresponding node(s)and a bool which is true iff ipOrCidr is an internal address.
+// Specifically:
 //  1. If it represents a cidr which is both internal and external, returns an error
 //  2. If it presents an external address, returns external addresses nodes and false
-//  3. If it contains internal address not within the address range of the vpc's, subnets,
-//     returns an error
-//  4. If it presents an internal address, return connected network interfaces if any and true,
-//  5. If none of the above holds, return nil
+//  3. No endpoints connected to the internal address, returns an error
+//  4. else: it presents an internal address, return connected network interfaces and true,
 //
 // todo: 4 - replace subnet's address range in vpc's address prefix
-func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *ipblock.IPBlock, isMultiVPCConfig bool) (nodes []Node,
+func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *ipblock.IPBlock) (nodes []Node,
 	internalIP bool, errType int, err error) {
 	// 1.
 	_, publicInternet, err1 := GetPublicInternetIPblocksList()
@@ -381,32 +392,13 @@ func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *ipblock.I
 			return nil, false, errType, err
 		}
 		return nodes, false, noErr, nil
-
-		// internal address
-	} else if isInternal {
-		// 3.
-		vpcAP := c.VPC.AddressRange()
-		if !inputIPBlock.ContainedIn(vpcAP) {
-			errMsgPrefix := fmt.Sprintf("internal address %s not within", ipOrCidr)
-			if !isMultiVPCConfig {
-				return nil, false, internalNotWithinSubnetsAddr,
-					fmt.Errorf("%s the vpc %s subnets' address range %s",
-						errMsgPrefix, c.VPC.Name(), vpcAP.ToIPRanges())
-			}
-			return nil, false, internalNotWithinSubnetsAddr,
-				fmt.Errorf("%s any of the VPC's subnets' address range", errMsgPrefix)
-		}
 	}
-	// 4.
+	// internal address
 	networkInterfaces := c.getNodesWithinInternalAddress(inputIPBlock)
-	// a given internal address within subnets' addr should have vsi connected to it
-	if len(networkInterfaces) == 0 {
-		if !isMultiVPCConfig {
-			return nil, true, fatalErr, fmt.Errorf("no network interfaces are connected to %s in %s", ipOrCidr, c.VPC.Name())
-		}
-		return nil, true, fatalErr, fmt.Errorf("no network interfaces are connected to %s in any of the VPCs", ipOrCidr)
+	if len(networkInterfaces) == 0 { // 3.
+		return nil, true, internalNoConnectedEndpoints, fmt.Errorf("no network interfaces are connected to %s", ipOrCidr)
 	}
-	return networkInterfaces, true, noErr, nil
+	return networkInterfaces, true, noErr, nil // 4.
 }
 
 // given input IPBlock, gets (disjoint) external nodes I s.t.:
@@ -445,7 +437,7 @@ func (c *VPCConfig) getCidrExternalNodes(inputIPBlock *ipblock.IPBlock) (cidrNod
 }
 
 // getNodesWithinInternalAddress gets input IPBlock
-// and returns the list of all internal nodes (should be VSI) within address
+// and returns the list of all internal nodes (e.g. VSIs) within address
 func (c *VPCConfig) getNodesWithinInternalAddress(inputIPBlock *ipblock.IPBlock) (networkInterfaceNodes []Node) {
 	networkInterfaceNodes = []Node{}
 	for _, node := range c.Nodes {

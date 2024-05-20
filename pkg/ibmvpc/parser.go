@@ -767,7 +767,8 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 	tgwToSkip := map[string]bool{}
 	tgwIDToTgw := getTgwMap(c)
 
-	for _, tgwConn := range c.TransitConnectionList {
+	tgwConnList := slices.Clone(c.TransitConnectionList)
+	for i, tgwConn := range c.TransitConnectionList {
 		tgwUID := *tgwConn.TransitGateway.Crn
 		tgwName := *tgwConn.TransitGateway.Name
 		vpcUID := *tgwConn.NetworkID
@@ -821,17 +822,18 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 					ResourceType: ResourceTypeTGW,
 					Region:       region,
 				},
-				vpcs:            []*VPC{vpc},
-				availableRoutes: map[string][]*ipblock.IPBlock{},
-				vpcsAPToFilters: map[string][]IPBlockPrefixFilter{},
-				region:          getRegionByName(region, regionToStructMap),
+				vpcs:                []*VPC{vpc},
+				tgwConnList:         tgwConnList,
+				availableRoutes:     map[string][]*ipblock.IPBlock{},
+				vpcsAPToPrefixRules: map[string]map[*ipblock.IPBlock]vpcmodel.RulesInTable{},
+				region:              getRegionByName(region, regionToStructMap),
 			}
 			tgwMap[tgwUID] = tgw
 		} else {
 			tgwMap[tgwUID].vpcs = append(tgwMap[tgwUID].vpcs, vpc)
 		}
 
-		advertisedRoutes, vpcApsPrefixes, err := getVPCAdvertisedRoutes(tgwConn, vpc)
+		advertisedRoutes, vpcAPToPrefixRules, err := getVPCAdvertisedRoutes(tgwConn, i, vpc)
 		if err != nil {
 			logging.Warnf("ignoring prefix filters, vpcID: %s, tgwID: %s, err is: %s\n", vpcUID, tgwUID, err.Error())
 		} else {
@@ -844,7 +846,12 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 			tgwMap[tgwUID].addSourceAndDestNodes()
 
 			// explainability related struct initialization
-			tgwMap[tgwUID].vpcsAPToFilters[vpcUID] = vpcApsPrefixes
+			for ipB, rulesInTable := range vpcAPToPrefixRules {
+				if _, ok := tgwMap[tgwUID].vpcsAPToPrefixRules[vpcUID]; !ok {
+					tgwMap[tgwUID].vpcsAPToPrefixRules[vpcUID] = map[*ipblock.IPBlock]vpcmodel.RulesInTable{}
+				}
+				tgwMap[tgwUID].vpcsAPToPrefixRules[vpcUID][ipB] = rulesInTable
+			}
 		}
 	}
 	return tgwMap
