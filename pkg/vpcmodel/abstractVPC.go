@@ -216,12 +216,13 @@ const (
 	BothAllowDeny        // there are relevant allow and deny rules in this filter
 )
 
-// RulesInFilter for a given layer (SGLayer/NACLLayer) contains specific rules in a specific SG/NACL filter
-type RulesInFilter struct {
+// RulesInTable for a given layer (SGLayer/NACLLayer) or transit gateway contains
+// index of the SG/NACL/transit gateway filter and the indexes of the rules within it
+type RulesInTable struct {
 	// todo: is the assumption that the set of rules will always be kept in a list a valid one?
-	Filter          int   // sg/nacl index in sgList/naclList in the relevant layer SGLayer/NACLLayer/..
-	Rules           []int // list of indexes of rules in the sg/nacl
-	RulesFilterType RulesType
+	Table       int   // sg/nacl/transit connection index in sgList/naclList/tgwConnList
+	Rules       []int // list of indexes of rules in the sg/nacl/transit connection
+	RulesOfType RulesType
 }
 
 // FilterTrafficResource capture allowed traffic between 2 endpoints
@@ -231,14 +232,16 @@ type FilterTrafficResource interface {
 	AllowedConnectivity(src, dst Node, isIngress bool) (*connection.Set, error)
 	// RulesInConnectivity computes the list of rules of a given filter that contributes to the connection between src and dst
 	// if conn is also given the above is per connection
-	RulesInConnectivity(src, dst Node, conn *connection.Set, isIngress bool) ([]RulesInFilter, []RulesInFilter, error)
-	// StringDetailsRulesOfFilter gets, for a specific filter (sg/nacl), a struct with relevant rules in it,
+	RulesInConnectivity(src, dst Node, conn *connection.Set, isIngress bool) ([]RulesInTable, []RulesInTable, error)
+	// StringDetailsOfRules gets, for a specific filter (sg/nacl), a struct with relevant rules in it,
 	// and prints the effect of each filter (e.g. security group sg1-ky allows connection)
 	// and the detailed list of relevant rules
-	StringDetailsRulesOfFilter(listRulesInFilter []RulesInFilter) string
+	// todo: replace by StringDetailsOfRules to rulesBasedResources interface
+	StringDetailsOfRules(listRulesInFilter []RulesInTable) string
 	// ListFilterWithAction return map from filter's name to true if it allows traffic, false otherwise
 	// to be used by explainability printing functions
-	ListFilterWithAction(listRulesInFilter []RulesInFilter) map[string]bool
+	// todo:move to rulesBasedResources interface
+	ListFilterWithAction(listRulesInFilter []RulesInTable) map[string]bool
 	ReferencedIPblocks() []*ipblock.IPBlock
 	ConnectivityMap() (map[string]*IPbasedConnectivityResult, error)
 	GetConnectivityOutputPerEachElemSeparately() string
@@ -251,13 +254,27 @@ type RoutingResource interface {
 	Sources() []Node
 	Destinations() []Node
 	AllowedConnectivity(src, dst VPCResourceIntf) (*connection.Set, error)
+	RulesInConnectivity(src, dst Node) []RulesInTable
 	AppliedFiltersKinds() map[string]bool
 	ExternalIP() string // ExternalIP of fip, empty string for other resources
 	// RouterDefined is this router defined for src and dst? while fip, pgw are defined for src, dst iff they enable traffic
 	// tgw may be defined for src, dst and deny traffic
 	RouterDefined(src, dst Node) bool
-	// StringPrefixDetails returns a string with the prefix that determines the tgw related routing
+	// StringDetailsOfRules returns a string with the prefix that determines the tgw related routing
 	// between src and dst; if non tgw relevant to <src, dst> returns an empty string
 	// Non-relevant for fip and pgw, returns always an empty string
-	StringPrefixDetails(src, dst Node, verbose bool) (string, error)
+	StringDetailsOfRules(listRulesInFilter []RulesInTable, verbose bool) (string, error)
 }
+
+// todo: interface that captures all rule based resources
+// todo (currently with explainability functionality)
+// todo move common functionality here from FilterTrafficResource and RoutingResource
+// type rulesBasedResources interface {
+//	// StringDetailsOfRules gets, for a specific resource (sg/nacl/tgw), a struct with relevant rules in it,
+//	// and prints the effect of each resource (e.g. security group sg1-ky allows connection)
+//	// and the detailed list of relevant rules
+//	StringDetailsOfRules(listRulesInFilter []RulesInTable) string
+//	// ListFilterWithAction return map from resource's name to true if it allows traffic, false otherwise
+//	// to be used by explainability printing functions
+//	ListFilterWithAction(listRulesInFilter []RulesInTable) map[string]bool
+// }
