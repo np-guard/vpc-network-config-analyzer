@@ -39,10 +39,10 @@ func NewExplainCommand(args *inArgs) *cobra.Command {
 		PreRunE: func(cmd *cobra.Command, _ []string) error {
 			return validateExplainFlags(cmd, args)
 		},
-		Run: func(cmd *cobra.Command, _ []string) {
-			args.analysisType = vpcmodel.Explain
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			args.explanationArgs = vpcmodel.NewExplanationArgs(args.eSrc, args.eDst, args.eProtocol.String(),
 				args.eSrcMinPort, args.eSrcMaxPort, args.eDstMinPort, args.eDstMaxPort)
+			return analysisVPCConfigs(args, vpcmodel.Explain)
 		},
 	}
 

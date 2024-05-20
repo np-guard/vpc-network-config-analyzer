@@ -9,8 +9,7 @@ SPDX-License-Identifier: Apache-2.0
 // We use the various Run methods of cobra.Command as follows (order corresponds to execution order).
 // 1. PersistentPreRun (root) - initialize logger
 // 2. PersistentPreRunE/PreRunE (subcommands and subsubcommands) - check flag validity
-// 3. Run (subcommands and subsubcommands) - set analysis mode
-// 4. PersistentPostRunE (root) - build vpc-configs and call the analyzer with parsed flag values
+// 3. RunE (subcommands and subsubcommands) - build vpc-configs and call the analyzer with parsed flag values
 //
 // This order prevents code duplication - all common code is in root; subcommand-specific code is in its subcommand
 package subcmds
@@ -47,7 +46,6 @@ type inArgs struct {
 	inputSecondConfigFile string
 	outputFile            string
 	outputFormat          formatSetting
-	analysisType          vpcmodel.OutputUseCase
 	grouping              bool
 	vpc                   string
 	debug                 bool
@@ -64,12 +62,11 @@ type inArgs struct {
 	dumpResources         string
 	quiet                 bool
 	verbose               bool
-	vpcConfigs            *vpcmodel.MultipleVPCConfigs
 	explanationArgs       *vpcmodel.ExplanationArgs
 }
 
 func NewRootCommand() *cobra.Command {
-	args := &inArgs{analysisType: vpcmodel.InvalidUseCase}
+	args := &inArgs{}
 
 	rootCmd := &cobra.Command{
 		Use:     "vpcanalyzer",
@@ -84,13 +81,6 @@ func NewRootCommand() *cobra.Command {
 				verbosity = logging.HighVerbosity
 			}
 			logging.Init(verbosity) // initializes a thread-safe singleton logger
-		},
-		PersistentPostRunE: func(_ *cobra.Command, _ []string) error {
-			err := buildConfigs(args)
-			if err != nil {
-				return err
-			}
-			return analysisVPCConfigs(args)
 		},
 	}
 

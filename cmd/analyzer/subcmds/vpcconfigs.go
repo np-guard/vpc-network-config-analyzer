@@ -17,11 +17,6 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
-const (
-	inGenerationErr = "error generating cloud config from input vpc resources file:"
-	errorFormat     = "%s %w"
-)
-
 func mergeResourcesContainers(rc1, rc2 *datamodel.ResourcesContainerModel) (*datamodel.ResourcesContainerModel, error) {
 	if rc2 == nil && rc1 != nil {
 		return rc1, nil
@@ -63,7 +58,7 @@ func vpcConfigsFromFiles(fileNames []string, inArgs *inArgs) (*vpcmodel.Multiple
 	}
 	vpcConfigs, err2 := ibmvpc.VPCConfigsFromResources(mergedRC, inArgs.vpc, inArgs.resourceGroup, inArgs.regionList, inArgs.debug)
 	if err2 != nil {
-		return nil, fmt.Errorf(errorFormat, inGenerationErr, err2)
+		return nil, fmt.Errorf("error generating cloud config from input vpc resources file: %w", err2)
 	}
 	return vpcConfigs, nil
 }
@@ -106,32 +101,31 @@ func vpcConfigsFromAccount(inArgs *inArgs) (*vpcmodel.MultipleVPCConfigs, error)
 	return vpcConfigs, nil
 }
 
-func buildConfigs(inArgs *inArgs) error {
-	var err error
+func buildConfigs(inArgs *inArgs) (vpcConfigs *vpcmodel.MultipleVPCConfigs, err error) {
 	if inArgs.provider != "" {
-		inArgs.vpcConfigs, err = vpcConfigsFromAccount(inArgs)
+		vpcConfigs, err = vpcConfigsFromAccount(inArgs)
 		if err != nil {
-			return err
+			return
 		}
 	} else {
-		inArgs.vpcConfigs, err = vpcConfigsFromFiles(inArgs.inputConfigFileList, inArgs)
+		vpcConfigs, err = vpcConfigsFromFiles(inArgs.inputConfigFileList, inArgs)
 		if err != nil {
-			return err
+			return
 		}
 	}
 
 	if inArgs.inputSecondConfigFile != "" {
 		vpcConfigsToCompare, err := vpcConfigsFromFiles([]string{inArgs.inputSecondConfigFile}, inArgs)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		// we are in diff mode, checking we have only one config per file:
-		if len(inArgs.vpcConfigs.Configs()) != 1 || len(vpcConfigsToCompare.Configs()) != 1 {
-			return fmt.Errorf("for diff mode %v a single configuration should be provided "+
-				"for both -vpc-config and -vpc-config-second", inArgs.analysisType)
+		if len(vpcConfigs.Configs()) != 1 || len(vpcConfigsToCompare.Configs()) != 1 {
+			return nil, fmt.Errorf("diff command only supports a single configuration " +
+				"for both -vpc-config and -vpc-config-second")
 		}
-		inArgs.vpcConfigs.SetConfigsToCompare(vpcConfigsToCompare.Configs())
+		vpcConfigs.SetConfigsToCompare(vpcConfigsToCompare.Configs())
 	}
 
-	return nil
+	return vpcConfigs, nil
 }

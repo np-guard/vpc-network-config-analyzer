@@ -12,11 +12,16 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
-func analysisVPCConfigs(inArgs *inArgs) error {
+func analysisVPCConfigs(inArgs *inArgs, analysisType vpcmodel.OutputUseCase) error {
+	vpcConfigs, err := buildConfigs(inArgs)
+	if err != nil {
+		return err
+	}
+
 	outFormat := inArgs.outputFormat.ToModelFormat()
-	og, err := vpcmodel.NewOutputGenerator(inArgs.vpcConfigs,
+	og, err := vpcmodel.NewOutputGenerator(vpcConfigs,
 		inArgs.grouping,
-		inArgs.analysisType,
+		analysisType,
 		false,
 		inArgs.explanationArgs, outFormat)
 	if err != nil {
@@ -25,7 +30,7 @@ func analysisVPCConfigs(inArgs *inArgs) error {
 
 	analysisOut, err := og.Generate(outFormat, inArgs.outputFile)
 	if err != nil {
-		return fmt.Errorf(errorFormat, "output generation error:", err)
+		return fmt.Errorf("output generation error: %w", err)
 	}
 
 	fmt.Println(analysisOut)
