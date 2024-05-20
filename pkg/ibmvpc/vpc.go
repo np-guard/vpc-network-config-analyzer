@@ -246,6 +246,10 @@ type LoadBalancer struct {
 	listeners []LoadBalancerListener
 }
 
+func (lb *LoadBalancer) ExtendedName(c *vpcmodel.VPCConfig) string {
+	return lb.Kind() + ":" + lb.ExtendedPrefix(c) + lb.Name()
+}
+
 func (lb *LoadBalancer) Nodes() []vpcmodel.Node {
 	return lb.nodes
 }
