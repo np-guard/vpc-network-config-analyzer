@@ -57,6 +57,7 @@ type vpcGeneralTest struct {
 	regions        []string // filter vpc configs by region
 	mode           testMode
 	grouping       bool
+	nonLbAbstract  bool
 	format         vpcmodel.OutFormat
 	vpc            string
 	ESrc           string
@@ -580,6 +581,7 @@ var tests = []*vpcGeneralTest{
 		inputConfig: "iks_workers_large",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		grouping:    true,
+		nonLbAbstract: true,
 		format:      vpcmodel.HTML,
 	},
 	// LB examples:
@@ -603,8 +605,9 @@ var tests = []*vpcGeneralTest{
 	},
 	{
 		inputConfig: "load_balancer",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		grouping:    true,
+		nonLbAbstract: true,
 		format:      vpcmodel.HTML,
 	},
 	{
@@ -793,7 +796,7 @@ func runTestPerUseCase(t *testing.T,
 	if err := initTestFileNames(tt, uc, "", true, outDir); err != nil {
 		return err
 	}
-	og, err := vpcmodel.NewOutputGenerator(cConfigs, tt.grouping, uc, tt.format == vpcmodel.ARCHDRAWIO, explanationArgs, tt.format)
+	og, err := vpcmodel.NewOutputGenerator(cConfigs, tt.grouping, uc, tt.format == vpcmodel.ARCHDRAWIO, explanationArgs, tt.format, !tt.nonLbAbstract)
 	if err != nil {
 		return err
 	}

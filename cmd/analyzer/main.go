@@ -39,7 +39,7 @@ func analysisVPCConfigs(cConfigs *vpcmodel.MultipleVPCConfigs, inArgs *subcmds.I
 		inArgs.Grouping,
 		inArgs.AnalysisType,
 		false,
-		explanationArgs, outFormat)
+		explanationArgs, outFormat, outFormat != vpcmodel.Debug)
 	if err != nil {
 		return "", err
 	}
