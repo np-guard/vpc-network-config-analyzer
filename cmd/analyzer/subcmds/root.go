@@ -56,6 +56,7 @@ type InArgs struct {
 	DumpResources         string
 	Quiet                 bool
 	Verbose               bool
+	VpcConfigs            *vpcmodel.MultipleVPCConfigs
 }
 
 func NewRootCommand(args *InArgs) *cobra.Command {
@@ -72,6 +73,9 @@ func NewRootCommand(args *InArgs) *cobra.Command {
 				verbosity = logging.HighVerbosity
 			}
 			logging.Init(verbosity) // initializes a thread-safe singleton logger
+		},
+		PersistentPostRunE: func(_ *cobra.Command, _ []string) error {
+			return buildConfigs(args)
 		},
 	}
 

@@ -18,11 +18,10 @@ import (
 const (
 	ParsingErr       = "error parsing arguments:"
 	OutGenerationErr = "output generation error:"
-	InGenerationErr  = "error generating cloud config from input vpc resources file:"
 	ErrorFormat      = "%s %w"
 )
 
-func analysisVPCConfigs(cConfigs *vpcmodel.MultipleVPCConfigs, inArgs *subcmds.InArgs) (string, error) {
+func analysisVPCConfigs(inArgs *subcmds.InArgs) (string, error) {
 	var explanationArgs *vpcmodel.ExplanationArgs
 	if inArgs.AnalysisType == vpcmodel.Explain {
 		explanationArgs = vpcmodel.NewExplanationArgs(inArgs.ESrc, inArgs.EDst, string(inArgs.EProtocol),
@@ -30,7 +29,7 @@ func analysisVPCConfigs(cConfigs *vpcmodel.MultipleVPCConfigs, inArgs *subcmds.I
 	}
 
 	outFormat := inArgs.OutputFormat.ToModelFormat()
-	og, err := vpcmodel.NewOutputGenerator(cConfigs,
+	og, err := vpcmodel.NewOutputGenerator(inArgs.VpcConfigs,
 		inArgs.Grouping,
 		inArgs.AnalysisType,
 		false,
@@ -66,32 +65,7 @@ func _main(cmdlineArgs []string) error {
 		return fmt.Errorf("command is missing or not available")
 	}
 
-	var vpcConfigs *vpcmodel.MultipleVPCConfigs
-	if inArgs.Provider != "" {
-		vpcConfigs, err = subcmds.VpcConfigsFromAccount(inArgs)
-		if err != nil {
-			return err
-		}
-	} else {
-		vpcConfigs, err = subcmds.VpcConfigsFromFiles(inArgs.InputConfigFileList, inArgs)
-		if err != nil {
-			return err
-		}
-	}
-
-	if inArgs.InputSecondConfigFile != "" {
-		vpcConfigsToCompare, err := subcmds.VpcConfigsFromFiles([]string{inArgs.InputSecondConfigFile}, inArgs)
-		if err != nil {
-			return err
-		}
-		// we are in diff mode, checking we have only one config per file:
-		if len(vpcConfigs.Configs()) != 1 || len(vpcConfigsToCompare.Configs()) != 1 {
-			return fmt.Errorf("for diff mode %v a single configuration should be provided "+
-				"for both -vpc-config and -vpc-config-second", inArgs.AnalysisType)
-		}
-		vpcConfigs.SetConfigsToCompare(vpcConfigsToCompare.Configs())
-	}
-	vpcAnalysisOutput, err := analysisVPCConfigs(vpcConfigs, inArgs)
+	vpcAnalysisOutput, err := analysisVPCConfigs(inArgs)
 	if err != nil {
 		return err
 	}
