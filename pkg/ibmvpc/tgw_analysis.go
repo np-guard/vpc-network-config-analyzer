@@ -56,7 +56,7 @@ func validateAddressPrefixesExist(vpc *VPC) {
 
 // getVPCAdvertisedRoutes returns a list of IPBlock objects for vpc address prefixes matched by prefix filters (with permit action),
 // thus advertised to a TGW.
-// It also returns map from IPBlockPrefixFilter objects details to RulesInTable with index of the transit connection
+// It also returns map from IPBlock objects to RulesInTable with index of the transit connection
 // and index of the prefix rules within the connection that determines the connection between src and dst
 // Note that there is always a single prefix filter that determines the route (allow/deny) for each address prefix
 // (could be the default); this is since each atomic src/dst is an endpoint and since
