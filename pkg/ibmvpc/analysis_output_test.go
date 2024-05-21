@@ -589,6 +589,13 @@ var tests = []*vpcGeneralTest{
 		noLbAbstract: true,
 		format:        vpcmodel.HTML,
 	},
+	{
+		inputConfig:   "iks_workers_large",
+		useCases:      []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:      true,
+		noLbAbstract: true,
+		format:        vpcmodel.DRAWIO,
+	},
 	// LB examples:
 	{
 		inputConfig: "lb_bad_practice",
