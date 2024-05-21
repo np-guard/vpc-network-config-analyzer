@@ -149,7 +149,7 @@ func TestMain(t *testing.T) {
 			args: "report endpoints --output-file multi_vpc_configs.txt -c ../../pkg/ibmvpc/examples/input/input_acl_testing3.json -c ../../pkg/ibmvpc/examples/input/input_sg_testing_3.json",
 		},
 		{
-			name: "diff_with_different_uid ",
+			name: "diff_with_different_uid",
 			args: "diff endpoints --quiet --vpc-config ../../pkg/ibmvpc/examples/input/input_sg_testing_default.json --vpc-config-second ../../pkg/ibmvpc/examples/input/input_sg_testing_3.json",
 		},
 	}
