@@ -22,7 +22,8 @@ type VPCResourceIntf interface {
 	Name() string
 	// ExtendedName returns a resource name that includes its VPC as prefix when necessary.
 	// for example, a subnet with name "s1" within VPC "v1" will have extended name: "v1/s1"
-	// note this method is relevant only for Node and Subnet objects.
+	// note this method is relevant only for Node, Subnet, and Load Balancer objects.
+	// (for load balancer its also add the resource kind)
 	// note it adds the prefix only for input config that has multiple VPCs context.
 	ExtendedName(*VPCConfig) string
 	// ExtendedPrefix returns the prefix to be added for ExtendedName, given the input config
