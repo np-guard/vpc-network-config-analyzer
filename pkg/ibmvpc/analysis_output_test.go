@@ -57,7 +57,7 @@ type vpcGeneralTest struct {
 	regions        []string // filter vpc configs by region
 	mode           testMode
 	grouping       bool
-	noLbAbstract  bool
+	noLbAbstract   bool
 	format         vpcmodel.OutFormat
 	vpc            string
 	ESrc           string
@@ -583,18 +583,18 @@ var tests = []*vpcGeneralTest{
 		format:      vpcmodel.Text,
 	},
 	{
-		inputConfig:   "iks_workers_large",
-		useCases:      []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping:      true,
+		inputConfig:  "iks_workers_large",
+		useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:     true,
 		noLbAbstract: true,
-		format:        vpcmodel.HTML,
+		format:       vpcmodel.HTML,
 	},
 	{
-		inputConfig:   "iks_workers_large",
-		useCases:      []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping:      true,
+		inputConfig:  "iks_workers_large",
+		useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:     true,
 		noLbAbstract: true,
-		format:        vpcmodel.DRAWIO,
+		format:       vpcmodel.DRAWIO,
 	},
 	// LB examples:
 	{
@@ -616,11 +616,11 @@ var tests = []*vpcGeneralTest{
 		format:      vpcmodel.HTML,
 	},
 	{
-		inputConfig:   "load_balancer",
-		useCases:      []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
-		grouping:      true,
+		inputConfig:  "load_balancer",
+		useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+		grouping:     true,
 		noLbAbstract: true,
-		format:        vpcmodel.HTML,
+		format:       vpcmodel.HTML,
 	},
 	{
 		inputConfig: "load_balancer",
@@ -629,11 +629,11 @@ var tests = []*vpcGeneralTest{
 		format:      vpcmodel.Text,
 	},
 	{
-		inputConfig: "load_balancer",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping:    true,
+		inputConfig:  "load_balancer",
+		useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:     true,
 		noLbAbstract: true,
-		format:      vpcmodel.Text,
+		format:       vpcmodel.Text,
 	},
 }
 
@@ -795,7 +795,7 @@ func initTestFileNames(tt *vpcGeneralTest,
 	allVPCs bool,
 	testDir string) error {
 	expectedFileName, actualFileName, err := getTestFileName(
-		tt.name, uc, tt.grouping,tt.noLbAbstract, tt.format, vpcName, allVPCs)
+		tt.name, uc, tt.grouping, tt.noLbAbstract, tt.format, vpcName, allVPCs)
 	if err != nil {
 		return err
 	}

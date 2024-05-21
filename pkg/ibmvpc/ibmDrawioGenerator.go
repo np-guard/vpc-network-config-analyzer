@@ -160,5 +160,5 @@ func (pip *PrivateIP) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) draw
 		return nil
 	}
 	return drawio.NewPrivateIPTreeNode(
-		gen.TreeNode(pip.Subnet()).(drawio.SquareTreeNodeInterface), pip.Name())
+		gen.TreeNode(pip.Subnet()).(drawio.SquareTreeNodeInterface), pip.Name(),pip.original)
 }

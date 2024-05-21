@@ -181,6 +181,14 @@ func (stl *templateStyles) FIPImage() string {
 func (stl *templateStyles) Color(tn TreeNodeInterface) string {
 	return colors[reflect.TypeOf(tn).Elem()]
 }
+func (stl *templateStyles) Opacity(tn TreeNodeInterface) string {
+	if pip, ok := tn.(*PrivateIPTreeNode); ok {
+		if !pip.Original() {
+			return "50"
+		}
+	}
+	return "100"
+}
 
 ////////////////////////////////////////////////////////////////////////
 
