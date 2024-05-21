@@ -21,8 +21,8 @@ import (
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-func getNodeName(name, addr string) string {
-	return fmt.Sprintf("%s[%s]", name, addr)
+func nameWithBracketsInfo(name, inBrackets string) string {
+	return fmt.Sprintf("%s[%s]", name, inBrackets)
 }
 
 type Region struct {
@@ -53,7 +53,7 @@ type ReservedIP struct {
 }
 
 func (r *ReservedIP) Name() string {
-	return getNodeName(r.vpe, r.Address())
+	return nameWithBracketsInfo(r.vpe, r.Address())
 }
 
 func (r *ReservedIP) ExtendedName(c *vpcmodel.VPCConfig) string {
@@ -71,7 +71,7 @@ type PrivateIP struct {
 }
 
 func (pip *PrivateIP) Name() string {
-	return getNodeName(pip.loadBalancer.Name(), pip.Address())
+	return nameWithBracketsInfo(pip.loadBalancer.Name(), pip.Address())
 }
 
 func (pip *PrivateIP) ExtendedName(c *vpcmodel.VPCConfig) string {
@@ -90,7 +90,7 @@ func (ni *NetworkInterface) VsiName() string {
 }
 
 func (ni *NetworkInterface) Name() string {
-	return getNodeName(ni.vsi, ni.Address())
+	return nameWithBracketsInfo(ni.vsi, ni.Address())
 }
 
 func (ni *NetworkInterface) ExtendedName(c *vpcmodel.VPCConfig) string {
@@ -108,7 +108,7 @@ func (n *IKSNode) VsiName() string {
 }
 
 func (n *IKSNode) Name() string {
-	return getNodeName(n.ResourceName, n.Address())
+	return nameWithBracketsInfo(n.ResourceName, n.Address())
 }
 
 func (n *IKSNode) ExtendedName(c *vpcmodel.VPCConfig) string {
@@ -246,7 +246,7 @@ type LoadBalancer struct {
 
 // for LB we add the kind to the name, to make it clear in the reports
 func (lb *LoadBalancer) Name() string {
-	return fmt.Sprintf("%s[%s]", lb.ResourceName, lb.Kind())
+	return nameWithBracketsInfo(lb.ResourceName, lb.Kind())
 }
 
 func (lb *LoadBalancer) Nodes() []vpcmodel.Node {
