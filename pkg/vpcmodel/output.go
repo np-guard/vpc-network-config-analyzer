@@ -89,37 +89,37 @@ func NewOutputGenerator(cConfigs *MultipleVPCConfigs, grouping bool, uc OutputUs
 			}
 			res.explanation = explanation
 		}
-		for i, vpcConfig := range cConfigs.Configs() {
-			if uc == AllEndpoints {
+		switch uc {
+		case AllEndpoints:
+			for i, vpcConfig := range cConfigs.Configs() {
 				nodesConn, err := vpcConfig.GetVPCNetworkConnectivity(grouping, res.lbAbstraction)
 				if err != nil {
 					return nil, err
 				}
 				res.nodesConn[i] = nodesConn
 			}
-			if uc == AllSubnets {
+		case AllSubnets:
+			for i, vpcConfig := range cConfigs.Configs() {
 				subnetsConn, err := vpcConfig.GetSubnetsConnectivity(true, grouping)
 				if err != nil {
 					return nil, err
 				}
 				res.subnetsConn[i] = subnetsConn
 			}
-			if uc == SubnetsDiff {
-				configsForDiff := &configsForDiff{vpcConfig, cConfigs.ConfigToCompare(i), Subnets}
-				configsDiff, err := configsForDiff.GetDiff()
-				if err != nil {
-					return nil, err
-				}
-				res.cfgsDiff = configsDiff
+		case SubnetsDiff:
+			configsForDiff := &configsForDiff{cConfigs.aConfig(), cConfigs.aConfigToCompare(), Subnets}
+			configsDiff, err := configsForDiff.GetDiff()
+			if err != nil {
+				return nil, err
 			}
-			if uc == EndpointsDiff {
-				configsForDiff := &configsForDiff{vpcConfig, cConfigs.ConfigToCompare(i), Vsis}
-				configsDiff, err := configsForDiff.GetDiff()
-				if err != nil {
-					return nil, err
-				}
-				res.cfgsDiff = configsDiff
+			res.cfgsDiff = configsDiff
+		case EndpointsDiff:
+			configsForDiff := &configsForDiff{cConfigs.aConfig(), cConfigs.aConfigToCompare(), Vsis}
+			configsDiff, err := configsForDiff.GetDiff()
+			if err != nil {
+				return nil, err
 			}
+			res.cfgsDiff = configsDiff
 		}
 	}
 	// only Graphic formats has a multi vpc common presentation
@@ -216,17 +216,14 @@ func (of *serialOutputFormatter) WriteOutput(cConfigs *MultipleVPCConfigs, conns
 		}
 		return of.AggregateVPCsOutput(outputPerVPC, uc, outFile)
 	}
-	for uid, vpcConfig := range cConfigs.Configs() {
-		vpcAnalysisOutput, err2 :=
-			of.createSingleVpcFormatter().WriteOutput(vpcConfig, cConfigs.ConfigToCompare(uid), conns[uid], subnetsConns[uid],
-				subnetsDiff, "", grouping, uc, explainStruct)
-		if err2 != nil {
-			return "", err2
-		}
-		// its diff or explain mode, we have only one vpc on each map:
-		return of.WriteDiffOrExplainOutput(vpcAnalysisOutput, uc, outFile)
+	vpcAnalysisOutput, err2 :=
+		of.createSingleVpcFormatter().WriteOutput(cConfigs.aConfig(), cConfigs.aConfigToCompare(), conns[cConfigs.aUid()], subnetsConns[cConfigs.aUid()],
+			subnetsDiff, "", grouping, uc, explainStruct)
+	if err2 != nil {
+		return "", err2
 	}
-	return "", nil
+	// its diff or explain mode, we have only one vpc on each map:
+	return of.WriteDiffOrExplainOutput(vpcAnalysisOutput, uc, outFile)
 }
 
 func WriteToFile(content, fileName string) (string, error) {
