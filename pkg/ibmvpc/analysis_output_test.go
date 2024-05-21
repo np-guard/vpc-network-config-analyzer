@@ -656,7 +656,7 @@ func TestAllWithComparison(t *testing.T) {
 		if formatsAvoidComparison[tt.format] {
 			tt.mode = outputIgnore
 		} else {
-			tt.mode = outputGeneration
+			tt.mode = outputComparison
 		}
 		tt.name = tt.inputConfig
 		t.Run(tt.name, func(t *testing.T) {
