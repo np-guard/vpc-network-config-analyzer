@@ -36,9 +36,10 @@ type DrawioGenerator struct {
 	cloud         *drawio.CloudTreeNode
 	treeNodes     map[DrawioResourceIntf]drawio.TreeNodeInterface
 	lbAbstraction bool
+	uc            OutputUseCase
 }
 
-func NewDrawioGenerator(cloudName string, lbAbstraction bool) *DrawioGenerator {
+func NewDrawioGenerator(cloudName string, lbAbstraction bool, uc OutputUseCase) *DrawioGenerator {
 	// creates the top of the tree node - treeNodes that does not represent a specific resource.
 	gen := &DrawioGenerator{}
 	gen.network = drawio.NewNetworkTreeNode()
@@ -46,6 +47,7 @@ func NewDrawioGenerator(cloudName string, lbAbstraction bool) *DrawioGenerator {
 	gen.cloud = drawio.NewCloudTreeNode(gen.network, cloudName)
 	gen.treeNodes = map[DrawioResourceIntf]drawio.TreeNodeInterface{}
 	gen.lbAbstraction = lbAbstraction
+	gen.uc = uc
 	return gen
 }
 func (gen *DrawioGenerator) Network() *drawio.NetworkTreeNode             { return gen.network }
@@ -55,9 +57,11 @@ func (gen *DrawioGenerator) LBAbstraction() bool                          { retu
 
 func (gen *DrawioGenerator) TreeNode(res DrawioResourceIntf) drawio.TreeNodeInterface {
 	if gen.treeNodes[res] == nil {
-		gen.treeNodes[res] = res.GenerateDrawioTreeNode(gen)
-		if gen.treeNodes[res] != nil && gen.treeNodes[res].Kind() == "" {
-			gen.treeNodes[res].SetKind(res.Kind())
+		if gen.uc != AllSubnets || res.ShowOnSubnetMode() {
+			gen.treeNodes[res] = res.GenerateDrawioTreeNode(gen)
+			if gen.treeNodes[res] != nil && gen.treeNodes[res].Kind() == "" {
+				gen.treeNodes[res].SetKind(res.Kind())
+			}
 		}
 	}
 	return gen.treeNodes[res]
