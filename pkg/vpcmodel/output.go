@@ -113,6 +113,12 @@ func NewOutputGenerator(cConfigs *MultipleVPCConfigs, grouping bool, uc OutputUs
 				res.cfgsDiff = configsDiff
 			}
 			if uc == EndpointsDiff {
+				if cConfigs.ConfigToCompare(i) == nil {
+					return nil, errors.New(fmt.Sprintf("npGuard error: diff endpoints config to compare is nil; "+
+						"nohting in cConfigs.ConfigToCompare(%v)", i))
+				}
+				//fmt.Printf("i is %v cConfigs.ConfigToCompare(i).VPC.Name() is %v\n", i, cConfigs.ConfigToCompare(i).VPC.Name())
+				fmt.Printf("i is %v cConfigs.ConfigToCompare(i).VPC.Name() is \n", i)
 				configsForDiff := &configsForDiff{vpcConfig, cConfigs.ConfigToCompare(i), Vsis}
 				configsDiff, err := configsForDiff.GetDiff()
 				if err != nil {
