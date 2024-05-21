@@ -245,7 +245,7 @@ type LoadBalancer struct {
 }
 
 func (lb *LoadBalancer) ExtendedName(c *vpcmodel.VPCConfig) string {
-	return fmt.Sprintf("%s%s[%s]", lb.ExtendedPrefix(c), lb.Name(),lb.Kind())
+	return fmt.Sprintf("%s%s[%s]", lb.ExtendedPrefix(c), lb.Name(), lb.Kind())
 }
 
 func (lb *LoadBalancer) Nodes() []vpcmodel.Node {
