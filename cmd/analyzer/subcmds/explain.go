@@ -30,7 +30,7 @@ const (
 		"VSI name can be specified as <vsi-name> or  <vpc-name>/<vsi-name>"
 )
 
-func NewExplainCommand(args *InArgs) *cobra.Command {
+func NewExplainCommand(args *inArgs) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "explain",
 		Short: "Explain connectivity between two endpoints",
@@ -40,18 +40,19 @@ func NewExplainCommand(args *InArgs) *cobra.Command {
 			return validateExplainFlags(cmd, args)
 		},
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			args.AnalysisType = vpcmodel.Explain
-			return nil
+			args.explanationArgs = vpcmodel.NewExplanationArgs(args.eSrc, args.eDst, args.eProtocol.String(),
+				args.eSrcMinPort, args.eSrcMaxPort, args.eDstMinPort, args.eDstMaxPort)
+			return analysisVPCConfigs(args, vpcmodel.Explain)
 		},
 	}
 
-	cmd.Flags().StringVar(&args.ESrc, srcFlag, "", "source "+srcDstUsage)
-	cmd.Flags().StringVar(&args.EDst, dstFlag, "", "destination "+srcDstUsage)
-	cmd.Flags().Var(&args.EProtocol, protocolFlag, "protocol for connection description")
-	cmd.Flags().Int64Var(&args.ESrcMinPort, srcMinPortFlag, netp.MinPort, "minimum source port for connection description")
-	cmd.Flags().Int64Var(&args.ESrcMaxPort, srcMaxPortFlag, netp.MaxPort, "maximum source port for connection description")
-	cmd.Flags().Int64Var(&args.EDstMinPort, dstMinPortFlag, netp.MinPort, "minimum destination port for connection description")
-	cmd.Flags().Int64Var(&args.EDstMaxPort, dstMaxPortFlag, netp.MaxPort, "maximum destination port for connection description")
+	cmd.Flags().StringVar(&args.eSrc, srcFlag, "", "source "+srcDstUsage)
+	cmd.Flags().StringVar(&args.eDst, dstFlag, "", "destination "+srcDstUsage)
+	cmd.Flags().Var(&args.eProtocol, protocolFlag, "protocol for connection description")
+	cmd.Flags().Int64Var(&args.eSrcMinPort, srcMinPortFlag, netp.MinPort, "minimum source port for connection description")
+	cmd.Flags().Int64Var(&args.eSrcMaxPort, srcMaxPortFlag, netp.MaxPort, "maximum source port for connection description")
+	cmd.Flags().Int64Var(&args.eDstMinPort, dstMinPortFlag, netp.MinPort, "minimum destination port for connection description")
+	cmd.Flags().Int64Var(&args.eDstMaxPort, dstMaxPortFlag, netp.MaxPort, "maximum destination port for connection description")
 
 	_ = cmd.MarkFlagRequired(srcFlag)
 	_ = cmd.MarkFlagRequired(dstFlag)
@@ -84,30 +85,30 @@ func FlagSet(cmd *cobra.Command, flagName string) bool {
 	return flag.Changed
 }
 
-func validateExplainFlags(cmd *cobra.Command, args *InArgs) error {
+func validateExplainFlags(cmd *cobra.Command, args *inArgs) error {
 	err := validateFormatForMode(cmd.Use, []formatSetting{textFormat, debugFormat}, args)
 	if err != nil {
 		return err
 	}
 
-	if args.EProtocol == "" {
+	if args.eProtocol == "" {
 		if FlagSet(cmd, srcMinPortFlag) || FlagSet(cmd, srcMaxPortFlag) ||
 			FlagSet(cmd, dstMinPortFlag) || FlagSet(cmd, dstMaxPortFlag) {
 			return fmt.Errorf("protocol must be specified when specifying ports")
 		}
 	}
 
-	err = minMaxValidity(args.ESrcMinPort, args.ESrcMaxPort, srcMinPortFlag, srcMaxPortFlag)
+	err = minMaxValidity(args.eSrcMinPort, args.eSrcMaxPort, srcMinPortFlag, srcMaxPortFlag)
 	if err != nil {
 		return err
 	}
-	err = minMaxValidity(args.EDstMinPort, args.EDstMaxPort, dstMinPortFlag, dstMaxPortFlag)
+	err = minMaxValidity(args.eDstMinPort, args.eDstMaxPort, dstMinPortFlag, dstMaxPortFlag)
 	if err != nil {
 		return err
 	}
 
-	if !portInRange(args.ESrcMinPort) || !portInRange(args.ESrcMaxPort) ||
-		!portInRange(args.EDstMinPort) || !portInRange(args.EDstMaxPort) {
+	if !portInRange(args.eSrcMinPort) || !portInRange(args.eSrcMaxPort) ||
+		!portInRange(args.eDstMinPort) || !portInRange(args.eDstMaxPort) {
 		return fmt.Errorf("port number must be in between %d, %d, inclusive",
 			connection.MinPort, connection.MaxPort)
 	}
