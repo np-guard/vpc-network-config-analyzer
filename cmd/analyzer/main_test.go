@@ -148,6 +148,10 @@ func TestMain(t *testing.T) {
 			name: "multi_vpc_configs",
 			args: "report endpoints --output-file multi_vpc_configs.txt -c ../../pkg/ibmvpc/examples/input/input_acl_testing3.json -c ../../pkg/ibmvpc/examples/input/input_sg_testing_3.json",
 		},
+		{
+			name: "diff_with_different_uid",
+			args: "diff endpoints --quiet --vpc-config ../../pkg/ibmvpc/examples/input/input_sg_testing_default.json --vpc-config-second ../../pkg/ibmvpc/examples/input/input_sg_testing_3.json",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
