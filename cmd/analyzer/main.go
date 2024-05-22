@@ -33,13 +33,14 @@ func analysisVPCConfigs(cConfigs *vpcmodel.MultipleVPCConfigs, inArgs *subcmds.I
 		explanationArgs = vpcmodel.NewExplanationArgs(inArgs.ESrc, inArgs.EDst, string(inArgs.EProtocol),
 			inArgs.ESrcMinPort, inArgs.ESrcMaxPort, inArgs.EDstMinPort, inArgs.EDstMaxPort)
 	}
-
 	outFormat := inArgs.OutputFormat.ToModelFormat()
+	// todo - for now, this is how we set the lbAbstraction, need to consider better input:
+	lbAbstraction := outFormat != vpcmodel.Debug
 	og, err := vpcmodel.NewOutputGenerator(cConfigs,
 		inArgs.Grouping,
 		inArgs.AnalysisType,
 		false,
-		explanationArgs, outFormat, outFormat != vpcmodel.Debug)
+		explanationArgs, outFormat, lbAbstraction)
 	if err != nil {
 		return "", err
 	}
