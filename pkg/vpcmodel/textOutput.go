@@ -84,7 +84,12 @@ func (t *TextOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	case SingleSubnet:
 		out += c1.GetConnectivityOutputPerEachSubnetSeparately()
 	case SubnetsDiff, EndpointsDiff:
-		out += cfgsDiff.String()
+		diffOut := cfgsDiff.String()
+		if diffOut != "" {
+			out += cfgsDiff.String()
+		} else {
+			out = "The two given configurations have exactly the same connectivity"
+		}
 		hasStatelessConns = cfgsDiff.hasStatelessConns()
 	case Explain:
 		out += explanation.String(false)
