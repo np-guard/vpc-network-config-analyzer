@@ -393,6 +393,13 @@ var tests = []*vpcGeneralTest{
 		grouping:    true,
 		format:      vpcmodel.Text,
 	},
+	{
+		inputConfig: "iks_config_object",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		noLbAbstract: true,
+		format:      vpcmodel.Text,
+	},
 	// json examples
 	{
 		inputConfig: "demo_with_instances",
@@ -647,7 +654,7 @@ var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{
 }
 
 // uncomment the function below to run for updating the expected output
-/*
+
 var formatsAvoidOutputGeneration = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
 
 func TestAllWithGeneration(t *testing.T) {
@@ -668,7 +675,7 @@ func TestAllWithGeneration(t *testing.T) {
 	}
 	fmt.Println("done")
 }
-*/
+
 
 func TestAllWithComparison(t *testing.T) {
 	// tests is the list of tests to run
