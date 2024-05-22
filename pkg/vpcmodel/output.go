@@ -81,14 +81,6 @@ func NewOutputGenerator(cConfigs *MultipleVPCConfigs, grouping bool, uc OutputUs
 	graphicFormat := slices.Contains([]OutFormat{DRAWIO, ARCHDRAWIO, SVG, ARCHSVG, HTML, ARCHHTML}, f)
 	archOnlyFormat := slices.Contains([]OutFormat{ARCHDRAWIO, ARCHSVG, ARCHHTML}, f)
 	if !archOnlyFormat {
-		if uc == Explain {
-			connQuery := explanationArgs.GetConnectionSet()
-			explanation, err := cConfigs.ExplainConnectivity(explanationArgs.src, explanationArgs.dst, connQuery)
-			if err != nil {
-				return nil, err
-			}
-			res.explanation = explanation
-		}
 		switch uc {
 		case AllEndpoints:
 			for i, vpcConfig := range cConfigs.Configs() {
@@ -122,6 +114,13 @@ func NewOutputGenerator(cConfigs *MultipleVPCConfigs, grouping bool, uc OutputUs
 				return nil, err
 			}
 			res.cfgsDiff = configsDiff
+		case Explain:
+			connQuery := explanationArgs.GetConnectionSet()
+			explanation, err := cConfigs.ExplainConnectivity(explanationArgs.src, explanationArgs.dst, connQuery)
+			if err != nil {
+				return nil, err
+			}
+			res.explanation = explanation
 		}
 	}
 	// only Graphic formats has a multi vpc common presentation
