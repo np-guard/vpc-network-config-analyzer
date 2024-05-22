@@ -187,7 +187,7 @@ func (stl *templateStyles) Opacity(tn TreeNodeInterface) string {
 			return "50"
 		}
 	}
-	return "100"
+	return "99"
 }
 
 ////////////////////////////////////////////////////////////////////////
