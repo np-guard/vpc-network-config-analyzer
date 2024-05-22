@@ -132,10 +132,6 @@ func (c *MultipleVPCConfigs) aConfig() *VPCConfig {
 	_, config := common.AnyMapEntry(c.configs)
 	return config
 }
-func (c *MultipleVPCConfigs) aUid() string {
-	uid, _ := common.AnyMapEntry(c.configs)
-	return uid
-}
 func (c *MultipleVPCConfigs) HasConfig(uid string) bool {
 	_, ok := c.configs[uid]
 	return ok

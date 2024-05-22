@@ -106,7 +106,7 @@ func NewOutputGenerator(cConfigs *MultipleVPCConfigs, grouping bool, uc OutputUs
 				}
 				res.subnetsConn[i] = subnetsConn
 			}
-		// diff: only comparsion between single vpc configs is supported;
+		// diff: only comparison between single vpc configs is supported;
 		// thus instead of ranging over configs, takes the single config
 		case SubnetsDiff:
 			configsForDiff := &configsForDiff{cConfigs.aConfig(), cConfigs.aConfigToCompare(), Subnets}
