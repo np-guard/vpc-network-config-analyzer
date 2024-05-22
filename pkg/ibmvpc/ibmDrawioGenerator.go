@@ -26,7 +26,7 @@ func (v *Vpe) ShowOnSubnetMode() bool                  { return false }
 func (pgw *PublicGateway) ShowOnSubnetMode() bool      { return true }
 func (fip *FloatingIP) ShowOnSubnetMode() bool         { return false }
 func (tgw *TransitGateway) ShowOnSubnetMode() bool     { return true }
-func (lb *LoadBalancer) ShowOnSubnetMode() bool        { return false }
+func (lb *LoadBalancer) ShowOnSubnetMode() bool        { return true }
 func (pip *PrivateIP) ShowOnSubnetMode() bool          { return false }
 
 // for DrawioResourceIntf that are not VPCResourceIntf, we implement Kind():
@@ -152,7 +152,8 @@ func (lb *LoadBalancer) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) dr
 		}
 	}
 	vpcTn := gen.TreeNode(lb.VPC()).(drawio.SquareTreeNodeInterface)
-	return drawio.GroupPrivateIPsWithLoadBalancer(vpcTn, lb.Name(), privateIPs)
+	// here we do not call lb.Name() because lb.Name() add the kind to the name
+	return drawio.GroupPrivateIPsWithLoadBalancer(vpcTn, lb.ResourceName, privateIPs)
 }
 func (pip *PrivateIP) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	if gen.LBAbstraction() {

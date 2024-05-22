@@ -115,12 +115,13 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 	egressBlocking := !expDetails.egressEnabled && needEgress
 	var externalRouterHeader, crossRouterFilterHeader, resourceEffectHeader,
 		crossRouterFilterDetails, details string
-	externalRouter, crossVpcRouter := expDetails.externalRouter, expDetails.crossVpcRouter
+	externalRouter, crossVpcRouter, crossVpcRules := expDetails.externalRouter, expDetails.crossVpcRouter, expDetails.crossVpcRules
 	if externalRouter != nil && (src.IsExternal() || dst.IsExternal()) {
 		externalRouterHeader = "External traffic via " + externalRouter.Kind() + ": " + externalRouter.Name() + newLine
 	}
 	var crossVpcConnection *connection.Set
-	crossVpcConnection, crossRouterFilterHeader, crossRouterFilterDetails = crossRouterDetails(c, crossVpcRouter, src, dst)
+	crossVpcConnection, crossRouterFilterHeader, crossRouterFilterDetails = crossRouterDetails(c, crossVpcRouter, crossVpcRules,
+		src, dst)
 	// noConnection is the 1 above when no connection
 	noConnection := noConnectionHeader(src.ExtendedName(c), dst.ExtendedName(c), connQuery) + newLine
 
@@ -174,14 +175,15 @@ func (g *groupedConnLine) explainPerCaseStr(c *VPCConfig, src, dst EndpointElem,
 	}
 }
 
-func crossRouterDetails(c *VPCConfig, crossVpcRouter RoutingResource, src, dst EndpointElem) (crossVpcConnection *connection.Set,
+func crossRouterDetails(c *VPCConfig, crossVpcRouter RoutingResource, crossVpcRules []RulesInTable,
+	src, dst EndpointElem) (crossVpcConnection *connection.Set,
 	crossVpcRouterFilterHeader, crossVpcFilterDetails string) {
 	if crossVpcRouter != nil {
 		// an error here will pop up earlier, when computing connections
 		_, crossVpcConnection, _ := c.getRoutingResource(src.(Node), dst.(Node)) // crossVpc Router (tgw) exists - src, dst are internal
 		// if there is a non nil transit gateway then src and dst are vsis, and implement Node
-		crossVpcFilterHeader, _ := crossVpcRouter.StringPrefixDetails(src.(Node), dst.(Node), false)
-		crossVpcFilterDetails, _ := crossVpcRouter.StringPrefixDetails(src.(Node), dst.(Node), true)
+		crossVpcFilterHeader, _ := crossVpcRouter.StringDetailsOfRules(crossVpcRules, false)
+		crossVpcFilterDetails, _ := crossVpcRouter.StringDetailsOfRules(crossVpcRules, true)
 		return crossVpcConnection, crossVpcFilterHeader, crossVpcFilterDetails
 	}
 	return nil, emptyString, emptyString
@@ -274,9 +276,9 @@ func (rulesInLayers rulesInLayers) summaryFiltersStr(c *VPCConfig, filtersReleva
 	return strings.Join(strSlice, semicolon+space)
 }
 
-// for a given layer (e.g. nacl) and []RulesInFilter describing ingress/egress rules,
+// for a given layer (e.g. nacl) and []RulesInTable describing ingress/egress rules,
 // returns a string with the effect of each filter, called by summaryFiltersStr
-func stringFilterEffect(c *VPCConfig, filterLayerName string, rules []RulesInFilter) string {
+func stringFilterEffect(c *VPCConfig, filterLayerName string, rules []RulesInTable) string {
 	filterLayer := c.getFilterTrafficResourceOfKind(filterLayerName)
 	filtersToActionMap := filterLayer.ListFilterWithAction(rules)
 	strSlice := make([]string, len(filtersToActionMap))
@@ -392,7 +394,7 @@ func FilterKindName(filterLayer string) string {
 
 // for a given filter layer (e.g. sg) returns a string of the allowing tables
 // (note that denying tables are excluded)
-func pathFiltersSingleLayerStr(c *VPCConfig, filterLayerName string, rules []RulesInFilter) string {
+func pathFiltersSingleLayerStr(c *VPCConfig, filterLayerName string, rules []RulesInTable) string {
 	filterLayer := c.getFilterTrafficResourceOfKind(filterLayerName)
 	filtersToActionMap := filterLayer.ListFilterWithAction(rules)
 	strSlice := []string{}
@@ -419,7 +421,7 @@ func (rulesInLayers rulesInLayers) rulesDetailsStr(c *VPCConfig, filtersRelevant
 	for _, layer := range getLayersToPrint(filtersRelevant, isIngress) {
 		filter := c.getFilterTrafficResourceOfKind(layer)
 		if rules, ok := rulesInLayers[layer]; ok {
-			strSlice = append(strSlice, filter.StringDetailsRulesOfFilter(rules))
+			strSlice = append(strSlice, filter.StringDetailsOfRules(rules))
 		}
 	}
 	return strings.Join(strSlice, emptyString)
