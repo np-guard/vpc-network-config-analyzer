@@ -106,6 +106,8 @@ func NewOutputGenerator(cConfigs *MultipleVPCConfigs, grouping bool, uc OutputUs
 				}
 				res.subnetsConn[i] = subnetsConn
 			}
+		// diff: only comparsion between single vpc configs is supported;
+		// thus instead of ranging over configs, takes the single config
 		case SubnetsDiff:
 			configsForDiff := &configsForDiff{cConfigs.aConfig(), cConfigs.aConfigToCompare(), Subnets}
 			configsDiff, err := configsForDiff.GetDiff()
@@ -198,7 +200,7 @@ func (of *serialOutputFormatter) createSingleVpcFormatter() SingleVpcOutputForma
 }
 
 func (of *serialOutputFormatter) WriteOutput(cConfigs *MultipleVPCConfigs, conns map[string]*VPCConnectivity,
-	subnetsConns map[string]*VPCsubnetConnectivity, subnetsDiff *diffBetweenCfgs,
+	subnetsConns map[string]*VPCsubnetConnectivity, configsDiff *diffBetweenCfgs,
 	outFile string, grouping bool, uc OutputUseCase, explainStruct *Explanation) (string, error) {
 	singleVPCAnalysis := uc == EndpointsDiff || uc == SubnetsDiff || uc == Explain
 	if !singleVPCAnalysis {
@@ -207,7 +209,7 @@ func (of *serialOutputFormatter) WriteOutput(cConfigs *MultipleVPCConfigs, conns
 		for uid, vpcConfig := range cConfigs.Configs() {
 			vpcAnalysisOutput, err2 :=
 				of.createSingleVpcFormatter().WriteOutput(vpcConfig, nil, conns[uid], subnetsConns[uid],
-					subnetsDiff, "", grouping, uc, explainStruct)
+					configsDiff, "", grouping, uc, explainStruct)
 			if err2 != nil {
 				return "", err2
 			}
@@ -216,9 +218,18 @@ func (of *serialOutputFormatter) WriteOutput(cConfigs *MultipleVPCConfigs, conns
 		}
 		return of.AggregateVPCsOutput(outputPerVPC, uc, outFile)
 	}
+	// singleVPCAnalysis: either diff or explain. In either case conn and subnet conn are non-relevant, thus passing nil
+	// diff compares between two single vpc configs, which are being passed
+	// explain works on a specific config, either single or multiple; the relevant config for explain is kept
+	// in its structs, thus the configs passed here are non relevant for it
+	//var config, toCompareConfig *VPCConfig
+	//if uc == EndpointsDiff || uc == SubnetsDiff {
+	//	config = cConfigs.aConfig()
+	//	toCompareConfig = cConfigs.aConfigToCompare()
+	//}
 	vpcAnalysisOutput, err2 :=
-		of.createSingleVpcFormatter().WriteOutput(cConfigs.aConfig(), cConfigs.aConfigToCompare(), conns[cConfigs.aUid()], subnetsConns[cConfigs.aUid()],
-			subnetsDiff, "", grouping, uc, explainStruct)
+		of.createSingleVpcFormatter().WriteOutput(cConfigs.aConfig(), cConfigs.aConfigToCompare(), nil, nil,
+			configsDiff, "", grouping, uc, explainStruct)
 	if err2 != nil {
 		return "", err2
 	}
