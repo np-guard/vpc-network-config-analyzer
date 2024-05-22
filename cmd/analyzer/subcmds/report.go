@@ -14,20 +14,20 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
-func NewReportCommand(args *InArgs) *cobra.Command {
+func NewReportCommand(args *inArgs) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "report",
 		Short: "Report VPC connectivity as implied by the given cloud config",
 		Long:  `Report VPC connectivity as implied by the given cloud configuration`,
 		PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
-			if args.Grouping && args.OutputFormat == jsonFormat {
+			if args.grouping && args.outputFormat == jsonFormat {
 				return fmt.Errorf("json output format is not supported with grouping")
 			}
 			return nil
 		},
 	}
 
-	cmd.PersistentFlags().BoolVarP(&args.Grouping, "grouping", "g", false, "whether to group together endpoints sharing the same connectivity")
+	cmd.PersistentFlags().BoolVarP(&args.grouping, "grouping", "g", false, "whether to group together endpoints sharing the same connectivity")
 
 	cmd.AddCommand(newReportEndpointsCommand(args))
 	cmd.AddCommand(newReportSubnetsCommand(args))
@@ -36,48 +36,45 @@ func NewReportCommand(args *InArgs) *cobra.Command {
 	return cmd
 }
 
-func newReportEndpointsCommand(args *InArgs) *cobra.Command {
+func newReportEndpointsCommand(args *inArgs) *cobra.Command {
 	return &cobra.Command{
 		Use:   "endpoints",
 		Short: "Report VPC connectivity between endpoints",
 		Long:  `reports VPC connectivity between endpoints as implied by the given cloud configuration`,
 		Args:  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, _ []string) error {
-			args.AnalysisType = vpcmodel.AllEndpoints
-			return nil
+		RunE: func(_ *cobra.Command, _ []string) error {
+			return analysisVPCConfigs(args, vpcmodel.AllEndpoints)
 		},
 	}
 }
 
-func newReportSubnetsCommand(args *InArgs) *cobra.Command {
+func newReportSubnetsCommand(args *inArgs) *cobra.Command {
 	return &cobra.Command{
 		Use:   "subnets",
 		Short: "Report VPC connectivity between subnets",
 		Long:  `reports VPC connectivity between subnets as implied by the given cloud configuration`,
 		Args:  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, _ []string) error {
-			args.AnalysisType = vpcmodel.AllSubnets
-			return nil
+		RunE: func(_ *cobra.Command, _ []string) error {
+			return analysisVPCConfigs(args, vpcmodel.AllSubnets)
 		},
 	}
 }
 
-func newReportSingleSubnetCommand(args *InArgs) *cobra.Command {
+func newReportSingleSubnetCommand(args *inArgs) *cobra.Command {
 	const SingleSubnetCmd = "single-subnet"
 	return &cobra.Command{
 		Use:   SingleSubnetCmd,
 		Short: "Report VPC connectivity per subnet",
 		Long:  `reports VPC connectivity per subnet as implied by the given cloud configuration`,
 		Args:  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, _ []string) error {
-			if args.Grouping {
+		PreRunE: func(cmd *cobra.Command, _ []string) error {
+			if args.grouping {
 				return fmt.Errorf("currently single-subnet analysis type does not support grouping")
 			}
-			if err := validateFormatForMode(SingleSubnetCmd, []formatSetting{textFormat}, args); err != nil {
-				return err
-			}
-			args.AnalysisType = vpcmodel.SingleSubnet
-			return nil
+			return validateFormatForMode(SingleSubnetCmd, []formatSetting{textFormat}, args)
+		},
+		RunE: func(_ *cobra.Command, _ []string) error {
+			return analysisVPCConfigs(args, vpcmodel.SingleSubnet)
 		},
 	}
 }
