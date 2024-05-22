@@ -394,11 +394,11 @@ var tests = []*vpcGeneralTest{
 		format:      vpcmodel.Text,
 	},
 	{
-		inputConfig: "iks_config_object",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping:    true,
+		inputConfig:  "iks_config_object",
+		useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:     true,
 		noLbAbstract: true,
-		format:      vpcmodel.Text,
+		format:       vpcmodel.Text,
 	},
 	// json examples
 	{
