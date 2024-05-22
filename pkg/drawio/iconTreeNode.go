@@ -272,6 +272,7 @@ func NewPrivateIPTreeNode(parent SquareTreeNodeInterface, name string, original 
 
 func (tn *PrivateIPTreeNode) RouterID() uint { return tn.FipID() }
 func (tn *PrivateIPTreeNode) Original() bool { return tn.original }
+
 // ///////////////////////////////////////////
 
 // ///////////////////////////////////////////

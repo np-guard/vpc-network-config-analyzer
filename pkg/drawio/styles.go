@@ -187,7 +187,7 @@ func (stl *templateStyles) Opacity(tn TreeNodeInterface) string {
 			return "50"
 		}
 	}
-	//in html the opacity is a float from zero to one. in drawio ia an int from 0 to 100.
+	// in html the opacity is a float from zero to one. in drawio ia an int from 0 to 100.
 	// so we give 99, and not 100 ( to get in html 0.99 and not 0.100)
 	return "99"
 }
