@@ -7,7 +7,10 @@ SPDX-License-Identifier: Apache-2.0
 package vpcmodel
 
 import (
+	"fmt"
 	"slices"
+	"github.com/np-guard/models/pkg/connection"
+
 )
 
 // given a nodeSet NS[n0, n1, n2, n3...]
@@ -31,10 +34,16 @@ import (
 //nolint:gocritic // for now, we comment out the check calls
 func nodeSetConnectivityAbstraction(nodesConn GeneralConnectivityMap, nodeSet NodeSet) GeneralConnectivityMap {
 	otherToOther, nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet := partitionConnectivityByNodeSet(nodesConn, nodeSet)
-	// checkConnectivityAbstractionValidity(otherFromNodeSet, nodeSet, false)
-	// checkConnectivityAbstractionValidity(otherToNodeSet, nodeSet, true)
-	// checkConnectivityAbstractionValidity(nodeSetToNodeSet, nodeSet, true)
-	return mergeConnectivityWithNodeSetAbstraction(otherToOther, nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet, nodeSet)
+	res := mergeConnectivityWithNodeSetAbstraction(otherToOther, nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet, nodeSet)
+	checkConnectivityAbstractionValidity(otherFromNodeSet, res, nodeSet, false)
+	checkConnectivityAbstractionValidity(otherToNodeSet, res, nodeSet, true)
+	checkConnectivityAbstractionValidity(nodeSetToNodeSet, res, nodeSet, true)
+	for src, nodeConns := range otherToOther {
+		for dst, conns := range nodeConns {
+			res.updateAllowedConnsMap(src, dst, conns)
+		}
+	}
+	return res
 }
 
 // partitionConnectivityByNodeSet() returns partitions from the connectivity to the four groups
@@ -76,41 +85,32 @@ func partitionConnectivityByNodeSet(nodesConn GeneralConnectivityMap, nodeSet No
 // todo: - how to report this string? what format?
 // for now, No need to CR it, we do not do anything with the result
 
-// func checkConnectivityAbstractionValidity(connMap GeneralConnectivityMap, nodeSet NodeSet, isIngress bool) {
-// 	res := ""
-// 	for node1, nodeConns := range connMap {
-// 		allConns := map[string][]VPCResourceIntf{}
-// 		for node2, conn := range nodeConns {
-// 			allConns[conn.String()] = append(allConns[conn.String()], node2)
-// 		}
-// 		if len(allConns) > 1 || len(nodeConns) != len(nodeSet.Nodes()) {
-// 			directionAdjective := map[bool]string{false: "from", true: "to"}[isIngress]
-// 			res += fmt.Sprintf("node %s has different access %s %s:\n", node1.Name(), directionAdjective, nodeSet.Name())
-// 			if len(nodeConns) != len(nodeSet.Nodes()) {
-// 				res += fmt.Sprintf("    it has no access %s ", directionAdjective)
-// 				for _, node2 := range nodeSet.Nodes() {
-// 					if _, ok := nodeConns[node2]; !ok {
-// 						res += fmt.Sprintf("%s, ", node2.Name())
-// 					}
-// 				}
-// 				res += "\n"
-// 			}
-// 			for conn, nodes := range allConns {
-// 				res += "    "
-// 				if isIngress {
-// 					res += fmt.Sprintf("%s -> ", node1.Name())
-// 				}
-// 				for _, n := range nodes {
-// 					res += fmt.Sprintf("%s,", n.Name())
-// 				}
-// 				if !isIngress {
-// 					res += fmt.Sprintf(" -> %s", node1.Name())
-// 				}
-// 				res += fmt.Sprintf(" %s\n", conn)
-// 			}
-// 		}
-// 	}
-// }
+func checkConnectivityAbstractionValidity(connMap GeneralConnectivityMap, mergedConnMap GeneralConnectivityMap, nodeSet NodeSet, isIngress bool) {
+	res := ""
+	for node1, conns := range connMap {
+		for _, node2 := range nodeSet.Nodes() {
+			var nodeConnection, mergedConnection *connection.Set
+			var src,dst VPCResourceIntf
+			if isIngress {
+				mergedConnection = mergedConnMap[node1][nodeSet]
+				src,dst = node1, node2
+			}else{
+				mergedConnection = mergedConnMap[nodeSet][node1]
+				src,dst = node2, node1
+			}
+			if nodeConnection = conns[node2]; nodeConnection == nil{
+				nodeConnection = NoConns()
+			}
+			if !nodeConnection.Equal(mergedConnection) {
+				missingConn := mergedConnection.Subtract(nodeConnection)
+				res += fmt.Sprintf("%s -> %s : %s is missing for full abstraction of LB %s\n", src.Name(), dst.Name(), missingConn.String(), nodeSet.Name())
+			}
+		}
+	}
+	if res != "" {
+		fmt.Println(res)
+	}
+}
 
 // mergeConnectivityWithNodeSetAbstraction() merge the four groups, while abstracting the connections
 func mergeConnectivityWithNodeSetAbstraction(
@@ -118,11 +118,6 @@ func mergeConnectivityWithNodeSetAbstraction(
 	nodeSet NodeSet) GeneralConnectivityMap {
 	// first make a copy of otherToOther, to be the result:
 	res := GeneralConnectivityMap{}
-	for src, nodeConns := range otherToOther {
-		for dst, conns := range nodeConns {
-			res.updateAllowedConnsMap(src, dst, conns)
-		}
-	}
 	// all the connections with the nodeSet are merged to *only* one connectivity, which is the union of all separate connections:
 	allConns := NoConns()
 	for _, nodeConns := range nodeSetToNodeSet {
