@@ -323,39 +323,10 @@ func (ly *layoutS) layoutSubnetsIcons() {
 func (ly *layoutS) layoutSubnets() {
 	sly := newSubnetsLayout(ly.network)
 	sly.layout()
-	ly.setSubnetsLocations(sly.subnetMatrix, sly.zonesCol)
-}
-
-func (ly *layoutS) setSubnetsLocations(subnetMatrix [][]TreeNodeInterface, zonesCol map[TreeNodeInterface]int) {
-	locatedSubnets := map[TreeNodeInterface]bool{}
-	for ri, row := range subnetMatrix {
+	for ri, row := range sly.squaresMatrix {
 		for ci, s := range row {
-			if s != nil && s != fakeSubnet {
+			if s != nil {
 				ly.setDefaultLocation(s.(SquareTreeNodeInterface), ri, ci)
-				locatedSubnets[s] = true
-			}
-		}
-	}
-	ly.setDefaultLocation(ly.network, 0, 0)
-	for _, cloud := range ly.network.(*NetworkTreeNode).clouds {
-		for _, region := range cloud.(*CloudTreeNode).regions {
-			for _, vpc := range region.(*RegionTreeNode).vpcs {
-				for _, zone := range vpc.(*VpcTreeNode).zones {
-					if _, ok := zonesCol[zone]; !ok {
-						zonesCol[zone] = len(zonesCol)
-					}
-					rowIndex := 0
-					for _, subnet := range zone.(*ZoneTreeNode).subnets {
-						if !locatedSubnets[subnet] {
-							a := len(subnetMatrix)
-							for rowIndex < a && zonesCol[zone] < len(subnetMatrix[rowIndex]) && subnetMatrix[rowIndex][zonesCol[zone]] != nil {
-								rowIndex++
-							}
-							ly.setDefaultLocation(subnet, rowIndex, zonesCol[zone])
-							rowIndex++
-						}
-					}
-				}
 			}
 		}
 	}

@@ -8,6 +8,7 @@ package drawio
 
 import (
 	"maps"
+	"slices"
 	"sort"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
@@ -16,7 +17,7 @@ import (
 // //////////////////////////////////////////////////////////////////////////////////////////////
 // subnetsLayout struct is a struct for layout subnets when the network is in subnet mode.
 // the input of the layout algorithm is the groups of subnets,
-// and the output is a matrix of subnets, representing the subnets location on the drawio canvas.
+// and the output is a matrix of squares, representing the squares location on the drawio canvas.
 // the location of the groups squares is determinate later by the location of the subnets.
 // the layout algorithm should make sure that all the group subnets, and only the group subnets should be inside the group squares.
 // since some of the subnets can be in the more than one group, the solution is not trivial.
@@ -34,6 +35,7 @@ import (
 //    (in this phase new groups are created, by splitting  groups to smaller groups)
 // 3. layout the groups
 // 4. create new treeNodes of the new groupSquares and new connectors
+// 5. layout subnets with no groups and empty zones/regions/vpcs/ ...
 // //////////////////////////////////////////////////////////////////////////////////////////////
 
 type subnetSet = common.GenericSet[TreeNodeInterface]
@@ -134,6 +136,7 @@ type subnetsLayout struct {
 	miniGroups        miniGroupSet
 	miniGroupsMatrix  [][]*miniGroupDataS
 	subnetMatrix      [][]TreeNodeInterface
+	squaresMatrix     [][]TreeNodeInterface
 	subnetsIndexes    map[TreeNodeInterface]indexes
 	zonesCol          map[TreeNodeInterface]int
 	treeNodesToGroups map[TreeNodeInterface]*groupDataS
@@ -161,6 +164,8 @@ func (ly *subnetsLayout) layout() {
 	ly.layoutGroups()
 	// create the new treeNodes:
 	ly.createNewTreeNodes()
+	// create the squares matrix:
+	ly.setSquaresMatrix()
 }
 
 // //////////////////////////////////////////////////////////
@@ -596,6 +601,11 @@ func (ly *subnetsLayout) createMatrixes() {
 	for i := range ly.subnetMatrix {
 		ly.subnetMatrix[i] = make([]TreeNodeInterface, len(ly.zonesCol))
 	}
+	nSquares := len(getAllSquares(ly.network))
+	ly.squaresMatrix = make([][]TreeNodeInterface, nSquares)
+	for i := range ly.squaresMatrix {
+		ly.squaresMatrix[i] = make([]TreeNodeInterface, nSquares)
+	}
 }
 
 // /////////////////////////////////////////////////////////////////////////
@@ -825,4 +835,136 @@ func (ly *subnetsLayout) canShowGroup(group *groupDataS) bool {
 	}
 
 	return nSubnets == len(group.subnets)
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// after creating the subnet matrix, we still need to position squares that do not have subnets, and subnets that are not in groups
+// setSquaresMatrix() outputs a matrix with all the squares that do not have children.
+// two main phases in setSquaresMatrix():
+// 1. calculate the column of each square
+// 2. create the squares matrix - based on the subnet matrix and the squares columns.
+
+func (ly *subnetsLayout) setSquaresMatrix() {
+	squaresCol := ly.squaresCol()
+	ly.calcSquareMatrix(squaresCol)
+}
+
+////////////////////////////////////////////////////////////////////
+// squaresCol() calculates the column of the squares.
+// the phases:
+// 1. convert the network tree to map representation, from parents to their children), so it is easier to work with.
+// Note: the tree only includes hierarchy levels from network to zones. Subnets are not included.
+// 2. sort the tree by the canvas - the children of each node in the tree is sorted by the order that they should be on the canvas.
+// 3. iterate recursively over the sorted tree, for each squares that does not have children - set its column
+
+func (ly *subnetsLayout) squaresCol() map[TreeNodeInterface]int {
+	tree := ly.networkTreeAsMap()
+	ly.sortTreeAsInCanvas(tree)
+	return ly.calcColsFromTree(tree)
+}
+
+func (ly *subnetsLayout) networkTreeAsMap() map[TreeNodeInterface][]SquareTreeNodeInterface {
+	tree := map[TreeNodeInterface][]SquareTreeNodeInterface{}
+	tree[ly.network] = slices.Clone(ly.network.(*NetworkTreeNode).clouds)
+	for _, cloud := range ly.network.(*NetworkTreeNode).clouds {
+		tree[cloud] = slices.Clone(cloud.(*CloudTreeNode).regions)
+		for _, region := range cloud.(*CloudTreeNode).regions {
+			tree[region] = slices.Clone(region.(*RegionTreeNode).vpcs)
+			for _, vpc := range region.(*RegionTreeNode).vpcs {
+				tree[vpc] = slices.Clone(vpc.(*VpcTreeNode).zones)
+			}
+		}
+	}
+	return tree
+}
+
+// sortTreeAsInCanvas() sort the tree as the squares should be on canvas
+// the input of sortTreeAsInCanvas() is the zonesCol - the column that was already calculate for the zone
+// the phases:
+// 1. calc maxCol - for each node, calc recursively the maximum column of all the zones in its subtree
+// 2. for nodes that does not have zones, set maxCol to be the highest
+// 3. for each node, sort its children by maxCol - nodes that does not have zones will go to the end
+func (ly *subnetsLayout) sortTreeAsInCanvas(tree map[TreeNodeInterface][]SquareTreeNodeInterface) {
+	// calc maxCol:
+	maxCol := map[TreeNodeInterface]int{}
+	maxCol[ly.network] = 0
+	for _, children := range tree {
+		for _, child := range children {
+			maxCol[child] = -1
+		}
+	}
+	for zone, col := range ly.zonesCol {
+		maxCol[zone] = col
+	}
+	// recursive call get the maxCol of each node:
+	var setMax func(tn TreeNodeInterface)
+	setMax = func(tn TreeNodeInterface) {
+		for _, child := range tree[tn] {
+			setMax(child)
+			maxCol[tn] = max(maxCol[tn], maxCol[child])
+		}
+	}
+	setMax(ly.network)
+	// those whom have -1 does not have zones - giving them the highest number, so sort will send them to the end
+	maxColOnTree := maxCol[ly.network]
+	for tn, val := range maxCol {
+		if val == -1 {
+			maxCol[tn] = maxColOnTree + 1
+		}
+	}
+	// sorting children:
+	for tn := range tree {
+		sort.Slice(tree[tn], func(i, j int) bool {
+			return maxCol[tree[tn][i]] < maxCol[tree[tn][j]]
+		})
+	}
+}
+
+// calcColsFromTree() iterate recursively over the sorted tree, for each squares that does not have children - set its column
+func (ly *subnetsLayout) calcColsFromTree(tree map[TreeNodeInterface][]SquareTreeNodeInterface) map[TreeNodeInterface]int {
+	squaresCol := map[TreeNodeInterface]int{}
+	colIndex := 0
+	var setCol func(tn TreeNodeInterface)
+	setCol = func(tn TreeNodeInterface) {
+		for _, child := range tree[tn] {
+			setCol(child)
+		}
+		if len(tree[tn]) == 0 {
+			squaresCol[tn] = colIndex
+			colIndex++
+		}
+	}
+	setCol(ly.network)
+	return squaresCol
+}
+
+// calcSquareMatrix() creates the squares matrix - based on the subnet matrix and the squares columns.
+func (ly *subnetsLayout) calcSquareMatrix(squaresCol map[TreeNodeInterface]int) {
+	subnetMatrixColToSquareMatrix := map[int]int{}
+	for tn, col := range ly.zonesCol {
+		subnetMatrixColToSquareMatrix[col] = squaresCol[tn]
+	}
+	locatedSubnets := map[TreeNodeInterface]bool{}
+	for ri, row := range ly.subnetMatrix {
+		for ci, s := range row {
+			ly.squaresMatrix[ri][subnetMatrixColToSquareMatrix[ci]] = s
+			locatedSubnets[s] = true
+		}
+	}
+	for tn := range squaresCol {
+		if zone, ok := tn.(*ZoneTreeNode); ok && len(zone.subnets) > 0 {
+			rowIndex := 0
+			for _, subnet := range zone.subnets {
+				if !locatedSubnets[subnet] { // subnet was not part of any group, so it was not in subnetMatrix
+					for ly.squaresMatrix[rowIndex][squaresCol[subnet.Parent()]] != nil {
+						rowIndex++
+					}
+					ly.squaresMatrix[rowIndex][squaresCol[subnet.Parent()]] = subnet
+					rowIndex++
+				}
+			}
+		} else { // tn is not a zone, or it is a zone without subnets
+			ly.squaresMatrix[0][squaresCol[tn]] = tn
+		}
+	}
 }
