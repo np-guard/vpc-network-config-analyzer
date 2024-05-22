@@ -35,6 +35,7 @@ import (
 //    (in this phase new groups are created, by splitting  groups to smaller groups)
 // 3. layout the groups
 // 4. create new treeNodes of the new groupSquares and new connectors
+// 5. layout subnets with no groups and empty zones/regions/vpcs/ ...
 // //////////////////////////////////////////////////////////////////////////////////////////////
 
 type subnetSet = common.GenericSet[TreeNodeInterface]
@@ -837,10 +838,10 @@ func (ly *subnetsLayout) canShowGroup(group *groupDataS) bool {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// after creating the subnet matrix, we still need to locate squares that goes not have subnets, and subnets that are not in groups
-// setSquaresMatrix() output a matrix with all the squares that does not have children.
+// after creating the subnet matrix, we still need to position squares that do not have subnets, and subnets that are not in groups
+// setSquaresMatrix() outputs a matrix with all the squares that do not have children.
 // two main phases in setSquaresMatrix():
-// 1. calculate the column of each squares
+// 1. calculate the column of each square
 // 2. create the squares matrix - based on the subnet matrix and the squares columns.
 
 func (ly *subnetsLayout) setSquaresMatrix() {
@@ -851,17 +852,18 @@ func (ly *subnetsLayout) setSquaresMatrix() {
 ////////////////////////////////////////////////////////////////////
 // squaresCol() calculates the column of the squares.
 // the phases:
-// 1. convert the network tree to a generic tree (so it is easier to work with).
+// 1. convert the network tree to map representation, from parents to their children), so it is easier to work with.
+// Note: the tree only includes hierarchy levels from network to zones. Subnets are not included.
 // 2. sort the tree by the canvas - the children of each node in the tree is sorted by the order that they should be on the canvas.
 // 3. iterate recursively over the sorted tree, for each squares that does not have children - set its column
 
 func (ly *subnetsLayout) squaresCol() map[TreeNodeInterface]int {
-	tree := ly.networkToGenericTree()
+	tree := ly.networkTreeAsMap()
 	ly.sortTreeAsInCanvas(tree)
 	return ly.calcColsFromTree(tree)
 }
 
-func (ly *subnetsLayout) networkToGenericTree() map[TreeNodeInterface][]SquareTreeNodeInterface {
+func (ly *subnetsLayout) networkTreeAsMap() map[TreeNodeInterface][]SquareTreeNodeInterface {
 	tree := map[TreeNodeInterface][]SquareTreeNodeInterface{}
 	tree[ly.network] = slices.Clone(ly.network.(*NetworkTreeNode).clouds)
 	for _, cloud := range ly.network.(*NetworkTreeNode).clouds {
@@ -953,7 +955,7 @@ func (ly *subnetsLayout) calcSquareMatrix(squaresCol map[TreeNodeInterface]int) 
 		if zone, ok := tn.(*ZoneTreeNode); ok && len(zone.subnets) > 0 {
 			rowIndex := 0
 			for _, subnet := range zone.subnets {
-				if !locatedSubnets[subnet] {
+				if !locatedSubnets[subnet] { // subnet was not part of any group, so it was not in subnetMatrix
 					for ly.squaresMatrix[rowIndex][squaresCol[subnet.Parent()]] != nil {
 						rowIndex++
 					}
@@ -961,7 +963,7 @@ func (ly *subnetsLayout) calcSquareMatrix(squaresCol map[TreeNodeInterface]int) 
 					rowIndex++
 				}
 			}
-		} else {
+		} else { // tn is not a zone, or it is a zone without subnets
 			ly.squaresMatrix[0][squaresCol[tn]] = tn
 		}
 	}
