@@ -815,7 +815,8 @@ func runTestPerUseCase(t *testing.T,
 	if err := initTestFileNames(tt, uc, "", true, outDir); err != nil {
 		return err
 	}
-	og, err := vpcmodel.NewOutputGenerator(cConfigs, tt.grouping, uc, tt.format == vpcmodel.ARCHDRAWIO, explanationArgs, tt.format, !tt.noLbAbstract)
+	og, err := vpcmodel.NewOutputGenerator(cConfigs, tt.grouping, uc, tt.format == vpcmodel.ARCHDRAWIO,
+		explanationArgs, tt.format, !tt.noLbAbstract)
 	if err != nil {
 		return err
 	}
