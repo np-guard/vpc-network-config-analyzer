@@ -82,33 +82,30 @@ func NewOutputGenerator(cConfigs *MultipleVPCConfigs, grouping bool, uc OutputUs
 	archOnlyFormat := slices.Contains([]OutFormat{ARCHDRAWIO, ARCHSVG, ARCHHTML}, f)
 	if !archOnlyFormat {
 		switch uc {
-		case AllEndpoints:
+		case AllEndpoints, AllSubnets:
 			for i, vpcConfig := range cConfigs.Configs() {
-				nodesConn, err := vpcConfig.GetVPCNetworkConnectivity(grouping, res.lbAbstraction)
-				if err != nil {
-					return nil, err
+				if uc == AllEndpoints {
+					nodesConn, err := vpcConfig.GetVPCNetworkConnectivity(grouping, res.lbAbstraction)
+					if err != nil {
+						return nil, err
+					}
+					res.nodesConn[i] = nodesConn
+				} else {
+					subnetsConn, err := vpcConfig.GetSubnetsConnectivity(true, grouping)
+					if err != nil {
+						return nil, err
+					}
+					res.subnetsConn[i] = subnetsConn
 				}
-				res.nodesConn[i] = nodesConn
-			}
-		case AllSubnets:
-			for i, vpcConfig := range cConfigs.Configs() {
-				subnetsConn, err := vpcConfig.GetSubnetsConnectivity(true, grouping)
-				if err != nil {
-					return nil, err
-				}
-				res.subnetsConn[i] = subnetsConn
 			}
 		// diff: only comparison between single vpc configs is supported;
 		// thus instead of ranging over configs, takes the single config
-		case SubnetsDiff:
-			configsForDiff := &configsForDiff{cConfigs.aConfig(), cConfigs.aConfigToCompare(), Subnets}
-			configsDiff, err := configsForDiff.GetDiff()
-			if err != nil {
-				return nil, err
+		case SubnetsDiff, EndpointsDiff:
+			analysisType := Vsis
+			if uc == SubnetsDiff {
+				analysisType = Subnets
 			}
-			res.cfgsDiff = configsDiff
-		case EndpointsDiff:
-			configsForDiff := &configsForDiff{cConfigs.aConfig(), cConfigs.aConfigToCompare(), Vsis}
+			configsForDiff := &configsForDiff{cConfigs.aConfig(), cConfigs.aConfigToCompare(), analysisType}
 			configsDiff, err := configsForDiff.GetDiff()
 			if err != nil {
 				return nil, err
@@ -206,11 +203,11 @@ func (of *serialOutputFormatter) WriteOutput(cConfigs *MultipleVPCConfigs, conns
 		outputPerVPC := make([]*SingleAnalysisOutput, len(cConfigs.Configs()))
 		i := 0
 		for uid, vpcConfig := range cConfigs.Configs() {
-			vpcAnalysisOutput, err2 :=
+			vpcAnalysisOutput, err :=
 				of.createSingleVpcFormatter().WriteOutput(vpcConfig, nil, conns[uid], subnetsConns[uid],
 					configsDiff, "", grouping, uc, explainStruct)
-			if err2 != nil {
-				return "", err2
+			if err != nil {
+				return "", err
 			}
 			outputPerVPC[i] = vpcAnalysisOutput
 			i++
