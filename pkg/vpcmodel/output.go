@@ -82,21 +82,21 @@ func NewOutputGenerator(cConfigs *MultipleVPCConfigs, grouping bool, uc OutputUs
 	archOnlyFormat := slices.Contains([]OutFormat{ARCHDRAWIO, ARCHSVG, ARCHHTML}, f)
 	if !archOnlyFormat {
 		switch uc {
-		case AllEndpoints, AllSubnets:
+		case AllEndpoints:
 			for i, vpcConfig := range cConfigs.Configs() {
-				if uc == AllEndpoints {
-					nodesConn, err := vpcConfig.GetVPCNetworkConnectivity(grouping, res.lbAbstraction)
-					if err != nil {
-						return nil, err
-					}
-					res.nodesConn[i] = nodesConn
-				} else {
-					subnetsConn, err := vpcConfig.GetSubnetsConnectivity(true, grouping)
-					if err != nil {
-						return nil, err
-					}
-					res.subnetsConn[i] = subnetsConn
+				nodesConn, err := vpcConfig.GetVPCNetworkConnectivity(grouping, res.lbAbstraction)
+				if err != nil {
+					return nil, err
 				}
+				res.nodesConn[i] = nodesConn
+			}
+		case AllSubnets:
+			for i, vpcConfig := range cConfigs.Configs() {
+				subnetsConn, err := vpcConfig.GetSubnetsConnectivity(true, grouping)
+				if err != nil {
+					return nil, err
+				}
+				res.subnetsConn[i] = subnetsConn
 			}
 		// diff: only comparison between single vpc configs is supported;
 		// thus instead of ranging over configs, takes the single config
@@ -223,11 +223,11 @@ func (of *serialOutputFormatter) WriteOutput(cConfigs *MultipleVPCConfigs, conns
 	if uc == EndpointsDiff || uc == SubnetsDiff {
 		toCompareConfig = cConfigs.aConfigToCompare()
 	}
-	vpcAnalysisOutput, err2 :=
+	vpcAnalysisOutput, err :=
 		of.createSingleVpcFormatter().WriteOutput(cConfigs.aConfig(), toCompareConfig, nil, nil,
 			configsDiff, "", grouping, uc, explainStruct)
-	if err2 != nil {
-		return "", err2
+	if err != nil {
+		return "", err
 	}
 	// its diff or explain mode, we have only one vpc on each map:
 	return of.WriteDiffOrExplainOutput(vpcAnalysisOutput, uc, outFile)
