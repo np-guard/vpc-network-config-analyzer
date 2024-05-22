@@ -36,12 +36,10 @@ func (m *MDoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	explanation *Explanation) (*SingleAnalysisOutput, error) {
 	// get output by analysis type
 	v2Name := ""
-	diffSameUID := true // relevant only for diff
 	if c2 != nil {
 		v2Name = c2.VPC.Name()
-		diffSameUID = c1.VPC.UID() == c2.VPC.UID()
 	}
-	out, err := headerOfAnalyzedVPC(uc, c1.VPC.Name(), v2Name, c1, explanation, diffSameUID)
+	out, err := headerOfAnalyzedVPC(uc, c1.VPC.Name(), v2Name, c1, explanation)
 	if err != nil {
 		return nil, err
 	}

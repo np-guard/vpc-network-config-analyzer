@@ -18,7 +18,7 @@ func (t *DebugOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	grouping bool,
 	uc OutputUseCase,
 	explanation *Explanation) (*SingleAnalysisOutput, error) {
-	out, err := headerOfAnalyzedVPC(uc, c1.VPC.Name(), "", c1, explanation, true)
+	out, err := headerOfAnalyzedVPC(uc, c1.VPC.Name(), "", c1, explanation)
 	hasStatelessConns := false
 	if err != nil {
 		return nil, err

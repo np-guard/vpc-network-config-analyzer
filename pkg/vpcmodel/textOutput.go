@@ -23,7 +23,7 @@ func multipleVPCsConfigHeader(c *VPCConfig) (string, error) {
 }
 
 func headerOfAnalyzedVPC(uc OutputUseCase, vpcName, vpc2Name string, c1 *VPCConfig,
-	explanation *Explanation, diffSameUID bool) (string, error) {
+	explanation *Explanation) (string, error) {
 	switch uc {
 	case AllEndpoints:
 		if c1.IsMultipleVPCsConfig {
@@ -41,11 +41,7 @@ func headerOfAnalyzedVPC(uc OutputUseCase, vpcName, vpc2Name string, c1 *VPCConf
 		}
 		return fmt.Sprintf("Connectivity per subnet for VPC %s\n", vpcName), nil
 	case SubnetsDiff, EndpointsDiff:
-		header := fmt.Sprintf("Connectivity diff between VPC %s and VPC %s", vpcName, vpc2Name)
-		if !diffSameUID {
-			header += " (note that the compared VPCs are of different UIDs)"
-		}
-		return header + "\n", nil
+		return fmt.Sprintf("Connectivity diff between VPC %s and VPC %s\n", vpcName, vpc2Name), nil
 	case Explain:
 		return explainHeader(explanation), nil
 	}
@@ -61,13 +57,11 @@ func (t *TextOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	uc OutputUseCase,
 	explanation *Explanation) (*SingleAnalysisOutput, error) {
 	vpc2Name := ""
-	diffSameUID := true // relevant only for diff
 	if c2 != nil {
 		vpc2Name = c2.VPC.Name()
-		diffSameUID = c1.VPC.UID() == c2.VPC.UID()
 	}
 	// header line - specify the VPC analyzed
-	out, err := headerOfAnalyzedVPC(uc, c1.VPC.Name(), vpc2Name, c1, explanation, diffSameUID)
+	out, err := headerOfAnalyzedVPC(uc, c1.VPC.Name(), vpc2Name, c1, explanation)
 	if err != nil {
 		return nil, err
 	}
