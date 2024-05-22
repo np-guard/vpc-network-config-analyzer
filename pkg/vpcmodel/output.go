@@ -219,16 +219,16 @@ func (of *serialOutputFormatter) WriteOutput(cConfigs *MultipleVPCConfigs, conns
 		return of.AggregateVPCsOutput(outputPerVPC, uc, outFile)
 	}
 	// singleVPCAnalysis: either diff or explain. In either case conn and subnet conn are non-relevant, thus passing nil
-	// diff compares between two single vpc configs, which are being passed
+	// diff compares between two single vpc configs
 	// explain works on a specific config, either single or multiple; the relevant config for explain is kept
-	// in its structs, thus the configs passed here are non relevant for it
-	//var config, toCompareConfig *VPCConfig
-	//if uc == EndpointsDiff || uc == SubnetsDiff {
-	//	config = cConfigs.aConfig()
-	//	toCompareConfig = cConfigs.aConfigToCompare()
-	//}
+	// in its structs, thus the configs passed here are non-relevant for it; the flow is such that valid main config must be passed,
+	// also for explain (even though it does not affect the output)
+	var toCompareConfig *VPCConfig
+	if uc == EndpointsDiff || uc == SubnetsDiff {
+		toCompareConfig = cConfigs.aConfigToCompare()
+	}
 	vpcAnalysisOutput, err2 :=
-		of.createSingleVpcFormatter().WriteOutput(cConfigs.aConfig(), cConfigs.aConfigToCompare(), nil, nil,
+		of.createSingleVpcFormatter().WriteOutput(cConfigs.aConfig(), toCompareConfig, nil, nil,
 			configsDiff, "", grouping, uc, explainStruct)
 	if err2 != nil {
 		return "", err2
