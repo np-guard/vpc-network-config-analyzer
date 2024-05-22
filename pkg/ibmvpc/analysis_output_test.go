@@ -459,6 +459,12 @@ var tests = []*vpcGeneralTest{
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
 		format:      vpcmodel.Text,
 	},
+	{
+		// diff between identical VPCs
+		inputConfig: "sg_testing_default",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
+		format:      vpcmodel.Text,
+	},
 	// tgw examples
 	{
 		inputConfig: "tgw_basic_example",
