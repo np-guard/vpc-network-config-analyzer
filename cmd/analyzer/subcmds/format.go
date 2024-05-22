@@ -95,11 +95,11 @@ func (fs *formatSetting) ToModelFormat() vpcmodel.OutFormat {
 	return vpcmodel.Text
 }
 
-func validateFormatForMode(mode string, supportedFormats []formatSetting, args *InArgs) error {
-	if args.OutputFormat == "" {
-		args.OutputFormat = textFormat
+func validateFormatForMode(mode string, supportedFormats []formatSetting, args *inArgs) error {
+	if args.outputFormat == "" {
+		args.outputFormat = textFormat
 	}
-	if !slices.Contains(supportedFormats, args.OutputFormat) {
+	if !slices.Contains(supportedFormats, args.outputFormat) {
 		return fmt.Errorf("output format for %s %s", mode, mustBeOneOf(toStringArray(supportedFormats)))
 	}
 	return nil
