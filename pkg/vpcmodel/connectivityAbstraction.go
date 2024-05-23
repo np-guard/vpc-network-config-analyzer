@@ -7,10 +7,9 @@ SPDX-License-Identifier: Apache-2.0
 package vpcmodel
 
 import (
-	"fmt"
 	"slices"
-	"github.com/np-guard/models/pkg/connection"
 
+	"github.com/np-guard/models/pkg/connection"
 )
 
 // given a nodeSet NS[n0, n1, n2, n3...]
@@ -31,19 +30,14 @@ import (
 //    the connectivity of n->NS is union of all of n->n1, n->n2, n->n3
 //    todo: what to do if the abstraction assumption does not hold?
 
-//nolint:gocritic // for now, we comment out the check calls
-func nodeSetConnectivityAbstraction(nodesConn GeneralConnectivityMap, nodeSet NodeSet) GeneralConnectivityMap {
+func nodeSetConnectivityAbstraction(nodesConn GeneralConnectivityMap, nodeSet NodeSet) (abstractedConn, missingConn GeneralConnectivityMap) {
 	otherToOther, nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet := partitionConnectivityByNodeSet(nodesConn, nodeSet)
-	res := mergeConnectivityWithNodeSetAbstraction(otherToOther, nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet, nodeSet)
-	checkConnectivityAbstractionValidity(otherFromNodeSet, res, nodeSet, false)
-	checkConnectivityAbstractionValidity(otherToNodeSet, res, nodeSet, true)
-	checkConnectivityAbstractionValidity(nodeSetToNodeSet, res, nodeSet, true)
-	for src, nodeConns := range otherToOther {
-		for dst, conns := range nodeConns {
-			res.updateAllowedConnsMap(src, dst, conns)
-		}
-	}
-	return res
+	abstractedConn = mergeConnectivityWithNodeSetAbstraction(otherToOther, nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet, nodeSet)
+	missingConn = checkConnectivityAbstractionValidity(otherFromNodeSet, abstractedConn, nodeSet, false)
+	missingConn.addMap(checkConnectivityAbstractionValidity(otherToNodeSet, abstractedConn, nodeSet, true))
+	missingConn.addMap(checkConnectivityAbstractionValidity(nodeSetToNodeSet, abstractedConn, nodeSet, true))
+	abstractedConn.addMap(otherToOther)
+	return abstractedConn, missingConn
 }
 
 // partitionConnectivityByNodeSet() returns partitions from the connectivity to the four groups
@@ -85,31 +79,29 @@ func partitionConnectivityByNodeSet(nodesConn GeneralConnectivityMap, nodeSet No
 // todo: - how to report this string? what format?
 // for now, No need to CR it, we do not do anything with the result
 
-func checkConnectivityAbstractionValidity(connMap GeneralConnectivityMap, mergedConnMap GeneralConnectivityMap, nodeSet NodeSet, isIngress bool) {
-	res := ""
+func checkConnectivityAbstractionValidity(connMap GeneralConnectivityMap, mergedConnMap GeneralConnectivityMap, nodeSet NodeSet, isIngress bool) GeneralConnectivityMap {
+	missingConnectivity := GeneralConnectivityMap{}
 	for node1, conns := range connMap {
 		for _, node2 := range nodeSet.Nodes() {
 			var nodeConnection, mergedConnection *connection.Set
-			var src,dst VPCResourceIntf
+			var src, dst VPCResourceIntf
 			if isIngress {
 				mergedConnection = mergedConnMap[node1][nodeSet]
-				src,dst = node1, node2
-			}else{
+				src, dst = node1, node2
+			} else {
 				mergedConnection = mergedConnMap[nodeSet][node1]
-				src,dst = node2, node1
+				src, dst = node2, node1
 			}
-			if nodeConnection = conns[node2]; nodeConnection == nil{
+			if nodeConnection = conns[node2]; nodeConnection == nil {
 				nodeConnection = NoConns()
 			}
 			if !nodeConnection.Equal(mergedConnection) {
 				missingConn := mergedConnection.Subtract(nodeConnection)
-				res += fmt.Sprintf("%s -> %s : %s is missing for full abstraction of LB %s\n", src.Name(), dst.Name(), missingConn.String(), nodeSet.Name())
+				missingConnectivity.updateAllowedConnsMap(src, dst, missingConn)
 			}
 		}
 	}
-	if res != "" {
-		fmt.Println(res)
-	}
+	return missingConnectivity
 }
 
 // mergeConnectivityWithNodeSetAbstraction() merge the four groups, while abstracting the connections

@@ -202,6 +202,7 @@ type Subnet interface {
 type LoadBalancer interface {
 	NodeSet
 	// DenyConnectivity() - check if the lb denies connection from src to dst
+	SetAbstractionInfo(GeneralConnectivityMap)
 	DenyConnectivity(src, dst Node) bool
 }
 

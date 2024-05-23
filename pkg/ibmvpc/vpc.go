@@ -242,6 +242,7 @@ type LoadBalancer struct {
 	vpcmodel.VPCResource
 	nodes     []vpcmodel.Node
 	listeners []LoadBalancerListener
+	abstractionInfo vpcmodel.GeneralConnectivityMap
 }
 
 // for LB we add the kind to the name, to make it clear in the reports
@@ -280,6 +281,10 @@ func (lb *LoadBalancer) members() []vpcmodel.Node {
 // lb is per vpc and not per zone...
 func (lb *LoadBalancer) Zone() (*Zone, error) {
 	return nil, nil
+}
+
+func (lb *LoadBalancer) SetAbstractionInfo(abstractionInfo vpcmodel.GeneralConnectivityMap){
+	lb.abstractionInfo = abstractionInfo
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
