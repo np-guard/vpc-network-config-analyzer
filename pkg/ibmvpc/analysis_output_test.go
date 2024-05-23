@@ -587,7 +587,7 @@ var tests = []*vpcGeneralTest{
 		inputConfig: "lb_bad_practice",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		grouping:    true,
-		format:      vpcmodel.HTML,
+		format:      vpcmodel.Text,
 	},
 	{
 		inputConfig: "iks_w_lb",

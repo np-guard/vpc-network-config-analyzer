@@ -132,7 +132,7 @@ type GroupConnLines struct {
 	GroupedLines []*groupedConnLine
 }
 
-// EndpointElem can be Node(networkInterface) / groupedExternalNodes / groupedNetworkInterfaces / NodeSet(subnet)
+// EndpointElem can be Node(networkInterface) / groupedExternalNodes / groupedNetworkInterfaces / NodeSet(subnet or LB)
 type EndpointElem interface {
 	Name() string
 	ExtendedName(*VPCConfig) string
@@ -148,7 +148,7 @@ type groupedConnLine struct {
 }
 
 func (g *groupedConnLine) String(c *VPCConfig) string {
-	return g.src.ExtendedName(c) + " => " + g.dst.ExtendedName(c) + " : " + g.commonProperties.groupingStrKey
+	return g.src.ExtendedName(c) + " => " + g.dst.ExtendedName(c) + " : " + g.commonProperties.groupingStrKey + g.abstractionComment()
 }
 
 func (g *groupedConnLine) ConnLabel() string {
@@ -163,6 +163,33 @@ func (g *groupedConnLine) getSrcOrDst(isSrc bool) EndpointElem {
 		return g.src
 	}
 	return g.dst
+}
+func (g *groupedConnLine) abstractionComment() string {
+	src, srcIsLb := g.src.(LoadBalancer)
+	dst, dstIsLb := g.dst.(LoadBalancer)
+	if dstIsLb {
+		fmt.Println("*")
+		if len(dst.AbstractionInfo().missingEgressConnections) > 0 {
+			fmt.Println("**")
+		}
+	}
+
+	res := ""
+	if srcIsLb {
+		if len(src.AbstractionInfo().missingEgressConnections) > 0 {
+			if dsts, ok := g.dst.(*groupedEndpointsElems); ok {
+				for _, dst := range []EndpointElem(*dsts) {
+					for nonAbSrcNode, conn := range src.AbstractionInfo().missingEgressConnections[dst.(Node)] {
+						res += fmt.Sprintf("%s->%s:%s, ", nonAbSrcNode.Name(), dst.Name(), conn.String())
+					}
+				}
+			}
+		}
+	}
+	if res != "" {
+		res = " ** missing for full abstraction: " + res
+	}
+	return res
 }
 
 type groupedEndpointsElems []EndpointElem
