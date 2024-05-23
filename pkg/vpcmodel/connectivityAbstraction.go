@@ -19,25 +19,32 @@ import (
 // The same abstraction is done in the other direction
 
 // the abstraction steps are:
-// 1. partition the connectivity to four disjoint groups as follows:
-//      otherToOther:     connections of   <node not in the nodeSet>  ->  <node not in the nodeSet>
-//      nodeSetToNodeSet: connections of   <node     in the nodeSet>  ->  <node     in the nodeSet>
-//      otherFromNodeSet: connections of   <node     in the nodeSet>  ->  <node not in the nodeSet>
-//      otherToNodeSet:   connections of   <node not in the nodeSet>  ->  <node     in the nodeSet>
-// 2. for the last three groups, we verify that the abstraction assumption holds
+//  1. partition the connectivity to four disjoint groups as follows:
+//     otherToOther:     connections of   <node not in the nodeSet>  ->  <node not in the nodeSet>
+//     nodeSetToNodeSet: connections of   <node     in the nodeSet>  ->  <node     in the nodeSet>
+//     otherFromNodeSet: connections of   <node     in the nodeSet>  ->  <node not in the nodeSet>
+//     otherToNodeSet:   connections of   <node not in the nodeSet>  ->  <node     in the nodeSet>
+//  2. for the last three groups, we verify that the abstraction assumption holds
 //     todo: this check is not complete in code yet, and currently we ignore its result
-// 3. we do the abstraction (for this PR, even if the abstraction assumption does not hold):
-//    the connectivity of n->NS is union of all of n->n1, n->n2, n->n3
-//    todo: what to do if the abstraction assumption does not hold?
+//  3. we do the abstraction (for this PR, even if the abstraction assumption does not hold):
+//     the connectivity of n->NS is union of all of n->n1, n->n2, n->n3
+//     todo: what to do if the abstraction assumption does not hold?
+type AbstractionResult struct {
+	abstractedConnectivity    GeneralConnectivityMap
+	missingIngressConnections GeneralConnectivityMap
+	missingEgressConnections  GeneralConnectivityMap
+}
 
-func nodeSetConnectivityAbstraction(nodesConn GeneralConnectivityMap, nodeSet NodeSet) (abstractedConn, missingConn GeneralConnectivityMap) {
+func nodeSetConnectivityAbstraction(nodesConn GeneralConnectivityMap, nodeSet NodeSet) AbstractionResult {
 	otherToOther, nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet := partitionConnectivityByNodeSet(nodesConn, nodeSet)
-	abstractedConn = mergeConnectivityWithNodeSetAbstraction(otherToOther, nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet, nodeSet)
-	missingConn = checkConnectivityAbstractionValidity(otherFromNodeSet, abstractedConn, nodeSet, false)
-	missingConn.addMap(checkConnectivityAbstractionValidity(otherToNodeSet, abstractedConn, nodeSet, true))
-	missingConn.addMap(checkConnectivityAbstractionValidity(nodeSetToNodeSet, abstractedConn, nodeSet, true))
+	var result AbstractionResult
+	abstractedConn := mergeConnectivityWithNodeSetAbstraction(nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet, nodeSet)
+	result.missingEgressConnections = checkConnectivityAbstractionValidity(otherFromNodeSet, abstractedConn, nodeSet, false)
+	result.missingEgressConnections = checkConnectivityAbstractionValidity(otherToNodeSet, abstractedConn, nodeSet, true)
+	result.missingEgressConnections.addMap(checkConnectivityAbstractionValidity(nodeSetToNodeSet, abstractedConn, nodeSet, true))
 	abstractedConn.addMap(otherToOther)
-	return abstractedConn, missingConn
+	result.abstractedConnectivity = abstractedConn
+	return result
 }
 
 // partitionConnectivityByNodeSet() returns partitions from the connectivity to the four groups
@@ -77,7 +84,6 @@ func partitionConnectivityByNodeSet(nodesConn GeneralConnectivityMap, nodeSet No
 // it does it on each group separately.
 // for now it creates a string
 // todo: - how to report this string? what format?
-// for now, No need to CR it, we do not do anything with the result
 
 func checkConnectivityAbstractionValidity(connMap GeneralConnectivityMap, mergedConnMap GeneralConnectivityMap, nodeSet NodeSet, isIngress bool) GeneralConnectivityMap {
 	missingConnectivity := GeneralConnectivityMap{}
@@ -104,9 +110,9 @@ func checkConnectivityAbstractionValidity(connMap GeneralConnectivityMap, merged
 	return missingConnectivity
 }
 
-// mergeConnectivityWithNodeSetAbstraction() merge the four groups, while abstracting the connections
+// mergeConnectivityWithNodeSetAbstraction() merge the three last groups, while abstracting the connections
 func mergeConnectivityWithNodeSetAbstraction(
-	otherToOther, nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet GeneralConnectivityMap,
+	nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet GeneralConnectivityMap,
 	nodeSet NodeSet) GeneralConnectivityMap {
 	// first make a copy of otherToOther, to be the result:
 	res := GeneralConnectivityMap{}
