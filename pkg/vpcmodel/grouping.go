@@ -179,16 +179,16 @@ func (g *groupedConnLine) abstractionComment() string {
 	}
 	return ""
 }
-
-func f2(endPoints EndpointElem, missingConnections GeneralConnectivityMap) bool {
-	if len(missingConnections) == 0 {
-		return false
+func unGroupEndpointElem(e EndpointElem) []EndpointElem {
+	if ge, ok := e.(*groupedEndpointsElems); ok {
+		return []EndpointElem(*ge)
 	}
-	if dsts, ok := endPoints.(*groupedEndpointsElems); ok {
-		for _, dst := range []EndpointElem(*dsts) {
-			if len(missingConnections[dst.(Node)]) > 0 {
-				return true
-			}
+	return []EndpointElem{e}
+}
+func f2(groupedEndpoint EndpointElem, missingConnections GeneralConnectivityMap) bool {
+	for _, endpoint := range unGroupEndpointElem(groupedEndpoint) {
+		if len(missingConnections) > 0 && len(missingConnections[endpoint.(Node)]) > 0 {
+			return true
 		}
 	}
 	return false
