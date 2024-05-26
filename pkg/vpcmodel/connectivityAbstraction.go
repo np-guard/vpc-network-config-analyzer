@@ -29,19 +29,19 @@ import (
 //  3. we do the abstraction (for this PR, even if the abstraction assumption does not hold):
 //     the connectivity of n->NS is union of all of n->n1, n->n2, n->n3
 //     todo: what to do if the abstraction assumption does not hold?
-type AbstractionResult struct {
+type AbstractionInfo struct {
 	abstractedConnectivity    GeneralConnectivityMap
 	missingIngressConnections GeneralConnectivityMap
 	missingEgressConnections  GeneralConnectivityMap
 }
 
-func nodeSetConnectivityAbstraction(nodesConn GeneralConnectivityMap, nodeSet NodeSet) AbstractionResult {
+func nodeSetConnectivityAbstraction(nodesConn GeneralConnectivityMap, nodeSet NodeSet) AbstractionInfo {
 	otherToOther, nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet := partitionConnectivityByNodeSet(nodesConn, nodeSet)
-	var result AbstractionResult
+	var result AbstractionInfo
 	abstractedConn := mergeConnectivityWithNodeSetAbstraction(nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet, nodeSet)
 	result.missingEgressConnections = checkConnectivityAbstractionValidity(otherFromNodeSet, abstractedConn, nodeSet, false)
-	result.missingEgressConnections = checkConnectivityAbstractionValidity(otherToNodeSet, abstractedConn, nodeSet, true)
-	result.missingEgressConnections.addMap(checkConnectivityAbstractionValidity(nodeSetToNodeSet, abstractedConn, nodeSet, true))
+	result.missingIngressConnections = checkConnectivityAbstractionValidity(otherToNodeSet, abstractedConn, nodeSet, true)
+	result.missingIngressConnections.addMap(checkConnectivityAbstractionValidity(nodeSetToNodeSet, abstractedConn, nodeSet, true))
 	abstractedConn.addMap(otherToOther)
 	result.abstractedConnectivity = abstractedConn
 	return result
@@ -90,20 +90,17 @@ func checkConnectivityAbstractionValidity(connMap GeneralConnectivityMap, merged
 	for node1, conns := range connMap {
 		for _, node2 := range nodeSet.Nodes() {
 			var nodeConnection, mergedConnection *connection.Set
-			var src, dst VPCResourceIntf
-			if isIngress {
-				mergedConnection = mergedConnMap[node1][nodeSet]
-				src, dst = node1, node2
-			} else {
-				mergedConnection = mergedConnMap[nodeSet][node1]
-				src, dst = node2, node1
-			}
 			if nodeConnection = conns[node2]; nodeConnection == nil {
 				nodeConnection = NoConns()
 			}
+			if isIngress {
+				mergedConnection = mergedConnMap[node1][nodeSet]
+			} else {
+				mergedConnection = mergedConnMap[nodeSet][node1]
+			}
 			if !nodeConnection.Equal(mergedConnection) {
 				missingConn := mergedConnection.Subtract(nodeConnection)
-				missingConnectivity.updateAllowedConnsMap(src, dst, missingConn)
+				missingConnectivity.updateAllowedConnsMap(node1, node2, missingConn)
 			}
 		}
 	}

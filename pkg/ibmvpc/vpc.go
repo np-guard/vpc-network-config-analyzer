@@ -242,7 +242,7 @@ type LoadBalancer struct {
 	vpcmodel.VPCResource
 	nodes           []vpcmodel.Node
 	listeners       []LoadBalancerListener
-	abstractionInfo vpcmodel.AbstractionResult
+	abstractionInfo vpcmodel.AbstractionInfo
 }
 
 // for LB we add the kind to the name, to make it clear in the reports
@@ -283,10 +283,10 @@ func (lb *LoadBalancer) Zone() (*Zone, error) {
 	return nil, nil
 }
 
-func (lb *LoadBalancer) SetAbstractionInfo(abstractionInfo vpcmodel.AbstractionResult) {
+func (lb *LoadBalancer) SetAbstractionInfo(abstractionInfo vpcmodel.AbstractionInfo) {
 	lb.abstractionInfo = abstractionInfo
 }
-func (lb *LoadBalancer) AbstractionInfo() vpcmodel.AbstractionResult {
+func (lb *LoadBalancer) AbstractionInfo() vpcmodel.AbstractionInfo {
 	return lb.abstractionInfo
 }
 

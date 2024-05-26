@@ -167,29 +167,31 @@ func (g *groupedConnLine) getSrcOrDst(isSrc bool) EndpointElem {
 func (g *groupedConnLine) abstractionComment() string {
 	src, srcIsLb := g.src.(LoadBalancer)
 	dst, dstIsLb := g.dst.(LoadBalancer)
-	if dstIsLb {
-		fmt.Println("*")
-		if len(dst.AbstractionInfo().missingEgressConnections) > 0 {
-			fmt.Println("**")
+	if srcIsLb {
+		if f2(g.dst, src.AbstractionInfo().missingEgressConnections) {
+			return "**"
 		}
 	}
+	if dstIsLb {
+		if f2(g.src, dst.AbstractionInfo().missingIngressConnections) {
+			return "***"
+		}
+	}
+	return ""
+}
 
-	res := ""
-	if srcIsLb {
-		if len(src.AbstractionInfo().missingEgressConnections) > 0 {
-			if dsts, ok := g.dst.(*groupedEndpointsElems); ok {
-				for _, dst := range []EndpointElem(*dsts) {
-					for nonAbSrcNode, conn := range src.AbstractionInfo().missingEgressConnections[dst.(Node)] {
-						res += fmt.Sprintf("%s->%s:%s, ", nonAbSrcNode.Name(), dst.Name(), conn.String())
-					}
-				}
+func f2(endPoints EndpointElem, missingConnections GeneralConnectivityMap) bool {
+	if len(missingConnections) == 0 {
+		return false
+	}
+	if dsts, ok := endPoints.(*groupedEndpointsElems); ok {
+		for _, dst := range []EndpointElem(*dsts) {
+			if len(missingConnections[dst.(Node)]) > 0 {
+				return true
 			}
 		}
 	}
-	if res != "" {
-		res = " ** missing for full abstraction: " + res
-	}
-	return res
+	return false
 }
 
 type groupedEndpointsElems []EndpointElem

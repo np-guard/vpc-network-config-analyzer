@@ -188,6 +188,15 @@ func (tt *vpcGeneralTest) initTest() {
 
 var tests = []*vpcGeneralTest{
 	{
+		inputConfig: "lb_bad_practice",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.Text,
+	},
+}
+
+var tests2 = []*vpcGeneralTest{
+	{
 		inputConfig: "acl_testing5",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
 		format:      vpcmodel.MD,
@@ -587,6 +596,11 @@ var tests = []*vpcGeneralTest{
 		inputConfig: "lb_bad_practice",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		grouping:    true,
+		format:      vpcmodel.Text,
+	},
+	{
+		inputConfig: "lb_bad_practice",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		format:      vpcmodel.Text,
 	},
 	{
