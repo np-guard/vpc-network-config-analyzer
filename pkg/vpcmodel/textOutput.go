@@ -22,7 +22,8 @@ func multipleVPCsConfigHeader(c *VPCConfig) (string, error) {
 	return fmt.Sprintf("Connectivity between VPCs connected by TGW %s (UID: %s)\n", tgw.Name(), tgw.UID()), nil
 }
 
-func headerOfAnalyzedVPC(uc OutputUseCase, vpcName, vpc2Name string, c1 *VPCConfig, explanation *Explanation) (string, error) {
+func headerOfAnalyzedVPC(uc OutputUseCase, vpcName, vpc2Name string, c1 *VPCConfig,
+	explanation *Explanation) (string, error) {
 	switch uc {
 	case AllEndpoints:
 		if c1.IsMultipleVPCsConfig {
@@ -77,7 +78,12 @@ func (t *TextOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	case SingleSubnet:
 		out += c1.GetConnectivityOutputPerEachSubnetSeparately()
 	case SubnetsDiff, EndpointsDiff:
-		out += cfgsDiff.String()
+		diffOut := cfgsDiff.String()
+		if diffOut != "" {
+			out += cfgsDiff.String()
+		} else {
+			out = "The two given configurations have exactly the same connectivity"
+		}
 		hasStatelessConns = cfgsDiff.hasStatelessConns()
 	case Explain:
 		out += explanation.String(false)
