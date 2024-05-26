@@ -179,15 +179,27 @@ func (g *groupedConnLine) abstractionComment() string {
 	}
 	return ""
 }
-func unGroupEndpointElem(e EndpointElem) []EndpointElem {
+
+func endpointElemResources(e EndpointElem) []VPCResourceIntf {
 	if ge, ok := e.(*groupedEndpointsElems); ok {
-		return []EndpointElem(*ge)
+		r := make([]VPCResourceIntf,len([]EndpointElem(*ge)))
+		for i, e := range []EndpointElem(*ge){
+			r[i] = e.(VPCResourceIntf)
+		}
+		return r
+	}else if ge, ok := e.(*groupedExternalNodes); ok {
+		r := make([]VPCResourceIntf,len([]*ExternalNetwork(*ge)))
+		for i, e := range []*ExternalNetwork(*ge){
+			r[i] = e
+		}
+		return r
 	}
-	return []EndpointElem{e}
+	return []VPCResourceIntf{e.(VPCResourceIntf)}
 }
-func f2(groupedEndpoint EndpointElem, missingConnections GeneralConnectivityMap) bool {
-	for _, endpoint := range unGroupEndpointElem(groupedEndpoint) {
-		if len(missingConnections) > 0 && len(missingConnections[endpoint.(Node)]) > 0 {
+
+func f2(endpoint EndpointElem, missingConnections GeneralConnectivityMap) bool {
+	for _, resource := range endpointElemResources(endpoint) {
+		if _, ok := missingConnections[resource]; ok {
 			return true
 		}
 	}
