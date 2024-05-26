@@ -147,15 +147,22 @@ type groupedConnLine struct {
 	commonProperties *groupedCommonProperties // holds the common conn/diff properties
 }
 
+func (g *groupedConnLine) overApproximatedExt() string {
+	if g.overApproximated(){
+		return "**"
+	}
+	return ""
+}
+
 func (g *groupedConnLine) String(c *VPCConfig) string {
-	return g.src.ExtendedName(c) + " => " + g.dst.ExtendedName(c) + " : " + g.commonProperties.groupingStrKey + g.abstractionComment()
+	return g.src.ExtendedName(c) + " => " + g.dst.ExtendedName(c) + " : " + g.commonProperties.groupingStrKey + g.overApproximatedExt()
 }
 
 func (g *groupedConnLine) ConnLabel() string {
 	if g.commonProperties.conn.IsAll() {
-		return ""
+		return g.overApproximatedExt()
 	}
-	return g.commonProperties.groupingStrKey
+	return g.commonProperties.groupingStrKey + g.overApproximatedExt()
 }
 
 func (g *groupedConnLine) getSrcOrDst(isSrc bool) EndpointElem {
@@ -164,32 +171,23 @@ func (g *groupedConnLine) getSrcOrDst(isSrc bool) EndpointElem {
 	}
 	return g.dst
 }
-func (g *groupedConnLine) abstractionComment() string {
+func (g *groupedConnLine) overApproximated() bool {
 	src, srcIsLb := g.src.(LoadBalancer)
 	dst, dstIsLb := g.dst.(LoadBalancer)
-	if srcIsLb {
-		if f2(g.dst, src.AbstractionInfo().missingEgressConnections) {
-			return "**"
-		}
-	}
-	if dstIsLb {
-		if f2(g.src, dst.AbstractionInfo().missingIngressConnections) {
-			return "***"
-		}
-	}
-	return ""
+	return srcIsLb && src.AbstractionInfo().missingEgressConnections.hasAResource(endpointElemResources(g.dst)) ||
+		dstIsLb && dst.AbstractionInfo().missingIngressConnections.hasAResource(endpointElemResources(g.src))
 }
 
 func endpointElemResources(e EndpointElem) []VPCResourceIntf {
 	if ge, ok := e.(*groupedEndpointsElems); ok {
-		r := make([]VPCResourceIntf,len([]EndpointElem(*ge)))
-		for i, e := range []EndpointElem(*ge){
+		r := make([]VPCResourceIntf, len([]EndpointElem(*ge)))
+		for i, e := range []EndpointElem(*ge) {
 			r[i] = e.(VPCResourceIntf)
 		}
 		return r
-	}else if ge, ok := e.(*groupedExternalNodes); ok {
-		r := make([]VPCResourceIntf,len([]*ExternalNetwork(*ge)))
-		for i, e := range []*ExternalNetwork(*ge){
+	} else if ge, ok := e.(*groupedExternalNodes); ok {
+		r := make([]VPCResourceIntf, len([]*ExternalNetwork(*ge)))
+		for i, e := range []*ExternalNetwork(*ge) {
 			r[i] = e
 		}
 		return r
@@ -197,8 +195,8 @@ func endpointElemResources(e EndpointElem) []VPCResourceIntf {
 	return []VPCResourceIntf{e.(VPCResourceIntf)}
 }
 
-func f2(endpoint EndpointElem, missingConnections GeneralConnectivityMap) bool {
-	for _, resource := range endpointElemResources(endpoint) {
+func f2(resources []VPCResourceIntf, missingConnections GeneralConnectivityMap) bool {
+	for _, resource := range resources {
 		if _, ok := missingConnections[resource]; ok {
 			return true
 		}
@@ -552,6 +550,17 @@ func (g *GroupConnLines) hasStatelessConns() bool {
 	}
 	return hasStatelessConns
 }
+
+// get indication if the connections contain a stateless connection
+func (g *GroupConnLines) hasOverApproximated() bool {
+	for _, line := range g.GroupedLines {
+		if line.overApproximated() {
+			return true
+		}
+	}
+	return false
+}
+
 
 func listEndpointElemStr(eps []EndpointElem, fn func(ep EndpointElem) string) string {
 	endpointsStrings := make([]string, len(eps))

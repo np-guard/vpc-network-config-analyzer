@@ -24,3 +24,12 @@ func (connectivityMap GeneralConnectivityMap) addMap(connectivityMap2 GeneralCon
 		}
 	}
 }
+
+func (connectivityMap GeneralConnectivityMap) hasAResource(resources []VPCResourceIntf) bool {
+	for _, resource := range resources {
+		if _, ok := connectivityMap[resource]; ok {
+			return true
+		}
+	}
+	return false
+}
