@@ -147,8 +147,10 @@ type groupedConnLine struct {
 	commonProperties *groupedCommonProperties // holds the common conn/diff properties
 }
 
+// todo - overApproximatedExt() should be replaced when using new message mechanism
+// todo2 - g.commonProperties.groupingStrKey is used in several places, when to use overApproximatedExt()?
 func (g *groupedConnLine) overApproximatedExt() string {
-	if g.overApproximated(){
+	if g.isOverApproximated(){
 		return "**"
 	}
 	return ""
@@ -171,7 +173,7 @@ func (g *groupedConnLine) getSrcOrDst(isSrc bool) EndpointElem {
 	}
 	return g.dst
 }
-func (g *groupedConnLine) overApproximated() bool {
+func (g *groupedConnLine) isOverApproximated() bool {
 	src, srcIsLb := g.src.(LoadBalancer)
 	dst, dstIsLb := g.dst.(LoadBalancer)
 	return srcIsLb && src.AbstractionInfo().missingEgressConnections.hasAResource(endpointElemResources(g.dst)) ||
@@ -552,9 +554,9 @@ func (g *GroupConnLines) hasStatelessConns() bool {
 }
 
 // get indication if the connections contain a stateless connection
-func (g *GroupConnLines) hasOverApproximated() bool {
+func (g *GroupConnLines) hasOverApproximatedConn() bool {
 	for _, line := range g.GroupedLines {
-		if line.overApproximated() {
+		if line.isOverApproximated() {
 			return true
 		}
 	}

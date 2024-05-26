@@ -17,7 +17,8 @@ import (
 
 type OutFormat int64
 
-const asteriskDetails = "\nconnections are stateful (on TCP) unless marked with *\n"
+const statefulMessage = "\nconnections are stateful (on TCP) unless marked with *\n"
+const overApproximationMessage = "\nconnections narked with ** are over Approximated\n"
 
 const (
 	JSON OutFormat = iota
@@ -139,6 +140,8 @@ type SingleAnalysisOutput struct {
 	format     OutFormat
 	// hasStatelessConn indicates if the connectivity results contain a stateless conn
 	hasStatelessConn bool
+	// hasStatelessConn indicates if the connectivity results contain an overApproximated conn
+	hasOverApproximatedConn bool
 }
 
 // Generate returns a string representing the analysis output for all input VPCs
@@ -237,13 +240,19 @@ func WriteToFile(content, fileName string) (string, error) {
 	return content, nil
 }
 
-// getAsteriskDetails returns the info message about how non stateful conns are marked in the output, when relevant
-func getAsteriskDetails(uc OutputUseCase, hasStatelessConn bool, outFormat OutFormat) string {
+// getAsteriskDetails returns:
+// 1. the info message about how non stateful conns are marked in the output, when relevant
+// 2. the info message about how overAproximated conns are marked in the output, when relevant
+func getAsteriskDetails(uc OutputUseCase, hasStatelessConn, hasOverApproximatedConn bool, outFormat OutFormat) string {
+	res := ""
 	if uc != SingleSubnet && (outFormat == Text || outFormat == MD || outFormat == Debug) && hasStatelessConn {
-		return asteriskDetails
+		res += statefulMessage
+	}
+	if uc != SingleSubnet && (outFormat == Text || outFormat == MD || outFormat == Debug) && hasOverApproximatedConn {
+		res += overApproximationMessage
 	}
 
-	return ""
+	return res
 }
 
 // AggregateVPCsOutput returns the output string for a list of SingleAnalysisOutput objects
@@ -261,14 +270,18 @@ func (of *serialOutputFormatter) AggregateVPCsOutput(outputList []*SingleAnalysi
 		// plain concatenation
 		vpcsOut := make([]string, len(outputList))
 		hasStatelessConn := false
+		hasOverApproximatedConn := false
 		for i, o := range outputList {
 			vpcsOut[i] = o.Output
 			if o.hasStatelessConn {
 				hasStatelessConn = true
 			}
+			if o.hasOverApproximatedConn{
+				hasOverApproximatedConn = true
+			}
 		}
 		sort.Strings(vpcsOut)
-		infoMessage := getAsteriskDetails(uc, hasStatelessConn, of.outFormat)
+		infoMessage := getAsteriskDetails(uc, hasStatelessConn, hasOverApproximatedConn, of.outFormat)
 		res, err = WriteToFile(strings.Join(vpcsOut, "\n")+infoMessage, outFile)
 
 	case JSON:
@@ -287,7 +300,7 @@ func (of *serialOutputFormatter) WriteDiffOrExplainOutput(output *SingleAnalysis
 	var err error
 	switch of.outFormat {
 	case Text, MD, Debug: // currently, return out as is
-		infoMessage := getAsteriskDetails(uc, output.hasStatelessConn, of.outFormat)
+		infoMessage := getAsteriskDetails(uc, output.hasStatelessConn,output.hasOverApproximatedConn, of.outFormat)
 		res, err = WriteToFile(output.Output+infoMessage, outFile)
 	case JSON:
 		all := map[string]interface{}{}

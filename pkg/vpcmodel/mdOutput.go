@@ -47,11 +47,13 @@ func (m *MDoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	var lines []string
 	var connLines []string
 	hasStatelessConns := false
+	hasOverApproximatedConn:= false
 	switch uc {
 	case AllEndpoints:
 		lines = []string{mdDefaultHeader}
 		connLines = m.getGroupedOutput(conn.GroupedConnectivity)
 		hasStatelessConns = conn.GroupedConnectivity.hasStatelessConns()
+		hasOverApproximatedConn = conn.GroupedConnectivity.hasOverApproximatedConn()
 	case AllSubnets:
 		lines = []string{mdDefaultHeader}
 		connLines = m.getGroupedOutput(subnetsConn.GroupedConnectivity)
@@ -74,7 +76,7 @@ func (m *MDoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	out += linesToOutput(connLines, lines)
 
 	_, err = WriteToFile(out, outFile)
-	return &SingleAnalysisOutput{Output: out, VPC1Name: c1.VPC.Name(), VPC2Name: v2Name, format: MD, hasStatelessConn: hasStatelessConns}, err
+	return &SingleAnalysisOutput{Output: out, VPC1Name: c1.VPC.Name(), VPC2Name: v2Name, format: MD, hasStatelessConn: hasStatelessConns, hasOverApproximatedConn: hasOverApproximatedConn}, err
 }
 
 func linesToOutput(connLines, lines []string) string {
