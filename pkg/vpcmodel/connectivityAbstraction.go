@@ -29,12 +29,13 @@ import (
 // 3. for the last three groups, we collect the missing connections.
 // 4. we add the 4th group to connectivity
 
+// AbstractionInfo holds the info of the abstraction
 type AbstractionInfo struct {
-	nodeSet NodeSet
-	nodesConn GeneralConnectivityMap
-	abstractedConnectivity    GeneralConnectivityMap
-	missingIngressConnections GeneralConnectivityMap
-	missingEgressConnections  GeneralConnectivityMap
+	nodeSet NodeSet // the nodest we abstracrt
+	nodesConn GeneralConnectivityMap // the non abstracted connectivity (the input)
+	abstractedConnectivity    GeneralConnectivityMap // the abstracted connectivity
+	missingIngressConnections GeneralConnectivityMap // the ingress connections that are missing for the assumption to hold
+	missingEgressConnections  GeneralConnectivityMap // the egress connections that are missing for the assumption to hold
 }
 func newAbstractionInfo(nodeSet NodeSet, nodesConn GeneralConnectivityMap) *AbstractionInfo{
 	return &AbstractionInfo{nodeSet, nodesConn, GeneralConnectivityMap{}, GeneralConnectivityMap{}, GeneralConnectivityMap{}}
@@ -159,6 +160,7 @@ func (ai *AbstractionInfo) abstractionMissingConnections(connMap GeneralConnecti
 	}
 }
 
+// hasMissingConnection() checks is one of the resources has missing connection 
 func (ai *AbstractionInfo) hasMissingConnection(resources []VPCResourceIntf, isIngress bool) bool {
 	for _, resource := range resources {
 		if _, ok := ai.missingConnections(isIngress)[resource]; ok {
