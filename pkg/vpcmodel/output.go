@@ -18,7 +18,7 @@ import (
 type OutFormat int64
 
 const statefulMessage = "\nconnections are stateful (on TCP) unless marked with *\n"
-const overApproximationMessage = "\nconnections narked with ** are over Approximated\n"
+const overApproximationMessage = "\nconnections marked with ** are over Approximated\n"
 
 const (
 	JSON OutFormat = iota
