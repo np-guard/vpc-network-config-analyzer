@@ -12,6 +12,7 @@ import (
 	"errors"
 
 	"github.com/np-guard/models/pkg/connection"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 // VPCConfig captures the configured resources for a VPC
@@ -127,12 +128,20 @@ func (c *MultipleVPCConfigs) RemoveConfig(uid string) {
 func (c *MultipleVPCConfigs) Config(uid string) *VPCConfig {
 	return c.configs[uid]
 }
+func (c *MultipleVPCConfigs) aConfig() *VPCConfig {
+	_, config := common.AnyMapEntry(c.configs)
+	return config
+}
 func (c *MultipleVPCConfigs) HasConfig(uid string) bool {
 	_, ok := c.configs[uid]
 	return ok
 }
 func (c *MultipleVPCConfigs) ConfigToCompare(uid string) *VPCConfig {
 	return c.toCompareConfigs[uid]
+}
+func (c *MultipleVPCConfigs) aConfigToCompare() *VPCConfig {
+	_, config := common.AnyMapEntry(c.toCompareConfigs)
+	return config
 }
 func (c *MultipleVPCConfigs) SetConfigsToCompare(toCompare map[string]*VPCConfig) {
 	c.toCompareConfigs = toCompare
