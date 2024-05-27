@@ -12,8 +12,9 @@ import "github.com/np-guard/models/pkg/connection"
 
 // ExtendedSet connection details
 type ExtendedSet struct {
-	statefulConn    *connection.Set // connection between <src, dst>
-	nonStatefulConn *connection.Set // reply connection (subseteq connection)
+	statefulConn    *connection.Set // stateful TCP connection between <src, dst>
+	nonStatefulConn *connection.Set // nonstateful TCP connection between <src, dst>
+	otherConn       *connection.Set // non TCP connection (for which stateful is non-relevant)
 }
 
 func (e *ExtendedSet) String() []string {
@@ -30,14 +31,21 @@ type ConnectivityResultNew struct {
 	EgressAllowedConns  map[Node]*ExtendedSet
 }
 
-// GeneralConnectivityMapNew describes connectivity
-type GeneralConnectivityMapNew map[VPCResourceIntf]map[VPCResourceIntf]*ExtendedSet
+// GeneralStatefulConnectivityMap describes connectivity
+type GeneralStatefulConnectivityMap map[VPCResourceIntf]map[VPCResourceIntf]*ExtendedSet
 
 type GeneralConnectivityMap map[VPCResourceIntf]map[VPCResourceIntf]*connection.Set
 
 func (connectivityMap GeneralConnectivityMap) updateAllowedConnsMap(src, dst VPCResourceIntf, conn *connection.Set) {
 	if _, ok := connectivityMap[src]; !ok {
 		connectivityMap[src] = map[VPCResourceIntf]*connection.Set{}
+	}
+	connectivityMap[src][dst] = conn
+}
+
+func (connectivityMap GeneralStatefulConnectivityMap) updateAllowedConnsMapNew(src, dst VPCResourceIntf, conn *ExtendedSet) {
+	if _, ok := connectivityMap[src]; !ok {
+		connectivityMap[src] = map[VPCResourceIntf]*ExtendedSet{}
 	}
 	connectivityMap[src][dst] = conn
 }
