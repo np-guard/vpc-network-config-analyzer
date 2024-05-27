@@ -22,22 +22,33 @@ type testImplicitRT struct {
 }
 
 // the configuration
+
 var vpc = &VPC{
 	internalAddressRange:   newIPBlockFromCIDROrAddressWithoutValidation("10.10.2.0/24"),
 	addressPrefixes:        []string{"10.10.2.0/24"},
 	addressPrefixesIPBlock: newIPBlockFromCIDROrAddressWithoutValidation("10.10.2.0/24"),
 }
-var srcEndpoint = &NetworkInterface{InternalNode: vpcmodel.InternalNode{
-	AddressStr: "10.10.2.6/32",
-}}
+var n1, _ = newNetworkInterface("n1", "n1", "zone1", "10.10.2.6", "n1VSI", vpc)
+var n2, _ = newNetworkInterface("n2", "n2", "zone1", "10.10.2.5", "n2VSI", vpc)
+var vpcConfig = &vpcmodel.VPCConfig{
+	VPC:   vpc,
+	Nodes: nodesFromNetIntfs([]*NetworkInterface{n1, n2}),
+}
+
+func nodesFromNetIntfs(nodes []*NetworkInterface) (res []vpcmodel.Node) {
+	for _, n := range nodes {
+		res = append(res, n)
+	}
+	return res
+}
 
 var implicitRTTets = []*testImplicitRT{
 	{
 		// basic test1: path exists to internal node in vpc (checking it has a subnet)
-		name: "path_exists_two_internal_nodes",
-		dest: newIPBlockFromCIDROrAddressWithoutValidation("10.10.2.5/32"),
-		expectedPath: vpcmodel.Path([]*vpcmodel.Endpoint{{VpcResource: srcEndpoint},
-			{IPBlock: newIPBlockFromCIDROrAddressWithoutValidation("10.10.2.5/32")}}),
+		name:         "path_exists_two_internal_nodes",
+		dest:         newIPBlockFromCIDROrAddressWithoutValidation("10.10.2.5/32"),
+		expectedPath: vpcmodel.Path([]*vpcmodel.Endpoint{{VpcResource: n1}, {VpcResource: n2}}),
+		// {IPBlock: newIPBlockFromCIDROrAddressWithoutValidation("10.10.2.5/32")}}),
 	},
 	{
 		// basic test2: path does not exist to destination outside the vpc
@@ -48,10 +59,10 @@ var implicitRTTets = []*testImplicitRT{
 }
 
 func TestImplicitRoutingTable(t *testing.T) {
-	a := systemImplicitRT{vpc: vpc, config: &systemRTConfig{}}
+	a := systemImplicitRT{vpc: vpc, config: &systemRTConfig{}, vpcConfig: vpcConfig}
 
 	for _, tt := range implicitRTTets {
-		actualPath := a.getPath(srcEndpoint, tt.dest)
+		actualPath := a.getEgressPath(n1, tt.dest)
 		if tt.expectedPath == nil {
 			require.Nil(t, actualPath)
 		} else {

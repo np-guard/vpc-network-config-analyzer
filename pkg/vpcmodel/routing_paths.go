@@ -8,6 +8,7 @@ package vpcmodel
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/np-guard/models/pkg/ipblock"
@@ -25,6 +26,7 @@ type Endpoint struct {
 	VpcResource VPCResourceIntf
 	IPBlock     *ipblock.IPBlock
 	NextHop     *NextHopEntry
+	TargetVPC   string // if the VpcResource is tgw, the targetVPC is also assigned
 }
 
 // NextHopEntry captures an endpoint within a routing path, which redirects traffic to its nextHop instead of the original dest
@@ -42,6 +44,37 @@ func (p Path) String() string {
 
 func (p Path) Empty() bool {
 	return len(p) == 0
+}
+
+// ConcatPaths returns a new path concatenating the passed in paths
+func ConcatPaths(paths ...Path) Path {
+	return slices.Concat(paths...)
+}
+
+func ConcatWithResource(resource VPCResourceIntf, path Path) Path {
+	return ConcatPaths(PathFromResource(resource), path)
+}
+
+func PathFromResource(resource VPCResourceIntf) Path {
+	return []*Endpoint{{VpcResource: resource}}
+}
+
+func PathFromNextHopValues(nextHop, origDest string) Path {
+	n, _ := ipblock.FromCidrOrAddress(nextHop)
+	o, _ := ipblock.FromCidrOrAddress(origDest)
+	return []*Endpoint{{NextHop: &NextHopEntry{NextHop: n, OrigDest: o}}}
+}
+
+func (p Path) DoesEndWithTGW() bool {
+	return p[len(p)-1].VpcResource != nil &&
+		p[len(p)-1].VpcResource.Kind() == "TGW" // TODO: use const
+}
+
+func (p Path) TargetVPC() string {
+	if !p.DoesEndWithTGW() {
+		return ""
+	}
+	return p[len(p)-1].TargetVPC
 }
 
 func (p Path) listEndpointsStrings() []string {

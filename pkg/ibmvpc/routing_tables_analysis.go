@@ -8,25 +8,91 @@ package ibmvpc
 
 import (
 	"fmt"
-	"log"
 	"slices"
 
 	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
-// RTAnalyzer analyzes routing in a certain vpc config
-type RTAnalyzer struct {
-	vpcConfig     *vpcmodel.VPCConfig
-	ingressRT     []*ingressRoutingTable
-	subnetUIDToRT map[string]*egressRoutingTable
+// GlobalRTAnalyzer analyzes routing in a cross-vpc config
+type GlobalRTAnalyzer struct {
+	vpcRTAnalyzer map[string]*RTAnalyzer // map from vpc uid to its RTAnalyzer
 }
 
-func newRTAnalyzer(vpcConfig *vpcmodel.VPCConfig, egressRT []*egressRoutingTable, ingressRT []*ingressRoutingTable) *RTAnalyzer {
+func newGlobalRTAnalyzer(configs *vpcmodel.MultipleVPCConfigs) *GlobalRTAnalyzer {
+	res := &GlobalRTAnalyzer{
+		vpcRTAnalyzer: map[string]*RTAnalyzer{},
+	}
+	for vpcUID, vpcConfig := range configs.Configs() {
+		if vpcConfig.IsMultipleVPCsConfig {
+			continue
+		}
+		res.vpcRTAnalyzer[vpcUID] = newRTAnalyzer(vpcConfig)
+	}
+	return res
+}
+
+func (ga *GlobalRTAnalyzer) getRTAnalyzerPerVPC(vpcUID string) (*RTAnalyzer, error) {
+	rtAnalyzer, ok := ga.vpcRTAnalyzer[vpcUID]
+	if !ok {
+		return nil, fmt.Errorf("could not find routing analyzer for vpc uid %s", vpcUID)
+	}
+	return rtAnalyzer, nil
+}
+
+func (ga *GlobalRTAnalyzer) getRoutingPath(src vpcmodel.InternalNodeIntf, dest *ipblock.IPBlock) (vpcmodel.Path, error) {
+	vpcUID := src.Subnet().VPC().UID()
+	rtAnalyzer, err := ga.getRTAnalyzerPerVPC(vpcUID)
+	if err != nil {
+		return nil, err
+	}
+	res, err := rtAnalyzer.getEgressPath(src, dest)
+	if err != nil {
+		return nil, err
+	}
+	// if res ends with "tgw" -> should get remaining routing path in the target VPC with src:tgw
+	if res != nil && res.DoesEndWithTGW() {
+		targetVPCAnalyzer, err := ga.getRTAnalyzerPerVPC(res.TargetVPC())
+		if err != nil {
+			return nil, err
+		}
+		res2, err := targetVPCAnalyzer.getIngressPath(tgwSource, dest)
+		return vpcmodel.ConcatPaths(res, res2), err
+	}
+	// else - routing remains within a single vpc context
+	return res, err
+}
+
+// RTAnalyzer analyzes routing in a certain vpc config
+type RTAnalyzer struct {
+	vpcConfig     *vpcmodel.VPCConfig            // the vpc config
+	ingressRT     []*ingressRoutingTable         // the VPC's ingress routing table (one per src type at most?)
+	subnetUIDToRT map[string]*egressRoutingTable // the egress routing tables per subnet
+	implicitRT    *systemImplicitRT
+}
+
+func getRoutingTablesFromConfig(vpcConfig *vpcmodel.VPCConfig) (egressRT []*egressRoutingTable, ingressRT []*ingressRoutingTable) {
+	// TODO: extract routing tables from vpc config
+	for _, rt := range vpcConfig.RoutingTables {
+		switch x := rt.(type) {
+		case *egressRoutingTable:
+			egressRT = append(egressRT, x)
+		case *ingressRoutingTable:
+			ingressRT = append(ingressRT, x)
+		}
+	}
+	return egressRT, ingressRT
+}
+
+func newRTAnalyzer(vpcConfig *vpcmodel.VPCConfig) *RTAnalyzer {
+	egressRT, ingressRT := getRoutingTablesFromConfig(vpcConfig)
 	res := &RTAnalyzer{
 		vpcConfig:     vpcConfig,
 		ingressRT:     ingressRT,
 		subnetUIDToRT: map[string]*egressRoutingTable{},
+		implicitRT:    newSystemImplicitRT(vpcConfig),
 	}
 
 	// add mapping from subnet uid to its routing table
@@ -34,6 +100,12 @@ func newRTAnalyzer(vpcConfig *vpcmodel.VPCConfig, egressRT []*egressRoutingTable
 		for _, subnet := range egressTable.subnets {
 			res.subnetUIDToRT[subnet.UID()] = egressTable
 		}
+	}
+
+	// for each ingress routing table with paths to advertise, propagate these paths
+	// currently supporting only tgw advertisement
+	for _, ingressTable := range ingressRT {
+		ingressTable.advertiseRoutes(vpcConfig)
 	}
 
 	return res
@@ -52,9 +124,20 @@ func (rt *RTAnalyzer) getEgressPath(src vpcmodel.InternalNodeIntf, dest *ipblock
 	subnet := src.Subnet()
 	srcRT, ok := rt.subnetUIDToRT[subnet.UID()]
 	if !ok {
-		return nil, fmt.Errorf("could not find routing table for subnet %s", subnet.Name())
+		// use the system implicit rt
+		// todo: avoid casting here
+		return rt.implicitRT.getEgressPath(src.(vpcmodel.Node), dest), nil
 	}
-	return srcRT.getPath(src.(vpcmodel.Node), dest), nil
+	return srcRT.getEgressPath(src.(vpcmodel.Node), dest)
+}
+
+func (rt *RTAnalyzer) getIngressPath(sourceType ingressRTSource, dest *ipblock.IPBlock) (vpcmodel.Path, error) {
+	for _, ingressRt := range rt.ingressRT {
+		if ingressRt.source == sourceType {
+			return ingressRt.getIngressPath(dest)
+		}
+	}
+	return rt.implicitRT.getIngressPath(dest)
 }
 
 /*
@@ -79,8 +162,9 @@ it with one or more subnets.
 However, if you want to change the default routing policy that affects all subnets using the default routing table, then you
 should add routes to the default routing table.
 
-questions:
-By default, this routing table is empty. => does this mean the default is "delegate" for all ip ranges?
+
+Q: By default, this routing table is empty. => does this mean the default is "delegate" for all ip ranges?
+A: from docs: "the system-implicit routing table is used when no matching route is found in the RT associated with the subnet..."
 */
 
 type action int
@@ -130,6 +214,11 @@ The Delegate-VPC action is required if both are true:
 - The VPC has public connectivity
 TODO: currently ignoring delegate-vpc action
 */
+
+const (
+	defaultRoutePriority int = 2
+)
+
 type route struct {
 	name string
 
@@ -139,26 +228,50 @@ type route struct {
 
 	action action // The action to perform with a packet that matches the route
 
+	// If a routing table contains multiple routes with the same `zone` and `destination`, the route with the highest
+	// priority (smallest value) is selected. If two routes have the same `destination` and `priority`, traffic is
+	// distributed between them.
 	destination string // cidr -  The destination CIDR of the route (for example, 10.0.0.0/16).
 
+	// The zone the route applies to.
+	//
+	// If subnets are attached to the route's routing table, egress traffic from those
+	// subnets in this zone will be subject to this route. If this route's routing table
+	// has any of `route_direct_link_ingress`, `route_internet_ingress`,
+	// `route_transit_gateway_ingress` or `route_vpc_zone_ingress`  set to`true`, traffic
+	// from those ingress sources arriving in this zone will be subject to this route.
 	//nolint:unused // to be used later
 	zone string // Select an availability zone for your route.
 
 	// The next-hop-ip for a route must be in the same zone as the zone the traffic is sourcing from
 	nextHop string // ip-address (relevant for "deliver") Next hop (IP address)
 
+	// Indicates whether this route will be advertised to the ingress sources specified by the `advertise_routes_to`
+	// routing table property.
+	/*
+		// Constants associated with the RoutingTable.AdvertiseRoutesTo property.
+		// An ingress source that routes can be advertised to:
+		//
+		// - `direct_link` (requires `route_direct_link_ingress` be set to `true`)
+		// - `transit_gateway` (requires `route_transit_gateway_ingress` be set to `true`).
+	*/
+	// sets of routes in a vpc's ingress routing table with advertise=true, will be passed to all transit gateways
+	// (same as each vpc connected to a tgw advertises its APs to the tgw )
+	advertise bool
+
 	destIPBlock    *ipblock.IPBlock
 	nextHopIPBlock *ipblock.IPBlock
 	destPrefixLen  int64
 }
 
-func newRoute(name, dest, nextHop string, action action, prio int) (res *route, err error) {
+func newRoute(name, dest, nextHop string, action action, prio int, advertise bool) (res *route, err error) {
 	res = &route{
 		name:        name,
 		destination: dest,
 		nextHop:     nextHop,
 		action:      action,
 		priority:    prio,
+		advertise:   advertise,
 	}
 
 	res.destIPBlock, err = ipblock.FromCidr(dest)
@@ -179,7 +292,9 @@ func newRoute(name, dest, nextHop string, action action, prio int) (res *route, 
 	return res, nil
 }
 
+// routingTable implements VPCResourceIntf (TODO: should implement RoutingResource interface or another separate interface?)
 type routingTable struct {
+	vpcmodel.VPCResource
 	//nolint:unused // to be used later
 	name string // should implement VPCResourceIntf instead
 
@@ -196,6 +311,14 @@ type routingTable struct {
 	implicitRT *systemImplicitRT
 }
 
+func (rt *routingTable) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
+	return nil
+}
+
+func (rt *routingTable) ShowOnSubnetMode() bool {
+	return false
+}
+
 func newRoutingTable(routes []*route, implicitRT *systemImplicitRT) (*routingTable, error) {
 	res := &routingTable{routesList: routes}
 	if err := res.computeDisjointRouting(); err != nil {
@@ -209,19 +332,19 @@ func (rt *routingTable) computeRoutingForDisjointDest(disjointDest *ipblock.IPBl
 	// find the relevant rule from the sorted list of rules
 	for _, routeRule := range rt.routesList {
 		if disjointDest.ContainedIn(routeRule.destIPBlock) {
-			log.Default().Printf("%s contained in %s\n", disjointDest.ToIPRanges(), routeRule.destination)
+			logging.Debugf("%s contained in %s\n", disjointDest.ToIPRanges(), routeRule.destination)
 			switch routeRule.action {
 			case deliver:
 				rt.nextHops[disjointDest] = routeRule.nextHopIPBlock
-				log.Default().Printf("set next hop for %s as %s\n", disjointDest.ToIPRanges(), routeRule.nextHop)
+				logging.Debugf("set next hop for %s as %s\n", disjointDest.ToIPRanges(), routeRule.nextHop)
 				return nil // skip next rules, move to the next disjoint dest
 			case drop:
 				rt.droppedDestinations = rt.droppedDestinations.Union(disjointDest)
-				log.Default().Printf("set %s as drop\n", disjointDest.ToIPRanges())
+				logging.Debugf("set %s as drop\n", disjointDest.ToIPRanges())
 				return nil // skip next rules, move to the next disjoint dest
 			case delegate:
 				rt.delegatedDestinations = rt.delegatedDestinations.Union(disjointDest)
-				log.Default().Printf("set %s as delegate\n", disjointDest.ToIPRanges())
+				logging.Debugf("set %s as delegate\n", disjointDest.ToIPRanges())
 				return nil // skip next rules, move to the next disjoint dest
 			case delegateVPC:
 				return fmt.Errorf("action delegate-vpc is not supported, cannot compute routing")
@@ -253,7 +376,7 @@ func (rt *routingTable) computeDisjointRouting() error {
 	}
 	disjointDestinations := ipblock.DisjointIPBlocks(destIPBlocks, destIPBlocks)
 	for _, disjointDest := range disjointDestinations {
-		log.Default().Printf("disjoint dest: %s\n", disjointDest.ToIPRanges())
+		logging.Debugf("disjoint dest: %s\n", disjointDest.ToIPRanges())
 		if err := rt.computeRoutingForDisjointDest(disjointDest); err != nil {
 			return err
 		}
@@ -261,35 +384,78 @@ func (rt *routingTable) computeDisjointRouting() error {
 	return nil
 }
 
-func (rt *routingTable) getPath(src vpcmodel.Node, dest *ipblock.IPBlock) vpcmodel.Path {
+func (rt *routingTable) getEgressPath(src vpcmodel.Node, dest *ipblock.IPBlock) (vpcmodel.Path, error) {
+	path, shouldDelegate := rt.getPath(dest)
+	if shouldDelegate {
+		return rt.implicitRT.getEgressPath(src, dest), nil
+	}
+	return vpcmodel.ConcatWithResource(src, path), nil
+}
+
+func (rt *routingTable) getIngressPath(dest *ipblock.IPBlock) (vpcmodel.Path, error) {
+	path, shouldDelegate := rt.getPath(dest)
+	if shouldDelegate {
+		return rt.implicitRT.getIngressPath(dest)
+	}
+	return path, nil
+}
+
+func (rt *routingTable) getPath(dest *ipblock.IPBlock) (vpcmodel.Path, bool) {
 	for tableDest, nextHop := range rt.nextHops {
 		if dest.ContainedIn(tableDest) {
 			return vpcmodel.Path([]*vpcmodel.Endpoint{
-				{VpcResource: src},
-				{NextHop: &vpcmodel.NextHopEntry{NextHop: nextHop, OrigDest: dest}}})
+				{NextHop: &vpcmodel.NextHopEntry{NextHop: nextHop, OrigDest: dest}}}), false
 		}
 	}
 	if dest.ContainedIn(rt.delegatedDestinations) {
 		// explicit delegate
-		return rt.implicitRT.getPath(src, dest)
+		return nil, true
 	}
 	if dest.ContainedIn(rt.droppedDestinations) {
 		// explicit drop
-		return nil // no path
+		return nil, false // no path
 	}
-	// implicit delegate
-	return rt.implicitRT.getPath(src, dest)
+	// implicit delegate: a non-matched destination is delegated to the system-implicit routing table
+	return nil, true
+}
+
+type ingressRTSource int
+
+const (
+	// one ingress routing table to all source of kind TGW (even if VPC has more han one TGW)
+	tgwSource ingressRTSource = iota
+
+	// direct link source
+	//nolint:unused // to be used later
+	dlSource
+
+	// public internet source
+	//nolint:unused // to be used later
+	publicInternetSource
+
+	// other zone source
+	//nolint:unused // to be used later
+	otherZoneSource
+)
+
+func newIngressRoutingTableFromRoutes(routes []*route, vpcConfig *vpcmodel.VPCConfig) *ingressRoutingTable {
+	routingTable, _ := newRoutingTable(routes, newSystemImplicitRT(vpcConfig))
+	return &ingressRoutingTable{
+		vpc:          vpcConfig.VPC.(*VPC),
+		source:       tgwSource, // todo: support more sources to ingress RT
+		routingTable: *routingTable,
+	}
 }
 
 /*
 ingress routes enables you to customize routes on incoming traffic to a VPC from traffic sources external to the VPC's zone
 (Direct Link, Transit Gateway, another availability zone in the same vpc, or the public internet)
 */
-//nolint:unused // to be used later
+
 type ingressRoutingTable struct {
 	routingTable
 	vpc    *VPC
-	source *vpcmodel.VPCResourceIntf // TGW / DL / public internet (ALB/CIS?) / another zone in the same vpc / 3-rd party appliance?
+	source ingressRTSource // TGW / DL / public internet (ALB/CIS?) / another zone in the same vpc / 3-rd party appliance?
 	/*
 		source info:
 		Traffic source (optional) - Select the traffic source that will use this routing table to route its traffic to the VPC.
@@ -303,14 +469,110 @@ type ingressRoutingTable struct {
 	*/
 }
 
+// if a vpc `A` has ingress routing table, having a dest cidr `Y` with `advertise=On`,
+// (with src:tgw in the routing table, and vpc: `B` contains AP that contains `Y`) should consider
+// all its `A`'s other tgws ( for example: tgw connecting `A` with other VPC: `C`) [which are not
+// connected to the  VPC containing this dest cidr in their APs], and add to them this advertised prefix
+// (with VPC connected to this tgw and the other tgw)  for example, `C-A` tgw should be added with available
+// prefix `Y`, under `vpc-A` prefixes, even though `A` does not have this cidr. this way, `C` can route to `A`
+// if the dest is in `B`, and from A can route to `B` through the other TGW, and based on the ingress routing table.
+
+func (irt *ingressRoutingTable) advertiseRoutes(vpcConfig *vpcmodel.VPCConfig) {
+	if irt.source != tgwSource {
+		return // currently supporting only tgw source for routes advertisement
+	}
+	for _, routeObj := range irt.routesList {
+		if !routeObj.advertise {
+			continue
+		}
+
+		routeCidr := routeObj.destIPBlock
+		tgws := getTGWs(vpcConfig)
+		if len(tgws) <= 1 {
+			break // nothing to propagate if there is only one TGW connected to this vpc
+		}
+		// find the vpc (with tgw) to which this cidr Y belongs
+		var vpcB *VPC
+		var tgwAB *TransitGateway
+		for _, tgw := range tgws {
+			for _, vpc := range tgw.vpcs {
+				if routeCidr.ContainedIn(vpc.addressPrefixesIPBlock) && vpc.UID() != irt.vpc.UID() {
+					vpcB = vpc
+					tgwAB = tgw
+					break
+				}
+			}
+		}
+		if vpcB == nil {
+			break // nothing to propagate if could not find the relevant vpc and its tgw
+		}
+		// find other tgws connected to this VPC (of irt) and
+		// propagate this cidr Y to the available routes from this VPC to those tgws
+		var tgwAC *TransitGateway
+		for _, tgw := range tgws {
+			if tgw.UID() == tgwAB.UID() {
+				continue
+			}
+			if slices.Contains(tgw.vpcs, vpcB) {
+				continue // skip any tgw that already has available prefixes from vpc B
+			}
+			tgwAC = tgw // the tgw A-C to which should propagate Y (routeCidr) as available "from" vpcA
+			updateTGWWithAdvertisedRoute(tgwAC, irt.vpc, routeCidr)
+		}
+	}
+}
+
+func updateTGWWithAdvertisedRoute(tgw *TransitGateway, vpc *VPC, cidr *ipblock.IPBlock) {
+	_, ok := tgw.availableRoutes[vpc.UID()]
+	if !ok {
+		tgw.availableRoutes[vpc.UID()] = []*ipblock.IPBlock{}
+	}
+	tgw.availableRoutes[vpc.UID()] = append(tgw.availableRoutes[vpc.UID()], cidr)
+}
+
+func getTGWs(vpcConfig *vpcmodel.VPCConfig) (res []*TransitGateway) {
+	for _, router := range vpcConfig.RoutingResources {
+		if router.Kind() == ResourceTypeTGW {
+			res = append(res, router.(*TransitGateway))
+		}
+	}
+	return res
+}
+
 /*
 Egress routes control traffic, which originates within a subnet and travels towards the public internet,
 or to another VM in same or different zone.
 */
 type egressRoutingTable struct {
-	routingTable // TODO: a non-matched destination is delegated to the system-implicit routing table
-	subnets      []*Subnet
-	vpc          *VPC
+	routingTable
+	subnets []*Subnet
+	vpc     *VPC
 }
+
+func newEgressRoutingTableFromRoutes(routes []*route, subnets []*Subnet, vpcConfig *vpcmodel.VPCConfig) *egressRoutingTable {
+	routingTable, _ := newRoutingTable(routes, newSystemImplicitRT(vpcConfig))
+	return &egressRoutingTable{
+		routingTable: *routingTable,
+		subnets:      subnets,
+		vpc:          vpcConfig.VPC.(*VPC),
+	}
+}
+
+/*
+func newEgressRTFromRoutes(rps *routesPerSubnets, config *vpcmodel.VPCConfig, vpc *VPC) []*egressRoutingTable {
+	res := []*egressRoutingTable{}
+	for subnetsKey, routes := range rps.routesMap {
+		egressRT := &egressRoutingTable{}
+		implicitRT := &systemImplicitRT{vpc: vpc, config: systemRTConfigFromVPCConfig(config)}
+		if rt, err := newRoutingTable(routes, implicitRT); err == nil {
+			egressRT.routingTable = *rt
+		}
+		egressRT.vpc = vpc
+		egressRT.subnets = subnetsKeyToSubnets(subnetsKey, config)
+		res = append(res, egressRT)
+	}
+	return res
+}
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
