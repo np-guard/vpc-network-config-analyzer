@@ -123,7 +123,6 @@ func (ai *AbstractionInfo) mergeConnectivityWithNodeSetAbstraction(
 		}
 		ai.abstractedConnectivity.updateAllowedConnsMap(src, nodeSet, allConns)
 	}
-
 }
 
 func (ai *AbstractionInfo) missingConnections(isIngress bool) GeneralConnectivityMap {
@@ -131,7 +130,6 @@ func (ai *AbstractionInfo) missingConnections(isIngress bool) GeneralConnectivit
 		return ai.missingIngressConnections
 	}
 	return ai.missingEgressConnections
-
 }
 
 // abstractionMissingConnections() collects the connections that are missing for full abstraction.

@@ -8,6 +8,7 @@ package vpcmodel
 
 import (
 	"fmt"
+	"reflect"
 	"sort"
 	"strings"
 
@@ -181,23 +182,27 @@ func (g *groupedConnLine) isOverApproximated() bool {
 }
 
 // you might think that the following method should be part of EndpointElem interface.
-// however, the is no convenient way to do so (unless we add implementation for each VPCResource)
+// however, there is no convenient way to do so (unless we add implementation for each VPCResource)
 // boo for golang
 func endpointElemResources(e EndpointElem) []VPCResourceIntf {
-	if ge, ok := e.(*groupedEndpointsElems); ok {
-		r := make([]VPCResourceIntf, len([]EndpointElem(*ge)))
-		for i, e := range []EndpointElem(*ge) {
+	switch reflect.TypeOf(e).Elem() {
+	case reflect.TypeOf(groupedEndpointsElems{}):
+		elements := []EndpointElem(*e.(*groupedEndpointsElems))
+		r := make([]VPCResourceIntf, len(elements))
+		for i, e := range elements {
 			r[i] = e.(VPCResourceIntf)
 		}
 		return r
-	} else if ge, ok := e.(*groupedExternalNodes); ok {
-		r := make([]VPCResourceIntf, len([]*ExternalNetwork(*ge)))
-		for i, e := range []*ExternalNetwork(*ge) {
+	case reflect.TypeOf(groupedExternalNodes{}):
+		elements := []*ExternalNetwork(*e.(*groupedExternalNodes))
+		r := make([]VPCResourceIntf, len(elements))
+		for i, e := range elements {
 			r[i] = e
 		}
 		return r
+	default:
+		return []VPCResourceIntf{e.(VPCResourceIntf)}
 	}
-	return []VPCResourceIntf{e.(VPCResourceIntf)}
 }
 
 type groupedEndpointsElems []EndpointElem

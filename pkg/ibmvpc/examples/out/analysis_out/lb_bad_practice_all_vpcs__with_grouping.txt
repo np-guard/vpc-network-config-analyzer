@@ -15,4 +15,4 @@ vsi0-sub2[10.240.64.4] => vsi0-ctrl-sub[10.240.2.4] : All Connections
 vsi0-sub2[10.240.64.4] => vsi0-sub1[10.240.0.4] : All Connections
 vsi0-sub3[10.240.128.4] => alb[LoadBalancer] : All Connections**
 
-connections narked with ** are over Approximated
+connections marked with ** are over Approximated
