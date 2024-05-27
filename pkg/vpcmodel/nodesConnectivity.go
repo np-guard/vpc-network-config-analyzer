@@ -19,7 +19,7 @@ import (
 // GetVPCNetworkConnectivity computes VPCConnectivity in few steps
 // (1) compute AllowedConns (map[Node]*ConnectivityResult) : ingress or egress allowed conns separately
 // (2) compute AllowedConnsCombined (map[Node]map[Node]*connection.Set) : allowed conns considering both ingress and egress directions
-// (3) compute AllowedConnsCombinedStateful : stateful allowed connections, for which connection in reverse direction is also allowed
+// (3) compute AllowedConnsCombinedStatefulOld : stateful allowed connections, for which connection in reverse direction is also allowed
 // (4) if lbAbstraction required - abstract each lb separately
 // (5) if grouping required - compute grouping of connectivity results
 func (c *VPCConfig) GetVPCNetworkConnectivity(grouping, lbAbstraction bool) (res *VPCConnectivity, err error) {
@@ -59,7 +59,7 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping, lbAbstraction bool) (res
 		}
 	}
 	res.computeAllowedConnsCombined()
-	res.computeAllowedStatefulConnections()
+	res.computeAllowedStatefulConnectionsOld()
 	if lbAbstraction {
 		for _, lb := range c.LoadBalancers {
 			res.AllowedConnsCombined = nodeSetConnectivityAbstraction(res.AllowedConnsCombined, lb)
@@ -238,21 +238,21 @@ func (v *VPCConnectivity) isConnExternalThroughFIP(src, dst Node) bool {
 	return false
 }
 
-// computeAllowedStatefulConnections adds the statefulness analysis for the computed allowed connections.
+// computeAllowedStatefulConnectionsOld adds the statefulness analysis for the computed allowed connections.
 // In the connectivity output, a connection A -> B is stateful on TCP (allows bidrectional flow) if both SG and NACL
 // (of A and B) allow connection (ingress and egress) from A to B , AND if NACL (of A and B) allow connection
 // (ingress and egress) from B to A .
 // if connection A->B (considering NACL & SG) is allowed with TCP, src_port: x_range, dst_port: y_range,
 // and if connection B->A is allowed (considering NACL) with TCP, src_port: z_range, dst_port: w_range, then
 // the stateful allowed connection A->B is TCP , src_port: x&w , dst_port: y&z.
-func (v *VPCConnectivity) computeAllowedStatefulConnections() {
+func (v *VPCConnectivity) computeAllowedStatefulConnectionsOld() {
 	// assuming v.AllowedConnsCombined was already computed
 
 	// allowed connection: src->dst , requires NACL layer to allow dst->src (both ingress and egress)
 	// on overlapping/matching connection-set, (src-dst ports should be switched),
 	// for it to be considered as stateful
 
-	v.AllowedConnsCombinedStateful = GeneralConnectivityMap{}
+	v.AllowedConnsCombinedStatefulOld = GeneralConnectivityMap{}
 
 	for src, connsMap := range v.AllowedConnsCombined {
 		for dst, conn := range connsMap {
@@ -262,7 +262,7 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections() {
 			// iterate pairs (src,dst) with conn as allowed connectivity, to check stateful aspect
 			if v.isConnExternalThroughFIP(srcNode, dstNode) { // fip ignores NACL
 				// TODO: this may be ibm-specific. consider moving to ibmvpc
-				v.AllowedConnsCombinedStateful.updateAllowedConnsMap(src, dst, conn)
+				v.AllowedConnsCombinedStatefulOld.updateAllowedConnsMap(src, dst, conn)
 				conn.IsStateful = connection.StatefulTrue
 				continue
 			}
@@ -279,7 +279,7 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections() {
 			combinedDstToSrc := DstAllowedEgressToSrc.Intersect(SrcAllowedIngressFromDst)
 			// ConnectionWithStatefulness updates conn with IsStateful value, and returns the stateful subset
 			statefulCombinedConn := conn.WithStatefulness(combinedDstToSrc)
-			v.AllowedConnsCombinedStateful.updateAllowedConnsMap(src, dst, statefulCombinedConn)
+			v.AllowedConnsCombinedStatefulOld.updateAllowedConnsMap(src, dst, statefulCombinedConn)
 		}
 	}
 }
@@ -375,6 +375,6 @@ func (v *VPCConnectivity) DetailedString() string {
 	res += v.AllowedConnsCombined.getCombinedConnsStr()
 
 	res += "=================================== stateful combined connections - short version:\n"
-	res += v.AllowedConnsCombinedStateful.getCombinedConnsStr()
+	res += v.AllowedConnsCombinedStatefulOld.getCombinedConnsStr()
 	return res
 }

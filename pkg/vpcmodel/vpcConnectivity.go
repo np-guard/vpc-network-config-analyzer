@@ -28,7 +28,7 @@ type VPCConnectivity struct {
 	// (outputs excluding json and debug)
 	// For each src node provides a map of dsts and the connection it has to these dsts, including stateful attributes
 	// a connection is considered stateful if all paths in it are stateful
-	// that stateful component is computed along with the following  AllowedConnsCombinedStateful
+	// that stateful component is computed along with the following  AllowedConnsCombinedStatefulOld
 	// todo: connection.Set and thus GeneralConnectivityMap will no longer contain stateful info. Consider deleting this struct when transformation is completed
 	AllowedConnsCombined GeneralConnectivityMap
 
@@ -38,9 +38,8 @@ type VPCConnectivity struct {
 	// note that subset of a non-stateful connection from AllowedConnsCombined can still be stateful
 	// and as such add to this map
 	// todo: delete in first refactoring stage
-	AllowedConnsCombinedStateful GeneralConnectivityMap
-	// todo replace with rename to AllowedConnsCombinedStateful
-	AllowedConnsCombinedStatefulNew GeneralConnectivityMapNew // todo: rename to AllowedConnsCombined once transformation is completed
+	AllowedConnsCombinedStatefulOld GeneralConnectivityMap
+	AllowedConnsCombinedStateful    GeneralConnectivityMapNew
 
 	// grouped connectivity result
 	GroupedConnectivity *GroupConnLines
@@ -93,7 +92,7 @@ func (v *VPCConnectivity) SplitAllowedConnsToUnidirectionalAndBidirectional() (
 			if conn.IsEmpty() {
 				continue
 			}
-			statefulConn := v.AllowedConnsCombinedStateful.getAllowedConnForPair(src, dst)
+			statefulConn := v.AllowedConnsCombinedStatefulOld.getAllowedConnForPair(src, dst)
 			switch {
 			case conn.Equal(statefulConn):
 				bidirectional.updateAllowedConnsMap(src, dst, conn)
