@@ -197,8 +197,7 @@ func (v *VPCConnectivity) computeCombinedConnectionsPerDirection(isIngressDirect
 }
 
 // computeAllowedConnsCombined computes combination of ingress&egress directions per connection allowed
-// the result for this computation is stateless connections
-// (could be that some of them or a subset of them are stateful,but this is not computed here)
+// the stateful state of the connectivity is not computed here
 func (v *VPCConnectivity) computeAllowedConnsCombined() {
 	v.AllowedConnsCombined = GeneralConnectivityMap{}
 	for node, connectivityRes := range v.AllowedConns {
