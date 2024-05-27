@@ -37,8 +37,7 @@ type VPCConnectivity struct {
 	// For src node provides a map of dsts and the stateful connection it has to these dsts
 	// note that subset of a non-stateful connection from AllowedConnsCombined can still be stateful
 	// and as such add to this map
-	// todo: delete in first refactoring stage
-	AllowedConnsCombinedStatefulOld GeneralConnectivityMap
+	AllowedConnsCombinedStatefulOld GeneralConnectivityMap // todo: delete in first refactoring stage
 	AllowedConnsCombinedStateful    GeneralConnectivityMapNew
 
 	// grouped connectivity result
