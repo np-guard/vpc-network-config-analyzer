@@ -150,7 +150,7 @@ type groupedConnLine struct {
 // todo - overApproximatedExt() should be replaced when using new message mechanism
 // todo2 - g.commonProperties.groupingStrKey is used in several places, when to use overApproximatedExt()?
 func (g *groupedConnLine) overApproximatedExt() string {
-	if g.isOverApproximated(){
+	if g.isOverApproximated() {
 		return "**"
 	}
 	return ""
@@ -176,8 +176,8 @@ func (g *groupedConnLine) getSrcOrDst(isSrc bool) EndpointElem {
 func (g *groupedConnLine) isOverApproximated() bool {
 	src, srcIsLb := g.src.(LoadBalancer)
 	dst, dstIsLb := g.dst.(LoadBalancer)
-	return srcIsLb && src.AbstractionInfo().missingEgressConnections.hasAResource(endpointElemResources(g.dst)) ||
-		dstIsLb && dst.AbstractionInfo().missingIngressConnections.hasAResource(endpointElemResources(g.src))
+	return srcIsLb && src.AbstractionInfo().hasMissingConnection(endpointElemResources(g.dst), false) ||
+		dstIsLb && dst.AbstractionInfo().hasMissingConnection(endpointElemResources(g.src), true)
 }
 
 func endpointElemResources(e EndpointElem) []VPCResourceIntf {
@@ -562,7 +562,6 @@ func (g *GroupConnLines) hasOverApproximatedConn() bool {
 	}
 	return false
 }
-
 
 func listEndpointElemStr(eps []EndpointElem, fn func(ep EndpointElem) string) string {
 	endpointsStrings := make([]string, len(eps))

@@ -35,6 +35,19 @@ type AbstractionInfo struct {
 	missingEgressConnections  GeneralConnectivityMap
 }
 
+func (ai AbstractionInfo) hasMissingConnection(resources []VPCResourceIntf, isIngress bool) bool {
+	missingResource := ai.missingEgressConnections
+	if isIngress {
+		missingResource = ai.missingIngressConnections
+	}
+	for _, resource := range resources {
+		if _, ok := missingResource[resource]; ok {
+			return true
+		}
+	}
+	return false
+}
+
 func nodeSetConnectivityAbstraction(nodesConn GeneralConnectivityMap, nodeSet NodeSet) AbstractionInfo {
 	otherToOther, nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet := partitionConnectivityByNodeSet(nodesConn, nodeSet)
 	var result AbstractionInfo
@@ -111,7 +124,6 @@ func checkConnectivityAbstractionValidity(connMap GeneralConnectivityMap, merged
 func mergeConnectivityWithNodeSetAbstraction(
 	nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet GeneralConnectivityMap,
 	nodeSet NodeSet) GeneralConnectivityMap {
-	// first make a copy of otherToOther, to be the result:
 	res := GeneralConnectivityMap{}
 	// all the connections with the nodeSet are merged to *only* one connectivity, which is the union of all separate connections:
 	allConns := NoConns()
