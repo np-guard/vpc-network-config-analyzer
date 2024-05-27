@@ -21,8 +21,15 @@ type ExtendedSet struct {
 	conn            *connection.Set // entire connection
 }
 
-func (e *ExtendedSet) String() []string {
-	return nil
+func (e *ExtendedSet) String() string {
+	return e.conn.String()
+}
+
+func (e *ExtendedSet) EnhancedString() string {
+	if !e.nonStatefulConn.IsEmpty() {
+		return e.String() + " *"
+	}
+	return e.String()
 }
 
 // ConnectivityResultNew is used to capture allowed connectivity between Node elements
@@ -57,7 +64,7 @@ func (connectivityMap GeneralStatefulConnectivityMap) updateAllowedConnsMapNew(s
 	connectivityMap[src][dst] = extendedConn
 }
 
-// todo: following functionality needs to be moved to package connection member of (c *Set)
+// todo: following functionality needs to be moved to package connection with member instead of parms passing
 
 // todo exists already in connection
 func newTCPSet() *connection.Set {

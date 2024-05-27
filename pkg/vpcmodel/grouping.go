@@ -38,9 +38,10 @@ type explainDetails struct {
 }
 
 type groupedCommonProperties struct {
-	conn       *connection.Set
-	connDiff   *connectionDiff
-	expDetails *explainDetails
+	conn         *connection.Set // todo: delete once refactoring is completed
+	expendedConn *ExtendedSet
+	connDiff     *connectionDiff
+	expDetails   *explainDetails
 	// groupingStrKey is the key by which the grouping is done:
 	// the string of conn per grouping of conn lines, string of connDiff per grouping of diff lines
 	// and string of conn and explainDetails for explainblity
@@ -253,6 +254,7 @@ func (g *GroupConnLines) groupExternalAddresses(vsi bool) error {
 		allowedConnsCombined = g.subnetsConn.AllowedConnsCombined
 	}
 	res := []*groupedConnLine{}
+	// todo SM here; in this stage will need to separate between vsi and subnet?
 	for src, nodeConns := range allowedConnsCombined {
 		for dst, conns := range nodeConns {
 			if !conns.IsEmpty() {
