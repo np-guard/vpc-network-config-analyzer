@@ -182,7 +182,7 @@ func (g *groupedConnLine) isOverApproximated() bool {
 
 // you might think that the following method should be part of EndpointElem interface.
 // however, the is no convenient way to do so (unless we add implementation for each VPCResource)
-// boo for golang 
+// boo for golang
 func endpointElemResources(e EndpointElem) []VPCResourceIntf {
 	if ge, ok := e.(*groupedEndpointsElems); ok {
 		r := make([]VPCResourceIntf, len([]EndpointElem(*ge)))

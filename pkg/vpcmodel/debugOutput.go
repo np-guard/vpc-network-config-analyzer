@@ -20,7 +20,7 @@ func (t *DebugOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	explanation *Explanation) (*SingleAnalysisOutput, error) {
 	out, err := headerOfAnalyzedVPC(uc, c1.VPC.Name(), "", c1, explanation)
 	hasStatelessConns := false
-	hasOverApproximatedConn:= false
+	hasOverApproximatedConn := false
 	if err != nil {
 		return nil, err
 	}
@@ -38,5 +38,5 @@ func (t *DebugOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 		out += explanation.String(true)
 	}
 	_, err = WriteToFile(out, outFile)
-	return &SingleAnalysisOutput{Output: out, VPC1Name: c1.VPC.Name(), VPC2Name: "", format: Debug, hasStatelessConn: hasStatelessConns,hasOverApproximatedConn:hasOverApproximatedConn}, err
+	return &SingleAnalysisOutput{Output: out, VPC1Name: c1.VPC.Name(), VPC2Name: "", format: Debug, hasStatelessConn: hasStatelessConns, hasOverApproximatedConn: hasOverApproximatedConn}, err
 }

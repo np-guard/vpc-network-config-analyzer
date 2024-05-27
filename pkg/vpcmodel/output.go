@@ -276,7 +276,7 @@ func (of *serialOutputFormatter) AggregateVPCsOutput(outputList []*SingleAnalysi
 			if o.hasStatelessConn {
 				hasStatelessConn = true
 			}
-			if o.hasOverApproximatedConn{
+			if o.hasOverApproximatedConn {
 				hasOverApproximatedConn = true
 			}
 		}
@@ -300,7 +300,7 @@ func (of *serialOutputFormatter) WriteDiffOrExplainOutput(output *SingleAnalysis
 	var err error
 	switch of.outFormat {
 	case Text, MD, Debug: // currently, return out as is
-		infoMessage := getAsteriskDetails(uc, output.hasStatelessConn,output.hasOverApproximatedConn, of.outFormat)
+		infoMessage := getAsteriskDetails(uc, output.hasStatelessConn, output.hasOverApproximatedConn, of.outFormat)
 		res, err = WriteToFile(output.Output+infoMessage, outFile)
 	case JSON:
 		all := map[string]interface{}{}

@@ -47,7 +47,7 @@ func (m *MDoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	var lines []string
 	var connLines []string
 	hasStatelessConns := false
-	hasOverApproximatedConn:= false
+	hasOverApproximatedConn := false
 	switch uc {
 	case AllEndpoints:
 		lines = []string{mdDefaultHeader}

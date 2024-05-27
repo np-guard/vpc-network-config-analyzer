@@ -239,8 +239,8 @@ type LoadBalancerListener []LoadBalancerPool
 
 type LoadBalancer struct {
 	vpcmodel.VPCResource
-	nodes           []vpcmodel.Node
-	listeners       []LoadBalancerListener
+	nodes     []vpcmodel.Node
+	listeners []LoadBalancerListener
 	// abstractionInfo holds the information the relevant for the abstraction of the load balancer
 	abstractionInfo *vpcmodel.AbstractionInfo
 }

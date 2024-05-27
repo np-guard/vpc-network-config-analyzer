@@ -65,7 +65,7 @@ func (t *TextOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 		return nil, err
 	}
 	hasStatelessConns := false
-	hasOverApproximatedConn:= false
+	hasOverApproximatedConn := false
 
 	// get output by analysis type
 	switch uc {
