@@ -260,7 +260,7 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections() {
 			srcNode := src.(Node)
 			dstNode := dst.(Node)
 			// iterate pairs (src,dst) with conn as allowed connectivity, to check stateful aspect
-			if v.isConnExternalThroughFIP(srcNode, dstNode) {
+			if v.isConnExternalThroughFIP(srcNode, dstNode) { // fip ignores NACL
 				// TODO: this may be ibm-specific. consider moving to ibmvpc
 				v.AllowedConnsCombinedStateful.updateAllowedConnsMap(src, dst, conn)
 				conn.IsStateful = connection.StatefulTrue
@@ -271,6 +271,8 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections() {
 			// check allowed conns per NACL-layer from dst to src (dst->src)
 			var DstAllowedEgressToSrc, SrcAllowedIngressFromDst *connection.Set
 			// can dst egress to src?
+			// todo SM: this is very ad-hoc. If there will be another relevant layer statelessLayerName will not be good enough anymore
+			// todo SM: what about transit gateway?
 			DstAllowedEgressToSrc = v.getPerLayerConnectivity(statelessLayerName, dstNode, srcNode, false)
 			// can src ingress from dst?
 			SrcAllowedIngressFromDst = v.getPerLayerConnectivity(statelessLayerName, dstNode, srcNode, true)
