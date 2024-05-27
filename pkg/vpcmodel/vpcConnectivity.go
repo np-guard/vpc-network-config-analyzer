@@ -29,6 +29,7 @@ type VPCConnectivity struct {
 	// For each src node provides a map of dsts and the connection it has to these dsts, including stateful attributes
 	// a connection is considered stateful if all paths in it are stateful
 	// that stateful component is computed along with the following  AllowedConnsCombinedStateful
+	// todo: connection.Set and thus GeneralConnectivityMap will no longer contain stateful info. Consider deleting this struct when transformation is completed
 	AllowedConnsCombined GeneralConnectivityMap
 
 	// allowed connectivity combined and stateful
@@ -36,7 +37,10 @@ type VPCConnectivity struct {
 	// For src node provides a map of dsts and the stateful connection it has to these dsts
 	// note that subset of a non-stateful connection from AllowedConnsCombined can still be stateful
 	// and as such add to this map
+	// todo: delete in first refactoring stage
 	AllowedConnsCombinedStateful GeneralConnectivityMap
+	// todo replace with rename to AllowedConnsCombinedStateful
+	AllowedConnsCombinedStatefulNew GeneralConnectivityMapNew // todo: rename to AllowedConnsCombined once transformation is completed
 
 	// grouped connectivity result
 	GroupedConnectivity *GroupConnLines
