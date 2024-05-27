@@ -6,7 +6,10 @@ SPDX-License-Identifier: Apache-2.0
 
 package vpcmodel
 
-import "github.com/np-guard/models/pkg/connection"
+import (
+	"github.com/np-guard/models/pkg/connection"
+	"github.com/np-guard/models/pkg/netp"
+)
 
 // todo: remove stateful from connection.Set (for both options)
 
@@ -48,4 +51,17 @@ func (connectivityMap GeneralStatefulConnectivityMap) updateAllowedConnsMapNew(s
 		connectivityMap[src] = map[VPCResourceIntf]*ExtendedSet{}
 	}
 	connectivityMap[src][dst] = conn
+}
+
+// todo: following functionality needs to be moved to package connection member of (c *Set)
+
+// todo exists already in connection
+func newTCPSet() *connection.Set {
+	return connection.TCPorUDPConnection(netp.ProtocolStringTCP, connection.MinPort, connection.MaxPort, connection.MinPort, connection.MaxPort)
+}
+
+func partitionTcpNonTcp(conn *connection.Set) (tcp, nonTcp *connection.Set) {
+	tcpFractionOfConn := newTCPSet().Intersect(conn)
+	nonTcpFractionOfConn := conn.Subtract(tcpFractionOfConn)
+	return tcpFractionOfConn, nonTcpFractionOfConn
 }

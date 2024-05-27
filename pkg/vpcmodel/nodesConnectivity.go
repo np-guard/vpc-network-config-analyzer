@@ -59,7 +59,8 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping, lbAbstraction bool) (res
 		}
 	}
 	res.computeAllowedConnsCombined()
-	res.computeAllowedStatefulConnectionsOld()
+	res.computeAllowedStatefulConnectionsOld() // todo delete
+	res.computeAllowedStatefulConnections()
 	if lbAbstraction {
 		for _, lb := range c.LoadBalancers {
 			res.AllowedConnsCombined = nodeSetConnectivityAbstraction(res.AllowedConnsCombined, lb)
@@ -286,12 +287,16 @@ func (v *VPCConnectivity) computeAllowedStatefulConnectionsOld() {
 }
 
 // computeAllowedStatefulConnectionsOld adds the statefulness analysis for the computed allowed connections.
-// In the connectivity output, a connection A -> B is stateful on TCP (allows bidrectional flow) if both SG and NACL
+// A connection A -> B is considered stateful if:
+// Each connection A -> B is being split into 3 parts (each of which could be empty)
+// 1. Stateful: A  TCP (allows bidrectional flow) connection s.t.: both SG and NACL
 // (of A and B) allow connection (ingress and egress) from A to B , AND if NACL (of A and B) allow connection
 // (ingress and egress) from B to A .
-// if connection A->B (considering NACL & SG) is allowed with TCP, src_port: x_range, dst_port: y_range,
+// Specifically, if connection A->B (considering NACL & SG) is allowed with TCP, src_port: x_range, dst_port: y_range,
 // and if connection B->A is allowed (considering NACL) with TCP, src_port: z_range, dst_port: w_range, then
 // the stateful allowed connection A->B is TCP , src_port: x&w , dst_port: y&z.
+// 2. Not stateful: the tcp part of the connection that is not in 1
+// 3. Other: the non-tcp part of the connection (for which the stateful question is non-relevant)
 func (v *VPCConnectivity) computeAllowedStatefulConnections() {
 	// assuming v.AllowedConnsCombined was already computed
 
@@ -299,7 +304,7 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections() {
 	// on overlapping/matching connection-set, (src-dst ports should be switched),
 	// for it to be considered as stateful
 
-	v.AllowedConnsCombinedStatefulOld = GeneralConnectivityMap{}
+	v.AllowedConnsCombinedStateful = GeneralStatefulConnectivityMap{}
 
 	for src, connsMap := range v.AllowedConnsCombined {
 		for dst, conn := range connsMap {
@@ -309,8 +314,8 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections() {
 			// iterate pairs (src,dst) with conn as allowed connectivity, to check stateful aspect
 			if v.isConnExternalThroughFIP(srcNode, dstNode) { // fip ignores NACL
 				// TODO: this may be ibm-specific. consider moving to ibmvpc
-				v.AllowedConnsCombinedStatefulOld.updateAllowedConnsMap(src, dst, conn)
-				conn.IsStateful = connection.StatefulTrue
+				tcpFraction, nonTcpFraction := partitionTcpNonTcp(conn)
+				v.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(src, dst, &ExtendedSet{statefulConn: tcpFraction, otherConn: nonTcpFraction})
 				continue
 			}
 
@@ -318,15 +323,18 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections() {
 			// check allowed conns per NACL-layer from dst to src (dst->src)
 			var DstAllowedEgressToSrc, SrcAllowedIngressFromDst *connection.Set
 			// can dst egress to src?
-			// todo SM: this is very ad-hoc. If there will be another relevant layer statelessLayerName will not be good enough anymore
-			// todo SM: what about transit gateway?
+			// todo: this is very ad-hoc. If there will be another relevant layer statelessLayerName will not be good enough anymore
 			DstAllowedEgressToSrc = v.getPerLayerConnectivity(statelessLayerName, dstNode, srcNode, false)
 			// can src ingress from dst?
 			SrcAllowedIngressFromDst = v.getPerLayerConnectivity(statelessLayerName, dstNode, srcNode, true)
 			combinedDstToSrc := DstAllowedEgressToSrc.Intersect(SrcAllowedIngressFromDst)
 			// ConnectionWithStatefulness updates conn with IsStateful value, and returns the stateful subset
+			// todo rewrite WithStatefulness so that it returns only the tcp part (and no need for isStateful)
 			statefulCombinedConn := conn.WithStatefulness(combinedDstToSrc)
-			v.AllowedConnsCombinedStatefulOld.updateAllowedConnsMap(src, dst, statefulCombinedConn)
+			tcpStatefulFraction, nonTcpFraction := partitionTcpNonTcp(combinedDstToSrc)
+			tcpNonStatefulFraction := conn.Subtract(statefulCombinedConn)
+			v.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(src, dst, &ExtendedSet{statefulConn: tcpStatefulFraction,
+				nonStatefulConn: tcpNonStatefulFraction, otherConn: nonTcpFraction})
 		}
 	}
 }
