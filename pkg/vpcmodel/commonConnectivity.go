@@ -18,6 +18,7 @@ type ExtendedSet struct {
 	statefulConn    *connection.Set // stateful TCP connection between <src, dst>
 	nonStatefulConn *connection.Set // nonstateful TCP connection between <src, dst>
 	otherConn       *connection.Set // non TCP connection (for which stateful is non-relevant)
+	conn            *connection.Set // entire connection
 }
 
 func (e *ExtendedSet) String() []string {
@@ -46,11 +47,14 @@ func (connectivityMap GeneralConnectivityMap) updateAllowedConnsMap(src, dst VPC
 	connectivityMap[src][dst] = conn
 }
 
-func (connectivityMap GeneralStatefulConnectivityMap) updateAllowedConnsMapNew(src, dst VPCResourceIntf, conn *ExtendedSet) {
+// it is assumed that the components of extendedConn are legal connection.Set, namely not nil
+func (connectivityMap GeneralStatefulConnectivityMap) updateAllowedConnsMapNew(src, dst VPCResourceIntf, extendedConn *ExtendedSet) {
 	if _, ok := connectivityMap[src]; !ok {
 		connectivityMap[src] = map[VPCResourceIntf]*ExtendedSet{}
 	}
-	connectivityMap[src][dst] = conn
+	extendedConn.conn = extendedConn.nonStatefulConn.Union(extendedConn.otherConn).Union(extendedConn.statefulConn)
+
+	connectivityMap[src][dst] = extendedConn
 }
 
 // todo: following functionality needs to be moved to package connection member of (c *Set)

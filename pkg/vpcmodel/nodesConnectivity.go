@@ -315,7 +315,8 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections() {
 			if v.isConnExternalThroughFIP(srcNode, dstNode) { // fip ignores NACL
 				// TODO: this may be ibm-specific. consider moving to ibmvpc
 				tcpFraction, nonTcpFraction := partitionTcpNonTcp(conn)
-				v.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(src, dst, &ExtendedSet{statefulConn: tcpFraction, otherConn: nonTcpFraction})
+				v.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(src, dst, &ExtendedSet{statefulConn: tcpFraction, otherConn: nonTcpFraction,
+					nonStatefulConn: connection.None()})
 				continue
 			}
 
