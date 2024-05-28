@@ -60,8 +60,6 @@ func (connectivityMap GeneralStatefulConnectivityMap) updateAllowedConnsMapNew(s
 	if _, ok := connectivityMap[src]; !ok {
 		connectivityMap[src] = map[VPCResourceIntf]*ExtendedSet{}
 	}
-	extendedConn.conn = extendedConn.nonStatefulConn.Union(extendedConn.otherConn).Union(extendedConn.statefulConn)
-
 	connectivityMap[src][dst] = extendedConn
 }
 

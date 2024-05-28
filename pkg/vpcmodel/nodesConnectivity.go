@@ -281,6 +281,8 @@ func (v *VPCConnectivity) computeAllowedStatefulConnectionsOld() {
 			combinedDstToSrc := DstAllowedEgressToSrc.Intersect(SrcAllowedIngressFromDst)
 			// ConnectionWithStatefulness updates conn with IsStateful value, and returns the stateful subset
 			statefulCombinedConn := conn.WithStatefulness(combinedDstToSrc)
+			// todo: there is actually a bug here. statefulCombinedConn.IsStateful fails to hold the correct value.
+			//       this value was never actually used
 			v.AllowedConnsCombinedStatefulOld.updateAllowedConnsMap(src, dst, statefulCombinedConn)
 		}
 	}
@@ -316,7 +318,7 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections() {
 				// TODO: this may be ibm-specific. consider moving to ibmvpc
 				tcpFraction, nonTcpFraction := partitionTcpNonTcp(conn)
 				v.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(src, dst, &ExtendedSet{statefulConn: tcpFraction, otherConn: nonTcpFraction,
-					nonStatefulConn: connection.None()})
+					nonStatefulConn: connection.None(), conn: conn})
 				continue
 			}
 
@@ -335,7 +337,7 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections() {
 			tcpStatefulFraction, nonTcpFraction := partitionTcpNonTcp(statefulCombinedConn)
 			tcpNonStatefulFraction := conn.Subtract(statefulCombinedConn)
 			extendedSet := &ExtendedSet{statefulConn: tcpStatefulFraction,
-				nonStatefulConn: tcpNonStatefulFraction, otherConn: nonTcpFraction}
+				nonStatefulConn: tcpNonStatefulFraction, otherConn: nonTcpFraction, conn: conn}
 			v.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(src, dst, extendedSet)
 		}
 	}
