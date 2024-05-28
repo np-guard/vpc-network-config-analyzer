@@ -332,10 +332,11 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections() {
 			// ConnectionWithStatefulness updates conn with IsStateful value, and returns the stateful subset
 			// todo rewrite WithStatefulness so that it returns only the tcp part (and no need for isStateful)
 			statefulCombinedConn := conn.WithStatefulness(combinedDstToSrc)
-			tcpStatefulFraction, nonTcpFraction := partitionTcpNonTcp(combinedDstToSrc)
+			tcpStatefulFraction, nonTcpFraction := partitionTcpNonTcp(statefulCombinedConn)
 			tcpNonStatefulFraction := conn.Subtract(statefulCombinedConn)
-			v.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(src, dst, &ExtendedSet{statefulConn: tcpStatefulFraction,
-				nonStatefulConn: tcpNonStatefulFraction, otherConn: nonTcpFraction})
+			extendedSet := &ExtendedSet{statefulConn: tcpStatefulFraction,
+				nonStatefulConn: tcpNonStatefulFraction, otherConn: nonTcpFraction}
+			v.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(src, dst, extendedSet)
 		}
 	}
 }
