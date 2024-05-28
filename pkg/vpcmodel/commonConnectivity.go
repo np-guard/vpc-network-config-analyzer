@@ -21,6 +21,7 @@ type ExtendedSet struct {
 	conn            *connection.Set // entire connection
 }
 
+// todo: expand and use the stateful vs. non-stateful
 func (e *ExtendedSet) String() string {
 	return e.conn.String()
 }

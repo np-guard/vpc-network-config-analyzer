@@ -39,7 +39,7 @@ type explainDetails struct {
 
 type groupedCommonProperties struct {
 	conn         *connection.Set // todo: delete once refactoring is completed
-	expendedConn *ExtendedSet
+	extendedConn *ExtendedSet
 	connDiff     *connectionDiff
 	expDetails   *explainDetails
 	// groupingStrKey is the key by which the grouping is done:
@@ -247,21 +247,31 @@ func getSubnetOrVPCUID(ep EndpointElem) string {
 // group public internet ranges for vsis/subnets connectivity lines
 // internal (vsi/subnets) are added as is
 func (g *GroupConnLines) groupExternalAddresses(vsi bool) error {
-	var allowedConnsCombined GeneralConnectivityMap
-	if vsi {
-		allowedConnsCombined = g.nodesConn.AllowedConnsCombined
-	} else {
-		allowedConnsCombined = g.subnetsConn.AllowedConnsCombined
-	}
+	// ToDo: until subnets uses ExtendConnectivity  needs to separate between vsi and subnet
 	res := []*groupedConnLine{}
-	// todo SM here; in this stage will need to separate between vsi and subnet?
-	for src, nodeConns := range allowedConnsCombined {
-		for dst, conns := range nodeConns {
-			if !conns.IsEmpty() {
-				err := g.addLineToExternalGrouping(&res, src, dst,
-					&groupedCommonProperties{conn: conns, groupingStrKey: conns.EnhancedString()})
-				if err != nil {
-					return err
+	if vsi {
+		for src, nodeConns := range g.nodesConn.AllowedConnsCombinedStateful {
+			for dst, extendedConns := range nodeConns {
+				if !extendedConns.conn.IsEmpty() {
+					fmt.Printf("!!%s => %s %s\n", src.Name(), dst.Name(), extendedConns.conn.EnhancedString())
+					// todo: remove conn: extendedConns.conn after subnet + drawio refactoring is completed
+					err := g.addLineToExternalGrouping(&res, src, dst,
+						&groupedCommonProperties{conn: extendedConns.conn, extendedConn: extendedConns, groupingStrKey: extendedConns.EnhancedString()})
+					if err != nil {
+						return err
+					}
+				}
+			}
+		}
+	} else {
+		for src, nodeConns := range g.subnetsConn.AllowedConnsCombined {
+			for dst, conns := range nodeConns {
+				if !conns.IsEmpty() {
+					err := g.addLineToExternalGrouping(&res, src, dst,
+						&groupedCommonProperties{conn: conns, groupingStrKey: conns.EnhancedString()})
+					if err != nil {
+						return err
+					}
 				}
 			}
 		}
