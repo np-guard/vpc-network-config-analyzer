@@ -551,14 +551,14 @@ var tests = []*vpcGeneralTest{
 		format:      vpcmodel.Text,
 		regions:     []string{"us-east"},
 	},
-	// todo: also here some not working, loadBalancer
+	// todo: also here not working, loadBalancer
 	//{
 	//	inputConfig: "iks_workers_large",
 	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 	//	grouping:    true,
 	//	format:      vpcmodel.Text,
 	//},
-	//{
+	//{ // todo: dump, ask Haim to help
 	//	inputConfig: "iks_workers_large",
 	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
 	//	grouping:    false,
