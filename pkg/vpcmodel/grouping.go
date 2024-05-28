@@ -253,7 +253,6 @@ func (g *GroupConnLines) groupExternalAddresses(vsi bool) error {
 		for src, nodeConns := range g.nodesConn.AllowedConnsCombinedStateful {
 			for dst, extendedConns := range nodeConns {
 				if !extendedConns.conn.IsEmpty() {
-					fmt.Printf("!!%s => %s %s\n", src.Name(), dst.Name(), extendedConns.conn.EnhancedString())
 					// todo: remove conn: extendedConns.conn after subnet + drawio refactoring is completed
 					err := g.addLineToExternalGrouping(&res, src, dst,
 						&groupedCommonProperties{conn: extendedConns.conn, extendedConn: extendedConns, groupingStrKey: extendedConns.EnhancedString()})
