@@ -376,6 +376,7 @@ const (
 	fipRouter          = "FloatingIP"
 )
 
+// todo: delete (in this PR)
 func (connectivityMap GeneralConnectivityMap) getCombinedConnsStr() string {
 	strList := []string{}
 	for src, nodeConns := range connectivityMap {
@@ -395,6 +396,33 @@ func (connectivityMap GeneralConnectivityMap) getCombinedConnsStr() string {
 				dstName = dst.Name()
 			}
 			connsStr := conns.EnhancedString()
+			strList = append(strList, getConnectionStr(srcName, dstName, connsStr, ""))
+		}
+	}
+	sort.Strings(strList)
+	res := strings.Join(strList, "")
+	return res
+}
+
+func (statefulConnectivityMap GeneralStatefulConnectivityMap) getCombinedConnsStr() string {
+	strList := []string{}
+	for src, nodeExtendedConns := range statefulConnectivityMap {
+		for dst, extendedConns := range nodeExtendedConns {
+			// src and dst here are nodes, always. Thus ignoring potential error in conversion
+			srcNode := src.(Node)
+			dstNode := dst.(Node)
+			if extendedConns.conn.IsEmpty() {
+				continue
+			}
+			srcName := srcNode.CidrOrAddress()
+			if srcNode.IsInternal() {
+				srcName = src.Name()
+			}
+			dstName := dstNode.CidrOrAddress()
+			if dstNode.IsInternal() {
+				dstName = dst.Name()
+			}
+			connsStr := extendedConns.EnhancedString()
 			strList = append(strList, getConnectionStr(srcName, dstName, connsStr, ""))
 		}
 	}
@@ -424,16 +452,16 @@ func (v *VPCConnectivity) DetailedString() string {
 	res += strings.Join(strList, "")
 	res += "=================================== combined connections:\n"
 	strList = []string{}
-	for src, nodeConns := range v.AllowedConnsCombined {
-		for dst, conns := range nodeConns {
+	for src, nodeConns := range v.AllowedConnsCombinedStateful {
+		for dst, extendedConn := range nodeConns {
 			// src and dst here are nodes, always. Thus ignoring potential error in conversion
-			strList = append(strList, getConnectionStr(src.(Node).CidrOrAddress(), dst.(Node).CidrOrAddress(), conns.String(), ""))
+			strList = append(strList, getConnectionStr(src.(Node).CidrOrAddress(), dst.(Node).CidrOrAddress(), extendedConn.String(), ""))
 		}
 	}
 	sort.Strings(strList)
 	res += strings.Join(strList, "")
 	res += "=================================== combined connections - short version:\n"
-	res += v.AllowedConnsCombined.getCombinedConnsStr()
+	res += v.AllowedConnsCombinedStateful.getCombinedConnsStr()
 
 	res += "=================================== stateful combined connections - short version:\n"
 	res += v.AllowedConnsCombinedStatefulOld.getCombinedConnsStr()
