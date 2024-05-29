@@ -328,34 +328,6 @@ const (
 	fipRouter          = "FloatingIP"
 )
 
-// todo: delete (in this PR)
-func (connectivityMap GeneralConnectivityMap) getCombinedConnsStr() string {
-	strList := []string{}
-	for src, nodeConns := range connectivityMap {
-		for dst, conns := range nodeConns {
-			// src and dst here are nodes, always. Thus ignoring potential error in conversion
-			srcNode := src.(Node)
-			dstNode := dst.(Node)
-			if conns.IsEmpty() {
-				continue
-			}
-			srcName := srcNode.CidrOrAddress()
-			if srcNode.IsInternal() {
-				srcName = src.Name()
-			}
-			dstName := dstNode.CidrOrAddress()
-			if dstNode.IsInternal() {
-				dstName = dst.Name()
-			}
-			connsStr := conns.EnhancedString()
-			strList = append(strList, getConnectionStr(srcName, dstName, connsStr, ""))
-		}
-	}
-	sort.Strings(strList)
-	res := strings.Join(strList, "")
-	return res
-}
-
 func (statefulConnectivityMap GeneralStatefulConnectivityMap) getCombinedConnsStr(onlyBidirectional bool) string {
 	strList := []string{}
 	for src, nodeExtendedConns := range statefulConnectivityMap {
@@ -390,7 +362,7 @@ func (statefulConnectivityMap GeneralStatefulConnectivityMap) getCombinedConnsSt
 }
 
 func (v *VPCConnectivity) String() string {
-	return v.AllowedConnsCombined.getCombinedConnsStr()
+	return v.AllowedConnsCombinedStateful.getCombinedConnsStr(false)
 }
 
 func (v *VPCConnectivity) DetailedString() string {
