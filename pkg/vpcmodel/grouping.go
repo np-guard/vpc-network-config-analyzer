@@ -506,9 +506,7 @@ func (g *GroupConnLines) String(c *VPCConfig) string {
 func (g *GroupConnLines) hasStatelessConns() bool {
 	hasStatelessConns := false
 	for _, line := range g.GroupedLines {
-		// todo: once refactoring is uncomment the following line and delete the one after
-		//if !line.commonProperties.extendedConn.nonStatefulConn.IsEmpty() {
-		if line.commonProperties.conn.IsStateful == connection.StatefulFalse {
+		if !line.commonProperties.extendedConn.nonStatefulConn.IsEmpty() {
 			hasStatelessConns = true
 			break
 		}
