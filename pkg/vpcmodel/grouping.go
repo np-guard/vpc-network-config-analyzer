@@ -153,7 +153,7 @@ func (g *groupedConnLine) String(c *VPCConfig) string {
 }
 
 func (g *groupedConnLine) ConnLabel() string {
-	if g.commonProperties.conn.IsAll() {
+	if g.commonProperties.extendedConn.conn.IsAll() {
 		return ""
 	}
 	return g.commonProperties.groupingStrKey
@@ -257,9 +257,8 @@ func (g *GroupConnLines) groupExternalAddresses(vsi bool) error {
 	for src, nodeConns := range allowedConnsCombinedStateful {
 		for dst, extendedConns := range nodeConns {
 			if !extendedConns.conn.IsEmpty() {
-				// todo: remove conn: extendedConns.conn after subnet + drawio refactoring is completed
 				err := g.addLineToExternalGrouping(&res, src, dst,
-					&groupedCommonProperties{conn: extendedConns.conn, extendedConn: extendedConns, groupingStrKey: extendedConns.EnhancedString()})
+					&groupedCommonProperties{extendedConn: extendedConns, groupingStrKey: extendedConns.EnhancedString()})
 				if err != nil {
 					return err
 				}
