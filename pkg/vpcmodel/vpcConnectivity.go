@@ -25,11 +25,9 @@ type VPCConnectivity struct {
 
 	// combined connectivity - considering both ingress and egress per connection
 	// The main outcome of the computation of which most of the outputs are based
-	// (outputs excluding json and debug)
-	// For each src node provides a map of dsts and the connection it has to these dsts, including stateful attributes
-	// a connection is considered stateful if all paths in it are stateful
-	// that stateful component is computed along with the following  AllowedConnsCombinedStatefulOld
-	// todo: connection.Set and thus GeneralConnectivityMap will no longer contain stateful info.
+	// For each src node provides a map of dsts and the connection it has to these dsts
+	// does not include stateful information
+	// used by diff, explainability and drawio
 	// todo delete this struct when transformation is completed; perhaps still use this sub-computation
 	AllowedConnsCombined GeneralConnectivityMap
 
@@ -38,8 +36,8 @@ type VPCConnectivity struct {
 	// For src node provides a map of dsts and the stateful connection it has to these dsts
 	// note that subset of a non-stateful connection from AllowedConnsCombined can still be stateful
 	// and as such add to this map
-	AllowedConnsCombinedStatefulOld GeneralConnectivityMap // todo: delete in first refactoring stage
-	AllowedConnsCombinedStateful    GeneralStatefulConnectivityMap
+
+	AllowedConnsCombinedStateful GeneralStatefulConnectivityMap
 
 	// grouped connectivity result
 	GroupedConnectivity *GroupConnLines

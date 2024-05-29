@@ -61,7 +61,6 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping, lbAbstraction bool) (res
 		}
 	}
 	res.computeAllowedConnsCombined()
-	res.computeAllowedStatefulConnectionsOld() // todo delete
 	res.computeAllowedStatefulConnections()
 	if lbAbstraction {
 		// todo: not implemented for computeAllowedStatefulConnections yet.
@@ -241,55 +240,6 @@ func (v *VPCConnectivity) isConnExternalThroughFIP(src, dst Node) bool {
 		return true
 	}
 	return false
-}
-
-// computeAllowedStatefulConnectionsOld adds the statefulness analysis for the computed allowed connections.
-// In the connectivity output, a connection A -> B is stateful on TCP (allows bidrectional flow) if both SG and NACL
-// (of A and B) allow connection (ingress and egress) from A to B , AND if NACL (of A and B) allow connection
-// (ingress and egress) from B to A .
-// if connection A->B (considering NACL & SG) is allowed with TCP, src_port: x_range, dst_port: y_range,
-// and if connection B->A is allowed (considering NACL) with TCP, src_port: z_range, dst_port: w_range, then
-// the stateful allowed connection A->B is TCP , src_port: x&w , dst_port: y&z.
-// todo delete
-func (v *VPCConnectivity) computeAllowedStatefulConnectionsOld() {
-	// assuming v.AllowedConnsCombined was already computed
-
-	// allowed connection: src->dst , requires NACL layer to allow dst->src (both ingress and egress)
-	// on overlapping/matching connection-set, (src-dst ports should be switched),
-	// for it to be considered as stateful
-
-	v.AllowedConnsCombinedStatefulOld = GeneralConnectivityMap{}
-
-	for src, connsMap := range v.AllowedConnsCombined {
-		for dst, conn := range connsMap {
-			// src and dst here are nodes, always. Thus ignoring potential error in conversion
-			srcNode := src.(Node)
-			dstNode := dst.(Node)
-			// iterate pairs (src,dst) with conn as allowed connectivity, to check stateful aspect
-			if v.isConnExternalThroughFIP(srcNode, dstNode) { // fip ignores NACL
-				// TODO: this may be ibm-specific. consider moving to ibmvpc
-				v.AllowedConnsCombinedStatefulOld.updateAllowedConnsMap(src, dst, conn)
-				conn.IsStateful = connection.StatefulTrue
-				continue
-			}
-
-			// get the allowed *stateful* conn result
-			// check allowed conns per NACL-layer from dst to src (dst->src)
-			var DstAllowedEgressToSrc, SrcAllowedIngressFromDst *connection.Set
-			// can dst egress to src?
-			// todo SM: this is very ad-hoc. If there will be another relevant layer statelessLayerName will not be good enough anymore
-			// todo SM: what about transit gateway?
-			DstAllowedEgressToSrc = v.getPerLayerConnectivity(statelessLayerName, dstNode, srcNode, false)
-			// can src ingress from dst?
-			SrcAllowedIngressFromDst = v.getPerLayerConnectivity(statelessLayerName, dstNode, srcNode, true)
-			combinedDstToSrc := DstAllowedEgressToSrc.Intersect(SrcAllowedIngressFromDst)
-			// ConnectionWithStatefulness updates conn with IsStateful value, and returns the stateful subset
-			statefulCombinedConn := conn.WithStatefulness(combinedDstToSrc)
-			// todo: there is actually a bug here. statefulCombinedConn.IsStateful fails to hold the correct value.
-			//       this value was never actually used
-			v.AllowedConnsCombinedStatefulOld.updateAllowedConnsMap(src, dst, statefulCombinedConn)
-		}
-	}
 }
 
 // computeAllowedStatefulConnectionsOld adds the statefulness analysis for the computed allowed connections.
