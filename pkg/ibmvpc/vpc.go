@@ -71,11 +71,12 @@ type PrivateIP struct {
 }
 
 func (pip *PrivateIP) Name() string {
-	name := nameWithBracketsInfo(pip.loadBalancer.ResourceName, pip.Address())
-	if !pip.original {
-		name += "(fake private IP)"
+	kind := "LB private IP"
+	if !pip.original{
+		kind = "Fake " + kind
 	}
-	return name
+	name := nameWithBracketsInfo(pip.loadBalancer.ResourceName,kind)
+	return nameWithBracketsInfo(name, pip.Address())
 }
 
 func (pip *PrivateIP) ExtendedName(c *vpcmodel.VPCConfig) string {
