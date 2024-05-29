@@ -76,19 +76,17 @@ type allInfo struct {
 func getConnLines(conn *VPCConnectivity) []connLine {
 	connLines := []connLine{}
 
-	bidirectional, unidirectional := conn.SplitAllowedConnsToUnidirectionalAndBidirectional()
-	for src, srcMap := range conn.AllowedConnsCombined {
-		for dst, conn := range srcMap {
-			if conn.IsEmpty() {
+	for src, srcMap := range conn.AllowedConnsCombinedStateful {
+		for dst, extConn := range srcMap {
+			if extConn.conn.IsEmpty() {
 				continue
 			}
-			unidirectionalConn := unidirectional.getAllowedConnForPair(src, dst)
-			bidirectionalConn := bidirectional.getAllowedConnForPair(src, dst)
-			if !unidirectionalConn.IsEmpty() {
-				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: connection.ToJSON(bidirectionalConn),
-					UnidirectionalConn: connection.ToJSON(unidirectionalConn)})
+			statefulAndOther := extConn.statefulConn.Union(extConn.otherConn)
+			if !extConn.nonStatefulConn.IsEmpty() {
+				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: connection.ToJSON(statefulAndOther),
+					UnidirectionalConn: connection.ToJSON(extConn.nonStatefulConn)})
 			} else {
-				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: connection.ToJSON(conn)})
+				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: connection.ToJSON(extConn.conn)})
 			}
 		}
 	}

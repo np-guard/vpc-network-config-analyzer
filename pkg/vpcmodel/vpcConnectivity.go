@@ -83,30 +83,6 @@ func NewConfigBasedConnectivityResults() *ConfigBasedConnectivityResults {
 	}
 }
 
-func (v *VPCConnectivity) SplitAllowedConnsToUnidirectionalAndBidirectional() (
-	bidirectional, unidirectional GeneralConnectivityMap) {
-	unidirectional = GeneralConnectivityMap{}
-	bidirectional = GeneralConnectivityMap{}
-	for src, connsMap := range v.AllowedConnsCombined {
-		for dst, conn := range connsMap {
-			if conn.IsEmpty() {
-				continue
-			}
-			statefulConn := v.AllowedConnsCombinedStatefulOld.getAllowedConnForPair(src, dst)
-			switch {
-			case conn.Equal(statefulConn):
-				bidirectional.updateAllowedConnsMap(src, dst, conn)
-			case statefulConn.IsEmpty():
-				unidirectional.updateAllowedConnsMap(src, dst, conn)
-			default:
-				bidirectional.updateAllowedConnsMap(src, dst, statefulConn)
-				unidirectional.updateAllowedConnsMap(src, dst, conn.Subtract(statefulConn))
-			}
-		}
-	}
-	return bidirectional, unidirectional
-}
-
 func (connectivityMap GeneralConnectivityMap) getAllowedConnForPair(src, dst VPCResourceIntf) *connection.Set {
 	if connsMap, ok := connectivityMap[src]; ok {
 		if conn, ok := connsMap[dst]; ok {
