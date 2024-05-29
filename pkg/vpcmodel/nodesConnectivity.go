@@ -63,7 +63,7 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping, lbAbstraction bool) (res
 	if lbAbstraction {
 		for _, lb := range c.LoadBalancers {
 			abstractionInfo := newAbstractionInfo(lb, res.AllowedConnsCombined)
-			abstractionInfo.nodeSetConnectivityAbstraction()
+			abstractionInfo.nodeSetConnectivityAbstraction(lb)
 			res.AllowedConnsCombined = abstractionInfo.abstractedConnectivity
 			lb.SetAbstractionInfo(abstractionInfo)
 		}

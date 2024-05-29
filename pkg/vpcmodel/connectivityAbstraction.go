@@ -29,28 +29,27 @@ import (
 // 3. for the last three groups, we collect the missing connections.
 // 4. we add the 4th group to connectivity
 
-// AbstractionInfo holds the info of the abstraction
-type AbstractionInfo struct {
-	nodeSet                   NodeSet                // the nodest we abstracrt
+// NodeSetAbstraction holds the info of the abstraction
+type NodeSetAbstraction struct {
 	nodesConn                 GeneralConnectivityMap // the non abstracted connectivity (the input)
 	abstractedConnectivity    GeneralConnectivityMap // the abstracted connectivity
 	missingIngressConnections GeneralConnectivityMap // the ingress connections that are missing for the assumption to hold
 	missingEgressConnections  GeneralConnectivityMap // the egress connections that are missing for the assumption to hold
 }
 
-func newAbstractionInfo(nodeSet NodeSet, nodesConn GeneralConnectivityMap) *AbstractionInfo {
-	return &AbstractionInfo{nodeSet, nodesConn, GeneralConnectivityMap{}, GeneralConnectivityMap{}, GeneralConnectivityMap{}}
+func newAbstractionInfo(nodeSet NodeSet, nodesConn GeneralConnectivityMap) *NodeSetAbstraction {
+	return &NodeSetAbstraction{nodesConn, GeneralConnectivityMap{}, GeneralConnectivityMap{}, GeneralConnectivityMap{}}
 }
 
-func (ai *AbstractionInfo) nodeSetConnectivityAbstraction() {
+func (ai *NodeSetAbstraction) nodeSetConnectivityAbstraction(nodeSet NodeSet) {
 	// partition the connectivity to four groups:
-	otherToOther, nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet := ai.partitionConnectivityByNodeSet()
+	otherToOther, nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet := ai.partitionConnectivityByNodeSet(nodeSet)
 	// merge the three last groups:
-	ai.mergeConnectivityWithNodeSetAbstraction(nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet, ai.nodeSet)
+	ai.mergeConnectivityWithNodeSetAbstraction(nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet, nodeSet)
 	// collect the missing connections:
-	ai.abstractionMissingConnections(otherFromNodeSet, ai.nodeSet, false)
-	ai.abstractionMissingConnections(otherToNodeSet, ai.nodeSet, true)
-	ai.abstractionMissingConnections(nodeSetToNodeSet, ai.nodeSet, true)
+	ai.abstractionMissingConnections(otherFromNodeSet, nodeSet, false)
+	ai.abstractionMissingConnections(otherToNodeSet, nodeSet, true)
+	ai.abstractionMissingConnections(nodeSetToNodeSet, nodeSet, true)
 	// add the forth group
 	ai.abstractedConnectivity.addMap(otherToOther)
 }
@@ -61,7 +60,7 @@ func (ai *AbstractionInfo) nodeSetConnectivityAbstraction() {
 // however, the third group is hold as a map from dst to src (and therefore called otherFromNodeSet and not nodeSetToOther)
 // see the reason on mergeConnectivityWithNodeSetAbstraction()
 
-func (ai *AbstractionInfo) partitionConnectivityByNodeSet() (
+func (ai *NodeSetAbstraction) partitionConnectivityByNodeSet(nodeSet NodeSet) (
 	otherToOther, nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet GeneralConnectivityMap) {
 	otherToOther = GeneralConnectivityMap{}
 	nodeSetToNodeSet = GeneralConnectivityMap{}
@@ -71,8 +70,8 @@ func (ai *AbstractionInfo) partitionConnectivityByNodeSet() (
 		for dst, conns := range nodeConns {
 			srcNode, srcIsNode := src.(Node)
 			dstNode, dstIsNode := dst.(Node)
-			srcInSet := srcIsNode && slices.Contains(ai.nodeSet.Nodes(), srcNode)
-			dstInSet := dstIsNode && slices.Contains(ai.nodeSet.Nodes(), dstNode)
+			srcInSet := srcIsNode && slices.Contains(nodeSet.Nodes(), srcNode)
+			dstInSet := dstIsNode && slices.Contains(nodeSet.Nodes(), dstNode)
 			switch {
 			case (!srcInSet && !dstInSet) || conns.IsEmpty():
 				otherToOther.updateAllowedConnsMap(src, dst, conns)
@@ -89,7 +88,7 @@ func (ai *AbstractionInfo) partitionConnectivityByNodeSet() (
 }
 
 // mergeConnectivityWithNodeSetAbstraction() merge the three last groups, while abstracting the connections
-func (ai *AbstractionInfo) mergeConnectivityWithNodeSetAbstraction(
+func (ai *NodeSetAbstraction) mergeConnectivityWithNodeSetAbstraction(
 	nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet GeneralConnectivityMap,
 	nodeSet NodeSet) {
 	// all the connections with the nodeSet are merged to *only* one connectivity, which is the union of all separate connections:
@@ -125,7 +124,7 @@ func (ai *AbstractionInfo) mergeConnectivityWithNodeSetAbstraction(
 	}
 }
 
-func (ai *AbstractionInfo) missingConnections(isIngress bool) GeneralConnectivityMap {
+func (ai *NodeSetAbstraction) missingConnections(isIngress bool) GeneralConnectivityMap {
 	if isIngress {
 		return ai.missingIngressConnections
 	}
@@ -135,7 +134,7 @@ func (ai *AbstractionInfo) missingConnections(isIngress bool) GeneralConnectivit
 // abstractionMissingConnections() collects the connections that are missing for full abstraction.
 // abstractionMissingConnections() is called on each of the last three groups.
 // it looks for the connections that are not exist in the connMap, but reflated in the mergedConnMap
-func (ai *AbstractionInfo) abstractionMissingConnections(connMap GeneralConnectivityMap, nodeSet NodeSet, isIngress bool) {
+func (ai *NodeSetAbstraction) abstractionMissingConnections(connMap GeneralConnectivityMap, nodeSet NodeSet, isIngress bool) {
 	for node1, conns := range connMap {
 		// here we iterate over the nodes in the nodeSet, and not over the conns, because we can not know if conns holds the nodes:
 		for _, node2 := range nodeSet.Nodes() {
@@ -157,7 +156,7 @@ func (ai *AbstractionInfo) abstractionMissingConnections(connMap GeneralConnecti
 }
 
 // hasMissingConnection() checks is one of the resources has missing connection
-func (ai *AbstractionInfo) hasMissingConnection(resources []VPCResourceIntf, isIngress bool) bool {
+func (ai *NodeSetAbstraction) hasMissingConnection(resources []VPCResourceIntf, isIngress bool) bool {
 	for _, resource := range resources {
 		if _, ok := ai.missingConnections(isIngress)[resource]; ok {
 			return true
