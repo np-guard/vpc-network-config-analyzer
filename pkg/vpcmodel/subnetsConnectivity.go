@@ -30,7 +30,14 @@ type VPCsubnetConnectivity struct {
 	// The main outcome of the computation of which the outputs is based
 	// For each src node provides a map of dsts and the connection it has to these dsts, including stateful attributes
 	// a connection is considered stateful if all paths in it are stateful
+	// todo: delete after refactoring is completed
 	AllowedConnsCombined GeneralConnectivityMap
+
+	// combined connectivity - considering both ingress and egress per connection
+	// The main outcome of the computation of which the outputs is based
+	// For each src node provides a map of dsts and the connection it has to these dsts,
+	// including information regarding the tcp-stateful, tcp-non stateful and non-tcp connection
+	AllowedConnsCombinedStateful GeneralStatefulConnectivityMap
 
 	// grouped connectivity result
 	GroupedConnectivity *GroupConnLines
@@ -309,6 +316,7 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() error {
 }
 
 func (v *VPCsubnetConnectivity) computeStatefulConnections() error {
+	v.AllowedConnsCombinedStateful = GeneralStatefulConnectivityMap{}
 	for src, endpointConns := range v.AllowedConnsCombined {
 		for dst, conn := range endpointConns {
 			if conn.IsEmpty() {
@@ -325,9 +333,17 @@ func (v *VPCsubnetConnectivity) computeStatefulConnections() error {
 				// from external nodes can not be initiated for pgw
 				otherDirectionConn = v.AllowedConns[src].IngressAllowedConns[dst]
 			default:
+				conn.WithStatefulness(otherDirectionConn)
 				return fmt.Errorf("computeStatefulConnections: unexpected type for input dst")
 			}
 			conn.WithStatefulness(otherDirectionConn)
+
+			statefulCombinedConn := conn.WithStatefulness(otherDirectionConn)
+			tcpStatefulFraction, nonTcpFraction := partitionTcpNonTcp(statefulCombinedConn)
+			tcpNonStatefulFraction := conn.Subtract(statefulCombinedConn)
+			extendedSet := &ExtendedSet{statefulConn: tcpStatefulFraction,
+				nonStatefulConn: tcpNonStatefulFraction, otherConn: nonTcpFraction, conn: conn}
+			v.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(src, dst, extendedSet)
 		}
 	}
 	return nil

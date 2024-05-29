@@ -247,30 +247,21 @@ func getSubnetOrVPCUID(ep EndpointElem) string {
 // group public internet ranges for vsis/subnets connectivity lines
 // internal (vsi/subnets) are added as is
 func (g *GroupConnLines) groupExternalAddresses(vsi bool) error {
-	// ToDo: until subnets uses ExtendConnectivity  needs to separate between vsi and subnet
 	res := []*groupedConnLine{}
+	var allowedConnsCombinedStateful GeneralStatefulConnectivityMap
 	if vsi {
-		for src, nodeConns := range g.nodesConn.AllowedConnsCombinedStateful {
-			for dst, extendedConns := range nodeConns {
-				if !extendedConns.conn.IsEmpty() {
-					// todo: remove conn: extendedConns.conn after subnet + drawio refactoring is completed
-					err := g.addLineToExternalGrouping(&res, src, dst,
-						&groupedCommonProperties{conn: extendedConns.conn, extendedConn: extendedConns, groupingStrKey: extendedConns.EnhancedString()})
-					if err != nil {
-						return err
-					}
-				}
-			}
-		}
+		allowedConnsCombinedStateful = g.nodesConn.AllowedConnsCombinedStateful
 	} else {
-		for src, nodeConns := range g.subnetsConn.AllowedConnsCombined {
-			for dst, conns := range nodeConns {
-				if !conns.IsEmpty() {
-					err := g.addLineToExternalGrouping(&res, src, dst,
-						&groupedCommonProperties{conn: conns, groupingStrKey: conns.EnhancedString()})
-					if err != nil {
-						return err
-					}
+		allowedConnsCombinedStateful = g.subnetsConn.AllowedConnsCombinedStateful
+	}
+	for src, nodeConns := range allowedConnsCombinedStateful {
+		for dst, extendedConns := range nodeConns {
+			if !extendedConns.conn.IsEmpty() {
+				// todo: remove conn: extendedConns.conn after subnet + drawio refactoring is completed
+				err := g.addLineToExternalGrouping(&res, src, dst,
+					&groupedCommonProperties{conn: extendedConns.conn, extendedConn: extendedConns, groupingStrKey: extendedConns.EnhancedString()})
+				if err != nil {
+					return err
 				}
 			}
 		}
