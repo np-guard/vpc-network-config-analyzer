@@ -111,16 +111,16 @@ type allSubnetsConnectivity struct {
 
 func getConnLinesForSubnetsConnectivity(conn *VPCsubnetConnectivity) []connLine {
 	connLines := []connLine{}
-	for src, nodeConns := range conn.AllowedConnsCombined {
-		for dst, conns := range nodeConns {
-			if conns.IsEmpty() {
+	for src, nodeConns := range conn.AllowedConnsCombinedStateful {
+		for dst, extConns := range nodeConns {
+			if extConns.conn.IsEmpty() {
 				continue
 			}
 			// currently not supported with grouping
 			connLines = append(connLines, connLine{
 				Src:  src,
 				Dst:  dst,
-				Conn: connection.ToJSON(conns),
+				Conn: connection.ToJSON(extConns.conn),
 			})
 		}
 	}
