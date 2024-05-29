@@ -29,7 +29,8 @@ type VPCConnectivity struct {
 	// For each src node provides a map of dsts and the connection it has to these dsts, including stateful attributes
 	// a connection is considered stateful if all paths in it are stateful
 	// that stateful component is computed along with the following  AllowedConnsCombinedStatefulOld
-	// todo: connection.Set and thus GeneralConnectivityMap will no longer contain stateful info. Consider deleting this struct when transformation is completed
+	// todo: connection.Set and thus GeneralConnectivityMap will no longer contain stateful info.
+	// todo delete this struct when transformation is completed; perhaps still use this sub-computation
 	AllowedConnsCombined GeneralConnectivityMap
 
 	// allowed connectivity combined and stateful
