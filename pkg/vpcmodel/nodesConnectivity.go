@@ -61,6 +61,11 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping, lbAbstraction bool) (res
 	res.computeAllowedConnsCombined()
 	res.computeAllowedStatefulConnections()
 	if lbAbstraction {
+		// load balancer abstraction:
+		// currently, AllowedConnsCombined contains the private IPs of the load balancer.
+		// the abstraction creates new AllowedConnsCombined,
+		// it replaces the private IPs in the with the load balancer itself
+		// see details at nodeSetConnectivityAbstraction()
 		for _, lb := range c.LoadBalancers {
 			res.AllowedConnsCombined = nodeSetConnectivityAbstraction(res.AllowedConnsCombined, lb)
 		}

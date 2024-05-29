@@ -57,6 +57,7 @@ type vpcGeneralTest struct {
 	regions        []string // filter vpc configs by region
 	mode           testMode
 	grouping       bool
+	noLbAbstract   bool
 	format         vpcmodel.OutFormat
 	vpc            string
 	ESrc           string
@@ -69,32 +70,34 @@ type vpcGeneralTest struct {
 }
 
 const (
-	actualOutFilePrefix            = "out_"
-	inputFilePrefix                = "input_"
-	suffixOutFileWithGrouping      = "_with_grouping"
-	suffixOutFileDebugSubnet       = "_analysisPerSubnetSeparately"
-	suffixOutFileSubnetsLevel      = "subnetsBased_withPGW"
-	suffixOutFileSubnetsLevelNoPGW = "subnetsBased_withoutPGW"
-	suffixOutFileDiffSubnets       = "subnetsDiff"
-	suffixOutFileDiffEndpoints     = "endpointsDiff"
-	suffixOutFileExplain           = "explain"
-	txtOutSuffix                   = ".txt"
-	debugOutSuffix                 = "_debug.txt"
-	mdOutSuffix                    = ".md"
-	jsonOutSuffix                  = ".json"
-	secJSONOutSuffix               = "_2nd.json"
-	drawioOutSuffix                = ".drawio"
-	archDrawioOutSuffix            = "_arch.drawio"
-	svgOutSuffix                   = ".svg"
-	archSvgOutSuffix               = "_arch.svg"
-	htmlOutSuffix                  = ".html"
-	archHTMLOutSuffix              = "_arch.html"
+	actualOutFilePrefix               = "out_"
+	inputFilePrefix                   = "input_"
+	suffixOutFileWithGrouping         = "_with_grouping"
+	suffixOutFileWithoutLbAbstraction = "_no_lbAbstract"
+	suffixOutFileDebugSubnet          = "_analysisPerSubnetSeparately"
+	suffixOutFileSubnetsLevel         = "subnetsBased_withPGW"
+	suffixOutFileSubnetsLevelNoPGW    = "subnetsBased_withoutPGW"
+	suffixOutFileDiffSubnets          = "subnetsDiff"
+	suffixOutFileDiffEndpoints        = "endpointsDiff"
+	suffixOutFileExplain              = "explain"
+	txtOutSuffix                      = ".txt"
+	debugOutSuffix                    = "_debug.txt"
+	mdOutSuffix                       = ".md"
+	jsonOutSuffix                     = ".json"
+	secJSONOutSuffix                  = "_2nd.json"
+	drawioOutSuffix                   = ".drawio"
+	archDrawioOutSuffix               = "_arch.drawio"
+	svgOutSuffix                      = ".svg"
+	archSvgOutSuffix                  = "_arch.svg"
+	htmlOutSuffix                     = ".html"
+	archHTMLOutSuffix                 = "_arch.html"
 )
 
 // getTestFileName returns expected file name and actual file name, for the relevant use case
 func getTestFileName(testName string,
 	uc vpcmodel.OutputUseCase,
 	grouping bool,
+	noLbAbstract bool,
 	format vpcmodel.OutFormat,
 	configName string,
 	allVPCs bool) (
@@ -129,6 +132,9 @@ func getTestFileName(testName string,
 	}
 	if grouping {
 		res += suffixOutFileWithGrouping
+	}
+	if noLbAbstract {
+		res += suffixOutFileWithoutLbAbstraction
 	}
 	suffix, suffixErr := getTestFileSuffix(format)
 	if suffixErr != nil {
@@ -381,11 +387,25 @@ var tests = []*vpcGeneralTest{
 		format:      vpcmodel.Text,
 	},
 	// iks-nodes example
+	// iks_config_object example has three SG, one of them two targets - a pgw and a LB.
+	// this SG has four rules, which are reflected at the connectivity map:
+	// 1. outbound, tcp, ports 30000-32767
+	// 2. outbound, udp, ports 30000-32767
+	// 3. inbound, udp, ports 1-65535
+	// 4. inbound, udp, ports 1-65535
+
 	{
 		inputConfig: "iks_config_object",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		grouping:    true,
 		format:      vpcmodel.Text,
+	},
+	{
+		inputConfig:  "iks_config_object",
+		useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:     true,
+		noLbAbstract: true,
+		format:       vpcmodel.Text,
 	},
 	// json examples
 	{
@@ -589,10 +609,18 @@ var tests = []*vpcGeneralTest{
 		format:      vpcmodel.Text,
 	},
 	{
-		inputConfig: "iks_workers_large",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		grouping:    true,
-		format:      vpcmodel.HTML,
+		inputConfig:  "iks_workers_large",
+		useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:     true,
+		noLbAbstract: true,
+		format:       vpcmodel.HTML,
+	},
+	{
+		inputConfig:  "iks_workers_large",
+		useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:     true,
+		noLbAbstract: true,
+		format:       vpcmodel.DRAWIO,
 	},
 	// LB examples:
 	{
@@ -614,16 +642,24 @@ var tests = []*vpcGeneralTest{
 		format:      vpcmodel.HTML,
 	},
 	{
-		inputConfig: "load_balancer",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
-		grouping:    true,
-		format:      vpcmodel.HTML,
+		inputConfig:  "load_balancer",
+		useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+		grouping:     true,
+		noLbAbstract: true,
+		format:       vpcmodel.HTML,
 	},
 	{
 		inputConfig: "load_balancer",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		grouping:    true,
 		format:      vpcmodel.Text,
+	},
+	{
+		inputConfig:  "load_balancer",
+		useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:     true,
+		noLbAbstract: true,
+		format:       vpcmodel.Text,
 	},
 }
 
@@ -785,7 +821,7 @@ func initTestFileNames(tt *vpcGeneralTest,
 	allVPCs bool,
 	testDir string) error {
 	expectedFileName, actualFileName, err := getTestFileName(
-		tt.name, uc, tt.grouping, tt.format, vpcName, allVPCs)
+		tt.name, uc, tt.grouping, tt.noLbAbstract, tt.format, vpcName, allVPCs)
 	if err != nil {
 		return err
 	}
@@ -805,7 +841,8 @@ func runTestPerUseCase(t *testing.T,
 	if err := initTestFileNames(tt, uc, "", true, outDir); err != nil {
 		return err
 	}
-	og, err := vpcmodel.NewOutputGenerator(cConfigs, tt.grouping, uc, tt.format == vpcmodel.ARCHDRAWIO, explanationArgs, tt.format)
+	og, err := vpcmodel.NewOutputGenerator(cConfigs, tt.grouping, uc, tt.format == vpcmodel.ARCHDRAWIO,
+		explanationArgs, tt.format, !tt.noLbAbstract)
 	if err != nil {
 		return err
 	}
