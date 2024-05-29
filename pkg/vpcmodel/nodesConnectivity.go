@@ -305,7 +305,7 @@ func (v *VPCConnectivity) getPerLayerConnectivity(layer string, src, dst Node, i
 }
 
 // abstractLoadBalancers() abstract the load balancers at AllowedConnsCombined
-// for each load balancer, it keeps the abstractionInfo, to be used later 
+// for each load balancer, it keeps the abstractionInfo, to be used later
 func (v *VPCConnectivity) abstractLoadBalancers(loadBalancers []LoadBalancer, lbAbstraction bool) {
 	if lbAbstraction {
 		abstractionInfo := newNodeSetAbstraction(v.AllowedConnsCombined)

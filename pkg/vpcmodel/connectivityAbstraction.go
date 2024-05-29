@@ -31,7 +31,7 @@ import (
 
 // NodeSetAbstraction abstract nodesets, one after the other
 type NodeSetAbstraction struct {
-	//abstractedConnectivity holds the abstracted connectivity after the last nodeSet abstraction
+	// abstractedConnectivity holds the abstracted connectivity that reflated after the last nodeSet abstraction
 	abstractedConnectivity GeneralConnectivityMap
 }
 
@@ -139,7 +139,8 @@ func (nsa *NodeSetAbstraction) nodeSetAbstractionInformation(mergedConnectivity 
 
 // missingConnections() is called on each of the last three groups.
 // it looks for the connections that are not exist in the group, but reflated in the mergedConnMap
-func (ai *NodeSetAbstraction) missingConnections(connMap, mergedConnMap GeneralConnectivityMap, nodeSet NodeSet, isIngress bool) GeneralConnectivityMap {
+func (nsa *NodeSetAbstraction) missingConnections(connMap, mergedConnMap GeneralConnectivityMap,
+	nodeSet NodeSet, isIngress bool) GeneralConnectivityMap {
 	missingConnection := GeneralConnectivityMap{}
 	for node1, conns := range connMap {
 		// here we iterate over the nodes in the nodeSet, and not over the conns, because we can not know if conns holds the nodes:
