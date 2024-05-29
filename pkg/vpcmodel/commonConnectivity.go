@@ -24,3 +24,8 @@ func (connectivityMap GeneralConnectivityMap) addMap(connectivityMap2 GeneralCon
 		}
 	}
 }
+func (connectivityMap GeneralConnectivityMap) copy() GeneralConnectivityMap {
+	newConnectivityMap := GeneralConnectivityMap{}
+	newConnectivityMap.addMap(connectivityMap)
+	return newConnectivityMap
+}
