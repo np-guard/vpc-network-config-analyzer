@@ -174,6 +174,9 @@ func (g *groupedConnLine) getSrcOrDst(isSrc bool) EndpointElem {
 	}
 	return g.dst
 }
+
+// isOverApproximated() checks if the line was over approximated during the load balancer abstraction
+// it uses the lb AbstractionInfo that was kept during the approximation
 func (g *groupedConnLine) isOverApproximated() bool {
 	src, srcIsLb := g.src.(LoadBalancer)
 	dst, dstIsLb := g.dst.(LoadBalancer)
