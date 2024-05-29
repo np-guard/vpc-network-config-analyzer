@@ -19,7 +19,9 @@ import (
 // GetVPCNetworkConnectivity computes VPCConnectivity in few steps
 // (1) compute AllowedConns (map[Node]*ConnectivityResult) : ingress or egress allowed conns separately
 // (2) compute AllowedConnsCombined (map[Node]map[Node]*connection.Set) : allowed conns considering both ingress and egress directions
-// (3) compute AllowedConnsCombinedStatefulOld : stateful allowed connections, for which connection in reverse direction is also allowed
+// (3 old) compute AllowedConnsCombinedStatefulOld : stateful allowed connections, for which connection in reverse direction is also allowed - todo delete
+// (3) compute AllowedConnsCombinedStateful extension of AllowedConnsCombined to contain accurate stateful info
+// todo: delete AllowedConnsCombined when it is no longer used (diff, explainability) and merge 3 and 4
 // (4) if lbAbstraction required - abstract each lb separately
 // (5) if grouping required - compute grouping of connectivity results
 func (c *VPCConfig) GetVPCNetworkConnectivity(grouping, lbAbstraction bool) (res *VPCConnectivity, err error) {
@@ -404,14 +406,14 @@ func (connectivityMap GeneralConnectivityMap) getCombinedConnsStr() string {
 	return res
 }
 
-func (statefulConnectivityMap GeneralStatefulConnectivityMap) getCombinedConnsStr() string {
+func (statefulConnectivityMap GeneralStatefulConnectivityMap) getCombinedConnsStr(onlyBidirectional bool) string {
 	strList := []string{}
 	for src, nodeExtendedConns := range statefulConnectivityMap {
-		for dst, extendedConns := range nodeExtendedConns {
+		for dst, extConns := range nodeExtendedConns {
 			// src and dst here are nodes, always. Thus ignoring potential error in conversion
 			srcNode := src.(Node)
 			dstNode := dst.(Node)
-			if extendedConns.conn.IsEmpty() {
+			if extConns.conn.IsEmpty() {
 				continue
 			}
 			srcName := srcNode.CidrOrAddress()
@@ -422,7 +424,13 @@ func (statefulConnectivityMap GeneralStatefulConnectivityMap) getCombinedConnsSt
 			if dstNode.IsInternal() {
 				dstName = dst.Name()
 			}
-			connsStr := extendedConns.EnhancedString()
+			var connsStr string
+			if onlyBidirectional {
+				bidirectional := extConns.statefulConn.Union(extConns.otherConn)
+				connsStr = bidirectional.String()
+			} else {
+				connsStr = extConns.EnhancedString()
+			}
 			strList = append(strList, getConnectionStr(srcName, dstName, connsStr, ""))
 		}
 	}
@@ -461,9 +469,9 @@ func (v *VPCConnectivity) DetailedString() string {
 	sort.Strings(strList)
 	res += strings.Join(strList, "")
 	res += "=================================== combined connections - short version:\n"
-	res += v.AllowedConnsCombinedStateful.getCombinedConnsStr()
+	res += v.AllowedConnsCombinedStateful.getCombinedConnsStr(false)
 
 	res += "=================================== stateful combined connections - short version:\n"
-	res += v.AllowedConnsCombinedStatefulOld.getCombinedConnsStr()
+	res += v.AllowedConnsCombinedStateful.getCombinedConnsStr(true)
 	return res
 }
