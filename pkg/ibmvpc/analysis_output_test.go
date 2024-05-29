@@ -380,7 +380,7 @@ var tests = []*vpcGeneralTest{
 		grouping:    true,
 		format:      vpcmodel.Text,
 	},
-	// iks-nodes example // todo problem related to loadBalancer abstraction
+	// iks-nodes example // todo loadBalancer abstraction on ExtendedSet not implemented
 	//{
 	//	inputConfig: "iks_config_object",
 	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
@@ -551,14 +551,14 @@ var tests = []*vpcGeneralTest{
 		format:      vpcmodel.Text,
 		regions:     []string{"us-east"},
 	},
-	// todo: also here not working, loadBalancer
+	// todo loadBalancer abstraction on ExtendedSet not implemented
 	//{
 	//	inputConfig: "iks_workers_large",
 	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 	//	grouping:    true,
 	//	format:      vpcmodel.Text,
 	//},
-	//{ // todo: dump, ask Haim to help
+	//{ // todo: dump - must have to do also with abstraction on ExtendedSet not implemented
 	//	inputConfig: "iks_workers_large",
 	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
 	//	grouping:    false,
@@ -589,6 +589,7 @@ var tests = []*vpcGeneralTest{
 		grouping:    true,
 		format:      vpcmodel.Text,
 	},
+	// todo loadBalancer abstraction on ExtendedSet not implemented
 	//{
 	//	inputConfig: "iks_workers_large",
 	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
