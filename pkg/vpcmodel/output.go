@@ -66,11 +66,7 @@ type OutputGenerator struct {
 }
 
 func NewOutputGenerator(cConfigs *MultipleVPCConfigs, grouping bool, uc OutputUseCase,
-	archOnly bool, explanationArgs *ExplanationArgs, f OutFormat) (*OutputGenerator, error) {
-	// todo -  for now, we always abstract lb.
-	// 1. should it be a user input?
-	// 2. if not abstracting, make sure we do present only the original private IP
-	lbAbstraction := true
+	archOnly bool, explanationArgs *ExplanationArgs, f OutFormat, lbAbstraction bool) (*OutputGenerator, error) {
 	res := &OutputGenerator{
 		configs:        cConfigs,
 		outputGrouping: grouping,

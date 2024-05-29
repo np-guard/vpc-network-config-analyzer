@@ -60,7 +60,7 @@ func (d *DrawioOutputFormatter) init(
 	d.vpcConns = vpcConns
 	d.gConns = gConns
 	d.uc = uc
-	d.gen = NewDrawioGenerator(cConfigs.CloudName(), d.lbAbstraction)
+	d.gen = NewDrawioGenerator(cConfigs.CloudName(), d.lbAbstraction, uc)
 }
 
 func (d *DrawioOutputFormatter) createDrawioTree() {
@@ -79,25 +79,17 @@ func (d *DrawioOutputFormatter) createNodeSets() {
 			continue
 		}
 		// vpc
-		if d.showResource(vpcConfig.VPC) {
-			d.gen.TreeNode(vpcConfig.VPC)
-		}
+		d.gen.TreeNode(vpcConfig.VPC)
 		// subnets
 		for _, ns := range vpcConfig.Subnets {
-			if d.showResource(ns) {
-				d.gen.TreeNode(ns)
-			}
+			d.gen.TreeNode(ns)
 		}
 		for _, lb := range vpcConfig.LoadBalancers {
-			if d.showResource(lb) {
-				d.gen.TreeNode(lb)
-			}
+			d.gen.TreeNode(lb)
 		}
 		// nodesets (vsi, vpe)
 		for _, ns := range vpcConfig.NodeSets {
-			if d.showResource(ns) {
-				d.gen.TreeNode(ns)
-			}
+			d.gen.TreeNode(ns)
 		}
 	}
 }
@@ -106,7 +98,7 @@ func (d *DrawioOutputFormatter) createNodes() {
 	for _, vpcConfig := range d.cConfigs.Configs() {
 		if !vpcConfig.IsMultipleVPCsConfig {
 			for _, n := range vpcConfig.Nodes {
-				if !n.IsExternal() && d.showResource(n) {
+				if !n.IsExternal() {
 					d.gen.TreeNode(n)
 				}
 			}
@@ -118,9 +110,7 @@ func (d *DrawioOutputFormatter) createFilters() {
 	for _, vpcConfig := range d.cConfigs.Configs() {
 		if !vpcConfig.IsMultipleVPCsConfig {
 			for _, fl := range vpcConfig.FilterResources {
-				if d.showResource(fl) {
-					d.gen.TreeNode(fl)
-				}
+				d.gen.TreeNode(fl)
 			}
 		}
 	}
@@ -129,17 +119,13 @@ func (d *DrawioOutputFormatter) createFilters() {
 func (d *DrawioOutputFormatter) createRouters() {
 	for vpcResourceID, vpcConfig := range d.cConfigs.Configs() {
 		for _, r := range vpcConfig.RoutingResources {
-			if d.showResource(r) {
-				rTn := d.gen.TreeNode(r)
-				if rTn == nil {
-					continue
-				}
+			if rTn := d.gen.TreeNode(r); rTn != nil {
 				if vpcConfig.IsMultipleVPCsConfig {
 					d.multiVpcRouters[vpcResourceID] = rTn.(drawio.IconTreeNodeInterface)
 				} else {
 					for _, ni := range r.Sources() {
-						if d.showResource(ni) {
-							d.nodeRouters[d.gen.TreeNode(ni)] = rTn.(drawio.IconTreeNodeInterface)
+						if nTn := d.gen.TreeNode(ni); nTn != nil {
+							d.nodeRouters[nTn] = rTn.(drawio.IconTreeNodeInterface)
 						}
 					}
 				}
@@ -198,11 +184,9 @@ func (d *DrawioOutputFormatter) createEdges() {
 	}
 	for e, directed := range isEdgeDirected {
 		ei := &edgeInfo{e.src, e.dst, e.label, directed}
-		if d.showResource(ei) {
-			cn := d.gen.TreeNode(ei).(*drawio.ConnectivityTreeNode)
-			if e.router != nil {
-				cn.SetRouter(e.router)
-			}
+		eTn := d.gen.TreeNode(ei)
+		if eTn != nil && e.router != nil {
+			eTn.(*drawio.ConnectivityTreeNode).SetRouter(e.router)
 		}
 	}
 }
@@ -215,8 +199,7 @@ func (d *DrawioOutputFormatter) createExplanations() []drawio.ExplanationEntry {
 	explanationsInput := CreateMultiExplanationsInput(d.cConfigs, d.vpcConns, d.gConns)
 	// remove all the entries that are not shown on the canvas:
 	explanationsInput = slices.DeleteFunc(explanationsInput, func(e explainInputEntry) bool {
-		return !d.showResource(e.src) || !d.showResource(e.dst) ||
-			d.gen.TreeNode(e.src) == nil || d.gen.TreeNode(e.dst) == nil
+		return d.gen.TreeNode(e.src) == nil || d.gen.TreeNode(e.dst) == nil
 	})
 
 	explanations := MultiExplain(explanationsInput, d.vpcConns)
@@ -228,10 +211,6 @@ func (d *DrawioOutputFormatter) createExplanations() []drawio.ExplanationEntry {
 			Text: e.String()}
 	}
 	return explanationsTests
-}
-
-func (d *DrawioOutputFormatter) showResource(res DrawioResourceIntf) bool {
-	return d.uc != AllSubnets || res.ShowOnSubnetMode()
 }
 
 func (d *DrawioOutputFormatter) drawioFormat() drawio.FileFormat {

@@ -35,12 +35,12 @@
         {{ else if $data.IsFamily $node $data.Cnst.IbmIcon }}
             {{if $node.HasTooltip }}
                 <UserObject label="{{$data.DrawioLabel $node}}" tooltip="{{$node.Tooltip}}" id="{{$data.IDsPrefix}}-{{$node.ID}}">
-                    <mxCell style="{{$imagePrefix}}{{$data.Image $node}};{{$iconStyle}}" parent="{{$data.IDsPrefix}}-{{$node.DrawioParent.ID}}" vertex="1">
+                    <mxCell style="{{$imagePrefix}}{{$data.Image $node}};{{$iconStyle}};opacity={{$data.Opacity $node}}" parent="{{$data.IDsPrefix}}-{{$node.DrawioParent.ID}}" vertex="1">
                     <mxGeometry width="{{$node.IconSize}}" height="{{$node.IconSize}}" x="{{$node.X}}" y="{{$node.Y}}" as="geometry"/>
                     </mxCell>
                 </UserObject>
             {{ else }}
-                <mxCell id="{{$data.IDsPrefix}}-{{$node.ID}}" value="{{$data.DrawioLabel $node}}" style="{{$imagePrefix}}{{$data.Image $node}};{{$iconStyle}}" parent="{{$data.IDsPrefix}}-{{$node.DrawioParent.ID}}" vertex="1">
+                <mxCell id="{{$data.IDsPrefix}}-{{$node.ID}}" value="{{$data.DrawioLabel $node}}" style="{{$imagePrefix}}{{$data.Image $node}};{{$iconStyle}};opacity={{$data.Opacity $node}}" parent="{{$data.IDsPrefix}}-{{$node.DrawioParent.ID}}" vertex="1">
                 <mxGeometry width="{{$node.IconSize}}" height="{{$node.IconSize}}" x="{{$node.X}}" y="{{$node.Y}}" as="geometry"/>
                 </mxCell>
             {{ end }}
