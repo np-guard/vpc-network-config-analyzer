@@ -387,6 +387,13 @@ var tests = []*vpcGeneralTest{
 		format:      vpcmodel.Text,
 	},
 	// iks-nodes example
+	// iks_config_object example has three SG, one of them two targets - a pgw and a LB.
+	// this SG has four rules, which are reflected at the connectivity map:
+	// 1. outbound, tcp, ports 30000-32767
+	// 2. outbound, udp, ports 30000-32767
+	// 3. inbound, udp, ports 1-65535
+	// 4. inbound, udp, ports 1-65535
+
 	{
 		inputConfig: "iks_config_object",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
