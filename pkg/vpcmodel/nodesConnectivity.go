@@ -60,14 +60,7 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping, lbAbstraction bool) (res
 	}
 	res.computeAllowedConnsCombined()
 	res.computeAllowedStatefulConnections()
-	if lbAbstraction {
-		abstractionInfo := newNodeSetAbstraction(res.AllowedConnsCombined)
-		for _, lb := range c.LoadBalancers {
-			ai := abstractionInfo.nodeSetConnectivityAbstraction(lb)
-			res.AllowedConnsCombined = abstractionInfo.abstractedConnectivity
-			lb.SetAbstractionInfo(ai)
-		}
-	}
+	res.abstractLoadBalancers(c.LoadBalancers, lbAbstraction)
 	res.GroupedConnectivity, err = newGroupConnLines(c, res, grouping)
 	return res, err
 }
@@ -309,6 +302,17 @@ func (v *VPCConnectivity) getPerLayerConnectivity(layer string, src, dst Node, i
 		return NoConns()
 	}
 	return result
+}
+
+func (v *VPCConnectivity) abstractLoadBalancers(loadBalancers []LoadBalancer, lbAbstraction bool) {
+	if lbAbstraction {
+		abstractionInfo := newNodeSetAbstraction(v.AllowedConnsCombined)
+		for _, lb := range loadBalancers {
+			ai := abstractionInfo.abstractNodeSet(lb)
+			lb.SetAbstractionInfo(ai)
+		}
+		v.AllowedConnsCombined = abstractionInfo.abstractedConnectivity
+	}
 }
 
 const (
