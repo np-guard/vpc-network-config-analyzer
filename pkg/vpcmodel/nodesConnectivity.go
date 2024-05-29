@@ -305,11 +305,11 @@ func (v *VPCConnectivity) getPerLayerConnectivity(layer string, src, dst Node, i
 }
 
 // load balancer abstraction:
-		// currently, AllowedConnsCombined contains the private IPs of the load balancer.
-		// the abstraction creates new AllowedConnsCombined,
-		// it replaces the private IPs in the with the load balancer itself
-		// for each load balancer, it keeps the abstractionInfo, to be used later
-		// see details at nodeSetConnectivityAbstraction()
+// currently, AllowedConnsCombined contains the private IPs of the load balancer.
+// the abstraction creates new AllowedConnsCombined,
+// it replaces the private IPs in the with the load balancer itself
+// for each load balancer, it keeps the abstractionInfo, to be used later
+// see details at nodeSetConnectivityAbstraction()
 func (v *VPCConnectivity) abstractLoadBalancers(loadBalancers []LoadBalancer, lbAbstraction bool) {
 	if lbAbstraction {
 		abstractionInfo := newNodeSetAbstraction(v.AllowedConnsCombined)
