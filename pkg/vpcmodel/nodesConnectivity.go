@@ -62,13 +62,12 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping, lbAbstraction bool) (res
 	}
 	res.computeAllowedConnsCombined()
 	res.computeAllowedStatefulConnections()
-	if lbAbstraction {
-		// todo: not implemented for computeAllowedStatefulConnections yet.
-		for _, lb := range c.LoadBalancers {
-			// todo: delete once AllowedConnsCombined is deleted
-			res.AllowedConnsCombined = nodeSetConnectivityAbstraction(res.AllowedConnsCombined, lb)
-		}
-	}
+	// todo: implemented for computeAllowedStatefulConnection; tests with LB disabled for now
+	//if lbAbstraction {
+	//	for _, lb := range c.LoadBalancers {
+	//		res.AllowedConnsCombined = nodeSetConnectivityAbstraction(res.AllowedConnsCombined, lb)
+	//	}
+	//}
 	res.GroupedConnectivity, err = newGroupConnLines(c, res, grouping)
 	return res, err
 }
