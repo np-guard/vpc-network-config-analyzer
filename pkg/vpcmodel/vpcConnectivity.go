@@ -72,12 +72,3 @@ func NewConfigBasedConnectivityResults() *ConfigBasedConnectivityResults {
 		EgressAllowedConns:  map[VPCResourceIntf]*connection.Set{},
 	}
 }
-
-func (connectivityMap GeneralConnectivityMap) getAllowedConnForPair(src, dst VPCResourceIntf) *connection.Set {
-	if connsMap, ok := connectivityMap[src]; ok {
-		if conn, ok := connsMap[dst]; ok {
-			return conn
-		}
-	}
-	return NoConns()
-}

@@ -376,7 +376,8 @@ func (confConnectivity *configConnectivity) getConnectivityWithSameIPBlocks(othe
 		&configConnectivity{otherAlignedConfig, alignedOtherConnectivity}, nil
 }
 
-func (statefulConnMap *GeneralStatefulConnectivityMap) alignConnectionsGivenIPBlists(config *VPCConfig, disjointIPblocks []*ipblock.IPBlock) (
+func (statefulConnMap *GeneralStatefulConnectivityMap) alignConnectionsGivenIPBlists(config *VPCConfig,
+	disjointIPblocks []*ipblock.IPBlock) (
 	alignedConnectivity GeneralStatefulConnectivityMap, err error) {
 	alignedConnectivitySrc, err := statefulConnMap.actualAlignSrcOrDstGivenIPBlists(config, disjointIPblocks, true)
 	if err != nil {

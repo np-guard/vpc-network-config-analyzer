@@ -67,10 +67,11 @@ func (statefulConnMap GeneralStatefulConnectivityMap) updateAllowedStatefulConns
 
 // todo exists already in connection
 func newTCPSet() *connection.Set {
-	return connection.TCPorUDPConnection(netp.ProtocolStringTCP, connection.MinPort, connection.MaxPort, connection.MinPort, connection.MaxPort)
+	return connection.TCPorUDPConnection(netp.ProtocolStringTCP, connection.MinPort, connection.MaxPort,
+		connection.MinPort, connection.MaxPort)
 }
 
-func partitionTcpNonTcp(conn *connection.Set) (tcp, nonTcp *connection.Set) {
+func partitionTCPNonTCP(conn *connection.Set) (tcp, nonTcp *connection.Set) {
 	tcpFractionOfConn := newTCPSet().Intersect(conn)
 	nonTcpFractionOfConn := conn.Subtract(tcpFractionOfConn)
 	return tcpFractionOfConn, nonTcpFractionOfConn

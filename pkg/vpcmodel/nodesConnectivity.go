@@ -19,7 +19,6 @@ import (
 // GetVPCNetworkConnectivity computes VPCConnectivity in few steps
 // (1) compute AllowedConns (map[Node]*ConnectivityResult) : ingress or egress allowed conns separately
 // (2) compute AllowedConnsCombined (map[Node]map[Node]*connection.Set) : allowed conns considering both ingress and egress directions
-// (3 old) compute AllowedConnsCombinedStatefulOld : stateful allowed connections, for which connection in reverse direction is also allowed - todo delete
 // (3) compute AllowedConnsCombinedStateful extension of AllowedConnsCombined to contain accurate stateful info
 // todo: delete AllowedConnsCombined when it is no longer used (diff, explainability) and merge 3 and 4
 // (4) if lbAbstraction required - abstract each lb separately
@@ -63,11 +62,11 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping, lbAbstraction bool) (res
 	allowedConnsCombined := res.computeAllowedConnsCombined()
 	res.computeAllowedStatefulConnections(allowedConnsCombined)
 	// todo: implemented for computeAllowedStatefulConnection; tests with LB disabled for now
-	//if lbAbstraction {
+	// if lbAbstraction {
 	//	for _, lb := range c.LoadBalancers {
 	//		res.AllowedConnsCombined = nodeSetConnectivityAbstraction(res.AllowedConnsCombined, lb)
 	//	}
-	//}
+	// }
 	res.GroupedConnectivity, err = newGroupConnLines(c, res, grouping)
 	return res, err
 }
@@ -271,9 +270,10 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections(allowedConnsCombined
 			// iterate pairs (src,dst) with conn as allowed connectivity, to check stateful aspect
 			if v.isConnExternalThroughFIP(srcNode, dstNode) { // fip ignores NACL
 				// TODO: this may be ibm-specific. consider moving to ibmvpc
-				tcpFraction, nonTcpFraction := partitionTcpNonTcp(conn)
-				v.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(src, dst, &ExtendedSet{statefulConn: tcpFraction, otherConn: nonTcpFraction,
-					nonStatefulConn: connection.None(), conn: conn})
+				tcpFraction, nonTcpFraction := partitionTCPNonTCP(conn)
+				v.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(src, dst,
+					&ExtendedSet{statefulConn: tcpFraction, otherConn: nonTcpFraction,
+						nonStatefulConn: connection.None(), conn: conn})
 				continue
 			}
 
@@ -289,7 +289,7 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections(allowedConnsCombined
 			// ConnectionWithStatefulness updates conn with IsStateful value, and returns the stateful subset
 			// todo rewrite WithStatefulness so that it returns only the tcp part (and no need for isStateful)
 			statefulCombinedConn := conn.WithStatefulness(combinedDstToSrc)
-			tcpStatefulFraction, nonTcpFraction := partitionTcpNonTcp(statefulCombinedConn)
+			tcpStatefulFraction, nonTcpFraction := partitionTCPNonTCP(statefulCombinedConn)
 			tcpNonStatefulFraction := conn.Subtract(statefulCombinedConn)
 			extendedSet := &ExtendedSet{statefulConn: tcpStatefulFraction,
 				nonStatefulConn: tcpNonStatefulFraction, otherConn: nonTcpFraction, conn: conn}
