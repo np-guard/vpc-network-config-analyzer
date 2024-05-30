@@ -23,14 +23,6 @@ type VPCConnectivity struct {
 	// This is auxiliary computation based on which AllowedConnsCombined is computed, however the "debug" format uses it
 	AllowedConns map[Node]*ConnectivityResult
 
-	// combined connectivity - considering both ingress and egress per connection
-	// The main outcome of the computation of which most of the outputs are based
-	// For each src node provides a map of dsts and the connection it has to these dsts
-	// does not include stateful information
-	// used by diff, explainability and drawio
-	// todo delete this struct when transformation is completed; perhaps still use this sub-computation
-	AllowedConnsCombined GeneralConnectivityMap
-
 	// allowed connectivity combined and stateful
 	// used by debug and json format only (at the moment)
 	// For src node provides a map of dsts and the stateful connection it has to these dsts

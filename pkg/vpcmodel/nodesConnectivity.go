@@ -60,8 +60,8 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping, lbAbstraction bool) (res
 			res.AllowedConnsPerLayer[node][layer].EgressAllowedConns = egressAllowedConnsPerLayer[layer]
 		}
 	}
-	res.computeAllowedConnsCombined()
-	res.computeAllowedStatefulConnections()
+	allowedConnsCombined := res.computeAllowedConnsCombined()
+	res.computeAllowedStatefulConnections(allowedConnsCombined)
 	// todo: implemented for computeAllowedStatefulConnection; tests with LB disabled for now
 	//if lbAbstraction {
 	//	for _, lb := range c.LoadBalancers {
@@ -184,7 +184,8 @@ func switchSrcDstNodes(switchOrder bool, src, dst Node) (srcRes, dstRes Node) {
 	return src, dst
 }
 
-func (v *VPCConnectivity) computeCombinedConnectionsPerDirection(isIngressDirection bool, node Node, connectivityRes *ConnectivityResult) {
+func (v *VPCConnectivity) computeCombinedConnectionsPerDirection(isIngressDirection bool, node Node,
+	connectivityRes *ConnectivityResult, allowedConnsCombined GeneralConnectivityMap) {
 	for peerNode, conns := range connectivityRes.ingressOrEgressAllowedConns(isIngressDirection) {
 		src, dst := switchSrcDstNodes(!isIngressDirection, peerNode, node)
 		combinedConns := conns
@@ -195,18 +196,19 @@ func (v *VPCConnectivity) computeCombinedConnectionsPerDirection(isIngressDirect
 			otherDirectionConns := v.AllowedConns[peerNode].ingressOrEgressAllowedConns(!isIngressDirection)[node]
 			combinedConns = combinedConns.Intersect(otherDirectionConns)
 		}
-		v.AllowedConnsCombined.updateAllowedConnsMap(src, dst, combinedConns)
+		allowedConnsCombined.updateAllowedConnsMap(src, dst, combinedConns)
 	}
 }
 
 // computeAllowedConnsCombined computes combination of ingress&egress directions per connection allowed
 // the stateful state of the connectivity is not computed here
-func (v *VPCConnectivity) computeAllowedConnsCombined() {
-	v.AllowedConnsCombined = GeneralConnectivityMap{}
+func (v *VPCConnectivity) computeAllowedConnsCombined() GeneralConnectivityMap {
+	allowedConnsCombined := GeneralConnectivityMap{}
 	for node, connectivityRes := range v.AllowedConns {
-		v.computeCombinedConnectionsPerDirection(true, node, connectivityRes)
-		v.computeCombinedConnectionsPerDirection(false, node, connectivityRes)
+		v.computeCombinedConnectionsPerDirection(true, node, connectivityRes, allowedConnsCombined)
+		v.computeCombinedConnectionsPerDirection(false, node, connectivityRes, allowedConnsCombined)
 	}
+	return allowedConnsCombined
 }
 
 func getConnectionStr(src, dst, conn, suffix string) string {
@@ -252,7 +254,7 @@ func (v *VPCConnectivity) isConnExternalThroughFIP(src, dst Node) bool {
 // the stateful allowed connection A->B is TCP , src_port: x&w , dst_port: y&z.
 // 2. Not stateful: the tcp part of the connection that is not in 1
 // 3. Other: the non-tcp part of the connection (for which the stateful question is non-relevant)
-func (v *VPCConnectivity) computeAllowedStatefulConnections() {
+func (v *VPCConnectivity) computeAllowedStatefulConnections(allowedConnsCombined GeneralConnectivityMap) {
 	// assuming v.AllowedConnsCombined was already computed
 
 	// allowed connection: src->dst , requires NACL layer to allow dst->src (both ingress and egress)
@@ -261,7 +263,7 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections() {
 
 	v.AllowedConnsCombinedStateful = GeneralStatefulConnectivityMap{}
 
-	for src, connsMap := range v.AllowedConnsCombined {
+	for src, connsMap := range allowedConnsCombined {
 		for dst, conn := range connsMap {
 			// src and dst here are nodes, always. Thus ignoring potential error in conversion
 			srcNode := src.(Node)
