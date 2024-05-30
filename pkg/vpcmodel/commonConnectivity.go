@@ -16,7 +16,7 @@ import (
 // ExtendedSet connection details
 type ExtendedSet struct {
 	statefulConn    *connection.Set // stateful TCP connection between <src, dst>
-	nonStatefulConn *connection.Set // nonstateful TCP connection between <src, dst>
+	nonStatefulConn *connection.Set // nonstateful TCP connection between <src, dst>; complementary of statefulConn
 	otherConn       *connection.Set // non TCP connection (for which stateful is non-relevant)
 	conn            *connection.Set // entire connection
 }
