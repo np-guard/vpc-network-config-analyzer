@@ -156,9 +156,11 @@ func newVPCConfigTest1() (*VPCConfig, *VPCConnectivity) {
 	res.Subnets = append(res.Subnets, &mockSubnet{nil, "10.0.20.0/22", "subnet1", []Node{res.Nodes[0]}})
 	res.Nodes[0].(*mockNetIntf).subnet = res.Subnets[0]
 
-	res1 := &VPCConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], connection.All())
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], connection.All())
+	res1 := &VPCConnectivity{AllowedConnsCombinedStateful: GeneralStatefulConnectivityMap{}}
+	extendedConn := &ExtendedSet{statefulConn: newTCPSet(), nonStatefulConn: NoConns(),
+		otherConn: connection.All().Subtract(newTCPSet()), conn: connection.All()}
+	res1.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(res.Nodes[0], res.Nodes[1], extendedConn)
+	res1.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(res.Nodes[0], res.Nodes[2], extendedConn)
 	return res, res1
 }
 
