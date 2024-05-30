@@ -56,11 +56,11 @@ func (connectivityMap GeneralConnectivityMap) updateAllowedConnsMap(src, dst VPC
 }
 
 // it is assumed that the components of extendedConn are legal connection.Set, namely not nil
-func (connectivityMap GeneralStatefulConnectivityMap) updateAllowedConnsMapNew(src, dst VPCResourceIntf, extendedConn *ExtendedSet) {
-	if _, ok := connectivityMap[src]; !ok {
-		connectivityMap[src] = map[VPCResourceIntf]*ExtendedSet{}
+func (statefulConnMap GeneralStatefulConnectivityMap) updateAllowedConnsMapNew(src, dst VPCResourceIntf, extendedConn *ExtendedSet) {
+	if _, ok := statefulConnMap[src]; !ok {
+		statefulConnMap[src] = map[VPCResourceIntf]*ExtendedSet{}
 	}
-	connectivityMap[src][dst] = extendedConn
+	statefulConnMap[src][dst] = extendedConn
 }
 
 // todo: following functionality needs to be moved to package connection with member instead of parms passing

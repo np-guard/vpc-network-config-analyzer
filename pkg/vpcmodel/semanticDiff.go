@@ -57,7 +57,7 @@ type configsForDiff struct {
 
 type configConnectivity struct {
 	config       *VPCConfig
-	connectivity GeneralConnectivityMap
+	connectivity GeneralStatefulConnectivityMap
 }
 
 type diffBetweenCfgs struct {
@@ -74,20 +74,20 @@ type diffBetweenCfgs struct {
 // computes and returns the semantic diff of endpoints or subnets connectivity, as per the required analysis
 func (configs configsForDiff) GetDiff() (*diffBetweenCfgs, error) {
 	// 1. compute connectivity for each of the configurations
-	generalConnectivityMap1, err := configs.config1.getAllowedConnectionsCombined(configs.diffAnalysis)
+	statefulConnectivityMap1, err := configs.config1.getAllowedStatefulConnections(configs.diffAnalysis)
 	if err != nil {
 		return nil, err
 	}
-	generalConnectivityMap2, err := configs.config2.getAllowedConnectionsCombined(configs.diffAnalysis)
+	statefulConnectivityMap2, err := configs.config2.getAllowedStatefulConnections(configs.diffAnalysis)
 	if err != nil {
 		return nil, err
 	}
 
 	// 2. Computes delta in both directions
 	configConn1 := &configConnectivity{configs.config1,
-		generalConnectivityMap1}
+		statefulConnectivityMap1}
 	configConn2 := &configConnectivity{configs.config2,
-		generalConnectivityMap2}
+		statefulConnectivityMap2}
 	alignedConfigConnectivity1, alignedConfigConnectivity2, err :=
 		configConn1.getConnectivityWithSameIPBlocks(configConn2)
 	if err != nil {
@@ -115,20 +115,20 @@ func (configs configsForDiff) GetDiff() (*diffBetweenCfgs, error) {
 	return res, nil
 }
 
-func (c *VPCConfig) getAllowedConnectionsCombined(
-	diffAnalysis diffAnalysisType) (generalConnectivityMap GeneralConnectivityMap, err error) {
+func (c *VPCConfig) getAllowedStatefulConnections(
+	diffAnalysis diffAnalysisType) (statefulConnectivityMap GeneralStatefulConnectivityMap, err error) {
 	if diffAnalysis == Subnets {
 		subnetsConn, err := c.GetSubnetsConnectivity(true, false)
 		if err != nil {
 			return nil, err
 		}
-		return subnetsConn.AllowedConnsCombined, err
+		return subnetsConn.AllowedConnsCombinedStateful, err
 	} else if diffAnalysis == Vsis {
 		connectivity1, err := c.GetVPCNetworkConnectivity(false, false)
 		if err != nil {
 			return nil, err
 		}
-		return connectivity1.AllowedConnsCombined, nil
+		return connectivity1.AllowedConnsCombinedStateful, nil
 	}
 	return nil, fmt.Errorf("illegal diff analysis type")
 }
@@ -176,8 +176,8 @@ func (confConnectivity *configConnectivity) connMissingOrChanged(other *configCo
 	connectivityMissingOrChanged connectivityDiff, err error) {
 	connectivityMissingOrChanged = map[VPCResourceIntf]map[VPCResourceIntf]*connectionDiff{}
 	for src, endpointConns := range confConnectivity.connectivity {
-		for dst, conns := range endpointConns {
-			if conns.IsEmpty() {
+		for dst, extendedConns := range endpointConns {
+			if extendedConns.conn.IsEmpty() {
 				continue
 			}
 			if _, ok := connectivityMissingOrChanged[src]; !ok {
@@ -192,17 +192,16 @@ func (confConnectivity *configConnectivity) connMissingOrChanged(other *configCo
 				return nil, err2
 			}
 			// includeChanged indicates if it is thisMinusOther
-			connDiff := &connectionDiff{conns, nil, missingConnection, includeChanged}
+			connDiff := &connectionDiff{extendedConns.conn, nil, missingConnection, includeChanged}
 			if srcInOther != nil && dstInOther != nil {
 				if otherSrc, ok := other.connectivity[srcInOther]; ok {
-					if otherConn, ok := otherSrc[dstInOther]; ok {
-						equalConnections := conns.Equal(otherConn) &&
-							// ToDo: https://github.com/np-guard/vpc-network-config-analyzer/issues/199
-							conns.IsStateful == otherConn.IsStateful
+					if otherExtendedConn, ok := otherSrc[dstInOther]; ok {
+						equalConnections := extendedConns.conn.Equal(otherExtendedConn.conn) &&
+							extendedConns.nonStatefulConn.IsEmpty() == otherExtendedConn.nonStatefulConn.IsEmpty()
 						if !includeChanged || equalConnections {
 							continue
 						}
-						connDiff.conn2 = otherConn
+						connDiff.conn2 = otherExtendedConn.conn
 						connDiff.diff = changedConnection
 					}
 				}
@@ -377,9 +376,9 @@ func (confConnectivity *configConnectivity) getConnectivityWithSameIPBlocks(othe
 		&configConnectivity{otherAlignedConfig, alignedOtherConnectivity}, nil
 }
 
-func (connectivityMap *GeneralConnectivityMap) alignConnectionsGivenIPBlists(config *VPCConfig, disjointIPblocks []*ipblock.IPBlock) (
-	alignedConnectivity GeneralConnectivityMap, err error) {
-	alignedConnectivitySrc, err := connectivityMap.actualAlignSrcOrDstGivenIPBlists(config, disjointIPblocks, true)
+func (statefulConnMap *GeneralStatefulConnectivityMap) alignConnectionsGivenIPBlists(config *VPCConfig, disjointIPblocks []*ipblock.IPBlock) (
+	alignedConnectivity GeneralStatefulConnectivityMap, err error) {
+	alignedConnectivitySrc, err := statefulConnMap.actualAlignSrcOrDstGivenIPBlists(config, disjointIPblocks, true)
 	if err != nil {
 		return nil, err
 	}
@@ -427,25 +426,25 @@ func resizeNodes(oldNodes []Node, disjointIPblocks []*ipblock.IPBlock) (newNodes
 	return newNodes, nil
 }
 
-func (connectivityMap *GeneralConnectivityMap) actualAlignSrcOrDstGivenIPBlists(config *VPCConfig,
+func (statefulConnMap *GeneralStatefulConnectivityMap) actualAlignSrcOrDstGivenIPBlists(config *VPCConfig,
 	disjointIPblocks []*ipblock.IPBlock, resizeSrc bool) (
-	alignedConnectivity GeneralConnectivityMap, err error) {
+	alignedConnectivity GeneralStatefulConnectivityMap, err error) {
 	// goes over all sources of connections in connectivity
 	// if src is external then for each IPBlock in disjointIPblocks copies dsts and connection type
 	// otherwise just copies as is
 	err = nil
-	alignedConnectivity = map[VPCResourceIntf]map[VPCResourceIntf]*connection.Set{}
-	for src, endpointConns := range *connectivityMap {
-		for dst, conns := range endpointConns {
-			if conns.IsEmpty() {
+	alignedConnectivity = map[VPCResourceIntf]map[VPCResourceIntf]*ExtendedSet{}
+	for src, endpointConns := range *statefulConnMap {
+		for dst, extendedConns := range endpointConns {
+			if extendedConns.conn.IsEmpty() {
 				continue
 			}
 			// the resizing element is not external - copy as is
 			if (resizeSrc && !src.IsExternal()) || (!resizeSrc && !dst.IsExternal()) {
 				if _, ok := alignedConnectivity[src]; !ok {
-					alignedConnectivity[src] = map[VPCResourceIntf]*connection.Set{}
+					alignedConnectivity[src] = map[VPCResourceIntf]*ExtendedSet{}
 				}
-				alignedConnectivity[src][dst] = conns
+				alignedConnectivity[src][dst] = extendedConns
 				continue
 			}
 			// the resizing element is external - go over all ipBlock and allocates the connection
@@ -467,15 +466,15 @@ func (connectivityMap *GeneralConnectivityMap) actualAlignSrcOrDstGivenIPBlists(
 			if err != nil {
 				return nil, err
 			}
-			err = addIPBlockToConnectivityMap(config, disjointIPblocks, origIPBlock, alignedConnectivity, src, dst, conns, resizeSrc)
+			err = addIPBlockToConnectivityMap(config, disjointIPblocks, origIPBlock, alignedConnectivity, src, dst, extendedConns, resizeSrc)
 		}
 	}
 	return alignedConnectivity, err
 }
 
 func addIPBlockToConnectivityMap(c *VPCConfig, disjointIPblocks []*ipblock.IPBlock,
-	origIPBlock *ipblock.IPBlock, alignedConnectivity map[VPCResourceIntf]map[VPCResourceIntf]*connection.Set,
-	src, dst VPCResourceIntf, conns *connection.Set, resizeSrc bool) error {
+	origIPBlock *ipblock.IPBlock, alignedConnectivity map[VPCResourceIntf]map[VPCResourceIntf]*ExtendedSet,
+	src, dst VPCResourceIntf, conns *ExtendedSet, resizeSrc bool) error {
 	for _, ipBlock := range disjointIPblocks {
 		// get ipBlock of resized index (src/dst)
 		if !ipBlock.ContainedIn(origIPBlock) { // ipBlock not relevant here
@@ -490,12 +489,12 @@ func addIPBlockToConnectivityMap(c *VPCConfig, disjointIPblocks []*ipblock.IPBlo
 			}
 			if resizeSrc {
 				if _, ok := alignedConnectivity[nodeOfCidr]; !ok {
-					alignedConnectivity[nodeOfCidr] = map[VPCResourceIntf]*connection.Set{}
+					alignedConnectivity[nodeOfCidr] = map[VPCResourceIntf]*ExtendedSet{}
 				}
 				alignedConnectivity[nodeOfCidr][dst] = conns
 			} else {
 				if _, ok := alignedConnectivity[src]; !ok {
-					alignedConnectivity[src] = map[VPCResourceIntf]*connection.Set{}
+					alignedConnectivity[src] = map[VPCResourceIntf]*ExtendedSet{}
 				}
 				alignedConnectivity[src][nodeOfCidr] = conns
 			}
@@ -515,11 +514,11 @@ func findNodeWithCidr(configNodes []Node, cidr string) Node {
 }
 
 // get a list of IPBlocks of the src and dst of the connections
-func (connectivityMap GeneralConnectivityMap) getIPBlocksList() (ipbList []*ipblock.IPBlock,
+func (statefulConnMap GeneralStatefulConnectivityMap) getIPBlocksList() (ipbList []*ipblock.IPBlock,
 	myErr error) {
-	for src, endpointConns := range connectivityMap {
-		for dst, conns := range endpointConns {
-			if conns.IsEmpty() {
+	for src, endpointConns := range statefulConnMap {
+		for dst, extendedConns := range endpointConns {
+			if extendedConns.conn.IsEmpty() {
 				continue
 			}
 			if src.IsExternal() {

@@ -327,9 +327,9 @@ const (
 	fipRouter          = "FloatingIP"
 )
 
-func (statefulConnectivityMap GeneralStatefulConnectivityMap) getCombinedConnsStr(onlyBidirectional bool) string {
+func (statefulConnMap GeneralStatefulConnectivityMap) getCombinedConnsStr(onlyBidirectional bool) string {
 	strList := []string{}
-	for src, nodeExtendedConns := range statefulConnectivityMap {
+	for src, nodeExtendedConns := range statefulConnMap {
 		for dst, extConns := range nodeExtendedConns {
 			// src and dst here are nodes, always. Thus ignoring potential error in conversion
 			srcNode := src.(Node)
