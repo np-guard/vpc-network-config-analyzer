@@ -56,7 +56,7 @@ func (connectivityMap GeneralConnectivityMap) updateAllowedConnsMap(src, dst VPC
 }
 
 // it is assumed that the components of extendedConn are legal connection.Set, namely not nil
-func (statefulConnMap GeneralStatefulConnectivityMap) updateAllowedConnsMapNew(src, dst VPCResourceIntf, extendedConn *ExtendedSet) {
+func (statefulConnMap GeneralStatefulConnectivityMap) updateAllowedStatefulConnsMap(src, dst VPCResourceIntf, extendedConn *ExtendedSet) {
 	if _, ok := statefulConnMap[src]; !ok {
 		statefulConnMap[src] = map[VPCResourceIntf]*ExtendedSet{}
 	}

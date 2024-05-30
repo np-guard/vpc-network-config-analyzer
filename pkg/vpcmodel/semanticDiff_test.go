@@ -71,17 +71,17 @@ func configSimpleSubnetDiff() (subnetConfigConn1, subnetConfigConn2 *configConne
 	extendedConnTCP := &ExtendedSet{statefulConn: connectionTCP, nonStatefulConn: NoConns(), otherConn: NoConns(),
 		conn: connectionTCP}
 	subnetConnMap1 := &VPCsubnetConnectivity{AllowedConnsCombinedStateful: GeneralStatefulConnectivityMap{}}
-	subnetConnMap1.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(cfg1.Subnets[0], cfg1.Subnets[1], extendedConnAll)
-	subnetConnMap1.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(cfg1.Subnets[1], cfg1.Subnets[2], extendedConnAll)
-	subnetConnMap1.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(cfg1.Subnets[3], cfg1.Subnets[1], extendedConnAll)
-	subnetConnMap1.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(cfg1.Subnets[2], cfg1.Subnets[3], extendedConnAll)
-	subnetConnMap1.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(cfg1.Subnets[3], cfg1.Subnets[2], extendedConnAll)
-	subnetConnMap1.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(cfg1.Subnets[3], cfg1.Subnets[4], extendedConnTCP)
+	subnetConnMap1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg1.Subnets[0], cfg1.Subnets[1], extendedConnAll)
+	subnetConnMap1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg1.Subnets[1], cfg1.Subnets[2], extendedConnAll)
+	subnetConnMap1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg1.Subnets[3], cfg1.Subnets[1], extendedConnAll)
+	subnetConnMap1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg1.Subnets[2], cfg1.Subnets[3], extendedConnAll)
+	subnetConnMap1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg1.Subnets[3], cfg1.Subnets[2], extendedConnAll)
+	subnetConnMap1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg1.Subnets[3], cfg1.Subnets[4], extendedConnTCP)
 
 	subnetConnMap2 := &VPCsubnetConnectivity{AllowedConnsCombinedStateful: GeneralStatefulConnectivityMap{}}
-	subnetConnMap2.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(cfg2.Subnets[1], cfg2.Subnets[0], extendedConnAll)
-	subnetConnMap2.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(cfg2.Subnets[1], cfg2.Subnets[2], extendedConnAll)
-	subnetConnMap2.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(cfg2.Subnets[2], cfg2.Subnets[3], extendedConnAll)
+	subnetConnMap2.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg2.Subnets[1], cfg2.Subnets[0], extendedConnAll)
+	subnetConnMap2.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg2.Subnets[1], cfg2.Subnets[2], extendedConnAll)
+	subnetConnMap2.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg2.Subnets[2], cfg2.Subnets[3], extendedConnAll)
 
 	subnetConfigConn1 = &configConnectivity{cfg1, subnetConnMap1.AllowedConnsCombinedStateful}
 	subnetConfigConn2 = &configConnectivity{cfg2, subnetConnMap2.AllowedConnsCombinedStateful}
@@ -180,21 +180,21 @@ func configSimpleIPAndSubnetDiff() (subnetConfigConn1, subnetConfigConn2 *config
 	extendedConnAll := &ExtendedSet{statefulConn: newTCPSet(), nonStatefulConn: NoConns(),
 		otherConn: connection.All().Subtract(newTCPSet()), conn: connection.All()}
 	subnetConnMap1 := &VPCsubnetConnectivity{AllowedConnsCombinedStateful: GeneralStatefulConnectivityMap{}}
-	subnetConnMap1.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(cfg1.Nodes[0], cfg1.Subnets[0], extendedConnAll)
-	subnetConnMap1.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(cfg1.Nodes[0], cfg1.Subnets[1], extendedConnAll)
-	subnetConnMap1.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(cfg1.Nodes[1], cfg1.Subnets[1], extendedConnAll)
-	subnetConnMap1.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(cfg1.Subnets[1], cfg1.Nodes[0], extendedConnAll)
-	subnetConnMap1.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(cfg1.Subnets[1], cfg1.Nodes[2], extendedConnAll)
+	subnetConnMap1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg1.Nodes[0], cfg1.Subnets[0], extendedConnAll)
+	subnetConnMap1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg1.Nodes[0], cfg1.Subnets[1], extendedConnAll)
+	subnetConnMap1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg1.Nodes[1], cfg1.Subnets[1], extendedConnAll)
+	subnetConnMap1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg1.Subnets[1], cfg1.Nodes[0], extendedConnAll)
+	subnetConnMap1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg1.Subnets[1], cfg1.Nodes[2], extendedConnAll)
 
 	subnetConnMap2 := &VPCsubnetConnectivity{AllowedConnsCombinedStateful: GeneralStatefulConnectivityMap{}}
-	subnetConnMap2.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(cfg2.Nodes[0], cfg2.Subnets[0], extendedConnAll)
-	subnetConnMap2.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(cfg2.Nodes[0], cfg2.Subnets[1], extendedConnAll)
-	subnetConnMap2.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(cfg2.Nodes[1], cfg2.Subnets[1], extendedConnAll)
-	subnetConnMap2.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(cfg2.Subnets[1], cfg2.Nodes[0], extendedConnAll)
+	subnetConnMap2.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg2.Nodes[0], cfg2.Subnets[0], extendedConnAll)
+	subnetConnMap2.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg2.Nodes[0], cfg2.Subnets[1], extendedConnAll)
+	subnetConnMap2.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg2.Nodes[1], cfg2.Subnets[1], extendedConnAll)
+	subnetConnMap2.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg2.Subnets[1], cfg2.Nodes[0], extendedConnAll)
 	connectionTCP := connection.TCPorUDPConnection(netp.ProtocolStringTCP, 0, 1000, 0, 443)
 	extendedConnTCP := &ExtendedSet{statefulConn: connectionTCP, nonStatefulConn: NoConns(), otherConn: NoConns(),
 		conn: connectionTCP}
-	subnetConnMap2.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(cfg2.Subnets[1], cfg2.Nodes[2], extendedConnTCP)
+	subnetConnMap2.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg2.Subnets[1], cfg2.Nodes[2], extendedConnTCP)
 
 	subnetConfigConn1 = &configConnectivity{cfg1, subnetConnMap1.AllowedConnsCombinedStateful}
 	subnetConfigConn2 = &configConnectivity{cfg2, subnetConnMap2.AllowedConnsCombinedStateful}
@@ -302,19 +302,19 @@ func configSimpleVsisDiff() (configConn1, configConn2 *configConnectivity) {
 	extendedConnAll := &ExtendedSet{statefulConn: newTCPSet(), nonStatefulConn: NoConns(),
 		otherConn: connection.All().Subtract(newTCPSet()), conn: connection.All()}
 	cfg1Conn := &VPCConnectivity{AllowedConnsCombinedStateful: GeneralStatefulConnectivityMap{}}
-	cfg1Conn.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(cfg1.Nodes[0], cfg1.Nodes[1], extendedConnAll)
-	cfg1Conn.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(cfg1.Nodes[1], cfg1.Nodes[2], extendedConnAll)
-	cfg1Conn.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(cfg1.Nodes[1], cfg1.Nodes[3], extendedConnAll)
-	cfg1Conn.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(cfg1.Nodes[2], cfg1.Nodes[3], extendedConnTCP)
-	cfg1Conn.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(cfg1.Nodes[2], cfg1.Nodes[4], extendedConnTCP)
+	cfg1Conn.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg1.Nodes[0], cfg1.Nodes[1], extendedConnAll)
+	cfg1Conn.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg1.Nodes[1], cfg1.Nodes[2], extendedConnAll)
+	cfg1Conn.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg1.Nodes[1], cfg1.Nodes[3], extendedConnAll)
+	cfg1Conn.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg1.Nodes[2], cfg1.Nodes[3], extendedConnTCP)
+	cfg1Conn.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg1.Nodes[2], cfg1.Nodes[4], extendedConnTCP)
 
 	cfg2Conn := &VPCConnectivity{AllowedConnsCombinedStateful: GeneralStatefulConnectivityMap{}}
 	// 1st connections is identical to these in cfg1; the 2nd one differs in the conn type, the 3rd one has a dst that
 	// does not exist in cfg1
-	cfg2Conn.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(cfg2.Nodes[0], cfg2.Nodes[1], extendedConnAll)
-	cfg2Conn.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(cfg2.Nodes[1], cfg2.Nodes[2], extendedConnAll)
-	cfg2Conn.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(cfg2.Nodes[2], cfg2.Nodes[3], extendedConnAll)
-	cfg2Conn.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(cfg2.Nodes[1], cfg2.Nodes[4], extendedConnAll)
+	cfg2Conn.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg2.Nodes[0], cfg2.Nodes[1], extendedConnAll)
+	cfg2Conn.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg2.Nodes[1], cfg2.Nodes[2], extendedConnAll)
+	cfg2Conn.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg2.Nodes[2], cfg2.Nodes[3], extendedConnAll)
+	cfg2Conn.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg2.Nodes[1], cfg2.Nodes[4], extendedConnAll)
 
 	configConn1 = &configConnectivity{cfg1, cfg1Conn.AllowedConnsCombinedStateful}
 	configConn2 = &configConnectivity{cfg2, cfg2Conn.AllowedConnsCombinedStateful}
