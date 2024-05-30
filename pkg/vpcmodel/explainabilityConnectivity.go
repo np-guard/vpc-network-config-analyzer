@@ -431,14 +431,14 @@ func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
 func (details *rulesAndConnDetails) computeConnections(c *VPCConfig,
 	connQuery *connection.Set, connectivity *VPCConnectivity) (err error) {
 	for _, srcDstDetails := range *details {
-		conn, err := connectivity.getConnection(c, srcDstDetails.src, srcDstDetails.dst)
+		extendedConn, err := connectivity.getConnection(c, srcDstDetails.src, srcDstDetails.dst)
 		if err != nil {
 			return err
 		}
 		if connQuery != nil { // connection is part of the query
-			srcDstDetails.conn = conn.Intersect(connQuery)
+			srcDstDetails.conn = extendedConn.conn.Intersect(connQuery)
 		} else {
-			srcDstDetails.conn = conn
+			srcDstDetails.conn = extendedConn.conn
 		}
 		srcDstDetails.connEnabled = !srcDstDetails.conn.IsEmpty()
 	}
@@ -448,7 +448,7 @@ func (details *rulesAndConnDetails) computeConnections(c *VPCConfig,
 // given that there is a connection between src to dst, gets it
 // if src or dst is a node then the node is from getCidrExternalNodes,
 // thus there is a node in VPCConfig that either equal to or contains it.
-func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (conn *connection.Set, err error) {
+func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (extendedConn *ExtendedSet, err error) {
 	srcForConnection, err1 := c.getContainingConfigNode(src)
 	if err1 != nil {
 		return nil, err1
@@ -465,13 +465,13 @@ func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (conn *conn
 		return nil, fmt.Errorf(errMsg, dst.Name())
 	}
 	var ok bool
-	srcMapValue, ok := v.AllowedConnsCombined[srcForConnection]
+	srcMapValue, ok := v.AllowedConnsCombinedStateful[srcForConnection]
 	if ok {
-		conn, ok = srcMapValue[dstForConnection]
+		extendedConn, ok = srcMapValue[dstForConnection]
 	}
 	if !ok {
 		return nil, fmt.Errorf("error: there is a connection between %v and %v, but connection computation failed",
 			srcForConnection.Name(), dstForConnection.Name())
 	}
-	return conn, nil
+	return extendedConn, nil
 }
