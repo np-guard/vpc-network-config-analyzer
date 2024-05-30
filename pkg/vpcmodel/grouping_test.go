@@ -170,11 +170,13 @@ func newVPCConfigTest2() (*VPCConfig, *VPCConnectivity) {
 	res.Nodes[0].(*mockNetIntf).subnet = res.Subnets[0]
 	res.Nodes[3].(*mockNetIntf).subnet = res.Subnets[0]
 
-	res1 := &VPCConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], connection.All())
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], connection.All())
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[3], res.Nodes[1], connection.All())
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[3], res.Nodes[2], connection.All())
+	res1 := &VPCConnectivity{AllowedConnsCombinedStateful: GeneralStatefulConnectivityMap{}}
+	extendedConn := &ExtendedSet{statefulConn: newTCPSet(), nonStatefulConn: NoConns(),
+		otherConn: connection.All().Subtract(newTCPSet()), conn: connection.All()}
+	res1.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(res.Nodes[0], res.Nodes[1], extendedConn)
+	res1.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(res.Nodes[0], res.Nodes[2], extendedConn)
+	res1.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(res.Nodes[3], res.Nodes[1], extendedConn)
+	res1.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(res.Nodes[3], res.Nodes[2], extendedConn)
 
 	return res, res1
 }
