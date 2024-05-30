@@ -65,7 +65,6 @@ func (statefulConnMap GeneralStatefulConnectivityMap) updateAllowedStatefulConns
 
 // todo: following functionality needs to be moved to package connection with member instead of parms passing
 
-// todo exists already in connection
 func newTCPSet() *connection.Set {
 	return connection.TCPorUDPConnection(netp.ProtocolStringTCP, connection.MinPort, connection.MaxPort,
 		connection.MinPort, connection.MaxPort)
