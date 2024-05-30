@@ -1279,6 +1279,40 @@ func getVPCObjectByUID(res *vpcmodel.MultipleVPCConfigs, uid string) (*VPC, erro
 	return vpc, nil
 }
 
+func getSGsRulesCIDR(rc *datamodel.ResourcesContainerModel) (sgsAddresses []*ipblock.IPBlock, err error) {
+	for _, sgObj := range rc.SecurityGroupList {
+		for _, ruleObj := range sgObj.Rules {
+			addresses := []string{
+				*ruleObj.(*vpc1.SecurityGroupRule).Remote.(*vpc1.SecurityGroupRuleRemote).CIDRBlock,
+				*ruleObj.(*vpc1.SecurityGroupRule).Local.(*vpc1.SecurityGroupRuleLocal).CIDRBlock,
+			}
+			for _, address := range addresses {
+				b, err := ipblock.FromCidr(address)
+				if err != nil {
+					return nil, err
+				}
+				sgsAddresses = append(sgsAddresses, b)
+			}
+		}
+	}
+	sgsRulesBlockes := ipblock.DisjointIPBlocks(sgsAddresses, []*ipblock.IPBlock{})
+	subnetsAddresses := map[string]*ipblock.IPBlock{}
+	for _, subnetObj := range rc.SubnetList {
+		b, err := ipblock.FromCidr(*subnetObj.Ipv4CIDRBlock)
+		if err != nil {
+			return nil, err
+		}
+		subnetsAddresses[*subnetObj.CRN] = b
+	}
+	for _, loadBalancerObj := range rc.LBList {
+		segments := []*ipblock.IPBlock{}
+		for _, subnetObj := range loadBalancerObj.Subnets {
+			for rule
+			}
+	}
+	return sgsAddresses, nil
+}
+
 // ///////////////////////////////////////////////////////////////////////
 // getSubnetsFreeAddresses() and allocSubnetFreeAddress() are needed for load balancer parsing.
 // when a load balancer is created, Private IPs are not created in all the load balancer subnets.
@@ -1296,8 +1330,7 @@ func getSubnetsFreeAddresses(rc *datamodel.ResourcesContainerModel) (map[string]
 		if err != nil {
 			return nil, err
 		}
-		// all the allocated IPs are at subnetObj.ReservedIps. (did not find documentation, it is what we experiment)
-		// see https://github.com/np-guard/vpc-network-config-analyzer/issues/566
+		// all the allocated IPs are at subnetObj.ReservedIps.
 		for _, reservedIP := range subnetObj.ReservedIps {
 			b2, err := ipblock.FromIPAddress(*reservedIP.Address)
 			if err != nil {
