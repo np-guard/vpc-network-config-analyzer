@@ -308,13 +308,13 @@ func configSimpleVsisDiff() (configConn1, configConn2 *configConnectivity) {
 	cfg1Conn.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(cfg1.Nodes[2], cfg1.Nodes[3], extendedConnTCP)
 	cfg1Conn.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(cfg1.Nodes[2], cfg1.Nodes[4], extendedConnTCP)
 
-	cfg2Conn := &VPCConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
+	cfg2Conn := &VPCConnectivity{AllowedConnsCombinedStateful: GeneralStatefulConnectivityMap{}}
 	// 1st connections is identical to these in cfg1; the 2nd one differs in the conn type, the 3rd one has a dst that
 	// does not exist in cfg1
-	cfg2Conn.AllowedConnsCombined.updateAllowedConnsMap(cfg2.Nodes[0], cfg2.Nodes[1], connection.All())
-	cfg2Conn.AllowedConnsCombined.updateAllowedConnsMap(cfg2.Nodes[1], cfg2.Nodes[2], connection.All())
-	cfg2Conn.AllowedConnsCombined.updateAllowedConnsMap(cfg2.Nodes[2], cfg2.Nodes[3], connection.All())
-	cfg2Conn.AllowedConnsCombined.updateAllowedConnsMap(cfg2.Nodes[1], cfg2.Nodes[4], connection.All())
+	cfg2Conn.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(cfg2.Nodes[0], cfg2.Nodes[1], extendedConnAll)
+	cfg2Conn.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(cfg2.Nodes[1], cfg2.Nodes[2], extendedConnAll)
+	cfg2Conn.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(cfg2.Nodes[2], cfg2.Nodes[3], extendedConnAll)
+	cfg2Conn.AllowedConnsCombinedStateful.updateAllowedConnsMapNew(cfg2.Nodes[1], cfg2.Nodes[4], extendedConnAll)
 
 	configConn1 = &configConnectivity{cfg1, cfg1Conn.AllowedConnsCombinedStateful}
 	configConn2 = &configConnectivity{cfg2, cfg2Conn.AllowedConnsCombinedStateful}
