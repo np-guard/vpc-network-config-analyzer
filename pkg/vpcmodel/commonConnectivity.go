@@ -71,8 +71,8 @@ func newTCPSet() *connection.Set {
 		connection.MinPort, connection.MaxPort)
 }
 
-func partitionTCPNonTCP(conn *connection.Set) (tcp, nonTcp *connection.Set) {
+func partitionTCPNonTCP(conn *connection.Set) (tcp, nonTCP *connection.Set) {
 	tcpFractionOfConn := newTCPSet().Intersect(conn)
-	nonTcpFractionOfConn := conn.Subtract(tcpFractionOfConn)
-	return tcpFractionOfConn, nonTcpFractionOfConn
+	nonTCPFractionOfConn := conn.Subtract(tcpFractionOfConn)
+	return tcpFractionOfConn, nonTCPFractionOfConn
 }

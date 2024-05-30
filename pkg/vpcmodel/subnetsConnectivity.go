@@ -339,10 +339,10 @@ func (v *VPCsubnetConnectivity) computeStatefulConnections() error {
 			conn.WithStatefulness(otherDirectionConn)
 
 			statefulCombinedConn := conn.WithStatefulness(otherDirectionConn)
-			tcpStatefulFraction, nonTcpFraction := partitionTCPNonTCP(statefulCombinedConn)
+			tcpStatefulFraction, nonTCPFraction := partitionTCPNonTCP(statefulCombinedConn)
 			tcpNonStatefulFraction := conn.Subtract(statefulCombinedConn)
 			extendedSet := &ExtendedSet{statefulConn: tcpStatefulFraction,
-				nonStatefulConn: tcpNonStatefulFraction, otherConn: nonTcpFraction, conn: conn}
+				nonStatefulConn: tcpNonStatefulFraction, otherConn: nonTCPFraction, conn: conn}
 			v.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(src, dst, extendedSet)
 		}
 	}
