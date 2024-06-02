@@ -63,6 +63,75 @@ func (statefulConnMap GeneralStatefulConnectivityMap) updateAllowedStatefulConns
 	statefulConnMap[src][dst] = extendedConn
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////
+// operation on ExtendedSet
+// The operations are performed on the disjoint statefulConn and otherConn and on conn which contains them;
+// nonStatefulConn - the tcp complementary of statefulConn w.r.t. conn -
+// is computed as conn minus (statefulConn union otherConn)
+
+var all = connection.All()
+
+func (e *ExtendedSet) IsAll() bool {
+	return e.conn.Equal(all)
+}
+
+func (e *ExtendedSet) IsEmpty() bool {
+	return e.conn.IsEmpty()
+}
+
+func (e *ExtendedSet) Equal(other *ExtendedSet) bool {
+	return e.conn.Equal(other.conn)
+}
+
+func (e *ExtendedSet) Copy() *ExtendedSet {
+	return &ExtendedSet{
+		statefulConn:    e.statefulConn,
+		nonStatefulConn: e.nonStatefulConn,
+		otherConn:       e.otherConn,
+		conn:            e.conn,
+	}
+}
+
+func computeNonStatefulConn(conn, otherConn, statefulConn *connection.Set) *connection.Set {
+	return conn.Subtract(otherConn).Subtract(statefulConn)
+}
+
+func (e *ExtendedSet) Intersect(other *ExtendedSet) *ExtendedSet {
+	statefulConn := e.statefulConn.Intersect(other.statefulConn)
+	otherConn := e.otherConn.Intersect(other.otherConn)
+	conn := e.conn.Intersect(other.conn)
+	return &ExtendedSet{
+		statefulConn:    statefulConn,
+		nonStatefulConn: computeNonStatefulConn(conn, otherConn, statefulConn),
+		otherConn:       otherConn,
+		conn:            conn,
+	}
+}
+
+func (e *ExtendedSet) Union(other *ExtendedSet) *ExtendedSet {
+	statefulConn := e.statefulConn.Union(other.statefulConn)
+	otherConn := e.otherConn.Union(other.otherConn)
+	conn := e.conn.Union(other.conn)
+	return &ExtendedSet{
+		statefulConn:    statefulConn,
+		nonStatefulConn: computeNonStatefulConn(conn, otherConn, statefulConn),
+		otherConn:       otherConn,
+		conn:            conn,
+	}
+}
+
+func (e *ExtendedSet) Subtract(other *ExtendedSet) *ExtendedSet {
+	statefulConn := e.statefulConn.Subtract(other.statefulConn)
+	otherConn := e.otherConn.Subtract(other.otherConn)
+	conn := e.conn.Subtract(other.conn)
+	return &ExtendedSet{
+		statefulConn:    statefulConn,
+		nonStatefulConn: computeNonStatefulConn(conn, otherConn, statefulConn),
+		otherConn:       otherConn,
+		conn:            conn,
+	}
+}
+
 // todo: following functionality needs to be moved to package connection with member instead of parms passing
 
 func newTCPSet() *connection.Set {
