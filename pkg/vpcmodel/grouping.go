@@ -177,6 +177,8 @@ func (g *groupedConnLine) getSrcOrDst(isSrc bool) EndpointElem {
 func (g *groupedConnLine) isOverApproximated() bool {
 	src, srcIsLb := g.src.(LoadBalancer)
 	dst, dstIsLb := g.dst.(LoadBalancer)
+	// in case that src was abstracted, we check if a connection from the src to one of the destination resources is missing.
+	// add vise versa 
 	return srcIsLb && src.AbstractionInfo().hasMissingConnection(endpointElemResources(g.dst), false) ||
 		dstIsLb && dst.AbstractionInfo().hasMissingConnection(endpointElemResources(g.src), true)
 }

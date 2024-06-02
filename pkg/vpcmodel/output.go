@@ -243,17 +243,18 @@ func WriteToFile(content, fileName string) (string, error) {
 }
 
 // getAsteriskDetails returns:
-// 1. the info message about how non stateful conns are marked in the output, when relevant
-// 2. the info message about how overAproximated conns are marked in the output, when relevant
+// 1. The info message regarding non stateful conns  in the output, when relevant
+// 2. The info message regarding over-aproximated conns, when relevant
 func getAsteriskDetails(uc OutputUseCase, hasStatelessConn, hasOverApproximatedConn bool, outFormat OutFormat) string {
 	res := ""
-	if uc != SingleSubnet && (outFormat == Text || outFormat == MD || outFormat == Debug) && hasStatelessConn {
-		res += statefulMessage
+	if uc != SingleSubnet && (outFormat == Text || outFormat == MD || outFormat == Debug) {
+		if hasStatelessConn {
+			res += statefulMessage
+		}
+		if hasOverApproximatedConn {
+			res += overApproximationMessage
+		}
 	}
-	if uc != SingleSubnet && (outFormat == Text || outFormat == MD || outFormat == Debug) && hasOverApproximatedConn {
-		res += overApproximationMessage
-	}
-
 	return res
 }
 
