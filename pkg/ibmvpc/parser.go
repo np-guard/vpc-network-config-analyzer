@@ -1279,7 +1279,8 @@ func getVPCObjectByUID(res *vpcmodel.MultipleVPCConfigs, uid string) (*VPC, erro
 	return vpc, nil
 }
 
-func getSGsRulesCIDR(rc *datamodel.ResourcesContainerModel) (sgsAddresses []*ipblock.IPBlock, err error) {
+func getSGsRulesCIDR(rc *datamodel.ResourcesContainerModel) (err error) {
+	sgsAddresses := []*ipblock.IPBlock{ipblock.GetCidrAll()}
 	for _, sgObj := range rc.SecurityGroupList {
 		for _, ruleObj := range sgObj.Rules {
 			addresses := []string{
@@ -1307,10 +1308,8 @@ func getSGsRulesCIDR(rc *datamodel.ResourcesContainerModel) (sgsAddresses []*ipb
 	for _, loadBalancerObj := range rc.LBList {
 		segments := []*ipblock.IPBlock{}
 		for _, subnetObj := range loadBalancerObj.Subnets {
-			for rule
-			}
 	}
-	return sgsAddresses, nil
+	return  nil
 }
 
 // ///////////////////////////////////////////////////////////////////////
