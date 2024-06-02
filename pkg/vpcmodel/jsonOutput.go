@@ -78,7 +78,7 @@ func getConnLines(conn *VPCConnectivity) []connLine {
 
 	for src, srcMap := range conn.AllowedConnsCombinedStateful {
 		for dst, extConn := range srcMap {
-			if extConn.conn.IsEmpty() {
+			if extConn.IsEmpty() {
 				continue
 			}
 			statefulAndOther := extConn.statefulConn.Union(extConn.otherConn)
@@ -113,7 +113,7 @@ func getConnLinesForSubnetsConnectivity(conn *VPCsubnetConnectivity) []connLine 
 	connLines := []connLine{}
 	for src, nodeConns := range conn.AllowedConnsCombinedStateful {
 		for dst, extConns := range nodeConns {
-			if extConns.conn.IsEmpty() {
+			if extConns.IsEmpty() {
 				continue
 			}
 			// currently not supported with grouping

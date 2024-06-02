@@ -342,7 +342,7 @@ func (statefulConnMap GeneralStatefulConnectivityMap) getCombinedConnsStr(onlyBi
 			// src and dst here are nodes, always. Thus ignoring potential error in conversion
 			srcNode := src.(Node)
 			dstNode := dst.(Node)
-			if extConns.conn.IsEmpty() {
+			if extConns.IsEmpty() {
 				continue
 			}
 			srcName := srcNode.CidrOrAddress()

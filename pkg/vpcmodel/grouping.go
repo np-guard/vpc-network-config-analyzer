@@ -153,7 +153,7 @@ func (g *groupedConnLine) String(c *VPCConfig) string {
 }
 
 func (g *groupedConnLine) ConnLabel() string {
-	if g.commonProperties.extendedConn.conn.IsAll() {
+	if g.commonProperties.extendedConn.IsAll() {
 		return ""
 	}
 	return g.commonProperties.groupingStrKey
@@ -256,7 +256,7 @@ func (g *GroupConnLines) groupExternalAddresses(vsi bool) error {
 	}
 	for src, nodeConns := range allowedConnsCombinedStateful {
 		for dst, extendedConns := range nodeConns {
-			if !extendedConns.conn.IsEmpty() {
+			if !extendedConns.IsEmpty() {
 				err := g.addLineToExternalGrouping(&res, src, dst,
 					&groupedCommonProperties{extendedConn: extendedConns, groupingStrKey: extendedConns.EnhancedString()})
 				if err != nil {

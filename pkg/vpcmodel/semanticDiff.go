@@ -177,7 +177,7 @@ func (confConnectivity *configConnectivity) connMissingOrChanged(other *configCo
 	connectivityMissingOrChanged = map[VPCResourceIntf]map[VPCResourceIntf]*connectionDiff{}
 	for src, endpointConns := range confConnectivity.connectivity {
 		for dst, extendedConns := range endpointConns {
-			if extendedConns.conn.IsEmpty() {
+			if extendedConns.IsEmpty() {
 				continue
 			}
 			if _, ok := connectivityMissingOrChanged[src]; !ok {
@@ -437,7 +437,7 @@ func (statefulConnMap *GeneralStatefulConnectivityMap) actualAlignSrcOrDstGivenI
 	alignedConnectivity = map[VPCResourceIntf]map[VPCResourceIntf]*ExtendedSet{}
 	for src, endpointConns := range *statefulConnMap {
 		for dst, extendedConns := range endpointConns {
-			if extendedConns.conn.IsEmpty() {
+			if extendedConns.IsEmpty() {
 				continue
 			}
 			// the resizing element is not external - copy as is
@@ -519,7 +519,7 @@ func (statefulConnMap GeneralStatefulConnectivityMap) getIPBlocksList() (ipbList
 	myErr error) {
 	for src, endpointConns := range statefulConnMap {
 		for dst, extendedConns := range endpointConns {
-			if extendedConns.conn.IsEmpty() {
+			if extendedConns.IsEmpty() {
 				continue
 			}
 			if src.IsExternal() {
