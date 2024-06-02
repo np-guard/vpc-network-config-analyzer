@@ -181,6 +181,16 @@ func (stl *templateStyles) FIPImage() string {
 func (stl *templateStyles) Color(tn TreeNodeInterface) string {
 	return colors[reflect.TypeOf(tn).Elem()]
 }
+func (stl *templateStyles) Opacity(tn TreeNodeInterface) string {
+	if pip, ok := tn.(*PrivateIPTreeNode); ok {
+		if !pip.Original() {
+			return "50"
+		}
+	}
+	// in html the opacity is a float from zero to one. in drawio ia an int from 0 to 100.
+	// so we give 99, and not 100 ( to get in html 0.99 and not 0.100)
+	return "99"
+}
 
 ////////////////////////////////////////////////////////////////////////
 

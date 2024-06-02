@@ -71,7 +71,7 @@
                     {{ $xTextOffset = 0 }}
                 {{end}}
                 <title></title>
-                <image x="{{$ax}}" y="{{$ay}}" width="{{$node.IconSize}}" height="{{$node.IconSize}}" xlink:href="data:image/svg+xml;base64,{{$data.Image $node}}"/>
+                <image x="{{$ax}}" y="{{$ay}}" width="{{$node.IconSize}}" height="{{$node.IconSize}}" opacity="0.{{$data.Opacity $node}}" xlink:href="data:image/svg+xml;base64,{{$data.Image $node}}"/>
                 <foreignObject  x="{{$data.Add $ax $xTextOffset}}" y="{{$data.Add $ay 40}}" width="120" height="70">
           				<p xmlns="http://www.w3.org/1999/xhtml" fill="rgb(0, 0, 0)" font-family="IBM Plex Sans" text-anchor="middle" font-size="14px">{{$data.SvgLabel $node}}</p>
 				        </foreignObject >

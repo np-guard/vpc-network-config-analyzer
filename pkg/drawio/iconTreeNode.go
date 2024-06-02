@@ -260,15 +260,18 @@ func newLoadBalancerTreeNode(parent SquareTreeNodeInterface, name string, privat
 
 type PrivateIPTreeNode struct {
 	abstractIconTreeNode
+	original bool // does the private IP was originally at the config file, or it is a fake one
 }
 
-func NewPrivateIPTreeNode(parent SquareTreeNodeInterface, name string) *PrivateIPTreeNode {
+func NewPrivateIPTreeNode(parent SquareTreeNodeInterface, name string, original bool) *PrivateIPTreeNode {
 	rip := PrivateIPTreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, name)}
 	parent.addIconTreeNode(&rip)
+	rip.original = original
 	return &rip
 }
 
 func (tn *PrivateIPTreeNode) RouterID() uint { return tn.FipID() }
+func (tn *PrivateIPTreeNode) Original() bool { return tn.original }
 
 // ///////////////////////////////////////////
 
