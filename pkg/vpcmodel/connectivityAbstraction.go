@@ -165,9 +165,12 @@ func (nsa *NodeSetAbstraction) missingConnections(connMap, mergedConnMap General
 
 // AbstractionInfo is the abstraction information of one nodeSet
 type AbstractionInfo struct {
-	missingIngressConnections GeneralConnectivityMap // the ingress connections that are missing for the assumption to hold
-	missingEgressConnections  GeneralConnectivityMap // the egress connections that are missing for the assumption to hold
-
+	// missingIngressConnections - the ingress connections that are missing for the assumption to hold:
+	// (all connections of the form: <any node> -> <node in the node set>)
+	missingIngressConnections GeneralConnectivityMap
+	// missingEgressConnections - the egress connections that are missing for the assumption to hold:
+	// (all connections of the form: <node in the node set> -> <any node>)
+	missingEgressConnections GeneralConnectivityMap
 }
 
 // hasMissingConnection() checks is one of the resources has missing connection

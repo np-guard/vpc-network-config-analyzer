@@ -312,12 +312,12 @@ func (v *VPCConnectivity) getPerLayerConnectivity(layer string, src, dst Node, i
 // see details at nodeSetConnectivityAbstraction()
 func (v *VPCConnectivity) abstractLoadBalancers(loadBalancers []LoadBalancer, lbAbstraction bool) {
 	if lbAbstraction {
-		abstractionInfo := newNodeSetAbstraction(v.AllowedConnsCombined)
+		nodeAbstraction := newNodeSetAbstraction(v.AllowedConnsCombined)
 		for _, lb := range loadBalancers {
-			ai := abstractionInfo.abstractNodeSet(lb)
-			lb.SetAbstractionInfo(ai)
+			abstractionInfo := nodeAbstraction.abstractNodeSet(lb)
+			lb.SetAbstractionInfo(abstractionInfo)
 		}
-		v.AllowedConnsCombined = abstractionInfo.abstractedConnectivity
+		v.AllowedConnsCombined = nodeAbstraction.abstractedConnectivity
 	}
 }
 

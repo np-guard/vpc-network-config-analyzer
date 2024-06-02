@@ -133,7 +133,7 @@ type GroupConnLines struct {
 	GroupedLines []*groupedConnLine
 }
 
-// EndpointElem can be Node(networkInterface) / groupedExternalNodes / groupedNetworkInterfaces / NodeSet(subnet or LB)
+// EndpointElem can be Node(networkInterface) / groupedExternalNodes / groupedEndpointsElems / NodeSet(subnet or LB)
 type EndpointElem interface {
 	Name() string
 	ExtendedName(*VPCConfig) string
@@ -148,24 +148,21 @@ type groupedConnLine struct {
 	commonProperties *groupedCommonProperties // holds the common conn/diff properties
 }
 
-// todo - overApproximatedExt() should be replaced when using new message mechanism
-// todo2 - g.commonProperties.groupingStrKey is used in several places, when to use overApproximatedExt()?
-func (g *groupedConnLine) overApproximatedExt() string {
-	if g.isOverApproximated() {
-		return "**"
-	}
-	return ""
-}
-
 func (g *groupedConnLine) String(c *VPCConfig) string {
-	return g.src.ExtendedName(c) + " => " + g.dst.ExtendedName(c) + " : " + g.commonProperties.groupingStrKey + g.overApproximatedExt()
+	return g.src.ExtendedName(c) + " => " + g.dst.ExtendedName(c) + " : " + g.ConnLabel(true)
 }
 
-func (g *groupedConnLine) ConnLabel() string {
-	if g.commonProperties.conn.IsAll() {
-		return g.overApproximatedExt()
+func (g *groupedConnLine) ConnLabel(full bool) string {
+	label := g.commonProperties.groupingStrKey
+	if !full && g.commonProperties.conn.IsAll() {
+		label = ""
 	}
-	return g.commonProperties.groupingStrKey + g.overApproximatedExt()
+	signs := []string{}
+	if g.isOverApproximated() {
+		signs = append(signs, overApproximationSign)
+	}
+	// todo - move stateful sign here
+	return label + strings.Join(signs, ",")
 }
 
 func (g *groupedConnLine) getSrcOrDst(isSrc bool) EndpointElem {

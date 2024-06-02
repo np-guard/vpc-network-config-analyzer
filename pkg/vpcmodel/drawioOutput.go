@@ -172,8 +172,8 @@ func (d *DrawioOutputFormatter) createEdges() {
 			src := line.src
 			dst := line.dst
 			router := d.lineRouter(line, vpcResourceID)
-			e := edgeKey{src, dst, router, line.ConnLabel()}
-			revE := edgeKey{dst, src, router, line.ConnLabel()}
+			e := edgeKey{src, dst, router, line.ConnLabel(false)}
+			revE := edgeKey{dst, src, router, line.ConnLabel(false)}
 			_, revExist := isEdgeDirected[revE]
 			if revExist {
 				isEdgeDirected[revE] = false
