@@ -59,14 +59,20 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping, lbAbstraction bool) (res
 			res.AllowedConnsPerLayer[node][layer].EgressAllowedConns = egressAllowedConnsPerLayer[layer]
 		}
 	}
+	res.computeAllowedConnsCombined()
 	allowedConnsCombined := res.computeAllowedConnsCombined()
 	res.computeAllowedStatefulConnections(allowedConnsCombined)
 	// todo: implemented for computeAllowedStatefulConnection; tests with LB disabled for now
-	// if lbAbstraction {
+	//if lbAbstraction {
+	//	// load balancer abstraction:
+	//	// currently, AllowedConnsCombined contains the private IPs of the load balancer.
+	//	// the abstraction creates new AllowedConnsCombined,
+	//	// it replaces the private IPs in the with the load balancer itself
+	//	// see details at nodeSetConnectivityAbstraction()
 	//	for _, lb := range c.LoadBalancers {
 	//		res.AllowedConnsCombined = nodeSetConnectivityAbstraction(res.AllowedConnsCombined, lb)
 	//	}
-	// }
+	//}
 	res.GroupedConnectivity, err = newGroupConnLines(c, res, grouping)
 	return res, err
 }

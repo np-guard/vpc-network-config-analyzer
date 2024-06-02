@@ -17,13 +17,14 @@ func analysisVPCConfigs(inArgs *inArgs, analysisType vpcmodel.OutputUseCase) err
 	if err != nil {
 		return err
 	}
-
 	outFormat := inArgs.outputFormat.ToModelFormat()
+	// todo - the lbAbstraction should be derived from a flag "debug", when we will have one
+	lbAbstraction := outFormat != vpcmodel.Debug
 	og, err := vpcmodel.NewOutputGenerator(vpcConfigs,
 		inArgs.grouping,
 		analysisType,
 		false,
-		inArgs.explanationArgs, outFormat)
+		inArgs.explanationArgs, outFormat, lbAbstraction)
 	if err != nil {
 		return err
 	}
