@@ -185,7 +185,6 @@ func (g *groupedConnLine) isOverApproximated() bool {
 
 // you might think that the following method should be part of EndpointElem interface.
 // however, there is no convenient way to do so (unless we add implementation for each VPCResource)
-// boo for golang
 func endpointElemResources(e EndpointElem) []VPCResourceIntf {
 	switch reflect.TypeOf(e).Elem() {
 	case reflect.TypeOf(groupedEndpointsElems{}):
