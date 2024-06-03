@@ -49,7 +49,7 @@ func (nsa *NodeSetAbstraction) abstractNodeSet(nodeSet NodeSet) *AbstractionInfo
 	// collect the abstracted information of the nodeSet:
 	abstractionInfo := nsa.nodeSetAbstractionInformation(mergedConnectivity, nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet, nodeSet)
 	// add the fourth group
-	mergedConnectivity.addMap(otherToOther)
+	mergedConnectivity.updateMap(otherToOther)
 	// update the connectivity
 	nsa.abstractedConnectivity = mergedConnectivity
 	return abstractionInfo
@@ -134,7 +134,7 @@ func (nsa *NodeSetAbstraction) nodeSetAbstractionInformation(mergedConnectivity 
 	abstractionInfo.missingEgressConnections = nsa.missingConnections(otherFromNodeSet, mergedConnectivity, nodeSet, false)
 	abstractionInfo.missingIngressConnections = nsa.missingConnections(otherToNodeSet, mergedConnectivity, nodeSet, true)
 	// nodeSetToNodeSet can be ether ingress or egress; as such it suffice to add it to one of them:
-	abstractionInfo.missingIngressConnections.addMap(nsa.missingConnections(nodeSetToNodeSet, mergedConnectivity, nodeSet, true))
+	abstractionInfo.missingIngressConnections.updateMap(nsa.missingConnections(nodeSetToNodeSet, mergedConnectivity, nodeSet, true))
 	return abstractionInfo
 }
 

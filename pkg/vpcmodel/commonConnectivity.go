@@ -17,7 +17,7 @@ func (connectivityMap GeneralConnectivityMap) updateAllowedConnsMap(src, dst VPC
 	connectivityMap[src][dst] = conn
 }
 
-func (connectivityMap GeneralConnectivityMap) addMap(connectivityMap2 GeneralConnectivityMap) {
+func (connectivityMap GeneralConnectivityMap) updateMap(connectivityMap2 GeneralConnectivityMap) {
 	for src, nodeConns := range connectivityMap2 {
 		for dst, conns := range nodeConns {
 			connectivityMap.updateAllowedConnsMap(src, dst, conns)
@@ -26,6 +26,6 @@ func (connectivityMap GeneralConnectivityMap) addMap(connectivityMap2 GeneralCon
 }
 func (connectivityMap GeneralConnectivityMap) copy() GeneralConnectivityMap {
 	newConnectivityMap := GeneralConnectivityMap{}
-	newConnectivityMap.addMap(connectivityMap)
+	newConnectivityMap.updateMap(connectivityMap)
 	return newConnectivityMap
 }
