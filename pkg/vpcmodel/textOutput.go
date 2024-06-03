@@ -66,12 +66,14 @@ func (t *TextOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 		return nil, err
 	}
 	hasStatelessConns := false
+	hasOverApproximatedConn := false
 
 	// get output by analysis type
 	switch uc {
 	case AllEndpoints:
 		out += conn.GroupedConnectivity.String(c1)
 		hasStatelessConns = conn.GroupedConnectivity.hasStatelessConns()
+		hasOverApproximatedConn = conn.GroupedConnectivity.hasOverApproximatedConn()
 	case AllSubnets:
 		out += subnetsConn.GroupedConnectivity.String(c1)
 		hasStatelessConns = subnetsConn.GroupedConnectivity.hasStatelessConns()
@@ -91,5 +93,5 @@ func (t *TextOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	// write output to file and return the output string
 	_, err = WriteToFile(out, outFile)
 	return &SingleAnalysisOutput{Output: out, VPC1Name: c1.VPC.Name(),
-		VPC2Name: vpc2Name, format: Text, hasStatelessConn: hasStatelessConns}, err
+		VPC2Name: vpc2Name, format: Text, hasStatelessConn: hasStatelessConns, hasOverApproximatedConn: hasOverApproximatedConn}, err
 }

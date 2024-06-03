@@ -60,16 +60,7 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping, lbAbstraction bool) (res
 	}
 	res.computeAllowedConnsCombined()
 	res.computeAllowedStatefulConnections()
-	if lbAbstraction {
-		// load balancer abstraction:
-		// currently, AllowedConnsCombined contains the private IPs of the load balancer.
-		// the abstraction creates new AllowedConnsCombined,
-		// it replaces the private IPs in the with the load balancer itself
-		// see details at nodeSetConnectivityAbstraction()
-		for _, lb := range c.LoadBalancers {
-			res.AllowedConnsCombined = nodeSetConnectivityAbstraction(res.AllowedConnsCombined, lb)
-		}
-	}
+	res.abstractLoadBalancers(c.LoadBalancers, lbAbstraction)
 	res.GroupedConnectivity, err = newGroupConnLines(c, res, grouping)
 	return res, err
 }
@@ -311,6 +302,23 @@ func (v *VPCConnectivity) getPerLayerConnectivity(layer string, src, dst Node, i
 		return NoConns()
 	}
 	return result
+}
+
+// load balancer abstraction:
+// currently, AllowedConnsCombined contains the private IPs of the load balancer.
+// the abstraction creates new AllowedConnsCombined,
+// it replaces the private IPs in the with the load balancer itself
+// for each load balancer, it keeps the abstractionInfo, to be used later
+// see details at nodeSetConnectivityAbstraction()
+func (v *VPCConnectivity) abstractLoadBalancers(loadBalancers []LoadBalancer, lbAbstraction bool) {
+	if lbAbstraction {
+		nodeAbstraction := newNodeSetAbstraction(v.AllowedConnsCombined)
+		for _, lb := range loadBalancers {
+			abstractionInfo := nodeAbstraction.abstractNodeSet(lb)
+			lb.SetAbstractionInfo(abstractionInfo)
+		}
+		v.AllowedConnsCombined = nodeAbstraction.abstractedConnectivity
+	}
 }
 
 const (

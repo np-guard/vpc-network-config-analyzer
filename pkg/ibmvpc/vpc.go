@@ -238,8 +238,7 @@ func (v *Vpe) Zone() (*Zone, error) {
 // LoadBalancerPool //////////////////////////////////////////
 // Load Balancer
 // the nodes are the private IPs
-// for now the listeners hold the pools that holds the backend servers (aka pool members)
-// todo - implement more...
+// the listeners hold the pools that holds the backend servers (aka pool members)
 type LoadBalancerPool []vpcmodel.Node
 type LoadBalancerListener []LoadBalancerPool
 
@@ -247,6 +246,8 @@ type LoadBalancer struct {
 	vpcmodel.VPCResource
 	nodes     []vpcmodel.Node
 	listeners []LoadBalancerListener
+	// abstractionInfo holds the information the relevant for the abstraction of the load balancer
+	abstractionInfo *vpcmodel.AbstractionInfo
 }
 
 // for LB we add the kind to the name, to make it clear in the reports
@@ -285,6 +286,13 @@ func (lb *LoadBalancer) members() []vpcmodel.Node {
 // lb is per vpc and not per zone...
 func (lb *LoadBalancer) Zone() (*Zone, error) {
 	return nil, nil
+}
+
+func (lb *LoadBalancer) SetAbstractionInfo(abstractionInfo *vpcmodel.AbstractionInfo) {
+	lb.abstractionInfo = abstractionInfo
+}
+func (lb *LoadBalancer) AbstractionInfo() *vpcmodel.AbstractionInfo {
+	return lb.abstractionInfo
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
