@@ -1290,26 +1290,41 @@ func getSGsRulesCIDR(rc *datamodel.ResourcesContainerModel) (err error) {
 			for _, address := range addresses {
 				b, err := ipblock.FromCidr(address)
 				if err != nil {
-					return nil, err
+					return err
 				}
 				sgsAddresses = append(sgsAddresses, b)
 			}
 		}
 	}
 	sgsRulesBlockes := ipblock.DisjointIPBlocks(sgsAddresses, []*ipblock.IPBlock{})
-	subnetsAddresses := map[string]*ipblock.IPBlock{}
-	for _, subnetObj := range rc.SubnetList {
-		b, err := ipblock.FromCidr(*subnetObj.Ipv4CIDRBlock)
-		if err != nil {
-			return nil, err
-		}
-		subnetsAddresses[*subnetObj.CRN] = b
-	}
+	lbSubnets := map[string]bool{}
 	for _, loadBalancerObj := range rc.LBList {
-		segments := []*ipblock.IPBlock{}
 		for _, subnetObj := range loadBalancerObj.Subnets {
+			lbSubnets[*subnetObj.CRN] = true
+		}
 	}
-	return  nil
+	subnetsBlocks := map[string]*ipblock.IPBlock{}
+	for _, subnetObj := range rc.SubnetList {
+		if lbSubnets[*subnetObj.CRN] {
+			b, err := ipblock.FromCidr(*subnetObj.Ipv4CIDRBlock)
+			if err != nil {
+				return err
+			}
+			subnetsBlocks[*subnetObj.CRN] = b
+		}
+	}
+	subnetsSubBlocs := map[string][]*ipblock.IPBlock{}
+	for subnet, subnetBlock := range subnetsBlocks {
+		subnetSubBlocks := []*ipblock.IPBlock{subnetBlock}
+		for _, sgBlock := range sgsRulesBlockes {
+			subnetSubBlocks = append(subnetSubBlocks, subnetBlock.Intersect(sgBlock))
+		}
+		subnetsSubBlocs[subnet] = ipblock.DisjointIPBlocks(subnetSubBlocks, []*ipblock.IPBlock{})
+		if len(subnetsSubBlocs[subnet]) > 0 {
+			fmt.Println(subnet + " has more than one block")
+		}
+	}
+	return nil
 }
 
 // ///////////////////////////////////////////////////////////////////////
