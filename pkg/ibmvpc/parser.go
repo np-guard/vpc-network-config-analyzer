@@ -1279,20 +1279,34 @@ func getVPCObjectByUID(res *vpcmodel.MultipleVPCConfigs, uid string) (*VPC, erro
 	return vpc, nil
 }
 
+func wtf(rule vpc1.SecurityGroupRuleIntf) []*string {
+	var remote, local *string
+	switch ruleObj := rule.(type) {
+	case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolAll:
+		remote = ruleObj.Remote.(*vpc1.SecurityGroupRuleRemote).CIDRBlock
+		local = ruleObj.Local.(*vpc1.SecurityGroupRuleLocal).CIDRBlock
+	case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudp:
+		remote = ruleObj.Remote.(*vpc1.SecurityGroupRuleRemote).CIDRBlock
+		local = ruleObj.Local.(*vpc1.SecurityGroupRuleLocal).CIDRBlock
+	case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolIcmp:
+		remote = ruleObj.Remote.(*vpc1.SecurityGroupRuleRemote).CIDRBlock
+		local = ruleObj.Local.(*vpc1.SecurityGroupRuleLocal).CIDRBlock
+	}
+	return []*string{remote, local}
+}
+
 func getSGsRulesCIDR(rc *datamodel.ResourcesContainerModel) (err error) {
 	sgsAddresses := []*ipblock.IPBlock{ipblock.GetCidrAll()}
 	for _, sgObj := range rc.SecurityGroupList {
-		for _, ruleObj := range sgObj.Rules {
-			addresses := []string{
-				*ruleObj.(*vpc1.SecurityGroupRule).Remote.(*vpc1.SecurityGroupRuleRemote).CIDRBlock,
-				*ruleObj.(*vpc1.SecurityGroupRule).Local.(*vpc1.SecurityGroupRuleLocal).CIDRBlock,
-			}
-			for _, address := range addresses {
-				b, err := ipblock.FromCidr(address)
-				if err != nil {
-					return err
+		for _, rule := range sgObj.Rules {
+			for _, address := range wtf(rule) {
+				if address != nil {
+					b, err := ipblock.FromCidr(*address)
+					if err != nil {
+						return err
+					}
+					sgsAddresses = append(sgsAddresses, b)
 				}
-				sgsAddresses = append(sgsAddresses, b)
 			}
 		}
 	}
@@ -1320,8 +1334,8 @@ func getSGsRulesCIDR(rc *datamodel.ResourcesContainerModel) (err error) {
 			subnetSubBlocks = append(subnetSubBlocks, subnetBlock.Intersect(sgBlock))
 		}
 		subnetsSubBlocs[subnet] = ipblock.DisjointIPBlocks(subnetSubBlocks, []*ipblock.IPBlock{})
-		if len(subnetsSubBlocs[subnet]) > 0 {
-			fmt.Println(subnet + " has more than one block")
+		if len(subnetsSubBlocs[subnet]) > 1 {
+			fmt.Println(subnet + " has more than one block " + subnetsSubBlocs[subnet][0].String() + " " + subnetsSubBlocs[subnet][1].String() )
 		}
 	}
 	return nil
@@ -1338,6 +1352,7 @@ func getSGsRulesCIDR(rc *datamodel.ResourcesContainerModel) (err error) {
 // getSubnetsFreeAddresses() collect all the free address of all subnets
 // allocSubnetFreeAddress() allocate a new address for a subnet
 func getSubnetsFreeAddresses(rc *datamodel.ResourcesContainerModel) (map[string]*ipblock.IPBlock, error) {
+	getSGsRulesCIDR(rc)
 	subnetsFreeAddresses := map[string]*ipblock.IPBlock{}
 	for _, subnetObj := range rc.SubnetList {
 		b, err := ipblock.FromCidr(*subnetObj.Ipv4CIDRBlock)
