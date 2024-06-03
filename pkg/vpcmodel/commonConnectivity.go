@@ -44,15 +44,15 @@ func (connectivityMap GeneralConnectivityMap) updateAllowedConnsMap(src, dst VPC
 	connectivityMap[src][dst] = conn
 }
 
-func (connectivityMap GeneralConnectivityMap) updateMap(connectivityMap2 GeneralConnectivityMap) {
+func (connectivityMap GeneralStatefulConnectivityMap) updateMap(connectivityMap2 GeneralStatefulConnectivityMap) {
 	for src, nodeConns := range connectivityMap2 {
 		for dst, conns := range nodeConns {
-			connectivityMap.updateAllowedConnsMap(src, dst, conns)
+			connectivityMap.updateAllowedStatefulConnsMap(src, dst, conns)
 		}
 	}
 }
-func (connectivityMap GeneralConnectivityMap) copy() GeneralConnectivityMap {
-	newConnectivityMap := GeneralConnectivityMap{}
+func (connectivityMap GeneralStatefulConnectivityMap) copy() GeneralStatefulConnectivityMap {
+	newConnectivityMap := GeneralStatefulConnectivityMap{}
 	newConnectivityMap.updateMap(connectivityMap)
 	return newConnectivityMap
 }
@@ -70,6 +70,15 @@ func (statefulConnMap GeneralStatefulConnectivityMap) updateAllowedStatefulConns
 // The operations are performed on the disjoint statefulConn and otherConn and on conn which contains them;
 // nonStatefulConn - the tcp complementary of statefulConn w.r.t. conn -
 // is computed as conn minus (statefulConn union otherConn)
+
+func NoConnsExtendedSet() *ExtendedSet {
+	return &ExtendedSet{
+		statefulConn:    NoConns(),
+		nonStatefulConn: NoConns(),
+		otherConn:       NoConns(),
+		conn:            NoConns(),
+	}
+}
 
 var all = connection.All()
 

@@ -325,13 +325,12 @@ func (v *VPCConnectivity) getPerLayerConnectivity(layer string, src, dst Node, i
 // todo: refactor: abstract v.AllowedConnsCombinedStateful
 func (v *VPCConnectivity) abstractLoadBalancers(loadBalancers []LoadBalancer, lbAbstraction bool) {
 	if lbAbstraction {
-		allowedConnsCombined := GeneralConnectivityMap{} // todo tmp just to have the code compile
-		nodeAbstraction := newNodeSetAbstraction(allowedConnsCombined)
+		nodeAbstraction := newNodeSetAbstraction(v.AllowedConnsCombinedStateful)
 		for _, lb := range loadBalancers {
 			abstractionInfo := nodeAbstraction.abstractNodeSet(lb)
 			lb.SetAbstractionInfo(abstractionInfo)
 		}
-		//v.AllowedConnsCombined = nodeAbstraction.abstractedConnectivity // todo refactor and uncomment
+		v.AllowedConnsCombinedStateful = nodeAbstraction.abstractedConnectivity
 	}
 }
 
