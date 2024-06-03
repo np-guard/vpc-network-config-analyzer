@@ -17,7 +17,7 @@ import (
 // for every node n,  a connection  n->n0 implies the connections n->n1, n->n2, n->n3 ...
 // the abstraction replaces the above n->ni connections with the single connection: n->NS.
 // The same abstraction is done in the other direction
-// when one of connections does not exist (or example n->n2 ) the "abstraction assumption" does not hold.
+// when one of actual connections is missing (e.g. n -> n1 exists but  n->n2 does not) the "abstraction assumption" does not hold.
 // these connections are called "missing connections"
 
 // the abstraction steps are:
@@ -128,20 +128,20 @@ func (nsa *NodeSetAbstraction) mergeConnectivityWithNodeSetAbstraction(
 }
 
 // nodeSetAbstractionInformation() collects abstraction information of the nodeSet.
-// for now, it collects the connections that are missing for full abstraction.
+// for now, it collects the "missing connections" (as described above) info.
 func (nsa *NodeSetAbstraction) nodeSetAbstractionInformation(mergedConnectivity GeneralConnectivityMap,
 	nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet GeneralConnectivityMap,
 	nodeSet NodeSet) *AbstractionInfo {
 	abstractionInfo := &AbstractionInfo{}
 	abstractionInfo.missingEgressConnections = nsa.missingConnections(otherFromNodeSet, mergedConnectivity, nodeSet, false)
 	abstractionInfo.missingIngressConnections = nsa.missingConnections(otherToNodeSet, mergedConnectivity, nodeSet, true)
-	// nodeSetToNodeSet can be ether ingress or egress:
+	// nodeSetToNodeSet can be ether ingress or egress; as such it suffice to add it to one of them:
 	abstractionInfo.missingIngressConnections.addMap(nsa.missingConnections(nodeSetToNodeSet, mergedConnectivity, nodeSet, true))
 	return abstractionInfo
 }
 
 // missingConnections() is called on each of the last three groups.
-// it looks for the connections that do not exist in the group, but are reflated in the mergedConnMap
+// it looks for "missing connections" -  connections that do not exist in the group, but are reflated in the mergedConnMap
 func (nsa *NodeSetAbstraction) missingConnections(connMap, mergedConnMap GeneralConnectivityMap,
 	nodeSet NodeSet, isIngress bool) GeneralConnectivityMap {
 	missingConnection := GeneralConnectivityMap{}
