@@ -92,13 +92,17 @@ func (nsa *NodeSetAbstraction) partitionConnectivityByNodeSet(nodeSet NodeSet) (
 func (nsa *NodeSetAbstraction) mergeConnectivityWithNodeSetAbstraction(
 	nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet GeneralConnectivityMap,
 	nodeSet NodeSet) GeneralConnectivityMap {
+	unionConns := func(conn *connection.Set, conns map[VPCResourceIntf]*connection.Set) *connection.Set {
+		for _, c := range conns {
+			conn = conn.Union(c)
+		}
+		return conn
+	}
 	// all the connections with the nodeSet are merged to *only* one connectivity, which is the union of all separate connections:
 	mergedConnectivity := GeneralConnectivityMap{}
 	allConns := NoConns()
 	for _, nodeConns := range nodeSetToNodeSet {
-		for _, conns := range nodeConns {
-			allConns = allConns.Union(conns)
-		}
+		allConns = unionConns(allConns, nodeConns)
 	}
 	// adding to the result
 	mergedConnectivity.updateAllowedConnsMap(nodeSet, nodeSet, allConns)
@@ -109,19 +113,13 @@ func (nsa *NodeSetAbstraction) mergeConnectivityWithNodeSetAbstraction(
 	// so, the outer loop should run over the nodes not in the nodeSet.
 	// hence, this group is from dst to src.
 	for dst, nodeConns := range otherFromNodeSet {
-		allConns := NoConns()
-		for _, conns := range nodeConns {
-			allConns = allConns.Union(conns)
-		}
+		allConns = unionConns(NoConns(), nodeConns)
 		mergedConnectivity.updateAllowedConnsMap(nodeSet, dst, allConns)
 	}
 
 	// all connection from a node to the nodeSet, are union and added to the result:
 	for src, nodeConns := range otherToNodeSet {
-		allConns := NoConns()
-		for _, conns := range nodeConns {
-			allConns = allConns.Union(conns)
-		}
+		allConns = unionConns(NoConns(), nodeConns)
 		mergedConnectivity.updateAllowedConnsMap(src, nodeSet, allConns)
 	}
 	return mergedConnectivity
