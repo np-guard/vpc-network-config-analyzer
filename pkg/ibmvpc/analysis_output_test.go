@@ -304,13 +304,12 @@ var tests = []*vpcGeneralTest{
 		grouping:    true,
 		format:      vpcmodel.DRAWIO,
 	},
-	// todo: not working LoadBalancer abstraction
-	//{
-	//	inputConfig: "iks_config_object",
-	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-	//	grouping:    true,
-	//	format:      vpcmodel.DRAWIO,
-	//},
+	{
+		inputConfig: "iks_config_object",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.DRAWIO,
+	},
 	{
 		inputConfig: "mult_NIs_single_VSI",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
@@ -395,20 +394,19 @@ var tests = []*vpcGeneralTest{
 	// 3. inbound, udp, ports 1-65535
 	// 4. inbound, udp, ports 1-65535
 
-	// todo loadBalancer abstraction on ExtendedSet not implemented yet. iks_config has LV
-	//{
-	//	inputConfig: "iks_config_object",
-	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-	//	grouping:    true,
-	//	format:      vpcmodel.Text,
-	//},
-	//{
-	//	inputConfig:  "iks_config_object",
-	//	useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-	//	grouping:     true,
-	//	noLbAbstract: true,
-	//	format:       vpcmodel.Text,
-	//},
+	{
+		inputConfig: "iks_config_object",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.Text,
+	},
+	{
+		inputConfig:  "iks_config_object",
+		useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:     true,
+		noLbAbstract: true,
+		format:       vpcmodel.Text,
+	},
 	// json examples
 	{
 		inputConfig: "demo_with_instances",
@@ -573,37 +571,36 @@ var tests = []*vpcGeneralTest{
 		format:      vpcmodel.Text,
 		regions:     []string{"us-east"},
 	},
-	// todo loadBalancer abstraction on ExtendedSet not implemented
-	//{
-	//	inputConfig: "iks_workers_large",
-	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-	//	grouping:    true,
-	//	format:      vpcmodel.Text,
-	//},
-	//{ // todo: dump - must have to do also with abstraction on ExtendedSet not implemented
-	//	inputConfig: "iks_workers_large",
-	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
-	//	grouping:    false,
-	//	format:      vpcmodel.DRAWIO,
-	//},
-	//{
-	//	inputConfig: "iks_workers_large",
-	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
-	//	grouping:    true,
-	//	format:      vpcmodel.HTML,
-	//},
-	//{
-	//	inputConfig: "iks_workers_large",
-	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-	//	grouping:    true,
-	//	format:      vpcmodel.ARCHSVG,
-	//},
-	//{
-	//	inputConfig: "iks_workers_large",
-	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-	//	grouping:    true,
-	//	format:      vpcmodel.DRAWIO,
-	//},
+	{
+		inputConfig: "iks_workers_large",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.Text,
+	},
+	{
+		inputConfig: "iks_workers_large",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+		grouping:    false,
+		format:      vpcmodel.DRAWIO,
+	},
+	{
+		inputConfig: "iks_workers_large",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+		grouping:    true,
+		format:      vpcmodel.HTML,
+	},
+	{
+		inputConfig: "iks_workers_large",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.ARCHSVG,
+	},
+	{
+		inputConfig: "iks_workers_large",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.DRAWIO,
+	},
 	// grouping test of identical names different resources and thus different UIDs that should not be merged
 	{
 		inputConfig: "sg_testing1_new_dup_subnets_names",
@@ -611,118 +608,64 @@ var tests = []*vpcGeneralTest{
 		grouping:    true,
 		format:      vpcmodel.Text,
 	},
-	// todo loadBalancer abstraction on ExtendedSet not implemented yet
-	//{
-	//	inputConfig:  "iks_workers_large",
-	//	useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-	//	grouping:     true,
-	//	noLbAbstract: true,
-	//	format:       vpcmodel.HTML,
-	//},
-	//{
-	//	inputConfig:  "iks_workers_large",
-	//	useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-	//	grouping:     true,
-	//	noLbAbstract: true,
-	//	format:       vpcmodel.DRAWIO,
-	//},
-	//// LB examples:
-	//{
-	//	inputConfig: "lb_bad_practice",
-	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-	//	grouping:    true,
-	//	format:      vpcmodel.HTML,
-	//},
-	//{
-	//	inputConfig: "iks_w_lb",
-	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-	//	grouping:    true,
-	//	format:      vpcmodel.HTML,
-	//},
-	//{
-	//	inputConfig: "lb_policies",
-	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-	//	grouping:    true,
-	//	format:      vpcmodel.HTML,
-	//},
-	//{
-	//	inputConfig:  "load_balancer",
-	//	useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
-	//	grouping:     true,
-	//	noLbAbstract: true,
-	//	format:       vpcmodel.HTML,
-	//},
-	//{
-	//	inputConfig: "load_balancer",
-	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-	//	grouping:    true,
-	//	format:      vpcmodel.Text,
-	//},
-	//{
-	//	inputConfig:  "load_balancer",
-	//	useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-	//	grouping:     true,
-	//	noLbAbstract: true,
-	//	format:       vpcmodel.Text,
-	//},
-	//{
-	//	inputConfig:  "iks_workers_large",
-	//	useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-	//	grouping:     true,
-	//	noLbAbstract: true,
-	//	format:       vpcmodel.HTML,
-	//},
-	//{
-	//	inputConfig:  "iks_workers_large",
-	//	useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-	//	grouping:     true,
-	//	noLbAbstract: true,
-	//	format:       vpcmodel.DRAWIO,
-	//},
-	//// LB examples:
-	//{
-	//	inputConfig: "lb_bad_practice",
-	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-	//	grouping:    true,
-	//	format:      vpcmodel.Text,
-	//},
-	//{
-	//	inputConfig: "lb_bad_practice",
-	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-	//	format:      vpcmodel.Text,
-	//},
-	//{
-	//	inputConfig: "iks_w_lb",
-	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-	//	grouping:    true,
-	//	format:      vpcmodel.HTML,
-	//},
-	//{
-	//	inputConfig: "lb_policies",
-	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-	//	grouping:    true,
-	//	format:      vpcmodel.HTML,
-	//},
-	//{
-	//	inputConfig:  "load_balancer",
-	//	useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
-	//	grouping:     true,
-	//	noLbAbstract: true,
-	//	format:       vpcmodel.HTML,
-	//},
-	//{
-	//	inputConfig: "load_balancer",
-	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-	//	grouping:    true,
-	//	format:      vpcmodel.Text,
-	//},
-	//{
-	//	inputConfig:  "load_balancer",
-	//	useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-	//	grouping:     true,
-	//	noLbAbstract: true,
-	//	format:       vpcmodel.Text,
-	//},
+	{
+		inputConfig:  "iks_workers_large",
+		useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:     true,
+		noLbAbstract: true,
+		format:       vpcmodel.HTML,
+	},
+	{
+		inputConfig:  "iks_workers_large",
+		useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:     true,
+		noLbAbstract: true,
+		format:       vpcmodel.DRAWIO,
+	},
+	// LB examples:
+	{
+		inputConfig: "lb_bad_practice",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.Text,
+	},
+	{
+		inputConfig: "lb_bad_practice",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:      vpcmodel.Text,
+	},
+	{
+		inputConfig: "iks_w_lb",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.HTML,
+	},
+	{
+		inputConfig: "lb_policies",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.HTML,
+	},
+	{
+		inputConfig:  "load_balancer",
+		useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+		grouping:     true,
+		noLbAbstract: true,
+		format:       vpcmodel.HTML,
+	},
+	{
+		inputConfig: "load_balancer",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.Text,
+	},
+	{
+		inputConfig:  "load_balancer",
+		useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:     true,
+		noLbAbstract: true,
+		format:       vpcmodel.Text,
+	},
 }
 
 var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{
