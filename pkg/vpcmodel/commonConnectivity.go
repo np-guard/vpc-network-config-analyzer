@@ -32,16 +32,6 @@ func (e *ExtendedSet) EnhancedString() string {
 	return e.String()
 }
 
-// ConnectivityResultNew is used to capture allowed connectivity between Node elements
-// A Node object has its associated ConnectivityResult (see VPCConnectivity.AllowedConns)
-// The ConnectivityResult holds the allowed ingress and egress connections (to/from the associated node)
-// with other Node objects and the connection attributes for each such node
-// todo rename to ConnectivityResultStateful
-type ConnectivityResultNew struct {
-	IngressAllowedConns map[Node]*ExtendedSet
-	EgressAllowedConns  map[Node]*ExtendedSet
-}
-
 // GeneralStatefulConnectivityMap describes connectivity
 type GeneralStatefulConnectivityMap map[VPCResourceIntf]map[VPCResourceIntf]*ExtendedSet
 
