@@ -55,6 +55,19 @@ func (connectivityMap GeneralConnectivityMap) updateAllowedConnsMap(src, dst VPC
 	connectivityMap[src][dst] = conn
 }
 
+func (connectivityMap GeneralConnectivityMap) updateMap(connectivityMap2 GeneralConnectivityMap) {
+	for src, nodeConns := range connectivityMap2 {
+		for dst, conns := range nodeConns {
+			connectivityMap.updateAllowedConnsMap(src, dst, conns)
+		}
+	}
+}
+func (connectivityMap GeneralConnectivityMap) copy() GeneralConnectivityMap {
+	newConnectivityMap := GeneralConnectivityMap{}
+	newConnectivityMap.updateMap(connectivityMap)
+	return newConnectivityMap
+}
+
 // it is assumed that the components of extendedConn are legal connection.Set, namely not nil
 func (statefulConnMap GeneralStatefulConnectivityMap) updateAllowedStatefulConnsMap(src, dst VPCResourceIntf, extendedConn *ExtendedSet) {
 	if _, ok := statefulConnMap[src]; !ok {

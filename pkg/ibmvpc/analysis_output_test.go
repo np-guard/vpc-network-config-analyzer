@@ -665,6 +665,64 @@ var tests = []*vpcGeneralTest{
 	//	noLbAbstract: true,
 	//	format:       vpcmodel.Text,
 	//},
+	//{
+	//	inputConfig:  "iks_workers_large",
+	//	useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//	grouping:     true,
+	//	noLbAbstract: true,
+	//	format:       vpcmodel.HTML,
+	//},
+	//{
+	//	inputConfig:  "iks_workers_large",
+	//	useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//	grouping:     true,
+	//	noLbAbstract: true,
+	//	format:       vpcmodel.DRAWIO,
+	//},
+	//// LB examples:
+	//{
+	//	inputConfig: "lb_bad_practice",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//	grouping:    true,
+	//	format:      vpcmodel.Text,
+	//},
+	//{
+	//	inputConfig: "lb_bad_practice",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//	format:      vpcmodel.Text,
+	//},
+	//{
+	//	inputConfig: "iks_w_lb",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//	grouping:    true,
+	//	format:      vpcmodel.HTML,
+	//},
+	//{
+	//	inputConfig: "lb_policies",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//	grouping:    true,
+	//	format:      vpcmodel.HTML,
+	//},
+	//{
+	//	inputConfig:  "load_balancer",
+	//	useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+	//	grouping:     true,
+	//	noLbAbstract: true,
+	//	format:       vpcmodel.HTML,
+	//},
+	//{
+	//	inputConfig: "load_balancer",
+	//	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//	grouping:    true,
+	//	format:      vpcmodel.Text,
+	//},
+	//{
+	//	inputConfig:  "load_balancer",
+	//	useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//	grouping:     true,
+	//	noLbAbstract: true,
+	//	format:       vpcmodel.Text,
+	//},
 }
 
 var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{

@@ -20,7 +20,6 @@ import (
 // (1) compute AllowedConns (map[Node]*ConnectivityResult) : ingress or egress allowed conns separately
 // (2) compute AllowedConnsCombined (map[Node]map[Node]*connection.Set) : allowed conns considering both ingress and egress directions
 // (3) compute AllowedConnsCombinedStateful extension of AllowedConnsCombined to contain accurate stateful info
-// todo: delete AllowedConnsCombined when it is no longer used (diff, explainability) and merge 3 and 4
 // (4) if lbAbstraction required - abstract each lb separately
 // (5) if grouping required - compute grouping of connectivity results
 func (c *VPCConfig) GetVPCNetworkConnectivity(grouping, lbAbstraction bool) (res *VPCConnectivity, err error) {
@@ -62,17 +61,7 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping, lbAbstraction bool) (res
 	res.computeAllowedConnsCombined()
 	allowedConnsCombined := res.computeAllowedConnsCombined()
 	res.computeAllowedStatefulConnections(allowedConnsCombined)
-	// todo: implemented for computeAllowedStatefulConnection; tests with LB disabled for now
-	//if lbAbstraction {
-	//	// load balancer abstraction:
-	//	// currently, AllowedConnsCombined contains the private IPs of the load balancer.
-	//	// the abstraction creates new AllowedConnsCombined,
-	//	// it replaces the private IPs in the with the load balancer itself
-	//	// see details at nodeSetConnectivityAbstraction()
-	//	for _, lb := range c.LoadBalancers {
-	//		res.AllowedConnsCombined = nodeSetConnectivityAbstraction(res.AllowedConnsCombined, lb)
-	//	}
-	//}
+	//	res.abstractLoadBalancers(c.LoadBalancers, lbAbstraction) // todo refactor and uncomment
 	res.GroupedConnectivity, err = newGroupConnLines(c, res, grouping)
 	return res, err
 }
@@ -327,6 +316,25 @@ func (v *VPCConnectivity) getPerLayerConnectivity(layer string, src, dst Node, i
 		return NoConns()
 	}
 	return result
+}
+
+// load balancer abstraction:
+// currently, AllowedConnsCombined contains the private IPs of the load balancer.
+// the abstraction creates new AllowedConnsCombined,
+// it replaces the private IPs in the with the load balancer itself
+// for each load balancer, it keeps the abstractionInfo, to be used later
+// see details at nodeSetConnectivityAbstraction()
+// todo: refactor: abstract v.AllowedConnsCombinedStateful
+func (v *VPCConnectivity) abstractLoadBalancers(loadBalancers []LoadBalancer, lbAbstraction bool) {
+	if lbAbstraction {
+		allowedConnsCombined := GeneralConnectivityMap{} // todo tmp just to have the code compile
+		nodeAbstraction := newNodeSetAbstraction(allowedConnsCombined)
+		for _, lb := range loadBalancers {
+			abstractionInfo := nodeAbstraction.abstractNodeSet(lb)
+			lb.SetAbstractionInfo(abstractionInfo)
+		}
+		//v.AllowedConnsCombined = nodeAbstraction.abstractedConnectivity // todo refactor and uncomment
+	}
 }
 
 const (

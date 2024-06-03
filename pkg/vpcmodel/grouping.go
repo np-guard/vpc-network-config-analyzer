@@ -8,6 +8,7 @@ package vpcmodel
 
 import (
 	"fmt"
+	"reflect"
 	"sort"
 	"strings"
 
@@ -133,7 +134,7 @@ type GroupConnLines struct {
 	GroupedLines []*groupedConnLine
 }
 
-// EndpointElem can be Node(networkInterface) / groupedExternalNodes / groupedNetworkInterfaces / NodeSet(subnet)
+// EndpointElem can be Node(networkInterface) / groupedExternalNodes / groupedEndpointsElems / NodeSet(subnet or LB)
 type EndpointElem interface {
 	Name() string
 	ExtendedName(*VPCConfig) string
@@ -149,14 +150,20 @@ type groupedConnLine struct {
 }
 
 func (g *groupedConnLine) String(c *VPCConfig) string {
-	return g.src.ExtendedName(c) + " => " + g.dst.ExtendedName(c) + " : " + g.commonProperties.groupingStrKey
+	return g.src.ExtendedName(c) + " => " + g.dst.ExtendedName(c) + " : " + g.ConnLabel(true)
 }
 
-func (g *groupedConnLine) ConnLabel() string {
-	if g.commonProperties.extendedConn.IsAll() {
-		return ""
+func (g *groupedConnLine) ConnLabel(full bool) string {
+	label := g.commonProperties.groupingStrKey
+	if !full && g.commonProperties.extendedConn.IsAll() {
+		label = ""
 	}
-	return g.commonProperties.groupingStrKey
+	signs := []string{}
+	if g.isOverApproximated() {
+		signs = append(signs, overApproximationSign)
+	}
+	// todo - move stateful sign here
+	return label + strings.Join(signs, ",")
 }
 
 func (g *groupedConnLine) getSrcOrDst(isSrc bool) EndpointElem {
@@ -164,6 +171,40 @@ func (g *groupedConnLine) getSrcOrDst(isSrc bool) EndpointElem {
 		return g.src
 	}
 	return g.dst
+}
+
+// isOverApproximated() checks if the line was over approximated - namely, has missing connection, during the load balancer abstraction
+// it uses the lb AbstractionInfo that was kept during the approximation
+func (g *groupedConnLine) isOverApproximated() bool {
+	src, srcIsLb := g.src.(LoadBalancer)
+	dst, dstIsLb := g.dst.(LoadBalancer)
+	// in case that src was abstracted, we check if a connection from the src to one of the destination resources is missing.
+	// add vise versa
+	return srcIsLb && src.AbstractionInfo().hasMissingConnection(endpointElemResources(g.dst), false) ||
+		dstIsLb && dst.AbstractionInfo().hasMissingConnection(endpointElemResources(g.src), true)
+}
+
+// you might think that the following method should be part of EndpointElem interface.
+// however, there is no convenient way to do so (unless we add implementation for each VPCResource)
+func endpointElemResources(e EndpointElem) []VPCResourceIntf {
+	switch reflect.TypeOf(e).Elem() {
+	case reflect.TypeOf(groupedEndpointsElems{}):
+		elements := []EndpointElem(*e.(*groupedEndpointsElems))
+		r := make([]VPCResourceIntf, len(elements))
+		for i, e := range elements {
+			r[i] = e.(VPCResourceIntf)
+		}
+		return r
+	case reflect.TypeOf(groupedExternalNodes{}):
+		elements := []*ExternalNetwork(*e.(*groupedExternalNodes))
+		r := make([]VPCResourceIntf, len(elements))
+		for i, e := range elements {
+			r[i] = e
+		}
+		return r
+	default:
+		return []VPCResourceIntf{e.(VPCResourceIntf)}
+	}
 }
 
 type groupedEndpointsElems []EndpointElem
@@ -511,6 +552,16 @@ func (g *GroupConnLines) hasStatelessConns() bool {
 		}
 	}
 	return hasStatelessConns
+}
+
+// get indication if the connections contain a stateless connection
+func (g *GroupConnLines) hasOverApproximatedConn() bool {
+	for _, line := range g.GroupedLines {
+		if line.isOverApproximated() {
+			return true
+		}
+	}
+	return false
 }
 
 func listEndpointElemStr(eps []EndpointElem, fn func(ep EndpointElem) string) string {
