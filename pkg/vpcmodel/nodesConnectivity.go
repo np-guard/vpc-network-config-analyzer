@@ -276,13 +276,11 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections(allowedConnsCombined
 			// check allowed conns per NACL-layer from dst to src (dst->src)
 			var DstAllowedEgressToSrc, SrcAllowedIngressFromDst *connection.Set
 			// can dst egress to src?
-			// todo: this is very ad-hoc. If there will be another relevant layer statelessLayerName will not be good enough anymore
 			DstAllowedEgressToSrc = v.getPerLayerConnectivity(statelessLayerName, dstNode, srcNode, false)
 			// can src ingress from dst?
 			SrcAllowedIngressFromDst = v.getPerLayerConnectivity(statelessLayerName, dstNode, srcNode, true)
 			combinedDstToSrc := DstAllowedEgressToSrc.Intersect(SrcAllowedIngressFromDst)
 			// ConnectionWithStatefulness updates conn with IsStateful value, and returns the stateful subset
-			// todo rewrite WithStatefulness so that it returns only the tcp part (and no need for isStateful)
 			statefulCombinedConn := conn.WithStatefulness(combinedDstToSrc)
 			tcpStatefulFraction, nonTCPFraction := partitionTCPNonTCP(statefulCombinedConn)
 			tcpNonStatefulFraction := conn.Subtract(statefulCombinedConn)

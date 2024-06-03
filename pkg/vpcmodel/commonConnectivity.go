@@ -21,7 +21,6 @@ type ExtendedSet struct {
 	conn            *connection.Set // entire connection
 }
 
-// todo: expand and use the stateful vs. non-stateful
 func (e *ExtendedSet) String() string {
 	return e.conn.String()
 }
@@ -37,7 +36,7 @@ func (e *ExtendedSet) EnhancedString() string {
 // A Node object has its associated ConnectivityResult (see VPCConnectivity.AllowedConns)
 // The ConnectivityResult holds the allowed ingress and egress connections (to/from the associated node)
 // with other Node objects and the connection attributes for each such node
-// todo rename to ConnectivityResult
+// todo rename to ConnectivityResultStateful
 type ConnectivityResultNew struct {
 	IngressAllowedConns map[Node]*ExtendedSet
 	EgressAllowedConns  map[Node]*ExtendedSet
