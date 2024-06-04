@@ -299,11 +299,11 @@ func (diffCfgs *diffBetweenCfgs) hasStatelessConns() bool {
 }
 
 // prints connection for the above string(..) where the connection could be empty
-func connStr(conn *ExtendedSet) string {
-	if conn == nil {
+func connStr(extConn *ExtendedSet) string {
+	if extConn == nil {
 		return connection.NoConnections
 	}
-	return conn.EnhancedString()
+	return extConn.EnhancedString()
 }
 
 func diffAndEndpointsDescription(diff DiffType, src, dst EndpointElem, thisMinusOther bool) (diffDesc, workLoad string) {
