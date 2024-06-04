@@ -195,27 +195,27 @@ func (tt *vpcGeneralTest) initTest() {
 var tests = []*vpcGeneralTest{
 	{
 		inputConfig: "sg_split_subnet",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
 		format:      vpcmodel.Text,
 		grouping: true,
 		noLbAbstract: true,
 	},
 	{
 		inputConfig: "sg_split_subnet",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
 		format:      vpcmodel.Text,
 		grouping: false,
 		noLbAbstract: true,
 	},
 	{
 		inputConfig: "sg_split_subnet",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
 		format:      vpcmodel.Text,
 		grouping: true,
 	},
 	{
 		inputConfig: "sg_split_subnet",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
 		format:      vpcmodel.Text,
 		grouping: false,
 	},
