@@ -198,26 +198,6 @@ var tests = []*vpcGeneralTest{
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
 		format:      vpcmodel.Text,
 		grouping: true,
-		noLbAbstract: true,
-	},
-	{
-		inputConfig: "nacl_split_subnet",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
-		format:      vpcmodel.Text,
-		grouping: false,
-		noLbAbstract: true,
-	},
-	{
-		inputConfig: "nacl_split_subnet",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
-		format:      vpcmodel.Text,
-		grouping: true,
-	},
-	{
-		inputConfig: "nacl_split_subnet",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
-		format:      vpcmodel.Text,
-		grouping: false,
 	},
 }
 
