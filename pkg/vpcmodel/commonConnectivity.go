@@ -21,51 +21,6 @@ type ExtendedSet struct {
 	conn            *connection.Set // entire connection
 }
 
-func (e *ExtendedSet) String() string {
-	return e.conn.String()
-}
-
-func (e *ExtendedSet) EnhancedString() string {
-	if !e.nonStatefulConn.IsEmpty() {
-		return e.String() + " *"
-	}
-	return e.String()
-}
-
-// GeneralStatefulConnectivityMap describes connectivity
-type GeneralStatefulConnectivityMap map[VPCResourceIntf]map[VPCResourceIntf]*ExtendedSet
-
-type GeneralConnectivityMap map[VPCResourceIntf]map[VPCResourceIntf]*connection.Set
-
-func (connectivityMap GeneralConnectivityMap) updateAllowedConnsMap(src, dst VPCResourceIntf, conn *connection.Set) {
-	if _, ok := connectivityMap[src]; !ok {
-		connectivityMap[src] = map[VPCResourceIntf]*connection.Set{}
-	}
-	connectivityMap[src][dst] = conn
-}
-
-func (statefulConnMap GeneralStatefulConnectivityMap) updateMap(connectivityMap2 GeneralStatefulConnectivityMap) {
-	for src, nodeConns := range connectivityMap2 {
-		for dst, conns := range nodeConns {
-			statefulConnMap.updateAllowedStatefulConnsMap(src, dst, conns)
-		}
-	}
-}
-func (statefulConnMap GeneralStatefulConnectivityMap) copy() GeneralStatefulConnectivityMap {
-	newConnectivityMap := GeneralStatefulConnectivityMap{}
-	newConnectivityMap.updateMap(statefulConnMap)
-	return newConnectivityMap
-}
-
-// it is assumed that the components of extendedConn are legal connection.Set, namely not nil
-func (statefulConnMap GeneralStatefulConnectivityMap) updateAllowedStatefulConnsMap(src, dst VPCResourceIntf, extendedConn *ExtendedSet) {
-	if _, ok := statefulConnMap[src]; !ok {
-		statefulConnMap[src] = map[VPCResourceIntf]*ExtendedSet{}
-	}
-	statefulConnMap[src][dst] = extendedConn
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////
 // operation on ExtendedSet
 // The operations are performed on the disjoint statefulConn and otherConn and on conn which contains them;
 // nonStatefulConn - the tcp complementary of statefulConn w.r.t. conn -
@@ -142,6 +97,54 @@ func (e *ExtendedSet) Subtract(other *ExtendedSet) *ExtendedSet {
 		conn:            conn,
 	}
 }
+
+func (e *ExtendedSet) String() string {
+	return e.conn.String()
+}
+
+func (e *ExtendedSet) EnhancedString() string {
+	if !e.nonStatefulConn.IsEmpty() {
+		return e.String() + " *"
+	}
+	return e.String()
+}
+
+// ///////////////////////////////////////////////////////////////////////////////////////////
+
+// GeneralStatefulConnectivityMap describes connectivity
+type GeneralStatefulConnectivityMap map[VPCResourceIntf]map[VPCResourceIntf]*ExtendedSet
+
+type GeneralConnectivityMap map[VPCResourceIntf]map[VPCResourceIntf]*connection.Set
+
+func (connectivityMap GeneralConnectivityMap) updateAllowedConnsMap(src, dst VPCResourceIntf, conn *connection.Set) {
+	if _, ok := connectivityMap[src]; !ok {
+		connectivityMap[src] = map[VPCResourceIntf]*connection.Set{}
+	}
+	connectivityMap[src][dst] = conn
+}
+
+func (statefulConnMap GeneralStatefulConnectivityMap) updateMap(connectivityMap2 GeneralStatefulConnectivityMap) {
+	for src, nodeConns := range connectivityMap2 {
+		for dst, conns := range nodeConns {
+			statefulConnMap.updateAllowedStatefulConnsMap(src, dst, conns)
+		}
+	}
+}
+func (statefulConnMap GeneralStatefulConnectivityMap) copy() GeneralStatefulConnectivityMap {
+	newConnectivityMap := GeneralStatefulConnectivityMap{}
+	newConnectivityMap.updateMap(statefulConnMap)
+	return newConnectivityMap
+}
+
+// it is assumed that the components of extendedConn are legal connection.Set, namely not nil
+func (statefulConnMap GeneralStatefulConnectivityMap) updateAllowedStatefulConnsMap(src, dst VPCResourceIntf, extendedConn *ExtendedSet) {
+	if _, ok := statefulConnMap[src]; !ok {
+		statefulConnMap[src] = map[VPCResourceIntf]*ExtendedSet{}
+	}
+	statefulConnMap[src][dst] = extendedConn
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
 
 // todo: following functionality needs to be moved to package connection with member instead of parms passing
 
