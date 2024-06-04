@@ -41,8 +41,8 @@ const (
 )
 
 type connectionDiff struct {
-	conn1          *connection.Set
-	conn2          *connection.Set
+	conn1          *ExtendedSet
+	conn2          *ExtendedSet
 	diff           DiffType
 	thisMinusOther bool
 }
@@ -192,7 +192,7 @@ func (confConnectivity *configConnectivity) connMissingOrChanged(other *configCo
 				return nil, err2
 			}
 			// includeChanged indicates if it is thisMinusOther
-			connDiff := &connectionDiff{extendedConns.conn, nil, missingConnection, includeChanged}
+			connDiff := &connectionDiff{extendedConns, nil, missingConnection, includeChanged}
 			if srcInOther != nil && dstInOther != nil {
 				if otherSrc, ok := other.connectivity[srcInOther]; ok {
 					if otherExtendedConn, ok := otherSrc[dstInOther]; ok {
@@ -201,7 +201,7 @@ func (confConnectivity *configConnectivity) connMissingOrChanged(other *configCo
 						if !includeChanged || equalConnections {
 							continue
 						}
-						connDiff.conn2 = otherExtendedConn.conn
+						connDiff.conn2 = otherExtendedConn
 						connDiff.diff = changedConnection
 					}
 				}
@@ -288,9 +288,9 @@ func (diffCfgs *diffBetweenCfgs) hasStatelessConns() bool {
 	hasStatelessConns := false
 	for _, grouped := range diffCfgs.groupedLines {
 		if (grouped.commonProperties.connDiff.conn1 != nil &&
-			grouped.commonProperties.connDiff.conn1.IsStateful == connection.StatefulFalse) ||
+			!grouped.commonProperties.connDiff.conn1.nonStatefulConn.IsEmpty()) ||
 			(grouped.commonProperties.connDiff.conn2 != nil &&
-				grouped.commonProperties.connDiff.conn2.IsStateful == connection.StatefulFalse) {
+				!grouped.commonProperties.connDiff.conn2.nonStatefulConn.IsEmpty()) {
 			hasStatelessConns = true
 			break
 		}
@@ -299,7 +299,7 @@ func (diffCfgs *diffBetweenCfgs) hasStatelessConns() bool {
 }
 
 // prints connection for the above string(..) where the connection could be empty
-func connStr(conn *connection.Set) string {
+func connStr(conn *ExtendedSet) string {
 	if conn == nil {
 		return connection.NoConnections
 	}
