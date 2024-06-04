@@ -194,6 +194,15 @@ func (tt *vpcGeneralTest) initTest() {
 
 var tests = []*vpcGeneralTest{
 	{
+		inputConfig: "sg_split_subnet",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:      vpcmodel.HTML,
+		grouping: true,
+		noLbAbstract: true,
+	},
+}
+var tests2 = []*vpcGeneralTest{
+	{
 		inputConfig: "acl_testing5",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
 		format:      vpcmodel.MD,
