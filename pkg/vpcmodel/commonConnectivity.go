@@ -111,20 +111,10 @@ func (e *ExtendedSet) EnhancedString() string {
 
 // ///////////////////////////////////////////////////////////////////////////////////////////
 
-
-type mapOfMaps[T1,T2,T3 comparable] map[T1]map[T2]T3
 // GeneralStatefulConnectivityMap describes connectivity
-type GeneralStatefulConnectivityMap mapOfMaps[VPCResourceIntf,VPCResourceIntf,*ExtendedSet]
-type GeneralConnectivityMap mapOfMaps[VPCResourceIntf,VPCResourceIntf,*connection.Set]
+type GeneralStatefulConnectivityMap map[VPCResourceIntf]map[VPCResourceIntf]*ExtendedSet
 
-
-func (connectivityMap mapOfMaps[T1,T2,T3]) update(key1 T1, key2 T2, val T3) {
-	if _, ok := connectivityMap[key1]; !ok {
-		connectivityMap[key1] = map[T2]T3{}
-	}
-	connectivityMap[key1][key2] = val
-}
-
+type GeneralConnectivityMap map[VPCResourceIntf]map[VPCResourceIntf]*connection.Set
 
 func (connectivityMap GeneralConnectivityMap) updateAllowedConnsMap(src, dst VPCResourceIntf, conn *connection.Set) {
 	if _, ok := connectivityMap[src]; !ok {
