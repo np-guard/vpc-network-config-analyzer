@@ -203,6 +203,8 @@ type LoadBalancer interface {
 	NodeSet
 	// DenyConnectivity() - check if the lb denies connection from src to dst
 	DenyConnectivity(src, dst Node) bool
+	SetAbstractionInfo(*AbstractionInfo)
+	AbstractionInfo() *AbstractionInfo
 }
 
 // RulesType Type of rules in a given filter (e.g. specific NACL table) relevant to
