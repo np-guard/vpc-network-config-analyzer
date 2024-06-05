@@ -1360,7 +1360,6 @@ func getSubnetsBlocks(rc *datamodel.ResourcesContainerModel) (subnetsBlocks map[
 				return nil, err
 			}
 			subnetsBlock[*subnetObj.CRN] = b
-			// fmt.Println("subnet block " + b.String())
 		}
 	}
 	subnetsBlocks = map[string][]*ipblock.IPBlock{}
