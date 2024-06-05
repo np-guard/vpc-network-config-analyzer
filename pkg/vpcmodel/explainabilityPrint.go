@@ -89,6 +89,7 @@ func explainMissingCrossVpcRouter(src, dst string, connQuery *connection.Set) st
 // prints a single line of explanation for externalAddress grouped <src, dst>
 // The printing contains 4 sections:
 // 1. Header describing the query and whether there is a connection. E.g.:
+// todo add return connection description
 // * Allowed connections from ky-vsi0-subnet5[10.240.9.4] to ky-vsi0-subnet11[10.240.80.4]: All Connections
 // * No connections are allowed from ky-vsi1-subnet20[10.240.128.5] to ky-vsi0-subnet0[10.240.0.5];
 // 2. List of all the different resources effecting the connection and the effect of each. E.g.:
@@ -98,7 +99,10 @@ func explainMissingCrossVpcRouter(src, dst string, connQuery *connection.Set) st
 //  3. Connection path description. E.g.:
 //     ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> subnet20 -> network ACL acl21-ky ->
 //     test-vpc2-ky -> TGW local-tg-ky -> |
-//  4. Details of enabling and disabling rules/prefixes, including details of each rule
+//
+// todo add return path
+// 4. Details of enabling and disabling rules/prefixes, including details of each rule
+// todo add details of enabling/disabling rules for return path
 //
 // 1 and 3 are printed always
 // 2 is printed only when the connection is blocked. It is redundant when the entire path ("3") is printed. When
@@ -445,4 +449,19 @@ func getLayersToPrint(filtersRelevant map[string]bool, isIngress bool) (filterLa
 		}
 	}
 	return orderedRelevantFiltersLayers
+}
+
+func (e *ConnWithStateful) respondString() string {
+	// no tcp component - ill-relevant
+	if e.conn.Equal(e.otherConn) {
+		return ""
+	}
+	if e.statefulConn.IsEmpty() {
+		return "TCP respond is blocked"
+	}
+	respondStr := "\tRespond enabled on "
+	if e.nonStatefulConn.IsEmpty() {
+		return respondStr + "the entire TCP component"
+	}
+	return respondStr + e.statefulConn.String()
 }
