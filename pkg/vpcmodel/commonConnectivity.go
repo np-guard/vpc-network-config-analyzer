@@ -35,7 +35,7 @@ func EmptyConnWithStateful() *ConnWithStateful {
 	}
 }
 
-func NewStateWithStateful(statefulConn, otherConn, conn *connection.Set) *ConnWithStateful {
+func NewConnWithStateful(statefulConn, otherConn, conn *connection.Set) *ConnWithStateful {
 	return &ConnWithStateful{
 		statefulConn:    statefulConn,
 		nonStatefulConn: conn.Subtract(otherConn).Subtract(statefulConn),
@@ -58,28 +58,28 @@ func (e *ConnWithStateful) Equal(other *ConnWithStateful) bool {
 }
 
 func (e *ConnWithStateful) Copy() *ConnWithStateful {
-	return NewStateWithStateful(e.nonStatefulConn.Copy(), e.otherConn.Copy(), e.conn.Copy())
+	return NewConnWithStateful(e.nonStatefulConn.Copy(), e.otherConn.Copy(), e.conn.Copy())
 }
 
 func (e *ConnWithStateful) Intersect(other *ConnWithStateful) *ConnWithStateful {
 	statefulConn := e.statefulConn.Intersect(other.statefulConn)
 	otherConn := e.otherConn.Intersect(other.otherConn)
 	conn := e.conn.Intersect(other.conn)
-	return NewStateWithStateful(statefulConn, otherConn, conn)
+	return NewConnWithStateful(statefulConn, otherConn, conn)
 }
 
 func (e *ConnWithStateful) Union(other *ConnWithStateful) *ConnWithStateful {
 	statefulConn := e.statefulConn.Union(other.statefulConn)
 	otherConn := e.otherConn.Union(other.otherConn)
 	conn := e.conn.Union(other.conn)
-	return NewStateWithStateful(statefulConn, otherConn, conn)
+	return NewConnWithStateful(statefulConn, otherConn, conn)
 }
 
 func (e *ConnWithStateful) Subtract(other *ConnWithStateful) *ConnWithStateful {
 	statefulConn := e.statefulConn.Subtract(other.statefulConn)
 	otherConn := e.otherConn.Subtract(other.otherConn)
 	conn := e.conn.Subtract(other.conn)
-	return NewStateWithStateful(statefulConn, otherConn, conn)
+	return NewConnWithStateful(statefulConn, otherConn, conn)
 }
 
 func (e *ConnWithStateful) String() string {
