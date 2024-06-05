@@ -90,7 +90,7 @@ func (nsa *NodeSetAbstraction) partitionConnectivityByNodeSet(nodeSet NodeSet) (
 func (nsa *NodeSetAbstraction) mergeConnectivityWithNodeSetAbstraction(
 	nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet GeneralStatefulConnectivityMap,
 	nodeSet NodeSet) GeneralStatefulConnectivityMap {
-	unionConns := func(conn *ExtendedSet, conns map[VPCResourceIntf]*ExtendedSet) *ExtendedSet {
+	unionConns := func(conn *SetWithStateful, conns map[VPCResourceIntf]*SetWithStateful) *SetWithStateful {
 		for _, c := range conns {
 			conn = conn.Union(c)
 		}
@@ -98,7 +98,7 @@ func (nsa *NodeSetAbstraction) mergeConnectivityWithNodeSetAbstraction(
 	}
 	// all the connections with the nodeSet are merged to *only* one connectivity, which is the union of all separate connections:
 	mergedConnectivity := GeneralStatefulConnectivityMap{}
-	allConns := NoConnsExtendedSet()
+	allConns := NoConnsSetWithStateful()
 	for _, nodeConns := range nodeSetToNodeSet {
 		allConns = unionConns(allConns, nodeConns)
 	}
@@ -111,13 +111,13 @@ func (nsa *NodeSetAbstraction) mergeConnectivityWithNodeSetAbstraction(
 	// so, the outer loop should run over the nodes not in the nodeSet.
 	// hence, this group is from dst to src.
 	for dst, nodeConns := range otherFromNodeSet {
-		allConns = unionConns(NoConnsExtendedSet(), nodeConns)
+		allConns = unionConns(NoConnsSetWithStateful(), nodeConns)
 		mergedConnectivity.updateAllowedStatefulConnsMap(nodeSet, dst, allConns)
 	}
 
 	// all connection from a node to the nodeSet, are union and added to the result:
 	for src, nodeConns := range otherToNodeSet {
-		allConns = unionConns(NoConnsExtendedSet(), nodeConns)
+		allConns = unionConns(NoConnsSetWithStateful(), nodeConns)
 		mergedConnectivity.updateAllowedStatefulConnsMap(src, nodeSet, allConns)
 	}
 	return mergedConnectivity
@@ -144,9 +144,9 @@ func (nsa *NodeSetAbstraction) missingConnections(connMap, mergedConnMap General
 	for node1, conns := range connMap {
 		// here we iterate over the nodes in the nodeSet, and not over the conns, because we can not know if conns holds the nodes:
 		for _, node2 := range nodeSet.Nodes() {
-			var nodeConnection, mergedConnection *ExtendedSet
+			var nodeConnection, mergedConnection *SetWithStateful
 			if nodeConnection = conns[node2]; nodeConnection == nil {
-				nodeConnection = NoConnsExtendedSet()
+				nodeConnection = NoConnsSetWithStateful()
 			}
 			if isIngress {
 				mergedConnection = mergedConnMap[node1][nodeSet]

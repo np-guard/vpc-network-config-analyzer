@@ -13,21 +13,21 @@ import (
 
 // todo: remove stateful from connection.Set (for both options)
 
-// ExtendedSet connection details
-type ExtendedSet struct {
+// SetWithStateful connection details
+type SetWithStateful struct {
 	statefulConn    *connection.Set // stateful TCP connection between <src, dst>
 	nonStatefulConn *connection.Set // nonstateful TCP connection between <src, dst>; complementary of statefulConn
 	otherConn       *connection.Set // non TCP connection (for which stateful is non-relevant)
 	conn            *connection.Set // entire connection
 }
 
-// operation on ExtendedSet
+// operation on SetWithStateful
 // The operations are performed on the disjoint statefulConn and otherConn and on conn which contains them;
 // nonStatefulConn - the tcp complementary of statefulConn w.r.t. conn -
 // is computed as conn minus (statefulConn union otherConn)
 
-func NoConnsExtendedSet() *ExtendedSet {
-	return &ExtendedSet{
+func NoConnsSetWithStateful() *SetWithStateful {
+	return &SetWithStateful{
 		statefulConn:    NoConns(),
 		nonStatefulConn: NoConns(),
 		otherConn:       NoConns(),
@@ -37,21 +37,21 @@ func NoConnsExtendedSet() *ExtendedSet {
 
 var all = connection.All()
 
-func (e *ExtendedSet) IsAllObliviousStateful() bool {
+func (e *SetWithStateful) IsAllObliviousStateful() bool {
 	return e.conn.Equal(all)
 }
 
-func (e *ExtendedSet) IsEmpty() bool {
+func (e *SetWithStateful) IsEmpty() bool {
 	return e.conn.IsEmpty()
 }
 
-func (e *ExtendedSet) Equal(other *ExtendedSet) bool {
+func (e *SetWithStateful) Equal(other *SetWithStateful) bool {
 	return e.statefulConn.Equal(other.statefulConn) && e.otherConn.Equal(other.otherConn) &&
 		e.conn.Equal(other.conn)
 }
 
-func (e *ExtendedSet) Copy() *ExtendedSet {
-	return &ExtendedSet{
+func (e *SetWithStateful) Copy() *SetWithStateful {
+	return &SetWithStateful{
 		statefulConn:    e.statefulConn,
 		nonStatefulConn: e.nonStatefulConn,
 		otherConn:       e.otherConn,
@@ -63,11 +63,11 @@ func computeNonStatefulConn(conn, otherConn, statefulConn *connection.Set) *conn
 	return conn.Subtract(otherConn).Subtract(statefulConn)
 }
 
-func (e *ExtendedSet) Intersect(other *ExtendedSet) *ExtendedSet {
+func (e *SetWithStateful) Intersect(other *SetWithStateful) *SetWithStateful {
 	statefulConn := e.statefulConn.Intersect(other.statefulConn)
 	otherConn := e.otherConn.Intersect(other.otherConn)
 	conn := e.conn.Intersect(other.conn)
-	return &ExtendedSet{
+	return &SetWithStateful{
 		statefulConn:    statefulConn,
 		nonStatefulConn: computeNonStatefulConn(conn, otherConn, statefulConn),
 		otherConn:       otherConn,
@@ -75,11 +75,11 @@ func (e *ExtendedSet) Intersect(other *ExtendedSet) *ExtendedSet {
 	}
 }
 
-func (e *ExtendedSet) Union(other *ExtendedSet) *ExtendedSet {
+func (e *SetWithStateful) Union(other *SetWithStateful) *SetWithStateful {
 	statefulConn := e.statefulConn.Union(other.statefulConn)
 	otherConn := e.otherConn.Union(other.otherConn)
 	conn := e.conn.Union(other.conn)
-	return &ExtendedSet{
+	return &SetWithStateful{
 		statefulConn:    statefulConn,
 		nonStatefulConn: computeNonStatefulConn(conn, otherConn, statefulConn),
 		otherConn:       otherConn,
@@ -87,11 +87,11 @@ func (e *ExtendedSet) Union(other *ExtendedSet) *ExtendedSet {
 	}
 }
 
-func (e *ExtendedSet) Subtract(other *ExtendedSet) *ExtendedSet {
+func (e *SetWithStateful) Subtract(other *SetWithStateful) *SetWithStateful {
 	statefulConn := e.statefulConn.Subtract(other.statefulConn)
 	otherConn := e.otherConn.Subtract(other.otherConn)
 	conn := e.conn.Subtract(other.conn)
-	return &ExtendedSet{
+	return &SetWithStateful{
 		statefulConn:    statefulConn,
 		nonStatefulConn: computeNonStatefulConn(conn, otherConn, statefulConn),
 		otherConn:       otherConn,
@@ -99,11 +99,11 @@ func (e *ExtendedSet) Subtract(other *ExtendedSet) *ExtendedSet {
 	}
 }
 
-func (e *ExtendedSet) String() string {
+func (e *SetWithStateful) String() string {
 	return e.conn.String()
 }
 
-func (e *ExtendedSet) EnhancedString() string {
+func (e *SetWithStateful) EnhancedString() string {
 	if !e.nonStatefulConn.IsEmpty() {
 		return e.String() + " *"
 	}
@@ -113,7 +113,7 @@ func (e *ExtendedSet) EnhancedString() string {
 // ///////////////////////////////////////////////////////////////////////////////////////////
 
 // GeneralStatefulConnectivityMap describes connectivity
-type GeneralStatefulConnectivityMap map[VPCResourceIntf]map[VPCResourceIntf]*ExtendedSet
+type GeneralStatefulConnectivityMap map[VPCResourceIntf]map[VPCResourceIntf]*SetWithStateful
 
 type GeneralConnectivityMap map[VPCResourceIntf]map[VPCResourceIntf]*connection.Set
 
@@ -138,9 +138,9 @@ func (statefulConnMap GeneralStatefulConnectivityMap) copy() GeneralStatefulConn
 }
 
 // it is assumed that the components of extendedConn are legal connection.Set, namely not nil
-func (statefulConnMap GeneralStatefulConnectivityMap) updateAllowedStatefulConnsMap(src, dst VPCResourceIntf, extendedConn *ExtendedSet) {
+func (statefulConnMap GeneralStatefulConnectivityMap) updateAllowedStatefulConnsMap(src, dst VPCResourceIntf, extendedConn *SetWithStateful) {
 	if _, ok := statefulConnMap[src]; !ok {
-		statefulConnMap[src] = map[VPCResourceIntf]*ExtendedSet{}
+		statefulConnMap[src] = map[VPCResourceIntf]*SetWithStateful{}
 	}
 	statefulConnMap[src][dst] = extendedConn
 }

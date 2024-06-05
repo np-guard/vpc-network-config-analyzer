@@ -448,7 +448,7 @@ func (details *rulesAndConnDetails) computeConnections(c *VPCConfig,
 // given that there is a connection between src to dst, gets it
 // if src or dst is a node then the node is from getCidrExternalNodes,
 // thus there is a node in VPCConfig that either equal to or contains it.
-func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (extendedConn *ExtendedSet, err error) {
+func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (extendedConn *SetWithStateful, err error) {
 	srcForConnection, err1 := c.getContainingConfigNode(src)
 	if err1 != nil {
 		return nil, err1

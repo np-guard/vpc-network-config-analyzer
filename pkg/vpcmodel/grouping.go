@@ -40,7 +40,7 @@ type explainDetails struct {
 
 type groupedCommonProperties struct {
 	conn         *connection.Set // todo: delete once refactoring is completed
-	extendedConn *ExtendedSet
+	extendedConn *SetWithStateful
 	connDiff     *connectionDiff
 	expDetails   *explainDetails
 	// groupingStrKey is the key by which the grouping is done:

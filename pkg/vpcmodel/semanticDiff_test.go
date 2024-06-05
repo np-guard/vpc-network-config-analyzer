@@ -65,10 +65,10 @@ func configSimpleSubnetDiff() (subnetConfigConn1, subnetConfigConn2 *configConne
 		&mockSubnet{nil, "10.4.20.0/22", "subnet4", []Node{cfg2.Nodes[2]}},
 		&mockSubnet{nil, "11.4.20.0/22", "subnet5", []Node{cfg2.Nodes[3]}})
 
-	extendedConnAll := &ExtendedSet{statefulConn: newTCPSet(), nonStatefulConn: NoConns(),
+	extendedConnAll := &SetWithStateful{statefulConn: newTCPSet(), nonStatefulConn: NoConns(),
 		otherConn: connection.All().Subtract(newTCPSet()), conn: connection.All()}
 	connectionTCP := connection.TCPorUDPConnection(netp.ProtocolStringTCP, 10, 100, 443, 443)
-	extendedConnTCP := &ExtendedSet{statefulConn: connectionTCP, nonStatefulConn: NoConns(), otherConn: NoConns(),
+	extendedConnTCP := &SetWithStateful{statefulConn: connectionTCP, nonStatefulConn: NoConns(), otherConn: NoConns(),
 		conn: connectionTCP}
 	subnetConnMap1 := &VPCsubnetConnectivity{AllowedConnsCombinedStateful: GeneralStatefulConnectivityMap{}}
 	subnetConnMap1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg1.Subnets[0], cfg1.Subnets[1], extendedConnAll)
@@ -177,7 +177,7 @@ func configSimpleIPAndSubnetDiff() (subnetConfigConn1, subnetConfigConn2 *config
 	// <public1-2, subnet2> 			 and 		<public2-2, subnet2> are comparable
 	// <public1-1, subnet2> 			 and 		<public2-1, subnet2> are comparable
 	// <public1-1, subnet1> 			 and 		<public2-1, subnet1> are comparable
-	extendedConnAll := &ExtendedSet{statefulConn: newTCPSet(), nonStatefulConn: NoConns(),
+	extendedConnAll := &SetWithStateful{statefulConn: newTCPSet(), nonStatefulConn: NoConns(),
 		otherConn: connection.All().Subtract(newTCPSet()), conn: connection.All()}
 	subnetConnMap1 := &VPCsubnetConnectivity{AllowedConnsCombinedStateful: GeneralStatefulConnectivityMap{}}
 	subnetConnMap1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg1.Nodes[0], cfg1.Subnets[0], extendedConnAll)
@@ -192,7 +192,7 @@ func configSimpleIPAndSubnetDiff() (subnetConfigConn1, subnetConfigConn2 *config
 	subnetConnMap2.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg2.Nodes[1], cfg2.Subnets[1], extendedConnAll)
 	subnetConnMap2.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg2.Subnets[1], cfg2.Nodes[0], extendedConnAll)
 	connectionTCP := connection.TCPorUDPConnection(netp.ProtocolStringTCP, 0, 1000, 0, 443)
-	extendedConnTCP := &ExtendedSet{statefulConn: connectionTCP, nonStatefulConn: NoConns(), otherConn: NoConns(),
+	extendedConnTCP := &SetWithStateful{statefulConn: connectionTCP, nonStatefulConn: NoConns(), otherConn: NoConns(),
 		conn: connectionTCP}
 	subnetConnMap2.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg2.Subnets[1], cfg2.Nodes[2], extendedConnTCP)
 
@@ -297,9 +297,9 @@ func configSimpleVsisDiff() (configConn1, configConn2 *configConnectivity) {
 		cfg2.Nodes[2], cfg2.Nodes[3]}})
 
 	connectionTCP := connection.TCPorUDPConnection(netp.ProtocolStringTCP, 10, 100, 443, 443)
-	extendedConnTCP := &ExtendedSet{statefulConn: connectionTCP, nonStatefulConn: NoConns(), otherConn: NoConns(),
+	extendedConnTCP := &SetWithStateful{statefulConn: connectionTCP, nonStatefulConn: NoConns(), otherConn: NoConns(),
 		conn: connectionTCP}
-	extendedConnAll := &ExtendedSet{statefulConn: newTCPSet(), nonStatefulConn: NoConns(),
+	extendedConnAll := &SetWithStateful{statefulConn: newTCPSet(), nonStatefulConn: NoConns(),
 		otherConn: connection.All().Subtract(newTCPSet()), conn: connection.All()}
 	cfg1Conn := &VPCConnectivity{AllowedConnsCombinedStateful: GeneralStatefulConnectivityMap{}}
 	cfg1Conn.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg1.Nodes[0], cfg1.Nodes[1], extendedConnAll)
