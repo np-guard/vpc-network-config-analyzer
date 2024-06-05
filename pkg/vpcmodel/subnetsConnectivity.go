@@ -273,7 +273,7 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() (GeneralConnectivi
 				egressConns := v.AllowedConns[concPeerNode].EgressAllowedConns[subnetNodeSet]
 				if egressConns == nil {
 					// should not get here
-					return fmt.Errorf("could not find egress connection from %s to  %s", concPeerNode.Name(), subnetNodeSet.Name())
+					return nil, fmt.Errorf("could not find egress connection from %s to  %s", concPeerNode.Name(), subnetNodeSet.Name())
 				}
 				combinedConns = conns.Intersect(egressConns)
 				// for subnets cross-vpc connection, add intersection with tgw connectivity (prefix filters)
