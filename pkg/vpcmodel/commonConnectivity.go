@@ -144,13 +144,13 @@ func (statefulConnMap GeneralStatefulConnectivityMap) copy() GeneralStatefulConn
 	return newConnectivityMap
 }
 
-// it is assumed that the components of extendedConn are legal connection.Set, namely not nil
+// it is assumed that the components of connWithStateful are legal connection.Set, namely not nil
 func (statefulConnMap GeneralStatefulConnectivityMap) updateAllowedStatefulConnsMap(src,
-	dst VPCResourceIntf, extendedConn *ConnWithStateful) {
+	dst VPCResourceIntf, connWithStateful *ConnWithStateful) {
 	if _, ok := statefulConnMap[src]; !ok {
 		statefulConnMap[src] = map[VPCResourceIntf]*ConnWithStateful{}
 	}
-	statefulConnMap[src][dst] = extendedConn
+	statefulConnMap[src][dst] = connWithStateful
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

@@ -431,14 +431,14 @@ func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
 func (details *rulesAndConnDetails) computeConnections(c *VPCConfig,
 	connQuery *connection.Set, connectivity *VPCConnectivity) (err error) {
 	for _, srcDstDetails := range *details {
-		extendedConn, err := connectivity.getConnection(c, srcDstDetails.src, srcDstDetails.dst)
+		connWithStateful, err := connectivity.getConnection(c, srcDstDetails.src, srcDstDetails.dst)
 		if err != nil {
 			return err
 		}
 		if connQuery != nil { // connection is part of the query
-			srcDstDetails.conn = extendedConn.allConn.Intersect(connQuery)
+			srcDstDetails.conn = connWithStateful.allConn.Intersect(connQuery)
 		} else {
-			srcDstDetails.conn = extendedConn.allConn
+			srcDstDetails.conn = connWithStateful.allConn
 		}
 		srcDstDetails.connEnabled = !srcDstDetails.conn.IsEmpty()
 	}
@@ -448,7 +448,7 @@ func (details *rulesAndConnDetails) computeConnections(c *VPCConfig,
 // given that there is a connection between src to dst, gets it
 // if src or dst is a node then the node is from getCidrExternalNodes,
 // thus there is a node in VPCConfig that either equal to or contains it.
-func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (extendedConn *ConnWithStateful, err error) {
+func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (connWithStateful *ConnWithStateful, err error) {
 	srcForConnection, err1 := c.getContainingConfigNode(src)
 	if err1 != nil {
 		return nil, err1
@@ -467,11 +467,11 @@ func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (extendedCo
 	var ok bool
 	srcMapValue, ok := v.AllowedConnsCombinedStateful[srcForConnection]
 	if ok {
-		extendedConn, ok = srcMapValue[dstForConnection]
+		connWithStateful, ok = srcMapValue[dstForConnection]
 	}
 	if !ok {
 		return nil, fmt.Errorf("error: there is a connection between %v and %v, but connection computation failed",
 			srcForConnection.Name(), dstForConnection.Name())
 	}
-	return extendedConn, nil
+	return connWithStateful, nil
 }
