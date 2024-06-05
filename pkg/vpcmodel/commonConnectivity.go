@@ -26,6 +26,10 @@ type ConnWithStateful struct {
 // nonStatefulConn - the tcp complementary of statefulConn w.r.t. allConn -
 // is computed as allConn minus (statefulConn union otherConn)
 
+func computeNonStatefulConn(allConn, otherConn, statefulConn *connection.Set) *connection.Set {
+	return allConn.Subtract(otherConn).Subtract(statefulConn)
+}
+
 func EmptyConnWithStateful() *ConnWithStateful {
 	return &ConnWithStateful{
 		statefulConn:    NoConns(),
@@ -35,12 +39,23 @@ func EmptyConnWithStateful() *ConnWithStateful {
 	}
 }
 
-func NewConnWithStateful(statefulConn, otherConn, conn *connection.Set) *ConnWithStateful {
+func NewConnWithStateful(statefulConn, otherConn, allConn *connection.Set) *ConnWithStateful {
 	return &ConnWithStateful{
 		statefulConn:    statefulConn,
-		nonStatefulConn: conn.Subtract(otherConn).Subtract(statefulConn),
+		nonStatefulConn: computeNonStatefulConn(allConn, otherConn, statefulConn),
 		otherConn:       otherConn,
-		allConn:         conn,
+		allConn:         allConn,
+	}
+}
+
+// NewConnWithStatefulGivenStateful constructor that is given the (tcp stateful and non tcp) conn and the entire conn
+func NewConnWithStatefulGivenStateful(tcpStatefulandNonTcp, allConn *connection.Set) *ConnWithStateful {
+	tcpStatefulFraction, nonTCPFraction := partitionTCPNonTCP(tcpStatefulandNonTcp)
+	return &ConnWithStateful{
+		statefulConn:    tcpStatefulFraction,
+		nonStatefulConn: computeNonStatefulConn(allConn, nonTCPFraction, tcpStatefulFraction),
+		otherConn:       nonTCPFraction,
+		allConn:         allConn,
 	}
 }
 
