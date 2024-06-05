@@ -39,10 +39,10 @@ type explainDetails struct {
 }
 
 type groupedCommonProperties struct {
-	conn         *connection.Set // todo: delete once refactoring is completed
-	extendedConn *ConnWithStateful
-	connDiff     *connectionDiff
-	expDetails   *explainDetails
+	conn             *connection.Set // todo: delete once refactoring is completed
+	connWithStateful *ConnWithStateful
+	connDiff         *connectionDiff
+	expDetails       *explainDetails
 	// groupingStrKey is the key by which the grouping is done:
 	// the string of conn per grouping of conn lines, string of connDiff per grouping of diff lines
 	// and string of conn and explainDetails for explainblity
@@ -155,7 +155,7 @@ func (g *groupedConnLine) String(c *VPCConfig) string {
 
 func (g *groupedConnLine) ConnLabel(full bool) string {
 	label := g.commonProperties.groupingStrKey
-	if !full && g.commonProperties.extendedConn.IsAllObliviousStateful() {
+	if !full && g.commonProperties.connWithStateful.IsAllObliviousStateful() {
 		label = ""
 	}
 	signs := []string{}
@@ -296,10 +296,10 @@ func (g *GroupConnLines) groupExternalAddresses(vsi bool) error {
 		allowedConnsCombinedStateful = g.subnetsConn.AllowedConnsCombinedStateful
 	}
 	for src, nodeConns := range allowedConnsCombinedStateful {
-		for dst, extendedConns := range nodeConns {
-			if !extendedConns.IsEmpty() {
+		for dst, connsWithStateful := range nodeConns {
+			if !connsWithStateful.IsEmpty() {
 				err := g.addLineToExternalGrouping(&res, src, dst,
-					&groupedCommonProperties{extendedConn: extendedConns, groupingStrKey: extendedConns.EnhancedString()})
+					&groupedCommonProperties{connWithStateful: connsWithStateful, groupingStrKey: connsWithStateful.EnhancedString()})
 				if err != nil {
 					return err
 				}
@@ -546,7 +546,7 @@ func (g *GroupConnLines) String(c *VPCConfig) string {
 func (g *GroupConnLines) hasStatelessConns() bool {
 	hasStatelessConns := false
 	for _, line := range g.GroupedLines {
-		if !line.commonProperties.extendedConn.nonStatefulConn.IsEmpty() {
+		if !line.commonProperties.connWithStateful.nonStatefulConn.IsEmpty() {
 			hasStatelessConns = true
 			break
 		}

@@ -389,9 +389,9 @@ func (v *VPCConnectivity) DetailedString() string {
 	res += "=================================== combined connections:\n"
 	strList = []string{}
 	for src, nodeConns := range v.AllowedConnsCombinedStateful {
-		for dst, extendedConn := range nodeConns {
+		for dst, connWithStateful := range nodeConns {
 			// src and dst here are nodes, always. Thus ignoring potential error in conversion
-			strList = append(strList, getConnectionStr(src.(Node).CidrOrAddress(), dst.(Node).CidrOrAddress(), extendedConn.String(), ""))
+			strList = append(strList, getConnectionStr(src.(Node).CidrOrAddress(), dst.(Node).CidrOrAddress(), connWithStateful.String(), ""))
 		}
 	}
 	sort.Strings(strList)

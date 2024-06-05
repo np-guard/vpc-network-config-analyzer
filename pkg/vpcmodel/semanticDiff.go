@@ -176,8 +176,8 @@ func (confConnectivity *configConnectivity) connMissingOrChanged(other *configCo
 	connectivityMissingOrChanged connectivityDiff, err error) {
 	connectivityMissingOrChanged = map[VPCResourceIntf]map[VPCResourceIntf]*connectionDiff{}
 	for src, endpointConns := range confConnectivity.connectivity {
-		for dst, extendedConns := range endpointConns {
-			if extendedConns.IsEmpty() {
+		for dst, connsWithStateful := range endpointConns {
+			if connsWithStateful.IsEmpty() {
 				continue
 			}
 			if _, ok := connectivityMissingOrChanged[src]; !ok {
@@ -192,12 +192,12 @@ func (confConnectivity *configConnectivity) connMissingOrChanged(other *configCo
 				return nil, err2
 			}
 			// includeChanged indicates if it is thisMinusOther
-			connDiff := &connectionDiff{extendedConns, nil, missingConnection, includeChanged}
+			connDiff := &connectionDiff{connsWithStateful, nil, missingConnection, includeChanged}
 			if srcInOther != nil && dstInOther != nil {
 				if otherSrc, ok := other.connectivity[srcInOther]; ok {
 					if otherExtendedConn, ok := otherSrc[dstInOther]; ok {
-						equalConnections := extendedConns.allConn.Equal(otherExtendedConn.allConn) &&
-							extendedConns.nonStatefulConn.IsEmpty() == otherExtendedConn.nonStatefulConn.IsEmpty()
+						equalConnections := connsWithStateful.allConn.Equal(otherExtendedConn.allConn) &&
+							connsWithStateful.nonStatefulConn.IsEmpty() == otherExtendedConn.nonStatefulConn.IsEmpty()
 						if !includeChanged || equalConnections {
 							continue
 						}
@@ -436,8 +436,8 @@ func (statefulConnMap *GeneralStatefulConnectivityMap) actualAlignSrcOrDstGivenI
 	err = nil
 	alignedConnectivity = map[VPCResourceIntf]map[VPCResourceIntf]*ConnWithStateful{}
 	for src, endpointConns := range *statefulConnMap {
-		for dst, extendedConns := range endpointConns {
-			if extendedConns.IsEmpty() {
+		for dst, connsWithStateful := range endpointConns {
+			if connsWithStateful.IsEmpty() {
 				continue
 			}
 			// the resizing element is not external - copy as is
@@ -445,7 +445,7 @@ func (statefulConnMap *GeneralStatefulConnectivityMap) actualAlignSrcOrDstGivenI
 				if _, ok := alignedConnectivity[src]; !ok {
 					alignedConnectivity[src] = map[VPCResourceIntf]*ConnWithStateful{}
 				}
-				alignedConnectivity[src][dst] = extendedConns
+				alignedConnectivity[src][dst] = connsWithStateful
 				continue
 			}
 			// the resizing element is external - go over all ipBlock and allocates the connection
@@ -467,7 +467,7 @@ func (statefulConnMap *GeneralStatefulConnectivityMap) actualAlignSrcOrDstGivenI
 			if err != nil {
 				return nil, err
 			}
-			err = addIPBlockToConnectivityMap(config, disjointIPblocks, origIPBlock, alignedConnectivity, src, dst, extendedConns, resizeSrc)
+			err = addIPBlockToConnectivityMap(config, disjointIPblocks, origIPBlock, alignedConnectivity, src, dst, connsWithStateful, resizeSrc)
 		}
 	}
 	return alignedConnectivity, err
@@ -518,8 +518,8 @@ func findNodeWithCidr(configNodes []Node, cidr string) Node {
 func (statefulConnMap GeneralStatefulConnectivityMap) getIPBlocksList() (ipbList []*ipblock.IPBlock,
 	myErr error) {
 	for src, endpointConns := range statefulConnMap {
-		for dst, extendedConns := range endpointConns {
-			if extendedConns.IsEmpty() {
+		for dst, connsWithStateful := range endpointConns {
+			if connsWithStateful.IsEmpty() {
 				continue
 			}
 			if src.IsExternal() {
