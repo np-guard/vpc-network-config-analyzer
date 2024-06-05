@@ -1044,9 +1044,6 @@ func (tgw *TransitGateway) newConfigFromTGW(configs *vpcmodel.MultipleVPCConfigs
 		newConfig.RoutingResources = []vpcmodel.RoutingResource{tgw}
 	}
 
-	/*<<<<<<< HEAD
-			res.SetConfig(newConfig.VPC.UID(), newConfig)
-	=======*/
 	return newConfig, nil
 }
 

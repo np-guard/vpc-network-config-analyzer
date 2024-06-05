@@ -85,7 +85,3 @@ func (c *MultipleVPCConfigs) GetVPC(uid string) VPCResourceIntf {
 	}
 	return config.VPC
 }
-
-func (c *MultipleVPCConfigs) GetVPCConfig(uid string) *VPCConfig {
-	return c.configs[uid]
-}

@@ -63,6 +63,13 @@ func addTGWConfig(tgwObj *TransitGateway, configs *vpcmodel.MultipleVPCConfigs) 
 	configs.AddConfig(tgwConfig)
 }
 
+//nolint:unparam // currently `nextHop` always receives `"10.1.15.197", due to current test
+func pathFromNextHopValues(nextHop, origDest string) vpcmodel.Path {
+	n, _ := ipblock.FromCidrOrAddress(nextHop)
+	o, _ := ipblock.FromCidrOrAddress(origDest)
+	return []*vpcmodel.Endpoint{{NextHop: &vpcmodel.NextHopEntry{NextHop: n, OrigDest: o}}}
+}
+
 func newHubSpokeBase1Config() (*vpcmodel.MultipleVPCConfigs, *GlobalRTAnalyzer) {
 	vpcTransit, _ := newVPC("transit", "transit", "", []string{"10.1.15.0/24"}, map[string]*Region{})
 	vpcSpoke, _ := newVPC("spoke", "spoke", "", []string{"10.1.0.0/24"}, map[string]*Region{})
@@ -138,7 +145,7 @@ var r2, _ = newRoute("r2", "10.1.0.0/16", "10.1.15.197", deliver, defaultRoutePr
 
 func newHubSpokeBase2Config() (*vpcmodel.MultipleVPCConfigs, *GlobalRTAnalyzer) {
 	globalConfig, _ := newHubSpokeBase1Config()
-	transitConfig := globalConfig.GetVPCConfig("transit")
+	transitConfig := globalConfig.Config("transit")
 	// define routes of the ingress routing table for transit vpc
 	ingressRT := newIngressRoutingTableFromRoutes([]*route{r1, r2}, transitConfig)
 
@@ -165,7 +172,7 @@ var r3, _ = newRoute("r3", "10.1.15.0/24", "", delegate, defaultRoutePriority, f
 
 func newHubSpokeBase3Config() (*vpcmodel.MultipleVPCConfigs, *GlobalRTAnalyzer) {
 	globalConfig, _ := newHubSpokeBase1Config()
-	transitConfig := globalConfig.GetVPCConfig("transit")
+	transitConfig := globalConfig.Config("transit")
 	// define routes of the ingress routing table for transit vpc
 	ingressRT := newIngressRoutingTableFromRoutes([]*route{r1, r2, r3}, transitConfig)
 
@@ -205,7 +212,7 @@ var r7, _ = newRoute("r7", "10.1.0.0/24", "", delegate, defaultRoutePriority, fa
 
 func newHubSpokeBase4Config() (*vpcmodel.MultipleVPCConfigs, *GlobalRTAnalyzer) {
 	globalConfig, _ := newHubSpokeBase1Config()
-	transitConfig := globalConfig.GetVPCConfig("transit")
+	transitConfig := globalConfig.Config("transit")
 	// define routes of the ingress routing table for transit vpc
 	ingressRT := newIngressRoutingTableFromRoutes([]*route{r1, r2}, transitConfig)
 	// add ingressRT to transit vpc config
@@ -215,7 +222,7 @@ func newHubSpokeBase4Config() (*vpcmodel.MultipleVPCConfigs, *GlobalRTAnalyzer) 
 		getSubnetsByUIDs(transitConfig, []string{"workerSubnetTransit"}), transitConfig)
 	transitConfig.AddRoutingTable(transitEgressRT)
 
-	spokeConfig := globalConfig.GetVPCConfig("spoke")
+	spokeConfig := globalConfig.Config("spoke")
 	spokeEgressRT := newEgressRoutingTableFromRoutes([]*route{r4, r5, r7},
 		getSubnetsByUIDs(spokeConfig, []string{"workerSubnetSpoke"}), spokeConfig)
 	spokeConfig.AddRoutingTable(spokeEgressRT)
@@ -286,7 +293,7 @@ var config2Tests = []*testGlobalAnalyzer{
 		expectedPath: vpcmodel.ConcatPaths(
 			vpcmodel.PathFromResource(newNetIntForTest("spokeTestInstanceVSI", "10.1.0.4", "spokeTestInstance")),
 			vpcmodel.PathFromResource(newTGWForTest("tgwSpoke")),
-			vpcmodel.PathFromNextHopValues("10.1.15.197", "192.168.0.4"),
+			pathFromNextHopValues("10.1.15.197", "192.168.0.4"),
 		),
 		// NetworkInterface - spokeTestInstanceVSI[10.1.0.4] -> TGW - tgwSpoke -> nextHop: 10.1.15.197 [origDest: 192.168.0.4]
 	},
@@ -308,7 +315,7 @@ var config2Tests = []*testGlobalAnalyzer{
 		expectedPath: vpcmodel.ConcatPaths(
 			vpcmodel.PathFromResource(newNetIntForTest("enterpriseTestInstanceVSI", "192.168.0.4", "enterpriseTestInstance")),
 			vpcmodel.PathFromResource(newTGWForTest("tgwLink")),
-			vpcmodel.PathFromNextHopValues("10.1.15.197", "10.1.15.4"),
+			pathFromNextHopValues("10.1.15.197", "10.1.15.4"),
 		),
 		// NetworkInterface - enterpriseTestInstanceVSI[192.168.0.4] -> TGW - tgwLink -> nextHop: 10.1.15.197 [origDest: 10.1.15.4]
 	},
@@ -351,7 +358,7 @@ var config2Tests = []*testGlobalAnalyzer{
 		expectedPath: vpcmodel.ConcatPaths(
 			vpcmodel.PathFromResource(newNetIntForTest("enterpriseTestInstanceVSI", "192.168.0.4", "enterpriseTestInstance")),
 			vpcmodel.PathFromResource(newTGWForTest("tgwLink")),
-			vpcmodel.PathFromNextHopValues("10.1.15.197", "10.1.15.4"),
+			pathFromNextHopValues("10.1.15.197", "10.1.15.4"),
 		),
 	},
 }
@@ -384,7 +391,7 @@ var config3Tests = []*testGlobalAnalyzer{
 		expectedPath: vpcmodel.ConcatPaths(
 			vpcmodel.PathFromResource(newNetIntForTest("spokeTestInstanceVSI", "10.1.0.4", "spokeTestInstance")),
 			vpcmodel.PathFromResource(newTGWForTest("tgwSpoke")),
-			vpcmodel.PathFromNextHopValues("10.1.15.197", "192.168.0.4"),
+			pathFromNextHopValues("10.1.15.197", "192.168.0.4"),
 		),
 		// NetworkInterface - spokeTestInstanceVSI[10.1.0.4] -> TGW - tgwSpoke -> nextHop: 10.1.15.197 [origDest: 192.168.0.4]
 	},
@@ -408,7 +415,7 @@ var config4Tests = []*testGlobalAnalyzer{
 		dst: "192.168.0.4",
 		expectedPath: vpcmodel.ConcatPaths(
 			vpcmodel.PathFromResource(newNetIntForTest("transitTestInstanceVSI", "10.1.15.4", "transitTestInstance")),
-			vpcmodel.PathFromNextHopValues("10.1.15.197", "192.168.0.4"),
+			pathFromNextHopValues("10.1.15.197", "192.168.0.4"),
 		),
 		// NetworkInterface - transitTestInstanceVSI[10.1.15.4] -> nextHop: 10.1.15.197 [origDest: 192.168.0.4]
 	},
@@ -431,7 +438,7 @@ var config4Tests = []*testGlobalAnalyzer{
 		expectedPath: vpcmodel.ConcatPaths(
 			vpcmodel.PathFromResource(newNetIntForTest("enterpriseTestInstanceVSI", "192.168.0.4", "enterpriseTestInstance")),
 			vpcmodel.PathFromResource(newTGWForTest("tgwLink")),
-			vpcmodel.PathFromNextHopValues("10.1.15.197", "10.1.15.4"),
+			pathFromNextHopValues("10.1.15.197", "10.1.15.4"),
 		),
 	},
 

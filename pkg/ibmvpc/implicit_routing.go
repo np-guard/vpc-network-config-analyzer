@@ -64,7 +64,7 @@ func (rt *systemImplicitRT) destAsPath(dest *ipblock.IPBlock) vpcmodel.Path {
 	internalNodes := rt.vpcConfig.GetNodesWithinInternalAddress(dest)
 	if len(internalNodes) != 1 {
 		// TODO: add error handling here?
-		return []*vpcmodel.Endpoint{}
+		return nil
 	}
 	return vpcmodel.PathFromResource(internalNodes[0])
 }
@@ -108,7 +108,7 @@ func pgwHasSource(src vpcmodel.Node, pgw *PublicGateway) bool {
 func (rt *systemImplicitRT) getIngressPath(dest *ipblock.IPBlock) (vpcmodel.Path, error) {
 	// traffic from some source is by default simply routed to dest node
 	path := rt.destAsPath(dest)
-	if path == nil {
+	if len(path) == 0 {
 		return nil, fmt.Errorf("getIngressPath: failed to find path to dest resource address %s in VPC %s", dest.String(), rt.vpc.Name())
 	}
 	return path, nil
@@ -128,13 +128,13 @@ func (rt *systemImplicitRT) getEgressPath(src vpcmodel.Node, dest *ipblock.IPBlo
 		for _, fip := range rt.config.fipList {
 			if fipHasSource(src, fip) {
 				// path through fip
-				return []*vpcmodel.Endpoint{{VpcResource: src}, {VpcResource: fip}, {IPBlock: dest}}
+				return vpcmodel.ConcatPaths(vpcmodel.PathFromResource(src), vpcmodel.PathFromResource(fip), vpcmodel.PathFromIPBlock(dest))
 			}
 		}
 		for _, pgw := range rt.config.pgwList {
 			if pgwHasSource(src, pgw) {
 				// path through pgw
-				return []*vpcmodel.Endpoint{{VpcResource: src}, {VpcResource: pgw}, {IPBlock: dest}}
+				return vpcmodel.ConcatPaths(vpcmodel.PathFromResource(src), vpcmodel.PathFromResource(pgw), vpcmodel.PathFromIPBlock(dest))
 			}
 		}
 		// no path to public internet from src node
@@ -160,7 +160,7 @@ func (rt *systemImplicitRT) getEgressPath(src vpcmodel.Node, dest *ipblock.IPBlo
 				if dest.ContainedIn(prefix) {
 					// path through tgw
 					// TODO: should be concatenated to path from tgw to dest by ingress routing table in the second vpc
-					return []*vpcmodel.Endpoint{{VpcResource: src}, {VpcResource: tgw, TargetVPC: vpcUID} /*, {IPBlock: dest}*/}
+					return vpcmodel.ConcatPaths(vpcmodel.PathFromResource(src), vpcmodel.PathFromTGWResource(tgw, vpcUID))
 				}
 			}
 		}

@@ -389,7 +389,7 @@ func (rt *routingTable) getEgressPath(src vpcmodel.Node, dest *ipblock.IPBlock) 
 	if shouldDelegate {
 		return rt.implicitRT.getEgressPath(src, dest), nil
 	}
-	return vpcmodel.ConcatWithResource(src, path), nil
+	return path.PrependResource(src), nil
 }
 
 func (rt *routingTable) getIngressPath(dest *ipblock.IPBlock) (vpcmodel.Path, error) {

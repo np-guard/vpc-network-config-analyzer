@@ -51,22 +51,24 @@ func ConcatPaths(paths ...Path) Path {
 	return slices.Concat(paths...)
 }
 
-func ConcatWithResource(resource VPCResourceIntf, path Path) Path {
-	return ConcatPaths(PathFromResource(resource), path)
+func (p Path) PrependResource(resource VPCResourceIntf) Path {
+	return ConcatPaths(PathFromResource(resource), p)
 }
 
 func PathFromResource(resource VPCResourceIntf) Path {
-	return []*Endpoint{{VpcResource: resource}}
+	return Path{{VpcResource: resource}}
 }
 
-func PathFromNextHopValues(nextHop, origDest string) Path {
-	n, _ := ipblock.FromCidrOrAddress(nextHop)
-	o, _ := ipblock.FromCidrOrAddress(origDest)
-	return []*Endpoint{{NextHop: &NextHopEntry{NextHop: n, OrigDest: o}}}
+func PathFromIPBlock(ipb *ipblock.IPBlock) Path {
+	return Path{{IPBlock: ipb}}
+}
+
+func PathFromTGWResource(tgw VPCResourceIntf, targetVPC string) Path {
+	return Path{{VpcResource: tgw, TargetVPC: targetVPC}}
 }
 
 func (p Path) DoesEndWithTGW() bool {
-	return p[len(p)-1].VpcResource != nil &&
+	return len(p) > 0 && p[len(p)-1].VpcResource != nil &&
 		p[len(p)-1].VpcResource.Kind() == "TGW" // TODO: use const
 }
 
