@@ -48,8 +48,8 @@ func NewConnWithStateful(statefulConn, otherConn, allConn *connection.Set) *Conn
 	}
 }
 
-// NewConnWithStatefulGivenStateful constructor that is given the (tcp stateful and non tcp) conn and the entire conn
-func NewConnWithStatefulGivenStateful(tcpStatefulandNonTcp, allConn *connection.Set) *ConnWithStateful {
+// NewConnWithStatefulGivenTCPStatefulAndNonTCP constructor that is given the (tcp stateful and non tcp) conn and the entire conn
+func NewConnWithStatefulGivenTCPStatefulAndNonTCP(tcpStatefulandNonTcp, allConn *connection.Set) *ConnWithStateful {
 	tcpStatefulFraction, nonTCPFraction := partitionTCPNonTCP(tcpStatefulandNonTcp)
 	return &ConnWithStateful{
 		statefulConn:    tcpStatefulFraction,
