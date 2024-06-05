@@ -77,6 +77,15 @@ func NewConnWithStatefulAllStateful() *ConnWithStateful {
 	}
 }
 
+func NewConnWithStatefulAllNotStateful() *ConnWithStateful {
+	return &ConnWithStateful{
+		statefulConn:    NoConns(),
+		nonStatefulConn: newTCPSet(),
+		otherConn:       AllConns().Subtract(newTCPSet()),
+		allConn:         AllConns(),
+	}
+}
+
 func (e *ConnWithStateful) IsAllObliviousStateful() bool {
 	return e.allConn.Equal(connection.All())
 }
