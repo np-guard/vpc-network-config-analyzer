@@ -666,6 +666,11 @@ var tests = []*vpcGeneralTest{
 		noLbAbstract: true,
 		format:       vpcmodel.Text,
 	},
+	{
+		inputConfig: "nacl_split_subnet",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:      vpcmodel.Text,
+	},
 }
 
 var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{
