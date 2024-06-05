@@ -35,10 +35,8 @@ func NoConnsSetWithStateful() *SetWithStateful {
 	}
 }
 
-var all = connection.All()
-
 func (e *SetWithStateful) IsAllObliviousStateful() bool {
-	return e.conn.Equal(all)
+	return e.conn.Equal(connection.All())
 }
 
 func (e *SetWithStateful) IsEmpty() bool {
