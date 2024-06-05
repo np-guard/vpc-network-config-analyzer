@@ -196,7 +196,7 @@ func (confConnectivity *configConnectivity) connMissingOrChanged(other *configCo
 			if srcInOther != nil && dstInOther != nil {
 				if otherSrc, ok := other.connectivity[srcInOther]; ok {
 					if otherExtendedConn, ok := otherSrc[dstInOther]; ok {
-						equalConnections := extendedConns.conn.Equal(otherExtendedConn.conn) &&
+						equalConnections := extendedConns.allConn.Equal(otherExtendedConn.allConn) &&
 							extendedConns.nonStatefulConn.IsEmpty() == otherExtendedConn.nonStatefulConn.IsEmpty()
 						if !includeChanged || equalConnections {
 							continue

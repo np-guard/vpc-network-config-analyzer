@@ -406,7 +406,7 @@ func isInternalOfRequiredType(ep EndpointElem, groupVsi bool) bool {
 func (g *GroupConnLines) groupLinesByKey(srcGrouping, groupVsi bool) (res []*groupedConnLine,
 	groupingSrcOrDst map[string][]*groupedConnLine) {
 	res = []*groupedConnLine{}
-	// build map from str(dst+conn) to []src => create lines accordingly
+	// build map from str(dst+allConn) to []src => create lines accordingly
 	groupingSrcOrDst = map[string][]*groupedConnLine{}
 	// populate map groupingSrcOrDst
 	for _, line := range g.GroupedLines {

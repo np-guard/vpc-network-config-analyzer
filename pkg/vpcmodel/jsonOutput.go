@@ -86,7 +86,7 @@ func getConnLines(conn *VPCConnectivity) []connLine {
 				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: connection.ToJSON(statefulAndOther),
 					UnidirectionalConn: connection.ToJSON(extConn.nonStatefulConn)})
 			} else {
-				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: connection.ToJSON(extConn.conn)})
+				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: connection.ToJSON(extConn.allConn)})
 			}
 		}
 	}
@@ -120,7 +120,7 @@ func getConnLinesForSubnetsConnectivity(conn *VPCsubnetConnectivity) []connLine 
 			connLines = append(connLines, connLine{
 				Src:  src,
 				Dst:  dst,
-				Conn: connection.ToJSON(extConns.conn),
+				Conn: connection.ToJSON(extConns.allConn),
 			})
 		}
 	}
@@ -167,7 +167,7 @@ func getDirectionalDiffLines(connectDiff connectivityDiff) []diffLine {
 				diffDstStr = getDiffDstOther(connDiff.diff)
 			}
 			diffLines = append(diffLines, diffLine{diffSrcStr, diffDstStr,
-				src, dst, connection.ToJSON(connDiff.conn1.conn), connection.ToJSON(connDiff.conn2.conn)})
+				src, dst, connection.ToJSON(connDiff.conn1.allConn), connection.ToJSON(connDiff.conn2.allConn)})
 		}
 	}
 

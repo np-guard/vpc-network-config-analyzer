@@ -18,20 +18,20 @@ type ConnWithStateful struct {
 	statefulConn    *connection.Set // stateful TCP connection between <src, dst>
 	nonStatefulConn *connection.Set // nonstateful TCP connection between <src, dst>; complementary of statefulConn
 	otherConn       *connection.Set // non TCP connection (for which stateful is non-relevant)
-	conn            *connection.Set // entire connection
+	allConn         *connection.Set // entire connection
 }
 
 // operation on ConnWithStateful
-// The operations are performed on the disjoint statefulConn and otherConn and on conn which contains them;
-// nonStatefulConn - the tcp complementary of statefulConn w.r.t. conn -
-// is computed as conn minus (statefulConn union otherConn)
+// The operations are performed on the disjoint statefulConn and otherConn and on allConn which contains them;
+// nonStatefulConn - the tcp complementary of statefulConn w.r.t. allConn -
+// is computed as allConn minus (statefulConn union otherConn)
 
 func EmptyConnWithStateful() *ConnWithStateful {
 	return &ConnWithStateful{
 		statefulConn:    NoConns(),
 		nonStatefulConn: NoConns(),
 		otherConn:       NoConns(),
-		conn:            NoConns(),
+		allConn:         NoConns(),
 	}
 }
 
@@ -40,50 +40,50 @@ func NewConnWithStateful(statefulConn, otherConn, conn *connection.Set) *ConnWit
 		statefulConn:    statefulConn,
 		nonStatefulConn: conn.Subtract(otherConn).Subtract(statefulConn),
 		otherConn:       otherConn,
-		conn:            conn,
+		allConn:         conn,
 	}
 }
 
 func (e *ConnWithStateful) IsAllObliviousStateful() bool {
-	return e.conn.Equal(connection.All())
+	return e.allConn.Equal(connection.All())
 }
 
 func (e *ConnWithStateful) IsEmpty() bool {
-	return e.conn.IsEmpty()
+	return e.allConn.IsEmpty()
 }
 
 func (e *ConnWithStateful) Equal(other *ConnWithStateful) bool {
 	return e.statefulConn.Equal(other.statefulConn) && e.otherConn.Equal(other.otherConn) &&
-		e.conn.Equal(other.conn)
+		e.allConn.Equal(other.allConn)
 }
 
 func (e *ConnWithStateful) Copy() *ConnWithStateful {
-	return NewConnWithStateful(e.nonStatefulConn.Copy(), e.otherConn.Copy(), e.conn.Copy())
+	return NewConnWithStateful(e.nonStatefulConn.Copy(), e.otherConn.Copy(), e.allConn.Copy())
 }
 
 func (e *ConnWithStateful) Intersect(other *ConnWithStateful) *ConnWithStateful {
 	statefulConn := e.statefulConn.Intersect(other.statefulConn)
 	otherConn := e.otherConn.Intersect(other.otherConn)
-	conn := e.conn.Intersect(other.conn)
+	conn := e.allConn.Intersect(other.allConn)
 	return NewConnWithStateful(statefulConn, otherConn, conn)
 }
 
 func (e *ConnWithStateful) Union(other *ConnWithStateful) *ConnWithStateful {
 	statefulConn := e.statefulConn.Union(other.statefulConn)
 	otherConn := e.otherConn.Union(other.otherConn)
-	conn := e.conn.Union(other.conn)
+	conn := e.allConn.Union(other.allConn)
 	return NewConnWithStateful(statefulConn, otherConn, conn)
 }
 
 func (e *ConnWithStateful) Subtract(other *ConnWithStateful) *ConnWithStateful {
 	statefulConn := e.statefulConn.Subtract(other.statefulConn)
 	otherConn := e.otherConn.Subtract(other.otherConn)
-	conn := e.conn.Subtract(other.conn)
+	conn := e.allConn.Subtract(other.allConn)
 	return NewConnWithStateful(statefulConn, otherConn, conn)
 }
 
 func (e *ConnWithStateful) String() string {
-	return e.conn.String()
+	return e.allConn.String()
 }
 
 func (e *ConnWithStateful) EnhancedString() string {

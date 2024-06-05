@@ -262,7 +262,7 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections(allowedConnsCombined
 			// src and dst here are nodes, always. Thus ignoring potential error in conversion
 			srcNode := src.(Node)
 			dstNode := dst.(Node)
-			// iterate pairs (src,dst) with conn as allowed connectivity, to check stateful aspect
+			// iterate pairs (src,dst) with allConn as allowed connectivity, to check stateful aspect
 			if v.isConnExternalThroughFIP(srcNode, dstNode) { // fip ignores NACL
 				// TODO: this may be ibm-specific. consider moving to ibmvpc
 				tcpFraction, nonTCPFraction := partitionTCPNonTCP(conn)
