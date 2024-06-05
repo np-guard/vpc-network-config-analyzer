@@ -50,10 +50,10 @@ func (e *SetWithStateful) Equal(other *SetWithStateful) bool {
 
 func (e *SetWithStateful) Copy() *SetWithStateful {
 	return &SetWithStateful{
-		statefulConn:    e.statefulConn,
-		nonStatefulConn: e.nonStatefulConn,
-		otherConn:       e.otherConn,
-		conn:            e.conn,
+		statefulConn:    e.statefulConn.Copy(),
+		nonStatefulConn: e.nonStatefulConn.Copy(),
+		otherConn:       e.otherConn.Copy(),
+		conn:            e.conn.Copy(),
 	}
 }
 
