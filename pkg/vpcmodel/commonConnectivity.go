@@ -37,7 +37,7 @@ func NoConnsExtendedSet() *ExtendedSet {
 
 var all = connection.All()
 
-func (e *ExtendedSet) IsAll() bool {
+func (e *ExtendedSet) IsAllObliviousStateful() bool {
 	return e.conn.Equal(all)
 }
 
@@ -46,7 +46,8 @@ func (e *ExtendedSet) IsEmpty() bool {
 }
 
 func (e *ExtendedSet) Equal(other *ExtendedSet) bool {
-	return e.conn.Equal(other.conn)
+	return e.statefulConn.Equal(other.statefulConn) && e.otherConn.Equal(other.otherConn) &&
+		e.conn.Equal(other.conn)
 }
 
 func (e *ExtendedSet) Copy() *ExtendedSet {
