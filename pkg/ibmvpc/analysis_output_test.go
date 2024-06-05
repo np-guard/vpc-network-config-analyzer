@@ -192,35 +192,35 @@ func (tt *vpcGeneralTest) initTest() {
 	}
 }
 
-var tests = []*vpcGeneralTest{
+var tests2 = []*vpcGeneralTest{
 	{
 		inputConfig: "nacl_split_subnet",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		format:      vpcmodel.Text,
 		grouping: true,
 		noLbAbstract: true,
 	},
 	{
 		inputConfig: "nacl_split_subnet",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		format:      vpcmodel.Text,
 		grouping: false,
 		noLbAbstract: true,
 	},
 	{
 		inputConfig: "nacl_split_subnet",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		format:      vpcmodel.Text,
 		grouping: true,
 	},
 	{
 		inputConfig: "nacl_split_subnet",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		format:      vpcmodel.Text,
 		grouping: false,
 	},
 }
-var tests2 = []*vpcGeneralTest{
+var tests = []*vpcGeneralTest{
 	{
 		inputConfig: "acl_testing5",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},

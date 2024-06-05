@@ -1346,27 +1346,19 @@ func getSubnetsBlocks(rc *datamodel.ResourcesContainerModel) (subnetsBlocks map[
 	sgsAddresses, _ := sgRulesCidrs(rc)
 	naclAddresses, _ := aclRuleCidrs(rc)
 	filtersRulesBlocks := ipblock.DisjointIPBlocks(sgsAddresses, naclAddresses)
-	lbSubnets := map[string]bool{}
-	for _, loadBalancerObj := range rc.LBList {
-		for _, subnetObj := range loadBalancerObj.Subnets {
-			lbSubnets[*subnetObj.CRN] = true
-		}
-	}
 	subnetsBlock := map[string]*ipblock.IPBlock{}
 	for _, subnetObj := range rc.SubnetList {
-		if lbSubnets[*subnetObj.CRN] {
-			b, err := ipblock.FromCidr(*subnetObj.Ipv4CIDRBlock)
-			if err != nil {
-				return nil, err
-			}
-			subnetsBlock[*subnetObj.CRN] = b
+		b, err := ipblock.FromCidr(*subnetObj.Ipv4CIDRBlock)
+		if err != nil {
+			return nil, err
 		}
+		subnetsBlock[*subnetObj.CRN] = b
 	}
 	subnetsBlocks = map[string][]*ipblock.IPBlock{}
 	for subnet, subnetBlock := range subnetsBlock {
 		subnetBlocks := []*ipblock.IPBlock{subnetBlock}
-		for _, sgBlock := range filtersRulesBlocks {
-			subnetBlocks = append(subnetBlocks, subnetBlock.Intersect(sgBlock))
+		for _, filterBlock := range filtersRulesBlocks {
+			subnetBlocks = append(subnetBlocks, subnetBlock.Intersect(filterBlock))
 		}
 		subnetsBlocks[subnet] = ipblock.DisjointIPBlocks(subnetBlocks, []*ipblock.IPBlock{})
 		if len(subnetsBlocks[subnet]) > 1 {
@@ -1387,13 +1379,10 @@ func getSubnetsBlocks(rc *datamodel.ResourcesContainerModel) (subnetsBlocks map[
 // getSubnetsFreeAddresses() collect all the free address of all subnets
 // allocSubnetFreeAddress() allocate a new address for a subnet
 func getSubnetsFreeAddresses(rc *datamodel.ResourcesContainerModel) (map[string]*ipblock.IPBlock, error) {
-	getSubnetsBlocks(rc)
+	subnetsBlocks, _ := getSubnetsBlocks(rc)
 	subnetsFreeAddresses := map[string]*ipblock.IPBlock{}
 	for _, subnetObj := range rc.SubnetList {
-		b, err := ipblock.FromCidr(*subnetObj.Ipv4CIDRBlock)
-		if err != nil {
-			return nil, err
-		}
+		b := subnetsBlocks[*subnetObj.CRN][0]
 		// all the allocated IPs are at subnetObj.ReservedIps.
 		for _, reservedIP := range subnetObj.ReservedIps {
 			b2, err := ipblock.FromIPAddress(*reservedIP.Address)
