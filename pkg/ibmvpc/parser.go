@@ -1283,31 +1283,31 @@ func aclRuleCidrs(rc *datamodel.ResourcesContainerModel) ([]*ipblock.IPBlock, er
 	naclAddresses := []*ipblock.IPBlock{ipblock.GetCidrAll()}
 	for _, aclObj := range rc.NetworkACLList {
 		for _, rule := range aclObj.Rules {
-	var src, dst *string
-	switch ruleObj := rule.(type) {
-	case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolAll:
-		src = ruleObj.Source
-		dst = ruleObj.Destination
-	case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolTcpudp:
-		src = ruleObj.Source
-		dst = ruleObj.Destination
-	case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolIcmp:
-		src = ruleObj.Source
-		dst = ruleObj.Destination
-	}
-
-	for _, blockPointer := range []*string{src, dst} {
-		if blockPointer != nil {
-			b, err := ipblock.FromCidr(*blockPointer)
-			if err != nil {
-				return nil, err
+			var src, dst *string
+			switch ruleObj := rule.(type) {
+			case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolAll:
+				src = ruleObj.Source
+				dst = ruleObj.Destination
+			case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolTcpudp:
+				src = ruleObj.Source
+				dst = ruleObj.Destination
+			case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolIcmp:
+				src = ruleObj.Source
+				dst = ruleObj.Destination
 			}
-			naclAddresses = append(naclAddresses, b)
+
+			for _, blockPointer := range []*string{src, dst} {
+				if blockPointer != nil {
+					b, err := ipblock.FromCidr(*blockPointer)
+					if err != nil {
+						return nil, err
+					}
+					naclAddresses = append(naclAddresses, b)
+				}
+			}
 		}
 	}
-}
-}
-	return naclAddresses,nil
+	return naclAddresses, nil
 }
 
 func sgRulesCidrs(rc *datamodel.ResourcesContainerModel) ([]*ipblock.IPBlock, error) {
@@ -1343,8 +1343,8 @@ func sgRulesCidrs(rc *datamodel.ResourcesContainerModel) ([]*ipblock.IPBlock, er
 
 func getSubnetsBlocks(rc *datamodel.ResourcesContainerModel) (subnetsBlocks map[string][]*ipblock.IPBlock, err error) {
 
-	sgsAddresses,_ := sgRulesCidrs(rc)
-	naclAddresses,_ := aclRuleCidrs(rc)
+	sgsAddresses, _ := sgRulesCidrs(rc)
+	naclAddresses, _ := aclRuleCidrs(rc)
 	filtersRulesBlocks := ipblock.DisjointIPBlocks(sgsAddresses, naclAddresses)
 	lbSubnets := map[string]bool{}
 	for _, loadBalancerObj := range rc.LBList {
