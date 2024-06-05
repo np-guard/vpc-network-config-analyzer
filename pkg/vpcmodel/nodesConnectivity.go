@@ -267,8 +267,7 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections(allowedConnsCombined
 				// TODO: this may be ibm-specific. consider moving to ibmvpc
 				tcpFraction, nonTCPFraction := partitionTCPNonTCP(conn)
 				v.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(src, dst,
-					&ConnWithStateful{statefulConn: tcpFraction, otherConn: nonTCPFraction,
-						nonStatefulConn: connection.None(), conn: conn})
+					NewConnWithStateful(tcpFraction, nonTCPFraction, conn))
 				continue
 			}
 
@@ -283,9 +282,7 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections(allowedConnsCombined
 			// ConnectionWithStatefulness returns the stateful subset
 			statefulCombinedConn := conn.WithStatefulness(combinedDstToSrc)
 			tcpStatefulFraction, nonTCPFraction := partitionTCPNonTCP(statefulCombinedConn)
-			tcpNonStatefulFraction := conn.Subtract(statefulCombinedConn)
-			statefulSet := &ConnWithStateful{statefulConn: tcpStatefulFraction,
-				nonStatefulConn: tcpNonStatefulFraction, otherConn: nonTCPFraction, conn: conn}
+			statefulSet := NewConnWithStateful(tcpStatefulFraction, nonTCPFraction, conn)
 			v.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(src, dst, statefulSet)
 		}
 	}
