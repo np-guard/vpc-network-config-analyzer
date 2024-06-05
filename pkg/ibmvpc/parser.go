@@ -1279,7 +1279,10 @@ func getVPCObjectByUID(res *vpcmodel.MultipleVPCConfigs, uid string) (*VPC, erro
 	return vpc, nil
 }
 
-func aclRuleCidrs(rule vpc1.NetworkACLRuleItemIntf) (res []string) {
+func aclRuleCidrs(rc *datamodel.ResourcesContainerModel) ([]*ipblock.IPBlock, error) {
+	naclAddresses := []*ipblock.IPBlock{ipblock.GetCidrAll()}
+	for _, aclObj := range rc.NetworkACLList {
+		for _, rule := range aclObj.Rules {
 	var src, dst *string
 	switch ruleObj := rule.(type) {
 	case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolAll:
@@ -1295,62 +1298,53 @@ func aclRuleCidrs(rule vpc1.NetworkACLRuleItemIntf) (res []string) {
 
 	for _, blockPointer := range []*string{src, dst} {
 		if blockPointer != nil {
-			res = append(res, *blockPointer)
+			b, err := ipblock.FromCidr(*blockPointer)
+			if err != nil {
+				return nil, err
+			}
+			naclAddresses = append(naclAddresses, b)
 		}
 	}
-	return res
+}
+}
+	return naclAddresses,nil
 }
 
-func sgRuleCidrs(rule vpc1.SecurityGroupRuleIntf) (res []string) {
-	var remote, local *string
-	switch ruleObj := rule.(type) {
-	case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolAll:
-		remote = ruleObj.Remote.(*vpc1.SecurityGroupRuleRemote).CIDRBlock
-		local = ruleObj.Local.(*vpc1.SecurityGroupRuleLocal).CIDRBlock
-	case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudp:
-		remote = ruleObj.Remote.(*vpc1.SecurityGroupRuleRemote).CIDRBlock
-		local = ruleObj.Local.(*vpc1.SecurityGroupRuleLocal).CIDRBlock
-	case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolIcmp:
-		remote = ruleObj.Remote.(*vpc1.SecurityGroupRuleRemote).CIDRBlock
-		local = ruleObj.Local.(*vpc1.SecurityGroupRuleLocal).CIDRBlock
-	}
-
-	for _, blockPointer := range []*string{remote, local} {
-		if blockPointer != nil {
-			res = append(res, *blockPointer)
-		}
-	}
-	return res
-}
-
-func getSubnetsBlocks(rc *datamodel.ResourcesContainerModel) (subnetsBlocks map[string][]*ipblock.IPBlock, err error) {
+func sgRulesCidrs(rc *datamodel.ResourcesContainerModel) ([]*ipblock.IPBlock, error) {
 	sgsAddresses := []*ipblock.IPBlock{ipblock.GetCidrAll()}
 	for _, sgObj := range rc.SecurityGroupList {
 		for _, rule := range sgObj.Rules {
-			for _, cidr := range sgRuleCidrs(rule) {
-				b, err := ipblock.FromCidr(cidr)
-				if err != nil {
-					return nil, err
-				}
-				sgsAddresses = append(sgsAddresses, b)
-				// fmt.Println("sg block " + b.String())
+			var remote, local *string
+			switch ruleObj := rule.(type) {
+			case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolAll:
+				remote = ruleObj.Remote.(*vpc1.SecurityGroupRuleRemote).CIDRBlock
+				local = ruleObj.Local.(*vpc1.SecurityGroupRuleLocal).CIDRBlock
+			case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudp:
+				remote = ruleObj.Remote.(*vpc1.SecurityGroupRuleRemote).CIDRBlock
+				local = ruleObj.Local.(*vpc1.SecurityGroupRuleLocal).CIDRBlock
+			case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolIcmp:
+				remote = ruleObj.Remote.(*vpc1.SecurityGroupRuleRemote).CIDRBlock
+				local = ruleObj.Local.(*vpc1.SecurityGroupRuleLocal).CIDRBlock
 			}
-		}
-	}
-	naclAddresses := []*ipblock.IPBlock{ipblock.GetCidrAll()}
-	for _, aclObj := range rc.NetworkACLList {
-		for _, rule := range aclObj.Rules {
-			for _, cidr := range aclRuleCidrs(rule) {
-				b, err := ipblock.FromCidr(cidr)
-				if err != nil {
-					return nil, err
-				}
-				naclAddresses = append(naclAddresses, b)
-				// fmt.Println("sg block " + b.String())
-			}
-		}
-	}
 
+			for _, blockPointer := range []*string{remote, local} {
+				if blockPointer != nil {
+					b, err := ipblock.FromCidr(*blockPointer)
+					if err != nil {
+						return nil, err
+					}
+					sgsAddresses = append(sgsAddresses, b)
+				}
+			}
+		}
+	}
+	return sgsAddresses, nil
+}
+
+func getSubnetsBlocks(rc *datamodel.ResourcesContainerModel) (subnetsBlocks map[string][]*ipblock.IPBlock, err error) {
+
+	sgsAddresses,_ := sgRulesCidrs(rc)
+	naclAddresses,_ := aclRuleCidrs(rc)
 	filtersRulesBlocks := ipblock.DisjointIPBlocks(sgsAddresses, naclAddresses)
 	lbSubnets := map[string]bool{}
 	for _, loadBalancerObj := range rc.LBList {
