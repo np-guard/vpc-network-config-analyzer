@@ -339,13 +339,9 @@ func (v *VPCsubnetConnectivity) computeStatefulConnections(allowedConnsCombined 
 				return fmt.Errorf("computeStatefulConnections: unexpected type for input dst")
 			}
 			conn.WithStatefulness(otherDirectionConn)
-
 			statefulCombinedConn := conn.WithStatefulness(otherDirectionConn)
-			tcpStatefulFraction, nonTCPFraction := partitionTCPNonTCP(statefulCombinedConn)
-			tcpNonStatefulFraction := conn.Subtract(statefulCombinedConn)
-			statefulSet := &ConnWithStateful{statefulConn: tcpStatefulFraction,
-				nonStatefulConn: tcpNonStatefulFraction, otherConn: nonTCPFraction, allConn: conn}
-			v.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(src, dst, statefulSet)
+			connWithStateful := NewConnWithStatefulGivenTCPStatefulAndNonTCP(statefulCombinedConn, conn)
+			v.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(src, dst, connWithStateful)
 		}
 	}
 	return nil
