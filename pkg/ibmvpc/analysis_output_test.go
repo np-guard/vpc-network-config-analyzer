@@ -194,16 +194,6 @@ func (tt *vpcGeneralTest) initTest() {
 
 var tests = []*vpcGeneralTest{
 	{
-		inputConfig: "nacl_split_subnet",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
-		format:      vpcmodel.Text,
-		grouping: true,
-	},
-}
-
-
-var tests2 = []*vpcGeneralTest{
-	{
 		inputConfig: "acl_testing5",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
 		format:      vpcmodel.MD,
@@ -730,18 +720,40 @@ func TestAllWithComparison(t *testing.T) {
 	fmt.Println("done")
 }
 
-// TODO: this test function should be removed after supporting this analysis
+// TestUnsupportedAnalysis demonstrates cases where analysis is not supported
 func TestUnsupportedAnalysis(t *testing.T) {
-	test := &vpcGeneralTest{
-		inputConfig: "acl_testing3",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
-		format:      vpcmodel.Text,
-		errPerUseCase: map[vpcmodel.OutputUseCase]error{
-			vpcmodel.AllSubnets: errors.New("unsupported connectivity map with partial subnet ranges per connectivity result"),
+	tests := []*vpcGeneralTest{
+		{
+			// here the connectivity per subnet is getting split to few parts by various local ranges within the subnet cidr,
+			// and the split is by the ACL's rules "local" part (e.g. "from" in egress rule / "to" in ingress rule)
+			name:        "unsupported_analysis_acl_testing3",
+			inputConfig: "acl_testing3",
+			useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+			format:      vpcmodel.Text,
+			errPerUseCase: map[vpcmodel.OutputUseCase]error{
+				vpcmodel.AllSubnets: errors.New("unsupported connectivity map with partial subnet ranges per connectivity result"),
+			},
+			mode: outputGeneration,
+		},
+		{
+			// here the split is by  ACL's rules "remote" part (e.g. "to" in egress rule / "from" in ingress rule)
+			name:        "unsupported_nacl_split_subnet",
+			inputConfig: "nacl_split_subnet",
+			useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+			format:      vpcmodel.Text,
+			errPerUseCase: map[vpcmodel.OutputUseCase]error{
+				vpcmodel.AllSubnets: errors.New("unsupported subnets connectivity analysis - no consistent connectivity for entire subnet sub1"),
+			},
+			mode: outputGeneration,
 		},
 	}
-	test.mode = outputGeneration
-	test.runTest(t)
+	for testIdx := range tests {
+		test := tests[testIdx]
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			test.runTest(t)
+		})
+	}
 }
 
 func (tt *vpcGeneralTest) runTest(t *testing.T) {
