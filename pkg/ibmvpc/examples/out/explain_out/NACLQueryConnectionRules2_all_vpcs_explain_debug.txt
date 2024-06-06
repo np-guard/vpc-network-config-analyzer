@@ -2,6 +2,7 @@ Explaining connectivity from vsi1-ky to 161.26.0.0/16 within test-vpc1-ky
 =========================================================================
 
 Allowed connections from vsi1-ky[10.240.10.4] to Public Internet 161.26.0.0/16: All Connections
+	TCP respond is blocked
 
 Path:
 	vsi1-ky[10.240.10.4] -> security group sg1-ky -> subnet1-ky -> network ACL acl1-ky -> 
