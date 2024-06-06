@@ -2,6 +2,7 @@ Explaining connectivity from vsi31-ky to vsi32-ky within test-vpc3-ky
 =====================================================================
 
 Allowed connections from vsi31-ky[10.240.31.4] to vsi32-ky[10.240.128.4]: All Connections
+	Respond enabled on the entire TCP component of the connection
 
 Path:
 	vsi31-ky[10.240.31.4] -> security group sg31-ky -> subnet31-ky -> network ACL acl31-ky -> 
