@@ -2,6 +2,7 @@ Explaining connectivity from vsi3b-ky to vsi3a-ky within test-vpc1-ky
 =====================================================================
 
 Allowed connections from vsi3b-ky[10.240.30.6] to vsi3a-ky[10.240.30.5]: All Connections
+	Respond enabled on the entire TCP component of the connection
 
 Path:
 	vsi3b-ky[10.240.30.6] -> security group sg1-ky -> 
