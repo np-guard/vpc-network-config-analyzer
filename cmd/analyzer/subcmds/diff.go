@@ -42,7 +42,7 @@ func newDiffEndpointsCommand(args *inArgs) *cobra.Command {
 		Long:  `reports changes in endpoint connectivity between two VPC configurations`,
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			return analysisVPCConfigs(args, vpcmodel.EndpointsDiff)
+			return analysisVPCConfigs(cmd, args, vpcmodel.EndpointsDiff)
 		},
 	}
 }
@@ -54,7 +54,7 @@ func newDiffSubnetsCommand(args *inArgs) *cobra.Command {
 		Long:  `reports changes in subnet connectivity between two VPC configurations`,
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			return analysisVPCConfigs(args, vpcmodel.SubnetsDiff)
+			return analysisVPCConfigs(cmd, args, vpcmodel.SubnetsDiff)
 		},
 	}
 }
