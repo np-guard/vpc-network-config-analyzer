@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const expectedOutDir = "expected_out/"
+// const expectedOutDir = "expected_out/"
 
 // TODO: this file need to be rewritten
 // func TestMain(t *testing.T) {
