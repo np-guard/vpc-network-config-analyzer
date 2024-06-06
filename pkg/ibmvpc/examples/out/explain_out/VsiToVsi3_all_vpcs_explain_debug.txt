@@ -2,6 +2,7 @@ Explaining connectivity from vsi3a-ky to 10.240.10.4 (vsi1-ky[10.240.10.4]) with
 ===============================================================================================
 
 Allowed connections from vsi3a-ky[10.240.30.5] to vsi1-ky[10.240.10.4]: All Connections
+	Respond enabled on the entire TCP component of the connection
 
 Path:
 	vsi3a-ky[10.240.30.5] -> security group sg3-ky -> subnet3-ky -> network ACL acl3-ky -> 
