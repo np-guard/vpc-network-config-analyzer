@@ -151,7 +151,7 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 func (g *groupedConnLine) explainPerCaseStr(c *VPCConfig, src, dst EndpointElem,
 	connQuery, crossVpcConnection *connection.Set, ingressBlocking, egressBlocking bool,
 	noConnection, resourceEffectHeader, path, details string) string {
-	conn := g.commonProperties.conn.allConn
+	conn := g.commonProperties.conn
 	externalRouter, crossVpcRouter := g.commonProperties.expDetails.externalRouter,
 		g.commonProperties.expDetails.crossVpcRouter
 	headerPlusPath := resourceEffectHeader + path
@@ -210,19 +210,19 @@ func noConnectionHeader(src, dst string, connQuery *connection.Set) string {
 // printing when connection exists.
 // computing "1" when there is a connection and adding to it already computed "2" and "3" as described in explainabilityLineStr
 func existingConnectionStr(c *VPCConfig, connQuery *connection.Set, src, dst EndpointElem,
-	conn *connection.Set, path, details string) string {
+	conn *detailedConn, path, details string) string {
 	resComponents := []string{}
 	// Computing the header, "1" described in explainabilityLineStr
 	if connQuery == nil {
 		resComponents = append(resComponents, fmt.Sprintf("Allowed connections from %v to %v: %v\n", src.ExtendedName(c), dst.ExtendedName(c),
-			conn.String()))
+			conn.allConn.String()))
 	} else {
 		properSubsetConn := ""
-		if !conn.Equal(connQuery) {
+		if !conn.allConn.Equal(connQuery) {
 			properSubsetConn = "(note that not all queried protocols/ports are allowed)\n"
 		}
 		resComponents = append(resComponents, fmt.Sprintf("Connections are allowed from %s to %s%s\n%s",
-			src.ExtendedName(c), dst.ExtendedName(c), connHeader(conn), properSubsetConn))
+			src.ExtendedName(c), dst.ExtendedName(c), connHeader(conn.allConn), properSubsetConn))
 	}
 	resComponents = append(resComponents, path, details)
 	return strings.Join(resComponents, newLine)
