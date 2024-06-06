@@ -245,10 +245,10 @@ func TestStatefulGrouping(t *testing.T) {
 	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(true, true)
 	groupingStr := res.String(c)
+	fmt.Println(groupingStr)
 	require.Equal(t, "vsi1 => Public Internet 1.2.0.0/22,8.8.8.8/32 : All Connections\n"+
 		"vsi2 => Public Internet 1.2.0.0/22 : All Connections\n"+
-		"vsi2 => Public Internet 8.8.8.8/32 : All Connections *\n", groupingStr)
-	fmt.Println(groupingStr)
+		"vsi2 => Public Internet 8.8.8.8/32 : All Connections * \n", groupingStr)
 	fmt.Println("done")
 }
 
