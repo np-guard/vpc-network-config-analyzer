@@ -39,6 +39,8 @@ func explainHeader(explanation *Explanation) string {
 	return header1 + newLine + header2 + doubleNL
 }
 
+// used to print 1) the query in the first header
+// 2) the actual allowed connection from the queried one in the 2nd header
 func connHeader(connQuery *connection.Set) string {
 	if connQuery != nil {
 		return " using \"" + connQuery.String() + "\""
