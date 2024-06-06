@@ -70,3 +70,8 @@ func Warnf(format string, o ...interface{}) {
 		logger.l.Printf("WARN	%s", fmt.Sprintf(format, o...))
 	}
 }
+
+// Errorf writes an error message to the log
+func Errorf(format string, o ...interface{}) {
+	logger.l.Printf("ERROR	%s", fmt.Sprintf(format, o...))
+}
