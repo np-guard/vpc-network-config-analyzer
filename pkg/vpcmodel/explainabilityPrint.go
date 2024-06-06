@@ -215,16 +215,17 @@ func existingConnectionStr(c *VPCConfig, connQuery *connection.Set, src, dst End
 	conn *detailedConn, path, details string) string {
 	resComponents := []string{}
 	// Computing the header, "1" described in explainabilityLineStr
+	respondConnStr := conn.respondString()
 	if connQuery == nil {
 		resComponents = append(resComponents, fmt.Sprintf("Allowed connections from %v to %v: %v\n", src.ExtendedName(c), dst.ExtendedName(c),
-			conn.allConn.String()))
+			conn.allConn.String(), respondConnStr))
 	} else {
 		properSubsetConn := ""
 		if !conn.allConn.Equal(connQuery) {
 			properSubsetConn = "(note that not all queried protocols/ports are allowed)\n"
 		}
-		resComponents = append(resComponents, fmt.Sprintf("Connections are allowed from %s to %s%s\n%s",
-			src.ExtendedName(c), dst.ExtendedName(c), connHeader(conn.allConn), properSubsetConn))
+		resComponents = append(resComponents, fmt.Sprintf("Connections are allowed from %s to %s%s%s\n%s",
+			src.ExtendedName(c), dst.ExtendedName(c), connHeader(conn.allConn), respondConnStr, properSubsetConn))
 	}
 	resComponents = append(resComponents, path, details)
 	return strings.Join(resComponents, newLine)
