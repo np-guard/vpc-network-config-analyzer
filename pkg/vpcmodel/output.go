@@ -17,7 +17,7 @@ import (
 
 type OutFormat int64
 
-const overApproximationSign = "**"
+const overApproximationSign = " ** "
 const statefulMessage = "\nconnections are stateful (on TCP) unless marked with *\n"
 const overApproximationMessage = "\nconnections marked with " + overApproximationSign +
 	" are an over-approximation, not all private IPs have the same connectivity\n"

@@ -130,7 +130,7 @@ func (e *ConnWithStateful) String() string {
 
 func (e *ConnWithStateful) EnhancedString() string {
 	if !e.nonStatefulConn.IsEmpty() {
-		return e.String() + " *"
+		return e.String() + " * "
 	}
 	return e.String()
 }
