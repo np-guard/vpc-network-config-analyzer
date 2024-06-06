@@ -38,9 +38,9 @@ type explainDetails struct {
 }
 
 type groupedCommonProperties struct {
-	connWithStateful *ConnWithStateful
-	connDiff         *connectionDiff
-	expDetails       *explainDetails
+	conn       *ConnWithStateful
+	connDiff   *connectionDiff
+	expDetails *explainDetails
 	// groupingStrKey is the key by which the grouping is done:
 	// the string of conn per grouping of conn lines, string of connDiff per grouping of diff lines
 	// and string of conn and explainDetails for explainblity
@@ -153,7 +153,7 @@ func (g *groupedConnLine) String(c *VPCConfig) string {
 
 func (g *groupedConnLine) ConnLabel(full bool) string {
 	label := g.commonProperties.groupingStrKey
-	if !full && g.commonProperties.connWithStateful.IsAllObliviousStateful() {
+	if !full && g.commonProperties.conn.IsAllObliviousStateful() {
 		label = ""
 	}
 	signs := []string{}
@@ -297,7 +297,7 @@ func (g *GroupConnLines) groupExternalAddresses(vsi bool) error {
 		for dst, connsWithStateful := range nodeConns {
 			if !connsWithStateful.IsEmpty() {
 				err := g.addLineToExternalGrouping(&res, src, dst,
-					&groupedCommonProperties{connWithStateful: connsWithStateful, groupingStrKey: connsWithStateful.EnhancedString()})
+					&groupedCommonProperties{conn: connsWithStateful, groupingStrKey: connsWithStateful.EnhancedString()})
 				if err != nil {
 					return err
 				}
@@ -346,7 +346,7 @@ func (g *GroupConnLines) groupExternalAddressesForExplainability() error {
 			details.crossVpcRules, details.filtersRelevant,
 			details.connEnabled, details.ingressEnabled, details.egressEnabled}
 		err := g.addLineToExternalGrouping(&res, details.src, details.dst,
-			&groupedCommonProperties{connWithStateful: details.conn, expDetails: expDetails,
+			&groupedCommonProperties{conn: details.conn, expDetails: expDetails,
 				groupingStrKey: groupingStrKey})
 		if err != nil {
 			return err
@@ -544,7 +544,7 @@ func (g *GroupConnLines) String(c *VPCConfig) string {
 func (g *GroupConnLines) hasStatelessConns() bool {
 	hasStatelessConns := false
 	for _, line := range g.GroupedLines {
-		if !line.commonProperties.connWithStateful.nonStatefulConn.IsEmpty() {
+		if !line.commonProperties.conn.nonStatefulConn.IsEmpty() {
 			hasStatelessConns = true
 			break
 		}

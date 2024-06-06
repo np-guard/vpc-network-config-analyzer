@@ -150,9 +150,9 @@ func newVPCConfigTest1() (*VPCConfig, *VPCConnectivity) {
 	res.Nodes[0].(*mockNetIntf).subnet = res.Subnets[0]
 
 	res1 := &VPCConnectivity{AllowedConnsCombinedStateful: GeneralStatefulConnectivityMap{}}
-	connWithStateful := NewConnWithStatefulAllStateful()
-	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[0], res.Nodes[1], connWithStateful)
-	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[0], res.Nodes[2], connWithStateful)
+	conn := NewConnWithStatefulAllStateful()
+	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[0], res.Nodes[1], conn)
+	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[0], res.Nodes[2], conn)
 	return res, res1
 }
 
@@ -169,11 +169,11 @@ func newVPCConfigTest2() (*VPCConfig, *VPCConnectivity) {
 	res.Nodes[3].(*mockNetIntf).subnet = res.Subnets[0]
 
 	res1 := &VPCConnectivity{AllowedConnsCombinedStateful: GeneralStatefulConnectivityMap{}}
-	connWithStateful := NewConnWithStatefulAllStateful()
-	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[0], res.Nodes[1], connWithStateful)
-	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[0], res.Nodes[2], connWithStateful)
-	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[3], res.Nodes[1], connWithStateful)
-	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[3], res.Nodes[2], connWithStateful)
+	conn := NewConnWithStatefulAllStateful()
+	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[0], res.Nodes[1], conn)
+	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[0], res.Nodes[2], conn)
+	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[3], res.Nodes[1], conn)
+	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[3], res.Nodes[2], conn)
 
 	return res, res1
 }
@@ -227,11 +227,11 @@ func configStatefulGrouping() (*VPCConfig, *VPCConnectivity) {
 	res.Nodes[3].(*mockNetIntf).subnet = res.Subnets[0]
 
 	res1 := &VPCConnectivity{AllowedConnsCombinedStateful: GeneralStatefulConnectivityMap{}}
-	connWithStateful := NewConnWithStatefulAllStateful()
+	conn := NewConnWithStatefulAllStateful()
 	nonStatefulConn := NewConnWithStatefulAllNotStateful()
-	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[0], res.Nodes[1], connWithStateful)
-	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[0], res.Nodes[2], connWithStateful)
-	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[3], res.Nodes[1], connWithStateful)
+	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[0], res.Nodes[1], conn)
+	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[0], res.Nodes[2], conn)
+	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[3], res.Nodes[1], conn)
 	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[3], res.Nodes[2], nonStatefulConn)
 
 	return res, res1

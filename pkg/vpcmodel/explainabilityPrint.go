@@ -147,7 +147,7 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 func (g *groupedConnLine) explainPerCaseStr(c *VPCConfig, src, dst EndpointElem,
 	connQuery, crossVpcConnection *connection.Set, ingressBlocking, egressBlocking bool,
 	noConnection, resourceEffectHeader, path, details string) string {
-	conn := g.commonProperties.connWithStateful.allConn
+	conn := g.commonProperties.conn.allConn
 	externalRouter, crossVpcRouter := g.commonProperties.expDetails.externalRouter,
 		g.commonProperties.expDetails.crossVpcRouter
 	headerPlusPath := resourceEffectHeader + path
