@@ -8,10 +8,6 @@ SPDX-License-Identifier: Apache-2.0
 package main
 
 import (
-	"errors"
-	"os"
-	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -20,7 +16,7 @@ import (
 const expectedOutDir = "expected_out/"
 
 // TODO: this file need to be rewritten
-//func TestMain(t *testing.T) {
+// func TestMain(t *testing.T) {
 //	tests := []struct {
 //		name string
 //		args string
@@ -163,7 +159,7 @@ const expectedOutDir = "expected_out/"
 //	removeGeneratedFiles()
 //}
 
-//func TestMainWithExpectedOut(t *testing.T) {
+// func TestMainWithExpectedOut(t *testing.T) {
 //	tests := []struct {
 //		name    string
 //		args    string // must include output-file arg
@@ -197,27 +193,27 @@ const expectedOutDir = "expected_out/"
 //		})
 //	}
 //	removeGeneratedFiles()
-//}
+// }
 
 // comparison should be insensitive to line comparators; cleaning strings from line comparators
-func cleanStr(str string) string {
-	return strings.ReplaceAll(strings.ReplaceAll(str, "/n", ""), "\r", "")
-}
+// func cleanStr(str string) string {
+//	return strings.ReplaceAll(strings.ReplaceAll(str, "/n", ""), "\r", "")
+// }
 
-func removeGeneratedFiles() {
-	files1, err1 := filepath.Glob("*.txt")
-	files2, err2 := filepath.Glob("*.drawio")
-	files3, err3 := filepath.Glob("*.md")
-	files4, err4 := filepath.Glob("*.json")
-	if err1 != nil || err2 != nil || err3 != nil || err4 != nil {
-		panic(errors.Join(err1, err2, err3, err4))
-	}
-	for _, f := range append(files1, append(files2, append(files3, files4...)...)...) {
-		if err := os.Remove(f); err != nil {
-			panic(err)
-		}
-	}
-}
+// func removeGeneratedFiles() {
+//	files1, err1 := filepath.Glob("*.txt")
+//	files2, err2 := filepath.Glob("*.drawio")
+//	files3, err3 := filepath.Glob("*.md")
+//	files4, err4 := filepath.Glob("*.json")
+//	if err1 != nil || err2 != nil || err3 != nil || err4 != nil {
+//		panic(errors.Join(err1, err2, err3, err4))
+//	}
+//	for _, f := range append(files1, append(files2, append(files3, files4...)...)...) {
+//		if err := os.Remove(f); err != nil {
+//			panic(err)
+//		}
+//	}
+// }
 
 func TestCommandsFailExecute(t *testing.T) {
 	tests := []struct {
