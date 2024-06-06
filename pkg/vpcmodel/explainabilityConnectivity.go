@@ -38,7 +38,7 @@ type srcDstDetails struct {
 	egressEnabled  bool
 	// the connection between src to dst, in case the connection was not part of the query;
 	// the part of the connection relevant to the query otherwise.
-	conn           *connection.Set
+	conn           *ConnWithStateful
 	externalRouter RoutingResource // the router (fip or pgw) to external network; nil if none or not relevant
 	crossVpcRouter RoutingResource // the (currently only tgw) router between src and dst from different VPCs; nil if none or not relevant
 	crossVpcRules  []RulesInTable  // cross vpc (only tgw at the moment) prefix rules effecting the connection (or lack of)
@@ -156,7 +156,7 @@ func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node,
 			if err != nil {
 				return nil, err
 			}
-			rulesThisSrcDst := &srcDstDetails{src: src, dst: dst, conn: connection.None(),
+			rulesThisSrcDst := &srcDstDetails{src: src, dst: dst, conn: EmptyConnWithStateful(),
 				potentialAllowRules: allowRules, potentialDenyRules: denyRules}
 			rulesAndConn = append(rulesAndConn, rulesThisSrcDst)
 		}
@@ -436,9 +436,10 @@ func (details *rulesAndConnDetails) computeConnections(c *VPCConfig,
 			return err
 		}
 		if connQuery != nil { // connection is part of the query
-			srcDstDetails.conn = connWithStateful.allConn.Intersect(connQuery)
+			srcDstDetails.conn = NewConnWithStateful(connWithStateful.statefulConn.Intersect(connQuery),
+				connWithStateful.otherConn.Intersect(connQuery), connWithStateful.allConn.Intersect(connQuery))
 		} else {
-			srcDstDetails.conn = connWithStateful.allConn
+			srcDstDetails.conn = connWithStateful
 		}
 		srcDstDetails.connEnabled = !srcDstDetails.conn.IsEmpty()
 	}

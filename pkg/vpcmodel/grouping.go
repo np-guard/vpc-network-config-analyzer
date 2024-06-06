@@ -12,7 +12,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/ipblock"
 )
 
@@ -39,7 +38,6 @@ type explainDetails struct {
 }
 
 type groupedCommonProperties struct {
-	conn             *connection.Set // todo: delete once refactoring is completed
 	connWithStateful *ConnWithStateful
 	connDiff         *connectionDiff
 	expDetails       *explainDetails
@@ -348,7 +346,7 @@ func (g *GroupConnLines) groupExternalAddressesForExplainability() error {
 			details.crossVpcRules, details.filtersRelevant,
 			details.connEnabled, details.ingressEnabled, details.egressEnabled}
 		err := g.addLineToExternalGrouping(&res, details.src, details.dst,
-			&groupedCommonProperties{conn: details.conn, expDetails: expDetails,
+			&groupedCommonProperties{connWithStateful: details.conn, expDetails: expDetails,
 				groupingStrKey: groupingStrKey})
 		if err != nil {
 			return err
