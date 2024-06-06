@@ -255,6 +255,11 @@ func TestCommandsFailExecute(t *testing.T) {
 			args:                  []string{"diff", "subnets", "--vpc-config", "../../pkg/ibmvpc/examples/input/input_multi_resource_groups.json"},
 			expectedErrorContains: "required flag(s) \"vpc-config-second\" not set",
 		},
+		{
+			name:                  "nacls_split_subnets",
+			args:                  []string{"report", "subnets", "--vpc-config", "../../pkg/ibmvpc/examples/input/input_split_subnet.json"},
+			expectedErrorContains: "partial subnet ranges",
+		},
 	}
 	for _, tt := range tests {
 		tt := tt

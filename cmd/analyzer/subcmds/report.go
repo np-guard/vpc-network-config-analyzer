@@ -42,8 +42,8 @@ func newReportEndpointsCommand(args *inArgs) *cobra.Command {
 		Short: "Report VPC connectivity between endpoints",
 		Long:  `reports VPC connectivity between endpoints as implied by the given cloud configuration`,
 		Args:  cobra.NoArgs,
-		RunE: func(_ *cobra.Command, _ []string) error {
-			return analysisVPCConfigs(args, vpcmodel.AllEndpoints)
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			return analysisVPCConfigs(cmd, args, vpcmodel.AllEndpoints)
 		},
 	}
 }
@@ -54,8 +54,8 @@ func newReportSubnetsCommand(args *inArgs) *cobra.Command {
 		Short: "Report VPC connectivity between subnets",
 		Long:  `reports VPC connectivity between subnets as implied by the given cloud configuration`,
 		Args:  cobra.NoArgs,
-		RunE: func(_ *cobra.Command, _ []string) error {
-			return analysisVPCConfigs(args, vpcmodel.AllSubnets)
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			return analysisVPCConfigs(cmd, args, vpcmodel.AllSubnets)
 		},
 	}
 }
@@ -73,8 +73,8 @@ func newReportSingleSubnetCommand(args *inArgs) *cobra.Command {
 			}
 			return validateFormatForMode(SingleSubnetCmd, []formatSetting{textFormat}, args)
 		},
-		RunE: func(_ *cobra.Command, _ []string) error {
-			return analysisVPCConfigs(args, vpcmodel.SingleSubnet)
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			return analysisVPCConfigs(cmd, args, vpcmodel.SingleSubnet)
 		},
 	}
 }
