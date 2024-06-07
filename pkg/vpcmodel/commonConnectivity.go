@@ -13,15 +13,15 @@ import (
 
 // todo: remove stateful from connection.Set (for both options)
 
-// ConnWithStateful connection details
-type ConnWithStateful struct {
+// connWithStateful connection details
+type connWithStateful struct {
 	statefulConn    *connection.Set // stateful TCP connection between <src, dst>
 	nonStatefulConn *connection.Set // nonstateful TCP connection between <src, dst>; complementary of statefulConn
 	otherConn       *connection.Set // non TCP connection (for which stateful is non-relevant)
 	allConn         *connection.Set // entire connection
 }
 
-// operation on ConnWithStateful
+// operation on connWithStateful
 // The operations are performed on the disjoint statefulConn and otherConn and on allConn which contains them;
 // nonStatefulConn - the tcp complementary of statefulConn w.r.t. allConn -
 // is computed as allConn minus (statefulConn union otherConn)
@@ -30,8 +30,8 @@ func computeNonStatefulConn(allConn, otherConn, statefulConn *connection.Set) *c
 	return allConn.Subtract(otherConn).Subtract(statefulConn)
 }
 
-func EmptyConnWithStateful() *ConnWithStateful {
-	return &ConnWithStateful{
+func EmptyConnWithStateful() *connWithStateful {
+	return &connWithStateful{
 		statefulConn:    NoConns(),
 		nonStatefulConn: NoConns(),
 		otherConn:       NoConns(),
@@ -39,8 +39,8 @@ func EmptyConnWithStateful() *ConnWithStateful {
 	}
 }
 
-func NewConnWithStateful(statefulConn, otherConn, allConn *connection.Set) *ConnWithStateful {
-	return &ConnWithStateful{
+func NewConnWithStateful(statefulConn, otherConn, allConn *connection.Set) *connWithStateful {
+	return &connWithStateful{
 		statefulConn:    statefulConn,
 		nonStatefulConn: computeNonStatefulConn(allConn, otherConn, statefulConn),
 		otherConn:       otherConn,
@@ -49,9 +49,9 @@ func NewConnWithStateful(statefulConn, otherConn, allConn *connection.Set) *Conn
 }
 
 // NewConnWithStatefulGivenTCPStatefulAndNonTCP constructor that is given the (tcp stateful and non tcp) conn and the entire conn
-func NewConnWithStatefulGivenTCPStatefulAndNonTCP(tcpStatefulAndNonTCP, allConn *connection.Set) *ConnWithStateful {
+func NewConnWithStatefulGivenTCPStatefulAndNonTCP(tcpStatefulAndNonTCP, allConn *connection.Set) *connWithStateful {
 	tcpStatefulFraction, nonTCPFraction := partitionTCPNonTCP(tcpStatefulAndNonTCP)
-	return &ConnWithStateful{
+	return &connWithStateful{
 		statefulConn:    tcpStatefulFraction,
 		nonStatefulConn: computeNonStatefulConn(allConn, nonTCPFraction, tcpStatefulFraction),
 		otherConn:       nonTCPFraction,
@@ -59,8 +59,8 @@ func NewConnWithStatefulGivenTCPStatefulAndNonTCP(tcpStatefulAndNonTCP, allConn 
 	}
 }
 
-func NewConnWithStatefulGivenStateful(stateful *connection.Set) *ConnWithStateful {
-	return &ConnWithStateful{
+func NewConnWithStatefulGivenStateful(stateful *connection.Set) *connWithStateful {
+	return &connWithStateful{
 		statefulConn:    stateful,
 		nonStatefulConn: NoConns(),
 		otherConn:       NoConns(),
@@ -68,8 +68,8 @@ func NewConnWithStatefulGivenStateful(stateful *connection.Set) *ConnWithStatefu
 	}
 }
 
-func NewConnWithStatefulAllStateful() *ConnWithStateful {
-	return &ConnWithStateful{
+func NewConnWithStatefulAllStateful() *connWithStateful {
+	return &connWithStateful{
 		statefulConn:    newTCPSet(),
 		nonStatefulConn: NoConns(),
 		otherConn:       NoConns(),
@@ -77,8 +77,8 @@ func NewConnWithStatefulAllStateful() *ConnWithStateful {
 	}
 }
 
-func NewConnWithStatefulAllNotStateful() *ConnWithStateful {
-	return &ConnWithStateful{
+func NewConnWithStatefulAllNotStateful() *connWithStateful {
+	return &connWithStateful{
 		statefulConn:    NoConns(),
 		nonStatefulConn: newTCPSet(),
 		otherConn:       AllConns().Subtract(newTCPSet()),
@@ -86,49 +86,49 @@ func NewConnWithStatefulAllNotStateful() *ConnWithStateful {
 	}
 }
 
-func (e *ConnWithStateful) IsAllObliviousStateful() bool {
+func (e *connWithStateful) IsAllObliviousStateful() bool {
 	return e.allConn.Equal(connection.All())
 }
 
-func (e *ConnWithStateful) IsEmpty() bool {
+func (e *connWithStateful) IsEmpty() bool {
 	return e.allConn.IsEmpty()
 }
 
-func (e *ConnWithStateful) Equal(other *ConnWithStateful) bool {
+func (e *connWithStateful) Equal(other *connWithStateful) bool {
 	return e.statefulConn.Equal(other.statefulConn) && e.otherConn.Equal(other.otherConn) &&
 		e.allConn.Equal(other.allConn)
 }
 
-func (e *ConnWithStateful) Copy() *ConnWithStateful {
+func (e *connWithStateful) Copy() *connWithStateful {
 	return NewConnWithStateful(e.nonStatefulConn.Copy(), e.otherConn.Copy(), e.allConn.Copy())
 }
 
-func (e *ConnWithStateful) Intersect(other *ConnWithStateful) *ConnWithStateful {
+func (e *connWithStateful) Intersect(other *connWithStateful) *connWithStateful {
 	statefulConn := e.statefulConn.Intersect(other.statefulConn)
 	otherConn := e.otherConn.Intersect(other.otherConn)
 	conn := e.allConn.Intersect(other.allConn)
 	return NewConnWithStateful(statefulConn, otherConn, conn)
 }
 
-func (e *ConnWithStateful) Union(other *ConnWithStateful) *ConnWithStateful {
+func (e *connWithStateful) Union(other *connWithStateful) *connWithStateful {
 	statefulConn := e.statefulConn.Union(other.statefulConn)
 	otherConn := e.otherConn.Union(other.otherConn)
 	conn := e.allConn.Union(other.allConn)
 	return NewConnWithStateful(statefulConn, otherConn, conn)
 }
 
-func (e *ConnWithStateful) Subtract(other *ConnWithStateful) *ConnWithStateful {
+func (e *connWithStateful) Subtract(other *connWithStateful) *connWithStateful {
 	statefulConn := e.statefulConn.Subtract(other.statefulConn)
 	otherConn := e.otherConn.Subtract(other.otherConn)
 	conn := e.allConn.Subtract(other.allConn)
 	return NewConnWithStateful(statefulConn, otherConn, conn)
 }
 
-func (e *ConnWithStateful) String() string {
+func (e *connWithStateful) String() string {
 	return e.allConn.String()
 }
 
-func (e *ConnWithStateful) EnhancedString() string {
+func (e *connWithStateful) EnhancedString() string {
 	if !e.nonStatefulConn.IsEmpty() {
 		return e.String() + " * "
 	}
@@ -138,7 +138,7 @@ func (e *ConnWithStateful) EnhancedString() string {
 // ///////////////////////////////////////////////////////////////////////////////////////////
 
 // GeneralStatefulConnectivityMap describes connectivity
-type GeneralStatefulConnectivityMap map[VPCResourceIntf]map[VPCResourceIntf]*ConnWithStateful
+type GeneralStatefulConnectivityMap map[VPCResourceIntf]map[VPCResourceIntf]*connWithStateful
 
 type GeneralConnectivityMap map[VPCResourceIntf]map[VPCResourceIntf]*connection.Set
 
@@ -164,9 +164,9 @@ func (statefulConnMap GeneralStatefulConnectivityMap) copy() GeneralStatefulConn
 
 // it is assumed that the components of connWithStateful are legal connection.Set, namely not nil
 func (statefulConnMap GeneralStatefulConnectivityMap) updateAllowedStatefulConnsMap(src,
-	dst VPCResourceIntf, conn *ConnWithStateful) {
+	dst VPCResourceIntf, conn *connWithStateful) {
 	if _, ok := statefulConnMap[src]; !ok {
-		statefulConnMap[src] = map[VPCResourceIntf]*ConnWithStateful{}
+		statefulConnMap[src] = map[VPCResourceIntf]*connWithStateful{}
 	}
 	statefulConnMap[src][dst] = conn
 }

@@ -38,7 +38,7 @@ type explainDetails struct {
 }
 
 type groupedCommonProperties struct {
-	conn       *ConnWithStateful
+	conn       *connWithStateful
 	connDiff   *connectionDiff
 	expDetails *explainDetails
 	// groupingStrKey is the key by which the grouping is done:

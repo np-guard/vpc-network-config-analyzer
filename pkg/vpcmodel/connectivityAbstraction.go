@@ -90,7 +90,7 @@ func (nsa *NodeSetAbstraction) partitionConnectivityByNodeSet(nodeSet NodeSet) (
 func (nsa *NodeSetAbstraction) mergeConnectivityWithNodeSetAbstraction(
 	nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet GeneralStatefulConnectivityMap,
 	nodeSet NodeSet) GeneralStatefulConnectivityMap {
-	unionConns := func(conn *ConnWithStateful, conns map[VPCResourceIntf]*ConnWithStateful) *ConnWithStateful {
+	unionConns := func(conn *connWithStateful, conns map[VPCResourceIntf]*connWithStateful) *connWithStateful {
 		for _, c := range conns {
 			conn = conn.Union(c)
 		}
@@ -144,7 +144,7 @@ func (nsa *NodeSetAbstraction) missingConnections(connMap, mergedConnMap General
 	for node1, conns := range connMap {
 		// here we iterate over the nodes in the nodeSet, and not over the conns, because we can not know if conns holds the nodes:
 		for _, node2 := range nodeSet.Nodes() {
-			var nodeConnection, mergedConnection *ConnWithStateful
+			var nodeConnection, mergedConnection *connWithStateful
 			if nodeConnection = conns[node2]; nodeConnection == nil {
 				nodeConnection = EmptyConnWithStateful()
 			}
