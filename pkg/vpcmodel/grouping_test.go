@@ -212,9 +212,9 @@ func TestGroupingPhase2(t *testing.T) {
 	fmt.Println("done")
 }
 
-// connections from vsi1 should be grouped since both stateful
-// connections from vsi2 should not be grouped since one stateful and one not
-func configStatefulGrouping() (*VPCConfig, *VPCConnectivity) {
+// connections from vsi1 should be grouped since both responsive
+// connections from vsi2 should not be grouped since one responsive and one not
+func configResponsiveGrouping() (*VPCConfig, *VPCConnectivity) {
 	res := &VPCConfig{Nodes: []Node{}}
 	res.Nodes = append(res.Nodes,
 		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1"},
@@ -228,17 +228,17 @@ func configStatefulGrouping() (*VPCConfig, *VPCConnectivity) {
 
 	res1 := &VPCConnectivity{AllowedConnsCombinedResponsive: GeneralResponsiveConnectivityMap{}}
 	conn := detailConnForAllRsp()
-	nonStatefulConn := detailConnForTCPRspAndNonTCP(newTCPSet(), AllConns())
+	nonResponsiveConn := detailConnForTCPRspAndNonTCP(newTCPSet(), AllConns())
 	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[0], res.Nodes[1], conn)
 	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[0], res.Nodes[2], conn)
 	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[3], res.Nodes[1], conn)
-	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[3], res.Nodes[2], nonStatefulConn)
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[3], res.Nodes[2], nonResponsiveConn)
 
 	return res, res1
 }
 
-func TestStatefulGrouping(t *testing.T) {
-	c, v := configStatefulGrouping()
+func TestResponsiveGrouping(t *testing.T) {
+	c, v := configResponsiveGrouping()
 	res := &GroupConnLines{config: c, nodesConn: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
 		cacheGrouped: newCacheGroupedElements()}
 	err := res.groupExternalAddresses(true)

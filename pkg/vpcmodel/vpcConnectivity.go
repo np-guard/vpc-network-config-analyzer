@@ -23,10 +23,10 @@ type VPCConnectivity struct {
 	// This is auxiliary computation based on which AllowedConnsCombined is computed, however the "debug" format uses it
 	AllowedConns map[Node]*ConnectivityResult
 
-	// allowed connectivity combined and stateful
+	// allowed connectivity combined and responsive
 	// used by debug and json format only (at the moment)
-	// For src node provides a map of dsts and the stateful connection it has to these dsts
-	// note that subset of a non-stateful connection from AllowedConnsCombined can still be stateful
+	// For src node provides a map of dsts and the responsive connection it has to these dsts
+	// note that subset of a non-responsive connection from AllowedConnsCombined can still be responsive
 	// and as such add to this map
 
 	AllowedConnsCombinedResponsive GeneralResponsiveConnectivityMap

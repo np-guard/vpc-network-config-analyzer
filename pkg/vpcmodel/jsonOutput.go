@@ -81,9 +81,9 @@ func getConnLines(conn *VPCConnectivity) []connLine {
 			if extConn.isEmpty() {
 				continue
 			}
-			statefulAndOther := extConn.tcpRspEnable.Union(extConn.nonTCP)
+			responsiveAndOther := extConn.tcpRspEnable.Union(extConn.nonTCP)
 			if !extConn.tcpRspDisable.IsEmpty() {
-				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: connection.ToJSON(statefulAndOther),
+				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: connection.ToJSON(responsiveAndOther),
 					UnidirectionalConn: connection.ToJSON(extConn.tcpRspDisable)})
 			} else {
 				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: connection.ToJSON(extConn.allConn)})

@@ -19,7 +19,7 @@ import (
 // GetVPCNetworkConnectivity computes VPCConnectivity in few steps
 // (1) compute AllowedConns (map[Node]*ConnectivityResult) : ingress or egress allowed conns separately
 // (2) compute AllowedConnsCombined (map[Node]map[Node]*connection.Set) : allowed conns considering both ingress and egress directions
-// (3) compute AllowedConnsCombinedResponsive extension of AllowedConnsCombined to contain accurate stateful info
+// (3) compute AllowedConnsCombinedResponsive extension of AllowedConnsCombined to contain accurate responsive info
 // (4) if lbAbstraction required - abstract each lb separately
 // (5) if grouping required - compute grouping of connectivity results
 func (c *VPCConfig) GetVPCNetworkConnectivity(grouping, lbAbstraction bool) (res *VPCConnectivity, err error) {
@@ -59,7 +59,7 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping, lbAbstraction bool) (res
 		}
 	}
 	allowedConnsCombined := res.computeAllowedConnsCombined()
-	res.computeAllowedStatefulConnections(allowedConnsCombined)
+	res.computeAllowedResponsiveConnections(allowedConnsCombined)
 	res.abstractLoadBalancers(c.LoadBalancers, lbAbstraction)
 	res.GroupedConnectivity, err = newGroupConnLines(c, res, grouping)
 	return res, err
@@ -194,7 +194,7 @@ func (allowConnCombined *GeneralConnectivityMap) computeCombinedConnectionsPerDi
 }
 
 // computeAllowedConnsCombined computes combination of ingress&egress directions per connection allowed
-// the stateful state of the connectivity is not computed here
+// the responsive state of the connectivity is not computed here
 func (v *VPCConnectivity) computeAllowedConnsCombined() GeneralConnectivityMap {
 	allowedConnsCombined := GeneralConnectivityMap{}
 	for node, connectivityRes := range v.AllowedConns {
@@ -236,8 +236,8 @@ func (v *VPCConnectivity) isConnExternalThroughFIP(src, dst Node) bool {
 	return false
 }
 
-// computeAllowedStatefulConnectionsOld adds the statefulness analysis for the computed allowed connections.
-// A connection A -> B is considered stateful if:
+// computeAllowedresponsiveConnectionsOld adds the responsiveness analysis for the computed allowed connections.
+// A connection A -> B is considered responsive if:
 // Each connection A -> B is being split into 3 parts (each of which could be empty)
 // 1. Stateful: A  TCP (allows bidrectional flow) connection s.t.: both SG and NACL
 // (of A and B) allow connection (ingress and egress) from A to B , AND if NACL (of A and B) allow connection
@@ -247,7 +247,7 @@ func (v *VPCConnectivity) isConnExternalThroughFIP(src, dst Node) bool {
 // the stateful allowed connection A->B is TCP , src_port: x&w , dst_port: y&z.
 // 2. Not stateful: the tcp part of the connection that is not in 1
 // 3. Other: the non-tcp part of the connection (for which the stateful question is non-relevant)
-func (v *VPCConnectivity) computeAllowedStatefulConnections(allowedConnsCombined GeneralConnectivityMap) {
+func (v *VPCConnectivity) computeAllowedResponsiveConnections(allowedConnsCombined GeneralConnectivityMap) {
 	// assuming v.AllowedConnsCombined was already computed
 
 	// allowed connection: src->dst , requires NACL layer to allow dst->src (both ingress and egress)
