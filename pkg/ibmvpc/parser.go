@@ -1422,7 +1422,7 @@ func (subnetsBlocks subnetsIPBlocks) getSubnetsFreeBlocks(rc *datamodel.Resource
 			// all the allocated IPs are at subnetObj.ReservedIps.
 			for blockIndex := range subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks {
 				for _, reservedIP := range subnetObj.ReservedIps {
-				if err := subnetsBlocks.removeAddressFromFree(*subnetObj.CRN, *reservedIP.Address, blockIndex); err != nil{
+				if err := subnetsBlocks.removeAddressFromFree(*reservedIP.Address, *subnetObj.CRN, blockIndex); err != nil{
 					return err
 				}
 			}
@@ -1435,7 +1435,7 @@ func (subnetsBlocks subnetsIPBlocks) allocSubnetFreeAddress(subnetCRN string, bl
 	address := subnetsBlocks[subnetCRN].freeAddressesBlocks[blockIndex].FirstIPAddress()
 	return address, subnetsBlocks.removeAddressFromFree(address, subnetCRN, blockIndex)
 }
-func (subnetsBlocks subnetsIPBlocks) removeAddressFromFree(subnetCRN, address string, blockIndex int) error {
+func (subnetsBlocks subnetsIPBlocks) removeAddressFromFree(address, subnetCRN string, blockIndex int) error {
 	addressBlock, err := ipblock.FromIPAddress(address)
 	if err != nil {
 		return err
