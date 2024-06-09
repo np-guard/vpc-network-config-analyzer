@@ -436,8 +436,8 @@ func (responsiveConnMap *GeneralResponsiveConnectivityMap) actualAlignSrcOrDstGi
 	err = nil
 	alignedConnectivity = map[VPCResourceIntf]map[VPCResourceIntf]*detailedConn{}
 	for src, endpointConns := range *responsiveConnMap {
-		for dst, connsWithStateful := range endpointConns {
-			if connsWithStateful.isEmpty() {
+		for dst, connsWithResponsive := range endpointConns {
+			if connsWithResponsive.isEmpty() {
 				continue
 			}
 			// the resizing element is not external - copy as is
@@ -445,7 +445,7 @@ func (responsiveConnMap *GeneralResponsiveConnectivityMap) actualAlignSrcOrDstGi
 				if _, ok := alignedConnectivity[src]; !ok {
 					alignedConnectivity[src] = map[VPCResourceIntf]*detailedConn{}
 				}
-				alignedConnectivity[src][dst] = connsWithStateful
+				alignedConnectivity[src][dst] = connsWithResponsive
 				continue
 			}
 			// the resizing element is external - go over all ipBlock and allocates the connection
@@ -467,7 +467,7 @@ func (responsiveConnMap *GeneralResponsiveConnectivityMap) actualAlignSrcOrDstGi
 			if err != nil {
 				return nil, err
 			}
-			err = addIPBlockToConnectivityMap(config, disjointIPblocks, origIPBlock, alignedConnectivity, src, dst, connsWithStateful, resizeSrc)
+			err = addIPBlockToConnectivityMap(config, disjointIPblocks, origIPBlock, alignedConnectivity, src, dst, connsWithResponsive, resizeSrc)
 		}
 	}
 	return alignedConnectivity, err
