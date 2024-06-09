@@ -156,7 +156,7 @@ func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node,
 			if err != nil {
 				return nil, err
 			}
-			rulesThisSrcDst := &srcDstDetails{src: src, dst: dst, conn: emptyConnWithStateful(),
+			rulesThisSrcDst := &srcDstDetails{src: src, dst: dst, conn: emptyDetailConn(),
 				potentialAllowRules: allowRules, potentialDenyRules: denyRules}
 			rulesAndConn = append(rulesAndConn, rulesThisSrcDst)
 		}
