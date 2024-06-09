@@ -32,7 +32,7 @@ type detailedConn struct {
 func newDetailConn(statefulConn, otherConn, allConn *connection.Set) *detailedConn {
 	return &detailedConn{
 		statefulConn:    statefulConn,
-		nonStatefulConn: allConn.Subtract(otherConn).Subtract(statefulConn),
+		nonStatefulConn: (allConn.Subtract(otherConn)).Subtract(statefulConn),
 		otherConn:       otherConn,
 		allConn:         allConn,
 	}
