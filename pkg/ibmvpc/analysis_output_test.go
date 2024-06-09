@@ -672,21 +672,19 @@ var tests = []*vpcGeneralTest{
 		format:      vpcmodel.Text,
 	},
 	{
-		inputConfig: "filters_split_lb_subnet",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:      vpcmodel.Text,
-		grouping: false,
+		inputConfig:  "filters_split_lb_subnet",
+		useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:       vpcmodel.Text,
+		grouping:     false,
 		noLbAbstract: true,
 	},
 	{
-		inputConfig: "filters_split_lb_subnet",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:      vpcmodel.HTML,
-		grouping: true,
+		inputConfig:  "filters_split_lb_subnet",
+		useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:       vpcmodel.HTML,
+		grouping:     true,
 		noLbAbstract: true,
 	},
-
-
 }
 
 var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{

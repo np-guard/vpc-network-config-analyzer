@@ -144,7 +144,7 @@ func getFiltersBlocks(rc *datamodel.ResourcesContainerModel) (filtersBlocks, err
 	if err := blocks.addSGRulesBlocks(rc); err != nil {
 		return nil, err
 	}
-	for vpc, _ := range blocks {
+	for vpc := range blocks {
 		blocks[vpc] = ipblock.DisjointIPBlocks(blocks[vpc], []*ipblock.IPBlock{ipblock.GetCidrAll()})
 	}
 	return blocks, nil
