@@ -43,7 +43,7 @@ func emptyConnWithStateful() *connWithStateful {
 	}
 }
 
-func NewConnWithStateful(statefulConn, otherConn, allConn *connection.Set) *connWithStateful {
+func newConnWithStateful(statefulConn, otherConn, allConn *connection.Set) *connWithStateful {
 	// todo use allConn.Subtract(otherConn).Subtract(statefulConn)
 	return &connWithStateful{
 		statefulConn:    statefulConn,
