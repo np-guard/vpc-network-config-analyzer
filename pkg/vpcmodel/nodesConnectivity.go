@@ -266,7 +266,7 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections(allowedConnsCombined
 			if v.isConnExternalThroughFIP(srcNode, dstNode) { // fip ignores NACL
 				// TODO: this may be ibm-specific. consider moving to ibmvpc
 				v.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(src, dst,
-					newConnWithStatefulGivenTCPStatefulAndNonTCP(conn, conn))
+					detailedConnForTCPStatefulAndNonTCP(conn, conn))
 				continue
 			}
 
@@ -280,7 +280,7 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections(allowedConnsCombined
 			combinedDstToSrc := DstAllowedEgressToSrc.Intersect(SrcAllowedIngressFromDst)
 			// ConnectionWithStatefulness returns the stateful subset
 			statefulCombinedConn := conn.WithStatefulness(combinedDstToSrc)
-			statefulSet := newConnWithStatefulGivenTCPStatefulAndNonTCP(statefulCombinedConn, conn)
+			statefulSet := detailedConnForTCPStatefulAndNonTCP(statefulCombinedConn, conn)
 			v.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(src, dst, statefulSet)
 		}
 	}
