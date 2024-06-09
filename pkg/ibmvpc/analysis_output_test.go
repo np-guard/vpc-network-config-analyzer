@@ -193,30 +193,6 @@ func (tt *vpcGeneralTest) initTest() {
 }
 
 var tests = []*vpcGeneralTest{
-	// {
-	// 	inputConfig: "nacl_split_subnet",
-	// 	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-	// 	format:      vpcmodel.HTML,
-	// 	grouping: true,
-	// 	noLbAbstract: true,
-	// },
-	// {
-	// 	inputConfig: "nacl_split_subnet",
-	// 	useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-	// 	format:      vpcmodel.HTML,
-	// 	grouping: false,
-	// 	noLbAbstract: true,
-	// },
-	{
-		inputConfig: "filters_split_lb_subnet",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:      vpcmodel.HTML,
-		grouping: false,
-		noLbAbstract: true,
-	},
-}
-
-var tests2 = []*vpcGeneralTest{
 	{
 		inputConfig: "acl_testing5",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
@@ -695,6 +671,22 @@ var tests2 = []*vpcGeneralTest{
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		format:      vpcmodel.Text,
 	},
+	{
+		inputConfig: "filters_split_lb_subnet",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:      vpcmodel.Text,
+		grouping: false,
+		noLbAbstract: true,
+	},
+	{
+		inputConfig: "filters_split_lb_subnet",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:      vpcmodel.HTML,
+		grouping: true,
+		noLbAbstract: true,
+	},
+
+
 }
 
 var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{
@@ -707,7 +699,6 @@ var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{
 }
 
 // uncomment the function below to run for updating the expected output
-/*
 var formatsAvoidOutputGeneration = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
 
 func TestAllWithGeneration(t *testing.T) {
@@ -728,7 +719,6 @@ func TestAllWithGeneration(t *testing.T) {
 	}
 	fmt.Println("done")
 }
-*/
 
 func TestAllWithComparison(t *testing.T) {
 	// tests is the list of tests to run
