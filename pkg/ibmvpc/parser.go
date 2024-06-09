@@ -1281,14 +1281,65 @@ func getVPCObjectByUID(res *vpcmodel.MultipleVPCConfigs, uid string) (*VPC, erro
 
 type filtersBlocks map[string][]*ipblock.IPBlock
 
-func getFiltersBlocks(rc *datamodel.ResourcesContainerModel) filtersBlocks{
+func getFiltersBlocks(rc *datamodel.ResourcesContainerModel) (filtersBlocks, error) {
 	blocks := filtersBlocks{}
-	blocks.aclRuleBlocks(rc)
-	blocks.sgRulesBlocks(rc)
-	for vpc, _ := range blocks{
-		blocks[vpc] = 	ipblock.DisjointIPBlocks(blocks[vpc], []*ipblock.IPBlock{ipblock.GetCidrAll()})
+	if err :=blocks.addAclRuleBlocks(rc); err != nil{
+		return nil, err
 	}
-	return blocks
+	if err :=blocks.addSGRulesBlocks(rc); err != nil{
+		return nil, err
+	}
+	for vpc, _ := range blocks {
+		blocks[vpc] = ipblock.DisjointIPBlocks(blocks[vpc], []*ipblock.IPBlock{ipblock.GetCidrAll()})
+	}
+	return blocks, nil
+}
+
+func (blocks filtersBlocks) addAclRuleBlocks(rc *datamodel.ResourcesContainerModel)error {
+	for _, aclObj := range rc.NetworkACLList {
+		for _, rule := range aclObj.Rules {
+			var src, dst *string
+			switch ruleObj := rule.(type) {
+			case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolAll:
+				src = ruleObj.Source
+				dst = ruleObj.Destination
+			case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolTcpudp:
+				src = ruleObj.Source
+				dst = ruleObj.Destination
+			case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolIcmp:
+				src = ruleObj.Source
+				dst = ruleObj.Destination
+			}
+			if err := blocks.addBlocks(*aclObj.VPC.CRN, []*string{src, dst}); err != nil{
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (blocks filtersBlocks) addSGRulesBlocks(rc *datamodel.ResourcesContainerModel) error {
+	for _, sgObj := range rc.SecurityGroupList {
+		for _, rule := range sgObj.Rules {
+			var remote, local *string
+			switch ruleObj := rule.(type) {
+			case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolAll:
+				remote = ruleObj.Remote.(*vpc1.SecurityGroupRuleRemote).CIDRBlock
+				local = ruleObj.Local.(*vpc1.SecurityGroupRuleLocal).CIDRBlock
+			case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudp:
+				remote = ruleObj.Remote.(*vpc1.SecurityGroupRuleRemote).CIDRBlock
+				local = ruleObj.Local.(*vpc1.SecurityGroupRuleLocal).CIDRBlock
+			case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolIcmp:
+				remote = ruleObj.Remote.(*vpc1.SecurityGroupRuleRemote).CIDRBlock
+				local = ruleObj.Local.(*vpc1.SecurityGroupRuleLocal).CIDRBlock
+			}
+			if err := blocks.addBlocks(*sgObj.VPC.CRN, []*string{remote, local}); err != nil{
+				return err
+			}
+			
+		}
+	}
+	return nil
 }
 
 func (blocks filtersBlocks) addBlocks(vpc string, cidrs []*string) error {
@@ -1306,48 +1357,8 @@ func (blocks filtersBlocks) addBlocks(vpc string, cidrs []*string) error {
 	}
 	return nil
 }
-func (blocks filtersBlocks)aclRuleBlocks(rc *datamodel.ResourcesContainerModel) (filtersBlocks, error) {
-	for _, aclObj := range rc.NetworkACLList {
-		for _, rule := range aclObj.Rules {
-			var src, dst *string
-			switch ruleObj := rule.(type) {
-			case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolAll:
-				src = ruleObj.Source
-				dst = ruleObj.Destination
-			case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolTcpudp:
-				src = ruleObj.Source
-				dst = ruleObj.Destination
-			case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolIcmp:
-				src = ruleObj.Source
-				dst = ruleObj.Destination
-			}
-			blocks.addBlocks(*aclObj.VPC.CRN, []*string{src, dst})
-		}
-	}
-	return blocks, nil
-}
 
-func (blocks filtersBlocks) sgRulesBlocks(rc *datamodel.ResourcesContainerModel) error {
-	for _, sgObj := range rc.SecurityGroupList {
-		for _, rule := range sgObj.Rules {
-			var remote, local *string
-			switch ruleObj := rule.(type) {
-			case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolAll:
-				remote = ruleObj.Remote.(*vpc1.SecurityGroupRuleRemote).CIDRBlock
-				local = ruleObj.Local.(*vpc1.SecurityGroupRuleLocal).CIDRBlock
-			case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudp:
-				remote = ruleObj.Remote.(*vpc1.SecurityGroupRuleRemote).CIDRBlock
-				local = ruleObj.Local.(*vpc1.SecurityGroupRuleLocal).CIDRBlock
-			case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolIcmp:
-				remote = ruleObj.Remote.(*vpc1.SecurityGroupRuleRemote).CIDRBlock
-				local = ruleObj.Local.(*vpc1.SecurityGroupRuleLocal).CIDRBlock
-			}
-			blocks.addBlocks(*sgObj.VPC.CRN, []*string{remote, local})
-		}
-	}
-	return nil
-}
-
+// /////////////////////////////////////////////////////////////////////////////////////////
 type subnetIPBlocks struct {
 	mainBlock            *ipblock.IPBlock
 	splitByFiltersBlocks []*ipblock.IPBlock
@@ -1357,9 +1368,15 @@ type subnetsIPBlocks map[string]*subnetIPBlocks
 
 func getSubnetsIPBlocks(rc *datamodel.ResourcesContainerModel) (subnetsBlocks subnetsIPBlocks, err error) {
 	subnetsBlocks = subnetsIPBlocks{}
-	subnetsBlocks.getSubnetsMainBlocks(rc)
-	subnetsBlocks.splitSubnetsMainBlocks(rc)
-	subnetsBlocks.getSubnetsFreeBlocks(rc)
+	if err = subnetsBlocks.getSubnetsMainBlocks(rc); err != nil{
+		return nil,err
+	}
+	if err = subnetsBlocks.splitSubnetsMainBlocks(rc); err != nil{
+		return nil,err
+	}
+	if err = subnetsBlocks.getSubnetsFreeBlocks(rc); err != nil{
+		return nil,err
+	}
 	return subnetsBlocks, nil
 }
 func (subnetsBlocks subnetsIPBlocks) getSubnetsMainBlocks(rc *datamodel.ResourcesContainerModel) (err error) {
@@ -1372,9 +1389,12 @@ func (subnetsBlocks subnetsIPBlocks) getSubnetsMainBlocks(rc *datamodel.Resource
 	}
 	return nil
 }
-func (subnetsBlocks subnetsIPBlocks) splitSubnetsMainBlocks(rc *datamodel.ResourcesContainerModel) {
 
-	filtersBlocks := getFiltersBlocks(rc)
+func (subnetsBlocks subnetsIPBlocks) splitSubnetsMainBlocks(rc *datamodel.ResourcesContainerModel) error{
+	filtersBlocks, err := getFiltersBlocks(rc)
+	if err != nil {
+		return err
+	}
 	for _, subnetObj := range rc.SubnetList {
 		filtersBlocksOnSubnet := []*ipblock.IPBlock{}
 		for _, filterBlock := range filtersBlocks[*subnetObj.VPC.CRN] {
@@ -1385,6 +1405,7 @@ func (subnetsBlocks subnetsIPBlocks) splitSubnetsMainBlocks(rc *datamodel.Resour
 		}
 		subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks = ipblock.DisjointIPBlocks(filtersBlocksOnSubnet, []*ipblock.IPBlock{subnetsBlocks[*subnetObj.CRN].mainBlock})
 	}
+	return nil
 }
 
 // ///////////////////////////////////////////////////////////////////////
@@ -1416,7 +1437,8 @@ func (subnetsBlocks subnetsIPBlocks) allocSubnetFreeAddress(subnetCRN string, bl
 	if err != nil {
 		return "", err
 	}
-	subnetsBlocks[subnetCRN].freeAddressesBlocks[blockIndex] = subnetsBlocks[subnetCRN].freeAddressesBlocks[blockIndex].Subtract(addressBlock)
+	subnetsBlocks[subnetCRN].freeAddressesBlocks[blockIndex] =
+		subnetsBlocks[subnetCRN].freeAddressesBlocks[blockIndex].Subtract(addressBlock)
 	return address, nil
 }
 
