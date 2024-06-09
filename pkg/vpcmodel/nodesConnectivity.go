@@ -19,7 +19,7 @@ import (
 // GetVPCNetworkConnectivity computes VPCConnectivity in few steps
 // (1) compute AllowedConns (map[Node]*ConnectivityResult) : ingress or egress allowed conns separately
 // (2) compute AllowedConnsCombined (map[Node]map[Node]*connection.Set) : allowed conns considering both ingress and egress directions
-// (3) compute AllowedConnsCombinedStateful extension of AllowedConnsCombined to contain accurate stateful info
+// (3) compute AllowedConnsCombinedResponsive extension of AllowedConnsCombined to contain accurate stateful info
 // (4) if lbAbstraction required - abstract each lb separately
 // (5) if grouping required - compute grouping of connectivity results
 func (c *VPCConfig) GetVPCNetworkConnectivity(grouping, lbAbstraction bool) (res *VPCConnectivity, err error) {
@@ -254,7 +254,7 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections(allowedConnsCombined
 	// on overlapping/matching connection-set, (src-dst ports should be switched),
 	// for it to be considered as stateful
 
-	v.AllowedConnsCombinedStateful = GeneralResponsiveConnectivityMap{}
+	v.AllowedConnsCombinedResponsive = GeneralResponsiveConnectivityMap{}
 
 	for src, connsMap := range allowedConnsCombined {
 		for dst, conn := range connsMap {
@@ -264,7 +264,7 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections(allowedConnsCombined
 			// iterate pairs (src,dst) with allConn as allowed connectivity, to check stateful aspect
 			if v.isConnExternalThroughFIP(srcNode, dstNode) { // fip ignores NACL
 				// TODO: this may be ibm-specific. consider moving to ibmvpc
-				v.AllowedConnsCombinedStateful.updateAllowedResponsiveConnsMap(src, dst,
+				v.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(src, dst,
 					detailConnForTCPRspAndNonTCP(conn, conn))
 				continue
 			}
@@ -280,7 +280,7 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections(allowedConnsCombined
 			// ConnectionWithStatefulness returns the stateful subset
 			statefulCombinedConn := conn.WithStatefulness(combinedDstToSrc)
 			statefulSet := detailConnForTCPRspAndNonTCP(statefulCombinedConn, conn)
-			v.AllowedConnsCombinedStateful.updateAllowedResponsiveConnsMap(src, dst, statefulSet)
+			v.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(src, dst, statefulSet)
 		}
 	}
 }
@@ -318,12 +318,12 @@ func (v *VPCConnectivity) getPerLayerConnectivity(layer string, src, dst Node, i
 // see details at nodeSetConnectivityAbstraction()
 func (v *VPCConnectivity) abstractLoadBalancers(loadBalancers []LoadBalancer, lbAbstraction bool) {
 	if lbAbstraction {
-		nodeAbstraction := newNodeSetAbstraction(v.AllowedConnsCombinedStateful)
+		nodeAbstraction := newNodeSetAbstraction(v.AllowedConnsCombinedResponsive)
 		for _, lb := range loadBalancers {
 			abstractionInfo := nodeAbstraction.abstractNodeSet(lb)
 			lb.SetAbstractionInfo(abstractionInfo)
 		}
-		v.AllowedConnsCombinedStateful = nodeAbstraction.abstractedConnectivity
+		v.AllowedConnsCombinedResponsive = nodeAbstraction.abstractedConnectivity
 	}
 }
 
@@ -367,7 +367,7 @@ func (responsiveConnMap GeneralResponsiveConnectivityMap) getCombinedConnsStr(on
 }
 
 func (v *VPCConnectivity) String() string {
-	return v.AllowedConnsCombinedStateful.getCombinedConnsStr(false)
+	return v.AllowedConnsCombinedResponsive.getCombinedConnsStr(false)
 }
 
 func (v *VPCConnectivity) DetailedString() string {
@@ -387,7 +387,7 @@ func (v *VPCConnectivity) DetailedString() string {
 	res += strings.Join(strList, "")
 	res += "=================================== combined connections:\n"
 	strList = []string{}
-	for src, nodeConns := range v.AllowedConnsCombinedStateful {
+	for src, nodeConns := range v.AllowedConnsCombinedResponsive {
 		for dst, conn := range nodeConns {
 			// src and dst here are nodes, always. Thus ignoring potential error in conversion
 			strList = append(strList, getConnectionStr(src.(Node).CidrOrAddress(), dst.(Node).CidrOrAddress(), conn.allConn.String(), ""))
@@ -396,9 +396,9 @@ func (v *VPCConnectivity) DetailedString() string {
 	sort.Strings(strList)
 	res += strings.Join(strList, "")
 	res += "=================================== combined connections - short version:\n"
-	res += v.AllowedConnsCombinedStateful.getCombinedConnsStr(false)
+	res += v.AllowedConnsCombinedResponsive.getCombinedConnsStr(false)
 
 	res += "=================================== stateful combined connections - short version:\n"
-	res += v.AllowedConnsCombinedStateful.getCombinedConnsStr(true)
+	res += v.AllowedConnsCombinedResponsive.getCombinedConnsStr(true)
 	return res
 }

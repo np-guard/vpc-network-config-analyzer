@@ -122,13 +122,13 @@ func (c *VPCConfig) getAllowedStatefulConnections(
 		if err != nil {
 			return nil, err
 		}
-		return subnetsConn.AllowedConnsCombinedStateful, err
+		return subnetsConn.AllowedConnsCombinedResponsive, err
 	} else if diffAnalysis == Vsis {
 		connectivity1, err := c.GetVPCNetworkConnectivity(false, false)
 		if err != nil {
 			return nil, err
 		}
-		return connectivity1.AllowedConnsCombinedStateful, nil
+		return connectivity1.AllowedConnsCombinedResponsive, nil
 	}
 	return nil, fmt.Errorf("illegal diff analysis type")
 }

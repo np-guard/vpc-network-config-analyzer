@@ -169,7 +169,7 @@ func collectMultiConnectionsForExplanation(
 	multiVpcConnections := map[EndpointElem]map[EndpointElem]*VPCConfig{}
 	for vpcUID, vpcConfig := range cConfigs.Configs() {
 		if vpcConfig.IsMultipleVPCsConfig {
-			for src, dsts := range conns[vpcUID].AllowedConnsCombinedStateful {
+			for src, dsts := range conns[vpcUID].AllowedConnsCombinedResponsive {
 				for dst := range dsts {
 					if _, ok := multiVpcConnections[src]; !ok {
 						multiVpcConnections[src] = map[EndpointElem]*VPCConfig{}

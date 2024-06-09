@@ -22,15 +22,15 @@ type VPCsubnetConnectivity struct {
 	// computed for each subnet, by iterating its ConfigBasedConnectivityResults for all relevant VPC resources that capture it
 	// a subnet is mapped to its set of  its allowed ingress (egress) communication as captured by
 	// pairs of external ip/subnet+connection
-	// This is auxiliary computation based on which AllowedConnsCombinedStateful is computed
+	// This is auxiliary computation based on which AllowedConnsCombinedResponsive is computed
 	// todo: add debug output mode based on this structure
 	AllowedConns map[VPCResourceIntf]*ConfigBasedConnectivityResults
 
 	// combined connectivity - considering both ingress and egress per connection
 	// The main outcome of the computation of which the outputs is based
 	// For each src node provides a map of dsts and the connection it has to these dsts,
-	// including information regarding the tcp-stateful, tcp-non stateful and non-tcp connection
-	AllowedConnsCombinedStateful GeneralResponsiveConnectivityMap
+	// including information regarding the tcp-stateful, tcp-non responsive and non-tcp connection
+	AllowedConnsCombinedResponsive GeneralResponsiveConnectivityMap
 
 	// grouped connectivity result
 	GroupedConnectivity *GroupConnLines
@@ -318,7 +318,7 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() (GeneralConnectivi
 }
 
 func (v *VPCsubnetConnectivity) computeStatefulConnections(allowedConnsCombined GeneralConnectivityMap) error {
-	v.AllowedConnsCombinedStateful = GeneralResponsiveConnectivityMap{}
+	v.AllowedConnsCombinedResponsive = GeneralResponsiveConnectivityMap{}
 	for src, endpointConns := range allowedConnsCombined {
 		for dst, conn := range endpointConns {
 			if conn.IsEmpty() {
@@ -340,7 +340,7 @@ func (v *VPCsubnetConnectivity) computeStatefulConnections(allowedConnsCombined 
 			}
 			statefulCombinedConn := conn.WithStatefulness(otherDirectionConn)
 			conn := detailConnForTCPRspAndNonTCP(statefulCombinedConn, conn)
-			v.AllowedConnsCombinedStateful.updateAllowedResponsiveConnsMap(src, dst, conn)
+			v.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(src, dst, conn)
 		}
 	}
 	return nil

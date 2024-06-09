@@ -287,17 +287,17 @@ func getSubnetOrVPCUID(ep EndpointElem) string {
 // internal (vsi/subnets) are added as is
 func (g *GroupConnLines) groupExternalAddresses(vsi bool) error {
 	res := []*groupedConnLine{}
-	var allowedConnsCombinedStateful GeneralResponsiveConnectivityMap
+	var allowedConnsCombinedResponsive GeneralResponsiveConnectivityMap
 	if vsi {
-		allowedConnsCombinedStateful = g.nodesConn.AllowedConnsCombinedStateful
+		allowedConnsCombinedResponsive = g.nodesConn.AllowedConnsCombinedResponsive
 	} else {
-		allowedConnsCombinedStateful = g.subnetsConn.AllowedConnsCombinedStateful
+		allowedConnsCombinedResponsive = g.subnetsConn.AllowedConnsCombinedResponsive
 	}
-	for src, nodeConns := range allowedConnsCombinedStateful {
-		for dst, connsWithStateful := range nodeConns {
-			if !connsWithStateful.isEmpty() {
+	for src, nodeConns := range allowedConnsCombinedResponsive {
+		for dst, connsResponsive := range nodeConns {
+			if !connsResponsive.isEmpty() {
 				err := g.addLineToExternalGrouping(&res, src, dst,
-					&groupedCommonProperties{conn: connsWithStateful, groupingStrKey: connsWithStateful.string()})
+					&groupedCommonProperties{conn: connsResponsive, groupingStrKey: connsResponsive.string()})
 				if err != nil {
 					return err
 				}

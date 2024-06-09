@@ -76,7 +76,7 @@ type allInfo struct {
 func getConnLines(conn *VPCConnectivity) []connLine {
 	connLines := []connLine{}
 
-	for src, srcMap := range conn.AllowedConnsCombinedStateful {
+	for src, srcMap := range conn.AllowedConnsCombinedResponsive {
 		for dst, extConn := range srcMap {
 			if extConn.isEmpty() {
 				continue
@@ -111,7 +111,7 @@ type allSubnetsConnectivity struct {
 
 func getConnLinesForSubnetsConnectivity(conn *VPCsubnetConnectivity) []connLine {
 	connLines := []connLine{}
-	for src, nodeConns := range conn.AllowedConnsCombinedStateful {
+	for src, nodeConns := range conn.AllowedConnsCombinedResponsive {
 		for dst, extConns := range nodeConns {
 			if extConns.isEmpty() {
 				continue

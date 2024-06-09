@@ -466,7 +466,7 @@ func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (conn *deta
 		return nil, fmt.Errorf(errMsg, dst.Name())
 	}
 	var ok bool
-	srcMapValue, ok := v.AllowedConnsCombinedStateful[srcForConnection]
+	srcMapValue, ok := v.AllowedConnsCombinedResponsive[srcForConnection]
 	if ok {
 		conn, ok = srcMapValue[dstForConnection]
 	}
