@@ -15,11 +15,11 @@ type GeneralStatefulConnectivityMap map[VPCResourceIntf]map[VPCResourceIntf]*det
 
 type GeneralConnectivityMap map[VPCResourceIntf]map[VPCResourceIntf]*connection.Set
 
-func (connectivityMap GeneralConnectivityMap) updateAllowedConnsMap(src, dst VPCResourceIntf, conn *connection.Set) {
-	if _, ok := connectivityMap[src]; !ok {
-		connectivityMap[src] = map[VPCResourceIntf]*connection.Set{}
+func (allowConnCombined GeneralConnectivityMap) updateAllowedConnsMap(src, dst VPCResourceIntf, conn *connection.Set) {
+	if _, ok := allowConnCombined[src]; !ok {
+		allowConnCombined[src] = map[VPCResourceIntf]*connection.Set{}
 	}
-	connectivityMap[src][dst] = conn
+	allowConnCombined[src][dst] = conn
 }
 
 func (statefulConnMap GeneralStatefulConnectivityMap) updateMap(connectivityMap2 GeneralStatefulConnectivityMap) {

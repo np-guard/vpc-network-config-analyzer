@@ -177,8 +177,8 @@ func switchSrcDstNodes(switchOrder bool, src, dst Node) (srcRes, dstRes Node) {
 	return src, dst
 }
 
-func (v *VPCConnectivity) computeCombinedConnectionsPerDirection(isIngressDirection bool, node Node,
-	connectivityRes *ConnectivityResult, allowedConnsCombined GeneralConnectivityMap) {
+func (allowConnCombined *GeneralConnectivityMap) computeCombinedConnectionsPerDirection(isIngressDirection bool, node Node,
+	connectivityRes *ConnectivityResult, allowedConns map[Node]*ConnectivityResult) {
 	for peerNode, conns := range connectivityRes.ingressOrEgressAllowedConns(isIngressDirection) {
 		src, dst := switchSrcDstNodes(!isIngressDirection, peerNode, node)
 		combinedConns := conns
@@ -186,10 +186,10 @@ func (v *VPCConnectivity) computeCombinedConnectionsPerDirection(isIngressDirect
 			if !isIngressDirection {
 				continue
 			}
-			otherDirectionConns := v.AllowedConns[peerNode].ingressOrEgressAllowedConns(!isIngressDirection)[node]
+			otherDirectionConns := allowedConns[peerNode].ingressOrEgressAllowedConns(!isIngressDirection)[node]
 			combinedConns = combinedConns.Intersect(otherDirectionConns)
 		}
-		allowedConnsCombined.updateAllowedConnsMap(src, dst, combinedConns)
+		allowConnCombined.updateAllowedConnsMap(src, dst, combinedConns)
 	}
 }
 
@@ -198,8 +198,8 @@ func (v *VPCConnectivity) computeCombinedConnectionsPerDirection(isIngressDirect
 func (v *VPCConnectivity) computeAllowedConnsCombined() GeneralConnectivityMap {
 	allowedConnsCombined := GeneralConnectivityMap{}
 	for node, connectivityRes := range v.AllowedConns {
-		v.computeCombinedConnectionsPerDirection(true, node, connectivityRes, allowedConnsCombined)
-		v.computeCombinedConnectionsPerDirection(false, node, connectivityRes, allowedConnsCombined)
+		allowedConnsCombined.computeCombinedConnectionsPerDirection(true, node, connectivityRes, v.AllowedConns)
+		allowedConnsCombined.computeCombinedConnectionsPerDirection(false, node, connectivityRes, v.AllowedConns)
 	}
 	return allowedConnsCombined
 }
