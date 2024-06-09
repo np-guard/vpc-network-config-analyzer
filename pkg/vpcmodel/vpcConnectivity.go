@@ -29,7 +29,7 @@ type VPCConnectivity struct {
 	// note that subset of a non-stateful connection from AllowedConnsCombined can still be stateful
 	// and as such add to this map
 
-	AllowedConnsCombinedStateful GeneralStatefulConnectivityMap
+	AllowedConnsCombinedStateful GeneralResponsiveConnectivityMap
 
 	// grouped connectivity result
 	GroupedConnectivity *GroupConnLines

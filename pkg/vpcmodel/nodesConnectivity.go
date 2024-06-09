@@ -254,7 +254,7 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections(allowedConnsCombined
 	// on overlapping/matching connection-set, (src-dst ports should be switched),
 	// for it to be considered as stateful
 
-	v.AllowedConnsCombinedStateful = GeneralStatefulConnectivityMap{}
+	v.AllowedConnsCombinedStateful = GeneralResponsiveConnectivityMap{}
 
 	for src, connsMap := range allowedConnsCombined {
 		for dst, conn := range connsMap {
@@ -333,7 +333,7 @@ const (
 	fipRouter          = "FloatingIP"
 )
 
-func (statefulConnMap GeneralStatefulConnectivityMap) getCombinedConnsStr(onlyBidirectional bool) string {
+func (statefulConnMap GeneralResponsiveConnectivityMap) getCombinedConnsStr(onlyBidirectional bool) string {
 	strList := []string{}
 	for src, nodeExtendedConns := range statefulConnMap {
 		for dst, extConns := range nodeExtendedConns {

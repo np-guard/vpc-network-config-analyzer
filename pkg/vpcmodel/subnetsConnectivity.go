@@ -30,7 +30,7 @@ type VPCsubnetConnectivity struct {
 	// The main outcome of the computation of which the outputs is based
 	// For each src node provides a map of dsts and the connection it has to these dsts,
 	// including information regarding the tcp-stateful, tcp-non stateful and non-tcp connection
-	AllowedConnsCombinedStateful GeneralStatefulConnectivityMap
+	AllowedConnsCombinedStateful GeneralResponsiveConnectivityMap
 
 	// grouped connectivity result
 	GroupedConnectivity *GroupConnLines
@@ -318,7 +318,7 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() (GeneralConnectivi
 }
 
 func (v *VPCsubnetConnectivity) computeStatefulConnections(allowedConnsCombined GeneralConnectivityMap) error {
-	v.AllowedConnsCombinedStateful = GeneralStatefulConnectivityMap{}
+	v.AllowedConnsCombinedStateful = GeneralResponsiveConnectivityMap{}
 	for src, endpointConns := range allowedConnsCombined {
 		for dst, conn := range endpointConns {
 			if conn.IsEmpty() {

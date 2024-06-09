@@ -57,7 +57,7 @@ type configsForDiff struct {
 
 type configConnectivity struct {
 	config       *VPCConfig
-	connectivity GeneralStatefulConnectivityMap
+	connectivity GeneralResponsiveConnectivityMap
 }
 
 type diffBetweenCfgs struct {
@@ -116,7 +116,7 @@ func (configs configsForDiff) GetDiff() (*diffBetweenCfgs, error) {
 }
 
 func (c *VPCConfig) getAllowedStatefulConnections(
-	diffAnalysis diffAnalysisType) (statefulConnectivityMap GeneralStatefulConnectivityMap, err error) {
+	diffAnalysis diffAnalysisType) (statefulConnectivityMap GeneralResponsiveConnectivityMap, err error) {
 	if diffAnalysis == Subnets {
 		subnetsConn, err := c.GetSubnetsConnectivity(true, false)
 		if err != nil {
@@ -376,9 +376,9 @@ func (confConnectivity *configConnectivity) getConnectivityWithSameIPBlocks(othe
 		&configConnectivity{otherAlignedConfig, alignedOtherConnectivity}, nil
 }
 
-func (statefulConnMap *GeneralStatefulConnectivityMap) alignConnectionsGivenIPBlists(config *VPCConfig,
+func (statefulConnMap *GeneralResponsiveConnectivityMap) alignConnectionsGivenIPBlists(config *VPCConfig,
 	disjointIPblocks []*ipblock.IPBlock) (
-	alignedConnectivity GeneralStatefulConnectivityMap, err error) {
+	alignedConnectivity GeneralResponsiveConnectivityMap, err error) {
 	alignedConnectivitySrc, err := statefulConnMap.actualAlignSrcOrDstGivenIPBlists(config, disjointIPblocks, true)
 	if err != nil {
 		return nil, err
@@ -427,9 +427,9 @@ func resizeNodes(oldNodes []Node, disjointIPblocks []*ipblock.IPBlock) (newNodes
 	return newNodes, nil
 }
 
-func (statefulConnMap *GeneralStatefulConnectivityMap) actualAlignSrcOrDstGivenIPBlists(config *VPCConfig,
+func (statefulConnMap *GeneralResponsiveConnectivityMap) actualAlignSrcOrDstGivenIPBlists(config *VPCConfig,
 	disjointIPblocks []*ipblock.IPBlock, resizeSrc bool) (
-	alignedConnectivity GeneralStatefulConnectivityMap, err error) {
+	alignedConnectivity GeneralResponsiveConnectivityMap, err error) {
 	// goes over all sources of connections in connectivity
 	// if src is external then for each IPBlock in disjointIPblocks copies dsts and connection type
 	// otherwise just copies as is
@@ -515,7 +515,7 @@ func findNodeWithCidr(configNodes []Node, cidr string) Node {
 }
 
 // get a list of IPBlocks of the src and dst of the connections
-func (statefulConnMap GeneralStatefulConnectivityMap) getIPBlocksList() (ipbList []*ipblock.IPBlock,
+func (statefulConnMap GeneralResponsiveConnectivityMap) getIPBlocksList() (ipbList []*ipblock.IPBlock,
 	myErr error) {
 	for src, endpointConns := range statefulConnMap {
 		for dst, connsWithStateful := range endpointConns {
