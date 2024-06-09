@@ -160,7 +160,7 @@ func TestMain(t *testing.T) {
 			}
 		})
 	}
-	//removeGeneratedFiles()
+	removeGeneratedFiles()
 }
 
 func TestMainWithExpectedOut(t *testing.T) {
