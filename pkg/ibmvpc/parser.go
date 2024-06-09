@@ -1279,6 +1279,8 @@ func getVPCObjectByUID(res *vpcmodel.MultipleVPCConfigs, uid string) (*VPC, erro
 	return vpc, nil
 }
 
+
+// aclRuleBlocks() and sgRulesBlocks() collects blocks of all the rules
 func aclRuleBlocks(rc *datamodel.ResourcesContainerModel) ([]*ipblock.IPBlock, error) {
 	naclBlocks := []*ipblock.IPBlock{}
 	for _, aclObj := range rc.NetworkACLList {
@@ -1342,49 +1344,55 @@ func sgRulesBlocks(rc *datamodel.ResourcesContainerModel) ([]*ipblock.IPBlock, e
 }
 
 type subnetIPBlocks struct {
-	block               *ipblock.IPBlock
-	blocks              []*ipblock.IPBlock
-	freeAddressesBlocks []*ipblock.IPBlock
+	mainBlock            *ipblock.IPBlock
+	splitByFiltersBlocks []*ipblock.IPBlock
+	freeAddressesBlocks  []*ipblock.IPBlock
 }
 type subnetsIPBlocks map[string]*subnetIPBlocks
 
 func getSubnetsIPBlocks(rc *datamodel.ResourcesContainerModel) (subnetsBlocks subnetsIPBlocks, err error) {
+	subnetsBlocks = subnetsIPBlocks{}
+	subnetsBlocks.getSubnetsMainBlocks(rc)
+	subnetsBlocks.splitSubnetsMainBlocks(rc)
+	subnetsBlocks.getSubnetsFreeBlocks(rc)
+	return subnetsBlocks, nil
+}
+func (subnetsBlocks subnetsIPBlocks) getSubnetsMainBlocks(rc *datamodel.ResourcesContainerModel) (err error) {
+	for _, subnetObj := range rc.SubnetList {
+		subnetsBlocks[*subnetObj.CRN] = &subnetIPBlocks{}
+		subnetsBlocks[*subnetObj.CRN].mainBlock, err = ipblock.FromCidr(*subnetObj.Ipv4CIDRBlock)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+func (subnetsBlocks subnetsIPBlocks) splitSubnetsMainBlocks(rc *datamodel.ResourcesContainerModel) {
 	sgsBlocks, _ := sgRulesBlocks(rc)
 	naclBlocks, _ := aclRuleBlocks(rc)
 
 	filtersDisjointBlocks := ipblock.DisjointIPBlocks(sgsBlocks, append(naclBlocks, ipblock.GetCidrAll()))
-	subnetsBlocks = subnetsIPBlocks{}
 	for _, subnetObj := range rc.SubnetList {
-		subnetBlock, err := ipblock.FromCidr(*subnetObj.Ipv4CIDRBlock)
-		if err != nil {
-			return nil, err
-		}
 		filtersBlocksOnSubnet := []*ipblock.IPBlock{}
 		for _, filterBlock := range filtersDisjointBlocks {
-			filterBlocksOnSubnet := subnetBlock.Intersect(filterBlock)
+			filterBlocksOnSubnet := subnetsBlocks[*subnetObj.CRN].mainBlock.Intersect(filterBlock)
 			if !filterBlocksOnSubnet.IsEmpty() {
 				filtersBlocksOnSubnet = append(filtersBlocksOnSubnet, filterBlocksOnSubnet)
 			}
 		}
-		subnetBlocks := subnetIPBlocks{}
-		subnetBlocks.block = subnetBlock
-		subnetBlocks.blocks = ipblock.DisjointIPBlocks(filtersBlocksOnSubnet, []*ipblock.IPBlock{subnetBlock})
-		subnetsBlocks[*subnetObj.CRN] = &subnetBlocks
+		subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks = ipblock.DisjointIPBlocks(filtersBlocksOnSubnet, []*ipblock.IPBlock{subnetsBlocks[*subnetObj.CRN].mainBlock})
 	}
-	subnetsBlocks.getSubnetsFreeBlocks(rc)
-	return subnetsBlocks, nil
 }
 
 // ///////////////////////////////////////////////////////////////////////
-// getSubnetsBlocks() and allocSubnetFreeAddress() are needed for load balancer parsing.
 // when a load balancer is created, Private IPs are not created in all the load balancer subnets.
 //	however, we want to create one private IP for all the subnets.
 // to create a private IP which does not exist in the config, we need an unused address.
 
-func (subnetsBlocks subnetsIPBlocks) getSubnetsFreeBlocks(rc *datamodel.ResourcesContainerModel) (error) {
+func (subnetsBlocks subnetsIPBlocks) getSubnetsFreeBlocks(rc *datamodel.ResourcesContainerModel) error {
 	for _, subnetObj := range rc.SubnetList {
-		subnetsBlocks[*subnetObj.CRN].freeAddressesBlocks = make([]*ipblock.IPBlock, len(subnetsBlocks[*subnetObj.CRN].blocks))
-		for i, b := range subnetsBlocks[*subnetObj.CRN].blocks {
+		subnetsBlocks[*subnetObj.CRN].freeAddressesBlocks = make([]*ipblock.IPBlock, len(subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks))
+		for i, b := range subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks {
 			// all the allocated IPs are at subnetObj.ReservedIps.
 			for _, reservedIP := range subnetObj.ReservedIps {
 				b2, err := ipblock.FromIPAddress(*reservedIP.Address)
@@ -1559,7 +1567,7 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 		if err != nil {
 			return nil, err
 		}
-		for blockIndex, subnetBlock := range subnetsBlocks[*subnetObj.CRN].blocks {
+		for blockIndex, subnetBlock := range subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks {
 			// first get name, id, address, publicAddress:
 			var name, id, address, publicAddress string
 			pipIndex, original := subnetsWithPrivateIPs[subnet]
