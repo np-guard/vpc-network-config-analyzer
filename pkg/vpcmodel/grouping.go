@@ -605,7 +605,7 @@ func connDiffEncode(src, dst VPCResourceIntf, connDiff *connectionDiff) string {
 // encodes rulesConnection for grouping
 func (details *srcDstDetails) explanationEncode(c *VPCConfig) string {
 	encodeComponents := []string{}
-	encodeComponents = append(encodeComponents, details.conn.string())
+	encodeComponents = append(encodeComponents, details.conn.allConn.String())
 	if details.externalRouter != nil {
 		encodeComponents = append(encodeComponents, details.externalRouter.UID())
 	}
