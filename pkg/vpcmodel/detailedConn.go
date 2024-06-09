@@ -39,12 +39,7 @@ func newDetailConn(statefulConn, otherConn, allConn *connection.Set) *detailedCo
 }
 
 func emptyConnWithStateful() *detailedConn {
-	return &detailedConn{
-		statefulConn:    NoConns(),
-		nonStatefulConn: NoConns(),
-		otherConn:       NoConns(),
-		allConn:         NoConns(),
-	}
+	return newDetailConn(NoConns(), NoConns(), NoConns())
 }
 
 // detailConnForTCPStatefulAndNonTCP constructor that is given the (tcp stateful and non tcp) conn and the entire conn
@@ -54,12 +49,7 @@ func detailConnForTCPStatefulAndNonTCP(tcpStatefulAndNonTCP, allConn *connection
 }
 
 func detailConnForStateful(stateful *connection.Set) *detailedConn {
-	return &detailedConn{
-		statefulConn:    stateful,
-		nonStatefulConn: NoConns(),
-		otherConn:       NoConns(),
-		allConn:         stateful,
-	}
+	return newDetailConn(stateful, NoConns(), stateful)
 }
 
 func detailConnForAllStateful() *detailedConn {
