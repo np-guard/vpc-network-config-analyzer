@@ -7,10 +7,10 @@ SPDX-License-Identifier: Apache-2.0
 package main
 
 import (
-	"log"
 	"os"
 
 	"github.com/np-guard/vpc-network-config-analyzer/cmd/analyzer/subcmds"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
 )
 
 // The actual main function
@@ -24,6 +24,7 @@ func _main(cmdlineArgs []string) error {
 func main() {
 	err := _main(os.Args[1:])
 	if err != nil {
-		log.Fatalf("%v. exiting...", err)
+		logging.Init(logging.MediumVerbosity) // just in case it wasn't initialized earlier
+		logging.Errorf("%v. exiting...", err)
 	}
 }
