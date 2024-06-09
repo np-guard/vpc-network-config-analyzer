@@ -357,7 +357,7 @@ func (statefulConnMap GeneralStatefulConnectivityMap) getCombinedConnsStr(onlyBi
 				bidirectional := extConns.statefulConn.Union(extConns.otherConn)
 				connsStr = bidirectional.String()
 			} else {
-				connsStr = extConns.EnhancedString()
+				connsStr = extConns.enhancedString()
 			}
 			strList = append(strList, getConnectionStr(srcName, dstName, connsStr, ""))
 		}

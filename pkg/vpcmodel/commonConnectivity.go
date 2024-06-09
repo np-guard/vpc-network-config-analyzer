@@ -136,7 +136,7 @@ func (e *connWithStateful) string() string {
 	return e.allConn.String()
 }
 
-func (e *connWithStateful) EnhancedString() string {
+func (e *connWithStateful) enhancedString() string {
 	if !e.nonStatefulConn.IsEmpty() {
 		return e.string() + " * "
 	}

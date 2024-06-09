@@ -303,7 +303,7 @@ func connStr(extConn *connWithStateful) string {
 	if extConn == nil {
 		return connection.NoConnections
 	}
-	return extConn.EnhancedString()
+	return extConn.enhancedString()
 }
 
 func diffAndEndpointsDescription(diff DiffType, src, dst EndpointElem, thisMinusOther bool) (diffDesc, workLoad string) {

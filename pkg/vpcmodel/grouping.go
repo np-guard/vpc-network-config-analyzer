@@ -297,7 +297,7 @@ func (g *GroupConnLines) groupExternalAddresses(vsi bool) error {
 		for dst, connsWithStateful := range nodeConns {
 			if !connsWithStateful.isEmpty() {
 				err := g.addLineToExternalGrouping(&res, src, dst,
-					&groupedCommonProperties{conn: connsWithStateful, groupingStrKey: connsWithStateful.EnhancedString()})
+					&groupedCommonProperties{conn: connsWithStateful, groupingStrKey: connsWithStateful.enhancedString()})
 				if err != nil {
 					return err
 				}
