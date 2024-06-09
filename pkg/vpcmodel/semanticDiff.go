@@ -78,7 +78,7 @@ func (configs configsForDiff) GetDiff() (*diffBetweenCfgs, error) {
 	if err != nil {
 		return nil, err
 	}
-	statefulConnectivityMap2, err := configs.config2.getAllowedResponsiveConnections(configs.diffAnalysis)
+	responsiveConnectivityMap2, err := configs.config2.getAllowedResponsiveConnections(configs.diffAnalysis)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +87,7 @@ func (configs configsForDiff) GetDiff() (*diffBetweenCfgs, error) {
 	configConn1 := &configConnectivity{configs.config1,
 		responsiveConnectivityMap1}
 	configConn2 := &configConnectivity{configs.config2,
-		statefulConnectivityMap2}
+		responsiveConnectivityMap2}
 	alignedConfigConnectivity1, alignedConfigConnectivity2, err :=
 		configConn1.getConnectivityWithSameIPBlocks(configConn2)
 	if err != nil {
@@ -116,7 +116,7 @@ func (configs configsForDiff) GetDiff() (*diffBetweenCfgs, error) {
 }
 
 func (c *VPCConfig) getAllowedResponsiveConnections(
-	diffAnalysis diffAnalysisType) (statefulConnectivityMap GeneralResponsiveConnectivityMap, err error) {
+	diffAnalysis diffAnalysisType) (responsiveConnectivityMap GeneralResponsiveConnectivityMap, err error) {
 	if diffAnalysis == Subnets {
 		subnetsConn, err := c.GetSubnetsConnectivity(true, false)
 		if err != nil {
