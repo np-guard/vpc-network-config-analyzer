@@ -102,14 +102,10 @@ func (e *detailedConn) subtract(other *detailedConn) *detailedConn {
 }
 
 func (e *detailedConn) string() string {
-	return e.allConn.String()
-}
-
-func (e *detailedConn) enhancedString() string {
 	if !e.nonStatefulConn.IsEmpty() {
-		return e.string() + " * "
+		return e.allConn.String() + " * "
 	}
-	return e.string()
+	return e.allConn.String()
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
