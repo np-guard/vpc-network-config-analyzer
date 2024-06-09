@@ -14,6 +14,8 @@ import (
 // todo: remove stateful from connection.Set (for both options)
 
 // connWithStateful connection details
+
+// haim todo - change to detailedConnection
 type connWithStateful struct {
 	statefulConn    *connection.Set // stateful TCP connection between <src, dst>
 	nonStatefulConn *connection.Set // nonstateful TCP connection between <src, dst>; complementary of statefulConn
@@ -26,6 +28,7 @@ type connWithStateful struct {
 // nonStatefulConn - the tcp complementary of statefulConn w.r.t. allConn -
 // is computed as allConn minus (statefulConn union otherConn)
 
+// todo remove this:
 func computeNonStatefulConn(allConn, otherConn, statefulConn *connection.Set) *connection.Set {
 	return allConn.Subtract(otherConn).Subtract(statefulConn)
 }
@@ -40,6 +43,7 @@ func EmptyConnWithStateful() *connWithStateful {
 }
 
 func NewConnWithStateful(statefulConn, otherConn, allConn *connection.Set) *connWithStateful {
+	// todo use allConn.Subtract(otherConn).Subtract(statefulConn)
 	return &connWithStateful{
 		statefulConn:    statefulConn,
 		nonStatefulConn: computeNonStatefulConn(allConn, otherConn, statefulConn),
@@ -51,6 +55,7 @@ func NewConnWithStateful(statefulConn, otherConn, allConn *connection.Set) *conn
 // NewConnWithStatefulGivenTCPStatefulAndNonTCP constructor that is given the (tcp stateful and non tcp) conn and the entire conn
 func NewConnWithStatefulGivenTCPStatefulAndNonTCP(tcpStatefulAndNonTCP, allConn *connection.Set) *connWithStateful {
 	tcpStatefulFraction, nonTCPFraction := partitionTCPNonTCP(tcpStatefulAndNonTCP)
+	// haim - todo return  NewConnWithStateful()
 	return &connWithStateful{
 		statefulConn:    tcpStatefulFraction,
 		nonStatefulConn: computeNonStatefulConn(allConn, nonTCPFraction, tcpStatefulFraction),
@@ -59,6 +64,7 @@ func NewConnWithStatefulGivenTCPStatefulAndNonTCP(tcpStatefulAndNonTCP, allConn 
 	}
 }
 
+// todo - cahnge to DetaildConnectionFromStateful()
 func NewConnWithStatefulGivenStateful(stateful *connection.Set) *connWithStateful {
 	return &connWithStateful{
 		statefulConn:    stateful,
@@ -77,6 +83,7 @@ func NewConnWithStatefulAllStateful() *connWithStateful {
 	}
 }
 
+// todo consider removing
 func NewConnWithStatefulAllNotStateful() *connWithStateful {
 	return &connWithStateful{
 		statefulConn:    NoConns(),
