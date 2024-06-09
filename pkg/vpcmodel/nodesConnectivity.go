@@ -239,20 +239,20 @@ func (v *VPCConnectivity) isConnExternalThroughFIP(src, dst Node) bool {
 // computeAllowedresponsiveConnectionsOld adds the responsiveness analysis for the computed allowed connections.
 // A connection A -> B is considered responsive if:
 // Each connection A -> B is being split into 3 parts (each of which could be empty)
-// 1. Stateful: A  TCP (allows bidrectional flow) connection s.t.: both SG and NACL
+// 1. Responsive: A  TCP (allows bidrectional flow) connection s.t.: both SG and NACL
 // (of A and B) allow connection (ingress and egress) from A to B , AND if NACL (of A and B) allow connection
 // (ingress and egress) from B to A .
 // Specifically, if connection A->B (considering NACL & SG) is allowed with TCP, src_port: x_range, dst_port: y_range,
 // and if connection B->A is allowed (considering NACL) with TCP, src_port: z_range, dst_port: w_range, then
-// the stateful allowed connection A->B is TCP , src_port: x&w , dst_port: y&z.
-// 2. Not stateful: the tcp part of the connection that is not in 1
-// 3. Other: the non-tcp part of the connection (for which the stateful question is non-relevant)
+// the responsive allowed connection A->B is TCP , src_port: x&w , dst_port: y&z.
+// 2. Not responsive: the tcp part of the connection that is not in 1
+// 3. Other: the non-tcp part of the connection (for which the responsive question is non-relevant)
 func (v *VPCConnectivity) computeAllowedResponsiveConnections(allowedConnsCombined GeneralConnectivityMap) {
 	// assuming v.AllowedConnsCombined was already computed
 
 	// allowed connection: src->dst , requires NACL layer to allow dst->src (both ingress and egress)
 	// on overlapping/matching connection-set, (src-dst ports should be switched),
-	// for it to be considered as stateful
+	// for it to be considered responsive
 
 	v.AllowedConnsCombinedResponsive = GeneralResponsiveConnectivityMap{}
 

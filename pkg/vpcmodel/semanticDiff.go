@@ -176,8 +176,8 @@ func (confConnectivity *configConnectivity) connMissingOrChanged(other *configCo
 	connectivityMissingOrChanged connectivityDiff, err error) {
 	connectivityMissingOrChanged = map[VPCResourceIntf]map[VPCResourceIntf]*connectionDiff{}
 	for src, endpointConns := range confConnectivity.connectivity {
-		for dst, connsWithStateful := range endpointConns {
-			if connsWithStateful.isEmpty() {
+		for dst, connsResponsive := range endpointConns {
+			if connsResponsive.isEmpty() {
 				continue
 			}
 			if _, ok := connectivityMissingOrChanged[src]; !ok {
@@ -192,12 +192,12 @@ func (confConnectivity *configConnectivity) connMissingOrChanged(other *configCo
 				return nil, err2
 			}
 			// includeChanged indicates if it is thisMinusOther
-			connDiff := &connectionDiff{connsWithStateful, nil, missingConnection, includeChanged}
+			connDiff := &connectionDiff{connsResponsive, nil, missingConnection, includeChanged}
 			if srcInOther != nil && dstInOther != nil {
 				if otherSrc, ok := other.connectivity[srcInOther]; ok {
 					if otherExtendedConn, ok := otherSrc[dstInOther]; ok {
-						equalConnections := connsWithStateful.allConn.Equal(otherExtendedConn.allConn) &&
-							connsWithStateful.tcpRspDisable.IsEmpty() == otherExtendedConn.tcpRspDisable.IsEmpty()
+						equalConnections := connsResponsive.allConn.Equal(otherExtendedConn.allConn) &&
+							connsResponsive.tcpRspDisable.IsEmpty() == otherExtendedConn.tcpRspDisable.IsEmpty()
 						if !includeChanged || equalConnections {
 							continue
 						}
