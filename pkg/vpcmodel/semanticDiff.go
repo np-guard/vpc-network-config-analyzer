@@ -41,8 +41,8 @@ const (
 )
 
 type connectionDiff struct {
-	conn1          *connWithStateful
-	conn2          *connWithStateful
+	conn1          *detailedConn
+	conn2          *detailedConn
 	diff           DiffType
 	thisMinusOther bool
 }
@@ -299,7 +299,7 @@ func (diffCfgs *diffBetweenCfgs) hasStatelessConns() bool {
 }
 
 // prints connection for the above string(..) where the connection could be empty
-func connStr(extConn *connWithStateful) string {
+func connStr(extConn *detailedConn) string {
 	if extConn == nil {
 		return connection.NoConnections
 	}
@@ -434,7 +434,7 @@ func (statefulConnMap *GeneralStatefulConnectivityMap) actualAlignSrcOrDstGivenI
 	// if src is external then for each IPBlock in disjointIPblocks copies dsts and connection type
 	// otherwise just copies as is
 	err = nil
-	alignedConnectivity = map[VPCResourceIntf]map[VPCResourceIntf]*connWithStateful{}
+	alignedConnectivity = map[VPCResourceIntf]map[VPCResourceIntf]*detailedConn{}
 	for src, endpointConns := range *statefulConnMap {
 		for dst, connsWithStateful := range endpointConns {
 			if connsWithStateful.isEmpty() {
@@ -443,7 +443,7 @@ func (statefulConnMap *GeneralStatefulConnectivityMap) actualAlignSrcOrDstGivenI
 			// the resizing element is not external - copy as is
 			if (resizeSrc && !src.IsExternal()) || (!resizeSrc && !dst.IsExternal()) {
 				if _, ok := alignedConnectivity[src]; !ok {
-					alignedConnectivity[src] = map[VPCResourceIntf]*connWithStateful{}
+					alignedConnectivity[src] = map[VPCResourceIntf]*detailedConn{}
 				}
 				alignedConnectivity[src][dst] = connsWithStateful
 				continue
@@ -474,8 +474,8 @@ func (statefulConnMap *GeneralStatefulConnectivityMap) actualAlignSrcOrDstGivenI
 }
 
 func addIPBlockToConnectivityMap(c *VPCConfig, disjointIPblocks []*ipblock.IPBlock,
-	origIPBlock *ipblock.IPBlock, alignedConnectivity map[VPCResourceIntf]map[VPCResourceIntf]*connWithStateful,
-	src, dst VPCResourceIntf, conns *connWithStateful, resizeSrc bool) error {
+	origIPBlock *ipblock.IPBlock, alignedConnectivity map[VPCResourceIntf]map[VPCResourceIntf]*detailedConn,
+	src, dst VPCResourceIntf, conns *detailedConn, resizeSrc bool) error {
 	for _, ipBlock := range disjointIPblocks {
 		// get ipBlock of resized index (src/dst)
 		if !ipBlock.ContainedIn(origIPBlock) { // ipBlock not relevant here
@@ -490,12 +490,12 @@ func addIPBlockToConnectivityMap(c *VPCConfig, disjointIPblocks []*ipblock.IPBlo
 			}
 			if resizeSrc {
 				if _, ok := alignedConnectivity[nodeOfCidr]; !ok {
-					alignedConnectivity[nodeOfCidr] = map[VPCResourceIntf]*connWithStateful{}
+					alignedConnectivity[nodeOfCidr] = map[VPCResourceIntf]*detailedConn{}
 				}
 				alignedConnectivity[nodeOfCidr][dst] = conns
 			} else {
 				if _, ok := alignedConnectivity[src]; !ok {
-					alignedConnectivity[src] = map[VPCResourceIntf]*connWithStateful{}
+					alignedConnectivity[src] = map[VPCResourceIntf]*detailedConn{}
 				}
 				alignedConnectivity[src][nodeOfCidr] = conns
 			}
