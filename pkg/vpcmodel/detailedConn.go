@@ -13,30 +13,30 @@ import (
 
 // todo: remove stateful from connection.Set
 
-// detailedConn captures full connection details, as described below.
+// detailedConn captures the connection with connection's responsive details, as described below.
 // It is created from src to dest allowed connection (TCP and non-TCP) and response dest to src allowed connection
 // (TCP and non-TCP); further entities of the connection may be created from operations as union e.g. for abstraction
-// note: nonStatefulConn is not independent and is calculated based on the other properties;
+// note: tcpRspDisable is not independent and is calculated based on the other properties;
 // it is kept since it is widely used - to determine if the connection is stateful
 type detailedConn struct {
-	statefulConn    *connection.Set // stateful TCP connection between <src, dst>
-	otherConn       *connection.Set // non TCP connection (for which stateful is non-relevant)
-	allConn         *connection.Set // entire connection
-	nonStatefulConn *connection.Set // nonstateful TCP connection between <src, dst>; complementary of statefulConn
-	// connection is defined to be stateful if otherConn is empty
+	tcpRspEnable  *connection.Set // responsive TCP connection between <src, dst>
+	nonTCP        *connection.Set // non TCP connection (for which stateful is non-relevant)
+	allConn       *connection.Set // entire connection
+	tcpRspDisable *connection.Set // non-responsive TCP connection between <src, dst>; complementary of tcpRspEnable
+	// connection is defined to be stateful if nonTCP is empty
 }
 
 // operation on detailedConn
-// The operations are performed on the disjoint statefulConn and otherConn and on allConn which contains them;
-// nonStatefulConn - the tcp complementary of statefulConn w.r.t. allConn -
-// is computed as allConn minus (statefulConn union otherConn)
+// The operations are performed on the disjoint tcpRspEnable and nonTCP and on allConn which contains them;
+// tcpRspDisable - the tcp complementary of tcpRspEnable w.r.t. allConn -
+// is computed as allConn minus (tcpRspEnable union nonTCP)
 
 func newDetailConn(statefulConn, otherConn, allConn *connection.Set) *detailedConn {
 	return &detailedConn{
-		statefulConn:    statefulConn,
-		nonStatefulConn: (allConn.Subtract(otherConn)).Subtract(statefulConn),
-		otherConn:       otherConn,
-		allConn:         allConn,
+		tcpRspEnable:  statefulConn,
+		tcpRspDisable: (allConn.Subtract(otherConn)).Subtract(statefulConn),
+		nonTCP:        otherConn,
+		allConn:       allConn,
 	}
 }
 
@@ -68,30 +68,30 @@ func (e *detailedConn) isEmpty() bool {
 
 // Equal all components of two detailedConn are equal
 func (e *detailedConn) equal(other *detailedConn) bool {
-	return e.statefulConn.Equal(other.statefulConn) && e.otherConn.Equal(other.otherConn) &&
+	return e.tcpRspEnable.Equal(other.tcpRspEnable) && e.nonTCP.Equal(other.nonTCP) &&
 		e.allConn.Equal(other.allConn)
 }
 
-// union of two detailedConn: union statefulConn, otherConn and allConn
-// (nonStatefulConn is computed based on these)
+// union of two detailedConn: union tcpRspEnable, nonTCP and allConn
+// (tcpRspDisable is computed based on these)
 func (e *detailedConn) union(other *detailedConn) *detailedConn {
-	statefulConn := e.statefulConn.Union(other.statefulConn)
-	otherConn := e.otherConn.Union(other.otherConn)
+	statefulConn := e.tcpRspEnable.Union(other.tcpRspEnable)
+	otherConn := e.nonTCP.Union(other.nonTCP)
 	conn := e.allConn.Union(other.allConn)
 	return newDetailConn(statefulConn, otherConn, conn)
 }
 
-// subtract of two detailedConn: subtraction of statefulConn, otherConn and allConn
-// (nonStatefulConn is computed based on these)
+// subtract of two detailedConn: subtraction of tcpRspEnable, nonTCP and allConn
+// (tcpRspDisable is computed based on these)
 func (e *detailedConn) subtract(other *detailedConn) *detailedConn {
-	statefulConn := e.statefulConn.Subtract(other.statefulConn)
-	otherConn := e.otherConn.Subtract(other.otherConn)
+	statefulConn := e.tcpRspEnable.Subtract(other.tcpRspEnable)
+	otherConn := e.nonTCP.Subtract(other.nonTCP)
 	conn := e.allConn.Subtract(other.allConn)
 	return newDetailConn(statefulConn, otherConn, conn)
 }
 
 func (e *detailedConn) string() string {
-	if !e.nonStatefulConn.IsEmpty() {
+	if !e.tcpRspDisable.IsEmpty() {
 		return e.allConn.String() + " * "
 	}
 	return e.allConn.String()

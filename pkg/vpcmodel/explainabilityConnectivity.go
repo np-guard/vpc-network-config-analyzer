@@ -436,8 +436,8 @@ func (details *rulesAndConnDetails) computeConnections(c *VPCConfig,
 			return err
 		}
 		if connQuery != nil { // connection is part of the query
-			srcDstDetails.conn = newDetailConn(conn.statefulConn.Intersect(connQuery),
-				conn.otherConn.Intersect(connQuery), conn.allConn.Intersect(connQuery))
+			srcDstDetails.conn = newDetailConn(conn.tcpRspEnable.Intersect(connQuery),
+				conn.nonTCP.Intersect(connQuery), conn.allConn.Intersect(connQuery))
 		} else {
 			srcDstDetails.conn = conn
 		}

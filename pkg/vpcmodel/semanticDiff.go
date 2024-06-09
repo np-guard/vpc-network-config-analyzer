@@ -197,7 +197,7 @@ func (confConnectivity *configConnectivity) connMissingOrChanged(other *configCo
 				if otherSrc, ok := other.connectivity[srcInOther]; ok {
 					if otherExtendedConn, ok := otherSrc[dstInOther]; ok {
 						equalConnections := connsWithStateful.allConn.Equal(otherExtendedConn.allConn) &&
-							connsWithStateful.nonStatefulConn.IsEmpty() == otherExtendedConn.nonStatefulConn.IsEmpty()
+							connsWithStateful.tcpRspDisable.IsEmpty() == otherExtendedConn.tcpRspDisable.IsEmpty()
 						if !includeChanged || equalConnections {
 							continue
 						}
@@ -288,9 +288,9 @@ func (diffCfgs *diffBetweenCfgs) hasStatelessConns() bool {
 	hasStatelessConns := false
 	for _, grouped := range diffCfgs.groupedLines {
 		if (grouped.commonProperties.connDiff.conn1 != nil &&
-			!grouped.commonProperties.connDiff.conn1.nonStatefulConn.IsEmpty()) ||
+			!grouped.commonProperties.connDiff.conn1.tcpRspDisable.IsEmpty()) ||
 			(grouped.commonProperties.connDiff.conn2 != nil &&
-				!grouped.commonProperties.connDiff.conn2.nonStatefulConn.IsEmpty()) {
+				!grouped.commonProperties.connDiff.conn2.tcpRspDisable.IsEmpty()) {
 			hasStatelessConns = true
 			break
 		}

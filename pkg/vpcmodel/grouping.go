@@ -544,7 +544,7 @@ func (g *GroupConnLines) String(c *VPCConfig) string {
 func (g *GroupConnLines) hasStatelessConns() bool {
 	hasStatelessConns := false
 	for _, line := range g.GroupedLines {
-		if !line.commonProperties.conn.nonStatefulConn.IsEmpty() {
+		if !line.commonProperties.conn.tcpRspDisable.IsEmpty() {
 			hasStatelessConns = true
 			break
 		}

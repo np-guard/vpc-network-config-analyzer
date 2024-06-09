@@ -353,7 +353,7 @@ func (statefulConnMap GeneralStatefulConnectivityMap) getCombinedConnsStr(onlyBi
 			}
 			var connsStr string
 			if onlyBidirectional {
-				bidirectional := extConns.statefulConn.Union(extConns.otherConn)
+				bidirectional := extConns.tcpRspEnable.Union(extConns.nonTCP)
 				connsStr = bidirectional.String()
 			} else {
 				connsStr = extConns.string()
