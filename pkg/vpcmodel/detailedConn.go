@@ -56,7 +56,7 @@ func detailConnForAllStateful() *detailedConn {
 	return &detailedConn{
 		statefulConn:    newTCPSet(),
 		nonStatefulConn: NoConns(),
-		otherConn:       NoConns(),
+		otherConn:       AllConns().Subtract(newTCPSet()),
 		allConn:         AllConns(),
 	}
 }
