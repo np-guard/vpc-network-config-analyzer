@@ -13,12 +13,15 @@ import (
 
 // todo: remove stateful from connection.Set (for both options)
 
-// connWithStateful connection details
+// connWithStateful captures full connection details, as described below.
+// It is created from src to dest allowed connection (TCP and non-TCP) and response dest to src allowed connection
+// (TCP and non-TCP); further entities of the connection may be created from operations as Union e.g. for abstraction
 type connWithStateful struct {
 	statefulConn    *connection.Set // stateful TCP connection between <src, dst>
 	nonStatefulConn *connection.Set // nonstateful TCP connection between <src, dst>; complementary of statefulConn
-	otherConn       *connection.Set // non TCP connection (for which stateful is non-relevant)
-	allConn         *connection.Set // entire connection
+	// connection is defined to be stateful if otherConn is empty
+	otherConn *connection.Set // non TCP connection (for which stateful is non-relevant)
+	allConn   *connection.Set // entire connection
 }
 
 // operation on connWithStateful
