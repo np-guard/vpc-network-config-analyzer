@@ -153,7 +153,7 @@ func (nsa *NodeSetAbstraction) missingConnections(connMap, mergedConnMap General
 			} else {
 				mergedConnection = mergedConnMap[nodeSet][node1]
 			}
-			if !nodeConnection.Equal(mergedConnection) {
+			if !nodeConnection.equal(mergedConnection) {
 				missingConn := mergedConnection.subtract(nodeConnection)
 				missingConnection.updateAllowedStatefulConnsMap(node1, node2, missingConn)
 			}

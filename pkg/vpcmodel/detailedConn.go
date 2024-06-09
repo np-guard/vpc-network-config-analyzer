@@ -67,20 +67,9 @@ func (e *detailedConn) isEmpty() bool {
 }
 
 // Equal all components of two detailedConn are equal
-func (e *detailedConn) Equal(other *detailedConn) bool {
+func (e *detailedConn) equal(other *detailedConn) bool {
 	return e.statefulConn.Equal(other.statefulConn) && e.otherConn.Equal(other.otherConn) &&
 		e.allConn.Equal(other.allConn)
-}
-
-// intersect of two detailedConn: intersecting statefulConn, otherConn and allConn
-// (nonStatefulConn is computed based on these)
-//
-//nolint:all
-func (e *detailedConn) intersect(other *detailedConn) *detailedConn {
-	statefulConn := e.statefulConn.Intersect(other.statefulConn)
-	otherConn := e.otherConn.Intersect(other.otherConn)
-	conn := e.allConn.Intersect(other.allConn)
-	return newDetailConn(statefulConn, otherConn, conn)
 }
 
 // union of two detailedConn: union statefulConn, otherConn and allConn
