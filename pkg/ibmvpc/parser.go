@@ -1344,7 +1344,7 @@ func sgRulesBlocks(rc *datamodel.ResourcesContainerModel) ([]*ipblock.IPBlock, e
 type subnetIPBlocks struct {
 	block               *ipblock.IPBlock
 	blocks              []*ipblock.IPBlock
-	freeAddressedBlocks []*ipblock.IPBlock
+	freeAddressesBlocks []*ipblock.IPBlock
 }
 type subnetsIPBlocks map[string]*subnetIPBlocks
 
@@ -1371,45 +1371,41 @@ func getSubnetsIPBlocks(rc *datamodel.ResourcesContainerModel) (subnetsBlocks su
 		subnetBlocks.blocks = ipblock.DisjointIPBlocks(filtersBlocksOnSubnet, []*ipblock.IPBlock{subnetBlock})
 		subnetsBlocks[*subnetObj.CRN] = &subnetBlocks
 	}
+	subnetsBlocks.getSubnetsFreeBlocks(rc)
 	return subnetsBlocks, nil
 }
 
 // ///////////////////////////////////////////////////////////////////////
-// getSubnetsFreeAddresses() and allocSubnetFreeAddress() are needed for load balancer parsing.
+// getSubnetsBlocks() and allocSubnetFreeAddress() are needed for load balancer parsing.
 // when a load balancer is created, Private IPs are not created in all the load balancer subnets.
-//
 //	however, we want to create one private IP for all the subnets.
-//
 // to create a private IP which does not exist in the config, we need an unused address.
-// See https://github.com/np-guard/vpc-network-config-analyzer/issues/560
-// getSubnetsFreeAddresses() collect all the free address of all subnets
-// allocSubnetFreeAddress() allocate a new address for a subnet
-func getSubnetsFreeAddresses(rc *datamodel.ResourcesContainerModel) (subnetsIPBlocks, error) {
-	subnetsBlocks, _ := getSubnetsIPBlocks(rc)
+
+func (subnetsBlocks subnetsIPBlocks) getSubnetsFreeBlocks(rc *datamodel.ResourcesContainerModel) (error) {
 	for _, subnetObj := range rc.SubnetList {
-		subnetsBlocks[*subnetObj.CRN].freeAddressedBlocks = make([]*ipblock.IPBlock, len(subnetsBlocks[*subnetObj.CRN].blocks))
+		subnetsBlocks[*subnetObj.CRN].freeAddressesBlocks = make([]*ipblock.IPBlock, len(subnetsBlocks[*subnetObj.CRN].blocks))
 		for i, b := range subnetsBlocks[*subnetObj.CRN].blocks {
 			// all the allocated IPs are at subnetObj.ReservedIps.
 			for _, reservedIP := range subnetObj.ReservedIps {
 				b2, err := ipblock.FromIPAddress(*reservedIP.Address)
 				if err != nil {
-					return nil, err
+					return err
 				}
 				b = b.Subtract(b2)
 			}
-			subnetsBlocks[*subnetObj.CRN].freeAddressedBlocks[i] = b
+			subnetsBlocks[*subnetObj.CRN].freeAddressesBlocks[i] = b
 		}
 	}
-	return subnetsBlocks, nil
+	return nil
 }
 
-func allocSubnetFreeAddress(subnetsFreeAddresses subnetsIPBlocks, subnetCRN string, blockIndex int) (string, error) {
-	address := subnetsFreeAddresses[subnetCRN].freeAddressedBlocks[blockIndex].FirstIPAddress()
+func (subnetsBlocks subnetsIPBlocks) allocSubnetFreeAddress(subnetCRN string, blockIndex int) (string, error) {
+	address := subnetsBlocks[subnetCRN].freeAddressesBlocks[blockIndex].FirstIPAddress()
 	addressBlock, err := ipblock.FromIPAddress(address)
 	if err != nil {
 		return "", err
 	}
-	subnetsFreeAddresses[subnetCRN].freeAddressedBlocks[blockIndex] = subnetsFreeAddresses[subnetCRN].freeAddressedBlocks[blockIndex].Subtract(addressBlock)
+	subnetsBlocks[subnetCRN].freeAddressesBlocks[blockIndex] = subnetsBlocks[subnetCRN].freeAddressesBlocks[blockIndex].Subtract(addressBlock)
 	return address, nil
 }
 
@@ -1422,7 +1418,7 @@ func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 	if len(rc.LBList) == 0 {
 		return nil
 	}
-	subnetsFreeAddresses, err := getSubnetsFreeAddresses(rc)
+	subnetsFreeAddresses, err := getSubnetsIPBlocks(rc)
 	if err != nil {
 		return err
 	}
@@ -1563,7 +1559,7 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 		if err != nil {
 			return nil, err
 		}
-		for iBlock, subnetBlock := range subnetsBlocks[*subnetObj.CRN].blocks {
+		for blockIndex, subnetBlock := range subnetsBlocks[*subnetObj.CRN].blocks {
 			// first get name, id, address, publicAddress:
 			var name, id, address, publicAddress string
 			pipIndex, original := subnetsWithPrivateIPs[subnet]
@@ -1580,7 +1576,7 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 				name = "pip-name-of-" + subnet.Name() + "-" + *loadBalancerObj.Name
 				id = "pip-uid-of-" + subnet.UID() + *loadBalancerObj.ID
 				var err error
-				address, err = allocSubnetFreeAddress(subnetsBlocks, *subnetObj.CRN, iBlock)
+				address, err = subnetsBlocks.allocSubnetFreeAddress(*subnetObj.CRN, blockIndex)
 				if err != nil {
 					return nil, err
 				}
