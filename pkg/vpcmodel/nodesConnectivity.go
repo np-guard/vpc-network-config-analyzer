@@ -58,7 +58,6 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping, lbAbstraction bool) (res
 			res.AllowedConnsPerLayer[node][layer].EgressAllowedConns = egressAllowedConnsPerLayer[layer]
 		}
 	}
-	res.computeAllowedConnsCombined()
 	allowedConnsCombined := res.computeAllowedConnsCombined()
 	res.computeAllowedStatefulConnections(allowedConnsCombined)
 	res.abstractLoadBalancers(c.LoadBalancers, lbAbstraction)
