@@ -1279,8 +1279,8 @@ func getVPCObjectByUID(res *vpcmodel.MultipleVPCConfigs, uid string) (*VPC, erro
 	return vpc, nil
 }
 
-func aclRuleCidrs(rc *datamodel.ResourcesContainerModel) ([]*ipblock.IPBlock, error) {
-	naclAddresses := []*ipblock.IPBlock{ipblock.GetCidrAll()}
+func aclRuleBlocks(rc *datamodel.ResourcesContainerModel) ([]*ipblock.IPBlock, error) {
+	naclBlocks := []*ipblock.IPBlock{}
 	for _, aclObj := range rc.NetworkACLList {
 		for _, rule := range aclObj.Rules {
 			var src, dst *string
@@ -1302,16 +1302,16 @@ func aclRuleCidrs(rc *datamodel.ResourcesContainerModel) ([]*ipblock.IPBlock, er
 					if err != nil {
 						return nil, err
 					}
-					naclAddresses = append(naclAddresses, b)
+					naclBlocks = append(naclBlocks, b)
 				}
 			}
 		}
 	}
-	return naclAddresses, nil
+	return naclBlocks, nil
 }
 
-func sgRulesCidrs(rc *datamodel.ResourcesContainerModel) ([]*ipblock.IPBlock, error) {
-	sgsAddresses := []*ipblock.IPBlock{ipblock.GetCidrAll()}
+func sgRulesBlocks(rc *datamodel.ResourcesContainerModel) ([]*ipblock.IPBlock, error) {
+	sgsBlocks := []*ipblock.IPBlock{}
 	for _, sgObj := range rc.SecurityGroupList {
 		for _, rule := range sgObj.Rules {
 			var remote, local *string
@@ -1333,44 +1333,45 @@ func sgRulesCidrs(rc *datamodel.ResourcesContainerModel) ([]*ipblock.IPBlock, er
 					if err != nil {
 						return nil, err
 					}
-					sgsAddresses = append(sgsAddresses, b)
+					sgsBlocks = append(sgsBlocks, b)
 				}
 			}
 		}
 	}
-	return sgsAddresses, nil
+	return sgsBlocks, nil
 }
 
-type subnetAddresses struct {
-	block       *ipblock.IPBlock
-	blocks     []*ipblock.IPBlock
-	freeBlocks []*ipblock.IPBlock
+type subnetIPBlocks struct {
+	block               *ipblock.IPBlock
+	blocks              []*ipblock.IPBlock
+	freeAddressedBlocks []*ipblock.IPBlock
 }
-type subnetsAddresses map[string]*subnetAddresses
+type subnetsIPBlocks map[string]*subnetIPBlocks
 
-func getSubnetsAddresses(rc *datamodel.ResourcesContainerModel) (addresses subnetsAddresses, err error) {
-	sgsAddresses, _ := sgRulesCidrs(rc)
-	naclAddresses, _ := aclRuleCidrs(rc)
-	filtersRulesBlocks := ipblock.DisjointIPBlocks(sgsAddresses, naclAddresses)
-	addresses = subnetsAddresses{}
+func getSubnetsIPBlocks(rc *datamodel.ResourcesContainerModel) (subnetsBlocks subnetsIPBlocks, err error) {
+	sgsBlocks, _ := sgRulesBlocks(rc)
+	naclBlocks, _ := aclRuleBlocks(rc)
+
+	filtersDisjointBlocks := ipblock.DisjointIPBlocks(sgsBlocks, append(naclBlocks, ipblock.GetCidrAll()))
+	subnetsBlocks = subnetsIPBlocks{}
 	for _, subnetObj := range rc.SubnetList {
-		b, err := ipblock.FromCidr(*subnetObj.Ipv4CIDRBlock)
+		subnetBlock, err := ipblock.FromCidr(*subnetObj.Ipv4CIDRBlock)
 		if err != nil {
 			return nil, err
 		}
-		sa := subnetAddresses{}
-		sa.block = b
-		subnetBlocks := []*ipblock.IPBlock{b}
-		for _, filterBlock := range filtersRulesBlocks {
-			subnetBlocks = append(subnetBlocks, b.Intersect(filterBlock))
+		filtersBlocksOnSubnet := []*ipblock.IPBlock{}
+		for _, filterBlock := range filtersDisjointBlocks {
+			filterBlocksOnSubnet := subnetBlock.Intersect(filterBlock)
+			if !filterBlocksOnSubnet.IsEmpty() {
+				filtersBlocksOnSubnet = append(filtersBlocksOnSubnet, filterBlocksOnSubnet)
+			}
 		}
-		sa.blocks = ipblock.DisjointIPBlocks(subnetBlocks, []*ipblock.IPBlock{})
-		if len(sa.blocks) > 1 {
-			fmt.Println(*subnetObj.Name + " has more than one block " + sa.blocks[0].String() + " " + sa.blocks[1].String())
-		}
-		addresses[*subnetObj.CRN] = &sa
+		subnetBlocks := subnetIPBlocks{}
+		subnetBlocks.block = subnetBlock
+		subnetBlocks.blocks = ipblock.DisjointIPBlocks(filtersBlocksOnSubnet, []*ipblock.IPBlock{subnetBlock})
+		subnetsBlocks[*subnetObj.CRN] = &subnetBlocks
 	}
-	return addresses, nil
+	return subnetsBlocks, nil
 }
 
 // ///////////////////////////////////////////////////////////////////////
@@ -1383,10 +1384,10 @@ func getSubnetsAddresses(rc *datamodel.ResourcesContainerModel) (addresses subne
 // See https://github.com/np-guard/vpc-network-config-analyzer/issues/560
 // getSubnetsFreeAddresses() collect all the free address of all subnets
 // allocSubnetFreeAddress() allocate a new address for a subnet
-func getSubnetsFreeAddresses(rc *datamodel.ResourcesContainerModel) (subnetsAddresses, error) {
-	subnetsBlocks, _ := getSubnetsAddresses(rc)
+func getSubnetsFreeAddresses(rc *datamodel.ResourcesContainerModel) (subnetsIPBlocks, error) {
+	subnetsBlocks, _ := getSubnetsIPBlocks(rc)
 	for _, subnetObj := range rc.SubnetList {
-		subnetsBlocks[*subnetObj.CRN].freeBlocks = make([]*ipblock.IPBlock, len(subnetsBlocks[*subnetObj.CRN].blocks))
+		subnetsBlocks[*subnetObj.CRN].freeAddressedBlocks = make([]*ipblock.IPBlock, len(subnetsBlocks[*subnetObj.CRN].blocks))
 		for i, b := range subnetsBlocks[*subnetObj.CRN].blocks {
 			// all the allocated IPs are at subnetObj.ReservedIps.
 			for _, reservedIP := range subnetObj.ReservedIps {
@@ -1396,19 +1397,19 @@ func getSubnetsFreeAddresses(rc *datamodel.ResourcesContainerModel) (subnetsAddr
 				}
 				b = b.Subtract(b2)
 			}
-			subnetsBlocks[*subnetObj.CRN].freeBlocks[i] = b
+			subnetsBlocks[*subnetObj.CRN].freeAddressedBlocks[i] = b
 		}
 	}
 	return subnetsBlocks, nil
 }
 
-func allocSubnetFreeAddress(subnetsFreeAddresses subnetsAddresses, subnetCRN string, blockIndex int) (string, error) {
-	address := subnetsFreeAddresses[subnetCRN].freeBlocks[blockIndex].FirstIPAddress()
+func allocSubnetFreeAddress(subnetsFreeAddresses subnetsIPBlocks, subnetCRN string, blockIndex int) (string, error) {
+	address := subnetsFreeAddresses[subnetCRN].freeAddressedBlocks[blockIndex].FirstIPAddress()
 	addressBlock, err := ipblock.FromIPAddress(address)
 	if err != nil {
 		return "", err
 	}
-	subnetsFreeAddresses[subnetCRN].freeBlocks[blockIndex] = subnetsFreeAddresses[subnetCRN].freeBlocks[blockIndex].Subtract(addressBlock)
+	subnetsFreeAddresses[subnetCRN].freeAddressedBlocks[blockIndex] = subnetsFreeAddresses[subnetCRN].freeAddressedBlocks[blockIndex].Subtract(addressBlock)
 	return address, nil
 }
 
@@ -1538,7 +1539,7 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 	loadBalancerObj *datamodel.LoadBalancer,
 	loadBalancer *LoadBalancer,
 	vpc *VPC,
-	subnetsFreeAddresses subnetsAddresses) ([]vpcmodel.Node, error) {
+	subnetsBlocks subnetsIPBlocks) ([]vpcmodel.Node, error) {
 	// first we collect  the subnets that has private IPs:
 	subnetsWithPrivateIPs := map[vpcmodel.Subnet]int{}
 	privateIPsAddresses := map[int]*ipblock.IPBlock{}
@@ -1547,12 +1548,11 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 		if err != nil {
 			return nil, err
 		}
-		privateIPsAddresses[i] =address
+		privateIPsAddresses[i] = address
 		subnet, err := getSubnetByIPAddress(address, vpcConfig)
 		if err != nil {
 			return nil, err
 		}
-		subnetsWithPrivateIPs[subnet] = i
 		subnetsWithPrivateIPs[subnet] = i
 	}
 	privateIPs := []vpcmodel.Node{}
@@ -1563,11 +1563,11 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 		if err != nil {
 			return nil, err
 		}
-		for iBlock, subnetBlock := range subnetsFreeAddresses[*subnetObj.CRN].blocks {
+		for iBlock, subnetBlock := range subnetsBlocks[*subnetObj.CRN].blocks {
 			// first get name, id, address, publicAddress:
 			var name, id, address, publicAddress string
 			pipIndex, original := subnetsWithPrivateIPs[subnet]
-			original = original && privateIPsAddresses[pipIndex].ContainedIn( subnetBlock)
+			original = original && privateIPsAddresses[pipIndex].ContainedIn(subnetBlock)
 			if original {
 				// subnet has a private IP, we take it from the config
 				pIP := loadBalancerObj.PrivateIps[pipIndex]
@@ -1580,7 +1580,7 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 				name = "pip-name-of-" + subnet.Name() + "-" + *loadBalancerObj.Name
 				id = "pip-uid-of-" + subnet.UID() + *loadBalancerObj.ID
 				var err error
-				address, err = allocSubnetFreeAddress(subnetsFreeAddresses, *subnetObj.CRN, iBlock)
+				address, err = allocSubnetFreeAddress(subnetsBlocks, *subnetObj.CRN, iBlock)
 				if err != nil {
 					return nil, err
 				}
