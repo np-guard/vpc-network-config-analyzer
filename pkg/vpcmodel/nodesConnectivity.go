@@ -266,7 +266,7 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections(allowedConnsCombined
 			if v.isConnExternalThroughFIP(srcNode, dstNode) { // fip ignores NACL
 				// TODO: this may be ibm-specific. consider moving to ibmvpc
 				v.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(src, dst,
-					NewConnWithStatefulGivenTCPStatefulAndNonTCP(conn, conn))
+					newConnWithStatefulGivenTCPStatefulAndNonTCP(conn, conn))
 				continue
 			}
 
@@ -280,7 +280,7 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections(allowedConnsCombined
 			combinedDstToSrc := DstAllowedEgressToSrc.Intersect(SrcAllowedIngressFromDst)
 			// ConnectionWithStatefulness returns the stateful subset
 			statefulCombinedConn := conn.WithStatefulness(combinedDstToSrc)
-			statefulSet := NewConnWithStatefulGivenTCPStatefulAndNonTCP(statefulCombinedConn, conn)
+			statefulSet := newConnWithStatefulGivenTCPStatefulAndNonTCP(statefulCombinedConn, conn)
 			v.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(src, dst, statefulSet)
 		}
 	}
@@ -341,7 +341,7 @@ func (statefulConnMap GeneralStatefulConnectivityMap) getCombinedConnsStr(onlyBi
 			// src and dst here are nodes, always. Thus ignoring potential error in conversion
 			srcNode := src.(Node)
 			dstNode := dst.(Node)
-			if extConns.IsEmpty() {
+			if extConns.isEmpty() {
 				continue
 			}
 			srcName := srcNode.CidrOrAddress()

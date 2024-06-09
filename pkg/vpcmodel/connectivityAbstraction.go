@@ -72,7 +72,7 @@ func (nsa *NodeSetAbstraction) partitionConnectivityByNodeSet(nodeSet NodeSet) (
 			srcInSet := srcIsNode && slices.Contains(nodeSet.Nodes(), srcNode)
 			dstInSet := dstIsNode && slices.Contains(nodeSet.Nodes(), dstNode)
 			switch {
-			case (!srcInSet && !dstInSet) || conns.IsEmpty():
+			case (!srcInSet && !dstInSet) || conns.isEmpty():
 				otherToOther.updateAllowedStatefulConnsMap(src, dst, conns)
 			case srcInSet && dstInSet:
 				nodeSetToNodeSet.updateAllowedStatefulConnsMap(src, dst, conns)
@@ -98,7 +98,7 @@ func (nsa *NodeSetAbstraction) mergeConnectivityWithNodeSetAbstraction(
 	}
 	// all the connections with the nodeSet are merged to *only* one connectivity, which is the union of all separate connections:
 	mergedConnectivity := GeneralStatefulConnectivityMap{}
-	allConns := EmptyConnWithStateful()
+	allConns := emptyConnWithStateful()
 	for _, nodeConns := range nodeSetToNodeSet {
 		allConns = unionConns(allConns, nodeConns)
 	}
@@ -111,13 +111,13 @@ func (nsa *NodeSetAbstraction) mergeConnectivityWithNodeSetAbstraction(
 	// so, the outer loop should run over the nodes not in the nodeSet.
 	// hence, this group is from dst to src.
 	for dst, nodeConns := range otherFromNodeSet {
-		allConns = unionConns(EmptyConnWithStateful(), nodeConns)
+		allConns = unionConns(emptyConnWithStateful(), nodeConns)
 		mergedConnectivity.updateAllowedStatefulConnsMap(nodeSet, dst, allConns)
 	}
 
 	// all connection from a node to the nodeSet, are union and added to the result:
 	for src, nodeConns := range otherToNodeSet {
-		allConns = unionConns(EmptyConnWithStateful(), nodeConns)
+		allConns = unionConns(emptyConnWithStateful(), nodeConns)
 		mergedConnectivity.updateAllowedStatefulConnsMap(src, nodeSet, allConns)
 	}
 	return mergedConnectivity
@@ -146,7 +146,7 @@ func (nsa *NodeSetAbstraction) missingConnections(connMap, mergedConnMap General
 		for _, node2 := range nodeSet.Nodes() {
 			var nodeConnection, mergedConnection *connWithStateful
 			if nodeConnection = conns[node2]; nodeConnection == nil {
-				nodeConnection = EmptyConnWithStateful()
+				nodeConnection = emptyConnWithStateful()
 			}
 			if isIngress {
 				mergedConnection = mergedConnMap[node1][nodeSet]

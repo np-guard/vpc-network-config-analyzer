@@ -150,7 +150,7 @@ func newVPCConfigTest1() (*VPCConfig, *VPCConnectivity) {
 	res.Nodes[0].(*mockNetIntf).subnet = res.Subnets[0]
 
 	res1 := &VPCConnectivity{AllowedConnsCombinedStateful: GeneralStatefulConnectivityMap{}}
-	conn := NewConnWithStatefulAllStateful()
+	conn := newConnWithStatefulAllStateful()
 	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[0], res.Nodes[1], conn)
 	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[0], res.Nodes[2], conn)
 	return res, res1
@@ -169,7 +169,7 @@ func newVPCConfigTest2() (*VPCConfig, *VPCConnectivity) {
 	res.Nodes[3].(*mockNetIntf).subnet = res.Subnets[0]
 
 	res1 := &VPCConnectivity{AllowedConnsCombinedStateful: GeneralStatefulConnectivityMap{}}
-	conn := NewConnWithStatefulAllStateful()
+	conn := newConnWithStatefulAllStateful()
 	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[0], res.Nodes[1], conn)
 	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[0], res.Nodes[2], conn)
 	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[3], res.Nodes[1], conn)
@@ -227,8 +227,8 @@ func configStatefulGrouping() (*VPCConfig, *VPCConnectivity) {
 	res.Nodes[3].(*mockNetIntf).subnet = res.Subnets[0]
 
 	res1 := &VPCConnectivity{AllowedConnsCombinedStateful: GeneralStatefulConnectivityMap{}}
-	conn := NewConnWithStatefulAllStateful()
-	nonStatefulConn := NewConnWithStatefulAllNotStateful()
+	conn := newConnWithStatefulAllStateful()
+	nonStatefulConn := newConnWithStatefulAllNotStateful()
 	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[0], res.Nodes[1], conn)
 	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[0], res.Nodes[2], conn)
 	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[3], res.Nodes[1], conn)
@@ -263,7 +263,7 @@ func configIPRange() (*VPCConfig, *VPCConnectivity) {
 	res.Nodes[0].(*mockNetIntf).subnet = res.Subnets[0]
 
 	res1 := &VPCConnectivity{AllowedConnsCombinedStateful: GeneralStatefulConnectivityMap{}}
-	conn := NewConnWithStatefulAllStateful()
+	conn := newConnWithStatefulAllStateful()
 	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[0], res.Nodes[1], conn)
 	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[0], res.Nodes[2], conn)
 	return res, res1
@@ -296,7 +296,7 @@ func configSelfLoopClique() (*VPCConfig, *VPCConnectivity) {
 	res.Nodes[2].(*mockNetIntf).subnet = res.Subnets[0]
 
 	res1 := &VPCConnectivity{AllowedConnsCombinedStateful: GeneralStatefulConnectivityMap{}}
-	conn := NewConnWithStatefulAllStateful()
+	conn := newConnWithStatefulAllStateful()
 	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[0], res.Nodes[1], conn)
 	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[0], res.Nodes[2], conn)
 	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[1], res.Nodes[0], conn)
@@ -336,7 +336,7 @@ func configSelfLoopCliqueDiffSubnets() (*VPCConfig, *VPCConnectivity) {
 	res.Nodes[2].(*mockNetIntf).subnet = res.Subnets[1]
 
 	res1 := &VPCConnectivity{AllowedConnsCombinedStateful: GeneralStatefulConnectivityMap{}}
-	conn := NewConnWithStatefulAllStateful()
+	conn := newConnWithStatefulAllStateful()
 	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[0], res.Nodes[1], conn)
 	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[0], res.Nodes[2], conn)
 	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[1], res.Nodes[0], conn)
@@ -379,7 +379,7 @@ func configSimpleSelfLoop() (*VPCConfig, *VPCConnectivity) {
 	res.Nodes[2].(*mockNetIntf).subnet = res.Subnets[0]
 
 	res1 := &VPCConnectivity{AllowedConnsCombinedStateful: GeneralStatefulConnectivityMap{}}
-	conn := NewConnWithStatefulAllStateful()
+	conn := newConnWithStatefulAllStateful()
 	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[0], res.Nodes[1], conn)
 	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[0], res.Nodes[2], conn)
 	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[1], res.Nodes[2], conn)
@@ -425,7 +425,7 @@ func configSelfLoopCliqueLace() (*VPCConfig, *VPCConnectivity) {
 	res.Nodes[4].(*mockNetIntf).subnet = res.Subnets[0]
 
 	res1 := &VPCConnectivity{AllowedConnsCombinedStateful: GeneralStatefulConnectivityMap{}}
-	conn := NewConnWithStatefulAllStateful()
+	conn := newConnWithStatefulAllStateful()
 	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[0], res.Nodes[1], conn)
 	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[0], res.Nodes[2], conn)
 	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Nodes[1], res.Nodes[0], conn)
@@ -473,7 +473,7 @@ func configSubnetSelfLoop() (*VPCConfig, *VPCsubnetConnectivity) {
 	res.Nodes[2].(*mockNetIntf).subnet = res.Subnets[2]
 
 	res1 := &VPCsubnetConnectivity{AllowedConnsCombinedStateful: GeneralStatefulConnectivityMap{}}
-	conn := NewConnWithStatefulAllStateful()
+	conn := newConnWithStatefulAllStateful()
 	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Subnets[0], res.Subnets[1], conn)
 	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Subnets[0], res.Subnets[2], conn)
 	res1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(res.Subnets[1], res.Subnets[0], conn)

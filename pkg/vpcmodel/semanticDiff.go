@@ -177,7 +177,7 @@ func (confConnectivity *configConnectivity) connMissingOrChanged(other *configCo
 	connectivityMissingOrChanged = map[VPCResourceIntf]map[VPCResourceIntf]*connectionDiff{}
 	for src, endpointConns := range confConnectivity.connectivity {
 		for dst, connsWithStateful := range endpointConns {
-			if connsWithStateful.IsEmpty() {
+			if connsWithStateful.isEmpty() {
 				continue
 			}
 			if _, ok := connectivityMissingOrChanged[src]; !ok {
@@ -437,7 +437,7 @@ func (statefulConnMap *GeneralStatefulConnectivityMap) actualAlignSrcOrDstGivenI
 	alignedConnectivity = map[VPCResourceIntf]map[VPCResourceIntf]*connWithStateful{}
 	for src, endpointConns := range *statefulConnMap {
 		for dst, connsWithStateful := range endpointConns {
-			if connsWithStateful.IsEmpty() {
+			if connsWithStateful.isEmpty() {
 				continue
 			}
 			// the resizing element is not external - copy as is
@@ -519,7 +519,7 @@ func (statefulConnMap GeneralStatefulConnectivityMap) getIPBlocksList() (ipbList
 	myErr error) {
 	for src, endpointConns := range statefulConnMap {
 		for dst, connsWithStateful := range endpointConns {
-			if connsWithStateful.IsEmpty() {
+			if connsWithStateful.isEmpty() {
 				continue
 			}
 			if src.IsExternal() {
@@ -554,18 +554,18 @@ func (statefulConnMap GeneralStatefulConnectivityMap) getIPBlocksList() (ipbList
 //	err = nil
 //	for src, endpointConns := range connectivity {
 //		for dst, conns := range endpointConns {
-//			if (!src.IsExternal() && !dst.IsExternal()) || conns.IsEmpty() {
+//			if (!src.IsExternal() && !dst.IsExternal()) || conns.isEmpty() {
 //				continue // nothing to do here
 //			}
 //			for otherSrc, otherEndpointConns := range other {
 //				for otherDst, otherConns := range otherEndpointConns {
-//					if otherConns.IsEmpty() {
+//					if otherConns.isEmpty() {
 //						continue
 //					}
 //					bothSrcExt := src.IsExternal() && otherSrc.IsExternal()
 //					bothDstExt := dst.IsExternal() && otherDst.IsExternal()
 //					if (!bothSrcExt && !bothDstExt) ||
-//						otherConns.IsEmpty() {
+//						otherConns.isEmpty() {
 //						continue // nothing to compare to here
 //					}
 //					myEp := &ConnectionEnd{src, dst}
@@ -650,7 +650,7 @@ func (statefulConnMap GeneralStatefulConnectivityMap) getIPBlocksList() (ipbList
 // func (connectivity *GeneralConnectivityMap) PrintConnectivity() {
 //	for src, endpointConns := range *connectivity {
 //		for dst, conns := range endpointConns {
-//			if conns.IsEmpty() {
+//			if conns.isEmpty() {
 //				continue
 //			}
 //			fmt.Printf("\t%v => %v %v\n", src.Name(), dst.Name(), conns.string())

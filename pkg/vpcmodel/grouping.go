@@ -153,7 +153,7 @@ func (g *groupedConnLine) String(c *VPCConfig) string {
 
 func (g *groupedConnLine) ConnLabel(full bool) string {
 	label := g.commonProperties.groupingStrKey
-	if !full && g.commonProperties.conn.IsAllObliviousStateful() {
+	if !full && g.commonProperties.conn.isAllObliviousStateful() {
 		label = ""
 	}
 	signs := []string{}
@@ -295,7 +295,7 @@ func (g *GroupConnLines) groupExternalAddresses(vsi bool) error {
 	}
 	for src, nodeConns := range allowedConnsCombinedStateful {
 		for dst, connsWithStateful := range nodeConns {
-			if !connsWithStateful.IsEmpty() {
+			if !connsWithStateful.isEmpty() {
 				err := g.addLineToExternalGrouping(&res, src, dst,
 					&groupedCommonProperties{conn: connsWithStateful, groupingStrKey: connsWithStateful.EnhancedString()})
 				if err != nil {
@@ -323,7 +323,7 @@ func (g *GroupConnLines) groupExternalAddressesForDiff(thisMinusOther bool) erro
 	for src, endpointConnDiff := range connRemovedChanged {
 		for dst, connDiff := range endpointConnDiff {
 			connDiffString := connDiffEncode(src, dst, connDiff)
-			if !(connDiff.conn1.IsEmpty() && connDiff.conn2.IsEmpty()) {
+			if !(connDiff.conn1.isEmpty() && connDiff.conn2.isEmpty()) {
 				err := g.addLineToExternalGrouping(&res, src, dst,
 					&groupedCommonProperties{connDiff: connDiff, groupingStrKey: connDiffString})
 				if err != nil {
