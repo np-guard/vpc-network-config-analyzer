@@ -38,7 +38,7 @@ func newDetailConn(statefulConn, otherConn, allConn *connection.Set) *detailedCo
 	}
 }
 
-func emptyConnWithStateful() *detailedConn {
+func emptyDetailConn() *detailedConn {
 	return newDetailConn(NoConns(), NoConns(), NoConns())
 }
 
