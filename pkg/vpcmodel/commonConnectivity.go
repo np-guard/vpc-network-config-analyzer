@@ -29,7 +29,7 @@ type detailedConn struct {
 // nonStatefulConn - the tcp complementary of statefulConn w.r.t. allConn -
 // is computed as allConn minus (statefulConn union otherConn)
 
-func newDetailedConn(statefulConn, otherConn, allConn *connection.Set) *detailedConn {
+func newDetailConn(statefulConn, otherConn, allConn *connection.Set) *detailedConn {
 	return &detailedConn{
 		statefulConn:    statefulConn,
 		nonStatefulConn: allConn.Subtract(otherConn).Subtract(statefulConn),
@@ -47,13 +47,13 @@ func emptyConnWithStateful() *detailedConn {
 	}
 }
 
-// detailedConnForTCPStatefulAndNonTCP constructor that is given the (tcp stateful and non tcp) conn and the entire conn
-func detailedConnForTCPStatefulAndNonTCP(tcpStatefulAndNonTCP, allConn *connection.Set) *detailedConn {
+// detailConnForTCPStatefulAndNonTCP constructor that is given the (tcp stateful and non tcp) conn and the entire conn
+func detailConnForTCPStatefulAndNonTCP(tcpStatefulAndNonTCP, allConn *connection.Set) *detailedConn {
 	tcpStatefulFraction, nonTCPFraction := partitionTCPNonTCP(tcpStatefulAndNonTCP)
-	return newDetailedConn(tcpStatefulFraction, nonTCPFraction, allConn)
+	return newDetailConn(tcpStatefulFraction, nonTCPFraction, allConn)
 }
 
-func detailedConnForStateful(stateful *connection.Set) *detailedConn {
+func detailConnForStateful(stateful *connection.Set) *detailedConn {
 	return &detailedConn{
 		statefulConn:    stateful,
 		nonStatefulConn: NoConns(),
@@ -62,7 +62,7 @@ func detailedConnForStateful(stateful *connection.Set) *detailedConn {
 	}
 }
 
-func detailedConnForAllStateful() *detailedConn {
+func detailConnForAllStateful() *detailedConn {
 	return &detailedConn{
 		statefulConn:    newTCPSet(),
 		nonStatefulConn: NoConns(),
@@ -71,13 +71,8 @@ func detailedConnForAllStateful() *detailedConn {
 	}
 }
 
-// todo consider removing
-func newConnWithStatefulAllNotStateful() *detailedConn {
-	return detailedConnForTCPStatefulAndNonTCP(newTCPSet(), AllConns())
-}
-
 func (e *detailedConn) copy() *detailedConn {
-	return newDetailedConn(e.nonStatefulConn.Copy(), e.otherConn.Copy(), e.allConn.Copy())
+	return newDetailConn(e.nonStatefulConn.Copy(), e.otherConn.Copy(), e.allConn.Copy())
 }
 
 func (e *detailedConn) isAllObliviousStateful() bool {
@@ -88,30 +83,37 @@ func (e *detailedConn) isEmpty() bool {
 	return e.allConn.IsEmpty()
 }
 
+// Equal all components of two detailedConn are equal
 func (e *detailedConn) Equal(other *detailedConn) bool {
 	return e.statefulConn.Equal(other.statefulConn) && e.otherConn.Equal(other.otherConn) &&
 		e.allConn.Equal(other.allConn)
 }
 
+// Intersect of two detailedConn: intersecting statefulConn, otherConn and allConn
+// (nonStatefulConn is computed based on these)
 func (e *detailedConn) Intersect(other *detailedConn) *detailedConn {
 	statefulConn := e.statefulConn.Intersect(other.statefulConn)
 	otherConn := e.otherConn.Intersect(other.otherConn)
 	conn := e.allConn.Intersect(other.allConn)
-	return newDetailedConn(statefulConn, otherConn, conn)
+	return newDetailConn(statefulConn, otherConn, conn)
 }
 
+// Union of two detailedConn: union statefulConn, otherConn and allConn
+// (nonStatefulConn is computed based on these)
 func (e *detailedConn) Union(other *detailedConn) *detailedConn {
 	statefulConn := e.statefulConn.Union(other.statefulConn)
 	otherConn := e.otherConn.Union(other.otherConn)
 	conn := e.allConn.Union(other.allConn)
-	return newDetailedConn(statefulConn, otherConn, conn)
+	return newDetailConn(statefulConn, otherConn, conn)
 }
 
+// Subtract of two detailedConn: subtraction of statefulConn, otherConn and allConn
+// (nonStatefulConn is computed based on these)
 func (e *detailedConn) Subtract(other *detailedConn) *detailedConn {
 	statefulConn := e.statefulConn.Subtract(other.statefulConn)
 	otherConn := e.otherConn.Subtract(other.otherConn)
 	conn := e.allConn.Subtract(other.allConn)
-	return newDetailedConn(statefulConn, otherConn, conn)
+	return newDetailConn(statefulConn, otherConn, conn)
 }
 
 func (e *detailedConn) string() string {
