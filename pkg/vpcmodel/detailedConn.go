@@ -53,12 +53,7 @@ func detailConnForStateful(stateful *connection.Set) *detailedConn {
 }
 
 func detailConnForAllStateful() *detailedConn {
-	return &detailedConn{
-		statefulConn:    newTCPSet(),
-		nonStatefulConn: NoConns(),
-		otherConn:       AllConns().Subtract(newTCPSet()),
-		allConn:         AllConns(),
-	}
+	return newDetailConn(newTCPSet(), AllConns().Subtract(newTCPSet()), AllConns())
 }
 
 func (e *detailedConn) copy() *detailedConn {
