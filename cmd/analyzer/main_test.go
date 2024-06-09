@@ -196,7 +196,7 @@ func TestMainWithExpectedOut(t *testing.T) {
 			}
 		})
 	}
-	//removeGeneratedFiles()
+	removeGeneratedFiles()
 }
 
 // comparison should be insensitive to line comparators; cleaning strings from line comparators
