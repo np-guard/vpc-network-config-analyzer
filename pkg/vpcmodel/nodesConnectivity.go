@@ -261,7 +261,7 @@ func (v *VPCConnectivity) computeAllowedResponsiveConnections(allowedConnsCombin
 			// src and dst here are nodes, always. Thus ignoring potential error in conversion
 			srcNode := src.(Node)
 			dstNode := dst.(Node)
-			// iterate pairs (src,dst) with allConn as allowed connectivity, to check stateful aspect
+			// iterate pairs (src,dst) with allConn as allowed connectivity, to check responsive aspect
 			if v.isConnExternalThroughFIP(srcNode, dstNode) { // fip ignores NACL
 				// TODO: this may be ibm-specific. consider moving to ibmvpc
 				v.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(src, dst,
@@ -269,7 +269,7 @@ func (v *VPCConnectivity) computeAllowedResponsiveConnections(allowedConnsCombin
 				continue
 			}
 
-			// get the allowed *stateful* conn result
+			// get the allowed *responsive* conn result
 			// check allowed conns per NACL-layer from dst to src (dst->src)
 			var DstAllowedEgressToSrc, SrcAllowedIngressFromDst *connection.Set
 			// can dst egress to src?

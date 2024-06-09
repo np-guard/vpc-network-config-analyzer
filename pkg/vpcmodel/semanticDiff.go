@@ -74,18 +74,18 @@ type diffBetweenCfgs struct {
 // computes and returns the semantic diff of endpoints or subnets connectivity, as per the required analysis
 func (configs configsForDiff) GetDiff() (*diffBetweenCfgs, error) {
 	// 1. compute connectivity for each of the configurations
-	statefulConnectivityMap1, err := configs.config1.getAllowedStatefulConnections(configs.diffAnalysis)
+	responsiveConnectivityMap1, err := configs.config1.getAllowedResponsiveConnections(configs.diffAnalysis)
 	if err != nil {
 		return nil, err
 	}
-	statefulConnectivityMap2, err := configs.config2.getAllowedStatefulConnections(configs.diffAnalysis)
+	statefulConnectivityMap2, err := configs.config2.getAllowedResponsiveConnections(configs.diffAnalysis)
 	if err != nil {
 		return nil, err
 	}
 
 	// 2. Computes delta in both directions
 	configConn1 := &configConnectivity{configs.config1,
-		statefulConnectivityMap1}
+		responsiveConnectivityMap1}
 	configConn2 := &configConnectivity{configs.config2,
 		statefulConnectivityMap2}
 	alignedConfigConnectivity1, alignedConfigConnectivity2, err :=
@@ -115,7 +115,7 @@ func (configs configsForDiff) GetDiff() (*diffBetweenCfgs, error) {
 	return res, nil
 }
 
-func (c *VPCConfig) getAllowedStatefulConnections(
+func (c *VPCConfig) getAllowedResponsiveConnections(
 	diffAnalysis diffAnalysisType) (statefulConnectivityMap GeneralResponsiveConnectivityMap, err error) {
 	if diffAnalysis == Subnets {
 		subnetsConn, err := c.GetSubnetsConnectivity(true, false)
