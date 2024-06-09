@@ -56,10 +56,6 @@ func detailConnForAllStateful() *detailedConn {
 	return newDetailConn(newTCPSet(), AllConns().Subtract(newTCPSet()), AllConns())
 }
 
-func (e *detailedConn) copy() *detailedConn {
-	return newDetailConn(e.nonStatefulConn.Copy(), e.otherConn.Copy(), e.allConn.Copy())
-}
-
 func (e *detailedConn) isAllObliviousStateful() bool {
 	return e.allConn.Equal(connection.All())
 }
