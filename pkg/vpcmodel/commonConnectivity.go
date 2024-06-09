@@ -132,15 +132,15 @@ func (e *connWithStateful) Subtract(other *connWithStateful) *connWithStateful {
 	return newConnWithStateful(statefulConn, otherConn, conn)
 }
 
-func (e *connWithStateful) String() string {
+func (e *connWithStateful) string() string {
 	return e.allConn.String()
 }
 
 func (e *connWithStateful) EnhancedString() string {
 	if !e.nonStatefulConn.IsEmpty() {
-		return e.String() + " * "
+		return e.string() + " * "
 	}
-	return e.String()
+	return e.string()
 }
 
 // ///////////////////////////////////////////////////////////////////////////////////////////
