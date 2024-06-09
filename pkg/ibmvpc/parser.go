@@ -1283,10 +1283,10 @@ type filtersBlocks map[string][]*ipblock.IPBlock
 
 func getFiltersBlocks(rc *datamodel.ResourcesContainerModel) (filtersBlocks, error) {
 	blocks := filtersBlocks{}
-	if err :=blocks.addAclRuleBlocks(rc); err != nil{
+	if err := blocks.addAclRuleBlocks(rc); err != nil {
 		return nil, err
 	}
-	if err :=blocks.addSGRulesBlocks(rc); err != nil{
+	if err := blocks.addSGRulesBlocks(rc); err != nil {
 		return nil, err
 	}
 	for vpc, _ := range blocks {
@@ -1295,7 +1295,7 @@ func getFiltersBlocks(rc *datamodel.ResourcesContainerModel) (filtersBlocks, err
 	return blocks, nil
 }
 
-func (blocks filtersBlocks) addAclRuleBlocks(rc *datamodel.ResourcesContainerModel)error {
+func (blocks filtersBlocks) addAclRuleBlocks(rc *datamodel.ResourcesContainerModel) error {
 	for _, aclObj := range rc.NetworkACLList {
 		for _, rule := range aclObj.Rules {
 			var src, dst *string
@@ -1310,7 +1310,7 @@ func (blocks filtersBlocks) addAclRuleBlocks(rc *datamodel.ResourcesContainerMod
 				src = ruleObj.Source
 				dst = ruleObj.Destination
 			}
-			if err := blocks.addBlocks(*aclObj.VPC.CRN, []*string{src, dst}); err != nil{
+			if err := blocks.addBlocks(*aclObj.VPC.CRN, []*string{src, dst}); err != nil {
 				return err
 			}
 		}
@@ -1333,10 +1333,10 @@ func (blocks filtersBlocks) addSGRulesBlocks(rc *datamodel.ResourcesContainerMod
 				remote = ruleObj.Remote.(*vpc1.SecurityGroupRuleRemote).CIDRBlock
 				local = ruleObj.Local.(*vpc1.SecurityGroupRuleLocal).CIDRBlock
 			}
-			if err := blocks.addBlocks(*sgObj.VPC.CRN, []*string{remote, local}); err != nil{
+			if err := blocks.addBlocks(*sgObj.VPC.CRN, []*string{remote, local}); err != nil {
 				return err
 			}
-			
+
 		}
 	}
 	return nil
@@ -1368,14 +1368,14 @@ type subnetsIPBlocks map[string]*subnetIPBlocks
 
 func getSubnetsIPBlocks(rc *datamodel.ResourcesContainerModel) (subnetsBlocks subnetsIPBlocks, err error) {
 	subnetsBlocks = subnetsIPBlocks{}
-	if err = subnetsBlocks.getSubnetsMainBlocks(rc); err != nil{
-		return nil,err
+	if err = subnetsBlocks.getSubnetsMainBlocks(rc); err != nil {
+		return nil, err
 	}
-	if err = subnetsBlocks.splitSubnetsMainBlocks(rc); err != nil{
-		return nil,err
+	if err = subnetsBlocks.splitSubnetsMainBlocks(rc); err != nil {
+		return nil, err
 	}
-	if err = subnetsBlocks.getSubnetsFreeBlocks(rc); err != nil{
-		return nil,err
+	if err = subnetsBlocks.getSubnetsFreeBlocks(rc); err != nil {
+		return nil, err
 	}
 	return subnetsBlocks, nil
 }
@@ -1390,7 +1390,7 @@ func (subnetsBlocks subnetsIPBlocks) getSubnetsMainBlocks(rc *datamodel.Resource
 	return nil
 }
 
-func (subnetsBlocks subnetsIPBlocks) splitSubnetsMainBlocks(rc *datamodel.ResourcesContainerModel) error{
+func (subnetsBlocks subnetsIPBlocks) splitSubnetsMainBlocks(rc *datamodel.ResourcesContainerModel) error {
 	filtersBlocks, err := getFiltersBlocks(rc)
 	if err != nil {
 		return err
@@ -1417,15 +1417,15 @@ func (subnetsBlocks subnetsIPBlocks) getSubnetsFreeBlocks(rc *datamodel.Resource
 	for _, subnetObj := range rc.SubnetList {
 		subnetsBlocks[*subnetObj.CRN].freeAddressesBlocks = make([]*ipblock.IPBlock, len(subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks))
 		for i, b := range subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks {
+			subnetsBlocks[*subnetObj.CRN].freeAddressesBlocks[i] = b.Copy()
+		}
 			// all the allocated IPs are at subnetObj.ReservedIps.
-			for _, reservedIP := range subnetObj.ReservedIps {
-				b2, err := ipblock.FromIPAddress(*reservedIP.Address)
-				if err != nil {
+			for blockIndex := range subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks {
+				for _, reservedIP := range subnetObj.ReservedIps {
+				if err := subnetsBlocks.removeAddressFromFree(*subnetObj.CRN, *reservedIP.Address, blockIndex); err != nil{
 					return err
 				}
-				b = b.Subtract(b2)
 			}
-			subnetsBlocks[*subnetObj.CRN].freeAddressesBlocks[i] = b
 		}
 	}
 	return nil
@@ -1433,13 +1433,16 @@ func (subnetsBlocks subnetsIPBlocks) getSubnetsFreeBlocks(rc *datamodel.Resource
 
 func (subnetsBlocks subnetsIPBlocks) allocSubnetFreeAddress(subnetCRN string, blockIndex int) (string, error) {
 	address := subnetsBlocks[subnetCRN].freeAddressesBlocks[blockIndex].FirstIPAddress()
+	return address, subnetsBlocks.removeAddressFromFree(address, subnetCRN, blockIndex)
+}
+func (subnetsBlocks subnetsIPBlocks) removeAddressFromFree(subnetCRN, address string, blockIndex int) error {
 	addressBlock, err := ipblock.FromIPAddress(address)
 	if err != nil {
-		return "", err
+		return err
 	}
 	subnetsBlocks[subnetCRN].freeAddressesBlocks[blockIndex] =
 		subnetsBlocks[subnetCRN].freeAddressesBlocks[blockIndex].Subtract(addressBlock)
-	return address, nil
+	return nil
 }
 
 // ////////////////////////////////////////////////////////////////
