@@ -15,7 +15,7 @@ import (
 
 // detailedConn captures full connection details, as described below.
 // It is created from src to dest allowed connection (TCP and non-TCP) and response dest to src allowed connection
-// (TCP and non-TCP); further entities of the connection may be created from operations as Union e.g. for abstraction
+// (TCP and non-TCP); further entities of the connection may be created from operations as union e.g. for abstraction
 type detailedConn struct {
 	statefulConn    *connection.Set // stateful TCP connection between <src, dst>
 	nonStatefulConn *connection.Set // nonstateful TCP connection between <src, dst>; complementary of statefulConn
@@ -70,27 +70,29 @@ func (e *detailedConn) Equal(other *detailedConn) bool {
 		e.allConn.Equal(other.allConn)
 }
 
-// Intersect of two detailedConn: intersecting statefulConn, otherConn and allConn
+// intersect of two detailedConn: intersecting statefulConn, otherConn and allConn
 // (nonStatefulConn is computed based on these)
-func (e *detailedConn) Intersect(other *detailedConn) *detailedConn {
+//
+//nolint:all
+func (e *detailedConn) intersect(other *detailedConn) *detailedConn {
 	statefulConn := e.statefulConn.Intersect(other.statefulConn)
 	otherConn := e.otherConn.Intersect(other.otherConn)
 	conn := e.allConn.Intersect(other.allConn)
 	return newDetailConn(statefulConn, otherConn, conn)
 }
 
-// Union of two detailedConn: union statefulConn, otherConn and allConn
+// union of two detailedConn: union statefulConn, otherConn and allConn
 // (nonStatefulConn is computed based on these)
-func (e *detailedConn) Union(other *detailedConn) *detailedConn {
+func (e *detailedConn) union(other *detailedConn) *detailedConn {
 	statefulConn := e.statefulConn.Union(other.statefulConn)
 	otherConn := e.otherConn.Union(other.otherConn)
 	conn := e.allConn.Union(other.allConn)
 	return newDetailConn(statefulConn, otherConn, conn)
 }
 
-// Subtract of two detailedConn: subtraction of statefulConn, otherConn and allConn
+// subtract of two detailedConn: subtraction of statefulConn, otherConn and allConn
 // (nonStatefulConn is computed based on these)
-func (e *detailedConn) Subtract(other *detailedConn) *detailedConn {
+func (e *detailedConn) subtract(other *detailedConn) *detailedConn {
 	statefulConn := e.statefulConn.Subtract(other.statefulConn)
 	otherConn := e.otherConn.Subtract(other.otherConn)
 	conn := e.allConn.Subtract(other.allConn)

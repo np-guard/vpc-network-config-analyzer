@@ -92,7 +92,7 @@ func (nsa *NodeSetAbstraction) mergeConnectivityWithNodeSetAbstraction(
 	nodeSet NodeSet) GeneralStatefulConnectivityMap {
 	unionConns := func(conn *detailedConn, conns map[VPCResourceIntf]*detailedConn) *detailedConn {
 		for _, c := range conns {
-			conn = conn.Union(c)
+			conn = conn.union(c)
 		}
 		return conn
 	}
@@ -154,7 +154,7 @@ func (nsa *NodeSetAbstraction) missingConnections(connMap, mergedConnMap General
 				mergedConnection = mergedConnMap[nodeSet][node1]
 			}
 			if !nodeConnection.Equal(mergedConnection) {
-				missingConn := mergedConnection.Subtract(nodeConnection)
+				missingConn := mergedConnection.subtract(nodeConnection)
 				missingConnection.updateAllowedStatefulConnsMap(node1, node2, missingConn)
 			}
 		}

@@ -633,7 +633,7 @@ func (statefulConnMap GeneralStatefulConnectivityMap) getIPBlocksList() (ipbList
 //	if err != nil {
 //		return false, err
 //	}
-//	if !myIPBlock.Equal(otherIPBlock) && !myIPBlock.Intersect(otherIPBlock).Empty() {
+//	if !myIPBlock.Equal(otherIPBlock) && !myIPBlock.intersect(otherIPBlock).Empty() {
 //		return true, nil
 //	}
 //	return false, nil
