@@ -22,24 +22,24 @@ func (allowConnCombined GeneralConnectivityMap) updateAllowedConnsMap(src, dst V
 	allowConnCombined[src][dst] = conn
 }
 
-func (statefulConnMap GeneralResponsiveConnectivityMap) updateMap(connectivityMap2 GeneralResponsiveConnectivityMap) {
+func (responsiveConnMap GeneralResponsiveConnectivityMap) updateMap(connectivityMap2 GeneralResponsiveConnectivityMap) {
 	for src, nodeConns := range connectivityMap2 {
 		for dst, conns := range nodeConns {
-			statefulConnMap.updateAllowedStatefulConnsMap(src, dst, conns)
+			responsiveConnMap.updateAllowedResponsiveConnsMap(src, dst, conns)
 		}
 	}
 }
-func (statefulConnMap GeneralResponsiveConnectivityMap) copy() GeneralResponsiveConnectivityMap {
+func (responsiveConnMap GeneralResponsiveConnectivityMap) copy() GeneralResponsiveConnectivityMap {
 	newConnectivityMap := GeneralResponsiveConnectivityMap{}
-	newConnectivityMap.updateMap(statefulConnMap)
+	newConnectivityMap.updateMap(responsiveConnMap)
 	return newConnectivityMap
 }
 
 // it is assumed that the components of detailedConn are legal connection.Set, namely not nil
-func (statefulConnMap GeneralResponsiveConnectivityMap) updateAllowedStatefulConnsMap(src,
+func (responsiveConnMap GeneralResponsiveConnectivityMap) updateAllowedResponsiveConnsMap(src,
 	dst VPCResourceIntf, conn *detailedConn) {
-	if _, ok := statefulConnMap[src]; !ok {
-		statefulConnMap[src] = map[VPCResourceIntf]*detailedConn{}
+	if _, ok := responsiveConnMap[src]; !ok {
+		responsiveConnMap[src] = map[VPCResourceIntf]*detailedConn{}
 	}
-	statefulConnMap[src][dst] = conn
+	responsiveConnMap[src][dst] = conn
 }

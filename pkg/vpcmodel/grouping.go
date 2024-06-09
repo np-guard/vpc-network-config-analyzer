@@ -153,7 +153,7 @@ func (g *groupedConnLine) String(c *VPCConfig) string {
 
 func (g *groupedConnLine) ConnLabel(full bool) string {
 	label := g.commonProperties.groupingStrKey
-	if !full && g.commonProperties.conn.isAllObliviousStateful() {
+	if !full && g.commonProperties.conn.isAllObliviousRsp() {
 		label = ""
 	}
 	signs := []string{}

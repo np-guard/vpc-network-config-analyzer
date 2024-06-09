@@ -264,8 +264,8 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections(allowedConnsCombined
 			// iterate pairs (src,dst) with allConn as allowed connectivity, to check stateful aspect
 			if v.isConnExternalThroughFIP(srcNode, dstNode) { // fip ignores NACL
 				// TODO: this may be ibm-specific. consider moving to ibmvpc
-				v.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(src, dst,
-					detailConnForTCPStatefulAndNonTCP(conn, conn))
+				v.AllowedConnsCombinedStateful.updateAllowedResponsiveConnsMap(src, dst,
+					detailConnForTCPRspAndNonTCP(conn, conn))
 				continue
 			}
 
@@ -279,8 +279,8 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections(allowedConnsCombined
 			combinedDstToSrc := DstAllowedEgressToSrc.Intersect(SrcAllowedIngressFromDst)
 			// ConnectionWithStatefulness returns the stateful subset
 			statefulCombinedConn := conn.WithStatefulness(combinedDstToSrc)
-			statefulSet := detailConnForTCPStatefulAndNonTCP(statefulCombinedConn, conn)
-			v.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(src, dst, statefulSet)
+			statefulSet := detailConnForTCPRspAndNonTCP(statefulCombinedConn, conn)
+			v.AllowedConnsCombinedStateful.updateAllowedResponsiveConnsMap(src, dst, statefulSet)
 		}
 	}
 }
@@ -333,9 +333,9 @@ const (
 	fipRouter          = "FloatingIP"
 )
 
-func (statefulConnMap GeneralResponsiveConnectivityMap) getCombinedConnsStr(onlyBidirectional bool) string {
+func (responsiveConnMap GeneralResponsiveConnectivityMap) getCombinedConnsStr(onlyBidirectional bool) string {
 	strList := []string{}
-	for src, nodeExtendedConns := range statefulConnMap {
+	for src, nodeExtendedConns := range responsiveConnMap {
 		for dst, extConns := range nodeExtendedConns {
 			// src and dst here are nodes, always. Thus ignoring potential error in conversion
 			srcNode := src.(Node)

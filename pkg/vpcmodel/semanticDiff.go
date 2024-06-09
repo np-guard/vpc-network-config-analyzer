@@ -376,10 +376,10 @@ func (confConnectivity *configConnectivity) getConnectivityWithSameIPBlocks(othe
 		&configConnectivity{otherAlignedConfig, alignedOtherConnectivity}, nil
 }
 
-func (statefulConnMap *GeneralResponsiveConnectivityMap) alignConnectionsGivenIPBlists(config *VPCConfig,
+func (responsiveConnMap *GeneralResponsiveConnectivityMap) alignConnectionsGivenIPBlists(config *VPCConfig,
 	disjointIPblocks []*ipblock.IPBlock) (
 	alignedConnectivity GeneralResponsiveConnectivityMap, err error) {
-	alignedConnectivitySrc, err := statefulConnMap.actualAlignSrcOrDstGivenIPBlists(config, disjointIPblocks, true)
+	alignedConnectivitySrc, err := responsiveConnMap.actualAlignSrcOrDstGivenIPBlists(config, disjointIPblocks, true)
 	if err != nil {
 		return nil, err
 	}
@@ -427,7 +427,7 @@ func resizeNodes(oldNodes []Node, disjointIPblocks []*ipblock.IPBlock) (newNodes
 	return newNodes, nil
 }
 
-func (statefulConnMap *GeneralResponsiveConnectivityMap) actualAlignSrcOrDstGivenIPBlists(config *VPCConfig,
+func (responsiveConnMap *GeneralResponsiveConnectivityMap) actualAlignSrcOrDstGivenIPBlists(config *VPCConfig,
 	disjointIPblocks []*ipblock.IPBlock, resizeSrc bool) (
 	alignedConnectivity GeneralResponsiveConnectivityMap, err error) {
 	// goes over all sources of connections in connectivity
@@ -435,7 +435,7 @@ func (statefulConnMap *GeneralResponsiveConnectivityMap) actualAlignSrcOrDstGive
 	// otherwise just copies as is
 	err = nil
 	alignedConnectivity = map[VPCResourceIntf]map[VPCResourceIntf]*detailedConn{}
-	for src, endpointConns := range *statefulConnMap {
+	for src, endpointConns := range *responsiveConnMap {
 		for dst, connsWithStateful := range endpointConns {
 			if connsWithStateful.isEmpty() {
 				continue
@@ -515,9 +515,9 @@ func findNodeWithCidr(configNodes []Node, cidr string) Node {
 }
 
 // get a list of IPBlocks of the src and dst of the connections
-func (statefulConnMap GeneralResponsiveConnectivityMap) getIPBlocksList() (ipbList []*ipblock.IPBlock,
+func (responsiveConnMap GeneralResponsiveConnectivityMap) getIPBlocksList() (ipbList []*ipblock.IPBlock,
 	myErr error) {
-	for src, endpointConns := range statefulConnMap {
+	for src, endpointConns := range responsiveConnMap {
 		for dst, connsWithStateful := range endpointConns {
 			if connsWithStateful.isEmpty() {
 				continue

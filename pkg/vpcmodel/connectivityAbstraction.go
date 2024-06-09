@@ -73,13 +73,13 @@ func (nsa *NodeSetAbstraction) partitionConnectivityByNodeSet(nodeSet NodeSet) (
 			dstInSet := dstIsNode && slices.Contains(nodeSet.Nodes(), dstNode)
 			switch {
 			case (!srcInSet && !dstInSet) || conns.isEmpty():
-				otherToOther.updateAllowedStatefulConnsMap(src, dst, conns)
+				otherToOther.updateAllowedResponsiveConnsMap(src, dst, conns)
 			case srcInSet && dstInSet:
-				nodeSetToNodeSet.updateAllowedStatefulConnsMap(src, dst, conns)
+				nodeSetToNodeSet.updateAllowedResponsiveConnsMap(src, dst, conns)
 			case srcInSet && !dstInSet:
-				otherFromNodeSet.updateAllowedStatefulConnsMap(dst, src, conns)
+				otherFromNodeSet.updateAllowedResponsiveConnsMap(dst, src, conns)
 			case !srcInSet && dstInSet:
-				otherToNodeSet.updateAllowedStatefulConnsMap(src, dst, conns)
+				otherToNodeSet.updateAllowedResponsiveConnsMap(src, dst, conns)
 			}
 		}
 	}
@@ -103,7 +103,7 @@ func (nsa *NodeSetAbstraction) mergeConnectivityWithNodeSetAbstraction(
 		allConns = unionConns(allConns, nodeConns)
 	}
 	// adding to the result
-	mergedConnectivity.updateAllowedStatefulConnsMap(nodeSet, nodeSet, allConns)
+	mergedConnectivity.updateAllowedResponsiveConnsMap(nodeSet, nodeSet, allConns)
 
 	// all connection from the nodeSet to a node, are merged and added to the result:
 	// please note: we need to handle separately each node that is not in the NodeSet,
@@ -112,13 +112,13 @@ func (nsa *NodeSetAbstraction) mergeConnectivityWithNodeSetAbstraction(
 	// hence, this group is from dst to src.
 	for dst, nodeConns := range otherFromNodeSet {
 		allConns = unionConns(emptyDetailConn(), nodeConns)
-		mergedConnectivity.updateAllowedStatefulConnsMap(nodeSet, dst, allConns)
+		mergedConnectivity.updateAllowedResponsiveConnsMap(nodeSet, dst, allConns)
 	}
 
 	// all connection from a node to the nodeSet, are union and added to the result:
 	for src, nodeConns := range otherToNodeSet {
 		allConns = unionConns(emptyDetailConn(), nodeConns)
-		mergedConnectivity.updateAllowedStatefulConnsMap(src, nodeSet, allConns)
+		mergedConnectivity.updateAllowedResponsiveConnsMap(src, nodeSet, allConns)
 	}
 	return mergedConnectivity
 }
@@ -155,7 +155,7 @@ func (nsa *NodeSetAbstraction) missingConnections(connMap, mergedConnMap General
 			}
 			if !nodeConnection.equal(mergedConnection) {
 				missingConn := mergedConnection.subtract(nodeConnection)
-				missingConnection.updateAllowedStatefulConnsMap(node1, node2, missingConn)
+				missingConnection.updateAllowedResponsiveConnsMap(node1, node2, missingConn)
 			}
 		}
 	}
