@@ -1407,19 +1407,19 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 	vpc *VPC,
 	subnetsBlocks subnetsIPBlocks) ([]vpcmodel.Node, error) {
 	// first we collect  the subnets that has private IPs:
-	subnetsWithPrivateIPs := map[vpcmodel.Subnet]int{}
-	privateIPsAddresses := map[int]*ipblock.IPBlock{}
-	for i, pIP := range loadBalancerObj.PrivateIps {
+	subnetsPIPsAddresses := map[vpcmodel.Subnet]*ipblock.IPBlock{} // map from the subnet to the address block
+	subnetsPIPsIndexes := map[vpcmodel.Subnet]int{}                // map from a subnet to the pip index
+	for pipIndex, pIP := range loadBalancerObj.PrivateIps {
 		address, err := ipblock.FromIPAddress(*pIP.Address)
 		if err != nil {
 			return nil, err
 		}
-		privateIPsAddresses[i] = address
 		subnet, err := getSubnetByIPAddress(address, vpcConfig)
 		if err != nil {
 			return nil, err
 		}
-		subnetsWithPrivateIPs[subnet] = i
+		subnetsPIPsAddresses[subnet] = address
+		subnetsPIPsIndexes[subnet] = pipIndex
 	}
 	privateIPs := []vpcmodel.Node{}
 	// we assume that if one private IP has a public IP, then all private IPs have public IP:
@@ -1429,17 +1429,18 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 		if err != nil {
 			return nil, err
 		}
+		// we want a pip for every subnet:
 		for blockIndex, subnetBlock := range subnetsBlocks.subnetBlocks(*subnetObj.CRN) {
 			// first get name, id, address, publicAddress:
 			var name, id, address, publicAddress string
-			pipIndex, original := subnetsWithPrivateIPs[subnet]
-			original = original && privateIPsAddresses[pipIndex].ContainedIn(subnetBlock)
+			original := subnetsPIPsAddresses[subnet] != nil &&
+				subnetsPIPsAddresses[subnet].ContainedIn(subnetBlock)
 			if original {
 				// subnet has a private IP, we take it from the config
-				pIP := loadBalancerObj.PrivateIps[pipIndex]
+				pIP := loadBalancerObj.PrivateIps[subnetsPIPsIndexes[subnet]]
 				name, id, address = *pIP.Name, *pIP.ID, *pIP.Address
 				if hasPublicAddress {
-					publicAddress = *loadBalancerObj.PublicIps[pipIndex].Address
+					publicAddress = *loadBalancerObj.PublicIps[subnetsPIPsIndexes[subnet]].Address
 				}
 			} else {
 				// subnet does not have a private IP, we create unique ip info
