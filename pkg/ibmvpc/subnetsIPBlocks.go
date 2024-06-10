@@ -16,10 +16,11 @@ import (
 
 // ///////////////////////////////////////////////////////////////////////
 // connection from and to load balancer are done via private ips
-// created to it upon its deployment. 
-// However, when a load balancer is deployed, 
+// created to it upon its deployment.
+// However, when a load balancer is deployed,
 // Private IPs are not created for all the load balancer subnets.
-// To understand and monitor the connectivity that is potentially induced by the load balancer , we create a private IP for all of the load balancer subnets.
+// To understand and monitor the connectivity that is potentially induced by the load balancer,
+// we create a private IP for all of the load balancer subnets.
 // (we calls these private IPs fake private Ips)
 // Moreover, if a filter rule splits the subnet's cidr to few blocks, we want to create private ip per each such block.
 
