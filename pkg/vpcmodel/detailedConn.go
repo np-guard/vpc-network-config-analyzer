@@ -31,7 +31,7 @@ type detailedConn struct {
 // tcpRspDisable - the tcp complementary of tcpRspEnable w.r.t. allConn -
 // is computed as allConn minus (tcpRspEnable union nonTCP)
 
-func newDetailConn(tspRspConn, otherConn, allConn *connection.Set) *detailedConn {
+func newDetailedConn(tspRspConn, otherConn, allConn *connection.Set) *detailedConn {
 	return &detailedConn{
 		tcpRspEnable:  tspRspConn,
 		tcpRspDisable: (allConn.Subtract(otherConn)).Subtract(tspRspConn),
@@ -40,22 +40,22 @@ func newDetailConn(tspRspConn, otherConn, allConn *connection.Set) *detailedConn
 	}
 }
 
-func emptyDetailConn() *detailedConn {
-	return newDetailConn(NoConns(), NoConns(), NoConns())
+func emptyDetailedConn() *detailedConn {
+	return newDetailedConn(NoConns(), NoConns(), NoConns())
 }
 
-// detailConnForTCPRspAndNonTCP constructor that is given the (tcp responsive and non tcp) conn and the entire conn
-func detailConnForTCPRspAndNonTCP(tcpRspfulAndNonTCP, allConn *connection.Set) *detailedConn {
+// detailedConnForTCPRspAndNonTCP constructor that is given the (tcp responsive and non tcp) conn and the entire conn
+func detailedConnForTCPRspAndNonTCP(tcpRspfulAndNonTCP, allConn *connection.Set) *detailedConn {
 	tcpRspFraction, nonTCPFraction := partitionTCPNonTCP(tcpRspfulAndNonTCP)
-	return newDetailConn(tcpRspFraction, nonTCPFraction, allConn)
+	return newDetailedConn(tcpRspFraction, nonTCPFraction, allConn)
 }
 
-func detailConnForResponsive(responsive *connection.Set) *detailedConn {
-	return newDetailConn(responsive, NoConns(), responsive)
+func detailedConnForResponsive(responsive *connection.Set) *detailedConn {
+	return newDetailedConn(responsive, NoConns(), responsive)
 }
 
-func detailConnForAllRsp() *detailedConn {
-	return newDetailConn(newTCPSet(), AllConns().Subtract(newTCPSet()), AllConns())
+func detailedConnForAllRsp() *detailedConn {
+	return newDetailedConn(newTCPSet(), AllConns().Subtract(newTCPSet()), AllConns())
 }
 
 func (e *detailedConn) isAllObliviousRsp() bool {
@@ -78,7 +78,7 @@ func (e *detailedConn) union(other *detailedConn) *detailedConn {
 	rspConn := e.tcpRspEnable.Union(other.tcpRspEnable)
 	otherConn := e.nonTCP.Union(other.nonTCP)
 	conn := e.allConn.Union(other.allConn)
-	return newDetailConn(rspConn, otherConn, conn)
+	return newDetailedConn(rspConn, otherConn, conn)
 }
 
 // subtract of two detailedConn: subtraction of tcpRspEnable, nonTCP and allConn
@@ -87,7 +87,7 @@ func (e *detailedConn) subtract(other *detailedConn) *detailedConn {
 	rspConn := e.tcpRspEnable.Subtract(other.tcpRspEnable)
 	otherConn := e.nonTCP.Subtract(other.nonTCP)
 	conn := e.allConn.Subtract(other.allConn)
-	return newDetailConn(rspConn, otherConn, conn)
+	return newDetailedConn(rspConn, otherConn, conn)
 }
 
 func (e *detailedConn) string() string {
