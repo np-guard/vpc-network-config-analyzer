@@ -905,53 +905,6 @@ func addTGWbasedConfigs(tgws map[string]*TransitGateway, res *vpcmodel.MultipleV
 	return nil
 }
 
-/*<<<<<<< HEAD
-// For each Transit Gateway, generate a config that combines multiple vpc entities, which are
-// connected by the tgw and add the config to res
-// currently assuming only all-to-all connectivity is configured
-// in the analysis, such a config should only focus on connections cross-vpcs
-// should make sure that the internal address ranges per all connected vpcs are disjoint
-func addTGWbasedConfigs(tgws map[string]*TransitGateway, res *vpcmodel.MultipleVPCConfigs) error {
-	for _, tgw := range tgws {
-		if len(tgw.vpcs) <= 1 {
-			// skip tgw if it does not connect between at least 2 vpcs
-			logging.Warnf("skipping TGW %s, as it is not connected to at least 2 VPCs\n", tgw.NameAndUID())
-			continue
-		}
-		// TODO: for now, the analysis supports only disjoint VPCs address prefixes
-		// consider adding support for overlapping address prefixes with conflict resolution logic
-		if err := validateVPCsAddressPrefixesForTGW(tgw.vpcs); err != nil {
-			logging.Warnf("skipping TGW %s: %s\n", tgw.NameAndUID(), err.Error())
-			continue
-		}
-		newConfig := &vpcmodel.VPCConfig{
-			UIDToResource:        map[string]vpcmodel.VPCResourceIntf{},
-			IsMultipleVPCsConfig: true,
-		}
-		var vpcsAddressRanges *ipblock.IPBlock // collect all internal address ranges of involved VPCs
-		nacls := &NaclLayer{VPCResource: vpcmodel.VPCResource{ResourceType: vpcmodel.NaclLayer}}
-		sgs := &SecurityGroupLayer{VPCResource: vpcmodel.VPCResource{ResourceType: vpcmodel.SecurityGroupLayer}}
-		for _, vpc := range tgw.vpcs { // iterate the involved VPCs -- all of them are connected (all to all)
-			if !res.HasConfig(vpc.ResourceUID) {
-				return fmt.Errorf("missing vpc config for vpc CRN %s", vpc.ResourceUID)
-			}
-			vpcConfig := res.Config(vpc.ResourceUID)
-			// merge vpc config to the new "combined" config, used to get conns between vpcs only
-			newConfig.Nodes = append(newConfig.Nodes, vpcConfig.Nodes...)
-			newConfig.NodeSets = append(newConfig.NodeSets, vpcConfig.NodeSets...)
-			newConfig.Subnets = append(newConfig.Subnets, vpcConfig.Subnets...)
-			// FilterResources: merge NACLLayers to a single NACLLayer object, same for sg
-			for _, fr := range vpcConfig.FilterResources {
-				switch layer := fr.(type) {
-				case *NaclLayer:
-					nacls.naclList = append(nacls.naclList, layer.naclList...)
-				case *SecurityGroupLayer:
-					sgs.sgList = append(sgs.sgList, layer.sgList...)
-				default:
-					return fmt.Errorf("unexpected type for filter resource in VPC %s", vpc.ResourceUID)
-				}
-			}
-=======*/
 // newConfigFromTGW returns a new VPCConfig object, simulating a "VPC" environment for cross-vpc connectivity enabled
 // by the TGW resource
 func (tgw *TransitGateway) newConfigFromTGW(configs *vpcmodel.MultipleVPCConfigs) (*vpcmodel.VPCConfig, error) {
@@ -1015,34 +968,34 @@ func (tgw *TransitGateway) newConfigFromTGW(configs *vpcmodel.MultipleVPCConfigs
 			}
 			vpcsAddressRanges = vpcsAddressRanges.Union(vpcConfig.VPC.(*VPC).internalAddressRange)
 		}
-
-		internalNodes := []vpcmodel.Node{}
-		for _, n := range newConfig.Nodes {
-			if n.IsInternal() {
-				internalNodes = append(internalNodes, n)
-			}
-		}
-		newConfig.Nodes = internalNodes
-		// no need to add external nodes - analyzing cross-vpc connections between internal endpoints
-
-		const vpcPrefix = "combined-vpc-"
-		newConfig.VPC = &VPC{
-			VPCResource: vpcmodel.VPCResource{
-				ResourceName: vpcPrefix + tgw.ResourceName,
-				ResourceUID:  vpcPrefix + tgw.ResourceUID,
-				ResourceType: ResourceTypeVPC,
-			},
-			internalAddressRange: vpcsAddressRanges,
-			nodes:                internalNodes,
-			region:               tgw.region,
-		}
-		nacls.VPCRef = newConfig.VPC
-		sgs.VPCRef = newConfig.VPC
-		// TODO: analysis should warn if more than one naclLayer/sgLayer is present in FilterTrafficResource, as it is going
-		// to be ignored
-		newConfig.FilterResources = []vpcmodel.FilterTrafficResource{nacls, sgs}
-		newConfig.RoutingResources = []vpcmodel.RoutingResource{tgw}
 	}
+
+	internalNodes := []vpcmodel.Node{}
+	for _, n := range newConfig.Nodes {
+		if n.IsInternal() {
+			internalNodes = append(internalNodes, n)
+		}
+	}
+	newConfig.Nodes = internalNodes
+	// no need to add external nodes - analyzing cross-vpc connections between internal endpoints
+
+	const vpcPrefix = "combined-vpc-"
+	newConfig.VPC = &VPC{
+		VPCResource: vpcmodel.VPCResource{
+			ResourceName: vpcPrefix + tgw.ResourceName,
+			ResourceUID:  vpcPrefix + tgw.ResourceUID,
+			ResourceType: ResourceTypeVPC,
+		},
+		internalAddressRange: vpcsAddressRanges,
+		nodes:                internalNodes,
+		region:               tgw.region,
+	}
+	nacls.VPCRef = newConfig.VPC
+	sgs.VPCRef = newConfig.VPC
+	// TODO: analysis should warn if more than one naclLayer/sgLayer is present in FilterTrafficResource, as it is going
+	// to be ignored
+	newConfig.FilterResources = []vpcmodel.FilterTrafficResource{nacls, sgs}
+	newConfig.RoutingResources = []vpcmodel.RoutingResource{tgw}
 
 	return newConfig, nil
 }

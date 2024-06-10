@@ -74,7 +74,6 @@ type RTAnalyzer struct {
 }
 
 func getRoutingTablesFromConfig(vpcConfig *vpcmodel.VPCConfig) (egressRT []*egressRoutingTable, ingressRT []*ingressRoutingTable) {
-	// TODO: extract routing tables from vpc config
 	for _, rt := range vpcConfig.RoutingTables {
 		switch x := rt.(type) {
 		case *egressRoutingTable:
@@ -557,22 +556,5 @@ func newEgressRoutingTableFromRoutes(routes []*route, subnets []*Subnet, vpcConf
 		vpc:          vpcConfig.VPC.(*VPC),
 	}
 }
-
-/*
-func newEgressRTFromRoutes(rps *routesPerSubnets, config *vpcmodel.VPCConfig, vpc *VPC) []*egressRoutingTable {
-	res := []*egressRoutingTable{}
-	for subnetsKey, routes := range rps.routesMap {
-		egressRT := &egressRoutingTable{}
-		implicitRT := &systemImplicitRT{vpc: vpc, config: systemRTConfigFromVPCConfig(config)}
-		if rt, err := newRoutingTable(routes, implicitRT); err == nil {
-			egressRT.routingTable = *rt
-		}
-		egressRT.vpc = vpc
-		egressRT.subnets = subnetsKeyToSubnets(subnetsKey, config)
-		res = append(res, egressRT)
-	}
-	return res
-}
-*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
