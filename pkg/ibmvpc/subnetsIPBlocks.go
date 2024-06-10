@@ -32,7 +32,6 @@ import (
 //          (c) from these blocks, create a list of disjoint blocks
 //          (d) for each of these blocks, intersect the block with the subnet cidr
 //          (e) collect all the non empty intersections we get in (d)
-//          (f) disjoint all the blocks we got in (e) to get splitByFiltersBlocks
 //   2. allocate a free address for the fake private IPs - for this, we holds for each subnet freeAddressesBlocks,
 //      freeAddressesBlocks are splitByFiltersBlocks minus all the addresses that was already allocated.
 //      to get freeAddressesBlocks, we first copy splitByFiltersBlocks, than we remove the subnet already allocated addresses.
@@ -81,9 +80,7 @@ func (subnetsBlocks subnetsIPBlocks) getSubnetsOriginalBlocks(rc *datamodel.Reso
 // steps:
 //  1. split the allCidr to disjoint blocks by the filters rules.
 //  2. for each subnet:
-//     a. for each filter block that intersect with subnet original block, collect the intersection to a slice
-//     b. add the subnet original block ot this slice
-//     c. create a disjoint slice from this slice
+//     a. get all the blocks that intersect with subnet original block
 func (subnetsBlocks subnetsIPBlocks) splitSubnetsOriginalBlocks(rc *datamodel.ResourcesContainerModel) error {
 	filtersBlocks, err := getFiltersBlocks(rc)
 	if err != nil {
@@ -97,8 +94,7 @@ func (subnetsBlocks subnetsIPBlocks) splitSubnetsOriginalBlocks(rc *datamodel.Re
 				filtersBlocksOnSubnet = append(filtersBlocksOnSubnet, filterBlocksOnSubnet)
 			}
 		}
-		subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks =
-			ipblock.DisjointIPBlocks(filtersBlocksOnSubnet, []*ipblock.IPBlock{subnetsBlocks[*subnetObj.CRN].subnetOriginalBlock})
+		subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks = filtersBlocksOnSubnet
 	}
 	return nil
 }
