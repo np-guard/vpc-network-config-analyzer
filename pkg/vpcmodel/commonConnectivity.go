@@ -10,10 +10,14 @@ import (
 	"github.com/np-guard/models/pkg/connection"
 )
 
-// GeneralResponsiveConnectivityMap describes connectivity
-type GeneralResponsiveConnectivityMap map[VPCResourceIntf]map[VPCResourceIntf]*detailedConn
-
+// GeneralConnectivityMap describes basic connectivity of the given network;
+// for each ordered couple of VPCResourceIntf <src, dst> that have connection between src to dst
+// it lists the protocols and ports for which the connection <src, dst> is enabled
 type GeneralConnectivityMap map[VPCResourceIntf]map[VPCResourceIntf]*connection.Set
+
+// GeneralResponsiveConnectivityMap describes connectivity similarly to GeneralConnectivityMap;
+// only here the describes connection includes respond details,namely in what cases a TCP respond is enabled
+type GeneralResponsiveConnectivityMap map[VPCResourceIntf]map[VPCResourceIntf]*detailedConn
 
 func (allowConnCombined GeneralConnectivityMap) updateAllowedConnsMap(src, dst VPCResourceIntf, conn *connection.Set) {
 	if _, ok := allowConnCombined[src]; !ok {
