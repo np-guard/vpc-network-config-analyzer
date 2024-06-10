@@ -2,7 +2,7 @@ Explaining connectivity from 192.168.8.4 (iks-node[192.168.8.4]) to 192.168.4.4 
 ==========================================================================================================================
 
 Allowed connections from iks-node[192.168.8.4] to iks-node[192.168.4.4]: All Connections
-	Respond enabled on the entire TCP component of the connection
+	The TCP sub-connection is responsive
 
 Path:
 	iks-node[192.168.8.4] -> security group[kube-clusterid:1, ky-test-default-sg] -> ky-test-private-subnet-3 -> network ACL ky-test-private-2-others-acl -> 

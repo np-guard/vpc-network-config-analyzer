@@ -90,11 +90,12 @@ func explainMissingCrossVpcRouter(src, dst string, connQuery *connection.Set) st
 
 // prints a single line of explanation for externalAddress grouped <src, dst>
 // The printing contains 4 sections:
-// 1. Header describing the query and whether there is a connection. E.g.:
-// todo add return connection description
-// * Allowed connections from ky-vsi0-subnet5[10.240.9.4] to ky-vsi0-subnet11[10.240.80.4]: All Connections
-// * No connections are allowed from ky-vsi1-subnet20[10.240.128.5] to ky-vsi0-subnet0[10.240.0.5];
-// 2. List of all the different resources effecting the connection and the effect of each. E.g.:
+//  1. Header describing the query and whether there is a connection. E.g.:
+//     * Allowed connections from ky-vsi0-subnet5[10.240.9.4] to ky-vsi0-subnet11[10.240.80.4]: All Connections
+//     The TCP sub-connection is responsive
+//     * No connections are allowed from ky-vsi1-subnet20[10.240.128.5] to ky-vsi0-subnet0[10.240.0.5];
+//  2. List of all the different resources effecting the connection and the effect of each. E.g.:
+//
 // cross-vpc-connection: transit-connection tg_connection0 of transit-gateway local-tg-ky denys connection
 // Egress: security group sg21-ky allows connection; network ACL acl21-ky allows connection
 // Ingress: network ACL acl1-ky allows connection; security group sg1-ky allows connection
@@ -102,7 +103,6 @@ func explainMissingCrossVpcRouter(src, dst string, connQuery *connection.Set) st
 //     ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> subnet20 -> network ACL acl21-ky ->
 //     test-vpc2-ky -> TGW local-tg-ky -> |
 //
-// todo add return path
 // 4. Details of enabling and disabling rules/prefixes, including details of each rule
 // todo add details of enabling/disabling rules for return path
 //
@@ -217,7 +217,7 @@ func existingConnectionStr(c *VPCConfig, connQuery *connection.Set, src, dst End
 	// Computing the header, "1" described in explainabilityLineStr
 	respondConnStr := conn.respondString()
 	if connQuery == nil {
-		resComponents = append(resComponents, fmt.Sprintf("Allowed connections from %v to %v: %v\n", src.ExtendedName(c), dst.ExtendedName(c),
+		resComponents = append(resComponents, fmt.Sprintf("Allowed connections from %v to %v: %v%v\n", src.ExtendedName(c), dst.ExtendedName(c),
 			conn.allConn.String(), respondConnStr))
 	} else {
 		properSubsetConn := ""
@@ -461,14 +461,14 @@ func (e *detailedConn) respondString() string {
 		return ""
 	case e.tcpRspEnable.IsEmpty():
 		// no tcp responsive component
-		return "\tTCP respond is blocked"
+		return "\n\tTCP respond is blocked"
 	case e.tcpRspEnable.Equal(e.allConn):
 		// tcp responsive component is the entire connection
-		return "\tThe entire connection is TCP responsive"
+		return "\n\tThe entire connection is TCP responsive"
 	case e.tcpRspDisable.IsEmpty():
-		return "\tThe TCP sub-connection is responsive"
+		return "\n\tThe TCP sub-connection is responsive"
 	default:
-		return "\tTCP respond is enabled on " + e.tcpRspEnable.String()
+		return "\n\tTCP respond is enabled on " + e.tcpRspEnable.String()
 
 	}
 }

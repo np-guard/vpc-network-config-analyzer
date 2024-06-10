@@ -2,7 +2,7 @@ Explaining connectivity from vsi1-ky to 10.240.20.4 (vsi2-ky[10.240.20.4]) withi
 ==============================================================================================
 
 Allowed connections from vsi1-ky[10.240.10.4] to vsi2-ky[10.240.20.4]: protocol: TCP,UDP
-	Respond enabled on the entire TCP component of the connection
+	The TCP sub-connection is responsive
 
 Path:
 	vsi1-ky[10.240.10.4] -> security group sg1-ky -> subnet1-ky -> network ACL acl1-ky -> 
