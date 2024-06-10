@@ -1,3 +1,8 @@
+/*
+Copyright 2023- IBM Inc. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+*/
 package ibmvpc
 
 import (
@@ -32,19 +37,18 @@ type subnetIPBlocks struct {
 }
 type subnetsIPBlocks map[string]*subnetIPBlocks
 
-// getSubnetsIPBlocks()
 func getSubnetsIPBlocks(rc *datamodel.ResourcesContainerModel) (subnetsBlocks subnetsIPBlocks, err error) {
 	subnetsBlocks = subnetsIPBlocks{}
 	// get all the original blocks of the subnets:
-	if err = subnetsBlocks.getSubnetsOriginalBlocks(rc); err != nil {
+	if err := subnetsBlocks.getSubnetsOriginalBlocks(rc); err != nil {
 		return nil, err
 	}
 	// calc the splitByFiltersBlocks:
-	if err = subnetsBlocks.splitSubnetsOriginalBlocks(rc); err != nil {
+	if err := subnetsBlocks.splitSubnetsOriginalBlocks(rc); err != nil {
 		return nil, err
 	}
 	// calc the freeAddressesBlocks:
-	if err = subnetsBlocks.getSubnetsFreeBlocks(rc); err != nil {
+	if err := subnetsBlocks.getSubnetsFreeBlocks(rc); err != nil {
 		return nil, err
 	}
 	return subnetsBlocks, nil
@@ -82,7 +86,8 @@ func (subnetsBlocks subnetsIPBlocks) splitSubnetsOriginalBlocks(rc *datamodel.Re
 				filtersBlocksOnSubnet = append(filtersBlocksOnSubnet, filterBlocksOnSubnet)
 			}
 		}
-		subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks = ipblock.DisjointIPBlocks(filtersBlocksOnSubnet, []*ipblock.IPBlock{subnetsBlocks[*subnetObj.CRN].subnetOriginalBlock})
+		subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks =
+			ipblock.DisjointIPBlocks(filtersBlocksOnSubnet, []*ipblock.IPBlock{subnetsBlocks[*subnetObj.CRN].subnetOriginalBlock})
 	}
 	return nil
 }
@@ -138,7 +143,7 @@ type filtersBlocks map[string][]*ipblock.IPBlock
 
 func getFiltersBlocks(rc *datamodel.ResourcesContainerModel) (filtersBlocks, error) {
 	blocks := filtersBlocks{}
-	if err := blocks.addAclRuleBlocks(rc); err != nil {
+	if err := blocks.addACLRuleBlocks(rc); err != nil {
 		return nil, err
 	}
 	if err := blocks.addSGRulesBlocks(rc); err != nil {
@@ -150,7 +155,7 @@ func getFiltersBlocks(rc *datamodel.ResourcesContainerModel) (filtersBlocks, err
 	return blocks, nil
 }
 
-func (blocks filtersBlocks) addAclRuleBlocks(rc *datamodel.ResourcesContainerModel) error {
+func (blocks filtersBlocks) addACLRuleBlocks(rc *datamodel.ResourcesContainerModel) error {
 	for _, aclObj := range rc.NetworkACLList {
 		for _, rule := range aclObj.Rules {
 			var src, dst *string
@@ -191,7 +196,6 @@ func (blocks filtersBlocks) addSGRulesBlocks(rc *datamodel.ResourcesContainerMod
 			if err := blocks.addBlocks(*sgObj.VPC.CRN, []*string{remote, local}); err != nil {
 				return err
 			}
-
 		}
 	}
 	return nil
