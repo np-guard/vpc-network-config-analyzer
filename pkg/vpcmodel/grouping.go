@@ -35,6 +35,7 @@ type explainDetails struct {
 	connEnabled     bool
 	ingressEnabled  bool
 	egressEnabled   bool
+	respondRules    *rulesConnection
 }
 
 type groupedCommonProperties struct {
@@ -344,7 +345,8 @@ func (g *GroupConnLines) groupExternalAddressesForExplainability() error {
 		expDetails := &explainDetails{details.actualMergedRules,
 			details.externalRouter, details.crossVpcRouter,
 			details.crossVpcRules, details.filtersRelevant,
-			details.connEnabled, details.ingressEnabled, details.egressEnabled}
+			details.connEnabled, details.ingressEnabled,
+			details.egressEnabled, nil}
 		err := g.addLineToExternalGrouping(&res, details.src, details.dst,
 			&groupedCommonProperties{conn: details.conn, expDetails: expDetails,
 				groupingStrKey: groupingStrKey})

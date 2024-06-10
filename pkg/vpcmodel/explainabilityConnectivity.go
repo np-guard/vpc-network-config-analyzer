@@ -55,6 +55,8 @@ type srcDstDetails struct {
 	actualMergedRules   *rulesConnection // rules actually effecting the connection (both allow and deny)
 	// enabling rules implies whether ingress/egress is enabled
 	// potential rules are saved for further debugging and explanation provided to the user
+	respondRules *rulesConnection // rules of non-stateful filters enabling/disabling respond
+
 }
 
 type rulesAndConnDetails []*srcDstDetails
