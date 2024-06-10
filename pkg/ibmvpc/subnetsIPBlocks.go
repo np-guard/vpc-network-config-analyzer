@@ -15,28 +15,31 @@ import (
 )
 
 // ///////////////////////////////////////////////////////////////////////
-// when a load balancer is deployed, Private IPs are not created in all the load balancer subnets.
-// however, we want to create a private IP for all of the load balancer subnets.
+// connection from and to load balancer are done via private ips
+// created to it upon its deployment. 
+// However, when a load balancer is deployed, 
+// Private IPs are not created for all the load balancer subnets.
+// To understand and monitor the connectivity that is potentially induced by the load balancer , we create a private IP for all of the load balancer subnets.
 // (we calls these private IPs fake private Ips)
-// More that that, when a filter rule split the subnet cidr to blocks, we want to create private ip per block.
+// Moreover, if a filter rule splits the subnet's cidr to few blocks, we want to create private ip per each such block.
 
-// to create a private IP which does not exist in the config, we need an unused address.
+// To create a private IP which does not exist in the config, we need an unused address.
 // subnetsIPBlocks has two main purposes:
-//   1. for each subnet, calculate splitByFiltersBlocks - the blocks that the subnet cidr was split to by the filters.
-//      splitByFiltersBlocks are:
-//   		a. disjoint to each other
-//	    	b. the sum of splitByFiltersBlocks is the subnet cidr
+//   1. for each subnet, it calculates splitByFiltersBlocks - the atomic blocks induced by the filters.
+//      splitByFiltersBlocks are such that:
+//   		a. the blocks are disjoint
+//	    	b. the union of thr blocks is the subnet cidr
 //      we calculate splitByFiltersBlocks of a subnet by:
-//          (a) collecting all the filters rules blocks.
-//          (b) add the allCidr block to these blocks.
+//          (a) collecting all the filters' rules blocks.
+//          (b) adding allCidr block to these blocks.
 //          (c) from these blocks, create a list of disjoint blocks
 //          (d) for each of these blocks, intersect the block with the subnet cidr
 //          (e) collect all the non empty intersections we get in (d)
-//   2. allocate a free address for the fake private IPs - for this, we holds for each subnet freeAddressesBlocks,
+//   2. allocate a free address for the fake private IPs - to this end, we holds for each subnet freeAddressesBlocks,
 //      freeAddressesBlocks are splitByFiltersBlocks minus all the addresses that was already allocated.
 //      to get freeAddressesBlocks, we first copy splitByFiltersBlocks, than we remove the subnet already allocated addresses.
-//      (we gets these addresses from the subnet reserved IP).
-//       when a free address is needed, we remove and give the first address of the block from the block.
+//      (we get these addresses from the subnet reserved IP).
+//       when a free address is needed, we take the first address of the block and remove it from the free blocks list.
 
 // /////////////////////////////////////////////////////////////////////////////////////////
 // subnetIPBlocks holds the blocks of a subnet
