@@ -12,7 +12,8 @@ import (
 	"errors"
 
 	"github.com/np-guard/models/pkg/connection"
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+
+	"github.com/np-guard/models/pkg/ipblock"
 )
 
 // VPCConfig captures the configured resources for a VPC
@@ -31,9 +32,11 @@ type VPCConfig struct {
 	NodeSets []NodeSet
 	// FilterResources is the list of resources that define filtering traffic rules, such as ACL, SG
 	FilterResources []FilterTrafficResource
-	// RoutingResources is the list of resources that enable certain types of connectivity, such as PGW, FIP
+	// RoutingResources is the list of resources that enable certain types of connectivity, such as PGW, FIP, TGW, Routing tables
 	RoutingResources []RoutingResource
 	// UIDToResource is a map from resource UID to its object in the VPC
+
+	RoutingTables []VPCResourceIntf
 	UIDToResource map[string]VPCResourceIntf
 
 	// IsMultipleVPCsConfig is a bool indicator, when set true, it means that the VPCConfig contains resources from
@@ -102,50 +105,17 @@ func (c *VPCConfig) getRoutingResource(src, dst Node) (RoutingResource, *connect
 	return nil, NoConns(), nil
 }
 
-// /////////////////////////////////////////////////////////////////////////////////
-// MultipleVPCConfigs  struct of all the configs.
-// Once multivpc support is elaborating , the struct may change
-// thus, please use get/set methods to access the structs; avoid direct access
-type MultipleVPCConfigs struct {
-	configs          map[string]*VPCConfig // a map from the vpc resource uid to the vpc config
-	toCompareConfigs map[string]*VPCConfig // a map from the vpc resource uid to the vpc config that we want to compare
-	cloudName        string
+// GetNodesWithinInternalAddress gets input IPBlock
+// and returns the list of all internal nodes (should be VSI) within address
+func (c *VPCConfig) GetNodesWithinInternalAddress(inputIPBlock *ipblock.IPBlock) (networkInterfaceNodes []Node) {
+	for _, node := range c.Nodes {
+		if node.IsInternal() && node.IPBlock().ContainedIn(inputIPBlock) {
+			networkInterfaceNodes = append(networkInterfaceNodes, node)
+		}
+	}
+	return networkInterfaceNodes
 }
 
-func NewMultipleVPCConfigs(cloudName string) *MultipleVPCConfigs {
-	return &MultipleVPCConfigs{map[string]*VPCConfig{}, nil, cloudName}
-}
-
-func (c *MultipleVPCConfigs) Configs() map[string]*VPCConfig {
-	return c.configs
-}
-func (c *MultipleVPCConfigs) SetConfig(uid string, config *VPCConfig) {
-	c.configs[uid] = config
-}
-func (c *MultipleVPCConfigs) RemoveConfig(uid string) {
-	delete(c.configs, uid)
-}
-func (c *MultipleVPCConfigs) Config(uid string) *VPCConfig {
-	return c.configs[uid]
-}
-func (c *MultipleVPCConfigs) aConfig() *VPCConfig {
-	_, config := common.AnyMapEntry(c.configs)
-	return config
-}
-func (c *MultipleVPCConfigs) HasConfig(uid string) bool {
-	_, ok := c.configs[uid]
-	return ok
-}
-func (c *MultipleVPCConfigs) ConfigToCompare(uid string) *VPCConfig {
-	return c.toCompareConfigs[uid]
-}
-func (c *MultipleVPCConfigs) aConfigToCompare() *VPCConfig {
-	_, config := common.AnyMapEntry(c.toCompareConfigs)
-	return config
-}
-func (c *MultipleVPCConfigs) SetConfigsToCompare(toCompare map[string]*VPCConfig) {
-	c.toCompareConfigs = toCompare
-}
-func (c *MultipleVPCConfigs) CloudName() string {
-	return c.cloudName
+func (c *VPCConfig) AddRoutingTable(rt VPCResourceIntf) {
+	c.RoutingTables = append(c.RoutingTables, rt)
 }

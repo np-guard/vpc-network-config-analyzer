@@ -394,7 +394,7 @@ func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *ipblock.I
 		return nodes, false, noErr, nil
 	}
 	// internal address
-	networkInterfaces := c.getNodesWithinInternalAddress(inputIPBlock)
+	networkInterfaces := c.GetNodesWithinInternalAddress(inputIPBlock)
 	if len(networkInterfaces) == 0 { // 3.
 		return nil, true, internalNoConnectedEndpoints, fmt.Errorf("no network interfaces are connected to %s", ipOrCidr)
 	}
@@ -434,16 +434,4 @@ func (c *VPCConfig) getCidrExternalNodes(inputIPBlock *ipblock.IPBlock) (cidrNod
 		}
 	}
 	return cidrNodes, noErr, nil
-}
-
-// getNodesWithinInternalAddress gets input IPBlock
-// and returns the list of all internal nodes (e.g. VSIs) within address
-func (c *VPCConfig) getNodesWithinInternalAddress(inputIPBlock *ipblock.IPBlock) (networkInterfaceNodes []Node) {
-	networkInterfaceNodes = []Node{}
-	for _, node := range c.Nodes {
-		if node.IsInternal() && node.IPBlock().ContainedIn(inputIPBlock) {
-			networkInterfaceNodes = append(networkInterfaceNodes, node)
-		}
-	}
-	return networkInterfaceNodes
 }
