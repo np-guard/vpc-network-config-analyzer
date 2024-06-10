@@ -124,6 +124,7 @@ func (c *VPCConfig) explainConnectivityForVPC(src, dst string, srcNodes, dstNode
 	}
 	rulesAndDetails.computeActualRules()
 	rulesAndDetails.computeCombinedActualRules() // combined deny and allow
+	rulesAndDetails.updateRespondRules(c)
 
 	groupedLines, err4 := newGroupConnExplainability(c, &rulesAndDetails)
 	if err4 != nil {
@@ -395,6 +396,18 @@ func (c *VPCConfig) getRulesOfConnection(src, dst Node,
 	return allowRulesOfConnection, denyRulesOfConnection, nil
 }
 
+func (c *VPCConfig) computeAndUpdatePerDirectionLayerRules(layer string, src, dst Node, conn *connection.Set,
+	isIngress bool) (allowPerLayer, denyPerLayer rulesInLayers, err error) {
+	allowPerLayer, denyPerLayer = rulesInLayers{}, rulesInLayers{}
+	ingressAllowRules, ingressDenyRules, err1 := c.getFiltersRulesBetweenNodesPerDirectionAndLayer(src, dst, conn, isIngress, layer)
+	if err1 != nil {
+		return nil, nil, err1
+	}
+	allowPerLayer.updateRulesPerLayerIfNonEmpty(layer, ingressAllowRules)
+	denyPerLayer.updateRulesPerLayerIfNonEmpty(layer, ingressDenyRules)
+	return allowPerLayer, denyPerLayer, nil
+}
+
 func (rulesInLayers rulesInLayers) updateRulesPerLayerIfNonEmpty(layer string, rulesFilter *[]RulesInTable) {
 	if len(*rulesFilter) > 0 {
 		rulesInLayers[layer] = *rulesFilter
@@ -477,4 +490,50 @@ func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (conn *deta
 			srcForConnection.Name(), dstForConnection.Name())
 	}
 	return conn, nil
+}
+
+func (details *rulesAndConnDetails) updateRespondRules(c *VPCConfig) error {
+	for _, srcDstDetails := range *details {
+		// respond rules are relevant if: connection has a TCP component and non-stateful filter (NACL at the moment)
+		// are relevant for <src, dst>
+		if srcDstDetails.conn.allConn.Intersect(newTCPSet()).IsEmpty() || !srcDstDetails.filtersRelevant[NaclLayer] {
+			continue
+		}
+		respondRules, err := c.getRespondRules(srcDstDetails.src, srcDstDetails.dst, srcDstDetails.conn.allConn)
+		if err != nil {
+			return err
+		}
+		srcDstDetails.respondRules = respondRules
+	}
+	return nil
+}
+
+// gets the NACL rules that enables/disables respond for connection conn, assuming nacl is applied
+func (c *VPCConfig) getRespondRules(src, dst Node,
+	conn *connection.Set) (respondRules *rulesConnection, err error) {
+	ingressAllowPerLayer, egressAllowPerLayer := rulesInLayers{}, rulesInLayers{}
+	ingressDenyPerLayer, egressDenyPerLayer := rulesInLayers{}, rulesInLayers{}
+	// todo: switch dst src ports of conn - to that end needs to merge the PR on connections that exports the func
+	connSwitch := conn
+	mergedIngressRules, mergedEgressRules := rulesInLayers{}, rulesInLayers{}
+	// respond: from dst to src. Thus, ingress rules: relevant only if *src* is internal, egress is *dst* is internal
+	if src.IsInternal() {
+		ingressAllowRules, ingressDenyRules, err1 := c.getFiltersRulesBetweenNodesPerDirectionAndLayer(src, dst, connSwitch, true, NaclLayer)
+		if err1 != nil {
+			return nil, err1
+		}
+		ingressAllowPerLayer.updateRulesPerLayerIfNonEmpty(NaclLayer, ingressAllowRules)
+		ingressDenyPerLayer.updateRulesPerLayerIfNonEmpty(NaclLayer, ingressDenyRules)
+		mergedIngressRules = mergeAllowDeny(ingressAllowPerLayer, ingressDenyPerLayer)
+	}
+	if dst.IsInternal() {
+		egressAllowRules, egressDenyRules, err2 := c.getFiltersRulesBetweenNodesPerDirectionAndLayer(src, dst, conn, false, NaclLayer)
+		if err2 != nil {
+			return nil, err2
+		}
+		egressAllowPerLayer.updateRulesPerLayerIfNonEmpty(NaclLayer, egressAllowRules)
+		egressDenyPerLayer.updateRulesPerLayerIfNonEmpty(NaclLayer, egressDenyRules)
+		mergedEgressRules = mergeAllowDeny(egressAllowPerLayer, egressDenyPerLayer)
+	}
+	return &rulesConnection{mergedIngressRules, mergedEgressRules}, nil
 }
