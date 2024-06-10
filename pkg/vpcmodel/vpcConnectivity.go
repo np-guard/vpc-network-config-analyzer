@@ -23,20 +23,13 @@ type VPCConnectivity struct {
 	// This is auxiliary computation based on which AllowedConnsCombined is computed, however the "debug" format uses it
 	AllowedConns map[Node]*ConnectivityResult
 
-	// combined connectivity - considering both ingress and egress per connection
-	// The main outcome of the computation of which most of the outputs are based
-	// (outputs excluding json and debug)
-	// For each src node provides a map of dsts and the connection it has to these dsts, including stateful attributes
-	// a connection is considered stateful if all paths in it are stateful
-	// that stateful component is computed along with the following  AllowedConnsCombinedStateful
-	AllowedConnsCombined GeneralConnectivityMap
-
-	// allowed connectivity combined and stateful
+	// allowed connectivity combined and responsive
 	// used by debug and json format only (at the moment)
-	// For src node provides a map of dsts and the stateful connection it has to these dsts
-	// note that subset of a non-stateful connection from AllowedConnsCombined can still be stateful
+	// For src node provides a map of dsts and the responsive connection it has to these dsts
+	// note that subset of a non-responsive connection from AllowedConnsCombined can still be responsive
 	// and as such add to this map
-	AllowedConnsCombinedStateful GeneralConnectivityMap
+
+	AllowedConnsCombinedResponsive GeneralResponsiveConnectivityMap
 
 	// grouped connectivity result
 	GroupedConnectivity *GroupConnLines
@@ -78,37 +71,4 @@ func NewConfigBasedConnectivityResults() *ConfigBasedConnectivityResults {
 		IngressAllowedConns: map[VPCResourceIntf]*connection.Set{},
 		EgressAllowedConns:  map[VPCResourceIntf]*connection.Set{},
 	}
-}
-
-func (v *VPCConnectivity) SplitAllowedConnsToUnidirectionalAndBidirectional() (
-	bidirectional, unidirectional GeneralConnectivityMap) {
-	unidirectional = GeneralConnectivityMap{}
-	bidirectional = GeneralConnectivityMap{}
-	for src, connsMap := range v.AllowedConnsCombined {
-		for dst, conn := range connsMap {
-			if conn.IsEmpty() {
-				continue
-			}
-			statefulConn := v.AllowedConnsCombinedStateful.getAllowedConnForPair(src, dst)
-			switch {
-			case conn.Equal(statefulConn):
-				bidirectional.updateAllowedConnsMap(src, dst, conn)
-			case statefulConn.IsEmpty():
-				unidirectional.updateAllowedConnsMap(src, dst, conn)
-			default:
-				bidirectional.updateAllowedConnsMap(src, dst, statefulConn)
-				unidirectional.updateAllowedConnsMap(src, dst, conn.Subtract(statefulConn))
-			}
-		}
-	}
-	return bidirectional, unidirectional
-}
-
-func (connectivityMap GeneralConnectivityMap) getAllowedConnForPair(src, dst VPCResourceIntf) *connection.Set {
-	if connsMap, ok := connectivityMap[src]; ok {
-		if conn, ok := connsMap[dst]; ok {
-			return conn
-		}
-	}
-	return NoConns()
 }

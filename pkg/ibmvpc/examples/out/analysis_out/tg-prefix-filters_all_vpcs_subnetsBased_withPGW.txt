@@ -1,12 +1,12 @@
 Connectivity between VPCs connected by TGW local-tg-ky (UID: crn:550)
-test-vpc0-ky/subnet0 => test-vpc1-ky/subnet10 : All Connections *
-test-vpc0-ky/subnet0 => test-vpc1-ky/subnet11 : All Connections *
-test-vpc0-ky/subnet0 => test-vpc2-ky/subnet20 : All Connections *
-test-vpc0-ky/subnet1 => test-vpc1-ky/subnet10 : All Connections *
-test-vpc0-ky/subnet1 => test-vpc1-ky/subnet11 : All Connections *
-test-vpc0-ky/subnet1 => test-vpc2-ky/subnet20 : All Connections *
-test-vpc0-ky/subnet2 => test-vpc1-ky/subnet10 : All Connections *
-test-vpc0-ky/subnet2 => test-vpc1-ky/subnet11 : All Connections *
+test-vpc0-ky/subnet0 => test-vpc1-ky/subnet10 : All Connections * 
+test-vpc0-ky/subnet0 => test-vpc1-ky/subnet11 : All Connections * 
+test-vpc0-ky/subnet0 => test-vpc2-ky/subnet20 : All Connections * 
+test-vpc0-ky/subnet1 => test-vpc1-ky/subnet10 : All Connections * 
+test-vpc0-ky/subnet1 => test-vpc1-ky/subnet11 : All Connections * 
+test-vpc0-ky/subnet1 => test-vpc2-ky/subnet20 : All Connections * 
+test-vpc0-ky/subnet2 => test-vpc1-ky/subnet10 : All Connections * 
+test-vpc0-ky/subnet2 => test-vpc1-ky/subnet11 : All Connections * 
 test-vpc0-ky/subnet2 => test-vpc2-ky/subnet20 : All Connections
 test-vpc0-ky/subnet3 => test-vpc1-ky/subnet10 : All Connections
 test-vpc0-ky/subnet3 => test-vpc1-ky/subnet11 : All Connections

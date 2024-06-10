@@ -12,7 +12,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/ipblock"
 )
 
@@ -39,7 +38,7 @@ type explainDetails struct {
 }
 
 type groupedCommonProperties struct {
-	conn       *connection.Set
+	conn       *detailedConn
 	connDiff   *connectionDiff
 	expDetails *explainDetails
 	// groupingStrKey is the key by which the grouping is done:
@@ -154,7 +153,7 @@ func (g *groupedConnLine) String(c *VPCConfig) string {
 
 func (g *groupedConnLine) ConnLabel(full bool) string {
 	label := g.commonProperties.groupingStrKey
-	if !full && g.commonProperties.conn.IsAll() {
+	if !full && g.commonProperties.conn.isAllObliviousRsp() {
 		label = ""
 	}
 	signs := []string{}
@@ -287,18 +286,18 @@ func getSubnetOrVPCUID(ep EndpointElem) string {
 // group public internet ranges for vsis/subnets connectivity lines
 // internal (vsi/subnets) are added as is
 func (g *GroupConnLines) groupExternalAddresses(vsi bool) error {
-	var allowedConnsCombined GeneralConnectivityMap
-	if vsi {
-		allowedConnsCombined = g.nodesConn.AllowedConnsCombined
-	} else {
-		allowedConnsCombined = g.subnetsConn.AllowedConnsCombined
-	}
 	res := []*groupedConnLine{}
-	for src, nodeConns := range allowedConnsCombined {
-		for dst, conns := range nodeConns {
-			if !conns.IsEmpty() {
+	var allowedConnsCombinedResponsive GeneralResponsiveConnectivityMap
+	if vsi {
+		allowedConnsCombinedResponsive = g.nodesConn.AllowedConnsCombinedResponsive
+	} else {
+		allowedConnsCombinedResponsive = g.subnetsConn.AllowedConnsCombinedResponsive
+	}
+	for src, nodeConns := range allowedConnsCombinedResponsive {
+		for dst, connsResponsive := range nodeConns {
+			if !connsResponsive.isEmpty() {
 				err := g.addLineToExternalGrouping(&res, src, dst,
-					&groupedCommonProperties{conn: conns, groupingStrKey: conns.EnhancedString()})
+					&groupedCommonProperties{conn: connsResponsive, groupingStrKey: connsResponsive.string()})
 				if err != nil {
 					return err
 				}
@@ -324,7 +323,7 @@ func (g *GroupConnLines) groupExternalAddressesForDiff(thisMinusOther bool) erro
 	for src, endpointConnDiff := range connRemovedChanged {
 		for dst, connDiff := range endpointConnDiff {
 			connDiffString := connDiffEncode(src, dst, connDiff)
-			if !(connDiff.conn1.IsEmpty() && connDiff.conn2.IsEmpty()) {
+			if !(connDiff.conn1.isEmpty() && connDiff.conn2.isEmpty()) {
 				err := g.addLineToExternalGrouping(&res, src, dst,
 					&groupedCommonProperties{connDiff: connDiff, groupingStrKey: connDiffString})
 				if err != nil {
@@ -405,7 +404,7 @@ func isInternalOfRequiredType(ep EndpointElem, groupVsi bool) bool {
 func (g *GroupConnLines) groupLinesByKey(srcGrouping, groupVsi bool) (res []*groupedConnLine,
 	groupingSrcOrDst map[string][]*groupedConnLine) {
 	res = []*groupedConnLine{}
-	// build map from str(dst+conn) to []src => create lines accordingly
+	// build map from str(dst+allConn) to []src => create lines accordingly
 	groupingSrcOrDst = map[string][]*groupedConnLine{}
 	// populate map groupingSrcOrDst
 	for _, line := range g.GroupedLines {
@@ -545,7 +544,7 @@ func (g *GroupConnLines) String(c *VPCConfig) string {
 func (g *GroupConnLines) hasStatelessConns() bool {
 	hasStatelessConns := false
 	for _, line := range g.GroupedLines {
-		if line.commonProperties.conn.IsStateful == connection.StatefulFalse {
+		if !line.commonProperties.conn.tcpRspDisable.IsEmpty() {
 			hasStatelessConns = true
 			break
 		}
@@ -582,7 +581,7 @@ func (g *groupedExternalNodes) String() string {
 	if err != nil {
 		return ""
 	}
-	// 2. Union all IPBlocks in a single one; its intervals will be the cidr blocks or ranges that should be printed, after all possible merges
+	// 2. union all IPBlocks in a single one; its intervals will be the cidr blocks or ranges that should be printed, after all possible merges
 	unionBlock := ipblock.New()
 	for _, ipBlock := range ipbList {
 		unionBlock = unionBlock.Union(ipBlock)
@@ -606,7 +605,7 @@ func connDiffEncode(src, dst VPCResourceIntf, connDiff *connectionDiff) string {
 // encodes rulesConnection for grouping
 func (details *srcDstDetails) explanationEncode(c *VPCConfig) string {
 	encodeComponents := []string{}
-	encodeComponents = append(encodeComponents, details.conn.String())
+	encodeComponents = append(encodeComponents, details.conn.allConn.String())
 	if details.externalRouter != nil {
 		encodeComponents = append(encodeComponents, details.externalRouter.UID())
 	}
