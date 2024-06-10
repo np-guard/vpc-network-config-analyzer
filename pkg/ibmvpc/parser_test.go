@@ -8,6 +8,7 @@ package ibmvpc
 
 import (
 	"path/filepath"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -84,4 +85,39 @@ func TestGetRegionByName(t *testing.T) {
 	region2 := getRegionByName("us-south", regionToStructMap)
 	require.Equal(t, region1, region2)
 	require.True(t, region1 == region2)
+}
+
+func TestSubnetsBlocks(t *testing.T) {
+	subnetsBlocks := subnetsIPBlocks{}
+	subnetId, vpcId := "subId1", "vpcId"
+	subnetOrigBlock, _ := ipblock.FromCidr("10.240.0.0/23")
+	subnetsBlocks[subnetId] = &subnetIPBlocks{subnetOriginalBlock: subnetOrigBlock}
+	filtersBlocks := filtersBlocks{}
+	filterBlock1, _ := ipblock.FromCidr("10.230.0.0/23")
+	filterBlock2, _ := ipblock.FromCidr("10.240.0.0/24")
+	filterBlock3, _ := ipblock.FromCidr("10.240.1.0/25")
+	filterBlock4, _ := ipblock.FromCidr("10.240.1.128/25")
+
+	filtersBlocks[vpcId] = []*ipblock.IPBlock{filterBlock1, filterBlock2, filterBlock3, filterBlock4}
+	filtersBlocks.disjointBlocks()
+	subnetsBlocks[subnetId].splitByFiltersBlocks = splitSubnetOriginalBlock(subnetsBlocks[subnetId].subnetOriginalBlock, filtersBlocks[vpcId])
+	subnetsBlocks[subnetId].freeAddressesBlocks = subnetsBlocks[subnetId].splitByFiltersBlocks
+	require.True(t, len(subnetsBlocks.subnetBlocks(subnetId)) == 3)
+	blockIndexes := []int{0, 0, 1, 2, 1, 2, 1}
+	allocatedAddresses := make([]string, len(blockIndexes))
+	for i, index := range blockIndexes {
+		a, _ := subnetsBlocks.allocSubnetFreeAddress(subnetId, index)
+		allocatedAddresses[i] = a
+	}
+	slices.Sort(allocatedAddresses)
+	er := []string{
+		"10.240.0.0",
+		"10.240.0.1",
+		"10.240.1.0",
+		"10.240.1.1",
+		"10.240.1.128",
+		"10.240.1.129",
+		"10.240.1.130",
+	}
+	require.Equal(t, er, allocatedAddresses)
 }

@@ -53,10 +53,13 @@ func getSubnetsIPBlocks(rc *datamodel.ResourcesContainerModel) (subnetsBlocks su
 	if err := subnetsBlocks.getSubnetsOriginalBlocks(rc); err != nil {
 		return nil, err
 	}
-	// calc the splitByFiltersBlocks:
-	if err := subnetsBlocks.splitSubnetsOriginalBlocks(rc); err != nil {
+	// calc the filters blocks:
+	filtersBlocks, err := getFiltersBlocks(rc)
+	if err != nil {
 		return nil, err
 	}
+	// calc the splitByFiltersBlocks:
+	subnetsBlocks.splitSubnetsOriginalBlocks(rc, filtersBlocks)
 	// calc the freeAddressesBlocks:
 	if err := subnetsBlocks.getSubnetsFreeBlocks(rc); err != nil {
 		return nil, err
@@ -77,26 +80,22 @@ func (subnetsBlocks subnetsIPBlocks) getSubnetsOriginalBlocks(rc *datamodel.Reso
 
 // splitSubnetsOriginalBlocks():
 // the goal of this func is to split the original subnet cidr to disjoint blocks, according to the filters blocks:
-// steps:
-//  1. split the allCidr to disjoint blocks by the filters rules.
-//  2. for each subnet:
-//     a. get all the blocks that intersect with subnet original block
-func (subnetsBlocks subnetsIPBlocks) splitSubnetsOriginalBlocks(rc *datamodel.ResourcesContainerModel) error {
-	filtersBlocks, err := getFiltersBlocks(rc)
-	if err != nil {
-		return err
-	}
+// for each subnet it gets all the blocks that intersect with subnet original block
+func (subnetsBlocks subnetsIPBlocks) splitSubnetsOriginalBlocks(rc *datamodel.ResourcesContainerModel, filtersBlocks filtersBlocks) {
 	for _, subnetObj := range rc.SubnetList {
-		filtersBlocksOnSubnet := []*ipblock.IPBlock{}
-		for _, filterBlock := range filtersBlocks[*subnetObj.VPC.CRN] {
-			filterBlocksOnSubnet := subnetsBlocks[*subnetObj.CRN].subnetOriginalBlock.Intersect(filterBlock)
-			if !filterBlocksOnSubnet.IsEmpty() {
-				filtersBlocksOnSubnet = append(filtersBlocksOnSubnet, filterBlocksOnSubnet)
-			}
-		}
-		subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks = filtersBlocksOnSubnet
+		subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks = splitSubnetOriginalBlock(subnetsBlocks[*subnetObj.CRN].subnetOriginalBlock, filtersBlocks[*subnetObj.VPC.CRN])
 	}
-	return nil
+}
+
+func splitSubnetOriginalBlock(subnetOriginalBlock *ipblock.IPBlock, filtersBlocks []*ipblock.IPBlock) []*ipblock.IPBlock {
+	filtersBlocksOnSubnet := []*ipblock.IPBlock{}
+	for _, filterBlock := range filtersBlocks {
+		filterBlocksOnSubnet := subnetOriginalBlock.Intersect(filterBlock)
+		if !filterBlocksOnSubnet.IsEmpty() {
+			filtersBlocksOnSubnet = append(filtersBlocksOnSubnet, filterBlocksOnSubnet)
+		}
+	}
+	return filtersBlocksOnSubnet
 }
 
 // getSubnetsFreeBlocks() - calc all the addresses that are not allocated:
@@ -156,10 +155,14 @@ func getFiltersBlocks(rc *datamodel.ResourcesContainerModel) (filtersBlocks, err
 	if err := blocks.addSGRulesBlocks(rc); err != nil {
 		return nil, err
 	}
+	blocks.disjointBlocks()
+	return blocks, nil
+}
+
+func (blocks filtersBlocks) disjointBlocks() {
 	for vpc := range blocks {
 		blocks[vpc] = ipblock.DisjointIPBlocks(blocks[vpc], []*ipblock.IPBlock{ipblock.GetCidrAll()})
 	}
-	return blocks, nil
 }
 
 func (blocks filtersBlocks) addACLRuleBlocks(rc *datamodel.ResourcesContainerModel) error {
