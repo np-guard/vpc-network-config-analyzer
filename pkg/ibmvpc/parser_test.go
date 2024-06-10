@@ -89,28 +89,28 @@ func TestGetRegionByName(t *testing.T) {
 
 func TestSubnetsBlocks(t *testing.T) {
 	subnetsBlocks := subnetsIPBlocks{}
-	subnetId, vpcId := "subId1", "vpcId"
+	subnetID, vpcID := "subId1", "vpcId"
 	subnetOrigBlock, _ := ipblock.FromCidr("10.240.0.0/23")
-	subnetsBlocks[subnetId] = &subnetIPBlocks{subnetOriginalBlock: subnetOrigBlock}
+	subnetsBlocks[subnetID] = &subnetIPBlocks{subnetOriginalBlock: subnetOrigBlock}
 	filtersBlocks := filtersBlocks{}
 	filterBlock1, _ := ipblock.FromCidr("10.230.0.0/23")
 	filterBlock2, _ := ipblock.FromCidr("10.240.0.0/24")
 	filterBlock3, _ := ipblock.FromCidr("10.240.1.0/25")
 	filterBlock4, _ := ipblock.FromCidr("10.240.1.128/25")
 
-	filtersBlocks[vpcId] = []*ipblock.IPBlock{filterBlock1, filterBlock2, filterBlock3, filterBlock4}
+	filtersBlocks[vpcID] = []*ipblock.IPBlock{filterBlock1, filterBlock2, filterBlock3, filterBlock4}
 	filtersBlocks.disjointBlocks()
-	subnetsBlocks[subnetId].splitByFiltersBlocks = splitSubnetOriginalBlock(subnetsBlocks[subnetId].subnetOriginalBlock, filtersBlocks[vpcId])
-	subnetsBlocks[subnetId].freeAddressesBlocks = subnetsBlocks[subnetId].splitByFiltersBlocks
-	require.True(t, len(subnetsBlocks.subnetBlocks(subnetId)) == 3)
+	subnetsBlocks[subnetID].splitByFiltersBlocks = splitSubnetOriginalBlock(subnetsBlocks[subnetID].subnetOriginalBlock, filtersBlocks[vpcID])
+	subnetsBlocks[subnetID].freeAddressesBlocks = subnetsBlocks[subnetID].splitByFiltersBlocks
+	require.True(t, len(subnetsBlocks.subnetBlocks(subnetID)) == 3)
 	blockIndexes := []int{0, 0, 1, 2, 1, 2, 1}
 	allocatedAddresses := make([]string, len(blockIndexes))
-	for i, index := range blockIndexes {
-		a, _ := subnetsBlocks.allocSubnetFreeAddress(subnetId, index)
-		allocatedAddresses[i] = a
+	for i, blockIndex := range blockIndexes {
+		address, _ := subnetsBlocks.allocSubnetFreeAddress(subnetID, blockIndex)
+		allocatedAddresses[i] = address
 	}
 	slices.Sort(allocatedAddresses)
-	er := []string{
+	expectedResult := []string{
 		"10.240.0.0",
 		"10.240.0.1",
 		"10.240.1.0",
@@ -119,5 +119,5 @@ func TestSubnetsBlocks(t *testing.T) {
 		"10.240.1.129",
 		"10.240.1.130",
 	}
-	require.Equal(t, er, allocatedAddresses)
+	require.Equal(t, expectedResult, allocatedAddresses)
 }

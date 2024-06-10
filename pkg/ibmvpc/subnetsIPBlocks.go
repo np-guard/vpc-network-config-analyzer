@@ -83,7 +83,8 @@ func (subnetsBlocks subnetsIPBlocks) getSubnetsOriginalBlocks(rc *datamodel.Reso
 // for each subnet it gets all the blocks that intersect with subnet original block
 func (subnetsBlocks subnetsIPBlocks) splitSubnetsOriginalBlocks(rc *datamodel.ResourcesContainerModel, filtersBlocks filtersBlocks) {
 	for _, subnetObj := range rc.SubnetList {
-		subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks = splitSubnetOriginalBlock(subnetsBlocks[*subnetObj.CRN].subnetOriginalBlock, filtersBlocks[*subnetObj.VPC.CRN])
+		subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks =
+			splitSubnetOriginalBlock(subnetsBlocks[*subnetObj.CRN].subnetOriginalBlock, filtersBlocks[*subnetObj.VPC.CRN])
 	}
 }
 
