@@ -7,6 +7,8 @@ SPDX-License-Identifier: Apache-2.0
 package ibmvpc
 
 import (
+	"fmt"
+
 	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
@@ -37,15 +39,34 @@ If no match is found, the packet is dropped.
 This behavior can be avoided with a custom routing table default route with an action of drop.
 */
 type systemImplicitRT struct {
-	vpc    *VPC // parent VPC
-	config *systemRTConfig
+	vpc       *VPC // parent VPC
+	config    *systemRTConfig
+	vpcConfig *vpcmodel.VPCConfig
 	// TODO: should be per zone in vpc
+}
+
+func newSystemImplicitRT(vpcConfig *vpcmodel.VPCConfig) *systemImplicitRT {
+	return &systemImplicitRT{
+		// todo: add method getVPC() for vpcConfig instead of casting types here
+		vpc:       (vpcConfig.VPC).(*VPC),
+		config:    systemRTConfigFromVPCConfig(vpcConfig),
+		vpcConfig: vpcConfig,
+	}
 }
 
 type systemRTConfig struct {
 	tgwList []*TransitGateway
 	fipList []*FloatingIP
 	pgwList []*PublicGateway
+}
+
+func (rt *systemImplicitRT) destAsPath(dest *ipblock.IPBlock) vpcmodel.Path {
+	internalNodes := rt.vpcConfig.GetNodesWithinInternalAddress(dest)
+	if len(internalNodes) != 1 {
+		// TODO: add error handling here?
+		return nil
+	}
+	return vpcmodel.PathFromResource(internalNodes[0])
 }
 
 func systemRTConfigFromVPCConfig(vpcConfig *vpcmodel.VPCConfig) *systemRTConfig {
@@ -83,27 +104,37 @@ func pgwHasSource(src vpcmodel.Node, pgw *PublicGateway) bool {
 	// another option: compare by nodes within pgw.src (currently breaks test)
 }
 
-// getPath returns a path from src to dst if such exists, or nil otherwise
+// getIngressPath returns a path to dest
+func (rt *systemImplicitRT) getIngressPath(dest *ipblock.IPBlock) (vpcmodel.Path, error) {
+	// traffic from some source is by default simply routed to dest node
+	path := rt.destAsPath(dest)
+	if len(path) == 0 {
+		return nil, fmt.Errorf("getIngressPath: failed to find path to dest resource address %s in VPC %s", dest.String(), rt.vpc.Name())
+	}
+	return path, nil
+}
+
+// getEgressPath returns a path from src to dst if such exists, or nil otherwise
 // TODO: src should be InternalNodeIntf, but it does not implement VPCResourceIntf
-func (rt *systemImplicitRT) getPath(src vpcmodel.Node, dest *ipblock.IPBlock) vpcmodel.Path {
+func (rt *systemImplicitRT) getEgressPath(src vpcmodel.Node, dest *ipblock.IPBlock) vpcmodel.Path {
 	// TODO: split dest by disjoint ip-blocks of the vpc-config (the known destinations ip-blocks)
 
 	if dest.ContainedIn(rt.vpc.AddressPrefixes()) {
 		// direct connection
-		return []*vpcmodel.Endpoint{{VpcResource: src}, {IPBlock: dest}}
+		return vpcmodel.ConcatPaths(vpcmodel.PathFromResource(src), rt.destAsPath(dest))
 	}
 
 	if isDestPublicInternet(dest) {
 		for _, fip := range rt.config.fipList {
 			if fipHasSource(src, fip) {
 				// path through fip
-				return []*vpcmodel.Endpoint{{VpcResource: src}, {VpcResource: fip}, {IPBlock: dest}}
+				return vpcmodel.ConcatPaths(vpcmodel.PathFromResource(src), vpcmodel.PathFromResource(fip), vpcmodel.PathFromIPBlock(dest))
 			}
 		}
 		for _, pgw := range rt.config.pgwList {
 			if pgwHasSource(src, pgw) {
 				// path through pgw
-				return []*vpcmodel.Endpoint{{VpcResource: src}, {VpcResource: pgw}, {IPBlock: dest}}
+				return vpcmodel.ConcatPaths(vpcmodel.PathFromResource(src), vpcmodel.PathFromResource(pgw), vpcmodel.PathFromIPBlock(dest))
 			}
 		}
 		// no path to public internet from src node
@@ -128,7 +159,8 @@ func (rt *systemImplicitRT) getPath(src vpcmodel.Node, dest *ipblock.IPBlock) vp
 			for _, prefix := range availablePrefixes {
 				if dest.ContainedIn(prefix) {
 					// path through tgw
-					return []*vpcmodel.Endpoint{{VpcResource: src}, {VpcResource: tgw}, {IPBlock: dest}}
+					// TODO: should be concatenated to path from tgw to dest by ingress routing table in the second vpc
+					return vpcmodel.ConcatPaths(vpcmodel.PathFromResource(src), vpcmodel.PathFromTGWResource(tgw, vpcUID))
 				}
 			}
 		}
