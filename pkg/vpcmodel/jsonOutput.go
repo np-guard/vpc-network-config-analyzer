@@ -76,19 +76,17 @@ type allInfo struct {
 func getConnLines(conn *VPCConnectivity) []connLine {
 	connLines := []connLine{}
 
-	bidirectional, unidirectional := conn.SplitAllowedConnsToUnidirectionalAndBidirectional()
-	for src, srcMap := range conn.AllowedConnsCombined {
-		for dst, conn := range srcMap {
-			if conn.IsEmpty() {
+	for src, srcMap := range conn.AllowedConnsCombinedResponsive {
+		for dst, extConn := range srcMap {
+			if extConn.isEmpty() {
 				continue
 			}
-			unidirectionalConn := unidirectional.getAllowedConnForPair(src, dst)
-			bidirectionalConn := bidirectional.getAllowedConnForPair(src, dst)
-			if !unidirectionalConn.IsEmpty() {
-				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: connection.ToJSON(bidirectionalConn),
-					UnidirectionalConn: connection.ToJSON(unidirectionalConn)})
+			responsiveAndOther := extConn.tcpRspEnable.Union(extConn.nonTCP)
+			if !extConn.tcpRspDisable.IsEmpty() {
+				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: connection.ToJSON(responsiveAndOther),
+					UnidirectionalConn: connection.ToJSON(extConn.tcpRspDisable)})
 			} else {
-				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: connection.ToJSON(conn)})
+				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: connection.ToJSON(extConn.allConn)})
 			}
 		}
 	}
@@ -113,16 +111,16 @@ type allSubnetsConnectivity struct {
 
 func getConnLinesForSubnetsConnectivity(conn *VPCsubnetConnectivity) []connLine {
 	connLines := []connLine{}
-	for src, nodeConns := range conn.AllowedConnsCombined {
-		for dst, conns := range nodeConns {
-			if conns.IsEmpty() {
+	for src, nodeConns := range conn.AllowedConnsCombinedResponsive {
+		for dst, extConns := range nodeConns {
+			if extConns.isEmpty() {
 				continue
 			}
 			// currently not supported with grouping
 			connLines = append(connLines, connLine{
 				Src:  src,
 				Dst:  dst,
-				Conn: connection.ToJSON(conns),
+				Conn: connection.ToJSON(extConns.allConn),
 			})
 		}
 	}
@@ -169,7 +167,7 @@ func getDirectionalDiffLines(connectDiff connectivityDiff) []diffLine {
 				diffDstStr = getDiffDstOther(connDiff.diff)
 			}
 			diffLines = append(diffLines, diffLine{diffSrcStr, diffDstStr,
-				src, dst, connection.ToJSON(connDiff.conn1), connection.ToJSON(connDiff.conn2)})
+				src, dst, connection.ToJSON(connDiff.conn1.allConn), connection.ToJSON(connDiff.conn2.allConn)})
 		}
 	}
 

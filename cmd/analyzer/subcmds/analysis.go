@@ -9,10 +9,15 @@ package subcmds
 import (
 	"fmt"
 
+	"github.com/spf13/cobra"
+
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
-func analysisVPCConfigs(inArgs *inArgs, analysisType vpcmodel.OutputUseCase) error {
+func analysisVPCConfigs(cmd *cobra.Command, inArgs *inArgs, analysisType vpcmodel.OutputUseCase) error {
+	cmd.SilenceUsage = true  // if we got this far, flags are syntactically correct, so no need to print usage
+	cmd.SilenceErrors = true // also, error will be printed to logger in main(), so no need for cobra to also print it
+
 	vpcConfigs, err := buildConfigs(inArgs)
 	if err != nil {
 		return err

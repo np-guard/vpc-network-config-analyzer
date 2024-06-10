@@ -12,7 +12,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/ipblock"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
@@ -140,12 +139,6 @@ func (m *mockSubnet) VPC() VPCResourceIntf {
 	return m.vpc
 }
 
-func newAllConnectionsWithStateful(isStateful connection.StatefulState) *connection.Set {
-	res := connection.All()
-	res.IsStateful = isStateful
-	return res
-}
-
 func newVPCConfigTest1() (*VPCConfig, *VPCConnectivity) {
 	res := &VPCConfig{Nodes: []Node{}}
 	res.Nodes = append(res.Nodes,
@@ -156,9 +149,10 @@ func newVPCConfigTest1() (*VPCConfig, *VPCConnectivity) {
 	res.Subnets = append(res.Subnets, &mockSubnet{nil, "10.0.20.0/22", "subnet1", []Node{res.Nodes[0]}})
 	res.Nodes[0].(*mockNetIntf).subnet = res.Subnets[0]
 
-	res1 := &VPCConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], connection.All())
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], connection.All())
+	res1 := &VPCConnectivity{AllowedConnsCombinedResponsive: GeneralResponsiveConnectivityMap{}}
+	conn := detailedConnForAllRsp()
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[0], res.Nodes[1], conn)
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[0], res.Nodes[2], conn)
 	return res, res1
 }
 
@@ -174,11 +168,12 @@ func newVPCConfigTest2() (*VPCConfig, *VPCConnectivity) {
 	res.Nodes[0].(*mockNetIntf).subnet = res.Subnets[0]
 	res.Nodes[3].(*mockNetIntf).subnet = res.Subnets[0]
 
-	res1 := &VPCConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], connection.All())
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], connection.All())
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[3], res.Nodes[1], connection.All())
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[3], res.Nodes[2], connection.All())
+	res1 := &VPCConnectivity{AllowedConnsCombinedResponsive: GeneralResponsiveConnectivityMap{}}
+	conn := detailedConnForAllRsp()
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[0], res.Nodes[1], conn)
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[0], res.Nodes[2], conn)
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[3], res.Nodes[1], conn)
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[3], res.Nodes[2], conn)
 
 	return res, res1
 }
@@ -217,9 +212,9 @@ func TestGroupingPhase2(t *testing.T) {
 	fmt.Println("done")
 }
 
-// connections from vsi1 should be grouped since both stateful
-// connections from vsi2 should not be grouped since one stateful and one not
-func configStatefulGrouping() (*VPCConfig, *VPCConnectivity) {
+// connections from vsi1 should be grouped since both responsive
+// connections from vsi2 should not be grouped since one responsive and one not
+func configResponsiveGrouping() (*VPCConfig, *VPCConnectivity) {
 	res := &VPCConfig{Nodes: []Node{}}
 	res.Nodes = append(res.Nodes,
 		&mockNetIntf{cidr: "10.0.20.5/32", name: "vsi1"},
@@ -231,28 +226,29 @@ func configStatefulGrouping() (*VPCConfig, *VPCConnectivity) {
 	res.Nodes[0].(*mockNetIntf).subnet = res.Subnets[0]
 	res.Nodes[3].(*mockNetIntf).subnet = res.Subnets[0]
 
-	res1 := &VPCConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], newAllConnectionsWithStateful(connection.StatefulTrue))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], newAllConnectionsWithStateful(connection.StatefulTrue))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[3], res.Nodes[1], newAllConnectionsWithStateful(connection.StatefulTrue))
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[3], res.Nodes[2],
-		newAllConnectionsWithStateful(connection.StatefulFalse))
+	res1 := &VPCConnectivity{AllowedConnsCombinedResponsive: GeneralResponsiveConnectivityMap{}}
+	conn := detailedConnForAllRsp()
+	nonResponsiveConn := detailedConnForTCPRspAndNonTCP(newTCPSet(), AllConns())
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[0], res.Nodes[1], conn)
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[0], res.Nodes[2], conn)
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[3], res.Nodes[1], conn)
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[3], res.Nodes[2], nonResponsiveConn)
 
 	return res, res1
 }
 
-func TestStatefulGrouping(t *testing.T) {
-	c, v := configStatefulGrouping()
+func TestResponsiveGrouping(t *testing.T) {
+	c, v := configResponsiveGrouping()
 	res := &GroupConnLines{config: c, nodesConn: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
 		cacheGrouped: newCacheGroupedElements()}
 	err := res.groupExternalAddresses(true)
 	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(true, true)
 	groupingStr := res.String(c)
+	fmt.Println(groupingStr)
 	require.Equal(t, "vsi1 => Public Internet 1.2.0.0/22,8.8.8.8/32 : All Connections\n"+
 		"vsi2 => Public Internet 1.2.0.0/22 : All Connections\n"+
-		"vsi2 => Public Internet 8.8.8.8/32 : All Connections *\n", groupingStr)
-	fmt.Println(groupingStr)
+		"vsi2 => Public Internet 8.8.8.8/32 : All Connections * \n", groupingStr)
 	fmt.Println("done")
 }
 
@@ -266,9 +262,10 @@ func configIPRange() (*VPCConfig, *VPCConnectivity) {
 	res.Subnets = append(res.Subnets, &mockSubnet{nil, "10.0.20.0/22", "subnet1", []Node{res.Nodes[0]}})
 	res.Nodes[0].(*mockNetIntf).subnet = res.Subnets[0]
 
-	res1 := &VPCConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], connection.All())
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], connection.All())
+	res1 := &VPCConnectivity{AllowedConnsCombinedResponsive: GeneralResponsiveConnectivityMap{}}
+	conn := detailedConnForAllRsp()
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[0], res.Nodes[1], conn)
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[0], res.Nodes[2], conn)
 	return res, res1
 }
 
@@ -298,13 +295,14 @@ func configSelfLoopClique() (*VPCConfig, *VPCConnectivity) {
 	res.Nodes[1].(*mockNetIntf).subnet = res.Subnets[0]
 	res.Nodes[2].(*mockNetIntf).subnet = res.Subnets[0]
 
-	res1 := &VPCConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], connection.All())
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], connection.All())
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[1], res.Nodes[0], connection.All())
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[1], res.Nodes[2], connection.All())
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[2], res.Nodes[1], connection.All())
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[2], res.Nodes[0], connection.All())
+	res1 := &VPCConnectivity{AllowedConnsCombinedResponsive: GeneralResponsiveConnectivityMap{}}
+	conn := detailedConnForAllRsp()
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[0], res.Nodes[1], conn)
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[0], res.Nodes[2], conn)
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[1], res.Nodes[0], conn)
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[1], res.Nodes[2], conn)
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[2], res.Nodes[1], conn)
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[2], res.Nodes[0], conn)
 
 	return res, res1
 }
@@ -337,13 +335,14 @@ func configSelfLoopCliqueDiffSubnets() (*VPCConfig, *VPCConnectivity) {
 	res.Nodes[1].(*mockNetIntf).subnet = res.Subnets[0]
 	res.Nodes[2].(*mockNetIntf).subnet = res.Subnets[1]
 
-	res1 := &VPCConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], connection.All())
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], connection.All())
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[1], res.Nodes[0], connection.All())
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[1], res.Nodes[2], connection.All())
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[2], res.Nodes[1], connection.All())
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[2], res.Nodes[0], connection.All())
+	res1 := &VPCConnectivity{AllowedConnsCombinedResponsive: GeneralResponsiveConnectivityMap{}}
+	conn := detailedConnForAllRsp()
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[0], res.Nodes[1], conn)
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[0], res.Nodes[2], conn)
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[1], res.Nodes[0], conn)
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[1], res.Nodes[2], conn)
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[2], res.Nodes[1], conn)
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[2], res.Nodes[0], conn)
 
 	return res, res1
 }
@@ -379,10 +378,11 @@ func configSimpleSelfLoop() (*VPCConfig, *VPCConnectivity) {
 	res.Nodes[1].(*mockNetIntf).subnet = res.Subnets[0]
 	res.Nodes[2].(*mockNetIntf).subnet = res.Subnets[0]
 
-	res1 := &VPCConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], connection.All())
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], connection.All())
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[1], res.Nodes[2], connection.All())
+	res1 := &VPCConnectivity{AllowedConnsCombinedResponsive: GeneralResponsiveConnectivityMap{}}
+	conn := detailedConnForAllRsp()
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[0], res.Nodes[1], conn)
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[0], res.Nodes[2], conn)
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[1], res.Nodes[2], conn)
 
 	return res, res1
 }
@@ -424,15 +424,16 @@ func configSelfLoopCliqueLace() (*VPCConfig, *VPCConnectivity) {
 	res.Nodes[3].(*mockNetIntf).subnet = res.Subnets[0]
 	res.Nodes[4].(*mockNetIntf).subnet = res.Subnets[0]
 
-	res1 := &VPCConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[1], connection.All())
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[0], res.Nodes[2], connection.All())
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[1], res.Nodes[0], connection.All())
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[1], res.Nodes[2], connection.All())
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[2], res.Nodes[1], connection.All())
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[2], res.Nodes[0], connection.All())
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[2], res.Nodes[3], connection.All())
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Nodes[3], res.Nodes[4], connection.All())
+	res1 := &VPCConnectivity{AllowedConnsCombinedResponsive: GeneralResponsiveConnectivityMap{}}
+	conn := detailedConnForAllRsp()
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[0], res.Nodes[1], conn)
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[0], res.Nodes[2], conn)
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[1], res.Nodes[0], conn)
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[1], res.Nodes[2], conn)
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[2], res.Nodes[1], conn)
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[2], res.Nodes[0], conn)
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[2], res.Nodes[3], conn)
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[3], res.Nodes[4], conn)
 
 	return res, res1
 }
@@ -471,13 +472,14 @@ func configSubnetSelfLoop() (*VPCConfig, *VPCsubnetConnectivity) {
 	res.Nodes[1].(*mockNetIntf).subnet = res.Subnets[1]
 	res.Nodes[2].(*mockNetIntf).subnet = res.Subnets[2]
 
-	res1 := &VPCsubnetConnectivity{AllowedConnsCombined: GeneralConnectivityMap{}}
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Subnets[0], res.Subnets[1], connection.All())
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Subnets[0], res.Subnets[2], connection.All())
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Subnets[1], res.Subnets[0], connection.All())
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Subnets[1], res.Subnets[2], connection.All())
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Subnets[2], res.Subnets[0], connection.All())
-	res1.AllowedConnsCombined.updateAllowedConnsMap(res.Subnets[2], res.Subnets[1], connection.All())
+	res1 := &VPCsubnetConnectivity{AllowedConnsCombinedResponsive: GeneralResponsiveConnectivityMap{}}
+	conn := detailedConnForAllRsp()
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Subnets[0], res.Subnets[1], conn)
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Subnets[0], res.Subnets[2], conn)
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Subnets[1], res.Subnets[0], conn)
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Subnets[1], res.Subnets[2], conn)
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Subnets[2], res.Subnets[0], conn)
+	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Subnets[2], res.Subnets[1], conn)
 
 	return res, res1
 }
