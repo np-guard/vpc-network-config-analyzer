@@ -1430,6 +1430,9 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 			return nil, err
 		}
 		// we want a pip for every subnet:
+		if len(subnetsBlocks.subnetBlocks(*subnetObj.CRN)) > 1{
+			logging.Warnf("subnet %s is spit by filters, more than one private IP is created\n", *subnetObj.Name)
+		}
 		for blockIndex, subnetBlock := range subnetsBlocks.subnetBlocks(*subnetObj.CRN) {
 			// first get name, id, address, publicAddress:
 			var name, id, address, publicAddress string
