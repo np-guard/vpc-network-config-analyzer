@@ -451,17 +451,21 @@ func getLayersToPrint(filtersRelevant map[string]bool, isIngress bool) (filterLa
 	return orderedRelevantFiltersLayers
 }
 
-func (e *ConnWithStateful) respondString() string {
-	// no tcp component - ill-relevant
-	if e.conn.Equal(e.otherConn) {
+func (e *detailedConn) respondString() string {
+	switch {
+	case e.allConn.Equal(e.nonTCP):
+		// no tcp component - ill-relevant
 		return ""
+	case e.tcpRspEnable.IsEmpty():
+		// no tcp responsive component
+		return "\tTCP respond is blocked"
+	case e.tcpRspEnable.Equal(e.allConn):
+		// tcp responsive component is the entire connection
+		return "\tThe entire connection is TCP responsive"
+	case e.tcpRspDisable.IsEmpty():
+		return "\tThe TCP sub-connection is responsive"
+	default:
+		return "\tTCP respond is enabled on " + e.tcpRspEnable.String()
+
 	}
-	if e.statefulConn.IsEmpty() {
-		return "TCP respond is blocked"
-	}
-	respondStr := "\tRespond enabled on "
-	if e.nonStatefulConn.IsEmpty() {
-		return respondStr + "the entire TCP component"
-	}
-	return respondStr + e.statefulConn.String()
 }
