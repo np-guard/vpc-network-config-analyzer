@@ -684,7 +684,7 @@ var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{
 
 // uncomment the function below to run for updating the expected output
 /*
-var formatsAvoidOutputGeneration = map[vpcmodel.OutFormat]bool{vpcmodel.ARCHDRAWIO: true, vpcmodel.DRAWIO: true}
+var formatsAvoidOutputGeneration = formatsAvoidComparison
 
 func TestAllWithGeneration(t *testing.T) {
 	// tests is the list of tests to run
