@@ -38,7 +38,7 @@ type srcDstDetails struct {
 	egressEnabled  bool
 	// the connection between src to dst, in case the connection was not part of the query;
 	// the part of the connection relevant to the query otherwise.
-	conn           *connection.Set
+	conn           *detailedConn
 	externalRouter RoutingResource // the router (fip or pgw) to external network; nil if none or not relevant
 	crossVpcRouter RoutingResource // the (currently only tgw) router between src and dst from different VPCs; nil if none or not relevant
 	crossVpcRules  []RulesInTable  // cross vpc (only tgw at the moment) prefix rules effecting the connection (or lack of)
@@ -156,7 +156,7 @@ func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node,
 			if err != nil {
 				return nil, err
 			}
-			rulesThisSrcDst := &srcDstDetails{src: src, dst: dst, conn: connection.None(),
+			rulesThisSrcDst := &srcDstDetails{src: src, dst: dst, conn: emptyDetailedConn(),
 				potentialAllowRules: allowRules, potentialDenyRules: denyRules}
 			rulesAndConn = append(rulesAndConn, rulesThisSrcDst)
 		}
@@ -436,11 +436,12 @@ func (details *rulesAndConnDetails) computeConnections(c *VPCConfig,
 			return err
 		}
 		if connQuery != nil { // connection is part of the query
-			srcDstDetails.conn = conn.Intersect(connQuery)
+			srcDstDetails.conn = newDetailedConn(conn.tcpRspEnable.Intersect(connQuery),
+				conn.nonTCP.Intersect(connQuery), conn.allConn.Intersect(connQuery))
 		} else {
 			srcDstDetails.conn = conn
 		}
-		srcDstDetails.connEnabled = !srcDstDetails.conn.IsEmpty()
+		srcDstDetails.connEnabled = !srcDstDetails.conn.isEmpty()
 	}
 	return nil
 }
@@ -448,7 +449,7 @@ func (details *rulesAndConnDetails) computeConnections(c *VPCConfig,
 // given that there is a connection between src to dst, gets it
 // if src or dst is a node then the node is from getCidrExternalNodes,
 // thus there is a node in VPCConfig that either equal to or contains it.
-func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (conn *connection.Set, err error) {
+func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (conn *detailedConn, err error) {
 	srcForConnection, err1 := c.getContainingConfigNode(src)
 	if err1 != nil {
 		return nil, err1
@@ -465,7 +466,7 @@ func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (conn *conn
 		return nil, fmt.Errorf(errMsg, dst.Name())
 	}
 	var ok bool
-	srcMapValue, ok := v.AllowedConnsCombined[srcForConnection]
+	srcMapValue, ok := v.AllowedConnsCombinedResponsive[srcForConnection]
 	if ok {
 		conn, ok = srcMapValue[dstForConnection]
 	}

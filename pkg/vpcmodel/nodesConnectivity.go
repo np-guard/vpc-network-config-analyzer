@@ -19,7 +19,7 @@ import (
 // GetVPCNetworkConnectivity computes VPCConnectivity in few steps
 // (1) compute AllowedConns (map[Node]*ConnectivityResult) : ingress or egress allowed conns separately
 // (2) compute AllowedConnsCombined (map[Node]map[Node]*connection.Set) : allowed conns considering both ingress and egress directions
-// (3) compute AllowedConnsCombinedStateful : stateful allowed connections, for which connection in reverse direction is also allowed
+// (3) compute AllowedConnsCombinedResponsive extension of AllowedConnsCombined to contain accurate responsive info
 // (4) if lbAbstraction required - abstract each lb separately
 // (5) if grouping required - compute grouping of connectivity results
 func (c *VPCConfig) GetVPCNetworkConnectivity(grouping, lbAbstraction bool) (res *VPCConnectivity, err error) {
@@ -58,8 +58,8 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping, lbAbstraction bool) (res
 			res.AllowedConnsPerLayer[node][layer].EgressAllowedConns = egressAllowedConnsPerLayer[layer]
 		}
 	}
-	res.computeAllowedConnsCombined()
-	res.computeAllowedStatefulConnections()
+	allowedConnsCombined := res.computeAllowedConnsCombined()
+	res.computeAllowedResponsiveConnections(allowedConnsCombined)
 	res.abstractLoadBalancers(c.LoadBalancers, lbAbstraction)
 	res.GroupedConnectivity, err = newGroupConnLines(c, res, grouping)
 	return res, err
@@ -177,7 +177,8 @@ func switchSrcDstNodes(switchOrder bool, src, dst Node) (srcRes, dstRes Node) {
 	return src, dst
 }
 
-func (v *VPCConnectivity) computeCombinedConnectionsPerDirection(isIngressDirection bool, node Node, connectivityRes *ConnectivityResult) {
+func (allowConnCombined *GeneralConnectivityMap) computeCombinedConnectionsPerDirection(isIngressDirection bool, node Node,
+	connectivityRes *ConnectivityResult, allowedConns map[Node]*ConnectivityResult) {
 	for peerNode, conns := range connectivityRes.ingressOrEgressAllowedConns(isIngressDirection) {
 		src, dst := switchSrcDstNodes(!isIngressDirection, peerNode, node)
 		combinedConns := conns
@@ -185,22 +186,22 @@ func (v *VPCConnectivity) computeCombinedConnectionsPerDirection(isIngressDirect
 			if !isIngressDirection {
 				continue
 			}
-			otherDirectionConns := v.AllowedConns[peerNode].ingressOrEgressAllowedConns(!isIngressDirection)[node]
+			otherDirectionConns := allowedConns[peerNode].ingressOrEgressAllowedConns(!isIngressDirection)[node]
 			combinedConns = combinedConns.Intersect(otherDirectionConns)
 		}
-		v.AllowedConnsCombined.updateAllowedConnsMap(src, dst, combinedConns)
+		allowConnCombined.updateAllowedConnsMap(src, dst, combinedConns)
 	}
 }
 
 // computeAllowedConnsCombined computes combination of ingress&egress directions per connection allowed
-// the result for this computation is stateless connections
-// (could be that some of them or a subset of them are stateful,but this is not computed here)
-func (v *VPCConnectivity) computeAllowedConnsCombined() {
-	v.AllowedConnsCombined = GeneralConnectivityMap{}
+// the responsive state of the connectivity is not computed here
+func (v *VPCConnectivity) computeAllowedConnsCombined() GeneralConnectivityMap {
+	allowedConnsCombined := GeneralConnectivityMap{}
 	for node, connectivityRes := range v.AllowedConns {
-		v.computeCombinedConnectionsPerDirection(true, node, connectivityRes)
-		v.computeCombinedConnectionsPerDirection(false, node, connectivityRes)
+		allowedConnsCombined.computeCombinedConnectionsPerDirection(true, node, connectivityRes, v.AllowedConns)
+		allowedConnsCombined.computeCombinedConnectionsPerDirection(false, node, connectivityRes, v.AllowedConns)
 	}
+	return allowedConnsCombined
 }
 
 func getConnectionStr(src, dst, conn, suffix string) string {
@@ -235,36 +236,40 @@ func (v *VPCConnectivity) isConnExternalThroughFIP(src, dst Node) bool {
 	return false
 }
 
-// computeAllowedStatefulConnections adds the statefulness analysis for the computed allowed connections.
-// In the connectivity output, a connection A -> B is stateful on TCP (allows bidrectional flow) if both SG and NACL
+// computeAllowedresponsiveConnectionsOld adds the responsiveness analysis for the computed allowed connections.
+// A connection A -> B is considered responsive if:
+// Each connection A -> B is being split into 3 parts (each of which could be empty)
+// 1. Responsive: A  TCP (allows bidrectional flow) connection s.t.: both SG and NACL
 // (of A and B) allow connection (ingress and egress) from A to B , AND if NACL (of A and B) allow connection
 // (ingress and egress) from B to A .
-// if connection A->B (considering NACL & SG) is allowed with TCP, src_port: x_range, dst_port: y_range,
+// Specifically, if connection A->B (considering NACL & SG) is allowed with TCP, src_port: x_range, dst_port: y_range,
 // and if connection B->A is allowed (considering NACL) with TCP, src_port: z_range, dst_port: w_range, then
-// the stateful allowed connection A->B is TCP , src_port: x&w , dst_port: y&z.
-func (v *VPCConnectivity) computeAllowedStatefulConnections() {
+// the responsive allowed connection A->B is TCP , src_port: x&w , dst_port: y&z.
+// 2. Not responsive: the tcp part of the connection that is not in 1
+// 3. Other: the non-tcp part of the connection (for which the responsive question is non-relevant)
+func (v *VPCConnectivity) computeAllowedResponsiveConnections(allowedConnsCombined GeneralConnectivityMap) {
 	// assuming v.AllowedConnsCombined was already computed
 
 	// allowed connection: src->dst , requires NACL layer to allow dst->src (both ingress and egress)
 	// on overlapping/matching connection-set, (src-dst ports should be switched),
-	// for it to be considered as stateful
+	// for it to be considered responsive
 
-	v.AllowedConnsCombinedStateful = GeneralConnectivityMap{}
+	v.AllowedConnsCombinedResponsive = GeneralResponsiveConnectivityMap{}
 
-	for src, connsMap := range v.AllowedConnsCombined {
+	for src, connsMap := range allowedConnsCombined {
 		for dst, conn := range connsMap {
 			// src and dst here are nodes, always. Thus ignoring potential error in conversion
 			srcNode := src.(Node)
 			dstNode := dst.(Node)
-			// iterate pairs (src,dst) with conn as allowed connectivity, to check stateful aspect
-			if v.isConnExternalThroughFIP(srcNode, dstNode) {
+			// iterate pairs (src,dst) with allConn as allowed connectivity, to check responsive aspect
+			if v.isConnExternalThroughFIP(srcNode, dstNode) { // fip ignores NACL
 				// TODO: this may be ibm-specific. consider moving to ibmvpc
-				v.AllowedConnsCombinedStateful.updateAllowedConnsMap(src, dst, conn)
-				conn.IsStateful = connection.StatefulTrue
+				v.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(src, dst,
+					detailedConnForTCPRspAndNonTCP(conn, conn))
 				continue
 			}
 
-			// get the allowed *stateful* conn result
+			// get the allowed *responsive* conn result
 			// check allowed conns per NACL-layer from dst to src (dst->src)
 			var DstAllowedEgressToSrc, SrcAllowedIngressFromDst *connection.Set
 			// can dst egress to src?
@@ -272,9 +277,10 @@ func (v *VPCConnectivity) computeAllowedStatefulConnections() {
 			// can src ingress from dst?
 			SrcAllowedIngressFromDst = v.getPerLayerConnectivity(statelessLayerName, dstNode, srcNode, true)
 			combinedDstToSrc := DstAllowedEgressToSrc.Intersect(SrcAllowedIngressFromDst)
-			// ConnectionWithStatefulness updates conn with IsStateful value, and returns the stateful subset
+			// ConnectionWithStatefulness returns the stateful subset
 			statefulCombinedConn := conn.WithStatefulness(combinedDstToSrc)
-			v.AllowedConnsCombinedStateful.updateAllowedConnsMap(src, dst, statefulCombinedConn)
+			statefulSet := detailedConnForTCPRspAndNonTCP(statefulCombinedConn, conn)
+			v.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(src, dst, statefulSet)
 		}
 	}
 }
@@ -312,12 +318,12 @@ func (v *VPCConnectivity) getPerLayerConnectivity(layer string, src, dst Node, i
 // see details at nodeSetConnectivityAbstraction()
 func (v *VPCConnectivity) abstractLoadBalancers(loadBalancers []LoadBalancer, lbAbstraction bool) {
 	if lbAbstraction {
-		nodeAbstraction := newNodeSetAbstraction(v.AllowedConnsCombined)
+		nodeAbstraction := newNodeSetAbstraction(v.AllowedConnsCombinedResponsive)
 		for _, lb := range loadBalancers {
 			abstractionInfo := nodeAbstraction.abstractNodeSet(lb)
 			lb.SetAbstractionInfo(abstractionInfo)
 		}
-		v.AllowedConnsCombined = nodeAbstraction.abstractedConnectivity
+		v.AllowedConnsCombinedResponsive = nodeAbstraction.abstractedConnectivity
 	}
 }
 
@@ -327,14 +333,14 @@ const (
 	fipRouter          = "FloatingIP"
 )
 
-func (connectivityMap GeneralConnectivityMap) getCombinedConnsStr() string {
+func (responsiveConnMap GeneralResponsiveConnectivityMap) getCombinedConnsStr(onlyBidirectional bool) string {
 	strList := []string{}
-	for src, nodeConns := range connectivityMap {
-		for dst, conns := range nodeConns {
+	for src, nodeExtendedConns := range responsiveConnMap {
+		for dst, extConns := range nodeExtendedConns {
 			// src and dst here are nodes, always. Thus ignoring potential error in conversion
 			srcNode := src.(Node)
 			dstNode := dst.(Node)
-			if conns.IsEmpty() {
+			if extConns.isEmpty() {
 				continue
 			}
 			srcName := srcNode.CidrOrAddress()
@@ -345,7 +351,13 @@ func (connectivityMap GeneralConnectivityMap) getCombinedConnsStr() string {
 			if dstNode.IsInternal() {
 				dstName = dst.Name()
 			}
-			connsStr := conns.EnhancedString()
+			var connsStr string
+			if onlyBidirectional {
+				bidirectional := extConns.tcpRspEnable.Union(extConns.nonTCP)
+				connsStr = bidirectional.String()
+			} else {
+				connsStr = extConns.string()
+			}
 			strList = append(strList, getConnectionStr(srcName, dstName, connsStr, ""))
 		}
 	}
@@ -355,7 +367,7 @@ func (connectivityMap GeneralConnectivityMap) getCombinedConnsStr() string {
 }
 
 func (v *VPCConnectivity) String() string {
-	return v.AllowedConnsCombined.getCombinedConnsStr()
+	return v.AllowedConnsCombinedResponsive.getCombinedConnsStr(false)
 }
 
 func (v *VPCConnectivity) DetailedString() string {
@@ -375,18 +387,18 @@ func (v *VPCConnectivity) DetailedString() string {
 	res += strings.Join(strList, "")
 	res += "=================================== combined connections:\n"
 	strList = []string{}
-	for src, nodeConns := range v.AllowedConnsCombined {
-		for dst, conns := range nodeConns {
+	for src, nodeConns := range v.AllowedConnsCombinedResponsive {
+		for dst, conn := range nodeConns {
 			// src and dst here are nodes, always. Thus ignoring potential error in conversion
-			strList = append(strList, getConnectionStr(src.(Node).CidrOrAddress(), dst.(Node).CidrOrAddress(), conns.String(), ""))
+			strList = append(strList, getConnectionStr(src.(Node).CidrOrAddress(), dst.(Node).CidrOrAddress(), conn.allConn.String(), ""))
 		}
 	}
 	sort.Strings(strList)
 	res += strings.Join(strList, "")
 	res += "=================================== combined connections - short version:\n"
-	res += v.AllowedConnsCombined.getCombinedConnsStr()
+	res += v.AllowedConnsCombinedResponsive.getCombinedConnsStr(false)
 
 	res += "=================================== stateful combined connections - short version:\n"
-	res += v.AllowedConnsCombinedStateful.getCombinedConnsStr()
+	res += v.AllowedConnsCombinedResponsive.getCombinedConnsStr(true)
 	return res
 }

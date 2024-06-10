@@ -22,15 +22,15 @@ type VPCsubnetConnectivity struct {
 	// computed for each subnet, by iterating its ConfigBasedConnectivityResults for all relevant VPC resources that capture it
 	// a subnet is mapped to its set of  its allowed ingress (egress) communication as captured by
 	// pairs of external ip/subnet+connection
-	// This is auxiliary computation based on which AllowedConnsCombined is computed
+	// This is auxiliary computation based on which AllowedConnsCombinedResponsive is computed
 	// todo: add debug output mode based on this structure
 	AllowedConns map[VPCResourceIntf]*ConfigBasedConnectivityResults
 
 	// combined connectivity - considering both ingress and egress per connection
 	// The main outcome of the computation of which the outputs is based
-	// For each src node provides a map of dsts and the connection it has to these dsts, including stateful attributes
-	// a connection is considered stateful if all paths in it are stateful
-	AllowedConnsCombined GeneralConnectivityMap
+	// For each src node provides a map of dsts and the connection it has to these dsts,
+	// including information regarding the tcp-responsive, tcp-non responsive and non-tcp connection
+	AllowedConnsCombinedResponsive GeneralResponsiveConnectivityMap
 
 	// grouped connectivity result
 	GroupedConnectivity *GroupConnLines
@@ -113,7 +113,7 @@ func (c *VPCConfig) convertIPbasedToSubnetBasedResult(ipconn *IPbasedConnectivit
 	res := NewConfigBasedConnectivityResults()
 
 	for ipb, conn := range ipconn.IngressAllowedConns {
-		// PGW does not allow ingress traffic but the ingress is required for the stateful computation
+		// PGW does not allow ingress traffic but the ingress is required for the responsive computation
 		if namedResources, err := c.ipblockToNamedResourcesInConfig(ipb, !hasPGW); err == nil {
 			for _, n := range namedResources {
 				res.IngressAllowedConns[n] = conn
@@ -214,10 +214,11 @@ func (c *VPCConfig) GetSubnetsConnectivity(includePGW, grouping bool) (*VPCsubne
 	res := &VPCsubnetConnectivity{AllowedConns: subnetsConnectivity, VPCConfig: c}
 
 	// get combined connections from subnetsConnectivity
-	if err3 := res.computeAllowedConnsCombined(); err3 != nil {
+	allowedConnsCombined, err3 := res.computeAllowedConnsCombined()
+	if err3 != nil {
 		return nil, err3
 	}
-	if err4 := res.computeStatefulConnections(); err4 != nil {
+	if err4 := res.computeResponsiveConnections(allowedConnsCombined); err4 != nil {
 		return nil, err4
 	}
 
@@ -251,15 +252,15 @@ func updateSubnetsConnectivityByTransitGateway(src, dst VPCResourceIntf,
 	return NoConns(), nil
 }
 
-func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() error {
-	v.AllowedConnsCombined = map[VPCResourceIntf]map[VPCResourceIntf]*connection.Set{}
+func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() (GeneralConnectivityMap, error) {
+	allowedConnsCombined := GeneralConnectivityMap{}
 	for subnetNodeSet, connsRes := range v.AllowedConns {
 		for peerNode, conns := range connsRes.IngressAllowedConns {
 			src := peerNode
 			dst := subnetNodeSet
 			considerPair, err := v.VPCConfig.shouldConsiderPairForConnectivity(src, dst)
 			if err != nil {
-				return err
+				return nil, err
 			}
 			if !considerPair {
 				continue
@@ -272,25 +273,25 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() error {
 				egressConns := v.AllowedConns[concPeerNode].EgressAllowedConns[subnetNodeSet]
 				if egressConns == nil {
 					// should not get here
-					return fmt.Errorf("could not find egress connection from %s to  %s", concPeerNode.Name(), subnetNodeSet.Name())
+					return nil, fmt.Errorf("could not find egress connection from %s to  %s", concPeerNode.Name(), subnetNodeSet.Name())
 				}
 				combinedConns = conns.Intersect(egressConns)
 				// for subnets cross-vpc connection, add intersection with tgw connectivity (prefix filters)
 				if v.VPCConfig.IsMultipleVPCsConfig {
 					combinedConns, err = updateSubnetsConnectivityByTransitGateway(src, dst, combinedConns, v.VPCConfig)
 					if err != nil {
-						return err
+						return nil, err
 					}
 				}
 			case *ExternalNetwork:
 				// PGW does not allow ingress traffic
 			default:
-				return errors.New(errUnexpectedTypePeerNode)
+				return nil, errors.New(errUnexpectedTypePeerNode)
 			}
 			if combinedConns == nil {
 				continue
 			}
-			v.AllowedConnsCombined.updateAllowedConnsMap(src, dst, combinedConns)
+			allowedConnsCombined.updateAllowedConnsMap(src, dst, combinedConns)
 		}
 		for peerNode, conns := range connsRes.EgressAllowedConns {
 			src := subnetNodeSet
@@ -308,16 +309,17 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() error {
 			case *ExternalNetwork:
 				// do nothing
 			default:
-				return errors.New(errUnexpectedTypePeerNode)
+				return nil, errors.New(errUnexpectedTypePeerNode)
 			}
-			v.AllowedConnsCombined.updateAllowedConnsMap(src, dst, combinedConns)
+			allowedConnsCombined.updateAllowedConnsMap(src, dst, combinedConns)
 		}
 	}
-	return nil
+	return allowedConnsCombined, nil
 }
 
-func (v *VPCsubnetConnectivity) computeStatefulConnections() error {
-	for src, endpointConns := range v.AllowedConnsCombined {
+func (v *VPCsubnetConnectivity) computeResponsiveConnections(allowedConnsCombined GeneralConnectivityMap) error {
+	v.AllowedConnsCombinedResponsive = GeneralResponsiveConnectivityMap{}
+	for src, endpointConns := range allowedConnsCombined {
 		for dst, conn := range endpointConns {
 			if conn.IsEmpty() {
 				continue
@@ -326,16 +328,19 @@ func (v *VPCsubnetConnectivity) computeStatefulConnections() error {
 			var otherDirectionConn *connection.Set
 			switch dstObj.(type) {
 			case NodeSet:
-				otherDirectionConn = v.AllowedConnsCombined[dst][src]
+				otherDirectionConn = allowedConnsCombined[dst][src]
 			case *ExternalNetwork:
-				// subnet to external node is stateful if the subnet's nacl allows ingress from that node.
+				// subnet to external node is responsive if the subnet's nacl allows ingress from that node.
 				// This connection will *not* be considered by AllowedConnsCombined since ingress connection
 				// from external nodes can not be initiated for pgw
 				otherDirectionConn = v.AllowedConns[src].IngressAllowedConns[dst]
 			default:
-				return fmt.Errorf("computeStatefulConnections: unexpected type for input dst")
+				conn.WithStatefulness(otherDirectionConn)
+				return fmt.Errorf("computeResponsiveConnections: unexpected type for input dst")
 			}
-			conn.WithStatefulness(otherDirectionConn)
+			responsiveCombinedConn := conn.WithStatefulness(otherDirectionConn)
+			conn := detailedConnForTCPRspAndNonTCP(responsiveCombinedConn, conn)
+			v.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(src, dst, conn)
 		}
 	}
 	return nil
