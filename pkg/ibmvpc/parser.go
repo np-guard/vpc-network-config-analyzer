@@ -1288,7 +1288,7 @@ func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 	if len(rc.LBList) == 0 {
 		return nil
 	}
-	subnetsFreeAddresses, err := getSubnetsIPBlocks(rc)
+	subnetsIPBlocks, err := getSubnetsIPBlocks(rc)
 	if err != nil {
 		return err
 	}
@@ -1318,7 +1318,7 @@ func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 		}
 
 		loadBalancer.listeners = getLoadBalancerServer(vpcConfig, loadBalancerObj)
-		privateIPs, err := getLoadBalancerIPs(vpcConfig, loadBalancerObj, loadBalancer, vpc, subnetsFreeAddresses)
+		privateIPs, err := getLoadBalancerIPs(vpcConfig, loadBalancerObj, loadBalancer, vpc, subnetsIPBlocks)
 		if err != nil {
 			return err
 		}
@@ -1433,10 +1433,10 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 		for blockIndex, subnetBlock := range subnetsBlocks.subnetBlocks(*subnetObj.CRN) {
 			// first get name, id, address, publicAddress:
 			var name, id, address, publicAddress string
-			original := subnetsPIPsAddresses[subnet] != nil &&
+			blockHasPrivateIP := subnetsPIPsAddresses[subnet] != nil &&
 				subnetsPIPsAddresses[subnet].ContainedIn(subnetBlock)
-			if original {
-				// subnet has a private IP, we take it from the config
+			if blockHasPrivateIP {
+				// subnet block has a private IP, we take it from the config
 				pIP := loadBalancerObj.PrivateIps[subnetsPIPsIndexes[subnet]]
 				name, id, address = *pIP.Name, *pIP.ID, *pIP.Address
 				if hasPublicAddress {
@@ -1470,7 +1470,7 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 					AddressStr: address,
 				},
 				loadBalancer: loadBalancer,
-				original:     original,
+				original:     blockHasPrivateIP,
 			}
 			if err := privateIP.SetIPBlockFromAddress(); err != nil {
 				return nil, err
