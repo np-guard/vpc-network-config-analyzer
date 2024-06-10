@@ -6,6 +6,8 @@ SPDX-License-Identifier: Apache-2.0
 package ibmvpc
 
 import (
+	"fmt"
+
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
 
 	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
@@ -20,20 +22,29 @@ import (
 
 // to create a private IP which does not exist in the config, we need an unused address.
 // subnetsIPBlocks has two main purposes:
-// 1. for each subnet - calculate the blocks that the subnet cidr was split to
-// 2. allocate a free address for the fake private IPs
-//
+//   1. for each subnet, calculate splitByFiltersBlocks - the blocks that the subnet cidr was split to by the filters.
+//      splitByFiltersBlocks are:
+//   		a. disjoint to each other
+//	    	b. the sum of splitByFiltersBlocks is the subnet cidr
+//      we calculate splitByFiltersBlocks of a subnet by:
+//          (a) collecting all the filters rules blocks.
+//          (b) add the allCidr block to these blocks.
+//          (c) from these blocks, create a list of disjoint blocks
+//          (d) for each of these blocks, intersect the block with the subnet cidr
+//          (e) collect all the non empty intersections we get in (d)
+//          (f) disjoint all the blocks we got in (e) to get splitByFiltersBlocks
+//   2. allocate a free address for the fake private IPs - for this, we holds for each subnet freeAddressesBlocks,
+//      freeAddressesBlocks are splitByFiltersBlocks minus all the addresses that was already allocated.
+//      to get freeAddressesBlocks, we first copy splitByFiltersBlocks, than we remove the subnet already allocated addresses.
+//      (we gets these addresses from the subnet reserved IP).
+//       when a free address is needed, we remove and give the first address of the block from the block.
 
 // /////////////////////////////////////////////////////////////////////////////////////////
-// subnetIPBlocks holds the block of a subnet
+// subnetIPBlocks holds the blocks of a subnet
 type subnetIPBlocks struct {
-	subnetOriginalBlock *ipblock.IPBlock // the block of the original cidr of the subnet
-	// splitByFiltersBlocks - the blocks that  created when all filters rules split the original cidr
-	// splitByFiltersBlocks are disjoint to each other, and their sum is the original cidr
+	subnetOriginalBlock  *ipblock.IPBlock // the block of the original cidr of the subnet
 	splitByFiltersBlocks []*ipblock.IPBlock
-	// freeAddressesBlocks - these are splitByFiltersBlocks minus the already used address
-	// each block in splitByFiltersBlocks has a corresponding block at freeAddressesBlocks
-	freeAddressesBlocks []*ipblock.IPBlock
+	freeAddressesBlocks  []*ipblock.IPBlock // each block in splitByFiltersBlocks has a corresponding block at freeAddressesBlocks
 }
 type subnetsIPBlocks map[string]*subnetIPBlocks
 
@@ -71,7 +82,7 @@ func (subnetsBlocks subnetsIPBlocks) getSubnetsOriginalBlocks(rc *datamodel.Reso
 //  1. split the allCidr to disjoint blocks by the filters rules.
 //  2. for each subnet:
 //     a. for each filter block that intersect with subnet original block, collect the intersection to a slice
-//     b. add the original block ot this slice
+//     b. add the subnet original block ot this slice
 //     c. create a disjoint slice from this slice
 func (subnetsBlocks subnetsIPBlocks) splitSubnetsOriginalBlocks(rc *datamodel.ResourcesContainerModel) error {
 	filtersBlocks, err := getFiltersBlocks(rc)
@@ -169,6 +180,8 @@ func (blocks filtersBlocks) addACLRuleBlocks(rc *datamodel.ResourcesContainerMod
 			case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolIcmp:
 				src = ruleObj.Source
 				dst = ruleObj.Destination
+			default:
+				return fmt.Errorf("ACL has unsupported type for rule: %s ", *aclObj.Name)
 			}
 			if err := blocks.addBlocks(*aclObj.VPC.CRN, []*string{src, dst}); err != nil {
 				return err
@@ -192,6 +205,8 @@ func (blocks filtersBlocks) addSGRulesBlocks(rc *datamodel.ResourcesContainerMod
 			case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolIcmp:
 				remote = ruleObj.Remote.(*vpc1.SecurityGroupRuleRemote).CIDRBlock
 				local = ruleObj.Local.(*vpc1.SecurityGroupRuleLocal).CIDRBlock
+			default:
+				return fmt.Errorf("SG has unsupported type for rule: %s ", *sgObj.Name)
 			}
 			if err := blocks.addBlocks(*sgObj.VPC.CRN, []*string{remote, local}); err != nil {
 				return err
