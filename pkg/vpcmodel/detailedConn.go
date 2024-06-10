@@ -13,9 +13,14 @@ import (
 
 // todo: remove stateful from connection.Set
 
-// detailedConn captures the connection with connection's responsive details, as described below.
-// It is created from src to dest allowed connection (TCP and non-TCP) and response dest to src allowed connection
-// (TCP and non-TCP); further entities of the connection may be created from operations as union e.g. for abstraction
+// detailedConn captures the connection with TCP's responsiveness details, as described below.
+// It is created from src-to-dest allowed connection (TCP and non-TCP) and allowed response
+// connection dest-to-src.
+
+// Note that allowed response connection differs from the allowed dest-to-src connection.
+// Specifically, this is relevant when in response to a TCP src to dst connection, dest initiates a dst to src response.
+
+// Further entities of the connection may be created from operations as union e.g. for abstraction
 // note: tcpRspDisable is not independent and is calculated based on the other properties;
 // it is kept since it is widely used - to determine if the connection is responsive
 type detailedConn struct {
