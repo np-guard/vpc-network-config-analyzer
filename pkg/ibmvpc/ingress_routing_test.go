@@ -127,7 +127,7 @@ func newHubSpokeBase1Config() (*vpcmodel.MultipleVPCConfigs, *GlobalRTAnalyzer) 
 
 	// second case: use the defined ingress RT (with advertise:on)
 
-	analyzer := newGlobalRTAnalyzer(globalConfig)
+	analyzer := NewGlobalRTAnalyzer(globalConfig)
 
 	return globalConfig, analyzer
 }
@@ -152,7 +152,7 @@ func newHubSpokeBase2Config() (*vpcmodel.MultipleVPCConfigs, *GlobalRTAnalyzer) 
 	// add ingressRT to transit vpc config
 	transitConfig.AddRoutingTable(ingressRT)
 
-	analyzer := newGlobalRTAnalyzer(globalConfig)
+	analyzer := NewGlobalRTAnalyzer(globalConfig)
 	return globalConfig, analyzer
 }
 
@@ -178,7 +178,7 @@ func newHubSpokeBase3Config() (*vpcmodel.MultipleVPCConfigs, *GlobalRTAnalyzer) 
 
 	// add ingressRT to transit vpc config
 	transitConfig.AddRoutingTable(ingressRT)
-	analyzer := newGlobalRTAnalyzer(globalConfig)
+	analyzer := NewGlobalRTAnalyzer(globalConfig)
 	return globalConfig, analyzer
 }
 
@@ -228,7 +228,7 @@ func newHubSpokeBase4Config() (*vpcmodel.MultipleVPCConfigs, *GlobalRTAnalyzer) 
 	spokeConfig.AddRoutingTable(spokeEgressRT)
 	// define routes of the egress routing table for transit vpc
 
-	analyzer := newGlobalRTAnalyzer(globalConfig)
+	analyzer := NewGlobalRTAnalyzer(globalConfig)
 	return globalConfig, analyzer
 }
 
@@ -456,7 +456,7 @@ var config4Tests = []*testGlobalAnalyzer{
 func (tga *testGlobalAnalyzer) run(t *testing.T, globalAnalyzer *GlobalRTAnalyzer, configs *vpcmodel.MultipleVPCConfigs) {
 	srcNode, _ := configs.GetInternalNodeFromAddress(tga.src)
 	dstIPBlock, _ := ipblock.FromIPAddress(tga.dst)
-	path, err := globalAnalyzer.getRoutingPath(srcNode, dstIPBlock)
+	path, err := globalAnalyzer.GetRoutingPath(srcNode, dstIPBlock)
 	fmt.Printf("path: %s\n", path.String())
 	require.Nil(t, err)
 	require.True(t, path.Equal(tga.expectedPath))

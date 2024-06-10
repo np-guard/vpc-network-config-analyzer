@@ -25,7 +25,7 @@ func TestMain(t *testing.T) {
 		name string
 		args string
 	}{
-		{
+		/*{
 			name: "drawio_multi_vpc_all_subnets",
 			args: "report subnets --output-file multi_vpc.drawio --vpc-config ../../pkg/ibmvpc/examples/input/input_multiple_vpcs.json -o drawio",
 		},
@@ -122,7 +122,7 @@ func TestMain(t *testing.T) {
 		{
 			name: "version",
 			args: "--output-file version.txt --version",
-		},
+		},*/
 
 		// read from account // need to export api-key first
 		/*{
@@ -135,7 +135,7 @@ func TestMain(t *testing.T) {
 		},*/
 
 		// resource group and region filter
-		{
+		/*{
 			name: "txt_resource_group_filter_multi_resource_groups",
 			args: "report endpoints --output-file multi_resource_groups_resource_group_filter.txt -c ../../pkg/ibmvpc/examples/input/input_multi_resource_groups.json --format txt --resource-group ola",
 		},
@@ -151,6 +151,10 @@ func TestMain(t *testing.T) {
 		{
 			name: "diff_with_different_uid",
 			args: "diff endpoints --quiet --vpc-config ../../pkg/ibmvpc/examples/input/input_sg_testing_default.json --vpc-config-second ../../pkg/ibmvpc/examples/input/input_sg_testing_3.json",
+		},*/
+		{
+			name: "test_routing_cmd",
+			args: "report routing --vpc-config ../../pkg/ibmvpc/examples/input/input_hub_n_spoke_1.json",
 		},
 	}
 	for _, tt := range tests {

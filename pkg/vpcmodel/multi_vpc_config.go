@@ -85,3 +85,38 @@ func (c *MultipleVPCConfigs) GetVPC(uid string) VPCResourceIntf {
 	}
 	return config.VPC
 }
+
+func (c *MultipleVPCConfigs) GetSubnetByUID(uid string) VPCResourceIntf {
+	for _, vpcConfig := range c.configs {
+		if obj, ok := vpcConfig.UIDToResource[uid]; ok {
+			return obj
+		}
+	}
+	return nil
+}
+
+func (c *MultipleVPCConfigs) GetInternalNodesFromAllVPCs() (res []Node) {
+	for _, vpcConfig := range c.configs {
+		if vpcConfig.IsMultipleVPCsConfig {
+			continue
+		}
+		for _, n := range vpcConfig.Nodes {
+			if n.IsInternal() {
+				res = append(res, n)
+			}
+		}
+	}
+	return res
+}
+
+func (c *MultipleVPCConfigs) GetInternalNodePairs() (res []common.Pair[Node]) {
+	allNodes := c.GetInternalNodesFromAllVPCs()
+	for _, n1 := range allNodes {
+		for _, n2 := range allNodes {
+			if n1.UID() != n2.UID() {
+				res = append(res, common.Pair[Node]{First: n1, Second: n2})
+			}
+		}
+	}
+	return res
+}

@@ -9,6 +9,7 @@ package ibmvpc
 import (
 	"fmt"
 	"slices"
+	"strings"
 
 	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
@@ -21,7 +22,7 @@ type GlobalRTAnalyzer struct {
 	vpcRTAnalyzer map[string]*RTAnalyzer // map from vpc uid to its RTAnalyzer
 }
 
-func newGlobalRTAnalyzer(configs *vpcmodel.MultipleVPCConfigs) *GlobalRTAnalyzer {
+func NewGlobalRTAnalyzer(configs *vpcmodel.MultipleVPCConfigs) *GlobalRTAnalyzer {
 	res := &GlobalRTAnalyzer{
 		vpcRTAnalyzer: map[string]*RTAnalyzer{},
 	}
@@ -42,7 +43,7 @@ func (ga *GlobalRTAnalyzer) getRTAnalyzerPerVPC(vpcUID string) (*RTAnalyzer, err
 	return rtAnalyzer, nil
 }
 
-func (ga *GlobalRTAnalyzer) getRoutingPath(src vpcmodel.InternalNodeIntf, dest *ipblock.IPBlock) (vpcmodel.Path, error) {
+func (ga *GlobalRTAnalyzer) GetRoutingPath(src vpcmodel.InternalNodeIntf, dest *ipblock.IPBlock) (vpcmodel.Path, error) {
 	vpcUID := src.Subnet().VPC().UID()
 	rtAnalyzer, err := ga.getRTAnalyzerPerVPC(vpcUID)
 	if err != nil {
@@ -239,7 +240,6 @@ type route struct {
 	// has any of `route_direct_link_ingress`, `route_internet_ingress`,
 	// `route_transit_gateway_ingress` or `route_vpc_zone_ingress`  set to`true`, traffic
 	// from those ingress sources arriving in this zone will be subject to this route.
-	//nolint:unused // to be used later
 	zone string // Select an availability zone for your route.
 
 	// The next-hop-ip for a route must be in the same zone as the zone the traffic is sourcing from
@@ -291,11 +291,24 @@ func newRoute(name, dest, nextHop string, action action, prio int, advertise boo
 	return res, nil
 }
 
+func (r *route) string() string {
+	switch r.action {
+	case deliver:
+		return fmt.Sprintf("dest: %s, next hop: %s, action: deliver, zone: %s, prio: %d, advertise: %t",
+			r.destination, r.nextHop, r.zone, r.priority, r.advertise)
+	case drop:
+		return fmt.Sprintf("dest: %s, action: drop,  zone: %s, prio: %d", r.destination, r.zone, r.priority)
+	case delegate:
+		return fmt.Sprintf("dest: %s, action: delegate,  zone: %s, prio: %d", r.destination, r.zone, r.priority)
+	case delegateVPC:
+		return fmt.Sprintf("dest: %s, action: delegateVPC,  zone: %s, prio: %d", r.destination, r.zone, r.priority)
+	}
+	return ""
+}
+
 // routingTable implements VPCResourceIntf (TODO: should implement RoutingResource interface or another separate interface?)
 type routingTable struct {
 	vpcmodel.VPCResource
-	//nolint:unused // to be used later
-	name string // should implement VPCResourceIntf instead
 
 	// nextHops is a map from disjoint ip-blocks, after considering route preferences and actions
 	nextHops map[*ipblock.IPBlock]*ipblock.IPBlock // delivered ip-blocks
@@ -418,6 +431,14 @@ func (rt *routingTable) getPath(dest *ipblock.IPBlock) (vpcmodel.Path, bool) {
 	return nil, true
 }
 
+func (rt *routingTable) string() string {
+	routeStrings := make([]string, len(rt.routesList))
+	for i := range rt.routesList {
+		routeStrings[i] = rt.routesList[i].string()
+	}
+	return strings.Join(routeStrings, "\n")
+}
+
 type ingressRTSource int
 
 const (
@@ -484,10 +505,12 @@ func (irt *ingressRoutingTable) advertiseRoutes(vpcConfig *vpcmodel.VPCConfig) {
 		if !routeObj.advertise {
 			continue
 		}
+		logging.Debugf("rt %s - try to advertise route with dest %s", irt.Name(), routeObj.destination)
 
 		routeCidr := routeObj.destIPBlock
 		tgws := getTGWs(vpcConfig)
 		if len(tgws) <= 1 {
+			logging.Debugf("only one tgw -- break")
 			break // nothing to propagate if there is only one TGW connected to this vpc
 		}
 		// find the vpc (with tgw) to which this cidr Y belongs
@@ -495,28 +518,39 @@ func (irt *ingressRoutingTable) advertiseRoutes(vpcConfig *vpcmodel.VPCConfig) {
 		var tgwAB *TransitGateway
 		for _, tgw := range tgws {
 			for _, vpc := range tgw.vpcs {
-				if routeCidr.ContainedIn(vpc.addressPrefixesIPBlock) && vpc.UID() != irt.vpc.UID() {
+				logging.Debugf("check tgw %s with vpc %s, AP %s", tgw.Name(), vpc.Name(), vpc.addressPrefixesIPBlock.ToCidrListString())
+				// TODO: shouldn't be containment rather than intersection?? (works with intersection on hub-n-spoke config object)
+				if vpc.UID() != irt.vpc.UID() && !routeCidr.Intersect(vpc.addressPrefixesIPBlock).IsEmpty() {
 					vpcB = vpc
 					tgwAB = tgw
+					logging.Debugf("found tgwAB: %s,  vpcB: %s ", tgwAB.Name(), vpcB.Name())
 					break
 				}
 			}
 		}
 		if vpcB == nil {
-			break // nothing to propagate if could not find the relevant vpc and its tgw
+			logging.Debugf(" could not find the relevant vpc and its tgw -- break")
+			continue // nothing to propagate if could not find the relevant vpc and its tgw
 		}
 		// find other tgws connected to this VPC (of irt) and
 		// propagate this cidr Y to the available routes from this VPC to those tgws
+		// TODO: this is inaccurate, this cidr is actually published to ALL tgws connected to this VPC,
+		// including the one that has a address-prefix(route) that intersects with this one, and even-though this adds overlaps
+		// in the tgw's available routes table.
 		var tgwAC *TransitGateway
 		for _, tgw := range tgws {
 			if tgw.UID() == tgwAB.UID() {
+				logging.Debugf("skip tgw with same UID as tgwAB")
 				continue
 			}
 			if slices.Contains(tgw.vpcs, vpcB) {
+				logging.Debugf("skip tgw already connected to vpcB")
 				continue // skip any tgw that already has available prefixes from vpc B
 			}
 			tgwAC = tgw // the tgw A-C to which should propagate Y (routeCidr) as available "from" vpcA
 			updateTGWWithAdvertisedRoute(tgwAC, irt.vpc, routeCidr)
+			logging.Debugf("call updateTGWWithAdvertisedRoute for tgw %s, new cidr %s, from vpc %s", tgwAC.Name(),
+				routeCidr.ToCidrListString(), irt.vpc.ResourceName)
 		}
 	}
 }
@@ -556,5 +590,3 @@ func newEgressRoutingTableFromRoutes(routes []*route, subnets []*Subnet, vpcConf
 		vpc:          vpcConfig.VPC.(*VPC),
 	}
 }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
