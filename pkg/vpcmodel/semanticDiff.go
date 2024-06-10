@@ -41,8 +41,8 @@ const (
 )
 
 type connectionDiff struct {
-	conn1          *ConnWithStateful
-	conn2          *ConnWithStateful
+	conn1          *detailedConn
+	conn2          *detailedConn
 	diff           DiffType
 	thisMinusOther bool
 }
@@ -57,7 +57,7 @@ type configsForDiff struct {
 
 type configConnectivity struct {
 	config       *VPCConfig
-	connectivity GeneralStatefulConnectivityMap
+	connectivity GeneralResponsiveConnectivityMap
 }
 
 type diffBetweenCfgs struct {
@@ -74,20 +74,20 @@ type diffBetweenCfgs struct {
 // computes and returns the semantic diff of endpoints or subnets connectivity, as per the required analysis
 func (configs configsForDiff) GetDiff() (*diffBetweenCfgs, error) {
 	// 1. compute connectivity for each of the configurations
-	statefulConnectivityMap1, err := configs.config1.getAllowedStatefulConnections(configs.diffAnalysis)
+	responsiveConnectivityMap1, err := configs.config1.getAllowedResponsiveConnections(configs.diffAnalysis)
 	if err != nil {
 		return nil, err
 	}
-	statefulConnectivityMap2, err := configs.config2.getAllowedStatefulConnections(configs.diffAnalysis)
+	responsiveConnectivityMap2, err := configs.config2.getAllowedResponsiveConnections(configs.diffAnalysis)
 	if err != nil {
 		return nil, err
 	}
 
 	// 2. Computes delta in both directions
 	configConn1 := &configConnectivity{configs.config1,
-		statefulConnectivityMap1}
+		responsiveConnectivityMap1}
 	configConn2 := &configConnectivity{configs.config2,
-		statefulConnectivityMap2}
+		responsiveConnectivityMap2}
 	alignedConfigConnectivity1, alignedConfigConnectivity2, err :=
 		configConn1.getConnectivityWithSameIPBlocks(configConn2)
 	if err != nil {
@@ -115,20 +115,20 @@ func (configs configsForDiff) GetDiff() (*diffBetweenCfgs, error) {
 	return res, nil
 }
 
-func (c *VPCConfig) getAllowedStatefulConnections(
-	diffAnalysis diffAnalysisType) (statefulConnectivityMap GeneralStatefulConnectivityMap, err error) {
+func (c *VPCConfig) getAllowedResponsiveConnections(
+	diffAnalysis diffAnalysisType) (responsiveConnectivityMap GeneralResponsiveConnectivityMap, err error) {
 	if diffAnalysis == Subnets {
 		subnetsConn, err := c.GetSubnetsConnectivity(true, false)
 		if err != nil {
 			return nil, err
 		}
-		return subnetsConn.AllowedConnsCombinedStateful, err
+		return subnetsConn.AllowedConnsCombinedResponsive, err
 	} else if diffAnalysis == Vsis {
 		connectivity1, err := c.GetVPCNetworkConnectivity(false, false)
 		if err != nil {
 			return nil, err
 		}
-		return connectivity1.AllowedConnsCombinedStateful, nil
+		return connectivity1.AllowedConnsCombinedResponsive, nil
 	}
 	return nil, fmt.Errorf("illegal diff analysis type")
 }
@@ -176,8 +176,8 @@ func (confConnectivity *configConnectivity) connMissingOrChanged(other *configCo
 	connectivityMissingOrChanged connectivityDiff, err error) {
 	connectivityMissingOrChanged = map[VPCResourceIntf]map[VPCResourceIntf]*connectionDiff{}
 	for src, endpointConns := range confConnectivity.connectivity {
-		for dst, extendedConns := range endpointConns {
-			if extendedConns.IsEmpty() {
+		for dst, connsResponsive := range endpointConns {
+			if connsResponsive.isEmpty() {
 				continue
 			}
 			if _, ok := connectivityMissingOrChanged[src]; !ok {
@@ -192,12 +192,12 @@ func (confConnectivity *configConnectivity) connMissingOrChanged(other *configCo
 				return nil, err2
 			}
 			// includeChanged indicates if it is thisMinusOther
-			connDiff := &connectionDiff{extendedConns, nil, missingConnection, includeChanged}
+			connDiff := &connectionDiff{connsResponsive, nil, missingConnection, includeChanged}
 			if srcInOther != nil && dstInOther != nil {
 				if otherSrc, ok := other.connectivity[srcInOther]; ok {
 					if otherExtendedConn, ok := otherSrc[dstInOther]; ok {
-						equalConnections := extendedConns.conn.Equal(otherExtendedConn.conn) &&
-							extendedConns.nonStatefulConn.IsEmpty() == otherExtendedConn.nonStatefulConn.IsEmpty()
+						equalConnections := connsResponsive.allConn.Equal(otherExtendedConn.allConn) &&
+							connsResponsive.tcpRspDisable.IsEmpty() == otherExtendedConn.tcpRspDisable.IsEmpty()
 						if !includeChanged || equalConnections {
 							continue
 						}
@@ -288,9 +288,9 @@ func (diffCfgs *diffBetweenCfgs) hasStatelessConns() bool {
 	hasStatelessConns := false
 	for _, grouped := range diffCfgs.groupedLines {
 		if (grouped.commonProperties.connDiff.conn1 != nil &&
-			!grouped.commonProperties.connDiff.conn1.nonStatefulConn.IsEmpty()) ||
+			!grouped.commonProperties.connDiff.conn1.tcpRspDisable.IsEmpty()) ||
 			(grouped.commonProperties.connDiff.conn2 != nil &&
-				!grouped.commonProperties.connDiff.conn2.nonStatefulConn.IsEmpty()) {
+				!grouped.commonProperties.connDiff.conn2.tcpRspDisable.IsEmpty()) {
 			hasStatelessConns = true
 			break
 		}
@@ -299,11 +299,11 @@ func (diffCfgs *diffBetweenCfgs) hasStatelessConns() bool {
 }
 
 // prints connection for the above string(..) where the connection could be empty
-func connStr(extConn *ConnWithStateful) string {
+func connStr(extConn *detailedConn) string {
 	if extConn == nil {
 		return connection.NoConnections
 	}
-	return extConn.EnhancedString()
+	return extConn.string()
 }
 
 func diffAndEndpointsDescription(diff DiffType, src, dst EndpointElem, thisMinusOther bool) (diffDesc, workLoad string) {
@@ -376,10 +376,10 @@ func (confConnectivity *configConnectivity) getConnectivityWithSameIPBlocks(othe
 		&configConnectivity{otherAlignedConfig, alignedOtherConnectivity}, nil
 }
 
-func (statefulConnMap *GeneralStatefulConnectivityMap) alignConnectionsGivenIPBlists(config *VPCConfig,
+func (responsiveConnMap *GeneralResponsiveConnectivityMap) alignConnectionsGivenIPBlists(config *VPCConfig,
 	disjointIPblocks []*ipblock.IPBlock) (
-	alignedConnectivity GeneralStatefulConnectivityMap, err error) {
-	alignedConnectivitySrc, err := statefulConnMap.actualAlignSrcOrDstGivenIPBlists(config, disjointIPblocks, true)
+	alignedConnectivity GeneralResponsiveConnectivityMap, err error) {
+	alignedConnectivitySrc, err := responsiveConnMap.actualAlignSrcOrDstGivenIPBlists(config, disjointIPblocks, true)
 	if err != nil {
 		return nil, err
 	}
@@ -427,25 +427,25 @@ func resizeNodes(oldNodes []Node, disjointIPblocks []*ipblock.IPBlock) (newNodes
 	return newNodes, nil
 }
 
-func (statefulConnMap *GeneralStatefulConnectivityMap) actualAlignSrcOrDstGivenIPBlists(config *VPCConfig,
+func (responsiveConnMap *GeneralResponsiveConnectivityMap) actualAlignSrcOrDstGivenIPBlists(config *VPCConfig,
 	disjointIPblocks []*ipblock.IPBlock, resizeSrc bool) (
-	alignedConnectivity GeneralStatefulConnectivityMap, err error) {
+	alignedConnectivity GeneralResponsiveConnectivityMap, err error) {
 	// goes over all sources of connections in connectivity
 	// if src is external then for each IPBlock in disjointIPblocks copies dsts and connection type
 	// otherwise just copies as is
 	err = nil
-	alignedConnectivity = map[VPCResourceIntf]map[VPCResourceIntf]*ConnWithStateful{}
-	for src, endpointConns := range *statefulConnMap {
-		for dst, extendedConns := range endpointConns {
-			if extendedConns.IsEmpty() {
+	alignedConnectivity = map[VPCResourceIntf]map[VPCResourceIntf]*detailedConn{}
+	for src, endpointConns := range *responsiveConnMap {
+		for dst, connsWithResponsive := range endpointConns {
+			if connsWithResponsive.isEmpty() {
 				continue
 			}
 			// the resizing element is not external - copy as is
 			if (resizeSrc && !src.IsExternal()) || (!resizeSrc && !dst.IsExternal()) {
 				if _, ok := alignedConnectivity[src]; !ok {
-					alignedConnectivity[src] = map[VPCResourceIntf]*ConnWithStateful{}
+					alignedConnectivity[src] = map[VPCResourceIntf]*detailedConn{}
 				}
-				alignedConnectivity[src][dst] = extendedConns
+				alignedConnectivity[src][dst] = connsWithResponsive
 				continue
 			}
 			// the resizing element is external - go over all ipBlock and allocates the connection
@@ -467,15 +467,15 @@ func (statefulConnMap *GeneralStatefulConnectivityMap) actualAlignSrcOrDstGivenI
 			if err != nil {
 				return nil, err
 			}
-			err = addIPBlockToConnectivityMap(config, disjointIPblocks, origIPBlock, alignedConnectivity, src, dst, extendedConns, resizeSrc)
+			err = addIPBlockToConnectivityMap(config, disjointIPblocks, origIPBlock, alignedConnectivity, src, dst, connsWithResponsive, resizeSrc)
 		}
 	}
 	return alignedConnectivity, err
 }
 
 func addIPBlockToConnectivityMap(c *VPCConfig, disjointIPblocks []*ipblock.IPBlock,
-	origIPBlock *ipblock.IPBlock, alignedConnectivity map[VPCResourceIntf]map[VPCResourceIntf]*ConnWithStateful,
-	src, dst VPCResourceIntf, conns *ConnWithStateful, resizeSrc bool) error {
+	origIPBlock *ipblock.IPBlock, alignedConnectivity map[VPCResourceIntf]map[VPCResourceIntf]*detailedConn,
+	src, dst VPCResourceIntf, conns *detailedConn, resizeSrc bool) error {
 	for _, ipBlock := range disjointIPblocks {
 		// get ipBlock of resized index (src/dst)
 		if !ipBlock.ContainedIn(origIPBlock) { // ipBlock not relevant here
@@ -490,12 +490,12 @@ func addIPBlockToConnectivityMap(c *VPCConfig, disjointIPblocks []*ipblock.IPBlo
 			}
 			if resizeSrc {
 				if _, ok := alignedConnectivity[nodeOfCidr]; !ok {
-					alignedConnectivity[nodeOfCidr] = map[VPCResourceIntf]*ConnWithStateful{}
+					alignedConnectivity[nodeOfCidr] = map[VPCResourceIntf]*detailedConn{}
 				}
 				alignedConnectivity[nodeOfCidr][dst] = conns
 			} else {
 				if _, ok := alignedConnectivity[src]; !ok {
-					alignedConnectivity[src] = map[VPCResourceIntf]*ConnWithStateful{}
+					alignedConnectivity[src] = map[VPCResourceIntf]*detailedConn{}
 				}
 				alignedConnectivity[src][nodeOfCidr] = conns
 			}
@@ -515,11 +515,11 @@ func findNodeWithCidr(configNodes []Node, cidr string) Node {
 }
 
 // get a list of IPBlocks of the src and dst of the connections
-func (statefulConnMap GeneralStatefulConnectivityMap) getIPBlocksList() (ipbList []*ipblock.IPBlock,
+func (responsiveConnMap GeneralResponsiveConnectivityMap) getIPBlocksList() (ipbList []*ipblock.IPBlock,
 	myErr error) {
-	for src, endpointConns := range statefulConnMap {
-		for dst, extendedConns := range endpointConns {
-			if extendedConns.IsEmpty() {
+	for src, endpointConns := range responsiveConnMap {
+		for dst, connsWithStateful := range endpointConns {
+			if connsWithStateful.isEmpty() {
 				continue
 			}
 			if src.IsExternal() {
@@ -554,18 +554,18 @@ func (statefulConnMap GeneralStatefulConnectivityMap) getIPBlocksList() (ipbList
 //	err = nil
 //	for src, endpointConns := range connectivity {
 //		for dst, conns := range endpointConns {
-//			if (!src.IsExternal() && !dst.IsExternal()) || conns.IsEmpty() {
+//			if (!src.IsExternal() && !dst.IsExternal()) || conns.isEmpty() {
 //				continue // nothing to do here
 //			}
 //			for otherSrc, otherEndpointConns := range other {
 //				for otherDst, otherConns := range otherEndpointConns {
-//					if otherConns.IsEmpty() {
+//					if otherConns.isEmpty() {
 //						continue
 //					}
 //					bothSrcExt := src.IsExternal() && otherSrc.IsExternal()
 //					bothDstExt := dst.IsExternal() && otherDst.IsExternal()
 //					if (!bothSrcExt && !bothDstExt) ||
-//						otherConns.IsEmpty() {
+//						otherConns.isEmpty() {
 //						continue // nothing to compare to here
 //					}
 //					myEp := &ConnectionEnd{src, dst}
@@ -633,7 +633,7 @@ func (statefulConnMap GeneralStatefulConnectivityMap) getIPBlocksList() (ipbList
 //	if err != nil {
 //		return false, err
 //	}
-//	if !myIPBlock.Equal(otherIPBlock) && !myIPBlock.Intersect(otherIPBlock).Empty() {
+//	if !myIPBlock.Equal(otherIPBlock) && !myIPBlock.intersect(otherIPBlock).Empty() {
 //		return true, nil
 //	}
 //	return false, nil
@@ -650,7 +650,7 @@ func (statefulConnMap GeneralStatefulConnectivityMap) getIPBlocksList() (ipbList
 // func (connectivity *GeneralConnectivityMap) PrintConnectivity() {
 //	for src, endpointConns := range *connectivity {
 //		for dst, conns := range endpointConns {
-//			if conns.IsEmpty() {
+//			if conns.isEmpty() {
 //				continue
 //			}
 //			fmt.Printf("\t%v => %v %v\n", src.Name(), dst.Name(), conns.string())

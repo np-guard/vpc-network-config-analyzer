@@ -5,8 +5,8 @@ test-vpc2-ky/subnet21-ky => test-vpc1-ky/subnet11-ky : All Connections
 test-vpc2-ky/subnet21-ky => test-vpc1-ky/subnet12-ky : All Connections
 test-vpc2-ky/subnet21-ky => test-vpc3-ky/subnet31-ky : All Connections
 test-vpc2-ky/subnet21-ky => test-vpc3-ky/subnet32-ky : All Connections
-test-vpc3-ky/subnet31-ky => test-vpc1-ky/subnet11-ky : All Connections *
-test-vpc3-ky/subnet31-ky => test-vpc1-ky/subnet12-ky : All Connections *
+test-vpc3-ky/subnet31-ky => test-vpc1-ky/subnet11-ky : All Connections * 
+test-vpc3-ky/subnet31-ky => test-vpc1-ky/subnet12-ky : All Connections * 
 test-vpc3-ky/subnet31-ky => test-vpc2-ky/subnet21-ky : All Connections
 test-vpc3-ky/subnet32-ky => test-vpc2-ky/subnet21-ky : All Connections
 

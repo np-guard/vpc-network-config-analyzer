@@ -76,17 +76,17 @@ type allInfo struct {
 func getConnLines(conn *VPCConnectivity) []connLine {
 	connLines := []connLine{}
 
-	for src, srcMap := range conn.AllowedConnsCombinedStateful {
+	for src, srcMap := range conn.AllowedConnsCombinedResponsive {
 		for dst, extConn := range srcMap {
-			if extConn.IsEmpty() {
+			if extConn.isEmpty() {
 				continue
 			}
-			statefulAndOther := extConn.statefulConn.Union(extConn.otherConn)
-			if !extConn.nonStatefulConn.IsEmpty() {
-				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: connection.ToJSON(statefulAndOther),
-					UnidirectionalConn: connection.ToJSON(extConn.nonStatefulConn)})
+			responsiveAndOther := extConn.tcpRspEnable.Union(extConn.nonTCP)
+			if !extConn.tcpRspDisable.IsEmpty() {
+				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: connection.ToJSON(responsiveAndOther),
+					UnidirectionalConn: connection.ToJSON(extConn.tcpRspDisable)})
 			} else {
-				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: connection.ToJSON(extConn.conn)})
+				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: connection.ToJSON(extConn.allConn)})
 			}
 		}
 	}
@@ -111,16 +111,16 @@ type allSubnetsConnectivity struct {
 
 func getConnLinesForSubnetsConnectivity(conn *VPCsubnetConnectivity) []connLine {
 	connLines := []connLine{}
-	for src, nodeConns := range conn.AllowedConnsCombinedStateful {
+	for src, nodeConns := range conn.AllowedConnsCombinedResponsive {
 		for dst, extConns := range nodeConns {
-			if extConns.IsEmpty() {
+			if extConns.isEmpty() {
 				continue
 			}
 			// currently not supported with grouping
 			connLines = append(connLines, connLine{
 				Src:  src,
 				Dst:  dst,
-				Conn: connection.ToJSON(extConns.conn),
+				Conn: connection.ToJSON(extConns.allConn),
 			})
 		}
 	}
@@ -167,7 +167,7 @@ func getDirectionalDiffLines(connectDiff connectivityDiff) []diffLine {
 				diffDstStr = getDiffDstOther(connDiff.diff)
 			}
 			diffLines = append(diffLines, diffLine{diffSrcStr, diffDstStr,
-				src, dst, connection.ToJSON(connDiff.conn1.conn), connection.ToJSON(connDiff.conn2.conn)})
+				src, dst, connection.ToJSON(connDiff.conn1.allConn), connection.ToJSON(connDiff.conn2.allConn)})
 		}
 	}
 

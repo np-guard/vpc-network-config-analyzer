@@ -17,7 +17,7 @@ import (
 
 type OutFormat int64
 
-const overApproximationSign = "**"
+const overApproximationSign = " ** "
 const statefulMessage = "\nconnections are stateful (on TCP) unless marked with *\n"
 const overApproximationMessage = "\nconnections marked with " + overApproximationSign +
 	" are an over-approximation, not all private IPs have the same connectivity\n"
@@ -243,7 +243,7 @@ func WriteToFile(content, fileName string) (string, error) {
 }
 
 // getAsteriskDetails returns:
-// 1. The info message regarding non-stateful conns  in the output, when relevant
+// 1. The info message regarding non-responsive conns  in the output, when relevant
 // 2. The info message regarding over-approximated conns, when relevant
 func getAsteriskDetails(uc OutputUseCase, hasStatelessConn, hasOverApproximatedConn bool, outFormat OutFormat) string {
 	res := ""

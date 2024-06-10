@@ -65,26 +65,24 @@ func configSimpleSubnetDiff() (subnetConfigConn1, subnetConfigConn2 *configConne
 		&mockSubnet{nil, "10.4.20.0/22", "subnet4", []Node{cfg2.Nodes[2]}},
 		&mockSubnet{nil, "11.4.20.0/22", "subnet5", []Node{cfg2.Nodes[3]}})
 
-	extendedConnAll := &ConnWithStateful{statefulConn: newTCPSet(), nonStatefulConn: NoConns(),
-		otherConn: connection.All().Subtract(newTCPSet()), conn: connection.All()}
+	connResponsiveAll := detailConnForResponsive(connection.All())
 	connectionTCP := connection.TCPorUDPConnection(netp.ProtocolStringTCP, 10, 100, 443, 443)
-	extendedConnTCP := &ConnWithStateful{statefulConn: connectionTCP, nonStatefulConn: NoConns(), otherConn: NoConns(),
-		conn: connectionTCP}
-	subnetConnMap1 := &VPCsubnetConnectivity{AllowedConnsCombinedStateful: GeneralStatefulConnectivityMap{}}
-	subnetConnMap1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg1.Subnets[0], cfg1.Subnets[1], extendedConnAll)
-	subnetConnMap1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg1.Subnets[1], cfg1.Subnets[2], extendedConnAll)
-	subnetConnMap1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg1.Subnets[3], cfg1.Subnets[1], extendedConnAll)
-	subnetConnMap1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg1.Subnets[2], cfg1.Subnets[3], extendedConnAll)
-	subnetConnMap1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg1.Subnets[3], cfg1.Subnets[2], extendedConnAll)
-	subnetConnMap1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg1.Subnets[3], cfg1.Subnets[4], extendedConnTCP)
+	connResponsiveTCP := detailConnForResponsive(connectionTCP)
+	subnetConnMap1 := &VPCsubnetConnectivity{AllowedConnsCombinedResponsive: GeneralResponsiveConnectivityMap{}}
+	subnetConnMap1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(cfg1.Subnets[0], cfg1.Subnets[1], connResponsiveAll)
+	subnetConnMap1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(cfg1.Subnets[1], cfg1.Subnets[2], connResponsiveAll)
+	subnetConnMap1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(cfg1.Subnets[3], cfg1.Subnets[1], connResponsiveAll)
+	subnetConnMap1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(cfg1.Subnets[2], cfg1.Subnets[3], connResponsiveAll)
+	subnetConnMap1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(cfg1.Subnets[3], cfg1.Subnets[2], connResponsiveAll)
+	subnetConnMap1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(cfg1.Subnets[3], cfg1.Subnets[4], connResponsiveTCP)
 
-	subnetConnMap2 := &VPCsubnetConnectivity{AllowedConnsCombinedStateful: GeneralStatefulConnectivityMap{}}
-	subnetConnMap2.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg2.Subnets[1], cfg2.Subnets[0], extendedConnAll)
-	subnetConnMap2.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg2.Subnets[1], cfg2.Subnets[2], extendedConnAll)
-	subnetConnMap2.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg2.Subnets[2], cfg2.Subnets[3], extendedConnAll)
+	subnetConnMap2 := &VPCsubnetConnectivity{AllowedConnsCombinedResponsive: GeneralResponsiveConnectivityMap{}}
+	subnetConnMap2.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(cfg2.Subnets[1], cfg2.Subnets[0], connResponsiveAll)
+	subnetConnMap2.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(cfg2.Subnets[1], cfg2.Subnets[2], connResponsiveAll)
+	subnetConnMap2.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(cfg2.Subnets[2], cfg2.Subnets[3], connResponsiveAll)
 
-	subnetConfigConn1 = &configConnectivity{cfg1, subnetConnMap1.AllowedConnsCombinedStateful}
-	subnetConfigConn2 = &configConnectivity{cfg2, subnetConnMap2.AllowedConnsCombinedStateful}
+	subnetConfigConn1 = &configConnectivity{cfg1, subnetConnMap1.AllowedConnsCombinedResponsive}
+	subnetConfigConn2 = &configConnectivity{cfg2, subnetConnMap2.AllowedConnsCombinedResponsive}
 
 	return subnetConfigConn1, subnetConfigConn2
 }
@@ -177,27 +175,25 @@ func configSimpleIPAndSubnetDiff() (subnetConfigConn1, subnetConfigConn2 *config
 	// <public1-2, subnet2> 			 and 		<public2-2, subnet2> are comparable
 	// <public1-1, subnet2> 			 and 		<public2-1, subnet2> are comparable
 	// <public1-1, subnet1> 			 and 		<public2-1, subnet1> are comparable
-	extendedConnAll := &ConnWithStateful{statefulConn: newTCPSet(), nonStatefulConn: NoConns(),
-		otherConn: connection.All().Subtract(newTCPSet()), conn: connection.All()}
-	subnetConnMap1 := &VPCsubnetConnectivity{AllowedConnsCombinedStateful: GeneralStatefulConnectivityMap{}}
-	subnetConnMap1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg1.Nodes[0], cfg1.Subnets[0], extendedConnAll)
-	subnetConnMap1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg1.Nodes[0], cfg1.Subnets[1], extendedConnAll)
-	subnetConnMap1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg1.Nodes[1], cfg1.Subnets[1], extendedConnAll)
-	subnetConnMap1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg1.Subnets[1], cfg1.Nodes[0], extendedConnAll)
-	subnetConnMap1.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg1.Subnets[1], cfg1.Nodes[2], extendedConnAll)
+	connResponsive := detailConnForResponsive(connection.All())
+	subnetConnMap1 := &VPCsubnetConnectivity{AllowedConnsCombinedResponsive: GeneralResponsiveConnectivityMap{}}
+	subnetConnMap1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(cfg1.Nodes[0], cfg1.Subnets[0], connResponsive)
+	subnetConnMap1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(cfg1.Nodes[0], cfg1.Subnets[1], connResponsive)
+	subnetConnMap1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(cfg1.Nodes[1], cfg1.Subnets[1], connResponsive)
+	subnetConnMap1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(cfg1.Subnets[1], cfg1.Nodes[0], connResponsive)
+	subnetConnMap1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(cfg1.Subnets[1], cfg1.Nodes[2], connResponsive)
 
-	subnetConnMap2 := &VPCsubnetConnectivity{AllowedConnsCombinedStateful: GeneralStatefulConnectivityMap{}}
-	subnetConnMap2.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg2.Nodes[0], cfg2.Subnets[0], extendedConnAll)
-	subnetConnMap2.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg2.Nodes[0], cfg2.Subnets[1], extendedConnAll)
-	subnetConnMap2.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg2.Nodes[1], cfg2.Subnets[1], extendedConnAll)
-	subnetConnMap2.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg2.Subnets[1], cfg2.Nodes[0], extendedConnAll)
+	subnetConnMap2 := &VPCsubnetConnectivity{AllowedConnsCombinedResponsive: GeneralResponsiveConnectivityMap{}}
+	subnetConnMap2.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(cfg2.Nodes[0], cfg2.Subnets[0], connResponsive)
+	subnetConnMap2.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(cfg2.Nodes[0], cfg2.Subnets[1], connResponsive)
+	subnetConnMap2.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(cfg2.Nodes[1], cfg2.Subnets[1], connResponsive)
+	subnetConnMap2.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(cfg2.Subnets[1], cfg2.Nodes[0], connResponsive)
 	connectionTCP := connection.TCPorUDPConnection(netp.ProtocolStringTCP, 0, 1000, 0, 443)
-	extendedConnTCP := &ConnWithStateful{statefulConn: connectionTCP, nonStatefulConn: NoConns(), otherConn: NoConns(),
-		conn: connectionTCP}
-	subnetConnMap2.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg2.Subnets[1], cfg2.Nodes[2], extendedConnTCP)
+	connTCP := detailConnForResponsive(connectionTCP)
+	subnetConnMap2.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(cfg2.Subnets[1], cfg2.Nodes[2], connTCP)
 
-	subnetConfigConn1 = &configConnectivity{cfg1, subnetConnMap1.AllowedConnsCombinedStateful}
-	subnetConfigConn2 = &configConnectivity{cfg2, subnetConnMap2.AllowedConnsCombinedStateful}
+	subnetConfigConn1 = &configConnectivity{cfg1, subnetConnMap1.AllowedConnsCombinedResponsive}
+	subnetConfigConn2 = &configConnectivity{cfg2, subnetConnMap2.AllowedConnsCombinedResponsive}
 
 	return subnetConfigConn1, subnetConfigConn2
 }
@@ -296,28 +292,26 @@ func configSimpleVsisDiff() (configConn1, configConn2 *configConnectivity) {
 	cfg2.Subnets = append(cfg2.Subnets, &mockSubnet{nil, "10.0.20.0/22", "subnet0", []Node{cfg2.Nodes[0], cfg2.Nodes[1],
 		cfg2.Nodes[2], cfg2.Nodes[3]}})
 
+	connAll := detailConnForResponsive(connection.All())
 	connectionTCP := connection.TCPorUDPConnection(netp.ProtocolStringTCP, 10, 100, 443, 443)
-	extendedConnTCP := &ConnWithStateful{statefulConn: connectionTCP, nonStatefulConn: NoConns(), otherConn: NoConns(),
-		conn: connectionTCP}
-	extendedConnAll := &ConnWithStateful{statefulConn: newTCPSet(), nonStatefulConn: NoConns(),
-		otherConn: connection.All().Subtract(newTCPSet()), conn: connection.All()}
-	cfg1Conn := &VPCConnectivity{AllowedConnsCombinedStateful: GeneralStatefulConnectivityMap{}}
-	cfg1Conn.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg1.Nodes[0], cfg1.Nodes[1], extendedConnAll)
-	cfg1Conn.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg1.Nodes[1], cfg1.Nodes[2], extendedConnAll)
-	cfg1Conn.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg1.Nodes[1], cfg1.Nodes[3], extendedConnAll)
-	cfg1Conn.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg1.Nodes[2], cfg1.Nodes[3], extendedConnTCP)
-	cfg1Conn.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg1.Nodes[2], cfg1.Nodes[4], extendedConnTCP)
+	connTCP := detailConnForResponsive(connectionTCP)
+	cfg1Conn := &VPCConnectivity{AllowedConnsCombinedResponsive: GeneralResponsiveConnectivityMap{}}
+	cfg1Conn.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(cfg1.Nodes[0], cfg1.Nodes[1], connAll)
+	cfg1Conn.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(cfg1.Nodes[1], cfg1.Nodes[2], connAll)
+	cfg1Conn.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(cfg1.Nodes[1], cfg1.Nodes[3], connAll)
+	cfg1Conn.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(cfg1.Nodes[2], cfg1.Nodes[3], connTCP)
+	cfg1Conn.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(cfg1.Nodes[2], cfg1.Nodes[4], connTCP)
 
-	cfg2Conn := &VPCConnectivity{AllowedConnsCombinedStateful: GeneralStatefulConnectivityMap{}}
+	cfg2Conn := &VPCConnectivity{AllowedConnsCombinedResponsive: GeneralResponsiveConnectivityMap{}}
 	// 1st connections is identical to these in cfg1; the 2nd one differs in the conn type, the 3rd one has a dst that
 	// does not exist in cfg1
-	cfg2Conn.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg2.Nodes[0], cfg2.Nodes[1], extendedConnAll)
-	cfg2Conn.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg2.Nodes[1], cfg2.Nodes[2], extendedConnAll)
-	cfg2Conn.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg2.Nodes[2], cfg2.Nodes[3], extendedConnAll)
-	cfg2Conn.AllowedConnsCombinedStateful.updateAllowedStatefulConnsMap(cfg2.Nodes[1], cfg2.Nodes[4], extendedConnAll)
+	cfg2Conn.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(cfg2.Nodes[0], cfg2.Nodes[1], connAll)
+	cfg2Conn.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(cfg2.Nodes[1], cfg2.Nodes[2], connAll)
+	cfg2Conn.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(cfg2.Nodes[2], cfg2.Nodes[3], connAll)
+	cfg2Conn.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(cfg2.Nodes[1], cfg2.Nodes[4], connAll)
 
-	configConn1 = &configConnectivity{cfg1, cfg1Conn.AllowedConnsCombinedStateful}
-	configConn2 = &configConnectivity{cfg2, cfg2Conn.AllowedConnsCombinedStateful}
+	configConn1 = &configConnectivity{cfg1, cfg1Conn.AllowedConnsCombinedResponsive}
+	configConn2 = &configConnectivity{cfg2, cfg2Conn.AllowedConnsCombinedResponsive}
 
 	return configConn1, configConn2
 }

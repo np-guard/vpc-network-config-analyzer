@@ -38,7 +38,7 @@ type srcDstDetails struct {
 	egressEnabled  bool
 	// the connection between src to dst, in case the connection was not part of the query;
 	// the part of the connection relevant to the query otherwise.
-	conn           *connection.Set
+	conn           *detailedConn
 	externalRouter RoutingResource // the router (fip or pgw) to external network; nil if none or not relevant
 	crossVpcRouter RoutingResource // the (currently only tgw) router between src and dst from different VPCs; nil if none or not relevant
 	crossVpcRules  []RulesInTable  // cross vpc (only tgw at the moment) prefix rules effecting the connection (or lack of)
@@ -156,7 +156,7 @@ func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node,
 			if err != nil {
 				return nil, err
 			}
-			rulesThisSrcDst := &srcDstDetails{src: src, dst: dst, conn: connection.None(),
+			rulesThisSrcDst := &srcDstDetails{src: src, dst: dst, conn: emptyDetailConn(),
 				potentialAllowRules: allowRules, potentialDenyRules: denyRules}
 			rulesAndConn = append(rulesAndConn, rulesThisSrcDst)
 		}
@@ -431,16 +431,17 @@ func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
 func (details *rulesAndConnDetails) computeConnections(c *VPCConfig,
 	connQuery *connection.Set, connectivity *VPCConnectivity) (err error) {
 	for _, srcDstDetails := range *details {
-		extendedConn, err := connectivity.getConnection(c, srcDstDetails.src, srcDstDetails.dst)
+		conn, err := connectivity.getConnection(c, srcDstDetails.src, srcDstDetails.dst)
 		if err != nil {
 			return err
 		}
 		if connQuery != nil { // connection is part of the query
-			srcDstDetails.conn = extendedConn.conn.Intersect(connQuery)
+			srcDstDetails.conn = newDetailConn(conn.tcpRspEnable.Intersect(connQuery),
+				conn.nonTCP.Intersect(connQuery), conn.allConn.Intersect(connQuery))
 		} else {
-			srcDstDetails.conn = extendedConn.conn
+			srcDstDetails.conn = conn
 		}
-		srcDstDetails.connEnabled = !srcDstDetails.conn.IsEmpty()
+		srcDstDetails.connEnabled = !srcDstDetails.conn.isEmpty()
 	}
 	return nil
 }
@@ -448,7 +449,7 @@ func (details *rulesAndConnDetails) computeConnections(c *VPCConfig,
 // given that there is a connection between src to dst, gets it
 // if src or dst is a node then the node is from getCidrExternalNodes,
 // thus there is a node in VPCConfig that either equal to or contains it.
-func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (extendedConn *ConnWithStateful, err error) {
+func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (conn *detailedConn, err error) {
 	srcForConnection, err1 := c.getContainingConfigNode(src)
 	if err1 != nil {
 		return nil, err1
@@ -465,13 +466,13 @@ func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (extendedCo
 		return nil, fmt.Errorf(errMsg, dst.Name())
 	}
 	var ok bool
-	srcMapValue, ok := v.AllowedConnsCombinedStateful[srcForConnection]
+	srcMapValue, ok := v.AllowedConnsCombinedResponsive[srcForConnection]
 	if ok {
-		extendedConn, ok = srcMapValue[dstForConnection]
+		conn, ok = srcMapValue[dstForConnection]
 	}
 	if !ok {
 		return nil, fmt.Errorf("error: there is a connection between %v and %v, but connection computation failed",
 			srcForConnection.Name(), dstForConnection.Name())
 	}
-	return extendedConn, nil
+	return conn, nil
 }

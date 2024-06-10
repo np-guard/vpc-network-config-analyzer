@@ -32,10 +32,10 @@ import (
 // NodeSetAbstraction abstract nodesets, one after the other
 type NodeSetAbstraction struct {
 	// abstractedConnectivity holds the abstracted connectivity that reflated after the last nodeSet abstraction
-	abstractedConnectivity GeneralStatefulConnectivityMap
+	abstractedConnectivity GeneralResponsiveConnectivityMap
 }
 
-func newNodeSetAbstraction(nodesConn GeneralStatefulConnectivityMap) *NodeSetAbstraction {
+func newNodeSetAbstraction(nodesConn GeneralResponsiveConnectivityMap) *NodeSetAbstraction {
 	return &NodeSetAbstraction{nodesConn.copy()}
 }
 
@@ -60,11 +60,11 @@ func (nsa *NodeSetAbstraction) abstractNodeSet(nodeSet NodeSet) *AbstractionInfo
 // see the reason on mergeConnectivityWithNodeSetAbstraction()
 
 func (nsa *NodeSetAbstraction) partitionConnectivityByNodeSet(nodeSet NodeSet) (
-	otherToOther, nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet GeneralStatefulConnectivityMap) {
-	otherToOther = GeneralStatefulConnectivityMap{}
-	nodeSetToNodeSet = GeneralStatefulConnectivityMap{}
-	otherFromNodeSet = GeneralStatefulConnectivityMap{}
-	otherToNodeSet = GeneralStatefulConnectivityMap{}
+	otherToOther, nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet GeneralResponsiveConnectivityMap) {
+	otherToOther = GeneralResponsiveConnectivityMap{}
+	nodeSetToNodeSet = GeneralResponsiveConnectivityMap{}
+	otherFromNodeSet = GeneralResponsiveConnectivityMap{}
+	otherToNodeSet = GeneralResponsiveConnectivityMap{}
 	for src, nodeConns := range nsa.abstractedConnectivity {
 		for dst, conns := range nodeConns {
 			srcNode, srcIsNode := src.(Node)
@@ -72,14 +72,14 @@ func (nsa *NodeSetAbstraction) partitionConnectivityByNodeSet(nodeSet NodeSet) (
 			srcInSet := srcIsNode && slices.Contains(nodeSet.Nodes(), srcNode)
 			dstInSet := dstIsNode && slices.Contains(nodeSet.Nodes(), dstNode)
 			switch {
-			case (!srcInSet && !dstInSet) || conns.IsEmpty():
-				otherToOther.updateAllowedStatefulConnsMap(src, dst, conns)
+			case (!srcInSet && !dstInSet) || conns.isEmpty():
+				otherToOther.updateAllowedResponsiveConnsMap(src, dst, conns)
 			case srcInSet && dstInSet:
-				nodeSetToNodeSet.updateAllowedStatefulConnsMap(src, dst, conns)
+				nodeSetToNodeSet.updateAllowedResponsiveConnsMap(src, dst, conns)
 			case srcInSet && !dstInSet:
-				otherFromNodeSet.updateAllowedStatefulConnsMap(dst, src, conns)
+				otherFromNodeSet.updateAllowedResponsiveConnsMap(dst, src, conns)
 			case !srcInSet && dstInSet:
-				otherToNodeSet.updateAllowedStatefulConnsMap(src, dst, conns)
+				otherToNodeSet.updateAllowedResponsiveConnsMap(src, dst, conns)
 			}
 		}
 	}
@@ -88,22 +88,22 @@ func (nsa *NodeSetAbstraction) partitionConnectivityByNodeSet(nodeSet NodeSet) (
 
 // mergeConnectivityWithNodeSetAbstraction() merge the three last groups, while abstracting the connections
 func (nsa *NodeSetAbstraction) mergeConnectivityWithNodeSetAbstraction(
-	nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet GeneralStatefulConnectivityMap,
-	nodeSet NodeSet) GeneralStatefulConnectivityMap {
-	unionConns := func(conn *ConnWithStateful, conns map[VPCResourceIntf]*ConnWithStateful) *ConnWithStateful {
+	nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet GeneralResponsiveConnectivityMap,
+	nodeSet NodeSet) GeneralResponsiveConnectivityMap {
+	unionConns := func(conn *detailedConn, conns map[VPCResourceIntf]*detailedConn) *detailedConn {
 		for _, c := range conns {
-			conn = conn.Union(c)
+			conn = conn.union(c)
 		}
 		return conn
 	}
 	// all the connections with the nodeSet are merged to *only* one connectivity, which is the union of all separate connections:
-	mergedConnectivity := GeneralStatefulConnectivityMap{}
-	allConns := EmptyConnWithStateful()
+	mergedConnectivity := GeneralResponsiveConnectivityMap{}
+	allConns := emptyDetailConn()
 	for _, nodeConns := range nodeSetToNodeSet {
 		allConns = unionConns(allConns, nodeConns)
 	}
 	// adding to the result
-	mergedConnectivity.updateAllowedStatefulConnsMap(nodeSet, nodeSet, allConns)
+	mergedConnectivity.updateAllowedResponsiveConnsMap(nodeSet, nodeSet, allConns)
 
 	// all connection from the nodeSet to a node, are merged and added to the result:
 	// please note: we need to handle separately each node that is not in the NodeSet,
@@ -111,14 +111,14 @@ func (nsa *NodeSetAbstraction) mergeConnectivityWithNodeSetAbstraction(
 	// so, the outer loop should run over the nodes not in the nodeSet.
 	// hence, this group is from dst to src.
 	for dst, nodeConns := range otherFromNodeSet {
-		allConns = unionConns(EmptyConnWithStateful(), nodeConns)
-		mergedConnectivity.updateAllowedStatefulConnsMap(nodeSet, dst, allConns)
+		allConns = unionConns(emptyDetailConn(), nodeConns)
+		mergedConnectivity.updateAllowedResponsiveConnsMap(nodeSet, dst, allConns)
 	}
 
 	// all connection from a node to the nodeSet, are union and added to the result:
 	for src, nodeConns := range otherToNodeSet {
-		allConns = unionConns(EmptyConnWithStateful(), nodeConns)
-		mergedConnectivity.updateAllowedStatefulConnsMap(src, nodeSet, allConns)
+		allConns = unionConns(emptyDetailConn(), nodeConns)
+		mergedConnectivity.updateAllowedResponsiveConnsMap(src, nodeSet, allConns)
 	}
 	return mergedConnectivity
 }
@@ -126,7 +126,7 @@ func (nsa *NodeSetAbstraction) mergeConnectivityWithNodeSetAbstraction(
 // nodeSetAbstractionInformation() collects abstraction information of the nodeSet.
 // for now, it collects the "missing connections" (as described above) info.
 func (nsa *NodeSetAbstraction) nodeSetAbstractionInformation(mergedConnectivity,
-	nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet GeneralStatefulConnectivityMap,
+	nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet GeneralResponsiveConnectivityMap,
 	nodeSet NodeSet) *AbstractionInfo {
 	abstractionInfo := &AbstractionInfo{}
 	abstractionInfo.missingEgressConnections = nsa.missingConnections(otherFromNodeSet, mergedConnectivity, nodeSet, false)
@@ -138,24 +138,24 @@ func (nsa *NodeSetAbstraction) nodeSetAbstractionInformation(mergedConnectivity,
 
 // missingConnections() is called on each of the last three groups.
 // it looks for "missing connections" -  connections that do not exist in the group, but are reflated in the mergedConnMap
-func (nsa *NodeSetAbstraction) missingConnections(connMap, mergedConnMap GeneralStatefulConnectivityMap,
-	nodeSet NodeSet, isIngress bool) GeneralStatefulConnectivityMap {
-	missingConnection := GeneralStatefulConnectivityMap{}
+func (nsa *NodeSetAbstraction) missingConnections(connMap, mergedConnMap GeneralResponsiveConnectivityMap,
+	nodeSet NodeSet, isIngress bool) GeneralResponsiveConnectivityMap {
+	missingConnection := GeneralResponsiveConnectivityMap{}
 	for node1, conns := range connMap {
 		// here we iterate over the nodes in the nodeSet, and not over the conns, because we can not know if conns holds the nodes:
 		for _, node2 := range nodeSet.Nodes() {
-			var nodeConnection, mergedConnection *ConnWithStateful
+			var nodeConnection, mergedConnection *detailedConn
 			if nodeConnection = conns[node2]; nodeConnection == nil {
-				nodeConnection = EmptyConnWithStateful()
+				nodeConnection = emptyDetailConn()
 			}
 			if isIngress {
 				mergedConnection = mergedConnMap[node1][nodeSet]
 			} else {
 				mergedConnection = mergedConnMap[nodeSet][node1]
 			}
-			if !nodeConnection.Equal(mergedConnection) {
-				missingConn := mergedConnection.Subtract(nodeConnection)
-				missingConnection.updateAllowedStatefulConnsMap(node1, node2, missingConn)
+			if !nodeConnection.equal(mergedConnection) {
+				missingConn := mergedConnection.subtract(nodeConnection)
+				missingConnection.updateAllowedResponsiveConnsMap(node1, node2, missingConn)
 			}
 		}
 	}
@@ -166,10 +166,10 @@ func (nsa *NodeSetAbstraction) missingConnections(connMap, mergedConnMap General
 type AbstractionInfo struct {
 	// missingIngressConnections - the ingress connections that are missing for the assumption to hold:
 	// (all connections of the form: <any node> -> <node in the node set>)
-	missingIngressConnections GeneralStatefulConnectivityMap
+	missingIngressConnections GeneralResponsiveConnectivityMap
 	// missingEgressConnections - the egress connections that are missing for the assumption to hold:
 	// (all connections of the form: <node in the node set> -> <any node>)
-	missingEgressConnections GeneralStatefulConnectivityMap
+	missingEgressConnections GeneralResponsiveConnectivityMap
 }
 
 // hasMissingConnection() checks is one of the resources has missing connection

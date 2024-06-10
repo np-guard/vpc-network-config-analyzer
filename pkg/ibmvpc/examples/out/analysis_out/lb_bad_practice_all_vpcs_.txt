@@ -1,20 +1,20 @@
 Endpoint connectivity for VPC lbvpc
 Public Internet (all ranges) => vsi0-ctrl-sub[10.240.2.4] : All Connections
-alb[LoadBalancer] => vsi0-sub1[10.240.0.4] : All Connections**
-alb[LoadBalancer] => vsi0-sub2[10.240.64.4] : All Connections**
-alb[LoadBalancer] => vsi0-sub3[10.240.128.4] : All Connections**
+alb[LoadBalancer] => vsi0-sub1[10.240.0.4] : All Connections ** 
+alb[LoadBalancer] => vsi0-sub2[10.240.64.4] : All Connections ** 
+alb[LoadBalancer] => vsi0-sub3[10.240.128.4] : All Connections ** 
 vsi0-ctrl-sub[10.240.2.4] => Public Internet (all ranges) : All Connections
-vsi0-ctrl-sub[10.240.2.4] => alb[LoadBalancer] : All Connections ***
+vsi0-ctrl-sub[10.240.2.4] => alb[LoadBalancer] : All Connections *  ** 
 vsi0-ctrl-sub[10.240.2.4] => vsi0-sub1[10.240.0.4] : All Connections
 vsi0-ctrl-sub[10.240.2.4] => vsi0-sub2[10.240.64.4] : All Connections
-vsi0-sub1[10.240.0.4] => alb[LoadBalancer] : All Connections**
+vsi0-sub1[10.240.0.4] => alb[LoadBalancer] : All Connections ** 
 vsi0-sub1[10.240.0.4] => vsi0-ctrl-sub[10.240.2.4] : All Connections
 vsi0-sub1[10.240.0.4] => vsi0-sub2[10.240.64.4] : All Connections
-vsi0-sub2[10.240.64.4] => alb[LoadBalancer] : All Connections**
+vsi0-sub2[10.240.64.4] => alb[LoadBalancer] : All Connections ** 
 vsi0-sub2[10.240.64.4] => vsi0-ctrl-sub[10.240.2.4] : All Connections
 vsi0-sub2[10.240.64.4] => vsi0-sub1[10.240.0.4] : All Connections
-vsi0-sub3[10.240.128.4] => alb[LoadBalancer] : All Connections**
+vsi0-sub3[10.240.128.4] => alb[LoadBalancer] : All Connections ** 
 
 connections are stateful (on TCP) unless marked with *
 
-connections marked with ** are an over-approximation, not all private IPs have the same connectivity
+connections marked with  **  are an over-approximation, not all private IPs have the same connectivity
