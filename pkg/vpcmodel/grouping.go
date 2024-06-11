@@ -28,6 +28,7 @@ type groupedExternalNodesInfo struct {
 
 type explainDetails struct {
 	rules           *rulesConnection
+	respondRules    *rulesConnection
 	externalRouter  RoutingResource
 	crossVpcRouter  RoutingResource
 	crossVpcRules   []RulesInTable
@@ -35,7 +36,6 @@ type explainDetails struct {
 	connEnabled     bool
 	ingressEnabled  bool
 	egressEnabled   bool
-	respondRules    *rulesConnection
 }
 
 type groupedCommonProperties struct {
@@ -343,10 +343,10 @@ func (g *GroupConnLines) groupExternalAddressesForExplainability() error {
 	for _, details := range *g.explain {
 		groupingStrKey := details.explanationEncode(g.config)
 		expDetails := &explainDetails{details.actualMergedRules,
-			details.externalRouter, details.crossVpcRouter,
+			details.respondRules, details.externalRouter, details.crossVpcRouter,
 			details.crossVpcRules, details.filtersRelevant,
 			details.connEnabled, details.ingressEnabled,
-			details.egressEnabled, nil}
+			details.egressEnabled}
 		err := g.addLineToExternalGrouping(&res, details.src, details.dst,
 			&groupedCommonProperties{conn: details.conn, expDetails: expDetails,
 				groupingStrKey: groupingStrKey})
@@ -614,14 +614,18 @@ func (details *srcDstDetails) explanationEncode(c *VPCConfig) string {
 	if details.crossVpcRouter != nil {
 		encodeComponents = append(encodeComponents, details.crossVpcRouter.UID())
 	}
-	if len(details.actualMergedRules.egressRules) > 0 {
-		encodeComponents = append(encodeComponents, "egress:"+
-			details.actualMergedRules.egressRules.rulesDetailsStr(c, details.filtersRelevant, false))
-	}
-	if len(details.actualMergedRules.ingressRules) > 0 {
-		encodeComponents = append(encodeComponents, "ingress:"+
-			details.actualMergedRules.ingressRules.rulesDetailsStr(c, details.filtersRelevant, true))
-	}
-
+	details.actualMergedRules.egressRules.appendEncodeRules(&encodeComponents, c, details.filtersRelevant,
+		"egress", false)
+	details.actualMergedRules.ingressRules.appendEncodeRules(&encodeComponents, c, details.filtersRelevant,
+		"ingress", true)
 	return strings.Join(encodeComponents, ";")
+}
+
+func (rules *rulesInLayers) appendEncodeRules(encodeComponents *[]string,
+	c *VPCConfig, filtersRelevant map[string]bool, header string, isIngress bool) {
+	if len(*rules) == 0 {
+		return
+	}
+	*encodeComponents = append(*encodeComponents, header+
+		(*rules).rulesDetailsStr(c, filtersRelevant, isIngress))
 }
