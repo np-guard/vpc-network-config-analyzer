@@ -11,17 +11,27 @@ Path:
 
 Details:
 ~~~~~~~~
-Egress:
-security group sg31-ky allows connection with the following allow rules
-	index: 1, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
-network ACL acl31-ky allows connection with the following allow rules
-	index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+Path enabled by rules:
+	Egress:
+		security group sg31-ky allows connection with the following allow rules
+			index: 1, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+		network ACL acl31-ky allows connection with the following allow rules
+			index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 
-Ingress:
-network ACL acl31-ky allows connection with the following allow rules
-	index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
-security group sg31-ky allows connection with the following allow rules
-	index: 0, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+	Ingress:
+		network ACL acl31-ky allows connection with the following allow rules
+			index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+		security group sg31-ky allows connection with the following allow rules
+			index: 0, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+
+TCP respond enabled by rules:
+	Egress:
+		network ACL acl31-ky allows connection with the following allow rules
+			index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+
+	Ingress:
+		network ACL acl31-ky allows connection with the following allow rules
+			index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 
 ------------------------------------------------------------------------------------------------------------------------
 

@@ -142,11 +142,29 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 		ingressBlocking, egressBlocking, externalRouter, crossVpcRouter, crossVpcConnection, rules) + newLine
 	// details is "4" above
 	egressRulesDetails, ingressRulesDetails := rules.ruleDetailsStr(c, filtersRelevant, needEgress, needIngress)
+	conn := g.commonProperties.conn
 	if verbose {
-		details = "\nDetails:\n~~~~~~~~\n" + egressRulesDetails + crossRouterFilterDetails + ingressRulesDetails
+		details = "\nDetails:\n~~~~~~~~\nPath enabled by rules:\n" + egressRulesDetails + crossRouterFilterDetails + ingressRulesDetails
+		if respondRulesRelevant(conn, filtersRelevant) {
+			// for respond rules needIngress and needEgress are switched
+			respondEgressDetails, respondsIngressDetails := expDetails.respondRules.ruleDetailsStr(c, filtersRelevant, needIngress, needEgress)
+			details += conn.respondDetailsHeader() + respondEgressDetails + respondsIngressDetails
+		}
 	}
 	return g.explainPerCaseStr(c, src, dst, connQuery, crossVpcConnection, ingressBlocking, egressBlocking,
 		noConnection, resourceEffectHeader, path, details)
+}
+
+// assumption: the func is called only if the tcp component of the connection is not empty
+func (conn *detailedConn) respondDetailsHeader() string {
+	switch {
+	case conn.tcpRspDisable.IsEmpty():
+		return "TCP respond enabled by rules:\n"
+	case conn.tcpRspEnable.IsEmpty():
+		return "TCP respond disabled by rules:\n"
+	default:
+		return "TCP respond partly enabled by rules:\n"
+	}
 }
 
 // after all data is gathered, generates the actual string to be printed
@@ -264,10 +282,10 @@ func (rules *rulesConnection) ruleDetailsStr(c *VPCConfig, filtersRelevant map[s
 		ingressRulesDetails = rules.ingressRules.rulesDetailsStr(c, filtersRelevant, true)
 	}
 	if needEgress && egressRulesDetails != emptyString {
-		egressRulesDetails = "Egress:\n" + egressRulesDetails + newLine
+		egressRulesDetails = "\tEgress:\n" + egressRulesDetails + newLine
 	}
 	if needIngress && ingressRulesDetails != emptyString {
-		ingressRulesDetails = "Ingress:\n" + ingressRulesDetails + newLine
+		ingressRulesDetails = "\tIngress:\n" + ingressRulesDetails + newLine
 	}
 	return egressRulesDetails, ingressRulesDetails
 }

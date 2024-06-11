@@ -394,7 +394,7 @@ func (nl *NaclLayer) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInTa
 		nacl := nl.naclList[rulesInFilter.Table]
 		header := getHeaderRulesType(vpcmodel.FilterKindName(nl.Kind())+" "+nacl.Name(), rulesInFilter.RulesOfType) +
 			nacl.analyzer.StringRules(rulesInFilter.Rules)
-		strListRulesInFilter += header
+		strListRulesInFilter += "\t\t" + header
 	}
 	return strListRulesInFilter
 }
@@ -594,7 +594,7 @@ func (sgl *SecurityGroupLayer) StringDetailsOfRules(listRulesInFilter []vpcmodel
 	listRulesInFilterSlice := make([]string, len(listRulesInFilter))
 	for i, rulesInFilter := range listRulesInFilter {
 		sg := sgl.sgList[rulesInFilter.Table]
-		listRulesInFilterSlice[i] = getHeaderRulesType(vpcmodel.FilterKindName(sgl.Kind())+" "+sg.Name(), rulesInFilter.RulesOfType) +
+		listRulesInFilterSlice[i] = "\t\t" + getHeaderRulesType(vpcmodel.FilterKindName(sgl.Kind())+" "+sg.Name(), rulesInFilter.RulesOfType) +
 			sg.analyzer.StringRules(rulesInFilter.Rules)
 	}
 	sort.Strings(listRulesInFilterSlice)
@@ -968,8 +968,8 @@ func (tgw *TransitGateway) stringPrefixFiltersVerbose(transitConn *datamodel.Tra
 		} else {
 			action = "blocks"
 		}
-		thisPrefixStr = fmt.Sprintf("transit gateway %s %s connection via transit connection %s "+
-			"with the following prefix filter\n\t%s\n", tgw.Name(), action, *transitConn.Name, tgwRouterFilterDetails)
+		thisPrefixStr = fmt.Sprintf("\ttransit gateway %s %s connection via transit connection %s "+
+			"with the following prefix filter\n\t\t%s\n", tgw.Name(), action, *transitConn.Name, tgwRouterFilterDetails)
 		strRes = append(strRes, thisPrefixStr)
 	}
 	return strRes, nil

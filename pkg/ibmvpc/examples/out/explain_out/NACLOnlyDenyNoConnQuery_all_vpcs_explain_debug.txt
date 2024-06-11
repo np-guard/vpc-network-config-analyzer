@@ -13,17 +13,18 @@ Path:
 
 Details:
 ~~~~~~~~
-Egress:
-security group sg1-ky allows connection with the following allow rules
-	index: 0, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
-network ACL acl1-ky blocks connection with the following deny rules:
-	index: 0, direction: outbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, conn: all, action: deny
+Path enabled by rules:
+	Egress:
+		security group sg1-ky allows connection with the following allow rules
+			index: 0, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+		network ACL acl1-ky blocks connection with the following deny rules:
+			index: 0, direction: outbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, conn: all, action: deny
 
-Ingress:
-network ACL acl2-ky allows connection with the following allow rules
-	index: 6, direction: inbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, conn: all, action: allow
-security group sg1-ky allows connection with the following allow rules
-	index: 1, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+	Ingress:
+		network ACL acl2-ky allows connection with the following allow rules
+			index: 6, direction: inbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, conn: all, action: allow
+		security group sg1-ky allows connection with the following allow rules
+			index: 1, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
 
 ------------------------------------------------------------------------------------------------------------------------
 

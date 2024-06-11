@@ -12,20 +12,30 @@ Path:
 
 Details:
 ~~~~~~~~
-Egress:
-security group sg1-ky allows connection with the following allow rules
-	index: 1, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
-network ACL acl3-ky allows connection with the following allow rules
-	index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+Path enabled by rules:
+	Egress:
+		security group sg1-ky allows connection with the following allow rules
+			index: 1, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+		network ACL acl3-ky allows connection with the following allow rules
+			index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 
-transit gateway local-tg-ky allows connection via transit connection tg_connection1 with the following prefix filter
-	default prefix,  action: permit
+	transit gateway local-tg-ky allows connection via transit connection tg_connection1 with the following prefix filter
+		default prefix,  action: permit
 
-Ingress:
-network ACL acl11-ky allows connection with the following allow rules
-	index: 2, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
-security group sg11-ky allows connection with the following allow rules
-	index: 1, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+	Ingress:
+		network ACL acl11-ky allows connection with the following allow rules
+			index: 2, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+		security group sg11-ky allows connection with the following allow rules
+			index: 1, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+
+TCP respond enabled by rules:
+	Egress:
+		network ACL acl11-ky allows connection with the following allow rules
+			index: 1, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+
+	Ingress:
+		network ACL acl3-ky allows connection with the following allow rules
+			index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 
 ------------------------------------------------------------------------------------------------------------------------
 

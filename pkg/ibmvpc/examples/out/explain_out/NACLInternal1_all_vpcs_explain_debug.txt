@@ -11,18 +11,28 @@ Path:
 
 Details:
 ~~~~~~~~
-Egress:
-security group sg1-ky allows connection with the following allow rules
-	index: 0, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
-network ACL acl1-ky allows connection with the following allow and deny rules
-	index: 0, direction: outbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, conn: protocol: icmp, action: deny
-	index: 2, direction: outbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, conn: all, action: allow
+Path enabled by rules:
+	Egress:
+		security group sg1-ky allows connection with the following allow rules
+			index: 0, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+		network ACL acl1-ky allows connection with the following allow and deny rules
+			index: 0, direction: outbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, conn: protocol: icmp, action: deny
+			index: 2, direction: outbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, conn: all, action: allow
 
-Ingress:
-network ACL acl2-ky allows connection with the following allow rules
-	index: 6, direction: inbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, conn: all, action: allow
-security group sg1-ky allows connection with the following allow rules
-	index: 1, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+	Ingress:
+		network ACL acl2-ky allows connection with the following allow rules
+			index: 6, direction: inbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, conn: all, action: allow
+		security group sg1-ky allows connection with the following allow rules
+			index: 1, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+
+TCP respond enabled by rules:
+	Egress:
+		network ACL acl2-ky allows connection with the following allow rules
+			index: 2, direction: outbound , src: 10.240.20.0/24 , dst: 10.240.10.0/24, conn: all, action: allow
+
+	Ingress:
+		network ACL acl1-ky allows connection with the following allow rules
+			index: 4, direction: inbound , src: 10.240.20.0/24 , dst: 10.240.10.0/24, conn: all, action: allow
 
 ------------------------------------------------------------------------------------------------------------------------
 

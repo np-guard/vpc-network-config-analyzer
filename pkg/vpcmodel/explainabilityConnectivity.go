@@ -485,7 +485,7 @@ func (details *rulesAndConnDetails) updateRespondRules(c *VPCConfig) error {
 		// respond rules are relevant if connection has a TCP component and non-stateful filter (NACL at the moment)
 		// are relevant for <src, dst>
 		conn := srcDstDetails.conn
-		if conn.tcpRspEnable.Intersect(conn.tcpRspDisable).IsEmpty() || !srcDstDetails.filtersRelevant[NaclLayer] {
+		if !respondRulesRelevant(srcDstDetails.conn, srcDstDetails.filtersRelevant) {
 			continue
 		}
 		respondRules, err := c.getRespondRules(srcDstDetails.src, srcDstDetails.dst, conn.allConn)
@@ -495,6 +495,10 @@ func (details *rulesAndConnDetails) updateRespondRules(c *VPCConfig) error {
 		srcDstDetails.respondRules = respondRules
 	}
 	return nil
+}
+
+func respondRulesRelevant(conn *detailedConn, filtersRelevant map[string]bool) bool {
+	return !conn.tcpRspEnable.Union(conn.tcpRspDisable).IsEmpty() && filtersRelevant[NaclLayer]
 }
 
 // gets the NACL rules that enables/disables respond for connection conn, assuming nacl is applied
@@ -507,7 +511,8 @@ func (c *VPCConfig) getRespondRules(src, dst Node,
 	mergedIngressRules, mergedEgressRules := rulesInLayers{}, rulesInLayers{}
 	// respond: from dst to src. Thus, ingress rules: relevant only if *src* is internal, egress is *dst* is internal
 	if src.IsInternal() {
-		ingressAllowRules, ingressDenyRules, err1 := c.getFiltersRulesBetweenNodesPerDirectionAndLayer(src, dst, connSwitch, true, NaclLayer)
+		// respond: dst and src switched
+		ingressAllowRules, ingressDenyRules, err1 := c.getFiltersRulesBetweenNodesPerDirectionAndLayer(dst, src, connSwitch, true, NaclLayer)
 		if err1 != nil {
 			return nil, err1
 		}
@@ -516,7 +521,8 @@ func (c *VPCConfig) getRespondRules(src, dst Node,
 		mergedIngressRules = mergeAllowDeny(ingressAllowPerLayer, ingressDenyPerLayer)
 	}
 	if dst.IsInternal() {
-		egressAllowRules, egressDenyRules, err2 := c.getFiltersRulesBetweenNodesPerDirectionAndLayer(src, dst, conn, false, NaclLayer)
+		// respond: dst and src switched
+		egressAllowRules, egressDenyRules, err2 := c.getFiltersRulesBetweenNodesPerDirectionAndLayer(dst, src, conn, false, NaclLayer)
 		if err2 != nil {
 			return nil, err2
 		}

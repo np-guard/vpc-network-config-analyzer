@@ -12,20 +12,30 @@ Path:
 
 Details:
 ~~~~~~~~
-Egress:
-security group sg21-ky allows connection with the following allow rules
-	index: 1, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
-network ACL acl21-ky allows connection with the following allow rules
-	index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+Path enabled by rules:
+	Egress:
+		security group sg21-ky allows connection with the following allow rules
+			index: 1, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+		network ACL acl21-ky allows connection with the following allow rules
+			index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 
-transit gateway local-tg-ky allows connection via transit connection tg_connection0 with the following prefix filter
-	index: 0, action: permit, prefix: 10.240.4.0/22
+	transit gateway local-tg-ky allows connection via transit connection tg_connection0 with the following prefix filter
+		index: 0, action: permit, prefix: 10.240.4.0/22
 
-Ingress:
-network ACL acl2-ky allows connection with the following allow rules
-	index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
-security group sg1-ky allows connection with the following allow rules
-	index: 0, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+	Ingress:
+		network ACL acl2-ky allows connection with the following allow rules
+			index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+		security group sg1-ky allows connection with the following allow rules
+			index: 0, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+
+TCP respond enabled by rules:
+	Egress:
+		network ACL acl2-ky allows connection with the following allow rules
+			index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+
+	Ingress:
+		network ACL acl21-ky allows connection with the following allow rules
+			index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -40,20 +50,30 @@ Path:
 
 Details:
 ~~~~~~~~
-Egress:
-security group sg21-ky allows connection with the following allow rules
-	index: 1, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
-network ACL acl21-ky allows connection with the following allow rules
-	index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+Path enabled by rules:
+	Egress:
+		security group sg21-ky allows connection with the following allow rules
+			index: 1, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+		network ACL acl21-ky allows connection with the following allow rules
+			index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 
-transit gateway local-tg-ky allows connection via transit connection tg_connection0 with the following prefix filter
-	index: 0, action: permit, prefix: 10.240.4.0/22
+	transit gateway local-tg-ky allows connection via transit connection tg_connection0 with the following prefix filter
+		index: 0, action: permit, prefix: 10.240.4.0/22
 
-Ingress:
-network ACL acl2-ky allows connection with the following allow rules
-	index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
-security group sg1-ky allows connection with the following allow rules
-	index: 0, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+	Ingress:
+		network ACL acl2-ky allows connection with the following allow rules
+			index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+		security group sg1-ky allows connection with the following allow rules
+			index: 0, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+
+TCP respond enabled by rules:
+	Egress:
+		network ACL acl2-ky allows connection with the following allow rules
+			index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+
+	Ingress:
+		network ACL acl21-ky allows connection with the following allow rules
+			index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -68,20 +88,30 @@ Path:
 
 Details:
 ~~~~~~~~
-Egress:
-security group sg21-ky allows connection with the following allow rules
-	index: 1, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
-network ACL acl21-ky allows connection with the following allow rules
-	index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+Path enabled by rules:
+	Egress:
+		security group sg21-ky allows connection with the following allow rules
+			index: 1, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+		network ACL acl21-ky allows connection with the following allow rules
+			index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 
-transit gateway local-tg-ky allows connection via transit connection tg_connection0 with the following prefix filter
-	index: 0, action: permit, prefix: 10.240.4.0/22
+	transit gateway local-tg-ky allows connection via transit connection tg_connection0 with the following prefix filter
+		index: 0, action: permit, prefix: 10.240.4.0/22
 
-Ingress:
-network ACL acl2-ky allows connection with the following allow rules
-	index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
-security group sg1-ky allows connection with the following allow rules
-	index: 0, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+	Ingress:
+		network ACL acl2-ky allows connection with the following allow rules
+			index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+		security group sg1-ky allows connection with the following allow rules
+			index: 0, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+
+TCP respond enabled by rules:
+	Egress:
+		network ACL acl2-ky allows connection with the following allow rules
+			index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+
+	Ingress:
+		network ACL acl21-ky allows connection with the following allow rules
+			index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -96,20 +126,30 @@ Path:
 
 Details:
 ~~~~~~~~
-Egress:
-security group sg21-ky allows connection with the following allow rules
-	index: 1, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
-network ACL acl21-ky allows connection with the following allow rules
-	index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+Path enabled by rules:
+	Egress:
+		security group sg21-ky allows connection with the following allow rules
+			index: 1, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+		network ACL acl21-ky allows connection with the following allow rules
+			index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 
-transit gateway local-tg-ky allows connection via transit connection tg_connection0 with the following prefix filter
-	index: 0, action: permit, prefix: 10.240.4.0/22
+	transit gateway local-tg-ky allows connection via transit connection tg_connection0 with the following prefix filter
+		index: 0, action: permit, prefix: 10.240.4.0/22
 
-Ingress:
-network ACL acl2-ky allows connection with the following allow rules
-	index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
-security group sg1-ky allows connection with the following allow rules
-	index: 0, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+	Ingress:
+		network ACL acl2-ky allows connection with the following allow rules
+			index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+		security group sg1-ky allows connection with the following allow rules
+			index: 0, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+
+TCP respond enabled by rules:
+	Egress:
+		network ACL acl2-ky allows connection with the following allow rules
+			index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+
+	Ingress:
+		network ACL acl21-ky allows connection with the following allow rules
+			index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -127,20 +167,21 @@ Path:
 
 Details:
 ~~~~~~~~
-Egress:
-security group sg21-ky allows connection with the following allow rules
-	index: 1, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
-network ACL acl21-ky allows connection with the following allow rules
-	index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+Path enabled by rules:
+	Egress:
+		security group sg21-ky allows connection with the following allow rules
+			index: 1, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+		network ACL acl21-ky allows connection with the following allow rules
+			index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 
-transit gateway local-tg-ky blocks connection via transit connection tg_connection0 with the following prefix filter
-	index: 1, action: deny, ge: 22, le: 23, prefix: 10.240.0.0/21
+	transit gateway local-tg-ky blocks connection via transit connection tg_connection0 with the following prefix filter
+		index: 1, action: deny, ge: 22, le: 23, prefix: 10.240.0.0/21
 
-Ingress:
-network ACL acl1-ky allows connection with the following allow rules
-	index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
-security group sg1-ky allows connection with the following allow rules
-	index: 0, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+	Ingress:
+		network ACL acl1-ky allows connection with the following allow rules
+			index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+		security group sg1-ky allows connection with the following allow rules
+			index: 0, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -158,20 +199,21 @@ Path:
 
 Details:
 ~~~~~~~~
-Egress:
-security group sg21-ky allows connection with the following allow rules
-	index: 1, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
-network ACL acl21-ky allows connection with the following allow rules
-	index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+Path enabled by rules:
+	Egress:
+		security group sg21-ky allows connection with the following allow rules
+			index: 1, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+		network ACL acl21-ky allows connection with the following allow rules
+			index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 
-transit gateway local-tg-ky blocks connection via transit connection tg_connection0 with the following prefix filter
-	index: 1, action: deny, ge: 22, le: 23, prefix: 10.240.0.0/21
+	transit gateway local-tg-ky blocks connection via transit connection tg_connection0 with the following prefix filter
+		index: 1, action: deny, ge: 22, le: 23, prefix: 10.240.0.0/21
 
-Ingress:
-network ACL acl1-ky allows connection with the following allow rules
-	index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
-security group sg1-ky allows connection with the following allow rules
-	index: 0, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+	Ingress:
+		network ACL acl1-ky allows connection with the following allow rules
+			index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+		security group sg1-ky allows connection with the following allow rules
+			index: 0, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -189,20 +231,21 @@ Path:
 
 Details:
 ~~~~~~~~
-Egress:
-security group sg21-ky allows connection with the following allow rules
-	index: 1, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
-network ACL acl21-ky allows connection with the following allow rules
-	index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+Path enabled by rules:
+	Egress:
+		security group sg21-ky allows connection with the following allow rules
+			index: 1, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+		network ACL acl21-ky allows connection with the following allow rules
+			index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 
-transit gateway local-tg-ky blocks connection via transit connection tg_connection0 with the following prefix filter
-	index: 1, action: deny, ge: 22, le: 23, prefix: 10.240.0.0/21
+	transit gateway local-tg-ky blocks connection via transit connection tg_connection0 with the following prefix filter
+		index: 1, action: deny, ge: 22, le: 23, prefix: 10.240.0.0/21
 
-Ingress:
-network ACL acl1-ky allows connection with the following allow rules
-	index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
-security group sg1-ky allows connection with the following allow rules
-	index: 0, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+	Ingress:
+		network ACL acl1-ky allows connection with the following allow rules
+			index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+		security group sg1-ky allows connection with the following allow rules
+			index: 0, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -220,20 +263,21 @@ Path:
 
 Details:
 ~~~~~~~~
-Egress:
-security group sg21-ky allows connection with the following allow rules
-	index: 1, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
-network ACL acl21-ky allows connection with the following allow rules
-	index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+Path enabled by rules:
+	Egress:
+		security group sg21-ky allows connection with the following allow rules
+			index: 1, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+		network ACL acl21-ky allows connection with the following allow rules
+			index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 
-transit gateway local-tg-ky blocks connection via transit connection tg_connection0 with the following prefix filter
-	index: 1, action: deny, ge: 22, le: 23, prefix: 10.240.0.0/21
+	transit gateway local-tg-ky blocks connection via transit connection tg_connection0 with the following prefix filter
+		index: 1, action: deny, ge: 22, le: 23, prefix: 10.240.0.0/21
 
-Ingress:
-network ACL acl1-ky allows connection with the following allow rules
-	index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
-security group sg1-ky allows connection with the following allow rules
-	index: 0, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+	Ingress:
+		network ACL acl1-ky allows connection with the following allow rules
+			index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+		security group sg1-ky allows connection with the following allow rules
+			index: 0, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
 
 ------------------------------------------------------------------------------------------------------------------------
 
