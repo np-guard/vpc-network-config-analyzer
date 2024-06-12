@@ -9,9 +9,10 @@ package subcmds
 import (
 	"fmt"
 
+	"github.com/spf13/cobra"
+
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/ibmvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
-	"github.com/spf13/cobra"
 )
 
 //nolint:gocritic  // temporary version, wip
