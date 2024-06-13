@@ -171,7 +171,7 @@ func (d *detailedConn) respondDetailsHeader() string {
 func (g *groupedConnLine) explainPerCaseStr(c *VPCConfig, src, dst EndpointElem,
 	connQuery, crossVpcConnection *connection.Set, ingressBlocking, egressBlocking bool,
 	noConnection, resourceEffectHeader, path, details string) string {
-	conn := g.commonProperties.conn.allConn
+	conn := g.commonProperties.conn
 	externalRouter, crossVpcRouter := g.commonProperties.expDetails.externalRouter,
 		g.commonProperties.expDetails.crossVpcRouter
 	headerPlusPath := resourceEffectHeader + path
