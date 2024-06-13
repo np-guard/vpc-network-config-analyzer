@@ -170,7 +170,7 @@ func (subnetsBlocks subnetsIPBlocks) removeAddressFromFree(address, subnetCRN st
 	return nil
 }
 
-// filtersBlocks is a map from a vpc to a list of blocks
+// filtersBlocks is a map from VPC UID to a list of IPBlocks, which holds the list of disjoint IPBlocks computed from all referenced CIDRs in that VPC's filters rules
 type filtersBlocks map[string][]*ipblock.IPBlock
 
 // ///////////////////////////////////////////
