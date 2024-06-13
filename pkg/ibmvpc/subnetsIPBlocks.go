@@ -43,7 +43,7 @@ import (
 //       when a free address is needed, we take the first address of the block and remove it from the free blocks list.
 
 // /////////////////////////////////////////////////////////////////////////////////////////
-// subnetIPBlocks holds the blocks of a subnet
+// subnetIPBlocks hold the blocks of a subnet
 type subnetIPBlocks struct {
 	subnetOriginalBlock  *ipblock.IPBlock // the block of the original cidr of the subnet
 	splitByFiltersBlocks []*ipblock.IPBlock
