@@ -96,9 +96,10 @@ func (subnetsBlocks subnetsIPBlocks) getSubnetsOriginalBlocks(rc *datamodel.Reso
 	return nil
 }
 
-// splitSubnetsOriginalBlocks():
-// the goal of this func is to split the original subnet cidr to disjoint blocks, according to the filters blocks:
-// for each subnet it gets all the blocks that intersect with subnet original block
+// splitSubnetsOriginalBlocks() calculates splitByFiltersBlocks - the atomic blocks induced by the filters.
+//      splitByFiltersBlocks are such that:
+//   		a. the blocks are disjoint
+//	    	b. the union of the blocks is the subnet cidr
 func (subnetsBlocks subnetsIPBlocks) splitSubnetsOriginalBlocks(rc *datamodel.ResourcesContainerModel, filtersBlocks filtersBlocks) {
 	for _, subnetObj := range rc.SubnetList {
 		subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks =
@@ -120,13 +121,13 @@ func splitSubnetOriginalBlock(subnetOriginalBlock *ipblock.IPBlock, filtersBlock
 // getSubnetsFreeBlocks() - calc all the addresses that are not allocated:
 // for each subnet:
 //  1. make a copy of the splitByFiltersBlocks
-//  2. remove the addresses that was already allocated
+//  2. remove from the copy the addresses that was already allocated
 func (subnetsBlocks subnetsIPBlocks) getSubnetsFreeBlocks(rc *datamodel.ResourcesContainerModel) error {
 	for _, subnetObj := range rc.SubnetList {
 		subnetsBlocks[*subnetObj.CRN].freeAddressesBlocks = make([]*ipblock.IPBlock, len(subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks))
 		subnetsBlocks[*subnetObj.CRN].fullyReservedBlocks = make([]bool, len(subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks))
-		for blockIndex, b := range subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks {
-			subnetsBlocks[*subnetObj.CRN].freeAddressesBlocks[blockIndex] = b.Copy()
+		for blockIndex, block := range subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks {
+			subnetsBlocks[*subnetObj.CRN].freeAddressesBlocks[blockIndex] = block.Copy()
 		}
 		// all the allocated IPs are at subnetObj.ReservedIps.
 		for blockIndex := range subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks {
@@ -201,7 +202,7 @@ func (blocks filtersBlocks) disjointBlocks() {
 
 func (blocks filtersBlocks) addACLRuleBlocks(rc *datamodel.ResourcesContainerModel) error {
 	for _, aclObj := range rc.NetworkACLList {
-		for _, rule := range aclObj.Rules {
+		for i, rule := range aclObj.Rules {
 			var src, dst *string
 			switch ruleObj := rule.(type) {
 			case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolAll:
@@ -214,7 +215,7 @@ func (blocks filtersBlocks) addACLRuleBlocks(rc *datamodel.ResourcesContainerMod
 				src = ruleObj.Source
 				dst = ruleObj.Destination
 			default:
-				return fmt.Errorf("ACL has unsupported type for rule: %s ", *aclObj.Name)
+				return fmt.Errorf("ACL %s has unsupported type for the %dth rule", *aclObj.Name, i)
 			}
 			if err := blocks.addBlocks(*aclObj.VPC.CRN, []*string{src, dst}); err != nil {
 				return err
@@ -226,7 +227,7 @@ func (blocks filtersBlocks) addACLRuleBlocks(rc *datamodel.ResourcesContainerMod
 
 func (blocks filtersBlocks) addSGRulesBlocks(rc *datamodel.ResourcesContainerModel) error {
 	for _, sgObj := range rc.SecurityGroupList {
-		for _, rule := range sgObj.Rules {
+		for i, rule := range sgObj.Rules {
 			var remote *vpc1.SecurityGroupRuleRemote
 			var local *vpc1.SecurityGroupRuleLocal
 			switch ruleObj := rule.(type) {
@@ -240,7 +241,7 @@ func (blocks filtersBlocks) addSGRulesBlocks(rc *datamodel.ResourcesContainerMod
 				remote = ruleObj.Remote.(*vpc1.SecurityGroupRuleRemote)
 				local = ruleObj.Local.(*vpc1.SecurityGroupRuleLocal)
 			default:
-				return fmt.Errorf("SG has unsupported type for rule: %s ", *sgObj.Name)
+				return fmt.Errorf("SG %s has unsupported type for the %dth rule", *sgObj.Name, i)
 			}
 			// we also might have remote.name, in such case we need to refer to addresses of the sg members.
 			// (in this stage we do not have the sg members yet).
@@ -260,11 +261,11 @@ func (blocks filtersBlocks) addBlocks(vpc string, cidrsOrAddresses []*string) er
 	}
 	for _, cidrOrAddress := range cidrsOrAddresses {
 		if cidrOrAddress != nil {
-			b, err := ipblock.FromCidrOrAddress(*cidrOrAddress)
+			block, err := ipblock.FromCidrOrAddress(*cidrOrAddress)
 			if err != nil {
 				return err
 			}
-			blocks[vpc] = append(blocks[vpc], b)
+			blocks[vpc] = append(blocks[vpc], block)
 		}
 	}
 	return nil
