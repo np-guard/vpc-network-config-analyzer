@@ -198,21 +198,23 @@ func (blocks filtersBlocks) addACLRuleBlocks(rc *datamodel.ResourcesContainerMod
 func (blocks filtersBlocks) addSGRulesBlocks(rc *datamodel.ResourcesContainerModel) error {
 	for _, sgObj := range rc.SecurityGroupList {
 		for _, rule := range sgObj.Rules {
-			var remote, local *string
+			var remote *vpc1.SecurityGroupRuleRemote
+			var local *vpc1.SecurityGroupRuleLocal
 			switch ruleObj := rule.(type) {
 			case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolAll:
-				remote = ruleObj.Remote.(*vpc1.SecurityGroupRuleRemote).CIDRBlock
-				local = ruleObj.Local.(*vpc1.SecurityGroupRuleLocal).CIDRBlock
+				remote = ruleObj.Remote.(*vpc1.SecurityGroupRuleRemote)
+				local = ruleObj.Local.(*vpc1.SecurityGroupRuleLocal)
 			case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudp:
-				remote = ruleObj.Remote.(*vpc1.SecurityGroupRuleRemote).CIDRBlock
-				local = ruleObj.Local.(*vpc1.SecurityGroupRuleLocal).CIDRBlock
+				remote = ruleObj.Remote.(*vpc1.SecurityGroupRuleRemote)
+				local = ruleObj.Local.(*vpc1.SecurityGroupRuleLocal)
 			case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolIcmp:
-				remote = ruleObj.Remote.(*vpc1.SecurityGroupRuleRemote).CIDRBlock
-				local = ruleObj.Local.(*vpc1.SecurityGroupRuleLocal).CIDRBlock
+				remote = ruleObj.Remote.(*vpc1.SecurityGroupRuleRemote)
+				local = ruleObj.Local.(*vpc1.SecurityGroupRuleLocal)
 			default:
 				return fmt.Errorf("SG has unsupported type for rule: %s ", *sgObj.Name)
 			}
-			if err := blocks.addBlocks(*sgObj.VPC.CRN, []*string{remote, local}); err != nil {
+			// we also have remote.name. however, these are reference to other sg, so we can ignore them:
+			if err := blocks.addBlocks(*sgObj.VPC.CRN, []*string{remote.Address,remote.CIDRBlock, local.Address,local.CIDRBlock}); err != nil {
 				return err
 			}
 		}
@@ -220,13 +222,13 @@ func (blocks filtersBlocks) addSGRulesBlocks(rc *datamodel.ResourcesContainerMod
 	return nil
 }
 
-func (blocks filtersBlocks) addBlocks(vpc string, cidrs []*string) error {
+func (blocks filtersBlocks) addBlocks(vpc string, cidrsOrAddresses []*string) error {
 	if _, ok := blocks[vpc]; !ok {
 		blocks[vpc] = []*ipblock.IPBlock{}
 	}
-	for _, cidr := range cidrs {
-		if cidr != nil {
-			b, err := ipblock.FromCidr(*cidr)
+	for _, cidrOrAddress := range cidrsOrAddresses {
+		if cidrOrAddress != nil {
+			b, err := ipblock.FromCidrOrAddress(*cidrOrAddress)
 			if err != nil {
 				return err
 			}
