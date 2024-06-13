@@ -28,7 +28,7 @@ type rulesConnection struct {
 	ingressRules rulesInLayers
 	egressRules  rulesInLayers
 }
-
+type loadBalancerDennyRule bool
 type srcDstDetails struct {
 	src         Node
 	dst         Node
@@ -44,6 +44,7 @@ type srcDstDetails struct {
 	crossVpcRules  []RulesInTable  // cross vpc (only tgw at the moment) prefix rules effecting the connection (or lack of)
 	// there could be more than one connection effecting the connection since src/dst cidr's may contain more than one AP
 
+	loadBalancerRule loadBalancerDennyRule
 	// filters relevant for this src, dst pair; map keys are the filters kind (NaclLayer/SecurityGroupLayer)
 	// for two internal nodes within same subnet, only SG layer is relevant
 	// for external connectivity (src/dst is external) with FIP, only SG layer is relevant
@@ -185,6 +186,7 @@ func (details *rulesAndConnDetails) computeRoutersAndFilters(c *VPCConfig) (err 
 				singleSrcDstDetails.crossVpcRules = singleSrcDstDetails.crossVpcRouter.RulesInConnectivity(src, dst)
 			}
 			singleSrcDstDetails.filtersRelevant = src.(InternalNodeIntf).AppliedFiltersKinds(dst.(InternalNodeIntf))
+			singleSrcDstDetails.loadBalancerRule = loadBalancerDennyRule(c.deniedWithLBConnectivity(src, dst))
 		} else { // external
 			externalRouter, _, err := c.getRoutingResource(src, dst)
 			if err != nil {
