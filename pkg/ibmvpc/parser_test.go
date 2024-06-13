@@ -91,7 +91,7 @@ func TestSubnetsBlocks(t *testing.T) {
 	subnetsBlocks := subnetsIPBlocks{}
 	subnetID, vpcID := "subId1", "vpcId"
 	subnetOrigBlock, _ := ipblock.FromCidr("10.240.0.0/23")
-	subnetsBlocks[subnetID] = &subnetIPBlocks{subnetOriginalBlock: subnetOrigBlock}
+	subnetsBlocks[subnetID] = &oneSubnetBlocks{subnetOriginalBlock: subnetOrigBlock}
 	filtersBlocks := filtersBlocks{}
 	filterBlock1, _ := ipblock.FromCidr("10.230.0.0/23")
 	filterBlock2, _ := ipblock.FromCidr("10.240.0.0/24")

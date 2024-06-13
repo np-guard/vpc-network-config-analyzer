@@ -43,15 +43,28 @@ import (
 //       when a free address is needed, we take the first address of the block and remove it from the free blocks list.
 
 // /////////////////////////////////////////////////////////////////////////////////////////
-// subnetIPBlocks holds the blocks of a subnet
-type subnetIPBlocks struct {
-	subnetOriginalBlock  *ipblock.IPBlock // the block of the original cidr of the subnet
+// oneSubnetBlocks holds the blocks of one subnet
+type oneSubnetBlocks struct {
+	subnetOriginalBlock *ipblock.IPBlock // the block of the cidr of the subnet
+	// splitByFiltersBlocks are the atomic blocks induced by the filters, the union of this slice is the subnetOriginalBlock
 	splitByFiltersBlocks []*ipblock.IPBlock
-	freeAddressesBlocks  []*ipblock.IPBlock // each block in splitByFiltersBlocks has a corresponding block at freeAddressesBlocks
-	fullyReservedBlocks  []bool             // true if all the addresses in the block are reserved IP
+	// freeAddressesBlocks are the splitByFiltersBlocks minus the reserved IPs
+	// each block in splitByFiltersBlocks has a corresponding block at freeAddressesBlocks
+	freeAddressesBlocks []*ipblock.IPBlock
+	// fullyReservedBlocks is a bool per block.
+	// its true if all the addresses in the original block are reserved IP
+	// for these blocks there is no need to create private IPs
+	fullyReservedBlocks []bool
 }
-type subnetsIPBlocks map[string]*subnetIPBlocks
 
+// subnetsIPBlocks is a map from the subnet crn to the subnets block
+type subnetsIPBlocks map[string]*oneSubnetBlocks
+
+// getSubnetsIPBlocks() is the main func that creates the subnetsBlocks, steps:
+// 1. get the subnets original blocks
+// 2. calculate the filters blocks
+// 3. calculate the splitByFiltersBlocks
+// 4. calculate the freeAddressesBlocks
 func getSubnetsIPBlocks(rc *datamodel.ResourcesContainerModel) (subnetsBlocks subnetsIPBlocks, err error) {
 	subnetsBlocks = subnetsIPBlocks{}
 	// get all the original blocks of the subnets:
@@ -74,7 +87,7 @@ func getSubnetsIPBlocks(rc *datamodel.ResourcesContainerModel) (subnetsBlocks su
 
 func (subnetsBlocks subnetsIPBlocks) getSubnetsOriginalBlocks(rc *datamodel.ResourcesContainerModel) (err error) {
 	for _, subnetObj := range rc.SubnetList {
-		subnetsBlocks[*subnetObj.CRN] = &subnetIPBlocks{}
+		subnetsBlocks[*subnetObj.CRN] = &oneSubnetBlocks{}
 		subnetsBlocks[*subnetObj.CRN].subnetOriginalBlock, err = ipblock.FromCidr(*subnetObj.Ipv4CIDRBlock)
 		if err != nil {
 			return err
@@ -157,13 +170,15 @@ func (subnetsBlocks subnetsIPBlocks) removeAddressFromFree(address, subnetCRN st
 	return nil
 }
 
+// filtersBlocks is a map from a vpc to a list of blocks
+type filtersBlocks map[string][]*ipblock.IPBlock
+
 // ///////////////////////////////////////////
-// filtersBlocks create a slice of disjoint blocks, split according to the rules blocks, and their sum is allCidr:
+// getFiltersBlocks() create a slice of disjoint blocks for each vpc, split according to the rules blocks, and their sum is allCidr:
 // 1. collect a slice all the acl blocks
 // 2. add to the slice all the gs blocks
 // 3. add to the slice the CidrAll block
-// 3. create a list of disjoint blocks from this slice
-type filtersBlocks map[string][]*ipblock.IPBlock
+// 4. create a list of disjoint blocks from this slice
 
 func getFiltersBlocks(rc *datamodel.ResourcesContainerModel) (filtersBlocks, error) {
 	blocks := filtersBlocks{}
@@ -226,7 +241,7 @@ func (blocks filtersBlocks) addSGRulesBlocks(rc *datamodel.ResourcesContainerMod
 			default:
 				return fmt.Errorf("SG has unsupported type for rule: %s ", *sgObj.Name)
 			}
-			// we also have remote.name. however, these are reference to other sg, so we can ignore them:
+			// we also have remote.name. however, these are reference to reserved ips, so we can ignore them:
 			if err := blocks.addBlocks(*sgObj.VPC.CRN, []*string{remote.Address, remote.CIDRBlock, local.Address, local.CIDRBlock}); err != nil {
 				return err
 			}
