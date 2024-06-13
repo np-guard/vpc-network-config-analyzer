@@ -19,6 +19,8 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
+const notSupportedYet = "provider %s is not supported yet"
+
 func mergeResourcesContainers(rc1, rc2 *datamodel.ResourcesContainerModel) (*datamodel.ResourcesContainerModel, error) {
 	if rc2 == nil && rc1 != nil {
 		return rc1, nil
@@ -90,7 +92,7 @@ func vpcConfigsFromFiles(fileNames []string, inArgs *inArgs) (*vpcmodel.Multiple
 				return nil, err1
 			}
 		} else {
-			return nil, fmt.Errorf("provider %s is not supported yet", provider)
+			return nil, fmt.Errorf(notSupportedYet, provider)
 		}
 	}
 	vpcConfigs, err2 := ibmvpc.VPCConfigsFromResources(mergedRC, inArgs.vpc, inArgs.resourceGroup, inArgs.regionList, inArgs.debug)
@@ -120,7 +122,7 @@ func vpcConfigsFromAccount(inArgs *inArgs) (*vpcmodel.MultipleVPCConfigs, error)
 			return nil, err
 		}
 	} else {
-		return nil, fmt.Errorf("provider %s is not supported yet", inArgs.provider.String())
+		return nil, fmt.Errorf(notSupportedYet, inArgs.provider.String())
 	}
 
 	// save collected resources in dump file
