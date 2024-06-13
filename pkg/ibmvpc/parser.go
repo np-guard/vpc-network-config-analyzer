@@ -1449,7 +1449,9 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 		}
 		subnetBlocks := subnetsBlocks.subnetBlocks(*subnetObj.CRN)
 		privateIPAddressesMessage := make([]string, len(subnetBlocks))
-		// we want a pip for every block of every subnet:
+		// when a load balancer is created, not all its subnets get privateIPs.
+		// some subnets are chosen (arbitrary?) and only these are assigned privateIPs.
+		// however, we create a private IP for all the subnets, abd for all the blocks in the subnets.
 		for blockIndex, subnetBlock := range subnetBlocks {
 			// first get name, id, address, publicAddress:
 			var name, id, address, publicAddress string
