@@ -162,7 +162,7 @@ func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node,
 			if err != nil {
 				return nil, err
 			}
-			rulesThisSrcDst := &srcDstDetails{src: src, dst: dst, conn: emptyDetailConn(),
+			rulesThisSrcDst := &srcDstDetails{src: src, dst: dst, conn: emptyDetailedConn(),
 				potentialAllowRules: allowRules, potentialDenyRules: denyRules}
 			rulesAndConn = append(rulesAndConn, rulesThisSrcDst)
 		}
@@ -442,7 +442,7 @@ func (details *rulesAndConnDetails) computeConnections(c *VPCConfig,
 			return err
 		}
 		if connQuery != nil { // connection is part of the query
-			srcDstDetails.conn = newDetailConn(conn.tcpRspEnable.Intersect(connQuery),
+			srcDstDetails.conn = newDetailedConn(conn.tcpRspEnable.Intersect(connQuery),
 				conn.nonTCP.Intersect(connQuery), conn.allConn.Intersect(connQuery))
 		} else {
 			srcDstDetails.conn = conn
