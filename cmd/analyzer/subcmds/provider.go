@@ -18,6 +18,7 @@ type provider string
 
 var allProviders = []string{
 	common.IBM,
+	common.AWS,
 }
 
 func (p *provider) String() string {
