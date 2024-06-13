@@ -97,9 +97,10 @@ func (subnetsBlocks subnetsIPBlocks) getSubnetsOriginalBlocks(rc *datamodel.Reso
 }
 
 // splitSubnetsOriginalBlocks() calculates splitByFiltersBlocks - the atomic blocks induced by the filters.
-//      splitByFiltersBlocks are such that:
-//   		a. the blocks are disjoint
-//	    	b. the union of the blocks is the subnet cidr
+//
+//	     splitByFiltersBlocks are such that:
+//	  		a. the blocks are disjoint
+//		    	b. the union of the blocks is the subnet cidr
 func (subnetsBlocks subnetsIPBlocks) splitSubnetsOriginalBlocks(rc *datamodel.ResourcesContainerModel, filtersBlocks filtersBlocks) {
 	for _, subnetObj := range rc.SubnetList {
 		subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks =
