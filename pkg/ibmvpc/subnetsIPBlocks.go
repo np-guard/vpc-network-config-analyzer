@@ -48,6 +48,7 @@ type subnetIPBlocks struct {
 	subnetOriginalBlock  *ipblock.IPBlock // the block of the original cidr of the subnet
 	splitByFiltersBlocks []*ipblock.IPBlock
 	freeAddressesBlocks  []*ipblock.IPBlock // each block in splitByFiltersBlocks has a corresponding block at freeAddressesBlocks
+	fullyReservedBlocks  []bool             // true if all the addresses in the block are reserved IP
 }
 type subnetsIPBlocks map[string]*subnetIPBlocks
 
@@ -110,8 +111,9 @@ func splitSubnetOriginalBlock(subnetOriginalBlock *ipblock.IPBlock, filtersBlock
 func (subnetsBlocks subnetsIPBlocks) getSubnetsFreeBlocks(rc *datamodel.ResourcesContainerModel) error {
 	for _, subnetObj := range rc.SubnetList {
 		subnetsBlocks[*subnetObj.CRN].freeAddressesBlocks = make([]*ipblock.IPBlock, len(subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks))
-		for i, b := range subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks {
-			subnetsBlocks[*subnetObj.CRN].freeAddressesBlocks[i] = b.Copy()
+		subnetsBlocks[*subnetObj.CRN].fullyReservedBlocks = make([]bool, len(subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks))
+		for blockIndex, b := range subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks {
+			subnetsBlocks[*subnetObj.CRN].freeAddressesBlocks[blockIndex] = b.Copy()
 		}
 		// all the allocated IPs are at subnetObj.ReservedIps.
 		for blockIndex := range subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks {
@@ -121,17 +123,28 @@ func (subnetsBlocks subnetsIPBlocks) getSubnetsFreeBlocks(rc *datamodel.Resource
 				}
 			}
 		}
+		for blockIndex := range subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks {
+			if subnetsBlocks[*subnetObj.CRN].freeAddressesBlocks[blockIndex].IsEmpty() {
+				subnetsBlocks[*subnetObj.CRN].fullyReservedBlocks[blockIndex] = true
+			}
+		}
 	}
 	return nil
 }
 
 // allocSubnetFreeAddress() allocated a free address from a block (for the private ip):
 func (subnetsBlocks subnetsIPBlocks) allocSubnetFreeAddress(subnetCRN string, blockIndex int) (string, error) {
+	if subnetsBlocks[subnetCRN].freeAddressesBlocks[blockIndex].IsEmpty() {
+		return "", fmt.Errorf("fail to allocate a free address at block: %s ", subnetsBlocks[subnetCRN].freeAddressesBlocks[blockIndex].String())
+	}
 	address := subnetsBlocks[subnetCRN].freeAddressesBlocks[blockIndex].FirstIPAddress()
 	return address, subnetsBlocks.removeAddressFromFree(address, subnetCRN, blockIndex)
 }
 func (subnetsBlocks subnetsIPBlocks) subnetBlocks(subnetCRN string) []*ipblock.IPBlock {
 	return subnetsBlocks[subnetCRN].splitByFiltersBlocks
+}
+func (subnetsBlocks subnetsIPBlocks) isFullyReservedBlock(subnetCRN string, blockIndex int) bool {
+	return subnetsBlocks[subnetCRN].fullyReservedBlocks[blockIndex]
 }
 
 func (subnetsBlocks subnetsIPBlocks) removeAddressFromFree(address, subnetCRN string, blockIndex int) error {
@@ -214,7 +227,7 @@ func (blocks filtersBlocks) addSGRulesBlocks(rc *datamodel.ResourcesContainerMod
 				return fmt.Errorf("SG has unsupported type for rule: %s ", *sgObj.Name)
 			}
 			// we also have remote.name. however, these are reference to other sg, so we can ignore them:
-			if err := blocks.addBlocks(*sgObj.VPC.CRN, []*string{remote.Address,remote.CIDRBlock, local.Address,local.CIDRBlock}); err != nil {
+			if err := blocks.addBlocks(*sgObj.VPC.CRN, []*string{remote.Address, remote.CIDRBlock, local.Address, local.CIDRBlock}); err != nil {
 				return err
 			}
 		}

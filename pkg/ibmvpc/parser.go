@@ -1447,22 +1447,25 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 		if err != nil {
 			return nil, err
 		}
-		// we want a pip for every subnet:
 		subnetBlocks := subnetsBlocks.subnetBlocks(*subnetObj.CRN)
 		privateIPAddressesMessage := make([]string, len(subnetBlocks))
+		// we want a pip for every block of every subnet:
 		for blockIndex, subnetBlock := range subnetBlocks {
 			// first get name, id, address, publicAddress:
 			var name, id, address, publicAddress string
 			blockHasPrivateIP := subnetsPIPsAddresses[subnet] != nil &&
 				subnetsPIPsAddresses[subnet].ContainedIn(subnetBlock)
-			if blockHasPrivateIP {
+			switch {
+			case blockHasPrivateIP:
 				// subnet block has a private IP, we take it from the config
 				pIP := loadBalancerObj.PrivateIps[subnetsPIPsIndexes[subnet]]
 				name, id, address = *pIP.Name, *pIP.ID, *pIP.Address
 				if hasPublicAddress {
 					publicAddress = *loadBalancerObj.PublicIps[subnetsPIPsIndexes[subnet]].Address
 				}
-			} else {
+			case subnetsBlocks.isFullyReservedBlock(*subnetObj.CRN, blockIndex):
+				continue
+			default:
 				// subnet does not have a private IP, we create unique ip info
 				name = "pip-name-of-" + subnet.Name() + "-" + *loadBalancerObj.Name
 				id = "pip-uid-of-" + subnet.UID() + *loadBalancerObj.ID
