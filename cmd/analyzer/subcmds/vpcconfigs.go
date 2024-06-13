@@ -53,8 +53,8 @@ func jsonToMap(jsonStr []byte) (map[string]json.RawMessage, error) {
 	return result, err
 }
 
-// ParseProviderFromFile returns the provider (ibm or aws) from the input JSON file
-func ParseProviderFromFile(fileName string) (string, error) {
+// parseProviderFromFile returns the provider (ibm or aws) from the input JSON file
+func parseProviderFromFile(fileName string) (string, error) {
 	inputConfigContent, err := os.ReadFile(fileName)
 	if err != nil {
 		return "", err
@@ -76,7 +76,7 @@ func ParseProviderFromFile(fileName string) (string, error) {
 func vpcConfigsFromFiles(fileNames []string, inArgs *inArgs) (*vpcmodel.MultipleVPCConfigs, error) {
 	var mergedRC *datamodel.ResourcesContainerModel
 	for _, file := range fileNames {
-		provider, err := ParseProviderFromFile(file)
+		provider, err := parseProviderFromFile(file)
 		if err != nil {
 			return nil, err
 		}
@@ -90,7 +90,7 @@ func vpcConfigsFromFiles(fileNames []string, inArgs *inArgs) (*vpcmodel.Multiple
 				return nil, err1
 			}
 		} else {
-			return nil, fmt.Errorf("aws not supported yet")
+			return nil, fmt.Errorf("provider %s is not supported yet", provider)
 		}
 	}
 	vpcConfigs, err2 := ibmvpc.VPCConfigsFromResources(mergedRC, inArgs.vpc, inArgs.resourceGroup, inArgs.regionList, inArgs.debug)
@@ -109,11 +109,9 @@ func vpcConfigsFromAccount(inArgs *inArgs) (*vpcmodel.MultipleVPCConfigs, error)
 	}
 
 	var vpcConfigs *vpcmodel.MultipleVPCConfigs
-	resources := rc.GetResources()
-
 	// todo: when analysis for other providers is available, select provider according to flag
 	if inArgs.provider.String() == common.IBM {
-		ibmResources, ok := resources.(*datamodel.ResourcesContainerModel)
+		ibmResources, ok := rc.GetResources().(*datamodel.ResourcesContainerModel)
 		if !ok {
 			return nil, fmt.Errorf("error casting resources to *datamodel.ResourcesContainerModel type")
 		}
@@ -121,26 +119,27 @@ func vpcConfigsFromAccount(inArgs *inArgs) (*vpcmodel.MultipleVPCConfigs, error)
 		if err != nil {
 			return nil, err
 		}
-		// save collected resources in dump file
-		if inArgs.dumpResources != "" {
-			jsonString, err := ibmResources.ToJSONString()
-			if err != nil {
-				return nil, err
-			}
-			log.Printf("Dumping collected resources to file: %s", inArgs.dumpResources)
-
-			file, err := os.Create(inArgs.dumpResources)
-			if err != nil {
-				return nil, err
-			}
-
-			_, err = file.WriteString(jsonString)
-			if err != nil {
-				return nil, err
-			}
-		}
 	} else {
-		return nil, fmt.Errorf("aws provider not supported yet")
+		return nil, fmt.Errorf("provider %s is not supported yet", inArgs.provider.String())
+	}
+
+	// save collected resources in dump file
+	if inArgs.dumpResources != "" {
+		jsonString, err := rc.ToJSONString()
+		if err != nil {
+			return nil, err
+		}
+		log.Printf("Dumping collected resources to file: %s", inArgs.dumpResources)
+
+		file, err := os.Create(inArgs.dumpResources)
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = file.WriteString(jsonString)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return vpcConfigs, nil
 }
