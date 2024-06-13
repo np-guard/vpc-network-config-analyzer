@@ -39,7 +39,7 @@ func explainHeader(explanation *Explanation) string {
 	return header1 + newLine + header2 + doubleNL
 }
 
-// used to print 1) the query in the first header
+// connHeader is used to print 1) the query in the first header
 // 2) the actual allowed connection from the queried one in the 2nd header
 func connHeader(connQuery *connection.Set) string {
 	if connQuery != nil {
@@ -104,7 +104,6 @@ func explainMissingCrossVpcRouter(src, dst string, connQuery *connection.Set) st
 //     test-vpc2-ky -> TGW local-tg-ky -> |
 //
 // 4. Details of enabling and disabling rules/prefixes, including details of each rule
-// todo add details of enabling/disabling rules for return path
 //
 // 1 and 3 are printed always
 // 2 is printed only when the connection is blocked. It is redundant when the entire path ("3") is printed. When
