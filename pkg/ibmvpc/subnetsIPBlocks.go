@@ -54,7 +54,7 @@ type subnetsIPBlocks map[string]*subnetIPBlocks
 
 func getSubnetsIPBlocks(rc *datamodel.ResourcesContainerModel) (subnetsBlocks subnetsIPBlocks, err error) {
 	subnetsBlocks = subnetsIPBlocks{}
-	// get all the original blocks of the subnets:
+	// gets the original blocks of the subnets:
 	if err := subnetsBlocks.getSubnetsOriginalBlocks(rc); err != nil {
 		return nil, err
 	}
