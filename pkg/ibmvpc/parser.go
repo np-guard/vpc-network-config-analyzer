@@ -1448,10 +1448,9 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 			return nil, err
 		}
 		// we want a pip for every subnet:
-		if len(subnetsBlocks.subnetBlocks(*subnetObj.CRN)) > 1 {
-			logging.Warnf("subnet %s is spit by filters, more than one private IP is created\n", *subnetObj.Name)
-		}
-		for blockIndex, subnetBlock := range subnetsBlocks.subnetBlocks(*subnetObj.CRN) {
+		subnetBlocks := subnetsBlocks.subnetBlocks(*subnetObj.CRN)
+		privateIPAddressesMessage := make([]string, len(subnetBlocks))
+		for blockIndex, subnetBlock := range subnetBlocks {
 			// first get name, id, address, publicAddress:
 			var name, id, address, publicAddress string
 			blockHasPrivateIP := subnetsPIPsAddresses[subnet] != nil &&
@@ -1479,6 +1478,7 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 					publicAddress = *loadBalancerObj.PublicIps[0].Address
 				}
 			}
+			privateIPAddressesMessage[blockIndex] = fmt.Sprintf("%s(for %s)", address, subnetBlock.String())
 			privateIP := &PrivateIP{
 				VPCResource: vpcmodel.VPCResource{
 					ResourceName: name,
@@ -1517,6 +1517,11 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 				vpcConfig.UIDToResource[routerFip.ResourceUID] = routerFip
 			}
 		}
+		if len(subnetBlocks) > 1 {
+			logging.Debugf("subnet %s is spit by filters, %d private IPs was created:\n%s\n",
+				*subnetObj.Name, len(subnetBlocks), strings.Join(privateIPAddressesMessage, ", "))
+		}
+
 	}
 	return privateIPs, nil
 }
