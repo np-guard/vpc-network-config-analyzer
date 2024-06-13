@@ -124,11 +124,14 @@ func (c *VPCConfig) explainConnectivityForVPC(src, dst string, srcNodes, dstNode
 	}
 	rulesAndDetails.computeActualRules()
 	rulesAndDetails.computeCombinedActualRules() // combined deny and allow
-	rulesAndDetails.updateRespondRules(c)
-
-	groupedLines, err4 := newGroupConnExplainability(c, &rulesAndDetails)
+	err4 := rulesAndDetails.updateRespondRules(c, connQuery)
 	if err4 != nil {
 		return nil, err4
+	}
+
+	groupedLines, err5 := newGroupConnExplainability(c, &rulesAndDetails)
+	if err5 != nil {
+		return nil, err5
 	}
 	// the user has to be notified regarding an assumption we make about IKSNode's security group
 	hasIksNode := srcNodes[0].Kind() == ResourceTypeIKSNode || dstNodes[0].Kind() == ResourceTypeIKSNode
@@ -480,15 +483,18 @@ func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (conn *deta
 	return conn, nil
 }
 
-func (details *rulesAndConnDetails) updateRespondRules(c *VPCConfig) error {
+func (details *rulesAndConnDetails) updateRespondRules(c *VPCConfig, connQuery *connection.Set) error {
 	for _, srcDstDetails := range *details {
 		// respond rules are relevant if connection has a TCP component and non-stateful filter (NACL at the moment)
 		// are relevant for <src, dst>
-		conn := srcDstDetails.conn
 		if !respondRulesRelevant(srcDstDetails.conn, srcDstDetails.filtersRelevant) {
 			continue
 		}
-		respondRules, err := c.getRespondRules(srcDstDetails.src, srcDstDetails.dst, conn.allConn)
+		connForResp := newTCPSet()
+		if connQuery != nil {
+			connForResp = connForResp.Intersect(connQuery)
+		}
+		respondRules, err := c.getRespondRules(srcDstDetails.src, srcDstDetails.dst, connForResp)
 		if err != nil {
 			return err
 		}

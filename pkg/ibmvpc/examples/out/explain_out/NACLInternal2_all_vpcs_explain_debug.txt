@@ -26,8 +26,7 @@ Path enabled by the following rules:
 
 TCP respond enabled by the following rules:
 	Egress:
-		network ACL acl1-ky allows connection with the following allow and deny rules
-			index: 0, direction: outbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, conn: protocol: icmp, action: deny
+		network ACL acl1-ky allows connection with the following allow rules
 			index: 2, direction: outbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, conn: all, action: allow
 
 	Ingress:
