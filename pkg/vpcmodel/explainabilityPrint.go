@@ -157,11 +157,11 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 }
 
 // assumption: the func is called only if the tcp component of the connection is not empty
-func (conn *detailedConn) respondDetailsHeader() string {
+func (d *detailedConn) respondDetailsHeader() string {
 	switch {
-	case conn.tcpRspDisable.IsEmpty():
+	case d.tcpRspDisable.IsEmpty():
 		return "TCP respond enabled by the following rules:\n"
-	case conn.tcpRspEnable.IsEmpty():
+	case d.tcpRspEnable.IsEmpty():
 		return "TCP respond disabled by the following rules:\n"
 	default:
 		return "TCP respond partly enabled by the following rules:\n"
@@ -473,20 +473,20 @@ func getLayersToPrint(filtersRelevant map[string]bool, isIngress bool) (filterLa
 	return orderedRelevantFiltersLayers
 }
 
-func (e *detailedConn) respondString() string {
+func (d *detailedConn) respondString() string {
 	switch {
-	case e.allConn.Equal(e.nonTCP):
+	case d.allConn.Equal(d.nonTCP):
 		// no tcp component - ill-relevant
 		return ""
-	case e.tcpRspEnable.IsEmpty():
+	case d.tcpRspEnable.IsEmpty():
 		// no tcp responsive component
 		return "\n\tTCP respond is blocked"
-	case e.tcpRspEnable.Equal(e.allConn):
+	case d.tcpRspEnable.Equal(d.allConn):
 		// tcp responsive component is the entire connection
 		return "\n\tThe entire connection is TCP responsive"
-	case e.tcpRspDisable.IsEmpty():
+	case d.tcpRspDisable.IsEmpty():
 		return "\n\tThe TCP sub-connection is responsive"
 	default:
-		return "\n\tTCP respond is enabled on " + e.tcpRspEnable.String()
+		return "\n\tTCP respond is enabled on " + d.tcpRspEnable.String()
 	}
 }
