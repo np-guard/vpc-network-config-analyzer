@@ -627,5 +627,5 @@ func (rules *rulesInLayers) appendEncodeRules(encodeComponents *[]string,
 		return
 	}
 	*encodeComponents = append(*encodeComponents, header+
-		(*rules).rulesDetailsStr(c, filtersRelevant, isIngress))
+		rules.rulesDetailsStr(c, filtersRelevant, isIngress))
 }

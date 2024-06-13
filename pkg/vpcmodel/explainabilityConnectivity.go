@@ -399,9 +399,9 @@ func (c *VPCConfig) getRulesOfConnection(src, dst Node,
 	return allowRulesOfConnection, denyRulesOfConnection, nil
 }
 
-func (rulesInLayers rulesInLayers) updateRulesPerLayerIfNonEmpty(layer string, rulesFilter *[]RulesInTable) {
+func (rules rulesInLayers) updateRulesPerLayerIfNonEmpty(layer string, rulesFilter *[]RulesInTable) {
 	if len(*rulesFilter) > 0 {
-		rulesInLayers[layer] = *rulesFilter
+		rules[layer] = *rulesFilter
 	}
 }
 

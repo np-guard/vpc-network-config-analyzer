@@ -144,7 +144,8 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 	egressRulesDetails, ingressRulesDetails := rules.ruleDetailsStr(c, filtersRelevant, needEgress, needIngress)
 	conn := g.commonProperties.conn
 	if verbose {
-		details = "\nDetails:\n~~~~~~~~\nPath enabled by the following rules:\n" + egressRulesDetails + crossRouterFilterDetails + ingressRulesDetails
+		details = "\nDetails:\n~~~~~~~~\nPath enabled by the following rules:\n" +
+			egressRulesDetails + crossRouterFilterDetails + ingressRulesDetails
 		if respondRulesRelevant(conn, filtersRelevant) {
 			// for respond rules needIngress and needEgress are switched
 			respondEgressDetails, respondsIngressDetails := expDetails.respondRules.ruleDetailsStr(c, filtersRelevant, needIngress, needEgress)
@@ -292,11 +293,11 @@ func (rules *rulesConnection) ruleDetailsStr(c *VPCConfig, filtersRelevant map[s
 
 // returns a string with the effect of each filter by calling StringFilterEffect
 // e.g. "security group sg1-ky allows connection; network ACL acl1-ky blocks connection"
-func (rulesInLayers rulesInLayers) summaryFiltersStr(c *VPCConfig, filtersRelevant map[string]bool, isIngress bool) string {
+func (rules rulesInLayers) summaryFiltersStr(c *VPCConfig, filtersRelevant map[string]bool, isIngress bool) string {
 	filtersLayersToPrint := getLayersToPrint(filtersRelevant, isIngress)
 	strSlice := make([]string, len(filtersLayersToPrint))
 	for i, layer := range filtersLayersToPrint {
-		strSlice[i] = stringFilterEffect(c, layer, rulesInLayers[layer])
+		strSlice[i] = stringFilterEffect(c, layer, rules[layer])
 	}
 	return strings.Join(strSlice, semicolon+space)
 }
@@ -441,11 +442,11 @@ func pathFiltersSingleLayerStr(c *VPCConfig, filterLayerName string, rules []Rul
 }
 
 // prints detailed list of rules that effects the (existing or non-existing) connection
-func (rulesInLayers rulesInLayers) rulesDetailsStr(c *VPCConfig, filtersRelevant map[string]bool, isIngress bool) string {
+func (rules rulesInLayers) rulesDetailsStr(c *VPCConfig, filtersRelevant map[string]bool, isIngress bool) string {
 	var strSlice []string
 	for _, layer := range getLayersToPrint(filtersRelevant, isIngress) {
 		filter := c.getFilterTrafficResourceOfKind(layer)
-		if rules, ok := rulesInLayers[layer]; ok {
+		if rules, ok := rules[layer]; ok {
 			strSlice = append(strSlice, filter.StringDetailsOfRules(rules))
 		}
 	}
@@ -487,6 +488,5 @@ func (e *detailedConn) respondString() string {
 		return "\n\tThe TCP sub-connection is responsive"
 	default:
 		return "\n\tTCP respond is enabled on " + e.tcpRspEnable.String()
-
 	}
 }
