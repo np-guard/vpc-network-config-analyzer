@@ -26,7 +26,7 @@ Path enabled by the following rules:
 		security group sg1-ky allows connection with the following allow rules
 			index: 4, direction: inbound,  conns: protocol: all, remote: sg3-ky (10.240.30.5/32,10.240.30.6/32), local: 0.0.0.0/0
 
-TCP respond partly enabled the following by rules:
+TCP respond partly enabled by the following rules:
 	Egress:
 		network ACL acl1-ky allows connection with the following allow rules
 			index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: protocol: tcp, srcPorts: 1-600, dstPorts: 1-50, action: allow

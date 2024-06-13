@@ -163,7 +163,7 @@ func (conn *detailedConn) respondDetailsHeader() string {
 	case conn.tcpRspEnable.IsEmpty():
 		return "TCP respond disabled by the following rules:\n"
 	default:
-		return "TCP respond partly enabled the following by rules:\n"
+		return "TCP respond partly enabled by the following rules:\n"
 	}
 }
 
