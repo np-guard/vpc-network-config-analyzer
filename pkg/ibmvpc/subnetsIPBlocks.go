@@ -121,7 +121,7 @@ func splitSubnetOriginalBlock(subnetOriginalBlock *ipblock.IPBlock, filtersBlock
 // getSubnetsFreeBlocks() - calc all the addresses that are not allocated:
 // for each subnet:
 //  1. make a copy of the splitByFiltersBlocks
-//  2. remove from the copy the addresses that was already allocated
+//  2. remove from this copy the addresses that were already allocated
 func (subnetsBlocks subnetsIPBlocks) getSubnetsFreeBlocks(rc *datamodel.ResourcesContainerModel) error {
 	for _, subnetObj := range rc.SubnetList {
 		subnetsBlocks[*subnetObj.CRN].freeAddressesBlocks = make([]*ipblock.IPBlock, len(subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks))
