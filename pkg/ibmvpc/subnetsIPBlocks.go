@@ -242,7 +242,10 @@ func (blocks filtersBlocks) addSGRulesBlocks(rc *datamodel.ResourcesContainerMod
 			default:
 				return fmt.Errorf("SG has unsupported type for rule: %s ", *sgObj.Name)
 			}
-			// we also have remote.name. however, these are reference to reserved ips, so we can ignore them:
+			// we also might have remote.name, in such case we need to refer to addresses of the sg members.
+			// (in this stage we do not have the sg members yet).
+			// however, the members are resources, and their addresses are already reserved IP.
+			// do these blocks are already fullyReservedBlocks we can ignore them:
 			if err := blocks.addBlocks(*sgObj.VPC.CRN, []*string{remote.Address, remote.CIDRBlock, local.Address, local.CIDRBlock}); err != nil {
 				return err
 			}
