@@ -88,6 +88,8 @@ func (c *VPCConfig) getNodesFromEndpoint(endpoint EndpointElem) ([]Node, error) 
 	switch n := endpoint.(type) {
 	case InternalNodeIntf:
 		return []Node{endpoint.(Node)}, nil
+	case LoadBalancer:
+		return n.Nodes(), nil
 	case *groupedExternalNodes:
 		var externalIP = ipblock.New()
 		for _, e := range *n {
@@ -147,6 +149,9 @@ func collectNodesForExplanation(cConfigs *MultipleVPCConfigs, conns map[string]*
 				if !n.IsExternal() {
 					internalNodes[n] = vpcConfig
 				}
+			}
+			for _, n := range vpcConfig.LoadBalancers {
+				internalNodes[n] = vpcConfig
 			}
 		}
 	}

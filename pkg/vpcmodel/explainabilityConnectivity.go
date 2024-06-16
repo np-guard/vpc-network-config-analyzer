@@ -402,8 +402,13 @@ func (rulesInLayers rulesInLayers) updateRulesPerLayerIfNonEmpty(layer string, r
 }
 
 // node is from getCidrExternalNodes, thus there is a node in VPCConfig that either equal to or contains it.
-func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
+func (c *VPCConfig) getContainingConfigNode(node Node) (VPCResourceIntf, error) {
 	if node.IsInternal() { // node is not external - nothing to do
+		for _,lb := range c.LoadBalancers{
+			if slices.Contains(lb.Nodes(), node) && lb.AbstractionInfo() != nil{
+				return lb, nil
+			}
+		}
 		return node, nil
 	}
 	nodeIPBlock := node.IPBlock()
@@ -467,12 +472,17 @@ func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (conn *deta
 	if dstForConnection == nil {
 		return nil, fmt.Errorf(errMsg, dst.Name())
 	}
+	if srcForConnection == dstForConnection{
+		return emptyDetailedConn(), nil
+	}
 	var ok bool
 	srcMapValue, ok := v.AllowedConnsCombinedResponsive[srcForConnection]
 	if ok {
 		conn, ok = srcMapValue[dstForConnection]
 	}
 	if !ok {
+		return emptyDetailedConn(), nil
+
 		return nil, fmt.Errorf("error: there is a connection between %v and %v, but connection computation failed",
 			srcForConnection.Name(), dstForConnection.Name())
 	}
