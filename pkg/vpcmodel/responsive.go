@@ -22,23 +22,7 @@ func partitionTCPNonTCP(conn *connection.Set) (tcp, nonTCP *connection.Set) {
 	return tcpFractionOfConn, nonTCPFractionOfConn
 }
 
-// getResponsiveConn returns  connection object with the exact the responsive part within TCP
-// and with the original connections on other protocols.
-// `srcToDst` represents a src-to-dst connection, and `dstToSrc` represents dst-to-src connection.
-func getResponsiveConn(srcToDst *connection.Set, dstToSrc *connection.Set) *connection.Set {
-	connTCP := srcToDst.Intersect(newTCPSet())
-	if connTCP.IsEmpty() {
-		return srcToDst
-	}
-	tcpSecondDirection := dstToSrc.Intersect(newTCPSet())
-	// flip src/dst ports before intersection
-	tcpSecondDirectionFlipped := tcpSecondDirection.SwitchSrcDstPorts()
-	// tcp connection stateful subset
-	statefulCombinedConnTCP := connTCP.Intersect(tcpSecondDirectionFlipped)
-	return srcToDst.Subtract(connTCP).Union(statefulCombinedConnTCP)
-}
-
-// getResponsiveConn returns connection object with the exact the responsive part within TCP
+// getTCPResponsiveConn returns connection object with the exact the responsive part within TCP
 // `srcToDst` represents a src-to-dst connection, and `dstToSrc` represents dst-to-src connection.
 func getTCPResponsiveConn(srcToDst *connection.Set, dstToSrc *connection.Set) *connection.Set {
 	connTCP := srcToDst.Intersect(newTCPSet())
