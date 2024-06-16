@@ -205,6 +205,7 @@ type LoadBalancer interface {
 	DenyConnectivity(src, dst Node) bool
 	SetAbstractionInfo(*AbstractionInfo)
 	AbstractionInfo() *AbstractionInfo
+	IsNodeAbstracted(node Node) bool
 }
 
 // RulesType Type of rules in a given filter (e.g. specific NACL table) relevant to

@@ -200,6 +200,13 @@ var tests = []*vpcGeneralTest{
 		// noLbAbstract: true,
 		format:       vpcmodel.HTML,
 	},
+	{
+		inputConfig:  "load_balancer",
+		useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:     true,
+		noLbAbstract: true,
+		format:       vpcmodel.HTML,
+	},
 
 }
 
