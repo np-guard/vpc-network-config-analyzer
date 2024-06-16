@@ -177,6 +177,7 @@ func (details *rulesAndConnDetails) computeRoutersAndFilters(c *VPCConfig) (err 
 		// RoutingResources are computed by the parser for []Nodes of the VPC,
 		src := singleSrcDstDetails.src
 		dst := singleSrcDstDetails.dst
+		singleSrcDstDetails.loadBalancerRule = loadBalancerDennyRule(c.deniedWithLBConnectivity(src, dst))
 		if src.IsInternal() && dst.IsInternal() { // internal (including cross vpcs)
 			singleSrcDstDetails.crossVpcRouter, _, err = c.getRoutingResource(src, dst)
 			if err != nil {
@@ -186,7 +187,6 @@ func (details *rulesAndConnDetails) computeRoutersAndFilters(c *VPCConfig) (err 
 				singleSrcDstDetails.crossVpcRules = singleSrcDstDetails.crossVpcRouter.RulesInConnectivity(src, dst)
 			}
 			singleSrcDstDetails.filtersRelevant = src.(InternalNodeIntf).AppliedFiltersKinds(dst.(InternalNodeIntf))
-			singleSrcDstDetails.loadBalancerRule = loadBalancerDennyRule(c.deniedWithLBConnectivity(src, dst))
 		} else { // external
 			externalRouter, _, err := c.getRoutingResource(src, dst)
 			if err != nil {
