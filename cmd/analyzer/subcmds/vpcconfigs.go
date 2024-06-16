@@ -7,15 +7,19 @@ SPDX-License-Identifier: Apache-2.0
 package subcmds
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
 
+	"github.com/np-guard/cloud-resource-collector/pkg/common"
 	"github.com/np-guard/cloud-resource-collector/pkg/factory"
 	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/ibmvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
+
+const notSupportedYet = "provider %s is not supported yet"
 
 func mergeResourcesContainers(rc1, rc2 *datamodel.ResourcesContainerModel) (*datamodel.ResourcesContainerModel, error) {
 	if rc2 == nil && rc1 != nil {
@@ -44,16 +48,51 @@ func mergeResourcesContainers(rc1, rc2 *datamodel.ResourcesContainerModel) (*dat
 	return rc1, nil
 }
 
+// Helper function for unmarshalling
+func jsonToMap(jsonStr []byte) (map[string]json.RawMessage, error) {
+	var result map[string]json.RawMessage
+	err := json.Unmarshal(jsonStr, &result)
+	return result, err
+}
+
+// parseProviderFromFile returns the provider (ibm or aws) from the input JSON file
+func parseProviderFromFile(fileName string) (string, error) {
+	inputConfigContent, err := os.ReadFile(fileName)
+	if err != nil {
+		return "", err
+	}
+	asMap, err := jsonToMap(inputConfigContent)
+	if err != nil {
+		return "", err
+	}
+	provider := common.IBM
+	val, ok := asMap["provider"]
+	if ok {
+		if err := json.Unmarshal(val, &provider); err != nil {
+			return "", err
+		}
+	}
+	return provider, nil
+}
+
 func vpcConfigsFromFiles(fileNames []string, inArgs *inArgs) (*vpcmodel.MultipleVPCConfigs, error) {
 	var mergedRC *datamodel.ResourcesContainerModel
 	for _, file := range fileNames {
-		rc, err1 := ibmvpc.ParseResourcesFromFile(file)
-		if err1 != nil {
-			return nil, fmt.Errorf("error parsing input vpc resources file: %w", err1)
+		provider, err := parseProviderFromFile(file)
+		if err != nil {
+			return nil, err
 		}
-		mergedRC, err1 = mergeResourcesContainers(mergedRC, rc)
-		if err1 != nil {
-			return nil, err1
+		if provider == common.IBM {
+			rc, err1 := ibmvpc.ParseResourcesFromFile(file)
+			if err1 != nil {
+				return nil, fmt.Errorf("error parsing input vpc resources file: %w", err1)
+			}
+			mergedRC, err1 = mergeResourcesContainers(mergedRC, rc)
+			if err1 != nil {
+				return nil, err1
+			}
+		} else {
+			return nil, fmt.Errorf(notSupportedYet, provider)
 		}
 	}
 	vpcConfigs, err2 := ibmvpc.VPCConfigsFromResources(mergedRC, inArgs.vpc, inArgs.resourceGroup, inArgs.regionList, inArgs.debug)
@@ -71,18 +110,24 @@ func vpcConfigsFromAccount(inArgs *inArgs) (*vpcmodel.MultipleVPCConfigs, error)
 		return nil, err
 	}
 
+	var vpcConfigs *vpcmodel.MultipleVPCConfigs
 	// todo: when analysis for other providers is available, select provider according to flag
-	resources, ok := rc.GetResources().(*datamodel.ResourcesContainerModel)
-	if !ok {
-		return nil, fmt.Errorf("error casting resources to *datamodel.ResourcesContainerModel type")
+	if inArgs.provider.String() == common.IBM {
+		ibmResources, ok := rc.GetResources().(*datamodel.ResourcesContainerModel)
+		if !ok {
+			return nil, fmt.Errorf("error casting resources to *datamodel.ResourcesContainerModel type")
+		}
+		vpcConfigs, err = ibmvpc.VPCConfigsFromResources(ibmResources, inArgs.vpc, inArgs.resourceGroup, inArgs.regionList, inArgs.debug)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		return nil, fmt.Errorf(notSupportedYet, inArgs.provider.String())
 	}
-	vpcConfigs, err := ibmvpc.VPCConfigsFromResources(resources, inArgs.vpc, inArgs.resourceGroup, inArgs.regionList, inArgs.debug)
-	if err != nil {
-		return nil, err
-	}
+
 	// save collected resources in dump file
 	if inArgs.dumpResources != "" {
-		jsonString, err := resources.ToJSONString()
+		jsonString, err := rc.ToJSONString()
 		if err != nil {
 			return nil, err
 		}
