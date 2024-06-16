@@ -264,8 +264,9 @@ func (v *VPCConnectivity) computeAllowedResponsiveConnections(allowedConnsCombin
 			// iterate pairs (src,dst) with allConn as allowed connectivity, to check responsive aspect
 			if v.isConnExternalThroughFIP(srcNode, dstNode) { // fip ignores NACL
 				// TODO: this may be ibm-specific. consider moving to ibmvpc
+				tcpComponent, _ := partitionTCPNonTCP(conn)
 				v.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(src, dst,
-					detailedConnForTCPRspAndNonTCP(conn, conn))
+					detailedConnForTCPRsp(tcpComponent, conn))
 				continue
 			}
 
