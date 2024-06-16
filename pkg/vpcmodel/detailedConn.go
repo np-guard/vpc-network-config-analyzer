@@ -8,7 +8,6 @@ package vpcmodel
 
 import (
 	"github.com/np-guard/models/pkg/connection"
-	"github.com/np-guard/models/pkg/netp"
 )
 
 // todo: remove stateful from connection.Set
@@ -100,19 +99,4 @@ func (e *detailedConn) string() string {
 		return e.allConn.String() + " * "
 	}
 	return e.allConn.String()
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////
-
-// todo: following functionality needs to be moved to package connection with member instead of parms passing
-
-func newTCPSet() *connection.Set {
-	return connection.TCPorUDPConnection(netp.ProtocolStringTCP, connection.MinPort, connection.MaxPort,
-		connection.MinPort, connection.MaxPort)
-}
-
-func partitionTCPNonTCP(conn *connection.Set) (tcp, nonTCP *connection.Set) {
-	tcpFractionOfConn := newTCPSet().Intersect(conn)
-	nonTCPFractionOfConn := conn.Subtract(tcpFractionOfConn)
-	return tcpFractionOfConn, nonTCPFractionOfConn
 }
