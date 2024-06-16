@@ -54,6 +54,12 @@ func detailedConnForTCPRspAndNonTCP(tcpRspfulAndNonTCP, allConn *connection.Set)
 	return newDetailedConn(tcpRspFraction, nonTCPFraction, allConn)
 }
 
+// detailedConnForTCPRspAndNonTCP constructor that is given the (tcp responsive and non tcp) conn and the entire conn
+func detailedConnForTCPRsp(tcpResponsive, allConn *connection.Set) *detailedConn {
+	_, nonTCPFraction := partitionTCPNonTCP(allConn)
+	return newDetailedConn(tcpResponsive, nonTCPFraction, allConn)
+}
+
 func detailedConnForResponsive(responsive *connection.Set) *detailedConn {
 	return newDetailedConn(responsive, NoConns(), responsive)
 }
