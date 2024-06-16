@@ -11,6 +11,10 @@ require (
 	github.com/stretchr/testify v1.9.0
 )
 
+replace (
+	github.com/np-guard/models v0.3.2 => ../../models/models
+)
+
 require (
 	github.com/IBM-Cloud/container-services-go-sdk v0.0.0-20230118060037-101bda076037 // indirect
 	github.com/IBM/go-sdk-core/v5 v5.17.0 // indirect

@@ -335,10 +335,9 @@ func (v *VPCsubnetConnectivity) computeResponsiveConnections(allowedConnsCombine
 				// from external nodes can not be initiated for pgw
 				otherDirectionConn = v.AllowedConns[src].IngressAllowedConns[dst]
 			default:
-				conn.WithStatefulness(otherDirectionConn)
 				return fmt.Errorf("computeResponsiveConnections: unexpected type for input dst")
 			}
-			responsiveCombinedConn := conn.WithStatefulness(otherDirectionConn)
+			responsiveCombinedConn := conn.GetResponsiveConn(otherDirectionConn)
 			conn := detailedConnForTCPRspAndNonTCP(responsiveCombinedConn, conn)
 			v.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(src, dst, conn)
 		}
