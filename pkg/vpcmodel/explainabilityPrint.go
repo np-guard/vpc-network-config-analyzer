@@ -67,8 +67,12 @@ func (explanation *Explanation) String(verbose bool) string {
 	linesStr := make([]string, len(explanation.groupedLines))
 	groupedLines := explanation.groupedLines
 	for i, groupedLine := range groupedLines {
-		linesStr[i] += groupedLine.explainabilityLineStr(explanation.c, explanation.connQuery, verbose) +
-			"------------------------------------------------------------------------------------------------------------------------\n"
+		if groupedLine.commonProperties.expDetails.loadBalancerRule {
+			linesStr[i] = explainLoadBalancerDeny(explanation.src, explanation.dst, explanation.connQuery)
+		} else {
+			linesStr[i] = groupedLine.explainabilityLineStr(explanation.c, explanation.connQuery, verbose)
+		}
+		linesStr[i] += "------------------------------------------------------------------------------------------------------------------------\n"
 	}
 	sort.Strings(linesStr)
 	iksNodeComment := ""
@@ -84,6 +88,10 @@ func (explanation *Explanation) String(verbose bool) string {
 func explainMissingCrossVpcRouter(src, dst string, connQuery *connection.Set) string {
 	return fmt.Sprintf("%vAll connections will be blocked since source and destination are in different VPCs with no transit gateway to "+
 		"connect them", noConnectionHeader(src, dst, connQuery)+newLine)
+}
+
+func explainLoadBalancerDeny(src, dst string, connQuery *connection.Set) string {
+	return fmt.Sprintf("%v\nConnection from a private IP is allowed only to load balancer pool members\n", noConnectionHeader(src, dst, connQuery))
 }
 
 // prints a single line of explanation for externalAddress grouped <src, dst>
