@@ -150,8 +150,10 @@ func collectNodesForExplanation(cConfigs *MultipleVPCConfigs, conns map[string]*
 					internalNodes[n] = vpcConfig
 				}
 			}
-			for _, n := range vpcConfig.LoadBalancers {
-				internalNodes[n] = vpcConfig
+			for _, lb := range vpcConfig.LoadBalancers {
+				if lb.IsAbstracted() {
+					internalNodes[lb] = vpcConfig
+				}
 			}
 		}
 	}

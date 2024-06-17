@@ -27,15 +27,15 @@ type groupedExternalNodesInfo struct {
 }
 
 type explainDetails struct {
-	rules           *rulesConnection
-	externalRouter  RoutingResource
-	crossVpcRouter  RoutingResource
-	crossVpcRules   []RulesInTable
-	loadBalancerRule loadBalancerDennyRule
-	filtersRelevant map[string]bool
-	connEnabled     bool
-	ingressEnabled  bool
-	egressEnabled   bool
+	rules            *rulesConnection
+	externalRouter   RoutingResource
+	crossVpcRouter   RoutingResource
+	crossVpcRules    []RulesInTable
+	loadBalancerRule loadBalancerDennyEgressRule
+	filtersRelevant  map[string]bool
+	connEnabled      bool
+	ingressEnabled   bool
+	egressEnabled    bool
 }
 
 type groupedCommonProperties struct {

@@ -294,8 +294,11 @@ func (lb *LoadBalancer) SetAbstractionInfo(abstractionInfo *vpcmodel.Abstraction
 func (lb *LoadBalancer) AbstractionInfo() *vpcmodel.AbstractionInfo {
 	return lb.abstractionInfo
 }
+func (lb *LoadBalancer) IsAbstracted() bool {
+	return lb.abstractionInfo != nil
+}
 func (lb *LoadBalancer) IsNodeAbstracted(node vpcmodel.Node) bool {
-	return lb.abstractionInfo != nil && slices.Contains(lb.Nodes(), node)
+	return lb.IsAbstracted() && slices.Contains(lb.Nodes(), node)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

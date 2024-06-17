@@ -205,6 +205,9 @@ type LoadBalancer interface {
 	DenyConnectivity(src, dst Node) bool
 	SetAbstractionInfo(*AbstractionInfo)
 	AbstractionInfo() *AbstractionInfo
+	// IsAbstracted() - was the load balancer abstracted
+	IsAbstracted() bool
+	// IsAbstracted() - is the node is part of this load balancer abstraction
 	IsNodeAbstracted(node Node) bool
 }
 
