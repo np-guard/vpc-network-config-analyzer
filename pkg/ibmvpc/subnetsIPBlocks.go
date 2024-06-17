@@ -119,7 +119,7 @@ func splitSubnetOriginalBlock(subnetOriginalBlock *ipblock.IPBlock, filtersBlock
 	return filtersBlocksOnSubnet
 }
 
-// getSubnetsFreeBlocks() - calc all the addresses that are not allocated:
+// getSubnetsFreeBlocks() - calcs all the addresses that are not allocated:
 // for each subnet:
 //  1. make a copy of the splitByFiltersBlocks
 //  2. remove from this copy the addresses that were already allocated
