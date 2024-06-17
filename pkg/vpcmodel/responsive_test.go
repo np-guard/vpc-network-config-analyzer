@@ -43,7 +43,8 @@ type responsiveTest struct {
 	name     string
 	srcToDst *connection.Set
 	dstToSrc *connection.Set
-	// expectedResponsiveConn represents the subset from srcToDst which is not related to the "non-responsive" mark (*) on the srcToDst connection,
+	// expectedResponsiveConn represents the subset from srcToDst which is not related to the
+	// "non-responsive" mark (*) on the srcToDst connection,
 	// the stateless part for TCP is srcToDst.Subtract(statefulConn)
 	expectedResponsiveConn *connection.Set
 }
