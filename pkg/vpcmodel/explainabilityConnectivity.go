@@ -487,15 +487,15 @@ func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (conn *deta
 // respondRules are the rules enabling/disabling the response when relevant:
 // respond is relevant for TCP, and respond rules are relevant when non-stateful filters are relevant (NACL)
 func (details *rulesAndConnDetails) updateRespondRules(c *VPCConfig, connQuery *connection.Set) error {
+	connForResp := newTCPSet()
+	if connQuery != nil {
+		connForResp = connForResp.Intersect(connQuery)
+	}
 	for _, srcDstDetails := range *details {
 		// respond rules are relevant if connection has a TCP component and non-stateful filter (NACL at the moment)
 		// are relevant for <src, dst>
 		if !respondRulesRelevant(srcDstDetails.conn, srcDstDetails.filtersRelevant) {
 			continue
-		}
-		connForResp := newTCPSet()
-		if connQuery != nil {
-			connForResp = connForResp.Intersect(connQuery)
 		}
 		respondRules, err := c.getRespondRules(srcDstDetails.src, srcDstDetails.dst, connForResp)
 		if err != nil {
