@@ -504,7 +504,7 @@ func (details *rulesAndConnDetails) updateRespondRules(c *VPCConfig, connQuery *
 }
 
 func respondRulesRelevant(conn *detailedConn, filtersRelevant map[string]bool) bool {
-	return !conn.tcpRspEnable.Union(conn.tcpRspDisable).IsEmpty() && filtersRelevant[NaclLayer]
+	return conn.hasTCPComponent() && filtersRelevant[NaclLayer]
 }
 
 // gets the NACL rules that enables/disables respond for connection conn, assuming nacl is applied

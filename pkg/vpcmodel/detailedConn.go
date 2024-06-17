@@ -95,6 +95,10 @@ func (d *detailedConn) subtract(other *detailedConn) *detailedConn {
 	return newDetailedConn(rspConn, otherConn, conn)
 }
 
+func (d *detailedConn) hasTCPComponent() bool {
+	return !d.tcpRspEnable.Union(d.tcpRspDisable).IsEmpty()
+}
+
 func (d *detailedConn) string() string {
 	if !d.tcpRspDisable.IsEmpty() {
 		return d.allConn.String() + " * "
