@@ -101,12 +101,12 @@ func TestAll(t *testing.T) {
 			dstToSrc:               newTCPConn(t, 80, 80, 80, 80).Union(newUDPConn(t, 80, 80, 80, 80)),
 			expectedResponsiveConn: connection.None(),
 		},
-		//{
-		//	name:                   "no_tcp_in_first_direction",
-		//	srcToDst:               newUDPConn(t, 70, 100, 443, 443),
-		//	dstToSrc:               newTCPConn(t, 70, 80, 80, 80).Union(newUDPConn(t, 70, 80, 80, 80)),
-		//	expectedResponsiveConn: connection.None(),
-		//},
+		{
+			name:                   "no_tcp_in_first_direction",
+			srcToDst:               newUDPConn(t, 70, 100, 443, 443),
+			dstToSrc:               newTCPConn(t, 70, 80, 80, 80).Union(newUDPConn(t, 70, 80, 80, 80)),
+			expectedResponsiveConn: connection.None(),
+		},
 		//{
 		//	name:                 "empty_conn_in_first_direction",
 		//	srcToDst:             connection.None(),
