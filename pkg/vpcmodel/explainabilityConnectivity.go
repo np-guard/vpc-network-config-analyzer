@@ -28,9 +28,11 @@ type rulesConnection struct {
 	ingressRules rulesInLayers
 	egressRules  rulesInLayers
 }
+
 // loadBalancerDennyEgressRule - is a rule applied on load balancer private IP:
 // a private IP can have egress connection to only to a pool member of the load balancer
 type loadBalancerDennyEgressRule bool
+
 type srcDstDetails struct {
 	src         Node
 	dst         Node
@@ -170,11 +172,12 @@ func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node,
 
 // computeRoutersAndFilters computes for each  <src, dst> :
 // 1. The tgw routingResource, if exists
-// 2. The external routingResource, if exists
+// 2. The load balancer rule
+// 3. The external routingResource, if exists
 // Note that at most one of the routingResource exists for any <src, dst>
-// 2. The external filters relevant to the <src, dst> given the external routingResource
-// 3. The internal filters relevant to the <src, dst>
-// 4. The actual relevant filter, depending on whether src xor dst is external
+// 4. The external filters relevant to the <src, dst> given the external routingResource
+// 5. The internal filters relevant to the <src, dst>
+// 6. The actual relevant filter, depending on whether src xor dst is external
 func (details *rulesAndConnDetails) computeRoutersAndFilters(c *VPCConfig) (err error) {
 	for _, singleSrcDstDetails := range *details {
 		// RoutingResources are computed by the parser for []Nodes of the VPC,
@@ -404,16 +407,28 @@ func (rulesInLayers rulesInLayers) updateRulesPerLayerIfNonEmpty(layer string, r
 	}
 }
 
-// node is from getCidrExternalNodes, thus there is a node in VPCConfig that either equal to or contains it.
-func (c *VPCConfig) getContainingConfigNode(node Node) (VPCResourceIntf, error) {
+// given a node, we need to find the resource that represent the node in the connectivity
+func (c *VPCConfig) getConnectedResource(node Node) (VPCResourceIntf, error) {
 	if node.IsInternal() {
-		for _, lb := range c.LoadBalancers {
-			if lb.IsNodeAbstracted(node) {
-				return lb, nil
-			}
-		}
-		return node, nil
+		return c.getInternalConnectedResource(node)
+	} else {
+		return c.getContainingConfigNode(node)
+
 	}
+}
+// if the node is part of abstraction - return the abstracted nodeSet, else return the node itself:
+func (c *VPCConfig) getInternalConnectedResource(node Node) (VPCResourceIntf, error) {
+	// find the abstracted nodeSet of the node:
+	for _, lb := range c.LoadBalancers {
+		if lb.IsNodeAbstracted(node) {
+			return lb, nil
+		}
+	}
+	return node, nil
+}
+
+// node is from getCidrExternalNodes, thus there is a node in VPCConfig that either equal to or contains it.
+func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
 	nodeIPBlock := node.IPBlock()
 	if nodeIPBlock == nil { // string cidr does not represent a legal cidr, would be handled earlier
 		return nil, fmt.Errorf("node %v does not refer to a legal IP", node.Name())
@@ -460,7 +475,7 @@ func (details *rulesAndConnDetails) computeConnections(c *VPCConfig,
 // if src or dst is a node then the node is from getCidrExternalNodes,
 // thus there is a node in VPCConfig that either equal to or contains it.
 func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (conn *detailedConn, err error) {
-	srcForConnection, err1 := c.getContainingConfigNode(src)
+	srcForConnection, err1 := c.getConnectedResource(src)
 	if err1 != nil {
 		return nil, err1
 	}
@@ -468,7 +483,7 @@ func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (conn *deta
 	if srcForConnection == nil {
 		return nil, fmt.Errorf(errMsg, src.Name())
 	}
-	dstForConnection, err2 := c.getContainingConfigNode(dst)
+	dstForConnection, err2 := c.getConnectedResource(dst)
 	if err2 != nil {
 		return nil, err2
 	}
