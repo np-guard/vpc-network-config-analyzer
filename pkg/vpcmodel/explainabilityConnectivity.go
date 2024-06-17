@@ -515,14 +515,11 @@ func (c *VPCConfig) getRespondRules(src, dst Node,
 	conn *connection.Set) (respondRules *rulesConnection, err error) {
 	ingressAllowPerLayer, egressAllowPerLayer := rulesInLayers{}, rulesInLayers{}
 	ingressDenyPerLayer, egressDenyPerLayer := rulesInLayers{}, rulesInLayers{}
-	// todo: switch dst src ports of conn - to that end needs to merge the PR on connections that exports the func
-	connSwitch := conn
 	mergedIngressRules, mergedEgressRules := rulesInLayers{}, rulesInLayers{}
 	// respond: from dst to src. Thus, ingress rules: relevant only if *src* is internal, egress is *dst* is internal
 	if src.IsInternal() {
-		// respond: dst and src switched
-		// computes ingressAllowRules/ingressDenyRules: ingress rules enabling/disabling respond
-		// note that there could be both, in case part of the connection is enabled and part blocked
+		// todo: switch dst src ports of conn - to that end needs to merge the PR on connections that exports the func
+		connSwitch := conn
 		var err error
 		mergedIngressRules, err = c.computeAndUpdateDirectionRespondRules(src, dst, connSwitch, ingressAllowPerLayer, ingressDenyPerLayer, true)
 		if err != nil {
@@ -530,8 +527,6 @@ func (c *VPCConfig) getRespondRules(src, dst Node,
 		}
 	}
 	if dst.IsInternal() {
-		// computes egressAllowRules/egressDenyRules: egress rules enabling/disabling respond
-		// as above there could be both
 		var err error
 		mergedEgressRules, err = c.computeAndUpdateDirectionRespondRules(src, dst, conn, egressAllowPerLayer, egressDenyPerLayer, false)
 		if err != nil {
@@ -544,8 +539,8 @@ func (c *VPCConfig) getRespondRules(src, dst Node,
 func (c *VPCConfig) computeAndUpdateDirectionRespondRules(src, dst Node, conn *connection.Set,
 	allowRulesPerLayer, denyRulePerLayer rulesInLayers, isIngress bool) (rulesInLayers, error) {
 	// respond: dst and src switched
-	// computes ingressAllowRules/ingressDenyRules: ingress rules enabling/disabling respond
-	// note that there could be both, in case part of the connection is enabled and part blocked
+	// computes allowRulesPerLayer/denyRulePerLayer: ingress/egress rules enabling/disabling respond
+	// note that there could be both allow and deny in case part of the connection is enabled and part blocked
 	allowRules, denyRules, err1 := c.getFiltersRulesBetweenNodesPerDirectionAndLayer(dst, src, conn, isIngress, NaclLayer)
 	if err1 != nil {
 		return nil, err1
