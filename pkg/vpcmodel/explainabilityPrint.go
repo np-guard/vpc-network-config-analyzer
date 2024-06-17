@@ -148,7 +148,7 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 		if respondRulesRelevant(conn, filtersRelevant) {
 			// for respond rules needIngress and needEgress are switched
 			respondEgressDetails, respondsIngressDetails := expDetails.respondRules.ruleDetailsStr(c, filtersRelevant, needIngress, needEgress)
-			details += conn.respondDetailsHeader() + respondEgressDetails + respondsIngressDetails
+			details += respondDetailsHeader(conn) + respondEgressDetails + respondsIngressDetails
 		}
 	}
 	return g.explainPerCaseStr(c, src, dst, connQuery, crossVpcConnection, ingressBlocking, egressBlocking,
@@ -156,7 +156,7 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 }
 
 // assumption: the func is called only if the tcp component of the connection is not empty
-func (d *detailedConn) respondDetailsHeader() string {
+func respondDetailsHeader(d *detailedConn) string {
 	switch {
 	case d.tcpRspDisable.IsEmpty():
 		return "TCP respond enabled by the following rules:\n"
