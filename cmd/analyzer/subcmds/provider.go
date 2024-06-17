@@ -11,13 +11,14 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/np-guard/cloud-resource-collector/pkg/factory"
+	"github.com/np-guard/cloud-resource-collector/pkg/common"
 )
 
 type provider string
 
 var allProviders = []string{
-	factory.IBM,
+	common.IBM,
+	common.AWS,
 }
 
 func (p *provider) String() string {
