@@ -107,20 +107,20 @@ func TestAll(t *testing.T) {
 			dstToSrc:               newTCPConn(t, 70, 80, 80, 80).Union(newUDPConn(t, 70, 80, 80, 80)),
 			expectedResponsiveConn: connection.None(),
 		},
-		//{
-		//	name:                 "empty_conn_in_first_direction",
-		//	srcToDst:             connection.None(),
-		//	dstToSrc:             newTCPConn(t, 80, 80, 80, 80).Union(newTCPUDPSet(t, netp.ProtocolStringUDP)),
-		//	expectedResponsiveConn: connection.None(),
-		//},
-		//{
-		//	name:     "only_udp_icmp_in_first_direction_and_empty_second_direction",
-		//	srcToDst: newTCPUDPSet(t, netp.ProtocolStringUDP).Union(newICMPconn(t)),
-		//	dstToSrc: connection.None(),
-		//	// responsive analysis does not apply to udp/icmp, thus considered in the result as "responsive"
-		//	// (to avoid marking it as stateless in the output)
-		//	expectedResponsiveConn: newTCPUDPSet(t, netp.ProtocolStringUDP).Union(newICMPconn(t)),
-		//},
+		{
+			name:                   "empty_conn_in_first_direction",
+			srcToDst:               connection.None(),
+			dstToSrc:               newTCPConn(t, 80, 80, 80, 80).Union(newTCPUDPSet(t, netp.ProtocolStringUDP)),
+			expectedResponsiveConn: connection.None(),
+		},
+		{
+			name:     "only_udp_icmp_in_first_direction_and_empty_second_direction",
+			srcToDst: newTCPUDPSet(t, netp.ProtocolStringUDP).Union(newICMPconn(t)),
+			dstToSrc: connection.None(),
+			// responsive analysis does not apply to udp/icmp, thus considered in the result as "responsive"
+			// (to avoid marking it as stateless in the output)
+			expectedResponsiveConn: connection.None(),
+		},
 	}
 	t.Parallel()
 	// explainTests is the list of tests to run
