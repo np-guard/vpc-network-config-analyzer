@@ -523,25 +523,35 @@ func (c *VPCConfig) getRespondRules(src, dst Node,
 		// respond: dst and src switched
 		// computes ingressAllowRules/ingressDenyRules: ingress rules enabling/disabling respond
 		// note that there could be both, in case part of the connection is enabled and part blocked
-		ingressAllowRules, ingressDenyRules, err1 := c.getFiltersRulesBetweenNodesPerDirectionAndLayer(dst, src, connSwitch, true, NaclLayer)
-		if err1 != nil {
-			return nil, err1
+		var err error
+		mergedIngressRules, err = c.computeAndUpdateDirectionRespondRules(src, dst, connSwitch, ingressAllowPerLayer, ingressDenyPerLayer, true)
+		if err != nil {
+			return nil, err
 		}
-		ingressAllowPerLayer.updateRulesPerLayerIfNonEmpty(NaclLayer, ingressAllowRules)
-		ingressDenyPerLayer.updateRulesPerLayerIfNonEmpty(NaclLayer, ingressDenyRules)
-		mergedIngressRules = mergeAllowDeny(ingressAllowPerLayer, ingressDenyPerLayer)
 	}
 	if dst.IsInternal() {
-		// respond: dst and src switched
-		egressAllowRules, egressDenyRules, err2 := c.getFiltersRulesBetweenNodesPerDirectionAndLayer(dst, src, conn, false, NaclLayer)
-		if err2 != nil {
-			return nil, err2
-		}
 		// computes egressAllowRules/egressDenyRules: egress rules enabling/disabling respond
 		// as above there could be both
-		egressAllowPerLayer.updateRulesPerLayerIfNonEmpty(NaclLayer, egressAllowRules)
-		egressDenyPerLayer.updateRulesPerLayerIfNonEmpty(NaclLayer, egressDenyRules)
-		mergedEgressRules = mergeAllowDeny(egressAllowPerLayer, egressDenyPerLayer)
+		var err error
+		mergedEgressRules, err = c.computeAndUpdateDirectionRespondRules(src, dst, conn, egressAllowPerLayer, egressDenyPerLayer, false)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return &rulesConnection{mergedIngressRules, mergedEgressRules}, nil
+}
+
+func (c *VPCConfig) computeAndUpdateDirectionRespondRules(src, dst Node, conn *connection.Set,
+	allowRulesPerLayer, denyRulePerLayer rulesInLayers, isIngress bool) (rulesInLayers, error) {
+	// respond: dst and src switched
+	// computes ingressAllowRules/ingressDenyRules: ingress rules enabling/disabling respond
+	// note that there could be both, in case part of the connection is enabled and part blocked
+	allowRules, denyRules, err1 := c.getFiltersRulesBetweenNodesPerDirectionAndLayer(dst, src, conn, isIngress, NaclLayer)
+	if err1 != nil {
+		return nil, err1
+	}
+	allowRulesPerLayer.updateRulesPerLayerIfNonEmpty(NaclLayer, allowRules)
+	denyRulePerLayer.updateRulesPerLayerIfNonEmpty(NaclLayer, denyRules)
+	mergedRules := mergeAllowDeny(allowRulesPerLayer, denyRulePerLayer)
+	return mergedRules, err1
 }
