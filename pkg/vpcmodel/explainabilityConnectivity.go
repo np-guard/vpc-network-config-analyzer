@@ -411,10 +411,8 @@ func (rulesInLayers rulesInLayers) updateRulesPerLayerIfNonEmpty(layer string, r
 func (c *VPCConfig) getConnectedResource(node Node) (VPCResourceIntf, error) {
 	if node.IsInternal() {
 		return c.getInternalConnectedResource(node)
-	} else {
-		return c.getContainingConfigNode(node)
-
 	}
+	return c.getContainingConfigNode(node)
 }
 
 // if the node is part of abstraction - return the abstracted nodeSet, else return the node itself:

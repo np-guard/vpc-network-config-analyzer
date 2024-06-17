@@ -72,7 +72,8 @@ func (explanation *Explanation) String(verbose bool) string {
 		} else {
 			linesStr[i] = groupedLine.explainabilityLineStr(explanation.c, explanation.connQuery, verbose)
 		}
-		linesStr[i] += "------------------------------------------------------------------------------------------------------------------------\n"
+		linesStr[i] +=
+			"------------------------------------------------------------------------------------------------------------------------\n"
 	}
 	sort.Strings(linesStr)
 	iksNodeComment := ""
@@ -91,7 +92,8 @@ func explainMissingCrossVpcRouter(src, dst string, connQuery *connection.Set) st
 }
 
 func explainLoadBalancerDenyEgress(src, dst string, connQuery *connection.Set) string {
-	return fmt.Sprintf("%v\nConnection from a private IP is allowed only to load balancer pool members\n", noConnectionHeader(src, dst, connQuery))
+	return fmt.Sprintf("%v\nConnection from a private IP is allowed only to load balancer pool members\n",
+		noConnectionHeader(src, dst, connQuery))
 }
 
 // prints a single line of explanation for externalAddress grouped <src, dst>
