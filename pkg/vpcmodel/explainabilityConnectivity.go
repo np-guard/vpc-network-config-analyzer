@@ -513,22 +513,20 @@ func respondRulesRelevant(conn *detailedConn, filtersRelevant map[string]bool) b
 // gets the NACL rules that enables/disables respond for connection conn, assuming nacl is applied
 func (c *VPCConfig) getRespondRules(src, dst Node,
 	conn *connection.Set) (respondRules *rulesConnection, err error) {
-	ingressAllowPerLayer, egressAllowPerLayer := rulesInLayers{}, rulesInLayers{}
-	ingressDenyPerLayer, egressDenyPerLayer := rulesInLayers{}, rulesInLayers{}
 	mergedIngressRules, mergedEgressRules := rulesInLayers{}, rulesInLayers{}
 	// respond: from dst to src. Thus, ingress rules: relevant only if *src* is internal, egress is *dst* is internal
 	if src.IsInternal() {
 		// todo: switch dst src ports of conn - to that end needs to merge the PR on connections that exports the func
 		connSwitch := conn
 		var err error
-		mergedIngressRules, err = c.computeAndUpdateDirectionRespondRules(src, dst, connSwitch, ingressAllowPerLayer, ingressDenyPerLayer, true)
+		mergedIngressRules, err = c.computeAndUpdateDirectionRespondRules(src, dst, connSwitch, true)
 		if err != nil {
 			return nil, err
 		}
 	}
 	if dst.IsInternal() {
 		var err error
-		mergedEgressRules, err = c.computeAndUpdateDirectionRespondRules(src, dst, conn, egressAllowPerLayer, egressDenyPerLayer, false)
+		mergedEgressRules, err = c.computeAndUpdateDirectionRespondRules(src, dst, conn, false)
 		if err != nil {
 			return nil, err
 		}
@@ -537,7 +535,7 @@ func (c *VPCConfig) getRespondRules(src, dst Node,
 }
 
 func (c *VPCConfig) computeAndUpdateDirectionRespondRules(src, dst Node, conn *connection.Set,
-	allowRulesPerLayer, denyRulePerLayer rulesInLayers, isIngress bool) (rulesInLayers, error) {
+	isIngress bool) (rulesInLayers, error) {
 	// respond: dst and src switched
 	// computes allowRulesPerLayer/denyRulePerLayer: ingress/egress rules enabling/disabling respond
 	// note that there could be both allow and deny in case part of the connection is enabled and part blocked
@@ -545,6 +543,7 @@ func (c *VPCConfig) computeAndUpdateDirectionRespondRules(src, dst Node, conn *c
 	if err1 != nil {
 		return nil, err1
 	}
+	allowRulesPerLayer, denyRulePerLayer := rulesInLayers{}, rulesInLayers{}
 	allowRulesPerLayer.updateRulesPerLayerIfNonEmpty(NaclLayer, allowRules)
 	denyRulePerLayer.updateRulesPerLayerIfNonEmpty(NaclLayer, denyRules)
 	mergedRules := mergeAllowDeny(allowRulesPerLayer, denyRulePerLayer)
