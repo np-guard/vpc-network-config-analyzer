@@ -27,7 +27,7 @@ func partitionTCPNonTCP(conn *connection.Set) (tcp, nonTCP *connection.Set) {
 func getTCPResponsiveConn(srcToDst *connection.Set, dstToSrc *connection.Set) *connection.Set {
 	connTCP := srcToDst.Intersect(newTCPSet())
 	if connTCP.IsEmpty() {
-		return srcToDst
+		return NoConns()
 	}
 	tcpSecondDirection := dstToSrc.Intersect(newTCPSet())
 	// flip src/dst ports before intersection
