@@ -68,7 +68,7 @@ func (explanation *Explanation) String(verbose bool) string {
 	groupedLines := explanation.groupedLines
 	for i, groupedLine := range groupedLines {
 		if groupedLine.commonProperties.expDetails.loadBalancerRule {
-			linesStr[i] = explainLoadBalancerDeny(explanation.src, explanation.dst, explanation.connQuery)
+			linesStr[i] = explainLoadBalancerDenyEgress(explanation.src, explanation.dst, explanation.connQuery)
 		} else {
 			linesStr[i] = groupedLine.explainabilityLineStr(explanation.c, explanation.connQuery, verbose)
 		}
@@ -90,7 +90,7 @@ func explainMissingCrossVpcRouter(src, dst string, connQuery *connection.Set) st
 		"connect them", noConnectionHeader(src, dst, connQuery)+newLine)
 }
 
-func explainLoadBalancerDeny(src, dst string, connQuery *connection.Set) string {
+func explainLoadBalancerDenyEgress(src, dst string, connQuery *connection.Set) string {
 	return fmt.Sprintf("%v\nConnection from a private IP is allowed only to load balancer pool members\n", noConnectionHeader(src, dst, connQuery))
 }
 
