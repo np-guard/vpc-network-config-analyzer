@@ -43,7 +43,7 @@ type responsiveTest struct {
 	name     string
 	srcToDst *connection.Set
 	dstToSrc *connection.Set
-	// expectedResponsiveConn represents the subset from srcToDst which is not related to the "non-stateful" mark (*) on the srcToDst connection,
+	// expectedResponsiveConn represents the subset from srcToDst which is not related to the "non-responsive" mark (*) on the srcToDst connection,
 	// the stateless part for TCP is srcToDst.Subtract(statefulConn)
 	expectedResponsiveConn *connection.Set
 }
@@ -55,7 +55,7 @@ func (tt responsiveTest) runTest(t *testing.T) {
 }
 
 func TestAll(t *testing.T) {
-	var testCasesStatefulness = []responsiveTest{
+	var testCasesResponsive = []responsiveTest{
 		{
 			name:                   "tcp_all_ports_on_both_directions",
 			srcToDst:               newTCPUDPSet(t, netp.ProtocolStringTCP), // TCP all ports
@@ -124,8 +124,8 @@ func TestAll(t *testing.T) {
 	}
 	t.Parallel()
 	// explainTests is the list of tests to run
-	for testIdx := range testCasesStatefulness {
-		tt := testCasesStatefulness[testIdx]
+	for testIdx := range testCasesResponsive {
+		tt := testCasesResponsive[testIdx]
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			tt.runTest(t)

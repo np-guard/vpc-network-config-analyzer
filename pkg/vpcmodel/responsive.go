@@ -24,7 +24,7 @@ func partitionTCPNonTCP(conn *connection.Set) (tcp, nonTCP *connection.Set) {
 
 // getTCPResponsiveConn returns connection object with the exact the responsive part within TCP
 // `srcToDst` represents a src-to-dst connection, and `dstToSrc` represents dst-to-src connection.
-func getTCPResponsiveConn(srcToDst *connection.Set, dstToSrc *connection.Set) *connection.Set {
+func getTCPResponsiveConn(srcToDst, dstToSrc *connection.Set) *connection.Set {
 	connTCP := srcToDst.Intersect(newTCPSet())
 	if connTCP.IsEmpty() {
 		return NoConns()
