@@ -614,14 +614,14 @@ func (details *srcDstDetails) explanationEncode(c *VPCConfig) string {
 	if details.crossVpcRouter != nil {
 		encodeComponents = append(encodeComponents, details.crossVpcRouter.UID())
 	}
-	details.actualMergedRules.egressRules.appendEncodeRules(&encodeComponents, c, details.filtersRelevant,
+	appendEncodeRules(&details.actualMergedRules.egressRules, &encodeComponents, c, details.filtersRelevant,
 		"egress", false)
-	details.actualMergedRules.ingressRules.appendEncodeRules(&encodeComponents, c, details.filtersRelevant,
+	appendEncodeRules(&details.actualMergedRules.ingressRules, &encodeComponents, c, details.filtersRelevant,
 		"ingress", true)
 	return strings.Join(encodeComponents, ";")
 }
 
-func (rules *rulesInLayers) appendEncodeRules(encodeComponents *[]string,
+func appendEncodeRules(rules *rulesInLayers, encodeComponents *[]string,
 	c *VPCConfig, filtersRelevant map[string]bool, header string, isIngress bool) {
 	if len(*rules) == 0 {
 		return

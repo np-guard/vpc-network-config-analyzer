@@ -233,7 +233,7 @@ func existingConnectionStr(c *VPCConfig, connQuery *connection.Set, src, dst End
 	conn *detailedConn, path, details string) string {
 	resComponents := []string{}
 	// Computing the header, "1" described in explainabilityLineStr
-	respondConnStr := conn.respondString()
+	respondConnStr := respondString(conn)
 	if connQuery == nil {
 		resComponents = append(resComponents, fmt.Sprintf("Allowed connections from %v to %v: %v%v\n", src.ExtendedName(c), dst.ExtendedName(c),
 			conn.allConn.String(), respondConnStr))
@@ -472,7 +472,7 @@ func getLayersToPrint(filtersRelevant map[string]bool, isIngress bool) (filterLa
 	return orderedRelevantFiltersLayers
 }
 
-func (d *detailedConn) respondString() string {
+func respondString(d *detailedConn) string {
 	switch {
 	case d.allConn.Equal(d.nonTCP):
 		// no tcp component - ill-relevant
