@@ -521,6 +521,8 @@ func (c *VPCConfig) getRespondRules(src, dst Node,
 	// respond: from dst to src. Thus, ingress rules: relevant only if *src* is internal, egress is *dst* is internal
 	if src.IsInternal() {
 		// respond: dst and src switched
+		// computes ingressAllowRules/ingressDenyRules: ingress rules enabling/disabling respond
+		// note that there could be both, in case part of the connection is enabled and part blocked
 		ingressAllowRules, ingressDenyRules, err1 := c.getFiltersRulesBetweenNodesPerDirectionAndLayer(dst, src, connSwitch, true, NaclLayer)
 		if err1 != nil {
 			return nil, err1
@@ -535,6 +537,8 @@ func (c *VPCConfig) getRespondRules(src, dst Node,
 		if err2 != nil {
 			return nil, err2
 		}
+		// computes egressAllowRules/egressDenyRules: egress rules enabling/disabling respond
+		// as above there could be both
 		egressAllowPerLayer.updateRulesPerLayerIfNonEmpty(NaclLayer, egressAllowRules)
 		egressDenyPerLayer.updateRulesPerLayerIfNonEmpty(NaclLayer, egressDenyRules)
 		mergedEgressRules = mergeAllowDeny(egressAllowPerLayer, egressDenyPerLayer)
