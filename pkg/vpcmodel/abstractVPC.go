@@ -205,10 +205,10 @@ type LoadBalancer interface {
 	DenyConnectivity(src, dst Node) bool
 	SetAbstractionInfo(*AbstractionInfo)
 	AbstractionInfo() *AbstractionInfo
-	// IsAbstracted() - was the load balancer abstracted
-	IsAbstracted() bool
-	// IsAbstracted() - is the node is part of this load balancer abstraction
-	IsNodeAbstracted(node Node) bool
+	// WasAbstracted() - was the load balancer abstracted
+	WasAbstracted() bool
+	// WasAbstracted() - is the node is part of this load balancer abstraction
+	WasNodeAbstracted(node Node) bool
 }
 
 // RulesType Type of rules in a given filter (e.g. specific NACL table) relevant to

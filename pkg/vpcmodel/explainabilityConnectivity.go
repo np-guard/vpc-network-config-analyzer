@@ -416,11 +416,12 @@ func (c *VPCConfig) getConnectedResource(node Node) (VPCResourceIntf, error) {
 
 	}
 }
+
 // if the node is part of abstraction - return the abstracted nodeSet, else return the node itself:
 func (c *VPCConfig) getInternalConnectedResource(node Node) (VPCResourceIntf, error) {
 	// find the abstracted nodeSet of the node:
 	for _, lb := range c.LoadBalancers {
-		if lb.IsNodeAbstracted(node) {
+		if lb.WasNodeAbstracted(node) {
 			return lb, nil
 		}
 	}
