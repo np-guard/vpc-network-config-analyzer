@@ -95,17 +95,17 @@ func TestAll(t *testing.T) {
 			dstToSrc:               newTCPConn(t, 80, 80, 80, 80),
 			expectedResponsiveConn: connection.None(),
 		},
+		{
+			name:                   "udp_and_tcp_with_ports_both_directions_no_match",
+			srcToDst:               newTCPConn(t, 80, 100, 443, 443).Union(newUDPConn(t, 80, 100, 443, 443)),
+			dstToSrc:               newTCPConn(t, 80, 80, 80, 80).Union(newUDPConn(t, 80, 80, 80, 80)),
+			expectedResponsiveConn: connection.None(),
+		},
 		//{
-		//	name:                 "udp_and_tcp_with_ports_both_directions_no_match",
-		//	srcToDst:             newTCPConn(t, 80, 100, 443, 443).Union(newUDPConn(t, 80, 100, 443, 443)),
-		//	dstToSrc:             newTCPConn(t, 80, 80, 80, 80).Union(newUDPConn(t, 80, 80, 80, 80)),
-		//	expectedResponsiveConn: newUDPConn(t, 80, 100, 443, 443),
-		//},
-		//{
-		//	name:                 "no_tcp_in_first_direction",
-		//	srcToDst:             newUDPConn(t, 70, 100, 443, 443),
-		//	dstToSrc:             newTCPConn(t, 70, 80, 80, 80).Union(newUDPConn(t, 70, 80, 80, 80)),
-		//	expectedResponsiveConn: newUDPConn(t, 70, 100, 443, 443),
+		//	name:                   "no_tcp_in_first_direction",
+		//	srcToDst:               newUDPConn(t, 70, 100, 443, 443),
+		//	dstToSrc:               newTCPConn(t, 70, 80, 80, 80).Union(newUDPConn(t, 70, 80, 80, 80)),
+		//	expectedResponsiveConn: connection.None(),
 		//},
 		//{
 		//	name:                 "empty_conn_in_first_direction",
