@@ -62,7 +62,7 @@ func detailedConnForResponsive(tcpResponsive *connection.Set) *detailedConn {
 	return newDetailedConn(tcpResponsive, NoConns(), tcpResponsive)
 }
 
-// detailedConnForAllRsp: constructs a of all the connections domain
+// detailedConnForAllRsp: constructs of all the connections domain
 func detailedConnForAllRsp() *detailedConn {
 	return newDetailedConn(newTCPSet(), AllConns().Subtract(newTCPSet()), AllConns())
 }
