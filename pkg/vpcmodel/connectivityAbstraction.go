@@ -72,7 +72,7 @@ func (nsa *NodeSetAbstraction) partitionConnectivityByNodeSet(nodeSet NodeSet) (
 			srcInSet := srcIsNode && slices.Contains(nodeSet.Nodes(), srcNode)
 			dstInSet := dstIsNode && slices.Contains(nodeSet.Nodes(), dstNode)
 			switch {
-			case (!srcInSet && !dstInSet) || conns.isEmpty():
+			case (!srcInSet && !dstInSet):
 				otherToOther.updateAllowedResponsiveConnsMap(src, dst, conns)
 			case srcInSet && dstInSet:
 				nodeSetToNodeSet.updateAllowedResponsiveConnsMap(src, dst, conns)
@@ -129,17 +129,24 @@ func (nsa *NodeSetAbstraction) nodeSetAbstractionInformation(mergedConnectivity,
 	nodeSetToNodeSet, otherFromNodeSet, otherToNodeSet GeneralResponsiveConnectivityMap,
 	nodeSet NodeSet) *AbstractionInfo {
 	abstractionInfo := &AbstractionInfo{}
-	abstractionInfo.missingEgressConnections = nsa.missingConnections(otherFromNodeSet, mergedConnectivity, nodeSet, false)
-	abstractionInfo.missingIngressConnections = nsa.missingConnections(otherToNodeSet, mergedConnectivity, nodeSet, true)
-	// nodeSetToNodeSet can be either ingress or egress; as such it suffices to add it to one of them:
-	abstractionInfo.missingIngressConnections.updateMap(nsa.missingConnections(nodeSetToNodeSet, mergedConnectivity, nodeSet, true))
+	abstractionInfo.missingEgressConnections = nsa.missingConnections(otherFromNodeSet, mergedConnectivity, nodeSet, fromNodeSet)
+	abstractionInfo.missingIngressConnections = nsa.missingConnections(otherToNodeSet, mergedConnectivity, nodeSet, toNodeSet)
+	abstractionInfo.missingIngressConnections.updateMap(nsa.missingConnections(nodeSetToNodeSet, mergedConnectivity, nodeSet, inNodeSet))
 	return abstractionInfo
 }
+
+type groupDirection int
+
+const (
+	inNodeSet = iota
+	fromNodeSet
+	toNodeSet
+)
 
 // missingConnections() is called on each of the last three groups.
 // it looks for "missing connections" -  connections that do not exist in the group, but are reflated in the mergedConnMap
 func (nsa *NodeSetAbstraction) missingConnections(connMap, mergedConnMap GeneralResponsiveConnectivityMap,
-	nodeSet NodeSet, isIngress bool) GeneralResponsiveConnectivityMap {
+	nodeSet NodeSet, groupName groupDirection) GeneralResponsiveConnectivityMap {
 	missingConnection := GeneralResponsiveConnectivityMap{}
 	for node1, conns := range connMap {
 		// here we iterate over the nodes in the nodeSet, and not over the conns, because we can not know if conns holds the nodes:
@@ -148,9 +155,12 @@ func (nsa *NodeSetAbstraction) missingConnections(connMap, mergedConnMap General
 			if nodeConnection = conns[node2]; nodeConnection == nil {
 				nodeConnection = emptyDetailedConn()
 			}
-			if isIngress {
+			switch groupName {
+			case inNodeSet:
+				mergedConnection = mergedConnMap[nodeSet][nodeSet]
+			case toNodeSet:
 				mergedConnection = mergedConnMap[node1][nodeSet]
-			} else {
+			case fromNodeSet:
 				mergedConnection = mergedConnMap[nodeSet][node1]
 			}
 			if !nodeConnection.equal(mergedConnection) {
