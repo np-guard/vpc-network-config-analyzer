@@ -6,8 +6,9 @@ SPDX-License-Identifier: Apache-2.0
 package vpcmodel
 
 import (
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/netp"
