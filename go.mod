@@ -6,13 +6,9 @@ require (
 	github.com/IBM/networking-go-sdk v0.46.1
 	github.com/IBM/vpc-go-sdk v0.51.0
 	github.com/np-guard/cloud-resource-collector v0.10.2
-	github.com/np-guard/models v0.3.2
+	github.com/np-guard/models v0.3.3
 	github.com/spf13/cobra v1.8.0
 	github.com/stretchr/testify v1.9.0
-)
-
-replace (
-	github.com/np-guard/models v0.3.2 => ../../models/models
 )
 
 require (
