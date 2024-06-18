@@ -48,24 +48,32 @@ func emptyDetailedConn() *detailedConn {
 	return newDetailedConn(NoConns(), NoConns(), NoConns())
 }
 
-// detailedConnForTCPRsp constructor that is given the tcp responsive and conn and the entire conn
+// 3 constructors of detailedConn:
+
+// detailedConnForTCPRsp: is given the tcp responsive conn and the entire conn
 func detailedConnForTCPRsp(tcpResponsive, allConn *connection.Set) *detailedConn {
 	_, nonTCPFraction := partitionTCPNonTCP(allConn)
 	return newDetailedConn(tcpResponsive, nonTCPFraction, allConn)
 }
 
-func detailedConnForResponsive(responsive *connection.Set) *detailedConn {
-	return newDetailedConn(responsive, NoConns(), responsive)
+// detailedConnForResponsive: is given the tcp responsive conn, assuming there is only
+// a tcp responsive component in the connection
+func detailedConnForResponsive(tcpResponsive *connection.Set) *detailedConn {
+	return newDetailedConn(tcpResponsive, NoConns(), tcpResponsive)
 }
 
+// detailedConnForAllRsp: constructs a of all the connections domain
 func detailedConnForAllRsp() *detailedConn {
 	return newDetailedConn(newTCPSet(), AllConns().Subtract(newTCPSet()), AllConns())
 }
 
+// isAllObliviousRsp: returns true iff detailedConn contains all the connection domain
+// (regardless of what part is responsive and what part isn't)
 func (e *detailedConn) isAllObliviousRsp() bool {
 	return e.allConn.Equal(connection.All())
 }
 
+// isEmpty: return true iff the detailedConn is empty
 func (e *detailedConn) isEmpty() bool {
 	return e.allConn.IsEmpty()
 }
