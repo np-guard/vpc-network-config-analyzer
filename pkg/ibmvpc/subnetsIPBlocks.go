@@ -96,7 +96,7 @@ func (subnetsBlocks subnetsIPBlocks) getSubnetsOriginalBlocks(rc *datamodel.Reso
 	return nil
 }
 
-// splitSubnetsOriginalBlocks() splits the subnet's cidr(s) to (maximal) disjoint blocks - 
+// splitSubnetsOriginalBlocks() splits the subnet's cidr(s) to (maximal) disjoint blocks -
 // such that each block is atomic w.r.t. the filters rules
 func (subnetsBlocks subnetsIPBlocks) splitSubnetsOriginalBlocks(rc *datamodel.ResourcesContainerModel, filtersBlocks filtersBlocks) {
 	for _, subnetObj := range rc.SubnetList {
