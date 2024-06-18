@@ -150,6 +150,7 @@ func collectNodesForExplanation(cConfigs *MultipleVPCConfigs, conns map[string]*
 					internalNodes[n] = vpcConfig
 				}
 			}
+			// todo - do not add the abstracted nodes
 			for _, lb := range vpcConfig.LoadBalancers {
 				if lb.WasAbstracted() {
 					internalNodes[lb] = vpcConfig
