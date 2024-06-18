@@ -1451,7 +1451,10 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 		privateIPAddressesMessage := make([]string, len(subnetBlocks))
 		// when a load balancer is created, not all its subnets get privateIPs.
 		// some subnets are chosen (arbitrary?) and only these are assigned privateIPs.
-		// however, we create a private IP for all the subnets, and for all the blocks in the subnets.
+		// however, we create a private IP for all the subnets.
+		// more than that, there are cases in which a subnet is split to blocks by the filters rules.
+		// (i.e., block is an atomic unit w.r.t. the filters rules)
+		// in such cases, we create a private IP for all the blocks in the subnet.
 		for blockIndex, subnetBlock := range subnetBlocks {
 			// first get name, id, address, publicAddress:
 			var name, id, address, publicAddress string
@@ -1466,8 +1469,10 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 					publicAddress = *loadBalancerObj.PublicIps[subnetsPIPsIndexes[subnet]].Address
 				}
 			case subnetsBlocks.isFullyReservedBlock(*subnetObj.CRN, blockIndex):
-				// all the addresses in the original block are reserved IP
-				// for these blocks there is no need to create private IPs
+				// all the addresses in the original block are reserved IP.
+				// therefore, a private IP could not be deployed at this block.
+				// (that usually happened when a filter rule has one address, and not cidr)
+				// for these blocks there is no need to create private IPs.
 				continue
 			default:
 				// subnet does not have a private IP, we create unique ip info
