@@ -96,7 +96,8 @@ func (subnetsBlocks subnetsIPBlocks) getSubnetsOriginalBlocks(rc *datamodel.Reso
 	return nil
 }
 
-// splitSubnetsOriginalBlocks() calculates splitByFiltersBlocks - the atomic blocks induced by the filters (see file header for more details).
+// splitSubnetsOriginalBlocks() calculates splitByFiltersBlocks -
+// the atomic blocks induced by the filters (see file header for more details).
 func (subnetsBlocks subnetsIPBlocks) splitSubnetsOriginalBlocks(rc *datamodel.ResourcesContainerModel, filtersBlocks filtersBlocks) {
 	for _, subnetObj := range rc.SubnetList {
 		subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks =
