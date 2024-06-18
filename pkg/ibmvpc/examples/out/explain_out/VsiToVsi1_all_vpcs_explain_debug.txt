@@ -25,7 +25,7 @@ Path enabled by the following rules:
 		security group sg2-ky allows connection with the following allow rules
 			index: 7, direction: inbound,  conns: protocol: tcp,  dstPorts: 1-65535, remote: sg2-ky (10.240.20.4/32,10.240.30.4/32), local: 0.0.0.0/0
 
-TCP respond enabled by the following rules:
+TCP response enabled by the following rules:
 	Egress:
 		network ACL acl3-ky allows connection with the following allow rules
 			index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow

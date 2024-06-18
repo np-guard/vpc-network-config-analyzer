@@ -19,7 +19,7 @@ Path enabled by the following rules:
 		network ACL acl1-ky allows connection with the following allow rules
 			index: 0, direction: outbound , src: 10.240.1.0/24 , dst: 172.217.22.46/32, conn: all, action: allow
 
-TCP respond enabled by the following rules:
+TCP response enabled by the following rules:
 	Ingress:
 		network ACL acl1-ky allows connection with the following allow rules
 			index: 4, direction: inbound , src: 172.217.22.46/32 , dst: 10.240.1.0/24, conn: all, action: allow

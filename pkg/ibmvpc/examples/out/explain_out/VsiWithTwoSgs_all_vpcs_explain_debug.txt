@@ -28,7 +28,7 @@ Path enabled by the following rules:
 		security group sg3-ky allows connection with the following allow rules
 			index: 1, direction: inbound,  conns: protocol: all, remote: 10.240.30.0/24, local: 0.0.0.0/0
 
-TCP respond enabled by the following rules:
+TCP response enabled by the following rules:
 	Egress:
 		network ACL acl1-ky allows connection with the following allow rules
 			index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow

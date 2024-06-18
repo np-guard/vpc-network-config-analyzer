@@ -27,7 +27,7 @@ Path enabled by the following rules:
 		security group ky-test-default-sg allows connection with the following allow rules
 			index: 2, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
 
-TCP respond enabled by the following rules:
+TCP response enabled by the following rules:
 	Egress:
 		network ACL ky-test-private-2-others-acl allows connection with the following allow rules
 			index: 4, direction: outbound , src: 0.0.0.0/0 , dst: 192.168.32.0/20, conn: all, action: allow

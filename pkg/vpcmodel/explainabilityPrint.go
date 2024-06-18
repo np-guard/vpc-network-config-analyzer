@@ -159,11 +159,11 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 func respondDetailsHeader(d *detailedConn) string {
 	switch {
 	case d.tcpRspDisable.IsEmpty():
-		return "TCP respond enabled by the following rules:\n"
+		return "TCP response enabled by the following rules:\n"
 	case d.tcpRspEnable.IsEmpty():
-		return "TCP respond disabled by the following rules:\n"
+		return "TCP response disabled by the following rules:\n"
 	default:
-		return "TCP respond partly enabled by the following rules:\n"
+		return "TCP response partly enabled by the following rules:\n"
 	}
 }
 
@@ -479,13 +479,13 @@ func respondString(d *detailedConn) string {
 		return ""
 	case d.tcpRspEnable.IsEmpty():
 		// no tcp responsive component
-		return "\n\tTCP respond is blocked"
+		return "\n\tTCP response is blocked"
 	case d.tcpRspEnable.Equal(d.allConn):
 		// tcp responsive component is the entire connection
 		return "\n\tThe entire connection is TCP responsive"
 	case d.tcpRspDisable.IsEmpty():
 		return "\n\tThe TCP sub-connection is responsive"
 	default:
-		return "\n\tTCP respond is enabled on " + d.tcpRspEnable.String()
+		return "\n\tTCP response is enabled on " + d.tcpRspEnable.String()
 	}
 }

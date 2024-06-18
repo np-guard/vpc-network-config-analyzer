@@ -2,7 +2,7 @@ Explaining connectivity from vsi1-ky to 161.26.0.0/16 within test-vpc1-ky
 =========================================================================
 
 Allowed connections from vsi1-ky[10.240.10.4] to Public Internet 161.26.0.0/16: All Connections
-	TCP respond is blocked
+	TCP response is blocked
 
 Path:
 	vsi1-ky[10.240.10.4] -> security group sg1-ky -> subnet1-ky -> network ACL acl1-ky -> 
@@ -20,7 +20,7 @@ Path enabled by the following rules:
 			index: 1, direction: outbound , src: 10.240.10.0/24 , dst: 161.26.0.0/16, conn: protocol: udp, srcPorts: 1-65535, dstPorts: 1-65535, action: allow
 			index: 2, direction: outbound , src: 10.240.10.0/24 , dst: 161.26.0.0/16, conn: all, action: allow
 
-TCP respond disabled by the following rules:
+TCP response disabled by the following rules:
 	Ingress:
 		network ACL acl1-ky blocks connection since there are no relevant allow rules
 
