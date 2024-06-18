@@ -1469,9 +1469,9 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 					publicAddress = *loadBalancerObj.PublicIps[subnetsPIPsIndexes[subnet]].Address
 				}
 			case subnetsBlocks.isFullyReservedBlock(*subnetObj.CRN, blockIndex):
-				// all the addresses in the original block are reserved IP.
-				// therefore, a private IP could not be deployed at this block.
-				// (that usually happened when a filter rule has one address, and not cidr)
+				// all the addresses in the original block are reserved IPs.
+				// therefore, a private IP could not be deployed in this block.
+				// This usually happened when a filter rule has one address, and not cidr. 
 				// for these blocks there is no need to create private IPs.
 				continue
 			default:
