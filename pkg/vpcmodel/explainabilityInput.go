@@ -12,8 +12,8 @@ import (
 	"strings"
 
 	"github.com/np-guard/models/pkg/connection"
-	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/models/pkg/netp"
+	"github.com/np-guard/models/pkg/netset"
 )
 
 type ExplanationArgs struct {
@@ -250,11 +250,9 @@ func (e *ExplanationArgs) GetConnectionSet() *connection.Set {
 	}
 	switch p := netp.ProtocolString(e.protocol); p {
 	case netp.ProtocolStringICMP:
-		return connection.ICMPConnection(
-			connection.MinICMPType, connection.MaxICMPType,
-			connection.MinICMPCode, connection.MaxICMPCode)
+		return connection.AllICMP()
 	default:
-		return connection.TCPorUDPConnection(p,
+		return connection.NewTCPorUDP(p,
 			e.srcMinPort, e.srcMaxPort, e.dstMinPort, e.dstMaxPort)
 	}
 }
@@ -318,7 +316,7 @@ func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node,
 	}
 	// cidrOrName, if legal, references an address.
 	// 2. cidrOrName references an ip address
-	ipBlock, err2 := ipblock.FromCidrOrAddress(cidrOrName)
+	ipBlock, err2 := netset.IPBlockFromCidrOrAddress(cidrOrName)
 	if err2 != nil {
 		// the input is not a legal cidr or IP address, which in this stage means it is not a
 		// valid presentation for src/dst. Lint demands that an error is returned here
@@ -371,7 +369,7 @@ func (c *VPCConfig) getNodesOfVsi(name string) ([]Node, int, error) {
 //  4. else: it presents an internal address, return connected network interfaces and true,
 //
 // todo: 4 - replace subnet's address range in vpc's address prefix
-func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *ipblock.IPBlock) (nodes []Node,
+func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *netset.IPBlock) (nodes []Node,
 	internalIP bool, errType int, err error) {
 	// 1.
 	_, publicInternet, err1 := GetPublicInternetIPblocksList()
@@ -379,7 +377,7 @@ func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *ipblock.I
 		return nil, false, fatalErr, err1
 	}
 	isExternal := !inputIPBlock.Intersect(publicInternet).IsEmpty()
-	isInternal := !inputIPBlock.ContainedIn(publicInternet)
+	isInternal := !inputIPBlock.IsSubset(publicInternet)
 	if isInternal && isExternal {
 		return nil, false, fatalErr,
 			fmt.Errorf("%s contains both external and internal IP addresses, which is not supported. "+
@@ -411,9 +409,9 @@ func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *ipblock.I
 //  1. Calculate the IP blocks of the nodes N
 //  2. Calculate from N and the cidr block, disjoint IP blocks
 //  3. Return the nodes created from each block from 2 contained in the input cidr
-func (c *VPCConfig) getCidrExternalNodes(inputIPBlock *ipblock.IPBlock) (cidrNodes []Node, errType int, err error) {
+func (c *VPCConfig) getCidrExternalNodes(inputIPBlock *netset.IPBlock) (cidrNodes []Node, errType int, err error) {
 	// 1.
-	vpcConfigNodesExternalBlock := []*ipblock.IPBlock{}
+	vpcConfigNodesExternalBlock := []*netset.IPBlock{}
 	for _, node := range c.Nodes {
 		if node.IsInternal() {
 			continue
@@ -421,11 +419,11 @@ func (c *VPCConfig) getCidrExternalNodes(inputIPBlock *ipblock.IPBlock) (cidrNod
 		vpcConfigNodesExternalBlock = append(vpcConfigNodesExternalBlock, node.IPBlock())
 	}
 	// 2.
-	disjointBlocks := ipblock.DisjointIPBlocks([]*ipblock.IPBlock{inputIPBlock}, vpcConfigNodesExternalBlock)
+	disjointBlocks := netset.DisjointIPBlocks([]*netset.IPBlock{inputIPBlock}, vpcConfigNodesExternalBlock)
 	// 3.
 	cidrNodes = []Node{}
 	for _, block := range disjointBlocks {
-		if block.ContainedIn(inputIPBlock) {
+		if block.IsSubset(inputIPBlock) {
 			node, err1 := newExternalNode(true, block)
 			if err1 != nil {
 				return nil, fatalErr, err1 // Should never get here. If still does - severe bug, exit with err

@@ -11,7 +11,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
+
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
@@ -43,7 +44,7 @@ func (ga *GlobalRTAnalyzer) getRTAnalyzerPerVPC(vpcUID string) (*RTAnalyzer, err
 	return rtAnalyzer, nil
 }
 
-func (ga *GlobalRTAnalyzer) GetRoutingPath(src vpcmodel.InternalNodeIntf, dest *ipblock.IPBlock) (vpcmodel.Path, error) {
+func (ga *GlobalRTAnalyzer) GetRoutingPath(src vpcmodel.InternalNodeIntf, dest *netset.IPBlock) (vpcmodel.Path, error) {
 	vpcUID := src.Subnet().VPC().UID()
 	rtAnalyzer, err := ga.getRTAnalyzerPerVPC(vpcUID)
 	if err != nil {
@@ -111,7 +112,7 @@ func newRTAnalyzer(vpcConfig *vpcmodel.VPCConfig) *RTAnalyzer {
 	return res
 }
 
-func (rt *RTAnalyzer) getEgressPathFromAddressSrc(src, dest *ipblock.IPBlock) (vpcmodel.Path, error) {
+func (rt *RTAnalyzer) getEgressPathFromAddressSrc(src, dest *netset.IPBlock) (vpcmodel.Path, error) {
 	for _, node := range rt.vpcConfig.Nodes {
 		if node.IsInternal() && node.IPBlock().Equal(src) {
 			return rt.getEgressPath(node.(vpcmodel.InternalNodeIntf), dest)
@@ -120,7 +121,7 @@ func (rt *RTAnalyzer) getEgressPathFromAddressSrc(src, dest *ipblock.IPBlock) (v
 	return nil, fmt.Errorf("could not find internal node with address %s", src.ToIPAddressString())
 }
 
-func (rt *RTAnalyzer) getEgressPath(src vpcmodel.InternalNodeIntf, dest *ipblock.IPBlock) (vpcmodel.Path, error) {
+func (rt *RTAnalyzer) getEgressPath(src vpcmodel.InternalNodeIntf, dest *netset.IPBlock) (vpcmodel.Path, error) {
 	subnet := src.Subnet()
 	srcRT, ok := rt.subnetUIDToRT[subnet.UID()]
 	if !ok {
@@ -131,7 +132,7 @@ func (rt *RTAnalyzer) getEgressPath(src vpcmodel.InternalNodeIntf, dest *ipblock
 	return srcRT.getEgressPath(src.(vpcmodel.Node), dest)
 }
 
-func (rt *RTAnalyzer) getIngressPath(sourceType ingressRTSource, dest *ipblock.IPBlock) (vpcmodel.Path, error) {
+func (rt *RTAnalyzer) getIngressPath(sourceType ingressRTSource, dest *netset.IPBlock) (vpcmodel.Path, error) {
 	for _, ingressRt := range rt.ingressRT {
 		if ingressRt.source == sourceType {
 			return ingressRt.getIngressPath(dest)
@@ -258,8 +259,8 @@ type route struct {
 	// (same as each vpc connected to a tgw advertises its APs to the tgw )
 	advertise bool
 
-	destIPBlock    *ipblock.IPBlock
-	nextHopIPBlock *ipblock.IPBlock
+	destIPBlock    *netset.IPBlock
+	nextHopIPBlock *netset.IPBlock
 	destPrefixLen  int64
 }
 
@@ -273,7 +274,7 @@ func newRoute(name, dest, nextHop string, action routingAction, prio int, advert
 		advertise:   advertise,
 	}
 
-	res.destIPBlock, err = ipblock.FromCidr(dest)
+	res.destIPBlock, err = netset.IPBlockFromCidr(dest)
 	if err != nil {
 		return nil, err
 	}
@@ -282,7 +283,7 @@ func newRoute(name, dest, nextHop string, action routingAction, prio int, advert
 		return nil, err
 	}
 	if action == deliver { // next hop relevant only for 'deliver' action
-		res.nextHopIPBlock, err = ipblock.FromCidrOrAddress(nextHop)
+		res.nextHopIPBlock, err = netset.IPBlockFromCidrOrAddress(nextHop)
 		if err != nil {
 			return nil, err
 		}
@@ -311,11 +312,11 @@ type routingTable struct {
 	vpcmodel.VPCResource
 
 	// nextHops is a map from disjoint ip-blocks, after considering route preferences and actions
-	nextHops map[*ipblock.IPBlock]*ipblock.IPBlock // delivered ip-blocks
+	nextHops map[*netset.IPBlock]*netset.IPBlock // delivered ip-blocks
 
-	droppedDestinations *ipblock.IPBlock // union of all ip-ranges for dropped destinations
+	droppedDestinations *netset.IPBlock // union of all ip-ranges for dropped destinations
 
-	delegatedDestinations *ipblock.IPBlock // union of all ip-ranges for delegated destinations
+	delegatedDestinations *netset.IPBlock // union of all ip-ranges for delegated destinations
 
 	// routesList is the list of routes that were added for this routing table
 	// it is used to compute the fields above
@@ -342,10 +343,10 @@ func newRoutingTable(routes []*route, implicitRT *systemImplicitRT, vpcResource 
 	return res, nil
 }
 
-func (rt *routingTable) computeRoutingForDisjointDest(disjointDest *ipblock.IPBlock) error {
+func (rt *routingTable) computeRoutingForDisjointDest(disjointDest *netset.IPBlock) error {
 	// find the relevant rule from the sorted list of rules
 	for _, routeRule := range rt.routesList {
-		if disjointDest.ContainedIn(routeRule.destIPBlock) {
+		if disjointDest.IsSubset(routeRule.destIPBlock) {
 			logging.Debugf("%s contained in %s\n", disjointDest.ToIPRanges(), routeRule.destination)
 			switch routeRule.action {
 			case deliver:
@@ -370,9 +371,9 @@ func (rt *routingTable) computeRoutingForDisjointDest(disjointDest *ipblock.IPBl
 
 // TODO: handle ECMP routing
 func (rt *routingTable) computeDisjointRouting() error {
-	rt.nextHops = map[*ipblock.IPBlock]*ipblock.IPBlock{}
-	rt.droppedDestinations = ipblock.New()
-	rt.delegatedDestinations = ipblock.New()
+	rt.nextHops = map[*netset.IPBlock]*netset.IPBlock{}
+	rt.droppedDestinations = netset.NewIPBlock()
+	rt.delegatedDestinations = netset.NewIPBlock()
 	// sort routes list by prefix length, then by priority
 	slices.SortFunc(rt.routesList, func(a, b *route) int {
 		if a.destPrefixLen > b.destPrefixLen {
@@ -384,11 +385,11 @@ func (rt *routingTable) computeDisjointRouting() error {
 		return 1
 	})
 
-	destIPBlocks := []*ipblock.IPBlock{}
+	destIPBlocks := []*netset.IPBlock{}
 	for _, route := range rt.routesList {
 		destIPBlocks = append(destIPBlocks, route.destIPBlock)
 	}
-	disjointDestinations := ipblock.DisjointIPBlocks(destIPBlocks, destIPBlocks)
+	disjointDestinations := netset.DisjointIPBlocks(destIPBlocks, destIPBlocks)
 	for _, disjointDest := range disjointDestinations {
 		logging.Debugf("disjoint dest: %s\n", disjointDest.ToIPRanges())
 		if err := rt.computeRoutingForDisjointDest(disjointDest); err != nil {
@@ -398,7 +399,7 @@ func (rt *routingTable) computeDisjointRouting() error {
 	return nil
 }
 
-func (rt *routingTable) getEgressPath(src vpcmodel.Node, dest *ipblock.IPBlock) (vpcmodel.Path, error) {
+func (rt *routingTable) getEgressPath(src vpcmodel.Node, dest *netset.IPBlock) (vpcmodel.Path, error) {
 	path, shouldDelegate := rt.getPath(dest)
 	if shouldDelegate {
 		return rt.implicitRT.getEgressPath(src, dest), nil
@@ -406,7 +407,7 @@ func (rt *routingTable) getEgressPath(src vpcmodel.Node, dest *ipblock.IPBlock) 
 	return path.PrependResource(src), nil
 }
 
-func (rt *routingTable) getIngressPath(dest *ipblock.IPBlock) (vpcmodel.Path, error) {
+func (rt *routingTable) getIngressPath(dest *netset.IPBlock) (vpcmodel.Path, error) {
 	path, shouldDelegate := rt.getPath(dest)
 	if shouldDelegate {
 		return rt.implicitRT.getIngressPath(dest)
@@ -414,18 +415,18 @@ func (rt *routingTable) getIngressPath(dest *ipblock.IPBlock) (vpcmodel.Path, er
 	return path, nil
 }
 
-func (rt *routingTable) getPath(dest *ipblock.IPBlock) (vpcmodel.Path, bool) {
+func (rt *routingTable) getPath(dest *netset.IPBlock) (vpcmodel.Path, bool) {
 	for tableDest, nextHop := range rt.nextHops {
-		if dest.ContainedIn(tableDest) {
+		if dest.IsSubset(tableDest) {
 			return vpcmodel.Path([]*vpcmodel.Endpoint{
 				{NextHop: &vpcmodel.NextHopEntry{NextHop: nextHop, OrigDest: dest}}}), false
 		}
 	}
-	if dest.ContainedIn(rt.delegatedDestinations) {
+	if dest.IsSubset(rt.delegatedDestinations) {
 		// explicit delegate
 		return nil, true
 	}
-	if dest.ContainedIn(rt.droppedDestinations) {
+	if dest.IsSubset(rt.droppedDestinations) {
 		// explicit drop
 		return nil, false // no path
 	}
@@ -559,10 +560,10 @@ func (irt *ingressRoutingTable) advertiseRoutes(vpcConfig *vpcmodel.VPCConfig) {
 	}
 }
 
-func updateTGWWithAdvertisedRoute(tgw *TransitGateway, vpc *VPC, cidr *ipblock.IPBlock) {
+func updateTGWWithAdvertisedRoute(tgw *TransitGateway, vpc *VPC, cidr *netset.IPBlock) {
 	_, ok := tgw.availableRoutes[vpc.UID()]
 	if !ok {
-		tgw.availableRoutes[vpc.UID()] = []*ipblock.IPBlock{}
+		tgw.availableRoutes[vpc.UID()] = []*netset.IPBlock{}
 	}
 	tgw.availableRoutes[vpc.UID()] = append(tgw.availableRoutes[vpc.UID()], cidr)
 }

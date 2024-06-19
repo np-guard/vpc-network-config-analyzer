@@ -8,7 +8,7 @@ package vpcmodel
 
 import (
 	"github.com/np-guard/models/pkg/connection"
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
 )
 
 const (
@@ -104,7 +104,7 @@ type Node interface {
 	// CidrOrAddress returns the string of the Node's IP-address (for internal node) or CIDR (for external node)
 	CidrOrAddress() string
 	// IPBlock returns the IPBlock object of the IP addresses associated with this node
-	IPBlock() *ipblock.IPBlock
+	IPBlock() *netset.IPBlock
 	// IsInternal returns true if the node is internal, within a VPC
 	IsInternal() bool
 	// IsPublicInternet returns true if the node is external,
@@ -119,7 +119,7 @@ type InternalNodeIntf interface {
 	// an InternalNodeIntf has an exact one IP Address
 	Address() string
 	// IPBlock returns the IPBlock object representing the node's IP Address
-	IPBlock() *ipblock.IPBlock
+	IPBlock() *netset.IPBlock
 	// Subnet returns the subnet of the internal node
 	Subnet() Subnet
 	// AppliedFiltersKinds returns relevant filters for connectivity between internal nodes
@@ -135,7 +135,7 @@ type InternalNode struct {
 	// This field is skipped in the JSON output (nodes connectivity output in JSON format),
 	// since it is sufficient to have the AddressStr, and no need to represent IPBlockObj as another
 	// attribute in the JSON output.
-	IPBlockObj *ipblock.IPBlock `json:"-"`
+	IPBlockObj *netset.IPBlock `json:"-"`
 	// SubnetResource is the subnet on which this node resides in
 	SubnetResource Subnet `json:"-"`
 }
@@ -144,7 +144,7 @@ func (n *InternalNode) Address() string {
 	return n.AddressStr
 }
 
-func (n *InternalNode) IPBlock() *ipblock.IPBlock {
+func (n *InternalNode) IPBlock() *netset.IPBlock {
 	return n.IPBlockObj
 }
 
@@ -164,7 +164,7 @@ func (n *InternalNode) AppliedFiltersKinds(otherNode InternalNodeIntf) map[strin
 // SetIPBlockFromAddress sets the node's IPBlockObj field from its AddressStr field.
 // Assumes its AddressStr field is assigned with valid IPv4 string value.
 func (n *InternalNode) SetIPBlockFromAddress() (err error) {
-	n.IPBlockObj, err = ipblock.FromIPAddress(n.AddressStr)
+	n.IPBlockObj, err = netset.IPBlockFromIPAddress(n.AddressStr)
 	return err
 }
 
@@ -184,12 +184,12 @@ func (n *InternalNode) IsPublicInternet() bool {
 type NodeSet interface {
 	VPCResourceIntf
 	Nodes() []Node
-	AddressRange() *ipblock.IPBlock
+	AddressRange() *netset.IPBlock
 }
 
 type VPC interface {
 	NodeSet
-	AddressPrefixes() *ipblock.IPBlock
+	AddressPrefixes() *netset.IPBlock
 }
 
 type Subnet interface {
@@ -244,7 +244,7 @@ type FilterTrafficResource interface {
 	// to be used by explainability printing functions
 	// todo:move to rulesBasedResources interface
 	ListFilterWithAction(listRulesInFilter []RulesInTable) map[string]bool
-	ReferencedIPblocks() []*ipblock.IPBlock
+	ReferencedIPblocks() []*netset.IPBlock
 	ConnectivityMap() (map[string]*IPbasedConnectivityResult, error)
 	GetConnectivityOutputPerEachElemSeparately() string
 }

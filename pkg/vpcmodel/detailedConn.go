@@ -8,6 +8,8 @@ package vpcmodel
 
 import (
 	"github.com/np-guard/models/pkg/connection"
+
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 // detailedConn captures the connection with TCP's responsiveness details, as described below.
@@ -100,9 +102,9 @@ func (e *detailedConn) subtract(other *detailedConn) *detailedConn {
 
 func (e *detailedConn) string() string {
 	if !e.tcpRspDisable.IsEmpty() {
-		return e.allConn.String() + " * "
+		return common.LongString(e.allConn) + " * "
 	}
-	return e.allConn.String()
+	return common.LongString(e.allConn)
 }
 
 // computeDetailedConn computes the detailedConn object, given input `srcToDst`
@@ -114,7 +116,7 @@ func computeDetailedConn(srcToDst, dstToSrc *connection.Set) *detailedConn {
 	}
 	tcpSecondDirection := dstToSrc.Intersect(allTCPconn())
 	// flip src/dst ports before intersection
-	tcpSecondDirectionFlipped := tcpSecondDirection.SwitchSrcDstPorts()
+	tcpSecondDirectionFlipped := tcpSecondDirection.SwapPorts()
 	// tcp connection responsive subset
 	return detailedConnForTCPRsp(connTCP.Intersect(tcpSecondDirectionFlipped), srcToDst)
 }

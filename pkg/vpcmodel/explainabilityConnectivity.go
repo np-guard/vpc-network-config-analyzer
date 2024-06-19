@@ -413,7 +413,7 @@ func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
 			continue
 		}
 		configNodeIPBlock := configNode.IPBlock()
-		if nodeIPBlock.ContainedIn(configNodeIPBlock) {
+		if nodeIPBlock.IsSubset(configNodeIPBlock) {
 			return configNode, nil
 		}
 	}

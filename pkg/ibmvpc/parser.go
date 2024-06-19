@@ -17,7 +17,7 @@ import (
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
 
 	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
@@ -87,7 +87,7 @@ func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resou
 		return nil, err
 	}
 
-	var vpcInternalAddressRange map[string]*ipblock.IPBlock // map from vpc name to its internal address range
+	var vpcInternalAddressRange map[string]*netset.IPBlock // map from vpc name to its internal address range
 
 	subnetNameToNetIntf := map[string][]*NetworkInterface{}
 	err = getInstancesConfig(rc.InstanceList, subnetNameToNetIntf, res, filteredOut, shouldSkipVpcIds)
@@ -438,11 +438,11 @@ func newSubnet(name, uid, zone, cidr string, vpc vpcmodel.VPCResourceIntf) (*Sub
 		cidr: cidr,
 	}
 
-	cidrIPBlock, err := ipblock.FromCidr(subnetNode.cidr)
+	cidrIPBlock, err := netset.IPBlockFromCidr(subnetNode.cidr)
 	if err != nil {
 		return nil, err
 	}
-	subnetNode.ipblock = cidrIPBlock
+	subnetNode.netset = cidrIPBlock
 	return subnetNode, nil
 }
 
@@ -452,8 +452,8 @@ func getSubnetsConfig(
 	subnetNameToNetIntf map[string][]*NetworkInterface,
 	rc *datamodel.ResourcesContainerModel,
 	skipByVPC map[string]bool,
-) (vpcInternalAddressRange map[string]*ipblock.IPBlock, err error) {
-	vpcInternalAddressRange = map[string]*ipblock.IPBlock{}
+) (vpcInternalAddressRange map[string]*netset.IPBlock, err error) {
+	vpcInternalAddressRange = map[string]*netset.IPBlock{}
 	for vpcUID := range res.Configs() {
 		vpcInternalAddressRange[vpcUID] = nil
 	}
@@ -473,9 +473,9 @@ func getSubnetsConfig(
 			return nil, err
 		}
 		if vpcInternalAddressRange[vpcUID] == nil {
-			vpcInternalAddressRange[vpcUID] = subnetNode.ipblock
+			vpcInternalAddressRange[vpcUID] = subnetNode.netset
 		} else {
-			vpcInternalAddressRange[vpcUID] = vpcInternalAddressRange[vpcUID].Union(subnetNode.ipblock)
+			vpcInternalAddressRange[vpcUID] = vpcInternalAddressRange[vpcUID].Union(subnetNode.netset)
 		}
 		res.Config(vpcUID).Subnets = append(res.Config(vpcUID).Subnets, subnetNode)
 		if err := addZone(*subnet.Zone.Name, vpcUID, res); err != nil {
@@ -683,7 +683,7 @@ func newVPC(name, uid, region string, ap []string, regionToStructMap map[string]
 		region:          getRegionByName(region, regionToStructMap),
 	}
 
-	vpcNodeSet.addressPrefixesIPBlock, err = ipblock.FromCidrList(ap)
+	vpcNodeSet.addressPrefixesIPBlock, err = netset.IPBlockFromCidrList(ap)
 	if err != nil {
 		return nil, err
 	}
@@ -896,8 +896,8 @@ func newTGW(name, uid, region string, regionToStructMap map[string]*Region, tgwC
 			Region:       region,
 		},
 		vpcs:                []*VPC{},
-		availableRoutes:     map[string][]*ipblock.IPBlock{},
-		vpcsAPToPrefixRules: map[string]map[*ipblock.IPBlock]vpcmodel.RulesInTable{},
+		availableRoutes:     map[string][]*netset.IPBlock{},
+		vpcsAPToPrefixRules: map[string]map[*netset.IPBlock]vpcmodel.RulesInTable{},
 		region:              getRegionByName(region, regionToStructMap),
 		tgwConnList:         tgwConnList,
 	}
@@ -921,7 +921,7 @@ func (tgw *TransitGateway) addVPC(vpc *VPC, tgwConn *datamodel.TransitConnection
 		// explainability related struct initialization
 		for ipB, rulesInTable := range vpcAPToPrefixRules {
 			if _, ok := tgw.vpcsAPToPrefixRules[vpcUID]; !ok {
-				tgw.vpcsAPToPrefixRules[vpcUID] = map[*ipblock.IPBlock]vpcmodel.RulesInTable{}
+				tgw.vpcsAPToPrefixRules[vpcUID] = map[*netset.IPBlock]vpcmodel.RulesInTable{}
 			}
 			tgw.vpcsAPToPrefixRules[vpcUID][ipB] = rulesInTable
 		}
@@ -998,12 +998,12 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 // validateVPCsAddressPrefixesForTGW checks that all VPCs address prefixes (connected by TGW) are disjoint,
 // returns error if address prefixes are missing or overlapping
 func validateVPCsAddressPrefixesForTGW(vpcsList []*VPC) (err error) {
-	ipBlocksForAP := make([]*ipblock.IPBlock, len(vpcsList))
+	ipBlocksForAP := make([]*netset.IPBlock, len(vpcsList))
 	for i, vpc := range vpcsList {
 		if len(vpc.addressPrefixes) == 0 {
 			return fmt.Errorf("TGW analysis requires all VPCs have configured address prefixes, but this is missing for vpc %s", vpc.NameAndUID())
 		}
-		ipBlocksForAP[i], err = ipblock.FromCidrList(vpc.addressPrefixes)
+		ipBlocksForAP[i], err = netset.IPBlockFromCidrList(vpc.addressPrefixes)
 		if err != nil {
 			return err
 		}
@@ -1056,7 +1056,7 @@ func (tgw *TransitGateway) newConfigFromTGW(configs *vpcmodel.MultipleVPCConfigs
 		IsMultipleVPCsConfig: true,
 	}
 
-	var vpcsAddressRanges *ipblock.IPBlock // collect all internal address ranges of involved VPCs
+	var vpcsAddressRanges *netset.IPBlock // collect all internal address ranges of involved VPCs
 	nacls := &NaclLayer{VPCResource: vpcmodel.VPCResource{ResourceType: vpcmodel.NaclLayer}}
 	sgs := &SecurityGroupLayer{VPCResource: vpcmodel.VPCResource{ResourceType: vpcmodel.SecurityGroupLayer}}
 	for _, vpc := range tgw.vpcs { // iterate the involved VPCs -- all of them are connected (all to all)
@@ -1132,9 +1132,9 @@ func (tgw *TransitGateway) newConfigFromTGW(configs *vpcmodel.MultipleVPCConfigs
 	return newConfig, nil
 }
 
-func getSubnetByIPAddress(addressIPblock *ipblock.IPBlock, c *vpcmodel.VPCConfig) (subnet *Subnet, err error) {
+func getSubnetByIPAddress(addressIPblock *netset.IPBlock, c *vpcmodel.VPCConfig) (subnet *Subnet, err error) {
 	for _, s := range c.Subnets {
-		if addressIPblock.ContainedIn(s.AddressRange()) {
+		if addressIPblock.IsSubset(s.AddressRange()) {
 			return s.(*Subnet), nil
 		}
 	}
@@ -1331,7 +1331,7 @@ func NewEmptyVPCConfig() *vpcmodel.VPCConfig {
 }
 
 // filter VPCs with empty address ranges, then add for remaining VPCs the external nodes
-func filterVPCSAndAddExternalNodes(vpcInternalAddressRange map[string]*ipblock.IPBlock, res *vpcmodel.MultipleVPCConfigs) error {
+func filterVPCSAndAddExternalNodes(vpcInternalAddressRange map[string]*netset.IPBlock, res *vpcmodel.MultipleVPCConfigs) error {
 	for vpcUID, vpcConfig := range res.Configs() {
 		if vpcInternalAddressRange[vpcUID] == nil {
 			logging.Warnf("Ignoring VPC %s, no subnets found for this VPC\n", vpcUID)
@@ -1346,7 +1346,7 @@ func filterVPCSAndAddExternalNodes(vpcInternalAddressRange map[string]*ipblock.I
 	return nil
 }
 
-func updateVPCSAddressRanges(vpcInternalAddressRange map[string]*ipblock.IPBlock,
+func updateVPCSAddressRanges(vpcInternalAddressRange map[string]*netset.IPBlock,
 	vpcsMap *vpcmodel.MultipleVPCConfigs) error {
 	// assign to each vpc object its internal address range, as inferred from its subnets
 	for vpcUID, addressRange := range vpcInternalAddressRange {
@@ -1360,7 +1360,7 @@ func updateVPCSAddressRanges(vpcInternalAddressRange map[string]*ipblock.IPBlock
 	return nil
 }
 
-func handlePublicInternetNodes(res *vpcmodel.VPCConfig, vpcInternalAddressRange *ipblock.IPBlock) error {
+func handlePublicInternetNodes(res *vpcmodel.VPCConfig, vpcInternalAddressRange *netset.IPBlock) error {
 	externalNodes, err := addExternalNodes(res, vpcInternalAddressRange)
 	if err != nil {
 		return err
@@ -1383,21 +1383,21 @@ func handlePublicInternetNodes(res *vpcmodel.VPCConfig, vpcInternalAddressRange 
 	return nil
 }
 
-func addExternalNodes(config *vpcmodel.VPCConfig, vpcInternalAddressRange *ipblock.IPBlock) ([]vpcmodel.Node, error) {
-	ipBlocks := []*ipblock.IPBlock{}
+func addExternalNodes(config *vpcmodel.VPCConfig, vpcInternalAddressRange *netset.IPBlock) ([]vpcmodel.Node, error) {
+	ipBlocks := []*netset.IPBlock{}
 	for _, f := range config.FilterResources {
 		ipBlocks = append(ipBlocks, f.ReferencedIPblocks()...)
 	}
 
-	externalRefIPBlocks := []*ipblock.IPBlock{}
+	externalRefIPBlocks := []*netset.IPBlock{}
 	for _, ipBlock := range ipBlocks {
-		if ipBlock.ContainedIn(vpcInternalAddressRange) {
+		if ipBlock.IsSubset(vpcInternalAddressRange) {
 			continue
 		}
 		externalRefIPBlocks = append(externalRefIPBlocks, ipBlock.Subtract(vpcInternalAddressRange))
 	}
 
-	disjointRefExternalIPBlocks := ipblock.DisjointIPBlocks(externalRefIPBlocks, []*ipblock.IPBlock{})
+	disjointRefExternalIPBlocks := netset.DisjointIPBlocks(externalRefIPBlocks, []*netset.IPBlock{})
 
 	externalNodes, err := vpcmodel.GetExternalNetworkNodes(disjointRefExternalIPBlocks)
 	if err != nil {
@@ -1439,17 +1439,17 @@ func getVPCObjectByUID(res *vpcmodel.MultipleVPCConfigs, uid string) (*VPC, erro
 // See https://github.com/np-guard/vpc-network-config-analyzer/issues/560
 // getSubnetsFreeAddresses() collect all the free address of all subnets
 // allocSubnetFreeAddress() allocate a new address for a subnet
-func getSubnetsFreeAddresses(rc *datamodel.ResourcesContainerModel) (map[string]*ipblock.IPBlock, error) {
-	subnetsFreeAddresses := map[string]*ipblock.IPBlock{}
+func getSubnetsFreeAddresses(rc *datamodel.ResourcesContainerModel) (map[string]*netset.IPBlock, error) {
+	subnetsFreeAddresses := map[string]*netset.IPBlock{}
 	for _, subnetObj := range rc.SubnetList {
-		b, err := ipblock.FromCidr(*subnetObj.Ipv4CIDRBlock)
+		b, err := netset.IPBlockFromCidr(*subnetObj.Ipv4CIDRBlock)
 		if err != nil {
 			return nil, err
 		}
 		// all the allocated IPs are at subnetObj.ReservedIps. (did not find documentation, it is what we experiment)
 		// see https://github.com/np-guard/vpc-network-config-analyzer/issues/566
 		for _, reservedIP := range subnetObj.ReservedIps {
-			b2, err := ipblock.FromIPAddress(*reservedIP.Address)
+			b2, err := netset.IPBlockFromIPAddress(*reservedIP.Address)
 			if err != nil {
 				return nil, err
 			}
@@ -1460,9 +1460,9 @@ func getSubnetsFreeAddresses(rc *datamodel.ResourcesContainerModel) (map[string]
 	return subnetsFreeAddresses, nil
 }
 
-func allocSubnetFreeAddress(subnetsFreeAddresses map[string]*ipblock.IPBlock, subnetCRN string) (string, error) {
+func allocSubnetFreeAddress(subnetsFreeAddresses map[string]*netset.IPBlock, subnetCRN string) (string, error) {
 	address := subnetsFreeAddresses[subnetCRN].FirstIPAddress()
-	addressBlock, err := ipblock.FromIPAddress(address)
+	addressBlock, err := netset.IPBlockFromIPAddress(address)
 	if err != nil {
 		return "", err
 	}
@@ -1596,11 +1596,11 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 	loadBalancerObj *datamodel.LoadBalancer,
 	loadBalancer *LoadBalancer,
 	vpc *VPC,
-	subnetsFreeAddresses map[string]*ipblock.IPBlock) ([]vpcmodel.Node, error) {
+	subnetsFreeAddresses map[string]*netset.IPBlock) ([]vpcmodel.Node, error) {
 	// first we collect  the subnets that has private IPs:
 	subnetsWithPrivateIPs := map[vpcmodel.Subnet]int{}
 	for i, pIP := range loadBalancerObj.PrivateIps {
-		address, err := ipblock.FromIPAddress(*pIP.Address)
+		address, err := netset.IPBlockFromIPAddress(*pIP.Address)
 		if err != nil {
 			return nil, err
 		}

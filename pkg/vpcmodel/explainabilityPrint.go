@@ -11,6 +11,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+
 	"github.com/np-guard/models/pkg/connection"
 )
 
@@ -41,7 +43,7 @@ func explainHeader(explanation *Explanation) string {
 
 func connHeader(connQuery *connection.Set) string {
 	if connQuery != nil {
-		return " using \"" + connQuery.String() + "\""
+		return " using \"" + common.LongString(connQuery) + "\""
 	}
 	return ""
 }
@@ -211,7 +213,7 @@ func existingConnectionStr(c *VPCConfig, connQuery *connection.Set, src, dst End
 	// Computing the header, "1" described in explainabilityLineStr
 	if connQuery == nil {
 		resComponents = append(resComponents, fmt.Sprintf("Allowed connections from %v to %v: %v\n", src.ExtendedName(c), dst.ExtendedName(c),
-			conn.String()))
+			common.LongString(conn)))
 	} else {
 		properSubsetConn := ""
 		if !conn.Equal(connQuery) {

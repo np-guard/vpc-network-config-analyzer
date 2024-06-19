@@ -11,15 +11,15 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
 )
 
 func newNetIntForPathTest() *mockNetIntf {
 	return &mockNetIntf{name: "vsi1[10.10.2.6]", cidr: "10.10.2.6"}
 }
 
-func newIPBlock(inputCIDROrAddress string) *ipblock.IPBlock {
-	res, _ := ipblock.FromCidrOrAddress(inputCIDROrAddress)
+func newIPBlock(inputCIDROrAddress string) *netset.IPBlock {
+	res, _ := netset.IPBlockFromCidrOrAddress(inputCIDROrAddress)
 	return res
 }
 

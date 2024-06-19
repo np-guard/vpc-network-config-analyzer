@@ -75,7 +75,7 @@ func routingAnalysis(inArgs *inArgs) error {
 	}
 	for _, pair := range srcDstPairs {
 		srcNode, err1 := vpcConfigs.GetInternalNodeFromAddress(pair.src)
-		dstIPBlock, err2 := ipblock.FromIPAddress(pair.dst)
+		dstIPBlock, err2 := netset.IPBlockFromIPAddress(pair.dst)
 		path, err3 := analyzer.GetRoutingPath(srcNode, dstIPBlock)
 		if err := errors.Join(err1, err2, err3); err != nil {
 			fmt.Printf("err: %s", err.Error())

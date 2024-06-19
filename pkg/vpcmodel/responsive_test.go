@@ -45,13 +45,13 @@ func TestAll(t *testing.T) {
 		},
 		{
 			name:     "first_all_cons_second_tcp_with_ports",
-			srcToDst: connection.All(),                                           // all connections
-			dstToSrc: newTCPConn(80, 80, connection.MinPort, connection.MaxPort), // TCP , src-ports: 80, dst-ports: all
+			srcToDst: connection.All(),                               // all connections
+			dstToSrc: newTCPConn(80, 80, netp.MinPort, netp.MaxPort), // TCP , src-ports: 80, dst-ports: all
 
 			// TCP src-ports: all, dst-port: 80
-			expectedTCPResponsiveConn: newTCPConn(connection.MinPort, connection.MaxPort, 80, 80),
-			expectedTCPNonResponsiveConn: allTCPconn().Subtract(newTCPConn(connection.MinPort,
-				connection.MaxPort, 80, 80)),
+			expectedTCPResponsiveConn: newTCPConn(netp.MinPort, netp.MaxPort, 80, 80),
+			expectedTCPNonResponsiveConn: allTCPconn().Subtract(newTCPConn(netp.MinPort,
+				netp.MaxPort, 80, 80)),
 			expectedAllConn: connection.All(),
 		},
 		{

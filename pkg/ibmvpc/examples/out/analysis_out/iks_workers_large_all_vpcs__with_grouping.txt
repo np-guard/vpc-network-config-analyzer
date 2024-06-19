@@ -1,5 +1,5 @@
 Endpoint connectivity for VPC us-south-default-vpc
-Public Internet (all ranges) => rhel9-1[10.240.64.7],rhel9[10.240.64.6] : protocol: ICMP icmp-type: 8; protocol: TCP dst-ports: 22
+Public Internet (all ranges) => rhel9-1[10.240.64.7],rhel9[10.240.64.6] : protocol: ICMP icmp-type: 8 icmp-code: 0; protocol: TCP dst-ports: 22
 rhel9-1[10.240.64.7],rhel9[10.240.64.6] => Public Internet (all ranges) : All Connections
 rhel9-1[10.240.64.7],rhel9[10.240.64.6] => rhel9-1[10.240.64.7],rhel9[10.240.64.6] : All Connections
 

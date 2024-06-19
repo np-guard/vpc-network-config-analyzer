@@ -8,7 +8,7 @@ package vpcmodel
 
 import (
 	"github.com/np-guard/models/pkg/connection"
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
 )
 
 // VPCConnectivity holds detailed representation of allowed connectivity considering all resources in a vpc config1 instance
@@ -55,8 +55,8 @@ func (cr *ConnectivityResult) ingressOrEgressAllowedConns(isIngress bool) map[No
 // It is associated with a subnet when analyzing connectivity of subnets based on NACL resources
 // (see func (nl *NaclLayer) ConnectivityMap() )
 type IPbasedConnectivityResult struct {
-	IngressAllowedConns map[*ipblock.IPBlock]*connection.Set
-	EgressAllowedConns  map[*ipblock.IPBlock]*connection.Set
+	IngressAllowedConns map[*netset.IPBlock]*connection.Set
+	EgressAllowedConns  map[*netset.IPBlock]*connection.Set
 }
 
 // ConfigBasedConnectivityResults is used to capture allowed connectivity to/from elements in the vpc config1 (subnets / external ip-blocks)
