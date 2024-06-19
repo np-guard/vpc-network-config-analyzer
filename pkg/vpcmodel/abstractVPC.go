@@ -110,6 +110,7 @@ type Node interface {
 	// IsPublicInternet returns true if the node is external,
 	// currently nodes which are external but not public Internet are ignored
 	IsPublicInternet() bool
+	// AbstractedNodeSet returns the abstracted nodeSet that contains this node (if any)
 	AbstractedNodeSet() NodeSet
 }
 
@@ -180,7 +181,9 @@ func (n *InternalNode) IsInternal() bool {
 func (n *InternalNode) IsPublicInternet() bool {
 	return false
 }
-func (n *InternalNode) AbstractedNodeSet()NodeSet {
+
+// only lb are abstracted, so only pip has AbstractedNodeSet
+func (n *InternalNode) AbstractedNodeSet() NodeSet {
 	return nil
 }
 
