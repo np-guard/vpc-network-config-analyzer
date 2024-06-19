@@ -43,25 +43,25 @@ func TestAll(t *testing.T) {
 			expectedTCPNonResponsiveConn: connection.None(),
 			expectedAllConn:              newTCPUDPSet(netp.ProtocolStringTCP),
 		},
-		//{
-		//	name:     "first_all_cons_second_tcp_with_ports",
-		//	srcToDst: connection.All(),                                           // all connections
-		//	dstToSrc: newTCPConn(80, 80, connection.MinPort, connection.MaxPort), // TCP , src-ports: 80, dst-ports: all
-		//
-		//	// TCP src-ports: all, dst-port: 80
-		//	expectedTCPResponsiveConn: newTCPConn(connection.MinPort, connection.MaxPort, 80, 80),
-		//	expectedTCPNonResponsiveConn: allTCPconn().Subtract(newTCPConn(connection.MinPort,
-		//		connection.MaxPort, 80, 80)),
-		//	expectedAllConn: connection.All(),
-		//},
-		//{
-		//	name:                         "first_all_conns_second_no_tcp",
-		//	srcToDst:                     connection.All(), // all connections
-		//	dstToSrc:                     newICMPconn(),    // ICMP
-		//	expectedTCPResponsiveConn:    connection.None(),
-		//	expectedTCPNonResponsiveConn: allTCPconn(),
-		//	expectedAllConn:              connection.All(),
-		//},
+		{
+			name:     "first_all_cons_second_tcp_with_ports",
+			srcToDst: connection.All(),                                           // all connections
+			dstToSrc: newTCPConn(80, 80, connection.MinPort, connection.MaxPort), // TCP , src-ports: 80, dst-ports: all
+
+			// TCP src-ports: all, dst-port: 80
+			expectedTCPResponsiveConn: newTCPConn(connection.MinPort, connection.MaxPort, 80, 80),
+			expectedTCPNonResponsiveConn: allTCPconn().Subtract(newTCPConn(connection.MinPort,
+				connection.MaxPort, 80, 80)),
+			expectedAllConn: connection.All(),
+		},
+		{
+			name:                         "first_all_conns_second_no_tcp",
+			srcToDst:                     connection.All(), // all connections
+			dstToSrc:                     newICMPconn(),    // ICMP
+			expectedTCPResponsiveConn:    connection.None(),
+			expectedTCPNonResponsiveConn: allTCPconn(),
+			expectedAllConn:              connection.All(),
+		},
 		//{
 		//	name:                      "tcp_with_ports_both_directions_exact_match",
 		//	srcToDst:                  newTCPConn(80, 80, 443, 443),
