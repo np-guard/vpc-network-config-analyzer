@@ -264,8 +264,9 @@ func (v *VPCConnectivity) computeAllowedResponsiveConnections(allowedConnsCombin
 			// iterate pairs (src,dst) with allConn as allowed connectivity, to check responsive aspect
 			if v.isConnExternalThroughFIP(srcNode, dstNode) { // fip ignores NACL
 				// TODO: this may be ibm-specific. consider moving to ibmvpc
+				tcpComponent, _ := partitionTCPNonTCP(conn)
 				v.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(src, dst,
-					detailedConnForTCPRspAndNonTCP(conn, conn))
+					detailedConnForTCPRsp(tcpComponent, conn))
 				continue
 			}
 
@@ -277,10 +278,8 @@ func (v *VPCConnectivity) computeAllowedResponsiveConnections(allowedConnsCombin
 			// can src ingress from dst?
 			SrcAllowedIngressFromDst = v.getPerLayerConnectivity(statelessLayerName, dstNode, srcNode, true)
 			combinedDstToSrc := DstAllowedEgressToSrc.Intersect(SrcAllowedIngressFromDst)
-			// ConnectionWithStatefulness returns the stateful subset
-			statefulCombinedConn := conn.WithStatefulness(combinedDstToSrc)
-			statefulSet := detailedConnForTCPRspAndNonTCP(statefulCombinedConn, conn)
-			v.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(src, dst, statefulSet)
+			detailedConnSet := computeDetailedConn(conn, combinedDstToSrc)
+			v.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(src, dst, detailedConnSet)
 		}
 	}
 }
