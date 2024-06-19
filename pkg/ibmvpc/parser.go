@@ -168,13 +168,6 @@ func getRoutingTables(rc *datamodel.ResourcesContainerModel,
 	res *vpcmodel.MultipleVPCConfigs,
 	skipByVPC map[string]bool) error {
 	for _, rt := range rc.RoutingTableList {
-		if rt.VPC != nil && rt.VPC.CRN != nil && skipByVPC[*rt.VPC.CRN] {
-			continue
-		}
-		routes, err := getRoutes(rt)
-		if err != nil {
-			return err
-		}
 		if rt.VPC == nil || rt.VPC.CRN == nil {
 			logging.Warnf("unknown vpc for rt %s, skipping...", *rt.Name)
 			continue
@@ -185,6 +178,14 @@ func getRoutingTables(rc *datamodel.ResourcesContainerModel,
 			logging.Warnf("skipping rt %s, could not find vpc with uid %s", *rt.Name, vpcUID)
 			continue
 		}
+		if skipByVPC[*rt.VPC.CRN] {
+			continue
+		}
+		routes, err := getRoutes(rt)
+		if err != nil {
+			return err
+		}
+
 		var rtObj vpcmodel.VPCResourceIntf
 		if *rt.RouteDirectLinkIngress || *rt.RouteInternetIngress || *rt.RouteTransitGatewayIngress || *rt.RouteVPCZoneIngress {
 			rtObj = getIngressRoutingTable(rt, routes, vpcConfig)

@@ -86,15 +86,6 @@ func (c *MultipleVPCConfigs) GetVPC(uid string) VPCResourceIntf {
 	return config.VPC
 }
 
-func (c *MultipleVPCConfigs) GetSubnetByUID(uid string) VPCResourceIntf {
-	for _, vpcConfig := range c.configs {
-		if obj, ok := vpcConfig.UIDToResource[uid]; ok {
-			return obj
-		}
-	}
-	return nil
-}
-
 func (c *MultipleVPCConfigs) GetInternalNodesFromAllVPCs() (res []Node) {
 	for _, vpcConfig := range c.configs {
 		if vpcConfig.IsMultipleVPCsConfig {
