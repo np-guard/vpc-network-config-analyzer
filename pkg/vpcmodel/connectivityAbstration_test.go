@@ -117,7 +117,6 @@ func createMissingConn(nodeSet NodeSet, outNodes []VPCResourceIntf, conn, subCon
 func checkMissingConn(nodeSet NodeSet, outNodes []VPCResourceIntf, conn, subConn *detailedConn,
 	aConn GeneralResponsiveConnectivityMap, info *AbstractionInfo,
 	t *testing.T) {
-
 	require.Equal(t, len(aConn), len(outNodes)+1)
 	require.False(t, info.hasMissingConnection(outNodes[0:1], false))
 	require.False(t, info.hasMissingConnection(outNodes[0:1], true))
