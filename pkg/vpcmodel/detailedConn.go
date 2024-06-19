@@ -10,8 +10,6 @@ import (
 	"github.com/np-guard/models/pkg/connection"
 )
 
-// todo: remove stateful from connection.Set
-
 // detailedConn captures the connection with TCP's responsiveness details, as described below.
 // It is created from src-to-dest allowed connection (TCP and non-TCP) and allowed response
 // connection dest-to-src.
