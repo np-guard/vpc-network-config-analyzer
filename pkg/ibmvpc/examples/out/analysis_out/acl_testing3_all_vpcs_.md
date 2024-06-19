@@ -23,4 +23,4 @@
 | vsi3c-ky[10.240.30.4] | vsi3a-ky[10.240.30.5] | All Connections |
 | vsi3c-ky[10.240.30.4] | vsi3b-ky[10.240.30.6] | All Connections |
 
-connections are stateful (on TCP) unless marked with *
+connections are responsive (on TCP) unless marked with *

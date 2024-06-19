@@ -33,4 +33,4 @@ vsi0-test-sub[10.240.4.4] => vsi0-service-sub[10.240.68.5],vsi1-service-sub[10.2
 vsi1-app-sub0[10.240.0.4] => service-alb[LB private IP][10.240.68.8] : All Connections * 
 vsi1-app-sub1[10.240.64.4] => service-alb[LB private IP][10.240.68.8] : All Connections * 
 
-connections are stateful (on TCP) unless marked with *
+connections are responsive (on TCP) unless marked with *

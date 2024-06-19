@@ -29,4 +29,4 @@ Subnet connectivity for VPC zn-vpc1
 Subnet connectivity for VPC zn-vpc2
 <nothing to report>
 
-connections are stateful (on TCP) unless marked with *
+connections are responsive (on TCP) unless marked with *

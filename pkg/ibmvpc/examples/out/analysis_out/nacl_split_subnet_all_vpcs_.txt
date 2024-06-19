@@ -49,6 +49,6 @@ vsi1-sub2[10.240.64.5] => vsi1-sub1[10.240.0.5] : All Connections
 vsi1-sub3[10.240.128.5] => alb[LoadBalancer] : All Connections ** 
 vsi1-sub3[10.240.128.5] => vsi0-sub3[10.240.128.4] : All Connections
 
-connections are stateful (on TCP) unless marked with *
+connections are responsive (on TCP) unless marked with *
 
 connections marked with  **  are an over-approximation, not all private IPs have the same connectivity

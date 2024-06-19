@@ -18,7 +18,7 @@ import (
 type OutFormat int64
 
 const overApproximationSign = " ** "
-const statefulMessage = "\nconnections are stateful (on TCP) unless marked with *\n"
+const responsiveMessage = "\nconnections are responsive (on TCP) unless marked with *\n"
 const overApproximationMessage = "\nconnections marked with " + overApproximationSign +
 	" are an over-approximation, not all private IPs have the same connectivity\n"
 
@@ -249,7 +249,7 @@ func getAsteriskDetails(uc OutputUseCase, hasStatelessConn, hasOverApproximatedC
 	res := ""
 	if uc != SingleSubnet && (outFormat == Text || outFormat == MD || outFormat == Debug) {
 		if hasStatelessConn {
-			res += statefulMessage
+			res += responsiveMessage
 		}
 		if hasOverApproximatedConn {
 			res += overApproximationMessage
