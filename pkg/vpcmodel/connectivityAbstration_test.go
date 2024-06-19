@@ -8,9 +8,10 @@ package vpcmodel
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/netp"
-	"github.com/stretchr/testify/require"
 )
 
 func createNodes() (NodeSet, []VPCResourceIntf) {
