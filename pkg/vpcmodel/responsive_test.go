@@ -14,7 +14,6 @@ import (
 	"github.com/np-guard/models/pkg/netp"
 )
 
-// todo: move to analyzer
 
 func newTCPConn(t *testing.T, srcMinP, srcMaxP, dstMinP, dstMaxP int64) *connection.Set {
 	t.Helper()
