@@ -82,8 +82,11 @@ func (pip *PrivateIP) Name() string {
 func (pip *PrivateIP) ExtendedName(c *vpcmodel.VPCConfig) string {
 	return pip.ExtendedPrefix(c) + pip.Name()
 }
-func (pip *PrivateIP) WasAbstracted() (bool, vpcmodel.NodeSet){
-	return pip.loadBalancer.WasAbstracted(), pip.loadBalancer
+func (pip *PrivateIP) AbstractedNodeSet() vpcmodel.NodeSet {
+	if pip.loadBalancer.AbstractionInfo() != nil {
+		return pip.loadBalancer
+	}
+	return nil
 }
 
 // NetworkInterface implements vpcmodel.Node interface
@@ -297,9 +300,7 @@ func (lb *LoadBalancer) SetAbstractionInfo(abstractionInfo *vpcmodel.Abstraction
 func (lb *LoadBalancer) AbstractionInfo() *vpcmodel.AbstractionInfo {
 	return lb.abstractionInfo
 }
-func (lb *LoadBalancer) WasAbstracted() bool {
-	return lb.abstractionInfo != nil
-}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // FilterTraffic elements
 

@@ -82,8 +82,8 @@ func (exn *ExternalNetwork) IsInternal() bool {
 func (exn *ExternalNetwork) IsPublicInternet() bool {
 	return exn.isPublicInternet
 }
-func (exn *ExternalNetwork) WasAbstracted() (bool, NodeSet){
-	return false, nil
+func (exn *ExternalNetwork) AbstractedNodeSet() NodeSet {
+	return nil
 }
 
 func (exn *ExternalNetwork) Kind() string {

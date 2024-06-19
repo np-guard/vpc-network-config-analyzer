@@ -147,13 +147,11 @@ func collectNodesForExplanation(cConfigs *MultipleVPCConfigs, conns map[string]*
 		if !vpcConfig.IsMultipleVPCsConfig {
 			for _, n := range vpcConfig.Nodes {
 				if !n.IsExternal() {
-					internalNodes[n] = vpcConfig
-				}
-			}
-			// todo - do not add the abstracted nodes
-			for _, lb := range vpcConfig.LoadBalancers {
-				if lb.WasAbstracted() {
-					internalNodes[lb] = vpcConfig
+					if abstractedNodeSet := n.AbstractedNodeSet(); abstractedNodeSet != nil {
+						internalNodes[abstractedNodeSet] = vpcConfig
+					} else {
+						internalNodes[n] = vpcConfig
+					}
 				}
 			}
 		}
