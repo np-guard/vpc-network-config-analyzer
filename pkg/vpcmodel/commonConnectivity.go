@@ -43,20 +43,6 @@ func partitionTCPNonTCP(conn *connection.Set) (tcp, nonTCP *connection.Set) {
 	return tcpFractionOfConn, nonTCPFractionOfConn
 }
 
-// getTCPResponsiveConnTmp returns a connection object with the exact responsive part within TCP, given input `srcToDst`
-// that represents a src-to-dst connection, and `dstToSrc` that represents dst-to-src connection.
-func getTCPResponsiveConnTmp(srcToDst, dstToSrc *connection.Set) *connection.Set {
-	connTCP := srcToDst.Intersect(allTCPconn())
-	if connTCP.IsEmpty() {
-		return NoConns()
-	}
-	tcpSecondDirection := dstToSrc.Intersect(allTCPconn())
-	// flip src/dst ports before intersection
-	tcpSecondDirectionFlipped := tcpSecondDirection.SwitchSrcDstPorts()
-	// tcp connection responsive subset
-	return connTCP.Intersect(tcpSecondDirectionFlipped)
-}
-
 // GeneralConnectivityMap describes basic connectivity of the given network;
 // for each ordered couple of VPCResourceIntf <src, dst> that have connection between src to dst
 // it lists the protocols and ports for which the connection <src, dst> is enabled
