@@ -56,6 +56,7 @@ func emptyGeneralResponsiveConnectivityMap(nodeSet NodeSet, outNodes []VPCResour
 
 func createConnections() []*detailedConn {
 	return []*detailedConn{
+		detailedConnForAllRsp(),
 		detailedConnForResponsive(connection.TCPorUDPConnection(netp.ProtocolStringTCP, 10, 100, 443, 443)),
 		emptyDetailedConn(),
 	}
@@ -90,6 +91,7 @@ func TestSimpleAbstraction(t *testing.T) {
 	for _, conn := range conns {
 		nodesConn := createFullConn(nodeSet, outNodes, conn)
 		nodeSetAbstraction := newNodeSetAbstraction(nodesConn)
+		info := nodeSetAbstraction.abstractNodeSet(nodeSet)
 		aConn := nodeSetAbstraction.abstractedConnectivity
 		checkFullConn(nodeSet, outNodes, conn, aConn, info, t)
 	}
