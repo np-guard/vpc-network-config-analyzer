@@ -94,25 +94,31 @@ func TestAll(t *testing.T) {
 			expectedTCPNonResponsiveConn: newTCPConn(80, 100, 443, 443),
 			expectedAllConn:              newTCPConn(80, 100, 443, 443).Union(newUDPConn(80, 100, 443, 443)),
 		},
-		//{
-		//	name:                      "no_tcp_in_first_direction",
-		//	srcToDst:                  newUDPConn(70, 100, 443, 443),
-		//	dstToSrc:                  newTCPConn(70, 80, 80, 80).Union(newUDPConn(70, 80, 80, 80)),
-		//	expectedTCPResponsiveConn: connection.None(),
-		//},
-		//{
-		//	name:                      "empty_conn_in_first_direction",
-		//	srcToDst:                  connection.None(),
-		//	dstToSrc:                  newTCPConn(80, 80, 80, 80).Union(newTCPUDPSet(netp.ProtocolStringUDP)),
-		//	expectedTCPResponsiveConn: connection.None(),
-		//},
-		//{
-		//	name:     "only_udp_icmp_in_first_direction_and_empty_second_direction",
-		//	srcToDst: newTCPUDPSet(netp.ProtocolStringUDP).Union(newICMPconn()),
-		//	dstToSrc: connection.None(),
-		//	// responsive analysis does not apply to udp/icmp, thus TCP responsive component is empty
-		//	expectedTCPResponsiveConn: connection.None(),
-		//},
+		{
+			name:                         "no_tcp_in_first_direction",
+			srcToDst:                     newUDPConn(70, 100, 443, 443),
+			dstToSrc:                     newTCPConn(70, 80, 80, 80).Union(newUDPConn(70, 80, 80, 80)),
+			expectedTCPResponsiveConn:    connection.None(),
+			expectedTCPNonResponsiveConn: connection.None(),
+			expectedAllConn:              newUDPConn(70, 100, 443, 443),
+		},
+		{
+			name:                         "empty_conn_in_first_direction",
+			srcToDst:                     connection.None(),
+			dstToSrc:                     newTCPConn(80, 80, 80, 80).Union(newTCPUDPSet(netp.ProtocolStringUDP)),
+			expectedTCPResponsiveConn:    connection.None(),
+			expectedTCPNonResponsiveConn: connection.None(),
+			expectedAllConn:              connection.None(),
+		},
+		{
+			name:     "only_udp_icmp_in_first_direction_and_empty_second_direction",
+			srcToDst: newTCPUDPSet(netp.ProtocolStringUDP).Union(newICMPconn()),
+			dstToSrc: connection.None(),
+			// responsive analysis does not apply to udp/icmp, thus TCP responsive component is empty
+			expectedTCPResponsiveConn:    connection.None(),
+			expectedTCPNonResponsiveConn: connection.None(),
+			expectedAllConn:              newTCPUDPSet(netp.ProtocolStringUDP).Union(newICMPconn()),
+		},
 	}
 	t.Parallel()
 	// explainTests is the list of tests to run
