@@ -8,10 +8,7 @@ package vpcmodel
 
 import (
 	"github.com/np-guard/models/pkg/connection"
-	"github.com/np-guard/models/pkg/netp"
 )
-
-// todo: remove stateful from connection.Set
 
 // detailedConn captures the connection with TCP's responsiveness details, as described below.
 // It is created from src-to-dest allowed connection (TCP and non-TCP) and allowed response
@@ -49,24 +46,30 @@ func emptyDetailedConn() *detailedConn {
 	return newDetailedConn(NoConns(), NoConns(), NoConns())
 }
 
-// detailedConnForTCPRspAndNonTCP constructor that is given the (tcp responsive and non tcp) conn and the entire conn
-func detailedConnForTCPRspAndNonTCP(tcpRspfulAndNonTCP, allConn *connection.Set) *detailedConn {
-	tcpRspFraction, nonTCPFraction := partitionTCPNonTCP(tcpRspfulAndNonTCP)
-	return newDetailedConn(tcpRspFraction, nonTCPFraction, allConn)
+// detailedConnForTCPRsp returns a new detailedConn from input TCP responsive connection and the entire connection objects
+func detailedConnForTCPRsp(tcpResponsive, allConn *connection.Set) *detailedConn {
+	_, nonTCPFraction := partitionTCPNonTCP(allConn)
+	return newDetailedConn(tcpResponsive, nonTCPFraction, allConn)
 }
 
-func detailedConnForResponsive(responsive *connection.Set) *detailedConn {
-	return newDetailedConn(responsive, NoConns(), responsive)
+// detailedConnForResponsive: is given the tcp responsive conn, assuming there is only
+// a tcp responsive component in the connection
+func detailedConnForResponsive(tcpResponsive *connection.Set) *detailedConn {
+	return newDetailedConn(tcpResponsive, NoConns(), tcpResponsive)
 }
 
+// detailedConnForAllRsp: constructs of all the connections domain
 func detailedConnForAllRsp() *detailedConn {
-	return newDetailedConn(newTCPSet(), AllConns().Subtract(newTCPSet()), AllConns())
+	return newDetailedConn(allTCPconn(), AllConns().Subtract(allTCPconn()), AllConns())
 }
 
+// isAllObliviousRsp: returns true iff detailedConn contains all the connection domain
+// (regardless of what part is responsive and what part isn't)
 func (d *detailedConn) isAllObliviousRsp() bool {
 	return d.allConn.Equal(connection.All())
 }
 
+// isEmpty: return true iff the detailedConn is empty
 func (d *detailedConn) isEmpty() bool {
 	return d.allConn.IsEmpty()
 }
@@ -106,17 +109,16 @@ func (d *detailedConn) string() string {
 	return d.allConn.String()
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////
-
-// todo: following functionality needs to be moved to package connection with member instead of parms passing
-
-func newTCPSet() *connection.Set {
-	return connection.TCPorUDPConnection(netp.ProtocolStringTCP, connection.MinPort, connection.MaxPort,
-		connection.MinPort, connection.MaxPort)
-}
-
-func partitionTCPNonTCP(conn *connection.Set) (tcp, nonTCP *connection.Set) {
-	tcpFractionOfConn := newTCPSet().Intersect(conn)
-	nonTCPFractionOfConn := conn.Subtract(tcpFractionOfConn)
-	return tcpFractionOfConn, nonTCPFractionOfConn
+// computeDetailedConn computes the detailedConn object, given input `srcToDst`
+// that represents a src-to-dst connection, and `dstToSrc` that represents dst-to-src connection.
+func computeDetailedConn(srcToDst, dstToSrc *connection.Set) *detailedConn {
+	connTCP := srcToDst.Intersect(allTCPconn())
+	if connTCP.IsEmpty() {
+		return detailedConnForTCPRsp(NoConns(), srcToDst)
+	}
+	tcpSecondDirection := dstToSrc.Intersect(allTCPconn())
+	// flip src/dst ports before intersection
+	tcpSecondDirectionFlipped := tcpSecondDirection.SwitchSrcDstPorts()
+	// tcp connection responsive subset
+	return detailedConnForTCPRsp(connTCP.Intersect(tcpSecondDirectionFlipped), srcToDst)
 }
