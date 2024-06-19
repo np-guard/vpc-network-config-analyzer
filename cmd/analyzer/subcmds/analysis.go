@@ -25,11 +25,11 @@ func routingAnalysis(inArgs *inArgs) error {
 	analyzer := ibmvpc.NewGlobalRTAnalyzer(vpcConfigs)
 	pairs := vpcConfigs.GetInternalNodePairs()
 	for _, pair := range pairs {
-		path, err := analyzer.GetRoutingPath(pair.First.(vpcmodel.InternalNodeIntf), pair.Second.IPBlock())
+		path, err := analyzer.GetRoutingPath(pair.Src.(vpcmodel.InternalNodeIntf), pair.Dst.IPBlock())
 		if err != nil {
 			return err
 		}
-		fmt.Printf("path for src %s, dst %s:\n", pair.First.CidrOrAddress(), pair.Second.CidrOrAddress())
+		fmt.Printf("path for src %s, dst %s:\n", pair.Src.CidrOrAddress(), pair.Dst.CidrOrAddress())
 		fmt.Println(path.String())
 		fmt.Println("")
 	}

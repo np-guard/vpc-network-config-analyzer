@@ -95,7 +95,7 @@ func newEgressRTFromRoutes(rps *routesPerSubnets, config *vpcmodel.VPCConfig, vp
 	for subnetsKey, routes := range rps.routesMap {
 		egressRT := &egressRoutingTable{}
 		implicitRT := &systemImplicitRT{vpc: vpc, config: systemRTConfigFromVPCConfig(config), vpcConfig: config}
-		if rt, err := newRoutingTable(routes, implicitRT); err == nil {
+		if rt, err := newRoutingTable(routes, implicitRT, &vpcmodel.VPCResource{}); err == nil {
 			egressRT.routingTable = *rt
 		}
 		egressRT.vpc = vpc

@@ -150,7 +150,7 @@ func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resou
 		return nil, err
 	}
 
-	err = getRoutingTables(rc, res)
+	err = getRoutingTables(rc, res, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
@@ -165,31 +165,38 @@ func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resou
 // getRoutingTables parses routing tables from rc and adds their generated objects to
 // the relevant vpc configs within res
 func getRoutingTables(rc *datamodel.ResourcesContainerModel,
-	res *vpcmodel.MultipleVPCConfigs) error {
+	res *vpcmodel.MultipleVPCConfigs,
+	skipByVPC map[string]bool) error {
 	for _, rt := range rc.RoutingTableList {
+		if rt.VPC != nil && rt.VPC.CRN != nil && skipByVPC[*rt.VPC.CRN] {
+			continue
+		}
 		routes, err := getRoutes(rt)
 		if err != nil {
 			return err
 		}
 		if rt.VPC == nil || rt.VPC.CRN == nil {
-			logging.Debugf("unknown vpc for rt %s, skipping...", *rt.Name)
+			logging.Warnf("unknown vpc for rt %s, skipping...", *rt.Name)
 			continue
 		}
 		vpcUID := *rt.VPC.CRN
 		vpcConfig := res.Config(vpcUID)
 		if vpcConfig == nil {
-			logging.Debugf("skipping rt %s, could not find vpc with uid %s", *rt.Name, vpcUID)
-			fmt.Printf("skipping rt %s, could not find vpc with uid %s\n", *rt.Name, vpcUID)
+			logging.Warnf("skipping rt %s, could not find vpc with uid %s", *rt.Name, vpcUID)
 			continue
 		}
 		var rtObj vpcmodel.VPCResourceIntf
 		if *rt.RouteDirectLinkIngress || *rt.RouteInternetIngress || *rt.RouteTransitGatewayIngress || *rt.RouteVPCZoneIngress {
-			rtObj, err = getIngressRoutingTable(rt, routes, vpcConfig)
+			rtObj = getIngressRoutingTable(rt, routes, vpcConfig)
 		} else {
 			rtObj, err = getEgressRoutingTable(rt, routes, vpcConfig)
 		}
 		if err != nil {
 			return err
+		}
+		if rtObj == nil {
+			// skipping this rt
+			continue
 		}
 		logging.Debugf("add rt %s for vpc %s\n", rtObj.Name(), vpcUID)
 
@@ -199,19 +206,25 @@ func getRoutingTables(rc *datamodel.ResourcesContainerModel,
 	return nil
 }
 
+func getRoutingTableVPCResource(rt *datamodel.RoutingTable, vpcConfig *vpcmodel.VPCConfig) *vpcmodel.VPCResource {
+	return &vpcmodel.VPCResource{
+		ResourceName: *rt.Name,
+		ResourceUID:  *rt.ID,
+		ResourceType: ResourceTypeRoutingTable,
+		VPCRef:       vpcConfig.VPC,
+	}
+}
+
 func getIngressRoutingTable(rt *datamodel.RoutingTable,
 	routes []*route,
-	vpcConfig *vpcmodel.VPCConfig) (vpcmodel.VPCResourceIntf, error) {
+	vpcConfig *vpcmodel.VPCConfig) vpcmodel.VPCResourceIntf {
 	if !*rt.RouteTransitGatewayIngress {
-		// todo: skip instead?
-		return nil, fmt.Errorf("currently not supporting ingress routing table with source other than tgw ")
+		// skip such rt for now, till supporting more source types for ingress rt
+		logging.Warnf("skipping ingress routing table %s, currently supporting only source type of TGW ", *rt.Name)
+		return nil
 	}
-	res := newIngressRoutingTableFromRoutes(routes, vpcConfig)
-	res.ResourceName = *rt.Name
-	res.ResourceUID = *rt.ID
-	res.ResourceType = ResourceTypeRoutingTable
-	res.VPCRef = vpcConfig.VPC
-	return res, nil
+	res := newIngressRoutingTableFromRoutes(routes, vpcConfig, getRoutingTableVPCResource(rt, vpcConfig))
+	return res
 }
 
 func getEgressRoutingTable(rt *datamodel.RoutingTable,
@@ -227,12 +240,7 @@ func getEgressRoutingTable(rt *datamodel.RoutingTable,
 			return nil, fmt.Errorf("could not find subnet %s associated with routing table %s", *s.Name, *rt.Name)
 		}
 	}
-
-	res := newEgressRoutingTableFromRoutes(routes, subnets, vpcConfig)
-	res.ResourceName = *rt.Name
-	res.ResourceUID = *rt.ID
-	res.ResourceType = ResourceTypeRoutingTable
-	res.VPCRef = vpcConfig.VPC
+	res := newEgressRoutingTableFromRoutes(routes, subnets, vpcConfig, getRoutingTableVPCResource(rt, vpcConfig))
 	return res, nil
 }
 
@@ -262,7 +270,7 @@ func getRoutes(rt *datamodel.RoutingTable) (res []*route, err error) {
 	return res, nil
 }
 
-func parseAction(action string) (action, error) {
+func parseAction(action string) (routingAction, error) {
 	switch action {
 	case "deliver":
 		return deliver, nil

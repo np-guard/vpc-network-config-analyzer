@@ -167,10 +167,10 @@ Q: By default, this routing table is empty. => does this mean the default is "de
 A: from docs: "the system-implicit routing table is used when no matching route is found in the RT associated with the subnet..."
 */
 
-type action int
+type routingAction int
 
 const (
-	deliver action = iota // Routes the packet to the next hop target.
+	deliver routingAction = iota // Routes the packet to the next hop target.
 	// You can add multiple routes with the same address prefix.
 	// The virtual router performs equal-cost, multi-path routing (ECMP) by using the different next hop IP addresses.
 
@@ -226,7 +226,7 @@ type route struct {
 	// have a higher priority when there are overlapping/multiple routes for a given destination.
 	priority int // default priority is 2 (highest - 0)
 
-	action action // The action to perform with a packet that matches the route
+	action routingAction // The action to perform with a packet that matches the route
 
 	// If a routing table contains multiple routes with the same `zone` and `destination`, the route with the highest
 	// priority (smallest value) is selected. If two routes have the same `destination` and `priority`, traffic is
@@ -263,7 +263,7 @@ type route struct {
 	destPrefixLen  int64
 }
 
-func newRoute(name, dest, nextHop string, action action, prio int, advertise bool) (res *route, err error) {
+func newRoute(name, dest, nextHop string, action routingAction, prio int, advertise bool) (res *route, err error) {
 	res = &route{
 		name:        name,
 		destination: dest,
@@ -331,8 +331,10 @@ func (rt *routingTable) ShowOnSubnetMode() bool {
 	return false
 }
 
-func newRoutingTable(routes []*route, implicitRT *systemImplicitRT) (*routingTable, error) {
-	res := &routingTable{routesList: routes}
+func newRoutingTable(routes []*route, implicitRT *systemImplicitRT, vpcResource *vpcmodel.VPCResource) (*routingTable, error) {
+	res := &routingTable{
+		VPCResource: *vpcResource,
+		routesList:  routes}
 	if err := res.computeDisjointRouting(); err != nil {
 		return nil, err
 	}
@@ -458,8 +460,10 @@ const (
 	otherZoneSource
 )
 
-func newIngressRoutingTableFromRoutes(routes []*route, vpcConfig *vpcmodel.VPCConfig) *ingressRoutingTable {
-	routingTable, _ := newRoutingTable(routes, newSystemImplicitRT(vpcConfig))
+func newIngressRoutingTableFromRoutes(routes []*route,
+	vpcConfig *vpcmodel.VPCConfig,
+	vpcResource *vpcmodel.VPCResource) *ingressRoutingTable {
+	routingTable, _ := newRoutingTable(routes, newSystemImplicitRT(vpcConfig), vpcResource)
 	return &ingressRoutingTable{
 		vpc:          vpcConfig.VPC.(*VPC),
 		source:       tgwSource, // todo: support more sources to ingress RT
@@ -529,7 +533,7 @@ func (irt *ingressRoutingTable) advertiseRoutes(vpcConfig *vpcmodel.VPCConfig) {
 			}
 		}
 		if vpcB == nil {
-			logging.Debugf(" could not find the relevant vpc and its tgw -- break")
+			logging.Debugf(" could not find the relevant vpc and its tgw -- skipping")
 			continue // nothing to propagate if could not find the relevant vpc and its tgw
 		}
 		// find other tgws connected to this VPC (of irt) and
@@ -582,8 +586,11 @@ type egressRoutingTable struct {
 	vpc     *VPC
 }
 
-func newEgressRoutingTableFromRoutes(routes []*route, subnets []*Subnet, vpcConfig *vpcmodel.VPCConfig) *egressRoutingTable {
-	routingTable, _ := newRoutingTable(routes, newSystemImplicitRT(vpcConfig))
+func newEgressRoutingTableFromRoutes(routes []*route,
+	subnets []*Subnet,
+	vpcConfig *vpcmodel.VPCConfig,
+	vpcResource *vpcmodel.VPCResource) *egressRoutingTable {
+	routingTable, _ := newRoutingTable(routes, newSystemImplicitRT(vpcConfig), vpcResource)
 	return &egressRoutingTable{
 		routingTable: *routingTable,
 		subnets:      subnets,

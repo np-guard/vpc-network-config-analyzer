@@ -836,14 +836,12 @@ func (tgw *TransitGateway) ExternalIP() string {
 	return ""
 }
 
+func isPairRelevantToTGW(src, dst vpcmodel.VPCResourceIntf) bool {
+	return !(src.IsExternal() || dst.IsExternal()) && src.VPC().UID() != dst.VPC().UID()
+}
+
 func (tgw *TransitGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*connection.Set, error) {
-	if _, ok := src.(*vpcmodel.ExternalNetwork); ok {
-		return connection.None(), nil
-	}
-	if _, ok := dst.(*vpcmodel.ExternalNetwork); ok {
-		return connection.None(), nil
-	}
-	if src.VPC().UID() == dst.VPC().UID() {
+	if !isPairRelevantToTGW(src, dst) {
 		return connection.None(), nil
 	}
 	if areNodes, src1, dst1 := isNodesPair(src, dst); areNodes {
@@ -863,10 +861,7 @@ func (tgw *TransitGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf
 }
 
 func (tgw *TransitGateway) RouterDefined(src, dst vpcmodel.Node) bool {
-	if src.IsExternal() || dst.IsExternal() {
-		return false
-	}
-	if src.VPC().UID() == dst.VPC().UID() {
+	if !isPairRelevantToTGW(src, dst) {
 		return false
 	}
 	// destination node has a transit gateway connection iff a prefix filter (possibly default) is defined for it

@@ -114,7 +114,7 @@ func (c *MultipleVPCConfigs) GetInternalNodePairs() (res []common.Pair[Node]) {
 	for _, n1 := range allNodes {
 		for _, n2 := range allNodes {
 			if n1.UID() != n2.UID() {
-				res = append(res, common.Pair[Node]{First: n1, Second: n2})
+				res = append(res, common.Pair[Node]{Src: n1, Dst: n2})
 			}
 		}
 	}

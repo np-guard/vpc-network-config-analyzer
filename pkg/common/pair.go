@@ -7,6 +7,6 @@ SPDX-License-Identifier: Apache-2.0
 package common
 
 type Pair[T any] struct {
-	First  T
-	Second T
+	Src T
+	Dst T
 }
