@@ -72,7 +72,7 @@ func (nsa *NodeSetAbstraction) partitionConnectivityByNodeSet(nodeSet NodeSet) (
 			srcInSet := srcIsNode && slices.Contains(nodeSet.Nodes(), srcNode)
 			dstInSet := dstIsNode && slices.Contains(nodeSet.Nodes(), dstNode)
 			switch {
-			case (!srcInSet && !dstInSet):
+			case !srcInSet && !dstInSet:
 				otherToOther.updateAllowedResponsiveConnsMap(src, dst, conns)
 			case srcInSet && dstInSet:
 				nodeSetToNodeSet.updateAllowedResponsiveConnsMap(src, dst, conns)
