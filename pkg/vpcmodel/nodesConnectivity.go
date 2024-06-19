@@ -278,9 +278,7 @@ func (v *VPCConnectivity) computeAllowedResponsiveConnections(allowedConnsCombin
 			// can src ingress from dst?
 			SrcAllowedIngressFromDst = v.getPerLayerConnectivity(statelessLayerName, dstNode, srcNode, true)
 			combinedDstToSrc := DstAllowedEgressToSrc.Intersect(SrcAllowedIngressFromDst)
-			// getResponsiveConn returns the TCP responsive subset
-			responsiveTCPConn := getTCPResponsiveConn(conn, combinedDstToSrc)
-			detailedConnSet := detailedConnForTCPRsp(responsiveTCPConn, conn)
+			detailedConnSet := computeDetailedConn(conn, combinedDstToSrc)
 			v.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(src, dst, detailedConnSet)
 		}
 	}

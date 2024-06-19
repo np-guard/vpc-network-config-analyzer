@@ -104,3 +104,17 @@ func (e *detailedConn) string() string {
 	}
 	return e.allConn.String()
 }
+
+// computeDetailedConn computes the detailedConn object, given input `srcToDst`
+// that represents a src-to-dst connection, and `dstToSrc` that represents dst-to-src connection.
+func computeDetailedConn(srcToDst, dstToSrc *connection.Set) *detailedConn {
+	connTCP := srcToDst.Intersect(allTCPconn())
+	if connTCP.IsEmpty() {
+		return detailedConnForTCPRsp(NoConns(), srcToDst)
+	}
+	tcpSecondDirection := dstToSrc.Intersect(allTCPconn())
+	// flip src/dst ports before intersection
+	tcpSecondDirectionFlipped := tcpSecondDirection.SwitchSrcDstPorts()
+	// tcp connection responsive subset
+	return detailedConnForTCPRsp(connTCP.Intersect(tcpSecondDirectionFlipped), srcToDst)
+}

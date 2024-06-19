@@ -25,7 +25,7 @@ type responsiveTest struct {
 
 func (tt responsiveTest) runTest(t *testing.T) {
 	t.Helper()
-	responsiveConn := getTCPResponsiveConn(tt.srcToDst, tt.dstToSrc)
+	responsiveConn := getTCPResponsiveConnTmp(tt.srcToDst, tt.dstToSrc)
 	require.True(t, tt.expectedResponsiveConn.Equal(responsiveConn))
 }
 

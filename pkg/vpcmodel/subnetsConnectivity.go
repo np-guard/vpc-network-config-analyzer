@@ -337,8 +337,7 @@ func (v *VPCsubnetConnectivity) computeResponsiveConnections(allowedConnsCombine
 			default:
 				return fmt.Errorf("computeResponsiveConnections: unexpected type for input dst")
 			}
-			responsiveTCPConn := getTCPResponsiveConn(conn, otherDirectionConn)
-			detailedConnSet := detailedConnForTCPRsp(responsiveTCPConn, conn)
+			detailedConnSet := computeDetailedConn(conn, otherDirectionConn)
 			v.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(src, dst, detailedConnSet)
 		}
 	}
