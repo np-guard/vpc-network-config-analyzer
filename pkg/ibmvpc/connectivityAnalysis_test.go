@@ -23,8 +23,8 @@ import (
 GetVPCNetworkConnectivity() of CloudConfig
 computing connectivity between nodes (network interfaces and external addresses):
 - ingress/egress (separately)
-- combined (stateless)
-- combined ad stateful
+- combined (responsive)
+- combined ad responsive
 */
 
 // testNodesConfig contains basic config details: subnets and interfaces
@@ -167,7 +167,7 @@ var expectedConnStrTest1 = `=================================== distributed inbo
 =================================== combined connections - short version:
 vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections
 vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : All Connections
-=================================== stateful combined connections - short version:
+=================================== responsive combined connections - short version:
 vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections
 vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : All Connections
 `
@@ -186,7 +186,7 @@ var expectedConnStrTest2 = `=================================== distributed inbo
 10.240.20.4 => 10.240.10.4 : No Connections
 =================================== combined connections - short version:
 vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections * 
-=================================== stateful combined connections - short version:
+=================================== responsive combined connections - short version:
 vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : protocol: ICMP,UDP
 `
 
@@ -204,9 +204,9 @@ var expectedConnStrTest2a = `=================================== distributed inb
 10.240.20.4 => 10.240.10.4 : No Connections
 =================================== combined connections - short version:
 vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : protocol: ICMP
-=================================== stateful combined connections - short version:
+=================================== responsive combined connections - short version:
 vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : protocol: ICMP
-` // ICMP is actually enabled only unidirectional in this case, but stateful analysis does not apply to ICMP
+` // ICMP is actually enabled only unidirectional in this case, but responsive analysis does not apply to ICMP
 
 func TestAnalyzeConnectivity2a(t *testing.T) {
 	runConnectivityTest(t, tc1, []*naclConfig{nc2a, nc3a}, expectedConnStrTest2a)
@@ -223,7 +223,7 @@ var expectedConnStrTest3 = `=================================== distributed inbo
 =================================== combined connections - short version:
 vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections
 vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : protocol: TCP
-=================================== stateful combined connections - short version:
+=================================== responsive combined connections - short version:
 vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections
 vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : protocol: TCP
 `
@@ -243,7 +243,7 @@ var expectedConnStrTest4 = `=================================== distributed inbo
 =================================== combined connections - short version:
 vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : protocol: TCP src-ports: 10-100 dst-ports: 443
 vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : protocol: TCP src-ports: 443 dst-ports: 10-100
-=================================== stateful combined connections - short version:
+=================================== responsive combined connections - short version:
 vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : protocol: TCP src-ports: 10-100 dst-ports: 443
 vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : protocol: TCP src-ports: 443 dst-ports: 10-100
 `
@@ -424,7 +424,7 @@ func NewSimpleVPCConfig() *vpcmodel.VPCConfig {
 =================================== combined connections - short version:
 vsi-1[10.240.10.4] => vsi-2[10.240.20.4] : All Connections
 vsi-2[10.240.20.4] => vsi-1[10.240.10.4] : All Connections
-=================================== stateful combined connections - short version:
+=================================== responsive combined connections - short version:
 vsi-1[10.240.10.4] => vsi-2[10.240.20.4] : All Connections
 vsi-2[10.240.20.4] => vsi-1[10.240.10.4] : All Connections
 */
