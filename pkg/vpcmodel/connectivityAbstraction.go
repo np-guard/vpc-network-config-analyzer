@@ -139,9 +139,9 @@ func (nsa *NodeSetAbstraction) nodeSetAbstractionInformation(mergedConnectivity,
 type groupDirection int
 
 const (
-	inNodeSet = iota // for the group nodeSetToNodeSet  
-	fromNodeSet // for the group otherFromNodeSet
-	toNodeSet // for the group  otherToNodeSet
+	inNodeSet   = iota // for the group nodeSetToNodeSet
+	fromNodeSet        // for the group otherFromNodeSet
+	toNodeSet          // for the group  otherToNodeSet
 )
 
 // missingConnections() is called on each of the last three groups.
