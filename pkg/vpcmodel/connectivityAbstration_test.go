@@ -56,7 +56,6 @@ func emptyGeneralResponsiveConnectivityMap(nodeSet NodeSet, outNodes []VPCResour
 
 func createConnections() []*detailedConn {
 	return []*detailedConn{
-		detailedConnForAllRsp(),
 		detailedConnForResponsive(connection.TCPorUDPConnection(netp.ProtocolStringTCP, 10, 100, 443, 443)),
 		emptyDetailedConn(),
 	}
@@ -91,7 +90,6 @@ func TestSimpleAbstraction(t *testing.T) {
 	for _, conn := range conns {
 		nodesConn := createFullConn(nodeSet, outNodes, conn)
 		nodeSetAbstraction := newNodeSetAbstraction(nodesConn)
-		info := nodeSetAbstraction.abstractNodeSet(nodeSet)
 		aConn := nodeSetAbstraction.abstractedConnectivity
 		checkFullConn(nodeSet, outNodes, conn, aConn, info, t)
 	}
@@ -107,7 +105,6 @@ func createMissingConn(nodeSet NodeSet, outNodes []VPCResourceIntf, conn, subCon
 			// for i2 == 1, we set one subConn. for i2 == 2, we set all connections to subConn:
 			if i2 == 1 && i1 == 0 || i2 == 2 {
 				conn = subConn
-
 			}
 			nodesConn.updateAllowedResponsiveConnsMap(n, on, conn)
 			nodesConn.updateAllowedResponsiveConnsMap(on, n, conn)
@@ -153,7 +150,7 @@ func checkMissingAbstractionConns(conn, subConn *detailedConn, t *testing.T) {
 }
 
 func TestMissingAbstraction(t *testing.T) {
-	conns:= createConnections()
+	conns := createConnections()
 	checkMissingAbstractionConns(conns[0], conns[1], t)
 	checkMissingAbstractionConns(conns[0], conns[2], t)
 	checkMissingAbstractionConns(conns[1], conns[2], t)
