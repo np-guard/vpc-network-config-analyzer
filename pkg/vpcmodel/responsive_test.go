@@ -62,12 +62,14 @@ func TestAll(t *testing.T) {
 			expectedTCPNonResponsiveConn: allTCPconn(),
 			expectedAllConn:              connection.All(),
 		},
-		//{
-		//	name:                      "tcp_with_ports_both_directions_exact_match",
-		//	srcToDst:                  newTCPConn(80, 80, 443, 443),
-		//	dstToSrc:                  newTCPConn(443, 443, 80, 80),
-		//	expectedTCPResponsiveConn: newTCPConn(80, 80, 443, 443),
-		//},
+		{
+			name:                         "tcp_with_ports_both_directions_exact_match",
+			srcToDst:                     newTCPConn(80, 80, 443, 443),
+			dstToSrc:                     newTCPConn(443, 443, 80, 80),
+			expectedTCPResponsiveConn:    newTCPConn(80, 80, 443, 443),
+			expectedTCPNonResponsiveConn: connection.None(),
+			expectedAllConn:              newTCPConn(80, 80, 443, 443),
+		},
 		//{
 		//	name:                      "tcp_with_ports_both_directions_partial_match",
 		//	srcToDst:                  newTCPConn(80, 100, 443, 443),
