@@ -14,7 +14,6 @@ import (
 	"github.com/np-guard/models/pkg/netp"
 )
 
-
 func newTCPConn(t *testing.T, srcMinP, srcMaxP, dstMinP, dstMaxP int64) *connection.Set {
 	t.Helper()
 	return connection.TCPorUDPConnection(netp.ProtocolStringTCP, srcMinP, srcMaxP, dstMinP, dstMaxP)
@@ -45,7 +44,6 @@ type responsiveTest struct {
 	dstToSrc *connection.Set
 	// expectedResponsiveConn represents the subset from srcToDst which is not related to the
 	// "non-responsive" mark (*) on the srcToDst connection,
-	// the stateless part for TCP is srcToDst.Subtract(statefulConn)
 	expectedResponsiveConn *connection.Set
 }
 
