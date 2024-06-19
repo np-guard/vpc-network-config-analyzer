@@ -135,12 +135,13 @@ func (nsa *NodeSetAbstraction) nodeSetAbstractionInformation(mergedConnectivity,
 	return abstractionInfo
 }
 
+// groupDirection - the direction of the connections of one group, with respect to the nodeSet
 type groupDirection int
 
 const (
-	inNodeSet = iota
-	fromNodeSet
-	toNodeSet
+	inNodeSet = iota // for the group nodeSetToNodeSet  
+	fromNodeSet // for the group otherFromNodeSet
+	toNodeSet // for the group  otherToNodeSet
 )
 
 // missingConnections() is called on each of the last three groups.

@@ -14,6 +14,54 @@ import (
 	"github.com/np-guard/models/pkg/netp"
 )
 
+var allConn *detailedConn = detailedConnForAllRsp()
+var halfConn *detailedConn = detailedConnForResponsive(connection.TCPorUDPConnection(netp.ProtocolStringTCP, 10, 100, 443, 443))
+var emptyConn *detailedConn = emptyDetailedConn()
+
+type abstractionTest struct {
+	name             string
+	conn             *detailedConn
+	subConn          *detailedConn
+	fullConnectivity bool
+}
+
+var abstractionTests = []abstractionTest{
+	{"full_connectivity_all_conn", allConn, nil, true},
+	{"full_connectivity_half_conn", allConn, nil, true},
+	{"full_connectivity_empty_conn", allConn, nil, true},
+	{"missing_connectivity_full_half_conn", allConn, halfConn, false},
+	{"missing_connectivity_full_empty_conn", allConn, emptyConn, false},
+	{"missing_connectivity_half_empty_conn", halfConn, emptyConn, false},
+}
+
+func (tt *abstractionTest) runTest(t *testing.T) {
+	nodeSet, outNodes := createNodes()
+	var nodesConn GeneralResponsiveConnectivityMap
+	if tt.fullConnectivity {
+		nodesConn = createFullConn(nodeSet, outNodes, tt.conn)
+	} else {
+		nodesConn = createMissingConn(nodeSet, outNodes, tt.conn, tt.subConn)
+	}
+	nodeSetAbstraction := newNodeSetAbstraction(nodesConn)
+	info := nodeSetAbstraction.abstractNodeSet(nodeSet)
+	aConn := nodeSetAbstraction.abstractedConnectivity
+	if tt.fullConnectivity {
+		checkFullConn(nodeSet, outNodes, tt.conn, aConn, info, t)
+	} else {
+		checkMissingConn(nodeSet, outNodes, tt.conn, tt.subConn, aConn, info, t)
+	}
+}
+func TestAbstraction(t *testing.T) {
+	for _, tt := range abstractionTests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			tt.runTest(t)
+		})
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 func createNodes() (NodeSet, []VPCResourceIntf) {
 	node0, _ := newExternalNodeForCidr("0.0.0.0/32")
 	node1, _ := newExternalNodeForCidr("0.0.0.1/32")
@@ -28,6 +76,7 @@ func createNodes() (NodeSet, []VPCResourceIntf) {
 	outNodes := []VPCResourceIntf{outNode0, outNode1, outNode2}
 	return &nodeSet, outNodes
 }
+
 func emptyGeneralResponsiveConnectivityMap(nodeSet NodeSet, outNodes []VPCResourceIntf) GeneralResponsiveConnectivityMap {
 	nodesConn := GeneralResponsiveConnectivityMap{}
 	for _, n1 := range nodeSet.Nodes() {
@@ -55,14 +104,6 @@ func emptyGeneralResponsiveConnectivityMap(nodeSet NodeSet, outNodes []VPCResour
 	return nodesConn
 }
 
-func createConnections() []*detailedConn {
-	return []*detailedConn{
-		detailedConnForAllRsp(),
-		detailedConnForResponsive(connection.TCPorUDPConnection(netp.ProtocolStringTCP, 10, 100, 443, 443)),
-		emptyDetailedConn(),
-	}
-}
-
 func createFullConn(nodeSet NodeSet, outNodes []VPCResourceIntf, conn *detailedConn) GeneralResponsiveConnectivityMap {
 	nodesConn := emptyGeneralResponsiveConnectivityMap(nodeSet, outNodes)
 	for _, n := range nodeSet.Nodes() {
@@ -86,20 +127,6 @@ func checkFullConn(nodeSet NodeSet, outNodes []VPCResourceIntf, conn *detailedCo
 	}
 }
 
-func TestSimpleAbstraction(t *testing.T) {
-	nodeSet, outNodes := createNodes()
-	conns := createConnections()
-	for _, conn := range conns {
-		nodesConn := createFullConn(nodeSet, outNodes, conn)
-		nodeSetAbstraction := newNodeSetAbstraction(nodesConn)
-		info := nodeSetAbstraction.abstractNodeSet(nodeSet)
-		aConn := nodeSetAbstraction.abstractedConnectivity
-		checkFullConn(nodeSet, outNodes, conn, aConn, info, t)
-	}
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
 func createMissingConn(nodeSet NodeSet, outNodes []VPCResourceIntf, conn, subConn *detailedConn) GeneralResponsiveConnectivityMap {
 	nodesConn := emptyGeneralResponsiveConnectivityMap(nodeSet, outNodes)
 	for i1, n := range nodeSet.Nodes() {
@@ -115,6 +142,7 @@ func createMissingConn(nodeSet NodeSet, outNodes []VPCResourceIntf, conn, subCon
 	}
 	return nodesConn
 }
+
 func checkMissingConn(nodeSet NodeSet, outNodes []VPCResourceIntf, conn, subConn *detailedConn,
 	aConn GeneralResponsiveConnectivityMap, info *AbstractionInfo,
 	t *testing.T) {
@@ -140,20 +168,4 @@ func checkMissingConn(nodeSet NodeSet, outNodes []VPCResourceIntf, conn, subConn
 
 	require.True(t, conn.subtract(subConn).equal(info.missingEgressConnections[outNodes[1]][nodeSet.Nodes()[0]]))
 	require.True(t, conn.subtract(subConn).equal(info.missingIngressConnections[outNodes[1]][nodeSet.Nodes()[0]]))
-}
-
-func checkMissingAbstractionConns(conn, subConn *detailedConn, t *testing.T) {
-	nodeSet, outNodes := createNodes()
-	nodesConn := createMissingConn(nodeSet, outNodes, conn, subConn)
-	nodeSetAbstraction := newNodeSetAbstraction(nodesConn)
-	info := nodeSetAbstraction.abstractNodeSet(nodeSet)
-	aConn := nodeSetAbstraction.abstractedConnectivity
-	checkMissingConn(nodeSet, outNodes, conn, subConn, aConn, info, t)
-}
-
-func TestMissingAbstraction(t *testing.T) {
-	conns := createConnections()
-	checkMissingAbstractionConns(conns[0], conns[1], t)
-	checkMissingAbstractionConns(conns[0], conns[2], t)
-	checkMissingAbstractionConns(conns[1], conns[2], t)
 }
