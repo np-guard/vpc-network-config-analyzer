@@ -70,7 +70,7 @@ func filterByVpcResourceGroupAndRegions(rc *datamodel.ResourcesContainerModel, v
 // VPCConfigsFromResources returns a map from VPC UID (string) to its corresponding VPCConfig object,
 // containing the parsed resources in the relevant model objects
 //
-//nolint:funlen // serial list of commands, no need to spill it
+//nolint:funlen,gocyclo // serial list of commands, no need to split it
 func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resourceGroup string, regions []string, debug bool) (
 	*vpcmodel.MultipleVPCConfigs, error) {
 	res := vpcmodel.NewMultipleVPCConfigs("IBM Cloud") // map from VPC UID to its config
@@ -150,11 +150,139 @@ func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resou
 		return nil, err
 	}
 
+	err = getRoutingTables(rc, res, shouldSkipVpcIds)
+	if err != nil {
+		return nil, err
+	}
+
 	if debug {
 		printVPCConfigs(res)
 	}
 
 	return res, nil
+}
+
+// getRoutingTables parses routing tables from rc and adds their generated objects to
+// the relevant vpc configs within res
+func getRoutingTables(rc *datamodel.ResourcesContainerModel,
+	res *vpcmodel.MultipleVPCConfigs,
+	skipByVPC map[string]bool) error {
+	for _, rt := range rc.RoutingTableList {
+		if rt.VPC == nil || rt.VPC.CRN == nil {
+			logging.Warnf("unknown vpc for rt %s, skipping...", *rt.Name)
+			continue
+		}
+		vpcUID := *rt.VPC.CRN
+		vpcConfig := res.Config(vpcUID)
+		if vpcConfig == nil {
+			logging.Warnf("skipping rt %s, could not find vpc with uid %s", *rt.Name, vpcUID)
+			continue
+		}
+		if skipByVPC[*rt.VPC.CRN] {
+			continue
+		}
+		routes, err := getRoutes(rt)
+		if err != nil {
+			return err
+		}
+
+		var rtObj vpcmodel.VPCResourceIntf
+		if *rt.RouteDirectLinkIngress || *rt.RouteInternetIngress || *rt.RouteTransitGatewayIngress || *rt.RouteVPCZoneIngress {
+			rtObj = getIngressRoutingTable(rt, routes, vpcConfig)
+		} else {
+			rtObj, err = getEgressRoutingTable(rt, routes, vpcConfig)
+		}
+		if err != nil {
+			return err
+		}
+		if rtObj == nil {
+			// skipping this rt
+			continue
+		}
+		logging.Debugf("add rt %s for vpc %s\n", rtObj.Name(), vpcUID)
+
+		vpcConfig.AddRoutingTable(rtObj)
+		res.SetConfig(vpcUID, vpcConfig)
+	}
+	return nil
+}
+
+func getRoutingTableVPCResource(rt *datamodel.RoutingTable, vpcConfig *vpcmodel.VPCConfig) *vpcmodel.VPCResource {
+	return &vpcmodel.VPCResource{
+		ResourceName: *rt.Name,
+		ResourceUID:  *rt.ID,
+		ResourceType: ResourceTypeRoutingTable,
+		VPCRef:       vpcConfig.VPC,
+	}
+}
+
+func getIngressRoutingTable(rt *datamodel.RoutingTable,
+	routes []*route,
+	vpcConfig *vpcmodel.VPCConfig) vpcmodel.VPCResourceIntf {
+	if !*rt.RouteTransitGatewayIngress {
+		// skip such rt for now, till supporting more source types for ingress rt
+		logging.Warnf("skipping ingress routing table %s, currently supporting only source type of TGW ", *rt.Name)
+		return nil
+	}
+	res := newIngressRoutingTableFromRoutes(routes, vpcConfig, getRoutingTableVPCResource(rt, vpcConfig))
+	return res
+}
+
+func getEgressRoutingTable(rt *datamodel.RoutingTable,
+	routes []*route,
+	vpcConfig *vpcmodel.VPCConfig) (vpcmodel.VPCResourceIntf, error) {
+	subnets := []*Subnet{}
+	for _, s := range rt.Subnets {
+		if sObj, ok := vpcConfig.UIDToResource[*s.CRN]; ok {
+			if subnet, ok := sObj.(*Subnet); ok {
+				subnets = append(subnets, subnet)
+			}
+		} else {
+			return nil, fmt.Errorf("could not find subnet %s associated with routing table %s", *s.Name, *rt.Name)
+		}
+	}
+	res := newEgressRoutingTableFromRoutes(routes, subnets, vpcConfig, getRoutingTableVPCResource(rt, vpcConfig))
+	return res, nil
+}
+
+func getRoutes(rt *datamodel.RoutingTable) (res []*route, err error) {
+	for _, r := range rt.Routes {
+		nextHop, ok := r.NextHop.(*vpc1.RouteNextHop)
+		if !ok {
+			logging.Debugf("ignoring route %s in routing table %s, unexpected next-hop type", *r.Name, *rt.Name)
+			fmt.Printf("ignoring route %s in routing table %s, unexpected next-hop type\n", *r.Name, *rt.Name)
+			continue
+		}
+		action, err := parseAction(*r.Action)
+		if err != nil {
+			return nil, err
+		}
+		if r.Advertise == nil {
+			// to support old config objects, without the Advertise field
+			defaultVal := false
+			r.Advertise = &defaultVal
+		}
+		rObj, err := newRoute(*r.Name, *r.Destination, *nextHop.Address, action, int(*r.Priority), *r.Advertise)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, rObj)
+	}
+	return res, nil
+}
+
+func parseAction(action string) (routingAction, error) {
+	switch action {
+	case "deliver":
+		return deliver, nil
+	case "drop":
+		return drop, nil
+	case "delegate":
+		return delegate, nil
+	case "delegate_vpc":
+		return delegateVPC, nil
+	}
+	return drop, fmt.Errorf("unknown route action: %s", action)
 }
 
 const (
@@ -188,6 +316,7 @@ const (
 	ResourceTypeReservedIP       = "ReservedIP"
 	ResourceTypeLoadBalancer     = "LoadBalancer"
 	ResourceTypePrivateIP        = "PrivateIP"
+	ResourceTypeRoutingTable     = "RoutingTable"
 )
 
 var errIksParsing = errors.New("issue parsing IKS node")
@@ -859,6 +988,9 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 			tgwMap[tgwUID] = newTGW(tgwName, tgwUID, region, regionToStructMap, tgwConnList)
 		}
 		tgwMap[tgwUID].addVPC(vpc, tgwConn, i)
+		if vpcConfig := res.Config(vpcUID); vpcConfig != nil {
+			vpcConfig.RoutingResources = append(vpcConfig.RoutingResources, tgwMap[tgwUID])
+		}
 	}
 	return tgwMap
 }
@@ -1572,6 +1704,7 @@ func printLineSection() {
 	fmt.Println("-----------------------------------------")
 }
 
+//nolint:gocyclo // one function to print all parsed resources for debug mode
 func printConfig(c *vpcmodel.VPCConfig) {
 	separator := " "
 	fmt.Println("Nodes:")
@@ -1619,6 +1752,24 @@ func printConfig(c *vpcmodel.VPCConfig) {
 		fmt.Println(strings.Join([]string{r.Kind(), r.Name(), r.UID()}, separator))
 		if tgw, ok := r.(*TransitGateway); ok {
 			printTGWAvailableRoutes(tgw)
+		}
+	}
+	fmt.Println("RoutingTables:")
+	for _, r := range c.RoutingTables {
+		fmt.Println(strings.Join([]string{r.Kind(), r.Name(), r.UID(), "vpc:", r.VPC().UID()}, separator))
+		if rt, ok := r.(*ingressRoutingTable); ok {
+			fmt.Println("ingress routing table")
+			fmt.Println(rt.string())
+		}
+		if rt, ok := r.(*egressRoutingTable); ok {
+			fmt.Println("egress routing table")
+			fmt.Println(rt.string())
+			fmt.Println("subnets:")
+			subnetsList := make([]string, len(rt.subnets))
+			for i := range rt.subnets {
+				subnetsList[i] = rt.subnets[i].Name()
+			}
+			fmt.Println(strings.Join(subnetsList, ","))
 		}
 	}
 }
