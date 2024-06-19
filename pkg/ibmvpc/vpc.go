@@ -83,7 +83,7 @@ func (pip *PrivateIP) ExtendedName(c *vpcmodel.VPCConfig) string {
 	return pip.ExtendedPrefix(c) + pip.Name()
 }
 
-// AbstractedNodeSet returns returns the load balancer if it was abstracted 
+// AbstractedNodeSet returns returns the load balancer if it was abstracted
 func (pip *PrivateIP) AbstractedNodeSet() vpcmodel.NodeSet {
 	if pip.loadBalancer.AbstractionInfo() != nil {
 		return pip.loadBalancer
