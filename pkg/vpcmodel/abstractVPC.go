@@ -110,6 +110,7 @@ type Node interface {
 	// IsPublicInternet returns true if the node is external,
 	// currently nodes which are external but not public Internet are ignored
 	IsPublicInternet() bool
+	WasAbstracted() (bool, NodeSet)
 }
 
 // InternalNodeIntf captures common properties for internal nodes: single IP address
@@ -179,6 +180,10 @@ func (n *InternalNode) IsInternal() bool {
 func (n *InternalNode) IsPublicInternet() bool {
 	return false
 }
+func (n *InternalNode) WasAbstracted() (bool, NodeSet){
+	return false, nil
+}
+
 
 // NodeSet is an element that may capture several nodes [vsi, vpe, vpc ,subnet]
 type NodeSet interface {
@@ -207,8 +212,6 @@ type LoadBalancer interface {
 	AbstractionInfo() *AbstractionInfo
 	// WasAbstracted() - was the load balancer abstracted
 	WasAbstracted() bool
-	// WasAbstracted() - is the node is part of this load balancer abstraction
-	WasNodeAbstracted(node Node) bool
 }
 
 // RulesType Type of rules in a given filter (e.g. specific NACL table) relevant to

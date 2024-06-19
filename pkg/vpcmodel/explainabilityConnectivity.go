@@ -409,22 +409,16 @@ func (rulesInLayers rulesInLayers) updateRulesPerLayerIfNonEmpty(layer string, r
 
 // given a node, we need to find the resource that represent the node in the connectivity
 func (c *VPCConfig) getConnectedResource(node Node) (VPCResourceIntf, error) {
-	if node.IsInternal() {
-		return c.getInternalConnectedResource(node)
+	if abstracted, nodeSet := node.WasAbstracted(); abstracted {
+	// if the node is part of abstraction - return the abstracted nodeSet:
+		return nodeSet, nil
+	} else if node.IsInternal() {
+		return node, nil
 	}
 	return c.getContainingConfigNode(node)
 }
 
-// if the node is part of abstraction - return the abstracted nodeSet, else return the node itself:
-func (c *VPCConfig) getInternalConnectedResource(node Node) (VPCResourceIntf, error) {
-	// find the abstracted nodeSet of the node:
-	for _, lb := range c.LoadBalancers {
-		if lb.WasNodeAbstracted(node) {
-			return lb, nil
-		}
-	}
-	return node, nil
-}
+
 
 // node is from getCidrExternalNodes, thus there is a node in VPCConfig that either equal to or contains it.
 func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
