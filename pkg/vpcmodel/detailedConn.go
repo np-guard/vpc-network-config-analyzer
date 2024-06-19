@@ -46,7 +46,6 @@ func emptyDetailedConn() *detailedConn {
 	return newDetailedConn(NoConns(), NoConns(), NoConns())
 }
 
-
 // detailedConnForTCPRsp returns a new detailedConn from input TCP responsive connection and the entire connection objects
 func detailedConnForTCPRsp(tcpResponsive, allConn *connection.Set) *detailedConn {
 	_, nonTCPFraction := partitionTCPNonTCP(allConn)

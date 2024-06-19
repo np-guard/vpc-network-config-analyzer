@@ -10,8 +10,12 @@ import (
 	"github.com/np-guard/models/pkg/netp"
 )
 
+func newTCPConn(srcMinP, srcMaxP, dstMinP, dstMaxP int64) *connection.Set {
+	return connection.TCPorUDPConnection(netp.ProtocolStringTCP, srcMinP, srcMaxP, dstMinP, dstMaxP)
+}
+
 func newTCPSet() *connection.Set {
-	return connection.TCPorUDPConnection(netp.ProtocolStringTCP, connection.MinPort, connection.MaxPort,
+	return newTCPConn(connection.MinPort, connection.MaxPort,
 		connection.MinPort, connection.MaxPort)
 }
 
