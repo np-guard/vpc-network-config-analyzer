@@ -60,7 +60,7 @@ func detailedConnForResponsive(tcpResponsive *connection.Set) *detailedConn {
 
 // detailedConnForAllRsp: constructs of all the connections domain
 func detailedConnForAllRsp() *detailedConn {
-	return newDetailedConn(newTCPSet(), AllConns().Subtract(newTCPSet()), AllConns())
+	return newDetailedConn(allTCPconn(), AllConns().Subtract(allTCPconn()), AllConns())
 }
 
 // isAllObliviousRsp: returns true iff detailedConn contains all the connection domain

@@ -8,7 +8,54 @@ package vpcmodel
 
 import (
 	"github.com/np-guard/models/pkg/connection"
+	"github.com/np-guard/models/pkg/netp"
 )
+
+func newTCPConn(srcMinP, srcMaxP, dstMinP, dstMaxP int64) *connection.Set {
+	return connection.TCPorUDPConnection(netp.ProtocolStringTCP, srcMinP, srcMaxP, dstMinP, dstMaxP)
+}
+
+func newUDPConn(srcMinP, srcMaxP, dstMinP, dstMaxP int64) *connection.Set {
+	return connection.TCPorUDPConnection(netp.ProtocolStringUDP, srcMinP, srcMaxP, dstMinP, dstMaxP)
+}
+
+func newICMPconn() *connection.Set {
+	return connection.ICMPConnection(
+		connection.MinICMPType, connection.MaxICMPType,
+		connection.MinICMPCode, connection.MaxICMPCode)
+}
+
+func newTCPUDPSet(p netp.ProtocolString) *connection.Set {
+	return connection.TCPorUDPConnection(p,
+		connection.MinPort, connection.MaxPort,
+		connection.MinPort, connection.MaxPort)
+}
+
+func allTCPconn() *connection.Set {
+	return newTCPConn(connection.MinPort, connection.MaxPort,
+		connection.MinPort, connection.MaxPort)
+}
+
+// PartitionTCPNonTCP given a connection returns its TCP and non-TCP sub-connections
+func partitionTCPNonTCP(conn *connection.Set) (tcp, nonTCP *connection.Set) {
+	tcpFractionOfConn := allTCPconn().Intersect(conn)
+	nonTCPFractionOfConn := conn.Subtract(tcpFractionOfConn)
+	return tcpFractionOfConn, nonTCPFractionOfConn
+}
+
+// getTCPResponsiveConn returns a connection object with the exact responsive part within TCP, given input `srcToDst`
+// that represents a src-to-dst connection, and `dstToSrc` that represents dst-to-src connection.
+func getTCPResponsiveConn(srcToDst, dstToSrc *connection.Set) *connection.Set {
+	connTCP := srcToDst.Intersect(allTCPconn())
+	if connTCP.IsEmpty() {
+		return NoConns()
+	}
+	tcpSecondDirection := dstToSrc.Intersect(allTCPconn())
+	// flip src/dst ports before intersection
+	tcpSecondDirectionFlipped := tcpSecondDirection.SwitchSrcDstPorts()
+	// tcp connection responsive subset
+	return connTCP.Intersect(tcpSecondDirectionFlipped)
+}
 
 // GeneralConnectivityMap describes basic connectivity of the given network;
 // for each ordered couple of VPCResourceIntf <src, dst> that have connection between src to dst
