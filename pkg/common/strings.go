@@ -24,7 +24,8 @@ const (
 const (
 	spaceString    = " "
 	protocolString = "protocol: "
-	commaString    = ", "
+	// commaString     = ", "
+	semicolonString = "; "
 )
 
 func tcpudpProtocolString(p *netset.ProtocolSet, shortVersion bool) string {
@@ -81,7 +82,8 @@ func tCPUDPString(c *netset.TCPUDPSet, shortVersion bool) string {
 	for i, cube := range cubes {
 		resStrings[i] = getTCPUDPCubeStr(cube, shortVersion)
 	}
-	return strings.Join(resStrings, commaString)
+	sort.Strings(resStrings)
+	return strings.Join(resStrings, semicolonString)
 }
 
 // iCMPString returns a string representation of an ICMPSet object
@@ -99,7 +101,7 @@ func iCMPString(c *netset.ICMPSet, shortVersion bool) string {
 	if !shortVersion {
 		str = protocolString + str
 	}
-	last := strings.Join(resStrings, commaString)
+	last := strings.Join(resStrings, semicolonString)
 	if last != "" {
 		str += spaceString + last
 	}
@@ -114,13 +116,15 @@ func Stringify(c *connection.Set, shortVersion bool) string {
 	}
 	tcpString := tCPUDPString(c.TCPUDPSet(), shortVersion)
 	icmpString := iCMPString(c.ICMPSet(), shortVersion)
+
+	// Special case: ICMP,UDP or ICMP,TCP
 	if strings.HasSuffix(tcpString, string(netp.ProtocolStringTCP)) || strings.HasSuffix(tcpString, string(netp.ProtocolStringUDP)) {
 		if strings.HasSuffix(icmpString, string(netp.ProtocolStringICMP)) {
 			return fmt.Sprintf("%s,%s", icmpString, tCPUDPString(c.TCPUDPSet(), true))
 		}
 	}
 	if tcpString != "" && icmpString != "" {
-		return fmt.Sprintf("%s; %s", icmpString, tcpString)
+		return fmt.Sprintf("%s%s%s", icmpString, semicolonString, tcpString)
 	}
 	return icmpString + tcpString
 }
