@@ -227,26 +227,35 @@ func (blocks filtersBlocks) addACLRuleBlocks(rc *datamodel.ResourcesContainerMod
 func (blocks filtersBlocks) addSGRulesBlocks(rc *datamodel.ResourcesContainerModel) error {
 	for _, sgObj := range rc.SecurityGroupList {
 		for i, rule := range sgObj.Rules {
-			var remote *vpc1.SecurityGroupRuleRemote
-			var local *vpc1.SecurityGroupRuleLocal
+			var localRule, remoteRule interface{}
 			switch ruleObj := rule.(type) {
 			case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolAll:
-				remote = ruleObj.Remote.(*vpc1.SecurityGroupRuleRemote)
-				local = ruleObj.Local.(*vpc1.SecurityGroupRuleLocal)
+				remoteRule = ruleObj.Remote
+				localRule = ruleObj.Local
 			case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudp:
-				remote = ruleObj.Remote.(*vpc1.SecurityGroupRuleRemote)
-				local = ruleObj.Local.(*vpc1.SecurityGroupRuleLocal)
+				remoteRule = ruleObj.Remote
+				localRule = ruleObj.Local
 			case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolIcmp:
-				remote = ruleObj.Remote.(*vpc1.SecurityGroupRuleRemote)
-				local = ruleObj.Local.(*vpc1.SecurityGroupRuleLocal)
+				remoteRule = ruleObj.Remote
+				localRule = ruleObj.Local
+				
 			default:
 				return fmt.Errorf("SG %s has unsupported type for the %dth rule", *sgObj.Name, i)
 			}
-			// we also might have remote.name, in such case we need to refer to addresses of the sg members.
-			// (in this stage we do not have the sg members yet).
-			// however, the members are resources, and their addresses are already reserved IP.
-			// do these blocks are already fullyReservedBlocks we can ignore them:
-			if err := blocks.addBlocks(*sgObj.VPC.CRN, []*string{remote.Address, remote.CIDRBlock, local.Address, local.CIDRBlock}); err != nil {
+			var localCidrsOrAddresses,remoteCidrsOrAddresses  []*string
+			if localRule != nil {
+				local := localRule.(*vpc1.SecurityGroupRuleLocal)
+				localCidrsOrAddresses = []*string{local.Address, local.CIDRBlock}
+			}
+			if remoteRule != nil {
+				remote := remoteRule.(*vpc1.SecurityGroupRuleRemote)
+				// we also might have remote.name, in such case we need to refer to addresses of the sg members.
+				// (in this stage we do not have the sg members yet).
+				// however, the members are resources, and their addresses are already reserved IP.
+				// do these blocks are already fullyReservedBlocks we can ignore them:
+				remoteCidrsOrAddresses = []*string{remote.Address, remote.CIDRBlock}
+			}
+			if err := blocks.addBlocks(*sgObj.VPC.CRN, append(localCidrsOrAddresses,remoteCidrsOrAddresses...)); err != nil {
 				return err
 			}
 		}
