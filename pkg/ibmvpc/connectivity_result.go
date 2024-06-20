@@ -11,24 +11,24 @@ import (
 	"sort"
 
 	"github.com/np-guard/models/pkg/connection"
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
 )
 
 // ConnectivityResultMap is a map from IPBlock to ConnectivityResult, used to map disjointLocals IPBlocks to ConnectivityResult
-type ConnectivityResultMap map[*ipblock.IPBlock]*ConnectivityResult
+type ConnectivityResultMap map[*netset.IPBlock]*ConnectivityResult
 
 // ConnectivityResult is built on disjoint ip-blocks for targets of all relevant sg/nacl results
 // ConnectivityResult is per VSI network interface: contains allowed connectivity (with connection attributes) per target
 type ConnectivityResult struct {
 	isIngress    bool
-	allowedConns map[*ipblock.IPBlock]*connection.Set // allowed target and its allowed connections
-	allowRules   map[*ipblock.IPBlock][]int           // indexes of (positive) allowRules contributing to this connectivity
+	allowedConns map[*netset.IPBlock]*connection.Set // allowed target and its allowed connections
+	allowRules   map[*netset.IPBlock][]int           // indexes of (positive) allowRules contributing to this connectivity
 	// the following are relevant only to filters with deny rules - nacl
-	deniedConns map[*ipblock.IPBlock]*connection.Set // denied target and its allowed connections, by deny rules.
-	denyRules   map[*ipblock.IPBlock][]int           // indexes of deny rules relevant to this connectivity
+	deniedConns map[*netset.IPBlock]*connection.Set // denied target and its allowed connections, by deny rules.
+	denyRules   map[*netset.IPBlock][]int           // indexes of deny rules relevant to this connectivity
 }
 
-func storeAndSortKeys[T any](m map[*ipblock.IPBlock]T) []string {
+func storeAndSortKeys[T any](m map[*netset.IPBlock]T) []string {
 	keys := make([]string, len(m))
 	i := 0
 	for ipBlock := range m {
@@ -39,7 +39,7 @@ func storeAndSortKeys[T any](m map[*ipblock.IPBlock]T) []string {
 	return keys
 }
 
-func equalKeys[T any](first, second map[*ipblock.IPBlock]T) bool {
+func equalKeys[T any](first, second map[*netset.IPBlock]T) bool {
 	if len(first) != len(second) {
 		return false
 	}
@@ -49,7 +49,7 @@ func equalKeys[T any](first, second map[*ipblock.IPBlock]T) bool {
 	return reflect.DeepEqual(keys1, keys2)
 }
 
-func equalConns(conns1, conns2 map[*ipblock.IPBlock]*connection.Set) bool {
+func equalConns(conns1, conns2 map[*netset.IPBlock]*connection.Set) bool {
 	if !equalKeys(conns1, conns2) {
 		return false
 	}
@@ -66,7 +66,7 @@ func equalConns(conns1, conns2 map[*ipblock.IPBlock]*connection.Set) bool {
 	return true
 }
 
-func equalRules(rules1, rules2 map[*ipblock.IPBlock][]int) bool {
+func equalRules(rules1, rules2 map[*netset.IPBlock][]int) bool {
 	if !equalKeys(rules1, rules2) {
 		return false
 	}

@@ -13,8 +13,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/np-guard/models/pkg/connection"
-	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/models/pkg/netp"
+	"github.com/np-guard/models/pkg/netset"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
@@ -108,7 +108,7 @@ var nc4 = &naclConfig{
 		{
 			src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
 			dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
-			connections: connection.TCPorUDPConnection(netp.ProtocolStringTCP, netp.MinPort, netp.MaxPort, netp.MinPort, netp.MaxPort),
+			connections: connection.NewTCPorUDP(netp.ProtocolStringTCP, netp.MinPort, netp.MaxPort, netp.MinPort, netp.MaxPort),
 			action:      "allow",
 		},
 	},
@@ -116,7 +116,7 @@ var nc4 = &naclConfig{
 }
 
 func nc5Conn() *connection.Set {
-	return connection.TCPorUDPConnection(netp.ProtocolStringTCP, 10, 100, 443, 443)
+	return connection.NewTCPorUDP(netp.ProtocolStringTCP, 10, 100, 443, 443)
 }
 
 // nc5 - applied to subnet-1, limited egress (certain TCP ports allowed)
@@ -135,7 +135,7 @@ var nc5 = &naclConfig{
 }
 
 func nc6Conn() *connection.Set {
-	return connection.TCPorUDPConnection(netp.ProtocolStringTCP, 443, 443, 10, 100)
+	return connection.NewTCPorUDP(netp.ProtocolStringTCP, 443, 443, 10, 100)
 }
 
 var nc6 = &naclConfig{
@@ -320,16 +320,10 @@ func getAllowICMPRules() []*NACLRule {
 		{
 			src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
 			dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
-			connections: icmpConn(),
+			connections: connection.AllICMP(),
 			action:      "allow",
 		},
 	}
-}
-
-func icmpConn() *connection.Set {
-	return connection.ICMPConnection(
-		connection.MinICMPType, connection.MaxICMPType,
-		connection.MinICMPCode, connection.MaxICMPCode)
 }
 
 func addInterfaceNode(config *vpcmodel.VPCConfig, name, address, vsiName, subnetName string) {
@@ -354,7 +348,7 @@ func addSubnet(config *vpcmodel.VPCConfig, name, cidr, zone string) *Subnet {
 	subnetNode := &Subnet{
 		VPCResource: vpcmodel.VPCResource{ResourceName: name, ResourceUID: name, Zone: zone, ResourceType: ResourceTypeSubnet},
 		cidr:        cidr,
-		ipblock:     newIPBlockFromCIDROrAddressWithoutValidation(cidr),
+		netset:      newIPBlockFromCIDROrAddressWithoutValidation(cidr),
 	}
 	config.Subnets = append(config.Subnets, subnetNode)
 	return subnetNode
@@ -437,7 +431,7 @@ func TestAnalyzeConnectivity(t *testing.T) {
 	fmt.Println("done")
 }
 
-func newIPBlockFromCIDROrAddressWithoutValidation(cidr string) *ipblock.IPBlock {
-	res, _ := ipblock.FromCidrOrAddress(cidr)
+func newIPBlockFromCIDROrAddressWithoutValidation(cidr string) *netset.IPBlock {
+	res, _ := netset.IPBlockFromCidrOrAddress(cidr)
 	return res
 }

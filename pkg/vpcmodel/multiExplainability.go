@@ -9,7 +9,7 @@ package vpcmodel
 import (
 	"fmt"
 
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
 )
 
 type explainInputEntry struct {
@@ -89,9 +89,9 @@ func (c *VPCConfig) getNodesFromEndpoint(endpoint EndpointElem) ([]Node, error) 
 	case InternalNodeIntf:
 		return []Node{endpoint.(Node)}, nil
 	case *groupedExternalNodes:
-		var externalIP = ipblock.New()
+		var externalIP = netset.NewIPBlock()
 		for _, e := range *n {
-			externalIP = externalIP.Union(e.ipblock)
+			externalIP = externalIP.Union(e.netset)
 		}
 		// gets external nodes from e as explained in getCidrExternalNodes
 		disjointNodes, _, err := c.getCidrExternalNodes(externalIP)

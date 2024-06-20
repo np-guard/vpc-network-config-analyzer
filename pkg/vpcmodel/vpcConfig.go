@@ -13,7 +13,7 @@ import (
 
 	"github.com/np-guard/models/pkg/connection"
 
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
 )
 
 // VPCConfig captures the configured resources for a VPC
@@ -107,9 +107,9 @@ func (c *VPCConfig) getRoutingResource(src, dst Node) (RoutingResource, *connect
 
 // GetNodesWithinInternalAddress gets input IPBlock
 // and returns the list of all internal nodes (should be VSI) within address
-func (c *VPCConfig) GetNodesWithinInternalAddress(inputIPBlock *ipblock.IPBlock) (networkInterfaceNodes []Node) {
+func (c *VPCConfig) GetNodesWithinInternalAddress(inputIPBlock *netset.IPBlock) (networkInterfaceNodes []Node) {
 	for _, node := range c.Nodes {
-		if node.IsInternal() && node.IPBlock().ContainedIn(inputIPBlock) {
+		if node.IsInternal() && node.IPBlock().IsSubset(inputIPBlock) {
 			networkInterfaceNodes = append(networkInterfaceNodes, node)
 		}
 	}

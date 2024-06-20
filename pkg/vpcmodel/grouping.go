@@ -12,7 +12,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+
+	"github.com/np-guard/models/pkg/netset"
 )
 
 const commaSeparator = ","
@@ -582,7 +584,7 @@ func (g *groupedExternalNodes) String() string {
 		return ""
 	}
 	// 2. union all IPBlocks in a single one; its intervals will be the cidr blocks or ranges that should be printed, after all possible merges
-	unionBlock := ipblock.New()
+	unionBlock := netset.NewIPBlock()
 	for _, ipBlock := range ipbList {
 		unionBlock = unionBlock.Union(ipBlock)
 	}
@@ -605,7 +607,7 @@ func connDiffEncode(src, dst VPCResourceIntf, connDiff *connectionDiff) string {
 // encodes rulesConnection for grouping
 func (details *srcDstDetails) explanationEncode(c *VPCConfig) string {
 	encodeComponents := []string{}
-	encodeComponents = append(encodeComponents, details.conn.allConn.String())
+	encodeComponents = append(encodeComponents, common.LongString(details.conn.allConn))
 	if details.externalRouter != nil {
 		encodeComponents = append(encodeComponents, details.externalRouter.UID())
 	}

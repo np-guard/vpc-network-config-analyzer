@@ -15,6 +15,7 @@ import (
 	"github.com/np-guard/cloud-resource-collector/pkg/common"
 	"github.com/np-guard/cloud-resource-collector/pkg/factory"
 	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
+
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/ibmvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )

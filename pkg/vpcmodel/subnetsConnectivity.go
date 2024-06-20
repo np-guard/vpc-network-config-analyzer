@@ -10,8 +10,10 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+
 	"github.com/np-guard/models/pkg/connection"
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
 )
 
 // VPCsubnetConnectivity captures allowed connectivity for subnets, considering nacl and pgw resources
@@ -43,7 +45,7 @@ const (
 )
 
 func subnetConnLine(subnet string, conn *connection.Set) string {
-	return fmt.Sprintf("%s : %s\n", subnet, conn.String())
+	return fmt.Sprintf("%s : %s\n", subnet, common.ShortString(conn))
 }
 
 func (c *ConfigBasedConnectivityResults) string() string {
@@ -70,16 +72,16 @@ func (v *VPCsubnetConnectivity) printAllowedConns() {
 	}
 }
 
-func (c *VPCConfig) ipblockToNamedResourcesInConfig(ipb *ipblock.IPBlock, excludeExternalNodes bool) ([]VPCResourceIntf, error) {
+func (c *VPCConfig) ipblockToNamedResourcesInConfig(ipb *netset.IPBlock, excludeExternalNodes bool) ([]VPCResourceIntf, error) {
 	res := []VPCResourceIntf{}
 
 	// consider subnets
 	for _, subnet := range c.Subnets {
-		var subnetCidrIPB *ipblock.IPBlock
+		var subnetCidrIPB *netset.IPBlock
 		if subnetCidrIPB = subnet.AddressRange(); subnetCidrIPB == nil {
 			return nil, errors.New("missing AddressRange for subnet")
 		}
-		if subnetCidrIPB.ContainedIn(ipb) {
+		if subnetCidrIPB.IsSubset(ipb) {
 			res = append(res, subnet)
 		} else if !subnetCidrIPB.Intersect(ipb).IsEmpty() {
 			// intersection isn't empty -- this means the ACL splits connectivity to part of that subnet,
@@ -98,7 +100,7 @@ func (c *VPCConfig) ipblockToNamedResourcesInConfig(ipb *ipblock.IPBlock, exclud
 			continue
 		}
 		nodeCidrIPB := exn.IPBlock()
-		if nodeCidrIPB.ContainedIn(ipb) {
+		if nodeCidrIPB.IsSubset(ipb) {
 			res = append(res, exn)
 		}
 	}

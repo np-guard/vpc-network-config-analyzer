@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/np-guard/models/pkg/connection"
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
 )
 
 func TestGetRules(t *testing.T) {
@@ -132,7 +132,7 @@ func TestGetAllowedXgressConnections(t *testing.T) {
 		for i := range tt.src {
 			src := newIPBlockFromCIDROrAddressWithoutValidation(tt.src[i])
 			dst := newIPBlockFromCIDROrAddressWithoutValidation(tt.dst[i])
-			disjointPeers := []*ipblock.IPBlock{dst}
+			disjointPeers := []*netset.IPBlock{dst}
 			expectedConn := tt.expectedConns[i]
 			res, _, _, _ := getAllowedXgressConnections(tt.naclRules, src, dst, disjointPeers, true)
 			dstStr := dst.ToIPRanges()
@@ -144,7 +144,7 @@ func TestGetAllowedXgressConnections(t *testing.T) {
 	//nolint:all
 	/*src := common.FromCidr("1.1.1.1/32")
 	dst := common.FromCidr("10.0.0.0/24")
-	disjointPeers := []*ipblock.IPBlock{dst}
+	disjointPeers := []*netset.IPBlock{dst}
 	res := getAllowedXgressConnections(rulesTest1, src, dst, disjointPeers, true)
 	for d, c := range res {
 		fmt.Printf("%s => %s : %s\n", src.ToIPAdress(), d, c.String())

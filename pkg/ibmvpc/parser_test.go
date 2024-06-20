@@ -12,7 +12,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
@@ -62,7 +62,7 @@ func TestRegionMethodTGW(t *testing.T) {
 			Region:       "us-east",
 		},
 		vpcs:            nil,
-		availableRoutes: map[string][]*ipblock.IPBlock{},
+		availableRoutes: map[string][]*netset.IPBlock{},
 		region:          getRegionByName("us-east", regionToStructMap),
 	}
 	region := tgw.Region()

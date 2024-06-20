@@ -15,7 +15,8 @@ import (
 
 	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
 	"github.com/np-guard/models/pkg/connection"
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
+
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -129,10 +130,10 @@ type VPC struct {
 	nodes []vpcmodel.Node
 	zones map[string]*Zone
 	// internalAddressRange is the union of all the vpc's subnets' CIDRs
-	internalAddressRange   *ipblock.IPBlock
+	internalAddressRange   *netset.IPBlock
 	subnetsList            []*Subnet
 	addressPrefixes        []string
-	addressPrefixesIPBlock *ipblock.IPBlock
+	addressPrefixesIPBlock *netset.IPBlock
 	region                 *Region
 }
 
@@ -140,7 +141,7 @@ func (v *VPC) Region() *Region {
 	return v.region
 }
 
-func (v *VPC) AddressPrefixes() *ipblock.IPBlock {
+func (v *VPC) AddressPrefixes() *netset.IPBlock {
 	return v.addressPrefixesIPBlock
 }
 
@@ -155,7 +156,7 @@ func (v *VPC) Nodes() []vpcmodel.Node {
 	return v.nodes
 }
 
-func (v *VPC) AddressRange() *ipblock.IPBlock {
+func (v *VPC) AddressRange() *netset.IPBlock {
 	return v.internalAddressRange
 }
 
@@ -166,9 +167,9 @@ func (v *VPC) subnets() []*Subnet {
 // Subnet implements vpcmodel.Subnet interface
 type Subnet struct {
 	vpcmodel.VPCResource
-	nodes   []vpcmodel.Node
-	cidr    string
-	ipblock *ipblock.IPBlock
+	nodes  []vpcmodel.Node
+	cidr   string
+	netset *netset.IPBlock
 }
 
 func (s *Subnet) CIDR() string {
@@ -183,8 +184,8 @@ func (s *Subnet) Nodes() []vpcmodel.Node {
 	return s.nodes
 }
 
-func (s *Subnet) AddressRange() *ipblock.IPBlock {
-	return s.ipblock
+func (s *Subnet) AddressRange() *netset.IPBlock {
+	return s.netset
 }
 
 type Vsi struct {
@@ -200,12 +201,12 @@ func (v *Vsi) Nodes() []vpcmodel.Node {
 	return v.nodes
 }
 
-func (v *Vsi) AddressRange() *ipblock.IPBlock {
+func (v *Vsi) AddressRange() *netset.IPBlock {
 	return nodesAddressRange(v.nodes)
 }
 
-func nodesAddressRange(nodes []vpcmodel.Node) *ipblock.IPBlock {
-	var res *ipblock.IPBlock
+func nodesAddressRange(nodes []vpcmodel.Node) *netset.IPBlock {
+	var res *netset.IPBlock
 	for _, n := range nodes {
 		if res == nil {
 			res = n.IPBlock()
@@ -226,7 +227,7 @@ func (v *Vpe) Nodes() []vpcmodel.Node {
 	return v.nodes
 }
 
-func (v *Vpe) AddressRange() *ipblock.IPBlock {
+func (v *Vpe) AddressRange() *netset.IPBlock {
 	return nodesAddressRange(v.nodes)
 }
 
@@ -261,7 +262,7 @@ func (lb *LoadBalancer) ExtendedName(c *vpcmodel.VPCConfig) string {
 func (lb *LoadBalancer) Nodes() []vpcmodel.Node {
 	return lb.nodes
 }
-func (lb *LoadBalancer) AddressRange() *ipblock.IPBlock {
+func (lb *LoadBalancer) AddressRange() *netset.IPBlock {
 	return nodesAddressRange(lb.nodes)
 }
 
@@ -314,7 +315,7 @@ func (nl *NaclLayer) ConnectivityMap() (map[string]*vpcmodel.IPbasedConnectivity
 			if len(resConnectivity) != 1 {
 				return nil, errors.New("unsupported connectivity map with partial subnet ranges per connectivity result")
 			}
-			subnetKey := subnet.ipblock.ToIPRanges()
+			subnetKey := subnet.netset.ToIPRanges()
 			if _, ok := resConnectivity[subnetKey]; !ok {
 				return nil, errors.New("unexpected subnet connectivity result - key is different from subnet cidr")
 			}
@@ -409,8 +410,8 @@ func (nl *NaclLayer) ListFilterWithAction(listRulesInFilter []vpcmodel.RulesInTa
 	return filters
 }
 
-func (nl *NaclLayer) ReferencedIPblocks() []*ipblock.IPBlock {
-	res := []*ipblock.IPBlock{}
+func (nl *NaclLayer) ReferencedIPblocks() []*netset.IPBlock {
+	res := []*netset.IPBlock{}
 	for _, n := range nl.naclList {
 		res = append(res, n.analyzer.referencedIPblocks...)
 	}
@@ -487,9 +488,9 @@ func (n *NACL) initConnectivityComputation(src, dst vpcmodel.Node,
 	if _, ok := n.subnets[connectivityInput.subnet.cidr]; ok {
 		connectivityInput.subnetAffectedByNACL = true
 	}
-	// checking if targetNode is internal, to save a call to ContainedIn for external nodes
+	// checking if targetNode is internal, to save a call to IsSubset for external nodes
 	if connectivityInput.targetNode.IsInternal() &&
-		connectivityInput.targetNode.IPBlock().ContainedIn(connectivityInput.subnet.ipblock) {
+		connectivityInput.targetNode.IPBlock().IsSubset(connectivityInput.subnet.netset) {
 		connectivityInput.targetWithinSubnet = true
 	}
 
@@ -611,8 +612,8 @@ func (sgl *SecurityGroupLayer) ListFilterWithAction(listRulesInFilter []vpcmodel
 	return filters
 }
 
-func (sgl *SecurityGroupLayer) ReferencedIPblocks() []*ipblock.IPBlock {
-	res := []*ipblock.IPBlock{}
+func (sgl *SecurityGroupLayer) ReferencedIPblocks() []*netset.IPBlock {
+	res := []*netset.IPBlock{}
 	for _, sg := range sgl.sgList {
 		res = append(res, sg.analyzer.referencedIPblocks...)
 	}
@@ -635,8 +636,8 @@ func (sg *SecurityGroup) AllowedConnectivity(src, dst vpcmodel.Node, isIngress b
 }
 
 // unifiedMembersIPBlock returns an *IPBlock object with union of all members IPBlock
-func (sg *SecurityGroup) unifiedMembersIPBlock() (unifiedMembersIPBlock *ipblock.IPBlock) {
-	unifiedMembersIPBlock = ipblock.New()
+func (sg *SecurityGroup) unifiedMembersIPBlock() (unifiedMembersIPBlock *netset.IPBlock) {
+	unifiedMembersIPBlock = netset.NewIPBlock()
 	for _, memberNode := range sg.members {
 		unifiedMembersIPBlock = unifiedMembersIPBlock.Union(memberNode.IPBlock())
 	}
@@ -656,7 +657,7 @@ func (sg *SecurityGroup) rulesFilterInConnectivity(src, dst vpcmodel.Node, conn 
 }
 
 func (sg *SecurityGroup) getMemberTargetStrAddress(src, dst vpcmodel.Node,
-	isIngress bool) (memberIPBlock, targetIPBlock *ipblock.IPBlock, memberStrAddress string) {
+	isIngress bool) (memberIPBlock, targetIPBlock *netset.IPBlock, memberStrAddress string) {
 	var member, target vpcmodel.Node
 	if isIngress {
 		member, target = dst, src
@@ -791,7 +792,7 @@ type TransitGateway struct {
 
 	// availableRoutes are the published address prefixes from all connected vpcs that arrive at the TGW's table of available routes,
 	// as considered from prefix filters: map from vpc UID to its available routes in the routes table
-	availableRoutes map[string][]*ipblock.IPBlock
+	availableRoutes map[string][]*netset.IPBlock
 
 	// sourceSubnets are the subnets from the connected vpcs that can have connection to destination
 	// subnet from another vpc
@@ -810,7 +811,7 @@ type TransitGateway struct {
 	// these details includes map of each relevant IPBlock to the transit connection (its index in the tgwConnList)
 	// and the index of the matching filter in the transit connection if exists (index "-1" is for default )
 	// this struct can be though of as the "explain" parallel of availableRoutes; note that unlike availableRoutes it also lists deny prefixes
-	vpcsAPToPrefixRules map[string]map[*ipblock.IPBlock]vpcmodel.RulesInTable
+	vpcsAPToPrefixRules map[string]map[*netset.IPBlock]vpcmodel.RulesInTable
 }
 
 func (tgw *TransitGateway) addSourceAndDestNodes() {

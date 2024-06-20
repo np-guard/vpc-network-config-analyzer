@@ -11,6 +11,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+
 	"github.com/np-guard/models/pkg/connection"
 )
 
@@ -353,7 +355,7 @@ func (responsiveConnMap GeneralResponsiveConnectivityMap) getCombinedConnsStr(on
 			var connsStr string
 			if onlyBidirectional {
 				bidirectional := extConns.tcpRspEnable.Union(extConns.nonTCP)
-				connsStr = bidirectional.String()
+				connsStr = common.LongString(bidirectional)
 			} else {
 				connsStr = extConns.string()
 			}
@@ -375,11 +377,11 @@ func (v *VPCConnectivity) DetailedString() string {
 	for node, connectivity := range v.AllowedConns {
 		// ingress
 		for peerNode, conn := range connectivity.IngressAllowedConns {
-			strList = append(strList, getConnectionStr(peerNode.CidrOrAddress(), node.CidrOrAddress(), conn.String(), " [inbound]"))
+			strList = append(strList, getConnectionStr(peerNode.CidrOrAddress(), node.CidrOrAddress(), common.LongString(conn), " [inbound]"))
 		}
 		// egress
 		for peerNode, conn := range connectivity.EgressAllowedConns {
-			strList = append(strList, getConnectionStr(node.CidrOrAddress(), peerNode.CidrOrAddress(), conn.String(), " [outbound]"))
+			strList = append(strList, getConnectionStr(node.CidrOrAddress(), peerNode.CidrOrAddress(), common.LongString(conn), " [outbound]"))
 		}
 	}
 	sort.Strings(strList)
@@ -389,7 +391,7 @@ func (v *VPCConnectivity) DetailedString() string {
 	for src, nodeConns := range v.AllowedConnsCombinedResponsive {
 		for dst, conn := range nodeConns {
 			// src and dst here are nodes, always. Thus ignoring potential error in conversion
-			strList = append(strList, getConnectionStr(src.(Node).CidrOrAddress(), dst.(Node).CidrOrAddress(), conn.allConn.String(), ""))
+			strList = append(strList, getConnectionStr(src.(Node).CidrOrAddress(), dst.(Node).CidrOrAddress(), common.LongString(conn.allConn), ""))
 		}
 	}
 	sort.Strings(strList)

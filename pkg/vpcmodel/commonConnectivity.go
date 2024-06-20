@@ -12,28 +12,26 @@ import (
 )
 
 func newTCPConn(srcMinP, srcMaxP, dstMinP, dstMaxP int64) *connection.Set {
-	return connection.TCPorUDPConnection(netp.ProtocolStringTCP, srcMinP, srcMaxP, dstMinP, dstMaxP)
+	return connection.NewTCPorUDP(netp.ProtocolStringTCP, srcMinP, srcMaxP, dstMinP, dstMaxP)
 }
 
 func newUDPConn(srcMinP, srcMaxP, dstMinP, dstMaxP int64) *connection.Set {
-	return connection.TCPorUDPConnection(netp.ProtocolStringUDP, srcMinP, srcMaxP, dstMinP, dstMaxP)
+	return connection.NewTCPorUDP(netp.ProtocolStringUDP, srcMinP, srcMaxP, dstMinP, dstMaxP)
 }
 
 func newICMPconn() *connection.Set {
-	return connection.ICMPConnection(
-		connection.MinICMPType, connection.MaxICMPType,
-		connection.MinICMPCode, connection.MaxICMPCode)
+	return connection.AllICMP()
 }
 
 func newTCPUDPSet(p netp.ProtocolString) *connection.Set {
-	return connection.TCPorUDPConnection(p,
-		connection.MinPort, connection.MaxPort,
-		connection.MinPort, connection.MaxPort)
+	return connection.NewTCPorUDP(p,
+		netp.MinPort, netp.MaxPort,
+		netp.MinPort, netp.MaxPort)
 }
 
 func allTCPconn() *connection.Set {
-	return newTCPConn(connection.MinPort, connection.MaxPort,
-		connection.MinPort, connection.MaxPort)
+	return newTCPConn(netp.MinPort, netp.MaxPort,
+		netp.MinPort, netp.MaxPort)
 }
 
 // PartitionTCPNonTCP given a connection returns its TCP and non-TCP sub-connections
