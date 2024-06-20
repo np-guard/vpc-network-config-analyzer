@@ -780,8 +780,8 @@
                     },
                     "created_at": "2023-03-26T07:39:10Z",
                     "destination": "0.0.0.0/0",
-                    "destination_port_max": 50,
-                    "destination_port_min": 1,
+                    "destination_port_max": 200,
+                    "destination_port_min": 100,
                     "direction": "outbound",
                     "href": "href:106",
                     "id": "id:107",
@@ -789,7 +789,7 @@
                     "name": "outbound",
                     "protocol": "tcp",
                     "source": "0.0.0.0/0",
-                    "source_port_max": 600,
+                    "source_port_max": 50,
                     "source_port_min": 1
                 },
                 {
@@ -861,8 +861,12 @@
                     "id": "id:116",
                     "ip_version": "ipv4",
                     "name": "inbound",
-                    "protocol": "all",
-                    "source": "0.0.0.0/0"
+                    "protocol": "tcp",
+                    "source": "0.0.0.0/0",
+                    "destination_port_max": 220,
+                    "destination_port_min": 100,
+                    "source_port_max": 60,
+                    "source_port_min": 10
                 }
             ],
             "subnets": [

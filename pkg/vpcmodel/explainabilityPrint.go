@@ -486,6 +486,6 @@ func respondString(d *detailedConn) string {
 	case d.tcpRspDisable.IsEmpty():
 		return "\n\tThe TCP sub-connection is responsive"
 	default:
-		return "\n\tTCP response is enabled on " + d.tcpRspEnable.String()
+		return "\n\tTCP response is enabled for: " + d.tcpRspEnable.String()
 	}
 }

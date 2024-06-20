@@ -514,11 +514,10 @@ func respondRulesRelevant(conn *detailedConn, filtersRelevant map[string]bool) b
 func (c *VPCConfig) getRespondRules(src, dst Node,
 	conn *connection.Set) (respondRules *rulesConnection, err error) {
 	mergedIngressRules, mergedEgressRules := rulesInLayers{}, rulesInLayers{}
-	// respond: from dst to src. Thus, ingress rules: relevant only if *src* is internal, egress is *dst* is internal
+	// respond: from dst to src; thus, ingress rules: relevant only if *src* is internal, egress is *dst* is internal
 	if src.IsInternal() {
-		connSwitch := conn.SwitchSrcDstPorts()
 		var err error
-		mergedIngressRules, err = c.computeAndUpdateDirectionRespondRules(src, dst, connSwitch, true)
+		mergedIngressRules, err = c.computeAndUpdateDirectionRespondRules(src, dst, conn, true)
 		if err != nil {
 			return nil, err
 		}
@@ -535,10 +534,11 @@ func (c *VPCConfig) getRespondRules(src, dst Node,
 
 func (c *VPCConfig) computeAndUpdateDirectionRespondRules(src, dst Node, conn *connection.Set,
 	isIngress bool) (rulesInLayers, error) {
-	// respond: dst and src switched
+	// respond: dst and src switched, src and dst ports also switched
 	// computes allowRulesPerLayer/denyRulePerLayer: ingress/egress rules enabling/disabling respond
 	// note that there could be both allow and deny in case part of the connection is enabled and part blocked
-	allowRules, denyRules, err1 := c.getFiltersRulesBetweenNodesPerDirectionAndLayer(dst, src, conn, isIngress, NaclLayer)
+	connSwitch := conn.SwitchSrcDstPorts()
+	allowRules, denyRules, err1 := c.getFiltersRulesBetweenNodesPerDirectionAndLayer(dst, src, connSwitch, isIngress, NaclLayer)
 	if err1 != nil {
 		return nil, err1
 	}
