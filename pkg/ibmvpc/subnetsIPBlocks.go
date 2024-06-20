@@ -238,11 +238,11 @@ func (blocks filtersBlocks) addSGRulesBlocks(rc *datamodel.ResourcesContainerMod
 			case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolIcmp:
 				remoteRule = ruleObj.Remote
 				localRule = ruleObj.Local
-				
+
 			default:
 				return fmt.Errorf("SG %s has unsupported type for the %dth rule", *sgObj.Name, i)
 			}
-			var localCidrsOrAddresses,remoteCidrsOrAddresses  []*string
+			var localCidrsOrAddresses, remoteCidrsOrAddresses []*string
 			if localRule != nil {
 				local := localRule.(*vpc1.SecurityGroupRuleLocal)
 				localCidrsOrAddresses = []*string{local.Address, local.CIDRBlock}
@@ -255,7 +255,7 @@ func (blocks filtersBlocks) addSGRulesBlocks(rc *datamodel.ResourcesContainerMod
 				// do these blocks are already fullyReservedBlocks we can ignore them:
 				remoteCidrsOrAddresses = []*string{remote.Address, remote.CIDRBlock}
 			}
-			if err := blocks.addBlocks(*sgObj.VPC.CRN, append(localCidrsOrAddresses,remoteCidrsOrAddresses...)); err != nil {
+			if err := blocks.addBlocks(*sgObj.VPC.CRN, append(localCidrsOrAddresses, remoteCidrsOrAddresses...)); err != nil {
 				return err
 			}
 		}
