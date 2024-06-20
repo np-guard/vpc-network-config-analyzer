@@ -71,27 +71,29 @@ func pathFromNextHopValues(nextHop, origDest string) vpcmodel.Path {
 }
 
 func newHubSpokeBase1Config() (*vpcmodel.MultipleVPCConfigs, *GlobalRTAnalyzer) {
-	vpcTransit, _ := newVPC("transit", "transit", "", []string{"10.1.15.0/24"}, map[string]*Region{})
-	vpcSpoke, _ := newVPC("spoke", "spoke", "", []string{"10.1.0.0/24"}, map[string]*Region{})
-	vpcEnterprise, _ := newVPC("enterprise", "enterprise", "", []string{"192.168.0.0/16"}, map[string]*Region{})
+	vpcTransit, _ := newVPC("transit", "transit", "", map[string]string{"us-south-1": "10.1.15.0/24",
+		"us-south-2": "10.2.15.0/24"}, map[string]*Region{})
+	vpcSpoke, _ := newVPC("spoke", "spoke", "", map[string]string{"us-south-1": "10.1.0.0/24",
+		"us-south-2": "10.2.0.0/24"}, map[string]*Region{})
+	vpcEnterprise, _ := newVPC("enterprise", "enterprise", "", map[string]string{"z1": "192.168.0.0/16"}, map[string]*Region{})
 
-	workerSubnetTransit, _ := newSubnet("workerSubnetTransit", "workerSubnetTransit", "zone1", "10.1.15.0/26", vpcTransit)
-	workerSubnetSpoke, _ := newSubnet("workerSubnetSpoke", "workerSubnetSpoke", "zone1", "10.1.0.0/26", vpcSpoke)
-	workerSubnetEnterprise, _ := newSubnet("workerSubnetEnterprise", "workerSubnetEnterprise", "zone1", "192.168.0.0/16", vpcEnterprise)
-	firewallSubnetTransit, _ := newSubnet("firewallSubnetTransit", "firewallSubnetTransit", "zone1", "10.1.15.192/26", vpcTransit)
+	workerSubnetTransit, _ := newSubnet("workerSubnetTransit", "workerSubnetTransit", "us-south-1", "10.1.15.0/26", vpcTransit)
+	workerSubnetSpoke, _ := newSubnet("workerSubnetSpoke", "workerSubnetSpoke", "us-south-1", "10.1.0.0/26", vpcSpoke)
+	workerSubnetEnterprise, _ := newSubnet("workerSubnetEnterprise", "workerSubnetEnterprise", "z1", "192.168.0.0/16", vpcEnterprise)
+	firewallSubnetTransit, _ := newSubnet("firewallSubnetTransit", "firewallSubnetTransit", "us-south-1", "10.1.15.192/26", vpcTransit)
 
 	transitTestInstance, _ := newNetworkInterface("transitTestInstance", "transitTestInstance",
-		"zone1", "10.1.15.4", "transitTestInstanceVSI", vpcTransit)
+		"us-south-1", "10.1.15.4", "transitTestInstanceVSI", vpcTransit)
 	transitTestInstance2, _ := newNetworkInterface("transitTestInstance2", "transitTestInstance2",
-		"zone1", "10.1.15.5", "transitTestInstanceVSI2", vpcTransit)
+		"us-south-1", "10.1.15.5", "transitTestInstanceVSI2", vpcTransit)
 	firewallInstance, _ := newNetworkInterface("firewallInstance", "firewallInstance",
-		"zone1", "10.1.15.197", "firewallInstanceVSI", vpcTransit)
+		"us-south-1", "10.1.15.197", "firewallInstanceVSI", vpcTransit)
 
 	spokeTestInstance, _ := newNetworkInterface("spokeTestInstance", "spokeTestInstance",
-		"zone1", "10.1.0.4", "spokeTestInstanceVSI", vpcSpoke)
+		"us-south-1", "10.1.0.4", "spokeTestInstanceVSI", vpcSpoke)
 
 	enterpriseTestInstance, _ := newNetworkInterface("enterpriseTestInstance", "enterpriseTestInstance",
-		"zone1", "192.168.0.4", "enterpriseTestInstanceVSI", vpcEnterprise)
+		"z1", "192.168.0.4", "enterpriseTestInstanceVSI", vpcEnterprise)
 
 	vpcConfTransit := genConfig(vpcTransit, []*Subnet{workerSubnetTransit, firewallSubnetTransit},
 		[]*NetworkInterface{transitTestInstance, transitTestInstance2, firewallInstance}, nil, nil)
@@ -140,8 +142,8 @@ Dallas 1 	192.168.0.0/16 	10.1.15.197 	On
 Dallas 1 	10.1.0.0/16 	10.1.15.197 	On
 */
 
-var r1, _ = newRoute("r1", "192.168.0.0/16", "10.1.15.197", deliver, defaultRoutePriority, true)
-var r2, _ = newRoute("r2", "10.1.0.0/16", "10.1.15.197", deliver, defaultRoutePriority, true)
+var r1, _ = newRoute("r1", "192.168.0.0/16", "10.1.15.197", "us-south-1", deliver, defaultRoutePriority, true)
+var r2, _ = newRoute("r2", "10.1.0.0/16", "10.1.15.197", "us-south-1", deliver, defaultRoutePriority, true)
 
 func newHubSpokeBase2Config() (*vpcmodel.MultipleVPCConfigs, *GlobalRTAnalyzer) {
 	globalConfig, _ := newHubSpokeBase1Config()
@@ -168,7 +170,7 @@ Dallas 1 	10.1.0.0/16 	10.1.15.197 	On				deliver
 Dallas 1 	10.1.15.0/24 									delegate
 */
 
-var r3, _ = newRoute("r3", "10.1.15.0/24", "", delegate, defaultRoutePriority, false)
+var r3, _ = newRoute("r3", "10.1.15.0/24", "", "us-south-1", delegate, defaultRoutePriority, false)
 
 func newHubSpokeBase3Config() (*vpcmodel.MultipleVPCConfigs, *GlobalRTAnalyzer) {
 	globalConfig, _ := newHubSpokeBase1Config()
@@ -205,10 +207,10 @@ Dallas 1 	10.0.0.0/8	 	10.1.15.197 					deliver
 Dallas 1 	192.168.0.0/16 	10.1.15.197 					deliver
 Dallas 1	10.1.15.0/24									delegate
 */
-var r4, _ = newRoute("r4", "10.0.0.0/8", "10.1.15.197", deliver, defaultRoutePriority, false)
-var r5, _ = newRoute("r5", "192.168.0.0/16", "10.1.15.197", deliver, defaultRoutePriority, false)
-var r6, _ = newRoute("r6", "10.1.15.0/24", "", delegate, defaultRoutePriority, false)
-var r7, _ = newRoute("r7", "10.1.0.0/24", "", delegate, defaultRoutePriority, false)
+var r4, _ = newRoute("r4", "10.0.0.0/8", "10.1.15.197", "us-south-1", deliver, defaultRoutePriority, false)
+var r5, _ = newRoute("r5", "192.168.0.0/16", "10.1.15.197", "us-south-1", deliver, defaultRoutePriority, false)
+var r6, _ = newRoute("r6", "10.1.15.0/24", "", "us-south-1", delegate, defaultRoutePriority, false)
+var r7, _ = newRoute("r7", "10.1.0.0/24", "", "us-south-1", delegate, defaultRoutePriority, false)
 
 func newHubSpokeBase4Config() (*vpcmodel.MultipleVPCConfigs, *GlobalRTAnalyzer) {
 	globalConfig, _ := newHubSpokeBase1Config()

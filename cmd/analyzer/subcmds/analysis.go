@@ -7,10 +7,12 @@ SPDX-License-Identifier: Apache-2.0
 package subcmds
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/spf13/cobra"
 
+	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/ibmvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
@@ -23,7 +25,8 @@ func routingAnalysis(inArgs *inArgs) error {
 	}
 
 	analyzer := ibmvpc.NewGlobalRTAnalyzer(vpcConfigs)
-	pairs := vpcConfigs.GetInternalNodePairs()
+
+	/*pairs := vpcConfigs.GetInternalNodePairs()
 	for _, pair := range pairs {
 		path, err := analyzer.GetRoutingPath(pair.Src.(vpcmodel.InternalNodeIntf), pair.Dst.IPBlock())
 		if err != nil {
@@ -33,7 +36,7 @@ func routingAnalysis(inArgs *inArgs) error {
 		fmt.Println(path.String())
 		fmt.Println("")
 	}
-	return nil
+	return nil*/
 
 	/*
 		current output:
@@ -51,27 +54,30 @@ func routingAnalysis(inArgs *inArgs) error {
 		NetworkInterface - tvpc-fw-z3-s3-0[10.3.15.196] -> TGW - tvpc-tgw-link -> NetworkInterface - tvpc-enterprise-z1-worker[192.168.0.4]
 
 	*/
-	/*srcDstPairs := []struct {
+	srcDstPairs := []struct {
 		src string
 		dst string
 	}{
 		{
-			src: "10.1.15.4",
-			dst: "192.168.0.4",
+			src: "10.1.15.4",   // transit instance
+			dst: "192.168.0.4", // enterprise instance
 		},
 		{
-			dst: "10.1.15.4",
-			src: "192.168.0.4",
+			src: "192.168.0.4", // enterprise instance
+			dst: "10.1.15.4",   // transit instance
 		},
 		{
 			src: "10.1.0.4",    // spoke vpc
 			dst: "192.168.0.4", // enterprise vpc
 		},
 		{
-			src: "10.3.15.196",
+			src: "10.1.15.196",
 			dst: "192.168.0.4",
 		},
-
+		{
+			src: "192.168.0.4", // enterprise vpc
+			dst: "10.1.0.4",    // spoke vpc
+		},
 	}
 	for _, pair := range srcDstPairs {
 		srcNode, err1 := vpcConfigs.GetInternalNodeFromAddress(pair.src)
@@ -85,7 +91,10 @@ func routingAnalysis(inArgs *inArgs) error {
 		fmt.Println(path.String())
 		fmt.Println("")
 	}
-	return nil*/
+
+
+	return nil
+
 }
 
 func analysisVPCConfigs(cmd *cobra.Command, inArgs *inArgs, analysisType vpcmodel.OutputUseCase) error {

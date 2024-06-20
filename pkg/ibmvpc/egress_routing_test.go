@@ -106,7 +106,8 @@ func newEgressRTFromRoutes(rps *routesPerSubnets, config *vpcmodel.VPCConfig, vp
 }
 
 func newBasicConfig(rps *routesPerSubnets) (*vpcmodel.VPCConfig, []*egressRoutingTable) {
-	vpc1, _ := newVPC("vpc1", "vpc1", "", []string{"10.10.0.0/16", "10.11.0.0/16"}, map[string]*Region{})
+	vpc1, _ := newVPC("vpc1", "vpc1", "", map[string]string{"zoneA": "10.10.0.0/16",
+		"zoneB": "10.11.0.0/16"}, map[string]*Region{})
 	subnet1, _ := newSubnet("subnet1", "subnet1", "zoneA", "10.10.1.0/24", vpc1)
 	subnet2, _ := newSubnet("subnet2", "subnet2", "zoneA", "10.10.3.0/24", vpc1)
 	subnet3, _ := newSubnet("subnet3", "subnet3", "zoneA", "10.10.0.0/24", vpc1)

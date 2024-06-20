@@ -20,11 +20,13 @@ import (
 // GlobalRTAnalyzer analyzes routing in a cross-vpc config
 type GlobalRTAnalyzer struct {
 	vpcRTAnalyzer map[string]*RTAnalyzer // map from vpc uid to its RTAnalyzer
+	allConfigs    *vpcmodel.MultipleVPCConfigs
 }
 
 func NewGlobalRTAnalyzer(configs *vpcmodel.MultipleVPCConfigs) *GlobalRTAnalyzer {
 	res := &GlobalRTAnalyzer{
 		vpcRTAnalyzer: map[string]*RTAnalyzer{},
+		allConfigs:    configs,
 	}
 	for vpcUID, vpcConfig := range configs.Configs() {
 		if vpcConfig.IsMultipleVPCsConfig {
@@ -59,11 +61,35 @@ func (ga *GlobalRTAnalyzer) GetRoutingPath(src vpcmodel.InternalNodeIntf, dest *
 		if err != nil {
 			return nil, err
 		}
-		res2, err := targetVPCAnalyzer.getIngressPath(tgwSource, dest)
+		targetVPC := ga.allConfigs.GetVPC(res.TargetVPC()).(*VPC)
+		destZone, _ := getZoneByIPBlock(dest, ga.allConfigs) //targetVPC.getZoneByIPBlock(dest)
+		srcZone := src.(vpcmodel.Node).ZoneName()
+		// if the destZone is not in the zones of the target VPC, set it as unknown (e.g. from a vpc in another region)
+		if _, ok := targetVPC.zones[destZone]; !ok {
+			destZone = ""
+		}
+
+		// do not issue an err if dest zone is not found
+		/*if err != nil {
+			return nil, err
+		}*/
+		// if dest zone is not found, should consider all routes for  all zones in the RT
+		// and prefer the one with the src zone of such is available
+		// the analysis should be done for all available zones (up to 3)
+		res2, err := targetVPCAnalyzer.getIngressPath(tgwSource, dest, destZone, srcZone)
 		return vpcmodel.ConcatPaths(res, res2), err
 	}
 	// else - routing remains within a single vpc context
 	return res, err
+}
+
+func getZoneByIPBlock(ipb *ipblock.IPBlock, allConfigs *vpcmodel.MultipleVPCConfigs) (string, error) {
+	for _, config := range allConfigs.Configs() {
+		if zone, err := config.VPC.(*VPC).getZoneByIPBlock(ipb); err == nil {
+			return zone, nil
+		}
+	}
+	return "", fmt.Errorf("could not find zone for ipblock %s", ipb.String())
 }
 
 // RTAnalyzer analyzes routing in a certain vpc config
@@ -128,13 +154,13 @@ func (rt *RTAnalyzer) getEgressPath(src vpcmodel.InternalNodeIntf, dest *ipblock
 		// todo: avoid casting here
 		return rt.implicitRT.getEgressPath(src.(vpcmodel.Node), dest), nil
 	}
-	return srcRT.getEgressPath(src.(vpcmodel.Node), dest)
+	return srcRT.getEgressPath(src.(vpcmodel.Node), dest, subnet.ZoneName())
 }
 
-func (rt *RTAnalyzer) getIngressPath(sourceType ingressRTSource, dest *ipblock.IPBlock) (vpcmodel.Path, error) {
+func (rt *RTAnalyzer) getIngressPath(sourceType ingressRTSource, dest *ipblock.IPBlock, destZone, srcZone string) (vpcmodel.Path, error) {
 	for _, ingressRt := range rt.ingressRT {
 		if ingressRt.source == sourceType {
-			return ingressRt.getIngressPath(dest)
+			return ingressRt.getIngressPath(dest, destZone, srcZone)
 		}
 	}
 	return rt.implicitRT.getIngressPath(dest)
@@ -263,7 +289,7 @@ type route struct {
 	destPrefixLen  int64
 }
 
-func newRoute(name, dest, nextHop string, action routingAction, prio int, advertise bool) (res *route, err error) {
+func newRoute(name, dest, nextHop, zone string, action routingAction, prio int, advertise bool) (res *route, err error) {
 	res = &route{
 		name:        name,
 		destination: dest,
@@ -271,6 +297,7 @@ func newRoute(name, dest, nextHop string, action routingAction, prio int, advert
 		action:      action,
 		priority:    prio,
 		advertise:   advertise,
+		zone:        zone,
 	}
 
 	res.destIPBlock, err = ipblock.FromCidr(dest)
@@ -306,9 +333,8 @@ func (r *route) string() string {
 	return ""
 }
 
-// routingTable implements VPCResourceIntf (TODO: should implement RoutingResource interface or another separate interface?)
-type routingTable struct {
-	vpcmodel.VPCResource
+// routingResult captures routing results per zone
+type routingResult struct {
 
 	// nextHops is a map from disjoint ip-blocks, after considering route preferences and actions
 	nextHops map[*ipblock.IPBlock]*ipblock.IPBlock // delivered ip-blocks
@@ -316,10 +342,27 @@ type routingTable struct {
 	droppedDestinations *ipblock.IPBlock // union of all ip-ranges for dropped destinations
 
 	delegatedDestinations *ipblock.IPBlock // union of all ip-ranges for delegated destinations
+}
+
+// routingTable implements VPCResourceIntf (TODO: should implement RoutingResource interface or another separate interface?)
+type routingTable struct {
+	vpcmodel.VPCResource
+	//nolint:unused // to be used later
+	name string // should implement VPCResourceIntf instead
 
 	// routesList is the list of routes that were added for this routing table
-	// it is used to compute the fields above
-	routesList []*route
+	// it is used to compute the fields below
+	routesList       []*route
+	routesPerZone    map[string][]*route       // map from zone name to list of its relevant routes
+	routingResultMap map[string]*routingResult // map from zone name to routingResult computed for that zone's routes in the table
+
+	/*// nextHops is a map from disjoint ip-blocks, after considering route preferences and actions
+	nextHops map[*ipblock.IPBlock]*ipblock.IPBlock // delivered ip-blocks
+
+	droppedDestinations *ipblock.IPBlock // union of all ip-ranges for dropped destinations
+
+	delegatedDestinations *ipblock.IPBlock // union of all ip-ranges for delegated destinations*/
+
 	implicitRT *systemImplicitRT
 }
 
@@ -331,20 +374,38 @@ func (rt *routingTable) ShowOnSubnetMode() bool {
 	return false
 }
 
-func newRoutingTable(routes []*route, implicitRT *systemImplicitRT, vpcResource *vpcmodel.VPCResource) (*routingTable, error) {
-	res := &routingTable{
+func computeRoutesPerZone(routes []*route) map[string][]*route {
+	res := map[string][]*route{}
+	for _, r := range routes {
+		if _, ok := res[r.zone]; !ok {
+			res[r.zone] = []*route{}
+		}
+		res[r.zone] = append(res[r.zone], r)
+	}
+	return res
+}
+
+func newRoutingTable(routes []*route, implicitRT *systemImplicitRT, vpcResource *vpcmodel.VPCResource) (res *routingTable, err error) {
+	res = &routingTable{
 		VPCResource: *vpcResource,
 		routesList:  routes}
-	if err := res.computeDisjointRouting(); err != nil {
-		return nil, err
+	res.routesPerZone = computeRoutesPerZone(routes)
+	res.routingResultMap = map[string]*routingResult{}
+
+	for zone, zoneRoutes := range res.routesPerZone {
+		res.routingResultMap[zone], err = computeDisjointRouting(zoneRoutes)
+		if err != nil {
+			return nil, err
+		}
 	}
+
 	res.implicitRT = implicitRT
 	return res, nil
 }
 
-func (rt *routingTable) computeRoutingForDisjointDest(disjointDest *ipblock.IPBlock) error {
+func (rt *routingResult) computeRoutingForDisjointDest(routesList []*route, disjointDest *ipblock.IPBlock) error {
 	// find the relevant rule from the sorted list of rules
-	for _, routeRule := range rt.routesList {
+	for _, routeRule := range routesList {
 		if disjointDest.ContainedIn(routeRule.destIPBlock) {
 			logging.Debugf("%s contained in %s\n", disjointDest.ToIPRanges(), routeRule.destination)
 			switch routeRule.action {
@@ -369,12 +430,15 @@ func (rt *routingTable) computeRoutingForDisjointDest(disjointDest *ipblock.IPBl
 }
 
 // TODO: handle ECMP routing
-func (rt *routingTable) computeDisjointRouting() error {
-	rt.nextHops = map[*ipblock.IPBlock]*ipblock.IPBlock{}
-	rt.droppedDestinations = ipblock.New()
-	rt.delegatedDestinations = ipblock.New()
+func computeDisjointRouting(routesList []*route) (*routingResult, error) {
+	res := &routingResult{
+		nextHops:              map[*ipblock.IPBlock]*ipblock.IPBlock{},
+		droppedDestinations:   ipblock.New(),
+		delegatedDestinations: ipblock.New(),
+	}
+
 	// sort routes list by prefix length, then by priority
-	slices.SortFunc(rt.routesList, func(a, b *route) int {
+	slices.SortFunc(routesList, func(a, b *route) int {
 		if a.destPrefixLen > b.destPrefixLen {
 			return -1
 		}
@@ -385,52 +449,100 @@ func (rt *routingTable) computeDisjointRouting() error {
 	})
 
 	destIPBlocks := []*ipblock.IPBlock{}
-	for _, route := range rt.routesList {
+	for _, route := range routesList {
 		destIPBlocks = append(destIPBlocks, route.destIPBlock)
 	}
 	disjointDestinations := ipblock.DisjointIPBlocks(destIPBlocks, destIPBlocks)
 	for _, disjointDest := range disjointDestinations {
 		logging.Debugf("disjoint dest: %s\n", disjointDest.ToIPRanges())
-		if err := rt.computeRoutingForDisjointDest(disjointDest); err != nil {
-			return err
+		if err := res.computeRoutingForDisjointDest(routesList, disjointDest); err != nil {
+			return nil, err
 		}
 	}
-	return nil
+	return res, nil
 }
 
-func (rt *routingTable) getEgressPath(src vpcmodel.Node, dest *ipblock.IPBlock) (vpcmodel.Path, error) {
-	path, shouldDelegate := rt.getPath(dest)
+// todo: Add zone/subnet, so that only relevant zone routes are considered
+// // If subnets are attached to the route's routing table, egress traffic from those
+// subnets in this zone will be subject to this route
+func (rt *routingTable) getEgressPath(src vpcmodel.Node, dest *ipblock.IPBlock, zone string) (vpcmodel.Path, error) {
+	path, shouldDelegate, _ := rt.getPath(dest, zone)
 	if shouldDelegate {
 		return rt.implicitRT.getEgressPath(src, dest), nil
 	}
 	return path.PrependResource(src), nil
 }
 
-func (rt *routingTable) getIngressPath(dest *ipblock.IPBlock) (vpcmodel.Path, error) {
-	path, shouldDelegate := rt.getPath(dest)
+func (rt *routingTable) evaluatedPath(dest *ipblock.IPBlock, path vpcmodel.Path, shouldDelegate bool) (vpcmodel.Path, error) {
 	if shouldDelegate {
 		return rt.implicitRT.getIngressPath(dest)
 	}
 	return path, nil
 }
 
-func (rt *routingTable) getPath(dest *ipblock.IPBlock) (vpcmodel.Path, bool) {
-	for tableDest, nextHop := range rt.nextHops {
-		if dest.ContainedIn(tableDest) {
-			return vpcmodel.Path([]*vpcmodel.Endpoint{
-				{NextHop: &vpcmodel.NextHopEntry{NextHop: nextHop, OrigDest: dest}}}), false
+// todo: Add zone/subnet, so that only relevant zone routes are considered
+// traffic from those ingress sources arriving in this zone will be subject to this route.
+func (rt *routingTable) getIngressPath(dest *ipblock.IPBlock, destZone string, srcZone string) (vpcmodel.Path, error) {
+
+	// if the dest zone is not empty - consider only dest zone routes
+	if destZone != "" {
+		logging.Debugf("consider only routes by dest zone, which is %s", destZone)
+		path, shouldDelegate, _ := rt.getPath(dest, destZone)
+		return rt.evaluatedPath(dest, path, shouldDelegate)
+	}
+
+	// if the src zone is found as a match - prefer the route of the src zone (if matched)
+	if srcZone != "" {
+		path, shouldDelegate, matched := rt.getPath(dest, srcZone)
+		if matched {
+			logging.Debugf("consider only routes by src zone, which is %s", srcZone)
+			return rt.evaluatedPath(dest, path, shouldDelegate)
 		}
 	}
-	if dest.ContainedIn(rt.delegatedDestinations) {
-		// explicit delegate
-		return nil, true
+
+	// if the dest zone is empty - consider all zones' routes
+	// if there is a match in more than one zone - all options are valid
+	// TODO: currently just picking the first matched.. should return all valid options instead
+	logging.Debugf("consider all zones routes, dest zone unknown and src zone not matched or unknonwn")
+	vpc := rt.VPCRef.(*VPC)
+	for zone := range vpc.zones {
+		if zone == srcZone {
+			continue // already checked src zone above
+		}
+		path, shouldDelegate, matched := rt.getPath(dest, zone)
+		if matched {
+			return rt.evaluatedPath(dest, path, shouldDelegate)
+		}
 	}
-	if dest.ContainedIn(rt.droppedDestinations) {
+	// if got here - none of the zones has match for this dest
+	return rt.implicitRT.getIngressPath(dest)
+}
+
+func (rt *routingTable) getPath(dest *ipblock.IPBlock, zone string) (path vpcmodel.Path, shouldDelegate bool, matchedInTable bool) {
+	if _, ok := rt.routingResultMap[zone]; !ok {
+		return nil, true, false
+	}
+	logging.Debugf("getPath for zone %s", zone)
+	logging.Debugf("zone entries in rt.routingResultMap:")
+	for z := range rt.routingResultMap {
+		logging.Debugf("%s", z)
+	}
+	for tableDest, nextHop := range rt.routingResultMap[zone].nextHops {
+		if dest.ContainedIn(tableDest) {
+			return vpcmodel.Path([]*vpcmodel.Endpoint{
+				{NextHop: &vpcmodel.NextHopEntry{NextHop: nextHop, OrigDest: dest}}}), false, true
+		}
+	}
+	if dest.ContainedIn(rt.routingResultMap[zone].delegatedDestinations) {
+		// explicit delegate
+		return nil, true, true
+	}
+	if dest.ContainedIn(rt.routingResultMap[zone].droppedDestinations) {
 		// explicit drop
-		return nil, false // no path
+		return nil, false, true // no path
 	}
 	// implicit delegate: a non-matched destination is delegated to the system-implicit routing table
-	return nil, true
+	return nil, true, false
 }
 
 func (rt *routingTable) string() string {
@@ -445,19 +557,19 @@ type ingressRTSource int
 
 const (
 	// one ingress routing table to all source of kind TGW (even if VPC has more han one TGW)
-	tgwSource ingressRTSource = iota
+	tgwSource ingressRTSource = iota // RouteTransitGatewayIngress
 
 	// direct link source
 	//nolint:unused // to be used later
-	dlSource
+	dlSource // RouteDirectLinkIngress
 
 	// public internet source
 	//nolint:unused // to be used later
-	publicInternetSource
+	publicInternetSource // RouteInternetIngress
 
 	// other zone source
 	//nolint:unused // to be used later
-	otherZoneSource
+	otherZoneSource // RouteVPCZoneIngress
 )
 
 func newIngressRoutingTableFromRoutes(routes []*route,

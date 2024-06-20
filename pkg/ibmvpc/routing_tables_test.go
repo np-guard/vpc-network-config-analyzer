@@ -23,15 +23,16 @@ type testDisjointRouting struct {
 	expectedRoutingOutput string
 }
 
+// disjointRoutingStr is used for testing, currently assuming all routes are with empty zone str
 func (rt *routingTable) disjointRoutingStr() string {
 	lines := []string{}
-	for dest, nextHop := range rt.nextHops {
+	for dest, nextHop := range rt.routingResultMap[""].nextHops {
 		lines = append(lines, fmt.Sprintf("%s -> %s", dest.ToIPRanges(), nextHop.ToIPAddressString()))
 	}
-	for _, droppedDest := range rt.droppedDestinations.ToCidrList() {
+	for _, droppedDest := range rt.routingResultMap[""].droppedDestinations.ToCidrList() {
 		lines = append(lines, fmt.Sprintf("%s -> drop", droppedDest))
 	}
-	for _, delegatedDest := range rt.delegatedDestinations.ToCidrList() {
+	for _, delegatedDest := range rt.routingResultMap[""].delegatedDestinations.ToCidrList() {
 		lines = append(lines, fmt.Sprintf("%s -> delegate", delegatedDest))
 	}
 	slices.Sort(lines)
@@ -46,7 +47,7 @@ func (test *testDisjointRouting) run(t *testing.T) {
 
 // newRouteNoErr returns new route with advertise=false, and without checking error returned
 func newRouteNoErr(name, dest, nextHop string, action routingAction, prio int) *route {
-	res, _ := newRoute(name, dest, nextHop, action, prio, false)
+	res, _ := newRoute(name, dest, nextHop, "", action, prio, false)
 	return res
 }
 

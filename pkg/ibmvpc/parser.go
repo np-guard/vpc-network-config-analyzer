@@ -262,7 +262,8 @@ func getRoutes(rt *datamodel.RoutingTable) (res []*route, err error) {
 			defaultVal := false
 			r.Advertise = &defaultVal
 		}
-		rObj, err := newRoute(*r.Name, *r.Destination, *nextHop.Address, action, int(*r.Priority), *r.Advertise)
+		rObj, err := newRoute(*r.Name, *r.Destination, *nextHop.Address,
+			*r.Zone.Name, action, int(*r.Priority), *r.Advertise)
 		if err != nil {
 			return nil, err
 		}
@@ -330,6 +331,7 @@ func getCertainNodes(allNodes []vpcmodel.Node, shouldTakeNode func(vpcmodel.Node
 	return
 }
 
+// TODO: remove this funcion, just check that zone exists (zones added in vpc generation)
 func addZone(zoneName, vpcUID string, res *vpcmodel.MultipleVPCConfigs) error {
 	vpc, err := getVPCObjectByUID(res, vpcUID)
 	if err != nil {
@@ -662,14 +664,16 @@ func getFipConfig(
 	return nil
 }
 
-func getVPCAddressPrefixes(vpc *datamodel.VPC) (res []string) {
+// getZonesAndAddressPrefixes returns a map from zone name to its cidr (vpc address prefix)
+func getZonesAndAddressPrefixes(vpc *datamodel.VPC) (res map[string]string) {
+	res = map[string]string{}
 	for _, ap := range vpc.AddressPrefixes {
-		res = append(res, *ap.CIDR)
+		res[*ap.Zone.Name] = *ap.CIDR
 	}
 	return res
 }
 
-func newVPC(name, uid, region string, ap []string, regionToStructMap map[string]*Region) (vpcNodeSet *VPC, err error) {
+func newVPC(name, uid, region string, zonesToAP map[string]string, regionToStructMap map[string]*Region) (vpcNodeSet *VPC, err error) {
 	vpcNodeSet = &VPC{
 		VPCResource: vpcmodel.VPCResource{
 			ResourceName: name,
@@ -677,13 +681,24 @@ func newVPC(name, uid, region string, ap []string, regionToStructMap map[string]
 			ResourceType: ResourceTypeVPC,
 			Region:       region,
 		},
-		nodes:           []vpcmodel.Node{},
-		zones:           map[string]*Zone{},
-		addressPrefixes: ap,
-		region:          getRegionByName(region, regionToStructMap),
+		zones:  map[string]*Zone{},
+		region: getRegionByName(region, regionToStructMap),
+	}
+	for zoneName, zoneCidr := range zonesToAP {
+		vpcNodeSet.addressPrefixes = append(vpcNodeSet.addressPrefixes, zoneCidr)
+		if _, ok := vpcNodeSet.zones[zoneName]; !ok {
+			zoneIPBlock, err := ipblock.FromCidr(zoneCidr)
+			if err != nil {
+				return nil, err
+			}
+			vpcNodeSet.zones[zoneName] = &Zone{name: zoneName,
+				vpc:     vpcNodeSet,
+				cidr:    zoneCidr,
+				ipblock: zoneIPBlock}
+		}
 	}
 
-	vpcNodeSet.addressPrefixesIPBlock, err = ipblock.FromCidrList(ap)
+	vpcNodeSet.addressPrefixesIPBlock, err = ipblock.FromCidrList(vpcNodeSet.addressPrefixes)
 	if err != nil {
 		return nil, err
 	}
@@ -700,10 +715,11 @@ func getVPCconfig(rc *datamodel.ResourcesContainerModel,
 			continue // skip vpc not specified to analyze
 		}
 
-		vpcNodeSet, err := newVPC(*vpc.Name, *vpc.CRN, vpc.Region, getVPCAddressPrefixes(vpc), regionToStructMap)
+		vpcNodeSet, err := newVPC(*vpc.Name, *vpc.CRN, vpc.Region, getZonesAndAddressPrefixes(vpc), regionToStructMap)
 		if err != nil {
 			return err
 		}
+
 		newVPCConfig := NewEmptyVPCConfig()
 		newVPCConfig.UIDToResource[vpcNodeSet.ResourceUID] = vpcNodeSet
 		newVPCConfig.VPC = vpcNodeSet

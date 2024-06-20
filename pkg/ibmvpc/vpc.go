@@ -32,8 +32,10 @@ type Region struct {
 }
 
 type Zone struct {
-	name string
-	vpc  *VPC
+	name    string
+	cidr    string
+	ipblock *ipblock.IPBlock
+	vpc     *VPC // TODO: extend: zone can span over multiple VPCs
 }
 
 func (z *Zone) VPC() *VPC {
@@ -136,6 +138,15 @@ type VPC struct {
 	addressPrefixes        []string
 	addressPrefixesIPBlock *ipblock.IPBlock
 	region                 *Region
+}
+
+func (v *VPC) getZoneByIPBlock(ipb *ipblock.IPBlock) (string, error) {
+	for _, z := range v.zones {
+		if ipb.ContainedIn(z.ipblock) {
+			return z.name, nil
+		}
+	}
+	return "", fmt.Errorf("on vpc %s, could not fine zone for ipblock %s", v.Name(), ipb.ToCidrListString())
 }
 
 func (v *VPC) Region() *Region {
