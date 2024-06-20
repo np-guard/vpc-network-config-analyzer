@@ -414,6 +414,13 @@ var explainTests = []*vpcGeneralTest{
 		EDst:        "vsi1-ky",
 		format:      vpcmodel.Debug,
 	},
+	{
+		name:        "PartialTCPRespond",
+		inputConfig: "sg_testing1_new_respond_partly",
+		ESrc:        "vsi3a-ky",
+		EDst:        "vsi1-ky",
+		format:      vpcmodel.Debug,
+	},
 	// the following three tests are within a single VPC in a multiVPC context
 	// 2 vsi connection
 	{
