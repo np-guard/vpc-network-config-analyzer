@@ -516,8 +516,7 @@ func (c *VPCConfig) getRespondRules(src, dst Node,
 	mergedIngressRules, mergedEgressRules := rulesInLayers{}, rulesInLayers{}
 	// respond: from dst to src. Thus, ingress rules: relevant only if *src* is internal, egress is *dst* is internal
 	if src.IsInternal() {
-		// todo: switch dst src ports of conn - to that end needs to merge the PR on connections that exports the func
-		connSwitch := conn
+		connSwitch := conn.SwitchSrcDstPorts()
 		var err error
 		mergedIngressRules, err = c.computeAndUpdateDirectionRespondRules(src, dst, connSwitch, true)
 		if err != nil {
