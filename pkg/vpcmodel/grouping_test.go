@@ -231,7 +231,7 @@ func configResponsiveGrouping() (*VPCConfig, *VPCConnectivity) {
 
 	res1 := &VPCConnectivity{AllowedConnsCombinedResponsive: GeneralResponsiveConnectivityMap{}}
 	conn := detailedConnForAllRsp()
-	nonResponsiveConn := detailedConnForTCPRspAndNonTCP(newTCPSet(), AllConns())
+	nonResponsiveConn := detailedConnForTCPRsp(NoConns(), AllConns())
 	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[0], res.Nodes[1], conn)
 	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[0], res.Nodes[2], conn)
 	res1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(res.Nodes[3], res.Nodes[1], conn)
