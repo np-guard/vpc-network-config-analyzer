@@ -259,11 +259,8 @@ type LoadBalancer struct {
 }
 
 // for LB we add the kind to the name, to make it clear in the reports
-func (lb *LoadBalancer) Name() string {
-	return nameWithBracketsInfo(lb.ResourceName, lb.Kind())
-}
 func (lb *LoadBalancer) ExtendedName(c *vpcmodel.VPCConfig) string {
-	return lb.ExtendedPrefix(c) + lb.Name()
+	return lb.ExtendedPrefix(c) + nameWithBracketsInfo(lb.Name(), lb.Kind())
 }
 
 func (lb *LoadBalancer) Nodes() []vpcmodel.Node {

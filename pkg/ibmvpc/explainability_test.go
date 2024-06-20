@@ -549,6 +549,14 @@ var explainTests = []*vpcGeneralTest{
 		EDstMaxPort: connection.MaxPort,
 		format:      vpcmodel.Debug,
 	},
+	// load_balancer to iks-node
+	{
+		name:        "LBToIksNode",
+		inputConfig: "iks_config_object",
+		ESrc:        "kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca",
+		EDst:        "192.168.4.4",
+		format:      vpcmodel.Text,
+	},
 }
 
 func TestAll(t *testing.T) {
