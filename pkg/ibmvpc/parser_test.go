@@ -92,18 +92,14 @@ func TestSubnetsBlocks(t *testing.T) {
 	subnetID, vpcID := "subId1", "vpcId"
 	subnetOrigBlock, _ := ipblock.FromCidr("10.240.0.0/23")
 	subnetsBlocks[subnetID] = &oneSubnetBlocks{subnetOriginalBlock: subnetOrigBlock}
-	filtersBlocks := filtersBlocks{}
-	filterBlock1, _ := ipblock.FromCidr("10.230.0.0/23")
-	filterBlock2, _ := ipblock.FromCidr("10.240.0.0/24")
-	filterBlock3, _ := ipblock.FromCidr("10.240.1.0/25")
-	filterBlock4, _ := ipblock.FromCidr("10.240.1.128/25")
+	filtersCidrs := map[string][]string{}
 
-	filtersBlocks[vpcID] = []*ipblock.IPBlock{filterBlock1, filterBlock2, filterBlock3, filterBlock4}
-	filtersBlocks.disjointBlocks()
+	filtersCidrs[vpcID] = []string{"10.230.0.0/23", "10.240.0.1", "10.240.0.0/24", "10.240.1.0/25", "10.240.1.128/25"}
+	filtersBlocks, _ := disjointBlocks(filtersCidrs)
 	subnetsBlocks[subnetID].splitByFiltersBlocks = splitSubnetOriginalBlock(subnetsBlocks[subnetID].subnetOriginalBlock, filtersBlocks[vpcID])
 	subnetsBlocks[subnetID].freeAddressesBlocks = subnetsBlocks[subnetID].splitByFiltersBlocks
-	require.True(t, len(subnetsBlocks.subnetBlocks(subnetID)) == 3)
-	blockIndexes := []int{0, 0, 1, 2, 1, 2, 1}
+	require.True(t, len(subnetsBlocks.subnetBlocks(subnetID)) == 4)
+	blockIndexes := []int{0, 1, 0, 1, 2, 3, 2, 3, 2}
 	allocatedAddresses := make([]string, len(blockIndexes))
 	for i, blockIndex := range blockIndexes {
 		address, _ := subnetsBlocks.allocSubnetFreeAddress(subnetID, blockIndex)
@@ -111,8 +107,10 @@ func TestSubnetsBlocks(t *testing.T) {
 	}
 	slices.Sort(allocatedAddresses)
 	expectedResult := []string{
+		"",
 		"10.240.0.0",
 		"10.240.0.1",
+		"10.240.0.2",
 		"10.240.1.0",
 		"10.240.1.1",
 		"10.240.1.128",

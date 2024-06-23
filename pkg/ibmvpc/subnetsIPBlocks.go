@@ -7,6 +7,7 @@ package ibmvpc
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
@@ -184,28 +185,59 @@ type filtersBlocks map[string][]*ipblock.IPBlock
 
 func getFiltersBlocks(rc *datamodel.ResourcesContainerModel) (blocks filtersBlocks, err error) {
 	blocks = filtersBlocks{}
-	filtersCidrsOrAddresses:= make( []map[string][]*string, 2)
+	filtersCidrsOrAddresses := make([]map[string][]*string, 2)
 	if filtersCidrsOrAddresses[0], err = getACLRulesCidrs(rc); err != nil {
 		return nil, err
 	}
 	if filtersCidrsOrAddresses[1], err = getGSRulesCidrs(rc); err != nil {
 		return nil, err
 	}
-	blocks.addBlocks(filtersCidrsOrAddresses)
-	blocks.disjointBlocks()
+	vpcCidrs := vpcCidrs(filtersCidrsOrAddresses)
+	return  disjointBlocks(vpcCidrs)
+}
+
+func vpcCidrs(filtersCidrsOrAddresses []map[string][]*string) map[string][]string {
+	vpcCidrs := map[string][]string{}
+	for _, filterCidrsOrAddresses := range filtersCidrsOrAddresses {
+		for vpc, vpcCidrsOrAddresses := range filterCidrsOrAddresses {
+			if _, ok := vpcCidrs[vpc]; !ok {
+				vpcCidrs[vpc] = []string{}
+			}
+			for _, cidrOrAddress := range vpcCidrsOrAddresses {
+				if cidrOrAddress != nil {
+					vpcCidrs[vpc] = append(vpcCidrs[vpc], *cidrOrAddress)
+				}
+			}
+		}
+	}
+	return nil
+}
+
+func disjointBlocks(cidr  map[string][]string) (blocks filtersBlocks, err error){
+	blocks = filtersBlocks{}
+	for vpc, vpcCidr := range cidr  {
+		blocks[vpc],err = disjointCidrBlocks(append(vpcCidr, "0.0.0.0/0"))
+		if err != nil {
+			return nil, err
+		}
+	}
 	return blocks, nil
 }
 
-func (blocks filtersBlocks) disjointBlocks() {
-	for vpc := range blocks {
-		blocks[vpc] = disjointCidrBlocks(append(blocks[vpc], ipblock.GetCidrAll()))
+func disjointCidrBlocks(cidrs []string) ([]*ipblock.IPBlock, error) {
+	compactCidrs:= slices.Compact(cidrs)
+	cidrBlocks := make([]*ipblock.IPBlock, len(compactCidrs))
+	for i, cidr := range compactCidrs{ 
+		block, err := ipblock.FromCidrOrAddress(cidr)
+		if err != nil {
+			return nil,err
+		}
+		cidrBlocks[i] = block
 	}
-}
-
-func disjointCidrBlocks(cidrBlocks []*ipblock.IPBlock) []*ipblock.IPBlock {
 	res := []*ipblock.IPBlock{}
 	usedBlocks := ipblock.New()
 	sort.Slice(cidrBlocks, func(i, j int) bool {
+		// todo - use ipCount() after exposing it 
 		PrefixLengthI, _ := cidrBlocks[i].PrefixLength()
 		PrefixLengthJ, _ := cidrBlocks[j].PrefixLength()
 		return PrefixLengthI > PrefixLengthJ
@@ -217,7 +249,7 @@ func disjointCidrBlocks(cidrBlocks []*ipblock.IPBlock) []*ipblock.IPBlock {
 		}
 		usedBlocks = usedBlocks.Union(b)
 	}
-	return res
+	return res, nil
 }
 
 func getACLRulesCidrs(rc *datamodel.ResourcesContainerModel) (map[string][]*string, error) {
@@ -238,7 +270,7 @@ func getACLRulesCidrs(rc *datamodel.ResourcesContainerModel) (map[string][]*stri
 			default:
 				return nil, fmt.Errorf("ACL %s has unsupported type for the %dth rule", *aclObj.Name, i)
 			}
-			if _, ok := cidrs[*aclObj.VPC.CRN]; !ok{
+			if _, ok := cidrs[*aclObj.VPC.CRN]; !ok {
 				cidrs[*aclObj.VPC.CRN] = []*string{}
 			}
 			cidrs[*aclObj.VPC.CRN] = append(cidrs[*aclObj.VPC.CRN], []*string{src, dst}...)
@@ -279,7 +311,7 @@ func getGSRulesCidrs(rc *datamodel.ResourcesContainerModel) (map[string][]*strin
 				// do these blocks are already fullyReservedBlocks we can ignore them:
 				remoteCidrsOrAddresses = []*string{remote.Address, remote.CIDRBlock}
 			}
-			if _, ok := cidrs[*sgObj.VPC.CRN]; !ok{
+			if _, ok := cidrs[*sgObj.VPC.CRN]; !ok {
 				cidrs[*sgObj.VPC.CRN] = []*string{}
 			}
 			cidrs[*sgObj.VPC.CRN] = append(cidrs[*sgObj.VPC.CRN], localCidrsOrAddresses...)
@@ -289,22 +321,3 @@ func getGSRulesCidrs(rc *datamodel.ResourcesContainerModel) (map[string][]*strin
 	return cidrs, nil
 }
 
-func (blocks filtersBlocks) addBlocks(filtersCidrsOrAddresses []map[string][]*string) error {
-	for _, filterCidrsOrAddresses := range filtersCidrsOrAddresses {
-		for vpc, vpcCidrsOrAddresses := range filterCidrsOrAddresses {
-			if _, ok := blocks[vpc]; !ok {
-				blocks[vpc] = []*ipblock.IPBlock{}
-			}
-			for _, cidrOrAddress := range vpcCidrsOrAddresses {
-				if cidrOrAddress != nil {
-					block, err := ipblock.FromCidrOrAddress(*cidrOrAddress)
-					if err != nil {
-						return err
-					}
-					blocks[vpc] = append(blocks[vpc], block)
-				}
-			}
-		}
-	}
-	return nil
-}
