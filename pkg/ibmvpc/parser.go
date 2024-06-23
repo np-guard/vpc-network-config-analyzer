@@ -23,6 +23,53 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
+func mergeResourcesContainers(rc1, rc2 *datamodel.ResourcesContainerModel) (*datamodel.ResourcesContainerModel, error) {
+	if rc2 == nil && rc1 != nil {
+		return rc1, nil
+	}
+	if rc2 != nil && rc1 == nil {
+		return rc2, nil
+	}
+	if rc2 == nil && rc1 == nil {
+		return nil, fmt.Errorf("error merging input vpc resources files")
+	}
+	rc1.VpcList = append(rc1.VpcList, rc2.VpcList...)
+	rc1.SubnetList = append(rc1.SubnetList, rc2.SubnetList...)
+	rc1.PublicGWList = append(rc1.PublicGWList, rc2.PublicGWList...)
+	rc1.FloatingIPList = append(rc1.FloatingIPList, rc2.FloatingIPList...)
+	rc1.NetworkACLList = append(rc1.NetworkACLList, rc2.NetworkACLList...)
+	rc1.SecurityGroupList = append(rc1.SecurityGroupList, rc2.SecurityGroupList...)
+	rc1.EndpointGWList = append(rc1.EndpointGWList, rc2.EndpointGWList...)
+	rc1.InstanceList = append(rc1.InstanceList, rc2.InstanceList...)
+	rc1.RoutingTableList = append(rc1.RoutingTableList, rc2.RoutingTableList...)
+	rc1.LBList = append(rc1.LBList, rc2.LBList...)
+	rc1.TransitConnectionList = append(rc1.TransitConnectionList, rc2.TransitConnectionList...)
+	rc1.TransitGatewayList = append(rc1.TransitGatewayList, rc2.TransitGatewayList...)
+	rc1.IKSClusters = append(rc1.IKSClusters, rc2.IKSClusters...)
+
+	return rc1, nil
+}
+
+func VpcConfigsFromFiles(fileNames []string, vpcID string, resourceGroup string, regions []string) (
+	*vpcmodel.MultipleVPCConfigs, error) {
+	var mergedRC *datamodel.ResourcesContainerModel
+	for _, file := range fileNames {
+		rc, err1 := ParseResourcesFromFile(file)
+		if err1 != nil {
+			return nil, fmt.Errorf("error parsing input vpc resources file: %w", err1)
+		}
+		mergedRC, err1 = mergeResourcesContainers(mergedRC, rc)
+		if err1 != nil {
+			return nil, err1
+		}
+	}
+	vpcConfigs, err2 := VPCConfigsFromResources(mergedRC, vpcID, resourceGroup, regions)
+	if err2 != nil {
+		return nil, fmt.Errorf("error generating cloud config from input vpc resources file: %w", err2)
+	}
+	return vpcConfigs, nil
+}
+
 // ParseResourcesFromFile returns datamodel.ResourcesContainerModel object, containing the configured resources structs
 // from the input JSON file
 func ParseResourcesFromFile(fileName string) (*datamodel.ResourcesContainerModel, error) {

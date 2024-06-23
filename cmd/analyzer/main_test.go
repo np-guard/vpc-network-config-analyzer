@@ -25,6 +25,18 @@ func TestMain(t *testing.T) {
 		name string
 		args string
 	}{
+		// aws
+		{
+			name: "aws_all_endpoints",
+			args: "report endpoints --output-file aws.txt -c ../../pkg/awsvpc/examples/input/config_object.json --format txt",
+		},
+		/*
+			{
+				name: "aws_explain",
+				args: "explain --output-file aws_explain.txt -c ../../pkg/awsvpc/examples/input/config_object.json --src InstanceId:18 --dst InstanceId:7 --format txt",
+			},
+		*/
+		// drawio
 		{
 			name: "drawio_multi_vpc_all_subnets",
 			args: "report subnets --output-file multi_vpc.drawio --vpc-config ../../pkg/ibmvpc/examples/input/input_multiple_vpcs.json -o drawio",

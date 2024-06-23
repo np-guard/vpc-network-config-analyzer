@@ -1,0 +1,6 @@
+Endpoint connectivity for VPC 
+<nothing to report>
+
+Endpoint connectivity for VPC 
+InstanceId:18[10.0.20.81] => InstanceId:7[10.0.10.50] : All Connections
+InstanceId:7[10.0.10.50] => InstanceId:18[10.0.20.81] : All Connections
