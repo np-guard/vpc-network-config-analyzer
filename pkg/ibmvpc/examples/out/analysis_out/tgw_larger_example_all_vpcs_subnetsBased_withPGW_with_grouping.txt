@@ -3,7 +3,8 @@ test-vpc1-ky/[subnet11-ky,subnet12-ky] => test-vpc2-ky/subnet21-ky : All Connect
 test-vpc2-ky/subnet21-ky => test-vpc1-ky/[subnet11-ky,subnet12-ky] : All Connections
 test-vpc2-ky/subnet21-ky => test-vpc3-ky/[subnet31-ky,subnet32-ky] : All Connections
 test-vpc3-ky/[subnet31-ky,subnet32-ky] => test-vpc2-ky/subnet21-ky : All Connections
-test-vpc3-ky/subnet31-ky => test-vpc1-ky/[subnet11-ky,subnet12-ky] : All Connections * 
+test-vpc3-ky/subnet31-ky => test-vpc1-ky/[subnet11-ky,subnet12-ky] : protocol: ICMP,UDP
+test-vpc3-ky/subnet31-ky => test-vpc1-ky/[subnet11-ky,subnet12-ky] : protocol: TCP * 
 
 Connectivity between VPCs connected by TGW local-tg-zn (UID: crn:574)
 zn-vpc1/zn-vpc1-net1 => zn-vpc2/zn-vpc2-net1 : All Connections
@@ -29,4 +30,4 @@ Subnet connectivity for VPC zn-vpc1
 Subnet connectivity for VPC zn-vpc2
 <nothing to report>
 
-connections are stateful (on TCP) unless marked with *
+connections are responsive (on TCP) unless marked with *
