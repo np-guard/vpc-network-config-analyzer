@@ -1429,6 +1429,87 @@ func getVPCObjectByUID(res *vpcmodel.MultipleVPCConfigs, uid string) (*VPC, erro
 	return vpc, nil
 }
 
+func getACLRulesCidrs(rc *datamodel.ResourcesContainerModel) (map[string][]*string, error) {
+	cidrs := map[string][]*string{}
+	for _, aclObj := range rc.NetworkACLList {
+		for i, rule := range aclObj.Rules {
+			var src, dst *string
+			switch ruleObj := rule.(type) {
+			case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolAll:
+				src = ruleObj.Source
+				dst = ruleObj.Destination
+			case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolTcpudp:
+				src = ruleObj.Source
+				dst = ruleObj.Destination
+			case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolIcmp:
+				src = ruleObj.Source
+				dst = ruleObj.Destination
+			default:
+				return nil, fmt.Errorf("ACL %s has unsupported type for the %dth rule", *aclObj.Name, i)
+			}
+			if _, ok := cidrs[*aclObj.VPC.CRN]; !ok {
+				cidrs[*aclObj.VPC.CRN] = []*string{}
+			}
+			cidrs[*aclObj.VPC.CRN] = append(cidrs[*aclObj.VPC.CRN], []*string{src, dst}...)
+		}
+	}
+	return cidrs, nil
+}
+
+func getGSRulesCidrs(rc *datamodel.ResourcesContainerModel) (map[string][]*string, error) {
+	cidrs := map[string][]*string{}
+	for _, sgObj := range rc.SecurityGroupList {
+		for i, rule := range sgObj.Rules {
+			var localRule, remoteRule interface{}
+			switch ruleObj := rule.(type) {
+			case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolAll:
+				remoteRule = ruleObj.Remote
+				localRule = ruleObj.Local
+			case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudp:
+				remoteRule = ruleObj.Remote
+				localRule = ruleObj.Local
+			case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolIcmp:
+				remoteRule = ruleObj.Remote
+				localRule = ruleObj.Local
+
+			default:
+				return nil, fmt.Errorf("SG %s has unsupported type for the %dth rule", *sgObj.Name, i)
+			}
+			var localCidrsOrAddresses, remoteCidrsOrAddresses []*string
+			if localRule != nil {
+				local := localRule.(*vpc1.SecurityGroupRuleLocal)
+				localCidrsOrAddresses = []*string{local.Address, local.CIDRBlock}
+			}
+			if remoteRule != nil {
+				remote := remoteRule.(*vpc1.SecurityGroupRuleRemote)
+				// we also might have remote.name, in such case we need to refer to addresses of the sg members.
+				// (in this stage we do not have the sg members yet).
+				// however, the members are resources, and their addresses are already reserved IP.
+				// do these blocks are already fullyReservedBlocks we can ignore them:
+				remoteCidrsOrAddresses = []*string{remote.Address, remote.CIDRBlock}
+			}
+			if _, ok := cidrs[*sgObj.VPC.CRN]; !ok {
+				cidrs[*sgObj.VPC.CRN] = []*string{}
+			}
+			cidrs[*sgObj.VPC.CRN] = append(cidrs[*sgObj.VPC.CRN], localCidrsOrAddresses...)
+			cidrs[*sgObj.VPC.CRN] = append(cidrs[*sgObj.VPC.CRN], remoteCidrsOrAddresses...)
+		}
+	}
+	return cidrs, nil
+}
+
+func getFiltersRulesCidrs(rc *datamodel.ResourcesContainerModel) (filtersCidrs []map[string][]*string, err error) {
+	filtersCidrs = make([]map[string][]*string, 2)
+	if filtersCidrs[0], err = getACLRulesCidrs(rc); err != nil {
+		return nil, err
+	}
+	if filtersCidrs[1], err = getGSRulesCidrs(rc); err != nil {
+		return nil, err
+	}
+	return filtersCidrs, nil
+}
+
+
 // ////////////////////////////////////////////////////////////////
 // Load Balancer Parsing:
 func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
@@ -1438,7 +1519,11 @@ func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 	if len(rc.LBList) == 0 {
 		return nil
 	}
-	subnetsIPBlocks, err := getSubnetsIPBlocks(rc)
+	filtersCidrs, err := getFiltersRulesCidrs(rc)
+	if err != nil {
+		return err
+	}
+	subnetsIPBlocks, err := vpcmodel.GetSubnetsIPBlocks(rc, filtersCidrs)
 	if err != nil {
 		return err
 	}
@@ -1555,7 +1640,7 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 	loadBalancerObj *datamodel.LoadBalancer,
 	loadBalancer *LoadBalancer,
 	vpc *VPC,
-	subnetsBlocks subnetsIPBlocks) ([]vpcmodel.Node, error) {
+	subnetsBlocks vpcmodel.SubnetsIPBlocks) ([]vpcmodel.Node, error) {
 	// first we collect  the subnets that has private IPs:
 	subnetsPIPsAddresses := map[vpcmodel.Subnet]*ipblock.IPBlock{} // map from the subnet to the address block
 	subnetsPIPsIndexes := map[vpcmodel.Subnet]int{}                // map from a subnet to the pip index
@@ -1579,7 +1664,7 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 		if err != nil {
 			return nil, err
 		}
-		subnetBlocks := subnetsBlocks.subnetBlocks(*subnetObj.CRN)
+		subnetBlocks := subnetsBlocks.SubnetBlocks(*subnetObj.CRN)
 		privateIPAddressesMessage := make([]string, len(subnetBlocks))
 		// when a load balancer is created, not all its subnets get privateIPs.
 		// some subnets are chosen (arbitrary?) and only these are assigned privateIPs.
@@ -1600,7 +1685,7 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 				if hasPublicAddress {
 					publicAddress = *loadBalancerObj.PublicIps[subnetsPIPsIndexes[subnet]].Address
 				}
-			case subnetsBlocks.isFullyReservedBlock(*subnetObj.CRN, blockIndex):
+			case subnetsBlocks.IsFullyReservedBlock(*subnetObj.CRN, blockIndex):
 				// All the addresses in the original block are reserved IPs.
 				// therefore, a private IP could not be deployed in this block.
 				// Thus, for such a blocks there is no need to create private IPs.
@@ -1610,7 +1695,7 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 				name = "pip-name-of-" + subnet.Name() + "-" + *loadBalancerObj.Name
 				id = "pip-uid-of-" + subnet.UID() + *loadBalancerObj.ID
 				var err error
-				address, err = subnetsBlocks.allocSubnetFreeAddress(*subnetObj.CRN, blockIndex)
+				address, err = subnetsBlocks.AllocSubnetFreeAddress(*subnetObj.CRN, blockIndex)
 				if err != nil {
 					return nil, err
 				}

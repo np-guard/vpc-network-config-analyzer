@@ -192,9 +192,16 @@ func (tt *vpcGeneralTest) initTest() {
 	}
 }
 
-var tests = []*vpcGeneralTest{
-	{
-	inputConfig:  "hub_n_spoke_1",
+var tests2 = []*vpcGeneralTest{
+// 	{
+// 	inputConfig:  "hub_n_spoke_1",
+// 	useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+// 	format:       vpcmodel.HTML,
+// 	grouping:     true,
+// 	noLbAbstract: true,
+// },
+{
+	inputConfig:  "filters_split_lb_subnet",
 	useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 	format:       vpcmodel.HTML,
 	grouping:     true,
@@ -203,7 +210,7 @@ var tests = []*vpcGeneralTest{
 }
 
 
-var tests2 = []*vpcGeneralTest{
+var tests = []*vpcGeneralTest{
 	{
 		inputConfig: "acl_testing5",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},

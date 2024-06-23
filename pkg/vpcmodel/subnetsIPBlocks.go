@@ -3,14 +3,12 @@ Copyright 2023- IBM Inc. All Rights Reserved.
 
 SPDX-License-Identifier: Apache-2.0
 */
-package ibmvpc
+package vpcmodel
 
 import (
 	"fmt"
 	"slices"
 	"sort"
-
-	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
 
 	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
 	"github.com/np-guard/models/pkg/ipblock"
@@ -59,22 +57,22 @@ type oneSubnetBlocks struct {
 	fullyReservedBlocks []bool
 }
 
-// subnetsIPBlocks is a map from the subnet crn to the subnets block
-type subnetsIPBlocks map[string]*oneSubnetBlocks
+// SubnetsIPBlocks is a map from the subnet crn to the subnets block
+type SubnetsIPBlocks map[string]*oneSubnetBlocks
 
 // getSubnetsIPBlocks() is the main func that creates the subnetsBlocks, steps:
 // 1. get the subnets original blocks
 // 2. calculate the filters blocks
 // 3. calculate the splitByFiltersBlocks
 // 4. calculate the freeAddressesBlocks
-func getSubnetsIPBlocks(rc *datamodel.ResourcesContainerModel) (subnetsBlocks subnetsIPBlocks, err error) {
-	subnetsBlocks = subnetsIPBlocks{}
+func GetSubnetsIPBlocks(rc *datamodel.ResourcesContainerModel, filtersCidrs []map[string][]*string) (subnetsBlocks SubnetsIPBlocks, err error) {
+	subnetsBlocks = SubnetsIPBlocks{}
 	// gets the original blocks of the subnets:
 	if err := subnetsBlocks.getSubnetsOriginalBlocks(rc); err != nil {
 		return nil, err
 	}
 	// calc the filters blocks:
-	filtersBlocks, err := getFiltersBlocks(rc)
+	filtersBlocks, err := getFiltersBlocks(filtersCidrs)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +85,7 @@ func getSubnetsIPBlocks(rc *datamodel.ResourcesContainerModel) (subnetsBlocks su
 	return subnetsBlocks, nil
 }
 
-func (subnetsBlocks subnetsIPBlocks) getSubnetsOriginalBlocks(rc *datamodel.ResourcesContainerModel) (err error) {
+func (subnetsBlocks SubnetsIPBlocks) getSubnetsOriginalBlocks(rc *datamodel.ResourcesContainerModel) (err error) {
 	for _, subnetObj := range rc.SubnetList {
 		subnetsBlocks[*subnetObj.CRN] = &oneSubnetBlocks{}
 		subnetsBlocks[*subnetObj.CRN].subnetOriginalBlock, err = ipblock.FromCidr(*subnetObj.Ipv4CIDRBlock)
@@ -100,7 +98,7 @@ func (subnetsBlocks subnetsIPBlocks) getSubnetsOriginalBlocks(rc *datamodel.Reso
 
 // splitSubnetsOriginalBlocks() splits the subnet's cidr(s) to (maximal) disjoint blocks -
 // such that each block is atomic w.r.t. the filters rules
-func (subnetsBlocks subnetsIPBlocks) splitSubnetsOriginalBlocks(rc *datamodel.ResourcesContainerModel, filtersBlocks filtersBlocks) {
+func (subnetsBlocks SubnetsIPBlocks) splitSubnetsOriginalBlocks(rc *datamodel.ResourcesContainerModel, filtersBlocks filtersBlocks) {
 	for _, subnetObj := range rc.SubnetList {
 		subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks =
 			splitSubnetOriginalBlock(subnetsBlocks[*subnetObj.CRN].subnetOriginalBlock, filtersBlocks[*subnetObj.VPC.CRN])
@@ -123,7 +121,7 @@ func splitSubnetOriginalBlock(subnetOriginalBlock *ipblock.IPBlock, filtersBlock
 //  1. make a copy of the splitByFiltersBlocks
 //  2. remove from this copy the addresses that were already allocated
 //  3. set fullyReservedBlocks - check for each block if it has free addresses
-func (subnetsBlocks subnetsIPBlocks) getSubnetsFreeBlocks(rc *datamodel.ResourcesContainerModel) error {
+func (subnetsBlocks SubnetsIPBlocks) getSubnetsFreeBlocks(rc *datamodel.ResourcesContainerModel) error {
 	for _, subnetObj := range rc.SubnetList {
 		subnetsBlocks[*subnetObj.CRN].freeAddressesBlocks = make([]*ipblock.IPBlock, len(subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks))
 		subnetsBlocks[*subnetObj.CRN].fullyReservedBlocks = make([]bool, len(subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks))
@@ -148,21 +146,21 @@ func (subnetsBlocks subnetsIPBlocks) getSubnetsFreeBlocks(rc *datamodel.Resource
 }
 
 // allocSubnetFreeAddress() allocated a free address from a block (for the private ip):
-func (subnetsBlocks subnetsIPBlocks) allocSubnetFreeAddress(subnetCRN string, blockIndex int) (string, error) {
+func (subnetsBlocks SubnetsIPBlocks) AllocSubnetFreeAddress(subnetCRN string, blockIndex int) (string, error) {
 	if subnetsBlocks[subnetCRN].freeAddressesBlocks[blockIndex].IsEmpty() {
 		return "", fmt.Errorf("fail to allocate a free address at block: %s ", subnetsBlocks[subnetCRN].freeAddressesBlocks[blockIndex].String())
 	}
 	address := subnetsBlocks[subnetCRN].freeAddressesBlocks[blockIndex].FirstIPAddress()
 	return address, subnetsBlocks.removeAddressFromFree(address, subnetCRN, blockIndex)
 }
-func (subnetsBlocks subnetsIPBlocks) subnetBlocks(subnetCRN string) []*ipblock.IPBlock {
+func (subnetsBlocks SubnetsIPBlocks) SubnetBlocks(subnetCRN string) []*ipblock.IPBlock {
 	return subnetsBlocks[subnetCRN].splitByFiltersBlocks
 }
-func (subnetsBlocks subnetsIPBlocks) isFullyReservedBlock(subnetCRN string, blockIndex int) bool {
+func (subnetsBlocks SubnetsIPBlocks) IsFullyReservedBlock(subnetCRN string, blockIndex int) bool {
 	return subnetsBlocks[subnetCRN].fullyReservedBlocks[blockIndex]
 }
 
-func (subnetsBlocks subnetsIPBlocks) removeAddressFromFree(address, subnetCRN string, blockIndex int) error {
+func (subnetsBlocks SubnetsIPBlocks) removeAddressFromFree(address, subnetCRN string, blockIndex int) error {
 	addressBlock, err := ipblock.FromIPAddress(address)
 	if err != nil {
 		return err
@@ -178,27 +176,18 @@ type filtersBlocks map[string][]*ipblock.IPBlock
 
 // ///////////////////////////////////////////
 // getFiltersBlocks() create a slice of disjoint blocks for each vpc, split according to the rules blocks, and their sum is allCidr:
-// 1. collect a slice all the acl blocks
-// 2. add to the slice all the gs blocks
-// 3. add to the slice the CidrAll block
-// 4. create a list of disjoint blocks from this slice
-
-func getFiltersBlocks(rc *datamodel.ResourcesContainerModel) (blocks filtersBlocks, err error) {
+func getFiltersBlocks(filtersCidrs []map[string][]*string) (blocks filtersBlocks, err error) {
 	blocks = filtersBlocks{}
-	filtersCidrsOrAddresses := make([]map[string][]*string, 2)
-	if filtersCidrsOrAddresses[0], err = getACLRulesCidrs(rc); err != nil {
+	if err != nil {
 		return nil, err
 	}
-	if filtersCidrsOrAddresses[1], err = getGSRulesCidrs(rc); err != nil {
-		return nil, err
-	}
-	vpcCidrs := vpcCidrs(filtersCidrsOrAddresses)
-	return  disjointBlocks(vpcCidrs)
+	vpcCidrs := vpcCidrs(filtersCidrs)
+	return disjointBlocks(vpcCidrs)
 }
 
-func vpcCidrs(filtersCidrsOrAddresses []map[string][]*string) map[string][]string {
+func vpcCidrs(filtersCidrs []map[string][]*string) map[string][]string {
 	vpcCidrs := map[string][]string{}
-	for _, filterCidrsOrAddresses := range filtersCidrsOrAddresses {
+	for _, filterCidrsOrAddresses := range filtersCidrs {
 		for vpc, vpcCidrsOrAddresses := range filterCidrsOrAddresses {
 			if _, ok := vpcCidrs[vpc]; !ok {
 				vpcCidrs[vpc] = []string{}
@@ -210,13 +199,13 @@ func vpcCidrs(filtersCidrsOrAddresses []map[string][]*string) map[string][]strin
 			}
 		}
 	}
-	return nil
+	return vpcCidrs
 }
 
-func disjointBlocks(cidr  map[string][]string) (blocks filtersBlocks, err error){
+func disjointBlocks(cidr map[string][]string) (blocks filtersBlocks, err error) {
 	blocks = filtersBlocks{}
-	for vpc, vpcCidr := range cidr  {
-		blocks[vpc],err = disjointCidrBlocks(append(vpcCidr, "0.0.0.0/0"))
+	for vpc, vpcCidr := range cidr {
+		blocks[vpc], err = disjointCidrs(append(vpcCidr, "0.0.0.0/0"))
 		if err != nil {
 			return nil, err
 		}
@@ -224,100 +213,39 @@ func disjointBlocks(cidr  map[string][]string) (blocks filtersBlocks, err error)
 	return blocks, nil
 }
 
-func disjointCidrBlocks(cidrs []string) ([]*ipblock.IPBlock, error) {
-	compactCidrs:= slices.Compact(cidrs)
+// disjointCidrs() get a slice of cidrs/addresses can create a slice of disjoint blocks.
+// the algorithm:
+//  1. remove duplicate cidrs
+//  2. convert the cidr to a slice of blocks
+//  3. sort the blocks by size - small to big
+//  4. iterate over the blocks: for each block, create a disjoint block by subtracting from the block the bormer blocks
+//
+// todo - move this function to modules?
+func disjointCidrs(cidrs []string) ([]*ipblock.IPBlock, error) {
+	compactCidrs := slices.Compact(cidrs)
 	cidrBlocks := make([]*ipblock.IPBlock, len(compactCidrs))
-	for i, cidr := range compactCidrs{ 
+	for i, cidr := range compactCidrs {
 		block, err := ipblock.FromCidrOrAddress(cidr)
 		if err != nil {
-			return nil,err
+			return nil, err
 		}
 		cidrBlocks[i] = block
 	}
-	res := []*ipblock.IPBlock{}
-	usedBlocks := ipblock.New()
 	sort.Slice(cidrBlocks, func(i, j int) bool {
-		// todo - use ipCount() after exposing it 
+		// todo - use ipCount() instead of PrefixLength(), after exposing it at modules?
+		// till then, we do not need to check the error, we know that this is a one cidr block
 		PrefixLengthI, _ := cidrBlocks[i].PrefixLength()
 		PrefixLengthJ, _ := cidrBlocks[j].PrefixLength()
 		return PrefixLengthI > PrefixLengthJ
 	})
+	unionOfPreviousBlocks := ipblock.New()
+	disjointBlocks := []*ipblock.IPBlock{}
 	for _, b := range cidrBlocks {
-		newBlock := b.Subtract(usedBlocks)
+		newBlock := b.Subtract(unionOfPreviousBlocks)
 		if !newBlock.IsEmpty() {
-			res = append(res, newBlock)
+			disjointBlocks = append(disjointBlocks, newBlock)
 		}
-		usedBlocks = usedBlocks.Union(b)
+		unionOfPreviousBlocks = unionOfPreviousBlocks.Union(b)
 	}
-	return res, nil
+	return disjointBlocks, nil
 }
-
-func getACLRulesCidrs(rc *datamodel.ResourcesContainerModel) (map[string][]*string, error) {
-	cidrs := map[string][]*string{}
-	for _, aclObj := range rc.NetworkACLList {
-		for i, rule := range aclObj.Rules {
-			var src, dst *string
-			switch ruleObj := rule.(type) {
-			case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolAll:
-				src = ruleObj.Source
-				dst = ruleObj.Destination
-			case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolTcpudp:
-				src = ruleObj.Source
-				dst = ruleObj.Destination
-			case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolIcmp:
-				src = ruleObj.Source
-				dst = ruleObj.Destination
-			default:
-				return nil, fmt.Errorf("ACL %s has unsupported type for the %dth rule", *aclObj.Name, i)
-			}
-			if _, ok := cidrs[*aclObj.VPC.CRN]; !ok {
-				cidrs[*aclObj.VPC.CRN] = []*string{}
-			}
-			cidrs[*aclObj.VPC.CRN] = append(cidrs[*aclObj.VPC.CRN], []*string{src, dst}...)
-		}
-	}
-	return cidrs, nil
-}
-
-func getGSRulesCidrs(rc *datamodel.ResourcesContainerModel) (map[string][]*string, error) {
-	cidrs := map[string][]*string{}
-	for _, sgObj := range rc.SecurityGroupList {
-		for i, rule := range sgObj.Rules {
-			var localRule, remoteRule interface{}
-			switch ruleObj := rule.(type) {
-			case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolAll:
-				remoteRule = ruleObj.Remote
-				localRule = ruleObj.Local
-			case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudp:
-				remoteRule = ruleObj.Remote
-				localRule = ruleObj.Local
-			case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolIcmp:
-				remoteRule = ruleObj.Remote
-				localRule = ruleObj.Local
-
-			default:
-				return nil, fmt.Errorf("SG %s has unsupported type for the %dth rule", *sgObj.Name, i)
-			}
-			var localCidrsOrAddresses, remoteCidrsOrAddresses []*string
-			if localRule != nil {
-				local := localRule.(*vpc1.SecurityGroupRuleLocal)
-				localCidrsOrAddresses = []*string{local.Address, local.CIDRBlock}
-			}
-			if remoteRule != nil {
-				remote := remoteRule.(*vpc1.SecurityGroupRuleRemote)
-				// we also might have remote.name, in such case we need to refer to addresses of the sg members.
-				// (in this stage we do not have the sg members yet).
-				// however, the members are resources, and their addresses are already reserved IP.
-				// do these blocks are already fullyReservedBlocks we can ignore them:
-				remoteCidrsOrAddresses = []*string{remote.Address, remote.CIDRBlock}
-			}
-			if _, ok := cidrs[*sgObj.VPC.CRN]; !ok {
-				cidrs[*sgObj.VPC.CRN] = []*string{}
-			}
-			cidrs[*sgObj.VPC.CRN] = append(cidrs[*sgObj.VPC.CRN], localCidrsOrAddresses...)
-			cidrs[*sgObj.VPC.CRN] = append(cidrs[*sgObj.VPC.CRN], remoteCidrsOrAddresses...)
-		}
-	}
-	return cidrs, nil
-}
-
