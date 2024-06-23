@@ -38,10 +38,9 @@ type explainDetails struct {
 }
 
 type groupedCommonProperties struct {
-	conn          *detailedConn
-	tcpRspDisable bool // for reports: print tcp unidirectional component
-	connDiff      *connectionDiff
-	expDetails    *explainDetails
+	conn       *detailedConn
+	connDiff   *connectionDiff
+	expDetails *explainDetails
 	// groupingStrKey is the key by which the grouping is done:
 	// the string of conn per grouping of conn lines, string of connDiff per grouping of diff lines
 	// and string of conn and explainDetails for explainblity
@@ -299,7 +298,7 @@ func (g *GroupConnLines) groupExternalAddresses(vsi bool) error {
 			// tcp responsive and non tcp component of the connection
 			if !connsResponsive.tcpRspNonTcpComponent().IsEmpty() {
 				err := g.addLineToExternalGrouping(&res, src, dst,
-					&groupedCommonProperties{conn: connsResponsive, tcpRspDisable: true, groupingStrKey: connsResponsive.enhanceString(true)})
+					&groupedCommonProperties{conn: connsResponsive, groupingStrKey: connsResponsive.enhanceString(true)})
 				if err != nil {
 					return err
 				}
@@ -307,7 +306,7 @@ func (g *GroupConnLines) groupExternalAddresses(vsi bool) error {
 			// tcp non-responsive component of the connection
 			if !connsResponsive.tcpRspDisable.IsEmpty() {
 				err := g.addLineToExternalGrouping(&res, src, dst,
-					&groupedCommonProperties{conn: connsResponsive, tcpRspDisable: false, groupingStrKey: connsResponsive.enhanceString(false)})
+					&groupedCommonProperties{conn: connsResponsive, groupingStrKey: connsResponsive.enhanceString(false)})
 				if err != nil {
 					return err
 				}
