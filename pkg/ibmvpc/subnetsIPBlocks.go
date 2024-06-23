@@ -182,21 +182,22 @@ type filtersBlocks map[string][]*ipblock.IPBlock
 // 3. add to the slice the CidrAll block
 // 4. create a list of disjoint blocks from this slice
 
-func getFiltersBlocks(rc *datamodel.ResourcesContainerModel) (filtersBlocks, error) {
-	blocks := filtersBlocks{}
-	if err := blocks.addACLRuleBlocks(rc); err != nil {
+func getFiltersBlocks(rc *datamodel.ResourcesContainerModel) (blocks filtersBlocks, err error) {
+	blocks = filtersBlocks{}
+	filtersCidrsOrAddresses:= make( []map[string][]*string, 2)
+	if filtersCidrsOrAddresses[0], err = getACLRulesCidrs(rc); err != nil {
 		return nil, err
 	}
-	if err := blocks.addSGRulesBlocks(rc); err != nil {
+	if filtersCidrsOrAddresses[1], err = getGSRulesCidrs(rc); err != nil {
 		return nil, err
 	}
+	blocks.addBlocks(filtersCidrsOrAddresses)
 	blocks.disjointBlocks()
 	return blocks, nil
 }
 
 func (blocks filtersBlocks) disjointBlocks() {
 	for vpc := range blocks {
-		// blocks[vpc] = ipblock.DisjointIPBlocks(blocks[vpc], []*ipblock.IPBlock{ipblock.GetCidrAll()})
 		blocks[vpc] = disjointCidrBlocks(append(blocks[vpc], ipblock.GetCidrAll()))
 	}
 }
@@ -219,7 +220,8 @@ func disjointCidrBlocks(cidrBlocks []*ipblock.IPBlock) []*ipblock.IPBlock {
 	return res
 }
 
-func (blocks filtersBlocks) addACLRuleBlocks(rc *datamodel.ResourcesContainerModel) error {
+func getACLRulesCidrs(rc *datamodel.ResourcesContainerModel) (map[string][]*string, error) {
+	cidrs := map[string][]*string{}
 	for _, aclObj := range rc.NetworkACLList {
 		for i, rule := range aclObj.Rules {
 			var src, dst *string
@@ -234,17 +236,19 @@ func (blocks filtersBlocks) addACLRuleBlocks(rc *datamodel.ResourcesContainerMod
 				src = ruleObj.Source
 				dst = ruleObj.Destination
 			default:
-				return fmt.Errorf("ACL %s has unsupported type for the %dth rule", *aclObj.Name, i)
+				return nil, fmt.Errorf("ACL %s has unsupported type for the %dth rule", *aclObj.Name, i)
 			}
-			if err := blocks.addBlocks(*aclObj.VPC.CRN, []*string{src, dst}); err != nil {
-				return err
+			if _, ok := cidrs[*aclObj.VPC.CRN]; !ok{
+				cidrs[*aclObj.VPC.CRN] = []*string{}
 			}
+			cidrs[*aclObj.VPC.CRN] = append(cidrs[*aclObj.VPC.CRN], []*string{src, dst}...)
 		}
 	}
-	return nil
+	return cidrs, nil
 }
 
-func (blocks filtersBlocks) addSGRulesBlocks(rc *datamodel.ResourcesContainerModel) error {
+func getGSRulesCidrs(rc *datamodel.ResourcesContainerModel) (map[string][]*string, error) {
+	cidrs := map[string][]*string{}
 	for _, sgObj := range rc.SecurityGroupList {
 		for i, rule := range sgObj.Rules {
 			var localRule, remoteRule interface{}
@@ -260,7 +264,7 @@ func (blocks filtersBlocks) addSGRulesBlocks(rc *datamodel.ResourcesContainerMod
 				localRule = ruleObj.Local
 
 			default:
-				return fmt.Errorf("SG %s has unsupported type for the %dth rule", *sgObj.Name, i)
+				return nil, fmt.Errorf("SG %s has unsupported type for the %dth rule", *sgObj.Name, i)
 			}
 			var localCidrsOrAddresses, remoteCidrsOrAddresses []*string
 			if localRule != nil {
@@ -275,25 +279,31 @@ func (blocks filtersBlocks) addSGRulesBlocks(rc *datamodel.ResourcesContainerMod
 				// do these blocks are already fullyReservedBlocks we can ignore them:
 				remoteCidrsOrAddresses = []*string{remote.Address, remote.CIDRBlock}
 			}
-			if err := blocks.addBlocks(*sgObj.VPC.CRN, append(localCidrsOrAddresses, remoteCidrsOrAddresses...)); err != nil {
-				return err
+			if _, ok := cidrs[*sgObj.VPC.CRN]; !ok{
+				cidrs[*sgObj.VPC.CRN] = []*string{}
 			}
+			cidrs[*sgObj.VPC.CRN] = append(cidrs[*sgObj.VPC.CRN], localCidrsOrAddresses...)
+			cidrs[*sgObj.VPC.CRN] = append(cidrs[*sgObj.VPC.CRN], remoteCidrsOrAddresses...)
 		}
 	}
-	return nil
+	return cidrs, nil
 }
 
-func (blocks filtersBlocks) addBlocks(vpc string, cidrsOrAddresses []*string) error {
-	if _, ok := blocks[vpc]; !ok {
-		blocks[vpc] = []*ipblock.IPBlock{}
-	}
-	for _, cidrOrAddress := range cidrsOrAddresses {
-		if cidrOrAddress != nil {
-			block, err := ipblock.FromCidrOrAddress(*cidrOrAddress)
-			if err != nil {
-				return err
+func (blocks filtersBlocks) addBlocks(filtersCidrsOrAddresses []map[string][]*string) error {
+	for _, filterCidrsOrAddresses := range filtersCidrsOrAddresses {
+		for vpc, vpcCidrsOrAddresses := range filterCidrsOrAddresses {
+			if _, ok := blocks[vpc]; !ok {
+				blocks[vpc] = []*ipblock.IPBlock{}
 			}
-			blocks[vpc] = append(blocks[vpc], block)
+			for _, cidrOrAddress := range vpcCidrsOrAddresses {
+				if cidrOrAddress != nil {
+					block, err := ipblock.FromCidrOrAddress(*cidrOrAddress)
+					if err != nil {
+						return err
+					}
+					blocks[vpc] = append(blocks[vpc], block)
+				}
+			}
 		}
 	}
 	return nil
