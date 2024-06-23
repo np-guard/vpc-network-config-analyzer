@@ -296,7 +296,7 @@ func (g *GroupConnLines) groupExternalAddresses(vsi bool) error {
 	for src, nodeConns := range allowedConnsCombinedResponsive {
 		for dst, connsResponsive := range nodeConns {
 			// tcp responsive and non tcp component of the connection
-			if !connsResponsive.tcpRspNonTcpComponent().IsEmpty() {
+			if !connsResponsive.tcpRspNonTCPComponent().IsEmpty() {
 				err := g.addLineToExternalGrouping(&res, src, dst,
 					&groupedCommonProperties{conn: connsResponsive, groupingStrKey: connsResponsive.enhanceString(true)})
 				if err != nil {

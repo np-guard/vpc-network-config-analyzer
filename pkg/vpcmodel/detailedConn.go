@@ -10,6 +10,8 @@ import (
 	"github.com/np-guard/models/pkg/connection"
 )
 
+const asterisk = " * "
+
 // detailedConn captures the connection with TCP's responsiveness details, as described below.
 // It is created from src-to-dest allowed connection (TCP and non-TCP) and allowed response
 // connection dest-to-src.
@@ -99,23 +101,23 @@ func (e *detailedConn) subtract(other *detailedConn) *detailedConn {
 }
 
 // returns the tcp responsive and non-tcp component
-func (e *detailedConn) tcpRspNonTcpComponent() *connection.Set {
+func (e *detailedConn) tcpRspNonTCPComponent() *connection.Set {
 	return e.tcpRspEnable.Union(e.nonTCP)
 }
 
 // todo: remove once transformation is completed, rename enhanceString to string
 func (e *detailedConn) string() string {
 	if !e.tcpRspDisable.IsEmpty() {
-		return e.allConn.String() + " * "
+		return e.allConn.String() + asterisk
 	}
 	return e.allConn.String()
 }
 
 func (e *detailedConn) enhanceString(bidirectional bool) string {
 	if bidirectional {
-		return e.tcpRspNonTcpComponent().String()
+		return e.tcpRspNonTCPComponent().String()
 	}
-	return e.tcpRspDisable.String() + " * "
+	return e.tcpRspDisable.String() + asterisk
 }
 
 // computeDetailedConn computes the detailedConn object, given input `srcToDst`
