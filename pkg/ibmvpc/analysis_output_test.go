@@ -194,6 +194,17 @@ func (tt *vpcGeneralTest) initTest() {
 
 var tests = []*vpcGeneralTest{
 	{
+	inputConfig:  "hub_n_spoke_1",
+	useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	format:       vpcmodel.HTML,
+	grouping:     true,
+	noLbAbstract: true,
+},
+}
+
+
+var tests2 = []*vpcGeneralTest{
+	{
 		inputConfig: "acl_testing5",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
 		format:      vpcmodel.MD,
@@ -685,6 +696,14 @@ var tests = []*vpcGeneralTest{
 		grouping:     true,
 		noLbAbstract: true,
 	},
+	{
+		inputConfig:  "hub_n_spoke_1",
+		useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:       vpcmodel.HTML,
+		grouping:     true,
+		noLbAbstract: true,
+	},
+	
 }
 
 var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{

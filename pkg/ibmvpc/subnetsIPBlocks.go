@@ -7,6 +7,7 @@ package ibmvpc
 
 import (
 	"fmt"
+	"sort"
 
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
 
@@ -195,8 +196,27 @@ func getFiltersBlocks(rc *datamodel.ResourcesContainerModel) (filtersBlocks, err
 
 func (blocks filtersBlocks) disjointBlocks() {
 	for vpc := range blocks {
-		blocks[vpc] = ipblock.DisjointIPBlocks(blocks[vpc], []*ipblock.IPBlock{ipblock.GetCidrAll()})
+		// blocks[vpc] = ipblock.DisjointIPBlocks(blocks[vpc], []*ipblock.IPBlock{ipblock.GetCidrAll()})
+		blocks[vpc] = disjointCidrBlocks(append(blocks[vpc], ipblock.GetCidrAll()))
 	}
+}
+
+func disjointCidrBlocks(cidrBlocks []*ipblock.IPBlock) []*ipblock.IPBlock {
+	res := []*ipblock.IPBlock{}
+	usedBlocks := ipblock.New()
+	sort.Slice(cidrBlocks, func(i, j int) bool {
+		PrefixLengthI, _ := cidrBlocks[i].PrefixLength()
+		PrefixLengthJ, _ := cidrBlocks[j].PrefixLength()
+		return PrefixLengthI > PrefixLengthJ
+	})
+	for _, b := range cidrBlocks {
+		newBlock := b.Subtract(usedBlocks)
+		if !newBlock.IsEmpty() {
+			res = append(res, newBlock)
+		}
+		usedBlocks = usedBlocks.Union(b)
+	}
+	return res
 }
 
 func (blocks filtersBlocks) addACLRuleBlocks(rc *datamodel.ResourcesContainerModel) error {
