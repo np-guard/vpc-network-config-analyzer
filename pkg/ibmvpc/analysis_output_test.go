@@ -692,7 +692,6 @@ var tests = []*vpcGeneralTest{
 		grouping:     true,
 		noLbAbstract: true,
 	},
-	
 }
 
 var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{

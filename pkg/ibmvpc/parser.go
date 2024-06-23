@@ -1512,7 +1512,6 @@ func getSubnetsBlocks(rc *datamodel.ResourcesContainerModel) (subnetsBlocks vpcm
 	return vpcmodel.GetSubnetsIPBlocks(rc, []map[string][]*string{naclCidrs, sgCidrs})
 }
 
-
 // ////////////////////////////////////////////////////////////////
 // Load Balancer Parsing:
 func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
