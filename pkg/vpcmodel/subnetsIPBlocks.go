@@ -177,11 +177,9 @@ type filtersBlocks map[string][]*ipblock.IPBlock
 // ///////////////////////////////////////////
 // getFiltersBlocks() create a slice of disjoint blocks for each vpc, split according to the rules blocks, and their sum is allCidr:
 func getFiltersBlocks(filtersCidrs []map[string][]*string) (blocks filtersBlocks, err error) {
-	blocks = filtersBlocks{}
-	if err != nil {
-		return nil, err
-	}
+	// sorting by vpc:
 	vpcCidrs := getVpcsCidrs(filtersCidrs)
+	// disjointing:
 	return disjointVpcCidrs(vpcCidrs)
 }
 
