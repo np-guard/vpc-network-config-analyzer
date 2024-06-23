@@ -98,11 +98,24 @@ func (e *detailedConn) subtract(other *detailedConn) *detailedConn {
 	return newDetailedConn(rspConn, otherConn, conn)
 }
 
+// returns the tcp responsive and non-tcp component
+func (e *detailedConn) tcpRspNonTcpComponent() *connection.Set {
+	return e.tcpRspEnable.Union(e.nonTCP)
+}
+
+// todo: remove once transformation is completed, rename enhanceString to string
 func (e *detailedConn) string() string {
 	if !e.tcpRspDisable.IsEmpty() {
 		return e.allConn.String() + " * "
 	}
 	return e.allConn.String()
+}
+
+func (e *detailedConn) enhanceString(bidirectional bool) string {
+	if bidirectional {
+		return e.tcpRspNonTcpComponent().String()
+	}
+	return e.tcpRspDisable.String() + " * "
 }
 
 // computeDetailedConn computes the detailedConn object, given input `srcToDst`

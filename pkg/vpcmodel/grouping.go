@@ -38,9 +38,10 @@ type explainDetails struct {
 }
 
 type groupedCommonProperties struct {
-	conn       *detailedConn
-	connDiff   *connectionDiff
-	expDetails *explainDetails
+	conn          *detailedConn
+	tcpRspDisable bool // for reports: print tcp unidirectional component
+	connDiff      *connectionDiff
+	expDetails    *explainDetails
 	// groupingStrKey is the key by which the grouping is done:
 	// the string of conn per grouping of conn lines, string of connDiff per grouping of diff lines
 	// and string of conn and explainDetails for explainblity
@@ -295,9 +296,18 @@ func (g *GroupConnLines) groupExternalAddresses(vsi bool) error {
 	}
 	for src, nodeConns := range allowedConnsCombinedResponsive {
 		for dst, connsResponsive := range nodeConns {
-			if !connsResponsive.isEmpty() {
+			// tcp responsive and non tcp component of the connection
+			if !connsResponsive.tcpRspNonTcpComponent().IsEmpty() {
 				err := g.addLineToExternalGrouping(&res, src, dst,
-					&groupedCommonProperties{conn: connsResponsive, groupingStrKey: connsResponsive.string()})
+					&groupedCommonProperties{conn: connsResponsive, tcpRspDisable: true, groupingStrKey: connsResponsive.enhanceString(true)})
+				if err != nil {
+					return err
+				}
+			}
+			// tcp non-responsive component of the connection
+			if !connsResponsive.tcpRspDisable.IsEmpty() {
+				err := g.addLineToExternalGrouping(&res, src, dst,
+					&groupedCommonProperties{conn: connsResponsive, tcpRspDisable: false, groupingStrKey: connsResponsive.enhanceString(false)})
 				if err != nil {
 					return err
 				}
@@ -404,7 +414,7 @@ func isInternalOfRequiredType(ep EndpointElem, groupVsi bool) bool {
 func (g *GroupConnLines) groupLinesByKey(srcGrouping, groupVsi bool) (res []*groupedConnLine,
 	groupingSrcOrDst map[string][]*groupedConnLine) {
 	res = []*groupedConnLine{}
-	// build map from str(dst+allConn) to []src => create lines accordingly
+	// build map from str(dst+conn) to []src => create lines accordingly
 	groupingSrcOrDst = map[string][]*groupedConnLine{}
 	// populate map groupingSrcOrDst
 	for _, line := range g.GroupedLines {
@@ -425,8 +435,8 @@ func (g *GroupConnLines) groupLinesByKey(srcGrouping, groupVsi bool) (res []*gro
 }
 
 // grouping by:
-// 1. Name of indexed endpoint (see #412) and its connection
-// 2. We do not want to group together vsis from different subnets for vsis analyais
+// 1. Name of indexed endpoint (see #412) and its connection; the latter includes responsive/non-responsive details
+// 2. We do not want to group together vsis from different subnets for vsis analysis
 // or subnets of different vpcs for subnets analysis; thus the grouping is also by subnets/vpcs
 // of grouping targets
 // e.g. :
