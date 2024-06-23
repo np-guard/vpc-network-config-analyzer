@@ -65,7 +65,8 @@ type SubnetsIPBlocks map[string]*oneSubnetBlocks
 // 2. calculate the filters blocks
 // 3. calculate the splitByFiltersBlocks
 // 4. calculate the freeAddressesBlocks
-func GetSubnetsIPBlocks(rc *datamodel.ResourcesContainerModel, filtersCidrs []map[string][]*string) (subnetsBlocks SubnetsIPBlocks, err error) {
+func GetSubnetsIPBlocks(rc *datamodel.ResourcesContainerModel,
+	filtersCidrs []map[string][]*string) (subnetsBlocks SubnetsIPBlocks, err error) {
 	subnetsBlocks = SubnetsIPBlocks{}
 	// gets the original blocks of the subnets:
 	if err := subnetsBlocks.getSubnetsOriginalBlocks(rc); err != nil {
