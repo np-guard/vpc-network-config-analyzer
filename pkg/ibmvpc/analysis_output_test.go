@@ -278,6 +278,13 @@ var tests = []*vpcGeneralTest{
 		grouping:    true,
 		format:      vpcmodel.Text,
 	},
+	// respond enabled only on part of the TCP connection
+	{
+		inputConfig: "sg_testing1_new_respond_partly",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.Text,
+	},
 	{
 		inputConfig: "demo_with_instances",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
@@ -683,7 +690,7 @@ var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{
 }
 
 // uncomment the function below to run for updating the expected output
-/*
+
 var formatsAvoidOutputGeneration = formatsAvoidComparison
 
 func TestAllWithGeneration(t *testing.T) {
@@ -704,7 +711,6 @@ func TestAllWithGeneration(t *testing.T) {
 	}
 	fmt.Println("done")
 }
-*/
 
 func TestAllWithComparison(t *testing.T) {
 	// tests is the list of tests to run
