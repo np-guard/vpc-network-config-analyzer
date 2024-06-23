@@ -13,7 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/np-guard/models/pkg/ipblock"
-
 )
 
 func TestSubnetsBlocks(t *testing.T) {
@@ -24,7 +23,7 @@ func TestSubnetsBlocks(t *testing.T) {
 	filtersCidrs := map[string][]string{}
 
 	filtersCidrs[vpcID] = []string{"10.230.0.0/23", "10.240.0.1", "10.240.0.0/24", "10.240.1.0/25", "10.240.1.128/25"}
-	filtersBlocks, _ := disjointBlocks(filtersCidrs)
+	filtersBlocks, _ := disjointVpcCidrs(filtersCidrs)
 	subnetsBlocks[subnetID].splitByFiltersBlocks = splitSubnetOriginalBlock(subnetsBlocks[subnetID].subnetOriginalBlock, filtersBlocks[vpcID])
 	subnetsBlocks[subnetID].freeAddressesBlocks = subnetsBlocks[subnetID].splitByFiltersBlocks
 	require.True(t, len(subnetsBlocks.SubnetBlocks(subnetID)) == 4)

@@ -1498,15 +1498,17 @@ func getGSRulesCidrs(rc *datamodel.ResourcesContainerModel) (map[string][]*strin
 	return cidrs, nil
 }
 
-func getFiltersRulesCidrs(rc *datamodel.ResourcesContainerModel) (filtersCidrs []map[string][]*string, err error) {
-	filtersCidrs = make([]map[string][]*string, 2)
+// getSubnetsBlocks() gets the subnets blocks to be used for creating private IPs
+// it collects the rules cidrs and use them to get the subnets block.
+func getSubnetsBlocks(rc *datamodel.ResourcesContainerModel) (subnetsBlocks vpcmodel.SubnetsIPBlocks, err error) {
+	filtersCidrs := make([]map[string][]*string, 2)
 	if filtersCidrs[0], err = getACLRulesCidrs(rc); err != nil {
 		return nil, err
 	}
 	if filtersCidrs[1], err = getGSRulesCidrs(rc); err != nil {
 		return nil, err
 	}
-	return filtersCidrs, nil
+	return vpcmodel.GetSubnetsIPBlocks(rc, filtersCidrs)
 }
 
 
@@ -1519,11 +1521,7 @@ func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 	if len(rc.LBList) == 0 {
 		return nil
 	}
-	filtersCidrs, err := getFiltersRulesCidrs(rc)
-	if err != nil {
-		return err
-	}
-	subnetsIPBlocks, err := vpcmodel.GetSubnetsIPBlocks(rc, filtersCidrs)
+	subnetsIPBlocks, err := getSubnetsBlocks(rc)
 	if err != nil {
 		return err
 	}

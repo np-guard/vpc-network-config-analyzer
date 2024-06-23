@@ -181,16 +181,17 @@ func getFiltersBlocks(filtersCidrs []map[string][]*string) (blocks filtersBlocks
 	if err != nil {
 		return nil, err
 	}
-	vpcCidrs := vpcCidrs(filtersCidrs)
-	return disjointBlocks(vpcCidrs)
+	vpcCidrs := getVpcsCidrs(filtersCidrs)
+	return disjointVpcCidrs(vpcCidrs)
 }
 
-func vpcCidrs(filtersCidrs []map[string][]*string) map[string][]string {
+// getVpcsCidrs() sort the cidr of all filters for each vpc separately, adding ipblock.CidrAll for every vpc
+func getVpcsCidrs(filtersCidrs []map[string][]*string) map[string][]string {
 	vpcCidrs := map[string][]string{}
 	for _, filterCidrsOrAddresses := range filtersCidrs {
 		for vpc, vpcCidrsOrAddresses := range filterCidrsOrAddresses {
 			if _, ok := vpcCidrs[vpc]; !ok {
-				vpcCidrs[vpc] = []string{}
+				vpcCidrs[vpc] = []string{ipblock.CidrAll}
 			}
 			for _, cidrOrAddress := range vpcCidrsOrAddresses {
 				if cidrOrAddress != nil {
@@ -202,10 +203,11 @@ func vpcCidrs(filtersCidrs []map[string][]*string) map[string][]string {
 	return vpcCidrs
 }
 
-func disjointBlocks(cidr map[string][]string) (blocks filtersBlocks, err error) {
+// disjointVpcCidrs() disjoint the cidr for each vpc.
+func disjointVpcCidrs(cidr map[string][]string) (blocks filtersBlocks, err error) {
 	blocks = filtersBlocks{}
 	for vpc, vpcCidr := range cidr {
-		blocks[vpc], err = disjointCidrs(append(vpcCidr, "0.0.0.0/0"))
+		blocks[vpc], err = disjointCidrs(vpcCidr)
 		if err != nil {
 			return nil, err
 		}
