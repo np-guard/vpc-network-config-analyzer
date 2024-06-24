@@ -306,4 +306,4 @@ kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Fake LB private IP][192.168.8.
 kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Fake LB private IP][192.168.8.5] => iks-node[192.168.40.4] : protocol: TCP,UDP dst-ports: 30000-32767
 kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Fake LB private IP][192.168.8.5] => iks-node[192.168.8.4] : protocol: TCP,UDP dst-ports: 30000-32767
 
-connections are responsive (on TCP) unless marked with * 
+TCP connections for which response is not permitted are marked with * 

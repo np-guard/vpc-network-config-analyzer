@@ -6,4 +6,4 @@ sub2-ky => sub3-ky : All Connections
 sub3-ky => sub1-ky : All Connections
 sub3-ky => sub2-ky : All Connections
 
-connections are responsive (on TCP) unless marked with * 
+TCP connections for which response is not permitted are marked with * 

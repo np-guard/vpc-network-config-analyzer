@@ -38,4 +38,4 @@ vsi1-app-sub0[10.240.0.4] => service-alb[LoadBalancer] : protocol: TCP *
 vsi1-app-sub1[10.240.64.4] => service-alb[LoadBalancer] : protocol: ICMP,UDP
 vsi1-app-sub1[10.240.64.4] => service-alb[LoadBalancer] : protocol: TCP * 
 
-connections are responsive (on TCP) unless marked with * 
+TCP connections for which response is not permitted are marked with * 

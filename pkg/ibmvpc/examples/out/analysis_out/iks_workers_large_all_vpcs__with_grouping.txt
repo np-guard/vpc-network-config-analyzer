@@ -92,4 +92,4 @@ kube-clusterid:8-83951794fa034062a2b4ebbfcb647e3b[LoadBalancer] => iks-node[10.2
 kube-clusterid:8-83951794fa034062a2b4ebbfcb647e3b[LoadBalancer] => iks-node[10.241.128.5],iks-node[10.241.128.6],iks-node[10.241.128.8] : protocol: TCP,UDP dst-ports: 30000-32767
 kube-clusterid:8-83951794fa034062a2b4ebbfcb647e3b[LoadBalancer] => iks-node[10.241.64.4],iks-node[10.241.64.5],iks-node[10.241.64.6] : protocol: TCP,UDP dst-ports: 30000-32767
 
-connections are responsive (on TCP) unless marked with * 
+TCP connections for which response is not permitted are marked with * 

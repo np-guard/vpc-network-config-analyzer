@@ -6,4 +6,4 @@ diff-type: changed, source: sub2-1-ky, destination: Public Internet 8.8.8.8/32, 
 diff-type: removed, source: sub1-2-ky, destination: sub1-1-ky, config1: protocol: TCP, config2: No Connections
 diff-type: removed, source: sub1-3-ky, destination: sub1-1-ky, config1: protocol: TCP, config2: No Connections
 
-connections are responsive (on TCP) unless marked with * 
+TCP connections for which response is not permitted are marked with * 

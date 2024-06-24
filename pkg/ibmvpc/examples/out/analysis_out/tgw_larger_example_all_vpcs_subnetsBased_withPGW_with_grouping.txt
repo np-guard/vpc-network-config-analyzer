@@ -30,4 +30,4 @@ Subnet connectivity for VPC zn-vpc1
 Subnet connectivity for VPC zn-vpc2
 <nothing to report>
 
-connections are responsive (on TCP) unless marked with * 
+TCP connections for which response is not permitted are marked with * 
