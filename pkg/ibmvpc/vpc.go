@@ -65,15 +65,15 @@ type PrivateIP struct {
 	vpcmodel.VPCResource
 	vpcmodel.InternalNode
 	loadBalancer *LoadBalancer
-	// Since not all the LB balancer has a private IP, we create fake Private IPs at the subnets that do not have one.
-	// original - does the private IP was originally at the config file, or it is a fake one
+	// Since not all the LB balancer has a private IP, we create a potential Private Ip at the subnets that do not have one.
+	// original - does the private IP was originally at the config file, or is it a potential one
 	original bool
 }
 
 func (pip *PrivateIP) Name() string {
 	kind := "LB private IP"
 	if !pip.original {
-		kind = "Fake " + kind
+		kind = "Potential " + kind
 	}
 	name := nameWithBracketsInfo(pip.loadBalancer.ResourceName, kind)
 	return nameWithBracketsInfo(name, pip.Address())

@@ -260,7 +260,7 @@ func newLoadBalancerTreeNode(parent SquareTreeNodeInterface, name string, privat
 
 type PrivateIPTreeNode struct {
 	abstractIconTreeNode
-	original bool // does the private IP was originally at the config file, or it is a fake one
+	original bool // does the private IP was originally at the config file, or is it just potential one
 }
 
 func NewPrivateIPTreeNode(parent SquareTreeNodeInterface, name string, original bool) *PrivateIPTreeNode {
