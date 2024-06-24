@@ -10,6 +10,7 @@ import (
 	"fmt"
 
 	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -142,6 +143,7 @@ func (rt *systemImplicitRT) getEgressPath(src vpcmodel.Node, dest *ipblock.IPBlo
 	}
 
 	for _, tgw := range rt.config.tgwList {
+		logging.Debugf("look for dest %s in tgw.availableRoutes ", dest.ToIPAddressString())
 		for vpcUID, availablePrefixes := range tgw.availableRoutes {
 			if vpcUID == rt.vpc.ResourceUID {
 				continue
@@ -157,6 +159,7 @@ func (rt *systemImplicitRT) getEgressPath(src vpcmodel.Node, dest *ipblock.IPBlo
 			// could fail on multiple points: (1) if no matching TGW found (2) if the dest VPC has no matching subnet and network interface
 			// (the dest VPC could publish its AddressPrefix, but may not have the required dest subnet )
 			for _, prefix := range availablePrefixes {
+				logging.Debugf("check available prefix: %s", prefix.ToCidrListString())
 				if dest.ContainedIn(prefix) {
 					// path through tgw
 					// TODO: should be concatenated to path from tgw to dest by ingress routing table in the second vpc
@@ -172,5 +175,6 @@ func (rt *systemImplicitRT) getEgressPath(src vpcmodel.Node, dest *ipblock.IPBlo
 			- service network?
 	*/
 
+	logging.Debugf("could not find path on implicit routing table for dest %s", dest.ToIPAddressString())
 	return nil
 }

@@ -32,6 +32,7 @@ func NewReportCommand(args *inArgs) *cobra.Command {
 	cmd.AddCommand(newReportEndpointsCommand(args))
 	cmd.AddCommand(newReportSubnetsCommand(args))
 	cmd.AddCommand(newReportSingleSubnetCommand(args))
+	cmd.AddCommand(newReportRoutingCommand(args))
 
 	return cmd
 }
@@ -75,6 +76,18 @@ func newReportSingleSubnetCommand(args *inArgs) *cobra.Command {
 		},
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			return analysisVPCConfigs(cmd, args, vpcmodel.SingleSubnet)
+		},
+	}
+}
+
+func newReportRoutingCommand(args *inArgs) *cobra.Command {
+	return &cobra.Command{
+		Use:   "routing",
+		Short: "Report VPC routing paths between given endpoints",
+		Long:  `reports VPC routing paths between given endpoints as implied by the given cloud configuration`,
+		Args:  cobra.NoArgs,
+		RunE: func(_ *cobra.Command, _ []string) error {
+			return routingAnalysis(args)
 		},
 	}
 }

@@ -13,6 +13,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
 type testDisjointRouting struct {
@@ -37,13 +39,13 @@ func (rt *routingTable) disjointRoutingStr() string {
 }
 
 func (test *testDisjointRouting) run(t *testing.T) {
-	rt, err := newRoutingTable(test.routesList, nil)
+	rt, err := newRoutingTable(test.routesList, nil, &vpcmodel.VPCResource{})
 	require.Nil(t, err)
 	require.Equal(t, test.expectedRoutingOutput, rt.disjointRoutingStr())
 }
 
 // newRouteNoErr returns new route with advertise=false, and without checking error returned
-func newRouteNoErr(name, dest, nextHop string, action action, prio int) *route {
+func newRouteNoErr(name, dest, nextHop string, action routingAction, prio int) *route {
 	res, _ := newRoute(name, dest, nextHop, action, prio, false)
 	return res
 }

@@ -124,6 +124,10 @@ func (sga *SGAnalyzer) getRemoteCidr(remote vpc1.SecurityGroupRuleRemoteIntf) (t
 	return target, cidrRes, remoteSGName, nil
 }
 
+func getDefaultLocal() (ipb *ipblock.IPBlock, cidr string) {
+	return ipblock.GetCidrAll(), ipblock.CidrAll
+}
+
 // getRemoteCidr gets local rule object interface and returns it's IPBlock
 func (sga *SGAnalyzer) getLocalCidr(local vpc1.SecurityGroupRuleLocalIntf) (*ipblock.IPBlock, string, error) {
 	var localIP *ipblock.IPBlock
@@ -136,11 +140,13 @@ func (sga *SGAnalyzer) getLocalCidr(local vpc1.SecurityGroupRuleLocalIntf) (*ipb
 		}
 
 		if localIP == nil || cidrRes == "" {
-			return localIP, cidrRes, fmt.Errorf("sg error: getLocalCidr returns empty result. localObj: %+v", localObj)
+			// support old config files with missing local field
+			localIP, cidrRes = getDefaultLocal()
 		}
 	}
 	if localIP == nil || cidrRes == "" {
-		return localIP, cidrRes, fmt.Errorf("sg error: getLocalCidr returns empty result. could not convert localObj to expected type ")
+		// support old config files with missing local field
+		localIP, cidrRes = getDefaultLocal()
 	}
 	return localIP, cidrRes, nil
 }
