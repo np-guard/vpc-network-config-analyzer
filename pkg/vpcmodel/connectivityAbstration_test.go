@@ -52,7 +52,8 @@ func (tt *abstractionTest) runTest(t *testing.T) {
 	}
 }
 func TestAbstraction(t *testing.T) {
-	for _, tt := range abstractionTests {
+	for testIdx := range abstractionTests {
+		tt := abstractionTests[testIdx]
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			tt.runTest(t)
