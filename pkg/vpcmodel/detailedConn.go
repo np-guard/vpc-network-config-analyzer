@@ -121,11 +121,11 @@ func (d *detailedConn) string() string {
 // in the reports we print potentially two lines for each <src, dst> connection:
 // one for the "main" tcp responsive + non tcp component and the other for the tcp non-responsive component
 // this separation is done here: the former is returned for bidirectional and the latter for false
-func (e *detailedConn) connStrPerConnectionType(bidirectional bool) string {
+func (d *detailedConn) connStrPerConnectionType(bidirectional bool) string {
 	if bidirectional {
-		return e.tcpRspNonTCPComponent().String()
+		return d.tcpRspNonTCPComponent().String()
 	}
-	return e.tcpRspDisable.String() + asterisk
+	return d.tcpRspDisable.String() + asterisk
 }
 
 // computeDetailedConn computes the detailedConn object, given input `srcToDst`
