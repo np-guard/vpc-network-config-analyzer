@@ -671,6 +671,27 @@ var tests = []*vpcGeneralTest{
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		format:      vpcmodel.Text,
 	},
+	{
+		inputConfig:  "filters_split_lb_subnet",
+		useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:       vpcmodel.Text,
+		grouping:     false,
+		noLbAbstract: true,
+	},
+	{
+		inputConfig:  "filters_split_lb_subnet",
+		useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:       vpcmodel.HTML,
+		grouping:     true,
+		noLbAbstract: true,
+	},
+	{
+		inputConfig:  "hub_n_spoke_1",
+		useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:       vpcmodel.HTML,
+		grouping:     true,
+		noLbAbstract: true,
+	},
 }
 
 var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{
