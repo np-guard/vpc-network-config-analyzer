@@ -55,6 +55,8 @@ type srcDstDetails struct {
 	actualMergedRules   *rulesConnection // rules actually effecting the connection (both allow and deny)
 	// enabling rules implies whether ingress/egress is enabled
 	// potential rules are saved for further debugging and explanation provided to the user
+	respondRules *rulesConnection // rules of non-stateful filters enabling/disabling respond
+
 }
 
 type rulesAndConnDetails []*srcDstDetails
@@ -122,10 +124,14 @@ func (c *VPCConfig) explainConnectivityForVPC(src, dst string, srcNodes, dstNode
 	}
 	rulesAndDetails.computeActualRules()
 	rulesAndDetails.computeCombinedActualRules() // combined deny and allow
-
-	groupedLines, err4 := newGroupConnExplainability(c, &rulesAndDetails)
+	err4 := rulesAndDetails.updateRespondRules(c, connQuery)
 	if err4 != nil {
 		return nil, err4
+	}
+
+	groupedLines, err5 := newGroupConnExplainability(c, &rulesAndDetails)
+	if err5 != nil {
+		return nil, err5
 	}
 	// the user has to be notified regarding an assumption we make about IKSNode's security group
 	hasIksNode := srcNodes[0].Kind() == ResourceTypeIKSNode || dstNodes[0].Kind() == ResourceTypeIKSNode
@@ -393,9 +399,9 @@ func (c *VPCConfig) getRulesOfConnection(src, dst Node,
 	return allowRulesOfConnection, denyRulesOfConnection, nil
 }
 
-func (rulesInLayers rulesInLayers) updateRulesPerLayerIfNonEmpty(layer string, rulesFilter *[]RulesInTable) {
+func (rules rulesInLayers) updateRulesPerLayerIfNonEmpty(layer string, rulesFilter *[]RulesInTable) {
 	if len(*rulesFilter) > 0 {
-		rulesInLayers[layer] = *rulesFilter
+		rules[layer] = *rulesFilter
 	}
 }
 
@@ -475,4 +481,70 @@ func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (conn *deta
 			srcForConnection.Name(), dstForConnection.Name())
 	}
 	return conn, nil
+}
+
+// updates respondRules of each line in rulesAndConnDetails
+// respondRules are the rules enabling/disabling the response when relevant:
+// respond is relevant for TCP, and respond rules are relevant when non-stateful filters are relevant (NACL)
+func (details *rulesAndConnDetails) updateRespondRules(c *VPCConfig, connQuery *connection.Set) error {
+	responseConn := allTCPconn()
+	if connQuery != nil {
+		responseConn = responseConn.Intersect(connQuery)
+	}
+	for _, srcDstDetails := range *details {
+		// respond rules are relevant if connection has a TCP component and non-stateful filter (NACL at the moment)
+		// are relevant for <src, dst>
+		if !respondRulesRelevant(srcDstDetails.conn, srcDstDetails.filtersRelevant) {
+			continue
+		}
+		respondRules, err := c.getRespondRules(srcDstDetails.src, srcDstDetails.dst, responseConn)
+		if err != nil {
+			return err
+		}
+		srcDstDetails.respondRules = respondRules
+	}
+	return nil
+}
+
+func respondRulesRelevant(conn *detailedConn, filtersRelevant map[string]bool) bool {
+	return conn.hasTCPComponent() && filtersRelevant[NaclLayer]
+}
+
+// gets the NACL rules that enables/disables respond for connection conn, assuming nacl is applied
+func (c *VPCConfig) getRespondRules(src, dst Node,
+	conn *connection.Set) (respondRules *rulesConnection, err error) {
+	mergedIngressRules, mergedEgressRules := rulesInLayers{}, rulesInLayers{}
+	// respond: from dst to src; thus, ingress rules: relevant only if *src* is internal, egress is *dst* is internal
+	if src.IsInternal() {
+		var err error
+		mergedIngressRules, err = c.computeAndUpdateDirectionRespondRules(src, dst, conn, true)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if dst.IsInternal() {
+		var err error
+		mergedEgressRules, err = c.computeAndUpdateDirectionRespondRules(src, dst, conn, false)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return &rulesConnection{mergedIngressRules, mergedEgressRules}, nil
+}
+
+func (c *VPCConfig) computeAndUpdateDirectionRespondRules(src, dst Node, conn *connection.Set,
+	isIngress bool) (rulesInLayers, error) {
+	// respond: dst and src switched, src and dst ports also switched
+	// computes allowRulesPerLayer/denyRulePerLayer: ingress/egress rules enabling/disabling respond
+	// note that there could be both allow and deny in case part of the connection is enabled and part blocked
+	connSwitch := conn.SwitchSrcDstPorts()
+	allowRules, denyRules, err1 := c.getFiltersRulesBetweenNodesPerDirectionAndLayer(dst, src, connSwitch, isIngress, NaclLayer)
+	if err1 != nil {
+		return nil, err1
+	}
+	allowRulesPerLayer, denyRulePerLayer := rulesInLayers{}, rulesInLayers{}
+	allowRulesPerLayer.updateRulesPerLayerIfNonEmpty(NaclLayer, allowRules)
+	denyRulePerLayer.updateRulesPerLayerIfNonEmpty(NaclLayer, denyRules)
+	mergedRules := mergeAllowDeny(allowRulesPerLayer, denyRulePerLayer)
+	return mergedRules, err1
 }

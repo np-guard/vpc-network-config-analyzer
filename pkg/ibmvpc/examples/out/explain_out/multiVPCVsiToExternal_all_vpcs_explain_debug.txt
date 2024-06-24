@@ -2,6 +2,7 @@ Explaining connectivity from test-vpc0-ky/vsi1-ky to 172.217.22.46/32 within tes
 =========================================================================================
 
 Allowed connections from vsi1-ky[10.240.1.4] to Public Internet 172.217.22.46/32: All Connections
+	The TCP sub-connection is responsive
 
 Path:
 	vsi1-ky[10.240.1.4] -> security group sg1-ky -> subnet1-ky -> network ACL acl1-ky -> 
@@ -11,11 +12,17 @@ Path:
 
 Details:
 ~~~~~~~~
-Egress:
-security group sg1-ky allows connection with the following allow rules
-	index: 1, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
-network ACL acl1-ky allows connection with the following allow rules
-	index: 0, direction: outbound , src: 10.240.1.0/24 , dst: 172.217.22.46/32, conn: all, action: allow
+Path is enabled by the following rules:
+	Egress:
+		security group sg1-ky allows connection with the following allow rules
+			index: 1, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+		network ACL acl1-ky allows connection with the following allow rules
+			index: 0, direction: outbound , src: 10.240.1.0/24 , dst: 172.217.22.46/32, conn: all, action: allow
+
+TCP response is enabled by the following rules:
+	Ingress:
+		network ACL acl1-ky allows connection with the following allow rules
+			index: 4, direction: inbound , src: 172.217.22.46/32 , dst: 10.240.1.0/24, conn: all, action: allow
 
 ------------------------------------------------------------------------------------------------------------------------
 
