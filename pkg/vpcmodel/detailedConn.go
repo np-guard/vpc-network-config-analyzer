@@ -67,50 +67,54 @@ func detailedConnForAllRsp() *detailedConn {
 
 // isAllObliviousRsp: returns true iff detailedConn contains all the connection domain
 // (regardless of what part is responsive and what part isn't)
-func (e *detailedConn) isAllObliviousRsp() bool {
-	return e.allConn.Equal(connection.All())
+func (d *detailedConn) isAllObliviousRsp() bool {
+	return d.allConn.Equal(connection.All())
 }
 
 // isEmpty: return true iff the detailedConn is empty
-func (e *detailedConn) isEmpty() bool {
-	return e.allConn.IsEmpty()
+func (d *detailedConn) isEmpty() bool {
+	return d.allConn.IsEmpty()
 }
 
 // Equal all components of two detailedConn are equal
-func (e *detailedConn) equal(other *detailedConn) bool {
-	return e.tcpRspEnable.Equal(other.tcpRspEnable) && e.nonTCP.Equal(other.nonTCP) &&
-		e.allConn.Equal(other.allConn)
+func (d *detailedConn) equal(other *detailedConn) bool {
+	return d.tcpRspEnable.Equal(other.tcpRspEnable) && d.nonTCP.Equal(other.nonTCP) &&
+		d.allConn.Equal(other.allConn)
 }
 
 // union of two detailedConn: union tcpRspEnable, nonTCP and allConn
 // (tcpRspDisable is computed based on these)
-func (e *detailedConn) union(other *detailedConn) *detailedConn {
-	rspConn := e.tcpRspEnable.Union(other.tcpRspEnable)
-	otherConn := e.nonTCP.Union(other.nonTCP)
-	conn := e.allConn.Union(other.allConn)
+func (d *detailedConn) union(other *detailedConn) *detailedConn {
+	rspConn := d.tcpRspEnable.Union(other.tcpRspEnable)
+	otherConn := d.nonTCP.Union(other.nonTCP)
+	conn := d.allConn.Union(other.allConn)
 	return newDetailedConn(rspConn, otherConn, conn)
 }
 
 // subtract of two detailedConn: subtraction of tcpRspEnable, nonTCP and allConn
 // (tcpRspDisable is computed based on these)
-func (e *detailedConn) subtract(other *detailedConn) *detailedConn {
-	rspConn := e.tcpRspEnable.Subtract(other.tcpRspEnable)
-	otherConn := e.nonTCP.Subtract(other.nonTCP)
-	conn := e.allConn.Subtract(other.allConn)
+func (d *detailedConn) subtract(other *detailedConn) *detailedConn {
+	rspConn := d.tcpRspEnable.Subtract(other.tcpRspEnable)
+	otherConn := d.nonTCP.Subtract(other.nonTCP)
+	conn := d.allConn.Subtract(other.allConn)
 	return newDetailedConn(rspConn, otherConn, conn)
 }
 
+func (d *detailedConn) hasTCPComponent() bool {
+	return !d.tcpRspEnable.Union(d.tcpRspDisable).IsEmpty()
+}
+
 // returns the tcp responsive and non-tcp component
-func (e *detailedConn) tcpRspNonTCPComponent() *connection.Set {
-	return e.tcpRspEnable.Union(e.nonTCP)
+func (d *detailedConn) tcpRspNonTCPComponent() *connection.Set {
+	return d.tcpRspEnable.Union(d.nonTCP)
 }
 
 // todo: will it still be needed once transformation is completed?
-func (e *detailedConn) string() string {
-	if !e.tcpRspDisable.IsEmpty() {
-		return e.allConn.String() + asterisk
+func (d *detailedConn) string() string {
+	if !d.tcpRspDisable.IsEmpty() {
+		return d.allConn.String() + asterisk
 	}
-	return e.allConn.String()
+	return d.allConn.String()
 }
 
 // in the structs a single line represents connection of each <src, dst>
