@@ -1,7 +1,7 @@
 Explaining connectivity from vsi3a-ky to vsi1-ky within test-vpc1-ky
 ====================================================================
 
-Allowed connections from vsi3a-ky[10.240.30.5] to vsi1-ky[10.240.10.4]: protocol: TCP src-ports: 115-215 dst-ports: 25-95
+Allowed connections from vsi3a-ky[10.240.30.5] to vsi1-ky[10.240.10.4]: protocol: TCP src-ports: 115-205 dst-ports: 25-95
 	TCP response is enabled for: protocol: TCP src-ports: 115-200 dst-ports: 25-50
 
 Path:
@@ -18,7 +18,7 @@ Path is enabled by the following rules:
 			index: 2, direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, remote: 0.0.0.0/0, local: 0.0.0.0/0
 			index: 3, direction: outbound,  conns: protocol: tcp,  dstPorts: 100-200, remote: 0.0.0.0/0, local: 0.0.0.0/0
 		network ACL acl3-ky allows connection with the following allow rules
-			index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+			index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: protocol: tcp, srcPorts: 110-205, dstPorts: 20-100, action: allow
 
 	Ingress:
 		network ACL acl1-ky allows connection with the following allow rules

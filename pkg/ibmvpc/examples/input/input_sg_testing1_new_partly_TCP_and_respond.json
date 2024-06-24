@@ -853,8 +853,12 @@
                     "id": "id:114",
                     "ip_version": "ipv4",
                     "name": "outbound",
-                    "protocol": "all",
-                    "source": "0.0.0.0/0"
+                    "protocol": "tcp",
+                    "source": "0.0.0.0/0",
+                    "destination_port_max": 100,
+                    "destination_port_min": 20,
+                    "source_port_max": 205,
+                    "source_port_min": 110
                 },
                 {
                     "action": "allow",
