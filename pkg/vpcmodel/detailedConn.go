@@ -105,7 +105,7 @@ func (e *detailedConn) tcpRspNonTCPComponent() *connection.Set {
 	return e.tcpRspEnable.Union(e.nonTCP)
 }
 
-// todo: remove once transformation is completed, rename enhanceString to string
+// todo: will it still be needed once transformation is completed?
 func (e *detailedConn) string() string {
 	if !e.tcpRspDisable.IsEmpty() {
 		return e.allConn.String() + asterisk
@@ -113,7 +113,11 @@ func (e *detailedConn) string() string {
 	return e.allConn.String()
 }
 
-func (e *detailedConn) enhanceString(bidirectional bool) string {
+// in the structs a single line represents connection of each <src, dst>
+// in the reports we print potentially two lines for each <src, dst> connection:
+// one for the "main" tcp responsive + non tcp component and the other for the tcp non-responsive component
+// this separation is done here: the former is returned for bidirectional and the latter for false
+func (e *detailedConn) connStrPerConnectionType(bidirectional bool) string {
 	if bidirectional {
 		return e.tcpRspNonTCPComponent().String()
 	}
