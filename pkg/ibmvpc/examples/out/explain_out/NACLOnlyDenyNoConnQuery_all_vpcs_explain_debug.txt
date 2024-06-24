@@ -2,7 +2,7 @@ Explaining connectivity from vsi1-ky to vsi2-ky within test-vpc1-ky using "proto
 ==========================================================================================
 
 No connections are allowed from vsi1-ky[10.240.10.4] to vsi2-ky[10.240.20.4] using "protocol: ICMP";
-connection blocked by egress
+connection is blocked by egress
 
 Egress: security group sg1-ky allows connection; network ACL acl1-ky blocks connection
 Ingress: network ACL acl2-ky allows connection; security group sg1-ky allows connection
@@ -13,7 +13,7 @@ Path:
 
 Details:
 ~~~~~~~~
-Path enabled by the following rules:
+Path is enabled by the following rules:
 	Egress:
 		security group sg1-ky allows connection with the following allow rules
 			index: 0, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0

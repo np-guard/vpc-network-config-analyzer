@@ -143,7 +143,7 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 	egressRulesDetails, ingressRulesDetails := rules.ruleDetailsStr(c, filtersRelevant, needEgress, needIngress)
 	conn := g.commonProperties.conn
 	if verbose {
-		details = "\nDetails:\n~~~~~~~~\nPath enabled by the following rules:\n" +
+		details = "\nDetails:\n~~~~~~~~\nPath is enabled by the following rules:\n" +
 			egressRulesDetails + crossRouterFilterDetails + ingressRulesDetails
 		if respondRulesRelevant(conn, filtersRelevant) {
 			// for respond rules needIngress and needEgress are switched
@@ -159,11 +159,11 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 func respondDetailsHeader(d *detailedConn) string {
 	switch {
 	case d.tcpRspDisable.IsEmpty():
-		return "TCP response enabled by the following rules:\n"
+		return "TCP response is enabled by the following rules:\n"
 	case d.tcpRspEnable.IsEmpty():
-		return "TCP response disabled by the following rules:\n"
+		return "TCP response is disabled by the following rules:\n"
 	default:
-		return "TCP response partly enabled by the following rules:\n"
+		return "TCP response is partly enabled by the following rules:\n"
 	}
 }
 
@@ -186,13 +186,13 @@ func (g *groupedConnLine) explainPerCaseStr(c *VPCConfig, src, dst EndpointElem,
 		return fmt.Sprintf("%v\tThe dst is external but there is no Floating IP or Public Gateway connecting to public internet\n",
 			noConnection)
 	case ingressBlocking && egressBlocking:
-		return fmt.Sprintf("%vconnection blocked both by ingress and egress"+tripleNLVars, noConnection,
+		return fmt.Sprintf("%vconnection is blocked both by ingress and egress"+tripleNLVars, noConnection,
 			headerPlusPath, details)
 	case ingressBlocking:
-		return fmt.Sprintf("%vconnection blocked by ingress"+tripleNLVars, noConnection,
+		return fmt.Sprintf("%vconnection is blocked by ingress"+tripleNLVars, noConnection,
 			headerPlusPath, details)
 	case egressBlocking:
-		return fmt.Sprintf("%vconnection blocked by egress"+tripleNLVars, noConnection,
+		return fmt.Sprintf("%vconnection is blocked by egress"+tripleNLVars, noConnection,
 			headerPlusPath, details)
 	default: // there is a connection
 		return existingConnectionStr(c, connQuery, src, dst, conn, path, details)

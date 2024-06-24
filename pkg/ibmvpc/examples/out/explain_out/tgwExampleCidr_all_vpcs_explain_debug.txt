@@ -12,7 +12,7 @@ Path:
 
 Details:
 ~~~~~~~~
-Path enabled by the following rules:
+Path is enabled by the following rules:
 	Egress:
 		security group sg21-ky allows connection with the following allow rules
 			index: 1, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
@@ -28,7 +28,7 @@ Path enabled by the following rules:
 		security group sg1-ky allows connection with the following allow rules
 			index: 0, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
 
-TCP response enabled by the following rules:
+TCP response is enabled by the following rules:
 	Egress:
 		network ACL acl2-ky allows connection with the following allow rules
 			index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
@@ -50,7 +50,7 @@ Path:
 
 Details:
 ~~~~~~~~
-Path enabled by the following rules:
+Path is enabled by the following rules:
 	Egress:
 		security group sg21-ky allows connection with the following allow rules
 			index: 1, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
@@ -66,7 +66,7 @@ Path enabled by the following rules:
 		security group sg1-ky allows connection with the following allow rules
 			index: 0, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
 
-TCP response enabled by the following rules:
+TCP response is enabled by the following rules:
 	Egress:
 		network ACL acl2-ky allows connection with the following allow rules
 			index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
@@ -88,7 +88,7 @@ Path:
 
 Details:
 ~~~~~~~~
-Path enabled by the following rules:
+Path is enabled by the following rules:
 	Egress:
 		security group sg21-ky allows connection with the following allow rules
 			index: 1, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
@@ -104,7 +104,7 @@ Path enabled by the following rules:
 		security group sg1-ky allows connection with the following allow rules
 			index: 0, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
 
-TCP response enabled by the following rules:
+TCP response is enabled by the following rules:
 	Egress:
 		network ACL acl2-ky allows connection with the following allow rules
 			index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
@@ -126,7 +126,7 @@ Path:
 
 Details:
 ~~~~~~~~
-Path enabled by the following rules:
+Path is enabled by the following rules:
 	Egress:
 		security group sg21-ky allows connection with the following allow rules
 			index: 1, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
@@ -142,7 +142,7 @@ Path enabled by the following rules:
 		security group sg1-ky allows connection with the following allow rules
 			index: 0, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
 
-TCP response enabled by the following rules:
+TCP response is enabled by the following rules:
 	Egress:
 		network ACL acl2-ky allows connection with the following allow rules
 			index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
@@ -167,7 +167,7 @@ Path:
 
 Details:
 ~~~~~~~~
-Path enabled by the following rules:
+Path is enabled by the following rules:
 	Egress:
 		security group sg21-ky allows connection with the following allow rules
 			index: 1, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
@@ -199,7 +199,7 @@ Path:
 
 Details:
 ~~~~~~~~
-Path enabled by the following rules:
+Path is enabled by the following rules:
 	Egress:
 		security group sg21-ky allows connection with the following allow rules
 			index: 1, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
@@ -231,7 +231,7 @@ Path:
 
 Details:
 ~~~~~~~~
-Path enabled by the following rules:
+Path is enabled by the following rules:
 	Egress:
 		security group sg21-ky allows connection with the following allow rules
 			index: 1, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
@@ -263,7 +263,7 @@ Path:
 
 Details:
 ~~~~~~~~
-Path enabled by the following rules:
+Path is enabled by the following rules:
 	Egress:
 		security group sg21-ky allows connection with the following allow rules
 			index: 1, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
