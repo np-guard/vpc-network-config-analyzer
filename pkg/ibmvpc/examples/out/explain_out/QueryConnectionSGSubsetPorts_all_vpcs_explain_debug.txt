@@ -2,6 +2,7 @@ Explaining connectivity from 147.235.219.206/32 to vsi2-ky within test-vpc1-ky u
 =====================================================================================================================
 
 Connections are allowed from Public Internet 147.235.219.206/32 to vsi2-ky[10.240.20.4] using "protocol: TCP dst-ports: 22"
+	The entire connection is TCP responsive
 (note that not all queried protocols/ports are allowed)
 
 Path:
@@ -12,9 +13,10 @@ Path:
 
 Details:
 ~~~~~~~~
-Ingress:
-security group sg2-ky allows connection with the following allow rules
-	index: 2, direction: inbound,  conns: protocol: tcp,  dstPorts: 22-22, remote: 147.235.219.206/32, local: 0.0.0.0/0
+Path is enabled by the following rules:
+	Ingress:
+		security group sg2-ky allows connection with the following allow rules
+			index: 2, direction: inbound,  conns: protocol: tcp,  dstPorts: 22-22, remote: 147.235.219.206/32, local: 0.0.0.0/0
 
 ------------------------------------------------------------------------------------------------------------------------
 
