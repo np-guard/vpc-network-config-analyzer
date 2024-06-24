@@ -422,6 +422,14 @@ var explainTests = []*vpcGeneralTest{
 		EDst:        "vsi1-ky",
 		format:      vpcmodel.Debug,
 	},
+	// original path as well as respond enabled only on part of the TCP connection
+	{
+		name:        "PartialTCPAndRespond",
+		inputConfig: "sg_testing1_new_partly_TCP_and_respond",
+		ESrc:        "vsi3a-ky",
+		EDst:        "vsi1-ky",
+		format:      vpcmodel.Debug,
+	},
 	// respond w.r.t. specific ports query
 	{
 		name:        "TCPRespondPortsQuery",
