@@ -79,4 +79,4 @@ subnet11 => subnet10 : All Connections
 Subnet connectivity for VPC test-vpc2-ky
 <nothing to report>
 
-connections are responsive (on TCP) unless marked with *
+connections are responsive (on TCP) unless marked with * 

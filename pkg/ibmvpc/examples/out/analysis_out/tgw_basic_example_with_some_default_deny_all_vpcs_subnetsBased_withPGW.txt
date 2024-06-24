@@ -8,4 +8,4 @@ Subnet connectivity for VPC ky-vpc1
 Subnet connectivity for VPC ky-vpc2
 <nothing to report>
 
-connections are responsive (on TCP) unless marked with *
+connections are responsive (on TCP) unless marked with * 
