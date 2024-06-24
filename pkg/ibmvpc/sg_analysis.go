@@ -346,7 +346,7 @@ func mapAndAnalyzeSGRules(rules []*SGRule, isIngress bool, currentSg *SecurityGr
 	keysToConnectivityResult := map[common.SetAsKey]*ConnectivityResult{}
 	unifiedMembersIPBlock := currentSg.unifiedMembersIPBlock()
 	for i := range disjointLocals {
-		if disjointLocals[i].Intersect(unifiedMembersIPBlock).IsEmpty() {
+		if !disjointLocals[i].Overlap(unifiedMembersIPBlock) {
 			// no need to compute connectivity for local range that has no SG members within it
 			continue
 		}

@@ -524,7 +524,7 @@ func (irt *ingressRoutingTable) advertiseRoutes(vpcConfig *vpcmodel.VPCConfig) {
 			for _, vpc := range tgw.vpcs {
 				logging.Debugf("check tgw %s with vpc %s, AP %s", tgw.Name(), vpc.Name(), vpc.addressPrefixesIPBlock.ToCidrListString())
 				// TODO: shouldn't be containment rather than intersection?? (works with intersection on hub-n-spoke config object)
-				if vpc.UID() != irt.vpc.UID() && !routeCidr.Intersect(vpc.addressPrefixesIPBlock).IsEmpty() {
+				if vpc.UID() != irt.vpc.UID() && routeCidr.Overlap(vpc.addressPrefixesIPBlock) {
 					vpcB = vpc
 					tgwAB = tgw
 					logging.Debugf("found tgwAB: %s,  vpcB: %s ", tgwAB.Name(), vpcB.Name())

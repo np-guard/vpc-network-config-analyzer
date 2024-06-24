@@ -938,7 +938,7 @@ func (tgw *TransitGateway) RulesInConnectivity(src, dst vpcmodel.Node) []vpcmode
 	// Note, again, that for each (src, dst vpcmodel.Node) there is a single prefix filter
 	if vpcmodel.HasNode(tgw.sourceNodes, src) {
 		for ipBlock, transitConnectionPrefixes := range tgw.vpcsAPToPrefixRules[dst.VPC().UID()] {
-			if !dst.IPBlock().Intersect(ipBlock).IsEmpty() {
+			if dst.IPBlock().Overlap(ipBlock) {
 				return []vpcmodel.RulesInTable{transitConnectionPrefixes}
 			}
 		}
