@@ -105,7 +105,7 @@ func (d *detailedConn) hasTCPComponent() bool {
 }
 
 // returns the tcp responsive and non-tcp component
-func (d *detailedConn) nonTCPAndResponsiveComponent() *connection.Set {
+func (d *detailedConn) nonTCPAndResponsiveTCPComponent() *connection.Set {
 	return d.tcpRspEnable.Union(d.nonTCP)
 }
 
@@ -121,9 +121,9 @@ func (d *detailedConn) string() string {
 // in the reports we print potentially two lines for each <src, dst> connection:
 // one for the "main" tcp responsive + non tcp component and the other for the tcp non-responsive component
 // this separation is done here: the former is returned for bidirectional and the latter for false
-func (d *detailedConn) connStrPerConnectionType(nonTCPAndResponsive bool) string {
-	if nonTCPAndResponsive {
-		return d.nonTCPAndResponsiveComponent().String()
+func (d *detailedConn) connStrPerConnectionType(nonTCPAndResponsiveTCP bool) string {
+	if nonTCPAndResponsiveTCP {
+		return d.nonTCPAndResponsiveTCPComponent().String()
 	}
 	return d.tcpRspDisable.String() + asterisk
 }
