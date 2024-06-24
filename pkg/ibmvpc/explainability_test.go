@@ -414,6 +414,35 @@ var explainTests = []*vpcGeneralTest{
 		EDst:        "vsi1-ky",
 		format:      vpcmodel.Debug,
 	},
+	// respond enabled only on part of the TCP connection
+	{
+		name:        "PartialTCPRespond",
+		inputConfig: "sg_testing1_new_respond_partly",
+		ESrc:        "vsi3a-ky",
+		EDst:        "vsi1-ky",
+		format:      vpcmodel.Debug,
+	},
+	// original path as well as respond enabled only on part of the TCP connection
+	{
+		name:        "PartialTCPAndRespond",
+		inputConfig: "sg_testing1_new_partly_TCP_and_respond",
+		ESrc:        "vsi3a-ky",
+		EDst:        "vsi1-ky",
+		format:      vpcmodel.Debug,
+	},
+	// respond w.r.t. specific ports query
+	{
+		name:        "TCPRespondPortsQuery",
+		inputConfig: "sg_testing1_new_respond_partly",
+		ESrc:        "vsi3a-ky",
+		EDst:        "vsi1-ky",
+		EProtocol:   netp.ProtocolStringTCP,
+		ESrcMinPort: 90,
+		ESrcMaxPort: 180,
+		EDstMinPort: 20,
+		EDstMaxPort: 60,
+		format:      vpcmodel.Debug,
+	},
 	// the following three tests are within a single VPC in a multiVPC context
 	// 2 vsi connection
 	{

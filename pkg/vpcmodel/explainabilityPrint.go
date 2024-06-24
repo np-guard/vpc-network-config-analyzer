@@ -39,6 +39,8 @@ func explainHeader(explanation *Explanation) string {
 	return header1 + newLine + header2 + doubleNL
 }
 
+// connHeader is used to print 1) the query in the first header
+// 2) the actual allowed connection from the queried one in the 2nd header
 func connHeader(connQuery *connection.Set) string {
 	if connQuery != nil {
 		return " using \"" + connQuery.String() + "\""
@@ -98,17 +100,20 @@ func explainLoadBalancerDenyEgress(src, dst string, connQuery *connection.Set) s
 
 // prints a single line of explanation for externalAddress grouped <src, dst>
 // The printing contains 4 sections:
-// 1. Header describing the query and whether there is a connection. E.g.:
-// * Allowed connections from ky-vsi0-subnet5[10.240.9.4] to ky-vsi0-subnet11[10.240.80.4]: All Connections
-// * No connections are allowed from ky-vsi1-subnet20[10.240.128.5] to ky-vsi0-subnet0[10.240.0.5];
-// 2. List of all the different resources effecting the connection and the effect of each. E.g.:
+//  1. Header describing the query and whether there is a connection. E.g.:
+//     * Allowed connections from ky-vsi0-subnet5[10.240.9.4] to ky-vsi0-subnet11[10.240.80.4]: All Connections
+//     The TCP sub-connection is responsive
+//     * No connections are allowed from ky-vsi1-subnet20[10.240.128.5] to ky-vsi0-subnet0[10.240.0.5];
+//  2. List of all the different resources effecting the connection and the effect of each. E.g.:
+//
 // cross-vpc-connection: transit-connection tg_connection0 of transit-gateway local-tg-ky denys connection
 // Egress: security group sg21-ky allows connection; network ACL acl21-ky allows connection
 // Ingress: network ACL acl1-ky allows connection; security group sg1-ky allows connection
 //  3. Connection path description. E.g.:
 //     ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> subnet20 -> network ACL acl21-ky ->
 //     test-vpc2-ky -> TGW local-tg-ky -> |
-//  4. Details of enabling and disabling rules/prefixes, including details of each rule
+//
+// 4. Details of enabling and disabling rules/prefixes, including details of each rule
 //
 // 1 and 3 are printed always
 // 2 is printed only when the connection is blocked. It is redundant when the entire path ("3") is printed. When
@@ -146,18 +151,37 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 		ingressBlocking, egressBlocking, externalRouter, crossVpcRouter, crossVpcConnection, rules) + newLine
 	// details is "4" above
 	egressRulesDetails, ingressRulesDetails := rules.ruleDetailsStr(c, filtersRelevant, needEgress, needIngress)
+	conn := g.commonProperties.conn
 	if verbose {
-		details = "\nDetails:\n~~~~~~~~\n" + egressRulesDetails + crossRouterFilterDetails + ingressRulesDetails
+		details = "\nDetails:\n~~~~~~~~\nPath is enabled by the following rules:\n" +
+			egressRulesDetails + crossRouterFilterDetails + ingressRulesDetails
+		if respondRulesRelevant(conn, filtersRelevant) {
+			// for respond rules needIngress and needEgress are switched
+			respondEgressDetails, respondsIngressDetails := expDetails.respondRules.ruleDetailsStr(c, filtersRelevant, needIngress, needEgress)
+			details += respondDetailsHeader(conn) + respondEgressDetails + respondsIngressDetails
+		}
 	}
 	return g.explainPerCaseStr(c, src, dst, connQuery, crossVpcConnection, ingressBlocking, egressBlocking,
 		noConnection, resourceEffectHeader, path, details)
+}
+
+// assumption: the func is called only if the tcp component of the connection is not empty
+func respondDetailsHeader(d *detailedConn) string {
+	switch {
+	case d.tcpRspDisable.IsEmpty():
+		return "TCP response is enabled by the following rules:\n"
+	case d.tcpRspEnable.IsEmpty():
+		return "TCP response is disabled by the following rules:\n"
+	default:
+		return "TCP response is partly enabled by the following rules:\n"
+	}
 }
 
 // after all data is gathered, generates the actual string to be printed
 func (g *groupedConnLine) explainPerCaseStr(c *VPCConfig, src, dst EndpointElem,
 	connQuery, crossVpcConnection *connection.Set, ingressBlocking, egressBlocking bool,
 	noConnection, resourceEffectHeader, path, details string) string {
-	conn := g.commonProperties.conn.allConn
+	conn := g.commonProperties.conn
 	externalRouter, crossVpcRouter := g.commonProperties.expDetails.externalRouter,
 		g.commonProperties.expDetails.crossVpcRouter
 	headerPlusPath := resourceEffectHeader + path
@@ -172,13 +196,13 @@ func (g *groupedConnLine) explainPerCaseStr(c *VPCConfig, src, dst EndpointElem,
 		return fmt.Sprintf("%v\tThe dst is external but there is no Floating IP or Public Gateway connecting to public internet\n",
 			noConnection)
 	case ingressBlocking && egressBlocking:
-		return fmt.Sprintf("%vconnection blocked both by ingress and egress"+tripleNLVars, noConnection,
+		return fmt.Sprintf("%vconnection is blocked both by ingress and egress"+tripleNLVars, noConnection,
 			headerPlusPath, details)
 	case ingressBlocking:
-		return fmt.Sprintf("%vconnection blocked by ingress"+tripleNLVars, noConnection,
+		return fmt.Sprintf("%vconnection is blocked by ingress"+tripleNLVars, noConnection,
 			headerPlusPath, details)
 	case egressBlocking:
-		return fmt.Sprintf("%vconnection blocked by egress"+tripleNLVars, noConnection,
+		return fmt.Sprintf("%vconnection is blocked by egress"+tripleNLVars, noConnection,
 			headerPlusPath, details)
 	default: // there is a connection
 		return existingConnectionStr(c, connQuery, src, dst, conn, path, details)
@@ -216,19 +240,20 @@ func noConnectionHeader(src, dst string, connQuery *connection.Set) string {
 // printing when connection exists.
 // computing "1" when there is a connection and adding to it already computed "2" and "3" as described in explainabilityLineStr
 func existingConnectionStr(c *VPCConfig, connQuery *connection.Set, src, dst EndpointElem,
-	conn *connection.Set, path, details string) string {
+	conn *detailedConn, path, details string) string {
 	resComponents := []string{}
 	// Computing the header, "1" described in explainabilityLineStr
+	respondConnStr := respondString(conn)
 	if connQuery == nil {
-		resComponents = append(resComponents, fmt.Sprintf("Allowed connections from %v to %v: %v\n", src.ExtendedName(c), dst.ExtendedName(c),
-			conn.String()))
+		resComponents = append(resComponents, fmt.Sprintf("Allowed connections from %v to %v: %v%v\n", src.ExtendedName(c), dst.ExtendedName(c),
+			conn.allConn.String(), respondConnStr))
 	} else {
 		properSubsetConn := ""
-		if !conn.Equal(connQuery) {
+		if !conn.allConn.Equal(connQuery) {
 			properSubsetConn = "(note that not all queried protocols/ports are allowed)\n"
 		}
-		resComponents = append(resComponents, fmt.Sprintf("Connections are allowed from %s to %s%s\n%s",
-			src.ExtendedName(c), dst.ExtendedName(c), connHeader(conn), properSubsetConn))
+		resComponents = append(resComponents, fmt.Sprintf("Connections are allowed from %s to %s%s%s\n%s",
+			src.ExtendedName(c), dst.ExtendedName(c), connHeader(conn.allConn), respondConnStr, properSubsetConn))
 	}
 	resComponents = append(resComponents, path, details)
 	return strings.Join(resComponents, newLine)
@@ -267,21 +292,21 @@ func (rules *rulesConnection) ruleDetailsStr(c *VPCConfig, filtersRelevant map[s
 		ingressRulesDetails = rules.ingressRules.rulesDetailsStr(c, filtersRelevant, true)
 	}
 	if needEgress && egressRulesDetails != emptyString {
-		egressRulesDetails = "Egress:\n" + egressRulesDetails + newLine
+		egressRulesDetails = "\tEgress:\n" + egressRulesDetails + newLine
 	}
 	if needIngress && ingressRulesDetails != emptyString {
-		ingressRulesDetails = "Ingress:\n" + ingressRulesDetails + newLine
+		ingressRulesDetails = "\tIngress:\n" + ingressRulesDetails + newLine
 	}
 	return egressRulesDetails, ingressRulesDetails
 }
 
 // returns a string with the effect of each filter by calling StringFilterEffect
 // e.g. "security group sg1-ky allows connection; network ACL acl1-ky blocks connection"
-func (rulesInLayers rulesInLayers) summaryFiltersStr(c *VPCConfig, filtersRelevant map[string]bool, isIngress bool) string {
+func (rules rulesInLayers) summaryFiltersStr(c *VPCConfig, filtersRelevant map[string]bool, isIngress bool) string {
 	filtersLayersToPrint := getLayersToPrint(filtersRelevant, isIngress)
 	strSlice := make([]string, len(filtersLayersToPrint))
 	for i, layer := range filtersLayersToPrint {
-		strSlice[i] = stringFilterEffect(c, layer, rulesInLayers[layer])
+		strSlice[i] = stringFilterEffect(c, layer, rules[layer])
 	}
 	return strings.Join(strSlice, semicolon+space)
 }
@@ -426,11 +451,11 @@ func pathFiltersSingleLayerStr(c *VPCConfig, filterLayerName string, rules []Rul
 }
 
 // prints detailed list of rules that effects the (existing or non-existing) connection
-func (rulesInLayers rulesInLayers) rulesDetailsStr(c *VPCConfig, filtersRelevant map[string]bool, isIngress bool) string {
+func (rules rulesInLayers) rulesDetailsStr(c *VPCConfig, filtersRelevant map[string]bool, isIngress bool) string {
 	var strSlice []string
 	for _, layer := range getLayersToPrint(filtersRelevant, isIngress) {
 		filter := c.getFilterTrafficResourceOfKind(layer)
-		if rules, ok := rulesInLayers[layer]; ok {
+		if rules, ok := rules[layer]; ok {
 			strSlice = append(strSlice, filter.StringDetailsOfRules(rules))
 		}
 	}
@@ -455,4 +480,22 @@ func getLayersToPrint(filtersRelevant map[string]bool, isIngress bool) (filterLa
 		}
 	}
 	return orderedRelevantFiltersLayers
+}
+
+func respondString(d *detailedConn) string {
+	switch {
+	case d.allConn.Equal(d.nonTCP):
+		// no tcp component - ill-relevant
+		return ""
+	case d.tcpRspEnable.IsEmpty():
+		// no tcp responsive component
+		return "\n\tTCP response is blocked"
+	case d.tcpRspEnable.Equal(d.allConn):
+		// tcp responsive component is the entire connection
+		return "\n\tThe entire connection is TCP responsive"
+	case d.tcpRspDisable.IsEmpty():
+		return "\n\tThe TCP sub-connection is responsive"
+	default:
+		return "\n\tTCP response is enabled for: " + d.tcpRspEnable.String()
+	}
 }

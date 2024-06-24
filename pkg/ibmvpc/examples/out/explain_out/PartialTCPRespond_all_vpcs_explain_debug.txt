@@ -1,8 +1,8 @@
-Explaining connectivity from vsi3a-ky to vsi1-ky within test-vpc1-ky using "protocol: TCP dst-ports: 120-230"
-=============================================================================================================
+Explaining connectivity from vsi3a-ky to vsi1-ky within test-vpc1-ky
+====================================================================
 
-Connections are allowed from vsi3a-ky[10.240.30.5] to vsi1-ky[10.240.10.4] using "protocol: TCP dst-ports: 120-230"
-	The entire connection is TCP responsive
+Allowed connections from vsi3a-ky[10.240.30.5] to vsi1-ky[10.240.10.4]: All Connections
+	TCP response is enabled for: protocol: TCP src-ports: 100-200 dst-ports: 10-50
 
 Path:
 	vsi3a-ky[10.240.30.5] -> security group sg3-ky -> subnet3-ky -> network ACL acl3-ky -> 
@@ -26,14 +26,14 @@ Path is enabled by the following rules:
 		security group sg1-ky allows connection with the following allow rules
 			index: 4, direction: inbound,  conns: protocol: all, remote: sg3-ky (10.240.30.5/32,10.240.30.6/32), local: 0.0.0.0/0
 
-TCP response is enabled by the following rules:
+TCP response is partly enabled by the following rules:
 	Egress:
 		network ACL acl1-ky allows connection with the following allow rules
-			index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+			index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: protocol: tcp, srcPorts: 1-50, dstPorts: 100-200, action: allow
 
 	Ingress:
 		network ACL acl3-ky allows connection with the following allow rules
-			index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+			index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: protocol: tcp, srcPorts: 10-60, dstPorts: 100-220, action: allow
 
 ------------------------------------------------------------------------------------------------------------------------
 

@@ -575,7 +575,7 @@ func (na *NACLAnalyzer) StringRules(rules []int) string {
 		if err != nil {
 			return ""
 		}
-		strRulesSlice[i] = "\t" + strRule
+		strRulesSlice[i] = "\t\t\t" + strRule
 	}
 	sort.Strings(strRulesSlice)
 	return strings.Join(strRulesSlice, "")
