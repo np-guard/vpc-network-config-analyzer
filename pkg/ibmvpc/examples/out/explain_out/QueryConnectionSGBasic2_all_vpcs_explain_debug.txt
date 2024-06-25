@@ -11,11 +11,12 @@ Path:
 
 Details:
 ~~~~~~~~
-Egress:
-security group sg1-ky allows connection with the following allow rules
-	index: 2, direction: outbound,  conns: protocol: udp,  dstPorts: 1-65535, remote: 161.26.0.0/16, local: 0.0.0.0/0
-network ACL acl1-ky allows connection with the following allow rules
-	index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+Path is enabled by the following rules:
+	Egress:
+		security group sg1-ky allows connection with the following allow rules
+			index: 2, direction: outbound,  conns: protocol: udp,  dstPorts: 1-65535, remote: 161.26.0.0/16, local: 0.0.0.0/0
+		network ACL acl1-ky allows connection with the following allow rules
+			index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 
 ------------------------------------------------------------------------------------------------------------------------
 

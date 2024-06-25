@@ -397,7 +397,7 @@ func (v *VPCConnectivity) DetailedString() string {
 	res += "=================================== combined connections - short version:\n"
 	res += v.AllowedConnsCombinedResponsive.getCombinedConnsStr(false)
 
-	res += "=================================== stateful combined connections - short version:\n"
+	res += "=================================== responsive combined connections - short version:\n"
 	res += v.AllowedConnsCombinedResponsive.getCombinedConnsStr(true)
 	return res
 }

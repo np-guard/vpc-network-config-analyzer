@@ -9,4 +9,4 @@
 | removed | sub1-2-ky | sub1-1-ky | protocol: TCP | No Connections |  |
 | removed | sub1-3-ky | sub1-1-ky | protocol: TCP | No Connections |  |
 
-connections are stateful (on TCP) unless marked with *
+TCP connections for which response is not permitted are marked with * 
