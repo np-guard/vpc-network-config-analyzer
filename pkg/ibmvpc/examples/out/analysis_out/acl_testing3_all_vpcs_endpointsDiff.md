@@ -6,4 +6,4 @@
 | removed | vsi1-ky[10.240.10.4] | Public Internet 161.26.0.0/16 | protocol: UDP | No Connections |  |
 | removed | vsi1-ky[10.240.10.4] | vsi2-ky[10.240.20.4] | protocol: TCP,UDP | No Connections |  |
 
-connections are stateful (on TCP) unless marked with *
+TCP connections for which response is not permitted are marked with * 

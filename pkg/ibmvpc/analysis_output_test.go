@@ -278,6 +278,13 @@ var tests = []*vpcGeneralTest{
 		grouping:    true,
 		format:      vpcmodel.Text,
 	},
+	// respond enabled only on part of the TCP connection
+	{
+		inputConfig: "sg_testing1_new_respond_partly",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.Text,
+	},
 	{
 		inputConfig: "demo_with_instances",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},

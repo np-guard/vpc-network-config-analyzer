@@ -378,7 +378,7 @@ func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *ipblock.I
 	if err1 != nil { // should never get here. If still gets here - severe error, quit with err msg
 		return nil, false, fatalErr, err1
 	}
-	isExternal := !inputIPBlock.Intersect(publicInternet).IsEmpty()
+	isExternal := inputIPBlock.Overlap(publicInternet)
 	isInternal := !inputIPBlock.ContainedIn(publicInternet)
 	if isInternal && isExternal {
 		return nil, false, fatalErr,

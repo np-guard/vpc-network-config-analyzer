@@ -85,7 +85,6 @@ func routingAnalysis(inArgs *inArgs) error {
 		fmt.Println(path.String())
 		fmt.Println("")
 	}
-
 	return nil*/
 }
 

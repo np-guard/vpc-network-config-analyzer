@@ -49,7 +49,7 @@ func partitionTCPNonTCP(conn *connection.Set) (tcp, nonTCP *connection.Set) {
 type GeneralConnectivityMap map[VPCResourceIntf]map[VPCResourceIntf]*connection.Set
 
 // GeneralResponsiveConnectivityMap describes connectivity similarly to GeneralConnectivityMap;
-// only here the describes connection includes respond details,namely in what cases a TCP respond is enabled
+// only here the describes connection includes respond details, namely in what cases a TCP respond is enabled
 type GeneralResponsiveConnectivityMap map[VPCResourceIntf]map[VPCResourceIntf]*detailedConn
 
 func (allowConnCombined GeneralConnectivityMap) updateAllowedConnsMap(src, dst VPCResourceIntf, conn *connection.Set) {

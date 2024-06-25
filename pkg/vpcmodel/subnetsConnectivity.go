@@ -81,8 +81,8 @@ func (c *VPCConfig) ipblockToNamedResourcesInConfig(ipb *ipblock.IPBlock, exclud
 		}
 		if subnetCidrIPB.ContainedIn(ipb) {
 			res = append(res, subnet)
-		} else if !subnetCidrIPB.Intersect(ipb).IsEmpty() {
-			// intersection isn't empty -- this means the ACL splits connectivity to part of that subnet,
+		} else if subnetCidrIPB.Overlap(ipb) {
+			// the ACL splits connectivity to part of that subnet,
 			// this is currently not supported in subnets connectivity analysis
 			return nil, fmt.Errorf("unsupported subnets connectivity analysis - no consistent connectivity for entire subnet %s", subnet.Name())
 		}

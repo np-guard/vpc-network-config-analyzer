@@ -1012,8 +1012,8 @@ func validateVPCsAddressPrefixesForTGW(vpcsList []*VPC) (err error) {
 	// validate disjoint address prefixes for each VPCs pair
 	for i1 := range ipBlocksForAP {
 		for i2 := range ipBlocksForAP[i1+1:] {
-			if !ipBlocksForAP[i1].Intersect(ipBlocksForAP[i1+1:][i2]).IsEmpty() {
-				return fmt.Errorf("TGW analysis requires all VPCs have disjoint address prefixes, but found intersecting ones for vpcs %s, %s",
+			if ipBlocksForAP[i1].Overlap(ipBlocksForAP[i1+1:][i2]) {
+				return fmt.Errorf("TGW analysis requires all VPCs have disjoint address prefixes, but found overlapping ones for vpcs %s, %s",
 					vpcsList[i1].NameAndUID(), vpcsList[i1+1:][i2].NameAndUID())
 			}
 		}
@@ -1092,8 +1092,7 @@ func (tgw *TransitGateway) newConfigFromTGW(configs *vpcmodel.MultipleVPCConfigs
 			vpcsAddressRanges = vpcConfig.VPC.(*VPC).internalAddressRange
 		} else {
 			// currently supporting only disjoint address ranges for the connected VPCs
-			intersection := vpcsAddressRanges.Intersect(vpcConfig.VPC.(*VPC).internalAddressRange)
-			if !intersection.IsEmpty() {
+			if vpcsAddressRanges.Overlap(vpcConfig.VPC.(*VPC).internalAddressRange) {
 				logging.Warnf("ignoring TGW %s, as currently not supporting connected VPCs with overlapping address ranges\n",
 					tgw.ResourceName)
 				continue

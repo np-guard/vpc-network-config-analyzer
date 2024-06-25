@@ -2,6 +2,7 @@ Explaining connectivity from vsi3b-ky to vsi3a-ky within test-vpc1-ky
 =====================================================================
 
 Allowed connections from vsi3b-ky[10.240.30.6] to vsi3a-ky[10.240.30.5]: All Connections
+	The TCP sub-connection is responsive
 
 Path:
 	vsi3b-ky[10.240.30.6] -> security group sg1-ky -> 
@@ -10,13 +11,14 @@ Path:
 
 Details:
 ~~~~~~~~
-Egress:
-security group sg1-ky allows connection with the following allow rules
-	index: 0, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+Path is enabled by the following rules:
+	Egress:
+		security group sg1-ky allows connection with the following allow rules
+			index: 0, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
 
-Ingress:
-security group sg1-ky allows connection with the following allow rules
-	index: 1, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+	Ingress:
+		security group sg1-ky allows connection with the following allow rules
+			index: 1, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
 
 ------------------------------------------------------------------------------------------------------------------------
 
