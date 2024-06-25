@@ -28,7 +28,7 @@ func TestMain(t *testing.T) {
 		// aws
 		{
 			name: "aws_all_endpoints",
-			args: "report endpoints --output-file aws.txt -c ../../pkg/awsvpc/examples/input/config_object.json --format txt",
+			args: "report endpoints --output-file aws.txt -c ../../pkg/awsvpc/examples/input/input_config_object.json --format txt",
 		},
 		/*
 			{
