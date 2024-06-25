@@ -1,5 +1,5 @@
 /*
-Copyright 2024- IBM Inc. All Rights Reserved.
+Copyright 2023- IBM Inc. All Rights Reserved.
 
 SPDX-License-Identifier: Apache-2.0
 */
@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
 	"github.com/np-guard/cloud-resource-collector/pkg/aws"
 	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
@@ -21,18 +22,12 @@ import (
 )
 
 const (
-	protocolTCP                  = "tcp"
-	protocolUDP                  = "udp"
-	inbound                      = "inbound"
-	outbound                     = "outbound"
-	networkInterfaceResourceType = "network_interface" // used as the type within api objects (e.g. SecurityGroup.Targets.ResourceType)
-	vpeResourceType              = "endpoint_gateway"  // used as the type within api objects (e.g. SecurityGroup.Targets.ResourceType)
-	loadBalancerResourceType     = "load_balancer"     // used as the type within api objects (e.g. SecurityGroup.Targets.ResourceType)
-	// iksNodeResourceType is not actually used from input api objects, but is added by the parser to SGs with targets
-	// that should be added with iks nodes
-	iksNodeResourceType = "iks_node" // used as the type within api objects (e.g. SecurityGroup.Targets.ResourceType)
-	cidrSeparator       = ", "
-	linesSeparator      = "---------------------"
+	protocolTCP  = "tcp"
+	allProtocols = "-1"
+	protocolUDP  = "udp"
+	protocolICMP = "icmp"
+	inbound      = "inbound"
+	outbound     = "outbound"
 )
 
 // Resource types const strings, used in the generated resources of this pkg
@@ -40,17 +35,9 @@ const (
 	ResourceTypeVSI              = "VSI"
 	ResourceTypeNetworkInterface = "NetworkInterface"
 	ResourceTypeSubnet           = "Subnet"
-	ResourceTypePublicGateway    = "PublicGateway"
-	ResourceTypeFloatingIP       = "FloatingIP"
 	ResourceTypeVPC              = "VPC"
 	ResourceTypeSG               = "SG"
 	ResourceTypeNACL             = "NACL"
-	ResourceTypeIKSNode          = "IKSNodeNetworkInterface"
-	ResourceTypeVPE              = "VPE"
-	ResourceTypeTGW              = "TGW"
-	ResourceTypeReservedIP       = "ReservedIP"
-	ResourceTypeLoadBalancer     = "LoadBalancer"
-	ResourceTypePrivateIP        = "PrivateIP"
 )
 
 // ParseResourcesFromFile returns aws.ResourcesContainer object, containing the configured resources structs
@@ -121,8 +108,13 @@ func filterByVpc(rc *aws.ResourcesContainer, vpcID string) map[string]bool {
 // VPCConfigsFromResources returns a map from VPC UID (string) to its corresponding VPCConfig object,
 // containing the parsed resources in the relevant model objects
 //
+<<<<<<< HEAD
 //nolint:funlen // serial list of commands, no need to spill it
 func VPCConfigsFromResources(rc *aws.ResourcesContainer, vpcID, resourceGroup string, regions []string) (
+=======
+
+func VPCConfigsFromResources(rc *aws.ResourcesContainer, vpcID, resourceGroup string, regions []string, debug bool) (
+>>>>>>> 41d3c9ae (fix)
 	*vpcmodel.MultipleVPCConfigs, error) {
 	res := vpcmodel.NewMultipleVPCConfigs("AWS Cloud") // map from VPC UID to its config
 	var err error
@@ -183,7 +175,7 @@ func NewEmptyVPCConfig() *vpcmodel.VPCConfig {
 	}
 }
 
-func newVPC(uid string) (vpcNodeSet *VPC, err error) {
+func newVPC(uid string) (vpcNodeSet *VPC) {
 	vpcNodeSet = &VPC{
 		VPCResource: vpcmodel.VPCResource{
 			ResourceUID:  uid,
@@ -194,7 +186,7 @@ func newVPC(uid string) (vpcNodeSet *VPC, err error) {
 	}
 
 	vpcNodeSet.VPCRef = vpcNodeSet
-	return vpcNodeSet, nil
+	return vpcNodeSet
 }
 
 func getVPCconfig(rc *aws.ResourcesContainer,
@@ -205,10 +197,7 @@ func getVPCconfig(rc *aws.ResourcesContainer,
 			continue // skip vpc not specified to analyze
 		}
 
-		vpcNodeSet, err := newVPC(*vpc.VpcId)
-		if err != nil {
-			return err
-		}
+		vpcNodeSet := newVPC(*vpc.VpcId)
 		newVPCConfig := NewEmptyVPCConfig()
 		newVPCConfig.UIDToResource[vpcNodeSet.ResourceUID] = vpcNodeSet
 		newVPCConfig.VPC = vpcNodeSet
@@ -276,7 +265,7 @@ func newNetworkInterface(uid, zone, address, vsi string, vpc vpcmodel.VPCResourc
 
 func getInstancesConfig(
 	rc *aws.ResourcesContainer,
-	subnetIdToNetIntf map[string][]*NetworkInterface,
+	subnetIDToNetIntf map[string][]*NetworkInterface,
 	res *vpcmodel.MultipleVPCConfigs,
 	skipByVPC map[string]bool,
 ) error {
@@ -309,18 +298,19 @@ func getInstancesConfig(
 		for j := range instance.NetworkInterfaces {
 			netintf := instance.NetworkInterfaces[j]
 			// netintf has no CRN, thus using its ID for ResourceUID
-			intfNode, err := newNetworkInterface(*netintf.NetworkInterfaceId, *instance.Placement.AvailabilityZone, *netintf.PrivateIpAddress, *instance.InstanceId, vpc, netintf.Groups)
+			intfNode, err := newNetworkInterface(*netintf.NetworkInterfaceId, *instance.Placement.AvailabilityZone,
+				*netintf.PrivateIpAddress, *instance.InstanceId, vpc, netintf.Groups)
 			if err != nil {
 				return err
 			}
 			vpcConfig.Nodes = append(vpcConfig.Nodes, intfNode)
 			vpcConfig.UIDToResource[intfNode.ResourceUID] = intfNode
 			vsiNode.nodes = append(vsiNode.nodes, intfNode)
-			subnetId := *netintf.SubnetId
-			if _, ok := subnetIdToNetIntf[subnetId]; !ok {
-				subnetIdToNetIntf[subnetId] = []*NetworkInterface{}
+			subnetID := *netintf.SubnetId
+			if _, ok := subnetIDToNetIntf[subnetID]; !ok {
+				subnetIDToNetIntf[subnetID] = []*NetworkInterface{}
 			}
-			subnetIdToNetIntf[subnetId] = append(subnetIdToNetIntf[subnetId], intfNode)
+			subnetIDToNetIntf[subnetID] = append(subnetIDToNetIntf[subnetID], intfNode)
 		}
 	}
 	return nil
@@ -403,8 +393,8 @@ func parseSGTargets(sgResources map[string]map[string]*SecurityGroup, configs *v
 			if node.Kind() == ResourceTypeNetworkInterface {
 				if intfNodeObj, ok := node.(*NetworkInterface); ok {
 					securityGroupIds := intfNodeObj.SecurityGroups()
-					for _, securityGroupId := range securityGroupIds {
-						sgs[*securityGroupId.GroupId].members[intfNodeObj.Address()] = intfNodeObj
+					for _, securityGroupID := range securityGroupIds {
+						sgs[*securityGroupID.GroupId].members[intfNodeObj.Address()] = intfNodeObj
 					}
 				}
 			}
@@ -523,6 +513,8 @@ func printConfig(c *vpcmodel.VPCConfig) {
 				fmt.Println(strings.Join([]string{sg.ResourceType, sg.ResourceName, sg.UID()}, separator))
 				printSGRules(sg)
 			}
+		default:
+			fmt.Println("layer not supported yet")
 		}
 	}
 }

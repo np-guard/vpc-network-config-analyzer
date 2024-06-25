@@ -210,10 +210,8 @@ var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{
 }
 
 // uncomment the function below to run for updating the expected output
-
-var formatsAvoidOutputGeneration = formatsAvoidComparison
-
 /*
+var formatsAvoidOutputGeneration = formatsAvoidComparison
 	func TestAllWithGeneration(t *testing.T) {
 		// tests is the list of tests to run
 		for testIdx := range tests {
