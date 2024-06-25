@@ -29,9 +29,9 @@ type rulesConnection struct {
 	egressRules  rulesInLayers
 }
 
-// loadBalancerDennyEgressRule - is a rule applied on load balancer private IP:
-// a private IP can have egress connection to only to a pool member of the load balancer
-type loadBalancerDennyEgressRule bool
+// loadBalancerDennyEgressRule - is a rule applied to all private IPs of a given load balancer:
+// these private IPs can only connect to pool members of the load balancer
+type loadBalancerDenyEgressRule bool
 
 type srcDstDetails struct {
 	src         Node
@@ -48,8 +48,8 @@ type srcDstDetails struct {
 	crossVpcRules  []RulesInTable  // cross vpc (only tgw at the moment) prefix rules effecting the connection (or lack of)
 	// there could be more than one connection effecting the connection since src/dst cidr's may contain more than one AP
 
-	// loadBalancerDennyEgressRule - true if src is pip, and dst is not pool member:
-	loadBalancerRule loadBalancerDennyEgressRule
+	// loadBalancerDenyEgressRule - true if src is pip, and dst is not pool member:
+	loadBalancerRule loadBalancerDenyEgressRule
 	// filters relevant for this src, dst pair; map keys are the filters kind (NaclLayer/SecurityGroupLayer)
 	// for two internal nodes within same subnet, only SG layer is relevant
 	// for external connectivity (src/dst is external) with FIP, only SG layer is relevant
@@ -189,7 +189,7 @@ func (details *rulesAndConnDetails) computeRoutersAndFilters(c *VPCConfig) (err 
 		// RoutingResources are computed by the parser for []Nodes of the VPC,
 		src := singleSrcDstDetails.src
 		dst := singleSrcDstDetails.dst
-		singleSrcDstDetails.loadBalancerRule = loadBalancerDennyEgressRule(c.deniedWithLBConnectivity(src, dst))
+		singleSrcDstDetails.loadBalancerRule = loadBalancerDenyEgressRule(c.deniedWithLBConnectivity(src, dst))
 		if src.IsInternal() && dst.IsInternal() { // internal (including cross vpcs)
 			singleSrcDstDetails.crossVpcRouter, _, err = c.getRoutingResource(src, dst)
 			if err != nil {
