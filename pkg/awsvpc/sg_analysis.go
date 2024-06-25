@@ -173,7 +173,7 @@ func (sga *SGAnalyzer) getSGrules(sgObj *types.SecurityGroup) (ingressRules, egr
 	ingressRules = []*SGRule{}
 	egressRules = []*SGRule{}
 	numRules := len(sgObj.IpPermissions) + len(sgObj.IpPermissionsEgress)
-	for index := 0; index <= numRules; index++ {
+	for index := 0; index < numRules; index++ {
 		_, ruleObj, isIngress, err := sga.getSGRule(index)
 		if err != nil {
 			return nil, nil, err
