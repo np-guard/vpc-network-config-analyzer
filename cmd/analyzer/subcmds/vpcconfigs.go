@@ -65,7 +65,6 @@ func vpcConfigsFromFiles(fileNames []string, inArgs *inArgs) (*vpcmodel.Multiple
 >>>>>>> 20f65afb (aws sg analysis)
 	}
 	return awsvpc.VpcConfigsFromFiles(fileNames, inArgs.vpc, inArgs.resourceGroup, inArgs.regionList, inArgs.debug)
-
 }
 
 func vpcConfigsFromAccount(inArgs *inArgs) (*vpcmodel.MultipleVPCConfigs, error) {
