@@ -36,16 +36,6 @@ func NewSGAnalyzer(sg *types.SecurityGroup) *SGAnalyzer {
 	return res
 }
 
-func isIngressRule(direction *string) bool {
-	if direction == nil {
-		return false
-	}
-	if *direction == "inbound" {
-		return true
-	}
-	return false
-}
-
 func getEmptyConnSet() *connection.Set {
 	return connection.None()
 }
@@ -161,13 +151,13 @@ func (sga *SGAnalyzer) getSGRule(index int) (
 		ruleObj = sga.sgResource.IpPermissionsEgress[index-len(sga.sgResource.IpPermissions)]
 	}
 	switch *ruleObj.IpProtocol {
-	case "-1": // all protocols
+	case allProtocols: // all protocols
 		ruleStr, ruleRes, err = sga.getProtocolAllRule(&ruleObj, direction)
-	case "tcp":
+	case protocolTCP:
 		ruleStr, ruleRes, err = sga.getProtocolTcpudpRule(&ruleObj, direction)
-	case "udp":
+	case protocolUDP:
 		ruleStr, ruleRes, err = sga.getProtocolTcpudpRule(&ruleObj, direction)
-	case "icmp":
+	case protocolICMP:
 		ruleStr, ruleRes, err = sga.getProtocolIcmpRule(&ruleObj, direction)
 	default:
 		return "", nil, false, fmt.Errorf("getSGRule error: unsupported type")
@@ -182,8 +172,8 @@ func (sga *SGAnalyzer) getSGRule(index int) (
 func (sga *SGAnalyzer) getSGrules(sgObj *types.SecurityGroup) (ingressRules, egressRules []*SGRule, err error) {
 	ingressRules = []*SGRule{}
 	egressRules = []*SGRule{}
-	rules := append(sgObj.IpPermissions, sgObj.IpPermissionsEgress...)
-	for index := range rules {
+	numRules := len(sgObj.IpPermissions) + len(sgObj.IpPermissionsEgress)
+	for index := 0; index <= numRules; index++ {
 		_, ruleObj, isIngress, err := sga.getSGRule(index)
 		if err != nil {
 			return nil, nil, err
@@ -204,15 +194,6 @@ type SGRule struct {
 	connections *connection.Set
 	ipRanges    *ipblock.IPBlock
 	index       int // index of original rule in *types.SecurityGroup.IpPermissions and *types.SecurityGroup.IpPermissionsEgress
-}
-
-func (cr *ConnectivityResult) string() string {
-	res := []string{}
-	for t, conn := range cr.allowedConns {
-		res = append(res, fmt.Sprintf("remote: %s, conn: %s", t.ToIPRanges(), conn.String()))
-	}
-	sort.Strings(res)
-	return strings.Join(res, "\n")
 }
 
 func analyzeSGRules(rules []*SGRule, isIngress bool) *ConnectivityResult {

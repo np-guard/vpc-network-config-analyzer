@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+
 	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
@@ -79,7 +80,6 @@ type VPC struct {
 	// internalAddressRange is the union of all the vpc's subnets' CIDRs
 	internalAddressRange   *ipblock.IPBlock
 	subnetsList            []*Subnet
-	addressPrefixes        []string
 	addressPrefixesIPBlock *ipblock.IPBlock
 }
 
@@ -100,10 +100,6 @@ func (v *VPC) Nodes() []vpcmodel.Node {
 
 func (v *VPC) AddressRange() *ipblock.IPBlock {
 	return v.internalAddressRange
-}
-
-func (v *VPC) subnets() []*Subnet {
-	return v.subnetsList
 }
 
 // Subnet implements vpcmodel.Subnet interface
