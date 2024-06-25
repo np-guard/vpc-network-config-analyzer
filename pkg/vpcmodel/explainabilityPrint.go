@@ -94,7 +94,7 @@ func explainMissingCrossVpcRouter(src, dst string, connQuery *connection.Set) st
 }
 
 func explainLoadBalancerDenyEgress(src, dst string, connQuery *connection.Set) string {
-	return fmt.Sprintf("%v\nConnection from a private IP is allowed only to load balancer pool members\n",
+	return fmt.Sprintf("%v\nPrivate IPs of a load balancer can only connect to its pool members\n",
 		noConnectionHeader(src, dst, connQuery))
 }
 
