@@ -251,7 +251,8 @@ func TestResponsiveGrouping(t *testing.T) {
 	fmt.Println(groupingStr)
 	require.Equal(t, "vsi1 => Public Internet 1.2.0.0/22,8.8.8.8/32 : All Connections\n"+
 		"vsi2 => Public Internet 1.2.0.0/22 : All Connections\n"+
-		"vsi2 => Public Internet 8.8.8.8/32 : All Connections * \n", groupingStr)
+		"vsi2 => Public Internet 8.8.8.8/32 : protocol: ICMP,UDP\n"+
+		"vsi2 => Public Internet 8.8.8.8/32 : protocol: TCP * \n", groupingStr)
 	fmt.Println("done")
 }
 

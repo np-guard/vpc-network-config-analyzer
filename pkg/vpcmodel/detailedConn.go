@@ -10,6 +10,8 @@ import (
 	"github.com/np-guard/models/pkg/connection"
 )
 
+const asterisk = " * "
+
 // detailedConn captures the connection with TCP's responsiveness details, as described below.
 // It is created from src-to-dest allowed connection (TCP and non-TCP) and allowed response
 // connection dest-to-src.
@@ -102,11 +104,28 @@ func (d *detailedConn) hasTCPComponent() bool {
 	return !d.tcpRspEnable.Union(d.tcpRspDisable).IsEmpty()
 }
 
+// returns the tcp responsive and non-tcp component
+func (d *detailedConn) nonTCPAndResponsiveTCPComponent() *connection.Set {
+	return d.tcpRspEnable.Union(d.nonTCP)
+}
+
+// todo: will it still be needed once transformation is completed?
 func (d *detailedConn) string() string {
 	if !d.tcpRspDisable.IsEmpty() {
-		return d.allConn.String() + " * "
+		return d.allConn.String() + asterisk
 	}
 	return d.allConn.String()
+}
+
+// in the structs a single line represents connection of each <src, dst>
+// in the reports we print potentially two lines for each <src, dst> connection:
+// one for the "main" tcp responsive + non tcp component and the other for the tcp non-responsive component
+// this separation is done here: the former is returned for bidirectional and the latter for false
+func (d *detailedConn) connStrPerConnectionType(nonTCPAndResponsiveTCP bool) string {
+	if nonTCPAndResponsiveTCP {
+		return d.nonTCPAndResponsiveTCPComponent().String()
+	}
+	return d.tcpRspDisable.String() + asterisk
 }
 
 // computeDetailedConn computes the detailedConn object, given input `srcToDst`

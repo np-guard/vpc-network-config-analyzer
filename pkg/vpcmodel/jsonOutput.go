@@ -116,11 +116,12 @@ func getConnLinesForSubnetsConnectivity(conn *VPCsubnetConnectivity) []connLine 
 			if extConns.isEmpty() {
 				continue
 			}
-			// currently not supported with grouping
+			// currently, not supported with grouping
 			connLines = append(connLines, connLine{
-				Src:  src,
-				Dst:  dst,
-				Conn: connection.ToJSON(extConns.allConn),
+				Src:                src,
+				Dst:                dst,
+				Conn:               connection.ToJSON(extConns.tcpRspEnable.Union(extConns.nonTCP)),
+				UnidirectionalConn: connection.ToJSON(extConns.tcpRspDisable),
 			})
 		}
 	}
