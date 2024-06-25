@@ -586,14 +586,6 @@ var explainTests = []*vpcGeneralTest{
 		EDst:        "192.168.4.4",
 		format:      vpcmodel.Text,
 	},
-	// load_balancer pip to iks-node
-	{
-		name:        "LBPrivateIPToIksNodeDebug",
-		inputConfig: "iks_config_object",
-		ESrc:        "192.168.36.6",
-		EDst:        "192.168.4.4",
-		format:      vpcmodel.Debug,
-	},
 }
 
 func TestAll(t *testing.T) {

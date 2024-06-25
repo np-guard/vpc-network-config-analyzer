@@ -120,7 +120,7 @@ func (c *VPCConfig) AddRoutingTable(rt VPCResourceIntf) {
 	c.RoutingTables = append(c.RoutingTables, rt)
 }
 
-func (c *VPCConfig) loadBalancersAsNodeSet() []NodeSet {
+func (c *VPCConfig) loadBalancersAsNodeSets() []NodeSet {
 	nodeSet := make([]NodeSet, len(c.LoadBalancers))
 	for i, lb := range c.LoadBalancers {
 		nodeSet[i] = lb
