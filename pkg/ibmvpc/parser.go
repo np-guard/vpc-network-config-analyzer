@@ -977,7 +977,7 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 		}
 		vpc, err := getVPCObjectByUID(res, vpcUID)
 		if err != nil {
-			logging.Warnf("in the configuration of transit gateway %s, skipping vpc %s - unknown VPC\n", ADD-GATEWAYID-HERE, vpcUID)
+			logging.Warnf("in the configuration of transit gateway %s, skipping vpc %s - unknown VPC\n", tgwUID, vpcUID)
 			continue
 		}
 		if _, ok := tgwMap[tgwUID]; !ok {
