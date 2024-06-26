@@ -586,14 +586,6 @@ var explainTests = []*vpcGeneralTest{
 		EDst:        "192.168.4.4",
 		format:      vpcmodel.Text,
 	},
-	// load_balancer pip to iks-node
-	{
-		name:        "LBPrivateIPToIksNodeDebug",
-		inputConfig: "iks_config_object",
-		ESrc:        "192.168.36.6",
-		EDst:        "192.168.4.4",
-		format:      vpcmodel.Debug,
-	},
 }
 
 func TestAll(t *testing.T) {
@@ -875,4 +867,19 @@ func TestMultiExplainabilityOutput(t *testing.T) {
 	require.Contains(t, outputString, "network ACL ky-vpc2-acl1 -> ky-vpc2-net1 -> security group ky-vpc2-sg -> ky-vpc2-vsi[10.240.64.5]",
 		"connection vsi to vsi")
 	fmt.Println("\n\n", outputString)
+}
+
+func TestInputLBPrivateIP(t *testing.T) {
+	vpcConfigMultiVpc := getConfig(t, "iks_config_object")
+	require.NotNil(t, vpcConfigMultiVpc, "vpcConfigMultiVpc equals nil")
+
+
+	pipCidr := "192.168.36.6"
+	cidr2 := "192.168.4.4"
+	// should fail since pip can not be an explainability input
+	_, err1 := vpcConfigMultiVpc.ExplainConnectivity(pipCidr, cidr2, nil)
+	fmt.Println(err1.Error())
+	require.NotNil(t, err1, "the test should fail since " + pipCidr + " is a Private IP address")
+	require.Equal(t, "illegal src: no network interfaces are connected to " + pipCidr, err1.Error())
+	fmt.Println()
 }
