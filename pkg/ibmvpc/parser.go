@@ -1093,7 +1093,7 @@ func (tgw *TransitGateway) newConfigFromTGW(configs *vpcmodel.MultipleVPCConfigs
 		} else {
 			// currently supporting only disjoint address ranges for the connected VPCs
 			if vpcsAddressRanges.Overlap(vpcConfig.VPC.(*VPC).internalAddressRange) {
-				logging.Warnf("ignoring transit gateway %s, as currently not supporting connected VPCs with overlapping address ranges\n",
+				logging.Warnf("skipping transit gateway %s - connected VPCs with overlapping address ranges are not yet supported\n",
 					tgw.ResourceName)
 				continue
 			}
