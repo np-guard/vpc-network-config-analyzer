@@ -69,11 +69,7 @@ func (explanation *Explanation) String(verbose bool) string {
 	linesStr := make([]string, len(explanation.groupedLines))
 	groupedLines := explanation.groupedLines
 	for i, groupedLine := range groupedLines {
-		if groupedLine.commonProperties.expDetails.loadBalancerRule {
-			linesStr[i] = explainLoadBalancerDenyEgress(explanation.src, explanation.dst, explanation.connQuery)
-		} else {
-			linesStr[i] = groupedLine.explainabilityLineStr(explanation.c, explanation.connQuery, verbose)
-		}
+		linesStr[i] = groupedLine.explainabilityLineStr(explanation.c, explanation.connQuery, verbose)
 		linesStr[i] +=
 			"------------------------------------------------------------------------------------------------------------------------\n"
 	}
@@ -100,15 +96,17 @@ func explainLoadBalancerDenyEgress(src, dst string, connQuery *connection.Set) s
 
 // prints a single line of explanation for externalAddress grouped <src, dst>
 // The printing contains 4 sections:
+//
 //  1. Header describing the query and whether there is a connection. E.g.:
 //     * Allowed connections from ky-vsi0-subnet5[10.240.9.4] to ky-vsi0-subnet11[10.240.80.4]: All Connections
 //     The TCP sub-connection is responsive
 //     * No connections are allowed from ky-vsi1-subnet20[10.240.128.5] to ky-vsi0-subnet0[10.240.0.5];
-//  2. List of all the different resources effecting the connection and the effect of each. E.g.:
 //
-// cross-vpc-connection: transit-connection tg_connection0 of transit-gateway local-tg-ky denys connection
-// Egress: security group sg21-ky allows connection; network ACL acl21-ky allows connection
-// Ingress: network ACL acl1-ky allows connection; security group sg1-ky allows connection
+//  2. List of all the different resources effecting the connection and the effect of each. E.g.:
+//     cross-vpc-connection: transit-connection tg_connection0 of transit-gateway local-tg-ky denys connection
+//     Egress: security group sg21-ky allows connection; network ACL acl21-ky allows connection
+//     Ingress: network ACL acl1-ky allows connection; security group sg1-ky allows connection
+//
 //  3. Connection path description. E.g.:
 //     ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> subnet20 -> network ACL acl21-ky ->
 //     test-vpc2-ky -> TGW local-tg-ky -> |

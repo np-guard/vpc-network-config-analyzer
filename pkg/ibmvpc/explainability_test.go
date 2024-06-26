@@ -578,7 +578,23 @@ var explainTests = []*vpcGeneralTest{
 		EDstMaxPort: connection.MaxPort,
 		format:      vpcmodel.Debug,
 	},
+	// pip to resip
+	{
+		name:        "pipToNotPoolMember",
+		inputConfig: "iks_w_lb",
+		ESrc:        "192.168.36.8",
+		EDst:        "192.168.40.7",
+		format:      vpcmodel.Debug,
+	},
+	{
+		name:        "pipToPoolMember",
+		inputConfig: "iks_w_lb",
+		ESrc:        "192.168.36.8",
+		EDst:        "192.168.4.4",
+		format:      vpcmodel.Debug,
+	},
 }
+
 
 func TestAll(t *testing.T) {
 	// explainTests is the list of tests to run
