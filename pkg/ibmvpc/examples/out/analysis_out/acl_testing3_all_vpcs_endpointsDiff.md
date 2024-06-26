@@ -2,8 +2,8 @@
 ## Endpoints diff report
 | type | src |  dst | conn1 | conn2 | vsis-diff-info |
 |------|-----|------|-------|-------|----------------|
-| changed | vsi2-ky[10.240.20.4] | vsi1-ky[10.240.10.4] | All Connections | All Connections *  |  |
+| changed | vsi2-ky[10.240.20.4] | vsi1-ky[10.240.10.4] | All Connections; The TCP sub-connection is responsive | All Connections; TCP response is blocked |  |
 | removed | vsi1-ky[10.240.10.4] | Public Internet 161.26.0.0/16 | protocol: UDP | No Connections |  |
-| removed | vsi1-ky[10.240.10.4] | vsi2-ky[10.240.20.4] | protocol: TCP,UDP | No Connections |  |
+| removed | vsi1-ky[10.240.10.4] | vsi2-ky[10.240.20.4] | protocol: TCP,UDP; The TCP sub-connection is responsive | No Connections |  |
 
 TCP connections for which response is not permitted are marked with * 
