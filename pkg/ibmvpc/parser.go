@@ -175,7 +175,7 @@ func getRoutingTables(rc *datamodel.ResourcesContainerModel,
 		vpcUID := *rt.VPC.CRN
 		vpcConfig := res.Config(vpcUID)
 		if vpcConfig == nil {
-			logging.Warnf("skipping routing table %s, could not find vpc with uid %s", *rt.Name, vpcUID)
+			logging.Warnf("skipping routing table %s - could not find vpc with uid %s", *rt.Name, vpcUID)
 			continue
 		}
 		if skipByVPC[*rt.VPC.CRN] {
