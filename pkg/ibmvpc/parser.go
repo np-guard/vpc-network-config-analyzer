@@ -548,7 +548,7 @@ func getPgwConfig(
 		}
 		pgwName := *pgw.Name
 		if _, ok := pgwToSubnet[pgwName]; !ok {
-			logging.Warnf("public gateway %s does not have any attached subnet, ignoring this resource\n", pgwName)
+			logging.Warnf("skipping public gateway %s - it does not have any attached subnet\n", pgwName)
 			continue
 		}
 		vpcUID := *pgw.VPC.CRN
