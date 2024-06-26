@@ -169,7 +169,7 @@ func getRoutingTables(rc *datamodel.ResourcesContainerModel,
 	skipByVPC map[string]bool) error {
 	for _, rt := range rc.RoutingTableList {
 		if rt.VPC == nil || rt.VPC.CRN == nil {
-			logging.Warnf("unknown vpc for routing table %s, skipping...", *rt.Name)
+			logging.Warnf("skipping routing table %s - unknown vpc", *rt.Name)
 			continue
 		}
 		vpcUID := *rt.VPC.CRN
