@@ -221,7 +221,7 @@ func getIngressRoutingTable(rt *datamodel.RoutingTable,
 	vpcConfig *vpcmodel.VPCConfig) vpcmodel.VPCResourceIntf {
 	if !*rt.RouteTransitGatewayIngress {
 		// skip such rt for now, till supporting more source types for ingress rt
-		logging.Warnf("skipping ingress routing table %s, currently supporting only source type of transit gateway ", *rt.Name)
+		logging.Warnf("skipping ingress routing table %s - only transit gateways are currently supported as source", *rt.Name)
 		return nil
 	}
 	res := newIngressRoutingTableFromRoutes(routes, vpcConfig, getRoutingTableVPCResource(rt, vpcConfig))
