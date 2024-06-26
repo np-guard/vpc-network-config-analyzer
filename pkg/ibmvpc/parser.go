@@ -169,13 +169,13 @@ func getRoutingTables(rc *datamodel.ResourcesContainerModel,
 	skipByVPC map[string]bool) error {
 	for _, rt := range rc.RoutingTableList {
 		if rt.VPC == nil || rt.VPC.CRN == nil {
-			logging.Warnf("unknown vpc for rt %s, skipping...", *rt.Name)
+			logging.Warnf("skipping routing table %s - unknown vpc", *rt.Name)
 			continue
 		}
 		vpcUID := *rt.VPC.CRN
 		vpcConfig := res.Config(vpcUID)
 		if vpcConfig == nil {
-			logging.Warnf("skipping rt %s, could not find vpc with uid %s", *rt.Name, vpcUID)
+			logging.Warnf("skipping routing table %s - could not find vpc with uid %s", *rt.Name, vpcUID)
 			continue
 		}
 		if skipByVPC[*rt.VPC.CRN] {
@@ -221,7 +221,7 @@ func getIngressRoutingTable(rt *datamodel.RoutingTable,
 	vpcConfig *vpcmodel.VPCConfig) vpcmodel.VPCResourceIntf {
 	if !*rt.RouteTransitGatewayIngress {
 		// skip such rt for now, till supporting more source types for ingress rt
-		logging.Warnf("skipping ingress routing table %s, currently supporting only source type of TGW ", *rt.Name)
+		logging.Warnf("skipping ingress routing table %s - only transit gateways are currently supported as source", *rt.Name)
 		return nil
 	}
 	res := newIngressRoutingTableFromRoutes(routes, vpcConfig, getRoutingTableVPCResource(rt, vpcConfig))
@@ -548,7 +548,7 @@ func getPgwConfig(
 		}
 		pgwName := *pgw.Name
 		if _, ok := pgwToSubnet[pgwName]; !ok {
-			logging.Warnf("public gateway %s does not have any attached subnet, ignoring this pgw\n", pgwName)
+			logging.Warnf("skipping public gateway %s - it does not have any attached subnet\n", pgwName)
 			continue
 		}
 		vpcUID := *pgw.VPC.CRN
@@ -573,7 +573,7 @@ func ignoreFIPWarning(fipName, details string) string {
 
 func warnSkippedFip(filteredOutUIDs map[string]bool, targetUID string, fip *datamodel.FloatingIP) {
 	if !filteredOutUIDs[targetUID] {
-		logging.Warnf("skip fip %s - could not find attached network interface\n", *fip.Name)
+		logging.Warnf("skipping Floating IP %s - could not find attached network interface\n", *fip.Name)
 	}
 }
 
@@ -605,14 +605,14 @@ func getFipConfig(
 			targetUID = *target.ID
 		case *vpc1.FloatingIPTarget:
 			if *target.ResourceType != networkInterfaceResourceType {
-				logging.Warnf(ignoreFIPWarning(*fip.Name,
+				logging.Debugf(ignoreFIPWarning(*fip.Name,
 					fmt.Sprintf("target.ResourceType %s is not supported (only networkInterfaceResourceType supported)",
 						*target.ResourceType)))
 				continue
 			}
 			targetUID = *target.ID
 		default:
-			logging.Warnf(ignoreFIPWarning(*fip.Name, "target (FloatingIPTargetIntf) is not of the expected type"))
+			logging.Debugf(ignoreFIPWarning(*fip.Name, "target (FloatingIPTargetIntf) is not of the expected type"))
 			continue
 		}
 
@@ -956,7 +956,7 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 					continue
 				}
 			} else {
-				logging.Warnf("ignoring tgw with unknown resource-group, tgwID: %s\n", tgwUID)
+				logging.Warnf("skipping transit gateway %s - unknown resource-group\n", tgwUID)
 				tgwToSkip[tgwUID] = true // to avoid having this tgw's same warning issued again from another transitConnection
 				continue
 			}
@@ -970,14 +970,14 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 					continue
 				}
 			} else {
-				logging.Warnf("ignoring tgw with unknown region, tgwID: %s\n", tgwUID)
+				logging.Warnf("skipping transit gateway %s - unknown region\n", tgwUID)
 				tgwToSkip[tgwUID] = true // to avoid having this tgw's same warning issued again from another transitConnection
 				continue
 			}
 		}
 		vpc, err := getVPCObjectByUID(res, vpcUID)
 		if err != nil {
-			logging.Warnf("ignoring vpc that does not exist in tgw config, vpcID: %s\n", vpcUID)
+			logging.Warnf("in the configuration of transit gateway %s, skipping vpc %s - unknown VPC\n", tgwUID, vpcUID)
 			continue
 		}
 		if _, ok := tgwMap[tgwUID]; !ok {
@@ -1042,13 +1042,13 @@ func addTGWbasedConfigs(tgws map[string]*TransitGateway, res *vpcmodel.MultipleV
 func (tgw *TransitGateway) newConfigFromTGW(configs *vpcmodel.MultipleVPCConfigs) (*vpcmodel.VPCConfig, error) {
 	if len(tgw.vpcs) <= 1 {
 		// skip tgw if it does not connect between at least 2 vpcs
-		logging.Warnf("skipping TGW %s, as it is not connected to at least 2 VPCs\n", tgw.NameAndUID())
+		logging.Warnf("skipping transit gateway %s - it is not connected to at least 2 VPCs\n", tgw.NameAndUID())
 		return nil, nil
 	}
 	// TODO: for now, the analysis supports only disjoint VPCs address prefixes
 	// consider adding support for overlapping address prefixes with conflict resolution logic
 	if err := validateVPCsAddressPrefixesForTGW(tgw.vpcs); err != nil {
-		logging.Warnf("skipping TGW %s: %s\n", tgw.NameAndUID(), err.Error())
+		logging.Warnf("skipping transit gateway %s - failed validation of supported address prefixes: %s\n", tgw.NameAndUID(), err.Error())
 		return nil, nil
 	}
 	newConfig := &vpcmodel.VPCConfig{
@@ -1093,7 +1093,7 @@ func (tgw *TransitGateway) newConfigFromTGW(configs *vpcmodel.MultipleVPCConfigs
 		} else {
 			// currently supporting only disjoint address ranges for the connected VPCs
 			if vpcsAddressRanges.Overlap(vpcConfig.VPC.(*VPC).internalAddressRange) {
-				logging.Warnf("ignoring TGW %s, as currently not supporting connected VPCs with overlapping address ranges\n",
+				logging.Warnf("skipping transit gateway %s - connected VPCs with overlapping address ranges are not yet supported\n",
 					tgw.ResourceName)
 				continue
 			}
@@ -1282,7 +1282,7 @@ func getIKSnodesConfig(res *vpcmodel.MultipleVPCConfigs,
 
 			subnet, err := getSubnetByCidr(res, *iksNodeNetIntfObj.Cidr)
 			if err != nil {
-				logging.Warnf("ignoring iksNode with ID %s (could not find subnet with iksNode's CIDR: %s)\n",
+				logging.Warnf("skipping IKS Node with ID %s - could not find subnet with CIDR %s\n",
 					*iksNode.ID, *iksNodeNetIntfObj.Cidr)
 				continue
 			}
