@@ -97,9 +97,10 @@ func analysisVPCConfigs(cmd *cobra.Command, inArgs *inArgs, analysisType vpcmode
 		return err
 	}
 	outFormat := inArgs.outputFormat.ToModelFormat()
-	// we explain lb, not pip, so we must have abstraction for explainability
-	// todo - the lbAbstraction should be derived from user input somehow, not from vpcmodel.Debug
-	lbAbstraction := analysisType == vpcmodel.Explain || outFormat != vpcmodel.Debug
+	// we need lb abstraction only for connections reports
+	// todo - the lbAbstraction should be derived from a flag "debug", when we will have one
+	lbAbstraction := (analysisType == vpcmodel.AllEndpoints || analysisType == vpcmodel.EndpointsDiff) &&
+		outFormat != vpcmodel.Debug
 	og, err := vpcmodel.NewOutputGenerator(vpcConfigs,
 		inArgs.grouping,
 		analysisType,

@@ -97,6 +97,9 @@ func (pip *PrivateIP) AbstractedNodeSet() vpcmodel.NodeSet {
 	}
 	return nil
 }
+func (pip *PrivateIP) IsRepresentedByAddress() bool {
+	return false
+}
 
 // NetworkInterface implements vpcmodel.Node interface
 type NetworkInterface struct {
