@@ -573,7 +573,7 @@ func ignoreFIPWarning(fipName, details string) string {
 
 func warnSkippedFip(filteredOutUIDs map[string]bool, targetUID string, fip *datamodel.FloatingIP) {
 	if !filteredOutUIDs[targetUID] {
-		logging.Warnf("skip FloatingIP %s - could not find attached network interface\n", *fip.Name)
+		logging.Warnf("skipping Floating IP %s - could not find attached network interface\n", *fip.Name)
 	}
 }
 
