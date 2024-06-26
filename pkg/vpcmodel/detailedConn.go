@@ -7,8 +7,9 @@ SPDX-License-Identifier: Apache-2.0
 package vpcmodel
 
 import (
-	"github.com/np-guard/models/pkg/connection"
 	"strings"
+
+	"github.com/np-guard/models/pkg/connection"
 )
 
 const asterisk = " * "
