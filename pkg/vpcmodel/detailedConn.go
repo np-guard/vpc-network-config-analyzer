@@ -109,12 +109,15 @@ func (d *detailedConn) nonTCPAndResponsiveTCPComponent() *connection.Set {
 	return d.tcpRspEnable.Union(d.nonTCP)
 }
 
-// todo: will it still be needed once transformation is completed?
 func (d *detailedConn) string() string {
 	if !d.tcpRspDisable.IsEmpty() {
 		return d.allConn.String() + asterisk
 	}
 	return d.allConn.String()
+}
+
+func (d *detailedConn) detailString() string {
+	return d.allConn.String() + d.respondString(false)
 }
 
 // in the structs a single line represents connection of each <src, dst>

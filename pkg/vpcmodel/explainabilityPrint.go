@@ -233,7 +233,7 @@ func existingConnectionStr(c *VPCConfig, connQuery *connection.Set, src, dst End
 	conn *detailedConn, path, details string) string {
 	resComponents := []string{}
 	// Computing the header, "1" described in explainabilityLineStr
-	respondConnStr := respondString(conn)
+	respondConnStr := conn.respondString(true)
 	if connQuery == nil {
 		resComponents = append(resComponents, fmt.Sprintf("Allowed connections from %v to %v: %v%v\n", src.ExtendedName(c), dst.ExtendedName(c),
 			conn.allConn.String(), respondConnStr))
@@ -472,20 +472,26 @@ func getLayersToPrint(filtersRelevant map[string]bool, isIngress bool) (filterLa
 	return orderedRelevantFiltersLayers
 }
 
-func respondString(d *detailedConn) string {
+func (d *detailedConn) respondString(newLine bool) string {
+	prefix := ""
+	if newLine {
+		prefix = "\n\t"
+	} else {
+		prefix = "; "
+	}
 	switch {
 	case d.allConn.Equal(d.nonTCP):
 		// no tcp component - ill-relevant
 		return ""
 	case d.tcpRspEnable.IsEmpty():
 		// no tcp responsive component
-		return "\n\tTCP response is blocked"
+		return prefix + "TCP response is blocked"
 	case d.tcpRspEnable.Equal(d.allConn):
 		// tcp responsive component is the entire connection
-		return "\n\tThe entire connection is TCP responsive"
+		return prefix + "The entire connection is TCP responsive"
 	case d.tcpRspDisable.IsEmpty():
-		return "\n\tThe TCP sub-connection is responsive"
+		return prefix + "The TCP sub-connection is responsive"
 	default:
-		return "\n\tTCP response is enabled for: " + d.tcpRspEnable.String()
+		return prefix + "TCP response is enabled for: " + d.tcpRspEnable.String()
 	}
 }
