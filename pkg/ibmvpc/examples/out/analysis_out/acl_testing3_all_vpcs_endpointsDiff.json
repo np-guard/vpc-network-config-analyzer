@@ -1,0 +1,93 @@
+{
+    "diff-test-vpc1-ky-test-vpc2-ky": {
+        "semantic_diff": [
+            {
+                "src_change": "none",
+                "dst_change": "none",
+                "src": {
+                    "ResourceName": "cycling-juvenile-traipse-paramount",
+                    "ResourceUID": "id:42",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-1",
+                    "Region": "us-south",
+                    "AddressStr": "10.240.10.4"
+                },
+                "dst": {
+                    "ResourceType": "Public Internet",
+                    "CidrStr": "161.26.0.0/16"
+                },
+                "conn1": [
+                    {
+                        "protocol": "UDP"
+                    }
+                ]
+            },
+            {
+                "src_change": "none",
+                "dst_change": "none",
+                "src": {
+                    "ResourceName": "cycling-juvenile-traipse-paramount",
+                    "ResourceUID": "id:42",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-1",
+                    "Region": "us-south",
+                    "AddressStr": "10.240.10.4"
+                },
+                "dst": {
+                    "ResourceName": "yarn-canary-guileless-deftly",
+                    "ResourceUID": "id:19",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-1",
+                    "Region": "us-south",
+                    "AddressStr": "10.240.20.4"
+                },
+                "conn1": [
+                    {
+                        "protocol": "TCP"
+                    },
+                    {
+                        "protocol": "UDP"
+                    }
+                ]
+            },
+            {
+                "src_change": "none",
+                "dst_change": "none",
+                "src": {
+                    "ResourceName": "yarn-canary-guileless-deftly",
+                    "ResourceUID": "id:19",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-1",
+                    "Region": "us-south",
+                    "AddressStr": "10.240.20.4"
+                },
+                "dst": {
+                    "ResourceName": "cycling-juvenile-traipse-paramount",
+                    "ResourceUID": "id:42",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-1",
+                    "Region": "us-south",
+                    "AddressStr": "10.240.10.4"
+                },
+                "conn1": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ],
+                "conn2": [
+                    {
+                        "protocol": "UDP"
+                    },
+                    {
+                        "protocol": "ICMP"
+                    }
+                ],
+                "unidirectional_conn2": [
+                    {
+                        "protocol": "TCP"
+                    }
+                ]
+            }
+        ]
+    }
+}
