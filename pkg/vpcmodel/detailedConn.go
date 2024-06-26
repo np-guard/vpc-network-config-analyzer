@@ -8,6 +8,7 @@ package vpcmodel
 
 import (
 	"github.com/np-guard/models/pkg/connection"
+	"strings"
 )
 
 const asterisk = " * "
@@ -117,7 +118,17 @@ func (d *detailedConn) string() string {
 }
 
 func (d *detailedConn) detailString() string {
-	return d.allConn.String() + d.respondString(false)
+	if d.allConn.IsEmpty() {
+		return d.allConn.String()
+	}
+	resStrSlice := []string{}
+	if !d.nonTCPAndResponsiveTCPComponent().IsEmpty() {
+		resStrSlice = append(resStrSlice, d.nonTCPAndResponsiveTCPComponent().String())
+	}
+	if !d.tcpRspDisable.IsEmpty() {
+		resStrSlice = append(resStrSlice, d.tcpRspDisable.String()+asterisk)
+	}
+	return strings.Join(resStrSlice, ", ")
 }
 
 // in the structs a single line represents connection of each <src, dst>
