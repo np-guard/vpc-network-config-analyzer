@@ -71,11 +71,11 @@ func pathFromNextHopValues(nextHop, origDest string) vpcmodel.Path {
 }
 
 func newHubSpokeBase1Config() (*vpcmodel.MultipleVPCConfigs, *GlobalRTAnalyzer) {
-	vpcTransit, _ := newVPC("transit", "transit", "", map[string][]string{"us-south-1": []string{"10.1.15.0/24"},
-		"us-south-2": []string{"10.2.15.0/24"}}, map[string]*Region{})
-	vpcSpoke, _ := newVPC("spoke", "spoke", "", map[string][]string{"us-south-1": []string{"10.1.0.0/24"},
-		"us-south-2": []string{"10.2.0.0/24"}}, map[string]*Region{})
-	vpcEnterprise, _ := newVPC("enterprise", "enterprise", "", map[string][]string{"z1": []string{"192.168.0.0/16"}}, map[string]*Region{})
+	vpcTransit, _ := newVPC("transit", "transit", "", map[string][]string{"us-south-1": {"10.1.15.0/24"},
+		"us-south-2": {"10.2.15.0/24"}}, map[string]*Region{})
+	vpcSpoke, _ := newVPC("spoke", "spoke", "", map[string][]string{"us-south-1": {"10.1.0.0/24"},
+		"us-south-2": {"10.2.0.0/24"}}, map[string]*Region{})
+	vpcEnterprise, _ := newVPC("enterprise", "enterprise", "", map[string][]string{"z1": {"192.168.0.0/16"}}, map[string]*Region{})
 
 	workerSubnetTransit, _ := newSubnet("workerSubnetTransit", "workerSubnetTransit", "us-south-1", "10.1.15.0/26", vpcTransit)
 	workerSubnetSpoke, _ := newSubnet("workerSubnetSpoke", "workerSubnetSpoke", "us-south-1", "10.1.0.0/26", vpcSpoke)

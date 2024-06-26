@@ -17,7 +17,7 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
-//nolint:gocritic  // temporary version, wip
+//nolint:gocritic,revive  // temporary version, wip
 func routingAnalysis(inArgs *inArgs) error {
 	vpcConfigs, err := buildConfigs(inArgs)
 	if err != nil {
@@ -92,9 +92,7 @@ func routingAnalysis(inArgs *inArgs) error {
 		fmt.Println("")
 	}
 
-
 	return nil
-
 }
 
 func analysisVPCConfigs(cmd *cobra.Command, inArgs *inArgs, analysisType vpcmodel.OutputUseCase) error {

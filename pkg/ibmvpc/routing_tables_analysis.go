@@ -62,7 +62,7 @@ func (ga *GlobalRTAnalyzer) GetRoutingPath(src vpcmodel.InternalNodeIntf, dest *
 			return nil, err
 		}
 		targetVPC := ga.allConfigs.GetVPC(res.TargetVPC()).(*VPC)
-		destZone, _ := getZoneByIPBlock(dest, ga.allConfigs) //targetVPC.getZoneByIPBlock(dest)
+		destZone, _ := getZoneByIPBlock(dest, ga.allConfigs)
 		srcZone := src.(vpcmodel.Node).ZoneName()
 		// if the destZone is not in the zones of the target VPC, set it as unknown (e.g. from a vpc in another region)
 		if _, ok := targetVPC.zones[destZone]; !ok {
@@ -70,9 +70,6 @@ func (ga *GlobalRTAnalyzer) GetRoutingPath(src vpcmodel.InternalNodeIntf, dest *
 		}
 
 		// do not issue an err if dest zone is not found
-		/*if err != nil {
-			return nil, err
-		}*/
 		// if dest zone is not found, should consider all routes for  all zones in the RT
 		// and prefer the one with the src zone of such is available
 		// the analysis should be done for all available zones (up to 3)
@@ -482,8 +479,7 @@ func (rt *routingTable) evaluatedPath(dest *ipblock.IPBlock, path vpcmodel.Path,
 
 // todo: Add zone/subnet, so that only relevant zone routes are considered
 // traffic from those ingress sources arriving in this zone will be subject to this route.
-func (rt *routingTable) getIngressPath(dest *ipblock.IPBlock, destZone string, srcZone string) (vpcmodel.Path, error) {
-
+func (rt *routingTable) getIngressPath(dest *ipblock.IPBlock, destZone, srcZone string) (vpcmodel.Path, error) {
 	// if the dest zone is not empty - consider only dest zone routes
 	if destZone != "" {
 		logging.Debugf("consider only routes by dest zone, which is %s", destZone)
@@ -518,7 +514,7 @@ func (rt *routingTable) getIngressPath(dest *ipblock.IPBlock, destZone string, s
 	return rt.implicitRT.getIngressPath(dest)
 }
 
-func (rt *routingTable) getPath(dest *ipblock.IPBlock, zone string) (path vpcmodel.Path, shouldDelegate bool, matchedInTable bool) {
+func (rt *routingTable) getPath(dest *ipblock.IPBlock, zone string) (path vpcmodel.Path, shouldDelegate, matchedInTable bool) {
 	if _, ok := rt.routingResultMap[zone]; !ok {
 		return nil, true, false
 	}
