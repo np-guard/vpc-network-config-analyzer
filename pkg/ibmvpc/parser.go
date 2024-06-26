@@ -1042,7 +1042,7 @@ func addTGWbasedConfigs(tgws map[string]*TransitGateway, res *vpcmodel.MultipleV
 func (tgw *TransitGateway) newConfigFromTGW(configs *vpcmodel.MultipleVPCConfigs) (*vpcmodel.VPCConfig, error) {
 	if len(tgw.vpcs) <= 1 {
 		// skip tgw if it does not connect between at least 2 vpcs
-		logging.Warnf("skipping transit gateway %s, as it is not connected to at least 2 VPCs\n", tgw.NameAndUID())
+		logging.Warnf("skipping transit gateway %s - it is not connected to at least 2 VPCs\n", tgw.NameAndUID())
 		return nil, nil
 	}
 	// TODO: for now, the analysis supports only disjoint VPCs address prefixes
