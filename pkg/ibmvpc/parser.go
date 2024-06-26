@@ -970,7 +970,7 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 					continue
 				}
 			} else {
-				logging.Warnf("ignoring transit gateway with unknown region, tgwID: %s\n", tgwUID)
+				logging.Warnf("skipping transit gateway %s - unknown region\n", tgwUID)
 				tgwToSkip[tgwUID] = true // to avoid having this tgw's same warning issued again from another transitConnection
 				continue
 			}
