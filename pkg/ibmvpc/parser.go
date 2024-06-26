@@ -1048,7 +1048,7 @@ func (tgw *TransitGateway) newConfigFromTGW(configs *vpcmodel.MultipleVPCConfigs
 	// TODO: for now, the analysis supports only disjoint VPCs address prefixes
 	// consider adding support for overlapping address prefixes with conflict resolution logic
 	if err := validateVPCsAddressPrefixesForTGW(tgw.vpcs); err != nil {
-		logging.Warnf("skipping transit gateway, failed validation of supported address prefixes %s: %s\n", tgw.NameAndUID(), err.Error())
+		logging.Warnf("skipping transit gateway %s - failed validation of supported address prefixes: %s\n", tgw.NameAndUID(), err.Error())
 		return nil, nil
 	}
 	newConfig := &vpcmodel.VPCConfig{
