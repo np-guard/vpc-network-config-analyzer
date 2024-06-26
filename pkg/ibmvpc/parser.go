@@ -664,16 +664,16 @@ func getFipConfig(
 	return nil
 }
 
-// getZonesAndAddressPrefixes returns a map from zone name to its cidr (vpc address prefix)
-func getZonesAndAddressPrefixes(vpc *datamodel.VPC) (res map[string]string) {
-	res = map[string]string{}
+// getZonesAndAddressPrefixes returns a map from zone name to its list of cidrs (vpc address prefixes)
+func getZonesAndAddressPrefixes(vpc *datamodel.VPC) (res map[string][]string) {
+	res = map[string][]string{}
 	for _, ap := range vpc.AddressPrefixes {
-		res[*ap.Zone.Name] = *ap.CIDR
+		res[*ap.Zone.Name] = append(res[*ap.Zone.Name], *ap.CIDR)
 	}
 	return res
 }
 
-func newVPC(name, uid, region string, zonesToAP map[string]string, regionToStructMap map[string]*Region) (vpcNodeSet *VPC, err error) {
+func newVPC(name, uid, region string, zonesToAP map[string][]string, regionToStructMap map[string]*Region) (vpcNodeSet *VPC, err error) {
 	vpcNodeSet = &VPC{
 		VPCResource: vpcmodel.VPCResource{
 			ResourceName: name,
@@ -684,16 +684,16 @@ func newVPC(name, uid, region string, zonesToAP map[string]string, regionToStruc
 		zones:  map[string]*Zone{},
 		region: getRegionByName(region, regionToStructMap),
 	}
-	for zoneName, zoneCidr := range zonesToAP {
-		vpcNodeSet.addressPrefixes = append(vpcNodeSet.addressPrefixes, zoneCidr)
+	for zoneName, zoneCidrsList := range zonesToAP {
+		vpcNodeSet.addressPrefixes = append(vpcNodeSet.addressPrefixes, zoneCidrsList...)
 		if _, ok := vpcNodeSet.zones[zoneName]; !ok {
-			zoneIPBlock, err := ipblock.FromCidr(zoneCidr)
+			zoneIPBlock, err := ipblock.FromCidrList(zoneCidrsList)
 			if err != nil {
 				return nil, err
 			}
 			vpcNodeSet.zones[zoneName] = &Zone{name: zoneName,
 				vpc:     vpcNodeSet,
-				cidr:    zoneCidr,
+				cidrs:   zoneCidrsList,
 				ipblock: zoneIPBlock}
 		}
 	}

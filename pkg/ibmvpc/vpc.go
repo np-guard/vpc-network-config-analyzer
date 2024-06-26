@@ -16,6 +16,7 @@ import (
 	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
 	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -33,7 +34,7 @@ type Region struct {
 
 type Zone struct {
 	name    string
-	cidr    string
+	cidrs   []string
 	ipblock *ipblock.IPBlock
 	vpc     *VPC // TODO: extend: zone can span over multiple VPCs
 }
@@ -855,12 +856,15 @@ func isPairRelevantToTGW(src, dst vpcmodel.VPCResourceIntf) bool {
 
 func (tgw *TransitGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*connection.Set, error) {
 	if !isPairRelevantToTGW(src, dst) {
+		logging.Debugf("pair not relevant to TGW")
 		return connection.None(), nil
 	}
 	if areNodes, src1, dst1 := isNodesPair(src, dst); areNodes {
 		if vpcmodel.HasNode(tgw.sourceNodes, src1) && vpcmodel.HasNode(tgw.destNodes, dst1) {
+			logging.Debugf("tgw enables this connectivity")
 			return connection.All(), nil
 		}
+		logging.Debugf("tgw disables this connectivity")
 		return connection.None(), nil
 	}
 	if areSubnets, src1, dst1 := isSubnetsPair(src, dst); areSubnets {
@@ -870,6 +874,7 @@ func (tgw *TransitGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf
 		return connection.None(), nil
 	}
 
+	logging.Debugf("err")
 	return nil, errors.New("TransitGateway.AllowedConnectivity() expected src and dst to be two nodes or two subnets")
 }
 
@@ -878,8 +883,9 @@ func (tgw *TransitGateway) RouterDefined(src, dst vpcmodel.Node) bool {
 		return false
 	}
 	// destination node has a transit gateway connection iff a prefix filter (possibly default) is defined for it
-	dstNodeHasTgw := len(tgw.RulesInConnectivity(src, dst)) > 0
-	return vpcmodel.HasNode(tgw.sourceNodes, src) && dstNodeHasTgw
+	//dstNodeHasTgw := len(tgw.RulesInConnectivity(src, dst)) > 0
+	// alternative check: both VPCs of src and dst are connected to this TGW
+	return vpcmodel.HasNode(tgw.sourceNodes, src) && vpcmodel.HasNode(tgw.sourceNodes, dst) //dstNodeHasTgw
 }
 
 // gets a string description of prefix indexed "index" from TransitGateway tgw
