@@ -485,6 +485,11 @@ var tests = []*vpcGeneralTest{
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
 		format:      vpcmodel.Text,
 	},
+	{ // example with diff in which partial TCP respond is enabled
+		inputConfig: "sg_testing1_copy",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
+		format:      vpcmodel.Text,
+	},
 	{
 		// diff between VPCs of different UIDs
 		inputConfig: "sg_testing_3",
