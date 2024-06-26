@@ -170,9 +170,9 @@ func getDirectionalDiffLines(connectDiff connectivityDiff) []diffLine {
 				diffDstStr = getDiffDstOther(connDiff.diff)
 			}
 			diffLines = append(diffLines, diffLine{diffSrcStr, diffDstStr,
-				src, dst, connection.ToJSON(connDiff.conn1.tcpRspEnable.Union(connDiff.conn1.nonTCP)),
+				src, dst, connection.ToJSON(connDiff.conn1.nonTCPAndResponsiveTCPComponent()),
 				connection.ToJSON(connDiff.conn1.tcpRspDisable),
-				connection.ToJSON(connDiff.conn2.tcpRspEnable.Union(connDiff.conn2.nonTCP)),
+				connection.ToJSON(connDiff.conn2.nonTCPAndResponsiveTCPComponent()),
 				connection.ToJSON(connDiff.conn2.tcpRspDisable)})
 		}
 	}
