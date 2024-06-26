@@ -1282,7 +1282,7 @@ func getIKSnodesConfig(res *vpcmodel.MultipleVPCConfigs,
 
 			subnet, err := getSubnetByCidr(res, *iksNodeNetIntfObj.Cidr)
 			if err != nil {
-				logging.Warnf("ignoring IKS Node with ID %s (could not find subnet with CIDR: %s)\n",
+				logging.Warnf("skipping IKS Node with ID %s - could not find subnet with CIDR %s\n",
 					*iksNode.ID, *iksNodeNetIntfObj.Cidr)
 				continue
 			}
