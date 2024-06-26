@@ -32,7 +32,7 @@ type explainDetails struct {
 	externalRouter   RoutingResource
 	crossVpcRouter   RoutingResource
 	crossVpcRules    []RulesInTable
-	loadBalancerRule loadBalancerDenyEgressRule
+	loadBalancerRule *LoadBalancerRule
 	filtersRelevant  map[string]bool
 	connEnabled      bool
 	ingressEnabled   bool

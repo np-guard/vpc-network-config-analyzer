@@ -65,13 +65,13 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping, lbAbstraction bool) (res
 	return res, err
 }
 
-func (c *VPCConfig) deniedWithLBConnectivity(src, dst Node) bool {
+func (c *VPCConfig) getLoadBalancerRule(src, dst Node) *LoadBalancerRule {
 	for _, lb := range c.LoadBalancers {
-		if lb.DenyConnectivity(src, dst) {
-			return true
+		if r := lb.GetLoadBalancerRule(src, dst); r != nil {
+			return r
 		}
 	}
-	return false
+	return nil
 }
 
 func (c *VPCConfig) getFiltersAllowedConnsBetweenNodesPerDirectionAndLayer(
@@ -113,7 +113,8 @@ func (c *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 			continue
 		}
 		src, dst := switchSrcDstNodes(!isIngress, peerNode, capturedNode)
-		if c.deniedWithLBConnectivity(src, dst) {
+		lbRule := c.getLoadBalancerRule(src, dst)
+		if lbRule != nil && lbRule.Denny {
 			allLayersRes[peerNode] = NoConns()
 			continue
 		}

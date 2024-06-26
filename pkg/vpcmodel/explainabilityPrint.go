@@ -89,11 +89,6 @@ func explainMissingCrossVpcRouter(src, dst string, connQuery *connection.Set) st
 		"connect them", noConnectionHeader(src, dst, connQuery)+newLine)
 }
 
-func explainLoadBalancerDenyEgress(src, dst string, connQuery *connection.Set) string {
-	return fmt.Sprintf("%v\nPrivate IPs of a load balancer can only connect to its pool members\n",
-		noConnectionHeader(src, dst, connQuery))
-}
-
 // prints a single line of explanation for externalAddress grouped <src, dst>
 // The printing contains 4 sections:
 //
@@ -122,15 +117,20 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 	expDetails := g.commonProperties.expDetails
 	filtersRelevant := g.commonProperties.expDetails.filtersRelevant
 	src, dst := g.src, g.dst
+	lbRule := g.commonProperties.expDetails.loadBalancerRule
 	needEgress := !src.IsExternal()
 	needIngress := !dst.IsExternal()
 	ingressBlocking := !expDetails.ingressEnabled && needIngress
-	egressBlocking := !expDetails.egressEnabled && needEgress
-	var externalRouterHeader, crossRouterFilterHeader, resourceEffectHeader,
-		crossRouterFilterDetails, details string
+	egressBlocking := (!expDetails.egressEnabled && needEgress) || (lbRule != nil && lbRule.Denny)
+	var externalRouterHeader, crossRouterFilterHeader, loadBalancerHeader, resourceEffectHeader,
+		crossRouterFilterDetails, loadBalancerDetails, details string
 	externalRouter, crossVpcRouter, crossVpcRules := expDetails.externalRouter, expDetails.crossVpcRouter, expDetails.crossVpcRules
 	if externalRouter != nil && (src.IsExternal() || dst.IsExternal()) {
 		externalRouterHeader = "External traffic via " + externalRouter.Kind() + ": " + externalRouter.Name() + newLine
+	}
+	if lbRule!= nil{
+		loadBalancerHeader = "Load balancer can only connect to its pool members\n"
+		loadBalancerDetails = "\tLoad balancer can only connect to its pool members\n"
 	}
 	var crossVpcConnection *connection.Set
 	crossVpcConnection, crossRouterFilterHeader, crossRouterFilterDetails = crossRouterDetails(c, crossVpcRouter, crossVpcRules,
@@ -141,7 +141,7 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 	// resourceEffectHeader is "2" above
 	rules := expDetails.rules
 	egressRulesHeader, ingressRulesHeader := rules.filterEffectStr(c, filtersRelevant, needEgress, needIngress)
-	resourceEffectHeader = externalRouterHeader + egressRulesHeader + crossRouterFilterHeader +
+	resourceEffectHeader = externalRouterHeader + loadBalancerHeader + egressRulesHeader + crossRouterFilterHeader +
 		ingressRulesHeader + newLine
 
 	// path in "3" above
@@ -152,7 +152,7 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 	conn := g.commonProperties.conn
 	if verbose {
 		details = "\nDetails:\n~~~~~~~~\nPath is enabled by the following rules:\n" +
-			egressRulesDetails + crossRouterFilterDetails + ingressRulesDetails
+		loadBalancerDetails + egressRulesDetails + crossRouterFilterDetails + ingressRulesDetails
 		if respondRulesRelevant(conn, filtersRelevant) {
 			// for respond rules needIngress and needEgress are switched
 			respondEgressDetails, respondsIngressDetails := expDetails.respondRules.ruleDetailsStr(c, filtersRelevant, needIngress, needEgress)
