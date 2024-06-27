@@ -16,7 +16,7 @@ import (
 //    2. Lines that overlap icons
 // The way to handle the overlap is to add points to the lines (aka bypass points).
 // The detection overlapping is done by holding a 2D matrix, that represents the drawio picture.
-// a cell in the matrix represent square of minSize*minSize in the picture.
+// a cell in the matrix represent square of overlapMinSize*overlapMinSize in the picture.
 // The cell hold the information whether:
 //    1. there is an icon in the square.
 //    2. there is a bypass point in the square
@@ -33,6 +33,7 @@ var noPoint = point{-1, -1}
 
 const nPotentialBP = 6
 const widthBetweenLines = 3
+const overlapMinSize = minSize / 2
 
 type overlapCell struct {
 	hasBypassPoint bool
@@ -46,8 +47,8 @@ type layoutOverlap struct {
 
 func newLayoutOverlap(network TreeNodeInterface) *layoutOverlap {
 	lyO := &layoutOverlap{network: network}
-	yDim := network.Height() / minSize
-	xDim := network.Width() / minSize
+	yDim := network.Height() / overlapMinSize
+	xDim := network.Width() / overlapMinSize
 	lyO.overlapMatrix = make([][]overlapCell, yDim)
 	for i := range lyO.overlapMatrix {
 		lyO.overlapMatrix[i] = make([]overlapCell, xDim)
@@ -56,10 +57,10 @@ func newLayoutOverlap(network TreeNodeInterface) *layoutOverlap {
 }
 
 func (lyO *layoutOverlap) cell(x, y int) *overlapCell {
-	if x < 0 || y < 0 || y/minSize >= len(lyO.overlapMatrix) || x/minSize >= len(lyO.overlapMatrix[0]) {
+	if x < 0 || y < 0 || y/overlapMinSize >= len(lyO.overlapMatrix) || x/overlapMinSize >= len(lyO.overlapMatrix[0]) {
 		return nil
 	}
-	return &(lyO.overlapMatrix[y/minSize][x/minSize])
+	return &(lyO.overlapMatrix[y/overlapMinSize][x/overlapMinSize])
 }
 
 // fixOverlapping() is the entry method.
@@ -75,8 +76,8 @@ func (lyO *layoutOverlap) fixOverlapping() {
 func (lyO *layoutOverlap) setIconsMap() {
 	for _, tn := range getAllIcons(lyO.network) {
 		x, y := absoluteGeometry(tn)
-		for ox := x; ox <= x+tn.IconSize(); ox += minSize {
-			for oy := y; oy <= y+tn.IconSize(); oy += minSize {
+		for ox := x; ox <= x+tn.IconSize(); ox += overlapMinSize {
+			for oy := y; oy <= y+tn.IconSize(); oy += overlapMinSize {
 				lyO.cell(ox, oy).icon = tn
 			}
 		}
@@ -204,7 +205,7 @@ func (lyO *layoutOverlap) potentialBypassPoints(srcPoint, dstPoint, middlePoint 
 				BPs = append(BPs, BP)
 				break
 			}
-			BP = point{BP.X + minSize, BP.Y + minSize}
+			BP = point{BP.X + overlapMinSize, BP.Y + overlapMinSize}
 		}
 	}
 	return BPs
@@ -238,7 +239,7 @@ func (lyO *layoutOverlap) getBypassPoint(srcPoint, dstPoint, middlePoint point, 
 func (lyO *layoutOverlap) getOverlappedIcon(p1, p2 point, line LineTreeNodeInterface) IconTreeNodeInterface {
 	x1, y1 := p1.X, p1.Y
 	x2, y2 := p2.X, p2.Y
-	nSteps := max(1, max(abs(x2-x1), abs(y2-y1))/(minSize))
+	nSteps := max(1, max(abs(x2-x1), abs(y2-y1))/(overlapMinSize))
 	for s := 0; s <= nSteps; s++ {
 		x := x1 + (x2-x1)*s/nSteps
 		y := y1 + (y2-y1)*s/nSteps
