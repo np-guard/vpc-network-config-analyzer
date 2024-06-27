@@ -678,6 +678,12 @@ var tests = []*vpcGeneralTest{
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		format:      vpcmodel.Text,
 	},
+	{
+		inputConfig: "hub_n_spoke_1",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:     true,
+		format:      vpcmodel.HTML,
+	},
 }
 
 var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{
