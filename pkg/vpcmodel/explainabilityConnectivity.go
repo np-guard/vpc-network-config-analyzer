@@ -31,8 +31,23 @@ type rulesConnection struct {
 
 // loadBalancerDennyEgressRule - is a rule applied to all private IPs of a given load balancer:
 // these private IPs can only connect to pool members of the load balancer
-type LoadBalancerRule struct{
+type LoadBalancerRule struct {
 	Denny bool
+	LB    LoadBalancer
+}
+
+func (lbr *LoadBalancerRule) StringDetailsOfRule() string {
+	if lbr.Denny {
+		return "load balancer " + lbr.LB.Name() + " blocks connections to destinations which are not its pool members\n"
+	}
+	return "load balancer " + lbr.LB.Name() + " allow connections to destinations which are its pool members\n"
+}
+
+func (lbr *LoadBalancerRule) StringHeaderOfRule() string {
+	if lbr.Denny {
+		return "load balancer " + lbr.LB.Name() + " blocks connection"
+	}
+	return "load balancer " + lbr.LB.Name() + " allow connection"
 }
 
 type srcDstDetails struct {
