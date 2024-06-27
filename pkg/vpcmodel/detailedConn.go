@@ -123,13 +123,16 @@ func (d *detailedConn) detailString() string {
 		return d.allConn.String()
 	}
 	resStrSlice := []string{}
+	if !d.tcpRspDisable.IsEmpty() {
+		tcpNonResponsive := d.tcpRspDisable.String()
+		tcpNonResponsive = strings.Replace(tcpNonResponsive, ";", asterisk+";", -1)
+		resStrSlice = append(resStrSlice, tcpNonResponsive+asterisk)
+	}
 	if !d.nonTCPAndResponsiveTCPComponent().IsEmpty() {
 		resStrSlice = append(resStrSlice, d.nonTCPAndResponsiveTCPComponent().String())
 	}
-	if !d.tcpRspDisable.IsEmpty() {
-		resStrSlice = append(resStrSlice, d.tcpRspDisable.String()+asterisk)
-	}
-	return strings.Join(resStrSlice, ", ")
+	// todo: remove "protocol" from the original cube printing funcs
+	return strings.Replace(strings.Join(resStrSlice, "; "), "protocol: ", "", -1)
 }
 
 // in the structs a single line represents connection of each <src, dst>
