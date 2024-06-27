@@ -37,17 +37,15 @@ type LoadBalancerRule struct {
 }
 
 func (lbr *LoadBalancerRule) StringDetailsOfRule() string {
-	if lbr.Denny {
-		return "load balancer " + lbr.LB.Name() + " blocks connections to destinations which are not its pool members\n"
-	}
-	return "load balancer " + lbr.LB.Name() + " allow connections to destinations which are its pool members\n"
+	return lbr.StringHeaderOfRule() + " to destinations which are its pool members\n"
 }
 
 func (lbr *LoadBalancerRule) StringHeaderOfRule() string {
+	action := "allow"
 	if lbr.Denny {
-		return "load balancer " + lbr.LB.Name() + " blocks connection"
+		action = "blocks"
 	}
-	return "load balancer " + lbr.LB.Name() + " allow connection"
+	return fmt.Sprintf("load balancer %s %s connection", lbr.LB.Name(), action)
 }
 
 type srcDstDetails struct {

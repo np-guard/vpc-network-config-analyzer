@@ -205,14 +205,11 @@ func (g *groupedConnLine) explainPerCaseStr(c *VPCConfig, src, dst EndpointElem,
 		if loadBalancerBlocking {
 			blockedBy = append(blockedBy, "Load Balancer")
 		}
-		var blockedByString string
-		switch len(blockedBy) {
-		case 1:
-			blockedByString = fmt.Sprintf("by %s", blockedBy[0])
-		case 2:
-			blockedByString = fmt.Sprintf("both by %s and %s", blockedBy[0], blockedBy[1])
-		case 3:
-			blockedByString = fmt.Sprintf("both by %s, %s and %s", blockedBy[0], blockedBy[1], blockedBy[2])
+		l := len(blockedBy)
+		blockedByString := fmt.Sprintf("by %s", blockedBy[0])
+		if l > 1 {
+			blockedByString = fmt.Sprintf("both by %s and %s",
+				strings.Join(blockedBy[0:l-1], ", "), blockedBy[l-1])
 		}
 		return fmt.Sprintf("%vconnection is blocked %s"+tripleNLVars, noConnection, blockedByString,
 			headerPlusPath, details)
@@ -348,7 +345,8 @@ func stringFilterEffect(c *VPCConfig, filterLayerName string, rules []RulesInTab
 // if the connection does not exist. In the latter case the path is until the first block
 // e.g.: "vsi1-ky[10.240.10.4] ->  SG sg1-ky -> subnet ... ->  ACL acl1-ky -> PublicGateway: public-gw-ky ->  Public Internet 161.26.0.0/16"
 func pathStr(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointElem,
-	ingressBlocking, egressBlocking, loadBalancerBlocking bool, externalRouter, crossVpcRouter RoutingResource, crossVpcConnection *connection.Set,
+	ingressBlocking, egressBlocking, loadBalancerBlocking bool,
+	externalRouter, crossVpcRouter RoutingResource, crossVpcConnection *connection.Set,
 	rules *rulesConnection) string {
 	var pathSlice []string
 	pathSlice = append(pathSlice, "\t"+src.Name())
