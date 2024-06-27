@@ -20,7 +20,10 @@
                     {
                         "protocol": "UDP"
                     }
-                ]
+                ],
+                "unidirectional_conn1": [],
+                "conn2": [],
+                "unidirectional_conn2": []
             },
             {
                 "src_change": "none",
@@ -48,7 +51,10 @@
                     {
                         "protocol": "UDP"
                     }
-                ]
+                ],
+                "unidirectional_conn1": [],
+                "conn2": [],
+                "unidirectional_conn2": []
             },
             {
                 "src_change": "none",
@@ -74,6 +80,7 @@
                         "protocol": "ANY"
                     }
                 ],
+                "unidirectional_conn1": [],
                 "conn2": [
                     {
                         "protocol": "UDP"

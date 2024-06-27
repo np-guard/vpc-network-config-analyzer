@@ -56,10 +56,10 @@ type diffLine struct {
 	DstChange           string             `json:"dst_change"`
 	Src                 EndpointElem       `json:"src"`
 	Dst                 EndpointElem       `json:"dst"`
-	Conn1               connection.Details `json:"conn1,omitempty"`
-	UnidirectionalConn1 connection.Details `json:"unidirectional_conn1,omitempty"`
-	Conn2               connection.Details `json:"conn2,omitempty"`
-	UnidirectionalConn2 connection.Details `json:"unidirectional_conn2,omitempty"`
+	Conn1               connection.Details `json:"conn1"`
+	UnidirectionalConn1 connection.Details `json:"unidirectional_conn1"`
+	Conn2               connection.Details `json:"conn2"`
+	UnidirectionalConn2 connection.Details `json:"unidirectional_conn2"`
 }
 
 func sortConnLines(connLines []connLine) {
