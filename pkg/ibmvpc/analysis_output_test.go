@@ -694,6 +694,12 @@ var tests = []*vpcGeneralTest{
 		format:      vpcmodel.Text,
 	},
 	{
+		inputConfig: "hub_n_spoke_1",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.Text,
+	},
+	{
 		inputConfig:  "hub_n_spoke_1",
 		useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		noLbAbstract: true,
