@@ -125,14 +125,14 @@ func (d *detailedConn) detailString() string {
 	resStrSlice := []string{}
 	if !d.tcpRspDisable.IsEmpty() {
 		tcpNonResponsive := d.tcpRspDisable.String()
-		tcpNonResponsive = strings.Replace(tcpNonResponsive, ";", asterisk+";", -1)
+		tcpNonResponsive = strings.ReplaceAll(tcpNonResponsive, ";", asterisk+";")
 		resStrSlice = append(resStrSlice, tcpNonResponsive+asterisk)
 	}
 	if !d.nonTCPAndResponsiveTCPComponent().IsEmpty() {
 		resStrSlice = append(resStrSlice, d.nonTCPAndResponsiveTCPComponent().String())
 	}
 	// todo: remove "protocol" from the original cube printing funcs
-	return strings.Replace(strings.Join(resStrSlice, "; "), "protocol: ", "", -1)
+	return strings.ReplaceAll(strings.Join(resStrSlice, "; "), "protocol: ", "")
 }
 
 // in the structs a single line represents connection of each <src, dst>
