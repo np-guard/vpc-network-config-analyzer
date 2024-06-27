@@ -33,7 +33,8 @@ var noPoint = point{-1, -1}
 
 const nPotentialBP = 6
 const widthBetweenLines = 3
-const overlapMinSize = minSize/2
+const overlapMinSize = minSize / 2
+
 type overlapCell struct {
 	hasBypassPoint bool
 	icon           IconTreeNodeInterface
