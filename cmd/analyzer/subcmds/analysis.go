@@ -20,9 +20,13 @@ import (
 func getSrcDstPairs(src, dst string, vpcConfigs *vpcmodel.MultipleVPCConfigs) (res []common.Pair[vpcmodel.Node], err error) {
 	switch {
 	case src != "" && dst != "":
+		// TODO: support input src/dst of name , not only address
 		srcNode, err1 := vpcConfigs.GetInternalNodeFromAddress(src)
 		dstNode, err2 := vpcConfigs.GetInternalNodeFromAddress(dst)
-		return []common.Pair[vpcmodel.Node]{{Src: srcNode.(vpcmodel.Node), Dst: dstNode.(vpcmodel.Node)}}, errors.Join(err1, err2)
+		if errors.Join(err1, err2) != nil {
+			return nil, errors.Join(err1, err2)
+		}
+		return []common.Pair[vpcmodel.Node]{{Src: srcNode.(vpcmodel.Node), Dst: dstNode.(vpcmodel.Node)}}, nil
 	case src == "" && dst == "":
 		return vpcConfigs.GetInternalNodePairs(), nil
 	default:
