@@ -20,7 +20,7 @@ import (
 func getSrcDstPairs(src, dst string, vpcConfigs *vpcmodel.MultipleVPCConfigs) (res []common.Pair[vpcmodel.Node], err error) {
 	switch {
 	case src != "" && dst != "":
-		// TODO: support input src/dst of name , not only address
+		// TODO: support input src/dst of name or external address , not only internal address
 		srcNode, err1 := vpcConfigs.GetInternalNodeFromAddress(src)
 		dstNode, err2 := vpcConfigs.GetInternalNodeFromAddress(dst)
 		if errors.Join(err1, err2) != nil {
