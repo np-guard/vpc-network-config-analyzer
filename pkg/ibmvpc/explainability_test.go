@@ -595,7 +595,6 @@ var explainTests = []*vpcGeneralTest{
 	},
 }
 
-
 func TestAll(t *testing.T) {
 	// explainTests is the list of tests to run
 	for testIdx := range explainTests {
