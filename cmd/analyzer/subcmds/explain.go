@@ -26,7 +26,7 @@ const (
 	dstMinPortFlag = "dst-min-port"
 	dstMaxPortFlag = "dst-max-port"
 
-	srcDstUsage = "endpoint for explanation; can be specified as a VSI name/CRN or an internal/external IP-address/CIDR;\n" +
+	srcDstUsage = "endpoint; can be specified as a VSI name/CRN or an internal/external IP-address/CIDR;\n" +
 		"VSI name can be specified as <vsi-name> or  <vpc-name>/<vsi-name>"
 )
 
