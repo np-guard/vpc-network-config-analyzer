@@ -279,9 +279,8 @@ func (v *VPCConnectivity) computeAllowedResponsiveConnections(c *VPCConfig,
 			// can src ingress from dst?
 			SrcAllowedIngressFromDst = v.getPerLayerConnectivity(statelessLayerName, dstNode, srcNode, true)
 			combinedDstToSrc := DstAllowedEgressToSrc.Intersect(SrcAllowedIngressFromDst)
-			// in case the connection is multi-vpc: does the tgw enable it?
+			// in case the connection is multi-vpc: does the tgw enable respond?
 			if c.IsMultipleVPCsConfig {
-				// in case of cross-vpc connectivity, do need a router (tgw) enabling this connection
 				_, allowedConnsBetweenCapturedAndPeerNode, err := c.getRoutingResource(dstNode, srcNode)
 				if err != nil {
 					return err
