@@ -114,21 +114,21 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 	expDetails := g.commonProperties.expDetails
 	filtersRelevant := g.commonProperties.expDetails.filtersRelevant
 	src, dst := g.src, g.dst
-	lbRule := g.commonProperties.expDetails.loadBalancerRule
+	loadBalancerRule := g.commonProperties.expDetails.loadBalancerRule
 	needEgress := !src.IsExternal()
 	needIngress := !dst.IsExternal()
-	loadBalancerBlocking := lbRule != nil && lbRule.Denny
+	loadBalancerBlocking := loadBalancerRule != nil && loadBalancerRule.Denny
 	ingressBlocking := !expDetails.ingressEnabled && needIngress
-	egressBlocking := (!expDetails.egressEnabled && needEgress)
+	egressBlocking := !expDetails.egressEnabled && needEgress
 	var externalRouterHeader, crossRouterFilterHeader, loadBalancerHeader, resourceEffectHeader,
 		crossRouterFilterDetails, loadBalancerDetails, details string
 	externalRouter, crossVpcRouter, crossVpcRules := expDetails.externalRouter, expDetails.crossVpcRouter, expDetails.crossVpcRules
 	if externalRouter != nil && (src.IsExternal() || dst.IsExternal()) {
 		externalRouterHeader = "External traffic via " + externalRouter.Kind() + ": " + externalRouter.Name() + newLine
 	}
-	if lbRule != nil {
-		loadBalancerHeader = "Load Balancer: " + lbRule.StringHeaderOfRule() + newLine
-		loadBalancerDetails = "\tLoad Balancer:\n\t\t" + lbRule.StringDetailsOfRule() + newLine
+	if loadBalancerRule != nil {
+		loadBalancerHeader = "Load Balancer: " + loadBalancerRule.StringHeaderOfRule() + newLine
+		loadBalancerDetails = "\tLoad Balancer:\n\t\t" + loadBalancerRule.StringDetailsOfRule() + newLine
 	}
 	var crossVpcConnection *connection.Set
 	crossVpcConnection, crossRouterFilterHeader, crossRouterFilterDetails = crossRouterDetails(c, crossVpcRouter, crossVpcRules,
@@ -348,6 +348,7 @@ func pathStr(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointEle
 	var pathSlice []string
 	pathSlice = append(pathSlice, "\t"+src.Name())
 	if loadBalancerBlocking {
+		// connection is stopped at the src itself:
 		return blockedPathStr(pathSlice)
 	}
 	isExternal := src.IsExternal() || dst.IsExternal()
