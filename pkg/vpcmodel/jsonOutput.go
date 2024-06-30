@@ -52,12 +52,14 @@ type connLine struct {
 }
 
 type diffLine struct {
-	SrcChange string             `json:"src_change"`
-	DstChange string             `json:"dst_change"`
-	Src       EndpointElem       `json:"src"`
-	Dst       EndpointElem       `json:"dst"`
-	Conn1     connection.Details `json:"conn1"`
-	Conn2     connection.Details `json:"conn2"`
+	SrcChange           string             `json:"src_change"`
+	DstChange           string             `json:"dst_change"`
+	Src                 EndpointElem       `json:"src"`
+	Dst                 EndpointElem       `json:"dst"`
+	Conn1               connection.Details `json:"conn1"`
+	UnidirectionalConn1 connection.Details `json:"unidirectional_conn1"`
+	Conn2               connection.Details `json:"conn2"`
+	UnidirectionalConn2 connection.Details `json:"unidirectional_conn2"`
 }
 
 func sortConnLines(connLines []connLine) {
@@ -168,7 +170,10 @@ func getDirectionalDiffLines(connectDiff connectivityDiff) []diffLine {
 				diffDstStr = getDiffDstOther(connDiff.diff)
 			}
 			diffLines = append(diffLines, diffLine{diffSrcStr, diffDstStr,
-				src, dst, connection.ToJSON(connDiff.conn1.allConn), connection.ToJSON(connDiff.conn2.allConn)})
+				src, dst, connection.ToJSON(connDiff.conn1.nonTCPAndResponsiveTCPComponent()),
+				connection.ToJSON(connDiff.conn1.tcpRspDisable),
+				connection.ToJSON(connDiff.conn2.nonTCPAndResponsiveTCPComponent()),
+				connection.ToJSON(connDiff.conn2.tcpRspDisable)})
 		}
 	}
 
