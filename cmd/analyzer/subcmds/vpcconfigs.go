@@ -95,7 +95,7 @@ func vpcConfigsFromFiles(fileNames []string, inArgs *inArgs) (*vpcmodel.Multiple
 			return nil, fmt.Errorf(notSupportedYet, provider)
 		}
 	}
-	vpcConfigs, err2 := ibmvpc.VPCConfigsFromResources(mergedRC, inArgs.vpc, inArgs.resourceGroup, inArgs.regionList, inArgs.debug)
+	vpcConfigs, err2 := ibmvpc.VPCConfigsFromResources(mergedRC, inArgs.vpc, inArgs.resourceGroup, inArgs.regionList)
 	if err2 != nil {
 		return nil, fmt.Errorf("error generating cloud config from input vpc resources file: %w", err2)
 	}
@@ -117,7 +117,7 @@ func vpcConfigsFromAccount(inArgs *inArgs) (*vpcmodel.MultipleVPCConfigs, error)
 		if !ok {
 			return nil, fmt.Errorf("error casting resources to *datamodel.ResourcesContainerModel type")
 		}
-		vpcConfigs, err = ibmvpc.VPCConfigsFromResources(ibmResources, inArgs.vpc, inArgs.resourceGroup, inArgs.regionList, inArgs.debug)
+		vpcConfigs, err = ibmvpc.VPCConfigsFromResources(ibmResources, inArgs.vpc, inArgs.resourceGroup, inArgs.regionList)
 		if err != nil {
 			return nil, err
 		}
