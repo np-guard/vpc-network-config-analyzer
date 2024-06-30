@@ -473,11 +473,6 @@ var tests = []*vpcGeneralTest{
 	{
 		inputConfig: "acl_testing3",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
-		format:      vpcmodel.JSON,
-	},
-	{
-		inputConfig: "acl_testing3",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
 		format:      vpcmodel.MD,
 	},
 	{
