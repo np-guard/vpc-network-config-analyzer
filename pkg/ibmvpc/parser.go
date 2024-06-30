@@ -1068,6 +1068,7 @@ func (tgw *TransitGateway) newConfigFromTGW(configs *vpcmodel.MultipleVPCConfigs
 		newConfig.Nodes = append(newConfig.Nodes, vpcConfig.Nodes...)
 		newConfig.NodeSets = append(newConfig.NodeSets, vpcConfig.NodeSets...)
 		newConfig.Subnets = append(newConfig.Subnets, vpcConfig.Subnets...)
+		newConfig.LoadBalancers = append(newConfig.LoadBalancers, vpcConfig.LoadBalancers...)
 
 		// FilterResources: merge NACLLayers to a single NACLLayer object, same for sg
 		for _, fr := range vpcConfig.FilterResources {
