@@ -67,8 +67,8 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping, lbAbstraction bool) (res
 
 func (c *VPCConfig) getLoadBalancerRule(src, dst Node) *LoadBalancerRule {
 	for _, lb := range c.LoadBalancers {
-		if r := lb.GetLoadBalancerRule(src, dst); r != nil {
-			return r
+		if rule := lb.GetLoadBalancerRule(src, dst); rule != nil {
+			return rule
 		}
 	}
 	return nil

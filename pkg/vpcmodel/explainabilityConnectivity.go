@@ -38,7 +38,7 @@ type LoadBalancerRule struct {
 	denny bool
 }
 func NewLoadBalancerRule(lb LoadBalancer, denny bool) *LoadBalancerRule{ return &LoadBalancerRule{lb,denny}}
-func (lbr *LoadBalancerRule) Denny() bool {return lbr.Denny()}
+func (lbr *LoadBalancerRule) Denny() bool {return lbr.denny}
 func (lbr *LoadBalancerRule) StringDetailsOfRule() string {
 	return lbr.StringHeaderOfRule() + " to destinations which are its pool members\n"
 }
