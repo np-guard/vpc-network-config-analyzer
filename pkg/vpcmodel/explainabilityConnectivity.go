@@ -32,22 +32,23 @@ type rulesConnection struct {
 // the load balancer is a rule applied to all private IPs of a given load balancer:
 // these private IPs can only connect to pool members of the load balancer
 type LoadBalancerRule struct {
-//	Denny- true if src is pip, and dst is not pool member:
-	Denny bool
 	// the relevant load balancer:
-	LB    LoadBalancer
+	lb LoadBalancer
+	//	Denny- true if src is pip, and dst is not pool member:
+	denny bool
 }
-
+func NewLoadBalancerRule(lb LoadBalancer, denny bool) *LoadBalancerRule{ return &LoadBalancerRule{lb,denny}}
+func (lbr *LoadBalancerRule) Denny() bool {return lbr.Denny()}
 func (lbr *LoadBalancerRule) StringDetailsOfRule() string {
 	return lbr.StringHeaderOfRule() + " to destinations which are its pool members\n"
 }
 
 func (lbr *LoadBalancerRule) StringHeaderOfRule() string {
 	action := "allow"
-	if lbr.Denny {
+	if lbr.Denny() {
 		action = "blocks"
 	}
-	return fmt.Sprintf("load balancer %s %s connection", lbr.LB.Name(), action)
+	return fmt.Sprintf("load balancer %s %s connection", lbr.lb.Name(), action)
 }
 
 type srcDstDetails struct {
