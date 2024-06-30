@@ -192,8 +192,12 @@ func (confConnectivity *configConnectivity) connMissingOrChanged(other *configCo
 				return nil, err2
 			}
 			// includeChanged indicates if it is thisMinusOther
-			connDiff := &connectionDiff{conn, emptyDetailedConn(),
-				missingConnection, includeChanged}
+			connDiff := &connectionDiff{
+				conn1:          conn,
+				conn2:          emptyDetailedConn(),
+				diff:           missingConnection,
+				thisMinusOther: includeChanged,
+			}
 			if srcInOther != nil && dstInOther != nil {
 				if otherSrc, ok := other.connectivity[srcInOther]; ok {
 					if otherConn, ok := otherSrc[dstInOther]; ok {
