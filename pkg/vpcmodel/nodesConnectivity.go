@@ -59,7 +59,7 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping, lbAbstraction bool) (res
 		}
 	}
 	allowedConnsCombined := res.computeAllowedConnsCombined()
-	res.computeAllowedResponsiveConnections(allowedConnsCombined)
+	res.computeAllowedResponsiveConnections(c, allowedConnsCombined)
 	res.abstractLoadBalancers(c.LoadBalancers, lbAbstraction)
 	res.GroupedConnectivity, err = newGroupConnLines(c, res, grouping)
 	return res, err
@@ -247,7 +247,8 @@ func (v *VPCConnectivity) isConnExternalThroughFIP(src, dst Node) bool {
 // the responsive allowed connection A->B is TCP , src_port: x&w , dst_port: y&z.
 // 2. Not responsive: the tcp part of the connection that is not in 1
 // 3. Other: the non-tcp part of the connection (for which the responsive question is non-relevant)
-func (v *VPCConnectivity) computeAllowedResponsiveConnections(allowedConnsCombined GeneralConnectivityMap) {
+func (v *VPCConnectivity) computeAllowedResponsiveConnections(c *VPCConfig,
+	allowedConnsCombined GeneralConnectivityMap) error {
 	// assuming v.AllowedConnsCombined was already computed
 
 	// allowed connection: src->dst , requires NACL layer to allow dst->src (both ingress and egress)
@@ -278,10 +279,20 @@ func (v *VPCConnectivity) computeAllowedResponsiveConnections(allowedConnsCombin
 			// can src ingress from dst?
 			SrcAllowedIngressFromDst = v.getPerLayerConnectivity(statelessLayerName, dstNode, srcNode, true)
 			combinedDstToSrc := DstAllowedEgressToSrc.Intersect(SrcAllowedIngressFromDst)
+			// in case the connection is multi-vpc: does the tgw enable it?
+			if c.IsMultipleVPCsConfig {
+				// in case of cross-vpc connectivity, do need a router (tgw) enabling this connection
+				_, allowedConnsBetweenCapturedAndPeerNode, err := c.getRoutingResource(dstNode, srcNode)
+				if err != nil {
+					return err
+				}
+				combinedDstToSrc = combinedDstToSrc.Intersect(allowedConnsBetweenCapturedAndPeerNode)
+			}
 			detailedConnSet := computeDetailedConn(conn, combinedDstToSrc)
 			v.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(src, dst, detailedConnSet)
 		}
 	}
+	return nil
 }
 
 // getPerLayerConnectivity currently used for "NaclLayer" - to compute stateful allowed conns
