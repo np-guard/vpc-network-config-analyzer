@@ -59,7 +59,10 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping, lbAbstraction bool) (res
 		}
 	}
 	allowedConnsCombined := res.computeAllowedConnsCombined()
-	res.computeAllowedResponsiveConnections(c, allowedConnsCombined)
+	err3 := res.computeAllowedResponsiveConnections(c, allowedConnsCombined)
+	if err3 != nil {
+		return nil, err3
+	}
 	res.abstractLoadBalancers(c.LoadBalancers, lbAbstraction)
 	res.GroupedConnectivity, err = newGroupConnLines(c, res, grouping)
 	return res, err
