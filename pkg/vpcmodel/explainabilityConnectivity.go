@@ -436,9 +436,9 @@ func (rules rulesInLayers) updateRulesPerLayerIfNonEmpty(layer string, rulesFilt
 
 // given a node, we need to find the resource that represent the node in the connectivity
 func (c *VPCConfig) getConnectedResource(node Node) (VPCResourceIntf, error) {
-	if abstractedNodeSet := node.AbstractedNodeSet(); abstractedNodeSet != nil {
+	if AbstractedToNodeSet := node.AbstractedToNodeSet(); AbstractedToNodeSet != nil {
 		// if the node is part of abstraction - return the abstracted nodeSet:
-		return abstractedNodeSet, nil
+		return AbstractedToNodeSet, nil
 	} else if node.IsInternal() {
 		return node, nil
 	}

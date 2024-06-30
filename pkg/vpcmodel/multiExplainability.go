@@ -148,8 +148,8 @@ func collectNodesForExplanation(cConfigs *MultipleVPCConfigs, conns map[string]*
 		if !vpcConfig.IsMultipleVPCsConfig {
 			for _, n := range vpcConfig.Nodes {
 				if !n.IsExternal() {
-					if abstractedNodeSet := n.AbstractedNodeSet(); abstractedNodeSet != nil {
-						internalNodes[abstractedNodeSet] = vpcConfig
+					if abstractedToNodeSet := n.AbstractedToNodeSet(); abstractedToNodeSet != nil {
+						internalNodes[abstractedToNodeSet] = vpcConfig
 					} else {
 						internalNodes[n] = vpcConfig
 					}
