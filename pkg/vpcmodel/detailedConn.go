@@ -118,7 +118,9 @@ func (d *detailedConn) string() string {
 	return d.allConn.String()
 }
 
-func (d *detailedConn) detailString() string {
+// stringPerResponsive adds * to non-responsive TCP components of the connection
+// for cosmetic reasons remove the protocol word from cubes prints
+func (d *detailedConn) stringPerResponsive() string {
 	if d.allConn.IsEmpty() {
 		return d.allConn.String()
 	}
