@@ -196,14 +196,14 @@ func (g *groupedConnLine) explainPerCaseStr(c *VPCConfig, src, dst EndpointElem,
 			noConnection)
 	case ingressBlocking || egressBlocking || loadBalancerBlocking:
 		blockedBy := []string{}
+		if loadBalancerBlocking {
+			blockedBy = append(blockedBy, "Load Balancer")
+		}
 		if ingressBlocking {
 			blockedBy = append(blockedBy, "ingress")
 		}
 		if egressBlocking {
 			blockedBy = append(blockedBy, "egress")
-		}
-		if loadBalancerBlocking {
-			blockedBy = append(blockedBy, "Load Balancer")
 		}
 		l := len(blockedBy)
 		blockedByString := fmt.Sprintf("by %s", blockedBy[0])
