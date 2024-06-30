@@ -37,8 +37,11 @@ type LoadBalancerRule struct {
 	//	Denny- true if src is pip, and dst is not pool member:
 	denny bool
 }
-func NewLoadBalancerRule(lb LoadBalancer, denny bool) *LoadBalancerRule{ return &LoadBalancerRule{lb,denny}}
-func (lbr *LoadBalancerRule) Denny() bool {return lbr.denny}
+
+func NewLoadBalancerRule(lb LoadBalancer, denny bool) *LoadBalancerRule {
+	return &LoadBalancerRule{lb, denny}
+}
+func (lbr *LoadBalancerRule) Denny() bool { return lbr.denny }
 func (lbr *LoadBalancerRule) StringDetailsOfRule() string {
 	return lbr.StringHeaderOfRule() + " to destinations which are its pool members\n"
 }

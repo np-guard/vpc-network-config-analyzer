@@ -279,9 +279,9 @@ func (lb *LoadBalancer) GetLoadBalancerRule(src, dst vpcmodel.Node) *vpcmodel.Lo
 	// currently, we do not allow connections from privateIP to a destination that is not a pool member
 	if slices.Contains(lb.Nodes(), src) {
 		if !slices.Contains(lb.members(), dst) {
-			return vpcmodel.NewLoadBalancerRule(lb,true)
+			return vpcmodel.NewLoadBalancerRule(lb, true)
 		}
-		return vpcmodel.NewLoadBalancerRule(lb,false)
+		return vpcmodel.NewLoadBalancerRule(lb, false)
 	}
 	return nil
 }
