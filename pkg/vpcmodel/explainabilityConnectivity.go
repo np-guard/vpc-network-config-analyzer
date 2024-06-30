@@ -29,10 +29,12 @@ type rulesConnection struct {
 	egressRules  rulesInLayers
 }
 
-// loadBalancerDennyEgressRule - is a rule applied to all private IPs of a given load balancer:
+// LoadBalancerRule - is a rule applied to all private IPs of a given load balancer:
 // these private IPs can only connect to pool members of the load balancer
 type LoadBalancerRule struct {
+//	Denny- true if src is pip, and dst is not pool member:
 	Denny bool
+	// the relevant load balancer:
 	LB    LoadBalancer
 }
 
@@ -63,7 +65,7 @@ type srcDstDetails struct {
 	crossVpcRules  []RulesInTable  // cross vpc (only tgw at the moment) prefix rules effecting the connection (or lack of)
 	// there could be more than one connection effecting the connection since src/dst cidr's may contain more than one AP
 
-	// loadBalancerDenyEgressRule - true if src is pip, and dst is not pool member:
+	// loadBalancerRule - the lb rule affecting this connection.
 	loadBalancerRule *LoadBalancerRule
 	// filters relevant for this src, dst pair; map keys are the filters kind (NaclLayer/SecurityGroupLayer)
 	// for two internal nodes within same subnet, only SG layer is relevant

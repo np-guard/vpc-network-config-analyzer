@@ -275,8 +275,6 @@ func (lb *LoadBalancer) AddressRange() *ipblock.IPBlock {
 	return nodesAddressRange(lb.nodes)
 }
 
-// GetLoadBalancerRule - check if lb denies connection from src to dst
-// currently only a boolean function, will be elaborated when parsing policies rules
 func (lb *LoadBalancer) GetLoadBalancerRule(src, dst vpcmodel.Node) *vpcmodel.LoadBalancerRule {
 	// currently, we do not allow connections from privateIP to a destination that is not a pool member
 	if slices.Contains(lb.Nodes(), src) {

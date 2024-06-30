@@ -208,7 +208,6 @@ type Subnet interface {
 // todo: elaborate more - get list of servers, expandability,...
 type LoadBalancer interface {
 	NodeSet
-	// GetLoadBalancerRule() - check if the lb denies connection from src to dst
 	GetLoadBalancerRule(src, dst Node) *LoadBalancerRule
 	SetAbstractionInfo(*AbstractionInfo)
 	AbstractionInfo() *AbstractionInfo
