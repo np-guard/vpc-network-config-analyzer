@@ -157,10 +157,8 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 				crossVpcRespondDetails, _ = crossVpcRouter.StringOfRouterRules(expDetails.crossVPCRespondRules,
 					true)
 			}
-			if expDetails.filtersRelevant[statelessLayerName] {
-				details += respondDetailsHeader(conn) + respondEgressDetails + crossVpcRespondDetails +
-					respondsIngressDetails
-			}
+			details += respondDetailsHeader(conn) + respondEgressDetails + crossVpcRespondDetails +
+				respondsIngressDetails
 		}
 	}
 	return g.explainPerCaseStr(c, src, dst, connQuery, crossVpcConnection, ingressBlocking, egressBlocking,
