@@ -618,28 +618,36 @@ func connDiffEncode(src, dst VPCResourceIntf, connDiff *connectionDiff) string {
 // encodes rulesConnection for grouping
 func (details *srcDstDetails) explanationEncode(c *VPCConfig) string {
 	encodeComponents := []string{}
-	encodeComponents = append(encodeComponents, details.conn.allConn.String())
+	encodeComponents = append(encodeComponents, details.conn.stringPerResponsive())
 	if details.externalRouter != nil {
 		encodeComponents = append(encodeComponents, details.externalRouter.UID())
+		rulesDetails, _ := details.externalRouter.StringOfRouterRules(details.crossVpcRespondRules,
+			true)
+		encodeComponents = append(encodeComponents, rulesDetails)
 	}
 	if details.crossVpcRouter != nil {
 		encodeComponents = append(encodeComponents, details.crossVpcRouter.UID())
 		if respondRulesRelevant(details.conn, details.filtersRelevant, details.crossVpcRouter) {
-			// todo
+			//rulesDetails, _ := details.externalRouter.StringOfRouterRules(details.crossVpcRespondRules,
+			//	true)
 		}
 	}
-	details.actualMergedRules.egressRules.appendEncodeFilterRules(&encodeComponents, c, details.filtersRelevant,
-		"egress", false)
-	details.actualMergedRules.ingressRules.appendEncodeFilterRules(&encodeComponents, c, details.filtersRelevant,
-		"ingress", true)
+	appendEncodeFilterRules(&encodeComponents, c, details.filtersRelevant,
+		&details.actualMergedRules.egressRules, "egress", false)
+	appendEncodeFilterRules(&encodeComponents, c, details.filtersRelevant,
+		&details.actualMergedRules.ingressRules, "ingress", true)
 	return strings.Join(encodeComponents, ";")
 }
 
-func (rules *rulesInLayers) appendEncodeFilterRules(encodeComponents *[]string,
-	c *VPCConfig, filtersRelevant map[string]bool, header string, isIngress bool) {
+func appendEncodeFilterRules(encodeComponents *[]string, c *VPCConfig, filtersRelevant map[string]bool,
+	rules *rulesInLayers, header string, isIngress bool) {
 	if len(*rules) == 0 {
 		return
 	}
 	*encodeComponents = append(*encodeComponents, header+
 		rules.rulesDetailsStr(c, filtersRelevant, isIngress))
+}
+
+func appendEncodeRouterRules(encodeComponents *[]string, router *RoutingResource, rulesInLayers []RulesInTable) {
+
 }
