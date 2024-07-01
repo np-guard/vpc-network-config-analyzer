@@ -30,12 +30,6 @@ func TestMain(t *testing.T) {
 			name: "aws_all_endpoints",
 			args: "report endpoints --output-file aws.txt -c ../../pkg/awsvpc/examples/input/input_basic_config_with_sg.json --format txt",
 		},
-		/*
-			{
-				name: "aws_explain",
-				args: "explain --output-file aws_explain.txt -c ../../pkg/awsvpc/examples/input/basic_config_with_sg.json --src InstanceId:18 --dst InstanceId:7 --format txt",
-			},
-		*/
 		// drawio
 		{
 			name: "drawio_multi_vpc_all_subnets",
