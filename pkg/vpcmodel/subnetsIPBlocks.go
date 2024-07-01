@@ -214,14 +214,15 @@ func disjointVpcCidrs(cidr map[string][]string) (blocks filtersBlocks, err error
 	return blocks, nil
 }
 
-// disjointCidrs() get a slice of cidrs/addresses can create a slice of disjoint blocks.
+// disjointCidrs() get a slice of cidrs/addresses and create a slice of disjoint blocks.
 // the algorithm:
 //  1. remove duplicate cidrs
 //  2. convert the cidr to a slice of blocks
 //  3. sort the blocks by size - small to big
-//  4. iterate over the blocks: for each block, create a disjoint block by subtracting from the block the bormer blocks
+//  4. iterate over the blocks: for each block, create a disjoint block by subtracting from the block the former blocks
 //
-// todo - move this function to modules?
+// please notice - there is a method models.DisjointIPBlocks(), this method is not suitable for this case:
+// at the output of models.DisjointIPBlocks(), each ipblock must be a range of IPs
 func disjointCidrs(cidrs []string) ([]*ipblock.IPBlock, error) {
 	compactCidrs := slices.Compact(cidrs)
 	cidrBlocks := make([]*ipblock.IPBlock, len(compactCidrs))
