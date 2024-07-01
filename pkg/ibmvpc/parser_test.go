@@ -18,7 +18,7 @@ import (
 )
 
 func TestVPCResourceModelRegion(t *testing.T) {
-	rc, err := ParseResourcesFromFile(filepath.Join(getTestsDirInput(), "input_multi_regions.json"))
+	rc, err := parseResourcesFromFile(filepath.Join(getTestsDirInput(), "input_multi_regions.json"))
 	require.Nilf(t, err, "err: %s", err)
 
 	vpcConfigs := vpcmodel.NewMultipleVPCConfigs("cloud name")
