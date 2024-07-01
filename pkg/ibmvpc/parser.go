@@ -1506,7 +1506,8 @@ func getGSRulesCidrs(rc *datamodel.ResourcesContainerModel, skipByVPC map[string
 
 // getSubnetsBlocks() gets the subnets blocks to be used for creating private IPs
 // it collects the rules cidrs and use them to get the subnets block.
-func getSubnetsBlocks(rc *datamodel.ResourcesContainerModel, skipByVPC map[string]bool) (subnetsBlocks vpcmodel.SubnetsIPBlocks, err error) {
+func getSubnetsBlocks(rc *datamodel.ResourcesContainerModel,
+	skipByVPC map[string]bool) (subnetsBlocks vpcmodel.SubnetsIPBlocks, err error) {
 	naclCidrs, err := getACLRulesCidrs(rc, skipByVPC)
 	if err != nil {
 		return nil, err
