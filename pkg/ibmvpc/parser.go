@@ -1714,7 +1714,7 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 			privateIPs = append(privateIPs, privateIP)
 		}
 		if len(subnetBlocks) > 1 {
-			logging.Debugf("subnet %s is spit by filters, %d private IPs was created:\n%s\n",
+			logging.Debugf("subnet %s is split by filters, %d private IPs was created:\n%s\n",
 				*subnetObj.Name, len(subnetBlocks), strings.Join(privateIPAddressesMessage, ", "))
 		}
 	}

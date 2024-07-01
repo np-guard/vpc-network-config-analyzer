@@ -106,6 +106,8 @@ func (subnetsBlocks SubnetsIPBlocks) splitSubnetsOriginalBlocks(rc *datamodel.Re
 	}
 }
 
+// splitSubnetsOriginalBlocks() splits one subnet's cidr(s) to (maximal) disjoint blocks -
+// such that each block is atomic w.r.t. the filters rules
 func splitSubnetOriginalBlock(subnetOriginalBlock *ipblock.IPBlock, filtersBlocks []*ipblock.IPBlock) []*ipblock.IPBlock {
 	filtersBlocksOnSubnet := []*ipblock.IPBlock{}
 	for _, filterBlock := range filtersBlocks {
