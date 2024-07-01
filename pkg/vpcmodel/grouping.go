@@ -27,15 +27,16 @@ type groupedExternalNodesInfo struct {
 }
 
 type explainDetails struct {
-	rules           *rulesConnection
-	respondRules    *rulesConnection
-	externalRouter  RoutingResource
-	crossVpcRouter  RoutingResource
-	crossVpcRules   []RulesInTable
-	filtersRelevant map[string]bool
-	connEnabled     bool
-	ingressEnabled  bool
-	egressEnabled   bool
+	rules                *rulesConnection
+	respondRules         *rulesConnection
+	externalRouter       RoutingResource
+	crossVpcRouter       RoutingResource
+	crossVpcRules        []RulesInTable
+	crossVPCRespondRules []RulesInTable
+	filtersRelevant      map[string]bool
+	connEnabled          bool
+	ingressEnabled       bool
+	egressEnabled        bool
 }
 
 type groupedCommonProperties struct {
@@ -351,11 +352,12 @@ func (g *GroupConnLines) groupExternalAddressesForExplainability() error {
 	var res []*groupedConnLine
 	for _, details := range *g.explain {
 		groupingStrKey := details.explanationEncode(g.config)
-		expDetails := &explainDetails{details.actualMergedRules,
-			details.respondRules, details.externalRouter, details.crossVpcRouter,
-			details.crossVpcRules, details.filtersRelevant,
-			details.connEnabled, details.ingressEnabled,
-			details.egressEnabled}
+		expDetails := &explainDetails{rules: details.actualMergedRules,
+			respondRules: details.respondRules, externalRouter: details.externalRouter,
+			crossVpcRouter: details.crossVpcRouter, crossVpcRules: details.crossVpcRules,
+			crossVPCRespondRules: details.crossVpcRespondRules, filtersRelevant: details.filtersRelevant,
+			connEnabled: details.connEnabled, ingressEnabled: details.ingressEnabled,
+			egressEnabled: details.egressEnabled}
 		err := g.addLineToExternalGrouping(&res, details.src, details.dst,
 			&groupedCommonProperties{conn: details.conn, expDetails: expDetails,
 				groupingStrKey: groupingStrKey})
@@ -622,15 +624,18 @@ func (details *srcDstDetails) explanationEncode(c *VPCConfig) string {
 	}
 	if details.crossVpcRouter != nil {
 		encodeComponents = append(encodeComponents, details.crossVpcRouter.UID())
+		if respondRulesRelevant(details.conn, details.filtersRelevant, details.crossVpcRouter) {
+			// todo
+		}
 	}
-	details.actualMergedRules.egressRules.appendEncodeRules(&encodeComponents, c, details.filtersRelevant,
+	details.actualMergedRules.egressRules.appendEncodeFilterRules(&encodeComponents, c, details.filtersRelevant,
 		"egress", false)
-	details.actualMergedRules.ingressRules.appendEncodeRules(&encodeComponents, c, details.filtersRelevant,
+	details.actualMergedRules.ingressRules.appendEncodeFilterRules(&encodeComponents, c, details.filtersRelevant,
 		"ingress", true)
 	return strings.Join(encodeComponents, ";")
 }
 
-func (rules *rulesInLayers) appendEncodeRules(encodeComponents *[]string,
+func (rules *rulesInLayers) appendEncodeFilterRules(encodeComponents *[]string,
 	c *VPCConfig, filtersRelevant map[string]bool, header string, isIngress bool) {
 	if len(*rules) == 0 {
 		return

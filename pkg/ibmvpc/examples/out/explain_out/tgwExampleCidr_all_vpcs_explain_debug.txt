@@ -33,6 +33,9 @@ TCP response is enabled by the following rules:
 		network ACL acl2-ky allows connection with the following allow rules
 			index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 
+	transit gateway local-tg-ky allows connection via transit connection tg_connection2 with the following prefix filter
+		default prefix,  action: permit
+
 	Ingress:
 		network ACL acl21-ky allows connection with the following allow rules
 			index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
@@ -70,6 +73,9 @@ TCP response is enabled by the following rules:
 	Egress:
 		network ACL acl2-ky allows connection with the following allow rules
 			index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+
+	transit gateway local-tg-ky allows connection via transit connection tg_connection2 with the following prefix filter
+		default prefix,  action: permit
 
 	Ingress:
 		network ACL acl21-ky allows connection with the following allow rules
@@ -109,6 +115,9 @@ TCP response is enabled by the following rules:
 		network ACL acl2-ky allows connection with the following allow rules
 			index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 
+	transit gateway local-tg-ky allows connection via transit connection tg_connection2 with the following prefix filter
+		default prefix,  action: permit
+
 	Ingress:
 		network ACL acl21-ky allows connection with the following allow rules
 			index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
@@ -146,6 +155,9 @@ TCP response is enabled by the following rules:
 	Egress:
 		network ACL acl2-ky allows connection with the following allow rules
 			index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+
+	transit gateway local-tg-ky allows connection via transit connection tg_connection2 with the following prefix filter
+		default prefix,  action: permit
 
 	Ingress:
 		network ACL acl21-ky allows connection with the following allow rules

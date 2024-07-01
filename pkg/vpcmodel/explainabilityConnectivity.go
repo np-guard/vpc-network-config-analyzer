@@ -55,7 +55,9 @@ type srcDstDetails struct {
 	actualMergedRules   *rulesConnection // rules actually effecting the connection (both allow and deny)
 	// enabling rules implies whether ingress/egress is enabled
 	// potential rules are saved for further debugging and explanation provided to the user
-	respondRules *rulesConnection // rules of non-stateful filters enabling/disabling respond
+	respondRules         *rulesConnection // rules of non-stateful filters enabling/disabling respond
+	crossVpcRespondRules []RulesInTable   // cross vpc (only tgw at the moment) prefix rules effecting the
+	// TCP respond connection (or lack of)
 
 }
 
@@ -492,22 +494,30 @@ func (details *rulesAndConnDetails) updateRespondRules(c *VPCConfig, connQuery *
 		responseConn = responseConn.Intersect(connQuery)
 	}
 	for _, srcDstDetails := range *details {
-		// respond rules are relevant if connection has a TCP component and non-stateful filter (NACL at the moment)
-		// are relevant for <src, dst>
-		if !respondRulesRelevant(srcDstDetails.conn, srcDstDetails.filtersRelevant) {
+		// respond rules are relevant if connection has a TCP component and (non-stateful filter (NACL at the moment)
+		// are relevant for <src, dst> or there is a cross vpc router (tgw at the moment))
+		if !respondRulesRelevant(srcDstDetails.conn, srcDstDetails.filtersRelevant, srcDstDetails.crossVpcRouter) {
 			continue
 		}
-		respondRules, err := c.getRespondRules(srcDstDetails.src, srcDstDetails.dst, responseConn)
-		if err != nil {
-			return err
+		// non-stateful filters (NACL at the moment) - gather filter rules relevant to TCP respond
+		if srcDstDetails.filtersRelevant[statelessLayerName] {
+			respondRules, err := c.getRespondRules(srcDstDetails.src, srcDstDetails.dst, responseConn)
+			if err != nil {
+				return err
+			}
+			srcDstDetails.respondRules = respondRules
 		}
-		srcDstDetails.respondRules = respondRules
+		// crossVPC based connection - gather router rules' relevant to TCP respond
+		if srcDstDetails.crossVpcRouter != nil {
+			srcDstDetails.crossVpcRespondRules = srcDstDetails.crossVpcRouter.RulesInConnectivity(srcDstDetails.dst,
+				srcDstDetails.src)
+		}
 	}
 	return nil
 }
 
-func respondRulesRelevant(conn *detailedConn, filtersRelevant map[string]bool) bool {
-	return conn.hasTCPComponent() && filtersRelevant[NaclLayer]
+func respondRulesRelevant(conn *detailedConn, filtersRelevant map[string]bool, crossVPCRouter RoutingResource) bool {
+	return conn.hasTCPComponent() && (filtersRelevant[statelessLayerName] || crossVPCRouter != nil)
 }
 
 // gets the NACL rules that enables/disables respond for connection conn, assuming nacl is applied
@@ -538,13 +548,14 @@ func (c *VPCConfig) computeAndUpdateDirectionRespondRules(src, dst Node, conn *c
 	// computes allowRulesPerLayer/denyRulePerLayer: ingress/egress rules enabling/disabling respond
 	// note that there could be both allow and deny in case part of the connection is enabled and part blocked
 	connSwitch := conn.SwitchSrcDstPorts()
-	allowRules, denyRules, err1 := c.getFiltersRulesBetweenNodesPerDirectionAndLayer(dst, src, connSwitch, isIngress, NaclLayer)
+	allowRules, denyRules, err1 := c.getFiltersRulesBetweenNodesPerDirectionAndLayer(dst, src, connSwitch, isIngress,
+		statelessLayerName)
 	if err1 != nil {
 		return nil, err1
 	}
 	allowRulesPerLayer, denyRulePerLayer := rulesInLayers{}, rulesInLayers{}
-	allowRulesPerLayer.updateRulesPerLayerIfNonEmpty(NaclLayer, allowRules)
-	denyRulePerLayer.updateRulesPerLayerIfNonEmpty(NaclLayer, denyRules)
+	allowRulesPerLayer.updateRulesPerLayerIfNonEmpty(statelessLayerName, allowRules)
+	denyRulePerLayer.updateRulesPerLayerIfNonEmpty(statelessLayerName, denyRules)
 	mergedRules := mergeAllowDeny(allowRulesPerLayer, denyRulePerLayer)
 	return mergedRules, err1
 }

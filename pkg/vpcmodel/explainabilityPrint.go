@@ -120,13 +120,14 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 	egressBlocking := !expDetails.egressEnabled && needEgress
 	var externalRouterHeader, crossRouterFilterHeader, resourceEffectHeader,
 		crossRouterFilterDetails, details string
-	externalRouter, crossVpcRouter, crossVpcRules := expDetails.externalRouter, expDetails.crossVpcRouter, expDetails.crossVpcRules
+	externalRouter, crossVpcRouter, crossVpcRules := expDetails.externalRouter, expDetails.crossVpcRouter,
+		expDetails.crossVpcRules
 	if externalRouter != nil && (src.IsExternal() || dst.IsExternal()) {
 		externalRouterHeader = "External traffic via " + externalRouter.Kind() + ": " + externalRouter.Name() + newLine
 	}
 	var crossVpcConnection *connection.Set
-	crossVpcConnection, crossRouterFilterHeader, crossRouterFilterDetails = crossRouterDetails(c, crossVpcRouter, crossVpcRules,
-		src, dst)
+	crossVpcConnection, crossRouterFilterHeader, crossRouterFilterDetails = crossRouterDetails(c, crossVpcRouter,
+		crossVpcRules, src, dst)
 	// noConnection is the 1 above when no connection
 	noConnection := noConnectionHeader(src.ExtendedName(c), dst.ExtendedName(c), connQuery) + newLine
 
@@ -145,10 +146,21 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 	if verbose {
 		details = "\nDetails:\n~~~~~~~~\nPath is enabled by the following rules:\n" +
 			egressRulesDetails + crossRouterFilterDetails + ingressRulesDetails
-		if respondRulesRelevant(conn, filtersRelevant) {
+		if respondRulesRelevant(conn, filtersRelevant, crossVpcRouter) {
+			respondEgressDetails, respondsIngressDetails, crossVpcRespondDetails := "", "", ""
 			// for respond rules needIngress and needEgress are switched
-			respondEgressDetails, respondsIngressDetails := expDetails.respondRules.ruleDetailsStr(c, filtersRelevant, needIngress, needEgress)
-			details += respondDetailsHeader(conn) + respondEgressDetails + respondsIngressDetails
+			if filtersRelevant[statelessLayerName] {
+				respondEgressDetails, respondsIngressDetails = expDetails.respondRules.ruleDetailsStr(c,
+					filtersRelevant, needIngress, needEgress)
+			}
+			if expDetails.crossVpcRouter != nil {
+				crossVpcRespondDetails, _ = crossVpcRouter.StringOfRouterRules(expDetails.crossVPCRespondRules,
+					true)
+			}
+			if expDetails.filtersRelevant[statelessLayerName] {
+				details += respondDetailsHeader(conn) + respondEgressDetails + crossVpcRespondDetails +
+					respondsIngressDetails
+			}
 		}
 	}
 	return g.explainPerCaseStr(c, src, dst, connQuery, crossVpcConnection, ingressBlocking, egressBlocking,
@@ -206,8 +218,8 @@ func crossRouterDetails(c *VPCConfig, crossVpcRouter RoutingResource, crossVpcRu
 		// an error here will pop up earlier, when computing connections
 		_, crossVpcConnection, _ := c.getRoutingResource(src.(Node), dst.(Node)) // crossVpc Router (tgw) exists - src, dst are internal
 		// if there is a non nil transit gateway then src and dst are vsis, and implement Node
-		crossVpcFilterHeader, _ := crossVpcRouter.StringDetailsOfRules(crossVpcRules, false)
-		crossVpcFilterDetails, _ := crossVpcRouter.StringDetailsOfRules(crossVpcRules, true)
+		crossVpcFilterHeader, _ := crossVpcRouter.StringOfRouterRules(crossVpcRules, false)
+		crossVpcFilterDetails, _ := crossVpcRouter.StringOfRouterRules(crossVpcRules, true)
 		return crossVpcConnection, crossVpcFilterHeader, crossVpcFilterDetails
 	}
 	return nil, emptyString, emptyString
