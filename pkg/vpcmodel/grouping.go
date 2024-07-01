@@ -619,21 +619,28 @@ func connDiffEncode(src, dst VPCResourceIntf, connDiff *connectionDiff) string {
 func (details *srcDstDetails) explanationEncode(c *VPCConfig) string {
 	encodeComponents := []string{}
 	encodeComponents = append(encodeComponents, details.conn.stringPerResponsive())
-	appendEncodeRouterRules(&encodeComponents, details.crossVpcRouter, details.crossVpcRules)
 	appendEncodeFilterRules(&encodeComponents, c, details.filtersRelevant,
-		&details.actualMergedRules.egressRules, "egress", false)
-	appendEncodeFilterRules(&encodeComponents, c, details.filtersRelevant,
-		&details.actualMergedRules.ingressRules, "ingress", true)
+		details.actualMergedRules)
 	if details.crossVpcRouter != nil {
 		encodeComponents = append(encodeComponents, details.crossVpcRouter.UID())
-		if respondRulesRelevant(details.conn, details.filtersRelevant, details.crossVpcRouter) {
-			appendEncodeRouterRules(&encodeComponents, details.crossVpcRouter, details.crossVpcRespondRules)
-		}
+		appendEncodeRouterRules(&encodeComponents, details.crossVpcRouter, details.crossVpcRules)
+	}
+	if respondRulesRelevant(details.conn, details.filtersRelevant, details.crossVpcRouter) {
+		appendEncodeRouterRules(&encodeComponents, details.crossVpcRouter, details.crossVpcRespondRules)
+		appendEncodeFilterRules(&encodeComponents, c, details.filtersRelevant,
+			details.respondRules)
 	}
 	return strings.Join(encodeComponents, ";")
 }
 
-func appendEncodeFilterRules(encodeComponents *[]string, c *VPCConfig, filtersRelevant map[string]bool,
+func appendEncodeFilterRules(encodeComponents *[]string, c *VPCConfig, filtersRelevant map[string]bool, rules *rulesConnection) {
+	appendEncodeDirectionalFilterRules(encodeComponents, c, filtersRelevant,
+		&rules.egressRules, "egress", false)
+	appendEncodeDirectionalFilterRules(encodeComponents, c, filtersRelevant,
+		&rules.ingressRules, "ingress", true)
+}
+
+func appendEncodeDirectionalFilterRules(encodeComponents *[]string, c *VPCConfig, filtersRelevant map[string]bool,
 	rules *rulesInLayers, header string, isIngress bool) {
 	if len(*rules) == 0 {
 		return
