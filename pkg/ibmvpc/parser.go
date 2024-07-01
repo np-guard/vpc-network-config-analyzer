@@ -54,7 +54,7 @@ func VpcConfigsFromFiles(fileNames []string, vpcID string, resourceGroup string,
 	*vpcmodel.MultipleVPCConfigs, error) {
 	var mergedRC *datamodel.ResourcesContainerModel
 	for _, file := range fileNames {
-		rc, err1 := ParseResourcesFromFile(file)
+		rc, err1 := parseResourcesFromFile(file)
 		if err1 != nil {
 			return nil, fmt.Errorf("error parsing input vpc resources file: %w", err1)
 		}
@@ -70,9 +70,9 @@ func VpcConfigsFromFiles(fileNames []string, vpcID string, resourceGroup string,
 	return vpcConfigs, nil
 }
 
-// ParseResourcesFromFile returns datamodel.ResourcesContainerModel object, containing the configured resources structs
+// parseResourcesFromFile returns datamodel.ResourcesContainerModel object, containing the configured resources structs
 // from the input JSON file
-func ParseResourcesFromFile(fileName string) (*datamodel.ResourcesContainerModel, error) {
+func parseResourcesFromFile(fileName string) (*datamodel.ResourcesContainerModel, error) {
 	inputConfigContent, err := os.ReadFile(fileName)
 	if err != nil {
 		return nil, err

@@ -40,9 +40,9 @@ const (
 	ResourceTypeNACL             = "NACL"
 )
 
-// ParseResourcesFromFile returns aws.ResourcesContainer object, containing the configured resources structs
+// parseResourcesFromFile returns aws.ResourcesContainer object, containing the configured resources structs
 // from the input JSON file
-func ParseResourcesFromFile(fileName string) (*aws.ResourcesContainer, error) {
+func parseResourcesFromFile(fileName string) (*aws.ResourcesContainer, error) {
 	inputConfigContent, err := os.ReadFile(fileName)
 	if err != nil {
 		return nil, err
@@ -79,7 +79,7 @@ func VpcConfigsFromFiles(fileNames []string, vpcID string, resourceGroup string,
 	*vpcmodel.MultipleVPCConfigs, error) {
 	var mergedRC *aws.ResourcesContainer
 	for _, file := range fileNames {
-		rc, err1 := ParseResourcesFromFile(file)
+		rc, err1 := parseResourcesFromFile(file)
 		if err1 != nil {
 			return nil, fmt.Errorf("error parsing input vpc resources file: %w", err1)
 		}
