@@ -28,12 +28,12 @@ func TestMain(t *testing.T) {
 		// aws
 		{
 			name: "aws_all_endpoints",
-			args: "report endpoints --output-file aws.txt -c ../../pkg/awsvpc/examples/input/input_config_object.json --format txt",
+			args: "report endpoints --output-file aws.txt -c ../../pkg/awsvpc/examples/input/input_basic_config_with_sg.json --format txt",
 		},
 		/*
 			{
 				name: "aws_explain",
-				args: "explain --output-file aws_explain.txt -c ../../pkg/awsvpc/examples/input/config_object.json --src InstanceId:18 --dst InstanceId:7 --format txt",
+				args: "explain --output-file aws_explain.txt -c ../../pkg/awsvpc/examples/input/basic_config_with_sg.json --src InstanceId:18 --dst InstanceId:7 --format txt",
 			},
 		*/
 		// drawio

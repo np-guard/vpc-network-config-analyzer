@@ -194,7 +194,7 @@ func (tt *vpcGeneralTest) initTest() {
 
 var tests = []*vpcGeneralTest{
 	{
-		inputConfig: "config_object",
+		inputConfig: "basic_config_with_sg",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		format:      vpcmodel.Text,
 	},
