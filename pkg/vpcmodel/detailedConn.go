@@ -7,6 +7,8 @@ SPDX-License-Identifier: Apache-2.0
 package vpcmodel
 
 import (
+	"strings"
+
 	"github.com/np-guard/models/pkg/connection"
 )
 
@@ -109,12 +111,30 @@ func (d *detailedConn) nonTCPAndResponsiveTCPComponent() *connection.Set {
 	return d.tcpRspEnable.Union(d.nonTCP)
 }
 
-// todo: will it still be needed once transformation is completed?
 func (d *detailedConn) string() string {
 	if !d.tcpRspDisable.IsEmpty() {
 		return d.allConn.String() + asterisk
 	}
 	return d.allConn.String()
+}
+
+// stringPerResponsive adds * to non-responsive TCP components of the connection
+// for cosmetic reasons remove the protocol word from cubes prints
+func (d *detailedConn) stringPerResponsive() string {
+	if d.allConn.IsEmpty() {
+		return d.allConn.String()
+	}
+	resStrSlice := []string{}
+	if !d.tcpRspDisable.IsEmpty() {
+		tcpNonResponsive := d.tcpRspDisable.String()
+		tcpNonResponsive = strings.ReplaceAll(tcpNonResponsive, ";", asterisk+";")
+		resStrSlice = append(resStrSlice, tcpNonResponsive+asterisk)
+	}
+	if !d.nonTCPAndResponsiveTCPComponent().IsEmpty() {
+		resStrSlice = append(resStrSlice, d.nonTCPAndResponsiveTCPComponent().String())
+	}
+	// todo: remove "protocol" from the original cube printing funcs
+	return strings.ReplaceAll(strings.Join(resStrSlice, "; "), "protocol: ", "")
 }
 
 // in the structs a single line represents connection of each <src, dst>
