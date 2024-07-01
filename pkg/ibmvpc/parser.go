@@ -69,6 +69,8 @@ func filterByVpcResourceGroupAndRegions(rc *datamodel.ResourcesContainerModel, v
 
 // VPCConfigsFromResources returns a map from VPC UID (string) to its corresponding VPCConfig object,
 // containing the parsed resources in the relevant model objects
+//
+//nolint:funlen // serial list of commands, no need to split it
 func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resourceGroup string, regions []string) (
 	*vpcmodel.MultipleVPCConfigs, error) {
 	res := vpcmodel.NewMultipleVPCConfigs("IBM Cloud") // map from VPC UID to its config
