@@ -48,7 +48,6 @@ type inArgs struct {
 	outputFormat          formatSetting
 	grouping              bool
 	vpc                   string
-	debug                 bool
 	eSrc                  string
 	eDst                  string
 	eProtocol             protocolSetting
@@ -103,8 +102,6 @@ func NewRootCommand() *cobra.Command {
 	rootCmd.PersistentFlags().BoolVarP(&args.quiet, quietFlag, "q", false, "runs quietly, reports only severe errors and results")
 	rootCmd.PersistentFlags().BoolVarP(&args.verbose, verboseFlag, "v", false, "runs with more informative messages printed to log")
 	rootCmd.MarkFlagsMutuallyExclusive(quietFlag, verboseFlag)
-
-	rootCmd.PersistentFlags().BoolVar(&args.debug, debugFlag, false, "runs in debug mode")
 
 	rootCmd.PersistentFlags().SortFlags = false
 
