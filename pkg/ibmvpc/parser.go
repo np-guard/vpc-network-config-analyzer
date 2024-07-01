@@ -331,7 +331,7 @@ func getCertainNodes(allNodes []vpcmodel.Node, shouldTakeNode func(vpcmodel.Node
 	return
 }
 
-// TODO: remove this funcion, just check that zone exists (zones added in vpc generation)
+// TODO: remove this function, just check that zone exists (zones added in vpc generation)
 func addZone(zoneName, vpcUID string, res *vpcmodel.MultipleVPCConfigs) error {
 	vpc, err := getVPCObjectByUID(res, vpcUID)
 	if err != nil {

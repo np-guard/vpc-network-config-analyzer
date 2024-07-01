@@ -353,13 +353,6 @@ type routingTable struct {
 	routesPerZone    map[string][]*route       // map from zone name to list of its relevant routes
 	routingResultMap map[string]*routingResult // map from zone name to routingResult computed for that zone's routes in the table
 
-	/*// nextHops is a map from disjoint ip-blocks, after considering route preferences and actions
-	nextHops map[*ipblock.IPBlock]*ipblock.IPBlock // delivered ip-blocks
-
-	droppedDestinations *ipblock.IPBlock // union of all ip-ranges for dropped destinations
-
-	delegatedDestinations *ipblock.IPBlock // union of all ip-ranges for delegated destinations*/
-
 	implicitRT *systemImplicitRT
 }
 
@@ -459,8 +452,7 @@ func computeDisjointRouting(routesList []*route) (*routingResult, error) {
 	return res, nil
 }
 
-// todo: Add zone/subnet, so that only relevant zone routes are considered
-// // If subnets are attached to the route's routing table, egress traffic from those
+// If subnets are attached to the route's routing table, egress traffic from those
 // subnets in this zone will be subject to this route
 func (rt *routingTable) getEgressPath(src vpcmodel.Node, dest *ipblock.IPBlock, zone string) (vpcmodel.Path, error) {
 	path, shouldDelegate, _ := rt.getPath(dest, zone)
@@ -477,9 +469,9 @@ func (rt *routingTable) evaluatedPath(dest *ipblock.IPBlock, path vpcmodel.Path,
 	return path, nil
 }
 
-// todo: Add zone/subnet, so that only relevant zone routes are considered
 // traffic from those ingress sources arriving in this zone will be subject to this route.
 func (rt *routingTable) getIngressPath(dest *ipblock.IPBlock, destZone, srcZone string) (vpcmodel.Path, error) {
+	// TODO: validate the logic of this function (first consider dest zone, then src zone)
 	// if the dest zone is not empty - consider only dest zone routes
 	if destZone != "" {
 		logging.Debugf("consider only routes by dest zone, which is %s", destZone)
@@ -499,7 +491,7 @@ func (rt *routingTable) getIngressPath(dest *ipblock.IPBlock, destZone, srcZone 
 	// if the dest zone is empty - consider all zones' routes
 	// if there is a match in more than one zone - all options are valid
 	// TODO: currently just picking the first matched.. should return all valid options instead
-	logging.Debugf("consider all zones routes, dest zone unknown and src zone not matched or unknonwn")
+	logging.Debugf("consider all zones routes, dest zone unknown and src zone not matched or unknown")
 	vpc := rt.VPCRef.(*VPC)
 	for zone := range vpc.zones {
 		if zone == srcZone {
