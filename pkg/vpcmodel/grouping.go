@@ -619,23 +619,17 @@ func connDiffEncode(src, dst VPCResourceIntf, connDiff *connectionDiff) string {
 func (details *srcDstDetails) explanationEncode(c *VPCConfig) string {
 	encodeComponents := []string{}
 	encodeComponents = append(encodeComponents, details.conn.stringPerResponsive())
-	if details.externalRouter != nil {
-		encodeComponents = append(encodeComponents, details.externalRouter.UID())
-		rulesDetails, _ := details.externalRouter.StringOfRouterRules(details.crossVpcRespondRules,
-			true)
-		encodeComponents = append(encodeComponents, rulesDetails)
-	}
-	if details.crossVpcRouter != nil {
-		encodeComponents = append(encodeComponents, details.crossVpcRouter.UID())
-		if respondRulesRelevant(details.conn, details.filtersRelevant, details.crossVpcRouter) {
-			//rulesDetails, _ := details.externalRouter.StringOfRouterRules(details.crossVpcRespondRules,
-			//	true)
-		}
-	}
+	appendEncodeRouterRules(&encodeComponents, details.crossVpcRouter, details.crossVpcRules)
 	appendEncodeFilterRules(&encodeComponents, c, details.filtersRelevant,
 		&details.actualMergedRules.egressRules, "egress", false)
 	appendEncodeFilterRules(&encodeComponents, c, details.filtersRelevant,
 		&details.actualMergedRules.ingressRules, "ingress", true)
+	if details.crossVpcRouter != nil {
+		encodeComponents = append(encodeComponents, details.crossVpcRouter.UID())
+		if respondRulesRelevant(details.conn, details.filtersRelevant, details.crossVpcRouter) {
+			appendEncodeRouterRules(&encodeComponents, details.crossVpcRouter, details.crossVpcRespondRules)
+		}
+	}
 	return strings.Join(encodeComponents, ";")
 }
 
@@ -648,6 +642,11 @@ func appendEncodeFilterRules(encodeComponents *[]string, c *VPCConfig, filtersRe
 		rules.rulesDetailsStr(c, filtersRelevant, isIngress))
 }
 
-func appendEncodeRouterRules(encodeComponents *[]string, router *RoutingResource, rulesInLayers []RulesInTable) {
-
+func appendEncodeRouterRules(encodeComponents *[]string, router RoutingResource, rulesInLayers []RulesInTable) {
+	if router == nil {
+		return
+	}
+	routerRulesString, _ := router.StringOfRouterRules(rulesInLayers,
+		true)
+	*encodeComponents = append(*encodeComponents, routerRulesString)
 }
