@@ -686,16 +686,14 @@ func newVPC(name, uid, region string, zonesToAP map[string][]string, regionToStr
 	}
 	for zoneName, zoneCidrsList := range zonesToAP {
 		vpcNodeSet.addressPrefixes = append(vpcNodeSet.addressPrefixes, zoneCidrsList...)
-		if _, ok := vpcNodeSet.zones[zoneName]; !ok {
-			zoneIPBlock, err := ipblock.FromCidrList(zoneCidrsList)
-			if err != nil {
-				return nil, err
-			}
-			vpcNodeSet.zones[zoneName] = &Zone{name: zoneName,
-				vpc:     vpcNodeSet,
-				cidrs:   zoneCidrsList,
-				ipblock: zoneIPBlock}
+		zoneIPBlock, err := ipblock.FromCidrList(zoneCidrsList)
+		if err != nil {
+			return nil, err
 		}
+		vpcNodeSet.zones[zoneName] = &Zone{name: zoneName,
+			vpc:     vpcNodeSet,
+			cidrs:   zoneCidrsList,
+			ipblock: zoneIPBlock}
 	}
 
 	vpcNodeSet.addressPrefixesIPBlock, err = ipblock.FromCidrList(vpcNodeSet.addressPrefixes)

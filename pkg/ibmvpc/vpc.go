@@ -882,10 +882,10 @@ func (tgw *TransitGateway) RouterDefined(src, dst vpcmodel.Node) bool {
 	if !isPairRelevantToTGW(src, dst) {
 		return false
 	}
-	// destination node has a transit gateway connection iff a prefix filter (possibly default) is defined for it
-	// dstNodeHasTgw := len(tgw.RulesInConnectivity(src, dst)) > 0
-	// alternative check: both VPCs of src and dst are connected to this TGW
-	return vpcmodel.HasNode(tgw.sourceNodes, src) && vpcmodel.HasNode(tgw.sourceNodes, dst) // dstNodeHasTgw
+
+	// if both src and dst nodes are within tgw.sourceNodes, it means that they are both within VPCs attached to this TGW
+	// note that tgw.destNodes does not necessarily contain all these nodes, due to prefix filters
+	return vpcmodel.HasNode(tgw.sourceNodes, src) && vpcmodel.HasNode(tgw.sourceNodes, dst)
 }
 
 // gets a string description of prefix indexed "index" from TransitGateway tgw

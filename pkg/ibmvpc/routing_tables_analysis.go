@@ -344,8 +344,6 @@ type routingResult struct {
 // routingTable implements VPCResourceIntf (TODO: should implement RoutingResource interface or another separate interface?)
 type routingTable struct {
 	vpcmodel.VPCResource
-	//nolint:unused // to be used later
-	name string // should implement VPCResourceIntf instead
 
 	// routesList is the list of routes that were added for this routing table
 	// it is used to compute the fields below
@@ -367,9 +365,6 @@ func (rt *routingTable) ShowOnSubnetMode() bool {
 func computeRoutesPerZone(routes []*route) map[string][]*route {
 	res := map[string][]*route{}
 	for _, r := range routes {
-		if _, ok := res[r.zone]; !ok {
-			res[r.zone] = []*route{}
-		}
 		res[r.zone] = append(res[r.zone], r)
 	}
 	return res
@@ -452,7 +447,7 @@ func computeDisjointRouting(routesList []*route) (*routingResult, error) {
 	return res, nil
 }
 
-// If subnets are attached to the route's routing table, egress traffic from those
+// semantics of `zone` field in route: If subnets are attached to the route's routing table, egress traffic from those
 // subnets in this zone will be subject to this route
 func (rt *routingTable) getEgressPath(src vpcmodel.Node, dest *ipblock.IPBlock, zone string) (vpcmodel.Path, error) {
 	path, shouldDelegate, _ := rt.getPath(dest, zone)
