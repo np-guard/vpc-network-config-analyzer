@@ -480,6 +480,16 @@ var tests = []*vpcGeneralTest{
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
 		format:      vpcmodel.Text,
 	},
+	{ // example with diff with partial TCP respond
+		inputConfig: "sg_testing1_copy",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
+		format:      vpcmodel.Text,
+	},
+	{ // example with diff in which the diff is in the amount of TCP respond enabled
+		inputConfig: "sg_testing1_new_respond_partly",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
+		format:      vpcmodel.Text,
+	},
 	{
 		// diff between VPCs of different UIDs
 		inputConfig: "sg_testing_3",
@@ -677,6 +687,19 @@ var tests = []*vpcGeneralTest{
 		inputConfig: "nacl_split_subnet",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		format:      vpcmodel.Text,
+	},
+	{
+		inputConfig: "hub_n_spoke_1",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.Text,
+	},
+	{
+		inputConfig:  "hub_n_spoke_1",
+		useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		noLbAbstract: true,
+		grouping:     true,
+		format:       vpcmodel.HTML,
 	},
 }
 
