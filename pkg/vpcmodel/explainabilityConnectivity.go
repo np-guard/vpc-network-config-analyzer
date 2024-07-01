@@ -29,7 +29,7 @@ type rulesConnection struct {
 	egressRules  rulesInLayers
 }
 
-// the load balancer is a rule applied to all private IPs of a given load balancer:
+// LoadBalancerRule is a rule applied to all private IPs of a given load balancer:
 // these private IPs can only connect to pool members of the load balancer
 type LoadBalancerRule struct {
 	// the relevant load balancer:
