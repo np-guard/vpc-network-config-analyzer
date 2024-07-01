@@ -70,8 +70,8 @@ func filterByVpcResourceGroupAndRegions(rc *datamodel.ResourcesContainerModel, v
 // VPCConfigsFromResources returns a map from VPC UID (string) to its corresponding VPCConfig object,
 // containing the parsed resources in the relevant model objects
 //
-//nolint:funlen,gocyclo // serial list of commands, no need to split it
-func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resourceGroup string, regions []string, debug bool) (
+//nolint:funlen // serial list of commands, no need to split it
+func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resourceGroup string, regions []string) (
 	*vpcmodel.MultipleVPCConfigs, error) {
 	res := vpcmodel.NewMultipleVPCConfigs("IBM Cloud") // map from VPC UID to its config
 	filteredOut := map[string]bool{}                   // store networkInterface UIDs filtered out by skipByVPC
@@ -155,9 +155,7 @@ func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resou
 		return nil, err
 	}
 
-	if debug {
-		printVPCConfigs(res)
-	}
+	printVPCConfigs(res)
 
 	return res, nil
 }
@@ -1776,45 +1774,48 @@ func createPrivateIP(name, id, address, publicAddress string,
 /********** Functions used in Debug mode ***************/
 
 func printVPCConfigs(c *vpcmodel.MultipleVPCConfigs) {
+	if !logging.DebugVerbosity() {
+		return
+	}
 	fmt.Println("VPCs to analyze:")
 	for vpcUID, config := range c.Configs() {
-		fmt.Printf("VPC UID: %s, Name: %s\n", vpcUID, config.VPC.Name())
+		logging.Debugf("VPC UID: %s, Name: %s\n", vpcUID, config.VPC.Name())
 	}
 	printLineSection()
 	for vpcUID, config := range c.Configs() {
-		fmt.Printf("config for vpc %s (vpc name: %s)\n", vpcUID, config.VPC.Name())
+		logging.Debugf("config for vpc %s (vpc name: %s)\n", vpcUID, config.VPC.Name())
 		printConfig(config)
 	}
 	printLineSection()
 }
 
 func printLineSection() {
-	fmt.Println("-----------------------------------------")
+	logging.Debugf("-----------------------------------------")
 }
 
 //nolint:gocyclo // one function to print all parsed resources for debug mode
 func printConfig(c *vpcmodel.VPCConfig) {
 	separator := " "
-	fmt.Println("Nodes:")
+	logging.Debugf("Nodes:")
 	for _, n := range c.Nodes {
 		if n.IsExternal() {
 			continue
 		}
-		fmt.Println(strings.Join([]string{n.Kind(), n.CidrOrAddress(), n.Name(), n.UID()}, separator))
+		logging.Debugf(strings.Join([]string{n.Kind(), n.CidrOrAddress(), n.Name(), n.UID()}, separator))
 	}
-	fmt.Println("Subnets:")
+	logging.Debugf("Subnets:")
 	for _, n := range c.Subnets {
-		fmt.Println(strings.Join([]string{n.Kind(), n.CIDR(), n.Name(), n.UID()}, separator))
+		logging.Debugf(strings.Join([]string{n.Kind(), n.CIDR(), n.Name(), n.UID()}, separator))
 	}
-	fmt.Println("LoadBalancers:")
+	logging.Debugf("LoadBalancers:")
 	for _, lb := range c.LoadBalancers {
-		fmt.Println(strings.Join([]string{lb.Kind(), lb.Name(), lb.AddressRange().ToIPRanges(), lb.UID()}, separator))
+		logging.Debugf(strings.Join([]string{lb.Kind(), lb.Name(), lb.AddressRange().ToIPRanges(), lb.UID()}, separator))
 	}
-	fmt.Println("NodeSets:")
+	logging.Debugf("NodeSets:")
 	for _, n := range c.NodeSets {
-		fmt.Println(strings.Join([]string{n.Kind(), n.AddressRange().ToIPRanges(), n.Name(), n.UID()}, separator))
+		logging.Debugf(strings.Join([]string{n.Kind(), n.AddressRange().ToIPRanges(), n.Name(), n.UID()}, separator))
 	}
-	fmt.Println("FilterResources:")
+	logging.Debugf("FilterResources:")
 	for _, f := range c.FilterResources {
 		switch filters := f.(type) {
 		case *NaclLayer:
@@ -1822,7 +1823,7 @@ func printConfig(c *vpcmodel.VPCConfig) {
 				if len(nacl.subnets) == 0 {
 					continue
 				}
-				fmt.Println(strings.Join([]string{nacl.ResourceType, nacl.ResourceName, nacl.UID()}, separator))
+				logging.Debugf(strings.Join([]string{nacl.ResourceType, nacl.ResourceName, nacl.UID()}, separator))
 				printNACLRules(nacl)
 			}
 		case *SecurityGroupLayer:
@@ -1830,49 +1831,49 @@ func printConfig(c *vpcmodel.VPCConfig) {
 				if len(sg.members) == 0 {
 					continue
 				}
-				fmt.Println(strings.Join([]string{sg.ResourceType, sg.ResourceName, sg.UID()}, separator))
+				logging.Debugf(strings.Join([]string{sg.ResourceType, sg.ResourceName, sg.UID()}, separator))
 				printSGRules(sg)
 			}
 		}
 	}
-	fmt.Println("RoutingResources:")
+	logging.Debugf("RoutingResources:")
 	for _, r := range c.RoutingResources {
-		fmt.Println(strings.Join([]string{r.Kind(), r.Name(), r.UID()}, separator))
+		logging.Debugf(strings.Join([]string{r.Kind(), r.Name(), r.UID()}, separator))
 		if tgw, ok := r.(*TransitGateway); ok {
 			printTGWAvailableRoutes(tgw)
 		}
 	}
-	fmt.Println("RoutingTables:")
+	logging.Debugf("RoutingTables:")
 	for _, r := range c.RoutingTables {
-		fmt.Println(strings.Join([]string{r.Kind(), r.Name(), r.UID(), "vpc:", r.VPC().UID()}, separator))
+		logging.Debugf(strings.Join([]string{r.Kind(), r.Name(), r.UID(), "vpc:", r.VPC().UID()}, separator))
 		if rt, ok := r.(*ingressRoutingTable); ok {
-			fmt.Println("ingress routing table")
-			fmt.Println(rt.string())
+			logging.Debugf("ingress routing table")
+			logging.Debugf(rt.string())
 		}
 		if rt, ok := r.(*egressRoutingTable); ok {
-			fmt.Println("egress routing table")
-			fmt.Println(rt.string())
-			fmt.Println("subnets:")
+			logging.Debugf("egress routing table")
+			logging.Debugf(rt.string())
+			logging.Debugf("subnets:")
 			subnetsList := make([]string, len(rt.subnets))
 			for i := range rt.subnets {
 				subnetsList[i] = rt.subnets[i].Name()
 			}
-			fmt.Println(strings.Join(subnetsList, ","))
+			logging.Debugf(strings.Join(subnetsList, ","))
 		}
 	}
 }
 
 func printTGWAvailableRoutes(tgw *TransitGateway) {
 	for vpcUID, rList := range tgw.availableRoutes {
-		fmt.Printf("routes for vpc %s:\n", vpcUID)
+		logging.Debugf("routes for vpc %s:\n", vpcUID)
 		for _, r := range rList {
-			fmt.Printf("%s\n", r.ToCidrList())
+			logging.Debugf("%s\n", r.ToCidrList())
 		}
 	}
 }
 
 func printSGRules(sg *SecurityGroup) {
-	fmt.Printf("num rules: %d\n", len(sg.analyzer.sgResource.Rules))
+	logging.Debugf("num rules: %d\n", len(sg.analyzer.sgResource.Rules))
 	numRules := len(sg.analyzer.sgResource.Rules)
 	for i := 0; i < numRules; i++ {
 		strRule, _, _, err := sg.analyzer.getSGRule(i)
@@ -1890,8 +1891,8 @@ func printNACLRules(nacl *NACL) {
 
 func printRule(ruleStr string, index int, err error) {
 	if err == nil {
-		fmt.Println(ruleStr)
+		logging.Debugf(ruleStr)
 	} else {
-		fmt.Printf("err for rule %d: %s\n", index, err.Error())
+		logging.Debugf("err for rule %d: %s\n", index, err.Error())
 	}
 }
