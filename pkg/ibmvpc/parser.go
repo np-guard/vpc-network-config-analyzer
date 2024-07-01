@@ -1686,6 +1686,9 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 /********** Functions used in Debug mode ***************/
 
 func printVPCConfigs(c *vpcmodel.MultipleVPCConfigs) {
+	if !logging.DebugVerbosity() {
+		return
+	}
 	fmt.Println("VPCs to analyze:")
 	for vpcUID, config := range c.Configs() {
 		logging.Debugf("VPC UID: %s, Name: %s\n", vpcUID, config.VPC.Name())
