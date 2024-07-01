@@ -1429,9 +1429,12 @@ func getVPCObjectByUID(res *vpcmodel.MultipleVPCConfigs, uid string) (*VPC, erro
 	return vpc, nil
 }
 
-func getACLRulesCidrs(rc *datamodel.ResourcesContainerModel) (map[string][]*string, error) {
+func getACLRulesCidrs(rc *datamodel.ResourcesContainerModel, skipByVPC map[string]bool) (map[string][]*string, error) {
 	cidrs := map[string][]*string{}
 	for _, aclObj := range rc.NetworkACLList {
+		if skipByVPC[*aclObj.VPC.CRN] {
+			continue
+		}
 		for i, rule := range aclObj.Rules {
 			var src, dst *string
 			switch ruleObj := rule.(type) {
@@ -1456,9 +1459,12 @@ func getACLRulesCidrs(rc *datamodel.ResourcesContainerModel) (map[string][]*stri
 	return cidrs, nil
 }
 
-func getGSRulesCidrs(rc *datamodel.ResourcesContainerModel) (map[string][]*string, error) {
+func getGSRulesCidrs(rc *datamodel.ResourcesContainerModel, skipByVPC map[string]bool) (map[string][]*string, error) {
 	cidrs := map[string][]*string{}
 	for _, sgObj := range rc.SecurityGroupList {
+		if skipByVPC[*sgObj.VPC.CRN] {
+			continue
+		}
 		for i, rule := range sgObj.Rules {
 			var localRule, remoteRule interface{}
 			switch ruleObj := rule.(type) {
@@ -1500,16 +1506,16 @@ func getGSRulesCidrs(rc *datamodel.ResourcesContainerModel) (map[string][]*strin
 
 // getSubnetsBlocks() gets the subnets blocks to be used for creating private IPs
 // it collects the rules cidrs and use them to get the subnets block.
-func getSubnetsBlocks(rc *datamodel.ResourcesContainerModel) (subnetsBlocks vpcmodel.SubnetsIPBlocks, err error) {
-	naclCidrs, err := getACLRulesCidrs(rc)
+func getSubnetsBlocks(rc *datamodel.ResourcesContainerModel, skipByVPC map[string]bool) (subnetsBlocks vpcmodel.SubnetsIPBlocks, err error) {
+	naclCidrs, err := getACLRulesCidrs(rc, skipByVPC)
 	if err != nil {
 		return nil, err
 	}
-	sgCidrs, err := getGSRulesCidrs(rc)
+	sgCidrs, err := getGSRulesCidrs(rc, skipByVPC)
 	if err != nil {
 		return nil, err
 	}
-	return vpcmodel.GetSubnetsIPBlocks(rc, []map[string][]*string{naclCidrs, sgCidrs})
+	return vpcmodel.GetSubnetsIPBlocks(rc, []map[string][]*string{naclCidrs, sgCidrs}, skipByVPC)
 }
 
 // ////////////////////////////////////////////////////////////////
@@ -1521,7 +1527,7 @@ func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 	if len(rc.LBList) == 0 {
 		return nil
 	}
-	subnetsIPBlocks, err := getSubnetsBlocks(rc)
+	subnetsIPBlocks, err := getSubnetsBlocks(rc, skipByVPC)
 	if err != nil {
 		return err
 	}

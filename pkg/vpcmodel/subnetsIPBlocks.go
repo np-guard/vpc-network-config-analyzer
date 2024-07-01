@@ -65,11 +65,11 @@ type SubnetsIPBlocks map[string]*oneSubnetBlocks
 // 2. calculate the filters blocks
 // 3. calculate the splitByFiltersBlocks
 // 4. calculate the freeAddressesBlocks
-func GetSubnetsIPBlocks(rc *datamodel.ResourcesContainerModel,
-	filtersCidrs []map[string][]*string) (subnetsBlocks SubnetsIPBlocks, err error) {
+func GetSubnetsIPBlocks(rc *datamodel.ResourcesContainerModel, filtersCidrs []map[string][]*string,
+	skipByVPC map[string]bool) (subnetsBlocks SubnetsIPBlocks, err error) {
 	subnetsBlocks = SubnetsIPBlocks{}
 	// gets the original blocks of the subnets:
-	if err := subnetsBlocks.getSubnetsOriginalBlocks(rc); err != nil {
+	if err := subnetsBlocks.getSubnetsOriginalBlocks(rc, skipByVPC); err != nil {
 		return nil, err
 	}
 	// calc the filters blocks:
@@ -78,16 +78,20 @@ func GetSubnetsIPBlocks(rc *datamodel.ResourcesContainerModel,
 		return nil, err
 	}
 	// calc the splitByFiltersBlocks:
-	subnetsBlocks.splitSubnetsOriginalBlocks(rc, filtersBlocks)
+	subnetsBlocks.splitSubnetsOriginalBlocks(rc, filtersBlocks, skipByVPC)
 	// calc the freeAddressesBlocks:
-	if err := subnetsBlocks.getSubnetsFreeBlocks(rc); err != nil {
+	if err := subnetsBlocks.getSubnetsFreeBlocks(rc, skipByVPC); err != nil {
 		return nil, err
 	}
 	return subnetsBlocks, nil
 }
 
-func (subnetsBlocks SubnetsIPBlocks) getSubnetsOriginalBlocks(rc *datamodel.ResourcesContainerModel) (err error) {
+func (subnetsBlocks SubnetsIPBlocks) getSubnetsOriginalBlocks(rc *datamodel.ResourcesContainerModel,
+	skipByVPC map[string]bool) (err error) {
 	for _, subnetObj := range rc.SubnetList {
+		if skipByVPC[*subnetObj.VPC.ID] {
+			continue
+		}
 		subnetsBlocks[*subnetObj.CRN] = &oneSubnetBlocks{}
 		subnetsBlocks[*subnetObj.CRN].subnetOriginalBlock, err = ipblock.FromCidr(*subnetObj.Ipv4CIDRBlock)
 		if err != nil {
@@ -99,8 +103,12 @@ func (subnetsBlocks SubnetsIPBlocks) getSubnetsOriginalBlocks(rc *datamodel.Reso
 
 // splitSubnetsOriginalBlocks() splits the subnet's cidr(s) to (maximal) disjoint blocks -
 // such that each block is atomic w.r.t. the filters rules
-func (subnetsBlocks SubnetsIPBlocks) splitSubnetsOriginalBlocks(rc *datamodel.ResourcesContainerModel, filtersBlocks filtersBlocks) {
+func (subnetsBlocks SubnetsIPBlocks) splitSubnetsOriginalBlocks(rc *datamodel.ResourcesContainerModel,
+	filtersBlocks filtersBlocks, skipByVPC map[string]bool) {
 	for _, subnetObj := range rc.SubnetList {
+		if skipByVPC[*subnetObj.VPC.ID] {
+			continue
+		}
 		subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks =
 			splitSubnetOriginalBlock(subnetsBlocks[*subnetObj.CRN].subnetOriginalBlock, filtersBlocks[*subnetObj.VPC.CRN])
 	}
@@ -124,8 +132,11 @@ func splitSubnetOriginalBlock(subnetOriginalBlock *ipblock.IPBlock, filtersBlock
 //  1. make a copy of the splitByFiltersBlocks
 //  2. remove from this copy the addresses that were already allocated
 //  3. set fullyReservedBlocks - check for each block if it has free addresses
-func (subnetsBlocks SubnetsIPBlocks) getSubnetsFreeBlocks(rc *datamodel.ResourcesContainerModel) error {
+func (subnetsBlocks SubnetsIPBlocks) getSubnetsFreeBlocks(rc *datamodel.ResourcesContainerModel, skipByVPC map[string]bool) error {
 	for _, subnetObj := range rc.SubnetList {
+		if skipByVPC[*subnetObj.VPC.ID] {
+			continue
+		}
 		subnetsBlocks[*subnetObj.CRN].freeAddressesBlocks = make([]*ipblock.IPBlock, len(subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks))
 		subnetsBlocks[*subnetObj.CRN].fullyReservedBlocks = make([]bool, len(subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks))
 		for blockIndex, block := range subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks {
