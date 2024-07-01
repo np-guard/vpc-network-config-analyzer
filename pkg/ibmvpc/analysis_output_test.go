@@ -708,6 +708,7 @@ var tests = []*vpcGeneralTest{
 	//     vsi1-sub3[10.240.128.5] => alb[Fake LB private IP][10.240.1.4] : All Connections
 	//     vsi1-sub3[10.240.128.5] => alb[Fake LB private IP][10.240.129.128] : All Connections
 	//     vsi1-sub3[10.240.128.5] => alb[Fake LB private IP][10.240.65.128] : All Connections
+	//     vsi1-sub3[10.240.128.5] => alb[LB private IP][10.240.65.4] : All Connections
 	// is over approximated to:
 	//	   vsi1-sub3[10.240.128.5] => alb[LoadBalancer] : All Connections **
 
