@@ -34,21 +34,21 @@ type rulesConnection struct {
 type LoadBalancerRule struct {
 	// the relevant load balancer:
 	lb LoadBalancer
-	//	Denny- true if src is pip, and dst is not pool member:
-	denny bool
+	//	Deny- true if src is pip, and dst is not pool member:
+	deny bool
 }
 
-func NewLoadBalancerRule(lb LoadBalancer, denny bool) *LoadBalancerRule {
-	return &LoadBalancerRule{lb, denny}
+func NewLoadBalancerRule(lb LoadBalancer, deny bool) *LoadBalancerRule {
+	return &LoadBalancerRule{lb, deny}
 }
-func (lbr *LoadBalancerRule) Denny() bool { return lbr.denny }
+func (lbr *LoadBalancerRule) Deny() bool { return lbr.deny }
 func (lbr *LoadBalancerRule) StringDetailsOfRule() string {
 	return lbr.StringHeaderOfRule() + " to destinations which are its pool members\n"
 }
 
 func (lbr *LoadBalancerRule) StringHeaderOfRule() string {
 	action := "allow"
-	if lbr.Denny() {
+	if lbr.Deny() {
 		action = "blocks"
 	}
 	return fmt.Sprintf("load balancer %s %s connection", lbr.lb.Name(), action)
