@@ -178,6 +178,7 @@ func NewEmptyVPCConfig() *vpcmodel.VPCConfig {
 func newVPC(uid string) (vpcNodeSet *VPC) {
 	vpcNodeSet = &VPC{
 		VPCResource: vpcmodel.VPCResource{
+			ResourceName: uid,
 			ResourceUID:  uid,
 			ResourceType: ResourceTypeVPC,
 		},
@@ -244,6 +245,7 @@ func newNetworkInterface(uid, zone, address, vsi string, vpc vpcmodel.VPCResourc
 	securityGroups []types.GroupIdentifier) (*NetworkInterface, error) {
 	intfNode := &NetworkInterface{
 		VPCResource: vpcmodel.VPCResource{
+			ResourceName: uid,
 			ResourceUID:  uid,
 			ResourceType: ResourceTypeNetworkInterface,
 			Zone:         zone,
@@ -280,6 +282,7 @@ func getInstancesConfig(
 		}
 		vsiNode := &Vsi{
 			VPCResource: vpcmodel.VPCResource{
+				ResourceName: *instance.InstanceId,
 				ResourceUID:  *instance.InstanceId,
 				Zone:         *instance.Placement.AvailabilityZone,
 				ResourceType: ResourceTypeVSI,
@@ -319,6 +322,7 @@ func getInstancesConfig(
 func newSubnet(uid, zone, cidr string, vpc vpcmodel.VPCResourceIntf) (*Subnet, error) {
 	subnetNode := &Subnet{
 		VPCResource: vpcmodel.VPCResource{
+			ResourceName: uid,
 			ResourceUID:  uid,
 			Zone:         zone,
 			ResourceType: ResourceTypeSubnet,
@@ -421,6 +425,7 @@ func getSGconfig(rc *aws.ResourcesContainer,
 
 		sgResource := &SecurityGroup{
 			VPCResource: vpcmodel.VPCResource{
+				ResourceName: *sg.GroupId,
 				ResourceUID:  *sg.GroupId,
 				ResourceType: ResourceTypeSG,
 				VPCRef:       vpc,
