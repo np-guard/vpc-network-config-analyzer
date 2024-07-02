@@ -620,7 +620,7 @@ func connDiffEncode(src, dst VPCResourceIntf, connDiff *connectionDiff) string {
 // encodes rulesConnection for grouping
 func (details *srcDstDetails) explanationEncode(c *VPCConfig) string {
 	encodeComponents := []string{}
-	encodeComponents = append(encodeComponents, details.conn.stringPerResponsive())
+	encodeComponents = append(encodeComponents, details.conn.string())
 	appendEncodeFilterRules(&encodeComponents, c, details.filtersRelevant,
 		details.actualMergedRules)
 	if details.crossVpcRouter != nil {
