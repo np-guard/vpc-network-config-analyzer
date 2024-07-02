@@ -7,6 +7,8 @@ SPDX-License-Identifier: Apache-2.0
 package vpcmodel
 
 import (
+	"fmt"
+
 	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/ipblock"
 )
@@ -212,6 +214,30 @@ type LoadBalancer interface {
 	GetLoadBalancerRule(src, dst Node) *LoadBalancerRule
 	SetAbstractionInfo(*AbstractionInfo)
 	AbstractionInfo() *AbstractionInfo
+}
+
+// LoadBalancerRule is a rule applied to all private IPs of a given load balancer:
+// these private IPs can only connect to pool members of the load balancer.
+// todo - as soon as we know more about load balancer of another vendors,
+// we should implement LoadBalancerRule as an interface, and implement it separately for each vendor
+type LoadBalancerRule struct {
+	// the relevant load balancer:
+	lb LoadBalancer
+	//	Deny- true if src is pip, and dst is not pool member:
+	deny bool
+}
+
+func NewLoadBalancerRule(lb LoadBalancer, deny bool) *LoadBalancerRule {
+	return &LoadBalancerRule{lb, deny}
+}
+func (lbr *LoadBalancerRule) Deny() bool { return lbr.deny }
+
+func (lbr *LoadBalancerRule) String() string {
+	action := "allow"
+	if lbr.Deny() {
+		action = "blocks"
+	}
+	return fmt.Sprintf("load balancer %s %s connection to destinations which are its pool members\n", lbr.lb.Name(), action)
 }
 
 // RulesType Type of rules in a given filter (e.g. specific NACL table) relevant to
