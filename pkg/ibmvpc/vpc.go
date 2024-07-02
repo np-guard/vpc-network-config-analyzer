@@ -344,6 +344,7 @@ func (lbr *LoadBalancerRule) String() string {
 	}
 	return fmt.Sprintf("load balancer %s %s connection to destinations which are its pool members\n", lbr.lb.Name(), action)
 }
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // FilterTraffic elements
 

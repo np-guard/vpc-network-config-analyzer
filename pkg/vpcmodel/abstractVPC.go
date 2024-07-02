@@ -213,6 +213,7 @@ type LoadBalancer interface {
 	SetAbstractionInfo(*AbstractionInfo)
 	AbstractionInfo() *AbstractionInfo
 }
+
 // LoadBalancerRule represent the influence of the load balancer on a connectivity
 type LoadBalancerRule interface {
 	Deny() bool
