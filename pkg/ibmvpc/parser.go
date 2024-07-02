@@ -1441,96 +1441,6 @@ func getVPCObjectByUID(res *vpcmodel.MultipleVPCConfigs, uid string) (*VPC, erro
 	return vpc, nil
 }
 
-func getACLRulesCidrs(rc *datamodel.ResourcesContainerModel, skipByVPC map[string]bool) (map[string][]*string, error) {
-	cidrs := map[string][]*string{}
-	for _, aclObj := range rc.NetworkACLList {
-		if skipByVPC[*aclObj.VPC.CRN] {
-			continue
-		}
-		for i, rule := range aclObj.Rules {
-			var src, dst *string
-			switch ruleObj := rule.(type) {
-			case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolAll:
-				src = ruleObj.Source
-				dst = ruleObj.Destination
-			case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolTcpudp:
-				src = ruleObj.Source
-				dst = ruleObj.Destination
-			case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolIcmp:
-				src = ruleObj.Source
-				dst = ruleObj.Destination
-			default:
-				return nil, fmt.Errorf("ACL %s has unsupported type for the %dth rule", *aclObj.Name, i)
-			}
-			if _, ok := cidrs[*aclObj.VPC.CRN]; !ok {
-				cidrs[*aclObj.VPC.CRN] = []*string{}
-			}
-			cidrs[*aclObj.VPC.CRN] = append(cidrs[*aclObj.VPC.CRN], []*string{src, dst}...)
-		}
-	}
-	return cidrs, nil
-}
-
-func getGSRulesCidrs(rc *datamodel.ResourcesContainerModel, skipByVPC map[string]bool) (map[string][]*string, error) {
-	cidrs := map[string][]*string{}
-	for _, sgObj := range rc.SecurityGroupList {
-		if skipByVPC[*sgObj.VPC.CRN] {
-			continue
-		}
-		for i, rule := range sgObj.Rules {
-			var localRule, remoteRule interface{}
-			switch ruleObj := rule.(type) {
-			case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolAll:
-				remoteRule = ruleObj.Remote
-				localRule = ruleObj.Local
-			case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudp:
-				remoteRule = ruleObj.Remote
-				localRule = ruleObj.Local
-			case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolIcmp:
-				remoteRule = ruleObj.Remote
-				localRule = ruleObj.Local
-
-			default:
-				return nil, fmt.Errorf("SG %s has unsupported type for the %dth rule", *sgObj.Name, i)
-			}
-			var localCidrsOrAddresses, remoteCidrsOrAddresses []*string
-			if localRule != nil {
-				local := localRule.(*vpc1.SecurityGroupRuleLocal)
-				localCidrsOrAddresses = []*string{local.Address, local.CIDRBlock}
-			}
-			if remoteRule != nil {
-				remote := remoteRule.(*vpc1.SecurityGroupRuleRemote)
-				// we also might have remote.name, in such case we need to refer to addresses of the sg members.
-				// (in this stage we do not have the sg members yet).
-				// however, the members are resources, and their addresses are already reserved IP.
-				// do these blocks are already fullyReservedBlocks we can ignore them:
-				remoteCidrsOrAddresses = []*string{remote.Address, remote.CIDRBlock}
-			}
-			if _, ok := cidrs[*sgObj.VPC.CRN]; !ok {
-				cidrs[*sgObj.VPC.CRN] = []*string{}
-			}
-			cidrs[*sgObj.VPC.CRN] = append(cidrs[*sgObj.VPC.CRN], localCidrsOrAddresses...)
-			cidrs[*sgObj.VPC.CRN] = append(cidrs[*sgObj.VPC.CRN], remoteCidrsOrAddresses...)
-		}
-	}
-	return cidrs, nil
-}
-
-// getSubnetsBlocks() gets the subnets blocks to be used for creating private IPs
-// it collects the rules cidrs and use them to get the subnets block.
-func getSubnetsBlocks(rc *datamodel.ResourcesContainerModel,
-	skipByVPC map[string]bool) (subnetsBlocks vpcmodel.SubnetsIPBlocks, err error) {
-	naclCidrs, err := getACLRulesCidrs(rc, skipByVPC)
-	if err != nil {
-		return nil, err
-	}
-	sgCidrs, err := getGSRulesCidrs(rc, skipByVPC)
-	if err != nil {
-		return nil, err
-	}
-	return vpcmodel.GetSubnetsIPBlocks(rc, []map[string][]*string{naclCidrs, sgCidrs}, skipByVPC)
-}
-
 // ////////////////////////////////////////////////////////////////
 // Load Balancer Parsing:
 func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
@@ -1657,7 +1567,7 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 	loadBalancerObj *datamodel.LoadBalancer,
 	loadBalancer *LoadBalancer,
 	vpc *VPC,
-	subnetsBlocks vpcmodel.SubnetsIPBlocks) ([]vpcmodel.Node, error) {
+	subnetsBlocks SubnetsIPBlocks) ([]vpcmodel.Node, error) {
 	// first we collect  the subnets that has private IPs:
 	subnetsPIPsAddresses := map[vpcmodel.Subnet]*ipblock.IPBlock{} // map from the subnet to the address block
 	subnetsPIPsIndexes := map[vpcmodel.Subnet]int{}                // map from a subnet to the pip index
