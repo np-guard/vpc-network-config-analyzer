@@ -2,7 +2,7 @@ Explaining connectivity from vsi3a-ky to vsi1-ky within test-vpc1-ky using "prot
 =============================================================================================================================
 
 Connections are allowed from vsi3a-ky[10.240.30.5] to vsi1-ky[10.240.10.4] using "protocol: TCP src-ports: 90-180 dst-ports: 20-60"
-	TCP response is enabled for: protocol: TCP src-ports: 100-180 dst-ports: 20-50
+	However, TCP response is blocked for: src-ports: 100-180 dst-ports: 51-60; src-ports: 90-99 dst-ports: 20-60
 
 Path:
 	vsi3a-ky[10.240.30.5] -> security group sg3-ky -> subnet3-ky -> network ACL acl3-ky -> 
