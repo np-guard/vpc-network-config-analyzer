@@ -16,6 +16,7 @@ import (
 	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/models/pkg/netp"
 
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -283,7 +284,7 @@ func createConfigFromTestConfig(tc *testNodesConfig, ncList []*naclConfig) *vpcm
 			ingressRules:    nc.ingressRules,
 			egressRules:     nc.egressRules,
 		}
-		subnets := map[string]*Subnet{}
+		subnets := map[string]*commonvpc.Subnet{}
 		for _, s := range nc.subnets {
 			subnets[s] = nil // not required for the test
 		}
@@ -341,26 +342,26 @@ func addInterfaceNode(config *vpcmodel.VPCConfig, name, address, vsiName, subnet
 	// add references between subnet to interface (both directions)
 	for _, subnet := range config.Subnets {
 		if subnet.Name() == subnetName {
-			subnetActual := subnet.(*Subnet)
+			subnetActual := subnet.(*commonvpc.Subnet)
 			intfNode.SubnetResource = subnetActual
-			subnetActual.nodes = append(subnetActual.nodes, intfNode)
+			subnetActual.VPCnodes = append(subnetActual.VPCnodes, intfNode)
 		}
 	}
 
 	config.Nodes = append(config.Nodes, intfNode)
 }
 
-func addSubnet(config *vpcmodel.VPCConfig, name, cidr, zone string) *Subnet {
-	subnetNode := &Subnet{
+func addSubnet(config *vpcmodel.VPCConfig, name, cidr, zone string) *commonvpc.Subnet {
+	subnetNode := &commonvpc.Subnet{
 		VPCResource: vpcmodel.VPCResource{ResourceName: name, ResourceUID: name, Zone: zone, ResourceType: ResourceTypeSubnet},
-		cidr:        cidr,
-		ipblock:     newIPBlockFromCIDROrAddressWithoutValidation(cidr),
+		Cidr:        cidr,
+		IPblock:     newIPBlockFromCIDROrAddressWithoutValidation(cidr),
 	}
 	config.Subnets = append(config.Subnets, subnetNode)
 	return subnetNode
 }
 
-func addNACL(config *vpcmodel.VPCConfig, name string, subnets map[string]*Subnet, analyzer *NACLAnalyzer) {
+func addNACL(config *vpcmodel.VPCConfig, name string, subnets map[string]*commonvpc.Subnet, analyzer *NACLAnalyzer) {
 	var layer *NaclLayer
 	for _, fr := range config.FilterResources {
 		if fr.Kind() == "NaclLayer" {
@@ -408,7 +409,7 @@ func NewSimpleVPCConfig() *vpcmodel.VPCConfig {
 	s2 := addSubnet(config, "subnet-2", "10.240.20.0/24", "z1")
 	addInterfaceNode(config, "intf-1", "10.240.10.4", "vsi-1", "subnet-1")
 	addInterfaceNode(config, "intf-1", "10.240.20.4", "vsi-2", "subnet-2")
-	addNACL(config, "nacl-1", map[string]*Subnet{"10.240.10.0/24": s1, "10.240.20.0/24": s2}, newSimpleNACLAnalyzer())
+	addNACL(config, "nacl-1", map[string]*commonvpc.Subnet{"10.240.10.0/24": s1, "10.240.20.0/24": s2}, newSimpleNACLAnalyzer())
 	return config
 }
 
