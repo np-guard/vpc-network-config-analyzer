@@ -192,31 +192,37 @@ func (g *groupedConnLine) explainPerCaseStr(c *VPCConfig, src, dst EndpointElem,
 		return fmt.Sprintf("%v\tThe dst is external but there is no Floating IP or Public Gateway connecting to public internet\n",
 			noConnection)
 	case ingressBlocking || egressBlocking || loadBalancerBlocking:
-		blockedBy := []string{}
-		if loadBalancerBlocking {
-			blockedBy = append(blockedBy, "Load Balancer")
-		}
-		if ingressBlocking {
-			blockedBy = append(blockedBy, "ingress")
-		}
-		if egressBlocking {
-			blockedBy = append(blockedBy, "egress")
-		}
-		l := len(blockedBy)
-		var blockedByString string
-		switch l {
-		case 1:
-			blockedByString = fmt.Sprintf("by %s", blockedBy[0])
-		case 2:
-			blockedByString = fmt.Sprintf("both by %s and %s", blockedBy[0], blockedBy[1])
-		default:
-			blockedByString = fmt.Sprintf("by %s and %s", strings.Join(blockedBy[0:l-1], ", "), blockedBy[l-1])
-		}
-		return fmt.Sprintf("%vconnection is blocked %s"+tripleNLVars, noConnection, blockedByString,
+		return fmt.Sprintf("%vconnection is blocked %s"+tripleNLVars, noConnection,
+			blockedByString(ingressBlocking, egressBlocking, loadBalancerBlocking),
 			headerPlusPath, details)
 	default: // there is a connection
 		return existingConnectionStr(c, connQuery, src, dst, conn, path, details)
 	}
+}
+
+// blockedByString() return the block string according to the flags
+func blockedByString(ingressBlocking, egressBlocking, loadBalancerBlocking bool) string {
+	blockedBy := []string{}
+	if loadBalancerBlocking {
+		blockedBy = append(blockedBy, "Load Balancer")
+	}
+	if ingressBlocking {
+		blockedBy = append(blockedBy, "ingress")
+	}
+	if egressBlocking {
+		blockedBy = append(blockedBy, "egress")
+	}
+	l := len(blockedBy)
+	var blockedByString string
+	switch l {
+	case 1:
+		blockedByString = fmt.Sprintf("by %s", blockedBy[0])
+	case 2:
+		blockedByString = fmt.Sprintf("both by %s and %s", blockedBy[0], blockedBy[1])
+	default:
+		blockedByString = fmt.Sprintf("by %s and %s", strings.Join(blockedBy[0:l-1], ", "), blockedBy[l-1])
+	}
+	return blockedByString
 }
 
 func crossRouterDetails(c *VPCConfig, crossVpcRouter RoutingResource, crossVpcRules []RulesInTable,
