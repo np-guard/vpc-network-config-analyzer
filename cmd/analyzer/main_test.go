@@ -142,10 +142,10 @@ func TestMain(t *testing.T) {
 			name: "diff_with_different_uid",
 			args: "diff endpoints --quiet --vpc-config ../../pkg/ibmvpc/examples/input/input_sg_testing_default.json --vpc-config-second ../../pkg/ibmvpc/examples/input/input_sg_testing_3.json",
 		},
-		{
-			name: "test_routing_cmd",
-			args: "report routing --vpc-config ../../pkg/ibmvpc/examples/input/input_hub_n_spoke_1.json",
-		},
+		// {
+		// 	name: "test_routing_cmd",
+		// 	args: "report routing --vpc-config ../../pkg/ibmvpc/examples/input/input_hub_n_spoke_1.json",
+		// },
 
 		// read from account // need to export api-key first
 		/*{

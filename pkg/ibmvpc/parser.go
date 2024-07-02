@@ -1635,7 +1635,7 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 			}
 			privateIPAddressesMessage[blockIndex] = fmt.Sprintf("%s(for %s)", address, subnetBlock.String())
 			privateIP, err := createPrivateIP(name, id, address, publicAddress,
-				vpc, loadBalancer, vpcConfig, blockHasPrivateIP, subnet)
+				vpc, loadBalancer, vpcConfig, blockHasPrivateIP,subnetBlock, subnet)
 			if err != nil {
 				return nil, err
 			}
@@ -1655,7 +1655,7 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 // also update vpcConfig & subnet with the result
 func createPrivateIP(name, id, address, publicAddress string,
 	vpc vpcmodel.VPCResourceIntf, loadBalancer *LoadBalancer, vpcConfig *vpcmodel.VPCConfig,
-	original bool, subnet *Subnet) (*PrivateIP, error) {
+	original bool, block *ipblock.IPBlock, subnet *Subnet) (*PrivateIP, error) {
 	privateIP := &PrivateIP{
 		VPCResource: vpcmodel.VPCResource{
 			ResourceName: name,
@@ -1669,6 +1669,7 @@ func createPrivateIP(name, id, address, publicAddress string,
 		},
 		loadBalancer: loadBalancer,
 		original:     original,
+		block: block,
 	}
 	if err := privateIP.SetIPBlockFromAddress(); err != nil {
 		return nil, err

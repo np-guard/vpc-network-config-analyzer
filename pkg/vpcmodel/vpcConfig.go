@@ -109,7 +109,7 @@ func (c *VPCConfig) getRoutingResource(src, dst Node) (RoutingResource, *connect
 // and returns the list of all internal nodes (should be VSI) within address
 func (c *VPCConfig) GetNodesWithinInternalAddress(inputIPBlock *ipblock.IPBlock) (networkInterfaceNodes []Node) {
 	for _, node := range c.Nodes {
-		if node.IsInternal() && node.IPBlock().ContainedIn(inputIPBlock) {
+		if node.IsInternal() && node.IsRepresentedByAddress() && node.IPBlock().ContainedIn(inputIPBlock) {
 			networkInterfaceNodes = append(networkInterfaceNodes, node)
 		}
 	}
@@ -118,4 +118,12 @@ func (c *VPCConfig) GetNodesWithinInternalAddress(inputIPBlock *ipblock.IPBlock)
 
 func (c *VPCConfig) AddRoutingTable(rt VPCResourceIntf) {
 	c.RoutingTables = append(c.RoutingTables, rt)
+}
+
+func (c *VPCConfig) loadBalancersAsNodeSets() []NodeSet {
+	nodeSet := make([]NodeSet, len(c.LoadBalancers))
+	for i, lb := range c.LoadBalancers {
+		nodeSet[i] = lb
+	}
+	return nodeSet
 }

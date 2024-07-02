@@ -82,7 +82,6 @@ func MultiExplain(srcDstCouples []explainInputEntry, vpcConns map[string]*VPCCon
 
 // given an EndpointElem, return []Node which is either:
 // 1. A single Node representing a VSI if the endpoints consists a single vsi
-// 2. A number of Nodes, all are private IPs of the load Balancer
 // 2. A number of Nodes, each representing an external address, if the endpoint is groupedExternalNodes
 // if the endpoint is neither, returns error
 func (c *VPCConfig) getNodesFromEndpoint(endpoint EndpointElem) ([]Node, error) {

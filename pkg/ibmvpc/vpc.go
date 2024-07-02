@@ -70,18 +70,23 @@ type PrivateIP struct {
 	vpcmodel.VPCResource
 	vpcmodel.InternalNode
 	loadBalancer *LoadBalancer
-	// Since not all the LB balancer has a private IP, we create fake Private IPs at the subnets that do not have one.
-	// original - does the private IP was originally at the config file, or it is a fake one
+	// Since not all the LB balancer has a private IP, we create a potential Private Ip at the subnets that do not have one.
+	// original - does the private IP was originally at the config file, or is it a potential one
 	original bool
+	// the block in which the pip was created for:
+	block *ipblock.IPBlock
 }
 
 func (pip *PrivateIP) Name() string {
 	kind := "LB private IP"
+	address := pip.Address()
 	if !pip.original {
-		kind = "Fake " + kind
+		kind = "Potential " + kind
+		// todo - move the join into ListToPrint()
+		address = strings.Join(pip.block.ListToPrint(),",")
 	}
 	name := nameWithBracketsInfo(pip.loadBalancer.ResourceName, kind)
-	return nameWithBracketsInfo(name, pip.Address())
+	return nameWithBracketsInfo(name, address)
 }
 
 func (pip *PrivateIP) ExtendedName(c *vpcmodel.VPCConfig) string {
@@ -94,6 +99,9 @@ func (pip *PrivateIP) AbstractedToNodeSet() vpcmodel.NodeSet {
 		return pip.loadBalancer
 	}
 	return nil
+}
+func (pip *PrivateIP) IsRepresentedByAddress() bool {
+	return false
 }
 
 // NetworkInterface implements vpcmodel.Node interface
@@ -273,11 +281,8 @@ type LoadBalancer struct {
 }
 
 // for LB we add the kind to the name, to make it clear in the reports
-func (lb *LoadBalancer) Name() string {
-	return nameWithBracketsInfo(lb.ResourceName, lb.Kind())
-}
 func (lb *LoadBalancer) ExtendedName(c *vpcmodel.VPCConfig) string {
-	return lb.ExtendedPrefix(c) + lb.Name()
+	return lb.ExtendedPrefix(c) + nameWithBracketsInfo(lb.Name(), lb.Kind())
 }
 
 func (lb *LoadBalancer) Nodes() []vpcmodel.Node {

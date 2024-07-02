@@ -113,6 +113,7 @@ type Node interface {
 	// AbstractedToNodeSet returns the abstracted nodeSet that contains this node (if any)
 	// e.g. the Nodes of Load Balancer private IPs are abstracted by the Load Balancer
 	AbstractedToNodeSet() NodeSet
+	IsRepresentedByAddress() bool
 }
 
 // InternalNodeIntf captures common properties for internal nodes: single IP address
@@ -186,6 +187,10 @@ func (n *InternalNode) IsPublicInternet() bool {
 // only lb are abstracted, so only pip has AbstractedToNodeSet
 func (n *InternalNode) AbstractedToNodeSet() NodeSet {
 	return nil
+}
+
+func (n *InternalNode) IsRepresentedByAddress() bool {
+	return true
 }
 
 // NodeSet is an element that may capture several nodes [vsi, vpe, vpc ,subnet]

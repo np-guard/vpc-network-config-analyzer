@@ -87,6 +87,9 @@ func (exn *ExternalNetwork) IsPublicInternet() bool {
 func (exn *ExternalNetwork) AbstractedToNodeSet() NodeSet {
 	return nil
 }
+func (exn *ExternalNetwork) IsRepresentedByAddress() bool {
+	return true
+}
 
 func (exn *ExternalNetwork) Kind() string {
 	return externalNetworkNodeKind

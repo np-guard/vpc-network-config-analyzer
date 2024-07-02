@@ -344,7 +344,7 @@ func (c *VPCConfig) getNodesOfVsi(name string) ([]Node, int, error) {
 		vpc = cidrOrNameSlice[0]
 		vsi = cidrOrNameSlice[1]
 	}
-	for _, nodeSet := range c.NodeSets {
+	for _, nodeSet := range append(c.NodeSets, c.loadBalancersAsNodeSets()...) {
 		// currently, assuming c.NodeSets consists of VSIs or VPE
 		if (vpc == "" || nodeSet.VPC().Name() == vpc) && nodeSet.Name() == vsi || // if vpc of vsi specified, equality must hold
 			nodeSet.UID() == uid {
