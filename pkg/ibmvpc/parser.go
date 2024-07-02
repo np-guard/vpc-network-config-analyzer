@@ -1567,7 +1567,7 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 	loadBalancerObj *datamodel.LoadBalancer,
 	loadBalancer *LoadBalancer,
 	vpc *VPC,
-	subnetsBlocks SubnetsIPBlocks) ([]vpcmodel.Node, error) {
+	subnetsBlocks subnetsIPBlocks) ([]vpcmodel.Node, error) {
 	// first we collect  the subnets that has private IPs:
 	subnetsPIPsAddresses := map[vpcmodel.Subnet]*ipblock.IPBlock{} // map from the subnet to the address block
 	subnetsPIPsIndexes := map[vpcmodel.Subnet]int{}                // map from a subnet to the pip index

@@ -16,7 +16,7 @@ import (
 )
 
 func TestSubnetsBlocks(t *testing.T) {
-	subnetsBlocks := SubnetsIPBlocks{}
+	subnetsBlocks := subnetsIPBlocks{}
 	subnetID, vpcID := "subId1", "vpcId"
 	subnetOrigBlock, _ := ipblock.FromCidr("10.240.0.0/23")
 	subnetsBlocks[subnetID] = &oneSubnetBlocks{subnetOriginalBlock: subnetOrigBlock}
