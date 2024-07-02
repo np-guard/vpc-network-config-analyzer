@@ -497,7 +497,9 @@ func respondString(d *detailedConn) string {
 		// tcp responsive component is the entire connection
 		return "\n\tThe entire connection is TCP responsive"
 	default:
-		return "\n\tHowever, TCP response is blocked for: " + strings.ReplaceAll(d.tcpRspDisable.String(),
+		disabledToPrint := strings.ReplaceAll(d.tcpRspDisable.String(),
 			"protocol: ", "")
+		disabledToPrint = strings.ReplaceAll(disabledToPrint, "TCP ", "")
+		return "\n\tHowever, TCP response is blocked for: " + disabledToPrint
 	}
 }
