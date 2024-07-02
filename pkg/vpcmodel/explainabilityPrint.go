@@ -131,8 +131,8 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 		loadBalancerDetails = "\tLoad Balancer:\n\t\t" + loadBalancerRule.String() + newLine
 	}
 	var crossVpcConnection *connection.Set
-	crossVpcConnection, crossRouterFilterHeader, crossRouterFilterDetails = crossRouterDetails(c, crossVpcRouter, crossVpcRules,
-		src, dst)
+	crossVpcConnection, crossRouterFilterHeader, crossRouterFilterDetails = crossRouterDetails(c, crossVpcRouter,
+		crossVpcRules, src, dst)
 	// noConnection is the 1 above when no connection
 	noConnection := noConnectionHeader(src.ExtendedName(c), dst.ExtendedName(c), connQuery) + newLine
 
@@ -149,12 +149,25 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 	egressRulesDetails, ingressRulesDetails := rules.ruleDetailsStr(c, filtersRelevant, needEgress, needIngress)
 	conn := g.commonProperties.conn
 	if verbose {
-		details = "\nDetails:\n~~~~~~~~\nPath is enabled by the following rules:\n" +
+		enabledOrDisabledStr := "enabled"
+		if conn.allConn.IsEmpty() {
+			enabledOrDisabledStr = "disabled"
+		}
+		details = "\nDetails:\n~~~~~~~~\nPath is " + enabledOrDisabledStr + "; The relevant rules are:\n" +
 			loadBalancerDetails + egressRulesDetails + crossRouterFilterDetails + ingressRulesDetails
-		if respondRulesRelevant(conn, filtersRelevant) {
+		if respondRulesRelevant(conn, filtersRelevant, crossVpcRouter) {
+			respondEgressDetails, respondsIngressDetails, crossVpcRespondDetails := "", "", ""
 			// for respond rules needIngress and needEgress are switched
-			respondEgressDetails, respondsIngressDetails := expDetails.respondRules.ruleDetailsStr(c, filtersRelevant, needIngress, needEgress)
-			details += respondDetailsHeader(conn) + respondEgressDetails + respondsIngressDetails
+			if filtersRelevant[statelessLayerName] {
+				respondEgressDetails, respondsIngressDetails = expDetails.respondRules.ruleDetailsStr(c,
+					filtersRelevant, needIngress, needEgress)
+			}
+			if expDetails.crossVpcRouter != nil {
+				crossVpcRespondDetails, _ = crossVpcRouter.StringOfRouterRules(expDetails.crossVPCRespondRules,
+					true)
+			}
+			details += respondDetailsHeader(conn) + respondEgressDetails + crossVpcRespondDetails +
+				respondsIngressDetails
 		}
 	}
 	return g.explainPerCaseStr(c, src, dst, connQuery, crossVpcConnection, ingressBlocking, egressBlocking, loadBalancerBlocking,
@@ -165,11 +178,11 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 func respondDetailsHeader(d *detailedConn) string {
 	switch {
 	case d.tcpRspDisable.IsEmpty():
-		return "TCP response is enabled by the following rules:\n"
+		return "TCP response is enabled; The relevant rules are:\n"
 	case d.tcpRspEnable.IsEmpty():
-		return "TCP response is disabled by the following rules:\n"
+		return "TCP response is disabled; The relevant rules are:\n"
 	default:
-		return "TCP response is partly enabled by the following rules:\n"
+		return "TCP response is partly enabled; The relevant rules are:\n"
 	}
 }
 
@@ -232,8 +245,8 @@ func crossRouterDetails(c *VPCConfig, crossVpcRouter RoutingResource, crossVpcRu
 		// an error here will pop up earlier, when computing connections
 		_, crossVpcConnection, _ := c.getRoutingResource(src.(Node), dst.(Node)) // crossVpc Router (tgw) exists - src, dst are internal
 		// if there is a non nil transit gateway then src and dst are vsis, and implement Node
-		crossVpcFilterHeader, _ := crossVpcRouter.StringDetailsOfRules(crossVpcRules, false)
-		crossVpcFilterDetails, _ := crossVpcRouter.StringDetailsOfRules(crossVpcRules, true)
+		crossVpcFilterHeader, _ := crossVpcRouter.StringOfRouterRules(crossVpcRules, false)
+		crossVpcFilterDetails, _ := crossVpcRouter.StringOfRouterRules(crossVpcRules, true)
 		return crossVpcConnection, crossVpcFilterHeader, crossVpcFilterDetails
 	}
 	return nil, emptyString, emptyString

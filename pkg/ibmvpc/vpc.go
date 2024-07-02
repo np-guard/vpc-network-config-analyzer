@@ -741,7 +741,7 @@ func (fip *FloatingIP) RulesInConnectivity(src, dst vpcmodel.Node) []vpcmodel.Ru
 	return nil
 }
 
-func (fip *FloatingIP) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInTable,
+func (fip *FloatingIP) StringOfRouterRules(listRulesInFilter []vpcmodel.RulesInTable,
 	verbose bool) (string, error) {
 	return "", nil
 }
@@ -801,7 +801,7 @@ func (pgw *PublicGateway) RulesInConnectivity(src, dst vpcmodel.Node) []vpcmodel
 	return nil
 }
 
-func (pgw *PublicGateway) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInTable,
+func (pgw *PublicGateway) StringOfRouterRules(listRulesInFilter []vpcmodel.RulesInTable,
 	verbose bool) (string, error) {
 	return "", nil
 }
@@ -975,7 +975,7 @@ func (tgw *TransitGateway) RulesInConnectivity(src, dst vpcmodel.Node) []vpcmode
 	return nil // should never get here
 }
 
-func (tgw *TransitGateway) StringDetailsOfRules(listRulesInTransitConns []vpcmodel.RulesInTable, verbose bool) (string, error) {
+func (tgw *TransitGateway) StringOfRouterRules(listRulesInTransitConns []vpcmodel.RulesInTable, verbose bool) (string, error) {
 	strRes := []string{}
 	for _, prefixesInTransitConn := range listRulesInTransitConns {
 		transitConn := tgw.tgwConnList[prefixesInTransitConn.Table]

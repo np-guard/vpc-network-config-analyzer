@@ -27,16 +27,17 @@ type groupedExternalNodesInfo struct {
 }
 
 type explainDetails struct {
-	rules            *rulesConnection
-	respondRules     *rulesConnection
-	externalRouter   RoutingResource
-	crossVpcRouter   RoutingResource
-	crossVpcRules    []RulesInTable
+	rules                *rulesConnection
+	respondRules         *rulesConnection
+	externalRouter       RoutingResource
+	crossVpcRouter       RoutingResource
+	crossVpcRules        []RulesInTable
+	crossVPCRespondRules []RulesInTable
 	loadBalancerRule *LoadBalancerRule
-	filtersRelevant  map[string]bool
-	connEnabled      bool
-	ingressEnabled   bool
-	egressEnabled    bool
+	filtersRelevant      map[string]bool
+	connEnabled          bool
+	ingressEnabled       bool
+	egressEnabled        bool
 }
 
 type groupedCommonProperties struct {
@@ -352,11 +353,13 @@ func (g *GroupConnLines) groupExternalAddressesForExplainability() error {
 	var res []*groupedConnLine
 	for _, details := range *g.explain {
 		groupingStrKey := details.explanationEncode(g.config)
-		expDetails := &explainDetails{details.actualMergedRules,
-			details.respondRules, details.externalRouter, details.crossVpcRouter,
-			details.crossVpcRules, details.loadBalancerRule, details.filtersRelevant,
-			details.connEnabled, details.ingressEnabled,
-			details.egressEnabled}
+		expDetails := &explainDetails{rules: details.actualMergedRules,
+			respondRules: details.respondRules, externalRouter: details.externalRouter,
+			crossVpcRouter: details.crossVpcRouter, crossVpcRules: details.crossVpcRules,
+			crossVPCRespondRules: details.crossVpcRespondRules,
+			loadBalancerRule: details.loadBalancerRule, filtersRelevant: details.filtersRelevant,
+			connEnabled: details.connEnabled, ingressEnabled: details.ingressEnabled,
+			egressEnabled: details.egressEnabled}
 		err := g.addLineToExternalGrouping(&res, details.src, details.dst,
 			&groupedCommonProperties{conn: details.conn, expDetails: expDetails,
 				groupingStrKey: groupingStrKey})
@@ -617,25 +620,42 @@ func connDiffEncode(src, dst VPCResourceIntf, connDiff *connectionDiff) string {
 // encodes rulesConnection for grouping
 func (details *srcDstDetails) explanationEncode(c *VPCConfig) string {
 	encodeComponents := []string{}
-	encodeComponents = append(encodeComponents, details.conn.allConn.String())
-	if details.externalRouter != nil {
-		encodeComponents = append(encodeComponents, details.externalRouter.UID())
-	}
+	encodeComponents = append(encodeComponents, details.conn.stringPerResponsive())
+	appendEncodeFilterRules(&encodeComponents, c, details.filtersRelevant,
+		details.actualMergedRules)
 	if details.crossVpcRouter != nil {
 		encodeComponents = append(encodeComponents, details.crossVpcRouter.UID())
+		appendEncodeRouterRules(&encodeComponents, details.crossVpcRouter, details.crossVpcRules)
 	}
-	details.actualMergedRules.egressRules.appendEncodeRules(&encodeComponents, c, details.filtersRelevant,
-		"egress", false)
-	details.actualMergedRules.ingressRules.appendEncodeRules(&encodeComponents, c, details.filtersRelevant,
-		"ingress", true)
+	if respondRulesRelevant(details.conn, details.filtersRelevant, details.crossVpcRouter) {
+		appendEncodeRouterRules(&encodeComponents, details.crossVpcRouter, details.crossVpcRespondRules)
+		appendEncodeFilterRules(&encodeComponents, c, details.filtersRelevant,
+			details.respondRules)
+	}
 	return strings.Join(encodeComponents, ";")
 }
 
-func (rules *rulesInLayers) appendEncodeRules(encodeComponents *[]string,
-	c *VPCConfig, filtersRelevant map[string]bool, header string, isIngress bool) {
+func appendEncodeFilterRules(encodeComponents *[]string, c *VPCConfig, filtersRelevant map[string]bool, rules *rulesConnection) {
+	appendEncodeDirectionalFilterRules(encodeComponents, c, filtersRelevant,
+		&rules.egressRules, "egress", false)
+	appendEncodeDirectionalFilterRules(encodeComponents, c, filtersRelevant,
+		&rules.ingressRules, "ingress", true)
+}
+
+func appendEncodeDirectionalFilterRules(encodeComponents *[]string, c *VPCConfig, filtersRelevant map[string]bool,
+	rules *rulesInLayers, header string, isIngress bool) {
 	if len(*rules) == 0 {
 		return
 	}
 	*encodeComponents = append(*encodeComponents, header+
 		rules.rulesDetailsStr(c, filtersRelevant, isIngress))
+}
+
+func appendEncodeRouterRules(encodeComponents *[]string, router RoutingResource, rulesInLayers []RulesInTable) {
+	if router == nil {
+		return
+	}
+	routerRulesString, _ := router.StringOfRouterRules(rulesInLayers,
+		true)
+	*encodeComponents = append(*encodeComponents, routerRulesString)
 }
