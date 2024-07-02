@@ -111,6 +111,7 @@ type Node interface {
 	// currently nodes which are external but not public Internet are ignored
 	IsPublicInternet() bool
 	// AbstractedToNodeSet returns the abstracted nodeSet that contains this node (if any)
+	// e.g. the Nodes of Load Balancer private IPs are abstracted by the Load Balancer
 	AbstractedToNodeSet() NodeSet
 }
 
