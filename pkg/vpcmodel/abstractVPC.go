@@ -110,6 +110,9 @@ type Node interface {
 	// IsPublicInternet returns true if the node is external,
 	// currently nodes which are external but not public Internet are ignored
 	IsPublicInternet() bool
+	// AbstractedToNodeSet returns the abstracted nodeSet that contains this node (if any)
+	// e.g. the Nodes of Load Balancer private IPs are abstracted by the Load Balancer
+	AbstractedToNodeSet() NodeSet
 }
 
 // InternalNodeIntf captures common properties for internal nodes: single IP address
@@ -180,6 +183,11 @@ func (n *InternalNode) IsPublicInternet() bool {
 	return false
 }
 
+// only lb are abstracted, so only pip has AbstractedToNodeSet
+func (n *InternalNode) AbstractedToNodeSet() NodeSet {
+	return nil
+}
+
 // NodeSet is an element that may capture several nodes [vsi, vpe, vpc ,subnet]
 type NodeSet interface {
 	VPCResourceIntf
@@ -201,10 +209,15 @@ type Subnet interface {
 // todo: elaborate more - get list of servers, expandability,...
 type LoadBalancer interface {
 	NodeSet
-	// DenyConnectivity() - check if the lb denies connection from src to dst
-	DenyConnectivity(src, dst Node) bool
+	GetLoadBalancerRule(src, dst Node) LoadBalancerRule
 	SetAbstractionInfo(*AbstractionInfo)
 	AbstractionInfo() *AbstractionInfo
+}
+
+// LoadBalancerRule represent the influence of the load balancer on a connectivity
+type LoadBalancerRule interface {
+	Deny() bool
+	String() string
 }
 
 // RulesType Type of rules in a given filter (e.g. specific NACL table) relevant to

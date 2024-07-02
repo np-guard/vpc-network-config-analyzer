@@ -88,6 +88,14 @@ func (pip *PrivateIP) ExtendedName(c *vpcmodel.VPCConfig) string {
 	return pip.ExtendedPrefix(c) + pip.Name()
 }
 
+// AbstractedToNodeSet returns the pip load balancer if it was abstracted
+func (pip *PrivateIP) AbstractedToNodeSet() vpcmodel.NodeSet {
+	if pip.loadBalancer.AbstractionInfo() != nil {
+		return pip.loadBalancer
+	}
+	return nil
+}
+
 // NetworkInterface implements vpcmodel.Node interface
 type NetworkInterface struct {
 	vpcmodel.VPCResource
@@ -279,11 +287,15 @@ func (lb *LoadBalancer) AddressRange() *ipblock.IPBlock {
 	return nodesAddressRange(lb.nodes)
 }
 
-// DenyConnectivity - check if lb denies connection from src to dst
-// currently only a boolean function, will be elaborated when parsing policies rules
-func (lb *LoadBalancer) DenyConnectivity(src, dst vpcmodel.Node) bool {
+func (lb *LoadBalancer) GetLoadBalancerRule(src, dst vpcmodel.Node) vpcmodel.LoadBalancerRule {
 	// currently, we do not allow connections from privateIP to a destination that is not a pool member
-	return slices.Contains(lb.Nodes(), src) && !slices.Contains(lb.members(), dst)
+	if slices.Contains(lb.Nodes(), src) {
+		if !slices.Contains(lb.members(), dst) {
+			return NewLoadBalancerRule(lb, true, src, dst)
+		}
+		return NewLoadBalancerRule(lb, false, src, dst)
+	}
+	return nil
 }
 
 // for now the listeners hold the pools that holds the backend servers (aka pool members)
@@ -307,6 +319,30 @@ func (lb *LoadBalancer) SetAbstractionInfo(abstractionInfo *vpcmodel.Abstraction
 }
 func (lb *LoadBalancer) AbstractionInfo() *vpcmodel.AbstractionInfo {
 	return lb.abstractionInfo
+}
+
+// ////////////////////////////////////////////////////////////////////////////////
+// LoadBalancerRule is a rule applied to all private IPs of a given load balancer:
+// these private IPs can only connect to pool members of the load balancer.
+type LoadBalancerRule struct {
+	// the relevant load balancer:
+	lb *LoadBalancer
+	//	deny- true if src is pip, and dst is not pool member:
+	deny     bool
+	src, dst vpcmodel.Node
+}
+
+func NewLoadBalancerRule(lb *LoadBalancer, deny bool, src, dst vpcmodel.Node) vpcmodel.LoadBalancerRule {
+	return &LoadBalancerRule{lb, deny, src, dst}
+}
+
+func (lbr *LoadBalancerRule) Deny() bool { return lbr.deny }
+
+func (lbr *LoadBalancerRule) String() string {
+	if lbr.Deny() {
+		return fmt.Sprintf("%s blocks connection to %s which is not one of its pool members\n", lbr.lb.Name(), lbr.dst.Name())
+	}
+	return fmt.Sprintf("%s allows connection to %s which is one of its pool members\n", lbr.lb.Name(), lbr.dst.Name())
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

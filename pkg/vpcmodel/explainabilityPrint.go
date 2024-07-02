@@ -114,16 +114,21 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 	expDetails := g.commonProperties.expDetails
 	filtersRelevant := g.commonProperties.expDetails.filtersRelevant
 	src, dst := g.src, g.dst
+	loadBalancerRule := g.commonProperties.expDetails.loadBalancerRule
 	needEgress := !src.IsExternal()
 	needIngress := !dst.IsExternal()
+	loadBalancerBlocking := loadBalancerRule != nil && loadBalancerRule.Deny()
 	ingressBlocking := !expDetails.ingressEnabled && needIngress
 	egressBlocking := !expDetails.egressEnabled && needEgress
-	var externalRouterHeader, crossRouterFilterHeader, resourceEffectHeader,
-		crossRouterFilterDetails, details string
-	externalRouter, crossVpcRouter, crossVpcRules := expDetails.externalRouter, expDetails.crossVpcRouter,
-		expDetails.crossVpcRules
+	var externalRouterHeader, crossRouterFilterHeader, loadBalancerHeader, resourceEffectHeader,
+		crossRouterFilterDetails, loadBalancerDetails, details string
+	externalRouter, crossVpcRouter, crossVpcRules := expDetails.externalRouter, expDetails.crossVpcRouter, expDetails.crossVpcRules
 	if externalRouter != nil && (src.IsExternal() || dst.IsExternal()) {
 		externalRouterHeader = "External traffic via " + externalRouter.Kind() + ": " + externalRouter.Name() + newLine
+	}
+	if loadBalancerRule != nil {
+		loadBalancerHeader = "Load Balancer: " + loadBalancerRule.String()
+		loadBalancerDetails = "\tLoad Balancer:\n\t\t" + loadBalancerRule.String() + newLine
 	}
 	var crossVpcConnection *connection.Set
 	crossVpcConnection, crossRouterFilterHeader, crossRouterFilterDetails = crossRouterDetails(c, crossVpcRouter,
@@ -134,12 +139,12 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 	// resourceEffectHeader is "2" above
 	rules := expDetails.rules
 	egressRulesHeader, ingressRulesHeader := rules.filterEffectStr(c, filtersRelevant, needEgress, needIngress)
-	resourceEffectHeader = externalRouterHeader + egressRulesHeader + crossRouterFilterHeader +
+	resourceEffectHeader = loadBalancerHeader + externalRouterHeader + egressRulesHeader + crossRouterFilterHeader +
 		ingressRulesHeader + newLine
 
 	// path in "3" above
 	path := "Path:\n" + pathStr(c, filtersRelevant, src, dst,
-		ingressBlocking, egressBlocking, externalRouter, crossVpcRouter, crossVpcConnection, rules) + newLine
+		ingressBlocking, egressBlocking, loadBalancerBlocking, externalRouter, crossVpcRouter, crossVpcConnection, rules) + newLine
 	// details is "4" above
 	egressRulesDetails, ingressRulesDetails := rules.ruleDetailsStr(c, filtersRelevant, needEgress, needIngress)
 	conn := g.commonProperties.conn
@@ -149,7 +154,7 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 			enabledOrDisabledStr = "disabled"
 		}
 		details = "\nDetails:\n~~~~~~~~\nPath is " + enabledOrDisabledStr + "; The relevant rules are:\n" +
-			egressRulesDetails + crossRouterFilterDetails + ingressRulesDetails
+			loadBalancerDetails + egressRulesDetails + crossRouterFilterDetails + ingressRulesDetails
 		if respondRulesRelevant(conn, filtersRelevant, crossVpcRouter) {
 			respondEgressDetails, respondsIngressDetails, crossVpcRespondDetails := "", "", ""
 			// for respond rules needIngress and needEgress are switched
@@ -165,7 +170,7 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 				respondsIngressDetails
 		}
 	}
-	return g.explainPerCaseStr(c, src, dst, connQuery, crossVpcConnection, ingressBlocking, egressBlocking,
+	return g.explainPerCaseStr(c, src, dst, connQuery, crossVpcConnection, ingressBlocking, egressBlocking, loadBalancerBlocking,
 		noConnection, resourceEffectHeader, path, details)
 }
 
@@ -183,7 +188,7 @@ func respondDetailsHeader(d *detailedConn) string {
 
 // after all data is gathered, generates the actual string to be printed
 func (g *groupedConnLine) explainPerCaseStr(c *VPCConfig, src, dst EndpointElem,
-	connQuery, crossVpcConnection *connection.Set, ingressBlocking, egressBlocking bool,
+	connQuery, crossVpcConnection *connection.Set, ingressBlocking, egressBlocking, loadBalancerBlocking bool,
 	noConnection, resourceEffectHeader, path, details string) string {
 	conn := g.commonProperties.conn
 	externalRouter, crossVpcRouter := g.commonProperties.expDetails.externalRouter,
@@ -198,18 +203,38 @@ func (g *groupedConnLine) explainPerCaseStr(c *VPCConfig, src, dst EndpointElem,
 	case externalRouter == nil && dst.IsExternal():
 		return fmt.Sprintf("%v\tThe dst is external but there is no Floating IP or Public Gateway connecting to public internet\n",
 			noConnection)
-	case ingressBlocking && egressBlocking:
-		return fmt.Sprintf("%vconnection is blocked both by ingress and egress"+tripleNLVars, noConnection,
-			headerPlusPath, details)
-	case ingressBlocking:
-		return fmt.Sprintf("%vconnection is blocked by ingress"+tripleNLVars, noConnection,
-			headerPlusPath, details)
-	case egressBlocking:
-		return fmt.Sprintf("%vconnection is blocked by egress"+tripleNLVars, noConnection,
+	case ingressBlocking || egressBlocking || loadBalancerBlocking:
+		return fmt.Sprintf("%vconnection is blocked %s"+tripleNLVars, noConnection,
+			blockedByString(ingressBlocking, egressBlocking, loadBalancerBlocking),
 			headerPlusPath, details)
 	default: // there is a connection
 		return existingConnectionStr(c, connQuery, src, dst, conn, path, details)
 	}
+}
+
+// blockedByString() return the block string according to the flags
+func blockedByString(ingressBlocking, egressBlocking, loadBalancerBlocking bool) string {
+	blockedBy := []string{}
+	if loadBalancerBlocking {
+		blockedBy = append(blockedBy, "Load Balancer")
+	}
+	if ingressBlocking {
+		blockedBy = append(blockedBy, "ingress")
+	}
+	if egressBlocking {
+		blockedBy = append(blockedBy, "egress")
+	}
+	l := len(blockedBy)
+	var blockedByString string
+	switch l {
+	case 1:
+		blockedByString = fmt.Sprintf("by %s", blockedBy[0])
+	case 2:
+		blockedByString = fmt.Sprintf("both by %s and %s", blockedBy[0], blockedBy[1])
+	default:
+		blockedByString = fmt.Sprintf("by %s and %s", strings.Join(blockedBy[0:l-1], ", "), blockedBy[l-1])
+	}
+	return blockedByString
 }
 
 func crossRouterDetails(c *VPCConfig, crossVpcRouter RoutingResource, crossVpcRules []RulesInTable,
@@ -339,10 +364,15 @@ func stringFilterEffect(c *VPCConfig, filterLayerName string, rules []RulesInTab
 // if the connection does not exist. In the latter case the path is until the first block
 // e.g.: "vsi1-ky[10.240.10.4] ->  SG sg1-ky -> subnet ... ->  ACL acl1-ky -> PublicGateway: public-gw-ky ->  Public Internet 161.26.0.0/16"
 func pathStr(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointElem,
-	ingressBlocking, egressBlocking bool, externalRouter, crossVpcRouter RoutingResource, crossVpcConnection *connection.Set,
+	ingressBlocking, egressBlocking, loadBalancerBlocking bool,
+	externalRouter, crossVpcRouter RoutingResource, crossVpcConnection *connection.Set,
 	rules *rulesConnection) string {
 	var pathSlice []string
 	pathSlice = append(pathSlice, "\t"+src.Name())
+	if loadBalancerBlocking {
+		// connection is stopped at the src itself:
+		return blockedPathStr(pathSlice)
+	}
 	isExternal := src.IsExternal() || dst.IsExternal()
 	egressPath := pathFiltersOfIngressOrEgressStr(c, src, filtersRelevant, rules, false, isExternal, externalRouter)
 	pathSlice = append(pathSlice, egressPath...)
