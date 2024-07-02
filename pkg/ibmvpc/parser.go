@@ -1591,7 +1591,7 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 		if err != nil {
 			return nil, err
 		}
-		subnetBlocks := subnetsBlocks.SubnetBlocks(*subnetObj.CRN)
+		subnetBlocks := subnetsBlocks.subnetBlocks(*subnetObj.CRN)
 		privateIPAddressesMessage := make([]string, len(subnetBlocks))
 		// when a load balancer is created, not all its subnets get privateIPs.
 		// some subnets are chosen (arbitrary?) and only these are assigned privateIPs.
@@ -1612,7 +1612,7 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 				if hasPublicAddress {
 					publicAddress = *loadBalancerObj.PublicIps[subnetsPIPsIndexes[subnet]].Address
 				}
-			case subnetsBlocks.IsFullyReservedBlock(*subnetObj.CRN, blockIndex):
+			case subnetsBlocks.isFullyReservedBlock(*subnetObj.CRN, blockIndex):
 				// All the addresses in the original block are reserved IPs.
 				// therefore, a private IP could not be deployed in this block.
 				// Thus, for such a blocks there is no need to create private IPs.
@@ -1622,7 +1622,7 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 				name = "pip-name-of-" + subnet.Name() + "-" + *loadBalancerObj.Name
 				id = "pip-uid-of-" + subnet.UID() + *loadBalancerObj.ID
 				var err error
-				address, err = subnetsBlocks.AllocSubnetFreeAddress(*subnetObj.CRN, blockIndex)
+				address, err = subnetsBlocks.allocSubnetFreeAddress(*subnetObj.CRN, blockIndex)
 				if err != nil {
 					return nil, err
 				}

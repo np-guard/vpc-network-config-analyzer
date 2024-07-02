@@ -162,17 +162,17 @@ func (subnetsBlocks subnetsIPBlocks) getSubnetsFreeBlocks(rc *datamodel.Resource
 }
 
 // allocSubnetFreeAddress() allocated a free address from a block (for the private ip):
-func (subnetsBlocks subnetsIPBlocks) AllocSubnetFreeAddress(subnetCRN string, blockIndex int) (string, error) {
+func (subnetsBlocks subnetsIPBlocks) allocSubnetFreeAddress(subnetCRN string, blockIndex int) (string, error) {
 	if subnetsBlocks[subnetCRN].freeAddressesBlocks[blockIndex].IsEmpty() {
 		return "", fmt.Errorf("fail to allocate a free address at block: %s ", subnetsBlocks[subnetCRN].freeAddressesBlocks[blockIndex].String())
 	}
 	address := subnetsBlocks[subnetCRN].freeAddressesBlocks[blockIndex].FirstIPAddress()
 	return address, subnetsBlocks.removeAddressFromFree(address, subnetCRN, blockIndex)
 }
-func (subnetsBlocks subnetsIPBlocks) SubnetBlocks(subnetCRN string) []*ipblock.IPBlock {
+func (subnetsBlocks subnetsIPBlocks) subnetBlocks(subnetCRN string) []*ipblock.IPBlock {
 	return subnetsBlocks[subnetCRN].splitByFiltersBlocks
 }
-func (subnetsBlocks subnetsIPBlocks) IsFullyReservedBlock(subnetCRN string, blockIndex int) bool {
+func (subnetsBlocks subnetsIPBlocks) isFullyReservedBlock(subnetCRN string, blockIndex int) bool {
 	return subnetsBlocks[subnetCRN].fullyReservedBlocks[blockIndex]
 }
 

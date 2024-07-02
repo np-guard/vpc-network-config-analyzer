@@ -26,11 +26,11 @@ func TestSubnetsBlocks(t *testing.T) {
 	filtersBlocks, _ := disjointVpcCidrs(filtersCidrs)
 	subnetsBlocks[subnetID].splitByFiltersBlocks = splitSubnetOriginalBlock(subnetsBlocks[subnetID].subnetOriginalBlock, filtersBlocks[vpcID])
 	subnetsBlocks[subnetID].freeAddressesBlocks = subnetsBlocks[subnetID].splitByFiltersBlocks
-	require.True(t, len(subnetsBlocks.SubnetBlocks(subnetID)) == 4)
+	require.True(t, len(subnetsBlocks.subnetBlocks(subnetID)) == 4)
 	blockIndexes := []int{0, 1, 0, 1, 2, 3, 2, 3, 2}
 	allocatedAddresses := make([]string, len(blockIndexes))
 	for i, blockIndex := range blockIndexes {
-		address, _ := subnetsBlocks.AllocSubnetFreeAddress(subnetID, blockIndex)
+		address, _ := subnetsBlocks.allocSubnetFreeAddress(subnetID, blockIndex)
 		allocatedAddresses[i] = address
 	}
 	slices.Sort(allocatedAddresses)
