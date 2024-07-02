@@ -203,10 +203,14 @@ func (g *groupedConnLine) explainPerCaseStr(c *VPCConfig, src, dst EndpointElem,
 			blockedBy = append(blockedBy, "egress")
 		}
 		l := len(blockedBy)
-		blockedByString := fmt.Sprintf("by %s", blockedBy[0])
-		if l > 1 {
-			blockedByString = fmt.Sprintf("both by %s and %s",
-				strings.Join(blockedBy[0:l-1], ", "), blockedBy[l-1])
+		var blockedByString string
+		switch l {
+		case 1:
+			blockedByString = fmt.Sprintf("by %s", blockedBy[0])
+		case 2:
+			blockedByString = fmt.Sprintf("both by %s and %s", blockedBy[0], blockedBy[1])
+		default:
+			blockedByString = fmt.Sprintf("by %s and %s", strings.Join(blockedBy[0:l-1], ", "), blockedBy[l-1])
 		}
 		return fmt.Sprintf("%vconnection is blocked %s"+tripleNLVars, noConnection, blockedByString,
 			headerPlusPath, details)
