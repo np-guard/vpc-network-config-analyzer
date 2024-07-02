@@ -127,8 +127,8 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 		externalRouterHeader = "External traffic via " + externalRouter.Kind() + ": " + externalRouter.Name() + newLine
 	}
 	if loadBalancerRule != nil {
-		loadBalancerHeader = "Load Balancer: " + loadBalancerRule.StringHeaderOfRule() + newLine
-		loadBalancerDetails = "\tLoad Balancer:\n\t\t" + loadBalancerRule.StringDetailsOfRule() + newLine
+		loadBalancerHeader = "Load Balancer: " + loadBalancerRule.String()
+		loadBalancerDetails = "\tLoad Balancer:\n\t\t" + loadBalancerRule.String() + newLine
 	}
 	var crossVpcConnection *connection.Set
 	crossVpcConnection, crossRouterFilterHeader, crossRouterFilterDetails = crossRouterDetails(c, crossVpcRouter, crossVpcRules,

@@ -42,16 +42,13 @@ func NewLoadBalancerRule(lb LoadBalancer, deny bool) *LoadBalancerRule {
 	return &LoadBalancerRule{lb, deny}
 }
 func (lbr *LoadBalancerRule) Deny() bool { return lbr.deny }
-func (lbr *LoadBalancerRule) StringDetailsOfRule() string {
-	return lbr.StringHeaderOfRule() + " to destinations which are its pool members\n"
-}
 
-func (lbr *LoadBalancerRule) StringHeaderOfRule() string {
+func (lbr *LoadBalancerRule) String() string {
 	action := "allow"
 	if lbr.Deny() {
 		action = "blocks"
 	}
-	return fmt.Sprintf("load balancer %s %s connection", lbr.lb.Name(), action)
+	return fmt.Sprintf("load balancer %s %s connection to destinations which are its pool members\n", lbr.lb.Name(), action)
 }
 
 type srcDstDetails struct {
