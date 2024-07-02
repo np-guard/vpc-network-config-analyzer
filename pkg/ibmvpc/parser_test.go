@@ -14,6 +14,7 @@ import (
 
 	"github.com/np-guard/models/pkg/ipblock"
 
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -22,38 +23,38 @@ func TestVPCResourceModelRegion(t *testing.T) {
 	require.Nilf(t, err, "err: %s", err)
 
 	vpcConfigs := vpcmodel.NewMultipleVPCConfigs("cloud name")
-	regionToStructMap := make(map[string]*Region)
+	regionToStructMap := make(map[string]*commonvpc.Region)
 	err = getVPCconfig(rc, vpcConfigs, nil, regionToStructMap)
 	require.Nilf(t, err, "err: %s", err)
 
 	vpcConfig := vpcConfigs.Config("crn:41")
-	require.Equal(t, vpcConfig.VPC.(*VPC).Region().name, "us-east")
+	require.Equal(t, vpcConfig.VPC.(*commonvpc.VPC).Region().Name, "us-east")
 
 	tgws := getTgwObjects(rc, vpcConfigs, "", nil, regionToStructMap)
 	tgw := tgws["crn:595"]
-	require.Equal(t, tgw.Region().name, "us-south")
+	require.Equal(t, tgw.Region().Name, "us-south")
 }
 
 func TestRegionMethodVPC(t *testing.T) {
-	regionToStructMap := make(map[string]*Region) // map for caching Region objects
-	vpcNodeSet := &VPC{
+	regionToStructMap := make(map[string]*commonvpc.Region) // map for caching Region objects
+	vpcNodeSet := &commonvpc.VPC{
 		VPCResource: vpcmodel.VPCResource{
 			ResourceName: "ola",
 			ResourceUID:  "ola123",
 			ResourceType: ResourceTypeVPC,
 			Region:       "us-east",
 		},
-		nodes:           []vpcmodel.Node{},
-		zones:           map[string]*Zone{},
-		addressPrefixes: nil,
-		region:          getRegionByName("us-east", regionToStructMap),
+		VPCnodes:               []vpcmodel.Node{},
+		Zones:                  map[string]*commonvpc.Zone{},
+		AddressPrefixesIPBlock: nil,
+		VPCregion:              getRegionByName("us-east", regionToStructMap),
 	}
 	region := vpcNodeSet.Region()
-	require.Equal(t, region.name, "us-east")
+	require.Equal(t, region.Name, "us-east")
 }
 
 func TestRegionMethodTGW(t *testing.T) {
-	regionToStructMap := make(map[string]*Region) // map for caching Region objects
+	regionToStructMap := make(map[string]*commonvpc.Region) // map for caching Region objects
 	tgw := &TransitGateway{
 		VPCResource: vpcmodel.VPCResource{
 			ResourceName: "tgwName",
@@ -66,11 +67,11 @@ func TestRegionMethodTGW(t *testing.T) {
 		region:          getRegionByName("us-east", regionToStructMap),
 	}
 	region := tgw.Region()
-	require.Equal(t, region.name, "us-east")
+	require.Equal(t, region.Name, "us-east")
 }
 
 func TestGetRegionByName(t *testing.T) {
-	regionToStructMap := make(map[string]*Region) // map for caching Region objects
+	regionToStructMap := make(map[string]*commonvpc.Region) // map for caching Region objects
 	getRegionByName("us-south", regionToStructMap)
 	getRegionByName("us-south", regionToStructMap)
 	getRegionByName("us-east", regionToStructMap)

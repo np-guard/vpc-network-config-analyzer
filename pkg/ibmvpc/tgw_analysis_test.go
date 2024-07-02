@@ -17,6 +17,7 @@ import (
 	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
 	"github.com/np-guard/models/pkg/ipblock"
 
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -39,20 +40,20 @@ var le1 int64 = 22
 
 type tgwTest struct {
 	name                     string
-	vpc                      *VPC
+	vpc                      *commonvpc.VPC
 	tc                       *datamodel.TransitConnection
 	expectedPermittedSubnets []string
 	expectedFilteredSubnets  []string
 }
 
-func newVPCWithSubnets(uidTocidrs map[string]string) *VPC {
-	vpc := &VPC{}
+func newVPCWithSubnets(uidTocidrs map[string]string) *commonvpc.VPC {
+	vpc := &commonvpc.VPC{}
 	for uid, cidr := range uidTocidrs {
-		vpc.subnetsList = append(vpc.subnetsList, &Subnet{
-			cidr:        cidr,
-			ipblock:     newIPBlockFromCIDROrAddressWithoutValidation(cidr),
+		vpc.SubnetsList = append(vpc.SubnetsList, &commonvpc.Subnet{
+			Cidr:        cidr,
+			IPblock:     newIPBlockFromCIDROrAddressWithoutValidation(cidr),
 			VPCResource: vpcmodel.VPCResource{ResourceUID: uid, VPCRef: vpc}})
-		vpc.addressPrefixes = append(vpc.addressPrefixes, cidr)
+		vpc.AddressPrefixesList = append(vpc.AddressPrefixesList, cidr)
 	}
 	return vpc
 }
@@ -222,7 +223,7 @@ func (tt *tgwTest) runTest(t *testing.T) {
 	availableRoutesMap := map[string][]*ipblock.IPBlock{tt.vpc.UID(): availableRoutes}
 	permittedSubnets := getVPCdestSubnetsByAdvertisedRoutes(&TransitGateway{availableRoutes: availableRoutesMap}, tt.vpc)
 	require.Nil(t, err)
-	for _, subnet := range tt.vpc.subnetsList {
+	for _, subnet := range tt.vpc.SubnetsList {
 		if slices.Contains(tt.expectedPermittedSubnets, subnet.UID()) {
 			require.True(t, slices.Contains(permittedSubnets, subnet))
 		} else {

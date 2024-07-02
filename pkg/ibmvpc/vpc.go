@@ -16,6 +16,7 @@ import (
 	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
 	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
@@ -26,28 +27,6 @@ const doubleTab = "\t\t"
 
 func nameWithBracketsInfo(name, inBrackets string) string {
 	return fmt.Sprintf("%s[%s]", name, inBrackets)
-}
-
-type Region struct {
-	name string
-}
-
-type Zone struct {
-	name    string
-	cidrs   []string
-	ipblock *ipblock.IPBlock
-	vpc     *VPC // TODO: extend: zone can span over multiple VPCs
-}
-
-func (z *Zone) VPC() *VPC {
-	return z.vpc
-}
-
-func zoneFromVPCResource(r vpcmodel.VPCResourceIntf) (*Zone, error) {
-	if vpc, ok := r.VPC().(*VPC); ok {
-		return vpc.getZoneByName(r.ZoneName())
-	}
-	return nil, errors.New("error getting VPC from resource object")
 }
 
 // ReservedIP implements vpcmodel.Node interface
@@ -141,111 +120,6 @@ func (n *IKSNode) ExtendedName(c *vpcmodel.VPCConfig) string {
 	return n.ExtendedPrefix(c) + n.Name()
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// nodesets elements - implement vpcmodel.NodeSet interface
-
-// VPC implements vpcmodel.VPC
-type VPC struct {
-	vpcmodel.VPCResource
-	nodes []vpcmodel.Node
-	zones map[string]*Zone
-	// internalAddressRange is the union of all the vpc's subnets' CIDRs
-	internalAddressRange   *ipblock.IPBlock
-	subnetsList            []*Subnet
-	addressPrefixes        []string
-	addressPrefixesIPBlock *ipblock.IPBlock
-	region                 *Region
-}
-
-func (v *VPC) getZoneByIPBlock(ipb *ipblock.IPBlock) (string, error) {
-	for _, z := range v.zones {
-		if ipb.ContainedIn(z.ipblock) {
-			return z.name, nil
-		}
-	}
-	return "", fmt.Errorf("on vpc %s, could not fine zone for ipblock %s", v.Name(), ipb.ToCidrListString())
-}
-
-func (v *VPC) Region() *Region {
-	return v.region
-}
-
-func (v *VPC) AddressPrefixes() *ipblock.IPBlock {
-	return v.addressPrefixesIPBlock
-}
-
-func (v *VPC) getZoneByName(name string) (*Zone, error) {
-	if z, ok := v.zones[name]; ok {
-		return z, nil
-	}
-	return nil, fmt.Errorf("zone %s not found in vpc %s", name, v.ResourceName)
-}
-
-func (v *VPC) Nodes() []vpcmodel.Node {
-	return v.nodes
-}
-
-func (v *VPC) AddressRange() *ipblock.IPBlock {
-	return v.internalAddressRange
-}
-
-func (v *VPC) subnets() []*Subnet {
-	return v.subnetsList
-}
-
-// Subnet implements vpcmodel.Subnet interface
-type Subnet struct {
-	vpcmodel.VPCResource
-	nodes   []vpcmodel.Node
-	cidr    string
-	ipblock *ipblock.IPBlock
-}
-
-func (s *Subnet) CIDR() string {
-	return s.cidr
-}
-
-func (s *Subnet) Zone() (*Zone, error) {
-	return zoneFromVPCResource(s)
-}
-
-func (s *Subnet) Nodes() []vpcmodel.Node {
-	return s.nodes
-}
-
-func (s *Subnet) AddressRange() *ipblock.IPBlock {
-	return s.ipblock
-}
-
-type Vsi struct {
-	vpcmodel.VPCResource
-	nodes []vpcmodel.Node
-}
-
-func (v *Vsi) Zone() (*Zone, error) {
-	return zoneFromVPCResource(v)
-}
-
-func (v *Vsi) Nodes() []vpcmodel.Node {
-	return v.nodes
-}
-
-func (v *Vsi) AddressRange() *ipblock.IPBlock {
-	return nodesAddressRange(v.nodes)
-}
-
-func nodesAddressRange(nodes []vpcmodel.Node) *ipblock.IPBlock {
-	var res *ipblock.IPBlock
-	for _, n := range nodes {
-		if res == nil {
-			res = n.IPBlock()
-		} else {
-			res = res.Union(n.IPBlock())
-		}
-	}
-	return res
-}
-
 // vpe can be in multiple zones - depending on the zones of its network interfaces..
 type Vpe struct {
 	vpcmodel.VPCResource
@@ -261,8 +135,20 @@ func (v *Vpe) AddressRange() *ipblock.IPBlock {
 }
 
 // vpe is per vpc and not per zone...
-func (v *Vpe) Zone() (*Zone, error) {
+func (v *Vpe) Zone() (*commonvpc.Zone, error) {
 	return nil, nil
+}
+
+func nodesAddressRange(nodes []vpcmodel.Node) *ipblock.IPBlock {
+	var res *ipblock.IPBlock
+	for _, n := range nodes {
+		if res == nil {
+			res = n.IPBlock()
+		} else {
+			res = res.Union(n.IPBlock())
+		}
+	}
+	return res
 }
 
 // LoadBalancerPool //////////////////////////////////////////
@@ -318,7 +204,7 @@ func (lb *LoadBalancer) members() []vpcmodel.Node {
 }
 
 // lb is per vpc and not per zone...
-func (lb *LoadBalancer) Zone() (*Zone, error) {
+func (lb *LoadBalancer) Zone() (*commonvpc.Zone, error) {
 	return nil, nil
 }
 
@@ -374,7 +260,7 @@ func (nl *NaclLayer) ConnectivityMap() (map[string]*vpcmodel.IPbasedConnectivity
 			if len(resConnectivity) != 1 {
 				return nil, errors.New("unsupported connectivity map with partial subnet ranges per connectivity result")
 			}
-			subnetKey := subnet.ipblock.ToIPRanges()
+			subnetKey := subnet.IPblock.ToIPRanges()
 			if _, ok := resConnectivity[subnetKey]; !ok {
 				return nil, errors.New("unexpected subnet connectivity result - key is different from subnet cidr")
 			}
@@ -452,7 +338,7 @@ func (nl *NaclLayer) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInTa
 	strListRulesInFilter := ""
 	for _, rulesInFilter := range listRulesInFilter {
 		nacl := nl.naclList[rulesInFilter.Table]
-		header := getHeaderRulesType(vpcmodel.FilterKindName(nl.Kind())+" "+nacl.Name(), rulesInFilter.RulesOfType) +
+		header := commonvpc.GetHeaderRulesType(vpcmodel.FilterKindName(nl.Kind())+" "+nacl.Name(), rulesInFilter.RulesOfType) +
 			nacl.analyzer.StringRules(rulesInFilter.Rules)
 		strListRulesInFilter += doubleTab + header
 	}
@@ -477,21 +363,6 @@ func (nl *NaclLayer) ReferencedIPblocks() []*ipblock.IPBlock {
 	return res
 }
 
-func getHeaderRulesType(filter string, rType vpcmodel.RulesType) string {
-	switch rType {
-	case vpcmodel.NoRules:
-		return filter + " blocks connection since there are no relevant allow rules\n"
-	case vpcmodel.OnlyDeny:
-		return filter + " blocks connection with the following deny rules:\n"
-	case vpcmodel.BothAllowDeny:
-		return filter + " allows connection with the following allow and deny rules\n"
-	case vpcmodel.OnlyAllow:
-		return filter + " allows connection with the following allow rules\n"
-	default:
-		return ""
-	}
-}
-
 // returns true of the filter allows traffic, false if it blocks traffic
 func getFilterAction(rType vpcmodel.RulesType) bool {
 	switch rType {
@@ -504,19 +375,19 @@ func getFilterAction(rType vpcmodel.RulesType) bool {
 
 type NACL struct {
 	vpcmodel.VPCResource
-	subnets  map[string]*Subnet // map of subnets (pair of cidr strings and subnet obj) for which this nacl is applied to
+	subnets  map[string]*commonvpc.Subnet // map of subnets (pair of cidr strings and subnet obj) for which this nacl is applied to
 	analyzer *NACLAnalyzer
 }
 
-func (n *NACL) GeneralConnectivityPerSubnet(subnet *Subnet) string {
+func (n *NACL) GeneralConnectivityPerSubnet(subnet *commonvpc.Subnet) string {
 	res, _ := n.analyzer.GeneralConnectivityPerSubnet(subnet)
 	return res
 }
 
-func subnetFromNode(node vpcmodel.Node) (subnet *Subnet, err error) {
+func subnetFromNode(node vpcmodel.Node) (subnet *commonvpc.Subnet, err error) {
 	switch concreteNode := node.(type) {
 	case vpcmodel.InternalNodeIntf:
-		return concreteNode.Subnet().(*Subnet), nil
+		return concreteNode.Subnet().(*commonvpc.Subnet), nil
 	default:
 		return nil, fmt.Errorf("cannot get subnet for node: %+v", node)
 	}
@@ -525,7 +396,7 @@ func subnetFromNode(node vpcmodel.Node) (subnet *Subnet, err error) {
 type naclConnectivityInput struct {
 	targetNode           vpcmodel.Node
 	nodeInSubnet         vpcmodel.Node
-	subnet               *Subnet
+	subnet               *commonvpc.Subnet
 	subnetAffectedByNACL bool
 	targetWithinSubnet   bool
 }
@@ -544,12 +415,12 @@ func (n *NACL) initConnectivityComputation(src, dst vpcmodel.Node,
 	if err != nil {
 		return nil, err
 	}
-	if _, ok := n.subnets[connectivityInput.subnet.cidr]; ok {
+	if _, ok := n.subnets[connectivityInput.subnet.Cidr]; ok {
 		connectivityInput.subnetAffectedByNACL = true
 	}
 	// checking if targetNode is internal, to save a call to ContainedIn for external nodes
 	if connectivityInput.targetNode.IsInternal() &&
-		connectivityInput.targetNode.IPBlock().ContainedIn(connectivityInput.subnet.ipblock) {
+		connectivityInput.targetNode.IPBlock().ContainedIn(connectivityInput.subnet.IPblock) {
 		connectivityInput.targetWithinSubnet = true
 	}
 
@@ -592,139 +463,6 @@ func (n *NACL) rulesFilterInConnectivity(src, dst vpcmodel.Node, conn *connectio
 	allow, deny, err2 = n.analyzer.rulesFilterInConnectivity(connectivityInput.subnet, connectivityInput.nodeInSubnet,
 		connectivityInput.targetNode, conn, isIngress)
 	return true, allow, deny, err2
-}
-
-// SecurityGroupLayer captures all SG in the vpc config, analyzes connectivity considering all SG resources
-type SecurityGroupLayer struct {
-	vpcmodel.VPCResource
-	sgList []*SecurityGroup
-}
-
-func (sgl *SecurityGroupLayer) Name() string {
-	return ""
-}
-
-func (sgl *SecurityGroupLayer) ConnectivityMap() (map[string]*vpcmodel.IPbasedConnectivityResult, error) {
-	return nil, nil
-}
-
-func (sgl *SecurityGroupLayer) GetConnectivityOutputPerEachElemSeparately() string {
-	return ""
-}
-
-// AllowedConnectivity
-// TODO: fix: is it possible that no sg applies  to the input peer? if so, should not return "no conns" when none applies
-func (sgl *SecurityGroupLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*connection.Set, error) {
-	res := connection.None()
-	for _, sg := range sgl.sgList {
-		sgConn := sg.AllowedConnectivity(src, dst, isIngress)
-		res = res.Union(sgConn)
-	}
-	return res, nil
-}
-
-// RulesInConnectivity return allow rules between src and dst,
-// or between src and dst of connection conn if conn specified
-// denyRules not relevant here - returns nil
-func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
-	conn *connection.Set, isIngress bool) (allowRes []vpcmodel.RulesInTable,
-	denyRes []vpcmodel.RulesInTable, err error) {
-	for index, sg := range sgl.sgList {
-		tableRelevant, sgRules, err1 := sg.rulesFilterInConnectivity(src, dst, conn, isIngress)
-		if err1 != nil {
-			return nil, nil, err1
-		}
-		if tableRelevant {
-			var rType vpcmodel.RulesType = vpcmodel.OnlyAllow
-			if len(sgRules) == 0 {
-				rType = vpcmodel.NoRules
-			}
-			rulesInSg := vpcmodel.RulesInTable{
-				Table:       index,
-				Rules:       sgRules,
-				RulesOfType: rType,
-			}
-			allowRes = append(allowRes, rulesInSg)
-		}
-	}
-	return allowRes, nil, nil
-}
-
-func (sgl *SecurityGroupLayer) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInTable) string {
-	listRulesInFilterSlice := make([]string, len(listRulesInFilter))
-	for i, rulesInFilter := range listRulesInFilter {
-		sg := sgl.sgList[rulesInFilter.Table]
-		listRulesInFilterSlice[i] = doubleTab + getHeaderRulesType(vpcmodel.FilterKindName(sgl.Kind())+" "+sg.Name(), rulesInFilter.RulesOfType) +
-			sg.analyzer.StringRules(rulesInFilter.Rules)
-	}
-	sort.Strings(listRulesInFilterSlice)
-	return strings.Join(listRulesInFilterSlice, "")
-}
-
-func (sgl *SecurityGroupLayer) ListFilterWithAction(listRulesInFilter []vpcmodel.RulesInTable) (filters map[string]bool) {
-	filters = map[string]bool{}
-	for _, rulesInFilter := range listRulesInFilter {
-		sg := sgl.sgList[rulesInFilter.Table]
-		name := sg.Name()
-		filters[name] = getFilterAction(rulesInFilter.RulesOfType)
-	}
-	return filters
-}
-
-func (sgl *SecurityGroupLayer) ReferencedIPblocks() []*ipblock.IPBlock {
-	res := []*ipblock.IPBlock{}
-	for _, sg := range sgl.sgList {
-		res = append(res, sg.analyzer.referencedIPblocks...)
-	}
-	return res
-}
-
-type SecurityGroup struct {
-	vpcmodel.VPCResource
-	analyzer *SGAnalyzer
-	// map of SG members, key is IP-address: pairs(address[string], object[NetworkInterface/ReservedIP])
-	members map[string]vpcmodel.Node
-}
-
-func (sg *SecurityGroup) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *connection.Set {
-	memberIPBlock, targetIPBlock, memberStrAddress := sg.getMemberTargetStrAddress(src, dst, isIngress)
-	if _, ok := sg.members[memberStrAddress]; !ok {
-		return connection.None() // connectivity not affected by this SG resource - input node is not its member
-	}
-	return sg.analyzer.AllowedConnectivity(targetIPBlock, memberIPBlock, isIngress)
-}
-
-// unifiedMembersIPBlock returns an *IPBlock object with union of all members IPBlock
-func (sg *SecurityGroup) unifiedMembersIPBlock() (unifiedMembersIPBlock *ipblock.IPBlock) {
-	unifiedMembersIPBlock = ipblock.New()
-	for _, memberNode := range sg.members {
-		unifiedMembersIPBlock = unifiedMembersIPBlock.Union(memberNode.IPBlock())
-	}
-
-	return unifiedMembersIPBlock
-}
-
-// rulesFilterInConnectivity list of SG rules contributing to the connectivity
-func (sg *SecurityGroup) rulesFilterInConnectivity(src, dst vpcmodel.Node, conn *connection.Set,
-	isIngress bool) (tableRelevant bool, rules []int, err error) {
-	memberIPBlock, targetIPBlock, memberStrAddress := sg.getMemberTargetStrAddress(src, dst, isIngress)
-	if _, ok := sg.members[memberStrAddress]; !ok {
-		return false, nil, nil // connectivity not affected by this SG resource - input node is not its member
-	}
-	rules, err = sg.analyzer.rulesFilterInConnectivity(targetIPBlock, memberIPBlock, conn, isIngress)
-	return true, rules, err
-}
-
-func (sg *SecurityGroup) getMemberTargetStrAddress(src, dst vpcmodel.Node,
-	isIngress bool) (memberIPBlock, targetIPBlock *ipblock.IPBlock, memberStrAddress string) {
-	var member, target vpcmodel.Node
-	if isIngress {
-		member, target = dst, src
-	} else {
-		member, target = src, dst
-	}
-	// TODO: member is expected to be internal node (validate?) [could use member.(vpcmodel.InternalNodeIntf).Address()]
-	return member.IPBlock(), target.IPBlock(), member.CidrOrAddress()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -785,13 +523,13 @@ type PublicGateway struct {
 	cidr         string
 	src          []vpcmodel.Node
 	destinations []vpcmodel.Node
-	srcSubnets   []*Subnet
+	srcSubnets   []*commonvpc.Subnet
 	subnetCidr   []string
-	vpc          *VPC
+	vpc          *commonvpc.VPC
 }
 
-func (pgw *PublicGateway) Zone() (*Zone, error) {
-	return pgw.vpc.getZoneByName(pgw.ZoneName())
+func (pgw *PublicGateway) Zone() (*commonvpc.Zone, error) {
+	return pgw.vpc.GetZoneByName(pgw.ZoneName())
 }
 
 func (pgw *PublicGateway) Sources() []vpcmodel.Node {
@@ -812,7 +550,7 @@ func (pgw *PublicGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf)
 		return connection.None(), nil
 	}
 	if src.Kind() == ResourceTypeSubnet {
-		srcSubnet := src.(*Subnet)
+		srcSubnet := src.(*commonvpc.Subnet)
 		if dstNode, ok := dst.(vpcmodel.Node); ok {
 			if dstNode.IsExternal() && hasSubnet(pgw.srcSubnets, srcSubnet) {
 				return connection.All(), nil
@@ -844,7 +582,7 @@ type TransitGateway struct {
 	vpcmodel.VPCResource
 
 	// vpcs are the VPCs connected by a TGW
-	vpcs []*VPC
+	vpcs []*commonvpc.VPC
 
 	// list of all transit connections (not only those relevant to this TransitGateway)
 	tgwConnList []*datamodel.TransitConnection
@@ -855,16 +593,16 @@ type TransitGateway struct {
 
 	// sourceSubnets are the subnets from the connected vpcs that can have connection to destination
 	// subnet from another vpc
-	sourceSubnets []*Subnet
+	sourceSubnets []*commonvpc.Subnet
 
 	// destSubnets are the subnets from the connected vpcs that can de destination for a connection from
 	// remote source subnet from another vpc, based on the availableRoutes in the TGW
-	destSubnets []*Subnet
+	destSubnets []*commonvpc.Subnet
 
 	sourceNodes []vpcmodel.Node
 	destNodes   []vpcmodel.Node
 
-	region *Region
+	region *commonvpc.Region
 
 	// maps each VPC UID to the details of the matching filters
 	// these details includes map of each relevant IPBlock to the transit connection (its index in the tgwConnList)
@@ -882,7 +620,7 @@ func (tgw *TransitGateway) addSourceAndDestNodes() {
 	}
 }
 
-func (tgw *TransitGateway) Region() *Region {
+func (tgw *TransitGateway) Region() *commonvpc.Region {
 	return tgw.region
 }
 
@@ -1076,13 +814,13 @@ func isNodesPair(src, dst vpcmodel.VPCResourceIntf) (res bool, srcNode, dstNode 
 	return isSrcNode && isDstNode, srcNode, dstNode
 }
 
-func isSubnetsPair(src, dst vpcmodel.VPCResourceIntf) (res bool, srcSubnet, dstSubnet *Subnet) {
-	srcSubnet, isSrcNode := src.(*Subnet)
-	dstSubnet, isDstNode := dst.(*Subnet)
+func isSubnetsPair(src, dst vpcmodel.VPCResourceIntf) (res bool, srcSubnet, dstSubnet *commonvpc.Subnet) {
+	srcSubnet, isSrcNode := src.(*commonvpc.Subnet)
+	dstSubnet, isDstNode := dst.(*commonvpc.Subnet)
 	return isSrcNode && isDstNode, srcSubnet, dstSubnet
 }
 
-func hasSubnet(listSubnets []*Subnet, subnet *Subnet) bool {
+func hasSubnet(listSubnets []*commonvpc.Subnet, subnet *commonvpc.Subnet) bool {
 	for _, n := range listSubnets {
 		if n.UID() == subnet.UID() {
 			return true

@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
@@ -61,11 +62,11 @@ func (ga *GlobalRTAnalyzer) GetRoutingPath(src vpcmodel.InternalNodeIntf, dest *
 		if err != nil {
 			return nil, err
 		}
-		targetVPC := ga.allConfigs.GetVPC(res.TargetVPC()).(*VPC)
+		targetVPC := ga.allConfigs.GetVPC(res.TargetVPC()).(*commonvpc.VPC)
 		destZone, _ := getZoneByIPBlock(dest, ga.allConfigs)
 		srcZone := src.(vpcmodel.Node).ZoneName()
 		// if the destZone is not in the zones of the target VPC, set it as unknown (e.g. from a vpc in another region)
-		if _, ok := targetVPC.zones[destZone]; !ok {
+		if _, ok := targetVPC.Zones[destZone]; !ok {
 			destZone = ""
 		}
 
@@ -82,7 +83,7 @@ func (ga *GlobalRTAnalyzer) GetRoutingPath(src vpcmodel.InternalNodeIntf, dest *
 
 func getZoneByIPBlock(ipb *ipblock.IPBlock, allConfigs *vpcmodel.MultipleVPCConfigs) (string, error) {
 	for _, config := range allConfigs.Configs() {
-		if zone, err := config.VPC.(*VPC).getZoneByIPBlock(ipb); err == nil {
+		if zone, err := config.VPC.(*commonvpc.VPC).GetZoneByIPBlock(ipb); err == nil {
 			return zone, nil
 		}
 	}
@@ -487,8 +488,8 @@ func (rt *routingTable) getIngressPath(dest *ipblock.IPBlock, destZone, srcZone 
 	// if there is a match in more than one zone - all options are valid
 	// TODO: currently just picking the first matched.. should return all valid options instead
 	logging.Debugf("consider all zones routes, dest zone unknown and src zone not matched or unknown")
-	vpc := rt.VPCRef.(*VPC)
-	for zone := range vpc.zones {
+	vpc := rt.VPCRef.(*commonvpc.VPC)
+	for zone := range vpc.Zones {
 		if zone == srcZone {
 			continue // already checked src zone above
 		}
@@ -560,7 +561,7 @@ func newIngressRoutingTableFromRoutes(routes []*route,
 	vpcResource *vpcmodel.VPCResource) *ingressRoutingTable {
 	routingTable, _ := newRoutingTable(routes, newSystemImplicitRT(vpcConfig), vpcResource)
 	return &ingressRoutingTable{
-		vpc:          vpcConfig.VPC.(*VPC),
+		vpc:          vpcConfig.VPC.(*commonvpc.VPC),
 		source:       tgwSource, // todo: support more sources to ingress RT
 		routingTable: *routingTable,
 	}
@@ -573,7 +574,7 @@ ingress routes enables you to customize routes on incoming traffic to a VPC from
 
 type ingressRoutingTable struct {
 	routingTable
-	vpc    *VPC
+	vpc    *commonvpc.VPC
 	source ingressRTSource // TGW / DL / public internet (ALB/CIS?) / another zone in the same vpc / 3-rd party appliance?
 	/*
 		source info:
@@ -613,13 +614,13 @@ func (irt *ingressRoutingTable) advertiseRoutes(vpcConfig *vpcmodel.VPCConfig) {
 			break // nothing to propagate if there is only one TGW connected to this vpc
 		}
 		// find the vpc (with tgw) to which this cidr Y belongs
-		var vpcB *VPC
+		var vpcB *commonvpc.VPC
 		var tgwAB *TransitGateway
 		for _, tgw := range tgws {
 			for _, vpc := range tgw.vpcs {
-				logging.Debugf("check tgw %s with vpc %s, AP %s", tgw.Name(), vpc.Name(), vpc.addressPrefixesIPBlock.ToCidrListString())
+				logging.Debugf("check tgw %s with vpc %s, AP %s", tgw.Name(), vpc.Name(), vpc.AddressPrefixesIPBlock.ToCidrListString())
 				// TODO: shouldn't be containment rather than intersection?? (works with intersection on hub-n-spoke config object)
-				if vpc.UID() != irt.vpc.UID() && routeCidr.Overlap(vpc.addressPrefixesIPBlock) {
+				if vpc.UID() != irt.vpc.UID() && routeCidr.Overlap(vpc.AddressPrefixesIPBlock) {
 					vpcB = vpc
 					tgwAB = tgw
 					logging.Debugf("found tgwAB: %s,  vpcB: %s ", tgwAB.Name(), vpcB.Name())
@@ -654,7 +655,7 @@ func (irt *ingressRoutingTable) advertiseRoutes(vpcConfig *vpcmodel.VPCConfig) {
 	}
 }
 
-func updateTGWWithAdvertisedRoute(tgw *TransitGateway, vpc *VPC, cidr *ipblock.IPBlock) {
+func updateTGWWithAdvertisedRoute(tgw *TransitGateway, vpc *commonvpc.VPC, cidr *ipblock.IPBlock) {
 	_, ok := tgw.availableRoutes[vpc.UID()]
 	if !ok {
 		tgw.availableRoutes[vpc.UID()] = []*ipblock.IPBlock{}
@@ -677,18 +678,18 @@ or to another VM in same or different zone.
 */
 type egressRoutingTable struct {
 	routingTable
-	subnets []*Subnet
-	vpc     *VPC
+	subnets []*commonvpc.Subnet
+	vpc     *commonvpc.VPC
 }
 
 func newEgressRoutingTableFromRoutes(routes []*route,
-	subnets []*Subnet,
+	subnets []*commonvpc.Subnet,
 	vpcConfig *vpcmodel.VPCConfig,
 	vpcResource *vpcmodel.VPCResource) *egressRoutingTable {
 	routingTable, _ := newRoutingTable(routes, newSystemImplicitRT(vpcConfig), vpcResource)
 	return &egressRoutingTable{
 		routingTable: *routingTable,
 		subnets:      subnets,
-		vpc:          vpcConfig.VPC.(*VPC),
+		vpc:          vpcConfig.VPC.(*commonvpc.VPC),
 	}
 }

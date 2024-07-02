@@ -16,6 +16,7 @@ import (
 
 	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
 	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -55,7 +56,7 @@ func newTGWConn() *datamodel.TransitConnection {
 }
 
 func newTGWForTest(name string) *TransitGateway {
-	return newTGW(name, name, "", map[string]*Region{}, nil)
+	return newTGW(name, name, "", map[string]*commonvpc.Region{}, nil)
 }
 
 func addTGWConfig(tgwObj *TransitGateway, configs *vpcmodel.MultipleVPCConfigs) {
@@ -72,10 +73,10 @@ func pathFromNextHopValues(nextHop, origDest string) vpcmodel.Path {
 
 func newHubSpokeBase1Config() (*vpcmodel.MultipleVPCConfigs, *GlobalRTAnalyzer) {
 	vpcTransit, _ := newVPC("transit", "transit", "", map[string][]string{"us-south-1": {"10.1.15.0/24"},
-		"us-south-2": {"10.2.15.0/24"}}, map[string]*Region{})
+		"us-south-2": {"10.2.15.0/24"}}, map[string]*commonvpc.Region{})
 	vpcSpoke, _ := newVPC("spoke", "spoke", "", map[string][]string{"us-south-1": {"10.1.0.0/24"},
-		"us-south-2": {"10.2.0.0/24"}}, map[string]*Region{})
-	vpcEnterprise, _ := newVPC("enterprise", "enterprise", "", map[string][]string{"z1": {"192.168.0.0/16"}}, map[string]*Region{})
+		"us-south-2": {"10.2.0.0/24"}}, map[string]*commonvpc.Region{})
+	vpcEnterprise, _ := newVPC("enterprise", "enterprise", "", map[string][]string{"z1": {"192.168.0.0/16"}}, map[string]*commonvpc.Region{})
 
 	workerSubnetTransit, _ := newSubnet("workerSubnetTransit", "workerSubnetTransit", "us-south-1", "10.1.15.0/26", vpcTransit)
 	workerSubnetSpoke, _ := newSubnet("workerSubnetSpoke", "workerSubnetSpoke", "us-south-1", "10.1.0.0/26", vpcSpoke)
@@ -95,10 +96,11 @@ func newHubSpokeBase1Config() (*vpcmodel.MultipleVPCConfigs, *GlobalRTAnalyzer) 
 	enterpriseTestInstance, _ := newNetworkInterface("enterpriseTestInstance", "enterpriseTestInstance",
 		"z1", "192.168.0.4", "enterpriseTestInstanceVSI", vpcEnterprise)
 
-	vpcConfTransit := genConfig(vpcTransit, []*Subnet{workerSubnetTransit, firewallSubnetTransit},
+	vpcConfTransit := genConfig(vpcTransit, []*commonvpc.Subnet{workerSubnetTransit, firewallSubnetTransit},
 		[]*NetworkInterface{transitTestInstance, transitTestInstance2, firewallInstance}, nil, nil)
-	vpcConfSpoke := genConfig(vpcSpoke, []*Subnet{workerSubnetSpoke}, []*NetworkInterface{spokeTestInstance}, nil, nil)
-	vpcConfEnterprise := genConfig(vpcEnterprise, []*Subnet{workerSubnetEnterprise}, []*NetworkInterface{enterpriseTestInstance}, nil, nil)
+	vpcConfSpoke := genConfig(vpcSpoke, []*commonvpc.Subnet{workerSubnetSpoke}, []*NetworkInterface{spokeTestInstance}, nil, nil)
+	vpcConfEnterprise := genConfig(vpcEnterprise, []*commonvpc.Subnet{workerSubnetEnterprise},
+		[]*NetworkInterface{enterpriseTestInstance}, nil, nil)
 
 	globalConfig := vpcmodel.NewMultipleVPCConfigs("")
 	globalConfig.AddConfig(vpcConfTransit)
@@ -234,10 +236,10 @@ func newHubSpokeBase4Config() (*vpcmodel.MultipleVPCConfigs, *GlobalRTAnalyzer) 
 	return globalConfig, analyzer
 }
 
-func getSubnetsByUIDs(config *vpcmodel.VPCConfig, uids []string) (res []*Subnet) {
+func getSubnetsByUIDs(config *vpcmodel.VPCConfig, uids []string) (res []*commonvpc.Subnet) {
 	for _, s := range config.NodeSets {
 		if slices.Contains(uids, s.UID()) {
-			res = append(res, s.(*Subnet))
+			res = append(res, s.(*commonvpc.Subnet))
 		}
 	}
 	return res

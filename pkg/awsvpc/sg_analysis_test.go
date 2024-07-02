@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/stretchr/testify/require"
 
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -66,23 +67,23 @@ func TestSGRule(t *testing.T) {
 	sg := types.SecurityGroup{}
 	err := json.Unmarshal([]byte(sgJSON), &sg)
 	require.Nil(t, err)
-	sgResource := &SecurityGroup{
+	sgResource := &commonvpc.SecurityGroup{
 		VPCResource: vpcmodel.VPCResource{
 			ResourceUID:  *sg.GroupId,
 			ResourceType: ResourceTypeSG,
 			VPCRef:       nil,
 			Region:       "",
 		},
-		analyzer: NewSGAnalyzer(&sg), members: map[string]vpcmodel.Node{},
+		Analyzer: commonvpc.NewSGAnalyzer(NewSpecificAnalyzer(&sg)), Members: map[string]vpcmodel.Node{},
 	}
-	ruleStr, sgRule, _, err := sgResource.analyzer.getSGRule(0)
+	ruleStr, sgRule, _, err := sgResource.Analyzer.SgAnalyzer.GetSGRule(0)
 	require.Nil(t, err)
-	require.Equal(t, sgRule.ipRanges.String(), "0.0.0.0/0")
-	require.Equal(t, sgRule.index, 0)
+	require.Equal(t, sgRule.Remote.Cidr.String(), "0.0.0.0/0")
+	require.Equal(t, sgRule.Index, 0)
 	require.Equal(t, ruleStr, "index: 0, direction: inbound,  conns: protocol: -1, ipRanges: 0.0.0.0/0\n")
-	ruleStr, sgRule, _, err = sgResource.analyzer.getSGRule(1)
+	ruleStr, sgRule, _, err = sgResource.Analyzer.SgAnalyzer.GetSGRule(1)
 	require.Nil(t, err)
-	require.Equal(t, sgRule.ipRanges.String(), "0.0.0.0/0")
-	require.Equal(t, sgRule.index, 1)
+	require.Equal(t, sgRule.Remote.Cidr.String(), "0.0.0.0/0")
+	require.Equal(t, sgRule.Index, 1)
 	require.Equal(t, ruleStr, "index: 1, direction: outbound,  conns: protocol: -1, ipRanges: 0.0.0.0/0\n")
 }
