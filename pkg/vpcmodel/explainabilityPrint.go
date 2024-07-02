@@ -199,8 +199,7 @@ func (g *groupedConnLine) explainPerCaseStr(c *VPCConfig, src, dst EndpointElem,
 		return fmt.Sprintf("%vAll connections will be blocked since transit gateway denies route from source to destination"+tripleNLVars,
 			noConnection, headerPlusPath, details)
 	case externalRouter == nil && src.IsExternal():
-		return fmt.Sprintf("%vno fip and src is external (fip is required for "+
-			"outbound external connection)\n", noConnection)
+		return fmt.Sprintf("%v\tThere is no resource enabling inbound external connectivity\n", noConnection)
 	case externalRouter == nil && dst.IsExternal():
 		return fmt.Sprintf("%v\tThe dst is external but there is no Floating IP or Public Gateway connecting to public internet\n",
 			noConnection)
@@ -518,18 +517,16 @@ func getLayersToPrint(filtersRelevant map[string]bool, isIngress bool) (filterLa
 
 func respondString(d *detailedConn) string {
 	switch {
-	case d.allConn.Equal(d.nonTCP):
-		// no tcp component - ill-relevant
+	case d.allConn.Equal(d.nonTCP) || d.tcpRspDisable.IsEmpty():
+		// no tcp component - ill-relevant; entire TCP connection is responsive - nothing to print
 		return ""
 	case d.tcpRspEnable.IsEmpty():
 		// no tcp responsive component
 		return "\n\tTCP response is blocked"
-	case d.tcpRspEnable.Equal(d.allConn):
-		// tcp responsive component is the entire connection
-		return "\n\tThe entire connection is TCP responsive"
-	case d.tcpRspDisable.IsEmpty():
-		return "\n\tThe TCP sub-connection is responsive"
 	default:
-		return "\n\tTCP response is enabled for: " + d.tcpRspEnable.String()
+		disabledToPrint := strings.ReplaceAll(d.tcpRspDisable.String(),
+			"protocol: ", "")
+		disabledToPrint = strings.ReplaceAll(disabledToPrint, "TCP ", "")
+		return "\n\tHowever, TCP response is blocked for: " + disabledToPrint
 	}
 }
