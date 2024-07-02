@@ -144,7 +144,11 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 	egressRulesDetails, ingressRulesDetails := rules.ruleDetailsStr(c, filtersRelevant, needEgress, needIngress)
 	conn := g.commonProperties.conn
 	if verbose {
-		details = "\nDetails:\n~~~~~~~~\nPath is enabled by the following rules:\n" +
+		enabledOrDisabledStr := "enabled"
+		if conn.allConn.IsEmpty() {
+			enabledOrDisabledStr = "disabled"
+		}
+		details = "\nDetails:\n~~~~~~~~\nPath is " + enabledOrDisabledStr + "; The relevant rules are:\n" +
 			egressRulesDetails + crossRouterFilterDetails + ingressRulesDetails
 		if respondRulesRelevant(conn, filtersRelevant, crossVpcRouter) {
 			respondEgressDetails, respondsIngressDetails, crossVpcRespondDetails := "", "", ""
@@ -169,11 +173,11 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 func respondDetailsHeader(d *detailedConn) string {
 	switch {
 	case d.tcpRspDisable.IsEmpty():
-		return "TCP response is enabled by the following rules:\n"
+		return "TCP response is enabled; The relevant rules are:\n"
 	case d.tcpRspEnable.IsEmpty():
-		return "TCP response is disabled by the following rules:\n"
+		return "TCP response is disabled; The relevant rules are:\n"
 	default:
-		return "TCP response is partly enabled by the following rules:\n"
+		return "TCP response is partly enabled; The relevant rules are:\n"
 	}
 }
 
