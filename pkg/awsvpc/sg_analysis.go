@@ -52,9 +52,7 @@ func getTCPUDPConns(p string, srcPortMin, srcPortMax, dstPortMin, dstPortMax int
 func (sga *SpecificAnalyzer) getProtocolAllRule(ruleObj *types.IpPermission, direction string) (
 	ruleStr string, ruleRes *commonvpc.SGRule, err error) {
 	ruleRes = &commonvpc.SGRule{}
-	protocol := *ruleObj.IpProtocol
-
-	connStr := fmt.Sprintf("protocol: %s", protocol)
+	connStr := "protocol: all"
 	remote := ipblock.New()
 	for i := range ruleObj.IpRanges {
 		ipRange, err := ipblock.FromCidr(*ruleObj.IpRanges[i].CidrIp)
@@ -77,14 +75,14 @@ func (sga *SpecificAnalyzer) getProtocolTcpudpRule(ruleObj *types.IpPermission, 
 	dstPortMax := getProperty(&maxPort, connection.MaxPort)
 	dstPorts := fmt.Sprintf("%d-%d", dstPortMin, dstPortMax)
 	connStr := fmt.Sprintf("protocol: %s,  dstPorts: %s", *ruleObj.IpProtocol, dstPorts)
+	remote := ipblock.New()
 	for i := range ruleObj.IpRanges {
 		ipRange, err := ipblock.FromCidr(*ruleObj.IpRanges[i].CidrIp)
 		if err != nil {
 			return "", nil, err
 		}
-		ruleRes.Remote.Cidr = ruleRes.Remote.Cidr.Union(ipRange)
+		remote = remote.Union(ipRange)
 	}
-	ruleStr = getRuleStr(direction, connStr, ruleRes.Remote.Cidr.String())
 	ruleRes = &commonvpc.SGRule{
 		// TODO: src ports can be considered here?
 		Connections: getTCPUDPConns(*ruleObj.IpProtocol,
@@ -93,7 +91,9 @@ func (sga *SpecificAnalyzer) getProtocolTcpudpRule(ruleObj *types.IpPermission, 
 			dstPortMin,
 			dstPortMax,
 		),
+		Remote: &commonvpc.RuleTarget{Cidr: remote, SgName: ""},
 	}
+	ruleStr = getRuleStr(direction, connStr, ruleRes.Remote.Cidr.String())
 	return ruleStr, ruleRes, nil
 }
 
@@ -115,16 +115,18 @@ func (sga *SpecificAnalyzer) getProtocolIcmpRule(ruleObj *types.IpPermission, di
 	maxPort := int64(*ruleObj.ToPort)
 	conns := getICMPconn(&minPort, &maxPort)
 	connStr := fmt.Sprintf("protocol: %s,  icmpType: %s", *ruleObj.IpProtocol, conns)
+	remote := ipblock.New()
 	for i := range ruleObj.IpRanges {
 		ipRange, err := ipblock.FromCidr(*ruleObj.IpRanges[i].CidrIp)
 		if err != nil {
 			return "", nil, err
 		}
-		ruleRes.Remote.Cidr = ruleRes.Remote.Cidr.Union(ipRange)
+		remote = remote.Union(ipRange)
 	}
 	ruleStr = getRuleStr(direction, connStr, ruleRes.Remote.Cidr.String())
 	ruleRes = &commonvpc.SGRule{
 		Connections: conns,
+		Remote:      &commonvpc.RuleTarget{Cidr: remote, SgName: ""},
 	}
 	return
 }
