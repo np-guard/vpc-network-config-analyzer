@@ -185,7 +185,7 @@ var expectedConnStrTest2 = `=================================== distributed inbo
 10.240.10.4 => 10.240.20.4 : All Connections
 10.240.20.4 => 10.240.10.4 : No Connections
 =================================== combined connections - short version:
-vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections * 
+vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : TCP * ; ICMP,UDP
 =================================== responsive combined connections - short version:
 vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : protocol: ICMP,UDP
 `
@@ -203,7 +203,7 @@ var expectedConnStrTest2a = `=================================== distributed inb
 10.240.10.4 => 10.240.20.4 : protocol: ICMP
 10.240.20.4 => 10.240.10.4 : No Connections
 =================================== combined connections - short version:
-vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : protocol: ICMP
+vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : ICMP
 =================================== responsive combined connections - short version:
 vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : protocol: ICMP
 ` // ICMP is actually enabled only unidirectional in this case, but responsive analysis does not apply to ICMP
@@ -222,7 +222,7 @@ var expectedConnStrTest3 = `=================================== distributed inbo
 10.240.20.4 => 10.240.10.4 : protocol: TCP
 =================================== combined connections - short version:
 vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections
-vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : protocol: TCP
+vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : TCP
 =================================== responsive combined connections - short version:
 vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections
 vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : protocol: TCP
@@ -241,8 +241,8 @@ var expectedConnStrTest4 = `=================================== distributed inbo
 10.240.10.4 => 10.240.20.4 : protocol: TCP src-ports: 10-100 dst-ports: 443
 10.240.20.4 => 10.240.10.4 : protocol: TCP src-ports: 443 dst-ports: 10-100
 =================================== combined connections - short version:
-vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : protocol: TCP src-ports: 10-100 dst-ports: 443
-vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : protocol: TCP src-ports: 443 dst-ports: 10-100
+vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : TCP src-ports: 10-100 dst-ports: 443
+vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : TCP src-ports: 443 dst-ports: 10-100
 =================================== responsive combined connections - short version:
 vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : protocol: TCP src-ports: 10-100 dst-ports: 443
 vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : protocol: TCP src-ports: 443 dst-ports: 10-100
