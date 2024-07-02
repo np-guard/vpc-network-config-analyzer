@@ -493,9 +493,6 @@ func respondString(d *detailedConn) string {
 	case d.tcpRspEnable.IsEmpty():
 		// no tcp responsive component
 		return "\n\tTCP response is blocked"
-	case d.tcpRspEnable.Equal(d.allConn):
-		// tcp responsive component is the entire connection
-		return "\n\tThe entire connection is TCP responsive"
 	default:
 		disabledToPrint := strings.ReplaceAll(d.tcpRspDisable.String(),
 			"protocol: ", "")
