@@ -80,10 +80,57 @@ func TestSGRule(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, sgRule.Remote.Cidr.String(), "0.0.0.0/0")
 	require.Equal(t, sgRule.Index, 0)
-	require.Equal(t, ruleStr, "index: 0, direction: inbound,  conns: protocol: -1, ipRanges: 0.0.0.0/0\n")
+	require.Equal(t, ruleStr, "index: 0, direction: inbound,  conns: protocol: all, ipRanges: 0.0.0.0/0\n")
 	ruleStr, sgRule, _, err = sgResource.Analyzer.SgAnalyzer.GetSGRule(1)
 	require.Nil(t, err)
 	require.Equal(t, sgRule.Remote.Cidr.String(), "0.0.0.0/0")
 	require.Equal(t, sgRule.Index, 1)
-	require.Equal(t, ruleStr, "index: 1, direction: outbound,  conns: protocol: -1, ipRanges: 0.0.0.0/0\n")
+	require.Equal(t, ruleStr, "index: 1, direction: outbound,  conns: protocol: all, ipRanges: 0.0.0.0/0\n")
+}
+
+func newSGobj(groupID, groupName, vpcID string, ipPermissions []types.IpPermission,
+	ipPermissionsEgress []types.IpPermission) types.SecurityGroup {
+	return types.SecurityGroup{GroupId: &groupID, GroupName: &groupName, IpPermissions: ipPermissions,
+		IpPermissionsEgress: ipPermissionsEgress, VpcId: &vpcID}
+}
+
+func newIPPermission(fromPort, toPort int32, ipProtocol string, ipRanges []types.IpRange) types.IpPermission {
+	return types.IpPermission{FromPort: &fromPort, ToPort: &toPort, IpProtocol: &ipProtocol, IpRanges: ipRanges}
+}
+
+func TestWithSgObj(t *testing.T) {
+	// ingress params
+	ingressRules := []types.IpPermission{}
+	ipRanges := []types.IpRange{}
+	cidr1 := "4.2.0.0/16"
+	ipRanges = append(ipRanges, types.IpRange{CidrIp: &cidr1})
+	ingressRules = append(ingressRules, newIPPermission(5, 1000, "tcp", ipRanges))
+
+	// egressParams
+	egressRules := []types.IpPermission{}
+	egressIPRanges := []types.IpRange{}
+	cidr2 := "0.0.0.0/0"
+	egressIPRanges = append(egressIPRanges, types.IpRange{CidrIp: &cidr2})
+	egressRules = append(egressRules, newIPPermission(23, 10030, "tcp", egressIPRanges))
+
+	sg := newSGobj("22", "ola", "", ingressRules, egressRules)
+	sgResource := &commonvpc.SecurityGroup{
+		VPCResource: vpcmodel.VPCResource{
+			ResourceUID:  *sg.GroupId,
+			ResourceType: ResourceTypeSG,
+			VPCRef:       nil,
+			Region:       "",
+		},
+		Analyzer: commonvpc.NewSGAnalyzer(NewSpecificAnalyzer(&sg)), Members: map[string]vpcmodel.Node{},
+	}
+	ruleStr, sgRule, _, err := sgResource.Analyzer.SgAnalyzer.GetSGRule(0)
+	require.Nil(t, err)
+	require.Equal(t, sgRule.Remote.Cidr.String(), "4.2.0.0/16")
+	require.Equal(t, sgRule.Index, 0)
+	require.Equal(t, ruleStr, "index: 0, direction: inbound,  conns: protocol: tcp,  dstPorts: 5-1000, ipRanges: 4.2.0.0/16\n")
+	ruleStr, sgRule, _, err = sgResource.Analyzer.SgAnalyzer.GetSGRule(1)
+	require.Nil(t, err)
+	require.Equal(t, sgRule.Remote.Cidr.String(), "0.0.0.0/0")
+	require.Equal(t, sgRule.Index, 1)
+	require.Equal(t, ruleStr, "index: 1, direction: outbound,  conns: protocol: tcp,  dstPorts: 23-10030, ipRanges: 0.0.0.0/0\n")
 }
