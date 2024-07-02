@@ -96,7 +96,7 @@ func TestSGRule(t *testing.T) {
 			VPCRef:       nil,
 			Region:       "",
 		},
-		analyzer: NewSGAnalyzer(&sg.SecurityGroup), members: map[string]vpcmodel.Node{},
+		analyzer: NewSGAnalyzer(&sg.SecurityGroup),
 	}
 	ruleStr, sgRule, _, err := sgResource.analyzer.getSGRule(0)
 	require.Nil(t, err)

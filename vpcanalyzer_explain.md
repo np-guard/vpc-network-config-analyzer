@@ -34,7 +34,6 @@ vpcanalyzer explain [flags]
 
 ### Options inherited from parent commands
 ```
-      --debug                    runs in debug mode
       --dump-resources string    file path to store resources collected from the cloud provider
   -o, --format string            output format; must be one of [json, txt, md, drawio, arch_drawio, svg, arch_svg, html, arch_html, debug]
       --output-file string       file path to store results

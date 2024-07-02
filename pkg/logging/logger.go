@@ -47,10 +47,13 @@ func Init(verbosity Verbosity) {
 		logger = *NewDefaultLoggerWithVerbosity(verbosity)
 	})
 }
+func DebugVerbosity() bool   { return logger.verbosity == HighVerbosity }
+func InfoVerbosity() bool    { return logger.verbosity == HighVerbosity }
+func WarningVerbosity() bool { return logger.verbosity >= MediumVerbosity }
 
 // Debugf writes a debug message to the log (only if DefaultLogger verbosity is set to HighVerbosity)
 func Debugf(format string, o ...interface{}) {
-	if logger.verbosity == HighVerbosity {
+	if DebugVerbosity() {
 		pc, _, _, _ := runtime.Caller(1)
 		details := runtime.FuncForPC(pc)
 		logger.l.Printf("DEBUG	%s	%s", details.Name(), fmt.Sprintf(format, o...))
@@ -59,14 +62,14 @@ func Debugf(format string, o ...interface{}) {
 
 // Infof writes an informative message to the log (only if DefaultLogger verbosity is set to HighVerbosity)
 func Infof(format string, o ...interface{}) {
-	if logger.verbosity == HighVerbosity {
+	if InfoVerbosity() {
 		logger.l.Printf("INFO	%s", fmt.Sprintf(format, o...))
 	}
 }
 
 // Warnf writes a warning message to the log (unless DefaultLogger verbosity is set to LowVerbosity)
 func Warnf(format string, o ...interface{}) {
-	if logger.verbosity >= MediumVerbosity {
+	if WarningVerbosity() {
 		logger.l.Printf("WARN	%s", fmt.Sprintf(format, o...))
 	}
 }
