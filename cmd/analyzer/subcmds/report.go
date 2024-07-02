@@ -81,7 +81,7 @@ func newReportSingleSubnetCommand(args *inArgs) *cobra.Command {
 }
 
 func newReportRoutingCommand(args *inArgs) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "routing",
 		Short: "Report VPC routing paths between given endpoints",
 		Long:  `reports VPC routing paths between given endpoints as implied by the given cloud configuration`,
@@ -90,4 +90,8 @@ func newReportRoutingCommand(args *inArgs) *cobra.Command {
 			return routingAnalysis(args)
 		},
 	}
+	cmd.Flags().StringVar(&args.eSrc, srcFlag, "", "source "+srcDstUsage)
+	cmd.Flags().StringVar(&args.eDst, dstFlag, "", "destination "+srcDstUsage)
+
+	return cmd
 }

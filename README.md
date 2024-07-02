@@ -12,7 +12,6 @@ Run the `vpcanalyzer` CLI tool with one of the following commands.
 
 ### Global options
 ```
-      --debug                    runs in debug mode
       --dump-resources string    file path to store resources collected from the cloud provider
   -o, --format string            output format; must be one of [json, txt, md, drawio, arch_drawio, svg, arch_svg, html, arch_html, debug]
   -h, --help                     help for vpcanalyzer
