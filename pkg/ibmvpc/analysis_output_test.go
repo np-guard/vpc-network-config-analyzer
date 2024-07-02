@@ -688,6 +688,50 @@ var tests = []*vpcGeneralTest{
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		format:      vpcmodel.Text,
 	},
+	// filters_split_lb_subnet example has one load balancer with three subnets, subnets Cidrs:
+	//  10.240.65.0/24
+	//  10.240.1.0/24
+	//  10.240.129.0/24
+
+	// acl filters with the following cidr:
+	//  10.240.129.0/25
+
+	// sg filters with the following Cidrs:
+	//  10.240.1.0/25
+	//  10.240.65.0/25
+
+	// as a result:
+	// 1. each subnet has two private IPs
+	// 2. after abstraction, all connections from/to the LB are marked with **, (i.e. the abstraction did over approximation)
+	// for example here only four private IPs are connected to vsi1-sub3[10.240.128.5]:
+	//     vsi1-sub3[10.240.128.5] => alb[Fake LB private IP][10.240.1.128] : All Connections
+	//     vsi1-sub3[10.240.128.5] => alb[Fake LB private IP][10.240.1.4] : All Connections
+	//     vsi1-sub3[10.240.128.5] => alb[Fake LB private IP][10.240.129.128] : All Connections
+	//     vsi1-sub3[10.240.128.5] => alb[Fake LB private IP][10.240.65.128] : All Connections
+	//     vsi1-sub3[10.240.128.5] => alb[LB private IP][10.240.65.4] : All Connections
+	// is over approximated to:
+	//	   vsi1-sub3[10.240.128.5] => alb[LoadBalancer] : All Connections **
+
+	{
+		inputConfig:  "filters_split_lb_subnet",
+		useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:       vpcmodel.Text,
+		grouping:     false,
+		noLbAbstract: true,
+	},
+	{
+		inputConfig: "filters_split_lb_subnet",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:      vpcmodel.Text,
+		grouping:    false,
+	},
+	{
+		inputConfig:  "filters_split_lb_subnet",
+		useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:       vpcmodel.HTML,
+		grouping:     true,
+		noLbAbstract: true,
+	},
 	{
 		inputConfig: "hub_n_spoke_1",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
@@ -697,9 +741,9 @@ var tests = []*vpcGeneralTest{
 	{
 		inputConfig:  "hub_n_spoke_1",
 		useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		noLbAbstract: true,
-		grouping:     true,
 		format:       vpcmodel.HTML,
+		grouping:     true,
+		noLbAbstract: true,
 	},
 }
 
