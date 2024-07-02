@@ -11,7 +11,7 @@ Path:
 
 Details:
 ~~~~~~~~
-Path is enabled by the following rules:
+Path is enabled; The relevant rules are:
 	Egress:
 		security group sg31-ky allows connection with the following allow rules
 			index: 1, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
@@ -24,7 +24,7 @@ Path is enabled by the following rules:
 		security group sg31-ky allows connection with the following allow rules
 			index: 0, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
 
-TCP response is enabled by the following rules:
+TCP response is enabled; The relevant rules are:
 	Egress:
 		network ACL acl31-ky allows connection with the following allow rules
 			index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow

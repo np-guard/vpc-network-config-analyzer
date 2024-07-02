@@ -15,7 +15,7 @@ Path:
 
 Details:
 ~~~~~~~~
-Path is enabled by the following rules:
+Path is disabled; The relevant rules are:
 	Egress:
 		security group sg21-ky allows connection with the following allow rules
 			index: 1, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0

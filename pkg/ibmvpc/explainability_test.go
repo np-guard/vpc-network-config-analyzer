@@ -543,7 +543,14 @@ var explainTests = []*vpcGeneralTest{
 		EDst:        "10.240.12.4", // vsi2 of test-vpc1-ky
 		format:      vpcmodel.Debug,
 	},
-
+	// TCP respond disabled by the tgw
+	{
+		name:        "tgwDisablesTCPRespond",
+		inputConfig: "tg-prefix-filters",
+		ESrc:        "ky-vsi0-subnet0",
+		EDst:        "ky-vsi0-subnet10",
+		format:      vpcmodel.Debug,
+	},
 	// iks-node to iks-node
 	{
 		name:        "IksNodeToIksNode",
