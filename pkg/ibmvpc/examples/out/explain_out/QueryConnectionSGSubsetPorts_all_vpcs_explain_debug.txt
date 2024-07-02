@@ -2,7 +2,6 @@ Explaining connectivity from 147.235.219.206/32 to vsi2-ky within test-vpc1-ky u
 =====================================================================================================================
 
 Connections are allowed from Public Internet 147.235.219.206/32 to vsi2-ky[10.240.20.4] using "protocol: TCP dst-ports: 22"
-	The entire connection is TCP responsive
 (note that not all queried protocols/ports are allowed)
 
 Path:

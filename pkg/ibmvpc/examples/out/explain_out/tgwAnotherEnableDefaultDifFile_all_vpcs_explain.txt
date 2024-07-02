@@ -2,7 +2,6 @@ Explaining connectivity from vsi11-ky to vsi21a-ky
 ==================================================
 
 Allowed connections from test-vpc1-ky/vsi11-ky[10.240.11.4] to test-vpc2-ky/vsi21a-ky[10.240.64.4]: All Connections
-	The TCP sub-connection is responsive
 
 Path:
 	vsi11-ky[10.240.11.4] -> security group sg11-ky -> subnet11-ky -> network ACL acl11-ky -> 
