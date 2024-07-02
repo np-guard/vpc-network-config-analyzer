@@ -265,7 +265,8 @@ func disjointCidrs(cidrs []string) ([]*ipblock.IPBlock, error) {
 	}
 	return disjointBlocks, nil
 }
-////////////////////////////////////////////////////
+
+// //////////////////////////////////////////////////
 // todo: this file should be at vpcmodel, after moving out the reference to rc *datamodel.ResourcesContainerModel
 // these following three function should be part of the ibmvpc package:
 func getACLRulesCidrs(rc *datamodel.ResourcesContainerModel, skipByVPC map[string]bool) (map[string][]*string, error) {
