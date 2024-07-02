@@ -76,7 +76,7 @@ func mergeResourcesContainers(rc1, rc2 *aws.ResourcesContainer) (*aws.ResourcesC
 	return rc1, nil
 }
 
-func VpcConfigsFromFiles(fileNames []string, vpcID string, resourceGroup string, regions []string) (
+func VpcConfigsFromFiles(fileNames []string, vpcID, resourceGroup string, regions []string) (
 	*vpcmodel.MultipleVPCConfigs, error) {
 	var mergedRC *aws.ResourcesContainer
 	for _, file := range fileNames {
@@ -108,8 +108,6 @@ func filterByVpc(rc *aws.ResourcesContainer, vpcID string) map[string]bool {
 
 // VPCConfigsFromResources returns a map from VPC UID (string) to its corresponding VPCConfig object,
 // containing the parsed resources in the relevant model objects
-//
-//nolint:funlen // serial list of commands, no need to spill it
 func VPCConfigsFromResources(rc *aws.ResourcesContainer, vpcID, resourceGroup string, regions []string) (
 	*vpcmodel.MultipleVPCConfigs, error) {
 	res := vpcmodel.NewMultipleVPCConfigs("AWS Cloud") // map from VPC UID to its config
