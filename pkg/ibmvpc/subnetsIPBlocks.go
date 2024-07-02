@@ -10,9 +10,10 @@ import (
 	"slices"
 	"sort"
 
+	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
+
 	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
 	"github.com/np-guard/models/pkg/ipblock"
-	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
 )
 
 // ///////////////////////////////////////////////////////////////////////
