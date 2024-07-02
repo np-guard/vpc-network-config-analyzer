@@ -33,7 +33,7 @@ type explainDetails struct {
 	crossVpcRouter       RoutingResource
 	crossVpcRules        []RulesInTable
 	crossVPCRespondRules []RulesInTable
-	loadBalancerRule     *LoadBalancerRule
+	loadBalancerRule     LoadBalancerRule
 	filtersRelevant      map[string]bool
 	connEnabled          bool
 	ingressEnabled       bool

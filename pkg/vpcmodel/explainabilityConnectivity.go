@@ -45,7 +45,7 @@ type srcDstDetails struct {
 	// there could be more than one connection effecting the connection since src/dst cidr's may contain more than one AP
 
 	// loadBalancerRule - the lb rule affecting this connection.
-	loadBalancerRule *LoadBalancerRule
+	loadBalancerRule LoadBalancerRule
 	// filters relevant for this src, dst pair; map keys are the filters kind (NaclLayer/SecurityGroupLayer)
 	// for two internal nodes within same subnet, only SG layer is relevant
 	// for external connectivity (src/dst is external) with FIP, only SG layer is relevant
