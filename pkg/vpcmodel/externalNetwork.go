@@ -83,6 +83,11 @@ func (exn *ExternalNetwork) IsPublicInternet() bool {
 	return exn.isPublicInternet
 }
 
+// only lb are abstracted, so only pip has AbstractedToNodeSet
+func (exn *ExternalNetwork) AbstractedToNodeSet() NodeSet {
+	return nil
+}
+
 func (exn *ExternalNetwork) Kind() string {
 	return externalNetworkNodeKind
 }

@@ -44,6 +44,8 @@ type srcDstDetails struct {
 	crossVpcRules  []RulesInTable  // cross vpc (only tgw at the moment) prefix rules effecting the connection (or lack of)
 	// there could be more than one connection effecting the connection since src/dst cidr's may contain more than one AP
 
+	// loadBalancerRule - the lb rule affecting this connection.
+	loadBalancerRule LoadBalancerRule
 	// filters relevant for this src, dst pair; map keys are the filters kind (NaclLayer/SecurityGroupLayer)
 	// for two internal nodes within same subnet, only SG layer is relevant
 	// for external connectivity (src/dst is external) with FIP, only SG layer is relevant
@@ -174,16 +176,18 @@ func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node,
 
 // computeRoutersAndFilters computes for each  <src, dst> :
 // 1. The tgw routingResource, if exists
-// 2. The external routingResource, if exists
+// 2. The load balancer rule
+// 3. The external routingResource, if exists
 // Note that at most one of the routingResource exists for any <src, dst>
-// 2. The external filters relevant to the <src, dst> given the external routingResource
-// 3. The internal filters relevant to the <src, dst>
-// 4. The actual relevant filter, depending on whether src xor dst is external
+// 4. The external filters relevant to the <src, dst> given the external routingResource
+// 5. The internal filters relevant to the <src, dst>
+// 6. The actual relevant filter, depending on whether src xor dst is external
 func (details *rulesAndConnDetails) computeRoutersAndFilters(c *VPCConfig) (err error) {
 	for _, singleSrcDstDetails := range *details {
 		// RoutingResources are computed by the parser for []Nodes of the VPC,
 		src := singleSrcDstDetails.src
 		dst := singleSrcDstDetails.dst
+		singleSrcDstDetails.loadBalancerRule = c.getLoadBalancerRule(src, dst)
 		if src.IsInternal() && dst.IsInternal() { // internal (including cross vpcs)
 			singleSrcDstDetails.crossVpcRouter, _, err = c.getRoutingResource(src, dst)
 			if err != nil {
@@ -407,11 +411,19 @@ func (rules rulesInLayers) updateRulesPerLayerIfNonEmpty(layer string, rulesFilt
 	}
 }
 
-// node is from getCidrExternalNodes, thus there is a node in VPCConfig that either equal to or contains it.
-func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
-	if node.IsInternal() { // node is not external - nothing to do
+// given a node, we need to find the resource that represent the node in the connectivity
+func (c *VPCConfig) getConnectedResource(node Node) (VPCResourceIntf, error) {
+	if AbstractedToNodeSet := node.AbstractedToNodeSet(); AbstractedToNodeSet != nil {
+		// if the node is part of abstraction - return the abstracted nodeSet:
+		return AbstractedToNodeSet, nil
+	} else if node.IsInternal() {
 		return node, nil
 	}
+	return c.getContainingConfigNode(node)
+}
+
+// node is from getCidrExternalNodes, thus there is a node in VPCConfig that either equal to or contains it.
+func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
 	nodeIPBlock := node.IPBlock()
 	if nodeIPBlock == nil { // string cidr does not represent a legal cidr, would be handled earlier
 		return nil, fmt.Errorf("node %v does not refer to a legal IP", node.Name())
@@ -458,7 +470,7 @@ func (details *rulesAndConnDetails) computeConnections(c *VPCConfig,
 // if src or dst is a node then the node is from getCidrExternalNodes,
 // thus there is a node in VPCConfig that either equal to or contains it.
 func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (conn *detailedConn, err error) {
-	srcForConnection, err1 := c.getContainingConfigNode(src)
+	srcForConnection, err1 := c.getConnectedResource(src)
 	if err1 != nil {
 		return nil, err1
 	}
@@ -466,7 +478,7 @@ func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (conn *deta
 	if srcForConnection == nil {
 		return nil, fmt.Errorf(errMsg, src.Name())
 	}
-	dstForConnection, err2 := c.getContainingConfigNode(dst)
+	dstForConnection, err2 := c.getConnectedResource(dst)
 	if err2 != nil {
 		return nil, err2
 	}

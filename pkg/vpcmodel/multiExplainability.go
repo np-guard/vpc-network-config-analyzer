@@ -82,12 +82,15 @@ func MultiExplain(srcDstCouples []explainInputEntry, vpcConns map[string]*VPCCon
 
 // given an EndpointElem, return []Node which is either:
 // 1. A single Node representing a VSI if the endpoints consists a single vsi
+// 2. A number of Nodes, all are private IPs of the load Balancer
 // 2. A number of Nodes, each representing an external address, if the endpoint is groupedExternalNodes
 // if the endpoint is neither, returns error
 func (c *VPCConfig) getNodesFromEndpoint(endpoint EndpointElem) ([]Node, error) {
 	switch n := endpoint.(type) {
 	case InternalNodeIntf:
 		return []Node{endpoint.(Node)}, nil
+	case LoadBalancer:
+		return n.Nodes(), nil
 	case *groupedExternalNodes:
 		var externalIP = ipblock.New()
 		for _, e := range *n {
@@ -145,7 +148,11 @@ func collectNodesForExplanation(cConfigs *MultipleVPCConfigs, conns map[string]*
 		if !vpcConfig.IsMultipleVPCsConfig {
 			for _, n := range vpcConfig.Nodes {
 				if !n.IsExternal() {
-					internalNodes[n] = vpcConfig
+					if abstractedToNodeSet := n.AbstractedToNodeSet(); abstractedToNodeSet != nil {
+						internalNodes[abstractedToNodeSet] = vpcConfig
+					} else {
+						internalNodes[n] = vpcConfig
+					}
 				}
 			}
 		}

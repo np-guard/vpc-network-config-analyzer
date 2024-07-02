@@ -33,6 +33,7 @@ type explainDetails struct {
 	crossVpcRouter       RoutingResource
 	crossVpcRules        []RulesInTable
 	crossVPCRespondRules []RulesInTable
+	loadBalancerRule     LoadBalancerRule
 	filtersRelevant      map[string]bool
 	connEnabled          bool
 	ingressEnabled       bool
@@ -355,7 +356,8 @@ func (g *GroupConnLines) groupExternalAddressesForExplainability() error {
 		expDetails := &explainDetails{rules: details.actualMergedRules,
 			respondRules: details.respondRules, externalRouter: details.externalRouter,
 			crossVpcRouter: details.crossVpcRouter, crossVpcRules: details.crossVpcRules,
-			crossVPCRespondRules: details.crossVpcRespondRules, filtersRelevant: details.filtersRelevant,
+			crossVPCRespondRules: details.crossVpcRespondRules,
+			loadBalancerRule:     details.loadBalancerRule, filtersRelevant: details.filtersRelevant,
 			connEnabled: details.connEnabled, ingressEnabled: details.ingressEnabled,
 			egressEnabled: details.egressEnabled}
 		err := g.addLineToExternalGrouping(&res, details.src, details.dst,
