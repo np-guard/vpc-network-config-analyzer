@@ -56,7 +56,7 @@ func jsonToMap(jsonStr []byte) (map[string]json.RawMessage, error) {
 }
 
 // parseProviderFromFile returns the provider (ibm or aws) from the input JSON file
-func parseProviderFromFile(fileName string) (string, error) {
+func parseProviderFromFile(fileName string) (common.Provider, error) {
 	inputConfigContent, err := os.ReadFile(fileName)
 	if err != nil {
 		return "", err
@@ -103,7 +103,7 @@ func vpcConfigsFromFiles(fileNames []string, inArgs *inArgs) (*vpcmodel.Multiple
 }
 
 func vpcConfigsFromAccount(inArgs *inArgs) (*vpcmodel.MultipleVPCConfigs, error) {
-	rc := factory.GetResourceContainer(string(inArgs.provider), inArgs.regionList, inArgs.resourceGroup)
+	rc := factory.GetResourceContainer(inArgs.provider, inArgs.regionList, inArgs.resourceGroup)
 	// Collect resources from the provider API and generate output
 	err := rc.CollectResourcesFromAPI()
 	if err != nil {
@@ -112,7 +112,7 @@ func vpcConfigsFromAccount(inArgs *inArgs) (*vpcmodel.MultipleVPCConfigs, error)
 
 	var vpcConfigs *vpcmodel.MultipleVPCConfigs
 	// todo: when analysis for other providers is available, select provider according to flag
-	if inArgs.provider.String() == common.IBM {
+	if inArgs.provider == common.IBM {
 		ibmResources, ok := rc.GetResources().(*datamodel.ResourcesContainerModel)
 		if !ok {
 			return nil, fmt.Errorf("error casting resources to *datamodel.ResourcesContainerModel type")

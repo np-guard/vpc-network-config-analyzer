@@ -20,6 +20,8 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/np-guard/cloud-resource-collector/pkg/common"
+
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/version"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
@@ -55,7 +57,7 @@ type inArgs struct {
 	eSrcMaxPort           int64
 	eDstMinPort           int64
 	eDstMaxPort           int64
-	provider              provider
+	provider              common.Provider
 	regionList            []string
 	resourceGroup         string
 	dumpResources         string
