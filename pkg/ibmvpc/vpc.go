@@ -291,9 +291,9 @@ func (lb *LoadBalancer) GetLoadBalancerRule(src, dst vpcmodel.Node) vpcmodel.Loa
 	// currently, we do not allow connections from privateIP to a destination that is not a pool member
 	if slices.Contains(lb.Nodes(), src) {
 		if !slices.Contains(lb.members(), dst) {
-			return NewLoadBalancerRule(lb, true)
+			return NewLoadBalancerRule(lb, true, src, dst)
 		}
-		return NewLoadBalancerRule(lb, false)
+		return NewLoadBalancerRule(lb, false, src, dst)
 	}
 	return nil
 }
@@ -321,28 +321,28 @@ func (lb *LoadBalancer) AbstractionInfo() *vpcmodel.AbstractionInfo {
 	return lb.abstractionInfo
 }
 
-//////////////////////////////////////////////////////////////////////////////////
+// ////////////////////////////////////////////////////////////////////////////////
 // LoadBalancerRule is a rule applied to all private IPs of a given load balancer:
 // these private IPs can only connect to pool members of the load balancer.
 type LoadBalancerRule struct {
 	// the relevant load balancer:
 	lb *LoadBalancer
 	//	deny- true if src is pip, and dst is not pool member:
-	deny bool
+	deny     bool
+	src, dst vpcmodel.Node
 }
 
-func NewLoadBalancerRule(lb *LoadBalancer, deny bool) vpcmodel.LoadBalancerRule {
-	return &LoadBalancerRule{lb, deny}
+func NewLoadBalancerRule(lb *LoadBalancer, deny bool, src, dst vpcmodel.Node) vpcmodel.LoadBalancerRule {
+	return &LoadBalancerRule{lb, deny, src, dst}
 }
 
 func (lbr *LoadBalancerRule) Deny() bool { return lbr.deny }
 
 func (lbr *LoadBalancerRule) String() string {
-	action := "allow"
 	if lbr.Deny() {
-		action = "blocks"
+		return fmt.Sprintf("%s blocks connection to %s since it is not one of its pool members\n", lbr.lb.Name(), lbr.dst.Name())
 	}
-	return fmt.Sprintf("load balancer %s %s connection to destinations which are its pool members\n", lbr.lb.Name(), action)
+	return fmt.Sprintf("%s allow connection to %s since it is one of its pool members\n", lbr.lb.Name(), lbr.dst.Name())
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
