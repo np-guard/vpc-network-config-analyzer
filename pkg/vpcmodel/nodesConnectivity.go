@@ -369,7 +369,7 @@ func (responsiveConnMap GeneralResponsiveConnectivityMap) getCombinedConnsStr(on
 				bidirectional := extConns.tcpRspEnable.Union(extConns.nonTCP)
 				connsStr = bidirectional.String()
 			} else {
-				connsStr = extConns.string()
+				connsStr = extConns.stringPerResponsive()
 			}
 			strList = append(strList, getConnectionStr(srcName, dstName, connsStr, ""))
 		}
