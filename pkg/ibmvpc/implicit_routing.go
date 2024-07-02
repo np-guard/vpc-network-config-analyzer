@@ -10,6 +10,7 @@ import (
 	"fmt"
 
 	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
@@ -40,7 +41,7 @@ If no match is found, the packet is dropped.
 This behavior can be avoided with a custom routing table default route with an action of drop.
 */
 type systemImplicitRT struct {
-	vpc       *VPC // parent VPC
+	vpc       *commonvpc.VPC // parent VPC
 	config    *systemRTConfig
 	vpcConfig *vpcmodel.VPCConfig
 	// TODO: should be per zone in vpc
@@ -49,7 +50,7 @@ type systemImplicitRT struct {
 func newSystemImplicitRT(vpcConfig *vpcmodel.VPCConfig) *systemImplicitRT {
 	return &systemImplicitRT{
 		// todo: add method getVPC() for vpcConfig instead of casting types here
-		vpc:       (vpcConfig.VPC).(*VPC),
+		vpc:       (vpcConfig.VPC).(*commonvpc.VPC),
 		config:    systemRTConfigFromVPCConfig(vpcConfig),
 		vpcConfig: vpcConfig,
 	}
