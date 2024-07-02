@@ -1441,47 +1441,6 @@ func getVPCObjectByUID(res *vpcmodel.MultipleVPCConfigs, uid string) (*VPC, erro
 	return vpc, nil
 }
 
-// ///////////////////////////////////////////////////////////////////////
-// getSubnetsFreeAddresses() and allocSubnetFreeAddress() are needed for load balancer parsing.
-// when a load balancer is created, Private IPs are not created in all the load balancer subnets.
-//
-//	however, we want to create one private IP for all the subnets.
-//
-// to create a private IP which does not exist in the config, we need an unused address.
-// See https://github.com/np-guard/vpc-network-config-analyzer/issues/560
-// getSubnetsFreeAddresses() collect all the free address of all subnets
-// allocSubnetFreeAddress() allocate a new address for a subnet
-func getSubnetsFreeAddresses(rc *datamodel.ResourcesContainerModel) (map[string]*ipblock.IPBlock, error) {
-	subnetsFreeAddresses := map[string]*ipblock.IPBlock{}
-	for _, subnetObj := range rc.SubnetList {
-		b, err := ipblock.FromCidr(*subnetObj.Ipv4CIDRBlock)
-		if err != nil {
-			return nil, err
-		}
-		// all the allocated IPs are at subnetObj.ReservedIps. (did not find documentation, it is what we experiment)
-		// see https://github.com/np-guard/vpc-network-config-analyzer/issues/566
-		for _, reservedIP := range subnetObj.ReservedIps {
-			b2, err := ipblock.FromIPAddress(*reservedIP.Address)
-			if err != nil {
-				return nil, err
-			}
-			b = b.Subtract(b2)
-		}
-		subnetsFreeAddresses[*subnetObj.CRN] = b
-	}
-	return subnetsFreeAddresses, nil
-}
-
-func allocSubnetFreeAddress(subnetsFreeAddresses map[string]*ipblock.IPBlock, subnetCRN string) (string, error) {
-	address := subnetsFreeAddresses[subnetCRN].FirstIPAddress()
-	addressBlock, err := ipblock.FromIPAddress(address)
-	if err != nil {
-		return "", err
-	}
-	subnetsFreeAddresses[subnetCRN] = subnetsFreeAddresses[subnetCRN].Subtract(addressBlock)
-	return address, nil
-}
-
 // ////////////////////////////////////////////////////////////////
 // Load Balancer Parsing:
 func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
@@ -1491,7 +1450,7 @@ func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 	if len(rc.LBList) == 0 {
 		return nil
 	}
-	subnetsFreeAddresses, err := getSubnetsFreeAddresses(rc)
+	subnetsIPBlocks, err := getSubnetsBlocks(rc, skipByVPC)
 	if err != nil {
 		return err
 	}
@@ -1521,7 +1480,7 @@ func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 		}
 
 		loadBalancer.listeners = getLoadBalancerServer(vpcConfig, loadBalancerObj)
-		privateIPs, err := getLoadBalancerIPs(vpcConfig, loadBalancerObj, loadBalancer, vpc, subnetsFreeAddresses)
+		privateIPs, err := getLoadBalancerIPs(vpcConfig, loadBalancerObj, loadBalancer, vpc, subnetsIPBlocks)
 		if err != nil {
 			return err
 		}
@@ -1608,10 +1567,11 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 	loadBalancerObj *datamodel.LoadBalancer,
 	loadBalancer *LoadBalancer,
 	vpc *VPC,
-	subnetsFreeAddresses map[string]*ipblock.IPBlock) ([]vpcmodel.Node, error) {
+	subnetsBlocks subnetsIPBlocks) ([]vpcmodel.Node, error) {
 	// first we collect  the subnets that has private IPs:
-	subnetsWithPrivateIPs := map[vpcmodel.Subnet]int{}
-	for i, pIP := range loadBalancerObj.PrivateIps {
+	subnetsPIPsAddresses := map[vpcmodel.Subnet]*ipblock.IPBlock{} // map from the subnet to the address block
+	subnetsPIPsIndexes := map[vpcmodel.Subnet]int{}                // map from a subnet to the pip index
+	for pipIndex, pIP := range loadBalancerObj.PrivateIps {
 		address, err := ipblock.FromIPAddress(*pIP.Address)
 		if err != nil {
 			return nil, err
@@ -1620,7 +1580,8 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 		if err != nil {
 			return nil, err
 		}
-		subnetsWithPrivateIPs[subnet] = i
+		subnetsPIPsAddresses[subnet] = address
+		subnetsPIPsIndexes[subnet] = pipIndex
 	}
 	privateIPs := []vpcmodel.Node{}
 	// we assume that if one private IP has a public IP, then all private IPs have public IP:
@@ -1630,71 +1591,108 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 		if err != nil {
 			return nil, err
 		}
-		// first get name, id, address, publicAddress:
-		var name, id, address, publicAddress string
-		pipIndex, original := subnetsWithPrivateIPs[subnet]
-		if original {
-			// subnet has a private IP, we take it from the config
-			pIP := loadBalancerObj.PrivateIps[pipIndex]
-			name, id, address = *pIP.Name, *pIP.ID, *pIP.Address
-			if hasPublicAddress {
-				publicAddress = *loadBalancerObj.PublicIps[pipIndex].Address
+		subnetBlocks := subnetsBlocks.subnetBlocks(*subnetObj.CRN)
+		privateIPAddressesMessage := make([]string, len(subnetBlocks))
+		// when a load balancer is created, not all its subnets get privateIPs.
+		// some subnets are chosen (arbitrary?) and only these are assigned privateIPs.
+		// however, we create a private IP for all the subnets.
+		// more than that, there are cases in which a subnet is split to blocks by the filters rules.
+		// (i.e., block is an atomic unit w.r.t. the filters rules)
+		// in such cases, we create a private IP for all the blocks in the subnet.
+		for blockIndex, subnetBlock := range subnetBlocks {
+			// first get name, id, address, publicAddress:
+			var name, id, address, publicAddress string
+			blockHasPrivateIP := subnetsPIPsAddresses[subnet] != nil &&
+				subnetsPIPsAddresses[subnet].ContainedIn(subnetBlock)
+			switch {
+			case blockHasPrivateIP:
+				// subnet block has a private IP, we take it from the config
+				pIP := loadBalancerObj.PrivateIps[subnetsPIPsIndexes[subnet]]
+				name, id, address = *pIP.Name, *pIP.ID, *pIP.Address
+				if hasPublicAddress {
+					publicAddress = *loadBalancerObj.PublicIps[subnetsPIPsIndexes[subnet]].Address
+				}
+			case subnetsBlocks.isFullyReservedBlock(*subnetObj.CRN, blockIndex):
+				// All the addresses in the original block are reserved IPs.
+				// therefore, a private IP could not be deployed in this block.
+				// Thus, for such a blocks there is no need to create private IPs.
+				continue
+			default:
+				// subnet does not have a private IP, we create unique ip info
+				name = "pip-name-of-" + subnet.Name() + "-" + *loadBalancerObj.Name
+				id = "pip-uid-of-" + subnet.UID() + *loadBalancerObj.ID
+				var err error
+				address, err = subnetsBlocks.allocSubnetFreeAddress(*subnetObj.CRN, blockIndex)
+				if err != nil {
+					return nil, err
+				}
+				if hasPublicAddress {
+					// todo - for now we always abstract the LB.
+					// with LB abstraction, it does not matter what is the public address
+					// so we can just use this address:
+					publicAddress = *loadBalancerObj.PublicIps[0].Address
+				}
 			}
-		} else {
-			// subnet does not have a private IP, we create unique ip info
-			name = "pip-name-of-" + subnet.Name() + "-" + *loadBalancerObj.Name
-			id = "pip-uid-of-" + subnet.UID() + *loadBalancerObj.ID
-			var err error
-			address, err = allocSubnetFreeAddress(subnetsFreeAddresses, *subnetObj.CRN)
+			privateIPAddressesMessage[blockIndex] = fmt.Sprintf("%s(for %s)", address, subnetBlock.String())
+			privateIP, err := createPrivateIP(name, id, address, publicAddress,
+				vpc, loadBalancer, vpcConfig, blockHasPrivateIP, subnet)
 			if err != nil {
 				return nil, err
 			}
-			if hasPublicAddress {
-				// todo - for now we always abstract the LB.
-				// with LB abstraction, it does not matter what is the public address
-				// so we can just use this address:
-				publicAddress = *loadBalancerObj.PublicIps[0].Address
-			}
+
+			privateIPs = append(privateIPs, privateIP)
 		}
-		privateIP := &PrivateIP{
-			VPCResource: vpcmodel.VPCResource{
-				ResourceName: name,
-				ResourceUID:  id,
-				ResourceType: ResourceTypePrivateIP,
-				Zone:         "",
-				VPCRef:       vpc,
-			}, // the zone gets updated later
-			InternalNode: vpcmodel.InternalNode{
-				AddressStr: address,
-			},
-			loadBalancer: loadBalancer,
-			original:     original,
-		}
-		if err := privateIP.SetIPBlockFromAddress(); err != nil {
-			return nil, err
-		}
-		privateIP.SubnetResource = subnet
-		privateIP.Zone = subnet.ZoneName()
-		vpcConfig.Nodes = append(vpcConfig.Nodes, privateIP)
-		subnet.nodes = append(subnet.nodes, privateIP)
-		vpcConfig.UIDToResource[privateIP.ResourceUID] = privateIP
-		privateIPs = append(privateIPs, privateIP)
-		// if the load balancer have public Ips, we attach every private ip a floating ip
-		if hasPublicAddress {
-			routerFip := &FloatingIP{
-				VPCResource: vpcmodel.VPCResource{
-					ResourceName: "fip-name-of-" + privateIP.Name(),
-					ResourceUID:  "fip-uid-of-" + privateIP.UID(),
-					Zone:         privateIP.ZoneName(),
-					ResourceType: ResourceTypeFloatingIP,
-					VPCRef:       vpc,
-				},
-				cidr: publicAddress, src: []vpcmodel.Node{privateIP}}
-			vpcConfig.RoutingResources = append(vpcConfig.RoutingResources, routerFip)
-			vpcConfig.UIDToResource[routerFip.ResourceUID] = routerFip
+		if len(subnetBlocks) > 1 {
+			logging.Debugf("subnet %s is split by filters, %d private IPs were created:\n%s\n",
+				*subnetObj.Name, len(subnetBlocks), strings.Join(privateIPAddressesMessage, ", "))
 		}
 	}
 	return privateIPs, nil
+}
+
+// createPrivateIP() creates the PrivateIP resource.
+// if needed, creates the public IP as routers of the private IP
+// also update vpcConfig & subnet with the result
+func createPrivateIP(name, id, address, publicAddress string,
+	vpc vpcmodel.VPCResourceIntf, loadBalancer *LoadBalancer, vpcConfig *vpcmodel.VPCConfig,
+	original bool, subnet *Subnet) (*PrivateIP, error) {
+	privateIP := &PrivateIP{
+		VPCResource: vpcmodel.VPCResource{
+			ResourceName: name,
+			ResourceUID:  id,
+			ResourceType: ResourceTypePrivateIP,
+			Zone:         "",
+			VPCRef:       vpc,
+		}, // the zone gets updated later
+		InternalNode: vpcmodel.InternalNode{
+			AddressStr: address,
+		},
+		loadBalancer: loadBalancer,
+		original:     original,
+	}
+	if err := privateIP.SetIPBlockFromAddress(); err != nil {
+		return nil, err
+	}
+	privateIP.SubnetResource = subnet
+	privateIP.Zone = subnet.ZoneName()
+	vpcConfig.Nodes = append(vpcConfig.Nodes, privateIP)
+	subnet.nodes = append(subnet.nodes, privateIP)
+	vpcConfig.UIDToResource[privateIP.ResourceUID] = privateIP
+	// if the load balancer have public Ips, we attach every private ip a floating ip
+	if publicAddress != "" {
+		routerFip := &FloatingIP{
+			VPCResource: vpcmodel.VPCResource{
+				ResourceName: "fip-name-of-" + privateIP.Name(),
+				ResourceUID:  "fip-uid-of-" + privateIP.UID(),
+				Zone:         privateIP.ZoneName(),
+				ResourceType: ResourceTypeFloatingIP,
+				VPCRef:       vpc,
+			},
+			cidr: publicAddress, src: []vpcmodel.Node{privateIP}}
+		vpcConfig.RoutingResources = append(vpcConfig.RoutingResources, routerFip)
+		vpcConfig.UIDToResource[routerFip.ResourceUID] = routerFip
+	}
+	return privateIP, nil
 }
 
 /********** Functions used in Debug mode ***************/
