@@ -8,6 +8,7 @@ package vpcmodel
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 
@@ -394,7 +395,8 @@ func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *ipblock.I
 		return nodes, false, noErr, nil
 	}
 	// internal address
-	networkInterfaces := c.GetNodesWithinInternalAddress(inputIPBlock, false)
+	networkInterfaces := c.GetNodesWithinInternalAddress(inputIPBlock)
+	networkInterfaces = slices.DeleteFunc(networkInterfaces, func(n Node) bool { return !n.RepresentedByAddress() })
 	if len(networkInterfaces) == 0 { // 3.
 		return nil, true, internalNoConnectedEndpoints, fmt.Errorf("no network interfaces are connected to %s", ipOrCidr)
 	}
