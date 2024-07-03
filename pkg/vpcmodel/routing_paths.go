@@ -17,8 +17,35 @@ import (
 // routing_paths: this file contains types for representing routing paths and their endpoints
 // a routing path is used to capture how traffic is routed within VPCs resources, given a src->dst pair
 
+type DetailedPath struct {
+	EndpointsPath Path
+	RTPath        []*RTActionDetail
+}
+
+func (d DetailedPath) String() string {
+	return d.EndpointsPath.String()
+}
+func (d DetailedPath) StringRTPath() string {
+	strList := make([]string, len(d.RTPath))
+	for i, rt := range d.RTPath {
+		strList[i] = rt.String()
+	}
+	return strings.Join(strList, ",")
+}
+
+type RTActionDetail struct {
+	RTName    string // name of relevant routing table
+	ActionStr string // action taken
+	Matched   bool   // true if dest was matched by one of the table routes
+}
+
+func (r *RTActionDetail) String() string {
+	return fmt.Sprintf("[rt:%s, action: %s, matched: %t]", r.RTName, r.ActionStr, r.Matched)
+
+}
+
 // Path captures a list of endpoints within a routing Path.
-// The first endpoint is the src. The last endpoint is dest, or a nextHopEntry element.
+// The first endpoint is the src. The last endpoint is dest / nextHopEntry element / tgw resource
 type Path []*Endpoint
 
 // Endpoint captures possible types for elements within routing paths: concrete vpc resource, IP Address, and nextHopEntry
