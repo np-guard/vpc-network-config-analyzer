@@ -83,7 +83,7 @@ func (pip *PrivateIP) Name() string {
 	if !pip.original {
 		kind = "Potential " + kind
 		// todo - move the join into ListToPrint()
-		address = strings.Join(pip.block.ListToPrint(),",")
+		address = strings.Join(pip.block.ListToPrint(), ",")
 	}
 	name := nameWithBracketsInfo(pip.loadBalancer.ResourceName, kind)
 	return nameWithBracketsInfo(name, address)
@@ -100,7 +100,7 @@ func (pip *PrivateIP) AbstractedToNodeSet() vpcmodel.NodeSet {
 	}
 	return nil
 }
-func (pip *PrivateIP) IsRepresentedByAddress() bool {
+func (pip *PrivateIP) RepresentedByAddress() bool {
 	return false
 }
 
