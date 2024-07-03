@@ -2,29 +2,32 @@ package linter
 
 import "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 
+// filterRuleSplitSubnet: rules of filters that are inconsistent w.r.t. subnets.
+
 type filterRuleSplitSubnet struct {
 	basicLinter
 	finding splitRulesInLayers
 }
 
-// todo: 1. check what is the presentation of cidr
-//       2. add documentation
-
+// a single rule given the layer (SGLayer/NACLLayer)
 type ruleOfFilter struct {
 	filterIndx int
 	RuleIndx   int
 }
 
-type splittedSubnet struct {
+// a subnets and a lis tof relevant filters
+type subnetCidrs struct {
 	subnet *vpcmodel.Subnet
 	cidrs  []string
 }
 
+// a rule with the list of subnet's in splits
 type splitRuleSubnet struct {
 	rule     ruleOfFilter
-	splitted []splittedSubnet
+	splitted []subnetCidrs
 }
 
+// For each layer (SGLayer/NACLLayer) - list of splitting rules with splitted subnet's details
 type splitRulesInLayers map[string][]splitRuleSubnet
 
 func (lint *filterRuleSplitSubnet) check() []string {
