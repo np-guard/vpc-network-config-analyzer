@@ -14,7 +14,7 @@ func LinterExecute(config *vpcmodel.VPCConfig) bool {
 		config: config,
 	}
 	linters := []linter{
-		&naclSplitSubnet{basicLinter: blinter},
+		&filterRuleSplitSubnet{basicLinter: blinter},
 	}
 
 	fmt.Printf("lint:\n=====\n\n")
