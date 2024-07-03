@@ -15,7 +15,7 @@ type ruleOfFilter struct {
 	RuleIndx   int
 }
 
-// a subnets and a lis tof relevant filters
+// a subnets and a list of relevant filters
 type subnetCidrs struct {
 	subnet *vpcmodel.Subnet
 	cidrs  []string
