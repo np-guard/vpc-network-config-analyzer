@@ -585,7 +585,7 @@ var explainTests = []*vpcGeneralTest{
 		EDstMaxPort: connection.MaxPort,
 		format:      vpcmodel.Debug,
 	},
-	// load_balancer to iks-node
+	// load_balancer to iks-node, which is a pool member, should be allowed
 	{
 		name:        "LBToIksNode",
 		inputConfig: "iks_config_object",
@@ -593,7 +593,7 @@ var explainTests = []*vpcGeneralTest{
 		EDst:        "192.168.4.4",
 		format:      vpcmodel.Debug,
 	},
-	// load_balancer to resIP
+	// load_balancer to resIP, should be blocked by LB rule
 	{
 		name:        "LBToResIPNode",
 		inputConfig: "iks_config_object",
@@ -891,7 +891,7 @@ func TestInputLBPrivateIP(t *testing.T) {
 
 	pipCidr := "192.168.36.6"
 	cidr2 := "192.168.4.4"
-	// should fail since pip can not be an explainability input
+	// should fail since pip address can not be an explainability input
 	_, err1 := vpcConfigMultiVpc.ExplainConnectivity(pipCidr, cidr2, nil)
 	fmt.Println(err1.Error())
 	require.NotNil(t, err1, "the test should fail since " + pipCidr + " is a Private IP address")

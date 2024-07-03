@@ -73,7 +73,7 @@ type PrivateIP struct {
 	// Since not all the LB balancer has a private IP, we create a potential Private Ip at the subnets that do not have one.
 	// original - does the private IP was originally at the config file, or is it a potential one
 	original bool
-	// the block in which the pip was created for:
+	// the block which the pip was created for:
 	block *ipblock.IPBlock
 }
 
@@ -82,7 +82,7 @@ func (pip *PrivateIP) Name() string {
 	address := pip.Address()
 	if !pip.original {
 		kind = "Potential " + kind
-		// todo - move the join into ListToPrint()
+		// todo - use ToRangesListString() instead of ListToPrint()
 		address = strings.Join(pip.block.ListToPrint(), ",")
 	}
 	name := nameWithBracketsInfo(pip.loadBalancer.ResourceName, kind)
