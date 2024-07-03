@@ -70,10 +70,10 @@ type PrivateIP struct {
 	vpcmodel.VPCResource
 	vpcmodel.InternalNode
 	loadBalancer *LoadBalancer
-	// Since not all the LB balancer has a private IP, we create a potential Private Ip at the subnets that do not have one.
+	// Since not all the LB has a private IP, we create a potential Private IP at the LB's subnets that do not have one.
 	// original - does the private IP was originally at the config file, or is it a potential one
 	original bool
-	// the block which the pip was created for:
+	// the potential block which the pip was created for:
 	block *ipblock.IPBlock
 }
 

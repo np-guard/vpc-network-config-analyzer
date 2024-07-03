@@ -113,7 +113,7 @@ type Node interface {
 	// AbstractedToNodeSet returns the abstracted nodeSet that contains this node (if any)
 	// e.g. the Nodes of Load Balancer private IPs are abstracted by the Load Balancer
 	AbstractedToNodeSet() NodeSet
-	// RepresentedByAddress - does the node be identify from a query address
+	// RepresentedByAddress - can the node be identified from input address in query
 	RepresentedByAddress() bool
 }
 
