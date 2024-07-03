@@ -8,11 +8,15 @@ package awsvpc
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/stretchr/testify/require"
 
+	"github.com/np-guard/models/pkg/connection"
+	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netp"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
@@ -133,4 +137,102 @@ func TestWithSgObj(t *testing.T) {
 	require.Equal(t, sgRule.Remote.Cidr.String(), "0.0.0.0/0")
 	require.Equal(t, sgRule.Index, 1)
 	require.Equal(t, ruleStr, "index: 1, direction: outbound,  conns: protocol: tcp,  dstPorts: 23-10030, ipRanges: 0.0.0.0/0\n")
+}
+
+type sgTest struct {
+	name                    string
+	rules                   []*commonvpc.SGRule
+	isIngress               bool
+	expectedConnectivityMap commonvpc.ConnectivityResultMap
+}
+
+func fromIPRangeStrWithoutValidation(ipRange string) *ipblock.IPBlock {
+	ip, _ := ipblock.FromIPRangeStr(ipRange)
+	return ip
+}
+
+func fromIPAddressStrWithoutValidation(ipAddress string) *ipblock.IPBlock {
+	ip, _ := ipblock.FromIPAddress(ipAddress)
+	return ip
+}
+
+func newIPBlockFromCIDROrAddressWithoutValidation(cidr string) *ipblock.IPBlock {
+	res, _ := ipblock.FromCidrOrAddress(cidr)
+	return res
+}
+
+var sgTests = []sgTest{
+	{
+		name: "test1",
+		rules: []*commonvpc.SGRule{
+			{
+				Remote:      commonvpc.NewRuleTarget(newIPBlockFromCIDROrAddressWithoutValidation("10.250.10.1"), "ola"),
+				Connections: connection.TCPorUDPConnection(netp.ProtocolString("UDP"), 5, 87, 10, 3245),
+				Index:       1,
+				Local:       ipblock.GetCidrAll(),
+			},
+			{
+				Remote:      commonvpc.NewRuleTarget(newIPBlockFromCIDROrAddressWithoutValidation("10.250.10.0/30"), "ola"),
+				Connections: connection.TCPorUDPConnection(netp.ProtocolString("TCP"), 1, 100, 5, 1000),
+				Index:       2,
+				Local:       ipblock.GetCidrAll(),
+			},
+		},
+		isIngress: false,
+		expectedConnectivityMap: map[*ipblock.IPBlock]*commonvpc.ConnectivityResult{
+			ipblock.GetCidrAll(): {
+				IsIngress: false,
+				AllowedConns: map[*ipblock.IPBlock]*connection.Set{
+					fromIPAddressStrWithoutValidation("10.250.10.0"): connection.TCPorUDPConnection(
+						netp.ProtocolString("TCP"), 1, 100, 5, 1000),
+					fromIPRangeStrWithoutValidation("10.250.10.2-10.250.10.3"): connection.TCPorUDPConnection(
+						netp.ProtocolString("TCP"), 1, 100, 5, 1000),
+					fromIPRangeStrWithoutValidation("0.0.0.0-10.250.9.255"):        connection.None(),
+					fromIPRangeStrWithoutValidation("10.250.10.4-255.255.255.255"): connection.None(),
+					fromIPAddressStrWithoutValidation("10.250.10.1"): connection.TCPorUDPConnection(netp.ProtocolString("TCP"), 1, 100, 5, 1000).
+						Union(connection.TCPorUDPConnection(netp.ProtocolString("UDP"), 5, 87, 10, 3245)),
+				},
+				AllowRules: map[*ipblock.IPBlock][]int{
+					fromIPAddressStrWithoutValidation("10.250.10.0"):               {2},
+					fromIPRangeStrWithoutValidation("10.250.10.2-10.250.10.3"):     {2},
+					fromIPRangeStrWithoutValidation("0.0.0.0-10.250.9.255"):        {},
+					fromIPRangeStrWithoutValidation("10.250.10.4-255.255.255.255"): {},
+					fromIPAddressStrWithoutValidation("10.250.10.1"):               {1, 2},
+				},
+				DeniedConns: map[*ipblock.IPBlock]*connection.Set{},
+				DenyRules:   map[*ipblock.IPBlock][]int{},
+			},
+		},
+	},
+}
+
+func (tt *sgTest) runTest(t *testing.T) {
+	var endpoint1 = &NetworkInterface{InternalNode: vpcmodel.InternalNode{
+		AddressStr: "10.240.10.1",
+		IPBlockObj: fromIPAddressStrWithoutValidation("10.240.10.1"),
+	}}
+	var endpoint2 = &NetworkInterface{InternalNode: vpcmodel.InternalNode{
+		AddressStr: "10.240.10.2",
+		IPBlockObj: fromIPAddressStrWithoutValidation("10.240.10.2"),
+	}}
+	var endpoint3 = &NetworkInterface{InternalNode: vpcmodel.InternalNode{
+		AddressStr: "10.240.10.0",
+		IPBlockObj: fromIPAddressStrWithoutValidation("10.240.10.0"),
+	}}
+
+	sg := commonvpc.SecurityGroup{Members: map[string]vpcmodel.Node{
+		"10.240.10.1": endpoint1, "10.240.10.2": endpoint2, "10.240.10.0": endpoint3}}
+	connectivityMap := commonvpc.MapAndAnalyzeSGRules(tt.rules, false, &sg)
+	require.True(t, connectivityMap.Equal(tt.expectedConnectivityMap))
+}
+
+func TestMapAndAnalyzeSGRules(t *testing.T) {
+	for testIdx := range sgTests {
+		tt := sgTests[testIdx]
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			tt.runTest(t)
+		})
+	}
+	fmt.Println("done")
 }
