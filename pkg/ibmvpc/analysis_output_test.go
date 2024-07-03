@@ -704,10 +704,10 @@ var tests = []*vpcGeneralTest{
 	// 1. each subnet has two private IPs
 	// 2. after abstraction, all connections from/to the LB are marked with **, (i.e. the abstraction did over approximation)
 	// for example here only four private IPs are connected to vsi1-sub3[10.240.128.5]:
-	//     vsi1-sub3[10.240.128.5] => alb[Fake LB private IP][10.240.1.128] : All Connections
-	//     vsi1-sub3[10.240.128.5] => alb[Fake LB private IP][10.240.1.4] : All Connections
-	//     vsi1-sub3[10.240.128.5] => alb[Fake LB private IP][10.240.129.128] : All Connections
-	//     vsi1-sub3[10.240.128.5] => alb[Fake LB private IP][10.240.65.128] : All Connections
+	//     vsi1-sub3[10.240.128.5] => alb[Potential LB private IP][10.240.1.128] : All Connections
+	//     vsi1-sub3[10.240.128.5] => alb[Potential LB private IP][10.240.1.4] : All Connections
+	//     vsi1-sub3[10.240.128.5] => alb[Potential LB private IP][10.240.129.128] : All Connections
+	//     vsi1-sub3[10.240.128.5] => alb[Potential LB private IP][10.240.65.128] : All Connections
 	//     vsi1-sub3[10.240.128.5] => alb[LB private IP][10.240.65.4] : All Connections
 	// is over approximated to:
 	//	   vsi1-sub3[10.240.128.5] => alb[LoadBalancer] : All Connections **

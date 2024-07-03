@@ -396,6 +396,7 @@ func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *ipblock.I
 	}
 	// internal address
 	networkInterfaces := c.GetNodesWithinInternalAddress(inputIPBlock)
+	// filtering out the nodes which are not represented by their address (currently only LB private IPs):
 	networkInterfaces = slices.DeleteFunc(networkInterfaces, func(n Node) bool { return !n.RepresentedByAddress() })
 	if len(networkInterfaces) == 0 { // 3.
 		return nil, true, internalNoConnectedEndpoints, fmt.Errorf("no network interfaces are connected to %s", ipOrCidr)
