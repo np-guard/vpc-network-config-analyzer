@@ -888,13 +888,12 @@ func TestInputLBPrivateIP(t *testing.T) {
 	vpcConfigMultiVpc := getConfig(t, "iks_config_object")
 	require.NotNil(t, vpcConfigMultiVpc, "vpcConfigMultiVpc equals nil")
 
-
 	pipCidr := "192.168.36.6"
 	cidr2 := "192.168.4.4"
 	// should fail since pip address can not be an explainability input
 	_, err1 := vpcConfigMultiVpc.ExplainConnectivity(pipCidr, cidr2, nil)
 	fmt.Println(err1.Error())
-	require.NotNil(t, err1, "the test should fail since " + pipCidr + " is a Private IP address")
-	require.Equal(t, "illegal src: no network interfaces are connected to " + pipCidr, err1.Error())
+	require.NotNil(t, err1, "the test should fail since "+pipCidr+" is a Private IP address")
+	require.Equal(t, "illegal src: no network interfaces are connected to "+pipCidr, err1.Error())
 	fmt.Println()
 }
