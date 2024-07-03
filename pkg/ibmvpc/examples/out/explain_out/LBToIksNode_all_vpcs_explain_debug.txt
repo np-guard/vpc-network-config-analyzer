@@ -12,7 +12,7 @@ Details:
 ~~~~~~~~
 Path is enabled; The relevant rules are:
 	Load Balancer:
-		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca allows connection to iks-node[192.168.4.4] which is one of its pool members
+		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] allows connection to iks-node[192.168.4.4] which is one of its pool members
 
 	Egress:
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
@@ -53,7 +53,7 @@ Details:
 ~~~~~~~~
 Path is enabled; The relevant rules are:
 	Load Balancer:
-		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca allows connection to iks-node[192.168.4.4] which is one of its pool members
+		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] allows connection to iks-node[192.168.4.4] which is one of its pool members
 
 	Egress:
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
@@ -94,7 +94,7 @@ Details:
 ~~~~~~~~
 Path is enabled; The relevant rules are:
 	Load Balancer:
-		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca allows connection to iks-node[192.168.4.4] which is one of its pool members
+		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] allows connection to iks-node[192.168.4.4] which is one of its pool members
 
 	Egress:
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
@@ -135,7 +135,7 @@ Details:
 ~~~~~~~~
 Path is enabled; The relevant rules are:
 	Load Balancer:
-		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca allows connection to iks-node[192.168.4.4] which is one of its pool members
+		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] allows connection to iks-node[192.168.4.4] which is one of its pool members
 
 	Egress:
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
@@ -176,7 +176,7 @@ Details:
 ~~~~~~~~
 Path is enabled; The relevant rules are:
 	Load Balancer:
-		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca allows connection to iks-node[192.168.4.4] which is one of its pool members
+		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] allows connection to iks-node[192.168.4.4] which is one of its pool members
 
 	Egress:
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
@@ -217,7 +217,7 @@ Details:
 ~~~~~~~~
 Path is enabled; The relevant rules are:
 	Load Balancer:
-		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca allows connection to iks-node[192.168.4.4] which is one of its pool members
+		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] allows connection to iks-node[192.168.4.4] which is one of its pool members
 
 	Egress:
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
@@ -258,7 +258,7 @@ Details:
 ~~~~~~~~
 Path is enabled; The relevant rules are:
 	Load Balancer:
-		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca allows connection to iks-node[192.168.4.4] which is one of its pool members
+		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] allows connection to iks-node[192.168.4.4] which is one of its pool members
 
 	Egress:
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
@@ -299,7 +299,7 @@ Details:
 ~~~~~~~~
 Path is enabled; The relevant rules are:
 	Load Balancer:
-		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca allows connection to iks-node[192.168.4.4] which is one of its pool members
+		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] allows connection to iks-node[192.168.4.4] which is one of its pool members
 
 	Egress:
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
@@ -327,7 +327,7 @@ Details:
 ~~~~~~~~
 Path is enabled; The relevant rules are:
 	Load Balancer:
-		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca allows connection to iks-node[192.168.4.4] which is one of its pool members
+		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] allows connection to iks-node[192.168.4.4] which is one of its pool members
 
 	Egress:
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules

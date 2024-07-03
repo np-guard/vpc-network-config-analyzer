@@ -281,8 +281,11 @@ type LoadBalancer struct {
 }
 
 // for LB we add the kind to the name, to make it clear in the reports
+func (lb *LoadBalancer) nameWithKind() string {
+	return nameWithBracketsInfo(lb.ResourceName, lb.Kind())
+}
 func (lb *LoadBalancer) ExtendedName(c *vpcmodel.VPCConfig) string {
-	return lb.ExtendedPrefix(c) + nameWithBracketsInfo(lb.Name(), lb.Kind())
+	return lb.ExtendedPrefix(c) + lb.nameWithKind()
 }
 
 func (lb *LoadBalancer) Nodes() []vpcmodel.Node {
@@ -345,9 +348,11 @@ func (lbr *LoadBalancerRule) Deny() bool { return lbr.deny }
 
 func (lbr *LoadBalancerRule) String() string {
 	if lbr.Deny() {
-		return fmt.Sprintf("%s blocks connection to %s which is not one of its pool members\n", lbr.lb.Name(), lbr.dst.Name())
+		return fmt.Sprintf("%s blocks connection to %s which is not one of its pool members\n",
+			lbr.lb.nameWithKind(), lbr.dst.Name())
 	}
-	return fmt.Sprintf("%s allows connection to %s which is one of its pool members\n", lbr.lb.Name(), lbr.dst.Name())
+	return fmt.Sprintf("%s allows connection to %s which is one of its pool members\n",
+		lbr.lb.nameWithKind(), lbr.dst.Name())
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

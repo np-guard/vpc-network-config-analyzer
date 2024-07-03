@@ -4,7 +4,7 @@ Explaining connectivity from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca t
 No connections are allowed from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LB private IP][192.168.36.6] to iks-clusterid:1[192.168.32.5];
 connection is blocked by Load Balancer
 
-Load Balancer: kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca blocks connection to iks-clusterid:1[192.168.32.5] which is not one of its pool members
+Load Balancer: kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] blocks connection to iks-clusterid:1[192.168.32.5] which is not one of its pool members
 Egress: security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection; network ACL ky-test-edge-acl allows connection
 Ingress: network ACL ky-test-edge-acl allows connection; security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection
 
@@ -16,7 +16,7 @@ Details:
 ~~~~~~~~
 Path is disabled; The relevant rules are:
 	Load Balancer:
-		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca blocks connection to iks-clusterid:1[192.168.32.5] which is not one of its pool members
+		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] blocks connection to iks-clusterid:1[192.168.32.5] which is not one of its pool members
 
 	Egress:
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
@@ -37,7 +37,7 @@ Path is disabled; The relevant rules are:
 No connections are allowed from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LB private IP][192.168.40.6] to iks-clusterid:1[192.168.32.5];
 connection is blocked by Load Balancer
 
-Load Balancer: kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca blocks connection to iks-clusterid:1[192.168.32.5] which is not one of its pool members
+Load Balancer: kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] blocks connection to iks-clusterid:1[192.168.32.5] which is not one of its pool members
 Egress: security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection; network ACL ky-test-edge-acl allows connection
 Ingress: network ACL ky-test-edge-acl allows connection; security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection
 
@@ -49,7 +49,7 @@ Details:
 ~~~~~~~~
 Path is disabled; The relevant rules are:
 	Load Balancer:
-		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca blocks connection to iks-clusterid:1[192.168.32.5] which is not one of its pool members
+		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] blocks connection to iks-clusterid:1[192.168.32.5] which is not one of its pool members
 
 	Egress:
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
@@ -70,7 +70,7 @@ Path is disabled; The relevant rules are:
 No connections are allowed from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.0.0/22] to iks-clusterid:1[192.168.32.5];
 connection is blocked by Load Balancer
 
-Load Balancer: kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca blocks connection to iks-clusterid:1[192.168.32.5] which is not one of its pool members
+Load Balancer: kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] blocks connection to iks-clusterid:1[192.168.32.5] which is not one of its pool members
 Egress: security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection; network ACL ky-test-private-2-others-acl allows connection
 Ingress: network ACL ky-test-edge-acl allows connection; security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection
 
@@ -82,7 +82,7 @@ Details:
 ~~~~~~~~
 Path is disabled; The relevant rules are:
 	Load Balancer:
-		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca blocks connection to iks-clusterid:1[192.168.32.5] which is not one of its pool members
+		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] blocks connection to iks-clusterid:1[192.168.32.5] which is not one of its pool members
 
 	Egress:
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
@@ -103,7 +103,7 @@ Path is disabled; The relevant rules are:
 No connections are allowed from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.16.0/22] to iks-clusterid:1[192.168.32.5];
 connection is blocked by Load Balancer
 
-Load Balancer: kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca blocks connection to iks-clusterid:1[192.168.32.5] which is not one of its pool members
+Load Balancer: kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] blocks connection to iks-clusterid:1[192.168.32.5] which is not one of its pool members
 Egress: security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection; network ACL ky-test-edge-acl allows connection
 Ingress: network ACL ky-test-edge-acl allows connection; security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection
 
@@ -115,7 +115,7 @@ Details:
 ~~~~~~~~
 Path is disabled; The relevant rules are:
 	Load Balancer:
-		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca blocks connection to iks-clusterid:1[192.168.32.5] which is not one of its pool members
+		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] blocks connection to iks-clusterid:1[192.168.32.5] which is not one of its pool members
 
 	Egress:
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
@@ -136,7 +136,7 @@ Path is disabled; The relevant rules are:
 No connections are allowed from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.20.0/22] to iks-clusterid:1[192.168.32.5];
 connection is blocked by Load Balancer
 
-Load Balancer: kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca blocks connection to iks-clusterid:1[192.168.32.5] which is not one of its pool members
+Load Balancer: kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] blocks connection to iks-clusterid:1[192.168.32.5] which is not one of its pool members
 Egress: security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection; network ACL ky-test-edge-acl allows connection
 Ingress: network ACL ky-test-edge-acl allows connection; security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection
 
@@ -148,7 +148,7 @@ Details:
 ~~~~~~~~
 Path is disabled; The relevant rules are:
 	Load Balancer:
-		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca blocks connection to iks-clusterid:1[192.168.32.5] which is not one of its pool members
+		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] blocks connection to iks-clusterid:1[192.168.32.5] which is not one of its pool members
 
 	Egress:
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
@@ -169,7 +169,7 @@ Path is disabled; The relevant rules are:
 No connections are allowed from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.24.0/22] to iks-clusterid:1[192.168.32.5];
 connection is blocked by Load Balancer
 
-Load Balancer: kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca blocks connection to iks-clusterid:1[192.168.32.5] which is not one of its pool members
+Load Balancer: kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] blocks connection to iks-clusterid:1[192.168.32.5] which is not one of its pool members
 Egress: security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection; network ACL ky-test-edge-acl allows connection
 Ingress: network ACL ky-test-edge-acl allows connection; security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection
 
@@ -181,7 +181,7 @@ Details:
 ~~~~~~~~
 Path is disabled; The relevant rules are:
 	Load Balancer:
-		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca blocks connection to iks-clusterid:1[192.168.32.5] which is not one of its pool members
+		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] blocks connection to iks-clusterid:1[192.168.32.5] which is not one of its pool members
 
 	Egress:
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
@@ -202,7 +202,7 @@ Path is disabled; The relevant rules are:
 No connections are allowed from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.32.0-192.168.32.4,192.168.32.6-192.168.35.255] to iks-clusterid:1[192.168.32.5];
 connection is blocked by Load Balancer
 
-Load Balancer: kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca blocks connection to iks-clusterid:1[192.168.32.5] which is not one of its pool members
+Load Balancer: kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] blocks connection to iks-clusterid:1[192.168.32.5] which is not one of its pool members
 Egress: security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection
 Ingress: security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection
 
@@ -214,7 +214,7 @@ Details:
 ~~~~~~~~
 Path is disabled; The relevant rules are:
 	Load Balancer:
-		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca blocks connection to iks-clusterid:1[192.168.32.5] which is not one of its pool members
+		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] blocks connection to iks-clusterid:1[192.168.32.5] which is not one of its pool members
 
 	Egress:
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
@@ -231,7 +231,7 @@ Path is disabled; The relevant rules are:
 No connections are allowed from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.4.0/22] to iks-clusterid:1[192.168.32.5];
 connection is blocked by Load Balancer
 
-Load Balancer: kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca blocks connection to iks-clusterid:1[192.168.32.5] which is not one of its pool members
+Load Balancer: kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] blocks connection to iks-clusterid:1[192.168.32.5] which is not one of its pool members
 Egress: security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection; network ACL ky-test-private-2-others-acl allows connection
 Ingress: network ACL ky-test-edge-acl allows connection; security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection
 
@@ -243,7 +243,7 @@ Details:
 ~~~~~~~~
 Path is disabled; The relevant rules are:
 	Load Balancer:
-		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca blocks connection to iks-clusterid:1[192.168.32.5] which is not one of its pool members
+		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] blocks connection to iks-clusterid:1[192.168.32.5] which is not one of its pool members
 
 	Egress:
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
@@ -264,7 +264,7 @@ Path is disabled; The relevant rules are:
 No connections are allowed from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.8.0/22] to iks-clusterid:1[192.168.32.5];
 connection is blocked by Load Balancer
 
-Load Balancer: kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca blocks connection to iks-clusterid:1[192.168.32.5] which is not one of its pool members
+Load Balancer: kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] blocks connection to iks-clusterid:1[192.168.32.5] which is not one of its pool members
 Egress: security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection; network ACL ky-test-private-2-others-acl allows connection
 Ingress: network ACL ky-test-edge-acl allows connection; security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection
 
@@ -276,7 +276,7 @@ Details:
 ~~~~~~~~
 Path is disabled; The relevant rules are:
 	Load Balancer:
-		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca blocks connection to iks-clusterid:1[192.168.32.5] which is not one of its pool members
+		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] blocks connection to iks-clusterid:1[192.168.32.5] which is not one of its pool members
 
 	Egress:
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
