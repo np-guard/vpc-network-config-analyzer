@@ -107,10 +107,12 @@ func (c *VPCConfig) getRoutingResource(src, dst Node) (RoutingResource, *connect
 
 // GetNodesWithinInternalAddress gets input IPBlock
 // and returns the list of all internal nodes within address
-func (c *VPCConfig) GetNodesWithinInternalAddress(inputIPBlock *ipblock.IPBlock) (networkInterfaceNodes []Node) {
+func (c *VPCConfig) GetNodesWithinInternalAddress(inputIPBlock *ipblock.IPBlock, unrepresentedToo bool) (networkInterfaceNodes []Node) {
 	for _, node := range c.Nodes {
-		if node.IsInternal() && node.RepresentedByAddress() && node.IPBlock().ContainedIn(inputIPBlock) {
-			networkInterfaceNodes = append(networkInterfaceNodes, node)
+		if node.IsInternal() && node.IPBlock().ContainedIn(inputIPBlock) {
+			if node.RepresentedByAddress() || unrepresentedToo {
+				networkInterfaceNodes = append(networkInterfaceNodes, node)
+			}
 		}
 	}
 	return networkInterfaceNodes

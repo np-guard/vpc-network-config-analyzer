@@ -62,7 +62,7 @@ type systemRTConfig struct {
 }
 
 func (rt *systemImplicitRT) destAsPath(dest *ipblock.IPBlock) vpcmodel.Path {
-	internalNodes := rt.vpcConfig.GetNodesWithinInternalAddress(dest)
+	internalNodes := rt.vpcConfig.GetNodesWithinInternalAddress(dest, true)
 	if len(internalNodes) != 1 {
 		// TODO: add error handling here?
 		return nil

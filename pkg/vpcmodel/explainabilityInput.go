@@ -394,7 +394,7 @@ func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *ipblock.I
 		return nodes, false, noErr, nil
 	}
 	// internal address
-	networkInterfaces := c.GetNodesWithinInternalAddress(inputIPBlock)
+	networkInterfaces := c.GetNodesWithinInternalAddress(inputIPBlock, false)
 	if len(networkInterfaces) == 0 { // 3.
 		return nil, true, internalNoConnectedEndpoints, fmt.Errorf("no network interfaces are connected to %s", ipOrCidr)
 	}
