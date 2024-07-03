@@ -591,7 +591,15 @@ var explainTests = []*vpcGeneralTest{
 		inputConfig: "iks_config_object",
 		ESrc:        "kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca",
 		EDst:        "192.168.4.4",
-		format:      vpcmodel.Text,
+		format:      vpcmodel.Debug,
+	},
+	// load_balancer to resIP
+	{
+		name:        "LBToResIPNode",
+		inputConfig: "iks_config_object",
+		ESrc:        "kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca",
+		EDst:        "192.168.32.5",
+		format:      vpcmodel.Debug,
 	},
 }
 
