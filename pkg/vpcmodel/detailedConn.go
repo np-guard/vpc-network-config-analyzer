@@ -111,16 +111,9 @@ func (d *detailedConn) nonTCPAndResponsiveTCPComponent() *connection.Set {
 	return d.tcpRspEnable.Union(d.nonTCP)
 }
 
-func (d *detailedConn) string() string {
-	if !d.tcpRspDisable.IsEmpty() {
-		return d.allConn.String() + asterisk
-	}
-	return d.allConn.String()
-}
-
-// stringPerResponsive adds * to non-responsive TCP components of the connection
+// string adds * to non-responsive TCP components of the connection
 // for cosmetic reasons remove the protocol word from cubes prints
-func (d *detailedConn) stringPerResponsive() string {
+func (d *detailedConn) string() string {
 	if d.allConn.IsEmpty() {
 		return d.allConn.String()
 	}
