@@ -53,7 +53,7 @@ func (c *VPCConfig) SubnetCidrToSubnetElem(cidr string) (Subnet, error) {
 	return nil, fmt.Errorf("could not find subnet with CIDR %s in VPC %s", cidr, c.VPC.Name())
 }
 
-func (c *VPCConfig) getFilterTrafficResourceOfKind(kind string) FilterTrafficResource {
+func (c *VPCConfig) GetFilterTrafficResourceOfKind(kind string) FilterTrafficResource {
 	for _, filter := range c.FilterResources {
 		if filter.Kind() == kind {
 			return filter

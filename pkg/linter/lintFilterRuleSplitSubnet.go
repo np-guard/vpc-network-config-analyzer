@@ -1,6 +1,9 @@
 package linter
 
-import "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
+import (
+	"fmt"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
+)
 
 // filterRuleSplitSubnet: rules of filters that are inconsistent w.r.t. subnets.
 
@@ -24,9 +27,23 @@ type splitRuleSubnet struct {
 // For each layer (SGLayer/NACLLayer) - list of splitting rules with splitted subnet's details
 type splitRulesInLayers map[string][]splitRuleSubnet
 
-func (lint *filterRuleSplitSubnet) check() []string {
-	// todo getFilterTrafficResourceOfKind from vpcmodel needs to be exported
-	return []string{"test1", "test2", "test3"}
+func (lint *filterRuleSplitSubnet) check() ([]string, error) {
+	for _, layer := range vpcmodel.FilterLayers {
+		filterLayer := lint.config.GetFilterTrafficResourceOfKind(layer)
+		fmt.Printf("filterLayer %s\n~~~~~~~~~~~~~~~~~\n", layer)
+		rules, err := filterLayer.GetRules()
+		if err != nil {
+			return nil, err
+		}
+		for _, rule := range rules { // todo tmp
+			fmt.Printf("filter: %s rule %d, %s ", rule.FilterName, rule.RuleIndx, rule.RuleDesc)
+			fmt.Println("IPBlocks:")
+			for _, block := range rule.IPBlocks {
+				fmt.Printf("\t%s\n", block.String())
+			}
+		}
+	}
+	return nil, nil
 }
 
 func (lint *filterRuleSplitSubnet) getName() string {

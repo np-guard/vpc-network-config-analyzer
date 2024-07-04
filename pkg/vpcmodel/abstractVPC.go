@@ -242,9 +242,14 @@ type RulesInTable struct {
 
 // RuleOfFilter a single rule in filter given the layer (SGLayer/NACLLayer)
 type RuleOfFilter struct {
-	filterIndx int
+	FilterName string
 	RuleIndx   int
-	ruleStr    string
+	RuleDesc   string
+	IPBlocks   []*ipblock.IPBlock
+}
+
+func NewRuleOfFilter(filterName, desc string, ruleIndex int, IPBlocks []*ipblock.IPBlock) *RuleOfFilter {
+	return &RuleOfFilter{FilterName: filterName, RuleIndx: ruleIndex, RuleDesc: desc, IPBlocks: IPBlocks}
 }
 
 // FilterTrafficResource capture allowed traffic between 2 endpoints
@@ -257,7 +262,7 @@ type FilterTrafficResource interface {
 	RulesInConnectivity(src, dst Node, conn *connection.Set, isIngress bool) ([]RulesInTable, []RulesInTable, error)
 	// GetRules gets a list of all rules with description
 	// todo to replace StringDetailsOfRules
-	GetRules() []RuleOfFilter
+	GetRules() ([]RuleOfFilter, error)
 	// StringDetailsOfRules gets, for a specific filter (sg/nacl), a struct with relevant rules in it,
 	// and prints the effect of each filter (e.g. security group sg1-ky allows connection)
 	// and the detailed list of relevant rules

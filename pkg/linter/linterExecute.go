@@ -19,7 +19,11 @@ func LinterExecute(config *vpcmodel.VPCConfig) bool {
 
 	fmt.Printf("lint:\n=====\n\n")
 	for _, thisLinter := range linters {
-		lintIssues := thisLinter.check()
+		lintIssues, err := thisLinter.check()
+		if err != nil {
+			fmt.Printf("Lint %s got an error %s. Skipping this lint\n", thisLinter.getName(), err.Error())
+			continue
+		}
 		if len(lintIssues) == 0 {
 			fmt.Printf("no lint %s issues\n", thisLinter.getName())
 			continue

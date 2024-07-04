@@ -467,9 +467,22 @@ func (nl *NaclLayer) ReferencedIPblocks() []*ipblock.IPBlock {
 	return res
 }
 
-// todo: implement
-func (nl *NaclLayer) GetRules() []vpcmodel.RuleOfFilter {
-	return nil
+func (nl *NaclLayer) GetRules() ([]vpcmodel.RuleOfFilter, error) {
+	resRules := []vpcmodel.RuleOfFilter{}
+	for naclIndx, nacl := range nl.naclList {
+		naclRules := nacl.analyzer.egressRules
+		naclRules = append(naclRules, nacl.analyzer.ingressRules...)
+		if nacl.analyzer.naclResource.Name == nil {
+			return nil, fmt.Errorf(fmt.Sprintf("Empty name for nacl indexed %d", naclIndx))
+		}
+		naclName := *nacl.analyzer.naclResource.Name
+		for _, rule := range naclRules {
+			ruleBlocks := []*ipblock.IPBlock{rule.src, rule.dst}
+			ruleDesc, _, _, _ := nacl.analyzer.getNACLRule(rule.index)
+			resRules = append(resRules, *vpcmodel.NewRuleOfFilter(naclName, ruleDesc, rule.index, ruleBlocks))
+		}
+	}
+	return resRules, nil
 }
 
 func getHeaderRulesType(filter string, rType vpcmodel.RulesType) string {
@@ -674,9 +687,26 @@ func (sgl *SecurityGroupLayer) ReferencedIPblocks() []*ipblock.IPBlock {
 	return res
 }
 
-// todo: implement
-func (sgl *SecurityGroupLayer) GetRules() []vpcmodel.RuleOfFilter {
-	return nil
+func (sgl *SecurityGroupLayer) GetRules() ([]vpcmodel.RuleOfFilter, error) {
+	resRules := []vpcmodel.RuleOfFilter{}
+	for sgIndx, sg := range sgl.sgList {
+		sgRules := sg.analyzer.egressRules
+		sgRules = append(sgRules, sg.analyzer.ingressRules...)
+		if sg.analyzer.sgResource.Name == nil {
+			return nil, fmt.Errorf(fmt.Sprintf("Empty name for security group indexed %d", sgIndx))
+		}
+		sgName := *sg.analyzer.sgResource.Name
+		for _, rule := range sgRules {
+			ruleBlocks := []*ipblock.IPBlock{rule.remote.cidr}
+			if rule.local != nil {
+				ruleBlocks = append(ruleBlocks, rule.local)
+			}
+			ruleDesc, _, _, _ := sg.analyzer.getSGRule(rule.index)
+			resRules = append(resRules, *vpcmodel.NewRuleOfFilter(sgName, ruleDesc, rule.index, ruleBlocks))
+		}
+
+	}
+	return resRules, nil
 }
 
 type SecurityGroup struct {
