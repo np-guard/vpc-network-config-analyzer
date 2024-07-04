@@ -330,6 +330,21 @@ func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node,
 	return c.getNodesFromAddress(cidrOrName, ipBlock)
 }
 
+// todo:
+//  the name, the variables names and the documentation of the following function is wrong and misleading, because:
+//   1. vsi is ibm specific
+//   2. this functions returns not only nodes of vsis, but also nodes of vpe, and recently load balancers
+// if you really care about it, you should:
+//   1. open an issue about it, which mentions all the ibm specific code (vsi, network interfaces...) in vpcmodel
+//   2. fix this issue at your own PR - rename functions and variables and update documentation
+//   3. also fix the documentation not to be ibm specific
+//   4. in the feature, avoid writing, or approving, ibm specific code and/or documentation.
+// not todo:
+//  even if you really care about it (though since no one fix it till now, probably no one care)
+//  when reviewing code of one of your colleagues do not:
+//   1. ask him to change his documentation to be ibm specific. its just wrong
+//   2. ask him to fix an ibm specific code/documentation that you wrote/review. its just good manners
+
 // getNodesOfVsi gets a string name or UID of VSI, and
 // returns the list of all nodes within this vsi
 func (c *VPCConfig) getNodesOfVsi(name string) ([]Node, int, error) {
