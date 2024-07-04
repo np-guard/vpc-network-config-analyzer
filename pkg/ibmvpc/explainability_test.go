@@ -601,6 +601,14 @@ var explainTests = []*vpcGeneralTest{
 		EDst:        "192.168.32.5",
 		format:      vpcmodel.Debug,
 	},
+	// multiNI to single NI
+	{
+		name:        "multiNIsToSingleNI",
+		inputConfig: "mult_NIs_single_VSI",
+		ESrc:        "vsi3-ky",
+		EDst:        "vsi1-ky",
+		format:      vpcmodel.Debug,
+	},
 }
 
 func TestAll(t *testing.T) {
