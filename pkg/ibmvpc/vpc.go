@@ -467,6 +467,11 @@ func (nl *NaclLayer) ReferencedIPblocks() []*ipblock.IPBlock {
 	return res
 }
 
+// todo: implement
+func (nl *NaclLayer) GetRules() []vpcmodel.RuleOfFilter {
+	return nil
+}
+
 func getHeaderRulesType(filter string, rType vpcmodel.RulesType) string {
 	switch rType {
 	case vpcmodel.NoRules:
@@ -667,6 +672,11 @@ func (sgl *SecurityGroupLayer) ReferencedIPblocks() []*ipblock.IPBlock {
 		res = append(res, sg.analyzer.referencedIPblocks...)
 	}
 	return res
+}
+
+// todo: implement
+func (sgl *SecurityGroupLayer) GetRules() []vpcmodel.RuleOfFilter {
+	return nil
 }
 
 type SecurityGroup struct {

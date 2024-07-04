@@ -9,12 +9,6 @@ type filterRuleSplitSubnet struct {
 	finding splitRulesInLayers
 }
 
-// a single rule given the layer (SGLayer/NACLLayer)
-type ruleOfFilter struct {
-	filterIndx int
-	RuleIndx   int
-}
-
 // a subnets and a list of relevant filters
 type subnetCidrs struct {
 	subnet *vpcmodel.Subnet
@@ -23,7 +17,7 @@ type subnetCidrs struct {
 
 // a rule with the list of subnet's in splits
 type splitRuleSubnet struct {
-	rule     ruleOfFilter
+	rule     vpcmodel.RuleOfFilter
 	splitted []subnetCidrs
 }
 
@@ -42,3 +36,5 @@ func (lint *filterRuleSplitSubnet) getName() string {
 func (lint *filterRuleSplitSubnet) getFindings() []any {
 	return nil
 }
+
+// todo getFilterTrafficResourceOfKind export
