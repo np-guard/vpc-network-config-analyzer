@@ -242,14 +242,16 @@ type RulesInTable struct {
 
 // RuleOfFilter a single rule in filter given the layer (SGLayer/NACLLayer)
 type RuleOfFilter struct {
+	LayerName  string
 	FilterName string
 	RuleIndx   int
 	RuleDesc   string
 	IPBlocks   []*ipblock.IPBlock
 }
 
-func NewRuleOfFilter(filterName, desc string, ruleIndex int, IPBlocks []*ipblock.IPBlock) *RuleOfFilter {
-	return &RuleOfFilter{FilterName: filterName, RuleIndx: ruleIndex, RuleDesc: desc, IPBlocks: IPBlocks}
+func NewRuleOfFilter(layerName, filterName, desc string, ruleIndex int, IPBlocks []*ipblock.IPBlock) *RuleOfFilter {
+	return &RuleOfFilter{LayerName: layerName, FilterName: filterName, RuleIndx: ruleIndex, RuleDesc: desc,
+		IPBlocks: IPBlocks}
 }
 
 // FilterTrafficResource capture allowed traffic between 2 endpoints

@@ -22,6 +22,9 @@ import (
 
 const doubleTab = "\t\t"
 
+const securityGroup = "security group"
+const networkACL = "network ACL"
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 func nameWithBracketsInfo(name, inBrackets string) string {
@@ -473,13 +476,14 @@ func (nl *NaclLayer) GetRules() ([]vpcmodel.RuleOfFilter, error) {
 		naclRules := nacl.analyzer.egressRules
 		naclRules = append(naclRules, nacl.analyzer.ingressRules...)
 		if nacl.analyzer.naclResource.Name == nil {
-			return nil, fmt.Errorf(fmt.Sprintf("Empty name for nacl indexed %d", naclIndx))
+			return nil, fmt.Errorf(fmt.Sprintf("Empty name for %s indexed %d", networkACL, naclIndx))
 		}
 		naclName := *nacl.analyzer.naclResource.Name
 		for _, rule := range naclRules {
 			ruleBlocks := []*ipblock.IPBlock{rule.src, rule.dst}
 			ruleDesc, _, _, _ := nacl.analyzer.getNACLRule(rule.index)
-			resRules = append(resRules, *vpcmodel.NewRuleOfFilter(naclName, ruleDesc, rule.index, ruleBlocks))
+			resRules = append(resRules, *vpcmodel.NewRuleOfFilter(networkACL, naclName, ruleDesc, rule.index,
+				ruleBlocks))
 		}
 	}
 	return resRules, nil
@@ -693,7 +697,7 @@ func (sgl *SecurityGroupLayer) GetRules() ([]vpcmodel.RuleOfFilter, error) {
 		sgRules := sg.analyzer.egressRules
 		sgRules = append(sgRules, sg.analyzer.ingressRules...)
 		if sg.analyzer.sgResource.Name == nil {
-			return nil, fmt.Errorf(fmt.Sprintf("Empty name for security group indexed %d", sgIndx))
+			return nil, fmt.Errorf(fmt.Sprintf("Empty name for %s indexed %d", securityGroup, sgIndx))
 		}
 		sgName := *sg.analyzer.sgResource.Name
 		for _, rule := range sgRules {
@@ -702,7 +706,8 @@ func (sgl *SecurityGroupLayer) GetRules() ([]vpcmodel.RuleOfFilter, error) {
 				ruleBlocks = append(ruleBlocks, rule.local)
 			}
 			ruleDesc, _, _, _ := sg.analyzer.getSGRule(rule.index)
-			resRules = append(resRules, *vpcmodel.NewRuleOfFilter(sgName, ruleDesc, rule.index, ruleBlocks))
+			resRules = append(resRules, *vpcmodel.NewRuleOfFilter(securityGroup, sgName, ruleDesc, rule.index,
+				ruleBlocks))
 		}
 
 	}
