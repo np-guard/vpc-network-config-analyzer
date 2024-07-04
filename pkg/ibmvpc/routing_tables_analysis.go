@@ -74,8 +74,11 @@ func (ga *GlobalRTAnalyzer) GetRoutingPath(src vpcmodel.InternalNodeIntf, dest *
 		// and prefer the one with the src zone of such is available
 		// the analysis should be done for all available zones (up to 3)
 		res2, err := targetVPCAnalyzer.getIngressPath(tgwSource, dest, destZone, srcZone)
-		return vpcmodel.DetailedPath{EndpointsPath: vpcmodel.ConcatPaths(res.EndpointsPath, res2)}, err
-		//return vpcmodel.ConcatPaths(res, res2), err
+		fullRes := vpcmodel.DetailedPath{
+			EndpointsPath: vpcmodel.ConcatPaths(res.EndpointsPath, res2.EndpointsPath),
+			RTPath:        slices.Concat(res.RTPath, res2.RTPath),
+		}
+		return fullRes, err
 	}
 	// else - routing remains within a single vpc context
 	return res, err
@@ -154,20 +157,26 @@ func (rt *RTAnalyzer) getEgressPath(src vpcmodel.InternalNodeIntf, dest *ipblock
 		p := rt.implicitRT.getEgressPath(src.(vpcmodel.Node), dest)
 		res := vpcmodel.DetailedPath{
 			EndpointsPath: p,
-			RTPath:        []*vpcmodel.RTActionDetail{{RTName: "implicit"}},
+			RTPath:        []*vpcmodel.RTActionDetail{{RTName: "implicit-egress"}},
 		}
 		return res, nil
 	}
 	return srcRT.getEgressPath(src.(vpcmodel.Node), dest, subnet.ZoneName())
 }
 
-func (rt *RTAnalyzer) getIngressPath(sourceType ingressRTSource, dest *ipblock.IPBlock, destZone, srcZone string) (vpcmodel.Path, error) {
+func (rt *RTAnalyzer) getIngressPath(sourceType ingressRTSource, dest *ipblock.IPBlock, destZone, srcZone string) (
+	vpcmodel.DetailedPath, error) {
 	for _, ingressRt := range rt.ingressRT {
 		if ingressRt.source == sourceType {
 			return ingressRt.getIngressPath(dest, destZone, srcZone)
 		}
 	}
-	return rt.implicitRT.getIngressPath(dest)
+	p, err := rt.implicitRT.getIngressPath(dest)
+	res := vpcmodel.DetailedPath{
+		EndpointsPath: p,
+		RTPath:        []*vpcmodel.RTActionDetail{{RTName: "implicit-ingress"}},
+	}
+	return res, err
 }
 
 /*
@@ -347,14 +356,10 @@ func newRoute(name, dest, nextHop, zone string, action routingAction, prio int, 
 func (r *route) string() string {
 	switch r.action {
 	case deliver:
-		return fmt.Sprintf("dest: %s, next hop: %s, action: deliver, zone: %s, prio: %d, advertise: %t",
-			r.destination, r.nextHop, r.zone, r.priority, r.advertise)
-	case drop:
-		return fmt.Sprintf("dest: %s, action: drop,  zone: %s, prio: %d", r.destination, r.zone, r.priority)
-	case delegate:
-		return fmt.Sprintf("dest: %s, action: delegate,  zone: %s, prio: %d", r.destination, r.zone, r.priority)
-	case delegateVPC:
-		return fmt.Sprintf("dest: %s, action: delegateVPC,  zone: %s, prio: %d", r.destination, r.zone, r.priority)
+		return fmt.Sprintf("dest: %s, next hop: %s, action: %s, zone: %s, prio: %d, advertise: %t",
+			r.destination, r.nextHop, r.action.string(), r.zone, r.priority, r.advertise)
+	case drop, delegate, delegateVPC:
+		return fmt.Sprintf("dest: %s, action: %s,  zone: %s, prio: %d", r.destination, r.action.string(), r.zone, r.priority)
 	}
 	return ""
 }
@@ -492,7 +497,6 @@ func (rt *routingTable) getEgressPath(src vpcmodel.Node, dest *ipblock.IPBlock, 
 		RTPath:        path.RTPath,
 	}
 	return res, nil
-	//return path.PrependResource(src), nil
 }
 
 func (rt *routingTable) evaluatedPath(dest *ipblock.IPBlock, path vpcmodel.Path, shouldDelegate bool) (vpcmodel.Path, error) {
@@ -503,13 +507,17 @@ func (rt *routingTable) evaluatedPath(dest *ipblock.IPBlock, path vpcmodel.Path,
 }
 
 // traffic from those ingress sources arriving in this zone will be subject to this route.
-func (rt *routingTable) getIngressPath(dest *ipblock.IPBlock, destZone, srcZone string) (vpcmodel.Path, error) {
+func (rt *routingTable) getIngressPath(dest *ipblock.IPBlock, destZone, srcZone string) (vpcmodel.DetailedPath, error) {
 	// TODO: validate the logic of this function (first consider dest zone, then src zone)
 	// if the dest zone is not empty - consider only dest zone routes
 	if destZone != "" {
 		logging.Debugf("consider only routes by dest zone, which is %s", destZone)
 		path, shouldDelegate, _ := rt.getPath(dest, destZone)
-		return rt.evaluatedPath(dest, path.EndpointsPath, shouldDelegate)
+		endpointsPath, err := rt.evaluatedPath(dest, path.EndpointsPath, shouldDelegate)
+		return vpcmodel.DetailedPath{
+			RTPath:        path.RTPath,
+			EndpointsPath: endpointsPath,
+		}, err
 	}
 
 	// if the src zone is found as a match - prefer the route of the src zone (if matched)
@@ -517,7 +525,11 @@ func (rt *routingTable) getIngressPath(dest *ipblock.IPBlock, destZone, srcZone 
 		path, shouldDelegate, matched := rt.getPath(dest, srcZone)
 		if matched {
 			logging.Debugf("consider only routes by src zone, which is %s", srcZone)
-			return rt.evaluatedPath(dest, path.EndpointsPath, shouldDelegate)
+			endpointsPath, err := rt.evaluatedPath(dest, path.EndpointsPath, shouldDelegate)
+			return vpcmodel.DetailedPath{
+				RTPath:        path.RTPath,
+				EndpointsPath: endpointsPath,
+			}, err
 		}
 	}
 
@@ -532,18 +544,28 @@ func (rt *routingTable) getIngressPath(dest *ipblock.IPBlock, destZone, srcZone 
 		}
 		path, shouldDelegate, matched := rt.getPath(dest, zone)
 		if matched {
-			return rt.evaluatedPath(dest, path.EndpointsPath, shouldDelegate)
+			endpointsPath, err := rt.evaluatedPath(dest, path.EndpointsPath, shouldDelegate)
+			return vpcmodel.DetailedPath{
+				RTPath:        path.RTPath,
+				EndpointsPath: endpointsPath,
+			}, err
 		}
 	}
 	// if got here - none of the zones has match for this dest
-	return rt.implicitRT.getIngressPath(dest)
+	detail := &vpcmodel.RTActionDetail{
+		RTName:    rt.Name(),
+		ActionStr: delegate.string(),
+		Matched:   false,
+	}
+	endpointsPath, err := rt.implicitRT.getIngressPath(dest)
+	return vpcmodel.DetailedPath{EndpointsPath: endpointsPath, RTPath: []*vpcmodel.RTActionDetail{detail}}, err
 }
 
 func (rt *routingTable) getPath(dest *ipblock.IPBlock, zone string) (path vpcmodel.DetailedPath, shouldDelegate, matchedInTable bool) {
 	if _, ok := rt.routingResultMap[zone]; !ok {
 		detail := &vpcmodel.RTActionDetail{
 			RTName:    rt.Name(),
-			ActionStr: delegateStr,
+			ActionStr: delegate.string(),
 			Matched:   false,
 		}
 		return vpcmodel.DetailedPath{EndpointsPath: nil, RTPath: []*vpcmodel.RTActionDetail{detail}}, true, false
@@ -557,7 +579,7 @@ func (rt *routingTable) getPath(dest *ipblock.IPBlock, zone string) (path vpcmod
 		if dest.ContainedIn(tableDest) {
 			detail := &vpcmodel.RTActionDetail{
 				RTName:    rt.Name(),
-				ActionStr: deliverStr,
+				ActionStr: deliver.string(),
 				Matched:   true,
 			}
 			p := vpcmodel.Path([]*vpcmodel.Endpoint{
@@ -567,10 +589,9 @@ func (rt *routingTable) getPath(dest *ipblock.IPBlock, zone string) (path vpcmod
 	}
 	if dest.ContainedIn(rt.routingResultMap[zone].delegatedDestinations) {
 		// explicit delegate
-		//return nil, true, true
 		detail := &vpcmodel.RTActionDetail{
 			RTName:    rt.Name(),
-			ActionStr: delegateStr,
+			ActionStr: delegate.string(),
 			Matched:   true,
 		}
 		return vpcmodel.DetailedPath{EndpointsPath: nil, RTPath: []*vpcmodel.RTActionDetail{detail}}, true, true
@@ -579,7 +600,7 @@ func (rt *routingTable) getPath(dest *ipblock.IPBlock, zone string) (path vpcmod
 		// explicit drop
 		detail := &vpcmodel.RTActionDetail{
 			RTName:    rt.Name(),
-			ActionStr: dropStr,
+			ActionStr: drop.string(),
 			Matched:   true,
 		}
 		return vpcmodel.DetailedPath{EndpointsPath: nil, RTPath: []*vpcmodel.RTActionDetail{detail}}, false, true // no path
@@ -587,7 +608,7 @@ func (rt *routingTable) getPath(dest *ipblock.IPBlock, zone string) (path vpcmod
 	// implicit delegate: a non-matched destination is delegated to the system-implicit routing table
 	detail := &vpcmodel.RTActionDetail{
 		RTName:    rt.Name(),
-		ActionStr: delegateStr,
+		ActionStr: delegate.string(),
 		Matched:   false,
 	}
 	return vpcmodel.DetailedPath{EndpointsPath: nil, RTPath: []*vpcmodel.RTActionDetail{detail}}, true, false

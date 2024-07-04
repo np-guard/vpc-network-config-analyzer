@@ -89,10 +89,24 @@ var routes1 = []*route{
 	newRouteNoErr("r4", "0.0.0.0/0", "10.10.1.5", deliver, 2, "zoneB"),
 }
 
+var routes2 = []*route{
+	newRouteNoErr("r1", "0.0.0.0/0", "10.10.1.5", deliver, 2, "zoneA"),
+	newRouteNoErr("r2", "10.10.0.0/16", "", drop, 2, "zoneA"),
+	newRouteNoErr("r3", "10.11.0.0/16", "", drop, 2, "zoneB"),
+	newRouteNoErr("r4", "0.0.0.0/0", "10.10.1.5", deliver, 2, "zoneB"),
+}
+
 var routes1PartialSubnets = &routesPerSubnets{
 	routesMap: map[string]*tableSpecForTest{
 		"subnet2,subnet3": {routesList: emptyRoutes, tableName: "defaultEmptyTable"},
 		"subnet1":         {routesList: routes1, tableName: "routes1Table"}, // changes routing for this subnet
+	},
+}
+
+var routes2PartialSubnets = &routesPerSubnets{
+	routesMap: map[string]*tableSpecForTest{
+		"subnet2,subnet3": {routesList: emptyRoutes, tableName: "defaultEmptyTable"},
+		"subnet1":         {routesList: routes2, tableName: "routes2Table"}, // changes routing for this subnet
 	},
 }
 
@@ -250,6 +264,16 @@ var testRTAnalyzerTests = []*testRTAnalyzer{
 		expectedPath: vpcmodel.Path([]*vpcmodel.Endpoint{{VpcResource: newNetIntForTest("vsi1", "10.10.1.8", "node1")},
 			{VpcResource: newNetIntForTest("vsi2", "10.10.3.8", "node2")},
 			/*{IPBlock: newIPBlockFromCIDROrAddressWithoutValidation("10.10.3.8")}*/}), // (derived from system implicit RT )
+	},
+	{
+		testName: "dest is vpc internal address, path is drop through subnet's RT (subnet1)",
+		// rt path: "[rt:routes2Table, action: drop, matched: true]"
+		rps:          routes2PartialSubnets,
+		srcIP:        "10.10.1.8",
+		dstIP:        "10.10.3.8",
+		expectedErr:  "",
+		expectedPath: vpcmodel.Path([]*vpcmodel.Endpoint{{VpcResource: newNetIntForTest("vsi1", "10.10.1.8", "node1")}}),
+		// (derived from system implicit RT )
 	},
 	{
 		testName: "dest is public internet address, path is through pgw (default RT) (subnet2)",

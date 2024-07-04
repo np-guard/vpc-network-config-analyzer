@@ -41,7 +41,6 @@ type RTActionDetail struct {
 
 func (r *RTActionDetail) String() string {
 	return fmt.Sprintf("[rt:%s, action: %s, matched: %t]", r.RTName, r.ActionStr, r.Matched)
-
 }
 
 // Path captures a list of endpoints within a routing Path.
