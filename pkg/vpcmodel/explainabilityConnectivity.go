@@ -102,7 +102,7 @@ func (c *MultipleVPCConfigs) ExplainConnectivity(src, dst string, connQuery *con
 	if vpcConfig == nil {
 		// No error and also no matching vpc config for both src and dst: missing cross-vpc router.
 		// No VPCConfig to work with in this case, thus, this case is treated separately
-		return &Explanation{connQuery: connQuery, src: src, dst: dst}, nil
+		return &Explanation{connQuery: connQuery, src: src, dst: dst, srcNodeSet: srcNodeSet, dstNodeSet: dstNodeSet}, nil
 	}
 	connectivity, err1 := vpcConfig.GetVPCNetworkConnectivity(false, false) // computes connectivity
 	if err1 != nil {

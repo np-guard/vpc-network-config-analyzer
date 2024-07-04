@@ -310,12 +310,12 @@ func (c *VPCConfig) getSrcOrDstInputNode(name, srcOrDst string) (nodes []Node, n
 func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node, nodeSet NodeSet,
 	internalIP bool, errType int, err error) {
 	// 1. cidrOrName references vsi
-	vsi, errType1, err1 := c.getNodesOfVsi(cidrOrName)
+	nodeSet, errType1, err1 := c.getNodesOfVsi(cidrOrName)
 	if err1 != nil {
 		return nil, nil, false, errType1, err1
 	}
-	if vsi != nil {
-		return vsi.Nodes(), nodeSet, false, noErr, nil
+	if nodeSet != nil {
+		return nodeSet.Nodes(), nodeSet, false, noErr, nil
 	}
 	// cidrOrName, if legal, references an address.
 	// 2. cidrOrName references an ip address

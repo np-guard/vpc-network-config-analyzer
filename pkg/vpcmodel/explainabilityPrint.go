@@ -25,8 +25,8 @@ const emptyString = ""
 
 // header of txt/debug format
 func explainHeader(explanation *Explanation) string {
-	srcNetworkInterfaces := listNetworkInterfaces(explanation.c, explanation.srcNetworkInterfacesFromIP)
-	dstNetworkInterfaces := listNetworkInterfaces(explanation.c, explanation.dstNetworkInterfacesFromIP)
+	srcNetworkInterfaces := listNetworkInterfaces(explanation.c, explanation.srcNodeSet, explanation.srcNetworkInterfacesFromIP)
+	dstNetworkInterfaces := listNetworkInterfaces(explanation.c, explanation.dstNodeSet, explanation.dstNetworkInterfacesFromIP)
 	singleVpcContext := ""
 	// communication within a single vpc
 	if explanation.c != nil && !explanation.c.IsMultipleVPCsConfig {
@@ -50,7 +50,10 @@ func connHeader(connQuery *connection.Set) string {
 
 // in case the src/dst of a network interface given as an internal address connected to network interface returns a string
 // of all relevant nodes names
-func listNetworkInterfaces(c *VPCConfig, nodes []Node) string {
+func listNetworkInterfaces(c *VPCConfig, nodeSet NodeSet, nodes []Node) string {
+	if nodeSet != nil{
+		return leftParentheses + nodeSet.ExtendedName(c) + rightParentheses
+	}
 	if len(nodes) == 0 {
 		return emptyString
 	}
