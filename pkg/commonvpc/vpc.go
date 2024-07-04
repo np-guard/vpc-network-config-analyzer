@@ -17,7 +17,7 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
-// not used now, todo: check
+// not used currently for aws , todo: check
 type Region struct {
 	Name string
 }
@@ -270,7 +270,7 @@ func (sg *SecurityGroup) AllowedConnectivity(src, dst vpcmodel.Node, isIngress b
 	if _, ok := sg.Members[memberStrAddress]; !ok {
 		return connection.None() // connectivity not affected by this SG resource - input node is not its member
 	}
-	return sg.Analyzer.AllowedConnectivity(targetIPBlock, ipblock.GetCidrAll(), isIngress)
+	return sg.Analyzer.allowedConnectivity(targetIPBlock, ipblock.GetCidrAll(), isIngress)
 }
 
 // unifiedMembersIPBlock returns an *IPBlock object with union of all members IPBlock
@@ -290,7 +290,7 @@ func (sg *SecurityGroup) rulesFilterInConnectivity(src, dst vpcmodel.Node, conn 
 	if _, ok := sg.Members[memberStrAddress]; !ok {
 		return false, nil, nil // connectivity not affected by this SG resource - input node is not its member
 	}
-	rules, err = sg.Analyzer.RulesFilterInConnectivity(targetIPBlock, ipblock.GetCidrAll(), conn, isIngress)
+	rules, err = sg.Analyzer.rulesFilterInConnectivity(targetIPBlock, ipblock.GetCidrAll(), conn, isIngress)
 	return true, rules, err
 }
 

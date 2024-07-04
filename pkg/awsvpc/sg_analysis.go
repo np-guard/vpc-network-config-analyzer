@@ -123,11 +123,11 @@ func (sga *SpecificAnalyzer) getProtocolIcmpRule(ruleObj *types.IpPermission, di
 		}
 		remote = remote.Union(ipRange)
 	}
-	ruleStr = getRuleStr(direction, connStr, ruleRes.Remote.Cidr.String())
 	ruleRes = &commonvpc.SGRule{
 		Connections: conns,
 		Remote:      &commonvpc.RuleTarget{Cidr: remote, SgName: ""},
 	}
+	ruleStr = getRuleStr(direction, connStr, ruleRes.Remote.Cidr.String())
 	return
 }
 
