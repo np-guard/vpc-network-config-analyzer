@@ -63,7 +63,7 @@ type srcAndDstNodes struct {
 
 // getVPCConfigAndSrcDstNodes given src, dst in string returns the config in which the exaplainability analysis of these
 // should be done and the Nodes for src and dst. It also returns whether src and/or dst was given as the internal address of
-// a vsi - which effects the output.
+// a vsi - which effects the output, and the src/dst nodeSet if src/dst are nodeSet. 
 // src/dst when referring to a vsi *name* may be prefixed with the vpc name with the deliminator "/" to solve ambiguity
 // If such prefix is missing then a match in any vpc is valid.
 // At most one config should contain both src and dst, and this is the config returned:
@@ -102,17 +102,17 @@ type srcAndDstNodes struct {
 
 //nolint:gocyclo // better not split into two function
 func (c *MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string) (vpcConfig *VPCConfig,
-	srcNodes, dstNodes []Node, isSrcDstInternalIP srcDstInternalAddr, err error) {
+	srcNodes, dstNodes []Node, isSrcDstInternalIP srcDstInternalAddr, srcNodeSet, dstNodeSet NodeSet, err error) {
 	var errMsgInternalNoEP, errMsgNoValidSrc, errMsgNoValidDst error
 	var srcFoundSomeCfg, dstFoundSomeCfg bool
 	noInternalIP := srcDstInternalAddr{false, false}
 	if unifyInput(src) == unifyInput(dst) {
-		return nil, nil, nil, noInternalIP, fmt.Errorf("specified src and dst are equal")
+		return nil, nil, nil, noInternalIP, nil, nil, fmt.Errorf("specified src and dst are equal")
 	}
 	configsWithSrcDstNodeSingleVpc, configsWithSrcDstNodeMultiVpc := map[string]srcAndDstNodes{}, map[string]srcAndDstNodes{}
 	for cfgID := range c.Configs() {
 		var errType int
-		srcNodes, dstNodes, isSrcDstInternalIP, errType, err = c.Config(cfgID).srcDstInputToNodes(src, dst)
+		srcNodes, dstNodes, srcNodeSet, dstNodeSet, isSrcDstInternalIP, errType, err = c.Config(cfgID).srcDstInputToNodes(src, dst)
 		if srcNodes != nil {
 			srcFoundSomeCfg = true
 		}
@@ -122,7 +122,7 @@ func (c *MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string) (vpcCon
 		if err != nil {
 			switch {
 			case errType == fatalErr:
-				return c.Config(cfgID), nil, nil, noInternalIP, err
+				return c.Config(cfgID), nil, nil, noInternalIP, nil, nil, err
 			case errType == internalNoConnectedEndpoints:
 				errMsgInternalNoEP = err
 			case errType == noValidInputErr && srcNodes == nil:
@@ -147,23 +147,23 @@ func (c *MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string) (vpcCon
 	// single config in which both src and dst were found, and the matched config is a multi vpc config: returns the matched config
 	case len(configsWithSrcDstNodeSingleVpc) == 0 && len(configsWithSrcDstNodeMultiVpc) == 1:
 		for cfgID, val := range configsWithSrcDstNodeMultiVpc {
-			return c.Config(cfgID), val.srcNodes, val.dstNodes, val.isSrcDstInternalIP, nil
+			return c.Config(cfgID), val.srcNodes, val.dstNodes, val.isSrcDstInternalIP, srcNodeSet, dstNodeSet, nil
 		}
 	// Src and dst were found in a exactly one single-vpc config. Its likely src and dst were also found in
 	// multi-vpc configs (in each such config that connects their vpc to another one).
 	// In this case the relevant config for analysis is the single vpc config, which is the returned config
 	case len(configsWithSrcDstNodeSingleVpc) == 1:
 		for cfgID, val := range configsWithSrcDstNodeSingleVpc {
-			return c.Config(cfgID), val.srcNodes, val.dstNodes, val.isSrcDstInternalIP, nil
+			return c.Config(cfgID), val.srcNodes, val.dstNodes, val.isSrcDstInternalIP, srcNodeSet, dstNodeSet, nil
 		}
 	// both src and dst found in *more than one* single-vpc config or
 	// in no single-vpc config and more than one multi-vpc config. In both cases it is impossible to determine
 	// what is the config in which the analysis should be done
 	default:
-		return nil, nil, nil, noInternalIP,
+		return nil, nil, nil, noInternalIP, nil, nil,
 			c.matchMoreThanOneSingleVpcCfgError(src, dst, configsWithSrcDstNodeSingleVpc, configsWithSrcDstNodeMultiVpc)
 	}
-	return nil, nil, nil, noInternalIP, nil
+	return nil, nil, nil, noInternalIP, nil, nil, nil
 }
 
 func unifyInput(str string) string {
@@ -177,19 +177,19 @@ func unifyInput(str string) string {
 // this function was tested manually; having a dedicated test for it is too much work w.r.t its simplicity
 func noConfigMatchSrcDst(srcFoundSomeCfg, dstFoundSomeCfg bool, errMsgInternalNoEP,
 	errMsgNoValidSrc, errMsgNoValidDst error) (vpcConfig *VPCConfig,
-	srcNodes, dstNodes []Node, isSrcDstInternalIP srcDstInternalAddr, err error) {
+	srcNodes, dstNodes []Node, isSrcDstInternalIP srcDstInternalAddr, srcNodeSet, dstNodeSet NodeSet, err error) {
 	noInternalIP := srcDstInternalAddr{false, false}
 	switch {
 	// src found some cfg, dst found some cfg but not in the same cfg: input valid (missing tgw)
 	// this is not considered an error - the output will explain the src, dst are not connected via cross-vpc router
 	case srcFoundSomeCfg && dstFoundSomeCfg:
-		return nil, nil, nil, noInternalIP, nil
+		return nil, nil, nil, noInternalIP, nil, nil, nil
 	case errMsgInternalNoEP != nil:
-		return nil, nil, nil, noInternalIP, errMsgInternalNoEP
+		return nil, nil, nil, noInternalIP, nil, nil, errMsgInternalNoEP
 	case !srcFoundSomeCfg:
-		return nil, nil, nil, noInternalIP, errMsgNoValidSrc
+		return nil, nil, nil, noInternalIP, nil, nil, errMsgNoValidSrc
 	default: // !dstFoundSomeCfg:
-		return nil, nil, nil, noInternalIP, errMsgNoValidDst
+		return nil, nil, nil, noInternalIP, nil, nil, errMsgNoValidDst
 	}
 }
 
@@ -260,62 +260,62 @@ func (e *ExplanationArgs) GetConnectionSet() *connection.Set {
 	}
 }
 
-// given src and dst input and a VPCConfigs finds the []nodes they represent in the config
+// given src and dst input and a VPCConfigs finds the []nodes they represent in the config, and nodeSets if src/dst is a nodeSet
 // src/dst may refer to:
 // 1. VSI by UID or name; in this case we consider the network interfaces of the VSI
 // 2. Internal IP address or cidr; in this case we consider the VSIs in that address range
 // 3. external IP address or cidr
-func (c *VPCConfig) srcDstInputToNodes(srcName, dstName string) (srcNodes,
-	dstNodes []Node, isSrcDstInternalIP srcDstInternalAddr, errType int, err error) {
+func (c *VPCConfig) srcDstInputToNodes(srcName, dstName string) (srcNodes, dstNodes []Node,
+	srcNodeSet, dstNodeSet NodeSet, isSrcDstInternalIP srcDstInternalAddr, errType int, err error) {
 	var isSrcInternalIP, isDstInternalIP bool
 	noInternalIP := srcDstInternalAddr{false, false}
 	var errSrc, errDst error
 	var errSrcType, errDstType int
-	srcNodes, isSrcInternalIP, errSrcType, errSrc = c.getSrcOrDstInputNode(srcName, "src")
-	dstNodes, isDstInternalIP, errDstType, errDst = c.getSrcOrDstInputNode(dstName, "dst")
+	srcNodes, srcNodeSet, isSrcInternalIP, errSrcType, errSrc = c.getSrcOrDstInputNode(srcName, "src")
+	dstNodes, dstNodeSet, isDstInternalIP, errDstType, errDst = c.getSrcOrDstInputNode(dstName, "dst")
 	switch {
 	case errSrcType > errDstType: // src's error is of severity larger than dst's error;
 		// this implies src has an error (dst may have an error and may not have an error)
-		return srcNodes, dstNodes, noInternalIP, errSrcType, errSrc
+		return srcNodes, dstNodes, srcNodeSet, dstNodeSet, noInternalIP, errSrcType, errSrc
 	case errDstType > errSrcType: // same as above src <-> dst
-		return srcNodes, dstNodes, noInternalIP, errDstType, errDst
+		return srcNodes, dstNodes, srcNodeSet, dstNodeSet, noInternalIP, errDstType, errDst
 	default: // both of the same severity, could be no error
 		if errSrc != nil { // if an error, prioritize src
-			return srcNodes, dstNodes, noInternalIP, errSrcType, errSrc
+			return srcNodes, dstNodes, srcNodeSet, dstNodeSet, noInternalIP, errSrcType, errSrc
 		}
 	}
 	// both src and dst are legal
 	// only one of src/dst may be external; there could be multiple nodes only if external
 	if !srcNodes[0].IsInternal() && !dstNodes[0].IsInternal() {
-		return srcNodes, dstNodes, noInternalIP, fatalErr,
+		return srcNodes, dstNodes, srcNodeSet, dstNodeSet, noInternalIP, fatalErr,
 			fmt.Errorf("both src %v and dst %v are external IP addresses", srcName, dstName)
 	}
-	return srcNodes, dstNodes, srcDstInternalAddr{isSrcInternalIP, isDstInternalIP}, noErr, nil
+	return srcNodes, dstNodes, srcNodeSet, dstNodeSet, srcDstInternalAddr{isSrcInternalIP, isDstInternalIP}, noErr, nil
 }
 
 // given a VPCConfig and a string looks for the VSI/Internal IP/External address it presents,
 // as described above
-func (c *VPCConfig) getSrcOrDstInputNode(name, srcOrDst string) (nodes []Node,
+func (c *VPCConfig) getSrcOrDstInputNode(name, srcOrDst string) (nodes []Node, nodeSet NodeSet,
 	internalIP bool, errType int, err error) {
-	outNodes, isInternalIP, errType1, err1 := c.getNodesFromInputString(name)
+	outNodes, nodeSet, isInternalIP, errType1, err1 := c.getNodesFromInputString(name)
 	if err1 != nil {
-		return nil, false, errType1, fmt.Errorf("illegal %v: %v", srcOrDst, err1.Error())
+		return nil, nil, false, errType1, fmt.Errorf("illegal %v: %v", srcOrDst, err1.Error())
 	}
-	return outNodes, isInternalIP, noErr, nil
+	return outNodes, nodeSet, isInternalIP, noErr, nil
 }
 
 // given a VPCConfig and a string cidrOrName representing a vsi or internal/external
-// cidr/address returns the corresponding node(s) and a bool which is true iff
+// cidr/address returns the corresponding node(s), the nodeSet, and a bool which is true iff
 // cidrOrName is an internal address and the nodes are its network interfaces
-func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node,
+func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node, nodeSet NodeSet,
 	internalIP bool, errType int, err error) {
 	// 1. cidrOrName references vsi
 	vsi, errType1, err1 := c.getNodesOfVsi(cidrOrName)
 	if err1 != nil {
-		return nil, false, errType1, err1
+		return nil, nil, false, errType1, err1
 	}
 	if vsi != nil {
-		return vsi, false, noErr, nil
+		return vsi.Nodes(), nodeSet, false, noErr, nil
 	}
 	// cidrOrName, if legal, references an address.
 	// 2. cidrOrName references an ip address
@@ -323,11 +323,12 @@ func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node,
 	if err2 != nil {
 		// the input is not a legal cidr or IP address, which in this stage means it is not a
 		// valid presentation for src/dst. Lint demands that an error is returned here
-		return nil, false, noValidInputErr,
+		return nil, nil, false, noValidInputErr,
 			fmt.Errorf("%s %s", cidrOrName, noValidInputMsg)
 	}
 	// the input is a legal cidr or IP address
-	return c.getNodesFromAddress(cidrOrName, ipBlock)
+	nodes, internalIP, errType, err = c.getNodesFromAddress(cidrOrName, ipBlock)
+	return nodes, nil, internalIP, errType, err
 }
 
 // todo:
@@ -347,7 +348,7 @@ func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node,
 
 // getNodesOfVsi gets a string name or UID of VSI, and
 // returns the list of all nodes within this vsi
-func (c *VPCConfig) getNodesOfVsi(name string) ([]Node, int, error) {
+func (c *VPCConfig) getNodesOfVsi(name string) (NodeSet, int, error) {
 	var nodeSetWithVsi NodeSet
 	// vsi name may be prefixed by vpc name
 	var vpc, vsi string
@@ -375,7 +376,7 @@ func (c *VPCConfig) getNodesOfVsi(name string) ([]Node, int, error) {
 	if nodeSetWithVsi == nil {
 		return nil, noErr, nil
 	}
-	return nodeSetWithVsi.Nodes(), noErr, nil
+	return nodeSetWithVsi, noErr, nil
 }
 
 // getNodesFromAddress gets a string and IPBlock that represents a cidr or IP address

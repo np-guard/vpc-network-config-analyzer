@@ -80,6 +80,10 @@ type Explanation struct {
 	// this information should be handy; otherwise empty (slice of size 0)
 	srcNetworkInterfacesFromIP []Node
 	dstNetworkInterfacesFromIP []Node
+	// the following two properties are for the case src/dst are given as nodeSet name
+	// this information should be handy; otherwise nil
+	srcNodeSet NodeSet
+	dstNodeSet NodeSet
 	// (Current) Analysis of the connectivity of cluster worker nodes is under the assumption that the only security
 	// groups applied to them are the VPC default and the IKS generated SG; this comment needs to be added if src or dst is an IKS node
 	hasIksNode bool
@@ -91,7 +95,7 @@ type Explanation struct {
 
 // ExplainConnectivity returns Explanation object, that explains connectivity of a single <src, dst> couple given by the user
 func (c *MultipleVPCConfigs) ExplainConnectivity(src, dst string, connQuery *connection.Set) (res *Explanation, err error) {
-	vpcConfig, srcNodes, dstNodes, isSrcDstInternalIP, err := c.getVPCConfigAndSrcDstNodes(src, dst)
+	vpcConfig, srcNodes, dstNodes, isSrcDstInternalIP, srcNodeSet, dstNodeSet, err := c.getVPCConfigAndSrcDstNodes(src, dst)
 	if err != nil {
 		return nil, err
 	}
@@ -104,13 +108,13 @@ func (c *MultipleVPCConfigs) ExplainConnectivity(src, dst string, connQuery *con
 	if err1 != nil {
 		return nil, err1
 	}
-	return vpcConfig.explainConnectivityForVPC(src, dst, srcNodes, dstNodes, isSrcDstInternalIP, connQuery, connectivity)
+	return vpcConfig.explainConnectivityForVPC(src, dst, srcNodes, dstNodes, isSrcDstInternalIP, connQuery, connectivity, srcNodeSet, dstNodeSet)
 }
 
 // explainConnectivityForVPC for a vpcConfig, given src, dst and connQuery returns a struct with all explanation details
 // nil connQuery means connection is not part of the query
 func (c *VPCConfig) explainConnectivityForVPC(src, dst string, srcNodes, dstNodes []Node, isSrcDstInternalIP srcDstInternalAddr,
-	connQuery *connection.Set, connectivity *VPCConnectivity) (res *Explanation, err error) {
+	connQuery *connection.Set, connectivity *VPCConnectivity, srcNodeSet, dstNodeSet NodeSet) (res *Explanation, err error) {
 	// we do not support multiple configs, yet
 	rulesAndDetails, err1 := c.computeExplainRules(srcNodes, dstNodes, connQuery)
 	if err1 != nil {
@@ -142,7 +146,7 @@ func (c *VPCConfig) explainConnectivityForVPC(src, dst string, srcNodes, dstNode
 	return &Explanation{c, connQuery, &rulesAndDetails, src, dst,
 		getNetworkInterfacesFromIP(isSrcDstInternalIP.src, srcNodes),
 		getNetworkInterfacesFromIP(isSrcDstInternalIP.dst, dstNodes),
-		hasIksNode, groupedLines.GroupedLines}, nil
+		srcNodeSet, dstNodeSet, hasIksNode, groupedLines.GroupedLines}, nil
 }
 
 func getNetworkInterfacesFromIP(isInputInternalIP bool, nodes []Node) []Node {
