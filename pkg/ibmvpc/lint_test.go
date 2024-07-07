@@ -8,12 +8,12 @@ package ibmvpc
 
 import (
 	"fmt"
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/linter"
 	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/linter"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 

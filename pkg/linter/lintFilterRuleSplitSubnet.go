@@ -2,6 +2,7 @@ package linter
 
 import (
 	"fmt"
+
 	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
@@ -57,6 +58,7 @@ func (lint *filterRuleSplitSubnet) check() ([]string, error) {
 
 		}
 	}
+	lint.finding = findingRes
 	return strRes, nil
 }
 
