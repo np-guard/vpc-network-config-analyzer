@@ -37,7 +37,7 @@ func TestAllLint(t *testing.T) {
 		tt.mode = outputComparison
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			tt.runExplainTest(t)
+			tt.runLintTest(t)
 		})
 	}
 	fmt.Println("done")
