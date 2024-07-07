@@ -16,7 +16,6 @@ import (
 // filterRuleSplitSubnet: rules of filters that are inconsistent w.r.t. subnets.
 type filterRuleSplitSubnet struct {
 	basicLinter
-	finding []splitRuleSubnet
 }
 
 // a rule with the list of subnets it splits
