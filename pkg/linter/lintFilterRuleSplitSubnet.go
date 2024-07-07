@@ -86,7 +86,10 @@ func (lint *filterRuleSplitSubnet) getName() string {
 	return "filterRuleSplitSubnet"
 }
 
-// todo
-func (lint *filterRuleSplitSubnet) getFindings() []any {
-	return nil
+func (lint *filterRuleSplitSubnet) getFindings() (resFinding []any) {
+	resFinding = make([]any, len(lint.finding))
+	for i, issue := range lint.finding {
+		resFinding[i] = issue
+	}
+	return resFinding
 }
