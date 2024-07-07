@@ -7,6 +7,8 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
+const issues = " issues:"
+
 // LinterExecute executes linters one by one
 // todo: mechanism for disabling/enabling lint checks
 // todo: handle multiConfig
@@ -31,8 +33,8 @@ func LinterExecute(config *vpcmodel.VPCConfig) (issueFound bool, resString strin
 		} else {
 			issueFound = true
 		}
-		resString = fmt.Sprintf("%s issues:\n", thisLinter.getName()) +
-			strings.Repeat("~", len(thisLinter.getName())+8) + "\n" +
+		resString = fmt.Sprintf("%s%s\n", thisLinter.getName(), issues) +
+			strings.Repeat("~", len(thisLinter.getName())+len(issues)) + "\n" +
 			strings.Join(lintIssues, "")
 	}
 	fmt.Printf("%v", resString)

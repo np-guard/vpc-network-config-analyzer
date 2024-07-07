@@ -698,7 +698,7 @@ func (sgl *SecurityGroupLayer) GetRules() ([]vpcmodel.RuleOfFilter, error) {
 		sgRules := sg.analyzer.egressRules
 		sgRules = append(sgRules, sg.analyzer.ingressRules...)
 		if sg.analyzer.sgResource.Name == nil {
-			return nil, fmt.Errorf(fmt.Sprintf(emptyNameError, securityGroup, sgIndx))
+			return nil, fmt.Errorf(emptyNameError, securityGroup, sgIndx)
 		}
 		sgName := *sg.analyzer.sgResource.Name
 		for _, rule := range sgRules {

@@ -7,8 +7,9 @@ SPDX-License-Identifier: Apache-2.0
 package subcmds
 
 import (
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/linter"
 	"github.com/spf13/cobra"
+
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/linter"
 )
 
 func NewLintCommand(args *inArgs) *cobra.Command {
