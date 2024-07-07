@@ -476,7 +476,7 @@ func (nl *NaclLayer) GetRules() ([]vpcmodel.RuleOfFilter, error) {
 		naclRules := nacl.analyzer.egressRules
 		naclRules = append(naclRules, nacl.analyzer.ingressRules...)
 		if nacl.analyzer.naclResource.Name == nil {
-			return nil, fmt.Errorf(fmt.Sprintf("Empty name for %s indexed %d", networkACL, naclIndx))
+			return nil, errors.New(fmt.Sprintf("Empty name for %s indexed %d", networkACL, naclIndx))
 		}
 		naclName := *nacl.analyzer.naclResource.Name
 		for _, rule := range naclRules {
@@ -697,7 +697,7 @@ func (sgl *SecurityGroupLayer) GetRules() ([]vpcmodel.RuleOfFilter, error) {
 		sgRules := sg.analyzer.egressRules
 		sgRules = append(sgRules, sg.analyzer.ingressRules...)
 		if sg.analyzer.sgResource.Name == nil {
-			return nil, fmt.Errorf(fmt.Sprintf("Empty name for %s indexed %d", securityGroup, sgIndx))
+			return nil, errors.New(fmt.Sprintf("Empty name for %s indexed %d", securityGroup, sgIndx))
 		}
 		sgName := *sg.analyzer.sgResource.Name
 		for _, rule := range sgRules {
