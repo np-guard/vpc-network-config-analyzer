@@ -32,7 +32,7 @@ func LinterExecute(config *vpcmodel.VPCConfig) (issueFound bool, resString strin
 			issueFound = true
 		}
 		resString = fmt.Sprintf("%s issues:\n", thisLinter.getName()) +
-			strings.Repeat("~", len(thisLinter.getName())+8) +
+			strings.Repeat("~", len(thisLinter.getName())+8) + "\n" +
 			strings.Join(lintIssues, "")
 	}
 	fmt.Printf("%v", resString)
