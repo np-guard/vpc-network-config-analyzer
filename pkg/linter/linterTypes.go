@@ -1,3 +1,9 @@
+/*
+Copyright 2023- IBM Inc. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
 package linter
 
 import "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
