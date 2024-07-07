@@ -55,7 +55,6 @@ func (lint *filterRuleSplitSubnet) check() ([]string, error) {
 		}
 		if len(thisLayerSplit) > 0 {
 			findingRes = append(findingRes, thisLayerSplit...)
-
 		}
 	}
 	lint.finding = findingRes
