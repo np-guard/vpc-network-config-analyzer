@@ -24,6 +24,10 @@ var lintTests = []*vpcGeneralTest{
 		name:        "basic_acl3",
 		inputConfig: "acl_testing3",
 	},
+	{
+		name:        "basic_sg1",
+		inputConfig: "sg_testing1_new",
+	},
 }
 
 func TestAllLint(t *testing.T) {
@@ -111,7 +115,7 @@ func getLintTestFileName(testName string) (
 	actualFileName string,
 	err error) {
 	// todo: if there are more than one vpc in the config, split to a file per one vpc analysis
-	res := testName + "Lint_"
+	res := testName + "_Lint"
 
 	expectedFileName = res
 	actualFileName = actualOutFilePrefix + res
