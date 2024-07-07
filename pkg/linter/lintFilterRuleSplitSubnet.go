@@ -67,8 +67,8 @@ func ruleSplitSubnet(subnet vpcmodel.Subnet, ruleIPBlocks []*ipblock.IPBlock) (b
 	if err != nil {
 		return false, err
 	}
-	for _, ruleIpBlock := range ruleIPBlocks {
-		if ruleIpBlock.Overlap(subnetCidrIPBlock) && !subnetCidrIPBlock.ContainedIn(ruleIpBlock) {
+	for _, ruleIPBlock := range ruleIPBlocks {
+		if ruleIPBlock.Overlap(subnetCidrIPBlock) && !subnetCidrIPBlock.ContainedIn(ruleIPBlock) {
 			return true, nil
 		}
 	}

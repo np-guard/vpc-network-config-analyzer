@@ -249,9 +249,9 @@ type RuleOfFilter struct {
 	IPBlocks   []*ipblock.IPBlock
 }
 
-func NewRuleOfFilter(layerName, filterName, desc string, ruleIndex int, IpBlocks []*ipblock.IPBlock) *RuleOfFilter {
+func NewRuleOfFilter(layerName, filterName, desc string, ruleIndex int, ipBlocks []*ipblock.IPBlock) *RuleOfFilter {
 	return &RuleOfFilter{LayerName: layerName, FilterName: filterName, RuleIndx: ruleIndex, RuleDesc: desc,
-		IPBlocks: IpBlocks}
+		IPBlocks: ipBlocks}
 }
 
 // FilterTrafficResource capture allowed traffic between 2 endpoints

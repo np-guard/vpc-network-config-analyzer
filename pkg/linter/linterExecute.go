@@ -33,6 +33,6 @@ func LinterExecute(config *vpcmodel.VPCConfig) (bool, string) {
 			fmt.Sprintf("%s\n", strings.Repeat("~", len(thisLinter.getName())+8)) +
 			fmt.Sprintf(strings.Join(lintIssues, ""))
 	}
-	fmt.Printf(resString)
+	fmt.Printf("%v", resString)
 	return true, resString
 }
