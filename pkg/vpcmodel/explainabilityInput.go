@@ -309,7 +309,7 @@ func (c *VPCConfig) getSrcOrDstInputNode(name, srcOrDst string) (nodes []Node,
 func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node,
 	internalIP bool, errType int, err error) {
 	// 1. cidrOrName references vsi
-	vsi, errType1, err1 := c.getNodesOfVsi(cidrOrName)
+	vsi, errType1, err1 := c.getNodesOfEndpoint(cidrOrName)
 	if err1 != nil {
 		return nil, false, errType1, err1
 	}
@@ -329,37 +329,36 @@ func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node,
 	return c.getNodesFromAddress(cidrOrName, ipBlock)
 }
 
-// getNodesOfVsi gets a string name or UID of VSI, and
-// returns the list of all nodes within this vsi
-func (c *VPCConfig) getNodesOfVsi(name string) ([]Node, int, error) {
-	var nodeSetWithVsi NodeSet
-	// vsi name may be prefixed by vpc name
-	var vpc, vsi string
+// getNodesOfEndpoint gets a string name or UID of an endpoint (e.g. VSI), and
+// returns the list of all nodes within this endpoint
+func (c *VPCConfig) getNodesOfEndpoint(name string) ([]Node, int, error) {
+	var nodeSetOfEndpoint NodeSet
+	// endpoint name may be prefixed by vpc name
+	var vpc, endpoint string
 	uid := name // uid specified - vpc prefix is not relevant and uid may contain the deliminator "/"
 	cidrOrNameSlice := strings.Split(name, deliminator)
 	switch len(cidrOrNameSlice) {
 	case 1: // vpc name not specified
-		vsi = name
+		endpoint = name
 	case 2: // vpc name specified
 		vpc = cidrOrNameSlice[0]
-		vsi = cidrOrNameSlice[1]
+		endpoint = cidrOrNameSlice[1]
 	}
 	for _, nodeSet := range c.NodeSets {
-		// currently, assuming c.NodeSets consists of VSIs or VPE
-		if (vpc == "" || nodeSet.VPC().Name() == vpc) && nodeSet.Name() == vsi || // if vpc of vsi specified, equality must hold
+		if (vpc == "" || nodeSet.VPC().Name() == vpc) && nodeSet.Name() == endpoint || // if vpc of endpoint specified, equality must hold
 			nodeSet.UID() == uid {
-			if nodeSetWithVsi != nil {
+			if nodeSetOfEndpoint != nil {
 				return nil, fatalErr, fmt.Errorf("ambiguity - the configuration contains multiple resources named %s, "+
 					"try using CRNs or the VPC name to scope resources: vpc-name/instance-name"+
-					"\nCRNs of matching resources:\n\t%s\n\t%s", name, nodeSetWithVsi.UID(), nodeSet.UID())
+					"\nCRNs of matching resources:\n\t%s\n\t%s", name, nodeSetOfEndpoint.UID(), nodeSet.UID())
 			}
-			nodeSetWithVsi = nodeSet
+			nodeSetOfEndpoint = nodeSet
 		}
 	}
-	if nodeSetWithVsi == nil {
+	if nodeSetOfEndpoint == nil {
 		return nil, noErr, nil
 	}
-	return nodeSetWithVsi.Nodes(), noErr, nil
+	return nodeSetOfEndpoint.Nodes(), noErr, nil
 }
 
 // getNodesFromAddress gets a string and IPBlock that represents a cidr or IP address
