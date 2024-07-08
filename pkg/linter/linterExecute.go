@@ -18,7 +18,10 @@ const issues = " issues:"
 // LinterExecute executes linters one by one
 // todo: mechanism for disabling/enabling lint checks
 func LinterExecute(configsMap map[string]*vpcmodel.VPCConfig) (issueFound bool, resString string) {
+	strPerVpc := make([]string, len(configsMap))
+	i := 0
 	for _, config := range configsMap {
+		thisVPCRes := ""
 		if config.IsMultipleVPCsConfig {
 			continue // no use in executing lint on dummy vpcs
 		}
@@ -28,9 +31,9 @@ func LinterExecute(configsMap map[string]*vpcmodel.VPCConfig) (issueFound bool, 
 		linters := []linter{
 			&filterRuleSplitSubnet{basicLinter: blinter},
 		}
-		header := "\nlinting results for " + config.VPC.Name()
+		header := "linting results for " + config.VPC.Name()
 		underline := strings.Repeat("~", len(header))
-		resString += header + "\n" + underline + "\n\n"
+		thisVPCRes += header + "\n" + underline + "\n\n"
 		for _, thisLinter := range linters {
 			lintIssues, err := thisLinter.check()
 			if err != nil {
@@ -38,16 +41,19 @@ func LinterExecute(configsMap map[string]*vpcmodel.VPCConfig) (issueFound bool, 
 				continue
 			}
 			if len(lintIssues) == 0 {
-				resString += fmt.Sprintf("no lint %s issues\n", thisLinter.getName())
+				thisVPCRes += fmt.Sprintf("no lint %s issues\n", thisLinter.getName())
 				continue
 			} else {
 				issueFound = true
-				resString += fmt.Sprintf("%s%s\n", thisLinter.getName(), issues) +
+				thisVPCRes += fmt.Sprintf("%s%s\n", thisLinter.getName(), issues) +
 					strings.Repeat("-", len(thisLinter.getName())+len(issues)) + "\n" +
 					strings.Join(lintIssues, "")
 			}
 		}
+		strPerVpc[i] = thisVPCRes
+		i++
 	}
+	resString = strings.Join(strPerVpc, "/n/n")
 	fmt.Printf("%v", resString)
 	return issueFound, resString
 }
