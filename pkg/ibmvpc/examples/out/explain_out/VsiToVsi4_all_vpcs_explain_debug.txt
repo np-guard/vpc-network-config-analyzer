@@ -1,7 +1,7 @@
 Explaining connectivity from 10.240.10.4 (vsi1-ky[10.240.10.4]) to 10.240.20.4 (vsi2-ky[10.240.20.4]) within test-vpc1-ky
 =========================================================================================================================
 
-No connections are allowed from vsi1-ky[10.240.10.4] to vsi2-ky[10.240.20.4];
+No connections from from vsi1-ky[10.240.10.4] to vsi2-ky[10.240.20.4];
 connection is blocked by egress
 
 Egress: security group sg1-ky blocks connection; network ACL acl1-ky allows connection

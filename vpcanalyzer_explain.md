@@ -52,7 +52,7 @@ vpcanalyzer explain [flags]
 Explaining connectivity from 10.240.30.6 (db-endpoint-gateway-ky[10.240.30.6]) to vsi2-ky within test-vpc1-ky
 =============================================================================================================
 
-Allowed connections from db-endpoint-gateway-ky[10.240.30.6] to vsi2-ky[10.240.20.4]: All Connections
+Connections from db-endpoint-gateway-ky[10.240.30.6] to vsi2-ky[10.240.20.4]: All Connections
 
 Path:
         db-endpoint-gateway-ky[10.240.30.6] -> security group sg3-ky -> subnet3-ky -> network ACL acl3-ky ->
