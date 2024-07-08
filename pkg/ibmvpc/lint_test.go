@@ -86,9 +86,7 @@ func runLintTestPerUseCase(t *testing.T,
 	cConfigs map[string]*vpcmodel.VPCConfig,
 	outDir string) error {
 	// output use case is not significant here, but being used so that lint test can rely on existing mechanism
-	if err := initLintTestFileNames(tt, outDir); err != nil {
-		return err
-	}
+	initLintTestFileNames(tt, outDir)
 	_, actualOutput := linter.LinterExecute(cConfigs)
 	if err := compareOrRegenerateOutputPerTest(t, tt.mode, actualOutput, tt, vpcmodel.AllEndpoints); err != nil {
 		return err
@@ -96,21 +94,16 @@ func runLintTestPerUseCase(t *testing.T,
 	return nil
 }
 
-func initLintTestFileNames(tt *vpcGeneralTest, testDir string) error {
+func initLintTestFileNames(tt *vpcGeneralTest, testDir string) {
 	expectedFileName, actualFileName := getLintTestFileName(tt.name)
 	// output use case is not significant here, but being used so that lint test can rely on existing mechanism
 	tt.actualOutput[vpcmodel.AllEndpoints] = filepath.Join(getTestsDirOut(testDir), actualFileName)
 	tt.expectedOutput[vpcmodel.AllEndpoints] = filepath.Join(getTestsDirOut(testDir), expectedFileName)
-	return nil
 }
 
 // getLintTestFileName returns expected file name and actual file name, for the relevant use case
-func getLintTestFileName(testName string) (
-	expectedFileName,
-	actualFileName string) {
-	// todo: if there are more than one vpc in the config, split to a file per one vpc analysis
+func getLintTestFileName(testName string) (expectedFileName, actualFileName string) {
 	res := testName + "_Lint"
-
 	expectedFileName = res
 	actualFileName = actualOutFilePrefix + res
 	return expectedFileName, actualFileName

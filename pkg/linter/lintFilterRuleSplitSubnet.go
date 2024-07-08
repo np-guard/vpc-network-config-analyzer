@@ -24,7 +24,7 @@ type filterRuleSplitSubnet struct {
 
 // a rule with the list of subnets it splits
 type splitRuleSubnet struct {
-	vpcUID       string
+	vpcName      string
 	rule         vpcmodel.RuleOfFilter
 	splitSubnets []vpcmodel.Subnet
 }
@@ -60,7 +60,7 @@ func (lint *filterRuleSplitSubnet) check() ([]string, error) {
 			}
 			if len(subnetsSplitByRule) > 0 {
 				thisLayerSplit = append(thisLayerSplit,
-					splitRuleSubnet{vpcUID: lint.config.VPC.UID(), rule: rule, splitSubnets: subnetsSplitByRule})
+					splitRuleSubnet{vpcName: lint.config.VPC.Name(), rule: rule, splitSubnets: subnetsSplitByRule})
 			}
 		}
 		if len(thisLayerSplit) > 0 {
@@ -104,7 +104,7 @@ func (lint *filterRuleSplitSubnet) getFindings() []finding {
 }
 
 func (finding *splitRuleSubnet) VPC() string {
-	return finding.VPC()
+	return finding.vpcName
 }
 
 func (finding *splitRuleSubnet) Linter() string {
