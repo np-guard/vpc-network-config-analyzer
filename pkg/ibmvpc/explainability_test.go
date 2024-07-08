@@ -880,9 +880,9 @@ func TestMultiExplainabilityOutput(t *testing.T) {
 		outputSlice[i] = explain.String()
 	}
 	outputString := strings.Join(outputSlice, "")
-	require.Contains(t, outputString, "No connections are allowed from Public Internet (all ranges) to ky-vpc2-vsi[10.240.64.5];\n"+
+	require.Contains(t, outputString, "No connections from from Public Internet (all ranges) to ky-vpc2-vsi[10.240.64.5];\n"+
 		"\tThere is no resource enabling inbound external connectivity", "no connection external src entry")
-	require.Contains(t, outputString, "No connections are allowed from ky-vpc2-vsi[10.240.64.5] to Public Internet (all ranges);\n"+
+	require.Contains(t, outputString, "No connections from from ky-vpc2-vsi[10.240.64.5] to Public Internet (all ranges);\n"+
 		"\tThe dst is external but there is no Floating IP or Public Gateway connecting to public internet", "no connection external dst entry")
 	require.Contains(t, outputString, "ky-vpc1-vsi[10.240.0.5] -> security group ky-vpc1-sg -> ky-vpc1-net1 -> network ACL ky-vpc1-acl1 ->",
 		"connection vsi to vsi")

@@ -1,7 +1,7 @@
 Explaining connectivity from vsi3b-ky to 161.26.0.0/32 within test-vpc1-ky
 ==========================================================================
 
-No connections are allowed from vsi3b-ky[10.240.30.4] to Public Internet 161.26.0.0/32;
+No connections from from vsi3b-ky[10.240.30.4] to Public Internet 161.26.0.0/32;
 	The dst is external but there is no Floating IP or Public Gateway connecting to public internet
 ------------------------------------------------------------------------------------------------------------------------
 

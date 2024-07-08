@@ -1,7 +1,7 @@
 Explaining connectivity from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca to 192.168.4.4 (iks-node[192.168.4.4]) within ky-test-vpc
 ========================================================================================================================================
 
-Allowed connections from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LB private IP][192.168.36.6] to iks-node[192.168.4.4]: protocol: TCP,UDP dst-ports: 30000-32767
+Connections from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LB private IP][192.168.36.6] to iks-node[192.168.4.4]: protocol: TCP,UDP dst-ports: 30000-32767
 
 Path:
 	kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LB private IP][192.168.36.6] -> security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 -> ky-test-edge-subnet-2 -> network ACL ky-test-edge-acl -> 
@@ -12,7 +12,7 @@ Details:
 ~~~~~~~~
 Path is enabled; The relevant rules are:
 	Load Balancer:
-		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] allows connection to iks-node[192.168.4.4] which is one of its pool members
+		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] may initiate a connection to iks-node[192.168.4.4], which is one of its pool members
 
 	Egress:
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
@@ -42,7 +42,7 @@ TCP response is enabled; The relevant rules are:
 
 ------------------------------------------------------------------------------------------------------------------------
 
-Allowed connections from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LB private IP][192.168.40.6] to iks-node[192.168.4.4]: protocol: TCP,UDP dst-ports: 30000-32767
+Connections from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LB private IP][192.168.40.6] to iks-node[192.168.4.4]: protocol: TCP,UDP dst-ports: 30000-32767
 
 Path:
 	kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LB private IP][192.168.40.6] -> security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 -> ky-test-edge-subnet-3 -> network ACL ky-test-edge-acl -> 
@@ -53,7 +53,7 @@ Details:
 ~~~~~~~~
 Path is enabled; The relevant rules are:
 	Load Balancer:
-		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] allows connection to iks-node[192.168.4.4] which is one of its pool members
+		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] may initiate a connection to iks-node[192.168.4.4], which is one of its pool members
 
 	Egress:
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
@@ -83,7 +83,7 @@ TCP response is enabled; The relevant rules are:
 
 ------------------------------------------------------------------------------------------------------------------------
 
-Allowed connections from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.0.0/22] to iks-node[192.168.4.4]: protocol: TCP,UDP dst-ports: 30000-32767
+Connections from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.0.0/22] to iks-node[192.168.4.4]: protocol: TCP,UDP dst-ports: 30000-32767
 
 Path:
 	kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.0.0/22] -> security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 -> ky-test-private-subnet-1 -> network ACL ky-test-private-2-others-acl -> 
@@ -94,7 +94,7 @@ Details:
 ~~~~~~~~
 Path is enabled; The relevant rules are:
 	Load Balancer:
-		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] allows connection to iks-node[192.168.4.4] which is one of its pool members
+		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] may initiate a connection to iks-node[192.168.4.4], which is one of its pool members
 
 	Egress:
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
@@ -124,7 +124,7 @@ TCP response is enabled; The relevant rules are:
 
 ------------------------------------------------------------------------------------------------------------------------
 
-Allowed connections from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.16.0/22] to iks-node[192.168.4.4]: protocol: TCP,UDP dst-ports: 30000-32767
+Connections from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.16.0/22] to iks-node[192.168.4.4]: protocol: TCP,UDP dst-ports: 30000-32767
 
 Path:
 	kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.16.0/22] -> security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 -> ky-test-transit-subnet-1 -> network ACL ky-test-edge-acl -> 
@@ -135,7 +135,7 @@ Details:
 ~~~~~~~~
 Path is enabled; The relevant rules are:
 	Load Balancer:
-		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] allows connection to iks-node[192.168.4.4] which is one of its pool members
+		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] may initiate a connection to iks-node[192.168.4.4], which is one of its pool members
 
 	Egress:
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
@@ -165,7 +165,7 @@ TCP response is enabled; The relevant rules are:
 
 ------------------------------------------------------------------------------------------------------------------------
 
-Allowed connections from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.20.0/22] to iks-node[192.168.4.4]: protocol: TCP,UDP dst-ports: 30000-32767
+Connections from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.20.0/22] to iks-node[192.168.4.4]: protocol: TCP,UDP dst-ports: 30000-32767
 
 Path:
 	kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.20.0/22] -> security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 -> ky-test-transit-subnet-2 -> network ACL ky-test-edge-acl -> 
@@ -176,7 +176,7 @@ Details:
 ~~~~~~~~
 Path is enabled; The relevant rules are:
 	Load Balancer:
-		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] allows connection to iks-node[192.168.4.4] which is one of its pool members
+		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] may initiate a connection to iks-node[192.168.4.4], which is one of its pool members
 
 	Egress:
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
@@ -206,7 +206,7 @@ TCP response is enabled; The relevant rules are:
 
 ------------------------------------------------------------------------------------------------------------------------
 
-Allowed connections from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.24.0/22] to iks-node[192.168.4.4]: protocol: TCP,UDP dst-ports: 30000-32767
+Connections from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.24.0/22] to iks-node[192.168.4.4]: protocol: TCP,UDP dst-ports: 30000-32767
 
 Path:
 	kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.24.0/22] -> security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 -> ky-test-transit-subnet-3 -> network ACL ky-test-edge-acl -> 
@@ -217,7 +217,7 @@ Details:
 ~~~~~~~~
 Path is enabled; The relevant rules are:
 	Load Balancer:
-		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] allows connection to iks-node[192.168.4.4] which is one of its pool members
+		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] may initiate a connection to iks-node[192.168.4.4], which is one of its pool members
 
 	Egress:
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
@@ -247,7 +247,7 @@ TCP response is enabled; The relevant rules are:
 
 ------------------------------------------------------------------------------------------------------------------------
 
-Allowed connections from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.32.0-192.168.32.4,192.168.32.6-192.168.35.255] to iks-node[192.168.4.4]: protocol: TCP,UDP dst-ports: 30000-32767
+Connections from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.32.0-192.168.32.4,192.168.32.6-192.168.35.255] to iks-node[192.168.4.4]: protocol: TCP,UDP dst-ports: 30000-32767
 
 Path:
 	kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.32.0-192.168.32.4,192.168.32.6-192.168.35.255] -> security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 -> ky-test-edge-subnet-1 -> network ACL ky-test-edge-acl -> 
@@ -258,7 +258,7 @@ Details:
 ~~~~~~~~
 Path is enabled; The relevant rules are:
 	Load Balancer:
-		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] allows connection to iks-node[192.168.4.4] which is one of its pool members
+		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] may initiate a connection to iks-node[192.168.4.4], which is one of its pool members
 
 	Egress:
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
@@ -288,7 +288,7 @@ TCP response is enabled; The relevant rules are:
 
 ------------------------------------------------------------------------------------------------------------------------
 
-Allowed connections from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.4.0/22] to iks-node[192.168.4.4]: protocol: TCP,UDP dst-ports: 30000-32767
+Connections from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.4.0/22] to iks-node[192.168.4.4]: protocol: TCP,UDP dst-ports: 30000-32767
 
 Path:
 	kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.4.0/22] -> security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 -> 
@@ -299,7 +299,7 @@ Details:
 ~~~~~~~~
 Path is enabled; The relevant rules are:
 	Load Balancer:
-		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] allows connection to iks-node[192.168.4.4] which is one of its pool members
+		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] may initiate a connection to iks-node[192.168.4.4], which is one of its pool members
 
 	Egress:
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
@@ -316,7 +316,7 @@ Path is enabled; The relevant rules are:
 
 ------------------------------------------------------------------------------------------------------------------------
 
-Allowed connections from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.8.0/22] to iks-node[192.168.4.4]: protocol: TCP,UDP dst-ports: 30000-32767
+Connections from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.8.0/22] to iks-node[192.168.4.4]: protocol: TCP,UDP dst-ports: 30000-32767
 
 Path:
 	kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.8.0/22] -> security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 -> ky-test-private-subnet-3 -> network ACL ky-test-private-2-others-acl -> 
@@ -327,7 +327,7 @@ Details:
 ~~~~~~~~
 Path is enabled; The relevant rules are:
 	Load Balancer:
-		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] allows connection to iks-node[192.168.4.4] which is one of its pool members
+		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] may initiate a connection to iks-node[192.168.4.4], which is one of its pool members
 
 	Egress:
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
