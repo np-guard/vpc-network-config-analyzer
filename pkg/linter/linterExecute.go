@@ -28,9 +28,9 @@ func LinterExecute(configsMap map[string]*vpcmodel.VPCConfig) (issueFound bool, 
 		linters := []linter{
 			&filterRuleSplitSubnet{basicLinter: blinter},
 		}
-		resString += "\nlinting results for " + config.VPC.Name()
-		underline := strings.Repeat("~", len(resString))
-		resString += "\n" + underline + "\n\n"
+		header := "\nlinting results for " + config.VPC.Name()
+		underline := strings.Repeat("~", len(header))
+		resString += header + "\n" + underline + "\n\n"
 		for _, thisLinter := range linters {
 			lintIssues, err := thisLinter.check()
 			if err != nil {
@@ -38,14 +38,14 @@ func LinterExecute(configsMap map[string]*vpcmodel.VPCConfig) (issueFound bool, 
 				continue
 			}
 			if len(lintIssues) == 0 {
-				fmt.Printf("no lint %s issues\n", thisLinter.getName())
+				resString += fmt.Sprintf("no lint %s issues\n", thisLinter.getName())
 				continue
 			} else {
 				issueFound = true
+				resString += fmt.Sprintf("%s%s\n", thisLinter.getName(), issues) +
+					strings.Repeat("-", len(thisLinter.getName())+len(issues)) + "\n" +
+					strings.Join(lintIssues, "")
 			}
-			resString += fmt.Sprintf("%s%s\n", thisLinter.getName(), issues) +
-				strings.Repeat("-", len(thisLinter.getName())+len(issues)) + "\n" +
-				strings.Join(lintIssues, "")
 		}
 	}
 	fmt.Printf("%v", resString)
