@@ -37,15 +37,15 @@ func LinterExecute(configsMap map[string]*vpcmodel.VPCConfig) (issueFound bool, 
 		for _, thisLinter := range linters {
 			lintIssues, err := thisLinter.check()
 			if err != nil {
-				fmt.Printf("Lint %s got an error %s. Skipping this lint\n", thisLinter.getName(), err.Error())
+				fmt.Printf("Lint \"%s\" got an error %s. Skipping this lint\n", thisLinter.getName(), err.Error())
 				continue
 			}
 			if len(lintIssues) == 0 {
-				thisVPCRes += fmt.Sprintf("no lint %s issues\n", thisLinter.getName())
+				thisVPCRes += fmt.Sprintf("no lint \"%s\" issues\n", thisLinter.getName())
 				continue
 			} else {
 				issueFound = true
-				thisVPCRes += fmt.Sprintf("%s%s\n", thisLinter.getName(), issues) +
+				thisVPCRes += fmt.Sprintf("\"%s\" %s\n", thisLinter.getName(), issues) +
 					strings.Repeat("-", len(thisLinter.getName())+len(issues)) + "\n" +
 					strings.Join(lintIssues, "")
 			}
