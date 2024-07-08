@@ -310,7 +310,7 @@ func (c *VPCConfig) getSrcOrDstInputNode(name, srcOrDst string) (nodes []Node, n
 func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node, nodeSet NodeSet,
 	internalIP bool, errType int, err error) {
 	// 1. cidrOrName references endpoint
-	nodeSet, errType1, err1 := c.getNodesOfEndpoint(cidrOrName)
+	nodeSet, errType1, err1 := c.getNodeSetOfEndpointName(cidrOrName)
 	if err1 != nil {
 		return nil, nil, false, errType1, err1
 	}
@@ -331,9 +331,9 @@ func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node, no
 	return nodes, nil, internalIP, errType, err
 }
 
-// getNodesOfEndpoint gets a string name or UID of an endpoint (e.g. VSI), and
-// returns the list of all nodes within this endpoint
-func (c *VPCConfig) getNodesOfEndpoint(name string) (NodeSet, int, error) {
+// getNodeSetOfEndpointName gets a string name or UID of an endpoint (e.g. VSI), and
+// returns the nodeSet within this endpoint
+func (c *VPCConfig) getNodeSetOfEndpointName(name string) (NodeSet, int, error) {
 	var nodeSetOfEndpoint NodeSet
 	// endpoint name may be prefixed by vpc name
 	var vpc, endpoint string
