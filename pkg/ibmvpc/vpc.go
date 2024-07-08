@@ -348,10 +348,10 @@ func (lbr *LoadBalancerRule) Deny() bool { return lbr.deny }
 
 func (lbr *LoadBalancerRule) String() string {
 	if lbr.Deny() {
-		return fmt.Sprintf("%s blocks connection to %s which is not one of its pool members\n",
+		return fmt.Sprintf("%s will not connect to %s, since it is not its pool member\n",
 			lbr.lb.nameWithKind(), lbr.dst.Name())
 	}
-	return fmt.Sprintf("%s allows connection to %s which is one of its pool members\n",
+	return fmt.Sprintf("%s may initiate a connection to %s, which is one of its pool members\n",
 		lbr.lb.nameWithKind(), lbr.dst.Name())
 }
 
