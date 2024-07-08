@@ -47,6 +47,10 @@ type NetworkInterface struct {
 	Vsi string `json:"-"`
 }
 
+func (ni *NetworkInterface) VsiName() string {
+	return ni.Vsi
+}
+
 func (ni *NetworkInterface) Name() string {
 	return nameWithBracketsInfo(ni.Vsi, ni.Address())
 }

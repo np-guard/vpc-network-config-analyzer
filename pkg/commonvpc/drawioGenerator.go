@@ -18,7 +18,7 @@ func (s *Subnet) ShowOnSubnetMode() bool               { return true }
 func (sgl *SecurityGroupLayer) ShowOnSubnetMode() bool { return false }
 func (sg *SecurityGroup) ShowOnSubnetMode() bool       { return false }
 func (v *Vsi) ShowOnSubnetMode() bool                  { return false }
-func (v *NetworkInterface) ShowOnSubnetMode() bool     { return false }
+func (ni *NetworkInterface) ShowOnSubnetMode() bool    { return false }
 
 // for DrawioResourceIntf that are not VPCResourceIntf, we implement Kind():
 func (r *Region) Kind() string { return "Cloud" }
