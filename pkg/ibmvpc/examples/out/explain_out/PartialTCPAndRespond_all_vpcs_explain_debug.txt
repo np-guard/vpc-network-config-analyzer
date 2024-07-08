@@ -1,5 +1,5 @@
-Explaining connectivity from vsi3a-ky to vsi1-ky within test-vpc1-ky
-====================================================================
+Explaining connectivity from vsi3a-ky (vsi3a-ky) to vsi1-ky (vsi1-ky) within test-vpc1-ky
+=========================================================================================
 
 Connections from vsi3a-ky[10.240.30.5] to vsi1-ky[10.240.10.4]: protocol: TCP src-ports: 115-205 dst-ports: 25-95
 	However, TCP response is blocked for: src-ports: 115-200 dst-ports: 51-95; src-ports: 201-205 dst-ports: 25-95

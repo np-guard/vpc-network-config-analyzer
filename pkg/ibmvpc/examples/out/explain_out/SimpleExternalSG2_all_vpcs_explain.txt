@@ -1,5 +1,5 @@
-Explaining connectivity from 161.26.0.0/16 to vsi1-ky within test-vpc1-ky
-=========================================================================
+Explaining connectivity from 161.26.0.0/16 to vsi1-ky (vsi1-ky) within test-vpc1-ky
+===================================================================================
 
 No connections from Public Internet 161.26.0.0/16 to vsi1-ky[10.240.10.4];
 	There is no resource enabling inbound external connectivity

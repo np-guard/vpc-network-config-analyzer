@@ -1,5 +1,5 @@
-Explaining connectivity from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca to 192.168.4.4 (iks-node[192.168.4.4]) within ky-test-vpc
-========================================================================================================================================
+Explaining connectivity from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca (kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer]) to 192.168.4.4 (iks-node[192.168.4.4]) within ky-test-vpc
+==========================================================================================================================================================================================================
 
 Connections from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LB private IP][192.168.36.6] to iks-node[192.168.4.4]: protocol: TCP,UDP dst-ports: 30000-32767
 
