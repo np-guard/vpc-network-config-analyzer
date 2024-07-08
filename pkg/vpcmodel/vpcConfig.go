@@ -119,3 +119,12 @@ func (c *VPCConfig) GetNodesWithinInternalAddress(inputIPBlock *ipblock.IPBlock)
 func (c *VPCConfig) AddRoutingTable(rt VPCResourceIntf) {
 	c.RoutingTables = append(c.RoutingTables, rt)
 }
+
+// down casting a slice of LBs to slice of NodeSets
+func (c *VPCConfig) loadBalancersAsNodeSets() []NodeSet {
+	nodeSet := make([]NodeSet, len(c.LoadBalancers))
+	for i, lb := range c.LoadBalancers {
+		nodeSet[i] = lb
+	}
+	return nodeSet
+}

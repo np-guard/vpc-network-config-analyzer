@@ -585,6 +585,30 @@ var explainTests = []*vpcGeneralTest{
 		EDstMaxPort: connection.MaxPort,
 		format:      vpcmodel.Debug,
 	},
+	// load_balancer to iks-node, which is a pool member, should be allowed
+	{
+		name:        "LBToIksNode",
+		inputConfig: "iks_config_object",
+		ESrc:        "kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca",
+		EDst:        "192.168.4.4",
+		format:      vpcmodel.Debug,
+	},
+	// load_balancer to resIP, should be blocked by LB rule
+	{
+		name:        "LBToResIPNode",
+		inputConfig: "iks_config_object",
+		ESrc:        "kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca",
+		EDst:        "192.168.32.5",
+		format:      vpcmodel.Debug,
+	},
+	// multiNI to single NI
+	{
+		name:        "multiNIsToSingleNI",
+		inputConfig: "mult_NIs_single_VSI",
+		ESrc:        "vsi3-ky",
+		EDst:        "vsi1-ky",
+		format:      vpcmodel.Debug,
+	},
 }
 
 func TestAll(t *testing.T) {
@@ -856,9 +880,9 @@ func TestMultiExplainabilityOutput(t *testing.T) {
 		outputSlice[i] = explain.String()
 	}
 	outputString := strings.Join(outputSlice, "")
-	require.Contains(t, outputString, "No connections are allowed from Public Internet (all ranges) to ky-vpc2-vsi[10.240.64.5];\n"+
+	require.Contains(t, outputString, "No connections from Public Internet (all ranges) to ky-vpc2-vsi[10.240.64.5];\n"+
 		"\tThere is no resource enabling inbound external connectivity", "no connection external src entry")
-	require.Contains(t, outputString, "No connections are allowed from ky-vpc2-vsi[10.240.64.5] to Public Internet (all ranges);\n"+
+	require.Contains(t, outputString, "No connections from ky-vpc2-vsi[10.240.64.5] to Public Internet (all ranges);\n"+
 		"\tThe dst is external but there is no Floating IP or Public Gateway connecting to public internet", "no connection external dst entry")
 	require.Contains(t, outputString, "ky-vpc1-vsi[10.240.0.5] -> security group ky-vpc1-sg -> ky-vpc1-net1 -> network ACL ky-vpc1-acl1 ->",
 		"connection vsi to vsi")
@@ -866,4 +890,18 @@ func TestMultiExplainabilityOutput(t *testing.T) {
 	require.Contains(t, outputString, "network ACL ky-vpc2-acl1 -> ky-vpc2-net1 -> security group ky-vpc2-sg -> ky-vpc2-vsi[10.240.64.5]",
 		"connection vsi to vsi")
 	fmt.Println("\n\n", outputString)
+}
+
+func TestInputLBPrivateIP(t *testing.T) {
+	vpcConfigMultiVpc := getConfig(t, "iks_config_object")
+	require.NotNil(t, vpcConfigMultiVpc, "vpcConfigMultiVpc equals nil")
+
+	pipCidr := "192.168.36.6"
+	cidr2 := "192.168.4.4"
+	// should fail since pip address can not be an explainability input
+	_, err1 := vpcConfigMultiVpc.ExplainConnectivity(pipCidr, cidr2, nil)
+	fmt.Println(err1.Error())
+	require.NotNil(t, err1, "the test should fail since "+pipCidr+" is a Private IP address")
+	require.Equal(t, "illegal src: no network interfaces are connected to "+pipCidr, err1.Error())
+	fmt.Println()
 }

@@ -1,0 +1,360 @@
+Explaining connectivity from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca to 192.168.4.4 (iks-node[192.168.4.4]) within ky-test-vpc
+========================================================================================================================================
+
+Connections from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LB private IP][192.168.36.6] to iks-node[192.168.4.4]: protocol: TCP,UDP dst-ports: 30000-32767
+
+Path:
+	kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LB private IP][192.168.36.6] -> security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 -> ky-test-edge-subnet-2 -> network ACL ky-test-edge-acl -> 
+	network ACL ky-test-private-2-others-acl -> ky-test-private-subnet-2 -> security group[kube-clusterid:1, ky-test-default-sg] -> iks-node[192.168.4.4]
+
+
+Details:
+~~~~~~~~
+Path is enabled; The relevant rules are:
+	Load Balancer:
+		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] may initiate a connection to iks-node[192.168.4.4], which is one of its pool members
+
+	Egress:
+		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
+			index: 0, direction: outbound,  conns: protocol: tcp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			index: 1, direction: outbound,  conns: protocol: udp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
+		network ACL ky-test-edge-acl allows connection with the following allow rules
+			index: 1, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+
+	Ingress:
+		network ACL ky-test-private-2-others-acl allows connection with the following allow rules
+			index: 0, direction: inbound , src: 192.168.32.0/20 , dst: 0.0.0.0/0, conn: all, action: allow
+		security group kube-clusterid:1 allows connection with the following allow rules
+			index: 3, direction: inbound,  conns: protocol: tcp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			index: 4, direction: inbound,  conns: protocol: udp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			index: 6, direction: inbound,  conns: protocol: icmp,  icmpType: protocol: ICMP icmp-type: 8, remote: 0.0.0.0/0, local: 0.0.0.0/0
+		security group ky-test-default-sg allows connection with the following allow rules
+			index: 2, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+
+TCP response is enabled; The relevant rules are:
+	Egress:
+		network ACL ky-test-private-2-others-acl allows connection with the following allow rules
+			index: 4, direction: outbound , src: 0.0.0.0/0 , dst: 192.168.32.0/20, conn: all, action: allow
+
+	Ingress:
+		network ACL ky-test-edge-acl allows connection with the following allow rules
+			index: 0, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+
+------------------------------------------------------------------------------------------------------------------------
+
+Connections from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LB private IP][192.168.40.6] to iks-node[192.168.4.4]: protocol: TCP,UDP dst-ports: 30000-32767
+
+Path:
+	kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LB private IP][192.168.40.6] -> security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 -> ky-test-edge-subnet-3 -> network ACL ky-test-edge-acl -> 
+	network ACL ky-test-private-2-others-acl -> ky-test-private-subnet-2 -> security group[kube-clusterid:1, ky-test-default-sg] -> iks-node[192.168.4.4]
+
+
+Details:
+~~~~~~~~
+Path is enabled; The relevant rules are:
+	Load Balancer:
+		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] may initiate a connection to iks-node[192.168.4.4], which is one of its pool members
+
+	Egress:
+		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
+			index: 0, direction: outbound,  conns: protocol: tcp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			index: 1, direction: outbound,  conns: protocol: udp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
+		network ACL ky-test-edge-acl allows connection with the following allow rules
+			index: 1, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+
+	Ingress:
+		network ACL ky-test-private-2-others-acl allows connection with the following allow rules
+			index: 0, direction: inbound , src: 192.168.32.0/20 , dst: 0.0.0.0/0, conn: all, action: allow
+		security group kube-clusterid:1 allows connection with the following allow rules
+			index: 3, direction: inbound,  conns: protocol: tcp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			index: 4, direction: inbound,  conns: protocol: udp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			index: 6, direction: inbound,  conns: protocol: icmp,  icmpType: protocol: ICMP icmp-type: 8, remote: 0.0.0.0/0, local: 0.0.0.0/0
+		security group ky-test-default-sg allows connection with the following allow rules
+			index: 2, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+
+TCP response is enabled; The relevant rules are:
+	Egress:
+		network ACL ky-test-private-2-others-acl allows connection with the following allow rules
+			index: 4, direction: outbound , src: 0.0.0.0/0 , dst: 192.168.32.0/20, conn: all, action: allow
+
+	Ingress:
+		network ACL ky-test-edge-acl allows connection with the following allow rules
+			index: 0, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+
+------------------------------------------------------------------------------------------------------------------------
+
+Connections from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.0.0/22] to iks-node[192.168.4.4]: protocol: TCP,UDP dst-ports: 30000-32767
+
+Path:
+	kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.0.0/22] -> security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 -> ky-test-private-subnet-1 -> network ACL ky-test-private-2-others-acl -> 
+	network ACL ky-test-private-2-others-acl -> ky-test-private-subnet-2 -> security group[kube-clusterid:1, ky-test-default-sg] -> iks-node[192.168.4.4]
+
+
+Details:
+~~~~~~~~
+Path is enabled; The relevant rules are:
+	Load Balancer:
+		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] may initiate a connection to iks-node[192.168.4.4], which is one of its pool members
+
+	Egress:
+		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
+			index: 0, direction: outbound,  conns: protocol: tcp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			index: 1, direction: outbound,  conns: protocol: udp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
+		network ACL ky-test-private-2-others-acl allows connection with the following allow rules
+			index: 6, direction: outbound , src: 0.0.0.0/0 , dst: 192.168.0.0/20, conn: all, action: allow
+
+	Ingress:
+		network ACL ky-test-private-2-others-acl allows connection with the following allow rules
+			index: 2, direction: inbound , src: 192.168.0.0/20 , dst: 0.0.0.0/0, conn: all, action: allow
+		security group kube-clusterid:1 allows connection with the following allow rules
+			index: 3, direction: inbound,  conns: protocol: tcp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			index: 4, direction: inbound,  conns: protocol: udp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			index: 6, direction: inbound,  conns: protocol: icmp,  icmpType: protocol: ICMP icmp-type: 8, remote: 0.0.0.0/0, local: 0.0.0.0/0
+		security group ky-test-default-sg allows connection with the following allow rules
+			index: 2, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+
+TCP response is enabled; The relevant rules are:
+	Egress:
+		network ACL ky-test-private-2-others-acl allows connection with the following allow rules
+			index: 6, direction: outbound , src: 0.0.0.0/0 , dst: 192.168.0.0/20, conn: all, action: allow
+
+	Ingress:
+		network ACL ky-test-private-2-others-acl allows connection with the following allow rules
+			index: 2, direction: inbound , src: 192.168.0.0/20 , dst: 0.0.0.0/0, conn: all, action: allow
+
+------------------------------------------------------------------------------------------------------------------------
+
+Connections from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.16.0/22] to iks-node[192.168.4.4]: protocol: TCP,UDP dst-ports: 30000-32767
+
+Path:
+	kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.16.0/22] -> security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 -> ky-test-transit-subnet-1 -> network ACL ky-test-edge-acl -> 
+	network ACL ky-test-private-2-others-acl -> ky-test-private-subnet-2 -> security group[kube-clusterid:1, ky-test-default-sg] -> iks-node[192.168.4.4]
+
+
+Details:
+~~~~~~~~
+Path is enabled; The relevant rules are:
+	Load Balancer:
+		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] may initiate a connection to iks-node[192.168.4.4], which is one of its pool members
+
+	Egress:
+		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
+			index: 0, direction: outbound,  conns: protocol: tcp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			index: 1, direction: outbound,  conns: protocol: udp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
+		network ACL ky-test-edge-acl allows connection with the following allow rules
+			index: 1, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+
+	Ingress:
+		network ACL ky-test-private-2-others-acl allows connection with the following allow rules
+			index: 3, direction: inbound , src: 192.168.16.0/20 , dst: 0.0.0.0/0, conn: all, action: allow
+		security group kube-clusterid:1 allows connection with the following allow rules
+			index: 3, direction: inbound,  conns: protocol: tcp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			index: 4, direction: inbound,  conns: protocol: udp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			index: 6, direction: inbound,  conns: protocol: icmp,  icmpType: protocol: ICMP icmp-type: 8, remote: 0.0.0.0/0, local: 0.0.0.0/0
+		security group ky-test-default-sg allows connection with the following allow rules
+			index: 2, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+
+TCP response is enabled; The relevant rules are:
+	Egress:
+		network ACL ky-test-private-2-others-acl allows connection with the following allow rules
+			index: 7, direction: outbound , src: 0.0.0.0/0 , dst: 192.168.16.0/20, conn: all, action: allow
+
+	Ingress:
+		network ACL ky-test-edge-acl allows connection with the following allow rules
+			index: 0, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+
+------------------------------------------------------------------------------------------------------------------------
+
+Connections from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.20.0/22] to iks-node[192.168.4.4]: protocol: TCP,UDP dst-ports: 30000-32767
+
+Path:
+	kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.20.0/22] -> security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 -> ky-test-transit-subnet-2 -> network ACL ky-test-edge-acl -> 
+	network ACL ky-test-private-2-others-acl -> ky-test-private-subnet-2 -> security group[kube-clusterid:1, ky-test-default-sg] -> iks-node[192.168.4.4]
+
+
+Details:
+~~~~~~~~
+Path is enabled; The relevant rules are:
+	Load Balancer:
+		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] may initiate a connection to iks-node[192.168.4.4], which is one of its pool members
+
+	Egress:
+		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
+			index: 0, direction: outbound,  conns: protocol: tcp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			index: 1, direction: outbound,  conns: protocol: udp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
+		network ACL ky-test-edge-acl allows connection with the following allow rules
+			index: 1, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+
+	Ingress:
+		network ACL ky-test-private-2-others-acl allows connection with the following allow rules
+			index: 3, direction: inbound , src: 192.168.16.0/20 , dst: 0.0.0.0/0, conn: all, action: allow
+		security group kube-clusterid:1 allows connection with the following allow rules
+			index: 3, direction: inbound,  conns: protocol: tcp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			index: 4, direction: inbound,  conns: protocol: udp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			index: 6, direction: inbound,  conns: protocol: icmp,  icmpType: protocol: ICMP icmp-type: 8, remote: 0.0.0.0/0, local: 0.0.0.0/0
+		security group ky-test-default-sg allows connection with the following allow rules
+			index: 2, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+
+TCP response is enabled; The relevant rules are:
+	Egress:
+		network ACL ky-test-private-2-others-acl allows connection with the following allow rules
+			index: 7, direction: outbound , src: 0.0.0.0/0 , dst: 192.168.16.0/20, conn: all, action: allow
+
+	Ingress:
+		network ACL ky-test-edge-acl allows connection with the following allow rules
+			index: 0, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+
+------------------------------------------------------------------------------------------------------------------------
+
+Connections from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.24.0/22] to iks-node[192.168.4.4]: protocol: TCP,UDP dst-ports: 30000-32767
+
+Path:
+	kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.24.0/22] -> security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 -> ky-test-transit-subnet-3 -> network ACL ky-test-edge-acl -> 
+	network ACL ky-test-private-2-others-acl -> ky-test-private-subnet-2 -> security group[kube-clusterid:1, ky-test-default-sg] -> iks-node[192.168.4.4]
+
+
+Details:
+~~~~~~~~
+Path is enabled; The relevant rules are:
+	Load Balancer:
+		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] may initiate a connection to iks-node[192.168.4.4], which is one of its pool members
+
+	Egress:
+		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
+			index: 0, direction: outbound,  conns: protocol: tcp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			index: 1, direction: outbound,  conns: protocol: udp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
+		network ACL ky-test-edge-acl allows connection with the following allow rules
+			index: 1, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+
+	Ingress:
+		network ACL ky-test-private-2-others-acl allows connection with the following allow rules
+			index: 3, direction: inbound , src: 192.168.16.0/20 , dst: 0.0.0.0/0, conn: all, action: allow
+		security group kube-clusterid:1 allows connection with the following allow rules
+			index: 3, direction: inbound,  conns: protocol: tcp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			index: 4, direction: inbound,  conns: protocol: udp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			index: 6, direction: inbound,  conns: protocol: icmp,  icmpType: protocol: ICMP icmp-type: 8, remote: 0.0.0.0/0, local: 0.0.0.0/0
+		security group ky-test-default-sg allows connection with the following allow rules
+			index: 2, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+
+TCP response is enabled; The relevant rules are:
+	Egress:
+		network ACL ky-test-private-2-others-acl allows connection with the following allow rules
+			index: 7, direction: outbound , src: 0.0.0.0/0 , dst: 192.168.16.0/20, conn: all, action: allow
+
+	Ingress:
+		network ACL ky-test-edge-acl allows connection with the following allow rules
+			index: 0, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+
+------------------------------------------------------------------------------------------------------------------------
+
+Connections from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.32.0-192.168.32.4,192.168.32.6-192.168.35.255] to iks-node[192.168.4.4]: protocol: TCP,UDP dst-ports: 30000-32767
+
+Path:
+	kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.32.0-192.168.32.4,192.168.32.6-192.168.35.255] -> security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 -> ky-test-edge-subnet-1 -> network ACL ky-test-edge-acl -> 
+	network ACL ky-test-private-2-others-acl -> ky-test-private-subnet-2 -> security group[kube-clusterid:1, ky-test-default-sg] -> iks-node[192.168.4.4]
+
+
+Details:
+~~~~~~~~
+Path is enabled; The relevant rules are:
+	Load Balancer:
+		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] may initiate a connection to iks-node[192.168.4.4], which is one of its pool members
+
+	Egress:
+		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
+			index: 0, direction: outbound,  conns: protocol: tcp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			index: 1, direction: outbound,  conns: protocol: udp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
+		network ACL ky-test-edge-acl allows connection with the following allow rules
+			index: 1, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+
+	Ingress:
+		network ACL ky-test-private-2-others-acl allows connection with the following allow rules
+			index: 0, direction: inbound , src: 192.168.32.0/20 , dst: 0.0.0.0/0, conn: all, action: allow
+		security group kube-clusterid:1 allows connection with the following allow rules
+			index: 3, direction: inbound,  conns: protocol: tcp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			index: 4, direction: inbound,  conns: protocol: udp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			index: 6, direction: inbound,  conns: protocol: icmp,  icmpType: protocol: ICMP icmp-type: 8, remote: 0.0.0.0/0, local: 0.0.0.0/0
+		security group ky-test-default-sg allows connection with the following allow rules
+			index: 2, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+
+TCP response is enabled; The relevant rules are:
+	Egress:
+		network ACL ky-test-private-2-others-acl allows connection with the following allow rules
+			index: 4, direction: outbound , src: 0.0.0.0/0 , dst: 192.168.32.0/20, conn: all, action: allow
+
+	Ingress:
+		network ACL ky-test-edge-acl allows connection with the following allow rules
+			index: 0, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+
+------------------------------------------------------------------------------------------------------------------------
+
+Connections from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.4.0/22] to iks-node[192.168.4.4]: protocol: TCP,UDP dst-ports: 30000-32767
+
+Path:
+	kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.4.0/22] -> security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 -> 
+	security group[kube-clusterid:1, ky-test-default-sg] -> iks-node[192.168.4.4]
+
+
+Details:
+~~~~~~~~
+Path is enabled; The relevant rules are:
+	Load Balancer:
+		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] may initiate a connection to iks-node[192.168.4.4], which is one of its pool members
+
+	Egress:
+		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
+			index: 0, direction: outbound,  conns: protocol: tcp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			index: 1, direction: outbound,  conns: protocol: udp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
+
+	Ingress:
+		security group kube-clusterid:1 allows connection with the following allow rules
+			index: 3, direction: inbound,  conns: protocol: tcp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			index: 4, direction: inbound,  conns: protocol: udp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			index: 6, direction: inbound,  conns: protocol: icmp,  icmpType: protocol: ICMP icmp-type: 8, remote: 0.0.0.0/0, local: 0.0.0.0/0
+		security group ky-test-default-sg allows connection with the following allow rules
+			index: 2, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+
+------------------------------------------------------------------------------------------------------------------------
+
+Connections from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.8.0/22] to iks-node[192.168.4.4]: protocol: TCP,UDP dst-ports: 30000-32767
+
+Path:
+	kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.8.0/22] -> security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 -> ky-test-private-subnet-3 -> network ACL ky-test-private-2-others-acl -> 
+	network ACL ky-test-private-2-others-acl -> ky-test-private-subnet-2 -> security group[kube-clusterid:1, ky-test-default-sg] -> iks-node[192.168.4.4]
+
+
+Details:
+~~~~~~~~
+Path is enabled; The relevant rules are:
+	Load Balancer:
+		kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] may initiate a connection to iks-node[192.168.4.4], which is one of its pool members
+
+	Egress:
+		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
+			index: 0, direction: outbound,  conns: protocol: tcp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			index: 1, direction: outbound,  conns: protocol: udp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
+		network ACL ky-test-private-2-others-acl allows connection with the following allow rules
+			index: 6, direction: outbound , src: 0.0.0.0/0 , dst: 192.168.0.0/20, conn: all, action: allow
+
+	Ingress:
+		network ACL ky-test-private-2-others-acl allows connection with the following allow rules
+			index: 2, direction: inbound , src: 192.168.0.0/20 , dst: 0.0.0.0/0, conn: all, action: allow
+		security group kube-clusterid:1 allows connection with the following allow rules
+			index: 3, direction: inbound,  conns: protocol: tcp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			index: 4, direction: inbound,  conns: protocol: udp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			index: 6, direction: inbound,  conns: protocol: icmp,  icmpType: protocol: ICMP icmp-type: 8, remote: 0.0.0.0/0, local: 0.0.0.0/0
+		security group ky-test-default-sg allows connection with the following allow rules
+			index: 2, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+
+TCP response is enabled; The relevant rules are:
+	Egress:
+		network ACL ky-test-private-2-others-acl allows connection with the following allow rules
+			index: 6, direction: outbound , src: 0.0.0.0/0 , dst: 192.168.0.0/20, conn: all, action: allow
+
+	Ingress:
+		network ACL ky-test-private-2-others-acl allows connection with the following allow rules
+			index: 2, direction: inbound , src: 192.168.0.0/20 , dst: 0.0.0.0/0, conn: all, action: allow
+
+------------------------------------------------------------------------------------------------------------------------
+
+* Analysis of the connectivity of cluster worker nodes is under the assumption that the only security groups applied to them are the VPC default and the IKS generated SG

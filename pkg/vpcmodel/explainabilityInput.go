@@ -8,6 +8,7 @@ package vpcmodel
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 
@@ -344,7 +345,7 @@ func (c *VPCConfig) getNodesOfEndpoint(name string) ([]Node, int, error) {
 		vpc = cidrOrNameSlice[0]
 		endpoint = cidrOrNameSlice[1]
 	}
-	for _, nodeSet := range c.NodeSets {
+	for _, nodeSet := range append(c.NodeSets, c.loadBalancersAsNodeSets()...) {
 		if (vpc == "" || nodeSet.VPC().Name() == vpc) && nodeSet.Name() == endpoint || // if vpc of endpoint specified, equality must hold
 			nodeSet.UID() == uid {
 			if nodeSetOfEndpoint != nil {
@@ -394,6 +395,8 @@ func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *ipblock.I
 	}
 	// internal address
 	networkInterfaces := c.GetNodesWithinInternalAddress(inputIPBlock)
+	// filtering out the nodes which are not represented by their address (currently only LB private IPs):
+	networkInterfaces = slices.DeleteFunc(networkInterfaces, func(n Node) bool { return !n.RepresentedByAddress() })
 	if len(networkInterfaces) == 0 { // 3.
 		return nil, true, internalNoConnectedEndpoints, fmt.Errorf("no network interfaces are connected to %s", ipOrCidr)
 	}

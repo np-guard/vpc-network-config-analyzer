@@ -1,7 +1,7 @@
 Explaining connectivity from ky-vsi1-subnet20 to 10.240.0.0/21 (test-vpc0-ky/ky-vsi1-subnet2[10.240.4.5], test-vpc0-ky/ky-vsi0-subnet2[10.240.4.4], test-vpc0-ky/ky-vsi0-subnet0[10.240.0.5], test-vpc0-ky/ky-vsi1-subnet0[10.240.0.4], test-vpc0-ky/ky-vsi0-subnet1[10.240.1.5], test-vpc0-ky/ky-vsi1-subnet1[10.240.1.4], test-vpc0-ky/ky-vsi0-subnet3[10.240.5.5], test-vpc0-ky/ky-vsi1-subnet3[10.240.5.4])
 ===============================================================================================================================================================================================================================================================================================================================================================================================================
 
-Allowed connections from test-vpc2-ky/ky-vsi1-subnet20[10.240.128.5] to test-vpc0-ky/ky-vsi0-subnet2[10.240.4.4]: All Connections
+Connections from test-vpc2-ky/ky-vsi1-subnet20[10.240.128.5] to test-vpc0-ky/ky-vsi0-subnet2[10.240.4.4]: All Connections
 
 Path:
 	ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> subnet20 -> network ACL acl21-ky -> 
@@ -41,7 +41,7 @@ TCP response is enabled; The relevant rules are:
 
 ------------------------------------------------------------------------------------------------------------------------
 
-Allowed connections from test-vpc2-ky/ky-vsi1-subnet20[10.240.128.5] to test-vpc0-ky/ky-vsi0-subnet3[10.240.5.5]: All Connections
+Connections from test-vpc2-ky/ky-vsi1-subnet20[10.240.128.5] to test-vpc0-ky/ky-vsi0-subnet3[10.240.5.5]: All Connections
 
 Path:
 	ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> subnet20 -> network ACL acl21-ky -> 
@@ -81,7 +81,7 @@ TCP response is enabled; The relevant rules are:
 
 ------------------------------------------------------------------------------------------------------------------------
 
-Allowed connections from test-vpc2-ky/ky-vsi1-subnet20[10.240.128.5] to test-vpc0-ky/ky-vsi1-subnet2[10.240.4.5]: All Connections
+Connections from test-vpc2-ky/ky-vsi1-subnet20[10.240.128.5] to test-vpc0-ky/ky-vsi1-subnet2[10.240.4.5]: All Connections
 
 Path:
 	ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> subnet20 -> network ACL acl21-ky -> 
@@ -121,7 +121,7 @@ TCP response is enabled; The relevant rules are:
 
 ------------------------------------------------------------------------------------------------------------------------
 
-Allowed connections from test-vpc2-ky/ky-vsi1-subnet20[10.240.128.5] to test-vpc0-ky/ky-vsi1-subnet3[10.240.5.4]: All Connections
+Connections from test-vpc2-ky/ky-vsi1-subnet20[10.240.128.5] to test-vpc0-ky/ky-vsi1-subnet3[10.240.5.4]: All Connections
 
 Path:
 	ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> subnet20 -> network ACL acl21-ky -> 
@@ -161,7 +161,7 @@ TCP response is enabled; The relevant rules are:
 
 ------------------------------------------------------------------------------------------------------------------------
 
-No connections are allowed from test-vpc2-ky/ky-vsi1-subnet20[10.240.128.5] to test-vpc0-ky/ky-vsi0-subnet0[10.240.0.5];
+No connections from test-vpc2-ky/ky-vsi1-subnet20[10.240.128.5] to test-vpc0-ky/ky-vsi0-subnet0[10.240.0.5];
 All connections will be blocked since transit gateway denies route from source to destination
 
 Egress: security group sg21-ky allows connection; network ACL acl21-ky allows connection
@@ -193,7 +193,7 @@ Path is disabled; The relevant rules are:
 
 ------------------------------------------------------------------------------------------------------------------------
 
-No connections are allowed from test-vpc2-ky/ky-vsi1-subnet20[10.240.128.5] to test-vpc0-ky/ky-vsi0-subnet1[10.240.1.5];
+No connections from test-vpc2-ky/ky-vsi1-subnet20[10.240.128.5] to test-vpc0-ky/ky-vsi0-subnet1[10.240.1.5];
 All connections will be blocked since transit gateway denies route from source to destination
 
 Egress: security group sg21-ky allows connection; network ACL acl21-ky allows connection
@@ -225,7 +225,7 @@ Path is disabled; The relevant rules are:
 
 ------------------------------------------------------------------------------------------------------------------------
 
-No connections are allowed from test-vpc2-ky/ky-vsi1-subnet20[10.240.128.5] to test-vpc0-ky/ky-vsi1-subnet0[10.240.0.4];
+No connections from test-vpc2-ky/ky-vsi1-subnet20[10.240.128.5] to test-vpc0-ky/ky-vsi1-subnet0[10.240.0.4];
 All connections will be blocked since transit gateway denies route from source to destination
 
 Egress: security group sg21-ky allows connection; network ACL acl21-ky allows connection
@@ -257,7 +257,7 @@ Path is disabled; The relevant rules are:
 
 ------------------------------------------------------------------------------------------------------------------------
 
-No connections are allowed from test-vpc2-ky/ky-vsi1-subnet20[10.240.128.5] to test-vpc0-ky/ky-vsi1-subnet1[10.240.1.4];
+No connections from test-vpc2-ky/ky-vsi1-subnet20[10.240.128.5] to test-vpc0-ky/ky-vsi1-subnet1[10.240.1.4];
 All connections will be blocked since transit gateway denies route from source to destination
 
 Egress: security group sg21-ky allows connection; network ACL acl21-ky allows connection
