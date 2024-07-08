@@ -69,7 +69,7 @@ func (tt *vpcGeneralTest) runLintTest(t *testing.T) {
 	vpcConfigs := getVPCConfigs(t, tt, true)
 
 	// generate actual output for all use cases specified for this test
-	err := runLintTestPerUseCase(t, tt, vpcConfigs, lintOut)
+	err := runLintTestPerUseCase(t, tt, vpcConfigs.Configs(), lintOut)
 	require.Equal(t, tt.errPerUseCase[vpcmodel.AllEndpoints], err, "comparing actual err to expected err")
 	for uc, outFile := range tt.actualOutput {
 		fmt.Printf("test %s use-case %d - generated output file: %s\n", tt.name, uc, outFile)
@@ -79,19 +79,13 @@ func (tt *vpcGeneralTest) runLintTest(t *testing.T) {
 // runExplainTestPerUseCase executes lint for the required use case and compares/generates the output
 func runLintTestPerUseCase(t *testing.T,
 	tt *vpcGeneralTest,
-	cConfigs *vpcmodel.MultipleVPCConfigs,
+	cConfigs map[string]*vpcmodel.VPCConfig,
 	outDir string) error {
 	// output use case is not significant here, but being used so that lint test can rely on existing mechanism
 	if err := initLintTestFileNames(tt, outDir); err != nil {
 		return err
 	}
-	// todo: support multiCPV config
-	var myConfig *vpcmodel.VPCConfig
-	for _, config := range cConfigs.Configs() {
-		myConfig = config
-		continue // todo: tmp
-	}
-	_, actualOutput := linter.LinterExecute(myConfig)
+	_, actualOutput := linter.LinterExecute(cConfigs)
 	if err := compareOrRegenerateOutputPerTest(t, tt.mode, actualOutput, tt, vpcmodel.AllEndpoints); err != nil {
 		return err
 	}
