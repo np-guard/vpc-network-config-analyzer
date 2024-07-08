@@ -205,16 +205,16 @@ func (g *groupedConnLine) explainPerCaseStr(c *VPCConfig, src, dst EndpointElem,
 			noConnection)
 	case ingressBlocking || egressBlocking || loadBalancerBlocking:
 		return fmt.Sprintf("%v%s"+tripleNLVars, noConnection,
-			blockSummery(ingressBlocking, egressBlocking, loadBalancerBlocking),
+			blockSummary(ingressBlocking, egressBlocking, loadBalancerBlocking),
 			headerPlusPath, details)
 	default: // there is a connection
 		return existingConnectionStr(c, connQuery, src, dst, conn, path, details)
 	}
 }
 
-// blockSummery() return a summery of the rules that block the connection, for example:
-// "connection is blocked both by ingress and egress, and can not be initiated by Load Balancer"
-func blockSummery(ingressBlocking, egressBlocking, loadBalancerBlocking bool) string {
+// blockSummary() return a summary of the rules that block the connection, for example:
+// "connection is blocked both by ingress and egress, and will not be initiated by Load Balancer"
+func blockSummary(ingressBlocking, egressBlocking, loadBalancerBlocking bool) string {
 	blockedBy := []string{}
 	if ingressBlocking {
 		blockedBy = append(blockedBy, "ingress")
@@ -232,7 +232,7 @@ func blockSummery(ingressBlocking, egressBlocking, loadBalancerBlocking bool) st
 	}
 
 	if loadBalancerBlocking {
-		blockedByString = append(blockedByString, "can not be initiated by Load Balancer")
+		blockedByString = append(blockedByString, "will not be initiated by Load Balancer")
 	}
 	return "connection " + strings.Join(blockedByString, ", and ")
 }
@@ -262,7 +262,7 @@ func crossVpcRouterRequired(src, dst EndpointElem) bool {
 
 // returns string of header in case a connection fails to exist
 func noConnectionHeader(src, dst string, connQuery *connection.Set) string {
-	return fmt.Sprintf("No connections from from %s to %s%s;", src, dst, connHeader(connQuery))
+	return fmt.Sprintf("No connections from %s to %s%s;", src, dst, connHeader(connQuery))
 }
 
 // printing when connection exists.
