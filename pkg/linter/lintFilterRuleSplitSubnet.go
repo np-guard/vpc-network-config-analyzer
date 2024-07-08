@@ -98,23 +98,23 @@ func (lint *filterRuleSplitSubnet) getDescription() string {
 func (lint *filterRuleSplitSubnet) getFindings() []finding {
 	resFinding := make([]finding, len(lint.findings))
 	for i, issue := range lint.findings {
-		resFinding[i] = issue
+		resFinding[i] = &issue
 	}
 	return resFinding
 }
 
-func (finding splitRuleSubnet) VPC() string {
+func (finding *splitRuleSubnet) VPC() string {
 	return finding.VPC()
 }
 
-func (finding splitRuleSubnet) Linter() string {
+func (finding *splitRuleSubnet) Linter() string {
 	return splitRuleSubnetName
 }
 
-func (finding splitRuleSubnet) String() string {
+func (finding *splitRuleSubnet) String() string {
 	return "" // todo impl
 }
 
-func (finding splitRuleSubnet) ToJSON() any {
+func (finding *splitRuleSubnet) ToJSON() any {
 	return nil // todo impl
 }
