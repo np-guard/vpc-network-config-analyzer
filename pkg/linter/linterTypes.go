@@ -15,6 +15,5 @@ type linter interface {
 }
 
 type basicLinter struct {
-	config  *vpcmodel.VPCConfig
-	finding []splitRuleSubnet
+	config *vpcmodel.VPCConfig
 }
