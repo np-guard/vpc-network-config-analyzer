@@ -213,7 +213,7 @@ func (g *groupedConnLine) explainPerCaseStr(c *VPCConfig, src, dst EndpointElem,
 }
 
 // blockSummery() return a summery of the rules that block the connection, for example:
-// "connection connection is blocked by egress, and can not be initiated by Load Balancer" 
+// "connection is blocked both by ingress and egress, and can not be initiated by Load Balancer"
 func blockSummery(ingressBlocking, egressBlocking, loadBalancerBlocking bool) string {
 	blockedBy := []string{}
 	if ingressBlocking {
