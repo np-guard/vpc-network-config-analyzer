@@ -14,10 +14,12 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
+const splitRuleSubnetName = "rules-splitting-subnets"
+
 // filterRuleSplitSubnet: rules of filters that are inconsistent w.r.t. subnets.
 type filterRuleSplitSubnet struct {
 	basicLinter
-	finding []splitRuleSubnet
+	findings []splitRuleSubnet
 }
 
 // a rule with the list of subnets it splits
@@ -65,7 +67,7 @@ func (lint *filterRuleSplitSubnet) check() ([]string, error) {
 			findingRes = append(findingRes, thisLayerSplit...)
 		}
 	}
-	lint.finding = findingRes
+	lint.findings = findingRes
 	sort.Strings(strRes)
 	return strRes, nil
 }
@@ -86,13 +88,33 @@ func ruleSplitSubnet(subnet vpcmodel.Subnet, ruleIPBlocks []*ipblock.IPBlock) (b
 }
 
 func (lint *filterRuleSplitSubnet) getName() string {
-	return "Firewalls' rules that splits subnets"
+	return splitRuleSubnetName
 }
 
-func (lint *filterRuleSplitSubnet) getFindings() (resFinding []any) {
-	resFinding = make([]any, len(lint.finding))
-	for i, issue := range lint.finding {
+func (lint *filterRuleSplitSubnet) getDescription() string {
+	return "Firewall rules implying different connectivity for different endpoints within a subnet"
+}
+
+func (lint *filterRuleSplitSubnet) getFindings() []finding {
+	resFinding := make([]finding, len(lint.findings))
+	for i, issue := range lint.findings {
 		resFinding[i] = issue
 	}
 	return resFinding
+}
+
+func (finding splitRuleSubnet) VPC() string {
+	return finding.VPC()
+}
+
+func (finding splitRuleSubnet) Linter() string {
+	return splitRuleSubnetName
+}
+
+func (finding splitRuleSubnet) String() string {
+	return "" // todo impl
+}
+
+func (finding splitRuleSubnet) ToJSON() any {
+	return nil // todo impl
 }

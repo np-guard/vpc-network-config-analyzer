@@ -1,28 +1,28 @@
 linting results for test-vpc0-ky
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-no lint "Firewalls' rules that splits subnets" issues
+no lint "Firewall rules implying different connectivity for different endpoints within a subnet" issues
 
 
 linting results for test-vpc1-ky
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-no lint "Firewalls' rules that splits subnets" issues
+no lint "Firewall rules implying different connectivity for different endpoints within a subnet" issues
 
 
 linting results for test-vpc2-ky
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-no lint "Firewalls' rules that splits subnets" issues
+no lint "Firewall rules implying different connectivity for different endpoints within a subnet" issues
 
 
 linting results for test-vpc3-ky
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-no lint "Firewalls' rules that splits subnets" issues
+no lint "Firewall rules implying different connectivity for different endpoints within a subnet" issues
 
 
 linting results for zn-vpc1
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-no lint "Firewalls' rules that splits subnets" issues
+no lint "Firewall rules implying different connectivity for different endpoints within a subnet" issues
 
 
 linting results for zn-vpc2
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-no lint "Firewalls' rules that splits subnets" issues
+no lint "Firewall rules implying different connectivity for different endpoints within a subnet" issues
