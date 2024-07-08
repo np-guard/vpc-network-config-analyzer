@@ -19,7 +19,7 @@ const splitRuleSubnetName = "rules-splitting-subnets"
 // filterRuleSplitSubnet: rules of filters that are inconsistent w.r.t. subnets.
 type filterRuleSplitSubnet struct {
 	basicLinter
-	findings []splitRuleSubnet
+	findings []*splitRuleSubnet
 }
 
 // a rule with the list of subnets it splits
@@ -31,14 +31,14 @@ type splitRuleSubnet struct {
 
 // list all splitting rules under the name of the table
 func (lint *filterRuleSplitSubnet) check() ([]string, error) {
-	findingRes := []splitRuleSubnet{}
+	findingRes := []*splitRuleSubnet{}
 	strRes := []string{}
 	for _, layer := range vpcmodel.FilterLayers {
 		thisLayerName := "Network acl"
 		if layer == vpcmodel.SecurityGroupLayer {
 			thisLayerName = "Security group"
 		}
-		thisLayerSplit := []splitRuleSubnet{}
+		thisLayerSplit := []*splitRuleSubnet{}
 		filterLayer := lint.config.GetFilterTrafficResourceOfKind(layer)
 		rules, err := filterLayer.GetRules()
 		if err != nil {
@@ -60,7 +60,7 @@ func (lint *filterRuleSplitSubnet) check() ([]string, error) {
 			}
 			if len(subnetsSplitByRule) > 0 {
 				thisLayerSplit = append(thisLayerSplit,
-					splitRuleSubnet{vpcName: lint.config.VPC.Name(), rule: rule, splitSubnets: subnetsSplitByRule})
+					&splitRuleSubnet{vpcName: lint.config.VPC.Name(), rule: rule, splitSubnets: subnetsSplitByRule})
 			}
 		}
 		if len(thisLayerSplit) > 0 {
@@ -98,7 +98,7 @@ func (lint *filterRuleSplitSubnet) getDescription() string {
 func (lint *filterRuleSplitSubnet) getFindings() []finding {
 	resFinding := make([]finding, len(lint.findings))
 	for i, issue := range lint.findings {
-		resFinding[i] = &issue
+		resFinding[i] = issue
 	}
 	return resFinding
 }
