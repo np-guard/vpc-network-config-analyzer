@@ -28,8 +28,7 @@ func LinterExecute(configsMap map[string]*vpcmodel.VPCConfig) (issueFound bool, 
 		linters := []linter{
 			&filterRuleSplitSubnet{basicLinter: blinter},
 		}
-		issueFound = false
-		resString = "linting results for " + config.VPC.Name()
+		resString += "\nlinting results for " + config.VPC.Name()
 		underline := strings.Repeat("~", len(resString))
 		resString += "\n" + underline + "\n\n"
 		for _, thisLinter := range linters {
@@ -48,8 +47,7 @@ func LinterExecute(configsMap map[string]*vpcmodel.VPCConfig) (issueFound bool, 
 				strings.Repeat("-", len(thisLinter.getName())+len(issues)) + "\n" +
 				strings.Join(lintIssues, "")
 		}
-		fmt.Printf("%v", resString)
-		return issueFound, resString
 	}
-	return false, ""
+	fmt.Printf("%v", resString)
+	return issueFound, resString
 }
