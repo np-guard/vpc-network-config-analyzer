@@ -10,6 +10,7 @@ Run `vpcanalyzer report` with one of the following subcommands.
 * **`vpcanalyzer report endpoints`** - Each output line is of the form: `src => dst : connection` , where each of `src` and `dst` is either a VPC endpoint (instance network interface) or an external CIDR, and `connection` is the set of allowed protocols and their relevant connection attributes (e.g., allowed source ports and/or destination ports for TCP/UDP).
 * **`vpcanalyzer report subnets`** - Each output line is of the form: `src => dst : connection` , where each of `src` and `dst` is either a VPC subnet or an external CIDR, and `connection` is as explained for `vpcanalyzer report endpoints`.
 * **`vpcanalyzer report single-subnet`** - The output consists of sections; one section per subnet (section header is the subnet's CIDR block). Each section consists of two sub-sections: `ingressConnectivity` and `egressConnectivity`. These sections detail the allowed connectivity to/from the subnet, as configured by the subnet's NACL resource.
+* **`vpcanalyzer report routing`** - The output is the expected routing path between given source and destination endpoints, considering only VPC routing resources.
 
 ### Options
 
@@ -65,3 +66,14 @@ provides this output:
 |-----|-----|------|
 | subnet1-ky | Public Internet (all ranges) | All Connections |
 | subnet1-ky,subnet2-ky,subnet3-ky | subnet1-ky,subnet2-ky,subnet3-ky | All Connections |
+
+
+Running
+```shell
+vpcanalyzer report routing -c pkg/ibmvpc/examples/input/input_hub_n_spoke_1.json --src 10.1.0.4 --dst 192.168.0.4
+```
+Provides this output:
+```
+path for src 10.1.0.4, dst 192.168.0.4:
+NetworkInterface - tvpc-spoke0-z1-worker[10.1.0.4] -> TGW - tvpc-tgw -> nextHop: 10.1.15.196 [origDest: 192.168.0.4]
+```
