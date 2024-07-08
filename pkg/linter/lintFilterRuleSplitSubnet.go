@@ -82,7 +82,7 @@ func ruleSplitSubnet(subnet vpcmodel.Subnet, ruleIPBlocks []*ipblock.IPBlock) (b
 }
 
 func (lint *filterRuleSplitSubnet) getName() string {
-	return "filterRuleSplitSubnet"
+	return "Firewalls' rules that splits subnets"
 }
 
 func (lint *filterRuleSplitSubnet) getFindings() (resFinding []any) {
