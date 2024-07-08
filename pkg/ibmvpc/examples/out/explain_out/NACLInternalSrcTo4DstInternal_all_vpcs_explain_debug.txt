@@ -1,7 +1,7 @@
 Explaining connectivity from vsi3b-ky to 10.240.30.4/26 (vsi3a-ky[10.240.30.5], vsi3c-ky[10.240.30.4], vsi3b-ky[10.240.30.6], db-endpoint-gateway-ky[10.240.30.7]) within test-vpc1-ky
 ======================================================================================================================================================================================
 
-Allowed connections from vsi3b-ky[10.240.30.6] to db-endpoint-gateway-ky[10.240.30.7]: All Connections
+Connections from vsi3b-ky[10.240.30.6] to db-endpoint-gateway-ky[10.240.30.7]: All Connections
 
 Path:
 	vsi3b-ky[10.240.30.6] -> security group sg1-ky -> 
@@ -21,7 +21,7 @@ Path is enabled; The relevant rules are:
 
 ------------------------------------------------------------------------------------------------------------------------
 
-Allowed connections from vsi3b-ky[10.240.30.6] to vsi3a-ky[10.240.30.5]: All Connections
+Connections from vsi3b-ky[10.240.30.6] to vsi3a-ky[10.240.30.5]: All Connections
 
 Path:
 	vsi3b-ky[10.240.30.6] -> security group sg1-ky -> 
@@ -41,7 +41,7 @@ Path is enabled; The relevant rules are:
 
 ------------------------------------------------------------------------------------------------------------------------
 
-Allowed connections from vsi3b-ky[10.240.30.6] to vsi3c-ky[10.240.30.4]: All Connections
+Connections from vsi3b-ky[10.240.30.6] to vsi3c-ky[10.240.30.4]: All Connections
 
 Path:
 	vsi3b-ky[10.240.30.6] -> security group sg1-ky -> 

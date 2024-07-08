@@ -1,7 +1,7 @@
 Explaining connectivity from vsi2-ky to vsi3b-ky within test-vpc1-ky
 ====================================================================
 
-Allowed connections from vsi2-ky[10.240.20.4] to vsi3b-ky[10.240.30.4]: protocol: TCP
+Connections from vsi2-ky[10.240.20.4] to vsi3b-ky[10.240.30.4]: protocol: TCP
 
 Path:
 	vsi2-ky[10.240.20.4] -> security group sg2-ky -> subnet2-ky -> network ACL acl2-ky -> 

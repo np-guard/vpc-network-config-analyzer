@@ -57,6 +57,9 @@ func (m *mockNetIntf) IsPublicInternet() bool {
 func (m *mockNetIntf) AbstractedToNodeSet() NodeSet {
 	return nil
 }
+func (m *mockNetIntf) RepresentedByAddress() bool {
+	return true
+}
 func (m *mockNetIntf) Kind() string {
 	return "NetworkInterface"
 }

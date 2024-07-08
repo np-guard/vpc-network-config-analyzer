@@ -74,18 +74,23 @@ type PrivateIP struct {
 	vpcmodel.VPCResource
 	vpcmodel.InternalNode
 	loadBalancer *LoadBalancer
-	// Since not all the LB balancer has a private IP, we create fake Private IPs at the subnets that do not have one.
-	// original - does the private IP was originally at the config file, or it is a fake one
+	// Since not all the LB has a private IP, we create a potential Private IP at the LB's subnets that do not have one.
+	// original - does the private IP was originally at the config file, or is it a potential one
 	original bool
+	// the potential block which the pip was created for:
+	block *ipblock.IPBlock
 }
 
 func (pip *PrivateIP) Name() string {
 	kind := "LB private IP"
+	address := pip.Address()
 	if !pip.original {
-		kind = "Fake " + kind
+		kind = "Potential " + kind
+		// todo - use ToRangesListString() instead of ListToPrint()
+		address = strings.Join(pip.block.ListToPrint(), ",")
 	}
 	name := nameWithBracketsInfo(pip.loadBalancer.ResourceName, kind)
-	return nameWithBracketsInfo(name, pip.Address())
+	return nameWithBracketsInfo(name, address)
 }
 
 func (pip *PrivateIP) ExtendedName(c *vpcmodel.VPCConfig) string {
@@ -98,6 +103,9 @@ func (pip *PrivateIP) AbstractedToNodeSet() vpcmodel.NodeSet {
 		return pip.loadBalancer
 	}
 	return nil
+}
+func (pip *PrivateIP) RepresentedByAddress() bool {
+	return false
 }
 
 // NetworkInterface implements vpcmodel.Node interface
@@ -277,11 +285,11 @@ type LoadBalancer struct {
 }
 
 // for LB we add the kind to the name, to make it clear in the reports
-func (lb *LoadBalancer) Name() string {
+func (lb *LoadBalancer) nameWithKind() string {
 	return nameWithBracketsInfo(lb.ResourceName, lb.Kind())
 }
 func (lb *LoadBalancer) ExtendedName(c *vpcmodel.VPCConfig) string {
-	return lb.ExtendedPrefix(c) + lb.Name()
+	return lb.ExtendedPrefix(c) + lb.nameWithKind()
 }
 
 func (lb *LoadBalancer) Nodes() []vpcmodel.Node {
@@ -344,9 +352,11 @@ func (lbr *LoadBalancerRule) Deny() bool { return lbr.deny }
 
 func (lbr *LoadBalancerRule) String() string {
 	if lbr.Deny() {
-		return fmt.Sprintf("%s blocks connection to %s which is not one of its pool members\n", lbr.lb.Name(), lbr.dst.Name())
+		return fmt.Sprintf("%s will not connect to %s, since it is not its pool member\n",
+			lbr.lb.nameWithKind(), lbr.dst.Name())
 	}
-	return fmt.Sprintf("%s allows connection to %s which is one of its pool members\n", lbr.lb.Name(), lbr.dst.Name())
+	return fmt.Sprintf("%s may initiate a connection to %s, which is one of its pool members\n",
+		lbr.lb.nameWithKind(), lbr.dst.Name())
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

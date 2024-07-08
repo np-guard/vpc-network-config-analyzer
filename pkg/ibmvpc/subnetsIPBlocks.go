@@ -23,7 +23,7 @@ import (
 // Private IPs are not created for all the load balancer subnets.
 // To understand and monitor the connectivity that is potentially induced by the load balancer,
 // we create a private IP for all the load balancer subnets.
-// (we calls these private IPs fake private Ips)
+// (we calls these private IPs potential private Ips)
 // Moreover, if a filter rule splits the subnet's cidr to few blocks, we want to create private ip per each such block.
 
 // To create a private IP which does not exist in the config, we need an unused address.
@@ -38,7 +38,7 @@ import (
 //          (c) from these blocks, create a list of disjoint blocks
 //          (d) for each of these blocks, intersect the block with the subnet cidr
 //          (e) collect all the non-empty intersections we get in (d)
-//   2. allocate a free address for the fake private IPs - to this end, we hold for each subnet freeAddressesBlocks,
+//   2. allocate a free address for the potential private IPs - to this end, we hold for each subnet freeAddressesBlocks,
 //      freeAddressesBlocks are splitByFiltersBlocks minus all the addresses that were already allocated.
 //      to get freeAddressesBlocks, we first copy splitByFiltersBlocks, then we remove the subnet already allocated addresses.
 //      (we get these addresses from the subnet reserved IP).

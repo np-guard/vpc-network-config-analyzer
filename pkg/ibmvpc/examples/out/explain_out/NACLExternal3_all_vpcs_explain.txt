@@ -1,7 +1,7 @@
 Explaining connectivity from 100.128.0.0/32 to vsi1-ky within test-vpc1-ky
 ==========================================================================
 
-No connections are allowed from Public Internet 100.128.0.0/32 to vsi1-ky[10.240.10.4];
+No connections from Public Internet 100.128.0.0/32 to vsi1-ky[10.240.10.4];
 	There is no resource enabling inbound external connectivity
 ------------------------------------------------------------------------------------------------------------------------
 
