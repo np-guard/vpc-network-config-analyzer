@@ -15,7 +15,7 @@ import (
 func NewLintCommand(args *inArgs) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "lint",
-		Short: "linting",
+		Short: "Run various checks for ensuring best-practices",
 		Long:  `Execute various (configurable) linting and provides findings`,
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
