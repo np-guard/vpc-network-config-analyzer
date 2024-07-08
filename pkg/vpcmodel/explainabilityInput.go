@@ -48,8 +48,8 @@ const noValidInputMsg = "is not a legal IP address, CIDR, or endpoint name"
 
 const deliminator = "/"
 
-// was src/dst input provided as internal address of a vsi? this is required info since
-// if this is the case then in the output the relevant detected VSIs' names are printed
+// was src/dst input provided as internal address of an endpoint? this is required info since
+// if this is the case then in the output the relevant detected endpoints' names are printed
 type srcDstInternalAddr struct {
 	src bool
 	dst bool
@@ -63,8 +63,8 @@ type srcAndDstNodes struct {
 
 // getVPCConfigAndSrcDstNodes given src, dst in string returns the config in which the exaplainability analysis of these
 // should be done and the Nodes for src and dst. It also returns whether src and/or dst was given as the internal address of
-// a vsi - which effects the output.
-// src/dst when referring to a vsi *name* may be prefixed with the vpc name with the deliminator "/" to solve ambiguity
+// an endpoint - which effects the output.
+// src/dst when referring to an endpoint *name* may be prefixed with the vpc name with the deliminator "/" to solve ambiguity
 // If such prefix is missing then a match in any vpc is valid.
 // At most one config should contain both src and dst, and this is the config returned:
 // * If one is internal and the other is external the vpcConfig of the internal is returned
@@ -74,7 +74,7 @@ type srcAndDstNodes struct {
 // this is the vpcConfig that will be returned, if such tgw exists; if such a tgw does not exist the src and dst are not connected
 // At this stage, we do not support the following:
 // 1. two tgw connects src and dst;
-// 2. src and/or dst has VSI(s) in more than one VPC
+// 2. src and/or dst has endpoint(s) in more than one VPC
 
 // error handling: the src and dst are being searched for within the context of each vpcConfig.
 // if no match found, then it is due to one of the following errors:
@@ -93,12 +93,12 @@ type srcAndDstNodes struct {
 //
 // More than one match found is also considered an error. It can be due to one of the following:
 // 1. src and dst are of different VPCs and are connected by more than one tgw
-// 2. src and dst are internal address containing VSIs in more than one VPC
-// 3. src (dst) is internal containing VSIs in more than one VPC and dst (src) is external
+// 2. src and dst are internal address containing endpoints in more than one VPC
+// 3. src (dst) is internal containing endpoints in more than one VPC and dst (src) is external
 // neither are supported in this stage
 // todo: note that there could be cases in which src/dst are internal address that contains EPs of more than one VPC
-//       which will not result in an error. E.g., src is a vsi of VPC1 and dst is an internal address of VPC1 and VPC2.
-//       in this case explainability analysis will be done for VPC1
+//       which will not result in an error. E.g., src is a endpoint of VPC1 and dst is an internal address of VPC1
+//       and VPC2. in this case explainability analysis will be done for VPC1
 
 //nolint:gocyclo // better not split into two function
 func (c *MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string) (vpcConfig *VPCConfig,
@@ -216,7 +216,7 @@ func (c *MultipleVPCConfigs) listNamesCfg(configsWithSrcDstNode map[string]srcAn
 	i := 0
 	matchConfigs := make([]string, len(configsWithSrcDstNode))
 	for vpcUID := range configsWithSrcDstNode {
-		// the vsis are in more than one config; lists all the configs it is in for the error msg
+		// the endpoints are in more than one config; lists all the configs it is in for the error msg
 		matchConfigs[i] = c.Config(vpcUID).VPC.Name()
 		i++
 	}
@@ -262,8 +262,8 @@ func (e *ExplanationArgs) GetConnectionSet() *connection.Set {
 
 // given src and dst input and a VPCConfigs finds the []nodes they represent in the config
 // src/dst may refer to:
-// 1. VSI by UID or name; in this case we consider the network interfaces of the VSI
-// 2. Internal IP address or cidr; in this case we consider the VSIs in that address range
+// 1. Endpoint by UID or name; in this case we consider the network interfaces of the endpoint
+// 2. Internal IP address or cidr; in this case we consider the endpoints in that address range
 // 3. external IP address or cidr
 func (c *VPCConfig) srcDstInputToNodes(srcName, dstName string) (srcNodes,
 	dstNodes []Node, isSrcDstInternalIP srcDstInternalAddr, errType int, err error) {
@@ -293,7 +293,7 @@ func (c *VPCConfig) srcDstInputToNodes(srcName, dstName string) (srcNodes,
 	return srcNodes, dstNodes, srcDstInternalAddr{isSrcInternalIP, isDstInternalIP}, noErr, nil
 }
 
-// given a VPCConfig and a string looks for the VSI/Internal IP/External address it presents,
+// given a VPCConfig and a string looks for the endpoint/Internal IP/External address it presents,
 // as described above
 func (c *VPCConfig) getSrcOrDstInputNode(name, srcOrDst string) (nodes []Node,
 	internalIP bool, errType int, err error) {
@@ -304,18 +304,18 @@ func (c *VPCConfig) getSrcOrDstInputNode(name, srcOrDst string) (nodes []Node,
 	return outNodes, isInternalIP, noErr, nil
 }
 
-// given a VPCConfig and a string cidrOrName representing a vsi or internal/external
+// given a VPCConfig and a string cidrOrName representing an endpoint or internal/external
 // cidr/address returns the corresponding node(s) and a bool which is true iff
 // cidrOrName is an internal address and the nodes are its network interfaces
 func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node,
 	internalIP bool, errType int, err error) {
-	// 1. cidrOrName references vsi
-	vsi, errType1, err1 := c.getNodesOfVsi(cidrOrName)
+	// 1. cidrOrName references endpoint
+	endpoint, errType1, err1 := c.getNodesOfEndpoint(cidrOrName)
 	if err1 != nil {
 		return nil, false, errType1, err1
 	}
-	if vsi != nil {
-		return vsi, false, noErr, nil
+	if endpoint != nil {
+		return endpoint, false, noErr, nil
 	}
 	// cidrOrName, if legal, references an address.
 	// 2. cidrOrName references an ip address
@@ -330,42 +330,36 @@ func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node,
 	return c.getNodesFromAddress(cidrOrName, ipBlock)
 }
 
-// todo https://github.com/np-guard/vpc-network-config-analyzer/issues/673:
-//  the name, the variables names and the documentation of the following function is wrong and misleading, because:
-//   1. vsi is ibm specific
-//   2. this functions returns not only nodes of vsis, but also nodes of vpe, and recently load balancers
-
-// getNodesOfVsi gets a string name or UID of VSI, and
-// returns the list of all nodes within this vsi
-func (c *VPCConfig) getNodesOfVsi(name string) ([]Node, int, error) {
-	var nodeSetWithVsi NodeSet
-	// vsi name may be prefixed by vpc name
-	var vpc, vsi string
+// getNodesOfEndpoint gets a string name or UID of an endpoint (e.g. VSI), and
+// returns the list of all nodes within this endpoint
+func (c *VPCConfig) getNodesOfEndpoint(name string) ([]Node, int, error) {
+	var nodeSetOfEndpoint NodeSet
+	// endpoint name may be prefixed by vpc name
+	var vpc, endpoint string
 	uid := name // uid specified - vpc prefix is not relevant and uid may contain the deliminator "/"
 	cidrOrNameSlice := strings.Split(name, deliminator)
 	switch len(cidrOrNameSlice) {
 	case 1: // vpc name not specified
-		vsi = name
+		endpoint = name
 	case 2: // vpc name specified
 		vpc = cidrOrNameSlice[0]
-		vsi = cidrOrNameSlice[1]
+		endpoint = cidrOrNameSlice[1]
 	}
 	for _, nodeSet := range append(c.NodeSets, c.loadBalancersAsNodeSets()...) {
-		// currently, assuming c.NodeSets consists of VSIs or VPE
-		if (vpc == "" || nodeSet.VPC().Name() == vpc) && nodeSet.Name() == vsi || // if vpc of vsi specified, equality must hold
+		if (vpc == "" || nodeSet.VPC().Name() == vpc) && nodeSet.Name() == endpoint || // if vpc of endpoint specified, equality must hold
 			nodeSet.UID() == uid {
-			if nodeSetWithVsi != nil {
+			if nodeSetOfEndpoint != nil {
 				return nil, fatalErr, fmt.Errorf("ambiguity - the configuration contains multiple resources named %s, "+
 					"try using CRNs or the VPC name to scope resources: vpc-name/instance-name"+
-					"\nCRNs of matching resources:\n\t%s\n\t%s", name, nodeSetWithVsi.UID(), nodeSet.UID())
+					"\nCRNs of matching resources:\n\t%s\n\t%s", name, nodeSetOfEndpoint.UID(), nodeSet.UID())
 			}
-			nodeSetWithVsi = nodeSet
+			nodeSetOfEndpoint = nodeSet
 		}
 	}
-	if nodeSetWithVsi == nil {
+	if nodeSetOfEndpoint == nil {
 		return nil, noErr, nil
 	}
-	return nodeSetWithVsi.Nodes(), noErr, nil
+	return nodeSetOfEndpoint.Nodes(), noErr, nil
 }
 
 // getNodesFromAddress gets a string and IPBlock that represents a cidr or IP address
