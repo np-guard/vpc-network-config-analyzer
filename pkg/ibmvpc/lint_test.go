@@ -28,6 +28,10 @@ var lintTests = []*vpcGeneralTest{
 		name:        "basic_sg1",
 		inputConfig: "sg_testing1_new",
 	},
+	{
+		name:        "multivpc",
+		inputConfig: "tgw_larger_example",
+	},
 }
 
 func TestAllLint(t *testing.T) {

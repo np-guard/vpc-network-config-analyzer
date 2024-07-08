@@ -8,6 +8,7 @@ package linter
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
@@ -18,8 +19,7 @@ const issues = " issues:"
 // LinterExecute executes linters one by one
 // todo: mechanism for disabling/enabling lint checks
 func LinterExecute(configsMap map[string]*vpcmodel.VPCConfig) (issueFound bool, resString string) {
-	strPerVpc := make([]string, len(configsMap))
-	i := 0
+	strPerVpc := []string{}
 	for _, config := range configsMap {
 		thisVPCRes := ""
 		if config.IsMultipleVPCsConfig {
@@ -33,7 +33,7 @@ func LinterExecute(configsMap map[string]*vpcmodel.VPCConfig) (issueFound bool, 
 		}
 		header := "linting results for " + config.VPC.Name()
 		underline := strings.Repeat("~", len(header))
-		thisVPCRes += header + "\n" + underline + "\n\n"
+		thisVPCRes += header + "\n" + underline + "\n"
 		for _, thisLinter := range linters {
 			lintIssues, err := thisLinter.check()
 			if err != nil {
@@ -50,10 +50,10 @@ func LinterExecute(configsMap map[string]*vpcmodel.VPCConfig) (issueFound bool, 
 					strings.Join(lintIssues, "")
 			}
 		}
-		strPerVpc[i] = thisVPCRes
-		i++
+		strPerVpc = append(strPerVpc, thisVPCRes)
 	}
-	resString = strings.Join(strPerVpc, "/n/n")
+	sort.Strings(strPerVpc)
+	resString = strings.Join(strPerVpc, "\n\n")
 	fmt.Printf("%v", resString)
 	return issueFound, resString
 }
