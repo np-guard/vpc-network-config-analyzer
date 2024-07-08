@@ -74,7 +74,7 @@ func TestSGRule(t *testing.T) {
 	sgResource := &commonvpc.SecurityGroup{
 		VPCResource: vpcmodel.VPCResource{
 			ResourceUID:  *sg.GroupId,
-			ResourceType: ResourceTypeSG,
+			ResourceType: commonvpc.ResourceTypeSG,
 			VPCRef:       nil,
 			Region:       "",
 		},
@@ -121,7 +121,7 @@ func TestWithSgObj(t *testing.T) {
 	sgResource := &commonvpc.SecurityGroup{
 		VPCResource: vpcmodel.VPCResource{
 			ResourceUID:  *sg.GroupId,
-			ResourceType: ResourceTypeSG,
+			ResourceType: commonvpc.ResourceTypeSG,
 			VPCRef:       nil,
 			Region:       "",
 		},
@@ -255,15 +255,15 @@ var sgTests = []sgTest{
 }
 
 func (tt *sgTest) runTest(t *testing.T) {
-	var endpoint1 = &NetworkInterface{InternalNode: vpcmodel.InternalNode{
+	var endpoint1 = &commonvpc.NetworkInterface{InternalNode: vpcmodel.InternalNode{
 		AddressStr: "10.240.10.1",
 		IPBlockObj: fromIPAddressStrWithoutValidation("10.240.10.1"),
 	}}
-	var endpoint2 = &NetworkInterface{InternalNode: vpcmodel.InternalNode{
+	var endpoint2 = &commonvpc.NetworkInterface{InternalNode: vpcmodel.InternalNode{
 		AddressStr: "10.240.10.2",
 		IPBlockObj: fromIPAddressStrWithoutValidation("10.240.10.2"),
 	}}
-	var endpoint3 = &NetworkInterface{InternalNode: vpcmodel.InternalNode{
+	var endpoint3 = &commonvpc.NetworkInterface{InternalNode: vpcmodel.InternalNode{
 		AddressStr: "10.240.10.0",
 		IPBlockObj: fromIPAddressStrWithoutValidation("10.240.10.0"),
 	}}

@@ -20,7 +20,7 @@ import (
 
 // genConfig returns VPCConfig object (used for testing)
 func genConfig(vpc *commonvpc.VPC, subnets []*commonvpc.Subnet,
-	netInterfaces []*NetworkInterface,
+	netInterfaces []*commonvpc.NetworkInterface,
 	pgws []*PublicGateway,
 	fips []*FloatingIP,
 ) *vpcmodel.VPCConfig {
@@ -108,11 +108,11 @@ func newEgressRTFromRoutes(rps *routesPerSubnets, config *vpcmodel.VPCConfig, vp
 }
 
 func newBasicConfig(rps *routesPerSubnets) (*vpcmodel.VPCConfig, []*egressRoutingTable) {
-	vpc1, _ := newVPC("vpc1", "vpc1", "", map[string][]string{"zoneA": {"10.10.0.0/16"},
+	vpc1, _ := commonvpc.NewVPC("vpc1", "vpc1", "", map[string][]string{"zoneA": {"10.10.0.0/16"},
 		"zoneB": {"10.11.0.0/16"}}, map[string]*commonvpc.Region{})
-	subnet1, _ := newSubnet("subnet1", "subnet1", "zoneA", "10.10.1.0/24", vpc1)
-	subnet2, _ := newSubnet("subnet2", "subnet2", "zoneA", "10.10.3.0/24", vpc1)
-	subnet3, _ := newSubnet("subnet3", "subnet3", "zoneA", "10.10.0.0/24", vpc1)
+	subnet1, _ := commonvpc.NewSubnet("subnet1", "subnet1", "zoneA", "10.10.1.0/24", vpc1)
+	subnet2, _ := commonvpc.NewSubnet("subnet2", "subnet2", "zoneA", "10.10.3.0/24", vpc1)
+	subnet3, _ := commonvpc.NewSubnet("subnet3", "subnet3", "zoneA", "10.10.0.0/24", vpc1)
 	node1, _ := newNetworkInterface("node1", "node1", "zoneA", "10.10.1.8", "vsi1", vpc1)
 	node2, _ := newNetworkInterface("node2", "node2", "zoneA", "10.10.3.8", "vsi2", vpc1)
 	// 2 nodes below - same vsi, different network interfaces
@@ -120,7 +120,7 @@ func newBasicConfig(rps *routesPerSubnets) (*vpcmodel.VPCConfig, []*egressRoutin
 	node4, _ := newNetworkInterface("node4", "node4", "zoneA", "10.10.0.5", "vsi3", vpc1)
 
 	allSubnets := []*commonvpc.Subnet{subnet1, subnet2, subnet3}
-	allNodes := []*NetworkInterface{node1, node2, node3, node4}
+	allNodes := []*commonvpc.NetworkInterface{node1, node2, node3, node4}
 
 	pgwToSubnet := map[string][]*commonvpc.Subnet{"pgw1": {subnet1, subnet2}}
 	pgw := newPGW("pgw1", "pgw1", "zoneA", pgwToSubnet, vpc1)
@@ -175,7 +175,7 @@ func (test *testRTAnalyzer) run(t *testing.T) {
 	}
 }
 
-func newNetIntForTest(vsi, address, nodeName string) *NetworkInterface {
+func newNetIntForTest(vsi, address, nodeName string) *commonvpc.NetworkInterface {
 	res, _ := newNetworkInterface(nodeName, nodeName, "zoneA", address, vsi, &commonvpc.VPC{})
 	return res
 }

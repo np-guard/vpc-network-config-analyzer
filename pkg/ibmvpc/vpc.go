@@ -83,25 +83,6 @@ func (pip *PrivateIP) RepresentedByAddress() bool {
 	return false
 }
 
-// NetworkInterface implements vpcmodel.Node interface
-type NetworkInterface struct {
-	vpcmodel.VPCResource
-	vpcmodel.InternalNode
-	vsi string
-}
-
-func (ni *NetworkInterface) VsiName() string {
-	return ni.vsi
-}
-
-func (ni *NetworkInterface) Name() string {
-	return nameWithBracketsInfo(ni.vsi, ni.Address())
-}
-
-func (ni *NetworkInterface) ExtendedName(c *vpcmodel.VPCConfig) string {
-	return ni.ExtendedPrefix(c) + ni.Name()
-}
-
 // IKSNode implements vpcmodel.Node interface
 type IKSNode struct {
 	vpcmodel.VPCResource
@@ -549,7 +530,7 @@ func (pgw *PublicGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf)
 		}
 		return connection.None(), nil
 	}
-	if src.Kind() == ResourceTypeSubnet {
+	if src.Kind() == commonvpc.ResourceTypeSubnet {
 		srcSubnet := src.(*commonvpc.Subnet)
 		if dstNode, ok := dst.(vpcmodel.Node); ok {
 			if dstNode.IsExternal() && hasSubnet(pgw.srcSubnets, srcSubnet) {

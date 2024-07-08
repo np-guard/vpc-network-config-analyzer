@@ -41,13 +41,13 @@ func TestRegionMethodVPC(t *testing.T) {
 		VPCResource: vpcmodel.VPCResource{
 			ResourceName: "ola",
 			ResourceUID:  "ola123",
-			ResourceType: ResourceTypeVPC,
+			ResourceType: commonvpc.ResourceTypeVPC,
 			Region:       "us-east",
 		},
 		VPCnodes:               []vpcmodel.Node{},
 		Zones:                  map[string]*commonvpc.Zone{},
 		AddressPrefixesIPBlock: nil,
-		VPCregion:              getRegionByName("us-east", regionToStructMap),
+		VPCregion:              commonvpc.GetRegionByName("us-east", regionToStructMap),
 	}
 	region := vpcNodeSet.Region()
 	require.Equal(t, region.Name, "us-east")
@@ -59,12 +59,12 @@ func TestRegionMethodTGW(t *testing.T) {
 		VPCResource: vpcmodel.VPCResource{
 			ResourceName: "tgwName",
 			ResourceUID:  "tgwUID",
-			ResourceType: ResourceTypeTGW,
+			ResourceType: commonvpc.ResourceTypeTGW,
 			Region:       "us-east",
 		},
 		vpcs:            nil,
 		availableRoutes: map[string][]*ipblock.IPBlock{},
-		region:          getRegionByName("us-east", regionToStructMap),
+		region:          commonvpc.GetRegionByName("us-east", regionToStructMap),
 	}
 	region := tgw.Region()
 	require.Equal(t, region.Name, "us-east")
@@ -72,17 +72,17 @@ func TestRegionMethodTGW(t *testing.T) {
 
 func TestGetRegionByName(t *testing.T) {
 	regionToStructMap := make(map[string]*commonvpc.Region) // map for caching Region objects
-	getRegionByName("us-south", regionToStructMap)
-	getRegionByName("us-south", regionToStructMap)
-	getRegionByName("us-east", regionToStructMap)
-	getRegionByName("us-east", regionToStructMap)
-	getRegionByName("us-east", regionToStructMap)
-	getRegionByName("us-east", regionToStructMap)
-	getRegionByName("", regionToStructMap)
+	commonvpc.GetRegionByName("us-south", regionToStructMap)
+	commonvpc.GetRegionByName("us-south", regionToStructMap)
+	commonvpc.GetRegionByName("us-east", regionToStructMap)
+	commonvpc.GetRegionByName("us-east", regionToStructMap)
+	commonvpc.GetRegionByName("us-east", regionToStructMap)
+	commonvpc.GetRegionByName("us-east", regionToStructMap)
+	commonvpc.GetRegionByName("", regionToStructMap)
 	require.Equal(t, len(regionToStructMap), 3)
 
-	region1 := getRegionByName("us-south", regionToStructMap)
-	region2 := getRegionByName("us-south", regionToStructMap)
+	region1 := commonvpc.GetRegionByName("us-south", regionToStructMap)
+	region2 := commonvpc.GetRegionByName("us-south", regionToStructMap)
 	require.Equal(t, region1, region2)
 	require.True(t, region1 == region2)
 }

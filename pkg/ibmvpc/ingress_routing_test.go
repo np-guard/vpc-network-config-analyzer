@@ -72,16 +72,19 @@ func pathFromNextHopValues(nextHop, origDest string) vpcmodel.Path {
 }
 
 func newHubSpokeBase1Config() (*vpcmodel.MultipleVPCConfigs, *GlobalRTAnalyzer) {
-	vpcTransit, _ := newVPC("transit", "transit", "", map[string][]string{"us-south-1": {"10.1.15.0/24"},
+	vpcTransit, _ := commonvpc.NewVPC("transit", "transit", "", map[string][]string{"us-south-1": {"10.1.15.0/24"},
 		"us-south-2": {"10.2.15.0/24"}}, map[string]*commonvpc.Region{})
-	vpcSpoke, _ := newVPC("spoke", "spoke", "", map[string][]string{"us-south-1": {"10.1.0.0/24"},
+	vpcSpoke, _ := commonvpc.NewVPC("spoke", "spoke", "", map[string][]string{"us-south-1": {"10.1.0.0/24"},
 		"us-south-2": {"10.2.0.0/24"}}, map[string]*commonvpc.Region{})
-	vpcEnterprise, _ := newVPC("enterprise", "enterprise", "", map[string][]string{"z1": {"192.168.0.0/16"}}, map[string]*commonvpc.Region{})
+	vpcEnterprise, _ := commonvpc.NewVPC("enterprise", "enterprise", "",
+		map[string][]string{"z1": {"192.168.0.0/16"}}, map[string]*commonvpc.Region{})
 
-	workerSubnetTransit, _ := newSubnet("workerSubnetTransit", "workerSubnetTransit", "us-south-1", "10.1.15.0/26", vpcTransit)
-	workerSubnetSpoke, _ := newSubnet("workerSubnetSpoke", "workerSubnetSpoke", "us-south-1", "10.1.0.0/26", vpcSpoke)
-	workerSubnetEnterprise, _ := newSubnet("workerSubnetEnterprise", "workerSubnetEnterprise", "z1", "192.168.0.0/16", vpcEnterprise)
-	firewallSubnetTransit, _ := newSubnet("firewallSubnetTransit", "firewallSubnetTransit", "us-south-1", "10.1.15.192/26", vpcTransit)
+	workerSubnetTransit, _ := commonvpc.NewSubnet("workerSubnetTransit", "workerSubnetTransit", "us-south-1", "10.1.15.0/26", vpcTransit)
+	workerSubnetSpoke, _ := commonvpc.NewSubnet("workerSubnetSpoke", "workerSubnetSpoke", "us-south-1", "10.1.0.0/26", vpcSpoke)
+	workerSubnetEnterprise, _ := commonvpc.NewSubnet("workerSubnetEnterprise",
+		"workerSubnetEnterprise", "z1", "192.168.0.0/16", vpcEnterprise)
+	firewallSubnetTransit, _ := commonvpc.NewSubnet("firewallSubnetTransit", "firewallSubnetTransit",
+		"us-south-1", "10.1.15.192/26", vpcTransit)
 
 	transitTestInstance, _ := newNetworkInterface("transitTestInstance", "transitTestInstance",
 		"us-south-1", "10.1.15.4", "transitTestInstanceVSI", vpcTransit)
@@ -97,10 +100,10 @@ func newHubSpokeBase1Config() (*vpcmodel.MultipleVPCConfigs, *GlobalRTAnalyzer) 
 		"z1", "192.168.0.4", "enterpriseTestInstanceVSI", vpcEnterprise)
 
 	vpcConfTransit := genConfig(vpcTransit, []*commonvpc.Subnet{workerSubnetTransit, firewallSubnetTransit},
-		[]*NetworkInterface{transitTestInstance, transitTestInstance2, firewallInstance}, nil, nil)
-	vpcConfSpoke := genConfig(vpcSpoke, []*commonvpc.Subnet{workerSubnetSpoke}, []*NetworkInterface{spokeTestInstance}, nil, nil)
+		[]*commonvpc.NetworkInterface{transitTestInstance, transitTestInstance2, firewallInstance}, nil, nil)
+	vpcConfSpoke := genConfig(vpcSpoke, []*commonvpc.Subnet{workerSubnetSpoke}, []*commonvpc.NetworkInterface{spokeTestInstance}, nil, nil)
 	vpcConfEnterprise := genConfig(vpcEnterprise, []*commonvpc.Subnet{workerSubnetEnterprise},
-		[]*NetworkInterface{enterpriseTestInstance}, nil, nil)
+		[]*commonvpc.NetworkInterface{enterpriseTestInstance}, nil, nil)
 
 	globalConfig := vpcmodel.NewMultipleVPCConfigs("")
 	globalConfig.AddConfig(vpcConfTransit)

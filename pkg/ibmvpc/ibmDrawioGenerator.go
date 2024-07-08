@@ -11,16 +11,15 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
-func (nl *NaclLayer) ShowOnSubnetMode() bool        { return true }
-func (ni *NetworkInterface) ShowOnSubnetMode() bool { return false }
-func (n *IKSNode) ShowOnSubnetMode() bool           { return false }
-func (r *ReservedIP) ShowOnSubnetMode() bool        { return false }
-func (v *Vpe) ShowOnSubnetMode() bool               { return false }
-func (pgw *PublicGateway) ShowOnSubnetMode() bool   { return true }
-func (fip *FloatingIP) ShowOnSubnetMode() bool      { return false }
-func (tgw *TransitGateway) ShowOnSubnetMode() bool  { return true }
-func (lb *LoadBalancer) ShowOnSubnetMode() bool     { return true }
-func (pip *PrivateIP) ShowOnSubnetMode() bool       { return false }
+func (nl *NaclLayer) ShowOnSubnetMode() bool       { return true }
+func (n *IKSNode) ShowOnSubnetMode() bool          { return false }
+func (r *ReservedIP) ShowOnSubnetMode() bool       { return false }
+func (v *Vpe) ShowOnSubnetMode() bool              { return false }
+func (pgw *PublicGateway) ShowOnSubnetMode() bool  { return true }
+func (fip *FloatingIP) ShowOnSubnetMode() bool     { return false }
+func (tgw *TransitGateway) ShowOnSubnetMode() bool { return true }
+func (lb *LoadBalancer) ShowOnSubnetMode() bool    { return true }
+func (pip *PrivateIP) ShowOnSubnetMode() bool      { return false }
 
 func (nl *NaclLayer) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	for _, acl := range nl.naclList {
@@ -29,11 +28,6 @@ func (nl *NaclLayer) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawi
 		}
 	}
 	return nil
-}
-
-func (ni *NetworkInterface) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
-	return drawio.NewNITreeNode(
-		gen.TreeNode(ni.Subnet()).(drawio.SquareTreeNodeInterface), ni.Name())
 }
 
 func (n *IKSNode) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {

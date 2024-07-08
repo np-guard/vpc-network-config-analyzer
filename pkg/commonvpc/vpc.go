@@ -40,6 +40,25 @@ func zoneFromVPCResource(r vpcmodel.VPCResourceIntf) (*Zone, error) {
 	return nil, errors.New("error getting VPC from resource object")
 }
 
+// NetworkInterface implements vpcmodel.Node interface
+type NetworkInterface struct {
+	vpcmodel.VPCResource
+	vpcmodel.InternalNode
+	Vsi string `json:"-"`
+}
+
+func (ni *NetworkInterface) Name() string {
+	return nameWithBracketsInfo(ni.Vsi, ni.Address())
+}
+
+func (ni *NetworkInterface) ExtendedName(c *vpcmodel.VPCConfig) string {
+	return ni.ExtendedPrefix(c) + ni.Name()
+}
+
+func nameWithBracketsInfo(name, inBrackets string) string {
+	return fmt.Sprintf("%s[%s]", name, inBrackets)
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // nodesets elements - implement vpcmodel.NodeSet interface
 

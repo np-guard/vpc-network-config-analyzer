@@ -32,10 +32,10 @@ var n1, _ = newNetworkInterface("n1", "n1", "zone1", "10.10.2.6", "n1VSI", vpc)
 var n2, _ = newNetworkInterface("n2", "n2", "zone1", "10.10.2.5", "n2VSI", vpc)
 var vpcConfig = &vpcmodel.VPCConfig{
 	VPC:   vpc,
-	Nodes: nodesFromNetIntfs([]*NetworkInterface{n1, n2}),
+	Nodes: nodesFromNetIntfs([]*commonvpc.NetworkInterface{n1, n2}),
 }
 
-func nodesFromNetIntfs(nodes []*NetworkInterface) (res []vpcmodel.Node) {
+func nodesFromNetIntfs(nodes []*commonvpc.NetworkInterface) (res []vpcmodel.Node) {
 	for _, n := range nodes {
 		res = append(res, n)
 	}

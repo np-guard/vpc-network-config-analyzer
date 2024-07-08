@@ -18,6 +18,7 @@ func (s *Subnet) ShowOnSubnetMode() bool               { return true }
 func (sgl *SecurityGroupLayer) ShowOnSubnetMode() bool { return false }
 func (sg *SecurityGroup) ShowOnSubnetMode() bool       { return false }
 func (v *Vsi) ShowOnSubnetMode() bool                  { return false }
+func (v *NetworkInterface) ShowOnSubnetMode() bool     { return false }
 
 // for DrawioResourceIntf that are not VPCResourceIntf, we implement Kind():
 func (r *Region) Kind() string { return "Cloud" }
@@ -77,4 +78,9 @@ func (v *Vsi) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeN
 	zone, _ := v.Zone()
 	zoneTn := gen.TreeNode(zone).(*drawio.ZoneTreeNode)
 	return drawio.GroupNIsWithVSI(zoneTn, v.Name(), vsiNIs)
+}
+
+func (ni *NetworkInterface) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
+	return drawio.NewNITreeNode(
+		gen.TreeNode(ni.Subnet()).(drawio.SquareTreeNodeInterface), ni.Name())
 }

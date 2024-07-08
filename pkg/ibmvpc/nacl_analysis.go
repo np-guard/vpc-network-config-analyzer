@@ -70,7 +70,7 @@ func getProperty(p *int64, defaultP int64) int64 {
 
 func getTCPUDPConns(p string, srcPortMin, srcPortMax, dstPortMin, dstPortMax int64) *connection.Set {
 	protocol := netp.ProtocolStringUDP
-	if p == protocolTCP {
+	if p == commonvpc.ProtocolTCP {
 		protocol = netp.ProtocolStringTCP
 	}
 	return connection.TCPorUDPConnection(protocol, srcPortMin, srcPortMax, dstPortMin, dstPortMax)
@@ -120,7 +120,7 @@ func (na *NACLAnalyzer) getNACLRule(index int) (ruleStr string, ruleRes *NACLRul
 		return "", nil, false, err
 	}
 	ruleRes = &NACLRule{src: srcIP, dst: dstIP, connections: conns, action: action}
-	isIngress = direction == inbound
+	isIngress = direction == commonvpc.Inbound
 	ruleStr = fmt.Sprintf("index: %d, direction: %s , src: %s , dst: %s, conn: %s, action: %s\n",
 		index, direction, src, dst, connStr, action)
 	return ruleStr, ruleRes, isIngress, nil

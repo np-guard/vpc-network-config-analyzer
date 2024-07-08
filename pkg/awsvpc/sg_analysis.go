@@ -43,7 +43,7 @@ func getProperty(p *int64, defaultP int64) int64 {
 
 func getTCPUDPConns(p string, srcPortMin, srcPortMax, dstPortMin, dstPortMax int64) *connection.Set {
 	protocol := netp.ProtocolStringUDP
-	if p == protocolTCP {
+	if p == commonvpc.ProtocolTCP {
 		protocol = netp.ProtocolStringTCP
 	}
 	return connection.TCPorUDPConnection(protocol, srcPortMin, srcPortMax, dstPortMin, dstPortMax)
@@ -134,23 +134,23 @@ func (sga *SpecificAnalyzer) getProtocolIcmpRule(ruleObj *types.IpPermission, di
 func (sga *SpecificAnalyzer) GetSGRule(index int) (
 	ruleStr string, ruleRes *commonvpc.SGRule, isIngress bool, err error) {
 	var ruleObj types.IpPermission
-	direction := inbound
+	direction := commonvpc.Inbound
 	if index < len(sga.sgResource.IpPermissions) {
 		isIngress = true
 		ruleObj = sga.sgResource.IpPermissions[index]
 	} else {
-		direction = outbound
+		direction = commonvpc.Outbound
 		isIngress = false
 		ruleObj = sga.sgResource.IpPermissionsEgress[index-len(sga.sgResource.IpPermissions)]
 	}
 	switch *ruleObj.IpProtocol {
-	case allProtocols: // all protocols
+	case commonvpc.AllProtocols: // all protocols
 		ruleStr, ruleRes, err = sga.getProtocolAllRule(&ruleObj, direction)
-	case protocolTCP:
+	case commonvpc.ProtocolTCP:
 		ruleStr, ruleRes, err = sga.getProtocolTcpudpRule(&ruleObj, direction)
-	case protocolUDP:
+	case commonvpc.ProtocolUDP:
 		ruleStr, ruleRes, err = sga.getProtocolTcpudpRule(&ruleObj, direction)
-	case protocolICMP:
+	case commonvpc.ProtocolICMP:
 		ruleStr, ruleRes, err = sga.getProtocolIcmpRule(&ruleObj, direction)
 	default:
 		return "", nil, false, fmt.Errorf("getSGRule error: unsupported type")

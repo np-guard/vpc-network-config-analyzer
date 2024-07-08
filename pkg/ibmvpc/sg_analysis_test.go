@@ -93,7 +93,7 @@ func TestSGRule(t *testing.T) {
 		VPCResource: vpcmodel.VPCResource{
 			ResourceName: *sg.Name,
 			ResourceUID:  *sg.CRN,
-			ResourceType: ResourceTypeSG,
+			ResourceType: commonvpc.ResourceTypeSG,
 			VPCRef:       nil,
 			Region:       "",
 		},
@@ -243,15 +243,15 @@ var sgTests = []sgTest{
 }
 
 func (tt *sgTest) runTest(t *testing.T) {
-	var endpoint1 = &NetworkInterface{InternalNode: vpcmodel.InternalNode{
+	var endpoint1 = &commonvpc.NetworkInterface{InternalNode: vpcmodel.InternalNode{
 		AddressStr: "10.240.10.1",
 		IPBlockObj: fromIPAddressStrWithoutValidation("10.240.10.1"),
 	}}
-	var endpoint2 = &NetworkInterface{InternalNode: vpcmodel.InternalNode{
+	var endpoint2 = &commonvpc.NetworkInterface{InternalNode: vpcmodel.InternalNode{
 		AddressStr: "10.240.10.2",
 		IPBlockObj: fromIPAddressStrWithoutValidation("10.240.10.2"),
 	}}
-	var endpoint3 = &NetworkInterface{InternalNode: vpcmodel.InternalNode{
+	var endpoint3 = &commonvpc.NetworkInterface{InternalNode: vpcmodel.InternalNode{
 		AddressStr: "10.240.10.0",
 		IPBlockObj: fromIPAddressStrWithoutValidation("10.240.10.0"),
 	}}
@@ -276,7 +276,7 @@ func TestCaching(t *testing.T) {
 	// test to check caching in mapAndAnalyzeSGRules
 	c1 := connection.TCPorUDPConnection(netp.ProtocolString("UDP"), 5, 87, 10, 3245)
 	c2 := connection.TCPorUDPConnection(netp.ProtocolString("TCP"), 1, 100, 5, 1000)
-	var endpoint1 = &NetworkInterface{InternalNode: vpcmodel.InternalNode{
+	var endpoint1 = &commonvpc.NetworkInterface{InternalNode: vpcmodel.InternalNode{
 		AddressStr: "10.240.10.1",
 		IPBlockObj: fromIPAddressStrWithoutValidation("10.240.10.1"),
 	}}
