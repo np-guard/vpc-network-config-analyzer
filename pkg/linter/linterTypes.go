@@ -10,12 +10,11 @@ import "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 
 // todo: export certain functionality
 type linter interface {
-	check() (bool, error)    // false if issues found
-	lintName() string        // this lint Name
-	lintDescription() string // this string Name
-	string() string          // string with this lint's finding
-	toJSON() []any           // this lint finding in JSON
-	getFindings() []finding
+	check() ([]finding, error) // false if issues found
+	lintName() string          // this lint Name
+	lintDescription() string   // this string Name
+	string() string            // string with this lint's finding
+	toJSON() []any             // this lint finding in JSON
 }
 
 type finding interface {

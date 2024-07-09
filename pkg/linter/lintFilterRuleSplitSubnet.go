@@ -41,8 +41,7 @@ func (lint *filterRuleSplitSubnet) lintDescription() string {
 	return "Firewall rules implying different connectivity for different endpoints within a subnet"
 }
 
-func (lint *filterRuleSplitSubnet) check() (bool, error) {
-	lintOK := true
+func (lint *filterRuleSplitSubnet) check() ([]finding, error) {
 	findingRes := []*splitRuleSubnet{}
 	for _, config := range lint.configs {
 		if config.IsMultipleVPCsConfig {
@@ -52,17 +51,16 @@ func (lint *filterRuleSplitSubnet) check() (bool, error) {
 			filterLayer := config.GetFilterTrafficResourceOfKind(layer)
 			rules, err := filterLayer.GetRules()
 			if err != nil {
-				return false, err
+				return nil, err
 			}
 			for _, rule := range rules {
 				subnetsSplitByRule := []vpcmodel.Subnet{}
 				for _, subnet := range config.Subnets {
 					splitSubnet, err := ruleSplitSubnet(subnet, rule.IPBlocks)
 					if err != nil {
-						return false, err
+						return nil, err
 					}
 					if splitSubnet {
-						lintOK = false
 						subnetsSplitByRule = append(subnetsSplitByRule, subnet)
 					}
 				}
@@ -74,7 +72,7 @@ func (lint *filterRuleSplitSubnet) check() (bool, error) {
 		}
 	}
 	lint.findings = findingRes
-	return lintOK, nil
+	return lint.convertToFindings(), nil
 }
 
 func (lint *filterRuleSplitSubnet) string() string {
@@ -103,7 +101,8 @@ func ruleSplitSubnet(subnet vpcmodel.Subnet, ruleIPBlocks []*ipblock.IPBlock) (b
 	return false, nil
 }
 
-func (lint *filterRuleSplitSubnet) getFindings() []finding {
+// todo: is there a better way?
+func (lint *filterRuleSplitSubnet) convertToFindings() []finding {
 	resFinding := make([]finding, len(lint.findings))
 	for i, issue := range lint.findings {
 		resFinding[i] = issue

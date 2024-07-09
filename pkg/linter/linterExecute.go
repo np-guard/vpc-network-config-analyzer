@@ -28,11 +28,11 @@ func LinterExecute(configs map[string]*vpcmodel.VPCConfig) (issueFound bool, res
 	strPerLint := []string{}
 	for _, thisLinter := range linters {
 		thisLintStr := ""
-		lintOK, err := thisLinter.check()
+		lintFindings, err := thisLinter.check()
 		if err != nil {
 			return false, "", err
 		}
-		if lintOK {
+		if len(lintFindings) == 0 {
 			thisLintStr = fmt.Sprintf("no lint %q issues\n", thisLinter.lintDescription())
 		} else {
 			issueFound = true
