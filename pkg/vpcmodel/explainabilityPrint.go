@@ -440,11 +440,7 @@ func pathFiltersOfIngressOrEgressStr(c *VPCConfig, node EndpointElem, filtersRel
 			pathSlice = append(pathSlice, blockedLeft+denyTable)
 			break
 		}
-		// got here: this part of the sub-path (ingress/egress) does not block connection.
-		// subnet should be added at the end of the sub-path (after sg in egress and after nacl in ingress)
-		// if this node is internal and externalRouter, if any,  is pgw
-
-		// todo got here: first layer (security group for egress nacl for ingress) allows connection,
+		// got here: first layer (security group for egress nacl for ingress) allows connection,
 		// subnet is part of the path if both node are internal and there are two layers - sg and nacl
 		// subnet should be added after sg in egress and after nacl in ingress
 		// or this node internal and externalRouter is pgw
