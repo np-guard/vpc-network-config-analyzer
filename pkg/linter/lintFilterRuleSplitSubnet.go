@@ -33,15 +33,15 @@ type splitRuleSubnet struct {
 // /////////////////////////////////////////////////////////
 // lint interface implementation for filterRuleSplitSubnet
 // ////////////////////////////////////////////////////////
-func (lint *filterRuleSplitSubnet) lintName() string {
+func (lint *filterRuleSplitSubnet) LintName() string {
 	return splitRuleSubnetName
 }
 
-func (lint *filterRuleSplitSubnet) lintDescription() string {
+func (lint *filterRuleSplitSubnet) LintDescription() string {
 	return "Firewall rules implying different connectivity for different endpoints within a subnet"
 }
 
-func (lint *filterRuleSplitSubnet) check() ([]finding, error) {
+func (lint *filterRuleSplitSubnet) Check() ([]finding, error) {
 	findingRes := []*splitRuleSubnet{}
 	for _, config := range lint.configs {
 		if config.IsMultipleVPCsConfig {
@@ -75,14 +75,14 @@ func (lint *filterRuleSplitSubnet) check() ([]finding, error) {
 	return lint.convertToFindings(), nil
 }
 
-func (lint *filterRuleSplitSubnet) string() string {
+func (lint *filterRuleSplitSubnet) String() string {
 	findingsRes := make([]string, len(lint.findings))
 	for i, thisFinding := range lint.findings {
 		findingsRes[i] = thisFinding.string()
 	}
 	sort.Strings(findingsRes)
-	header := fmt.Sprintf("%q %s\n", lint.lintDescription(), issues) +
-		strings.Repeat("-", len(lint.lintDescription())+len(issues)+3) + "\n"
+	header := fmt.Sprintf("%q %s\n", lint.LintDescription(), issues) +
+		strings.Repeat("-", len(lint.LintDescription())+len(issues)+3) + "\n"
 	return header + strings.Join(findingsRes, "")
 }
 
@@ -111,7 +111,7 @@ func (lint *filterRuleSplitSubnet) convertToFindings() []finding {
 }
 
 // ToJSON todo impl
-func (lint *filterRuleSplitSubnet) toJSON() []any {
+func (lint *filterRuleSplitSubnet) ToJSON() []any {
 	return nil
 }
 
