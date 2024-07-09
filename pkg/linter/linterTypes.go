@@ -8,6 +8,7 @@ package linter
 
 import "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 
+// todo: export certain functionality
 type linter interface {
 	check() (bool, error)    // false if issues found
 	lintName() string        // this lint Name
