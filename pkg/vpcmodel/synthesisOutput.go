@@ -27,9 +27,9 @@ func (j *SynthesisOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	var all interface{}
 	switch uc {
 	case AllEndpoints:
-		all = spec.Spec{RequiredConnections: getRequiredConnections(conn)}
+		all = spec.Spec{RequiredConnections: getRequiredConnections(conn.AllowedConnsCombinedResponsive)}
 	case AllSubnets:
-		all = spec.Spec{RequiredConnections: getRequiredConnectionsForSubnetsConnectivity(subnetsConn)}
+		all = spec.Spec{RequiredConnections: getRequiredConnections(subnetsConn.AllowedConnsCombinedResponsive)}
 	}
 	outStr, err := writeJSON(all, outFile)
 	v2Name := ""
@@ -39,30 +39,10 @@ func (j *SynthesisOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	return &SingleAnalysisOutput{Output: outStr, VPC1Name: c1.VPC.Name(), VPC2Name: v2Name, format: Synthesis, jsonStruct: all}, err
 }
 
-func getRequiredConnectionsForSubnetsConnectivity(conn *VPCsubnetConnectivity) []spec.SpecRequiredConnectionsElem {
-	connLines := []spec.SpecRequiredConnectionsElem{}
-	for src, nodeConns := range conn.AllowedConnsCombinedResponsive {
-		for dst, extConns := range nodeConns {
-			if extConns.isEmpty() {
-				continue
-			}
-			// currently, not supported with grouping
-			connLines = append(connLines, spec.SpecRequiredConnectionsElem{
-				Src:              spec.Resource{Name: src.Name(), Type: spec.ResourceType(src.Kind())},
-				Dst:              spec.Resource{Name: dst.Name(), Type: spec.ResourceType(dst.Kind())},
-				AllowedProtocols: spec.ProtocolList(connection.ToJSON(extConns.tcpRspDisable)),
-			})
-		}
-	}
-
-	sortRequiredConnections(connLines)
-	return connLines
-}
-
-func getRequiredConnections(conn *VPCConnectivity) []spec.SpecRequiredConnectionsElem {
+func getRequiredConnections(allowedConnsCombinedResponsive GeneralResponsiveConnectivityMap) []spec.SpecRequiredConnectionsElem {
 	connLines := []spec.SpecRequiredConnectionsElem{}
 
-	for src, srcMap := range conn.AllowedConnsCombinedResponsive {
+	for src, srcMap := range allowedConnsCombinedResponsive {
 		for dst, extConn := range srcMap {
 			if extConn.isEmpty() {
 				continue
