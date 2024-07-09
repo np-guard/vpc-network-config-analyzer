@@ -22,6 +22,8 @@ const newLine = "\n"
 const doubleNL = "\n\n"
 const tripleNLVars = "\n\n%s\n%s"
 const emptyString = ""
+const blockedLeft = "| "
+const blockedRight = " |"
 
 // header of txt/debug format
 func explainHeader(explanation *Explanation) string {
@@ -361,8 +363,9 @@ func stringFilterEffect(c *VPCConfig, filterLayerName string, rules []RulesInTab
 }
 
 // returns a string with the actual connection path; this can be either a full path from src to dst or a partial path,
-// if the connection does not exist. In the latter case the path is until the first block
+// if the connection does not exist. In the latter case the path is until the first block with the first block between ||
 // e.g.: "vsi1-ky[10.240.10.4] ->  SG sg1-ky -> subnet ... ->  ACL acl1-ky -> PublicGateway: public-gw-ky ->  Public Internet 161.26.0.0/16"
+// e.g.: "vsi1-ky[10.240.10.4] -> security group sg1-ky -> subnet1-ky -> | network ACL acl1-ky |"
 func pathStr(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointElem,
 	ingressBlocking, egressBlocking, loadBalancerBlocking bool,
 	externalRouter, crossVpcRouter RoutingResource, crossVpcConnection *connection.Set,
@@ -370,6 +373,7 @@ func pathStr(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointEle
 	var pathSlice []string
 	pathSlice = append(pathSlice, "\t"+src.Name())
 	if loadBalancerBlocking {
+		// todo: add loadBalancer as part of the path and also as blocking??? separate PR?
 		// connection is stopped at the src itself:
 		return blockedPathStr(pathSlice)
 	}
@@ -389,8 +393,10 @@ func pathStr(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointEle
 		}
 		pathSlice = append(pathSlice, externalRouterStr)
 	} else if crossVpcRouterInPath { // src and dst are internal and there is a cross vpc Router
-		pathSlice = append(pathSlice, newLineTab+src.(InternalNodeIntf).Subnet().VPC().Name(), crossVpcRouter.Kind()+space+crossVpcRouter.Name())
+		pathSlice = append(pathSlice, newLineTab+src.(InternalNodeIntf).Subnet().VPC().Name(),
+			crossVpcRouter.Kind()+space+crossVpcRouter.Name())
 		if crossVpcConnection.IsEmpty() { // cross vpc (tgw) denys connection
+			pathSlice[len(pathSlice)-1] = blockedLeft + pathSlice[len(pathSlice)-1] // blocking cross-vpc router
 			return blockedPathStr(pathSlice)
 		}
 		pathSlice = append(pathSlice, dst.(InternalNodeIntf).Subnet().VPC().Name())
@@ -411,7 +417,7 @@ func pathStr(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointEle
 
 // terminates a path with a blocking sign, and turns from slice into a path string
 func blockedPathStr(pathSlice []string) string {
-	pathSlice = append(pathSlice, "|")
+	pathSlice[len(pathSlice)-1] = pathSlice[len(pathSlice)-1] + blockedRight
 	return strings.Join(pathSlice, arrow)
 }
 
@@ -421,17 +427,24 @@ func pathFiltersOfIngressOrEgressStr(c *VPCConfig, node EndpointElem, filtersRel
 	pathSlice := []string{}
 	layers := getLayersToPrint(filtersRelevant, isIngress)
 	for _, layer := range layers {
-		var allowFiltersOfLayer string
+		var allowFiltersOfLayer, denyTable string
 		if isIngress {
-			allowFiltersOfLayer = pathFiltersSingleLayerStr(c, layer, rules.ingressRules[layer])
+			allowFiltersOfLayer, denyTable = pathFiltersSingleLayerStr(c, layer, rules.ingressRules[layer])
 		} else {
-			allowFiltersOfLayer = pathFiltersSingleLayerStr(c, layer, rules.egressRules[layer])
+			allowFiltersOfLayer, denyTable = pathFiltersSingleLayerStr(c, layer, rules.egressRules[layer])
 		}
-		if allowFiltersOfLayer == emptyString {
+		if allowFiltersOfLayer != emptyString {
+			pathSlice = append(pathSlice, allowFiltersOfLayer)
+		}
+		if denyTable != emptyString {
+			pathSlice = append(pathSlice, blockedLeft+denyTable)
 			break
 		}
-		pathSlice = append(pathSlice, allowFiltersOfLayer)
-		// got here: first layer (security group for egress nacl for ingress) allows connection,
+		// got here: this part of the sub-path (ingress/egress) does not block connection.
+		// subnet should be added at the end of the sub-path (after sg in egress and after nacl in ingress)
+		// if this node is internal and externalRouter, if any,  is pgw
+
+		// todo got here: first layer (security group for egress nacl for ingress) allows connection,
 		// subnet is part of the path if both node are internal and there are two layers - sg and nacl
 		// subnet should be added after sg in egress and after nacl in ingress
 		// or this node internal and externalRouter is pgw
@@ -460,14 +473,15 @@ func FilterKindName(filterLayer string) string {
 	}
 }
 
-// for a given filter layer (e.g. sg) returns a string of the allowing tables
-// (note that denying tables are excluded)
-func pathFiltersSingleLayerStr(c *VPCConfig, filterLayerName string, rules []RulesInTable) string {
+// for a given filter layer (e.g. sg) returns a string of the allowing tables (note that denying tables are excluded),
+// and the name of the denying table, if any
+func pathFiltersSingleLayerStr(c *VPCConfig, filterLayerName string, rules []RulesInTable) (allowPath, denyTable string) {
 	filterLayer := c.getFilterTrafficResourceOfKind(filterLayerName)
 	filtersToActionMap := filterLayer.ListFilterWithAction(rules)
 	strSlice := []string{}
 	for name, effect := range filtersToActionMap {
 		if !effect {
+			denyTable = FilterKindName(filterLayerName) + space + name
 			break
 		}
 		strSlice = append(strSlice, name)
@@ -475,12 +489,12 @@ func pathFiltersSingleLayerStr(c *VPCConfig, filterLayerName string, rules []Rul
 	// if there are multiple SGs/NACLs effecting the path:
 	// ... -> Security Group [SG1,SG2,SG8]
 	if len(strSlice) == 1 {
-		return FilterKindName(filterLayerName) + " " + strSlice[0]
+		return FilterKindName(filterLayerName) + space + strSlice[0], denyTable
 	} else if len(strSlice) > 1 {
 		sort.Strings(strSlice)
-		return FilterKindName(filterLayerName) + "[" + strings.Join(strSlice, comma) + "]"
+		return FilterKindName(filterLayerName) + "[" + strings.Join(strSlice, comma) + "]", denyTable
 	}
-	return emptyString
+	return emptyString, denyTable
 }
 
 // prints detailed list of rules that effects the (existing or non-existing) connection
