@@ -1,5 +1,5 @@
-Explaining connectivity from vsi1-ky (vsi1-ky) to 10.240.20.4 (vsi2-ky[10.240.20.4]) within test-vpc1-ky
-========================================================================================================
+Explaining connectivity from vsi1-ky to 10.240.20.4 (vsi2-ky[10.240.20.4]) within test-vpc1-ky
+==============================================================================================
 
 Connections from vsi1-ky[10.240.10.4] to vsi2-ky[10.240.20.4]: protocol: TCP,UDP
 

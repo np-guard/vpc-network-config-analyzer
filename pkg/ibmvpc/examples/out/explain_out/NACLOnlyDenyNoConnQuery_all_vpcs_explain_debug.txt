@@ -1,5 +1,5 @@
-Explaining connectivity from vsi1-ky (vsi1-ky) to vsi2-ky (vsi2-ky) within test-vpc1-ky using "protocol: ICMP"
-==============================================================================================================
+Explaining connectivity from vsi1-ky to vsi2-ky within test-vpc1-ky using "protocol: ICMP"
+==========================================================================================
 
 No connections from vsi1-ky[10.240.10.4] to vsi2-ky[10.240.20.4] using "protocol: ICMP";
 connection is blocked by egress

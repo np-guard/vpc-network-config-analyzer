@@ -1,5 +1,5 @@
-Explaining connectivity from vsi2-ky (vsi2-ky) to vsi3b-ky (vsi3b-ky) within test-vpc1-ky
-=========================================================================================
+Explaining connectivity from vsi2-ky to vsi3b-ky within test-vpc1-ky
+====================================================================
 
 Connections from vsi2-ky[10.240.20.4] to vsi3b-ky[10.240.30.4]: protocol: TCP
 

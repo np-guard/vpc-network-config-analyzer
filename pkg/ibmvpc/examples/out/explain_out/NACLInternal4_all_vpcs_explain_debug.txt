@@ -1,5 +1,5 @@
-Explaining connectivity from vsi3b-ky (vsi3b-ky) to vsi3a-ky (vsi3a-ky) within test-vpc1-ky
-===========================================================================================
+Explaining connectivity from vsi3b-ky to vsi3a-ky within test-vpc1-ky
+=====================================================================
 
 Connections from vsi3b-ky[10.240.30.6] to vsi3a-ky[10.240.30.5]: All Connections
 

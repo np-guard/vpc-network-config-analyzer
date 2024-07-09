@@ -1,5 +1,5 @@
-Explaining connectivity from vsi1-ky (vsi1-ky) to vsi3a-ky (vsi3a-ky) within test-vpc1-ky using "protocol: UDP src-ports: 10-100 dst-ports: 443"
-================================================================================================================================================
+Explaining connectivity from vsi1-ky to vsi3a-ky within test-vpc1-ky using "protocol: UDP src-ports: 10-100 dst-ports: 443"
+===========================================================================================================================
 
 No connections from vsi1-ky[10.240.10.4] to vsi3a-ky[10.240.30.5] using "protocol: UDP src-ports: 10-100 dst-ports: 443";
 connection is blocked both by ingress and egress

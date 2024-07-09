@@ -1,5 +1,5 @@
-Explaining connectivity from vsi11-ky (vsi11-ky) to 172.217.22.46/32 within test-vpc1-ky
-========================================================================================
+Explaining connectivity from vsi11-ky to 172.217.22.46/32 within test-vpc1-ky
+=============================================================================
 
 No connections from vsi11-ky[10.240.11.4] to Public Internet 172.217.22.46/32;
 	The dst is external but there is no Floating IP or Public Gateway connecting to public internet

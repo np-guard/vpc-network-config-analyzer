@@ -1,5 +1,5 @@
-Explaining connectivity from ky-vsi0-subnet5 to ky-vsi0-subnet11
-================================================================
+Explaining connectivity from test-vpc0-ky/ky-vsi0-subnet5 to test-vpc1-ky/ky-vsi0-subnet11
+==========================================================================================
 
 Connections from test-vpc0-ky/ky-vsi0-subnet5[10.240.9.4] to test-vpc1-ky/ky-vsi0-subnet11[10.240.80.4]: All Connections
 
