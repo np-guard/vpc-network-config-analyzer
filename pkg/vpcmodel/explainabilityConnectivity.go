@@ -108,7 +108,8 @@ func (c *MultipleVPCConfigs) ExplainConnectivity(src, dst string, connQuery *con
 	if err1 != nil {
 		return nil, err1
 	}
-	return vpcConfig.explainConnectivityForVPC(src, dst, srcNodes, dstNodes, isSrcDstInternalIP, connQuery, connectivity, srcNodeSet, dstNodeSet)
+	return vpcConfig.explainConnectivityForVPC(
+		src, dst, srcNodes, dstNodes, isSrcDstInternalIP, connQuery, connectivity, srcNodeSet, dstNodeSet)
 }
 
 // explainConnectivityForVPC for a vpcConfig, given src, dst and connQuery returns a struct with all explanation details
