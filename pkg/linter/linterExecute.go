@@ -18,42 +18,30 @@ const issues = "issues:"
 
 // LinterExecute executes linters one by one
 // todo: mechanism for disabling/enabling lint checks
-func LinterExecute(configsMap map[string]*vpcmodel.VPCConfig) (issueFound bool, resString string) {
-	strPerVpc := []string{}
-	for _, config := range configsMap {
-		thisVPCRes := ""
-		if config.IsMultipleVPCsConfig {
-			continue // no use in executing lint on dummy vpcs
-		}
-		blinter := basicLinter{
-			config: config,
-		}
-		linters := []linter{
-			&filterRuleSplitSubnet{basicLinter: blinter},
-		}
-		header := "linting results for " + config.VPC.Name()
-		underline := strings.Repeat("~", len(header))
-		thisVPCRes += header + "\n" + underline + "\n"
-		for _, thisLinter := range linters {
-			lintIssues, err := thisLinter.check()
-			if err != nil {
-				fmt.Printf("Lint %q got an error %s. Skipping this lint\n", thisLinter.getDescription(), err.Error())
-				continue
-			}
-			if len(lintIssues) == 0 {
-				thisVPCRes += fmt.Sprintf("no lint %q issues\n", thisLinter.getDescription())
-				continue
-			} else {
-				issueFound = true
-				thisVPCRes += fmt.Sprintf("%q %s\n", thisLinter.getDescription(), issues) +
-					strings.Repeat("-", len(thisLinter.getDescription())+len(issues)+3) + "\n" +
-					strings.Join(lintIssues, "")
-			}
-		}
-		strPerVpc = append(strPerVpc, thisVPCRes)
+func LinterExecute(configs map[string]*vpcmodel.VPCConfig) (issueFound bool, resString string, err error) {
+	blinter := basicLinter{
+		configs: configs,
 	}
-	sort.Strings(strPerVpc)
-	resString = strings.Join(strPerVpc, "\n\n")
-	fmt.Printf("%v", resString)
-	return issueFound, resString
+	linters := []linter{
+		&filterRuleSplitSubnet{basicLinter: blinter},
+	}
+	strPerLint := []string{}
+	for _, thisLinter := range linters {
+		thisLintStr := ""
+		lintOK, err := thisLinter.check()
+		if err != nil {
+			return false, "", err
+		}
+		if lintOK {
+			thisLintStr = fmt.Sprintf("no lint %q issues\n", thisLinter.lintDescription())
+		} else {
+			issueFound = true
+			thisLintStr = thisLinter.string()
+		}
+		strPerLint = append(strPerLint, thisLintStr)
+	}
+	sort.Strings(strPerLint)
+	resString = strings.Join(strPerLint, "")
+	fmt.Println(resString)
+	return issueFound, resString, nil
 }

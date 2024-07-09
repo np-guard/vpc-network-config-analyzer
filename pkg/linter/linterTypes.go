@@ -9,19 +9,20 @@ package linter
 import "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 
 type linter interface {
-	check() ([]string, error) // returns []string of size 0 if no lint issues
-	getName() string
-	getDescription() string
+	check() (bool, error)    // false if issues found
+	lintName() string        // this lint Name
+	lintDescription() string // this string Name
+	string() string          // string with this lint's finding
+	toJSON() []any           // this lint finding in JSON
 	getFindings() []finding
 }
 
 type finding interface {
-	String() string
-	ToJSON() any
-	VPC() string
-	Linter() string
+	vpc() string
+	string() string
+	toJSON() any
 }
 
 type basicLinter struct {
-	config *vpcmodel.VPCConfig
+	configs map[string]*vpcmodel.VPCConfig
 }
