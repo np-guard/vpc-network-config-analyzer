@@ -29,10 +29,10 @@ func lintVPCConfigs(cmd *cobra.Command, inArgs *inArgs) error {
 	cmd.SilenceUsage = true  // if we got this far, flags are syntactically correct, so no need to print usage
 	cmd.SilenceErrors = true // also, error will be printed to logger in main(), so no need for cobra to also print it
 
-	multiConfigs, err := buildConfigs(inArgs)
-	if err != nil {
-		return err
+	multiConfigs, err1 := buildConfigs(inArgs)
+	if err1 != nil {
+		return err1
 	}
-	linter.LinterExecute(multiConfigs.Configs())
-	return nil
+	_, _, err2 := linter.LinterExecute(multiConfigs.Configs())
+	return err2
 }

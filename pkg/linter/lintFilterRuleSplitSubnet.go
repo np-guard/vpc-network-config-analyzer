@@ -8,10 +8,11 @@ package linter
 
 import (
 	"fmt"
-	"github.com/np-guard/models/pkg/ipblock"
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 	"sort"
 	"strings"
+
+	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
 const splitRuleSubnetName = "rules-splitting-subnets"
