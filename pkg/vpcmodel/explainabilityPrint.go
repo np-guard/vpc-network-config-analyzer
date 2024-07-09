@@ -51,7 +51,7 @@ func connHeader(connQuery *connection.Set) string {
 // in case the src/dst of a network interface given as an internal address connected to network interface returns a string
 // of all relevant nodes names
 func listNetworkInterfaces(c *VPCConfig, nodeSet NodeSet, nodes []Node) string {
-	if nodeSet != nil{
+	if nodeSet != nil {
 		return leftParentheses + nodeSet.ExtendedName(c) + rightParentheses
 	}
 	if len(nodes) == 0 {
