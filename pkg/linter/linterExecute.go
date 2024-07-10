@@ -38,7 +38,7 @@ func LinterExecute(configs map[string]*vpcmodel.VPCConfig) (issueFound bool, res
 			thisLintStr = fmt.Sprintf("no lint %q issues\n", thisLinter.lintDescription())
 		} else {
 			issueFound = true
-			thisLintStr = thisLinter.string()
+			thisLintStr = thisLinter.string(thisLinter.lintDescription())
 		}
 		strPerLint = append(strPerLint, thisLintStr)
 	}

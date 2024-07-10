@@ -8,7 +8,6 @@ package linter
 
 import (
 	"fmt"
-	"sort"
 	"strings"
 
 	"github.com/np-guard/models/pkg/ipblock"
@@ -72,17 +71,6 @@ func (lint *filterRuleSplitSubnet) check() error {
 	return nil
 }
 
-func (lint *filterRuleSplitSubnet) string() string {
-	findingsRes := make([]string, len(lint.findings))
-	for i, thisFinding := range lint.findings {
-		findingsRes[i] = thisFinding.string()
-	}
-	sort.Strings(findingsRes)
-	header := fmt.Sprintf("%q %s\n", lint.lintDescription(), issues) +
-		strings.Repeat("-", len(lint.lintDescription())+len(issues)+3) + "\n"
-	return header + strings.Join(findingsRes, "")
-}
-
 // given a subnet and IPBlocks mentioned in a rule, returns the list
 func ruleSplitSubnet(subnet vpcmodel.Subnet, ruleIPBlocks []*ipblock.IPBlock) (bool, error) {
 	cidr := subnet.CIDR()
@@ -96,11 +84,6 @@ func ruleSplitSubnet(subnet vpcmodel.Subnet, ruleIPBlocks []*ipblock.IPBlock) (b
 		}
 	}
 	return false, nil
-}
-
-// ToJSON todo impl
-func (lint *filterRuleSplitSubnet) toJSON() []any {
-	return nil
 }
 
 ///////////////////////////////////////////////////////////

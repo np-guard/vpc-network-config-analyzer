@@ -6,16 +6,21 @@ SPDX-License-Identifier: Apache-2.0
 
 package linter
 
-import "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
+import (
+	"fmt"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
+	"sort"
+	"strings"
+)
 
 type linter interface {
 	check() error
-	getFindings() []finding  // returns all findings detected by the linter
-	addFinding(f finding)    // add a single finding
-	lintName() string        // this lint Name
-	lintDescription() string // this string Name
-	string() string          // string with this lint's finding
-	toJSON() []any           // this lint finding in JSON
+	getFindings() []finding        // returns all findings detected by the linter
+	addFinding(f finding)          // add a single finding
+	lintName() string              // this lint Name
+	lintDescription() string       // this string Name
+	string(lintDesc string) string // string with this lint's finding
+	toJSON() []any                 // this lint finding in JSON
 }
 
 type finding interface {
@@ -35,4 +40,20 @@ func (lint *basicLinter) addFinding(f finding) {
 
 func (lint *basicLinter) getFindings() []finding {
 	return lint.findings
+}
+
+func (lint *basicLinter) string(lintDesc string) string {
+	findingsRes := make([]string, len(lint.findings))
+	for i, thisFinding := range lint.findings {
+		findingsRes[i] = thisFinding.string()
+	}
+	sort.Strings(findingsRes)
+	header := fmt.Sprintf("%q %s\n", lintDesc, issues) +
+		strings.Repeat("-", len(lintDesc)+len(issues)+3) + "\n"
+	return header + strings.Join(findingsRes, "")
+}
+
+// ToJSON todo impl
+func (lint *basicLinter) toJSON() []any {
+	return nil
 }
