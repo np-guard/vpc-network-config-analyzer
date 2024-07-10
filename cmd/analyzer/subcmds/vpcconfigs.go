@@ -57,9 +57,11 @@ func vpcConfigsFromFiles(fileNames []string, inArgs *inArgs) (*vpcmodel.Multiple
 	}
 	switch provider {
 	case common.IBM:
-		return ibmvpc.VpcConfigsFromFiles(fileNames, inArgs.vpc, inArgs.resourceGroup, inArgs.regionList)
+		rc := ibmvpc.IBMresourcesContainer{}
+		return rc.VpcConfigsFromFiles(fileNames, inArgs.vpc, inArgs.resourceGroup, inArgs.regionList)
 	case common.AWS:
-		return awsvpc.VpcConfigsFromFiles(fileNames, inArgs.vpc, inArgs.resourceGroup, inArgs.regionList)
+		rc := awsvpc.AWSresourcesContainer{}
+		return rc.VpcConfigsFromFiles(fileNames, inArgs.vpc, inArgs.resourceGroup, inArgs.regionList)
 	default:
 		return nil, fmt.Errorf(notSupportedYet, provider)
 	}
@@ -80,7 +82,8 @@ func vpcConfigsFromAccount(inArgs *inArgs) (*vpcmodel.MultipleVPCConfigs, error)
 		if !ok {
 			return nil, fmt.Errorf("error casting resources to *datamodel.ResourcesContainerModel type")
 		}
-		vpcConfigs, err = ibmvpc.VPCConfigsFromResources(ibmResources, inArgs.vpc, inArgs.resourceGroup, inArgs.regionList)
+		rc := ibmvpc.IBMresourcesContainer{ResourcesContainerModel: *ibmResources}
+		vpcConfigs, err = rc.VPCConfigsFromResources(inArgs.vpc, inArgs.resourceGroup, inArgs.regionList)
 		if err != nil {
 			return nil, err
 		}

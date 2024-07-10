@@ -50,6 +50,14 @@ const (
 	ResourceTypeRoutingTable     = "RoutingTable"
 )
 
+type ResourcesContainer interface {
+	ParseResourcesFromFile(fileName string) error
+	VpcConfigsFromFiles(fileNames []string, vpcID, resourceGroup string, regions []string) (
+		*vpcmodel.MultipleVPCConfigs, error)
+	VPCConfigsFromResources(vpcID, resourceGroup string, regions []string) (
+		*vpcmodel.MultipleVPCConfigs, error)
+}
+
 func UpdateVPCSAddressRanges(vpcInternalAddressRange map[string]*ipblock.IPBlock,
 	vpcsMap *vpcmodel.MultipleVPCConfigs) error {
 	// assign to each vpc object its internal address range, as inferred from its subnets

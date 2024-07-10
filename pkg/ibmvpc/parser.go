@@ -24,7 +24,11 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
-func mergeResourcesContainers(rc1, rc2 *datamodel.ResourcesContainerModel) (*datamodel.ResourcesContainerModel, error) {
+type IBMresourcesContainer struct {
+	datamodel.ResourcesContainerModel
+}
+
+func mergeResourcesContainers(rc1, rc2 *IBMresourcesContainer) (*IBMresourcesContainer, error) {
 	if rc2 == nil && rc1 != nil {
 		return rc1, nil
 	}
@@ -51,42 +55,41 @@ func mergeResourcesContainers(rc1, rc2 *datamodel.ResourcesContainerModel) (*dat
 	return rc1, nil
 }
 
-func VpcConfigsFromFiles(fileNames []string, vpcID, resourceGroup string, regions []string) (
+func (rc *IBMresourcesContainer) VpcConfigsFromFiles(fileNames []string, vpcID, resourceGroup string, regions []string) (
 	*vpcmodel.MultipleVPCConfigs, error) {
-	var mergedRC *datamodel.ResourcesContainerModel
 	for _, file := range fileNames {
-		rc, err1 := parseResourcesFromFile(file)
+		mergedRC := &IBMresourcesContainer{}
+		err1 := mergedRC.ParseResourcesFromFile(file)
 		if err1 != nil {
 			return nil, fmt.Errorf("error parsing input vpc resources file: %w", err1)
 		}
-		mergedRC, err1 = mergeResourcesContainers(mergedRC, rc)
+		rc, err1 = mergeResourcesContainers(mergedRC, rc)
 		if err1 != nil {
 			return nil, err1
 		}
 	}
-	vpcConfigs, err2 := VPCConfigsFromResources(mergedRC, vpcID, resourceGroup, regions)
+	vpcConfigs, err2 := rc.VPCConfigsFromResources(vpcID, resourceGroup, regions)
 	if err2 != nil {
 		return nil, fmt.Errorf("error generating cloud config from input vpc resources file: %w", err2)
 	}
 	return vpcConfigs, nil
 }
 
-// parseResourcesFromFile returns datamodel.ResourcesContainerModel object, containing the configured resources structs
+// parseResourcesFromFile returns IBMresourcesContainer object, containing the configured resources structs
 // from the input JSON file
-func parseResourcesFromFile(fileName string) (*datamodel.ResourcesContainerModel, error) {
+func (rc *IBMresourcesContainer) ParseResourcesFromFile(fileName string) error {
 	inputConfigContent, err := os.ReadFile(fileName)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	config := datamodel.ResourcesContainerModel{}
-	err = json.Unmarshal(inputConfigContent, &config)
+	err = json.Unmarshal(inputConfigContent, &rc)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return &config, nil
+	return nil
 }
 
-func filterByVpcResourceGroupAndRegions(rc *datamodel.ResourcesContainerModel, vpcID, resourceGroup string,
+func (rc *IBMresourcesContainer) filterByVpcResourceGroupAndRegions(vpcID, resourceGroup string,
 	regions []string) map[string]bool {
 	shouldSkipVpcIds := make(map[string]bool)
 	for _, vpc := range rc.VpcList {
@@ -109,7 +112,7 @@ func filterByVpcResourceGroupAndRegions(rc *datamodel.ResourcesContainerModel, v
 // containing the parsed resources in the relevant model objects
 //
 //nolint:funlen // serial list of commands, no need to split it
-func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resourceGroup string, regions []string) (
+func (rc *IBMresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup string, regions []string) (
 	*vpcmodel.MultipleVPCConfigs, error) {
 	res := vpcmodel.NewMultipleVPCConfigs("IBM Cloud")      // map from VPC UID to its config
 	filteredOut := map[string]bool{}                        // store networkInterface UIDs filtered out by skipByVPC
@@ -118,9 +121,9 @@ func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resou
 
 	// map to filter resources, if certain VPC, resource-group or region list to analyze is specified,
 	// skip resources configured outside that VPC
-	shouldSkipVpcIds := filterByVpcResourceGroupAndRegions(rc, vpcID, resourceGroup, regions)
+	shouldSkipVpcIds := rc.filterByVpcResourceGroupAndRegions(vpcID, resourceGroup, regions)
 
-	err = getVPCconfig(rc, res, shouldSkipVpcIds, regionToStructMap)
+	err = rc.getVPCconfig(res, shouldSkipVpcIds, regionToStructMap)
 	if err != nil {
 		return nil, err
 	}
@@ -128,13 +131,13 @@ func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resou
 	var vpcInternalAddressRange map[string]*ipblock.IPBlock // map from vpc name to its internal address range
 
 	subnetNameToNetIntf := map[string][]*commonvpc.NetworkInterface{}
-	err = getInstancesConfig(rc.InstanceList, subnetNameToNetIntf, res, filteredOut, shouldSkipVpcIds)
+	err = rc.getInstancesConfig(subnetNameToNetIntf, res, filteredOut, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
 	// pgw can be attached to multiple subnets in the zone
 	pgwToSubnet := map[string][]*commonvpc.Subnet{} // map from pgw name to its attached subnet(s)
-	vpcInternalAddressRange, err = getSubnetsConfig(res, pgwToSubnet, subnetNameToNetIntf, rc, shouldSkipVpcIds)
+	vpcInternalAddressRange, err = rc.getSubnetsConfig(res, pgwToSubnet, subnetNameToNetIntf, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
@@ -144,35 +147,35 @@ func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resou
 		return nil, err
 	}
 
-	err = getIKSnodesConfig(res, rc, shouldSkipVpcIds)
+	err = rc.getIKSnodesConfig(res, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
 
-	err = getPgwConfig(res, rc, pgwToSubnet, shouldSkipVpcIds)
+	err = rc.getPgwConfig(res, pgwToSubnet, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
 
-	err = getFipConfig(rc, res, filteredOut, shouldSkipVpcIds)
+	err = rc.getFipConfig(res, filteredOut, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
 
-	err = getVPEconfig(rc, res, shouldSkipVpcIds)
+	err = rc.getVPEconfig(res, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
-	err = getLoadBalancersConfig(rc, res, shouldSkipVpcIds)
+	err = rc.getLoadBalancersConfig(res, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
-	err = getSGconfig(rc, res, shouldSkipVpcIds)
+	err = rc.getSGconfig(res, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
 
-	err = getNACLconfig(rc, res, shouldSkipVpcIds)
+	err = rc.getNACLconfig(res, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
@@ -182,13 +185,13 @@ func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resou
 		return nil, err
 	}
 
-	tgws := getTgwObjects(rc, res, resourceGroup, regions, regionToStructMap)
+	tgws := rc.getTgwObjects(res, resourceGroup, regions, regionToStructMap)
 	err = addTGWbasedConfigs(tgws, res)
 	if err != nil {
 		return nil, err
 	}
 
-	err = getRoutingTables(rc, res, shouldSkipVpcIds)
+	err = rc.getRoutingTables(res, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
@@ -200,7 +203,7 @@ func VPCConfigsFromResources(rc *datamodel.ResourcesContainerModel, vpcID, resou
 
 // getRoutingTables parses routing tables from rc and adds their generated objects to
 // the relevant vpc configs within res
-func getRoutingTables(rc *datamodel.ResourcesContainerModel,
+func (rc *IBMresourcesContainer) getRoutingTables(
 	res *vpcmodel.MultipleVPCConfigs,
 	skipByVPC map[string]bool) error {
 	for _, rt := range rc.RoutingTableList {
@@ -362,14 +365,13 @@ func newNetworkInterface(name, uid, zone, address, vsi string, vpc vpcmodel.VPCR
 	return intfNode, nil
 }
 
-func getInstancesConfig(
-	instanceList []*datamodel.Instance,
+func (rc *IBMresourcesContainer) getInstancesConfig(
 	subnetNameToNetIntf map[string][]*commonvpc.NetworkInterface,
 	res *vpcmodel.MultipleVPCConfigs,
 	filteredOutUIDs map[string]bool,
 	skipByVPC map[string]bool,
 ) error {
-	for _, instance := range instanceList {
+	for _, instance := range rc.InstanceList {
 		vpcUID := *instance.VPC.CRN
 		if skipByVPC[vpcUID] {
 			updateFilteredOutNetworkInterfacesUIDs(instance, filteredOutUIDs)
@@ -417,11 +419,10 @@ func getInstancesConfig(
 	return nil
 }
 
-func getSubnetsConfig(
+func (rc *IBMresourcesContainer) getSubnetsConfig(
 	res *vpcmodel.MultipleVPCConfigs,
 	pgwToSubnet map[string][]*commonvpc.Subnet,
 	subnetNameToNetIntf map[string][]*commonvpc.NetworkInterface,
-	rc *datamodel.ResourcesContainerModel,
 	skipByVPC map[string]bool,
 ) (vpcInternalAddressRange map[string]*ipblock.IPBlock, err error) {
 	vpcInternalAddressRange = map[string]*ipblock.IPBlock{}
@@ -507,9 +508,8 @@ func newPGW(pgwName, pgwCRN, pgwZone string, pgwToSubnet map[string][]*commonvpc
 	} // TODO: get cidr from fip of the pgw
 }
 
-func getPgwConfig(
+func (rc *IBMresourcesContainer) getPgwConfig(
 	res *vpcmodel.MultipleVPCConfigs,
-	rc *datamodel.ResourcesContainerModel,
 	pgwToSubnet map[string][]*commonvpc.Subnet,
 	skipByVPC map[string]bool,
 ) error {
@@ -562,8 +562,7 @@ func newFIP(fipName, fipCRN, fipZone, fipAddress string, vpc *commonvpc.VPC, src
 	}
 }
 
-func getFipConfig(
-	rc *datamodel.ResourcesContainerModel,
+func (rc *IBMresourcesContainer) getFipConfig(
 	res *vpcmodel.MultipleVPCConfigs,
 	filteredOutUIDs map[string]bool,
 	skipByVPC map[string]bool,
@@ -642,7 +641,7 @@ func getZonesAndAddressPrefixes(vpc *datamodel.VPC) (res map[string][]string) {
 	return res
 }
 
-func getVPCconfig(rc *datamodel.ResourcesContainerModel,
+func (rc *IBMresourcesContainer) getVPCconfig(
 	res *vpcmodel.MultipleVPCConfigs,
 	skipByVPC map[string]bool,
 	regionToStructMap map[string]*commonvpc.Region) error {
@@ -710,7 +709,7 @@ func parseSGTargets(sgResource *commonvpc.SecurityGroup,
 	}
 }
 
-func getSGconfig(rc *datamodel.ResourcesContainerModel,
+func (rc *IBMresourcesContainer) getSGconfig(
 	res *vpcmodel.MultipleVPCConfigs,
 	skipByVPC map[string]bool,
 ) error {
@@ -772,7 +771,7 @@ func getSGconfig(rc *datamodel.ResourcesContainerModel,
 	return nil
 }
 
-func getNACLconfig(rc *datamodel.ResourcesContainerModel,
+func (rc *IBMresourcesContainer) getNACLconfig(
 	res *vpcmodel.MultipleVPCConfigs,
 	skipByVPC map[string]bool,
 ) error {
@@ -831,9 +830,9 @@ func getNACLconfig(rc *datamodel.ResourcesContainerModel,
 	return nil
 }
 
-func getTgwMap(c *datamodel.ResourcesContainerModel) map[string]*datamodel.TransitGateway {
+func getTgwMap(rc *IBMresourcesContainer) map[string]*datamodel.TransitGateway {
 	tgwIDToTgw := map[string]*datamodel.TransitGateway{}
-	for _, tgw := range c.TransitGatewayList {
+	for _, tgw := range rc.TransitGatewayList {
 		tgwIDToTgw[*tgw.Crn] = tgw
 	}
 	return tgwIDToTgw
@@ -881,17 +880,17 @@ func (tgw *TransitGateway) addVPC(vpc *commonvpc.VPC, tgwConn *datamodel.Transit
 	}
 }
 
-func getTgwObjects(c *datamodel.ResourcesContainerModel,
+func (rc *IBMresourcesContainer) getTgwObjects(
 	res *vpcmodel.MultipleVPCConfigs,
 	resourceGroup string,
 	regions []string,
 	regionToStructMap map[string]*commonvpc.Region) map[string]*TransitGateway {
 	tgwMap := map[string]*TransitGateway{} // collect all tgw resources
 	tgwToSkip := map[string]bool{}
-	tgwIDToTgw := getTgwMap(c)
+	tgwIDToTgw := getTgwMap(rc)
 
-	tgwConnList := slices.Clone(c.TransitConnectionList)
-	for i, tgwConn := range c.TransitConnectionList {
+	tgwConnList := slices.Clone(rc.TransitConnectionList)
+	for i, tgwConn := range rc.TransitConnectionList {
 		tgwUID := *tgwConn.TransitGateway.Crn
 		tgwName := *tgwConn.TransitGateway.Name
 		vpcUID := *tgwConn.NetworkID
@@ -1111,7 +1110,7 @@ func getSubnetFromObject(subnetObj vpc1.SubnetReference, vpcConfig *vpcmodel.VPC
 	return subnet, nil
 }
 
-func getVPEconfig(rc *datamodel.ResourcesContainerModel,
+func (rc *IBMresourcesContainer) getVPEconfig(
 	res *vpcmodel.MultipleVPCConfigs,
 	skipByVPC map[string]bool,
 ) (err error) {
@@ -1182,7 +1181,7 @@ func getSubnetByCidr(res *vpcmodel.MultipleVPCConfigs, cidr string) (*commonvpc.
 	return nil, fmt.Errorf("could not find subnet with cidr: %s", cidr)
 }
 
-func findSGWithClusterName(rc *datamodel.ResourcesContainerModel, clusterID string) *datamodel.SecurityGroup {
+func findSGWithClusterName(rc *IBMresourcesContainer, clusterID string) *datamodel.SecurityGroup {
 	for _, sg := range rc.SecurityGroupList {
 		if *sg.Name == "kube-"+clusterID {
 			return sg
@@ -1191,7 +1190,7 @@ func findSGWithClusterName(rc *datamodel.ResourcesContainerModel, clusterID stri
 	return nil
 }
 
-func findDefaultSGForVpc(rc *datamodel.ResourcesContainerModel, vpcUID string) *datamodel.SecurityGroup {
+func findDefaultSGForVpc(rc *IBMresourcesContainer, vpcUID string) *datamodel.SecurityGroup {
 	for _, vpc := range rc.VpcList {
 		if *vpc.CRN != vpcUID {
 			continue
@@ -1222,8 +1221,7 @@ func addIKSNodesAsSGTarget(sg *datamodel.SecurityGroup, iksCluster *datamodel.IK
 
 // assuming getIKSnodesConfig is called before getSGconfig,
 // because it updates the input SG targets with missing IKS nodes, if there are such
-func getIKSnodesConfig(res *vpcmodel.MultipleVPCConfigs,
-	rc *datamodel.ResourcesContainerModel,
+func (rc *IBMresourcesContainer) getIKSnodesConfig(res *vpcmodel.MultipleVPCConfigs,
 	skipByVPC map[string]bool) error {
 	for _, iksCluster := range rc.IKSClusters {
 		sg := findSGWithClusterName(rc, *iksCluster.ID)
@@ -1345,7 +1343,7 @@ func addExternalNodes(config *vpcmodel.VPCConfig, vpcInternalAddressRange *ipblo
 
 // ////////////////////////////////////////////////////////////////
 // Load Balancer Parsing:
-func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
+func (rc *IBMresourcesContainer) getLoadBalancersConfig(
 	res *vpcmodel.MultipleVPCConfigs,
 	skipByVPC map[string]bool,
 ) error {
@@ -1393,7 +1391,7 @@ func getLoadBalancersConfig(rc *datamodel.ResourcesContainerModel,
 	return nil
 }
 
-func getLoadBalancerVpcUID(rc *datamodel.ResourcesContainerModel, loadBalancerObj *datamodel.LoadBalancer) (string, error) {
+func getLoadBalancerVpcUID(rc *IBMresourcesContainer, loadBalancerObj *datamodel.LoadBalancer) (string, error) {
 	// the API info of the load balancer does not have info on the vpc,
 	// getting the vpc from one of the subnets:
 	if len(loadBalancerObj.Subnets) == 0 {

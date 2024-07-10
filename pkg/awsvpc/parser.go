@@ -22,22 +22,25 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
-// parseResourcesFromFile returns aws.ResourcesContainer object, containing the configured resources structs
-// from the input JSON file
-func parseResourcesFromFile(fileName string) (*aws.ResourcesContainer, error) {
-	inputConfigContent, err := os.ReadFile(fileName)
-	if err != nil {
-		return nil, err
-	}
-	config := aws.ResourcesContainer{}
-	err = json.Unmarshal(inputConfigContent, &config)
-	if err != nil {
-		return nil, err
-	}
-	return &config, nil
+type AWSresourcesContainer struct {
+	aws.ResourcesContainer
 }
 
-func mergeResourcesContainers(rc1, rc2 *aws.ResourcesContainer) (*aws.ResourcesContainer, error) {
+// parseResourcesFromFile returns aws.ResourcesContainer object, containing the configured resources structs
+// from the input JSON file
+func (rc *AWSresourcesContainer) ParseResourcesFromFile(fileName string) error {
+	inputConfigContent, err := os.ReadFile(fileName)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(inputConfigContent, &rc)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func mergeResourcesContainers(rc1, rc2 *AWSresourcesContainer) (*AWSresourcesContainer, error) {
 	if rc2 == nil && rc1 != nil {
 		return rc1, nil
 	}
@@ -57,27 +60,27 @@ func mergeResourcesContainers(rc1, rc2 *aws.ResourcesContainer) (*aws.ResourcesC
 	return rc1, nil
 }
 
-func VpcConfigsFromFiles(fileNames []string, vpcID, resourceGroup string, regions []string) (
+func (rc *AWSresourcesContainer) VpcConfigsFromFiles(fileNames []string, vpcID, resourceGroup string, regions []string) (
 	*vpcmodel.MultipleVPCConfigs, error) {
-	var mergedRC *aws.ResourcesContainer
 	for _, file := range fileNames {
-		rc, err1 := parseResourcesFromFile(file)
+		mergedRC := &AWSresourcesContainer{}
+		err1 := mergedRC.ParseResourcesFromFile(file)
 		if err1 != nil {
 			return nil, fmt.Errorf("error parsing input vpc resources file: %w", err1)
 		}
-		mergedRC, err1 = mergeResourcesContainers(mergedRC, rc)
+		rc, err1 = mergeResourcesContainers(mergedRC, rc)
 		if err1 != nil {
 			return nil, err1
 		}
 	}
-	vpcConfigs, err2 := VPCConfigsFromResources(mergedRC, vpcID, resourceGroup, regions)
+	vpcConfigs, err2 := rc.VPCConfigsFromResources(vpcID, resourceGroup, regions)
 	if err2 != nil {
 		return nil, fmt.Errorf("error generating cloud config from input vpc resources file: %w", err2)
 	}
 	return vpcConfigs, nil
 }
 
-func filterByVpc(rc *aws.ResourcesContainer, vpcID string) map[string]bool {
+func filterByVpc(rc *AWSresourcesContainer, vpcID string) map[string]bool {
 	shouldSkipVpcIds := make(map[string]bool)
 	for _, vpc := range rc.VpcsList {
 		if vpcID != "" && *vpc.VpcId != vpcID {
@@ -89,7 +92,7 @@ func filterByVpc(rc *aws.ResourcesContainer, vpcID string) map[string]bool {
 
 // VPCConfigsFromResources returns a map from VPC UID (string) to its corresponding VPCConfig object,
 // containing the parsed resources in the relevant model objects
-func VPCConfigsFromResources(rc *aws.ResourcesContainer, vpcID, resourceGroup string, regions []string) (
+func (rc *AWSresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup string, regions []string) (
 	*vpcmodel.MultipleVPCConfigs, error) {
 	res := vpcmodel.NewMultipleVPCConfigs("AWS Cloud") // map from VPC UID to its config
 	var err error
@@ -131,7 +134,7 @@ func VPCConfigsFromResources(rc *aws.ResourcesContainer, vpcID, resourceGroup st
 	return res, nil
 }
 
-func getVPCconfig(rc *aws.ResourcesContainer,
+func getVPCconfig(rc *AWSresourcesContainer,
 	res *vpcmodel.MultipleVPCConfigs,
 	skipByVPC map[string]bool) error {
 	for _, vpc := range rc.VpcsList {
@@ -178,7 +181,7 @@ func newNetworkInterface(uid, zone, address, vsi string, vpc vpcmodel.VPCResourc
 }
 
 func getInstancesConfig(
-	rc *aws.ResourcesContainer,
+	rc *AWSresourcesContainer,
 	subnetIDToNetIntf map[string][]*commonvpc.NetworkInterface,
 	netIntfToSGs map[string][]types.GroupIdentifier,
 	res *vpcmodel.MultipleVPCConfigs,
@@ -236,7 +239,7 @@ func getInstancesConfig(
 func getSubnetsConfig(
 	res *vpcmodel.MultipleVPCConfigs,
 	subnetNameToNetIntf map[string][]*commonvpc.NetworkInterface,
-	rc *aws.ResourcesContainer,
+	rc *AWSresourcesContainer,
 	skipByVPC map[string]bool,
 ) (vpcInternalAddressRange map[string]*ipblock.IPBlock, err error) {
 	vpcInternalAddressRange = map[string]*ipblock.IPBlock{}
@@ -301,7 +304,7 @@ func parseSGTargets(sgResources map[string]map[string]*commonvpc.SecurityGroup,
 	}
 }
 
-func getSGconfig(rc *aws.ResourcesContainer,
+func getSGconfig(rc *AWSresourcesContainer,
 	res *vpcmodel.MultipleVPCConfigs,
 	skipByVPC map[string]bool,
 	netIntfToSGs map[string][]types.GroupIdentifier,

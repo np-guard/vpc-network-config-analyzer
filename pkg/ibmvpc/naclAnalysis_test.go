@@ -18,9 +18,10 @@ import (
 )
 
 func TestGetRules(t *testing.T) {
-	rc, err := parseResourcesFromFile(filepath.Join(getTestsDirInput(), "input_acl_testing3.json"))
+	rc := IBMresourcesContainer{}
+	err := rc.ParseResourcesFromFile(filepath.Join(getTestsDirInput(), "input_acl_testing3.json"))
 	require.Nilf(t, err, "err: %s", err)
-	vpcConfigs, err := VPCConfigsFromResources(rc, "", "", nil)
+	vpcConfigs, err := rc.VPCConfigsFromResources("", "", nil)
 	require.Nilf(t, err, "err: %s", err)
 	for _, config := range vpcConfigs.Configs() {
 		for _, f := range config.FilterResources {

@@ -304,11 +304,12 @@ func getVPCConfigs(t *testing.T, tt *vpcGeneralTest, firstCfg bool) *vpcmodel.Mu
 		inputConfig = tt.inputConfig2nd
 	}
 	inputConfigFile := filepath.Join(getTestsDirInput(), inputConfig)
-	rc, err := parseResourcesFromFile(inputConfigFile)
+	rc := AWSresourcesContainer{}
+	err := rc.ParseResourcesFromFile(inputConfigFile)
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
-	vpcConfigs, err := VPCConfigsFromResources(rc, tt.vpc, tt.resourceGroup, tt.regions)
+	vpcConfigs, err := rc.VPCConfigsFromResources(tt.vpc, tt.resourceGroup, tt.regions)
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}

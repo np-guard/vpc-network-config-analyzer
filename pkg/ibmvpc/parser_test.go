@@ -19,18 +19,19 @@ import (
 )
 
 func TestVPCResourceModelRegion(t *testing.T) {
-	rc, err := parseResourcesFromFile(filepath.Join(getTestsDirInput(), "input_multi_regions.json"))
+	rc := IBMresourcesContainer{}
+	err := rc.ParseResourcesFromFile(filepath.Join(getTestsDirInput(), "input_multi_regions.json"))
 	require.Nilf(t, err, "err: %s", err)
 
 	vpcConfigs := vpcmodel.NewMultipleVPCConfigs("cloud name")
 	regionToStructMap := make(map[string]*commonvpc.Region)
-	err = getVPCconfig(rc, vpcConfigs, nil, regionToStructMap)
+	err = rc.getVPCconfig(vpcConfigs, nil, regionToStructMap)
 	require.Nilf(t, err, "err: %s", err)
 
 	vpcConfig := vpcConfigs.Config("crn:41")
 	require.Equal(t, vpcConfig.VPC.(*commonvpc.VPC).Region().Name, "us-east")
 
-	tgws := getTgwObjects(rc, vpcConfigs, "", nil, regionToStructMap)
+	tgws := rc.getTgwObjects(vpcConfigs, "", nil, regionToStructMap)
 	tgw := tgws["crn:595"]
 	require.Equal(t, tgw.Region().Name, "us-south")
 }
