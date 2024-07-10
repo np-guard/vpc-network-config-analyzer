@@ -27,7 +27,7 @@ Run the `vpcanalyzer` CLI tool with one of the following commands.
 ```
 
 ### Providing VPC configuration
-VPC configuration must be provided, using the `--config` option, as a `JSON` file produced by the [`cloud-resource-collector`](https://github.com/np-guard/cloud-resource-collector). Alternatively, VPC configuration can be read directly from a given account using the `--provider` flag.
+A VPC configuration must be provided, in one of two ways. Either the `--provider` flag is used, in which case the VPC configuration will be extracted directly from a given account, or a configuration object is provided by the user using the `--config` option. A configuration object can be independently produced by the [`cloud-resource-collector`](https://github.com/np-guard/cloud-resource-collector).
 
 ### Output formats
 Output format is set using the `--output` flag. The following formats are available for the `vpcanalyzer report` command. Other commands may not support all formats.
