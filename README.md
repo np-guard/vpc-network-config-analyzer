@@ -12,7 +12,7 @@ Run the `vpcanalyzer` CLI tool with one of the following commands.
 
 ### Global options
 ```
-  -c, --config stringArray      config; file paths to input VPC configs, can pass multiple config files
+  -c, --config stringArray      file paths to input VPC configs, can pass multiple config files
       --dump-resources string   file path to store resources collected from the cloud provider
   -f, --filename string         file path to store results
   -h, --help                    help for vpcanalyzer
@@ -27,7 +27,7 @@ Run the `vpcanalyzer` CLI tool with one of the following commands.
 ```
 
 ### Providing VPC configuration
-VPC configuration should be provided, using the `--config` option, as a `JSON` file produced by the [`cloud-resource-collector`](https://github.com/np-guard/cloud-resource-collector). Alternatively, VPC configuration can be read directly from a given account using the `--provider` flag.
+VPC configuration must be provided, using the `--config` option, as a `JSON` file produced by the [`cloud-resource-collector`](https://github.com/np-guard/cloud-resource-collector). Alternatively, VPC configuration can be read directly from a given account using the `--provider` flag.
 
 ### Output formats
 Output format is set using the `--output` flag. The following formats are available for the `vpcanalyzer report` command. Other commands may not support all formats.

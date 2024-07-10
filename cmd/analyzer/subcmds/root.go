@@ -86,7 +86,7 @@ func NewRootCommand() *cobra.Command {
 	}
 
 	rootCmd.PersistentFlags().StringArrayVarP(&args.inputConfigFileList, vpcConfigFlag, "c", nil,
-		"config; file paths to input VPC configs, can pass multiple config files")
+		"file paths to input VPC configs, can pass multiple config files")
 	rootCmd.PersistentFlags().VarP(&args.provider, providerFlag, "p", "collect resources from an account in this cloud provider")
 	rootCmd.PersistentFlags().StringVar(&args.dumpResources, dumpFlag, "", "file path to store resources collected from the cloud provider")
 	rootCmd.MarkFlagsOneRequired(vpcConfigFlag, providerFlag)
