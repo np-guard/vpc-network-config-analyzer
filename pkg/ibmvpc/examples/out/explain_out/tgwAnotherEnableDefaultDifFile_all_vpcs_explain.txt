@@ -1,5 +1,7 @@
-Explaining connectivity from vsi11-ky to test-vpc2-ky/vsi21a-ky
-===============================================================
+Explaining connectivity from vsi11-ky to vsi21a-ky
+Interpreted Src: vsi11-ky
+Interpreted Dst: vsi21a-ky
+==================================================
 
 Connections from test-vpc1-ky/vsi11-ky[10.240.11.4] to test-vpc2-ky/vsi21a-ky[10.240.64.4]: All Connections
 

@@ -1,4 +1,6 @@
 Explaining connectivity from vsi11-ky to 172.217.22.46/32 within test-vpc1-ky
+Interpreted Src: vsi11-ky
+Interpreted Dst: 172.217.22.46/32
 =============================================================================
 
 No connections from vsi11-ky[10.240.11.4] to Public Internet 172.217.22.46/32;

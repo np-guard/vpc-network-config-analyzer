@@ -1,4 +1,6 @@
 Explaining connectivity from vsi31-ky to vsi32-ky within test-vpc3-ky
+Interpreted Src: vsi31-ky
+Interpreted Dst: vsi32-ky
 =====================================================================
 
 Connections from vsi31-ky[10.240.31.4] to vsi32-ky[10.240.128.4]: All Connections

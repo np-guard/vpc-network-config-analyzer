@@ -25,25 +25,18 @@ const emptyString = ""
 
 // header of txt/debug format
 func explainHeader(explanation *Explanation) string {
-	srcNetworkInterfaces := listNetworkInterfaces(explanation.c, explanation.srcNetworkInterfacesFromIP)
-	dstNetworkInterfaces := listNetworkInterfaces(explanation.c, explanation.dstNetworkInterfacesFromIP)
-	srcName, dstName := explanation.src, explanation.dst
-	if explanation.srcNodeSet != nil {
-		srcName = explanation.srcNodeSet.ExtendedName(explanation.c)
-	}
-	if explanation.dstNodeSet != nil {
-		dstName = explanation.dstNodeSet.ExtendedName(explanation.c)
-	}
 	singleVpcContext := ""
 	// communication within a single vpc
 	if explanation.c != nil && !explanation.c.IsMultipleVPCsConfig {
 		singleVpcContext = fmt.Sprintf(" within %v", explanation.c.VPC.Name())
 	}
-	header1 := fmt.Sprintf("Explaining connectivity from %s%s to %s%s%s%s",
-		srcName, srcNetworkInterfaces, dstName, dstNetworkInterfaces, singleVpcContext,
-		connHeader(explanation.connQuery))
+	header1 := fmt.Sprintf("Explaining connectivity from %s to %s%s%s",
+		explanation.src, explanation.dst, singleVpcContext, connHeader(explanation.connQuery))
+	header1h := fmt.Sprintf("Interpreted Src: %s\nInterpreted Dst: %s\n",
+		listNetworkInterfaces(explanation.c, explanation.src, explanation.srcNodeSet, explanation.srcNetworkInterfacesFromIP),
+		listNetworkInterfaces(explanation.c, explanation.dst, explanation.dstNodeSet, explanation.dstNetworkInterfacesFromIP))
 	header2 := strings.Repeat("=", len(header1))
-	return header1 + newLine + header2 + doubleNL
+	return header1 + newLine + header1h + header2 + doubleNL
 }
 
 // connHeader is used to print 1) the query in the first header
@@ -57,15 +50,18 @@ func connHeader(connQuery *connection.Set) string {
 
 // in case the src/dst of a network interface given as an internal address connected to network interface returns a string
 // of all relevant nodes names
-func listNetworkInterfaces(c *VPCConfig, nodes []Node) string {
+func listNetworkInterfaces(c *VPCConfig, input string, nodeSet NodeSet, nodes []Node) string {
+	if nodeSet != nil {
+		return nodeSet.ExtendedName(c)
+	}
 	if len(nodes) == 0 {
-		return emptyString
+		return input
 	}
 	networkInterfaces := make([]string, len(nodes))
 	for i, node := range nodes {
 		networkInterfaces[i] = node.ExtendedName(c)
 	}
-	return leftParentheses + strings.Join(networkInterfaces, comma) + rightParentheses
+	return strings.Join(networkInterfaces, comma)
 }
 
 // String main printing function for the Explanation struct - returns a string with the explanation
