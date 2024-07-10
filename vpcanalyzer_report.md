@@ -22,16 +22,16 @@ Run `vpcanalyzer report` with one of the following subcommands.
 ### Options inherited from parent commands
 
 ```
-      --dump-resources string    file path to store resources collected from the cloud provider
-  -o, --format string            output format; must be one of [json, txt, md, drawio, arch_drawio, svg, arch_svg, html, arch_html, debug]
-      --output-file string       file path to store results
-  -p, --provider string          collect resources from an account in this cloud provider
-  -q, --quiet                    runs quietly, reports only severe errors and results
-  -r, --region stringArray       cloud region from which to collect resources, can pass multiple regions
-      --resource-group string    resource group id or name from which to collect resources
-  -v, --verbose                  runs with more informative messages printed to log
-      --vpc string               CRN of the VPC to analyze
-  -c, --vpc-config stringArray   file paths to input configs, can pass multiple config files
+  -c, --config stringArray      file paths to input VPC configs, can pass multiple config files
+      --dump-resources string   file path to store resources collected from the cloud provider
+  -f, --filename string         file path to store results
+  -o, --output string           output format; must be one of [json, txt, md, drawio, arch_drawio, svg, arch_svg, html, arch_html, debug]
+  -p, --provider string         collect resources from an account in this cloud provider
+  -q, --quiet                   runs quietly, reports only severe errors and results
+  -r, --region stringArray      cloud region from which to collect resources, can pass multiple regions
+      --resource-group string   resource group id or name from which to collect resources
+  -v, --verbose                 runs with more informative messages printed to log
+      --vpc string              CRN of the VPC to analyze
 ```
 
 ### Examples

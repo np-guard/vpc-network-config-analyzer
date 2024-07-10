@@ -28,14 +28,14 @@ import (
 )
 
 const (
-	vpcConfigFlag = "vpc-config"
+	vpcConfigFlag = "config"
 	providerFlag  = "provider"
 	regionFlag    = "region"
 	rgFlag        = "resource-group"
 	vpcFlag       = "vpc"
 
-	outputFileFlag   = "output-file"
-	outputFormatFlag = "format"
+	outputFileFlag   = "filename"
+	outputFormatFlag = "output"
 	dumpFlag         = "dump-resources"
 	quietFlag        = "quiet"
 	verboseFlag      = "verbose"
@@ -86,7 +86,7 @@ func NewRootCommand() *cobra.Command {
 	}
 
 	rootCmd.PersistentFlags().StringArrayVarP(&args.inputConfigFileList, vpcConfigFlag, "c", nil,
-		"file paths to input configs, can pass multiple config files")
+		"file paths to input VPC configs, can pass multiple config files")
 	rootCmd.PersistentFlags().VarP(&args.provider, providerFlag, "p", "collect resources from an account in this cloud provider")
 	rootCmd.PersistentFlags().StringVar(&args.dumpResources, dumpFlag, "", "file path to store resources collected from the cloud provider")
 	rootCmd.MarkFlagsOneRequired(vpcConfigFlag, providerFlag)
@@ -98,7 +98,7 @@ func NewRootCommand() *cobra.Command {
 	rootCmd.PersistentFlags().StringVar(&args.resourceGroup, rgFlag, "", "resource group id or name from which to collect resources")
 	rootCmd.PersistentFlags().StringVar(&args.vpc, vpcFlag, "", "CRN of the VPC to analyze")
 
-	rootCmd.PersistentFlags().StringVar(&args.outputFile, outputFileFlag, "", "file path to store results")
+	rootCmd.PersistentFlags().StringVarP(&args.outputFile, outputFileFlag, "f", "", "file path to store results")
 	rootCmd.PersistentFlags().VarP(&args.outputFormat, outputFormatFlag, "o", "output format; "+mustBeOneOf(allFormats))
 
 	rootCmd.PersistentFlags().BoolVarP(&args.quiet, quietFlag, "q", false, "runs quietly, reports only severe errors and results")
