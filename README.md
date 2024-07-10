@@ -12,24 +12,25 @@ Run the `vpcanalyzer` CLI tool with one of the following commands.
 
 ### Global options
 ```
-      --dump-resources string    file path to store resources collected from the cloud provider
-  -o, --format string            output format; must be one of [json, txt, md, drawio, arch_drawio, svg, arch_svg, html, arch_html, debug]
-  -h, --help                     help for vpcanalyzer
-      --output-file string       file path to store results
-  -p, --provider string          collect resources from an account in this cloud provider
-  -q, --quiet                    runs quietly, reports only severe errors and results
-  -r, --region stringArray       cloud region from which to collect resources, can pass multiple regions
-      --resource-group string    resource group id or name from which to collect resources
-  -v, --verbose                  runs with more informative messages printed to log
-      --vpc string               CRN of the VPC to analyze
-  -c, --vpc-config stringArray   file paths to input configs, can pass multiple config files
+  -c, --config stringArray      file paths to input VPC configs, can pass multiple config files
+      --dump-resources string   file path to store resources collected from the cloud provider
+  -f, --filename string         file path to store results
+  -h, --help                    help for vpcanalyzer
+  -o, --output string           output format; must be one of [json, txt, md, drawio, arch_drawio, svg, arch_svg, html, arch_html, debug]
+  -p, --provider string         collect resources from an account in this cloud provider
+  -q, --quiet                   runs quietly, reports only severe errors and results
+  -r, --region stringArray      cloud region from which to collect resources, can pass multiple regions
+      --resource-group string   resource group id or name from which to collect resources
+  -v, --verbose                 runs with more informative messages printed to log
+      --version                 version for vpcanalyzer
+      --vpc string              CRN of the VPC to analyze
 ```
 
 ### Providing VPC configuration
-VPC configuration should be provided, using the `--vpc-config` option, as a `JSON` file produced by the [`cloud-resource-collector`](https://github.com/np-guard/cloud-resource-collector). Alternatively, VPC configuration can be read directly from a given account using the `--provider` flag.
+A VPC configuration must be provided, in one of two ways. Either the `--provider` flag is used, in which case the VPC configuration will be extracted directly from a given account, or a configuration object is provided by the user using the `--config` option. A configuration object can be independently produced by the [`cloud-resource-collector`](https://github.com/np-guard/cloud-resource-collector).
 
 ### Output formats
-Output format is set using the `--format` flag. The following formats are available for the `vpcanalyzer report` command. Other commands may not support all formats.
+Output format is set using the `--output` flag. The following formats are available for the `vpcanalyzer report` command. Other commands may not support all formats.
 * `txt` - a human readable text output
 * `json` - a machine readable JSON output
 * `md` - markdown format
@@ -43,7 +44,7 @@ their connectivity at the bottom of the page.
 * `arch_html` - an html page showing only the VPC elements
 * `debug` - a human readable text format with more details than `txt`
 
-Output can be saved to a file using the `--output-file` flag.
+Output can be saved to a file using the `--filename` flag.
 
 ## Build the project
 
