@@ -51,16 +51,17 @@ func MultiExplain(srcDstCouples []explainInputEntry, vpcConns map[string]*VPCCon
 			multiExplanation[i] = explainOutputEntry{emptyExplain, nil}
 			continue
 		}
-		srcNodes, srcNodeSet, errSrc := srcDstCouple.c.getNodesFromEndpoint(srcDstCouple.src)
+		srcNodes, errSrc := srcDstCouple.c.getNodesFromEndpoint(srcDstCouple.src)
 		if errSrc != nil {
 			multiExplanation[i] = explainOutputEntry{emptyExplain, errSrc}
 			continue
 		}
-		dstNodes, dstNodeSet, errDst := srcDstCouple.c.getNodesFromEndpoint(srcDstCouple.dst)
+		dstNodes, errDst := srcDstCouple.c.getNodesFromEndpoint(srcDstCouple.dst)
 		if errDst != nil {
 			multiExplanation[i] = explainOutputEntry{emptyExplain, errDst}
 			continue
 		}
+		emptyExplain.srcNodes, emptyExplain.dstNodes = srcNodes, dstNodes
 		var connectivity *VPCConnectivity
 		var ok bool
 		if connectivity, ok = vpcConns[srcDstCouple.c.VPC.UID()]; !ok {
@@ -70,7 +71,7 @@ func MultiExplain(srcDstCouples []explainInputEntry, vpcConns map[string]*VPCCon
 			continue
 		}
 		explain, errExplain := srcDstCouple.c.explainConnectivityForVPC(srcDstCouple.src.Name(), srcDstCouple.dst.Name(), srcNodes, dstNodes,
-			srcDstInternalAddr{false, false}, nil, connectivity, srcNodeSet, dstNodeSet)
+			srcDstInternalAddr{false, false}, nil, connectivity)
 		if errExplain != nil {
 			multiExplanation[i] = explainOutputEntry{emptyExplain, errExplain}
 			continue
@@ -85,12 +86,12 @@ func MultiExplain(srcDstCouples []explainInputEntry, vpcConns map[string]*VPCCon
 // 2. A number of Nodes, all are private IPs of the load Balancer
 // 2. A number of Nodes, each representing an external address, if the endpoint is groupedExternalNodes
 // if the endpoint is neither, returns error
-func (c *VPCConfig) getNodesFromEndpoint(endpoint EndpointElem) (nodes []Node, nodeSet NodeSet, err error) {
+func (c *VPCConfig) getNodesFromEndpoint(endpoint EndpointElem) ([]Node, error) {
 	switch n := endpoint.(type) {
 	case InternalNodeIntf:
-		return []Node{endpoint.(Node)}, nil, nil
+		return []Node{endpoint.(Node)}, nil
 	case LoadBalancer:
-		return n.Nodes(), n, nil
+		return n.Nodes(), nil
 	case *groupedExternalNodes:
 		var externalIP = ipblock.New()
 		for _, e := range *n {
@@ -99,11 +100,11 @@ func (c *VPCConfig) getNodesFromEndpoint(endpoint EndpointElem) (nodes []Node, n
 		// gets external nodes from e as explained in getCidrExternalNodes
 		disjointNodes, _, err := c.getCidrExternalNodes(externalIP)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
-		return disjointNodes, nil, nil
+		return disjointNodes, nil
 	}
-	return nil, nil, fmt.Errorf("np-Guard error: %v not of type InternalNodeIntf or groupedExternalNodes", endpoint.Name())
+	return nil, fmt.Errorf("np-Guard error: %v not of type InternalNodeIntf or groupedExternalNodes", endpoint.Name())
 }
 
 // CreateMultiExplanationsInput given configs and results of connectivity analysis, generates input

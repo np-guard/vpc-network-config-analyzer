@@ -1,6 +1,6 @@
 Explaining connectivity from 161.26.0.0/16 to vsi1-ky within test-vpc1-ky
-Interpreted Src: 161.26.0.0/16
-Interpreted Dst: vsi1-ky
+Interpreted Src: Public Internet [161.26.0.0/16]
+Interpreted Dst: vsi1-ky[10.240.10.4]
 =========================================================================
 
 No connections from Public Internet 161.26.0.0/16 to vsi1-ky[10.240.10.4];

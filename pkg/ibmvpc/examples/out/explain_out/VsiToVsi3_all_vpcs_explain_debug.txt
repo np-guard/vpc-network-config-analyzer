@@ -1,5 +1,5 @@
 Explaining connectivity from vsi3a-ky to 10.240.10.4 within test-vpc1-ky
-Interpreted Src: vsi3a-ky
+Interpreted Src: vsi3a-ky[10.240.30.5]
 Interpreted Dst: vsi1-ky[10.240.10.4]
 ========================================================================
 

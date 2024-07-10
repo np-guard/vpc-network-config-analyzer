@@ -33,8 +33,8 @@ func explainHeader(explanation *Explanation) string {
 	header1 := fmt.Sprintf("Explaining connectivity from %s to %s%s%s",
 		explanation.src, explanation.dst, singleVpcContext, connHeader(explanation.connQuery))
 	header1h := fmt.Sprintf("Interpreted Src: %s\nInterpreted Dst: %s\n",
-		listNetworkInterfaces(explanation.c, explanation.src, explanation.srcNodeSet, explanation.srcNetworkInterfacesFromIP),
-		listNetworkInterfaces(explanation.c, explanation.dst, explanation.dstNodeSet, explanation.dstNetworkInterfacesFromIP))
+		listNetworkInterfaces(explanation.c, explanation.srcNodes),
+		listNetworkInterfaces(explanation.c, explanation.dstNodes))
 	header2 := strings.Repeat("=", len(header1))
 	return header1 + newLine + header1h + header2 + doubleNL
 }
@@ -50,12 +50,9 @@ func connHeader(connQuery *connection.Set) string {
 
 // in case the src/dst of a network interface given as an internal address connected to network interface returns a string
 // of all relevant nodes names
-func listNetworkInterfaces(c *VPCConfig, input string, nodeSet NodeSet, nodes []Node) string {
-	if nodeSet != nil {
-		return nodeSet.ExtendedName(c)
-	}
+func listNetworkInterfaces(c *VPCConfig, nodes []Node) string {
 	if len(nodes) == 0 {
-		return input
+		return emptyString
 	}
 	networkInterfaces := make([]string, len(nodes))
 	for i, node := range nodes {
