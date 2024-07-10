@@ -76,8 +76,8 @@ type Explanation struct {
 	rulesAndDetails *rulesAndConnDetails // rules and more details for a single src->dst
 	src             string
 	dst             string
-	srcNodes []Node
-	dstNodes []Node
+	srcNodes        []Node
+	dstNodes        []Node
 	// (Current) Analysis of the connectivity of cluster worker nodes is under the assumption that the only security
 	// groups applied to them are the VPC default and the IKS generated SG; this comment needs to be added if src or dst is an IKS node
 	hasIksNode bool
