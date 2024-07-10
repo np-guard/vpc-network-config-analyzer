@@ -1,6 +1,4 @@
 Explaining connectivity from 10.240.3.5 to 10.240.12.4
-Interpreted Src: 
-Interpreted Dst: 
 ======================================================
 
 No connections from 10.240.3.5 to 10.240.12.4;

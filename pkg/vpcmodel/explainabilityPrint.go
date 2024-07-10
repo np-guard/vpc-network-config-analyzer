@@ -30,13 +30,18 @@ func explainHeader(explanation *Explanation) string {
 	if explanation.c != nil && !explanation.c.IsMultipleVPCsConfig {
 		singleVpcContext = fmt.Sprintf(" within %v", explanation.c.VPC.Name())
 	}
-	header1 := fmt.Sprintf("Explaining connectivity from %s to %s%s%s",
+	title := fmt.Sprintf("Explaining connectivity from %s to %s%s%s",
 		explanation.src, explanation.dst, singleVpcContext, connHeader(explanation.connQuery))
-	header1h := fmt.Sprintf("Interpreted Src: %s\nInterpreted Dst: %s\n",
-		listNetworkInterfaces(explanation.c, explanation.srcNodes),
-		listNetworkInterfaces(explanation.c, explanation.dstNodes))
-	header2 := strings.Repeat("=", len(header1))
-	return header1 + newLine + header1h + header2 + doubleNL
+	srcInterpretation := listNetworkInterfaces(explanation.c, explanation.srcNodes)
+	dstInterpretation := listNetworkInterfaces(explanation.c, explanation.dstNodes)
+	if srcInterpretation != emptyString && srcInterpretation != explanation.src {
+		srcInterpretation = fmt.Sprintf("Interpreted Src: %s\n", srcInterpretation)
+	}
+	if dstInterpretation != emptyString && dstInterpretation != explanation.dst {
+		dstInterpretation = fmt.Sprintf("Interpreted Dst: %s\n", dstInterpretation)
+	}
+	underLine := strings.Repeat("=", len(title))
+	return title + newLine + srcInterpretation + dstInterpretation + underLine + doubleNL
 }
 
 // connHeader is used to print 1) the query in the first header
@@ -51,7 +56,7 @@ func connHeader(connQuery *connection.Set) string {
 // in case the src/dst of a network interface given as an internal address connected to network interface returns a string
 // of all relevant nodes names
 func listNetworkInterfaces(c *VPCConfig, nodes []Node) string {
-	if len(nodes) == 0 {
+	if len(nodes) == 0 || nodes[0].IsExternal() {
 		return emptyString
 	}
 	networkInterfaces := make([]string, len(nodes))

@@ -1,6 +1,5 @@
 Explaining connectivity from 10.240.10.4 to 161.26.0.0/15 within test-vpc1-ky
 Interpreted Src: vsi1-ky[10.240.10.4]
-Interpreted Dst: Public Internet [161.27.0.0/16], Public Internet [161.26.0.0/16]
 =============================================================================
 
 Connections from vsi1-ky[10.240.10.4] to Public Internet 161.26.0.0/16: protocol: UDP
