@@ -76,8 +76,6 @@ type Explanation struct {
 	rulesAndDetails *rulesAndConnDetails // rules and more details for a single src->dst
 	src             string
 	dst             string
-	// the following two properties are for the case src/dst are given as internal address connected to network interface
-	// this information should be handy; otherwise empty (slice of size 0)
 	srcNodes []Node
 	dstNodes []Node
 	// (Current) Analysis of the connectivity of cluster worker nodes is under the assumption that the only security
@@ -91,7 +89,7 @@ type Explanation struct {
 
 // ExplainConnectivity returns Explanation object, that explains connectivity of a single <src, dst> couple given by the user
 func (c *MultipleVPCConfigs) ExplainConnectivity(src, dst string, connQuery *connection.Set) (res *Explanation, err error) {
-	vpcConfig, srcNodes, dstNodes, isSrcDstInternalIP, err := c.getVPCConfigAndSrcDstNodes(src, dst)
+	vpcConfig, srcNodes, dstNodes, err := c.getVPCConfigAndSrcDstNodes(src, dst)
 	if err != nil {
 		return nil, err
 	}
@@ -104,12 +102,12 @@ func (c *MultipleVPCConfigs) ExplainConnectivity(src, dst string, connQuery *con
 	if err1 != nil {
 		return nil, err1
 	}
-	return vpcConfig.explainConnectivityForVPC(src, dst, srcNodes, dstNodes, isSrcDstInternalIP, connQuery, connectivity)
+	return vpcConfig.explainConnectivityForVPC(src, dst, srcNodes, dstNodes, connQuery, connectivity)
 }
 
 // explainConnectivityForVPC for a vpcConfig, given src, dst and connQuery returns a struct with all explanation details
 // nil connQuery means connection is not part of the query
-func (c *VPCConfig) explainConnectivityForVPC(src, dst string, srcNodes, dstNodes []Node, isSrcDstInternalIP srcDstInternalAddr,
+func (c *VPCConfig) explainConnectivityForVPC(src, dst string, srcNodes, dstNodes []Node,
 	connQuery *connection.Set, connectivity *VPCConnectivity) (res *Explanation, err error) {
 	// we do not support multiple configs, yet
 	rulesAndDetails, err1 := c.computeExplainRules(srcNodes, dstNodes, connQuery)
