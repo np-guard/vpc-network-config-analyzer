@@ -33,6 +33,6 @@ func lintVPCConfigs(cmd *cobra.Command, inArgs *inArgs) error {
 	if err1 != nil {
 		return err1
 	}
-	_, _, _, err2 := linter.LinterExecute(multiConfigs.Configs())
+	_, _, err2 := linter.LinterExecute(multiConfigs.Configs())
 	return err2
 }

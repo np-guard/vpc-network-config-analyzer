@@ -18,8 +18,7 @@ const issues = "issues:"
 
 // LinterExecute executes linters one by one
 // todo: mechanism for disabling/enabling lint checks
-func LinterExecute(configs map[string]*vpcmodel.VPCConfig) (issueFound bool, resString string,
-	toJson []any, err error) {
+func LinterExecute(configs map[string]*vpcmodel.VPCConfig) (issueFound bool, resString string, err error) {
 	blinter := basicLinter{
 		configs: configs,
 	}
@@ -31,7 +30,7 @@ func LinterExecute(configs map[string]*vpcmodel.VPCConfig) (issueFound bool, res
 		thisLintStr := ""
 		err := thisLinter.check()
 		if err != nil {
-			return false, "", nil, err
+			return false, "", err
 		}
 		lintFindings := thisLinter.getFindings()
 		if len(lintFindings) == 0 {
@@ -45,5 +44,5 @@ func LinterExecute(configs map[string]*vpcmodel.VPCConfig) (issueFound bool, res
 	sort.Strings(strPerLint)
 	resString = strings.Join(strPerLint, "")
 	fmt.Println(resString)
-	return issueFound, resString, nil, nil
+	return issueFound, resString, nil
 }

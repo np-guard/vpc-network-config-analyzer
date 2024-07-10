@@ -48,14 +48,14 @@ func (lint *filterRuleSplitSubnet) check() error {
 			filterLayer := config.GetFilterTrafficResourceOfKind(layer)
 			rules, err := filterLayer.GetRules()
 			if err != nil {
-				return nil
+				return err
 			}
 			for _, rule := range rules {
 				subnetsSplitByRule := []vpcmodel.Subnet{}
 				for _, subnet := range config.Subnets {
 					splitSubnet, err := ruleSplitSubnet(subnet, rule.IPBlocks)
 					if err != nil {
-						return nil
+						return err
 					}
 					if splitSubnet {
 						subnetsSplitByRule = append(subnetsSplitByRule, subnet)
