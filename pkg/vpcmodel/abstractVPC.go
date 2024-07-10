@@ -248,11 +248,11 @@ type RulesInTable struct {
 
 // RuleOfFilter a single rule in filter given the layer (SGLayer/NACLLayer)
 type RuleOfFilter struct {
-	LayerName  string
-	FilterName string
-	RuleIndx   int
-	RuleDesc   string
-	IPBlocks   []*ipblock.IPBlock
+	LayerName  string             `json:"layer"`
+	FilterName string             `json:"table"`
+	RuleIndx   int                `json:"rule-index"`
+	RuleDesc   string             `json:"rule-description"`
+	IPBlocks   []*ipblock.IPBlock `json:"_, omitempty"`
 }
 
 func NewRuleOfFilter(layerName, filterName, desc string, ruleIndex int, ipBlocks []*ipblock.IPBlock) *RuleOfFilter {

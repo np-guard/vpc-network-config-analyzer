@@ -54,7 +54,10 @@ func (lint *basicLinter) string(lintDesc string) string {
 	return header + strings.Join(findingsRes, "")
 }
 
-// ToJSON todo impl
 func (lint *basicLinter) toJSON() []any {
-	return nil
+	res := make([]any, len(lint.findings))
+	for i, thisFinding := range lint.findings {
+		res[i] = thisFinding.toJSON()
+	}
+	return res
 }
