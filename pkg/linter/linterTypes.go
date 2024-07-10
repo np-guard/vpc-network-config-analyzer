@@ -9,7 +9,7 @@ package linter
 import "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 
 type linter interface {
-	Check() ([]finding, error) // false if issues found
+	check() ([]finding, error) // false if issues found
 	lintName() string          // this lint Name
 	lintDescription() string   // this string Name
 	string() string            // string with this lint's finding

@@ -28,7 +28,7 @@ func LinterExecute(configs map[string]*vpcmodel.VPCConfig) (issueFound bool, res
 	strPerLint := []string{}
 	for _, thisLinter := range linters {
 		thisLintStr := ""
-		lintFindings, err := thisLinter.Check()
+		lintFindings, err := thisLinter.check()
 		if err != nil {
 			return false, "", err
 		}

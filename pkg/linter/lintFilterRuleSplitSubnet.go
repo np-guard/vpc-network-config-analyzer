@@ -41,7 +41,7 @@ func (lint *filterRuleSplitSubnet) lintDescription() string {
 	return "Firewall rules implying different connectivity for different endpoints within a subnet"
 }
 
-func (lint *filterRuleSplitSubnet) Check() ([]finding, error) {
+func (lint *filterRuleSplitSubnet) check() ([]finding, error) {
 	findingRes := []*splitRuleSubnet{}
 	for _, config := range lint.configs {
 		if config.IsMultipleVPCsConfig {
