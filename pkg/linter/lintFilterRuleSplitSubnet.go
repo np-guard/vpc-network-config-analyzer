@@ -20,7 +20,6 @@ const splitRuleSubnetName = "rules-splitting-subnets"
 // filterRuleSplitSubnet: rules of filters that are inconsistent w.r.t. subnets.
 type filterRuleSplitSubnet struct {
 	basicLinter
-	findings []*splitRuleSubnet
 }
 
 // a rule with the list of subnets it splits
@@ -41,7 +40,7 @@ func (lint *filterRuleSplitSubnet) lintDescription() string {
 	return "Firewall rules implying different connectivity for different endpoints within a subnet"
 }
 
-func (lint *filterRuleSplitSubnet) check() ([]finding, error) {
+func (lint *filterRuleSplitSubnet) check() error {
 	for _, config := range lint.configs {
 		if config.IsMultipleVPCsConfig {
 			continue // no use in executing lint on dummy vpcs
@@ -50,14 +49,14 @@ func (lint *filterRuleSplitSubnet) check() ([]finding, error) {
 			filterLayer := config.GetFilterTrafficResourceOfKind(layer)
 			rules, err := filterLayer.GetRules()
 			if err != nil {
-				return nil, err
+				return nil
 			}
 			for _, rule := range rules {
 				subnetsSplitByRule := []vpcmodel.Subnet{}
 				for _, subnet := range config.Subnets {
 					splitSubnet, err := ruleSplitSubnet(subnet, rule.IPBlocks)
 					if err != nil {
-						return nil, err
+						return nil
 					}
 					if splitSubnet {
 						subnetsSplitByRule = append(subnetsSplitByRule, subnet)
@@ -70,7 +69,7 @@ func (lint *filterRuleSplitSubnet) check() ([]finding, error) {
 			}
 		}
 	}
-	return lint.convertToFindings(), nil
+	return nil
 }
 
 func (lint *filterRuleSplitSubnet) string() string {
@@ -97,20 +96,6 @@ func ruleSplitSubnet(subnet vpcmodel.Subnet, ruleIPBlocks []*ipblock.IPBlock) (b
 		}
 	}
 	return false, nil
-}
-
-func (lint *filterRuleSplitSubnet) addFinding(f finding) {
-	splitByRule, _ := f.(*splitRuleSubnet)
-	lint.findings = append(lint.findings, splitByRule)
-}
-
-// todo: is there a better way?
-func (lint *filterRuleSplitSubnet) convertToFindings() []finding {
-	resFinding := make([]finding, len(lint.findings))
-	for i, issue := range lint.findings {
-		resFinding[i] = issue
-	}
-	return resFinding
 }
 
 // ToJSON todo impl
