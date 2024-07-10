@@ -42,7 +42,6 @@ func (lint *filterRuleSplitSubnet) lintDescription() string {
 }
 
 func (lint *filterRuleSplitSubnet) check() ([]finding, error) {
-	findingRes := []*splitRuleSubnet{}
 	for _, config := range lint.configs {
 		if config.IsMultipleVPCsConfig {
 			continue // no use in executing lint on dummy vpcs
@@ -65,13 +64,12 @@ func (lint *filterRuleSplitSubnet) check() ([]finding, error) {
 					}
 				}
 				if len(subnetsSplitByRule) > 0 {
-					findingRes = append(findingRes, &splitRuleSubnet{vpcName: config.VPC.Name(), rule: rule,
+					lint.addFinding(&splitRuleSubnet{vpcName: config.VPC.Name(), rule: rule,
 						splitSubnets: subnetsSplitByRule})
 				}
 			}
 		}
 	}
-	lint.findings = findingRes
 	return lint.convertToFindings(), nil
 }
 
@@ -99,6 +97,11 @@ func ruleSplitSubnet(subnet vpcmodel.Subnet, ruleIPBlocks []*ipblock.IPBlock) (b
 		}
 	}
 	return false, nil
+}
+
+func (lint *filterRuleSplitSubnet) addFinding(f finding) {
+	splitByRule, _ := f.(*splitRuleSubnet)
+	lint.findings = append(lint.findings, splitByRule)
 }
 
 // todo: is there a better way?
