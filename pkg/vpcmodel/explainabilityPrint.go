@@ -22,21 +22,29 @@ const newLine = "\n"
 const doubleNL = "\n\n"
 const tripleNLVars = "\n\n%s\n%s"
 const emptyString = ""
+const blockedLeft = "| "
+const blockedRight = " |"
 
 // header of txt/debug format
 func explainHeader(explanation *Explanation) string {
-	srcNetworkInterfaces := listNetworkInterfaces(explanation.c, explanation.srcNetworkInterfacesFromIP)
-	dstNetworkInterfaces := listNetworkInterfaces(explanation.c, explanation.dstNetworkInterfacesFromIP)
 	singleVpcContext := ""
 	// communication within a single vpc
 	if explanation.c != nil && !explanation.c.IsMultipleVPCsConfig {
 		singleVpcContext = fmt.Sprintf(" within %v", explanation.c.VPC.Name())
 	}
-	header1 := fmt.Sprintf("Explaining connectivity from %s%s to %s%s%s%s",
-		explanation.src, srcNetworkInterfaces, explanation.dst, dstNetworkInterfaces, singleVpcContext,
-		connHeader(explanation.connQuery))
-	header2 := strings.Repeat("=", len(header1))
-	return header1 + newLine + header2 + doubleNL
+	title := fmt.Sprintf("Explaining connectivity from %s to %s%s%s",
+		explanation.src, explanation.dst, singleVpcContext, connHeader(explanation.connQuery))
+	var srcInterpretation, dstInterpretation string
+	// ToDo srcNodes, dstNodes is empty when no cross-vpc router connects src and dst.
+	//      See https://github.com/np-guard/vpc-network-config-analyzer/issues/655
+	if len(explanation.srcNodes) > 0 && len(explanation.dstNodes) > 0 {
+		srcInterpretation = fmt.Sprintf("Interpreted source: %s\n", endPointInterpretation(explanation.c,
+			explanation.src, explanation.srcNodes))
+		dstInterpretation = fmt.Sprintf("Interpreted destination: %s\n", endPointInterpretation(explanation.c,
+			explanation.dst, explanation.dstNodes))
+	}
+	underLine := strings.Repeat("=", len(title))
+	return title + newLine + srcInterpretation + dstInterpretation + underLine + doubleNL
 }
 
 // connHeader is used to print 1) the query in the first header
@@ -48,17 +56,16 @@ func connHeader(connQuery *connection.Set) string {
 	return ""
 }
 
-// in case the src/dst of a network interface given as an internal address connected to network interface returns a string
-// of all relevant nodes names
-func listNetworkInterfaces(c *VPCConfig, nodes []Node) string {
-	if len(nodes) == 0 {
-		return emptyString
+// in case the src/dst is not external address, returns a string of all relevant nodes names
+func endPointInterpretation(c *VPCConfig, userInput string, nodes []Node) string {
+	if nodes[0].IsExternal() {
+		return userInput + " (external)"
 	}
 	networkInterfaces := make([]string, len(nodes))
 	for i, node := range nodes {
 		networkInterfaces[i] = node.ExtendedName(c)
 	}
-	return leftParentheses + strings.Join(networkInterfaces, comma) + rightParentheses
+	return strings.Join(networkInterfaces, comma)
 }
 
 // String main printing function for the Explanation struct - returns a string with the explanation
@@ -201,7 +208,7 @@ func (g *groupedConnLine) explainPerCaseStr(c *VPCConfig, src, dst EndpointElem,
 	case externalRouter == nil && src.IsExternal():
 		return fmt.Sprintf("%v\tThere is no resource enabling inbound external connectivity\n", noConnection)
 	case externalRouter == nil && dst.IsExternal():
-		return fmt.Sprintf("%v\tThe dst is external but there is no Floating IP or Public Gateway connecting to public internet\n",
+		return fmt.Sprintf("%v\tThe dst is external but there is no resource enabling external connectivity\n",
 			noConnection)
 	case ingressBlocking || egressBlocking || loadBalancerBlocking:
 		return fmt.Sprintf("%v%s"+tripleNLVars, noConnection,
@@ -361,8 +368,9 @@ func stringFilterEffect(c *VPCConfig, filterLayerName string, rules []RulesInTab
 }
 
 // returns a string with the actual connection path; this can be either a full path from src to dst or a partial path,
-// if the connection does not exist. In the latter case the path is until the first block
+// if the connection does not exist. In the latter case the path is until the first block with the first block between ||
 // e.g.: "vsi1-ky[10.240.10.4] ->  SG sg1-ky -> subnet ... ->  ACL acl1-ky -> PublicGateway: public-gw-ky ->  Public Internet 161.26.0.0/16"
+// e.g.: "vsi1-ky[10.240.10.4] -> security group sg1-ky -> subnet1-ky -> | network ACL acl1-ky |"
 func pathStr(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointElem,
 	ingressBlocking, egressBlocking, loadBalancerBlocking bool,
 	externalRouter, crossVpcRouter RoutingResource, crossVpcConnection *connection.Set,
@@ -370,6 +378,7 @@ func pathStr(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointEle
 	var pathSlice []string
 	pathSlice = append(pathSlice, "\t"+src.Name())
 	if loadBalancerBlocking {
+		// todo: add loadBalancer as part of the path and also as blocking??? separate PR?
 		// connection is stopped at the src itself:
 		return blockedPathStr(pathSlice)
 	}
@@ -389,8 +398,10 @@ func pathStr(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointEle
 		}
 		pathSlice = append(pathSlice, externalRouterStr)
 	} else if crossVpcRouterInPath { // src and dst are internal and there is a cross vpc Router
-		pathSlice = append(pathSlice, newLineTab+src.(InternalNodeIntf).Subnet().VPC().Name(), crossVpcRouter.Kind()+space+crossVpcRouter.Name())
+		pathSlice = append(pathSlice, newLineTab+src.(InternalNodeIntf).Subnet().VPC().Name(),
+			crossVpcRouter.Kind()+space+crossVpcRouter.Name())
 		if crossVpcConnection.IsEmpty() { // cross vpc (tgw) denys connection
+			pathSlice[len(pathSlice)-1] = blockedLeft + pathSlice[len(pathSlice)-1] // blocking cross-vpc router
 			return blockedPathStr(pathSlice)
 		}
 		pathSlice = append(pathSlice, dst.(InternalNodeIntf).Subnet().VPC().Name())
@@ -411,26 +422,31 @@ func pathStr(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointEle
 
 // terminates a path with a blocking sign, and turns from slice into a path string
 func blockedPathStr(pathSlice []string) string {
-	pathSlice = append(pathSlice, "|")
+	pathSlice[len(pathSlice)-1] = pathSlice[len(pathSlice)-1] + blockedRight
 	return strings.Join(pathSlice, arrow)
 }
 
 // returns a string with the filters (sg and nacl) part of the path above called separately for egress and for ingress
+//
+//nolint:gocyclo // better not split into two function
 func pathFiltersOfIngressOrEgressStr(c *VPCConfig, node EndpointElem, filtersRelevant map[string]bool, rules *rulesConnection,
 	isIngress, isExternal bool, router RoutingResource) []string {
 	pathSlice := []string{}
 	layers := getLayersToPrint(filtersRelevant, isIngress)
 	for _, layer := range layers {
-		var allowFiltersOfLayer string
+		var allowFiltersOfLayer, denyTable string
 		if isIngress {
-			allowFiltersOfLayer = pathFiltersSingleLayerStr(c, layer, rules.ingressRules[layer])
+			allowFiltersOfLayer, denyTable = pathFiltersSingleLayerStr(c, layer, rules.ingressRules[layer])
 		} else {
-			allowFiltersOfLayer = pathFiltersSingleLayerStr(c, layer, rules.egressRules[layer])
+			allowFiltersOfLayer, denyTable = pathFiltersSingleLayerStr(c, layer, rules.egressRules[layer])
 		}
-		if allowFiltersOfLayer == emptyString {
+		if allowFiltersOfLayer != emptyString {
+			pathSlice = append(pathSlice, allowFiltersOfLayer)
+		}
+		if denyTable != emptyString {
+			pathSlice = append(pathSlice, blockedLeft+denyTable)
 			break
 		}
-		pathSlice = append(pathSlice, allowFiltersOfLayer)
 		// got here: first layer (security group for egress nacl for ingress) allows connection,
 		// subnet is part of the path if both node are internal and there are two layers - sg and nacl
 		// subnet should be added after sg in egress and after nacl in ingress
@@ -460,14 +476,15 @@ func FilterKindName(filterLayer string) string {
 	}
 }
 
-// for a given filter layer (e.g. sg) returns a string of the allowing tables
-// (note that denying tables are excluded)
-func pathFiltersSingleLayerStr(c *VPCConfig, filterLayerName string, rules []RulesInTable) string {
+// for a given filter layer (e.g. sg) returns a string of the allowing tables (note that denying tables are excluded),
+// and the name of the denying table, if any
+func pathFiltersSingleLayerStr(c *VPCConfig, filterLayerName string, rules []RulesInTable) (allowPath, denyTable string) {
 	filterLayer := c.getFilterTrafficResourceOfKind(filterLayerName)
 	filtersToActionMap := filterLayer.ListFilterWithAction(rules)
 	strSlice := []string{}
 	for name, effect := range filtersToActionMap {
 		if !effect {
+			denyTable = FilterKindName(filterLayerName) + space + name
 			break
 		}
 		strSlice = append(strSlice, name)
@@ -475,12 +492,12 @@ func pathFiltersSingleLayerStr(c *VPCConfig, filterLayerName string, rules []Rul
 	// if there are multiple SGs/NACLs effecting the path:
 	// ... -> Security Group [SG1,SG2,SG8]
 	if len(strSlice) == 1 {
-		return FilterKindName(filterLayerName) + " " + strSlice[0]
+		return FilterKindName(filterLayerName) + space + strSlice[0], denyTable
 	} else if len(strSlice) > 1 {
 		sort.Strings(strSlice)
-		return FilterKindName(filterLayerName) + "[" + strings.Join(strSlice, comma) + "]"
+		return FilterKindName(filterLayerName) + "[" + strings.Join(strSlice, comma) + "]", denyTable
 	}
-	return emptyString
+	return emptyString, denyTable
 }
 
 // prints detailed list of rules that effects the (existing or non-existing) connection

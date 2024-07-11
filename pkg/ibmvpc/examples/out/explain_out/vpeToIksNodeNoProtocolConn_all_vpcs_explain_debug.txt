@@ -1,5 +1,7 @@
-Explaining connectivity from 192.168.40.5 (iks-clusterid:1[192.168.40.5]) to 192.168.0.4 (iks-node[192.168.0.4]) within ky-test-vpc using "protocol: ICMP"
-==========================================================================================================================================================
+Explaining connectivity from 192.168.40.5 to 192.168.0.4 within ky-test-vpc using "protocol: ICMP"
+Interpreted source: iks-clusterid:1[192.168.40.5]
+Interpreted destination: iks-node[192.168.0.4]
+==================================================================================================
 
 No connections from iks-clusterid:1[192.168.40.5] to iks-node[192.168.0.4] using "protocol: ICMP";
 connection is blocked by egress
@@ -8,7 +10,7 @@ Egress: security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 blocks con
 Ingress: network ACL ky-test-private-2-others-acl allows connection; security group kube-clusterid:1 allows connection; security group ky-test-default-sg allows connection
 
 Path:
-	iks-clusterid:1[192.168.40.5] -> |
+	iks-clusterid:1[192.168.40.5] -> | security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 |
 
 
 Details:

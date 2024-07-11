@@ -1,4 +1,6 @@
 Explaining connectivity from vsi3-ky to vsi1-ky within test-vpc1-ky
+Interpreted source: vsi3-ky[10.240.10.4], vsi3-ky[10.240.20.5]
+Interpreted destination: vsi1-ky[10.240.10.5]
 ===================================================================
 
 Connections from vsi3-ky[10.240.20.5] to vsi1-ky[10.240.10.5]: All Connections
@@ -41,7 +43,7 @@ Egress: security group sg1-ky blocks connection
 Ingress: security group sg1-ky allows connection
 
 Path:
-	vsi3-ky[10.240.10.4] -> |
+	vsi3-ky[10.240.10.4] -> | security group sg1-ky |
 
 
 Details:

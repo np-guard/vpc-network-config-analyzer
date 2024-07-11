@@ -1,5 +1,7 @@
-Explaining connectivity from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca to 192.168.32.5 (iks-clusterid:1[192.168.32.5]) within ky-test-vpc
-=================================================================================================================================================
+Explaining connectivity from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca to 192.168.32.5 within ky-test-vpc
+Interpreted source: kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.16.0/22], kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.0.0/22], kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.32.0-192.168.32.4,192.168.32.6-192.168.35.255], kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.4.0/22], kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LB private IP][192.168.36.6], kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.20.0/22], kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.8.0/22], kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.24.0/22], kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LB private IP][192.168.40.6]
+Interpreted destination: iks-clusterid:1[192.168.32.5]
+=================================================================================================================
 
 No connections from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LB private IP][192.168.36.6] to iks-clusterid:1[192.168.32.5];
 connection will not be initiated by Load Balancer
@@ -9,7 +11,7 @@ Egress: security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows con
 Ingress: network ACL ky-test-edge-acl allows connection; security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection
 
 Path:
-	kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LB private IP][192.168.36.6] -> |
+	kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LB private IP][192.168.36.6] |
 
 
 Details:
@@ -42,7 +44,7 @@ Egress: security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows con
 Ingress: network ACL ky-test-edge-acl allows connection; security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection
 
 Path:
-	kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LB private IP][192.168.40.6] -> |
+	kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LB private IP][192.168.40.6] |
 
 
 Details:
@@ -75,7 +77,7 @@ Egress: security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows con
 Ingress: network ACL ky-test-edge-acl allows connection; security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection
 
 Path:
-	kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.0.0/22] -> |
+	kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.0.0/22] |
 
 
 Details:
@@ -108,7 +110,7 @@ Egress: security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows con
 Ingress: network ACL ky-test-edge-acl allows connection; security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection
 
 Path:
-	kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.16.0/22] -> |
+	kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.16.0/22] |
 
 
 Details:
@@ -141,7 +143,7 @@ Egress: security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows con
 Ingress: network ACL ky-test-edge-acl allows connection; security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection
 
 Path:
-	kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.20.0/22] -> |
+	kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.20.0/22] |
 
 
 Details:
@@ -174,7 +176,7 @@ Egress: security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows con
 Ingress: network ACL ky-test-edge-acl allows connection; security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection
 
 Path:
-	kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.24.0/22] -> |
+	kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.24.0/22] |
 
 
 Details:
@@ -207,7 +209,7 @@ Egress: security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows con
 Ingress: security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection
 
 Path:
-	kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.32.0-192.168.32.4,192.168.32.6-192.168.35.255] -> |
+	kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.32.0-192.168.32.4,192.168.32.6-192.168.35.255] |
 
 
 Details:
@@ -236,7 +238,7 @@ Egress: security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows con
 Ingress: network ACL ky-test-edge-acl allows connection; security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection
 
 Path:
-	kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.4.0/22] -> |
+	kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.4.0/22] |
 
 
 Details:
@@ -269,7 +271,7 @@ Egress: security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows con
 Ingress: network ACL ky-test-edge-acl allows connection; security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection
 
 Path:
-	kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.8.0/22] -> |
+	kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.8.0/22] |
 
 
 Details:

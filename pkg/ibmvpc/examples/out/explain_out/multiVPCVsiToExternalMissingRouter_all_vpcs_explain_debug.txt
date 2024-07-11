@@ -1,7 +1,9 @@
 Explaining connectivity from vsi11-ky to 172.217.22.46/32 within test-vpc1-ky
+Interpreted source: vsi11-ky[10.240.11.4]
+Interpreted destination: 172.217.22.46/32 (external)
 =============================================================================
 
 No connections from vsi11-ky[10.240.11.4] to Public Internet 172.217.22.46/32;
-	The dst is external but there is no Floating IP or Public Gateway connecting to public internet
+	The dst is external but there is no resource enabling external connectivity
 ------------------------------------------------------------------------------------------------------------------------
 
