@@ -1,4 +1,6 @@
 Explaining connectivity from vsi1-ky to 100.128.0.0/32 within test-vpc1-ky
+Interpreted Src: vsi1-ky[10.240.10.4]
+Interpreted Dst: 100.128.0.0/32
 ==========================================================================
 
 No connections from vsi1-ky[10.240.10.4] to Public Internet 100.128.0.0/32;

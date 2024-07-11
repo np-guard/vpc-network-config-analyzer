@@ -1,4 +1,6 @@
 Explaining connectivity from ky-vsi1-subnet20 to ky-vsi0-subnet2
+Interpreted Src: test-vpc2-ky/ky-vsi1-subnet20[10.240.128.5]
+Interpreted Dst: test-vpc0-ky/ky-vsi0-subnet2[10.240.4.4]
 ================================================================
 
 Connections from test-vpc2-ky/ky-vsi1-subnet20[10.240.128.5] to test-vpc0-ky/ky-vsi0-subnet2[10.240.4.4]: All Connections
