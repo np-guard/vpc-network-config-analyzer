@@ -1,5 +1,7 @@
-Explaining connectivity from 192.168.8.4 (iks-node[192.168.8.4]) to 192.168.4.4 (iks-node[192.168.4.4]) within ky-test-vpc
-==========================================================================================================================
+Explaining connectivity from 192.168.8.4 to 192.168.4.4 within ky-test-vpc
+Interpreted Src: iks-node[192.168.8.4]
+Interpreted Dst: iks-node[192.168.4.4]
+==========================================================================
 
 Connections from iks-node[192.168.8.4] to iks-node[192.168.4.4]: All Connections
 
