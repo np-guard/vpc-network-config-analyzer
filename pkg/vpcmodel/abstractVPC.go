@@ -250,13 +250,13 @@ type RulesInTable struct {
 type RuleOfFilter struct {
 	LayerName  string             `json:"layer"`
 	FilterName string             `json:"table"`
-	RuleIndx   int                `json:"rule_index"`
+	RuleIndex  int                `json:"rule_index"`
 	RuleDesc   string             `json:"rule_description"`
 	IPBlocks   []*ipblock.IPBlock `json:"ip_blocks,omitempty"` // CIDR/IPBlocks referenced by the rule (src/dst/local...)
 }
 
 func NewRuleOfFilter(layerName, filterName, desc string, ruleIndex int, ipBlocks []*ipblock.IPBlock) *RuleOfFilter {
-	return &RuleOfFilter{LayerName: layerName, FilterName: filterName, RuleIndx: ruleIndex, RuleDesc: desc,
+	return &RuleOfFilter{LayerName: layerName, FilterName: filterName, RuleIndex: ruleIndex, RuleDesc: desc,
 		IPBlocks: ipBlocks}
 }
 
