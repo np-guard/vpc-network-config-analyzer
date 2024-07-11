@@ -76,10 +76,8 @@ type Explanation struct {
 	rulesAndDetails *rulesAndConnDetails // rules and more details for a single src->dst
 	src             string
 	dst             string
-	// the following two properties are for the case src/dst are given as internal address connected to network interface
-	// this information should be handy; otherwise empty (slice of size 0)
-	srcNetworkInterfacesFromIP []Node
-	dstNetworkInterfacesFromIP []Node
+	srcNodes        []Node
+	dstNodes        []Node
 	// (Current) Analysis of the connectivity of cluster worker nodes is under the assumption that the only security
 	// groups applied to them are the VPC default and the IKS generated SG; this comment needs to be added if src or dst is an IKS node
 	hasIksNode bool
@@ -91,25 +89,25 @@ type Explanation struct {
 
 // ExplainConnectivity returns Explanation object, that explains connectivity of a single <src, dst> couple given by the user
 func (c *MultipleVPCConfigs) ExplainConnectivity(src, dst string, connQuery *connection.Set) (res *Explanation, err error) {
-	vpcConfig, srcNodes, dstNodes, isSrcDstInternalIP, err := c.getVPCConfigAndSrcDstNodes(src, dst)
+	vpcConfig, srcNodes, dstNodes, err := c.getVPCConfigAndSrcDstNodes(src, dst)
 	if err != nil {
 		return nil, err
 	}
 	if vpcConfig == nil {
 		// No error and also no matching vpc config for both src and dst: missing cross-vpc router.
 		// No VPCConfig to work with in this case, thus, this case is treated separately
-		return &Explanation{connQuery: connQuery, src: src, dst: dst}, nil
+		return &Explanation{connQuery: connQuery, src: src, dst: dst, srcNodes: srcNodes, dstNodes: dstNodes}, nil
 	}
 	connectivity, err1 := vpcConfig.GetVPCNetworkConnectivity(false, false) // computes connectivity
 	if err1 != nil {
 		return nil, err1
 	}
-	return vpcConfig.explainConnectivityForVPC(src, dst, srcNodes, dstNodes, isSrcDstInternalIP, connQuery, connectivity)
+	return vpcConfig.explainConnectivityForVPC(src, dst, srcNodes, dstNodes, connQuery, connectivity)
 }
 
 // explainConnectivityForVPC for a vpcConfig, given src, dst and connQuery returns a struct with all explanation details
 // nil connQuery means connection is not part of the query
-func (c *VPCConfig) explainConnectivityForVPC(src, dst string, srcNodes, dstNodes []Node, isSrcDstInternalIP srcDstInternalAddr,
+func (c *VPCConfig) explainConnectivityForVPC(src, dst string, srcNodes, dstNodes []Node,
 	connQuery *connection.Set, connectivity *VPCConnectivity) (res *Explanation, err error) {
 	// we do not support multiple configs, yet
 	rulesAndDetails, err1 := c.computeExplainRules(srcNodes, dstNodes, connQuery)
@@ -139,17 +137,8 @@ func (c *VPCConfig) explainConnectivityForVPC(src, dst string, srcNodes, dstNode
 	}
 	// the user has to be notified regarding an assumption we make about IKSNode's security group
 	hasIksNode := srcNodes[0].Kind() == ResourceTypeIKSNode || dstNodes[0].Kind() == ResourceTypeIKSNode
-	return &Explanation{c, connQuery, &rulesAndDetails, src, dst,
-		getNetworkInterfacesFromIP(isSrcDstInternalIP.src, srcNodes),
-		getNetworkInterfacesFromIP(isSrcDstInternalIP.dst, dstNodes),
+	return &Explanation{c, connQuery, &rulesAndDetails, src, dst, srcNodes, dstNodes,
 		hasIksNode, groupedLines.GroupedLines}, nil
-}
-
-func getNetworkInterfacesFromIP(isInputInternalIP bool, nodes []Node) []Node {
-	if isInputInternalIP {
-		return nodes
-	}
-	return []Node{}
 }
 
 // computeExplainRules computes the egress and ingress rules contributing to the (existing or missing) connection <src, dst>
