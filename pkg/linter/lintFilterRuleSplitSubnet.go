@@ -96,10 +96,6 @@ func (finding *splitRuleSubnet) vpc() string {
 
 func (finding *splitRuleSubnet) string() string {
 	rule := finding.rule
-	thisLayerName := "Network acl"
-	if finding.rule.LayerName == vpcmodel.SecurityGroupLayer {
-		thisLayerName = "Security group"
-	}
 	subnetsStrSlice := make([]string, len(finding.splitSubnets))
 	for i, subnet := range finding.splitSubnets {
 		subnetsStrSlice[i] = fmt.Sprintf("%s (%s)", subnet.Name(), subnet.CIDR())
@@ -111,7 +107,7 @@ func (finding *splitRuleSubnet) string() string {
 		subnetStr = "subnet " + subnetStr
 	}
 	return fmt.Sprintf("In VPC %s, %s %s rule's indexed %d splits %s. Splitting rule details: %s",
-		finding.vpc(), thisLayerName, rule.FilterName, rule.RuleIndx, subnetStr, rule.RuleDesc)
+		finding.vpc(), finding.rule.LayerName, rule.FilterName, rule.RuleIndx, subnetStr, rule.RuleDesc)
 }
 
 // for json: a rule with the list of subnets it splits
