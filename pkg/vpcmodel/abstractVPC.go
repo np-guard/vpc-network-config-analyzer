@@ -252,7 +252,7 @@ type RuleOfFilter struct {
 	FilterName string             `json:"table"`
 	RuleIndx   int                `json:"rule_index"`
 	RuleDesc   string             `json:"rule_description"`
-	IPBlocks   []*ipblock.IPBlock `json:"ip_blocks,omitempty"`
+	IPBlocks   []*ipblock.IPBlock `json:"ip_blocks,omitempty"` // CIDR/IPBlocks referenced by the rule (src/dst/local...)
 }
 
 func NewRuleOfFilter(layerName, filterName, desc string, ruleIndex int, ipBlocks []*ipblock.IPBlock) *RuleOfFilter {
