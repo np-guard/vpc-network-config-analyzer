@@ -250,9 +250,9 @@ type RulesInTable struct {
 type RuleOfFilter struct {
 	LayerName  string             `json:"layer"`
 	FilterName string             `json:"table"`
-	RuleIndx   int                `json:"rule-index"`
-	RuleDesc   string             `json:"rule-description"`
-	IPBlocks   []*ipblock.IPBlock `json:"_, omitempty"`
+	RuleIndx   int                `json:"rule_index"`
+	RuleDesc   string             `json:"rule_description"`
+	IPBlocks   []*ipblock.IPBlock `json:"IPBlocks,omitempty"`
 }
 
 func NewRuleOfFilter(layerName, filterName, desc string, ruleIndex int, ipBlocks []*ipblock.IPBlock) *RuleOfFilter {
