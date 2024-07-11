@@ -167,7 +167,7 @@ func buildConfigs(inArgs *inArgs) (vpcConfigs *vpcmodel.MultipleVPCConfigs, err 
 		// we are in diff mode, checking we have only one config per file:
 		if len(vpcConfigs.Configs()) != 1 || len(vpcConfigsToCompare.Configs()) != 1 {
 			return nil, fmt.Errorf("diff command only supports a single configuration " +
-				"for both -vpc-config and -vpc-config-second")
+				"for both --config and --config-second")
 		}
 		vpcConfigs.SetConfigsToCompare(vpcConfigsToCompare.Configs())
 	}

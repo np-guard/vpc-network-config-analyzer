@@ -12,7 +12,7 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
-const secondConfigFlag = "vpc-config-second"
+const secondConfigFlag = "config-second"
 
 func NewDiffCommand(args *inArgs) *cobra.Command {
 	const diffCmd = "diff"
