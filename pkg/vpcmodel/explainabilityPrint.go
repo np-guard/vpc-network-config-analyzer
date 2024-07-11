@@ -34,8 +34,15 @@ func explainHeader(explanation *Explanation) string {
 	}
 	title := fmt.Sprintf("Explaining connectivity from %s to %s%s%s",
 		explanation.src, explanation.dst, singleVpcContext, connHeader(explanation.connQuery))
-	srcInterpretation := fmt.Sprintf("Interpreted Src: %s\n", endPointInterpretation(explanation.c, explanation.src, explanation.srcNodes))
-	dstInterpretation := fmt.Sprintf("Interpreted Dst: %s\n", endPointInterpretation(explanation.c, explanation.dst, explanation.dstNodes))
+	var srcInterpretation, dstInterpretation string
+	// ToDo srcNodes, dstNodes is empty when no cross-vpc router connects src and dst.
+	//      See https://github.com/np-guard/vpc-network-config-analyzer/issues/655
+	if len(explanation.srcNodes) > 0 && len(explanation.dstNodes) > 0 {
+		srcInterpretation = fmt.Sprintf("Interpreted source: %s\n", endPointInterpretation(explanation.c,
+			explanation.src, explanation.srcNodes))
+		dstInterpretation = fmt.Sprintf("Interpreted destination: %s\n", endPointInterpretation(explanation.c,
+			explanation.dst, explanation.dstNodes))
+	}
 	underLine := strings.Repeat("=", len(title))
 	return title + newLine + srcInterpretation + dstInterpretation + underLine + doubleNL
 }
@@ -51,8 +58,8 @@ func connHeader(connQuery *connection.Set) string {
 
 // in case the src/dst is not external address, returns a string of all relevant nodes names
 func endPointInterpretation(c *VPCConfig, userInput string, nodes []Node) string {
-	if len(nodes) == 0 || nodes[0].IsExternal() {
-		return userInput
+	if nodes[0].IsExternal() {
+		return userInput + " (external)"
 	}
 	networkInterfaces := make([]string, len(nodes))
 	for i, node := range nodes {
@@ -201,7 +208,7 @@ func (g *groupedConnLine) explainPerCaseStr(c *VPCConfig, src, dst EndpointElem,
 	case externalRouter == nil && src.IsExternal():
 		return fmt.Sprintf("%v\tThere is no resource enabling inbound external connectivity\n", noConnection)
 	case externalRouter == nil && dst.IsExternal():
-		return fmt.Sprintf("%v\tThe dst is external but there is no Floating IP or Public Gateway connecting to public internet\n",
+		return fmt.Sprintf("%v\tThe dst is external but there is no resource enabling external connectivity\n",
 			noConnection)
 	case ingressBlocking || egressBlocking || loadBalancerBlocking:
 		return fmt.Sprintf("%v%s"+tripleNLVars, noConnection,
