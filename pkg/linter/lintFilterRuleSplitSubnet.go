@@ -73,11 +73,7 @@ func (lint *filterRuleSplitSubnet) check() error {
 
 // given a subnet and IPBlocks mentioned in a rule, returns the list
 func ruleSplitSubnet(subnet vpcmodel.Subnet, ruleIPBlocks []*ipblock.IPBlock) (bool, error) {
-	cidr := subnet.CIDR()
-	subnetCidrIPBlock, err := ipblock.FromCidr(cidr)
-	if err != nil {
-		return false, err
-	}
+	subnetCidrIPBlock := subnet.AddressRange()
 	for _, ruleIPBlock := range ruleIPBlocks {
 		if ruleIPBlock.Overlap(subnetCidrIPBlock) && !subnetCidrIPBlock.ContainedIn(ruleIPBlock) {
 			return true, nil
