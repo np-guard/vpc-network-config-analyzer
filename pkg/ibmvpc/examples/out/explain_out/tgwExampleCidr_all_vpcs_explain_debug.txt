@@ -170,7 +170,7 @@ Ingress: network ACL acl1-ky allows connection; security group sg1-ky allows con
 
 Path:
 	ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> subnet20 -> network ACL acl21-ky -> 
-	test-vpc2-ky -> TGW local-tg-ky -> |
+	test-vpc2-ky -> | TGW local-tg-ky |
 
 
 Details:
@@ -202,7 +202,7 @@ Ingress: network ACL acl1-ky allows connection; security group sg1-ky allows con
 
 Path:
 	ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> subnet20 -> network ACL acl21-ky -> 
-	test-vpc2-ky -> TGW local-tg-ky -> |
+	test-vpc2-ky -> | TGW local-tg-ky |
 
 
 Details:
@@ -234,7 +234,7 @@ Ingress: network ACL acl1-ky allows connection; security group sg1-ky allows con
 
 Path:
 	ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> subnet20 -> network ACL acl21-ky -> 
-	test-vpc2-ky -> TGW local-tg-ky -> |
+	test-vpc2-ky -> | TGW local-tg-ky |
 
 
 Details:
@@ -266,7 +266,7 @@ Ingress: network ACL acl1-ky allows connection; security group sg1-ky allows con
 
 Path:
 	ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> subnet20 -> network ACL acl21-ky -> 
-	test-vpc2-ky -> TGW local-tg-ky -> |
+	test-vpc2-ky -> | TGW local-tg-ky |
 
 
 Details:
