@@ -34,8 +34,8 @@ func explainHeader(explanation *Explanation) string {
 	}
 	title := fmt.Sprintf("Explaining connectivity from %s to %s%s%s",
 		explanation.src, explanation.dst, singleVpcContext, connHeader(explanation.connQuery))
-	srcInterpretation := fmt.Sprintf("Interpreted Src: %s\n", endPointInterpretation(explanation.c, explanation.src, explanation.srcNodes))
-	dstInterpretation := fmt.Sprintf("Interpreted Dst: %s\n", endPointInterpretation(explanation.c, explanation.dst, explanation.dstNodes))
+	srcInterpretation := fmt.Sprintf("Interpreted source: %s\n", endPointInterpretation(explanation.c, explanation.src, explanation.srcNodes))
+	dstInterpretation := fmt.Sprintf("Interpreted destination: %s\n", endPointInterpretation(explanation.c, explanation.dst, explanation.dstNodes))
 	underLine := strings.Repeat("=", len(title))
 	return title + newLine + srcInterpretation + dstInterpretation + underLine + doubleNL
 }
@@ -51,8 +51,11 @@ func connHeader(connQuery *connection.Set) string {
 
 // in case the src/dst is not external address, returns a string of all relevant nodes names
 func endPointInterpretation(c *VPCConfig, userInput string, nodes []Node) string {
-	if len(nodes) == 0 || nodes[0].IsExternal() {
-		return userInput
+	if len(nodes) == 0 {
+		return "" // to make lint happy. can never get here, no need to add the burden of an error
+	}
+	if nodes[0].IsExternal() {
+		return userInput + " (external)"
 	}
 	networkInterfaces := make([]string, len(nodes))
 	for i, node := range nodes {

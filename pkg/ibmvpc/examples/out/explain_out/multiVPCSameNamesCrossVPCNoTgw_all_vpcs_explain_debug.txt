@@ -1,6 +1,6 @@
 Explaining connectivity from test-vpc0-ky/vsi1-ky to test-vpc1-ky/vsi1-ky
-Interpreted Src: test-vpc0-ky/vsi1-ky
-Interpreted Dst: test-vpc1-ky/vsi1-ky
+Interpreted source: 
+Interpreted destination: 
 =========================================================================
 
 No connections from test-vpc0-ky/vsi1-ky to test-vpc1-ky/vsi1-ky;

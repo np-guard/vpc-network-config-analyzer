@@ -1,6 +1,6 @@
 Explaining connectivity from vsi1-ky to vsi31-ky
-Interpreted Src: vsi1-ky
-Interpreted Dst: vsi31-ky
+Interpreted source: 
+Interpreted destination: 
 ================================================
 
 No connections from vsi1-ky to vsi31-ky;
