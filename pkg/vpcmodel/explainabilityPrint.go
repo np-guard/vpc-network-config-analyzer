@@ -474,7 +474,7 @@ func FilterKindName(filterLayer string) string {
 // for a given filter layer (e.g. sg) returns a string of the allowing tables (note that denying tables are excluded),
 // and the name of the denying table, if any
 func pathFiltersSingleLayerStr(c *VPCConfig, filterLayerName string, rules []RulesInTable) (allowPath, denyTable string) {
-	filterLayer := c.getFilterTrafficResourceOfKind(filterLayerName)
+	filterLayer := c.GetFilterTrafficResourceOfKind(filterLayerName)
 	filtersToActionMap := filterLayer.ListFilterWithAction(rules)
 	strSlice := []string{}
 	for name, effect := range filtersToActionMap {
