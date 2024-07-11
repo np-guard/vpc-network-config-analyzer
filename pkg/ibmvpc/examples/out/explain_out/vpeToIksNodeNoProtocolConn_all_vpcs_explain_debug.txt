@@ -10,7 +10,7 @@ Egress: security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 blocks con
 Ingress: network ACL ky-test-private-2-others-acl allows connection; security group kube-clusterid:1 allows connection; security group ky-test-default-sg allows connection
 
 Path:
-	iks-clusterid:1[192.168.40.5] -> |
+	iks-clusterid:1[192.168.40.5] -> | security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 |
 
 
 Details:

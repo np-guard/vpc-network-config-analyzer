@@ -11,7 +11,7 @@ Ingress: network ACL acl2-ky allows connection; security group sg2-ky blocks con
 
 Path:
 	vsi3a-ky[10.240.30.5] -> security group sg3-ky -> subnet3-ky -> network ACL acl3-ky -> 
-	network ACL acl2-ky -> subnet2-ky -> |
+	network ACL acl2-ky -> subnet2-ky -> | security group sg2-ky |
 
 
 Details:
