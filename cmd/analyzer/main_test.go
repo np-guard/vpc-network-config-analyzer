@@ -28,7 +28,7 @@ func TestMain(t *testing.T) {
 		// aws
 		{
 			name: "aws_all_endpoints",
-			args: "report endpoints --output-file aws.txt -c ../../pkg/awsvpc/examples/input/input_basic_config_with_sg.json --format txt",
+			args: "report endpoints -f aws.txt -c ../../pkg/awsvpc/examples/input/input_basic_config_with_sg.json -o txt",
 		},
 		// drawio
 		{
