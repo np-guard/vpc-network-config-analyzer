@@ -2,14 +2,14 @@ Explaining connectivity from 10.240.30.4/24 (vsi3a-ky[10.240.30.5], vsi3b-ky[10.
 ===================================================================================================================================================================
 
 No connections from db-endpoint-gateway-ky[10.240.30.6] to Public Internet 161.0.0.0/8;
-	The dst is external but there is no Floating IP or Public Gateway connecting to public internet
+	The dst is external but there is no resource enabling external connectivity
 ------------------------------------------------------------------------------------------------------------------------
 
 No connections from vsi3a-ky[10.240.30.5] to Public Internet 161.0.0.0/8;
-	The dst is external but there is no Floating IP or Public Gateway connecting to public internet
+	The dst is external but there is no resource enabling external connectivity
 ------------------------------------------------------------------------------------------------------------------------
 
 No connections from vsi3b-ky[10.240.30.4] to Public Internet 161.0.0.0/8;
-	The dst is external but there is no Floating IP or Public Gateway connecting to public internet
+	The dst is external but there is no resource enabling external connectivity
 ------------------------------------------------------------------------------------------------------------------------
 

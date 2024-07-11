@@ -203,7 +203,7 @@ func (g *groupedConnLine) explainPerCaseStr(c *VPCConfig, src, dst EndpointElem,
 	case externalRouter == nil && src.IsExternal():
 		return fmt.Sprintf("%v\tThere is no resource enabling inbound external connectivity\n", noConnection)
 	case externalRouter == nil && dst.IsExternal():
-		return fmt.Sprintf("%v\tThe dst is external but there is no Floating IP or Public Gateway connecting to public internet\n",
+		return fmt.Sprintf("%v\tThe dst is external but there is no resource enabling external connectivity\n",
 			noConnection)
 	case ingressBlocking || egressBlocking || loadBalancerBlocking:
 		return fmt.Sprintf("%v%s"+tripleNLVars, noConnection,
