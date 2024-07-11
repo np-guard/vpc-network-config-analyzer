@@ -53,10 +53,7 @@ func (lint *filterRuleSplitSubnet) check() error {
 			for _, rule := range rules {
 				subnetsSplitByRule := []vpcmodel.Subnet{}
 				for _, subnet := range config.Subnets {
-					splitSubnet, err := ruleSplitSubnet(subnet, rule.IPBlocks)
-					if err != nil {
-						return err
-					}
+					splitSubnet := ruleSplitSubnet(subnet, rule.IPBlocks)
 					if splitSubnet {
 						subnetsSplitByRule = append(subnetsSplitByRule, subnet)
 					}
@@ -72,14 +69,14 @@ func (lint *filterRuleSplitSubnet) check() error {
 }
 
 // given a subnet and IPBlocks mentioned in a rule, returns the list
-func ruleSplitSubnet(subnet vpcmodel.Subnet, ruleIPBlocks []*ipblock.IPBlock) (bool, error) {
+func ruleSplitSubnet(subnet vpcmodel.Subnet, ruleIPBlocks []*ipblock.IPBlock) bool {
 	subnetCidrIPBlock := subnet.AddressRange()
 	for _, ruleIPBlock := range ruleIPBlocks {
 		if ruleIPBlock.Overlap(subnetCidrIPBlock) && !subnetCidrIPBlock.ContainedIn(ruleIPBlock) {
-			return true, nil
+			return true
 		}
 	}
-	return false, nil
+	return false
 }
 
 ///////////////////////////////////////////////////////////
