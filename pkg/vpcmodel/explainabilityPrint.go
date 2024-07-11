@@ -34,14 +34,8 @@ func explainHeader(explanation *Explanation) string {
 	}
 	title := fmt.Sprintf("Explaining connectivity from %s to %s%s%s",
 		explanation.src, explanation.dst, singleVpcContext, connHeader(explanation.connQuery))
-	srcInterpretation := listNetworkInterfaces(explanation.c, explanation.srcNodes)
-	dstInterpretation := listNetworkInterfaces(explanation.c, explanation.dstNodes)
-	if srcInterpretation != emptyString && srcInterpretation != explanation.src {
-		srcInterpretation = fmt.Sprintf("Interpreted Src: %s\n", srcInterpretation)
-	}
-	if dstInterpretation != emptyString && dstInterpretation != explanation.dst {
-		dstInterpretation = fmt.Sprintf("Interpreted Dst: %s\n", dstInterpretation)
-	}
+	srcInterpretation := fmt.Sprintf("Interpreted Src: %s\n", endPointInterpretation(explanation.c, explanation.src, explanation.srcNodes))
+	dstInterpretation := fmt.Sprintf("Interpreted Dst: %s\n", endPointInterpretation(explanation.c, explanation.dst, explanation.dstNodes))
 	underLine := strings.Repeat("=", len(title))
 	return title + newLine + srcInterpretation + dstInterpretation + underLine + doubleNL
 }
@@ -55,11 +49,10 @@ func connHeader(connQuery *connection.Set) string {
 	return ""
 }
 
-// in case the src/dst of a network interface given as an internal address connected to network interface returns a string
-// of all relevant nodes names
-func listNetworkInterfaces(c *VPCConfig, nodes []Node) string {
+// in case the src/dst is not external address, returns a string of all relevant nodes names
+func endPointInterpretation(c *VPCConfig, userInput string, nodes []Node) string {
 	if len(nodes) == 0 || nodes[0].IsExternal() {
-		return emptyString
+		return userInput
 	}
 	networkInterfaces := make([]string, len(nodes))
 	for i, node := range nodes {

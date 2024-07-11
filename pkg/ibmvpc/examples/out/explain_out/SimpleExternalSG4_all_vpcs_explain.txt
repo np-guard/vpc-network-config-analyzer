@@ -1,5 +1,6 @@
 Explaining connectivity from vsi3b-ky to 161.26.0.0/32 within test-vpc1-ky
 Interpreted Src: vsi3b-ky[10.240.30.4]
+Interpreted Dst: 161.26.0.0/32
 ==========================================================================
 
 No connections from vsi3b-ky[10.240.30.4] to Public Internet 161.26.0.0/32;
