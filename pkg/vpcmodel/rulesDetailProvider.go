@@ -2,15 +2,22 @@ package vpcmodel
 
 func NewRulesDetails(config *VPCConfig) (*rulesDetails, error) {
 	resRulesDetails := rulesDetails{}
-	// todo...
-	//for _, layer := range FilterLayers {
-	//	filterLayer := config.GetFilterTrafficResourceOfKind(layer)
-	//	thisLayerRulesDetails, err := filterLayer.GetRules()
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//	resRulesDetails = append(resRulesDetails, thisLayerRulesDetails...)
-	//}
+	for _, layer := range FilterLayers {
+		thisLayerRules := make(map[string][]ruleDetails)
+		filterLayer := config.GetFilterTrafficResourceOfKind(layer)
+		thisLayerRulesDetails, err := filterLayer.GetRules()
+		if err != nil {
+			return nil, err
+		}
+		for _, rule := range thisLayerRulesDetails {
+			thisRuleDetails := ruleDetails{ruleIndex: rule.RuleIndex, ruleDesc: rule.RuleDesc}
+			if _, ok := thisLayerRules[rule.FilterName]; !ok {
+				thisLayerRules[rule.FilterName] = []ruleDetails{}
+			}
+			thisLayerRules[rule.FilterName] = append(thisLayerRules[rule.FilterName], thisRuleDetails)
+		}
+		resRulesDetails[layer] = thisLayerRules
+	}
 	return &resRulesDetails, nil
 }
 

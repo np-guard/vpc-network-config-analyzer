@@ -256,12 +256,12 @@ type RuleOfFilter struct {
 }
 
 type ruleDetails struct {
-	ruleIndex int    `json:"rule_index"`
-	ruleDesc  string `json:"rule_description"`
+	ruleIndex int
+	ruleDesc  string
 }
 
 // map from LayerName to map from FilterName to ruleDetails
-type rulesDetails map[string]map[string]ruleDetails
+type rulesDetails map[string]map[string][]ruleDetails
 
 func NewRuleOfFilter(layerName, filterName, desc string, ruleIndex int, ipBlocks []*ipblock.IPBlock) *RuleOfFilter {
 	return &RuleOfFilter{LayerName: layerName, FilterName: filterName, RuleIndex: ruleIndex, RuleDesc: desc,
