@@ -481,7 +481,7 @@ func (nl *NaclLayer) ReferencedIPblocks() []*ipblock.IPBlock {
 	return res
 }
 
-func (nl *NaclLayer) GetRules() ([]vpcmodel.RuleOfFilter, error) {
+func (nl *NaclLayer) GetRules() (vpcmodel.RulesDetails, error) {
 	resRules := []vpcmodel.RuleOfFilter{}
 	for naclIndx, nacl := range nl.naclList {
 		naclRules := nacl.analyzer.egressRules
@@ -702,7 +702,7 @@ func (sgl *SecurityGroupLayer) ReferencedIPblocks() []*ipblock.IPBlock {
 	return res
 }
 
-func (sgl *SecurityGroupLayer) GetRules() ([]vpcmodel.RuleOfFilter, error) {
+func (sgl *SecurityGroupLayer) GetRules() (vpcmodel.RulesDetails, error) {
 	resRules := []vpcmodel.RuleOfFilter{}
 	for sgIndx, sg := range sgl.sgList {
 		sgRules := sg.analyzer.egressRules
