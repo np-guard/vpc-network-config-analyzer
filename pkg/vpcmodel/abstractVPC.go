@@ -318,3 +318,8 @@ type RoutingResource interface {
 //	// to be used by explainability printing functions
 //	ListFilterWithAction(listRulesInFilter []RulesInTable) map[string]bool
 // }
+
+type rulesBasedResource interface {
+	stringDetailsOfRules(filterLayerName string, listRulesInFilter []RulesInTable) string
+	listFilterWithAction(filterLayerName string, listRulesInFilter []RulesInTable) map[string]bool
+}
