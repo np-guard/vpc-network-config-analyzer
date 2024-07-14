@@ -255,7 +255,13 @@ type RuleOfFilter struct {
 	IPBlocks   []*ipblock.IPBlock `json:"ip_blocks,omitempty"` // CIDR/IPBlocks referenced by the rule (src/dst/local...)
 }
 
-type RulesDetails []RuleOfFilter
+type ruleDetails struct {
+	ruleIndex int    `json:"rule_index"`
+	ruleDesc  string `json:"rule_description"`
+}
+
+// map from LayerName to map from FilterName to ruleDetails
+type rulesDetails map[string]map[string]ruleDetails
 
 func NewRuleOfFilter(layerName, filterName, desc string, ruleIndex int, ipBlocks []*ipblock.IPBlock) *RuleOfFilter {
 	return &RuleOfFilter{LayerName: layerName, FilterName: filterName, RuleIndex: ruleIndex, RuleDesc: desc,
@@ -272,7 +278,7 @@ type FilterTrafficResource interface {
 	RulesInConnectivity(src, dst Node, conn *connection.Set, isIngress bool) ([]RulesInTable, []RulesInTable, error)
 	// GetRules gets a list of all rules with description
 	// todo to replace StringDetailsOfRules
-	GetRules() (RulesDetails, error)
+	GetRules() ([]RuleOfFilter, error)
 	// StringDetailsOfRules gets, for a specific filter (sg/nacl), a struct with relevant rules in it,
 	// and prints the effect of each filter (e.g. security group sg1-ky allows connection)
 	// and the detailed list of relevant rules
