@@ -15,7 +15,7 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
-var filterLayers = [2]string{SecurityGroupLayer, NaclLayer}
+var FilterLayers = [2]string{SecurityGroupLayer, NaclLayer}
 
 const ResourceTypeIKSNode = "IKSNodeNetworkInterface"
 
@@ -232,7 +232,7 @@ func (details *rulesAndConnDetails) computeActualRules() {
 func computeActualRulesGivenRulesFilter(rulesLayers rulesInLayers, filters map[string]bool) (*rulesInLayers, bool) {
 	actualRules := rulesInLayers{}
 	directionEnabled := true
-	for _, layer := range filterLayers {
+	for _, layer := range FilterLayers {
 		filterIsRelevant := filters[layer]
 		potentialRules := rulesLayers[layer]
 		// The filter is blocking if it is relevant and has no allow rules
@@ -273,7 +273,7 @@ func (details *rulesAndConnDetails) computeCombinedActualRules() {
 // merges two rulesInLayers - for merging deny and allow for ingress and egress
 func mergeAllowDeny(allow, deny rulesInLayers) rulesInLayers {
 	allowDenyMerged := rulesInLayers{}
-	for _, layer := range filterLayers {
+	for _, layer := range FilterLayers {
 		allowForLayer := allow[layer]
 		denyForLayer := deny[layer]
 		actualAllow := len(allowForLayer) > 0
@@ -353,7 +353,7 @@ func addIndexesOfFilters(indexes intSet, rulesInLayer []RulesInTable) {
 func (c *VPCConfig) getFiltersRulesBetweenNodesPerDirectionAndLayer(
 	src, dst Node, conn *connection.Set, isIngress bool, layer string) (allowRules *[]RulesInTable,
 	denyRules *[]RulesInTable, err error) {
-	filter := c.getFilterTrafficResourceOfKind(layer)
+	filter := c.GetFilterTrafficResourceOfKind(layer)
 	if filter == nil {
 		return nil, nil, fmt.Errorf("layer %v not found in configuration", layer)
 	}
@@ -368,7 +368,7 @@ func (c *VPCConfig) getRulesOfConnection(src, dst Node,
 	conn *connection.Set) (allowRulesOfConnection, denyRulesOfConnection *rulesConnection, err error) {
 	ingressAllowPerLayer, egressAllowPerLayer := rulesInLayers{}, rulesInLayers{}
 	ingressDenyPerLayer, egressDenyPerLayer := rulesInLayers{}, rulesInLayers{}
-	for _, layer := range filterLayers {
+	for _, layer := range FilterLayers {
 		// ingress rules: relevant only if dst is internal
 		if dst.IsInternal() {
 			ingressAllowRules, ingressDenyRules, err1 := c.getFiltersRulesBetweenNodesPerDirectionAndLayer(src, dst, conn, true, layer)

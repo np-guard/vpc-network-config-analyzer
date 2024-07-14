@@ -21,6 +21,10 @@ import (
 )
 
 const doubleTab = "\t\t"
+const emptyNameError = "empty name for %s indexed %d"
+
+const securityGroup = "security group"
+const networkACL = "network ACL"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -477,6 +481,25 @@ func (nl *NaclLayer) ReferencedIPblocks() []*ipblock.IPBlock {
 	return res
 }
 
+func (nl *NaclLayer) GetRules() ([]vpcmodel.RuleOfFilter, error) {
+	resRules := []vpcmodel.RuleOfFilter{}
+	for naclIndx, nacl := range nl.naclList {
+		naclRules := nacl.analyzer.egressRules
+		naclRules = append(naclRules, nacl.analyzer.ingressRules...)
+		if nacl.analyzer.naclResource.Name == nil {
+			return nil, fmt.Errorf(emptyNameError, networkACL, naclIndx)
+		}
+		naclName := *nacl.analyzer.naclResource.Name
+		for _, rule := range naclRules {
+			ruleBlocks := []*ipblock.IPBlock{rule.src, rule.dst}
+			ruleDesc, _, _, _ := nacl.analyzer.getNACLRule(rule.index)
+			resRules = append(resRules, *vpcmodel.NewRuleOfFilter(networkACL, naclName, ruleDesc, rule.index,
+				ruleBlocks))
+		}
+	}
+	return resRules, nil
+}
+
 func getHeaderRulesType(filter string, rType vpcmodel.RulesType) string {
 	switch rType {
 	case vpcmodel.NoRules:
@@ -677,6 +700,28 @@ func (sgl *SecurityGroupLayer) ReferencedIPblocks() []*ipblock.IPBlock {
 		res = append(res, sg.analyzer.referencedIPblocks...)
 	}
 	return res
+}
+
+func (sgl *SecurityGroupLayer) GetRules() ([]vpcmodel.RuleOfFilter, error) {
+	resRules := []vpcmodel.RuleOfFilter{}
+	for sgIndx, sg := range sgl.sgList {
+		sgRules := sg.analyzer.egressRules
+		sgRules = append(sgRules, sg.analyzer.ingressRules...)
+		if sg.analyzer.sgResource.Name == nil {
+			return nil, fmt.Errorf(emptyNameError, securityGroup, sgIndx)
+		}
+		sgName := *sg.analyzer.sgResource.Name
+		for _, rule := range sgRules {
+			ruleBlocks := []*ipblock.IPBlock{rule.remote.cidr}
+			if rule.local != nil {
+				ruleBlocks = append(ruleBlocks, rule.local)
+			}
+			ruleDesc, _, _, _ := sg.analyzer.getSGRule(rule.index)
+			resRules = append(resRules, *vpcmodel.NewRuleOfFilter(securityGroup, sgName, ruleDesc, rule.index,
+				ruleBlocks))
+		}
+	}
+	return resRules, nil
 }
 
 type SecurityGroup struct {

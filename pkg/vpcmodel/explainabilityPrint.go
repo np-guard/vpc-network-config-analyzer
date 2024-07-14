@@ -349,7 +349,7 @@ func (rules rulesInLayers) summaryFiltersStr(c *VPCConfig, filtersRelevant map[s
 // for a given layer (e.g. nacl) and []RulesInTable describing ingress/egress rules,
 // returns a string with the effect of each filter, called by summaryFiltersStr
 func stringFilterEffect(c *VPCConfig, filterLayerName string, rules []RulesInTable) string {
-	filterLayer := c.getFilterTrafficResourceOfKind(filterLayerName)
+	filterLayer := c.GetFilterTrafficResourceOfKind(filterLayerName)
 	filtersToActionMap := filterLayer.ListFilterWithAction(rules)
 	strSlice := make([]string, len(filtersToActionMap))
 	i := 0
@@ -479,7 +479,7 @@ func FilterKindName(filterLayer string) string {
 // for a given filter layer (e.g. sg) returns a string of the allowing tables (note that denying tables are excluded),
 // and the name of the denying table, if any
 func pathFiltersSingleLayerStr(c *VPCConfig, filterLayerName string, rules []RulesInTable) (allowPath, denyTable string) {
-	filterLayer := c.getFilterTrafficResourceOfKind(filterLayerName)
+	filterLayer := c.GetFilterTrafficResourceOfKind(filterLayerName)
 	filtersToActionMap := filterLayer.ListFilterWithAction(rules)
 	strSlice := []string{}
 	for name, effect := range filtersToActionMap {
@@ -504,7 +504,7 @@ func pathFiltersSingleLayerStr(c *VPCConfig, filterLayerName string, rules []Rul
 func (rules rulesInLayers) rulesDetailsStr(c *VPCConfig, filtersRelevant map[string]bool, isIngress bool) string {
 	var strSlice []string
 	for _, layer := range getLayersToPrint(filtersRelevant, isIngress) {
-		filter := c.getFilterTrafficResourceOfKind(layer)
+		filter := c.GetFilterTrafficResourceOfKind(layer)
 		if rules, ok := rules[layer]; ok {
 			strSlice = append(strSlice, filter.StringDetailsOfRules(rules))
 		}
