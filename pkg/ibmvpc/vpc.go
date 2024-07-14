@@ -20,7 +20,7 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
-const doubleTab = "\t\t"
+const doubleTab = "\t\t" // todo delete when no longer used
 const emptyNameError = "empty name for %s indexed %d"
 
 const securityGroup = "security group"
@@ -452,6 +452,7 @@ func appendToRulesInFilter(resRulesInFilter *[]vpcmodel.RulesInTable, rules *[]i
 	*resRulesInFilter = append(*resRulesInFilter, rulesInNacl)
 }
 
+// todo delete when done
 func (nl *NaclLayer) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInTable) string {
 	strListRulesInFilter := ""
 	for _, rulesInFilter := range listRulesInFilter {
@@ -500,6 +501,7 @@ func (nl *NaclLayer) GetRules() ([]vpcmodel.RuleOfFilter, error) {
 	return resRules, nil
 }
 
+// todo delete when done and  no longer used
 func getHeaderRulesType(filter string, rType vpcmodel.RulesType) string {
 	switch rType {
 	case vpcmodel.NoRules:
@@ -673,6 +675,7 @@ func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 	return allowRes, nil, nil
 }
 
+// todo: delete when done
 func (sgl *SecurityGroupLayer) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInTable) string {
 	listRulesInFilterSlice := make([]string, len(listRulesInFilter))
 	for i, rulesInFilter := range listRulesInFilter {

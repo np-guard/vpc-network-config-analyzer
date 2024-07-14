@@ -255,13 +255,8 @@ type RuleOfFilter struct {
 	IPBlocks   []*ipblock.IPBlock `json:"ip_blocks,omitempty"` // CIDR/IPBlocks referenced by the rule (src/dst/local...)
 }
 
-type ruleDetails struct {
-	ruleIndex int
-	ruleDesc  string
-}
-
-// map from LayerName to map from FilterName to ruleDetails
-type rulesDetails map[string]map[string][]ruleDetails
+// map from LayerName to map from FilterName to map from rules indexes to rule description
+type rulesDetails map[string]map[string]map[int]string
 
 func NewRuleOfFilter(layerName, filterName, desc string, ruleIndex int, ipBlocks []*ipblock.IPBlock) *RuleOfFilter {
 	return &RuleOfFilter{LayerName: layerName, FilterName: filterName, RuleIndex: ruleIndex, RuleDesc: desc,
