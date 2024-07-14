@@ -445,7 +445,7 @@ func appendToRulesInFilter(resRulesInFilter *[]vpcmodel.RulesInTable, rules *[]i
 		rType = vpcmodel.OnlyDeny
 	}
 	rulesInNacl := vpcmodel.RulesInTable{
-		Table:       filterIndex,
+		TableIndex:  filterIndex,
 		Rules:       *rules,
 		RulesOfType: rType,
 	}
@@ -456,7 +456,7 @@ func appendToRulesInFilter(resRulesInFilter *[]vpcmodel.RulesInTable, rules *[]i
 func (nl *NaclLayer) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInTable) string {
 	strListRulesInFilter := ""
 	for _, rulesInFilter := range listRulesInFilter {
-		nacl := nl.naclList[rulesInFilter.Table]
+		nacl := nl.naclList[rulesInFilter.TableIndex]
 		header := getHeaderRulesType(vpcmodel.FilterKindName(nl.Kind())+" "+nacl.Name(), rulesInFilter.RulesOfType) +
 			nacl.analyzer.StringRules(rulesInFilter.Rules)
 		strListRulesInFilter += doubleTab + header
@@ -467,7 +467,7 @@ func (nl *NaclLayer) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInTa
 func (nl *NaclLayer) ListFilterWithAction(listRulesInFilter []vpcmodel.RulesInTable) (filters map[string]bool) {
 	filters = map[string]bool{}
 	for _, rulesInFilter := range listRulesInFilter {
-		nacl := nl.naclList[rulesInFilter.Table]
+		nacl := nl.naclList[rulesInFilter.TableIndex]
 		name := nacl.Name()
 		filters[name] = getFilterAction(rulesInFilter.RulesOfType)
 	}
@@ -665,7 +665,7 @@ func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 				rType = vpcmodel.NoRules
 			}
 			rulesInSg := vpcmodel.RulesInTable{
-				Table:       index,
+				TableIndex:  index,
 				Rules:       sgRules,
 				RulesOfType: rType,
 			}
@@ -679,7 +679,7 @@ func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 func (sgl *SecurityGroupLayer) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInTable) string {
 	listRulesInFilterSlice := make([]string, len(listRulesInFilter))
 	for i, rulesInFilter := range listRulesInFilter {
-		sg := sgl.sgList[rulesInFilter.Table]
+		sg := sgl.sgList[rulesInFilter.TableIndex]
 		listRulesInFilterSlice[i] = doubleTab + getHeaderRulesType(vpcmodel.FilterKindName(sgl.Kind())+" "+sg.Name(), rulesInFilter.RulesOfType) +
 			sg.analyzer.StringRules(rulesInFilter.Rules)
 	}
@@ -690,7 +690,7 @@ func (sgl *SecurityGroupLayer) StringDetailsOfRules(listRulesInFilter []vpcmodel
 func (sgl *SecurityGroupLayer) ListFilterWithAction(listRulesInFilter []vpcmodel.RulesInTable) (filters map[string]bool) {
 	filters = map[string]bool{}
 	for _, rulesInFilter := range listRulesInFilter {
-		sg := sgl.sgList[rulesInFilter.Table]
+		sg := sgl.sgList[rulesInFilter.TableIndex]
 		name := sg.Name()
 		filters[name] = getFilterAction(rulesInFilter.RulesOfType)
 	}
@@ -1060,7 +1060,7 @@ func (tgw *TransitGateway) RulesInConnectivity(src, dst vpcmodel.Node) []vpcmode
 func (tgw *TransitGateway) StringOfRouterRules(listRulesInTransitConns []vpcmodel.RulesInTable, verbose bool) (string, error) {
 	strRes := []string{}
 	for _, prefixesInTransitConn := range listRulesInTransitConns {
-		transitConn := tgw.tgwConnList[prefixesInTransitConn.Table]
+		transitConn := tgw.tgwConnList[prefixesInTransitConn.TableIndex]
 		if verbose {
 			verboseStr, err := tgw.stringPrefixFiltersVerbose(transitConn, prefixesInTransitConn)
 			if err != nil {

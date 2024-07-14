@@ -26,13 +26,17 @@ func NewRulesDetails(config *VPCConfig) (*rulesDetails, error) {
 // and prints the effect of each filter (e.g. security group sg1-ky allows connection)
 // and the detailed list of relevant rules
 func (rules *rulesDetails) stringDetailsOfRules(filterLayerName string, listRulesInFilter []RulesInTable) string {
+	//listRulesInFilterSlice := make([]string, len(listRulesInFilter))
+	//for i, rulesInFilter := range listRulesInFilter {
+	//
+	//}
 	return ""
 }
 
 //func (nl *NaclLayer) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInTable) string {
 //	strListRulesInFilter := ""
 //	for _, rulesInFilter := range listRulesInFilter {
-//		nacl := nl.naclList[rulesInFilter.Table]
+//		nacl := nl.naclList[rulesInFilter.TableIndex]
 //		header := getHeaderRulesType(vpcmodel.FilterKindName(nl.Kind())+" "+nacl.Name(), rulesInFilter.RulesOfType) +
 //			nacl.analyzer.StringRules(rulesInFilter.Rules)
 //		strListRulesInFilter += doubleTab + header
@@ -43,7 +47,7 @@ func (rules *rulesDetails) stringDetailsOfRules(filterLayerName string, listRule
 //func (sgl *SecurityGroupLayer) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInTable) string {
 //	listRulesInFilterSlice := make([]string, len(listRulesInFilter))
 //	for i, rulesInFilter := range listRulesInFilter {
-//		sg := sgl.sgList[rulesInFilter.Table]
+//		sg := sgl.sgList[rulesInFilter.TableIndex]
 //		listRulesInFilterSlice[i] = doubleTab + getHeaderRulesType(vpcmodel.FilterKindName(sgl.Kind())+" "+sg.Name(), rulesInFilter.RulesOfType) +
 //			sg.analyzer.StringRules(rulesInFilter.Rules)
 //	}

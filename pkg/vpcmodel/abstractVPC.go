@@ -241,7 +241,7 @@ const (
 // index of the SG/NACL/transit gateway filter and the indexes of the rules within it
 type RulesInTable struct {
 	// todo: is the assumption that the set of rules will always be kept in a list a valid one?
-	Table       int   // sg/nacl/transit connection index in sgList/naclList/tgwConnList
+	TableIndex  int   // sg/nacl/transit connection index in sgList/naclList/tgwConnList
 	Rules       []int // list of indexes of rules in the sg/nacl/transit connection
 	RulesOfType RulesType
 }

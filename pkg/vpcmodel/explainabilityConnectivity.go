@@ -315,7 +315,7 @@ func mergeAllowDeny(allow, deny rulesInLayers) rulesInLayers {
 			default: // no rules
 				rType = NoRules
 			}
-			mergedRulesInFilter := RulesInTable{Table: filterIndex, Rules: mergedRules, RulesOfType: rType}
+			mergedRulesInFilter := RulesInTable{TableIndex: filterIndex, Rules: mergedRules, RulesOfType: rType}
 			mergedRulesInLayer = append(mergedRulesInLayer, mergedRulesInFilter)
 		}
 		allowDenyMerged[layer] = mergedRulesInLayer
@@ -339,14 +339,14 @@ func rulesInLayerToMap(rulesInLayer []RulesInTable) map[int]*RulesInTable {
 	for _, rulesInFilter := range rulesInLayer {
 		thisRulesInFilter := rulesInFilter // to make lint happy
 		// do not reference an address of a loop value
-		mapFilterRules[rulesInFilter.Table] = &thisRulesInFilter
+		mapFilterRules[rulesInFilter.TableIndex] = &thisRulesInFilter
 	}
 	return mapFilterRules
 }
 
 func addIndexesOfFilters(indexes intSet, rulesInLayer []RulesInTable) {
 	for _, rulesInFilter := range rulesInLayer {
-		indexes[rulesInFilter.Table] = true
+		indexes[rulesInFilter.TableIndex] = true
 	}
 }
 
