@@ -452,18 +452,6 @@ func appendToRulesInFilter(resRulesInFilter *[]vpcmodel.RulesInTable, rules *[]i
 	*resRulesInFilter = append(*resRulesInFilter, rulesInNacl)
 }
 
-// todo delete when done
-func (nl *NaclLayer) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInTable) string {
-	strListRulesInFilter := ""
-	for _, rulesInFilter := range listRulesInFilter {
-		nacl := nl.naclList[rulesInFilter.TableIndex]
-		header := getHeaderRulesType(vpcmodel.FilterKindName(nl.Kind())+" "+nacl.Name(), rulesInFilter.RulesOfType) +
-			nacl.analyzer.StringRules(rulesInFilter.Rules)
-		strListRulesInFilter += doubleTab + header
-	}
-	return strListRulesInFilter
-}
-
 func (nl *NaclLayer) ReferencedIPblocks() []*ipblock.IPBlock {
 	res := []*ipblock.IPBlock{}
 	for _, n := range nl.naclList {
@@ -489,22 +477,6 @@ func (nl *NaclLayer) GetRules() ([]vpcmodel.RuleOfFilter, error) {
 		}
 	}
 	return resRules, nil
-}
-
-// todo delete when done and  no longer used
-func getHeaderRulesType(filter string, rType vpcmodel.RulesType) string {
-	switch rType {
-	case vpcmodel.NoRules:
-		return filter + " blocks connection since there are no relevant allow rules\n"
-	case vpcmodel.OnlyDeny:
-		return filter + " blocks connection with the following deny rules:\n"
-	case vpcmodel.BothAllowDeny:
-		return filter + " allows connection with the following allow and deny rules\n"
-	case vpcmodel.OnlyAllow:
-		return filter + " allows connection with the following allow rules\n"
-	default:
-		return ""
-	}
 }
 
 type NACL struct {
@@ -653,18 +625,6 @@ func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 		}
 	}
 	return allowRes, nil, nil
-}
-
-// todo: delete when done
-func (sgl *SecurityGroupLayer) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInTable) string {
-	listRulesInFilterSlice := make([]string, len(listRulesInFilter))
-	for i, rulesInFilter := range listRulesInFilter {
-		sg := sgl.sgList[rulesInFilter.TableIndex]
-		listRulesInFilterSlice[i] = doubleTab + getHeaderRulesType(vpcmodel.FilterKindName(sgl.Kind())+" "+sg.Name(), rulesInFilter.RulesOfType) +
-			sg.analyzer.StringRules(rulesInFilter.Rules)
-	}
-	sort.Strings(listRulesInFilterSlice)
-	return strings.Join(listRulesInFilterSlice, "")
 }
 
 func (sgl *SecurityGroupLayer) ReferencedIPblocks() []*ipblock.IPBlock {

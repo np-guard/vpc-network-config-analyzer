@@ -39,25 +39,27 @@ func NewRulesDetails(config *VPCConfig) (*rulesDetails, error) {
 	return &resRulesDetails, nil
 }
 
-// StringDetailsOfRules gets, for a specific filter (sg/nacl), a struct with relevant rules in it,
+// stringDetailsOfRules gets, for a specific filter (sg/nacl), a struct with relevant rules in it,
 // and prints the effect of each filter (e.g. security group sg1-ky allows connection)
 // and the detailed list of relevant rules
-func (rules *rulesDetails) stringDetailsOfRules(filterLayerName string, listRulesInFilter []RulesInTable) string {
+func (rules *rulesDetails) stringDetailsOfRules(filterLayer string, listRulesInFilter []RulesInTable) string {
 	listRulesInFilterSlice := make([]string, len(listRulesInFilter))
-	rulesOfLayer := (*rules)[filterLayerName]
+	filterLayerName := FilterKindName(filterLayer)
+	rulesOfLayer := (*rules)[filterLayer]
 	for i, rulesInFilter := range listRulesInFilter {
 		filterName := rulesOfLayer[rulesInFilter.TableIndex].tableName
 		header := getHeaderRulesType(filterLayerName+" "+filterName, rulesInFilter.RulesOfType)
-		details := rules.stringRulesDetails(filterLayerName, rulesInFilter.TableIndex, rulesInFilter.Rules)
+		details := rules.stringRulesDetails(filterLayer, rulesInFilter.TableIndex, rulesInFilter.Rules)
 		listRulesInFilterSlice[i] += doubleTab + header + details
 	}
+	sort.Strings(listRulesInFilterSlice)
 	return strings.Join(listRulesInFilterSlice, "")
 }
 
 // stringRulesDetails returns a string with the details of the specified rules
-func (rules *rulesDetails) stringRulesDetails(filterLayerName string, filterIndex int, rulesIndexes []int) string {
+func (rules *rulesDetails) stringRulesDetails(filterLayer string, filterIndex int, rulesIndexes []int) string {
 	strRulesSlice := make([]string, len(rulesIndexes))
-	rulesDetails := (*rules)[filterLayerName][filterIndex].rulesDesc
+	rulesDetails := (*rules)[filterLayer][filterIndex].rulesDesc
 	for i, ruleIndex := range rulesIndexes {
 		strRulesSlice[i] = "\t\t\t" + rulesDetails[ruleIndex]
 	}
@@ -83,10 +85,10 @@ func getHeaderRulesType(filter string, rType RulesType) string {
 // listFilterWithAction return, given a layer, map from each of the filter's names in the layer whose index is in
 // listRulesInFilter to true if it allows traffic, false otherwise.
 // To be used by explainability printing functions
-func (rules *rulesDetails) listFilterWithAction(filterLayerName string,
+func (rules *rulesDetails) listFilterWithAction(filterLayer string,
 	listRulesInFilter []RulesInTable) map[string]bool {
 	tablesToAction := map[string]bool{}
-	rulesOfLayer := (*rules)[filterLayerName]
+	rulesOfLayer := (*rules)[filterLayer]
 	for _, rulesInFilter := range listRulesInFilter {
 		tableName := rulesOfLayer[rulesInFilter.TableIndex].tableName
 		tablesToAction[tableName] = getFilterAction(rulesInFilter.RulesOfType)

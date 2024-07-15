@@ -154,7 +154,7 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 	path := "Path:\n" + pathStr(allRulesDetails, filtersRelevant, src, dst,
 		ingressBlocking, egressBlocking, loadBalancerBlocking, externalRouter, crossVpcRouter, crossVpcConnection, rules) + newLine
 	// details is "4" above
-	egressRulesDetails, ingressRulesDetails := rules.ruleDetailsStr(c, filtersRelevant, needEgress, needIngress)
+	egressRulesDetails, ingressRulesDetails := rules.ruleDetailsStr(allRulesDetails, filtersRelevant, needEgress, needIngress)
 	conn := g.commonProperties.conn
 	if verbose {
 		enabledOrDisabledStr := "enabled"
@@ -167,7 +167,7 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 			respondEgressDetails, respondsIngressDetails, crossVpcRespondDetails := "", "", ""
 			// for respond rules needIngress and needEgress are switched
 			if filtersRelevant[statelessLayerName] {
-				respondEgressDetails, respondsIngressDetails = expDetails.respondRules.ruleDetailsStr(c,
+				respondEgressDetails, respondsIngressDetails = expDetails.respondRules.ruleDetailsStr(allRulesDetails,
 					filtersRelevant, needIngress, needEgress)
 			}
 			if expDetails.crossVpcRouter != nil {
@@ -319,13 +319,13 @@ func (rules *rulesConnection) filterEffectStr(allRulesDetails *rulesDetails, fil
 // "security group sg1-ky allows connection with the following allow rules
 // index: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0
 // network ACL acl1-ky blocks connection since there are no relevant allow rules"
-func (rules *rulesConnection) ruleDetailsStr(c *VPCConfig, filtersRelevant map[string]bool,
+func (rules *rulesConnection) ruleDetailsStr(allRulesDetails *rulesDetails, filtersRelevant map[string]bool,
 	needEgress, needIngress bool) (egressRulesDetails, ingressRulesDetails string) {
 	if needEgress {
-		egressRulesDetails = rules.egressRules.rulesDetailsStr(c, filtersRelevant, false)
+		egressRulesDetails = rules.egressRules.rulesDetailsStr(allRulesDetails, filtersRelevant, false)
 	}
 	if needIngress {
-		ingressRulesDetails = rules.ingressRules.rulesDetailsStr(c, filtersRelevant, true)
+		ingressRulesDetails = rules.ingressRules.rulesDetailsStr(allRulesDetails, filtersRelevant, true)
 	}
 	if needEgress && egressRulesDetails != emptyString {
 		egressRulesDetails = "\tEgress:\n" + egressRulesDetails + newLine
@@ -480,7 +480,8 @@ func FilterKindName(filterLayer string) string {
 
 // for a given filter layer (e.g. sg) returns a string of the allowing tables (note that denying tables are excluded),
 // and the name of the denying table, if any
-func pathFiltersSingleLayerStr(allRulesDetails *rulesDetails, filterLayerName string, rules []RulesInTable) (allowPath, denyTable string) {
+func pathFiltersSingleLayerStr(allRulesDetails *rulesDetails, filterLayerName string,
+	rules []RulesInTable) (allowPath, denyTable string) {
 	filtersToActionMap := allRulesDetails.listFilterWithAction(filterLayerName, rules)
 	strSlice := []string{}
 	for name, effect := range filtersToActionMap {
@@ -502,12 +503,12 @@ func pathFiltersSingleLayerStr(allRulesDetails *rulesDetails, filterLayerName st
 }
 
 // prints detailed list of rules that effects the (existing or non-existing) connection
-func (rules rulesInLayers) rulesDetailsStr(c *VPCConfig, filtersRelevant map[string]bool, isIngress bool) string {
+func (rules rulesInLayers) rulesDetailsStr(allRulesDetails *rulesDetails, filtersRelevant map[string]bool,
+	isIngress bool) string {
 	var strSlice []string
 	for _, layer := range getLayersToPrint(filtersRelevant, isIngress) {
-		filter := c.GetFilterTrafficResourceOfKind(layer)
-		if rules, ok := rules[layer]; ok {
-			strSlice = append(strSlice, filter.StringDetailsOfRules(rules))
+		if rulesInLayer, ok := rules[layer]; ok {
+			strSlice = append(strSlice, allRulesDetails.stringDetailsOfRules(layer, rulesInLayer))
 		}
 	}
 	return strings.Join(strSlice, emptyString)

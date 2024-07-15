@@ -131,19 +131,18 @@ func (c *VPCConfig) explainConnectivityForVPC(src, dst string, srcNodes, dstNode
 	if err4 != nil {
 		return nil, err4
 	}
-
-	groupedLines, err5 := newGroupConnExplainability(c, &rulesAndDetails)
+	allRulesDetails, err5 := NewRulesDetails(c)
 	if err5 != nil {
 		return nil, err5
+	}
+	groupedLines, err6 := newGroupConnExplainability(c, allRulesDetails, &rulesAndDetails)
+	if err6 != nil {
+		return nil, err6
 	}
 	// the user has to be notified regarding an assumption we make about IKSNode's security group
 	hasIksNode := srcNodes[0].Kind() == ResourceTypeIKSNode || dstNodes[0].Kind() == ResourceTypeIKSNode
 	// computes rulesDetails which contains a list of all rules of the VPCConfig; these are used by explain printing
 	// functionality. we compute it here so that it is computed only once
-	allRulesDetails, err6 := NewRulesDetails(c)
-	if err6 != nil {
-		return nil, err6
-	}
 	return &Explanation{c, connQuery, &rulesAndDetails, src, dst, srcNodes, dstNodes,
 		hasIksNode, groupedLines.GroupedLines, allRulesDetails}, nil
 }
