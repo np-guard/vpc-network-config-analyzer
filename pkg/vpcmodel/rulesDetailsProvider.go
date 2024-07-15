@@ -91,7 +91,7 @@ func (rules *rulesDetails) listFilterWithAction(filterLayerName string,
 		tableName := rulesOfLayer[rulesInFilter.TableIndex].tableName
 		tablesToAction[tableName] = getFilterAction(rulesInFilter.RulesOfType)
 	}
-	return nil
+	return tablesToAction
 }
 
 // returns true of the filter allows traffic, false if it blocks traffic

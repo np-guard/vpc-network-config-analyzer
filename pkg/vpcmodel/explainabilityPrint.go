@@ -76,7 +76,7 @@ func (explanation *Explanation) String(verbose bool) string {
 	linesStr := make([]string, len(explanation.groupedLines))
 	groupedLines := explanation.groupedLines
 	for i, groupedLine := range groupedLines {
-		linesStr[i] += groupedLine.explainabilityLineStr(explanation.c, explanation.connQuery, verbose) +
+		linesStr[i] += groupedLine.explainabilityLineStr(explanation.c, explanation.connQuery, explanation.allRulesDetails, verbose) +
 			"------------------------------------------------------------------------------------------------------------------------\n"
 	}
 	sort.Strings(linesStr)
@@ -117,7 +117,8 @@ func explainMissingCrossVpcRouter(src, dst string, connQuery *connection.Set) st
 // the connection is blocked and only part of the path is printed then 2 is printed so that the relevant information
 // is provided regardless of where the is blocking
 // 4 is printed only in debug mode
-func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connection.Set, verbose bool) string {
+func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connection.Set, allRulesDetails *rulesDetails,
+	verbose bool) string {
 	expDetails := g.commonProperties.expDetails
 	filtersRelevant := g.commonProperties.expDetails.filtersRelevant
 	src, dst := g.src, g.dst
@@ -145,7 +146,7 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 
 	// resourceEffectHeader is "2" above
 	rules := expDetails.rules
-	egressRulesHeader, ingressRulesHeader := rules.filterEffectStr(c, filtersRelevant, needEgress, needIngress)
+	egressRulesHeader, ingressRulesHeader := rules.filterEffectStr(allRulesDetails, filtersRelevant, needEgress, needIngress)
 	resourceEffectHeader = loadBalancerHeader + externalRouterHeader + egressRulesHeader + crossRouterFilterHeader +
 		ingressRulesHeader + newLine
 
@@ -297,13 +298,13 @@ func existingConnectionStr(c *VPCConfig, connQuery *connection.Set, src, dst End
 // returns a couple of strings of an egress, ingress summary of each filter (table) effect; e.g.
 // "Egress: security group sg1-ky allows connection; network ACL acl1-ky blocks connection
 // Ingress: network ACL acl3-ky allows connection; security group sg1-ky allows connection"
-func (rules *rulesConnection) filterEffectStr(c *VPCConfig, filtersRelevant map[string]bool, needEgress,
+func (rules *rulesConnection) filterEffectStr(allRulesDetails *rulesDetails, filtersRelevant map[string]bool, needEgress,
 	needIngress bool) (egressRulesHeader, ingressRulesHeader string) {
 	if needEgress {
-		egressRulesHeader = rules.egressRules.summaryFiltersStr(c, filtersRelevant, false)
+		egressRulesHeader = rules.egressRules.summaryFiltersStr(allRulesDetails, filtersRelevant, false)
 	}
 	if needIngress {
-		ingressRulesHeader = rules.ingressRules.summaryFiltersStr(c, filtersRelevant, true)
+		ingressRulesHeader = rules.ingressRules.summaryFiltersStr(allRulesDetails, filtersRelevant, true)
 	}
 	if needEgress && egressRulesHeader != emptyString {
 		egressRulesHeader = "Egress: " + egressRulesHeader + newLine
@@ -337,20 +338,20 @@ func (rules *rulesConnection) ruleDetailsStr(c *VPCConfig, filtersRelevant map[s
 
 // returns a string with the effect of each filter by calling StringFilterEffect
 // e.g. "security group sg1-ky allows connection; network ACL acl1-ky blocks connection"
-func (rules rulesInLayers) summaryFiltersStr(c *VPCConfig, filtersRelevant map[string]bool, isIngress bool) string {
+func (rules rulesInLayers) summaryFiltersStr(allRulesDetails *rulesDetails, filtersRelevant map[string]bool,
+	isIngress bool) string {
 	filtersLayersToPrint := getLayersToPrint(filtersRelevant, isIngress)
 	strSlice := make([]string, len(filtersLayersToPrint))
 	for i, layer := range filtersLayersToPrint {
-		strSlice[i] = stringFilterEffect(c, layer, rules[layer])
+		strSlice[i] = stringFilterEffect(allRulesDetails, layer, rules[layer])
 	}
 	return strings.Join(strSlice, semicolon+space)
 }
 
 // for a given layer (e.g. nacl) and []RulesInTable describing ingress/egress rules,
 // returns a string with the effect of each filter, called by summaryFiltersStr
-func stringFilterEffect(c *VPCConfig, filterLayerName string, rules []RulesInTable) string {
-	filterLayer := c.GetFilterTrafficResourceOfKind(filterLayerName)
-	filtersToActionMap := filterLayer.ListFilterWithAction(rules)
+func stringFilterEffect(allRulesDetails *rulesDetails, filterLayerName string, rules []RulesInTable) string {
+	filtersToActionMap := allRulesDetails.listFilterWithAction(filterLayerName, rules)
 	strSlice := make([]string, len(filtersToActionMap))
 	i := 0
 	for name, effect := range filtersToActionMap {

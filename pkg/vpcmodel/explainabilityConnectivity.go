@@ -84,7 +84,8 @@ type Explanation struct {
 	// grouped connectivity result:
 	// grouping common explanation lines with common src/dst (internal node) and different dst/src (external node)
 	// [required due to computation with disjoint ip-blocks]
-	groupedLines []*groupedConnLine
+	groupedLines    []*groupedConnLine
+	allRulesDetails *rulesDetails // all rules of the VPCConfig with details; used by printing functionality
 }
 
 // ExplainConnectivity returns Explanation object, that explains connectivity of a single <src, dst> couple given by the user
@@ -137,8 +138,14 @@ func (c *VPCConfig) explainConnectivityForVPC(src, dst string, srcNodes, dstNode
 	}
 	// the user has to be notified regarding an assumption we make about IKSNode's security group
 	hasIksNode := srcNodes[0].Kind() == ResourceTypeIKSNode || dstNodes[0].Kind() == ResourceTypeIKSNode
+	// computes rulesDetails which contains a list of all rules of the VPCConfig; these are used by explain printing
+	// functionality. we compute it here so that it is computed only once
+	allRulesDetails, err6 := NewRulesDetails(c)
+	if err6 != nil {
+		return nil, err6
+	}
 	return &Explanation{c, connQuery, &rulesAndDetails, src, dst, srcNodes, dstNodes,
-		hasIksNode, groupedLines.GroupedLines}, nil
+		hasIksNode, groupedLines.GroupedLines, allRulesDetails}, nil
 }
 
 // computeExplainRules computes the egress and ingress rules contributing to the (existing or missing) connection <src, dst>
