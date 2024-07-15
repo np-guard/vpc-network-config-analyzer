@@ -431,7 +431,8 @@ func blockedPathStr(pathSlice []string) string {
 // returns a string with the filters (sg and nacl) part of the path above called separately for egress and for ingress
 //
 //nolint:gocyclo // better not split into two function
-func pathFiltersOfIngressOrEgressStr(allRulesDetails *rulesDetails, node EndpointElem, filtersRelevant map[string]bool, rules *rulesConnection,
+func pathFiltersOfIngressOrEgressStr(allRulesDetails *rulesDetails, node EndpointElem,
+	filtersRelevant map[string]bool, rules *rulesConnection,
 	isIngress, isExternal bool, router RoutingResource) []string {
 	pathSlice := []string{}
 	layers := getLayersToPrint(filtersRelevant, isIngress)
