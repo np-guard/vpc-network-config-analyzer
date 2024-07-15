@@ -239,6 +239,7 @@ const (
 
 // RulesInTable for a given layer (SGLayer/NACLLayer) or transit gateway contains
 // index of the SG/NACL/transit gateway filter and the indexes of the rules within it
+// todo: once transformation is completed - can be un-exported and moved to rulesDetailesProvided?
 type RulesInTable struct {
 	// todo: is the assumption that the set of rules will always be kept in a list a valid one?
 	TableIndex  int   // sg/nacl/transit connection index in sgList/naclList/tgwConnList
@@ -248,18 +249,17 @@ type RulesInTable struct {
 
 // RuleOfFilter a single rule in filter given the layer (SGLayer/NACLLayer)
 type RuleOfFilter struct {
-	LayerName  string             `json:"layer"`
-	FilterName string             `json:"table"`
-	RuleIndex  int                `json:"rule_index"`
-	RuleDesc   string             `json:"rule_description"`
-	IPBlocks   []*ipblock.IPBlock `json:"ip_blocks,omitempty"` // CIDR/IPBlocks referenced by the rule (src/dst/local...)
+	LayerName   string             `json:"layer"`
+	FilterName  string             `json:"table"` // todo: use map from FilterIndex to FilterName and delete?
+	FilterIndex int                `json:"_"`
+	RuleIndex   int                `json:"rule_index"`
+	RuleDesc    string             `json:"rule_description"`
+	IPBlocks    []*ipblock.IPBlock `json:"ip_blocks,omitempty"` // CIDR/IPBlocks referenced by the rule (src/dst/local...)
 }
 
-// map from LayerName to map from FilterName to map from rules indexes to rule description
-type rulesDetails map[string]map[string]map[int]string
-
-func NewRuleOfFilter(layerName, filterName, desc string, ruleIndex int, ipBlocks []*ipblock.IPBlock) *RuleOfFilter {
-	return &RuleOfFilter{LayerName: layerName, FilterName: filterName, RuleIndex: ruleIndex, RuleDesc: desc,
+func NewRuleOfFilter(layerName, filterName, desc string, filterIndex, ruleIndex int, ipBlocks []*ipblock.IPBlock) *RuleOfFilter {
+	return &RuleOfFilter{LayerName: layerName, FilterIndex: filterIndex, FilterName: filterName,
+		RuleIndex: ruleIndex, RuleDesc: desc,
 		IPBlocks: ipBlocks}
 }
 
@@ -321,6 +321,11 @@ type RoutingResource interface {
 // }
 
 type rulesBasedResource interface {
+	// StringDetailsOfRules gets, for a specific filter (sg/nacl), a struct with relevant rules in it,
+	// and prints the effect of each filter (e.g. security group sg1-ky allows connection)
+	// and the detailed list of relevant rules
 	stringDetailsOfRules(filterLayerName string, listRulesInFilter []RulesInTable) string
+	// ListFilterWithAction return map from filter's name to true if it allows traffic, false otherwise
+	// to be used by explainability printing functions
 	listFilterWithAction(filterLayerName string, listRulesInFilter []RulesInTable) map[string]bool
 }

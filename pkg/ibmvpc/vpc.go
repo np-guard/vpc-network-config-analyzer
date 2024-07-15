@@ -494,7 +494,7 @@ func (nl *NaclLayer) GetRules() ([]vpcmodel.RuleOfFilter, error) {
 		for _, rule := range naclRules {
 			ruleBlocks := []*ipblock.IPBlock{rule.src, rule.dst}
 			ruleDesc, _, _, _ := nacl.analyzer.getNACLRule(rule.index)
-			resRules = append(resRules, *vpcmodel.NewRuleOfFilter(networkACL, naclName, ruleDesc, rule.index,
+			resRules = append(resRules, *vpcmodel.NewRuleOfFilter(networkACL, naclName, ruleDesc, naclIndx, rule.index,
 				ruleBlocks))
 		}
 	}
@@ -517,6 +517,7 @@ func getHeaderRulesType(filter string, rType vpcmodel.RulesType) string {
 	}
 }
 
+// todo: delete when transformation is done
 // returns true of the filter allows traffic, false if it blocks traffic
 func getFilterAction(rType vpcmodel.RulesType) bool {
 	switch rType {
@@ -687,6 +688,7 @@ func (sgl *SecurityGroupLayer) StringDetailsOfRules(listRulesInFilter []vpcmodel
 	return strings.Join(listRulesInFilterSlice, "")
 }
 
+// todo: delete once transformation is completed
 func (sgl *SecurityGroupLayer) ListFilterWithAction(listRulesInFilter []vpcmodel.RulesInTable) (filters map[string]bool) {
 	filters = map[string]bool{}
 	for _, rulesInFilter := range listRulesInFilter {
@@ -720,7 +722,7 @@ func (sgl *SecurityGroupLayer) GetRules() ([]vpcmodel.RuleOfFilter, error) {
 				ruleBlocks = append(ruleBlocks, rule.local)
 			}
 			ruleDesc, _, _, _ := sg.analyzer.getSGRule(rule.index)
-			resRules = append(resRules, *vpcmodel.NewRuleOfFilter(securityGroup, sgName, ruleDesc, rule.index,
+			resRules = append(resRules, *vpcmodel.NewRuleOfFilter(securityGroup, sgName, ruleDesc, sgIndx, rule.index,
 				ruleBlocks))
 		}
 	}
