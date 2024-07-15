@@ -32,7 +32,7 @@ func NewRulesDetails(config *VPCConfig) (*rulesDetails, error) {
 					rulesDesc: map[int]string{},
 				}
 			}
-			thisLayerRules[rule.FilterIndex].rulesDesc[rule.FilterIndex] = rule.RuleDesc
+			thisLayerRules[rule.FilterIndex].rulesDesc[rule.RuleIndex] = rule.RuleDesc
 		}
 		resRulesDetails[layer] = thisLayerRules
 	}
