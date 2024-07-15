@@ -251,7 +251,7 @@ type RulesInTable struct {
 type RuleOfFilter struct {
 	LayerName   string             `json:"layer"`
 	FilterName  string             `json:"table"` // todo: use map from FilterIndex to FilterName and delete?
-	FilterIndex int                `json:"_"`
+	FilterIndex int                `json:"-"`
 	RuleIndex   int                `json:"rule_index"`
 	RuleDesc    string             `json:"rule_description"`
 	IPBlocks    []*ipblock.IPBlock `json:"ip_blocks,omitempty"` // CIDR/IPBlocks referenced by the rule (src/dst/local...)
