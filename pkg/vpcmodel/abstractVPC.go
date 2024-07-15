@@ -291,7 +291,7 @@ type RoutingResource interface {
 	// RouterDefined is this router defined for src and dst? while fip, pgw are defined for src, dst iff they enable traffic
 	// tgw may be defined for src, dst and deny traffic
 	RouterDefined(src, dst Node) bool
-	// StringDetailsOfRules returns a string with the prefix that determines the tgw related routing
+	// StringOfRouterRules returns a string with the prefix that determines the tgw related routing
 	// between src and dst; if non tgw relevant to <src, dst> returns an empty string
 	// Non-relevant for fip and pgw, returns always an empty string
 	StringOfRouterRules(listRulesInFilter []RulesInTable, verbose bool) (string, error)
