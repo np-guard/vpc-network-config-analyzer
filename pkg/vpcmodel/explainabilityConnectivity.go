@@ -131,7 +131,7 @@ func (c *VPCConfig) explainConnectivityForVPC(src, dst string, srcNodes, dstNode
 	if err4 != nil {
 		return nil, err4
 	}
-	allRulesDetails, err5 := NewRulesDetails(c)
+	allRulesDetails, err5 := newRulesDetails(c)
 	if err5 != nil {
 		return nil, err5
 	}

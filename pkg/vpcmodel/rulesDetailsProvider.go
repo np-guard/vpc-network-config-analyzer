@@ -22,7 +22,7 @@ type rulesDetails map[string]map[int]filterRulesDetails
 
 const doubleTab = "\t\t"
 
-func NewRulesDetails(config *VPCConfig) (*rulesDetails, error) {
+func newRulesDetails(config *VPCConfig) (*rulesDetails, error) {
 	resRulesDetails := rulesDetails{}
 	for _, layer := range FilterLayers {
 		thisLayerRules := make(map[int]filterRulesDetails)
@@ -45,10 +45,10 @@ func NewRulesDetails(config *VPCConfig) (*rulesDetails, error) {
 	return &resRulesDetails, nil
 }
 
-// stringDetailsOfRules gets, for a specific filter (sg/nacl), a struct with relevant rules in it,
+// stringDetailsOfLayer gets, for a specific filter (sg/nacl), a struct with relevant rules in it,
 // and prints the effect of each filter (e.g. security group sg1-ky allows connection)
 // and the detailed list of relevant rules
-func (rules *rulesDetails) stringDetailsOfRules(filterLayer string, listRulesInFilter []RulesInTable) string {
+func (rules *rulesDetails) stringDetailsOfLayer(filterLayer string, listRulesInFilter []RulesInTable) string {
 	listRulesInFilterSlice := make([]string, len(listRulesInFilter))
 	filterLayerName := FilterKindName(filterLayer)
 	rulesOfLayer := (*rules)[filterLayer]

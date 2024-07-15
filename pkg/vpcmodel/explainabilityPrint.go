@@ -509,7 +509,7 @@ func (rules rulesInLayers) rulesDetailsStr(allRulesDetails *rulesDetails, filter
 	var strSlice []string
 	for _, layer := range getLayersToPrint(filtersRelevant, isIngress) {
 		if rulesInLayer, ok := rules[layer]; ok {
-			strSlice = append(strSlice, allRulesDetails.stringDetailsOfRules(layer, rulesInLayer))
+			strSlice = append(strSlice, allRulesDetails.stringDetailsOfLayer(layer, rulesInLayer))
 		}
 	}
 	return strings.Join(strSlice, emptyString)
