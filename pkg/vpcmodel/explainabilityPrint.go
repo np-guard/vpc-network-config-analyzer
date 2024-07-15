@@ -151,7 +151,7 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 		ingressRulesHeader + newLine
 
 	// path in "3" above
-	path := "Path:\n" + pathStr(c, filtersRelevant, src, dst,
+	path := "Path:\n" + pathStr(allRulesDetails, filtersRelevant, src, dst,
 		ingressBlocking, egressBlocking, loadBalancerBlocking, externalRouter, crossVpcRouter, crossVpcConnection, rules) + newLine
 	// details is "4" above
 	egressRulesDetails, ingressRulesDetails := rules.ruleDetailsStr(c, filtersRelevant, needEgress, needIngress)
@@ -372,7 +372,7 @@ func stringFilterEffect(allRulesDetails *rulesDetails, filterLayerName string, r
 // if the connection does not exist. In the latter case the path is until the first block with the first block between ||
 // e.g.: "vsi1-ky[10.240.10.4] ->  SG sg1-ky -> subnet ... ->  ACL acl1-ky -> PublicGateway: public-gw-ky ->  Public Internet 161.26.0.0/16"
 // e.g.: "vsi1-ky[10.240.10.4] -> security group sg1-ky -> subnet1-ky -> | network ACL acl1-ky |"
-func pathStr(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointElem,
+func pathStr(allRulesDetails *rulesDetails, filtersRelevant map[string]bool, src, dst EndpointElem,
 	ingressBlocking, egressBlocking, loadBalancerBlocking bool,
 	externalRouter, crossVpcRouter RoutingResource, crossVpcConnection *connection.Set,
 	rules *rulesConnection) string {
@@ -384,7 +384,7 @@ func pathStr(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointEle
 		return blockedPathStr(pathSlice)
 	}
 	isExternal := src.IsExternal() || dst.IsExternal()
-	egressPath := pathFiltersOfIngressOrEgressStr(c, src, filtersRelevant, rules, false, isExternal, externalRouter)
+	egressPath := pathFiltersOfIngressOrEgressStr(allRulesDetails, src, filtersRelevant, rules, false, isExternal, externalRouter)
 	pathSlice = append(pathSlice, egressPath...)
 	externalRouterBlocking := isExternal && externalRouter == nil
 	crossVpcRouterInPath := crossVpcRouterRequired(src, dst) // if cross-vpc router needed but missing, will not get here
@@ -407,7 +407,8 @@ func pathStr(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointEle
 		}
 		pathSlice = append(pathSlice, dst.(InternalNodeIntf).Subnet().VPC().Name())
 	}
-	ingressPath := pathFiltersOfIngressOrEgressStr(c, dst, filtersRelevant, rules, true, isExternal, externalRouter)
+	ingressPath := pathFiltersOfIngressOrEgressStr(allRulesDetails, dst, filtersRelevant, rules, true,
+		isExternal, externalRouter)
 	pathSlice = append(pathSlice, ingressPath...)
 	if ingressBlocking {
 		return blockedPathStr(pathSlice)
@@ -430,16 +431,16 @@ func blockedPathStr(pathSlice []string) string {
 // returns a string with the filters (sg and nacl) part of the path above called separately for egress and for ingress
 //
 //nolint:gocyclo // better not split into two function
-func pathFiltersOfIngressOrEgressStr(c *VPCConfig, node EndpointElem, filtersRelevant map[string]bool, rules *rulesConnection,
+func pathFiltersOfIngressOrEgressStr(allRulesDetails *rulesDetails, node EndpointElem, filtersRelevant map[string]bool, rules *rulesConnection,
 	isIngress, isExternal bool, router RoutingResource) []string {
 	pathSlice := []string{}
 	layers := getLayersToPrint(filtersRelevant, isIngress)
 	for _, layer := range layers {
 		var allowFiltersOfLayer, denyTable string
 		if isIngress {
-			allowFiltersOfLayer, denyTable = pathFiltersSingleLayerStr(c, layer, rules.ingressRules[layer])
+			allowFiltersOfLayer, denyTable = pathFiltersSingleLayerStr(allRulesDetails, layer, rules.ingressRules[layer])
 		} else {
-			allowFiltersOfLayer, denyTable = pathFiltersSingleLayerStr(c, layer, rules.egressRules[layer])
+			allowFiltersOfLayer, denyTable = pathFiltersSingleLayerStr(allRulesDetails, layer, rules.egressRules[layer])
 		}
 		if allowFiltersOfLayer != emptyString {
 			pathSlice = append(pathSlice, allowFiltersOfLayer)
@@ -479,9 +480,8 @@ func FilterKindName(filterLayer string) string {
 
 // for a given filter layer (e.g. sg) returns a string of the allowing tables (note that denying tables are excluded),
 // and the name of the denying table, if any
-func pathFiltersSingleLayerStr(c *VPCConfig, filterLayerName string, rules []RulesInTable) (allowPath, denyTable string) {
-	filterLayer := c.GetFilterTrafficResourceOfKind(filterLayerName)
-	filtersToActionMap := filterLayer.ListFilterWithAction(rules)
+func pathFiltersSingleLayerStr(allRulesDetails *rulesDetails, filterLayerName string, rules []RulesInTable) (allowPath, denyTable string) {
+	filtersToActionMap := allRulesDetails.listFilterWithAction(filterLayerName, rules)
 	strSlice := []string{}
 	for name, effect := range filtersToActionMap {
 		if !effect {

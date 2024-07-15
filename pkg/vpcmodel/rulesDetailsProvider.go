@@ -80,7 +80,7 @@ func getHeaderRulesType(filter string, rType RulesType) string {
 	}
 }
 
-// ListFilterWithAction return, given a layer, map from each of the filter's names in the layer whose index is in
+// listFilterWithAction return, given a layer, map from each of the filter's names in the layer whose index is in
 // listRulesInFilter to true if it allows traffic, false otherwise.
 // To be used by explainability printing functions
 func (rules *rulesDetails) listFilterWithAction(filterLayerName string,

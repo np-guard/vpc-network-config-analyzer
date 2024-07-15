@@ -464,16 +464,6 @@ func (nl *NaclLayer) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInTa
 	return strListRulesInFilter
 }
 
-func (nl *NaclLayer) ListFilterWithAction(listRulesInFilter []vpcmodel.RulesInTable) (filters map[string]bool) {
-	filters = map[string]bool{}
-	for _, rulesInFilter := range listRulesInFilter {
-		nacl := nl.naclList[rulesInFilter.TableIndex]
-		name := nacl.Name()
-		filters[name] = getFilterAction(rulesInFilter.RulesOfType)
-	}
-	return filters
-}
-
 func (nl *NaclLayer) ReferencedIPblocks() []*ipblock.IPBlock {
 	res := []*ipblock.IPBlock{}
 	for _, n := range nl.naclList {
@@ -514,17 +504,6 @@ func getHeaderRulesType(filter string, rType vpcmodel.RulesType) string {
 		return filter + " allows connection with the following allow rules\n"
 	default:
 		return ""
-	}
-}
-
-// todo: delete when transformation is done
-// returns true of the filter allows traffic, false if it blocks traffic
-func getFilterAction(rType vpcmodel.RulesType) bool {
-	switch rType {
-	case vpcmodel.BothAllowDeny, vpcmodel.OnlyAllow:
-		return true
-	default:
-		return false
 	}
 }
 
@@ -686,17 +665,6 @@ func (sgl *SecurityGroupLayer) StringDetailsOfRules(listRulesInFilter []vpcmodel
 	}
 	sort.Strings(listRulesInFilterSlice)
 	return strings.Join(listRulesInFilterSlice, "")
-}
-
-// todo: delete once transformation is completed
-func (sgl *SecurityGroupLayer) ListFilterWithAction(listRulesInFilter []vpcmodel.RulesInTable) (filters map[string]bool) {
-	filters = map[string]bool{}
-	for _, rulesInFilter := range listRulesInFilter {
-		sg := sgl.sgList[rulesInFilter.TableIndex]
-		name := sg.Name()
-		filters[name] = getFilterAction(rulesInFilter.RulesOfType)
-	}
-	return filters
 }
 
 func (sgl *SecurityGroupLayer) ReferencedIPblocks() []*ipblock.IPBlock {

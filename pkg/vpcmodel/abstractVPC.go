@@ -279,10 +279,6 @@ type FilterTrafficResource interface {
 	// and the detailed list of relevant rules
 	// todo: replace by StringDetailsOfRules to rulesBasedResources interface
 	StringDetailsOfRules(listRulesInFilter []RulesInTable) string
-	// ListFilterWithAction return map from filter's name to true if it allows traffic, false otherwise
-	// to be used by explainability printing functions
-	// todo:move to rulesBasedResources interface
-	ListFilterWithAction(listRulesInFilter []RulesInTable) map[string]bool
 	ReferencedIPblocks() []*ipblock.IPBlock
 	ConnectivityMap() (map[string]*IPbasedConnectivityResult, error)
 	GetConnectivityOutputPerEachElemSeparately() string
@@ -305,27 +301,4 @@ type RoutingResource interface {
 	// between src and dst; if non tgw relevant to <src, dst> returns an empty string
 	// Non-relevant for fip and pgw, returns always an empty string
 	StringOfRouterRules(listRulesInFilter []RulesInTable, verbose bool) (string, error)
-}
-
-// todo: interface that captures all rule based resources
-// todo (currently with explainability functionality)
-// todo move common functionality here from FilterTrafficResource and RoutingResource
-// type rulesBasedResources interface {
-//	// StringOfRouterRules gets, for a specific resource (sg/nacl/tgw), a struct with relevant rules in it,
-//	// and prints the effect of each resource (e.g. security group sg1-ky allows connection)
-//	// and the detailed list of relevant rules
-//	StringOfRouterRules(listRulesInFilter []RulesInTable) string
-//	// ListFilterWithAction return map from resource's name to true if it allows traffic, false otherwise
-//	// to be used by explainability printing functions
-//	ListFilterWithAction(listRulesInFilter []RulesInTable) map[string]bool
-// }
-
-type rulesBasedResource interface {
-	// StringDetailsOfRules gets, for a specific filter (sg/nacl), a struct with relevant rules in it,
-	// and prints the effect of each filter (e.g. security group sg1-ky allows connection)
-	// and the detailed list of relevant rules
-	stringDetailsOfRules(filterLayerName string, listRulesInFilter []RulesInTable) string
-	// ListFilterWithAction return map from filter's name to true if it allows traffic, false otherwise
-	// to be used by explainability printing functions
-	listFilterWithAction(filterLayerName string, listRulesInFilter []RulesInTable) map[string]bool
 }
