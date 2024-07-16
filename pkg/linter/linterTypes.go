@@ -25,7 +25,7 @@ type linter interface {
 }
 
 type finding interface {
-	vpc() string
+	vpc() []string
 	string() string
 	toJSON() any
 }

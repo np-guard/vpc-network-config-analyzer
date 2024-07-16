@@ -23,7 +23,7 @@ func LinterExecute(configs map[string]*vpcmodel.VPCConfig) (issueFound bool, res
 		configs: configs,
 	}
 	linters := []linter{
-		&filterRuleSplitSubnet{basicLinter: blinter},
+		&filterRuleSplitSubnetLint{basicLinter: blinter},
 	}
 	strPerLint := []string{}
 	for _, thisLinter := range linters {
