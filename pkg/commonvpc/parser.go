@@ -55,6 +55,29 @@ type ResourcesContainer interface {
 		*vpcmodel.MultipleVPCConfigs, error)
 	VPCConfigsFromResources(vpcID, resourceGroup string, regions []string) (
 		*vpcmodel.MultipleVPCConfigs, error)
+	ParseResourcesFromFile(fileName string) error
+}
+
+func NewNetworkInterface(name, uid, zone, address, vsi string, vpc vpcmodel.VPCResourceIntf) (*NetworkInterface, error) {
+	intfNode := &NetworkInterface{
+		VPCResource: vpcmodel.VPCResource{
+			ResourceName: name,
+			ResourceUID:  uid,
+			ResourceType: ResourceTypeNetworkInterface,
+			Zone:         zone,
+			VPCRef:       vpc,
+			Region:       vpc.RegionName(),
+		},
+		InternalNode: vpcmodel.InternalNode{
+			AddressStr: address,
+		},
+		Vsi: vsi,
+	}
+
+	if err := intfNode.SetIPBlockFromAddress(); err != nil {
+		return nil, err
+	}
+	return intfNode, nil
 }
 
 func UpdateVPCSAddressRanges(vpcInternalAddressRange map[string]*ipblock.IPBlock,

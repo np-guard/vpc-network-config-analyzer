@@ -343,28 +343,6 @@ func updateFilteredOutNetworkInterfacesUIDs(instance *datamodel.Instance, filter
 	}
 }
 
-func newNetworkInterface(name, uid, zone, address, vsi string, vpc vpcmodel.VPCResourceIntf) (*commonvpc.NetworkInterface, error) {
-	intfNode := &commonvpc.NetworkInterface{
-		VPCResource: vpcmodel.VPCResource{
-			ResourceName: name,
-			ResourceUID:  uid,
-			ResourceType: commonvpc.ResourceTypeNetworkInterface,
-			Zone:         zone,
-			VPCRef:       vpc,
-			Region:       vpc.RegionName(),
-		},
-		InternalNode: vpcmodel.InternalNode{
-			AddressStr: address,
-		},
-		Vsi: vsi,
-	}
-
-	if err := intfNode.SetIPBlockFromAddress(); err != nil {
-		return nil, err
-	}
-	return intfNode, nil
-}
-
 func (rc *IBMresourcesContainer) getInstancesConfig(
 	subnetNameToNetIntf map[string][]*commonvpc.NetworkInterface,
 	res *vpcmodel.MultipleVPCConfigs,
@@ -402,7 +380,8 @@ func (rc *IBMresourcesContainer) getInstancesConfig(
 		for j := range instance.NetworkInterfaces {
 			netintf := instance.NetworkInterfaces[j]
 			// netintf has no CRN, thus using its ID for ResourceUID
-			intfNode, err := newNetworkInterface(*netintf.Name, *netintf.ID, *instance.Zone.Name, *netintf.PrimaryIP.Address, *instance.Name, vpc)
+			intfNode, err := commonvpc.NewNetworkInterface(*netintf.Name, *netintf.ID,
+				*instance.Zone.Name, *netintf.PrimaryIP.Address, *instance.Name, vpc)
 			if err != nil {
 				return err
 			}

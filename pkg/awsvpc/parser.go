@@ -158,28 +158,6 @@ func (rc *AWSresourcesContainer) getVPCconfig(
 	return nil
 }
 
-func newNetworkInterface(uid, zone, address, vsi string, vpc vpcmodel.VPCResourceIntf) (*commonvpc.NetworkInterface, error) {
-	intfNode := &commonvpc.NetworkInterface{
-		VPCResource: vpcmodel.VPCResource{
-			ResourceName: uid,
-			ResourceUID:  uid,
-			ResourceType: commonvpc.ResourceTypeNetworkInterface,
-			Zone:         zone,
-			VPCRef:       vpc,
-			Region:       vpc.RegionName(),
-		},
-		InternalNode: vpcmodel.InternalNode{
-			AddressStr: address,
-		},
-		Vsi: vsi,
-	}
-
-	if err := intfNode.SetIPBlockFromAddress(); err != nil {
-		return nil, err
-	}
-	return intfNode, nil
-}
-
 func (rc *AWSresourcesContainer) getInstancesConfig(
 
 	subnetIDToNetIntf map[string][]*commonvpc.NetworkInterface,
@@ -217,8 +195,8 @@ func (rc *AWSresourcesContainer) getInstancesConfig(
 		for j := range instance.NetworkInterfaces {
 			netintf := instance.NetworkInterfaces[j]
 			// netintf has no CRN, thus using its ID for ResourceUID
-			intfNode, err := newNetworkInterface(*netintf.NetworkInterfaceId, *instance.Placement.AvailabilityZone,
-				*netintf.PrivateIpAddress, *instance.InstanceId, vpc)
+			intfNode, err := commonvpc.NewNetworkInterface(*netintf.NetworkInterfaceId, *netintf.NetworkInterfaceId,
+				*instance.Placement.AvailabilityZone, *netintf.PrivateIpAddress, *instance.InstanceId, vpc)
 			if err != nil {
 				return err
 			}
