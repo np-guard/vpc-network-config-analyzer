@@ -331,7 +331,7 @@ func (nl *NaclLayer) ListFilterWithAction(listRulesInFilter []vpcmodel.RulesInTa
 	for _, rulesInFilter := range listRulesInFilter {
 		nacl := nl.naclList[rulesInFilter.Table]
 		name := nacl.Name()
-		filters[name] = getFilterAction(rulesInFilter.RulesOfType)
+		filters[name] = commonvpc.GetFilterAction(rulesInFilter.RulesOfType)
 	}
 	return filters
 }
@@ -361,16 +361,6 @@ func (nl *NaclLayer) GetRules() ([]vpcmodel.RuleOfFilter, error) {
 		}
 	}
 	return resRules, nil
-}
-
-// returns true of the filter allows traffic, false if it blocks traffic
-func getFilterAction(rType vpcmodel.RulesType) bool {
-	switch rType {
-	case vpcmodel.BothAllowDeny, vpcmodel.OnlyAllow:
-		return true
-	default:
-		return false
-	}
 }
 
 type NACL struct {

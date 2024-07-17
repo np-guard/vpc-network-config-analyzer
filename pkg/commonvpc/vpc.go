@@ -192,7 +192,7 @@ func GetHeaderRulesType(filter string, rType vpcmodel.RulesType) string {
 }
 
 // returns true of the filter allows traffic, false if it blocks traffic
-func getFilterAction(rType vpcmodel.RulesType) bool {
+func GetFilterAction(rType vpcmodel.RulesType) bool {
 	switch rType {
 	case vpcmodel.BothAllowDeny, vpcmodel.OnlyAllow:
 		return true
@@ -273,7 +273,7 @@ func (sgl *SecurityGroupLayer) ListFilterWithAction(listRulesInFilter []vpcmodel
 	for _, rulesInFilter := range listRulesInFilter {
 		sg := sgl.SgList[rulesInFilter.Table]
 		name := sg.Name()
-		filters[name] = getFilterAction(rulesInFilter.RulesOfType)
+		filters[name] = GetFilterAction(rulesInFilter.RulesOfType)
 	}
 	return filters
 }
