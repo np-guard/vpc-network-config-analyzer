@@ -43,8 +43,8 @@ func LinterExecute(configs map[string]*vpcmodel.VPCConfig) (issueFound bool, res
 		strPerLint = append(strPerLint, thisLintStr)
 	}
 	sort.Strings(strPerLint)
-	resString = strings.Join(strPerLint, "\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"+
-		"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n")
+	betweenLints := strings.Repeat("_", 200)
+	resString = strings.Join(strPerLint, "\n"+betweenLints+"\n\n")
 	fmt.Println(resString)
 	return issueFound, resString, nil
 }
