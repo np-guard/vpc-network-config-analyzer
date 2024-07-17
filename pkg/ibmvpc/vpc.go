@@ -21,7 +21,7 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
-const doubleTab = "\t\t"
+const networkACL = "network ACL"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -321,7 +321,7 @@ func (nl *NaclLayer) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInTa
 		nacl := nl.naclList[rulesInFilter.Table]
 		header := commonvpc.GetHeaderRulesType(vpcmodel.FilterKindName(nl.Kind())+" "+nacl.Name(), rulesInFilter.RulesOfType) +
 			nacl.analyzer.StringRules(rulesInFilter.Rules)
-		strListRulesInFilter += doubleTab + header
+		strListRulesInFilter += commonvpc.DoubleTab + header
 	}
 	return strListRulesInFilter
 }
@@ -342,6 +342,40 @@ func (nl *NaclLayer) ReferencedIPblocks() []*ipblock.IPBlock {
 		res = append(res, n.analyzer.referencedIPblocks...)
 	}
 	return res
+}
+
+func (nl *NaclLayer) GetRules() ([]vpcmodel.RuleOfFilter, error) {
+	resRules := []vpcmodel.RuleOfFilter{}
+	for naclIndx, nacl := range nl.naclList {
+		naclRules := nacl.analyzer.egressRules
+		naclRules = append(naclRules, nacl.analyzer.ingressRules...)
+		if nacl.analyzer.naclResource.Name == nil {
+			return nil, fmt.Errorf(commonvpc.EmptyNameError, networkACL, naclIndx)
+		}
+		naclName := *nacl.analyzer.naclResource.Name
+		for _, rule := range naclRules {
+			ruleBlocks := []*ipblock.IPBlock{rule.src, rule.dst}
+			ruleDesc, _, _, _ := nacl.analyzer.getNACLRule(rule.index)
+			resRules = append(resRules, *vpcmodel.NewRuleOfFilter(networkACL, naclName, ruleDesc, rule.index,
+				ruleBlocks))
+		}
+	}
+	return resRules, nil
+}
+
+func getHeaderRulesType(filter string, rType vpcmodel.RulesType) string {
+	switch rType {
+	case vpcmodel.NoRules:
+		return filter + " blocks connection since there are no relevant allow rules\n"
+	case vpcmodel.OnlyDeny:
+		return filter + " blocks connection with the following deny rules:\n"
+	case vpcmodel.BothAllowDeny:
+		return filter + " allows connection with the following allow and deny rules\n"
+	case vpcmodel.OnlyAllow:
+		return filter + " allows connection with the following allow rules\n"
+	default:
+		return ""
+	}
 }
 
 // returns true of the filter allows traffic, false if it blocks traffic
@@ -764,7 +798,7 @@ func (tgw *TransitGateway) stringPrefixFiltersVerbose(transitConn *datamodel.Tra
 		}
 		thisPrefixStr = fmt.Sprintf("\ttransit gateway %s %s connection via transit connection %s "+
 			"with the following prefix filter\n%s%s\n", tgw.Name(), action, *transitConn.Name,
-			doubleTab, tgwRouterFilterDetails)
+			commonvpc.DoubleTab, tgwRouterFilterDetails)
 		strRes = append(strRes, thisPrefixStr)
 	}
 	return strRes, nil

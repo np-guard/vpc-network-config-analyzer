@@ -47,6 +47,10 @@ func getAllConnSet() *connection.Set {
 	return connection.All()
 }
 
+func (sga *SpecificAnalyzer) Name() *string {
+	return sga.SgResource.Name
+}
+
 // getIPBlockResult gets an cidr, address or name of the remote/local rule object, and returns it's IPBlock
 func (sga *SpecificAnalyzer) getIPBlockResult(cidr, address, name *string) (*ipblock.IPBlock, string, error) {
 	var ipBlock *ipblock.IPBlock

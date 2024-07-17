@@ -81,7 +81,7 @@ func (c *VPCConfig) getFiltersAllowedConnsBetweenNodesPerDirectionAndLayer(
 	src, dst Node,
 	isIngress bool,
 	layer string) (*connection.Set, error) {
-	filter := c.getFilterTrafficResourceOfKind(layer)
+	filter := c.GetFilterTrafficResourceOfKind(layer)
 	if filter == nil {
 		return AllConns(), nil
 	}

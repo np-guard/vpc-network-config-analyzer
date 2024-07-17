@@ -1,0 +1,1 @@
+no lint "Firewall rules implying different connectivity for different endpoints within a subnet" issues

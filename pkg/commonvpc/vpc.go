@@ -17,6 +17,11 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
+const DoubleTab = "\t\t"
+const EmptyNameError = "empty name for %s indexed %d"
+
+const securityGroup = "security group"
+
 // not used currently for aws , todo: check
 type Region struct {
 	Name string
@@ -281,6 +286,28 @@ func (sgl *SecurityGroupLayer) ReferencedIPblocks() []*ipblock.IPBlock {
 	return res
 }
 
+func (sgl *SecurityGroupLayer) GetRules() ([]vpcmodel.RuleOfFilter, error) {
+	resRules := []vpcmodel.RuleOfFilter{}
+	for sgIndx, sg := range sgl.SgList {
+		sgRules := sg.Analyzer.egressRules
+		sgRules = append(sgRules, sg.Analyzer.ingressRules...)
+		if sg.Analyzer.SgAnalyzer.Name() == nil {
+			return nil, fmt.Errorf(EmptyNameError, securityGroup, sgIndx)
+		}
+		sgName := *sg.Analyzer.SgAnalyzer.Name()
+		for _, rule := range sgRules {
+			ruleBlocks := []*ipblock.IPBlock{rule.Remote.Cidr}
+			if rule.Local != nil {
+				ruleBlocks = append(ruleBlocks, rule.Local)
+			}
+			ruleDesc, _, _, _ := sg.Analyzer.SgAnalyzer.GetSGRule(rule.Index)
+			resRules = append(resRules, *vpcmodel.NewRuleOfFilter(securityGroup, sgName, ruleDesc, rule.index,
+				ruleBlocks))
+		}
+	}
+	return resRules, nil
+}
+
 type SecurityGroup struct {
 	vpcmodel.VPCResource
 	Analyzer *SGAnalyzer
@@ -289,11 +316,11 @@ type SecurityGroup struct {
 }
 
 func (sg *SecurityGroup) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *connection.Set {
-	memberStrAddress, targetIPBlock := sg.getMemberTargetStrAddress(src, dst, isIngress)
+	memberIPBlock, targetIPBlock, memberStrAddress := sg.getMemberTargetStrAddress(src, dst, isIngress)
 	if _, ok := sg.Members[memberStrAddress]; !ok {
 		return connection.None() // connectivity not affected by this SG resource - input node is not its member
 	}
-	return sg.Analyzer.allowedConnectivity(targetIPBlock, ipblock.GetCidrAll(), isIngress)
+	return sg.Analyzer.allowedConnectivity(targetIPBlock, memberIPBlock, isIngress)
 }
 
 // unifiedMembersIPBlock returns an *IPBlock object with union of all members IPBlock
@@ -309,16 +336,16 @@ func (sg *SecurityGroup) unifiedMembersIPBlock() (unifiedMembersIPBlock *ipblock
 // rulesFilterInConnectivity list of SG rules contributing to the connectivity
 func (sg *SecurityGroup) rulesFilterInConnectivity(src, dst vpcmodel.Node, conn *connection.Set,
 	isIngress bool) (tableRelevant bool, rules []int, err error) {
-	memberStrAddress, targetIPBlock := sg.getMemberTargetStrAddress(src, dst, isIngress)
+	memberIPBlock, targetIPBlock, memberStrAddress := sg.getMemberTargetStrAddress(src, dst, isIngress)
 	if _, ok := sg.Members[memberStrAddress]; !ok {
 		return false, nil, nil // connectivity not affected by this SG resource - input node is not its member
 	}
-	rules, err = sg.Analyzer.rulesFilterInConnectivity(targetIPBlock, ipblock.GetCidrAll(), conn, isIngress)
+	rules, err = sg.Analyzer.rulesFilterInConnectivity(targetIPBlock, memberIPBlock, conn, isIngress)
 	return true, rules, err
 }
 
 func (sg *SecurityGroup) getMemberTargetStrAddress(src, dst vpcmodel.Node,
-	isIngress bool) (memberStrAddress string, targetIPBlock *ipblock.IPBlock) {
+	isIngress bool) (memberIPBlock, targetIPBlock *ipblock.IPBlock, memberStrAddress string) {
 	var member, target vpcmodel.Node
 	if isIngress {
 		member, target = dst, src
@@ -326,5 +353,5 @@ func (sg *SecurityGroup) getMemberTargetStrAddress(src, dst vpcmodel.Node,
 		member, target = src, dst
 	}
 	// TODO: member is expected to be internal node (validate?) [could use member.(vpcmodel.InternalNodeIntf).Address()]
-	return member.CidrOrAddress(), target.IPBlock()
+	return member.IPBlock(), target.IPBlock(), member.CidrOrAddress()
 }

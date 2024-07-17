@@ -246,6 +246,20 @@ type RulesInTable struct {
 	RulesOfType RulesType
 }
 
+// RuleOfFilter a single rule in filter given the layer (SGLayer/NACLLayer)
+type RuleOfFilter struct {
+	LayerName  string             `json:"layer"`
+	FilterName string             `json:"table"`
+	RuleIndex  int                `json:"rule_index"`
+	RuleDesc   string             `json:"rule_description"`
+	IPBlocks   []*ipblock.IPBlock `json:"ip_blocks,omitempty"` // CIDR/IPBlocks referenced by the rule (src/dst/local...)
+}
+
+func NewRuleOfFilter(layerName, filterName, desc string, ruleIndex int, ipBlocks []*ipblock.IPBlock) *RuleOfFilter {
+	return &RuleOfFilter{LayerName: layerName, FilterName: filterName, RuleIndex: ruleIndex, RuleDesc: desc,
+		IPBlocks: ipBlocks}
+}
+
 // FilterTrafficResource capture allowed traffic between 2 endpoints
 type FilterTrafficResource interface {
 	VPCResourceIntf
@@ -254,6 +268,9 @@ type FilterTrafficResource interface {
 	// RulesInConnectivity computes the list of rules of a given filter that contributes to the connection between src and dst
 	// if conn is also given the above is per connection
 	RulesInConnectivity(src, dst Node, conn *connection.Set, isIngress bool) ([]RulesInTable, []RulesInTable, error)
+	// GetRules gets a list of all rules with description
+	// todo to replace StringDetailsOfRules
+	GetRules() ([]RuleOfFilter, error)
 	// StringDetailsOfRules gets, for a specific filter (sg/nacl), a struct with relevant rules in it,
 	// and prints the effect of each filter (e.g. security group sg1-ky allows connection)
 	// and the detailed list of relevant rules

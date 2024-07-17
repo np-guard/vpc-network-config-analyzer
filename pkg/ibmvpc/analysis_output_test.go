@@ -911,9 +911,8 @@ func compareOrRegenerateOutputPerTest(t *testing.T,
 			compareTextualResult(expectedOutputStr, actualOutput)
 			t.Fatalf("output mismatch expected-vs-actual on test name: %s, use case: %d", tt.name, uc)
 		}
-	}
-
-	if mode == outputGeneration {
+	} else if mode == outputGeneration {
+		fmt.Printf("outputGeneration\n")
 		// create or override expected output file
 		if _, err := vpcmodel.WriteToFile(actualOutput, tt.expectedOutput[uc]); err != nil {
 			return err

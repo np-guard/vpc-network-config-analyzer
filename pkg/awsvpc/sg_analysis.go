@@ -49,6 +49,10 @@ func getTCPUDPConns(p string, srcPortMin, srcPortMax, dstPortMin, dstPortMax int
 	return connection.TCPorUDPConnection(protocol, srcPortMin, srcPortMax, dstPortMin, dstPortMax)
 }
 
+func (sga *SpecificAnalyzer) Name() *string {
+	return sga.sgResource.GroupName
+}
+
 func (sga *SpecificAnalyzer) getProtocolAllRule(ruleObj *types.IpPermission, direction string) (
 	ruleStr string, ruleRes *commonvpc.SGRule, err error) {
 	ruleRes = &commonvpc.SGRule{}

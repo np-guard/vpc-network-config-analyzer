@@ -30,6 +30,7 @@ type SpecificAnalyzer interface {
 	SetSGmap(sgMap map[string]*SecurityGroup)
 	GetNumberOfRules() int
 	GetSGRule(index int) (ruleStr string, ruleRes *SGRule, isIngress bool, err error)
+	Name() *string
 }
 
 func NewSGAnalyzer(analyzer SpecificAnalyzer) *SGAnalyzer {
