@@ -111,11 +111,6 @@ type splitRuleSubnetJSON struct {
 	SplitSubnets []subnetJSON          `json:"splitted_subnets"`
 }
 
-type subnetJSON struct {
-	Name string `json:"name"`
-	CIDR string `json:"cidr"`
-}
-
 func (finding *splitRuleSubnet) toJSON() any {
 	rule := finding.rule
 	splitSubnetsJSON := make([]subnetJSON, len(finding.splitSubnets))

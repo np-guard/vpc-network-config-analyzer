@@ -101,6 +101,23 @@ func subnetStr(subnet vpcmodel.Subnet) string {
 	return fmt.Sprintf("subnet %s of cidr %s", subnet.Name(), subnet.CIDR())
 }
 
+// for json: details of overlapping subnets
+type overlapSubnetsJSON struct {
+	OverlapSubnets []subnetJSON `json:"couple_overlap_subnets"`
+	OverlapCidr    string       `json:"overlap_cidr"`
+}
+
+type subnetJSON struct {
+	Name    string `json:"name"`
+	CIDR    string `json:"cidr"`
+	VpcName string `json:"vpc_name,omitempty"`
+}
+
 func (finding *overlapSubnets) toJSON() any {
-	return nil
+	overlapsSubnetsJSON := make([]subnetJSON, 2)
+	for i, overlapSubnet := range finding.overlapSubnets {
+		overlapsSubnetsJSON[i] = subnetJSON{Name: overlapSubnet.Name(), VpcName: overlapSubnet.VPC().Name(), CIDR: overlapSubnet.CIDR()}
+	}
+	res := overlapSubnetsJSON{OverlapSubnets: overlapsSubnetsJSON, OverlapCidr: finding.overlapIPBlocks.String()}
+	return res
 }
