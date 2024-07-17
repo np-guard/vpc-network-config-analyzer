@@ -2,3 +2,6 @@
 ------------------------------------------------------------------------------------------------
 In VPC test-vpc1-ky, network ACL acl3-ky rule's indexed 1 splits subnet subnet3-ky (10.240.30.0/24). Splitting rule details: index: 1, direction: outbound , src: 10.240.30.0/31 , dst: 10.240.20.0/24, conn: all, action: allow
 In VPC test-vpc1-ky, network ACL acl3-ky rule's indexed 3 splits subnet subnet3-ky (10.240.30.0/24). Splitting rule details: index: 3, direction: inbound , src: 10.240.20.0/24 , dst: 10.240.30.0/31, conn: all, action: allow
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+no lint "Overlapping CIDR ranges between different subnets" issues
