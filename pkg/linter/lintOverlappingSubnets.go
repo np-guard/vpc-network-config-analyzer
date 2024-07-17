@@ -34,10 +34,16 @@ func (lint *overlappingSubnetsLint) lintDescription() string {
 }
 
 func (lint *overlappingSubnetsLint) check() error {
-	//for _, config := range lint.configs {
-	//
-	//}
+	allSubnets := []vpcmodel.Subnet{}
+	for _, config := range lint.configs {
+		allSubnets = append(allSubnets, config.Subnets...)
+	}
+	// todo look for overlapping couples
 	return nil
+}
+
+func subnetsOverlap(subnets [2]vpcmodel.Subnet) bool {
+	return false
 }
 
 ///////////////////////////////////////////////////////////
