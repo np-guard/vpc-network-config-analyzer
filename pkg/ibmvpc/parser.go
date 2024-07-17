@@ -123,7 +123,7 @@ func (rc *IBMresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup st
 	// skip resources configured outside that VPC
 	shouldSkipVpcIds := rc.filterByVpcResourceGroupAndRegions(vpcID, resourceGroup, regions)
 
-	err = rc.GetVPCconfig(res, shouldSkipVpcIds, regionToStructMap)
+	err = rc.getVPCconfig(res, shouldSkipVpcIds, regionToStructMap)
 	if err != nil {
 		return nil, err
 	}
@@ -131,13 +131,13 @@ func (rc *IBMresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup st
 	var vpcInternalAddressRange map[string]*ipblock.IPBlock // map from vpc name to its internal address range
 
 	subnetNameToNetIntf := map[string][]*commonvpc.NetworkInterface{}
-	err = rc.GetInstancesConfig(subnetNameToNetIntf, res, filteredOut, shouldSkipVpcIds)
+	err = rc.getInstancesConfig(subnetNameToNetIntf, res, filteredOut, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
 	// pgw can be attached to multiple subnets in the zone
 	pgwToSubnet := map[string][]*commonvpc.Subnet{} // map from pgw name to its attached subnet(s)
-	vpcInternalAddressRange, err = rc.GetSubnetsConfig(res, pgwToSubnet, subnetNameToNetIntf, shouldSkipVpcIds)
+	vpcInternalAddressRange, err = rc.getSubnetsConfig(res, pgwToSubnet, subnetNameToNetIntf, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
@@ -147,35 +147,35 @@ func (rc *IBMresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup st
 		return nil, err
 	}
 
-	err = rc.GetIKSnodesConfig(res, shouldSkipVpcIds)
+	err = rc.getIKSnodesConfig(res, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
 
-	err = rc.GetPgwConfig(res, pgwToSubnet, shouldSkipVpcIds)
+	err = rc.getPgwConfig(res, pgwToSubnet, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
 
-	err = rc.GetFipConfig(res, filteredOut, shouldSkipVpcIds)
+	err = rc.getFipConfig(res, filteredOut, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
 
-	err = rc.GetVPEconfig(res, shouldSkipVpcIds)
+	err = rc.getVPEconfig(res, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
-	err = rc.GetLoadBalancersConfig(res, shouldSkipVpcIds)
+	err = rc.getLoadBalancersConfig(res, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
-	err = rc.GetSGconfig(res, shouldSkipVpcIds)
+	err = rc.getSGconfig(res, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
 
-	err = rc.GetNACLconfig(res, shouldSkipVpcIds)
+	err = rc.getNACLconfig(res, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
@@ -185,13 +185,13 @@ func (rc *IBMresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup st
 		return nil, err
 	}
 
-	tgws := rc.GetTgwObjects(res, resourceGroup, regions, regionToStructMap)
+	tgws := rc.getTgwObjects(res, resourceGroup, regions, regionToStructMap)
 	err = addTGWbasedConfigs(tgws, res)
 	if err != nil {
 		return nil, err
 	}
 
-	err = rc.GetRoutingTables(res, shouldSkipVpcIds)
+	err = rc.getRoutingTables(res, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
@@ -203,7 +203,7 @@ func (rc *IBMresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup st
 
 // getRoutingTables parses routing tables from rc and adds their generated objects to
 // the relevant vpc configs within res
-func (rc *IBMresourcesContainer) GetRoutingTables(
+func (rc *IBMresourcesContainer) getRoutingTables(
 	res *vpcmodel.MultipleVPCConfigs,
 	skipByVPC map[string]bool) error {
 	for _, rt := range rc.RoutingTableList {
@@ -365,7 +365,7 @@ func newNetworkInterface(name, uid, zone, address, vsi string, vpc vpcmodel.VPCR
 	return intfNode, nil
 }
 
-func (rc *IBMresourcesContainer) GetInstancesConfig(
+func (rc *IBMresourcesContainer) getInstancesConfig(
 	subnetNameToNetIntf map[string][]*commonvpc.NetworkInterface,
 	res *vpcmodel.MultipleVPCConfigs,
 	filteredOutUIDs map[string]bool,
@@ -419,7 +419,7 @@ func (rc *IBMresourcesContainer) GetInstancesConfig(
 	return nil
 }
 
-func (rc *IBMresourcesContainer) GetSubnetsConfig(
+func (rc *IBMresourcesContainer) getSubnetsConfig(
 	res *vpcmodel.MultipleVPCConfigs,
 	pgwToSubnet map[string][]*commonvpc.Subnet,
 	subnetNameToNetIntf map[string][]*commonvpc.NetworkInterface,
@@ -508,7 +508,7 @@ func newPGW(pgwName, pgwCRN, pgwZone string, pgwToSubnet map[string][]*commonvpc
 	} // TODO: get cidr from fip of the pgw
 }
 
-func (rc *IBMresourcesContainer) GetPgwConfig(
+func (rc *IBMresourcesContainer) getPgwConfig(
 	res *vpcmodel.MultipleVPCConfigs,
 	pgwToSubnet map[string][]*commonvpc.Subnet,
 	skipByVPC map[string]bool,
@@ -562,7 +562,7 @@ func newFIP(fipName, fipCRN, fipZone, fipAddress string, vpc *commonvpc.VPC, src
 	}
 }
 
-func (rc *IBMresourcesContainer) GetFipConfig(
+func (rc *IBMresourcesContainer) getFipConfig(
 	res *vpcmodel.MultipleVPCConfigs,
 	filteredOutUIDs map[string]bool,
 	skipByVPC map[string]bool,
@@ -641,7 +641,7 @@ func getZonesAndAddressPrefixes(vpc *datamodel.VPC) (res map[string][]string) {
 	return res
 }
 
-func (rc *IBMresourcesContainer) GetVPCconfig(
+func (rc *IBMresourcesContainer) getVPCconfig(
 	res *vpcmodel.MultipleVPCConfigs,
 	skipByVPC map[string]bool,
 	regionToStructMap map[string]*commonvpc.Region) error {
@@ -709,7 +709,7 @@ func parseSGTargets(sgResource *commonvpc.SecurityGroup,
 	}
 }
 
-func (rc *IBMresourcesContainer) GetSGconfig(
+func (rc *IBMresourcesContainer) getSGconfig(
 	res *vpcmodel.MultipleVPCConfigs,
 	skipByVPC map[string]bool,
 ) error {
@@ -771,7 +771,7 @@ func (rc *IBMresourcesContainer) GetSGconfig(
 	return nil
 }
 
-func (rc *IBMresourcesContainer) GetNACLconfig(
+func (rc *IBMresourcesContainer) getNACLconfig(
 	res *vpcmodel.MultipleVPCConfigs,
 	skipByVPC map[string]bool,
 ) error {
@@ -880,7 +880,7 @@ func (tgw *TransitGateway) addVPC(vpc *commonvpc.VPC, tgwConn *datamodel.Transit
 	}
 }
 
-func (rc *IBMresourcesContainer) GetTgwObjects(
+func (rc *IBMresourcesContainer) getTgwObjects(
 	res *vpcmodel.MultipleVPCConfigs,
 	resourceGroup string,
 	regions []string,
@@ -1110,7 +1110,7 @@ func getSubnetFromObject(subnetObj vpc1.SubnetReference, vpcConfig *vpcmodel.VPC
 	return subnet, nil
 }
 
-func (rc *IBMresourcesContainer) GetVPEconfig(
+func (rc *IBMresourcesContainer) getVPEconfig(
 	res *vpcmodel.MultipleVPCConfigs,
 	skipByVPC map[string]bool,
 ) (err error) {
@@ -1221,7 +1221,7 @@ func addIKSNodesAsSGTarget(sg *datamodel.SecurityGroup, iksCluster *datamodel.IK
 
 // assuming getIKSnodesConfig is called before getSGconfig,
 // because it updates the input SG targets with missing IKS nodes, if there are such
-func (rc *IBMresourcesContainer) GetIKSnodesConfig(res *vpcmodel.MultipleVPCConfigs,
+func (rc *IBMresourcesContainer) getIKSnodesConfig(res *vpcmodel.MultipleVPCConfigs,
 	skipByVPC map[string]bool) error {
 	for _, iksCluster := range rc.IKSClusters {
 		sg := findSGWithClusterName(rc, *iksCluster.ID)
@@ -1343,7 +1343,7 @@ func addExternalNodes(config *vpcmodel.VPCConfig, vpcInternalAddressRange *ipblo
 
 // ////////////////////////////////////////////////////////////////
 // Load Balancer Parsing:
-func (rc *IBMresourcesContainer) GetLoadBalancersConfig(
+func (rc *IBMresourcesContainer) getLoadBalancersConfig(
 	res *vpcmodel.MultipleVPCConfigs,
 	skipByVPC map[string]bool,
 ) error {

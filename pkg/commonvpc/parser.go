@@ -51,30 +51,10 @@ const (
 )
 
 type ResourcesContainer interface {
-	ParseResourcesFromFile(fileName string) error
 	VpcConfigsFromFiles(fileNames []string, vpcID, resourceGroup string, regions []string) (
 		*vpcmodel.MultipleVPCConfigs, error)
 	VPCConfigsFromResources(vpcID, resourceGroup string, regions []string) (
 		*vpcmodel.MultipleVPCConfigs, error)
-	GetInstancesConfig(
-		subnetNameToNetIntf map[string][]*NetworkInterface,
-		res *vpcmodel.MultipleVPCConfigs,
-		filteredOutUIDs map[string]bool,
-		skipByVPC map[string]bool,
-	) error
-	GetSubnetsConfig(
-		res *vpcmodel.MultipleVPCConfigs,
-		pgwToSubnet map[string][]*Subnet,
-		subnetNameToNetIntf map[string][]*NetworkInterface,
-		skipByVPC map[string]bool,
-	) (vpcInternalAddressRange map[string]*ipblock.IPBlock, err error)
-	GetVPCconfig(
-		res *vpcmodel.MultipleVPCConfigs,
-		skipByVPC map[string]bool,
-		regionToStructMap map[string]*Region) error
-	GetSGconfig(
-		res *vpcmodel.MultipleVPCConfigs,
-		skipByVPC map[string]bool) error
 }
 
 func UpdateVPCSAddressRanges(vpcInternalAddressRange map[string]*ipblock.IPBlock,

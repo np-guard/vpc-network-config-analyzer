@@ -16,6 +16,7 @@ import (
 	"github.com/np-guard/cloud-resource-collector/pkg/factory"
 	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/awsvpc"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/ibmvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
@@ -55,16 +56,16 @@ func vpcConfigsFromFiles(fileNames []string, inArgs *inArgs) (*vpcmodel.Multiple
 	if err != nil {
 		return nil, err
 	}
+	var rc commonvpc.ResourcesContainer
 	switch provider {
 	case common.IBM:
-		rc := ibmvpc.IBMresourcesContainer{}
-		return rc.VpcConfigsFromFiles(fileNames, inArgs.vpc, inArgs.resourceGroup, inArgs.regionList)
+		rc = &ibmvpc.IBMresourcesContainer{}
 	case common.AWS:
-		rc := awsvpc.AWSresourcesContainer{}
-		return rc.VpcConfigsFromFiles(fileNames, inArgs.vpc, inArgs.resourceGroup, inArgs.regionList)
+		rc = &awsvpc.AWSresourcesContainer{}
 	default:
 		return nil, fmt.Errorf(notSupportedYet, provider)
 	}
+	return rc.VpcConfigsFromFiles(fileNames, inArgs.vpc, inArgs.resourceGroup, inArgs.regionList)
 }
 
 func vpcConfigsFromAccount(inArgs *inArgs) (*vpcmodel.MultipleVPCConfigs, error) {
