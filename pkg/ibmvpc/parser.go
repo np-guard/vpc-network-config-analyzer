@@ -359,19 +359,8 @@ func (rc *IBMresourcesContainer) getInstancesConfig(
 		if err != nil {
 			return err
 		}
-		vsiNode := &commonvpc.Vsi{
-			VPCResource: vpcmodel.VPCResource{
-				ResourceName: *instance.Name,
-				ResourceUID:  *instance.CRN,
-				Zone:         *instance.Zone.Name,
-				ResourceType: commonvpc.ResourceTypeVSI,
-				VPCRef:       vpc,
-				Region:       vpc.RegionName(),
-			},
-			VPCnodes: []vpcmodel.Node{},
-		}
-
-		if err := commonvpc.AddZone(*instance.Zone.Name, vpcUID, res); err != nil {
+		vsiNode, err := commonvpc.NewVsi(*instance.Name, *instance.CRN, *instance.Zone.Name, vpc, res)
+		if err != nil {
 			return err
 		}
 		vpcConfig := res.Config(vpcUID)
@@ -412,43 +401,18 @@ func (rc *IBMresourcesContainer) getSubnetsConfig(
 		if skipByVPC[*subnet.VPC.CRN] {
 			continue
 		}
-		subnetNodes := []vpcmodel.Node{}
-		vpcUID := *subnet.VPC.CRN
-		vpc, err := commonvpc.GetVPCObjectByUID(res, vpcUID)
+		subnetNode, err := commonvpc.UpdateConfigWithSubnet(*subnet.Name,
+			*subnet.CRN, *subnet.Zone.Name, *subnet.Ipv4CIDRBlock,
+			*subnet.VPC.CRN, res, vpcInternalAddressRange, subnetNameToNetIntf)
 		if err != nil {
 			return nil, err
 		}
-
-		subnetNode, err := commonvpc.NewSubnet(*subnet.Name, *subnet.CRN, *subnet.Zone.Name, *subnet.Ipv4CIDRBlock, vpc)
-		if err != nil {
-			return nil, err
-		}
-		if vpcInternalAddressRange[vpcUID] == nil {
-			vpcInternalAddressRange[vpcUID] = subnetNode.IPblock
-		} else {
-			vpcInternalAddressRange[vpcUID] = vpcInternalAddressRange[vpcUID].Union(subnetNode.IPblock)
-		}
-		res.Config(vpcUID).Subnets = append(res.Config(vpcUID).Subnets, subnetNode)
-		if err := commonvpc.AddZone(*subnet.Zone.Name, vpcUID, res); err != nil {
-			return nil, err
-		}
-		res.Config(vpcUID).UIDToResource[subnetNode.ResourceUID] = subnetNode
 		if subnet.PublicGateway != nil {
 			if _, ok := pgwToSubnet[*subnet.PublicGateway.Name]; !ok {
 				pgwToSubnet[*subnet.PublicGateway.Name] = []*commonvpc.Subnet{}
 			}
 			pgwToSubnet[*subnet.PublicGateway.Name] = append(pgwToSubnet[*subnet.PublicGateway.Name], subnetNode)
 		}
-		// add pointers from networkInterface to its subnet, given the current subnet created
-		if subnetInterfaces, ok := subnetNameToNetIntf[*subnet.Name]; ok {
-			for _, netIntf := range subnetInterfaces {
-				netIntf.SubnetResource = subnetNode
-				subnetNodes = append(subnetNodes, netIntf)
-			}
-			subnetNode.VPCnodes = subnetNodes
-		}
-		// add subnet to its vpc's list of subnets
-		vpc.SubnetsList = append(vpc.SubnetsList, subnetNode)
 	}
 	return vpcInternalAddressRange, nil
 }
@@ -705,22 +669,8 @@ func (rc *IBMresourcesContainer) getSGconfig(
 			return err
 		}
 
-		sgResource := &commonvpc.SecurityGroup{
-			VPCResource: vpcmodel.VPCResource{
-				ResourceName: *sg.Name,
-				ResourceUID:  *sg.CRN,
-				ResourceType: commonvpc.ResourceTypeSG,
-				VPCRef:       vpc,
-				Region:       vpc.RegionName(),
-			},
-			Analyzer: commonvpc.NewSGAnalyzer(NewSpecificAnalyzer(&sg.SecurityGroup)), Members: map[string]vpcmodel.Node{},
-		}
-		if _, ok := sgMap[vpcUID]; !ok {
-			sgMap[vpcUID] = map[string]*commonvpc.SecurityGroup{}
-		}
-		sgMap[vpcUID][*sg.Name] = sgResource
+		sgResource := commonvpc.NewSGResource(*sg.Name, *sg.ID, vpc, NewSpecificAnalyzer(&sg.SecurityGroup), sgMap, sgLists)
 		parseSGTargets(sgResource, &sg.SecurityGroup, res.Config(vpcUID))
-		sgLists[vpcUID] = append(sgLists[vpcUID], sgResource)
 	}
 	for vpcUID, sgListInstance := range sgLists {
 		vpc, err := commonvpc.GetVPCObjectByUID(res, vpcUID)

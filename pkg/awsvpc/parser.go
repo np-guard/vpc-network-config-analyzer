@@ -159,7 +159,6 @@ func (rc *AWSresourcesContainer) getVPCconfig(
 }
 
 func (rc *AWSresourcesContainer) getInstancesConfig(
-
 	subnetIDToNetIntf map[string][]*commonvpc.NetworkInterface,
 	netIntfToSGs map[string][]types.GroupIdentifier,
 	res *vpcmodel.MultipleVPCConfigs,
@@ -174,19 +173,8 @@ func (rc *AWSresourcesContainer) getInstancesConfig(
 		if err != nil {
 			return err
 		}
-		vsiNode := &commonvpc.Vsi{
-			VPCResource: vpcmodel.VPCResource{
-				ResourceName: *instance.InstanceId,
-				ResourceUID:  *instance.InstanceId,
-				Zone:         *instance.Placement.AvailabilityZone,
-				ResourceType: commonvpc.ResourceTypeVSI,
-				VPCRef:       vpc,
-				Region:       vpc.RegionName(),
-			},
-			VPCnodes: []vpcmodel.Node{},
-		}
-
-		if err := commonvpc.AddZone(*instance.Placement.AvailabilityZone, vpcUID, res); err != nil {
+		vsiNode, err := commonvpc.NewVsi(*instance.InstanceId, *instance.InstanceId, *instance.Placement.AvailabilityZone, vpc, res)
+		if err != nil {
 			return err
 		}
 		vpcConfig := res.Config(vpcUID)
@@ -227,38 +215,12 @@ func (rc *AWSresourcesContainer) getSubnetsConfig(
 		if skipByVPC[*subnet.VpcId] {
 			continue
 		}
-		subnetNodes := []vpcmodel.Node{}
-		vpcUID := *subnet.VpcId
-		vpc, err := commonvpc.GetVPCObjectByUID(res, vpcUID)
+		_, err := commonvpc.UpdateConfigWithSubnet(*subnet.SubnetId,
+			*subnet.SubnetId, *subnet.AvailabilityZone, *subnet.CidrBlock,
+			*subnet.VpcId, res, vpcInternalAddressRange, subnetNameToNetIntf)
 		if err != nil {
 			return nil, err
 		}
-
-		subnetNode, err := commonvpc.NewSubnet(*subnet.SubnetId, *subnet.SubnetId, *subnet.AvailabilityZone, *subnet.CidrBlock, vpc)
-		if err != nil {
-			return nil, err
-		}
-		if vpcInternalAddressRange[vpcUID] == nil {
-			vpcInternalAddressRange[vpcUID] = subnetNode.IPblock
-		} else {
-			vpcInternalAddressRange[vpcUID] = vpcInternalAddressRange[vpcUID].Union(subnetNode.IPblock)
-		}
-		res.Config(vpcUID).Subnets = append(res.Config(vpcUID).Subnets, subnetNode)
-		if err := commonvpc.AddZone(*subnet.AvailabilityZone, vpcUID, res); err != nil {
-			return nil, err
-		}
-		res.Config(vpcUID).UIDToResource[subnetNode.ResourceUID] = subnetNode
-
-		// add pointers from networkInterface to its subnet, given the current subnet created
-		if subnetInterfaces, ok := subnetNameToNetIntf[*subnet.SubnetId]; ok {
-			for _, netIntf := range subnetInterfaces {
-				netIntf.SubnetResource = subnetNode
-				subnetNodes = append(subnetNodes, netIntf)
-			}
-			subnetNode.VPCnodes = subnetNodes
-		}
-		// add subnet to its vpc's list of subnets
-		vpc.SubnetsList = append(vpc.SubnetsList, subnetNode)
 	}
 	return vpcInternalAddressRange, nil
 }
@@ -298,22 +260,7 @@ func (rc *AWSresourcesContainer) getSGconfig(
 		if err != nil {
 			return err
 		}
-
-		sgResource := &commonvpc.SecurityGroup{
-			VPCResource: vpcmodel.VPCResource{
-				ResourceName: *sg.GroupId,
-				ResourceUID:  *sg.GroupId,
-				ResourceType: commonvpc.ResourceTypeSG,
-				VPCRef:       vpc,
-				Region:       vpc.RegionName(),
-			},
-			Analyzer: commonvpc.NewSGAnalyzer(NewSpecificAnalyzer(sg)), Members: map[string]vpcmodel.Node{},
-		}
-		if _, ok := sgMap[vpcUID]; !ok {
-			sgMap[vpcUID] = map[string]*commonvpc.SecurityGroup{}
-		}
-		sgMap[vpcUID][*sg.GroupId] = sgResource
-		sgLists[vpcUID] = append(sgLists[vpcUID], sgResource)
+		commonvpc.NewSGResource(*sg.GroupId, *sg.GroupId, vpc, NewSpecificAnalyzer(sg), sgMap, sgLists)
 	}
 	parseSGTargets(sgMap, netIntfToSGs, res)
 	for vpcUID, sgListInstance := range sgLists {

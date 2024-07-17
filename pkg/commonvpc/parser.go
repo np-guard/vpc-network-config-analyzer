@@ -80,6 +80,83 @@ func NewNetworkInterface(name, uid, zone, address, vsi string, vpc vpcmodel.VPCR
 	return intfNode, nil
 }
 
+func NewVsi(name, uid, zone string, vpc vpcmodel.VPCResourceIntf, res *vpcmodel.MultipleVPCConfigs) (*Vsi, error) {
+	vsiNode := &Vsi{
+		VPCResource: vpcmodel.VPCResource{
+			ResourceName: name,
+			ResourceUID:  uid,
+			Zone:         zone,
+			ResourceType: ResourceTypeVSI,
+			VPCRef:       vpc,
+			Region:       vpc.RegionName(),
+		},
+		VPCnodes: []vpcmodel.Node{},
+	}
+
+	if err := AddZone(zone, vpc.UID(), res); err != nil {
+		return nil, err
+	}
+	return vsiNode, nil
+}
+
+func UpdateConfigWithSubnet(name, uid, zone, cidr, vpcUID string, res *vpcmodel.MultipleVPCConfigs,
+	vpcInternalAddressRange map[string]*ipblock.IPBlock,
+	subnetNameToNetIntf map[string][]*NetworkInterface) (*Subnet, error) {
+	subnetNodes := []vpcmodel.Node{}
+	vpc, err := GetVPCObjectByUID(res, vpcUID)
+	if err != nil {
+		return nil, err
+	}
+
+	subnetNode, err := NewSubnet(name, uid, zone, cidr, vpc)
+	if err != nil {
+		return nil, err
+	}
+	if vpcInternalAddressRange[vpcUID] == nil {
+		vpcInternalAddressRange[vpcUID] = subnetNode.IPblock
+	} else {
+		vpcInternalAddressRange[vpcUID] = vpcInternalAddressRange[vpcUID].Union(subnetNode.IPblock)
+	}
+	res.Config(vpcUID).Subnets = append(res.Config(vpcUID).Subnets, subnetNode)
+	if err := AddZone(zone, vpcUID, res); err != nil {
+		return nil, err
+	}
+	res.Config(vpcUID).UIDToResource[subnetNode.ResourceUID] = subnetNode
+
+	// add pointers from networkInterface to its subnet, given the current subnet created
+	if subnetInterfaces, ok := subnetNameToNetIntf[name]; ok {
+		for _, netIntf := range subnetInterfaces {
+			netIntf.SubnetResource = subnetNode
+			subnetNodes = append(subnetNodes, netIntf)
+		}
+		subnetNode.VPCnodes = subnetNodes
+	}
+	// add subnet to its vpc's list of subnets
+	vpc.SubnetsList = append(vpc.SubnetsList, subnetNode)
+	return subnetNode, nil
+}
+
+func NewSGResource(name, uid string, vpc vpcmodel.VPC, analyzer SpecificAnalyzer,
+	sgMap map[string]map[string]*SecurityGroup,
+	sgLists map[string][]*SecurityGroup) *SecurityGroup {
+	sgResource := &SecurityGroup{
+		VPCResource: vpcmodel.VPCResource{
+			ResourceName: name,
+			ResourceUID:  uid,
+			ResourceType: ResourceTypeSG,
+			VPCRef:       vpc,
+			Region:       vpc.RegionName(),
+		},
+		Analyzer: NewSGAnalyzer(analyzer), Members: map[string]vpcmodel.Node{},
+	}
+	if _, ok := sgMap[vpc.UID()]; !ok {
+		sgMap[vpc.UID()] = map[string]*SecurityGroup{}
+	}
+	sgMap[vpc.UID()][name] = sgResource
+	sgLists[vpc.UID()] = append(sgLists[vpc.UID()], sgResource)
+	return sgResource
+}
+
 func UpdateVPCSAddressRanges(vpcInternalAddressRange map[string]*ipblock.IPBlock,
 	vpcsMap *vpcmodel.MultipleVPCConfigs) error {
 	// assign to each vpc object its internal address range, as inferred from its subnets
