@@ -24,6 +24,7 @@ func LinterExecute(configs map[string]*vpcmodel.VPCConfig) (issueFound bool, res
 	}
 	linters := []linter{
 		&filterRuleSplitSubnetLint{basicLinter: blinter},
+		&overlappingSubnetsLint{basicLinter: blinter},
 	}
 	strPerLint := []string{}
 	for _, thisLinter := range linters {
