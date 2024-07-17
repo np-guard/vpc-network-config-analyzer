@@ -68,7 +68,7 @@ func (lint *overlappingSubnetsLint) check() error {
 }
 
 ///////////////////////////////////////////////////////////
-// finding interface implementation for splitRuleSubnet
+// finding interface implementation for overlapSubnets
 //////////////////////////////////////////////////////////
 
 func (finding *overlapSubnets) vpc() []string {
