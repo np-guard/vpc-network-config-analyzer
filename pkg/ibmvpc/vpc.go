@@ -363,21 +363,6 @@ func (nl *NaclLayer) GetRules() ([]vpcmodel.RuleOfFilter, error) {
 	return resRules, nil
 }
 
-func getHeaderRulesType(filter string, rType vpcmodel.RulesType) string {
-	switch rType {
-	case vpcmodel.NoRules:
-		return filter + " blocks connection since there are no relevant allow rules\n"
-	case vpcmodel.OnlyDeny:
-		return filter + " blocks connection with the following deny rules:\n"
-	case vpcmodel.BothAllowDeny:
-		return filter + " allows connection with the following allow and deny rules\n"
-	case vpcmodel.OnlyAllow:
-		return filter + " allows connection with the following allow rules\n"
-	default:
-		return ""
-	}
-}
-
 // returns true of the filter allows traffic, false if it blocks traffic
 func getFilterAction(rType vpcmodel.RulesType) bool {
 	switch rType {

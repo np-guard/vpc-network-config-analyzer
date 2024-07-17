@@ -25,13 +25,13 @@ func TestVPCResourceModelRegion(t *testing.T) {
 
 	vpcConfigs := vpcmodel.NewMultipleVPCConfigs("cloud name")
 	regionToStructMap := make(map[string]*commonvpc.Region)
-	err = rc.getVPCconfig(vpcConfigs, nil, regionToStructMap)
+	err = rc.GetVPCconfig(vpcConfigs, nil, regionToStructMap)
 	require.Nilf(t, err, "err: %s", err)
 
 	vpcConfig := vpcConfigs.Config("crn:41")
 	require.Equal(t, vpcConfig.VPC.(*commonvpc.VPC).Region().Name, "us-east")
 
-	tgws := rc.getTgwObjects(vpcConfigs, "", nil, regionToStructMap)
+	tgws := rc.GetTgwObjects(vpcConfigs, "", nil, regionToStructMap)
 	tgw := tgws["crn:595"]
 	require.Equal(t, tgw.Region().Name, "us-south")
 }

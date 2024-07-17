@@ -80,7 +80,7 @@ func (rc *AWSresourcesContainer) VpcConfigsFromFiles(fileNames []string, vpcID, 
 	return vpcConfigs, nil
 }
 
-func filterByVpc(rc *AWSresourcesContainer, vpcID string) map[string]bool {
+func (rc *AWSresourcesContainer) filterByVpc(vpcID string) map[string]bool {
 	shouldSkipVpcIds := make(map[string]bool)
 	for _, vpc := range rc.VpcsList {
 		if vpcID != "" && *vpc.VpcId != vpcID {
@@ -99,9 +99,9 @@ func (rc *AWSresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup st
 
 	// map to filter resources, if certain VPC, resource-group or region list to analyze is specified,
 	// skip resources configured outside that VPC
-	shouldSkipVpcIds := filterByVpc(rc, vpcID)
+	shouldSkipVpcIds := rc.filterByVpc(vpcID)
 
-	err = getVPCconfig(rc, res, shouldSkipVpcIds)
+	err = rc.GetVPCconfig(res, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
@@ -110,11 +110,11 @@ func (rc *AWSresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup st
 
 	subnetNameToNetIntf := map[string][]*commonvpc.NetworkInterface{}
 	netIntfToSGs := map[string][]types.GroupIdentifier{}
-	err = getInstancesConfig(rc, subnetNameToNetIntf, netIntfToSGs, res, shouldSkipVpcIds)
+	err = rc.GetInstancesConfig(subnetNameToNetIntf, netIntfToSGs, res, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
-	vpcInternalAddressRange, err = getSubnetsConfig(res, subnetNameToNetIntf, rc, shouldSkipVpcIds)
+	vpcInternalAddressRange, err = rc.GetSubnetsConfig(res, subnetNameToNetIntf, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +124,7 @@ func (rc *AWSresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup st
 		return nil, err
 	}
 
-	err = getSGconfig(rc, res, shouldSkipVpcIds, netIntfToSGs)
+	err = rc.GetSGconfig(res, shouldSkipVpcIds, netIntfToSGs)
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +134,7 @@ func (rc *AWSresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup st
 	return res, nil
 }
 
-func getVPCconfig(rc *AWSresourcesContainer,
+func (rc *AWSresourcesContainer) GetVPCconfig(
 	res *vpcmodel.MultipleVPCConfigs,
 	skipByVPC map[string]bool) error {
 	for _, vpc := range rc.VpcsList {
@@ -180,8 +180,8 @@ func newNetworkInterface(uid, zone, address, vsi string, vpc vpcmodel.VPCResourc
 	return intfNode, nil
 }
 
-func getInstancesConfig(
-	rc *AWSresourcesContainer,
+func (rc *AWSresourcesContainer) GetInstancesConfig(
+
 	subnetIDToNetIntf map[string][]*commonvpc.NetworkInterface,
 	netIntfToSGs map[string][]types.GroupIdentifier,
 	res *vpcmodel.MultipleVPCConfigs,
@@ -236,10 +236,10 @@ func getInstancesConfig(
 	return nil
 }
 
-func getSubnetsConfig(
+func (rc *AWSresourcesContainer) GetSubnetsConfig(
 	res *vpcmodel.MultipleVPCConfigs,
 	subnetNameToNetIntf map[string][]*commonvpc.NetworkInterface,
-	rc *AWSresourcesContainer,
+
 	skipByVPC map[string]bool,
 ) (vpcInternalAddressRange map[string]*ipblock.IPBlock, err error) {
 	vpcInternalAddressRange = map[string]*ipblock.IPBlock{}
@@ -304,7 +304,7 @@ func parseSGTargets(sgResources map[string]map[string]*commonvpc.SecurityGroup,
 	}
 }
 
-func getSGconfig(rc *AWSresourcesContainer,
+func (rc *AWSresourcesContainer) GetSGconfig(
 	res *vpcmodel.MultipleVPCConfigs,
 	skipByVPC map[string]bool,
 	netIntfToSGs map[string][]types.GroupIdentifier,
