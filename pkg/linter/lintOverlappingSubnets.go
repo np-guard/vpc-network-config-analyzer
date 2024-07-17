@@ -8,6 +8,7 @@ package linter
 
 import (
 	"fmt"
+
 	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
@@ -57,9 +58,7 @@ func (lint *overlappingSubnetsLint) check() error {
 			intersectIPBlock := subnet1IPBlock.Intersect(subnet2IPBlock)
 			if !intersectIPBlock.IsEmpty() {
 				if subnetStr(subnet1) > subnetStr(subnet2) {
-					temp := subnet1
-					subnet1 = subnet2
-					subnet2 = temp
+					subnet1, subnet2 = subnet2, subnet1
 				}
 				lint.addFinding(&overlapSubnets{overlapSubnets: [2]vpcmodel.Subnet{subnet1, subnet2}, overlapIPBlocks: intersectIPBlock})
 			}
@@ -90,7 +89,7 @@ func (finding *overlapSubnets) string() string {
 	}
 	overlapStr := ""
 	if finding.overlapIPBlocks.String() == subnet1.CIDR() && subnet1.CIDR() == subnet2.CIDR() {
-		overlapStr = fmt.Sprintf(" overlap in the entire subnets' CIDR range")
+		overlapStr = " overlap in the entire subnets' CIDR range"
 	} else {
 		overlapStr = fmt.Sprintf(" overlap in %s", finding.overlapIPBlocks.String())
 	}
