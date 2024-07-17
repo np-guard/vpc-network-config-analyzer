@@ -56,6 +56,11 @@ func (lint *overlappingSubnetsLint) check() error {
 			}
 			intersectIPBlock := subnet1IPBlock.Intersect(subnet2IPBlock)
 			if !intersectIPBlock.IsEmpty() {
+				if subnetStr(subnet1) > subnetStr(subnet2) {
+					temp := subnet1
+					subnet1 = subnet2
+					subnet2 = temp
+				}
 				lint.addFinding(&overlapSubnets{overlapSubnets: [2]vpcmodel.Subnet{subnet1, subnet2}, overlapIPBlocks: intersectIPBlock})
 			}
 		}
@@ -83,7 +88,13 @@ func (finding *overlapSubnets) string() string {
 		subnetsStr = fmt.Sprintf("VPC %s's %s and VPC %s's %s ", subnet1.VPC().Name(), subnetStr(subnet1),
 			subnet2.VPC().Name(), subnetStr(subnet2))
 	}
-	overlapStr := fmt.Sprintf(" overlaps in %s", finding.overlapIPBlocks.String())
+	overlapStr := ""
+	if finding.overlapIPBlocks.String() == subnet1.CIDR() && subnet1.CIDR() == subnet2.CIDR() {
+		overlapStr = fmt.Sprintf(" overlap in the entire subnets' CIDR range")
+	} else {
+		overlapStr = fmt.Sprintf(" overlap in %s", finding.overlapIPBlocks.String())
+	}
+
 	return subnetsStr + overlapStr
 }
 
