@@ -51,7 +51,7 @@ func (lint *basicLinter) string(lintDesc string) string {
 	sort.Strings(findingsRes)
 	header := fmt.Sprintf("%q %s\n", lintDesc, issues) +
 		strings.Repeat("-", len(lintDesc)+len(issues)+3) + "\n"
-	return header + strings.Join(findingsRes, "")
+	return header + strings.Join(findingsRes, "\n")
 }
 
 func (lint *basicLinter) toJSON() []any {

@@ -83,7 +83,7 @@ func (finding *overlapSubnets) string() string {
 		subnetsStr = fmt.Sprintf("VPC %s's %s and VPC %s's %s ", subnet1.VPC().Name(), subnetStr(subnet1),
 			subnet2.VPC().Name(), subnetStr(subnet2))
 	}
-	overlapStr := fmt.Sprintf(" overlaps in %s", finding.overlapIPBlocks.String()) + "\n"
+	overlapStr := fmt.Sprintf(" overlaps in %s", finding.overlapIPBlocks.String())
 	return subnetsStr + overlapStr
 }
 

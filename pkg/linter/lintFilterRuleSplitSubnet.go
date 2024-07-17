@@ -100,7 +100,8 @@ func (finding *splitRuleSubnet) string() string {
 		subnetStr = "subnet " + subnetStr
 	}
 	return fmt.Sprintf("In VPC %s, %s %s rule's indexed %d splits %s. Splitting rule details: %s",
-		finding.vpc()[0], finding.rule.LayerName, rule.FilterName, rule.RuleIndex, subnetStr, rule.RuleDesc)
+		finding.vpc()[0], finding.rule.LayerName, rule.FilterName, rule.RuleIndex, subnetStr,
+		strings.ReplaceAll(rule.RuleDesc, "\n", ""))
 }
 
 // for json: a rule with the list of subnets it splits
