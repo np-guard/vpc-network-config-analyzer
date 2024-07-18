@@ -951,6 +951,12 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 
 	tgwConnList := slices.Clone(c.TransitConnectionList)
 	for i, tgwConn := range c.TransitConnectionList {
+
+		if tgwConn.TransitGateway.Crn == nil || tgwConn.TransitGateway.Name == nil || tgwConn.NetworkID == nil {
+			logging.Warnf("skipping TransitConnection %s, missing TransitGateway crn/name/networkID", *tgwConn.Name)
+			continue
+		}
+
 		tgwUID := *tgwConn.TransitGateway.Crn
 		tgwName := *tgwConn.TransitGateway.Name
 		vpcUID := *tgwConn.NetworkID
