@@ -940,6 +940,7 @@ func (tgw *TransitGateway) addVPC(vpc *VPC, tgwConn *datamodel.TransitConnection
 	}
 }
 
+//nolint:gocyclo // keep this function without splits
 func getTgwObjects(c *datamodel.ResourcesContainerModel,
 	res *vpcmodel.MultipleVPCConfigs,
 	resourceGroup string,
@@ -951,7 +952,6 @@ func getTgwObjects(c *datamodel.ResourcesContainerModel,
 
 	tgwConnList := slices.Clone(c.TransitConnectionList)
 	for i, tgwConn := range c.TransitConnectionList {
-
 		if tgwConn.TransitGateway.Crn == nil || tgwConn.TransitGateway.Name == nil || tgwConn.NetworkID == nil {
 			logging.Warnf("skipping TransitConnection %s, missing TransitGateway crn/name/networkID", *tgwConn.Name)
 			continue
