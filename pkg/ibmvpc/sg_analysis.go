@@ -275,6 +275,9 @@ func (sga *SGAnalyzer) getSGrules(sgObj *vpc1.SecurityGroup) (ingressRules, egre
 		if ruleObj == nil {
 			continue
 		}
+		if ruleObj.remote.cidr.IsEmpty() && ruleObj.remote.sgName != "" {
+			logging.Warnf("in SG %s, rule index %d: could not find remote SG %s or its attached network interfaces", *sga.sgResource.Name, index, ruleObj.remote.sgName)
+		}
 		if isIngress {
 			ingressRules = append(ingressRules, ruleObj)
 		} else {
