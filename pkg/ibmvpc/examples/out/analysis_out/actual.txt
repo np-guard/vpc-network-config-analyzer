@@ -1,0 +1,5 @@
+Explaining connectivity from ky-vsi1-subnet20 to ky-vsi0-subnet0
+================================================================
+
+No connections from ky-vsi1-subnet20 to ky-vsi0-subnet0;
+All connections will be blocked since source and destination are in different VPCs with no transit gateway to connect them

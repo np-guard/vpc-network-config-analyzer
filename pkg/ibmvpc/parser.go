@@ -808,6 +808,34 @@ func (tgw *TransitGateway) addVPC(vpc *commonvpc.VPC, tgwConn *datamodel.Transit
 		}
 	}
 }
+
+func filterTGW(resourceGroup, tgwUID string, regions []string, hasTgwConfig bool, tgwFromConfig *datamodel.TransitGateway) bool {
+	// filtering by resourceGroup
+	if resourceGroup != "" {
+		if hasTgwConfig { // if there is a transit gateway in the config file
+			if *tgwFromConfig.ResourceGroup.ID != resourceGroup {
+				return true
+			}
+		} else {
+			logging.Warnf("skipping transit gateway %s - unknown resource-group\n", tgwUID)
+			return true // to avoid having this tgw's same warning issued again from another transitConnection
+		}
+	}
+
+	// filtering by region
+	if len(regions) > 0 {
+		if hasTgwConfig { // if there is a transit gateway in the config file
+			if !slices.Contains(regions, *tgwFromConfig.Location) {
+				return true
+			}
+		} else {
+			logging.Warnf("skipping transit gateway %s - unknown region\n", tgwUID)
+			return true // to avoid having this tgw's same warning issued again from another transitConnection
+		}
+	}
+	return false
+}
+
 func (rc *IBMresourcesContainer) getTgwObjects(
 	res *vpcmodel.MultipleVPCConfigs,
 	resourceGroup string,
@@ -832,38 +860,12 @@ func (rc *IBMresourcesContainer) getTgwObjects(
 		tgwName := *tgwConn.TransitGateway.Name
 		vpcUID := *tgwConn.NetworkID
 
-		if _, ok := tgwToSkip[tgwUID]; ok {
+		if toSkip, ok := tgwToSkip[tgwUID]; ok && toSkip {
 			continue
 		}
 		tgwFromConfig, hasTgwConfig := tgwIDToTgw[tgwUID]
+		tgwToSkip[tgwUID] = filterTGW(resourceGroup, tgwUID, regions, hasTgwConfig, tgwFromConfig)
 
-		// filtering by resourceGroup
-		if resourceGroup != "" {
-			if hasTgwConfig { // if there is a transit gateway in the config file
-				if *tgwFromConfig.ResourceGroup.ID != resourceGroup {
-					tgwToSkip[tgwUID] = true
-					continue
-				}
-			} else {
-				logging.Warnf("skipping transit gateway %s - unknown resource-group\n", tgwUID)
-				tgwToSkip[tgwUID] = true // to avoid having this tgw's same warning issued again from another transitConnection
-				continue
-			}
-		}
-
-		// filtering by region
-		if len(regions) > 0 {
-			if hasTgwConfig { // if there is a transit gateway in the config file
-				if !slices.Contains(regions, *tgwFromConfig.Location) {
-					tgwToSkip[tgwUID] = true
-					continue
-				}
-			} else {
-				logging.Warnf("skipping transit gateway %s - unknown region\n", tgwUID)
-				tgwToSkip[tgwUID] = true // to avoid having this tgw's same warning issued again from another transitConnection
-				continue
-			}
-		}
 		vpc, err := commonvpc.GetVPCObjectByUID(res, vpcUID)
 		if err != nil {
 			logging.Warnf("in the configuration of transit gateway %s, skipping vpc %s - unknown VPC\n", tgwUID, vpcUID)

@@ -7,10 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package commonvpc
 
 import (
-	"fmt"
 	"slices"
-	"sort"
-	"strings"
 
 	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/ipblock"
@@ -60,15 +57,6 @@ type SGRule struct {
 	Connections *connection.Set
 	Index       int // index of original rule in *vpc1.SecurityGroup.Rules
 	Local       *ipblock.IPBlock
-}
-
-func (cr *ConnectivityResult) string() string {
-	res := []string{}
-	for t, conn := range cr.AllowedConns {
-		res = append(res, fmt.Sprintf("remote: %s, conn: %s", t.ToIPRanges(), conn.String()))
-	}
-	sort.Strings(res)
-	return strings.Join(res, "\n")
 }
 
 func analyzeSGRules(rules []*SGRule, isIngress bool) *ConnectivityResult {
