@@ -808,7 +808,6 @@ func (tgw *TransitGateway) addVPC(vpc *commonvpc.VPC, tgwConn *datamodel.Transit
 		}
 	}
 }
-
 func (rc *IBMresourcesContainer) getTgwObjects(
 	res *vpcmodel.MultipleVPCConfigs,
 	resourceGroup string,
@@ -820,6 +819,15 @@ func (rc *IBMresourcesContainer) getTgwObjects(
 
 	tgwConnList := slices.Clone(rc.TransitConnectionList)
 	for i, tgwConn := range rc.TransitConnectionList {
+		if tgwConn.TransitGateway.Crn == nil || tgwConn.TransitGateway.Name == nil || tgwConn.NetworkID == nil {
+			var tgConnName string
+			if tgwConn.Name != nil {
+				tgConnName = *tgwConn.Name
+			}
+			logging.Warnf("skipping TransitConnection (%s), missing TransitGateway crn/name/networkID", tgConnName)
+			continue
+		}
+
 		tgwUID := *tgwConn.TransitGateway.Crn
 		tgwName := *tgwConn.TransitGateway.Name
 		vpcUID := *tgwConn.NetworkID

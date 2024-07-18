@@ -264,6 +264,11 @@ var tests = []*vpcGeneralTest{
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
 		format:      vpcmodel.Text,
 	},
+	{
+		inputConfig: "sg_testing_3_with_empty_remote",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:      vpcmodel.Text,
+	},
 
 	// batch2: only vsi-level use-case, with grouping , text format
 	{
@@ -779,7 +784,6 @@ func TestAllWithGeneration(t *testing.T) {
 	fmt.Println("done")
 }
 */
-
 func TestAllWithComparison(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range tests {

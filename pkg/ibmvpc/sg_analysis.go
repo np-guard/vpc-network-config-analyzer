@@ -16,6 +16,7 @@ import (
 	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
 )
 
 type SpecificAnalyzer struct {
@@ -70,22 +71,26 @@ func (sga *SpecificAnalyzer) getIPBlockResult(cidr, address, name *string) (*ipb
 		}
 		cidrRes = ipBlock.ToCidrList()[0]
 	case name != nil:
+		ipBlock = ipblock.New()
 		if sg, ok := sga.sgMap[*name]; ok {
-			resIPBlock := ipblock.New()
 			for member := range sg.Members {
 				memberIPBlock, err := ipblock.FromIPAddress(member)
 				if err != nil {
 					return nil, "", err
 				}
-				resIPBlock = resIPBlock.Union(memberIPBlock)
+				ipBlock = ipBlock.Union(memberIPBlock)
 			}
-			ipBlock = resIPBlock
 			cidrRes = strings.Join(ipBlock.ToCidrList(), ",")
 		}
 	default:
 		return nil, "", fmt.Errorf("sg error: getCidrResult - SecurityGroupRule is empty")
 	}
-
+	if ipBlock == nil {
+		return nil, "", fmt.Errorf("getIPBlockResult err: unexpected nil ipBlock returned")
+	}
+	if ipBlock.IsEmpty() {
+		logging.Debugf("SG rule references an empty IPBlock, rule will be ignored")
+	}
 	return ipBlock, cidrRes, nil
 }
 
@@ -108,16 +113,11 @@ func (sga *SpecificAnalyzer) getRemoteCidr(remote vpc1.SecurityGroupRuleRemoteIn
 		if remoteObj.Name != nil {
 			remoteSGName = *remoteObj.Name
 		}
-		if target == nil || cidrRes == "" {
-			return target, cidrRes, remoteSGName, fmt.Errorf("sg error: getRemoteCidr returns empty result. remoteObj: %+v", remoteObj)
-		}
-	}
-	if target == nil || cidrRes == "" {
-		return target, cidrRes, remoteSGName,
-			fmt.Errorf("sg error: getRemoteCidr returns empty result. could not convert remoteObj to expected type ")
 	}
 
-	sga.referencedIPblocks = append(sga.referencedIPblocks, target.Split()...)
+	if !target.IsEmpty() {
+		sga.referencedIPblocks = append(sga.referencedIPblocks, target.Split()...)
+	}
 	return target, cidrRes, remoteSGName, nil
 }
 
@@ -271,6 +271,10 @@ func (sga *SpecificAnalyzer) GetSGrules() (ingressRules, egressRules []*commonvp
 		}
 		if ruleObj == nil {
 			continue
+		}
+		if ruleObj.Remote.Cidr.IsEmpty() && ruleObj.Remote.SgName != "" {
+			logging.Warnf("in SG %s, rule index %d: could not find remote SG %s or its attached network interfaces",
+				*sga.SgResource.Name, index, ruleObj.Remote.SgName)
 		}
 		if isIngress {
 			ingressRules = append(ingressRules, ruleObj)
