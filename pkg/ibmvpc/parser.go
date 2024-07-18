@@ -1636,6 +1636,6 @@ func printNACLRules(nacl *NACL) {
 	numRules := len(nacl.analyzer.naclResource.Rules)
 	for i := 0; i < numRules; i++ {
 		strRule, _, _, err := nacl.analyzer.getNACLRule(i)
-		commonvpc.PrintRule(strRule, i, err)
+		commonvpc.PrintRule(strRule, nil, i, err)
 	}
 }

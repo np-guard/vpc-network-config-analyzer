@@ -8,8 +8,10 @@ package commonvpc
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -277,23 +279,30 @@ func NewSubnet(name, uid, zone, cidr string, vpc vpcmodel.VPCResourceIntf) (*Sub
 }
 
 func PrintLineSection() {
-	fmt.Println("-----------------------------------------")
+	logging.Debugf("-----------------------------------------")
 }
 
 func PrintSGRules(sg *SecurityGroup) {
 	numRules := sg.Analyzer.SgAnalyzer.GetNumberOfRules()
-
-	fmt.Printf("num rules: %d\n", numRules)
+	logging.Debugf("num rules: %d\n", numRules)
 	for i := 0; i < numRules; i++ {
 		strRule, _, _, err := sg.Analyzer.SgAnalyzer.GetSGRule(i)
-		PrintRule(strRule, i, err)
+		PrintRule(strRule, sg.Members, i, err)
 	}
 }
 
-func PrintRule(ruleStr string, index int, err error) {
+func PrintRule(ruleStr string, members map[string]vpcmodel.Node, index int, err error) {
 	if err == nil {
-		fmt.Println(ruleStr)
+		logging.Debugf(ruleStr)
+		if members != nil {
+			logging.Debugf("members:\n")
+			keys := make([]string, 0, len(members))
+			for k := range members {
+				keys = append(keys, k)
+			}
+			logging.Debugf(strings.Join(keys, " "))
+		}
 	} else {
-		fmt.Printf("err for rule %d: %s\n", index, err.Error())
+		logging.Debugf("err for rule %d: %s\n", index, err.Error())
 	}
 }
