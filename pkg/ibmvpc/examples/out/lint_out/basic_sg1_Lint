@@ -8,8 +8,8 @@ In VPC test-vpc1-ky, security group sg2-ky rule's indexed 6 splits subnets subne
 In VPC test-vpc1-ky, security group sg2-ky rule's indexed 7 splits subnets subnet2-ky (10.240.20.0/24), subnet3-ky (10.240.30.0/24). Splitting rule details: index: 7, direction: inbound,  conns: protocol: tcp,  dstPorts: 1-65535, remote: sg2-ky (10.240.20.4/32,10.240.30.4/32), local: 0.0.0.0/0
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
-no lint "Overlapping CIDR ranges between different subnets" issues
+no lint "Blocked TCP response" issues
 
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
-no lint "TCP Connections for which response is disabled" issues
+no lint "Overlapping CIDR ranges between different subnets" issues

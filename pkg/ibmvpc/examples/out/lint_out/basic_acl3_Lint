@@ -1,15 +1,15 @@
+"Blocked TCP response" issues:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In the connection from test-vpc1-ky/db-endpoint-gateway-ky[10.240.30.7] to test-vpc1-ky/vsi1-ky[10.240.10.4] TCP response is blocked
+In the connection from test-vpc1-ky/vsi3a-ky[10.240.30.5] to test-vpc1-ky/vsi1-ky[10.240.10.4] TCP response is blocked
+In the connection from test-vpc1-ky/vsi3b-ky[10.240.30.6] to test-vpc1-ky/vsi1-ky[10.240.10.4] TCP response is blocked
+In the connection from test-vpc1-ky/vsi3c-ky[10.240.30.4] to test-vpc1-ky/vsi1-ky[10.240.10.4] TCP response is blocked
+________________________________________________________________________________________________________________________________________________________________________________________________________
+
 "Firewall rules implying different connectivity for different endpoints within a subnet" issues:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In VPC test-vpc1-ky, network ACL acl3-ky rule's indexed 1 splits subnet subnet3-ky (10.240.30.0/24). Splitting rule details: index: 1, direction: outbound , src: 10.240.30.0/31 , dst: 10.240.20.0/24, conn: all, action: allow
 In VPC test-vpc1-ky, network ACL acl3-ky rule's indexed 3 splits subnet subnet3-ky (10.240.30.0/24). Splitting rule details: index: 3, direction: inbound , src: 10.240.20.0/24 , dst: 10.240.30.0/31, conn: all, action: allow
-________________________________________________________________________________________________________________________________________________________________________________________________________
-
-"TCP Connections for which response is disabled" issues:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-connection protocol: TCP db-endpoint-gateway-ky[10.240.30.7] to vsi1-ky[10.240.10.4] both of VPC test-vpc1-ky is not responsive
-connection protocol: TCP vsi3a-ky[10.240.30.5] to vsi1-ky[10.240.10.4] both of VPC test-vpc1-ky is not responsive
-connection protocol: TCP vsi3b-ky[10.240.30.6] to vsi1-ky[10.240.10.4] both of VPC test-vpc1-ky is not responsive
-connection protocol: TCP vsi3c-ky[10.240.30.4] to vsi1-ky[10.240.10.4] both of VPC test-vpc1-ky is not responsive
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
 no lint "Overlapping CIDR ranges between different subnets" issues

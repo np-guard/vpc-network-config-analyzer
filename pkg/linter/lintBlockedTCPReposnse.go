@@ -8,6 +8,7 @@ package linter
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
@@ -36,7 +37,7 @@ func (lint *blockedTCPResponseLint) lintName() string {
 }
 
 func (lint *blockedTCPResponseLint) lintDescription() string {
-	return "TCP Connections for which response is disabled"
+	return "Blocked TCP response"
 }
 
 func (lint *blockedTCPResponseLint) check() error {
@@ -70,14 +71,12 @@ func getVPCFromEndpointElem(ep vpcmodel.EndpointElem) vpcmodel.VPCResourceIntf {
 func (finding *blockedTCPResponseConn) string() string {
 	vpcSrc := finding.vpc()[0]
 	vpcDst := finding.vpc()[1]
-	srcToDstStr := ""
-	if vpcSrc == vpcDst {
-		srcToDstStr = fmt.Sprintf("%s to %s both of VPC %s", finding.src.Name(), finding.dst.Name(), vpcSrc)
-	} else {
-		srcToDstStr = fmt.Sprintf("%v of VPC %s to %v of VPC %s", finding.src.Name(), vpcSrc, finding.dst.Name(),
-			vpcDst)
-	}
-	return fmt.Sprintf("connection %s %s is not responsive", finding.tcpRspDisable.String(), srcToDstStr)
+
+	srcToDstStr := fmt.Sprintf("from %v%s%s to %v%s%s",
+		vpcSrc, deliminator, finding.src.Name(), vpcDst, deliminator, finding.dst.Name())
+
+	return fmt.Sprintf("In the connection %s %s response is blocked", srcToDstStr,
+		strings.ReplaceAll(finding.tcpRspDisable.String(), "protocol: ", ""))
 }
 
 // TCP connection with no response
