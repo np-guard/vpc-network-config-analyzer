@@ -297,7 +297,7 @@ func printVPCConfigs(c *vpcmodel.MultipleVPCConfigs) {
 	if !logging.DebugVerbosity() {
 		return
 	}
-	fmt.Println("VPCs to analyze:")
+	logging.Debugf("VPCs to analyze:")
 	for vpcUID, config := range c.Configs() {
 		logging.Debugf("VPC UID: %s, Name: %s\n", vpcUID, config.VPC.Name())
 	}
@@ -311,22 +311,22 @@ func printVPCConfigs(c *vpcmodel.MultipleVPCConfigs) {
 
 func printConfig(c *vpcmodel.VPCConfig) {
 	separator := " "
-	fmt.Println("Nodes:")
+	logging.Debugf("Nodes:")
 	for _, n := range c.Nodes {
 		if n.IsExternal() {
 			continue
 		}
-		fmt.Println(strings.Join([]string{n.Kind(), n.CidrOrAddress(), n.Name(), n.UID()}, separator))
+		logging.Debugf(strings.Join([]string{n.Kind(), n.CidrOrAddress(), n.Name(), n.UID()}, separator))
 	}
-	fmt.Println("Subnets:")
+	logging.Debugf("Subnets:")
 	for _, n := range c.Subnets {
-		fmt.Println(strings.Join([]string{n.Kind(), n.CIDR(), n.Name(), n.UID()}, separator))
+		logging.Debugf(strings.Join([]string{n.Kind(), n.CIDR(), n.Name(), n.UID()}, separator))
 	}
-	fmt.Println("NodeSets:")
+	logging.Debugf("NodeSets:")
 	for _, n := range c.NodeSets {
-		fmt.Println(strings.Join([]string{n.Kind(), n.AddressRange().ToIPRanges(), n.Name(), n.UID()}, separator))
+		logging.Debugf(strings.Join([]string{n.Kind(), n.AddressRange().ToIPRanges(), n.Name(), n.UID()}, separator))
 	}
-	fmt.Println("FilterResources:")
+	logging.Debugf("FilterResources:")
 	for _, f := range c.FilterResources {
 		switch filters := f.(type) {
 		case *commonvpc.SecurityGroupLayer:
@@ -334,11 +334,11 @@ func printConfig(c *vpcmodel.VPCConfig) {
 				if len(sg.Members) == 0 {
 					continue
 				}
-				fmt.Println(strings.Join([]string{sg.ResourceType, sg.ResourceName, sg.UID()}, separator))
+				logging.Debugf(strings.Join([]string{sg.ResourceType, sg.ResourceName, sg.UID()}, separator))
 				commonvpc.PrintSGRules(sg)
 			}
 		default:
-			fmt.Println("layer not supported yet")
+			logging.Debugf("layer not supported yet")
 		}
 	}
 }
