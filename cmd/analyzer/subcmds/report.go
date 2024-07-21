@@ -13,7 +13,10 @@ import (
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
-
+const (
+	groupingFlag = "grouping"
+	loadBalancerAbstractionFlag  = "load-balancer-abstraction"
+)
 func NewReportCommand(args *inArgs) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "report",
@@ -27,14 +30,17 @@ func NewReportCommand(args *inArgs) *cobra.Command {
 		},
 	}
 
-	cmd.PersistentFlags().BoolVarP(&args.grouping, "grouping", "g", false, "whether to group together endpoints sharing the same connectivity")
-	cmd.PersistentFlags().BoolVarP(&args.lbAbstraction, "load-balancer-abstraction", "", true, "whether to abstract a load balancer to one endpoint")
+	cmd.PersistentFlags().BoolVarP(&args.grouping, groupingFlag, "g", false, "whether to group together endpoints sharing the same connectivity")
+	cmd.PersistentFlags().BoolVarP(&args.lbAbstraction, loadBalancerAbstractionFlag, "", true, "whether to abstract a load balancer to one endpoint")
 	cmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
-		command.Flags().MarkHidden("load-balancer-abstraction")
+		hideCommandFlags(command)
 		command.Parent().HelpFunc()(command, strings)
 	})
 	cmd.SetUsageFunc(func(command *cobra.Command) error {
-		command.Flags().MarkHidden("load-balancer-abstraction")
+		hideCommandFlags(command)
+		// calling:
+		// command.Parent().UsageFunc()(command)
+		// gives infinite recursive call. the following works:
 		cmd.SetUsageFunc(nil)
 		return cmd.UsageFunc()(command)
 	})
@@ -104,4 +110,8 @@ func newReportRoutingCommand(args *inArgs) *cobra.Command {
 	cmd.Flags().StringVar(&args.eDst, dstFlag, "", "destination "+srcDstUsage)
 
 	return cmd
+}
+
+func hideCommandFlags(command *cobra.Command){
+	command.Flags().MarkHidden(loadBalancerAbstractionFlag)
 }
