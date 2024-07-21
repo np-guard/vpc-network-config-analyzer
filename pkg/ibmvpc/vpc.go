@@ -21,13 +21,6 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
-<<<<<<< HEAD
-=======
-const doubleTab = "\t\t" // todo delete when no longer used
-const emptyNameError = "empty name for %s indexed %d"
-
-const securityGroup = "security group"
->>>>>>> main
 const networkACL = "network ACL"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

@@ -278,8 +278,7 @@ func (sgl *SecurityGroupLayer) GetRules() ([]vpcmodel.RuleOfFilter, error) {
 				ruleBlocks = append(ruleBlocks, rule.Local)
 			}
 			ruleDesc, _, _, _ := sg.Analyzer.SgAnalyzer.GetSGRule(rule.Index)
-			resRules = append(resRules, *vpcmodel.NewRuleOfFilter(securityGroup, sgName, ruleDesc, rule.Index,
-				ruleBlocks))
+			resRules = append(resRules, *vpcmodel.NewRuleOfFilter(securityGroup, sgName, ruleDesc, sgIndx, rule.Index, ruleBlocks))
 		}
 	}
 	return resRules, nil
