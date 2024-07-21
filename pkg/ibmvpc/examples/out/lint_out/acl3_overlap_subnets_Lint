@@ -20,3 +20,8 @@ ________________________________________________________________________________
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 subnet subnet1-ky of cidr 10.240.10.0/16 and subnet subnet2-ky of cidr 10.240.20.0/24, both from VPC test-vpc1-ky, overlap in 10.240.20.0/24
 subnet subnet1-ky of cidr 10.240.10.0/16 and subnet subnet3-ky of cidr 10.240.30.0/24, both from VPC test-vpc1-ky, overlap in 10.240.30.0/24
+________________________________________________________________________________________________________________________________________________________________________________________________________
+
+"TCP Connections for which response is disabled" issues:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+connection protocol: TCP dst-ports: 22 db-endpoint-gateway-ky[10.240.30.7] to vsi2-ky[10.240.20.4] both of VPC test-vpc1-ky is not responsive
