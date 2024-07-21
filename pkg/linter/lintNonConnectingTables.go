@@ -19,9 +19,7 @@ type nonConnectedTables struct {
 
 // a rule with the list of subnets it splits
 type nonConnectedTable struct {
-	LayerName   string `json:"layer"`
-	FilterName  string `json:"table"`
-	FilterIndex int    `json:"-"`
+	vpcmodel.Table
 }
 
 // /////////////////////////////////////////////////////////

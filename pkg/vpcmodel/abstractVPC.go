@@ -249,18 +249,21 @@ type RulesInTable struct {
 
 // RuleOfFilter a single rule in filter given the layer (SGLayer/NACLLayer)
 type RuleOfFilter struct {
-	LayerName   string             `json:"layer"`
-	FilterName  string             `json:"table"` // todo: use map from FilterIndex to FilterName and delete?
-	FilterIndex int                `json:"-"`
-	RuleIndex   int                `json:"rule_index"`
-	RuleDesc    string             `json:"rule_description"`
-	IPBlocks    []*ipblock.IPBlock `json:"ip_blocks,omitempty"` // CIDR/IPBlocks referenced by the rule (src/dst/local...)
+	Table     Table
+	RuleIndex int                `json:"rule_index"`
+	RuleDesc  string             `json:"rule_description"`
+	IPBlocks  []*ipblock.IPBlock `json:"ip_blocks,omitempty"` // CIDR/IPBlocks referenced by the rule (src/dst/local...)
+}
+
+type Table struct {
+	LayerName   string `json:"layer"`
+	FilterName  string `json:"table"`
+	FilterIndex int    `json:"-"`
 }
 
 func NewRuleOfFilter(layerName, filterName, desc string, filterIndex, ruleIndex int, ipBlocks []*ipblock.IPBlock) *RuleOfFilter {
-	return &RuleOfFilter{LayerName: layerName, FilterIndex: filterIndex, FilterName: filterName,
-		RuleIndex: ruleIndex, RuleDesc: desc,
-		IPBlocks: ipBlocks}
+	table := Table{LayerName: layerName, FilterIndex: filterIndex, FilterName: filterName}
+	return &RuleOfFilter{Table: table, RuleIndex: ruleIndex, RuleDesc: desc, IPBlocks: ipBlocks}
 }
 
 // FilterTrafficResource capture allowed traffic between 2 endpoints
@@ -273,6 +276,7 @@ type FilterTrafficResource interface {
 	RulesInConnectivity(src, dst Node, conn *connection.Set, isIngress bool) ([]RulesInTable, []RulesInTable, error)
 	// GetRules gets a list of all rules with description
 	GetRules() ([]RuleOfFilter, error)
+	GetTables() ([]Table, error)
 	ReferencedIPblocks() []*ipblock.IPBlock
 	ConnectivityMap() (map[string]*IPbasedConnectivityResult, error)
 	GetConnectivityOutputPerEachElemSeparately() string

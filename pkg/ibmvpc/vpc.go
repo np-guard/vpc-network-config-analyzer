@@ -479,6 +479,11 @@ func (nl *NaclLayer) GetRules() ([]vpcmodel.RuleOfFilter, error) {
 	return resRules, nil
 }
 
+// todo: implement
+func (nl *NaclLayer) GetTables() ([]vpcmodel.Table, error) {
+	return nil, nil
+}
+
 type NACL struct {
 	vpcmodel.VPCResource
 	subnets  map[string]*Subnet // map of subnets (pair of cidr strings and subnet obj) for which this nacl is applied to
@@ -655,6 +660,10 @@ func (sgl *SecurityGroupLayer) GetRules() ([]vpcmodel.RuleOfFilter, error) {
 		}
 	}
 	return resRules, nil
+}
+
+func (sgl *SecurityGroupLayer) GetTables() ([]vpcmodel.Table, error) {
+	return nil, nil
 }
 
 type SecurityGroup struct {

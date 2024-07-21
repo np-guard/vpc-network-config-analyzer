@@ -32,13 +32,13 @@ func newRulesDetails(config *VPCConfig) (*rulesDetails, error) {
 			return nil, err
 		}
 		for _, rule := range thisLayerRulesDetails {
-			if _, ok := thisLayerRules[rule.FilterIndex]; !ok {
-				thisLayerRules[rule.FilterIndex] = filterRulesDetails{
-					tableName: rule.FilterName,
+			if _, ok := thisLayerRules[rule.Table.FilterIndex]; !ok {
+				thisLayerRules[rule.Table.FilterIndex] = filterRulesDetails{
+					tableName: rule.Table.FilterName,
 					rulesDesc: map[int]string{},
 				}
 			}
-			thisLayerRules[rule.FilterIndex].rulesDesc[rule.RuleIndex] = rule.RuleDesc
+			thisLayerRules[rule.Table.FilterIndex].rulesDesc[rule.RuleIndex] = rule.RuleDesc
 		}
 		resRulesDetails[layer] = thisLayerRules
 	}
