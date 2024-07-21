@@ -3,4 +3,10 @@
 VPC test-vpc2-ky's subnet subnet21-ky of cidr 10.240.64.0/28 and VPC zn-vpc2's subnet zn-vpc2-net1 of cidr 10.240.64.0/24  overlap in 10.240.64.0/28
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
+"TCP Connections for which response is disabled" issues:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+connection protocol: TCP vsi31-ky[10.240.31.4] of VPC test-vpc3-ky to vsi11-ky[10.240.11.4] of VPC test-vpc1-ky is not responsive
+connection protocol: TCP vsi31-ky[10.240.31.4] of VPC test-vpc3-ky to vsi12-ky[10.240.12.4] of VPC test-vpc1-ky is not responsive
+________________________________________________________________________________________________________________________________________________________________________________________________________
+
 no lint "Firewall rules implying different connectivity for different endpoints within a subnet" issues
