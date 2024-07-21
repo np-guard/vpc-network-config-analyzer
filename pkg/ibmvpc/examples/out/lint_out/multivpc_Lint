@@ -5,11 +5,10 @@ ________________________________________________________________________________
 
 "TCP Connections for which response is disabled" issues:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-connection protocol: TCP vsi31-ky[10.240.31.4] to vsi11-ky[10.240.11.4] both of VPC test-vpc1-ky is not responsive
-connection protocol: TCP vsi31-ky[10.240.31.4] to vsi11-ky[10.240.11.4] both of VPC test-vpc1-ky is not responsive
-connection protocol: TCP vsi31-ky[10.240.31.4] to vsi12-ky[10.240.12.4] both of VPC test-vpc1-ky is not responsive
-connection protocol: TCP vsi31-ky[10.240.31.4] to vsi12-ky[10.240.12.4] both of VPC test-vpc1-ky is not responsive
+connection protocol: TCP vsi31-ky[10.240.31.4] of VPC test-vpc3-ky to vsi11-ky[10.240.11.4] of VPC test-vpc1-ky is not responsive
+connection protocol: TCP vsi31-ky[10.240.31.4] of VPC test-vpc3-ky to vsi11-ky[10.240.11.4] of VPC test-vpc1-ky is not responsive
+connection protocol: TCP vsi31-ky[10.240.31.4] of VPC test-vpc3-ky to vsi12-ky[10.240.12.4] of VPC test-vpc1-ky is not responsive
+connection protocol: TCP vsi31-ky[10.240.31.4] of VPC test-vpc3-ky to vsi12-ky[10.240.12.4] of VPC test-vpc1-ky is not responsive
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
 no lint "Firewall rules implying different connectivity for different endpoints within a subnet" issues
-

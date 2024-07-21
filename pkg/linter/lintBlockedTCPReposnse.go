@@ -55,7 +55,7 @@ func (lint *blockedTCPResponseLint) check() error {
 //////////////////////////////////////////////////////////
 
 func (finding *blockedTCPResponseConn) vpc() []string {
-	return []string{getVPCFromEndpointElem(finding.dst).Name(), getVPCFromEndpointElem(finding.dst).Name()}
+	return []string{getVPCFromEndpointElem(finding.src).Name(), getVPCFromEndpointElem(finding.dst).Name()}
 }
 
 func getVPCFromEndpointElem(ep vpcmodel.EndpointElem) vpcmodel.VPCResourceIntf {
@@ -68,13 +68,13 @@ func getVPCFromEndpointElem(ep vpcmodel.EndpointElem) vpcmodel.VPCResourceIntf {
 
 func (finding *blockedTCPResponseConn) string() string {
 	vpcSrc := finding.vpc()[0]
-	vpcDsr := finding.vpc()[1]
+	vpcDst := finding.vpc()[1]
 	srcToDstStr := ""
-	if vpcSrc == vpcDsr {
+	if vpcSrc == vpcDst {
 		srcToDstStr = fmt.Sprintf("%s to %s both of VPC %s", finding.src.Name(), finding.dst.Name(), vpcSrc)
 	} else {
-		srcToDstStr = fmt.Sprintf("%s of VPC %s to %s of VPC %s", finding.src.Name(), vpcSrc, finding.dst.Name,
-			vpcDsr)
+		srcToDstStr = fmt.Sprintf("%v of VPC %s to %v of VPC %s", finding.src.Name(), vpcSrc, finding.dst.Name(),
+			vpcDst)
 	}
 	return fmt.Sprintf("connection %s %s is not responsive", finding.tcpRspDisable.String(), srcToDstStr)
 }
