@@ -76,7 +76,7 @@ func (explanation *Explanation) String(verbose bool) string {
 	linesStr := make([]string, len(explanation.groupedLines))
 	groupedLines := explanation.groupedLines
 	for i, groupedLine := range groupedLines {
-		linesStr[i] += groupedLine.explainabilityLineStr(explanation.c, explanation.connQuery, verbose) +
+		linesStr[i] += groupedLine.explainabilityLineStr(explanation.c, explanation.connQuery, explanation.allRulesDetails, verbose) +
 			"------------------------------------------------------------------------------------------------------------------------\n"
 	}
 	sort.Strings(linesStr)
@@ -117,7 +117,8 @@ func explainMissingCrossVpcRouter(src, dst string, connQuery *connection.Set) st
 // the connection is blocked and only part of the path is printed then 2 is printed so that the relevant information
 // is provided regardless of where the is blocking
 // 4 is printed only in debug mode
-func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connection.Set, verbose bool) string {
+func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connection.Set, allRulesDetails *rulesDetails,
+	verbose bool) string {
 	expDetails := g.CommonProperties.expDetails
 	filtersRelevant := g.CommonProperties.expDetails.filtersRelevant
 	src, dst := g.Src, g.Dst
@@ -145,15 +146,15 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 
 	// resourceEffectHeader is "2" above
 	rules := expDetails.rules
-	egressRulesHeader, ingressRulesHeader := rules.filterEffectStr(c, filtersRelevant, needEgress, needIngress)
+	egressRulesHeader, ingressRulesHeader := rules.filterEffectStr(allRulesDetails, filtersRelevant, needEgress, needIngress)
 	resourceEffectHeader = loadBalancerHeader + externalRouterHeader + egressRulesHeader + crossRouterFilterHeader +
 		ingressRulesHeader + newLine
 
 	// path in "3" above
-	path := "Path:\n" + pathStr(c, filtersRelevant, src, dst,
+	path := "Path:\n" + pathStr(allRulesDetails, filtersRelevant, src, dst,
 		ingressBlocking, egressBlocking, loadBalancerBlocking, externalRouter, crossVpcRouter, crossVpcConnection, rules) + newLine
 	// details is "4" above
-	egressRulesDetails, ingressRulesDetails := rules.ruleDetailsStr(c, filtersRelevant, needEgress, needIngress)
+	egressRulesDetails, ingressRulesDetails := rules.ruleDetailsStr(allRulesDetails, filtersRelevant, needEgress, needIngress)
 	conn := g.CommonProperties.Conn
 	if verbose {
 		enabledOrDisabledStr := "enabled"
@@ -166,7 +167,7 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 			respondEgressDetails, respondsIngressDetails, crossVpcRespondDetails := "", "", ""
 			// for respond rules needIngress and needEgress are switched
 			if filtersRelevant[statelessLayerName] {
-				respondEgressDetails, respondsIngressDetails = expDetails.respondRules.ruleDetailsStr(c,
+				respondEgressDetails, respondsIngressDetails = expDetails.respondRules.ruleDetailsStr(allRulesDetails,
 					filtersRelevant, needIngress, needEgress)
 			}
 			if expDetails.crossVpcRouter != nil {
@@ -297,13 +298,13 @@ func existingConnectionStr(c *VPCConfig, connQuery *connection.Set, src, dst End
 // returns a couple of strings of an egress, ingress summary of each filter (table) effect; e.g.
 // "Egress: security group sg1-ky allows connection; network ACL acl1-ky blocks connection
 // Ingress: network ACL acl3-ky allows connection; security group sg1-ky allows connection"
-func (rules *rulesConnection) filterEffectStr(c *VPCConfig, filtersRelevant map[string]bool, needEgress,
+func (rules *rulesConnection) filterEffectStr(allRulesDetails *rulesDetails, filtersRelevant map[string]bool, needEgress,
 	needIngress bool) (egressRulesHeader, ingressRulesHeader string) {
 	if needEgress {
-		egressRulesHeader = rules.egressRules.summaryFiltersStr(c, filtersRelevant, false)
+		egressRulesHeader = rules.egressRules.summaryFiltersStr(allRulesDetails, filtersRelevant, false)
 	}
 	if needIngress {
-		ingressRulesHeader = rules.ingressRules.summaryFiltersStr(c, filtersRelevant, true)
+		ingressRulesHeader = rules.ingressRules.summaryFiltersStr(allRulesDetails, filtersRelevant, true)
 	}
 	if needEgress && egressRulesHeader != emptyString {
 		egressRulesHeader = "Egress: " + egressRulesHeader + newLine
@@ -318,13 +319,13 @@ func (rules *rulesConnection) filterEffectStr(c *VPCConfig, filtersRelevant map[
 // "security group sg1-ky allows connection with the following allow rules
 // index: 0, direction: outbound, protocol: all, cidr: 0.0.0.0/0
 // network ACL acl1-ky blocks connection since there are no relevant allow rules"
-func (rules *rulesConnection) ruleDetailsStr(c *VPCConfig, filtersRelevant map[string]bool,
+func (rules *rulesConnection) ruleDetailsStr(allRulesDetails *rulesDetails, filtersRelevant map[string]bool,
 	needEgress, needIngress bool) (egressRulesDetails, ingressRulesDetails string) {
 	if needEgress {
-		egressRulesDetails = rules.egressRules.rulesDetailsStr(c, filtersRelevant, false)
+		egressRulesDetails = rules.egressRules.rulesDetailsStr(allRulesDetails, filtersRelevant, false)
 	}
 	if needIngress {
-		ingressRulesDetails = rules.ingressRules.rulesDetailsStr(c, filtersRelevant, true)
+		ingressRulesDetails = rules.ingressRules.rulesDetailsStr(allRulesDetails, filtersRelevant, true)
 	}
 	if needEgress && egressRulesDetails != emptyString {
 		egressRulesDetails = "\tEgress:\n" + egressRulesDetails + newLine
@@ -337,20 +338,20 @@ func (rules *rulesConnection) ruleDetailsStr(c *VPCConfig, filtersRelevant map[s
 
 // returns a string with the effect of each filter by calling StringFilterEffect
 // e.g. "security group sg1-ky allows connection; network ACL acl1-ky blocks connection"
-func (rules rulesInLayers) summaryFiltersStr(c *VPCConfig, filtersRelevant map[string]bool, isIngress bool) string {
+func (rules rulesInLayers) summaryFiltersStr(allRulesDetails *rulesDetails, filtersRelevant map[string]bool,
+	isIngress bool) string {
 	filtersLayersToPrint := getLayersToPrint(filtersRelevant, isIngress)
 	strSlice := make([]string, len(filtersLayersToPrint))
 	for i, layer := range filtersLayersToPrint {
-		strSlice[i] = stringFilterEffect(c, layer, rules[layer])
+		strSlice[i] = stringFilterEffect(allRulesDetails, layer, rules[layer])
 	}
 	return strings.Join(strSlice, semicolon+space)
 }
 
 // for a given layer (e.g. nacl) and []RulesInTable describing ingress/egress rules,
 // returns a string with the effect of each filter, called by summaryFiltersStr
-func stringFilterEffect(c *VPCConfig, filterLayerName string, rules []RulesInTable) string {
-	filterLayer := c.GetFilterTrafficResourceOfKind(filterLayerName)
-	filtersToActionMap := filterLayer.ListFilterWithAction(rules)
+func stringFilterEffect(allRulesDetails *rulesDetails, filterLayerName string, rules []RulesInTable) string {
+	filtersToActionMap := allRulesDetails.listFilterWithAction(filterLayerName, rules)
 	strSlice := make([]string, len(filtersToActionMap))
 	i := 0
 	for name, effect := range filtersToActionMap {
@@ -371,7 +372,7 @@ func stringFilterEffect(c *VPCConfig, filterLayerName string, rules []RulesInTab
 // if the connection does not exist. In the latter case the path is until the first block with the first block between ||
 // e.g.: "vsi1-ky[10.240.10.4] ->  SG sg1-ky -> subnet ... ->  ACL acl1-ky -> PublicGateway: public-gw-ky ->  Public Internet 161.26.0.0/16"
 // e.g.: "vsi1-ky[10.240.10.4] -> security group sg1-ky -> subnet1-ky -> | network ACL acl1-ky |"
-func pathStr(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointElem,
+func pathStr(allRulesDetails *rulesDetails, filtersRelevant map[string]bool, src, dst EndpointElem,
 	ingressBlocking, egressBlocking, loadBalancerBlocking bool,
 	externalRouter, crossVpcRouter RoutingResource, crossVpcConnection *connection.Set,
 	rules *rulesConnection) string {
@@ -383,7 +384,7 @@ func pathStr(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointEle
 		return blockedPathStr(pathSlice)
 	}
 	isExternal := src.IsExternal() || dst.IsExternal()
-	egressPath := pathFiltersOfIngressOrEgressStr(c, src, filtersRelevant, rules, false, isExternal, externalRouter)
+	egressPath := pathFiltersOfIngressOrEgressStr(allRulesDetails, src, filtersRelevant, rules, false, isExternal, externalRouter)
 	pathSlice = append(pathSlice, egressPath...)
 	externalRouterBlocking := isExternal && externalRouter == nil
 	crossVpcRouterInPath := crossVpcRouterRequired(src, dst) // if cross-vpc router needed but missing, will not get here
@@ -406,7 +407,8 @@ func pathStr(c *VPCConfig, filtersRelevant map[string]bool, src, dst EndpointEle
 		}
 		pathSlice = append(pathSlice, dst.(InternalNodeIntf).Subnet().VPC().Name())
 	}
-	ingressPath := pathFiltersOfIngressOrEgressStr(c, dst, filtersRelevant, rules, true, isExternal, externalRouter)
+	ingressPath := pathFiltersOfIngressOrEgressStr(allRulesDetails, dst, filtersRelevant, rules, true,
+		isExternal, externalRouter)
 	pathSlice = append(pathSlice, ingressPath...)
 	if ingressBlocking {
 		return blockedPathStr(pathSlice)
@@ -429,16 +431,17 @@ func blockedPathStr(pathSlice []string) string {
 // returns a string with the filters (sg and nacl) part of the path above called separately for egress and for ingress
 //
 //nolint:gocyclo // better not split into two function
-func pathFiltersOfIngressOrEgressStr(c *VPCConfig, node EndpointElem, filtersRelevant map[string]bool, rules *rulesConnection,
+func pathFiltersOfIngressOrEgressStr(allRulesDetails *rulesDetails, node EndpointElem,
+	filtersRelevant map[string]bool, rules *rulesConnection,
 	isIngress, isExternal bool, router RoutingResource) []string {
 	pathSlice := []string{}
 	layers := getLayersToPrint(filtersRelevant, isIngress)
 	for _, layer := range layers {
 		var allowFiltersOfLayer, denyTable string
 		if isIngress {
-			allowFiltersOfLayer, denyTable = pathFiltersSingleLayerStr(c, layer, rules.ingressRules[layer])
+			allowFiltersOfLayer, denyTable = pathFiltersSingleLayerStr(allRulesDetails, layer, rules.ingressRules[layer])
 		} else {
-			allowFiltersOfLayer, denyTable = pathFiltersSingleLayerStr(c, layer, rules.egressRules[layer])
+			allowFiltersOfLayer, denyTable = pathFiltersSingleLayerStr(allRulesDetails, layer, rules.egressRules[layer])
 		}
 		if allowFiltersOfLayer != emptyString {
 			pathSlice = append(pathSlice, allowFiltersOfLayer)
@@ -478,9 +481,9 @@ func FilterKindName(filterLayer string) string {
 
 // for a given filter layer (e.g. sg) returns a string of the allowing tables (note that denying tables are excluded),
 // and the name of the denying table, if any
-func pathFiltersSingleLayerStr(c *VPCConfig, filterLayerName string, rules []RulesInTable) (allowPath, denyTable string) {
-	filterLayer := c.GetFilterTrafficResourceOfKind(filterLayerName)
-	filtersToActionMap := filterLayer.ListFilterWithAction(rules)
+func pathFiltersSingleLayerStr(allRulesDetails *rulesDetails, filterLayerName string,
+	rules []RulesInTable) (allowPath, denyTable string) {
+	filtersToActionMap := allRulesDetails.listFilterWithAction(filterLayerName, rules)
 	strSlice := []string{}
 	for name, effect := range filtersToActionMap {
 		if !effect {
@@ -501,12 +504,12 @@ func pathFiltersSingleLayerStr(c *VPCConfig, filterLayerName string, rules []Rul
 }
 
 // prints detailed list of rules that effects the (existing or non-existing) connection
-func (rules rulesInLayers) rulesDetailsStr(c *VPCConfig, filtersRelevant map[string]bool, isIngress bool) string {
+func (rules rulesInLayers) rulesDetailsStr(allRulesDetails *rulesDetails, filtersRelevant map[string]bool,
+	isIngress bool) string {
 	var strSlice []string
 	for _, layer := range getLayersToPrint(filtersRelevant, isIngress) {
-		filter := c.GetFilterTrafficResourceOfKind(layer)
-		if rules, ok := rules[layer]; ok {
-			strSlice = append(strSlice, filter.StringDetailsOfRules(rules))
+		if rulesInLayer, ok := rules[layer]; ok {
+			strSlice = append(strSlice, allRulesDetails.stringDetailsOfLayer(layer, rulesInLayer))
 		}
 	}
 	return strings.Join(strSlice, emptyString)
