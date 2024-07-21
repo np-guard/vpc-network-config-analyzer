@@ -107,7 +107,11 @@ func newReportRoutingCommand(args *inArgs) *cobra.Command {
 
 func hideFlagsFromHelp(cmd *cobra.Command, flags []string) {
 	cmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
-		markFlagsHidden(command, flags)
+		err := markFlagsHidden(command, flags)
+		if err != nil {
+			// Do not know what to do with the error
+			return
+		}
 		command.Parent().HelpFunc()(command, strings)
 	})
 	cmd.SetUsageFunc(func(command *cobra.Command) error {
