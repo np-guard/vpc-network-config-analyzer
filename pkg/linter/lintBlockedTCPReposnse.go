@@ -22,9 +22,9 @@ type blockedTCPResponseLint struct {
 
 // TCP connection with no response
 type blockedTCPResponseConn struct {
-	src           vpcmodel.EndpointElem `json:"source"`
-	dst           vpcmodel.EndpointElem `json:"destination"`
-	tcpRspDisable *connection.Set       `json:"tcp-non-responsive"`
+	Src           vpcmodel.EndpointElem `json:"source"`
+	Dst           vpcmodel.EndpointElem `json:"destination"`
+	TCPRspDisable *connection.Set       `json:"tcp-non-responsive"`
 }
 
 // /////////////////////////////////////////////////////////
@@ -41,9 +41,9 @@ func (lint *blockedTCPResponseLint) lintDescription() string {
 func (lint *blockedTCPResponseLint) check() error {
 	for _, nodesConn := range lint.nodesConn {
 		for _, line := range nodesConn.GroupedConnectivity.GroupedLines {
-			tcpRspDisable := line.CommonProperties.Conn.TcpRspDisable
+			tcpRspDisable := line.CommonProperties.Conn.TCPRspDisable
 			if !tcpRspDisable.IsEmpty() {
-				lint.addFinding(&blockedTCPResponseConn{src: line.Src, dst: line.Dst, tcpRspDisable: tcpRspDisable})
+				lint.addFinding(&blockedTCPResponseConn{Src: line.Src, Dst: line.Dst, TCPRspDisable: tcpRspDisable})
 			}
 		}
 	}
@@ -55,7 +55,7 @@ func (lint *blockedTCPResponseLint) check() error {
 //////////////////////////////////////////////////////////
 
 func (finding *blockedTCPResponseConn) vpc() []string {
-	return []string{getVPCFromEndpointElem(finding.src).Name(), getVPCFromEndpointElem(finding.dst).Name()}
+	return []string{getVPCFromEndpointElem(finding.Src).Name(), getVPCFromEndpointElem(finding.Dst).Name()}
 }
 
 func getVPCFromEndpointElem(ep vpcmodel.EndpointElem) vpcmodel.VPCResourceIntf {
@@ -71,12 +71,12 @@ func (finding *blockedTCPResponseConn) string() string {
 	vpcDst := finding.vpc()[1]
 	srcToDstStr := ""
 	if vpcSrc == vpcDst {
-		srcToDstStr = fmt.Sprintf("%s to %s both of VPC %s", finding.src.Name(), finding.dst.Name(), vpcSrc)
+		srcToDstStr = fmt.Sprintf("%s to %s both of VPC %s", finding.Src.Name(), finding.Dst.Name(), vpcSrc)
 	} else {
-		srcToDstStr = fmt.Sprintf("%v of VPC %s to %v of VPC %s", finding.src.Name(), vpcSrc, finding.dst.Name(),
+		srcToDstStr = fmt.Sprintf("%v of VPC %s to %v of VPC %s", finding.Src.Name(), vpcSrc, finding.Dst.Name(),
 			vpcDst)
 	}
-	return fmt.Sprintf("connection %s %s is not responsive", finding.tcpRspDisable.String(), srcToDstStr)
+	return fmt.Sprintf("connection %s %s is not responsive", finding.TCPRspDisable.String(), srcToDstStr)
 }
 
 // TCP connection with no response
@@ -89,7 +89,7 @@ type blockedTCPResponseConnJSON struct {
 func (finding *blockedTCPResponseConn) toJSON() any {
 	vpcSrc := finding.vpc()[0]
 	vpcDst := finding.vpc()[1]
-	res := blockedTCPResponseConnJSON{src: vpcSrc + deliminator + finding.src.Name(),
-		dst: vpcDst + deliminator + finding.dst.Name(), tcpRspDisable: connection.ToJSON(finding.tcpRspDisable)}
+	res := blockedTCPResponseConnJSON{src: vpcSrc + deliminator + finding.Src.Name(),
+		dst: vpcDst + deliminator + finding.Dst.Name(), tcpRspDisable: connection.ToJSON(finding.TCPRspDisable)}
 	return res
 }

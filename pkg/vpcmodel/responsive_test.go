@@ -29,7 +29,7 @@ func (tt responsiveTest) runTest(t *testing.T) {
 	t.Helper()
 	detailedConn := computeDetailedConn(tt.srcToDst, tt.dstToSrc)
 	require.True(t, tt.expectedTCPResponsiveConn.Equal(detailedConn.tcpRspEnable))
-	require.True(t, tt.expectedTCPNonResponsiveConn.Equal(detailedConn.TcpRspDisable))
+	require.True(t, tt.expectedTCPNonResponsiveConn.Equal(detailedConn.TCPRspDisable))
 	require.True(t, tt.expectedAllConn.Equal(detailedConn.allConn))
 }
 

@@ -291,9 +291,9 @@ func (diffCfgs *diffBetweenCfgs) hasStatelessConns() bool {
 	hasStatelessConns := false
 	for _, grouped := range diffCfgs.groupedLines {
 		if (grouped.CommonProperties.connDiff.conn1 != nil &&
-			!grouped.CommonProperties.connDiff.conn1.TcpRspDisable.IsEmpty()) ||
+			!grouped.CommonProperties.connDiff.conn1.TCPRspDisable.IsEmpty()) ||
 			(grouped.CommonProperties.connDiff.conn2 != nil &&
-				!grouped.CommonProperties.connDiff.conn2.TcpRspDisable.IsEmpty()) {
+				!grouped.CommonProperties.connDiff.conn2.TCPRspDisable.IsEmpty()) {
 			hasStatelessConns = true
 			break
 		}

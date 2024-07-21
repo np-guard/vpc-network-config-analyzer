@@ -300,18 +300,18 @@ func (g *GroupConnLines) groupExternalAddresses(vsi bool) error {
 		for dst, conns := range nodeConns {
 			// tcp responsive and non tcp component of the connection
 			if !conns.nonTCPAndResponsiveTCPComponent().IsEmpty() {
-				responsiveTCPAndNonTcp := &detailedConn{allConn: conns.nonTCPAndResponsiveTCPComponent(), nonTCP: conns.nonTCP,
-					tcpRspEnable: conns.tcpRspEnable, TcpRspDisable: NoConns()}
-				err := g.addLineToExternalGrouping(&res, src, dst, &groupedCommonProperties{Conn: responsiveTCPAndNonTcp,
+				responsiveTCPAndNonTCP := &detailedConn{allConn: conns.nonTCPAndResponsiveTCPComponent(), nonTCP: conns.nonTCP,
+					tcpRspEnable: conns.tcpRspEnable, TCPRspDisable: NoConns()}
+				err := g.addLineToExternalGrouping(&res, src, dst, &groupedCommonProperties{Conn: responsiveTCPAndNonTCP,
 					groupingStrKey: conns.connStrPerConnectionType(true)})
 				if err != nil {
 					return err
 				}
 			}
 			// tcp non-responsive component of the connection
-			if !conns.TcpRspDisable.IsEmpty() {
-				nonResponsiveTCP := &detailedConn{allConn: conns.TcpRspDisable, nonTCP: NoConns(), tcpRspEnable: NoConns(),
-					TcpRspDisable: conns.TcpRspDisable}
+			if !conns.TCPRspDisable.IsEmpty() {
+				nonResponsiveTCP := &detailedConn{allConn: conns.TCPRspDisable, nonTCP: NoConns(), tcpRspEnable: NoConns(),
+					TCPRspDisable: conns.TCPRspDisable}
 				err := g.addLineToExternalGrouping(&res, src, dst, &groupedCommonProperties{Conn: nonResponsiveTCP,
 					groupingStrKey: conns.connStrPerConnectionType(false)})
 				if err != nil {
@@ -563,7 +563,7 @@ func (g *GroupConnLines) String(c *VPCConfig) string {
 func (g *GroupConnLines) hasStatelessConns() bool {
 	hasStatelessConns := false
 	for _, line := range g.GroupedLines {
-		if !line.CommonProperties.Conn.TcpRspDisable.IsEmpty() {
+		if !line.CommonProperties.Conn.TCPRspDisable.IsEmpty() {
 			hasStatelessConns = true
 			break
 		}

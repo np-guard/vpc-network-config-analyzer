@@ -184,7 +184,7 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 // assumption: the func is called only if the tcp component of the connection is not empty
 func respondDetailsHeader(d *detailedConn) string {
 	switch {
-	case d.TcpRspDisable.IsEmpty():
+	case d.TCPRspDisable.IsEmpty():
 		return "TCP response is enabled; The relevant rules are:\n"
 	case d.tcpRspEnable.IsEmpty():
 		return "TCP response is disabled; The relevant rules are:\n"
@@ -534,14 +534,14 @@ func getLayersToPrint(filtersRelevant map[string]bool, isIngress bool) (filterLa
 
 func respondString(d *detailedConn) string {
 	switch {
-	case d.allConn.Equal(d.nonTCP) || d.TcpRspDisable.IsEmpty():
+	case d.allConn.Equal(d.nonTCP) || d.TCPRspDisable.IsEmpty():
 		// no tcp component - ill-relevant; entire TCP connection is responsive - nothing to print
 		return ""
 	case d.tcpRspEnable.IsEmpty():
 		// no tcp responsive component
 		return "\n\tTCP response is blocked"
 	default:
-		disabledToPrint := strings.ReplaceAll(d.TcpRspDisable.String(),
+		disabledToPrint := strings.ReplaceAll(d.TCPRspDisable.String(),
 			"protocol: ", "")
 		disabledToPrint = strings.ReplaceAll(disabledToPrint, "TCP ", "")
 		return "\n\tHowever, TCP response is blocked for: " + disabledToPrint
