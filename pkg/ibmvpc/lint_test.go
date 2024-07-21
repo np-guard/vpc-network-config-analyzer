@@ -8,8 +8,9 @@ package ibmvpc
 
 import (
 	"fmt"
-	"path/filepath"
 	"testing"
+
+	"path/filepath"
 
 	"github.com/stretchr/testify/require"
 

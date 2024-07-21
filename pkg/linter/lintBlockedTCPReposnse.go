@@ -8,6 +8,7 @@ package linter
 
 import (
 	"fmt"
+
 	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
