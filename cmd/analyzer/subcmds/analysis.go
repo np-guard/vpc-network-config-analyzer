@@ -79,13 +79,11 @@ func analysisVPCConfigs(cmd *cobra.Command, inArgs *inArgs, analysisType vpcmode
 		return err
 	}
 	outFormat := inArgs.outputFormat.ToModelFormat()
-	// todo - the lbAbstraction should be derived from a flag "debug", when we will have one
-	lbAbstraction := outFormat != vpcmodel.Debug
 	og, err := vpcmodel.NewOutputGenerator(vpcConfigs,
 		inArgs.grouping,
 		analysisType,
 		false,
-		inArgs.explanationArgs, outFormat, lbAbstraction)
+		inArgs.explanationArgs, outFormat, inArgs.lbAbstraction)
 	if err != nil {
 		return err
 	}

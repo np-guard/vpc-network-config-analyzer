@@ -123,6 +123,11 @@ func TestMain(t *testing.T) {
 			name: "version",
 			args: "-f version.txt --version",
 		},
+		// help
+		{
+			name: "help",
+			args: "report -h",
+		},
 
 		// resource group and region filter
 		{

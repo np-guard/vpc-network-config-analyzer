@@ -28,6 +28,11 @@ func NewReportCommand(args *inArgs) *cobra.Command {
 	}
 
 	cmd.PersistentFlags().BoolVarP(&args.grouping, "grouping", "g", false, "whether to group together endpoints sharing the same connectivity")
+	cmd.PersistentFlags().BoolVarP(&args.lbAbstraction, "load-balancer-abstraction", "", true, "whether to abstract a load balancer to one endpoint")
+	cmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
+		command.Flags().MarkHidden("load-balancer-abstraction")
+		command.Parent().HelpFunc()(command, strings)
+	})
 
 	cmd.AddCommand(newReportEndpointsCommand(args))
 	cmd.AddCommand(newReportSubnetsCommand(args))

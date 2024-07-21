@@ -49,6 +49,7 @@ type inArgs struct {
 	outputFile            string
 	outputFormat          formatSetting
 	grouping              bool
+	lbAbstraction         bool
 	vpc                   string
 	eSrc                  string
 	eDst                  string
