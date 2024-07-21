@@ -32,20 +32,11 @@ func NewReportCommand(args *inArgs) *cobra.Command {
 		},
 	}
 
-	cmd.PersistentFlags().BoolVarP(&args.grouping, groupingFlag, "g", false, "whether to group together endpoints sharing the same connectivity")
-	cmd.PersistentFlags().BoolVarP(&args.lbAbstraction, loadBalancerAbstractionFlag, "", true, "whether to abstract a load balancer to one endpoint")
-	cmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
-		hideCommandFlags(command)
-		command.Parent().HelpFunc()(command, strings)
-	})
-	cmd.SetUsageFunc(func(command *cobra.Command) error {
-		hideCommandFlags(command)
-		// calling:
-		// command.Parent().UsageFunc()(command)
-		// gives infinite recursive call. the following works:
-		cmd.SetUsageFunc(nil)
-		return cmd.UsageFunc()(command)
-	})
+	cmd.PersistentFlags().BoolVarP(&args.grouping, groupingFlag,
+		"g", false, "whether to group together endpoints sharing the same connectivity")
+	cmd.PersistentFlags().BoolVarP(&args.lbAbstraction, loadBalancerAbstractionFlag,
+		"", true, "whether to abstract a load balancer to one endpoint")
+	hideCommandFlags(cmd, []string{loadBalancerAbstractionFlag})
 
 	cmd.AddCommand(newReportEndpointsCommand(args))
 	cmd.AddCommand(newReportSubnetsCommand(args))
@@ -113,7 +104,28 @@ func newReportRoutingCommand(args *inArgs) *cobra.Command {
 
 	return cmd
 }
-
-func hideCommandFlags(command *cobra.Command) {
-	command.Flags().MarkHidden(loadBalancerAbstractionFlag)
+func hideCommandFlags(cmd *cobra.Command, flags []string) {
+	cmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
+		markFlagsHidden(command, flags)
+		command.Parent().HelpFunc()(command, strings)
+	})
+	cmd.SetUsageFunc(func(command *cobra.Command) error {
+		err := markFlagsHidden(command, flags)
+		if err != nil {
+			return err
+		}
+		// calling:
+		// command.Parent().UsageFunc()(command)
+		// gives infinite recursive call. the following works:
+		cmd.SetUsageFunc(nil)
+		return cmd.UsageFunc()(command)
+	})
+}
+func markFlagsHidden(command *cobra.Command, flags []string) error {
+	for _, flag := range flags {
+		if err := command.Flags().MarkHidden(flag); err != nil {
+			return err
+		}
+	}
+	return nil
 }
