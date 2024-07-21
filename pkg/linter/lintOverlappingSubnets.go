@@ -78,15 +78,6 @@ func (finding *overlapSubnets) vpc() []string {
 func (finding *overlapSubnets) string() string {
 	subnet1 := finding.overlapSubnets[0]
 	subnet2 := finding.overlapSubnets[1]
-	subnetsStr := ""
-	if subnet1.VPC().Name() == finding.overlapSubnets[1].VPC().Name() {
-		// same VPC
-		subnetsStr = fmt.Sprintf("%s and %s, both from VPC %s,", subnetStr(subnet1), subnetStr(subnet2), subnet1.VPC().Name())
-	} else {
-		// different VPC
-		subnetsStr = fmt.Sprintf("VPC %s's %s and VPC %s's %s ", subnet1.VPC().Name(), subnetStr(subnet1),
-			subnet2.VPC().Name(), subnetStr(subnet2))
-	}
 	overlapStr := ""
 	if finding.overlapIPBlocks.String() == subnet1.CIDR() && subnet1.CIDR() == subnet2.CIDR() {
 		overlapStr = " overlap in the entire subnets' CIDR range"
@@ -94,7 +85,8 @@ func (finding *overlapSubnets) string() string {
 		overlapStr = fmt.Sprintf(" overlap in %s", finding.overlapIPBlocks.String())
 	}
 
-	return subnetsStr + overlapStr
+	return fmt.Sprintf("VPC %s's %s and VPC %s's %s ", subnet1.VPC().Name(), subnetStr(subnet1),
+		subnet2.VPC().Name(), subnetStr(subnet2)) + overlapStr
 }
 
 func subnetStr(subnet vpcmodel.Subnet) string {

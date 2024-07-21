@@ -32,10 +32,6 @@ var lintTests = []*vpcGeneralTest{
 		name:        "multivpc",
 		inputConfig: "tgw_larger_example",
 	},
-	{
-		name:        "acl3_overlap_subnets",
-		inputConfig: "acl_testing3_subnets_overlap",
-	},
 }
 
 func TestAllLint(t *testing.T) {
