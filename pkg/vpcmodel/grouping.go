@@ -106,14 +106,15 @@ func newGroupConnLinesDiff(d *diffBetweenCfgs) (res *GroupConnLines, err error) 
 	return res, err
 }
 
-func newGroupConnExplainability(c *VPCConfig, e *rulesAndConnDetails) (res *GroupConnLines, err error) {
+func newGroupConnExplainability(c *VPCConfig, allRulesDetails *rulesDetails,
+	e *rulesAndConnDetails) (res *GroupConnLines, err error) {
 	res = &GroupConnLines{
 		config:       c,
 		explain:      e,
 		srcToDst:     newGroupingConnections(),
 		dstToSrc:     newGroupingConnections(),
 		cacheGrouped: newCacheGroupedElements()}
-	err = res.groupExternalAddressesForExplainability()
+	err = res.groupExternalAddressesForExplainability(allRulesDetails)
 	return res, err
 }
 
@@ -349,10 +350,10 @@ func (g *GroupConnLines) groupExternalAddressesForDiff(thisMinusOther bool) erro
 }
 
 // group public internet ranges for explainability lines
-func (g *GroupConnLines) groupExternalAddressesForExplainability() error {
+func (g *GroupConnLines) groupExternalAddressesForExplainability(allRulesDetails *rulesDetails) error {
 	var res []*groupedConnLine
 	for _, details := range *g.explain {
-		groupingStrKey := details.explanationEncode(g.config)
+		groupingStrKey := details.explanationEncode(allRulesDetails)
 		expDetails := &explainDetails{rules: details.actualMergedRules,
 			respondRules: details.respondRules, externalRouter: details.externalRouter,
 			crossVpcRouter: details.crossVpcRouter, crossVpcRules: details.crossVpcRules,
@@ -618,10 +619,10 @@ func connDiffEncode(src, dst VPCResourceIntf, connDiff *connectionDiff) string {
 }
 
 // encodes rulesConnection for grouping
-func (details *srcDstDetails) explanationEncode(c *VPCConfig) string {
+func (details *srcDstDetails) explanationEncode(allRulesDetails *rulesDetails) string {
 	encodeComponents := []string{}
 	encodeComponents = append(encodeComponents, details.conn.string())
-	appendEncodeFilterRules(&encodeComponents, c, details.filtersRelevant,
+	appendEncodeFilterRules(&encodeComponents, allRulesDetails, details.filtersRelevant,
 		details.actualMergedRules)
 	if details.crossVpcRouter != nil {
 		encodeComponents = append(encodeComponents, details.crossVpcRouter.UID())
@@ -629,26 +630,27 @@ func (details *srcDstDetails) explanationEncode(c *VPCConfig) string {
 	}
 	if respondRulesRelevant(details.conn, details.filtersRelevant, details.crossVpcRouter) {
 		appendEncodeRouterRules(&encodeComponents, details.crossVpcRouter, details.crossVpcRespondRules)
-		appendEncodeFilterRules(&encodeComponents, c, details.filtersRelevant,
+		appendEncodeFilterRules(&encodeComponents, allRulesDetails, details.filtersRelevant,
 			details.respondRules)
 	}
 	return strings.Join(encodeComponents, ";")
 }
 
-func appendEncodeFilterRules(encodeComponents *[]string, c *VPCConfig, filtersRelevant map[string]bool, rules *rulesConnection) {
-	appendEncodeDirectionalFilterRules(encodeComponents, c, filtersRelevant,
+func appendEncodeFilterRules(encodeComponents *[]string, allRulesDetails *rulesDetails, filtersRelevant map[string]bool,
+	rules *rulesConnection) {
+	appendEncodeDirectionalFilterRules(encodeComponents, allRulesDetails, filtersRelevant,
 		&rules.egressRules, "egress", false)
-	appendEncodeDirectionalFilterRules(encodeComponents, c, filtersRelevant,
+	appendEncodeDirectionalFilterRules(encodeComponents, allRulesDetails, filtersRelevant,
 		&rules.ingressRules, "ingress", true)
 }
 
-func appendEncodeDirectionalFilterRules(encodeComponents *[]string, c *VPCConfig, filtersRelevant map[string]bool,
+func appendEncodeDirectionalFilterRules(encodeComponents *[]string, allRulesDetails *rulesDetails, filtersRelevant map[string]bool,
 	rules *rulesInLayers, header string, isIngress bool) {
 	if len(*rules) == 0 {
 		return
 	}
 	*encodeComponents = append(*encodeComponents, header+
-		rules.rulesDetailsStr(c, filtersRelevant, isIngress))
+		rules.rulesDetailsStr(allRulesDetails, filtersRelevant, isIngress))
 }
 
 func appendEncodeRouterRules(encodeComponents *[]string, router RoutingResource, rulesInLayers []RulesInTable) {

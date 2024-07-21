@@ -20,7 +20,7 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
-const doubleTab = "\t\t"
+const doubleTab = "\t\t" // todo delete when no longer used
 const emptyNameError = "empty name for %s indexed %d"
 
 const securityGroup = "security group"
@@ -445,32 +445,11 @@ func appendToRulesInFilter(resRulesInFilter *[]vpcmodel.RulesInTable, rules *[]i
 		rType = vpcmodel.OnlyDeny
 	}
 	rulesInNacl := vpcmodel.RulesInTable{
-		Table:       filterIndex,
+		TableIndex:  filterIndex,
 		Rules:       *rules,
 		RulesOfType: rType,
 	}
 	*resRulesInFilter = append(*resRulesInFilter, rulesInNacl)
-}
-
-func (nl *NaclLayer) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInTable) string {
-	strListRulesInFilter := ""
-	for _, rulesInFilter := range listRulesInFilter {
-		nacl := nl.naclList[rulesInFilter.Table]
-		header := getHeaderRulesType(vpcmodel.FilterKindName(nl.Kind())+" "+nacl.Name(), rulesInFilter.RulesOfType) +
-			nacl.analyzer.StringRules(rulesInFilter.Rules)
-		strListRulesInFilter += doubleTab + header
-	}
-	return strListRulesInFilter
-}
-
-func (nl *NaclLayer) ListFilterWithAction(listRulesInFilter []vpcmodel.RulesInTable) (filters map[string]bool) {
-	filters = map[string]bool{}
-	for _, rulesInFilter := range listRulesInFilter {
-		nacl := nl.naclList[rulesInFilter.Table]
-		name := nacl.Name()
-		filters[name] = getFilterAction(rulesInFilter.RulesOfType)
-	}
-	return filters
 }
 
 func (nl *NaclLayer) ReferencedIPblocks() []*ipblock.IPBlock {
@@ -493,36 +472,11 @@ func (nl *NaclLayer) GetRules() ([]vpcmodel.RuleOfFilter, error) {
 		for _, rule := range naclRules {
 			ruleBlocks := []*ipblock.IPBlock{rule.src, rule.dst}
 			ruleDesc, _, _, _ := nacl.analyzer.getNACLRule(rule.index)
-			resRules = append(resRules, *vpcmodel.NewRuleOfFilter(networkACL, naclName, ruleDesc, rule.index,
+			resRules = append(resRules, *vpcmodel.NewRuleOfFilter(networkACL, naclName, ruleDesc, naclIndx, rule.index,
 				ruleBlocks))
 		}
 	}
 	return resRules, nil
-}
-
-func getHeaderRulesType(filter string, rType vpcmodel.RulesType) string {
-	switch rType {
-	case vpcmodel.NoRules:
-		return filter + " blocks connection since there are no relevant allow rules\n"
-	case vpcmodel.OnlyDeny:
-		return filter + " blocks connection with the following deny rules:\n"
-	case vpcmodel.BothAllowDeny:
-		return filter + " allows connection with the following allow and deny rules\n"
-	case vpcmodel.OnlyAllow:
-		return filter + " allows connection with the following allow rules\n"
-	default:
-		return ""
-	}
-}
-
-// returns true of the filter allows traffic, false if it blocks traffic
-func getFilterAction(rType vpcmodel.RulesType) bool {
-	switch rType {
-	case vpcmodel.BothAllowDeny, vpcmodel.OnlyAllow:
-		return true
-	default:
-		return false
-	}
 }
 
 type NACL struct {
@@ -663,7 +617,7 @@ func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 				rType = vpcmodel.NoRules
 			}
 			rulesInSg := vpcmodel.RulesInTable{
-				Table:       index,
+				TableIndex:  index,
 				Rules:       sgRules,
 				RulesOfType: rType,
 			}
@@ -671,27 +625,6 @@ func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 		}
 	}
 	return allowRes, nil, nil
-}
-
-func (sgl *SecurityGroupLayer) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInTable) string {
-	listRulesInFilterSlice := make([]string, len(listRulesInFilter))
-	for i, rulesInFilter := range listRulesInFilter {
-		sg := sgl.sgList[rulesInFilter.Table]
-		listRulesInFilterSlice[i] = doubleTab + getHeaderRulesType(vpcmodel.FilterKindName(sgl.Kind())+" "+sg.Name(), rulesInFilter.RulesOfType) +
-			sg.analyzer.StringRules(rulesInFilter.Rules)
-	}
-	sort.Strings(listRulesInFilterSlice)
-	return strings.Join(listRulesInFilterSlice, "")
-}
-
-func (sgl *SecurityGroupLayer) ListFilterWithAction(listRulesInFilter []vpcmodel.RulesInTable) (filters map[string]bool) {
-	filters = map[string]bool{}
-	for _, rulesInFilter := range listRulesInFilter {
-		sg := sgl.sgList[rulesInFilter.Table]
-		name := sg.Name()
-		filters[name] = getFilterAction(rulesInFilter.RulesOfType)
-	}
-	return filters
 }
 
 func (sgl *SecurityGroupLayer) ReferencedIPblocks() []*ipblock.IPBlock {
@@ -717,7 +650,7 @@ func (sgl *SecurityGroupLayer) GetRules() ([]vpcmodel.RuleOfFilter, error) {
 				ruleBlocks = append(ruleBlocks, rule.local)
 			}
 			ruleDesc, _, _, _ := sg.analyzer.getSGRule(rule.index)
-			resRules = append(resRules, *vpcmodel.NewRuleOfFilter(securityGroup, sgName, ruleDesc, rule.index,
+			resRules = append(resRules, *vpcmodel.NewRuleOfFilter(securityGroup, sgName, ruleDesc, sgIndx, rule.index,
 				ruleBlocks))
 		}
 	}
@@ -1057,7 +990,7 @@ func (tgw *TransitGateway) RulesInConnectivity(src, dst vpcmodel.Node) []vpcmode
 func (tgw *TransitGateway) StringOfRouterRules(listRulesInTransitConns []vpcmodel.RulesInTable, verbose bool) (string, error) {
 	strRes := []string{}
 	for _, prefixesInTransitConn := range listRulesInTransitConns {
-		transitConn := tgw.tgwConnList[prefixesInTransitConn.Table]
+		transitConn := tgw.tgwConnList[prefixesInTransitConn.TableIndex]
 		if verbose {
 			verboseStr, err := tgw.stringPrefixFiltersVerbose(transitConn, prefixesInTransitConn)
 			if err != nil {
