@@ -57,6 +57,7 @@ func (lint *overlappingSubnetsLint) check() error {
 			}
 			intersectIPBlock := subnet1IPBlock.Intersect(subnet2IPBlock)
 			if !intersectIPBlock.IsEmpty() {
+				// to make the content of the overlapSubnets struct deterministic
 				if subnetStr(subnet1) > subnetStr(subnet2) {
 					subnet1, subnet2 = subnet2, subnet1
 				}
