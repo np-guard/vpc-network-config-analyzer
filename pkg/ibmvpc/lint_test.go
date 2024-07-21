@@ -32,6 +32,10 @@ var lintTests = []*vpcGeneralTest{
 		name:        "multivpc",
 		inputConfig: "tgw_larger_example",
 	},
+	{
+		name:        "multivpc_partly_overlap",
+		inputConfig: "tgw_larger_example_partly_overlap",
+	},
 }
 
 func TestAllLint(t *testing.T) {
