@@ -41,12 +41,12 @@ type explainDetails struct {
 }
 
 type groupedCommonProperties struct {
-	conn       *detailedConn
+	Conn       *detailedConn
 	connDiff   *connectionDiff
 	expDetails *explainDetails
 	// groupingStrKey is the key by which the grouping is done:
-	// the string of conn per grouping of conn lines, string of connDiff per grouping of diff lines
-	// and string of conn and explainDetails for explainblity
+	// the string of Conn per grouping of Conn lines, string of connDiff per grouping of diff lines
+	// and string of Conn and explainDetails for explainblity
 	groupingStrKey string // the key used for grouping per connectivity lines or diff lines
 }
 
@@ -145,18 +145,18 @@ type EndpointElem interface {
 }
 
 type groupedConnLine struct {
-	src              EndpointElem
-	dst              EndpointElem
-	commonProperties *groupedCommonProperties // holds the common conn/diff properties
+	Src              EndpointElem
+	Dst              EndpointElem
+	CommonProperties *groupedCommonProperties // holds the common Conn/diff properties
 }
 
 func (g *groupedConnLine) String(c *VPCConfig) string {
-	return g.src.ExtendedName(c) + " => " + g.dst.ExtendedName(c) + " : " + g.ConnLabel(true)
+	return g.Src.ExtendedName(c) + " => " + g.Dst.ExtendedName(c) + " : " + g.ConnLabel(true)
 }
 
 func (g *groupedConnLine) ConnLabel(full bool) string {
-	label := g.commonProperties.groupingStrKey
-	if !full && g.commonProperties.conn.isAllObliviousRsp() {
+	label := g.CommonProperties.groupingStrKey
+	if !full && g.CommonProperties.Conn.isAllObliviousRsp() {
 		label = ""
 	}
 	signs := []string{}
@@ -169,20 +169,20 @@ func (g *groupedConnLine) ConnLabel(full bool) string {
 
 func (g *groupedConnLine) getSrcOrDst(isSrc bool) EndpointElem {
 	if isSrc {
-		return g.src
+		return g.Src
 	}
-	return g.dst
+	return g.Dst
 }
 
 // isOverApproximated() checks if the line was over approximated - namely, has missing connection, during the load balancer abstraction
 // it uses the lb AbstractionInfo that was kept during the approximation
 func (g *groupedConnLine) isOverApproximated() bool {
-	src, srcIsLb := g.src.(LoadBalancer)
-	dst, dstIsLb := g.dst.(LoadBalancer)
-	// in case that src was abstracted, we check if a connection from the src to one of the destination resources is missing.
+	src, srcIsLb := g.Src.(LoadBalancer)
+	dst, dstIsLb := g.Dst.(LoadBalancer)
+	// in case that Src was abstracted, we check if a connection from the Src to one of the destination resources is missing.
 	// add vise versa
-	return srcIsLb && src.AbstractionInfo().hasMissingConnection(endpointElemResources(g.dst), false) ||
-		dstIsLb && dst.AbstractionInfo().hasMissingConnection(endpointElemResources(g.src), true)
+	return srcIsLb && src.AbstractionInfo().hasMissingConnection(endpointElemResources(g.Dst), false) ||
+		dstIsLb && dst.AbstractionInfo().hasMissingConnection(endpointElemResources(g.Src), true)
 }
 
 // you might think that the following method should be part of EndpointElem interface.
@@ -301,15 +301,15 @@ func (g *GroupConnLines) groupExternalAddresses(vsi bool) error {
 			// tcp responsive and non tcp component of the connection
 			if !connsResponsive.nonTCPAndResponsiveTCPComponent().IsEmpty() {
 				err := g.addLineToExternalGrouping(&res, src, dst,
-					&groupedCommonProperties{conn: connsResponsive, groupingStrKey: connsResponsive.connStrPerConnectionType(true)})
+					&groupedCommonProperties{Conn: connsResponsive, groupingStrKey: connsResponsive.connStrPerConnectionType(true)})
 				if err != nil {
 					return err
 				}
 			}
 			// tcp non-responsive component of the connection
-			if !connsResponsive.tcpRspDisable.IsEmpty() {
+			if !connsResponsive.TcpRspDisable.IsEmpty() {
 				err := g.addLineToExternalGrouping(&res, src, dst,
-					&groupedCommonProperties{conn: connsResponsive, groupingStrKey: connsResponsive.connStrPerConnectionType(false)})
+					&groupedCommonProperties{Conn: connsResponsive, groupingStrKey: connsResponsive.connStrPerConnectionType(false)})
 				if err != nil {
 					return err
 				}
@@ -361,7 +361,7 @@ func (g *GroupConnLines) groupExternalAddressesForExplainability() error {
 			connEnabled: details.connEnabled, ingressEnabled: details.ingressEnabled,
 			egressEnabled: details.egressEnabled}
 		err := g.addLineToExternalGrouping(&res, details.src, details.dst,
-			&groupedCommonProperties{conn: details.conn, expDetails: expDetails,
+			&groupedCommonProperties{Conn: details.conn, expDetails: expDetails,
 				groupingStrKey: groupingStrKey})
 		if err != nil {
 			return err
@@ -415,11 +415,11 @@ func isInternalOfRequiredType(ep EndpointElem, groupVsi bool) bool {
 	return true
 }
 
-// groups src/targets for either Vsis UIDs or Subnets UIDs
+// groups Src/targets for either Vsis UIDs or Subnets UIDs
 func (g *GroupConnLines) groupLinesByKey(srcGrouping, groupVsi bool) (res []*groupedConnLine,
 	groupingSrcOrDst map[string][]*groupedConnLine) {
 	res = []*groupedConnLine{}
-	// build map from str(dst+conn) to []src => create lines accordingly
+	// build map from str(Dst+Conn) to []Src => create lines accordingly
 	groupingSrcOrDst = map[string][]*groupedConnLine{}
 	// populate map groupingSrcOrDst
 	for _, line := range g.GroupedLines {
@@ -428,7 +428,7 @@ func (g *GroupConnLines) groupLinesByKey(srcGrouping, groupVsi bool) (res []*gro
 			res = append(res, line)
 			continue
 		}
-		key := getKeyOfGroupConnLines(grpIndex, grpTarget, line.commonProperties.groupingStrKey)
+		key := getKeyOfGroupConnLines(grpIndex, grpTarget, line.CommonProperties.groupingStrKey)
 		if _, ok := groupingSrcOrDst[key]; !ok {
 			groupingSrcOrDst[key] = []*groupedConnLine{}
 		}
@@ -467,9 +467,9 @@ func (g *GroupConnLines) groupInternalSrcOrDst(srcGrouping, groupVsi bool) {
 		groupedEndpoints := groupedEndpointsElems(nodesList)
 		groupedNodes := g.cacheGrouped.getAndSetEndpointElemFromCache(&groupedEndpoints)
 		if srcGrouping {
-			res = append(res, &groupedConnLine{groupedNodes, linesGroup[0].dst, linesGroup[0].commonProperties})
+			res = append(res, &groupedConnLine{groupedNodes, linesGroup[0].Dst, linesGroup[0].CommonProperties})
 		} else {
-			res = append(res, &groupedConnLine{linesGroup[0].src, groupedNodes, linesGroup[0].commonProperties})
+			res = append(res, &groupedConnLine{linesGroup[0].Src, groupedNodes, linesGroup[0].CommonProperties})
 		}
 	}
 	g.GroupedLines = unifiedGroupedConnLines(res, g.cacheGrouped, false)
@@ -486,9 +486,9 @@ func unifiedGroupedConnLines(oldConnLines []*groupedConnLine, cacheGrouped *cach
 	newGroupedLines := make([]*groupedConnLine, len(oldConnLines))
 	// go over all connections; if src/dst is not external then use groupedEndpointsElemsMap
 	for i, groupedLine := range oldConnLines {
-		newGroupedLines[i] = &groupedConnLine{unifiedGroupedElems(groupedLine.src, cacheGrouped, unifyGroupedExternalNodes),
-			unifiedGroupedElems(groupedLine.dst, cacheGrouped, unifyGroupedExternalNodes),
-			groupedLine.commonProperties}
+		newGroupedLines[i] = &groupedConnLine{unifiedGroupedElems(groupedLine.Src, cacheGrouped, unifyGroupedExternalNodes),
+			unifiedGroupedElems(groupedLine.Dst, cacheGrouped, unifyGroupedExternalNodes),
+			groupedLine.CommonProperties}
 	}
 	return newGroupedLines
 }
@@ -559,7 +559,7 @@ func (g *GroupConnLines) String(c *VPCConfig) string {
 func (g *GroupConnLines) hasStatelessConns() bool {
 	hasStatelessConns := false
 	for _, line := range g.GroupedLines {
-		if !line.commonProperties.conn.tcpRspDisable.IsEmpty() {
+		if !line.CommonProperties.Conn.TcpRspDisable.IsEmpty() {
 			hasStatelessConns = true
 			break
 		}

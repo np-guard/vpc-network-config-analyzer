@@ -118,10 +118,10 @@ func explainMissingCrossVpcRouter(src, dst string, connQuery *connection.Set) st
 // is provided regardless of where the is blocking
 // 4 is printed only in debug mode
 func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connection.Set, verbose bool) string {
-	expDetails := g.commonProperties.expDetails
-	filtersRelevant := g.commonProperties.expDetails.filtersRelevant
-	src, dst := g.src, g.dst
-	loadBalancerRule := g.commonProperties.expDetails.loadBalancerRule
+	expDetails := g.CommonProperties.expDetails
+	filtersRelevant := g.CommonProperties.expDetails.filtersRelevant
+	src, dst := g.Src, g.Dst
+	loadBalancerRule := g.CommonProperties.expDetails.loadBalancerRule
 	needEgress := !src.IsExternal()
 	needIngress := !dst.IsExternal()
 	loadBalancerBlocking := loadBalancerRule != nil && loadBalancerRule.Deny()
@@ -154,7 +154,7 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 		ingressBlocking, egressBlocking, loadBalancerBlocking, externalRouter, crossVpcRouter, crossVpcConnection, rules) + newLine
 	// details is "4" above
 	egressRulesDetails, ingressRulesDetails := rules.ruleDetailsStr(c, filtersRelevant, needEgress, needIngress)
-	conn := g.commonProperties.conn
+	conn := g.CommonProperties.Conn
 	if verbose {
 		enabledOrDisabledStr := "enabled"
 		if conn.allConn.IsEmpty() {
@@ -184,7 +184,7 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 // assumption: the func is called only if the tcp component of the connection is not empty
 func respondDetailsHeader(d *detailedConn) string {
 	switch {
-	case d.tcpRspDisable.IsEmpty():
+	case d.TcpRspDisable.IsEmpty():
 		return "TCP response is enabled; The relevant rules are:\n"
 	case d.tcpRspEnable.IsEmpty():
 		return "TCP response is disabled; The relevant rules are:\n"
@@ -197,9 +197,9 @@ func respondDetailsHeader(d *detailedConn) string {
 func (g *groupedConnLine) explainPerCaseStr(c *VPCConfig, src, dst EndpointElem,
 	connQuery, crossVpcConnection *connection.Set, ingressBlocking, egressBlocking, loadBalancerBlocking bool,
 	noConnection, resourceEffectHeader, path, details string) string {
-	conn := g.commonProperties.conn
-	externalRouter, crossVpcRouter := g.commonProperties.expDetails.externalRouter,
-		g.commonProperties.expDetails.crossVpcRouter
+	conn := g.CommonProperties.Conn
+	externalRouter, crossVpcRouter := g.CommonProperties.expDetails.externalRouter,
+		g.CommonProperties.expDetails.crossVpcRouter
 	headerPlusPath := resourceEffectHeader + path
 	switch {
 	case crossVpcRouterRequired(src, dst) && crossVpcRouter != nil && crossVpcConnection.IsEmpty():
@@ -534,14 +534,14 @@ func getLayersToPrint(filtersRelevant map[string]bool, isIngress bool) (filterLa
 
 func respondString(d *detailedConn) string {
 	switch {
-	case d.allConn.Equal(d.nonTCP) || d.tcpRspDisable.IsEmpty():
+	case d.allConn.Equal(d.nonTCP) || d.TcpRspDisable.IsEmpty():
 		// no tcp component - ill-relevant; entire TCP connection is responsive - nothing to print
 		return ""
 	case d.tcpRspEnable.IsEmpty():
 		// no tcp responsive component
 		return "\n\tTCP response is blocked"
 	default:
-		disabledToPrint := strings.ReplaceAll(d.tcpRspDisable.String(),
+		disabledToPrint := strings.ReplaceAll(d.TcpRspDisable.String(),
 			"protocol: ", "")
 		disabledToPrint = strings.ReplaceAll(disabledToPrint, "TCP ", "")
 		return "\n\tHowever, TCP response is blocked for: " + disabledToPrint

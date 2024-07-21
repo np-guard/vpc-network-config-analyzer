@@ -84,9 +84,9 @@ func getConnLines(conn *VPCConnectivity) []connLine {
 				continue
 			}
 			responsiveAndOther := extConn.tcpRspEnable.Union(extConn.nonTCP)
-			if !extConn.tcpRspDisable.IsEmpty() {
+			if !extConn.TcpRspDisable.IsEmpty() {
 				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: connection.ToJSON(responsiveAndOther),
-					UnidirectionalConn: connection.ToJSON(extConn.tcpRspDisable)})
+					UnidirectionalConn: connection.ToJSON(extConn.TcpRspDisable)})
 			} else {
 				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: connection.ToJSON(extConn.allConn)})
 			}
@@ -123,7 +123,7 @@ func getConnLinesForSubnetsConnectivity(conn *VPCsubnetConnectivity) []connLine 
 				Src:                src,
 				Dst:                dst,
 				Conn:               connection.ToJSON(extConns.tcpRspEnable.Union(extConns.nonTCP)),
-				UnidirectionalConn: connection.ToJSON(extConns.tcpRspDisable),
+				UnidirectionalConn: connection.ToJSON(extConns.TcpRspDisable),
 			})
 		}
 	}
@@ -171,9 +171,9 @@ func getDirectionalDiffLines(connectDiff connectivityDiff) []diffLine {
 			}
 			diffLines = append(diffLines, diffLine{diffSrcStr, diffDstStr,
 				src, dst, connection.ToJSON(connDiff.conn1.nonTCPAndResponsiveTCPComponent()),
-				connection.ToJSON(connDiff.conn1.tcpRspDisable),
+				connection.ToJSON(connDiff.conn1.TcpRspDisable),
 				connection.ToJSON(connDiff.conn2.nonTCPAndResponsiveTCPComponent()),
-				connection.ToJSON(connDiff.conn2.tcpRspDisable)})
+				connection.ToJSON(connDiff.conn2.TcpRspDisable)})
 		}
 	}
 
