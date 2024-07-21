@@ -9,8 +9,6 @@ package commonvpc
 import (
 	"errors"
 	"fmt"
-	"sort"
-	"strings"
 
 	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/ipblock"
@@ -247,7 +245,7 @@ func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 				rType = vpcmodel.NoRules
 			}
 			rulesInSg := vpcmodel.RulesInTable{
-				Table:       index,
+				TableIndex:  index,
 				Rules:       sgRules,
 				RulesOfType: rType,
 			}
@@ -255,27 +253,6 @@ func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 		}
 	}
 	return allowRes, nil, nil
-}
-
-func (sgl *SecurityGroupLayer) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInTable) string {
-	listRulesInFilterSlice := make([]string, len(listRulesInFilter))
-	for i, rulesInFilter := range listRulesInFilter {
-		sg := sgl.SgList[rulesInFilter.Table]
-		listRulesInFilterSlice[i] = "\t\t" + GetHeaderRulesType(vpcmodel.FilterKindName(sgl.Kind())+" "+sg.Name(), rulesInFilter.RulesOfType) +
-			sg.Analyzer.SgAnalyzer.StringRules(rulesInFilter.Rules)
-	}
-	sort.Strings(listRulesInFilterSlice)
-	return strings.Join(listRulesInFilterSlice, "")
-}
-
-func (sgl *SecurityGroupLayer) ListFilterWithAction(listRulesInFilter []vpcmodel.RulesInTable) (filters map[string]bool) {
-	filters = map[string]bool{}
-	for _, rulesInFilter := range listRulesInFilter {
-		sg := sgl.SgList[rulesInFilter.Table]
-		name := sg.Name()
-		filters[name] = GetFilterAction(rulesInFilter.RulesOfType)
-	}
-	return filters
 }
 
 func (sgl *SecurityGroupLayer) ReferencedIPblocks() []*ipblock.IPBlock {

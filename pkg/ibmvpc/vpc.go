@@ -21,6 +21,13 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
+<<<<<<< HEAD
+=======
+const doubleTab = "\t\t" // todo delete when no longer used
+const emptyNameError = "empty name for %s indexed %d"
+
+const securityGroup = "security group"
+>>>>>>> main
 const networkACL = "network ACL"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -308,32 +315,11 @@ func appendToRulesInFilter(resRulesInFilter *[]vpcmodel.RulesInTable, rules *[]i
 		rType = vpcmodel.OnlyDeny
 	}
 	rulesInNacl := vpcmodel.RulesInTable{
-		Table:       filterIndex,
+		TableIndex:  filterIndex,
 		Rules:       *rules,
 		RulesOfType: rType,
 	}
 	*resRulesInFilter = append(*resRulesInFilter, rulesInNacl)
-}
-
-func (nl *NaclLayer) StringDetailsOfRules(listRulesInFilter []vpcmodel.RulesInTable) string {
-	strListRulesInFilter := ""
-	for _, rulesInFilter := range listRulesInFilter {
-		nacl := nl.naclList[rulesInFilter.Table]
-		header := commonvpc.GetHeaderRulesType(vpcmodel.FilterKindName(nl.Kind())+" "+nacl.Name(), rulesInFilter.RulesOfType) +
-			nacl.analyzer.StringRules(rulesInFilter.Rules)
-		strListRulesInFilter += commonvpc.DoubleTab + header
-	}
-	return strListRulesInFilter
-}
-
-func (nl *NaclLayer) ListFilterWithAction(listRulesInFilter []vpcmodel.RulesInTable) (filters map[string]bool) {
-	filters = map[string]bool{}
-	for _, rulesInFilter := range listRulesInFilter {
-		nacl := nl.naclList[rulesInFilter.Table]
-		name := nacl.Name()
-		filters[name] = commonvpc.GetFilterAction(rulesInFilter.RulesOfType)
-	}
-	return filters
 }
 
 func (nl *NaclLayer) ReferencedIPblocks() []*ipblock.IPBlock {
@@ -356,7 +342,7 @@ func (nl *NaclLayer) GetRules() ([]vpcmodel.RuleOfFilter, error) {
 		for _, rule := range naclRules {
 			ruleBlocks := []*ipblock.IPBlock{rule.src, rule.dst}
 			ruleDesc, _, _, _ := nacl.analyzer.getNACLRule(rule.index)
-			resRules = append(resRules, *vpcmodel.NewRuleOfFilter(networkACL, naclName, ruleDesc, rule.index,
+			resRules = append(resRules, *vpcmodel.NewRuleOfFilter(networkACL, naclName, ruleDesc, naclIndx, rule.index,
 				ruleBlocks))
 		}
 	}
@@ -740,7 +726,7 @@ func (tgw *TransitGateway) RulesInConnectivity(src, dst vpcmodel.Node) []vpcmode
 func (tgw *TransitGateway) StringOfRouterRules(listRulesInTransitConns []vpcmodel.RulesInTable, verbose bool) (string, error) {
 	strRes := []string{}
 	for _, prefixesInTransitConn := range listRulesInTransitConns {
-		transitConn := tgw.tgwConnList[prefixesInTransitConn.Table]
+		transitConn := tgw.tgwConnList[prefixesInTransitConn.TableIndex]
 		if verbose {
 			verboseStr, err := tgw.stringPrefixFiltersVerbose(transitConn, prefixesInTransitConn)
 			if err != nil {

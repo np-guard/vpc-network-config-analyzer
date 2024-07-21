@@ -82,7 +82,7 @@ func getVPCAdvertisedRoutes(tc *datamodel.TransitConnection, tcIndex int, vpc *c
 		} else {
 			ruleType = vpcmodel.OnlyDeny
 		}
-		vpcAPToPrefixRules[apIPBlock] = vpcmodel.RulesInTable{Table: tcIndex, Rules: []int{filterIndex}, RulesOfType: ruleType}
+		vpcAPToPrefixRules[apIPBlock] = vpcmodel.RulesInTable{TableIndex: tcIndex, Rules: []int{filterIndex}, RulesOfType: ruleType}
 	}
 	return advertisedRoutesRes, vpcAPToPrefixRules, nil
 }
