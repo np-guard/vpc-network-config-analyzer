@@ -34,8 +34,8 @@ var lintTests = []*vpcGeneralTest{
 		inputConfig: "tgw_larger_example",
 	},
 	{
-		name:        "acl3_overlap_subnets",
-		inputConfig: "acl_testing3_subnets_overlap",
+		name:        "multivpc_partly_overlap",
+		inputConfig: "tgw_larger_example_partly_overlap",
 	},
 }
 
