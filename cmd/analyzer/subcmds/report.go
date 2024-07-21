@@ -33,6 +33,11 @@ func NewReportCommand(args *inArgs) *cobra.Command {
 		command.Flags().MarkHidden("load-balancer-abstraction")
 		command.Parent().HelpFunc()(command, strings)
 	})
+	cmd.SetUsageFunc(func(command *cobra.Command) error {
+		command.Flags().MarkHidden("load-balancer-abstraction")
+		cmd.SetUsageFunc(nil)
+		return cmd.UsageFunc()(command)
+	})
 
 	cmd.AddCommand(newReportEndpointsCommand(args))
 	cmd.AddCommand(newReportSubnetsCommand(args))
