@@ -46,15 +46,10 @@ func (lint *overlappingSubnetsLint) check() error {
 		allSubnets = append(allSubnets, config.Subnets...)
 	}
 	for i, subnet1 := range allSubnets {
-		subnet1IPBlock, err1 := ipblock.FromCidr(subnet1.CIDR())
-		if err1 != nil {
-			return err1
-		}
+		subnet1.AddressRange()
+		subnet1IPBlock := subnet1.AddressRange()
 		for _, subnet2 := range allSubnets[i+1:] {
-			subnet2IPBlock, err2 := ipblock.FromCidr(subnet2.CIDR())
-			if err2 != nil {
-				return err2
-			}
+			subnet2IPBlock := subnet2.AddressRange()
 			intersectIPBlock := subnet1IPBlock.Intersect(subnet2IPBlock)
 			if !intersectIPBlock.IsEmpty() {
 				// to make the content of the overlapSubnets struct deterministic
