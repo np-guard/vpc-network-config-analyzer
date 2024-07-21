@@ -16,8 +16,8 @@ import (
 
 const splitRuleSubnetName = "rules-splitting-subnets"
 
-// filterRuleSplitSubnet: rules of filters that are inconsistent w.r.t. subnets.
-type filterRuleSplitSubnet struct {
+// filterRuleSplitSubnetLint: rules of filters that are inconsistent w.r.t. subnets.
+type filterRuleSplitSubnetLint struct {
 	basicLinter
 }
 
@@ -29,17 +29,17 @@ type splitRuleSubnet struct {
 }
 
 // /////////////////////////////////////////////////////////
-// lint interface implementation for filterRuleSplitSubnet
+// lint interface implementation for filterRuleSplitSubnetLint
 // ////////////////////////////////////////////////////////
-func (lint *filterRuleSplitSubnet) lintName() string {
+func (lint *filterRuleSplitSubnetLint) lintName() string {
 	return splitRuleSubnetName
 }
 
-func (lint *filterRuleSplitSubnet) lintDescription() string {
+func (lint *filterRuleSplitSubnetLint) lintDescription() string {
 	return "Firewall rules implying different connectivity for different endpoints within a subnet"
 }
 
-func (lint *filterRuleSplitSubnet) check() error {
+func (lint *filterRuleSplitSubnetLint) check() error {
 	for _, config := range lint.configs {
 		if config.IsMultipleVPCsConfig {
 			continue // no use in executing lint on dummy vpcs
@@ -83,8 +83,8 @@ func ruleSplitSubnet(subnet vpcmodel.Subnet, ruleIPBlocks []*ipblock.IPBlock) bo
 // finding interface implementation for splitRuleSubnet
 //////////////////////////////////////////////////////////
 
-func (finding *splitRuleSubnet) vpc() string {
-	return finding.vpcName
+func (finding *splitRuleSubnet) vpc() []string {
+	return []string{finding.vpcName}
 }
 
 func (finding *splitRuleSubnet) string() string {
@@ -100,7 +100,8 @@ func (finding *splitRuleSubnet) string() string {
 		subnetStr = "subnet " + subnetStr
 	}
 	return fmt.Sprintf("In VPC %s, %s %s rule's indexed %d splits %s. Splitting rule details: %s",
-		finding.vpc(), finding.rule.LayerName, rule.FilterName, rule.RuleIndex, subnetStr, rule.RuleDesc)
+		finding.vpc()[0], finding.rule.LayerName, rule.FilterName, rule.RuleIndex, subnetStr,
+		strings.ReplaceAll(rule.RuleDesc, "\n", ""))
 }
 
 // for json: a rule with the list of subnets it splits
@@ -108,11 +109,6 @@ type splitRuleSubnetJSON struct {
 	VpcName      string                `json:"vpc_name"`
 	Rule         vpcmodel.RuleOfFilter `json:"rule_details"`
 	SplitSubnets []subnetJSON          `json:"splitted_subnets"`
-}
-
-type subnetJSON struct {
-	Name string `json:"name"`
-	CIDR string `json:"cidr"`
 }
 
 func (finding *splitRuleSubnet) toJSON() any {
