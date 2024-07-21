@@ -13,10 +13,12 @@ import (
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
+
 const (
-	groupingFlag = "grouping"
-	loadBalancerAbstractionFlag  = "load-balancer-abstraction"
+	groupingFlag                = "grouping"
+	loadBalancerAbstractionFlag = "load-balancer-abstraction"
 )
+
 func NewReportCommand(args *inArgs) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "report",
@@ -112,6 +114,6 @@ func newReportRoutingCommand(args *inArgs) *cobra.Command {
 	return cmd
 }
 
-func hideCommandFlags(command *cobra.Command){
+func hideCommandFlags(command *cobra.Command) {
 	command.Flags().MarkHidden(loadBalancerAbstractionFlag)
 }
