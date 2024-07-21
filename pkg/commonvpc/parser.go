@@ -285,23 +285,22 @@ func PrintLineSection() {
 func PrintSGRules(sg *SecurityGroup) {
 	numRules := sg.Analyzer.SgAnalyzer.GetNumberOfRules()
 	logging.Debugf("num rules: %d\n", numRules)
+	if sg.Members != nil {
+		keys := make([]string, 0, len(sg.Members))
+		for k := range sg.Members {
+			keys = append(keys, k)
+		}
+		logging.Debugf("members: " + strings.Join(keys, ", "))
+	}
 	for i := 0; i < numRules; i++ {
 		strRule, _, _, err := sg.Analyzer.SgAnalyzer.GetSGRule(i)
-		PrintRule(strRule, sg.Members, i, err)
+		PrintRule(strRule, i, err)
 	}
 }
 
-func PrintRule(ruleStr string, members map[string]vpcmodel.Node, index int, err error) {
+func PrintRule(ruleStr string, index int, err error) {
 	if err == nil {
 		logging.Debugf(ruleStr)
-		if members != nil {
-			logging.Debugf("members:\n")
-			keys := make([]string, 0, len(members))
-			for k := range members {
-				keys = append(keys, k)
-			}
-			logging.Debugf(strings.Join(keys, " "))
-		}
 	} else {
 		logging.Debugf("err for rule %d: %s\n", index, err.Error())
 	}
