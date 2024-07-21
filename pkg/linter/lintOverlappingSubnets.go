@@ -46,7 +46,6 @@ func (lint *overlappingSubnetsLint) check() error {
 		allSubnets = append(allSubnets, config.Subnets...)
 	}
 	for i, subnet1 := range allSubnets {
-		subnet1.AddressRange()
 		subnet1IPBlock := subnet1.AddressRange()
 		for _, subnet2 := range allSubnets[i+1:] {
 			subnet2IPBlock := subnet2.AddressRange()
