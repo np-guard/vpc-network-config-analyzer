@@ -16,22 +16,22 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 )
 
-type AwsSgAnalyzer struct {
+type AWSSGAnalyzer struct {
 	sgResource         *types.SecurityGroup
 	referencedIPblocks []*ipblock.IPBlock
 	sgMap              map[string]*commonvpc.SecurityGroup
 }
 
-func NewAwsSgAnalyzer(sg *types.SecurityGroup) *AwsSgAnalyzer {
-	res := &AwsSgAnalyzer{sgResource: sg}
+func NewAWSSGAnalyzer(sg *types.SecurityGroup) *AWSSGAnalyzer {
+	res := &AWSSGAnalyzer{sgResource: sg}
 	return res
 }
 
-func (sga *AwsSgAnalyzer) Name() *string {
+func (sga *AWSSGAnalyzer) Name() *string {
 	return sga.sgResource.GroupName
 }
 
-func (sga *AwsSgAnalyzer) getRemoteCidr(ipRanges []types.IpRange, userIDGroupPairs []types.UserIdGroupPair) (
+func (sga *AWSSGAnalyzer) getRemoteCidr(ipRanges []types.IpRange, userIDGroupPairs []types.UserIdGroupPair) (
 	remote *ipblock.IPBlock, err error) {
 	remote = ipblock.New()
 	for i := range ipRanges {
@@ -57,7 +57,7 @@ func (sga *AwsSgAnalyzer) getRemoteCidr(ipRanges []types.IpRange, userIDGroupPai
 }
 
 // getProtocolAllRule returns rule results corresponding to the provided rule obj with all connections allowed
-func (sga *AwsSgAnalyzer) getProtocolAllRule(ruleObj *types.IpPermission, direction string) (
+func (sga *AWSSGAnalyzer) getProtocolAllRule(ruleObj *types.IpPermission, direction string) (
 	ruleStr string, ruleRes *commonvpc.SGRule, err error) {
 	ruleRes = &commonvpc.SGRule{}
 	connStr := "protocol: all"
@@ -72,7 +72,7 @@ func (sga *AwsSgAnalyzer) getProtocolAllRule(ruleObj *types.IpPermission, direct
 }
 
 // getProtocolTCPUDPRule returns rule results corresponding to the provided rule obj with tcp or udp connection
-func (sga *AwsSgAnalyzer) getProtocolTCPUDPRule(ruleObj *types.IpPermission, direction string) (
+func (sga *AWSSGAnalyzer) getProtocolTCPUDPRule(ruleObj *types.IpPermission, direction string) (
 	ruleStr string, ruleRes *commonvpc.SGRule, err error) {
 	minPort := int64(*ruleObj.FromPort)
 	maxPort := int64(*ruleObj.ToPort)
@@ -103,7 +103,7 @@ func getRuleStr(direction, connStr, ipRanges string) string {
 }
 
 // getProtocolICMPRule returns rule results corresponding to the provided rule obj with icmp connection
-func (sga *AwsSgAnalyzer) getProtocolICMPRule(ruleObj *types.IpPermission, direction string) (
+func (sga *AWSSGAnalyzer) getProtocolICMPRule(ruleObj *types.IpPermission, direction string) (
 	ruleStr string, ruleRes *commonvpc.SGRule, err error) {
 	minPort := int64(*ruleObj.FromPort)
 	maxPort := int64(*ruleObj.ToPort)
@@ -121,7 +121,7 @@ func (sga *AwsSgAnalyzer) getProtocolICMPRule(ruleObj *types.IpPermission, direc
 	return
 }
 
-func (sga *AwsSgAnalyzer) GetSGRule(index int) (
+func (sga *AWSSGAnalyzer) GetSGRule(index int) (
 	ruleStr string, ruleRes *commonvpc.SGRule, isIngress bool, err error) {
 	var ruleObj types.IpPermission
 	direction := commonvpc.Inbound
@@ -153,7 +153,7 @@ func (sga *AwsSgAnalyzer) GetSGRule(index int) (
 	return fmt.Sprintf("index: %d, %v", index, ruleStr), ruleRes, isIngress, nil
 }
 
-func (sga *AwsSgAnalyzer) GetSGRules() (ingressRules, egressRules []*commonvpc.SGRule, err error) {
+func (sga *AWSSGAnalyzer) GetSGRules() (ingressRules, egressRules []*commonvpc.SGRule, err error) {
 	ingressRules = []*commonvpc.SGRule{}
 	egressRules = []*commonvpc.SGRule{}
 	numRules := len(sga.sgResource.IpPermissions) + len(sga.sgResource.IpPermissionsEgress)
@@ -174,14 +174,14 @@ func (sga *AwsSgAnalyzer) GetSGRules() (ingressRules, egressRules []*commonvpc.S
 	return ingressRules, egressRules, nil
 }
 
-func (sga *AwsSgAnalyzer) SetSGmap(sgMap map[string]*commonvpc.SecurityGroup) {
+func (sga *AWSSGAnalyzer) SetSGmap(sgMap map[string]*commonvpc.SecurityGroup) {
 	sga.sgMap = sgMap
 }
 
-func (sga *AwsSgAnalyzer) ReferencedIPblocks() []*ipblock.IPBlock {
+func (sga *AWSSGAnalyzer) ReferencedIPblocks() []*ipblock.IPBlock {
 	return sga.referencedIPblocks
 }
 
-func (sga *AwsSgAnalyzer) GetNumberOfRules() int {
+func (sga *AWSSGAnalyzer) GetNumberOfRules() int {
 	return len(sga.sgResource.IpPermissions) + len(sga.sgResource.IpPermissionsEgress)
 }
