@@ -30,7 +30,7 @@ const (
 	// that should be added with iks nodes
 	IksNodeResourceType = "iks_node" // used as the type within api objects (e.g. SecurityGroup.Targets.ResourceType)
 	cidrSeparator       = ", "
-	linesSeparator      = "---------------------"
+	lineSectionLen      = 41
 )
 
 // Resource types const strings, used in the generated resources of this pkg
@@ -279,7 +279,7 @@ func NewSubnet(name, uid, zone, cidr string, vpc vpcmodel.VPCResourceIntf) (*Sub
 }
 
 func PrintLineSection() {
-	logging.Debugf(strings.Repeat("-", 41))
+	logging.Debugf(strings.Repeat("-", lineSectionLen))
 }
 
 func PrintSGRules(sg *SecurityGroup) {
