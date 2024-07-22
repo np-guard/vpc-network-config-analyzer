@@ -44,6 +44,7 @@ func NewSGAnalyzer(analyzer SpecificAnalyzer) *SGAnalyzer {
 }
 
 // GetProperty returns pointer p if it is valid, else it returns the provided default value
+// used to get min/max port or icmp type
 func GetProperty(p *int64, defaultP int64) int64 {
 	if p == nil {
 		return defaultP
