@@ -80,7 +80,8 @@ func (rc *AWSresourcesContainer) VpcConfigsFromFiles(fileNames []string, vpcID, 
 	return vpcConfigs, nil
 }
 
-// filterByVpc returns a map from vpcID to true if this vpc should be filtered
+// filterByVpc returns a map to filtered resources, if certain VPC to analyze is specified by the user,
+// skip resources configured outside that VPC
 func (rc *AWSresourcesContainer) filterByVpc(vpcID string) map[string]bool {
 	shouldSkipVpcIds := make(map[string]bool)
 	for _, vpc := range rc.VpcsList {
