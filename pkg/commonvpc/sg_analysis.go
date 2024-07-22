@@ -7,11 +7,14 @@ SPDX-License-Identifier: Apache-2.0
 package commonvpc
 
 import (
+	"fmt"
 	"slices"
+	"strings"
 
 	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
 )
 
 type SGAnalyzer struct {
@@ -218,4 +221,47 @@ func (sga *SGAnalyzer) ingressOrEgressConnectivity(isIngress bool) ConnectivityR
 		return sga.ingressConnectivityMap
 	}
 	return sga.egressConnectivityMap
+}
+
+// GetIPBlockResult gets an cidr, address or name of the remote/local rule object, and returns it's IPBlock
+func GetIPBlockResult(cidr, address, name *string,
+	sgMap map[string]*SecurityGroup) (*ipblock.IPBlock, string, error) {
+	var ipBlock *ipblock.IPBlock
+	var cidrRes string
+	var err error
+	switch {
+	case cidr != nil:
+		ipBlock, err = ipblock.FromCidr(*cidr)
+		if err != nil {
+			return nil, "", err
+		}
+		cidrRes = ipBlock.ToCidrList()[0]
+	case address != nil:
+		ipBlock, err = ipblock.FromIPAddress(*address)
+		if err != nil {
+			return nil, "", err
+		}
+		cidrRes = ipBlock.ToCidrList()[0]
+	case name != nil:
+		ipBlock = ipblock.New()
+		if sg, ok := sgMap[*name]; ok {
+			for member := range sg.Members {
+				memberIPBlock, err := ipblock.FromIPAddress(member)
+				if err != nil {
+					return nil, "", err
+				}
+				ipBlock = ipBlock.Union(memberIPBlock)
+			}
+			cidrRes = strings.Join(ipBlock.ToCidrList(), ",")
+		}
+	default:
+		return nil, "", fmt.Errorf("sg error: getCidrResult - SecurityGroupRule is empty")
+	}
+	if ipBlock == nil {
+		return nil, "", fmt.Errorf("getIPBlockResult err: unexpected nil ipBlock returned")
+	}
+	if ipBlock.IsEmpty() {
+		logging.Debugf("SG rule references an empty IPBlock, rule will be ignored")
+	}
+	return ipBlock, cidrRes, nil
 }

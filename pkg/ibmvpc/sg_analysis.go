@@ -52,48 +52,6 @@ func (sga *SpecificAnalyzer) Name() *string {
 	return sga.SgResource.Name
 }
 
-// getIPBlockResult gets an cidr, address or name of the remote/local rule object, and returns it's IPBlock
-func (sga *SpecificAnalyzer) getIPBlockResult(cidr, address, name *string) (*ipblock.IPBlock, string, error) {
-	var ipBlock *ipblock.IPBlock
-	var cidrRes string
-	var err error
-	switch {
-	case cidr != nil:
-		ipBlock, err = ipblock.FromCidr(*cidr)
-		if err != nil {
-			return nil, "", err
-		}
-		cidrRes = ipBlock.ToCidrList()[0]
-	case address != nil:
-		ipBlock, err = ipblock.FromIPAddress(*address)
-		if err != nil {
-			return nil, "", err
-		}
-		cidrRes = ipBlock.ToCidrList()[0]
-	case name != nil:
-		ipBlock = ipblock.New()
-		if sg, ok := sga.sgMap[*name]; ok {
-			for member := range sg.Members {
-				memberIPBlock, err := ipblock.FromIPAddress(member)
-				if err != nil {
-					return nil, "", err
-				}
-				ipBlock = ipBlock.Union(memberIPBlock)
-			}
-			cidrRes = strings.Join(ipBlock.ToCidrList(), ",")
-		}
-	default:
-		return nil, "", fmt.Errorf("sg error: getCidrResult - SecurityGroupRule is empty")
-	}
-	if ipBlock == nil {
-		return nil, "", fmt.Errorf("getIPBlockResult err: unexpected nil ipBlock returned")
-	}
-	if ipBlock.IsEmpty() {
-		logging.Debugf("SG rule references an empty IPBlock, rule will be ignored")
-	}
-	return ipBlock, cidrRes, nil
-}
-
 // getRemoteCidr gets remote rule object interface and returns it's IPBlock
 func (sga *SpecificAnalyzer) getRemoteCidr(remote vpc1.SecurityGroupRuleRemoteIntf) (target *ipblock.IPBlock,
 	cidrRes string, remoteSGName string, err error) {
@@ -106,7 +64,8 @@ func (sga *SpecificAnalyzer) getRemoteCidr(remote vpc1.SecurityGroupRuleRemoteIn
 	// how can infer type of remote from this object?
 	// can also be Address or CRN or ...
 	if remoteObj, ok := remote.(*vpc1.SecurityGroupRuleRemote); ok {
-		target, cidrRes, err = sga.getIPBlockResult(remoteObj.CIDRBlock, remoteObj.Address, remoteObj.Name)
+		target, cidrRes, err = commonvpc.GetIPBlockResult(remoteObj.CIDRBlock,
+			remoteObj.Address, remoteObj.Name, sga.sgMap)
 		if err != nil {
 			return nil, "", "", err
 		}
@@ -131,7 +90,7 @@ func (sga *SpecificAnalyzer) getLocalCidr(local vpc1.SecurityGroupRuleLocalIntf)
 	var cidrRes string
 	var err error
 	if localObj, ok := local.(*vpc1.SecurityGroupRuleLocal); ok {
-		localIP, cidrRes, err = sga.getIPBlockResult(localObj.CIDRBlock, localObj.Address, nil)
+		localIP, cidrRes, err = commonvpc.GetIPBlockResult(localObj.CIDRBlock, localObj.Address, nil, sga.sgMap)
 		if err != nil {
 			return nil, "", err
 		}

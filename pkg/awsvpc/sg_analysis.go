@@ -53,17 +53,38 @@ func (sga *SpecificAnalyzer) Name() *string {
 	return sga.sgResource.GroupName
 }
 
+func (sga *SpecificAnalyzer) getRemoteCidr(ipRanges []types.IpRange, userIDGroupPairs []types.UserIdGroupPair) (
+	remote *ipblock.IPBlock, err error) {
+	remote = ipblock.New()
+	for i := range ipRanges {
+		target, _, err := commonvpc.GetIPBlockResult(ipRanges[i].CidrIp, nil, nil, sga.sgMap)
+		if err != nil {
+			return nil, err
+		}
+		remote = remote.Union(target)
+	}
+
+	for i := range userIDGroupPairs {
+		target, _, err := commonvpc.GetIPBlockResult(nil, nil, userIDGroupPairs[i].GroupId, sga.sgMap)
+		if err != nil {
+			return nil, err
+		}
+		remote = remote.Union(target)
+	}
+
+	if !remote.IsEmpty() {
+		sga.referencedIPblocks = append(sga.referencedIPblocks, remote.Split()...)
+	}
+	return remote, nil
+}
+
 func (sga *SpecificAnalyzer) getProtocolAllRule(ruleObj *types.IpPermission, direction string) (
 	ruleStr string, ruleRes *commonvpc.SGRule, err error) {
 	ruleRes = &commonvpc.SGRule{}
 	connStr := "protocol: all"
-	remote := ipblock.New()
-	for i := range ruleObj.IpRanges {
-		ipRange, err := ipblock.FromCidr(*ruleObj.IpRanges[i].CidrIp)
-		if err != nil {
-			return "", nil, err
-		}
-		remote = remote.Union(ipRange)
+	remote, err := sga.getRemoteCidr(ruleObj.IpRanges, ruleObj.UserIdGroupPairs)
+	if err != nil {
+		return "", nil, err
 	}
 	ruleRes.Remote = commonvpc.NewRuleTarget(remote, "")
 	ruleStr = getRuleStr(direction, connStr, ruleRes.Remote.Cidr.String())
@@ -79,13 +100,9 @@ func (sga *SpecificAnalyzer) getProtocolTcpudpRule(ruleObj *types.IpPermission, 
 	dstPortMax := getProperty(&maxPort, connection.MaxPort)
 	dstPorts := fmt.Sprintf("%d-%d", dstPortMin, dstPortMax)
 	connStr := fmt.Sprintf("protocol: %s,  dstPorts: %s", *ruleObj.IpProtocol, dstPorts)
-	remote := ipblock.New()
-	for i := range ruleObj.IpRanges {
-		ipRange, err := ipblock.FromCidr(*ruleObj.IpRanges[i].CidrIp)
-		if err != nil {
-			return "", nil, err
-		}
-		remote = remote.Union(ipRange)
+	remote, err := sga.getRemoteCidr(ruleObj.IpRanges, ruleObj.UserIdGroupPairs)
+	if err != nil {
+		return "", nil, err
 	}
 	ruleRes = &commonvpc.SGRule{
 		// TODO: src ports can be considered here?
@@ -102,7 +119,7 @@ func (sga *SpecificAnalyzer) getProtocolTcpudpRule(ruleObj *types.IpPermission, 
 }
 
 func getRuleStr(direction, connStr, ipRanges string) string {
-	return fmt.Sprintf("direction: %s,  conns: %s, ipRanges: %s\n", direction, connStr, ipRanges)
+	return fmt.Sprintf("direction: %s,  conns: %s, target: %s\n", direction, connStr, ipRanges)
 }
 
 func getICMPconn(icmpType, icmpCode *int64) *connection.Set {
@@ -119,13 +136,9 @@ func (sga *SpecificAnalyzer) getProtocolIcmpRule(ruleObj *types.IpPermission, di
 	maxPort := int64(*ruleObj.ToPort)
 	conns := getICMPconn(&minPort, &maxPort)
 	connStr := fmt.Sprintf("protocol: %s,  icmpType: %s", *ruleObj.IpProtocol, conns)
-	remote := ipblock.New()
-	for i := range ruleObj.IpRanges {
-		ipRange, err := ipblock.FromCidr(*ruleObj.IpRanges[i].CidrIp)
-		if err != nil {
-			return "", nil, err
-		}
-		remote = remote.Union(ipRange)
+	remote, err := sga.getRemoteCidr(ruleObj.IpRanges, ruleObj.UserIdGroupPairs)
+	if err != nil {
+		return "", nil, err
 	}
 	ruleRes = &commonvpc.SGRule{
 		Connections: conns,
