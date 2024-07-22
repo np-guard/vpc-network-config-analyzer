@@ -311,3 +311,8 @@ func TestCaching(t *testing.T) {
 	}
 	require.True(t, connectivityResult1 == connectivityResult2) // compare pointers-- to make sure that caching worked
 }
+
+func newIPBlockFromCIDROrAddressWithoutValidation(cidr string) *ipblock.IPBlock {
+	res, _ := ipblock.FromCidrOrAddress(cidr)
+	return res
+}
