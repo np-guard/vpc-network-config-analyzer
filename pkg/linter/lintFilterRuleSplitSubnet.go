@@ -23,7 +23,6 @@ type filterRuleSplitSubnetLint struct {
 
 // a rule with the list of subnets it splits
 type splitRuleSubnet struct {
-	vpcName      string
 	rule         vpcmodel.RuleOfFilter
 	splitSubnets []vpcmodel.Subnet
 }
@@ -59,7 +58,7 @@ func (lint *filterRuleSplitSubnetLint) check() error {
 					}
 				}
 				if len(subnetsSplitByRule) > 0 {
-					lint.addFinding(&splitRuleSubnet{vpcName: config.VPC.Name(), rule: rule,
+					lint.addFinding(&splitRuleSubnet{rule: rule,
 						splitSubnets: subnetsSplitByRule})
 				}
 			}
@@ -84,7 +83,7 @@ func ruleSplitSubnet(subnet vpcmodel.Subnet, ruleIPBlocks []*ipblock.IPBlock) bo
 //////////////////////////////////////////////////////////
 
 func (finding *splitRuleSubnet) vpc() []string {
-	return []string{finding.vpcName}
+	return []string{finding.splitSubnets[0].VPC().Name()}
 }
 
 func (finding *splitRuleSubnet) string() string {
@@ -117,8 +116,9 @@ func (finding *splitRuleSubnet) toJSON() any {
 	for i, splitSubnet := range finding.splitSubnets {
 		splitSubnetsJSON[i] = subnetJSON{Name: splitSubnet.Name(), CIDR: splitSubnet.CIDR()}
 	}
-	res := splitRuleSubnetJSON{VpcName: finding.vpcName, Rule: vpcmodel.RuleOfFilter{LayerName: rule.LayerName,
-		FilterName: rule.FilterName, RuleIndex: rule.RuleIndex, RuleDesc: rule.RuleDesc},
+	res := splitRuleSubnetJSON{VpcName: finding.splitSubnets[0].VPC().Name(),
+		Rule: vpcmodel.RuleOfFilter{LayerName: rule.LayerName, FilterName: rule.FilterName,
+			RuleIndex: rule.RuleIndex, RuleDesc: rule.RuleDesc},
 		SplitSubnets: splitSubnetsJSON}
 	return res
 }
