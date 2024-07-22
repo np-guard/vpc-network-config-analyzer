@@ -276,7 +276,6 @@ type FilterTrafficResource interface {
 	RulesInConnectivity(src, dst Node, conn *connection.Set, isIngress bool) ([]RulesInTable, []RulesInTable, error)
 	// GetRules gets a list of all rules with description
 	GetRules() ([]RuleOfFilter, error)
-	GetTables() ([]Table, error)
 	ReferencedIPblocks() []*ipblock.IPBlock
 	ConnectivityMap() (map[string]*IPbasedConnectivityResult, error)
 	GetConnectivityOutputPerEachElemSeparately() string

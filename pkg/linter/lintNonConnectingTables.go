@@ -7,10 +7,13 @@ SPDX-License-Identifier: Apache-2.0
 package linter
 
 import (
+	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
 const nonConnectedTablesName = "non-connected tables"
+const securityGroup = "security group"
+const networkACL = "network ACL"
 
 // nonConnectedTables: tables - sgs/nacls - not connected to any endpoint/subnet
 type nonConnectedTablesLint struct {
@@ -19,7 +22,8 @@ type nonConnectedTablesLint struct {
 
 // a rule with the list of subnets it splits
 type nonConnectedTable struct {
-	vpcmodel.Table
+	layerName  string
+	filterName string
 }
 
 // /////////////////////////////////////////////////////////
@@ -30,7 +34,7 @@ func (lint *nonConnectedTablesLint) lintName() string {
 }
 
 func (lint *nonConnectedTablesLint) lintDescription() string {
-	return "Traffic controloing tables not connected to any resource"
+	return "Access control tables not connected to any resource"
 }
 
 func (lint *nonConnectedTablesLint) check() error {
@@ -38,17 +42,37 @@ func (lint *nonConnectedTablesLint) check() error {
 		if config.IsMultipleVPCsConfig {
 			continue // no use in executing lint on dummy vpcs
 		}
-		for _, layer := range vpcmodel.FilterLayers {
-			filterLayer := config.GetFilterTrafficResourceOfKind(layer)
-			_, _ = layer, filterLayer
-			table, err := filterLayer.GetRules()
-			if err != nil {
-				return err
+		thisConfigInternalIP := getInternalIPBlocks(config)
+		for _, table := range config.FilterResources {
+			tableConnected := false
+			for _, tableIPBlock := range table.ReferencedIPblocks() {
+				if tableIPBlock.Overlap(thisConfigInternalIP) {
+					tableConnected = true
+					break
+				}
 			}
-			_ = table // todo tmp
+			layerName := securityGroup
+			if table.Kind() == vpcmodel.NaclLayer {
+				layerName = networkACL
+			}
+			if !tableConnected {
+				lint.addFinding(&nonConnectedTable{layerName: layerName, filterName: table.Name()})
+			}
 		}
 	}
 	return nil
+}
+
+// returns an IPBlock of all the internal endpoints (e.g. VSI) of a given VPCConfig
+func getInternalIPBlocks(config *vpcmodel.VPCConfig) *ipblock.IPBlock {
+	internalIPBlock := ipblock.IPBlock{}
+	for _, node := range config.Nodes {
+		if node.IsExternal() {
+			continue
+		}
+		internalIPBlock.Union(node.IPBlock())
+	}
+	return &internalIPBlock
 }
 
 ///////////////////////////////////////////////////////////
