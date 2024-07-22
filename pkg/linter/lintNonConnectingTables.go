@@ -7,6 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package linter
 
 import (
+	"fmt"
 	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
@@ -22,8 +23,9 @@ type nonConnectedTablesLint struct {
 
 // a rule with the list of subnets it splits
 type nonConnectedTable struct {
-	layerName  string
-	filterName string
+	vpcResource vpcmodel.VPC // todo: remove
+	layerName   string
+	filterName  string // todo: replace with FilterResource Interface which also has VPC
 }
 
 // /////////////////////////////////////////////////////////
@@ -56,7 +58,7 @@ func (lint *nonConnectedTablesLint) check() error {
 				layerName = networkACL
 			}
 			if !tableConnected {
-				lint.addFinding(&nonConnectedTable{layerName: layerName, filterName: table.Name()})
+				lint.addFinding(&nonConnectedTable{vpcResource: config.VPC, layerName: layerName, filterName: table.Name()})
 			}
 		}
 	}
@@ -80,11 +82,12 @@ func getInternalIPBlocks(config *vpcmodel.VPCConfig) *ipblock.IPBlock {
 //////////////////////////////////////////////////////////
 
 func (finding *nonConnectedTable) vpc() []string {
-	return nil
+	return []string{finding.vpcResource.Name()}
 }
 
 func (finding *nonConnectedTable) string() string {
-	return ""
+	return fmt.Sprintf("%s %s of VPC %s has no resources connected to it", finding.layerName, finding.filterName,
+		finding.vpc())
 }
 
 func (finding *nonConnectedTable) toJSON() any {

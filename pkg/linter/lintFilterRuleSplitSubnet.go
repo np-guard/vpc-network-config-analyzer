@@ -23,7 +23,7 @@ type filterRuleSplitSubnetLint struct {
 
 // a rule with the list of subnets it splits
 type splitRuleSubnet struct {
-	vpcName      string
+	vpcName      string // todo: remove. Can be interpeted from Subnet
 	rule         vpcmodel.RuleOfFilter
 	splitSubnets []vpcmodel.Subnet
 }
