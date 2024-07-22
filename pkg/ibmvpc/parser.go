@@ -359,7 +359,7 @@ func (rc *IBMresourcesContainer) getInstancesConfig(
 		if err != nil {
 			return err
 		}
-		vsiNode, err := commonvpc.NewVsi(*instance.Name, *instance.CRN, *instance.Zone.Name, vpc, res)
+		vsiNode, err := commonvpc.NewVSI(*instance.Name, *instance.CRN, *instance.Zone.Name, vpc, res)
 		if err != nil {
 			return err
 		}
@@ -669,7 +669,7 @@ func (rc *IBMresourcesContainer) getSGconfig(
 			return err
 		}
 
-		sgResource := commonvpc.NewSGResource(*sg.Name, *sg.ID, vpc, NewSpecificAnalyzer(&sg.SecurityGroup), sgMap, sgLists)
+		sgResource := commonvpc.NewSGResource(*sg.Name, *sg.ID, vpc, NewIbmSgAnalyzer(&sg.SecurityGroup), sgMap, sgLists)
 		parseSGTargets(sgResource, &sg.SecurityGroup, res.Config(vpcUID))
 	}
 	for vpcUID, sgListInstance := range sgLists {

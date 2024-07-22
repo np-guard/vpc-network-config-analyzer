@@ -8,8 +8,6 @@ package ibmvpc
 
 import (
 	"fmt"
-	"sort"
-	"strings"
 
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
 
@@ -19,14 +17,14 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
 )
 
-type SpecificAnalyzer struct {
+type IbmSgAnalyzer struct {
 	SgResource         *vpc1.SecurityGroup
 	sgMap              map[string]*commonvpc.SecurityGroup
 	referencedIPblocks []*ipblock.IPBlock
 }
 
-func NewSpecificAnalyzer(sg *vpc1.SecurityGroup) *SpecificAnalyzer {
-	res := &SpecificAnalyzer{SgResource: sg}
+func NewIbmSgAnalyzer(sg *vpc1.SecurityGroup) *IbmSgAnalyzer {
+	res := &IbmSgAnalyzer{SgResource: sg}
 	return res
 }
 
@@ -40,20 +38,12 @@ func isIngressRule(direction *string) bool {
 	return false
 }
 
-func getEmptyConnSet() *connection.Set {
-	return connection.None()
-}
-
-func getAllConnSet() *connection.Set {
-	return connection.All()
-}
-
-func (sga *SpecificAnalyzer) Name() *string {
+func (sga *IbmSgAnalyzer) Name() *string {
 	return sga.SgResource.Name
 }
 
 // getRemoteCidr gets remote rule object interface and returns it's IPBlock
-func (sga *SpecificAnalyzer) getRemoteCidr(remote vpc1.SecurityGroupRuleRemoteIntf) (target *ipblock.IPBlock,
+func (sga *IbmSgAnalyzer) getRemoteCidr(remote vpc1.SecurityGroupRuleRemoteIntf) (target *ipblock.IPBlock,
 	cidrRes string, remoteSGName string, err error) {
 	// TODO: on actual run from SG example, the type of remoteObj is SecurityGroupRuleRemote and not SecurityGroupRuleRemoteCIDR,
 	// even if cidr is defined
@@ -85,7 +75,7 @@ func getDefaultLocal() (ipb *ipblock.IPBlock, cidr string) {
 }
 
 // getRemoteCidr gets local rule object interface and returns it's IPBlock
-func (sga *SpecificAnalyzer) getLocalCidr(local vpc1.SecurityGroupRuleLocalIntf) (*ipblock.IPBlock, string, error) {
+func (sga *IbmSgAnalyzer) getLocalCidr(local vpc1.SecurityGroupRuleLocalIntf) (*ipblock.IPBlock, string, error) {
 	var localIP *ipblock.IPBlock
 	var cidrRes string
 	var err error
@@ -107,7 +97,7 @@ func (sga *SpecificAnalyzer) getLocalCidr(local vpc1.SecurityGroupRuleLocalIntf)
 	return localIP, cidrRes, nil
 }
 
-func (sga *SpecificAnalyzer) getProtocolAllRule(ruleObj *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolAll) (
+func (sga *IbmSgAnalyzer) getProtocolAllRule(ruleObj *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolAll) (
 	ruleStr string, ruleRes *commonvpc.SGRule, isIngress bool, err error) {
 	ruleRes = &commonvpc.SGRule{}
 	direction := *ruleObj.Direction
@@ -127,11 +117,11 @@ func (sga *SpecificAnalyzer) getProtocolAllRule(ruleObj *vpc1.SecurityGroupRuleS
 	ruleStr = getRuleStr(direction, connStr, remoteCidr, remoteSGName, localCidr)
 	ruleRes.Remote = commonvpc.NewRuleTarget(remote, remoteSGName)
 	ruleRes.Local = local
-	ruleRes.Connections = getAllConnSet()
+	ruleRes.Connections = connection.All()
 	return ruleStr, ruleRes, isIngress, nil
 }
 
-func (sga *SpecificAnalyzer) getProtocolTcpudpRule(ruleObj *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudp) (
+func (sga *IbmSgAnalyzer) getProtocolTCPUDPRule(ruleObj *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudp) (
 	ruleStr string, ruleRes *commonvpc.SGRule, isIngress bool, err error) {
 	direction := *ruleObj.Direction
 	isIngress = isIngressRule(ruleObj.Direction)
@@ -143,14 +133,14 @@ func (sga *SpecificAnalyzer) getProtocolTcpudpRule(ruleObj *vpc1.SecurityGroupRu
 	if err != nil {
 		return "", nil, false, err
 	}
-	dstPortMin := getProperty(ruleObj.PortMin, connection.MinPort)
-	dstPortMax := getProperty(ruleObj.PortMax, connection.MaxPort)
+	dstPortMin := commonvpc.GetProperty(ruleObj.PortMin, connection.MinPort)
+	dstPortMax := commonvpc.GetProperty(ruleObj.PortMax, connection.MaxPort)
 	dstPorts := fmt.Sprintf("%d-%d", dstPortMin, dstPortMax)
 	connStr := fmt.Sprintf("protocol: %s,  dstPorts: %s", *ruleObj.Protocol, dstPorts)
 	ruleStr = getRuleStr(direction, connStr, remoteCidr, remoteSGName, localCidr)
 	ruleRes = &commonvpc.SGRule{
 		// TODO: src ports can be considered here?
-		Connections: getTCPUDPConns(*ruleObj.Protocol,
+		Connections: commonvpc.GetTCPUDPConns(*ruleObj.Protocol,
 			connection.MinPort,
 			connection.MaxPort,
 			dstPortMin,
@@ -170,15 +160,7 @@ func getRuleStr(direction, connStr, remoteCidr, remoteSGName, localCidr string) 
 	return fmt.Sprintf("direction: %s,  conns: %s, remote: %s, local: %s\n", direction, connStr, remoteSGStr, localCidr)
 }
 
-func getICMPconn(icmpType, icmpCode *int64) *connection.Set {
-	typeMin := getProperty(icmpType, connection.MinICMPType)
-	typeMax := getProperty(icmpType, connection.MaxICMPType)
-	codeMin := getProperty(icmpCode, connection.MinICMPCode)
-	codeMax := getProperty(icmpCode, connection.MaxICMPCode)
-	return connection.ICMPConnection(typeMin, typeMax, codeMin, codeMax)
-}
-
-func (sga *SpecificAnalyzer) getProtocolIcmpRule(ruleObj *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolIcmp) (
+func (sga *IbmSgAnalyzer) getProtocolICMPRule(ruleObj *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolIcmp) (
 	ruleStr string, ruleRes *commonvpc.SGRule, isIngress bool, err error) {
 	remote, remoteCidr, remoteSGName, err := sga.getRemoteCidr(ruleObj.Remote)
 	if err != nil {
@@ -188,7 +170,7 @@ func (sga *SpecificAnalyzer) getProtocolIcmpRule(ruleObj *vpc1.SecurityGroupRule
 	if err != nil {
 		return
 	}
-	conns := getICMPconn(ruleObj.Type, ruleObj.Code)
+	conns := commonvpc.GetICMPconn(ruleObj.Type, ruleObj.Code)
 	connStr := fmt.Sprintf("protocol: %s,  icmpType: %s", *ruleObj.Protocol, conns)
 	ruleStr = getRuleStr(*ruleObj.Direction, connStr, remoteCidr, remoteSGName, localCidr)
 	ruleRes = &commonvpc.SGRule{
@@ -200,16 +182,16 @@ func (sga *SpecificAnalyzer) getProtocolIcmpRule(ruleObj *vpc1.SecurityGroupRule
 	return
 }
 
-func (sga *SpecificAnalyzer) GetSGRule(index int) (
+func (sga *IbmSgAnalyzer) GetSGRule(index int) (
 	ruleStr string, ruleRes *commonvpc.SGRule, isIngress bool, err error) {
 	rule := sga.SgResource.Rules[index]
 	switch ruleObj := rule.(type) {
 	case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolAll:
 		ruleStr, ruleRes, isIngress, err = sga.getProtocolAllRule(ruleObj)
 	case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolTcpudp:
-		ruleStr, ruleRes, isIngress, err = sga.getProtocolTcpudpRule(ruleObj)
+		ruleStr, ruleRes, isIngress, err = sga.getProtocolTCPUDPRule(ruleObj)
 	case *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolIcmp:
-		ruleStr, ruleRes, isIngress, err = sga.getProtocolIcmpRule(ruleObj)
+		ruleStr, ruleRes, isIngress, err = sga.getProtocolICMPRule(ruleObj)
 	default:
 		return "", nil, false, fmt.Errorf("getSGRule error: unsupported type")
 	}
@@ -220,7 +202,7 @@ func (sga *SpecificAnalyzer) GetSGRule(index int) (
 	return fmt.Sprintf("index: %d, %v", index, ruleStr), ruleRes, isIngress, nil
 }
 
-func (sga *SpecificAnalyzer) GetSGrules() (ingressRules, egressRules []*commonvpc.SGRule, err error) {
+func (sga *IbmSgAnalyzer) GetSGRules() (ingressRules, egressRules []*commonvpc.SGRule, err error) {
 	ingressRules = []*commonvpc.SGRule{}
 	egressRules = []*commonvpc.SGRule{}
 	for index := range sga.SgResource.Rules {
@@ -244,28 +226,14 @@ func (sga *SpecificAnalyzer) GetSGrules() (ingressRules, egressRules []*commonvp
 	return ingressRules, egressRules, nil
 }
 
-// StringRules returns a string with the details of the specified rules
-func (sga *SpecificAnalyzer) StringRules(rules []int) string {
-	strRulesSlice := make([]string, len(rules))
-	for i, ruleIndex := range rules {
-		strRule, _, _, err := sga.GetSGRule(ruleIndex)
-		if err != nil {
-			return ""
-		}
-		strRulesSlice[i] = "\t\t\t" + strRule
-	}
-	sort.Strings(strRulesSlice)
-	return strings.Join(strRulesSlice, "")
-}
-
-func (sga *SpecificAnalyzer) ReferencedIPblocks() []*ipblock.IPBlock {
+func (sga *IbmSgAnalyzer) ReferencedIPblocks() []*ipblock.IPBlock {
 	return sga.referencedIPblocks
 }
 
-func (sga *SpecificAnalyzer) SetSGmap(sgMap map[string]*commonvpc.SecurityGroup) {
+func (sga *IbmSgAnalyzer) SetSGmap(sgMap map[string]*commonvpc.SecurityGroup) {
 	sga.sgMap = sgMap
 }
 
-func (sga *SpecificAnalyzer) GetNumberOfRules() int {
+func (sga *IbmSgAnalyzer) GetNumberOfRules() int {
 	return len(sga.SgResource.Rules)
 }

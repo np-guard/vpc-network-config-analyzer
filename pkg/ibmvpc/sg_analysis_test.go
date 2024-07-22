@@ -97,7 +97,7 @@ func TestSGRule(t *testing.T) {
 			VPCRef:       nil,
 			Region:       "",
 		},
-		Analyzer: commonvpc.NewSGAnalyzer(NewSpecificAnalyzer(&sg.SecurityGroup)), Members: nil,
+		Analyzer: commonvpc.NewSGAnalyzer(NewIbmSgAnalyzer(&sg.SecurityGroup)), Members: nil,
 	}
 	ruleStr, sgRule, _, err := sgResource.Analyzer.SgAnalyzer.GetSGRule(0)
 	require.Nil(t, err)

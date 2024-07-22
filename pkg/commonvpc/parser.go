@@ -82,7 +82,7 @@ func NewNetworkInterface(name, uid, zone, address, vsi string, vpc vpcmodel.VPCR
 	return intfNode, nil
 }
 
-func NewVsi(name, uid, zone string, vpc vpcmodel.VPCResourceIntf, res *vpcmodel.MultipleVPCConfigs) (*Vsi, error) {
+func NewVSI(name, uid, zone string, vpc vpcmodel.VPCResourceIntf, res *vpcmodel.MultipleVPCConfigs) (*Vsi, error) {
 	vsiNode := &Vsi{
 		VPCResource: vpcmodel.VPCResource{
 			ResourceName: name,

@@ -13,6 +13,7 @@ import (
 
 	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netp"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
 )
@@ -26,9 +27,10 @@ type SGAnalyzer struct {
 	ingressConnectivityMap ConnectivityResultMap
 	egressConnectivityMap  ConnectivityResultMap
 }
+
+// interface to be implemented by aws and ibm sg analyzer
 type SpecificAnalyzer interface {
-	GetSGrules() (ingressRules, egressRules []*SGRule, err error)
-	StringRules(rules []int) string
+	GetSGRules() (ingressRules, egressRules []*SGRule, err error)
 	ReferencedIPblocks() []*ipblock.IPBlock
 	SetSGmap(sgMap map[string]*SecurityGroup)
 	GetNumberOfRules() int
@@ -41,8 +43,28 @@ func NewSGAnalyzer(analyzer SpecificAnalyzer) *SGAnalyzer {
 	return res
 }
 
-func getEmptyConnSet() *connection.Set {
-	return connection.None()
+// GetProperty returns pointer p if it is valid, else it returns the provided default value
+func GetProperty(p *int64, defaultP int64) int64 {
+	if p == nil {
+		return defaultP
+	}
+	return *p
+}
+
+func GetTCPUDPConns(p string, srcPortMin, srcPortMax, dstPortMin, dstPortMax int64) *connection.Set {
+	protocol := netp.ProtocolStringUDP
+	if p == ProtocolTCP {
+		protocol = netp.ProtocolStringTCP
+	}
+	return connection.TCPorUDPConnection(protocol, srcPortMin, srcPortMax, dstPortMin, dstPortMax)
+}
+
+func GetICMPconn(icmpType, icmpCode *int64) *connection.Set {
+	typeMin := GetProperty(icmpType, connection.MinICMPType)
+	typeMax := GetProperty(icmpType, connection.MaxICMPType)
+	codeMin := GetProperty(icmpCode, connection.MinICMPCode)
+	codeMax := GetProperty(icmpCode, connection.MaxICMPCode)
+	return connection.ICMPConnection(typeMin, typeMax, codeMin, codeMax)
 }
 
 type RuleTarget struct {
@@ -62,6 +84,7 @@ type SGRule struct {
 	Local       *ipblock.IPBlock
 }
 
+// analyzeSGRules gets security group rules and returns it's connectivity results
 func analyzeSGRules(rules []*SGRule, isIngress bool) *ConnectivityResult {
 	remotes := []*ipblock.IPBlock{}
 	for i := range rules {
@@ -73,7 +96,7 @@ func analyzeSGRules(rules []*SGRule, isIngress bool) *ConnectivityResult {
 	res := &ConnectivityResult{IsIngress: isIngress, AllowedConns: map[*ipblock.IPBlock]*connection.Set{},
 		AllowRules: map[*ipblock.IPBlock][]int{}}
 	for i := range disjointTargets {
-		res.AllowedConns[disjointTargets[i]] = getEmptyConnSet()
+		res.AllowedConns[disjointTargets[i]] = connection.None()
 		res.AllowRules[disjointTargets[i]] = []int{}
 	}
 	for i := range rules {
@@ -91,6 +114,7 @@ func analyzeSGRules(rules []*SGRule, isIngress bool) *ConnectivityResult {
 	return res
 }
 
+// analyzeSGRules gets security group rules and returns a map from local ip block intervals to it's connectivity results
 func MapAndAnalyzeSGRules(rules []*SGRule, isIngress bool, currentSg *SecurityGroup) (connectivityMap ConnectivityResultMap) {
 	connectivityMap = make(ConnectivityResultMap)
 	locals := []*ipblock.IPBlock{}
@@ -133,7 +157,7 @@ func (sga *SGAnalyzer) PrepareAnalyzer(sgMap map[string]*SecurityGroup, currentS
 	}
 	var err error
 	sga.SgAnalyzer.SetSGmap(sgMap)
-	if sga.ingressRules, sga.egressRules, err = sga.SgAnalyzer.GetSGrules(); err != nil {
+	if sga.ingressRules, sga.egressRules, err = sga.SgAnalyzer.GetSGRules(); err != nil {
 		return err
 	}
 	sga.ingressConnectivityMap = MapAndAnalyzeSGRules(sga.ingressRules, true, currentSg)

@@ -94,7 +94,7 @@ var nc3 = &naclConfig{
 		{
 			src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
 			dst:         newIPBlockFromCIDROrAddressWithoutValidation("10.240.20.0/24"),
-			connections: getAllConnSet(),
+			connections: connection.All(),
 			action:      "allow",
 		},
 	},
@@ -299,7 +299,7 @@ func getAllowAllRules() []*NACLRule {
 		{
 			src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
 			dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
-			connections: getAllConnSet(),
+			connections: connection.All(),
 			action:      "allow",
 		},
 	}
@@ -310,7 +310,7 @@ func getDenyAllRules() []*NACLRule {
 		{
 			src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
 			dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
-			connections: getAllConnSet(),
+			connections: connection.All(),
 			action:      "deny",
 		},
 	}

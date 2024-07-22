@@ -80,6 +80,7 @@ func (rc *AWSresourcesContainer) VpcConfigsFromFiles(fileNames []string, vpcID, 
 	return vpcConfigs, nil
 }
 
+// filterByVpc returns a map from vpcID to true if this vpc should be filtered
 func (rc *AWSresourcesContainer) filterByVpc(vpcID string) map[string]bool {
 	shouldSkipVpcIds := make(map[string]bool)
 	for _, vpc := range rc.VpcsList {
@@ -97,7 +98,7 @@ func (rc *AWSresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup st
 	res := vpcmodel.NewMultipleVPCConfigs("AWS Cloud") // map from VPC UID to its config
 	var err error
 
-	// map to filter resources, if certain VPC, resource-group or region list to analyze is specified,
+	// map to filter resources, if certain VPC to analyze is specified,
 	// skip resources configured outside that VPC
 	shouldSkipVpcIds := rc.filterByVpc(vpcID)
 
@@ -162,8 +163,7 @@ func (rc *AWSresourcesContainer) getInstancesConfig(
 	subnetIDToNetIntf map[string][]*commonvpc.NetworkInterface,
 	netIntfToSGs map[string][]types.GroupIdentifier,
 	res *vpcmodel.MultipleVPCConfigs,
-	skipByVPC map[string]bool,
-) error {
+	skipByVPC map[string]bool) error {
 	for _, instance := range rc.InstancesList {
 		vpcUID := *instance.VpcId
 		if skipByVPC[vpcUID] {
@@ -173,7 +173,7 @@ func (rc *AWSresourcesContainer) getInstancesConfig(
 		if err != nil {
 			return err
 		}
-		vsiNode, err := commonvpc.NewVsi(*instance.InstanceId, *instance.InstanceId, *instance.Placement.AvailabilityZone, vpc, res)
+		vsiNode, err := commonvpc.NewVSI(*instance.InstanceId, *instance.InstanceId, *instance.Placement.AvailabilityZone, vpc, res)
 		if err != nil {
 			return err
 		}
@@ -182,7 +182,6 @@ func (rc *AWSresourcesContainer) getInstancesConfig(
 		vpcConfig.UIDToResource[vsiNode.ResourceUID] = vsiNode
 		for j := range instance.NetworkInterfaces {
 			netintf := instance.NetworkInterfaces[j]
-			// netintf has no CRN, thus using its ID for ResourceUID
 			intfNode, err := commonvpc.NewNetworkInterface(*netintf.NetworkInterfaceId, *netintf.NetworkInterfaceId,
 				*instance.Placement.AvailabilityZone, *netintf.PrivateIpAddress, *instance.InstanceId, vpc)
 			if err != nil {
@@ -246,8 +245,7 @@ func parseSGTargets(sgResources map[string]map[string]*commonvpc.SecurityGroup,
 func (rc *AWSresourcesContainer) getSGconfig(
 	res *vpcmodel.MultipleVPCConfigs,
 	skipByVPC map[string]bool,
-	netIntfToSGs map[string][]types.GroupIdentifier,
-) error {
+	netIntfToSGs map[string][]types.GroupIdentifier) error {
 	sgMap := map[string]map[string]*commonvpc.SecurityGroup{} // map from vpc uid to map from sg name to its sg object
 	sgLists := map[string][]*commonvpc.SecurityGroup{}
 	for i := range rc.SecurityGroupsList {
@@ -260,7 +258,7 @@ func (rc *AWSresourcesContainer) getSGconfig(
 		if err != nil {
 			return err
 		}
-		commonvpc.NewSGResource(*sg.GroupId, *sg.GroupId, vpc, NewSpecificAnalyzer(sg), sgMap, sgLists)
+		commonvpc.NewSGResource(*sg.GroupId, *sg.GroupId, vpc, NewAwsSgAnalyzer(sg), sgMap, sgLists)
 	}
 	parseSGTargets(sgMap, netIntfToSGs, res)
 	for vpcUID, sgListInstance := range sgLists {

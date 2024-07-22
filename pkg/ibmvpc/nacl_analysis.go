@@ -16,7 +16,6 @@ import (
 
 	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/ipblock"
-	"github.com/np-guard/models/pkg/netp"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
@@ -61,21 +60,6 @@ func getPortsStr(minPort, maxPort int64) string {
 	return fmt.Sprintf("%d-%d", minPort, maxPort)
 }
 
-func getProperty(p *int64, defaultP int64) int64 {
-	if p == nil {
-		return defaultP
-	}
-	return *p
-}
-
-func getTCPUDPConns(p string, srcPortMin, srcPortMax, dstPortMin, dstPortMax int64) *connection.Set {
-	protocol := netp.ProtocolStringUDP
-	if p == commonvpc.ProtocolTCP {
-		protocol = netp.ProtocolStringTCP
-	}
-	return connection.TCPorUDPConnection(protocol, srcPortMin, srcPortMax, dstPortMin, dstPortMax)
-}
-
 func (na *NACLAnalyzer) getNACLRule(index int) (ruleStr string, ruleRes *NACLRule, isIngress bool, err error) {
 	var conns *connection.Set
 	var direction, src, dst, action string
@@ -90,11 +74,11 @@ func (na *NACLAnalyzer) getNACLRule(index int) (ruleStr string, ruleRes *NACLRul
 		dst = *ruleObj.Destination
 		action = *ruleObj.Action
 	case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolTcpudp:
-		conns = getTCPUDPConns(*ruleObj.Protocol,
-			getProperty(ruleObj.SourcePortMin, connection.MinPort),
-			getProperty(ruleObj.SourcePortMax, connection.MaxPort),
-			getProperty(ruleObj.DestinationPortMin, connection.MinPort),
-			getProperty(ruleObj.DestinationPortMax, connection.MaxPort),
+		conns = commonvpc.GetTCPUDPConns(*ruleObj.Protocol,
+			commonvpc.GetProperty(ruleObj.SourcePortMin, connection.MinPort),
+			commonvpc.GetProperty(ruleObj.SourcePortMax, connection.MaxPort),
+			commonvpc.GetProperty(ruleObj.DestinationPortMin, connection.MinPort),
+			commonvpc.GetProperty(ruleObj.DestinationPortMax, connection.MaxPort),
 		)
 		srcPorts := getPortsStr(*ruleObj.SourcePortMin, *ruleObj.SourcePortMax)
 		dstPorts := getPortsStr(*ruleObj.DestinationPortMin, *ruleObj.DestinationPortMax)
@@ -104,7 +88,7 @@ func (na *NACLAnalyzer) getNACLRule(index int) (ruleStr string, ruleRes *NACLRul
 		dst = *ruleObj.Destination
 		action = *ruleObj.Action
 	case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolIcmp:
-		conns = getICMPconn(ruleObj.Type, ruleObj.Code)
+		conns = commonvpc.GetICMPconn(ruleObj.Type, ruleObj.Code)
 		connStr = fmt.Sprintf("protocol: %s", *ruleObj.Protocol)
 		direction = *ruleObj.Direction
 		src = *ruleObj.Source
@@ -169,8 +153,8 @@ func getAllowedXgressConnections(rules []*NACLRule, src, subnetCidr *ipblock.IPB
 	denyRules = map[string][]int{}
 	for _, cidr := range disjointPeers {
 		if cidr.ContainedIn(subnetCidr) {
-			allowedXgress[cidr.ToIPRanges()] = getEmptyConnSet()
-			deniedXgress[cidr.ToIPRanges()] = getEmptyConnSet()
+			allowedXgress[cidr.ToIPRanges()] = connection.None()
+			deniedXgress[cidr.ToIPRanges()] = connection.None()
 			allowRules[cidr.ToIPRanges()] = []int{}
 			denyRules[cidr.ToIPRanges()] = []int{}
 		}
@@ -180,7 +164,7 @@ func getAllowedXgressConnections(rules []*NACLRule, src, subnetCidr *ipblock.IPB
 		// no need to check nacl rules for connections within the subnet
 		for _, cidr := range disjointPeers {
 			if cidr.ContainedIn(subnetCidr) {
-				allowedXgress[cidr.ToIPRanges()] = getAllConnSet()
+				allowedXgress[cidr.ToIPRanges()] = connection.All()
 			}
 		}
 		return allowedXgress, deniedXgress, allowRules, denyRules
@@ -567,19 +551,4 @@ func (na *NACLAnalyzer) getRulesRelevantConn(rules []int,
 		}
 	}
 	return allowRelevant, denyRelevant, nil
-}
-
-// todo: will no longer be needed, also in SG
-// StringRules returns a string with the details of the specified rules
-func (na *NACLAnalyzer) StringRules(rules []int) string {
-	strRulesSlice := make([]string, len(rules))
-	for i, ruleIndex := range rules {
-		strRule, _, _, err := na.getNACLRule(ruleIndex)
-		if err != nil {
-			return ""
-		}
-		strRulesSlice[i] = "\t\t\t" + strRule
-	}
-	sort.Strings(strRulesSlice)
-	return strings.Join(strRulesSlice, "")
 }
