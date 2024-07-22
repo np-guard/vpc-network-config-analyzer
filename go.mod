@@ -4,7 +4,7 @@ go 1.22.4
 
 require (
 	github.com/IBM/networking-go-sdk v0.49.0
-	github.com/IBM/vpc-go-sdk v0.54.0
+	github.com/IBM/vpc-go-sdk v0.55.0
 	github.com/np-guard/cloud-resource-collector v0.13.0
 	github.com/np-guard/models v0.3.4
 	github.com/spf13/cobra v1.8.1
