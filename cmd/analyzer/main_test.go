@@ -123,6 +123,11 @@ func TestMain(t *testing.T) {
 			name: "version",
 			args: "-f version.txt --version",
 		},
+		// help
+		{
+			name: "help",
+			args: "report -h",
+		},
 
 		// resource group and region filter
 		{
@@ -178,6 +183,12 @@ func TestMainWithExpectedOut(t *testing.T) {
 			name:    "multi_vpc_configs",
 			args:    "report endpoints -f multi_vpc_configs.txt --config ../../pkg/ibmvpc/examples/input/input_acl_testing3.json --config ../../pkg/ibmvpc/examples/input/input_sg_testing_3.json",
 			outFile: "multi_vpc_configs.txt",
+		},
+		// non abstracted load balancer
+		{
+			name:    "non_abstracted_load_balancer",
+			args:    "report endpoints -f non_abstracted_load_balancer.txt --load-balancer-abstraction=false --config ../../pkg/ibmvpc/examples/input/input_load_balancer.json --grouping",
+			outFile: "non_abstracted_load_balancer.txt",
 		},
 	}
 	for _, tt := range tests {
