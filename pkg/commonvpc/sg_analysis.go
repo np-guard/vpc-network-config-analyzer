@@ -19,7 +19,7 @@ import (
 )
 
 type SGAnalyzer struct {
-	SgAnalyzer   SpecificAnalyzer
+	SgAnalyzer   SpecificSGAnalyzer
 	ingressRules []*SGRule
 	egressRules  []*SGRule
 	// rules are the default ones; that is, no rules were specified manually
@@ -29,7 +29,7 @@ type SGAnalyzer struct {
 }
 
 // interface to be implemented by aws and ibm sg analyzer
-type SpecificAnalyzer interface {
+type SpecificSGAnalyzer interface {
 	GetSGRules() (ingressRules, egressRules []*SGRule, err error)
 	ReferencedIPblocks() []*ipblock.IPBlock
 	SetSGmap(sgMap map[string]*SecurityGroup)
@@ -38,7 +38,7 @@ type SpecificAnalyzer interface {
 	Name() *string
 }
 
-func NewSGAnalyzer(analyzer SpecificAnalyzer) *SGAnalyzer {
+func NewSGAnalyzer(analyzer SpecificSGAnalyzer) *SGAnalyzer {
 	res := &SGAnalyzer{SgAnalyzer: analyzer}
 	return res
 }

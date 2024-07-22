@@ -137,7 +137,7 @@ func UpdateConfigWithSubnet(name, uid, zone, cidr, vpcUID string, res *vpcmodel.
 	return subnetNode, nil
 }
 
-func NewSGResource(name, uid string, vpc vpcmodel.VPC, analyzer SpecificAnalyzer,
+func NewSGResource(name, uid string, vpc vpcmodel.VPC, analyzer SpecificSGAnalyzer,
 	sgMap map[string]map[string]*SecurityGroup,
 	sgLists map[string][]*SecurityGroup) *SecurityGroup {
 	sgResource := &SecurityGroup{
