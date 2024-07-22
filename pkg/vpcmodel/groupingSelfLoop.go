@@ -93,7 +93,7 @@ func (g *GroupConnLines) relevantKeysToCompare(groupingSrcOrDst map[string][]*gr
 			continue
 		}
 		// if vsi then the subnets of src and dst must be equal; similarly if subnet then vpcs must be equal
-		if getSubnetOrVPCUID(lines[0].src) != getSubnetOrVPCUID(lines[0].dst) {
+		if getSubnetOrVPCUID(lines[0].Src) != getSubnetOrVPCUID(lines[0].Dst) {
 			continue
 		}
 		relevantKeys = append(relevantKeys, key)
@@ -121,8 +121,8 @@ func (g *GroupConnLines) findMergeCandidates(groupingSrcOrDst map[string][]*grou
 	bucketToKeys := make(map[string]map[string]struct{})
 	for _, key := range relevantKeys {
 		lines := groupingSrcOrDst[key]
-		bucket := lines[0].commonProperties.groupingStrKey
-		subnetIfVsiVPCIfSubnet := getSubnetOrVPCUID(lines[0].src)
+		bucket := lines[0].CommonProperties.groupingStrKey
+		subnetIfVsiVPCIfSubnet := getSubnetOrVPCUID(lines[0].Src)
 		bucket += semicolon + subnetIfVsiVPCIfSubnet
 		if _, ok := bucketToKeys[bucket]; !ok {
 			bucketToKeys[bucket] = make(map[string]struct{})
@@ -291,10 +291,10 @@ func setMinusSet(srcGrouping bool, groupedLine groupedConnLine, set1, set2 map[s
 }
 
 func (g *groupedConnLine) isSrcOrDstExternalNodes() bool {
-	if _, ok := g.src.(*groupedExternalNodes); ok {
+	if _, ok := g.Src.(*groupedExternalNodes); ok {
 		return true
 	}
-	if _, ok := g.dst.(*groupedExternalNodes); ok {
+	if _, ok := g.Dst.(*groupedExternalNodes); ok {
 		return true
 	}
 	return false
@@ -367,8 +367,8 @@ func listOfUniqueEndpoints(oldGroupingSrcOrDst map[string][]*groupedConnLine, sr
 		for _, line := range oldGroupingSrcOrDst[oldKeyToMerge] {
 			endPointInKey := line.getSrcOrDst(!srcGrouping)
 			if conn == "" {
-				conn = line.commonProperties.groupingStrKey // connection is the same for all lines to be merged
-				connProps = line.commonProperties
+				conn = line.CommonProperties.groupingStrKey // connection is the same for all lines to be merged
+				connProps = line.CommonProperties
 			}
 			if _, isSliceEndpoints := endPointInKey.(*groupedEndpointsElems); isSliceEndpoints {
 				for _, endpoint := range *endPointInKey.(*groupedEndpointsElems) {

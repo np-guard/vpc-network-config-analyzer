@@ -280,7 +280,7 @@ func getDiffInfo(diffAnalysis diffAnalysisType, diffInfoBody string) string {
 func (diffCfgs *diffBetweenCfgs) String() string {
 	strList := make([]string, len(diffCfgs.groupedLines))
 	for i, grouped := range diffCfgs.groupedLines {
-		strList[i] = printGroupedDiffLine(diffCfgs.diffAnalysis, grouped.src, grouped.dst, grouped.commonProperties)
+		strList[i] = printGroupedDiffLine(diffCfgs.diffAnalysis, grouped.Src, grouped.Dst, grouped.CommonProperties)
 	}
 	sort.Strings(strList)
 	return strings.Join(strList, "")
@@ -290,10 +290,10 @@ func (diffCfgs *diffBetweenCfgs) String() string {
 func (diffCfgs *diffBetweenCfgs) hasStatelessConns() bool {
 	hasStatelessConns := false
 	for _, grouped := range diffCfgs.groupedLines {
-		if (grouped.commonProperties.connDiff.conn1 != nil &&
-			!grouped.commonProperties.connDiff.conn1.tcpRspDisable.IsEmpty()) ||
-			(grouped.commonProperties.connDiff.conn2 != nil &&
-				!grouped.commonProperties.connDiff.conn2.tcpRspDisable.IsEmpty()) {
+		if (grouped.CommonProperties.connDiff.conn1 != nil &&
+			!grouped.CommonProperties.connDiff.conn1.TCPRspDisable.IsEmpty()) ||
+			(grouped.CommonProperties.connDiff.conn2 != nil &&
+				!grouped.CommonProperties.connDiff.conn2.TCPRspDisable.IsEmpty()) {
 			hasStatelessConns = true
 			break
 		}

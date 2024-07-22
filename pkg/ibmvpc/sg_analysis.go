@@ -469,17 +469,3 @@ func (sga *SGAnalyzer) ingressOrEgressConnectivity(isIngress bool) ConnectivityR
 	}
 	return sga.egressConnectivityMap
 }
-
-// StringRules returns a string with the details of the specified rules
-func (sga *SGAnalyzer) StringRules(rules []int) string {
-	strRulesSlice := make([]string, len(rules))
-	for i, ruleIndex := range rules {
-		strRule, _, _, err := sga.getSGRule(ruleIndex)
-		if err != nil {
-			return ""
-		}
-		strRulesSlice[i] = "\t\t\t" + strRule
-	}
-	sort.Strings(strRulesSlice)
-	return strings.Join(strRulesSlice, "")
-}

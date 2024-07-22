@@ -113,8 +113,8 @@ func (o *OutputGenerator) UnificationDebugPrint() string {
 	elg := map[common.SetAsKey]*groupedEndpointsElems{}
 	for _, vpcConn := range o.nodesConn {
 		for _, line := range vpcConn.GroupedConnectivity.GroupedLines {
-			src := line.src
-			dst := line.dst
+			src := line.Src
+			dst := line.Dst
 			for _, e := range []EndpointElem{src, dst} {
 				if g, ok := e.(*groupedEndpointsElems); ok {
 					k := common.FromList[EndpointElem](*g).AsKey()

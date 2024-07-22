@@ -566,18 +566,3 @@ func (na *NACLAnalyzer) getRulesRelevantConn(rules []int,
 	}
 	return allowRelevant, denyRelevant, nil
 }
-
-// todo: will no longer be needed, also in SG
-// StringRules returns a string with the details of the specified rules
-func (na *NACLAnalyzer) StringRules(rules []int) string {
-	strRulesSlice := make([]string, len(rules))
-	for i, ruleIndex := range rules {
-		strRule, _, _, err := na.getNACLRule(ruleIndex)
-		if err != nil {
-			return ""
-		}
-		strRulesSlice[i] = "\t\t\t" + strRule
-	}
-	sort.Strings(strRulesSlice)
-	return strings.Join(strRulesSlice, "")
-}

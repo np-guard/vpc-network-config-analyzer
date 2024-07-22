@@ -35,6 +35,11 @@ type basicLinter struct {
 	findings []finding
 }
 
+type connectionLinter struct {
+	basicLinter
+	nodesConn map[string]*vpcmodel.VPCConnectivity
+}
+
 func (lint *basicLinter) addFinding(f finding) {
 	lint.findings = append(lint.findings, f)
 }
