@@ -87,10 +87,6 @@ func TestMain(t *testing.T) {
 			name: "json_all_endpoints_acl_testing5",
 			args: "report endpoints -f acl_testing5_all_endpoints.json -c ../../pkg/ibmvpc/examples/input/input_acl_testing5.json -o json",
 		},
-		{
-			name: "debug_all_endpoints_acl_testing5",
-			args: "report endpoints -f acl_testing5_all_endpoints.txt -c ../../pkg/ibmvpc/examples/input/input_acl_testing5.json -o debug",
-		},
 
 		// single_subnet analysis_type
 		{
@@ -104,8 +100,8 @@ func TestMain(t *testing.T) {
 			args: "explain -f acl_testing3_explain.txt -c ../../pkg/ibmvpc/examples/input/input_acl_testing3.json -o txt --src 10.240.10.4 --dst vsi2-ky",
 		},
 		{
-			name: "debug_explain_acl_testing3",
-			args: "explain -f acl_testing3_explain_debug.txt -c ../../pkg/ibmvpc/examples/input/input_acl_testing3.json -o txt --src vsi2-ky --dst 10.240.10.4",
+			name: "detailed_explain_acl_testing3",
+			args: "explain -f acl_testing3_explain_detailed.txt -c ../../pkg/ibmvpc/examples/input/input_acl_testing3.json -o txt --src vsi2-ky --dst 10.240.10.4",
 		},
 		{
 			name: "txt_explain_acl_testing3_3rd",

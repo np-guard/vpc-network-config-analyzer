@@ -519,7 +519,7 @@ var explainTests = []*vpcGeneralTest{
 		format:        vpcmodel.Text,
 		detailExplain: true,
 	},
-	// connection enabled by default tgw definition (2 examples from 2 different input files, one debug format)
+	// connection enabled by default tgw definition (2 examples from 2 different input files, one detailed format)
 	{
 		name:          "tgwEnableDefaultFilter",
 		inputConfig:   "tg-prefix-filters",

@@ -16,7 +16,7 @@ Run the `vpcanalyzer` CLI tool with one of the following commands.
       --dump-resources string   file path to store resources collected from the cloud provider
   -f, --filename string         file path to store results
   -h, --help                    help for vpcanalyzer
-  -o, --output string           output format; must be one of [json, txt, md, drawio, arch_drawio, svg, arch_svg, html, arch_html, debug]
+  -o, --output string           output format; must be one of [json, txt, md, drawio, arch_drawio, svg, arch_svg, html, arch_html]
   -p, --provider string         collect resources from an account in this cloud provider
   -q, --quiet                   runs quietly, reports only severe errors and results
   -r, --region stringArray      cloud region from which to collect resources, can pass multiple regions
@@ -42,7 +42,6 @@ Output format is set using the `--output` flag. The following formats are availa
 filters out unconnected elements. Clicking a source elements, then a destination element, will show detailed information about
 their connectivity at the bottom of the page.
 * `arch_html` - an html page showing only the VPC elements
-* `debug` - a human readable text format with more details than `txt`
 
 Output can be saved to a file using the `--filename` flag.
 

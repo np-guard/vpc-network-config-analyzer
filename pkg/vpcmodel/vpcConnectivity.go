@@ -24,7 +24,7 @@ type VPCConnectivity struct {
 	AllowedConns map[Node]*ConnectivityResult
 
 	// allowed connectivity combined and responsive
-	// used by debug and json format only (at the moment)
+	// used by json format only (at the moment)
 	// For src node provides a map of dsts and the responsive connection it has to these dsts
 	// note that subset of a non-responsive connection from AllowedConnsCombined can still be responsive
 	// and as such add to this map

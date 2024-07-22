@@ -86,7 +86,7 @@ func FlagSet(cmd *cobra.Command, flagName string) bool {
 }
 
 func validateExplainFlags(cmd *cobra.Command, args *inArgs) error {
-	err := validateFormatForMode(cmd.Use, []formatSetting{textFormat, debugFormat}, args)
+	err := validateFormatForMode(cmd.Use, []formatSetting{textFormat}, args)
 	if err != nil {
 		return err
 	}

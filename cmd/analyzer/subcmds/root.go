@@ -39,7 +39,6 @@ const (
 	dumpFlag         = "dump-resources"
 	quietFlag        = "quiet"
 	verboseFlag      = "verbose"
-	debugFlag        = "debug"
 )
 
 // inArgs holds parsed flag values

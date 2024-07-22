@@ -33,7 +33,6 @@ const (
 	ARCHSVG
 	HTML
 	ARCHHTML
-	Debug // extended txt format with more details
 )
 
 const (
@@ -146,7 +145,7 @@ type SingleAnalysisOutput struct {
 func (o *OutputGenerator) Generate(f OutFormat, outFile string) (string, error) {
 	var formatter OutputFormatter
 	switch f {
-	case JSON, Text, MD, Debug:
+	case JSON, Text, MD:
 		formatter = &serialOutputFormatter{f}
 	case DRAWIO, SVG, HTML:
 		formatter = newDrawioOutputFormatter(f, o.lbAbstraction)
@@ -192,8 +191,6 @@ func (of *serialOutputFormatter) createSingleVpcFormatter() SingleVpcOutputForma
 		return &TextOutputFormatter{}
 	case MD:
 		return &MDoutputFormatter{}
-	case Debug:
-		return &DebugOutputFormatter{}
 	}
 	return nil
 }
@@ -249,7 +246,7 @@ func WriteToFile(content, fileName string) (string, error) {
 // 2. The info message regarding over-approximated conns, when relevant
 func getAsteriskDetails(uc OutputUseCase, hasStatelessConn, hasOverApproximatedConn bool, outFormat OutFormat) string {
 	res := ""
-	if uc != SingleSubnet && (outFormat == Text || outFormat == MD || outFormat == Debug) {
+	if uc != SingleSubnet && (outFormat == Text || outFormat == MD) {
 		if hasStatelessConn {
 			res += statefulMessage
 		}
@@ -271,7 +268,7 @@ func (of *serialOutputFormatter) AggregateVPCsOutput(outputList []*SingleAnalysi
 	})
 
 	switch of.outFormat {
-	case Text, MD, Debug:
+	case Text, MD:
 		// plain concatenation
 		vpcsOut := make([]string, len(outputList))
 		hasStatelessConn := false
@@ -304,7 +301,7 @@ func (of *serialOutputFormatter) WriteDiffOrExplainOutput(output *SingleAnalysis
 	var res string
 	var err error
 	switch of.outFormat {
-	case Text, MD, Debug: // currently, return out as is
+	case Text, MD: // currently, return out as is
 		infoMessage := getAsteriskDetails(uc, output.hasStatelessConn, output.hasOverApproximatedConn, of.outFormat)
 		res, err = WriteToFile(output.Output+infoMessage, outFile)
 	case JSON:
