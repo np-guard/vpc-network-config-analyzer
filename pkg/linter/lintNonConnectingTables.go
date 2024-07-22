@@ -40,11 +40,12 @@ func (lint *nonConnectedTablesLint) check() error {
 		}
 		for _, layer := range vpcmodel.FilterLayers {
 			filterLayer := config.GetFilterTrafficResourceOfKind(layer)
-			_, _ = layer, filterLayer // todo tmp
-			//rules, err := filterLayer.GetRules()
-			//if err != nil {
-			//	return err
-			//}
+			_, _ = layer, filterLayer
+			table, err := filterLayer.GetRules()
+			if err != nil {
+				return err
+			}
+			_ = table // todo tmp
 		}
 	}
 	return nil

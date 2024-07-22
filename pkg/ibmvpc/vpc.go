@@ -479,9 +479,12 @@ func (nl *NaclLayer) GetRules() ([]vpcmodel.RuleOfFilter, error) {
 	return resRules, nil
 }
 
-// todo: implement
 func (nl *NaclLayer) GetTables() ([]vpcmodel.Table, error) {
-	return nil, nil
+	tables := make([]vpcmodel.Table, len(nl.naclList))
+	for i, table := range nl.naclList {
+		tables[i] = vpcmodel.Table{LayerName: vpcmodel.NaclLayer, FilterName: table.Name(), FilterIndex: i}
+	}
+	return tables, nil
 }
 
 type NACL struct {
@@ -663,7 +666,11 @@ func (sgl *SecurityGroupLayer) GetRules() ([]vpcmodel.RuleOfFilter, error) {
 }
 
 func (sgl *SecurityGroupLayer) GetTables() ([]vpcmodel.Table, error) {
-	return nil, nil
+	tables := make([]vpcmodel.Table, len(sgl.sgList))
+	for i, table := range sgl.sgList {
+		tables[i] = vpcmodel.Table{LayerName: vpcmodel.SecurityGroupLayer, FilterName: table.Name(), FilterIndex: i}
+	}
+	return tables, nil
 }
 
 type SecurityGroup struct {
