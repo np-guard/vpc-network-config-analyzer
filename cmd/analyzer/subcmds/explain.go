@@ -41,7 +41,7 @@ func NewExplainCommand(args *inArgs) *cobra.Command {
 		},
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			args.explanationArgs = vpcmodel.NewExplanationArgs(args.eSrc, args.eDst, args.eProtocol.String(),
-				args.eSrcMinPort, args.eSrcMaxPort, args.eDstMinPort, args.eDstMaxPort)
+				args.eSrcMinPort, args.eSrcMaxPort, args.eDstMinPort, args.eDstMaxPort, args.detailExplain)
 			return analysisVPCConfigs(cmd, args, vpcmodel.Explain)
 		},
 	}

@@ -55,7 +55,7 @@ func (t *TextOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	outFile string,
 	grouping bool,
 	uc OutputUseCase,
-	explanation *Explanation) (*SingleAnalysisOutput, error) {
+	explanation *Explanation, detailExplain bool) (*SingleAnalysisOutput, error) {
 	vpc2Name := ""
 	if c2 != nil {
 		vpc2Name = c2.VPC.Name()

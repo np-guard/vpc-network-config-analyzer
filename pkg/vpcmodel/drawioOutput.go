@@ -232,7 +232,7 @@ func (d *DrawioOutputFormatter) WriteOutput(cConfigs *MultipleVPCConfigs,
 	outFile string,
 	grouping bool,
 	uc OutputUseCase,
-	explanation *Explanation) (string, error) {
+	explanation *Explanation, detailExplain bool) (string, error) {
 	switch uc {
 	case AllEndpoints:
 		gConn := map[string]*GroupConnLines{}
@@ -282,6 +282,6 @@ func (d *ArchDrawioOutputFormatter) WriteOutput(cConfigs *MultipleVPCConfigs,
 	outFile string,
 	grouping bool,
 	uc OutputUseCase,
-	explanation *Explanation) (string, error) {
-	return d.DrawioOutputFormatter.WriteOutput(cConfigs, nil, nil, nil, outFile, grouping, uc, explanation)
+	explanation *Explanation, detailExplain bool) (string, error) {
+	return d.DrawioOutputFormatter.WriteOutput(cConfigs, nil, nil, nil, outFile, grouping, uc, explanation, detailExplain)
 }

@@ -17,7 +17,7 @@ func (t *DebugOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	outFile string,
 	grouping bool,
 	uc OutputUseCase,
-	explanation *Explanation) (*SingleAnalysisOutput, error) {
+	explanation *Explanation, detailExplain bool) (*SingleAnalysisOutput, error) {
 	out, err := headerOfAnalyzedVPC(uc, c1.VPC.Name(), "", c1, explanation)
 	hasStatelessConns := false
 	hasOverApproximatedConn := false

@@ -647,7 +647,7 @@ func (tt *vpcGeneralTest) runExplainTest(t *testing.T) {
 	// get vpcConfigs obj from parsing + analyzing input config file
 	vpcConfigs := getVPCConfigs(t, tt, true)
 	explanationArgs := vpcmodel.NewExplanationArgs(tt.ESrc, tt.EDst, string(tt.EProtocol),
-		tt.ESrcMinPort, tt.ESrcMaxPort, tt.EDstMinPort, tt.EDstMaxPort)
+		tt.ESrcMinPort, tt.ESrcMaxPort, tt.EDstMinPort, tt.EDstMaxPort, false)
 
 	// generate actual output for all use cases specified for this test
 	err := runTestPerUseCase(t, tt, vpcConfigs, vpcmodel.Explain, tt.mode, explainOut, explanationArgs)
