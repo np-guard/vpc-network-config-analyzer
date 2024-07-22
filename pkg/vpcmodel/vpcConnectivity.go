@@ -17,12 +17,6 @@ type VPCConnectivity struct {
 	// This is used for computing AllowedConns
 	AllowedConnsPerLayer map[Node]map[string]*ConnectivityResult
 
-	// computed for each node, by iterating its ConnectivityResult for all relevant VPC resources that capture it
-	// a node is mapped to its set of  its allowed ingress (egress) communication as captured by
-	// pairs of node+connection
-	// This is auxiliary computation based on which AllowedConnsCombined is computed, however the "debug" format uses it
-	AllowedConns map[Node]*ConnectivityResult
-
 	// allowed connectivity combined and responsive
 	// used by json format only (at the moment)
 	// For src node provides a map of dsts and the responsive connection it has to these dsts

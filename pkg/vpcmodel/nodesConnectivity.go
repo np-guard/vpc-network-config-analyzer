@@ -24,9 +24,10 @@ import (
 // (5) if grouping required - compute grouping of connectivity results
 func (c *VPCConfig) GetVPCNetworkConnectivity(grouping, lbAbstraction bool) (res *VPCConnectivity, err error) {
 	res = &VPCConnectivity{
-		AllowedConns:         map[Node]*ConnectivityResult{},
 		AllowedConnsPerLayer: map[Node]map[string]*ConnectivityResult{},
 	}
+	// allowedConns - set of node's allowed ingress (egress) communication as captured by pairs of node+connection
+	allowedConns := map[Node]*ConnectivityResult{}
 	// get connectivity in level of nodes elements
 	for _, node := range c.Nodes {
 		if !node.IsInternal() {
@@ -41,7 +42,7 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping, lbAbstraction bool) (res
 			return nil, err2
 		}
 
-		res.AllowedConns[node] = &ConnectivityResult{
+		allowedConns[node] = &ConnectivityResult{
 			IngressAllowedConns: allIngressAllowedConns,
 			EgressAllowedConns:  allEgressAllowedConns,
 		}
@@ -58,7 +59,7 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping, lbAbstraction bool) (res
 			res.AllowedConnsPerLayer[node][layer].EgressAllowedConns = egressAllowedConnsPerLayer[layer]
 		}
 	}
-	allowedConnsCombined := res.computeAllowedConnsCombined()
+	allowedConnsCombined := res.computeAllowedConnsCombined(allowedConns)
 	err3 := res.computeAllowedResponsiveConnections(c, allowedConnsCombined)
 	if err3 != nil {
 		return nil, err3
@@ -199,11 +200,11 @@ func (allowConnCombined *GeneralConnectivityMap) computeCombinedConnectionsPerDi
 
 // computeAllowedConnsCombined computes combination of ingress&egress directions per connection allowed
 // the responsive state of the connectivity is not computed here
-func (v *VPCConnectivity) computeAllowedConnsCombined() GeneralConnectivityMap {
+func (v *VPCConnectivity) computeAllowedConnsCombined(allowedConns map[Node]*ConnectivityResult) GeneralConnectivityMap {
 	allowedConnsCombined := GeneralConnectivityMap{}
-	for node, connectivityRes := range v.AllowedConns {
-		allowedConnsCombined.computeCombinedConnectionsPerDirection(true, node, connectivityRes, v.AllowedConns)
-		allowedConnsCombined.computeCombinedConnectionsPerDirection(false, node, connectivityRes, v.AllowedConns)
+	for node, connectivityRes := range allowedConns {
+		allowedConnsCombined.computeCombinedConnectionsPerDirection(true, node, connectivityRes, allowedConns)
+		allowedConnsCombined.computeCombinedConnectionsPerDirection(false, node, connectivityRes, allowedConns)
 	}
 	return allowedConnsCombined
 }
