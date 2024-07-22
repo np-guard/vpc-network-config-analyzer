@@ -83,7 +83,6 @@ const (
 	suffixOutFileExplain              = "explain"
 	suffixOutFileDetail              = "_detail"
 	txtOutSuffix                      = ".txt"
-	debugOutSuffix                    = "_debug.txt"
 	mdOutSuffix                       = ".md"
 	jsonOutSuffix                     = ".json"
 	secJSONOutSuffix                  = "_2nd.json"
@@ -157,8 +156,6 @@ func getTestFileSuffix(format vpcmodel.OutFormat) (suffix string, err error) {
 	switch format {
 	case vpcmodel.Text:
 		return txtOutSuffix, nil
-	case vpcmodel.Debug:
-		return debugOutSuffix, nil
 	case vpcmodel.MD:
 		return mdOutSuffix, nil
 	case vpcmodel.JSON:
@@ -335,7 +332,7 @@ var tests = []*vpcGeneralTest{
 		format:      vpcmodel.DRAWIO,
 	},
 
-	//batch3: only vsi-level use-case, no grouping, with debug / md  output formats
+	//batch3: only vsi-level use-case, no grouping, with md output formats
 	{
 		inputConfig: "acl_testing3",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
@@ -351,22 +348,6 @@ var tests = []*vpcGeneralTest{
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		format:      vpcmodel.MD,
 	},
-	{
-		inputConfig: "acl_testing3",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:      vpcmodel.Debug,
-	},
-	{
-		inputConfig: "sg_testing1_new",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:      vpcmodel.Debug,
-	},
-	{
-		inputConfig: "demo_with_instances",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:      vpcmodel.Debug,
-	},
-	// disable drawio tests until supported with VPE
 	{
 		inputConfig: "acl_testing3",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
