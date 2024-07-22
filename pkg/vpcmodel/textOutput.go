@@ -88,7 +88,7 @@ func (t *TextOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 		}
 		hasStatelessConns = cfgsDiff.hasStatelessConns()
 	case Explain:
-		out += explanation.String(false)
+		out += explanation.String(detailExplain)
 	}
 	// write output to file and return the output string
 	_, err = WriteToFile(out, outFile)
