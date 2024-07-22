@@ -1,11 +1,12 @@
 module github.com/np-guard/vpc-network-config-analyzer
 
 go 1.22.2
+toolchain go1.22.5
 
 require (
-	github.com/IBM/networking-go-sdk v0.47.1
+	github.com/IBM/networking-go-sdk v0.49.0
 	github.com/IBM/vpc-go-sdk v0.54.0
-	github.com/np-guard/cloud-resource-collector v0.12.0
+	github.com/np-guard/cloud-resource-collector v0.13.0
 	github.com/np-guard/models v0.3.4
 	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.9.0
@@ -13,8 +14,8 @@ require (
 
 require (
 	github.com/IBM-Cloud/container-services-go-sdk v0.0.0-20240510130133-9f76aa34af27 // indirect
-	github.com/IBM/go-sdk-core/v5 v5.17.3 // indirect
-	github.com/IBM/platform-services-go-sdk v0.64.1 // indirect
+	github.com/IBM/go-sdk-core/v5 v5.17.4 // indirect
+	github.com/IBM/platform-services-go-sdk v0.65.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.30.0 // indirect
 	github.com/aws/aws-sdk-go-v2/config v1.27.21 // indirect
