@@ -25,7 +25,7 @@ type linter interface {
 }
 
 type finding interface {
-	vpc() string
+	vpc() []string
 	string() string
 	toJSON() any
 }
@@ -33,6 +33,11 @@ type finding interface {
 type basicLinter struct {
 	configs  map[string]*vpcmodel.VPCConfig
 	findings []finding
+}
+
+type connectionLinter struct {
+	basicLinter
+	nodesConn map[string]*vpcmodel.VPCConnectivity
 }
 
 func (lint *basicLinter) addFinding(f finding) {
@@ -50,8 +55,8 @@ func (lint *basicLinter) string(lintDesc string) string {
 	}
 	sort.Strings(findingsRes)
 	header := fmt.Sprintf("%q %s\n", lintDesc, issues) +
-		strings.Repeat("-", len(lintDesc)+len(issues)+3) + "\n"
-	return header + strings.Join(findingsRes, "")
+		strings.Repeat("~", len(lintDesc)+len(issues)+3) + "\n"
+	return header + strings.Join(findingsRes, "\n")
 }
 
 func (lint *basicLinter) toJSON() []any {

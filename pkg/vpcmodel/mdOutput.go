@@ -99,11 +99,11 @@ func (m *MDoutputFormatter) getGroupedOutput(connLines *GroupConnLines) []string
 func (m *MDoutputFormatter) getGroupedDiffOutput(diff *diffBetweenCfgs) []string {
 	lines := make([]string, len(diff.groupedLines))
 	for i, line := range diff.groupedLines {
-		diffType, endpointsDiff := diffAndEndpointsDescription(line.commonProperties.connDiff.diff,
-			line.src, line.dst, line.commonProperties.connDiff.thisMinusOther)
-		conn1Str, conn2Str := conn1And2Str(line.commonProperties.connDiff)
-		lines[i] = fmt.Sprintf("| %s | %s | %s | %s | %s | %s |", diffType, line.src.Name(),
-			line.dst.Name(), conn1Str, conn2Str, endpointsDiff)
+		diffType, endpointsDiff := diffAndEndpointsDescription(line.CommonProperties.connDiff.diff,
+			line.Src, line.Dst, line.CommonProperties.connDiff.thisMinusOther)
+		conn1Str, conn2Str := conn1And2Str(line.CommonProperties.connDiff)
+		lines[i] = fmt.Sprintf("| %s | %s | %s | %s | %s | %s |", diffType, line.Src.Name(),
+			line.Dst.Name(), conn1Str, conn2Str, endpointsDiff)
 	}
 	return lines
 }
@@ -114,5 +114,5 @@ func connectivityLineMD(src, dst, conn string) string {
 }
 
 func getGroupedMDLine(line *groupedConnLine) string {
-	return connectivityLineMD(line.src.Name(), line.dst.Name(), line.commonProperties.groupingStrKey)
+	return connectivityLineMD(line.Src.Name(), line.Dst.Name(), line.CommonProperties.groupingStrKey)
 }

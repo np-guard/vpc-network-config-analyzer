@@ -8,8 +8,9 @@ package ibmvpc
 
 import (
 	"fmt"
-	"path/filepath"
 	"testing"
+
+	"path/filepath"
 
 	"github.com/stretchr/testify/require"
 
@@ -31,6 +32,14 @@ var lintTests = []*vpcGeneralTest{
 	{
 		name:        "multivpc",
 		inputConfig: "tgw_larger_example",
+	},
+	{
+		name:        "multivpc_partly_overlap",
+		inputConfig: "tgw_larger_example_partly_overlap",
+	},
+	{
+		name:        "PartialTCPRespond",
+		inputConfig: "sg_testing1_new_respond_partly",
 	},
 }
 

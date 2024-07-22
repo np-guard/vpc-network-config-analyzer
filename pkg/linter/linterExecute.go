@@ -15,15 +15,27 @@ import (
 )
 
 const issues = "issues:"
+const delimBetweenLintsChars = 200
 
 // LinterExecute executes linters one by one
 // todo: mechanism for disabling/enabling lint checks
 func LinterExecute(configs map[string]*vpcmodel.VPCConfig) (issueFound bool, resString string, err error) {
-	blinter := basicLinter{
+	nodesConn := map[string]*vpcmodel.VPCConnectivity{}
+	for uid, vpcConfig := range configs {
+		nodesConnThisCfg, err := vpcConfig.GetVPCNetworkConnectivity(false, true)
+		if err != nil {
+			return false, "", err
+		}
+		nodesConn[uid] = nodesConnThisCfg
+	}
+	basicLint := basicLinter{
 		configs: configs,
 	}
+	connLint := connectionLinter{basicLint, nodesConn}
 	linters := []linter{
-		&filterRuleSplitSubnet{basicLinter: blinter},
+		&filterRuleSplitSubnetLint{basicLinter: basicLint},
+		&overlappingSubnetsLint{basicLinter: basicLint},
+		&blockedTCPResponseLint{connectionLinter: connLint},
 	}
 	strPerLint := []string{}
 	for _, thisLinter := range linters {
@@ -42,7 +54,8 @@ func LinterExecute(configs map[string]*vpcmodel.VPCConfig) (issueFound bool, res
 		strPerLint = append(strPerLint, thisLintStr)
 	}
 	sort.Strings(strPerLint)
-	resString = strings.Join(strPerLint, "")
+	delimBetweenLints := strings.Repeat("_", delimBetweenLintsChars)
+	resString = strings.Join(strPerLint, "\n"+delimBetweenLints+"\n\n")
 	fmt.Println(resString)
 	return issueFound, resString, nil
 }

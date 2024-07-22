@@ -11,7 +11,13 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
+)
+
+const (
+	groupingFlag                = "grouping"
+	loadBalancerAbstractionFlag = "load-balancer-abstraction"
 )
 
 func NewReportCommand(args *inArgs) *cobra.Command {
@@ -27,7 +33,11 @@ func NewReportCommand(args *inArgs) *cobra.Command {
 		},
 	}
 
-	cmd.PersistentFlags().BoolVarP(&args.grouping, "grouping", "g", false, "whether to group together endpoints sharing the same connectivity")
+	cmd.PersistentFlags().BoolVarP(&args.grouping, groupingFlag,
+		"g", false, "whether to group together endpoints sharing the same connectivity")
+	cmd.PersistentFlags().BoolVarP(&args.lbAbstraction, loadBalancerAbstractionFlag,
+		"", true, "whether to abstract a load balancer to one endpoint")
+	hideFlagsFromHelp(cmd, []string{loadBalancerAbstractionFlag})
 
 	cmd.AddCommand(newReportEndpointsCommand(args))
 	cmd.AddCommand(newReportSubnetsCommand(args))
@@ -94,4 +104,26 @@ func newReportRoutingCommand(args *inArgs) *cobra.Command {
 	cmd.Flags().StringVar(&args.eDst, dstFlag, "", "destination "+srcDstUsage)
 
 	return cmd
+}
+
+func hideFlagsFromHelp(cmd *cobra.Command, flags []string) {
+	cmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
+		markFlagsHidden(command, flags)
+		command.Parent().HelpFunc()(command, strings)
+	})
+	cmd.SetUsageFunc(func(command *cobra.Command) error {
+		markFlagsHidden(command, flags)
+		// calling:
+		// command.Parent().UsageFunc()(command)
+		// gives infinite recursive call. the following works:
+		cmd.SetUsageFunc(nil)
+		return cmd.UsageFunc()(command)
+	})
+}
+func markFlagsHidden(command *cobra.Command, flags []string) {
+	for _, flag := range flags {
+		if err := command.Flags().MarkHidden(flag); err != nil {
+			logging.Warnf("Hiding the flag %s gave the following error:\n%s", flag, err.Error())
+		}
+	}
 }
