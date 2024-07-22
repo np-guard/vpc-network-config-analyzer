@@ -161,10 +161,10 @@ func collectNodesForExplanation(cConfigs *MultipleVPCConfigs, conns map[string]*
 	// we collect only external nodes with connections:
 	for _, vpcConn := range conns {
 		for _, line := range vpcConn.GroupedLines {
-			if eSrc, ok := line.src.(*groupedExternalNodes); ok {
+			if eSrc, ok := line.Src.(*groupedExternalNodes); ok {
 				externalNodes[eSrc] = true
 			}
-			if eDst, ok := line.dst.(*groupedExternalNodes); ok {
+			if eDst, ok := line.Dst.(*groupedExternalNodes); ok {
 				externalNodes[eDst] = true
 			}
 		}

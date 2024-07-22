@@ -1,3 +1,9 @@
+"Blocked TCP response" issues:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In the connection from test-vpc3-ky/vsi31-ky[10.240.31.4] to test-vpc1-ky/vsi11-ky[10.240.11.4] TCP response is blocked
+In the connection from test-vpc3-ky/vsi31-ky[10.240.31.4] to test-vpc1-ky/vsi12-ky[10.240.12.4] TCP response is blocked
+________________________________________________________________________________________________________________________________________________________________________________________________________
+
 "Overlapping CIDR ranges between different subnets" issues:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 VPC test-vpc2-ky's subnet subnet21-ky of cidr 10.240.64.0/24 and VPC zn-vpc2's subnet zn-vpc2-net1 of cidr 10.240.64.0/24  overlap in the entire subnets' CIDR range

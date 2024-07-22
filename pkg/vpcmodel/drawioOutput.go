@@ -140,10 +140,10 @@ func (d *DrawioOutputFormatter) lineRouter(line *groupedConnLine, vpcResourceID 
 	}
 	var routeredEP EndpointElem
 	switch {
-	case line.dst.IsExternal():
-		routeredEP = line.src
-	case line.src.IsExternal():
-		routeredEP = line.dst
+	case line.Dst.IsExternal():
+		routeredEP = line.Src
+	case line.Src.IsExternal():
+		routeredEP = line.Dst
 	default:
 		return nil
 	}
@@ -169,8 +169,8 @@ func (d *DrawioOutputFormatter) createEdges() {
 	isEdgeDirected := map[edgeKey]bool{}
 	for vpcResourceID, vpcConn := range d.gConns {
 		for _, line := range vpcConn.GroupedLines {
-			src := line.src
-			dst := line.dst
+			src := line.Src
+			dst := line.Dst
 			router := d.lineRouter(line, vpcResourceID)
 			e := edgeKey{src, dst, router, line.ConnLabel(false)}
 			revE := edgeKey{dst, src, router, line.ConnLabel(false)}

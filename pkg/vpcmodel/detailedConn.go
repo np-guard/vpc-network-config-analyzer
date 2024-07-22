@@ -22,25 +22,25 @@ const asterisk = " * "
 // Specifically, this is relevant when in response to a TCP src to dst connection, dest initiates a dst to src response.
 
 // Further entities of the connection may be created from operations as union e.g. for abstraction
-// note: tcpRspDisable is not independent and is calculated based on the other properties;
+// note: TCPRspDisable is not independent and is calculated based on the other properties;
 // it is kept since it is widely used - to determine if the connection is responsive
 type detailedConn struct {
 	tcpRspEnable  *connection.Set // responsive TCP connection between <src, dst>
 	nonTCP        *connection.Set // non TCP connection (for which responsiveness is non-relevant)
 	allConn       *connection.Set // entire connection
-	tcpRspDisable *connection.Set // non-responsive TCP connection between <src, dst>; complementary of tcpRspEnable
+	TCPRspDisable *connection.Set // non-responsive TCP connection between <src, dst>; complementary of tcpRspEnable
 	// connection is defined to be responsive if nonTCP is empty
 }
 
 // operation on detailedConn
 // The operations are performed on the disjoint tcpRspEnable and nonTCP and on allConn which contains them;
-// tcpRspDisable - the tcp complementary of tcpRspEnable w.r.t. allConn -
+// TCPRspDisable - the tcp complementary of tcpRspEnable w.r.t. allConn -
 // is computed as allConn minus (tcpRspEnable union nonTCP)
 
 func newDetailedConn(tspRspConn, otherConn, allConn *connection.Set) *detailedConn {
 	return &detailedConn{
 		tcpRspEnable:  tspRspConn,
-		tcpRspDisable: (allConn.Subtract(otherConn)).Subtract(tspRspConn),
+		TCPRspDisable: (allConn.Subtract(otherConn)).Subtract(tspRspConn),
 		nonTCP:        otherConn,
 		allConn:       allConn,
 	}
@@ -85,7 +85,7 @@ func (d *detailedConn) equal(other *detailedConn) bool {
 }
 
 // union of two detailedConn: union tcpRspEnable, nonTCP and allConn
-// (tcpRspDisable is computed based on these)
+// (TCPRspDisable is computed based on these)
 func (d *detailedConn) union(other *detailedConn) *detailedConn {
 	rspConn := d.tcpRspEnable.Union(other.tcpRspEnable)
 	otherConn := d.nonTCP.Union(other.nonTCP)
@@ -94,7 +94,7 @@ func (d *detailedConn) union(other *detailedConn) *detailedConn {
 }
 
 // subtract of two detailedConn: subtraction of tcpRspEnable, nonTCP and allConn
-// (tcpRspDisable is computed based on these)
+// (TCPRspDisable is computed based on these)
 func (d *detailedConn) subtract(other *detailedConn) *detailedConn {
 	rspConn := d.tcpRspEnable.Subtract(other.tcpRspEnable)
 	otherConn := d.nonTCP.Subtract(other.nonTCP)
@@ -103,7 +103,7 @@ func (d *detailedConn) subtract(other *detailedConn) *detailedConn {
 }
 
 func (d *detailedConn) hasTCPComponent() bool {
-	return !d.tcpRspEnable.Union(d.tcpRspDisable).IsEmpty()
+	return !d.tcpRspEnable.Union(d.TCPRspDisable).IsEmpty()
 }
 
 // returns the tcp responsive and non-tcp component
@@ -118,8 +118,8 @@ func (d *detailedConn) string() string {
 		return d.allConn.String()
 	}
 	resStrSlice := []string{}
-	if !d.tcpRspDisable.IsEmpty() {
-		tcpNonResponsive := d.tcpRspDisable.String()
+	if !d.TCPRspDisable.IsEmpty() {
+		tcpNonResponsive := d.TCPRspDisable.String()
 		tcpNonResponsive = strings.ReplaceAll(tcpNonResponsive, ";", asterisk+";")
 		resStrSlice = append(resStrSlice, tcpNonResponsive+asterisk)
 	}
@@ -138,7 +138,7 @@ func (d *detailedConn) connStrPerConnectionType(nonTCPAndResponsiveTCP bool) str
 	if nonTCPAndResponsiveTCP {
 		return d.nonTCPAndResponsiveTCPComponent().String()
 	}
-	return d.tcpRspDisable.String() + asterisk
+	return d.TCPRspDisable.String() + asterisk
 }
 
 // computeDetailedConn computes the detailedConn object, given input `srcToDst`
