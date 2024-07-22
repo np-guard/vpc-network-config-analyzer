@@ -23,9 +23,8 @@ type nonConnectedTablesLint struct {
 
 // a rule with the list of subnets it splits
 type nonConnectedTable struct {
-	vpcResource vpcmodel.VPC // todo: remove
-	layerName   string
-	filterName  string // todo: replace with FilterResource Interface which also has VPC
+	layerName string
+	table     vpcmodel.FilterTrafficResource
 }
 
 // /////////////////////////////////////////////////////////
@@ -58,7 +57,7 @@ func (lint *nonConnectedTablesLint) check() error {
 				layerName = networkACL
 			}
 			if !tableConnected {
-				lint.addFinding(&nonConnectedTable{vpcResource: config.VPC, layerName: layerName, filterName: table.Name()})
+				lint.addFinding(&nonConnectedTable{layerName: layerName, table: table})
 			}
 		}
 	}
@@ -82,11 +81,11 @@ func getInternalIPBlocks(config *vpcmodel.VPCConfig) *ipblock.IPBlock {
 //////////////////////////////////////////////////////////
 
 func (finding *nonConnectedTable) vpc() []string {
-	return []string{finding.vpcResource.Name()}
+	return []string{finding.table.VPC().Name()}
 }
 
 func (finding *nonConnectedTable) string() string {
-	return fmt.Sprintf("%s %s of VPC %s has no resources connected to it", finding.layerName, finding.filterName,
+	return fmt.Sprintf("%s %s of VPC %s has no resources connected to it", finding.layerName, finding.table.Name(),
 		finding.vpc())
 }
 
