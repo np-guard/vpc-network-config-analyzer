@@ -382,36 +382,3 @@ func (responsiveConnMap GeneralResponsiveConnectivityMap) getCombinedConnsStr(on
 func (v *VPCConnectivity) String() string {
 	return v.AllowedConnsCombinedResponsive.getCombinedConnsStr(false)
 }
-
-func (v *VPCConnectivity) DetailedString() string {
-	res := "=================================== distributed inbound/outbound connections:\n"
-	strList := []string{}
-	for node, connectivity := range v.AllowedConns {
-		// ingress
-		for peerNode, conn := range connectivity.IngressAllowedConns {
-			strList = append(strList, getConnectionStr(peerNode.CidrOrAddress(), node.CidrOrAddress(), conn.String(), " [inbound]"))
-		}
-		// egress
-		for peerNode, conn := range connectivity.EgressAllowedConns {
-			strList = append(strList, getConnectionStr(node.CidrOrAddress(), peerNode.CidrOrAddress(), conn.String(), " [outbound]"))
-		}
-	}
-	sort.Strings(strList)
-	res += strings.Join(strList, "")
-	res += "=================================== combined connections:\n"
-	strList = []string{}
-	for src, nodeConns := range v.AllowedConnsCombinedResponsive {
-		for dst, conn := range nodeConns {
-			// src and dst here are nodes, always. Thus ignoring potential error in conversion
-			strList = append(strList, getConnectionStr(src.(Node).CidrOrAddress(), dst.(Node).CidrOrAddress(), conn.allConn.String(), ""))
-		}
-	}
-	sort.Strings(strList)
-	res += strings.Join(strList, "")
-	res += "=================================== combined connections - short version:\n"
-	res += v.AllowedConnsCombinedResponsive.getCombinedConnsStr(false)
-
-	res += "=================================== responsive combined connections - short version:\n"
-	res += v.AllowedConnsCombinedResponsive.getCombinedConnsStr(true)
-	return res
-}
