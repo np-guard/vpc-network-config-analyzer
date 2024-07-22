@@ -35,7 +35,7 @@ func (t *DebugOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	case SingleSubnet:
 	case SubnetsDiff, EndpointsDiff:
 	case Explain:
-		out += explanation.String(true)
+		out += explanation.String(detailExplain)
 	}
 	_, err = WriteToFile(out, outFile)
 	return &SingleAnalysisOutput{Output: out, VPC1Name: c1.VPC.Name(), VPC2Name: "", format: Debug,

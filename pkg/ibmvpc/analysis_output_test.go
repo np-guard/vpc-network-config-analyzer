@@ -67,6 +67,7 @@ type vpcGeneralTest struct {
 	ESrcMaxPort    int64
 	EDstMinPort    int64
 	EDstMaxPort    int64
+	detailExplain  bool
 }
 
 const (
@@ -98,6 +99,7 @@ func getTestFileName(testName string,
 	uc vpcmodel.OutputUseCase,
 	grouping bool,
 	noLbAbstract bool,
+	detailExplain bool,
 	format vpcmodel.OutFormat,
 	configName string,
 	allVPCs bool) (
@@ -135,6 +137,9 @@ func getTestFileName(testName string,
 	}
 	if noLbAbstract {
 		res += suffixOutFileWithoutLbAbstraction
+	}
+	if detailExplain{
+		res += "_debug"
 	}
 	suffix, suffixErr := getTestFileSuffix(format)
 	if suffixErr != nil {
@@ -930,7 +935,7 @@ func initTestFileNames(tt *vpcGeneralTest,
 	allVPCs bool,
 	testDir string) error {
 	expectedFileName, actualFileName, err := getTestFileName(
-		tt.name, uc, tt.grouping, tt.noLbAbstract, tt.format, vpcName, allVPCs)
+		tt.name, uc, tt.grouping, tt.noLbAbstract, tt.detailExplain, tt.format, vpcName, allVPCs)
 	if err != nil {
 		return err
 	}
