@@ -279,7 +279,7 @@ func NewSubnet(name, uid, zone, cidr string, vpc vpcmodel.VPCResourceIntf) (*Sub
 }
 
 func PrintLineSection() {
-	logging.Debugf("-----------------------------------------")
+	logging.Debugf(strings.Repeat("-", 41))
 }
 
 func PrintSGRules(sg *SecurityGroup) {
