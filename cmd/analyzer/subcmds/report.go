@@ -11,6 +11,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -107,18 +108,11 @@ func newReportRoutingCommand(args *inArgs) *cobra.Command {
 
 func hideFlagsFromHelp(cmd *cobra.Command, flags []string) {
 	cmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
-		err := markFlagsHidden(command, flags)
-		if err != nil {
-			// Do not know what to do with the error
-			return
-		}
+		markFlagsHidden(command, flags)
 		command.Parent().HelpFunc()(command, strings)
 	})
 	cmd.SetUsageFunc(func(command *cobra.Command) error {
-		err := markFlagsHidden(command, flags)
-		if err != nil {
-			return err
-		}
+		markFlagsHidden(command, flags)
 		// calling:
 		// command.Parent().UsageFunc()(command)
 		// gives infinite recursive call. the following works:
@@ -126,11 +120,10 @@ func hideFlagsFromHelp(cmd *cobra.Command, flags []string) {
 		return cmd.UsageFunc()(command)
 	})
 }
-func markFlagsHidden(command *cobra.Command, flags []string) error {
+func markFlagsHidden(command *cobra.Command, flags []string) {
 	for _, flag := range flags {
 		if err := command.Flags().MarkHidden(flag); err != nil {
-			return err
+			logging.Warnf("Hiding the flag %s gave the following error:\n%s", flag, err.Error())
 		}
 	}
-	return nil
 }
