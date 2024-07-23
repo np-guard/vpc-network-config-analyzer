@@ -50,10 +50,7 @@ func (lint *redundantTablesLint) check() error {
 				layerName = networkACL
 			}
 			_, _ = filterLayer, layerName
-			filtersToAttached, err := filterLayer.GetFiltersToAttached()
-			if err != nil {
-				return err
-			}
+			filtersToAttached := filterLayer.GetFiltersToAttached()
 			for table, attached := range filtersToAttached {
 				if len(attached) == 0 {
 					lint.addFinding(&nonConnectedTable{layerName: layerName, vpcOfTable: config.VPC, table: table})
