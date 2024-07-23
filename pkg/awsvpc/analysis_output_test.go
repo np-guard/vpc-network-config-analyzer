@@ -203,6 +203,11 @@ var tests = []*vpcGeneralTest{
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		format:      vpcmodel.Text,
 	},
+	{
+		inputConfig: "aws_sg_1",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		format:      vpcmodel.HTML,
+	},
 }
 
 var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{
