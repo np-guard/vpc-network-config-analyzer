@@ -12,7 +12,6 @@ import (
 
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
 
-	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
 	"github.com/np-guard/models/pkg/ipblock"
 )
 
@@ -67,7 +66,7 @@ type subnetsIPBlocks map[string]*oneSubnetBlocks
 // 2. calculate the filters blocks
 // 3. calculate the splitByFiltersBlocks
 // 4. calculate the freeAddressesBlocks
-func getSubnetsIPBlocks(rc *datamodel.ResourcesContainerModel, filtersCidrs []map[string][]*string,
+func getSubnetsIPBlocks(rc *IBMresourcesContainer, filtersCidrs []map[string][]*string,
 	skipByVPC map[string]bool) (subnetsBlocks subnetsIPBlocks, err error) {
 	subnetsBlocks = subnetsIPBlocks{}
 	// gets the original blocks of the subnets:
@@ -88,7 +87,7 @@ func getSubnetsIPBlocks(rc *datamodel.ResourcesContainerModel, filtersCidrs []ma
 	return subnetsBlocks, nil
 }
 
-func (subnetsBlocks subnetsIPBlocks) getSubnetsOriginalBlocks(rc *datamodel.ResourcesContainerModel,
+func (subnetsBlocks subnetsIPBlocks) getSubnetsOriginalBlocks(rc *IBMresourcesContainer,
 	skipByVPC map[string]bool) (err error) {
 	for _, subnetObj := range rc.SubnetList {
 		if skipByVPC[*subnetObj.VPC.ID] {
@@ -105,7 +104,7 @@ func (subnetsBlocks subnetsIPBlocks) getSubnetsOriginalBlocks(rc *datamodel.Reso
 
 // splitSubnetsOriginalBlocks() splits the subnet's cidr(s) to (maximal) disjoint blocks -
 // such that each block is atomic w.r.t. the filters rules
-func (subnetsBlocks subnetsIPBlocks) splitSubnetsOriginalBlocks(rc *datamodel.ResourcesContainerModel,
+func (subnetsBlocks subnetsIPBlocks) splitSubnetsOriginalBlocks(rc *IBMresourcesContainer,
 	filtersBlocks filtersBlocks, skipByVPC map[string]bool) {
 	for _, subnetObj := range rc.SubnetList {
 		if skipByVPC[*subnetObj.VPC.ID] {
@@ -134,7 +133,7 @@ func splitSubnetOriginalBlock(subnetOriginalBlock *ipblock.IPBlock, filtersBlock
 //  1. make a copy of the splitByFiltersBlocks
 //  2. remove from this copy the addresses that were already allocated
 //  3. set fullyReservedBlocks - check for each block if it has free addresses
-func (subnetsBlocks subnetsIPBlocks) getSubnetsFreeBlocks(rc *datamodel.ResourcesContainerModel, skipByVPC map[string]bool) error {
+func (subnetsBlocks subnetsIPBlocks) getSubnetsFreeBlocks(rc *IBMresourcesContainer, skipByVPC map[string]bool) error {
 	for _, subnetObj := range rc.SubnetList {
 		if skipByVPC[*subnetObj.VPC.ID] {
 			continue
@@ -268,9 +267,9 @@ func disjointCidrs(cidrs []string) ([]*ipblock.IPBlock, error) {
 }
 
 // //////////////////////////////////////////////////
-// todo: this file should be at vpcmodel, after moving out the reference to rc *datamodel.ResourcesContainerModel
+// todo: this file should be at vpcmodel, after moving out the reference to rc *IBMresourcesContainer
 // these following three function should be part of the ibmvpc package:
-func getACLRulesCidrs(rc *datamodel.ResourcesContainerModel, skipByVPC map[string]bool) (map[string][]*string, error) {
+func getACLRulesCidrs(rc *IBMresourcesContainer, skipByVPC map[string]bool) (map[string][]*string, error) {
 	cidrs := map[string][]*string{}
 	for _, aclObj := range rc.NetworkACLList {
 		if skipByVPC[*aclObj.VPC.CRN] {
@@ -300,7 +299,7 @@ func getACLRulesCidrs(rc *datamodel.ResourcesContainerModel, skipByVPC map[strin
 	return cidrs, nil
 }
 
-func getGSRulesCidrs(rc *datamodel.ResourcesContainerModel, skipByVPC map[string]bool) (map[string][]*string, error) {
+func getGSRulesCidrs(rc *IBMresourcesContainer, skipByVPC map[string]bool) (map[string][]*string, error) {
 	cidrs := map[string][]*string{}
 	for _, sgObj := range rc.SecurityGroupList {
 		if skipByVPC[*sgObj.VPC.CRN] {
@@ -347,7 +346,7 @@ func getGSRulesCidrs(rc *datamodel.ResourcesContainerModel, skipByVPC map[string
 
 // getSubnetsBlocks() gets the subnets blocks to be used for creating private IPs
 // it collects the rules cidrs and use them to get the subnets block.
-func getSubnetsBlocks(rc *datamodel.ResourcesContainerModel,
+func getSubnetsBlocks(rc *IBMresourcesContainer,
 	skipByVPC map[string]bool) (subnetsBlocks subnetsIPBlocks, err error) {
 	naclCidrs, err := getACLRulesCidrs(rc, skipByVPC)
 	if err != nil {
