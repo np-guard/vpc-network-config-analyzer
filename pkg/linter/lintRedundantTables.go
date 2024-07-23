@@ -38,6 +38,7 @@ func (lint *redundantTablesLint) lintDescription() string {
 	return "Access control tables for which there are no resources attached to"
 }
 
+// todo: open followup issue of registering DefaultSG and DefaultNACL
 func (lint *redundantTablesLint) check() error {
 	for _, config := range lint.configs {
 		if config.IsMultipleVPCsConfig {
@@ -71,7 +72,7 @@ func (finding *nonConnectedTable) vpc() []string {
 
 func (finding *nonConnectedTable) string() string {
 	return fmt.Sprintf("%s %s of VPC %s has no resources attached to it", finding.layerName, finding.table.FilterName,
-		finding.vpc())
+		finding.vpc()[0])
 }
 
 type nonConnectedTableJSON struct {
