@@ -16,12 +16,8 @@ import (
 )
 
 const (
-	ProtocolTCP  = "tcp"
-	AllProtocols = "-1"
-	ProtocolUDP  = "udp"
-	ProtocolICMP = "icmp"
-	Inbound      = "inbound"
-	Outbound     = "outbound"
+	Inbound  = "inbound"
+	Outbound = "outbound"
 	// used as the type within api objects (e.g. SecurityGroup.Targets.ResourceType)
 	NetworkInterfaceResourceType = "network_interface"
 	VpeResourceType              = "endpoint_gateway"

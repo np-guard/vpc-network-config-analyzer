@@ -16,6 +16,13 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 )
 
+const (
+	protocolTCP  = "tcp"
+	allProtocols = "-1"
+	protocolUDP  = "udp"
+	protocolICMP = "icmp"
+)
+
 type AWSSGAnalyzer struct {
 	sgResource         *types.SecurityGroup
 	referencedIPblocks []*ipblock.IPBlock
@@ -134,13 +141,11 @@ func (sga *AWSSGAnalyzer) GetSGRule(index int) (
 		ruleObj = sga.sgResource.IpPermissionsEgress[index-len(sga.sgResource.IpPermissions)]
 	}
 	switch *ruleObj.IpProtocol {
-	case commonvpc.AllProtocols: // all protocols
+	case allProtocols: // all protocols
 		ruleStr, ruleRes, err = sga.getProtocolAllRule(&ruleObj, direction)
-	case commonvpc.ProtocolTCP:
+	case protocolTCP, protocolUDP:
 		ruleStr, ruleRes, err = sga.getProtocolTCPUDPRule(&ruleObj, direction)
-	case commonvpc.ProtocolUDP:
-		ruleStr, ruleRes, err = sga.getProtocolTCPUDPRule(&ruleObj, direction)
-	case commonvpc.ProtocolICMP:
+	case protocolICMP:
 		ruleStr, ruleRes, err = sga.getProtocolICMPRule(&ruleObj, direction)
 	default:
 		return "", nil, false, fmt.Errorf("getSGRule error: unsupported type")

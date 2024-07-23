@@ -22,6 +22,7 @@ import (
 )
 
 const networkACL = "network ACL"
+const doubleTab = "\t\t"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -752,7 +753,7 @@ func (tgw *TransitGateway) stringPrefixFiltersVerbose(transitConn *datamodel.Tra
 		}
 		thisPrefixStr = fmt.Sprintf("\ttransit gateway %s %s connection via transit connection %s "+
 			"with the following prefix filter\n%s%s\n", tgw.Name(), action, *transitConn.Name,
-			commonvpc.DoubleTab, tgwRouterFilterDetails)
+			doubleTab, tgwRouterFilterDetails)
 		strRes = append(strRes, thisPrefixStr)
 	}
 	return strRes, nil

@@ -15,7 +15,6 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
-const DoubleTab = "\t\t"
 const EmptyNameError = "empty name for %s indexed %d"
 
 const securityGroup = "security group"

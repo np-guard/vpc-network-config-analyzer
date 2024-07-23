@@ -18,6 +18,8 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
 )
 
+const protocolTCP = "tcp"
+
 type SGAnalyzer struct {
 	SgAnalyzer   SpecificSGAnalyzer
 	ingressRules []*SGRule
@@ -54,7 +56,7 @@ func GetProperty(p *int64, defaultP int64) int64 {
 
 func GetTCPUDPConns(p string, srcPortMin, srcPortMax, dstPortMin, dstPortMax int64) *connection.Set {
 	protocol := netp.ProtocolStringUDP
-	if p == ProtocolTCP {
+	if p == protocolTCP {
 		protocol = netp.ProtocolStringTCP
 	}
 	return connection.TCPorUDPConnection(protocol, srcPortMin, srcPortMax, dstPortMin, dstPortMax)

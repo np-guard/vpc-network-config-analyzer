@@ -78,7 +78,7 @@ func TestSGRule(t *testing.T) {
 			VPCRef:       nil,
 			Region:       "",
 		},
-		Analyzer: commonvpc.NewSGAnalyzer(NewAWSSGAnalyzer(&sg)), Members: nil,
+		Analyzer: commonvpc.NewSGAnalyzer(NewAWSSGAnalyzer(&sg)),
 	}
 	ruleStr, sgRule, _, err := sgResource.Analyzer.SgAnalyzer.GetSGRule(0)
 	require.Nil(t, err)
@@ -125,7 +125,7 @@ func TestWithSgObj(t *testing.T) {
 			VPCRef:       nil,
 			Region:       "",
 		},
-		Analyzer: commonvpc.NewSGAnalyzer(NewAWSSGAnalyzer(&sg)), Members: nil,
+		Analyzer: commonvpc.NewSGAnalyzer(NewAWSSGAnalyzer(&sg)),
 	}
 	ruleStr, sgRule, _, err := sgResource.Analyzer.SgAnalyzer.GetSGRule(0)
 	require.Nil(t, err)
