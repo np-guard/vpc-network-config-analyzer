@@ -4,11 +4,13 @@ Copyright 2023- IBM Inc. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 */
 
-package ibmvpc
+package commonvpc
 
 import (
+	"fmt"
 	"reflect"
 	"sort"
+	"strings"
 
 	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/ipblock"
@@ -20,12 +22,12 @@ type ConnectivityResultMap map[*ipblock.IPBlock]*ConnectivityResult
 // ConnectivityResult is built on disjoint ip-blocks for targets of all relevant sg/nacl results
 // ConnectivityResult is per VSI network interface: contains allowed connectivity (with connection attributes) per target
 type ConnectivityResult struct {
-	isIngress    bool
-	allowedConns map[*ipblock.IPBlock]*connection.Set // allowed target and its allowed connections
-	allowRules   map[*ipblock.IPBlock][]int           // indexes of (positive) allowRules contributing to this connectivity
+	IsIngress    bool
+	AllowedConns map[*ipblock.IPBlock]*connection.Set // allowed target and its allowed connections
+	AllowRules   map[*ipblock.IPBlock][]int           // indexes of (positive) allowRules contributing to this connectivity
 	// the following are relevant only to filters with deny rules - nacl
-	deniedConns map[*ipblock.IPBlock]*connection.Set // denied target and its allowed connections, by deny rules.
-	denyRules   map[*ipblock.IPBlock][]int           // indexes of deny rules relevant to this connectivity
+	DeniedConns map[*ipblock.IPBlock]*connection.Set // denied target and its allowed connections, by deny rules.
+	DenyRules   map[*ipblock.IPBlock][]int           // indexes of deny rules relevant to this connectivity
 }
 
 func storeAndSortKeys[T any](m map[*ipblock.IPBlock]T) []string {
@@ -86,13 +88,13 @@ func equalRules(rules1, rules2 map[*ipblock.IPBlock][]int) bool {
 }
 
 func (cr *ConnectivityResult) Equal(other *ConnectivityResult) bool {
-	if cr.isIngress != other.isIngress {
+	if cr.IsIngress != other.IsIngress {
 		return false
 	}
-	return equalConns(cr.allowedConns, other.allowedConns) &&
-		equalConns(cr.deniedConns, other.deniedConns) &&
-		equalRules(cr.allowRules, other.allowRules) &&
-		equalRules(cr.denyRules, other.denyRules)
+	return equalConns(cr.AllowedConns, other.AllowedConns) &&
+		equalConns(cr.DeniedConns, other.DeniedConns) &&
+		equalRules(cr.AllowRules, other.AllowRules) &&
+		equalRules(cr.DenyRules, other.DenyRules)
 }
 
 func (cr ConnectivityResultMap) Equal(other ConnectivityResultMap) bool {
@@ -110,4 +112,13 @@ func (cr ConnectivityResultMap) Equal(other ConnectivityResultMap) bool {
 		}
 	}
 	return true
+}
+
+func (cr *ConnectivityResult) String() string {
+	res := []string{}
+	for t, conn := range cr.AllowedConns {
+		res = append(res, fmt.Sprintf("remote: %s, conn: %s", t.ToIPRanges(), conn.String()))
+	}
+	sort.Strings(res)
+	return strings.Join(res, "\n")
 }

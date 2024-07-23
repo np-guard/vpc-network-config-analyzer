@@ -18,9 +18,10 @@ import (
 )
 
 func TestGetRules(t *testing.T) {
-	rc, err := ParseResourcesFromFile(filepath.Join(getTestsDirInput(), "input_acl_testing3.json"))
+	rc := IBMresourcesContainer{}
+	err := rc.ParseResourcesFromFile(filepath.Join(getTestsDirInput(), "input_acl_testing3.json"))
 	require.Nilf(t, err, "err: %s", err)
-	vpcConfigs, err := VPCConfigsFromResources(rc, "", "", nil)
+	vpcConfigs, err := rc.VPCConfigsFromResources("", "", nil)
 	require.Nilf(t, err, "err: %s", err)
 	for _, config := range vpcConfigs.Configs() {
 		for _, f := range config.FilterResources {
@@ -48,13 +49,13 @@ func TestGetAllowedXgressConnections(t *testing.T) {
 		{
 			src:         newIPBlockFromCIDROrAddressWithoutValidation("1.2.3.4/32"),
 			dst:         newIPBlockFromCIDROrAddressWithoutValidation("10.0.0.1/32"),
-			connections: getAllConnSet(),
+			connections: connection.All(),
 			action:      "deny",
 		},
 		{
 			src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
 			dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
-			connections: getAllConnSet(),
+			connections: connection.All(),
 			action:      "allow",
 		},
 	}
@@ -122,7 +123,7 @@ func TestGetAllowedXgressConnections(t *testing.T) {
 			naclRules:     rulesTest1,
 			src:           []string{"1.1.1.1/32", "1.2.3.4/32", "1.2.3.4/32"},
 			dst:           []string{"10.0.0.0/24", "10.0.0.1/32", "10.0.0.0/32"},
-			expectedConns: []*connection.Set{getAllConnSet(), getEmptyConnSet(), getAllConnSet()},
+			expectedConns: []*connection.Set{connection.All(), connection.None(), connection.All()},
 		},
 	}
 

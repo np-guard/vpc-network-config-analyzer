@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -23,19 +24,18 @@ type testImplicitRT struct {
 
 // the configuration
 
-var vpc = &VPC{
-	internalAddressRange:   newIPBlockFromCIDROrAddressWithoutValidation("10.10.2.0/24"),
-	addressPrefixes:        []string{"10.10.2.0/24"},
-	addressPrefixesIPBlock: newIPBlockFromCIDROrAddressWithoutValidation("10.10.2.0/24"),
+var vpc = &commonvpc.VPC{
+	InternalAddressRange:   newIPBlockFromCIDROrAddressWithoutValidation("10.10.2.0/24"),
+	AddressPrefixesIPBlock: newIPBlockFromCIDROrAddressWithoutValidation("10.10.2.0/24"),
 }
-var n1, _ = newNetworkInterface("n1", "n1", "zone1", "10.10.2.6", "n1VSI", vpc)
-var n2, _ = newNetworkInterface("n2", "n2", "zone1", "10.10.2.5", "n2VSI", vpc)
+var n1, _ = commonvpc.NewNetworkInterface("n1", "n1", "zone1", "10.10.2.6", "n1VSI", vpc)
+var n2, _ = commonvpc.NewNetworkInterface("n2", "n2", "zone1", "10.10.2.5", "n2VSI", vpc)
 var vpcConfig = &vpcmodel.VPCConfig{
 	VPC:   vpc,
-	Nodes: nodesFromNetIntfs([]*NetworkInterface{n1, n2}),
+	Nodes: nodesFromNetIntfs([]*commonvpc.NetworkInterface{n1, n2}),
 }
 
-func nodesFromNetIntfs(nodes []*NetworkInterface) (res []vpcmodel.Node) {
+func nodesFromNetIntfs(nodes []*commonvpc.NetworkInterface) (res []vpcmodel.Node) {
 	for _, n := range nodes {
 		res = append(res, n)
 	}

@@ -11,6 +11,7 @@ import (
 
 	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
 	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -22,8 +23,8 @@ const defaultPrefixFilter = -1
 
 // getVPCdestSubnetsByAdvertisedRoutes returns a slice of subnets from vpc, which can be destinations of the
 // transit gateway tg, based on its available routes (as determined by prefix filters and matched address prefixes)
-func getVPCdestSubnetsByAdvertisedRoutes(tg *TransitGateway, vpc *VPC) (res []*Subnet) {
-	for _, subnet := range vpc.subnets() {
+func getVPCdestSubnetsByAdvertisedRoutes(tg *TransitGateway, vpc *commonvpc.VPC) (res []*commonvpc.Subnet) {
+	for _, subnet := range vpc.Subnets() {
 		if isSubnetTGWDestination(tg, subnet) {
 			res = append(res, subnet)
 		}
@@ -31,8 +32,8 @@ func getVPCdestSubnetsByAdvertisedRoutes(tg *TransitGateway, vpc *VPC) (res []*S
 	return res
 }
 
-func isSubnetTGWDestination(tg *TransitGateway, subnet *Subnet) bool {
-	dstIPB := subnet.ipblock
+func isSubnetTGWDestination(tg *TransitGateway, subnet *commonvpc.Subnet) bool {
+	dstIPB := subnet.IPblock
 	// TODO: routesListPerVPC is currently restricted only to the subnet's VPC, but with
 	// overlapping address prefixes the TGW may choose available route from a different VPC
 	routesListPerVPC := tg.availableRoutes[subnet.VPCRef.UID()]
@@ -45,11 +46,11 @@ func isSubnetTGWDestination(tg *TransitGateway, subnet *Subnet) bool {
 }
 
 // TODO: remove this functions when all relevant TGW tests contain input address prefixes that do not overlap
-func validateAddressPrefixesExist(vpc *VPC) {
-	if len(vpc.addressPrefixes) == 0 {
+func validateAddressPrefixesExist(vpc *commonvpc.VPC) {
+	if len(vpc.AddressPrefixesList) == 0 {
 		// temp work around -- adding subnets as the vpc's address prefixes, for current tests missing address prefixes
-		for _, subnet := range vpc.subnetsList {
-			vpc.addressPrefixes = append(vpc.addressPrefixes, subnet.cidr)
+		for _, subnet := range vpc.SubnetsList {
+			vpc.AddressPrefixesList = append(vpc.AddressPrefixesList, subnet.Cidr)
 		}
 	}
 }
@@ -61,11 +62,11 @@ func validateAddressPrefixesExist(vpc *VPC) {
 // Note that there is always a single prefix filter that determines the route (allow/deny) for each address prefix
 // (could be the default); this is since each atomic src/dst is an endpoint and since
 // prefix filter rules do not include protocol or ports (unlike nacls and sgs)
-func getVPCAdvertisedRoutes(tc *datamodel.TransitConnection, tcIndex int, vpc *VPC) (advertisedRoutesRes []*ipblock.IPBlock,
+func getVPCAdvertisedRoutes(tc *datamodel.TransitConnection, tcIndex int, vpc *commonvpc.VPC) (advertisedRoutesRes []*ipblock.IPBlock,
 	vpcAPToPrefixRules map[*ipblock.IPBlock]vpcmodel.RulesInTable, err error) {
 	validateAddressPrefixesExist(vpc)
 	vpcAPToPrefixRules = map[*ipblock.IPBlock]vpcmodel.RulesInTable{}
-	for _, ap := range vpc.addressPrefixes {
+	for _, ap := range vpc.AddressPrefixesList {
 		filterIndex, isPermitAction, err := getMatchedFilterIndexAndAction(ap, tc)
 		if err != nil {
 			return nil, nil, err

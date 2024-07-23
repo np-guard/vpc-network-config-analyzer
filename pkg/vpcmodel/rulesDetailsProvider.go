@@ -27,6 +27,10 @@ func newRulesDetails(config *VPCConfig) (*rulesDetails, error) {
 	for _, layer := range FilterLayers {
 		thisLayerRules := make(map[int]filterRulesDetails)
 		filterLayer := config.GetFilterTrafficResourceOfKind(layer)
+		if filterLayer == nil {
+			// todo - remove this if when we have nacl support for aws
+			continue
+		}
 		thisLayerRulesDetails, err := filterLayer.GetRules()
 		if err != nil {
 			return nil, err
