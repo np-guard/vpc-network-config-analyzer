@@ -81,7 +81,7 @@ const (
 	suffixOutFileDiffSubnets          = "subnetsDiff"
 	suffixOutFileDiffEndpoints        = "endpointsDiff"
 	suffixOutFileExplain              = "explain"
-	suffixOutFileDetail              = "_detail"
+	suffixOutFileDetail               = "_detail"
 	txtOutSuffix                      = ".txt"
 	mdOutSuffix                       = ".md"
 	jsonOutSuffix                     = ".json"
@@ -138,7 +138,7 @@ func getTestFileName(testName string,
 	if noLbAbstract {
 		res += suffixOutFileWithoutLbAbstraction
 	}
-	if detailExplain{
+	if detailExplain {
 		res += suffixOutFileDetail
 	}
 	suffix, suffixErr := getTestFileSuffix(format)

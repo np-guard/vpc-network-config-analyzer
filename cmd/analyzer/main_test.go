@@ -188,8 +188,8 @@ func TestMainWithExpectedOut(t *testing.T) {
 		},
 		// detail explanation
 		{
-			name: "txt_explain_acl_testing3",
-			args: "explain -f acl_testing3_detailed_explain.txt -c ../../pkg/ibmvpc/examples/input/input_acl_testing3.json -o txt --src 10.240.10.4 --dst vsi2-ky --detail",
+			name:    "txt_explain_acl_testing3",
+			args:    "explain -f acl_testing3_detailed_explain.txt -c ../../pkg/ibmvpc/examples/input/input_acl_testing3.json -o txt --src 10.240.10.4 --dst vsi2-ky --detail",
 			outFile: "acl_testing3_detailed_explain.txt",
 		},
 	}
