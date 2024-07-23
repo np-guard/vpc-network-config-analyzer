@@ -151,8 +151,6 @@ func getTestFileSuffix(format vpcmodel.OutFormat) (suffix string, err error) {
 	switch format {
 	case vpcmodel.Text:
 		return txtOutSuffix, nil
-	case vpcmodel.Debug:
-		return debugOutSuffix, nil
 	case vpcmodel.MD:
 		return mdOutSuffix, nil
 	case vpcmodel.JSON:
@@ -287,7 +285,7 @@ func (tt *vpcGeneralTest) runTest(t *testing.T) {
 	var explanationArgs *vpcmodel.ExplanationArgs
 	if explainUseCase {
 		explanationArgs = vpcmodel.NewExplanationArgs(tt.ESrc, tt.EDst, string(tt.EProtocol),
-			tt.ESrcMinPort, tt.ESrcMaxPort, tt.EDstMinPort, tt.EDstMaxPort)
+			tt.ESrcMinPort, tt.ESrcMaxPort, tt.EDstMinPort, tt.EDstMaxPort, false)
 	}
 
 	// generate actual output for all use cases specified for this test
