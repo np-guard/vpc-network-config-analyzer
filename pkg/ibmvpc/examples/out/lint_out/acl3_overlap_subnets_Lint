@@ -1,3 +1,9 @@
+"Access control tables for which there are no resources attached to" issues:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+network ACL demilune-humorless-captain-lurex of VPC [test-vpc1-ky] has no resources attached to it
+security group barbecue-frayed-varied-average of VPC [test-vpc1-ky] has no resources attached to it
+________________________________________________________________________________________________________________________________________________________________________________________________________
+
 "Firewall rules implying different connectivity for different endpoints within a subnet" issues:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In VPC test-vpc1-ky, network ACL acl1-ky rule's indexed 0 splits subnet subnet1-ky (10.240.10.0/16). Splitting rule details: index: 0, direction: outbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, conn: protocol: icmp, action: deny
