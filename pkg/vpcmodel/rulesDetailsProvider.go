@@ -26,8 +26,8 @@ func newRulesDetails(config *VPCConfig) (*rulesDetails, error) {
 	resRulesDetails := rulesDetails{}
 	for _, layer := range FilterLayers {
 		thisLayerRules := make(map[int]filterRulesDetails)
-		filterLayer := config.GetFilterTrafficResourceOfKind(layer) 
-		if filterLayer == nil{
+		filterLayer := config.GetFilterTrafficResourceOfKind(layer)
+		if filterLayer == nil {
 			// todo - remove this if when we have nacl support for aws
 			continue
 		}

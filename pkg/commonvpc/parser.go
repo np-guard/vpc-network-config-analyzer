@@ -189,7 +189,7 @@ func NewVPC(name, uid, region string, zonesToAP map[string][]string, regionToStr
 	var regionPointer *Region
 	if regionToStructMap != nil {
 		regionPointer = GetRegionByName(region, regionToStructMap)
-	}else{
+	} else {
 		// drawio needs regions. for now, creating a region for each vpc
 		// todo - remove this else when region is supported for aws
 		regionPointer = &Region{Name: name}
