@@ -280,7 +280,7 @@ type FilterTrafficResource interface {
 	// GetRules gets a list of all rules with description
 	GetRules() ([]RuleOfFilter, error)
 	// GetFiltersToAttached gets a map from each filter to the resources attached to it; e.g. from NACL to subnets
-	GetFiltersToAttached() (FiltersToAttached, error)
+	GetFiltersToAttached() FiltersToAttached
 	ReferencedIPblocks() []*ipblock.IPBlock
 	ConnectivityMap() (map[string]*IPbasedConnectivityResult, error)
 	GetConnectivityOutputPerEachElemSeparately() string
