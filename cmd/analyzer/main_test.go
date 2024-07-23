@@ -186,6 +186,12 @@ func TestMainWithExpectedOut(t *testing.T) {
 			args:    "report endpoints -f non_abstracted_load_balancer.txt --load-balancer-abstraction=false --config ../../pkg/ibmvpc/examples/input/input_load_balancer.json --grouping",
 			outFile: "non_abstracted_load_balancer.txt",
 		},
+		// detail explanation
+		{
+			name: "txt_explain_acl_testing3",
+			args: "explain -f acl_testing3_detailed_explain.txt -c ../../pkg/ibmvpc/examples/input/input_acl_testing3.json -o txt --src 10.240.10.4 --dst vsi2-ky --detail",
+			outFile: "acl_testing3_detailed_explain.txt",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
