@@ -98,7 +98,7 @@ func (finding *splitRuleSubnet) string() string {
 		subnetStr = "subnet " + subnetStr
 	}
 	return fmt.Sprintf("In VPC %s, %s %s rule's indexed %d splits %s. Splitting rule details: %s",
-		finding.vpc()[0], finding.rule.LayerName, rule.FilterName, rule.RuleIndex, subnetStr,
+		finding.vpc()[0], finding.rule.Filter.LayerName, rule.Filter.FilterName, rule.RuleIndex, subnetStr,
 		strings.ReplaceAll(rule.RuleDesc, "\n", ""))
 }
 
@@ -115,8 +115,10 @@ func (finding *splitRuleSubnet) toJSON() any {
 	for i, splitSubnet := range finding.splitSubnets {
 		splitSubnetsJSON[i] = subnetJSON{Name: splitSubnet.Name(), CIDR: splitSubnet.CIDR()}
 	}
-	res := splitRuleSubnetJSON{VpcName: finding.splitSubnets[0].VPC().Name(),
-		Rule: vpcmodel.RuleOfFilter{LayerName: rule.LayerName, FilterName: rule.FilterName,
-			RuleIndex: rule.RuleIndex, RuleDesc: rule.RuleDesc}, SplitSubnets: splitSubnetsJSON}
+	table := vpcmodel.Filter{LayerName: rule.Filter.LayerName,
+		FilterName: rule.Filter.FilterName}
+	res := splitRuleSubnetJSON{VpcName: finding.splitSubnets[0].VPC().Name(), Rule: vpcmodel.RuleOfFilter{Filter: table,
+		RuleIndex: rule.RuleIndex, RuleDesc: rule.RuleDesc},
+		SplitSubnets: splitSubnetsJSON}
 	return res
 }
