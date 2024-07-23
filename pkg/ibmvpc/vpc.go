@@ -479,8 +479,20 @@ func (nl *NaclLayer) GetRules() ([]vpcmodel.RuleOfFilter, error) {
 	return resRules, nil
 }
 
-func (nl *NaclLayer) GetFiltersToAttached() (vpcmodel.FiltersToAttached, error) {
-	return nil, nil
+func (nl *NaclLayer) GetFiltersToAttached() vpcmodel.FiltersToAttached {
+	resFiltersToAttached := vpcmodel.FiltersToAttached{}
+	for naclIndex, nacl := range nl.naclList {
+		naclName := *nacl.analyzer.naclResource.Name
+		thisFilter := &vpcmodel.Filter{LayerName: networkACL, FilterName: naclName, FilterIndex: naclIndex}
+		members := make([]vpcmodel.VPCResourceIntf, len(nacl.subnets))
+		memberIndex := 0
+		for _, subnet := range nacl.subnets {
+			members[memberIndex] = subnet
+			memberIndex++
+		}
+		resFiltersToAttached[*thisFilter] = members
+	}
+	return resFiltersToAttached
 }
 
 type NACL struct {
@@ -641,11 +653,11 @@ func (sgl *SecurityGroupLayer) ReferencedIPblocks() []*ipblock.IPBlock {
 
 func (sgl *SecurityGroupLayer) GetRules() ([]vpcmodel.RuleOfFilter, error) {
 	resRules := []vpcmodel.RuleOfFilter{}
-	for sgIndx, sg := range sgl.sgList {
+	for sgIndex, sg := range sgl.sgList {
 		sgRules := sg.analyzer.egressRules
 		sgRules = append(sgRules, sg.analyzer.ingressRules...)
 		if sg.analyzer.sgResource.Name == nil {
-			return nil, fmt.Errorf(emptyNameError, securityGroup, sgIndx)
+			return nil, fmt.Errorf(emptyNameError, securityGroup, sgIndex)
 		}
 		sgName := *sg.analyzer.sgResource.Name
 		for _, rule := range sgRules {
@@ -654,15 +666,27 @@ func (sgl *SecurityGroupLayer) GetRules() ([]vpcmodel.RuleOfFilter, error) {
 				ruleBlocks = append(ruleBlocks, rule.local)
 			}
 			ruleDesc, _, _, _ := sg.analyzer.getSGRule(rule.index)
-			resRules = append(resRules, *vpcmodel.NewRuleOfFilter(securityGroup, sgName, ruleDesc, sgIndx, rule.index,
+			resRules = append(resRules, *vpcmodel.NewRuleOfFilter(securityGroup, sgName, ruleDesc, sgIndex, rule.index,
 				ruleBlocks))
 		}
 	}
 	return resRules, nil
 }
 
-func (sgl *SecurityGroupLayer) GetFiltersToAttached() (vpcmodel.FiltersToAttached, error) {
-	return nil, nil
+func (sgl *SecurityGroupLayer) GetFiltersToAttached() vpcmodel.FiltersToAttached {
+	resFiltersToAttached := vpcmodel.FiltersToAttached{}
+	for sgIndex, sg := range sgl.sgList {
+		sgName := *sg.analyzer.sgResource.Name
+		thisFilter := &vpcmodel.Filter{LayerName: securityGroup, FilterName: sgName, FilterIndex: sgIndex}
+		members := make([]vpcmodel.VPCResourceIntf, len(sg.members))
+		memberIndex := 0
+		for _, memberNode := range sg.members {
+			members[memberIndex] = memberNode
+			memberIndex++
+		}
+		resFiltersToAttached[*thisFilter] = members
+	}
+	return resFiltersToAttached
 }
 
 type SecurityGroup struct {

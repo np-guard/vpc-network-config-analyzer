@@ -11,12 +11,12 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
-const nonConnectedTablesName = "non-connected tables"
+const redundantTablesName = "redundant tables"
 const securityGroup = "security group"
 const networkACL = "network ACL"
 
-// nonConnectedTables: tables - sgs/nacls - not connected to any endpoint/subnet
-type nonConnectedTablesLint struct {
+// redundantTablesLint: tables - sgs/nacls - that no endpoint/subnet are attached to them
+type redundantTablesLint struct {
 	basicLinter
 }
 
@@ -30,15 +30,15 @@ type nonConnectedTable struct {
 // /////////////////////////////////////////////////////////
 // lint interface implementation for filterRuleSplitSubnetLint
 // ////////////////////////////////////////////////////////
-func (lint *nonConnectedTablesLint) lintName() string {
-	return nonConnectedTablesName
+func (lint *redundantTablesLint) lintName() string {
+	return redundantTablesName
 }
 
-func (lint *nonConnectedTablesLint) lintDescription() string {
-	return "Access control tables not connected to any resource"
+func (lint *redundantTablesLint) lintDescription() string {
+	return "Access control tables for which there are no resources attached to"
 }
 
-func (lint *nonConnectedTablesLint) check() error {
+func (lint *redundantTablesLint) check() error {
 	for _, config := range lint.configs {
 		if config.IsMultipleVPCsConfig {
 			continue // no use in executing lint on dummy vpcs
@@ -50,16 +50,15 @@ func (lint *nonConnectedTablesLint) check() error {
 				layerName = networkACL
 			}
 			_, _ = filterLayer, layerName
-			//rulesDetails, err := filterLayer.GetRules()
-			//if err != nil {
-			//	return err
-			//}
-			//tablesToIPBlocks := getMapFromTablesToIPBlocks(&rulesDetails)
-			//for table, tableIPBlock := range tablesToIPBlocks {
-			//	if !tableIPBlock.Overlap(thisConfigInternalIP) {
-			//		fmt.Printf("about to add non connected table %+v\n", table)
-			//		lint.addFinding(&nonConnectedTable{layerName: layerName, vpcOfTable: config.VPC, table: table})
-			//	}
+			filtersToAttached, err := filterLayer.GetFiltersToAttached()
+			if err != nil {
+				return err
+			}
+			for table, attached := range filtersToAttached {
+				if len(attached) == 0 {
+					lint.addFinding(&nonConnectedTable{layerName: layerName, vpcOfTable: config.VPC, table: table})
+				}
+			}
 		}
 	}
 	return nil
@@ -74,7 +73,7 @@ func (finding *nonConnectedTable) vpc() []string {
 }
 
 func (finding *nonConnectedTable) string() string {
-	return fmt.Sprintf("%s %s of VPC %s has no resources connected to it", finding.layerName, finding.table.FilterName,
+	return fmt.Sprintf("%s %s of VPC %s has no resources attached to it", finding.layerName, finding.table.FilterName,
 		finding.vpc())
 }
 

@@ -35,7 +35,7 @@ func LinterExecute(configs map[string]*vpcmodel.VPCConfig) (issueFound bool, res
 	linters := []linter{
 		&filterRuleSplitSubnetLint{basicLinter: basicLint},
 		&overlappingSubnetsLint{basicLinter: basicLint},
-		&nonConnectedTablesLint{basicLinter: basicLint},
+		&redundantTablesLint{basicLinter: basicLint},
 		&blockedTCPResponseLint{connectionLinter: connLint},
 	}
 	strPerLint := []string{}
