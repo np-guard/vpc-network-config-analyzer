@@ -51,7 +51,12 @@ func genConfig(vpc *VPC, subnets []*Subnet,
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 type routesPerSubnets struct {
-	routesMap map[string][]*route // map from list of subnets to routes in their egress RT
+	routesMap map[string]*tableSpecForTest // map from list of subnets to routes in their egress RT
+}
+
+type tableSpecForTest struct {
+	tableName  string
+	routesList []*route
 }
 
 const comma = ","
@@ -72,8 +77,8 @@ func subnetsKeyToSubnets(key string, config *vpcmodel.VPCConfig) []*Subnet {
 var emptyRoutes = []*route{} // default routing table is empty
 
 var emptyRoutesAllSubnets = &routesPerSubnets{
-	routesMap: map[string][]*route{
-		strings.Join([]string{"subnet1", "subnet2", "subnet3"}, comma): emptyRoutes,
+	routesMap: map[string]*tableSpecForTest{
+		"subnet1,subnet2,subnet3": {routesList: emptyRoutes, tableName: "defaultEmptyTable"},
 	},
 }
 
@@ -84,23 +89,38 @@ var routes1 = []*route{
 	newRouteNoErr("r4", "0.0.0.0/0", "10.10.1.5", deliver, 2, "zoneB"),
 }
 
+var routes2 = []*route{
+	newRouteNoErr("r1", "0.0.0.0/0", "10.10.1.5", deliver, 2, "zoneA"),
+	newRouteNoErr("r2", "10.10.0.0/16", "", drop, 2, "zoneA"),
+	newRouteNoErr("r3", "10.11.0.0/16", "", drop, 2, "zoneB"),
+	newRouteNoErr("r4", "0.0.0.0/0", "10.10.1.5", deliver, 2, "zoneB"),
+}
+
 var routes1PartialSubnets = &routesPerSubnets{
-	routesMap: map[string][]*route{
-		"subnet2" + "," + "subnet3": emptyRoutes,
-		"subnet1":                   routes1, // changes routing for this subnet
+	routesMap: map[string]*tableSpecForTest{
+		"subnet2,subnet3": {routesList: emptyRoutes, tableName: "defaultEmptyTable"},
+		"subnet1":         {routesList: routes1, tableName: "routes1Table"}, // changes routing for this subnet
+	},
+}
+
+var routes2PartialSubnets = &routesPerSubnets{
+	routesMap: map[string]*tableSpecForTest{
+		"subnet2,subnet3": {routesList: emptyRoutes, tableName: "defaultEmptyTable"},
+		"subnet1":         {routesList: routes2, tableName: "routes2Table"}, // changes routing for this subnet
 	},
 }
 
 func newEgressRTFromRoutes(rps *routesPerSubnets, config *vpcmodel.VPCConfig, vpc *VPC) []*egressRoutingTable {
 	res := []*egressRoutingTable{}
-	for subnetsKey, routes := range rps.routesMap {
+	for subnetsKey, tableSpec := range rps.routesMap {
 		egressRT := &egressRoutingTable{}
 		implicitRT := &systemImplicitRT{vpc: vpc, config: systemRTConfigFromVPCConfig(config), vpcConfig: config}
-		if rt, err := newRoutingTable(routes, implicitRT, &vpcmodel.VPCResource{}); err == nil {
+		if rt, err := newRoutingTable(tableSpec.routesList, implicitRT, &vpcmodel.VPCResource{}); err == nil {
 			egressRT.routingTable = *rt
 		}
 		egressRT.vpc = vpc
 		egressRT.subnets = subnetsKeyToSubnets(subnetsKey, config)
+		egressRT.ResourceName = tableSpec.tableName
 		res = append(res, egressRT)
 	}
 	return res
@@ -164,13 +184,16 @@ func (test *testRTAnalyzer) run(t *testing.T) {
 		require.Contains(t, err1.Error(), test.expectedErr)
 	}
 
+	rtPathStr := path1.StringRTPath()
+	fmt.Printf("%s, %s \n", test.testName, rtPathStr)
+
 	// check path
 	if test.expectedPath.Empty() {
-		require.Nil(t, path1)
+		require.Nil(t, path1.EndpointsPath)
 	} else {
 		require.NotNil(t, path1)
 		fmt.Printf("expected path: %s\n actual path: %s\n", test.expectedPath.String(), path1.String())
-		require.True(t, path1.Equal(test.expectedPath))
+		require.True(t, path1.EndpointsPath.Equal(test.expectedPath))
 	}
 }
 
@@ -183,7 +206,8 @@ var testRTAnalyzerTests = []*testRTAnalyzer{
 	// good path tests - with emptyRoutesAllSubnets (default routing table to all subnets )
 	// TODO: identify dest as node (internal/external), and improve address/name str
 	{
-		testName:    "path from internal src to internal dst in the same vpc, different subnet",
+		testName: "path from internal src to internal dst in the same vpc, different subnet",
+		// rt path: [rt:defaultEmptyTable, action: delegate, matched: false]
 		rps:         emptyRoutesAllSubnets,
 		srcIP:       "10.10.1.8",
 		dstIP:       "10.10.3.8",
@@ -194,7 +218,8 @@ var testRTAnalyzerTests = []*testRTAnalyzer{
 	},
 
 	{
-		testName:    "dest is public internet address, path is through pgw (implicit RT)",
+		testName: "dest is public internet address, path is through pgw (implicit RT)",
+		// rt path: [rt:defaultEmptyTable, action: delegate, matched: false]
 		rps:         emptyRoutesAllSubnets,
 		srcIP:       "10.10.1.8",
 		dstIP:       "8.8.8.8",
@@ -205,7 +230,8 @@ var testRTAnalyzerTests = []*testRTAnalyzer{
 	},
 
 	{
-		testName:    "dest is public internet address, path is through fip (implicit RT)",
+		testName: "dest is public internet address, path is through fip (implicit RT)",
+		// rt path: [rt:defaultEmptyTable, action: delegate, matched: false]
 		rps:         emptyRoutesAllSubnets,
 		srcIP:       "10.10.0.5",
 		dstIP:       "8.8.8.8",
@@ -217,7 +243,8 @@ var testRTAnalyzerTests = []*testRTAnalyzer{
 
 	// good path tests - with routes1PartialSubnets (not only default routing table to all subnets )
 	{
-		testName:    "dest is public internet address, path is redirected through subnet's RT (subnet1)",
+		testName: "dest is public internet address, path is redirected through subnet's RT (subnet1)",
+		// rt path: [rt:routes1Table, action: deliver, matched: true]
 		rps:         routes1PartialSubnets,
 		srcIP:       "10.10.1.8",
 		dstIP:       "8.8.8.8",
@@ -228,7 +255,8 @@ var testRTAnalyzerTests = []*testRTAnalyzer{
 		// TODO: path from 10.10.1.5 -> external address : should be available via another network interface of the VSI (10.10.0.5) and then FIP ?
 	},
 	{
-		testName:    "dest is vpc internal address, path is delegated through subnet's RT (subnet1)",
+		testName: "dest is vpc internal address, path is delegated through subnet's RT (subnet1)",
+		// rt path: [rt:routes1Table, action: delegate, matched: true]
 		rps:         routes1PartialSubnets,
 		srcIP:       "10.10.1.8",
 		dstIP:       "10.10.3.8",
@@ -238,7 +266,18 @@ var testRTAnalyzerTests = []*testRTAnalyzer{
 			/*{IPBlock: newIPBlockFromCIDROrAddressWithoutValidation("10.10.3.8")}*/}), // (derived from system implicit RT )
 	},
 	{
-		testName:    "dest is public internet address, path is through pgw (default RT) (subnet2)",
+		testName: "dest is vpc internal address, path is drop through subnet's RT (subnet1)",
+		// rt path: "[rt:routes2Table, action: drop, matched: true]"
+		rps:          routes2PartialSubnets,
+		srcIP:        "10.10.1.8",
+		dstIP:        "10.10.3.8",
+		expectedErr:  "",
+		expectedPath: vpcmodel.Path([]*vpcmodel.Endpoint{{VpcResource: newNetIntForTest("vsi1", "10.10.1.8", "node1")}}),
+		// (derived from system implicit RT )
+	},
+	{
+		testName: "dest is public internet address, path is through pgw (default RT) (subnet2)",
+		// rt path [rt:defaultEmptyTable, action: delegate, matched: false]
 		rps:         routes1PartialSubnets,
 		srcIP:       "10.10.3.8",
 		dstIP:       "8.8.8.8",
@@ -251,7 +290,8 @@ var testRTAnalyzerTests = []*testRTAnalyzer{
 
 	// bad path tests
 	{
-		testName:    "src is not a valid internal node by address",
+		testName: "src is not a valid internal node by address",
+		// rt path: empty
 		rps:         emptyRoutesAllSubnets,
 		srcIP:       "10.10.2.8",
 		dstIP:       "10.10.3.8",

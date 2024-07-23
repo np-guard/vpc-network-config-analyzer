@@ -272,13 +272,13 @@ func getRoutes(rt *datamodel.RoutingTable) (res []*route, err error) {
 
 func parseAction(action string) (routingAction, error) {
 	switch action {
-	case "deliver":
+	case deliverStr:
 		return deliver, nil
-	case "drop":
+	case dropStr:
 		return drop, nil
-	case "delegate":
+	case delegateStr:
 		return delegate, nil
-	case "delegate_vpc":
+	case delegateVPCStr:
 		return delegateVPC, nil
 	}
 	return drop, fmt.Errorf("unknown route action: %s", action)

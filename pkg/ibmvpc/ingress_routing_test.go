@@ -461,7 +461,7 @@ func (tga *testGlobalAnalyzer) run(t *testing.T, globalAnalyzer *GlobalRTAnalyze
 	path, err := globalAnalyzer.GetRoutingPath(srcNode, dstIPBlock)
 	fmt.Printf("path: %s\n", path.String())
 	require.Nil(t, err)
-	require.True(t, path.Equal(tga.expectedPath))
+	require.True(t, path.EndpointsPath.Equal(tga.expectedPath))
 	fmt.Println("done")
 }
 

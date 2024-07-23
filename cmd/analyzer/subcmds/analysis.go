@@ -66,6 +66,7 @@ func pairRoutingAnalysis(src, dst vpcmodel.Node, analyzer *ibmvpc.GlobalRTAnalyz
 	}
 	fmt.Printf("path for src %s, dst %s:\n", src.IPBlock().String(), dstIPBlock.String())
 	fmt.Println(path.String())
+	fmt.Println(path.StringRTPath())
 	fmt.Println("")
 	return nil
 }
