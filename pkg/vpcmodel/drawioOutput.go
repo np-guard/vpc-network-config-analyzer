@@ -10,6 +10,7 @@ import (
 	"errors"
 	"slices"
 
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
 )
 
@@ -147,14 +148,14 @@ func (d *DrawioOutputFormatter) lineRouter(line *groupedConnLine, vpcResourceID 
 	default:
 		return nil
 	}
-	if group, ok := routeredEP.(*groupedEndpointsElems); ok {
-		firstRouter := d.nodeRouters[d.gen.TreeNode((*group)[0])]
-		for _, node := range *group {
-			if d.nodeRouters[d.gen.TreeNode(node)] != firstRouter {
-				return nil
-			}
-		}
-		return firstRouter
+	// collecting all the routers of the EP, if it has one router, returning it
+	epRouters := map[drawio.IconTreeNodeInterface]bool{}
+	for _, node := range endpointElemResources(routeredEP) {
+		epRouters[d.nodeRouters[d.gen.TreeNode(node)]] = true
+	}
+	if len(epRouters) == 1 {
+		router, _ := common.AnyMapEntry(epRouters)
+		return router
 	}
 	return nil
 }
