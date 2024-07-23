@@ -8,7 +8,6 @@ package linter
 
 import (
 	"fmt"
-	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -23,8 +22,9 @@ type nonConnectedTablesLint struct {
 
 // a rule with the list of subnets it splits
 type nonConnectedTable struct {
-	layerName string
-	table     vpcmodel.FilterTrafficResource
+	layerName  string
+	vpcOfTable vpcmodel.VPC
+	table      vpcmodel.Filter
 }
 
 // /////////////////////////////////////////////////////////
@@ -43,37 +43,26 @@ func (lint *nonConnectedTablesLint) check() error {
 		if config.IsMultipleVPCsConfig {
 			continue // no use in executing lint on dummy vpcs
 		}
-		thisConfigInternalIP := getInternalIPBlocks(config)
-		for _, table := range config.FilterResources {
-			tableConnected := false
-			for _, tableIPBlock := range table.ReferencedIPblocks() {
-				if tableIPBlock.Overlap(thisConfigInternalIP) {
-					tableConnected = true
-					break
-				}
-			}
+		for _, layer := range vpcmodel.FilterLayers {
+			filterLayer := config.GetFilterTrafficResourceOfKind(layer)
 			layerName := securityGroup
-			if table.Kind() == vpcmodel.NaclLayer {
+			if layer == vpcmodel.NaclLayer {
 				layerName = networkACL
 			}
-			if !tableConnected {
-				lint.addFinding(&nonConnectedTable{layerName: layerName, table: table})
-			}
+			_, _ = filterLayer, layerName
+			//rulesDetails, err := filterLayer.GetRules()
+			//if err != nil {
+			//	return err
+			//}
+			//tablesToIPBlocks := getMapFromTablesToIPBlocks(&rulesDetails)
+			//for table, tableIPBlock := range tablesToIPBlocks {
+			//	if !tableIPBlock.Overlap(thisConfigInternalIP) {
+			//		fmt.Printf("about to add non connected table %+v\n", table)
+			//		lint.addFinding(&nonConnectedTable{layerName: layerName, vpcOfTable: config.VPC, table: table})
+			//	}
 		}
 	}
 	return nil
-}
-
-// returns an IPBlock of all the internal endpoints (e.g. VSI) of a given VPCConfig
-func getInternalIPBlocks(config *vpcmodel.VPCConfig) *ipblock.IPBlock {
-	internalIPBlock := ipblock.IPBlock{}
-	for _, node := range config.Nodes {
-		if node.IsExternal() {
-			continue
-		}
-		internalIPBlock.Union(node.IPBlock())
-	}
-	return &internalIPBlock
 }
 
 ///////////////////////////////////////////////////////////
@@ -81,11 +70,11 @@ func getInternalIPBlocks(config *vpcmodel.VPCConfig) *ipblock.IPBlock {
 //////////////////////////////////////////////////////////
 
 func (finding *nonConnectedTable) vpc() []string {
-	return []string{finding.table.VPC().Name()}
+	return []string{finding.vpcOfTable.Name()}
 }
 
 func (finding *nonConnectedTable) string() string {
-	return fmt.Sprintf("%s %s of VPC %s has no resources connected to it", finding.layerName, finding.table.Name(),
+	return fmt.Sprintf("%s %s of VPC %s has no resources connected to it", finding.layerName, finding.table.FilterName,
 		finding.vpc())
 }
 
@@ -96,5 +85,5 @@ type nonConnectedTableJSON struct {
 }
 
 func (finding *nonConnectedTable) toJSON() any {
-	return nonConnectedTableJSON{vpcName: finding.vpc()[0], layerName: finding.layerName, tableName: finding.table.Name()}
+	return nonConnectedTableJSON{vpcName: finding.vpc()[0], layerName: finding.layerName, tableName: finding.table.FilterName}
 }
