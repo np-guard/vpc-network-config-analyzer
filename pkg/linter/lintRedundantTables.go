@@ -8,6 +8,7 @@ package linter
 
 import (
 	"fmt"
+
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -38,7 +39,7 @@ func (lint *redundantTablesLint) lintDescription() string {
 	return "Access control tables for which there are no resources attached to"
 }
 
-// todo: open followup issue of registering DefaultSG and DefaultNACL
+// todo: followup https://github.com/np-guard/vpc-network-config-analyzer/issues/718
 func (lint *redundantTablesLint) check() error {
 	for _, config := range lint.configs {
 		if config.IsMultipleVPCsConfig {

@@ -119,7 +119,8 @@ func (finding *splitRuleSubnet) toJSON() any {
 	}
 	table := vpcmodel.Filter{LayerName: rule.Filter.LayerName,
 		FilterName: rule.Filter.FilterName}
-	res := splitRuleSubnetJSON{VpcName: finding.vpcName, Rule: vpcmodel.RuleOfFilter{Filter: table, RuleIndex: rule.RuleIndex, RuleDesc: rule.RuleDesc},
+	res := splitRuleSubnetJSON{VpcName: finding.vpcName, Rule: vpcmodel.RuleOfFilter{Filter: table,
+		RuleIndex: rule.RuleIndex, RuleDesc: rule.RuleDesc},
 		SplitSubnets: splitSubnetsJSON}
 	return res
 }
