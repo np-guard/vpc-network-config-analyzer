@@ -25,7 +25,6 @@ type splitRuleSubnet struct {
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 func findSplitRulesSubnet(configs map[string]*vpcmodel.VPCConfig, filterLayerName string) (res []splitRuleSubnet, err error) {
-	res = []splitRuleSubnet{}
 	for _, config := range configs {
 		if config.IsMultipleVPCsConfig {
 			continue // no use in executing lint on dummy vpcs
