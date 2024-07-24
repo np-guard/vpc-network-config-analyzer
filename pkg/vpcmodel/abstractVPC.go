@@ -266,7 +266,7 @@ func NewRuleOfFilter(layerName, filterName, desc string, filterIndex, ruleIndex 
 	return &RuleOfFilter{Filter: table, RuleIndex: ruleIndex, RuleDesc: desc, IPBlocks: ipBlocks}
 }
 
-// FiltersToAttached map from each filter to the resources attached to it; e.g. from NACL to subnets
+// FiltersToAttached is a map from each filter to the resources attached to it; e.g. from NACL to subnets
 type FiltersToAttached map[Filter][]VPCResourceIntf
 
 // FilterTrafficResource capture allowed traffic between 2 endpoints
