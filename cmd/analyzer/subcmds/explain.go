@@ -25,6 +25,7 @@ const (
 	srcMaxPortFlag = "src-max-port"
 	dstMinPortFlag = "dst-min-port"
 	dstMaxPortFlag = "dst-max-port"
+	detailFlag     = "detail"
 
 	srcDstUsage = "endpoint; can be specified as a VSI name/CRN or an internal/external IP-address/CIDR;\n" +
 		"VSI name can be specified as <vsi-name> or  <vpc-name>/<vsi-name>"
@@ -41,7 +42,7 @@ func NewExplainCommand(args *inArgs) *cobra.Command {
 		},
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			args.explanationArgs = vpcmodel.NewExplanationArgs(args.eSrc, args.eDst, args.eProtocol.String(),
-				args.eSrcMinPort, args.eSrcMaxPort, args.eDstMinPort, args.eDstMaxPort)
+				args.eSrcMinPort, args.eSrcMaxPort, args.eDstMinPort, args.eDstMaxPort, args.detailExplain)
 			return analysisVPCConfigs(cmd, args, vpcmodel.Explain)
 		},
 	}
@@ -53,6 +54,7 @@ func NewExplainCommand(args *inArgs) *cobra.Command {
 	cmd.Flags().Int64Var(&args.eSrcMaxPort, srcMaxPortFlag, netp.MaxPort, "maximum source port for connection description")
 	cmd.Flags().Int64Var(&args.eDstMinPort, dstMinPortFlag, netp.MinPort, "minimum destination port for connection description")
 	cmd.Flags().Int64Var(&args.eDstMaxPort, dstMaxPortFlag, netp.MaxPort, "maximum destination port for connection description")
+	cmd.Flags().BoolVar(&args.detailExplain, detailFlag, false, "adds a section with a list of all relevant allow/deny rules")
 
 	_ = cmd.MarkFlagRequired(srcFlag)
 	_ = cmd.MarkFlagRequired(dstFlag)
@@ -86,7 +88,7 @@ func FlagSet(cmd *cobra.Command, flagName string) bool {
 }
 
 func validateExplainFlags(cmd *cobra.Command, args *inArgs) error {
-	err := validateFormatForMode(cmd.Use, []formatSetting{textFormat, debugFormat}, args)
+	err := validateFormatForMode(cmd.Use, []formatSetting{textFormat}, args)
 	if err != nil {
 		return err
 	}

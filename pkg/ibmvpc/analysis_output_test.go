@@ -67,6 +67,7 @@ type vpcGeneralTest struct {
 	ESrcMaxPort    int64
 	EDstMinPort    int64
 	EDstMaxPort    int64
+	detailExplain  bool
 }
 
 const (
@@ -80,8 +81,8 @@ const (
 	suffixOutFileDiffSubnets          = "subnetsDiff"
 	suffixOutFileDiffEndpoints        = "endpointsDiff"
 	suffixOutFileExplain              = "explain"
+	suffixOutFileDetail               = "_detail"
 	txtOutSuffix                      = ".txt"
-	debugOutSuffix                    = "_debug.txt"
 	mdOutSuffix                       = ".md"
 	jsonOutSuffix                     = ".json"
 	secJSONOutSuffix                  = "_2nd.json"
@@ -98,6 +99,7 @@ func getTestFileName(testName string,
 	uc vpcmodel.OutputUseCase,
 	grouping bool,
 	noLbAbstract bool,
+	detailExplain bool,
 	format vpcmodel.OutFormat,
 	configName string,
 	allVPCs bool) (
@@ -136,6 +138,9 @@ func getTestFileName(testName string,
 	if noLbAbstract {
 		res += suffixOutFileWithoutLbAbstraction
 	}
+	if detailExplain {
+		res += suffixOutFileDetail
+	}
 	suffix, suffixErr := getTestFileSuffix(format)
 	if suffixErr != nil {
 		return "", "", suffixErr
@@ -151,8 +156,6 @@ func getTestFileSuffix(format vpcmodel.OutFormat) (suffix string, err error) {
 	switch format {
 	case vpcmodel.Text:
 		return txtOutSuffix, nil
-	case vpcmodel.Debug:
-		return debugOutSuffix, nil
 	case vpcmodel.MD:
 		return mdOutSuffix, nil
 	case vpcmodel.JSON:
@@ -329,7 +332,7 @@ var tests = []*vpcGeneralTest{
 		format:      vpcmodel.DRAWIO,
 	},
 
-	//batch3: only vsi-level use-case, no grouping, with debug / md  output formats
+	//batch3: only vsi-level use-case, no grouping, with md output formats
 	{
 		inputConfig: "acl_testing3",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
@@ -345,22 +348,6 @@ var tests = []*vpcGeneralTest{
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		format:      vpcmodel.MD,
 	},
-	{
-		inputConfig: "acl_testing3",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:      vpcmodel.Debug,
-	},
-	{
-		inputConfig: "sg_testing1_new",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:      vpcmodel.Debug,
-	},
-	{
-		inputConfig: "demo_with_instances",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		format:      vpcmodel.Debug,
-	},
-	// disable drawio tests until supported with VPE
 	{
 		inputConfig: "acl_testing3",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
@@ -866,7 +853,7 @@ func (tt *vpcGeneralTest) runTest(t *testing.T) {
 	var explanationArgs *vpcmodel.ExplanationArgs
 	if explainUseCase {
 		explanationArgs = vpcmodel.NewExplanationArgs(tt.ESrc, tt.EDst, string(tt.EProtocol),
-			tt.ESrcMinPort, tt.ESrcMaxPort, tt.EDstMinPort, tt.EDstMaxPort)
+			tt.ESrcMinPort, tt.ESrcMaxPort, tt.EDstMinPort, tt.EDstMaxPort, tt.detailExplain)
 	}
 
 	// generate actual output for all use cases specified for this test
@@ -931,7 +918,7 @@ func initTestFileNames(tt *vpcGeneralTest,
 	allVPCs bool,
 	testDir string) error {
 	expectedFileName, actualFileName, err := getTestFileName(
-		tt.name, uc, tt.grouping, tt.noLbAbstract, tt.format, vpcName, allVPCs)
+		tt.name, uc, tt.grouping, tt.noLbAbstract, tt.detailExplain, tt.format, vpcName, allVPCs)
 	if err != nil {
 		return err
 	}

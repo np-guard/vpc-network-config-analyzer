@@ -25,7 +25,7 @@ Run `vpcanalyzer report` with one of the following subcommands.
   -c, --config stringArray      file paths to input VPC configs, can pass multiple config files
       --dump-resources string   file path to store resources collected from the cloud provider
   -f, --filename string         file path to store results
-  -o, --output string           output format; must be one of [json, txt, md, drawio, arch_drawio, svg, arch_svg, html, arch_html, debug]
+  -o, --output string           output format; must be one of [json, txt, md, drawio, arch_drawio, svg, arch_svg, html, arch_html]
   -p, --provider string         collect resources from an account in this cloud provider
   -q, --quiet                   runs quietly, reports only severe errors and results
   -r, --region stringArray      cloud region from which to collect resources, can pass multiple regions

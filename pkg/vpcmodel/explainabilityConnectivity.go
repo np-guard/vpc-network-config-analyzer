@@ -65,9 +65,9 @@ type srcDstDetails struct {
 
 type rulesAndConnDetails []*srcDstDetails
 
-func NewExplanationArgs(src, dst, protocol string, srcMinPort, srcMaxPort, dstMinPort, dstMaxPort int64) *ExplanationArgs {
+func NewExplanationArgs(src, dst, protocol string, srcMinPort, srcMaxPort, dstMinPort, dstMaxPort int64, detail bool) *ExplanationArgs {
 	return &ExplanationArgs{src: src, dst: dst, protocol: protocol,
-		srcMinPort: srcMinPort, srcMaxPort: srcMaxPort, dstMinPort: dstMinPort, dstMaxPort: dstMaxPort}
+		srcMinPort: srcMinPort, srcMaxPort: srcMaxPort, dstMinPort: dstMinPort, dstMaxPort: dstMaxPort, detail: detail}
 }
 
 type Explanation struct {
