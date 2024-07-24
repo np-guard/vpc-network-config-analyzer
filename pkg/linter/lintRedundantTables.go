@@ -8,13 +8,10 @@ package linter
 
 import (
 	"fmt"
-
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
 const redundantTablesName = "redundant tables"
-const securityGroup = "security group"
-const networkACL = "network ACL"
 
 // redundantTablesLint: tables - sgs/nacls - that no endpoint/subnet are attached to them
 type redundantTablesLint struct {
@@ -47,10 +44,7 @@ func (lint *redundantTablesLint) check() error {
 		}
 		for _, layer := range vpcmodel.FilterLayers {
 			filterLayer := config.GetFilterTrafficResourceOfKind(layer)
-			layerName := securityGroup
-			if layer == vpcmodel.NaclLayer {
-				layerName = networkACL
-			}
+			layerName := vpcmodel.FilterKindName(layer)
 			filtersToAttached := filterLayer.GetFiltersToAttached()
 			for table, attached := range filtersToAttached {
 				if len(attached) == 0 {
