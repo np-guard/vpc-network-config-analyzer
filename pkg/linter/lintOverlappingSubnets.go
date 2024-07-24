@@ -66,8 +66,8 @@ func (lint *overlappingSubnetsLint) check() error {
 // finding interface implementation for overlapSubnets
 //////////////////////////////////////////////////////////
 
-func (finding *overlapSubnets) vpc() []string {
-	return []string{finding.overlapSubnets[0].VPC().Name(), finding.overlapSubnets[1].VPC().Name()}
+func (finding *overlapSubnets) vpc() []vpcmodel.VPCResourceIntf {
+	return []vpcmodel.VPCResourceIntf{finding.overlapSubnets[0].VPC(), finding.overlapSubnets[1].VPC()}
 }
 
 func (finding *overlapSubnets) string() string {

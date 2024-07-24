@@ -81,8 +81,8 @@ func ruleSplitSubnet(subnet vpcmodel.Subnet, ruleIPBlocks []*ipblock.IPBlock) bo
 // finding interface implementation for splitRuleSubnet
 //////////////////////////////////////////////////////////
 
-func (finding *splitRuleSubnet) vpc() []string {
-	return []string{finding.splitSubnets[0].VPC().Name()}
+func (finding *splitRuleSubnet) vpc() []vpcmodel.VPCResourceIntf {
+	return []vpcmodel.VPCResourceIntf{finding.splitSubnets[0].VPC()}
 }
 
 func (finding *splitRuleSubnet) string() string {
@@ -98,7 +98,7 @@ func (finding *splitRuleSubnet) string() string {
 		subnetStr = "subnet " + subnetStr
 	}
 	return fmt.Sprintf("In VPC %s, %s %s rule's indexed %d splits %s. Splitting rule details: %s",
-		finding.vpc()[0], finding.rule.Filter.LayerName, rule.Filter.FilterName, rule.RuleIndex, subnetStr,
+		finding.vpc()[0].Name(), finding.rule.Filter.LayerName, rule.Filter.FilterName, rule.RuleIndex, subnetStr,
 		strings.ReplaceAll(rule.RuleDesc, "\n", ""))
 }
 
@@ -117,7 +117,7 @@ func (finding *splitRuleSubnet) toJSON() any {
 	}
 	table := vpcmodel.Filter{LayerName: rule.Filter.LayerName,
 		FilterName: rule.Filter.FilterName}
-	res := splitRuleSubnetJSON{VpcName: finding.splitSubnets[0].VPC().Name(), Rule: vpcmodel.RuleOfFilter{Filter: table,
+	res := splitRuleSubnetJSON{VpcName: finding.vpc()[0].Name(), Rule: vpcmodel.RuleOfFilter{Filter: table,
 		RuleIndex: rule.RuleIndex, RuleDesc: rule.RuleDesc},
 		SplitSubnets: splitSubnetsJSON}
 	return res

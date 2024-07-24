@@ -67,13 +67,13 @@ func (lint *redundantTablesLint) check() error {
 // finding interface implementation for nonConnectedTable
 //////////////////////////////////////////////////////////
 
-func (finding *nonConnectedTable) vpc() []string {
-	return []string{finding.vpcOfTable.Name()}
+func (finding *nonConnectedTable) vpc() []vpcmodel.VPCResourceIntf {
+	return []vpcmodel.VPCResourceIntf{finding.vpcOfTable}
 }
 
 func (finding *nonConnectedTable) string() string {
 	return fmt.Sprintf("%s %s of VPC %s has no resources attached to it", finding.layerName, finding.table.FilterName,
-		finding.vpc()[0])
+		finding.vpc()[0].Name())
 }
 
 type nonConnectedTableJSON struct {
@@ -83,5 +83,5 @@ type nonConnectedTableJSON struct {
 }
 
 func (finding *nonConnectedTable) toJSON() any {
-	return nonConnectedTableJSON{vpcName: finding.vpc()[0], layerName: finding.layerName, tableName: finding.table.FilterName}
+	return nonConnectedTableJSON{vpcName: finding.vpc()[0].Name(), layerName: finding.layerName, tableName: finding.table.FilterName}
 }
