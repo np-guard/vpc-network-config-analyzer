@@ -27,4 +27,8 @@ ________________________________________________________________________________
 VPC test-vpc2-ky's subnet subnet21-ky of cidr 10.240.64.0/24 and VPC zn-vpc2's subnet zn-vpc2-net1 of cidr 10.240.64.0/24  overlap in the entire subnets' CIDR range
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
-no lint "Firewall rules implying different connectivity for different endpoints within a subnet" issues
+no lint "rules of network ACLs implying different connectivity for different endpoints within a subnet" issues
+
+________________________________________________________________________________________________________________________________________________________________________________________________________
+
+no lint "rules of security groups implying different connectivity for different endpoints within a subnet" issues
