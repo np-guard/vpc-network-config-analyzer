@@ -737,6 +737,12 @@ var tests = []*vpcGeneralTest{
 		grouping:     true,
 		noLbAbstract: true,
 	},
+	{
+		inputConfig: "fabricated",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		format:      vpcmodel.HTML,
+		grouping:     true,
+	},
 }
 
 var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{
