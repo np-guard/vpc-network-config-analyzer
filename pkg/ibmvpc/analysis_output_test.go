@@ -741,7 +741,7 @@ var tests = []*vpcGeneralTest{
 		inputConfig: "fabricated",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
 		format:      vpcmodel.HTML,
-		grouping:     true,
+		grouping:    true,
 	},
 }
 
