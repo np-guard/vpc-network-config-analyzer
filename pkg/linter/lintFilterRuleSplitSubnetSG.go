@@ -26,7 +26,6 @@ func (lint *filterRuleSplitSubnetLintSG) lintDescription() string {
 	return "rules of security groups implying different connectivity for different endpoints within a subnet"
 }
 
-//nolint:all // memory aliasing needed - *splitRuleSubnet impl finding
 func (lint *filterRuleSplitSubnetLintSG) check() error {
 	rulesSplitSubnetsFound, err := findSplitRulesSubnet(lint.configs, vpcmodel.SecurityGroupLayer)
 	if err != nil {
