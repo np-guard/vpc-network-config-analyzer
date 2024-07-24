@@ -1,3 +1,9 @@
+"Access control tables for which there are no resources attached to" issues:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+network ACL corrode-kilogram-cola-mandated of VPC test-vpc1-ky has no resources attached to it
+security group shininess-disavow-whinny-canal of VPC test-vpc1-ky has no resources attached to it
+________________________________________________________________________________________________________________________________________________________________________________________________________
+
 "Firewall rules implying different connectivity for different endpoints within a subnet" issues:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In VPC test-vpc1-ky, security group sg1-ky rule's indexed 1 splits subnet subnet1-ky (10.240.10.0/24). Splitting rule details: index: 1, direction: inbound,  conns: protocol: all, remote: sg1-ky (10.240.10.4/32), local: 0.0.0.0/0

@@ -264,11 +264,11 @@ func (sgl *SecurityGroupLayer) ReferencedIPblocks() []*ipblock.IPBlock {
 
 func (sgl *SecurityGroupLayer) GetRules() ([]vpcmodel.RuleOfFilter, error) {
 	resRules := []vpcmodel.RuleOfFilter{}
-	for sgIndx, sg := range sgl.SgList {
+	for sgIndex, sg := range sgl.SgList {
 		sgRules := sg.Analyzer.egressRules
 		sgRules = append(sgRules, sg.Analyzer.ingressRules...)
 		if sg.Analyzer.SgAnalyzer.Name() == nil {
-			return nil, fmt.Errorf(EmptyNameError, securityGroup, sgIndx)
+			return nil, fmt.Errorf(EmptyNameError, securityGroup, sgIndex)
 		}
 		sgName := *sg.Analyzer.SgAnalyzer.Name()
 		for _, rule := range sgRules {
@@ -277,10 +277,26 @@ func (sgl *SecurityGroupLayer) GetRules() ([]vpcmodel.RuleOfFilter, error) {
 				ruleBlocks = append(ruleBlocks, rule.Local)
 			}
 			ruleDesc, _, _, _ := sg.Analyzer.SgAnalyzer.GetSGRule(rule.Index)
-			resRules = append(resRules, *vpcmodel.NewRuleOfFilter(securityGroup, sgName, ruleDesc, sgIndx, rule.Index, ruleBlocks))
+			resRules = append(resRules, *vpcmodel.NewRuleOfFilter(securityGroup, sgName, ruleDesc, sgIndex, rule.Index, ruleBlocks))
 		}
 	}
 	return resRules, nil
+}
+
+func (sgl *SecurityGroupLayer) GetFiltersAttachedResources() vpcmodel.FiltersAttachedResources {
+	resFiltersAttachedResources := vpcmodel.FiltersAttachedResources{}
+	for sgIndex, sg := range sgl.SgList {
+		sgName := *sg.Analyzer.SgAnalyzer.Name()
+		thisFilter := &vpcmodel.Filter{LayerName: securityGroup, FilterName: sgName, FilterIndex: sgIndex}
+		members := make([]vpcmodel.VPCResourceIntf, len(sg.Members))
+		memberIndex := 0
+		for _, memberNode := range sg.Members {
+			members[memberIndex] = memberNode
+			memberIndex++
+		}
+		resFiltersAttachedResources[*thisFilter] = members
+	}
+	return resFiltersAttachedResources
 }
 
 type SecurityGroup struct {

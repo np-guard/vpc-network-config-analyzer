@@ -56,8 +56,8 @@ func (lint *blockedTCPResponseLint) check() error {
 // finding interface implementation for overlapSubnets
 //////////////////////////////////////////////////////////
 
-func (finding *blockedTCPResponseConn) vpc() []string {
-	return []string{getVPCFromEndpointElem(finding.src).Name(), getVPCFromEndpointElem(finding.dst).Name()}
+func (finding *blockedTCPResponseConn) vpc() []vpcmodel.VPCResourceIntf {
+	return []vpcmodel.VPCResourceIntf{getVPCFromEndpointElem(finding.src), getVPCFromEndpointElem(finding.dst)}
 }
 
 func getVPCFromEndpointElem(ep vpcmodel.EndpointElem) vpcmodel.VPCResourceIntf {
@@ -69,11 +69,11 @@ func getVPCFromEndpointElem(ep vpcmodel.EndpointElem) vpcmodel.VPCResourceIntf {
 }
 
 func (finding *blockedTCPResponseConn) string() string {
-	vpcSrc := finding.vpc()[0]
-	vpcDst := finding.vpc()[1]
+	vpcSrcName := finding.vpc()[0].Name()
+	vpcDstName := finding.vpc()[1].Name()
 
 	srcToDstStr := fmt.Sprintf("from %v%s%s to %v%s%s",
-		vpcSrc, deliminator, finding.src.Name(), vpcDst, deliminator, finding.dst.Name())
+		vpcSrcName, deliminator, finding.src.Name(), vpcDstName, deliminator, finding.dst.Name())
 
 	return fmt.Sprintf("In the connection %s %s response is blocked", srcToDstStr,
 		strings.ReplaceAll(finding.tcpRspDisable.String(), "protocol: ", ""))
@@ -87,9 +87,9 @@ type blockedTCPResponseConnJSON struct {
 }
 
 func (finding *blockedTCPResponseConn) toJSON() any {
-	vpcSrc := finding.vpc()[0]
-	vpcDst := finding.vpc()[1]
-	res := blockedTCPResponseConnJSON{Src: vpcSrc + deliminator + finding.src.Name(),
-		Dst: vpcDst + deliminator + finding.dst.Name(), TCPRspDisable: connection.ToJSON(finding.tcpRspDisable)}
+	vpcSrcName := finding.vpc()[0].Name()
+	vpcDstName := finding.vpc()[1].Name()
+	res := blockedTCPResponseConnJSON{Src: vpcSrcName + deliminator + finding.src.Name(),
+		Dst: vpcDstName + deliminator + finding.dst.Name(), TCPRspDisable: connection.ToJSON(finding.tcpRspDisable)}
 	return res
 }
