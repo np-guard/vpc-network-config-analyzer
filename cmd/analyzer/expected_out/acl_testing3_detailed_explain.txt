@@ -1,0 +1,39 @@
+Explaining connectivity from 10.240.10.4 to vsi2-ky within test-vpc1-ky
+Interpreted source: vsi1-ky[10.240.10.4]
+Interpreted destination: vsi2-ky[10.240.20.4]
+=======================================================================
+
+Connections from vsi1-ky[10.240.10.4] to vsi2-ky[10.240.20.4]: protocol: TCP,UDP
+
+Path:
+	vsi1-ky[10.240.10.4] -> security group sg1-ky -> subnet1-ky -> network ACL acl1-ky -> 
+	network ACL acl2-ky -> subnet2-ky -> security group sg1-ky -> vsi2-ky[10.240.20.4]
+
+
+Details:
+~~~~~~~~
+Path is enabled; The relevant rules are:
+	Egress:
+		security group sg1-ky allows connection with the following allow rules
+			index: 0, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+		network ACL acl1-ky allows connection with the following allow and deny rules
+			index: 0, direction: outbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, conn: protocol: icmp, action: deny
+			index: 2, direction: outbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, conn: all, action: allow
+
+	Ingress:
+		network ACL acl2-ky allows connection with the following allow rules
+			index: 6, direction: inbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, conn: all, action: allow
+		security group sg1-ky allows connection with the following allow rules
+			index: 1, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+
+TCP response is enabled; The relevant rules are:
+	Egress:
+		network ACL acl2-ky allows connection with the following allow rules
+			index: 2, direction: outbound , src: 10.240.20.0/24 , dst: 10.240.10.0/24, conn: all, action: allow
+
+	Ingress:
+		network ACL acl1-ky allows connection with the following allow rules
+			index: 4, direction: inbound , src: 10.240.20.0/24 , dst: 10.240.10.0/24, conn: all, action: allow
+
+------------------------------------------------------------------------------------------------------------------------
+

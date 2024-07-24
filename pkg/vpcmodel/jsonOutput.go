@@ -24,7 +24,7 @@ func (j *JSONoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	outFile string,
 	grouping bool,
 	uc OutputUseCase,
-	explanation *Explanation) (*SingleAnalysisOutput, error) {
+	explanation *Explanation, detailExplain bool) (*SingleAnalysisOutput, error) {
 	var all interface{}
 	switch uc {
 	case AllEndpoints:

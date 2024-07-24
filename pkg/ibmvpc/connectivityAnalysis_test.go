@@ -13,7 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/np-guard/models/pkg/connection"
-	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/models/pkg/netp"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
@@ -157,19 +156,7 @@ var nc6 = &naclConfig{
 
 // tests below
 
-var expectedConnStrTest1 = `=================================== distributed inbound/outbound connections:
-10.240.10.4 => 10.240.20.4 : All Connections [inbound]
-10.240.10.4 => 10.240.20.4 : All Connections [outbound]
-10.240.20.4 => 10.240.10.4 : All Connections [inbound]
-10.240.20.4 => 10.240.10.4 : All Connections [outbound]
-=================================== combined connections:
-10.240.10.4 => 10.240.20.4 : All Connections
-10.240.20.4 => 10.240.10.4 : All Connections
-=================================== combined connections - short version:
-vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections
-vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : All Connections
-=================================== responsive combined connections - short version:
-vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections
+var expectedConnStrTest1 = `vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections
 vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : All Connections
 `
 
@@ -177,76 +164,30 @@ func TestAnalyzeConnectivity1(t *testing.T) {
 	runConnectivityTest(t, tc1, []*naclConfig{nc1}, expectedConnStrTest1)
 }
 
-var expectedConnStrTest2 = `=================================== distributed inbound/outbound connections:
-10.240.10.4 => 10.240.20.4 : All Connections [inbound]
-10.240.10.4 => 10.240.20.4 : All Connections [outbound]
-10.240.20.4 => 10.240.10.4 : All Connections [inbound]
-10.240.20.4 => 10.240.10.4 : No Connections [outbound]
-=================================== combined connections:
-10.240.10.4 => 10.240.20.4 : All Connections
-10.240.20.4 => 10.240.10.4 : No Connections
-=================================== combined connections - short version:
-vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : TCP * ; ICMP,UDP
-=================================== responsive combined connections - short version:
-vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : protocol: ICMP,UDP
+var expectedConnStrTest2 = `vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : TCP * ; ICMP,UDP
 `
 
 func TestAnalyzeConnectivity2(t *testing.T) {
 	runConnectivityTest(t, tc1, []*naclConfig{nc2, nc3}, expectedConnStrTest2)
 }
 
-var expectedConnStrTest2a = `=================================== distributed inbound/outbound connections:
-10.240.10.4 => 10.240.20.4 : protocol: ICMP [inbound]
-10.240.10.4 => 10.240.20.4 : protocol: ICMP [outbound]
-10.240.20.4 => 10.240.10.4 : No Connections [inbound]
-10.240.20.4 => 10.240.10.4 : No Connections [outbound]
-=================================== combined connections:
-10.240.10.4 => 10.240.20.4 : protocol: ICMP
-10.240.20.4 => 10.240.10.4 : No Connections
-=================================== combined connections - short version:
-vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : ICMP
-=================================== responsive combined connections - short version:
-vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : protocol: ICMP
+var expectedConnStrTest2a = `vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : ICMP
 ` // ICMP is actually enabled only unidirectional in this case, but responsive analysis does not apply to ICMP
 
 func TestAnalyzeConnectivity2a(t *testing.T) {
 	runConnectivityTest(t, tc1, []*naclConfig{nc2a, nc3a}, expectedConnStrTest2a)
 }
 
-var expectedConnStrTest3 = `=================================== distributed inbound/outbound connections:
-10.240.10.4 => 10.240.20.4 : All Connections [inbound]
-10.240.10.4 => 10.240.20.4 : All Connections [outbound]
-10.240.20.4 => 10.240.10.4 : All Connections [inbound]
-10.240.20.4 => 10.240.10.4 : protocol: TCP [outbound]
-=================================== combined connections:
-10.240.10.4 => 10.240.20.4 : All Connections
-10.240.20.4 => 10.240.10.4 : protocol: TCP
-=================================== combined connections - short version:
-vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections
+var expectedConnStrTest3 = `vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections
 vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : TCP
-=================================== responsive combined connections - short version:
-vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections
-vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : protocol: TCP
 `
 
 func TestAnalyzeConnectivity3(t *testing.T) {
 	runConnectivityTest(t, tc1, []*naclConfig{nc2, nc4}, expectedConnStrTest3)
 }
 
-var expectedConnStrTest4 = `=================================== distributed inbound/outbound connections:
-10.240.10.4 => 10.240.20.4 : All Connections [inbound]
-10.240.10.4 => 10.240.20.4 : protocol: TCP src-ports: 10-100 dst-ports: 443 [outbound]
-10.240.20.4 => 10.240.10.4 : All Connections [inbound]
-10.240.20.4 => 10.240.10.4 : protocol: TCP src-ports: 443 dst-ports: 10-100 [outbound]
-=================================== combined connections:
-10.240.10.4 => 10.240.20.4 : protocol: TCP src-ports: 10-100 dst-ports: 443
-10.240.20.4 => 10.240.10.4 : protocol: TCP src-ports: 443 dst-ports: 10-100
-=================================== combined connections - short version:
-vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : TCP src-ports: 10-100 dst-ports: 443
+var expectedConnStrTest4 = `vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : TCP src-ports: 10-100 dst-ports: 443
 vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : TCP src-ports: 443 dst-ports: 10-100
-=================================== responsive combined connections - short version:
-vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : protocol: TCP src-ports: 10-100 dst-ports: 443
-vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : protocol: TCP src-ports: 443 dst-ports: 10-100
 `
 
 func TestAnalyzeConnectivity4(t *testing.T) {
@@ -257,7 +198,7 @@ func runConnectivityTest(t *testing.T, tc *testNodesConfig, ncList []*naclConfig
 	c := createConfigFromTestConfig(tc, ncList)
 	connectivity, err := c.GetVPCNetworkConnectivity(false, false)
 	require.Nil(t, err)
-	connectivityStr := connectivity.DetailedString()
+	connectivityStr := connectivity.String()
 	fmt.Println(connectivityStr)
 	fmt.Println("done")
 	require.Equal(t, expectedStrResult, connectivityStr)
@@ -433,12 +374,7 @@ func TestAnalyzeConnectivity(t *testing.T) {
 	c := NewSimpleVPCConfig()
 	connectivity, err := c.GetVPCNetworkConnectivity(false, false)
 	require.Nil(t, err)
-	connectivityStr := connectivity.DetailedString()
+	connectivityStr := connectivity.String()
 	fmt.Println(connectivityStr)
 	fmt.Println("done")
-}
-
-func newIPBlockFromCIDROrAddressWithoutValidation(cidr string) *ipblock.IPBlock {
-	res, _ := ipblock.FromCidrOrAddress(cidr)
-	return res
 }

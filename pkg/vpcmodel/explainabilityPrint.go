@@ -25,7 +25,6 @@ const emptyString = ""
 const blockedLeft = "| "
 const blockedRight = " |"
 
-// header of txt/debug format
 func explainHeader(explanation *Explanation) string {
 	singleVpcContext := ""
 	// communication within a single vpc
@@ -116,7 +115,7 @@ func explainMissingCrossVpcRouter(src, dst string, connQuery *connection.Set) st
 // 2 is printed only when the connection is blocked. It is redundant when the entire path ("3") is printed. When
 // the connection is blocked and only part of the path is printed then 2 is printed so that the relevant information
 // is provided regardless of where the is blocking
-// 4 is printed only in debug mode
+// 4 is printed only in detailed mode
 func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connection.Set, allRulesDetails *rulesDetails,
 	verbose bool) string {
 	expDetails := g.CommonProperties.expDetails

@@ -26,7 +26,6 @@ const (
 	archSVGFormat    formatSetting = "arch_svg"
 	htmlFormat       formatSetting = "html"
 	archHTMLFormat   formatSetting = "arch_html"
-	debugFormat      formatSetting = "debug"
 
 	stringType = "string"
 )
@@ -41,7 +40,6 @@ var allFormats = []string{
 	string(archSVGFormat),
 	string(htmlFormat),
 	string(archHTMLFormat),
-	string(debugFormat),
 }
 
 func (fs *formatSetting) String() string {
@@ -89,8 +87,6 @@ func (fs *formatSetting) ToModelFormat() vpcmodel.OutFormat {
 		return vpcmodel.HTML
 	case archHTMLFormat:
 		return vpcmodel.ARCHHTML
-	case debugFormat:
-		return vpcmodel.Debug
 	}
 	return vpcmodel.Text
 }

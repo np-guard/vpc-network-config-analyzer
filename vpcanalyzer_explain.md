@@ -11,7 +11,7 @@ Examples for enabling resources:  public-gateway, security group, and network AC
 
 If the required connection is blocked, then details of the blocking resources is provided. For example, a missing Floating-IP may block traffic to public Internet, a Network ACL rule may block specific ingress/egress traffic.
 
-Setting the output format to `debug`, adds a section with a list of all relevant allow/deny rules.
+Setting the detail flag, adds a section with a list of all relevant allow/deny rules.
 
 ```
 vpcanalyzer explain [flags]
@@ -29,6 +29,7 @@ vpcanalyzer explain [flags]
       --src-max-port int   maximum source port for connection description (default 65535)
       --dst-min-port int   minimum destination port for connection description (default 1)
       --dst-max-port int   maximum destination port for connection description (default 65535)
+      --detail bool        adds a section with a list of all relevant allow/deny rules
   -h, --help               help for explain
 ```
 
@@ -37,7 +38,7 @@ vpcanalyzer explain [flags]
   -c, --config stringArray      file paths to input VPC configs, can pass multiple config files
       --dump-resources string   file path to store resources collected from the cloud provider
   -f, --filename string         file path to store results
-  -o, --output string           output format; must be one of [json, txt, md, drawio, arch_drawio, svg, arch_svg, html, arch_html, debug]
+  -o, --output string           output format; must be one of [json, txt, md, drawio, arch_drawio, svg, arch_svg, html, arch_html]
   -p, --provider string         collect resources from an account in this cloud provider
   -q, --quiet                   runs quietly, reports only severe errors and results
   -r, --region stringArray      cloud region from which to collect resources, can pass multiple regions
@@ -48,7 +49,7 @@ vpcanalyzer explain [flags]
 
 ### Example
 ```
-> vpcanalyzer explain -q -c pkg/ibmvpc/examples/input/input_sg_testing_default.json --src 10.240.30.6 --dst vsi2-ky -o debug
+> vpcanalyzer explain -q -c pkg/ibmvpc/examples/input/input_sg_testing_default.json --src 10.240.30.6 --dst vsi2-ky --detail
 Explaining connectivity from 10.240.30.6 (db-endpoint-gateway-ky[10.240.30.6]) to vsi2-ky within test-vpc1-ky
 =============================================================================================================
 
