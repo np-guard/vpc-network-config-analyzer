@@ -14,56 +14,40 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
-const splitRuleSubnetName = "rules-splitting-subnets"
-
-// filterRuleSplitSubnetLint: rules of filters that are inconsistent w.r.t. subnets.
-type filterRuleSplitSubnetLint struct {
-	basicLinter
-}
-
 // a rule with the list of subnets it splits
 type splitRuleSubnet struct {
 	rule         vpcmodel.RuleOfFilter
 	splitSubnets []vpcmodel.Subnet
 }
 
-// /////////////////////////////////////////////////////////
-// lint interface implementation for filterRuleSplitSubnetLint
-// ////////////////////////////////////////////////////////
-func (lint *filterRuleSplitSubnetLint) lintName() string {
-	return splitRuleSubnetName
-}
+////////////////////////////////////////////////////////////////////////////////////////////
+// functionality used by both filterRuleSplitSubnetLintNACL and filterRuleSplitSubnetLintSG
+////////////////////////////////////////////////////////////////////////////////////////////
 
-func (lint *filterRuleSplitSubnetLint) lintDescription() string {
-	return "Firewall rules implying different connectivity for different endpoints within a subnet"
-}
-
-func (lint *filterRuleSplitSubnetLint) check() error {
-	for _, config := range lint.configs {
+func findSplitRulesSubnet(configs map[string]*vpcmodel.VPCConfig, filterLayerName string) (res []splitRuleSubnet, err error) {
+	for _, config := range configs {
 		if config.IsMultipleVPCsConfig {
 			continue // no use in executing lint on dummy vpcs
 		}
-		for _, layer := range vpcmodel.FilterLayers {
-			filterLayer := config.GetFilterTrafficResourceOfKind(layer)
-			rules, err := filterLayer.GetRules()
-			if err != nil {
-				return err
+		filterLayer := config.GetFilterTrafficResourceOfKind(filterLayerName)
+		rules, err := filterLayer.GetRules()
+		if err != nil {
+			return nil, err
+		}
+		for _, rule := range rules {
+			subnetsSplitByRule := []vpcmodel.Subnet{}
+			for _, subnet := range config.Subnets {
+				splitSubnet := ruleSplitSubnet(subnet, rule.IPBlocks)
+				if splitSubnet {
+					subnetsSplitByRule = append(subnetsSplitByRule, subnet)
+				}
 			}
-			for _, rule := range rules {
-				subnetsSplitByRule := []vpcmodel.Subnet{}
-				for _, subnet := range config.Subnets {
-					splitSubnet := ruleSplitSubnet(subnet, rule.IPBlocks)
-					if splitSubnet {
-						subnetsSplitByRule = append(subnetsSplitByRule, subnet)
-					}
-				}
-				if len(subnetsSplitByRule) > 0 {
-					lint.addFinding(&splitRuleSubnet{rule: rule, splitSubnets: subnetsSplitByRule})
-				}
+			if len(subnetsSplitByRule) > 0 {
+				res = append(res, splitRuleSubnet{rule: rule, splitSubnets: subnetsSplitByRule})
 			}
 		}
 	}
-	return nil
+	return res, nil
 }
 
 // given a subnet and IPBlocks mentioned in a rule, returns the list
