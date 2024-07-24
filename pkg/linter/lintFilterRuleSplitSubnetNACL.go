@@ -26,13 +26,14 @@ func (lint *filterRuleSplitSubnetLintNACL) lintDescription() string {
 	return "rules of network ACLs implying different connectivity for different endpoints within a subnet"
 }
 
+//nolint:all // memory aliasing needed - *splitRuleSubnet impl finding
 func (lint *filterRuleSplitSubnetLintNACL) check() error {
 	rulesSplitSubnetsFound, err := findSplitRulesSubnet(lint.configs, vpcmodel.NaclLayer)
 	if err != nil {
 		return err
 	}
 	for _, ruleSplitSubnetsFound := range rulesSplitSubnetsFound {
-		lint.addFinding(&ruleSplitSubnetsFound) //nolint:all // memory aliasing needed - *splitRuleSubnet impl finding
+		lint.addFinding(&ruleSplitSubnetsFound)
 	}
 	return nil
 }
