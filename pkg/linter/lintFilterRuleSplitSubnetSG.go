@@ -32,7 +32,7 @@ func (lint *filterRuleSplitSubnetLintSG) check() error {
 		return err
 	}
 	for _, ruleSplitSubnetsFound := range rulesSplitSubnetsFound {
-		lint.addFinding(&ruleSplitSubnetsFound)
+		lint.addFinding(&ruleSplitSubnetsFound) //nolint:gosec // memory aliasing needed - *splitRuleSubnet impl finding
 	}
 	return nil
 }
