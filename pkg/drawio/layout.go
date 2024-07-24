@@ -358,13 +358,7 @@ func (ly *layoutS) resolveGroupedSubnetsOverlap() {
 				}
 				l1 := tn1.Location()
 				l2 := tn2.Location()
-				shareCol := (l1.firstCol.index >= l2.firstCol.index && l1.firstCol.index <= l2.lastCol.index) ||
-					(l2.firstCol.index >= l1.firstCol.index && l2.firstCol.index <= l1.lastCol.index)
-				shareRow := (l1.firstRow.index >= l2.firstRow.index && l1.firstRow.index <= l2.lastRow.index) ||
-					(l2.firstRow.index >= l1.firstRow.index && l2.firstRow.index <= l1.lastRow.index)
-				sameRow := l1.firstRow == l2.firstRow || l1.lastRow == l2.lastRow
-				sameCol := l1.firstCol == l2.firstCol || l1.lastCol == l2.lastCol
-				if shareCol && sameRow || shareRow && sameCol {
+				if squareBordersOverlap(tn1.Location(), tn2.Location()) {
 					if l1.xOffset == l2.xOffset {
 						toShrink := tn1
 						if len(tn2.groupedSubnets) < len(tn1.groupedSubnets) {
@@ -380,6 +374,15 @@ func (ly *layoutS) resolveGroupedSubnetsOverlap() {
 			}
 		}
 	}
+}
+
+// check if two squares: share a col and have the same first/last raw, or share a row and have the same first/last col
+func squareBordersOverlap(l1, l2 *Location) bool {
+	shareCol := !(l1.firstCol.index > l2.lastCol.index || l2.firstCol.index > l1.lastCol.index)
+	shareRow := !(l1.firstRow.index > l2.lastRow.index || l2.firstRow.index > l1.lastRow.index)
+	sameRow := l1.firstRow == l2.firstRow || l1.lastRow == l2.lastRow
+	sameCol := l1.firstCol == l2.firstCol || l1.lastCol == l2.lastCol
+	return shareCol && sameRow || shareRow && sameCol
 }
 
 // since we do not have subnet icons, we set the subnets smaller and the GroupSubnetsSquare bigger
