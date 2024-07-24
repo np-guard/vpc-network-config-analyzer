@@ -283,8 +283,8 @@ func (sgl *SecurityGroupLayer) GetRules() ([]vpcmodel.RuleOfFilter, error) {
 	return resRules, nil
 }
 
-func (sgl *SecurityGroupLayer) GetFiltersToAttached() vpcmodel.FiltersToAttached {
-	resFiltersToAttached := vpcmodel.FiltersToAttached{}
+func (sgl *SecurityGroupLayer) GetFiltersAttachedResources() vpcmodel.FiltersAttachedResources {
+	resFiltersAttachedResources := vpcmodel.FiltersAttachedResources{}
 	for sgIndex, sg := range sgl.SgList {
 		sgName := *sg.Analyzer.SgAnalyzer.Name()
 		thisFilter := &vpcmodel.Filter{LayerName: securityGroup, FilterName: sgName, FilterIndex: sgIndex}
@@ -294,9 +294,9 @@ func (sgl *SecurityGroupLayer) GetFiltersToAttached() vpcmodel.FiltersToAttached
 			members[memberIndex] = memberNode
 			memberIndex++
 		}
-		resFiltersToAttached[*thisFilter] = members
+		resFiltersAttachedResources[*thisFilter] = members
 	}
-	return resFiltersToAttached
+	return resFiltersAttachedResources
 }
 
 type SecurityGroup struct {

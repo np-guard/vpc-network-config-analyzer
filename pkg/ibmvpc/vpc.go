@@ -343,8 +343,8 @@ func (nl *NaclLayer) GetRules() ([]vpcmodel.RuleOfFilter, error) {
 	return resRules, nil
 }
 
-func (nl *NaclLayer) GetFiltersToAttached() vpcmodel.FiltersToAttached {
-	resFiltersToAttached := vpcmodel.FiltersToAttached{}
+func (nl *NaclLayer) GetFiltersAttachedResources() vpcmodel.FiltersAttachedResources {
+	resFiltersAttachedResources := vpcmodel.FiltersAttachedResources{}
 	for naclIndex, nacl := range nl.naclList {
 		naclName := *nacl.analyzer.naclResource.Name
 		thisFilter := &vpcmodel.Filter{LayerName: networkACL, FilterName: naclName, FilterIndex: naclIndex}
@@ -354,9 +354,9 @@ func (nl *NaclLayer) GetFiltersToAttached() vpcmodel.FiltersToAttached {
 			members[memberIndex] = subnet
 			memberIndex++
 		}
-		resFiltersToAttached[*thisFilter] = members
+		resFiltersAttachedResources[*thisFilter] = members
 	}
-	return resFiltersToAttached
+	return resFiltersAttachedResources
 }
 
 type NACL struct {

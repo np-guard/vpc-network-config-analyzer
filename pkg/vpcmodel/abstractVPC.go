@@ -266,8 +266,8 @@ func NewRuleOfFilter(layerName, filterName, desc string, filterIndex, ruleIndex 
 	return &RuleOfFilter{Filter: table, RuleIndex: ruleIndex, RuleDesc: desc, IPBlocks: ipBlocks}
 }
 
-// FiltersToAttached is a map from each filter to the resources attached to it; e.g. from NACL to subnets
-type FiltersToAttached map[Filter][]VPCResourceIntf
+// FiltersAttachedResources is a map from each filter to the resources attached to it; e.g. from NACL to subnets
+type FiltersAttachedResources map[Filter][]VPCResourceIntf
 
 // FilterTrafficResource capture allowed traffic between 2 endpoints
 type FilterTrafficResource interface {
@@ -279,8 +279,8 @@ type FilterTrafficResource interface {
 	RulesInConnectivity(src, dst Node, conn *connection.Set, isIngress bool) ([]RulesInTable, []RulesInTable, error)
 	// GetRules gets a list of all rules with description
 	GetRules() ([]RuleOfFilter, error)
-	// GetFiltersToAttached gets a map from each filter to the resources attached to it; e.g. from NACL to subnets
-	GetFiltersToAttached() FiltersToAttached
+	// GetFiltersAttachedResources gets a map from each filter to the resources attached to it; e.g. from NACL to subnets
+	GetFiltersAttachedResources() FiltersAttachedResources
 	ReferencedIPblocks() []*ipblock.IPBlock
 	ConnectivityMap() (map[string]*IPbasedConnectivityResult, error)
 	GetConnectivityOutputPerEachElemSeparately() string

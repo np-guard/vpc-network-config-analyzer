@@ -46,8 +46,8 @@ func (lint *redundantTablesLint) check() error {
 		for _, layer := range vpcmodel.FilterLayers {
 			filterLayer := config.GetFilterTrafficResourceOfKind(layer)
 			layerName := vpcmodel.FilterKindName(layer)
-			filtersToAttached := filterLayer.GetFiltersToAttached()
-			for table, attached := range filtersToAttached {
+			filtersAttachedResources := filterLayer.GetFiltersAttachedResources()
+			for table, attached := range filtersAttachedResources {
 				if len(attached) == 0 {
 					lint.addFinding(&nonConnectedTable{layerName: layerName, vpcOfTable: config.VPC, table: table})
 				}
