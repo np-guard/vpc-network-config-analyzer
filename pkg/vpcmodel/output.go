@@ -33,7 +33,6 @@ const (
 	ARCHSVG
 	HTML
 	ARCHHTML
-	Debug // extended txt format with more details
 )
 
 const (
@@ -65,6 +64,7 @@ type OutputGenerator struct {
 	subnetsConn    map[string]*VPCsubnetConnectivity
 	cfgsDiff       *diffBetweenCfgs
 	explanation    *Explanation
+	detailExplain  bool
 }
 
 func NewOutputGenerator(cConfigs *MultipleVPCConfigs, grouping bool, uc OutputUseCase,
@@ -117,6 +117,7 @@ func NewOutputGenerator(cConfigs *MultipleVPCConfigs, grouping bool, uc OutputUs
 				return nil, err
 			}
 			res.explanation = explanation
+			res.detailExplain = explanationArgs.detail
 		}
 	}
 	// only Graphic formats has a multi vpc common presentation
@@ -144,7 +145,7 @@ type SingleAnalysisOutput struct {
 func (o *OutputGenerator) Generate(f OutFormat, outFile string) (string, error) {
 	var formatter OutputFormatter
 	switch f {
-	case JSON, Text, MD, Debug:
+	case JSON, Text, MD:
 		formatter = &serialOutputFormatter{f}
 	case DRAWIO, SVG, HTML:
 		formatter = newDrawioOutputFormatter(f, o.lbAbstraction)
@@ -154,7 +155,7 @@ func (o *OutputGenerator) Generate(f OutFormat, outFile string) (string, error) 
 		return "", errors.New("unsupported output format")
 	}
 	return formatter.WriteOutput(o.configs, o.nodesConn, o.subnetsConn, o.cfgsDiff,
-		outFile, o.outputGrouping, o.useCase, o.explanation)
+		outFile, o.outputGrouping, o.useCase, o.explanation, o.detailExplain)
 }
 
 // SingleVpcOutputFormatter is an interface for a formatter that can handle only one vpc
@@ -162,7 +163,7 @@ func (o *OutputGenerator) Generate(f OutFormat, outFile string) (string, error) 
 type SingleVpcOutputFormatter interface {
 	WriteOutput(c1, c2 *VPCConfig, conn *VPCConnectivity,
 		subnetsConn *VPCsubnetConnectivity, subnetsDiff *diffBetweenCfgs,
-		outFile string, grouping bool, uc OutputUseCase, explainStruct *Explanation) (*SingleAnalysisOutput, error)
+		outFile string, grouping bool, uc OutputUseCase, explainStruct *Explanation, detailExplain bool) (*SingleAnalysisOutput, error)
 }
 
 // OutputFormatter is an interface for formatter that handle multi vpcs.
@@ -170,7 +171,7 @@ type SingleVpcOutputFormatter interface {
 type OutputFormatter interface {
 	WriteOutput(cConfigs *MultipleVPCConfigs, conn map[string]*VPCConnectivity,
 		subnetsConn map[string]*VPCsubnetConnectivity, subnetsDiff *diffBetweenCfgs,
-		outFile string, grouping bool, uc OutputUseCase, explainStruct *Explanation) (string, error)
+		outFile string, grouping bool, uc OutputUseCase, explainStruct *Explanation, detailExplain bool) (string, error)
 }
 
 // serialOutputFormatter is the formatter for json, md and txt formats.
@@ -190,15 +191,13 @@ func (of *serialOutputFormatter) createSingleVpcFormatter() SingleVpcOutputForma
 		return &TextOutputFormatter{}
 	case MD:
 		return &MDoutputFormatter{}
-	case Debug:
-		return &DebugOutputFormatter{}
 	}
 	return nil
 }
 
 func (of *serialOutputFormatter) WriteOutput(cConfigs *MultipleVPCConfigs, conns map[string]*VPCConnectivity,
 	subnetsConns map[string]*VPCsubnetConnectivity, configsDiff *diffBetweenCfgs,
-	outFile string, grouping bool, uc OutputUseCase, explainStruct *Explanation) (string, error) {
+	outFile string, grouping bool, uc OutputUseCase, explainStruct *Explanation, detailExplain bool) (string, error) {
 	singleVPCAnalysis := uc == EndpointsDiff || uc == SubnetsDiff || uc == Explain
 	if !singleVPCAnalysis {
 		outputPerVPC := make([]*SingleAnalysisOutput, len(cConfigs.Configs()))
@@ -206,7 +205,7 @@ func (of *serialOutputFormatter) WriteOutput(cConfigs *MultipleVPCConfigs, conns
 		for uid, vpcConfig := range cConfigs.Configs() {
 			vpcAnalysisOutput, err :=
 				of.createSingleVpcFormatter().WriteOutput(vpcConfig, nil, conns[uid], subnetsConns[uid],
-					configsDiff, "", grouping, uc, explainStruct)
+					configsDiff, "", grouping, uc, explainStruct, detailExplain)
 			if err != nil {
 				return "", err
 			}
@@ -226,7 +225,7 @@ func (of *serialOutputFormatter) WriteOutput(cConfigs *MultipleVPCConfigs, conns
 	}
 	vpcAnalysisOutput, err :=
 		of.createSingleVpcFormatter().WriteOutput(cConfigs.aConfig(), toCompareConfig, nil, nil,
-			configsDiff, "", grouping, uc, explainStruct)
+			configsDiff, "", grouping, uc, explainStruct, detailExplain)
 	if err != nil {
 		return "", err
 	}
@@ -247,7 +246,7 @@ func WriteToFile(content, fileName string) (string, error) {
 // 2. The info message regarding over-approximated conns, when relevant
 func getAsteriskDetails(uc OutputUseCase, hasStatelessConn, hasOverApproximatedConn bool, outFormat OutFormat) string {
 	res := ""
-	if uc != SingleSubnet && (outFormat == Text || outFormat == MD || outFormat == Debug) {
+	if uc != SingleSubnet && (outFormat == Text || outFormat == MD) {
 		if hasStatelessConn {
 			res += statefulMessage
 		}
@@ -269,7 +268,7 @@ func (of *serialOutputFormatter) AggregateVPCsOutput(outputList []*SingleAnalysi
 	})
 
 	switch of.outFormat {
-	case Text, MD, Debug:
+	case Text, MD:
 		// plain concatenation
 		vpcsOut := make([]string, len(outputList))
 		hasStatelessConn := false
@@ -302,7 +301,7 @@ func (of *serialOutputFormatter) WriteDiffOrExplainOutput(output *SingleAnalysis
 	var res string
 	var err error
 	switch of.outFormat {
-	case Text, MD, Debug: // currently, return out as is
+	case Text, MD: // currently, return out as is
 		infoMessage := getAsteriskDetails(uc, output.hasStatelessConn, output.hasOverApproximatedConn, of.outFormat)
 		res, err = WriteToFile(output.Output+infoMessage, outFile)
 	case JSON:

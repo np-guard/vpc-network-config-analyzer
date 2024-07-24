@@ -39,7 +39,6 @@ const (
 	dumpFlag         = "dump-resources"
 	quietFlag        = "quiet"
 	verboseFlag      = "verbose"
-	debugFlag        = "debug"
 )
 
 // inArgs holds parsed flag values
@@ -58,6 +57,7 @@ type inArgs struct {
 	eSrcMaxPort           int64
 	eDstMinPort           int64
 	eDstMaxPort           int64
+	detailExplain         bool
 	provider              common.Provider
 	regionList            []string
 	resourceGroup         string
