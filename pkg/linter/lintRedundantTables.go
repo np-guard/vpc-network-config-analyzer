@@ -51,7 +51,6 @@ func (lint *redundantTablesLint) check() error {
 			if layer == vpcmodel.NaclLayer {
 				layerName = networkACL
 			}
-			_, _ = filterLayer, layerName
 			filtersToAttached := filterLayer.GetFiltersToAttached()
 			for table, attached := range filtersToAttached {
 				if len(attached) == 0 {
