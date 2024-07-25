@@ -14,7 +14,7 @@ import (
 
 // a rule in which the src/dst (depending on if ingress or egress) referring to the vpc is disjoint to it or
 // has a part to withing the vpc and is not all range
-type rulesNonRelevantCIDR struct {
+type ruleNonRelevantCIDR struct {
 	rule        vpcmodel.RuleOfFilter
 	vpcResource vpcmodel.VPC
 	disjoint    bool // is the relevant src/dst block disjoint to the VPC address range;
@@ -24,7 +24,7 @@ type rulesNonRelevantCIDR struct {
 // functionality used by both SG and NACL lints
 ////////////////////////////////////////////////////////////////////////////////////////////
 
-func findRuleNonRelevantCIDR(configs map[string]*vpcmodel.VPCConfig, filterLayerName string) (res []rulesNonRelevantCIDR, err error) {
+func findRuleNonRelevantCIDR(configs map[string]*vpcmodel.VPCConfig, filterLayerName string) (res []ruleNonRelevantCIDR, err error) {
 	for _, config := range configs {
 		if config.IsMultipleVPCsConfig {
 			continue // no use in executing lint on dummy vpcs
@@ -43,7 +43,7 @@ func findRuleNonRelevantCIDR(configs map[string]*vpcmodel.VPCConfig, filterLayer
 				isDisjoint, nonDisjointNonContained = blockNonRelevantToVPC(vpcAdrressRange, rule.SrcCidr)
 			}
 			if isDisjoint || nonDisjointNonContained {
-				res = append(res, rulesNonRelevantCIDR{rule: rule, vpcResource: config.VPC, disjoint: isDisjoint})
+				res = append(res, ruleNonRelevantCIDR{rule: rule, vpcResource: config.VPC, disjoint: isDisjoint})
 			}
 		}
 	}
@@ -66,14 +66,14 @@ func blockNonRelevantToVPC(vpcAdrressRange, block *ipblock.IPBlock) (isDisjoint,
 }
 
 ///////////////////////////////////////////////////////////
-// finding interface implementation for rulesNonRelevantCIDR
+// finding interface implementation for ruleNonRelevantCIDR
 //////////////////////////////////////////////////////////
 
-func (finding *rulesNonRelevantCIDR) vpc() []vpcmodel.VPCResourceIntf {
+func (finding *ruleNonRelevantCIDR) vpc() []vpcmodel.VPCResourceIntf {
 	return []vpcmodel.VPCResourceIntf{finding.vpcResource}
 }
 
-func (finding *rulesNonRelevantCIDR) string() string {
+func (finding *ruleNonRelevantCIDR) string() string {
 	rule := finding.rule
 	var strPrefix, issueStr, strSuffix string
 	if rule.IsIngress {
@@ -86,7 +86,7 @@ func (finding *rulesNonRelevantCIDR) string() string {
 	} else {
 		issueStr = " has disjoint parts with "
 	}
-	strSuffix = fmt.Sprintf(" the VPC %s Address Range %s. Rule's details: %s", finding.vpcResource.Name(),
+	strSuffix = fmt.Sprintf(" the VPC %s Address Range %s\n\tRule's details: %s", finding.vpcResource.Name(),
 		finding.vpcResource.AddressRange().String(), rule.RuleDesc)
 	return strPrefix + issueStr + strSuffix
 }
@@ -98,7 +98,7 @@ type rulesNonRelevantCIDRJSON struct {
 	VpcAddressRange string                `json:"vpc_address_range"`
 }
 
-func (finding *rulesNonRelevantCIDR) toJSON() any {
+func (finding *ruleNonRelevantCIDR) toJSON() any {
 	rule := finding.rule
 	table := vpcmodel.Filter{LayerName: rule.Filter.LayerName,
 		FilterName: rule.Filter.FilterName}
