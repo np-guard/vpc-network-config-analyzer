@@ -130,6 +130,15 @@ func (rc *AWSresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup st
 	if err != nil {
 		return nil, err
 	}
+	err = filterVPCSAndAddExternalNodes(vpcInternalAddressRange, res)
+	if err != nil {
+		return nil, err
+	}
+
+	err = rc.getIgwConfig(res, shouldSkipVpcIds)
+	if err != nil {
+		return nil, err
+	}
 
 	printVPCConfigs(res)
 
