@@ -336,7 +336,7 @@ func (ly *layoutS) layoutSubnets() {
 // resolveGroupedSubnetsOverlap() handles overlapping GroupSubnetsSquare.
 // it makes sure that the borders of two squares will not overlap each other.
 // the borders of two squares overlap if these two condition happened:
-// 1. they have the same first raw, or the same last raw, or the same first col or the same last col
+// 1. they share a col and have the same first/last raw, or share a row and have the same first/last col
 // 2. they have the same xOffset (since xOffset == yOffset == xEndOffset == yEndOffset)
 //
 // in case we find such a pair, we shrink the smaller one by increasing its offsets
@@ -358,7 +358,7 @@ func (ly *layoutS) resolveGroupedSubnetsOverlap() {
 				}
 				l1 := tn1.Location()
 				l2 := tn2.Location()
-				if l1.firstRow == l2.firstRow || l1.firstCol == l2.firstCol || l1.lastRow == l2.lastRow || l1.lastCol == l2.lastCol {
+				if squareBordersOverlap(tn1.Location(), tn2.Location()) {
 					if l1.xOffset == l2.xOffset {
 						toShrink := tn1
 						if len(tn2.groupedSubnets) < len(tn1.groupedSubnets) {
@@ -374,6 +374,15 @@ func (ly *layoutS) resolveGroupedSubnetsOverlap() {
 			}
 		}
 	}
+}
+
+// check if two squares: share a col and have the same first/last raw, or share a row and have the same first/last col
+func squareBordersOverlap(l1, l2 *Location) bool {
+	shareCol := !(l1.firstCol.index > l2.lastCol.index || l2.firstCol.index > l1.lastCol.index)
+	shareRow := !(l1.firstRow.index > l2.lastRow.index || l2.firstRow.index > l1.lastRow.index)
+	sameRow := l1.firstRow == l2.firstRow || l1.lastRow == l2.lastRow
+	sameCol := l1.firstCol == l2.firstCol || l1.lastCol == l2.lastCol
+	return shareCol && sameRow || shareRow && sameCol
 }
 
 // since we do not have subnet icons, we set the subnets smaller and the GroupSubnetsSquare bigger
