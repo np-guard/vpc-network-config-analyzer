@@ -16,10 +16,10 @@ ________________________________________________________________________________
 
 "rules of security groups that references CIDRs not in the relevant VPC address range" issues:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-In VPC test-vpc1-ky security group sg3-ky's egress rule 0 with source 147.235.210.0/24 is disjoint to the VPC's Address Range 10.240.10.0/24, 10.240.20.0/24, 10.240.30.0/24
+In VPC test-vpc1-ky security group sg3-ky's egress rule indexed 0 with source 147.235.210.0/24 is disjoint to the VPC's Address Range 10.240.10.0/24, 10.240.20.0/24, 10.240.30.0/24
 	Rule's details: index: 0, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 147.235.210.0/24
 
-In VPC test-vpc1-ky security group sg3-ky's ingress rule 1 with destination 10.240.0.0/16 has disjoint parts with the VPC's Address Range 10.240.10.0/24, 10.240.20.0/24, 10.240.30.0/24
+In VPC test-vpc1-ky security group sg3-ky's ingress rule indexed 1 with destination 10.240.0.0/16 has disjoint parts with the VPC's Address Range 10.240.10.0/24, 10.240.20.0/24, 10.240.30.0/24
 	Rule's details: index: 1, direction: inbound,  conns: protocol: all, remote: 10.240.30.0/24, local: 10.240.0.0/16
 
 ________________________________________________________________________________________________________________________________________________________________________________________________________

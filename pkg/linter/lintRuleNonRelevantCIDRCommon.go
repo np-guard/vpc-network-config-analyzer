@@ -78,9 +78,9 @@ func (finding *ruleNonRelevantCIDR) string() string {
 	strPrefix := fmt.Sprintf("In VPC %s %s %s's ", finding.vpcResource.Name(), finding.rule.Filter.LayerName,
 		rule.Filter.FilterName)
 	if rule.IsIngress {
-		strPrefix += fmt.Sprintf("ingress rule %d with destination %s", finding.rule.RuleIndex, finding.rule.DstCidr.String())
+		strPrefix += fmt.Sprintf("ingress rule indexed %d with destination %s", finding.rule.RuleIndex, finding.rule.DstCidr.String())
 	} else {
-		strPrefix += fmt.Sprintf("egress rule %d with source %s", finding.rule.RuleIndex, finding.rule.SrcCidr.String())
+		strPrefix += fmt.Sprintf("egress rule indexed %d with source %s", finding.rule.RuleIndex, finding.rule.SrcCidr.String())
 	}
 	var issueStr, strSuffix string
 	if finding.disjoint {
