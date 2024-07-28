@@ -304,6 +304,53 @@ func (rc *AWSresourcesContainer) getSGconfig(
 	return nil
 }
 
+func (rc *AWSresourcesContainer) getIgwConfig(
+	res *vpcmodel.MultipleVPCConfigs,
+	regionToStructMap map[string]*commonvpc.Region,
+	// igwToSubnet map[string][]*commonvpc.Subnet,
+	skipByVPC map[string]bool,
+) error {
+	for _, igw := range rc.InternetGWList {
+		igwId := *igw.InternetGatewayId
+		subnets := []*commonvpc.Subnet{}
+		for _, att := range igw.Attachments {
+			vpcUID := *att.VpcId
+			if skipByVPC[vpcUID] {
+				continue
+			}
+			vpc := res.GetVPC(vpcUID).(*commonvpc.VPC)
+			subnets = append(subnets, vpc.Subnets()...)
+		}
+		routerIgw := newIGW(igwId, igwId, subnets, defaultRegionName, regionToStructMap)
+		// TODO - where to put this resource?
+		for _, att := range igw.Attachments {
+			vpcUID := *att.VpcId
+			if skipByVPC[vpcUID] {
+				continue
+			}
+			res.Config(vpcUID).RoutingResources = append(res.Config(vpcUID).RoutingResources, routerIgw)
+			res.Config(vpcUID).UIDToResource[routerIgw.ResourceUID] = routerIgw
+		}
+	}
+
+	return nil
+}
+
+func newIGW(igwName, igwCRN string, subnets []*commonvpc.Subnet, region string, regionToStructMap map[string]*commonvpc.Region) *InternetGateway {
+	srcNodes := commonvpc.GetSubnetsNodes(subnets)
+	return &InternetGateway{
+		VPCResource: vpcmodel.VPCResource{
+			ResourceName: igwName,
+			ResourceUID:  igwCRN,
+			ResourceType: commonvpc.ResourceTypePublicGateway,
+			Region:       region,
+		},
+		src:        srcNodes,
+		srcSubnets: subnets,
+		region:     commonvpc.GetRegionByName(region, regionToStructMap),
+	}
+}
+
 /********** Functions used in Debug mode ***************/
 
 func printVPCConfigs(c *vpcmodel.MultipleVPCConfigs) {

@@ -359,3 +359,12 @@ func addExternalNodes(config *vpcmodel.VPCConfig, vpcInternalAddressRange *ipblo
 	}
 	return externalNodes, nil
 }
+
+func GetSubnetsNodes(subnets []*Subnet) []vpcmodel.Node {
+	res := []vpcmodel.Node{}
+	for _, s := range subnets {
+		res = append(res, s.Nodes()...)
+	}
+	return res
+}
+

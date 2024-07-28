@@ -417,14 +417,6 @@ func (rc *IBMresourcesContainer) getSubnetsConfig(
 	return vpcInternalAddressRange, nil
 }
 
-func getSubnetsNodes(subnets []*commonvpc.Subnet) []vpcmodel.Node {
-	res := []vpcmodel.Node{}
-	for _, s := range subnets {
-		res = append(res, s.Nodes()...)
-	}
-	return res
-}
-
 func getSubnetsCidrs(subnets []*commonvpc.Subnet) []string {
 	res := []string{}
 	for _, s := range subnets {
@@ -434,7 +426,7 @@ func getSubnetsCidrs(subnets []*commonvpc.Subnet) []string {
 }
 
 func newPGW(pgwName, pgwCRN, pgwZone string, pgwToSubnet map[string][]*commonvpc.Subnet, vpc *commonvpc.VPC) *PublicGateway {
-	srcNodes := getSubnetsNodes(pgwToSubnet[pgwName])
+	srcNodes := commonvpc.GetSubnetsNodes(pgwToSubnet[pgwName])
 	return &PublicGateway{
 		VPCResource: vpcmodel.VPCResource{
 			ResourceName: pgwName,
