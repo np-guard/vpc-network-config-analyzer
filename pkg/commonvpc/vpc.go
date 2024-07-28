@@ -185,7 +185,9 @@ type NaclLayer struct {
 func (nl *NaclLayer) ConnectivityMap() (map[string]*vpcmodel.IPbasedConnectivityResult, error) {
 	res := map[string]*vpcmodel.IPbasedConnectivityResult{} // map from subnet cidr to its connectivity result
 	for _, nacl := range nl.NaclList {
+		fmt.Printf("olaaaaaaaaaaaaaaaaaaaaaaaa")
 		for subnetCidr, subnet := range nacl.Subnets {
+			fmt.Printf("*********************subnetCidr: %v\n", subnetCidr)
 			_, resConnectivity := nacl.Analyzer.GeneralConnectivityPerSubnet(subnet)
 			// TODO: currently supporting only handling full-range of subnet connectivity-map, not partial range of subnet
 			if len(resConnectivity) != 1 {

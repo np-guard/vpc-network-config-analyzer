@@ -365,3 +365,11 @@ func addExternalNodes(config *vpcmodel.VPCConfig, vpcInternalAddressRange *ipblo
 	}
 	return externalNodes, nil
 }
+
+func PrintNACLRules(nacl *NACL) {
+	numRules := nacl.Analyzer.NaclAnalyzer.GetNumberOfRules()
+	for i := 0; i < numRules; i++ {
+		strRule, _, _, err := nacl.Analyzer.NaclAnalyzer.GetNACLRule(i)
+		PrintRule(strRule, i, err)
+	}
+}

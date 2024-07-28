@@ -1518,7 +1518,7 @@ func printConfig(c *vpcmodel.VPCConfig) {
 					continue
 				}
 				logging.Debugf(strings.Join([]string{nacl.ResourceType, nacl.ResourceName, nacl.UID()}, separator))
-				printNACLRules(nacl)
+				commonvpc.PrintNACLRules(nacl)
 			}
 		case *commonvpc.SecurityGroupLayer:
 			for _, sg := range filters.SgList {
@@ -1563,13 +1563,5 @@ func printTGWAvailableRoutes(tgw *TransitGateway) {
 		for _, r := range rList {
 			logging.Debugf("%s\n", r.ToCidrList())
 		}
-	}
-}
-
-func printNACLRules(nacl *commonvpc.NACL) {
-	numRules := nacl.Analyzer.NaclAnalyzer.GetNumberOfRules()
-	for i := 0; i < numRules; i++ {
-		strRule, _, _, err := nacl.Analyzer.NaclAnalyzer.GetNACLRule(i)
-		commonvpc.PrintRule(strRule, i, err)
 	}
 }

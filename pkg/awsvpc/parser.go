@@ -131,6 +131,11 @@ func (rc *AWSresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup st
 		return nil, err
 	}
 
+	err = rc.getNACLconfig(res, shouldSkipVpcIds)
+	if err != nil {
+		return nil, err
+	}
+
 	printVPCConfigs(res)
 
 	return res, nil
@@ -290,6 +295,65 @@ func (rc *AWSresourcesContainer) getSGconfig(
 	return nil
 }
 
+func (rc *AWSresourcesContainer) getNACLconfig(
+	res *vpcmodel.MultipleVPCConfigs,
+	skipByVPC map[string]bool,
+) error {
+	naclLists := map[string][]*commonvpc.NACL{} // map from vpc uid to its nacls
+	for i := range rc.NetworkACLsList {
+		nacl := rc.NetworkACLsList[i]
+		if skipByVPC[*nacl.VpcId] {
+			continue
+		}
+		naclAnalyzer, err := commonvpc.NewNACLAnalyzer(NewIBMNACLAnalyzer(nacl))
+		if err != nil {
+			return err
+		}
+		vpcUID := *nacl.VpcId
+		vpc, err := commonvpc.GetVPCObjectByUID(res, vpcUID)
+		if err != nil {
+			return err
+		}
+
+		naclResource := &commonvpc.NACL{
+			VPCResource: vpcmodel.VPCResource{
+				ResourceName: *nacl.NetworkAclId,
+				ResourceUID:  *nacl.NetworkAclId,
+				ResourceType: commonvpc.ResourceTypeNACL,
+				VPCRef:       vpc,
+				Region:       vpc.RegionName(),
+			},
+			Analyzer: naclAnalyzer, Subnets: map[string]*commonvpc.Subnet{}}
+		naclLists[vpcUID] = append(naclLists[vpcUID], naclResource)
+		for _, subnetRef := range nacl.Associations {
+			subnetCRN := *subnetRef.SubnetId
+			if subnetResource, ok := res.Config(vpcUID).UIDToResource[subnetCRN]; ok {
+				if subnet, ok := subnetResource.(*commonvpc.Subnet); ok {
+					naclResource.Subnets[subnet.Cidr] = subnet
+				} else {
+					return fmt.Errorf("getNACLconfig: could not find subnetRef by CRN")
+				}
+			}
+		}
+	}
+
+	for vpcUID, vpcConfig := range res.Configs() {
+		vpc, err := commonvpc.GetVPCObjectByUID(res, vpcUID)
+		if err != nil {
+			return err
+		}
+		naclLayer := &commonvpc.NaclLayer{
+			VPCResource: vpcmodel.VPCResource{
+				ResourceType: vpcmodel.NaclLayer,
+				VPCRef:       vpc,
+				Region:       vpc.RegionName(),
+			},
+			NaclList: naclLists[vpcUID]}
+		vpcConfig.FilterResources = append(vpcConfig.FilterResources, naclLayer)
+	}
+	return nil
+}
+
 /********** Functions used in Debug mode ***************/
 
 func printVPCConfigs(c *vpcmodel.MultipleVPCConfigs) {
@@ -335,6 +399,14 @@ func printConfig(c *vpcmodel.VPCConfig) {
 				}
 				logging.Debugf(strings.Join([]string{sg.ResourceType, sg.ResourceName, sg.UID()}, separator))
 				commonvpc.PrintSGRules(sg)
+			}
+		case *commonvpc.NaclLayer:
+			for _, nacl := range filters.NaclList {
+				if len(nacl.Subnets) == 0 {
+					continue
+				}
+				logging.Debugf(strings.Join([]string{nacl.ResourceType, nacl.ResourceName, nacl.UID()}, separator))
+				commonvpc.PrintNACLRules(nacl)
 			}
 		default:
 			logging.Debugf("layer not supported yet")
