@@ -138,12 +138,7 @@ func (rc *AWSresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup st
 	if err != nil {
 		return nil, err
 	}
-
-	err = rc.getIgwConfig(res, regionToStructMap, shouldSkipVpcIds)
-	if err != nil {
-		return nil, err
-	}
-
+	rc.getIgwConfig(res, regionToStructMap, shouldSkipVpcIds)
 	printVPCConfigs(res)
 
 	return res, nil
@@ -307,10 +302,10 @@ func (rc *AWSresourcesContainer) getSGconfig(
 func (rc *AWSresourcesContainer) getIgwConfig(
 	res *vpcmodel.MultipleVPCConfigs,
 	regionToStructMap map[string]*commonvpc.Region,
-	skipByVPC map[string]bool,
-) error {
+	skipByVPC map[string]bool) {
 	for _, igw := range rc.InternetGWList {
-		igwId := *igw.InternetGatewayId
+		igwID := *igw.InternetGatewayId
+		igwName := igwID
 		subnets := []*commonvpc.Subnet{}
 		for _, att := range igw.Attachments {
 			vpcUID := *att.VpcId
@@ -320,7 +315,11 @@ func (rc *AWSresourcesContainer) getIgwConfig(
 			vpc := res.GetVPC(vpcUID).(*commonvpc.VPC)
 			subnets = append(subnets, vpc.Subnets()...)
 		}
-		routerIgw := newIGW(igwId, igwId, subnets, defaultRegionName, regionToStructMap)
+		if len(subnets) == 0 {
+			logging.Warnf("skipping internet gateway %s - it does not have any attached subnet\n", igwName)
+			continue
+		}
+		routerIgw := newIGW(igwName, igwID, subnets, defaultRegionName, regionToStructMap)
 		// TODO - where to put this resource?
 		for _, att := range igw.Attachments {
 			vpcUID := *att.VpcId
@@ -331,11 +330,10 @@ func (rc *AWSresourcesContainer) getIgwConfig(
 			res.Config(vpcUID).UIDToResource[routerIgw.ResourceUID] = routerIgw
 		}
 	}
-
-	return nil
 }
 
-func newIGW(igwName, igwCRN string, subnets []*commonvpc.Subnet, region string, regionToStructMap map[string]*commonvpc.Region) *InternetGateway {
+func newIGW(igwName, igwCRN string, subnets []*commonvpc.Subnet,
+	region string, regionToStructMap map[string]*commonvpc.Region) *InternetGateway {
 	srcNodes := commonvpc.GetSubnetsNodes(subnets)
 	return &InternetGateway{
 		VPCResource: vpcmodel.VPCResource{

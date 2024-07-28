@@ -28,8 +28,8 @@ func (igw *InternetGateway) Sources() []vpcmodel.Node {
 func (igw *InternetGateway) Destinations() []vpcmodel.Node {
 	return igw.destinations
 }
-func (tgw *InternetGateway) Region() *commonvpc.Region {
-	return tgw.region
+func (igw *InternetGateway) Region() *commonvpc.Region {
+	return igw.region
 }
 func (igw *InternetGateway) SetExternalDestinations(destinations []vpcmodel.Node) {
 	igw.destinations = destinations

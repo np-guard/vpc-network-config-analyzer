@@ -186,8 +186,6 @@ func GetRegionByName(regionName string, regionToStructMap map[string]*Region) *R
 
 func NewVPC(name, uid, region string, zonesToAP map[string][]string, regionToStructMap map[string]*Region) (
 	vpcNodeSet *VPC, err error) {
-	var regionPointer *Region
-	regionPointer = GetRegionByName(region, regionToStructMap)
 	vpcNodeSet = &VPC{
 		VPCResource: vpcmodel.VPCResource{
 			ResourceName: name,
@@ -196,7 +194,7 @@ func NewVPC(name, uid, region string, zonesToAP map[string][]string, regionToStr
 			Region:       region,
 		},
 		Zones:     map[string]*Zone{},
-		VPCregion: regionPointer,
+		VPCregion: GetRegionByName(region, regionToStructMap),
 		VPCnodes:  []vpcmodel.Node{},
 	}
 	for zoneName, zoneCidrsList := range zonesToAP {
