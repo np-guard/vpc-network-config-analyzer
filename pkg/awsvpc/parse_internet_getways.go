@@ -22,27 +22,28 @@ func (rc *AWSresourcesContainer) getIgwConfig(
 	skipByVPC map[string]bool,
 ) error {
 	for _, igw := range rc.InternetGWList {
-		igwName := *igw.InternetGatewayId
+		igwId := *igw.InternetGatewayId
+		subnets := []*commonvpc.Subnet{}
 		for _, att := range igw.Attachments {
-			// haim todo - support multi vpc:
 			vpcUID := *att.VpcId
 			if skipByVPC[vpcUID] {
 				continue
 			}
-			zoneToSubnets := map[*commonvpc.Zone][]*commonvpc.Subnet{}
 			vpc := res.GetVPC(vpcUID).(*commonvpc.VPC)
-			for _, subnet := range vpc.Subnets() {
-				subnetZone, _ := subnet.Zone()
-				zoneToSubnets[subnetZone] = append(zoneToSubnets[subnetZone], subnet)
+			subnets = append(subnets, vpc.Subnets()...)
+		}
+		routerIgw := newIGW(igwId, igwId, subnets, defaultRegionName, regionToStructMap)
+		// TODO - where to put this resource?
+		for _, att := range igw.Attachments {
+			vpcUID := *att.VpcId
+			if skipByVPC[vpcUID] {
+				continue
 			}
-			for zone, subnets := range zoneToSubnets {
-				igwId := igwName + vpcUID + zone.Name
-				routerIgw := newIGW(igwName, igwId, zone.Name, subnets, defaultRegionName, regionToStructMap)
-				res.Config(vpcUID).RoutingResources = append(res.Config(vpcUID).RoutingResources, routerIgw)
-				res.Config(vpcUID).UIDToResource[routerIgw.ResourceUID] = routerIgw
-			}
+			res.Config(vpcUID).RoutingResources = append(res.Config(vpcUID).RoutingResources, routerIgw)
+			res.Config(vpcUID).UIDToResource[routerIgw.ResourceUID] = routerIgw
 		}
 	}
+
 	return nil
 }
 
@@ -56,13 +57,12 @@ func getSubnetsNodes(subnets []*commonvpc.Subnet) []vpcmodel.Node {
 	return res
 }
 
-func newIGW(igwName, igwCRN, igwZone string, subnets []*commonvpc.Subnet, region string, regionToStructMap map[string]*commonvpc.Region) *InternetGateway {
+func newIGW(igwName, igwCRN string, subnets []*commonvpc.Subnet, region string, regionToStructMap map[string]*commonvpc.Region) *InternetGateway {
 	srcNodes := getSubnetsNodes(subnets)
 	return &InternetGateway{
 		VPCResource: vpcmodel.VPCResource{
 			ResourceName: igwName,
 			ResourceUID:  igwCRN,
-			Zone:         igwZone,
 			ResourceType: commonvpc.ResourceTypePublicGateway,
 			Region:       region,
 		},
