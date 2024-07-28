@@ -307,7 +307,6 @@ func (rc *AWSresourcesContainer) getSGconfig(
 func (rc *AWSresourcesContainer) getIgwConfig(
 	res *vpcmodel.MultipleVPCConfigs,
 	regionToStructMap map[string]*commonvpc.Region,
-	// igwToSubnet map[string][]*commonvpc.Subnet,
 	skipByVPC map[string]bool,
 ) error {
 	for _, igw := range rc.InternetGWList {

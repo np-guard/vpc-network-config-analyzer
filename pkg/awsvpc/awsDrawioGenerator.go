@@ -12,6 +12,7 @@ import (
 )
 func (igw *InternetGateway) ShowOnSubnetMode() bool { return true }
 
+// for now, creating a TransitGateway
 func (igw *InternetGateway) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	return drawio.NewTransitGatewayTreeNode(gen.TreeNode(igw.Region()).(*drawio.RegionTreeNode), igw.Name())
 }
