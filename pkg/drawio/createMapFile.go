@@ -13,6 +13,8 @@ import (
 	"sort"
 	"strings"
 	"text/template"
+
+	"github.com/np-guard/cloud-resource-collector/pkg/common"
 )
 
 const (
@@ -59,10 +61,10 @@ type templateData struct {
 	IsHTML       bool
 }
 
-func newTemplateData(network SquareTreeNodeInterface, explanations []ExplanationEntry, interactive bool) *templateData {
+func newTemplateData(network SquareTreeNodeInterface, explanations []ExplanationEntry, provider common.Provider, interactive bool) *templateData {
 	orderedNodes := orderNodesForTemplate(network)
 	data := &templateData{
-		newTemplateStyles(orderedNodes),
+		newTemplateStyles(orderedNodes, provider),
 		network.Width(),
 		network.Height(),
 		network.ID(),
@@ -191,9 +193,9 @@ func orderNodesForTemplate(network SquareTreeNodeInterface) []TreeNodeInterface 
 
 func CreateDrawioConnectivityMap(
 	network SquareTreeNodeInterface, subnetMode bool,
-	format FileFormat, explanations []ExplanationEntry) (string, error) {
+	format FileFormat, explanations []ExplanationEntry, provider common.Provider) (string, error) {
 	newLayout(network, subnetMode).layout()
-	data := newTemplateData(network, explanations, format == FileHTML)
+	data := newTemplateData(network, explanations, provider, format == FileHTML)
 	tmpl, err := template.New("diagram").Parse(formatsTemplate[format])
 	if err != nil {
 		return "", err

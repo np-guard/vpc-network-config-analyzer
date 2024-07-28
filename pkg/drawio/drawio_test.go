@@ -11,10 +11,12 @@ import (
 	"fmt"
 	"os"
 	"testing"
+
+	"github.com/np-guard/cloud-resource-collector/pkg/common"
 )
 
 func createFileFromNetwork(network SquareTreeNodeInterface, fileName string, subnetMode bool, format FileFormat) {
-	res, err := CreateDrawioConnectivityMap(network, subnetMode, format, nil)
+	res, err := CreateDrawioConnectivityMap(network, subnetMode, format, nil, common.IBM)
 	if err != nil {
 		fmt.Printf("Error when calling CreateDrawioConnectivityMap() for file %s:\n%s\n", fileName, err)
 	}

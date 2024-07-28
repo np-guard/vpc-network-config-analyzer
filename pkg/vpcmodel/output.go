@@ -13,6 +13,7 @@ import (
 	"slices"
 	"sort"
 	"strings"
+	"github.com/np-guard/cloud-resource-collector/pkg/common"
 )
 
 type OutFormat int64
@@ -142,7 +143,7 @@ type SingleAnalysisOutput struct {
 }
 
 // Generate returns a string representing the analysis output for all input VPCs
-func (o *OutputGenerator) Generate(f OutFormat, outFile string) (string, error) {
+func (o *OutputGenerator) Generate(f OutFormat, outFile string, provider common.Provider) (string, error) {
 	var formatter OutputFormatter
 	switch f {
 	case JSON, Text, MD:
@@ -155,7 +156,7 @@ func (o *OutputGenerator) Generate(f OutFormat, outFile string) (string, error) 
 		return "", errors.New("unsupported output format")
 	}
 	return formatter.WriteOutput(o.configs, o.nodesConn, o.subnetsConn, o.cfgsDiff,
-		outFile, o.outputGrouping, o.useCase, o.explanation, o.detailExplain)
+		outFile, o.outputGrouping, o.useCase, o.explanation, o.detailExplain, provider)
 }
 
 // SingleVpcOutputFormatter is an interface for a formatter that can handle only one vpc
@@ -171,7 +172,7 @@ type SingleVpcOutputFormatter interface {
 type OutputFormatter interface {
 	WriteOutput(cConfigs *MultipleVPCConfigs, conn map[string]*VPCConnectivity,
 		subnetsConn map[string]*VPCsubnetConnectivity, subnetsDiff *diffBetweenCfgs,
-		outFile string, grouping bool, uc OutputUseCase, explainStruct *Explanation, detailExplain bool) (string, error)
+		outFile string, grouping bool, uc OutputUseCase, explainStruct *Explanation, detailExplain bool, provider common.Provider) (string, error)
 }
 
 // serialOutputFormatter is the formatter for json, md and txt formats.
@@ -197,7 +198,7 @@ func (of *serialOutputFormatter) createSingleVpcFormatter() SingleVpcOutputForma
 
 func (of *serialOutputFormatter) WriteOutput(cConfigs *MultipleVPCConfigs, conns map[string]*VPCConnectivity,
 	subnetsConns map[string]*VPCsubnetConnectivity, configsDiff *diffBetweenCfgs,
-	outFile string, grouping bool, uc OutputUseCase, explainStruct *Explanation, detailExplain bool) (string, error) {
+	outFile string, grouping bool, uc OutputUseCase, explainStruct *Explanation, detailExplain bool, provider common.Provider) (string, error) {
 	singleVPCAnalysis := uc == EndpointsDiff || uc == SubnetsDiff || uc == Explain
 	if !singleVPCAnalysis {
 		outputPerVPC := make([]*SingleAnalysisOutput, len(cConfigs.Configs()))
