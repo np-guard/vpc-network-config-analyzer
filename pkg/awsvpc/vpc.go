@@ -100,4 +100,5 @@ func hasSubnet(listSubnets []*commonvpc.Subnet, subnet *commonvpc.Subnet) bool {
 	}
 	return false
 }
+
 /////////////////////////////////////////////////////////////

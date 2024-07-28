@@ -367,4 +367,3 @@ func GetSubnetsNodes(subnets []*Subnet) []vpcmodel.Node {
 	}
 	return res
 }
-
