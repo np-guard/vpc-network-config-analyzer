@@ -305,6 +305,7 @@ type RoutingResource interface {
 	VPCResourceIntf
 	Sources() []Node
 	Destinations() []Node
+	SetExternalDestinations([]Node)
 	AllowedConnectivity(src, dst VPCResourceIntf) (*connection.Set, error)
 	RulesInConnectivity(src, dst Node) []RulesInTable
 	AppliedFiltersKinds() map[string]bool

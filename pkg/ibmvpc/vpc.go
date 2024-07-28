@@ -484,6 +484,9 @@ func (fip *FloatingIP) Sources() []vpcmodel.Node {
 func (fip *FloatingIP) Destinations() []vpcmodel.Node {
 	return fip.destinations
 }
+func (fip *FloatingIP) SetExternalDestinations(destinations []vpcmodel.Node) {
+	fip.destinations = destinations
+}
 
 func (fip *FloatingIP) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*connection.Set, error) {
 	if areNodes, src1, dst1 := isNodesPair(src, dst); areNodes {
@@ -540,6 +543,10 @@ func (pgw *PublicGateway) Sources() []vpcmodel.Node {
 func (pgw *PublicGateway) Destinations() []vpcmodel.Node {
 	return pgw.destinations
 }
+func (pgw *PublicGateway) SetExternalDestinations(destinations []vpcmodel.Node) {
+	pgw.destinations = destinations
+}
+
 func (pgw *PublicGateway) ExternalIP() string {
 	return ""
 }
@@ -632,6 +639,9 @@ func (tgw *TransitGateway) Sources() (res []vpcmodel.Node) {
 func (tgw *TransitGateway) Destinations() (res []vpcmodel.Node) {
 	return tgw.destNodes
 }
+func (tgw *TransitGateway) SetExternalDestinations(destinations []vpcmodel.Node) {
+}
+
 func (tgw *TransitGateway) ExternalIP() string {
 	return ""
 }
