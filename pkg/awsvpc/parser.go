@@ -130,7 +130,7 @@ func (rc *AWSresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup st
 	if err != nil {
 		return nil, err
 	}
-	err = filterVPCSAndAddExternalNodes(vpcInternalAddressRange, res)
+	err = commonvpc.FilterVPCSAndAddExternalNodes(vpcInternalAddressRange, res)
 	if err != nil {
 		return nil, err
 	}

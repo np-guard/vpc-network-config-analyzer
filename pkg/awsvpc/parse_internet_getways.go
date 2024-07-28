@@ -10,10 +10,8 @@ import (
 	"errors"
 
 	"github.com/np-guard/models/pkg/connection"
-	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -109,6 +107,10 @@ func (pgw *PublicGateway) Sources() []vpcmodel.Node {
 func (pgw *PublicGateway) Destinations() []vpcmodel.Node {
 	return pgw.destinations
 }
+func (pgw *PublicGateway) SetExternalDestinations(destinations []vpcmodel.Node) {
+	pgw.destinations = destinations
+}
+
 func (pgw *PublicGateway) ExternalIP() string {
 	return ""
 }
@@ -172,72 +174,3 @@ func (pgw *PublicGateway) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) 
 	return drawio.NewGatewayTreeNode(zoneTn, pgw.Name())
 }
 func (pgw *PublicGateway) ShowOnSubnetMode() bool  { return true }
-
-
-
-
-
-
-
-// filter VPCs with empty address ranges, then add for remaining VPCs the external nodes
-func filterVPCSAndAddExternalNodes(vpcInternalAddressRange map[string]*ipblock.IPBlock, res *vpcmodel.MultipleVPCConfigs) error {
-	for vpcUID, vpcConfig := range res.Configs() {
-		if vpcInternalAddressRange[vpcUID] == nil {
-			logging.Warnf("Ignoring VPC %s, no subnets found for this VPC\n", vpcUID)
-			res.RemoveConfig(vpcUID)
-			continue
-		}
-		err := handlePublicInternetNodes(vpcConfig, vpcInternalAddressRange[vpcUID])
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func handlePublicInternetNodes(res *vpcmodel.VPCConfig, vpcInternalAddressRange *ipblock.IPBlock) error {
-	externalNodes, err := addExternalNodes(res, vpcInternalAddressRange)
-	if err != nil {
-		return err
-	}
-	publicInternetNodes := []vpcmodel.Node{}
-	for _, node := range externalNodes {
-		if node.IsPublicInternet() {
-			publicInternetNodes = append(publicInternetNodes, node)
-		}
-	}
-	// update destination of routing resources
-	for _, r := range res.RoutingResources {
-		if rPgw, ok := r.(*PublicGateway); ok {
-			rPgw.destinations = publicInternetNodes
-		}
-	}
-	return nil
-}
-
-func addExternalNodes(config *vpcmodel.VPCConfig, vpcInternalAddressRange *ipblock.IPBlock) ([]vpcmodel.Node, error) {
-	ipBlocks := []*ipblock.IPBlock{}
-	for _, f := range config.FilterResources {
-		ipBlocks = append(ipBlocks, f.ReferencedIPblocks()...)
-	}
-
-	externalRefIPBlocks := []*ipblock.IPBlock{}
-	for _, ipBlock := range ipBlocks {
-		if ipBlock.ContainedIn(vpcInternalAddressRange) {
-			continue
-		}
-		externalRefIPBlocks = append(externalRefIPBlocks, ipBlock.Subtract(vpcInternalAddressRange))
-	}
-
-	disjointRefExternalIPBlocks := ipblock.DisjointIPBlocks(externalRefIPBlocks, []*ipblock.IPBlock{})
-
-	externalNodes, err := vpcmodel.GetExternalNetworkNodes(disjointRefExternalIPBlocks)
-	if err != nil {
-		return nil, err
-	}
-	config.Nodes = append(config.Nodes, externalNodes...)
-	for _, n := range externalNodes {
-		config.UIDToResource[n.UID()] = n
-	}
-	return externalNodes, nil
-}
