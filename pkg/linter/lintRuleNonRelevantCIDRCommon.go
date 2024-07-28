@@ -8,12 +8,13 @@ package linter
 
 import (
 	"fmt"
+
 	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
 // a rule in which the src/dst (depending on if ingress or egress) referring to the vpc is disjoint to it or
-// has a part to withing the vpc and is not all range
+// has a part to within the vpc and is not all range
 type ruleNonRelevantCIDR struct {
 	rule        vpcmodel.RuleOfFilter
 	vpcResource vpcmodel.VPC
