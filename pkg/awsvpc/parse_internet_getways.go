@@ -17,12 +17,13 @@ import (
 
 func (rc *AWSresourcesContainer) getIgwConfig(
 	res *vpcmodel.MultipleVPCConfigs,
-	// pgwToSubnet map[string][]*commonvpc.Subnet,
+	regionToStructMap map[string]*commonvpc.Region,
+	// igwToSubnet map[string][]*commonvpc.Subnet,
 	skipByVPC map[string]bool,
 ) error {
-	for _, pgw := range rc.InternetGWList {
-		pgwName := *pgw.InternetGatewayId
-		for _, att := range pgw.Attachments {
+	for _, igw := range rc.InternetGWList {
+		igwName := *igw.InternetGatewayId
+		for _, att := range igw.Attachments {
 			// haim todo - support multi vpc:
 			vpcUID := *att.VpcId
 			if skipByVPC[vpcUID] {
@@ -35,14 +36,10 @@ func (rc *AWSresourcesContainer) getIgwConfig(
 				zoneToSubnets[subnetZone] = append(zoneToSubnets[subnetZone], subnet)
 			}
 			for zone, subnets := range zoneToSubnets {
-				pgwId := pgwName + vpcUID + zone.Name
-				vpc, err := commonvpc.GetVPCObjectByUID(res, vpcUID)
-				if err != nil {
-					return err
-				}
-				routerPgw := newPGW(pgwName, pgwId, zone.Name, subnets, vpc)
-				res.Config(vpcUID).RoutingResources = append(res.Config(vpcUID).RoutingResources, routerPgw)
-				res.Config(vpcUID).UIDToResource[routerPgw.ResourceUID] = routerPgw
+				igwId := igwName + vpcUID + zone.Name
+				routerIgw := newIGW(igwName, igwId, zone.Name, subnets, defaultRegionName, regionToStructMap)
+				res.Config(vpcUID).RoutingResources = append(res.Config(vpcUID).RoutingResources, routerIgw)
+				res.Config(vpcUID).UIDToResource[routerIgw.ResourceUID] = routerIgw
 			}
 		}
 	}
@@ -59,65 +56,52 @@ func getSubnetsNodes(subnets []*commonvpc.Subnet) []vpcmodel.Node {
 	return res
 }
 
-func getSubnetsCidrs(subnets []*commonvpc.Subnet) []string {
-	res := []string{}
-	for _, s := range subnets {
-		res = append(res, s.Cidr)
-	}
-	return res
-}
-
-func newPGW(pgwName, pgwCRN, pgwZone string, subnets []*commonvpc.Subnet, vpc *commonvpc.VPC) *PublicGateway {
+func newIGW(igwName, igwCRN, igwZone string, subnets []*commonvpc.Subnet, region string, regionToStructMap map[string]*commonvpc.Region) *InternetGateway {
 	srcNodes := getSubnetsNodes(subnets)
-	return &PublicGateway{
+	return &InternetGateway{
 		VPCResource: vpcmodel.VPCResource{
-			ResourceName: pgwName,
-			ResourceUID:  pgwCRN,
-			Zone:         pgwZone,
+			ResourceName: igwName,
+			ResourceUID:  igwCRN,
+			Zone:         igwZone,
 			ResourceType: commonvpc.ResourceTypePublicGateway,
-			VPCRef:       vpc,
+			Region:       region,
 		},
-		cidr:       "",
 		src:        srcNodes,
 		srcSubnets: subnets,
-		subnetCidr: getSubnetsCidrs(subnets),
-		vpc:        vpc,
-	} // TODO: get cidr from fip of the pgw
+		region:     commonvpc.GetRegionByName(region, regionToStructMap),
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-type PublicGateway struct {
+type InternetGateway struct {
 	vpcmodel.VPCResource
-	cidr         string
 	src          []vpcmodel.Node
 	destinations []vpcmodel.Node
 	srcSubnets   []*commonvpc.Subnet
-	subnetCidr   []string
-	vpc          *commonvpc.VPC
+	region       *commonvpc.Region
 }
 
-func (pgw *PublicGateway) Zone() (*commonvpc.Zone, error) {
-	return pgw.vpc.GetZoneByName(pgw.ZoneName())
+func (igw *InternetGateway) Sources() []vpcmodel.Node {
+	return igw.src
+}
+func (igw *InternetGateway) Destinations() []vpcmodel.Node {
+	return igw.destinations
+}
+func (tgw *InternetGateway) Region() *commonvpc.Region {
+	return tgw.region
+}
+func (igw *InternetGateway) SetExternalDestinations(destinations []vpcmodel.Node) {
+	igw.destinations = destinations
 }
 
-func (pgw *PublicGateway) Sources() []vpcmodel.Node {
-	return pgw.src
-}
-func (pgw *PublicGateway) Destinations() []vpcmodel.Node {
-	return pgw.destinations
-}
-func (pgw *PublicGateway) SetExternalDestinations(destinations []vpcmodel.Node) {
-	pgw.destinations = destinations
-}
-
-func (pgw *PublicGateway) ExternalIP() string {
+func (igw *InternetGateway) ExternalIP() string {
 	return ""
 }
 
-func (pgw *PublicGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*connection.Set, error) {
+func (igw *InternetGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*connection.Set, error) {
 	if areNodes, src1, dst1 := isNodesPair(src, dst); areNodes {
-		if vpcmodel.HasNode(pgw.Sources(), src1) && dst1.IsExternal() {
+		if vpcmodel.HasNode(igw.Sources(), src1) && dst1.IsExternal() {
 			return connection.All(), nil
 		}
 		return connection.None(), nil
@@ -125,7 +109,7 @@ func (pgw *PublicGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf)
 	if src.Kind() == commonvpc.ResourceTypeSubnet {
 		srcSubnet := src.(*commonvpc.Subnet)
 		if dstNode, ok := dst.(vpcmodel.Node); ok {
-			if dstNode.IsExternal() && hasSubnet(pgw.srcSubnets, srcSubnet) {
+			if dstNode.IsExternal() && hasSubnet(igw.srcSubnets, srcSubnet) {
 				return connection.All(), nil
 			}
 			return connection.None(), nil
@@ -134,19 +118,19 @@ func (pgw *PublicGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf)
 	return nil, errors.New("unexpected src/dst input types")
 }
 
-func (pgw *PublicGateway) RouterDefined(src, dst vpcmodel.Node) bool {
-	return vpcmodel.HasNode(pgw.Sources(), src) && dst.IsExternal()
+func (igw *InternetGateway) RouterDefined(src, dst vpcmodel.Node) bool {
+	return vpcmodel.HasNode(igw.Sources(), src) && dst.IsExternal()
 }
 
-func (pgw *PublicGateway) AppliedFiltersKinds() map[string]bool {
+func (igw *InternetGateway) AppliedFiltersKinds() map[string]bool {
 	return map[string]bool{vpcmodel.NaclLayer: true, vpcmodel.SecurityGroupLayer: true}
 }
 
-func (pgw *PublicGateway) RulesInConnectivity(src, dst vpcmodel.Node) []vpcmodel.RulesInTable {
+func (igw *InternetGateway) RulesInConnectivity(src, dst vpcmodel.Node) []vpcmodel.RulesInTable {
 	return nil
 }
 
-func (pgw *PublicGateway) StringOfRouterRules(listRulesInFilter []vpcmodel.RulesInTable,
+func (igw *InternetGateway) StringOfRouterRules(listRulesInFilter []vpcmodel.RulesInTable,
 	verbose bool) (string, error) {
 	return "", nil
 }
@@ -166,11 +150,7 @@ func hasSubnet(listSubnets []*commonvpc.Subnet, subnet *commonvpc.Subnet) bool {
 	return false
 }
 
-
-func (pgw *PublicGateway) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
-	// todo - how to handle this error:
-	zone, _ := pgw.Zone()
-	zoneTn := gen.TreeNode(zone).(*drawio.ZoneTreeNode)
-	return drawio.NewGatewayTreeNode(zoneTn, pgw.Name())
+func (igw *InternetGateway) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
+	return drawio.NewTransitGatewayTreeNode(gen.TreeNode(igw.Region()).(*drawio.RegionTreeNode), igw.Name())
 }
-func (pgw *PublicGateway) ShowOnSubnetMode() bool  { return true }
+func (igw *InternetGateway) ShowOnSubnetMode() bool { return true }

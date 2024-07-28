@@ -22,6 +22,9 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
+// todo - remove this when aws regions are supported:
+const defaultRegionName = "default-region"
+
 type AWSresourcesContainer struct {
 	aws.ResourcesContainer
 }
@@ -96,14 +99,15 @@ func (rc *AWSresourcesContainer) filterByVpc(vpcID string) map[string]bool {
 // containing the parsed resources in the relevant model objects
 func (rc *AWSresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup string, regions []string) (
 	*vpcmodel.MultipleVPCConfigs, error) {
-	res := vpcmodel.NewMultipleVPCConfigs("AWS Cloud") // map from VPC UID to its config
+	res := vpcmodel.NewMultipleVPCConfigs("AWS Cloud")      // map from VPC UID to its config
+	regionToStructMap := make(map[string]*commonvpc.Region) // map for caching Region objects
 	var err error
 
 	// map to filter resources, if certain VPC to analyze is specified,
 	// skip resources configured outside that VPC
 	shouldSkipVpcIds := rc.filterByVpc(vpcID)
 
-	err = rc.getVPCconfig(res, shouldSkipVpcIds)
+	err = rc.getVPCconfig(res, shouldSkipVpcIds, regionToStructMap)
 	if err != nil {
 		return nil, err
 	}
@@ -135,7 +139,7 @@ func (rc *AWSresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup st
 		return nil, err
 	}
 
-	err = rc.getIgwConfig(res, shouldSkipVpcIds)
+	err = rc.getIgwConfig(res, regionToStructMap, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
@@ -147,13 +151,14 @@ func (rc *AWSresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup st
 
 func (rc *AWSresourcesContainer) getVPCconfig(
 	res *vpcmodel.MultipleVPCConfigs,
-	skipByVPC map[string]bool) error {
+	skipByVPC map[string]bool,
+	regionToStructMap map[string]*commonvpc.Region) error {
 	for _, vpc := range rc.VpcsList {
 		if skipByVPC[*vpc.VpcId] {
 			continue // skip vpc not specified to analyze
 		}
 
-		vpcNodeSet, err := commonvpc.NewVPC(*vpc.VpcId, *vpc.VpcId, "", nil, nil)
+		vpcNodeSet, err := commonvpc.NewVPC(*vpc.VpcId, *vpc.VpcId, defaultRegionName, nil, regionToStructMap)
 		if err != nil {
 			return err
 		}

@@ -187,13 +187,7 @@ func GetRegionByName(regionName string, regionToStructMap map[string]*Region) *R
 func NewVPC(name, uid, region string, zonesToAP map[string][]string, regionToStructMap map[string]*Region) (
 	vpcNodeSet *VPC, err error) {
 	var regionPointer *Region
-	if regionToStructMap != nil {
-		regionPointer = GetRegionByName(region, regionToStructMap)
-	} else {
-		// drawio needs regions. for now, creating a region for each vpc
-		// todo - remove this else when region is supported for aws
-		regionPointer = &Region{Name: name}
-	}
+	regionPointer = GetRegionByName(region, regionToStructMap)
 	vpcNodeSet = &VPC{
 		VPCResource: vpcmodel.VPCResource{
 			ResourceName: name,
