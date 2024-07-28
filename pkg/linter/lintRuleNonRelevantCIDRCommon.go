@@ -80,7 +80,7 @@ func (finding *ruleNonRelevantCIDR) string() string {
 	if rule.IsIngress {
 		strPrefix += fmt.Sprintf("ingress rule %d with destination %s", finding.rule.RuleIndex, finding.rule.DstCidr.String())
 	} else {
-		strPrefix += fmt.Sprintf("igress rule %d with source %s", finding.rule.RuleIndex, finding.rule.SrcCidr.String())
+		strPrefix += fmt.Sprintf("egress rule %d with source %s", finding.rule.RuleIndex, finding.rule.SrcCidr.String())
 	}
 	var issueStr, strSuffix string
 	if finding.disjoint {
