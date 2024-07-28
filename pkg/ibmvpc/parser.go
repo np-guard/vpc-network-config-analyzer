@@ -1214,6 +1214,9 @@ func (rc *IBMresourcesContainer) getIKSnodesConfig(res *vpcmodel.MultipleVPCConf
 	return nil
 }
 
+////////////////////////////////////////////////////////////////////////
+// todo - the following code need to be shares with aws:
+
 // filter VPCs with empty address ranges, then add for remaining VPCs the external nodes
 func filterVPCSAndAddExternalNodes(vpcInternalAddressRange map[string]*ipblock.IPBlock, res *vpcmodel.MultipleVPCConfigs) error {
 	for vpcUID, vpcConfig := range res.Configs() {
@@ -1243,12 +1246,7 @@ func handlePublicInternetNodes(res *vpcmodel.VPCConfig, vpcInternalAddressRange 
 	}
 	// update destination of routing resources
 	for _, r := range res.RoutingResources {
-		if rFip, ok := r.(*FloatingIP); ok {
-			rFip.destinations = publicInternetNodes
-		}
-		if rPgw, ok := r.(*PublicGateway); ok {
-			rPgw.destinations = publicInternetNodes
-		}
+		r.SetExternalDestinations(publicInternetNodes)
 	}
 	return nil
 }
@@ -1279,6 +1277,9 @@ func addExternalNodes(config *vpcmodel.VPCConfig, vpcInternalAddressRange *ipblo
 	}
 	return externalNodes, nil
 }
+
+////////////////////////////////////////////////////////////////////////
+// end of todo - the following code need to be shares with aws
 
 // ////////////////////////////////////////////////////////////////
 // Load Balancer Parsing:
