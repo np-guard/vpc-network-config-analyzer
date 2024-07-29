@@ -289,12 +289,14 @@ func (of *serialOutputFormatter) AggregateVPCsOutput(outputList []*SingleAnalysi
 		infoMessage := getAsteriskDetails(uc, hasStatelessConn, hasOverApproximatedConn, of.outFormat)
 		res, err = WriteToFile(strings.Join(vpcsOut, "\n")+infoMessage, outFile)
 
-	case JSON, Synthesis:
+	case JSON:
 		all := map[string]interface{}{}
 		for _, o := range outputList {
 			all[o.VPC1Name] = o.jsonStruct
 		}
 		res, err = writeJSON(all, outFile)
+	case Synthesis:
+		res, err = writeJSON(outputList[0].jsonStruct, outFile)
 	}
 	return res, err
 }
