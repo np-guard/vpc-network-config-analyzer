@@ -27,7 +27,7 @@ func (lint *ruleNonRelevantCIDRNACLLint) lintDescription() string {
 }
 
 func (lint *ruleNonRelevantCIDRNACLLint) check() error {
-	rulesNonRelevantCIDRFound, err := findRuleNonRelevantCIDR(lint.configs, vpcmodel.SecurityGroupLayer)
+	rulesNonRelevantCIDRFound, err := findRuleNonRelevantCIDR(lint.configs, vpcmodel.NaclLayer)
 	if err != nil {
 		return err
 	}

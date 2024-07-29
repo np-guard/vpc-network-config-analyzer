@@ -23,11 +23,11 @@ func (lint *ruleNonRelevantCIDRSGLint) lintName() string {
 }
 
 func (lint *ruleNonRelevantCIDRSGLint) lintDescription() string {
-	return "rules of network ACLs that references CIDRs not in the relevant VPC address range"
+	return "rules of security groups that references CIDRs not in the relevant VPC address range"
 }
 
 func (lint *ruleNonRelevantCIDRSGLint) check() error {
-	rulesNonRelevantCIDRFound, err := findRuleNonRelevantCIDR(lint.configs, vpcmodel.NaclLayer)
+	rulesNonRelevantCIDRFound, err := findRuleNonRelevantCIDR(lint.configs, vpcmodel.SecurityGroupLayer)
 	if err != nil {
 		return err
 	}
