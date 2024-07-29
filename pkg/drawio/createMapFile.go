@@ -61,7 +61,8 @@ type templateData struct {
 	IsHTML       bool
 }
 
-func newTemplateData(network SquareTreeNodeInterface, explanations []ExplanationEntry, provider common.Provider, interactive bool) *templateData {
+func newTemplateData(network SquareTreeNodeInterface, explanations []ExplanationEntry,
+	provider common.Provider, interactive bool) *templateData {
 	orderedNodes := orderNodesForTemplate(network)
 	data := &templateData{
 		newTemplateStyles(orderedNodes, provider),
