@@ -8,7 +8,7 @@ package linter
 
 import "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 
-const ruleNonRelevantCIDRNACLName = "rules-referring-non-relevant-CIDRs-SG"
+const ruleNonRelevantCIDRNACLName = "rules-referring-non-relevant-CIDRs-NACLs"
 
 // ruleNonRelevantCIDRNACLLint: NACL rules that are references CIDRs not in the vpc
 type ruleNonRelevantCIDRNACLLint struct {
@@ -23,7 +23,7 @@ func (lint *ruleNonRelevantCIDRNACLLint) lintName() string {
 }
 
 func (lint *ruleNonRelevantCIDRNACLLint) lintDescription() string {
-	return "rules of security groups that references CIDRs not in the relevant VPC address range"
+	return "rules of network ACLs that references CIDRs not in the relevant VPC address range"
 }
 
 func (lint *ruleNonRelevantCIDRNACLLint) check() error {
