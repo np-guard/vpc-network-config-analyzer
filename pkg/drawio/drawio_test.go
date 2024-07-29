@@ -867,7 +867,7 @@ func createNetworkAws() SquareTreeNodeInterface {
 	publicNetwork := NewPublicNetworkTreeNode(network)
 	i2 := NewInternetTreeNode(publicNetwork, "Internet2")
 
-	igw1 := NewTransitGatewayTreeNode(region, "igw1")
+	igw1 := NewInternetGatewayTreeNode(region, "igw1")
 	NewConnectivityLineTreeNode(network, nis[0], i2, true, "").SetRouter(igw1)
 	NewConnectivityLineTreeNode(network, nis[1], i2, true, "").SetRouter(igw1)
 	lb := newLoadBalancerTreeNode(vpc, "lb", nil)
