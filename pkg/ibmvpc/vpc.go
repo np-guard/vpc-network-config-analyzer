@@ -329,7 +329,6 @@ func (nl *NaclLayer) GetRules() ([]vpcmodel.RuleOfFilter, error) {
 	if err1 != nil {
 		return nil, err1
 	}
-	fmt.Println()
 	resRulesEgress, err2 := nl.getIngressOrEgressRules(false)
 	if err2 != nil {
 		return nil, err2
