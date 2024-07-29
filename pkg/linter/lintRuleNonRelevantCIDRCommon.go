@@ -30,40 +30,26 @@ func findRuleNonRelevantCIDR(configs map[string]*vpcmodel.VPCConfig, filterLayer
 		if config.IsMultipleVPCsConfig {
 			continue // no use in executing lint on dummy vpcs
 		}
-		vpcAdrressRange := config.VPC.AddressRange()
+		vpcAddressRange := config.VPC.AddressRange()
 		filterLayer := config.GetFilterTrafficResourceOfKind(filterLayerName)
 		rules, err := filterLayer.GetRules()
 		if err != nil {
 			return nil, err
 		}
-		var isDisjoint, nonDisjointNonContained bool
 		for _, rule := range rules {
+			relevantBlock := rule.SrcCidr
 			if rule.IsIngress {
-				isDisjoint, nonDisjointNonContained = blockNonRelevantToVPC(vpcAdrressRange, rule.DstCidr)
-			} else {
-				isDisjoint, nonDisjointNonContained = blockNonRelevantToVPC(vpcAdrressRange, rule.SrcCidr)
+				relevantBlock = rule.DstCidr
 			}
-			if isDisjoint || nonDisjointNonContained {
-				res = append(res, ruleNonRelevantCIDR{rule: rule, vpcResource: config.VPC, disjoint: isDisjoint})
+			if !relevantBlock.Equal(ipblock.GetCidrAll()) {
+				if !relevantBlock.ContainedIn(vpcAddressRange) {
+					res = append(res, ruleNonRelevantCIDR{rule: rule, vpcResource: config.VPC,
+						disjoint: !relevantBlock.Overlap(vpcAddressRange)})
+				}
 			}
 		}
 	}
 	return res, nil
-}
-
-// returns two bools: whether block is disjoint to vpcAdrressRange
-// else, whether it is not contained in it
-func blockNonRelevantToVPC(vpcAdrressRange, block *ipblock.IPBlock) (isDisjoint, nonDisjointNonContained bool) {
-	if block.Equal(ipblock.GetCidrAll()) {
-		return false, false // non-relevant if the block is the entire range
-	}
-	if !block.Overlap(vpcAdrressRange) {
-		return true, false
-	}
-	if !block.ContainedIn(vpcAdrressRange) {
-		return false, true
-	}
-	return false, false
 }
 
 ///////////////////////////////////////////////////////////
