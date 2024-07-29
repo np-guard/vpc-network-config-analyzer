@@ -36,12 +36,13 @@ func findRuleNonRelevantCIDR(configs map[string]*vpcmodel.VPCConfig, filterLayer
 		if err != nil {
 			return nil, err
 		}
+		// for ingress dst addresses ips within the VPC, for egress src
 		for _, rule := range rules {
 			relevantBlock := rule.SrcCidr
 			if rule.IsIngress {
 				relevantBlock = rule.DstCidr
 			}
-			if !relevantBlock.Equal(ipblock.GetCidrAll()) {
+			if !relevantBlock.Equal(ipblock.GetCidrAll()) { // 0.0.0.0/0 common practice in rules
 				if !relevantBlock.ContainedIn(vpcAddressRange) {
 					res = append(res, ruleNonRelevantCIDR{rule: rule, vpcResource: config.VPC,
 						disjoint: !relevantBlock.Overlap(vpcAddressRange)})
