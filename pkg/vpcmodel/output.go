@@ -9,11 +9,11 @@ package vpcmodel
 import (
 	"errors"
 	"fmt"
+	"github.com/np-guard/cloud-resource-collector/pkg/common"
 	"os"
 	"slices"
 	"sort"
 	"strings"
-	"github.com/np-guard/cloud-resource-collector/pkg/common"
 )
 
 type OutFormat int64

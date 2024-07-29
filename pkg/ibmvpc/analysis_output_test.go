@@ -950,7 +950,7 @@ func runTestPerUseCase(t *testing.T,
 	if err != nil {
 		return err
 	}
-	actualOutput, err := og.Generate(tt.format, tt.actualOutput[uc],common.IBM)
+	actualOutput, err := og.Generate(tt.format, tt.actualOutput[uc], common.IBM)
 	if err != nil {
 		return err
 	}

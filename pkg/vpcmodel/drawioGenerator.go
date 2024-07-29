@@ -27,8 +27,8 @@ type DrawioResourceIntf interface {
 // Network(), PublicNetwork(), Cloud()
 // returns the tree nodes which are created at the constructor
 // please notice:
-// creating the cloud treeNode is provider specific (IBM, aws...).
-// currently, the input that distinguish between the providers is the cloudName, which is provided to NewDrawioGenerator() as parameter.
+// creating the cloud treeNode is vendor specific (IBM, aws...).
+// currently, the input that distinguish between the vendors is the cloudName, which is provided to NewDrawioGenerator() as parameter.
 // we might later give as parameters more information to create the cloud, or create the cloud at the specific pkg.
 type DrawioGenerator struct {
 	network       *drawio.NetworkTreeNode
