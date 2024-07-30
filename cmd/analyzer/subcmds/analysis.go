@@ -88,7 +88,7 @@ func analysisVPCConfigs(cmd *cobra.Command, inArgs *inArgs, analysisType vpcmode
 		return err
 	}
 
-	analysisOut, err := og.Generate(outFormat, inArgs.outputFile)
+	analysisOut, err := og.Generate(outFormat, inArgs.outputFile, inArgs.provider)
 	if err != nil {
 		return fmt.Errorf("output generation error: %w", err)
 	}
