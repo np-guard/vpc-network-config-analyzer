@@ -11,10 +11,12 @@ import (
 	"fmt"
 	"os"
 	"testing"
+
+	"github.com/np-guard/cloud-resource-collector/pkg/common"
 )
 
-func createFileFromNetwork(network SquareTreeNodeInterface, fileName string, subnetMode bool, format FileFormat) {
-	res, err := CreateDrawioConnectivityMap(network, subnetMode, format, nil)
+func createFileFromNetwork(network SquareTreeNodeInterface, fileName string, subnetMode bool, format FileFormat, provider common.Provider) {
+	res, err := CreateDrawioConnectivityMap(network, subnetMode, format, nil, provider)
 	if err != nil {
 		fmt.Printf("Error when calling CreateDrawioConnectivityMap() for file %s:\n%s\n", fileName, err)
 	}
@@ -26,34 +28,36 @@ func createFileFromNetwork(network SquareTreeNodeInterface, fileName string, sub
 func TestWithParsing(t *testing.T) {
 	var n SquareTreeNodeInterface
 	n = createNetwork()
-	createFileFromNetwork(n, "fake.drawio", false, FileDRAWIO)
+	createFileFromNetwork(n, "fake.drawio", false, FileDRAWIO, common.IBM)
 	n = createNetworkSubnets()
-	createFileFromNetwork(n, "fakeSubnets.drawio", true, FileDRAWIO)
+	createFileFromNetwork(n, "fakeSubnets.drawio", true, FileDRAWIO, common.IBM)
 	n = createNetwork2()
-	createFileFromNetwork(n, "fake2.drawio", false, FileDRAWIO)
+	createFileFromNetwork(n, "fake2.drawio", false, FileDRAWIO, common.IBM)
 	n = createNetworkGrouping()
-	createFileFromNetwork(n, "grouping.drawio", false, FileDRAWIO)
+	createFileFromNetwork(n, "grouping.drawio", false, FileDRAWIO, common.IBM)
 	n = createNetworkSubnetGrouping()
-	createFileFromNetwork(n, "subnetGrouping.drawio", true, FileDRAWIO)
+	createFileFromNetwork(n, "subnetGrouping.drawio", true, FileDRAWIO, common.IBM)
 	n = createNetworkSubnetGroupingBug()
-	createFileFromNetwork(n, "subnetGroupingBug.svg", true, FileSVG)
+	createFileFromNetwork(n, "subnetGroupingBug.svg", true, FileSVG, common.IBM)
 	n = createNetworkSubnetGroupingMultiVpc()
-	createFileFromNetwork(n, "subnetGroupingMultiVpc.html", true, FileHTML)
+	createFileFromNetwork(n, "subnetGroupingMultiVpc.html", true, FileHTML, common.IBM)
 	n = createNetworkSubnetGroupingOverlapping()
-	createFileFromNetwork(n, "subnetGroupingOverlapping.drawio", true, FileDRAWIO)
+	createFileFromNetwork(n, "subnetGroupingOverlapping.drawio", true, FileDRAWIO, common.IBM)
 	n = createNetworkSubnetGroupingGroupInGroup()
-	createFileFromNetwork(n, "subnetGroupingGroupInGroup.html", true, FileHTML)
+	createFileFromNetwork(n, "subnetGroupingGroupInGroup.html", true, FileHTML, common.IBM)
 	n = createEmptySquaresNetwork()
-	createFileFromNetwork(n, "empty.drawio", false, FileDRAWIO)
+	createFileFromNetwork(n, "empty.drawio", false, FileDRAWIO, common.IBM)
 	n = createEmptySquaresNetwork()
-	createFileFromNetwork(n, "emptySubnets.drawio", true, FileDRAWIO)
+	createFileFromNetwork(n, "emptySubnets.drawio", true, FileDRAWIO, common.IBM)
 
 	n = createNetworkAllTypes()
-	createFileFromNetwork(n, "all.drawio", false, FileDRAWIO)
+	createFileFromNetwork(n, "all.drawio", false, FileDRAWIO, common.IBM)
 	n = createNetworkTgw()
-	createFileFromNetwork(n, "tgws.drawio", false, FileDRAWIO)
+	createFileFromNetwork(n, "tgws.drawio", false, FileDRAWIO, common.IBM)
+	n = createNetworkAws()
+	createFileFromNetwork(n, "aws.drawio", false, FileDRAWIO, common.AWS)
 	n = createNetworkMultiSG()
-	createFileFromNetwork(n, "multiSG.html", false, FileHTML)
+	createFileFromNetwork(n, "multiSG.html", false, FileHTML, common.IBM)
 }
 
 func createNetwork() SquareTreeNodeInterface {
@@ -846,6 +850,30 @@ func createNetworkTgw() SquareTreeNodeInterface {
 	NewConnectivityLineTreeNode(network, nis[9], nis[10], true, "").SetRouter(tgw3)
 	NewConnectivityLineTreeNode(network, nis[9], nis[10], true, "").SetRouter(tgw4)
 
+	return network
+}
+
+func createNetworkAws() SquareTreeNodeInterface {
+	network := NewNetworkTreeNode()
+	cloud := NewCloudTreeNode(network, "AWS Cloud")
+	region := NewRegionTreeNode(cloud, "north")
+	nis := make([]IconTreeNodeInterface, 5)
+	vpc := NewVpcTreeNode(region, "vpc1")
+	for i := 0; i < len(nis); i++ {
+		zone := NewZoneTreeNode(vpc, "zone1")
+		subnet := NewSubnetTreeNode(zone, "subnet2", "cidr1", "acl1")
+		nis[i] = NewNITreeNode(subnet, "ni20")
+	}
+	publicNetwork := NewPublicNetworkTreeNode(network)
+	i2 := NewInternetTreeNode(publicNetwork, "Internet2")
+
+	igw1 := NewInternetGatewayTreeNode(vpc, "igw1")
+	NewConnectivityLineTreeNode(network, nis[0], i2, true, "").SetRouter(igw1)
+	NewConnectivityLineTreeNode(network, nis[1], i2, true, "").SetRouter(igw1)
+	lb := newLoadBalancerTreeNode(vpc, "lb", nil)
+	NewConnectivityLineTreeNode(network, nis[2], lb, true, "")
+	NewConnectivityLineTreeNode(network, nis[3], lb, true, "")
+	NewConnectivityLineTreeNode(network, lb, nis[4], false, "")
 	return network
 }
 
