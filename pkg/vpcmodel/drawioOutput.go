@@ -10,7 +10,8 @@ import (
 	"errors"
 	"slices"
 
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+	collector_common "github.com/np-guard/cloud-resource-collector/pkg/common"
+	common "github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
 )
 
@@ -233,7 +234,8 @@ func (d *DrawioOutputFormatter) WriteOutput(cConfigs *MultipleVPCConfigs,
 	outFile string,
 	grouping bool,
 	uc OutputUseCase,
-	explanation *Explanation, detailExplain bool) (string, error) {
+	explanation *Explanation, detailExplain bool,
+	provider collector_common.Provider) (string, error) {
 	switch uc {
 	case AllEndpoints:
 		gConn := map[string]*GroupConnLines{}
@@ -257,7 +259,7 @@ func (d *DrawioOutputFormatter) WriteOutput(cConfigs *MultipleVPCConfigs,
 		return "", errors.New("use case is not currently supported for draw.io format")
 	}
 	d.createDrawioTree()
-	res, err := drawio.CreateDrawioConnectivityMap(d.gen.Network(), d.uc == AllSubnets, d.drawioFormat(), d.createExplanations())
+	res, err := drawio.CreateDrawioConnectivityMap(d.gen.Network(), d.uc == AllSubnets, d.drawioFormat(), d.createExplanations(), provider)
 	if err != nil {
 		return "", err
 	}
@@ -283,6 +285,6 @@ func (d *ArchDrawioOutputFormatter) WriteOutput(cConfigs *MultipleVPCConfigs,
 	outFile string,
 	grouping bool,
 	uc OutputUseCase,
-	explanation *Explanation, detailExplain bool) (string, error) {
-	return d.DrawioOutputFormatter.WriteOutput(cConfigs, nil, nil, nil, outFile, grouping, uc, explanation, detailExplain)
+	explanation *Explanation, detailExplain bool, provider collector_common.Provider) (string, error) {
+	return d.DrawioOutputFormatter.WriteOutput(cConfigs, nil, nil, nil, outFile, grouping, uc, explanation, detailExplain, provider)
 }
