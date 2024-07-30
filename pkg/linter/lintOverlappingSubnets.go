@@ -39,11 +39,11 @@ func (lint *overlappingSubnetsLint) lintDescription() string {
 
 func (lint *overlappingSubnetsLint) check() error {
 	allSubnets := []vpcmodel.Subnet{}
-	for _, config := range lint.configs {
-		if config.IsMultipleVPCsConfig {
+	for i := range lint.configs {
+		if lint.configs[i].IsMultipleVPCsConfig {
 			continue
 		}
-		allSubnets = append(allSubnets, config.Subnets...)
+		allSubnets = append(allSubnets, lint.configs[i].Subnets...)
 	}
 	for i, subnet1 := range allSubnets {
 		subnet1IPBlock := subnet1.AddressRange()
@@ -102,8 +102,9 @@ type subnetJSON struct {
 
 func (finding *overlapSubnets) toJSON() any {
 	overlapsSubnetsJSON := make([]subnetJSON, 2)
-	for i, overlapSubnet := range finding.overlapSubnets {
-		overlapsSubnetsJSON[i] = subnetJSON{Name: overlapSubnet.Name(), VpcName: overlapSubnet.VPC().Name(), CIDR: overlapSubnet.CIDR()}
+	for i := range finding.overlapSubnets {
+		overlapsSubnetsJSON[i] = subnetJSON{Name: finding.overlapSubnets[i].Name(),
+			VpcName: finding.overlapSubnets[i].VPC().Name(), CIDR: finding.overlapSubnets[i].CIDR()}
 	}
 	res := overlapSubnetsJSON{OverlapSubnets: overlapsSubnetsJSON, OverlapCidr: finding.overlapIPBlocks.String()}
 	return res

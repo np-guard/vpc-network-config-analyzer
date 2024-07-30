@@ -21,8 +21,8 @@ const delimBetweenLintsChars = 200
 // todo: mechanism for disabling/enabling lint checks
 func LinterExecute(configs map[string]*vpcmodel.VPCConfig) (issueFound bool, resString string, err error) {
 	nodesConn := map[string]*vpcmodel.VPCConnectivity{}
-	for uid, vpcConfig := range configs {
-		nodesConnThisCfg, err := vpcConfig.GetVPCNetworkConnectivity(false, true)
+	for uid := range configs {
+		nodesConnThisCfg, err := configs[uid].GetVPCNetworkConnectivity(false, true)
 		if err != nil {
 			return false, "", err
 		}
@@ -42,18 +42,18 @@ func LinterExecute(configs map[string]*vpcmodel.VPCConfig) (issueFound bool, res
 		&blockedTCPResponseLint{connectionLinter: connLint},
 	}
 	strPerLint := []string{}
-	for _, thisLinter := range linters {
+	for i := range linters {
 		thisLintStr := ""
-		err := thisLinter.check()
+		err := linters[i].check()
 		if err != nil {
 			return false, "", err
 		}
-		lintFindings := thisLinter.getFindings()
+		lintFindings := linters[i].getFindings()
 		if len(lintFindings) == 0 {
-			thisLintStr = fmt.Sprintf("no lint %q issues\n", thisLinter.lintDescription())
+			thisLintStr = fmt.Sprintf("no lint %q issues\n", linters[i].lintDescription())
 		} else {
 			issueFound = true
-			thisLintStr = thisLinter.string(thisLinter.lintDescription())
+			thisLintStr = linters[i].string(linters[i].lintDescription())
 		}
 		strPerLint = append(strPerLint, thisLintStr)
 	}

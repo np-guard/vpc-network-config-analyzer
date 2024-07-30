@@ -39,17 +39,17 @@ func (lint *redundantTablesLint) lintDescription() string {
 
 // todo: followup https://github.com/np-guard/vpc-network-config-analyzer/issues/718
 func (lint *redundantTablesLint) check() error {
-	for _, config := range lint.configs {
-		if config.IsMultipleVPCsConfig {
+	for i := range lint.configs {
+		if lint.configs[i].IsMultipleVPCsConfig {
 			continue // no use in executing lint on dummy vpcs
 		}
 		for _, layer := range vpcmodel.FilterLayers {
-			filterLayer := config.GetFilterTrafficResourceOfKind(layer)
+			filterLayer := lint.configs[i].GetFilterTrafficResourceOfKind(layer)
 			layerName := vpcmodel.FilterKindName(layer)
 			filtersAttachedResources := filterLayer.GetFiltersAttachedResources()
-			for table, attached := range filtersAttachedResources {
-				if len(attached) == 0 {
-					lint.addFinding(&nonConnectedTable{layerName: layerName, vpcOfTable: config.VPC, table: table})
+			for table := range filtersAttachedResources {
+				if len(filtersAttachedResources[table]) == 0 {
+					lint.addFinding(&nonConnectedTable{layerName: layerName, vpcOfTable: lint.configs[i].VPC, table: table})
 				}
 			}
 		}

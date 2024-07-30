@@ -26,25 +26,25 @@ type ruleNonRelevantCIDR struct {
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 func findRuleNonRelevantCIDR(configs map[string]*vpcmodel.VPCConfig, filterLayerName string) (res []ruleNonRelevantCIDR, err error) {
-	for _, config := range configs {
-		if config.IsMultipleVPCsConfig {
+	for uid := range configs {
+		if configs[uid].IsMultipleVPCsConfig {
 			continue // no use in executing lint on dummy vpcs
 		}
-		vpcAddressRange := config.VPC.AddressRange()
-		filterLayer := config.GetFilterTrafficResourceOfKind(filterLayerName)
+		vpcAddressRange := configs[uid].VPC.AddressRange()
+		filterLayer := configs[uid].GetFilterTrafficResourceOfKind(filterLayerName)
 		rules, err := filterLayer.GetRules()
 		if err != nil {
 			return nil, err
 		}
 		// for ingress dst addresses ips within the VPC, for egress src
-		for _, rule := range rules {
-			relevantBlock := rule.SrcCidr
-			if rule.IsIngress {
-				relevantBlock = rule.DstCidr
+		for i := range rules {
+			relevantBlock := rules[i].SrcCidr
+			if rules[i].IsIngress {
+				relevantBlock = rules[i].DstCidr
 			}
 			if !relevantBlock.Equal(ipblock.GetCidrAll()) { // 0.0.0.0/0 common practice in rules
 				if !relevantBlock.ContainedIn(vpcAddressRange) {
-					res = append(res, ruleNonRelevantCIDR{rule: rule, vpcResource: config.VPC,
+					res = append(res, ruleNonRelevantCIDR{rule: rules[i], vpcResource: configs[uid].VPC,
 						disjoint: !relevantBlock.Overlap(vpcAddressRange)})
 				}
 			}

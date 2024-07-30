@@ -50,8 +50,8 @@ func (lint *basicLinter) getFindings() []finding {
 
 func (lint *basicLinter) string(lintDesc string) string {
 	findingsRes := make([]string, len(lint.findings))
-	for i, thisFinding := range lint.findings {
-		findingsRes[i] = thisFinding.string()
+	for i := range lint.findings {
+		findingsRes[i] = lint.findings[i].string()
 	}
 	sort.Strings(findingsRes)
 	header := fmt.Sprintf("%q %s\n", lintDesc, issues) +
@@ -61,8 +61,8 @@ func (lint *basicLinter) string(lintDesc string) string {
 
 func (lint *basicLinter) toJSON() []any {
 	res := make([]any, len(lint.findings))
-	for i, thisFinding := range lint.findings {
-		res[i] = thisFinding.toJSON()
+	for i := range lint.findings {
+		res[i] = lint.findings[i].toJSON()
 	}
 	return res
 }
