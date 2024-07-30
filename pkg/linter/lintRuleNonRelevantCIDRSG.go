@@ -31,8 +31,8 @@ func (lint *ruleNonRelevantCIDRSGLint) check() error {
 	if err != nil {
 		return err
 	}
-	for _, ruleNonRelevantCIDRFound := range rulesNonRelevantCIDRFound {
-		lint.addFinding(&ruleNonRelevantCIDRFound)
+	for i := range rulesNonRelevantCIDRFound {
+		lint.addFinding(&rulesNonRelevantCIDRFound[i])
 	}
 	return nil
 }
